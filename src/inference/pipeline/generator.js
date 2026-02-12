@@ -483,7 +483,7 @@ export class PipelineGenerator {
       profile: options.profile ?? generationDefaults.profile,
       disableCommandBatching: options.disableCommandBatching ?? generationDefaults.disableCommandBatching,
       disableMultiTokenDecode: options.disableMultiTokenDecode ?? generationDefaults.disableMultiTokenDecode,
-      embeddingMode: options.embeddingMode ?? 'last',
+      embeddingMode: options.embeddingMode ?? generationDefaults.embeddingMode,
     };
 
     let processedPrompt = prompt;
@@ -1169,7 +1169,7 @@ export class PipelineGenerator {
     validateCallTimeOptions(options);
 
     const opts = this._resolveStepOptions(options);
-    const embeddingMode = options.embeddingMode ?? 'last';
+    const embeddingMode = options.embeddingMode ?? this.#state.runtimeConfig.inference.generation.embeddingMode;
     const debugCheckBuffer = this.#state.debug
       ? (buffer, label, numTokens, expectedDim) =>
         debugCheckBufferHelper(this.#state, buffer, label, numTokens, expectedDim)

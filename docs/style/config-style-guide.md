@@ -137,7 +137,7 @@ modelInference = merge(manifestInference, runtimeInferenceOverride)
 
 ## Generated Assets
 
-- `config/vfs-manifest.json` is generated. Regenerate it whenever files are added, moved, or removed so VFS boot paths stay accurate.
+- VFS manifest generation has been removed from Doppler package+demo mode.
 
 ## Rules
 

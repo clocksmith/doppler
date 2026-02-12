@@ -15,6 +15,7 @@ export const DEFAULT_GENERATION_CONFIG = {
   benchmark: false,
   disableCommandBatching: false,
   disableMultiTokenDecode: false,
+  embeddingMode: 'last',
 };
 
 // =============================================================================

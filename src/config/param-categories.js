@@ -13,6 +13,7 @@ export const PARAM_CATEGORIES = Object.freeze({
   repetitionPenalty: ParamCategory.GENERATION,
   maxTokens: ParamCategory.GENERATION,
   stopSequences: ParamCategory.GENERATION,
+  embeddingMode: ParamCategory.GENERATION,
 
   // Model params (manifest-primary, runtime-overridable)
   slidingWindow: ParamCategory.MODEL,

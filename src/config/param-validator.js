@@ -48,6 +48,11 @@ export function validateRuntimeOverrides(overrides) {
 export function validateRuntimeConfig(runtimeConfig) {
   if (!runtimeConfig) return;
 
+  const generation = runtimeConfig.inference?.generation;
+  if (!generation) {
+    throw new Error('DopplerConfigError: runtime.inference.generation is required.');
+  }
+
   const batching = runtimeConfig.inference?.batching;
   if (!batching) {
     throw new Error('DopplerConfigError: runtime.inference.batching is required.');
@@ -57,6 +62,7 @@ export function validateRuntimeConfig(runtimeConfig) {
   assertNullablePositiveInt('runtime.inference.batching.ringTokens', batching.ringTokens);
   assertNullablePositiveInt('runtime.inference.batching.ringStop', batching.ringStop);
   assertNullablePositiveInt('runtime.inference.batching.ringStaging', batching.ringStaging);
+  assertEmbeddingMode('runtime.inference.generation.embeddingMode', generation.embeddingMode);
 
   validateToolingIntent(runtimeConfig);
 
@@ -153,5 +159,14 @@ function assertNullablePositiveInt(label, value) {
   if (value === null) return;
   if (!Number.isFinite(value) || value <= 0 || Math.floor(value) !== value) {
     throw new Error(`DopplerConfigError: ${label} must be a positive integer or null.`);
+  }
+}
+
+function assertEmbeddingMode(label, value) {
+  if (value === undefined) {
+    throw new Error(`DopplerConfigError: ${label} is required.`);
+  }
+  if (value !== 'last' && value !== 'mean') {
+    throw new Error(`DopplerConfigError: ${label} must be "last" or "mean".`);
   }
 }

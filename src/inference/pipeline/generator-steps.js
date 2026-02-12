@@ -605,7 +605,7 @@ export async function advanceWithToken(state, tokenId, opts, helpers) {
   state.currentSeqLen++;
 }
 
-export async function advanceWithTokenAndEmbedding(state, tokenId, opts, helpers, embeddingMode = 'last') {
+export async function advanceWithTokenAndEmbedding(state, tokenId, opts, helpers, embeddingMode) {
   if (embeddingMode !== 'last') {
     throw new Error(`advanceWithTokenAndEmbedding: unsupported embeddingMode "${embeddingMode}" (v0 supports "last" only)`);
   }
@@ -656,7 +656,7 @@ export async function advanceWithTokenAndEmbedding(state, tokenId, opts, helpers
 
   return {
     embedding,
-    embeddingMode: 'last',
+    embeddingMode,
     seqLen: state.currentSeqLen,
   };
 }

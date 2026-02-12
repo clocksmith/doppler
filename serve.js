@@ -223,42 +223,57 @@ async function main() {
         }
       }
 
-      // Canonical app entry point.
+      // Serve demo directly at root.
       if (pathname === '/' || pathname === '') {
-        res.writeHead(302, { 'Location': '/doppler' });
-        return res.end();
+        pathname = '/demo/index.html';
       }
 
-      // Shortcut: /d redirects to the demo app
+      // Shortcut: /d redirects to root.
       if (pathname === '/d' || pathname === '/d/') {
-        res.writeHead(302, { 'Location': '/doppler' });
+        res.writeHead(302, { 'Location': '/' });
         return res.end();
       }
 
-      // Legacy /dr path maps to /doppler (compatibility).
+      // Legacy /dr redirects to root.
       if (pathname === '/dr' || pathname === '/dr/') {
-        res.writeHead(302, { 'Location': '/doppler' });
+        res.writeHead(302, { 'Location': '/' });
         return res.end();
-      } else if (pathname.startsWith('/dr/')) {
-        pathname = pathname.replace('/dr/', '/doppler/');
       }
 
-      // Standalone mode: serve app/index.html at /
-      // Strip /doppler/ prefix for prefixed routing.
-      if (pathname.startsWith('/doppler/')) {
-        pathname = pathname.replace('/doppler/', '/');
-      } else if (pathname === '/doppler') {
-        pathname = '/app/index.html';
+      // Legacy /doppler path redirects to canonical root paths.
+      if (pathname === '/doppler' || pathname === '/doppler/') {
+        res.writeHead(302, { 'Location': '/' });
+        return res.end();
+      } else if (pathname.startsWith('/doppler/')) {
+        const stripped = pathname.replace(/^\/doppler/, '') || '/';
+        res.writeHead(302, { 'Location': stripped });
+        return res.end();
+      }
+
+      // Legacy /dr/<path> redirects to canonical root paths.
+      if (pathname.startsWith('/dr/')) {
+        const stripped = pathname.replace(/^\/dr/, '') || '/';
+        res.writeHead(302, { 'Location': stripped });
+        return res.end();
+      }
+
+      // Standalone mode: serve demo/index.html at /
+      // Backward compatibility for the removed legacy app surface.
+      if (pathname === '/app' || pathname === '/app/' || pathname === '/app/index.html') {
+        pathname = '/demo/index.html';
       }
       if (pathname === '/rd.css') {
-        pathname = '/app/rd.css';
+        pathname = '/styles/rd.css';
+      }
+      // Backward compatibility for older app shell references.
+      if (pathname === '/app/rd.css') {
+        pathname = '/styles/rd.css';
       }
       if (pathname === '/kernel-tests/browser/registry.json') {
         pathname = '/config/kernels/registry.json';
       }
       if (
         pathname === '/favicon.ico' ||
-        pathname === '/favicon.svg' ||
         pathname === '/site.webmanifest' ||
         pathname === '/browserconfig.xml' ||
         pathname === '/apple-touch-icon.png' ||
@@ -271,7 +286,7 @@ async function main() {
         return res.end();
       }
       if (pathname === '/' || pathname === '') {
-        pathname = '/app/index.html';
+        pathname = '/demo/index.html';
       }
 
       // Serve JS and JSON files from dist/ (TypeScript is compiled there)

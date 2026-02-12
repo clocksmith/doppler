@@ -136,6 +136,19 @@ export interface SamplingDefaultsSchema extends Required<SamplingSchema> {
 /** Default sampling configuration */
 export declare const DEFAULT_SAMPLING_DEFAULTS: SamplingDefaultsSchema;
 
+/** Default generation behavior flags used by generator runtime paths. */
+export interface GenerationDefaultsSchema {
+  useSpeculative: boolean;
+  profile: boolean;
+  benchmark: boolean;
+  disableCommandBatching: boolean;
+  disableMultiTokenDecode: boolean;
+  embeddingMode: 'last' | 'mean';
+}
+
+/** Default generation behavior flags */
+export declare const DEFAULT_GENERATION_CONFIG: GenerationDefaultsSchema;
+
 /**
  * Default tokenizer configuration.
  *
@@ -171,6 +184,8 @@ export interface InferenceDefaultsConfigSchema {
   moe: MoERuntimeConfigSchema;
   /** Speculative decoding configuration */
   speculative: SpeculativeConfigSchema;
+  /** Generation behavior defaults */
+  generation: GenerationDefaultsSchema;
   /** Diffusion pipeline configuration */
   diffusion: DiffusionConfigSchema;
   /** Energy pipeline configuration */
