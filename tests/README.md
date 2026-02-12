@@ -2,17 +2,15 @@
 
 ## Overview
 
-This directory contains the browser-only test harnesses for Doppler inference and GPU kernels.
-The unified harness supports multiple modes via runtime config.
+This directory contains browser harnesses for Doppler inference and GPU kernels.
+The same command contract is available through Node CLI and browser relay.
 
-## Unified Test Harness
+## Unified Harness (Browser)
 
 **URL:** `http://localhost:8080/tests/harness.html` (serve repo root with a static server)
 
-### Modes
-
-Modes are configured in `runtime.shared.harness` and passed via the `runtimeConfig`
-URL parameter. The harness does not accept per-field query overrides.
+Modes are configured in `runtime.shared.harness` and passed through runtime config.
+The harness does not accept per-field query overrides.
 
 | Mode | Purpose |
 |------|---------|
@@ -20,74 +18,62 @@ URL parameter. The harness does not accept per-field query overrides.
 | `inference` | Inference pipeline tests |
 | `bench` | Benchmark runner shell |
 | `training` | Training kernel tests |
+| `energy` | Energy model runs |
 
-### Mode: Kernels
-
-Tests 30+ kernel functions (matmul, attention, softmax, RoPE, etc.) by comparing
-GPU output against CPU reference implementations.
-
-**Features:**
-- `window.testHarness` for manual runs
-- GPU capability detection (F16, subgroups, memory limits)
-
-```javascript
-// Run a specific kernel test
-const result = await window.testHarness.runMatmul({ M: 128, N: 256, K: 64 });
-```
-
-### Mode: Inference
-
-Manual testing of the inference pipeline.
-
-**Features:**
-- Model loading and token generation
-- Query param automation via `runtimeConfig`
-- Status exposed on `window.testState` and `window.pipeline`
-
-**Query Parameters:**
-
-| Param | Description | Example |
-|-------|-------------|---------|
-| `runtimeConfig` | JSON-encoded runtime config | `&runtimeConfig={...}` |
-| `configChain` | JSON-encoded config chain | `&configChain=["debug","default"]` |
-
-### Mode: Bench
-
-Initializes WebGPU and signals ready via `window.dopplerReady = true`.
-You can run `runBrowserSuite({ suite: 'bench', modelId })` from the console or use the demo diagnostics UI.
-
----
-
-## Running Tests
+## Unified Commands (CLI, 1:1 schema)
 
 ```bash
-# Start a static server
+npm run test:model -- --suite kernels --surface auto
+npm run test:model -- --suite inference --model-id gemma-3-1b-q4 --surface auto
+npm run debug -- --model-id gemma-3-1b-q4 --runtime-preset modes/debug --surface auto
+npm run bench -- --model-id gemma-3-1b-q4 --runtime-preset experiments/gemma3-bench-q4k --surface auto
+```
+
+Surface behavior:
+
+- `--surface auto` uses Node first and falls back to browser relay if Node WebGPU is unavailable.
+- `--surface node` requires a WebGPU-enabled Node runtime.
+- `--surface browser` runs headless browser harness through `src/tooling/command-runner.html`.
+
+## Browser Relay Flags
+
+```bash
+--browser-channel chrome
+--browser-executable /path/to/chrome
+--browser-headless true
+--browser-port 8080
+--browser-timeout-ms 180000
+--browser-url-path /src/tooling/command-runner.html
+--browser-static-root /abs/path/to/doppler
+--browser-base-url http://127.0.0.1:8080
+--browser-console
+```
+
+## Running Browser Harness Manually
+
+```bash
 python3 -m http.server 8080
-
-# Manual browser testing (runtimeConfig defines harness mode)
-# Example runtimeConfig:
-# {"shared":{"harness":{"mode":"inference","autorun":true,"skipLoad":false,"modelId":"gemma3-1b-q4"}}}
-# Encode with encodeURIComponent(JSON.stringify(...)) in devtools.
 ```
 
-## Shared Test Utilities
+Example runtime config payload:
 
-The `inference/test-harness.js` module provides shared utilities:
-
-```typescript
-import {
-  discoverModels,             // Fetch models from /api/models (optional)
-  parseRuntimeOverridesFromURL, // Parse runtimeConfig from URL params
-  createHttpShardLoader,      // Create HTTP-based shard loader
-  fetchManifest,              // Fetch and parse manifest.json
-  initializeDevice,           // Initialize WebGPU device
-  createTestState,            // Create standard test state object
-} from '/src/inference/test-harness.js';
+```json
+{"shared":{"harness":{"mode":"inference","autorun":true,"skipLoad":false,"modelId":"gemma3-1b-q4"}}}
 ```
 
-## Related Documentation
+## Shared Utilities
 
-- [architecture.md](../docs/architecture.md) — System overview
-- [KERNEL_COMPATIBILITY.md](../docs/KERNEL_COMPATIBILITY.md) — Kernel modes and runtime flags
-- [RDRR_FORMAT.md](../docs/spec/RDRR_FORMAT.md) — Model format specification
-- [testing.md](../docs/testing.md) — Full testing documentation
+`src/inference/test-harness.js` exposes shared helpers:
+
+- `discoverModels`
+- `parseRuntimeOverridesFromURL`
+- `createHttpShardLoader`
+- `fetchManifest`
+- `initializeDevice`
+- `createTestState`
+
+## Related
+
+- `docs/architecture.md`
+- `docs/testing.md`
+- `docs/style/command-interface-design-guide.md`

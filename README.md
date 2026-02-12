@@ -25,7 +25,16 @@ Doppler and Reploid share a browser process. Kernel registry/config changes appl
 python3 -m http.server 8080
 ```
 
-Open `http://localhost:8080/demo/` for the conversion + diagnostics UI.
+Open `http://localhost:8080/demo/` for browser UI workflows.
+
+Node CLI (shared command contract):
+
+```bash
+npm run convert -- <inputDir> <outputDir> --model-id <id>
+npm run debug -- --model-id <id> --runtime-preset modes/debug
+npm run bench -- --model-id <id> --runtime-preset experiments/gemma3-bench-q4k
+npm run test:model -- --suite inference --model-id <id>
+```
 
 ## Architecture
 

@@ -419,12 +419,15 @@ async function runKernelSuite(options = {}) {
   };
 }
 
+const DEFAULT_HARNESS_PROMPT = 'Summarize this input in one sentence.';
+const DEFAULT_HARNESS_MAX_TOKENS = 32;
+
 function resolvePrompt(runtimeConfig) {
   const runtimePrompt = runtimeConfig?.inference?.prompt;
   if (typeof runtimePrompt === 'string' && runtimePrompt.trim()) {
     return runtimePrompt.trim();
   }
-  throw new Error('runtime.inference.prompt must be set for harness runs.');
+  return DEFAULT_HARNESS_PROMPT;
 }
 
 function resolveMaxTokens(runtimeConfig) {
@@ -432,7 +435,7 @@ function resolveMaxTokens(runtimeConfig) {
   if (Number.isFinite(runtimeMax)) {
     return Math.max(1, Math.floor(runtimeMax));
   }
-  throw new Error('runtime.inference.batching.maxTokens must be set for harness runs.');
+  return DEFAULT_HARNESS_MAX_TOKENS;
 }
 
 async function runGeneration(pipeline, runtimeConfig) {
@@ -477,11 +480,64 @@ async function runGeneration(pipeline, runtimeConfig) {
   };
 }
 
+async function runEmbedding(pipeline, runtimeConfig) {
+  const prompt = resolvePrompt(runtimeConfig);
+  const start = performance.now();
+  const result = await pipeline.embed(prompt);
+  const durationMs = Math.max(1, performance.now() - start);
+  const embedding = result?.embedding;
+  const embeddingDim = Number.isFinite(embedding?.length) ? embedding.length : 0;
+  return {
+    prompt,
+    durationMs,
+    embeddingDim,
+  };
+}
+
 async function runInferenceSuite(options = {}) {
   const startTime = performance.now();
   const harness = await initializeSuiteModel(options);
   const runtimeConfig = getRuntimeConfig();
-  const run = await runGeneration(harness.pipeline, runtimeConfig);
+  const modelType = harness.manifest?.modelType || 'transformer';
+
+  let results;
+  let output = null;
+  let metrics;
+
+  if (modelType === 'embedding') {
+    const run = await runEmbedding(harness.pipeline, runtimeConfig);
+    results = [
+      {
+        name: 'embedding',
+        passed: run.embeddingDim > 0,
+        duration: run.durationMs,
+        error: run.embeddingDim > 0 ? undefined : 'No embedding returned',
+      },
+    ];
+    metrics = {
+      prompt: run.prompt,
+      embeddingDim: run.embeddingDim,
+      embeddingMs: Number(run.durationMs.toFixed(2)),
+    };
+  } else {
+    const run = await runGeneration(harness.pipeline, runtimeConfig);
+    results = [
+      {
+        name: 'generation',
+        passed: run.tokens.length > 0,
+        duration: run.durationMs,
+        error: run.tokens.length > 0 ? undefined : 'No tokens generated',
+      },
+    ];
+    output = run.output;
+    metrics = {
+      prompt: run.prompt,
+      maxTokens: run.maxTokens,
+      tokensGenerated: run.tokens.length,
+      tokensPerSec: Number(run.tokensPerSec.toFixed(2)),
+    };
+  }
+
   const memoryStats = typeof harness.pipeline?.getMemoryStats === 'function'
     ? harness.pipeline.getMemoryStats()
     : null;
@@ -489,26 +545,12 @@ async function runInferenceSuite(options = {}) {
     await harness.pipeline.unload();
   }
 
-  const results = [
-    {
-      name: 'generation',
-      passed: run.tokens.length > 0,
-      duration: run.durationMs,
-      error: run.tokens.length > 0 ? undefined : 'No tokens generated',
-    },
-  ];
-
   const summary = buildSuiteSummary(options.suiteName || 'inference', results, startTime);
   return {
     ...summary,
     modelId: options.modelId || harness.manifest?.modelId || 'unknown',
-    output: run.output,
-    metrics: {
-      prompt: run.prompt,
-      maxTokens: run.maxTokens,
-      tokensGenerated: run.tokens.length,
-      tokensPerSec: Number(run.tokensPerSec.toFixed(2)),
-    },
+    output,
+    metrics,
     memoryStats,
     deviceInfo: getKernelCapabilities(),
     pipeline: options.keepPipeline ? harness.pipeline : null,
@@ -548,18 +590,77 @@ async function runBenchSuite(options = {}) {
     : runtimeConfig;
 
   const harness = await initializeSuiteModel(options);
-  const tokensPerSec = [];
-  const durations = [];
-  const tokensGenerated = [];
+  const modelType = harness.manifest?.modelType || 'transformer';
 
-  for (let i = 0; i < warmupRuns + timedRuns; i++) {
-    harness.pipeline.reset?.();
-    const run = await runGeneration(harness.pipeline, benchRuntime);
-    if (i >= warmupRuns) {
-      tokensPerSec.push(run.tokensPerSec);
-      durations.push(run.durationMs);
-      tokensGenerated.push(run.tokens.length);
+  let results;
+  let metrics;
+
+  if (modelType === 'embedding') {
+    const durations = [];
+    const embeddingDims = [];
+    for (let i = 0; i < warmupRuns + timedRuns; i++) {
+      harness.pipeline.reset?.();
+      const run = await runEmbedding(harness.pipeline, benchRuntime);
+      if (i >= warmupRuns) {
+        durations.push(run.durationMs);
+        embeddingDims.push(run.embeddingDim);
+      }
     }
+
+    const avgMs = durations.length > 0
+      ? durations.reduce((a, b) => a + b, 0) / durations.length
+      : 0;
+
+    results = [
+      {
+        name: 'benchmark-embedding',
+        passed: durations.length > 0,
+        duration: durations.reduce((sum, value) => sum + value, 0),
+        error: durations.length > 0 ? undefined : 'No embedding benchmark runs completed',
+      },
+    ];
+
+    metrics = {
+      warmupRuns,
+      timedRuns,
+      prompt: resolvePrompt(benchRuntime),
+      embeddingDim: Math.round(embeddingDims.reduce((a, b) => a + b, 0) / (embeddingDims.length || 1)),
+      medianEmbeddingMs: Number(median(durations).toFixed(2)),
+      avgEmbeddingMs: Number(avgMs.toFixed(2)),
+      avgEmbeddingsPerSec: Number((avgMs > 0 ? (1000 / avgMs) : 0).toFixed(2)),
+    };
+  } else {
+    const tokensPerSec = [];
+    const durations = [];
+    const tokensGenerated = [];
+
+    for (let i = 0; i < warmupRuns + timedRuns; i++) {
+      harness.pipeline.reset?.();
+      const run = await runGeneration(harness.pipeline, benchRuntime);
+      if (i >= warmupRuns) {
+        tokensPerSec.push(run.tokensPerSec);
+        durations.push(run.durationMs);
+        tokensGenerated.push(run.tokens.length);
+      }
+    }
+
+    results = [
+      {
+        name: 'benchmark',
+        passed: tokensPerSec.length > 0,
+        duration: durations.reduce((sum, value) => sum + value, 0),
+        error: tokensPerSec.length > 0 ? undefined : 'No benchmark runs completed',
+      },
+    ];
+
+    metrics = {
+      warmupRuns,
+      timedRuns,
+      maxTokens: resolveMaxTokens(benchRuntime),
+      medianTokensPerSec: Number(median(tokensPerSec).toFixed(2)),
+      avgTokensPerSec: Number((tokensPerSec.reduce((a, b) => a + b, 0) / (tokensPerSec.length || 1)).toFixed(2)),
+      avgTokensGenerated: Math.round(tokensGenerated.reduce((a, b) => a + b, 0) / (tokensGenerated.length || 1)),
+    };
   }
 
   const memoryStats = typeof harness.pipeline?.getMemoryStats === 'function'
@@ -570,27 +671,11 @@ async function runBenchSuite(options = {}) {
     await harness.pipeline.unload();
   }
 
-  const results = [
-    {
-      name: 'benchmark',
-      passed: tokensPerSec.length > 0,
-      duration: durations.reduce((sum, value) => sum + value, 0),
-      error: tokensPerSec.length > 0 ? undefined : 'No benchmark runs completed',
-    },
-  ];
-
   const summary = buildSuiteSummary('bench', results, startTime);
   return {
     ...summary,
     modelId: options.modelId || harness.manifest?.modelId || 'unknown',
-    metrics: {
-      warmupRuns,
-      timedRuns,
-      maxTokens: resolveMaxTokens(benchRuntime),
-      medianTokensPerSec: Number(median(tokensPerSec).toFixed(2)),
-      avgTokensPerSec: Number((tokensPerSec.reduce((a, b) => a + b, 0) / (tokensPerSec.length || 1)).toFixed(2)),
-      avgTokensGenerated: Math.round(tokensGenerated.reduce((a, b) => a + b, 0) / (tokensGenerated.length || 1)),
-    },
+    metrics,
     memoryStats,
     deviceInfo: getKernelCapabilities(),
     pipeline: options.keepPipeline ? harness.pipeline : null,

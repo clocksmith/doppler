@@ -903,8 +903,8 @@
         { "index": 0, "name": "uniforms", "type": "uniform" },
         { "index": 1, "name": "input", "type": "read-only-storage" },
         { "index": 2, "name": "weights", "type": "read-only-storage" },
-        { "index": 3, "name": "residual", "type": "read-only-storage" },
-        { "index": 4, "name": "output", "type": "storage" }
+        { "index": 3, "name": "output", "type": "storage" },
+        { "index": 4, "name": "residual", "type": "read-only-storage" }
       ],
       "baseUniforms": {
         "size": 16,
@@ -920,6 +920,12 @@
           "entryPoint": "main",
           "workgroup": [256, 1, 1],
           "requires": []
+        },
+        "f16": {
+          "wgsl": "matmul_gemv_residual_f16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256, 1, 1],
+          "requires": ["shader-f16"]
         }
       }
     },
@@ -1664,6 +1670,36 @@
         "single_pass": {
           "wgsl": "moe_gather.wgsl",
           "entryPoint": "gather_single_pass",
+          "workgroup": [256, 1, 1],
+          "requires": []
+        }
+      }
+    },
+    "moe_offsets": {
+      "description": "Build routing token offsets for dynamic MoE scatter on GPU",
+      "baseBindings": [
+        { "index": 0, "name": "uniforms", "type": "uniform" },
+        { "index": 1, "name": "token_counts", "type": "read-only-storage" },
+        { "index": 2, "name": "token_map", "type": "read-only-storage" },
+        { "index": 3, "name": "token_offsets", "type": "storage" }
+      ],
+      "baseUniforms": {
+        "size": 32,
+        "fields": [
+          { "name": "num_tokens", "type": "u32", "offset": 0 },
+          { "name": "num_experts", "type": "u32", "offset": 4 },
+          { "name": "top_k", "type": "u32", "offset": 8 },
+          { "name": "max_tokens_per_expert", "type": "u32", "offset": 12 },
+          { "name": "_pad0", "type": "u32", "offset": 16 },
+          { "name": "_pad1", "type": "u32", "offset": 20 },
+          { "name": "_pad2", "type": "u32", "offset": 24 },
+          { "name": "_pad3", "type": "u32", "offset": 28 }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "moe_offsets.wgsl",
+          "entryPoint": "build_offsets",
           "workgroup": [256, 1, 1],
           "requires": []
         }

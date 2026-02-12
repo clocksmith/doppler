@@ -1,11 +1,11 @@
 {
-  "name": "f16-batched",
-  "description": "F16 activations with multi-token decode batching for lower submit/readback overhead.",
-  "extends": "compute/f16-activations",
+  "name": "decode-throughput",
+  "description": "Decode throughput profile: larger GPU batches and deferred readback to reduce submit/map overhead.",
+  "extends": "default",
   "runtime": {
     "inference": {
       "batching": {
-        "batchSize": 16,
+        "batchSize": 8,
         "stopCheckMode": "batch",
         "readbackInterval": 8,
         "ringTokens": 8,

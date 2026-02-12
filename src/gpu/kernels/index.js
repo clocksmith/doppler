@@ -179,6 +179,8 @@ export {
 export {
   runTopK,
   runMoEGather,
+  runMoEBuildTokenOffsets,
+  recordMoEBuildTokenOffsets,
   runScatterAdd,
   runScatterAddDynamic,
 } from './moe.js';

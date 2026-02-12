@@ -5,6 +5,16 @@
   "main": "src/index.js",
   "types": "src/index.d.ts",
   "type": "module",
+  "bin": {
+    "doppler": "./tools/doppler-cli.mjs"
+  },
+  "scripts": {
+    "cli": "node tools/doppler-cli.mjs",
+    "convert": "node tools/doppler-cli.mjs convert",
+    "debug": "node tools/doppler-cli.mjs debug",
+    "bench": "node tools/doppler-cli.mjs bench",
+    "test:model": "node tools/doppler-cli.mjs test-model"
+  },
   "exports": {
     ".": {
       "types": "./src/index.d.ts",
@@ -35,6 +45,8 @@
   "files": [
     "src",
     "src/gpu/kernels/*.wgsl",
-    "README.md"
+    "README.md",
+    "tools/doppler-cli.mjs",
+    "tools/convert-safetensors-node.mjs"
   ]
 }

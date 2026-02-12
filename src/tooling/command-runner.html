@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Doppler Command Runner</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        font: 13px/1.4 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+          'Courier New', monospace;
+        background: #0f1115;
+        color: #c5cedd;
+      }
+
+      main {
+        padding: 10px 12px;
+      }
+
+      .muted {
+        color: #8592a6;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div>Doppler browser command surface</div>
+      <div class="muted">Ready for Node relay execution.</div>
+    </main>
+    <script type="module">
+      import { runBrowserCommand } from './browser-command-runner.js';
+
+      window.__dopplerRunBrowserCommand = async (request, options = {}) => {
+        return runBrowserCommand(request, options || {});
+      };
+      window.__dopplerRunnerReady = true;
+    </script>
+  </body>
+</html>

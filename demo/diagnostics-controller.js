@@ -1,14 +1,13 @@
 import {
   log,
   getRuntimeConfig,
-  setRuntimeConfig,
   TOOLING_INTENTS,
   applyRuntimePreset,
-  runBrowserSuite,
+  runBrowserCommand,
 } from '@doppler/core';
 
-const BENCH_INTENTS = new Set(['investigate', 'calibrate']);
 const ALLOWED_INTENTS = new Set(TOOLING_INTENTS);
+const SUPPORTED_VERIFY_SUITES = new Set(['kernels', 'inference', 'diffusion', 'energy']);
 
 function normalizeSuite(suite) {
   return String(suite || '').trim().toLowerCase();
@@ -36,6 +35,15 @@ function resolveRuntimeConfig(options = {}) {
   return getRuntimeConfig();
 }
 
+function mapSuiteToCommand(suite) {
+  if (suite === 'bench') return { command: 'bench', suite: null };
+  if (suite === 'debug') return { command: 'debug', suite: null };
+  if (SUPPORTED_VERIFY_SUITES.has(suite)) {
+    return { command: 'test-model', suite };
+  }
+  throw new Error(`Unsupported diagnostics suite "${suite}"`);
+}
+
 export class DiagnosticsController {
   constructor(options = {}) {
     this.log = options.log || log;
@@ -43,14 +51,10 @@ export class DiagnosticsController {
     this.lastReportInfo = null;
   }
 
-  requireIntent(runtimeConfig, suite) {
+  requireIntent(runtimeConfig) {
     const intent = runtimeConfig?.shared?.tooling?.intent ?? null;
-    if (!intent || !ALLOWED_INTENTS.has(intent)) {
-      throw new Error('runtime.shared.tooling.intent is required for diagnostics');
-    }
-    if ((suite === 'bench' || suite === 'diffusion') && !BENCH_INTENTS.has(intent)) {
-      const target = suite === 'diffusion' ? 'diffusion' : 'bench';
-      throw new Error(`runtime.shared.tooling.intent must be investigate or calibrate for ${target}`);
+    if (intent !== null && !ALLOWED_INTENTS.has(intent)) {
+      throw new Error('runtime.shared.tooling.intent is invalid for diagnostics');
     }
     return intent;
   }
@@ -62,39 +66,37 @@ export class DiagnosticsController {
   async verifySuite(model, options = {}) {
     const suite = normalizeSuite(options.suite || 'inference');
     const runtimeConfig = resolveRuntimeConfig(options);
-    this.requireIntent(runtimeConfig, suite);
+    this.requireIntent(runtimeConfig);
+    mapSuiteToCommand(suite);
     return { ok: true, suite };
   }
 
   async runSuite(model, options = {}) {
     const suite = normalizeSuite(options.suite || 'inference');
     const runtimeConfig = resolveRuntimeConfig(options);
-    this.requireIntent(runtimeConfig, suite);
+    this.requireIntent(runtimeConfig);
 
-    if (options.runtimePreset) {
-      await applyRuntimePreset(options.runtimePreset);
-    }
-    if (options.runtimeConfig) {
-      setRuntimeConfig(options.runtimeConfig);
-    }
-
-    const runtime = { runtimeConfig: getRuntimeConfig() };
     const { modelId, modelUrl } = resolveModelRef(model, options);
+    const mapped = mapSuiteToCommand(suite);
+
     if (suite !== 'kernels' && !modelId && !modelUrl) {
       throw new Error('modelId or modelUrl is required for this suite');
     }
 
-    const result = await runBrowserSuite({
-      suite,
+    const response = await runBrowserCommand({
+      command: mapped.command,
+      suite: mapped.suite ?? undefined,
       modelId,
       modelUrl,
       runtimePreset: options.runtimePreset ?? null,
+      runtimeConfigUrl: options.runtimeConfigUrl ?? null,
+      runtimeConfig: options.runtimeConfig ?? null,
       captureOutput: options.captureOutput === true,
-      runtime,
-      report: options.report,
-      keepPipeline: options.keepPipeline,
+      keepPipeline: options.keepPipeline === true,
+      report: options.report ?? null,
     });
 
+    const result = response.result;
     this.lastReport = result.report ?? null;
     this.lastReportInfo = result.reportInfo ?? null;
     return result;

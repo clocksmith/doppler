@@ -606,6 +606,9 @@ export async function convertModel(model, io, options = {}) {
     quantization: options.quantization,
     quantizationInfo: options.quantizationInfo,
     hashAlgorithm: converterConfig.manifest.hashAlgorithm,
+    architecture: options.architecture,
+    inference: options.inference,
+    eosTokenId: options.eosTokenId,
   });
 
   // Write manifest

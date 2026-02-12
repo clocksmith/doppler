@@ -77,6 +77,35 @@ export declare function recordMoEGather(
 ): Promise<MoEGatherResult>;
 
 /**
+ * Build token offsets for dynamic scatter on GPU.
+ *
+ * Maps each (token, top-k slot) to its gathered expert slot index.
+ */
+export declare function runMoEBuildTokenOffsets(
+  tokenCounts: GPUBuffer,
+  tokenMap: GPUBuffer,
+  numTokens: number,
+  numExperts: number,
+  topK: number,
+  maxTokensPerExpert: number,
+  options?: OutputBufferOptions
+): Promise<GPUBuffer>;
+
+/**
+ * Record token offset build (batched, no submit).
+ */
+export declare function recordMoEBuildTokenOffsets(
+  recorder: CommandRecorder,
+  tokenCounts: GPUBuffer,
+  tokenMap: GPUBuffer,
+  numTokens: number,
+  numExperts: number,
+  topK: number,
+  maxTokensPerExpert: number,
+  options?: OutputBufferOptions
+): Promise<GPUBuffer>;
+
+/**
  * Run scatter-add (collect expert outputs back to tokens)
  */
 export declare function runScatterAdd(

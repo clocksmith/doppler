@@ -2,7 +2,7 @@
 
 Benchmarking conventions for DOPPLER. Benchmarks are test harnesses, not runtime code.
 
-**Note:** Browser-only. Use the demo diagnostics UI and harness.
+**Note:** Benchmark command contract is shared across browser + Node CLI. Execution still requires WebGPU support on the chosen surface.
 
 ---
 
@@ -426,6 +426,17 @@ http://localhost:8080/tests/harness.html?runtimeConfig=...
 
 `runtime.shared.harness.mode` must be `bench`, and `runtime.shared.tooling.intent`
 should be `calibrate`. Save results under `tests/results/` for comparisons.
+
+### Node CLI
+
+The same contract is available through npm scripts and `doppler`:
+
+```bash
+npm run bench -- --model-id gemma-3-1b-q4 --runtime-preset experiments/gemma3-bench-q4k
+npm run bench -- --model-id gemma-3-1b-q4 --runtime-config-url /src/config/presets/runtime/bench.json
+```
+
+Node runs still require WebGPU support in the Node runtime.
 
 ### Browser Console
 

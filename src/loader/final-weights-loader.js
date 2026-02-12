@@ -20,6 +20,24 @@ const HEAD_GROUP = 'head';
 const FINAL_NORM_ROLE = 'norm';
 const LM_HEAD_ROLE = 'lm_head';
 
+function isLikelyFinalNormName(name) {
+  const lower = String(name || '').toLowerCase();
+  if (!lower) return false;
+  if (/layers?[._]\d+/.test(lower)) return false;
+  if (lower.includes('input_layernorm')) return false;
+  if (lower.includes('post_attention_layernorm')) return false;
+  if (lower.includes('pre_feedforward_layernorm')) return false;
+  if (lower.includes('post_feedforward_layernorm')) return false;
+
+  return (
+    lower === 'norm.weight' ||
+    lower.includes('model.norm.weight') ||
+    lower.includes('final_layernorm.weight') ||
+    lower.includes('final_layer_norm.weight') ||
+    lower.includes('norm_f.weight')
+  );
+}
+
 // ============================================================================
 // Main Function
 // ============================================================================
@@ -54,7 +72,19 @@ async function loadFinalNorm(ctx) {
   let finalNorm = null;
   let debugLogged = false;
 
-  const finalNormNames = getTensorNamesByRole(ctx.tensorLocations, FINAL_NORM_ROLE, HEAD_GROUP);
+  let finalNormNames = getTensorNamesByRole(ctx.tensorLocations, FINAL_NORM_ROLE, HEAD_GROUP);
+  if (finalNormNames.length === 0) {
+    const legacyCandidates = getTensorNamesByRole(ctx.tensorLocations, FINAL_NORM_ROLE).filter(
+      (name) => isLikelyFinalNormName(name)
+    );
+    if (legacyCandidates.length > 0) {
+      finalNormNames = legacyCandidates;
+      log.warn(
+        'Loader',
+        '[FinalNorm] Falling back to role-only final norm selection because tensor groups are missing in manifest.'
+      );
+    }
+  }
   if (finalNormNames.length === 0) {
     throw new Error(
       `[Loader] Final norm not found. Expected tensor with role="${FINAL_NORM_ROLE}" and group="${HEAD_GROUP}".`

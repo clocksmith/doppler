@@ -15,6 +15,17 @@
       },
       "value": true
     },
+    {
+      "match": {
+        "allowFusedResidual": true,
+        "hasResidual": true,
+        "residualMatches": true,
+        "attnIsF16": true,
+        "hasLoRA": false,
+        "oProjIsF16": true
+      },
+      "value": true
+    },
     { "match": {}, "value": false }
   ]
 }

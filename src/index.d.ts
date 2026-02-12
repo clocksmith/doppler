@@ -136,3 +136,39 @@ export type {
   AdapterRegistryEntry,
   AdapterQueryOptions,
 } from './adapters/index.js';
+
+// Shared command contract (browser + CLI parity)
+export {
+  TOOLING_COMMANDS,
+  TOOLING_SURFACES,
+  TOOLING_SUITES,
+  normalizeToolingCommandRequest,
+  buildRuntimeContractPatch,
+  ensureCommandSupportedOnSurface,
+} from './tooling/command-api.js';
+export {
+  runBrowserCommand,
+  normalizeBrowserCommand,
+  type BrowserCommandRunOptions,
+  type BrowserCommandRunResult,
+} from './tooling/browser-command-runner.js';
+export {
+  runNodeCommand,
+  normalizeNodeCommand,
+  hasNodeWebGPUSupport,
+  type NodeCommandRunOptions,
+  type NodeCommandRunResult,
+} from './tooling/node-command-runner.js';
+export {
+  runBrowserCommandInNode,
+  normalizeNodeBrowserCommand,
+  type NodeBrowserCommandRunOptions,
+} from './tooling/node-browser-command-runner.js';
+export type {
+  ToolingCommand,
+  ToolingSurface,
+  ToolingSuite,
+  ToolingIntent,
+  ToolingCommandRequestInput,
+  ToolingCommandRequest,
+} from './tooling/command-api.js';

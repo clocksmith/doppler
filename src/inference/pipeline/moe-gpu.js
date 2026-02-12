@@ -10,15 +10,15 @@ import {
   runBiasAdd,
   runSoftmaxTopK,
   runMoEGather,
+  runMoEBuildTokenOffsets,
   runScatterAddDynamic,
   runSwiGLURowsplitBias,
 } from '../../gpu/kernel-selector.js';
-import { log, trace, isTraceEnabled } from '../../debug/index.js';
+import { trace, isTraceEnabled } from '../../debug/index.js';
 import { f16ToF32Array } from '../kv-cache/types.js';
 import { resolveMaxTokensPerExpert, getCachedDequant, setCachedDequant, getDequantCacheStats } from './moe-cache.js';
 import { ensureExpertLoaded } from './moe-helpers.js';
 import { selectRuleValue } from '../../rules/rule-registry.js';
-import { QK_K } from '../../config/schema/index.js';
 
 export async function moeFeedForwardGPU(
   inputBuffer,
@@ -163,90 +163,18 @@ export async function moeFeedForwardGPU(
   let gathered;
   let tokenCounts;
   let tokenMap;
-  let tokenCountsCPU;
-  let tokenMapCPU;
-  let gatherAttempts = 0;
 
-  while (true) {
-    gatherAttempts += 1;
-    stepStart = perfMark();
-    ({ gathered, tokenCounts, tokenMap } = await runMoEGather(
-      inputTensor,
-      indicesBuffer,
-      numTokens,
-      hiddenSize,
-      numExperts,
-      topK,
-      { maxTokensPerExpert }
-    ));
-    perfLog(`MoE L${layerIdx} gather`, stepStart, { maxTokensPerExpert, attempt: gatherAttempts });
-
-    stepStart = perfMark();
-    const countsData = await readBuffer(tokenCounts, numExperts * 4);
-    tokenCountsCPU = new Uint32Array(countsData);
-    let maxCount = 0;
-    let totalCount = 0;
-    for (let i = 0; i < tokenCountsCPU.length; i++) {
-      const v = tokenCountsCPU[i];
-      totalCount += v;
-      if (v > maxCount) maxCount = v;
-    }
-    perfLog(`MoE L${layerIdx} counts_readback`, stepStart, { maxCount });
-    if (isTraceEnabled('buffers')) {
-      let minCount = Number.MAX_SAFE_INTEGER;
-      let zeroCount = 0;
-      let overMax = 0;
-      for (let i = 0; i < tokenCountsCPU.length; i++) {
-        const v = tokenCountsCPU[i];
-        if (v < minCount) minCount = v;
-        if (v === 0) zeroCount += 1;
-        if (v > maxTokensPerExpert) overMax += 1;
-      }
-      trace.buffers(`MoE L${layerIdx} token_counts`, {
-        minCount,
-        maxCount,
-        zeroCount,
-        overMax,
-        totalCount,
-        expected: numTokens * topK,
-        sample: Array.from(tokenCountsCPU.slice(0, 8)),
-      });
-    }
-
-    if (maxCount > maxTokensPerExpert) {
-      releaseBuffer(gathered.buffer);
-      releaseBuffer(tokenCounts);
-      releaseBuffer(tokenMap);
-
-      if (maxTokensPerExpert >= numTokens) {
-        throw new Error(
-          `[MoE] Gather overflow: maxCount=${maxCount} > maxTokensPerExpert=${maxTokensPerExpert}`
-        );
-      }
-
-      const expanded = Math.ceil(Math.max(maxCount * 1.2, maxTokensPerExpert * 2));
-      maxTokensPerExpert = expanded;
-      if (activationDtype === 'f16') {
-        const bytesPerTokenAligned = hiddenSize * 2;
-        const gcd = (a, b) => (b === 0 ? a : gcd(b, a % b));
-        const alignMultiple = QK_K / gcd(QK_K, bytesPerTokenAligned);
-        maxTokensPerExpert = Math.ceil(maxTokensPerExpert / alignMultiple) * alignMultiple;
-      } else {
-        maxTokensPerExpert = Math.min(maxTokensPerExpert, numTokens);
-      }
-      if (perfEnabled) {
-        trace.perf(`MoE L${layerIdx} gather_retry -> ${maxTokensPerExpert}`);
-      }
-      continue;
-    }
-
-    stepStart = perfMark();
-    const tokenMapElems = numExperts * maxTokensPerExpert * 2;
-    const tokenMapData = await readBuffer(tokenMap, tokenMapElems * 4);
-    tokenMapCPU = new Uint32Array(tokenMapData);
-    perfLog(`MoE L${layerIdx} map_readback`, stepStart, { tokenMapElems });
-    break;
-  }
+  stepStart = perfMark();
+  ({ gathered, tokenCounts, tokenMap } = await runMoEGather(
+    inputTensor,
+    indicesBuffer,
+    numTokens,
+    hiddenSize,
+    numExperts,
+    topK,
+    { maxTokensPerExpert }
+  ));
+  perfLog(`MoE L${layerIdx} gather`, stepStart, { maxTokensPerExpert });
 
   const expertOutputs = acquireBuffer(
     numExperts * maxTokensPerExpert * hiddenSize * bytesPerElement,
@@ -259,59 +187,29 @@ export async function moeFeedForwardGPU(
   device.queue.submit([zeroEncoder.finish()]);
 
   stepStart = perfMark();
-  const tokenOffsetsCPU = new Uint32Array(numTokens * topK);
-  tokenOffsetsCPU.fill(0xFFFFFFFF);
-
-  for (let expertIdx = 0; expertIdx < numExperts; expertIdx++) {
-    const count = tokenCountsCPU[expertIdx] || 0;
-    if (count > maxTokensPerExpert) {
-      throw new Error(
-        `[MoE] Gather overflow: expert ${expertIdx} count=${count} > maxTokensPerExpert=${maxTokensPerExpert}`
-      );
-    }
-    for (let slotIdx = 0; slotIdx < count; slotIdx++) {
-      const mapBase = (expertIdx * maxTokensPerExpert + slotIdx) * 2;
-      const tokenIdx = tokenMapCPU[mapBase];
-      const kIdx = tokenMapCPU[mapBase + 1];
-      tokenOffsetsCPU[tokenIdx * topK + kIdx] = expertIdx * maxTokensPerExpert + slotIdx;
-    }
-  }
-  perfLog(`MoE L${layerIdx} offsets_build`, stepStart);
-
-  for (let i = 0; i < tokenOffsetsCPU.length; i++) {
-    if (tokenOffsetsCPU[i] === 0xFFFFFFFF) {
-      const tokenIdx = Math.floor(i / topK);
-      const kIdx = i % topK;
-      log.error('MoE', `Missing offset at i=${i} (token=${tokenIdx}, k=${kIdx})`);
-      throw new Error(`[MoE] tokenOffsets incomplete at i=${i}`);
-    }
-  }
-
-  stepStart = perfMark();
-  const tokenOffsets = acquireBuffer(tokenOffsetsCPU.byteLength, undefined, 'moe_token_offsets');
-  device.queue.writeBuffer(tokenOffsets, 0, tokenOffsetsCPU);
-  perfLog(`MoE L${layerIdx} offsets_upload`, stepStart, { bytes: tokenOffsetsCPU.byteLength });
+  const tokenOffsets = await runMoEBuildTokenOffsets(
+    tokenCounts,
+    tokenMap,
+    numTokens,
+    numExperts,
+    topK,
+    maxTokensPerExpert
+  );
+  perfLog(`MoE L${layerIdx} offsets_kernel`, stepStart, {
+    totalSlots: numExperts * maxTokensPerExpert,
+    routingSlots: numTokens * topK,
+  });
 
   releaseBuffer(tokenCounts);
 
   const expertStrideBytes = maxTokensPerExpert * bytesPerToken;
-  const activeExperts = [];
+  const rowsPerExpert = maxTokensPerExpert;
+
+  // GPU-first execution path: avoid CPU readback of tokenCounts for scheduling.
+  // Each expert executes with a fixed row budget (maxTokensPerExpert); gathered
+  // unused rows are zero-filled and never consumed by scatter_add_dynamic.
   for (let expertIdx = 0; expertIdx < numExperts; expertIdx++) {
-    const count = tokenCountsCPU[expertIdx] || 0;
-    if (count > 0) activeExperts.push(expertIdx);
-  }
-
-  if (typeof expertLoader?.predictNextLayerExperts === 'function' &&
-      typeof expertLoader?.prefetchExperts === 'function') {
-    const predicted = expertLoader.predictNextLayerExperts(activeExperts);
-    if (predicted?.length) {
-      expertLoader.prefetchExperts(layerIdx + 1, predicted);
-    }
-  }
-
-  for (const expertIdx of activeExperts) {
-    const count = tokenCountsCPU[expertIdx] || 0;
-    if (count === 0) continue;
+    const count = rowsPerExpert;
 
     stepStart = perfMark();
     await ensureExpertLoaded(layerIdx, expertIdx, expertWeights, expertLoader);
@@ -403,7 +301,8 @@ export async function moeFeedForwardGPU(
     trace.perf(`MoE L${layerIdx} done`, {
       numTokens,
       topK,
-      activeExperts: activeExperts.length,
+      executedExperts: numExperts,
+      rowsPerExpert,
       maxTokensPerExpert,
       dequantCacheHits: cacheStats.hits,
       dequantCacheMisses: cacheStats.misses,

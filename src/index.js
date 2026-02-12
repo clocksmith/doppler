@@ -109,3 +109,16 @@ export { loadRuntimePreset, applyRuntimePreset, runBrowserSuite } from './infere
 
 // Energy utilities (used by demo energy mode)
 export { buildLayout, getDefaultSpec, buildVliwDatasetFromSpec } from './inference/energy/vliw-generator.js';
+
+// Shared command contract (browser + CLI parity)
+export {
+  TOOLING_COMMANDS,
+  TOOLING_SURFACES,
+  TOOLING_SUITES,
+  normalizeToolingCommandRequest,
+  buildRuntimeContractPatch,
+  ensureCommandSupportedOnSurface,
+} from './tooling/command-api.js';
+export { runBrowserCommand, normalizeBrowserCommand } from './tooling/browser-command-runner.js';
+export { runNodeCommand, normalizeNodeCommand, hasNodeWebGPUSupport } from './tooling/node-command-runner.js';
+export { runBrowserCommandInNode, normalizeNodeBrowserCommand } from './tooling/node-browser-command-runner.js';

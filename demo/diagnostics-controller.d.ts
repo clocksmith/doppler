@@ -16,6 +16,7 @@ export interface DiagnosticsControllerOptions {
 export interface DiagnosticsSuiteOptions {
   suite?: BrowserSuite;
   runtimeConfig?: Partial<RuntimeConfigSchema>;
+  runtimeConfigUrl?: string | null;
   runtimePreset?: string | null;
   captureOutput?: boolean;
   modelId?: string | null;
@@ -31,7 +32,7 @@ export declare class DiagnosticsController {
   lastReport: Record<string, unknown> | null;
   lastReportInfo: SavedReportInfo | null;
 
-  requireIntent(runtimeConfig: Partial<RuntimeConfigSchema>, suite: string): string;
+  requireIntent(runtimeConfig: Partial<RuntimeConfigSchema>): string | null;
   applyRuntimePreset(presetId: string): Promise<Record<string, unknown>>;
   verifySuite(model: Record<string, unknown> | null, options?: DiagnosticsSuiteOptions): Promise<{ ok: true; suite: string }>;
   runSuite(model: Record<string, unknown> | null, options?: DiagnosticsSuiteOptions): Promise<BrowserSuiteResult>;

@@ -219,6 +219,8 @@ export {
 export {
   runTopK,
   runMoEGather,
+  runMoEBuildTokenOffsets,
+  recordMoEBuildTokenOffsets,
   runScatterAdd,
   runScatterAddDynamic,
   type MoEOptions,

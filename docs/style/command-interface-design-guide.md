@@ -1,124 +1,106 @@
 # DOPPLER Command Interface Design Guide
 
-Design rules for the command interface, independent of the UI surface.
-This applies to the browser harness and demo diagnostics UI.
+Design rules for the command interface, independent of surface.
+This applies to browser clients and the Node CLI equally.
 
 ---
 
 ## Goals
 
-- **Config-only control**: commands are defined by config, not flags.
-- **Explicit exit conditions**: every command declares how it ends.
-- **Stable intent mapping**: one verb maps to one intent cluster.
-- **Isolation when measuring**: benchmarks run without observer effects.
-- **Deterministic verification**: tests are repeatable and reproducible.
+- **One contract**: browser and CLI use the same command schema.
+- **Config-only control**: command behavior is encoded in runtime config.
+- **Explicit exits**: each command has a measurable completion condition.
+- **Deterministic intent mapping**: command -> intent cluster is fixed.
+- **Parity by default**: no browser-only or CLI-only command semantics.
+
+---
+
+## Canonical Commands
+
+- `convert`
+- `debug`
+- `bench`
+- `test-model`
+
+Defined in `src/tooling/command-api.js`.
+All surfaces must normalize via `normalizeToolingCommandRequest()`.
 
 ---
 
 ## Intent Clusters
 
-DOPPLER groups tool actions into three architectural clusters. Each cluster
-has a distinct exit condition and is enforced in config.
-
-### A) Verification (Gatekeeper)
+### Verification (Gatekeeper)
 
 - **Intent**: `verify`
-- **Exit condition**: Boolean pass/fail + diagnostics
-- **Examples**: test suites, correctness checks
-- **Rules**:
-  - Deterministic inputs
-  - No interactive sessions
-  - Diagnostics only on failure
+- **Exit**: pass/fail suite summary + diagnostics
+- **Command**: `test-model`
 
-### B) Investigation (Microscope)
+### Investigation (Microscope)
 
 - **Intent**: `investigate`
-- **Exit condition**: Artifact or stream (trace, profile, logs)
-- **Examples**: debug sessions, profiling, tracing
-- **Rules**:
-  - Observer effect is acceptable
-  - Interactive or long-running sessions allowed
-  - Artifacts must be saved or streamed
+- **Exit**: trace/profile/log artifacts or interactive output
+- **Command**: `debug`
 
-### C) Calibration (Yardstick)
+### Calibration (Yardstick)
 
 - **Intent**: `calibrate`
-- **Exit condition**: Scalar metrics (latency, tok/s, VRAM)
-- **Examples**: benchmarks, load tests
-- **Rules**:
-  - Isolation required
-  - No profilers, traces, probes, or debug instrumentation
-  - Results must be comparable to baselines
+- **Exit**: comparable scalar metrics
+- **Command**: `bench`
+
+### Maintenance
+
+- **Intent**: none (unless harnessed workload is executed)
+- **Exit**: materialized artifact + hashes
+- **Command**: `convert`
 
 ---
 
-## Config Contract (Single Source of Truth)
+## Runtime Contract
 
-All command interfaces emit a config object with these fields:
+For harnessed commands (`debug`, `bench`, `test-model`), runners must apply:
 
-- `runtime.shared.harness.mode` (kernels/inference/training/bench/simulation)
-- `runtime.shared.harness.modelId` (required when the mode needs a model)
-- `runtime.shared.tooling.intent` (verify/investigate/calibrate)
+- `runtime.shared.harness.mode`
+- `runtime.shared.harness.modelId` (required except `kernels` suite)
+- `runtime.shared.tooling.intent`
 
-Commands are rejected if:
-- `runtime.shared.harness.mode` is missing
-- `runtime.shared.tooling.intent` is missing (for verify/bench/debug flows)
-- intent does not match the workload
-- calibrate intent enables tracing/profiling/probes
+Use `buildRuntimeContractPatch()` and merge into runtime config before execution.
 
----
+Commands are rejected when:
 
-## Intent Mapping
-
-| Harness Mode | Intent | Notes |
-|--------------|--------|-------|
-| `kernels` / `training` | `verify` | Deterministic correctness gate |
-| `inference` (debug) | `investigate` | Traces, profiling, probes allowed |
-| `bench` | `calibrate` | Baseline metrics only |
-
-Bench runs that enable profiling must switch intent to `investigate`; calibrate
-must keep profiling/tracing off.
-
-Maintenance flows (conversion, OPFS cleanup) are config-only but do not require a
-tooling intent unless they run harnessed workloads.
-
-If a command needs mixed behavior, split it into two runs with two configs.
-Do not overload a single run.
+- command is unknown
+- required suite/model fields are missing
+- suite/intent contract is violated
+- `calibrate` enables investigation instrumentation
 
 ---
 
-## Interface Rules
+## Surface Parity Rules
 
-- The interface never mutates config values.
-- The interface never supplies hidden defaults for model/command/suite.
-- The interface cannot override runtime tunables (prompt, sampling, batching).
-- All behavior changes are encoded in config and captured in artifacts.
+- Every command must run through `ensureCommandSupportedOnSurface()`.
+- Surface capability limits are explicit failures, not alternate behavior.
+- Output envelope shape is stable across surfaces:
+  - `{ ok, surface, request, result }`
+- New command capability is valid only when:
+  1. Added to `src/tooling/command-api.js`
+  2. Implemented in both browser and Node runners
+  3. Documented in this guide and harness guide
 
----
+### CLI Surface Selection
 
-## Artifacts and Outputs
-
-- **Verification**: structured error log and exit code.
-- **Investigation**: trace files, profiler output, or live stream.
-- **Calibration**: JSON metrics + optional HTML report.
-
-Outputs must be consistent across browser surfaces (harness + demo).
-
----
-
-## Cross-Surface Parity
-
-Any new command capability must be:
-1) Defined in config schema,
-2) Validated in runtime config validation,
-3) Available in both harness and demo surfaces.
-
-Do not add UI-only switches.
+- CLI supports `--surface auto|node|browser`.
+- `auto` first attempts Node for harnessed commands and falls back to browser relay only when Node WebGPU is unavailable.
+- Browser relay executes `runBrowserCommand()` in a headless browser via `src/tooling/command-runner.html`.
+- Browser relay can attach to an existing server with `--browser-base-url`.
+- `convert` is Node-only in CLI (`--surface browser` is rejected).
+- `keepPipeline=true` is rejected on browser relay because pipeline objects are not serializable across process boundaries.
 
 ---
 
 ## References
 
+- `src/tooling/command-api.js`
+- `src/tooling/browser-command-runner.js`
+- `src/tooling/node-command-runner.js`
+- `src/tooling/node-browser-command-runner.js`
 - `docs/style/harness-style-guide.md`
 - `docs/style/config-style-guide.md`
-- `docs/style/benchmark-style-guide.md`

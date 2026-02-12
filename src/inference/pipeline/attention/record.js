@@ -579,6 +579,7 @@ export async function recordLayerAttentionGPU(
       hasResidual: Boolean(residualTensor),
       residualMatches: Boolean(residualTensor && residualTensor.dtype === oProjInput.dtype),
       attnIsF32: oProjInput.dtype === 'f32',
+      attnIsF16: oProjInput.dtype === 'f16',
       hasLoRA: Boolean(loraO),
       oProjIsF16: oProjDtype === 'f16',
     });

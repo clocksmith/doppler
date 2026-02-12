@@ -160,6 +160,24 @@ function getScatterAddDynamicBindGroupLayout(device) {
   return scatterAddDynamicBindGroupLayout;
 }
 
+let moeOffsetsBindGroupLayout = null;
+
+function getMoEOffsetsBindGroupLayout(device) {
+  if (moeOffsetsBindGroupLayout) return moeOffsetsBindGroupLayout;
+
+  moeOffsetsBindGroupLayout = device.createBindGroupLayout({
+    label: 'moe_offsets_explicit_layout',
+    entries: [
+      { binding: 0, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'uniform' } },
+      { binding: 1, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'read-only-storage' } },
+      { binding: 2, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'read-only-storage' } },
+      { binding: 3, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
+    ],
+  });
+
+  return moeOffsetsBindGroupLayout;
+}
+
 
 export async function runMoEGather(hiddenStates, expertIndices, numTokens, hiddenSize, numExperts, topK, options = {}) {
   const device = getDevice();
@@ -451,6 +469,108 @@ export async function recordScatterAdd(recorder, expertOutputs, indices, weights
   return createTensor(outputBuf, expertOutputs.dtype, [numTokens, hiddenSize], 'scatter_add_output');
 }
 
+
+export async function runMoEBuildTokenOffsets(tokenCounts, tokenMap, numTokens, numExperts, topK, maxTokensPerExpert, options = {}) {
+  const device = getDevice();
+  const { outputBuffer = null } = options;
+
+  const explicitLayout = getMoEOffsetsBindGroupLayout(device);
+  const pipeline = await createPipeline('moe_offsets', 'default', explicitLayout);
+
+  const tokenOffsetsSize = numTokens * topK * 4;
+  const tokenOffsets = outputBuffer || acquireBuffer(tokenOffsetsSize, undefined, 'moe_token_offsets');
+
+  const uniformBuffer = createUniformBufferWithView(
+    'moe_offsets_uniforms',
+    32,
+    (view) => {
+      view.setUint32(0, numTokens, true);
+      view.setUint32(4, numExperts, true);
+      view.setUint32(8, topK, true);
+      view.setUint32(12, maxTokensPerExpert, true);
+      view.setUint32(16, 0, true);
+      view.setUint32(20, 0, true);
+      view.setUint32(24, 0, true);
+      view.setUint32(28, 0, true);
+    },
+    null,
+    device
+  );
+
+  const bindGroup = await createBindGroupWithValidation(device, {
+    label: 'moe_offsets_bind_group',
+    layout: explicitLayout,
+    entries: [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+      { binding: 1, resource: { buffer: tokenCounts } },
+      { binding: 2, resource: { buffer: tokenMap } },
+      { binding: 3, resource: { buffer: tokenOffsets } },
+    ],
+  }, 'moe_offsets');
+
+  const totalSlots = numExperts * maxTokensPerExpert;
+  const workgroups = Math.ceil(totalSlots / WORKGROUP_SIZES.DEFAULT);
+
+  const encoder = device.createCommandEncoder({ label: 'moe_offsets_encoder' });
+  const pass = encoder.beginComputePass({ label: 'moe_offsets_pass' });
+  pass.setPipeline(pipeline);
+  pass.setBindGroup(0, bindGroup);
+  pass.dispatchWorkgroups(workgroups);
+  pass.end();
+  device.queue.submit([encoder.finish()]);
+
+  uniformBuffer.destroy();
+  return tokenOffsets;
+}
+
+export async function recordMoEBuildTokenOffsets(recorder, tokenCounts, tokenMap, numTokens, numExperts, topK, maxTokensPerExpert, options = {}) {
+  const device = recorder.device;
+  const { outputBuffer = null } = options;
+
+  const explicitLayout = getMoEOffsetsBindGroupLayout(device);
+  const pipeline = await createPipeline('moe_offsets', 'default', explicitLayout);
+
+  const tokenOffsetsSize = numTokens * topK * 4;
+  const tokenOffsets = outputBuffer || acquireBuffer(tokenOffsetsSize, undefined, 'moe_token_offsets');
+
+  const uniformBuffer = createUniformBufferWithView(
+    'moe_offsets_uniforms',
+    32,
+    (view) => {
+      view.setUint32(0, numTokens, true);
+      view.setUint32(4, numExperts, true);
+      view.setUint32(8, topK, true);
+      view.setUint32(12, maxTokensPerExpert, true);
+      view.setUint32(16, 0, true);
+      view.setUint32(20, 0, true);
+      view.setUint32(24, 0, true);
+      view.setUint32(28, 0, true);
+    },
+    recorder
+  );
+
+  const bindGroup = await createBindGroupWithValidation(device, {
+    label: 'moe_offsets_bind_group',
+    layout: explicitLayout,
+    entries: [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+      { binding: 1, resource: { buffer: tokenCounts } },
+      { binding: 2, resource: { buffer: tokenMap } },
+      { binding: 3, resource: { buffer: tokenOffsets } },
+    ],
+  }, 'moe_offsets');
+
+  const totalSlots = numExperts * maxTokensPerExpert;
+  const workgroups = Math.ceil(totalSlots / WORKGROUP_SIZES.DEFAULT);
+
+  const pass = recorder.beginComputePass('moe_offsets');
+  pass.setPipeline(pipeline);
+  pass.setBindGroup(0, bindGroup);
+  pass.dispatchWorkgroups(workgroups);
+  pass.end();
+
+  return tokenOffsets;
+}
 
 export async function runScatterAddDynamic(expertOutputs, indices, weights, tokenOffsets, numTokens, hiddenSize, topK, options = {}) {
   const device = getDevice();
