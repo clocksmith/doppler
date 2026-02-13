@@ -71,3 +71,25 @@ export {
   sortTensorsByGroup,
   estimateShardCount,
 } from './shard-packer.js';
+
+export {
+  type ConversionPlanInputTensor,
+  type ResolveConversionPlanOptions,
+  type ConversionPlanResult,
+  type ValidateKernelPathContext,
+  type ResolveConvertedModelIdOptions,
+  inferSourceWeightQuantization,
+  validateDefaultKernelPath,
+  resolveConversionPlan,
+  resolveConvertedModelId,
+} from './conversion-plan.js';
+
+export {
+  type DiffusionTensor,
+  type ParsedTensorBundle,
+  type DiffusionParserAdapter,
+  type ParsedDiffusionModel,
+  type DiffusionLayout,
+  detectDiffusionLayout,
+  parseDiffusionModel,
+} from './parsers/index.js';

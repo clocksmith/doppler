@@ -54,8 +54,6 @@
 
   "detection": {
     "architecturePatterns": ["gemma2", "Gemma2ForCausalLM"],
-    "configPatterns": {
-      "attn_logit_softcapping": 50.0
-    }
+    "modelTypePatterns": ["gemma2"]
   }
 }

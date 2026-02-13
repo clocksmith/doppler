@@ -41,3 +41,16 @@ export {
   sortTensorsByGroup,
   estimateShardCount,
 } from './shard-packer.js';
+
+// Shared conversion planning helpers
+export {
+  inferSourceWeightQuantization,
+  validateDefaultKernelPath,
+  resolveConversionPlan,
+  resolveConvertedModelId,
+} from './conversion-plan.js';
+
+export {
+  detectDiffusionLayout,
+  parseDiffusionModel,
+} from './parsers/index.js';

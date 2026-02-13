@@ -108,6 +108,8 @@ export function detectPreset(
 ) {
   const archLower = (architecture || '').toLowerCase();
   const modelType = (config.model_type || '').toLowerCase();
+  // Weak hint case: architecture fallback is often model_type copy (e.g. qwen2).
+  const hintsAreWeak = !archLower || !modelType || archLower === modelType;
 
   // Pass 1: high-signal identifiers only (architecture/model type).
   // This avoids generic numeric config fields hijacking family detection.
@@ -132,21 +134,23 @@ export function detectPreset(
     }
   }
 
-  // Pass 2: config-pattern fallback.
-  for (const id of PRESET_DETECTION_ORDER) {
-    const preset = PRESET_REGISTRY[id];
-    if (!preset?.detection) continue;
+  // Pass 2: config-pattern fallback only for weak/missing hints.
+  if (hintsAreWeak) {
+    for (const id of PRESET_DETECTION_ORDER) {
+      const preset = PRESET_REGISTRY[id];
+      if (!preset?.detection) continue;
 
-    if (preset.detection.configPatterns) {
-      let allMatch = true;
-      for (const [key, value] of Object.entries(preset.detection.configPatterns)) {
-        if (config[key] !== value) {
-          allMatch = false;
-          break;
+      if (preset.detection.configPatterns) {
+        let allMatch = true;
+        for (const [key, value] of Object.entries(preset.detection.configPatterns)) {
+          if (config[key] !== value) {
+            allMatch = false;
+            break;
+          }
         }
-      }
-      if (allMatch && Object.keys(preset.detection.configPatterns).length > 0) {
-        return id;
+        if (allMatch && Object.keys(preset.detection.configPatterns).length > 0) {
+          return id;
+        }
       }
     }
   }

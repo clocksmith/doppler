@@ -67,60 +67,18 @@ async function readSafetensorsHeader(filePath, parseSafetensorsHeader) {
   }
 }
 
-async function loadTensorHeaders(inputDir, parseSafetensorsHeader) {
-  const indexPath = path.join(inputDir, 'model.safetensors.index.json');
-  const singlePath = path.join(inputDir, 'model.safetensors');
-  const tensors = [];
-
-  let hasIndex = false;
-  try {
-    await fs.access(indexPath);
-    hasIndex = true;
-  } catch {
-    hasIndex = false;
-  }
-
-  if (hasIndex) {
-    const indexJson = JSON.parse(await fs.readFile(indexPath, 'utf8'));
-    const shardFiles = [...new Set(Object.values(indexJson.weight_map || {}))];
-    for (const shardFile of shardFiles) {
-      const shardPath = path.join(inputDir, shardFile);
-      const parsed = await readSafetensorsHeader(shardPath, parseSafetensorsHeader);
-      for (const tensor of parsed.tensors) {
-        tensors.push({ ...tensor, sourcePath: shardPath });
-      }
+async function listRelativeFiles(rootDir, relDir = '', out = []) {
+  const currentDir = relDir ? path.join(rootDir, relDir) : rootDir;
+  const entries = await fs.readdir(currentDir, { withFileTypes: true });
+  for (const entry of entries) {
+    const relPath = relDir ? `${relDir}/${entry.name}` : entry.name;
+    if (entry.isDirectory()) {
+      await listRelativeFiles(rootDir, relPath, out);
+      continue;
     }
-  } else {
-    const parsed = await readSafetensorsHeader(singlePath, parseSafetensorsHeader);
-    for (const tensor of parsed.tensors) {
-      tensors.push({ ...tensor, sourcePath: singlePath });
-    }
+    out.push(relPath.replace(/\\/g, '/'));
   }
-
-  tensors.sort((a, b) => a.name.localeCompare(b.name));
-  return tensors;
-}
-
-function inferSourceWeightQuantization(tensors) {
-  if (!Array.isArray(tensors) || tensors.length === 0) {
-    return 'f16';
-  }
-  const dtypes = new Set(
-    tensors
-      .filter((tensor) => typeof tensor?.name === 'string' && tensor.name.includes('.weight'))
-      .map((tensor) => String(tensor?.dtype || '').trim().toUpperCase())
-      .filter((dtype) => dtype.length > 0)
-  );
-  if (dtypes.size === 0) return 'f16';
-  if (dtypes.size === 1) {
-    const only = [...dtypes][0];
-    if (only === 'F32') return 'f32';
-    if (only === 'F16') return 'f16';
-    if (only === 'BF16') return 'f16';
-  }
-  if (dtypes.has('F32')) return 'f32';
-  if (dtypes.has('BF16')) return 'f16';
-  return 'f16';
+  return out;
 }
 
 function createNodeConvertIO(outputDir, options) {
@@ -192,92 +150,181 @@ export async function convertSafetensorsDirectory(options) {
   const [
     { parseSafetensorsHeader },
     { convertModel, extractArchitecture },
-    { normalizeQuantTag, resolveManifestQuantization },
-    { buildManifestInference },
+    { resolveConversionPlan, inferSourceWeightQuantization },
+    { parseDiffusionModel },
+    { parseTransformerModel },
     { createConverterConfig },
-    { detectPreset, resolvePreset },
-    { resolveKernelPath },
     { computeHash },
   ] = await Promise.all([
     import('../formats/safetensors/types.js'),
     import('../converter/core.js'),
-    import('../converter/quantization-info.js'),
-    import('../converter/manifest-inference.js'),
+    import('../converter/conversion-plan.js'),
+    import('../converter/parsers/diffusion.js'),
+    import('../converter/parsers/transformer.js'),
     import('../config/schema/converter.schema.js'),
-    import('../config/loader.js'),
-    import('../config/kernel-path-loader.js'),
     import('../storage/shard-manager.js'),
   ]);
 
   await fs.mkdir(outputDir, { recursive: true });
 
-  const configPath = path.join(inputDir, 'config.json');
-  const config = JSON.parse(await fs.readFile(configPath, 'utf8'));
-  const tensors = await loadTensorHeaders(inputDir, parseSafetensorsHeader);
-
-  const architectureHint = config.architectures?.[0] ?? config.model_type ?? '';
-  const architecture = extractArchitecture(config, null);
-  const sourceQuantization = inferSourceWeightQuantization(tensors);
   const converterConfig = createConverterConfig(converterConfigOverride ?? undefined);
-  const presetOverride = typeof converterConfig.presets?.model === 'string'
-    ? converterConfig.presets.model.trim()
-    : '';
-  const presetId = presetOverride || detectPreset(config, architectureHint);
-  const preset = resolvePreset(presetId);
-  if (presetId === 'transformer') {
-    const modelType = config.model_type ?? 'unknown';
-    throw new Error(
-      `Unknown model family: architecture="${architectureHint || 'unknown'}", model_type="${modelType}"\n\n` +
-      `DOPPLER requires a known model preset to generate correct inference config.\n` +
-      `The manifest-first architecture does not support generic defaults.\n\n` +
-      `Options:\n` +
-      `  1. Wait for official support of this model family\n` +
-      `  2. Set converterConfig.presets.model to a known family (e.g., embeddinggemma)\n` +
-      `  3. Create a custom preset in src/config/presets/models/\n` +
-      `  4. File an issue at https://github.com/clocksmith/doppler/issues\n\n` +
-      `Supported model families: gemma2, gemma3, embeddinggemma, modernbert, llama3, qwen3, mixtral, deepseek, mamba, gpt-oss`
+  const diffusionIndexPath = path.join(inputDir, 'model_index.json');
+  const isDiffusionInput = await fileExists(diffusionIndexPath);
+
+  let config = null;
+  let tensors = [];
+  let architectureHint = '';
+  let architecture = null;
+  let modelKind = 'transformer';
+  let tokenizerJson = null;
+  let tokenizerConfig = null;
+  let hasTokenizerModel = false;
+  let tokenizerModelPath = null;
+  let diffusionAuxFiles = [];
+
+  if (isDiffusionInput) {
+    const relativeFiles = await listRelativeFiles(inputDir);
+    const fileSet = new Set(relativeFiles);
+    const toArrayBuffer = (buffer) => (
+      buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength)
     );
-  }
-  const resolvedModelType = preset.modelType ?? 'transformer';
-  const weightOverride = converterConfig.quantization?.weights ?? null;
-  const targetQuantization = resolveManifestQuantization(weightOverride, sourceQuantization);
-  const normalizedWeightQuant = normalizeQuantTag(weightOverride ?? sourceQuantization);
-  const quantizationInfo = {
-    weights: normalizedWeightQuant,
-    compute: converterConfig.quantization?.computePrecision ?? null,
-  };
-  if (normalizedWeightQuant === 'q4k') {
-    quantizationInfo.layout = converterConfig.quantization?.q4kLayout ?? null;
-  }
-  const headDim = architecture?.headDim ?? preset?.architecture?.headDim ?? 64;
-  const tensorNames = tensors.map((tensor) => tensor.name);
-  const inference = buildManifestInference(
-    preset,
-    config,
-    headDim,
-    quantizationInfo,
-    tensorNames
-  );
-  if (inference?.defaultKernelPath) {
-    try {
-      resolveKernelPath(inference.defaultKernelPath);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      throw new Error(
-        `Invalid defaultKernelPath "${inference.defaultKernelPath}" for preset "${presetId}" ` +
-        `(weights=${quantizationInfo.weights}, compute=${quantizationInfo.compute ?? 'default'}, ` +
-        `q4kLayout=${quantizationInfo.layout ?? 'row'}): ${message}`
-      );
-    }
+    const parsedDiffusion = await parseDiffusionModel({
+      onProgress,
+      findExistingSuffix(suffixes) {
+        for (const suffix of suffixes || []) {
+          if (fileSet.has(suffix)) return suffix;
+        }
+        return null;
+      },
+      async readJson(suffix, label = 'json') {
+        if (!fileSet.has(suffix)) {
+          throw new Error(`Missing ${label} (${suffix})`);
+        }
+        return JSON.parse(await fs.readFile(path.join(inputDir, suffix), 'utf8'));
+      },
+      async readText(suffix, label = 'text') {
+        if (!fileSet.has(suffix)) {
+          throw new Error(`Missing ${label} (${suffix})`);
+        }
+        return fs.readFile(path.join(inputDir, suffix), 'utf8');
+      },
+      async readBinary(suffix, label = 'binary') {
+        if (!fileSet.has(suffix)) {
+          throw new Error(`Missing ${label} (${suffix})`);
+        }
+        const bytes = await fs.readFile(path.join(inputDir, suffix));
+        return toArrayBuffer(bytes);
+      },
+      async parseSingleSafetensors(suffix) {
+        if (!fileSet.has(suffix)) {
+          throw new Error(`Missing safetensors file (${suffix})`);
+        }
+        const fullPath = path.join(inputDir, suffix);
+        const parsed = await readSafetensorsHeader(fullPath, parseSafetensorsHeader);
+        return {
+          tensors: parsed.tensors.map((tensor) => ({
+            ...tensor,
+            sourcePath: fullPath,
+          })),
+        };
+      },
+      async parseShardedSafetensors(indexSuffix, indexJson, componentId) {
+        const weightMap = indexJson?.weight_map || {};
+        const shardNames = Array.from(new Set(Object.values(weightMap)));
+        if (shardNames.length === 0) {
+          throw new Error(`No shards listed in ${componentId} index file`);
+        }
+        const baseDir = indexSuffix.includes('/')
+          ? indexSuffix.split('/').slice(0, -1).join('/')
+          : '';
+        const shardSuffixes = shardNames.map((name) => (baseDir ? `${baseDir}/${name}` : name));
+        const missing = shardSuffixes.filter((suffix) => !fileSet.has(suffix));
+        if (missing.length > 0) {
+          throw new Error(
+            `Missing shard files for ${componentId} (${shardSuffixes.length - missing.length}/${shardSuffixes.length} found)`
+          );
+        }
+        const tensorsOut = [];
+        for (const shardSuffix of shardSuffixes) {
+          const fullPath = path.join(inputDir, shardSuffix);
+          const parsed = await readSafetensorsHeader(fullPath, parseSafetensorsHeader);
+          for (const tensor of parsed.tensors) {
+            tensorsOut.push({
+              ...tensor,
+              sourcePath: fullPath,
+            });
+          }
+        }
+        return { tensors: tensorsOut };
+      },
+    });
+    config = parsedDiffusion.config;
+    tensors = parsedDiffusion.tensors;
+    architectureHint = 'diffusion';
+    modelKind = 'diffusion';
+    diffusionAuxFiles = parsedDiffusion.auxFiles ?? [];
+  } else {
+    const parsedTransformer = await parseTransformerModel({
+      async readJson(suffix, label = 'json') {
+        const filePath = path.join(inputDir, suffix);
+        try {
+          return JSON.parse(await fs.readFile(filePath, 'utf8'));
+        } catch (error) {
+          throw new Error(`Missing ${label} (${suffix})`);
+        }
+      },
+      async fileExists(suffix) {
+        return fileExists(path.join(inputDir, suffix));
+      },
+      async loadSingleSafetensors(suffix) {
+        const filePath = path.join(inputDir, suffix);
+        const parsed = await readSafetensorsHeader(filePath, parseSafetensorsHeader);
+        return parsed.tensors.map((tensor) => ({
+          ...tensor,
+          sourcePath: filePath,
+        }));
+      },
+      async loadShardedSafetensors(indexJson) {
+        const shardFiles = [...new Set(Object.values(indexJson.weight_map || {}))];
+        const tensorsOut = [];
+        for (const shardFile of shardFiles) {
+          const shardPath = path.join(inputDir, shardFile);
+          const parsed = await readSafetensorsHeader(shardPath, parseSafetensorsHeader);
+          for (const tensor of parsed.tensors) {
+            tensorsOut.push({ ...tensor, sourcePath: shardPath });
+          }
+        }
+        return tensorsOut;
+      },
+    });
+    config = parsedTransformer.config;
+    tensors = parsedTransformer.tensors;
+    architectureHint = parsedTransformer.architectureHint;
+    architecture = extractArchitecture(config, null);
+    const tokenizerJsonPath = path.join(inputDir, 'tokenizer.json');
+    tokenizerModelPath = path.join(inputDir, 'tokenizer.model');
+    const tokenizerConfigPath = path.join(inputDir, 'tokenizer_config.json');
+    tokenizerJson = await readOptionalJson(tokenizerJsonPath);
+    tokenizerConfig = await readOptionalJson(tokenizerConfigPath);
+    hasTokenizerModel = await fileExists(tokenizerModelPath);
   }
 
-  const tokenizerJsonPath = path.join(inputDir, 'tokenizer.json');
-  const tokenizerModelPath = path.join(inputDir, 'tokenizer.model');
-  const tokenizerConfigPath = path.join(inputDir, 'tokenizer_config.json');
-
-  const tokenizerJson = await readOptionalJson(tokenizerJsonPath);
-  const tokenizerConfig = await readOptionalJson(tokenizerConfigPath);
-  const hasTokenizerModel = await fileExists(tokenizerModelPath);
+  const sourceQuantization = inferSourceWeightQuantization(tensors);
+  const plan = resolveConversionPlan({
+    rawConfig: config,
+    tensors,
+    converterConfig,
+    sourceQuantization,
+    modelKind,
+    architectureHint,
+    architectureConfig: architecture,
+    includePresetOverrideHint: modelKind === 'transformer',
+  });
+  const resolvedModelType = plan.modelType;
+  const targetQuantization = plan.manifestQuantization;
+  const quantizationInfo = plan.quantizationInfo;
+  const inference = plan.manifestInference;
+  const presetId = plan.presetId;
 
   const model = {
     name: path.basename(inputDir),
@@ -302,12 +349,13 @@ export async function convertSafetensorsDirectory(options) {
     hashAlgorithm: converterConfig.manifest.hashAlgorithm,
     computeHash,
   });
+  const manifestArchitecture = modelKind === 'diffusion' ? 'diffusion' : architecture;
   const result = await convertModel(model, io, {
     modelId,
     modelType: resolvedModelType,
     quantization: targetQuantization,
     quantizationInfo,
-    architecture,
+    architecture: manifestArchitecture,
     inference,
     converterConfig,
     onProgress(update) {
@@ -318,8 +366,18 @@ export async function convertSafetensorsDirectory(options) {
   if (tokenizerJson) {
     await fs.writeFile(path.join(outputDir, 'tokenizer.json'), JSON.stringify(tokenizerJson), 'utf8');
   }
-  if (hasTokenizerModel) {
+  if (hasTokenizerModel && tokenizerModelPath) {
     await fs.copyFile(tokenizerModelPath, path.join(outputDir, 'tokenizer.model'));
+  }
+  if (diffusionAuxFiles.length > 0) {
+    for (const asset of diffusionAuxFiles) {
+      const outPath = path.join(outputDir, asset.name);
+      if (typeof asset.data === 'string') {
+        await fs.writeFile(outPath, asset.data, 'utf8');
+      } else {
+        await fs.writeFile(outPath, Buffer.from(asset.data));
+      }
+    }
   }
 
   normalizeTokenizerManifest(result.manifest);

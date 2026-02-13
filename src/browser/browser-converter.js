@@ -40,11 +40,7 @@ import {
 import {
   ShardPacker,
 } from '../converter/shard-packer.js';
-import { classifyTensorRole } from '../storage/rdrr-format.js';
 import {
-  buildQuantizationInfo,
-  resolveManifestQuantization,
-  resolveModelId,
   resolveTensorDtype,
   resolveQ4KLayout,
   getQ4KOutputSize,
@@ -55,16 +51,19 @@ import {
 // Import shared types and functions from convert-core
 import {
   ConvertStage,
-  sanitizeModelId,
   formatBytes,
   extractArchitecture,
   createManifest,
 } from '../converter/core.js';
-import { buildManifestInference } from '../converter/manifest-inference.js';
+import {
+  inferSourceWeightQuantization,
+  resolveConversionPlan,
+  resolveConvertedModelId,
+} from '../converter/conversion-plan.js';
+import { parseDiffusionModel as parseSharedDiffusionModel } from '../converter/parsers/diffusion.js';
+import { parseGGUFModel as parseSharedGGUFModel } from '../converter/parsers/gguf.js';
 
-import { createConverterConfig, detectPreset, resolvePreset } from '../config/index.js';
-import { resolveKernelPath } from '../config/kernel-path-loader.js';
-import { DEFAULT_MANIFEST_INFERENCE } from '../config/schema/index.js';
+import { createConverterConfig } from '../config/index.js';
 import { MB, GB } from '../config/schema/units.schema.js';
 import { log, trace } from '../debug/index.js';
 
@@ -142,38 +141,6 @@ export async function createRemoteModelSources(urls, options = {}) {
 // ============================================================================
 
 
-function normalizeWeightDtype(dtype) {
-  const upper = String(dtype || '').toUpperCase();
-  return upper === 'BF16' ? 'F16' : upper;
-}
-
-function inferQuantizationFromTensors(tensors) {
-  const weightDtypes = new Set();
-  for (const tensor of tensors) {
-    if (!tensor?.name || typeof tensor.dtype !== 'string') continue;
-    if (!tensor.name.includes('.weight')) continue;
-    weightDtypes.add(normalizeWeightDtype(tensor.dtype));
-  }
-  if (weightDtypes.size === 0) return null;
-  if (weightDtypes.size > 1) {
-    throw new Error(`Ambiguous weight dtypes: ${Array.from(weightDtypes).join(', ')}`);
-  }
-  return Array.from(weightDtypes)[0];
-}
-
-function isEmbeddingTensorName(name) {
-  return classifyTensorRole(name) === 'embedding';
-}
-
-function isLmHeadTensorName(name) {
-  return classifyTensorRole(name) === 'lm_head';
-}
-
-function findTensorDtype(tensors, matcher) {
-  const match = tensors.find((t) => matcher(t.name));
-  return match?.dtype ?? null;
-}
-
 function getFilePath(file) {
   if (!file) return '';
   if (typeof file.relativePath === 'string' && file.relativePath.length > 0) {
@@ -238,201 +205,58 @@ function pickFirstBySuffix(files, suffixes) {
 async function parseDiffusionModel(files, onProgress, signal) {
   const modelIndexFile = findFileBySuffix(files, 'model_index.json');
   if (!modelIndexFile) return null;
-
-  onProgress?.({
-    stage: ConvertStage.PARSING,
-    message: 'Parsing diffusion model_index.json...',
+  return parseSharedDiffusionModel({
+    onProgress,
+    signal,
+    findExistingSuffix(suffixes) {
+      const file = pickFirstBySuffix(files, suffixes);
+      return file ? normalizePath(getFilePath(file)) : null;
+    },
+    async readJson(suffix, label = 'json') {
+      const file = findFileBySuffix(files, suffix);
+      if (!file) {
+        throw new Error(`Missing ${label} (${suffix})`);
+      }
+      return parseJsonFile(file, label);
+    },
+    async readText(suffix, label = 'text') {
+      const file = findFileBySuffix(files, suffix);
+      if (!file) {
+        throw new Error(`Missing ${label} (${suffix})`);
+      }
+      return readTextFile(file, label);
+    },
+    async readBinary(suffix, label = 'binary') {
+      const file = findFileBySuffix(files, suffix);
+      if (!file || typeof file.arrayBuffer !== 'function') {
+        throw new Error(`Missing ${label} (${suffix})`);
+      }
+      return file.arrayBuffer();
+    },
+    async parseSingleSafetensors(suffix) {
+      const file = findFileBySuffix(files, suffix);
+      if (!file) {
+        throw new Error(`Missing safetensors file (${suffix})`);
+      }
+      return parseSafetensorsFile(file);
+    },
+    async parseShardedSafetensors(indexSuffix, indexJson, componentId) {
+      const weightMap = indexJson?.weight_map || {};
+      const shardNames = Array.from(new Set(Object.values(weightMap)));
+      if (shardNames.length === 0) {
+        throw new Error(`No shards listed in ${componentId} index file`);
+      }
+      const baseDir = indexSuffix.includes('/') ? indexSuffix.split('/').slice(0, -1).join('/') : '';
+      const shardFiles = shardNames.map((name) => {
+        const suffix = baseDir ? `${baseDir}/${name}` : name;
+        return findFileBySuffix(files, suffix);
+      }).filter(Boolean);
+      if (shardFiles.length !== shardNames.length) {
+        throw new Error(`Missing shard files for ${componentId} (${shardFiles.length}/${shardNames.length} found)`);
+      }
+      return parseSafetensorsSharded(shardFiles, indexJson);
+    },
   });
-
-  const modelIndex = await parseJsonFile(modelIndexFile, 'model_index.json');
-  const diffusionConfig = {
-    modelIndex,
-    components: {},
-  };
-  const auxFiles = [];
-  const tensors = [];
-
-  const addPrefixedTensors = (componentId, parsed) => {
-    for (const tensor of parsed.tensors) {
-      tensors.push({
-        ...tensor,
-        name: `${componentId}.${tensor.name}`,
-      });
-    }
-  };
-
-  const parseComponentConfig = async (componentId, suffix) => {
-    const file = findFileBySuffix(files, suffix);
-    if (!file) return null;
-    const config = await parseJsonFile(file, `${componentId} config`);
-    if (componentId === 'transformer' && config && !config.weight_format) {
-      config.weight_format = 'diffusers';
-    }
-    diffusionConfig.components[componentId] = {
-      ...(diffusionConfig.components[componentId] || {}),
-      config,
-    };
-    return config;
-  };
-
-  const parseSingleSafetensors = async (componentId, file) => {
-    if (!file) {
-      throw new Error(`Missing ${componentId} safetensors file`);
-    }
-    const parsed = await parseSafetensorsFile(file);
-    addPrefixedTensors(componentId, parsed);
-  };
-
-  const parseShardedSafetensors = async (componentId, indexFile) => {
-    if (!indexFile) {
-      throw new Error(`Missing ${componentId} sharded index file`);
-    }
-    const indexJson = await parseJsonFile(indexFile, `${componentId} index`);
-    const weightMap = indexJson?.weight_map || {};
-    const shardNames = Array.from(new Set(Object.values(weightMap)));
-    if (shardNames.length === 0) {
-      throw new Error(`No shards listed in ${componentId} index file`);
-    }
-    const indexPath = normalizePath(getFilePath(indexFile));
-    const baseDir = indexPath.includes('/') ? indexPath.split('/').slice(0, -1).join('/') : '';
-    const shardFiles = shardNames.map((name) => {
-      const suffix = baseDir ? `${baseDir}/${name}` : name;
-      return findFileBySuffix(files, suffix);
-    }).filter(Boolean);
-    if (shardFiles.length !== shardNames.length) {
-      throw new Error(`Missing shard files for ${componentId} (${shardFiles.length}/${shardNames.length} found)`);
-    }
-    const parsed = await parseSafetensorsSharded(shardFiles, indexJson);
-    addPrefixedTensors(componentId, parsed);
-  };
-
-  if (signal?.aborted) throw new DOMException('Cancelled', 'AbortError');
-
-  await parseComponentConfig('transformer', 'transformer/config.json');
-  await parseComponentConfig('text_encoder', 'text_encoder/config.json');
-  await parseComponentConfig('text_encoder_2', 'text_encoder_2/config.json');
-  await parseComponentConfig('text_encoder_3', 'text_encoder_3/config.json');
-  await parseComponentConfig('vae', 'vae/config.json');
-  await parseComponentConfig('scheduler', 'scheduler/scheduler_config.json');
-
-  onProgress?.({
-    stage: ConvertStage.PARSING,
-    message: 'Parsing diffusion weights...',
-  });
-
-  const transformerFile = pickFirstBySuffix(files, [
-    'transformer/diffusion_pytorch_model.safetensors',
-    'transformer/model.safetensors',
-    'transformer/model.fp16.safetensors',
-    'sd3.5_medium.safetensors',
-  ]);
-  await parseSingleSafetensors('transformer', transformerFile);
-
-  const textEncoderFile = pickFirstBySuffix(files, [
-    'text_encoder/model.safetensors',
-    'text_encoder/model.fp16.safetensors',
-  ]);
-  await parseSingleSafetensors('text_encoder', textEncoderFile);
-
-  const textEncoder2File = pickFirstBySuffix(files, [
-    'text_encoder_2/model.safetensors',
-    'text_encoder_2/model.fp16.safetensors',
-  ]);
-  await parseSingleSafetensors('text_encoder_2', textEncoder2File);
-
-  const textEncoder3Index = pickFirstBySuffix(files, [
-    'text_encoder_3/model.safetensors.index.json',
-    'text_encoder_3/model.safetensors.index.fp16.json',
-  ]);
-  await parseShardedSafetensors('text_encoder_3', textEncoder3Index);
-
-  const vaeFile = pickFirstBySuffix(files, [
-    'vae/diffusion_pytorch_model.safetensors',
-    'vae/model.safetensors',
-  ]);
-  await parseSingleSafetensors('vae', vaeFile);
-
-  const storeTextAsset = async (label, suffix, targetName) => {
-    const file = findFileBySuffix(files, suffix);
-    if (!file) return;
-    const text = await readTextFile(file, label);
-    auxFiles.push({ name: targetName, data: text });
-  };
-
-  const storeBinaryAsset = async (label, suffix, targetName) => {
-    const file = findFileBySuffix(files, suffix);
-    if (!file) return;
-    if (typeof file.arrayBuffer !== 'function') {
-      throw new Error(`Missing binary data for ${label}`);
-    }
-    const buffer = await file.arrayBuffer();
-    auxFiles.push({ name: targetName, data: buffer });
-  };
-
-  await storeTextAsset('tokenizer vocab', 'tokenizer/vocab.json', 'tokenizer_vocab.json');
-  await storeTextAsset('tokenizer merges', 'tokenizer/merges.txt', 'tokenizer_merges.txt');
-  await storeTextAsset('tokenizer config', 'tokenizer/tokenizer_config.json', 'tokenizer_config.json');
-  await storeTextAsset('tokenizer special tokens', 'tokenizer/special_tokens_map.json', 'tokenizer_special_tokens_map.json');
-
-  await storeTextAsset('tokenizer_2 vocab', 'tokenizer_2/vocab.json', 'tokenizer_2_vocab.json');
-  await storeTextAsset('tokenizer_2 merges', 'tokenizer_2/merges.txt', 'tokenizer_2_merges.txt');
-  await storeTextAsset('tokenizer_2 config', 'tokenizer_2/tokenizer_config.json', 'tokenizer_2_config.json');
-  await storeTextAsset('tokenizer_2 special tokens', 'tokenizer_2/special_tokens_map.json', 'tokenizer_2_special_tokens_map.json');
-
-  await storeTextAsset('tokenizer_3 json', 'tokenizer_3/tokenizer.json', 'tokenizer_3_tokenizer.json');
-  await storeBinaryAsset('tokenizer_3 spiece', 'tokenizer_3/spiece.model', 'tokenizer_3_spiece.model');
-  await storeTextAsset('tokenizer_3 config', 'tokenizer_3/tokenizer_config.json', 'tokenizer_3_config.json');
-  await storeTextAsset('tokenizer_3 special tokens', 'tokenizer_3/special_tokens_map.json', 'tokenizer_3_special_tokens_map.json');
-
-  const requireTokenizerAsset = (label, suffix) => {
-    if (!findFileBySuffix(files, suffix)) {
-      throw new Error(`Missing ${label} (${suffix}) for diffusion conversion.`);
-    }
-  };
-
-  if (modelIndex?.tokenizer) {
-    requireTokenizerAsset('tokenizer vocab', 'tokenizer/vocab.json');
-    requireTokenizerAsset('tokenizer merges', 'tokenizer/merges.txt');
-  }
-  if (modelIndex?.tokenizer_2) {
-    requireTokenizerAsset('tokenizer_2 vocab', 'tokenizer_2/vocab.json');
-    requireTokenizerAsset('tokenizer_2 merges', 'tokenizer_2/merges.txt');
-  }
-  if (modelIndex?.tokenizer_3) {
-    requireTokenizerAsset('tokenizer_3 json', 'tokenizer_3/tokenizer.json');
-    requireTokenizerAsset('tokenizer_3 spiece', 'tokenizer_3/spiece.model');
-  }
-
-  diffusionConfig.tokenizers = {
-    text_encoder: {
-      type: 'bpe',
-      vocabFile: 'tokenizer_vocab.json',
-      mergesFile: 'tokenizer_merges.txt',
-      configFile: 'tokenizer_config.json',
-      specialTokensFile: 'tokenizer_special_tokens_map.json',
-    },
-    text_encoder_2: {
-      type: 'bpe',
-      vocabFile: 'tokenizer_2_vocab.json',
-      mergesFile: 'tokenizer_2_merges.txt',
-      configFile: 'tokenizer_2_config.json',
-      specialTokensFile: 'tokenizer_2_special_tokens_map.json',
-    },
-    text_encoder_3: {
-      type: 'sentencepiece',
-      tokenizerFile: 'tokenizer_3_tokenizer.json',
-      spieceFile: 'tokenizer_3_spiece.model',
-      configFile: 'tokenizer_3_config.json',
-      specialTokensFile: 'tokenizer_3_special_tokens_map.json',
-    },
-  };
-
-  return {
-    tensors,
-    config: { diffusion: diffusionConfig },
-    auxFiles,
-    architecture: 'diffusion',
-  };
 }
 
 export async function convertModel(files, options = {}) {
@@ -601,100 +425,37 @@ export async function convertModel(files, options = {}) {
 
     if (signal?.aborted) throw new DOMException('Cancelled', 'AbortError');
 
-    // Detect model type using preset system (skip for diffusion)
     const rawConfig = (config || modelInfo.config || {});
-    let preset = null;
-    let modelType = null;
-    let manifestInference = null;
-    let headDim = null;
-    let tensorNames = null;
-
-    if (diffusionInfo) {
-      modelType = 'diffusion';
-      manifestInference = { ...DEFAULT_MANIFEST_INFERENCE, presetId: 'diffusion' };
-    } else {
-      const presetOverride = resolvedConverterConfig.presets?.model;
-      const presetId = presetOverride || detectPreset(rawConfig, modelInfo.architecture);
-      if (presetId === 'transformer') {
-        const modelType = rawConfig.model_type ?? 'unknown';
-        throw new Error(
-          `Unknown model family: architecture="${modelInfo.architecture || 'unknown'}", model_type="${modelType}"\n\n` +
-          `DOPPLER requires a known model preset to generate correct inference config.\n` +
-          `The manifest-first architecture does not support generic defaults.\n\n` +
-          `Options:\n` +
-          `  1. Wait for official support of this model family\n` +
-          `  2. Create a custom preset in src/config/presets/models/\n` +
-          `  3. File an issue at https://github.com/clocksmith/doppler/issues\n\n` +
-          `Supported model families: gemma2, gemma3, embeddinggemma, modernbert, llama3, qwen3, mixtral, deepseek, mamba, gpt-oss`
-        );
-      }
-      preset = resolvePreset(presetId);
-      modelType = preset.modelType;
-      if (!modelType) {
-        throw new Error(`Preset "${presetId}" missing modelType`);
-      }
-      const hfConfig = (config || (modelInfo.format === 'gguf' ? null : modelInfo.config));
-      const ggufConfig = modelInfo.format === 'gguf' ? modelInfo.config : undefined;
-      const architecture = extractArchitecture(hfConfig || {}, ggufConfig);
-      headDim = architecture.headDim;
-      if (!headDim) {
-        throw new Error('Missing headDim in architecture');
-      }
-      tensorNames = modelInfo.tensors.map((tensor) => tensor.name);
-    }
     const tensors = modelInfo.tensors;
     const totalTensorBytes = tensors.reduce((sum, tensor) => sum + (tensor.size || 0), 0);
-    const weightOverride = resolvedConverterConfig.quantization?.weights ?? null;
-    const sourceQuantization = weightOverride || modelInfo.quantization || inferQuantizationFromTensors(tensors);
-    if (!sourceQuantization) {
-      throw new Error('Missing quantization for model conversion');
-    }
-    const embedDtypeRaw = findTensorDtype(tensors, isEmbeddingTensorName);
-    const lmHeadDtypeRaw = findTensorDtype(tensors, isLmHeadTensorName);
-    const visionPatterns = ['vision_', 'vision_tower', 'vision_model', 'image_encoder'];
-    const audioPatterns = ['audio_', 'audio_encoder', 'whisper', 'wav2vec'];
-    const projectorPatterns = ['multi_modal_projector', 'mm_projector', 'projector'];
-    const hasVision = tensors.some((t) => visionPatterns.some((pattern) => t.name.toLowerCase().includes(pattern)));
-    const hasAudio = tensors.some((t) => audioPatterns.some((pattern) => t.name.toLowerCase().includes(pattern)));
-    const hasProjector = tensors.some((t) => projectorPatterns.some((pattern) => t.name.toLowerCase().includes(pattern)));
-    const quantizationInfo = buildQuantizationInfo(
-      resolvedConverterConfig,
-      sourceQuantization,
-      embedDtypeRaw,
-      lmHeadDtypeRaw,
-      hasVision,
-      hasAudio,
-      hasProjector,
-      rawConfig
-    );
-    const manifestQuantization = resolveManifestQuantization(
-      resolvedConverterConfig.quantization.weights ?? null,
-      sourceQuantization
-    );
+    let architectureConfig = null;
     if (!diffusionInfo) {
-      const inferredHeadDim = headDim ?? preset?.architecture?.headDim ?? null;
-      const names = tensorNames ?? tensors.map((tensor) => tensor.name);
-      manifestInference = buildManifestInference(preset, rawConfig, inferredHeadDim, quantizationInfo, names);
-      if (manifestInference?.defaultKernelPath) {
-        try {
-          resolveKernelPath(manifestInference.defaultKernelPath);
-        } catch (error) {
-          const message = error instanceof Error ? error.message : String(error);
-          throw new Error(
-            `Invalid defaultKernelPath "${manifestInference.defaultKernelPath}" for preset "${presetId}" ` +
-            `(weights=${quantizationInfo.weights}, compute=${quantizationInfo.compute ?? 'default'}, ` +
-            `q4kLayout=${quantizationInfo.layout ?? 'row'}): ${message}`
-          );
-        }
-      }
+      const hfConfig = (config || (modelInfo.format === 'gguf' ? null : modelInfo.config));
+      const ggufConfig = modelInfo.format === 'gguf' ? modelInfo.config : undefined;
+      architectureConfig = extractArchitecture(hfConfig || {}, ggufConfig);
     }
+    const sourceQuantization = modelInfo.quantization || inferSourceWeightQuantization(tensors);
+    const plan = resolveConversionPlan({
+      rawConfig,
+      tensors,
+      converterConfig: resolvedConverterConfig,
+      sourceQuantization,
+      modelKind: diffusionInfo ? 'diffusion' : 'transformer',
+      architectureHint: modelInfo.architecture,
+      architectureConfig,
+    });
+    const modelType = plan.modelType;
+    const quantizationInfo = plan.quantizationInfo;
+    const manifestQuantization = plan.manifestQuantization;
+    const manifestInference = plan.manifestInference;
 
     const detectedModelId = extractModelId(files, config);
-    const baseModelId = userModelId ?? resolvedConverterConfig.output?.modelId ?? detectedModelId;
-    const resolvedModelId = baseModelId
-      ? resolveModelId(baseModelId, detectedModelId ?? baseModelId, quantizationInfo.variantTag)
-      : null;
-    modelId = resolvedModelId ? sanitizeModelId(resolvedModelId) : null;
+    modelId = resolveConvertedModelId({
+      explicitModelId: userModelId,
+      converterConfig: resolvedConverterConfig,
+      detectedModelId,
+      quantizationInfo,
+    });
     if (!modelId) {
       throw new Error('Missing modelId. Provide modelId explicitly or include a name in config files.');
     }
@@ -1011,29 +772,13 @@ async function parseGGUFModel(
   onProgress,
   signal
 ) {
-  onProgress?.({
-    stage: ConvertStage.PARSING,
-    message: 'Parsing GGUF header...',
+  return parseSharedGGUFModel({
+    file,
+    parseGGUFHeaderFromSource,
+    normalizeTensorSource,
+    onProgress,
+    signal,
   });
-
-  const source = normalizeTensorSource(file);
-  const ggufInfo = await parseGGUFHeaderFromSource(source);
-
-  return {
-    format: 'gguf',
-    tensors: ggufInfo.tensors.map((t) => ({
-      ...t,
-      file: source.file,
-      source,
-      offset: t.offset,
-    })),
-    config: ggufInfo.config,
-    architecture: ggufInfo.architecture,
-    quantization: ggufInfo.quantization,
-    tensorDataOffset: ggufInfo.tensorDataOffset,
-    file: source.file,
-    source,
-  };
 }
 
 

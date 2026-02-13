@@ -44,7 +44,7 @@
         "f16": "gemma3-f16-f16a"
       },
       "q4k": {
-        "f16": "gemma3-q4k-fused-f16a"
+        "f16": "gemma3-q4k-dequant-f16a"
       }
     }
   },

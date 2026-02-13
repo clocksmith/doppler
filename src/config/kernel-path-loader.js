@@ -20,11 +20,8 @@ const gemma2F16F16A = await loadJson('./presets/kernel-paths/gemma2-f16-f16a.jso
 const gemma2F16F32A = await loadJson('./presets/kernel-paths/gemma2-f16-f32a.json');
 const gemma3F16F16A = await loadJson('./presets/kernel-paths/gemma3-f16-f16a.json');
 const gemma3F16F16AOnline = await loadJson('./presets/kernel-paths/gemma3-f16-f16a-online.json');
-const gemma3Q4kFusedF16A = await loadJson('./presets/kernel-paths/gemma3-q4k-fused-f16a.json');
 const gemma3Q4kDequantF16A = await loadJson('./presets/kernel-paths/gemma3-q4k-dequant-f16a.json');
-const embeddingGemmaF16F16A = await loadJson('./presets/kernel-paths/embeddinggemma-f16-f16a.json');
 const embeddingGemmaF16F32A = await loadJson('./presets/kernel-paths/embeddinggemma-f16-f32a.json');
-const embeddingGemmaQ4kDequantF16A = await loadJson('./presets/kernel-paths/embeddinggemma-q4k-dequant-f16a.json');
 const embeddingGemmaQ4kDequantF32A = await loadJson('./presets/kernel-paths/embeddinggemma-q4k-dequant-f32a.json');
 
 const KERNEL_PATH_REGISTRY = {
@@ -41,15 +38,17 @@ const KERNEL_PATH_REGISTRY = {
   // Gemma 3 variants
   'gemma3-f16-f16a': gemma3F16F16A,
   'gemma3-f16-f16a-online': gemma3F16F16AOnline,
-  'gemma3-q4k-fused-f16a': gemma3Q4kFusedF16A,
+  // Compatibility alias: legacy fused id resolves to canonical dequant path.
+  'gemma3-q4k-fused-f16a': gemma3Q4kDequantF16A,
   'gemma3-q4k-dequant-f16a': gemma3Q4kDequantF16A,
 
   // EmbeddingGemma variants
-  'embeddinggemma-f16-f16a': embeddingGemmaF16F16A,
+  // Compatibility alias: legacy f16a id now resolves to f32 activations.
+  'embeddinggemma-f16-f16a': embeddingGemmaF16F32A,
   'embeddinggemma-f16-f32a': embeddingGemmaF16F32A,
-  // Compatibility alias: EmbeddingGemma does not use fused Q4K kernels.
-  'embeddinggemma-q4k-fused-f16a': embeddingGemmaQ4kDequantF16A,
-  'embeddinggemma-q4k-dequant-f16a': embeddingGemmaQ4kDequantF16A,
+  // Compatibility aliases: legacy f16a ids now resolve to f32 activations.
+  'embeddinggemma-q4k-fused-f16a': embeddingGemmaQ4kDequantF32A,
+  'embeddinggemma-q4k-dequant-f16a': embeddingGemmaQ4kDequantF32A,
   'embeddinggemma-q4k-dequant-f32a': embeddingGemmaQ4kDequantF32A,
 };
 

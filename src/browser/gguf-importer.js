@@ -15,10 +15,9 @@ import {
   generateShardFilename,
 } from '../storage/rdrr-format.js';
 import { log } from '../debug/index.js';
-import { createConverterConfig, detectPreset, resolvePreset } from '../config/index.js';
-import { resolveKernelPath } from '../config/kernel-path-loader.js';
+import { createConverterConfig } from '../config/index.js';
 import { extractArchitecture } from '../converter/core.js';
-import { buildManifestInference } from '../converter/manifest-inference.js';
+import { resolveConversionPlan } from '../converter/conversion-plan.js';
 import { HEADER_READ_SIZE } from '../config/schema/index.js';
 import { registerModel } from '../storage/registry.js';
 
@@ -428,43 +427,18 @@ function createManifest(
     };
   }
 
-  const presetOverride = converterConfig.presets?.model;
-  const presetId = presetOverride || detectPreset(rawConfig, ggufInfo.architecture);
-  if (presetId === 'transformer') {
-    const modelType = rawConfig.model_type ?? 'unknown';
-    throw new Error(
-      `Unknown model family: architecture="${ggufInfo.architecture || 'unknown'}", model_type="${modelType}"\n\n` +
-      `DOPPLER requires a known model preset to generate correct inference config.\n` +
-      `The manifest-first architecture does not support generic defaults.\n\n` +
-      `Options:\n` +
-      `  1. Wait for official support of this model family\n` +
-      `  2. Create a custom preset in src/config/presets/models/\n` +
-      `  3. File an issue at https://github.com/clocksmith/doppler/issues\n\n` +
-      `Supported model families: gemma2, gemma3, embeddinggemma, modernbert, llama3, qwen3, mixtral, deepseek, mamba, gpt-oss`
-    );
-  }
-  const preset = resolvePreset(presetId);
-  const headDim = architecture.headDim;
-  if (!headDim) {
-    throw new Error('Missing headDim in GGUF architecture');
-  }
-  const quantizationInfo = ggufInfo.quantization
-    ? { weights: ggufInfo.quantization, compute: converterConfig.quantization.computePrecision }
-    : null;
-  const tensorNames = ggufInfo.tensors?.map((tensor) => tensor.name) ?? null;
-  const inference = buildManifestInference(preset, rawConfig, headDim, quantizationInfo, tensorNames);
-  if (inference?.defaultKernelPath) {
-    try {
-      resolveKernelPath(inference.defaultKernelPath);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      throw new Error(
-        `Invalid defaultKernelPath "${inference.defaultKernelPath}" for preset "${presetId}" ` +
-        `(weights=${quantizationInfo?.weights ?? 'unknown'}, compute=${quantizationInfo?.compute ?? 'default'}, ` +
-        `q4kLayout=${quantizationInfo?.layout ?? 'row'}): ${message}`
-      );
-    }
-  }
+  const plan = resolveConversionPlan({
+    rawConfig,
+    tensors: ggufInfo.tensors,
+    converterConfig,
+    sourceQuantization: ggufInfo.quantization,
+    modelKind: 'transformer',
+    architectureHint: ggufInfo.architecture,
+    architectureConfig: architecture,
+    headDim: architecture.headDim,
+    headDimErrorMessage: 'Missing headDim in GGUF architecture',
+  });
+  const inference = plan.manifestInference;
 
   // Build tensor location map
   // Maps each tensor to its shard(s) and offset within shard
