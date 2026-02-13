@@ -67,6 +67,7 @@ Dimensions come from the model manifest at runtime.
 | `gemma3-f16-f16a` | Gemma 3 F16 | F16, no softcapping |
 | `gemma3-q4k-dequant-f16a` | Gemma 3 Q4K | Q4K dequant, no softcapping |
 | `embeddinggemma-f16-f32a` | EmbeddingGemma F16 | F16 weights, F32 activations |
+| `embeddinggemma-f32-f32a` | EmbeddingGemma F32 | F32 weights, F32 activations |
 | `embeddinggemma-q4k-dequant-f32a` | EmbeddingGemma Q4K | Q4K dequant path, F32 activations |
 
 ### Default Selection Logic

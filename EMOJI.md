@@ -7,11 +7,11 @@ This codebase follows a **strict no-emoji policy**. Use Unicode symbols for visu
 ### Status & System
 | Symbol | HTML Entity | Usage |
 |--------|-------------|-------|
-| ★ | `&#9733;` | Success, completed |
+| ● | `&#9679;` | Ready, success, completed |
 | ☒ | `&#9746;` | Error, failure |
-| ☡ | `&#9761;` | Warning |
+| ▲ | `&#9650;` | Warning |
 | ☛ | `&#9755;` | Info, pointer |
-| ☍ | `&#9741;` | Sync, connection |
+| ○ | `&#9675;` | In progress, active |
 | ☖ | `&#9750;` | Build |
 | ☁ | `&#9729;` | Cloud/network |
 | ☨ | `&#9768;` | Debug |

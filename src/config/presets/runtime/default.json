@@ -44,10 +44,10 @@
       },
       "prompt": "Hello from Doppler.",
       "batching": {
-        "maxTokens": 512
+        "maxTokens": 256
       },
       "sampling": {
-        "temperature": 0.7,
+        "temperature": 1.0,
         "topK": 50,
         "topP": 0.95,
         "repetitionPenalty": 1.0,

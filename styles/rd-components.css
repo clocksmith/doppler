@@ -42,6 +42,15 @@
 .btn:disabled:active {
   background: var(--bg);
   color: var(--fg);
+  border-style: dashed;
+  box-shadow: none;
+}
+
+.btn:disabled,
+.btn-primary:disabled {
+  background: var(--bg);
+  color: var(--fg);
+  border-style: dashed;
   box-shadow: none;
 }
 

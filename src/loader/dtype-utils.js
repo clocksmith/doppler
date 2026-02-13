@@ -3,6 +3,7 @@
 import { getDevice } from '../gpu/device.js';
 import { isTraceEnabled, log, trace as debugTrace } from '../debug/index.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
+import { tagBufferDtype } from '../gpu/weight-buffer.js';
 
 
 export function f16ToF32(h) {
@@ -78,8 +79,24 @@ export function shouldDequantizeToF16(location) {
 }
 
 
-export function applyBufferLayout(buffer, _location) {
-  // Note: WeakMap layout tracking removed - layout is stored in WeightBuffer
-  // For non-matmul weights (norms), layout doesn't affect kernel selection
+function normalizeBufferDtype(locationDtype, outputDtype) {
+  const explicit = typeof outputDtype === 'string' ? outputDtype.toLowerCase() : null;
+  if (explicit) {
+    return explicit;
+  }
+  const location = typeof locationDtype === 'string' ? locationDtype.toLowerCase() : null;
+  if (!location) {
+    return null;
+  }
+  return selectRuleValue('loader', 'weights', 'floatLocationDtype', { locationDtype: locationDtype });
+}
+
+export function applyBufferLayout(buffer, location, outputDtype = null) {
+  // Layout tracking is carried by WeightBuffer. For raw GPUBuffer paths (norms),
+  // we still tag runtime dtype so kernels can choose correct weight interpretation.
+  const dtype = normalizeBufferDtype(location?.dtype ?? null, outputDtype);
+  if (dtype) {
+    tagBufferDtype(buffer, dtype);
+  }
   return buffer;
 }

@@ -27,7 +27,7 @@
     "inference": {
       "debugTokens": true,
       "batching": {
-        "maxTokens": 64
+        "maxTokens": 256
       }
     }
   }

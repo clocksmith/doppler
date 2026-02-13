@@ -52,6 +52,34 @@ function isPlainObject(value) {
   return !!value && typeof value === 'object' && !Array.isArray(value);
 }
 
+function sanitizeReportOutput(output) {
+  if (output == null) return null;
+  if (typeof output !== 'object') return output;
+  if (ArrayBuffer.isView(output)) {
+    return {
+      type: output.constructor?.name || 'TypedArray',
+      length: Number.isFinite(output.length) ? output.length : null,
+    };
+  }
+  if (
+    Number.isFinite(output?.width)
+    && Number.isFinite(output?.height)
+    && ArrayBuffer.isView(output?.pixels)
+  ) {
+    const { pixels, ...rest } = output;
+    return {
+      ...rest,
+      width: output.width,
+      height: output.height,
+      pixels: {
+        type: pixels.constructor?.name || 'TypedArray',
+        length: Number.isFinite(pixels.length) ? pixels.length : null,
+      },
+    };
+  }
+  return output;
+}
+
 function mergeRuntimeValues(base, override) {
   if (override === undefined) return base;
   if (override === null) return null;
@@ -461,6 +489,46 @@ const EMBEDDING_SEMANTIC_RETRIEVAL_CASES = Object.freeze([
     ]),
     expectedDoc: 0,
   }),
+  Object.freeze({
+    id: 'flight_change_policy',
+    query: 'Can I change my flight after booking?',
+    docs: Object.freeze([
+      'The museum opens daily at 10 AM and offers guided tours on weekends.',
+      'You can change your flight in Manage Booking up to 24 hours before departure, with any fare difference applied.',
+      'Our gym membership includes group classes and access to the pool.',
+    ]),
+    expectedDoc: 1,
+  }),
+  Object.freeze({
+    id: 'wifi_troubleshoot',
+    query: 'Why does my home Wi-Fi keep disconnecting?',
+    docs: Object.freeze([
+      'The dessert menu includes cheesecake, brownies, and fruit tart.',
+      'You can review your recent orders in your account purchase history.',
+      'Frequent Wi-Fi drops can be fixed by restarting the router, updating firmware, and changing the wireless channel.',
+    ]),
+    expectedDoc: 2,
+  }),
+  Object.freeze({
+    id: 'refund_deadline',
+    query: 'How long do I have to request a refund?',
+    docs: Object.freeze([
+      'Refund requests are accepted within 30 days of purchase when the item is in original condition.',
+      'The conference keynote starts at 9 AM in the main hall.',
+      'Use a medium grind when brewing coffee with a drip machine.',
+    ]),
+    expectedDoc: 0,
+  }),
+  Object.freeze({
+    id: 'passport_renewal_docs',
+    query: 'What documents do I need to renew a passport?',
+    docs: Object.freeze([
+      'To care for houseplants, water only when the top soil is dry.',
+      'Passport renewal usually requires the application form, current passport, compliant photo, and payment.',
+      'The train to downtown runs every 20 minutes during peak hours.',
+    ]),
+    expectedDoc: 1,
+  }),
 ]);
 
 const EMBEDDING_SEMANTIC_PAIR_CASES = Object.freeze([
@@ -482,7 +550,62 @@ const EMBEDDING_SEMANTIC_PAIR_CASES = Object.freeze([
     positive: 'My notebook loses charge fast.',
     negative: 'This pasta sauce tastes sweet and spicy.',
   }),
+  Object.freeze({
+    id: 'order_tracking',
+    anchor: 'I need to track where my order is.',
+    positive: 'How can I check my package delivery status?',
+    negative: 'The violin concerto was composed in the 1800s.',
+  }),
+  Object.freeze({
+    id: 'account_lockout',
+    anchor: 'My account is locked after too many login attempts.',
+    positive: 'I cannot sign in because the system temporarily blocked my account.',
+    negative: 'Bake the cake at 350 degrees for thirty minutes.',
+  }),
+  Object.freeze({
+    id: 'invoice_request',
+    anchor: 'Please send me the invoice for last month.',
+    positive: 'Can you provide the billing statement for the previous month?',
+    negative: 'The hiking trail follows the river for five miles.',
+  }),
+  Object.freeze({
+    id: 'slow_internet',
+    anchor: 'The internet speed is much slower tonight.',
+    positive: 'My connection is unusually slow this evening.',
+    negative: 'The novel explores themes of memory and loss.',
+  }),
 ]);
+
+function resolveEmbeddingSemanticStyle(pipeline) {
+  const manifest = pipeline?.manifest ?? null;
+  const modelId = String(manifest?.modelId ?? '').toLowerCase();
+  const presetId = String(manifest?.inference?.presetId ?? '').toLowerCase();
+  const modelType = String(
+    manifest?.config?.model_type
+    ?? manifest?.config?.text_config?.model_type
+    ?? ''
+  ).toLowerCase();
+  if (
+    modelId.includes('embeddinggemma')
+    || presetId === 'embeddinggemma'
+    || modelType.includes('embeddinggemma')
+  ) {
+    return 'embeddinggemma';
+  }
+  return 'default';
+}
+
+function formatEmbeddingSemanticText(text, kind, style) {
+  if (style === 'embeddinggemma') {
+    if (kind === 'query') {
+      return `task: search result | query: ${text}`;
+    }
+    if (kind === 'document') {
+      return `title: None | text: ${text}`;
+    }
+  }
+  return text;
+}
 
 function resolvePrompt(runtimeConfig) {
   const runtimePrompt = runtimeConfig?.inference?.prompt;
@@ -596,14 +719,21 @@ async function embedStandaloneText(pipeline, text) {
 
 async function runEmbeddingSemanticChecks(pipeline) {
   const start = performance.now();
+  const semanticStyle = resolveEmbeddingSemanticStyle(pipeline);
   const retrieval = [];
   let retrievalPassed = 0;
 
   for (const testCase of EMBEDDING_SEMANTIC_RETRIEVAL_CASES) {
-    const queryEmbedding = await embedStandaloneText(pipeline, testCase.query);
+    const queryEmbedding = await embedStandaloneText(
+      pipeline,
+      formatEmbeddingSemanticText(testCase.query, 'query', semanticStyle)
+    );
     const docEmbeddings = [];
     for (const doc of testCase.docs) {
-      docEmbeddings.push(await embedStandaloneText(pipeline, doc));
+      docEmbeddings.push(await embedStandaloneText(
+        pipeline,
+        formatEmbeddingSemanticText(doc, 'document', semanticStyle)
+      ));
     }
     const sims = docEmbeddings.map((docEmbedding) => cosineSimilarity(queryEmbedding, docEmbedding));
     const topDoc = top1Index(sims);
@@ -621,9 +751,18 @@ async function runEmbeddingSemanticChecks(pipeline) {
   const pairs = [];
   let pairPassed = 0;
   for (const testCase of EMBEDDING_SEMANTIC_PAIR_CASES) {
-    const anchor = await embedStandaloneText(pipeline, testCase.anchor);
-    const positive = await embedStandaloneText(pipeline, testCase.positive);
-    const negative = await embedStandaloneText(pipeline, testCase.negative);
+    const anchor = await embedStandaloneText(
+      pipeline,
+      formatEmbeddingSemanticText(testCase.anchor, 'query', semanticStyle)
+    );
+    const positive = await embedStandaloneText(
+      pipeline,
+      formatEmbeddingSemanticText(testCase.positive, 'query', semanticStyle)
+    );
+    const negative = await embedStandaloneText(
+      pipeline,
+      formatEmbeddingSemanticText(testCase.negative, 'query', semanticStyle)
+    );
     const simPos = cosineSimilarity(anchor, positive);
     const simNeg = cosineSimilarity(anchor, negative);
     const margin = simPos - simNeg;
@@ -649,6 +788,7 @@ async function runEmbeddingSemanticChecks(pipeline) {
 
   return {
     passed,
+    style: semanticStyle,
     retrievalTop1Acc,
     pairAcc,
     retrievalPassed,
@@ -788,6 +928,7 @@ async function runInferenceSuite(options = {}) {
       preview: run.preview,
       semantic: {
         passed: isSemanticValid,
+        style: semantic.style,
         retrievalTop1Acc: Number(semantic.retrievalTop1Acc.toFixed(4)),
         pairAcc: Number(semantic.pairAcc.toFixed(4)),
         failedCaseIds: semantic.failedCaseIds,
@@ -846,6 +987,7 @@ async function runInferenceSuite(options = {}) {
       semanticMinRetrievalTop1Acc: Number(semantic.minRetrievalTop1Acc.toFixed(4)),
       semanticMinPairAcc: Number(semantic.minPairAcc.toFixed(4)),
       semanticPairMarginThreshold: Number(semantic.pairMarginThreshold.toFixed(4)),
+      semanticStyle: semantic.style,
       semanticFailedCases: semantic.failedCaseIds,
       semanticDetails: {
         retrieval: semantic.retrieval,
@@ -1353,7 +1495,7 @@ export async function runBrowserSuite(options = {}) {
   }
 
   const modelId = suiteResult.modelId || options.modelId || options.modelUrl || suite;
-  const reportOutput = typeof suiteResult.output === 'string' ? suiteResult.output : null;
+  const reportOutput = sanitizeReportOutput(suiteResult.output);
   const report = {
     suite,
     modelId,

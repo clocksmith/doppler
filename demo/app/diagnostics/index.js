@@ -1,4 +1,4 @@
-import { getRuntimeConfig, loadRuntimePreset } from '@doppler/core';
+import { getRuntimeConfig, setRuntimeConfig, loadRuntimePreset } from '@doppler/core';
 import { state } from '../state.js';
 import { $, setHidden, setText } from '../dom.js';
 import {
@@ -48,7 +48,7 @@ function isSuiteCompatibleModelType(modelType, suite) {
 function formatDiagnosticsModelTypeLabel(requiredType) {
   if (requiredType === 'diffusion') return 'diffusion';
   if (requiredType === 'energy') return 'energy';
-  return 'text (non-diffusion, non-energy)';
+  return 'text/embedding';
 }
 
 export function storeDiagnosticsSelection(mode, updates) {
@@ -84,39 +84,28 @@ function getDiagnosticsPresetOrderForSuite(suite, presetIds, mode, modelType) {
   const key = String(suite || '').trim().toLowerCase();
   const normalizedModelType = normalizeModelType(modelType);
   const isEmbeddingTarget = mode === 'embedding' || normalizedModelType === 'embedding';
-  const pushUnique = (list, value) => {
-    if (presetIds.includes(value) && !list.includes(value)) list.push(value);
-  };
+  let preferred = null;
 
   if (isEmbeddingTarget) {
-    const ordered = [];
     if (key === 'inference' || key === 'debug') {
-      pushUnique(ordered, 'modes/embedding');
-      pushUnique(ordered, 'modes/debug');
-      return ordered.length > 0 ? ordered : presetIds.slice(0, 1);
+      preferred = 'modes/embedding';
+    } else if (key === 'bench') {
+      preferred = 'modes/embedding-bench';
     }
-    if (key === 'bench') {
-      pushUnique(ordered, 'modes/embedding-bench');
-      pushUnique(ordered, 'modes/bench');
-      pushUnique(ordered, 'modes/embedding');
-      pushUnique(ordered, 'modes/debug');
-      return ordered.length > 0 ? ordered : presetIds.slice(0, 1);
+  } else {
+    if (key === 'debug') {
+      preferred = 'modes/debug';
+    } else if (key === 'inference' && mode === 'run') {
+      // Keep Run tab generation aligned with the default UI auto values.
+      preferred = 'modes/debug';
+    } else {
+      preferred = 'modes/bench';
     }
   }
 
-  if (key === 'inference' || key === 'debug' || key === 'energy' || key === 'kernels') {
-    const ordered = [];
-    pushUnique(ordered, 'modes/debug');
-    return ordered.length > 0 ? ordered : presetIds.slice(0, 1);
+  if (preferred && presetIds.includes(preferred)) {
+    return [preferred];
   }
-
-  if (key === 'bench' || key === 'diffusion') {
-    const ordered = [];
-    pushUnique(ordered, 'modes/bench');
-    pushUnique(ordered, 'modes/debug');
-    return ordered.length > 0 ? ordered : presetIds.slice(0, 1);
-  }
-
   return presetIds.slice(0, 1);
 }
 
@@ -129,7 +118,7 @@ function encodeDiagnosticsProfileId(suite, presetId) {
   return `${suite}|${presetId}`;
 }
 
-function decodeDiagnosticsProfileId(profileId) {
+export function decodeDiagnosticsProfileId(profileId) {
   if (typeof profileId !== 'string' || profileId.length === 0) return null;
   const splitAt = profileId.indexOf('|');
   if (splitAt <= 0 || splitAt >= profileId.length - 1) return null;
@@ -142,20 +131,94 @@ function decodeDiagnosticsProfileId(profileId) {
 function getDiagnosticsProfileLabel(suite, presetId) {
   const key = `${suite}|${presetId}`;
   const labels = {
-    'inference|modes/debug': 'Quick Check',
+    'inference|modes/debug': 'Text Check',
+    'inference|modes/bench': 'Text Check',
     'inference|modes/embedding': 'Embedding Check',
-    'debug|modes/debug': 'Trace Debug',
-    'debug|modes/embedding': 'Embedding Debug',
-    'bench|modes/bench': 'Performance Bench',
-    'bench|modes/embedding-bench': 'Embedding Bench',
-    'bench|modes/debug': 'Bench with Traces',
-    'diffusion|modes/bench': 'Image Bench',
-    'diffusion|modes/debug': 'Image Bench (Debug)',
-    'energy|modes/debug': 'Energy Run',
-    'kernels|modes/debug': 'Kernel Validation',
+    'debug|modes/debug': 'Text Trace',
+    'debug|modes/embedding': 'Embedding Trace',
+    'bench|modes/bench': 'Text Benchmark',
+    'bench|modes/embedding-bench': 'Embedding Benchmark',
+    'bench|modes/debug': 'Text Benchmark (Debug)',
+    'diffusion|modes/bench': 'Diffusion Benchmark',
+    'diffusion|modes/debug': 'Diffusion Benchmark (Debug)',
+    'energy|modes/bench': 'Energy Check',
+    'kernels|modes/bench': 'Kernel Validation',
   };
   if (labels[key]) return labels[key];
   return `${suite} · ${formatRuntimePresetShortLabel(presetId)}`;
+}
+
+function getDiagnosticsProfileDescription(suite, presetId, modelType) {
+  const key = `${suite}|${presetId}`;
+  const normalizedModelType = normalizeModelType(modelType);
+  const isEmbedding = normalizedModelType === 'embedding';
+
+  if (key === 'inference|modes/embedding') {
+    return {
+      summary: 'Runs one embedding pass plus semantic sanity checks.',
+      produces: 'pass/fail checks, embedding stats, and semantic accuracy.',
+    };
+  }
+  if (key === 'debug|modes/embedding') {
+    return {
+      summary: 'Runs embedding checks with debug-oriented runtime settings.',
+      produces: 'the same embedding metrics with extra debug-oriented runtime behavior.',
+    };
+  }
+  if (key === 'bench|modes/embedding-bench') {
+    return {
+      summary: 'Runs repeated embedding passes for latency benchmarking.',
+      produces: 'embedding latency distribution metrics and validity counts.',
+    };
+  }
+  if ((key === 'inference|modes/bench' || key === 'inference|modes/debug') && !isEmbedding) {
+    return {
+      summary: 'Runs a short text generation sanity check.',
+      produces: 'generated text plus latency and throughput metrics.',
+    };
+  }
+  if (key === 'debug|modes/debug' && !isEmbedding) {
+    return {
+      summary: 'Runs text generation with trace/debug runtime settings.',
+      produces: 'generated text plus trace-oriented performance metrics.',
+    };
+  }
+  if (key === 'bench|modes/bench' && !isEmbedding) {
+    return {
+      summary: 'Runs repeated timed generations for throughput benchmarking.',
+      produces: 'tokens/sec, TTFT, prefill/decode latency distributions.',
+    };
+  }
+  if (key === 'diffusion|modes/bench') {
+    return {
+      summary: 'Runs diffusion timed loops on the active model.',
+      produces: 'diffusion timing metrics by phase and pass/fail summary.',
+    };
+  }
+  if (key === 'energy|modes/bench') {
+    return {
+      summary: 'Runs one energy optimization pass.',
+      produces: 'energy convergence metrics and run summary.',
+    };
+  }
+  if (key === 'kernels|modes/bench') {
+    return {
+      summary: 'Runs kernel validation without loading a model.',
+      produces: 'kernel pass/fail results and diagnostics report.',
+    };
+  }
+  return {
+    summary: `Runs the ${suite} suite with preset ${formatRuntimePresetShortLabel(presetId)}.`,
+    produces: 'suite metrics and pass/fail summary.',
+  };
+}
+
+function getDiagnosticsProfileHint(entry, modelType) {
+  if (!entry) return '';
+  const details = getDiagnosticsProfileDescription(entry.suite, entry.preset, modelType);
+  const config = `Config: ${entry.suite} + ${formatRuntimePresetShortLabel(entry.preset)}.`;
+  const produces = `Output: ${details.produces}`;
+  return `${config} ${produces} Raw JSON is shown below.`;
 }
 
 function buildDiagnosticsProfileEntries(suites, mode, modelType) {
@@ -178,6 +241,7 @@ function buildDiagnosticsProfileEntries(suites, mode, modelType) {
 function updateDiagnosticsProfileOptions(mode, modelId, modelType) {
   const profileSelect = $('diagnostics-profile');
   if (!profileSelect) return null;
+  const previousValue = profileSelect.value || '';
 
   const order = getDiagnosticsSuiteOrder();
   const isKernelsMode = mode === 'kernels';
@@ -244,8 +308,7 @@ function updateDiagnosticsProfileOptions(mode, modelId, modelType) {
   }
 
   const selection = state.diagnosticsSelections[mode] || {};
-  const currentValue = profileSelect.value || '';
-  const currentPair = decodeDiagnosticsProfileId(currentValue);
+  const currentPair = decodeDiagnosticsProfileId(previousValue);
   const storedPair = selection.profile ? decodeDiagnosticsProfileId(selection.profile) : null;
   const explicitPair = selection.suite && selection.preset
     ? { suite: String(selection.suite).trim().toLowerCase(), preset: String(selection.preset).trim() }
@@ -370,6 +433,7 @@ export async function refreshDiagnosticsRuntimeConfig(presetId) {
   const mergedRuntime = mergedOverride ? mergeRuntimeOverrides(runtime, mergedOverride) : runtime;
   state.diagnosticsRuntimeConfig = mergedRuntime;
   state.diagnosticsRuntimePresetId = targetPreset;
+  setRuntimeConfig(mergedRuntime);
   return mergedRuntime;
 }
 
@@ -398,27 +462,55 @@ function formatDiagnosticsDuration(ms) {
   return `${(ms / 1000).toFixed(2)}s`;
 }
 
-function formatDiagnosticsSummary(result) {
-  if (!result) return '';
+function normalizeDiagnosticsSuiteName(value, fallback = null) {
+  const suite = String(value || '').trim().toLowerCase();
+  if (suite) return suite;
+  const fallbackSuite = String(fallback || '').trim().toLowerCase();
+  return fallbackSuite || null;
+}
+
+function summarizeDiagnosticsResults(results) {
+  if (!Array.isArray(results)) {
+    return { passed: null, failed: null, skipped: null };
+  }
+  let passed = 0;
+  let failed = 0;
+  let skipped = 0;
+  for (const result of results) {
+    if (result?.skipped) {
+      skipped++;
+    } else if (result?.passed) {
+      passed++;
+    } else {
+      failed++;
+    }
+  }
+  return { passed, failed, skipped };
+}
+
+function formatDiagnosticsSummary(payload) {
+  if (!payload || typeof payload !== 'object') return '';
+  const counts = summarizeDiagnosticsResults(payload.results);
   const parts = [];
-  if (Number.isFinite(result.passed)) {
-    parts.push(`Passed ${result.passed}`);
+  if (Number.isFinite(counts.passed)) {
+    parts.push(`Passed ${counts.passed}`);
   }
-  if (Number.isFinite(result.failed)) {
-    parts.push(`Failed ${result.failed}`);
+  if (Number.isFinite(counts.failed)) {
+    parts.push(`Failed ${counts.failed}`);
   }
-  if (Number.isFinite(result.skipped) && result.skipped > 0) {
-    parts.push(`Skipped ${result.skipped}`);
+  if (Number.isFinite(counts.skipped) && counts.skipped > 0) {
+    parts.push(`Skipped ${counts.skipped}`);
   }
-  const duration = formatDiagnosticsDuration(result.duration);
+  const duration = formatDiagnosticsDuration(payload.durationMs);
   if (duration) {
     parts.push(`Duration ${duration}`);
   }
   return parts.join(' · ');
 }
 
-function formatDiagnosticsMetricsLine(result, suite) {
-  const metrics = result?.metrics;
+function formatDiagnosticsMetricsLine(payload, fallbackSuite = null) {
+  const metrics = payload?.metrics;
+  const suite = normalizeDiagnosticsSuiteName(payload?.suite, fallbackSuite);
   if (!metrics || !suite) return '';
   if (suite === 'bench') {
     if (Number.isFinite(metrics.medianEmbeddingMs)) {
@@ -472,17 +564,128 @@ function formatDiagnosticsMetricsLine(result, suite) {
   return '';
 }
 
-function buildDiagnosticsJsonPayload(result) {
-  if (!result || typeof result !== 'object') return null;
-  if (result.report && typeof result.report === 'object') {
-    return result.report;
+function formatDiagnosticsOutputSummary(payload, fallbackSuite, captureOutput) {
+  const suite = normalizeDiagnosticsSuiteName(payload?.suite, fallbackSuite);
+  const metrics = payload?.metrics;
+  const output = payload?.output;
+
+  if (suite === 'inference' || suite === 'debug') {
+    if (Number.isFinite(metrics?.embeddingDim)) {
+      const retrieval = Number.isFinite(metrics?.semanticRetrievalTop1Acc)
+        ? `${(metrics.semanticRetrievalTop1Acc * 100).toFixed(1)}%`
+        : '--';
+      const pairs = Number.isFinite(metrics?.semanticPairAcc)
+        ? `${(metrics.semanticPairAcc * 100).toFixed(1)}%`
+        : '--';
+      const semanticPassed = metrics?.semanticPassed === true ? 'pass' : 'fail';
+      const failedCases = Array.isArray(metrics?.semanticFailedCases) && metrics.semanticFailedCases.length > 0
+        ? `Failed cases: ${metrics.semanticFailedCases.join(', ')}`
+        : 'Failed cases: none';
+      return `Semantic: ${semanticPassed} (retrieval ${retrieval}, pairs ${pairs})\n${failedCases}`;
+    }
+    if (typeof output === 'string' && output.trim().length > 0) {
+      const normalized = output.replace(/\s+/g, ' ').trim();
+      const preview = normalized.length > 240 ? `${normalized.slice(0, 240)}...` : normalized;
+      return `Output preview: ${preview}`;
+    }
+    return 'No direct output payload. See Raw JSON below.';
   }
+
+  if (suite === 'bench') {
+    return 'Benchmark aggregates only. See Raw JSON below for full distributions.';
+  }
+  if (suite === 'diffusion') {
+    return captureOutput
+      ? 'Rendered image preview (if captured) plus timing metrics. Raw JSON below.'
+      : 'Timing-focused diffusion run. Raw JSON below.';
+  }
+  if (suite === 'energy') {
+    return 'Energy convergence summary shown above. Raw JSON below.';
+  }
+  if (suite === 'kernels') {
+    return 'Kernel validation summary shown above. Raw JSON below.';
+  }
+  return 'See Raw JSON below.';
+}
+
+function sanitizeDiagnosticsOutputForJson(output) {
+  if (output == null) return null;
+  if (typeof output !== 'object') return output;
+  if (ArrayBuffer.isView(output)) {
+    return {
+      type: output.constructor?.name || 'TypedArray',
+      length: Number.isFinite(output.length) ? output.length : null,
+    };
+  }
+  if (
+    Number.isFinite(output?.width)
+    && Number.isFinite(output?.height)
+    && ArrayBuffer.isView(output?.pixels)
+  ) {
+    const { pixels, ...rest } = output;
+    return {
+      ...rest,
+      width: output.width,
+      height: output.height,
+      pixels: {
+        type: pixels.constructor?.name || 'TypedArray',
+        length: Number.isFinite(pixels.length) ? pixels.length : null,
+      },
+    };
+  }
+  return output;
+}
+
+function buildDiagnosticsJsonPayload(result) {
+  if (!result || typeof result !== 'object') {
+    return { status: 'idle' };
+  }
+
+  const report = result.report && typeof result.report === 'object'
+    ? result.report
+    : null;
+  const suite = normalizeDiagnosticsSuiteName(report?.suite, result.suite);
+  const modelId = report?.modelId ?? result.modelId ?? null;
+  const runtimePreset = report?.runtimePreset ?? null;
+  const timestamp = report?.timestamp ?? null;
+  const results = Array.isArray(report?.results)
+    ? report.results
+    : (Array.isArray(result.results) ? result.results : []);
+  const durationMs = Number.isFinite(report?.durationMs)
+    ? report.durationMs
+    : (Number.isFinite(result.duration) ? result.duration : null);
+  const metrics = report?.metrics ?? result.metrics ?? null;
+  const output = sanitizeDiagnosticsOutputForJson(report?.output ?? result.output ?? null);
+  const memory = report?.memory ?? result.memoryStats ?? null;
+  const deviceInfo = report?.deviceInfo ?? result.deviceInfo ?? null;
+
+  if (report) {
+    return {
+      ...report,
+      suite,
+      modelId,
+      runtimePreset,
+      timestamp,
+      results,
+      durationMs,
+      metrics,
+      output,
+      memory,
+      deviceInfo,
+    };
+  }
+
   return {
-    suite: result.suite ?? null,
-    duration: result.duration ?? null,
-    metrics: result.metrics ?? null,
-    output: result.output ?? null,
-    memoryStats: result.memoryStats ?? null,
+    suite,
+    modelId,
+    runtimePreset,
+    timestamp,
+    results,
+    durationMs,
+    metrics,
+    output,
+    memory,
+    deviceInfo,
   };
 }
 
@@ -520,7 +723,7 @@ function drawDiagnosticsCanvas(output) {
   canvas.hidden = false;
 }
 
-export function renderDiagnosticsOutput(result, suite, captureOutput) {
+export function renderDiagnosticsOutput(result, fallbackSuite, captureOutput) {
   const container = $('diagnostics-output');
   if (!container) return;
   container.hidden = false;
@@ -532,21 +735,22 @@ export function renderDiagnosticsOutput(result, suite, captureOutput) {
     canvas.hidden = true;
   }
   const jsonPayload = buildDiagnosticsJsonPayload(result);
-  if (jsonWrap && jsonEl && jsonPayload) {
+  if (jsonWrap && jsonEl) {
     jsonEl.textContent = JSON.stringify(jsonPayload, null, 2);
+    jsonWrap.open = true;
     setHidden(jsonWrap, false);
-  } else if (jsonWrap) {
-    jsonWrap.open = false;
-    setHidden(jsonWrap, true);
   }
-  const output = result?.output ?? null;
-  const summary = formatDiagnosticsSummary(result);
-  const metricsLine = formatDiagnosticsMetricsLine(result, suite);
-  const prefix = [summary, metricsLine].filter(Boolean).join('\n');
+  const suite = normalizeDiagnosticsSuiteName(jsonPayload.suite, fallbackSuite);
+  const rawOutput = result?.output ?? null;
+  const output = jsonPayload.output ?? null;
+  const summary = formatDiagnosticsSummary(jsonPayload);
+  const metricsLine = formatDiagnosticsMetricsLine(jsonPayload, suite);
+  const outputSummary = formatDiagnosticsOutputSummary(jsonPayload, suite, captureOutput);
+  const prefix = [summary, metricsLine, outputSummary].filter(Boolean).join('\n');
   if (suite === 'diffusion') {
-    if (output && typeof output === 'object' && output.pixels) {
+    if (rawOutput && typeof rawOutput === 'object' && rawOutput.pixels) {
       if (textEl) textEl.textContent = prefix;
-      drawDiagnosticsCanvas(output);
+      drawDiagnosticsCanvas(rawOutput);
       return;
     }
     if (textEl) {
@@ -555,26 +759,16 @@ export function renderDiagnosticsOutput(result, suite, captureOutput) {
     }
     return;
   }
-  if ((suite === 'inference' || suite === 'debug') && typeof output === 'string' && output.length > 0) {
-    if (textEl) {
-      const body = prefix ? `${prefix}\n\n${output}` : output;
-      textEl.textContent = body;
-    }
-    return;
-  }
-  if ((suite === 'inference' || suite === 'debug') && output && typeof output === 'object') {
-    if (textEl) {
-      const body = JSON.stringify(output, null, 2);
-      textEl.textContent = prefix ? `${prefix}\n\n${body}` : body;
-    }
-    return;
-  }
   if (textEl) {
     let fallback = '';
-    if (suite !== 'bench' && suite !== 'energy' && suite !== 'kernels') {
+    const hasDirectOutput = (
+      (typeof output === 'string' && output.trim().length > 0)
+      || (output && typeof output === 'object')
+    );
+    if (suite !== 'bench' && suite !== 'energy' && suite !== 'kernels' && !hasDirectOutput) {
       fallback = captureOutput ? 'No output captured.' : 'Output capture disabled.';
     }
-    textEl.textContent = [prefix, fallback].filter(Boolean).join('\n');
+    textEl.textContent = [prefix, fallback].filter(Boolean).join('\n').trim();
   }
 }
 
@@ -604,6 +798,7 @@ export function updateDiagnosticsGuidance() {
   const modelSelect = $('diagnostics-model');
   const intentEl = $('diagnostics-intent');
   const suiteHelp = $('diagnostics-suite-help');
+  const profileHelp = $('diagnostics-profile-help');
   const requirements = $('diagnostics-requirements');
   const runBtn = $('diagnostics-run-btn');
   const verifyBtn = $('diagnostics-verify-btn');
@@ -622,6 +817,9 @@ export function updateDiagnosticsGuidance() {
     }
   }
   const info = getDiagnosticsSuiteInfo(suite);
+  const profileDescription = resolvedProfile
+    ? getDiagnosticsProfileDescription(resolvedProfile.suite, resolvedProfile.preset, normalizedModelType)
+    : null;
   const runtimeConfig = getDiagnosticsRuntimeConfig();
   const intent = runtimeConfig?.shared?.tooling?.intent ?? null;
   const requiredModelType = getDiagnosticsRequiredModelType(suite);
@@ -646,8 +844,10 @@ export function updateDiagnosticsGuidance() {
   }
 
   const hintSuffix = requirementHints.length ? `Requires: ${requirementHints.join(', ')}.` : '';
-  const presetHint = runtimePreset ? `Preset: ${formatRuntimePresetShortLabel(runtimePreset)}.` : '';
-  suiteHelp.textContent = [info.description, presetHint, hintSuffix].filter(Boolean).join(' ');
+  suiteHelp.textContent = [profileDescription?.summary || info.description, hintSuffix].filter(Boolean).join(' ');
+  if (profileHelp) {
+    profileHelp.textContent = getDiagnosticsProfileHint(resolvedProfile, normalizedModelType);
+  }
 
   const missing = [];
   if (!intent) {
@@ -689,8 +889,7 @@ export function updateDiagnosticsGuidance() {
   if (missing.length > 0) {
     requirements.textContent = `Needs: ${missing.join(', ')}`;
   } else {
-    const ready = info.requiresModel ? `Ready with ${modelId}.` : 'Ready.';
-    requirements.textContent = ready;
+    requirements.textContent = 'Ready.';
   }
 
   updateDiagnosticsSummary({ suite, modelId, modelType, runtimePreset, intent });

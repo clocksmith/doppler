@@ -10,6 +10,7 @@ import {
   resolveKernelPath,
   getKernelPathStats,
   getKernelPathActivationDtype,
+  getKernelPathKVDtype,
   setActiveKernelPath,
   applyKernelOverrides,
 } from '../config/kernel-path-loader.js';
@@ -141,10 +142,29 @@ export class InferencePipeline extends PipelineState {
     log.debug('Pipeline', `kernelPath sources: runtime=${this.runtimeKernelPath}, config=${this.runtimeConfig.inference.kernelPath}, model=${this.modelConfig.kernelPath}`);
     
     let kernelPathSource = 'none';
-    const kernelPathRef = this.runtimeKernelPath
+    const configuredKernelPathRef = this.runtimeKernelPath
       ?? this.runtimeConfig.inference.kernelPath
       ?? this.modelConfig.kernelPath
       ??  (manifest.optimizations)?.kernelPath;
+    const autoStabilizeGemma3KernelPath = (
+      !this.runtimeKernelPath
+      && !this.runtimeConfig.inference.kernelPath
+      && this.modelConfig?.isGemma3
+      && this.modelConfig?.hiddenSize <= 768
+      && (
+        configuredKernelPathRef === 'gemma3-f16-f16a'
+        || configuredKernelPathRef === 'gemma3-q4k-dequant-f16a'
+        || configuredKernelPathRef === 'gemma3-q4k-fused-f16a'
+      )
+    )
+      ? (
+        configuredKernelPathRef === 'gemma3-f16-f16a'
+          ? 'gemma3-f16-f32a'
+          : 'gemma3-q4k-dequant-f32a'
+      )
+      : null;
+    const shouldAutoStabilizeGemma3 = autoStabilizeGemma3KernelPath != null;
+    const kernelPathRef = autoStabilizeGemma3KernelPath ?? configuredKernelPathRef;
     this.resolvedKernelPath = null;
 
     if (kernelPathRef) {
@@ -153,7 +173,7 @@ export class InferencePipeline extends PipelineState {
         : this.runtimeConfig.inference.kernelPath
           ? 'config'
           : this.modelConfig.kernelPath
-            ? 'model'
+            ? (shouldAutoStabilizeGemma3 ? 'model_auto' : 'model')
             : 'manifest';
       try {
         this.resolvedKernelPath = resolveKernelPath(kernelPathRef);
@@ -168,7 +188,11 @@ export class InferencePipeline extends PipelineState {
         }
 
         const stats = getKernelPathStats(this.resolvedKernelPath);
-        log.info('Pipeline', `KernelPath: ${this.resolvedKernelPath.id} (${stats.decodeSteps} decode steps, ${stats.uniqueKernels} kernels)`);
+        const autoNote = shouldAutoStabilizeGemma3 ? `, autoFrom=${configuredKernelPathRef}` : '';
+        log.info(
+          'Pipeline',
+          `KernelPath: ${this.resolvedKernelPath.id} (${stats.decodeSteps} decode steps, ${stats.uniqueKernels} kernels, source=${kernelPathSource}${autoNote})`
+        );
       } catch (e) {
         this.resolvedKernelPath = null;
         log.warn('Pipeline', `Failed to resolve kernel path '${kernelPathRef}': ${ (e).message}`);
@@ -181,7 +205,8 @@ export class InferencePipeline extends PipelineState {
     setActiveKernelPath(this.resolvedKernelPath, kernelPathSource);
 
     const kernelPathActivationDtype = getKernelPathActivationDtype(this.resolvedKernelPath);
-    if (kernelPathActivationDtype) {
+    const kernelPathKVDtype = getKernelPathKVDtype(this.resolvedKernelPath);
+    if (kernelPathActivationDtype || kernelPathKVDtype) {
       const currentActivation = this.runtimeConfig.inference.compute.activationDtype;
       const currentKV = this.runtimeConfig.inference.kvcache.kvDtype;
       const nextInference = {
@@ -190,26 +215,25 @@ export class InferencePipeline extends PipelineState {
         kvcache: { ...this.runtimeConfig.inference.kvcache },
       };
       let updated = false;
+      const dtypeChanges = [];
 
-      if (currentActivation !== kernelPathActivationDtype) {
-        log.info(
-          'Pipeline',
-          `KernelPath ${this.resolvedKernelPath?.id ?? 'unknown'} overrides activationDtype=${currentActivation} -> ${kernelPathActivationDtype}`
-        );
+      if (kernelPathActivationDtype && currentActivation !== kernelPathActivationDtype) {
         nextInference.compute.activationDtype = kernelPathActivationDtype;
+        dtypeChanges.push(`activation=${currentActivation}->${kernelPathActivationDtype}`);
         updated = true;
       }
 
-      if (currentKV !== kernelPathActivationDtype) {
-        log.info(
-          'Pipeline',
-          `KernelPath ${this.resolvedKernelPath?.id ?? 'unknown'} overrides kvDtype=${currentKV} -> ${kernelPathActivationDtype}`
-        );
-        nextInference.kvcache.kvDtype = kernelPathActivationDtype;
+      if (kernelPathKVDtype && currentKV !== kernelPathKVDtype) {
+        nextInference.kvcache.kvDtype = kernelPathKVDtype;
+        dtypeChanges.push(`kv=${currentKV}->${kernelPathKVDtype}`);
         updated = true;
       }
 
       if (updated) {
+        log.info(
+          'Pipeline',
+          `KernelPath ${this.resolvedKernelPath?.id ?? 'unknown'} runtime dtype overrides: ${dtypeChanges.join(', ')}`
+        );
         this.runtimeConfig = setRuntimeConfig({ ...this.runtimeConfig, inference: nextInference });
       }
     }

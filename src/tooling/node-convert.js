@@ -81,6 +81,20 @@ async function listRelativeFiles(rootDir, relDir = '', out = []) {
   return out;
 }
 
+async function clearExistingShardFiles(outputDir) {
+  let entries;
+  try {
+    entries = await fs.readdir(outputDir, { withFileTypes: true });
+  } catch {
+    return;
+  }
+  const shardFiles = entries
+    .filter((entry) => entry.isFile() && /^shard_\d{5}\.bin$/i.test(entry.name))
+    .map((entry) => path.join(outputDir, entry.name));
+  if (shardFiles.length === 0) return;
+  await Promise.all(shardFiles.map((filePath) => fs.unlink(filePath)));
+}
+
 function createNodeConvertIO(outputDir, options) {
   const hashAlgorithm = options?.hashAlgorithm;
   const computeHash = options?.computeHash;
@@ -166,6 +180,7 @@ export async function convertSafetensorsDirectory(options) {
   ]);
 
   await fs.mkdir(outputDir, { recursive: true });
+  await clearExistingShardFiles(outputDir);
 
   const converterConfig = createConverterConfig(converterConfigOverride ?? undefined);
   const diffusionIndexPath = path.join(inputDir, 'model_index.json');

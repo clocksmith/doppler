@@ -70,16 +70,13 @@ export function validateRuntimeConfig(runtimeConfig) {
   const debugEnabled = isDebugMode(debug);
   const allowF32Upcast = runtimeConfig.loading?.allowF32UpcastNonMatmul === true;
   const keepF32Weights = runtimeConfig.inference?.compute?.keepF32Weights === true;
-  const activationDtype = runtimeConfig.inference?.compute?.activationDtype;
-  const usesF32Activation = activationDtype === 'f32';
 
-  if (!debugEnabled && (allowF32Upcast || keepF32Weights || usesF32Activation)) {
+  if (!debugEnabled && (allowF32Upcast || keepF32Weights)) {
     const flags = [];
     if (allowF32Upcast) flags.push('runtime.loading.allowF32UpcastNonMatmul');
     if (keepF32Weights) flags.push('runtime.inference.compute.keepF32Weights');
-    if (usesF32Activation) flags.push('runtime.inference.compute.activationDtype=f32');
     throw new Error(
-      'DopplerConfigError: F32 weights/activations are debug-only. ' +
+      'DopplerConfigError: F32 weight upcast/retention is debug-only. ' +
       `Disable ${flags.join(', ')} or enable runtime.shared.debug.pipeline.enabled ` +
       'or runtime.shared.debug.trace.enabled (or set log level to debug/verbose).'
     );

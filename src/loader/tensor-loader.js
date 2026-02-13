@@ -247,7 +247,7 @@ export async function loadQ6K(shardData, location, name) {
   }
 
   return {
-    data: dequantized,
+    data: applyBufferLayout(dequantized, location, 'f16'),
     allocatedBuffers: [dequantized],
   };
 }
@@ -300,7 +300,7 @@ export async function loadBF16(shardData, location, name, config) {
       };
     }
     return {
-      data: applyBufferLayout(dstBuffer, location),
+      data: applyBufferLayout(dstBuffer, location, 'f32'),
       allocatedBuffers: [dstBuffer],
     };
   }
@@ -346,7 +346,7 @@ export async function loadFloat(shardData, location, name, config) {
   if (dtype === 'f16') {
     if (config.allowF32UpcastNonMatmul === false) {
       return {
-        data: applyBufferLayout(buffer, location),
+        data: applyBufferLayout(buffer, location, 'f16'),
         allocatedBuffers: [buffer],
       };
     }
@@ -358,13 +358,13 @@ export async function loadFloat(shardData, location, name, config) {
     debugTrace.loader(`F16->F32 complete: ${name} resultSize=${f32Tensor.buffer.size}`);
     releaseBuffer(buffer);
     return {
-      data: applyBufferLayout(f32Tensor.buffer, location),
+      data: applyBufferLayout(f32Tensor.buffer, location, 'f32'),
       allocatedBuffers: [f32Tensor.buffer],
     };
   }
 
   return {
-    data: applyBufferLayout(buffer, location),
+    data: applyBufferLayout(buffer, location, dtype),
     allocatedBuffers: [buffer],
   };
 }

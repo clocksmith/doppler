@@ -6,13 +6,21 @@ import { runMatmul, runRMSNorm } from '../../../gpu/kernel-selector.js';
 import { recordMatmul } from '../../../gpu/kernels/matmul.js';
 import { recordRMSNorm } from '../../../gpu/kernels/rmsnorm.js';
 import { createTensor } from '../../../gpu/tensor.js';
-import { castF32ToF16 } from '../../../gpu/kernels/cast.js';
+import { castF16ToF32, castF32ToF16, recordCastF16ToF32 } from '../../../gpu/kernels/cast.js';
 import { createWeightBuffer, isWeightBuffer, isCpuWeightBuffer } from '../../../gpu/weight-buffer.js';
 import { log, trace, isTraceEnabled } from '../../../debug/index.js';
 import { getRuntimeConfig } from '../../../config/runtime.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { runProbes } from '../probes.js';
 import { f16BufferToF32 } from './cpu.js';
+
+function shouldForceStableF32Logits(config, inputDtype) {
+  // Small Gemma-family checkpoints can overflow in pure F16 logits path after RMSNorm offset.
+  return inputDtype === 'f16'
+    && config.rmsNormWeightOffset === true
+    && Number.isFinite(config.hiddenSize)
+    && config.hiddenSize <= 768;
+}
 
 
 export function resolveCpuWeightDims(lmHead) {
@@ -252,11 +260,21 @@ export async function computeLogitsGPU(
   const inputDtype = hiddenStates instanceof GPUBuffer ? activationDtype : 'f32';
   // Wrap input buffer as Tensor for RMSNorm
   const inputTensor = createTensor(inputBuffer, inputDtype, [numTokens, hiddenSize], 'logits_input');
-  const normedTensor = await runRMSNorm(inputTensor, normWeightBuffer, rmsNormEps, {
+  const forceStableF32Logits = shouldForceStableF32Logits(config, inputDtype);
+  let normInputTensor = inputTensor;
+  let normInputOwned = false;
+  if (forceStableF32Logits) {
+    normInputTensor = await castF16ToF32(inputTensor);
+    normInputOwned = true;
+  }
+  const normedTensor = await runRMSNorm(normInputTensor, normWeightBuffer, rmsNormEps, {
     batchSize: numTokens,
     hiddenSize,
     rmsNormWeightOffset: config.rmsNormWeightOffset,
   });
+  if (normInputOwned) {
+    releaseBuffer(normInputTensor.buffer);
+  }
 
   // Project to vocab via LM head
   
@@ -279,7 +297,7 @@ export async function computeLogitsGPU(
 
   const logitsTensor = await runMatmul(normedTensor, lmHeadBuffer, numTokens, matmulVocabSize, hiddenSize, {
     transposeB: 'auto',
-    role: 'lm_head',
+    role: forceStableF32Logits ? undefined : 'lm_head',
   });
 
   // Cleanup intermediate buffers (but keep logitsBuffer)
@@ -333,8 +351,15 @@ export async function recordLogitsGPU(
   const inputDtype = activationDtype;
   // Wrap input buffer as Tensor for RMSNorm
   const inputTensor = createTensor(hiddenStates, inputDtype, [numTokens, hiddenSize], 'logits_input');
+  const forceStableF32Logits = shouldForceStableF32Logits(config, inputDtype);
+  let normInputTensor = inputTensor;
+  let normInputOwned = false;
+  if (forceStableF32Logits) {
+    normInputTensor = await recordCastF16ToF32(recorder, inputTensor);
+    normInputOwned = true;
+  }
   // Record RMSNorm (no submit)
-  const normedTensor = await recordRMSNorm(recorder, inputTensor, normWeightBuffer, rmsNormEps, {
+  const normedTensor = await recordRMSNorm(recorder, normInputTensor, normWeightBuffer, rmsNormEps, {
     batchSize: numTokens,
     hiddenSize,
     rmsNormWeightOffset: config.rmsNormWeightOffset,
@@ -358,13 +383,16 @@ export async function recordLogitsGPU(
   // Record matmul (no submit)
   const logitsTensor = await recordMatmul(recorder, normedTensor, lmHeadBuffer, numTokens, matmulVocabSize, hiddenSize, {
     transposeB: 'auto',
-    role: 'lm_head',
+    role: forceStableF32Logits ? undefined : 'lm_head',
   });
 
   // Track intermediate buffer for cleanup after submit
   recorder.trackTemporaryBuffer(normedTensor.buffer);
   if (normWeightOwned) {
     recorder.trackTemporaryBuffer(normWeightBuffer);
+  }
+  if (normInputOwned) {
+    recorder.trackTemporaryBuffer(normInputTensor.buffer);
   }
   if (lmHeadBufferOwned) {
     recorder.trackTemporaryBuffer(isWeightBuffer(lmHeadBuffer) ? lmHeadBuffer.buffer : lmHeadBuffer);

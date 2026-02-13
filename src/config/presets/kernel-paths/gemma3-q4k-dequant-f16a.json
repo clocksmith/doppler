@@ -32,7 +32,7 @@
       { "op": "v_proj",       "kernel": "matmul_f16.wgsl",   "entry": "main", "weights": "layer.{L}.self_attn.v_proj" },
       { "op": "rope_q",       "kernel": "rope_f16.wgsl",         "entry": "main" },
       { "op": "rope_k",       "kernel": "rope_f16.wgsl",         "entry": "main" },
-      { "op": "attention",    "kernel": "attention_small_f16.wgsl",    "entry": "main" },
+      { "op": "attention",    "kernel": "attention_streaming_f16.wgsl", "entry": "main" },
       { "op": "o_proj",       "kernel": "matmul_f16.wgsl",   "entry": "main", "weights": "layer.{L}.self_attn.o_proj" },
       { "op": "attn_residual","kernel": "residual_f16.wgsl",     "entry": "main" },
       { "op": "post_attn_norm","kernel": "rmsnorm_f16.wgsl",     "entry": "main" },

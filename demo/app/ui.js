@@ -2,6 +2,13 @@ import { state } from './state.js';
 import { $, setText } from './dom.js';
 
 const STATUS_CLASSES = ['status-success', 'status-warning', 'status-error', 'status-info'];
+const STATUS_MARKERS = {
+  success: '●',
+  warning: '▲',
+  error: '☒',
+  info: '○',
+  default: '○',
+};
 
 export function showErrorModal(message) {
   const modal = $('error-modal');
@@ -21,56 +28,60 @@ export function setStatusIndicator(message, tone) {
   const indicator = $('status-indicator');
   if (!indicator) return;
   const textEl = indicator.querySelector('.status-text');
-  const dot = indicator.querySelector('.status-dot');
-  setText(textEl, message);
+  const marker = STATUS_MARKERS[tone] || STATUS_MARKERS.default;
+  setText(textEl, `${marker} ${message}`);
   indicator.classList.remove(...STATUS_CLASSES);
   if (tone) {
     indicator.classList.add(`status-${tone}`);
   }
-  if (dot) {
-    if (tone) {
-      dot.classList.add('status-dot-filled');
-    } else {
-      dot.classList.remove('status-dot-filled');
-    }
+}
+
+function formatMegabytes(bytes) {
+  const value = Number(bytes);
+  if (!Number.isFinite(value) || value <= 0) return '0.0';
+  return (value / (1024 * 1024)).toFixed(1);
+}
+
+function formatDownloadStatus(progress) {
+  if (!progress || typeof progress !== 'object') {
+    return 'Downloading...';
   }
+  const percent = Number(progress.percent);
+  const downloadedBytes = Number(progress.downloadedBytes);
+  const totalBytes = Number(progress.totalBytes);
+  const percentLabel = Number.isFinite(percent) ? `${clampPercent(percent).toFixed(1)}%` : '';
+
+  if (Number.isFinite(totalBytes) && totalBytes > 0) {
+    const safeDownloaded = Number.isFinite(downloadedBytes) && downloadedBytes > 0 ? downloadedBytes : 0;
+    const ratio = `${formatMegabytes(safeDownloaded)} / ${formatMegabytes(totalBytes)} MB`;
+    return percentLabel ? `Downloading ${percentLabel} (${ratio})` : `Downloading (${ratio})`;
+  }
+  if (Number.isFinite(downloadedBytes) && downloadedBytes > 0) {
+    const amount = `${formatMegabytes(downloadedBytes)} MB`;
+    return percentLabel ? `Downloading ${percentLabel} (${amount})` : `Downloading (${amount})`;
+  }
+  return percentLabel ? `Downloading ${percentLabel}` : 'Downloading...';
 }
 
 export function updateStatusIndicator() {
-  if (state.runLoading) {
-    setStatusIndicator('Loading model', 'info');
-    return;
-  }
-  if (state.diffusionLoading) {
-    setStatusIndicator('Loading diffusion', 'info');
-    return;
-  }
-  if (state.energyLoading) {
-    setStatusIndicator('Loading energy', 'info');
+  if (state.runLoading || state.diffusionLoading || state.energyLoading) {
+    setStatusIndicator('Loading...', 'info');
     return;
   }
   if (state.convertActive) {
-    setStatusIndicator('Converting', 'info');
+    setStatusIndicator('Converting...', 'info');
     return;
   }
-  if (state.runGenerating) {
-    if (state.uiMode === 'embedding') {
-      setStatusIndicator('Embedding', 'info');
-      return;
-    }
-    setStatusIndicator('Generating', 'info');
+  if (state.runGenerating && state.runPrefilling) {
+    setStatusIndicator('Prefilling...', 'info');
     return;
   }
-  if (state.diffusionGenerating) {
-    setStatusIndicator('Generating', 'info');
-    return;
-  }
-  if (state.energyGenerating) {
-    setStatusIndicator('Running energy', 'info');
+  if (state.runGenerating || state.diffusionGenerating || state.energyGenerating) {
+    setStatusIndicator('Generating...', 'info');
     return;
   }
   if (state.downloadActive) {
-    setStatusIndicator('Downloading', 'info');
+    setStatusIndicator(formatDownloadStatus(state.downloadProgress), 'info');
     return;
   }
   setStatusIndicator('Ready', 'success');

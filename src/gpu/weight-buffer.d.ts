@@ -49,6 +49,17 @@ export interface TensorLike {
 }
 
 /**
+ * Attach runtime dtype metadata to a raw GPUBuffer.
+ * Used when non-matmul paths keep plain GPUBuffer values.
+ */
+export function tagBufferDtype(buffer: GPUBuffer, dtype: string): void;
+
+/**
+ * Read runtime dtype metadata from a raw GPUBuffer.
+ */
+export function getBufferDtype(buffer: GPUBuffer): string | null;
+
+/**
  * Create a weight buffer from a GPU buffer with explicit metadata.
  */
 export function createWeightBuffer(

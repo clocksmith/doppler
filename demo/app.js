@@ -13,7 +13,6 @@ import {
   openModelStore,
   writeShard,
   loadManifestFromStore,
-  loadShard,
   loadTensorsFromStore,
   saveManifest,
   saveTensorsToStore,
@@ -119,6 +118,7 @@ import {
   updateDiagnosticsStatus,
   updateDiagnosticsReport,
   updateDiagnosticsGuidance,
+  decodeDiagnosticsProfileId,
   selectDiagnosticsModel,
   handleRuntimeConfigFile,
   applyRuntimeConfigPreset,
@@ -136,6 +136,7 @@ import {
   configureDownloadCallbacks,
   refreshDownloads,
   startDownload,
+  startDownloadFromBaseUrl,
   pauseActiveDownload,
   resumeActiveDownload,
   cancelActiveDownload,
@@ -145,6 +146,280 @@ const controller = new DiagnosticsController({ log });
 
 const PRIMARY_MODES = new Set(['run', 'embedding', 'diffusion', 'energy']);
 let modelListRefreshVersion = 0;
+const DEFAULT_MODEL_AVAILABILITY = Object.freeze({ total: 0, run: 0, embedding: 0, diffusion: 0, energy: 0 });
+const QUICK_MODEL_CATALOG_URL = new URL('../models/catalog.json', import.meta.url).toString();
+const RUN_STARTER_PROMPTS = Object.freeze([
+  'is potential energy real?',
+  'compare zig to rust in elvish',
+  'eat your cake and have it too',
+  'pivot to neurosymbolic reasoning',
+  'write a poem about an elephant that is bullish on QQQ',
+  'explain why a toddler is exactly like a neural network',
+  'explain the difference between the star trek migratation and star wars trek',
+  'prove termination for a recursive functional agent using lean four and inductive types',
+  'describe a toy store where the shelves are sorted by cognitive development stages and every single game has a proof of educational value attached',
+  'is human intuition just a fast, low-energy heuristic that our biological hardware runs when the cost of slow, symbolic reasoning is too high for survival',
+  'write a technical fable about an agent tasked with solving a paradox, forever rolling a high-energy gradient up a hill only for it to reset at every epoch',
+]);
+const EMBEDDING_DEMO_DOCUMENT_CATALOG = Object.freeze([
+  Object.freeze({
+    id: 'doc_webgpu_local',
+    title: 'Local-First WebGPU',
+    text: 'Local-first AI apps run inference in the browser using WebGPU and store model shards in OPFS for offline performance.',
+  }),
+  Object.freeze({
+    id: 'doc_formal_methods',
+    title: 'Formal Methods',
+    text: 'Lean proofs can verify termination and memory-safety properties for recursive systems code with clear inductive structure.',
+  }),
+  Object.freeze({
+    id: 'doc_market_qqq',
+    title: 'Market Commentary',
+    text: 'QQQ reflects large-cap technology exposure; risk management depends on volatility, drawdown tolerance, and rebalance discipline.',
+  }),
+  Object.freeze({
+    id: 'doc_kv_cache',
+    title: 'KV Cache Behavior',
+    text: 'Transformer decoding reuses key/value cache state; resetting context between runs prevents prompt leakage and keeps measurements independent.',
+  }),
+  Object.freeze({
+    id: 'doc_pkg_delivery',
+    title: 'Support Delivery Case',
+    text: 'Customers reporting damaged packages need replacement workflows, photo evidence handling, and clear refund timelines in support tooling.',
+  }),
+  Object.freeze({
+    id: 'doc_formal_agent',
+    title: 'Verified Agents',
+    text: 'Recursive agents can be modeled with inductive types, then proven terminating so orchestration loops do not run forever in production.',
+  }),
+  Object.freeze({
+    id: 'doc_diffusion',
+    title: 'Image Generation',
+    text: 'Diffusion inference denoises latent tensors over multiple steps, then decodes through a VAE to produce a final image.',
+  }),
+  Object.freeze({
+    id: 'doc_energy_model',
+    title: 'Energy Optimization',
+    text: 'Energy-based solvers iteratively minimize objective functions and can visualize convergence as energy drops over time.',
+  }),
+  Object.freeze({
+    id: 'doc_data_governance',
+    title: 'Data Governance',
+    text: 'Local storage policies should track model provenance, hash integrity, and retention windows for reproducible deployments.',
+  }),
+]);
+const EMBEDDING_DEMO_DOCUMENT_COUNT = 3;
+const DIFFUSION_STARTER_PROMPTS = Object.freeze([
+  'A photo-realistic architectural render of a boutique toy store in Williamsburg, Brooklyn; matte black metal frame, floor-to-ceiling glass, warm wooden shelves with minimalist board games and wooden toys, soft morning sidewalk light.',
+  "A vector logo for a software project named Reploid, cyber-industrial and minimalist, deep charcoal and neon teal palette, 90s arcade energy meets modern developer tooling.",
+  'A top-down cinematic shot of a disassembled Framework DIY laptop next to a custom mechanical keyboard with translucent keycaps and coiled cables, shallow bokeh, texture-rich PCB details.',
+  'A digital artwork of an ouroboros made from glowing fiber-optic cables and circuit board traces, dark background, high contrast, precise luminous edges.',
+  'A candid documentary-style photo of a museum visitor looking up at a massive dinosaur skeleton in the American Museum of Natural History, soft natural light, slight desaturation.',
+  'A 2022 Audi Q3 with honeycomb mesh grille and low-profile roof racks parked on a cobblestone street in DUMBO, cinematic automotive lighting, crisp reflections.',
+  'A macro shot of a complex tabletop strategy game in progress, wooden pieces, intricate cards, polyhedral dice on dark walnut, warm cozy lighting.',
+  'A macro, high-contrast black-and-white photo of a Somalia Elephant silver coin, emphasis on skin texture engraving and metallic edge luster.',
+  'A surreal editorial scene of castles built inside a browser sandbox, translucent walls, strict geometric boundaries, glowing checker lines, dramatic side lighting.',
+  'A futuristic operations room visualizing proofware: deterministic acceptance and rejection traces projected as layered HUD panels over a dark grid.',
+  'A cinematic concept art frame of a local-first AI workstation with WebGPU kernels flowing into verification checkpoints, neon teal accents, restrained composition.',
+  'An abstract infographic-style artwork showing interface to reasoning to checker flow as three distinct luminous channels converging into a green accept gate.',
+  'A moody Brooklyn night street with wet pavement reflections, matte storefronts, minimal signage, and subtle cyber-industrial atmosphere.',
+  'A technical poster aesthetic featuring Lean theorem symbols and circuit motifs, monochrome base with sharp teal highlights, clean negative space.',
+]);
+const DIFFUSION_NEGATIVE_STARTER_PROMPTS = Object.freeze([
+  'blurry, lowres, jpeg artifacts, noisy, text, watermark',
+  'deformed anatomy, extra fingers, duplicated limbs, bad hands',
+  'overexposed, underexposed, washed colors, poor contrast',
+  'cropped subject, out of frame, tilted horizon',
+  'cartoonish proportions, unrealistic shadows, flat lighting',
+  'muddy details, over-smoothing, plastic skin',
+  'logo, signature, timestamp, subtitles',
+  'distorted perspective, warped geometry, stretched objects',
+  'banding, posterization, chromatic aberration',
+  'cluttered background, messy composition, visual noise',
+  'unreadable typography, gibberish text, malformed letters',
+  'double pupils, asymmetrical eyes, broken facial structure',
+  'incorrect limb count, fused fingers, disconnected joints',
+  'overprocessed HDR, halo edges, ringing artifacts',
+  'flat depth, no focal separation, poor subject isolation',
+  'compression blocks, aliasing, moire patterns, scan lines',
+]);
+
+function normalizeQuickModeToken(value) {
+  const normalized = String(value || '').trim().toLowerCase();
+  if (normalized === 'run' || normalized === 'text') return 'run';
+  if (normalized === 'embedding' || normalized === 'embed') return 'embedding';
+  if (normalized === 'diffusion' || normalized === 'image') return 'diffusion';
+  if (normalized === 'energy') return 'energy';
+  return null;
+}
+
+function normalizeQuickModes(rawMode, rawModes) {
+  const values = [];
+  if (Array.isArray(rawModes)) values.push(...rawModes);
+  if (rawMode !== undefined) values.push(rawMode);
+  const tokens = new Set();
+  for (const value of values) {
+    if (typeof value === 'string') {
+      const lowered = value.trim().toLowerCase();
+      if (lowered === 'both' || lowered === 'all' || lowered === 'text+embedding') {
+        tokens.add('run');
+        tokens.add('embedding');
+        continue;
+      }
+      const splitValues = lowered.split(/[,\s+/]+/).filter(Boolean);
+      for (const token of splitValues) {
+        const normalized = normalizeQuickModeToken(token);
+        if (normalized) tokens.add(normalized);
+      }
+      continue;
+    }
+    const normalized = normalizeQuickModeToken(value);
+    if (normalized) tokens.add(normalized);
+  }
+  if (tokens.size === 0) {
+    tokens.add('run');
+  }
+  return [...tokens];
+}
+
+function resolveQuickModelBaseUrl(baseUrl, modelId) {
+  if (typeof baseUrl === 'string' && baseUrl.trim()) {
+    return new URL(baseUrl.trim(), QUICK_MODEL_CATALOG_URL).toString();
+  }
+  const encoded = encodeURIComponent(modelId);
+  return new URL(`./curated/${encoded}`, QUICK_MODEL_CATALOG_URL).toString();
+}
+
+function normalizeQuickCatalogEntry(raw, index) {
+  if (!raw || typeof raw !== 'object') return null;
+  const modelId = typeof raw.modelId === 'string' ? raw.modelId.trim() : '';
+  if (!modelId) return null;
+  const modes = normalizeQuickModes(raw.mode, raw.modes);
+  const sizeBytes = Number(raw.sizeBytes);
+  return {
+    id: modelId,
+    modelId,
+    label: typeof raw.label === 'string' && raw.label.trim() ? raw.label.trim() : modelId,
+    description: typeof raw.description === 'string' ? raw.description.trim() : '',
+    baseUrl: resolveQuickModelBaseUrl(raw.baseUrl, modelId),
+    modes,
+    sizeBytes: Number.isFinite(sizeBytes) && sizeBytes > 0 ? Math.floor(sizeBytes) : null,
+    recommended: raw.recommended === true,
+    sortOrder: Number.isFinite(Number(raw.sortOrder)) ? Number(raw.sortOrder) : index,
+  };
+}
+
+function parseQuickCatalogPayload(payload) {
+  if (!payload || typeof payload !== 'object') {
+    return [];
+  }
+  const entries = Array.isArray(payload.models) ? payload.models : [];
+  const normalized = [];
+  for (let i = 0; i < entries.length; i += 1) {
+    const entry = normalizeQuickCatalogEntry(entries[i], i);
+    if (!entry) continue;
+    normalized.push(entry);
+  }
+  normalized.sort((a, b) => {
+    if (a.recommended !== b.recommended) return a.recommended ? -1 : 1;
+    if (a.sortOrder !== b.sortOrder) return a.sortOrder - b.sortOrder;
+    return a.label.localeCompare(b.label);
+  });
+  return normalized;
+}
+
+function getQuickCatalogEntries() {
+  return Array.isArray(state.quickModelCatalog) ? state.quickModelCatalog : [];
+}
+
+function formatQuickModelBytes(bytes) {
+  if (!Number.isFinite(bytes) || bytes <= 0) return 'size unknown';
+  return formatBytes(bytes);
+}
+
+function formatDownloadMegabytes(bytes) {
+  const value = Number(bytes);
+  if (!Number.isFinite(value) || value <= 0) return '0.0';
+  return (value / (1024 * 1024)).toFixed(1);
+}
+
+function resolveDownloadProgressForModel(modelId) {
+  const progress = state.downloadProgress;
+  if (!progress || typeof progress !== 'object') return null;
+  const progressModelId = typeof progress.modelId === 'string' ? progress.modelId : '';
+  if (modelId && progressModelId && progressModelId !== modelId) return null;
+
+  const percent = Number(progress.percent);
+  const downloadedBytes = Number(progress.downloadedBytes);
+  const totalBytes = Number(progress.totalBytes);
+  return {
+    modelId: progressModelId || modelId || '',
+    percent: Number.isFinite(percent) ? clampPercent(percent) : null,
+    downloadedBytes: Number.isFinite(downloadedBytes) && downloadedBytes > 0 ? downloadedBytes : 0,
+    totalBytes: Number.isFinite(totalBytes) && totalBytes > 0 ? totalBytes : 0,
+  };
+}
+
+function formatQuickImportProgress(modelId) {
+  const progress = resolveDownloadProgressForModel(modelId);
+  if (!progress) return '';
+  const parts = [];
+  if (Number.isFinite(progress.percent)) {
+    parts.push(`${progress.percent.toFixed(1)}%`);
+  }
+  if (progress.totalBytes > 0) {
+    const done = formatDownloadMegabytes(progress.downloadedBytes);
+    const total = formatDownloadMegabytes(progress.totalBytes);
+    parts.push(`${done}/${total} MB`);
+  } else if (progress.downloadedBytes > 0) {
+    parts.push(`${formatDownloadMegabytes(progress.downloadedBytes)} MB`);
+  }
+  return parts.join(' · ');
+}
+
+function findQuickModelEntry(modelId) {
+  return getQuickCatalogEntries().find((entry) => entry.modelId === modelId) || null;
+}
+
+function formatQuickModelModeBadge(modes = []) {
+  if (!Array.isArray(modes) || modes.length === 0) return 'text';
+  const labels = [];
+  if (modes.includes('run')) labels.push('text');
+  if (modes.includes('embedding')) labels.push('embedding');
+  if (modes.includes('diffusion')) labels.push('diffusion');
+  if (modes.includes('energy')) labels.push('energy');
+  return labels.length > 0 ? labels.join('+') : 'text';
+}
+
+function getComparableQuickModelSize(entry) {
+  const size = Number(entry?.sizeBytes);
+  return Number.isFinite(size) && size > 0 ? size : Number.POSITIVE_INFINITY;
+}
+
+function getSmallestQuickModelForMode(modeToken) {
+  if (!modeToken) return null;
+  const candidates = getQuickCatalogEntries().filter((entry) => entry.modes.includes(modeToken));
+  if (candidates.length === 0) return null;
+  candidates.sort((a, b) => {
+    const sizeDiff = getComparableQuickModelSize(a) - getComparableQuickModelSize(b);
+    if (sizeDiff !== 0) return sizeDiff;
+    if (a.sortOrder !== b.sortOrder) return a.sortOrder - b.sortOrder;
+    return a.label.localeCompare(b.label);
+  });
+  return candidates[0] || null;
+}
+
+function getDiagnosticsRequiredQuickMode() {
+  const selection = state.diagnosticsSelections?.diagnostics || {};
+  const selectedProfile = decodeDiagnosticsProfileId(selection.profile || '');
+  const suite = selectedProfile?.suite || selection.suite || getDiagnosticsDefaultSuite('diagnostics');
+  if (suite === 'kernels') return null;
+  if (suite === 'diffusion') return 'diffusion';
+  if (suite === 'energy') return 'energy';
+  const preset = String(selectedProfile?.preset || selection.preset || '').toLowerCase();
+  if (preset.includes('embedding')) return 'embedding';
+  return 'run';
+}
 
 function updateNavState(mode) {
   // Treat the top 5 buttons as a single selection control:
@@ -181,6 +456,34 @@ function applyModeVisibility(mode) {
   });
 }
 
+function ensurePrimaryModeControlStack() {
+  const panelGrid = $('panel-grid');
+  if (!panelGrid) return;
+
+  const railStack = panelGrid.querySelector('.panel-stack-rail');
+  if (!railStack) return;
+
+  let controlsStack = panelGrid.querySelector('.panel-stack-controls');
+  if (!controlsStack) {
+    controlsStack = document.createElement('div');
+    controlsStack.className = 'panel-stack panel-stack-controls';
+    controlsStack.dataset.modes = 'run embedding diffusion energy';
+    panelGrid.insertBefore(controlsStack, railStack);
+  }
+
+  const controlSectionSelectors = [
+    '.run-controls-panel',
+    '.diffusion-controls-panel',
+    '.energy-controls-panel',
+    '.energy-solver-panel',
+  ];
+  for (const selector of controlSectionSelectors) {
+    const section = panelGrid.querySelector(selector);
+    if (!section || section.parentElement === controlsStack) continue;
+    controlsStack.appendChild(section);
+  }
+}
+
 function syncRunModeUI(mode) {
   const isEmbeddingMode = mode === 'embedding';
   setText($('run-panel-title'), isEmbeddingMode ? 'Embeddings' : 'Text Decoding');
@@ -194,6 +497,11 @@ function syncRunModeUI(mode) {
       : 'Ask a question or provide a prompt...';
   }
   setHidden($('run-sampling-controls'), isEmbeddingMode);
+  setHidden($('run-embedding-docs'), !isEmbeddingMode);
+  if (isEmbeddingMode) {
+    refreshEmbeddingDemoDocuments();
+  }
+  renderEmbeddingDocumentSet();
 }
 
 function setUiMode(mode) {
@@ -209,11 +517,15 @@ function setUiMode(mode) {
   applyModeVisibility(mode);
   syncRunModeUI(mode);
   syncDiagnosticsModeUI(mode);
+  updateModelEmptyStates();
   updatePerformancePanel();
   renderRunLog();
   if (mode === 'models') {
     refreshStorageInspector({
       onSelectModel: selectDiagnosticsModel,
+      onTryModel: handleStorageTryModel,
+      onUnloadActiveModel: unloadActivePipeline,
+      onStorageInventoryRefreshed: renderQuickModelPanels,
       onModelsUpdated: refreshModelList,
     });
   }
@@ -226,6 +538,390 @@ function setUiMode(mode) {
   if (mode === 'energy') {
     syncEnergyDemoSelection();
   }
+}
+
+function getModelAvailability() {
+  const availability = state.modelAvailability;
+  if (!availability || typeof availability !== 'object') {
+    return { ...DEFAULT_MODEL_AVAILABILITY };
+  }
+  return {
+    total: Number.isFinite(availability.total) ? availability.total : 0,
+    run: Number.isFinite(availability.run) ? availability.run : 0,
+    embedding: Number.isFinite(availability.embedding) ? availability.embedding : 0,
+    diffusion: Number.isFinite(availability.diffusion) ? availability.diffusion : 0,
+    energy: Number.isFinite(availability.energy) ? availability.energy : 0,
+  };
+}
+
+function setEmptyNotice(scope, message) {
+  const notice = $(`${scope}-empty-notice`);
+  const text = $(`${scope}-empty-notice-text`);
+  const normalized = typeof message === 'string' ? message.trim() : '';
+  setHidden(notice, normalized.length === 0);
+  setText(text, normalized);
+}
+
+function setEmptyNoticeAction(scope, quickModelEntry) {
+  const button = $(`${scope}-empty-notice-btn`);
+  if (!button) return;
+  const busyModelId = state.quickModelActionModelId;
+  const hasBusyImport = typeof busyModelId === 'string' && busyModelId.length > 0;
+
+  if (quickModelEntry?.modelId) {
+    const isBusy = busyModelId === quickModelEntry.modelId;
+    const progressLabel = isBusy ? formatQuickImportProgress(quickModelEntry.modelId) : '';
+    button.dataset.noticeAction = 'download';
+    button.dataset.quickModelId = quickModelEntry.modelId;
+    button.textContent = isBusy
+      ? (progressLabel ? `Importing ${progressLabel}` : 'Importing...')
+      : `Download ${quickModelEntry.label}`;
+    button.disabled = isBusy || (hasBusyImport && !isBusy);
+    return;
+  }
+
+  button.dataset.noticeAction = 'models';
+  delete button.dataset.quickModelId;
+  button.textContent = 'Go to Models';
+  button.disabled = hasBusyImport;
+}
+
+function getMissingModelMessage(mode, availability) {
+  const total = Number.isFinite(availability?.total) ? availability.total : 0;
+  if (total <= 0) {
+    return 'No models found in OPFS. Import a model from the Models tab.';
+  }
+  const compatible = Number.isFinite(availability?.[mode]) ? availability[mode] : 0;
+  if (compatible > 0) return '';
+  if (mode === 'embedding') {
+    return 'No embedding model available in OPFS for this mode.';
+  }
+  if (mode === 'diffusion') {
+    return 'No diffusion model available in OPFS for this mode.';
+  }
+  if (mode === 'energy') {
+    return 'No energy model available in OPFS for this mode.';
+  }
+  return 'No text model available in OPFS for this mode.';
+}
+
+function setQuickModelStatus(message) {
+  const statusEl = $('models-quick-models-status');
+  if (!statusEl) return;
+  setText(statusEl, message || '');
+}
+
+function createQuickModelBadge(text) {
+  const badge = document.createElement('span');
+  badge.className = 'quick-model-badge';
+  badge.textContent = text;
+  return badge;
+}
+
+function createQuickModelActionButton({ label, action, modelId, disabled, title = '' }) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'btn btn-small';
+  button.textContent = label;
+  button.dataset.quickAction = action;
+  button.dataset.quickModelId = modelId;
+  if (title) {
+    button.title = title;
+  }
+  button.disabled = disabled;
+  return button;
+}
+
+function renderQuickModelList(listEl, entries) {
+  if (!listEl) return;
+  listEl.textContent = '';
+  const busyId = state.quickModelActionModelId;
+  const hasBusyAction = typeof busyId === 'string' && busyId.length > 0;
+  const storageIds = new Set(Array.isArray(state.quickModelStorageIds) ? state.quickModelStorageIds : []);
+
+  for (const entry of entries) {
+    const isBusy = hasBusyAction && busyId === entry.modelId;
+    const isInOpfs = storageIds.has(entry.modelId);
+
+    const card = document.createElement('article');
+    card.className = entry.recommended ? 'quick-model-card is-recommended' : 'quick-model-card';
+
+    const row = document.createElement('div');
+    row.className = 'quick-model-row';
+
+    const main = document.createElement('div');
+    main.className = 'quick-model-main';
+
+    const title = document.createElement('div');
+    title.className = 'quick-model-title';
+    title.textContent = entry.label;
+    main.appendChild(title);
+
+    const modelId = document.createElement('div');
+    modelId.className = 'quick-model-id type-caption';
+    modelId.textContent = entry.modelId;
+    main.appendChild(modelId);
+
+    const meta = document.createElement('div');
+    meta.className = 'quick-model-meta';
+    if (entry.recommended) {
+      meta.appendChild(createQuickModelBadge('recommended'));
+    }
+    meta.appendChild(createQuickModelBadge(formatQuickModelModeBadge(entry.modes)));
+    meta.appendChild(createQuickModelBadge(formatQuickModelBytes(entry.sizeBytes)));
+    if (isInOpfs) {
+      meta.appendChild(createQuickModelBadge('in opfs'));
+    }
+    main.appendChild(meta);
+
+    const actions = document.createElement('div');
+    actions.className = 'quick-model-actions';
+    if (isInOpfs) {
+      const imported = document.createElement('span');
+      imported.className = 'quick-model-imported type-caption';
+      imported.textContent = 'Imported';
+      actions.appendChild(imported);
+    } else {
+      const busyLabel = isBusy ? formatQuickImportProgress(entry.modelId) : '';
+      actions.appendChild(createQuickModelActionButton({
+        label: isBusy ? (busyLabel ? `Importing ${busyLabel}` : 'Importing...') : 'Import',
+        action: 'download',
+        modelId: entry.modelId,
+        disabled: isBusy || hasBusyAction,
+      }));
+    }
+
+    row.appendChild(main);
+    row.appendChild(actions);
+    card.appendChild(row);
+
+    listEl.appendChild(card);
+  }
+
+  if (entries.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'type-caption';
+    empty.textContent = 'No quick models are configured yet.';
+    listEl.appendChild(empty);
+  }
+}
+
+function renderQuickModelPanels() {
+  const catalog = getQuickCatalogEntries();
+
+  if (state.quickModelActionModelId) {
+    const modelId = state.quickModelActionModelId;
+    const progressLabel = formatQuickImportProgress(modelId);
+    setQuickModelStatus(progressLabel ? `Importing ${modelId}: ${progressLabel}` : `Importing ${modelId}...`);
+  } else if (state.quickModelCatalogLoading) {
+    setQuickModelStatus('Loading quick models...');
+  } else if (state.quickModelCatalogError) {
+    const message = `Quick model catalog unavailable: ${state.quickModelCatalogError}`;
+    setQuickModelStatus(message);
+  } else {
+    setQuickModelStatus(
+      catalog.length > 0
+        ? ''
+        : 'No quick models configured in catalog.json yet.'
+    );
+  }
+
+  renderQuickModelList($('models-quick-models-list'), catalog);
+}
+
+async function loadQuickModelCatalog() {
+  state.quickModelCatalogLoading = true;
+  state.quickModelCatalogError = null;
+  renderQuickModelPanels();
+  try {
+    const response = await fetch(QUICK_MODEL_CATALOG_URL, { cache: 'no-store' });
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    const payload = await response.json();
+    state.quickModelCatalog = parseQuickCatalogPayload(payload);
+  } catch (error) {
+    state.quickModelCatalog = [];
+    state.quickModelCatalogError = error instanceof Error ? error.message : String(error);
+  } finally {
+    state.quickModelCatalogLoading = false;
+    renderQuickModelPanels();
+  }
+}
+
+async function applyImportedModelToCurrentMode(modelId) {
+  if (!modelId) return;
+  const mode = state.uiMode;
+  if (mode === 'models') return;
+
+  if (mode === 'diagnostics') {
+    selectDiagnosticsModel(modelId);
+    return;
+  }
+
+  if (!isModeModelSelectable(mode)) return;
+  const modelType = await getModelTypeForId(modelId);
+  if (!isCompatibleModelType(modelType, mode)) return;
+
+  selectDiagnosticsModel(modelId);
+  state.modeModelId[mode] = modelId;
+}
+
+async function handleEmptyNoticeAction(scope) {
+  const button = $(`${scope}-empty-notice-btn`);
+  if (!button) return;
+  const action = button.dataset.noticeAction || 'models';
+  if (action !== 'download') {
+    setUiMode('models');
+    return;
+  }
+  const modelId = button.dataset.quickModelId || '';
+  if (!modelId) {
+    setUiMode('models');
+    return;
+  }
+  await runQuickModelAction('download', modelId);
+}
+
+function handleDownloadProgressEvent(progress) {
+  const modelId = typeof progress?.modelId === 'string' && progress.modelId.trim()
+    ? progress.modelId.trim()
+    : (typeof state.activeDownloadId === 'string' ? state.activeDownloadId : '');
+  const percent = Number(progress?.percent);
+  const downloadedBytes = Number(progress?.downloadedBytes);
+  const totalBytes = Number(progress?.totalBytes);
+
+  state.downloadProgress = {
+    modelId,
+    percent: Number.isFinite(percent) ? clampPercent(percent) : null,
+    downloadedBytes: Number.isFinite(downloadedBytes) && downloadedBytes > 0 ? downloadedBytes : 0,
+    totalBytes: Number.isFinite(totalBytes) && totalBytes > 0 ? totalBytes : 0,
+    status: typeof progress?.status === 'string' ? progress.status : '',
+  };
+  if (modelId) {
+    state.activeDownloadId = modelId;
+  }
+  state.downloadActive = true;
+  updateStatusIndicator();
+  if (state.quickModelActionModelId && modelId && modelId === state.quickModelActionModelId) {
+    updateModelEmptyStates();
+  } else {
+    renderQuickModelPanels();
+  }
+}
+
+function handleDownloadStateChangeEvent(update) {
+  if (!update || typeof update !== 'object') return;
+  const modelId = typeof update.modelId === 'string' && update.modelId.trim() ? update.modelId.trim() : '';
+  if (modelId) {
+    state.activeDownloadId = modelId;
+  }
+  if (update.active === true) {
+    state.downloadActive = true;
+  } else if (update.active === false) {
+    state.downloadActive = false;
+    if (!modelId || state.downloadProgress?.modelId === modelId) {
+      state.downloadProgress = null;
+    }
+  }
+  updateStatusIndicator();
+  if (state.quickModelActionModelId && (!modelId || modelId === state.quickModelActionModelId)) {
+    updateModelEmptyStates();
+  } else {
+    renderQuickModelPanels();
+  }
+}
+
+async function runQuickModelAction(action, modelId) {
+  if (action !== 'download') return;
+  const entry = findQuickModelEntry(modelId);
+  if (!entry) {
+    updateConvertStatus(`Quick model not found: ${modelId}`, 0);
+    return;
+  }
+  if (state.quickModelActionModelId) return;
+
+  let finalQuickStatus = '';
+  state.quickModelActionModelId = modelId;
+  state.downloadActive = true;
+  state.activeDownloadId = modelId;
+  state.downloadProgress = null;
+  updateStatusIndicator();
+  setQuickModelStatus(`Importing ${modelId}...`);
+  updateModelEmptyStates();
+  renderQuickModelPanels();
+  try {
+    const imported = await startDownloadFromBaseUrl(entry.baseUrl, entry.modelId);
+    if (!imported) {
+      throw new Error(`Could not import model ${modelId}.`);
+    }
+    await updateStorageInfo();
+    await refreshModelList();
+    await applyImportedModelToCurrentMode(modelId);
+    if (state.uiMode === 'models') {
+      await refreshStorageInspector({
+        onSelectModel: selectDiagnosticsModel,
+        onTryModel: handleStorageTryModel,
+        onUnloadActiveModel: unloadActivePipeline,
+        onStorageInventoryRefreshed: renderQuickModelPanels,
+        onModelsUpdated: refreshModelList,
+      });
+    }
+    finalQuickStatus = `Imported ${modelId} to OPFS.`;
+    renderQuickModelPanels();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    finalQuickStatus = `Import failed: ${message}`;
+    updateConvertStatus(`Quick model action failed: ${message}`, 0);
+    updateDiagnosticsStatus(`Quick model action failed: ${message}`, true);
+  } finally {
+    if (!state.downloadProgress || state.downloadProgress.modelId === modelId) {
+      state.downloadProgress = null;
+    }
+    state.quickModelActionModelId = null;
+    state.downloadActive = false;
+    state.activeDownloadId = null;
+    updateStatusIndicator();
+    updateModelEmptyStates();
+    renderQuickModelPanels();
+    if (finalQuickStatus) {
+      setQuickModelStatus(finalQuickStatus);
+    }
+  }
+}
+
+function updateModelEmptyStates() {
+  const availability = getModelAvailability();
+  const runTargetMode = state.uiMode === 'embedding' ? 'embedding' : 'run';
+  const runMessage = getMissingModelMessage(runTargetMode, availability);
+  const diffusionMessage = getMissingModelMessage('diffusion', availability);
+  const energyMessage = getMissingModelMessage('energy', availability);
+  const diagnosticsTargetMode = getDiagnosticsRequiredQuickMode();
+  const diagnosticsMessage = (
+    state.uiMode === 'diagnostics'
+      ? (diagnosticsTargetMode ? getMissingModelMessage(diagnosticsTargetMode, availability) : '')
+      : ''
+  );
+
+  setEmptyNotice('run', runMessage);
+  setEmptyNotice('diffusion', diffusionMessage);
+  setEmptyNotice('energy', energyMessage);
+  setEmptyNotice('diagnostics', diagnosticsMessage);
+  setEmptyNoticeAction('run', runMessage ? getSmallestQuickModelForMode(runTargetMode) : null);
+  setEmptyNoticeAction('diffusion', diffusionMessage ? getSmallestQuickModelForMode('diffusion') : null);
+  setEmptyNoticeAction('energy', energyMessage ? getSmallestQuickModelForMode('energy') : null);
+  setEmptyNoticeAction('diagnostics', diagnosticsMessage ? getSmallestQuickModelForMode(diagnosticsTargetMode) : null);
+  renderQuickModelPanels();
+
+  const diffusionRun = $('diffusion-run-btn');
+  if (diffusionRun) {
+    diffusionRun.disabled = state.diffusionGenerating || state.diffusionLoading || diffusionMessage.length > 0;
+  }
+  const energyRun = $('energy-run-btn');
+  if (energyRun) {
+    energyRun.disabled = state.energyGenerating || state.energyLoading || energyMessage.length > 0;
+  }
+  syncRunControls();
 }
 
 function updateConvertStatus(message, percent) {
@@ -260,28 +956,6 @@ function updateDiffusionStatus(message) {
   const status = $('diffusion-output-status');
   if (!status) return;
   setText(status, message || 'Idle');
-}
-
-function updateExportStatus(message, percent) {
-  const status = $('export-status');
-  const progress = $('export-progress');
-  const label = $('export-message');
-  if (!status || !progress || !label) return;
-  setHidden(status, false);
-  setText(label, message || '');
-  if (Number.isFinite(percent)) {
-    progress.style.width = `${clampPercent(percent)}%`;
-  }
-}
-
-function resetExportStatus() {
-  const status = $('export-status');
-  const progress = $('export-progress');
-  const label = $('export-message');
-  if (!status || !progress || !label) return;
-  setHidden(status, false);
-  progress.style.width = '0%';
-  setText(label, 'Idle');
 }
 
 const AUX_IMPORT_FILENAMES = [
@@ -375,13 +1049,6 @@ async function deriveModelIdFromFiles(files, fallbackLabel) {
   return null;
 }
 
-function resolveActiveModelId() {
-  const modelSelect = $('diagnostics-model');
-  const selected = modelSelect?.value?.trim();
-  if (selected) return selected;
-  return state.activeModelId || null;
-}
-
 async function filterModelsForMode(models, mode) {
   if (!isModeModelSelectable(mode)) return models;
   const filtered = [];
@@ -465,7 +1132,15 @@ async function resolveCompatibleModelId(mode) {
 async function syncModelForMode(mode) {
   if (!isModeModelSelectable(mode)) return;
   const compatibleId = await resolveCompatibleModelId(mode);
-  if (!compatibleId) return;
+  if (!compatibleId) {
+    state.modeModelId[mode] = null;
+    if (state.uiMode === mode) {
+      state.activeModelId = null;
+      const modelSelect = $('diagnostics-model');
+      if (modelSelect) modelSelect.value = '';
+    }
+    return;
+  }
   if (state.activeModelId !== compatibleId) {
     if (state.activePipeline && state.activePipelineModelId && state.activePipelineModelId !== compatibleId) {
       await unloadActivePipeline();
@@ -475,101 +1150,21 @@ async function syncModelForMode(mode) {
   state.modeModelId[mode] = compatibleId;
 }
 
-async function writeFileToDirectory(dirHandle, name, data) {
-  const fileHandle = await dirHandle.getFileHandle(name, { create: true });
-  const writable = await fileHandle.createWritable();
-  await writable.write(data);
-  await writable.close();
+function getUiModeForModelType(modelType) {
+  const normalizedType = normalizeModelType(modelType);
+  if (normalizedType === 'embedding') return 'embedding';
+  if (normalizedType === 'diffusion') return 'diffusion';
+  if (normalizedType === 'energy') return 'energy';
+  return 'run';
 }
 
-async function exportActiveModel() {
-  const modelId = resolveActiveModelId();
-  if (!modelId) {
-    updateExportStatus('Select an active model to export.', 0);
-    return;
-  }
-  if (!('showDirectoryPicker' in window)) {
-    updateExportStatus('Folder export requires the File System Access API.', 0);
-    return;
-  }
-
-  updateExportStatus('Choose a destination folder...', 0);
-  let rootHandle;
-  try {
-    rootHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
-  } catch (error) {
-    if (error.name === 'AbortError') {
-      updateExportStatus('Export cancelled.', 0);
-      return;
-    }
-    throw error;
-  }
-
-  const exportDir = await rootHandle.getDirectoryHandle(modelId, { create: true });
-  await openModelStore(modelId);
-  const manifestText = await loadManifestFromStore();
-  if (!manifestText) {
-    updateExportStatus('Manifest not found in storage.', 0);
-    return;
-  }
-  const previousManifest = getManifest();
-  const manifest = parseManifest(manifestText);
-
-  try {
-    const payloads = [
-      { name: 'manifest.json', data: manifestText },
-    ];
-
-    if (manifest.tensorsFile) {
-      const tensorsText = await loadTensorsFromStore();
-      if (!tensorsText) {
-        updateExportStatus('Missing tensors.json for this model.', 0);
-        return;
-      }
-      payloads.push({ name: manifest.tensorsFile, data: tensorsText });
-    }
-
-    const tokenizerText = await loadTokenizerFromStore();
-    if (tokenizerText) {
-      payloads.push({ name: 'tokenizer.json', data: tokenizerText });
-    }
-
-    const tokenizerModel = await loadTokenizerModelFromStore();
-    if (tokenizerModel) {
-      payloads.push({ name: 'tokenizer.model', data: tokenizerModel });
-    }
-
-    const shards = Array.isArray(manifest.shards) ? manifest.shards : [];
-    const totalItems = payloads.length + shards.length;
-    let completed = 0;
-    const reportProgress = (name) => {
-      completed += 1;
-      const percent = totalItems > 0 ? (completed / totalItems) * 100 : 0;
-      updateExportStatus(`Writing ${name}...`, percent);
-    };
-
-    for (const entry of payloads) {
-      await writeFileToDirectory(exportDir, entry.name, entry.data);
-      reportProgress(entry.name);
-    }
-
-    for (let i = 0; i < shards.length; i++) {
-      const shard = shards[i];
-      const index = Number.isInteger(shard.index) ? shard.index : i;
-      const filename = shard.filename || `shard_${String(index).padStart(5, '0')}.bin`;
-      const data = await loadShard(index);
-      await writeFileToDirectory(exportDir, filename, data);
-      reportProgress(filename);
-    }
-
-    updateExportStatus(`Export complete: ${modelId}`, 100);
-  } finally {
-    if (previousManifest) {
-      setManifest(previousManifest);
-    } else {
-      clearManifest();
-    }
-  }
+async function handleStorageTryModel(modelId) {
+  if (!modelId) return;
+  const modelType = await getModelTypeForId(modelId);
+  const targetMode = getUiModeForModelType(modelType);
+  setUiMode(targetMode);
+  await refreshModelList();
+  selectDiagnosticsModel(modelId);
 }
 
 function updateSidebarLayout(models) {
@@ -577,9 +1172,30 @@ function updateSidebarLayout(models) {
   if (!panelGrid) return;
   const hasModels = Array.isArray(models) && models.length > 0;
   panelGrid.dataset.layout = hasModels ? 'ready' : 'empty';
-  if (!hasModels && state.uiMode !== 'models' && state.uiMode !== 'kernels' && state.uiMode !== 'diagnostics') {
-    setUiMode('models');
+}
+
+async function computeModelAvailability(models) {
+  const availability = { ...DEFAULT_MODEL_AVAILABILITY };
+  if (!Array.isArray(models)) return availability;
+  const seenModelIds = new Set();
+  for (const model of models) {
+    const modelId = typeof model?.modelId === 'string' && model.modelId
+      ? model.modelId
+      : (typeof model?.id === 'string' ? model.id : '');
+    if (!modelId || seenModelIds.has(modelId)) continue;
+    seenModelIds.add(modelId);
+    availability.total += 1;
+
+    let modelType = normalizeModelType(model?.modelType);
+    if (!modelType) {
+      modelType = normalizeModelType(await getModelTypeForId(modelId));
+    }
+    if (isCompatibleModelType(modelType, 'run')) availability.run += 1;
+    if (isCompatibleModelType(modelType, 'embedding')) availability.embedding += 1;
+    if (isCompatibleModelType(modelType, 'diffusion')) availability.diffusion += 1;
+    if (isCompatibleModelType(modelType, 'energy')) availability.energy += 1;
   }
+  return availability;
 }
 
 async function refreshModelList() {
@@ -592,6 +1208,13 @@ async function refreshModelList() {
   } catch (error) {
     log.warn('DopplerDemo', `Model registry unavailable: ${error.message}`);
   }
+  state.registeredModelIds = [...new Set(models
+    .map((entry) => {
+      if (typeof entry?.modelId === 'string' && entry.modelId) return entry.modelId;
+      if (typeof entry?.id === 'string' && entry.id) return entry.id;
+      return '';
+    })
+    .filter(Boolean))];
   const filteredModels = await filterModelsForMode(models, state.uiMode);
   if (refreshVersion !== modelListRefreshVersion) return;
   modelSelect.innerHTML = '';
@@ -623,14 +1246,23 @@ async function refreshModelList() {
     }
   }
   updateSidebarLayout(models);
+  state.modelAvailability = await computeModelAvailability(models);
   await updateStorageInfo();
   await syncModelForMode(state.uiMode);
+  updateModelEmptyStates();
   updateDiagnosticsGuidance();
+  if (state.uiMode === 'energy') {
+    await preloadEnergyPipelineIfNeeded();
+  }
   if (state.uiMode === 'models') {
     await refreshStorageInspector({
       onSelectModel: selectDiagnosticsModel,
+      onTryModel: handleStorageTryModel,
+      onUnloadActiveModel: unloadActivePipeline,
+      onStorageInventoryRefreshed: renderQuickModelPanels,
       onModelsUpdated: refreshModelList,
     });
+    renderQuickModelPanels();
   }
 }
 
@@ -715,19 +1347,130 @@ function getSelectedModelId() {
   return null;
 }
 
+function pickRandomStarter(pool) {
+  if (!Array.isArray(pool) || pool.length === 0) return '';
+  const index = Math.floor(Math.random() * pool.length);
+  return String(pool[index] || '').trim();
+}
+
+function isStarterExampleInput(inputEl) {
+  return inputEl?.dataset?.starterExample === '1';
+}
+
+function setStarterExampleInput(inputEl, isExample) {
+  if (!inputEl) return;
+  inputEl.dataset.starterExample = isExample ? '1' : '0';
+}
+
+function pickRandomStarterDifferent(pool, currentValue) {
+  if (!Array.isArray(pool) || pool.length === 0) return '';
+  const current = String(currentValue || '').trim();
+  if (pool.length === 1) return String(pool[0] || '').trim();
+  for (let attempt = 0; attempt < pool.length * 2; attempt += 1) {
+    const next = pickRandomStarter(pool);
+    if (next && next !== current) {
+      return next;
+    }
+  }
+  return pickRandomStarter(pool);
+}
+
+function pickRandomSubset(pool, count) {
+  if (!Array.isArray(pool) || pool.length === 0) return [];
+  const targetCount = Math.max(1, Math.min(Number(count) || 1, pool.length));
+  const copy = pool.slice();
+  for (let i = copy.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy.slice(0, targetCount);
+}
+
+function refreshEmbeddingDemoDocuments(options = {}) {
+  const { force = false } = options;
+  const current = Array.isArray(state.embeddingDemoDocuments) ? state.embeddingDemoDocuments : [];
+  if (!force && current.length === EMBEDDING_DEMO_DOCUMENT_COUNT) {
+    return current;
+  }
+  state.embeddingDemoDocuments = pickRandomSubset(
+    EMBEDDING_DEMO_DOCUMENT_CATALOG,
+    EMBEDDING_DEMO_DOCUMENT_COUNT
+  );
+  renderEmbeddingDocumentSet();
+  return state.embeddingDemoDocuments;
+}
+
+function renderEmbeddingDocumentSet() {
+  const wrap = $('run-embedding-docs');
+  const list = $('run-embedding-docs-list');
+  if (!wrap || !list) return;
+  if (state.uiMode !== 'embedding') {
+    setHidden(wrap, true);
+    return;
+  }
+  setHidden(wrap, false);
+  const docs = Array.isArray(state.embeddingDemoDocuments) ? state.embeddingDemoDocuments : [];
+  if (docs.length === 0) {
+    list.innerHTML = '<div class="type-caption">No documents configured.</div>';
+    return;
+  }
+  const rows = docs
+    .map((doc, index) => {
+      const text = String(doc?.text || '').trim();
+      const snippet = text.length > 140 ? `${text.slice(0, 140)}...` : text;
+      return `<div class="embedding-doc-item"><div class="type-caption"><strong>${index + 1}. ${doc.title}</strong></div><div class="type-caption">${snippet}</div></div>`;
+    })
+    .join('');
+  list.innerHTML = rows;
+}
+
+function applyStarterPrompt(inputEl, pool, options = {}) {
+  if (!inputEl) return;
+  const { force = false } = options;
+  const current = String(inputEl.value || '').trim();
+  if (!force && current.length > 0) return;
+  const next = force ? pickRandomStarterDifferent(pool, current) : pickRandomStarter(pool);
+  if (!next) return;
+  inputEl.value = next;
+  setStarterExampleInput(inputEl, true);
+}
+
+function prefillDemoTextInputs() {
+  applyStarterPrompt($('run-prompt'), RUN_STARTER_PROMPTS);
+  applyStarterPrompt($('diffusion-prompt'), DIFFUSION_STARTER_PROMPTS);
+  applyStarterPrompt($('diffusion-negative'), DIFFUSION_NEGATIVE_STARTER_PROMPTS);
+}
+
+function bindStarterPromptInput(inputEl) {
+  if (!inputEl) return;
+  inputEl.addEventListener('focus', () => {
+    if (isStarterExampleInput(inputEl)) {
+      inputEl.select();
+    }
+  });
+  inputEl.addEventListener('input', () => {
+    setStarterExampleInput(inputEl, false);
+  });
+}
+
 function syncRunControls() {
   const runPrompt = $('run-prompt');
   const runGenerate = $('run-generate-btn');
   const runStop = $('run-stop-btn');
   const runClear = $('run-clear-btn');
+  const runResetKvToggle = $('run-reset-kv-toggle');
   const temperatureInput = $('temperature-input');
   const topPInput = $('top-p-input');
   const topKInput = $('top-k-input');
   const maxTokensInput = $('max-tokens-input');
+  const availability = getModelAvailability();
+  const needsEmbeddingModel = state.uiMode === 'embedding';
+  const hasCompatibleModel = needsEmbeddingModel ? availability.embedding > 0 : availability.run > 0;
   const disabled = state.runGenerating || state.runLoading;
   if (runPrompt) runPrompt.disabled = disabled;
-  if (runGenerate) runGenerate.disabled = disabled;
+  if (runGenerate) runGenerate.disabled = disabled || !hasCompatibleModel;
   if (runClear) runClear.disabled = disabled;
+  if (runResetKvToggle) runResetKvToggle.disabled = disabled;
   if (temperatureInput) temperatureInput.disabled = disabled;
   if (topPInput) topPInput.disabled = disabled;
   if (topKInput) topKInput.disabled = disabled;
@@ -737,6 +1480,9 @@ function syncRunControls() {
 
 function setRunGenerating(isGenerating) {
   state.runGenerating = Boolean(isGenerating);
+  if (!state.runGenerating) {
+    state.runPrefilling = false;
+  }
   syncRunControls();
   updateStatusIndicator();
 }
@@ -985,6 +1731,35 @@ function handleDiffusionClear() {
     }
   }
   updateDiffusionStatus('Idle');
+}
+
+async function preloadEnergyPipelineIfNeeded() {
+  if (state.uiMode !== 'energy') return;
+  if (state.energyLoading || state.energyGenerating) return;
+
+  const modelId = getSelectedModelId();
+  if (!modelId) return;
+
+  const selectedModelType = normalizeModelType(await getModelTypeForId(modelId));
+  if (selectedModelType !== 'energy') return;
+
+  const activeModelType = normalizeModelType(state.activePipeline?.manifest?.modelType);
+  if (
+    state.activePipeline &&
+    state.activeModelId === modelId &&
+    activeModelType === 'energy'
+  ) {
+    return;
+  }
+
+  updateEnergyStatus('Loading energy model...');
+  try {
+    await ensureEnergyPipeline();
+    if (!state.energyGenerating) updateEnergyStatus('Ready');
+  } catch (error) {
+    log.warn('DopplerDemo', `Energy preload skipped: ${error.message}`);
+    if (!state.energyGenerating) updateEnergyStatus('Idle');
+  }
 }
 
 
@@ -1411,6 +2186,8 @@ async function handleRunGenerate() {
   const outputEl = $('run-output');
   const prompt = promptEl?.value?.trim() || '';
   const isEmbeddingMode = state.uiMode === 'embedding';
+  const runResetKvToggle = $('run-reset-kv-toggle');
+  const resetContextEachRun = !isEmbeddingMode && Boolean(runResetKvToggle?.checked);
   if (!prompt) {
     updateRunStatus(isEmbeddingMode ? 'Enter text to embed.' : 'Enter a prompt to generate.');
     return;
@@ -1428,6 +2205,9 @@ async function handleRunGenerate() {
     if (!isEmbeddingMode && (modelType === 'diffusion' || modelType === 'energy' || modelType === 'embedding')) {
       throw new Error('Selected model is not a text model.');
     }
+    if (resetContextEachRun) {
+      pipeline.reset?.();
+    }
   } catch (error) {
     updateRunStatus(`Error: ${error.message}`);
     return;
@@ -1435,6 +2215,7 @@ async function handleRunGenerate() {
 
   const controller = new AbortController();
   state.runAbortController = controller;
+  state.runPrefilling = !isEmbeddingMode;
   setRunGenerating(true);
   updateRunStatus(isEmbeddingMode ? 'Embedding...' : 'Generating...');
   if (outputEl) outputEl.textContent = '';
@@ -1449,35 +2230,63 @@ async function handleRunGenerate() {
   try {
     if (isEmbeddingModel) {
       const embedStart = performance.now();
+      pipeline.reset?.();
       const result = await pipeline.embed(prompt, options);
-      const embeddingMs = Math.max(1, performance.now() - embedStart);
-      const dim = result?.embedding?.length ?? 0;
-      if (!Number.isFinite(dim) || dim <= 0) {
+      const queryEmbeddingValues = result?.embedding ?? new Float32Array(0);
+      const querySummary = summarizeEmbeddingVector(queryEmbeddingValues);
+      if (!Number.isFinite(querySummary.dimension) || querySummary.dimension <= 0) {
         throw new Error('No embedding returned.');
       }
-      const embeddingValues = result?.embedding ?? [];
-      let nonFiniteCount = 0;
-      for (let i = 0; i < dim; i++) {
-        if (!Number.isFinite(embeddingValues[i])) nonFiniteCount++;
+      if (querySummary.nonFiniteCount > 0) {
+        throw new Error(`Embedding contains non-finite values (${querySummary.nonFiniteCount}/${querySummary.dimension}).`);
       }
-      if (nonFiniteCount > 0) {
-        throw new Error(`Embedding contains non-finite values (${nonFiniteCount}/${dim}).`);
+      const embeddingDocuments = refreshEmbeddingDemoDocuments({ force: true });
+      updateRunStatus('Embedding demo documents...');
+      const scoredDocuments = [];
+      for (const doc of embeddingDocuments) {
+        pipeline.reset?.();
+        const docResult = await pipeline.embed(doc.text, options);
+        const docEmbeddingValues = docResult?.embedding ?? new Float32Array(0);
+        const docSummary = summarizeEmbeddingVector(docEmbeddingValues);
+        const score = cosineSimilarity(queryEmbeddingValues, docEmbeddingValues);
+        scoredDocuments.push({
+          id: doc.id,
+          title: doc.title,
+          text: doc.text,
+          tokens: Number.isFinite(docResult?.tokens?.length) ? docResult.tokens.length : 0,
+          dimension: docSummary.dimension,
+          nonFinite: docSummary.nonFiniteCount,
+          score: Number.isFinite(score) ? Number(score.toFixed(6)) : null,
+        });
       }
-      const preview = Array.from(embeddingValues.slice(0, Math.min(16, dim)))
-        .map((v) => Number(v.toFixed(6)));
+
+      const ranked = scoredDocuments
+        .slice()
+        .sort((a, b) => (b.score ?? Number.NEGATIVE_INFINITY) - (a.score ?? Number.NEGATIVE_INFINITY))
+        .map((entry, index) => ({ rank: index + 1, ...entry }));
+      const embeddingMs = Math.max(1, performance.now() - embedStart);
+
       output = JSON.stringify(
         {
           mode: 'embedding',
-          dimension: dim,
+          query: prompt,
+          dimension: querySummary.dimension,
           tokens: result?.tokens?.length ?? 0,
-          embedding_preview: preview,
+          embedding_preview: querySummary.preview,
+          retrieval: {
+            documents: scoredDocuments,
+            ranked,
+            top_match: ranked[0]
+              ? { id: ranked[0].id, title: ranked[0].title, score: ranked[0].score }
+              : null,
+          },
         },
         null,
         2
       );
       state.lastMetrics = {
         ...(state.lastMetrics || {}),
-        embeddingDim: dim,
+        embeddingDim: querySummary.dimension,
         embeddingMs: Number(embeddingMs.toFixed(2)),
       };
       if (outputEl) outputEl.textContent = output;
@@ -1493,6 +2302,10 @@ async function handleRunGenerate() {
         const now = performance.now();
         if (!firstTokenAt) {
           firstTokenAt = now;
+          if (state.runPrefilling) {
+            state.runPrefilling = false;
+            updateStatusIndicator();
+          }
         }
         if (firstTokenAt) {
           const elapsedDecode = Math.max(1, now - firstTokenAt);
@@ -1543,9 +2356,58 @@ function stopRunGeneration() {
 function handleRunClear() {
   const promptEl = $('run-prompt');
   const outputEl = $('run-output');
-  if (promptEl) promptEl.value = '';
+  if (promptEl) {
+    promptEl.value = '';
+    setStarterExampleInput(promptEl, false);
+  }
   if (outputEl) outputEl.textContent = '';
   updateRunStatus('Idle');
+}
+
+function handleInferencePulseReset() {
+  state.lastMetrics = null;
+  state.lastInferenceStats = null;
+  state.lastMemoryStats = null;
+  state.lastDiffusionRequest = null;
+  state.lastEnergyRequest = null;
+  state.runLog = [];
+  state.runCounter = 0;
+
+  const snapshot = captureMemorySnapshot();
+  updatePerformancePanel(snapshot);
+  updateMemoryPanel(snapshot);
+  renderRunLog();
+}
+
+function summarizeEmbeddingVector(values) {
+  const dimension = Number.isFinite(values?.length) ? values.length : 0;
+  let nonFiniteCount = 0;
+  for (let i = 0; i < dimension; i++) {
+    if (!Number.isFinite(values[i])) nonFiniteCount++;
+  }
+  return {
+    dimension,
+    nonFiniteCount,
+    preview: Array.from(values.slice(0, Math.min(16, dimension))).map((v) => Number(v.toFixed(6))),
+  };
+}
+
+function cosineSimilarity(a, b) {
+  if (!ArrayBuffer.isView(a) || !ArrayBuffer.isView(b)) return null;
+  if (a.length !== b.length || a.length <= 0) return null;
+  let dot = 0;
+  let normA = 0;
+  let normB = 0;
+  for (let i = 0; i < a.length; i++) {
+    const av = Number(a[i]);
+    const bv = Number(b[i]);
+    if (!Number.isFinite(av) || !Number.isFinite(bv)) return null;
+    dot += av * bv;
+    normA += av * av;
+    normB += bv * bv;
+  }
+  if (normA <= 0 || normB <= 0) return null;
+  return dot / Math.sqrt(normA * normB);
 }
 
 async function unloadActivePipeline() {
@@ -2062,14 +2924,23 @@ async function handleDiagnosticsRun(mode) {
   const modelSelect = $('diagnostics-model');
   const presetSelect = $('runtime-preset');
   const selections = state.diagnosticsSelections[state.uiMode] || {};
-  const suite = selections.suite || getDiagnosticsDefaultSuite(state.uiMode);
+  const selectedProfileId = profileSelect?.value || selections.profile || '';
+  const selectedProfile = decodeDiagnosticsProfileId(selectedProfileId);
+  const suite = selectedProfile?.suite || selections.suite || getDiagnosticsDefaultSuite(state.uiMode);
   const modelId = modelSelect?.value || null;
-  const runtimePreset = selections.preset || presetSelect?.value || DEFAULT_RUNTIME_PRESET;
+  const runtimePreset = selectedProfile?.preset || selections.preset || presetSelect?.value || DEFAULT_RUNTIME_PRESET;
+  if (selectedProfile) {
+    storeDiagnosticsSelection(state.uiMode, {
+      profile: selectedProfileId,
+      suite: selectedProfile.suite,
+      preset: selectedProfile.preset,
+    });
+  }
   if (presetSelect && presetSelect.value !== runtimePreset) {
     presetSelect.value = runtimePreset;
   }
-  if (profileSelect && selections.profile && profileSelect.value !== selections.profile) {
-    profileSelect.value = selections.profile;
+  if (profileSelect && selectedProfileId && profileSelect.value !== selectedProfileId) {
+    profileSelect.value = selectedProfileId;
   }
   const captureOutput = runtimePreset === 'modes/debug';
   const previousRuntime = cloneRuntimeConfig(getRuntimeConfig());
@@ -2087,8 +2958,24 @@ async function handleDiagnosticsRun(mode) {
         suite,
         runtimeConfig,
       });
+      const timestamp = new Date().toISOString();
+      const report = {
+        suite,
+        modelId,
+        runtimePreset,
+        timestamp,
+        results: [{ name: 'verify-config', passed: true }],
+        durationMs: 0,
+        metrics: { verified: true, mode: 'verify' },
+        output: { verified: true, message: 'Configuration verified.' },
+      };
+      state.lastReport = report;
+      state.lastReportInfo = null;
+      state.lastMetrics = report.metrics;
+      state.lastDiagnosticsSuite = suite;
       updateDiagnosticsStatus('Verified');
-      clearDiagnosticsOutput();
+      updateDiagnosticsReport(timestamp);
+      renderDiagnosticsOutput({ suite, modelId, report }, suite, false);
       return;
     }
 
@@ -2163,8 +3050,24 @@ async function handleDiagnosticsRun(mode) {
     updateMemoryControls();
     renderDiagnosticsOutput(result, suite, captureOutput);
   } catch (error) {
-    updateDiagnosticsStatus(error.message, true);
-    clearDiagnosticsOutput();
+    const message = error instanceof Error ? error.message : String(error);
+    updateDiagnosticsStatus(message, true);
+    const timestamp = new Date().toISOString();
+    const report = {
+      suite,
+      modelId,
+      runtimePreset,
+      timestamp,
+      results: [{ name: mode === 'verify' ? 'verify-config' : 'run', passed: false, error: message }],
+      metrics: { error: true, mode },
+      output: { error: message },
+    };
+    state.lastReport = report;
+    state.lastReportInfo = null;
+    state.lastMetrics = report.metrics;
+    state.lastDiagnosticsSuite = suite;
+    updateDiagnosticsReport(timestamp);
+    renderDiagnosticsOutput({ suite, modelId, report }, suite, captureOutput);
   } finally {
     setRuntimeConfig(previousRuntime);
     updateRunAutoLabels();
@@ -2286,19 +3189,21 @@ function bindUI() {
   const diagnosticsRun = $('diagnostics-run-btn');
   const diagnosticsVerify = $('diagnostics-verify-btn');
   const diagnosticsExport = $('diagnostics-export-btn');
-  const exportModelBtn = $('export-model-btn');
   const unloadModelBtn = $('unload-model-btn');
   const clearMemoryBtn = $('clear-memory-btn');
-  const storageInspectorRefresh = $('storage-inspector-refresh');
+  const modelsQuickModelsList = $('models-quick-models-list');
   const runPrompt = $('run-prompt');
+  const runPromptShuffle = $('run-prompt-shuffle');
   const runGenerate = $('run-generate-btn');
   const runStop = $('run-stop-btn');
   const runClear = $('run-clear-btn');
+  const pulseReset = $('pulse-reset-btn');
   const temperatureInput = $('temperature-input');
   const topPInput = $('top-p-input');
   const topKInput = $('top-k-input');
   const maxTokensInput = $('max-tokens-input');
   const diffusionPrompt = $('diffusion-prompt');
+  const diffusionPromptShuffle = $('diffusion-prompt-shuffle');
   const diffusionNegative = $('diffusion-negative');
   const diffusionSteps = $('diffusion-steps');
   const diffusionGuidance = $('diffusion-guidance');
@@ -2319,6 +3224,26 @@ function bindUI() {
     }
   });
 
+  const onQuickModelAction = (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    const button = target.closest('button[data-quick-action][data-quick-model-id]');
+    if (!(button instanceof HTMLButtonElement)) return;
+    const action = button.dataset.quickAction || '';
+    const modelId = button.dataset.quickModelId || '';
+    if (!action || !modelId) return;
+    runQuickModelAction(action, modelId).catch((error) => {
+      const message = error instanceof Error ? error.message : String(error);
+      updateConvertStatus(`Quick model action failed: ${message}`, 0);
+      updateDiagnosticsStatus(`Quick model action failed: ${message}`, true);
+    });
+  };
+
+  modelsQuickModelsList?.addEventListener('click', onQuickModelAction);
+  bindStarterPromptInput(runPrompt);
+  bindStarterPromptInput(diffusionPrompt);
+  bindStarterPromptInput(diffusionNegative);
+
   document.querySelectorAll('.mode-tab').forEach((button) => {
     button.addEventListener('click', () => {
       const mode = button.dataset.mode || 'run';
@@ -2337,6 +3262,22 @@ function bindUI() {
     button.addEventListener('click', () => {
       const mode = button.dataset.diagnosticsMode || 'diagnostics';
       setUiMode(mode);
+    });
+  });
+
+  [
+    'run',
+    'diffusion',
+    'energy',
+    'diagnostics',
+  ].forEach((scope) => {
+    const button = $(`${scope}-empty-notice-btn`);
+    button?.addEventListener('click', () => {
+      handleEmptyNoticeAction(scope).catch((error) => {
+        const message = error instanceof Error ? error.message : String(error);
+        updateConvertStatus(`Quick model action failed: ${message}`, 0);
+        updateDiagnosticsStatus(`Quick model action failed: ${message}`, true);
+      });
     });
   });
 
@@ -2381,13 +3322,6 @@ function bindUI() {
     refreshDownloads();
   });
 
-  storageInspectorRefresh?.addEventListener('click', () => {
-    refreshStorageInspector({
-      onSelectModel: selectDiagnosticsModel,
-      onModelsUpdated: refreshModelList,
-    });
-  });
-
   runtimePreset?.addEventListener('change', () => {
     const mode = state.uiMode;
     storeDiagnosticsSelection(mode, { preset: runtimePreset.value || DEFAULT_RUNTIME_PRESET, profile: '' });
@@ -2402,6 +3336,15 @@ function bindUI() {
   });
 
   diagnosticsProfile?.addEventListener('change', () => {
+    const selectedProfileId = diagnosticsProfile.value || '';
+    const selectedProfile = decodeDiagnosticsProfileId(selectedProfileId);
+    if (selectedProfile) {
+      storeDiagnosticsSelection(state.uiMode, {
+        profile: selectedProfileId,
+        suite: selectedProfile.suite,
+        preset: selectedProfile.preset,
+      });
+    }
     updateDiagnosticsGuidance();
   });
 
@@ -2434,12 +3377,6 @@ function bindUI() {
   diagnosticsRun?.addEventListener('click', () => handleDiagnosticsRun('run'));
   diagnosticsVerify?.addEventListener('click', () => handleDiagnosticsRun('verify'));
   diagnosticsExport?.addEventListener('click', exportDiagnosticsReport);
-  exportModelBtn?.addEventListener('click', () => {
-    resetExportStatus();
-    exportActiveModel().catch((error) => {
-      updateExportStatus(`Export error: ${error.message}`, 0);
-    });
-  });
 
   unloadModelBtn?.addEventListener('click', () => {
     unloadActivePipeline().catch((error) => {
@@ -2468,12 +3405,24 @@ function bindUI() {
     }
   });
 
+  runPromptShuffle?.addEventListener('click', () => {
+    applyStarterPrompt(runPrompt, RUN_STARTER_PROMPTS, { force: true });
+    if (state.uiMode === 'embedding') {
+      refreshEmbeddingDemoDocuments({ force: true });
+    }
+    runPrompt?.focus();
+    runPrompt?.select();
+  });
+
   runStop?.addEventListener('click', () => {
     stopRunGeneration();
   });
 
   runClear?.addEventListener('click', () => {
     handleRunClear();
+  });
+  pulseReset?.addEventListener('click', () => {
+    handleInferencePulseReset();
   });
 
   temperatureInput?.addEventListener('input', updateRunAutoLabels);
@@ -2483,9 +3432,23 @@ function bindUI() {
   diffusionPrompt?.addEventListener('input', updateDiffusionCharCounters);
   diffusionNegative?.addEventListener('input', updateDiffusionCharCounters);
 
+  diffusionPromptShuffle?.addEventListener('click', () => {
+    applyStarterPrompt(diffusionPrompt, DIFFUSION_STARTER_PROMPTS, { force: true });
+    applyStarterPrompt(diffusionNegative, DIFFUSION_NEGATIVE_STARTER_PROMPTS, { force: true });
+    updateDiffusionCharCounters();
+    diffusionPrompt?.focus();
+    diffusionPrompt?.select();
+  });
+
   diffusionClear?.addEventListener('click', () => {
-    if (diffusionPrompt) diffusionPrompt.value = '';
-    if (diffusionNegative) diffusionNegative.value = '';
+    if (diffusionPrompt) {
+      diffusionPrompt.value = '';
+      setStarterExampleInput(diffusionPrompt, false);
+    }
+    if (diffusionNegative) {
+      diffusionNegative.value = '';
+      setStarterExampleInput(diffusionNegative, false);
+    }
     if (diffusionSteps) diffusionSteps.value = '20';
     if (diffusionGuidance) diffusionGuidance.value = '7.5';
     if (diffusionSeed) diffusionSeed.value = '';
@@ -2546,21 +3509,26 @@ function bindUI() {
 }
 
 async function init() {
-  setStatusIndicator('Initializing', 'info');
+  setStatusIndicator('Initializing...', 'info');
+  ensurePrimaryModeControlStack();
   bindUI();
+  prefillDemoTextInputs();
+  updateDiffusionCharCounters();
   configureDownloadCallbacks({
     onModelRegistered: registerDownloadedModel,
     onModelsUpdated: refreshModelList,
+    onProgress: handleDownloadProgressEvent,
+    onStateChange: handleDownloadStateChangeEvent,
   });
   populateModelPresets();
   populateRuntimePresetSelects();
   populateEnergyDemoSelect();
   setUiMode(state.uiMode);
+  await loadQuickModelCatalog();
   await refreshModelList();
   await refreshGpuInfo();
   await refreshDownloads();
   updateMemoryControls();
-  resetExportStatus();
   startTelemetryLoop();
   setRunLoading(false);
   setRunGenerating(false);

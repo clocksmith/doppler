@@ -33,4 +33,8 @@ export declare function shouldDequantizeToF16(location: TensorLocation): boolean
  * Note: Layout is now tracked via WeightBuffer for matmul weights.
  * This function is kept for API compatibility but is a no-op for non-matmul weights (norms).
  */
-export declare function applyBufferLayout(buffer: GPUBuffer, _location: TensorLocation): GPUBuffer;
+export declare function applyBufferLayout(
+  buffer: GPUBuffer,
+  _location: TensorLocation,
+  outputDtype?: string | null
+): GPUBuffer;

@@ -1,5 +1,6 @@
 
 import { DEFAULT_QUANTIZATION_DEFAULTS, DEFAULT_Q4K_LAYOUT } from '../config/index.js';
+import { classifyTensorRole } from '../storage/rdrr-format.js';
 
 // Quantization tag aliases mapped to canonical names.
 // Add new aliases here rather than adding if/else branches.
@@ -212,26 +213,24 @@ export function buildQuantizationInfo(
   validateQuantType(audioQuant, 'converter.quantization.audio');
   validateQuantType(projectorQuant, 'converter.quantization.projector');
 
-  const webgpuSafe = (dtype) => {
-    const normalized = normalizeQuantTag(dtype);
-    if (normalized === 'bf16') return 'f16';
-    return normalized;
-  };
+  // Preserve requested/storage dtypes in manifest + shard planning.
+  // Kernel-path selection performs its own dtype normalization separately.
+  const asStorageQuant = (dtype) => normalizeQuantTag(dtype);
 
-  const weights = webgpuSafe(weightQuant ?? originalDtype);
+  const weights = asStorageQuant(weightQuant ?? originalDtype);
 
   let embeddings;
   if (embedQuant) {
-    embeddings = webgpuSafe(embedQuant);
+    embeddings = asStorageQuant(embedQuant);
   } else {
-    embeddings = webgpuSafe(embedDtype || originalDtype);
+    embeddings = asStorageQuant(embedDtype || originalDtype);
   }
 
   let lmHead;
   if (headQuant) {
-    lmHead = webgpuSafe(headQuant);
+    lmHead = asStorageQuant(headQuant);
   } else if (lmHeadDtype) {
-    lmHead = webgpuSafe(lmHeadDtype);
+    lmHead = asStorageQuant(lmHeadDtype);
   } else {
     lmHead = embeddings;
   }
@@ -315,4 +314,85 @@ const WEBGPU_DTYPE_NAMES = {
 
 export function toWebGPUDtype(dtype) {
   return WEBGPU_DTYPE_NAMES[dtype] ?? dtype.toUpperCase();
+}
+
+function normalizeStoredDtype(value) {
+  if (!value) return null;
+  const upper = String(value).trim().toUpperCase();
+  if (!upper) return null;
+  if (upper === 'Q4_K' || upper === 'Q4_K_M') return 'q4k';
+  if (upper === 'Q6_K') return 'q6k';
+  if (upper === 'Q8_0') return 'q8_0';
+  if (upper === 'BF16') return 'bf16';
+  if (upper === 'F16') return 'f16';
+  if (upper === 'F32') return 'f32';
+  return normalizeQuantTag(upper);
+}
+
+function normalizeRole(role, name) {
+  if (role && typeof role === 'string') return role;
+  if (typeof name !== 'string' || !name) return null;
+  return classifyTensorRole(name);
+}
+
+export function resolveEffectiveQuantizationInfo(baseInfo, tensors) {
+  const base = (baseInfo && typeof baseInfo === 'object') ? baseInfo : {};
+  const entries = Array.isArray(tensors) ? tensors : [];
+
+  let detectedWeights = null;
+  let detectedEmbeddings = null;
+  let detectedLmHead = null;
+  let detectedLayout = null;
+
+  for (const tensor of entries) {
+    const dtype = normalizeStoredDtype(tensor?.dtype);
+    if (!dtype) continue;
+    const role = normalizeRole(tensor?.role, tensor?.name);
+    if (!role) continue;
+
+    if (role === 'embedding') {
+      detectedEmbeddings = detectedEmbeddings ?? dtype;
+      continue;
+    }
+    if (role === 'lm_head') {
+      detectedLmHead = detectedLmHead ?? dtype;
+      continue;
+    }
+    if (role === 'matmul' || role === 'expert' || role === 'router') {
+      detectedWeights = detectedWeights ?? dtype;
+      if (detectedLayout == null && (dtype === 'q4k') && tensor?.layout) {
+        detectedLayout = normalizeQ4KLayout(tensor.layout);
+      }
+    }
+  }
+
+  const weights = detectedWeights
+    ?? normalizeQuantTag(base.weights ?? 'f16');
+  const embeddings = detectedEmbeddings
+    ?? normalizeQuantTag(base.embeddings ?? weights);
+  const lmHead = detectedLmHead
+    ?? normalizeQuantTag(base.lmHead ?? embeddings);
+
+  const resolved = {
+    ...base,
+    weights,
+    embeddings,
+  };
+
+  if (lmHead !== embeddings) {
+    resolved.lmHead = lmHead;
+  } else {
+    delete resolved.lmHead;
+  }
+
+  if (weights === 'q4k') {
+    resolved.layout = detectedLayout
+      ?? normalizeQ4KLayout(base.layout)
+      ?? DEFAULT_Q4K_LAYOUT;
+  } else {
+    delete resolved.layout;
+  }
+
+  resolved.variantTag = buildVariantTag(resolved);
+  return resolved;
 }

@@ -139,7 +139,7 @@ export function updatePerformancePanel(snapshot) {
     setStatLabels({
       tps: 'Embed/sec',
       ttft: 'Embedding',
-      prefill: 'Prompt tokens',
+      prefill: 'Prefill tok/s',
       e2e: 'End-to-end',
       decode: 'Dimension',
       tokens: 'Mode',
@@ -147,6 +147,10 @@ export function updatePerformancePanel(snapshot) {
     const embeddingMs = Number.isFinite(metrics.embeddingMs) ? metrics.embeddingMs : null;
     const embeddingDim = Number.isFinite(metrics.embeddingDim) ? metrics.embeddingDim : null;
     const prefillTokens = Number.isFinite(stats.prefillTokens) ? stats.prefillTokens : null;
+    const prefillTime = Number.isFinite(stats.prefillTimeMs) ? stats.prefillTimeMs : null;
+    const prefillRate = (prefillTokens != null && prefillTime && prefillTime > 0)
+      ? prefillTokens / (prefillTime / 1000)
+      : null;
     const e2eMs = Number.isFinite(stats.totalTimeMs) && stats.totalTimeMs > 0
       ? stats.totalTimeMs
       : embeddingMs;
@@ -154,7 +158,7 @@ export function updatePerformancePanel(snapshot) {
 
     setText(tpsEl, embedPerSec != null ? embedPerSec.toFixed(2) : '--');
     setText(ttftEl, formatMs(embeddingMs));
-    setText(prefillEl, prefillTokens != null ? `${prefillTokens} tok` : '--');
+    setText(prefillEl, formatRate(prefillRate));
     setText(e2eEl, formatMs(e2eMs));
     setText(decodeEl, embeddingDim != null ? String(embeddingDim) : '--');
     setText(tokensEl, 'last');
@@ -164,9 +168,9 @@ export function updatePerformancePanel(snapshot) {
   setStatLabels({
     tps: 'Tokens/sec',
     ttft: 'TTFT',
-    prefill: 'Prefill',
+    prefill: 'Prefill tok/s',
     e2e: 'End-to-end',
-    decode: 'Decode',
+    decode: 'Decode tok/s',
     tokens: 'Prompt / Gen',
   });
 
@@ -193,25 +197,14 @@ export function updatePerformancePanel(snapshot) {
     setText(e2eEl, formatRate(e2eRate));
   }
   if (prefillEl) {
-    if (prefillTokens == null && ttftMs == null && prefillRate == null) {
-      setText(prefillEl, '--');
-    } else {
-      const tokenLabel = prefillTokens != null ? `${prefillTokens} tok` : '--';
-      const rateLabel = prefillRate != null ? `${prefillRate.toFixed(2)} tok/s` : '--';
-      setText(prefillEl, `${tokenLabel} @ ${rateLabel}`);
-    }
+    setText(prefillEl, formatRate(prefillRate));
   }
 
   if (decodeEl) {
-    if (decodeTokens == null && decodeTime == null) {
-      setText(decodeEl, '--');
-    } else {
-      const tokenLabel = decodeTokens != null ? `${decodeTokens} tok` : '--';
-      const rateLabel = (decodeTokens != null && decodeTime && decodeTime > 0)
-        ? `${(decodeTokens / (decodeTime / 1000)).toFixed(2)} tok/s`
-        : '--';
-      setText(decodeEl, `${tokenLabel} - ${rateLabel}`);
-    }
+    const decodeRate = (decodeTokens != null && decodeTime && decodeTime > 0)
+      ? decodeTokens / (decodeTime / 1000)
+      : null;
+    setText(decodeEl, formatRate(decodeRate));
   }
 
   if (tokensEl) {

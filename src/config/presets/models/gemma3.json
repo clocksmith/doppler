@@ -41,10 +41,12 @@
     },
     "kernelPaths": {
       "f16": {
-        "f16": "gemma3-f16-f16a"
+        "f16": "gemma3-f16-f16a",
+        "f32": "gemma3-f16-f32a"
       },
       "q4k": {
-        "f16": "gemma3-q4k-dequant-f16a"
+        "f16": "gemma3-q4k-dequant-f16a",
+        "f32": "gemma3-q4k-dequant-f32a"
       }
     }
   },
@@ -57,6 +59,6 @@
 
   "detection": {
     "architecturePatterns": ["gemma3", "Gemma3ForCausalLM", "gemma-3"],
-    "modelTypePatterns": ["gemma3"]
+    "modelTypePatterns": ["gemma3_text", "gemma3"]
   }
 }

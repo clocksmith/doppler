@@ -108,6 +108,14 @@ select {
   color: var(--fg);
 }
 
+input,
+textarea,
+select,
+.select-trigger,
+.select-options {
+  border-style: var(--rd-input-border-style, solid);
+}
+
 input:placeholder-shown,
 textarea:placeholder-shown {
   border-style: dotted;
@@ -117,14 +125,14 @@ input:focus,
 textarea:focus,
 select:focus {
   outline: none;
-  border-style: solid;
+  border-style: var(--rd-input-focus-border-style, solid);
 }
 
 input:disabled,
 textarea:disabled,
 select:disabled {
-  border-style: solid;
-  opacity: var(--opacity-disabled);
+  border-style: dashed;
+  opacity: 1;
   cursor: not-allowed;
 }
 
@@ -150,7 +158,8 @@ textarea {
 }
 
 .btn:disabled {
-  opacity: var(--opacity-disabled);
+  border-style: dashed;
+  opacity: 1;
   cursor: not-allowed;
 }
 
@@ -193,5 +202,11 @@ select,
 /* === UTILITIES === */
 .muted { opacity: var(--opacity-muted); }
 .w-full { width: 100%; }
+.border-dotted { --rd-border-style: dotted; }
+.io-dotted {
+  --rd-input-border-style: dotted;
+  --rd-input-focus-border-style: dotted;
+  --rd-output-border-style: dotted;
+}
 
 [hidden] { display: none !important; }

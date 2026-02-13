@@ -1,5 +1,29 @@
 
 
+const bufferDtypes = new WeakMap();
+
+function canTrackBuffer(buffer) {
+  return typeof GPUBuffer !== 'undefined' && buffer instanceof GPUBuffer;
+}
+
+function normalizeDtype(dtype) {
+  if (typeof dtype !== 'string') return null;
+  const value = dtype.toLowerCase();
+  return value.length > 0 ? value : null;
+}
+
+export function tagBufferDtype(buffer, dtype) {
+  if (!canTrackBuffer(buffer)) return;
+  const normalized = normalizeDtype(dtype);
+  if (!normalized) return;
+  bufferDtypes.set(buffer, normalized);
+}
+
+export function getBufferDtype(buffer) {
+  if (!canTrackBuffer(buffer)) return null;
+  return bufferDtypes.get(buffer) ?? null;
+}
+
 
 export function createWeightBuffer(
   buffer,
@@ -8,6 +32,7 @@ export function createWeightBuffer(
   shape,
   label
 ) {
+  tagBufferDtype(buffer, dtype);
   return {
     buffer,
     dtype,

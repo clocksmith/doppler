@@ -3,7 +3,7 @@
 import { getDevice } from '../../gpu/device.js';
 import { acquireBuffer } from '../../memory/buffer-pool.js';
 import { log } from '../../debug/index.js';
-import { isWeightBuffer, isCpuWeightBuffer } from '../../gpu/weight-buffer.js';
+import { isWeightBuffer, isCpuWeightBuffer, tagBufferDtype } from '../../gpu/weight-buffer.js';
 
 // ============================================================================
 // Type Guards
@@ -42,8 +42,10 @@ export function getWeightBuffer(weight, label) {
 
   
   let data;
+  let bufferDtype = 'f32';
   if (isCpuWeightBuffer(weight)) {
     data = weight.data;
+    bufferDtype = weight.dtype ?? 'f32';
   } else if (weight instanceof Float32Array) {
     data = weight;
   } else {
@@ -52,6 +54,7 @@ export function getWeightBuffer(weight, label) {
 
   const buf = acquireBuffer(data.byteLength, undefined, label);
   device.queue.writeBuffer(buf, 0,  ( (data)));
+  tagBufferDtype(buf, bufferDtype);
   return buf;
 }
 
@@ -90,6 +93,7 @@ export function getNormWeightBuffer(weight, label, config, debugFlags) {
 
   const buf = acquireBuffer(data.byteLength, undefined, label);
   device.queue.writeBuffer(buf, 0,  ( (data)));
+  tagBufferDtype(buf, 'f32');
   return buf;
 }
 

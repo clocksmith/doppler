@@ -35,8 +35,11 @@ Thumbs.db
 
 # Downloads and models (large files)
 downloads/
-/models/
-!/models/.gitkeep
+/models/*
+!/models/catalog.json
+!/models/README.md
+!/models/curated/
+!/models/curated/**
 *.gguf
 *.safetensors
 shard_*.bin

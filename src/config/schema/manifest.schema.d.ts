@@ -245,6 +245,8 @@ export interface ManifestLayerPatternSchema {
   globalPattern: 'odd' | 'even' | null;
   /** For every_n: period of global layers, null if not applicable */
   period: number | null;
+  /** For every_n: first global layer index modulo period, null if not applicable */
+  offset: number | null;
 }
 
 /**

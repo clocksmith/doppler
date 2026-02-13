@@ -29,7 +29,9 @@ export function computeGlobalLayers(
       if (!Number.isFinite(n) || n <= 0) {
         throw new Error('layerPattern.period must be a positive number for every_n patterns.');
       }
-      return Array.from({ length: numLayers }, (_, i) => i).filter(i => i % n === 0);
+      const rawOffset = Number.isFinite(pattern.offset) ? Math.trunc(pattern.offset) : 0;
+      const offset = ((rawOffset % n) + n) % n;
+      return Array.from({ length: numLayers }, (_, i) => i).filter(i => (((i - offset) % n + n) % n) === 0);
     }
     default:
       return Array.from({ length: numLayers }, (_, i) => i);

@@ -7,6 +7,7 @@
 import type { Tensor } from '../tensor.js';
 import type { CommandRecorder } from '../command-recorder.js';
 import type { OutputBufferOptions } from './types.js';
+import type { WeightBuffer, TensorLike } from '../weight-buffer.js';
 
 /** RMSNorm kernel options */
 export interface RMSNormOptions extends OutputBufferOptions {
@@ -35,7 +36,7 @@ export declare function selectRMSNormKernel(options?: RMSNormOptions, isF16?: bo
  */
 export declare function runRMSNorm(
   input: Tensor,
-  weight: GPUBuffer,
+  weight: GPUBuffer | WeightBuffer | TensorLike,
   eps: number,
   options?: RMSNormOptions
 ): Promise<Tensor>;
@@ -46,7 +47,7 @@ export declare function runRMSNorm(
 export declare function recordRMSNorm(
   recorder: CommandRecorder,
   input: Tensor,
-  weight: GPUBuffer,
+  weight: GPUBuffer | WeightBuffer | TensorLike,
   eps: number,
   options?: RMSNormOptions
 ): Promise<Tensor>;

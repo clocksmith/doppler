@@ -24,7 +24,7 @@ export const DEFAULT_GENERATION_CONFIG = {
 
 export const DEFAULT_BATCHING_DEFAULTS = {
   batchSize: 1,  // Compare single-token
-  maxTokens: 512,
+  maxTokens: 256,
   stopCheckMode: 'batch',
   readbackInterval: 1,
   ringTokens: 1,
@@ -59,9 +59,9 @@ export const DEFAULT_LARGE_WEIGHT_CONFIG = {
 // =============================================================================
 
 export const DEFAULT_SAMPLING_DEFAULTS = {
-  temperature: 0.7,
-  topP: 0.9,
-  topK: 40,
+  temperature: 1.0,
+  topP: 0.95,
+  topK: 50,
   repetitionPenalty: 1.1,
   greedyThreshold: 0.01,
   repetitionPenaltyWindow: 100,

@@ -199,6 +199,12 @@ export function toParsedConfigFromMerged(merged, manifest) {
       );
     }
     const period = inf.layerPattern.period;
+    const rawOffset = inf.layerPattern.offset;
+    const offset = (
+      Number.isFinite(rawOffset) && period != null && period > 0
+    )
+      ? ((Math.trunc(rawOffset) % period) + period) % period
+      : 0;
     const pattern = inf.layerPattern.globalPattern;
     const patternKind = selectRuleValue(
       'inference',
@@ -209,8 +215,9 @@ export function toParsedConfigFromMerged(merged, manifest) {
     if (patternKind) {
       layerTypes = Array.from({ length: numLayers }, (_, i) => {
         const isEven = i % 2 === 0;
-        // For every_n pattern: global at layer 0 and every N thereafter.
-        const isStride = period == null ? false : (i % period) === 0;
+        // For every_n pattern: global at layer "offset" and every N thereafter.
+        // e.g. period=6, offset=5 => indices 5,11,17,...
+        const isStride = period == null ? false : (((i - offset) % period + period) % period) === 0;
         return selectRuleValue(
           'inference',
           'layerPattern',
@@ -219,7 +226,7 @@ export function toParsedConfigFromMerged(merged, manifest) {
         );
       });
       // DEBUG: Log layer types
-      log.info('Config', `LayerTypes computed: patternType=${patternType}, period=${period}, patternKind=${patternKind}`);
+      log.info('Config', `LayerTypes computed: patternType=${patternType}, period=${period}, offset=${offset}, patternKind=${patternKind}`);
       log.info('Config', `LayerTypes first 10: ${layerTypes.slice(0, 10).join(', ')}`);
     }
   }

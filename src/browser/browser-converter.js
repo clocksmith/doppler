@@ -27,6 +27,7 @@ import {
   createStreamingHasher,
   getStorageBackendType,
 } from '../storage/shard-manager.js';
+import { classifyTensorRole } from '../storage/rdrr-format.js';
 import { registerModel } from '../storage/registry.js';
 import {
   checkSpaceAvailable,
@@ -46,6 +47,8 @@ import {
   getQ4KOutputSize,
   createQ4KChunkStream,
   createF16ChunkStream,
+  resolveEffectiveQuantizationInfo,
+  resolveManifestQuantization,
 } from './quantization.js';
 
 // Import shared types and functions from convert-core
@@ -550,6 +553,8 @@ export async function convertModel(files, options = {}) {
         name: tensor.name,
         shape: tensor.shape,
         dtype: targetDtype,
+        role: classifyTensorRole(tensor.name),
+        layout: q4kLayout,
         size: targetSize,
         offset: tensor.offset,
         getData,
@@ -669,6 +674,15 @@ export async function convertModel(files, options = {}) {
     };
 
     const manifestTimer = createStageTimer('Manifest');
+    const effectiveQuantizationInfo = resolveEffectiveQuantizationInfo(
+      quantizationInfo,
+      tensorPlans
+    );
+    const effectiveManifestQuantization = resolveManifestQuantization(
+      effectiveQuantizationInfo.weights,
+      manifestQuantization
+    );
+
     const manifest = createManifest(
       modelId,
       parsedModel,
@@ -678,8 +692,8 @@ export async function convertModel(files, options = {}) {
         source: 'browser-converter',
         inference: manifestInference,
         modelType,
-        quantization: manifestQuantization,
-        quantizationInfo,
+        quantization: effectiveManifestQuantization,
+        quantizationInfo: effectiveQuantizationInfo,
         hashAlgorithm,
         architecture: diffusionArchitecture ?? undefined,
         eosTokenId: diffusionEosTokenId,

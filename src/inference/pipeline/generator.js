@@ -17,7 +17,7 @@ import { enforceLogitDrift } from '../../hotswap/intent-bundle.js';
 import { applyChatTemplate, isStopToken } from './init.js';
 import { embed } from './embed.js';
 import { processLayer } from './layer.js';
-import { computeLogits, recordLogitsGPU, extractLastPositionLogits, applySoftcapping } from './logits.js';
+import { computeLogits, recordLogitsGPU, extractLastPositionLogits, applySoftcapping, rmsNormCPU } from './logits.js';
 import { isWeightBuffer, isCpuWeightBuffer, getWeightDtype } from '../../gpu/weight-buffer.js';
 import { getDopplerLoader } from '../../loader/doppler-loader.js';
 // Import as a namespace so the module can still link if the browser cache has a
@@ -135,6 +135,123 @@ export class PipelineGenerator {
       getLogitsConfig: () => getLogitsConfig(this.#state),
       debugCheckBuffer,
     };
+  }
+
+  _resolveFloatDtypeFromByteSize(totalBytes, expectedLength, fallback = 'f32') {
+    if (!Number.isFinite(totalBytes) || totalBytes <= 0 || !Number.isFinite(expectedLength) || expectedLength <= 0) {
+      return fallback;
+    }
+    const bytesPerElement = totalBytes / expectedLength;
+    if (Math.abs(bytesPerElement - 2) < 0.5) return 'f16';
+    if (Math.abs(bytesPerElement - 4) < 0.5) return 'f32';
+    return bytesPerElement < 3 ? 'f16' : 'f32';
+  }
+
+  _decodeFloatWeights(data, dtype, expectedLength, label) {
+    const decodeDtype = dtype === 'bf16'
+      ? 'bf16'
+      : (dtype === 'f16' ? 'f16' : 'f32');
+    const decoded = decodeReadback(data, decodeDtype);
+    if (decoded.length !== expectedLength) {
+      throw new Error(
+        `[Pipeline] ${label} length mismatch: expected=${expectedLength}, got=${decoded.length}`
+      );
+    }
+    return decoded;
+  }
+
+  async _getFinalNormWeights() {
+    const hiddenSize = this.#state.modelConfig.hiddenSize;
+    const finalNorm = this.#state.weights.get('final_norm');
+    if (!finalNorm) {
+      throw new Error('[Pipeline] final_norm weight is missing; cannot extract embedding.');
+    }
+
+    let weights;
+
+    if (finalNorm instanceof Float32Array) {
+      weights = finalNorm;
+    } else if (isCpuWeightBuffer(finalNorm)) {
+      const dtype = finalNorm.dtype === 'bf16' ? 'bf16' : (finalNorm.dtype === 'f16' ? 'f16' : 'f32');
+      const data = finalNorm.data;
+      if (!(data instanceof Float32Array) && !ArrayBuffer.isView(data)) {
+        throw new Error('[Pipeline] final_norm CPU weight buffer has unsupported data type.');
+      }
+      const bytes = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
+      weights = this._decodeFloatWeights(bytes, dtype, hiddenSize, 'final_norm');
+    } else if (isWeightBuffer(finalNorm)) {
+      const dtype = finalNorm.dtype === 'bf16' ? 'bf16' : (finalNorm.dtype === 'f16' ? 'f16' : 'f32');
+      const bytesPerElement = dtype === 'f16' || dtype === 'bf16' ? 2 : 4;
+      const readSize = hiddenSize * bytesPerElement;
+      const data = await readBuffer(finalNorm.buffer, readSize);
+      if (data.byteLength === 0) {
+        throw new Error('[Pipeline] final_norm readback returned empty buffer.');
+      }
+      weights = this._decodeFloatWeights(data, dtype, hiddenSize, 'final_norm');
+    } else if (finalNorm instanceof GPUBuffer) {
+      const dtype = this._resolveFloatDtypeFromByteSize(finalNorm.size, hiddenSize, 'f32');
+      const bytesPerElement = dtype === 'f16' ? 2 : 4;
+      const readSize = hiddenSize * bytesPerElement;
+      const data = await readBuffer(finalNorm, readSize);
+      if (data.byteLength === 0) {
+        throw new Error('[Pipeline] final_norm readback returned empty buffer.');
+      }
+      weights = this._decodeFloatWeights(data, dtype, hiddenSize, 'final_norm');
+    } else if (ArrayBuffer.isView(finalNorm)) {
+      const view = finalNorm;
+      const dtype = this._resolveFloatDtypeFromByteSize(view.byteLength, hiddenSize, 'f32');
+      const bytes = view.buffer.slice(view.byteOffset, view.byteOffset + view.byteLength);
+      weights = this._decodeFloatWeights(bytes, dtype, hiddenSize, 'final_norm');
+    } else {
+      throw new Error('[Pipeline] final_norm weight has unsupported type.');
+    }
+    if (!(weights instanceof Float32Array) || weights.length !== hiddenSize) {
+      throw new Error(
+        `[Pipeline] final_norm length mismatch: expected=${hiddenSize}, got=${weights?.length ?? 'unknown'}`
+      );
+    }
+    return weights;
+  }
+
+  _extractEmbeddingFromHidden(hiddenStates, numTokens, hiddenSize, embeddingMode, finalNormWeights, config) {
+    const expectedLength = numTokens * hiddenSize;
+    if (hiddenStates.length !== expectedLength) {
+      throw new Error(
+        `[Pipeline] Hidden state length mismatch for embedding extraction: expected=${expectedLength}, got=${hiddenStates.length}`
+      );
+    }
+
+    const applyFinalNorm = (tokenIndex) => {
+      const offset = tokenIndex * hiddenSize;
+      const tokenHidden = hiddenStates.subarray(offset, offset + hiddenSize);
+      return rmsNormCPU(
+        tokenHidden,
+        finalNormWeights,
+        config.rmsNormEps,
+        config.rmsNormWeightOffset
+      );
+    };
+
+    if (embeddingMode === 'last') {
+      return applyFinalNorm(numTokens - 1);
+    }
+
+    if (embeddingMode === 'mean') {
+      const pooled = new Float32Array(hiddenSize);
+      for (let t = 0; t < numTokens; t++) {
+        const tokenEmbedding = applyFinalNorm(t);
+        for (let i = 0; i < hiddenSize; i++) {
+          pooled[i] += tokenEmbedding[i];
+        }
+      }
+      const invTokens = numTokens > 0 ? (1 / numTokens) : 1;
+      for (let i = 0; i < hiddenSize; i++) {
+        pooled[i] *= invTokens;
+      }
+      return pooled;
+    }
+
+    throw new Error(`prefillWithEmbedding: unsupported embeddingMode "${embeddingMode}" (expected "last" or "mean")`);
   }
 
   // ==========================================================================
@@ -473,6 +590,11 @@ export class PipelineGenerator {
 
     const generationDefaults = this.#state.runtimeConfig.inference.generation;
 
+    const modelType = String(this.#state.manifest?.modelType || '').toLowerCase();
+    const defaultEmbeddingMode = modelType === 'embedding'
+      ? 'mean'
+      : generationDefaults.embeddingMode;
+
     const opts = {
       useChatTemplate: options.useChatTemplate
         ?? this.#state.runtimeConfig.inference.chatTemplate?.enabled
@@ -483,7 +605,7 @@ export class PipelineGenerator {
       profile: options.profile ?? generationDefaults.profile,
       disableCommandBatching: options.disableCommandBatching ?? generationDefaults.disableCommandBatching,
       disableMultiTokenDecode: options.disableMultiTokenDecode ?? generationDefaults.disableMultiTokenDecode,
-      embeddingMode: options.embeddingMode ?? generationDefaults.embeddingMode,
+      embeddingMode: options.embeddingMode ?? defaultEmbeddingMode,
     };
 
     let processedPrompt = prompt;
@@ -519,39 +641,33 @@ export class PipelineGenerator {
       }
     }
 
-    if (opts.embeddingMode !== 'last') {
-      // Mean pooling would require reading back or reducing the entire [T,H] buffer.
-      throw new Error(`prefillWithEmbedding: unsupported embeddingMode "${opts.embeddingMode}" (v0 supports "last" only)`);
-    }
-
     if (!allowReadback('pipeline.prefill.embedding')) {
       throw new Error('GPU readback disabled; cannot return embedding');
     }
 
-    const device = getDevice();
-    if (!device) {
-      throw new Error('GPU device not available');
+    let embedding;
+    try {
+      const hiddenSize = config.hiddenSize;
+      const hiddenBytes = numTokens * hiddenSize * activationBytes;
+      const hiddenData = await readBuffer(currentHiddenBuffer, hiddenBytes);
+      if (hiddenData.byteLength === 0) {
+        throw new Error('GPU readback disabled; cannot return embedding');
+      }
+      const hiddenStates = decodeReadback(hiddenData, activationDtype);
+      const finalNormWeights = await this._getFinalNormWeights();
+      embedding = this._extractEmbeddingFromHidden(
+        hiddenStates,
+        numTokens,
+        hiddenSize,
+        opts.embeddingMode,
+        finalNormWeights,
+        config
+      );
+    } finally {
+      releaseBuffer(currentHiddenBuffer);
     }
 
-    const hiddenSize = config.hiddenSize;
-    const lastTokenOffset = (numTokens - 1) * hiddenSize * activationBytes;
-    const sampleSize = hiddenSize * activationBytes;
-
-    const staging = device.createBuffer({
-      size: sampleSize,
-      usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
-    });
-    const enc = device.createCommandEncoder();
-    enc.copyBufferToBuffer(currentHiddenBuffer, lastTokenOffset, staging, 0, sampleSize);
-    device.queue.submit([enc.finish()]);
-
-    await staging.mapAsync(GPUMapMode.READ);
-    const embedding = decodeReadback(staging.getMappedRange().slice(0), activationDtype);
-    staging.unmap();
-    staging.destroy();
-
     this.#state.currentSeqLen = startPos + numTokens;
-    releaseBuffer(currentHiddenBuffer);
 
     const snapshot = this.#state.kvCache?.clone();
     if (!snapshot) {
@@ -1169,7 +1285,9 @@ export class PipelineGenerator {
     validateCallTimeOptions(options);
 
     const opts = this._resolveStepOptions(options);
-    const embeddingMode = options.embeddingMode ?? this.#state.runtimeConfig.inference.generation.embeddingMode;
+    const modelType = String(this.#state.manifest?.modelType || '').toLowerCase();
+    const configuredMode = this.#state.runtimeConfig.inference.generation.embeddingMode;
+    const embeddingMode = options.embeddingMode ?? (modelType === 'embedding' ? 'mean' : configuredMode);
     const debugCheckBuffer = this.#state.debug
       ? (buffer, label, numTokens, expectedDim) =>
         debugCheckBufferHelper(this.#state, buffer, label, numTokens, expectedDim)

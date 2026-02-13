@@ -7,7 +7,7 @@ import {
   listModels,
   loadManifestFromStore,
 } from '../../storage/shard-manager.js';
-import { getManifest, parseManifest } from '../../storage/rdrr-format.js';
+import { getManifest, parseManifest, getManifestUrl } from '../../storage/rdrr-format.js';
 import { downloadModel } from '../../storage/downloader.js';
 import { requestPersistence, getStorageReport } from '../../storage/quota.js';
 import { initDevice, getKernelCapabilities, getDeviceLimits, destroyDevice, getDevice } from '../../gpu/device.js';
@@ -22,6 +22,43 @@ import { GB, HEADER_READ_SIZE } from '../../config/schema/index.js';
 
 let pipeline = null;
 let currentModelId = null;
+
+function manifestsDiffer(localManifest, remoteManifest) {
+  if (!localManifest || !remoteManifest) return true;
+  if (localManifest.modelId !== remoteManifest.modelId) return true;
+  if (localManifest.quantization !== remoteManifest.quantization) return true;
+  if (localManifest.hashAlgorithm !== remoteManifest.hashAlgorithm) return true;
+  if (localManifest.totalSize !== remoteManifest.totalSize) return true;
+
+  const localShards = Array.isArray(localManifest.shards) ? localManifest.shards : [];
+  const remoteShards = Array.isArray(remoteManifest.shards) ? remoteManifest.shards : [];
+  if (localShards.length !== remoteShards.length) return true;
+
+  for (let i = 0; i < localShards.length; i++) {
+    const local = localShards[i];
+    const remote = remoteShards[i];
+    if (!local || !remote) return true;
+    if (local.size !== remote.size) return true;
+    if (local.hash !== remote.hash) return true;
+    if (local.filename !== remote.filename) return true;
+  }
+
+  return false;
+}
+
+async function tryFetchRemoteManifest(modelUrl) {
+  if (!modelUrl) return null;
+  const response = await fetch(getManifestUrl(modelUrl));
+  if (!response.ok) {
+    throw new Error(`Failed to fetch remote manifest: ${response.status}`);
+  }
+  const manifestJson = await response.text();
+  const manifest = JSON.parse(manifestJson);
+  if (!manifest || typeof manifest !== 'object' || !Array.isArray(manifest.shards)) {
+    throw new Error('Remote manifest is invalid');
+  }
+  return manifest;
+}
 
 export function getPipeline() {
   return pipeline;
@@ -226,6 +263,21 @@ export async function loadModel(modelId, modelUrl = null, onProgress = null, loc
           valid: false,
           missingShards: [],
         }));
+      }
+
+      if (integrity.valid && manifest && modelUrl) {
+        try {
+          const remoteManifest = await tryFetchRemoteManifest(modelUrl);
+          if (remoteManifest && manifestsDiffer(manifest, remoteManifest)) {
+            log.info('DopplerProvider', 'Cached model differs from source URL manifest; refreshing cache');
+            integrity = { valid: false, missingShards: [] };
+          }
+        } catch (error) {
+          log.warn(
+            'DopplerProvider',
+            `Could not compare cached manifest with source URL (${error.message}); using cached model`
+          );
+        }
       }
 
       if (!integrity.valid && modelUrl) {

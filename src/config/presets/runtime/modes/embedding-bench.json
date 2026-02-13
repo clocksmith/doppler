@@ -16,7 +16,7 @@
         "maxTokens": 1
       },
       "generation": {
-        "embeddingMode": "last"
+        "embeddingMode": "mean"
       }
     }
   }

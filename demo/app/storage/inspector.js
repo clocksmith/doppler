@@ -73,14 +73,26 @@ export async function updateStorageInfo() {
 
 async function handleDeleteStorageEntry(entry, callbacks) {
   if (!entry?.modelId) return;
-  if (entry.modelId === state.activeModelId && state.activePipeline) {
-    window.alert('Unload the active model before deleting its storage.');
-    return;
-  }
   const sizeLabel = Number.isFinite(entry.totalBytes) ? formatBytes(entry.totalBytes) : 'unknown size';
   const backendLabel = entry.backend ? entry.backend.toUpperCase() : 'storage';
   const confirmed = window.confirm(`Delete ${entry.modelId} (${sizeLabel}) from ${backendLabel}?`);
   if (!confirmed) return;
+
+  // Allow deleting the currently-loaded model by unloading first.
+  if (entry.modelId === state.activeModelId && state.activePipeline) {
+    if (typeof callbacks?.onUnloadActiveModel === 'function') {
+      try {
+        setStorageInspectorStatus(`Unloading ${entry.modelId}...`);
+        await callbacks.onUnloadActiveModel(entry.modelId);
+      } catch (error) {
+        window.alert(`Could not unload ${entry.modelId}: ${error.message}`);
+        return;
+      }
+    } else {
+      window.alert('Unload the active model before deleting its storage.');
+      return;
+    }
+  }
 
   try {
     await deleteStorageEntry(entry);
@@ -95,6 +107,10 @@ async function handleDeleteStorageEntry(entry, callbacks) {
   }
 
   delete state.modelTypeCache[entry.modelId];
+  if (entry.modelId === state.activeModelId) {
+    state.activeModelId = null;
+    state.activePipelineModelId = null;
+  }
 
   if (callbacks?.onModelsUpdated) {
     await callbacks.onModelsUpdated();
@@ -153,7 +169,7 @@ export async function refreshStorageInspector(callbacks = {}) {
   const summaryEl = $('storage-inspector-summary');
   const systemSection = $('storage-inspector-system-section');
   const systemList = $('storage-inspector-system');
-  if (!listEl || !backendEl || !summaryEl || !systemSection || !systemList) return;
+  if (!listEl || !systemSection || !systemList) return;
   if (state.storageInspectorScanning) return;
 
   state.storageInspectorScanning = true;
@@ -186,6 +202,13 @@ export async function refreshStorageInspector(callbacks = {}) {
       registered: registryIds.has(entry.modelId),
       registryEntry: registryById.get(entry.modelId) || null,
     }));
+    state.quickModelStorageIds = [...new Set(storageEntries
+      .map((entry) => entry.modelId)
+      .filter((modelId) => typeof modelId === 'string' && modelId.length > 0)
+    )];
+    if (typeof callbacks?.onStorageInventoryRefreshed === 'function') {
+      callbacks.onStorageInventoryRefreshed(state.quickModelStorageIds.slice());
+    }
     const storageIds = new Set(storageEntries.map((entry) => entry.modelId));
     const registryOnlyEntries = [];
     for (const [modelId, registryEntry] of registryById.entries()) {
@@ -225,9 +248,14 @@ export async function refreshStorageInspector(callbacks = {}) {
     } else {
       backendParts.push('IDB: unavailable');
     }
-    backendEl.textContent = backendParts.join(' • ');
+    if (backendEl) {
+      backendEl.textContent = backendParts.join(' • ');
+    }
 
     entries.sort((a, b) => {
+      const aActive = a.modelId === state.activeModelId ? 1 : 0;
+      const bActive = b.modelId === state.activeModelId ? 1 : 0;
+      if (aActive !== bActive) return bActive - aActive;
       const aMissing = a.missingStorage ? 1 : 0;
       const bMissing = b.missingStorage ? 1 : 0;
       if (aMissing !== bMissing) return aMissing - bMissing;
@@ -271,9 +299,11 @@ export async function refreshStorageInspector(callbacks = {}) {
     if (systemEntries.length) {
       summaryParts.push(`System: ${formatBytes(systemBytes)}`);
     }
-    summaryEl.textContent = summaryParts.length
-      ? summaryParts.join(' • ')
-      : 'No models found';
+    if (summaryEl) {
+      summaryEl.textContent = summaryParts.length
+        ? summaryParts.join(' • ')
+        : 'No models found';
+    }
 
     if (!entries.length) {
       listEl.innerHTML = '<div class="type-caption">No models found.</div>';
@@ -309,6 +339,13 @@ export async function refreshStorageInspector(callbacks = {}) {
         tag.className = `storage-tag${entry.registered ? '' : ' orphan'}`;
         tag.textContent = entry.registered ? 'registered' : 'orphan';
         title.appendChild(tag);
+
+        if (entry.modelId === state.activeModelId) {
+          const activeTag = document.createElement('span');
+          activeTag.className = 'storage-tag active';
+          activeTag.textContent = 'active';
+          title.appendChild(activeTag);
+        }
 
         const registryTags = getRegistryTags(entry.registryEntry);
         for (const registryTag of registryTags) {
@@ -361,6 +398,22 @@ export async function refreshStorageInspector(callbacks = {}) {
           const actions = document.createElement('div');
           actions.className = 'storage-entry-actions';
 
+          const tryBtn = document.createElement('button');
+          tryBtn.className = 'btn btn-small btn-primary';
+          tryBtn.type = 'button';
+          tryBtn.textContent = 'Try It';
+          tryBtn.addEventListener('click', async (event) => {
+            event.stopPropagation();
+            if (callbacks?.onTryModel) {
+              await callbacks.onTryModel(entry.modelId);
+              return;
+            }
+            if (callbacks?.onSelectModel) {
+              callbacks.onSelectModel(entry.modelId);
+            }
+          });
+          actions.appendChild(tryBtn);
+
           const exportBtn = document.createElement('button');
           exportBtn.className = 'btn btn-small';
           exportBtn.type = 'button';
@@ -376,8 +429,7 @@ export async function refreshStorageInspector(callbacks = {}) {
           deleteBtn.type = 'button';
           deleteBtn.textContent = 'Delete';
           if (entry.modelId === state.activeModelId && state.activePipeline) {
-            deleteBtn.disabled = true;
-            deleteBtn.title = 'Unload the active model before deleting.';
+            deleteBtn.title = 'Will unload active model, then delete.';
           }
           deleteBtn.addEventListener('click', async (event) => {
             event.stopPropagation();
@@ -436,7 +488,13 @@ export async function refreshStorageInspector(callbacks = {}) {
 
     setStorageInspectorStatus('Ready');
   } catch (error) {
-    summaryEl.textContent = '--';
+    state.quickModelStorageIds = [];
+    if (typeof callbacks?.onStorageInventoryRefreshed === 'function') {
+      callbacks.onStorageInventoryRefreshed([]);
+    }
+    if (summaryEl) {
+      summaryEl.textContent = '--';
+    }
     setStorageInspectorStatus(`Storage scan failed: ${error.message}`);
   } finally {
     state.storageInspectorScanning = false;

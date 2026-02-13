@@ -61,6 +61,19 @@ Use runtime presets/config payloads, not ad-hoc per-field flags.
 - Read tunables via `getRuntimeConfig()`; avoid hardcoded defaults in runtime paths.
 - `runtime.shared.tooling.intent` is required for harnessed debug/bench/test flows.
 
+### Conversion Triage Protocol (Required)
+
+When a freshly converted model regresses, separate conversion integrity from runtime regressions before changing presets:
+
+1. Verify source dtypes from checkpoint headers (`BF16`/`F16`/`F32` mix).
+2. Verify converted manifest fields: `quantization`, `quantizationInfo`, `inference.defaultKernelPath`.
+3. Verify shard integrity (sampled shard hashes must match manifest hashes).
+4. Verify numeric sanity by sampling tensor values from source vs converted bytes.
+5. Verify parsed layer pattern semantics from manifest (Gemma `every_n` is layer 0 + every N).
+
+Do not claim a conversion bug unless steps 1-4 fail.
+Do not claim a runtime bug unless steps 1-4 pass and runtime still diverges.
+
 ### Logging
 
 Use debug module (`src/debug/index.js`), not raw `console.*` in runtime code.

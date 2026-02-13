@@ -46,6 +46,10 @@
         "f16": "embeddinggemma-f16-f32a",
         "f32": "embeddinggemma-f16-f32a"
       },
+      "f32": {
+        "f16": "embeddinggemma-f32-f32a",
+        "f32": "embeddinggemma-f32-f32a"
+      },
       "q4k": {
         "f16": "embeddinggemma-q4k-dequant-f32a",
         "f32": "embeddinggemma-q4k-dequant-f32a"
@@ -61,8 +65,6 @@
 
   "detection": {
     "architecturePatterns": [
-      "gemma3textmodel",
-      "Gemma3TextModel",
       "embeddinggemma"
     ],
     "modelTypePatterns": [

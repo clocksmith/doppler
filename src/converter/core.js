@@ -15,7 +15,17 @@ import { selectRuleValue } from '../rules/rule-registry.js';
 import { createConverterConfig, detectPreset, resolvePreset } from '../config/index.js';
 import { buildManifestInference, inferEmbeddingOutputConfig } from './manifest-inference.js';
 import { resolveEosTokenId } from './tokenizer-utils.js';
-import { float32ToFloat16 } from './quantizer.js';
+import {
+  resolveManifestQuantization,
+  resolveEffectiveQuantizationInfo,
+} from './quantization-info.js';
+import {
+  float16ToFloat32,
+  float32ToFloat16,
+  quantizeToQ4KM,
+  quantizeToQ4KMRowWise,
+  quantizeToQ4KMColumnWise,
+} from './quantizer.js';
 
 // ============================================================================
 // Re-exports for Backward Compatibility
@@ -60,6 +70,90 @@ function resolveTokenizerVocabSize(tokenizerConfig, rawConfig, architecture) {
   const tokenizerVocab = tokenizerConfig?.vocab_size ?? tokenizerConfig?.vocabSize;
   const archVocab = architecture?.vocabSize;
   return tokenizerVocab ?? configVocab ?? archVocab ?? null;
+}
+
+function normalizeStorageQuant(value) {
+  if (value == null) return null;
+  const lower = String(value).trim().toLowerCase();
+  if (!lower) return null;
+  if (lower === 'fp16' || lower === 'float16') return 'f16';
+  if (lower === 'fp32' || lower === 'float32') return 'f32';
+  if (lower === 'bfloat16') return 'bf16';
+  if (lower === 'q4_k_m' || lower === 'q4km') return 'q4k';
+  return lower;
+}
+
+function resolveTensorTargetQuant(tensorName, fallbackQuant, quantizationInfo) {
+  const fallback = normalizeStorageQuant(fallbackQuant);
+  if (!quantizationInfo || typeof quantizationInfo !== 'object') {
+    return fallback;
+  }
+
+  const role = classifyTensorRole(tensorName);
+  if (role === 'embedding') {
+    return normalizeStorageQuant(quantizationInfo.embeddings ?? fallback) ?? fallback;
+  }
+  if (role === 'lm_head') {
+    const headQuant = quantizationInfo.lmHead ?? quantizationInfo.embeddings ?? fallback;
+    return normalizeStorageQuant(headQuant) ?? fallback;
+  }
+  return normalizeStorageQuant(quantizationInfo.weights ?? fallback) ?? fallback;
+}
+
+function bf16ToFloat32(value) {
+  const view = new DataView(new ArrayBuffer(4));
+  view.setUint32(0, (value & 0xffff) << 16, true);
+  return view.getFloat32(0, true);
+}
+
+function normalizeQ4KLayout(value) {
+  const normalized = String(value || '').trim().toLowerCase();
+  return normalized === 'col' ? 'col' : 'row';
+}
+
+function toFloat32ForQ4K(tensorData, sourceDtype, tensorName) {
+  const dtype = String(sourceDtype || '').toUpperCase();
+  if (dtype === 'F32') {
+    if (tensorData.byteLength % 4 !== 0) {
+      throw new Error(`Invalid F32 tensor byte length for ${tensorName}: ${tensorData.byteLength}`);
+    }
+    return new Float32Array(
+      tensorData.buffer,
+      tensorData.byteOffset,
+      tensorData.byteLength / 4
+    );
+  }
+  if (dtype === 'F16') {
+    if (tensorData.byteLength % 2 !== 0) {
+      throw new Error(`Invalid F16 tensor byte length for ${tensorName}: ${tensorData.byteLength}`);
+    }
+    const f16 = new Uint16Array(
+      tensorData.buffer,
+      tensorData.byteOffset,
+      tensorData.byteLength / 2
+    );
+    const f32 = new Float32Array(f16.length);
+    for (let i = 0; i < f16.length; i++) {
+      f32[i] = float16ToFloat32(f16[i]);
+    }
+    return f32;
+  }
+  if (dtype === 'BF16') {
+    if (tensorData.byteLength % 2 !== 0) {
+      throw new Error(`Invalid BF16 tensor byte length for ${tensorName}: ${tensorData.byteLength}`);
+    }
+    const bf16 = new Uint16Array(
+      tensorData.buffer,
+      tensorData.byteOffset,
+      tensorData.byteLength / 2
+    );
+    const f32 = new Float32Array(bf16.length);
+    for (let i = 0; i < bf16.length; i++) {
+      f32[i] = bf16ToFloat32(bf16[i]);
+    }
+    return f32;
+  }
+  throw new Error(`Cannot quantize ${tensorName} from ${dtype} to Q4_K_M`);
 }
 
 function resolveConfigTokenId(rawConfig, key) {
@@ -486,6 +580,11 @@ export async function convertModel(model, io, options = {}) {
   const tensors = model.tensors;
   const totalTensors = tensors.length;
   const targetQuant = String(options.quantization ?? model.quantization ?? '').trim().toLowerCase();
+  const q4kLayout = normalizeQ4KLayout(options.quantizationInfo?.layout);
+  const quantizeEmbeddings = (
+    normalizeStorageQuant(options.quantizationInfo?.embeddings ?? null) === 'q4k'
+    || normalizeStorageQuant(options.quantizationInfo?.lmHead ?? null) === 'q4k'
+  );
   const shards = [];
   const tensorLocations = {};
 
@@ -545,11 +644,39 @@ export async function convertModel(model, io, options = {}) {
     const data = await io.readTensorData(tensor);
     let tensorData = new Uint8Array(data);
     let outDtype = tensor.dtype;
+    let outLayout = null;
 
-    // Convert storage to requested low-precision format when needed so shard bytes
-    // stay consistent with manifest quantization metadata.
+    // Convert storage to requested format when needed so shard bytes stay consistent
+    // with mixed-precision quantization metadata.
     const sourceDtype = String(tensor.dtype).toUpperCase();
-    if (targetQuant === 'f16' && sourceDtype === 'F32') {
+    const tensorTargetQuant = resolveTensorTargetQuant(
+      tensor.name,
+      targetQuant,
+      options.quantizationInfo ?? null
+    );
+    if (tensorTargetQuant === 'q4k') {
+      const sourceQuant = normalizeStorageQuant(sourceDtype);
+      if (sourceQuant === 'q4k') {
+        outDtype = 'Q4_K_M';
+        if (Array.isArray(tensor.shape) && tensor.shape.length === 2) {
+          outLayout = q4kLayout;
+        }
+      } else if (shouldQuantize(tensor.name, tensor.shape, { quantizeEmbeddings })) {
+        const f32Data = toFloat32ForQ4K(tensorData, sourceDtype, tensor.name);
+        const quantized = (
+          Array.isArray(tensor.shape) && tensor.shape.length === 2
+            ? (q4kLayout === 'col'
+              ? quantizeToQ4KMColumnWise(f32Data, tensor.shape)
+              : quantizeToQ4KMRowWise(f32Data, tensor.shape))
+            : quantizeToQ4KM(f32Data, tensor.shape)
+        );
+        tensorData = quantized.quantized;
+        outDtype = 'Q4_K_M';
+        if (Array.isArray(tensor.shape) && tensor.shape.length === 2) {
+          outLayout = q4kLayout;
+        }
+      }
+    } else if (tensorTargetQuant === 'f16' && sourceDtype === 'F32') {
       if (tensorData.byteLength % 4 !== 0) {
         throw new Error(`Invalid F32 tensor byte length for ${tensor.name}: ${tensorData.byteLength}`);
       }
@@ -564,7 +691,22 @@ export async function convertModel(model, io, options = {}) {
       }
       tensorData = new Uint8Array(f16.buffer, f16.byteOffset, f16.byteLength);
       outDtype = 'F16';
-    } else if (targetQuant === 'bf16' && sourceDtype === 'F32') {
+    } else if (tensorTargetQuant === 'f16' && sourceDtype === 'BF16') {
+      if (tensorData.byteLength % 2 !== 0) {
+        throw new Error(`Invalid BF16 tensor byte length for ${tensor.name}: ${tensorData.byteLength}`);
+      }
+      const bf16 = new Uint16Array(
+        tensorData.buffer,
+        tensorData.byteOffset,
+        tensorData.byteLength / 2
+      );
+      const f16 = new Uint16Array(bf16.length);
+      for (let j = 0; j < bf16.length; j++) {
+        f16[j] = float32ToFloat16(bf16ToFloat32(bf16[j]));
+      }
+      tensorData = new Uint8Array(f16.buffer, f16.byteOffset, f16.byteLength);
+      outDtype = 'F16';
+    } else if (tensorTargetQuant === 'bf16' && sourceDtype === 'F32') {
       if (tensorData.byteLength % 4 !== 0) {
         throw new Error(`Invalid F32 tensor byte length for ${tensor.name}: ${tensorData.byteLength}`);
       }
@@ -579,6 +721,36 @@ export async function convertModel(model, io, options = {}) {
       }
       tensorData = new Uint8Array(bf16.buffer, bf16.byteOffset, bf16.byteLength);
       outDtype = 'BF16';
+    } else if (tensorTargetQuant === 'f32' && sourceDtype === 'F16') {
+      if (tensorData.byteLength % 2 !== 0) {
+        throw new Error(`Invalid F16 tensor byte length for ${tensor.name}: ${tensorData.byteLength}`);
+      }
+      const f16 = new Uint16Array(
+        tensorData.buffer,
+        tensorData.byteOffset,
+        tensorData.byteLength / 2
+      );
+      const f32 = new Float32Array(f16.length);
+      for (let j = 0; j < f16.length; j++) {
+        f32[j] = float16ToFloat32(f16[j]);
+      }
+      tensorData = new Uint8Array(f32.buffer, f32.byteOffset, f32.byteLength);
+      outDtype = 'F32';
+    } else if (tensorTargetQuant === 'f32' && sourceDtype === 'BF16') {
+      if (tensorData.byteLength % 2 !== 0) {
+        throw new Error(`Invalid BF16 tensor byte length for ${tensor.name}: ${tensorData.byteLength}`);
+      }
+      const bf16 = new Uint16Array(
+        tensorData.buffer,
+        tensorData.byteOffset,
+        tensorData.byteLength / 2
+      );
+      const f32 = new Float32Array(bf16.length);
+      for (let j = 0; j < bf16.length; j++) {
+        f32[j] = bf16ToFloat32(bf16[j]);
+      }
+      tensorData = new Uint8Array(f32.buffer, f32.byteOffset, f32.byteLength);
+      outDtype = 'F32';
     }
 
     const tensorSize = tensorData.byteLength;
@@ -623,6 +795,7 @@ export async function convertModel(model, io, options = {}) {
         shape: tensor.shape,
         dtype: outDtype,
         role,
+        ...(outLayout ? { layout: outLayout } : {}),
       };
     } else {
       tensorLocations[tensor.name] = {
@@ -631,6 +804,7 @@ export async function convertModel(model, io, options = {}) {
         shape: tensor.shape,
         dtype: outDtype,
         role,
+        ...(outLayout ? { layout: outLayout } : {}),
       };
     }
 
@@ -650,11 +824,26 @@ export async function convertModel(model, io, options = {}) {
     message: 'Creating manifest...',
   });
 
+  const tensorEntries = Object.entries(tensorLocations).map(([name, location]) => ({
+    name,
+    dtype: location?.dtype ?? null,
+    role: location?.role ?? null,
+    layout: location?.layout ?? null,
+  }));
+  const effectiveQuantizationInfo = resolveEffectiveQuantizationInfo(
+    options.quantizationInfo ?? null,
+    tensorEntries
+  );
+  const effectiveManifestQuantization = resolveManifestQuantization(
+    effectiveQuantizationInfo.weights,
+    options.quantization ?? model.quantization
+  );
+
   const manifest = createManifest(modelId, model, shards, tensorLocations, {
     source: 'convert-core',
     modelType: options.modelType,
-    quantization: options.quantization,
-    quantizationInfo: options.quantizationInfo,
+    quantization: effectiveManifestQuantization,
+    quantizationInfo: effectiveQuantizationInfo,
     hashAlgorithm: converterConfig.manifest.hashAlgorithm,
     architecture: options.architecture,
     inference: options.inference,

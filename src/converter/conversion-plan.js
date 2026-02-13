@@ -57,6 +57,32 @@ function buildUnknownFamilyError(architectureHint, rawConfig, includePresetOverr
   );
 }
 
+function isLikelyEmbeddingGemma(rawConfig, architectureHint) {
+  const arch = String(architectureHint || '').toLowerCase();
+  if (arch.includes('embeddinggemma')) {
+    return true;
+  }
+
+  const modelType = String(
+    rawConfig?.model_type
+    ?? rawConfig?.text_config?.model_type
+    ?? ''
+  ).toLowerCase();
+  const useBidirectional = (
+    rawConfig?.use_bidirectional_attention
+    ?? rawConfig?.text_config?.use_bidirectional_attention
+  ) === true;
+  const isEmbeddingModelType = modelType.includes('embeddinggemma');
+
+  if (arch.includes('gemma3textmodel')) {
+    return useBidirectional || isEmbeddingModelType;
+  }
+
+  return (
+    useBidirectional && (modelType === 'gemma3_text' || modelType === 'gemma3text')
+  ) || isEmbeddingModelType;
+}
+
 export function inferSourceWeightQuantization(tensors) {
   if (!Array.isArray(tensors) || tensors.length === 0) {
     return 'f16';
@@ -123,8 +149,11 @@ export function resolveConversionPlan(options) {
     ?? inferSourceWeightQuantization(tensors)
   );
   const weightOverride = converterConfig?.quantization?.weights ?? null;
-  const embedDtypeRaw = findTensorDtypeByRole(tensors, 'embedding');
-  const lmHeadDtypeRaw = findTensorDtypeByRole(tensors, 'lm_head');
+  // Use normalized role dtypes for kernel-path planning only.
+  // Transformer preset defaults are keyed by f16/f32 families; BF16 source
+  // role dtypes should not change kernel-path selection when wf16 is targeted.
+  const embedDtypeRaw = normalizeWeightDtype(findTensorDtypeByRole(tensors, 'embedding'));
+  const lmHeadDtypeRaw = normalizeWeightDtype(findTensorDtypeByRole(tensors, 'lm_head'));
   const hasVision = hasAnyTensorPattern(tensors, ['vision_', 'vision_tower', 'vision_model', 'image_encoder']);
   const hasAudio = hasAnyTensorPattern(tensors, ['audio_', 'audio_encoder', 'whisper', 'wav2vec']);
   const hasProjector = hasAnyTensorPattern(tensors, ['multi_modal_projector', 'mm_projector', 'projector']);
@@ -154,7 +183,10 @@ export function resolveConversionPlan(options) {
 
   const architectureHint = options?.architectureHint ?? options?.architecture ?? '';
   const presetOverride = options?.presetOverride ?? converterConfig?.presets?.model;
-  const presetId = presetOverride || detectPreset(rawConfig, architectureHint);
+  let presetId = presetOverride || detectPreset(rawConfig, architectureHint);
+  if (!presetOverride && isLikelyEmbeddingGemma(rawConfig, architectureHint)) {
+    presetId = 'embeddinggemma';
+  }
   if (presetId === 'transformer') {
     throw buildUnknownFamilyError(architectureHint, rawConfig, options?.includePresetOverrideHint === true);
   }

@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>D4DA - Doppler Showcase</title>
+  <title>Demo 4 Doppler AI</title>
   <link rel="icon" type="image/svg+xml" href="../favicon.svg">
   <link rel="manifest" href="../pwa-manifest.json">
   <link rel="stylesheet" href="../styles/rd.css">
@@ -30,7 +30,7 @@
         <div class="brand-row">
           <h1 class="type-display">D4DA</h1>
         </div>
-          <a class="intro-tagline link-secondary type-caption" href="https://github.com/clocksmith/doppler" target="_blank" rel="noopener">Doppler showcase -> view source code</a>
+          <div class="brand-subtitle type-caption">Demo 4 Doppler AI</div>
         </div>
         <div class="header-actions">
           <div class="header-controls">
@@ -40,8 +40,12 @@
                 <div class="segmented-control" id="mode-tabs">
                   <button class="btn segmented-btn mode-tab" data-mode="run" type="button">Text</button>
                   <button class="btn segmented-btn mode-tab" data-mode="embedding" type="button">Embedding</button>
-                  <button class="btn segmented-btn mode-tab" data-mode="diffusion" type="button">Image</button>
-                  <button class="btn segmented-btn mode-tab" data-mode="energy" type="button">Energy</button>
+                  <button class="btn segmented-btn mode-tab" data-mode="diffusion" type="button">
+                    Image
+                  </button>
+                  <button class="btn segmented-btn mode-tab" data-mode="energy" type="button">
+                    Energy
+                  </button>
                 </div>
               </div>
               <div class="nav-divider" aria-hidden="true"></div>
@@ -53,28 +57,35 @@
                 </div>
               </div>
             </div>
+            <div class="nav-divider header-divider" aria-hidden="true"></div>
             <div class="header-model">
               <label class="type-caption nav-label" for="diagnostics-model">Active Model</label>
               <select id="diagnostics-model" class="w-full"></select>
             </div>
           </div>
-          <div id="status-indicator" class="status-indicator">
-            <span class="status-dot" aria-hidden="true"></span>
-            <span class="status-text type-caption">Initializing...</span>
-          </div>
+            <div class="header-status">
+              <div class="type-caption nav-label">Status</div>
+              <div id="status-indicator" class="status-indicator">
+                <span class="status-text type-caption">○ Initializing...</span>
+              </div>
+            </div>
         </div>
       </header>
 
       <!-- Main Layout -->
-      <main class="main-layout">
+      <main class="main-layout io-dotted">
         <div class="panel-grid" id="panel-grid" data-layout="empty">
           <div class="panel-stack panel-stack-primary">
             <section class="panel run-panel" data-modes="run embedding">
               <h2 class="type-label" id="run-panel-title">Text Decoding</h2>
+              <div id="run-empty-notice" class="model-empty-notice" hidden>
+                <span id="run-empty-notice-text" class="type-caption"></span>
+                <button id="run-empty-notice-btn" class="btn btn-primary btn-small" type="button">Go to Models</button>
+              </div>
               <div class="primary-stack">
                 <div class="playground-output">
                   <div class="type-caption">Output</div>
-                  <pre id="run-output" class="playground-output-box"></pre>
+                  <pre id="run-output" class="playground-output-box border-dotted"></pre>
                   <div id="run-output-status" class="type-caption">Idle</div>
                 </div>
               </div>
@@ -82,6 +93,10 @@
 
             <section class="panel diffusion-panel" data-modes="diffusion">
               <h2 class="type-label">Image Decoding</h2>
+              <div id="diffusion-empty-notice" class="model-empty-notice" hidden>
+                <span id="diffusion-empty-notice-text" class="type-caption"></span>
+                <button id="diffusion-empty-notice-btn" class="btn btn-primary btn-small" type="button">Go to Models</button>
+              </div>
               <div class="primary-stack">
                 <div class="playground-output">
                   <div class="type-caption">Output</div>
@@ -91,8 +106,12 @@
               </div>
             </section>
 
-            <section class="panel energy-panel" data-modes="energy">
-              <h2 class="type-label">Energy</h2>
+            <section class="panel energy-panel keyvalue-panel" data-modes="energy">
+              <h2 class="type-label">Energy Decoding</h2>
+              <div id="energy-empty-notice" class="model-empty-notice" hidden>
+                <span id="energy-empty-notice-text" class="type-caption"></span>
+                <button id="energy-empty-notice-btn" class="btn btn-primary btn-small" type="button">Go to Models</button>
+              </div>
               <div id="energy-output-status" class="type-caption">Idle</div>
               <div class="panel-subsection" data-energy-problem="vliw" hidden>
                 <span class="type-caption">Kernel search summary</span>
@@ -123,8 +142,8 @@
                 <span class="type-caption">Energy over time</span>
                 <canvas id="energy-chart" class="energy-chart" width="640" height="240"></canvas>
               </div>
-              <div class="panel-subsection">
-                <span class="type-caption">Stats</span>
+              <div class="panel-subsection pulse-section">
+                <h3 class="pulse-subheader">Stats</h3>
                 <div class="stats-grid" id="energy-stats">
                   <div class="stat-item">
                     <span class="stat-label">Steps</span>
@@ -178,16 +197,21 @@
                   <button class="btn segmented-btn diagnostics-mode-tab" data-diagnostics-mode="kernels" type="button">Kernel Diagnostics</button>
                 </div>
               </div>
+              <div id="diagnostics-empty-notice" class="model-empty-notice" hidden>
+                <span id="diagnostics-empty-notice-text" class="type-caption"></span>
+                <button id="diagnostics-empty-notice-btn" class="btn btn-primary btn-small" type="button">Go to Models</button>
+              </div>
               <div class="type-caption diagnostics-summary" id="diagnostics-summary"></div>
               <div class="diagnostics-actions">
-                <button id="diagnostics-verify-btn" class="btn">Verify Config</button>
                 <button id="diagnostics-run-btn" class="btn btn-primary">Run</button>
+                <button id="diagnostics-verify-btn" class="btn">Verify Config</button>
                 <button id="diagnostics-export-btn" class="btn">Export JSON</button>
               </div>
               <div class="diagnostics-field" id="diagnostics-suite-field">
                 <label class="type-caption" for="diagnostics-profile">Run Profile</label>
                 <select id="diagnostics-profile" class="w-full"></select>
                 <div class="type-caption" id="diagnostics-suite-help"></div>
+                <div class="type-caption" id="diagnostics-profile-help"></div>
               </div>
               <div class="type-caption diagnostics-requirements" id="diagnostics-requirements"></div>
               <div class="diagnostics-output" id="diagnostics-output">
@@ -231,83 +255,80 @@
 
             <section class="panel convert-panel" data-modes="models">
               <h2 class="type-label">Model Intake</h2>
-              <p class="convert-description">Use one folder flow for GGUF, safetensors, or pre-converted RDRR.</p>
-              <p class="convert-note type-caption">RDRR folders (manifest + shards) are imported automatically; raw GGUF/safetensors are converted.</p>
               <div id="convert-status" class="convert-status">
                 <div class="progress progress-sm">
                   <div id="convert-progress" class="progress-fill"></div>
                 </div>
                 <span id="convert-message" class="type-caption">Ready</span>
               </div>
-              <div class="convert-field">
-                <label class="type-caption" for="convert-model-preset">Model preset override (optional)</label>
-                <select id="convert-model-preset" class="w-full"></select>
-              </div>
-              <div class="convert-field">
-                <label class="type-caption" for="convert-weight-dtype">Weight dtype override (optional)</label>
-                <select id="convert-weight-dtype" class="w-full">
-                  <option value="">auto</option>
-                  <option value="f16">f16</option>
-                  <option value="bf16">bf16</option>
-                </select>
-              </div>
               <div class="convert-actions">
                 <button id="convert-btn" class="btn btn-primary w-full">
-                  <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-                    <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
-                  </svg>
-                  Select Folder or Files (Auto)
+                  Select Folder
                 </button>
               </div>
-              <div class="convert-actions">
-                <button id="regen-manifest-btn" class="btn w-full">Regenerate Manifest</button>
-              </div>
               <div class="convert-field">
-                <label class="type-caption" for="convert-url-input">Remote URLs (one per line)</label>
+                <label class="type-caption" for="convert-url-input">Import from URL(s) (GGUF/safetensors, one per line)</label>
                 <textarea id="convert-url-input" class="convert-url-input w-full"
                   placeholder="https://host/model.safetensors"></textarea>
               </div>
               <div class="convert-actions">
-                <button id="convert-url-btn" class="btn w-full">Convert URLs</button>
+                <button id="convert-url-btn" class="btn w-full">Import URL(s)</button>
               </div>
               <div class="convert-field">
-                <span class="type-caption">Download RDRR (manifest + shards)</span>
+                <span class="type-caption">Import pre-converted RDRR from base URL</span>
               </div>
               <div class="download-field">
-                <label class="type-caption" for="download-base-url">Base URL</label>
+                <label class="type-caption" for="download-base-url">RDRR base URL</label>
                 <input id="download-base-url" class="w-full" type="text" placeholder="https://host/model" />
               </div>
-              <div class="download-field">
-                <label class="type-caption" for="download-model-id">Storage model ID (optional)</label>
-                <input id="download-model-id" class="w-full" type="text" placeholder="override-model-id" />
+              <div class="convert-actions">
+                <button id="download-start-btn" class="btn btn-primary w-full">Import RDRR URL</button>
               </div>
-              <div class="download-actions">
-                <button id="download-start-btn" class="btn btn-primary">Start</button>
-                <button id="download-pause-btn" class="btn">Pause</button>
-                <button id="download-resume-btn" class="btn">Resume</button>
-                <button id="download-cancel-btn" class="btn">Cancel</button>
-                <button id="download-refresh-btn" class="btn">Refresh</button>
-              </div>
-              <div id="download-status" class="download-status" hidden>
-                <div class="progress progress-sm">
-                  <div id="download-progress" class="progress-fill"></div>
+              <details class="diagnostics-accordion">
+                <summary class="type-caption">Advanced</summary>
+                <div class="download-field">
+                  <label class="type-caption" for="download-model-id">Model ID override (optional)</label>
+                  <input id="download-model-id" class="w-full" type="text" placeholder="override-model-id" />
                 </div>
-                <span id="download-message" class="type-caption">Idle</span>
-              </div>
-              <div id="download-list" class="download-list type-caption"></div>
+                <div class="download-actions">
+                  <button id="download-pause-btn" class="btn">Pause</button>
+                  <button id="download-resume-btn" class="btn">Resume</button>
+                  <button id="download-cancel-btn" class="btn">Cancel</button>
+                  <button id="download-refresh-btn" class="btn">Sync</button>
+                </div>
+                <div id="download-status" class="download-status" hidden>
+                  <div class="progress progress-sm">
+                    <div id="download-progress" class="progress-fill"></div>
+                  </div>
+                  <span id="download-message" class="type-caption">Idle</span>
+                </div>
+                <div id="download-list" class="download-list type-caption"></div>
+                <div class="convert-field">
+                  <label class="type-caption" for="convert-model-preset">Model preset override (optional)</label>
+                  <select id="convert-model-preset" class="w-full"></select>
+                </div>
+                <div class="convert-field">
+                  <label class="type-caption" for="convert-weight-dtype">Weight dtype override (optional)</label>
+                  <select id="convert-weight-dtype" class="w-full">
+                    <option value="">auto</option>
+                    <option value="f16">f16</option>
+                    <option value="bf16">bf16</option>
+                  </select>
+                </div>
+                <div class="convert-actions">
+                  <button id="regen-manifest-btn" class="btn w-full">Regenerate stored manifest</button>
+                </div>
+              </details>
             </section>
 
-            <section class="panel storage-panel" data-modes="models">
+            <section class="panel storage-panel keyvalue-panel" data-modes="models">
               <h2 class="type-label">Models & Storage</h2>
-              <div class="type-caption">Registry metadata + storage inventory.</div>
+              <div class="convert-field quick-models-block">
+                <span class="type-caption">Curated hosted model imports</span>
+                <div id="models-quick-models-status" class="type-caption"></div>
+                <div id="models-quick-models-list" class="quick-models-list"></div>
+              </div>
               <div class="storage-inspector">
-                <div class="storage-inspector-header">
-                  <div class="storage-inspector-meta">
-                    <span class="type-caption" id="storage-inspector-backend">OPFS: --</span>
-                    <span class="type-caption" id="storage-inspector-summary">--</span>
-                  </div>
-                  <button id="storage-inspector-refresh" class="btn btn-small" type="button">Refresh</button>
-                </div>
                 <div id="storage-inspector-status" class="type-caption">Idle</div>
                 <div id="storage-inspector-list" class="storage-inspector-list"></div>
                 <div id="storage-inspector-system-section" class="storage-system" hidden>
@@ -315,60 +336,47 @@
                   <div id="storage-inspector-system" class="storage-inspector-list"></div>
                 </div>
               </div>
+              <div class="panel-subsection pulse-section storage-info" id="storage-info">
+                <h3 class="pulse-subheader">Storage</h3>
+                <div class="stats-grid stats-grid-compact">
+                  <div class="stat-item">
+                    <span class="stat-label">OPFS usage</span>
+                    <span class="stat-value" id="storage-used">-- / --</span>
+                  </div>
+                </div>
+              </div>
+              <div class="panel-subsection pulse-section model-field">
+                <h3 class="pulse-subheader">GPU Info</h3>
+                <div class="stats-grid stats-grid-compact gpu-info" id="gpu-info">
+                  <div class="stat-item gpu-row">
+                    <span class="stat-label">Device</span>
+                    <span class="stat-value stat-value-wrap" id="gpu-device">--</span>
+                  </div>
+                  <div class="stat-item gpu-row" id="gpu-ram-row" hidden>
+                    <span class="stat-label">System RAM</span>
+                    <span class="stat-value" id="gpu-ram">--</span>
+                  </div>
+                  <div class="stat-item gpu-row">
+                    <span class="stat-label" id="gpu-vram-label">Buffer Limit</span>
+                    <span class="stat-value" id="gpu-vram">--</span>
+                  </div>
+                  <div class="stat-item gpu-row">
+                    <span class="stat-label">Features</span>
+                    <span class="stat-value stat-value-wrap" id="gpu-features">--</span>
+                  </div>
+                </div>
+                <div class="gpu-note" id="gpu-unified-note" hidden>
+                  Unified memory: GPU shares system RAM
+                </div>
+              </div>
             </section>
           </div>
 
           <div class="panel-stack panel-stack-rail">
-            <section class="panel model-panel" data-modes="models">
-              <h2 class="type-label">Model Details</h2>
-              <div>
-                <div class="storage-info" id="storage-info">
-                  <span class="storage-label">Storage:</span>
-                  <span class="storage-value" id="storage-used">-- / --</span>
-                </div>
-                <div class="model-field">
-                  <span class="type-caption">Export RDRR</span>
-                  <div class="convert-actions">
-                    <button id="export-model-btn" class="btn w-full">Export active model</button>
-                  </div>
-                  <div id="export-status" class="convert-status">
-                    <div class="progress progress-sm">
-                      <div id="export-progress" class="progress-fill"></div>
-                    </div>
-                    <span id="export-message" class="type-caption">Idle</span>
-                  </div>
-                </div>
-                <div class="model-field">
-                  <span class="type-caption">GPU Info</span>
-                  <div class="gpu-info" id="gpu-info">
-                    <div class="gpu-row">
-                      <span class="type-caption">Device</span>
-                      <span class="type-caption" id="gpu-device">--</span>
-                    </div>
-                    <div class="gpu-row" id="gpu-ram-row" hidden>
-                      <span class="type-caption">System RAM</span>
-                      <span class="type-caption" id="gpu-ram">--</span>
-                    </div>
-                    <div class="gpu-row">
-                      <span class="type-caption" id="gpu-vram-label">Buffer Limit</span>
-                      <span class="type-caption" id="gpu-vram">--</span>
-                    </div>
-                    <div class="gpu-row">
-                      <span class="type-caption">Features</span>
-                      <span class="type-caption" id="gpu-features">--</span>
-                    </div>
-                  </div>
-                  <div class="gpu-note" id="gpu-unified-note" hidden>
-                    Unified memory: GPU shares system RAM
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            <section class="panel diagnostics-stats-panel" data-modes="diagnostics kernels">
+            <section class="panel diagnostics-stats-panel keyvalue-panel" data-modes="diagnostics kernels">
               <h2 class="type-label">Diagnostics Stats</h2>
-              <div class="panel-subsection">
-                <span class="type-caption">GPU Memory (tracked)</span>
+              <div class="panel-subsection pulse-section">
+                <h3 class="pulse-subheader">GPU Memory (tracked)</h3>
                 <div class="stats-grid" id="stats-gpu">
                   <div class="stat-item">
                     <span class="stat-label">Tracked GPU</span>
@@ -396,15 +404,25 @@
                   </div>
                 </div>
                 <div class="stats-breakdown">
-                  <div class="stats-breakdown-header">Top buffers (tracked)</div>
+                  <div class="stats-breakdown-header">
+                    Top buffers (tracked)
+                    <span
+                      class="stats-help-tip type-caption"
+                      title="Only buffers allocated via BufferPool are tracked. Direct GPU buffers are not yet accounted."
+                      aria-label="Only buffers allocated via BufferPool are tracked. Direct GPU buffers are not yet accounted."
+                    >[?]</span>
+                  </div>
                   <div class="stats-breakdown-list" id="gpu-label-list">
                     <div class="type-caption">No tracked buffers yet.</div>
                   </div>
-                  <div class="stat-note">Only buffers allocated via BufferPool are tracked. Direct GPU buffers are not yet accounted.</div>
                 </div>
               </div>
-              <div class="panel-subsection">
-                <span class="type-caption">JS / CPU</span>
+              <div class="panel-subsection pulse-section">
+                <h3
+                  class="pulse-subheader"
+                  title="Browsers do not expose OS swap or true VRAM totals. Values here are estimates or tracked allocations only."
+                  aria-label="JS and CPU memory info. Browsers do not expose OS swap or true VRAM totals. Values here are estimates or tracked allocations only."
+                >JS / CPU</h3>
                 <div class="stats-grid" id="stats-cpu">
                   <div class="stat-item">
                     <span class="stat-label">JS Heap</span>
@@ -419,10 +437,9 @@
                     <span class="stat-value" id="stat-swap">Not available</span>
                   </div>
                 </div>
-                <div class="stat-note">Browsers do not expose OS swap or true VRAM totals. Values here are estimates or tracked allocations only.</div>
               </div>
-              <div class="panel-subsection">
-                <span class="type-caption">Storage (OPFS)</span>
+              <div class="panel-subsection pulse-section">
+                <h3 class="pulse-subheader">Storage (OPFS)</h3>
                 <div class="stats-grid" id="stats-storage">
                   <div class="stat-item">
                     <span class="stat-label">OPFS usage</span>
@@ -434,8 +451,8 @@
                   </div>
                 </div>
               </div>
-              <div class="panel-subsection">
-                <span class="type-caption">Memory Control</span>
+              <div class="panel-subsection pulse-section">
+                <h3 class="pulse-subheader">Memory Control</h3>
                 <div class="memory-actions">
                   <button id="unload-model-btn" class="btn" disabled title="Unload current model from GPU memory">
                     Unload Model
@@ -448,10 +465,22 @@
             </section>
 
             <section class="panel run-controls-panel" data-modes="run embedding">
-              <h2 class="type-label" id="run-controls-title">Run Controls</h2>
+              <div class="panel-title-row">
+                <h2 class="type-label" id="run-controls-title">Run Controls</h2>
+                <button class="btn btn-small" id="run-prompt-shuffle" type="button">Shuffle</button>
+              </div>
               <div class="playground-field">
-                <label class="type-caption" for="run-prompt" id="run-prompt-label">Prompt</label>
+                <div class="playground-label-row">
+                  <label class="type-caption" for="run-prompt" id="run-prompt-label">Prompt</label>
+                </div>
                 <textarea id="run-prompt" class="w-full" rows="6" placeholder="Ask a question or provide a prompt..."></textarea>
+              </div>
+              <div class="panel-subsection" id="run-embedding-docs" hidden>
+                <div class="playground-label-row">
+                  <span class="type-caption">Document Set (3)</span>
+                  <span class="type-caption">Used for similarity ranking.</span>
+                </div>
+                <div id="run-embedding-docs-list" class="embedding-doc-list"></div>
               </div>
               <div class="panel-subsection" id="run-sampling-controls">
                 <div class="playground-row">
@@ -478,6 +507,17 @@
                     <div class="type-caption" id="max-tokens-auto">auto: --</div>
                   </div>
                 </div>
+                <div class="playground-field">
+                  <label
+                    class="type-caption"
+                    for="run-reset-kv-toggle"
+                    title="Clears KV cache before Generate so each run is independent."
+                    aria-label="Reset context each run. Clears KV cache before Generate so each run is independent."
+                  >
+                    <input id="run-reset-kv-toggle" type="checkbox" checked />
+                    Reset context each run
+                  </label>
+                </div>
               </div>
               <div class="playground-actions">
                 <button id="run-generate-btn" class="btn btn-primary" type="button">Generate</button>
@@ -487,14 +527,21 @@
             </section>
 
             <section class="panel diffusion-controls-panel" data-modes="diffusion">
-              <h2 class="type-label">Diffusion Controls</h2>
+              <div class="panel-title-row">
+                <h2 class="type-label">Diffusion Controls</h2>
+                <button class="btn btn-small" id="diffusion-prompt-shuffle" type="button">Shuffle</button>
+              </div>
               <div class="playground-field">
-                <label class="type-caption" for="diffusion-prompt">Prompt</label>
+                <div class="playground-label-row">
+                  <label class="type-caption" for="diffusion-prompt">Prompt</label>
+                </div>
                 <textarea id="diffusion-prompt" class="w-full" rows="3" maxlength="2048" placeholder="Describe the image..."></textarea>
                 <div class="type-caption" id="diffusion-prompt-count">0/2048</div>
               </div>
               <div class="playground-field">
-                <label class="type-caption" for="diffusion-negative">Negative prompt</label>
+                <div class="playground-label-row">
+                  <label class="type-caption" for="diffusion-negative">Negative prompt</label>
+                </div>
                 <textarea id="diffusion-negative" class="w-full" rows="2" maxlength="1024" placeholder="What to avoid..."></textarea>
                 <div class="type-caption" id="diffusion-negative-count">0/1024</div>
               </div>
@@ -772,10 +819,13 @@
               </div>
             </section>
 
-            <section class="panel live-panel" data-modes="run diffusion energy">
-              <h2 class="type-label">Inference Pulse</h2>
-              <div class="panel-subsection">
-                <span class="type-caption">Performance</span>
+            <section class="panel live-panel keyvalue-panel" data-modes="run embedding diffusion energy">
+              <div class="pulse-header">
+                <h2 class="type-label">Inference Pulse</h2>
+                <button id="pulse-reset-btn" class="btn btn-small" type="button">Reset</button>
+              </div>
+              <div class="panel-subsection pulse-section">
+                <h3 class="pulse-subheader">Performance</h3>
                 <div class="stats-grid" id="stats-performance">
                   <div class="stat-item" id="stat-tps-item">
                     <span class="stat-label" id="stat-tps-label">Tokens/sec</span>
@@ -803,8 +853,8 @@
                   </div>
                 </div>
               </div>
-              <div class="panel-subsection">
-                <span class="type-caption">Recent Runs</span>
+              <div class="panel-subsection pulse-section">
+                <h3 class="pulse-subheader">Recent Runs</h3>
                 <div class="run-log">
                   <div class="run-log-row run-log-header">
                     <span id="run-log-label">Run</span>
@@ -816,8 +866,8 @@
                   <div id="run-log-rows"></div>
                 </div>
               </div>
-              <div class="panel-subsection" data-modes="run">
-                <span class="type-caption">KV Cache</span>
+              <div class="panel-subsection pulse-section" data-modes="run">
+                <h3 class="pulse-subheader">KV Cache</h3>
                 <div class="stats-grid" id="stats-kv">
                   <div class="stat-item">
                     <span class="stat-label">Allocated</span>
@@ -845,12 +895,17 @@
         </div>
       </div>
     </main>
+    <footer class="page-footer">
+      <a class="link-secondary type-caption" href="https://github.com/clocksmith/doppler" target="_blank" rel="noopener">See source on GitHub</a>
+      <span class="type-caption" aria-hidden="true">•</span>
+      <a class="link-secondary type-caption" href="https://256.one" target="_blank" rel="noopener">Copyright 2026 256.one</a>
+    </footer>
     </div>
 
-    <!-- Progress Overlay -->
-    <div class="progress-overlay" id="progress-overlay" hidden>
-      <div class="progress-content">
-        <div class="progress-title" id="progress-title">Loading Model</div>
+    <!-- Progress Dialog -->
+    <div class="modal-overlay progress-overlay" id="progress-overlay" hidden>
+      <div class="modal-content progress-content" role="dialog" aria-modal="true" aria-labelledby="progress-title">
+        <h3 class="modal-title progress-title" id="progress-title">Loading Model</h3>
         <div class="progress-phases" id="progress-phases">
           <div class="progress-phase-row" data-phase="source">
             <span class="progress-phase-label">Source</span>

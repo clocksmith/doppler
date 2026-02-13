@@ -212,6 +212,8 @@ export interface LayerPatternSchema {
   globalPattern?: GlobalLayerPattern;
   /** For 'every_n': the period value (e.g., 6 for Gemma 3) */
   period?: number;
+  /** For 'every_n': first global layer index modulo period (default: 0) */
+  offset?: number;
   /** @deprecated Use globalPattern/period instead */
   attentionLayers?: number[];
   /** For 'custom': explicit layer type mapping */

@@ -14,6 +14,7 @@ import {
 import {
   buildQuantizationInfo,
   normalizeQuantTag,
+  resolveEffectiveQuantizationInfo,
   resolveManifestQuantization,
   resolveModelId,
   toWebGPUDtype,
@@ -22,6 +23,7 @@ import {
 export {
   buildQuantizationInfo,
   normalizeQuantTag,
+  resolveEffectiveQuantizationInfo,
   resolveManifestQuantization,
   resolveModelId,
   toWebGPUDtype,

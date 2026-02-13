@@ -12,7 +12,7 @@ export { extractLastPositionLogits, finalizeLogits } from './utils.js';
 // Imports for computeLogits orchestrator
 import { getDevice } from '../../../gpu/device.js';
 import { acquireBuffer, releaseBuffer, readBuffer } from '../../../memory/buffer-pool.js';
-import { runMatmul, runRMSNorm } from '../../../gpu/kernel-selector.js';
+import { runMatmul, runRMSNorm, castF16ToF32 } from '../../../gpu/kernel-selector.js';
 import { createTensor } from '../../../gpu/tensor.js';
 import { isWeightBuffer, isCpuWeightBuffer, getWeightDtype } from '../../../gpu/weight-buffer.js';
 import { kernelTrace, traceStep } from '../kernel-trace.js';
@@ -23,6 +23,14 @@ import { resolveCpuWeightDims, computeChunkedLogitsGPU } from './gpu.js';
 import { finalizeLogits } from './utils.js';
 import { getRuntimeConfig } from '../../../config/runtime.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
+
+function shouldForceStableF32Logits(config, inputDtype) {
+  // Small Gemma-family checkpoints can overflow in pure F16 logits path after RMSNorm offset.
+  return inputDtype === 'f16'
+    && config.rmsNormWeightOffset === true
+    && Number.isFinite(config.hiddenSize)
+    && config.hiddenSize <= 768;
+}
 
 
 export async function computeLogits(
@@ -163,11 +171,21 @@ export async function computeLogits(
 
   // Wrap input buffer as Tensor for RMSNorm
   const inputTensor = createTensor(inputBuffer, inputDtype, [numTokens, hiddenSize], 'logits_input');
-  const normedTensor = await runRMSNorm(inputTensor, normWeightBuffer, rmsNormEps, {
+  const forceStableF32Logits = shouldForceStableF32Logits(config, inputDtype);
+  let normInputTensor = inputTensor;
+  let normInputBufferOwned = false;
+  if (forceStableF32Logits) {
+    normInputTensor = await castF16ToF32(inputTensor);
+    normInputBufferOwned = true;
+  }
+  const normedTensor = await runRMSNorm(normInputTensor, normWeightBuffer, rmsNormEps, {
     batchSize: numTokens,
     hiddenSize,
     rmsNormWeightOffset: config.rmsNormWeightOffset,
   });
+  if (normInputBufferOwned) {
+    releaseBuffer(normInputTensor.buffer);
+  }
   await runProbes('final_norm', normedTensor.buffer, {
     numTokens,
     hiddenSize,
@@ -234,7 +252,7 @@ export async function computeLogits(
   // HuggingFace models store lm_head as [vocabSize, hiddenSize], so transposeB=true
   const logitsTensor = await runMatmul(normedTensor, lmHeadBuffer, numTokens, matmulVocabSize, hiddenSize, {
     transposeB: 'auto',
-    role: 'lm_head',
+    role: forceStableF32Logits ? undefined : 'lm_head',
   });
   await runProbes('logits', logitsTensor.buffer, {
     numTokens,

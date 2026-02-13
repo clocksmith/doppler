@@ -131,6 +131,44 @@ function detectCausalAttention(modelConfig) {
   return null;
 }
 
+function normalizeLayerTypeName(value) {
+  if (typeof value !== 'string') return '';
+  return value.trim().toLowerCase();
+}
+
+function detectEveryNOffsetFromLayerTypes(layerTypes, period) {
+  if (!Array.isArray(layerTypes) || !Number.isFinite(period) || period <= 0) {
+    return null;
+  }
+
+  const globalLayerIndices = [];
+  for (let i = 0; i < layerTypes.length; i++) {
+    const normalized = normalizeLayerTypeName(layerTypes[i]);
+    const isGlobal = (
+      normalized === 'full_attention'
+      || normalized === 'global_attention'
+      || normalized === 'full'
+      || normalized === 'global'
+    );
+    if (isGlobal) {
+      globalLayerIndices.push(i);
+    }
+  }
+
+  if (globalLayerIndices.length === 0) {
+    return null;
+  }
+
+  const first = globalLayerIndices[0];
+  for (const index of globalLayerIndices) {
+    if (((index - first) % period) !== 0) {
+      return null;
+    }
+  }
+
+  return ((first % period) + period) % period;
+}
+
 // Build normalization config with auto-detection from tensor names.
 // Priority: auto-detected > preset > default
 function buildNormalizationConfig(presetInference, modelConfig, defaults, tensorNames) {
@@ -253,6 +291,7 @@ export function buildManifestInference(preset, config, headDim = 64, quantizatio
     let manifestType = 'uniform';
     let globalPattern = null;
     let period = null;
+    let offset = null;
 
     if (presetType === 'all_attention' || presetType === 'custom') {
       manifestType = 'uniform';
@@ -276,6 +315,7 @@ export function buildManifestInference(preset, config, headDim = 64, quantizatio
         );
       }
       globalPattern = null;
+      offset = detectEveryNOffsetFromLayerTypes(modelConfig.layer_types, period) ?? 0;
     } else if (manifestType === 'alternating') {
       if (globalPattern == null) {
         throw new Error(
@@ -283,12 +323,14 @@ export function buildManifestInference(preset, config, headDim = 64, quantizatio
         );
       }
       period = null;
+      offset = null;
     }
 
     inference.layerPattern = {
       type: manifestType,
       globalPattern,
       period,
+      offset,
     };
   }
 

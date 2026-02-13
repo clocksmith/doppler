@@ -13,20 +13,25 @@ const loadJson = async (path) => {
 };
 
 const gemma2Q4kFusedF16A = await loadJson('./presets/kernel-paths/gemma2-q4k-fused-f16a.json');
+const gemma2Q4kFusedF16AWg128 = await loadJson('./presets/kernel-paths/gemma2-q4k-fused-f16a-wg128.json');
 const gemma2Q4kFusedF32A = await loadJson('./presets/kernel-paths/gemma2-q4k-fused-f32a.json');
 const gemma2Q4kDequantF16A = await loadJson('./presets/kernel-paths/gemma2-q4k-dequant-f16a.json');
 const gemma2Q4kDequantF32A = await loadJson('./presets/kernel-paths/gemma2-q4k-dequant-f32a.json');
 const gemma2F16F16A = await loadJson('./presets/kernel-paths/gemma2-f16-f16a.json');
 const gemma2F16F32A = await loadJson('./presets/kernel-paths/gemma2-f16-f32a.json');
 const gemma3F16F16A = await loadJson('./presets/kernel-paths/gemma3-f16-f16a.json');
+const gemma3F16F32A = await loadJson('./presets/kernel-paths/gemma3-f16-f32a.json');
 const gemma3F16F16AOnline = await loadJson('./presets/kernel-paths/gemma3-f16-f16a-online.json');
 const gemma3Q4kDequantF16A = await loadJson('./presets/kernel-paths/gemma3-q4k-dequant-f16a.json');
+const gemma3Q4kDequantF32A = await loadJson('./presets/kernel-paths/gemma3-q4k-dequant-f32a.json');
 const embeddingGemmaF16F32A = await loadJson('./presets/kernel-paths/embeddinggemma-f16-f32a.json');
+const embeddingGemmaF32F32A = await loadJson('./presets/kernel-paths/embeddinggemma-f32-f32a.json');
 const embeddingGemmaQ4kDequantF32A = await loadJson('./presets/kernel-paths/embeddinggemma-q4k-dequant-f32a.json');
 
 const KERNEL_PATH_REGISTRY = {
   // Gemma 2 Q4K variants
   'gemma2-q4k-fused-f16a': gemma2Q4kFusedF16A,
+  'gemma2-q4k-fused-f16a-wg128': gemma2Q4kFusedF16AWg128,
   'gemma2-q4k-fused-f32a': gemma2Q4kFusedF32A,
   'gemma2-q4k-dequant-f16a': gemma2Q4kDequantF16A,
   'gemma2-q4k-dequant-f32a': gemma2Q4kDequantF32A,
@@ -37,15 +42,18 @@ const KERNEL_PATH_REGISTRY = {
 
   // Gemma 3 variants
   'gemma3-f16-f16a': gemma3F16F16A,
+  'gemma3-f16-f32a': gemma3F16F32A,
   'gemma3-f16-f16a-online': gemma3F16F16AOnline,
   // Compatibility alias: legacy fused id resolves to canonical dequant path.
   'gemma3-q4k-fused-f16a': gemma3Q4kDequantF16A,
   'gemma3-q4k-dequant-f16a': gemma3Q4kDequantF16A,
+  'gemma3-q4k-dequant-f32a': gemma3Q4kDequantF32A,
 
   // EmbeddingGemma variants
   // Compatibility alias: legacy f16a id now resolves to f32 activations.
   'embeddinggemma-f16-f16a': embeddingGemmaF16F32A,
   'embeddinggemma-f16-f32a': embeddingGemmaF16F32A,
+  'embeddinggemma-f32-f32a': embeddingGemmaF32F32A,
   // Compatibility aliases: legacy f16a ids now resolve to f32 activations.
   'embeddinggemma-q4k-fused-f16a': embeddingGemmaQ4kDequantF32A,
   'embeddinggemma-q4k-dequant-f16a': embeddingGemmaQ4kDequantF32A,
@@ -78,6 +86,13 @@ export function resolveKernelPath(ref) {
 export function getKernelPathActivationDtype(path) {
   if (!path?.activationDtype) return null;
   return path.activationDtype;
+}
+
+export function getKernelPathKVDtype(path) {
+  if (!path) return null;
+  if (path.kvDtype) return path.kvDtype;
+  if (path.activationDtype) return path.activationDtype;
+  return null;
 }
 
 export function applyKernelOverrides(path, overrides) {
