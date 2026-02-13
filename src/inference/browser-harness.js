@@ -6,7 +6,7 @@ import { getRuntimeConfig, setRuntimeConfig } from '../config/runtime.js';
 import { initDevice, getKernelCapabilities, getDevice } from '../gpu/device.js';
 import { createPipeline } from './pipeline.js';
 import { parseModelConfigFromManifest } from './pipeline/config.js';
-import { openModelStore, loadManifestFromStore, loadShard } from '../storage/shard-manager.js';
+import { openModelStore, loadManifestFromStore } from '../storage/shard-manager.js';
 import { parseManifest } from '../storage/rdrr-format.js';
 import { computeSampleStats } from '../debug/stats.js';
 import {
@@ -371,7 +371,6 @@ async function initializeInferenceFromStorage(modelId, options = {}) {
   onProgress?.('pipeline', 0.3, 'Creating pipeline...');
   const pipeline = await createPipeline(manifest, {
     gpu: { device },
-    storage: { loadShard },
     runtime: options.runtime,
     onProgress,
   });

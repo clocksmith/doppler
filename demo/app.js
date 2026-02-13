@@ -825,7 +825,6 @@ async function loadPipelineFromStorage(modelId) {
   const device = getDevice();
   return createPipeline(manifest, {
     gpu: { device },
-    storage: { loadShard },
     runtimeConfig: getRuntimeConfig(),
     onProgress: (progress) => updateProgressFromLoader(progress),
   });

@@ -5,6 +5,7 @@ installNodeFileFetchShim();
 
 const { createConverterConfig } = await import('../../src/config/schema/converter.schema.js');
 const {
+  inferSourceWeightQuantization,
   resolveConversionPlan,
   resolveConvertedModelId,
 } = await import('../../src/converter/conversion-plan.js');
@@ -24,6 +25,16 @@ const converterConfig = createConverterConfig();
   assert.equal(plan.modelType, 'diffusion');
   assert.equal(plan.presetId, 'diffusion');
   assert.equal(plan.manifestInference?.presetId, 'diffusion');
+}
+
+{
+  assert.throws(
+    () => inferSourceWeightQuantization([
+      { name: 'model.layers.0.self_attn.q_proj.weight', dtype: 'F16' },
+      { name: 'model.layers.0.self_attn.k_proj.weight', dtype: 'F32' },
+    ]),
+    /Ambiguous source weight dtypes/
+  );
 }
 
 {
@@ -51,6 +62,28 @@ const converterConfig = createConverterConfig();
   assert.equal(plan.modelType, 'transformer');
   assert.equal(typeof plan.presetId, 'string');
   assert.equal(typeof plan.manifestInference?.defaultKernelPath, 'string');
+}
+
+{
+  const plan = resolveConversionPlan({
+    rawConfig: {
+      model_type: 'llama',
+      architectures: ['LlamaForCausalLM'],
+    },
+    tensors: [
+      { name: 'token_embd.weight', dtype: 'F16' },
+      { name: 'output.weight', dtype: 'F16' },
+      { name: 'blk.0.attn_q.weight', dtype: 'Q4_K' },
+    ],
+    converterConfig,
+    sourceQuantization: 'q4k',
+    modelKind: 'transformer',
+    architectureHint: 'LlamaForCausalLM',
+    architectureConfig: { headDim: 128 },
+    presetOverride: 'llama3',
+  });
+  assert.equal(plan.quantizationInfo.embeddings, 'f16');
+  assert.equal(plan.quantizationInfo.variantTag, 'wq4k-ef16');
 }
 
 {

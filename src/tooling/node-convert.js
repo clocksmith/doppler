@@ -200,7 +200,13 @@ export async function convertSafetensorsDirectory(options) {
         if (!fileSet.has(suffix)) {
           throw new Error(`Missing ${label} (${suffix})`);
         }
-        return JSON.parse(await fs.readFile(path.join(inputDir, suffix), 'utf8'));
+        const text = await fs.readFile(path.join(inputDir, suffix), 'utf8');
+        try {
+          return JSON.parse(text);
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          throw new Error(`Invalid JSON in ${label} (${suffix}): ${message}`);
+        }
       },
       async readText(suffix, label = 'text') {
         if (!fileSet.has(suffix)) {
@@ -267,10 +273,21 @@ export async function convertSafetensorsDirectory(options) {
     const parsedTransformer = await parseTransformerModel({
       async readJson(suffix, label = 'json') {
         const filePath = path.join(inputDir, suffix);
+        let text;
         try {
-          return JSON.parse(await fs.readFile(filePath, 'utf8'));
+          text = await fs.readFile(filePath, 'utf8');
         } catch (error) {
-          throw new Error(`Missing ${label} (${suffix})`);
+          if (error?.code === 'ENOENT') {
+            throw new Error(`Missing ${label} (${suffix})`);
+          }
+          const message = error instanceof Error ? error.message : String(error);
+          throw new Error(`Failed to read ${label} (${suffix}): ${message}`);
+        }
+        try {
+          return JSON.parse(text);
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          throw new Error(`Invalid JSON in ${label} (${suffix}): ${message}`);
         }
       },
       async fileExists(suffix) {
@@ -309,7 +326,8 @@ export async function convertSafetensorsDirectory(options) {
     hasTokenizerModel = await fileExists(tokenizerModelPath);
   }
 
-  const sourceQuantization = inferSourceWeightQuantization(tensors);
+  const weightOverride = converterConfig.quantization?.weights ?? null;
+  const sourceQuantization = weightOverride || inferSourceWeightQuantization(tensors);
   const plan = resolveConversionPlan({
     rawConfig: config,
     tensors,

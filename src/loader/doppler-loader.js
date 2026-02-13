@@ -764,6 +764,9 @@ export class DopplerLoader {
       resolveWeightLayout: (loc) => this.#resolveWeightLayout(loc),
       gpuBuffers: this.gpuBuffers,
       keepF32Weights: this.keepF32Weights,
+      // Keep embedding weights in F32 when manifest quantization requires it.
+      // gather.wgsl reads embeddings as f32; downcasting here corrupts reads.
+      preserveF32Embeddings: String(this.manifest?.quantizationInfo?.embeddings ?? '').toLowerCase() === 'f32',
     };
 
     this.embeddings = await loadEmbeddings(ctx);

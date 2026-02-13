@@ -8,6 +8,7 @@ import {
   resolveModelId,
 } from './quantization-info.js';
 import { sanitizeModelId } from './core.js';
+import { classifyTensorRole } from '../storage/rdrr-format.js';
 
 const SUPPORTED_MODEL_FAMILIES = 'gemma2, gemma3, embeddinggemma, modernbert, llama3, qwen3, mixtral, deepseek, mamba, gpt-oss';
 
@@ -16,17 +17,15 @@ function normalizeWeightDtype(dtype) {
   return upper === 'BF16' ? 'F16' : upper;
 }
 
-function isEmbeddingTensorName(name) {
-  return String(name || '').includes('embed');
-}
-
-function isLmHeadTensorName(name) {
-  return String(name || '').toLowerCase().includes('lm_head');
-}
-
-function findTensorDtype(tensors, matcher) {
-  const match = (tensors || []).find((t) => matcher(t?.name));
-  return match?.dtype ?? null;
+function findTensorDtypeByRole(tensors, targetRole) {
+  for (const tensor of (tensors || [])) {
+    const name = typeof tensor?.name === 'string' ? tensor.name : '';
+    if (!name) continue;
+    if (classifyTensorRole(name) === targetRole) {
+      return tensor?.dtype ?? null;
+    }
+  }
+  return null;
 }
 
 function hasAnyTensorPattern(tensors, patterns) {
@@ -62,13 +61,32 @@ export function inferSourceWeightQuantization(tensors) {
   if (!Array.isArray(tensors) || tensors.length === 0) {
     return 'f16';
   }
-  const dtypes = new Set(
-    tensors
-      .filter((tensor) => typeof tensor?.name === 'string' && tensor.name.includes('.weight'))
-      .map((tensor) => normalizeWeightDtype(tensor?.dtype))
-      .filter((dtype) => dtype.length > 0)
-  );
+  const weightTensors = [];
+  for (const tensor of tensors) {
+    const name = typeof tensor?.name === 'string' ? tensor.name : '';
+    if (!name.includes('.weight')) continue;
+    const dtype = normalizeWeightDtype(tensor?.dtype);
+    if (!dtype) continue;
+    weightTensors.push({ name, dtype });
+  }
+  const dtypes = new Set(weightTensors.map((tensor) => tensor.dtype));
   if (dtypes.size === 0) return 'f16';
+  if (dtypes.size > 1) {
+    const detail = Array.from(dtypes)
+      .sort()
+      .map((dtype) => {
+        const names = weightTensors
+          .filter((tensor) => tensor.dtype === dtype)
+          .slice(0, 2)
+          .map((tensor) => tensor.name);
+        return names.length > 0 ? `${dtype} (${names.join(', ')})` : dtype;
+      })
+      .join('; ');
+    throw new Error(
+      `Ambiguous source weight dtypes: ${Array.from(dtypes).sort().join(', ')}. ` +
+      `Samples: ${detail}. Set converterConfig.quantization.weights to override.`
+    );
+  }
   if (dtypes.size === 1) {
     const only = [...dtypes][0];
     if (only === 'F32') return 'f32';
@@ -99,10 +117,14 @@ export function resolveConversionPlan(options) {
   const tensors = Array.isArray(options?.tensors) ? options.tensors : [];
   const tensorNames = options?.tensorNames ?? tensors.map((tensor) => tensor.name);
   const converterConfig = options?.converterConfig;
-  const sourceQuantization = options?.sourceQuantization ?? inferSourceWeightQuantization(tensors);
+  const sourceQuantization = (
+    options?.sourceQuantization
+    ?? converterConfig?.quantization?.weights
+    ?? inferSourceWeightQuantization(tensors)
+  );
   const weightOverride = converterConfig?.quantization?.weights ?? null;
-  const embedDtypeRaw = findTensorDtype(tensors, isEmbeddingTensorName);
-  const lmHeadDtypeRaw = findTensorDtype(tensors, isLmHeadTensorName);
+  const embedDtypeRaw = findTensorDtypeByRole(tensors, 'embedding');
+  const lmHeadDtypeRaw = findTensorDtypeByRole(tensors, 'lm_head');
   const hasVision = hasAnyTensorPattern(tensors, ['vision_', 'vision_tower', 'vision_model', 'image_encoder']);
   const hasAudio = hasAnyTensorPattern(tensors, ['audio_', 'audio_encoder', 'whisper', 'wav2vec']);
   const hasProjector = hasAnyTensorPattern(tensors, ['multi_modal_projector', 'mm_projector', 'projector']);

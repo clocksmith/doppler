@@ -434,7 +434,8 @@ export async function convertModel(files, options = {}) {
       const ggufConfig = modelInfo.format === 'gguf' ? modelInfo.config : undefined;
       architectureConfig = extractArchitecture(hfConfig || {}, ggufConfig);
     }
-    const sourceQuantization = modelInfo.quantization || inferSourceWeightQuantization(tensors);
+    const weightOverride = resolvedConverterConfig.quantization?.weights ?? null;
+    const sourceQuantization = modelInfo.quantization || weightOverride || inferSourceWeightQuantization(tensors);
     const plan = resolveConversionPlan({
       rawConfig,
       tensors,

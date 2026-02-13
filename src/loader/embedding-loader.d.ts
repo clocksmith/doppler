@@ -40,6 +40,8 @@ export interface EmbeddingLoaderContext {
   gpuBuffers: Set<GPUBuffer>;
   /** Keep F32 weights (skip downcast) */
   keepF32Weights: boolean;
+  /** Preserve F32 embeddings when manifest quantization requires F32 embedding weights */
+  preserveF32Embeddings?: boolean;
 }
 
 /** Result of embedding loading */
