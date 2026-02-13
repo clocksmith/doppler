@@ -57,8 +57,6 @@
 
   "detection": {
     "architecturePatterns": ["gemma3", "Gemma3ForCausalLM", "gemma-3"],
-    "configPatterns": {
-      "rope_theta": 1000000
-    }
+    "modelTypePatterns": ["gemma3"]
   }
 }

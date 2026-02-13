@@ -1,0 +1,62 @@
+{
+  "id": "embeddinggemma-q4k-fused-f16a",
+  "name": "EmbeddingGemma Q4K Dequant (F16 activations)",
+  "description": "Q4K weights with dequant+matmul using F16 activations. EmbeddingGemma hiddenSize=1152 is not 256-aligned, so fused Q4K kernels cannot be used.",
+  "activationDtype": "f16",
+
+  "decode": {
+    "comment": "Decode uses dequant path because EmbeddingGemma hiddenSize=1152 is not 256-aligned (1152 % 256 = 128). Fused Q4K kernels would read across row boundaries.",
+    "steps": [
+      { "op": "input_norm",   "kernel": "rmsnorm_f16.wgsl",           "entry": "main" },
+      { "op": "q_proj",       "kernel": "matmul_f16.wgsl",            "entry": "main", "weights": "layer.{L}.self_attn.q_proj" },
+      { "op": "k_proj",       "kernel": "matmul_f16.wgsl",            "entry": "main", "weights": "layer.{L}.self_attn.k_proj" },
+      { "op": "v_proj",       "kernel": "matmul_f16.wgsl",            "entry": "main", "weights": "layer.{L}.self_attn.v_proj" },
+      { "op": "rope_q",       "kernel": "rope_f16.wgsl",              "entry": "main" },
+      { "op": "rope_k",       "kernel": "rope_f16.wgsl",              "entry": "main" },
+      { "op": "attention",    "kernel": "attention_decode_chunked_f16.wgsl",  "entry": "main" },
+      { "op": "o_proj",       "kernel": "matmul_f16.wgsl",            "entry": "main", "weights": "layer.{L}.self_attn.o_proj" },
+      { "op": "attn_residual","kernel": "residual_f16.wgsl",          "entry": "main" },
+      { "op": "post_attn_norm","kernel": "rmsnorm_f16.wgsl",          "entry": "main" },
+      { "op": "gate_proj",    "kernel": "matmul_f16.wgsl",            "entry": "main", "weights": "layer.{L}.mlp.gate_proj" },
+      { "op": "up_proj",      "kernel": "matmul_f16.wgsl",            "entry": "main", "weights": "layer.{L}.mlp.up_proj" },
+      { "op": "activation",   "kernel": "gelu_f16.wgsl",              "entry": "main", "constants": { "HAS_GATE": true } },
+      { "op": "down_proj",    "kernel": "matmul_f16.wgsl",            "entry": "main", "weights": "layer.{L}.mlp.down_proj" },
+      { "op": "ffn_residual", "kernel": "residual_f16.wgsl",          "entry": "main" }
+    ]
+  },
+
+  "prefill": {
+    "comment": "Prefill uses dequant path because EmbeddingGemma hiddenSize=1152 is not 256-aligned.",
+    "steps": [
+      { "op": "input_norm",   "kernel": "rmsnorm_f16.wgsl",      "entry": "main" },
+      { "op": "q_proj",       "kernel": "matmul_f16.wgsl",   "entry": "main", "weights": "layer.{L}.self_attn.q_proj" },
+      { "op": "k_proj",       "kernel": "matmul_f16.wgsl",   "entry": "main", "weights": "layer.{L}.self_attn.k_proj" },
+      { "op": "v_proj",       "kernel": "matmul_f16.wgsl",   "entry": "main", "weights": "layer.{L}.self_attn.v_proj" },
+      { "op": "rope_q",       "kernel": "rope_f16.wgsl",         "entry": "main" },
+      { "op": "rope_k",       "kernel": "rope_f16.wgsl",         "entry": "main" },
+      { "op": "attention",    "kernel": "attention_small_f16.wgsl",    "entry": "main" },
+      { "op": "o_proj",       "kernel": "matmul_f16.wgsl",   "entry": "main", "weights": "layer.{L}.self_attn.o_proj" },
+      { "op": "attn_residual","kernel": "residual_f16.wgsl",     "entry": "main" },
+      { "op": "post_attn_norm","kernel": "rmsnorm_f16.wgsl",     "entry": "main" },
+      { "op": "gate_proj",    "kernel": "matmul_f16.wgsl",   "entry": "main", "weights": "layer.{L}.mlp.gate_proj" },
+      { "op": "up_proj",      "kernel": "matmul_f16.wgsl",   "entry": "main", "weights": "layer.{L}.mlp.up_proj" },
+      { "op": "activation",   "kernel": "gelu_f16.wgsl",         "entry": "main", "constants": { "HAS_GATE": true } },
+      { "op": "down_proj",    "kernel": "matmul_f16.wgsl",   "entry": "main", "weights": "layer.{L}.mlp.down_proj" },
+      { "op": "ffn_residual", "kernel": "residual_f16.wgsl",     "entry": "main" }
+    ]
+  },
+
+  "preLayer": [
+    { "op": "embed",        "kernel": "gather_f16.wgsl",             "entry": "main",         "weights": "embed_tokens" }
+  ],
+
+  "postLayer": [
+    { "op": "final_norm",   "kernel": "rmsnorm_f16.wgsl",            "entry": "main" },
+    { "op": "lm_head",      "kernel": "matmul_gemv_subgroup_f16a.wgsl", "entry": "main_multicol",  "weights": "lm_head" },
+    { "op": "lm_head_prefill", "kernel": "matmul_f16.wgsl",          "entry": "main",  "weights": "lm_head" }
+  ],
+
+  "sampling": [
+    { "op": "sample",       "kernel": "sample_f16.wgsl",             "entry": "sample_single_pass" }
+  ]
+}

@@ -228,6 +228,7 @@ export function toParsedConfigFromMerged(merged, manifest) {
   // Manifest-first: queryPreAttnScalar is required in ManifestAttentionSchema
   const headDim = arch.headDim;
   const queryPreAttnScalar = inf.attention.queryPreAttnScalar;
+  const causalAttention = inf.attention.causal ?? true;
 
   // Get stop token IDs (cast to Manifest for compatibility)
   const stopTokenIds = getStopTokenIds(manifest);
@@ -306,6 +307,7 @@ export function toParsedConfigFromMerged(merged, manifest) {
     stopTokenIds,
     layerTypes,
     attentionBias: inf.attention.attentionBias,
+    causalAttention,
     finalLogitSoftcapping: inf.output.finalLogitSoftcapping,
     attnLogitSoftcapping: inf.attention.attnLogitSoftcapping,
     queryKeyNorm: inf.attention.queryKeyNorm,

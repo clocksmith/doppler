@@ -53,6 +53,12 @@ function mergeAttention(
       runtime?.queryKeyNorm,
       sources
     ),
+    causal: overlay(
+      `${prefix}.causal`,
+      manifest.causal,
+      runtime?.causal,
+      sources
+    ),
   };
 }
 

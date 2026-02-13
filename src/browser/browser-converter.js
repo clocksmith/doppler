@@ -63,6 +63,7 @@ import {
 import { buildManifestInference } from '../converter/manifest-inference.js';
 
 import { createConverterConfig, detectPreset, resolvePreset } from '../config/index.js';
+import { resolveKernelPath } from '../config/kernel-path-loader.js';
 import { DEFAULT_MANIFEST_INFERENCE } from '../config/schema/index.js';
 import { MB, GB } from '../config/schema/units.schema.js';
 import { log, trace } from '../debug/index.js';
@@ -674,6 +675,18 @@ export async function convertModel(files, options = {}) {
       const inferredHeadDim = headDim ?? preset?.architecture?.headDim ?? null;
       const names = tensorNames ?? tensors.map((tensor) => tensor.name);
       manifestInference = buildManifestInference(preset, rawConfig, inferredHeadDim, quantizationInfo, names);
+      if (manifestInference?.defaultKernelPath) {
+        try {
+          resolveKernelPath(manifestInference.defaultKernelPath);
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          throw new Error(
+            `Invalid defaultKernelPath "${manifestInference.defaultKernelPath}" for preset "${presetId}" ` +
+            `(weights=${quantizationInfo.weights}, compute=${quantizationInfo.compute ?? 'default'}, ` +
+            `q4kLayout=${quantizationInfo.layout ?? 'row'}): ${message}`
+          );
+        }
+      }
     }
 
     const detectedModelId = extractModelId(files, config);

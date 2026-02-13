@@ -16,6 +16,7 @@ import {
 } from '../storage/rdrr-format.js';
 import { log } from '../debug/index.js';
 import { createConverterConfig, detectPreset, resolvePreset } from '../config/index.js';
+import { resolveKernelPath } from '../config/kernel-path-loader.js';
 import { extractArchitecture } from '../converter/core.js';
 import { buildManifestInference } from '../converter/manifest-inference.js';
 import { HEADER_READ_SIZE } from '../config/schema/index.js';
@@ -452,6 +453,18 @@ function createManifest(
     : null;
   const tensorNames = ggufInfo.tensors?.map((tensor) => tensor.name) ?? null;
   const inference = buildManifestInference(preset, rawConfig, headDim, quantizationInfo, tensorNames);
+  if (inference?.defaultKernelPath) {
+    try {
+      resolveKernelPath(inference.defaultKernelPath);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(
+        `Invalid defaultKernelPath "${inference.defaultKernelPath}" for preset "${presetId}" ` +
+        `(weights=${quantizationInfo?.weights ?? 'unknown'}, compute=${quantizationInfo?.compute ?? 'default'}, ` +
+        `q4kLayout=${quantizationInfo?.layout ?? 'row'}): ${message}`
+      );
+    }
+  }
 
   // Build tensor location map
   // Maps each tensor to its shard(s) and offset within shard

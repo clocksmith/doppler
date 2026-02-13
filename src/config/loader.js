@@ -109,12 +109,12 @@ export function detectPreset(
   const archLower = (architecture || '').toLowerCase();
   const modelType = (config.model_type || '').toLowerCase();
 
-  // Check presets in deterministic order (specific -> generic)
+  // Pass 1: high-signal identifiers only (architecture/model type).
+  // This avoids generic numeric config fields hijacking family detection.
   for (const id of PRESET_DETECTION_ORDER) {
     const preset = PRESET_REGISTRY[id];
     if (!preset?.detection) continue;
 
-    // Check architecture patterns
     if (preset.detection.architecturePatterns) {
       for (const pattern of preset.detection.architecturePatterns) {
         if (archLower.includes(pattern.toLowerCase())) {
@@ -123,7 +123,6 @@ export function detectPreset(
       }
     }
 
-    // Check model type patterns
     if (preset.detection.modelTypePatterns) {
       for (const pattern of preset.detection.modelTypePatterns) {
         if (modelType.includes(pattern.toLowerCase())) {
@@ -131,8 +130,13 @@ export function detectPreset(
         }
       }
     }
+  }
 
-    // Check config patterns
+  // Pass 2: config-pattern fallback.
+  for (const id of PRESET_DETECTION_ORDER) {
+    const preset = PRESET_REGISTRY[id];
+    if (!preset?.detection) continue;
+
     if (preset.detection.configPatterns) {
       let allMatch = true;
       for (const [key, value] of Object.entries(preset.detection.configPatterns)) {

@@ -115,6 +115,22 @@ function detectTieWordEmbeddingsFromTensors(tensorNames) {
   return null;
 }
 
+function detectCausalAttention(modelConfig) {
+  if (!modelConfig || typeof modelConfig !== 'object') {
+    return null;
+  }
+
+  if (modelConfig.use_bidirectional_attention === true || modelConfig.is_decoder === false) {
+    return false;
+  }
+
+  if (modelConfig.use_bidirectional_attention === false || modelConfig.is_decoder === true) {
+    return true;
+  }
+
+  return null;
+}
+
 // Build normalization config with auto-detection from tensor names.
 // Priority: auto-detected > preset > default
 function buildNormalizationConfig(presetInference, modelConfig, defaults, tensorNames) {
@@ -193,6 +209,7 @@ export function buildManifestInference(preset, config, headDim = 64, quantizatio
   // Build inference config with all required fields explicitly set
   // Use null for "not applicable" - no undefined allowed
   const detectedTieWordEmbeddings = detectTieWordEmbeddingsFromTensors(tensorNames);
+  const detectedCausalAttention = detectCausalAttention(modelConfig);
   const inference = {
     presetId: preset.id ?? null,
     attention: {
@@ -202,6 +219,7 @@ export function buildManifestInference(preset, config, headDim = 64, quantizatio
       slidingWindow: presetInference.attention?.slidingWindow ??
         modelConfig.sliding_window ?? defaults.attention.slidingWindow,
       queryKeyNorm: presetInference.attention?.queryKeyNorm ?? defaults.attention.queryKeyNorm,
+      causal: detectedCausalAttention ?? presetInference.attention?.causal ?? defaults.attention.causal,
       attentionBias: presetInference.attention?.attentionBias ??
         modelConfig.attention_bias ?? defaults.attention.attentionBias,
     },

@@ -153,6 +153,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
     attnSoftcap: config.attnLogitSoftcapping === null ? 0 : config.attnLogitSoftcapping,
     queryPreAttnScalar: config.queryPreAttnScalar,
     queryKeyNorm: config.queryKeyNorm,
+    causalAttention: config.causalAttention,
     rmsNormWeightOffset: config.rmsNormWeightOffset,
   };
 
@@ -474,6 +475,7 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
             attnSoftcap: config.attnLogitSoftcapping === null ? 0 : config.attnLogitSoftcapping,
             queryPreAttnScalar: config.queryPreAttnScalar,
             queryKeyNorm: config.queryKeyNorm,
+            causalAttention: config.causalAttention,
             rmsNormWeightOffset: config.rmsNormWeightOffset,
             skipInputNorm: step.skipInputNorm === true,
           };

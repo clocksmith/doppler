@@ -12,7 +12,8 @@
   "inference": {
     "attention": {
       "attnLogitSoftcapping": null,
-      "queryKeyNorm": true
+      "queryKeyNorm": true,
+      "causal": false
     },
     "normalization": {
       "rmsNormWeightOffset": true,
@@ -42,10 +43,12 @@
     },
     "kernelPaths": {
       "f16": {
-        "f16": "gemma3-f16-f16a"
+        "f16": "embeddinggemma-f16-f32a",
+        "f32": "embeddinggemma-f16-f32a"
       },
       "q4k": {
-        "f16": "gemma3-q4k-fused-f16a"
+        "f16": "embeddinggemma-q4k-dequant-f32a",
+        "f32": "embeddinggemma-q4k-dequant-f32a"
       }
     }
   },

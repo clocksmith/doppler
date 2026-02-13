@@ -192,16 +192,20 @@ export async function convertSafetensorsDirectory(options) {
   const [
     { parseSafetensorsHeader },
     { convertModel, extractArchitecture },
-    { resolveManifestQuantization },
+    { normalizeQuantTag, resolveManifestQuantization },
+    { buildManifestInference },
     { createConverterConfig },
     { detectPreset, resolvePreset },
+    { resolveKernelPath },
     { computeHash },
   ] = await Promise.all([
     import('../formats/safetensors/types.js'),
     import('../converter/core.js'),
     import('../converter/quantization-info.js'),
+    import('../converter/manifest-inference.js'),
     import('../config/schema/converter.schema.js'),
     import('../config/loader.js'),
+    import('../config/kernel-path-loader.js'),
     import('../storage/shard-manager.js'),
   ]);
 
@@ -213,13 +217,59 @@ export async function convertSafetensorsDirectory(options) {
 
   const architectureHint = config.architectures?.[0] ?? config.model_type ?? '';
   const architecture = extractArchitecture(config, null);
-  const presetId = detectPreset(config, architectureHint);
-  const preset = resolvePreset(presetId);
-  const resolvedModelType = preset.modelType ?? 'transformer';
   const sourceQuantization = inferSourceWeightQuantization(tensors);
   const converterConfig = createConverterConfig(converterConfigOverride ?? undefined);
+  const presetOverride = typeof converterConfig.presets?.model === 'string'
+    ? converterConfig.presets.model.trim()
+    : '';
+  const presetId = presetOverride || detectPreset(config, architectureHint);
+  const preset = resolvePreset(presetId);
+  if (presetId === 'transformer') {
+    const modelType = config.model_type ?? 'unknown';
+    throw new Error(
+      `Unknown model family: architecture="${architectureHint || 'unknown'}", model_type="${modelType}"\n\n` +
+      `DOPPLER requires a known model preset to generate correct inference config.\n` +
+      `The manifest-first architecture does not support generic defaults.\n\n` +
+      `Options:\n` +
+      `  1. Wait for official support of this model family\n` +
+      `  2. Set converterConfig.presets.model to a known family (e.g., embeddinggemma)\n` +
+      `  3. Create a custom preset in src/config/presets/models/\n` +
+      `  4. File an issue at https://github.com/clocksmith/doppler/issues\n\n` +
+      `Supported model families: gemma2, gemma3, embeddinggemma, modernbert, llama3, qwen3, mixtral, deepseek, mamba, gpt-oss`
+    );
+  }
+  const resolvedModelType = preset.modelType ?? 'transformer';
   const weightOverride = converterConfig.quantization?.weights ?? null;
   const targetQuantization = resolveManifestQuantization(weightOverride, sourceQuantization);
+  const normalizedWeightQuant = normalizeQuantTag(weightOverride ?? sourceQuantization);
+  const quantizationInfo = {
+    weights: normalizedWeightQuant,
+    compute: converterConfig.quantization?.computePrecision ?? null,
+  };
+  if (normalizedWeightQuant === 'q4k') {
+    quantizationInfo.layout = converterConfig.quantization?.q4kLayout ?? null;
+  }
+  const headDim = architecture?.headDim ?? preset?.architecture?.headDim ?? 64;
+  const tensorNames = tensors.map((tensor) => tensor.name);
+  const inference = buildManifestInference(
+    preset,
+    config,
+    headDim,
+    quantizationInfo,
+    tensorNames
+  );
+  if (inference?.defaultKernelPath) {
+    try {
+      resolveKernelPath(inference.defaultKernelPath);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(
+        `Invalid defaultKernelPath "${inference.defaultKernelPath}" for preset "${presetId}" ` +
+        `(weights=${quantizationInfo.weights}, compute=${quantizationInfo.compute ?? 'default'}, ` +
+        `q4kLayout=${quantizationInfo.layout ?? 'row'}): ${message}`
+      );
+    }
+  }
 
   const tokenizerJsonPath = path.join(inputDir, 'tokenizer.json');
   const tokenizerModelPath = path.join(inputDir, 'tokenizer.model');
@@ -256,7 +306,9 @@ export async function convertSafetensorsDirectory(options) {
     modelId,
     modelType: resolvedModelType,
     quantization: targetQuantization,
+    quantizationInfo,
     architecture,
+    inference,
     converterConfig,
     onProgress(update) {
       onProgress?.(toNodeProgress(update));

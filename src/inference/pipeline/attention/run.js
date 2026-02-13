@@ -472,7 +472,7 @@ export async function runLayerAttentionGPU(
   
   let cachedV;
   let kvLenForAttention = currentSeqLen + numTokens;
-  let causalForAttention = true;
+  let causalForAttention = config.causalAttention !== false;
   let startPosForMask = currentSeqLen;
   let kvStart = 0;
   let kvLayout = 'contiguous';
