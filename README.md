@@ -2,15 +2,12 @@
 
 **D**istributed **O**n-device **P**ipeline **P**rocessing **L**arge **E**mbedded **R**eploid ([Reploid](https://github.com/clocksmith/reploid))
 
-Browser-native WebGPU inference for decoding, diffusion sampling, and energy-based inference, plus a post-training engine for local model execution.
-Doppler runs standalone as the engine; Reploid is an optional driver that can link in for orchestration.
-In a neurosymbolic future, a combined stack is essential because decoding handles discrete reasoning, diffusion supplies rich generative priors, and energy models enforce constraints and verification across both.
-
 **[Try it live](https://d4da.com)**
 
-## Why This Works
+Browser-native WebGPU inference for decoding, diffusion sampling, and energy-based inference, plus a post-training engine for local model execution.
+Doppler runs standalone as the engine; Reploid is an optional driver that can link in for orchestration.
 
-Doppler and Reploid share a browser process. Kernel registry/config changes apply without rebuild; full kernel hot-swap is planned.
+## Why This Works
 
 | Capability | Claim |
 |------------|-------|
