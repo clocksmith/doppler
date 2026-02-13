@@ -1,6 +1,5 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { createHash } from 'node:crypto';
 import { installNodeFileFetchShim } from './node-file-fetch.js';
 
 
@@ -20,6 +19,18 @@ function parseModelId(value, outputDir) {
     return value.trim();
   }
   return path.basename(outputDir);
+}
+
+function isPlainObject(value) {
+  return !!value && typeof value === 'object' && !Array.isArray(value);
+}
+
+function normalizeConverterConfigOverride(value) {
+  if (value == null) return null;
+  if (!isPlainObject(value)) {
+    throw new Error('node convert: converterConfig must be an object when provided.');
+  }
+  return value;
 }
 
 async function readOptionalJson(filePath) {
@@ -90,7 +101,37 @@ async function loadTensorHeaders(inputDir, parseSafetensorsHeader) {
   return tensors;
 }
 
-function createNodeConvertIO(outputDir) {
+function inferSourceWeightQuantization(tensors) {
+  if (!Array.isArray(tensors) || tensors.length === 0) {
+    return 'f16';
+  }
+  const dtypes = new Set(
+    tensors
+      .filter((tensor) => typeof tensor?.name === 'string' && tensor.name.includes('.weight'))
+      .map((tensor) => String(tensor?.dtype || '').trim().toUpperCase())
+      .filter((dtype) => dtype.length > 0)
+  );
+  if (dtypes.size === 0) return 'f16';
+  if (dtypes.size === 1) {
+    const only = [...dtypes][0];
+    if (only === 'F32') return 'f32';
+    if (only === 'F16') return 'f16';
+    if (only === 'BF16') return 'f16';
+  }
+  if (dtypes.has('F32')) return 'f32';
+  if (dtypes.has('BF16')) return 'f16';
+  return 'f16';
+}
+
+function createNodeConvertIO(outputDir, options) {
+  const hashAlgorithm = options?.hashAlgorithm;
+  const computeHash = options?.computeHash;
+  if (!hashAlgorithm || typeof hashAlgorithm !== 'string') {
+    throw new Error('node convert: hashAlgorithm is required.');
+  }
+  if (typeof computeHash !== 'function') {
+    throw new Error('node convert: computeHash(data, algorithm) is required.');
+  }
   return {
     async readTensorData(tensor) {
       const fd = await fs.open(tensor.sourcePath, 'r');
@@ -105,7 +146,7 @@ function createNodeConvertIO(outputDir) {
     async writeShard(index, data) {
       const filename = generateShardFilename(index);
       await fs.writeFile(path.join(outputDir, filename), data);
-      return createHash('sha256').update(data).digest('hex');
+      return computeHash(data, hashAlgorithm);
     },
     async writeManifest(manifest) {
       await fs.writeFile(
@@ -143,6 +184,7 @@ export async function convertSafetensorsDirectory(options) {
   const inputDir = assertPath(options?.inputDir, 'inputDir');
   const outputDir = assertPath(options?.outputDir, 'outputDir');
   const modelId = parseModelId(options?.modelId, outputDir);
+  const converterConfigOverride = normalizeConverterConfigOverride(options?.converterConfig);
   const onProgress = typeof options?.onProgress === 'function' ? options.onProgress : null;
 
   installNodeFileFetchShim();
@@ -150,13 +192,17 @@ export async function convertSafetensorsDirectory(options) {
   const [
     { parseSafetensorsHeader },
     { convertModel, extractArchitecture },
+    { resolveManifestQuantization },
     { createConverterConfig },
     { detectPreset, resolvePreset },
+    { computeHash },
   ] = await Promise.all([
     import('../formats/safetensors/types.js'),
     import('../converter/core.js'),
+    import('../converter/quantization-info.js'),
     import('../config/schema/converter.schema.js'),
     import('../config/loader.js'),
+    import('../storage/shard-manager.js'),
   ]);
 
   await fs.mkdir(outputDir, { recursive: true });
@@ -170,6 +216,10 @@ export async function convertSafetensorsDirectory(options) {
   const presetId = detectPreset(config, architectureHint);
   const preset = resolvePreset(presetId);
   const resolvedModelType = preset.modelType ?? 'transformer';
+  const sourceQuantization = inferSourceWeightQuantization(tensors);
+  const converterConfig = createConverterConfig(converterConfigOverride ?? undefined);
+  const weightOverride = converterConfig.quantization?.weights ?? null;
+  const targetQuantization = resolveManifestQuantization(weightOverride, sourceQuantization);
 
   const tokenizerJsonPath = path.join(inputDir, 'tokenizer.json');
   const tokenizerModelPath = path.join(inputDir, 'tokenizer.model');
@@ -192,21 +242,20 @@ export async function convertSafetensorsDirectory(options) {
     })),
     config,
     architecture: architectureHint || 'unknown',
-    quantization: 'f16',
+    quantization: targetQuantization,
     tokenizerJson,
     tokenizerConfig,
     tokenizerModel: hasTokenizerModel ? 'tokenizer.model' : null,
   };
 
-  const io = createNodeConvertIO(outputDir);
-  const converterConfig = createConverterConfig({
-    manifest: { hashAlgorithm: 'sha256' },
+  const io = createNodeConvertIO(outputDir, {
+    hashAlgorithm: converterConfig.manifest.hashAlgorithm,
+    computeHash,
   });
-
   const result = await convertModel(model, io, {
     modelId,
     modelType: resolvedModelType,
-    quantization: 'f16',
+    quantization: targetQuantization,
     architecture,
     converterConfig,
     onProgress(update) {

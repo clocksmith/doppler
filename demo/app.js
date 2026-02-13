@@ -602,6 +602,10 @@ async function refreshModelList() {
       ? model.modelId
       : (typeof model?.id === 'string' ? model.id : '');
     if (!modelId || seenModelIds.has(modelId)) continue;
+    const entryModelType = normalizeModelType(model?.modelType);
+    if (entryModelType) {
+      state.modelTypeCache[modelId] = entryModelType;
+    }
     seenModelIds.add(modelId);
     modelIds.push(modelId);
   }

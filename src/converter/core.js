@@ -137,6 +137,16 @@ export function sanitizeModelId(name) {
 // Re-export formatBytes from schema for backward compatibility
 export { formatBytes };
 
+const BF16_ROUND_VIEW = new DataView(new ArrayBuffer(4));
+
+function float32ToBFloat16(value) {
+  BF16_ROUND_VIEW.setFloat32(0, value, true);
+  const bits = BF16_ROUND_VIEW.getUint32(0, true);
+  const lsb = (bits >> 16) & 1;
+  const roundingBias = 0x7fff + lsb;
+  return ((bits + roundingBias) >> 16) & 0xffff;
+}
+
 
 export function shouldQuantize(tensorName, shape, options = {}) {
   if (!shape || !Array.isArray(shape) || shape.length === 0) {
@@ -536,9 +546,10 @@ export async function convertModel(model, io, options = {}) {
     let tensorData = new Uint8Array(data);
     let outDtype = tensor.dtype;
 
-    // Convert storage to true F16 when requested. This avoids writing F32 bytes
-    // while advertising f16 in manifest metadata.
-    if (targetQuant === 'f16' && String(tensor.dtype).toUpperCase() === 'F32') {
+    // Convert storage to requested low-precision format when needed so shard bytes
+    // stay consistent with manifest quantization metadata.
+    const sourceDtype = String(tensor.dtype).toUpperCase();
+    if (targetQuant === 'f16' && sourceDtype === 'F32') {
       if (tensorData.byteLength % 4 !== 0) {
         throw new Error(`Invalid F32 tensor byte length for ${tensor.name}: ${tensorData.byteLength}`);
       }
@@ -553,6 +564,21 @@ export async function convertModel(model, io, options = {}) {
       }
       tensorData = new Uint8Array(f16.buffer, f16.byteOffset, f16.byteLength);
       outDtype = 'F16';
+    } else if (targetQuant === 'bf16' && sourceDtype === 'F32') {
+      if (tensorData.byteLength % 4 !== 0) {
+        throw new Error(`Invalid F32 tensor byte length for ${tensor.name}: ${tensorData.byteLength}`);
+      }
+      const f32 = new Float32Array(
+        tensorData.buffer,
+        tensorData.byteOffset,
+        tensorData.byteLength / 4
+      );
+      const bf16 = new Uint16Array(f32.length);
+      for (let j = 0; j < f32.length; j++) {
+        bf16[j] = float32ToBFloat16(f32[j]);
+      }
+      tensorData = new Uint8Array(bf16.buffer, bf16.byteOffset, bf16.byteLength);
+      outDtype = 'BF16';
     }
 
     const tensorSize = tensorData.byteLength;

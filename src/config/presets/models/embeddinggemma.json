@@ -1,16 +1,59 @@
 {
   "id": "embeddinggemma",
   "name": "EmbeddingGemma (Gemma 3 Text Embedding)",
-  "extends": "gemma3",
+  "extends": "transformer",
   "modelType": "embedding",
 
+  "architecture": {
+    "headDim": 256,
+    "ropeTheta": 1000000
+  },
+
   "inference": {
+    "attention": {
+      "attnLogitSoftcapping": null,
+      "queryKeyNorm": true
+    },
+    "normalization": {
+      "rmsNormWeightOffset": true,
+      "rmsNormEps": 1e-6,
+      "postAttentionNorm": true,
+      "preFeedforwardNorm": true,
+      "postFeedforwardNorm": true
+    },
+    "ffn": {
+      "activation": "gelu"
+    },
+    "output": {
+      "finalLogitSoftcapping": null,
+      "scaleEmbeddings": true,
+      "tieWordEmbeddings": false
+    },
+    "layerPattern": {
+      "type": "every_n",
+      "period": 6
+    },
+    "rope": {
+      "ropeTheta": 1000000,
+      "ropeLocalTheta": 10000
+    },
     "chatTemplate": {
       "enabled": false
     },
-    "output": {
-      "tieWordEmbeddings": false
+    "kernelPaths": {
+      "f16": {
+        "f16": "gemma3-f16-f16a"
+      },
+      "q4k": {
+        "f16": "gemma3-q4k-fused-f16a"
+      }
     }
+  },
+
+  "tokenizer": {
+    "bosToken": "<bos>",
+    "eosTokens": ["<eos>", "<end_of_turn>"],
+    "addBosToken": true
   },
 
   "detection": {

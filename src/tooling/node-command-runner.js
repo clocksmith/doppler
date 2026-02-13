@@ -11,6 +11,14 @@ function isPlainObject(value) {
   return !!value && typeof value === 'object' && !Array.isArray(value);
 }
 
+function asOptionalPlainObject(value, label) {
+  if (value == null) return null;
+  if (!isPlainObject(value)) {
+    throw new Error(`node command: ${label} must be an object when provided.`);
+  }
+  return value;
+}
+
 function mergeRuntimeValues(base, override) {
   if (override === undefined) return base;
   if (override === null) return null;
@@ -99,10 +107,15 @@ export async function runNodeCommand(commandRequest, options = {}) {
   const { request } = ensureCommandSupportedOnSurface(commandRequest, 'node');
 
   if (request.command === 'convert') {
+    const convertPayload = asOptionalPlainObject(request.convertPayload, 'convertPayload');
+    const converterConfig = convertPayload
+      ? asOptionalPlainObject(convertPayload.converterConfig, 'convertPayload.converterConfig')
+      : null;
     const result = await convertSafetensorsDirectory({
       inputDir: request.inputDir,
       outputDir: request.outputDir,
       modelId: request.modelId,
+      converterConfig,
       onProgress: options.onProgress,
     });
     return {

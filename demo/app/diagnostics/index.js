@@ -181,6 +181,7 @@ function updateDiagnosticsProfileOptions(mode, modelId, modelType) {
 
   const order = getDiagnosticsSuiteOrder();
   const isKernelsMode = mode === 'kernels';
+  const normalizedModelType = normalizeModelType(modelType);
   const availableSuites = [];
   if (isKernelsMode) {
     availableSuites.push('kernels');
@@ -209,7 +210,6 @@ function updateDiagnosticsProfileOptions(mode, modelId, modelType) {
   }
 
   if (!isKernelsMode) {
-    const normalizedModelType = normalizeModelType(modelType);
     if (normalizedModelType === 'unknown') {
       profileSelect.innerHTML = '';
       const opt = document.createElement('option');
@@ -250,12 +250,18 @@ function updateDiagnosticsProfileOptions(mode, modelId, modelType) {
   const explicitPair = selection.suite && selection.preset
     ? { suite: String(selection.suite).trim().toLowerCase(), preset: String(selection.preset).trim() }
     : null;
+  const storedModelType = normalizeModelType(selection.modelType);
+  const resetForModelTypeChange = (
+    !isKernelsMode
+    && normalizedModelType
+    && storedModelType !== normalizedModelType
+  );
 
   const hasEntry = (pair) => Boolean(pair && entries.some((entry) => entry.suite === pair.suite && entry.preset === pair.preset));
   let targetPair = null;
-  if (hasEntry(currentPair)) targetPair = currentPair;
-  if (!targetPair && hasEntry(storedPair)) targetPair = storedPair;
-  if (!targetPair && hasEntry(explicitPair)) targetPair = explicitPair;
+  if (!resetForModelTypeChange && hasEntry(currentPair)) targetPair = currentPair;
+  if (!targetPair && !resetForModelTypeChange && hasEntry(storedPair)) targetPair = storedPair;
+  if (!targetPair && !resetForModelTypeChange && hasEntry(explicitPair)) targetPair = explicitPair;
   if (!targetPair) {
     const defaultSuite = getDiagnosticsDefaultSuite(mode);
     const fallbackSuite = availableSuites.includes(defaultSuite) ? defaultSuite : availableSuites[0];
@@ -275,6 +281,7 @@ function updateDiagnosticsProfileOptions(mode, modelId, modelType) {
     profile: chosen.id,
     suite: chosen.suite,
     preset: chosen.preset,
+    modelType: isKernelsMode ? null : (normalizedModelType || null),
   });
   return chosen;
 }
@@ -649,9 +656,13 @@ export function updateDiagnosticsGuidance() {
     missing.push('bench intent');
   }
   if (modelId && normalizedModelType == null) {
-    getModelTypeForId(modelId)
+    const pendingModelId = modelId;
+    getModelTypeForId(pendingModelId)
       .then((resolved) => {
-        if (resolved != null) updateDiagnosticsGuidance();
+        if (resolved == null) return;
+        const currentModelId = modelSelect?.value || '';
+        if (currentModelId !== pendingModelId) return;
+        updateDiagnosticsGuidance();
       })
       .catch(() => {});
   }

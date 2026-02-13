@@ -42,7 +42,7 @@ export function getModeModelLabel(mode) {
 export async function getModelTypeForId(modelId) {
   if (!modelId) return null;
   const cached = state.modelTypeCache[modelId];
-  if (cached) return cached;
+  if (typeof cached === 'string' && cached.length > 0) return cached;
   const inflight = modelTypeInflight.get(modelId);
   if (inflight) return inflight;
 
@@ -51,7 +51,8 @@ export async function getModelTypeForId(modelId) {
       await openModelStore(modelId);
       const manifestText = await loadManifestFromStore();
       if (!manifestText) {
-        return null;
+        state.modelTypeCache[modelId] = 'unknown';
+        return 'unknown';
       }
       let manifest;
       try {

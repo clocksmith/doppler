@@ -427,6 +427,63 @@ async function runKernelSuite(options = {}) {
 const DEFAULT_HARNESS_PROMPT = 'Summarize this input in one sentence.';
 const DEFAULT_HARNESS_MAX_TOKENS = 32;
 const EMBEDDING_PREVIEW_LENGTH = 16;
+const EMBEDDING_SEMANTIC_MIN_RETRIEVAL_TOP1 = 0.67;
+const EMBEDDING_SEMANTIC_MIN_PAIR_ACC = 0.67;
+const EMBEDDING_SEMANTIC_PAIR_MARGIN = 0.01;
+
+const EMBEDDING_SEMANTIC_RETRIEVAL_CASES = Object.freeze([
+  Object.freeze({
+    id: 'library_search',
+    query: 'Where can I borrow books and study quietly?',
+    docs: Object.freeze([
+      'The city library lends books, provides study rooms, and offers free Wi-Fi.',
+      'The cafe serves coffee, pastries, and sandwiches all day.',
+      'The bike repair shop fixes flat tires and broken chains.',
+    ]),
+    expectedDoc: 0,
+  }),
+  Object.freeze({
+    id: 'password_reset',
+    query: 'How do I reset my account password?',
+    docs: Object.freeze([
+      'To reset your password, open account settings and choose the forgot-password flow.',
+      'Our shipping policy explains delivery timelines and tracking updates.',
+      'The recipe combines tomatoes, basil, and olive oil.',
+    ]),
+    expectedDoc: 0,
+  }),
+  Object.freeze({
+    id: 'damaged_package',
+    query: 'What should I do if my package arrives damaged?',
+    docs: Object.freeze([
+      'Contact support within seven days with photos to request a replacement for damaged items.',
+      'The concert starts at 8 PM at the downtown arena.',
+      'Plant roses in spring and water them twice a week.',
+    ]),
+    expectedDoc: 0,
+  }),
+]);
+
+const EMBEDDING_SEMANTIC_PAIR_CASES = Object.freeze([
+  Object.freeze({
+    id: 'bike_paraphrase',
+    anchor: 'The child is riding a bicycle through the park.',
+    positive: 'A kid bikes along a path in the park.',
+    negative: 'The stock market closed lower after interest-rate news.',
+  }),
+  Object.freeze({
+    id: 'cancel_subscription',
+    anchor: 'Please cancel my subscription before renewal.',
+    positive: 'I want to stop the plan so it does not renew.',
+    negative: 'The mountain trail is closed after heavy snow.',
+  }),
+  Object.freeze({
+    id: 'battery_drain',
+    anchor: 'The laptop battery drains very quickly.',
+    positive: 'My notebook loses charge fast.',
+    negative: 'This pasta sauce tastes sweet and spicy.',
+  }),
+]);
 
 function resolvePrompt(runtimeConfig) {
   const runtimePrompt = runtimeConfig?.inference?.prompt;
@@ -493,6 +550,119 @@ function summarizeEmbeddingValues(embedding) {
     stdDev,
     l2Norm,
     preview,
+  };
+}
+
+function cosineSimilarity(a, b) {
+  if (!a || !b || !Number.isFinite(a.length) || !Number.isFinite(b.length)) return NaN;
+  if (a.length !== b.length || a.length === 0) return NaN;
+  let dot = 0;
+  let normA = 0;
+  let normB = 0;
+  for (let i = 0; i < a.length; i++) {
+    const av = Number(a[i]);
+    const bv = Number(b[i]);
+    if (!Number.isFinite(av) || !Number.isFinite(bv)) return NaN;
+    dot += av * bv;
+    normA += av * av;
+    normB += bv * bv;
+  }
+  if (normA <= 0 || normB <= 0) return NaN;
+  return dot / Math.sqrt(normA * normB);
+}
+
+function top1Index(values) {
+  let best = -1;
+  let bestValue = -Infinity;
+  for (let i = 0; i < values.length; i++) {
+    const value = Number(values[i]);
+    if (!Number.isFinite(value)) continue;
+    if (value > bestValue) {
+      bestValue = value;
+      best = i;
+    }
+  }
+  return best;
+}
+
+async function embedStandaloneText(pipeline, text) {
+  pipeline.reset?.();
+  const result = await pipeline.embed(text);
+  const embedding = result?.embedding;
+  if (!embedding || !Number.isFinite(embedding.length) || embedding.length <= 0) {
+    throw new Error('Semantic check embedding is missing.');
+  }
+  return embedding;
+}
+
+async function runEmbeddingSemanticChecks(pipeline) {
+  const start = performance.now();
+  const retrieval = [];
+  let retrievalPassed = 0;
+
+  for (const testCase of EMBEDDING_SEMANTIC_RETRIEVAL_CASES) {
+    const queryEmbedding = await embedStandaloneText(pipeline, testCase.query);
+    const docEmbeddings = [];
+    for (const doc of testCase.docs) {
+      docEmbeddings.push(await embedStandaloneText(pipeline, doc));
+    }
+    const sims = docEmbeddings.map((docEmbedding) => cosineSimilarity(queryEmbedding, docEmbedding));
+    const topDoc = top1Index(sims);
+    const passed = topDoc === testCase.expectedDoc;
+    if (passed) retrievalPassed++;
+    retrieval.push({
+      id: testCase.id,
+      passed,
+      expectedDoc: testCase.expectedDoc,
+      topDoc,
+      sims: sims.map((v) => (Number.isFinite(v) ? Number(v.toFixed(6)) : null)),
+    });
+  }
+
+  const pairs = [];
+  let pairPassed = 0;
+  for (const testCase of EMBEDDING_SEMANTIC_PAIR_CASES) {
+    const anchor = await embedStandaloneText(pipeline, testCase.anchor);
+    const positive = await embedStandaloneText(pipeline, testCase.positive);
+    const negative = await embedStandaloneText(pipeline, testCase.negative);
+    const simPos = cosineSimilarity(anchor, positive);
+    const simNeg = cosineSimilarity(anchor, negative);
+    const margin = simPos - simNeg;
+    const passed = Number.isFinite(margin) && margin > EMBEDDING_SEMANTIC_PAIR_MARGIN;
+    if (passed) pairPassed++;
+    pairs.push({
+      id: testCase.id,
+      passed,
+      simPos: Number.isFinite(simPos) ? Number(simPos.toFixed(6)) : null,
+      simNeg: Number.isFinite(simNeg) ? Number(simNeg.toFixed(6)) : null,
+      margin: Number.isFinite(margin) ? Number(margin.toFixed(6)) : null,
+    });
+  }
+
+  const retrievalTop1Acc = retrieval.length > 0 ? retrievalPassed / retrieval.length : 0;
+  const pairAcc = pairs.length > 0 ? pairPassed / pairs.length : 0;
+  const passed = retrievalTop1Acc >= EMBEDDING_SEMANTIC_MIN_RETRIEVAL_TOP1
+    && pairAcc >= EMBEDDING_SEMANTIC_MIN_PAIR_ACC;
+  const failedCaseIds = [
+    ...retrieval.filter((item) => !item.passed).map((item) => `retrieval:${item.id}`),
+    ...pairs.filter((item) => !item.passed).map((item) => `pair:${item.id}`),
+  ];
+
+  return {
+    passed,
+    retrievalTop1Acc,
+    pairAcc,
+    retrievalPassed,
+    retrievalTotal: retrieval.length,
+    pairPassed,
+    pairTotal: pairs.length,
+    minRetrievalTop1Acc: EMBEDDING_SEMANTIC_MIN_RETRIEVAL_TOP1,
+    minPairAcc: EMBEDDING_SEMANTIC_MIN_PAIR_ACC,
+    pairMarginThreshold: EMBEDDING_SEMANTIC_PAIR_MARGIN,
+    failedCaseIds,
+    retrieval,
+    pairs,
+    durationMs: Math.max(1, performance.now() - start),
   };
 }
 
@@ -600,7 +770,9 @@ async function runInferenceSuite(options = {}) {
 
   if (modelType === 'embedding') {
     const run = await runEmbedding(harness.pipeline, runtimeConfig);
+    const semantic = await runEmbeddingSemanticChecks(harness.pipeline);
     const isValidEmbedding = run.embeddingDim > 0 && run.nonFiniteCount === 0;
+    const isSemanticValid = semantic.passed;
     output = {
       mode: 'embedding',
       tokens: run.tokenCount,
@@ -615,6 +787,12 @@ async function runInferenceSuite(options = {}) {
       stdDev: run.stdDev == null ? null : Number(run.stdDev.toFixed(6)),
       l2Norm: run.l2Norm == null ? null : Number(run.l2Norm.toFixed(6)),
       preview: run.preview,
+      semantic: {
+        passed: isSemanticValid,
+        retrievalTop1Acc: Number(semantic.retrievalTop1Acc.toFixed(4)),
+        pairAcc: Number(semantic.pairAcc.toFixed(4)),
+        failedCaseIds: semantic.failedCaseIds,
+      },
     };
     results = [
       {
@@ -627,6 +805,20 @@ async function runInferenceSuite(options = {}) {
             run.embeddingDim <= 0
               ? 'No embedding returned'
               : `Embedding contains non-finite values (${run.nonFiniteCount}/${run.embeddingDim})`
+          ),
+      },
+      {
+        name: 'embedding-semantic',
+        passed: isSemanticValid,
+        duration: semantic.durationMs,
+        error: isSemanticValid
+          ? undefined
+          : (
+            `Semantic checks below threshold: retrieval=${(semantic.retrievalTop1Acc * 100).toFixed(1)}% `
+            + `(min ${(semantic.minRetrievalTop1Acc * 100).toFixed(1)}%), `
+            + `pairs=${(semantic.pairAcc * 100).toFixed(1)}% `
+            + `(min ${(semantic.minPairAcc * 100).toFixed(1)}%). `
+            + (semantic.failedCaseIds.length > 0 ? `Failed: ${semantic.failedCaseIds.join(', ')}` : '')
           ),
       },
     ];
@@ -644,6 +836,22 @@ async function runInferenceSuite(options = {}) {
       embeddingStdDev: run.stdDev == null ? null : Number(run.stdDev.toFixed(6)),
       embeddingL2Norm: run.l2Norm == null ? null : Number(run.l2Norm.toFixed(6)),
       embeddingMs: Number(run.durationMs.toFixed(2)),
+      semanticPassed: isSemanticValid,
+      semanticDurationMs: Number(semantic.durationMs.toFixed(2)),
+      semanticRetrievalTop1Acc: Number(semantic.retrievalTop1Acc.toFixed(4)),
+      semanticPairAcc: Number(semantic.pairAcc.toFixed(4)),
+      semanticRetrievalPassed: semantic.retrievalPassed,
+      semanticRetrievalTotal: semantic.retrievalTotal,
+      semanticPairPassed: semantic.pairPassed,
+      semanticPairTotal: semantic.pairTotal,
+      semanticMinRetrievalTop1Acc: Number(semantic.minRetrievalTop1Acc.toFixed(4)),
+      semanticMinPairAcc: Number(semantic.minPairAcc.toFixed(4)),
+      semanticPairMarginThreshold: Number(semantic.pairMarginThreshold.toFixed(4)),
+      semanticFailedCases: semantic.failedCaseIds,
+      semanticDetails: {
+        retrieval: semantic.retrieval,
+        pairs: semantic.pairs,
+      },
       modelLoadMs: Number((harness.modelLoadMs ?? 0).toFixed(2)),
       endToEndMs: Number(((harness.modelLoadMs ?? 0) + run.durationMs).toFixed(2)),
       embeddingPreview: run.preview,

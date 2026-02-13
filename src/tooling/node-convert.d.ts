@@ -1,3 +1,5 @@
+import type { ConverterConfigSchema } from '../config/schema/converter.schema.js';
+
 export interface NodeConvertProgress {
   stage: string | null;
   current: number | null;
@@ -9,6 +11,7 @@ export interface ConvertSafetensorsDirectoryOptions {
   inputDir: string;
   outputDir: string;
   modelId?: string | null;
+  converterConfig?: Partial<ConverterConfigSchema> | null;
   onProgress?: (progress: NodeConvertProgress) => void;
 }
 
