@@ -16,7 +16,7 @@ import type { RDRRManifest } from '../storage/rdrr-format.js';
 import type { WeightBuffer, WeightLayout, CpuWeightBuffer } from '../gpu/weight-buffer.js';
 import type { ExpertCache, CacheStats } from './expert-cache.js';
 import type { ExpertWeights } from './weights.js';
-import type { LoRAAdapter } from '../inference/pipeline/lora.js';
+import type { LoRAAdapter } from '../inference/pipelines/text/lora.js';
 import type {
   TensorLocation,
   LayerWeights,

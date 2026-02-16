@@ -4,7 +4,7 @@ import {
   formatGemmaChat,
   formatLlama3Chat,
   formatGptOssChat,
-} from '../../inference/pipeline/chat-format.js';
+} from '../../inference/pipelines/text/chat-format.js';
 import { getRuntimeConfig } from '../../config/runtime.js';
 import { DEFAULT_CHAT_TEMPLATE_CONFIG } from '../../config/schema/index.js';
 import { getPipeline } from './model-manager.js';

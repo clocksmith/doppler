@@ -1,6 +1,6 @@
 
 
-import { LORA_MODULE_ALIASES } from '../inference/pipeline/lora.js';
+import { LORA_MODULE_ALIASES } from '../inference/pipelines/text/lora.js';
 import { applyAdapterManifestDefaults, validateManifest } from './adapter-manifest.js';
 import { log } from '../debug/index.js';
 

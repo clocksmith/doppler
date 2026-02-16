@@ -5,7 +5,7 @@
  */
 
 import type { RDRRManifest } from '../storage/rdrr-format.js';
-import type { LoRAAdapter } from '../inference/pipeline/lora.js';
+import type { LoRAAdapter } from '../inference/pipelines/text/lora.js';
 import type { WeightBuffer, CpuWeightBuffer } from '../gpu/weight-buffer.js';
 
 export interface LoRALoaderContext {

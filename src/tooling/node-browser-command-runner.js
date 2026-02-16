@@ -12,6 +12,11 @@ import {
 const DEFAULT_HOST = '127.0.0.1';
 const DEFAULT_RUNNER_PATH = '/src/tooling/command-runner.html';
 const DEFAULT_TIMEOUT_MS = 180_000;
+const DEFAULT_CHANNEL_ORDER = Object.freeze({
+  darwin: ['chrome', 'chromium'],
+  linux: ['chromium', 'chrome'],
+  win32: ['chromium', 'chrome'],
+});
 
 const MIME_BY_EXTENSION = Object.freeze({
   '.html': 'text/html; charset=utf-8',
@@ -192,21 +197,86 @@ function normalizeBaseUrl(value) {
   }
 }
 
-function browserLaunchArgs() {
-  return [
-    '--enable-unsafe-webgpu',
-    '--enable-webgpu-developer-features',
-    '--disable-dawn-features=disallow_unsafe_apis',
-  ];
+function normalizeBrowserArgs(value) {
+  if (value === undefined || value === null) return [];
+  if (!Array.isArray(value)) {
+    throw new Error('browser command: browserArgs must be an array.');
+  }
+
+  return value.map((arg) => {
+    if (arg === undefined || arg === null) {
+      throw new Error('browser command: --browser-arg values must be strings.');
+    }
+    if (typeof arg !== 'string') {
+      throw new Error('browser command: --browser-arg values must be strings.');
+    }
+    return arg.trim();
+  }).filter((arg) => arg.length > 0);
 }
 
-async function launchBrowser(chromium, launchOptions) {
+const DEFAULT_WEBGPU_BROWSER_ARGS = Object.freeze([
+  '--enable-unsafe-webgpu',
+  '--enable-webgpu-developer-features',
+  '--disable-dawn-features=disallow_unsafe_apis',
+  '--ignore-gpu-blocklist',
+]);
+
+const PLATFORM_WEBGPU_ARGS = Object.freeze({
+  darwin: Object.freeze(['--use-angle=metal']),
+  linux: Object.freeze([
+    '--use-angle=vulkan',
+    '--enable-features=Vulkan',
+    '--disable-vulkan-surface',
+  ]),
+  win32: Object.freeze([]),
+});
+
+function uniqueArgs(args) {
+  return [...new Set(args)];
+}
+
+function browserLaunchArgs(extraArgs = []) {
+  const platformArgs = PLATFORM_WEBGPU_ARGS[process.platform] ?? [];
+  return uniqueArgs([...DEFAULT_WEBGPU_BROWSER_ARGS, ...platformArgs, ...extraArgs]);
+}
+
+function resolveDefaultChannels() {
+  return DEFAULT_CHANNEL_ORDER[process.platform] ?? DEFAULT_CHANNEL_ORDER.linux;
+}
+
+async function launchBrowser(chromium, launchOptions, options = {}) {
+  const explicitChannel = options.explicitChannel ?? false;
+  const explicitExecutablePath = options.explicitExecutablePath ?? false;
+  if (explicitChannel || explicitExecutablePath) {
+    try {
+      return await chromium.launch(launchOptions);
+    } catch (error) {
+      const message = error?.message || String(error);
+      throw new Error(
+        `browser command: failed to launch browser (${message}). Install Playwright browsers (npx playwright install) or pass --browser-channel chrome / --browser-executable.`
+      );
+    }
+  }
+
+  const launchErrors = [];
+  for (const channel of resolveDefaultChannels()) {
+    try {
+      return await chromium.launch({ ...launchOptions, channel });
+    } catch (error) {
+      const message = error?.message || String(error);
+      launchErrors.push(`${channel}: ${message}`);
+    }
+  }
+
   try {
     return await chromium.launch(launchOptions);
   } catch (error) {
     const message = error?.message || String(error);
     throw new Error(
-      `browser command: failed to launch browser (${message}). Install Playwright browsers (npx playwright install) or pass --browser-channel chrome / --browser-executable.`
+      `browser command: failed to launch browser (${message}). ` +
+      `Tried default channels: ${resolveDefaultChannels().join(', ')}. ` +
+      `Channel errors: ${launchErrors.join(' | ') || 'none'}. ` +
+      `Install Playwright browsers (npx playwright install) or pass --browser-channel / --browser-executable.`
     );
   }
 }
@@ -241,7 +311,7 @@ export async function runBrowserCommandInNode(commandRequest, options = {}) {
 
   const launchOptions = {
     headless: normalizeHeadless(options.headless),
-    args: browserLaunchArgs(),
+    args: browserLaunchArgs(normalizeBrowserArgs(options.browserArgs)),
   };
 
   if (options.channel) {
@@ -258,7 +328,10 @@ export async function runBrowserCommandInNode(commandRequest, options = {}) {
   let browser = null;
   let context = null;
   try {
-    browser = await launchBrowser(chromium, launchOptions);
+    browser = await launchBrowser(chromium, launchOptions, {
+      explicitChannel: Boolean(options.channel),
+      explicitExecutablePath: Boolean(options.executablePath),
+    });
     context = await browser.newContext();
     const page = await context.newPage();
     page.setDefaultTimeout(timeoutMs);

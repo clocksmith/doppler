@@ -4,8 +4,8 @@ import { initializeInference, parseRuntimeOverridesFromURL } from './test-harnes
 import { saveReport } from '../storage/reports.js';
 import { getRuntimeConfig, setRuntimeConfig } from '../config/runtime.js';
 import { initDevice, getKernelCapabilities, getDevice } from '../gpu/device.js';
-import { createPipeline } from './pipeline.js';
-import { parseModelConfigFromManifest } from './pipeline/config.js';
+import { createPipeline } from './pipelines/text.js';
+import { parseModelConfigFromManifest } from './pipelines/text/config.js';
 import { openModelStore, loadManifestFromStore } from '../storage/shard-manager.js';
 import { parseManifest } from '../storage/rdrr-format.js';
 import { computeSampleStats } from '../debug/stats.js';

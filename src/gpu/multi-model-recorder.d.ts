@@ -4,7 +4,7 @@
  * @module gpu/multi-model-recorder
  */
 
-import type { InferencePipeline, KVCacheSnapshot, GenerateOptions } from '../inference/pipeline.js';
+import type { InferencePipeline, KVCacheSnapshot, GenerateOptions } from '../inference/pipelines/text.js';
 
 export declare class MultiModelRecorder {
   computeSharedPrefix(

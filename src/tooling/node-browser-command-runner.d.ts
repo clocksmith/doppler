@@ -15,6 +15,7 @@ export interface NodeBrowserCommandRunOptions {
   executablePath?: string;
   runnerPath?: string;
   timeoutMs?: number;
+  browserArgs?: string[];
   runtimeLoadOptions?: RuntimeConfigLoadOptions;
   onConsole?: (entry: { type: string; text: string }) => void;
 }

@@ -8,7 +8,7 @@
  * @module adapters/adapter-manifest
  */
 
-import type { LoRAModuleName } from '../inference/pipeline/lora-types.js';
+import type { LoRAModuleName } from '../inference/pipelines/text/lora-types.js';
 
 export declare const DEFAULT_ADAPTER_MANIFEST_DEFAULTS: {
   readonly version: '1.0.0';

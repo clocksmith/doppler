@@ -1,5 +1,5 @@
-import type { KVCacheSnapshot } from '../../inference/pipeline.js';
-import type { ChatTemplateType } from '../../inference/pipeline/chat-format.js';
+import type { KVCacheSnapshot } from '../../inference/pipelines/text.js';
+import type { ChatTemplateType } from '../../inference/pipelines/text/chat-format.js';
 import type { GenerateOptions, ChatMessage, ChatResponse } from './types.js';
 
 export declare function generate(prompt: string, options?: GenerateOptions): AsyncGenerator<string>;

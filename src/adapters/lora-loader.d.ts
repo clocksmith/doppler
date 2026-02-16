@@ -7,7 +7,7 @@
  * @module adapters/lora-loader
  */
 
-import type { LoRAAdapter, LoRAModuleName } from '../inference/pipeline/lora.js';
+import type { LoRAAdapter, LoRAModuleName } from '../inference/pipelines/text/lora.js';
 import type { AdapterManifest, AdapterTensorSpec } from './adapter-manifest.js';
 
 /**

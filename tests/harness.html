@@ -339,7 +339,7 @@
         createTestState,
       } = await import('../src/inference/test-harness.js');
       const { getRuntimeConfig } = await import('../src/config/index.js');
-      const { createPipeline } = await import('../src/inference/pipeline.js');
+      const { createPipeline } = await import('../src/inference/pipelines/text.js');
       const { getDevice } = await import('../src/gpu/device.js');
       const { SIGNALS } = await import('../src/debug/index.js');
 
@@ -522,7 +522,7 @@
         createTestState,
       } = await import('../src/inference/test-harness.js');
       const { getRuntimeConfig } = await import('../src/config/index.js');
-      const { createPipeline } = await import('../src/inference/pipeline.js');
+      const { createPipeline } = await import('../src/inference/pipelines/text.js');
       const { getDevice } = await import('../src/gpu/device.js');
       const { SIGNALS } = await import('../src/debug/index.js');
 

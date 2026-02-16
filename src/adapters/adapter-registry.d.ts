@@ -8,7 +8,7 @@
  */
 
 import type { AdapterManifest, AdapterMetadata } from './adapter-manifest.js';
-import type { LoRAModuleName } from '../inference/pipeline/lora-types.js';
+import type { LoRAModuleName } from '../inference/pipelines/text/lora-types.js';
 
 /**
  * Registry entry for a stored adapter.

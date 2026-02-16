@@ -1,8 +1,8 @@
 
 
-import { loadWeights } from '../inference/pipeline/init.js';
-import { parseModelConfig } from '../inference/pipeline/config.js';
-import { InferencePipeline } from '../inference/pipeline.js';
+import { loadWeights } from '../inference/pipelines/text/init.js';
+import { parseModelConfig } from '../inference/pipelines/text/config.js';
+import { InferencePipeline } from '../inference/pipelines/text.js';
 import { getDopplerLoader } from './doppler-loader.js';
 import { getRuntimeConfig } from '../config/runtime.js';
 import { loadLoRAFromManifest, loadLoRAFromUrl } from '../adapters/lora-loader.js';

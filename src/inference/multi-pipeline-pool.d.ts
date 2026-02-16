@@ -4,8 +4,8 @@
  * @module inference/multi-pipeline-pool
  */
 
-import type { InferencePipeline, KVCacheSnapshot, GenerateOptions, PipelineContexts } from './pipeline.js';
-import type { LoRAAdapter } from './pipeline/lora.js';
+import type { InferencePipeline, KVCacheSnapshot, GenerateOptions, PipelineContexts } from './pipelines/text.js';
+import type { LoRAAdapter } from './pipelines/text/lora.js';
 import type { MultiModelLoader } from '../loader/multi-model-loader.js';
 import { PartitionedBufferPool, type PartitionConfig } from '../gpu/partitioned-buffer-pool.js';
 import { MultiModelRecorder } from '../gpu/multi-model-recorder.js';

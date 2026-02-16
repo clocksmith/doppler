@@ -1,17 +1,21 @@
 #!/usr/bin/env node
 
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import { runNodeCommand } from '../src/tooling/node-command-runner.js';
 import { runBrowserCommandInNode } from '../src/tooling/node-browser-command-runner.js';
 import { TOOLING_COMMANDS } from '../src/tooling/command-api.js';
 
 const NODE_WEBGPU_INCOMPLETE_MESSAGE = 'node command: WebGPU runtime is incomplete in Node';
+const DEFAULT_BENCH_MODEL_ID = 'gemma-3-270m-it-wf16';
+const DEFAULT_BENCH_SURFACE = 'browser';
 
 function usage() {
   return [
     'Usage:',
     '  doppler convert <inputDir> <outputDir> [--model-id <id>] [--surface auto|node]',
     '  doppler debug --model-id <id> [--model-url <url>] [--runtime-preset <id>] [--runtime-config-url <url>] [--runtime-config-json <json>] [--surface auto|node|browser]',
-    '  doppler bench --model-id <id> [--model-url <url>] [--runtime-preset <id>] [--runtime-config-url <url>] [--runtime-config-json <json>] [--surface auto|node|browser]',
+    '  doppler bench [--model-id <id>] [--model-url <url>] [--runtime-preset <id>] [--runtime-config-url <url>] [--runtime-config-json <json>] [--surface auto|node|browser]',
     '  doppler test-model --suite <kernels|inference|diffusion|energy> [--model-id <id>] [--model-url <url>] [--runtime-preset <id>] [--runtime-config-url <url>] [--runtime-config-json <json>] [--surface auto|node|browser]',
     '',
     'Flags:',
@@ -24,11 +28,34 @@ function usage() {
     '  --browser-headless <true|false> Headless browser mode (must be true)',
     '  --browser-port <port>           Static server port for browser relay (default: random)',
     '  --browser-timeout-ms <ms>       Browser command timeout (default: 180000)',
+    '  --browser-arg <arg>            Extra launch arg (repeatable); WebGPU/Vulkan args are applied automatically',
     '  --browser-url-path <path>       Runner page path (default: /src/tooling/command-runner.html)',
     '  --browser-static-root <path>    Static server root directory (default: doppler root)',
     '  --browser-base-url <url>        Reuse an existing static server base URL',
     '  --browser-console               Stream browser console lines to stderr',
+    '',
+    `Bench Defaults: --model-id ${DEFAULT_BENCH_MODEL_ID}, --surface ${DEFAULT_BENCH_SURFACE}, --browser-console (browser channel auto-selected)`,
   ].join('\n');
+}
+
+function applyCommandDefaults(parsed) {
+  if (!parsed || parsed.command !== 'bench') {
+    return parsed;
+  }
+
+  const flags = { ...parsed.flags };
+  if (!flags['model-id'] && !flags['model-url']) {
+    flags['model-id'] = DEFAULT_BENCH_MODEL_ID;
+  }
+  if (!flags.surface) {
+    flags.surface = DEFAULT_BENCH_SURFACE;
+  }
+  flags['browser-console'] = true;
+
+  return {
+    ...parsed,
+    flags,
+  };
 }
 
 function parseArgs(argv) {
@@ -62,9 +89,25 @@ function parseArgs(argv) {
     }
 
     const value = argv[i + 1];
-    if (value === undefined || value.startsWith('--')) {
+    if (value === undefined) {
       throw new Error(`Missing value for --${key}`);
     }
+
+    if (key !== 'browser-arg' && value.startsWith('--')) {
+      throw new Error(`Missing value for --${key}`);
+    }
+
+    if (key === 'browser-arg') {
+      const previous = out.flags[key];
+      if (Array.isArray(previous)) {
+        previous.push(value);
+      } else {
+        out.flags[key] = [value];
+      }
+      i += 1;
+      continue;
+    }
+
     out.flags[key] = value;
     i += 1;
   }
@@ -103,6 +146,74 @@ function parseNumberFlag(value, label) {
     throw new Error(`${label} must be a number`);
   }
   return parsed;
+}
+
+function parseBrowserArgs(value) {
+  if (value === undefined || value === null) return [];
+  return Array.isArray(value) ? value.map((item) => String(item)) : [String(value)];
+}
+
+async function pathExists(filePath) {
+  try {
+    await fs.access(filePath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function resolveStaticRootDir(parsed) {
+  const configured = parsed.flags['browser-static-root'];
+  if (configured) {
+    return path.resolve(String(configured));
+  }
+  return process.cwd();
+}
+
+async function resolveBrowserModelUrl(request, parsed) {
+  if (request.modelUrl || !request.modelId) {
+    return request;
+  }
+
+  const modelId = String(request.modelId);
+  const encodedModelId = encodeURIComponent(modelId);
+
+  if (parsed.flags['browser-base-url']) {
+    return {
+      ...request,
+      modelUrl: `/models/${encodedModelId}`,
+    };
+  }
+
+  const staticRootDir = resolveStaticRootDir(parsed);
+  const candidates = [
+    {
+      modelUrl: `/models/${encodedModelId}`,
+      manifestPath: path.join(staticRootDir, 'models', modelId, 'manifest.json'),
+    },
+    {
+      modelUrl: `/models/curated/${encodedModelId}`,
+      manifestPath: path.join(staticRootDir, 'models', 'curated', modelId, 'manifest.json'),
+    },
+    {
+      modelUrl: `/models/local/${encodedModelId}`,
+      manifestPath: path.join(staticRootDir, 'models', 'local', modelId, 'manifest.json'),
+    },
+  ];
+
+  for (const candidate of candidates) {
+    if (await pathExists(candidate.manifestPath)) {
+      return {
+        ...request,
+        modelUrl: candidate.modelUrl,
+      };
+    }
+  }
+
+  return {
+    ...request,
+    modelUrl: `/models/${encodedModelId}`,
+  };
 }
 
 function parseSurface(value, command) {
@@ -185,6 +296,7 @@ function buildBrowserRunOptions(parsed, jsonOutput) {
     runnerPath: parsed.flags['browser-url-path'] ?? null,
     staticRootDir: parsed.flags['browser-static-root'] ?? null,
     baseUrl: parsed.flags['browser-base-url'] ?? null,
+    browserArgs: parseBrowserArgs(parsed.flags['browser-arg']),
   };
 
   options.headless = true;
@@ -214,13 +326,7 @@ async function runCommandOnSurface(request, surface, parsed, jsonOutput) {
     return runNodeCommand(request, buildNodeRunOptions(jsonOutput));
   }
 
-  let browserRequest = request;
-  if (!browserRequest.modelUrl && typeof browserRequest.modelId === 'string' && browserRequest.modelId.length > 0) {
-    browserRequest = {
-      ...browserRequest,
-      modelUrl: `/models/${encodeURIComponent(browserRequest.modelId)}`,
-    };
-  }
+  const browserRequest = await resolveBrowserModelUrl(request, parsed);
 
   if (!jsonOutput) {
     console.error('[progress] browser launching WebGPU harness...');
@@ -352,20 +458,21 @@ async function main() {
   }
 
   const parsed = parseArgs(argv);
-  if (parsed.flags.help === true || parsed.flags.h === true) {
+  const parsedWithDefaults = applyCommandDefaults(parsed);
+  if (parsedWithDefaults.flags.help === true || parsedWithDefaults.flags.h === true) {
     console.log(usage());
     return;
   }
 
-  const request = buildRequest(parsed);
-  const jsonOutput = parsed.flags.json === true;
-  const surface = parseSurface(parsed.flags.surface, request.command);
+  const request = buildRequest(parsedWithDefaults);
+  const jsonOutput = parsedWithDefaults.flags.json === true;
+  const surface = parseSurface(parsedWithDefaults.flags.surface, request.command);
 
   let response;
   if (surface === 'auto') {
-    response = await runWithAutoSurface(request, parsed, jsonOutput);
+    response = await runWithAutoSurface(request, parsedWithDefaults, jsonOutput);
   } else {
-    response = await runCommandOnSurface(request, surface, parsed, jsonOutput);
+    response = await runCommandOnSurface(request, surface, parsedWithDefaults, jsonOutput);
   }
 
   if (jsonOutput) {

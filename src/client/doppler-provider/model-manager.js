@@ -12,7 +12,7 @@ import { downloadModel } from '../../storage/downloader.js';
 import { requestPersistence, getStorageReport } from '../../storage/quota.js';
 import { initDevice, getKernelCapabilities, getDeviceLimits, destroyDevice, getDevice } from '../../gpu/device.js';
 import { prepareKernelRuntime } from '../../gpu/kernel-runtime.js';
-import { createPipeline } from '../../inference/pipeline.js';
+import { createPipeline } from '../../inference/pipelines/text.js';
 import { isBridgeAvailable, createBridgeClient } from '../../bridge/index.js';
 import { loadLoRAFromManifest, loadLoRAFromUrl } from '../../adapters/lora-loader.js';
 import { getDopplerLoader } from '../../loader/doppler-loader.js';

@@ -9,7 +9,7 @@ export {
 export { MultiModelLoader } from './loader/multi-model-loader.js';
 
 // Inference pipeline
-export { InferencePipeline, EmbeddingPipeline, createPipeline } from './inference/pipeline.js';
+export { InferencePipeline, EmbeddingPipeline, createPipeline } from './inference/pipelines/text.js';
 export { KVCache } from './inference/kv-cache.js';
 export { Tokenizer } from './inference/tokenizer.js';
 export { SpeculativeDecoder } from './inference/speculative.js';
@@ -112,7 +112,7 @@ export { destroyBufferPool } from './memory/buffer-pool.js';
 export { loadRuntimePreset, applyRuntimePreset, runBrowserSuite } from './inference/browser-harness.js';
 
 // Energy utilities (used by demo energy mode)
-export { buildLayout, getDefaultSpec, buildVliwDatasetFromSpec } from './inference/energy/vliw-generator.js';
+export { buildLayout, getDefaultSpec, buildVliwDatasetFromSpec } from './inference/pipelines/energy/vliw-generator.js';
 
 // Shared command contract (browser + CLI parity)
 export {

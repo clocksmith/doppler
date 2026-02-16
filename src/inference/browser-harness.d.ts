@@ -5,9 +5,9 @@
  */
 
 import type { InitializeResult, RuntimeOverrides, InferenceHarnessOptions } from './test-harness.js';
-import type { InferencePipeline } from './pipeline.js';
-import type { DiffusionPipeline } from './diffusion/pipeline.js';
-import type { EnergyPipeline } from './energy/pipeline.js';
+import type { InferencePipeline } from './pipelines/text.js';
+import type { DiffusionPipeline } from './pipelines/diffusion/pipeline.js';
+import type { EnergyPipeline } from './pipelines/energy/pipeline.js';
 import type { SavedReportInfo, SaveReportOptions } from '../storage/reports.js';
 
 export interface BrowserHarnessOptions extends InferenceHarnessOptions {

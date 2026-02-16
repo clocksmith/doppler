@@ -3,7 +3,7 @@ import { installNodeFileFetchShim } from '../../src/tooling/node-file-fetch.js';
 
 installNodeFileFetchShim();
 
-const { parseModelConfig } = await import('../../src/inference/pipeline/config.js');
+const { parseModelConfig } = await import('../../src/inference/pipelines/text/config.js');
 
 const manifest = {
   modelId: 'gemma3-layer-pattern-test',

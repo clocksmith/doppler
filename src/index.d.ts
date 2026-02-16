@@ -9,7 +9,7 @@ export {
 export { MultiModelLoader } from './loader/multi-model-loader.js';
 
 // Inference pipeline
-export { InferencePipeline, EmbeddingPipeline, createPipeline } from './inference/pipeline.js';
+export { InferencePipeline, EmbeddingPipeline, createPipeline } from './inference/pipelines/text.js';
 export { KVCache } from './inference/kv-cache.js';
 export { Tokenizer } from './inference/tokenizer.js';
 export { SpeculativeDecoder } from './inference/speculative.js';
@@ -32,8 +32,8 @@ export {
 export type { RDRRManifest, ShardInfo } from './storage/rdrr-format.js';
 export type { TensorLocation, LoadProgress, LoadOptions, LoaderStats } from './loader/doppler-loader.js';
 export type { AdapterSource } from './loader/multi-model-loader.js';
-export type { ParsedModelConfig } from './inference/pipeline/config.js';
-export type { SamplingOptions } from './inference/pipeline/sampling.js';
+export type { ParsedModelConfig } from './inference/pipelines/text/config.js';
+export type { SamplingOptions } from './inference/pipelines/text/sampling.js';
 export type {
   GenerateOptions,
   GenerationResult,
@@ -41,8 +41,8 @@ export type {
   LayerWeights,
   ExpertWeights,
   RouterWeights,
-} from './inference/pipeline.js';
-export type { LoRAAdapter, LoRAModuleName } from './inference/pipeline/lora.js';
+} from './inference/pipelines/text.js';
+export type { LoRAAdapter, LoRAModuleName } from './inference/pipelines/text/lora.js';
 export type { ExpertNode, ExpertTask } from './inference/multi-model-network.js';
 
 // LoRA Adapter Infrastructure
@@ -125,7 +125,7 @@ export { destroyBufferPool } from './memory/buffer-pool.js';
 export { loadRuntimePreset, applyRuntimePreset, runBrowserSuite } from './inference/browser-harness.js';
 
 // Energy utilities
-export { buildLayout, getDefaultSpec, buildVliwDatasetFromSpec } from './inference/energy/vliw-generator.js';
+export { buildLayout, getDefaultSpec, buildVliwDatasetFromSpec } from './inference/pipelines/energy/vliw-generator.js';
 
 export type {
   AdapterManifest,

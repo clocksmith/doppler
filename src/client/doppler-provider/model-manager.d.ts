@@ -1,4 +1,4 @@
-import type { InferencePipeline } from '../../inference/pipeline.js';
+import type { InferencePipeline } from '../../inference/pipelines/text.js';
 import type { RDRRManifest } from '../../storage/rdrr-format.js';
 import type { LoRAManifest } from '../../adapters/lora-loader.js';
 import type {

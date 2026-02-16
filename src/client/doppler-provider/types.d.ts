@@ -1,5 +1,5 @@
 import type { ExtensionBridgeClient } from '../../bridge/index.js';
-import type { InferencePipeline, KVCacheSnapshot } from '../../inference/pipeline.js';
+import type { InferencePipeline, KVCacheSnapshot } from '../../inference/pipelines/text.js';
 import type { LoRAManifest } from '../../adapters/lora-loader.js';
 import type { RDRRManifest } from '../../storage/rdrr-format.js';
 

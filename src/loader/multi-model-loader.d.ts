@@ -4,11 +4,11 @@
  * @module loader/multi-model-loader
  */
 
-import type { WeightLoadResult } from '../inference/pipeline/init.js';
-import type { Manifest } from '../inference/pipeline/config.js';
-import type { InferencePipeline, PipelineContexts } from '../inference/pipeline.js';
+import type { WeightLoadResult } from '../inference/pipelines/text/init.js';
+import type { Manifest } from '../inference/pipelines/text/config.js';
+import type { InferencePipeline, PipelineContexts } from '../inference/pipelines/text.js';
 import type { LoRAManifest } from '../adapters/lora-loader.js';
-import type { LoRAAdapter } from '../inference/pipeline/lora.js';
+import type { LoRAAdapter } from '../inference/pipelines/text/lora.js';
 import type { RDRRManifest } from '../storage/rdrr-format.js';
 
 export type AdapterSource =

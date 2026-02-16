@@ -4,7 +4,7 @@ import {
   isWeightBuffer,
   isCpuWeightBuffer,
 } from '../gpu/weight-buffer.js';
-import { LORA_MODULE_ALIASES } from '../inference/pipeline/lora.js';
+import { LORA_MODULE_ALIASES } from '../inference/pipelines/text/lora.js';
 
 // ============================================================================
 // LoRA Tensor Name Parsing

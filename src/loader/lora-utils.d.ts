@@ -7,7 +7,7 @@
  */
 
 import type { WeightBuffer, CpuWeightBuffer } from '../gpu/weight-buffer.js';
-import type { LoRAModuleName } from '../inference/pipeline/lora.js';
+import type { LoRAModuleName } from '../inference/pipelines/text/lora.js';
 
 // ============================================================================
 // Types

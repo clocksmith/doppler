@@ -2,9 +2,9 @@
 
 import { ExpertRouter } from './expert-router.js';
 import { MultiModelRecorder } from '../gpu/multi-model-recorder.js';
-import { applyRepetitionPenalty, sample, getTopK } from './pipeline/sampling.js';
-import { finalizeLogits, extractLastPositionLogits } from './pipeline/logits.js';
-import { isStopToken } from './pipeline/init.js';
+import { applyRepetitionPenalty, sample, getTopK } from './pipelines/text/sampling.js';
+import { finalizeLogits, extractLastPositionLogits } from './pipelines/text/logits.js';
+import { isStopToken } from './pipelines/text/init.js';
 import { mergeMultipleLogits } from '../gpu/kernels/logit-merge.js';
 import { releaseBuffer, readBuffer } from '../memory/buffer-pool.js';
 

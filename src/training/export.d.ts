@@ -1,5 +1,5 @@
 import type { AdapterManifest } from '../adapters/adapter-manifest.js';
-import type { LoRAModuleName } from '../inference/pipeline/lora-types.js';
+import type { LoRAModuleName } from '../inference/pipelines/text/lora-types.js';
 import type { Tensor } from '../gpu/tensor.js';
 
 export interface LoRAExportTensor {

@@ -9,7 +9,7 @@
  * @module adapters/adapter-manager
  */
 
-import type { LoRAAdapter, LoRAModuleWeights } from '../inference/pipeline/lora-types.js';
+import type { LoRAAdapter, LoRAModuleWeights } from '../inference/pipelines/text/lora-types.js';
 import type { AdapterManifest } from './adapter-manifest.js';
 import type { LoRALoadOptions } from './lora-loader.js';
 

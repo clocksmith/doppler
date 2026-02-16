@@ -4,8 +4,8 @@
  * @module inference/multi-model-network
  */
 
-import type { GenerateOptions, InferencePipeline, KVCacheSnapshot } from './pipeline.js';
-import type { LoRAAdapter } from './pipeline/lora.js';
+import type { GenerateOptions, InferencePipeline, KVCacheSnapshot } from './pipelines/text.js';
+import type { LoRAAdapter } from './pipelines/text/lora.js';
 import { ExpertRouter, type ExpertProfile } from './expert-router.js';
 import type { MultiModelLoader } from '../loader/multi-model-loader.js';
 import type { MultiPipelinePool } from './multi-pipeline-pool.js';

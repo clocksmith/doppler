@@ -9,15 +9,17 @@ Purpose: End-to-end inference pipeline orchestration and helpers.
 
 This directory contains DOPPLER's inference pipeline and its main building blocks:
 
-- `pipeline.js`: end-to-end orchestration (prefill, decode loop, sampling, debug)
+- `pipelines/text.js`: end-to-end text orchestration (prefill, decode loop, sampling, debug)
+- `pipelines/diffusion/`: image diffusion pipeline modules
+- `pipelines/energy/`: energy-model pipeline modules
 - `tokenizer.js`: tokenizer backends and manifest-driven selection
 - `kv-cache.js`: KV cache layouts and policies (full and sliding-window)
 - `moe-router.js`: MoE routing and expert execution planning
 - `speculative.js`: speculative decoding scaffolding
-- `pipeline/`: modular helpers (10 modules split for maintainability)
+- `pipelines/text/`: modular text helpers (split for maintainability)
   - **WIRED**: `config.js`, `init.js`, `generator.js`, `generator-steps.js`,
     `embed.js`, `layer.js`, `logits.js`, `sampling.js`, `attention/`, `ffn/`
-  - Modular entrypoints are used by `pipeline.js` + `pipeline/generator.js`
+  - Modular entrypoints are used by `pipelines/text.js` + `pipelines/text/generator.js`
   - No separate prefill/decode modules are required in current layout
 
 ## Related
@@ -570,7 +572,7 @@ WGSL kernels are in `gpu/kernels/`. The wrappers in `gpu/kernel-selector.js` com
 
 | File | Purpose |
 |------|---------|
-| `inference/pipeline.js` | Main inference loop, layer processing |
+| `inference/pipelines/text.js` | Main inference loop, layer processing |
 | `loader/doppler-loader.js` | Weight loading, tensor naming |
 | `gpu/kernel-selector.js` | Kernel dispatch based on capabilities |
 | `memory/capability.js` | Memory64, unified memory detection |
