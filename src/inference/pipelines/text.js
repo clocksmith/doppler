@@ -477,6 +477,36 @@ export async function createPipeline(manifest, contexts = {}) {
     factory = getPipelineFactory(modelType);
   }
 
+  if (
+    !factory && (
+      modelType === 'dream_structured' ||
+      modelType === 'dream_intent_posterior_head' ||
+      modelType === 'dream_d1_to2_bridge' ||
+      modelType === 'dream_synthesis' ||
+      modelType === 'dream_energy_compose' ||
+      modelType === 'dream-intent-posterior-head' ||
+      modelType === 'dream-d1-to2-bridge' ||
+      modelType === 'dream-synthesis' ||
+      modelType === 'dream-energy-compose'
+    )
+  ) {
+    await import('./dream/pipeline.js');
+    factory = getPipelineFactory(modelType);
+  }
+
+  if (
+    !factory && (
+      modelType === 'dream_energy_head' ||
+      modelType === 'dream-energy-head' ||
+      modelType === 'd1-to2-bridge-diffusion' ||
+      modelType === 'synthesis-mixer-diffusion' ||
+      modelType === 'ebrm-diffusion'
+    )
+  ) {
+    await import('./dream/energy-head-pipeline.js');
+    factory = getPipelineFactory(modelType);
+  }
+
   if (!factory) {
     throw new Error(`No pipeline registered for modelType "${modelType}".`);
   }

@@ -19,6 +19,8 @@ import type { GenerateOptions, KVCacheSnapshot, LogitsStepResult, PrefillResult,
 import type { LoRAAdapter } from './text/lora.js';
 import type { DiffusionPipeline } from './diffusion/pipeline.js';
 import type { EnergyPipeline } from './energy/pipeline.js';
+import type { DreamStructuredPipeline } from './dream/pipeline.js';
+import type { DreamEnergyHeadPipeline } from './dream/energy-head-pipeline.js';
 import { getBufferPool as getGlobalBufferPool } from '../../memory/buffer-pool.js';
 import type { EmulationStats } from '../../config/schema/index.js';
 
@@ -132,7 +134,14 @@ export declare class InferencePipeline extends PipelineState {
 export declare function createPipeline(
   manifest: Manifest,
   contexts?: PipelineContexts
-): Promise<InferencePipeline | EmbeddingPipeline | DiffusionPipeline | EnergyPipeline>;
+): Promise<
+  InferencePipeline |
+  EmbeddingPipeline |
+  DiffusionPipeline |
+  EnergyPipeline |
+  DreamStructuredPipeline |
+  DreamEnergyHeadPipeline
+>;
 
 export declare class EmbeddingPipeline extends InferencePipeline {
   generate(prompt: string, options?: GenerateOptions): AsyncGenerator<string, void, void>;

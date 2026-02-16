@@ -10,6 +10,15 @@ export { MultiModelLoader } from './loader/multi-model-loader.js';
 
 // Inference pipeline
 export { InferencePipeline, EmbeddingPipeline, createPipeline } from './inference/pipelines/text.js';
+export {
+  DreamStructuredPipeline,
+  isDreamStructuredModelType,
+  createDreamStructuredPipeline,
+} from './inference/pipelines/dream/pipeline.js';
+export {
+  DreamEnergyHeadPipeline,
+  createDreamEnergyHeadPipeline,
+} from './inference/pipelines/dream/energy-head-pipeline.js';
 export { KVCache } from './inference/kv-cache.js';
 export { Tokenizer } from './inference/tokenizer.js';
 export { SpeculativeDecoder } from './inference/speculative.js';
