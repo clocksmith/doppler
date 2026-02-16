@@ -6,14 +6,14 @@
   "types": "src/index.d.ts",
   "type": "module",
   "bin": {
-    "doppler": "./tools/doppler-cli.mjs"
+    "doppler": "./tools/doppler-cli.js"
   },
   "scripts": {
-    "cli": "node tools/doppler-cli.mjs",
-    "convert": "node tools/doppler-cli.mjs convert",
-    "debug": "node tools/doppler-cli.mjs debug",
-    "bench": "node tools/doppler-cli.mjs bench",
-    "test:model": "node tools/doppler-cli.mjs test-model"
+    "cli": "node tools/doppler-cli.js",
+    "convert": "node tools/doppler-cli.js convert",
+    "debug": "node tools/doppler-cli.js debug",
+    "bench": "node tools/doppler-cli.js bench",
+    "test:model": "node tools/doppler-cli.js test-model"
   },
   "exports": {
     ".": {
@@ -49,8 +49,8 @@
     "src",
     "src/gpu/kernels/*.wgsl",
     "README.md",
-    "tools/doppler-cli.mjs",
-    "tools/convert-safetensors-node.mjs"
+    "tools/doppler-cli.js",
+    "tools/convert-safetensors-node.js"
   ],
   "devDependencies": {
     "playwright": "^1.58.2"

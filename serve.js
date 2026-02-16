@@ -16,7 +16,6 @@ const LOG_404 = process.env.DOPPLER_LOG_404 === '1';
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'application/javascript; charset=utf-8',
-  '.mjs': 'application/javascript; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
   '.json': 'application/json; charset=utf-8',
   '.webmanifest': 'application/manifest+json; charset=utf-8',
@@ -152,7 +151,7 @@ async function main() {
       'Accept-Ranges': 'bytes',
     };
 
-    if (ext === '.js' || ext === '.mjs') {
+    if (ext === '.js') {
       headers['Cache-Control'] = 'no-store, no-cache, must-revalidate';
       headers['Pragma'] = 'no-cache';
       headers['Expires'] = '0';

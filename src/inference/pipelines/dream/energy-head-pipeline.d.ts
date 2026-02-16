@@ -5,7 +5,7 @@ export type DreamEnergyHeadModelType =
   | 'synthesis-mixer-diffusion'
   | 'ebrm-diffusion';
 
-export type DreamEnergyHeadId = 'main' | 'tree' | 'consistency';
+export type DreamEnergyHeadId = 'main' | 'local' | 'tree' | 'consistency';
 export type DreamEnergyHeadActivation = 'sigmoid' | 'linear';
 export type DreamEnergyHeadBackend = 'auto' | 'gpu' | 'cpu';
 export type DreamEnergyHeadDtype = 'f32' | 'f16';
@@ -75,4 +75,3 @@ export declare function createDreamEnergyHeadPipeline(
   manifest: Record<string, unknown>,
   contexts?: Record<string, unknown>
 ): Promise<DreamEnergyHeadPipeline>;
-

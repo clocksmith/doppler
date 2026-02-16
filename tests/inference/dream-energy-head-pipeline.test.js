@@ -73,6 +73,12 @@ const { createPipeline } = await import('../../src/inference/pipelines/text.js')
     featureIds: ['n', 'l'],
     weights: [1, 1],
     bias: 0,
+    localHead: {
+      featureIds: ['l0', 'l1'],
+      weights: [1.5, -0.5],
+      bias: -0.1,
+      scale: 1,
+    },
     treeHead: {
       featureIds: ['t0'],
       weights: [2],
@@ -91,6 +97,16 @@ const { createPipeline } = await import('../../src/inference/pipelines/text.js')
 
   assert.equal(result.activation, 'linear');
   assert.ok(Math.abs(result.rows[0].score - 3) < 1e-9);
+
+  const localResult = await pipeline.infer({
+    backend: 'cpu',
+    head: 'local',
+    steps: 0,
+    energyScale: 0,
+    rows: [{ rowId: 'n0', features: { l0: 1.0, l1: 2.0 } }],
+  });
+  assert.equal(localResult.rows.length, 1);
+  assert.ok(Math.abs(localResult.rows[0].score - 0.4) < 1e-9);
 
   const treeResult = await pipeline.infer({
     backend: 'cpu',
@@ -120,4 +136,3 @@ const { createPipeline } = await import('../../src/inference/pipelines/text.js')
     /features length mismatch/
   );
 }
-

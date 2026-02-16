@@ -41,7 +41,7 @@ Design rules for command execution across browser harnesses and the Node CLI.
 ## Node Rules
 
 - Node runner entrypoint: `runNodeCommand()`.
-- Node CLI entrypoint: `tools/doppler-cli.mjs`.
+- Node CLI entrypoint: `tools/doppler-cli.js`.
 - Node suite runs require WebGPU support; runner may bootstrap from optional `webgpu` dependency before explicit failure.
 
 ---

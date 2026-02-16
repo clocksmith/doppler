@@ -87,6 +87,7 @@ function normalizeModelManifest(manifest) {
   }
 
   const mainHead = normalizeMainHead(manifest);
+  const localHead = normalizeAuxHead(manifest?.localHead);
   const treeHead = normalizeAuxHead(manifest?.treeHead);
   const consistencyHead = normalizeAuxHead(manifest?.consistencyHead);
   return {
@@ -94,6 +95,7 @@ function normalizeModelManifest(manifest) {
     modelId: String(manifest?.modelId || 'dream-energy-head'),
     modelHash: manifest?.modelHash || null,
     mainHead,
+    localHead,
     treeHead,
     consistencyHead,
   };
@@ -102,6 +104,10 @@ function normalizeModelManifest(manifest) {
 function resolveHead(model, headId) {
   const id = String(headId || 'main');
   if (id === 'main') return model.mainHead;
+  if (id === 'local') {
+    if (!model.localHead) throw new Error('DreamEnergyHeadPipeline: local head unavailable in model.');
+    return model.localHead;
+  }
   if (id === 'tree') {
     if (!model.treeHead) throw new Error('DreamEnergyHeadPipeline: tree head unavailable in model.');
     return model.treeHead;
@@ -117,7 +123,7 @@ function resolveHead(model, headId) {
 
 function resolveActivation({ modelType, headId, activation }) {
   if (typeof activation === 'string' && activation) return activation;
-  if (String(modelType).includes('ebrm') && String(headId || 'main') === 'main') {
+  if (String(modelType).includes('ebrm') && ['main', 'local', 'tree', 'consistency'].includes(String(headId || 'main'))) {
     return 'linear';
   }
   return 'sigmoid';
@@ -219,6 +225,8 @@ async function scoreRowGpu({
   energyScale,
   activation,
   dtype,
+  targetTensor = null,
+  releaseTargetTensor = true,
 }) {
   const device = getDevice();
   if (!device) {
@@ -226,21 +234,23 @@ async function scoreRowGpu({
   }
 
   let stateTensor = null;
-  let targetTensor = null;
+  let activeTargetTensor = targetTensor;
   let energyTensor = null;
   try {
     stateTensor = await createFeatureTensor(device, features, dtype, 'dream_head_state');
-    targetTensor = await createFeatureTensor(device, head.weights, dtype, 'dream_head_target');
+    if (!activeTargetTensor) {
+      activeTargetTensor = await createFeatureTensor(device, head.weights, dtype, 'dream_head_target');
+    }
 
     for (let step = 0; step < steps; step++) {
-      await runEnergyUpdate(stateTensor, targetTensor, {
+      await runEnergyUpdate(stateTensor, activeTargetTensor, {
         count: features.length,
         stepSize,
         gradientScale,
       });
     }
 
-    energyTensor = await runEnergyEval(stateTensor, targetTensor, {
+    energyTensor = await runEnergyEval(stateTensor, activeTargetTensor, {
       count: features.length,
       scale: 1,
     });
@@ -258,7 +268,7 @@ async function scoreRowGpu({
     return { score, logit, energy };
   } finally {
     if (stateTensor?.buffer) releaseBuffer(stateTensor.buffer);
-    if (targetTensor?.buffer) releaseBuffer(targetTensor.buffer);
+    if (releaseTargetTensor && activeTargetTensor?.buffer) releaseBuffer(activeTargetTensor.buffer);
     if (energyTensor?.buffer) releaseBuffer(energyTensor.buffer);
   }
 }
@@ -328,36 +338,23 @@ export class DreamEnergyHeadPipeline {
     const startTime = performance.now();
     const outputRows = [];
     let usedBackend = backend;
+    let autoBackendFailure = false;
+    let sharedGpuTargetTensor = null;
+    try {
+      if (backend === 'gpu' || backend === 'auto') {
+        const device = getDevice();
+        if (device) {
+          sharedGpuTargetTensor = await createFeatureTensor(device, head.weights, dtype, 'dream_head_target_shared');
+        }
+      }
 
-    for (let i = 0; i < rows.length; i++) {
-      const row = rows[i];
-      const rowId = String(row?.rowId ?? row?.candidateId ?? i);
-      const features = alignFeatureVector(row, head);
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const rowId = String(row?.rowId ?? row?.candidateId ?? i);
+        const features = alignFeatureVector(row, head);
 
-      let scored = null;
-      if (backend === 'gpu') {
-        scored = await scoreRowGpu({
-          features,
-          head,
-          steps,
-          stepSize,
-          gradientScale,
-          energyScale,
-          activation,
-          dtype,
-        });
-      } else if (backend === 'cpu') {
-        scored = scoreRowCpu({
-          features,
-          head,
-          steps,
-          stepSize,
-          gradientScale,
-          energyScale,
-          activation,
-        });
-      } else {
-        try {
+        let scored = null;
+        if (backend === 'gpu') {
           scored = await scoreRowGpu({
             features,
             head,
@@ -367,10 +364,10 @@ export class DreamEnergyHeadPipeline {
             energyScale,
             activation,
             dtype,
+            targetTensor: sharedGpuTargetTensor,
+            releaseTargetTensor: sharedGpuTargetTensor == null,
           });
-          usedBackend = 'gpu';
-        } catch (error) {
-          log.warn('DreamEnergyHead', `GPU score fallback to CPU: ${error?.message || error}`);
+        } else if (backend === 'cpu') {
           scored = scoreRowCpu({
             features,
             head,
@@ -380,24 +377,66 @@ export class DreamEnergyHeadPipeline {
             energyScale,
             activation,
           });
-          usedBackend = 'cpu';
+        } else if (autoBackendFailure) {
+          scored = scoreRowCpu({
+            features,
+            head,
+            steps,
+            stepSize,
+            gradientScale,
+            energyScale,
+            activation,
+          });
+        } else {
+          try {
+            scored = await scoreRowGpu({
+              features,
+              head,
+              steps,
+              stepSize,
+              gradientScale,
+              energyScale,
+              activation,
+              dtype,
+              targetTensor: sharedGpuTargetTensor,
+              releaseTargetTensor: sharedGpuTargetTensor == null,
+            });
+            usedBackend = 'gpu';
+          } catch (error) {
+            log.warn('DreamEnergyHead', `GPU score fallback to CPU: ${error?.message || error}`);
+            scored = scoreRowCpu({
+              features,
+              head,
+              steps,
+              stepSize,
+              gradientScale,
+              energyScale,
+              activation,
+            });
+            usedBackend = 'cpu';
+            autoBackendFailure = true;
+          }
+        }
+
+        outputRows.push({
+          rowId,
+          score: activation === 'sigmoid'
+            ? clamp01(scored.score)
+            : toFinite(scored.score, 0),
+          logit: toFinite(scored.logit, 0),
+          energy: Math.max(0, toFinite(scored.energy, 0)),
+        });
+
+        if (this._onProgress) {
+          this._onProgress({
+            stage: 'dream_energy_head',
+            percent: (i + 1) / rows.length,
+            message: `Scored ${i + 1} / ${rows.length}`,
+          });
         }
       }
-
-      outputRows.push({
-        rowId,
-        score: clamp01(scored.score),
-        logit: toFinite(scored.logit, 0),
-        energy: Math.max(0, toFinite(scored.energy, 0)),
-      });
-
-      if (this._onProgress) {
-        this._onProgress({
-          stage: 'dream_energy_head',
-          percent: (i + 1) / rows.length,
-          message: `Scored ${i + 1} / ${rows.length}`,
-        });
-      }
+    } finally {
+      if (sharedGpuTargetTensor?.buffer) releaseBuffer(sharedGpuTargetTensor.buffer);
     }
 
     outputRows.sort((a, b) => {

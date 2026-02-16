@@ -45,7 +45,7 @@ doppler/
 
 - Browser entry: `runBrowserCommand()` via `src/tooling/browser-command-runner.js`
 - Node entry: `runNodeCommand()` via `src/tooling/node-command-runner.js`
-- CLI entrypoint: `tools/doppler-cli.mjs`
+- CLI entrypoint: `tools/doppler-cli.js`
 
 Rules:
 - New commands must be added to `src/tooling/command-api.js`.
