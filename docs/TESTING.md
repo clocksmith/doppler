@@ -17,15 +17,15 @@
 ```
 
 **Key Points:**
-- **All test flows run in the browser** (no Node/Vitest/Playwright).
+- **Primary kernel and parity flows run in the browser**; Node CLI covers scripted command-surface checks.
 - **Runtime config drives behavior**; set `runtime.shared.tooling.intent` for verify/debug/bench.
-- **Models load from OPFS/IndexedDB or `/models/<id>` when served locally.**
+- **Models load from OPFS/IndexedDB or `/models/local/<id>` when served locally.**
 
 ## Related Documentation
 
 | Doc | Purpose |
 |-----|---------|
-| [architecture.md](architecture.md) | System architecture context |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | System architecture context |
 | `../tests/kernels/README.md` | Kernel test coverage and design notes |
 | `style/benchmark-style-guide.md` | Benchmark methodology |
 | Internal postmortems (private wrapper repo) | Test-related incident history |

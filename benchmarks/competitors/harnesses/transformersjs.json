@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "id": "transformersjs",
+  "name": "Transformers.js Harness",
+  "execution": {
+    "mode": "external-command",
+    "stdoutFormat": "json",
+    "defaultCommand": null,
+    "examples": [
+      "node external/transformersjs-bench.mjs --workload decode-64-128-greedy --json"
+    ]
+  },
+  "normalization": {
+    "metricPaths": {
+      "decode_tokens_per_sec": ["metrics.decode_tokens_per_sec", "decode.tokens_per_sec", "decode_tps"],
+      "prefill_tokens_per_sec": ["metrics.prefill_tokens_per_sec", "prefill.tokens_per_sec", "prefill_tps"],
+      "ttft_ms": ["metrics.ttft_ms", "latency.ttft_ms", "ttft_ms"],
+      "decode_ms_per_token_p50": ["metrics.decode_ms_per_token_p50", "latency.decode_p50_ms"],
+      "decode_ms_per_token_p95": ["metrics.decode_ms_per_token_p95", "latency.decode_p95_ms"],
+      "peak_memory_mb": ["metrics.peak_memory_mb", "memory.peak_mb"],
+      "ort_profiled_total_ms": ["metrics.ort_profiled_total_ms", "profiling.ortConsole.totalDurationMs"],
+      "ort_profiled_event_count": ["metrics.ort_profiled_event_count", "profiling.ortConsole.durationEventCount"],
+      "ort_top_op_total_ms": ["metrics.ort_top_op_total_ms", "profiling.ortConsole.topOperations.0.totalMs"]
+    },
+    "metadataPaths": {
+      "version": ["env.version", "version"],
+      "model": ["model.id", "model"],
+      "ort_top_op_name": ["profiling.ortConsole.topOperations.0.name"]
+    },
+    "requiredMetrics": [
+      "decode_tokens_per_sec",
+      "prefill_tokens_per_sec",
+      "ttft_ms"
+    ]
+  }
+}

@@ -13,7 +13,9 @@
     "convert": "node tools/doppler-cli.js convert",
     "debug": "node tools/doppler-cli.js debug",
     "bench": "node tools/doppler-cli.js bench",
-    "test:model": "node tools/doppler-cli.js test-model"
+    "test:model": "node tools/doppler-cli.js test-model",
+    "bench:competitors:list": "node tools/competitor-bench.js list",
+    "bench:competitors:validate": "node tools/competitor-bench.js validate"
   },
   "exports": {
     ".": {

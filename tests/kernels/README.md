@@ -60,5 +60,5 @@ and that the browser allows file/HTTP access for local hosting.
 ## Related
 
 - [benchmarks.md](./benchmarks.md) - Benchmark baselines and expected ranges
-- [docs/testing.md](../docs/testing.md) - Full testing guide
-- [docs/design/KERNEL_testing.md](../docs/design/KERNEL_testing.md) - Testing specification
+- [TESTING.md](../../docs/TESTING.md) - Full testing guide
+- [OPERATIONS.md](../../docs/OPERATIONS.md) - Troubleshooting and validation workflows

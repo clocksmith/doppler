@@ -107,8 +107,7 @@ export function resolveAndActivateKernelPath(options) {
 
   const configuredKernelPathRef = runtimeKernelPath
     ?? runtimeConfig.inference.kernelPath
-    ?? modelConfig.kernelPath
-    ?? manifest.optimizations?.kernelPath;
+    ?? modelConfig.kernelPath;
   let kernelPathSource = 'none';
   let resolvedKernelPath = null;
 

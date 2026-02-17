@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>Transformers.js Bench</title></head>
+<body>
+<script type="importmap">
+{
+  "imports": {
+    "onnxruntime-common": "/node_modules/onnxruntime-common/dist/esm/index.js",
+    "onnxruntime-web/webgpu": "/node_modules/onnxruntime-web/dist/ort.webgpu.bundle.min.mjs"
+  }
+}
+</script>
+<script type="module">
+// Version from query param: ?v=3 (default) or ?v=4
+const urlParams = new URLSearchParams(location.search);
+const tjsVersion = urlParams.get('v') || '3';
+const cdnBase = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers';
+// v4: use locally installed node_modules (same-origin, avoids cross-origin Worker issues)
+// v3: use CDN (no Worker issues)
+const cdnUrl = tjsVersion === '4'
+  ? '/node_modules/@huggingface/transformers/dist/transformers.web.min.js'
+  : `${cdnBase}@3`;
+
+console.log(`[tjs-bench] loading transformers.js from ${cdnUrl}`);
+const tjs = await import(cdnUrl);
+const { pipeline, env } = tjs;
+const TextStreamer = tjs.TextStreamer;
+
+// Disable local model check (always fetch from Hub)
+env.allowLocalModels = false;
+
+
+window.__tfjsReady = true;
+
+async function finalizeSessionProfiling(generator) {
+  const sessions = generator?.model?.sessions || {};
+  const entries = Object.entries(sessions);
+  const details = [];
+
+  for (const [name, session] of entries) {
+    const report = {
+      name,
+      ended: false,
+      method: null,
+      error: null,
+    };
+    try {
+      if (session && typeof session.endProfiling === 'function') {
+        await session.endProfiling();
+        report.ended = true;
+        report.method = 'session.endProfiling';
+      } else if (session?.handler?.session && typeof session.handler.session.endProfiling === 'function') {
+        await session.handler.session.endProfiling();
+        report.ended = true;
+        report.method = 'session.handler.session.endProfiling';
+      }
+    } catch (e) {
+      report.error = e?.message || String(e);
+    }
+    details.push(report);
+  }
+
+  return {
+    sessionCount: entries.length,
+    endedCount: details.filter((entry) => entry.ended).length,
+    sessions: details,
+  };
+}
+
+window.__runBench = async (config) => {
+  const {
+    modelId,
+    prompt,
+    maxNewTokens,
+    warmupRuns,
+    timedRuns,
+    profileOps,
+    profileTopN,
+  } = config;
+  const enableOrtProfiling = profileOps !== false;
+
+  // Capture WebGPU device info before model load
+  let deviceInfo = null;
+  try {
+    const adapter = await navigator.gpu.requestAdapter();
+    if (adapter) {
+      const info = adapter.info || (await adapter.requestAdapterInfo?.()) || {};
+      deviceInfo = {
+        vendor: info.vendor || null,
+        architecture: info.architecture || null,
+        device: info.device || null,
+        description: info.description || null,
+        hasF16: adapter.features.has('shader-f16'),
+        hasSubgroups: adapter.features.has('subgroups'),
+        hasTimestampQuery: adapter.features.has('timestamp-query'),
+      };
+      console.log(`[tjs-bench] GPU: ${info.vendor} ${info.architecture} ${info.device}`);
+    }
+  } catch (e) {
+    console.warn(`[tjs-bench] Could not get adapter info: ${e.message}`);
+  }
+
+  // Best-effort memory snapshot (Chrome only, non-standard)
+  const memoryBefore = performance.memory ? {
+    usedJSHeapSize: performance.memory.usedJSHeapSize,
+    totalJSHeapSize: performance.memory.totalJSHeapSize,
+    jsHeapSizeLimit: performance.memory.jsHeapSizeLimit,
+  } : null;
+
+  console.log(`[tjs-bench] loading model: ${modelId} (device=webgpu, dtype=fp16)`);
+
+  const loadStart = performance.now();
+  const pipelineOptions = {
+    device: 'webgpu',
+    dtype: 'fp16',
+    session_options: enableOrtProfiling ? { enableProfiling: true } : undefined,
+  };
+  const generator = await pipeline('text-generation', modelId, pipelineOptions);
+  const modelLoadMs = performance.now() - loadStart;
+  console.log(`[tjs-bench] model loaded in ${(modelLoadMs / 1000).toFixed(1)}s`);
+
+  // Count prompt tokens via the tokenizer
+  let prefillTokens = null;
+  try {
+    const encoded = generator.tokenizer.encode(prompt);
+    prefillTokens = encoded.length;
+  } catch {
+    try {
+      const encoded = generator.tokenizer(prompt);
+      prefillTokens = encoded?.input_ids?.size ?? encoded?.input_ids?.length ?? null;
+    } catch { /* ignore */ }
+  }
+  console.log(`[tjs-bench] prompt tokens: ${prefillTokens}`);
+
+  const totalRuns = warmupRuns + timedRuns;
+  const timedResults = [];
+
+  for (let i = 0; i < totalRuns; i++) {
+    const isWarmup = i < warmupRuns;
+    const label = isWarmup ? 'warmup' : 'timed';
+
+    let firstTokenTime = null;
+    let newTokenCount = 0;
+    const tokenTimestamps = [];
+
+    // TextStreamer: callback fires once per generated token (skip_prompt=true)
+    const streamer = new TextStreamer(generator.tokenizer, {
+      skip_prompt: true,
+      callback_function: () => {
+        const now = performance.now();
+        newTokenCount++;
+        tokenTimestamps.push(now);
+        if (firstTokenTime === null) {
+          firstTokenTime = now;
+        }
+      },
+    });
+
+    const genStart = performance.now();
+
+    await generator(prompt, {
+      max_new_tokens: maxNewTokens,
+      do_sample: false,
+      streamer,
+    });
+
+    const genEnd = performance.now();
+    const totalMs = genEnd - genStart;
+
+    // TTFT = time until first streamer callback
+    const ttftMs = firstTokenTime !== null ? firstTokenTime - genStart : totalMs;
+    // Decode time = everything after first token
+    const decodeMs = Math.max(totalMs - ttftMs, 0.1);
+    // Decode tokens = all tokens after the first one
+    const decodeTokens = Math.max(newTokenCount - 1, 0);
+
+    // Compute per-token decode latencies from consecutive timestamps
+    const perTokenMs = [];
+    for (let t = 1; t < tokenTimestamps.length; t++) {
+      perTokenMs.push(tokenTimestamps[t] - tokenTimestamps[t - 1]);
+    }
+
+    const run = {
+      ttftMs,
+      totalMs,
+      decodeMs,
+      newTokens: newTokenCount,
+      decodeTokens,
+      prefillTokens,
+      tokensPerSec: newTokenCount / (totalMs / 1000),
+      decodeTokensPerSec: decodeTokens > 0 ? decodeTokens / (decodeMs / 1000) : 0,
+      prefillTokensPerSec: prefillTokens !== null && ttftMs > 0 ? prefillTokens / (ttftMs / 1000) : null,
+      perTokenMs,
+    };
+
+    console.log(
+      `[tjs-bench] ${label} ${i + 1}/${totalRuns}: ` +
+      `${newTokenCount} tokens in ${totalMs.toFixed(0)}ms ` +
+      `(ttft=${ttftMs.toFixed(0)}ms, ${run.tokensPerSec.toFixed(1)} tok/s, ` +
+      `decode=${run.decodeTokensPerSec.toFixed(1)} tok/s)`
+    );
+
+    if (!isWarmup) {
+      timedResults.push(run);
+    }
+  }
+
+  // Stats helpers
+  const sorted = (arr) => [...arr].sort((a, b) => a - b);
+  const median = (arr) => {
+    if (!arr.length) return 0;
+    const s = sorted(arr);
+    const m = Math.floor(s.length / 2);
+    return s.length % 2 === 0 ? (s[m - 1] + s[m]) / 2 : s[m];
+  };
+  const avg = (arr) => arr.length > 0 ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
+  const percentile = (arr, p) => {
+    if (!arr.length) return 0;
+    const s = sorted(arr);
+    const idx = (p / 100) * (s.length - 1);
+    const lo = Math.floor(idx);
+    const hi = Math.ceil(idx);
+    return lo === hi ? s[lo] : s[lo] + (s[hi] - s[lo]) * (idx - lo);
+  };
+
+  const tps = timedResults.map((r) => r.tokensPerSec);
+  const decodeTps = timedResults.map((r) => r.decodeTokensPerSec);
+  const prefillTps = timedResults.map((r) => r.prefillTokensPerSec).filter((v) => v !== null);
+  const ttfts = timedResults.map((r) => r.ttftMs);
+
+  // Aggregate all per-token decode latencies across timed runs
+  const allDecodeLatencies = timedResults.flatMap((r) => r.perTokenMs);
+
+  // Best-effort memory snapshot after inference
+  const memoryAfter = performance.memory ? {
+    usedJSHeapSize: performance.memory.usedJSHeapSize,
+    totalJSHeapSize: performance.memory.totalJSHeapSize,
+    jsHeapSizeLimit: performance.memory.jsHeapSizeLimit,
+  } : null;
+
+  const ortProfiling = enableOrtProfiling
+    ? await finalizeSessionProfiling(generator)
+    : {
+        sessionCount: 0,
+        endedCount: 0,
+        sessions: [],
+      };
+
+  return {
+    modelId,
+    modelLoadMs,
+    warmupRuns,
+    timedRuns,
+    prompt,
+    maxNewTokens,
+    deviceInfo,
+    metrics: {
+      tokens_per_sec: median(tps),
+      decode_tokens_per_sec: median(decodeTps),
+      avg_decode_tokens_per_sec: avg(decodeTps),
+      prefill_tokens_per_sec: prefillTps.length > 0 ? median(prefillTps) : null,
+      ttft_ms: median(ttfts),
+      avg_ttft_ms: avg(ttfts),
+      model_load_ms: modelLoadMs,
+      avg_new_tokens: avg(timedResults.map((r) => r.newTokens)),
+      decode_ms_per_token_p50: percentile(allDecodeLatencies, 50),
+      decode_ms_per_token_p95: percentile(allDecodeLatencies, 95),
+      decode_ms_per_token_p99: percentile(allDecodeLatencies, 99),
+    },
+    runs: timedResults,
+    env: {
+      library: 'transformers.js',
+      version: tjsVersion === '4' ? '4.x' : '3.x',
+      device: 'webgpu',
+      dtype: 'fp16',
+    },
+    profiling: {
+      enabled: enableOrtProfiling,
+      topN: Number.isFinite(profileTopN) ? Math.max(1, Math.floor(profileTopN)) : 20,
+      ort: ortProfiling,
+    },
+    memoryInfo: memoryBefore || memoryAfter ? { before: memoryBefore, after: memoryAfter } : null,
+  };
+};
+</script>
+</body>
+</html>

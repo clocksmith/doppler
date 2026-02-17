@@ -10,7 +10,7 @@ Repository: https://github.com/clocksmith/doppler
 
 1. **[General Style Guide](docs/style/general-style-guide.md)**
 2. **[JavaScript Guide](docs/style/javascript-style-guide.md)**
-3. **[WGSL Guide](docs/style/WGSL_style-guide.md)**
+3. **[WGSL Guide](docs/style/wgsl-style-guide.md)**
 4. **[Command Interface Design Guide](docs/style/command-interface-design-guide.md)**
 
 These guides define performance and architecture invariants. Do not bypass them.
@@ -36,9 +36,9 @@ doppler/
 
 ### Before Starting
 
-- Read `docs/architecture.md` for system overview.
-- Read `docs/formats.md` for RDRR format constraints.
-- Review `src/inference/pipeline.js` for inference flow.
+- Read `docs/ARCHITECTURE.md` for system overview.
+- Read `docs/FORMATS.md` for RDRR format constraints.
+- Review `src/inference/pipelines/text.js` for inference flow.
 - Review `src/tooling/command-api.js` for command parity contract.
 
 ### Command Surfaces (1:1 Contract)
@@ -60,6 +60,28 @@ Use runtime presets/config payloads, not ad-hoc per-field flags.
 - Model presets: `src/config/presets/models/`
 - Read tunables via `getRuntimeConfig()`; avoid hardcoded defaults in runtime paths.
 - `runtime.shared.tooling.intent` is required for harnessed debug/bench/test flows.
+
+### Competitor Benchmark Registry
+
+Cross-product benchmark tracking lives under `benchmarks/competitors/`.
+
+- Registry: `benchmarks/competitors/registry.json`
+- Workloads: `benchmarks/competitors/workloads.json`
+- Capability matrix: `benchmarks/competitors/capabilities.json`
+- Harness definitions: `benchmarks/competitors/harnesses/*.json`
+- Normalized outputs: `benchmarks/competitors/results/`
+- CLI: `tools/competitor-bench.js`
+
+Use these commands when updating benchmark/profiling coverage:
+
+- `node tools/competitor-bench.js validate`
+- `node tools/competitor-bench.js capabilities`
+- `node tools/competitor-bench.js gap --base doppler --target transformersjs`
+
+When harness/profiling behavior changes (Doppler or competitors), update:
+1. harness definition in `benchmarks/competitors/harnesses/`
+2. capability matrix in `benchmarks/competitors/capabilities.json`
+3. docs in `benchmarks/competitors/README.md`
 
 ### Conversion Triage Protocol (Required)
 
@@ -104,5 +126,6 @@ Use:
 - `doppler-debug`: debug inference issues.
 - `doppler-bench`: run performance benchmarks.
 - `doppler-convert`: convert models to RDRR.
+- `doppler-kernel-reviewer`: review WGSL/JS kernel implementations against style rules.
 
-See `docs/KERNEL_COMPATIBILITY.md` for kernel overrides and runtime modes.
+See `docs/CONFIG.md` for kernel overrides and runtime modes.

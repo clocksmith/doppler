@@ -345,6 +345,10 @@ export async function runBrowserCommandInNode(commandRequest, options = {}) {
   const useOpfsCache = options.opfsCache !== false;
   const userDataDir = options.userDataDir || DEFAULT_OPFS_CACHE_DIR;
 
+  if (options.wipeCacheBeforeLaunch && useOpfsCache) {
+    await fs.rm(userDataDir, { recursive: true, force: true }).catch(() => {});
+  }
+
   const { chromium } = await import('playwright');
   const baseUrl = normalizeBaseUrl(options.baseUrl);
   // When OPFS caching is enabled, use a fixed port so the browser origin stays the same

@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "workloads": [
+    {
+      "id": "decode-64-128-greedy",
+      "name": "Decode 64/128 Greedy",
+      "prefillTokens": 64,
+      "decodeTokens": 128,
+      "sampling": {
+        "temperature": 0,
+        "topK": 1,
+        "topP": 1
+      }
+    },
+    {
+      "id": "decode-32-64-greedy",
+      "name": "Decode 32/64 Greedy",
+      "prefillTokens": 32,
+      "decodeTokens": 64,
+      "sampling": {
+        "temperature": 0,
+        "topK": 1,
+        "topP": 1
+      }
+    },
+    {
+      "id": "decode-512-128-greedy",
+      "name": "Decode 512/128 Greedy",
+      "prefillTokens": 512,
+      "decodeTokens": 128,
+      "sampling": {
+        "temperature": 0,
+        "topK": 1,
+        "topP": 1
+      }
+    }
+  ]
+}

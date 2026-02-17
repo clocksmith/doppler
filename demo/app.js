@@ -211,7 +211,7 @@ const EMBEDDING_DEMO_DOCUMENT_CATALOG = Object.freeze([
 const EMBEDDING_DEMO_DOCUMENT_COUNT = 3;
 const DIFFUSION_STARTER_PROMPTS = Object.freeze([
   'A photo-realistic architectural render of a boutique toy store in Williamsburg, Brooklyn; matte black metal frame, floor-to-ceiling glass, warm wooden shelves with minimalist board games and wooden toys, soft morning sidewalk light.',
-  "A vector logo for a software project named Reploid, cyber-industrial and minimalist, deep charcoal and neon teal palette, 90s arcade energy meets modern developer tooling.",
+  "A vector logo for a software project named Doppler, cyber-industrial and minimalist, deep charcoal and neon teal palette, 90s arcade energy meets modern developer tooling.",
   'A top-down cinematic shot of a disassembled Framework DIY laptop next to a custom mechanical keyboard with translucent keycaps and coiled cables, shallow bokeh, texture-rich PCB details.',
   'A digital artwork of an ouroboros made from glowing fiber-optic cables and circuit board traces, dark background, high contrast, precise luminous edges.',
   'A candid documentary-style photo of a museum visitor looking up at a massive dinosaur skeleton in the American Museum of Natural History, soft natural light, slight desaturation.',

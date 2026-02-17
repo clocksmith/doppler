@@ -4,7 +4,7 @@
 
 Defines the Recursive DOPPLER Runtime Registry (RDRR) format for streaming model delivery optimized for browser-based LLM inference.
 
-See also: `architecture.md` for system overview.
+See also: `ARCHITECTURE.md` for system overview.
 
 ---
 
@@ -25,7 +25,7 @@ See also: `architecture.md` for system overview.
 
 **RDRR** = **R**ecursive **D**OPPLER **R**untime **R**egistry
 
-A streaming model delivery format bridging REPLOID (agent sandbox) and DOPPLER (WebGPU runtime).
+A streaming model delivery format for DOPPLER runtimes and higher-level applications/agents (including optional [Reploid](https://github.com/clocksmith/reploid) integration).
 
 | Component | Description |
 |-----------|-------------|
@@ -378,7 +378,9 @@ For tensors spanning multiple shards, use the `spans` field:
 
 ### optimizations Schema
 
-The `optimizations` field provides a kernel path hint used for fallback selection.
+The `optimizations` field is legacy metadata. Runtime kernel selection reads
+`inference.defaultKernelPath` (manifest default) and `runtime.inference.kernelPath`
+(runtime override).
 
 ```json
 {
@@ -396,12 +398,11 @@ The `optimizations` field provides a kernel path hint used for fallback selectio
 
 #### Precedence Rules (low → high)
 
-1. manifest `optimizations.kernelPath`
-2. manifest `inference.defaultKernelPath`
-3. runtime config `runtime.inference.kernelPath`
-4. per-run context override (pipeline context only)
+1. manifest `inference.defaultKernelPath`
+2. runtime config `runtime.inference.kernelPath`
+3. per-run context override (pipeline context only)
 
-See `config.md` for how kernel paths integrate with capability-based kernel selection.
+See `CONFIG.md` for how kernel paths integrate with capability-based kernel selection.
 
 ---
 

@@ -14,22 +14,31 @@ This skill helps you review DOPPLER kernels (WGSL, JS wrappers, .d.ts) against t
 **Goal**: Verify that a specific kernel complies with `docs/style/*.md`.
 
 **Steps**:
-1.  **Read Files**: Use `view_file` to read the kernel's source files. Usually:
-    -   `src/gpu/kernels/<name>.js`
-    -   `src/gpu/kernels/<name>.d.ts`
-    -   `src/gpu/kernels/<name>.wgsl` (and variants)
-2.  **Run Linter**: Run `node .claude/skills/doppler-kernel-reviewer/scripts/lint-kernel.js <kernel-js-path>` to check for common mechanical errors (padding, JSDoc, etc.).
-3.  **Manual Check**: Verify the code against `.claude/skills/doppler-kernel-reviewer/rules/checklist.md`.
-4.  **Report**: Provide a list of violations (if any) or a confirmation of compliance.
+1. Read kernel files:
+   - `src/gpu/kernels/<name>.js`
+   - `src/gpu/kernels/<name>.d.ts`
+   - WGSL sources referenced by the JS wrapper (typically under `src/gpu/kernels/`)
+2. Run mechanical checks:
+   - `node .claude/skills/doppler-kernel-reviewer/scripts/lint-kernel.js src/gpu/kernels/<name>.js`
+   - `node .claude/skills/doppler-kernel-reviewer/scripts/lint-kernel.js src/gpu/kernels/<name>.wgsl`
+3. Run syntax check for wrapper JS:
+   - `node --check src/gpu/kernels/<name>.js`
+4. Perform manual checklist review:
+   - `.claude/skills/doppler-kernel-reviewer/rules/checklist.md`
+   - `docs/style/general-style-guide.md`
+   - `docs/style/javascript-style-guide.md`
+   - `docs/style/wgsl-style-guide.md`
+5. Report findings ordered by severity with concrete file references.
 
 ### 2. Update Style Guide
 
 **Goal**: Propose a change to the style guides to improve clarity or support new patterns.
 
 **Steps**:
-1.  **Read Guide**: Read the relevant style guide (e.g., `docs/style/WGSL_STYLE_GUIDE.md`).
-2.  **Propose Diff**: Create a diff block showing the proposed change.
-3.  **Justify**: Explain *why* the change is improved (e.g., "Improves alignment safety" or "Reduces boilerplate").
+1. Read the relevant guide (for WGSL: `docs/style/wgsl-style-guide.md`).
+2. Propose a concrete diff in the style guide file.
+3. Justify the change based on runtime correctness, portability, or maintainability.
+4. If the guide changes, update checklist/lint heuristics in this skill to stay aligned.
 
 ## Resources
 - `rules/checklist.md`: Condensed style rules.

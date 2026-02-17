@@ -133,7 +133,7 @@ inference). Document the merge chain per domain:
 - Loader/runtime slices (loading/storage/etc):
   `loadingConfig = merge(runtimeDefaultConfig.loading, runtimePresetConfig.loading, runtimeOverrideConfig.loading)`
 - Kernel path resolution:
-  `kernelPath = runtimeKernelPathOverride ?? runtimeConfig.inference.kernelPath ?? manifestInference.defaultKernelPath ?? manifest.optimizations.kernelPath ?? 'auto'`
+  `kernelPath = runtimeKernelPathOverride ?? runtimeConfig.inference.kernelPath ?? manifestInference.defaultKernelPath ?? 'auto'`
 
 ### No Runtime Defaults in Code
 
@@ -179,10 +179,10 @@ const useSoftcapping = config.attnLogitSoftcapping !== null;
 ### Kernel Path Overrides
 
 - Use `kernelPath` for kernel selection overrides.
-- Manifest: `optimizations.kernelPath` or `inference.defaultKernelPath`
+- Manifest: `inference.defaultKernelPath`
 - Runtime: `runtime.inference.kernelPath`
 - Legacy `kernelPlan` is removed; do not add new references.
-- Precedence (low → high): manifest `optimizations.kernelPath` → manifest `inference.defaultKernelPath` → runtime config `runtime.inference.kernelPath`.
+- Precedence (low → high): manifest `inference.defaultKernelPath` → runtime config `runtime.inference.kernelPath`.
 - Kernel path overrides are config-only; do not add harness/UI flags for kernel selection.
 - Populate `inference.defaultKernelPath` during conversion using model preset `inference.kernelPaths` (keys: weights quantization → activation dtype).
 - Avoid semantic aliases (e.g. "safe/fast/balanced"). Use explicit IDs that encode quantization and activation dtype (e.g. `gemma2-q4k-dequant-f32a`, `gemma2-q4k-fused-f16a`).

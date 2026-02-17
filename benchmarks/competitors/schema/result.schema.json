@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Competitor Benchmark Result",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "timestamp",
+    "target",
+    "harness",
+    "workload",
+    "model",
+    "metrics",
+    "source"
+  ],
+  "properties": {
+    "schemaVersion": { "type": "integer", "const": 1 },
+    "timestamp": { "type": "string" },
+    "target": {
+      "type": "object",
+      "required": ["id", "name"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "harness": {
+      "type": "object",
+      "required": ["id", "name"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "version": { "type": ["string", "null"] }
+      },
+      "additionalProperties": true
+    },
+    "workload": {
+      "type": "object",
+      "required": ["id"],
+      "properties": {
+        "id": { "type": ["string", "null"] },
+        "name": { "type": ["string", "null"] }
+      },
+      "additionalProperties": true
+    },
+    "model": {
+      "type": "object",
+      "required": ["id"],
+      "properties": {
+        "id": { "type": ["string", "null"] },
+        "name": { "type": ["string", "null"] }
+      },
+      "additionalProperties": true
+    },
+    "metrics": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": ["number", "null"]
+      }
+    },
+    "source": {
+      "type": "object",
+      "required": ["mode"],
+      "properties": {
+        "mode": { "type": "string" },
+        "inputPath": { "type": ["string", "null"] },
+        "command": {
+          "type": ["array", "null"],
+          "items": { "type": "string" }
+        },
+        "rawSha256": { "type": ["string", "null"] },
+        "rawBytes": { "type": ["integer", "null"] }
+      },
+      "additionalProperties": true
+    },
+    "notes": { "type": ["string", "null"] },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}

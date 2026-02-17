@@ -1,11 +1,11 @@
 # DOPPLER
 
-**D**istributed **O**n-device **P**ipeline **P**rocessing **L**arge **E**mbedded **R**eploid ([Reploid](https://github.com/clocksmith/reploid))
+**D**istributed **O**n-device **P**rocessing for **P**refill, **L**earning, and **E**xecution **R**untime
 
 **[Try it live](https://d4da.com)**
 
-Browser-native WebGPU inference for decoding, diffusion sampling, and energy-based inference, plus a post-training engine for local model execution.
-Doppler runs standalone as the engine; Reploid is an optional driver that can link in for orchestration.
+Browser-native WebGPU runtime for forward inference, prefill, backward/training primitives, diffusion sampling, and energy-based inference.
+Doppler is a standalone inference library; [Reploid](https://github.com/clocksmith/reploid) is an optional orchestrator integration.
 
 ## Why This Works
 
@@ -28,10 +28,10 @@ Node CLI (shared command contract):
 
 ```bash
 npm install --save-optional webgpu
-npm run convert -- <inputDir> <outputDir> --model-id <id>
-npm run debug -- --model-id <id> --runtime-preset modes/debug
-npm run bench -- --model-id <id> --runtime-preset experiments/gemma3-bench-q4k
-npm run test:model -- --suite inference --model-id <id>
+npm run convert -- <inputDir> models/local/<id> --model-id <id>
+npm run debug -- --model-id <id> --model-url /models/local/<id> --runtime-preset modes/debug
+npm run bench -- --model-id <id> --model-url /models/local/<id> --runtime-preset experiments/gemma3-bench-q4k
+npm run test:model -- --suite inference --model-id <id> --model-url /models/local/<id>
 ```
 
 `webgpu` is optional but recommended for Node CLI parity. Without it, harnessed
@@ -61,7 +61,7 @@ The converter embeds model-specific inference parameters in `manifest.json`.
 Runtime reads config directly (no model-family detection). Missing fields fail
 fast; `null` explicitly disables a feature. Kernel paths resolve at conversion
 time and can be overridden via `runtime.inference.kernelPath` or per-run context.
-See `docs/config.md` and `docs/formats.md` for the full contract.
+See `docs/CONFIG.md` and `docs/FORMATS.md` for the full contract.
 
 ## Why Pure JS + WGSL
 
@@ -82,11 +82,11 @@ files; see `docs/style/general-style-guide.md` for the full rationale.
 ## Documentation
 
 Start at `docs/INDEX.md`, then:
-- `docs/architecture.md`
-- `docs/config.md`
-- `docs/formats.md`
-- `docs/operations.md`
-- `docs/testing.md`
+- `docs/ARCHITECTURE.md`
+- `docs/CONFIG.md`
+- `docs/FORMATS.md`
+- `docs/OPERATIONS.md`
+- `docs/TESTING.md`
 
 ## Requirements
 
@@ -95,7 +95,7 @@ Start at `docs/INDEX.md`, then:
 
 ## Related
 
-- [REPLOID](https://github.com/clocksmith/reploid) - Browser-native AI agent ([replo.id/r](https://replo.id/r))
+- [REPLOID](https://github.com/clocksmith/reploid) - Optional browser-native AI agent integration ([replo.id/r](https://replo.id/r))
 
 ## Inspiration
 

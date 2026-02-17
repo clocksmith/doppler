@@ -16,6 +16,7 @@ import {
   getActiveKernelPath,
   getActiveKernelPathSource,
 } from '../config/kernel-path-loader.js';
+import { selectRuleValue } from '../rules/rule-registry.js';
 
 function resolveRuntime(options) {
   if (options.runtime) return options.runtime;
@@ -348,8 +349,7 @@ async function resolveKernelPathForModel(options = {}) {
   const modelConfig = parseModelConfigFromManifest(manifest, runtimeConfig);
   const kernelPathRef = runtimeKernelPath
     ?? runtimeConfig?.inference?.kernelPath
-    ?? modelConfig?.kernelPath
-    ?? manifest.optimizations?.kernelPath;
+    ?? modelConfig?.kernelPath;
 
   if (!kernelPathRef) {
     setActiveKernelPath(null, 'none');
@@ -578,19 +578,17 @@ const EMBEDDING_SEMANTIC_PAIR_CASES = Object.freeze([
 
 function resolveEmbeddingSemanticStyle(pipeline) {
   const manifest = pipeline?.manifest ?? null;
-  const modelId = String(manifest?.modelId ?? '').toLowerCase();
-  const presetId = String(manifest?.inference?.presetId ?? '').toLowerCase();
-  const modelType = String(
-    manifest?.config?.model_type
-    ?? manifest?.config?.text_config?.model_type
-    ?? ''
-  ).toLowerCase();
-  if (
-    modelId.includes('embeddinggemma')
-    || presetId === 'embeddinggemma'
-    || modelType.includes('embeddinggemma')
-  ) {
-    return 'embeddinggemma';
+  const style = selectRuleValue('inference', 'config', 'embeddingSemanticStyle', {
+    modelId: String(manifest?.modelId ?? '').toLowerCase(),
+    presetId: String(manifest?.inference?.presetId ?? '').toLowerCase(),
+    manifestModelType: String(
+      manifest?.config?.model_type
+      ?? manifest?.config?.text_config?.model_type
+      ?? ''
+    ).toLowerCase(),
+  });
+  if (typeof style === 'string' && style.length > 0) {
+    return style;
   }
   return 'default';
 }

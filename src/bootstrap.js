@@ -18,7 +18,7 @@ function withBase(path) {
   return `${BASE_PATH}${normalized}`;
 }
 
-// No SW/VFS bootstrap in package+demo mode. Reploid owns that integration.
+// No SW/VFS bootstrap in package+demo mode. Host app owns that integration.
 const APP_ENTRY_URL = withBase('/demo/app.js');
 
 async function main() {

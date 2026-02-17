@@ -1,6 +1,6 @@
 # DOPPLER Setup (Browser WebGPU path)
 
-DOPPLER is the local WebGPU inference engine for medium/large models. It uses the `.rpl` format (manifest + shard_*.bin) and supports three ways to load models.
+DOPPLER is the local WebGPU inference engine for medium/large models. It uses the RDRR format (`manifest.json` + `shard_*.bin`) and supports three ways to load models.
 
 For Ollama and other local server options, see [local-models.md](../../docs/local-models.md).
 

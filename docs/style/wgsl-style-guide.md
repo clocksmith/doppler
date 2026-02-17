@@ -614,9 +614,8 @@ Use runtime config to force kernel path selection:
 ```
 
 Priority (low to high):
-1. manifest `optimizations.kernelPath`
-2. manifest `inference.defaultKernelPath`
-3. runtime config `runtime.inference.kernelPath`
+1. manifest `inference.defaultKernelPath`
+2. runtime config `runtime.inference.kernelPath`
 
 Kernel paths are explicit dispatch sequences. See `../config.md`.
 

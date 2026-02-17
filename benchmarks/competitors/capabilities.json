@@ -1,0 +1,376 @@
+{
+  "schemaVersion": 1,
+  "updated": "2026-02-17",
+  "featureCatalog": {
+    "bench": [
+      {
+        "id": "browser_webgpu",
+        "description": "Runs inference on WebGPU in browser."
+      },
+      {
+        "id": "node_webgpu",
+        "description": "Runs inference on WebGPU directly in Node runtime."
+      },
+      {
+        "id": "headless_browser_harness",
+        "description": "Has a maintained headless browser benchmark harness in this repo."
+      },
+      {
+        "id": "standardized_workloads",
+        "description": "Maps benchmark runs to shared workload IDs."
+      },
+      {
+        "id": "cache_mode_control",
+        "description": "Can force warm/cold cache behavior for repeated benchmark runs."
+      },
+      {
+        "id": "decode_tokens_per_sec",
+        "description": "Reports decode throughput metric."
+      },
+      {
+        "id": "prefill_tokens_per_sec",
+        "description": "Reports prefill throughput metric."
+      },
+      {
+        "id": "ttft_ms",
+        "description": "Reports time-to-first-token metric."
+      },
+      {
+        "id": "model_load_ms",
+        "description": "Reports model load latency metric."
+      },
+      {
+        "id": "decode_ms_per_token_percentiles",
+        "description": "Reports per-token decode latency percentiles."
+      },
+      {
+        "id": "js_heap_memory_metrics",
+        "description": "Reports JS heap memory metrics."
+      },
+      {
+        "id": "gpu_memory_metrics",
+        "description": "Reports GPU memory metrics."
+      }
+    ],
+    "profile": [
+      {
+        "id": "kernel_level_gpu_timing",
+        "description": "Provides kernel-level GPU timing breakdown."
+      },
+      {
+        "id": "operator_level_timing",
+        "description": "Provides model operator-level timing breakdown."
+      },
+      {
+        "id": "top_ops_summary",
+        "description": "Provides sorted top-op summary in benchmark output."
+      },
+      {
+        "id": "per_decode_step_breakdown",
+        "description": "Provides per-decode-step profiling breakdown."
+      },
+      {
+        "id": "kernel_selection_trace",
+        "description": "Provides selected kernel path/variant trace data."
+      },
+      {
+        "id": "phase_memory_breakdown",
+        "description": "Provides per-phase memory telemetry."
+      },
+      {
+        "id": "cache_events",
+        "description": "Provides cache hit/miss behavior telemetry."
+      },
+      {
+        "id": "replayable_trace_artifact",
+        "description": "Produces replayable trace artifact suitable for deterministic replay."
+      }
+    ]
+  },
+  "targets": [
+    {
+      "id": "doppler",
+      "name": "Doppler",
+      "bench": {
+        "features": {
+          "browser_webgpu": true,
+          "node_webgpu": true,
+          "headless_browser_harness": true,
+          "standardized_workloads": true,
+          "cache_mode_control": true,
+          "decode_tokens_per_sec": true,
+          "prefill_tokens_per_sec": true,
+          "ttft_ms": true,
+          "model_load_ms": true,
+          "decode_ms_per_token_percentiles": true,
+          "js_heap_memory_metrics": true,
+          "gpu_memory_metrics": true
+        }
+      },
+      "profile": {
+        "features": {
+          "kernel_level_gpu_timing": true,
+          "operator_level_timing": true,
+          "top_ops_summary": true,
+          "per_decode_step_breakdown": true,
+          "kernel_selection_trace": true,
+          "phase_memory_breakdown": true,
+          "cache_events": true,
+          "replayable_trace_artifact": false
+        }
+      },
+      "evidence": [
+        "src/gpu/command-recorder.js",
+        "src/inference/pipelines/text/generator-steps.js",
+        "docs/OPERATIONS.md"
+      ]
+    },
+    {
+      "id": "transformersjs",
+      "name": "Transformers.js",
+      "bench": {
+        "features": {
+          "browser_webgpu": true,
+          "node_webgpu": false,
+          "headless_browser_harness": true,
+          "standardized_workloads": true,
+          "cache_mode_control": true,
+          "decode_tokens_per_sec": true,
+          "prefill_tokens_per_sec": true,
+          "ttft_ms": true,
+          "model_load_ms": true,
+          "decode_ms_per_token_percentiles": true,
+          "js_heap_memory_metrics": true,
+          "gpu_memory_metrics": false
+        }
+      },
+      "profile": {
+        "features": {
+          "kernel_level_gpu_timing": false,
+          "operator_level_timing": true,
+          "top_ops_summary": true,
+          "per_decode_step_breakdown": false,
+          "kernel_selection_trace": false,
+          "phase_memory_breakdown": false,
+          "cache_events": false,
+          "replayable_trace_artifact": false
+        }
+      },
+      "evidence": [
+        "external/transformersjs-bench.mjs",
+        "external/transformersjs-runner.html",
+        "benchmarks/competitors/harnesses/transformersjs.json"
+      ]
+    },
+    {
+      "id": "webllm",
+      "name": "WebLLM",
+      "bench": {
+        "features": {
+          "browser_webgpu": true,
+          "node_webgpu": false,
+          "headless_browser_harness": false,
+          "standardized_workloads": true,
+          "cache_mode_control": false,
+          "decode_tokens_per_sec": true,
+          "prefill_tokens_per_sec": true,
+          "ttft_ms": true,
+          "model_load_ms": false,
+          "decode_ms_per_token_percentiles": true,
+          "js_heap_memory_metrics": false,
+          "gpu_memory_metrics": false
+        }
+      },
+      "profile": {
+        "features": {
+          "kernel_level_gpu_timing": false,
+          "operator_level_timing": false,
+          "top_ops_summary": false,
+          "per_decode_step_breakdown": false,
+          "kernel_selection_trace": false,
+          "phase_memory_breakdown": false,
+          "cache_events": false,
+          "replayable_trace_artifact": false
+        }
+      },
+      "evidence": [
+        "benchmarks/competitors/harnesses/webllm.json"
+      ]
+    },
+    {
+      "id": "ratchet",
+      "name": "Ratchet",
+      "bench": {
+        "features": {
+          "browser_webgpu": true,
+          "node_webgpu": false,
+          "headless_browser_harness": false,
+          "standardized_workloads": true,
+          "cache_mode_control": false,
+          "decode_tokens_per_sec": true,
+          "prefill_tokens_per_sec": true,
+          "ttft_ms": true,
+          "model_load_ms": false,
+          "decode_ms_per_token_percentiles": true,
+          "js_heap_memory_metrics": false,
+          "gpu_memory_metrics": false
+        }
+      },
+      "profile": {
+        "features": {
+          "kernel_level_gpu_timing": false,
+          "operator_level_timing": false,
+          "top_ops_summary": false,
+          "per_decode_step_breakdown": false,
+          "kernel_selection_trace": false,
+          "phase_memory_breakdown": false,
+          "cache_events": false,
+          "replayable_trace_artifact": false
+        }
+      },
+      "evidence": [
+        "benchmarks/competitors/harnesses/ratchet.json"
+      ]
+    },
+    {
+      "id": "candle",
+      "name": "Candle",
+      "bench": {
+        "features": {
+          "browser_webgpu": false,
+          "node_webgpu": false,
+          "headless_browser_harness": false,
+          "standardized_workloads": true,
+          "cache_mode_control": false,
+          "decode_tokens_per_sec": true,
+          "prefill_tokens_per_sec": true,
+          "ttft_ms": true,
+          "model_load_ms": false,
+          "decode_ms_per_token_percentiles": true,
+          "js_heap_memory_metrics": false,
+          "gpu_memory_metrics": false
+        }
+      },
+      "profile": {
+        "features": {
+          "kernel_level_gpu_timing": false,
+          "operator_level_timing": false,
+          "top_ops_summary": false,
+          "per_decode_step_breakdown": false,
+          "kernel_selection_trace": false,
+          "phase_memory_breakdown": false,
+          "cache_events": false,
+          "replayable_trace_artifact": false
+        }
+      },
+      "evidence": [
+        "benchmarks/competitors/harnesses/candle.json"
+      ]
+    },
+    {
+      "id": "burn",
+      "name": "Burn",
+      "bench": {
+        "features": {
+          "browser_webgpu": false,
+          "node_webgpu": false,
+          "headless_browser_harness": false,
+          "standardized_workloads": true,
+          "cache_mode_control": false,
+          "decode_tokens_per_sec": true,
+          "prefill_tokens_per_sec": true,
+          "ttft_ms": true,
+          "model_load_ms": false,
+          "decode_ms_per_token_percentiles": true,
+          "js_heap_memory_metrics": false,
+          "gpu_memory_metrics": false
+        }
+      },
+      "profile": {
+        "features": {
+          "kernel_level_gpu_timing": false,
+          "operator_level_timing": false,
+          "top_ops_summary": false,
+          "per_decode_step_breakdown": false,
+          "kernel_selection_trace": false,
+          "phase_memory_breakdown": false,
+          "cache_events": false,
+          "replayable_trace_artifact": false
+        }
+      },
+      "evidence": [
+        "benchmarks/competitors/harnesses/burn.json"
+      ]
+    },
+    {
+      "id": "mediapipe-llm",
+      "name": "MediaPipe LLM Inference",
+      "bench": {
+        "features": {
+          "browser_webgpu": true,
+          "node_webgpu": false,
+          "headless_browser_harness": false,
+          "standardized_workloads": true,
+          "cache_mode_control": false,
+          "decode_tokens_per_sec": true,
+          "prefill_tokens_per_sec": true,
+          "ttft_ms": true,
+          "model_load_ms": false,
+          "decode_ms_per_token_percentiles": true,
+          "js_heap_memory_metrics": false,
+          "gpu_memory_metrics": false
+        }
+      },
+      "profile": {
+        "features": {
+          "kernel_level_gpu_timing": false,
+          "operator_level_timing": false,
+          "top_ops_summary": false,
+          "per_decode_step_breakdown": false,
+          "kernel_selection_trace": false,
+          "phase_memory_breakdown": false,
+          "cache_events": false,
+          "replayable_trace_artifact": false
+        }
+      },
+      "evidence": [
+        "benchmarks/competitors/harnesses/mediapipe-llm.json"
+      ]
+    },
+    {
+      "id": "wllama",
+      "name": "Wllama",
+      "bench": {
+        "features": {
+          "browser_webgpu": false,
+          "node_webgpu": false,
+          "headless_browser_harness": false,
+          "standardized_workloads": true,
+          "cache_mode_control": false,
+          "decode_tokens_per_sec": true,
+          "prefill_tokens_per_sec": true,
+          "ttft_ms": true,
+          "model_load_ms": false,
+          "decode_ms_per_token_percentiles": true,
+          "js_heap_memory_metrics": false,
+          "gpu_memory_metrics": false
+        }
+      },
+      "profile": {
+        "features": {
+          "kernel_level_gpu_timing": false,
+          "operator_level_timing": false,
+          "top_ops_summary": false,
+          "per_decode_step_breakdown": false,
+          "kernel_selection_trace": false,
+          "phase_memory_breakdown": false,
+          "cache_events": false,
+          "replayable_trace_artifact": false
+        }
+      },
+      "evidence": [
+        "benchmarks/competitors/harnesses/wllama.json"
+      ]
+    }
+  ]
+}

@@ -4,9 +4,10 @@
 
 Comprehensive debugging strategies for DOPPLER WebGPU inference issues. Written for future developers and Claude agents.
 
-**Note:** Doppler is browser-only. Use the demo diagnostics UI or `tests/harness.html`
-with `runtimeConfig` to run suites. Runtime behavior is controlled via `runtime.*`
-and `runtime.shared.tooling.intent`.
+**Note:** Doppler supports browser and Node workflows. Use the demo diagnostics
+UI or `tests/harness.html` for interactive/browser suites, and use the Node CLI
+for scripted runs. Runtime behavior is controlled via `runtime.*` and
+`runtime.shared.tooling.intent`.
 
 ---
 

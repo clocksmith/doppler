@@ -25,7 +25,7 @@ function getKernelBasePath() {
     return override.replace(/\/+$/, '');
   }
 
-  // Check if we're running from /doppler/ path (replo.id deployment)
+  // Check common deployed Doppler paths.
   if (typeof location !== 'undefined') {
     const path = location.pathname || '';
     if (

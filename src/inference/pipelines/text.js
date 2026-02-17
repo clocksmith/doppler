@@ -33,6 +33,7 @@ import { applyPipelineDebugConfig } from './text/debug-utils.js';
 import { resolveLayerPipeline } from './text/layer-plan.js';
 import { getDopplerLoader } from '../../loader/doppler-loader.js';
 import { registerPipeline, getPipelineFactory } from './registry.js';
+import { selectRuleValue } from '../../rules/rule-registry.js';
 
 
 
@@ -460,6 +461,15 @@ async function createEmbeddingPipeline(manifest, contexts = {}) {
 
 registerPipeline('embedding', createEmbeddingPipeline);
 
+function resolveLazyPipelineModules(modelType) {
+  const modules = selectRuleValue('inference', 'config', 'pipelineModules', {
+    modelType,
+    modelTypeLower: String(modelType).toLowerCase(),
+  });
+  if (!Array.isArray(modules)) return [];
+  return modules.filter((entry) => typeof entry === 'string' && entry.length > 0);
+}
+
 export async function createPipeline(manifest, contexts = {}) {
   const modelType = manifest?.modelType;
   if (typeof modelType !== 'string' || modelType.length === 0) {
@@ -467,43 +477,10 @@ export async function createPipeline(manifest, contexts = {}) {
   }
   let factory = getPipelineFactory(modelType);
 
-  if (!factory && modelType === 'diffusion') {
-    await import('./diffusion/pipeline.js');
-    factory = getPipelineFactory(modelType);
-  }
-
-  if (!factory && modelType === 'energy') {
-    await import('./energy/pipeline.js');
-    factory = getPipelineFactory(modelType);
-  }
-
-  if (
-    !factory && (
-      modelType === 'dream_structured' ||
-      modelType === 'dream_intent_posterior_head' ||
-      modelType === 'dream_d1_to2_bridge' ||
-      modelType === 'dream_synthesis' ||
-      modelType === 'dream_energy_compose' ||
-      modelType === 'dream-intent-posterior-head' ||
-      modelType === 'dream-d1-to2-bridge' ||
-      modelType === 'dream-synthesis' ||
-      modelType === 'dream-energy-compose'
-    )
-  ) {
-    await import('./dream/pipeline.js');
-    factory = getPipelineFactory(modelType);
-  }
-
-  if (
-    !factory && (
-      modelType === 'dream_energy_head' ||
-      modelType === 'dream-energy-head' ||
-      modelType === 'd1-to2-bridge-diffusion' ||
-      modelType === 'synthesis-mixer-diffusion' ||
-      modelType === 'ebrm-diffusion'
-    )
-  ) {
-    await import('./dream/energy-head-pipeline.js');
+  if (!factory) {
+    for (const modulePath of resolveLazyPipelineModules(modelType)) {
+      await import(modulePath);
+    }
     factory = getPipelineFactory(modelType);
   }
 

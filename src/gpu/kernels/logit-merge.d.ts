@@ -3,7 +3,7 @@
  *
  * GPU primitive for merging logits from multiple models in multi-model inference.
  * This is a mechanism (how to merge), not policy (when/what to merge).
- * Reploid decides the weights and strategy; Doppler executes the merge.
+ * The host orchestrator decides the weights and strategy; Doppler executes the merge.
  *
  * @module gpu/kernels/logit-merge
  */

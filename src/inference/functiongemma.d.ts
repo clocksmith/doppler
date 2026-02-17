@@ -1,10 +1,10 @@
 /**
  * FunctionGemma Primitives
  *
- * Doppler provides execution primitives only. Orchestration lives in Reploid.
+ * Doppler provides execution primitives only. Orchestration lives in the host app.
  *
  * @module inference/functiongemma
- * @see reploid/src/capabilities/intelligence/functiongemma-orchestrator.js
+ * @see ../../docs/ARCHITECTURE.md#engine-vs-orchestrator-boundary
  */
 export {
   MultiModelNetwork,

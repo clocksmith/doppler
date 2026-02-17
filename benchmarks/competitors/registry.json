@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "updated": "2026-02-17",
+  "products": [
+    {
+      "id": "webllm",
+      "name": "WebLLM",
+      "category": "webgpu-runtime",
+      "website": "https://webllm.mlc.ai/",
+      "harness": "harnesses/webllm.json",
+      "status": "active"
+    },
+    {
+      "id": "transformersjs",
+      "name": "Transformers.js",
+      "category": "webgpu-wasm-runtime",
+      "website": "https://huggingface.co/docs/transformers.js/",
+      "harness": "harnesses/transformersjs.json",
+      "status": "active"
+    },
+    {
+      "id": "ratchet",
+      "name": "Ratchet",
+      "category": "rust-webgpu-runtime",
+      "website": "https://github.com/huggingface/ratchet",
+      "harness": "harnesses/ratchet.json",
+      "status": "experimental"
+    },
+    {
+      "id": "candle",
+      "name": "Candle",
+      "category": "rust-ml-framework",
+      "website": "https://github.com/huggingface/candle",
+      "harness": "harnesses/candle.json",
+      "status": "experimental"
+    },
+    {
+      "id": "burn",
+      "name": "Burn",
+      "category": "rust-ml-framework",
+      "website": "https://burn.dev/",
+      "harness": "harnesses/burn.json",
+      "status": "experimental"
+    },
+    {
+      "id": "mediapipe-llm",
+      "name": "MediaPipe LLM Inference",
+      "category": "google-edge-runtime",
+      "website": "https://ai.google.dev/edge/mediapipe/solutions/genai/llm_inference",
+      "harness": "harnesses/mediapipe-llm.json",
+      "status": "active"
+    },
+    {
+      "id": "wllama",
+      "name": "Wllama",
+      "category": "wasm-cpu-runtime",
+      "website": "https://github.com/ngxson/wllama",
+      "harness": "harnesses/wllama.json",
+      "status": "active"
+    }
+  ]
+}

@@ -44,7 +44,7 @@ async function main() {
   const args = parseArgs(process.argv.slice(2));
   if (!args.inputDir || !args.outputDir) {
     console.error(
-      'Usage: node tools/convert-safetensors-node.js <inputDir> <outputDir> [--model-id <id>] [--converter-config <path.json>]'
+      'Usage: node tools/convert-safetensors-node.js <inputPath> <outputDir> [--model-id <id>] [--converter-config <path.json>]'
     );
     process.exit(2);
   }

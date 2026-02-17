@@ -45,6 +45,10 @@ downloads/
 shard_*.bin
 functiongemma-safetensors/
 
+# Benchmark results
+bench-results/
+.tjs-bench-profile/
+
 # Test artifacts
 test-results/
 tests/results/**

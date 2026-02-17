@@ -13,7 +13,7 @@ const DEFAULT_BENCH_SURFACE = 'browser';
 function usage() {
   return [
     'Usage:',
-    '  doppler convert <inputDir> <outputDir> [--model-id <id>] [--surface auto|node]',
+    '  doppler convert <inputPath> <outputDir> [--model-id <id>] [--surface auto|node]',
     '  doppler debug --model-id <id> [--model-url <url>] [--runtime-preset <id>] [--runtime-config-url <url>] [--runtime-config-json <json>] [--surface auto|node|browser]',
     '  doppler bench [--model-id <id>] [--model-url <url>] [--runtime-preset <id>] [--runtime-config-url <url>] [--runtime-config-json <json>] [--surface auto|node|browser]',
     '  doppler test-model --suite <kernels|inference|diffusion|energy> [--model-id <id>] [--model-url <url>] [--runtime-preset <id>] [--runtime-config-url <url>] [--runtime-config-json <json>] [--surface auto|node|browser]',
@@ -35,6 +35,13 @@ function usage() {
     '  --browser-console               Stream browser console lines to stderr',
     '  --no-opfs-cache                 Disable OPFS caching (use HTTP shard loading every run)',
     '  --browser-user-data <path>      Persistent Chromium profile directory for OPFS cache',
+    '',
+    'Bench Flags:',
+    '  --save                          Save bench result JSON to disk',
+    '  --save-dir <path>               Output directory for saved results (default: ./bench-results)',
+    '  --compare <path|last>           Compare against a previous result file or "last"',
+    '  --manifest <path>               Run a multi-model bench sweep from a manifest JSON',
+    '  --cache-mode <cold|warm>        cold: wipe OPFS cache before run; warm: reuse (default: warm)',
     '',
     `Bench Defaults: --model-id ${DEFAULT_BENCH_MODEL_ID}, --surface ${DEFAULT_BENCH_SURFACE}, --browser-console (browser channel auto-selected)`,
   ].join('\n');
@@ -86,6 +93,7 @@ function parseArgs(argv) {
       || key === 'h'
       || key === 'browser-console'
       || key === 'no-opfs-cache'
+      || key === 'save'
     ) {
       out.flags[key] = true;
       continue;
@@ -251,7 +259,7 @@ function buildRequest(parsed) {
     const inputDir = parsed.positional[0] ?? null;
     const outputDir = parsed.positional[1] ?? null;
     if (!inputDir || !outputDir) {
-      throw new Error('convert requires <inputDir> <outputDir>');
+      throw new Error('convert requires <inputPath> <outputDir>');
     }
     return {
       ...common,
@@ -315,6 +323,9 @@ function buildBrowserRunOptions(parsed, jsonOutput) {
   }
   if (parsed.flags['browser-user-data']) {
     options.userDataDir = String(parsed.flags['browser-user-data']);
+  }
+  if (parsed.flags['cache-mode'] === 'cold') {
+    options.wipeCacheBeforeLaunch = true;
   }
 
   if (parsed.flags['browser-console'] === true && !jsonOutput) {
@@ -398,6 +409,239 @@ function quoteOneLine(value) {
   return JSON.stringify(clipped);
 }
 
+const DEFAULT_SAVE_DIR = './bench-results';
+
+function compactTimestamp() {
+  return new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+Z$/, '');
+}
+
+async function saveBenchResult(result, saveDir) {
+  await fs.mkdir(saveDir, { recursive: true });
+  const modelId = String(result?.modelId || 'unknown').replace(/[^a-zA-Z0-9_-]/g, '_');
+  const ts = compactTimestamp();
+  const filename = `${modelId}_${ts}.json`;
+  const filePath = path.join(saveDir, filename);
+  const json = JSON.stringify(result, null, 2);
+  await fs.writeFile(filePath, json, 'utf-8');
+  await fs.writeFile(path.join(saveDir, 'latest.json'), json, 'utf-8');
+  return filePath;
+}
+
+async function loadBaseline(comparePath, saveDir) {
+  const resolved = comparePath === 'last'
+    ? path.join(saveDir, 'latest.json')
+    : path.resolve(comparePath);
+  try {
+    const raw = await fs.readFile(resolved, 'utf-8');
+    return JSON.parse(raw);
+  } catch (error) {
+    console.error(`[compare] failed to load baseline from ${resolved}: ${error.message}`);
+    return null;
+  }
+}
+
+/**
+ * Detect if a result is from a competitor harness (snake_case metric keys)
+ * and normalize to Doppler's camelCase format for comparison.
+ */
+function normalizeBenchMetrics(result) {
+  const m = result?.metrics;
+  if (!m) return m;
+  // Competitor detection: snake_case keys like decode_tokens_per_sec
+  if ('decode_tokens_per_sec' in m) {
+    return {
+      medianDecodeTokensPerSec: m.decode_tokens_per_sec,
+      medianPrefillTokensPerSec: m.prefill_tokens_per_sec,
+      medianTtftMs: m.ttft_ms,
+      medianTokensPerSec: m.tokens_per_sec,
+      modelLoadMs: m.model_load_ms,
+      decodeMsPerTokenP50: m.decode_ms_per_token_p50,
+      decodeMsPerTokenP95: m.decode_ms_per_token_p95,
+      decodeMsPerTokenP99: m.decode_ms_per_token_p99,
+    };
+  }
+  return m;
+}
+
+function compareBenchResults(current, baseline) {
+  const cm = normalizeBenchMetrics(current);
+  const bm = normalizeBenchMetrics(baseline);
+  if (!cm || !bm) {
+    console.error('[compare] missing metrics in current or baseline result');
+    return { regressions: [], improvements: [] };
+  }
+
+  const isCrossEngine = (current?.env?.library) !== (baseline?.env?.library);
+  const regressions = [];
+  const improvements = [];
+
+  const metrics = [
+    { label: 'tok/s (median)', cur: cm.medianTokensPerSec, base: bm.medianTokensPerSec, higherBetter: true },
+    { label: 'decode tok/s', cur: cm.medianDecodeTokensPerSec, base: bm.medianDecodeTokensPerSec, higherBetter: true },
+    { label: 'prefill tok/s', cur: cm.medianPrefillTokensPerSec, base: bm.medianPrefillTokensPerSec, higherBetter: true },
+    { label: 'ttft (median)', cur: cm.medianTtftMs, base: bm.medianTtftMs, higherBetter: false },
+    { label: 'prefill ms', cur: cm.medianPrefillMs, base: bm.medianPrefillMs, higherBetter: false },
+    { label: 'decode ms', cur: cm.medianDecodeMs, base: bm.medianDecodeMs, higherBetter: false },
+    { label: 'model load', cur: cm.modelLoadMs, base: bm.modelLoadMs, higherBetter: false },
+  ];
+
+  // GPU phase metrics only available in Doppler-vs-Doppler comparisons
+  const cg = current?.metrics?.gpu;
+  const bg = baseline?.metrics?.gpu;
+  if (cg && bg) {
+    metrics.push(
+      { label: 'gpu record ms', cur: cg.decodeRecordMs?.median, base: bg.decodeRecordMs?.median, higherBetter: false },
+      { label: 'gpu submit_wait', cur: cg.decodeSubmitWaitMs?.median, base: bg.decodeSubmitWaitMs?.median, higherBetter: false },
+      { label: 'gpu readback', cur: cg.decodeReadbackWaitMs?.median, base: bg.decodeReadbackWaitMs?.median, higherBetter: false },
+    );
+  }
+
+  const curLabel = isCrossEngine ? (current?.env?.library || 'current') : 'current';
+  const baseLabel = isCrossEngine ? (baseline?.env?.library || 'baseline') : 'baseline';
+  const baseModelId = baseline.modelId || 'unknown';
+  console.log(`[compare] vs ${baseLabel} model=${baseModelId}`);
+  console.log(`[compare] ${'metric'.padEnd(20)} ${baseLabel.padStart(14)} ${curLabel.padStart(14)} ${'delta'.padStart(10)}`);
+
+  for (const m of metrics) {
+    if (!Number.isFinite(m.cur) || !Number.isFinite(m.base) || m.base === 0) continue;
+    const deltaPct = ((m.cur - m.base) / Math.abs(m.base)) * 100;
+    const sign = deltaPct >= 0 ? '+' : '';
+    const deltaStr = `${sign}${deltaPct.toFixed(1)}%`;
+    const isRegression = m.higherBetter ? deltaPct < -10 : deltaPct > 10;
+    const isImprovement = m.higherBetter ? deltaPct > 10 : deltaPct < -10;
+    const flag = isRegression ? ' !!REGRESSION' : isImprovement ? ' *improved' : '';
+    console.log(`[compare] ${m.label.padEnd(20)} ${formatNumber(m.base, 1).padStart(14)} ${formatNumber(m.cur, 1).padStart(14)} ${deltaStr.padStart(10)}${flag}`);
+    if (isRegression) regressions.push(m.label);
+    if (isImprovement) improvements.push(m.label);
+  }
+
+  if (regressions.length) {
+    console.log(`[compare] ${regressions.length} regression(s) detected (>10% threshold)`);
+  }
+  return { regressions, improvements };
+}
+
+async function loadManifest(manifestPath) {
+  const raw = await fs.readFile(path.resolve(manifestPath), 'utf-8');
+  const manifest = JSON.parse(raw);
+  if (!manifest.runs || !Array.isArray(manifest.runs) || manifest.runs.length === 0) {
+    throw new Error('manifest must have a non-empty "runs" array');
+  }
+  return manifest;
+}
+
+async function runManifestSweep(manifest, parsed, jsonOutput, surface) {
+  const defaults = manifest.defaults || {};
+  const results = [];
+
+  for (let i = 0; i < manifest.runs.length; i++) {
+    const run = manifest.runs[i];
+    const label = run.label || run.modelId || `run-${i}`;
+    if (!jsonOutput) {
+      console.error(`[sweep] (${i + 1}/${manifest.runs.length}) ${label}`);
+    }
+
+    const mergedFlags = { ...parsed.flags };
+    const modelId = run.modelId || defaults.modelId || parsed.flags['model-id'];
+    if (modelId) mergedFlags['model-id'] = modelId;
+    if (run.runtimePreset || defaults.runtimePreset) {
+      mergedFlags['runtime-preset'] = run.runtimePreset || defaults.runtimePreset;
+    }
+
+    const mergedParsed = { ...parsed, flags: mergedFlags };
+    const mergedWithDefaults = applyCommandDefaults(mergedParsed);
+    const request = buildRequest(mergedWithDefaults);
+    if (!jsonOutput) mergedWithDefaults.flags['browser-console'] = true;
+
+    try {
+      const response = surface === 'auto'
+        ? await runWithAutoSurface(request, mergedWithDefaults, jsonOutput)
+        : await runCommandOnSurface(request, surface, mergedWithDefaults, jsonOutput);
+      results.push({ label, response, error: null });
+    } catch (error) {
+      results.push({ label, response: null, error });
+      if (!jsonOutput) {
+        console.error(`[sweep] ${label} FAILED: ${error.message}`);
+      }
+    }
+  }
+
+  return results;
+}
+
+function printManifestSummary(results) {
+  const completed = results.filter((r) => r.response && !r.error);
+  const failed = results.filter((r) => r.error);
+  console.log(`[sweep] ${completed.length} completed, ${failed.length} failed`);
+
+  for (const r of results) {
+    if (r.error) {
+      console.log(`  ${r.label.padEnd(30)} FAILED`);
+      continue;
+    }
+    const m = r.response?.result?.metrics;
+    if (!m) {
+      console.log(`  ${r.label.padEnd(30)} no metrics`);
+      continue;
+    }
+    console.log(
+      `  ${r.label.padEnd(30)} ` +
+      `${formatNumber(m.medianTokensPerSec)} tok/s  ` +
+      `decode=${formatNumber(m.medianDecodeTokensPerSec)}  ` +
+      `prefill=${formatNumber(m.medianPrefillTokensPerSec)}  ` +
+      `ttft=${formatMs(m.medianTtftMs)}`
+    );
+  }
+}
+
+function formatMB(bytes) {
+  return Number.isFinite(bytes) ? `${(bytes / (1024 * 1024)).toFixed(1)}MB` : 'n/a';
+}
+
+function printDeviceInfo(result) {
+  const info = result?.deviceInfo;
+  if (!info) return;
+  const ai = info.adapterInfo;
+  if (ai) {
+    console.log(`[device] vendor=${ai.vendor || 'unknown'} arch=${ai.architecture || 'unknown'} device=${ai.device || 'unknown'}`);
+  }
+  console.log(
+    `[device] f16=${info.hasF16 ? 'yes' : 'no'} subgroups=${info.hasSubgroups ? 'yes' : 'no'} timestamp_query=${info.hasTimestampQuery ? 'yes' : 'no'}`
+  );
+}
+
+function printGpuPhases(metrics) {
+  const gpu = metrics?.gpu;
+  if (!gpu) return;
+  const rm = gpu.decodeRecordMs?.median;
+  const sw = gpu.decodeSubmitWaitMs?.median;
+  const rw = gpu.decodeReadbackWaitMs?.median;
+  if (Number.isFinite(rm) || Number.isFinite(sw) || Number.isFinite(rw)) {
+    console.log(`[gpu] decode record=${formatMs(rm)} submit_wait=${formatMs(sw)} readback_wait=${formatMs(rw)} (median)`);
+  }
+  const pm = gpu.prefillMs?.median;
+  const dm = gpu.decodeMs?.median;
+  if (Number.isFinite(pm) || Number.isFinite(dm)) {
+    console.log(`[gpu] prefill=${formatMs(pm)} decode=${formatMs(dm)} (median gpu time)`);
+  }
+}
+
+function printMemoryReport(result) {
+  const mem = result?.memoryStats;
+  if (!mem) return;
+  const parts = [`used=${formatMB(mem.used)}`];
+  if (mem.pool && Number.isFinite(mem.pool.currentBytesAllocated)) {
+    parts.push(`pool=${formatMB(mem.pool.currentBytesAllocated)}`);
+  }
+  if (mem.kvCache) {
+    parts.push(`kv_cache=${formatMB(mem.kvCache.allocated)}`);
+    if (Number.isFinite(mem.kvCache.seqLen) && Number.isFinite(mem.kvCache.maxSeqLen)) {
+      parts.push(`(seq=${mem.kvCache.seqLen}/${mem.kvCache.maxSeqLen})`);
+    }
+  }
+  console.log(`[memory] ${parts.join(' ')}`);
+}
+
 function printMetricsSummary(result) {
   if (!result || typeof result !== 'object') return;
   const suite = String(result.suite || '');
@@ -458,6 +702,9 @@ function printMetricsSummary(result) {
       `[metrics] latency ttft median=${formatMs(metrics.medianTtftMs)} ` +
       `prefill median=${formatMs(metrics.medianPrefillMs)} decode median=${formatMs(metrics.medianDecodeMs)}`
     );
+    printDeviceInfo(result);
+    printGpuPhases(metrics);
+    printMemoryReport(result);
   }
 }
 
@@ -475,15 +722,64 @@ async function main() {
     return;
   }
 
-  const request = buildRequest(parsedWithDefaults);
   const jsonOutput = parsedWithDefaults.flags.json === true;
-  const surface = parseSurface(parsedWithDefaults.flags.surface, request.command);
+  const surface = parseSurface(parsedWithDefaults.flags.surface, parsedWithDefaults.command);
+  const saveDir = String(parsedWithDefaults.flags['save-dir'] || DEFAULT_SAVE_DIR);
+  const shouldSave = parsedWithDefaults.flags.save === true;
+  const comparePath = parsedWithDefaults.flags.compare ?? null;
+  const manifestPath = parsedWithDefaults.flags.manifest ?? null;
+
+  if (manifestPath) {
+    const manifest = await loadManifest(String(manifestPath));
+    const results = await runManifestSweep(manifest, parsedWithDefaults, jsonOutput, surface);
+
+    if (shouldSave) {
+      for (const r of results) {
+        if (r.response?.result) {
+          const savedPath = await saveBenchResult(r.response.result, saveDir);
+          if (!jsonOutput) console.error(`[save] ${r.label}: ${savedPath}`);
+        }
+      }
+    }
+
+    if (jsonOutput) {
+      console.log(JSON.stringify(results.map((r) => r.response ?? { error: r.error?.message }), null, 2));
+      return;
+    }
+
+    printManifestSummary(results);
+    for (const r of results) {
+      if (r.response?.result) {
+        console.log(`\n--- ${r.label} ---`);
+        printMetricsSummary(r.response.result);
+      }
+    }
+    return;
+  }
+
+  const request = buildRequest(parsedWithDefaults);
 
   let response;
   if (surface === 'auto') {
     response = await runWithAutoSurface(request, parsedWithDefaults, jsonOutput);
   } else {
     response = await runCommandOnSurface(request, surface, parsedWithDefaults, jsonOutput);
+  }
+
+  const isBench = response.result?.suite === 'bench';
+
+  if (comparePath && isBench) {
+    const baseline = await loadBaseline(String(comparePath), saveDir);
+    if (baseline) {
+      compareBenchResults(response.result, baseline);
+    }
+  }
+
+  if (shouldSave && isBench) {
+    const savedPath = await saveBenchResult(response.result, saveDir);
+    if (!jsonOutput) {
+      console.error(`[save] ${savedPath}`);
+    }
   }
 
   if (jsonOutput) {

@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "burn",
+  "name": "Burn Harness",
+  "execution": {
+    "mode": "manual-json",
+    "stdoutFormat": "json",
+    "defaultCommand": null,
+    "examples": [
+      "cargo run -p burn-bench -- --json > /tmp/burn.json"
+    ]
+  },
+  "normalization": {
+    "metricPaths": {
+      "decode_tokens_per_sec": ["metrics.decode_tokens_per_sec", "decode.tokens_per_sec", "decode_tps"],
+      "prefill_tokens_per_sec": ["metrics.prefill_tokens_per_sec", "prefill.tokens_per_sec", "prefill_tps"],
+      "ttft_ms": ["metrics.ttft_ms", "latency.ttft_ms", "ttft_ms"],
+      "decode_ms_per_token_p50": ["metrics.decode_ms_per_token_p50", "latency.decode_p50_ms"],
+      "decode_ms_per_token_p95": ["metrics.decode_ms_per_token_p95", "latency.decode_p95_ms"],
+      "peak_memory_mb": ["metrics.peak_memory_mb", "memory.peak_mb"]
+    },
+    "metadataPaths": {
+      "version": ["env.version", "version"],
+      "model": ["model.id", "model"]
+    },
+    "requiredMetrics": [
+      "decode_tokens_per_sec",
+      "ttft_ms"
+    ]
+  }
+}

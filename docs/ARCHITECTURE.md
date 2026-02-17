@@ -2,7 +2,7 @@
 
 ## Architecture Overview
 
-**DOPPLER** (Distributed Object Parallel Processing Layer Executing REPLOID) is a WebGPU-native LLM inference engine for browser environments. It is part of the REPLOID system (Recursive Evolution Protocol Loop Orchestrating Inference DOPPLER).
+**DOPPLER** (Distributed On-device Processing for Prefill, Learning, and Execution Runtime) is a standalone WebGPU-native ML runtime for forward inference, prefill, and backward/training paths in browser and Node environments.
 
 See also: `INDEX.md`
 
@@ -41,9 +41,9 @@ Inference Phase (per token)
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-## Ouroboros Integration
+## Optional Ouroboros/Reploid Integration
 
-Doppler integrates with Reploid via the minimal Ouroboros substrate contract:
+Doppler can integrate with [Reploid](https://github.com/clocksmith/reploid) via the minimal Ouroboros substrate contract:
 SharedArrayBuffer for coordination plus VFS file exchange for inference plans and
 results. The contract surface and kernel evolution flow are documented in
 `../../docs/substrate.md`.
@@ -100,21 +100,21 @@ See the internal roadmap for rationale, goals, and current status.
 
 ---
 
-## Engine vs Driver Boundary
+## Engine vs Orchestrator Boundary
 
-DOPPLER is the **Engine** (mechanism); REPLOID is the **Driver** (policy). This separation is critical for maintainability and flexibility.
+DOPPLER is the **Engine** (mechanism); a caller/orchestrator is the **Policy Layer**. Reploid is one policy-layer implementation.
 
 ### The Principle
 
-**DOPPLER never decides, it only executes.** All policy decisions (what to do, when to do it, what weights to use) come from REPLOID. DOPPLER provides primitives that accept parameters and execute them efficiently on the GPU.
+**DOPPLER never decides, it only executes.** All policy decisions (what to do, when to do it, what weights to use) come from the caller/orchestrator. DOPPLER provides primitives that accept parameters and execute them efficiently on the GPU.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                           REPLOID (Driver)                               │
+│                 Orchestrator / Application (Policy Layer)                │
 │  - Decides which models to query                                         │
 │  - Chooses merge weights                                                 │
 │  - Builds prompts (Seed/Reflect/Refine)                                  │
-│  - Runs orchestration loops                                              │
+│  - Runs orchestration loops                                               │
 │  - Implements UCB1, evolution, arena                                     │
 │  - Calculates fitness scores                                             │
 └─────────────────────────────────────┬───────────────────────────────────┘
@@ -134,7 +134,7 @@ DOPPLER is the **Engine** (mechanism); REPLOID is the **Driver** (policy). This 
 
 When multiple models are loaded, these GPU operations **must** stay in DOPPLER (cannot round-trip to CPU):
 
-| Operation | DOPPLER Primitive | REPLOID Decides |
+| Operation | DOPPLER Primitive | Orchestrator Decides |
 |-----------|-------------------|-----------------|
 | Logit merging | `mergeLogits(buffers, weights)` | Which buffers, what weights |
 | KV cache sharing | `setSharedPrefix(cache)` | When to share, which prefix |
@@ -144,7 +144,7 @@ When multiple models are loaded, these GPU operations **must** stay in DOPPLER (
 
 ### What Belongs Where
 
-| Feature | DOPPLER (Engine) | REPLOID (Driver) |
+| Feature | DOPPLER (Engine) | Orchestrator (Policy) |
 |---------|------------------|------------------|
 | Inference | ✅ GPU kernels, buffer pools | ❌ |
 | KV Cache | ✅ Memory management | ❌ |
@@ -157,7 +157,7 @@ When multiple models are loaded, these GPU operations **must** stay in DOPPLER (
 
 ### Migration Note
 
-The `FunctionGemma` wrapper has been removed from DOPPLER. Use REPLOID's `FunctionGemmaOrchestrator` for orchestration. DOPPLER's `MultiModelNetwork` provides the primitives:
+The `FunctionGemma` wrapper has been removed from DOPPLER. Use an external orchestrator (for example Reploid's `FunctionGemmaOrchestrator`) for orchestration loops. DOPPLER's `MultiModelNetwork` provides the primitives:
 
 ```javascript
 import { MultiModelNetwork } from 'doppler/inference/functiongemma.js';
@@ -193,7 +193,7 @@ See the internal roadmap for the current migration status.
 | `errors/` | Error codes and helpers |
 | `rules/` | JSON rule maps for runtime selection |
 | `proto/simulator/` | Hardware emulation layer (virtual devices, NVLink, timing) |
-| `training/` | Training utilities (browser-only) |
+| `training/` | Training utilities and optimization primitives |
 | `types/` | Shared TypeScript types |
 
 See `../../../proto/simulator/README.md` for details on the emulation subsystem.
@@ -249,7 +249,7 @@ DOPPLER's structure can be understood through multiple lenses. Each view serves 
 │                             EXTENSIONS                                       │
 ├───────────────────┬────────────────────┬────────────────────────────────────┤
 │ converter/        │ adapters/          │ bridge/                             │
-│ (Node-only)       │ (LoRA hot-swap)    │ (Extension IPC)                     │
+│ (Node + Browser)  │ (LoRA hot-swap)    │ (Extension IPC)                     │
 ├───────────────────┼────────────────────┼────────────────────────────────────┤
 │ hotswap/          │ client/            │ browser/                            │
 │ (Planned swap)    │ (Public API)       │ (Demo harness)                      │
@@ -744,8 +744,8 @@ Note: `src/storage/rdrr-format.js` is a compatibility re-export of `formats/rdrr
 ```
 model-directory/
 ├── manifest.json          # Tensor locations, config, hashes
-├── shard_000.rdrr         # 64MB shard
-├── shard_001.rdrr
+├── shard_00000.bin        # 64MB shard
+├── shard_00001.bin
 ├── ...
 └── tokenizer.json         # Optional bundled tokenizer
 ```
@@ -770,7 +770,7 @@ model-directory/
     }
   },
   "shards": [
-    { "filename": "shard_000.rdrr", "size": 67108864, "hash": "..." }
+    { "filename": "shard_00000.bin", "size": 67108864, "hash": "..." }
   ]
 }
 ```
@@ -866,7 +866,9 @@ Defines extension permissions and background entry points.
 
 ### Native Host (removed)
 
-The native host process and install scripts were removed in the browser-only migration.
+The native host process and install scripts were removed. Current workflows use
+the extension bridge for browser contexts and the Node CLI for scripted/local
+tooling paths.
 
 ### protocol.js - Bridge Protocol
 
@@ -934,8 +936,9 @@ the full debugging timeline.
 
 ## 9. Tools
 
-Legacy Node tooling has been removed in the browser-only migration. Use the
-demo UI and browser harness for diagnostics and validation workflows.
+DOPPLER ships Node tooling via `tools/doppler-cli.js` and npm scripts
+(`convert`, `debug`, `bench`, `test:model`). The demo UI and browser harness
+remain the primary interactive diagnostics surfaces.
 
 ---
 

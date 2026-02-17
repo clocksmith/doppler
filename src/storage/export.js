@@ -70,11 +70,6 @@ function resolveExportStore(runtime) {
   throw new Error('No supported storage backend available for export (opfs, indexeddb).');
 }
 
-/**
- * Export a stored RDRR model (manifest + shards + tokenizer artifacts) to a user-chosen directory.
- *
- * This does NOT use shard-manager globals, so it cannot clobber an active pipeline's storage reads.
- */
 export async function exportModelToDirectory(modelId, destinationDir, options = {}) {
   if (!modelId || typeof modelId !== 'string') {
     throw new Error('exportModelToDirectory requires modelId');
@@ -154,4 +149,3 @@ export async function exportModelToDirectory(modelId, destinationDir, options = 
   onProgress?.({ stage: 'done', modelId, backend, fileCount: files.length });
   return { modelId, fileCount: files.length };
 }
-

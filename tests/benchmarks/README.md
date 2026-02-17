@@ -10,4 +10,5 @@ Recommended paths:
 - Manifest runs: `runBrowserManifest(manifest)`
 
 Benchmark outputs should be saved under `tests/results/` (JSON) and referenced
-from `docs/performance.md`.
+from your benchmark logbook. Cross-product comparison records live in
+`benchmarks/competitors/results/`.

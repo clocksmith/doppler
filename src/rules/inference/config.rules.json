@@ -7,5 +7,48 @@
   "tracePath": [
     { "match": { "useRecorder": true }, "value": "fused" },
     { "match": {}, "value": "debug-sync" }
+  ],
+  "pipelineModules": [
+    { "match": { "modelTypeLower": { "in": ["diffusion"] } }, "value": ["./diffusion/pipeline.js"] },
+    { "match": { "modelTypeLower": { "in": ["energy"] } }, "value": ["./energy/pipeline.js"] },
+    {
+      "match": {
+        "modelTypeLower": {
+          "in": [
+            "dream_structured",
+            "dream_intent_posterior_head",
+            "dream_d1_to2_bridge",
+            "dream_synthesis",
+            "dream_energy_compose",
+            "dream-intent-posterior-head",
+            "dream-d1-to2-bridge",
+            "dream-synthesis",
+            "dream-energy-compose"
+          ]
+        }
+      },
+      "value": ["./dream/pipeline.js"]
+    },
+    {
+      "match": {
+        "modelTypeLower": {
+          "in": [
+            "dream_energy_head",
+            "dream-energy-head",
+            "d1-to2-bridge-diffusion",
+            "synthesis-mixer-diffusion",
+            "ebrm-diffusion"
+          ]
+        }
+      },
+      "value": ["./dream/energy-head-pipeline.js"]
+    },
+    { "match": {}, "value": [] }
+  ],
+  "embeddingSemanticStyle": [
+    { "match": { "modelId": { "contains": "embeddinggemma" } }, "value": "embeddinggemma" },
+    { "match": { "presetId": { "in": ["embeddinggemma"] } }, "value": "embeddinggemma" },
+    { "match": { "manifestModelType": { "contains": "embeddinggemma" } }, "value": "embeddinggemma" },
+    { "match": {}, "value": "default" }
   ]
 }

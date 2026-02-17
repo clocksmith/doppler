@@ -639,7 +639,7 @@ export class MultiModelNetwork {
     }
 
     if (genome.topology.type === 'ring') {
-      throw new Error('Topology type "ring" is an orchestration policy and must run in Reploid.');
+      throw new Error('Topology type "ring" is an orchestration policy and must run in the host orchestrator.');
     }
 
     const outputs = await this.executeGraph(genome, prompt, options, router);

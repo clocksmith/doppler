@@ -1,39 +1,40 @@
 import { modelExists } from '../storage/shard-manager.js';
 import { downloadModel } from '../storage/downloader.js';
 import { isOPFSAvailable } from '../storage/quota.js';
+import { log } from '../debug/index.js';
 
-/**
- * Ensures a model is cached in OPFS. Downloads from the given base URL on
- * cache miss. Returns a result object — never throws (caller falls back to
- * the HTTP shard-loader path on any error).
- *
- * @param {string} modelId
- * @param {string} modelBaseUrl  Base URL served by the static file server
- *                               (e.g. '/models/local/gemma-3-1b-it-wf16')
- * @returns {Promise<{cached: boolean, fromCache: boolean, modelId: string, error: string|null}>}
- */
+const MODULE = 'OPFSCache';
+
+function toErrorMessage(error) {
+  if (error instanceof Error && typeof error.message === 'string' && error.message.length > 0) {
+    return error.message;
+  }
+  return String(error);
+}
+
 export async function ensureModelCached(modelId, modelBaseUrl) {
   if (!modelId || !modelBaseUrl) {
     return { cached: false, fromCache: false, modelId, error: 'missing-args' };
   }
 
   if (!isOPFSAvailable()) {
-    console.warn('[opfs-cache] OPFS not available in this browser');
+    log.warn(MODULE, 'OPFS not available in this browser');
     return { cached: false, fromCache: false, modelId, error: 'opfs-unavailable' };
   }
 
   try {
     const exists = await modelExists(modelId);
     if (exists) {
-      console.log(`[opfs-cache] Cache hit: "${modelId}"`);
+      log.info(MODULE, `Cache hit: "${modelId}"`);
       return { cached: true, fromCache: true, modelId, error: null };
     }
   } catch (error) {
-    console.warn(`[opfs-cache] Cache check failed: ${error.message}`);
-    return { cached: false, fromCache: false, modelId, error: error.message };
+    const message = toErrorMessage(error);
+    log.warn(MODULE, `Cache check failed: ${message}`);
+    return { cached: false, fromCache: false, modelId, error: message };
   }
 
-  console.log(`[opfs-cache] Cache miss: "${modelId}". Importing from ${modelBaseUrl}...`);
+  log.info(MODULE, `Cache miss: "${modelId}". Importing from ${modelBaseUrl}...`);
 
   try {
     const success = await downloadModel(modelBaseUrl, (progress) => {
@@ -43,16 +44,17 @@ export async function ensureModelCached(modelId, modelBaseUrl) {
       const mb = Number.isFinite(progress.downloadedBytes)
         ? (progress.downloadedBytes / (1024 * 1024)).toFixed(1)
         : '?';
-      console.log(`[opfs-cache] shard ${shard}/${total} (${mb} MB)`);
+      log.verbose(MODULE, `Shard ${shard}/${total} (${mb} MB)`);
     });
 
     if (success) {
-      console.log(`[opfs-cache] Import complete: "${modelId}"`);
+      log.info(MODULE, `Import complete: "${modelId}"`);
       return { cached: true, fromCache: false, modelId, error: null };
     }
     return { cached: false, fromCache: false, modelId, error: 'download-incomplete' };
   } catch (error) {
-    console.error(`[opfs-cache] Import failed: ${error.message}`);
-    return { cached: false, fromCache: false, modelId, error: error.message };
+    const message = toErrorMessage(error);
+    log.error(MODULE, `Import failed: ${message}`);
+    return { cached: false, fromCache: false, modelId, error: message };
   }
 }

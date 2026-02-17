@@ -33,6 +33,22 @@ function normalizeConverterConfigOverride(value) {
   return value;
 }
 
+function isGgufPath(filePath) {
+  return String(filePath || '').toLowerCase().endsWith('.gguf');
+}
+
+async function getPathStats(targetPath, label) {
+  try {
+    return await fs.stat(targetPath);
+  } catch (error) {
+    if (error?.code === 'ENOENT') {
+      throw new Error(`node convert: ${label} does not exist: ${targetPath}`);
+    }
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`node convert: failed to stat ${label} "${targetPath}": ${message}`);
+  }
+}
+
 async function readOptionalJson(filePath) {
   try {
     const text = await fs.readFile(filePath, 'utf8');
@@ -48,6 +64,45 @@ async function fileExists(filePath) {
     return true;
   } catch {
     return false;
+  }
+}
+
+async function resolveGgufPathFromDirectory(inputDir) {
+  const entries = await fs.readdir(inputDir, { withFileTypes: true });
+  const ggufFiles = entries
+    .filter((entry) => entry.isFile() && isGgufPath(entry.name))
+    .map((entry) => entry.name)
+    .sort((a, b) => a.localeCompare(b));
+
+  if (ggufFiles.length === 0) {
+    return null;
+  }
+  if (ggufFiles.length > 1) {
+    throw new Error(
+      `node convert: multiple GGUF files found in "${inputDir}": ${ggufFiles.join(', ')}. ` +
+      'Pass a .gguf file path directly.'
+    );
+  }
+  return path.join(inputDir, ggufFiles[0]);
+}
+
+async function readFileRange(filePath, offset, length) {
+  if (!Number.isFinite(offset) || !Number.isFinite(length) || length <= 0) {
+    return new ArrayBuffer(0);
+  }
+  const fd = await fs.open(filePath, 'r');
+  try {
+    const size = (await fd.stat()).size;
+    const start = Math.max(0, Math.floor(offset));
+    const end = Math.min(size, start + Math.floor(length));
+    if (end <= start) {
+      return new ArrayBuffer(0);
+    }
+    const out = Buffer.allocUnsafe(end - start);
+    await fd.read(out, 0, out.length, start);
+    return out.buffer.slice(out.byteOffset, out.byteOffset + out.byteLength);
+  } finally {
+    await fd.close();
   }
 }
 
@@ -106,14 +161,7 @@ function createNodeConvertIO(outputDir, options) {
   }
   return {
     async readTensorData(tensor) {
-      const fd = await fs.open(tensor.sourcePath, 'r');
-      try {
-        const out = Buffer.allocUnsafe(tensor.size);
-        await fd.read(out, 0, tensor.size, tensor.offset);
-        return out.buffer.slice(out.byteOffset, out.byteOffset + out.byteLength);
-      } finally {
-        await fd.close();
-      }
+      return readFileRange(tensor.sourcePath, tensor.offset, tensor.size);
     },
     async writeShard(index, data) {
       const filename = generateShardFilename(index);
@@ -158,24 +206,36 @@ export async function convertSafetensorsDirectory(options) {
   const modelId = parseModelId(options?.modelId, outputDir);
   const converterConfigOverride = normalizeConverterConfigOverride(options?.converterConfig);
   const onProgress = typeof options?.onProgress === 'function' ? options.onProgress : null;
+  const inputStats = await getPathStats(inputDir, 'inputDir');
+  const isInputDirectory = inputStats.isDirectory();
+  const inputGgufPath = (
+    inputStats.isFile() && isGgufPath(inputDir)
+      ? inputDir
+      : (isInputDirectory ? await resolveGgufPathFromDirectory(inputDir) : null)
+  );
+  const isInputGgufFile = Boolean(inputGgufPath);
 
   installNodeFileFetchShim();
 
   const [
     { parseSafetensorsHeader },
+    { parseGGUFHeader },
     { convertModel, extractArchitecture },
+    { parseGGUFModel },
     { resolveConversionPlan, inferSourceWeightQuantization },
     { parseDiffusionModel },
     { parseTransformerModel },
-    { createConverterConfig },
+    { createConverterConfig, HEADER_READ_SIZE },
     { computeHash },
   ] = await Promise.all([
     import('../formats/safetensors/types.js'),
+    import('../formats/gguf/types.js'),
     import('../converter/core.js'),
+    import('../converter/parsers/gguf.js'),
     import('../converter/conversion-plan.js'),
     import('../converter/parsers/diffusion.js'),
     import('../converter/parsers/transformer.js'),
-    import('../config/schema/converter.schema.js'),
+    import('../config/schema/index.js'),
     import('../storage/shard-manager.js'),
   ]);
 
@@ -183,14 +243,15 @@ export async function convertSafetensorsDirectory(options) {
   await clearExistingShardFiles(outputDir);
 
   const converterConfig = createConverterConfig(converterConfigOverride ?? undefined);
-  const diffusionIndexPath = path.join(inputDir, 'model_index.json');
-  const isDiffusionInput = await fileExists(diffusionIndexPath);
+  const diffusionIndexPath = isInputDirectory ? path.join(inputDir, 'model_index.json') : null;
+  const isDiffusionInput = isInputDirectory && diffusionIndexPath ? await fileExists(diffusionIndexPath) : false;
 
   let config = null;
   let tensors = [];
   let architectureHint = '';
   let architecture = null;
   let modelKind = 'transformer';
+  let sourceQuantization = null;
   let tokenizerJson = null;
   let tokenizerConfig = null;
   let hasTokenizerModel = false;
@@ -284,7 +345,63 @@ export async function convertSafetensorsDirectory(options) {
     architectureHint = 'diffusion';
     modelKind = 'diffusion';
     diffusionAuxFiles = parsedDiffusion.auxFiles ?? [];
+  } else if (isInputGgufFile) {
+    const ggufPath = inputGgufPath;
+    const ggufStats = await getPathStats(ggufPath, 'GGUF file');
+    const ggufSource = {
+      sourceType: 'node-file',
+      name: path.basename(ggufPath),
+      size: ggufStats.size,
+      file: {
+        name: path.basename(ggufPath),
+        size: ggufStats.size,
+      },
+      async readRange(offset, length) {
+        return readFileRange(ggufPath, offset, length);
+      },
+    };
+    const normalizeTensorSource = (input) => {
+      if (input && typeof input.readRange === 'function' && Number.isFinite(input.size)) {
+        return input;
+      }
+      return ggufSource;
+    };
+    const parseGGUFHeaderFromSource = async (source) => {
+      const resolved = normalizeTensorSource(source);
+      const readSize = Math.min(resolved.size, HEADER_READ_SIZE);
+      const buffer = await resolved.readRange(0, readSize);
+      const info = parseGGUFHeader(buffer);
+      return {
+        ...info,
+        fileSize: resolved.size,
+      };
+    };
+    const parsedGGUF = await parseGGUFModel({
+      file: ggufSource,
+      parseGGUFHeaderFromSource,
+      normalizeTensorSource,
+      onProgress(update) {
+        onProgress?.(toNodeProgress({
+          stage: update?.stage ?? 'parsing',
+          message: update?.message ?? null,
+        }));
+      },
+      signal: null,
+    });
+    config = parsedGGUF.config;
+    tensors = parsedGGUF.tensors.map((tensor) => ({
+      ...tensor,
+      sourcePath: ggufPath,
+    }));
+    architectureHint = parsedGGUF.architecture;
+    sourceQuantization = parsedGGUF.quantization ?? null;
+    architecture = extractArchitecture({}, parsedGGUF.config || {});
   } else {
+    if (!isInputDirectory) {
+      throw new Error(
+        'node convert: inputDir must be a directory containing safetensors files or a .gguf file path.'
+      );
+    }
     const parsedTransformer = await parseTransformerModel({
       async readJson(suffix, label = 'json') {
         const filePath = path.join(inputDir, suffix);
@@ -342,7 +459,7 @@ export async function convertSafetensorsDirectory(options) {
   }
 
   const weightOverride = converterConfig.quantization?.weights ?? null;
-  const sourceQuantization = weightOverride || inferSourceWeightQuantization(tensors);
+  sourceQuantization = sourceQuantization || weightOverride || inferSourceWeightQuantization(tensors);
   const plan = resolveConversionPlan({
     rawConfig: config,
     tensors,
