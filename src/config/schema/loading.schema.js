@@ -39,7 +39,7 @@ export const DEFAULT_MEMORY_MANAGEMENT_CONFIG = {
 // =============================================================================
 
 export const DEFAULT_PREFETCH_CONFIG = {
-  enabled: false,
+  enabled: true,
   layersAhead: 1,
   maxShards: 8,
 };

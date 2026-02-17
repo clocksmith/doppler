@@ -2,6 +2,7 @@ import { createServer } from 'node:http';
 import { createReadStream } from 'node:fs';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
+import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { once } from 'node:events';
 import {
@@ -12,6 +13,8 @@ import {
 const DEFAULT_HOST = '127.0.0.1';
 const DEFAULT_RUNNER_PATH = '/src/tooling/command-runner.html';
 const DEFAULT_TIMEOUT_MS = 180_000;
+const DEFAULT_OPFS_CACHE_DIR = path.join(os.homedir(), '.cache', 'doppler', 'chromium-profile');
+const DEFAULT_OPFS_CACHE_PORT = 19836;
 const DEFAULT_CHANNEL_ORDER = Object.freeze({
   darwin: ['chrome', 'chromium'],
   linux: ['chromium', 'chrome'],
@@ -66,7 +69,7 @@ async function resolveFileForRequest(rootDir, requestPath) {
     try {
       const indexStats = await fs.stat(indexPath);
       if (indexStats.isFile()) {
-        return indexPath;
+        return { filePath: indexPath, size: indexStats.size };
       }
     } catch {
       return null;
@@ -75,7 +78,7 @@ async function resolveFileForRequest(rootDir, requestPath) {
   }
 
   if (!stats.isFile()) return null;
-  return resolved;
+  return { filePath: resolved, size: stats.size };
 }
 
 async function createStaticFileServer(options = {}) {
@@ -103,21 +106,24 @@ async function createStaticFileServer(options = {}) {
       return;
     }
 
-    const filePath = await resolveFileForRequest(rootDir, pathname);
-    if (!filePath) {
+    const resolved = await resolveFileForRequest(rootDir, pathname);
+    if (!resolved) {
       res.statusCode = 404;
       res.end('File not found');
       return;
     }
 
     res.statusCode = 200;
-    res.setHeader('Content-Type', contentTypeFor(filePath));
+    res.setHeader('Content-Type', contentTypeFor(resolved.filePath));
+    res.setHeader('Content-Length', resolved.size);
     if (method === 'HEAD') {
       res.end();
       return;
     }
 
-    const stream = createReadStream(filePath);
+    const stream = createReadStream(resolved.filePath, {
+      highWaterMark: resolved.size > 1024 * 1024 ? 1024 * 1024 : undefined,
+    });
     stream.on('error', () => {
       if (!res.headersSent) {
         res.statusCode = 500;
@@ -280,8 +286,51 @@ async function launchBrowser(chromium, launchOptions, options = {}) {
   }
 }
 
+async function launchPersistentBrowser(chromium, userDataDir, launchOptions, options = {}) {
+  await fs.mkdir(userDataDir, { recursive: true });
+
+  const explicitChannel = options.explicitChannel ?? false;
+  const explicitExecutablePath = options.explicitExecutablePath ?? false;
+
+  // launchPersistentContext returns a BrowserContext directly (no separate Browser object).
+  const persistentOpts = { ...launchOptions };
+
+  if (explicitChannel || explicitExecutablePath) {
+    try {
+      return await chromium.launchPersistentContext(userDataDir, persistentOpts);
+    } catch (error) {
+      const message = error?.message || String(error);
+      throw new Error(
+        `browser command: failed to launch persistent browser (${message}). Install Playwright browsers (npx playwright install) or pass --browser-channel chrome / --browser-executable.`
+      );
+    }
+  }
+
+  const launchErrors = [];
+  for (const channel of resolveDefaultChannels()) {
+    try {
+      return await chromium.launchPersistentContext(userDataDir, { ...persistentOpts, channel });
+    } catch (error) {
+      const message = error?.message || String(error);
+      launchErrors.push(`${channel}: ${message}`);
+    }
+  }
+
+  try {
+    return await chromium.launchPersistentContext(userDataDir, persistentOpts);
+  } catch (error) {
+    const message = error?.message || String(error);
+    throw new Error(
+      `browser command: failed to launch persistent browser (${message}). ` +
+      `Tried default channels: ${resolveDefaultChannels().join(', ')}. ` +
+      `Channel errors: ${launchErrors.join(' | ') || 'none'}. ` +
+      `Install Playwright browsers (npx playwright install) or pass --browser-channel / --browser-executable.`
+    );
+  }
+}
+
 export async function runBrowserCommandInNode(commandRequest, options = {}) {
-  const { request } = ensureCommandSupportedOnSurface(commandRequest, 'browser');
+  let { request } = ensureCommandSupportedOnSurface(commandRequest, 'browser');
 
   if (request.keepPipeline) {
     throw new Error(
@@ -293,14 +342,20 @@ export async function runBrowserCommandInNode(commandRequest, options = {}) {
     throw new Error('browser command relay does not support convert. Use --surface node for convert commands.');
   }
 
+  const useOpfsCache = options.opfsCache !== false;
+  const userDataDir = options.userDataDir || DEFAULT_OPFS_CACHE_DIR;
+
   const { chromium } = await import('playwright');
   const baseUrl = normalizeBaseUrl(options.baseUrl);
+  // When OPFS caching is enabled, use a fixed port so the browser origin stays the same
+  // across runs (OPFS is origin-scoped). Without this, random ports create new origins.
+  const serverPort = options.port ?? (useOpfsCache ? DEFAULT_OPFS_CACHE_PORT : 0);
   const server = baseUrl
     ? null
     : await createStaticFileServer({
       rootDir: options.staticRootDir,
       host: options.host,
-      port: options.port,
+      port: serverPort,
     }).catch((error) => {
       const message = error?.message || String(error);
       throw new Error(
@@ -327,11 +382,21 @@ export async function runBrowserCommandInNode(commandRequest, options = {}) {
   let browser = null;
   let context = null;
   try {
-    browser = await launchBrowser(chromium, launchOptions, {
-      explicitChannel: Boolean(options.channel),
-      explicitExecutablePath: Boolean(options.executablePath),
-    });
-    context = await browser.newContext();
+    if (useOpfsCache) {
+      // Persistent context: OPFS data survives between runs.
+      // launchPersistentContext returns a BrowserContext directly (no separate Browser).
+      context = await launchPersistentBrowser(chromium, userDataDir, launchOptions, {
+        explicitChannel: Boolean(options.channel),
+        explicitExecutablePath: Boolean(options.executablePath),
+      });
+    } else {
+      browser = await launchBrowser(chromium, launchOptions, {
+        explicitChannel: Boolean(options.channel),
+        explicitExecutablePath: Boolean(options.executablePath),
+      });
+      context = await browser.newContext();
+    }
+
     const page = await context.newPage();
     page.setDefaultTimeout(timeoutMs);
     const pageDiagnostics = [];
@@ -367,6 +432,43 @@ export async function runBrowserCommandInNode(commandRequest, options = {}) {
       throw new Error(
         `browser command: runner did not become ready within ${timeoutMs}ms (${diagnostics}).`
       );
+    }
+
+    // OPFS cache: ensure model is cached before running the command.
+    // On cache hit, strip modelUrl so the harness takes the fast OPFS path.
+    if (useOpfsCache && request.modelId && request.modelUrl) {
+      try {
+        const cacheResult = await page.evaluate(async (payload) => {
+          if (typeof window.__dopplerEnsureCached !== 'function') {
+            return { cached: false, error: '__dopplerEnsureCached not available' };
+          }
+          return window.__dopplerEnsureCached(payload.modelId, payload.modelBaseUrl);
+        }, {
+          modelId: request.modelId,
+          modelBaseUrl: request.modelUrl,
+        });
+
+        if (cacheResult.cached) {
+          // Remove modelUrl so the harness loads from OPFS instead of HTTP.
+          request = { ...request };
+          delete request.modelUrl;
+        } else if (cacheResult.error) {
+          if (typeof options.onConsole === 'function') {
+            options.onConsole({
+              type: 'warning',
+              text: `[opfs-cache] Cache failed (${cacheResult.error}), falling back to HTTP`,
+            });
+          }
+        }
+      } catch (error) {
+        // OPFS cache is best-effort; fall back to HTTP on any error.
+        if (typeof options.onConsole === 'function') {
+          options.onConsole({
+            type: 'warning',
+            text: `[opfs-cache] Error (${error?.message || error}), falling back to HTTP`,
+          });
+        }
+      }
     }
 
     const response = await page.evaluate(async (payload) => {

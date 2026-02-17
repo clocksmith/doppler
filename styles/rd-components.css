@@ -1,6 +1,6 @@
 /* ============================================
-   RD Design System - Components (Doppler subset)
-   Panels, buttons, selects, progress, modal, badges
+   RD Design System - Components
+   UI Component Styles
    ============================================ */
 
 /* === PANELS === */
@@ -8,7 +8,33 @@
   padding: var(--space-md);
 }
 
+.panel-muted {
+  opacity: var(--opacity-muted);
+}
+
+.panel-header {
+  padding: var(--space-sm) var(--space-md);
+  border-bottom: var(--border-sm) solid var(--fg);
+  font-family: var(--font-a);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.panel-body {
+  padding: var(--space-md);
+}
+
 /* === BUTTONS === */
+
+/*
+ * Button component
+ * - Uses: --fg, --bg, --border, --space-sm, --space-md, --font-a
+ * - States: default, hover (inverted), active (inset border), disabled
+ * - Variants: secondary (default), primary, ghost, prism
+ */
+
 .btn {
   display: inline-flex;
   align-items: center;
@@ -19,17 +45,11 @@
   text-decoration: none;
 }
 
-.btn:hover,
-.btn:active,
-.btn-primary {
-  background: var(--fg);
-  color: var(--bg);
-}
-
 .btn:active {
   box-shadow: inset 0 0 0 var(--border-md) var(--bg);
 }
 
+/* Primary variant - inherits inverted colors */
 .btn-primary:hover {
   box-shadow: inset 0 0 0 var(--border-md) var(--bg);
 }
@@ -38,23 +58,151 @@
   box-shadow: inset 0 0 0 var(--border-lg) var(--bg);
 }
 
+/* Rainbow button (special - max 1 per page) */
+@property --prism-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: true;
+}
+
+.btn-prism {
+  --prism-angle: 0deg;
+  position: relative;
+  background: var(--bg);
+  color: var(--fg);
+  border: none;
+  z-index: 1;
+}
+
+.btn-prism::before {
+  content: '';
+  position: absolute;
+  inset: calc(-1 * var(--border-lg));
+  background: var(--prism);
+  z-index: -1;
+}
+
+.btn-prism::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--bg);
+  z-index: -1;
+}
+
+/* Hover: border animates, text stays black */
+.btn-prism:hover {
+  color: var(--fg);
+  animation: prism-spin 1.6s linear infinite;
+}
+
+/* Active: background fills with prism */
+.btn-prism:active {
+  color: var(--bg);
+  text-shadow: 0 0 2px rgba(0,0,0,0.5);
+  animation: prism-spin 0.6s linear infinite;
+}
+
+.btn-prism:active::after {
+  background: var(--prism);
+}
+
+@keyframes prism-spin {
+  to { --prism-angle: 360deg; }
+}
+
+/* Ghost variant - inherits opacity-ghost */
+.btn-ghost {
+  border-style: dotted;
+}
+
+.btn-ghost:hover {
+  border-style: solid;
+  opacity: 1;
+}
+
+.btn-ghost:active {
+  box-shadow: inset 0 0 0 var(--border-md) var(--bg);
+}
+
+/* Disabled state - inherits disabled opacity/cursor */
+.btn:disabled {
+  border-style: solid;
+}
+
 .btn:disabled:hover,
 .btn:disabled:active {
   background: var(--bg);
   color: var(--fg);
-  border-style: dashed;
   box-shadow: none;
 }
 
-.btn:disabled,
-.btn-primary:disabled {
-  background: var(--bg);
+/* === INPUTS === */
+
+/*
+ * Input component
+ * - Uses: --fg, --bg, --border, --space-sm, --font-b
+ * - States: empty (dotted), filled (solid), focus, disabled, error
+ */
+
+/* Empty state: dotted border */
+input:placeholder-shown,
+textarea:placeholder-shown {
+  border-style: dotted;
+}
+
+/* Focus: solid border (cursor is enough feedback) */
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-style: solid;
+}
+
+/* Disabled - inherits opacity/cursor from disabled group */
+input:disabled,
+textarea:disabled,
+select:disabled {
+  border-style: solid;
+}
+
+/* Error state */
+input.error,
+textarea.error,
+select.error {
+  border-style: dashed;
+}
+
+/* Error with symbol (use wrapper) */
+.input-error {
+  position: relative;
+}
+
+.input-error::before {
+  content: '\2612';
+  position: absolute;
+  left: var(--space-sm);
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.input-error input,
+.input-error textarea {
+  padding-left: calc(var(--space-sm) + 1.5em);
+}
+
+input::placeholder,
+textarea::placeholder {
   color: var(--fg);
-  border-style: dashed;
-  box-shadow: none;
+  opacity: var(--opacity-muted);
 }
 
-/* === SELECTS === */
+textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
 select {
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23000' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
@@ -63,7 +211,7 @@ select {
   padding-right: var(--space-lg);
 }
 
-/* === CUSTOM SELECTS === */
+/* === CUSTOM SELECT === */
 .select-custom {
   position: relative;
   display: inline-block;
@@ -105,7 +253,28 @@ select {
   display: block;
 }
 
-/* === PROGRESS === */
+.select-option:last-child {
+  border-bottom: none;
+}
+
+/* === CHECKBOX & RADIO === */
+input[type="checkbox"],
+input[type="radio"] {
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  margin: 0;
+  accent-color: var(--fg);
+}
+
+.checkbox-label,
+.radio-label {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+}
+
+/* === PROGRESS BAR === */
 .progress {
   height: 8px;
   overflow: hidden;
@@ -127,26 +296,106 @@ select {
   100% { transform: translateX(400%); }
 }
 
+/* Progress phase rows - differentiate source types via border-left */
+.progress-phase-row {
+  padding-left: var(--space-sm);
+}
+
+.progress-phase-network {
+  border-left: var(--border-md) dotted var(--fg);
+}
+
+.progress-phase-disk {
+  border-left: var(--border-md) dashed var(--fg);
+}
+
+.progress-phase-cache {
+  border-left: var(--border-lg) solid var(--fg);
+}
+
+/* === CARDS === */
+/* Inherits padding/borders from shared patterns in primitives */
+
+/* === LISTS === */
+.list {
+  list-style: none;
+}
+
+.list-item:last-child {
+  border-bottom: none;
+}
+
+/* === STATUS === */
+.status-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 6px;
+  font-size: 10px;
+  font-family: var(--font-a);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border: var(--border-sm) solid var(--fg);
+}
+
+.status-badge.error {
+  border-style: double;
+  border-width: var(--border-lg);
+}
+
+/* === TABLES === */
+table {
+  border-collapse: collapse;
+}
+
+th, td {
+  text-align: left;
+}
+
+th {
+  font-weight: 700;
+}
+
 /* === BADGES === */
 .badge {
   display: inline-block;
   padding: 2px var(--space-sm);
   font-weight: 500;
-  font-family: var(--font-a);
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  border: var(--border-sm) solid var(--fg);
   border-color: currentColor;
-}
-
-.border-error {
-  border: var(--border-lg) dashed var(--fg);
 }
 
 .badge-filled {
   background: var(--fg);
   color: var(--bg);
+}
+
+/* === TAGS === */
+.tag {
+  display: inline-block;
+  padding: 2px 4px;
+  border-color: currentColor;
+}
+
+/* === DIVIDERS === */
+.divider {
+  border: none;
+  border-top: var(--border-sm) solid var(--fg);
+  margin: var(--space-md) 0;
+}
+
+.divider-dashed {
+  border-top-style: dashed;
+}
+
+.divider-dotted {
+  border-top-style: dotted;
 }
 
 /* === MODAL === */
@@ -160,23 +409,199 @@ select {
   z-index: 10000;
 }
 
+.modal-overlay.hidden {
+  display: none;
+}
+
+.modal,
 .modal-content {
   background: var(--bg);
   border: var(--border-md) solid var(--fg);
-  min-width: 320px;
+  min-width: 360px;
   max-width: 560px;
+  max-height: 80vh;
+  overflow: auto;
+}
+
+.modal-danger,
+.modal-content.modal-danger {
+  border-style: dashed;
+  border-width: var(--border-lg);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   padding: var(--space-md);
+  border-bottom: var(--border-sm) solid var(--fg);
 }
 
 .modal-title {
-  margin: 0 0 var(--space-sm);
+  margin: 0;
   font-size: 16px;
   font-family: var(--font-a);
   font-weight: 700;
 }
 
+.modal-close {
+  background: transparent;
+  border: none;
+  color: var(--fg);
+  font-size: 16px;
+  cursor: pointer;
+  opacity: var(--opacity-secondary);
+}
+
+.modal-close:hover {
+  opacity: 1;
+}
+
+.modal-body {
+  padding: var(--space-md);
+}
+
 .modal-message {
-  margin: 0 0 var(--space-md);
+  margin: 0;
+}
+
+.modal-details {
+  margin-top: var(--space-sm);
+  font-size: 12px;
+  font-family: var(--font-b);
+}
+
+.modal-footer,
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  border-top: var(--border-sm) solid var(--fg);
+}
+
+/* === TOAST === */
+.toast-container {
+  position: fixed;
+  top: var(--space-md);
+  right: var(--space-md);
+  z-index: 200;
+  gap: var(--space-sm);
+  max-width: 400px;
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  min-width: 280px;
+  max-width: 400px;
+  opacity: 0;
+  transform: translateX(100%);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.toast.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.toast-icon {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.toast-message {
+  flex: 1;
+}
+
+.toast-close {
+  font-size: 12px;
+  opacity: var(--opacity-secondary);
+  cursor: pointer;
+}
+
+.toast-success {
+  border-left: var(--border-lg) solid var(--fg);
+}
+
+.toast-error {
+  border-style: double;
+  border-width: var(--border-lg);
+}
+
+.toast-warning {
+  border-style: dashed;
+}
+
+.toast-info {
+  border-style: dotted;
+}
+
+/* === ERROR UI (boot failure) === */
+.error-ui {
+  max-width: 600px;
+  margin: 50px auto;
+  padding: var(--space-lg);
+}
+
+.error-ui-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.error-ui-header::before {
+  content: '\26A0';
+  font-size: 1.5em;
+}
+
+.error-ui-description {
+  opacity: var(--opacity-secondary);
+  line-height: 1.6;
+  margin-bottom: var(--space-md);
+}
+
+.error-ui-message {
+  padding: var(--space-md);
+  margin: var(--space-md) 0;
+  font-family: var(--font-a);
+  font-size: 13px;
+  white-space: pre-wrap;
+  word-break: break-all;
+  border: var(--border-lg) dashed var(--fg);
+}
+
+.error-ui-details summary {
+  cursor: pointer;
+  opacity: var(--opacity-secondary);
+  padding: var(--space-sm) 0;
+}
+
+.error-ui-stack {
+  padding: var(--space-md);
+  font-size: 11px;
+  overflow-x: auto;
+  opacity: var(--opacity-muted);
+  border: var(--border-sm) dotted var(--fg);
+}
+
+.error-ui-actions {
+  display: flex;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  margin-top: var(--space-md);
+}
+
+.error-ui-hint {
+  font-size: 12px;
+  opacity: var(--opacity-muted);
+  margin-top: var(--space-lg);
 }
 
 /* === ACCORDION === */

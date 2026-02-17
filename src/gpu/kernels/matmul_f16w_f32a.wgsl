@@ -29,7 +29,8 @@ struct Uniforms {
 @group(0) @binding(3) var<storage, read_write> C: array<f32>;
 
 var<workgroup> tileA: array<f32, TILE_AREA>;
-var<workgroup> tileB: array<f16, TILE_AREA>;
+// Keep workgroup storage in f32 for broader Vulkan/Dawn compatibility on mobile.
+var<workgroup> tileB: array<f32, TILE_AREA>;
 
 @compute @workgroup_size(TILE_SIZE, TILE_SIZE, 1)
 fn main(
@@ -62,20 +63,20 @@ fn main(
 
         if (b_row < u.K && col < u.N) {
             if (u.transpose_b == 0u) {
-                tileB[tile_idx] = B[b_row * u.N + col];
+                tileB[tile_idx] = f32(B[b_row * u.N + col]);
             } else {
                 // B is [N, K], access element [col, b_row]
-                tileB[tile_idx] = B[col * u.K + b_row];
+                tileB[tile_idx] = f32(B[col * u.K + b_row]);
             }
         } else {
-            tileB[tile_idx] = f16(0.0);
+            tileB[tile_idx] = 0.0;
         }
 
         workgroupBarrier();
 
         for (var k: u32 = 0u; k < TILE_SIZE; k = k + 1u) {
             let a_val = tileA[local_row * TILE_SIZE + k];
-            let b_val = f32(tileB[k * TILE_SIZE + local_col]);
+            let b_val = tileB[k * TILE_SIZE + local_col];
             sum = sum + a_val * b_val;
         }
 

@@ -33,6 +33,8 @@ function usage() {
     '  --browser-static-root <path>    Static server root directory (default: doppler root)',
     '  --browser-base-url <url>        Reuse an existing static server base URL',
     '  --browser-console               Stream browser console lines to stderr',
+    '  --no-opfs-cache                 Disable OPFS caching (use HTTP shard loading every run)',
+    '  --browser-user-data <path>      Persistent Chromium profile directory for OPFS cache',
     '',
     `Bench Defaults: --model-id ${DEFAULT_BENCH_MODEL_ID}, --surface ${DEFAULT_BENCH_SURFACE}, --browser-console (browser channel auto-selected)`,
   ].join('\n');
@@ -83,6 +85,7 @@ function parseArgs(argv) {
       || key === 'help'
       || key === 'h'
       || key === 'browser-console'
+      || key === 'no-opfs-cache'
     ) {
       out.flags[key] = true;
       continue;
@@ -307,6 +310,13 @@ function buildBrowserRunOptions(parsed, jsonOutput) {
     options.timeoutMs = timeoutMs;
   }
 
+  if (parsed.flags['no-opfs-cache'] === true) {
+    options.opfsCache = false;
+  }
+  if (parsed.flags['browser-user-data']) {
+    options.userDataDir = String(parsed.flags['browser-user-data']);
+  }
+
   if (parsed.flags['browser-console'] === true && !jsonOutput) {
     options.onConsole = ({ type, text }) => {
       console.error(`[browser:${type}] ${text}`);
@@ -441,6 +451,7 @@ function printMetricsSummary(result) {
     );
     console.log(
       `[metrics] tok/s median=${formatNumber(metrics.medianTokensPerSec)} avg=${formatNumber(metrics.avgTokensPerSec)} ` +
+      `prefill median=${formatNumber(metrics.medianPrefillTokensPerSec)} avg=${formatNumber(metrics.avgPrefillTokensPerSec)} ` +
       `decode median=${formatNumber(metrics.medianDecodeTokensPerSec)} avg=${formatNumber(metrics.avgDecodeTokensPerSec)}`
     );
     console.log(

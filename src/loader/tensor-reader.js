@@ -6,9 +6,8 @@ import { trace } from '../debug/index.js';
 export async function assembleShardData(location, name, loadShard, loadShardRange = null) {
   if (location.spans) {
     trace.loader(`Assembling tensor "${name}" from ${location.spans.length} spans`);
-    
-    const chunks = [];
-    for (const span of location.spans) {
+
+    const chunks = await Promise.all(location.spans.map(async (span) => {
       if (loadShardRange) {
         const data = await loadShardRange(span.shardIndex, span.offset, span.size);
         if (span.size > data.byteLength) {
@@ -16,17 +15,16 @@ export async function assembleShardData(location, name, loadShard, loadShardRang
             `[DopplerLoader] Shard ${span.shardIndex} too small for tensor "${name}" span.`
           );
         }
-        chunks.push(new Uint8Array(data, 0, span.size));
-      } else {
-        const data = await loadShard(span.shardIndex);
-        if (span.offset + span.size > data.byteLength) {
-          throw new Error(
-            `[DopplerLoader] Shard ${span.shardIndex} too small for tensor "${name}" span.`
-          );
-        }
-        chunks.push(new Uint8Array(data, span.offset, span.size));
+        return new Uint8Array(data, 0, span.size);
       }
-    }
+      const data = await loadShard(span.shardIndex);
+      if (span.offset + span.size > data.byteLength) {
+        throw new Error(
+          `[DopplerLoader] Shard ${span.shardIndex} too small for tensor "${name}" span.`
+        );
+      }
+      return new Uint8Array(data, span.offset, span.size);
+    }));
     const totalSize = chunks.reduce((s, c) => s + c.length, 0);
     const combined = new Uint8Array(totalSize);
     let offset = 0;

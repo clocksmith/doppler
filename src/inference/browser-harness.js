@@ -1172,6 +1172,7 @@ async function runBenchSuite(options = {}) {
     const prefillTokens = [];
     const decodeTokens = [];
     const decodeTokensPerSec = [];
+    const prefillTokensPerSec = [];
     const gpuPrefillMs = [];
     const gpuDecodeMs = [];
     const gpuDecodeRecordMs = [];
@@ -1191,6 +1192,7 @@ async function runBenchSuite(options = {}) {
         prefillTokens.push(run.phase.prefillTokens);
         decodeTokens.push(run.phase.decodeTokens);
         decodeTokensPerSec.push(run.phase.decodeTokensPerSec);
+        prefillTokensPerSec.push(run.phase.prefillTokensPerSec);
         if (Number.isFinite(run.phase.gpu?.prefillMs)) gpuPrefillMs.push(run.phase.gpu.prefillMs);
         if (Number.isFinite(run.phase.gpu?.decodeMs)) gpuDecodeMs.push(run.phase.gpu.decodeMs);
         if (Number.isFinite(run.phase.gpu?.decodeRecordMs)) gpuDecodeRecordMs.push(run.phase.gpu.decodeRecordMs);
@@ -1202,6 +1204,7 @@ async function runBenchSuite(options = {}) {
     const totalMsStats = computeSampleStats(durations);
     const tokensPerSecStats = computeSampleStats(tokensPerSec);
     const decodeTokensPerSecStats = computeSampleStats(decodeTokensPerSec);
+    const prefillTokensPerSecStats = computeSampleStats(prefillTokensPerSec);
     const ttftMsStats = computeSampleStats(ttftMs);
     const prefillMsStats = computeSampleStats(prefillMs);
     const decodeMsStats = computeSampleStats(decodeMs);
@@ -1238,6 +1241,8 @@ async function runBenchSuite(options = {}) {
       avgTokensGenerated: Math.round(tokensGeneratedStats.mean),
       avgPrefillTokens: Math.round(prefillTokensStats.mean),
       avgDecodeTokens: Math.round(decodeTokensStats.mean),
+      medianPrefillTokensPerSec: Number(prefillTokensPerSecStats.median.toFixed(2)),
+      avgPrefillTokensPerSec: Number(prefillTokensPerSecStats.mean.toFixed(2)),
       medianDecodeTokensPerSec: Number(decodeTokensPerSecStats.median.toFixed(2)),
       avgDecodeTokensPerSec: Number(decodeTokensPerSecStats.mean.toFixed(2)),
       medianTtftMs: Number(ttftMsStats.median.toFixed(2)),
@@ -1249,6 +1254,7 @@ async function runBenchSuite(options = {}) {
       modelLoadMs: Number((harness.modelLoadMs ?? 0).toFixed(2)),
       throughput: {
         tokensPerSec: tokensPerSecStats,
+        prefillTokensPerSec: prefillTokensPerSecStats,
         decodeTokensPerSec: decodeTokensPerSecStats,
       },
       latency: {

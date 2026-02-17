@@ -31,9 +31,13 @@
     </main>
     <script type="module">
       import { runBrowserCommand } from './browser-command-runner.js';
+      import { ensureModelCached } from './opfs-cache.js';
 
       window.__dopplerRunBrowserCommand = async (request, options = {}) => {
         return runBrowserCommand(request, options || {});
+      };
+      window.__dopplerEnsureCached = (modelId, modelBaseUrl) => {
+        return ensureModelCached(modelId, modelBaseUrl);
       };
       window.__dopplerRunnerReady = true;
     </script>

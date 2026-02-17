@@ -194,7 +194,10 @@ export class ShardCache {
       // Normalize to ArrayBuffer for downstream slicing
       let arrayBuffer;
       if (data instanceof Uint8Array) {
-        arrayBuffer = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
+        // Avoid copying when the Uint8Array already covers the full buffer
+        arrayBuffer = (data.byteOffset === 0 && data.byteLength === data.buffer.byteLength)
+          ? data.buffer
+          : data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
       } else {
         arrayBuffer = data;
       }

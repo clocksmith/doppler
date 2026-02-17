@@ -569,8 +569,10 @@ export async function getModelInfo(modelId) {
     return { exists: false, shardCount: 0, totalSize: 0, hasManifest: false };
   }
 
+  const previousModelId = currentModelId;
   try {
     await backend.openModel(safeName, { create: false });
+    currentModelId = safeName;
     const manifestJson = await loadManifestFromStore();
     hasManifest = !!manifestJson;
     if (manifestJson) {
@@ -585,6 +587,8 @@ export async function getModelInfo(modelId) {
     }
   } catch {
     return { exists: false, shardCount: 0, totalSize: 0, hasManifest: false };
+  } finally {
+    currentModelId = previousModelId;
   }
 
   return { exists: true, shardCount, totalSize, hasManifest };

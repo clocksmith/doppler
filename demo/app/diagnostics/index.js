@@ -524,12 +524,15 @@ function formatDiagnosticsMetricsLine(payload, fallbackSuite = null) {
       return `Embedding dim ${dim} • Median ${metrics.medianEmbeddingMs}ms • P95 ${p95} • Range ${minMs}-${maxMs} • Tokens ${avgTokens} • Invalid ${invalidRuns} • Valid ${validRuns}`;
     }
     if (Number.isFinite(metrics.medianTokensPerSec)) {
-      const prefill = Number.isFinite(metrics.medianPrefillMs) ? `${metrics.medianPrefillMs}ms` : '--';
+      const prefillMs = Number.isFinite(metrics.medianPrefillMs) ? `${metrics.medianPrefillMs}ms` : '--';
+      const prefillTokS = Number.isFinite(metrics.medianPrefillTokensPerSec)
+        ? `${metrics.medianPrefillTokensPerSec} tok/s`
+        : '--';
       const ttft = Number.isFinite(metrics.medianTtftMs) ? `${metrics.medianTtftMs}ms` : '--';
       const decode = Number.isFinite(metrics.medianDecodeTokensPerSec)
         ? `${metrics.medianDecodeTokensPerSec} tok/s`
         : '--';
-      return `Median ${metrics.medianTokensPerSec} tok/s • Avg ${metrics.avgTokensPerSec ?? '--'} tok/s • Prefill ${prefill} • TTFT ${ttft} • Decode ${decode}`;
+      return `Median ${metrics.medianTokensPerSec} tok/s • Avg ${metrics.avgTokensPerSec ?? '--'} tok/s • Prefill ${prefillMs} (${prefillTokS}) • TTFT ${ttft} • Decode ${decode}`;
     }
   }
   if (suite === 'energy') {

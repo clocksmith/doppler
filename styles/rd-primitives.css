@@ -1,6 +1,6 @@
 /* ============================================
-   RD Design System - Primitives (Doppler subset)
-   Reset, Typography, Borders, Utilities
+   RD Design System - Primitives
+   Reset, Typography, Borders, Shared Patterns, Utilities
    ============================================ */
 
 /* === RESET === */
@@ -60,6 +60,7 @@ a.link-secondary:hover {
 }
 
 /* === TYPOGRAPHY === */
+
 .type-display {
   font: 300 28px/1.2 var(--font-a);
   letter-spacing: 0.25em;
@@ -68,11 +69,28 @@ a.link-secondary:hover {
 .type-h1 {
   font: 500 18px/1.3 var(--font-a);
   letter-spacing: 0.02em;
+  margin-bottom: var(--space-md);
+}
+
+.type-h2 {
+  font: 500 15px/1.4 var(--font-a);
+  letter-spacing: 0.02em;
+}
+
+.type-body {
+  font: 400 15px/1.6 var(--font-b);
+  letter-spacing: 0;
 }
 
 .type-label {
   font: 700 11px/1.2 var(--font-a);
   letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.type-ui {
+  font: 500 13px/1.3 var(--font-a);
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
@@ -82,131 +100,290 @@ a.link-secondary:hover {
 }
 
 /* === BORDERS === */
+
+.border-default,
 .panel,
 .btn,
 input,
 textarea,
 select,
 .select-trigger,
-.select-options {
+.select-options,
+.modal {
   border: var(--border-md) solid var(--fg);
 }
 
-.progress {
+.border-subtle,
+.progress,
+.card,
+th,
+td,
+.badge,
+.tag,
+.toast,
+pre,
+code,
+.checkbox-label input[type="checkbox"] {
   border: var(--border-sm) solid var(--fg);
 }
 
-/* === INPUTS === */
-input,
-textarea,
-select {
-  width: 100%;
-  padding: var(--space-sm);
-  font-family: var(--font-b);
-  font-size: 15px;
-  background: var(--bg);
-  color: var(--fg);
+.border-ghost {
+  border: var(--border-md) dotted var(--fg);
 }
 
-input,
-textarea,
-select,
-.select-trigger,
-.select-options {
-  border-style: var(--rd-input-border-style, solid);
+.border-info {
+  border: var(--border-sm) dotted var(--fg);
 }
 
-input:placeholder-shown,
-textarea:placeholder-shown {
-  border-style: dotted;
+.border-warning {
+  border: var(--border-md) dashed var(--fg);
 }
 
-input:focus,
-textarea:focus,
-select:focus {
-  outline: none;
-  border-style: var(--rd-input-focus-border-style, solid);
+.border-error {
+  border: var(--border-lg) dashed var(--fg);
 }
 
-input:disabled,
-textarea:disabled,
-select:disabled {
-  border-style: dashed;
-  opacity: 1;
-  cursor: not-allowed;
+.border-elevated {
+  border: var(--border-lg) solid var(--fg);
 }
 
-input::placeholder,
-textarea::placeholder {
-  color: var(--fg);
-  opacity: var(--opacity-muted);
+.border-disabled {
+  border: var(--border-md) solid var(--fg);
+  opacity: var(--opacity-disabled);
 }
 
-textarea {
-  resize: vertical;
-  min-height: 80px;
+.border-prism {
+  border: var(--border-lg) solid transparent;
+  background:
+    linear-gradient(var(--bg), var(--bg)) padding-box,
+    var(--prism) border-box;
 }
 
-/* === BUTTONS === */
-.btn {
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-family: var(--font-a);
-  font-size: 13px;
-  background: var(--bg);
-  color: var(--fg);
-}
+/* === SHARED PATTERNS === */
 
-.btn:disabled {
-  border-style: dashed;
-  opacity: 1;
-  cursor: not-allowed;
-}
-
-/* === DROPDOWN SHARED === */
+/* Inverted state (fg/bg swap) */
+.inverted,
+.btn:hover,
+.btn:active,
+.btn-primary,
 .select-trigger:hover,
 .select-option:hover,
-.select-option.selected {
+.select-option.selected,
+.list-item:hover,
+::selection {
   background: var(--fg);
   color: var(--bg);
 }
 
+/* Flex column layout (toast container) */
+.toast-container {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Border bottom (sm) */
+.panel-header,
+.card-header,
+.list-item,
 .select-option {
   border-bottom: var(--border-sm) solid var(--fg);
 }
 
-.select-option:last-child {
-  border-bottom: none;
+/* Border top (sm) */
+.card-footer,
+.modal-footer {
+  border-top: var(--border-sm) solid var(--fg);
 }
 
-.select-custom,
-.select-trigger {
-  width: 100%;
-}
-
+/* Cursor pointer */
+.btn,
 .select-trigger,
-.select-option {
-  padding: var(--space-sm);
-  font-family: var(--font-b);
-  font-size: 15px;
-  background: var(--bg);
-  color: var(--fg);
-}
-
+.select-option,
 select,
-.select-trigger,
-.select-option {
+.checkbox-label,
+.radio-label,
+.checkbox-label input[type="checkbox"] {
   cursor: pointer;
 }
 
-/* === UTILITIES === */
-.muted { opacity: var(--opacity-muted); }
-.w-full { width: 100%; }
-.border-dotted { --rd-border-style: dotted; }
-.io-dotted {
-  --rd-input-border-style: dotted;
-  --rd-input-focus-border-style: dotted;
-  --rd-output-border-style: dotted;
+/* Disabled state */
+.btn:disabled,
+input:disabled,
+textarea:disabled,
+select:disabled {
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
 }
 
+/* Opacity secondary */
+a.link-secondary {
+  opacity: var(--opacity-secondary);
+}
+
+/* Opacity ghost */
+.btn-ghost {
+  opacity: var(--opacity-ghost);
+}
+
+/* Uppercase text */
+.btn,
+.panel-header,
+th,
+.badge {
+  text-transform: uppercase;
+}
+
+/* Letter spacing 0.08em */
+.btn,
+.panel-header,
+th,
+.badge {
+  letter-spacing: 0.08em;
+}
+
+/* Padding md */
+.panel,
+.panel-body,
+.card-body,
+.modal-body,
+.modal-header,
+.modal-footer,
+pre,
+.toast {
+  padding: var(--space-md);
+}
+
+/* Padding sm */
+input,
+textarea,
+select,
+.select-trigger,
+.select-option,
+th,
+td {
+  padding: var(--space-sm);
+}
+
+/* Padding sm/md */
+.panel-header,
+.card-header,
+.card-footer,
+.list-item {
+  padding: var(--space-sm) var(--space-md);
+}
+
+/* Full width */
+.select-custom,
+.select-trigger,
+input,
+textarea,
+select,
+.progress,
+table,
+.modal {
+  width: 100%;
+}
+
+/* Font-b 15px (body text) */
+input,
+textarea,
+select,
+.select-trigger,
+.select-option {
+  font-family: var(--font-b);
+  font-size: 15px;
+}
+
+/* Font-a 13px (UI text) */
+.btn,
+table,
+pre,
+code {
+  font-family: var(--font-a);
+  font-size: 13px;
+}
+
+/* Font-a 11px (small labels) */
+.badge,
+.tag,
+th {
+  font-family: var(--font-a);
+  font-size: 11px;
+}
+
+/* Background bg (reset) */
+input,
+textarea,
+select,
+.select-trigger,
+.select-options,
+.btn,
+.toast,
+.modal,
+.progress,
+.checkbox-label input[type="checkbox"] {
+  background: var(--bg);
+}
+
+/* Color fg */
+input,
+textarea,
+select,
+.select-trigger,
+.btn {
+  color: var(--fg);
+}
+
+/* === UTILITIES === */
+
+.muted { opacity: var(--opacity-muted); }
+.hidden { display: none; }
+
+/* === SIZING === */
+.w-full { width: 100%; }
+.h-full { height: 100%; }
+.overflow-auto { overflow: auto; }
+.overflow-hidden { overflow: hidden; }
+
+/* === UTILITY STATES === */
+.cursor-pointer { cursor: pointer; }
+.cursor-not-allowed { cursor: not-allowed; }
+.select-none { user-select: none; }
+.pointer-events-none { pointer-events: none; }
+
+/* Visibility */
 [hidden] { display: none !important; }
+
+/* === CODE BLOCKS === */
+pre, code {
+  letter-spacing: -0.02em;
+}
+
+pre {
+  overflow-x: auto;
+  white-space: pre;
+}
+
+code {
+  padding: 2px 4px;
+}
+
+pre code {
+  padding: 0;
+  border: none;
+}
+
+/* === SCROLLBAR === */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg);
+  border-left: var(--border-sm) solid var(--fg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--fg);
+}

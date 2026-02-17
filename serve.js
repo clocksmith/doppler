@@ -222,45 +222,6 @@ async function main() {
         }
       }
 
-<<<<<<< Updated upstream
-      // Serve demo directly at root.
-      if (pathname === '/' || pathname === '') {
-        pathname = '/demo/index.html';
-      }
-
-      // Shortcut: /d redirects to root.
-      if (pathname === '/d' || pathname === '/d/') {
-        res.writeHead(302, { 'Location': '/' });
-        return res.end();
-      }
-
-      // Legacy /dr redirects to root.
-      if (pathname === '/dr' || pathname === '/dr/') {
-        res.writeHead(302, { 'Location': '/' });
-        return res.end();
-      }
-
-      // Legacy /doppler path redirects to canonical root paths.
-      if (pathname === '/doppler' || pathname === '/doppler/') {
-        res.writeHead(302, { 'Location': '/' });
-        return res.end();
-      } else if (pathname.startsWith('/doppler/')) {
-        const stripped = pathname.replace(/^\/doppler/, '') || '/';
-        res.writeHead(302, { 'Location': stripped });
-        return res.end();
-      }
-
-      // Legacy /dr/<path> redirects to canonical root paths.
-      if (pathname.startsWith('/dr/')) {
-        const stripped = pathname.replace(/^\/dr/, '') || '/';
-        res.writeHead(302, { 'Location': stripped });
-        return res.end();
-      }
-
-      // Backward compatibility for the removed legacy app surface.
-      if (pathname === '/app' || pathname === '/app/' || pathname === '/app/index.html') {
-        pathname = '/demo/index.html';
-=======
       // Canonical app entry point.
       if (pathname === '/' || pathname === '') {
         res.writeHead(302, { 'Location': '/doppler' });
@@ -287,7 +248,12 @@ async function main() {
         pathname = pathname.replace('/doppler/', '/');
       } else if (pathname === '/doppler') {
         pathname = '/app/index.html';
->>>>>>> Stashed changes
+      }
+
+      // Backward compatibility for legacy app routes.
+      if (pathname === '/app' || pathname === '/app/') {
+        res.writeHead(302, { 'Location': '/doppler' });
+        return res.end();
       }
       if (pathname === '/rd.css') {
         pathname = '/styles/rd.css';
@@ -313,7 +279,7 @@ async function main() {
         return res.end();
       }
       if (pathname === '/' || pathname === '') {
-        pathname = '/demo/index.html';
+        pathname = '/app/index.html';
       }
 
       // Serve JS and JSON files from dist/ (TypeScript is compiled there)
@@ -403,7 +369,7 @@ async function main() {
     console.log(`
 DOPPLER Development Server
 ==========================
-App:    ${baseUrl}/
+App:    ${baseUrl}/doppler
 Models: ${baseUrl}/models/
 
 Repository: https://github.com/clocksmith/doppler
