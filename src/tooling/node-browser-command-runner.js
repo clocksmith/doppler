@@ -156,17 +156,12 @@ async function createStaticFileServer(options = {}) {
 function normalizeHeadless(value) {
   if (value === undefined || value === null) return true;
   if (typeof value === 'boolean') {
-    if (!value) {
-      throw new Error('browser command: headed mode is not supported; headless must be true.');
-    }
-    return true;
+    return value;
   }
   if (typeof value === 'string') {
     const normalized = value.trim().toLowerCase();
     if (normalized === 'true') return true;
-    if (normalized === 'false') {
-      throw new Error('browser command: headed mode is not supported; headless must be true.');
-    }
+    if (normalized === 'false') return false;
   }
   throw new Error('browser command: headless must be true or false.');
 }

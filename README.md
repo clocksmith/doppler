@@ -34,8 +34,12 @@ npm run bench -- --model-id <id> --model-url /models/local/<id> --runtime-preset
 npm run test:model -- --suite inference --model-id <id> --model-url /models/local/<id>
 ```
 
-`webgpu` is optional but recommended for Node CLI parity. Without it, harnessed
-commands can still run via browser relay (`--surface browser` or `--surface auto` fallback).
+`bench` and `debug` can run via browser relay by default
+(`--surface browser` / `--surface auto`), with Node-side execution as an optional
+fallback.
+
+Use `--headed` for headed mode (default is headless), or explicitly set
+`--headless false`.
 
 ## Architecture
 

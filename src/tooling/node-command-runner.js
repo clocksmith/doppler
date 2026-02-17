@@ -62,7 +62,7 @@ async function assertNodeWebGPUSupport() {
 
   if (hasNodeWebGPUSupport()) return;
   throw new Error(
-    'node command: WebGPU runtime is incomplete in Node. Install optional dependency "webgpu", run under a WebGPU-enabled Node build, or run the same command in browser harness.'
+    'node command: WebGPU runtime is incomplete in Node. Run in browser relay, or run under a WebGPU-enabled Node build.'
   );
 }
 

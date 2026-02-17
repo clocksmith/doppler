@@ -89,8 +89,9 @@ Commands are rejected when:
 
 - CLI supports `--surface auto|node|browser`.
 - `auto` first attempts Node for harnessed commands and falls back to browser relay only when Node WebGPU is unavailable.
-- Node runner may bootstrap WebGPU from optional `webgpu` dependency before failing.
-- Browser relay executes `runBrowserCommand()` in a headless browser via `src/tooling/command-runner.html`.
+- Node runner may bootstrap WebGPU from available runtime support before failing.
+- Browser relay executes `runBrowserCommand()` in a browser via `src/tooling/command-runner.html`
+  (default headless, with `--headed` for headed mode).
 - Browser relay can attach to an existing server with `--browser-base-url`.
 - `convert` is Node-only in CLI (`--surface browser` is rejected).
 - `keepPipeline=true` is rejected on browser relay because pipeline objects are not serializable across process boundaries.

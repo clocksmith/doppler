@@ -25,7 +25,9 @@ function usage() {
     '  --keep-pipeline                 Keep loaded pipeline in result payload (node surface only)',
     '  --browser-channel <name>        Browser channel for Playwright launch (e.g. chrome)',
     '  --browser-executable <path>     Browser executable path for Playwright launch',
-    '  --browser-headless <true|false> Headless browser mode (must be true)',
+    '  --headed                        Run browser relay in headed mode',
+    '  --headless <true|false>         Browser relay headless mode',
+    '  --browser-headless <true|false>  Deprecated alias for --headless',
     '  --browser-port <port>           Static server port for browser relay (default: random)',
     '  --browser-timeout-ms <ms>       Browser command timeout (default: 180000)',
     '  --browser-arg <arg>            Extra launch arg (repeatable); WebGPU/Vulkan args are applied automatically',
@@ -89,6 +91,7 @@ function parseArgs(argv) {
       key === 'json'
       || key === 'capture-output'
       || key === 'keep-pipeline'
+      || key === 'headed'
       || key === 'help'
       || key === 'h'
       || key === 'browser-console'
@@ -197,28 +200,60 @@ async function resolveBrowserModelUrl(request, parsed) {
   }
 
   const staticRootDir = resolveStaticRootDir(parsed);
+  const curatedCandidate = {
+    modelUrl: `/models/curated/${encodedModelId}`,
+    manifestPath: path.join(staticRootDir, 'models', 'curated', modelId, 'manifest.json'),
+  };
+  const localCandidate = {
+    modelUrl: `/models/local/${encodedModelId}`,
+    manifestPath: path.join(staticRootDir, 'models', 'local', modelId, 'manifest.json'),
+  };
+  const legacyCandidate = {
+    modelUrl: `/models/${encodedModelId}`,
+    manifestPath: path.join(staticRootDir, 'models', modelId, 'manifest.json'),
+  };
   const candidates = [
-    {
-      modelUrl: `/models/${encodedModelId}`,
-      manifestPath: path.join(staticRootDir, 'models', modelId, 'manifest.json'),
-    },
-    {
-      modelUrl: `/models/curated/${encodedModelId}`,
-      manifestPath: path.join(staticRootDir, 'models', 'curated', modelId, 'manifest.json'),
-    },
-    {
-      modelUrl: `/models/local/${encodedModelId}`,
-      manifestPath: path.join(staticRootDir, 'models', 'local', modelId, 'manifest.json'),
-    },
+    curatedCandidate,
+    localCandidate,
+    legacyCandidate,
   ];
+  const discoveredManifestCandidates = [];
 
   for (const candidate of candidates) {
-    if (await pathExists(candidate.manifestPath)) {
+    if (!await pathExists(candidate.manifestPath)) {
+      continue;
+    }
+    discoveredManifestCandidates.push(candidate);
+
+    const modelDir = path.dirname(candidate.manifestPath);
+    try {
+      const files = await fs.readdir(modelDir, { withFileTypes: true });
+      const hasShards = files.some((entry) =>
+        entry.isFile() && /^shard_\d+\.bin$/u.test(entry.name)
+      );
+      if (hasShards) {
+        return {
+          ...request,
+          modelUrl: candidate.modelUrl,
+        };
+      }
+    } catch {
       return {
         ...request,
         modelUrl: candidate.modelUrl,
       };
     }
+  }
+
+  if (discoveredManifestCandidates.length > 0) {
+    const firstCandidate = discoveredManifestCandidates[0];
+    const paths = discoveredManifestCandidates
+      .map((candidate) => candidate.modelUrl)
+      .join(', ');
+    throw new Error(
+      `Model "${modelId}" was found, but no shard files (shard_*.bin) are present. ` +
+      `Checked: ${paths}. Add shard files beside the manifest, or pass --model-url to a complete model directory.`
+    );
   }
 
   return {
@@ -293,13 +328,29 @@ function buildNodeRunOptions(jsonOutput) {
 }
 
 function buildBrowserRunOptions(parsed, jsonOutput) {
-  const headless = parseBooleanFlag(parsed.flags['browser-headless'], '--browser-headless');
+  const hasHeadlessFlag = Object.hasOwn(parsed.flags, 'headless');
+  const hasBrowserHeadlessFlag = Object.hasOwn(parsed.flags, 'browser-headless');
+  const hasHeadedFlag = Object.hasOwn(parsed.flags, 'headed');
+
+  if (
+    hasHeadedFlag
+    && (hasHeadlessFlag || hasBrowserHeadlessFlag)
+  ) {
+    throw new Error('--headed is mutually exclusive with --headless / --browser-headless.');
+  }
+
+  let headless;
+  if (hasHeadedFlag) {
+    headless = false;
+  } else {
+    const rawHeadless = hasHeadlessFlag
+      ? parsed.flags.headless
+      : parsed.flags['browser-headless'];
+    headless = parseBooleanFlag(rawHeadless, '--headless/--browser-headless');
+    headless = headless === null ? true : headless;
+  }
   const port = parseNumberFlag(parsed.flags['browser-port'], '--browser-port');
   const timeoutMs = parseNumberFlag(parsed.flags['browser-timeout-ms'], '--browser-timeout-ms');
-
-  if (headless === false) {
-    throw new Error('--browser-headless=false is not supported. Browser relay always runs headless.');
-  }
 
   const options = {
     channel: parsed.flags['browser-channel'] ?? null,
@@ -310,7 +361,7 @@ function buildBrowserRunOptions(parsed, jsonOutput) {
     browserArgs: parseBrowserArgs(parsed.flags['browser-arg']),
   };
 
-  options.headless = true;
+  options.headless = headless;
   if (port !== null) {
     options.port = port;
   }

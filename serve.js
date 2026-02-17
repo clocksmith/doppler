@@ -222,104 +222,43 @@ async function main() {
         }
       }
 
-      // Canonical app entry point.
+      // Serve demo directly at root.
       if (pathname === '/' || pathname === '') {
-        res.writeHead(302, { 'Location': '/doppler' });
-        return res.end();
+        pathname = '/demo/index.html';
       }
 
-      // Shortcut: /d redirects to the demo app
+      // Shortcut: /d redirects to root.
       if (pathname === '/d' || pathname === '/d/') {
-        res.writeHead(302, { 'Location': '/doppler' });
+        res.writeHead(302, { 'Location': '/' });
         return res.end();
       }
 
-      // Legacy /dr path maps to /doppler (compatibility).
+      // Legacy /dr redirects to root.
       if (pathname === '/dr' || pathname === '/dr/') {
-        res.writeHead(302, { 'Location': '/doppler' });
-        return res.end();
-      } else if (pathname.startsWith('/dr/')) {
-        pathname = pathname.replace('/dr/', '/doppler/');
-      }
-
-      // Standalone mode: serve app/index.html at /
-      // Strip /doppler/ prefix for prefixed routing.
-      if (pathname.startsWith('/doppler/')) {
-        pathname = pathname.replace('/doppler/', '/');
-      } else if (pathname === '/doppler') {
-        pathname = '/app/index.html';
-      }
-
-      // Backward compatibility for legacy app routes.
-      if (pathname === '/app' || pathname === '/app/') {
-        res.writeHead(302, { 'Location': '/doppler' });
+        res.writeHead(302, { 'Location': '/' });
         return res.end();
       }
-      if (pathname === '/rd.css') {
-        pathname = '/styles/rd.css';
-      }
-      // Backward compatibility for older app shell references.
-      if (pathname === '/app/rd.css') {
-        pathname = '/styles/rd.css';
-      }
-      if (pathname === '/kernel-tests/browser/registry.json') {
-        pathname = '/config/kernels/registry.json';
-      }
-      if (
-        pathname === '/favicon.ico' ||
-        pathname === '/site.webmanifest' ||
-        pathname === '/browserconfig.xml' ||
-        pathname === '/apple-touch-icon.png' ||
-        pathname === '/apple-touch-icon-precomposed.png' ||
-        pathname === '/mstile-150x150.png' ||
-        pathname === '/android-chrome-192x192.png' ||
-        pathname === '/android-chrome-512x512.png'
-      ) {
-        res.writeHead(204);
+
+      // Legacy /doppler path redirects to canonical root paths.
+      if (pathname === '/doppler' || pathname === '/doppler/') {
+        res.writeHead(302, { 'Location': '/' });
+        return res.end();
+      } else if (pathname.startsWith('/doppler/')) {
+        const stripped = pathname.replace(/^\/doppler/, '') || '/';
+        res.writeHead(302, { 'Location': stripped });
         return res.end();
       }
-      if (pathname === '/' || pathname === '') {
-        pathname = '/app/index.html';
+
+      // Legacy /dr/<path> redirects to canonical root paths.
+      if (pathname.startsWith('/dr/')) {
+        const stripped = pathname.replace(/^\/dr/, '') || '/';
+        res.writeHead(302, { 'Location': stripped });
+        return res.end();
       }
 
-      // Serve JS and JSON files from dist/ (TypeScript is compiled there)
-      // This handles: tests/benchmark/, inference/, gpu/, etc.
-      // Note: /doppler/ prefix was already stripped above, so pathname is like /dist/config/...
-      if ((pathname.endsWith('.js') || pathname.endsWith('.json')) && !pathname.includes('node_modules')) {
-        const jsPath = pathname.startsWith('/') ? pathname.slice(1) : pathname;
-        const pathWithoutDist = jsPath.replace(/^dist\//, '');
-        // Try multiple locations in order:
-        // 1. dist/src/<path> - where tsc outputs src/** files
-        // 2. dist/<path> - for test/benchmark outputs
-        // 3. src/<path> - for raw JS files not processed by tsc (kernels, platforms)
-        const candidates = [
-          join(dopplerDir, 'dist', 'src', pathWithoutDist),
-          join(dopplerDir, 'dist', jsPath),
-          join(dopplerDir, 'src', pathWithoutDist),
-        ];
-        for (const candidate of candidates) {
-          try {
-            const stats = await stat(candidate);
-            return serveFile(candidate, stats, req, res);
-          } catch {
-            // Try next candidate
-          }
-        }
-        // Fall through to normal resolution (for vendor JS, etc.)
-      }
-
-      // Serve WGSL shader files from src/gpu/kernels/
-      // Requested at /gpu/kernels/*.wgsl but files are in src/gpu/kernels/
-      if (pathname.endsWith('.wgsl')) {
-        const wgslPath = pathname.startsWith('/') ? pathname.slice(1) : pathname;
-        const srcPath = join(dopplerDir, 'src', wgslPath);
-        try {
-          const stats = await stat(srcPath);
-          return serveFile(srcPath, stats, req, res);
-        } catch {
-          // Fall through to normal resolution
-        }
-      }
+      // Backward compatibility for the removed legacy app surface.
+      if (pathname === '/app' || pathname === '/app/' || pathname === '/app/index.html') {
+        pathname = '/demo/index.html';
 
       const safePath = pathname.replace(/^(\.\.[/\\])+/, '').replace(/\.\./g, '');
       const filePath = join(rootDir, safePath);
