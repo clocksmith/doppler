@@ -1,0 +1,13 @@
+{
+  "autoSelect": [
+    {
+      "match": {
+        "allowCapabilityAutoSelection": true,
+        "hasSubgroups": true,
+        "kernelPathRef": "gemma3-q4k-dequant-f16a"
+      },
+      "value": "gemma3-q4k-dequant-f16a-online"
+    },
+    { "match": {}, "value": { "context": "kernelPathRef" } }
+  ]
+}

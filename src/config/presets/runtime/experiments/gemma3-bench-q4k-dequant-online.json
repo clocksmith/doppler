@@ -1,0 +1,58 @@
+{
+  "extends": "bench",
+  "model": "google-gemma-3-1b-it-wq4k-ef16",
+  "runtime": {
+    "shared": {
+      "tooling": {
+        "intent": "investigate"
+      },
+      "debug": {
+        "logLevel": {
+          "defaultLogLevel": "warn"
+        },
+        "trace": {
+          "enabled": false
+        },
+        "profiler": {
+          "enabled": false
+        }
+      },
+      "benchmark": {
+        "run": {
+          "promptName": "xs",
+          "maxNewTokens": 256,
+          "warmupRuns": 1,
+          "timedRuns": 1,
+          "sampling": {
+            "temperature": 0,
+            "topK": 1,
+            "topP": 1
+          },
+          "profile": false,
+          "captureMemoryTimeSeries": false
+        }
+      }
+    },
+    "inference": {
+      "compute": {
+        "activationDtype": "f16"
+      },
+      "kvcache": {
+        "kvDtype": "f16"
+      },
+      "kernelPath": "gemma3-q4k-dequant-f16a-online",
+      "batching": {
+        "batchSize": 1,
+        "maxTokens": 256,
+        "stopCheckMode": "per-token",
+        "readbackInterval": 8,
+        "ringTokens": 1,
+        "ringStop": 1,
+        "ringStaging": 1
+      },
+      "sampling": {
+        "temperature": 0
+      }
+    }
+  }
+}

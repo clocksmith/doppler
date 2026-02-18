@@ -73,6 +73,18 @@ fallback.
 Use `--headed` for headed mode (default is headless), or explicitly set
 `--headless false`.
 
+## Agent Setup
+
+- `AGENTS.md` is canonical.
+- `CLAUDE.md` and `GEMINI.md` are symlink aliases to `AGENTS.md`.
+- Shared skills live in `skills/`, with provider aliases at `.claude/skills` and `.gemini/skills`.
+
+Validate parity:
+
+```bash
+npm run agents:verify
+```
+
 ## Architecture
 
 ```

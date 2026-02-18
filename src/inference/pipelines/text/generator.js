@@ -1,7 +1,7 @@
 
 
 import { getDevice, setTrackSubmits } from '../../../gpu/device.js';
-import { releaseBuffer, readBuffer } from '../../../memory/buffer-pool.js';
+import { releaseBuffer, readBuffer, readBufferSlice } from '../../../memory/buffer-pool.js';
 import { isGPUSamplingAvailable } from '../../../gpu/kernels/sample.js';
 import { markWarmed as markKernelCacheWarmed } from '../../../gpu/kernel-selection-cache.js';
 import { resetSubmitStats, logSubmitStats } from '../../../gpu/submit-tracker.js';
@@ -795,7 +795,7 @@ export class PipelineGenerator {
     }
 
     
-    let logits;
+    let lastLogits;
     let logitsVocabSize = config.vocabSize;
     let usedRecordedLogits = false;
     const lmHead = this.#state.weights.get('lm_head');
@@ -815,39 +815,45 @@ export class PipelineGenerator {
       await recordProfile(currentRecorder);
 
       const logitsBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: recorded.logitsDtype });
-      const logitsData = await readBuffer(recorded.logitsBuffer, numTokens * logitsVocabSize * logitsBytes);
+      const lastLogitsSize = logitsVocabSize * logitsBytes;
+      const lastLogitsOffset = (numTokens - 1) * lastLogitsSize;
+      const logitsData = await readBufferSlice(recorded.logitsBuffer, lastLogitsOffset, lastLogitsSize);
       releaseBuffer(recorded.logitsBuffer);
-      logits = decodeReadback(logitsData, recorded.logitsDtype);
+      lastLogits = decodeReadback(logitsData, recorded.logitsDtype);
 
-	      const health = getLogitsHealth(logits);
-	      if (health.nanCount > 0 || health.infCount > 0 || health.nonZeroCount === 0) {
-	        log.warn(
-	          'Logits',
-	          `Recorded logits invalid (nan=${health.nanCount} inf=${health.infCount} nonZero=${health.nonZeroCount}, maxAbs=${health.maxAbs.toFixed(3)}); recomputing without recorder.`
-	        );
-	        this.#state.disableRecordedLogits = true;
-	        this.#state.disableFusedDecode = true;
-	        logits = await computeLogits(
-	          currentHiddenBuffer,
-	          numTokens,
-	          getLogitsWeights(this.#state),
-	          getLogitsConfig(this.#state),
-	          this.#state.useGPU,
-	          this.#state.debugFlags,
-	          undefined,
-	          debugCheckBuffer,
-	          this.#state.runtimeConfig.shared.debug.probes
-	        );
-	        const fallbackHealth = getLogitsHealth(logits);
-	        if (fallbackHealth.nanCount > 0 || fallbackHealth.infCount > 0 || fallbackHealth.nonZeroCount === 0) {
-	          throw new Error(
-	            `[Logits] Fallback logits invalid (nan=${fallbackHealth.nanCount} inf=${fallbackHealth.infCount} nonZero=${fallbackHealth.nonZeroCount}, maxAbs=${fallbackHealth.maxAbs.toFixed(3)}). ` +
-	            'This indicates upstream kernel output is NaN/Inf (often prefill attention/matmul).'
-	          );
-	        }
-	        logitsVocabSize = config.vocabSize;
-	        usedRecordedLogits = false;
-	      }
+      const health = getLogitsHealth(lastLogits);
+      if (health.nanCount > 0 || health.infCount > 0 || health.nonZeroCount === 0) {
+        log.warn(
+          'Logits',
+          `Recorded logits invalid (nan=${health.nanCount} inf=${health.infCount} nonZero=${health.nonZeroCount}, maxAbs=${health.maxAbs.toFixed(3)}); recomputing without recorder.`
+        );
+        this.#state.disableRecordedLogits = true;
+        this.#state.disableFusedDecode = true;
+        const fallbackLogits = await computeLogits(
+          currentHiddenBuffer,
+          numTokens,
+          getLogitsWeights(this.#state),
+          getLogitsConfig(this.#state),
+          this.#state.useGPU,
+          this.#state.debugFlags,
+          undefined,
+          debugCheckBuffer,
+          this.#state.runtimeConfig.shared.debug.probes,
+          { lastPositionOnly: true }
+        );
+        const fallbackHealth = getLogitsHealth(fallbackLogits);
+        if (fallbackHealth.nanCount > 0 || fallbackHealth.infCount > 0 || fallbackHealth.nonZeroCount === 0) {
+          throw new Error(
+            `[Logits] Fallback logits invalid (nan=${fallbackHealth.nanCount} inf=${fallbackHealth.infCount} nonZero=${fallbackHealth.nonZeroCount}, maxAbs=${fallbackHealth.maxAbs.toFixed(3)}). ` +
+            'This indicates upstream kernel output is NaN/Inf (often prefill attention/matmul).'
+          );
+        }
+        logitsVocabSize = config.vocabSize;
+        usedRecordedLogits = false;
+        lastLogits = fallbackLogits.length === logitsVocabSize
+          ? fallbackLogits
+          : extractLastPositionLogits(fallbackLogits, numTokens, logitsVocabSize);
+      }
 
       releaseBuffer(currentHiddenBuffer);
     } else {
@@ -855,7 +861,7 @@ export class PipelineGenerator {
         await currentRecorder.submitAndWait();
         await recordProfile(currentRecorder);
       }
-      logits = await computeLogits(
+      const logits = await computeLogits(
         currentHiddenBuffer,
         numTokens,
         getLogitsWeights(this.#state),
@@ -864,15 +870,18 @@ export class PipelineGenerator {
         this.#state.debugFlags,
         undefined,
         debugCheckBuffer,
-        this.#state.runtimeConfig.shared.debug.probes
+        this.#state.runtimeConfig.shared.debug.probes,
+        { lastPositionOnly: true }
       );
 
+      lastLogits = logits.length === logitsVocabSize
+        ? logits
+        : extractLastPositionLogits(logits, numTokens, logitsVocabSize);
       releaseBuffer(currentHiddenBuffer);
     }
 
     this.#state.currentSeqLen = startPos + numTokens;
 
-    let lastLogits = extractLastPositionLogits(logits, numTokens, logitsVocabSize);
     if (usedRecordedLogits) {
       if (logitsVocabSize < config.vocabSize) {
         const padded = new Float32Array(config.vocabSize);

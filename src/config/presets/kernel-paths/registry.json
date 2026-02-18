@@ -79,6 +79,13 @@
       "notes": "Gemma 3 Q4K default path for F16 activation when not using fused kernels."
     },
     {
+      "id": "gemma3-q4k-dequant-f16a-online",
+      "file": "gemma3-q4k-dequant-f16a-online.json",
+      "status": "experimental",
+      "statusReason": "benchmark-probe",
+      "notes": "Experimental Gemma 3 Q4K path using online decode attention on subgroup-capable GPUs."
+    },
+    {
       "id": "gemma3-q4k-dequant-f32a",
       "file": "gemma3-q4k-dequant-f32a.json",
       "status": "canonical",

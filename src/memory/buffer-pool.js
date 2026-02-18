@@ -509,6 +509,11 @@ export class BufferPool {
 
   
   async readBuffer(buffer, size = buffer.size) {
+    return this.readBufferSlice(buffer, 0, size);
+  }
+
+  
+  async readBufferSlice(buffer, offset = 0, size = buffer.size - offset) {
     if (!allowReadback('BufferPool.readBuffer')) {
       return new ArrayBuffer(0);
     }
@@ -518,13 +523,34 @@ export class BufferPool {
       throw new Error('Device not initialized');
     }
 
+    if (!Number.isInteger(offset) || offset < 0) {
+      throw new Error(`Invalid read offset: ${offset}`);
+    }
+    if (!Number.isInteger(size) || size < 0) {
+      throw new Error(`Invalid read size: ${size}`);
+    }
+    if (offset > buffer.size) {
+      throw new Error(`Read offset ${offset} exceeds buffer size ${buffer.size}`);
+    }
+    if (offset + size > buffer.size) {
+      throw new Error(
+        `Read range [${offset}, ${offset + size}) exceeds buffer size ${buffer.size}`
+      );
+    }
+    if (offset % 4 !== 0) {
+      throw new Error(`Read offset must be 4-byte aligned, got ${offset}`);
+    }
+    if (size === 0) {
+      return new ArrayBuffer(0);
+    }
+
     const alignedSize = Math.ceil(size / 4) * 4;
     // Create staging buffer
     const staging = this.createStagingBuffer(alignedSize);
 
     // Copy to staging
     const encoder = device.createCommandEncoder({ label: 'readback_encoder' });
-    encoder.copyBufferToBuffer(buffer, 0, staging, 0, alignedSize);
+    encoder.copyBufferToBuffer(buffer, offset, staging, 0, alignedSize);
     device.queue.submit([encoder.finish()]);
 
     // Map and read
@@ -671,6 +697,9 @@ export const uploadData = (buffer, data, offset) =>
 
 export const readBuffer = (buffer, size) =>
   getBufferPool().readBuffer(buffer, size);
+
+export const readBufferSlice = (buffer, offset, size) =>
+  getBufferPool().readBufferSlice(buffer, offset, size);
 
 export const forceBufferPoolReclaim = (targetRatio) =>
   getBufferPool().forceReclaim(targetRatio);

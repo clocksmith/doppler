@@ -5,7 +5,7 @@
  *
  * Runs both Doppler and Transformers.js benchmarks and produces
  * a structured side-by-side comparison across three modes:
- *   - compute: decode/prefill/TTFT (raw engine performance)
+ *   - compute: model-load/decode/prefill(TTFT)/TTFT (warm-cache compare)
  *   - warm:    warm-start UX (model load from cache + first inference)
  *   - cold:    cold-start UX (full download/compile + first inference)
  *
@@ -22,7 +22,10 @@
  *   --max-tokens <n>       Max new tokens (default: 64)
  *   --warmup <n>           Warmup runs per engine (default: 1)
  *   --runs <n>             Timed runs per engine (default: 3)
+ *   --decode-profile <profile>  parity|throughput|custom (default: parity)
  *   --doppler-kernel-path <id>  Doppler kernel path override (default: gemma3-f16-f16a-online)
+ *   --doppler-batch-size <n>     Doppler decode batch size (only with --decode-profile custom)
+ *   --doppler-readback-interval <n>  Doppler decode readback interval (only with --decode-profile custom)
  *   --doppler-no-opfs-cache  Disable Doppler OPFS cache for browser runs
  *   --doppler-browser-user-data <path>  Doppler Chromium profile dir
  *   --save                 Save results to bench-results/
@@ -48,6 +51,45 @@ const DEFAULT_MAX_TOKENS = 64;
 const DEFAULT_WARMUP = 1;
 const DEFAULT_RUNS = 3;
 const DEFAULT_DOPPLER_KERNEL_PATH = 'gemma3-f16-f16a-online';
+const DEFAULT_DECODE_PROFILE = 'parity';
+const DECODE_PROFILE_PRESETS = Object.freeze({
+  parity: Object.freeze({
+    batchSize: 1,
+    readbackInterval: 1,
+    label: 'TJS-like per-token cadence',
+  }),
+  throughput: Object.freeze({
+    batchSize: 4,
+    readbackInterval: 4,
+    label: 'Doppler throughput-tuned cadence',
+  }),
+});
+const VALID_DECODE_PROFILES = Object.freeze([
+  ...Object.keys(DECODE_PROFILE_PRESETS),
+  'custom',
+]);
+const DEFAULT_DOPPLER_BATCH_SIZE = DECODE_PROFILE_PRESETS[DEFAULT_DECODE_PROFILE].batchSize;
+const DEFAULT_DOPPLER_READBACK_INTERVAL = DECODE_PROFILE_PRESETS[DEFAULT_DECODE_PROFILE].readbackInterval;
+
+function parsePositiveInt(value, fallback, label) {
+  if (value == null || value === '') return fallback;
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || !Number.isInteger(parsed) || parsed <= 0) {
+    throw new Error(`${label} must be a positive integer`);
+  }
+  return parsed;
+}
+
+function parseDecodeProfile(value) {
+  if (value == null || value === '') return DEFAULT_DECODE_PROFILE;
+  const profile = String(value);
+  if (!VALID_DECODE_PROFILES.includes(profile)) {
+    throw new Error(
+      `--decode-profile must be one of: ${VALID_DECODE_PROFILES.join(', ')}`
+    );
+  }
+  return profile;
+}
 
 function parseArgs(argv) {
   const flags = {};
@@ -75,6 +117,12 @@ async function runDoppler(modelId, modelUrl, prompt, maxTokens, warmupRuns, runs
   const resolvedWarmupRuns = warmupRuns || DEFAULT_WARMUP;
   const resolvedTimedRuns = runs || DEFAULT_RUNS;
   const resolvedKernelPath = options.kernelPath || DEFAULT_DOPPLER_KERNEL_PATH;
+  const resolvedBatchSize = parsePositiveInt(options.batchSize, DEFAULT_DOPPLER_BATCH_SIZE, '--doppler-batch-size');
+  const resolvedReadbackInterval = parsePositiveInt(
+    options.readbackInterval,
+    DEFAULT_DOPPLER_READBACK_INTERVAL,
+    '--doppler-readback-interval'
+  );
   const baseArgs = [
     path.join(DOPPLER_ROOT, 'tools', 'doppler-cli.js'),
     'bench',
@@ -103,6 +151,9 @@ async function runDoppler(modelId, modelUrl, prompt, maxTokens, warmupRuns, runs
         prompt: resolvedPrompt,
         batching: {
           maxTokens: resolvedMaxTokens,
+          batchSize: resolvedBatchSize,
+          readbackInterval: resolvedReadbackInterval,
+          stopCheckMode: 'per-token',
         },
         sampling: {
           temperature: 0,
@@ -184,9 +235,17 @@ function getDopplerMetric(result, key) {
   // Doppler CLI outputs { ok, surface, request, result: { metrics: { ... } } }
   const m = result?.result?.metrics || result?.metrics;
   if (!m) return null;
+  const prefillTokens = Number.isFinite(m.avgPrefillTokens)
+    ? m.avgPrefillTokens
+    : (Number.isFinite(m?.tokens?.prefill?.median) ? m.tokens.prefill.median : null);
+  const prefillTokPerSecTtft = Number.isFinite(m.medianPrefillTokensPerSecTtft)
+    ? m.medianPrefillTokensPerSecTtft
+    : (Number.isFinite(prefillTokens) && Number.isFinite(m.medianTtftMs) && m.medianTtftMs > 0
+      ? (prefillTokens / m.medianTtftMs) * 1000
+      : null);
   const map = {
     decodeTokPerSec: m.medianDecodeTokensPerSec,
-    prefillTokPerSec: m.medianPrefillTokensPerSec,
+    prefillTokPerSec: prefillTokPerSecTtft,
     ttftMs: m.medianTtftMs,
     modelLoadMs: m.modelLoadMs,
   };
@@ -198,7 +257,7 @@ function getTjsMetric(result, key) {
   if (!m) return null;
   const map = {
     decodeTokPerSec: m.decode_tokens_per_sec,
-    prefillTokPerSec: m.prefill_tokens_per_sec,
+    prefillTokPerSec: m.prefill_tokens_per_sec_ttft ?? m.prefill_tokens_per_sec,
     ttftMs: m.ttft_ms,
     modelLoadMs: m.model_load_ms,
   };
@@ -270,7 +329,28 @@ async function main() {
   const maxTokens = Number(flags['max-tokens'] || DEFAULT_MAX_TOKENS);
   const warmupRuns = Number(flags.warmup || DEFAULT_WARMUP);
   const runs = Number(flags.runs || DEFAULT_RUNS);
+  const decodeProfile = parseDecodeProfile(flags['decode-profile']);
+  const hasCustomDopplerBatchSize = flags['doppler-batch-size'] != null;
+  const hasCustomDopplerReadbackInterval = flags['doppler-readback-interval'] != null;
+  const hasCustomDopplerDecodeTuning = hasCustomDopplerBatchSize || hasCustomDopplerReadbackInterval;
+  if (hasCustomDopplerDecodeTuning && decodeProfile !== 'custom') {
+    throw new Error(
+      'Use --decode-profile custom when setting --doppler-batch-size or --doppler-readback-interval.'
+    );
+  }
+  const decodeProfilePreset = DECODE_PROFILE_PRESETS[decodeProfile] || DECODE_PROFILE_PRESETS[DEFAULT_DECODE_PROFILE];
   const dopplerKernelPath = flags['doppler-kernel-path'] || DEFAULT_DOPPLER_KERNEL_PATH;
+  const dopplerBatchSize = parsePositiveInt(
+    flags['doppler-batch-size'],
+    decodeProfilePreset.batchSize,
+    '--doppler-batch-size'
+  );
+  const dopplerReadbackInterval = parsePositiveInt(
+    flags['doppler-readback-interval'],
+    decodeProfilePreset.readbackInterval,
+    '--doppler-readback-interval'
+  );
+  const dopplerTokensPerReadback = dopplerBatchSize * dopplerReadbackInterval;
   const dopplerNoOpfsCache = flags['doppler-no-opfs-cache'] === true;
   const dopplerBrowserUserData = flags['doppler-browser-user-data'] || null;
   const jsonOutput = flags.json === true;
@@ -285,18 +365,38 @@ async function main() {
 
   console.error(`[compare] Doppler model: ${dopplerModelId}`);
   console.error(`[compare] TJS model:     ${tjsModelId} (v${tjsVersion})`);
-  console.error(`[compare] mode: ${mode}, maxTokens: ${maxTokens}, warmupRuns: ${warmupRuns}, runs: ${runs}`);
+  console.error(
+    `[compare] mode: ${mode}, maxTokens: ${maxTokens}, warmupRuns: ${warmupRuns}, runs: ${runs}, `
+    + `decodeProfile: ${decodeProfile}, dopplerBatchSize: ${dopplerBatchSize}, `
+    + `dopplerReadbackInterval: ${dopplerReadbackInterval}, dopplerTokensPerReadback: ${dopplerTokensPerReadback}`
+  );
 
   const report = {
     timestamp: new Date().toISOString(),
     dopplerModelId,
     dopplerKernelPath,
+    decodeProfile,
+    dopplerBatchSize,
+    dopplerReadbackInterval,
+    dopplerTokensPerReadback,
     tjsModelId,
     mode,
     prompt,
     maxTokens,
     warmupRuns,
     runs,
+    methodology: {
+      prefillTokensPerSec: 'prompt_tokens / ttft_ms',
+      dopplerDecodeCadence: {
+        batchSize: dopplerBatchSize,
+        readbackInterval: dopplerReadbackInterval,
+        tokensPerReadback: dopplerTokensPerReadback,
+      },
+      transformersjsDecodeCadence: {
+        streamerCallbackGranularityTokens: 1,
+        readbackControl: 'runtime-internal',
+      },
+    },
     sections: {},
   };
 
@@ -320,6 +420,8 @@ async function main() {
       'warm',
       {
         kernelPath: dopplerKernelPath,
+        batchSize: dopplerBatchSize,
+        readbackInterval: dopplerReadbackInterval,
         noOpfsCache: dopplerNoOpfsCache,
         browserUserData: dopplerBrowserUserData,
       }
@@ -348,6 +450,8 @@ async function main() {
       'cold',
       {
         kernelPath: dopplerKernelPath,
+        batchSize: dopplerBatchSize,
+        readbackInterval: dopplerReadbackInterval,
         noOpfsCache: dopplerNoOpfsCache,
         browserUserData: dopplerBrowserUserData,
       }
@@ -368,24 +472,26 @@ async function main() {
   if (jsonOutput) {
     console.log(JSON.stringify(report, null, 2));
   } else {
+    const decodeProfileLabel = decodeProfilePreset?.label || 'custom decode cadence';
+    console.log(
+      `[method] prefill=prompt_tokens/TTFT, decodeProfile=${decodeProfile} ` +
+      `(${decodeProfileLabel}), Doppler tokens/readback=${dopplerTokensPerReadback}`
+    );
     const computeRows = [
-      { key: 'decodeTokPerSec', label: 'decode tok/s', unit: 'tok/s', higherBetter: true },
-      { key: 'prefillTokPerSec', label: 'prefill tok/s', unit: 'tok/s', higherBetter: true },
-      { key: 'ttftMs', label: 'TTFT', unit: 'ms', higherBetter: false },
-    ];
-    const loadRows = [
       { key: 'modelLoadMs', label: 'model load', unit: 'ms', higherBetter: false },
-      ...computeRows,
+      { key: 'decodeTokPerSec', label: 'decode tok/s', unit: 'tok/s', higherBetter: true },
+      { key: 'prefillTokPerSec', label: 'prompt tok/s (TTFT)', unit: 'tok/s', higherBetter: true },
+      { key: 'ttftMs', label: 'TTFT', unit: 'ms', higherBetter: false },
     ];
 
     if (mode === 'compute' || mode === 'all') {
       printSection('COMPUTE', dopplerWarm, tjsWarm, computeRows);
     }
     if (mode === 'warm' || mode === 'all') {
-      printSection('WARM START', dopplerWarm, tjsWarm, loadRows);
+      printSection('WARM START', dopplerWarm, tjsWarm, computeRows);
     }
     if (mode === 'cold' || mode === 'all') {
-      printSection('COLD START', dopplerCold, tjsCold, loadRows);
+      printSection('COLD START', dopplerCold, tjsCold, computeRows);
     }
     console.log('');
   }

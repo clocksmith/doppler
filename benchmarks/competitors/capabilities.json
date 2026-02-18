@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-02-17",
+  "updated": "2026-02-18",
   "featureCatalog": {
     "bench": [
       {
@@ -122,7 +122,8 @@
       "evidence": [
         "src/gpu/command-recorder.js",
         "src/inference/pipelines/text/generator-steps.js",
-        "docs/operations.md"
+        "docs/operations.md",
+        "tools/compare-engines.mjs"
       ]
     },
     {
@@ -159,7 +160,8 @@
       "evidence": [
         "external/transformersjs-bench.mjs",
         "external/transformersjs-runner.html",
-        "benchmarks/competitors/harnesses/transformersjs.json"
+        "benchmarks/competitors/harnesses/transformersjs.json",
+        "tools/compare-engines.mjs"
       ]
     },
     {

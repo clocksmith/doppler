@@ -850,6 +850,9 @@ async function runGeneration(pipeline, runtimeConfig) {
   const prefillTokensPerSec = prefillMs > 0
     ? (prefillTokens / prefillMs) * 1000
     : 0;
+  const prefillTokensPerSecTtft = ttftMs > 0
+    ? (prefillTokens / ttftMs) * 1000
+    : 0;
   const gpu = {};
   if (Number.isFinite(stats.gpuTimePrefillMs)) gpu.prefillMs = stats.gpuTimePrefillMs;
   if (Number.isFinite(stats.gpuTimeDecodeMs)) gpu.decodeMs = stats.gpuTimeDecodeMs;
@@ -857,6 +860,9 @@ async function runGeneration(pipeline, runtimeConfig) {
   if (Number.isFinite(stats.decodeSubmitWaitMs)) gpu.decodeSubmitWaitMs = stats.decodeSubmitWaitMs;
   if (Number.isFinite(stats.decodeReadbackWaitMs)) gpu.decodeReadbackWaitMs = stats.decodeReadbackWaitMs;
   const gpuPhase = Object.keys(gpu).length > 0 ? gpu : null;
+  const decodeProfileSteps = Array.isArray(stats.decodeProfileSteps)
+    ? stats.decodeProfileSteps
+    : null;
 
   return {
     prompt,
@@ -874,8 +880,10 @@ async function runGeneration(pipeline, runtimeConfig) {
       prefillTokens,
       decodeTokens,
       prefillTokensPerSec,
+      prefillTokensPerSecTtft,
       decodeTokensPerSec,
       gpu: gpuPhase,
+      decodeProfileSteps,
     },
   };
 }
@@ -1018,9 +1026,11 @@ async function runInferenceSuite(options = {}) {
       prefillTokens: Math.round(run.phase.prefillTokens),
       decodeTokens: Math.round(run.phase.decodeTokens),
       prefillTokensPerSec: Number(run.phase.prefillTokensPerSec.toFixed(2)),
+      prefillTokensPerSecTtft: Number(run.phase.prefillTokensPerSecTtft.toFixed(2)),
       decodeTokensPerSec: Number(run.phase.decodeTokensPerSec.toFixed(2)),
       modelLoadMs: Number((harness.modelLoadMs ?? 0).toFixed(2)),
       gpu: run.phase.gpu,
+      decodeProfileSteps: run.phase.decodeProfileSteps,
     };
   }
 
@@ -1171,6 +1181,7 @@ async function runBenchSuite(options = {}) {
     const decodeTokens = [];
     const decodeTokensPerSec = [];
     const prefillTokensPerSec = [];
+    const prefillTokensPerSecTtft = [];
     const gpuPrefillMs = [];
     const gpuDecodeMs = [];
     const gpuDecodeRecordMs = [];
@@ -1191,6 +1202,7 @@ async function runBenchSuite(options = {}) {
         decodeTokens.push(run.phase.decodeTokens);
         decodeTokensPerSec.push(run.phase.decodeTokensPerSec);
         prefillTokensPerSec.push(run.phase.prefillTokensPerSec);
+        prefillTokensPerSecTtft.push(run.phase.prefillTokensPerSecTtft);
         if (Number.isFinite(run.phase.gpu?.prefillMs)) gpuPrefillMs.push(run.phase.gpu.prefillMs);
         if (Number.isFinite(run.phase.gpu?.decodeMs)) gpuDecodeMs.push(run.phase.gpu.decodeMs);
         if (Number.isFinite(run.phase.gpu?.decodeRecordMs)) gpuDecodeRecordMs.push(run.phase.gpu.decodeRecordMs);
@@ -1203,6 +1215,7 @@ async function runBenchSuite(options = {}) {
     const tokensPerSecStats = computeSampleStats(tokensPerSec);
     const decodeTokensPerSecStats = computeSampleStats(decodeTokensPerSec);
     const prefillTokensPerSecStats = computeSampleStats(prefillTokensPerSec);
+    const prefillTokensPerSecTtftStats = computeSampleStats(prefillTokensPerSecTtft);
     const ttftMsStats = computeSampleStats(ttftMs);
     const prefillMsStats = computeSampleStats(prefillMs);
     const decodeMsStats = computeSampleStats(decodeMs);
@@ -1241,6 +1254,8 @@ async function runBenchSuite(options = {}) {
       avgDecodeTokens: Math.round(decodeTokensStats.mean),
       medianPrefillTokensPerSec: Number(prefillTokensPerSecStats.median.toFixed(2)),
       avgPrefillTokensPerSec: Number(prefillTokensPerSecStats.mean.toFixed(2)),
+      medianPrefillTokensPerSecTtft: Number(prefillTokensPerSecTtftStats.median.toFixed(2)),
+      avgPrefillTokensPerSecTtft: Number(prefillTokensPerSecTtftStats.mean.toFixed(2)),
       medianDecodeTokensPerSec: Number(decodeTokensPerSecStats.median.toFixed(2)),
       avgDecodeTokensPerSec: Number(decodeTokensPerSecStats.mean.toFixed(2)),
       medianTtftMs: Number(ttftMsStats.median.toFixed(2)),
@@ -1253,6 +1268,7 @@ async function runBenchSuite(options = {}) {
       throughput: {
         tokensPerSec: tokensPerSecStats,
         prefillTokensPerSec: prefillTokensPerSecStats,
+        prefillTokensPerSecTtft: prefillTokensPerSecTtftStats,
         decodeTokensPerSec: decodeTokensPerSecStats,
       },
       latency: {

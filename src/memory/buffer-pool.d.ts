@@ -122,6 +122,12 @@ export declare class BufferPool {
   readBuffer(buffer: GPUBuffer, size?: number): Promise<ArrayBuffer>;
 
   /**
+   * Read a byte range from GPU buffer.
+   * offset must be 4-byte aligned.
+   */
+  readBufferSlice(buffer: GPUBuffer, offset: number, size: number): Promise<ArrayBuffer>;
+
+  /**
    * Clear all pooled buffers
    */
   clearPool(): void;
@@ -177,6 +183,7 @@ export declare const isBufferActive: (buffer: GPUBuffer) => boolean;
 export declare const getBufferRequestedSize: (buffer: GPUBuffer) => number;
 export declare const uploadData: (buffer: GPUBuffer, data: ArrayBuffer | ArrayBufferView, offset?: number) => void;
 export declare const readBuffer: (buffer: GPUBuffer, size?: number) => Promise<ArrayBuffer>;
+export declare const readBufferSlice: (buffer: GPUBuffer, offset: number, size: number) => Promise<ArrayBuffer>;
 export declare const forceBufferPoolReclaim: (targetRatio?: number | null) => void;
 
 /**

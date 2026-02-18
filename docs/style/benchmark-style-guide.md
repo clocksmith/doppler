@@ -74,9 +74,10 @@ Defines a standardized benchmark harness for DOPPLER so performance claims are m
 | Comparison utilities | Planned | (TBD) |
 | Browser diagnostics UI | ✓ Implemented | `demo/diagnostics-controller.js` |
 
-### Claude Skill
+### Agent Skill
 
-Use `doppler-bench` skill (`../../.claude/skills/doppler-bench/SKILL.md`) for guided benchmarking.
+Use `doppler-bench` skill (`../../skills/doppler-bench/SKILL.md`) for guided benchmarking.
+Use `doppler-perf-squeeze` skill (`../../skills/doppler-perf-squeeze/SKILL.md`) for decode/prefill optimization workflows.
 
 ---
 

@@ -34,3 +34,9 @@ Use `tools/competitor-bench.js`:
 - `node tools/competitor-bench.js run --target webllm --workload decode-64-128-greedy -- node ./path/to/runner.js`
 
 `import` and `run` both produce normalized records under `benchmarks/competitors/results/` unless `--output` is specified.
+
+## Normalization Notes
+
+- Prefill throughput comparisons are normalized as `prompt_tokens / ttft_ms`.
+- Prefer explicit source metric keys like `prefill_tokens_per_sec_ttft` when available, with legacy key fallback for older harness outputs.
+- `tools/compare-engines.mjs` defaults to `--decode-profile parity` (Doppler `batchSize=1`, `readbackInterval=1`) for closer Transformers.js decode cadence matching; use `--decode-profile throughput` for Doppler-tuned runs.

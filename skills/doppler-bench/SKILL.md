@@ -7,6 +7,24 @@ description: Run Doppler and competitor benchmark workflows, capture reproducibl
 
 Use this skill for repeatable performance measurement and cross-product comparisons.
 
+## Cross-Engine Compare (Canonical)
+
+```bash
+# Fair compute comparison (default parity decode cadence)
+node tools/compare-engines.mjs --mode compute --warmup 1 --runs 3 --decode-profile parity --save --json
+
+# Doppler throughput-tuned decode cadence
+node tools/compare-engines.mjs --mode compute --warmup 1 --runs 3 --decode-profile throughput --save --json
+
+# Warm-start only (includes model load)
+node tools/compare-engines.mjs --mode warm --warmup 1 --runs 3 --decode-profile parity --save --json
+```
+
+Notes:
+- `--decode-profile parity` maps Doppler to `batchSize=1`, `readbackInterval=1` for closer TJS cadence parity.
+- `--decode-profile throughput` maps Doppler to `batchSize=4`, `readbackInterval=4`.
+- Prefill is normalized as `prompt_tokens / ttft_ms` in compare output.
+
 ## Doppler Benchmark (Primary)
 
 ```bash
@@ -23,6 +41,24 @@ npm run bench -- --model-id MODEL_ID --runtime-preset experiments/gemma3-bench-q
 Notes:
 - `bench` defaults to browser surface and persistent Chromium profile.
 - Saved artifacts go to `bench-results/` when `--save` is used.
+- For instrumentation-heavy investigation, run `debug` with `runtime-preset experiments/gemma3-profile`.
+
+## Performance Investigation Loop (Squeeze Workflow)
+
+```bash
+# 1) Baseline parity
+node tools/compare-engines.mjs --mode compute --warmup 1 --runs 3 --decode-profile parity --save --json
+
+# 2) Throughput probe
+node tools/compare-engines.mjs --mode compute --warmup 1 --runs 3 --decode-profile throughput --save --json
+
+# 3) Readback sensitivity (fixed workload, warm cache)
+npm run bench -- --model-id MODEL_ID --runtime-preset experiments/gemma3-investigate-readback-r1 --cache-mode warm --save --json
+npm run bench -- --model-id MODEL_ID --runtime-preset experiments/gemma3-investigate-readback-r8 --cache-mode warm --save --json
+
+# 4) Profile traces (investigate intent + profiler)
+npm run debug -- --model-id MODEL_ID --runtime-preset experiments/gemma3-profile --json
+```
 
 ## Competitor Benchmark (Transformers.js)
 
@@ -50,7 +86,8 @@ node tools/competitor-bench.js gap --base doppler --target transformersjs
 ## Key Metrics
 
 - `decode_tokens_per_sec`
-- `prefill_tokens_per_sec`
+- `prefill_tokens_per_sec_ttft` (preferred normalized prefill metric)
+- `prefill_tokens_per_sec` (legacy alias)
 - `ttft_ms`
 - `decode_ms_per_token_p50/p95`
 - `model_load_ms`

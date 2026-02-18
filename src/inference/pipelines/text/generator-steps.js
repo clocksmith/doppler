@@ -763,7 +763,11 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
   const batchSize = opts.batchSize ?? batchingConfig.batchSize;
   const readbackInterval = batchingConfig.readbackInterval == null ? 1 : batchingConfig.readbackInterval;
   const stopCheckMode = opts.stopCheckMode ?? batchingConfig.stopCheckMode;
-  const effectiveStopCheckMode = readbackInterval > 1 ? 'per-token' : stopCheckMode;
+  // GPU stop-flag checks are only useful when we read back every token.
+  // With deferred readback, we already scan sampled tokens on CPU to find the
+  // earliest stop token, so extra stop buffers/kernels are redundant overhead.
+  const useGpuStopFlags = stopCheckMode === 'per-token' && readbackInterval <= 1;
+  const effectiveStopCheckMode = useGpuStopFlags ? 'per-token' : 'batch';
   const tokensPerInterval = batchSize * readbackInterval;
   const recorder = opts.profile
     ? createProfilingRecorder('batch_decode')
@@ -820,13 +824,13 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
   const ownsTokensBuffer = !ringSlot?.tokens;
 
   const stopCapacity = ringSlot?.stop ? ringSlot.tokensPerInterval + 1 : N + 1;
-  const stopBuffer = effectiveStopCheckMode === 'per-token'
+  const stopBuffer = useGpuStopFlags
     ? ringSlot?.stop ?? device.createBuffer({
         size: stopCapacity * 4,
         usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST,
       })
     : null;
-  const ownsStopBuffer = effectiveStopCheckMode === 'per-token' && !ringSlot?.stop;
+  const ownsStopBuffer = useGpuStopFlags && !ringSlot?.stop;
 
   const tokensStagingBuffer = ringSlot?.stagingTokens ?? device.createBuffer({
     size: N * 4,
@@ -834,13 +838,13 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
   });
   const ownsTokensStaging = !ringSlot?.stagingTokens;
 
-  const stopStagingBuffer = effectiveStopCheckMode === 'per-token'
+  const stopStagingBuffer = useGpuStopFlags
     ? ringSlot?.stagingStop ?? device.createBuffer({
         size: N * 4,
         usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
       })
     : null;
-  const ownsStopStaging = effectiveStopCheckMode === 'per-token' && !ringSlot?.stagingStop;
+  const ownsStopStaging = useGpuStopFlags && !ringSlot?.stagingStop;
 
   device.queue.writeBuffer(tokensBuffer, 0, new Uint32Array([startToken]));
   if (stopBuffer) {
@@ -926,7 +930,7 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
       });
     }
 
-    const stopCheck = effectiveStopCheckMode === 'per-token'
+    const stopCheck = useGpuStopFlags
       ? recordCheckStop(recorder, {
           sampledTokenBuffer: tokensBuffer,
           shouldStopBuffer: stopBuffer,
@@ -953,7 +957,7 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
 
   const encoder = recorder.getEncoder();
   encoder.copyBufferToBuffer(tokensBuffer, 4, tokensStagingBuffer, 0, N * 4);
-  if (effectiveStopCheckMode === 'per-token' && stopBuffer && stopStagingBuffer) {
+  if (useGpuStopFlags && stopBuffer && stopStagingBuffer) {
     encoder.copyBufferToBuffer(stopBuffer, 4, stopStagingBuffer, 0, N * 4);
   }
 

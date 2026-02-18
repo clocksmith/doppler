@@ -19,12 +19,12 @@ This skill helps you review DOPPLER kernels (WGSL, JS wrappers, .d.ts) against t
    - `src/gpu/kernels/<name>.d.ts`
    - WGSL sources referenced by the JS wrapper (typically under `src/gpu/kernels/`)
 2. Run mechanical checks:
-   - `node .claude/skills/doppler-kernel-reviewer/scripts/lint-kernel.js src/gpu/kernels/<name>.js`
-   - `node .claude/skills/doppler-kernel-reviewer/scripts/lint-kernel.js src/gpu/kernels/<name>.wgsl`
+   - `node skills/doppler-kernel-reviewer/scripts/lint-kernel.js src/gpu/kernels/<name>.js`
+   - `node skills/doppler-kernel-reviewer/scripts/lint-kernel.js src/gpu/kernels/<name>.wgsl`
 3. Run syntax check for wrapper JS:
    - `node --check src/gpu/kernels/<name>.js`
 4. Perform manual checklist review:
-   - `.claude/skills/doppler-kernel-reviewer/rules/checklist.md`
+   - `skills/doppler-kernel-reviewer/rules/checklist.md`
    - `docs/style/general-style-guide.md`
    - `docs/style/javascript-style-guide.md`
    - `docs/style/wgsl-style-guide.md`

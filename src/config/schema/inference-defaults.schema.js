@@ -23,7 +23,7 @@ export const DEFAULT_GENERATION_CONFIG = {
 // =============================================================================
 
 export const DEFAULT_BATCHING_DEFAULTS = {
-  batchSize: 1,  // Compare single-token
+  batchSize: 4,  // GPU run-ahead window: record N tokens, submit once, readback once
   maxTokens: 256,
   stopCheckMode: 'batch',
   readbackInterval: 1,

@@ -179,13 +179,18 @@ window.__runBench = async (config) => {
     let newTokenCount = 0;
     const tokenTimestamps = [];
 
-    // TextStreamer: callback fires once per generated token (skip_prompt=true)
+    // TextStreamer: use token_callback_function for true token-level timing/counting.
     const streamer = new TextStreamer(generator.tokenizer, {
       skip_prompt: true,
-      callback_function: () => {
+      // Keep text callback inert; this harness measures token timing via token_callback_function.
+      callback_function: () => {},
+      token_callback_function: (tokens) => {
         const now = performance.now();
-        newTokenCount++;
-        tokenTimestamps.push(now);
+        const count = Array.isArray(tokens) ? tokens.length : 1;
+        newTokenCount += count;
+        for (let i = 0; i < count; i++) {
+          tokenTimestamps.push(now);
+        }
         if (firstTokenTime === null) {
           firstTokenTime = now;
         }
@@ -216,6 +221,10 @@ window.__runBench = async (config) => {
       perTokenMs.push(tokenTimestamps[t] - tokenTimestamps[t - 1]);
     }
 
+    const prefillTokensPerSecTtft = prefillTokens !== null && ttftMs > 0
+      ? prefillTokens / (ttftMs / 1000)
+      : null;
+
     const run = {
       ttftMs,
       totalMs,
@@ -225,7 +234,8 @@ window.__runBench = async (config) => {
       prefillTokens,
       tokensPerSec: newTokenCount / (totalMs / 1000),
       decodeTokensPerSec: decodeTokens > 0 ? decodeTokens / (decodeMs / 1000) : 0,
-      prefillTokensPerSec: prefillTokens !== null && ttftMs > 0 ? prefillTokens / (ttftMs / 1000) : null,
+      prefillTokensPerSecTtft,
+      prefillTokensPerSec: prefillTokensPerSecTtft,
       perTokenMs,
     };
 
@@ -261,7 +271,7 @@ window.__runBench = async (config) => {
 
   const tps = timedResults.map((r) => r.tokensPerSec);
   const decodeTps = timedResults.map((r) => r.decodeTokensPerSec);
-  const prefillTps = timedResults.map((r) => r.prefillTokensPerSec).filter((v) => v !== null);
+  const prefillTpsTtft = timedResults.map((r) => r.prefillTokensPerSecTtft).filter((v) => v !== null);
   const ttfts = timedResults.map((r) => r.ttftMs);
 
   // Aggregate all per-token decode latencies across timed runs
@@ -294,7 +304,10 @@ window.__runBench = async (config) => {
       tokens_per_sec: median(tps),
       decode_tokens_per_sec: median(decodeTps),
       avg_decode_tokens_per_sec: avg(decodeTps),
-      prefill_tokens_per_sec: prefillTps.length > 0 ? median(prefillTps) : null,
+      prefill_tokens_per_sec_ttft: prefillTpsTtft.length > 0 ? median(prefillTpsTtft) : null,
+      avg_prefill_tokens_per_sec_ttft: prefillTpsTtft.length > 0 ? avg(prefillTpsTtft) : null,
+      // Backward-compatible alias used by existing compare/report tooling.
+      prefill_tokens_per_sec: prefillTpsTtft.length > 0 ? median(prefillTpsTtft) : null,
       ttft_ms: median(ttfts),
       avg_ttft_ms: avg(ttfts),
       model_load_ms: modelLoadMs,

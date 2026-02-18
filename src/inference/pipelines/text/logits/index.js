@@ -11,7 +11,7 @@ export { extractLastPositionLogits, finalizeLogits } from './utils.js';
 
 // Imports for computeLogits orchestrator
 import { getDevice } from '../../../../gpu/device.js';
-import { acquireBuffer, releaseBuffer, readBuffer } from '../../../../memory/buffer-pool.js';
+import { acquireBuffer, releaseBuffer, readBuffer, readBufferSlice } from '../../../../memory/buffer-pool.js';
 import { runMatmul, runRMSNorm, castF16ToF32 } from '../../../../gpu/kernel-selector.js';
 import { createTensor } from '../../../../gpu/tensor.js';
 import { isWeightBuffer, isCpuWeightBuffer, getWeightDtype } from '../../../../gpu/weight-buffer.js';
@@ -42,7 +42,8 @@ export async function computeLogits(
   debugFlags = {},
   getNormWeightBuffer,
   debugCheckBuffer,
-  debugProbes
+  debugProbes,
+  options = null
 ) {
   if (isTraceEnabled('logits')) {
     trace.logits(`LOGITS_ENTRY: numTokens=${numTokens}, useGPU=${useGPU}`);
@@ -268,7 +269,16 @@ export async function computeLogits(
 
   // 4. Read back logits
   const logitsBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: logitsTensor.dtype });
-  const logitsData = await readBuffer(logitsTensor.buffer, numTokens * matmulVocabSize * logitsBytes);
+  const lastPositionOnly = options?.lastPositionOnly === true && numTokens > 1;
+  const logitsReadSize = lastPositionOnly
+    ? matmulVocabSize * logitsBytes
+    : numTokens * matmulVocabSize * logitsBytes;
+  const logitsReadOffset = lastPositionOnly
+    ? (numTokens - 1) * matmulVocabSize * logitsBytes
+    : 0;
+  const logitsData = lastPositionOnly
+    ? await readBufferSlice(logitsTensor.buffer, logitsReadOffset, logitsReadSize)
+    : await readBuffer(logitsTensor.buffer, logitsReadSize);
 
   // Cleanup
   if (inputBufferOwned) releaseBuffer(inputBuffer);
@@ -280,5 +290,8 @@ export async function computeLogits(
   const rawLogits = logitsTensor.dtype === 'f16'
     ? f16BufferToF32(logitsData)
     : new Float32Array(logitsData);
+  if (lastPositionOnly) {
+    return finalizeLogits(rawLogits, 1, matmulVocabSize, vocabSize, config, debugProbes);
+  }
   return finalizeLogits(rawLogits, numTokens, matmulVocabSize, vocabSize, config, debugProbes);
 }

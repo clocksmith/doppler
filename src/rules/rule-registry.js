@@ -35,6 +35,7 @@ const configRules = await loadJson('./inference/config.rules.json');
 const inferenceAttentionRules = await loadJson('./inference/attention.rules.json');
 const dtypeRules = await loadJson('./inference/dtype.rules.json');
 const ffnRules = await loadJson('./inference/ffn.rules.json');
+const inferenceKernelPathRules = await loadJson('./inference/kernel-path.rules.json');
 const layerRules = await loadJson('./inference/layer.rules.json');
 const layerPatternRules = await loadJson('./inference/layer-pattern.rules.json');
 const inferenceMoeRules = await loadJson('./inference/moe.rules.json');
@@ -80,6 +81,7 @@ const RULE_SETS = {
     attention: inferenceAttentionRules,
     dtype: dtypeRules,
     ffn: ffnRules,
+    kernelPath: inferenceKernelPathRules,
     layer: layerRules,
     layerPattern: layerPatternRules,
     moe: inferenceMoeRules,

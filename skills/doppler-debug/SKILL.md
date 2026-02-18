@@ -6,6 +6,7 @@ description: Diagnose inference regressions with Doppler's shared browser/Node c
 # DOPPLER Debug Skill
 
 Use this skill when generation fails, outputs drift, or Node/browser parity breaks.
+Use this skill with `doppler-bench` when investigating performance regressions.
 
 ## Fast Triage
 
@@ -28,6 +29,24 @@ Use runtime JSON patches instead of ad-hoc flags:
 npm run debug -- --model-id MODEL_ID --surface auto --runtime-config-json '{"shared":{"tooling":{"intent":"investigate"},"debug":{"trace":{"enabled":true,"categories":["attn","ffn"],"maxDecodeSteps":2}}},"inference":{"batching":{"maxTokens":8},"sampling":{"temperature":0}}}' --json
 ```
 
+## Perf-Focused Investigation
+
+```bash
+# Investigate-mode profile run (trace/profiler enabled by preset)
+npm run debug -- --model-id MODEL_ID --runtime-preset experiments/gemma3-profile --json
+
+# Fast readback sensitivity checks
+npm run bench -- --model-id MODEL_ID --runtime-preset experiments/gemma3-investigate-readback-r1 --cache-mode warm --json
+npm run bench -- --model-id MODEL_ID --runtime-preset experiments/gemma3-investigate-readback-r8 --cache-mode warm --json
+
+# Direct override for decode cadence tuning
+npm run bench -- --model-id MODEL_ID --cache-mode warm --runtime-config-json '{"shared":{"tooling":{"intent":"investigate"}},"inference":{"batching":{"batchSize":4,"readbackInterval":4,"stopCheckMode":"per-token","maxTokens":128},"sampling":{"temperature":0}}}' --json
+```
+
+Notes:
+- `runtime.shared.tooling.intent="calibrate"` forbids trace/profiler instrumentation.
+- Set `runtime.shared.tooling.intent="investigate"` for profiling/tracing runs.
+
 ## Cache and Surface Control
 
 ```bash
@@ -40,7 +59,9 @@ npm run debug -- --model-id MODEL_ID --surface browser --cache-mode warm --json
 
 ## What to Inspect in Results
 
-- `result.metrics.ttftMs`, `result.metrics.prefillTokensPerSec`, `result.metrics.decodeTokensPerSec`
+- `result.metrics.modelLoadMs`, `result.metrics.ttftMs`
+- `result.metrics.prefillTokensPerSecTtft` (preferred) and `result.metrics.prefillTokensPerSec`
+- `result.metrics.decodeTokensPerSec`
 - `result.metrics.gpu` (if available)
 - `result.memoryStats`
 - `result.deviceInfo`

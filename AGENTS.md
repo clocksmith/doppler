@@ -121,10 +121,26 @@ Use:
 - Keep command/runtime behavior deterministic under fixed config.
 - Do not ship surface-specific command behavior drift.
 
+### Agent Instruction + Skills Parity (Required)
+
+- `AGENTS.md` is the canonical instruction file.
+- `CLAUDE.md` must be a symlink to `AGENTS.md`.
+- `GEMINI.md` must be a symlink to `AGENTS.md`.
+- `skills/` is the canonical skill registry directory.
+- `.claude/skills` must be a symlink to `../skills`.
+- `.gemini/skills` must be a symlink to `../skills`.
+
+Validate parity before committing instruction or skill changes:
+
+- `npm run agents:verify`
+
 ### Skills
+
+Canonical path: `skills/` (see `skills/README.md`).
 
 - `doppler-debug`: debug inference issues.
 - `doppler-bench`: run performance benchmarks.
+- `doppler-perf-squeeze`: investigate and improve decode/prefill performance.
 - `doppler-convert`: convert models to RDRR.
 - `doppler-kernel-reviewer`: review WGSL/JS kernel implementations against style rules.
 

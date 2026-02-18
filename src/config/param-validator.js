@@ -123,7 +123,9 @@ function validateToolingIntent(runtimeConfig) {
   throw new Error(
     'DopplerConfigError: runtime.shared.tooling.intent="calibrate" forbids ' +
     'investigation instrumentation.\n' +
-    `Disable ${violations.join(', ')} or set runtime.shared.tooling.intent="investigate".`
+    `Disable ${violations.join(', ')} or set runtime.shared.tooling.intent="investigate".\n` +
+    'If this run is launched via "bench", use "debug" for profiling/trace presets because ' +
+    '"bench" enforces intent="calibrate".'
   );
 }
 
