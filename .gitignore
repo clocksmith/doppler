@@ -8,6 +8,7 @@ dist/
 # Cache directories
 .test-cache/
 .benchmark-cache/
+.cache/
 .headless-test-cache/
 .headed-test-cache/
 .pw-home/
