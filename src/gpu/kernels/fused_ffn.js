@@ -31,15 +31,17 @@ class FusedFFNKernel extends KernelBase {
 
 function selectFFNVariant(batchSize, weightDtype, intermediateSize, hiddenSize) {
   const { multiOutputThreshold } = getKernelThresholds().ffn;
+  const capabilities = getKernelCapabilities();
   const isQ4K = weightDtype === 'q4k';
   const fusedAllowed = !isFusedQ4KDisabled();
   const hiddenAligned = hiddenSize % QK_K === 0;
   const useMultiOutput = intermediateSize <= multiOutputThreshold;
+  const hasF16 = capabilities.hasF16;
 
   return selectRuleValue(
     'fusedFfn',
     'variant',
-    { isQ4K, fusedAllowed, hiddenAligned, batchSize, weightDtype, useMultiOutput }
+    { isQ4K, fusedAllowed, hiddenAligned, batchSize, weightDtype, useMultiOutput, hasF16 }
   );
 }
 
@@ -93,10 +95,6 @@ export async function runFusedFFN(
   } = options;
   resolveSwigluLimit(swigluLimit, 'FusedFFN');
 
-  if (input.dtype !== 'f32') {
-    throw new Error('Fused FFN requires f32 activations');
-  }
-
   const gateDtype = getWeightDtype(W_gate);
   const upDtype = getWeightDtype(W_up);
   if (!gateDtype || !upDtype) {
@@ -111,14 +109,25 @@ export async function runFusedFFN(
 
   const isQ4K = gateDtype === 'q4k';
   const variant = selectFFNVariant(batchSize, gateDtype, intermediateSize, hiddenSize);
+  const isF16Native = variant === 'f16_native' || variant === 'f16_native_batched';
+
+  if (isF16Native) {
+    if (input.dtype !== 'f16') {
+      throw new Error('f16_native FFN variant requires f16 activations');
+    }
+  } else if (input.dtype !== 'f32') {
+    throw new Error('Fused FFN requires f32 activations');
+  }
 
   trace.kernels(`FusedFFN: variant=${variant}, batch=${batchSize}, hidden=${hiddenSize}, intermediate=${intermediateSize}, activation=${activation}, isQ4K=${isQ4K}`);
 
   const kernel = new FusedFFNKernel(device);
   const pipeline = await kernel.getPipeline(variant);
 
-  // Create output buffer
-  const outputSize = batchSize * intermediateSize * 4;
+  // Create output buffer: f16_native outputs f16 (2 bytes), others output f32 (4 bytes)
+  const outputBytesPerElement = isF16Native ? 2 : 4;
+  const outputDtype = isF16Native ? 'f16' : 'f32';
+  const outputSize = batchSize * intermediateSize * outputBytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'fused_ffn_output');
 
   // Create uniform buffer
@@ -158,7 +167,7 @@ export async function runFusedFFN(
     const colsPerWg = 32;
     workgroupsX = Math.ceil(intermediateSize / colsPerWg);
     workgroupsY = variant === 'q4k_batched' ? batchSize : 1;
-  } else if (variant === 'batched') {
+  } else if (variant === 'batched' || variant === 'f16_native_batched') {
     workgroupsX = intermediateSize;
     workgroupsY = batchSize;
   } else {
@@ -169,7 +178,7 @@ export async function runFusedFFN(
 
   uniformBuffer.destroy();
 
-  return createTensor(output, 'f32', [batchSize, intermediateSize], 'fused_ffn_output');
+  return createTensor(output, outputDtype, [batchSize, intermediateSize], 'fused_ffn_output');
 }
 
 
@@ -192,10 +201,6 @@ export async function recordFusedFFN(
   } = options;
   resolveSwigluLimit(swigluLimit, 'FusedFFN');
 
-  if (input.dtype !== 'f32') {
-    throw new Error('Fused FFN requires f32 activations');
-  }
-
   const gateDtype = getWeightDtype(W_gate);
   const upDtype = getWeightDtype(W_up);
   if (!gateDtype || !upDtype) {
@@ -210,13 +215,24 @@ export async function recordFusedFFN(
 
   const isQ4K = gateDtype === 'q4k';
   const variant = selectFFNVariant(batchSize, gateDtype, intermediateSize, hiddenSize);
+  const isF16Native = variant === 'f16_native' || variant === 'f16_native_batched';
+
+  if (isF16Native) {
+    if (input.dtype !== 'f16') {
+      throw new Error('f16_native FFN variant requires f16 activations');
+    }
+  } else if (input.dtype !== 'f32') {
+    throw new Error('Fused FFN requires f32 activations');
+  }
 
   trace.kernels(`FusedFFN record: variant=${variant}, batch=${batchSize}, hidden=${hiddenSize}, intermediate=${intermediateSize}, activation=${activation}, isQ4K=${isQ4K}`);
 
   const kernel = new FusedFFNKernel(device);
   const pipeline = await kernel.getPipeline(variant);
 
-  const outputSize = batchSize * intermediateSize * 4;
+  const outputBytesPerElement = isF16Native ? 2 : 4;
+  const outputDtype = isF16Native ? 'f16' : 'f32';
+  const outputSize = batchSize * intermediateSize * outputBytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'fused_ffn_output');
 
   const uniformBuffer = createFFNUniformBuffer(device, recorder, {
@@ -253,7 +269,7 @@ export async function recordFusedFFN(
     const colsPerWg = 32;
     workgroupsX = Math.ceil(intermediateSize / colsPerWg);
     workgroupsY = variant === 'q4k_batched' ? batchSize : 1;
-  } else if (variant === 'batched') {
+  } else if (variant === 'batched' || variant === 'f16_native_batched') {
     workgroupsX = intermediateSize;
     workgroupsY = batchSize;
   } else {
@@ -262,7 +278,7 @@ export async function recordFusedFFN(
 
   kernel.record(recorder, pipeline, bindGroup, workgroupsX, workgroupsY);
 
-  return createTensor(output, 'f32', [batchSize, intermediateSize], 'fused_ffn_output');
+  return createTensor(output, outputDtype, [batchSize, intermediateSize], 'fused_ffn_output');
 }
 
 

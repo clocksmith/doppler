@@ -36,8 +36,8 @@ doppler/
 
 ### Before Starting
 
-- Read `docs/ARCHITECTURE.md` for system overview.
-- Read `docs/FORMATS.md` for RDRR format constraints.
+- Read `docs/architecture.md` for system overview.
+- Read `docs/formats.md` for RDRR format constraints.
 - Review `src/inference/pipelines/text.js` for inference flow.
 - Review `src/tooling/command-api.js` for command parity contract.
 
@@ -128,4 +128,4 @@ Use:
 - `doppler-convert`: convert models to RDRR.
 - `doppler-kernel-reviewer`: review WGSL/JS kernel implementations against style rules.
 
-See `docs/CONFIG.md` for kernel overrides and runtime modes.
+See `docs/config.md` for kernel overrides and runtime modes.

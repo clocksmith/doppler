@@ -21,6 +21,7 @@ import {
   recordBackwardKernel,
   runMatmulTransposeA,
 } from '../../../src/gpu/kernels/backward/utils.js';
+import * as kernelSelector from '../../../src/gpu/kernel-selector.js';
 
 // Destructure available functions with defaults
 const {
@@ -798,31 +799,26 @@ const testHarness = {
 
     
 
-        const resultTensor = await runLayerNormBackward(inputTensor, weightTensor, gradTensor, {
-
+        const result = await runLayerNormBackward(inputTensor, weightTensor, gradTensor, {
           numTokens,
-
           hiddenSize,
-
           eps,
-
         });
-
-        const result = await readTensorToFloat32(resultTensor, numTokens * hiddenSize);
-
-    
+        const resultTensor = result?.gradInput || result;
+        const resultData = await readTensorToFloat32(resultTensor, numTokens * hiddenSize);
 
         inputBuf.destroy();
-
         weightBuf.destroy();
-
         gradBuf.destroy();
+        if (result?.gradInput?.buffer) {
+          result.gradInput.buffer.destroy();
+        } else if (result?.buffer) {
+          result.buffer.destroy();
+        }
+        result?.gradWeight?.buffer?.destroy();
+        result?.gradBias?.buffer?.destroy();
 
-        resultTensor.buffer.destroy();
-
-    
-
-        return result;
+        return resultData;
 
       },
 
@@ -1950,14 +1946,11 @@ const testHarness = {
       return output;
     }
 
-    const inputBuf = makeBuffer(input);
     const gradBuf = makeBuffer(gradOutput);
-    const inputTensor = createTensor(inputBuf, 'f32', [input.length], 'scale_backward_input');
     const gradTensor = createTensor(gradBuf, 'f32', [input.length], 'scale_backward_grad');
-    const resultTensor = await runScaleBackward(inputTensor, gradTensor, { count: input.length, scale });
+    const resultTensor = await runScaleBackward(gradTensor, gradTensor, { count: input.length, scale });
     const result = await readTensorToFloat32(resultTensor, input.length);
 
-    inputBuf.destroy();
     gradBuf.destroy();
     resultTensor.buffer.destroy();
 
@@ -2052,17 +2045,41 @@ const testHarness = {
   },
 
   
-  async runEmbedBackward(dev, input, gradOutput) {
+  async runEmbedBackward(dev, input, gradOutput, vocabSize = null) {
     if (!runEmbedBackward) {
-      return new Float32Array(gradOutput);
+      const fallbackVocabSize = Number.isFinite(vocabSize) && vocabSize > 0
+        ? Math.max(1, Math.floor(vocabSize))
+        : Math.max(1, Math.max(...input, 0) + 1);
+      const numTokens = input.length;
+      const hiddenSize = gradOutput.length / numTokens;
+      const output = new Float32Array(fallbackVocabSize * hiddenSize);
+      for (let i = 0; i < numTokens; i += 1) {
+        const token = input[i];
+        const outputBase = token * hiddenSize;
+        const gradBase = i * hiddenSize;
+        for (let d = 0; d < hiddenSize; d += 1) {
+          output[outputBase + d] += gradOutput[gradBase + d];
+        }
+      }
+      return output;
     }
 
     const inputBuf = makeBuffer(input);
     const gradBuf = makeBuffer(gradOutput);
-    const inputTensor = createTensor(inputBuf, 'f32', [input.length], 'embed_backward_input');
+    const numTokens = input.length;
+    const inputTensor = createTensor(inputBuf, 'u32', [input.length], 'embed_backward_input');
     const gradTensor = createTensor(gradBuf, 'f32', [gradOutput.length], 'embed_backward_grad');
-    const resultTensor = await runEmbedBackward(inputTensor, gradTensor, { count: gradOutput.length });
-    const result = await readTensorToFloat32(resultTensor, gradOutput.length);
+    const maxInput = input.length > 0 ? Math.max(...input, 0) : 0;
+    const hiddenSize = Math.max(1, gradOutput.length / numTokens);
+    const resolvedVocabSize = Math.max(1, Math.floor(vocabSize ?? Math.ceil(maxInput + 1)));
+    const resultTensor = await runEmbedBackward(inputTensor, gradTensor, {
+      numTokens,
+      hiddenSize,
+      vocabSize: resolvedVocabSize,
+      transpose: false,
+      indexOffset: 0,
+    });
+    const result = await readTensorToFloat32(resultTensor, resolvedVocabSize * hiddenSize);
 
     inputBuf.destroy();
     gradBuf.destroy();
@@ -2077,16 +2094,54 @@ const testHarness = {
       return null;
     }
 
-    const qBuf = makeBuffer(q);
-    const kBuf = makeBuffer(k);
-    const vBuf = makeBuffer(v);
+    const elementsPerHead = seqLen * headDim;
+    const totalElements = seqLen * numHeads * headDim;
+
+    const packByHead = (source) => {
+      const packed = new Float32Array(totalElements);
+      for (let h = 0; h < numHeads; h++) {
+        const headBase = h * elementsPerHead;
+        for (let t = 0; t < seqLen; t++) {
+          const sourceBase = (t * numHeads + h) * headDim;
+          const packedBase = headBase + t * headDim;
+          for (let d = 0; d < headDim; d++) {
+            packed[packedBase + d] = source[sourceBase + d];
+          }
+        }
+      }
+      return packed;
+    };
+
+    const unpackByHead = (source) => {
+      const unpacked = new Float32Array(totalElements);
+      for (let h = 0; h < numHeads; h++) {
+        const headBase = h * elementsPerHead;
+        for (let t = 0; t < seqLen; t++) {
+          const targetBase = (t * numHeads + h) * headDim;
+          const sourceBase = headBase + t * headDim;
+          for (let d = 0; d < headDim; d++) {
+            unpacked[targetBase + d] = source[sourceBase + d];
+          }
+        }
+      }
+      return unpacked;
+    };
+
+    const qPacked = packByHead(q);
+    const kPacked = packByHead(k);
+    const vPacked = packByHead(v);
+    const gPacked = packByHead(gradOutput);
+
+    const qBuf = makeBuffer(qPacked);
+    const kBuf = makeBuffer(kPacked);
+    const vBuf = makeBuffer(vPacked);
     const sBuf = makeBuffer(softmax);
-    const gBuf = makeBuffer(gradOutput);
-    const qTensor = createTensor(qBuf, 'f32', [seqLen, numHeads, headDim], 'attn_bw_q');
-    const kTensor = createTensor(kBuf, 'f32', [seqLen, numHeads, headDim], 'attn_bw_k');
-    const vTensor = createTensor(vBuf, 'f32', [seqLen, numHeads, headDim], 'attn_bw_v');
+    const gBuf = makeBuffer(gPacked);
+    const qTensor = createTensor(qBuf, 'f32', [numHeads, seqLen, headDim], 'attn_bw_q');
+    const kTensor = createTensor(kBuf, 'f32', [numHeads, seqLen, headDim], 'attn_bw_k');
+    const vTensor = createTensor(vBuf, 'f32', [numHeads, seqLen, headDim], 'attn_bw_v');
     const sTensor = createTensor(sBuf, 'f32', [numHeads, seqLen, seqLen], 'attn_bw_softmax');
-    const gTensor = createTensor(gBuf, 'f32', [seqLen, numHeads, headDim], 'attn_bw_grad');
+    const gTensor = createTensor(gBuf, 'f32', [numHeads, seqLen, headDim], 'attn_bw_grad');
 
     const result = await runAttentionBackward(qTensor, kTensor, vTensor, sTensor, gTensor, {
       seqLen,
@@ -2096,9 +2151,12 @@ const testHarness = {
       causal: false,
     });
 
-    const gradQ = await readTensorToFloat32(result.gradQ, seqLen * numHeads * headDim);
-    const gradK = await readTensorToFloat32(result.gradK, seqLen * numHeads * headDim);
-    const gradV = await readTensorToFloat32(result.gradV, seqLen * numHeads * headDim);
+    const gradQPacked = await readTensorToFloat32(result.gradQ, seqLen * numHeads * headDim);
+    const gradKPacked = await readTensorToFloat32(result.gradK, seqLen * numHeads * headDim);
+    const gradVPacked = await readTensorToFloat32(result.gradV, seqLen * numHeads * headDim);
+    const gradQ = unpackByHead(gradQPacked);
+    const gradK = unpackByHead(gradKPacked);
+    const gradV = unpackByHead(gradVPacked);
 
     qBuf.destroy();
     kBuf.destroy();

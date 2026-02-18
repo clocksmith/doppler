@@ -59,6 +59,38 @@ Each step specifies a single kernel dispatch:
 
 ## Built-in Paths
 
+### Kernel Path Registry (Source of Truth)
+
+Kernel path IDs and compatibility are declared in `src/config/presets/kernel-paths/registry.json`.
+
+- `src/config/kernel-path-loader.js` resolves all registry IDs from that file.
+- `status` is one of:
+  - `canonical`: regular production target
+  - `experimental`: tuned benchmark/probe target
+  - `legacy`: compatibility alias that resolves via `aliasOf`
+
+To list active IDs:
+
+```bash
+node - <<'NODE'
+const fs = require('node:fs');
+const registry = JSON.parse(fs.readFileSync('src/config/presets/kernel-paths/registry.json', 'utf8'));
+console.log(registry.entries.map((entry) => entry.id).join('\n'));
+NODE
+```
+
+Legacy alias map:
+
+```bash
+node - <<'NODE'
+const fs = require('node:fs');
+const registry = JSON.parse(fs.readFileSync('src/config/presets/kernel-paths/registry.json', 'utf8'));
+console.log(registry.entries.filter((entry) => entry.status === 'legacy').map((entry) => `${entry.id} -> ${entry.aliasOf}`).join('\n'));
+NODE
+```
+
+Legacy IDs should remain in `status: \"legacy\"` until all conversion and docs callsites migrate to their replacement IDs.
+
 ### Q4K Models
 
 | Path | Description | Performance | Accuracy |
@@ -147,7 +179,7 @@ for kernel paths.
 1. Copy an existing preset from `src/config/presets/kernel-paths/`
 2. Set `activationDtype` (`f16` or `f32`)
 3. Modify the steps as needed
-4. Register in `src/config/kernel-path-loader.js`
+4. Register in `src/config/presets/kernel-paths/registry.json`
 
 ### Override Constants
 
@@ -189,7 +221,7 @@ At layer 5, this resolves to `layer.5.self_attn.q_proj`.
 ## See Also
 
 - [WGSL Style Guide](style/wgsl-style-guide.md) - Entry points vs override constants
-- [Kernel Registry](../src/config/kernels/registry.json) - All available kernels
+- [Kernel Registry](../src/config/presets/kernel-paths/registry.json) - All available kernel paths
 
 
 ## Error Codes

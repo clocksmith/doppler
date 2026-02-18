@@ -6,6 +6,16 @@
     { "match": {}, "value": "default" }
   ],
   "topkVariant": [
+    {
+      "match": {
+        "modelType": "gpt-oss",
+        "hasF16": true,
+        "hasSubgroups": true,
+        "inputDtype": "f16",
+        "weightsDtype": "f16"
+      },
+      "value": "gptoss_router_topk"
+    },
     { "match": { "inputDtype": "f16", "weightsDtype": "f16" }, "value": "fused_f16_w16" },
     { "match": { "inputDtype": "f16" }, "value": "fused_f16" },
     { "match": {}, "value": "fused" }

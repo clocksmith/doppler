@@ -19,6 +19,7 @@ const kvQuantizeRules = await loadJson('./kernels/kv_quantize.rules.json');
 const layernormRules = await loadJson('./kernels/layernorm.rules.json');
 const matmulRules = await loadJson('./kernels/matmul.rules.json');
 const kernelMoeRules = await loadJson('./kernels/moe.rules.json');
+const kernelMoeGptOssRules = await loadJson('./kernels/moe.rules.gptoss.json');
 const modulateRules = await loadJson('./kernels/modulate.rules.json');
 const pixelShuffleRules = await loadJson('./kernels/pixel_shuffle.rules.json');
 const residualRules = await loadJson('./kernels/residual.rules.json');
@@ -61,6 +62,7 @@ const RULE_SETS = {
     layernorm: layernormRules,
     matmul: matmulRules,
     moe: kernelMoeRules,
+    moeGptoss: kernelMoeGptOssRules,
     modulate: modulateRules,
     pixel_shuffle: pixelShuffleRules,
     residual: residualRules,

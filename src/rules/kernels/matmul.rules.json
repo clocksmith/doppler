@@ -8,6 +8,7 @@
     { "match": {}, "value": "q4_fused_batched" }
   ],
   "matmulKernel": [
+    { "match": { "useF16Matmul": true, "useTiled": true }, "value": "f16_tiled" },
     { "match": { "useF16Matmul": true, "useVec4": true }, "value": "f16_vec4" },
     { "match": { "useF16Matmul": true }, "value": "f16" },
     { "match": { "useF16wF32a": true }, "value": "f16w_f32a" },

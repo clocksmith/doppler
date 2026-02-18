@@ -74,6 +74,6 @@ Example runtime config payload:
 
 ## Related
 
-- `../docs/ARCHITECTURE.md`
-- `../docs/TESTING.md`
+- `../docs/architecture.md`
+- `../docs/testing.md`
 - `../docs/style/command-interface-design-guide.md`

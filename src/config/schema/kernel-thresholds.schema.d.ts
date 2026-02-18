@@ -17,6 +17,13 @@ export interface MatmulThresholdsSchema {
    * @default 256
    */
   multicolThreshold: number;
+
+  /**
+   * Minimum prefill rows required before selecting the tiled f16 matmul variant.
+   * For very short prefill batches, base f16 matmul can be faster than tiled.
+   * @default 32
+   */
+  tiledPrefillMinRows: number;
 }
 
 export declare const DEFAULT_MATMUL_THRESHOLDS: MatmulThresholdsSchema;

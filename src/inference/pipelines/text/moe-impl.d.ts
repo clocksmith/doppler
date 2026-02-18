@@ -42,6 +42,7 @@ export function setDequantCacheMaxEntries(maxEntries: number): void;
  * Configuration for MoE feed-forward.
  */
 export interface MoEConfig {
+  modelType?: string | null;
   hiddenSize: number;
   intermediateSize: number;
   numExperts: number;

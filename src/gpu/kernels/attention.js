@@ -472,7 +472,7 @@ function resolveAttentionPlan(
   const pathVariant = getKernelPathAttentionVariant(phase, layerIdx);
 
   if (pathVariant) {
-    const variantOverride = validateAttentionVariant(
+    let variantOverride = validateAttentionVariant(
       pathVariant,
       isDecode,
       useF16KV,
@@ -482,11 +482,39 @@ function resolveAttentionPlan(
       kvLen,
       sharedLimit
     );
+    let selectionReason = 'path_override';
+
+    if (!isDecode && variantOverride.startsWith('prefill_streaming') && seqLen <= 64) {
+      const adaptivePrefillVariant = variantOverride.endsWith('_f16kv')
+        ? 'prefill_f16kv'
+        : variantOverride.endsWith('_f16')
+          ? 'prefill_f16'
+          : 'prefill';
+      try {
+        const validatedAdaptive = validateAttentionVariant(
+          adaptivePrefillVariant,
+          isDecode,
+          useF16KV,
+          useF16Q,
+          caps,
+          headDim,
+          kvLen,
+          sharedLimit
+        );
+        if (validatedAdaptive !== variantOverride) {
+          variantOverride = validatedAdaptive;
+          selectionReason = 'path_override_adaptive_prefill';
+        }
+      } catch {
+        // Keep original strict-path variant when adaptive fallback is not valid.
+      }
+    }
+
     const tier = inferAttentionTierFromVariant(variantOverride);
     const workgroups = calculateAttentionWorkgroups(tier, seqLen, numHeads);
     logKernelSelectionOnce('attention', {
       variant: variantOverride,
-      reason: `path_override:${tier}`,
+      reason: `${selectionReason}:${tier}`,
     });
     return { tier, variant: variantOverride, workgroups, useF16KV, isDecode };
   }

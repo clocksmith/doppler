@@ -234,6 +234,16 @@ export interface InferenceConfigSchema {
   attention?: AttentionSchema;
   normalization?: NormalizationSchema;
   ffn?: FFNSchema;
+  moe?: {
+    kernelProfileId?: string | null;
+    supportedActivationDtypes?: string[];
+    preferredActivationDtype?: string | null;
+    shapeConstraints?: {
+      hiddenSizeDivisor?: number;
+      intermediateSizeDivisor?: number;
+      groupSize?: number;
+    };
+  } | null;
   output?: OutputSchema;
   layerPattern?: LayerPatternSchema;
   rope?: RoPEConfigSchema;

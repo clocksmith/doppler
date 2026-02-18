@@ -49,13 +49,25 @@ export async function recordSoftmax(recorder, input, axis, options = {}) {
 
 export async function runSoftmaxTopK(logits, numTokens, numExperts, topK, options = {}) {
   const device = getDevice();
-  const { normalize = true, inputDtype = 'f32', weightsDtype = 'f32' } = options;
+  const {
+    normalize = true,
+    inputDtype = 'f32',
+    weightsDtype = 'f32',
+    modelType = null,
+  } = options;
 
   if (weightsDtype === 'f16' && inputDtype !== 'f16') {
     throw new Error('SoftmaxTopK f16 weights require f16 logits');
   }
 
-  const variant = selectRuleValue('softmax', 'topkVariant', { inputDtype, weightsDtype });
+  const caps = getKernelCapabilities();
+  const variant = selectRuleValue('softmax', 'topkVariant', {
+    modelType,
+    inputDtype,
+    weightsDtype,
+    hasF16: caps?.hasF16 ?? false,
+    hasSubgroups: caps?.hasSubgroups ?? false,
+  });
   const pipeline = await createPipeline('topk', variant);
 
   const indicesSize = numTokens * topK * 4;

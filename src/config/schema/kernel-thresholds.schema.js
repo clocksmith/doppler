@@ -4,6 +4,7 @@
 
 export const DEFAULT_MATMUL_THRESHOLDS = {
   multicolThreshold: 256,
+  tiledPrefillMinRows: 32,
 };
 
 // =============================================================================

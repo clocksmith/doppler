@@ -170,6 +170,8 @@ export class BufferPool {
       );
     }
 
+    this.#enforceBudgetBeforeAllocate(bucket, label);
+
     // Try to get from pool
     if (this.#config.enablePooling) {
       const pooled = this.#getFromPool(bucket, usage);
@@ -347,6 +349,63 @@ export class BufferPool {
     return count;
   }
 
+  #getBudgetConfig() {
+    return this.#schemaConfig?.budget ?? {
+      maxTotalBytes: 0,
+      highWatermarkRatio: 0.9,
+      emergencyTrimTargetRatio: 0.75,
+      hardFailOnBudgetExceeded: true,
+    };
+  }
+
+  #enforceBudgetBeforeAllocate(bucketBytes, label) {
+    const budget = this.#getBudgetConfig();
+    if (!Number.isFinite(budget.maxTotalBytes) || budget.maxTotalBytes <= 0) {
+      return;
+    }
+
+    const projected = this.#stats.currentBytesAllocated + bucketBytes;
+    const highWatermark = Math.floor(budget.maxTotalBytes * budget.highWatermarkRatio);
+    if (projected > highWatermark) {
+      const target = Math.floor(budget.maxTotalBytes * budget.emergencyTrimTargetRatio);
+      this.#trimPooledBuffersTo(target);
+    }
+
+    const nextProjected = this.#stats.currentBytesAllocated + bucketBytes;
+    if (nextProjected > budget.maxTotalBytes && budget.hardFailOnBudgetExceeded) {
+      throw new Error(
+        `BufferPool budget exceeded for ${label}: projected=${nextProjected}, max=${budget.maxTotalBytes}. ` +
+        'Enable larger runtime.shared.bufferPool.budget.maxTotalBytes or lower model working set.'
+      );
+    }
+  }
+
+  #trimPooledBuffersTo(targetBytes) {
+    while (this.#stats.currentBytesAllocated > targetBytes) {
+      const evicted = this.#evictOnePooledBuffer();
+      if (!evicted) {
+        break;
+      }
+    }
+  }
+
+  #evictOnePooledBuffer() {
+    for (const usagePool of this.#pools.values()) {
+      for (const bucketPool of usagePool.values()) {
+        if (bucketPool.length === 0) {
+          continue;
+        }
+        const buffer = bucketPool.pop();
+        if (buffer) {
+          buffer.destroy();
+          this.#stats.currentBytesAllocated -= buffer.size;
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   
   #trackBuffer(buffer, size, usage, label) {
     
@@ -517,10 +576,15 @@ export class BufferPool {
 
   
   getStats() {
+    const budget = this.#getBudgetConfig();
     return {
       ...this.#stats,
       activeBuffers: this.#activeBuffers.size,
       pooledBuffers: this.#getTotalPooledCount(),
+      budgetMaxBytes: budget.maxTotalBytes,
+      budgetUtilization: budget.maxTotalBytes > 0
+        ? this.#stats.currentBytesAllocated / budget.maxTotalBytes
+        : 0,
       hitRate: this.#stats.allocations > 0
         ? (this.#stats.reuses / (this.#stats.allocations + this.#stats.reuses) * 100).toFixed(1) + '%'
         : '0%',
@@ -544,6 +608,17 @@ export class BufferPool {
   
   configure(config) {
     Object.assign(this.#config, config);
+  }
+
+  forceReclaim(targetRatio = null) {
+    const budget = this.#getBudgetConfig();
+    if (!Number.isFinite(budget.maxTotalBytes) || budget.maxTotalBytes <= 0) {
+      this.clearPool();
+      return;
+    }
+    const ratio = targetRatio ?? budget.emergencyTrimTargetRatio;
+    const target = Math.floor(budget.maxTotalBytes * ratio);
+    this.#trimPooledBuffersTo(target);
   }
 }
 
@@ -596,6 +671,9 @@ export const uploadData = (buffer, data, offset) =>
 
 export const readBuffer = (buffer, size) =>
   getBufferPool().readBuffer(buffer, size);
+
+export const forceBufferPoolReclaim = (targetRatio) =>
+  getBufferPool().forceReclaim(targetRatio);
 
 
 export async function withBuffer(

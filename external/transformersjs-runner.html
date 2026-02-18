@@ -6,11 +6,29 @@
 {
   "imports": {
     "onnxruntime-common": "/node_modules/onnxruntime-common/dist/esm/index.js",
+    "onnxruntime-web": "/node_modules/onnxruntime-web/dist/ort.webgpu.bundle.min.mjs",
     "onnxruntime-web/webgpu": "/node_modules/onnxruntime-web/dist/ort.webgpu.bundle.min.mjs"
   }
 }
 </script>
 <script type="module">
+// ORT's WebGPU bundle creates a self-referencing Worker via import.meta.url,
+// but the baked-in URL loses the filename and resolves to the /dist directory.
+// Intercept Worker construction to rewrite that URL to the actual bundle file.
+const _OrigWorker = globalThis.Worker;
+globalThis.Worker = class extends _OrigWorker {
+  constructor(url, opts) {
+    let resolved = typeof url === 'string' ? url : url instanceof URL ? url.href : url;
+    if (typeof resolved === 'string' &&
+        resolved.includes('onnxruntime-web') &&
+        resolved.endsWith('/dist')) {
+      resolved = resolved + '/ort.webgpu.bundle.min.mjs';
+      console.log(`[tjs-bench] Worker URL rewrite: ${resolved}`);
+    }
+    super(resolved, opts);
+  }
+};
+
 // Version from query param: ?v=3 (default) or ?v=4
 const urlParams = new URLSearchParams(location.search);
 const tjsVersion = urlParams.get('v') || '3';
@@ -26,8 +44,26 @@ const tjs = await import(cdnUrl);
 const { pipeline, env } = tjs;
 const TextStreamer = tjs.TextStreamer;
 
-// Disable local model check (always fetch from Hub)
-env.allowLocalModels = false;
+// Local model path override via query param (serves from static server)
+const localModelPath = urlParams.get('localModelPath');
+if (localModelPath) {
+  env.allowLocalModels = true;
+  env.allowRemoteModels = false;
+  env.localModelPath = localModelPath;
+  console.log(`[tjs-bench] using local models from ${localModelPath}`);
+} else {
+  env.allowLocalModels = false;
+}
+
+// For v4: disable proxy worker (avoids blob URL import failures in headless Chrome)
+// and point WASM paths to local node_modules instead of CDN.
+if (tjsVersion === '4') {
+  const ort = await import('onnxruntime-web/webgpu');
+  ort.env.wasm.proxy = false;
+  ort.env.wasm.numThreads = 1;
+  ort.env.wasm.wasmPaths = '/node_modules/onnxruntime-web/dist/';
+  console.log('[tjs-bench] ORT: proxy=off, threads=1, wasmPaths=local');
+}
 
 
 window.__tfjsReady = true;

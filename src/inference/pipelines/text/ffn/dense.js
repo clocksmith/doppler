@@ -6,9 +6,17 @@ import {
 } from '../ops.js';
 import { createTensor } from '../../../../gpu/tensor.js';
 import { isWeightBuffer } from '../../../../gpu/weight-buffer.js';
-import { getDevice } from '../../../../gpu/device.js';
+import { getDevice, getKernelCapabilities } from '../../../../gpu/device.js';
 import { acquireBuffer, releaseBuffer } from '../../../../memory/buffer-pool.js';
-import { runFusedFFN, recordFusedFFN, isFusedQ4KDisabled } from '../../../../gpu/kernel-selector.js';
+import {
+  runFusedFFN,
+  recordFusedFFN,
+  castF16ToF32,
+  castF32ToF16,
+  recordCastF16ToF32,
+  recordCastF32ToF16,
+  isFusedQ4KDisabled
+} from '../../../../gpu/kernel-selector.js';
 import { log } from '../../../../debug/index.js';
 import { isKernelDebugEnabled, dumpTokenVector } from '../debug-utils.js';
 import { applyLoRA } from '../lora-apply.js';
@@ -158,7 +166,7 @@ export async function runDenseFFNGPU(
   const hasUp = Boolean(layerWeights?.up);
   const hasDown = Boolean(layerWeights?.down);
   const hasFusedWeights = Boolean(layerWeights?.gateUp);
-  const inputIsF32 = inputTensor.dtype === 'f32';
+  const inputIsSupported = inputTensor.dtype === 'f32' || inputTensor.dtype === 'f16';
   const hasLoRA = Boolean(
     (hasGate ? getLoRAModule(lora, layerIdx, 'gate_proj') : null) ||
     (hasUp ? getLoRAModule(lora, layerIdx, 'up_proj') : null)
@@ -168,29 +176,43 @@ export async function runDenseFFNGPU(
   const dtypeMatches = gateDtype != null && upDtype != null && gateDtype === upDtype;
   const q4kFusedAllowed = gateDtype !== 'q4k' || !isFusedQ4KDisabled();
   const dtypeSupported = gateDtype === 'f16' || gateDtype === 'f32' || (gateDtype === 'q4k' && q4kFusedAllowed);
-  const f16BatchOk = gateDtype !== 'f16' || numTokens === 1;
+  const f16BatchSupported = gateDtype !== 'f16' || numTokens === 1;
   const useFusedGateUp = selectRuleValue('inference', 'ffn', 'useFusedGateUp', {
     hasGate,
     hasUp,
     hasDown,
     hasFusedWeights,
-    inputIsF32,
+    inputIsSupported,
     hasLoRA,
     dtypeMatches,
     dtypeSupported,
-    f16BatchOk,
+    f16BatchSupported,
   });
 
   if (useFusedGateUp) {
     const gateWeight = getWeightBuffer(layerWeights.gate, 'ffn_gate');
     const upWeight = getWeightBuffer(layerWeights.up, 'ffn_up');
     const downWeight = getWeightBuffer(layerWeights.down, 'ffn_down');
+    const useF16 = inputTensor.dtype === 'f16';
+    const matmulOutputDtype = selectRuleValue('shared', 'dtype', 'f16OrFallbackByFlag', {
+      useF16,
+      fallback: inputTensor.dtype,
+    });
+    // f16_native variant accepts f16 input directly — skip the cast
+    const useNativeF16Fused = inputTensor.dtype === 'f16' && gateDtype === 'f16' && getKernelCapabilities().hasF16;
+    const fusedInput = (!useNativeF16Fused && inputTensor.dtype === 'f16')
+      ? (recorder ? await recordCastF16ToF32(recorder, inputTensor) : await castF16ToF32(inputTensor))
+      : inputTensor;
+
+    if (recorder && fusedInput !== inputTensor) {
+      recorder.trackTemporaryBuffer(fusedInput.buffer);
+    }
 
     const activation = selectRuleValue('inference', 'ffn', 'activationOp', { hiddenActivation });
     const fusedOutput = recorder
       ? await recordFusedFFN(
         recorder,
-        inputTensor,
+        fusedInput,
         gateWeight,
         upWeight,
         hiddenSize,
@@ -198,13 +220,27 @@ export async function runDenseFFNGPU(
         { batchSize: numTokens, activation, swigluLimit }
       )
       : await runFusedFFN(
-        inputTensor,
+        fusedInput,
         gateWeight,
         upWeight,
         hiddenSize,
         intermediateSize,
         { batchSize: numTokens, activation, swigluLimit }
       );
+
+    if (!recorder && fusedInput !== inputTensor) {
+      releaseBuffer(fusedInput.buffer);
+    }
+
+    let downInput = fusedOutput;
+    if (matmulOutputDtype === 'f16' && fusedOutput.dtype !== 'f16') {
+      downInput = recorder
+        ? await recordCastF32ToF16(recorder, fusedOutput)
+        : await castF32ToF16(fusedOutput);
+      if (recorder) {
+        recorder.trackTemporaryBuffer(downInput.buffer);
+      }
+    }
 
     if (!(layerWeights.gate instanceof GPUBuffer) && !isWeightBuffer(layerWeights.gate)) {
       releaseOrTrack(recorder, isWeightBuffer(gateWeight) ? gateWeight.buffer : gateWeight);
@@ -214,19 +250,19 @@ export async function runDenseFFNGPU(
     }
 
     let output = await doMatmul(
-      fusedOutput,
+      downInput,
       downWeight,
       numTokens,
       hiddenSize,
       intermediateSize,
-      { transposeB: 'auto', label: `L${layerIdx}.ffn_down`, layerIdx, role: 'ffn_down' },
+      { transposeB: 'auto', label: `L${layerIdx}.ffn_down`, layerIdx, outputDtype: matmulOutputDtype, role: 'ffn_down' },
       recorder
     );
 
     const loraDown = getLoRAModule(lora, layerIdx, 'down_proj');
     if (loraDown) {
       const combined = await applyLoRA(
-        fusedOutput,
+        downInput,
         output,
         loraDown,
         { M: numTokens, N: hiddenSize, K: intermediateSize },
@@ -248,8 +284,14 @@ export async function runDenseFFNGPU(
     }
 
     if (recorder) {
+      if (downInput !== fusedOutput) {
+        recorder.trackTemporaryBuffer(downInput.buffer);
+      }
       recorder.trackTemporaryBuffer(fusedOutput.buffer);
     } else {
+      if (downInput !== fusedOutput) {
+        releaseBuffer(downInput.buffer);
+      }
       releaseBuffer(fusedOutput.buffer);
     }
 
@@ -501,55 +543,99 @@ export async function runDenseFFNWithFusedPostNormGPU(
   } else {
     const gateWeight = getWeightBuffer(layerWeights.gate, 'ffn_gate');
     const upWeight = getWeightBuffer(layerWeights.up, 'ffn_up');
+    const gateDtype = isWeightBuffer(layerWeights.gate) ? layerWeights.gate.dtype : 'f32';
+    const upDtype = isWeightBuffer(layerWeights.up) ? layerWeights.up.dtype : 'f32';
+    const hasLoRAGate = Boolean(getLoRAModule(lora, layerIdx, 'gate_proj'));
+    const hasLoRAUp = Boolean(getLoRAModule(lora, layerIdx, 'up_proj'));
+    const dtypeMatches = gateDtype != null && upDtype != null && gateDtype === upDtype;
+    const q4kFusedAllowed = gateDtype !== 'q4k' || !isFusedQ4KDisabled();
+    const dtypeSupported = gateDtype === 'f16' || gateDtype === 'f32' || (gateDtype === 'q4k' && q4kFusedAllowed);
+    const canUseFusedGateUp = !hasLoRAGate && !hasLoRAUp && dtypeMatches && dtypeSupported;
 
-    const gateOutput = await doMatmul(
-      inputTensor, gateWeight,
-      numTokens, intermediateSize, hiddenSize,
-      {
-        transposeB: 'auto',
-        outputDtype: matmulOutputDtype,
-        role: 'ffn_gate',
-        label: `L${layerIdx}.ffn_gate`,
-        layerIdx,
-      },
-      recorder
-    );
+    if (canUseFusedGateUp) {
+      const useNativeF16Fused = inputTensor.dtype === 'f16' && gateDtype === 'f16' && getKernelCapabilities().hasF16;
+      const fusedInput = (!useNativeF16Fused && inputTensor.dtype === 'f16')
+        ? (recorder ? await recordCastF16ToF32(recorder, inputTensor) : await castF16ToF32(inputTensor))
+        : inputTensor;
+
+      if (recorder && fusedInput !== inputTensor) {
+        recorder.trackTemporaryBuffer(fusedInput.buffer);
+      }
+
+      const activation = selectRuleValue('inference', 'ffn', 'activationOp', { hiddenActivation });
+      activatedOutput = recorder
+        ? await recordFusedFFN(
+          recorder,
+          fusedInput,
+          gateWeight,
+          upWeight,
+          hiddenSize,
+          intermediateSize,
+          { batchSize: numTokens, activation, swigluLimit }
+        )
+        : await runFusedFFN(
+          fusedInput,
+          gateWeight,
+          upWeight,
+          hiddenSize,
+          intermediateSize,
+          { batchSize: numTokens, activation, swigluLimit }
+        );
+
+      if (!recorder && fusedInput !== inputTensor) {
+        releaseBuffer(fusedInput.buffer);
+      }
+    } else {
+      const gateOutput = await doMatmul(
+        inputTensor, gateWeight,
+        numTokens, intermediateSize, hiddenSize,
+        {
+          transposeB: 'auto',
+          outputDtype: matmulOutputDtype,
+          role: 'ffn_gate',
+          label: `L${layerIdx}.ffn_gate`,
+          layerIdx,
+        },
+        recorder
+      );
+
+      const upOutput = await doMatmul(
+        inputTensor, upWeight,
+        numTokens, intermediateSize, hiddenSize,
+        {
+          transposeB: 'auto',
+          outputDtype: matmulOutputDtype,
+          role: 'ffn_up',
+          label: `L${layerIdx}.ffn_up`,
+          layerIdx,
+        },
+        recorder
+      );
+
+      const activationFn = {
+        gelu: doGeLU,
+        silu: doSiLU,
+      }[selectRuleValue('inference', 'ffn', 'activationOp', { hiddenActivation })];
+      activatedOutput = await activationFn(upOutput, {
+        size: numTokens * intermediateSize,
+        gate: gateOutput,
+        swigluLimit,
+      }, recorder);
+
+      if (recorder) {
+        recorder.trackTemporaryBuffer(gateOutput.buffer);
+        recorder.trackTemporaryBuffer(upOutput.buffer);
+      } else {
+        releaseBuffer(gateOutput.buffer);
+        releaseBuffer(upOutput.buffer);
+      }
+    }
+
     if (!(layerWeights.gate instanceof GPUBuffer) && !isWeightBuffer(layerWeights.gate)) {
       releaseOrTrack(recorder, isWeightBuffer(gateWeight) ? gateWeight.buffer : gateWeight);
     }
-
-    const upOutput = await doMatmul(
-      inputTensor, upWeight,
-      numTokens, intermediateSize, hiddenSize,
-      {
-        transposeB: 'auto',
-        outputDtype: matmulOutputDtype,
-        role: 'ffn_up',
-        label: `L${layerIdx}.ffn_up`,
-        layerIdx,
-      },
-      recorder
-    );
     if (!(layerWeights.up instanceof GPUBuffer) && !isWeightBuffer(layerWeights.up)) {
       releaseOrTrack(recorder, isWeightBuffer(upWeight) ? upWeight.buffer : upWeight);
-    }
-
-    const activationFn = {
-      gelu: doGeLU,
-      silu: doSiLU,
-    }[selectRuleValue('inference', 'ffn', 'activationOp', { hiddenActivation })];
-    activatedOutput = await activationFn(upOutput, {
-      size: numTokens * intermediateSize,
-      gate: gateOutput,
-      swigluLimit,
-    }, recorder);
-
-    if (recorder) {
-      recorder.trackTemporaryBuffer(gateOutput.buffer);
-      recorder.trackTemporaryBuffer(upOutput.buffer);
-    } else {
-      releaseBuffer(gateOutput.buffer);
-      releaseBuffer(upOutput.buffer);
     }
   }
 

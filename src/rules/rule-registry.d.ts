@@ -19,6 +19,7 @@ type KernelRuleGroup =
   | 'layernorm'
   | 'matmul'
   | 'moe'
+  | 'moeGptoss'
   | 'residual'
   | 'rmsnorm'
   | 'rope'

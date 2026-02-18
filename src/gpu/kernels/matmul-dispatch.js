@@ -77,6 +77,11 @@ export function calculateMatmulDispatch(variant, useQ4KFused, useGemv, M, N, con
   } else if (useGemv) {
     workgroupsX = N;
     workgroupsY = 1;
+  } else if (variant === 'f16_tiled') {
+    const tileM = config.variantMetadata?.tileM ?? 64;
+    const tileN = config.variantMetadata?.tileN ?? 64;
+    workgroupsX = Math.ceil(M / tileM);
+    workgroupsY = Math.ceil(N / tileN);
   } else {
     const colsPerThread = variant === 'f16_vec4' ? 4 : 1;
     workgroupsX = Math.ceil(M / wgX);

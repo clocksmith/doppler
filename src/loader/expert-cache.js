@@ -23,6 +23,8 @@ export class ExpertCache {
   
   #config;
 
+  #layerResidency = new Map();
+
   // Statistics
   
   #hits = 0;
@@ -112,8 +114,17 @@ export class ExpertCache {
     const existing = this.#cache.get(key);
     let existingSize = existing?.sizeBytes ?? 0;
 
+    const highWatermarkRatio = this.#config.evictionHighWatermark ?? 0.9;
+    const highWatermarkBytes = Math.floor(this.#maxBytes * highWatermarkRatio);
+    const trimRatio = this.#config.emergencyTrimToRatio ?? 0.75;
+    const trimTargetBytes = Math.floor(this.#maxBytes * trimRatio);
+
     // If already in cache, update it
     let projectedBytes = this.#currentBytes - existingSize + sizeBytes;
+    if (projectedBytes > highWatermarkBytes && this.#cache.size > 0) {
+      this.#evictUntil(Math.max(trimTargetBytes, highWatermarkBytes), key);
+      projectedBytes = this.#currentBytes - existingSize + sizeBytes;
+    }
     while (projectedBytes > this.#maxBytes && this.#cache.size > 0) {
       const evicted = this.evictLRU();
       if (!evicted) {
@@ -131,8 +142,12 @@ export class ExpertCache {
       weights,
       lastAccess: ++this.#accessCounter,
       sizeBytes,
+      layerIdx,
+      expertIdx,
     });
-    this.#currentBytes = this.#currentBytes - existingSize + sizeBytes;
+    const deltaBytes = sizeBytes - existingSize;
+    this.#currentBytes += deltaBytes;
+    this.#addLayerResidency(layerIdx, deltaBytes);
   }
 
   
@@ -141,7 +156,7 @@ export class ExpertCache {
   }
 
   
-  evictLRU() {
+  evictLRU(protectedKey = null) {
     if (this.#cache.size === 0) return false;
 
     
@@ -149,6 +164,7 @@ export class ExpertCache {
     let lruTime = Infinity;
 
     for (const [key, entry] of this.#cache) {
+      if (protectedKey && key === protectedKey) continue;
       // Skip in-use experts (currently being used in inference)
       if (this.#inUse.has(key)) continue;
       // Skip pinned experts (shared experts that should never be evicted)
@@ -218,6 +234,7 @@ export class ExpertCache {
     this.#releaseExpertBuffers(entry.weights);
 
     this.#currentBytes -= entry.sizeBytes;
+    this.#addLayerResidency(entry.layerIdx, -entry.sizeBytes);
     this.#cache.delete(key);
     this.#evictions++;
 
@@ -257,6 +274,9 @@ export class ExpertCache {
   
   getStats() {
     const total = this.#hits + this.#misses;
+    const layerResidency = Array.from(this.#layerResidency.entries())
+      .map(([layerIdx, bytes]) => ({ layerIdx, bytes }))
+      .sort((a, b) => b.bytes - a.bytes);
     return {
       hits: this.#hits,
       misses: this.#misses,
@@ -267,6 +287,7 @@ export class ExpertCache {
       hitRate: total > 0 ? this.#hits / total : 0,
       inUseCount: this.#inUse.size,
       pinnedCount: this.#pinned.size,
+      layerResidency,
     };
   }
 
@@ -276,6 +297,7 @@ export class ExpertCache {
       this.#releaseExpertBuffers(entry.weights);
     }
     this.#cache.clear();
+    this.#layerResidency.clear();
     this.#currentBytes = 0;
     this.#inUse.clear();
     // Note: pinned is NOT cleared - shared experts stay pinned
@@ -306,6 +328,26 @@ export class ExpertCache {
       result.push({ layerIdx: layer, expertIdx: expert });
     }
     return result;
+  }
+
+  #addLayerResidency(layerIdx, deltaBytes) {
+    if (!Number.isFinite(layerIdx)) return;
+    const prev = this.#layerResidency.get(layerIdx) ?? 0;
+    const next = prev + deltaBytes;
+    if (next <= 0) {
+      this.#layerResidency.delete(layerIdx);
+      return;
+    }
+    this.#layerResidency.set(layerIdx, next);
+  }
+
+  #evictUntil(targetBytes, protectedKey = null) {
+    while (this.#currentBytes > targetBytes && this.#cache.size > 0) {
+      const evicted = this.evictLRU(protectedKey);
+      if (!evicted) {
+        break;
+      }
+    }
   }
 }
 

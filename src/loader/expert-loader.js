@@ -8,6 +8,8 @@ import {
 import { isWeightBuffer } from '../gpu/weight-buffer.js';
 import { maybeDowncastToF16 } from './weight-downcast.js';
 import { log, trace as debugTrace } from '../debug/index.js';
+import { getRuntimeConfig } from '../config/runtime.js';
+import { releaseBuffer } from '../memory/buffer-pool.js';
 
 // ============================================================================
 // Shard Preloading
@@ -211,6 +213,7 @@ function assertGptOssWeights(weights, layerIdx, expertIdx) {
 async function loadGptOssStyleExpert(ctx, layerIdx, expertIdx) {
   const gptOssPrefix = `model.layers.${layerIdx}.mlp.experts`;
   const packedKey = `layer_${layerIdx}_gptoss_packed`;
+  evictStaleGptOssLayers(ctx, layerIdx);
   let packed = ctx.experts.get(packedKey);
 
   if (!packed) {
@@ -228,6 +231,9 @@ async function loadGptOssStyleExpert(ctx, layerIdx, expertIdx) {
     };
 
     ctx.experts.set(packedKey, packed);
+    touchGptOssLayer(ctx, layerIdx);
+  } else {
+    touchGptOssLayer(ctx, layerIdx);
   }
 
   return {
@@ -241,6 +247,92 @@ async function loadGptOssStyleExpert(ctx, layerIdx, expertIdx) {
     downScales: packed.downScales,
     downBias: packed.downBias,
   };
+}
+
+function touchGptOssLayer(ctx, layerIdx) {
+  if (!ctx.gptOssLayerAccess) {
+    ctx.gptOssLayerAccess = new Map();
+  }
+  ctx.gptOssLayerAccess.set(layerIdx, Date.now());
+}
+
+function getGpuBuffer(value) {
+  if (isWeightBuffer(value)) {
+    return value.buffer;
+  }
+  if (value instanceof GPUBuffer) {
+    return value;
+  }
+  return null;
+}
+
+function releasePackedLayerWeights(ctx, packed) {
+  const buffers = [
+    packed.gateUpBlocks,
+    packed.gateUpScales,
+    packed.gateUpBias,
+    packed.downBlocks,
+    packed.downScales,
+    packed.downBias,
+  ];
+  for (const entry of buffers) {
+    const gpuBuffer = getGpuBuffer(entry);
+    if (!gpuBuffer) continue;
+    try {
+      releaseBuffer(gpuBuffer);
+      ctx.gpuBuffers?.delete?.(gpuBuffer);
+    } catch {
+      // Ignore already-released buffers.
+    }
+  }
+}
+
+function evictStaleGptOssLayers(ctx, activeLayerIdx) {
+  const runtime = getRuntimeConfig();
+  const pager = runtime.loading.expertCache.gptOssPager ?? {
+    enabled: true,
+    maxResidentLayers: 2,
+  };
+
+  if (!pager.enabled || !Number.isFinite(pager.maxResidentLayers) || pager.maxResidentLayers <= 0) {
+    return;
+  }
+
+  const entries = [];
+  for (const key of ctx.experts.keys()) {
+    const match = /^layer_(\d+)_gptoss_packed$/.exec(key);
+    if (!match) continue;
+    const layerIdx = Number(match[1]);
+    const lastAccess = ctx.gptOssLayerAccess?.get(layerIdx) ?? 0;
+    entries.push({ key, layerIdx, lastAccess });
+  }
+
+  const hasActive = entries.some((entry) => entry.layerIdx === activeLayerIdx);
+  const maxAllowed = hasActive ? pager.maxResidentLayers : pager.maxResidentLayers - 1;
+  if (entries.length <= maxAllowed) {
+    return;
+  }
+
+  entries.sort((a, b) => {
+    if (a.layerIdx === activeLayerIdx) return 1;
+    if (b.layerIdx === activeLayerIdx) return -1;
+    return a.lastAccess - b.lastAccess;
+  });
+
+  while (entries.length > maxAllowed) {
+    const evicted = entries.shift();
+    if (!evicted || evicted.layerIdx === activeLayerIdx) {
+      break;
+    }
+    const packed = ctx.experts.get(evicted.key);
+    if (!packed) {
+      continue;
+    }
+    releasePackedLayerWeights(ctx, packed);
+    ctx.experts.delete(evicted.key);
+    ctx.gptOssLayerAccess?.delete(evicted.layerIdx);
+    log.info('Loader', `Evicted GPT-OSS packed experts for layer ${evicted.layerIdx}`);
+  }
 }
 
 

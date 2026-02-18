@@ -4,7 +4,7 @@
 
 Defines the Recursive DOPPLER Runtime Registry (RDRR) format for streaming model delivery optimized for browser-based LLM inference.
 
-See also: `ARCHITECTURE.md` for system overview.
+See also: `architecture.md` for system overview.
 
 ---
 
@@ -402,7 +402,7 @@ The `optimizations` field is legacy metadata. Runtime kernel selection reads
 2. runtime config `runtime.inference.kernelPath`
 3. per-run context override (pipeline context only)
 
-See `CONFIG.md` for how kernel paths integrate with capability-based kernel selection.
+See `config.md` for how kernel paths integrate with capability-based kernel selection.
 
 ---
 
@@ -531,7 +531,7 @@ for await (const token of pipeline.generate('Hello')) {
 *Last updated: January 2026*
 
 ## Kernel Overrides & Compatibility
-See `OPERATIONS.md#kernel-overrides--compatibility` (canonical section) and `style/wgsl-style-guide.md`.
+See `operations.md#kernel-overrides--compatibility` (canonical section) and `style/wgsl-style-guide.md`.
 
 
 ## RDRR LoRA Format

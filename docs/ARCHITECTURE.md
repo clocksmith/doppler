@@ -4,7 +4,7 @@
 
 **DOPPLER** (Distributed On-device Processing for Prefill, Learning, and Execution Runtime) is a standalone WebGPU-native ML runtime for forward inference, prefill, and backward/training paths in browser and Node environments.
 
-See also: `INDEX.md`
+See also: `index.md`
 
 ## Overview
 
@@ -45,8 +45,8 @@ Inference Phase (per token)
 
 Doppler can integrate with [Reploid](https://github.com/clocksmith/reploid) via the minimal Ouroboros substrate contract:
 SharedArrayBuffer for coordination plus VFS file exchange for inference plans and
-results. The contract surface and kernel evolution flow are documented in
-`../../docs/substrate.md`.
+results. Integration notes are maintained in the wrapper docs at
+`../../docs/doppler/INDEX.md`.
 
 ## Design Philosophy
 
@@ -56,7 +56,7 @@ DOPPLER makes deliberate architectural tradeoffs that diverge from pre-compiled 
 
 | Principle | Implementation | Why |
 |-----------|----------------|-----|
-| **Code/Data Separation** | Generic WGSL kernels + weight shards | Enables shard verification; LoRA swaps today, expert paging planned |
+| **Code/Data Separation** | Generic WGSL kernels + weight shards | Enables shard verification and runtime adapter/component swaps |
 | **GPU Fusion** | All tensor ops stay on GPU | Makes JS vs WASM irrelevant (0.5ms vs 25ms GPU time) |
 | **Minimal Readback** | Only final logits read to CPU | Avoids 2-6ms GPU→CPU transfer per readback |
 | **JavaScript Orchestration** | JS dispatches GPU work, handles sampling | Debugging, rapid iteration, browser integration |
@@ -91,12 +91,12 @@ DOPPLER accepts ~20% kernel performance gap vs TVM auto-tuned kernels because it
 
 | Capability | Why Impossible with TVM |
 |------------|------------------------|
-| 90GB MoE on 8GB VRAM | Expert paging requires dynamic buffer binding (planned) |
 | Shard distribution | Can't split compiled binary across peers |
 | LoRA hot-swap | Compiled model can't change weights at runtime |
 | Speculative decoding | Coordinating two compiled models is awkward |
 
-See the internal roadmap for rationale, goals, and current status.
+Non-core aspiration and roadmap items are tracked in
+`../../docs/doppler/INDEX.md`.
 
 ---
 
@@ -115,7 +115,6 @@ DOPPLER is the **Engine** (mechanism); a caller/orchestrator is the **Policy Lay
 │  - Chooses merge weights                                                 │
 │  - Builds prompts (Seed/Reflect/Refine)                                  │
 │  - Runs orchestration loops                                               │
-│  - Implements UCB1, evolution, arena                                     │
 │  - Calculates fitness scores                                             │
 └─────────────────────────────────────┬───────────────────────────────────┘
                                       │ Parameters (weights, prompts, config)
@@ -157,18 +156,9 @@ When multiple models are loaded, these GPU operations **must** stay in DOPPLER (
 
 ### Migration Note
 
-The `FunctionGemma` wrapper has been removed from DOPPLER. Use an external orchestrator (for example Reploid's `FunctionGemmaOrchestrator`) for orchestration loops. DOPPLER's `MultiModelNetwork` provides the primitives:
-
-```javascript
-import { MultiModelNetwork } from 'doppler/inference/functiongemma.js';
-import FunctionGemmaOrchestrator from 'reploid/capabilities/intelligence/functiongemma-orchestrator.js';
-
-const network = new MultiModelNetwork(pipeline);
-const orchestrator = FunctionGemmaOrchestrator.factory(deps);
-await orchestrator.runEvolution(task);
-```
-
-See the internal roadmap for the current migration status.
+DOPPLER keeps orchestration separate from runtime inference. Use an external
+policy layer (for example Reploid) with
+`src/inference/multi-model-network.js` for cross-model coordination.
 
 ---
 
@@ -185,18 +175,17 @@ See the internal roadmap for the current migration status.
 | `storage/` | OPFS shard management, download |
 | `memory/` | Heap manager + Memory64/unified detection for loader/preflight |
 | `adapters/` | LoRA adapter loading/management |
-| `hotswap/` | Planned runtime swap |
+| `hotswap/` | Runtime update and manifest-driven component remap |
 | `client/` | Public API (doppler-provider) |
 | `bridge/` | Native Bridge for local file access |
 | `browser/` | Browser import, parsing, and conversion helpers |
 | `debug/` | Logging, trace categories, probes |
 | `errors/` | Error codes and helpers |
 | `rules/` | JSON rule maps for runtime selection |
-| `proto/simulator/` | Hardware emulation layer (virtual devices, NVLink, timing) |
 | `training/` | Training utilities and optimization primitives |
 | `types/` | Shared TypeScript types |
 
-See `../../../proto/simulator/README.md` for details on the emulation subsystem.
+See `../../docs/doppler/INDEX.md` for optional wrapper-level architecture notes.
 
 ---
 
@@ -220,10 +209,10 @@ DOPPLER's structure can be understood through multiple lenses. Each view serves 
 │      COMPUTE      │        DATA        │            RUNTIME                  │
 ├───────────────────┼────────────────────┼────────────────────────────────────┤
 │ gpu/              │ formats/           │ inference/                          │
-│ ├─ device         │ ├─ gguf            │ ├─ pipeline                         │
-│ ├─ uniform-cache  │ ├─ safetensors     │ ├─ pipeline/attention               │
-│ └─ kernels/       │ ├─ rdrr            │ ├─ pipeline/ffn                     │
-│    (WGSL kernels) │ └─ tokenizer       │ ├─ pipeline/logits                  │
+│ ├─ device         │ ├─ gguf            │ ├─ pipelines                        │
+│ ├─ uniform-cache  │ ├─ safetensors     │ ├─ pipelines/text/attention          │
+│ └─ kernels/       │ ├─ rdrr            │ ├─ pipelines/text/ffn                │
+│    (WGSL kernels) │ └─ tokenizer       │ ├─ pipelines/text/logits             │
 │                   │                    │ └─ kv-cache                         │
 │                   │ loader/            │                                     │
 │ memory/           │ ├─ doppler-loader  │ debug/                              │
@@ -252,7 +241,7 @@ DOPPLER's structure can be understood through multiple lenses. Each view serves 
 │ (Node + Browser)  │ (LoRA hot-swap)    │ (Extension IPC)                     │
 ├───────────────────┼────────────────────┼────────────────────────────────────┤
 │ hotswap/          │ client/            │ browser/                            │
-│ (Planned swap)    │ (Public API)       │ (Demo harness)                      │
+│ (runtime updates) │ (Public API)       │ (Demo harness)                      │
 └───────────────────┴────────────────────┴────────────────────────────────────┘
 ```
 
@@ -274,7 +263,7 @@ Browser harness (config-only)
         |
 Runtime Config (runtime.shared.tooling, runtime.shared.debug, runtime.shared.benchmark)
         |
-  debug/            gpu/                   inference/pipeline/
+  debug/            gpu/                   inference/pipelines/
   - log.js          - profiler.js           - kernel-trace.js
   - trace.js        - perf-guards.js
   - tensor.js
@@ -445,7 +434,11 @@ The core generate loop:
 
 **Layer Pipeline Plans (experimental):**
 
-The default layer order is fixed and optimized in `src/inference/pipeline/layer.js`. For advanced experimentation, you can supply a JSON plan under `runtime.inference.pipeline` (runtime override) or `inference.pipeline` in the manifest. The plan executes via a small interpreter and is slower than the default path.
+The default layer order is fixed and optimized in
+`src/inference/pipelines/text/layer.js`. For advanced experimentation, you can
+supply a JSON plan under `runtime.inference.pipeline` (runtime override) or
+`inference.pipeline` in the manifest. The plan executes via a small interpreter and
+is slower than the default path.
 
 Example (LLaMA-style residuals):
 
@@ -518,26 +511,27 @@ Evolution helpers for mutating and scoring expert network topologies.
 - Sandwich norms: Gemma 3 pre/post FFN norms
 - YARN RoPE: Extended context via per-dimension scaling
 
-### Pipeline Submodules (`inference/pipeline/`)
+### Pipeline Submodules (`inference/pipelines/`)
 
 | Module | Purpose |
 |--------|---------|
-| `src/inference/pipeline/config.js` | Pipeline configuration and model params |
-| `src/inference/pipeline/state.js` | Runtime state container |
-| `src/inference/pipeline/generator.js` | Main generation loop |
-| `src/inference/pipeline/generator-steps.js` | Step orchestration for prefill and decode |
-| `src/inference/pipeline/generator-helpers.js` | Shared generation helpers |
-| `src/inference/pipeline/layer.js` | Per-layer processing |
-| `src/inference/pipeline/embed.js` | Token embedding |
-| `src/inference/pipeline/sampling.js` | Token sampling (top-k, top-p, temperature) |
-| `src/inference/pipeline/registry.js` | Pipeline registry and factory |
-| `src/inference/pipeline/kernel-trace.js` | Kernel trace and instrumentation |
-| `src/inference/pipeline/probes.js` | Debug probes |
-| `src/inference/pipeline/attention/` | Attention kernels and helpers |
-| `src/inference/pipeline/ffn/` | Feed-forward kernels and helpers |
-| `src/inference/pipeline/logits/` | Logits projection |
+| `src/inference/pipelines/registry.js` | Pipeline registry and factory |
+| `src/inference/pipelines/context.js` | Runtime context and mode settings |
+| `src/inference/pipelines/text/config.js` | Pipeline configuration and model params |
+| `src/inference/pipelines/text/state.js` | Runtime state container |
+| `src/inference/pipelines/text/generator.js` | Main generation loop |
+| `src/inference/pipelines/text/generator-steps.js` | Step orchestration for prefill and decode |
+| `src/inference/pipelines/text/generator-helpers.js` | Shared generation helpers |
+| `src/inference/pipelines/text/layer.js` | Per-layer processing |
+| `src/inference/pipelines/text/embed.js` | Token embedding |
+| `src/inference/pipelines/text/sampling.js` | Token sampling (top-k, top-p, temperature) |
+| `src/inference/pipelines/text/kernel-trace.js` | Kernel trace and instrumentation |
+| `src/inference/pipelines/text/probes.js` | Debug probes |
+| `src/inference/pipelines/text/attention/` | Attention kernels and helpers |
+| `src/inference/pipelines/text/ffn/` | Feed-forward kernels and helpers |
+| `src/inference/pipelines/text/logits/` | Logits projection |
 
-**Note:** `src/inference/pipeline.js` composes these modules. Some helpers are used indirectly via `src/inference/pipeline/init.js` and `src/inference/pipeline/generator-steps.js`.
+**Note:** `src/inference/pipelines/text.js` composes these modules. Some helpers are used indirectly via `src/inference/pipelines/text/init.js` and `src/inference/pipelines/text/generator-steps.js`.
 
 ### Manifest-First Config Architecture
 
@@ -1098,9 +1092,9 @@ See `config.md` for kernel selection rules and runtime overrides.
 |------|---------|
 | `src/client/doppler-provider.js` | Public API entry point |
 | `src/client/doppler-provider/provider.js` | Provider implementation |
-| `src/inference/pipeline.js` | Main inference orchestration |
-| `src/inference/pipeline/generator.js` | Generation loop |
-| `src/inference/kv-cache.js` | KV cache management |
+| `src/inference/pipelines/text.js` | Main inference orchestration |
+| `src/inference/pipelines/text/generator.js` | Generation loop |
+| `src/inference/kv-cache/index.js` | KV cache management |
 | `src/inference/tokenizer.js` | Tokenizer selection and initialization |
 | `src/inference/moe-router.js` | MoE expert routing |
 | `src/loader/doppler-loader.js` | Weight loading and dequant |
@@ -1118,7 +1112,6 @@ See `config.md` for kernel selection rules and runtime overrides.
 
 ## Related Documentation
 
-- `roadmap.md` - Memory tiers and distribution goals
 - `formats.md` - RDRR format specification
 
 ---
@@ -1126,9 +1119,10 @@ See `config.md` for kernel selection rules and runtime overrides.
 *Last updated: January 2026*
 
 ## Kernel Overrides & Compatibility
-See `OPERATIONS.md#kernel-overrides--compatibility` (canonical section) and `style/wgsl-style-guide.md`.
+See `operations.md#kernel-overrides--compatibility` (canonical section) and `style/wgsl-style-guide.md`.
 
 
 
 ## Execution Pipeline & System Flow
-Detailed token-level execution walkthroughs are maintained in internal docs.
+Detailed token-level execution walkthroughs are maintained in wrapper notes at
+`../../docs/doppler/INDEX.md`.

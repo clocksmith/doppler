@@ -12,10 +12,11 @@ import {
 } from '../storage/shard-manager.js';
 import { parseManifest } from '../storage/rdrr-format.js';
 import { initDevice, getDevice, getKernelCapabilities } from '../gpu/device.js';
-import { acquireBuffer, releaseBuffer } from '../memory/buffer-pool.js';
+import { acquireBuffer, releaseBuffer, forceBufferPoolReclaim } from '../memory/buffer-pool.js';
 import { getExpertCache } from './expert-cache.js';
 import { formatBytes } from '../storage/quota.js';
 import { log, trace as debugTrace } from '../debug/index.js';
+import { isWeightBuffer } from '../gpu/weight-buffer.js';
 
 
 import { createShardCache } from './shard-cache.js';
@@ -897,14 +898,43 @@ export class DopplerLoader {
       this.#stopMemoryLogging('complete');
     }
 
+    const releaseCandidate = (value) => {
+      if (!value) return;
+      const gpuBuffer = isWeightBuffer(value)
+        ? value.buffer
+        : (value instanceof GPUBuffer ? value : null);
+      if (!gpuBuffer) return;
+      try {
+        releaseBuffer(gpuBuffer);
+      } catch {
+        // Ignore already released/destroyed buffers.
+      }
+      this.gpuBuffers.delete(gpuBuffer);
+    };
+
     for (const buffer of this.gpuBuffers) {
-      releaseBuffer(buffer);
+      releaseCandidate(buffer);
     }
     this.gpuBuffers.clear();
 
     if (this.expertCache) {
       this.expertCache.clear();
     }
+
+    for (const packed of this.experts.values()) {
+      if (!packed || typeof packed !== 'object') continue;
+      releaseCandidate(packed.gate);
+      releaseCandidate(packed.up);
+      releaseCandidate(packed.down);
+      releaseCandidate(packed.gateUpBlocks);
+      releaseCandidate(packed.gateUpScales);
+      releaseCandidate(packed.gateUpBias);
+      releaseCandidate(packed.downBlocks);
+      releaseCandidate(packed.downScales);
+      releaseCandidate(packed.downBias);
+    }
+
+    forceBufferPoolReclaim();
 
     this.embeddings = null;
     this.layers.clear();

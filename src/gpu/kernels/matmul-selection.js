@@ -59,6 +59,10 @@ function applyMatmulConstants(config, constants) {
     variantMetadata = { ...(variantMetadata ?? {}), colsPerWg: constants.COLS_PER_WG };
     updated = true;
   }
+  if (Number.isFinite(constants.MULTICOL_COLS_PER_WG)) {
+    variantMetadata = { ...(variantMetadata ?? {}), colsPerWg: constants.MULTICOL_COLS_PER_WG };
+    updated = true;
+  }
 
   if (!updated) return config;
   return { ...config, workgroupSize, variantMetadata };
@@ -88,17 +92,26 @@ export function selectMatmulKernel(options = {}) {
     outputDtype = 'f32',
     aDtype = null,
     bDtype = null,
+    isPrefill = false,
+    prefillRows = 0,
+    transposeB = true,
   } = options;
+  const { tiledPrefillMinRows } = getKernelThresholds().matmul;
+  const effectiveTiledPrefillMinRows = Math.max(tiledPrefillMinRows, 64);
 
   const inputsAreF16 = aDtype === 'f16' && bDtype === 'f16';
   const weightsAreF16 = bDtype === 'f16' && aDtype !== 'f16';
   const useF16Matmul = outputDtype === 'f16' && preferF16 && inputsAreF16 && capabilities.hasF16;
   const useF16wF32a = preferF16 && weightsAreF16 && capabilities.hasF16;
+  const useTiled = isPrefill
+    && useF16Matmul
+    && transposeB === true
+    && prefillRows >= effectiveTiledPrefillMinRows;
 
   return selectKernelRuleValue(
     'matmul',
     'matmulKernel',
-    { useF16Matmul, useF16wF32a, useVec4 }
+    { useF16Matmul, useF16wF32a, useVec4, useTiled }
   );
 }
 
@@ -199,7 +212,7 @@ function isGemvVariant(variant) {
 
 
 function supportsF16Input(variant) {
-  return variant === 'f16' || variant === 'f16_vec4' || variant.endsWith('_f16a');
+  return variant === 'f16' || variant === 'f16_vec4' || variant === 'f16_tiled' || variant.endsWith('_f16a');
 }
 
 export function requiresF32Input(variant) {
@@ -305,6 +318,40 @@ export function selectMatmulVariantAndFlags(mode, M, N, K, aDtype, bDtype, trans
   if (pathVariant) {
     const override = resolveMatmulOverride(pathVariant, M, K, aDtype, bDtype, requestedOutputDtype, capabilities, strict);
     if (override) {
+      if (
+        phase === 'prefill'
+        && override.variant === 'f16_tiled'
+        && aDtype === 'f16'
+        && bDtype === 'f16'
+        && requestedOutputDtype === 'f16'
+        && transposeB === true
+      ) {
+        const { tiledPrefillMinRows } = getKernelThresholds().matmul;
+        const effectiveTiledPrefillMinRows = Math.max(tiledPrefillMinRows, 64);
+        if (M <= effectiveTiledPrefillMinRows) {
+          const adaptiveVariant = selectMatmulKernel({
+            ...options,
+            aDtype,
+            bDtype,
+            outputDtype: requestedOutputDtype,
+            isPrefill: true,
+            prefillRows: M,
+            transposeB,
+          });
+          if (adaptiveVariant !== override.variant) {
+            const adaptiveSelection = {
+              variant: adaptiveVariant,
+              useQ4KFused: false,
+              useGemv: false,
+            };
+            logKernelSelectionOnce('matmul', {
+              variant: adaptiveSelection.variant,
+              reason: 'path_override_adaptive_fallback',
+            });
+            return adaptiveSelection;
+          }
+        }
+      }
       logKernelSelectionOnce('matmul', {
         variant: override.variant,
         reason: 'path_override',
@@ -326,6 +373,9 @@ export function selectMatmulVariantAndFlags(mode, M, N, K, aDtype, bDtype, trans
     aDtype: aDtype === 'q4k' ? 'f32' : aDtype,
     bDtype: effectiveBDtype,
     outputDtype: requestedOutputDtype,
+    isPrefill: M > 1,
+    prefillRows: M,
+    transposeB,
   });
 
   const canGemv = M === 1 && effectiveBDtype === 'f16' && capabilities.hasF16;

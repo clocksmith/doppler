@@ -9,6 +9,7 @@ const { run, record } = createBackwardKernel('bias_add_backward', {
   calcWorkgroups: (opts) => Math.ceil(opts.dim / 256),
   outputBytes: (opts) => opts.dim * 4,
   outputShape: (opts) => [opts.dim],
+  getDevice: true,
   validate: (opts) => {
     if (!opts.numTokens || !opts.dim) throw new Error('bias_add backward requires numTokens and dim');
   },

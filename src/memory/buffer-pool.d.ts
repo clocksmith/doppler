@@ -21,6 +21,8 @@ export interface PoolStats {
   currentBytesRequested: number;
   activeBuffers: number;
   pooledBuffers: number;
+  budgetMaxBytes: number;
+  budgetUtilization: number;
   hitRate: string;
 }
 
@@ -143,6 +145,11 @@ export declare class BufferPool {
    * Configure pool settings
    */
   configure(config: Partial<PoolConfig>): void;
+
+  /**
+   * Force budget reclaim by trimming pooled buffers.
+   */
+  forceReclaim(targetRatio?: number | null): void;
 }
 
 /**
@@ -170,6 +177,7 @@ export declare const isBufferActive: (buffer: GPUBuffer) => boolean;
 export declare const getBufferRequestedSize: (buffer: GPUBuffer) => number;
 export declare const uploadData: (buffer: GPUBuffer, data: ArrayBuffer | ArrayBufferView, offset?: number) => void;
 export declare const readBuffer: (buffer: GPUBuffer, size?: number) => Promise<ArrayBuffer>;
+export declare const forceBufferPoolReclaim: (targetRatio?: number | null) => void;
 
 /**
  * Scoped buffer helper - automatically releases buffer when done

@@ -1,0 +1,19 @@
+{
+  "presets": {
+    "model": "gpt_oss"
+  },
+  "quantization": {
+    "weights": "f16",
+    "embeddings": "f16",
+    "lmHead": "f16",
+    "computePrecision": "f16"
+  },
+  "output": {
+    "modelId": "gpt-oss-20b",
+    "textOnly": true,
+    "fast": false
+  },
+  "manifest": {
+    "hashAlgorithm": "blake3"
+  }
+}

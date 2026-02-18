@@ -2,6 +2,7 @@ import { createTensor } from '../../tensor.js';
 import { acquireBuffer } from '../../../memory/buffer-pool.js';
 import { createPipeline, createUniformBufferWithView } from '../utils.js';
 import { dispatch, recordDispatch } from '../dispatch.js';
+import { getDevice } from '../../device.js';
 
 export async function runConv2DBackward(input, weight, gradOutput, options = {}) {
   const { inChannels, outChannels, height, width, outHeight, outWidth, kernelH, kernelW, stride, pad, computeGradInput = true, computeGradWeight = true } = options;
@@ -9,7 +10,7 @@ export async function runConv2DBackward(input, weight, gradOutput, options = {})
   let gradInput = null;
   let gradWeight = null;
 
-  const device = gradOutput.buffer.device;
+  const device = getDevice();
 
   const uniformBuffer = createUniformBufferWithView(
     'conv2d_backward_uniforms',

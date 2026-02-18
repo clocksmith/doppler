@@ -131,7 +131,10 @@ async function saveResult(result, saveDir) {
   return filePath;
 }
 
-function createStaticServer(root) {
+const DEFAULT_SERVER_PORT = 9999;
+
+function createStaticServer(root, preferredPort) {
+  const listenPort = preferredPort || DEFAULT_SERVER_PORT;
   return new Promise((resolve) => {
     const mimeTypes = {
       '.html': 'text/html',
@@ -160,7 +163,7 @@ function createStaticServer(root) {
           'Content-Type': contentType,
           'Content-Length': data.byteLength,
           'Cross-Origin-Opener-Policy': 'same-origin',
-          'Cross-Origin-Embedder-Policy': 'require-corp',
+          'Cross-Origin-Embedder-Policy': 'credentialless',
         });
         res.end(data);
       } catch {
@@ -169,7 +172,7 @@ function createStaticServer(root) {
       }
     });
 
-    server.listen(0, '127.0.0.1', () => {
+    server.listen(listenPort, '127.0.0.1', () => {
       const { port } = server.address();
       resolve({ server, port, baseUrl: `http://127.0.0.1:${port}` });
     });
@@ -344,6 +347,8 @@ async function main() {
   let timedRuns = Number(flags.runs ?? DEFAULT_RUNS);
   const timeoutMs = Number(flags.timeout ?? DEFAULT_TIMEOUT);
   const userDataDir = flags['user-data'] || DEFAULT_PROFILE_DIR;
+  const serverPort = parsePositiveInt(flags['server-port'], '--server-port', DEFAULT_SERVER_PORT);
+  const localModelPath = flags['local-model-path'] || null;
 
   if (flags.workload) {
     const wl = await loadWorkload(flags.workload);
@@ -374,7 +379,7 @@ async function main() {
   }
 
   // Serve from doppler root so both external/ and node_modules/ are accessible
-  const { server, baseUrl } = await createStaticServer(DOPPLER_ROOT);
+  const { server, baseUrl } = await createStaticServer(DOPPLER_ROOT, serverPort);
   console.error(`[tjs-bench] static server at ${baseUrl}`);
 
   const platformArgs = PLATFORM_ARGS[process.platform] ?? [];
@@ -415,7 +420,9 @@ async function main() {
 
   try {
     const navStart = performance.now();
-    await page.goto(`${baseUrl}/external/transformersjs-runner.html?v=${tjsVersion}`, { timeout: 30_000 });
+    const runnerParams = new URLSearchParams({ v: tjsVersion });
+    if (localModelPath) runnerParams.set('localModelPath', localModelPath);
+    await page.goto(`${baseUrl}/external/transformersjs-runner.html?${runnerParams}`, { timeout: 30_000 });
     await page.waitForFunction(() => window.__tfjsReady === true, { timeout: 30_000 });
     const pageReadyMs = performance.now() - navStart;
     console.error(`[tjs-bench] runner page ready in ${pageReadyMs.toFixed(0)}ms, starting benchmark...`);

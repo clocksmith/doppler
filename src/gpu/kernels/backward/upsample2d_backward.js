@@ -13,6 +13,7 @@ const { run, record } = createBackwardKernel('upsample2d_backward', {
   calcWorkgroups: (opts) => Math.ceil((opts.channels * opts.inHeight * opts.inWidth) / 256),
   outputBytes: (opts) => opts.channels * opts.inHeight * opts.inWidth * 4,
   outputShape: (opts) => [opts.channels, opts.inHeight, opts.inWidth],
+  getDevice: true,
   validate: (opts) => {
     if (!opts.channels || !opts.inHeight || !opts.inWidth || !opts.outHeight || !opts.outWidth || !opts.scale) {
       throw new Error('upsample2d backward requires channels, inHeight, inWidth, outHeight, outWidth, and scale');

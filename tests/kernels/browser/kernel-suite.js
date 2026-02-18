@@ -266,13 +266,26 @@ export async function runKernelSuite(harness) {
       const M = 16, N = 32, K = 8;
       const A_raw = h.generateTestData(K * M, 4201); // A is [K, M]
       const B = h.generateTestData(K * N, 4202); // B is [K, N]
-      
-      // Reference: C = A^T * B
-      const A_T = transposeRef(A_raw, K, M); // A_T is [M, K]
-      const expected = matmulRefRowMajorB(A_T, B, M, N, K);
+
+      // Reference: C = A^T * B where A is [K, M], B is [K, N]
+      const A_T = new Float32Array(M * K);
+      for (let m = 0; m < M; m += 1) {
+        const outputBase = m * K;
+        const rawBase = m;
+        for (let k = 0; k < K; k += 1) {
+          A_T[outputBase + k] = A_raw[rawBase + k * M];
+        }
+      }
+      const expected = h.matmulRef(A_T, B, M, N, K);
       
       const actual = await h.runMatmulTransposeA(null, A_raw, B, M, N, K);
       const result = h.compareArrays(expected, actual, h.KERNEL_TOLERANCES.matmul_f32);
+      if (!result.passed) {
+        console.error('[KernelTests] matmul_transpose_a mismatch', JSON.stringify({
+          ...result,
+          firstMismatches: result.firstMismatches,
+        }));
+      }
       return result.passed;
     },
   ]);
@@ -349,9 +362,9 @@ export async function runKernelSuite(harness) {
     'attention_backward',
     async () => {
       const seqLen = 3; // Unaligned
-      const kvLen = 5;
+      const kvLen = seqLen;
       const numHeads = 2;
-      const numKVHeads = 1;
+      const numKVHeads = numHeads;
       const headDim = 8;
       const scale = 1.0 / Math.sqrt(headDim);
       
@@ -394,6 +407,28 @@ export async function runKernelSuite(harness) {
       const qPass = h.compareArrays(expected.gradQ, actual.gradQ, h.KERNEL_TOLERANCES.attention).passed;
       const kPass = h.compareArrays(expected.gradK, actual.gradK, h.KERNEL_TOLERANCES.attention).passed;
       const vPass = h.compareArrays(expected.gradV, actual.gradV, h.KERNEL_TOLERANCES.attention).passed;
+      if (!qPass || !kPass || !vPass) {
+        const qResult = h.compareArrays(expected.gradQ, actual.gradQ, h.KERNEL_TOLERANCES.attention);
+        const kResult = h.compareArrays(expected.gradK, actual.gradK, h.KERNEL_TOLERANCES.attention);
+        const vResult = h.compareArrays(expected.gradV, actual.gradV, h.KERNEL_TOLERANCES.attention);
+        console.error('[KernelTests] attention_backward mismatch', JSON.stringify({
+          qPass,
+          kPass,
+          vPass,
+          qResult: {
+            ...qResult,
+            firstMismatches: qResult.firstMismatches,
+          },
+          kResult: {
+            ...kResult,
+            firstMismatches: kResult.firstMismatches,
+          },
+          vResult: {
+            ...vResult,
+            firstMismatches: vResult.firstMismatches,
+          },
+        }));
+      }
       return qPass && kPass && vPass;
     },
   ]);
@@ -892,9 +927,12 @@ export async function runKernelSuite(harness) {
       const input = h.generateTestData(numTokens * hiddenSize, 1235);
       const weight = h.generateTestData(hiddenSize, 1236);
       const gradOutput = h.generateTestData(numTokens * hiddenSize, 1237);
-      const expected = h.runLayerNormBackward(null, input, weight, gradOutput, numTokens, hiddenSize, 1e-5);
+      const expected = await h.runLayerNormBackward(null, input, weight, gradOutput, numTokens, hiddenSize, 1e-5);
       const actual = await h.runLayerNormBackward(null, input, weight, gradOutput, numTokens, hiddenSize, 1e-5);
       const result = h.compareArrays(expected, actual, h.KERNEL_TOLERANCES.rmsnorm);
+      if (!result.passed) {
+        console.error('[KernelTests] layernorm_backward mismatch', result);
+      }
       return result.passed;
     },
   ]);
@@ -1261,10 +1299,13 @@ export async function runKernelSuite(harness) {
   tests.push([
     'embed_backward',
     async () => {
-      const input = h.generateTestData(64, 1801);
-      const gradOutput = h.generateTestData(64, 1802);
-      const expected = embedBackwardRef(gradOutput);
-      const actual = await h.runEmbedBackward(null, input, gradOutput);
+      const numTokens = 4;
+      const hiddenSize = 16;
+      const vocabSize = 8;
+      const input = generateUint32(numTokens, vocabSize, 1801);
+      const gradOutput = h.generateTestData(numTokens * hiddenSize, 1802);
+      const expected = h.references.embedBackwardRef(input, gradOutput, numTokens, hiddenSize, vocabSize);
+      const actual = await h.runEmbedBackward(null, input, gradOutput, vocabSize);
       const result = h.compareArrays(expected, actual, { rtol: 1e-5, atol: 1e-6 });
       if (!result.passed) {
         console.error('[KernelTests] embed_backward mismatch', result);

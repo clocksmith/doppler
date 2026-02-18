@@ -304,6 +304,10 @@ export {
 export {
   runEmbedBackward,
   recordEmbedBackward,
+  runBiasAddBackward,
+  runUpsample2DBackward,
+  runGroupNormBackward,
+  runConv2DBackward,
   runMatmulBackward,
   recordMatmulBackward,
   runSoftmaxBackward,

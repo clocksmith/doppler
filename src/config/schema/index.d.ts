@@ -466,12 +466,14 @@ export {
   type BufferPoolBucketConfigSchema,
   type BufferPoolLimitsConfigSchema,
   type BufferPoolAlignmentConfigSchema,
+  type BufferPoolBudgetConfigSchema,
   type BufferPoolConfigSchema,
 
   // Defaults
   DEFAULT_BUFFER_POOL_BUCKET_CONFIG,
   DEFAULT_BUFFER_POOL_LIMITS_CONFIG,
   DEFAULT_BUFFER_POOL_ALIGNMENT_CONFIG,
+  DEFAULT_BUFFER_POOL_BUDGET_CONFIG,
   DEFAULT_BUFFER_POOL_CONFIG,
 } from './buffer-pool.schema.js';
 

@@ -1,4 +1,4 @@
-import { getDevice } from '../../../gpu/device.js';
+import { getDevice, getKernelCapabilities } from '../../../gpu/device.js';
 import { acquireBuffer, releaseBuffer, readBuffer } from '../../../memory/buffer-pool.js';
 import { createTensor } from '../../../gpu/tensor.js';
 import { castF16ToF32, castF32ToF16 } from '../../../gpu/kernels/cast.js';
@@ -19,6 +19,11 @@ import { f16ToF32Array } from '../../kv-cache/types.js';
 import { resolveMaxTokensPerExpert, getCachedDequant, setCachedDequant, getDequantCacheStats } from './moe-cache.js';
 import { ensureExpertLoaded } from './moe-helpers.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
+import {
+  validateMoeShape,
+  resolveMoeVendorProfile,
+  resolveGptOssKernelPathProfile,
+} from './moe-shape-validator.js';
 
 export async function moeFeedForwardGPU(
   inputBuffer,
@@ -45,6 +50,19 @@ export async function moeFeedForwardGPU(
   const topK = moeTopK ?? moeRouter.topK;
   if (topK == null) {
     throw new Error('MoE topK is required in config.');
+  }
+  const modelType = config.modelType ?? (expertFormat === 'gpt-oss' ? 'gpt-oss' : 'mixtral');
+  validateMoeShape(
+    { hiddenSize, intermediateSize, moeTopK: topK, numExperts, expertFormat },
+    { modelType }
+  );
+  const vendorProfile = resolveMoeVendorProfile(modelType);
+  const caps = getKernelCapabilities();
+  if (modelType === 'gpt-oss' && !caps.hasF16) {
+    throw new Error(
+      '[MoE] GPT-OSS routing requires shader-f16 support. ' +
+      `Adapter: ${caps.adapterInfo?.vendor ?? 'unknown'} ${caps.adapterInfo?.architecture ?? ''}`.trim()
+    );
   }
   const activationDtype = selectRuleValue('inference', 'dtype', 'f16OrF32FromDtype', {
     dtype: config.activationDtype,
@@ -101,15 +119,37 @@ export async function moeFeedForwardGPU(
     trace.buffers(`MoE L${layerIdx} router_logits`, { min, max, nanCount, dtype: logitsDtype });
   }
 
+  let gptOssKernelPathProfile = null;
+  if (modelType === 'gpt-oss') {
+    gptOssKernelPathProfile = await resolveGptOssKernelPathProfile({
+      hasF16: caps.hasF16,
+      hasSubgroups: caps.hasSubgroups,
+      routerDtype: logitsDtype,
+      weightsDtype: activationDtype,
+      outputDtype: activationDtype,
+      groupSize: 32,
+      tileShape: vendorProfile.dequantTileShape,
+    });
+  }
+
   stepStart = perfMark();
   const { indices: indicesBuffer, weights: weightsBuffer } = await runSoftmaxTopK(
     logitsBuffer,
     numTokens,
     numExperts,
     topK,
-    { normalize: moeRouter.normalizeWeights, inputDtype: logitsDtype, weightsDtype: activationDtype }
+    {
+      normalize: moeRouter.normalizeWeights,
+      inputDtype: logitsDtype,
+      weightsDtype: activationDtype,
+      modelType,
+    }
   );
-  perfLog(`MoE L${layerIdx} topk`, stepStart, { topK });
+  perfLog(`MoE L${layerIdx} topk`, stepStart, {
+    topK,
+    modelType,
+    routerTopKKernel: gptOssKernelPathProfile?.routerTopK ?? null,
+  });
 
   if (isTraceEnabled('buffers')) {
     const indicesData = await readBuffer(indicesBuffer, numTokens * topK * 4);
@@ -159,6 +199,12 @@ export async function moeFeedForwardGPU(
   const bytesPerElement = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: activationDtype });
   const bytesPerToken = hiddenSize * bytesPerElement;
   let maxTokensPerExpert = resolveMaxTokensPerExpert(numTokens, numExperts, topK, hiddenSize, activationDtype);
+  if (modelType === 'gpt-oss') {
+    maxTokensPerExpert = Math.max(
+      1,
+      Math.round(maxTokensPerExpert * vendorProfile.maxTokensPerExpertScale)
+    );
+  }
 
   let gathered;
   let tokenCounts;
@@ -248,7 +294,10 @@ export async function moeFeedForwardGPU(
         intermediateSize,
         numExperts,
         activationDtype,
-        swigluLimit
+        swigluLimit,
+        modelType,
+        vendorProfile,
+        gptOssKernelPathProfile
       );
     } else if (expertFormat === 'mixtral' && weights.gate && weights.up && weights.down) {
       await runMixtralExpert(
@@ -333,7 +382,10 @@ async function runGptOssExpert(
   intermediateSize,
   numExperts,
   activationDtype,
-  swigluLimit
+  swigluLimit,
+  modelType,
+  vendorProfile,
+  gptOssKernelPathProfile
 ) {
   const perfEnabled = isTraceEnabled('perf');
   const perfMark = () => (perfEnabled ? performance.now() : 0);
@@ -343,13 +395,6 @@ async function runGptOssExpert(
   };
 
   const outDim = intermediateSize * 2;
-
-  if (hiddenSize % 32 !== 0 || intermediateSize % 32 !== 0) {
-    throw new Error(
-      `[MoE] GPT-OSS MXFP4 expects hiddenSize and intermediateSize divisible by 32, got ` +
-      `hiddenSize=${hiddenSize} intermediateSize=${intermediateSize}`
-    );
-  }
 
   const gateUpGroups = hiddenSize / 32;
   const downGroups = intermediateSize / 32;
@@ -385,7 +430,12 @@ async function runGptOssExpert(
       totalExperts,
       outDim,
       gateUpGroups,
-      { outputDtype: activationDtype }
+      {
+        outputDtype: activationDtype,
+        modelType,
+        groupSize: 32,
+        dequantTileShape: vendorProfile.dequantTileShape,
+      }
     );
     const downTensor = await dequantizeMXFP4Expert(
       weights.downBlocks,
@@ -394,12 +444,21 @@ async function runGptOssExpert(
       totalExperts,
       hiddenSize,
       downGroups,
-      { outputDtype: activationDtype }
+      {
+        outputDtype: activationDtype,
+        modelType,
+        groupSize: 32,
+        dequantTileShape: vendorProfile.dequantTileShape,
+      }
     );
     gateUpWeight = gateUpTensor.buffer;
     downWeight = downTensor.buffer;
     setCachedDequant(layerIdx, expertIdx, activationDtype, gateUpWeight, downWeight);
-    perfLog(`MoE L${layerIdx} expert ${expertIdx} dequant`, stepStart, { hit: false });
+    perfLog(`MoE L${layerIdx} expert ${expertIdx} dequant`, stepStart, {
+      hit: false,
+      dequantTileShape: vendorProfile.dequantTileShape,
+      dequantKernel: gptOssKernelPathProfile?.dequantExpert ?? null,
+    });
   }
 
   const gateUpOut = await runMatmul(

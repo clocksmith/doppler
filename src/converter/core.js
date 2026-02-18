@@ -12,7 +12,12 @@ import {
 import { classifyTensorRole, generateShardFilename } from '../storage/rdrr-format.js';
 import { log } from '../debug/index.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
-import { createConverterConfig, detectPreset, resolvePreset } from '../config/index.js';
+import {
+  createConverterConfig,
+  detectPreset,
+  listPresets,
+  resolvePreset,
+} from '../config/index.js';
 import { buildManifestInference, inferEmbeddingOutputConfig } from './manifest-inference.js';
 import { resolveEosTokenId } from './tokenizer-utils.js';
 import {
@@ -26,6 +31,11 @@ import {
   quantizeToQ4KMRowWise,
   quantizeToQ4KMColumnWise,
 } from './quantizer.js';
+
+const CONVERSION_SUPPORTED_PRESETS = [...listPresets()]
+  .filter((presetId) => !['transformer', 'diffusion'].includes(presetId))
+  .sort()
+  .join(', ');
 
 // ============================================================================
 // Re-exports for Backward Compatibility
@@ -166,6 +176,118 @@ function resolveConfigTokenIds(rawConfig, key) {
   const direct = rawConfig?.[key];
   const nested = rawConfig?.text_config?.[key];
   return resolveTokenizerIds(direct ?? nested);
+}
+
+function resolveMoEConfigNumber(rawConfig, ...keys) {
+  for (const key of keys) {
+    const direct = rawConfig?.[key];
+    if (Number.isFinite(direct) && direct > 0) return Number(direct);
+    const nested = rawConfig?.text_config?.[key];
+    if (Number.isFinite(nested) && nested > 0) return Number(nested);
+  }
+  return null;
+}
+
+function modelHasMoETensors(model) {
+  if (!Array.isArray(model?.tensors)) return false;
+  return model.tensors.some((tensor) => {
+    const name = String(tensor?.name || '').toLowerCase();
+    return (
+      name.includes('.experts.') ||
+      name.includes('.expert.') ||
+      name.includes('block_sparse_moe')
+    );
+  });
+}
+
+function resolveMoEExpertFormat(rawConfig, resolvedModelType, quantizationInfo, explicitFormat) {
+  if (explicitFormat) return explicitFormat;
+  const fromQuant = quantizationInfo?.expertsFormat;
+  if (typeof fromQuant === 'string' && fromQuant.length > 0) {
+    return fromQuant;
+  }
+  const modelType = String(
+    resolvedModelType ??
+    rawConfig?.model_type ??
+    rawConfig?.text_config?.model_type ??
+    ''
+  ).toLowerCase();
+  if (modelType.includes('gpt_oss') || modelType.includes('gpt-oss') || modelType.includes('gptoss')) {
+    return 'gpt-oss';
+  }
+  return 'mixtral';
+}
+
+function normalizeMoEConfig(config, contextLabel) {
+  if (!config) return null;
+  const numExperts = Number(config.numExperts);
+  const numExpertsPerToken = Number(config.numExpertsPerToken);
+  const expertFormat = String(config.expertFormat || '').trim();
+  const allowedExpertFormat = expertFormat === 'gpt-oss' || expertFormat === 'mixtral';
+  if (!Number.isFinite(numExperts) || numExperts <= 0) {
+    throw new Error(`Invalid moeConfig.numExperts for ${contextLabel}`);
+  }
+  if (!Number.isFinite(numExpertsPerToken) || numExpertsPerToken <= 0) {
+    throw new Error(`Invalid moeConfig.numExpertsPerToken for ${contextLabel}`);
+  }
+  if (numExpertsPerToken > numExperts) {
+    throw new Error(`Invalid moeConfig for ${contextLabel}: numExpertsPerToken cannot exceed numExperts`);
+  }
+  if (!allowedExpertFormat) {
+    throw new Error(`Invalid moeConfig.expertFormat for ${contextLabel}: "${expertFormat}"`);
+  }
+  return {
+    numExperts,
+    numExpertsPerToken,
+    expertFormat,
+  };
+}
+
+function resolveManifestMoEConfig(model, options, rawConfig, resolvedModelType) {
+  const explicit = normalizeMoEConfig(options?.moeConfig ?? null, options?.modelId ?? 'model');
+  if (explicit) return explicit;
+
+  const hasMoETensors = modelHasMoETensors(model);
+  const numExperts = resolveMoEConfigNumber(rawConfig, 'num_local_experts', 'num_experts', 'expertCount');
+
+  // If the checkpoint does not expose MoE tensors and config does not declare experts,
+  // this is a dense model and should not emit moeConfig.
+  if (!hasMoETensors && (!numExperts || numExperts <= 1)) {
+    return null;
+  }
+
+  if (!numExperts || numExperts <= 0) {
+    throw new Error(
+      `MoE tensors detected for "${options?.modelId ?? 'model'}" but expert count is missing in config`
+    );
+  }
+
+  const numExpertsPerToken = resolveMoEConfigNumber(
+    rawConfig,
+    'num_experts_per_tok',
+    'num_experts_per_token',
+    'experts_per_token',
+    'expertUsedCount'
+  );
+
+  if (!numExpertsPerToken) {
+    throw new Error(
+      `MoE model "${options?.modelId ?? 'model'}" missing experts-per-token config ` +
+      '(expected num_experts_per_tok/num_experts_per_token/experts_per_token)'
+    );
+  }
+
+  const expertFormat = resolveMoEExpertFormat(
+    rawConfig,
+    resolvedModelType,
+    options?.quantizationInfo ?? null,
+    null
+  );
+
+  return normalizeMoEConfig(
+    { numExperts, numExpertsPerToken, expertFormat },
+    options?.modelId ?? 'model'
+  );
 }
 
 function buildSentencepieceTokenizer(tokenizerConfig, rawConfig, architecture, modelTokenizerModel) {
@@ -450,6 +572,9 @@ export function createManifest(
     isDiffusion ? 'diffusion' : extractArchitecture(model.config, model.ggufConfig)
   );
   const rawConfig = model.config || {};
+  const moeConfig = isDiffusion
+    ? null
+    : resolveManifestMoEConfig(model, { ...options, modelId }, rawConfig, resolvedModelType);
   let inference = options.inference;
   if (!inference) {
     if (isDiffusion) {
@@ -466,7 +591,7 @@ export function createManifest(
           `  1. Wait for official support of this model family\n` +
           `  2. Create a custom preset in src/config/presets/models/\n` +
           `  3. File an issue at https://github.com/clocksmith/doppler/issues\n\n` +
-          `Supported model families: gemma2, gemma3, embeddinggemma, modernbert, llama3, qwen3, mixtral, deepseek, mamba, gpt-oss`
+          `Supported model families: ${CONVERSION_SUPPORTED_PRESETS}`
         );
       }
       const preset = resolvePreset(presetId);
@@ -517,6 +642,7 @@ export function createManifest(
     quantization: resolvedQuantization,
     quantizationInfo: options.quantizationInfo ?? undefined,
     architecture,
+    moeConfig,
     inference,
     shards,
     tensors: tensorLocations,

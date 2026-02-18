@@ -23,6 +23,7 @@ export interface SoftmaxTopKOptions {
   normalize?: boolean;
   inputDtype?: 'f16' | 'f32';
   weightsDtype?: 'f16' | 'f32';
+  modelType?: string | null;
 }
 
 /**

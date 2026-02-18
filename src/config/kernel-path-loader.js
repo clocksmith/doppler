@@ -12,53 +12,116 @@ const loadJson = async (path) => {
   return response.json();
 };
 
-const gemma2Q4kFusedF16A = await loadJson('./presets/kernel-paths/gemma2-q4k-fused-f16a.json');
-const gemma2Q4kFusedF16AWg128 = await loadJson('./presets/kernel-paths/gemma2-q4k-fused-f16a-wg128.json');
-const gemma2Q4kFusedF32A = await loadJson('./presets/kernel-paths/gemma2-q4k-fused-f32a.json');
-const gemma2Q4kDequantF16A = await loadJson('./presets/kernel-paths/gemma2-q4k-dequant-f16a.json');
-const gemma2Q4kDequantF32A = await loadJson('./presets/kernel-paths/gemma2-q4k-dequant-f32a.json');
-const gemma2F16F16A = await loadJson('./presets/kernel-paths/gemma2-f16-f16a.json');
-const gemma2F16F32A = await loadJson('./presets/kernel-paths/gemma2-f16-f32a.json');
-const gemma3F16F16A = await loadJson('./presets/kernel-paths/gemma3-f16-f16a.json');
-const gemma3F16F32A = await loadJson('./presets/kernel-paths/gemma3-f16-f32a.json');
-const gemma3F16F16AOnline = await loadJson('./presets/kernel-paths/gemma3-f16-f16a-online.json');
-const gemma3Q4kDequantF16A = await loadJson('./presets/kernel-paths/gemma3-q4k-dequant-f16a.json');
-const gemma3Q4kDequantF32A = await loadJson('./presets/kernel-paths/gemma3-q4k-dequant-f32a.json');
-const embeddingGemmaF16F32A = await loadJson('./presets/kernel-paths/embeddinggemma-f16-f32a.json');
-const embeddingGemmaF32F32A = await loadJson('./presets/kernel-paths/embeddinggemma-f32-f32a.json');
-const embeddingGemmaQ4kDequantF32A = await loadJson('./presets/kernel-paths/embeddinggemma-q4k-dequant-f32a.json');
+function parseKernelPathRegistry(raw) {
+  if (!raw || typeof raw !== 'object') {
+    throw new Error('Kernel path registry must be a JSON object');
+  }
 
-const KERNEL_PATH_REGISTRY = {
-  // Gemma 2 Q4K variants
-  'gemma2-q4k-fused-f16a': gemma2Q4kFusedF16A,
-  'gemma2-q4k-fused-f16a-wg128': gemma2Q4kFusedF16AWg128,
-  'gemma2-q4k-fused-f32a': gemma2Q4kFusedF32A,
-  'gemma2-q4k-dequant-f16a': gemma2Q4kDequantF16A,
-  'gemma2-q4k-dequant-f32a': gemma2Q4kDequantF32A,
+  const entries = Array.isArray(raw.entries) ? raw.entries : [];
+  if (entries.length === 0) {
+    throw new Error('Kernel path registry has no entries');
+  }
 
-  // Gemma 2 F16 variants
-  'gemma2-f16-f16a': gemma2F16F16A,
-  'gemma2-f16-f32a': gemma2F16F32A,
+  const byId = new Map();
+  const normalized = [];
 
-  // Gemma 3 variants
-  'gemma3-f16-f16a': gemma3F16F16A,
-  'gemma3-f16-f32a': gemma3F16F32A,
-  'gemma3-f16-f16a-online': gemma3F16F16AOnline,
-  // Compatibility alias: legacy fused id resolves to canonical dequant path.
-  'gemma3-q4k-fused-f16a': gemma3Q4kDequantF16A,
-  'gemma3-q4k-dequant-f16a': gemma3Q4kDequantF16A,
-  'gemma3-q4k-dequant-f32a': gemma3Q4kDequantF32A,
+  for (const entry of entries) {
+    if (!entry || typeof entry !== 'object') {
+      throw new Error('Kernel path registry entry must be an object');
+    }
+    if (typeof entry.id !== 'string' || entry.id.trim() === '') {
+      throw new Error('Kernel path registry entry is missing required string id');
+    }
 
-  // EmbeddingGemma variants
-  // Compatibility alias: legacy f16a id now resolves to f32 activations.
-  'embeddinggemma-f16-f16a': embeddingGemmaF16F32A,
-  'embeddinggemma-f16-f32a': embeddingGemmaF16F32A,
-  'embeddinggemma-f32-f32a': embeddingGemmaF32F32A,
-  // Compatibility aliases: legacy f16a ids now resolve to f32 activations.
-  'embeddinggemma-q4k-fused-f16a': embeddingGemmaQ4kDequantF32A,
-  'embeddinggemma-q4k-dequant-f16a': embeddingGemmaQ4kDequantF32A,
-  'embeddinggemma-q4k-dequant-f32a': embeddingGemmaQ4kDequantF32A,
+    const id = entry.id.trim();
+    if (byId.has(id)) {
+      throw new Error(`Duplicate kernel path registry id: ${id}`);
+    }
+
+    const trimmedAliasOf = typeof entry.aliasOf === 'string' && entry.aliasOf.trim() !== ''
+      ? entry.aliasOf.trim()
+      : null;
+    const trimmedFile = typeof entry.file === 'string' && entry.file.trim() !== ''
+      ? entry.file.trim()
+      : null;
+
+    if (!trimmedAliasOf && !trimmedFile) {
+      throw new Error(`Kernel path registry entry "${id}" must include file or aliasOf`);
+    }
+
+    normalized.push({
+      ...entry,
+      id,
+      aliasOf: trimmedAliasOf,
+      file: trimmedFile,
+      status: typeof entry.status === 'string' ? entry.status : 'canonical',
+    });
+    byId.set(id, normalized[normalized.length - 1]);
+  }
+
+  return normalized;
+}
+
+const KERNEL_PATH_REGISTRY_ENTRIES = parseKernelPathRegistry(
+  await loadJson('./presets/kernel-paths/registry.json')
+);
+
+const KERNEL_PATH_REGISTRY_BY_FILE = new Map(
+  await Promise.all(
+    [...new Set(KERNEL_PATH_REGISTRY_ENTRIES
+      .map((entry) => entry.file)
+      .filter((fileName) => typeof fileName === 'string'))
+    ].map(async (fileName) => [
+      fileName,
+      await loadJson(`./presets/kernel-paths/${fileName}`),
+    ])
+  )
+);
+
+const KERNEL_PATH_REGISTRY_INDEX = new Map(
+  KERNEL_PATH_REGISTRY_ENTRIES.map((entry) => [entry.id, entry])
+);
+
+const KERNEL_PATH_REGISTRY = Object.create(null);
+
+const resolveKernelPathConfig = (id, chain = new Set()) => {
+  if (KERNEL_PATH_REGISTRY[id] !== undefined) {
+    return KERNEL_PATH_REGISTRY[id];
+  }
+
+  const entry = KERNEL_PATH_REGISTRY_INDEX.get(id);
+  if (!entry) {
+    throw new Error(`Unknown kernel path in registry: ${id}`);
+  }
+
+  if (chain.has(id)) {
+    throw new Error(`Kernel path alias cycle detected: ${[...chain, id].join(' -> ')}`);
+  }
+
+  const nextChain = new Set(chain);
+  nextChain.add(id);
+
+  if (entry.file) {
+    const resolved = KERNEL_PATH_REGISTRY_BY_FILE.get(entry.file);
+    if (!resolved) {
+      throw new Error(`Kernel path registry entry ${id} references missing file: ${entry.file}`);
+    }
+    KERNEL_PATH_REGISTRY[id] = resolved;
+    return resolved;
+  }
+
+  if (!entry.aliasOf) {
+    throw new Error(`Kernel path registry entry ${id} is missing aliasOf and file`);
+  }
+
+  const resolved = resolveKernelPathConfig(entry.aliasOf, nextChain);
+  KERNEL_PATH_REGISTRY[id] = resolved;
+  return resolved;
 };
+
+for (const entry of KERNEL_PATH_REGISTRY_ENTRIES) {
+  resolveKernelPathConfig(entry.id);
+}
 
 // =============================================================================
 // Public API

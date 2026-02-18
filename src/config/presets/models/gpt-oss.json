@@ -27,6 +27,16 @@
       "activation": "silu",
       "gatedActivation": true
     },
+    "moe": {
+      "kernelProfileId": "gpt-oss-moe-v1",
+      "supportedActivationDtypes": ["f16", "f32"],
+      "preferredActivationDtype": "f16",
+      "shapeConstraints": {
+        "hiddenSizeDivisor": 32,
+        "intermediateSizeDivisor": 32,
+        "groupSize": 32
+      }
+    },
     "layerPattern": {
       "type": "alternating",
       "globalPattern": "odd",

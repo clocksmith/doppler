@@ -57,18 +57,26 @@ Dimensions come from the model manifest at runtime.
 
 ## Kernel Path Registry
 
-| ID | Default For | Description |
-|----|-------------|-------------|
-| `gemma2-f16-f16a` | Gemma 2 F16 | F16 weights, F16 activations |
-| `gemma2-f16-f32a` | Gemma 2 F16 (no shader-f16) | F16 weights, F32 activations |
-| `gemma2-q4k-dequant-f16a` | Gemma 2 Q4K | Q4K dequant path (safe) |
-| `gemma2-q4k-fused-f16a` | (opt-in) | Q4K fused path (experimental) |
-| `gemma2-q4k-fused-f32a` | Gemma 2 Q4K + F32 compute | Q4K fused with F32 |
-| `gemma3-f16-f16a` | Gemma 3 F16 | F16, no softcapping |
-| `gemma3-q4k-dequant-f16a` | Gemma 3 Q4K | Q4K dequant, no softcapping |
-| `embeddinggemma-f16-f32a` | EmbeddingGemma F16 | F16 weights, F32 activations |
-| `embeddinggemma-f32-f32a` | EmbeddingGemma F32 | F32 weights, F32 activations |
-| `embeddinggemma-q4k-dequant-f32a` | EmbeddingGemma Q4K | Q4K dequant path, F32 activations |
+Source of truth for kernel-path IDs is `src/config/presets/kernel-paths/registry.json`.
+
+This registry is the only place to define kernel-path identity, status, and compatibility.
+`kernel-path-loader.js` resolves all IDs from this file at runtime.
+
+### Path Status
+
+- `canonical`: expected for conversion defaults and public use.
+- `experimental`: active probes/tuning path, not implied as a default.
+- `legacy`: compatibility-only entry that must resolve to a canonical target.
+
+```bash
+node -e "const fs = require('node:fs'); const json = JSON.parse(fs.readFileSync('src/config/presets/kernel-paths/registry.json', 'utf8')); console.log(json.entries.map((e) => e.id).join(', '));"
+```
+
+To inspect lifecycle history and alias chains:
+
+```bash
+node -e "const fs = require('node:fs'); const json = JSON.parse(fs.readFileSync('src/config/presets/kernel-paths/registry.json', 'utf8')); console.log(json.entries.filter((e) => e.status === 'legacy').map((e) => `${e.id} -> ${e.aliasOf}`).join('\n'));"
+```
 
 ### Default Selection Logic
 
@@ -109,9 +117,11 @@ defaults → preset → config file → inline JSON
    - Copy from similar family (gemma2 → gemma3)
    - Adjust constants (softcapping, etc.)
 
-3. **Register kernel paths** in `kernel-path-loader.js`:
-   - Import JSON files
-   - Add to `KERNEL_PATH_REGISTRY`
+3. **Register kernel paths** in `src/config/presets/kernel-paths/registry.json`:
+  - Add a new entry to `src/config/presets/kernel-paths/registry.json`
+  - Set `status` (`canonical`, `experimental`, or `legacy`)
+  - Reference the JSON file for canonical paths, or `aliasOf` for compatibility-only aliases
+  - Keep old IDs as `legacy` and point them to the replacement target until callers migrate
 
 4. **Test**:
    - Convert model in the demo UI (Import → Convert)
@@ -120,15 +130,13 @@ defaults → preset → config file → inline JSON
 
 ## MoE Models (GPT-OSS, Mixtral)
 
-MoE models use **runtime kernel selection** instead of explicit kernel paths.
-The `moe.js` and `scatter_add.js` kernels are selected dynamically based on:
-- Number of experts
-- Tokens per expert
-- GPU capabilities
-Runtime selection should use rule maps (not ad-hoc if/ternary) so variant
-choices stay auditable and consistent with the style guides.
+MoE models use **runtime kernel selection** with explicit profile config:
+- `src/config/kernels/moe/gpt-oss.paths.json` (profile rules)
+- `src/rules/kernels/moe.rules.gptoss.json` (vendor quirks and constraints)
 
-MoE kernel path configs are not yet implemented.
+The `moe` runtime resolves kernels from rule maps and capability context
+(`hasF16`, `hasSubgroups`, vendor), then validates shape policy before dispatch.
+No silent fallback is allowed in GPT-OSS mode when required capabilities are absent.
 
 ## Kernel Audit
 

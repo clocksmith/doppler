@@ -234,6 +234,7 @@ export function resolveConfig(
       ...baseInference.ffn,
       ...presetInference.ffn,
     },
+    moe: presetInference.moe ?? baseInference.moe ?? null,
     output: {
       ...baseInference.output,
       ...presetInference.output,
@@ -352,8 +353,35 @@ function extractInferenceFromConfig(config) {
 function extractTokenizerFromManifest(manifest) {
   if (!manifest.tokenizer) return {};
 
-  return {
-  };
+  const tokenizer = manifest.tokenizer;
+  if (typeof tokenizer !== 'object') return {};
+
+  const fields = [
+    'type',
+    'file',
+    'vocabSize',
+    'modelId',
+    'sentencepieceModel',
+    'hfModel',
+    'allowArchFallback',
+    'bosTokenId',
+    'eosTokenId',
+    'eosTokens',
+    'padTokenId',
+    'unkTokenId',
+    'addBosToken',
+    'addEosToken',
+    'specialTokens',
+  ];
+
+  const out = {};
+  for (const field of fields) {
+    if (tokenizer[field] !== undefined) {
+      out[field] = tokenizer[field];
+    }
+  }
+
+  return out;
 }
 
 // =============================================================================
@@ -456,6 +484,7 @@ function mergeInference(parent, child) {
     attention: mergePartial(parent.attention, child.attention),
     normalization: mergePartial(parent.normalization, child.normalization),
     ffn: mergePartial(parent.ffn, child.ffn),
+    moe: child.moe !== undefined ? child.moe : parent.moe,
     output: mergePartial(parent.output, child.output),
     layerPattern: child.layerPattern !== undefined ? child.layerPattern : parent.layerPattern,
     rope: mergePartial(parent.rope, child.rope),

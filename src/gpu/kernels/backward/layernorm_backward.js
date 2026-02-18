@@ -3,6 +3,7 @@ import { acquireBuffer } from '../../../memory/buffer-pool.js';
 import { createPipeline, createUniformBufferWithView } from '../utils.js';
 import { dispatch, recordDispatch } from '../dispatch.js';
 import { WORKGROUP_SIZES } from '../constants.js';
+import { getDevice } from '../../device.js';
 
 export async function runLayerNormBackward(input, weight, gradOutput, options = {}) {
   const {
@@ -18,7 +19,7 @@ export async function runLayerNormBackward(input, weight, gradOutput, options = 
     throw new Error('layernorm backward requires numTokens and hiddenSize');
   }
 
-  const device = input.buffer.device || weight.buffer.device; // infer device
+  const device = getDevice();
   const outputSize = numTokens * hiddenSize * 4; // f32
   const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'layernorm_backward_output');
   

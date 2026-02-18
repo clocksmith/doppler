@@ -27,6 +27,7 @@ export async function runMoEFFNGPU(
     inputTensor.buffer,
     numTokens,
     {
+      modelType: config.modelType ?? (config.expertFormat === 'gpt-oss' ? 'gpt-oss' : null),
       hiddenSize: config.hiddenSize,
       intermediateSize: config.intermediateSize,
       numExperts: config.numExperts,

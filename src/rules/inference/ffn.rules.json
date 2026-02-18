@@ -10,11 +10,11 @@
         "hasUp": true,
         "hasDown": true,
         "hasFusedWeights": false,
-        "inputIsF32": true,
+        "inputIsSupported": true,
         "hasLoRA": false,
         "dtypeMatches": true,
         "dtypeSupported": true,
-        "f16BatchOk": true
+        "f16BatchSupported": true
       },
       "value": true
     },

@@ -261,9 +261,23 @@ export async function dequantizeMXFP4Expert(
   options = {}
 ) {
   const device = getDevice();
-  const { outputBuffer = null, outputDtype = 'f32' } = options;
+  const {
+    outputBuffer = null,
+    outputDtype = 'f32',
+    modelType = null,
+    groupSize = 32,
+    dequantTileShape = 'scalar',
+  } = options;
+  const caps = getKernelCapabilities();
 
-  const variant = selectKernelRuleValue('dequant', 'mxfp4ExpertVariant', { outputDtype });
+  const variant = selectKernelRuleValue('dequant', 'mxfp4ExpertVariant', {
+    modelType,
+    outputDtype,
+    groupSize,
+    dequantTileShape,
+    hasF16: caps?.hasF16 ?? false,
+    hasSubgroups: caps?.hasSubgroups ?? false,
+  });
   const pipeline = await getPipelineFast('dequant', variant);
 
   // Output is [out_dim, num_groups * 32] as F32

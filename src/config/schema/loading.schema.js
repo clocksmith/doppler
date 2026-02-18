@@ -60,6 +60,12 @@ export const DEFAULT_EXPERT_CACHE_CONFIG = {
   defaultSizeBytes: 2 * GB,
   maxBufferPercentage: 0.25, // 25% of max buffer
   maxBufferFallbackBytes: 256 * MB,
+  evictionHighWatermark: 0.9,
+  emergencyTrimToRatio: 0.75,
+  gptOssPager: {
+    enabled: true,
+    maxResidentLayers: 2,
+  },
 };
 
 // =============================================================================

@@ -1,7 +1,7 @@
 {
   "id": "gemma3-f16-f16a-online",
-  "name": "Gemma 3 F16 (F16 activations, online alias)",
-  "description": "Online preset alias for Gemma 3 F16/F16A; currently mirrors the base Gemma 3 F16 path.",
+  "name": "Gemma 3 F16 (F16 activations, online tuned)",
+  "description": "Online-tuned Gemma 3 F16 path with decode lm_head retile overrides.",
   "activationDtype": "f16",
 
   "decode": {
@@ -12,7 +12,7 @@
       { "op": "v_proj",       "kernel": "matmul_gemv_subgroup_f16a.wgsl", "entry": "main_vec4",  "weights": "layer.{L}.self_attn.v_proj" },
       { "op": "rope_q",       "kernel": "rope_f16.wgsl",            "entry": "main" },
       { "op": "rope_k",       "kernel": "rope_f16.wgsl",            "entry": "main" },
-      { "op": "attention",    "kernel": "attention_decode_chunked_f16.wgsl", "entry": "main" },
+      { "op": "attention",    "kernel": "attention_decode_online_f16.wgsl", "entry": "main" },
       { "op": "o_proj",       "kernel": "matmul_gemv_subgroup_f16a.wgsl", "entry": "main_vec4",  "weights": "layer.{L}.self_attn.o_proj" },
       { "op": "attn_residual","kernel": "residual_f16.wgsl",        "entry": "main" },
       { "op": "post_attn_norm","kernel": "rmsnorm_f16.wgsl",        "entry": "main" },
@@ -27,19 +27,19 @@
   "prefill": {
     "steps": [
       { "op": "input_norm",   "kernel": "rmsnorm_f16.wgsl",         "entry": "main" },
-      { "op": "q_proj",       "kernel": "matmul_f16.wgsl", "entry": "main",  "weights": "layer.{L}.self_attn.q_proj" },
-      { "op": "k_proj",       "kernel": "matmul_f16.wgsl", "entry": "main",  "weights": "layer.{L}.self_attn.k_proj" },
-      { "op": "v_proj",       "kernel": "matmul_f16.wgsl", "entry": "main",  "weights": "layer.{L}.self_attn.v_proj" },
+      { "op": "q_proj",       "kernel": "matmul_f16_tiled.wgsl", "entry": "main",  "weights": "layer.{L}.self_attn.q_proj" },
+      { "op": "k_proj",       "kernel": "matmul_f16_tiled.wgsl", "entry": "main",  "weights": "layer.{L}.self_attn.k_proj" },
+      { "op": "v_proj",       "kernel": "matmul_f16_tiled.wgsl", "entry": "main",  "weights": "layer.{L}.self_attn.v_proj" },
       { "op": "rope_q",       "kernel": "rope_f16.wgsl",            "entry": "main" },
       { "op": "rope_k",       "kernel": "rope_f16.wgsl",            "entry": "main" },
       { "op": "attention",    "kernel": "attention_streaming_f16.wgsl", "entry": "main" },
-      { "op": "o_proj",       "kernel": "matmul_f16.wgsl", "entry": "main",  "weights": "layer.{L}.self_attn.o_proj" },
+      { "op": "o_proj",       "kernel": "matmul_f16_tiled.wgsl", "entry": "main",  "weights": "layer.{L}.self_attn.o_proj" },
       { "op": "attn_residual","kernel": "residual_f16.wgsl",        "entry": "main" },
       { "op": "post_attn_norm","kernel": "rmsnorm_f16.wgsl",        "entry": "main" },
-      { "op": "gate_proj",    "kernel": "matmul_f16.wgsl", "entry": "main",  "weights": "layer.{L}.mlp.gate_proj" },
-      { "op": "up_proj",      "kernel": "matmul_f16.wgsl", "entry": "main",  "weights": "layer.{L}.mlp.up_proj" },
+      { "op": "gate_proj",    "kernel": "matmul_f16_tiled.wgsl", "entry": "main",  "weights": "layer.{L}.mlp.gate_proj" },
+      { "op": "up_proj",      "kernel": "matmul_f16_tiled.wgsl", "entry": "main",  "weights": "layer.{L}.mlp.up_proj" },
       { "op": "activation",   "kernel": "gelu_f16.wgsl",            "entry": "main", "constants": { "HAS_GATE": true } },
-      { "op": "down_proj",    "kernel": "matmul_f16.wgsl", "entry": "main",  "weights": "layer.{L}.mlp.down_proj" },
+      { "op": "down_proj",    "kernel": "matmul_f16_tiled.wgsl", "entry": "main",  "weights": "layer.{L}.mlp.down_proj" },
       { "op": "ffn_residual", "kernel": "residual_f16.wgsl",        "entry": "main" }
     ]
   },
@@ -50,8 +50,8 @@
 
   "postLayer": [
     { "op": "final_norm",   "kernel": "rmsnorm_f16.wgsl",          "entry": "main" },
-    { "op": "lm_head",      "kernel": "matmul_gemv_subgroup_f16a.wgsl", "entry": "main_multicol",  "weights": "lm_head" },
-    { "op": "lm_head_prefill", "kernel": "matmul_f16.wgsl", "entry": "main",  "weights": "lm_head" }
+    { "op": "lm_head",      "kernel": "matmul_gemv_subgroup_f16a.wgsl", "entry": "main_multicol",  "weights": "lm_head", "constants": { "MULTICOL_COLS_PER_WG": 64, "MULTICOL_THREADS_PER_COL": 4 } },
+    { "op": "lm_head_prefill", "kernel": "matmul_f16_tiled.wgsl", "entry": "main",  "weights": "lm_head" }
   ],
 
   "sampling": [

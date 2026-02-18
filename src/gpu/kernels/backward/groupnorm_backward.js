@@ -12,6 +12,7 @@ const { run, record } = createBackwardKernel('groupnorm_backward', {
   calcWorkgroups: (opts) => opts.numGroups,
   outputBytes: (opts) => opts.channels * opts.height * opts.width * 4,
   outputShape: (opts) => [opts.channels, opts.height, opts.width],
+  getDevice: true,
   validate: (opts) => {
     if (!opts.channels || !opts.height || !opts.width || !opts.numGroups) {
       throw new Error('groupnorm backward requires all dimensions');

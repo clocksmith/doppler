@@ -38,7 +38,8 @@ async function applyRuntimeInputs(request, options = {}) {
   }
 
   if (request.runtimeConfig) {
-    setRuntimeConfig(request.runtimeConfig);
+    const mergedRuntime = mergeRuntimeValues(getRuntimeConfig(), request.runtimeConfig);
+    setRuntimeConfig(mergedRuntime);
   }
 
   const patch = buildRuntimeContractPatch(request);

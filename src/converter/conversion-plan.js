@@ -1,5 +1,5 @@
 import { resolveKernelPath } from '../config/kernel-path-loader.js';
-import { detectPreset, resolvePreset } from '../config/loader.js';
+import { detectPreset, listPresets, resolvePreset } from '../config/loader.js';
 import { DEFAULT_MANIFEST_INFERENCE } from '../config/schema/index.js';
 import { buildManifestInference } from './manifest-inference.js';
 import {
@@ -10,7 +10,11 @@ import {
 import { sanitizeModelId } from './core.js';
 import { classifyTensorRole } from '../storage/rdrr-format.js';
 
-const SUPPORTED_MODEL_FAMILIES = 'gemma2, gemma3, embeddinggemma, modernbert, llama3, qwen3, mixtral, deepseek, mamba, gpt-oss';
+const KNOWN_MODEL_PRESETS = new Set(listPresets());
+const CONVERSION_SUPPORTED_PRESETS = [...KNOWN_MODEL_PRESETS]
+  .filter((presetId) => !['transformer', 'diffusion'].includes(presetId))
+  .sort()
+  .join(', ');
 
 function normalizeWeightDtype(dtype) {
   const upper = String(dtype || '').toUpperCase();
@@ -53,7 +57,7 @@ function buildUnknownFamilyError(architectureHint, rawConfig, includePresetOverr
     overrideHint +
     createPresetHint +
     issueHint +
-    `Supported model families: ${SUPPORTED_MODEL_FAMILIES}`
+    `Supported model families: ${CONVERSION_SUPPORTED_PRESETS}`
   );
 }
 

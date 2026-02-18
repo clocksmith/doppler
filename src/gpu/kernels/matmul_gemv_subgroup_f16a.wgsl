@@ -90,27 +90,26 @@ fn main(
 
         if (u.transpose_b == 1u) {
             // B is [N, K] (SafeTensors/row-major): B[col, k] = B[col * K + k]
+            // Contiguous access for both A and B — use native f16 dot products
             let b_row_offset = col * u.K;
 
             for (; k < k_aligned_end; k = k + 4u) {
-                let a0 = f32(A[k]);
-                let a1 = f32(A[k + 1u]);
-                let a2 = f32(A[k + 2u]);
-                let a3 = f32(A[k + 3u]);
-
-                let b0 = f32(B[b_row_offset + k]);
-                let b1 = f32(B[b_row_offset + k + 1u]);
-                let b2 = f32(B[b_row_offset + k + 2u]);
-                let b3 = f32(B[b_row_offset + k + 3u]);
-
-                partial_sum = partial_sum + a0 * b0 + a1 * b1 + a2 * b2 + a3 * b3;
+                let a_vec = vec4<f16>(A[k], A[k + 1u], A[k + 2u], A[k + 3u]);
+                let b_vec = vec4<f16>(
+                    B[b_row_offset + k],
+                    B[b_row_offset + k + 1u],
+                    B[b_row_offset + k + 2u],
+                    B[b_row_offset + k + 3u]
+                );
+                partial_sum += f32(dot(a_vec, b_vec));
             }
 
             for (; k < k_end; k = k + 1u) {
-                partial_sum = partial_sum + f32(A[k]) * f32(B[b_row_offset + k]);
+                partial_sum += f32(A[k]) * f32(B[b_row_offset + k]);
             }
         } else {
             // B is [K, N] (GGUF/column-major): B[k, col] = B[k * N + col]
+            // Non-contiguous B access — keep scalar f32 path
             for (; k < k_aligned_end; k = k + 4u) {
                 let a0 = f32(A[k]);
                 let a1 = f32(A[k + 1u]);
@@ -163,9 +162,10 @@ fn main(
 // - 262144/32 = 8192 workgroups (8x fewer than base kernel)
 // - Each thread handles more K elements, better amortizing A loads
 //
-// Layout: 256 threads = 8 threads per column × 32 columns
-const MULTICOL_COLS_PER_WG: u32 = 32u;
-const MULTICOL_THREADS_PER_COL: u32 = 8u;  // 256 / 32 = 8
+// Layout defaults: 256 threads = 8 threads per column × 32 columns.
+// Tune-time overrides can retile this without changing entry points.
+override MULTICOL_COLS_PER_WG: u32 = 32u;
+override MULTICOL_THREADS_PER_COL: u32 = 8u;
 const MULTICOL_MAX_SUBGROUPS: u32 = 8u;    // Support sg_size >= 1 (unlikely but safe)
 
 // Shared memory for reduction (one slot per thread)
@@ -207,24 +207,22 @@ fn main_multicol(
 
         if (u.transpose_b == 1u) {
             // B is [N, K] (SafeTensors/row-major): B[col, k] = B[col * K + k]
+            // Contiguous access — use native f16 dot products
             let b_row_offset = col * u.K;
 
             for (; k < k_aligned_end; k = k + 4u) {
-                let a0 = f32(A[k]);
-                let a1 = f32(A[k + 1u]);
-                let a2 = f32(A[k + 2u]);
-                let a3 = f32(A[k + 3u]);
-
-                let b0 = f32(B[b_row_offset + k]);
-                let b1 = f32(B[b_row_offset + k + 1u]);
-                let b2 = f32(B[b_row_offset + k + 2u]);
-                let b3 = f32(B[b_row_offset + k + 3u]);
-
-                partial_sum = partial_sum + a0 * b0 + a1 * b1 + a2 * b2 + a3 * b3;
+                let a_vec = vec4<f16>(A[k], A[k + 1u], A[k + 2u], A[k + 3u]);
+                let b_vec = vec4<f16>(
+                    B[b_row_offset + k],
+                    B[b_row_offset + k + 1u],
+                    B[b_row_offset + k + 2u],
+                    B[b_row_offset + k + 3u]
+                );
+                partial_sum += f32(dot(a_vec, b_vec));
             }
 
             for (; k < k_end; k = k + 1u) {
-                partial_sum = partial_sum + f32(A[k]) * f32(B[b_row_offset + k]);
+                partial_sum += f32(A[k]) * f32(B[b_row_offset + k]);
             }
         } else {
             // B is [K, N] (GGUF/column-major): B[k, col] = B[k * N + col]
@@ -295,21 +293,19 @@ fn main_vec4(
 
         if (u.transpose_b == 1u) {
             // B is [N, K] (SafeTensors/row-major): B[col, k] = B[col * K + k]
+            // Contiguous access — use native f16 dot products
             let b_row_offset = col * u.K;
 
             for (var k4: u32 = k4_start; k4 < k4_end; k4 = k4 + 1u) {
                 let k = k4 * 4u;
-
-                let a = vec4<f32>(f32(A[k]), f32(A[k + 1u]), f32(A[k + 2u]), f32(A[k + 3u]));
-
-                let b = vec4<f32>(
-                    f32(B[b_row_offset + k]),
-                    f32(B[b_row_offset + k + 1u]),
-                    f32(B[b_row_offset + k + 2u]),
-                    f32(B[b_row_offset + k + 3u])
+                let a_vec = vec4<f16>(A[k], A[k + 1u], A[k + 2u], A[k + 3u]);
+                let b_vec = vec4<f16>(
+                    B[b_row_offset + k],
+                    B[b_row_offset + k + 1u],
+                    B[b_row_offset + k + 2u],
+                    B[b_row_offset + k + 3u]
                 );
-
-                partial_sum = partial_sum + dot(a, b);
+                partial_sum += f32(dot(a_vec, b_vec));
             }
         } else {
             // B is [K, N] (GGUF/column-major): B[k, col] = B[k * N + col]
@@ -384,21 +380,18 @@ fn main_cols8(
             let b_row_offset = col * u.K;
 
             for (; k < k_aligned_end; k = k + 4u) {
-                let a0 = f32(A[k]);
-                let a1 = f32(A[k + 1u]);
-                let a2 = f32(A[k + 2u]);
-                let a3 = f32(A[k + 3u]);
-
-                let b0 = f32(B[b_row_offset + k]);
-                let b1 = f32(B[b_row_offset + k + 1u]);
-                let b2 = f32(B[b_row_offset + k + 2u]);
-                let b3 = f32(B[b_row_offset + k + 3u]);
-
-                partial_sum = partial_sum + a0 * b0 + a1 * b1 + a2 * b2 + a3 * b3;
+                let a_vec = vec4<f16>(A[k], A[k + 1u], A[k + 2u], A[k + 3u]);
+                let b_vec = vec4<f16>(
+                    B[b_row_offset + k],
+                    B[b_row_offset + k + 1u],
+                    B[b_row_offset + k + 2u],
+                    B[b_row_offset + k + 3u]
+                );
+                partial_sum += f32(dot(a_vec, b_vec));
             }
 
             for (; k < k_end; k = k + 1u) {
-                partial_sum = partial_sum + f32(A[k]) * f32(B[b_row_offset + k]);
+                partial_sum += f32(A[k]) * f32(B[b_row_offset + k]);
             }
         } else {
             for (; k < k_aligned_end; k = k + 4u) {
@@ -473,17 +466,14 @@ fn main_vec4_cols8(
 
             for (var k4: u32 = k4_start; k4 < k4_end; k4 = k4 + 1u) {
                 let k = k4 * 4u;
-
-                let a = vec4<f32>(f32(A[k]), f32(A[k + 1u]), f32(A[k + 2u]), f32(A[k + 3u]));
-
-                let b = vec4<f32>(
-                    f32(B[b_row_offset + k]),
-                    f32(B[b_row_offset + k + 1u]),
-                    f32(B[b_row_offset + k + 2u]),
-                    f32(B[b_row_offset + k + 3u])
+                let a_vec = vec4<f16>(A[k], A[k + 1u], A[k + 2u], A[k + 3u]);
+                let b_vec = vec4<f16>(
+                    B[b_row_offset + k],
+                    B[b_row_offset + k + 1u],
+                    B[b_row_offset + k + 2u],
+                    B[b_row_offset + k + 3u]
                 );
-
-                partial_sum = partial_sum + dot(a, b);
+                partial_sum += f32(dot(a_vec, b_vec));
             }
         } else {
             for (var k4: u32 = k4_start; k4 < k4_end; k4 = k4 + 1u) {

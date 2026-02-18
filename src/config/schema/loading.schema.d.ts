@@ -113,6 +113,18 @@ export interface ExpertCacheConfigSchema {
 
   /** Fallback maxBufferSize when adapter limits are unavailable */
   maxBufferFallbackBytes: number;
+
+  /** Watermark ratio (0-1) that triggers eager eviction before hard limit */
+  evictionHighWatermark: number;
+
+  /** Target ratio (0-1) after emergency trim when over max size */
+  emergencyTrimToRatio: number;
+
+  /** GPT-OSS packed expert pager controls */
+  gptOssPager: {
+    enabled: boolean;
+    maxResidentLayers: number;
+  };
 }
 
 /** Default expert cache configuration */

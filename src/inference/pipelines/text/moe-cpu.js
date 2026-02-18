@@ -6,6 +6,7 @@ import { createExpertExecutionPlan, combineExpertOutputs } from '../../moe-route
 import { log } from '../../../debug/index.js';
 import { ensureExpertLoaded, gatherTokens } from './moe-helpers.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
+import { runGptOssExpertCPU } from './moe-cpu-gptoss.js';
 
 export async function moeFeedForwardCPU(
   hiddenStates,
@@ -16,8 +17,8 @@ export async function moeFeedForwardCPU(
   expertLoader,
   layerIdx
 ) {
-  if (config.expertFormat !== 'mixtral') {
-    throw new Error(`[MoE] CPU fallback only supports mixtral experts, got ${config.expertFormat ?? 'unknown'}.`);
+  if (config.expertFormat !== 'mixtral' && config.expertFormat !== 'gpt-oss') {
+    throw new Error(`[MoE] CPU fallback only supports mixtral/gpt-oss experts, got ${config.expertFormat ?? 'unknown'}.`);
   }
   const selections = moeRouter.route(hiddenStates, numTokens);
   const plan = createExpertExecutionPlan(selections, config.numExperts);
@@ -50,6 +51,10 @@ export async function moeFeedForwardCPU(
 }
 
 async function runExpertCPU(layerIdx, expertIdx, input, config, expertWeights) {
+  if (config.expertFormat === 'gpt-oss') {
+    return runGptOssExpertCPU(layerIdx, expertIdx, input, config, expertWeights);
+  }
+
   const key = `layer_${layerIdx}_expert_${expertIdx}`;
   const weights = expertWeights.get(key);
 

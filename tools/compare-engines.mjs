@@ -14,11 +14,17 @@
  *
  * Options:
  *   --model-id <id>        Doppler model ID (default: gemma-3-1b-it-wf16)
+ *   --model-url <url>      Doppler model URL path (default: /models/local/<model-id>)
  *   --tjs-model <id>       TJS model ID (default: onnx-community/gemma-3-1b-it-ONNX-GQA)
  *   --tjs-version <3|4>    Transformers.js version (default: 3)
+ *   --prompt <text>        Prompt used for both engines (default: synthetic 64-word prompt)
  *   --mode <mode>          compute|cold|warm|all (default: all)
- *   --max-tokens <n>       Max new tokens (default: 128)
+ *   --max-tokens <n>       Max new tokens (default: 64)
+ *   --warmup <n>           Warmup runs per engine (default: 1)
  *   --runs <n>             Timed runs per engine (default: 3)
+ *   --doppler-kernel-path <id>  Doppler kernel path override (default: gemma3-f16-f16a-online)
+ *   --doppler-no-opfs-cache  Disable Doppler OPFS cache for browser runs
+ *   --doppler-browser-user-data <path>  Doppler Chromium profile dir
  *   --save                 Save results to bench-results/
  *   --save-dir <dir>       Directory for saved results (default: ./bench-results)
  *   --json                 JSON-only output
@@ -36,8 +42,12 @@ const DOPPLER_ROOT = path.resolve(__dirname, '..');
 
 const DEFAULT_DOPPLER_MODEL = 'gemma-3-1b-it-wf16';
 const DEFAULT_TJS_MODEL = 'onnx-community/gemma-3-1b-it-ONNX-GQA';
-const DEFAULT_MAX_TOKENS = 128;
+const DEFAULT_PREFILL_WORDS = 64;
+const DEFAULT_PROMPT = Array.from({ length: DEFAULT_PREFILL_WORDS }, (_, i) => `word${i}`).join(' ');
+const DEFAULT_MAX_TOKENS = 64;
+const DEFAULT_WARMUP = 1;
 const DEFAULT_RUNS = 3;
+const DEFAULT_DOPPLER_KERNEL_PATH = 'gemma3-f16-f16a-online';
 
 function parseArgs(argv) {
   const flags = {};
@@ -45,7 +55,7 @@ function parseArgs(argv) {
     const token = argv[i];
     if (!token.startsWith('--')) continue;
     const key = token.slice(2);
-    if (key === 'json' || key === 'save') {
+    if (key === 'json' || key === 'save' || key === 'doppler-no-opfs-cache') {
       flags[key] = true;
       continue;
     }
@@ -59,43 +69,100 @@ function parseArgs(argv) {
   return flags;
 }
 
-async function runDoppler(modelId, maxTokens, runs, cacheMode) {
-  const args = [
+async function runDoppler(modelId, modelUrl, prompt, maxTokens, warmupRuns, runs, cacheMode, options = {}) {
+  const resolvedPrompt = prompt || DEFAULT_PROMPT;
+  const resolvedMaxTokens = maxTokens || DEFAULT_MAX_TOKENS;
+  const resolvedWarmupRuns = warmupRuns || DEFAULT_WARMUP;
+  const resolvedTimedRuns = runs || DEFAULT_RUNS;
+  const resolvedKernelPath = options.kernelPath || DEFAULT_DOPPLER_KERNEL_PATH;
+  const baseArgs = [
     path.join(DOPPLER_ROOT, 'tools', 'doppler-cli.js'),
     'bench',
     '--model-id', modelId,
+    '--model-url', modelUrl,
     '--json',
     '--cache-mode', cacheMode,
+    '--runtime-config-json', JSON.stringify({
+      shared: {
+        benchmark: {
+          run: {
+            customPrompt: resolvedPrompt,
+            maxNewTokens: resolvedMaxTokens,
+            warmupRuns: resolvedWarmupRuns,
+            timedRuns: resolvedTimedRuns,
+            sampling: {
+              temperature: 0,
+              topK: 1,
+              topP: 1,
+            },
+          },
+        },
+      },
+      inference: {
+        kernelPath: resolvedKernelPath,
+        prompt: resolvedPrompt,
+        batching: {
+          maxTokens: resolvedMaxTokens,
+        },
+        sampling: {
+          temperature: 0,
+          topK: 1,
+          topP: 1,
+        },
+      },
+    }),
   ];
-  if (maxTokens) args.push('--runtime-config-json', JSON.stringify({ inference: { maxNewTokens: maxTokens } }));
-  if (runs) args.push('--runtime-config-json', JSON.stringify({ bench: { timedRuns: runs } }));
+  if (options.noOpfsCache) {
+    baseArgs.push('--no-opfs-cache');
+  }
+  if (options.browserUserData) {
+    baseArgs.push('--browser-user-data', String(options.browserUserData));
+  }
 
   console.error(`[compare] running Doppler (${cacheMode})...`);
-  try {
+  const runOnce = async (extraArgs = []) => {
+    const args = [...baseArgs, ...extraArgs];
     const { stdout } = await execFileAsync('node', args, {
       cwd: DOPPLER_ROOT,
       timeout: 600_000,
       maxBuffer: 10 * 1024 * 1024,
     });
-    // Extract JSON from stdout (skip any non-JSON lines)
     const jsonMatch = stdout.match(/\{[\s\S]*\}/);
     if (!jsonMatch) throw new Error('No JSON in Doppler output');
     return JSON.parse(jsonMatch[0]);
+  };
+
+  try {
+    return await runOnce();
   } catch (error) {
+    const message = String(error?.message || '');
+    const shouldRetryNoOpfs = !options.noOpfsCache && message.includes('Invalid manifest');
+    if (shouldRetryNoOpfs) {
+      console.error('[compare] Doppler failed with cached manifest mismatch; retrying with --no-opfs-cache...');
+      try {
+        return await runOnce(['--no-opfs-cache']);
+      } catch (retryError) {
+        console.error(`[compare] Doppler (${cacheMode}) retry failed: ${retryError.message}`);
+        return null;
+      }
+    }
     console.error(`[compare] Doppler (${cacheMode}) failed: ${error.message}`);
     return null;
   }
 }
 
-async function runTjs(modelId, maxTokens, runs, cacheMode, tjsVersion) {
+async function runTjs(modelId, prompt, maxTokens, warmupRuns, runs, cacheMode, tjsVersion, localModelPath) {
   const args = [
     path.join(DOPPLER_ROOT, 'external', 'transformersjs-bench.mjs'),
     '--model', modelId,
+    '--prompt', String(prompt || DEFAULT_PROMPT),
     '--max-tokens', String(maxTokens || DEFAULT_MAX_TOKENS),
+    '--warmup', String(warmupRuns || DEFAULT_WARMUP),
     '--runs', String(runs || DEFAULT_RUNS),
     '--cache-mode', cacheMode,
     '--tjs-version', tjsVersion,
   ];
+  if (localModelPath) args.push('--local-model-path', localModelPath);
 
   console.error(`[compare] running TJS v${tjsVersion} (${cacheMode})...`);
   try {
@@ -114,7 +181,8 @@ async function runTjs(modelId, maxTokens, runs, cacheMode, tjsVersion) {
 }
 
 function getDopplerMetric(result, key) {
-  const m = result?.metrics;
+  // Doppler CLI outputs { ok, surface, request, result: { metrics: { ... } } }
+  const m = result?.result?.metrics || result?.metrics;
   if (!m) return null;
   const map = {
     decodeTokPerSec: m.medianDecodeTokensPerSec,
@@ -193,11 +261,18 @@ function compactTimestamp() {
 async function main() {
   const flags = parseArgs(process.argv.slice(2));
   const dopplerModelId = flags['model-id'] || DEFAULT_DOPPLER_MODEL;
+  const dopplerModelUrl = flags['model-url'] || `/models/local/${dopplerModelId}`;
   const tjsModelId = flags['tjs-model'] || DEFAULT_TJS_MODEL;
+  const tjsLocalModelPath = flags['tjs-local-model-path'] || null;
   const tjsVersion = flags['tjs-version'] || '3';
   const mode = flags.mode || 'all';
+  const prompt = flags.prompt || DEFAULT_PROMPT;
   const maxTokens = Number(flags['max-tokens'] || DEFAULT_MAX_TOKENS);
+  const warmupRuns = Number(flags.warmup || DEFAULT_WARMUP);
   const runs = Number(flags.runs || DEFAULT_RUNS);
+  const dopplerKernelPath = flags['doppler-kernel-path'] || DEFAULT_DOPPLER_KERNEL_PATH;
+  const dopplerNoOpfsCache = flags['doppler-no-opfs-cache'] === true;
+  const dopplerBrowserUserData = flags['doppler-browser-user-data'] || null;
   const jsonOutput = flags.json === true;
   const shouldSave = flags.save === true;
   const saveDir = flags['save-dir'] || path.join(DOPPLER_ROOT, 'bench-results');
@@ -210,14 +285,17 @@ async function main() {
 
   console.error(`[compare] Doppler model: ${dopplerModelId}`);
   console.error(`[compare] TJS model:     ${tjsModelId} (v${tjsVersion})`);
-  console.error(`[compare] mode: ${mode}, maxTokens: ${maxTokens}, runs: ${runs}`);
+  console.error(`[compare] mode: ${mode}, maxTokens: ${maxTokens}, warmupRuns: ${warmupRuns}, runs: ${runs}`);
 
   const report = {
     timestamp: new Date().toISOString(),
     dopplerModelId,
+    dopplerKernelPath,
     tjsModelId,
     mode,
+    prompt,
     maxTokens,
+    warmupRuns,
     runs,
     sections: {},
   };
@@ -232,14 +310,58 @@ async function main() {
   let tjsCold = null;
 
   if (needWarm) {
-    dopplerWarm = await runDoppler(dopplerModelId, maxTokens, runs, 'warm');
-    tjsWarm = await runTjs(tjsModelId, maxTokens, runs, 'warm', tjsVersion);
+    dopplerWarm = await runDoppler(
+      dopplerModelId,
+      dopplerModelUrl,
+      prompt,
+      maxTokens,
+      warmupRuns,
+      runs,
+      'warm',
+      {
+        kernelPath: dopplerKernelPath,
+        noOpfsCache: dopplerNoOpfsCache,
+        browserUserData: dopplerBrowserUserData,
+      }
+    );
+    tjsWarm = await runTjs(
+      tjsModelId,
+      prompt,
+      maxTokens,
+      warmupRuns,
+      runs,
+      'warm',
+      tjsVersion,
+      tjsLocalModelPath
+    );
     report.sections.warm = { doppler: dopplerWarm, tjs: tjsWarm };
   }
 
   if (needCold) {
-    dopplerCold = await runDoppler(dopplerModelId, maxTokens, runs, 'cold');
-    tjsCold = await runTjs(tjsModelId, maxTokens, runs, 'cold', tjsVersion);
+    dopplerCold = await runDoppler(
+      dopplerModelId,
+      dopplerModelUrl,
+      prompt,
+      maxTokens,
+      warmupRuns,
+      runs,
+      'cold',
+      {
+        kernelPath: dopplerKernelPath,
+        noOpfsCache: dopplerNoOpfsCache,
+        browserUserData: dopplerBrowserUserData,
+      }
+    );
+    tjsCold = await runTjs(
+      tjsModelId,
+      prompt,
+      maxTokens,
+      warmupRuns,
+      runs,
+      'cold',
+      tjsVersion,
+      tjsLocalModelPath
+    );
     report.sections.cold = { doppler: dopplerCold, tjs: tjsCold };
   }
 

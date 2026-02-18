@@ -608,7 +608,7 @@ console.log(`[RoPE] Q startPos=${startPos}, numHeads=${numHeads}, headDim=${head
 |-------|-------|-------|
 | LLaMA | 10000 | Standard |
 | Gemma 3 | 1000000 | Higher theta |
-| GPT-OSS | 10000 | YARN scaling factor=32 |
+| GPT-OSS | 150000 | YARN scaling factor=32 (see `src/config/presets/models/gpt-oss.json`) |
 
 ---
 
@@ -739,8 +739,8 @@ Use DevTools filters for layer-by-layer analysis (e.g. `/LAYER_.*_LAST/`) and
 top-5 logits (e.g. `/top-5/`). For specific kernel checks, call
 `window.testHarness.runMatmul(...)` or related helpers from the console.
 
-**Manual browser testing:** Run `python3 -m http.server 8080`, then open
-`http://localhost:8080/tests/harness.html` or `http://localhost:8080/demo/`.
+**Manual browser testing:** Use the onboarding commands and canonical URLs in
+`setup-instructions.md`, then use the test-mode templates in `testing.md`.
 
 ---
 

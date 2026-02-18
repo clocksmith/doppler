@@ -25,7 +25,7 @@
 
 | Doc | Purpose |
 |-----|---------|
-| [ARCHITECTURE.md](ARCHITECTURE.md) | System architecture context |
+| [architecture.md](architecture.md) | System architecture context |
 | `../tests/kernels/README.md` | Kernel test coverage and design notes |
 | `style/benchmark-style-guide.md` | Benchmark methodology |
 | Internal postmortems (private wrapper repo) | Test-related incident history |
@@ -90,41 +90,14 @@ Example runtime config:
 
 ### 3. Performance Benchmarks
 
-Use the demo diagnostics UI (`/demo/`) and choose `bench` as the suite. The
-bench runner uses `runtime.shared.benchmark.run` for warmups and timing.
+Use the instructions in `setup-instructions.md` for shared browser setup, URLs, and
+harness entry points.
 
-### 4. Log Levels
+For benchmark-specific methodology and output semantics, use
+`style/benchmark-style-guide.md` and `../benchmarks/competitors/README.md`.
 
-Control loader output verbosity via runtime config:
-
-| Config | Level | Shows |
-|--------|-------|-------|
-| `runtime.shared.debug.logLevel.defaultLogLevel=info` | info | Phase starts/ends, totals |
-| `...=verbose` | verbose | + Per-shard source, per-layer timing |
-| `runtime.shared.debug.trace.enabled=true` | trace | + Tensor shapes, dequant ops |
-| `...=silent` | silent | Errors only |
-
-## Prerequisites
-
-- WebGPU-capable browser (Chrome/Chromium recommended)
-- Static server for local files (e.g. `python3 -m http.server 8080`)
-
-## Test URLs (Manual Browser Testing)
-
-Start the server first: `python3 -m http.server 8080`
-
-- **Unified test harness:** http://localhost:8080/tests/harness.html
-  - Modes are configured via `runtime.shared.harness` and passed in `runtimeConfig`
-  - The harness does not accept per-field URL overrides
-- **Demo UI:** http://localhost:8080/demo/
-
-Example (inference mode):
-```
-const cfg = {
-  shared: { harness: { mode: 'inference', autorun: true, skipLoad: false, modelId: 'gemma3-1b-q4' } }
-};
-encodeURIComponent(JSON.stringify(cfg));
-```
+Runtime verbosity and debug category rules are defined in
+`operations.md#2-toggleable-debug-categories`.
 
 ## Adding New Tests
 
@@ -155,7 +128,7 @@ Browser automation is not wired in this repo yet. Run the harness and diagnostic
 flows locally for validation until a browser CI runner is added.
 
 ## Kernel Overrides & Compatibility
-See `OPERATIONS.md#kernel-overrides--compatibility` (canonical section) and `style/wgsl-style-guide.md`.
+See `operations.md#kernel-overrides--compatibility` (canonical section) and `style/wgsl-style-guide.md`.
 
 
 ## Kernel Testing
@@ -305,6 +278,3 @@ For failures, store:
 ---
 
 *Last updated: December 2025*
-
-## Kernel Overrides & Compatibility
-See `OPERATIONS.md#kernel-overrides--compatibility` (canonical section) and `style/wgsl-style-guide.md`.

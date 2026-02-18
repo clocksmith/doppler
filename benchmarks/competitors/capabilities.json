@@ -122,7 +122,7 @@
       "evidence": [
         "src/gpu/command-recorder.js",
         "src/inference/pipelines/text/generator-steps.js",
-        "docs/OPERATIONS.md"
+        "docs/operations.md"
       ]
     },
     {

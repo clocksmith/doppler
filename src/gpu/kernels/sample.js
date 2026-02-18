@@ -7,6 +7,7 @@ import { createPipeline, createUniformBufferWithView, getOrCreateBindGroupLayout
 import { allowReadback } from '../perf-guards.js';
 import { selectRuleValue as selectKernelRuleValue } from './rule-registry.js';
 import { selectRuleValue as selectSharedRuleValue } from '../../rules/rule-registry.js';
+import { getKernelThresholds } from '../../config/schema/index.js';
 
 
 function getSampleBindGroupLayout(device) {
@@ -79,11 +80,18 @@ export async function runArgmax(
   const logitsDtype = resolveLogitsDtype(options.logitsDtype);
   const variants = resolveSampleVariants(logitsDtype);
   const argmaxPipeline = await createSamplePipeline(device, variants.argmax);
-  const reducePipeline = await createSamplePipeline(device, variants.argmaxReduce);
 
   // Workgroups for first pass
   const workgroupSize = WORKGROUP_SIZES.DEFAULT;
   const numWorkgroups = Math.min(workgroupSize, Math.ceil(vocabSize / workgroupSize));
+  const useSinglePassArgmax = numWorkgroups === 1;
+  const argmaxReduceVocabThreshold = getKernelThresholds().sample.argmaxReduceVocabThreshold;
+  const reducePipeline = useSinglePassArgmax || vocabSize <= argmaxReduceVocabThreshold
+    ? null
+    : await createSamplePipeline(device, variants.argmaxReduce);
+  const singlePassPipeline = useSinglePassArgmax
+    ? await createSamplePipeline(device, variants.singlePass)
+    : null;
 
   // Intermediate buffers
   const tempLogits = acquireBuffer(workgroupSize * 4, undefined, 'argmax_temp_logits');
@@ -147,17 +155,19 @@ export async function runArgmax(
 
   // Pass 1: Find max per workgroup
   const pass1 = encoder.beginComputePass({ label: 'argmax_pass1' });
-  pass1.setPipeline(argmaxPipeline);
+  pass1.setPipeline(singlePassPipeline ?? argmaxPipeline);
   pass1.setBindGroup(0, argmaxBindGroup);
-  pass1.dispatchWorkgroups(numWorkgroups);
+  pass1.dispatchWorkgroups(useSinglePassArgmax ? 1 : numWorkgroups);
   pass1.end();
 
-  // Pass 2: Reduce workgroup results
-  const pass2 = encoder.beginComputePass({ label: 'argmax_pass2' });
-  pass2.setPipeline(reducePipeline);
-  pass2.setBindGroup(0, reduceBindGroup);
-  pass2.dispatchWorkgroups(1);
-  pass2.end();
+  if (reducePipeline) {
+    // Pass 2: Reduce workgroup results
+    const pass2 = encoder.beginComputePass({ label: 'argmax_pass2' });
+    pass2.setPipeline(reducePipeline);
+    pass2.setBindGroup(0, reduceBindGroup);
+    pass2.dispatchWorkgroups(1);
+    pass2.end();
+  }
 
   device.queue.submit([encoder.finish()]);
 
@@ -232,7 +242,7 @@ export async function runGPUSample(
   const logitsDtype = resolveLogitsDtype(options.logitsDtype);
 
   // For temperature=0 or very low, use greedy argmax
-  if (temperature < greedyThreshold) {
+  if (temperature < greedyThreshold || topK <= 1) {
     return runArgmax(logits, vocabSize, {
       padTokenId,
       logitSoftcap,
@@ -380,9 +390,16 @@ export async function recordArgmax(
   const logitsDtype = resolveLogitsDtype(options.logitsDtype);
   const variants = resolveSampleVariants(logitsDtype);
   const argmaxPipeline = await createSamplePipeline(device, variants.argmax);
-  const reducePipeline = await createSamplePipeline(device, variants.argmaxReduce);
 
   const numWorkgroups = Math.min(WORKGROUP_SIZES.DEFAULT, Math.ceil(vocabSize / WORKGROUP_SIZES.DEFAULT));
+  const useSinglePassArgmax = numWorkgroups === 1;
+  const argmaxReduceVocabThreshold = getKernelThresholds().sample.argmaxReduceVocabThreshold;
+  const reducePipeline = useSinglePassArgmax || vocabSize <= argmaxReduceVocabThreshold
+    ? null
+    : await createSamplePipeline(device, variants.argmaxReduce);
+  const singlePassPipeline = useSinglePassArgmax
+    ? await createSamplePipeline(device, variants.singlePass)
+    : null;
 
   // Buffers
   const tempLogits = acquireBuffer(WORKGROUP_SIZES.DEFAULT * 4, undefined, 'argmax_temp_logits');
@@ -429,29 +446,31 @@ export async function recordArgmax(
 
   // Pass 1
   const pass1 = recorder.beginComputePass('argmax_phase1');
-  pass1.setPipeline(argmaxPipeline);
+  pass1.setPipeline(singlePassPipeline ?? argmaxPipeline);
   pass1.setBindGroup(0, bindGroup);
-  pass1.dispatchWorkgroups(numWorkgroups);
+  pass1.dispatchWorkgroups(useSinglePassArgmax ? 1 : numWorkgroups);
   pass1.end();
 
-  // Pass 2 (reuse same bind group since layout is the same)
-  const reduceBindGroup = device.createBindGroup({
-    label: 'argmax_reduce_bind_group',
-    layout: bindGroupLayout,
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: logits } },
-      { binding: 2, resource: { buffer: outputBuffer } },
-      { binding: 3, resource: { buffer: tempIndices } },
-      { binding: 4, resource: { buffer: tempLogits } },
-    ],
-  });
+  if (reducePipeline) {
+    // Pass 2 (reuse same bind group since layout is the same)
+    const reduceBindGroup = device.createBindGroup({
+      label: 'argmax_reduce_bind_group',
+      layout: bindGroupLayout,
+      entries: [
+        { binding: 0, resource: { buffer: uniformBuffer } },
+        { binding: 1, resource: { buffer: logits } },
+        { binding: 2, resource: { buffer: outputBuffer } },
+        { binding: 3, resource: { buffer: tempIndices } },
+        { binding: 4, resource: { buffer: tempLogits } },
+      ],
+    });
 
-  const pass2 = recorder.beginComputePass('argmax_phase2');
-  pass2.setPipeline(reducePipeline);
-  pass2.setBindGroup(0, reduceBindGroup);
-  pass2.dispatchWorkgroups(1);
-  pass2.end();
+    const pass2 = recorder.beginComputePass('argmax_phase2');
+    pass2.setPipeline(reducePipeline);
+    pass2.setBindGroup(0, reduceBindGroup);
+    pass2.dispatchWorkgroups(1);
+    pass2.end();
+  }
 
   // Schedule cleanup of temp buffers after submit.
   recorder.trackTemporaryBuffer(tempLogits);
@@ -501,7 +520,7 @@ export async function recordGPUSample(
   const logitsDtype = resolveLogitsDtype(options.logitsDtype);
 
   // For temperature=0 or very low, use greedy argmax
-  if (temperature < greedyThreshold) {
+  if (temperature < greedyThreshold || topK <= 1) {
     return recordArgmax(recorder, logits, vocabSize, {
       padTokenId,
       logitSoftcap,

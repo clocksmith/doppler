@@ -10,6 +10,29 @@
     { "match": {}, "value": "shared" }
   ],
   "mxfp4ExpertVariant": [
+    {
+      "match": {
+        "modelType": "gpt-oss",
+        "hasF16": true,
+        "hasSubgroups": true,
+        "outputDtype": "f16",
+        "dequantTileShape": "vec4",
+        "groupSize": 32
+      },
+      "value": "mxfp4_expert_fused_f16"
+    },
+    {
+      "match": {
+        "modelType": "gpt-oss",
+        "hasF16": true,
+        "outputDtype": "f16"
+      },
+      "value": "mxfp4_expert_f16"
+    },
+    {
+      "match": { "modelType": "gpt-oss" },
+      "value": "mxfp4_expert"
+    },
     { "match": { "outputDtype": "f16" }, "value": "mxfp4_expert_f16" },
     { "match": {}, "value": "mxfp4_expert" }
   ]

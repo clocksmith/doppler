@@ -150,6 +150,7 @@ export const DEFAULT_PRESET_INFERENCE_CONFIG = {
     yarnBetaSlow: 1,
     yarnOriginalMaxPos: 4096,
   },
+  moe: null,
   pipeline: null,
   chatTemplate: {
     type: null,

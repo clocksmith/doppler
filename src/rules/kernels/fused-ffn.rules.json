@@ -2,6 +2,8 @@
   "variant": [
     { "match": { "isQ4K": true, "fusedAllowed": true, "hiddenAligned": true, "batchSize": { "gt": 1 } }, "value": "q4k_batched" },
     { "match": { "isQ4K": true, "fusedAllowed": true, "hiddenAligned": true }, "value": "q4k" },
+    { "match": { "weightDtype": "f16", "hasF16": true, "batchSize": { "gt": 1 } }, "value": "f16_native_batched" },
+    { "match": { "weightDtype": "f16", "hasF16": true }, "value": "f16_native" },
     { "match": { "batchSize": { "gt": 1 } }, "value": "batched" },
     { "match": { "weightDtype": "f16" }, "value": "f16" },
     { "match": { "useMultiOutput": true }, "value": "multi" },

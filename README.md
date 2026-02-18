@@ -7,6 +7,38 @@
 Browser-native WebGPU runtime for forward inference, prefill, backward/training primitives, diffusion sampling, and energy-based inference.
 Doppler is a standalone inference library; [Reploid](https://github.com/clocksmith/reploid) is an optional orchestrator integration.
 
+## Performance vs Transformers.js (ORT WebGPU)
+
+Gemma 3 1B F16, both models on local disk, headless Chrome, Apple M-series.
+Reproducing: `node tools/compare-engines.mjs --tjs-version 4 --mode all --model-id gemma-3-1b-it --tjs-local-model-path /models/local/`
+
+| Metric | Doppler | Transformers.js v4 | Delta |
+|--------|---------|-------------------|-------|
+| **Cold load (no cache)** | **3.1s** | 7.5s | 2.4x faster |
+| **Warm load (OPFS cached)** | **3.2s** | 4.7s | 1.5x faster |
+| Decode tok/s | 9.0 | 11.1 | 24% slower |
+| Prefill tok/s | 49.4 | 90.7 | 84% slower |
+| TTFT | 187ms | 99ms | 88% slower |
+
+Doppler's RDRR format loads weights directly into GPU buffers with zero graph compilation.
+For short-output use cases (intent classification, tool selection, autocomplete), total
+time-to-first-useful-output is dominated by model load -- where Doppler is 2.4x faster cold.
+
+Decode and prefill throughput gaps are active kernel optimization targets.
+
+### Crossover Intuition (Rough)
+
+- If total latency is approximated as `load + TTFT + decode`, Doppler's load advantage is erased around:
+- Cold run: ~205 generated tokens
+- Warm run: ~67 generated tokens
+- Prefill being much slower for Doppler shifts crossover earlier for long prompts.
+
+This favors product surfaces where outputs are intentionally short and frequent (intent head, tool routing, planner selection). In those browser-native flows, perceived UX and time-to-first-useful-output are often dominated by startup and load behavior, where Doppler leads.
+
+### Benchmark Quality Notes
+
+- Good: same model class, local disk, headless Chrome, reproducible command (`README.md:12-13`).
+
 ## Why This Works
 
 | Capability | Claim |
@@ -65,7 +97,7 @@ The converter embeds model-specific inference parameters in `manifest.json`.
 Runtime reads config directly (no model-family detection). Missing fields fail
 fast; `null` explicitly disables a feature. Kernel paths resolve at conversion
 time and can be overridden via `runtime.inference.kernelPath` or per-run context.
-See `docs/CONFIG.md` and `docs/FORMATS.md` for the full contract.
+See `docs/config.md` and `docs/formats.md` for the full contract.
 
 ## Why Pure JS + WGSL
 
@@ -85,12 +117,12 @@ files; see `docs/style/general-style-guide.md` for the full rationale.
 
 ## Documentation
 
-Start at `docs/INDEX.md`, then:
-- `docs/ARCHITECTURE.md`
-- `docs/CONFIG.md`
-- `docs/FORMATS.md`
-- `docs/OPERATIONS.md`
-- `docs/TESTING.md`
+Start at `docs/index.md`, then:
+- `docs/architecture.md`
+- `docs/config.md`
+- `docs/formats.md`
+- `docs/operations.md`
+- `docs/testing.md`
 
 ## Requirements
 

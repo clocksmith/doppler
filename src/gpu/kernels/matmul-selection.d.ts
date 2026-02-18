@@ -24,6 +24,9 @@ export declare function selectMatmulKernel(options?: {
   outputDtype?: TensorDtype | 'f16' | 'f32';
   aDtype?: 'f16' | 'f32' | null;
   bDtype?: 'f16' | 'f32' | 'q4k' | null;
+  isPrefill?: boolean;
+  prefillRows?: number;
+  transposeB?: boolean;
 }): string;
 
 export declare function resolveTransposeB(

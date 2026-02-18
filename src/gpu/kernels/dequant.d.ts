@@ -15,6 +15,8 @@ import type { OutputBufferOptions, OutputDtypeOptions, OutputOffsetOptions, Vec4
 /** Dequantization kernel options */
 export interface DequantOptions extends OutputBufferOptions, OutputOffsetOptions, OutputDtypeOptions, Vec4Options {
   groupSize?: number;
+  modelType?: string | null;
+  dequantTileShape?: 'vec4' | 'scalar';
 }
 
 /** Context for dequant variant selection rules. */

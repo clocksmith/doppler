@@ -57,6 +57,26 @@ export interface BufferPoolAlignmentConfigSchema {
 export declare const DEFAULT_BUFFER_POOL_ALIGNMENT_CONFIG: BufferPoolAlignmentConfigSchema;
 
 /**
+ * Configuration for global buffer budget enforcement.
+ */
+export interface BufferPoolBudgetConfigSchema {
+  /** Hard byte budget for active + pooled buffers (0 = disabled) */
+  maxTotalBytes: number;
+
+  /** Ratio (0-1) that triggers proactive reclamation */
+  highWatermarkRatio: number;
+
+  /** Ratio (0-1) target after emergency reclaim */
+  emergencyTrimTargetRatio: number;
+
+  /** Throw when budget cannot be satisfied after reclaim */
+  hardFailOnBudgetExceeded: boolean;
+}
+
+/** Default buffer pool budget configuration */
+export declare const DEFAULT_BUFFER_POOL_BUDGET_CONFIG: BufferPoolBudgetConfigSchema;
+
+/**
  * Complete buffer pool configuration schema.
  *
  * Combines bucket sizing, pool limits, and alignment settings.
@@ -65,6 +85,7 @@ export interface BufferPoolConfigSchema {
   bucket: BufferPoolBucketConfigSchema;
   limits: BufferPoolLimitsConfigSchema;
   alignment: BufferPoolAlignmentConfigSchema;
+  budget: BufferPoolBudgetConfigSchema;
 }
 
 /** Default buffer pool configuration */

@@ -24,6 +24,7 @@ import type {
   TensorRole,
   TokenizerSchema,
   QuantizationInfoSchema,
+  MoEConfigSchema,
 } from '../config/schema/index.js';
 
 export { generateShardFilename } from '../storage/rdrr-format.js';
@@ -104,6 +105,7 @@ export interface RDRRManifest {
   quantization: string;
   quantizationInfo?: QuantizationInfoSchema;
   architecture: ArchitectureConfig | string;
+  moeConfig?: MoEConfigSchema | null;
   inference: ManifestInferenceSchema;
   shards: ShardInfo[];
   tensors: Record<string, TensorLocation>;
@@ -124,6 +126,7 @@ export interface CreateManifestOptions {
   modelType?: string;
   quantization?: string;
   quantizationInfo?: QuantizationInfoSchema;
+  moeConfig?: MoEConfigSchema | null;
   hashAlgorithm: string;
   architecture?: ArchitectureConfig | string;
   eosTokenId?: number | number[] | null;

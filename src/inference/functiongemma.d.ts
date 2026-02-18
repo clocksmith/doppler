@@ -4,7 +4,7 @@
  * Doppler provides execution primitives only. Orchestration lives in the host app.
  *
  * @module inference/functiongemma
- * @see ../../docs/ARCHITECTURE.md#engine-vs-orchestrator-boundary
+ * @see ../../docs/architecture.md#engine-vs-orchestrator-boundary
  */
 export {
   MultiModelNetwork,

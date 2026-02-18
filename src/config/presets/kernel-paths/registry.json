@@ -1,0 +1,138 @@
+{
+  "schemaVersion": 1,
+  "entries": [
+    {
+      "id": "gemma2-q4k-fused-f16a",
+      "file": "gemma2-q4k-fused-f16a.json",
+      "status": "canonical",
+      "statusReason": "default",
+      "notes": "Default Gemma 2 Q4K fused path used for benchmarked fast-path workflows."
+    },
+    {
+      "id": "gemma2-q4k-fused-f16a-wg128",
+      "file": "gemma2-q4k-fused-f16a-wg128.json",
+      "status": "experimental",
+      "statusReason": "tuning",
+      "notes": "Alternative fused-path tile/workgroup tuning variant for focused experiments."
+    },
+    {
+      "id": "gemma2-q4k-fused-f32a",
+      "file": "gemma2-q4k-fused-f32a.json",
+      "status": "canonical",
+      "statusReason": "accuracy-first",
+      "notes": "Q4K fused path with F32 output for accuracy-focused runs."
+    },
+    {
+      "id": "gemma2-q4k-dequant-f16a",
+      "file": "gemma2-q4k-dequant-f16a.json",
+      "status": "canonical",
+      "statusReason": "default",
+      "notes": "Default Gemma 2 Q4K dequant path for baseline F16 activation workflows."
+    },
+    {
+      "id": "gemma2-q4k-dequant-f32a",
+      "file": "gemma2-q4k-dequant-f32a.json",
+      "status": "canonical",
+      "statusReason": "accuracy-first",
+      "notes": "Gemma 2 Q4K dequant path with F32 activation for quality-sensitive runs."
+    },
+    {
+      "id": "gemma2-f16-f16a",
+      "file": "gemma2-f16-f16a.json",
+      "status": "canonical",
+      "statusReason": "default",
+      "notes": "Gemma 2 F16 default for F16 activation kernels."
+    },
+    {
+      "id": "gemma2-f16-f32a",
+      "file": "gemma2-f16-f32a.json",
+      "status": "canonical",
+      "statusReason": "accuracy-first",
+      "notes": "Gemma 2 F16 default path with F32 activation for accuracy-first runs."
+    },
+    {
+      "id": "gemma3-f16-f16a",
+      "file": "gemma3-f16-f16a.json",
+      "status": "canonical",
+      "statusReason": "default",
+      "notes": "Gemma 3 default F16 activation path."
+    },
+    {
+      "id": "gemma3-f16-f32a",
+      "file": "gemma3-f16-f32a.json",
+      "status": "canonical",
+      "statusReason": "accuracy-first",
+      "notes": "Gemma 3 F16 path with F32 activation for quality-first runs."
+    },
+    {
+      "id": "gemma3-f16-f16a-online",
+      "file": "gemma3-f16-f16a-online.json",
+      "status": "experimental",
+      "statusReason": "benchmark-probe",
+      "notes": "Experimental online-attention variant used by benchmark probes."
+    },
+    {
+      "id": "gemma3-q4k-dequant-f16a",
+      "file": "gemma3-q4k-dequant-f16a.json",
+      "status": "canonical",
+      "statusReason": "default",
+      "notes": "Gemma 3 Q4K default path for F16 activation when not using fused kernels."
+    },
+    {
+      "id": "gemma3-q4k-dequant-f32a",
+      "file": "gemma3-q4k-dequant-f32a.json",
+      "status": "canonical",
+      "statusReason": "accuracy-first",
+      "notes": "Gemma 3 Q4K dequant path with F32 activation for quality-first runs."
+    },
+    {
+      "id": "gemma3-q4k-fused-f16a",
+      "aliasOf": "gemma3-q4k-dequant-f16a",
+      "status": "legacy",
+      "statusReason": "compatibility",
+      "notes": "Legacy fused alias kept for older manifests that still reference this ID."
+    },
+    {
+      "id": "embeddinggemma-f16-f32a",
+      "file": "embeddinggemma-f16-f32a.json",
+      "status": "canonical",
+      "statusReason": "default",
+      "notes": "EmbeddingGemma default path for F16 weights with F32 activation."
+    },
+    {
+      "id": "embeddinggemma-f32-f32a",
+      "file": "embeddinggemma-f32-f32a.json",
+      "status": "canonical",
+      "statusReason": "default",
+      "notes": "EmbeddingGemma default F32 path."
+    },
+    {
+      "id": "embeddinggemma-q4k-dequant-f32a",
+      "file": "embeddinggemma-q4k-dequant-f32a.json",
+      "status": "canonical",
+      "statusReason": "default",
+      "notes": "EmbeddingGemma Q4K dequant path with F32 activation."
+    },
+    {
+      "id": "embeddinggemma-f16-f16a",
+      "aliasOf": "embeddinggemma-f16-f32a",
+      "status": "legacy",
+      "statusReason": "compatibility",
+      "notes": "Legacy path retained for historical manifests; use -f32a variant going forward."
+    },
+    {
+      "id": "embeddinggemma-q4k-fused-f16a",
+      "aliasOf": "embeddinggemma-q4k-dequant-f32a",
+      "status": "legacy",
+      "statusReason": "compatibility",
+      "notes": "Legacy fused alias retained for compatibility with older manifests."
+    },
+    {
+      "id": "embeddinggemma-q4k-dequant-f16a",
+      "aliasOf": "embeddinggemma-q4k-dequant-f32a",
+      "status": "legacy",
+      "statusReason": "compatibility",
+      "notes": "Legacy alias retained for compatibility with older manifests."
+    }
+  ]
+}

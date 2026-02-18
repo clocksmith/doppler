@@ -8,7 +8,7 @@ Benchmarking conventions for DOPPLER. Benchmarks are test harnesses, not runtime
 
 ## Output Schema
 
-- Emit JSON that conforms to `../BENCHMARK_SCHEMA.json`.
+- Emit JSON that conforms to `../schemas/benchmark-schema.json`.
 - Always include `schemaVersion`, `timestamp`, and `suite`.
 - Include `env`, `model`, `config`, `workload`, `metrics`, `quality`, and `raw` when available.
 
@@ -61,7 +61,7 @@ Defines a standardized benchmark harness for DOPPLER so performance claims are m
 | Pipeline benchmark harness | ✓ Implemented | `src/inference/browser-harness.js` |
 | System benchmarks | Planned | (TBD) |
 | Standard prompts | ✓ Implemented | `demo/bench-manifest.json` |
-| JSON result schema | ✓ Implemented | `../BENCHMARK_SCHEMA.json` |
+| JSON result schema | ✓ Implemented | `../schemas/benchmark-schema.json` |
 | GPU timestamp queries | ✓ Implemented | `src/gpu/profiler.js` |
 | GPU readback tracking | ✓ Implemented | `src/gpu/perf-guards.js` |
 | Peak VRAM estimation | ✓ Implemented | `src/memory/buffer-pool.js` |
@@ -286,6 +286,48 @@ Write results as JSON so they can be compared automatically.
 ```
 
 ---
+
+## Competitor Comparison Policy
+
+## Competitor Benchmarking Tooling (Required)
+
+Competitive benchmarking MUST run through the registry-driven toolchain:
+
+- Targets and metadata in `benchmarks/competitors/registry.json`
+- Shared workloads in `benchmarks/competitors/workloads.json`
+- Capability matrix in `benchmarks/competitors/capabilities.json`
+- Target normalization in `benchmarks/competitors/harnesses/*.json`
+- Runner implementation in `external/transformersjs-bench.mjs` (extend similarly for additional targets)
+- Orchestration in:
+  - `tools/compare-engines.mjs` for side-by-side Doppler vs competitor runs
+  - `tools/competitor-bench.js` for registry/run/import/validation
+- Normalized comparison artifacts in `benchmarks/competitors/results/` using `benchmarks/competitors/schema/result.schema.json`
+
+Use these commands for validation and comparison:
+
+- `node tools/competitor-bench.js list`
+- `node tools/competitor-bench.js validate`
+- `node tools/competitor-bench.js capabilities`
+- `node tools/competitor-bench.js gap --base doppler --target transformersjs`
+- `node tools/compare-engines.mjs --mode all`
+
+### Metric Consistency (Required for Fairness)
+
+- Prefer shared workloads and exact prompt/workload IDs across engines.
+- Use harness `metricPaths` normalization to resolve each target’s native schema to canonical fields:
+  - `decode_tokens_per_sec` (or equivalent normalized output)
+  - `prefill_tokens_per_sec`
+  - `ttft_ms`
+- Keep token counts, sampling settings, and run shape (`cold`/`warm`, `warmup`, `timed runs`) explicitly in metadata.
+- Keep units explicit and consistent; do not compare mixed units or implicit conversions.
+
+### Fairness Rules (Required)
+
+- Same model identity and quantization class for each comparison, or explicit equivalence mapping.
+- Same prompt text or equivalent tokenized length when direct same prompt is not possible.
+- Same hardware class, browser family, and WebGPU feature assumptions for direct claims.
+- Same sampling profile (`temperature`, `topK`, `topP`) unless a deliberate protocol test is documented.
+- Report any deviations from baseline methodology in comparison notes and invalidates “direct claim” status.
 
 ## Competitor Comparison Policy
 

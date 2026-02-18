@@ -23,6 +23,7 @@ export interface CacheStats {
   hitRate: number;
   inUseCount: number;
   pinnedCount: number;
+  layerResidency: Array<{ layerIdx: number; bytes: number }>;
 }
 
 /**
@@ -72,7 +73,7 @@ export declare class ExpertCache {
    * Skips experts that are in-use or pinned
    * @returns true if an expert was evicted, false if all experts are protected
    */
-  evictLRU(): boolean;
+  evictLRU(protectedKey?: string | null): boolean;
 
   /**
    * Mark expert as in-use (prevents eviction during inference)
