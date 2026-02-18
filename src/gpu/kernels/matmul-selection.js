@@ -97,7 +97,6 @@ export function selectMatmulKernel(options = {}) {
     transposeB = true,
   } = options;
   const { tiledPrefillMinRows } = getKernelThresholds().matmul;
-  const effectiveTiledPrefillMinRows = Math.max(tiledPrefillMinRows, 64);
 
   const inputsAreF16 = aDtype === 'f16' && bDtype === 'f16';
   const weightsAreF16 = bDtype === 'f16' && aDtype !== 'f16';
@@ -106,7 +105,7 @@ export function selectMatmulKernel(options = {}) {
   const useTiled = isPrefill
     && useF16Matmul
     && transposeB === true
-    && prefillRows >= effectiveTiledPrefillMinRows;
+    && prefillRows >= tiledPrefillMinRows;
 
   return selectKernelRuleValue(
     'matmul',
@@ -327,8 +326,7 @@ export function selectMatmulVariantAndFlags(mode, M, N, K, aDtype, bDtype, trans
         && transposeB === true
       ) {
         const { tiledPrefillMinRows } = getKernelThresholds().matmul;
-        const effectiveTiledPrefillMinRows = Math.max(tiledPrefillMinRows, 64);
-        if (M <= effectiveTiledPrefillMinRows) {
+        if (M <= tiledPrefillMinRows) {
           const adaptiveVariant = selectMatmulKernel({
             ...options,
             aDtype,
