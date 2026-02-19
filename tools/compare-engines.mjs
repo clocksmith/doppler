@@ -17,12 +17,12 @@
  *   --model-url <url>      Doppler model URL path (default: /models/local/<model-id>)
  *   --tjs-model <id>       TJS model ID (default: onnx-community/gemma-3-1b-it-ONNX-GQA)
  *   --tjs-version <3|4>    Transformers.js version (default: 3)
- *   --prompt <text>        Prompt used for both engines (default: synthetic 64-word prompt)
+ *   --prompt <text>        Prompt used for both engines (default: real language prompt)
  *   --mode <mode>          compute|cold|warm|all (default: all)
  *   --max-tokens <n>       Max new tokens (default: 64)
  *   --warmup <n>           Warmup runs per engine (default: 1)
  *   --runs <n>             Timed runs per engine (default: 3)
- *   --decode-profile <profile>  parity|throughput|custom (default: parity)
+ *   --decode-profile <profile>  parity|throughput|custom (default: throughput)
  *   --doppler-kernel-path <id>  Doppler kernel path override (default: gemma3-f16-f16a-online)
  *   --doppler-batch-size <n>     Doppler decode batch size (only with --decode-profile custom)
  *   --doppler-readback-interval <n>  Doppler decode readback interval (only with --decode-profile custom)
@@ -46,12 +46,12 @@ const DOPPLER_ROOT = path.resolve(__dirname, '..');
 const DEFAULT_DOPPLER_MODEL = 'gemma-3-1b-it-wf16';
 const DEFAULT_TJS_MODEL = 'onnx-community/gemma-3-1b-it-ONNX-GQA';
 const DEFAULT_PREFILL_WORDS = 64;
-const DEFAULT_PROMPT = Array.from({ length: DEFAULT_PREFILL_WORDS }, (_, i) => `word${i}`).join(' ');
+const DEFAULT_PROMPT = 'In this benchmark scenario use a natural language prompt that exercises end-to-end decoding for edge systems, where prompt structure, token budgeting, and output determinism are important metrics to monitor. Keep the prefill text moderately complex, then request a short completion that summarizes the setup, and report both prefill and decode latency and throughput so latency-sensitive workloads can compare token efficiency consistently, for production.';
 const DEFAULT_MAX_TOKENS = 64;
 const DEFAULT_WARMUP = 1;
 const DEFAULT_RUNS = 3;
 const DEFAULT_DOPPLER_KERNEL_PATH = 'gemma3-f16-f16a-online';
-const DEFAULT_DECODE_PROFILE = 'parity';
+const DEFAULT_DECODE_PROFILE = 'throughput';
 const DECODE_PROFILE_PRESETS = Object.freeze({
   parity: Object.freeze({
     batchSize: 1,
