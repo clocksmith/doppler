@@ -77,10 +77,6 @@ export async function castF32ToF16(
 
   dispatch(device, pipeline, bindGroup, dispatchSize, 'cast_f32_to_f16');
 
-  // Wait for GPU work to complete before returning
-  // Critical for large tensors (embeddings/lm_head) that may take time to convert
-  await device.queue.onSubmittedWorkDone();
-
   uniformBuffer.destroy();
 
   return createTensor(output, 'f16', [...input.shape], input.label ? `${input.label}_f16` : 'cast_f32_to_f16_output');
@@ -124,8 +120,6 @@ export async function castF16ToF32(
   const dispatchSize = calculate2DDispatch(workgroups);
 
   dispatch(device, pipeline, bindGroup, dispatchSize, 'cast_f16_to_f32');
-
-  await device.queue.onSubmittedWorkDone();
 
   uniformBuffer.destroy();
 
@@ -284,10 +278,6 @@ export async function runBF16ToF32(
   trace.kernels(`BF16ToF32: Dispatching ${dispatchSize[0]}x${dispatchSize[1]} workgroups for ${numPairs} pairs (${numElements} elements)`);
   dispatch(device, pipeline, bindGroup, dispatchSize, 'bf16_to_f32');
 
-  // Wait for GPU work to complete before returning
-  await device.queue.onSubmittedWorkDone();
-  trace.kernels('BF16ToF32: GPU work completed');
-
   uniformBuffer.destroy();
 
   return createTensor(output, 'f32', [...shape], name);
@@ -348,7 +338,6 @@ export async function runBF16ToF16(
   const dispatchSize = calculate2DDispatch(workgroups);
 
   dispatch(device, pipeline, bindGroup, dispatchSize, 'bf16_to_f16');
-  await device.queue.onSubmittedWorkDone();
 
   uniformBuffer.destroy();
 

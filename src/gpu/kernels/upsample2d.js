@@ -2,6 +2,7 @@ import { acquireBuffer } from '../../memory/buffer-pool.js';
 import { createTensor, dtypeBytes } from '../tensor.js';
 import { unifiedKernelWrapper } from './utils.js';
 import { selectRuleValue } from './rule-registry.js';
+import { WORKGROUP_SIZES } from './constants.js';
 
 function selectUpsample2DVariant(isF16) {
   return selectRuleValue('upsample2d', 'variant', { isF16 });
@@ -42,7 +43,7 @@ async function _upsample2d(target, input, options = {}) {
       out_height: outHeight, out_width: outWidth, scale,
       _pad0: 0, _pad1: 0,
     },
-    Math.ceil((channels * outHeight * outWidth) / 256)
+    Math.ceil((channels * outHeight * outWidth) / WORKGROUP_SIZES.DEFAULT)
   );
 
   return createTensor(output, input.dtype, [channels, outHeight, outWidth], 'upsample2d_output');

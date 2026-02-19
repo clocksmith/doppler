@@ -1,6 +1,6 @@
 
 
-import { getDevice } from '../device.js';
+import { getDevice, getDeviceEpoch } from '../device.js';
 import { acquireBuffer } from '../../memory/buffer-pool.js';
 import { createTensor } from '../tensor.js';
 import { WORKGROUP_SIZES, GPU_LIMITS } from './constants.js';
@@ -120,10 +120,12 @@ export async function recordTopK(recorder, probs, numTokens, numExperts, topK, o
 // Internal postmortems cover why this explicit layout is required.
 
 let moeGatherBindGroupLayout = null;
+let moeGatherBindGroupLayoutEpoch = -1;
 
 
 function getMoEGatherBindGroupLayout(device) {
-  if (moeGatherBindGroupLayout) return moeGatherBindGroupLayout;
+  const epoch = getDeviceEpoch();
+  if (moeGatherBindGroupLayout && moeGatherBindGroupLayoutEpoch === epoch) return moeGatherBindGroupLayout;
 
   moeGatherBindGroupLayout = device.createBindGroupLayout({
     label: 'moe_gather_explicit_layout',
@@ -136,15 +138,20 @@ function getMoEGatherBindGroupLayout(device) {
       { binding: 5, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
     ],
   });
+  moeGatherBindGroupLayoutEpoch = epoch;
   return moeGatherBindGroupLayout;
 }
 
 // Cached explicit bind group layout for scatter-add dynamic (all 6 bindings)
 // Required because auto layout can omit bindings in some driver/compiler paths.
 let scatterAddDynamicBindGroupLayout = null;
+let scatterAddDynamicBindGroupLayoutEpoch = -1;
 
 function getScatterAddDynamicBindGroupLayout(device) {
-  if (scatterAddDynamicBindGroupLayout) return scatterAddDynamicBindGroupLayout;
+  const epoch = getDeviceEpoch();
+  if (scatterAddDynamicBindGroupLayout && scatterAddDynamicBindGroupLayoutEpoch === epoch) {
+    return scatterAddDynamicBindGroupLayout;
+  }
 
   scatterAddDynamicBindGroupLayout = device.createBindGroupLayout({
     label: 'scatter_add_dynamic_explicit_layout',
@@ -157,13 +164,16 @@ function getScatterAddDynamicBindGroupLayout(device) {
       { binding: 5, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
     ],
   });
+  scatterAddDynamicBindGroupLayoutEpoch = epoch;
   return scatterAddDynamicBindGroupLayout;
 }
 
 let moeOffsetsBindGroupLayout = null;
+let moeOffsetsBindGroupLayoutEpoch = -1;
 
 function getMoEOffsetsBindGroupLayout(device) {
-  if (moeOffsetsBindGroupLayout) return moeOffsetsBindGroupLayout;
+  const epoch = getDeviceEpoch();
+  if (moeOffsetsBindGroupLayout && moeOffsetsBindGroupLayoutEpoch === epoch) return moeOffsetsBindGroupLayout;
 
   moeOffsetsBindGroupLayout = device.createBindGroupLayout({
     label: 'moe_offsets_explicit_layout',
@@ -174,6 +184,7 @@ function getMoEOffsetsBindGroupLayout(device) {
       { binding: 3, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
     ],
   });
+  moeOffsetsBindGroupLayoutEpoch = epoch;
 
   return moeOffsetsBindGroupLayout;
 }

@@ -21,6 +21,13 @@ let resolvedPlatformConfig = null;
 // Track whether platform/registry initialization has been attempted
 let platformInitialized = false;
 
+// Monotonic device epoch. Increments whenever device-scoped GPU objects become invalid.
+let deviceEpoch = 0;
+
+function advanceDeviceEpoch() {
+  deviceEpoch += 1;
+}
+
 
 export const FEATURES =  ({
   SHADER_F16: 'shader-f16',
@@ -194,6 +201,7 @@ export async function initDevice() {
   if (!gpuDevice) {
     throw createDopplerError(ERROR_CODES.GPU_DEVICE_FAILED, 'Failed to create WebGPU device');
   }
+  advanceDeviceEpoch();
 
   // Set up device lost handler
   gpuDevice.lost.then((info) => {
@@ -202,6 +210,7 @@ export async function initDevice() {
     kernelCapabilities = null;
     resolvedPlatformConfig = null;
     platformInitialized = false;
+    advanceDeviceEpoch();
   });
 
   // Wrap queue for submit tracking (when enabled)
@@ -239,10 +248,12 @@ export function setDevice(device, options = {}) {
     kernelCapabilities = null;
     resolvedPlatformConfig = null;
     platformInitialized = false;
+    advanceDeviceEpoch();
     return;
   }
 
   gpuDevice = device;
+  advanceDeviceEpoch();
   wrapQueueForTracking(gpuDevice.queue);
 
   const adapterInfo = options.adapterInfo ?? {
@@ -285,6 +296,10 @@ export function getDevice() {
   return gpuDevice;
 }
 
+export function getDeviceEpoch() {
+  return deviceEpoch;
+}
+
 
 export function getPlatformConfig() {
   return resolvedPlatformConfig;
@@ -303,6 +318,7 @@ export function destroyDevice() {
     kernelCapabilities = null;
     resolvedPlatformConfig = null;
     platformInitialized = false;
+    advanceDeviceEpoch();
   }
 }
 

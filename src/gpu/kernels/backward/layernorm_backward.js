@@ -93,11 +93,9 @@ export async function recordLayerNormBackward(recorder, input, weight, gradOutpu
   const weightGradBuf = gradWeightBuffer || acquireBuffer(weightGradSize, undefined, 'layernorm_backward_weight_grad');
   const biasGradBuf = gradBiasBuffer || acquireBuffer(weightGradSize, undefined, 'layernorm_backward_bias_grad');
 
-  // record zero out (using clearBuffer or similar if available, otherwise writeBuffer)
-  // Note: CommandRecorder might not have clearBuffer yet, so we use device.queue for now if not recording a pass.
-  // Ideally recorder.clearBuffer(weightGradBuf).
-  device.queue.writeBuffer(weightGradBuf, 0, new Float32Array(hiddenSize));
-  device.queue.writeBuffer(biasGradBuf, 0, new Float32Array(hiddenSize));
+  const encoder = recorder.getEncoder();
+  encoder.clearBuffer(weightGradBuf, 0, weightGradSize);
+  encoder.clearBuffer(biasGradBuf, 0, weightGradSize);
 
   const pipeline = await createPipeline('layernorm_backward', 'default');
 

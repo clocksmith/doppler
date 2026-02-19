@@ -5,6 +5,7 @@ import { createTensor, dtypeBytes } from '../tensor.js';
 import { getBuffer } from '../weight-buffer.js';
 import { unifiedKernelWrapper } from './utils.js';
 import { selectRuleValue } from './rule-registry.js';
+import { WORKGROUP_SIZES } from './constants.js';
 
 function selectConv2DVariant(isF16) {
   return selectRuleValue('conv2d', 'variant', { isF16 });
@@ -57,7 +58,7 @@ async function _conv2d(target, input, weight, bias, options = {}) {
       kernel_h: kernelH, kernel_w: kernelW,
       stride, pad, _pad0: 0, _pad1: 0,
     },
-    Math.ceil((outChannels * outHeight * outWidth) / 256)
+    Math.ceil((outChannels * outHeight * outWidth) / WORKGROUP_SIZES.DEFAULT)
   );
 
   if (tempBias) {

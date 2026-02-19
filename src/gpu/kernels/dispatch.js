@@ -3,6 +3,32 @@
 
 import { getDevice } from '../device.js';
 
+function normalizeWorkgroups(workgroups) {
+  if (typeof workgroups === 'number') {
+    return [workgroups, 1, 1];
+  }
+  if (!Array.isArray(workgroups) || workgroups.length === 0) {
+    throw new Error('dispatch requires workgroups as a number or [x, y, z]');
+  }
+  const x = workgroups[0] ?? 1;
+  const y = workgroups[1] ?? 1;
+  const z = workgroups[2] ?? 1;
+  return [x, y, z];
+}
+
+function assertWorkgroupLimits(device, workgroups, label) {
+  const maxPerDim = device?.limits?.maxComputeWorkgroupsPerDimension;
+  const limit = Number.isFinite(maxPerDim) && maxPerDim > 0 ? maxPerDim : 65535;
+  const [x, y, z] = normalizeWorkgroups(workgroups);
+  if (x > limit || y > limit || z > limit) {
+    throw new Error(
+      `${label} dispatch exceeds maxComputeWorkgroupsPerDimension=${limit}: ` +
+      `[${x}, ${y}, ${z}]`
+    );
+  }
+  return [x, y, z];
+}
+
 export function dispatch(
   device,
   pipeline,
@@ -10,16 +36,12 @@ export function dispatch(
   workgroups,
   label = 'compute'
 ) {
+  const [x, y, z] = assertWorkgroupLimits(device, workgroups, label);
   const encoder = device.createCommandEncoder({ label: `${label}_encoder` });
   const pass = encoder.beginComputePass({ label: `${label}_pass` });
   pass.setPipeline(pipeline);
   pass.setBindGroup(0, bindGroup);
-
-  if (typeof workgroups === 'number') {
-    pass.dispatchWorkgroups(workgroups);
-  } else {
-    pass.dispatchWorkgroups(workgroups[0], workgroups[1], workgroups[2]);
-  }
+  pass.dispatchWorkgroups(x, y, z);
 
   pass.end();
   device.queue.submit([encoder.finish()]);
@@ -50,15 +72,11 @@ export function recordDispatch(
   workgroups,
   label = 'compute'
 ) {
+  const [x, y, z] = assertWorkgroupLimits(recorder.device, workgroups, label);
   const pass = recorder.beginComputePass(label);
   pass.setPipeline(pipeline);
   pass.setBindGroup(0, bindGroup);
-
-  if (typeof workgroups === 'number') {
-    pass.dispatchWorkgroups(workgroups);
-  } else {
-    pass.dispatchWorkgroups(workgroups[0], workgroups[1], workgroups[2]);
-  }
+  pass.dispatchWorkgroups(x, y, z);
 
   pass.end();
 }
@@ -105,6 +123,7 @@ export function dispatchMultiBindGroup(
   workgroups,
   label = 'compute'
 ) {
+  const [x, y, z] = assertWorkgroupLimits(device, workgroups, label);
   const encoder = device.createCommandEncoder({ label: `${label}_encoder` });
   const pass = encoder.beginComputePass({ label: `${label}_pass` });
   pass.setPipeline(pipeline);
@@ -113,11 +132,7 @@ export function dispatchMultiBindGroup(
     pass.setBindGroup(i, bindGroups[i]);
   }
 
-  if (typeof workgroups === 'number') {
-    pass.dispatchWorkgroups(workgroups);
-  } else {
-    pass.dispatchWorkgroups(workgroups[0], workgroups[1], workgroups[2]);
-  }
+  pass.dispatchWorkgroups(x, y, z);
 
   pass.end();
   device.queue.submit([encoder.finish()]);
@@ -172,6 +187,7 @@ export function dispatchAdvanced(
     timestampWrites,
   } = options;
 
+  const [x, y, z] = assertWorkgroupLimits(device, workgroups, label);
   const encoder = device.createCommandEncoder({ label: `${label}_encoder` });
   
   const passDescriptor = {
@@ -191,11 +207,7 @@ export function dispatchAdvanced(
   }
 
   // Dispatch
-  if (typeof workgroups === 'number') {
-    pass.dispatchWorkgroups(workgroups);
-  } else {
-    pass.dispatchWorkgroups(workgroups[0], workgroups[1], workgroups[2]);
-  }
+  pass.dispatchWorkgroups(x, y, z);
 
   pass.end();
   device.queue.submit([encoder.finish()]);
@@ -210,15 +222,11 @@ export function dispatchBatch(
   const encoder = device.createCommandEncoder({ label: `${label}_encoder` });
 
   for (const batch of batches) {
+    const [x, y, z] = assertWorkgroupLimits(device, batch.workgroups, batch.label || label);
     const pass = encoder.beginComputePass({ label: batch.label || `${label}_pass` });
     pass.setPipeline(batch.pipeline);
     pass.setBindGroup(0, batch.bindGroup);
-
-    if (typeof batch.workgroups === 'number') {
-      pass.dispatchWorkgroups(batch.workgroups);
-    } else {
-      pass.dispatchWorkgroups(batch.workgroups[0], batch.workgroups[1], batch.workgroups[2]);
-    }
+    pass.dispatchWorkgroups(x, y, z);
 
     pass.end();
   }

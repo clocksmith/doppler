@@ -157,13 +157,16 @@ export async function recordMatmulRMSNormFused(
   const {
     N,
     K,
-    eps = 1e-5,  // Caller should pass from model config
+    eps,
     residual = null,
     outputBuffer = null,
     transposeB = true,  // Default: GGUF row-major weights
     rmsNormWeightOffset = false,
     label = null,
   } = options;
+  if (eps == null) {
+    throw new Error('[MatmulRMSNormFused] eps is required.');
+  }
 
   const { maxMediumN } = getKernelThresholds().fusedMatmul;
   if (N > maxMediumN) {

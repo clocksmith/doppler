@@ -3,6 +3,7 @@ import { createTensor, dtypeBytes } from '../tensor.js';
 import { unifiedKernelWrapper } from './utils.js';
 import { selectRuleValue } from './rule-registry.js';
 import { getBuffer } from '../weight-buffer.js';
+import { WORKGROUP_SIZES } from './constants.js';
 
 function selectGroupNormVariant(stage, isF16) {
   return selectRuleValue('groupnorm', stage, { isF16 });
@@ -61,7 +62,7 @@ async function _groupNorm(target, input, weight, bias, options = {}) {
   const biasBuffer = getBuffer(bias);
 
   const total = channels * height * width;
-  const workgroups = Math.ceil(total / 256);
+  const workgroups = Math.ceil(total / WORKGROUP_SIZES.DEFAULT);
 
   await unifiedKernelWrapper(
     'groupnorm_apply',
@@ -88,4 +89,3 @@ export async function runGroupNorm(input, weight, bias, options = {}) {
 export async function recordGroupNorm(recorder, input, weight, bias, options = {}) {
   return _groupNorm(recorder, input, weight, bias, options);
 }
-

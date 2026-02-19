@@ -1,6 +1,6 @@
 
 
-import { getDevice, getKernelCapabilities } from '../device.js';
+import { getDevice, getDeviceEpoch, getKernelCapabilities } from '../device.js';
 import { getKernelConfig } from './kernel-configs.js';
 import { getShaderModule } from './shader-cache.js';
 import { hasRequiredFeatures } from './feature-check.js';
@@ -19,6 +19,29 @@ const bindGroupLayoutCache = new Map();
 
 const pipelineLayoutCache = new Map();
 
+let pipelineCacheEpoch = -1;
+const deviceIds = new WeakMap();
+let nextDeviceId = 1;
+
+function getDeviceId(device) {
+  let id = deviceIds.get(device);
+  if (id == null) {
+    id = nextDeviceId++;
+    deviceIds.set(device, id);
+  }
+  return id;
+}
+
+function ensureCacheEpoch() {
+  const epoch = getDeviceEpoch();
+  if (epoch !== pipelineCacheEpoch) {
+    pipelineCache.clear();
+    bindGroupLayoutCache.clear();
+    pipelineLayoutCache.clear();
+    pipelineCacheEpoch = epoch;
+  }
+}
+
 // ============================================================================
 // Bind Group Layout
 // ============================================================================
@@ -29,18 +52,20 @@ export function getOrCreateBindGroupLayout(
   entries,
   deviceOverride = null
 ) {
-  const cached = bindGroupLayoutCache.get(label);
-  if (cached) {
-    return cached;
-  }
+  ensureCacheEpoch();
 
   const device = deviceOverride || getDevice();
   if (!device) {
     throw new Error('Device not initialized');
   }
+  const scopedLabel = `${getDeviceId(device)}:${label}`;
+  const cached = bindGroupLayoutCache.get(scopedLabel);
+  if (cached) {
+    return cached;
+  }
 
   const layout = device.createBindGroupLayout({ label, entries });
-  bindGroupLayoutCache.set(label, layout);
+  bindGroupLayoutCache.set(scopedLabel, layout);
   return layout;
 }
 
@@ -54,14 +79,16 @@ export function getOrCreatePipelineLayout(
   bindGroupLayouts,
   deviceOverride = null
 ) {
-  const cached = pipelineLayoutCache.get(label);
-  if (cached) {
-    return cached;
-  }
+  ensureCacheEpoch();
 
   const device = deviceOverride || getDevice();
   if (!device) {
     throw new Error('Device not initialized');
+  }
+  const scopedLabel = `${getDeviceId(device)}:${label}`;
+  const cached = pipelineLayoutCache.get(scopedLabel);
+  if (cached) {
+    return cached;
   }
 
   const layout = device.createPipelineLayout({
@@ -69,7 +96,7 @@ export function getOrCreatePipelineLayout(
     bindGroupLayouts,
   });
 
-  pipelineLayoutCache.set(label, layout);
+  pipelineLayoutCache.set(scopedLabel, layout);
   return layout;
 }
 
@@ -78,12 +105,13 @@ export function getOrCreatePipelineLayout(
 // ============================================================================
 
 
-function buildPipelineCacheKey(operation, variant, constants, bindGroupLayout) {
+function buildPipelineCacheKey(operation, variant, constants, bindGroupLayout, device) {
   const constantsKey = constants
     ? Object.entries(constants).sort().map(([k, v]) => `${k}=${v}`).join('|')
     : '';
   const layoutKey = bindGroupLayout ? `:${bindGroupLayout.label || 'layout'}` : '';
-  return `${operation}:${variant}${constants ? ':' + constantsKey : ''}${layoutKey}`;
+  const deviceKey = `dev:${getDeviceId(device)}`;
+  return `${deviceKey}:${operation}:${variant}${constants ? ':' + constantsKey : ''}${layoutKey}`;
 }
 
 function resolveConstants(operation, variant, constants) {
@@ -130,8 +158,13 @@ export function getCachedPipeline(
   variant,
   constants = null
 ) {
+  ensureCacheEpoch();
+  const device = getDevice();
+  if (!device) {
+    return null;
+  }
   const resolvedConstants = resolveConstants(operation, variant, constants);
-  const cacheKey = buildPipelineCacheKey(operation, variant, resolvedConstants, null);
+  const cacheKey = buildPipelineCacheKey(operation, variant, resolvedConstants, null, device);
   return pipelineCache.get(cacheKey) || null;
 }
 
@@ -142,14 +175,20 @@ export async function getPipelineFast(
   bindGroupLayout = null,
   constants = null
 ) {
+  ensureCacheEpoch();
+  const device = getDevice();
+  if (!device) {
+    throw new Error('Device not initialized');
+  }
   const resolvedConstants = resolveConstants(operation, variant, constants);
   if (bindGroupLayout) {
-    const layoutKey = buildPipelineCacheKey(operation, variant, resolvedConstants, bindGroupLayout);
+    const layoutKey = buildPipelineCacheKey(operation, variant, resolvedConstants, bindGroupLayout, device);
     const cached = pipelineCache.get(layoutKey);
     if (cached) return cached;
     return createPipeline(operation, variant, bindGroupLayout, constants);
   }
-  const cached = getCachedPipeline(operation, variant, resolvedConstants);
+  const cacheKey = buildPipelineCacheKey(operation, variant, resolvedConstants, null, device);
+  const cached = pipelineCache.get(cacheKey);
   if (cached) return cached;
   return createPipeline(operation, variant, null, constants);
 }
@@ -161,6 +200,7 @@ export async function createPipeline(
   bindGroupLayout = null,
   constants = null
 ) {
+  ensureCacheEpoch();
   const device = getDevice();
   if (!device) {
     throw new Error('Device not initialized');
@@ -171,7 +211,7 @@ export async function createPipeline(
   const constantsKey = resolvedConstants
     ? Object.entries(resolvedConstants).sort().map(([k, v]) => `${k}=${v}`).join('|')
     : '';
-  const cacheKey = buildPipelineCacheKey(operation, variant, resolvedConstants, bindGroupLayout);
+  const cacheKey = buildPipelineCacheKey(operation, variant, resolvedConstants, bindGroupLayout, device);
 
   // Return cached pipeline if available
   if (pipelineCache.has(cacheKey)) {
@@ -228,6 +268,7 @@ export function clearPipelineCaches() {
   pipelineCache.clear();
   bindGroupLayoutCache.clear();
   pipelineLayoutCache.clear();
+  pipelineCacheEpoch = getDeviceEpoch();
 }
 
 

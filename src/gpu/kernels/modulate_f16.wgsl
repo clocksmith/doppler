@@ -2,6 +2,7 @@
 // Applies per-channel affine and optional gating.
 
 enable f16;
+override WORKGROUP_SIZE: u32 = 256u;
 
 struct Uniforms {
     num_tokens: u32,
@@ -19,7 +20,7 @@ struct Uniforms {
 @group(0) @binding(2) var<storage, read> mod_params: array<f16>;
 @group(0) @binding(3) var<storage, read_write> output: array<f16>;
 
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     let idx = gid.x;
     let total = u.num_tokens * u.hidden_size;

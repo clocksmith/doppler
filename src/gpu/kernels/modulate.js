@@ -2,6 +2,7 @@ import { acquireBuffer } from '../../memory/buffer-pool.js';
 import { createTensor, dtypeBytes } from '../tensor.js';
 import { unifiedKernelWrapper } from './utils.js';
 import { selectRuleValue } from './rule-registry.js';
+import { WORKGROUP_SIZES } from './constants.js';
 
 function selectModulateVariant(inputDtype, modDtype) {
   return selectRuleValue('modulate', 'variant', { inputDtype, modDtype });
@@ -33,7 +34,7 @@ async function _modulate(target, input, mod, options = {}) {
       gate_offset: gateOffset, has_gate: hasGate ? 1 : 0,
       add_one: addOne ? 1 : 0, _pad0: 0,
     },
-    Math.ceil((numTokens * hiddenSize) / 256)
+    Math.ceil((numTokens * hiddenSize) / WORKGROUP_SIZES.DEFAULT)
   );
 
   return createTensor(output, input.dtype, [numTokens, hiddenSize], 'modulate_output');

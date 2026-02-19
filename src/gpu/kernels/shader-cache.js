@@ -1,6 +1,7 @@
 
 
 import { log } from '../../debug/index.js';
+import { getDeviceEpoch } from '../device.js';
 
 // ============================================================================
 // Caches
@@ -11,6 +12,27 @@ const shaderSourceCache = new Map();
 
 
 const shaderModuleCache = new Map();
+
+let moduleCacheEpoch = -1;
+const deviceIds = new WeakMap();
+let nextDeviceId = 1;
+
+function getDeviceId(device) {
+  let id = deviceIds.get(device);
+  if (id == null) {
+    id = nextDeviceId++;
+    deviceIds.set(device, id);
+  }
+  return id;
+}
+
+function ensureModuleCacheEpoch() {
+  const epoch = getDeviceEpoch();
+  if (epoch !== moduleCacheEpoch) {
+    shaderModuleCache.clear();
+    moduleCacheEpoch = epoch;
+  }
+}
 
 // ============================================================================
 // Base Path Detection
@@ -111,7 +133,8 @@ export async function getShaderModule(
   shaderFile,
   label
 ) {
-  const cacheKey = shaderFile;
+  ensureModuleCacheEpoch();
+  const cacheKey = `${getDeviceId(device)}:${shaderFile}`;
   const cached = shaderModuleCache.get(cacheKey);
   if (cached) {
     return cached;
@@ -140,6 +163,7 @@ export async function getShaderModule(
 export function clearShaderCaches() {
   shaderSourceCache.clear();
   shaderModuleCache.clear();
+  moduleCacheEpoch = getDeviceEpoch();
 }
 
 

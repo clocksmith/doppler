@@ -105,6 +105,12 @@ export function getKernelCapabilities(): KernelCapabilities;
 export function getDevice(): GPUDevice | null;
 
 /**
+ * Monotonic epoch for device-scoped GPU objects.
+ * Increments whenever the active device changes or is lost/destroyed.
+ */
+export function getDeviceEpoch(): number;
+
+/**
  * Get the resolved platform configuration (call after initDevice)
  * @returns Platform config with capabilities, or null if not initialized or detection failed
  */

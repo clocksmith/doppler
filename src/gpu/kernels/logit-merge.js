@@ -1,7 +1,8 @@
 
 
-import { getDevice } from '../device.js';
+import { getDevice, getDeviceEpoch } from '../device.js';
 import { log } from '../../debug/index.js';
+import { WORKGROUP_SIZES } from './constants.js';
 
 
 
@@ -11,6 +12,8 @@ import { log } from '../../debug/index.js';
 
 // WGSL shader for weighted logit merging
 const WEIGHTED_MERGE_SHADER = /* wgsl */ `
+override WORKGROUP_SIZE: u32 = 256u;
+
 @group(0) @binding(0) var<storage, read> logits_a: array<f32>;
 @group(0) @binding(1) var<storage, read> logits_b: array<f32>;
 @group(0) @binding(2) var<storage, read_write> merged: array<f32>;
@@ -23,7 +26,7 @@ struct MergeParams {
   temperature: f32,
 }
 
-@compute @workgroup_size(256)
+@compute @workgroup_size(WORKGROUP_SIZE)
 fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   let idx = gid.x;
   if (idx >= params.vocab_size) {
@@ -46,6 +49,8 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
 
 // WGSL shader for max logit merging
 const MAX_MERGE_SHADER = /* wgsl */ `
+override WORKGROUP_SIZE: u32 = 256u;
+
 @group(0) @binding(0) var<storage, read> logits_a: array<f32>;
 @group(0) @binding(1) var<storage, read> logits_b: array<f32>;
 @group(0) @binding(2) var<storage, read_write> merged: array<f32>;
@@ -58,7 +63,7 @@ struct MergeParams {
   temperature: f32,
 }
 
-@compute @workgroup_size(256)
+@compute @workgroup_size(WORKGROUP_SIZE)
 fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   let idx = gid.x;
   if (idx >= params.vocab_size) {
@@ -79,6 +84,8 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
 
 // WGSL shader for geometric mean merging (in log space)
 const GEOMETRIC_MERGE_SHADER = /* wgsl */ `
+override WORKGROUP_SIZE: u32 = 256u;
+
 @group(0) @binding(0) var<storage, read> logits_a: array<f32>;
 @group(0) @binding(1) var<storage, read> logits_b: array<f32>;
 @group(0) @binding(2) var<storage, read_write> merged: array<f32>;
@@ -91,7 +98,7 @@ struct MergeParams {
   temperature: f32,
 }
 
-@compute @workgroup_size(256)
+@compute @workgroup_size(WORKGROUP_SIZE)
 fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   let idx = gid.x;
   if (idx >= params.vocab_size) {
@@ -128,15 +135,21 @@ export class LogitMergeKernel {
   
   #initialized = false;
 
+  
+  #deviceEpoch = -1;
+
   constructor() {
     this.#device = getDevice();
   }
 
   
   async init() {
-    if (this.#initialized) return;
+    const deviceEpoch = getDeviceEpoch();
+    if (this.#initialized && this.#deviceEpoch === deviceEpoch) return;
 
     this.#device = getDevice();
+    this.#pipelines.clear();
+    this.#bindGroupLayout = null;
 
     // Create bind group layout
     this.#bindGroupLayout = this.#device.createBindGroupLayout({
@@ -173,6 +186,7 @@ export class LogitMergeKernel {
         compute: {
           module,
           entryPoint: 'main',
+          constants: { WORKGROUP_SIZE: WORKGROUP_SIZES.DEFAULT },
         },
       });
 
@@ -180,14 +194,13 @@ export class LogitMergeKernel {
     }
 
     this.#initialized = true;
+    this.#deviceEpoch = deviceEpoch;
     log.info('LogitMerge', 'Kernel initialized');
   }
 
   
   async merge(logitsA, logitsB, vocabSize, config = {}) {
-    if (!this.#initialized) {
-      await this.init();
-    }
+    await this.init();
 
     if (!config?.strategy) {
       throw new Error('LogitMerge strategy is required.');
@@ -249,7 +262,7 @@ export class LogitMergeKernel {
     const pass = encoder.beginComputePass({ label: 'logit-merge-pass' });
     pass.setPipeline(pipeline);
     pass.setBindGroup(0, bindGroup);
-    pass.dispatchWorkgroups(Math.ceil(vocabSize / 256));
+    pass.dispatchWorkgroups(Math.ceil(vocabSize / WORKGROUP_SIZES.DEFAULT));
     pass.end();
 
     this.#device.queue.submit([encoder.finish()]);

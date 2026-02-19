@@ -1,6 +1,8 @@
 // Modulate kernel
 // Applies per-channel affine and optional gating.
 
+override WORKGROUP_SIZE: u32 = 256u;
+
 struct Uniforms {
     num_tokens: u32,
     hidden_size: u32,
@@ -17,7 +19,7 @@ struct Uniforms {
 @group(0) @binding(2) var<storage, read> mod_params: array<f32>;
 @group(0) @binding(3) var<storage, read_write> output: array<f32>;
 
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     let idx = gid.x;
     let total = u.num_tokens * u.hidden_size;

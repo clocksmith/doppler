@@ -2,6 +2,7 @@ import { acquireBuffer } from '../../memory/buffer-pool.js';
 import { createTensor, dtypeBytes } from '../tensor.js';
 import { unifiedKernelWrapper } from './utils.js';
 import { selectRuleValue } from './rule-registry.js';
+import { WORKGROUP_SIZES } from './constants.js';
 
 function selectPixelShuffleVariant(dtype) {
   return selectRuleValue('pixel_shuffle', 'variant', { dtype });
@@ -33,7 +34,7 @@ async function _pixelShuffle(target, input, options = {}) {
       grid_width: gridWidth, grid_height: gridHeight, patch_size: patchSize,
       patch_channels: inferredPatchChannels, _pad0: 0,
     },
-    Math.ceil((outChannels * outHeight * outWidth) / 256)
+    Math.ceil((outChannels * outHeight * outWidth) / WORKGROUP_SIZES.DEFAULT)
   );
 
   return createTensor(output, input.dtype, [outChannels, outHeight, outWidth], 'pixel_shuffle_output');

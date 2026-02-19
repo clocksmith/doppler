@@ -9,9 +9,9 @@ import { getUniformCache } from '../uniform-cache.js';
 
 export function writeUniformsFromObject(view, config, values) {
   const uniforms = config?.uniforms;
+  const op = config?.operation ?? 'unknown';
+  const variant = config?.variant ?? 'unknown';
   if (!uniforms) {
-    const op = config?.operation ?? 'unknown';
-    const variant = config?.variant ?? 'unknown';
     throw new Error(`Kernel "${op}/${variant}" has no uniforms defined in registry.`);
   }
 
@@ -33,7 +33,9 @@ export function writeUniformsFromObject(view, config, values) {
         view.setFloat32(field.offset, value, true);
         break;
       default:
-        throw new Error(`Unsupported uniform type "${field.type}" for field "${field.name}" in op "${opName}"`);
+        throw new Error(
+          `Unsupported uniform type "${field.type}" for field "${field.name}" in kernel "${op}/${variant}"`
+        );
     }
   }
 }

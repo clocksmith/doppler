@@ -1,6 +1,6 @@
 
 
-import { getDevice, getDeviceLimits, getKernelCapabilities } from '../device.js';
+import { getDevice, getDeviceEpoch, getDeviceLimits, getKernelCapabilities } from '../device.js';
 import { acquireBuffer } from '../../memory/buffer-pool.js';
 import { createTensor } from '../tensor.js';
 import { KernelBase } from './kernel-base.js';
@@ -64,30 +64,37 @@ function getTieredQuantMaxKVLen() {
 
 
 let kvLenFallbackBuffer = null;
+let kvLenFallbackBufferEpoch = -1;
+const U32_BYTES = Uint32Array.BYTES_PER_ELEMENT;
 
 
 function getKvLenFallbackBuffer(device) {
-  if (!kvLenFallbackBuffer) {
+  const epoch = getDeviceEpoch();
+  if (!kvLenFallbackBuffer || kvLenFallbackBufferEpoch !== epoch) {
     kvLenFallbackBuffer = device.createBuffer({
       label: 'attention_kv_len_fallback',
-      size: 4,
+      size: U32_BYTES,
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
     });
     device.queue.writeBuffer(kvLenFallbackBuffer, 0, new Uint32Array([0]));
+    kvLenFallbackBufferEpoch = epoch;
   }
   return kvLenFallbackBuffer;
 }
 
 let pageTableFallbackBuffer = null;
+let pageTableFallbackBufferEpoch = -1;
 
 function getPageTableFallbackBuffer(device) {
-  if (!pageTableFallbackBuffer) {
+  const epoch = getDeviceEpoch();
+  if (!pageTableFallbackBuffer || pageTableFallbackBufferEpoch !== epoch) {
     pageTableFallbackBuffer = device.createBuffer({
       label: 'attention_page_table_fallback',
-      size: 4,
+      size: U32_BYTES,
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
     });
     device.queue.writeBuffer(pageTableFallbackBuffer, 0, new Uint32Array([0]));
+    pageTableFallbackBufferEpoch = epoch;
   }
   return pageTableFallbackBuffer;
 }

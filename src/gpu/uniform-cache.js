@@ -1,6 +1,6 @@
 
 
-import { getDevice } from './device.js';
+import { getDevice, getDeviceEpoch } from './device.js';
 import { getRuntimeConfig } from '../config/runtime.js';
 
 
@@ -217,11 +217,17 @@ export function releaseUniformBuffer(buffer) {
 // Global singleton instance
 
 let globalUniformCache = null;
+let globalUniformCacheEpoch = -1;
 
 
 export function getUniformCache() {
-  if (!globalUniformCache) {
+  const epoch = getDeviceEpoch();
+  if (!globalUniformCache || globalUniformCacheEpoch !== epoch) {
+    if (globalUniformCache) {
+      globalUniformCache.clear();
+    }
     globalUniformCache = new UniformBufferCache();
+    globalUniformCacheEpoch = epoch;
   }
   return globalUniformCache;
 }
@@ -232,4 +238,5 @@ export function resetUniformCache() {
     globalUniformCache.clear();
     globalUniformCache = null;
   }
+  globalUniformCacheEpoch = -1;
 }
