@@ -222,6 +222,7 @@ async function main() {
         }
       }
 
+<<<<<<< Updated upstream
       // Serve demo directly at root.
       if (pathname === '/' || pathname === '') {
         pathname = '/demo/index.html';
@@ -236,6 +237,53 @@ async function main() {
       // Legacy /dr redirects to root.
       if (pathname === '/dr' || pathname === '/dr/') {
         res.writeHead(302, { 'Location': '/' });
+=======
+      // Canonical app entry point.
+      if (pathname === '/' || pathname === '') {
+        res.writeHead(302, { 'Location': '/doppler' });
+        return res.end();
+      }
+
+      // Shortcut: /d redirects to the demo app
+      if (pathname === '/d' || pathname === '/d/') {
+        res.writeHead(302, { 'Location': '/doppler' });
+        return res.end();
+      }
+
+      // Legacy /dr path maps to /doppler (compatibility).
+      if (pathname === '/dr' || pathname === '/dr/') {
+        res.writeHead(302, { 'Location': '/doppler' });
+        return res.end();
+      } else if (pathname.startsWith('/dr/')) {
+        pathname = pathname.replace('/dr/', '/doppler/');
+      }
+
+      // Standalone mode: serve app/index.html at /
+      // Strip /doppler/ prefix for prefixed routing.
+      if (pathname.startsWith('/doppler/')) {
+        pathname = pathname.replace('/doppler/', '/');
+      } else if (pathname === '/doppler') {
+        pathname = '/app/index.html';
+      }
+      if (pathname === '/rd.css') {
+        pathname = '/app/rd.css';
+      }
+      if (pathname === '/kernel-tests/browser/registry.json') {
+        pathname = '/config/kernels/registry.json';
+      }
+      if (
+        pathname === '/favicon.ico' ||
+        pathname === '/favicon.svg' ||
+        pathname === '/site.webmanifest' ||
+        pathname === '/browserconfig.xml' ||
+        pathname === '/apple-touch-icon.png' ||
+        pathname === '/apple-touch-icon-precomposed.png' ||
+        pathname === '/mstile-150x150.png' ||
+        pathname === '/android-chrome-192x192.png' ||
+        pathname === '/android-chrome-512x512.png'
+      ) {
+        res.writeHead(204);
+>>>>>>> Stashed changes
         return res.end();
       }
 
