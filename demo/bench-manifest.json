@@ -1,0 +1,15 @@
+{
+  "defaults": {
+    "suite": "bench",
+    "runtimePreset": "experiments/gemma3-bench-q4k",
+    "prompt": "The quick brown fox jumps over the lazy dog.",
+    "maxTokens": 128
+  },
+  "runs": [
+    {
+      "label": "gemma3-1b-it-wq4k (bench)",
+      "modelId": "gemma-3-1b-it-wq4k"
+    }
+  ],
+  "reportModelId": "doppler-bench-default"
+}
