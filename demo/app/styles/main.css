@@ -1443,7 +1443,7 @@
     }
 
     /* Responsive */
-    @media (max-width: 768px) {
+    @media (max-width: 1024px) {
       .page-shell {
         padding: var(--space-md) var(--space-sm);
       }

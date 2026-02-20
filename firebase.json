@@ -1,0 +1,24 @@
+{
+  "hosting": {
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "/",
+        "destination": "/demo/index.html"
+      },
+      {
+        "source": "/d",
+        "destination": "/demo/index.html"
+      },
+      {
+        "source": "/doppler",
+        "destination": "/demo/index.html"
+      }
+    ]
+  }
+}
