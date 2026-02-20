@@ -120,6 +120,7 @@
           "requires": [
             "shader-f16"
           ],
+          "outputDtype": "f32",
           "description": "Optimized GEMV for M=1 decode: uses shared memory for A vector"
         },
         "gemv_f16a": {
@@ -148,6 +149,7 @@
             "shader-f16",
             "subgroups"
           ],
+          "outputDtype": "f32",
           "variantMetadata": {
             "colsPerWg": 4
           },
@@ -183,6 +185,7 @@
             "shader-f16",
             "subgroups"
           ],
+          "outputDtype": "f32",
           "variantMetadata": {
             "colsPerWg": 4
           }

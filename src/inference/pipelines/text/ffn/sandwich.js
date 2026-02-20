@@ -78,27 +78,29 @@ export async function processFFNWithSandwichNorm(
   const dtypesMatchForFusion = (ffnInput.dtype === 'f32' && downWeightIsF32)
     || (ffnInput.dtype === 'f16' && downWeightIsF16);
 
-  const canUseFusedDownNorm = numTokens === 1
+  let canUseFusedDownNorm = numTokens === 1
     && !config.useMoE
     && !isMoELayerLocal(layerIdx, config, layerWeights)
     && sandwichNorm.hasPostFeedforwardNorm
     && layerWeights?.postFeedforwardNorm
     && layerWeights?.down
-    && dtypesMatchForFusion
-    && (await import('../../../../gpu/kernel-selector.js')).shouldUseFusedMatmulRMSNorm(
+    && dtypesMatchForFusion;
+
+  if (canUseFusedDownNorm) {
+    canUseFusedDownNorm = (await import('../../../../gpu/kernel-selector.js')).shouldUseFusedMatmulRMSNorm(
       numTokens,
       hiddenSize,
       config.intermediateSize
     );
+  }
 
-  
   let ffnOutput;
   let usedFusedDownNorm = false;
 
   if (config.useMoE && isMoELayerLocal(layerIdx, config, layerWeights)) {
     ffnOutput = await runMoEFFNGPU(layerIdx, ffnInput, numTokens, context);
   } else if (canUseFusedDownNorm && layerWeights?.down && layerWeights?.postFeedforwardNorm &&
-             (layerWeights?.gateUp || (layerWeights?.gate && layerWeights?.up))) {
+    (layerWeights?.gateUp || (layerWeights?.gate && layerWeights?.up))) {
     if (layerIdx === 0 && !hasLoggedFusedDownNorm()) {
       trace.ffn(0, `Using fused down+norm kernel (dtype=${ffnInput.dtype}, transposeB=${!downWeightIsColumnMajor})`);
       setLoggedFusedDownNorm(true);
@@ -142,7 +144,7 @@ export async function processFFNWithSandwichNorm(
   if (ffnStats) logFFN(layerIdx, { maxAbsOut: ffnStats.maxAbs });
 
   // 3. Post-FFN norm
-  
+
   let output;
   if (usedFusedDownNorm) {
     output = ffnOutput;

@@ -1,7 +1,15 @@
 {
   "activationOp": [
-    { "match": { "hiddenActivation": "gelu" }, "value": "gelu" },
-    { "match": {}, "value": "silu" }
+    {
+      "match": {
+        "hiddenActivation": "gelu"
+      },
+      "value": "gelu"
+    },
+    {
+      "match": {},
+      "value": "silu"
+    }
   ],
   "useFusedGateUp": [
     {
@@ -14,10 +22,14 @@
         "hasLoRA": false,
         "dtypeMatches": true,
         "dtypeSupported": true,
-        "f16BatchSupported": true
+        "f16BatchSupported": true,
+        "activationDtype": "f16"
       },
       "value": true
     },
-    { "match": {}, "value": false }
+    {
+      "match": {},
+      "value": false
+    }
   ]
 }

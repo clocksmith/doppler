@@ -177,6 +177,10 @@ export async function runDenseFFNGPU(
   const q4kFusedAllowed = gateDtype !== 'q4k' || !isFusedQ4KDisabled();
   const dtypeSupported = gateDtype === 'f16' || gateDtype === 'f32' || (gateDtype === 'q4k' && q4kFusedAllowed);
   const f16BatchSupported = gateDtype !== 'f16' || numTokens === 1;
+  const activationDtype = selectRuleValue('shared', 'dtype', 'f16OrFallbackByFlag', {
+    useF16: inputTensor.dtype === 'f16',
+    fallback: inputTensor.dtype,
+  });
   const useFusedGateUp = selectRuleValue('inference', 'ffn', 'useFusedGateUp', {
     hasGate,
     hasUp,
@@ -187,6 +191,7 @@ export async function runDenseFFNGPU(
     dtypeMatches,
     dtypeSupported,
     f16BatchSupported,
+    activationDtype,
   });
 
   if (useFusedGateUp) {
