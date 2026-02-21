@@ -321,9 +321,9 @@ Competitive benchmarking MUST run through the registry-driven toolchain:
 - Shared workloads in `benchmarks/competitors/workloads.json`
 - Capability matrix in `benchmarks/competitors/capabilities.json`
 - Target normalization in `benchmarks/competitors/harnesses/*.json`
-- Runner implementation in `external/transformersjs-bench.mjs` (extend similarly for additional targets)
+- Runner implementation in `external/transformersjs-bench.js` (extend similarly for additional targets)
 - Orchestration in:
-  - `tools/compare-engines.mjs` for side-by-side Doppler vs competitor runs
+  - `tools/compare-engines.js` for side-by-side Doppler vs competitor runs
   - `tools/competitor-bench.js` for registry/run/import/validation
 - Normalized comparison artifacts in `benchmarks/competitors/results/` using `benchmarks/competitors/schema/result.schema.json`
 
@@ -333,7 +333,7 @@ Use these commands for validation and comparison:
 - `node tools/competitor-bench.js validate`
 - `node tools/competitor-bench.js capabilities`
 - `node tools/competitor-bench.js gap --base doppler --target transformersjs`
-- `node tools/compare-engines.mjs --mode all`
+- `node tools/compare-engines.js --mode all`
 
 ### Metric Consistency (Required for Fairness)
 

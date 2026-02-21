@@ -14,7 +14,7 @@ It is intentionally separate from style guides and from Doppler-only benchmark n
 
 - `registry.json`: canonical list of competitor products and harness links.
 - `workloads.json`: shared workload IDs used for apples-to-apples comparisons.
-  - includes `defaults.compareEngines`, used by `tools/compare-engines.mjs` when no explicit workload/prompt/token lengths are passed.
+  - includes `defaults.compareEngines`, used by `tools/compare-engines.js` when no explicit workload/prompt/token lengths are passed.
 - `capabilities.json`: capability matrix for bench/profiling coverage by target.
 - `harnesses/*.json`: one harness definition per competitor.
 - `schema/*.json`: schemas for registry, harness, capabilities, and normalized result records.
@@ -40,4 +40,4 @@ Use `tools/competitor-bench.js`:
 
 - Prefill throughput comparisons are normalized as `prompt_tokens / ttft_ms`.
 - Prefer explicit source metric keys like `prefill_tokens_per_sec_ttft` when available, with legacy key fallback for older harness outputs.
-- `tools/compare-engines.mjs` defaults to `--decode-profile parity` (Doppler `batchSize=1`, `readbackInterval=1`) for closer Transformers.js decode cadence matching; use `--decode-profile throughput` for Doppler-tuned runs.
+- `tools/compare-engines.js` defaults to `--decode-profile parity` (Doppler `batchSize=1`, `readbackInterval=1`) for closer Transformers.js decode cadence matching; use `--decode-profile throughput` for Doppler-tuned runs.

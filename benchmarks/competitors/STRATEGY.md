@@ -113,7 +113,7 @@ To definitively crush incumbent engines in raw performance and stability, Dopple
   - `status`: `validated_local` (spike only)
   - `owner`: `runtime-kernels`
   - `updatedUtc`: `2026-02-21T01:51:20Z`
-  - `evidence`: `docs/bf16-runtime-spike.md:45`, `tools/bf16-math-spike.mjs:589`
+  - `evidence`: `docs/bf16-runtime-spike.md:45`, `tools/bf16-math-spike.js:589`
   - `etaUtc`: `TBD`
   - `blocker`: `kernel integration + CI coverage pending`
 
@@ -208,7 +208,7 @@ Snapshot timestamp: `2026-02-21T03:02:44Z`
 - `status`: `implemented`
 - `owner`: `runtime-kernels`
 - `updatedUtc`: `2026-02-21T19:58:04Z`
-- `evidence`: `tools/compare-engines.mjs:73`
+- `evidence`: `tools/compare-engines.js:73`
 - `etaUtc`: `complete`
 - `blocker`: `none`
 

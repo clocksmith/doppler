@@ -10,7 +10,7 @@ Doppler is a standalone inference library; [Reploid](https://github.com/clocksmi
 ## Performance vs Transformers.js (ORT WebGPU)
 
 Gemma 3 1B F16, both models on local disk, headless Chrome, Apple M3.
-Reproducing: `node tools/compare-engines.mjs --tjs-version 4 --mode all --model-id gemma-3-1b-it-wf16 --doppler-kernel-path gemma3-f16-f32a --tjs-local-model-path /models/local/`
+Reproducing: `node tools/compare-engines.js --tjs-version 4 --mode all --model-id gemma-3-1b-it-wf16 --doppler-kernel-path gemma3-f16-f32a --tjs-local-model-path /models/local/`
 
 | Metric | Doppler | Transformers.js v4 | Delta |
 |--------|---------|-------------------|-------|

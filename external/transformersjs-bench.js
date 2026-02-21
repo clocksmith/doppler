@@ -7,7 +7,7 @@
  * with the WebGPU backend, runs timed inference, and outputs normalized JSON.
  *
  * Usage:
- *   node external/transformersjs-bench.mjs [options]
+ *   node external/transformersjs-bench.js [options]
  *
  * Options:
  *   --model <id>         HuggingFace model ID (default: onnx-community/gemma-3-1b-it-ONNX-GQA)

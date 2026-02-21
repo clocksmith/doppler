@@ -13,7 +13,7 @@ This note captures practical BF16 strategies for Doppler given current WebGPU/WG
 Run:
 
 ```bash
-node tools/bf16-math-spike.mjs
+node tools/bf16-math-spike.js
 ```
 
 The script reports:
@@ -26,7 +26,7 @@ The script reports:
 
 ## Current Spike Results
 
-Using the deterministic defaults in `tools/bf16-math-spike.mjs`:
+Using the deterministic defaults in `tools/bf16-math-spike.js`:
 
 - Dot study (`trials=300`, `width=2048`)
   - `bf16Strict` mean abs err vs f32: `~0.1002`

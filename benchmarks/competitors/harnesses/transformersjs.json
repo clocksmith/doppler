@@ -7,7 +7,7 @@
     "stdoutFormat": "json",
     "defaultCommand": null,
     "examples": [
-      "node external/transformersjs-bench.mjs --workload decode-64-128-greedy --json"
+      "node external/transformersjs-bench.js --workload decode-64-128-greedy --json"
     ]
   },
   "normalization": {

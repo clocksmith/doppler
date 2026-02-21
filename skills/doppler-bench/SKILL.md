@@ -11,13 +11,13 @@ Use this skill for repeatable performance measurement and cross-product comparis
 
 ```bash
 # Fair compute comparison (default parity decode cadence)
-node tools/compare-engines.mjs --mode compute --warmup 1 --runs 3 --decode-profile parity --save --json
+node tools/compare-engines.js --mode compute --warmup 1 --runs 3 --decode-profile parity --save --json
 
 # Doppler throughput-tuned decode cadence
-node tools/compare-engines.mjs --mode compute --warmup 1 --runs 3 --decode-profile throughput --save --json
+node tools/compare-engines.js --mode compute --warmup 1 --runs 3 --decode-profile throughput --save --json
 
 # Warm-start only (includes model load)
-node tools/compare-engines.mjs --mode warm --warmup 1 --runs 3 --decode-profile parity --save --json
+node tools/compare-engines.js --mode warm --warmup 1 --runs 3 --decode-profile parity --save --json
 ```
 
 Notes:
@@ -47,10 +47,10 @@ Notes:
 
 ```bash
 # 1) Baseline parity
-node tools/compare-engines.mjs --mode compute --warmup 1 --runs 3 --decode-profile parity --save --json
+node tools/compare-engines.js --mode compute --warmup 1 --runs 3 --decode-profile parity --save --json
 
 # 2) Throughput probe
-node tools/compare-engines.mjs --mode compute --warmup 1 --runs 3 --decode-profile throughput --save --json
+node tools/compare-engines.js --mode compute --warmup 1 --runs 3 --decode-profile throughput --save --json
 
 # 3) Readback sensitivity (fixed workload, warm cache)
 npm run bench -- --model-id MODEL_ID --runtime-preset experiments/gemma3-investigate-readback-r1 --cache-mode warm --save --json
@@ -64,10 +64,10 @@ npm run debug -- --model-id MODEL_ID --runtime-preset experiments/gemma3-profile
 
 ```bash
 # Raw Transformers.js benchmark with ORT op profiling summary
-node external/transformersjs-bench.mjs --workload decode-64-128-greedy --cache-mode warm --profile-ops on --profile-top 20 --json
+node external/transformersjs-bench.js --workload decode-64-128-greedy --cache-mode warm --profile-ops on --profile-top 20 --json
 
 # Normalize result into competitor registry output
-node tools/competitor-bench.js run --target transformersjs --workload decode-64-128-greedy -- node external/transformersjs-bench.mjs --workload decode-64-128-greedy --cache-mode warm --profile-ops on --profile-top 20 --json
+node tools/competitor-bench.js run --target transformersjs --workload decode-64-128-greedy -- node external/transformersjs-bench.js --workload decode-64-128-greedy --cache-mode warm --profile-ops on --profile-top 20 --json
 ```
 
 ## Coverage Tracking (Bench vs Profile)
@@ -96,7 +96,7 @@ node tools/competitor-bench.js gap --base doppler --target transformersjs
 ## Canonical Files
 
 - `tools/doppler-cli.js`
-- `external/transformersjs-bench.mjs`
+- `external/transformersjs-bench.js`
 - `external/transformersjs-runner.html`
 - `benchmarks/competitors/registry.json`
 - `benchmarks/competitors/capabilities.json`

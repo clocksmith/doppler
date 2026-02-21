@@ -10,7 +10,7 @@
  *   - cold:    cold-start UX (full download/compile + first inference)
  *
  * Usage:
- *   node tools/compare-engines.mjs [options]
+ *   node tools/compare-engines.js [options]
  *
  * Options:
  *   --model-id <id>        Doppler model ID (default: gemma-3-1b-it-wf16)
@@ -314,8 +314,9 @@ function buildDopplerRuntimeConfig(sharedContract, engineOverlay) {
     try {
       const parsedOverride = JSON.parse(engineOverlay.runtimeConfigJson);
       if (parsedOverride.inference?.attention) {
-        runtimeConfig.inference.attention = {
-          ...runtimeConfig.inference.attention,
+        runtimeConfig.inference.modelOverrides = runtimeConfig.inference.modelOverrides || {};
+        runtimeConfig.inference.modelOverrides.attention = {
+          ...runtimeConfig.inference.modelOverrides.attention,
           ...parsedOverride.inference.attention,
         };
       }
@@ -344,6 +345,7 @@ async function runDoppler(modelId, modelUrl, sharedContract, cacheMode, options 
     kernelPath: resolvedKernelPath,
     batchSize: resolvedBatchSize,
     readbackInterval: resolvedReadbackInterval,
+    runtimeConfigJson: options.runtimeConfigJson,
   });
   const baseArgs = [
     path.join(DOPPLER_ROOT, 'tools', 'doppler-cli.js'),
@@ -399,7 +401,7 @@ async function runTjs(modelId, sharedContract, cacheMode, tjsVersion, localModel
   const resolvedTimeoutMs = parsePositiveInt(options.timeoutMs, DEFAULT_TJS_TIMEOUT_MS, '--tjs-timeout-ms');
   const resolvedServerPort = parseNonNegativeInt(options.serverPort, DEFAULT_TJS_SERVER_PORT, '--tjs-server-port');
   const args = [
-    path.join(DOPPLER_ROOT, 'external', 'transformersjs-bench.mjs'),
+    path.join(DOPPLER_ROOT, 'external', 'transformersjs-bench.js'),
     '--model', modelId,
     '--prompt', String(sharedContract.prompt),
     '--max-tokens', String(sharedContract.maxTokens),

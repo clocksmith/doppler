@@ -13,13 +13,13 @@ Use this skill when Doppler is slower than expected on decode, prefill, TTFT, or
 
 ```bash
 # Fair compute comparison (Doppler cadence aligned to TJS-style per-token cadence)
-node tools/compare-engines.mjs --mode compute --warmup 1 --runs 3 --decode-profile parity --save --json
+node tools/compare-engines.js --mode compute --warmup 1 --runs 3 --decode-profile parity --save --json
 
 # Throughput-oriented Doppler cadence probe
-node tools/compare-engines.mjs --mode compute --warmup 1 --runs 3 --decode-profile throughput --save --json
+node tools/compare-engines.js --mode compute --warmup 1 --runs 3 --decode-profile throughput --save --json
 
 # Warm UX comparison (includes model load and first response path)
-node tools/compare-engines.mjs --mode warm --warmup 1 --runs 3 --decode-profile parity --save --json
+node tools/compare-engines.js --mode warm --warmup 1 --runs 3 --decode-profile parity --save --json
 ```
 
 Read from output:
@@ -76,8 +76,8 @@ Priority code hotspots:
 
 ```bash
 # Re-run parity and throughput comparisons after each material change
-node tools/compare-engines.mjs --mode compute --warmup 1 --runs 3 --decode-profile parity --save --json
-node tools/compare-engines.mjs --mode compute --warmup 1 --runs 3 --decode-profile throughput --save --json
+node tools/compare-engines.js --mode compute --warmup 1 --runs 3 --decode-profile parity --save --json
+node tools/compare-engines.js --mode compute --warmup 1 --runs 3 --decode-profile throughput --save --json
 
 # Keep competitor registry coverage valid
 node tools/competitor-bench.js validate

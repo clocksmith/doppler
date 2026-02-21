@@ -123,7 +123,7 @@
         "src/gpu/command-recorder.js",
         "src/inference/pipelines/text/generator-steps.js",
         "docs/operations.md",
-        "tools/compare-engines.mjs"
+        "tools/compare-engines.js"
       ]
     },
     {
@@ -158,10 +158,10 @@
         }
       },
       "evidence": [
-        "external/transformersjs-bench.mjs",
+        "external/transformersjs-bench.js",
         "external/transformersjs-runner.html",
         "benchmarks/competitors/harnesses/transformersjs.json",
-        "tools/compare-engines.mjs"
+        "tools/compare-engines.js"
       ]
     },
     {
