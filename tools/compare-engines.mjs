@@ -240,7 +240,7 @@ function parseArgs(argv) {
       continue;
     }
     const value = argv[i + 1];
-    if (value === undefined || value.startsWith('--')) {
+    if (value === undefined) {
       throw new Error(`Missing value for --${key}`);
     }
     flags[key] = value;
@@ -309,6 +309,21 @@ function buildDopplerRuntimeConfig(sharedContract, engineOverlay) {
   if (engineOverlay.kernelPath) {
     runtimeConfig.inference.kernelPath = engineOverlay.kernelPath;
   }
+
+  if (engineOverlay.runtimeConfigJson) {
+    try {
+      const parsedOverride = JSON.parse(engineOverlay.runtimeConfigJson);
+      if (parsedOverride.inference?.attention) {
+        runtimeConfig.inference.attention = {
+          ...runtimeConfig.inference.attention,
+          ...parsedOverride.inference.attention,
+        };
+      }
+    } catch (e) {
+      console.error(`[compare] Failed to parse --runtime-config-json: ${e.message}`);
+    }
+  }
+
   return runtimeConfig;
 }
 
@@ -604,6 +619,7 @@ async function main() {
     DEFAULT_DOPPLER_BROWSER_PORT,
     '--doppler-browser-port'
   );
+  const runtimeConfigJson = flags['runtime-config-json'] || null;
   const jsonOutput = flags.json === true;
   const shouldSave = flags.save === true;
   const saveDir = flags['save-dir'] || path.join(DOPPLER_ROOT, 'bench-results');
@@ -717,6 +733,7 @@ async function main() {
         noOpfsCache: dopplerNoOpfsCache,
         browserUserData: dopplerBrowserUserData,
         browserPort: dopplerBrowserPort,
+        runtimeConfigJson,
       }
     );
     dopplerComputeThroughput = await runDoppler(
@@ -731,6 +748,7 @@ async function main() {
         noOpfsCache: dopplerNoOpfsCache,
         browserUserData: dopplerBrowserUserData,
         browserPort: dopplerBrowserPort,
+        runtimeConfigJson,
       }
     );
     report.sections.compute = {
@@ -752,6 +770,7 @@ async function main() {
         noOpfsCache: dopplerNoOpfsCache,
         browserUserData: dopplerBrowserUserData,
         browserPort: dopplerBrowserPort,
+        runtimeConfigJson,
       }
     );
     tjsWarm = await runTjs(
@@ -783,6 +802,7 @@ async function main() {
         noOpfsCache: dopplerNoOpfsCache,
         browserUserData: dopplerBrowserUserData,
         browserPort: dopplerBrowserPort,
+        runtimeConfigJson,
       }
     );
     tjsCold = await runTjs(
