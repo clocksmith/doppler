@@ -21,3 +21,4 @@ export { runLayerAttentionGPU } from './run.js';
 
 // Record (batched submission)
 export { recordLayerAttentionGPU } from './record.js';
+export { runAttentionBDPA, recordAttentionBDPA } from '../../../../gpu/kernel-selector.js';

@@ -49,6 +49,7 @@ export {
   recordAttentionTiered,
   runAttentionTieredQuant,
   recordAttentionTieredQuant,
+  runAttentionBDPA,
   recordAttentionBDPA,
 } from './attention.js';
 

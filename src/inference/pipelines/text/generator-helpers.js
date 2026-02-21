@@ -89,6 +89,7 @@ export function buildLayerContext(state, recorder, isDecodeMode, debugLayers, de
     weights: state.weights,
     kvCache: state.kvCache,
     currentSeqLen: state.currentSeqLen,
+    currentTokenIds: state.currentTokenIds ?? null,
     useGPU: state.useGPU,
     debug: state.debug,
     stats: state.stats,

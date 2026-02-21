@@ -30,6 +30,7 @@ export {
   KVCache,
   SlidingWindowKVCache,
   TieredKVCache,
+  BasisDecomposedPagedCache,
   // Default
   KVCache as default,
 } from './kv-cache/index.js';

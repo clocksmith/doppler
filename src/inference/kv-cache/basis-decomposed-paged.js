@@ -118,7 +118,7 @@ export class BasisDecomposedPagedCache extends KVCache {
         const layer = this.layers[layerIdx];
         return {
             layout: 'bdpa',
-            seqLen: this.currentSeqLen,
+            seqLen: layer.seqLen,
             basisGPU: layer.basisGPU,
             pagedGPU: layer.pagedGPU,
             indexGPU: layer.indexGPU,

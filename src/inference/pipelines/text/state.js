@@ -59,6 +59,8 @@ export class PipelineState {
 
     this.currentSeqLen = 0;
 
+    this.currentTokenIds = null;
+
     this.runtimeConfig = getRuntimeConfig();
 
     // DopplerLoader instance

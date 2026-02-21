@@ -3,7 +3,7 @@
 import { parseModelConfig } from './config.js';
 import { getDevice, getDeviceLimits, getKernelCapabilities } from '../../../gpu/device.js';
 import { acquireBuffer } from '../../../memory/buffer-pool.js';
-import { KVCache, SlidingWindowKVCache, TieredKVCache } from '../../kv-cache.js';
+import { KVCache, SlidingWindowKVCache, TieredKVCache, BasisDecomposedPagedCache } from '../../kv-cache.js';
 import { Tokenizer } from '../../tokenizer.js';
 import { MoERouter } from '../../moe-router.js';
 import { SpeculativeDecoder } from '../../speculative.js';
@@ -292,7 +292,7 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig)
     throw new Error('Tiered KV cache requires kvDtype="f16" (no f32 tiered kernels yet).');
   }
 
-  if (useGPU && (cacheLayout === 'paged' || cacheLayout === 'tiered')) {
+  if (useGPU && (cacheLayout === 'paged' || cacheLayout === 'tiered' || cacheLayout === 'bdpa')) {
     const limits = getDeviceLimits();
     if (limits) {
       const bytesPerToken = modelConfig.numKVHeads * modelConfig.headDim * (kvDtype === 'f16' ? 2 : 4);
@@ -330,10 +330,14 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig)
   
   let kvCache;
 
-  if (modelConfig.slidingWindow && cacheLayout !== 'paged' && cacheLayout !== 'tiered') {
+  if (modelConfig.slidingWindow && cacheLayout !== 'paged' && cacheLayout !== 'tiered' && cacheLayout !== 'bdpa') {
     kvCache = new SlidingWindowKVCache({
       ...cacheConfig,
       windowSize: slidingWindow ?? modelConfig.slidingWindow,
+    });
+  } else if (cacheLayout === 'bdpa') {
+    kvCache = new BasisDecomposedPagedCache({
+      ...cacheConfig,
     });
   } else if (cacheLayout === 'tiered') {
     kvCache = new TieredKVCache({

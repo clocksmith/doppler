@@ -161,6 +161,7 @@ async function runDecodeLayers(state, tokenId, opts, helpers) {
   const debugCheckBuffer = state.debug ? helpers.debugCheckBuffer : undefined;
 
   const context = helpers.buildLayerContext(undefined, true, opts.debugLayers);
+  context.currentTokenIds = [tokenId];
 
   state.decodeBuffers.resetPingPong();
 
@@ -225,7 +226,7 @@ export async function decodeStep(state, currentIds, opts, helpers) {
   const device = getDevice();
 
   let recorder;
-  if (device && !opts.debug && !opts.disableCommandBatching) {
+  if (device && !opts.debug && !opts.disableCommandBatching && state.kvCache?.layout !== 'bdpa_paged') {
     recorder = opts.profile
       ? createProfilingRecorder('decode')
       : createCommandRecorder('decode');
@@ -240,6 +241,7 @@ export async function decodeStep(state, currentIds, opts, helpers) {
   }
 
   const context = helpers.buildLayerContext(recorder, true, opts.debugLayers);
+  context.currentTokenIds = [lastToken];
 
   state.decodeBuffers.resetPingPong();
 
@@ -920,6 +922,7 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
   for (let i = 0; i < N; i++) {
     const currentPos = state.currentSeqLen + i;
     context.currentSeqLen = currentPos;
+    context.currentTokenIds = [startToken];
     context.decodeBuffers?.resetPingPong();
 
     const hiddenTensor = await embed(tokensBuffer, embedBuffer, {

@@ -356,6 +356,7 @@ export async function recordLayerAttentionGPU(
   let bdpaPagedK = null;
   let bdpaPagedV = null;
   let bdpaIndex = null;
+  let bdpaBasisCount = 0;
 
   const totalSeqLen = currentSeqLen + numTokens;
 
@@ -411,6 +412,7 @@ export async function recordLayerAttentionGPU(
         bdpaPagedK = gpuBuffers.pagedGPU.k;
         bdpaPagedV = gpuBuffers.pagedGPU.v;
         bdpaIndex = gpuBuffers.indexGPU;
+        bdpaBasisCount = gpuBuffers.numBasisVectors ?? state.kvCache.basisVocabSize;
       }
     }
   } else {
@@ -468,10 +470,10 @@ export async function recordLayerAttentionGPU(
     kvDtype: state.kvCache?.kvDtype,
     fallback: vTensor.dtype,
   });
-  const cachedKTensor = kvLayout === 'tiered'
+  const cachedKTensor = kvLayout === 'tiered' || kvLayout === 'bdpa'
     ? null
     : createTensor(cachedK, cachedKDtype, [kvLenForAttention, numKVHeads * headDim], 'cached_K');
-  const cachedVTensor = kvLayout === 'tiered'
+  const cachedVTensor = kvLayout === 'tiered' || kvLayout === 'bdpa'
     ? null
     : createTensor(cachedV, cachedVDtype, [kvLenForAttention, numKVHeads * headDim], 'cached_V');
 
@@ -505,15 +507,19 @@ export async function recordLayerAttentionGPU(
 
   let attnOutput;
   if (kvLayout === 'bdpa') {
-    // 1. Create Typed Tensors for the BDPA GPU buffers
-    const basisKDtype = 'f16'; // Currently hardcoded f16 in Cache
+    const basisKDtype = 'f16';
     const basisVDtype = 'f16';
-    const numBasisVectors = state.kvCache.basisVocabSize;
+    const numBasisVectors = Math.max(1, bdpaBasisCount);
     const basisKTensor = createTensor(bdpaBasisK, basisKDtype, [numBasisVectors, numKVHeads * headDim], 'bdpa_basis_k');
     const basisVTensor = createTensor(bdpaBasisV, basisVDtype, [numBasisVectors, numKVHeads * headDim], 'bdpa_basis_v');
 
-    // We don't construct Tensors for P_delta and I_flat because they are custom layout bindings not used in standard MatMuls
-    attnOutput = await recordAttentionBDPA(recorder, qTensor, basisKTensor, basisVTensor, bdpaPagedK, bdpaPagedV, bdpaIndex, numHeads, headDim, {
+    let qForBDPA = qTensor;
+    if (qForBDPA.dtype !== 'f16') {
+      qForBDPA = await recordCastF32ToF16(recorder, qTensor);
+      recorder.trackTemporaryBuffer(qForBDPA.buffer);
+    }
+
+    attnOutput = await recordAttentionBDPA(recorder, qForBDPA, basisKTensor, basisVTensor, bdpaPagedK, bdpaPagedV, bdpaIndex, numHeads, headDim, {
       seqLen: numTokens,
       kvLen: kvLenForAttention,
       numKVHeads,

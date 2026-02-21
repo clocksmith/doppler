@@ -10,7 +10,7 @@
  */
 
 import { Tokenizer } from '../../tokenizer.js';
-import { KVCache, SlidingWindowKVCache } from '../../kv-cache.js';
+import { KVCache, SlidingWindowKVCache, BasisDecomposedPagedCache } from '../../kv-cache.js';
 import { MoERouter } from '../../moe-router.js';
 import { SpeculativeDecoder } from '../../speculative.js';
 import { DecodeBufferManager } from '../../decode-buffers.js';
@@ -30,7 +30,7 @@ import type { EmulationContext } from '/proto/simulator/index.js';
 export class PipelineState {
   // Components
   tokenizer: Tokenizer | null;
-  kvCache: KVCache | SlidingWindowKVCache | null;
+  kvCache: KVCache | SlidingWindowKVCache | BasisDecomposedPagedCache | null;
   moeRouter: MoERouter | null;
   speculativeDecoder: SpeculativeDecoder | null;
   decodeBuffers: DecodeBufferManager | null;
@@ -58,6 +58,7 @@ export class PipelineState {
   isLoaded: boolean;
   isGenerating: boolean;
   currentSeqLen: number;
+  currentTokenIds: number[] | null;
   runtimeConfig: RuntimeConfigSchema;
 
   // DopplerLoader instance

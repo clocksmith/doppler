@@ -29,7 +29,7 @@ export class KVCache {
   readonly numHeads: number;
   readonly headDim: number;
   readonly maxSeqLen: number;
-  readonly layout: 'contiguous' | 'paged';
+  readonly layout: 'contiguous' | 'paged' | 'bdpa_paged';
   readonly pageSize: number;
   readonly kvDtype: 'f16' | 'f32';
   readonly bytesPerElem: number;
@@ -70,8 +70,9 @@ export class KVCache {
     keysBuffer: GPUBuffer,
     valuesBuffer: GPUBuffer,
     startPos: number,
-    numTokens: number
-  ): void;
+    numTokens: number,
+    tokenIds?: number[] | null
+  ): void | Promise<void>;
 
   /**
    * Record KV cache update to an external encoder (for batched GPU operations).
@@ -83,8 +84,9 @@ export class KVCache {
     keysBuffer: GPUBuffer,
     valuesBuffer: GPUBuffer,
     startPos: number,
-    numTokens: number
-  ): void;
+    numTokens: number,
+    tokenIds?: number[] | null
+  ): void | Promise<void>;
 
   /**
    * Get cached keys and values for a layer

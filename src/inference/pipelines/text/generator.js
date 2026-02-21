@@ -649,7 +649,7 @@ export class PipelineGenerator {
       batchSize: opts.batchSize,
       useGPU: this.#state.useGPU,
       gpuSamplingAvailable,
-      disableMultiTokenDecode: opts.disableMultiTokenDecode,
+      disableMultiTokenDecode: opts.disableMultiTokenDecode || this.#state.kvCache?.layout === 'bdpa_paged',
       disableCommandBatching: opts.disableCommandBatching,
     });
     const readbackInterval = this.#state.runtimeConfig.inference.batching.readbackInterval;
@@ -789,7 +789,9 @@ export class PipelineGenerator {
 
     const device = getDevice();
     const useCheckpoints = opts.debugLayers && opts.debugLayers.length > 0;
-    const disableCommandBatching = opts.disableCommandBatching === true || opts.debug === true;
+    const disableCommandBatching = opts.disableCommandBatching === true
+      || opts.debug === true
+      || this.#state.kvCache?.layout === 'bdpa_paged';
     const createRecorder = (label) => {
       if (!device || disableCommandBatching) return undefined;
       return opts.profile ? createProfilingRecorder(label) : createCommandRecorder(label);
@@ -800,6 +802,7 @@ export class PipelineGenerator {
         debugCheckBufferHelper(this.#state, buffer, label, numTokens, expectedDim)
       : undefined;
     const context = buildLayerContext(this.#state, recorder, false, opts.debugLayers, debugCheckBuffer);
+    context.currentTokenIds = inputIds;
     let gpuTimePrefillMs = 0;
     let hasGpuTimePrefill = false;
     const recordProfile = async (rec) => {

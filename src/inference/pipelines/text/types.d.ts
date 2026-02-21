@@ -18,7 +18,7 @@ import type { DecodeBufferManager } from '../../decode-buffers.js';
 import type { CommandRecorder } from '../../../gpu/kernel-selector.js';
 import type { CompiledLayerPipeline } from './layer-plan.js';
 import type { WeightBufferConfig, WeightDebugFlags } from './weights.js';
-import type { KVCache, SlidingWindowKVCache, TieredKVCache } from '../../kv-cache.js';
+import type { KVCache, SlidingWindowKVCache, TieredKVCache, BasisDecomposedPagedCache } from '../../kv-cache.js';
 import type { DecodeRingStats } from '../../decode-ring.js';
 
 // ============================================================================
@@ -46,9 +46,11 @@ export interface LayerContext {
   /** Layer weights map */
   weights: Map<string, LayerWeights | Float32Array | GPUBuffer | WeightBuffer | CpuWeightBuffer>;
   /** KV cache instance */
-  kvCache: KVCache | SlidingWindowKVCache | TieredKVCache;
+  kvCache: KVCache | SlidingWindowKVCache | TieredKVCache | BasisDecomposedPagedCache;
   /** Current sequence length */
   currentSeqLen: number;
+  /** Token IDs for the current micro-batch (required by BDPA ingestion). */
+  currentTokenIds?: number[] | null;
   /** Whether to use GPU */
   useGPU: boolean;
   /** Debug mode */
@@ -166,7 +168,7 @@ export interface GPUBuffersResult {
   keysGPU?: GPUBuffer;
   valuesGPU?: GPUBuffer;
   seqLen: number;
-  layout?: 'contiguous' | 'paged' | 'tiered';
+  layout?: 'contiguous' | 'paged' | 'tiered' | 'bdpa';
   pageTableGPU?: GPUBuffer;
   pageSize?: number;
   hotKeysGPU?: GPUBuffer;
@@ -183,6 +185,10 @@ export interface GPUBuffersResult {
   coldPageSize?: number;
   coldPackedStride?: number;
   coldQuantMode?: 'none' | 'int8' | 'int4';
+  basisGPU?: { k: GPUBuffer; v: GPUBuffer };
+  pagedGPU?: { k: GPUBuffer; v: GPUBuffer };
+  indexGPU?: GPUBuffer;
+  numBasisVectors?: number;
 }
 
 /**
@@ -221,7 +227,8 @@ export interface KVCacheInterface {
     keysBuffer: GPUBuffer,
     valuesBuffer: GPUBuffer,
     startPos: number,
-    numTokens: number
+    numTokens: number,
+    tokenIds?: number[] | null
   ): void | Promise<void>;
 
   /** Record GPU-based update using command encoder */
@@ -231,7 +238,8 @@ export interface KVCacheInterface {
     keysBuffer: GPUBuffer,
     valuesBuffer: GPUBuffer,
     startPos: number,
-    numTokens: number
+    numTokens: number,
+    tokenIds?: number[] | null
   ): void | Promise<void>;
 
   /** Get GPU buffers for a layer */

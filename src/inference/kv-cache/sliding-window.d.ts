@@ -50,7 +50,8 @@ export class SlidingWindowKVCache extends KVCache {
     keysBuffer: GPUBuffer,
     valuesBuffer: GPUBuffer,
     startPos: number,
-    numTokens: number
+    numTokens: number,
+    tokenIds?: number[] | null
   ): void;
 
   /**
@@ -63,7 +64,8 @@ export class SlidingWindowKVCache extends KVCache {
     keysBuffer: GPUBuffer,
     valuesBuffer: GPUBuffer,
     startPos: number,
-    numTokens: number
+    numTokens: number,
+    tokenIds?: number[] | null
   ): void;
 
   getMemoryStats(): MemoryStats & { windowSize: number; totalTokensSeen: number };

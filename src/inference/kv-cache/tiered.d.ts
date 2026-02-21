@@ -68,14 +68,15 @@ export class TieredKVCache {
   );
   clear(): void;
   update(layerIdx: number, keys: Float32Array, values: Float32Array, startPos?: number): void;
-  updateFromGPU(layerIdx: number, keysBuffer: GPUBuffer, valuesBuffer: GPUBuffer, startPos: number, numTokens: number): Promise<void>;
+  updateFromGPU(layerIdx: number, keysBuffer: GPUBuffer, valuesBuffer: GPUBuffer, startPos: number, numTokens: number, tokenIds?: number[] | null): Promise<void>;
   recordUpdateFromGPU(
     recorder: import('../../gpu/kernel-selector.js').CommandRecorder,
     layerIdx: number,
     keysBuffer: GPUBuffer,
     valuesBuffer: GPUBuffer,
     startPos: number,
-    numTokens: number
+    numTokens: number,
+    tokenIds?: number[] | null
   ): Promise<void>;
   get(layerIdx: number): KVGetResult;
   getGPUBuffers(layerIdx: number): TieredGPUBuffersResult | null;

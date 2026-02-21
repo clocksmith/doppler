@@ -31,7 +31,7 @@ export interface AttentionOptions extends OutputBufferOptions {
   /** Optional KV start offset for windowed attention (absolute position). */
   kvStart?: number;
   /** KV cache layout (contiguous, ring, paged). */
-  kvLayout?: 'contiguous' | 'ring' | 'paged';
+  kvLayout?: 'contiguous' | 'ring' | 'paged' | 'bdpa';
   /** Optional page table buffer for paged KV cache. */
   kvPageTable?: GPUBuffer | null;
   /** Page size for paged KV cache. */
@@ -74,6 +74,19 @@ export interface TieredQuantAttentionOptions extends OutputBufferOptions {
   hotStart?: number;
   packedStride?: number;
   mode?: 'int8' | 'int4';
+}
+
+export interface BDPAAttentionOptions extends OutputBufferOptions {
+  seqLen?: number;
+  kvLen?: number;
+  numKVHeads?: number;
+  scale?: number;
+  causal?: boolean;
+  startPos?: number;
+  attnSoftcap?: number;
+  slidingWindow?: number;
+  ropeCos?: GPUBuffer | null;
+  ropeSin?: GPUBuffer | null;
 }
 
 export type AttentionTier = 'subgroup' | 'tiled_large' | 'tiled_small' | 'streaming';
@@ -172,6 +185,31 @@ export declare function recordAttentionTieredQuant(
   numHeads: number,
   headDim: number,
   options?: TieredQuantAttentionOptions
+): Promise<Tensor>;
+
+export declare function runAttentionBDPA(
+  Q: Tensor,
+  basisK: Tensor,
+  basisV: Tensor,
+  pagedK: GPUBuffer,
+  pagedV: GPUBuffer,
+  index: GPUBuffer,
+  numHeads: number,
+  headDim: number,
+  options?: BDPAAttentionOptions
+): Promise<Tensor>;
+
+export declare function recordAttentionBDPA(
+  recorder: CommandRecorder,
+  Q: Tensor,
+  basisK: Tensor,
+  basisV: Tensor,
+  pagedK: GPUBuffer,
+  pagedV: GPUBuffer,
+  index: GPUBuffer,
+  numHeads: number,
+  headDim: number,
+  options?: BDPAAttentionOptions
 ): Promise<Tensor>;
 
 export declare function resolveAttentionPlanForTest(

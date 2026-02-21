@@ -26,6 +26,10 @@ struct Uniforms {
     sliding_window: u32,
     kv_len_source: u32,
     _pad_1: u32,
+    _pad_2: u32,
+    _pad_3: u32,
+    _pad_4: u32,
+    _pad_5: u32,
 }
 
 @group(0) @binding(0) var<uniform> u: Uniforms;

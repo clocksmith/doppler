@@ -158,6 +158,11 @@ export async function doAttention(
   recorder,
   lora
 ) {
+  const isBDPA = state?.kvCache?.layout === 'bdpa_paged';
+  if (recorder && isBDPA) {
+    throw new Error('BDPA attention does not support command recorder mode. Disable command batching for BDPA.');
+  }
+
   if (recorder) {
     return recordLayerAttentionGPU(
       recorder,

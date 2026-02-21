@@ -6690,6 +6690,26 @@
             "name": "_pad_1",
             "type": "u32",
             "offset": 44
+          },
+          {
+            "name": "_pad_2",
+            "type": "u32",
+            "offset": 48
+          },
+          {
+            "name": "_pad_3",
+            "type": "u32",
+            "offset": 52
+          },
+          {
+            "name": "_pad_4",
+            "type": "u32",
+            "offset": 56
+          },
+          {
+            "name": "_pad_5",
+            "type": "u32",
+            "offset": 60
           }
         ]
       },

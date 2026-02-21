@@ -39,6 +39,8 @@ export interface AttentionConfig {
   queryKeyNorm?: boolean;
   /** Gemma 2 RMS scaling: (1+w)*x */
   rmsNormWeightOffset?: boolean;
+  /** Token IDs for the current micro-batch (required by BDPA KV ingestion). */
+  tokenIds?: number[] | null;
 }
 
 /**

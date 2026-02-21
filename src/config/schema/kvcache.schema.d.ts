@@ -20,8 +20,10 @@ export type KVDtype = 'f16' | 'f32';
  *
  * - 'contiguous': Single contiguous buffer per layer (simpler, better for short sequences)
  * - 'paged': Page-based allocation (better memory efficiency for variable sequences)
+ * - 'tiered': Hot ring + cold paged tiers
+ * - 'bdpa': Basis-decomposed paged layout (experimental)
  */
-export type KVLayout = 'contiguous' | 'paged' | 'tiered';
+export type KVLayout = 'contiguous' | 'paged' | 'tiered' | 'bdpa';
 
 /**
  * Tiered KV cache mode.

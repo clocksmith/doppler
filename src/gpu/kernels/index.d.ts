@@ -64,9 +64,12 @@ export {
   recordAttentionTiered,
   runAttentionTieredQuant,
   recordAttentionTieredQuant,
+  runAttentionBDPA,
+  recordAttentionBDPA,
   type AttentionOptions,
   type TieredAttentionOptions,
   type TieredQuantAttentionOptions,
+  type BDPAAttentionOptions,
 } from './attention.js';
 
 // RMSNorm
