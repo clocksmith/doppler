@@ -26,7 +26,7 @@ The harness does not accept per-field query overrides.
 npm run test:model -- --suite kernels --surface auto
 npm run test:model -- --suite inference --model-id gemma-3-1b-q4 --surface auto
 npm run debug -- --model-id gemma-3-1b-q4 --runtime-preset modes/debug --surface auto
-npm run bench -- --model-id gemma-3-1b-q4 --runtime-preset experiments/gemma3-bench-q4k --surface auto
+npm run bench -- --model-id gemma-3-1b-q4 --runtime-preset experiments/bench/gemma3-bench-q4k --surface auto
 ```
 
 Surface behavior:

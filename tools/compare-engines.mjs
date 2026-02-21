@@ -17,9 +17,14 @@
  *   --model-url <url>      Doppler model URL path (default: /models/local/<model-id>)
  *   --tjs-model <id>       TJS model ID (default: onnx-community/gemma-3-1b-it-ONNX-GQA)
  *   --tjs-version <3|4>    Transformers.js version (default: 3)
- *   --prompt <text>        Prompt used for both engines (default: real language prompt)
+ *   --workload <id>        Shared workload id from benchmarks/competitors/workloads.json
+ *   --prompt <text>        Prompt used for both engines (overrides workload-derived prompt)
+ *   --prefill-tokens <n>   Synthetic prompt token target when --prompt is omitted
  *   --mode <mode>          compute|cold|warm|all (default: all)
  *   --max-tokens <n>       Max new tokens (default: 64)
+ *   --temperature <n>      Sampling temperature (default from workload, fallback 0)
+ *   --top-k <n>            Sampling top-k (default from workload, fallback 32)
+ *   --top-p <n>            Sampling top-p (default from workload, fallback 1)
  *   --warmup <n>           Warmup runs per engine (default: 1)
  *   --runs <n>             Timed runs per engine (default: 3)
  *   --decode-profile <profile>  parity|throughput|custom (default: parity)
@@ -48,19 +53,25 @@ import { fileURLToPath } from 'node:url';
 const execFileAsync = promisify(execFile);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DOPPLER_ROOT = path.resolve(__dirname, '..');
+const WORKLOADS_PATH = path.join(DOPPLER_ROOT, 'benchmarks', 'competitors', 'workloads.json');
 
 const DEFAULT_DOPPLER_MODEL = 'gemma-3-1b-it-wf16';
 const DEFAULT_TJS_MODEL = 'onnx-community/gemma-3-1b-it-ONNX-GQA';
-const DEFAULT_PREFILL_WORDS = 64;
-const DEFAULT_PROMPT = 'In this benchmark scenario use a natural language prompt that exercises end-to-end decoding for edge systems, where prompt structure, token budgeting, and output determinism are important metrics to monitor. Keep the prefill text moderately complex, then request a short completion that summarizes the setup, and report both prefill and decode latency and throughput so latency-sensitive workloads can compare token efficiency consistently, for production.';
+const FALLBACK_DEFAULT_WORKLOAD_ID = 'g3-p064-d064-t0-k32';
+const DEFAULT_PROMPT = 'word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 word30 word31';
 const DEFAULT_MAX_TOKENS = 64;
 const DEFAULT_WARMUP = 1;
 const DEFAULT_RUNS = 3;
 const DEFAULT_SEED = 0;
+const DEFAULT_SHARED_SAMPLING = Object.freeze({
+  temperature: 0,
+  topK: 32,
+  topP: 1,
+});
 const DEFAULT_DOPPLER_KERNEL_PATH = null;
 const AUTO_DOPPLER_KERNEL_PATH_BY_MODEL = Object.freeze({
-  'gemma-3-1b-it': 'gemma3-f16-f32a',
-  'gemma-3-1b-it-wf16': 'gemma3-f16-f32a',
+  'gemma-3-1b-it': 'gemma3-f16-fused-f32a-online',
+  'gemma-3-1b-it-wf16': 'gemma3-f16-fused-f32a-online',
 });
 const DEFAULT_DECODE_PROFILE = 'parity';
 const DEFAULT_TJS_PROFILE_OPS = false;
@@ -110,6 +121,54 @@ function parseOnOff(value, fallback, label) {
   if (normalized === 'on' || normalized === 'true' || normalized === '1' || normalized === 'yes') return true;
   if (normalized === 'off' || normalized === 'false' || normalized === '0' || normalized === 'no') return false;
   throw new Error(`${label} must be one of: on, off, true, false, 1, 0`);
+}
+
+function parseNonNegativeNumber(value, fallback, label) {
+  if (value == null || value === '') return fallback;
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    throw new Error(`${label} must be a non-negative number`);
+  }
+  return parsed;
+}
+
+function parseTopP(value, fallback, label) {
+  if (value == null || value === '') return fallback;
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed <= 0 || parsed > 1) {
+    throw new Error(`${label} must be in the range (0, 1]`);
+  }
+  return parsed;
+}
+
+function buildSyntheticPrompt(prefillTokens) {
+  const words = [];
+  for (let i = 0; i < prefillTokens; i++) {
+    words.push(`word${i}`);
+  }
+  return words.join(' ');
+}
+
+async function loadWorkloadCatalog() {
+  const raw = await fs.readFile(WORKLOADS_PATH, 'utf-8');
+  const payload = JSON.parse(raw);
+  const rows = Array.isArray(payload?.workloads) ? payload.workloads : [];
+  const configuredDefault = payload?.defaults?.compareEngines;
+  return {
+    rows,
+    defaultWorkloadId: typeof configuredDefault === 'string' && configuredDefault.trim() !== ''
+      ? configuredDefault
+      : null,
+  };
+}
+
+function resolveWorkloadById(workloadCatalog, workloadId) {
+  const rows = Array.isArray(workloadCatalog?.rows) ? workloadCatalog.rows : [];
+  const selected = rows.find((row) => row.id === workloadId) || null;
+  if (!selected) {
+    throw new Error(`Unknown workload "${workloadId}". Available: ${rows.map((row) => row.id).join(', ')}`);
+  }
+  return selected;
 }
 
 function clipTail(text, maxChars = 3000) {
@@ -190,11 +249,70 @@ function parseArgs(argv) {
   return flags;
 }
 
-async function runDoppler(modelId, modelUrl, prompt, maxTokens, warmupRuns, runs, cacheMode, options = {}) {
-  const resolvedPrompt = prompt ?? DEFAULT_PROMPT;
-  const resolvedMaxTokens = parsePositiveInt(maxTokens, DEFAULT_MAX_TOKENS, '--max-tokens');
-  const resolvedWarmupRuns = parseNonNegativeInt(warmupRuns, DEFAULT_WARMUP, '--warmup');
-  const resolvedTimedRuns = parsePositiveInt(runs, DEFAULT_RUNS, '--runs');
+function buildSharedBenchmarkContract({
+  prompt,
+  maxTokens,
+  warmupRuns,
+  timedRuns,
+  seed,
+  sampling = DEFAULT_SHARED_SAMPLING,
+  useChatTemplate = false,
+}) {
+  return {
+    prompt: String(prompt ?? DEFAULT_PROMPT),
+    maxTokens: parsePositiveInt(maxTokens, DEFAULT_MAX_TOKENS, '--max-tokens'),
+    warmupRuns: parseNonNegativeInt(warmupRuns, DEFAULT_WARMUP, '--warmup'),
+    timedRuns: parsePositiveInt(timedRuns, DEFAULT_RUNS, '--runs'),
+    seed: parseNonNegativeInt(seed, DEFAULT_SEED, '--seed'),
+    sampling: {
+      temperature: Number(sampling.temperature),
+      topK: Number(sampling.topK),
+      topP: Number(sampling.topP),
+    },
+    useChatTemplate: useChatTemplate === true,
+  };
+}
+
+function buildDopplerRuntimeConfig(sharedContract, engineOverlay) {
+  const sampling = {
+    temperature: sharedContract.sampling.temperature,
+    topK: sharedContract.sampling.topK,
+    topP: sharedContract.sampling.topP,
+  };
+  const runtimeConfig = {
+    shared: {
+      benchmark: {
+        run: {
+          customPrompt: sharedContract.prompt,
+          maxNewTokens: sharedContract.maxTokens,
+          warmupRuns: sharedContract.warmupRuns,
+          timedRuns: sharedContract.timedRuns,
+          useChatTemplate: sharedContract.useChatTemplate,
+          sampling,
+        },
+      },
+    },
+    inference: {
+      prompt: sharedContract.prompt,
+      chatTemplate: {
+        enabled: sharedContract.useChatTemplate,
+      },
+      batching: {
+        maxTokens: sharedContract.maxTokens,
+        batchSize: engineOverlay.batchSize,
+        readbackInterval: engineOverlay.readbackInterval,
+        stopCheckMode: 'per-token',
+      },
+      sampling,
+    },
+  };
+  if (engineOverlay.kernelPath) {
+    runtimeConfig.inference.kernelPath = engineOverlay.kernelPath;
+  }
+  return runtimeConfig;
+}
+
+async function runDoppler(modelId, modelUrl, sharedContract, cacheMode, options = {}) {
   const resolvedKernelPath = options.kernelPath ?? DEFAULT_DOPPLER_KERNEL_PATH;
   const resolvedBatchSize = parsePositiveInt(options.batchSize, DEFAULT_DOPPLER_BATCH_SIZE, '--doppler-batch-size');
   const resolvedReadbackInterval = parsePositiveInt(
@@ -207,44 +325,11 @@ async function runDoppler(modelId, modelUrl, prompt, maxTokens, warmupRuns, runs
     DEFAULT_DOPPLER_BROWSER_PORT,
     '--doppler-browser-port'
   );
-  const runtimeConfig = {
-    shared: {
-      benchmark: {
-        run: {
-          customPrompt: resolvedPrompt,
-          maxNewTokens: resolvedMaxTokens,
-          warmupRuns: resolvedWarmupRuns,
-          timedRuns: resolvedTimedRuns,
-          useChatTemplate: false,
-          sampling: {
-            temperature: 0,
-            topK: 1,
-            topP: 1,
-          },
-        },
-      },
-    },
-    inference: {
-      prompt: resolvedPrompt,
-      chatTemplate: {
-        enabled: false,
-      },
-      batching: {
-        maxTokens: resolvedMaxTokens,
-        batchSize: resolvedBatchSize,
-        readbackInterval: resolvedReadbackInterval,
-        stopCheckMode: 'per-token',
-      },
-      sampling: {
-        temperature: 0,
-        topK: 1,
-        topP: 1,
-      },
-    },
-  };
-  if (resolvedKernelPath) {
-    runtimeConfig.inference.kernelPath = resolvedKernelPath;
-  }
+  const runtimeConfig = buildDopplerRuntimeConfig(sharedContract, {
+    kernelPath: resolvedKernelPath,
+    batchSize: resolvedBatchSize,
+    readbackInterval: resolvedReadbackInterval,
+  });
   const baseArgs = [
     path.join(DOPPLER_ROOT, 'tools', 'doppler-cli.js'),
     'bench',
@@ -294,28 +379,26 @@ async function runDoppler(modelId, modelUrl, prompt, maxTokens, warmupRuns, runs
   }
 }
 
-async function runTjs(modelId, prompt, maxTokens, warmupRuns, runs, cacheMode, tjsVersion, localModelPath, options = {}) {
-  const resolvedPrompt = prompt ?? DEFAULT_PROMPT;
-  const resolvedMaxTokens = parsePositiveInt(maxTokens, DEFAULT_MAX_TOKENS, '--max-tokens');
-  const resolvedWarmupRuns = parseNonNegativeInt(warmupRuns, DEFAULT_WARMUP, '--warmup');
-  const resolvedTimedRuns = parsePositiveInt(runs, DEFAULT_RUNS, '--runs');
+async function runTjs(modelId, sharedContract, cacheMode, tjsVersion, localModelPath, options = {}) {
   const resolvedProfileOps = options.profileOps ?? DEFAULT_TJS_PROFILE_OPS;
   const resolvedTimeoutMs = parsePositiveInt(options.timeoutMs, DEFAULT_TJS_TIMEOUT_MS, '--tjs-timeout-ms');
   const resolvedServerPort = parseNonNegativeInt(options.serverPort, DEFAULT_TJS_SERVER_PORT, '--tjs-server-port');
-  const resolvedSeed = parseNonNegativeInt(options.seed, DEFAULT_SEED, '--seed');
   const args = [
     path.join(DOPPLER_ROOT, 'external', 'transformersjs-bench.mjs'),
     '--model', modelId,
-    '--prompt', String(resolvedPrompt),
-    '--max-tokens', String(resolvedMaxTokens),
-    '--warmup', String(resolvedWarmupRuns),
-    '--runs', String(resolvedTimedRuns),
+    '--prompt', String(sharedContract.prompt),
+    '--max-tokens', String(sharedContract.maxTokens),
+    '--warmup', String(sharedContract.warmupRuns),
+    '--runs', String(sharedContract.timedRuns),
     '--cache-mode', cacheMode,
     '--tjs-version', tjsVersion,
     '--profile-ops', resolvedProfileOps ? 'on' : 'off',
     '--timeout', String(resolvedTimeoutMs),
     '--server-port', String(resolvedServerPort),
-    '--seed', String(resolvedSeed),
+    '--seed', String(sharedContract.seed),
+    '--temperature', String(sharedContract.sampling.temperature),
+    '--top-k', String(sharedContract.sampling.topK),
+    '--top-p', String(sharedContract.sampling.topP),
   ];
   if (localModelPath) args.push('--local-model-path', localModelPath);
   if (options.browserConsole === true) args.push('--browser-console');
@@ -335,12 +418,16 @@ async function runTjs(modelId, prompt, maxTokens, warmupRuns, runs, cacheMode, t
     return await runOnce();
   } catch (error) {
     const message = String(error?.message || '');
-    const shouldRetryNoProfile = resolvedProfileOps
-      && /Target page, context or browser has been closed/i.test(message);
-    if (shouldRetryNoProfile) {
-      console.error('[compare] TJS closed page/context during profiled run; retrying with --profile-ops off...');
+    const pageClosed = /Target page, context or browser has been closed/i.test(message);
+    if (pageClosed) {
+      const retryArgs = resolvedProfileOps ? ['--profile-ops', 'off'] : [];
+      console.error(
+        resolvedProfileOps
+          ? '[compare] TJS closed page/context during profiled run; retrying with --profile-ops off...'
+          : '[compare] TJS closed page/context; retrying once...'
+      );
       try {
-        return await runOnce(['--profile-ops', 'off']);
+        return await runOnce(retryArgs);
       } catch (retryError) {
         console.error(`[compare] TJS (${cacheMode}) retry failed: ${retryError.message}`);
         return toFailurePayload('transformers.js', retryError);
@@ -439,17 +526,49 @@ function compactTimestamp() {
 
 async function main() {
   const flags = parseArgs(process.argv.slice(2));
+  const workloadCatalog = await loadWorkloadCatalog();
+  const defaultWorkloadId = workloadCatalog.defaultWorkloadId ?? FALLBACK_DEFAULT_WORKLOAD_ID;
+  resolveWorkloadById(workloadCatalog, defaultWorkloadId);
+  const useDefaultWorkload = flags.workload == null
+    && flags.prompt == null
+    && flags['prefill-tokens'] == null
+    && flags['max-tokens'] == null;
+  const workloadId = flags.workload ?? (useDefaultWorkload ? defaultWorkloadId : null);
+  const workload = workloadId ? resolveWorkloadById(workloadCatalog, workloadId) : null;
+  const prefillTokenTarget = parsePositiveInt(
+    flags['prefill-tokens'],
+    workload?.prefillTokens ?? null,
+    '--prefill-tokens'
+  );
+  const workloadSampling = workload?.sampling || DEFAULT_SHARED_SAMPLING;
+  const sampling = {
+    temperature: parseNonNegativeNumber(flags.temperature, workloadSampling.temperature, '--temperature'),
+    topK: parsePositiveInt(flags['top-k'], workloadSampling.topK, '--top-k'),
+    topP: parseTopP(flags['top-p'], workloadSampling.topP, '--top-p'),
+  };
+  const promptInput = flags.prompt
+    || (Number.isFinite(prefillTokenTarget) ? buildSyntheticPrompt(prefillTokenTarget) : DEFAULT_PROMPT);
+  const maxTokensInput = flags['max-tokens'] ?? workload?.decodeTokens ?? DEFAULT_MAX_TOKENS;
+
   const dopplerModelId = flags['model-id'] || DEFAULT_DOPPLER_MODEL;
   const dopplerModelUrl = flags['model-url'] || `/models/local/${dopplerModelId}`;
   const tjsModelId = flags['tjs-model'] || DEFAULT_TJS_MODEL;
   const tjsLocalModelPath = flags['tjs-local-model-path'] || null;
   const tjsVersion = flags['tjs-version'] || '3';
   const mode = flags.mode || 'all';
-  const prompt = flags.prompt || DEFAULT_PROMPT;
-  const maxTokens = parsePositiveInt(flags['max-tokens'], DEFAULT_MAX_TOKENS, '--max-tokens');
-  const warmupRuns = parseNonNegativeInt(flags.warmup, DEFAULT_WARMUP, '--warmup');
-  const runs = parsePositiveInt(flags.runs, DEFAULT_RUNS, '--runs');
-  const seed = parseNonNegativeInt(flags.seed, DEFAULT_SEED, '--seed');
+  const sharedContract = buildSharedBenchmarkContract({
+    prompt: promptInput,
+    maxTokens: maxTokensInput,
+    warmupRuns: flags.warmup,
+    timedRuns: flags.runs,
+    seed: flags.seed,
+    sampling,
+  });
+  const prompt = sharedContract.prompt;
+  const maxTokens = sharedContract.maxTokens;
+  const warmupRuns = sharedContract.warmupRuns;
+  const runs = sharedContract.timedRuns;
+  const seed = sharedContract.seed;
   const decodeProfile = parseDecodeProfile(flags['decode-profile']);
   const tjsProfileOps = parseOnOff(flags['tjs-profile-ops'], DEFAULT_TJS_PROFILE_OPS, '--tjs-profile-ops');
   const tjsTimeoutMs = parsePositiveInt(flags['tjs-timeout-ms'], DEFAULT_TJS_TIMEOUT_MS, '--tjs-timeout-ms');
@@ -503,7 +622,9 @@ async function main() {
   );
   console.error(
     `[compare] mode: ${mode}, maxTokens: ${maxTokens}, warmupRuns: ${warmupRuns}, runs: ${runs}, `
-    + `decodeProfile: ${decodeProfile}, dopplerBatchSize: ${dopplerBatchSize}, `
+    + `decodeProfile: ${decodeProfile}, workload=${workloadId ?? 'none'}, `
+    + `sampling=(temp=${sharedContract.sampling.temperature}, topK=${sharedContract.sampling.topK}, topP=${sharedContract.sampling.topP}), `
+    + `dopplerBatchSize: ${dopplerBatchSize}, `
     + `dopplerReadbackInterval: ${dopplerReadbackInterval}, dopplerTokensPerReadback: ${dopplerTokensPerReadback}`
   );
 
@@ -523,16 +644,21 @@ async function main() {
     warmupRuns,
     runs,
     seed,
+    workload: {
+      id: workloadId,
+      prefillTokenTarget: prefillTokenTarget ?? null,
+      decodeTokenTarget: maxTokens,
+    },
     methodology: {
       prefillTokensPerSec: 'prompt_tokens / ttft_ms',
       deterministicDecoding: {
         seed,
-        temperature: 0,
-        topK: 1,
-        topP: 1,
+        temperature: sharedContract.sampling.temperature,
+        topK: sharedContract.sampling.topK,
+        topP: sharedContract.sampling.topP,
       },
       promptParity: {
-        dopplerChatTemplateEnabled: false,
+        dopplerChatTemplateEnabled: sharedContract.useChatTemplate,
         transformersChatTemplateEquivalent: 'raw-prompt',
       },
       cacheSemantics: {
@@ -568,10 +694,7 @@ async function main() {
   if (needCompute) {
     tjsCompute = await runTjs(
       tjsModelId,
-      prompt,
-      maxTokens,
-      warmupRuns,
-      runs,
+      sharedContract,
       'warm',
       tjsVersion,
       tjsLocalModelPath,
@@ -580,16 +703,12 @@ async function main() {
         timeoutMs: tjsTimeoutMs,
         serverPort: tjsServerPort,
         browserConsole: tjsBrowserConsole,
-        seed,
       }
     );
     dopplerComputeParity = await runDoppler(
       dopplerModelId,
       dopplerModelUrl,
-      prompt,
-      maxTokens,
-      warmupRuns,
-      runs,
+      sharedContract,
       'warm',
       {
         kernelPath: dopplerKernelPath,
@@ -603,10 +722,7 @@ async function main() {
     dopplerComputeThroughput = await runDoppler(
       dopplerModelId,
       dopplerModelUrl,
-      prompt,
-      maxTokens,
-      warmupRuns,
-      runs,
+      sharedContract,
       'warm',
       {
         kernelPath: dopplerKernelPath,
@@ -627,10 +743,7 @@ async function main() {
     dopplerWarm = await runDoppler(
       dopplerModelId,
       dopplerModelUrl,
-      prompt,
-      maxTokens,
-      warmupRuns,
-      runs,
+      sharedContract,
       'warm',
       {
         kernelPath: dopplerKernelPath,
@@ -643,10 +756,7 @@ async function main() {
     );
     tjsWarm = await runTjs(
       tjsModelId,
-      prompt,
-      maxTokens,
-      warmupRuns,
-      runs,
+      sharedContract,
       'warm',
       tjsVersion,
       tjsLocalModelPath,
@@ -655,7 +765,6 @@ async function main() {
         timeoutMs: tjsTimeoutMs,
         serverPort: tjsServerPort,
         browserConsole: tjsBrowserConsole,
-        seed,
       }
     );
     report.sections.warm = { doppler: dopplerWarm, tjs: tjsWarm };
@@ -665,10 +774,7 @@ async function main() {
     dopplerCold = await runDoppler(
       dopplerModelId,
       dopplerModelUrl,
-      prompt,
-      maxTokens,
-      warmupRuns,
-      runs,
+      sharedContract,
       'cold',
       {
         kernelPath: dopplerKernelPath,
@@ -681,10 +787,7 @@ async function main() {
     );
     tjsCold = await runTjs(
       tjsModelId,
-      prompt,
-      maxTokens,
-      warmupRuns,
-      runs,
+      sharedContract,
       'cold',
       tjsVersion,
       tjsLocalModelPath,
@@ -693,7 +796,6 @@ async function main() {
         timeoutMs: tjsTimeoutMs,
         serverPort: tjsServerPort,
         browserConsole: tjsBrowserConsole,
-        seed,
       }
     );
     report.sections.cold = { doppler: dopplerCold, tjs: tjsCold };

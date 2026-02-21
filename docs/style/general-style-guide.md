@@ -140,6 +140,14 @@ inference). Document the merge chain per domain:
 Runtime code should read resolved config values directly. Do not add literal fallbacks
 for tunables in JS; put defaults in schemas and merge them in the config layer.
 
+### Reuse Config Merge Utilities
+
+Do not duplicate ad-hoc deep-merge helpers across command runners or harnesses.
+
+- Keep runtime merge semantics centralized in shared config utilities.
+- Preserve explicit semantics: `undefined` means "no override", `null` means "explicit disable/reset".
+- Import shared merge helpers in browser/Node surfaces to guarantee identical behavior.
+
 ### Nullable Required Fields
 
 For fields that can be legitimately disabled:

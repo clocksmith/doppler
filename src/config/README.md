@@ -25,6 +25,46 @@ src/config/
     └── kernel-paths/            # Explicit kernel pipeline definitions
 ```
 
+## End-to-End Config Domains (Config-First)
+
+Treat configuration as four explicit domains:
+
+1. Conversion config: artifact policy (`quantization`, sharding, manifest policy, output model ID/path).
+2. Runtime config: execution policy (`shared`, `loading`, `inference`).
+3. Benchmark shared contract: fairness/workload policy (prompt/template, sampling, seed, token budgets, warm/cold policy, run counts).
+4. Benchmark engine overlay: engine-only knobs (Doppler decode cadence/kernel path vs competitor backend/session settings).
+
+Do not mix benchmark fairness axes with engine internals in a single object.
+
+## Target Preset Layout (Proposed)
+
+Use this target layout for new presets and gradual migration:
+
+```
+src/config/presets/
+├── conversion/                  # Conversion presets (artifact creation)
+│   ├── models/                  # Family conversion defaults
+│   └── variants/                # dtype/quantization variants (f16, f32a, q4k, ...)
+├── runtime/                     # Runtime presets (execution only)
+│   ├── intents/                 # verify / investigate / calibrate
+│   ├── workloads/               # prefill/decode/sampling workload tuples
+│   ├── overlays/                # doppler engine overlays (batch/readback/kernelPath)
+│   └── diagnostics/             # trace/log/probe overlays
+├── benchmarks/                  # Cross-engine benchmark contracts
+│   ├── shared/                  # apples-to-apples workload definitions
+│   └── engines/                 # engine overlays (doppler, tjs, ...)
+├── models/                      # Manifest inference presets by model family
+└── kernel-paths/                # Kernel path registry + path specs
+```
+
+## Migration Rules
+
+- Keep existing preset paths stable while migrating; add aliases/compat docs first.
+- Move presets by domain ownership, not by team or feature.
+- Preserve command parity: browser and Node must consume the same shared benchmark contract.
+- New benchmark tooling should accept: `sharedContract + engineOverlay`, never ad-hoc per-field flags as the primary API.
+- Promote experimental presets to canonical only after correctness and performance gates are documented.
+
 ## Concepts
 
 ### Model Presets vs Kernel Paths

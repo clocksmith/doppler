@@ -1,5 +1,8 @@
 {
   "schemaVersion": 1,
+  "defaults": {
+    "compareEngines": "g3-p064-d064-t0-k32"
+  },
   "workloads": [
     {
       "id": "decode-64-128-greedy",
@@ -31,6 +34,105 @@
       "sampling": {
         "temperature": 0,
         "topK": 1,
+        "topP": 1
+      }
+    },
+    {
+      "id": "g3-p032-d016-t0-k32",
+      "name": "Gemma3 Grid 32/16 t0 k32",
+      "prefillTokens": 32,
+      "decodeTokens": 16,
+      "sampling": {
+        "temperature": 0,
+        "topK": 32,
+        "topP": 1
+      }
+    },
+    {
+      "id": "g3-p032-d064-t0-k32",
+      "name": "Gemma3 Grid 32/64 t0 k32",
+      "prefillTokens": 32,
+      "decodeTokens": 64,
+      "sampling": {
+        "temperature": 0,
+        "topK": 32,
+        "topP": 1
+      }
+    },
+    {
+      "id": "g3-p032-d256-t0-k32",
+      "name": "Gemma3 Grid 32/256 t0 k32",
+      "prefillTokens": 32,
+      "decodeTokens": 256,
+      "sampling": {
+        "temperature": 0,
+        "topK": 32,
+        "topP": 1
+      }
+    },
+    {
+      "id": "g3-p064-d016-t0-k32",
+      "name": "Gemma3 Grid 64/16 t0 k32",
+      "prefillTokens": 64,
+      "decodeTokens": 16,
+      "sampling": {
+        "temperature": 0,
+        "topK": 32,
+        "topP": 1
+      }
+    },
+    {
+      "id": "g3-p064-d064-t0-k32",
+      "name": "Gemma3 Grid 64/64 t0 k32",
+      "prefillTokens": 64,
+      "decodeTokens": 64,
+      "sampling": {
+        "temperature": 0,
+        "topK": 32,
+        "topP": 1
+      }
+    },
+    {
+      "id": "g3-p064-d256-t0-k32",
+      "name": "Gemma3 Grid 64/256 t0 k32",
+      "prefillTokens": 64,
+      "decodeTokens": 256,
+      "sampling": {
+        "temperature": 0,
+        "topK": 32,
+        "topP": 1
+      }
+    },
+    {
+      "id": "g3-p512-d016-t0-k32",
+      "name": "Gemma3 Grid 512/16 t0 k32",
+      "prefillTokens": 512,
+      "decodeTokens": 16,
+      "sampling": {
+        "temperature": 0,
+        "topK": 32,
+        "topP": 1
+      }
+    },
+    {
+      "id": "g3-p512-d064-t0-k32",
+      "name": "Gemma3 Grid 512/64 t0 k32",
+      "prefillTokens": 512,
+      "decodeTokens": 64,
+      "sampling": {
+        "temperature": 0,
+        "topK": 32,
+        "topP": 1
+      }
+    },
+    {
+      "id": "g3-p512-d256-t0-k32",
+      "name": "Gemma3 Grid 512/256 t0 k32",
+      "prefillTokens": 512,
+      "decodeTokens": 256,
+      "sampling": {
+        "temperature": 0,
+        "topK": 32,
         "topP": 1
       }
     }

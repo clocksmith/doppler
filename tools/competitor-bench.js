@@ -110,6 +110,15 @@ function assertWorkloadsShape(workloads) {
   if (!Array.isArray(workloads.workloads)) {
     throw new Error('workloads.workloads must be an array');
   }
+  if (workloads.defaults != null) {
+    if (typeof workloads.defaults !== 'object' || Array.isArray(workloads.defaults)) {
+      throw new Error('workloads.defaults must be an object when provided');
+    }
+    const compareEnginesDefault = workloads.defaults.compareEngines;
+    if (compareEnginesDefault != null && (typeof compareEnginesDefault !== 'string' || compareEnginesDefault.trim() === '')) {
+      throw new Error('workloads.defaults.compareEngines must be a non-empty string when provided');
+    }
+  }
 }
 
 function assertCapabilitiesShape(capabilities, knownProductIds = []) {
@@ -239,7 +248,14 @@ async function loadRegistryBundle() {
   assertRegistryShape(registry);
   assertWorkloadsShape(workloads);
   collectUniqueIds(registry.products.map((item) => item.id), 'product');
-  collectUniqueIds(workloads.workloads.map((item) => item.id), 'workload');
+  const workloadIds = workloads.workloads.map((item) => item.id);
+  collectUniqueIds(workloadIds, 'workload');
+  const compareEnginesDefault = workloads?.defaults?.compareEngines;
+  if (compareEnginesDefault != null && !workloadIds.includes(compareEnginesDefault)) {
+    throw new Error(
+      `workloads.defaults.compareEngines must reference an existing workload id, got "${compareEnginesDefault}"`
+    );
+  }
   return { registry, workloads };
 }
 

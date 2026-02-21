@@ -64,6 +64,19 @@ Kernel path overrides are config-only; harness/UI surfaces must not set kernel s
 - Harness/UI controls must not override runtime tunables (prompt, max tokens, sampling, trace/log levels, warmup/timed runs).
 See `config-style-guide.md` for merge order and category rules.
 
+## Shared Contract + Engine Overlay (Bench Tools)
+
+Cross-engine benchmark tools must build and pass two explicit config objects:
+
+1. Shared benchmark contract (prompt/template, sampling tuple, seed, token budgets, run counts, cache mode).
+2. Engine overlay (engine-specific execution knobs).
+
+Rules:
+- Parse/validate shared workload values once, then reuse for all engines.
+- Keep Doppler-only knobs (`batchSize`, `readbackInterval`, `kernelPath`) out of the shared contract.
+- Keep competitor backend/session flags out of the shared contract.
+- Build runtime payloads from `(sharedContract, engineOverlay)` helper functions instead of duplicating JSON assembly in each call site.
+
 ## Runtime Configuration (Performance Invariants)
 
 Runtime code must respect dtype and performance invariants from config and device capabilities.

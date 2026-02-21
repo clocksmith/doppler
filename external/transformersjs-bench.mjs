@@ -13,6 +13,9 @@
  *   --model <id>         HuggingFace model ID (default: onnx-community/gemma-3-1b-it-ONNX-GQA)
  *   --prompt <text>      Input prompt
  *   --max-tokens <n>     Max new tokens to generate (default: 128)
+ *   --temperature <n>    Sampling temperature (default: 0)
+ *   --top-k <n>          Sampling top-k (default: 32)
+ *   --top-p <n>          Sampling top-p (default: 1)
  *   --warmup <n>         Warmup runs (default: 1)
  *   --runs <n>           Timed runs (default: 3)
  *   --seed <n>           Deterministic seed metadata (default: 0)
@@ -41,6 +44,9 @@ const DOPPLER_ROOT = path.resolve(__dirname, '..');
 const DEFAULT_MODEL = 'onnx-community/gemma-3-1b-it-ONNX-GQA';
 const DEFAULT_PROMPT = 'Summarize this input in one sentence.';
 const DEFAULT_MAX_TOKENS = 128;
+const DEFAULT_TEMPERATURE = 0;
+const DEFAULT_TOP_K = 32;
+const DEFAULT_TOP_P = 1;
 const DEFAULT_WARMUP = 1;
 const DEFAULT_RUNS = 3;
 const DEFAULT_TIMEOUT = 600_000;
@@ -103,6 +109,24 @@ function parseNonNegativeInt(value, flag, fallback) {
   const parsed = Number(value);
   if (!Number.isFinite(parsed) || !Number.isInteger(parsed) || parsed < 0) {
     throw new Error(`${flag} must be a non-negative integer`);
+  }
+  return parsed;
+}
+
+function parseNonNegativeNumber(value, flag, fallback) {
+  if (value == null) return fallback;
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    throw new Error(`${flag} must be a non-negative number`);
+  }
+  return parsed;
+}
+
+function parseProbability(value, flag, fallback) {
+  if (value == null) return fallback;
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed <= 0 || parsed > 1) {
+    throw new Error(`${flag} must be in the range (0, 1]`);
   }
   return parsed;
 }
@@ -364,6 +388,9 @@ async function main() {
   let modelId = flags.model || DEFAULT_MODEL;
   let prompt = flags.prompt || DEFAULT_PROMPT;
   let maxNewTokens = parsePositiveInt(flags['max-tokens'], '--max-tokens', DEFAULT_MAX_TOKENS);
+  let temperature = parseNonNegativeNumber(flags.temperature, '--temperature', DEFAULT_TEMPERATURE);
+  let topK = parsePositiveInt(flags['top-k'], '--top-k', DEFAULT_TOP_K);
+  let topP = parseProbability(flags['top-p'], '--top-p', DEFAULT_TOP_P);
   let warmupRuns = parseNonNegativeInt(flags.warmup, '--warmup', DEFAULT_WARMUP);
   let timedRuns = parsePositiveInt(flags.runs, '--runs', DEFAULT_RUNS);
   const timeoutMs = parsePositiveInt(flags.timeout, '--timeout', DEFAULT_TIMEOUT);
@@ -375,6 +402,15 @@ async function main() {
   if (flags.workload) {
     const wl = await loadWorkload(flags.workload);
     maxNewTokens = wl.decodeTokens;
+    if (flags.temperature == null && Number.isFinite(wl?.sampling?.temperature)) {
+      temperature = parseNonNegativeNumber(wl.sampling.temperature, '--workload.sampling.temperature', temperature);
+    }
+    if (flags['top-k'] == null && Number.isFinite(wl?.sampling?.topK)) {
+      topK = Math.max(1, Math.floor(Number(wl.sampling.topK)));
+    }
+    if (flags['top-p'] == null && Number.isFinite(wl?.sampling?.topP)) {
+      topP = parseProbability(wl.sampling.topP, '--workload.sampling.topP', topP);
+    }
     if (!flags.prompt) {
       const words = [];
       for (let i = 0; i < wl.prefillTokens; i++) {
@@ -386,7 +422,9 @@ async function main() {
 
   console.error(
     `[tjs-bench] tjs=v${tjsVersion} model=${modelId} maxTokens=${maxNewTokens} ` +
-    `warmup=${warmupRuns} runs=${timedRuns} cache=${cacheMode} profileOps=${profileOps ? 'on' : 'off'} timeout=${timeoutMs}ms`
+    `warmup=${warmupRuns} runs=${timedRuns} cache=${cacheMode} ` +
+    `sampling=(temp=${temperature}, topK=${topK}, topP=${topP}) ` +
+    `profileOps=${profileOps ? 'on' : 'off'} timeout=${timeoutMs}ms`
   );
 
   // Cold mode: wipe persistent profile to force full re-download + recompile
@@ -458,7 +496,21 @@ async function main() {
 
     const result = await page.evaluate(
       async (config) => window.__runBench(config),
-      { modelId, prompt, maxNewTokens, warmupRuns, timedRuns, profileOps, profileTopN, seed },
+      {
+        modelId,
+        prompt,
+        maxNewTokens,
+        warmupRuns,
+        timedRuns,
+        profileOps,
+        profileTopN,
+        seed,
+        sampling: {
+          temperature,
+          topK,
+          topP,
+        },
+      },
     );
 
     const totalBenchMs = performance.now() - benchStart;
@@ -483,7 +535,10 @@ async function main() {
     result.determinism = {
       seed,
       decoding: {
-        do_sample: false,
+        do_sample: temperature > 0,
+        temperature,
+        topK,
+        topP,
       },
     };
     result.profiling = {

@@ -30,6 +30,26 @@ Baseline registry rules live under `runtime.shared.benchmark.baselines`.
 - Use `runtime.shared.benchmark.stats` for outlier filtering, warmup stability, and thermal detection thresholds.
 - Set `runtime.shared.tooling.intent = "calibrate"` for baseline benchmarks.
   If profiling, tracing, or probes are required, switch intent to `investigate`.
+- Default benchmark mode to `warm` cache for fast iteration and stable comparisons.
+- Run `cold` only as an explicit UX/distribution phase, not as the default calibration path.
+
+---
+
+## Shared vs Engine Config (Required)
+
+Benchmark configs must be composed as:
+
+1. **Shared benchmark contract** (engine-agnostic):
+   - prompt text/template behavior
+   - prefill/decode token budgets
+   - sampling profile
+   - seed and stop criteria
+   - run counts and cache mode
+2. **Engine overlays** (engine-specific):
+   - Doppler: batch/readback/kernel-path and other runtime internals
+   - Transformers.js: backend/session plumbing
+
+Fairness rule: the shared contract must be identical for all engines in a direct comparison row.
 
 ---
 
@@ -183,6 +203,7 @@ To maximize comparability:
 
 - Default: `temperature = 0`, `topK = 1`, `topP = 1` (greedy) for deterministic decode.
 - Report any deviation from greedy in the run metadata.
+- If sampling sweeps are used, treat each sampling tuple as an explicit workload axis and keep it identical across engines.
 
 ---
 
@@ -194,6 +215,8 @@ Each benchmark suite runs:
 
 - `cold`: OPFS empty (or model directory deleted), then download and load.
 - `warm`: model already cached in OPFS, then load and run.
+
+Default to warm runs for calibration. Cold runs should be a separate section/report.
 
 OPFS persistence depends on the browser profile:
 
@@ -475,7 +498,7 @@ should be `calibrate`. Save results under `tests/results/` for comparisons.
 The same contract is available through npm scripts and `doppler`:
 
 ```bash
-npm run bench -- --model-id gemma-3-1b-q4 --runtime-preset experiments/gemma3-bench-q4k
+npm run bench -- --model-id gemma-3-1b-q4 --runtime-preset experiments/bench/gemma3-bench-q4k
 npm run bench -- --model-id gemma-3-1b-q4 --runtime-config-url /src/config/presets/runtime/bench.json
 ```
 
@@ -491,7 +514,7 @@ import { runBrowserSuite } from './src/inference/browser-harness.js';
 const result = await runBrowserSuite({
   suite: 'bench',
   modelUrl: 'http://localhost:8080/models/gemma-3-1b-q4',
-  runtimePreset: 'experiments/gemma3-bench-q4k',
+  runtimePreset: 'experiments/bench/gemma3-bench-q4k',
 });
 
 console.log(result.report);

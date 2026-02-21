@@ -14,6 +14,7 @@ It is intentionally separate from style guides and from Doppler-only benchmark n
 
 - `registry.json`: canonical list of competitor products and harness links.
 - `workloads.json`: shared workload IDs used for apples-to-apples comparisons.
+  - includes `defaults.compareEngines`, used by `tools/compare-engines.mjs` when no explicit workload/prompt/token lengths are passed.
 - `capabilities.json`: capability matrix for bench/profiling coverage by target.
 - `harnesses/*.json`: one harness definition per competitor.
 - `schema/*.json`: schemas for registry, harness, capabilities, and normalized result records.

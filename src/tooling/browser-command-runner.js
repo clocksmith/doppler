@@ -9,24 +9,7 @@ import {
   buildRuntimeContractPatch,
   ensureCommandSupportedOnSurface,
 } from './command-api.js';
-
-function isPlainObject(value) {
-  return !!value && typeof value === 'object' && !Array.isArray(value);
-}
-
-function mergeRuntimeValues(base, override) {
-  if (override === undefined) return base;
-  if (override === null) return null;
-  if (!isPlainObject(base) || !isPlainObject(override)) {
-    return override;
-  }
-  const merged = { ...base };
-  for (const [key, value] of Object.entries(override)) {
-    if (value === undefined) continue;
-    merged[key] = mergeRuntimeValues(base[key], value);
-  }
-  return merged;
-}
+import { mergeRuntimeValues } from '../config/runtime-merge.js';
 
 async function applyRuntimeInputs(request, options = {}) {
   if (request.runtimePreset) {

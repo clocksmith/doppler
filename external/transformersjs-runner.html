@@ -113,8 +113,14 @@ window.__runBench = async (config) => {
     profileOps,
     profileTopN,
     seed = 0,
+    sampling = {},
   } = config;
   const enableOrtProfiling = profileOps !== false;
+  const temperature = Number.isFinite(Number(sampling.temperature)) ? Number(sampling.temperature) : 0;
+  const topK = Number.isFinite(Number(sampling.topK)) ? Math.max(1, Math.floor(Number(sampling.topK))) : 32;
+  const topPRaw = Number.isFinite(Number(sampling.topP)) ? Number(sampling.topP) : 1;
+  const topP = Math.min(1, Math.max(topPRaw, Number.EPSILON));
+  const doSample = temperature > 0;
 
   // Capture WebGPU device info before model load
   let deviceInfo = null;
@@ -200,11 +206,18 @@ window.__runBench = async (config) => {
 
     const genStart = performance.now();
 
-    await generator(prompt, {
+    const generationOptions = {
       max_new_tokens: maxNewTokens,
-      do_sample: false,
       streamer,
-    });
+      do_sample: doSample,
+    };
+    if (doSample) {
+      generationOptions.temperature = temperature;
+      generationOptions.top_k = topK;
+      generationOptions.top_p = topP;
+    }
+
+    await generator(prompt, generationOptions);
 
     const genEnd = performance.now();
     const totalMs = genEnd - genStart;
@@ -301,6 +314,12 @@ window.__runBench = async (config) => {
     timedRuns,
     prompt,
     maxNewTokens,
+    sampling: {
+      temperature,
+      topK,
+      topP,
+      doSample,
+    },
     deviceInfo,
     metrics: {
       tokens_per_sec: median(tps),

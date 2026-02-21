@@ -120,6 +120,14 @@ const UNIFORM_LAYOUT = {
 } as const;
 ```
 
+### Policy Constants Must Be Config-Driven
+
+Numerical policy values (safety thresholds, tuning bounds, optional feature toggles) must not be hidden as magic literals in shader code.
+
+- If policy is fixed for a kernel path/model family, express it as an `override` constant and set it from kernel-path/config metadata.
+- If policy may vary per dispatch/run, express it as an explicit uniform field.
+- Keep policy ownership in config; WGSL only consumes resolved values.
+
 ---
 
 ## Binding Conventions

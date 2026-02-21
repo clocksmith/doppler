@@ -123,6 +123,8 @@ fn main(
     var start_k: u32 = 0u;
     if (u.sliding_window > 0u && kv_len > u.sliding_window) {
         start_k = kv_len - u.sliding_window;
+        // Align to WORKGROUP_SIZE
+        start_k = (start_k / WORKGROUP_SIZE) * WORKGROUP_SIZE;
     }
 
     for (var k_start: u32 = start_k; k_start < kv_len; k_start = k_start + WORKGROUP_SIZE) {

@@ -26,6 +26,12 @@ Doppler uses **JavaScript** with **.d.ts** declaration files for all source modu
 manifest.json → ModelConfig → PipelineSpec → KernelSpec → GPU Dispatch
 ```
 
+### Benchmark Flow (Config-First)
+
+```
+shared benchmark contract + engine overlay → runtime payload per engine → run + compare
+```
+
 ### Key Principles
 
 1. **Config as Code** - Maps over if/else

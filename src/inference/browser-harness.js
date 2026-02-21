@@ -17,6 +17,7 @@ import {
   getActiveKernelPathSource,
 } from '../config/kernel-path-loader.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
+import { mergeRuntimeValues } from '../config/runtime-merge.js';
 
 function resolveRuntime(options) {
   if (options.runtime) return options.runtime;
@@ -79,20 +80,6 @@ function sanitizeReportOutput(output) {
     };
   }
   return output;
-}
-
-function mergeRuntimeValues(base, override) {
-  if (override === undefined) return base;
-  if (override === null) return null;
-  if (!isPlainObject(base) || !isPlainObject(override)) {
-    return override;
-  }
-  const merged = { ...base };
-  for (const [key, value] of Object.entries(override)) {
-    if (value === undefined) continue;
-    merged[key] = mergeRuntimeValues(base[key], value);
-  }
-  return merged;
 }
 
 function normalizeExtends(value) {

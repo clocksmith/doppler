@@ -62,7 +62,7 @@ Node CLI (shared command contract):
 npm install --save-optional webgpu
 npm run convert -- <inputDir> models/local/<id> --model-id <id>
 npm run debug -- --model-id <id> --model-url /models/local/<id> --runtime-preset modes/debug
-npm run bench -- --model-id <id> --model-url /models/local/<id> --runtime-preset experiments/gemma3-bench-q4k
+npm run bench -- --model-id <id> --model-url /models/local/<id> --runtime-preset experiments/bench/gemma3-bench-q4k
 npm run test:model -- --suite inference --model-id <id> --model-url /models/local/<id>
 ```
 

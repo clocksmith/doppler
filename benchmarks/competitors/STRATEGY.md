@@ -204,6 +204,22 @@ Snapshot timestamp: `2026-02-21T03:02:44Z`
 - `etaUtc`: `complete`
 - `blocker`: `CI perf budget gates for this workload are not wired yet`
 
+9. Compare-engines auto-resolves curated gemma-3-1b to fused-f32a kernel path for optimal baseline.
+- `status`: `implemented`
+- `owner`: `runtime-kernels`
+- `updatedUtc`: `2026-02-21T19:58:04Z`
+- `evidence`: `tools/compare-engines.mjs:73`
+- `etaUtc`: `complete`
+- `blocker`: `none`
+
+10. Attention mechanism bottleneck identified on long-context workloads for Gemma 3 1b (7.45 tok/s at 183 prefill vs 20.25 tok/s at 12 prefill).
+- `status`: `in_progress`
+- `owner`: `runtime-kernels`
+- `updatedUtc`: `2026-02-21T19:58:04Z`
+- `evidence`: `/tmp/doppler_g3_1b_fused_longprompt.json`, `/tmp/doppler_g3_1b_fused_shortprompt16.json`
+- `etaUtc`: `TBD`
+- `blocker`: `requires profiling TJS attention advantages and potentially implementing basis-decomposed paged attention (#4)`
+
 ## Incumbent Attack Map
 
 ### Transformers.js

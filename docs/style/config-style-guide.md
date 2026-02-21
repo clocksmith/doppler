@@ -135,6 +135,51 @@ modelInference = merge(manifestInference, runtimeInferenceOverride)
 
 ---
 
+## End-to-End Config Ownership
+
+Use explicit config domains end-to-end:
+
+- **Conversion config**: conversion-time artifact policy only (`quantization`, sharding, output model ID/path, manifest policy).
+- **Runtime config**: execution policy only (`shared`, `loading`, `inference`).
+- **Benchmark shared config**: fairness/workload contract only (prompt shape, token budgets, sampling, seed, warm/cold mode).
+- **Benchmark engine overlay**: engine-specific execution knobs only (Doppler batch/readback/kernel path, TJS runtime backend/session knobs).
+
+Do not mix benchmark fairness axes with engine internals in the same config object.
+
+---
+
+## Benchmark Config Split (Required)
+
+Benchmark definitions must be composed from two layers:
+
+1. **Shared benchmark contract** (applies to all engines):
+   - prefill/decode lengths
+   - sampling (`temperature`, `topK`, `topP`, seed)
+   - stop conditions
+   - run policy (`warmupRuns`, `timedRuns`, `cacheMode`)
+2. **Engine overlay**:
+   - Doppler-only: `runtime.inference.batching.batchSize`, `runtime.inference.batching.readbackInterval`, `runtime.inference.kernelPath`
+   - TJS-only: backend/session plumbing that does not alter fairness semantics
+
+Calibration comparisons are invalid if shared-contract fields differ across engines.
+
+---
+
+## Preset Registry Metadata (Required)
+
+Runtime/config presets must carry lifecycle metadata in the preset object or registry:
+
+- `id`
+- `intent` (`verify` | `investigate` | `calibrate`)
+- `stability` (`canonical` | `experimental` | `deprecated`)
+- `owner`
+- `createdAtUtc`
+- optional: `supersedes`, `deprecatedAtUtc`, `replacementId`
+
+Agents should resolve presets by metadata/intent, not filename heuristics.
+
+---
+
 ## Generated Assets
 
 - VFS manifest generation has been removed from Doppler package+demo mode.
@@ -146,7 +191,8 @@ modelInference = merge(manifestInference, runtimeInferenceOverride)
 - Shared runtime is the only cross-cutting config between loader and inference.
 - Defaults live in schema files; runtime code should not hardcode fallbacks.
 - Rule maps are config assets: JSON-only, data-only, and loaded via the rule registry.
-- Production inference must not use F32 weights or activations; F32 is debug-only for validation.
+- Runtime must not silently escalate precision to `f32`.
+- Any `f32` activation path must be explicit in config/manifest and documented as a stability or capability choice.
 
 ---
 

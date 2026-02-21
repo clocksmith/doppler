@@ -9,6 +9,7 @@ This applies to browser clients and the Node CLI equally.
 
 - **One contract**: browser and CLI use the same command schema.
 - **Config-only control**: command behavior is encoded in runtime config.
+- **Shared fairness contract**: cross-engine benchmark axes are defined once and applied to all engines.
 - **Explicit exits**: each command has a measurable completion condition.
 - **Deterministic intent mapping**: command -> intent cluster is fixed.
 - **Parity by default**: no browser-only or CLI-only command semantics.
@@ -65,12 +66,20 @@ For harnessed commands (`debug`, `bench`, `test-model`), runners must apply:
 
 Use `buildRuntimeContractPatch()` and merge into runtime config before execution.
 
+For cross-engine benchmarks, maintain a two-layer contract:
+
+1. Shared benchmark contract (prompt/workload/sampling/run policy)
+2. Engine overlay (engine-specific execution knobs)
+
+The shared contract is part of command semantics; engine overlays must not mutate fairness axes.
+
 Commands are rejected when:
 
 - command is unknown
 - required suite/model fields are missing
 - suite/intent contract is violated
 - `calibrate` enables investigation instrumentation
+- benchmark shared-contract fields drift across compared engines
 
 ---
 
