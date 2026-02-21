@@ -733,6 +733,188 @@ function createBDPAAttentionUniformBuffer(
   );
 }
 
+export async function runAttentionBDPA(
+  Q,
+  basisK,
+  basisV,
+  pagedK,
+  pagedV,
+  index,
+  numHeads,
+  headDim,
+  options = {}
+) {
+  const device = getDevice();
+  const {
+    seqLen = 1,
+    kvLen = seqLen,
+    numKVHeads = numHeads,
+    scale = 1.0 / Math.sqrt(headDim),
+    causal = true,
+    startPos = 0,
+    outputBuffer = null,
+    attnSoftcap = 0,
+    slidingWindow = 0,
+    ropeCos = null,
+    ropeSin = null,
+  } = options;
+
+  if (seqLen !== 1) {
+    throw new Error(`BDPA attention currently supports decode only (seqLen=1), got seqLen=${seqLen}.`);
+  }
+  if (Q.dtype !== 'f16' || basisK.dtype !== 'f16' || basisV.dtype !== 'f16') {
+    throw new Error(`BDPA attention requires f16 Q/basis tensors; got Q=${Q.dtype}, basisK=${basisK.dtype}, basisV=${basisV.dtype}.`);
+  }
+  if (!(ropeCos instanceof GPUBuffer) || !(ropeSin instanceof GPUBuffer)) {
+    throw new Error('BDPA attention requires GPU ropeCos/ropeSin buffers.');
+  }
+
+  const variant = 'decode_bdpa_f16';
+  const caps = getKernelCapabilities();
+  const config = getKernelConfig('attention_bdpa', variant);
+  if (!hasRequiredFeatures(config.requires, caps)) {
+    throw new Error(`BDPA attention kernel "${variant}" requires unsupported GPU features.`);
+  }
+
+  const kernel = new AttentionBDPAKernel(device);
+  const pipeline = await kernel.getPipeline(variant);
+
+  const outputDtype = config.outputDtype;
+  if (!outputDtype) {
+    throw new Error(`Kernel config missing outputDtype for attention_bdpa variant "${variant}".`);
+  }
+  const bytesPerElement = outputDtype === 'f16' ? 2 : 4;
+  const paddedHiddenSize = padToQ4KBlock(numHeads * headDim);
+  const outputSize = seqLen * paddedHiddenSize * bytesPerElement;
+  const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'attention_bdpa_output');
+
+  const uniformBuffer = createBDPAAttentionUniformBuffer(device, null, {
+    numHeads,
+    numKVHeads,
+    headDim,
+    kvLen,
+    seqLen,
+    scale,
+    causal,
+    startPos,
+    attnSoftcap,
+    slidingWindow,
+  });
+
+  const bindGroup = device.createBindGroup({
+    label: 'attention_bdpa_bind_group',
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+      { binding: 1, resource: { buffer: Q.buffer } },
+      { binding: 2, resource: { buffer: basisK.buffer } },
+      { binding: 3, resource: { buffer: basisV.buffer } },
+      { binding: 4, resource: { buffer: pagedK } },
+      { binding: 5, resource: { buffer: pagedV } },
+      { binding: 6, resource: { buffer: index } },
+      { binding: 7, resource: { buffer: ropeCos } },
+      { binding: 8, resource: { buffer: ropeSin } },
+      { binding: 9, resource: { buffer: outputBuf } },
+    ],
+  });
+
+  kernel.dispatch(pipeline, bindGroup, numHeads);
+  releaseUniformBuffer(uniformBuffer);
+
+  return createTensor(outputBuf, outputDtype, [seqLen, numHeads, headDim], 'attention_bdpa_output');
+}
+
+export async function recordAttentionBDPA(
+  recorder,
+  Q,
+  basisK,
+  basisV,
+  pagedK,
+  pagedV,
+  index,
+  numHeads,
+  headDim,
+  options = {}
+) {
+  const device = recorder.device;
+  const {
+    seqLen = 1,
+    kvLen = seqLen,
+    numKVHeads = numHeads,
+    scale = 1.0 / Math.sqrt(headDim),
+    causal = true,
+    startPos = 0,
+    outputBuffer = null,
+    attnSoftcap = 0,
+    slidingWindow = 0,
+    ropeCos = null,
+    ropeSin = null,
+  } = options;
+
+  if (seqLen !== 1) {
+    throw new Error(`BDPA attention currently supports decode only (seqLen=1), got seqLen=${seqLen}.`);
+  }
+  if (Q.dtype !== 'f16' || basisK.dtype !== 'f16' || basisV.dtype !== 'f16') {
+    throw new Error(`BDPA attention requires f16 Q/basis tensors; got Q=${Q.dtype}, basisK=${basisK.dtype}, basisV=${basisV.dtype}.`);
+  }
+  if (!(ropeCos instanceof GPUBuffer) || !(ropeSin instanceof GPUBuffer)) {
+    throw new Error('BDPA attention requires GPU ropeCos/ropeSin buffers.');
+  }
+
+  const variant = 'decode_bdpa_f16';
+  const caps = getKernelCapabilities();
+  const config = getKernelConfig('attention_bdpa', variant);
+  if (!hasRequiredFeatures(config.requires, caps)) {
+    throw new Error(`BDPA attention kernel "${variant}" requires unsupported GPU features.`);
+  }
+
+  const kernel = new AttentionBDPAKernel(device);
+  const pipeline = await kernel.getPipeline(variant);
+
+  const outputDtype = config.outputDtype;
+  if (!outputDtype) {
+    throw new Error(`Kernel config missing outputDtype for attention_bdpa variant "${variant}".`);
+  }
+  const bytesPerElement = outputDtype === 'f16' ? 2 : 4;
+  const paddedHiddenSize = padToQ4KBlock(numHeads * headDim);
+  const outputSize = seqLen * paddedHiddenSize * bytesPerElement;
+  const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'attention_bdpa_output');
+
+  const uniformBuffer = createBDPAAttentionUniformBuffer(device, recorder, {
+    numHeads,
+    numKVHeads,
+    headDim,
+    kvLen,
+    seqLen,
+    scale,
+    causal,
+    startPos,
+    attnSoftcap,
+    slidingWindow,
+  });
+
+  const bindGroup = device.createBindGroup({
+    label: 'attention_bdpa_bind_group',
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+      { binding: 1, resource: { buffer: Q.buffer } },
+      { binding: 2, resource: { buffer: basisK.buffer } },
+      { binding: 3, resource: { buffer: basisV.buffer } },
+      { binding: 4, resource: { buffer: pagedK } },
+      { binding: 5, resource: { buffer: pagedV } },
+      { binding: 6, resource: { buffer: index } },
+      { binding: 7, resource: { buffer: ropeCos } },
+      { binding: 8, resource: { buffer: ropeSin } },
+      { binding: 9, resource: { buffer: outputBuf } },
+    ],
+  });
+
+  kernel.record(recorder, pipeline, bindGroup, numHeads);
+
+  return createTensor(outputBuf, outputDtype, [seqLen, numHeads, headDim], 'attention_bdpa_output');
+}
+
 export async function runAttention(
   Q,
   K,

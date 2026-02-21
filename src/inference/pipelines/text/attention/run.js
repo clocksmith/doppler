@@ -8,6 +8,7 @@ import {
   runRMSNorm,
   runRoPE,
   runAttention,
+  runAttentionBDPA,
   runAttentionTieredQuant,
   runAttentionTiered,
   castF16ToF32,
@@ -72,6 +73,7 @@ export async function runLayerAttentionGPU(
     attnSoftcap,
     queryPreAttnScalar,
     skipInputNorm = false,
+    tokenIds = null,
   } = config;
 
   const device = getDevice();
@@ -492,6 +494,12 @@ export async function runLayerAttentionGPU(
   let hotWindow = 0;
   let coldPageTable = null;
   let coldPageSize = 0;
+  let bdpaBasisK = null;
+  let bdpaBasisV = null;
+  let bdpaPagedK = null;
+  let bdpaPagedV = null;
+  let bdpaIndex = null;
+  let bdpaBasisCount = 0;
   const totalSeqLen = currentSeqLen + numTokens;
 
   const hasCache = state.kvCache?.hasGPUCache?.();
@@ -502,13 +510,13 @@ export async function runLayerAttentionGPU(
       const kCasted = kTensor.dtype === 'f16' ? kTensor : await castF32ToF16(kTensor);
       const vCasted = vTensor.dtype === 'f16' ? vTensor : await castF32ToF16(vTensor);
 
-      await state.kvCache.updateFromGPU(layerIdx, kCasted.buffer, vCasted.buffer, currentSeqLen, numTokens);
+      await state.kvCache.updateFromGPU(layerIdx, kCasted.buffer, vCasted.buffer, currentSeqLen, numTokens, tokenIds);
 
       // Only release if we created new buffers
       if (kTensor.dtype !== 'f16') releaseBuffer(kCasted.buffer);
       if (vTensor.dtype !== 'f16') releaseBuffer(vCasted.buffer);
     } else {
-      await state.kvCache.updateFromGPU(layerIdx, kTensor.buffer, vTensor.buffer, currentSeqLen, numTokens);
+      await state.kvCache.updateFromGPU(layerIdx, kTensor.buffer, vTensor.buffer, currentSeqLen, numTokens, tokenIds);
     }
     const gpuBuffers = state.kvCache.getGPUBuffers(layerIdx);
     if (gpuBuffers?.layout === 'tiered') {
@@ -528,6 +536,15 @@ export async function runLayerAttentionGPU(
       coldPageSize = gpuBuffers.coldPageSize ?? state.kvCache.coldPageSize ?? 0;
       kvLenForAttention = coldLen + hotLen;
       kvLayout = 'tiered';
+    } else if (gpuBuffers?.layout === 'bdpa') {
+      kvLayout = 'bdpa';
+      kvLenForAttention = gpuBuffers.seqLen;
+      bdpaBasisK = gpuBuffers.basisGPU.k;
+      bdpaBasisV = gpuBuffers.basisGPU.v;
+      bdpaPagedK = gpuBuffers.pagedGPU.k;
+      bdpaPagedV = gpuBuffers.pagedGPU.v;
+      bdpaIndex = gpuBuffers.indexGPU;
+      bdpaBasisCount = gpuBuffers.numBasisVectors ?? state.kvCache.basisVocabSize;
     } else {
       cachedK = gpuBuffers.keysGPU;
       cachedV = gpuBuffers.valuesGPU;
@@ -575,7 +592,7 @@ export async function runLayerAttentionGPU(
   const effectiveSlidingWindow = isLayerSliding ? slidingWindow : null;
 
   const canWindow = hasCache && effectiveSlidingWindow;
-  if (kvLayout !== 'tiered') {
+  if (kvLayout !== 'tiered' && kvLayout !== 'bdpa') {
     if (canWindow && kvLenForAttention > effectiveSlidingWindow) {
       kvLenForAttention = effectiveSlidingWindow;
     }
@@ -605,10 +622,10 @@ export async function runLayerAttentionGPU(
     kvDtype: state.kvCache?.kvDtype,
     fallback: vTensor.dtype,
   });
-  const cachedKTensor = kvLayout === 'tiered'
+  const cachedKTensor = kvLayout === 'tiered' || kvLayout === 'bdpa'
     ? null
     : createTensor(cachedK, cachedKDtype, [kvLenForAttention, numKVHeads * headDim], 'cached_K');
-  const cachedVTensor = kvLayout === 'tiered'
+  const cachedVTensor = kvLayout === 'tiered' || kvLayout === 'bdpa'
     ? null
     : createTensor(cachedV, cachedVDtype, [kvLenForAttention, numKVHeads * headDim], 'cached_V');
 
@@ -643,7 +660,33 @@ export async function runLayerAttentionGPU(
   });
 
   let attnOutput;
-  if (kvLayout === 'tiered') {
+  if (kvLayout === 'bdpa') {
+    const basisKDtype = 'f16';
+    const basisVDtype = 'f16';
+    const basisCount = Math.max(1, bdpaBasisCount);
+    const basisKTensor = createTensor(bdpaBasisK, basisKDtype, [basisCount, numKVHeads * headDim], 'bdpa_basis_k');
+    const basisVTensor = createTensor(bdpaBasisV, basisVDtype, [basisCount, numKVHeads * headDim], 'bdpa_basis_v');
+    let qForBDPA = qTensor;
+    if (qForBDPA.dtype !== 'f16') {
+      qForBDPA = await castF32ToF16(qTensor);
+    }
+    attnOutput = await runAttentionBDPA(qForBDPA, basisKTensor, basisVTensor, bdpaPagedK, bdpaPagedV, bdpaIndex, numHeads, headDim, {
+      seqLen: numTokens,
+      kvLen: kvLenForAttention,
+      numKVHeads,
+      causal: causalForAttention,
+      startPos: startPosForMask,
+      layerIdx,
+      slidingWindow: effectiveSlidingWindow,
+      attnSoftcap,
+      scale: attnScale,
+      ropeCos: state.ropeFreqsCos,
+      ropeSin: state.ropeFreqsSin,
+    });
+    if (qForBDPA !== qTensor) {
+      releaseBuffer(qForBDPA.buffer);
+    }
+  } else if (kvLayout === 'tiered') {
     let qForAttention = qTensor;
     let qTemp = null;
     if (coldQuantMode !== 'none' && qTensor.dtype !== 'f32') {

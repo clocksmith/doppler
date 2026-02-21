@@ -6573,6 +6573,145 @@
           "requires": []
         }
       }
+    },
+    "attention_bdpa": {
+      "description": "Basis-decomposed paged attention kernels (decode)",
+      "baseBindings": [
+        {
+          "index": 0,
+          "name": "uniforms",
+          "type": "uniform"
+        },
+        {
+          "index": 1,
+          "name": "Q",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 2,
+          "name": "T_basis_k",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 3,
+          "name": "T_basis_v",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 4,
+          "name": "P_delta_k",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 5,
+          "name": "P_delta_v",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 6,
+          "name": "I_flat",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 7,
+          "name": "rope_cos",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 8,
+          "name": "rope_sin",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 9,
+          "name": "output",
+          "type": "storage"
+        }
+      ],
+      "baseUniforms": {
+        "size": 64,
+        "fields": [
+          {
+            "name": "num_heads",
+            "type": "u32",
+            "offset": 0
+          },
+          {
+            "name": "num_kv_heads",
+            "type": "u32",
+            "offset": 4
+          },
+          {
+            "name": "head_dim",
+            "type": "u32",
+            "offset": 8
+          },
+          {
+            "name": "kv_len",
+            "type": "u32",
+            "offset": 12
+          },
+          {
+            "name": "seq_len",
+            "type": "u32",
+            "offset": 16
+          },
+          {
+            "name": "scale",
+            "type": "f32",
+            "offset": 20
+          },
+          {
+            "name": "is_causal",
+            "type": "u32",
+            "offset": 24
+          },
+          {
+            "name": "start_pos",
+            "type": "u32",
+            "offset": 28
+          },
+          {
+            "name": "attn_softcap",
+            "type": "f32",
+            "offset": 32
+          },
+          {
+            "name": "sliding_window",
+            "type": "u32",
+            "offset": 36
+          },
+          {
+            "name": "kv_len_source",
+            "type": "u32",
+            "offset": 40
+          },
+          {
+            "name": "_pad_1",
+            "type": "u32",
+            "offset": 44
+          }
+        ]
+      },
+      "variants": {
+        "decode_bdpa_f16": {
+          "wgsl": "attention_bdpa_decode_f16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "outputDtype": "f16",
+          "variantMetadata": {
+            "maxKVLen": 2048
+          },
+          "description": "BDPA decode kernel - f16 Q/basis + packed int8 deltas"
+        }
+      }
     }
   }
 }
