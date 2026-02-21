@@ -131,14 +131,14 @@ To definitively crush incumbent engines in raw performance and stability, Dopple
 - **Tracking:**
   - `status`: `in_progress`
   - `owner`: `runtime-kernels`
-  - `updatedUtc`: `2026-02-21T02:28:22Z`
-  - `evidence`: `src/gpu/kernels/check-finiteness.js:80`, `src/gpu/kernels/check_finiteness.wgsl:17`, `src/inference/pipelines/text/generator-steps.js:393`, `src/inference/pipelines/text/generator.js:153`
+  - `updatedUtc`: `2026-02-21T02:55:25Z`
+  - `evidence`: `src/gpu/kernels/check-finiteness.js:80`, `src/gpu/kernels/check_finiteness.wgsl:17`, `src/inference/pipelines/text/layer.js:315`, `src/inference/pipelines/text/generator.js:191`, `src/inference/pipelines/text/generator-steps.js:408`
   - `etaUtc`: `TBD`
-  - `blocker`: `layer hook currently gates on context.dtype (see src/inference/pipelines/text/layer.js:315), so guard coverage needs final verification; deterministic seed is only partially threaded across sampling paths; full browser regression run blocked in this environment by static-server EPERM`
+  - `blocker`: `overflow-triggered guard regression (first-hit metadata + deterministic retry path) is not yet CI-gated`
 
 ## Gemma 3 Correctness Snapshot (UTC)
 
-Snapshot timestamp: `2026-02-21T01:51:20Z`
+Snapshot timestamp: `2026-02-21T03:02:44Z`
 
 1. Gemma 3 default f16-weight routing now prefers f32 activations.
 - `status`: `implemented`
@@ -156,11 +156,11 @@ Snapshot timestamp: `2026-02-21T01:51:20Z`
 - `etaUtc`: `complete`
 - `blocker`: `none`
 
-3. Curated f32a model artifact exists with default f32a kernel path.
+3. Curated f32a model artifacts exist for Gemma 3 270m and 1b.
 - `status`: `implemented`
 - `owner`: `conversion-runtime`
-- `updatedUtc`: `2026-02-21T01:51:20Z`
-- `evidence`: `models/curated/gemma-3-270m-it-f16-f32a/manifest.json:9`, `models/curated/gemma-3-270m-it-f16-f32a/manifest.json:73`
+- `updatedUtc`: `2026-02-21T03:01:41Z`
+- `evidence`: `models/curated/gemma-3-270m-it-f16-f32a/manifest.json:3`, `models/curated/gemma-3-270m-it-f16-f32a/manifest.json:73`, `models/curated/gemma-3-1b-it-f16-f32a/manifest.json:3`, `models/curated/gemma-3-1b-it-f16-f32a/manifest.json:73`
 - `etaUtc`: `complete`
 - `blocker`: `none`
 
@@ -183,10 +183,26 @@ Snapshot timestamp: `2026-02-21T01:51:20Z`
 6. Always-on finiteness guard rollout has landed in code but is still being hardened.
 - `status`: `in_progress`
 - `owner`: `runtime-kernels`
-- `updatedUtc`: `2026-02-21T02:28:22Z`
-- `evidence`: `src/gpu/kernels/check-finiteness.js:107`, `src/inference/pipelines/text/generator-steps.js:408`, `src/inference/pipelines/text/generator.js:150`, `src/inference/pipelines/text/layer.js:315`
+- `updatedUtc`: `2026-02-21T02:55:25Z`
+- `evidence`: `src/gpu/kernels/check-finiteness.js:107`, `src/inference/pipelines/text/generator-steps.js:408`, `src/inference/pipelines/text/generator.js:191`, `src/inference/pipelines/text/layer.js:315`
 - `etaUtc`: `TBD`
-- `blocker`: `remaining integration bug on f16-only guard gate and incomplete deterministic-seed threading; CI-grade NaN regression evidence pending`
+- `blocker`: `needs dedicated overflow-trigger test + CI gate for deterministic fallback behavior`
+
+7. Gemma 3 1b f32a artifact has been regenerated from HF snapshot and passes manifest integrity checks.
+- `status`: `validated_local`
+- `owner`: `conversion-runtime`
+- `updatedUtc`: `2026-02-21T03:01:41Z`
+- `evidence`: `~/.cache/huggingface/hub/models--google--gemma-3-1b-it/snapshots/dcc83ea841ab6100d6b47a070329e1ba4cf78752/model.safetensors (dtypeCounts BF16=340)`, `models/curated/gemma-3-1b-it-f16-f32a/manifest.json:3`, `models/curated/gemma-3-1b-it-f16-f32a/manifest.json:73`, `sampled blake3 shard verification (0/14/29) matched manifest hashes`, `/tmp/bench_g3_1b_id_resolution.json (requestModelId=resultModelId=gemma-3-1b-it-f16-f32a)`
+- `etaUtc`: `complete`
+- `blocker`: `none`
+
+8. Deterministic 1b kernel sweep completed locally for f16a vs f32a vs fused-f32a.
+- `status`: `validated_local`
+- `owner`: `runtime-kernels`
+- `updatedUtc`: `2026-02-21T03:02:44Z`
+- `evidence`: `/tmp/bench_g3_1b_id_gemma3_f16_f16a.json (decodeTok/s 9.22)`, `/tmp/bench_g3_1b_id_gemma3_f16_f32a.json (decodeTok/s 20.53)`, `/tmp/bench_g3_1b_id_gemma3_f16_fused_f32a_online.json (decodeTok/s 19.38)`
+- `etaUtc`: `complete`
+- `blocker`: `CI perf budget gates for this workload are not wired yet`
 
 ## Incumbent Attack Map
 
