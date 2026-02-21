@@ -775,6 +775,10 @@ export async function runAttentionBDPA(
   if (!hasRequiredFeatures(config.requires, caps)) {
     throw new Error(`BDPA attention kernel "${variant}" requires unsupported GPU features.`);
   }
+  const maxKVLen = config.variantMetadata?.maxKVLen;
+  if (Number.isFinite(maxKVLen) && kvLen > maxKVLen) {
+    throw new Error(`BDPA attention requires kvLen <= ${maxKVLen} but got ${kvLen}.`);
+  }
 
   const kernel = new AttentionBDPAKernel(device);
   const pipeline = await kernel.getPipeline(variant);
@@ -866,6 +870,10 @@ export async function recordAttentionBDPA(
   const config = getKernelConfig('attention_bdpa', variant);
   if (!hasRequiredFeatures(config.requires, caps)) {
     throw new Error(`BDPA attention kernel "${variant}" requires unsupported GPU features.`);
+  }
+  const maxKVLen = config.variantMetadata?.maxKVLen;
+  if (Number.isFinite(maxKVLen) && kvLen > maxKVLen) {
+    throw new Error(`BDPA attention requires kvLen <= ${maxKVLen} but got ${kvLen}.`);
   }
 
   const kernel = new AttentionBDPAKernel(device);
