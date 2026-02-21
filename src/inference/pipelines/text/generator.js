@@ -9,6 +9,7 @@ import { createCommandRecorder, createProfilingRecorder, CommandRecorder } from 
 import { allowReadback } from '../../../gpu/perf-guards.js';
 import { log, trace } from '../../../debug/index.js';
 import { validateCallTimeOptions } from '../../../config/param-validator.js';
+import { resolveKernelPath, setActiveKernelPath } from '../../../config/kernel-path-loader.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 
 // Pipeline sub-modules
@@ -95,6 +96,108 @@ export class PipelineGenerator {
     );
   }
 
+  _resolveFinitenessFallbackKernelPathId() {
+    const currentId = this.#state.resolvedKernelPath?.id
+      ?? this.#state.runtimeKernelPath
+      ?? this.#state.runtimeConfig?.inference?.kernelPath
+      ?? null;
+    if (typeof currentId !== 'string' || currentId.length === 0) {
+      return null;
+    }
+
+    const candidates = [
+      currentId.replace('-f16a-online', '-f32a-online'),
+      currentId.replace('-f16a-online', '-f32a'),
+      currentId.replace('fused-f16a-online', 'fused-f32a-online'),
+      currentId.replace('-f16a', '-f32a'),
+      currentId.replace('f16a', 'f32a'),
+    ];
+    const seen = new Set();
+    for (const candidate of candidates) {
+      if (!candidate || candidate === currentId || seen.has(candidate)) {
+        continue;
+      }
+      seen.add(candidate);
+      try {
+        resolveKernelPath(candidate);
+        return candidate;
+      } catch {
+        // Keep searching for a compatible fallback path.
+      }
+    }
+    return null;
+  }
+
+  _beginFinitenessFallback(opts, reasonLabel) {
+    const original = {
+      activationDtype: this.#state.runtimeConfig.inference.compute.activationDtype,
+      runtimeKernelPath: this.#state.runtimeKernelPath,
+      runtimeConfigKernelPath: this.#state.runtimeConfig.inference.kernelPath ?? null,
+      resolvedKernelPath: this.#state.resolvedKernelPath,
+      kernelPathSource: this.#state.kernelPathSource,
+      seed: opts.seed,
+    };
+
+    this.#state.runtimeConfig.inference.compute.activationDtype = 'f32';
+
+    const fallbackKernelPathId = this._resolveFinitenessFallbackKernelPathId();
+    if (fallbackKernelPathId) {
+      const fallbackKernelPath = resolveKernelPath(fallbackKernelPathId);
+      this.#state.runtimeKernelPath = fallbackKernelPathId;
+      this.#state.runtimeConfig.inference.kernelPath = fallbackKernelPathId;
+      this.#state.resolvedKernelPath = fallbackKernelPath;
+      this.#state.kernelPathSource = 'runtime';
+      setActiveKernelPath(fallbackKernelPath, 'runtime');
+      log.warn(
+        'Pipeline',
+        `FinitenessGuard fallback (${reasonLabel}): ` +
+        `${original.resolvedKernelPath?.id ?? original.runtimeConfigKernelPath ?? 'none'} -> ${fallbackKernelPathId}`
+      );
+    } else {
+      log.warn('Pipeline', `FinitenessGuard fallback (${reasonLabel}): no f32-compatible kernel path found; keeping current path.`);
+    }
+
+    this.#state.decodeBuffers?.ensureBuffers({
+      hiddenSize: this.#state.modelConfig.hiddenSize,
+      intermediateSize: this.#state.modelConfig.intermediateSize,
+      activationDtype: 'f32',
+      enablePingPong: true,
+    });
+
+    if (opts.seed == null) {
+      const fallbackSeedBase = (this.#state.decodeStepCount + this.#state.currentSeqLen + 1) >>> 0;
+      opts.seed = (fallbackSeedBase * 2654435761) >>> 0;
+    }
+
+    return original;
+  }
+
+  _endFinitenessFallback(opts, original) {
+    opts.seed = original.seed;
+    this.#state.runtimeConfig.inference.compute.activationDtype = original.activationDtype;
+    this.#state.runtimeKernelPath = original.runtimeKernelPath;
+    this.#state.runtimeConfig.inference.kernelPath = original.runtimeConfigKernelPath;
+    this.#state.resolvedKernelPath = original.resolvedKernelPath;
+    this.#state.kernelPathSource = original.kernelPathSource;
+    setActiveKernelPath(original.resolvedKernelPath, original.kernelPathSource);
+    this.#state.decodeBuffers?.ensureBuffers({
+      hiddenSize: this.#state.modelConfig.hiddenSize,
+      intermediateSize: this.#state.modelConfig.intermediateSize,
+      activationDtype: original.activationDtype,
+      enablePingPong: true,
+    });
+  }
+
+  async _retryWithFinitenessFallback(opts, reasonLabel, retryFn) {
+    this.#state.kvCache?.truncate(this.#state.currentSeqLen);
+    const original = this._beginFinitenessFallback(opts, reasonLabel);
+    try {
+      return await retryFn();
+    } finally {
+      this._endFinitenessFallback(opts, original);
+    }
+  }
+
   // ==========================================================================
   // Generation Public API
   // ==========================================================================
@@ -148,32 +251,11 @@ export class PipelineGenerator {
       } catch (error) {
         if (error.name === 'FinitenessError') {
           log.warn('Pipeline', `FinitenessGuard caught NaN/Inf during prefill. Retrying with F32 precision.`);
-          this.#state.kvCache?.truncate(this.#state.currentSeqLen);
-          const originalDtype = this.#state.runtimeConfig.inference.compute.activationDtype;
-          this.#state.runtimeConfig.inference.compute.activationDtype = 'f32';
-
-          this.#state.decodeBuffers?.ensureBuffers({
-            hiddenSize: this.#state.modelConfig.hiddenSize,
-            intermediateSize: this.#state.modelConfig.intermediateSize,
-            activationDtype: 'f32',
-            enablePingPong: true,
-          });
-
-          const originalSeed = opts.seed;
-          opts.seed = originalSeed ?? Math.floor(Math.random() * 0xFFFFFFFF);
-
-          try {
-            prefillLogits = await this._prefill(inputIds, opts);
-          } finally {
-            opts.seed = originalSeed;
-            this.#state.runtimeConfig.inference.compute.activationDtype = originalDtype;
-            this.#state.decodeBuffers?.ensureBuffers({
-              hiddenSize: this.#state.modelConfig.hiddenSize,
-              intermediateSize: this.#state.modelConfig.intermediateSize,
-              activationDtype: originalDtype,
-              enablePingPong: true,
-            });
-          }
+          prefillLogits = await this._retryWithFinitenessFallback(
+            opts,
+            'prefill',
+            () => this._prefill(inputIds, opts)
+          );
         } else {
           throw error;
         }
@@ -292,32 +374,11 @@ export class PipelineGenerator {
     } catch (error) {
       if (error.name === 'FinitenessError') {
         log.warn('Pipeline', `FinitenessGuard caught NaN/Inf during prefillKVOnly. Retrying with F32 precision.`);
-        this.#state.kvCache?.truncate(this.#state.currentSeqLen);
-        const originalDtype = this.#state.runtimeConfig.inference.compute.activationDtype;
-        this.#state.runtimeConfig.inference.compute.activationDtype = 'f32';
-
-        this.#state.decodeBuffers?.ensureBuffers({
-          hiddenSize: this.#state.modelConfig.hiddenSize,
-          intermediateSize: this.#state.modelConfig.intermediateSize,
-          activationDtype: 'f32',
-          enablePingPong: true,
-        });
-
-        const originalSeed = opts.seed;
-        opts.seed = originalSeed ?? Math.floor(Math.random() * 0xFFFFFFFF);
-
-        try {
-          prefillResult = await this._prefillToHidden(inputIds, opts);
-        } finally {
-          opts.seed = originalSeed;
-          this.#state.runtimeConfig.inference.compute.activationDtype = originalDtype;
-          this.#state.decodeBuffers?.ensureBuffers({
-            hiddenSize: this.#state.modelConfig.hiddenSize,
-            intermediateSize: this.#state.modelConfig.intermediateSize,
-            activationDtype: originalDtype,
-            enablePingPong: true,
-          });
-        }
+        prefillResult = await this._retryWithFinitenessFallback(
+          opts,
+          'prefillKVOnly',
+          () => this._prefillToHidden(inputIds, opts)
+        );
       } else {
         throw error;
       }
@@ -379,32 +440,11 @@ export class PipelineGenerator {
     } catch (error) {
       if (error.name === 'FinitenessError') {
         log.warn('Pipeline', `FinitenessGuard caught NaN/Inf during prefillWithEmbedding. Retrying with F32 precision.`);
-        this.#state.kvCache?.truncate(this.#state.currentSeqLen);
-        const originalDtype = this.#state.runtimeConfig.inference.compute.activationDtype;
-        this.#state.runtimeConfig.inference.compute.activationDtype = 'f32';
-
-        this.#state.decodeBuffers?.ensureBuffers({
-          hiddenSize: this.#state.modelConfig.hiddenSize,
-          intermediateSize: this.#state.modelConfig.intermediateSize,
-          activationDtype: 'f32',
-          enablePingPong: true,
-        });
-
-        const originalSeed = opts.seed;
-        opts.seed = originalSeed ?? Math.floor(Math.random() * 0xFFFFFFFF);
-
-        try {
-          prefillResult = await this._prefillToHidden(inputIds, opts);
-        } finally {
-          opts.seed = originalSeed;
-          this.#state.runtimeConfig.inference.compute.activationDtype = originalDtype;
-          this.#state.decodeBuffers?.ensureBuffers({
-            hiddenSize: this.#state.modelConfig.hiddenSize,
-            intermediateSize: this.#state.modelConfig.intermediateSize,
-            activationDtype: originalDtype,
-            enablePingPong: true,
-          });
-        }
+        prefillResult = await this._retryWithFinitenessFallback(
+          opts,
+          'prefillWithEmbedding',
+          () => this._prefillToHidden(inputIds, opts)
+        );
       } else {
         throw error;
       }
@@ -660,33 +700,11 @@ export class PipelineGenerator {
           } catch (singleTokenError) {
             if (singleTokenError.name === 'FinitenessError') {
               log.warn('Pipeline', `FinitenessGuard caught NaN/Inf at batch step ${tokensGenerated}. Truncating KV cache and retrying token with F32 precision.`);
-              this.#state.kvCache?.truncate(this.#state.currentSeqLen);
-
-              const originalDtype = this.#state.runtimeConfig.inference.compute.activationDtype;
-              this.#state.runtimeConfig.inference.compute.activationDtype = 'f32';
-
-              this.#state.decodeBuffers?.ensureBuffers({
-                hiddenSize: this.#state.modelConfig.hiddenSize,
-                intermediateSize: this.#state.modelConfig.intermediateSize,
-                activationDtype: 'f32',
-                enablePingPong: true,
-              });
-
-              const originalSeed = opts.seed;
-              opts.seed = originalSeed ?? Math.floor(Math.random() * 0xFFFFFFFF);
-
-              try {
-                nextToken = await this._decodeStep(generatedIds, opts);
-              } finally {
-                opts.seed = originalSeed;
-                this.#state.runtimeConfig.inference.compute.activationDtype = originalDtype;
-                this.#state.decodeBuffers?.ensureBuffers({
-                  hiddenSize: this.#state.modelConfig.hiddenSize,
-                  intermediateSize: this.#state.modelConfig.intermediateSize,
-                  activationDtype: originalDtype,
-                  enablePingPong: true,
-                });
-              }
+              nextToken = await this._retryWithFinitenessFallback(
+                opts,
+                `decode-batch-step-${tokensGenerated}`,
+                () => this._decodeStep(generatedIds, opts)
+              );
             } else {
               throw singleTokenError;
             }
@@ -706,33 +724,11 @@ export class PipelineGenerator {
         } catch (error) {
           if (error.name === 'FinitenessError') {
             log.warn('Pipeline', `FinitenessGuard caught NaN/Inf at step ${tokensGenerated}. Truncating KV cache and retrying token with F32 precision.`);
-            this.#state.kvCache?.truncate(this.#state.currentSeqLen);
-
-            const originalDtype = this.#state.runtimeConfig.inference.compute.activationDtype;
-            this.#state.runtimeConfig.inference.compute.activationDtype = 'f32';
-
-            this.#state.decodeBuffers?.ensureBuffers({
-              hiddenSize: this.#state.modelConfig.hiddenSize,
-              intermediateSize: this.#state.modelConfig.intermediateSize,
-              activationDtype: 'f32',
-              enablePingPong: true,
-            });
-
-            const originalSeed = opts.seed;
-            opts.seed = originalSeed ?? Math.floor(Math.random() * 0xFFFFFFFF);
-
-            try {
-              nextToken = await this._decodeStep(generatedIds, opts);
-            } finally {
-              opts.seed = originalSeed;
-              this.#state.runtimeConfig.inference.compute.activationDtype = originalDtype;
-              this.#state.decodeBuffers?.ensureBuffers({
-                hiddenSize: this.#state.modelConfig.hiddenSize,
-                intermediateSize: this.#state.modelConfig.intermediateSize,
-                activationDtype: originalDtype,
-                enablePingPong: true,
-              });
-            }
+            nextToken = await this._retryWithFinitenessFallback(
+              opts,
+              `decode-step-${tokensGenerated}`,
+              () => this._decodeStep(generatedIds, opts)
+            );
           } else {
             throw error;
           }
