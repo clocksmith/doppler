@@ -69,6 +69,7 @@ export async function recordLayerAttentionGPU(
     attnSoftcap,
     queryPreAttnScalar,
     skipInputNorm = false,
+    tokenIds = null,
   } = config;
 
   const wantsF16Output = input.dtype === 'f16';
@@ -368,13 +369,13 @@ export async function recordLayerAttentionGPU(
       const kCasted = kTensor.dtype === 'f16' ? kTensor : await recordCastF32ToF16(recorder, kTensor);
       const vCasted = vTensor.dtype === 'f16' ? vTensor : await recordCastF32ToF16(recorder, vTensor);
 
-      await state.kvCache.recordUpdateFromGPU(recorder, layerIdx, kCasted.buffer, vCasted.buffer, currentSeqLen, numTokens);
+      await state.kvCache.recordUpdateFromGPU(recorder, layerIdx, kCasted.buffer, vCasted.buffer, currentSeqLen, numTokens, tokenIds);
 
       // Track for cleanup after submit (not release!) - only if we created new buffers
       if (kTensor.dtype !== 'f16') recorder.trackTemporaryBuffer(kCasted.buffer);
       if (vTensor.dtype !== 'f16') recorder.trackTemporaryBuffer(vCasted.buffer);
     } else {
-      await state.kvCache.recordUpdateFromGPU(recorder, layerIdx, kTensor.buffer, vTensor.buffer, currentSeqLen, numTokens);
+      await state.kvCache.recordUpdateFromGPU(recorder, layerIdx, kTensor.buffer, vTensor.buffer, currentSeqLen, numTokens, tokenIds);
     }
     const gpuBuffers = state.kvCache.getGPUBuffers(layerIdx);
     if (gpuBuffers?.layout === 'tiered') {
