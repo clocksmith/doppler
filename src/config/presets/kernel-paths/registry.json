@@ -72,6 +72,20 @@
       "notes": "Experimental online-attention variant used by benchmark probes."
     },
     {
+      "id": "gemma3-f16-fused-f16a-online",
+      "file": "gemma3-f16-fused-f16a-online.json",
+      "status": "experimental",
+      "statusReason": "benchmark-probe",
+      "notes": "Experimental fused F16 pipeline variant for fast decode."
+    },
+    {
+      "id": "gemma3-f16-fused-f32a-online",
+      "file": "gemma3-f16-fused-f32a-online.json",
+      "status": "experimental",
+      "statusReason": "benchmark-probe",
+      "notes": "Experimental fused F32 pipeline variant for fast decode."
+    },
+    {
       "id": "gemma3-q4k-dequant-f16a",
       "file": "gemma3-q4k-dequant-f16a.json",
       "status": "canonical",

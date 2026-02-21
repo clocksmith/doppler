@@ -54,6 +54,8 @@ export interface ConverterManifestConfigSchema {
 
 export interface ConverterOutputConfigSchema {
   modelId: string | null;
+  dir: string | null;
+  baseDir: string | null;
   textOnly: boolean;
   fast: boolean;
 }

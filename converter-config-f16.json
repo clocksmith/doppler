@@ -1,0 +1,8 @@
+{
+    "quantization": {
+        "weights": "f16",
+        "embeddings": "f16",
+        "lmHead": "f16",
+        "computePrecision": "f16"
+    }
+}

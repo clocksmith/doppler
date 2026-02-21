@@ -2,12 +2,10 @@
   "id": "gemma3",
   "name": "Gemma 3",
   "extends": "transformer",
-
   "architecture": {
     "headDim": 256,
     "ropeTheta": 1000000
   },
-
   "inference": {
     "attention": {
       "attnLogitSoftcapping": null,
@@ -41,24 +39,36 @@
     },
     "kernelPaths": {
       "f16": {
-        "f16": "gemma3-f16-f16a",
+        "default": "gemma3-f16-f32a",
+        "f16": "gemma3-f16-f32a",
+        "f16a": "gemma3-f16-f16a",
         "f32": "gemma3-f16-f32a"
       },
       "q4k": {
-        "f16": "gemma3-q4k-dequant-f16a",
+        "default": "gemma3-q4k-dequant-f32a",
+        "f16": "gemma3-q4k-dequant-f32a",
+        "f16a": "gemma3-q4k-dequant-f16a",
         "f32": "gemma3-q4k-dequant-f32a"
       }
     }
   },
-
   "tokenizer": {
     "bosToken": "<bos>",
-    "eosTokens": ["<eos>", "<end_of_turn>"],
+    "eosTokens": [
+      "<eos>",
+      "<end_of_turn>"
+    ],
     "addBosToken": true
   },
-
   "detection": {
-    "architecturePatterns": ["gemma3", "Gemma3ForCausalLM", "gemma-3"],
-    "modelTypePatterns": ["gemma3_text", "gemma3"]
+    "architecturePatterns": [
+      "gemma3",
+      "Gemma3ForCausalLM",
+      "gemma-3"
+    ],
+    "modelTypePatterns": [
+      "gemma3_text",
+      "gemma3"
+    ]
   }
 }

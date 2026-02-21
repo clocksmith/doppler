@@ -30,7 +30,7 @@ const BLOCK_SIZE: u32 = 144u;     // Bytes per Q4_K block
 const SUBBLOCK_SIZE: u32 = 32u;   // Elements per sub-block
 
 override WORKGROUP_SIZE: u32 = 256u;
-const SHARED_INPUT_SIZE: u32 = 256u;
+override SHARED_INPUT_SIZE: u32 = 256u;
 const MAX_SUBGROUPS: u32 = 256u;  // Supports subgroup_size >= 1
 const MAX_SUBGROUPS_PER_OUTPUT: u32 = 64u;  // THREADS_PER_OUTPUT max
 

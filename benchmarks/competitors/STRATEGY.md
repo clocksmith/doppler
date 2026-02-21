@@ -52,6 +52,127 @@ Positioning:
 - Keep onboarding to static assets + one command + one config.
 - Avoid forcing users into extra toolchains for normal deployment paths.
 
+## Workstream Tracking Contract (UTC)
+
+Use this format for every strategy item update so status is auditable and comparable across authors.
+
+Status enum:
+
+- `not_started`: no merged or staged implementation exists
+- `in_progress`: scoped work exists but acceptance criteria are incomplete
+- `implemented`: code/config path exists and resolves in runtime
+- `validated_local`: reproduced with pinned local command/config/model
+- `validated_ci`: covered in CI with explicit pass/fail gates
+- `released`: merged and included in release notes/default docs
+- `blocked`: waiting on dependency/decision/external capability
+
+Required fields on each update entry:
+
+- `status`
+- `owner`
+- `updatedUtc` (ISO8601 UTC, e.g. `2026-02-21T01:51:20Z`)
+- `evidence` (file + line, and/or command summary)
+- `etaUtc` (or `TBD`)
+- `blocker` (or `none`)
+
+Update rules:
+
+- Use UTC timestamps only; do not require commit hashes in this file.
+- If status changes, append a new timestamped line rather than rewriting history.
+- Evidence must be concrete (`path:line` or command output summary), not prose-only.
+
+## Technical Architecture Attack Plan
+
+To definitively crush incumbent engines in raw performance and stability, Doppler must exploit specific WebGPU and JS boundary advantages. These high-ROI engine improvements are tracked here and should be migrated to concrete GitHub issues or execution branches.
+
+### 1. Range-Aware Selective Widening (Mixed Precision Policy)
+**Objective:** Prevent mathematical collapse without paying a global bandwidth penalty.
+- **Problem:** Strict F16 computation collapses on un-clipped models (e.g. Gemma 3) where vectors naturally overflow `65,504`. Strict F32 halves the memory bandwidth and destroys generation speed.
+- **Tactic:** Implement a `selective_f32_windows` kernel preset. Keep bounded operations (GEMV dot-products) packed tightly in F16 to maximize bandwidth. Strategically widen vulnerable reduction operations (Residual Adds, RMSNorm, Softmax) to F32 purely for the calculation window.
+- **Status:** [~] In Progress
+- **Tracking:**
+  - `status`: `implemented` (Gemma 3 mitigation path), `in_progress` (selective widening policy)
+  - `owner`: `runtime-kernels`
+  - `updatedUtc`: `2026-02-21T01:51:20Z`
+  - `evidence`: `src/config/presets/models/gemma3.json:42`, `src/config/presets/kernel-paths/gemma3-f16-f32a.json:2`, `models/curated/gemma-3-270m-it-f16-f32a/manifest.json:73`
+  - `etaUtc`: `TBD`
+  - `blocker`: `none`
+
+### 2. Deferred Rounding Windows for State Updates
+**Objective:** Minimize quantization noise drift during deep decoding.
+- **Problem:** Constantly converting F32 intermediate activations back down to BF16 or F16 at the end of every dispatch step introduces catastrophic rounding error that drifts over 20+ layers.
+- **Tactic:** Leave intermediate activations in F32 registers or fast shared memory for `N` sequential operations. Only pay the BF16/F16 quantization penalty at explicit block boundaries.
+- **Status:** [ ] Not Started
+
+### 3. Max-Subtracted Softmax with F32 Accumulation
+**Objective:** Bullet-proof the attention mechanism against massive logit spikes.
+- **Problem:** Naive 16-bit Softmax instantly overflows on large activations ($e^{11} > 65504$), producing a vector of `NaN` or `Infinity` that poisons the KV cache forever.
+- **Tactic:** Shift all logits by subtracting the maximum value before exponentiation, and accumulate the denominator strictly in F32. This guarantees the probability distribution remains stable and normalized regardless of the input scale.
+- **Status:** [x] Proved in Spike | [ ] Implementation Pending
+- **Tracking:**
+  - `status`: `validated_local` (spike only)
+  - `owner`: `runtime-kernels`
+  - `updatedUtc`: `2026-02-21T01:51:20Z`
+  - `evidence`: `docs/bf16-runtime-spike.md:45`, `tools/bf16-math-spike.mjs:589`
+  - `etaUtc`: `TBD`
+  - `blocker`: `kernel integration + CI coverage pending`
+
+### 4. Basis-Decomposed Paged Attention
+**Objective:** Defeat linear KV Cache bandwidth scaling on immense context windows.
+- **Problem:** A continuous KV cache severely limits batching and suffers from fragmentation, while linearly scanning the full VRAM history starves the GPU arithmetic logic units (ALUs).
+- **Tactic:** Organize KV blocks into a "Paged" structure indexed by WebGPU. Further decompose the attention matrix mathematically to project Keys/Values into a lower-dimensional basis, trading abundant GPU ALU compute to bypass memory bandwidth bottlenecks entirely for long contexts.
+- **Status:** [ ] Not Started
+
+### 5. Always-On Runtime Finiteness Guard
+**Objective:** Graceful degradation on poisoned token occurrences.
+- **Problem:** A single `NaN` generated in Layer 8 gets injected directly into the KV Cache, permanently corrupting the sequence. Current guards only happen after the sequence finishes (at the logits stage).
+- **Tactic:** Instrument an ultra-cheap, early-stop bitwise guard that detects non-finite values in the F16 buffers *before* they are written to the KV cache structure. If triggered, the engine drops the poisoned state and dynamically falls back to a slower, high-precision F32 path just to safely clear the "danger token" before resuming full speed.
+- **Status:** [ ] Not Started
+
+## Gemma 3 Correctness Snapshot (UTC)
+
+Snapshot timestamp: `2026-02-21T01:51:20Z`
+
+1. Gemma 3 default f16-weight routing now prefers f32 activations.
+- `status`: `implemented`
+- `owner`: `runtime-kernels`
+- `updatedUtc`: `2026-02-21T01:51:20Z`
+- `evidence`: `src/config/presets/models/gemma3.json:42`
+- `etaUtc`: `complete`
+- `blocker`: `none`
+
+2. Fused online f32a path for Gemma 3 is registered and selectable.
+- `status`: `implemented`
+- `owner`: `runtime-kernels`
+- `updatedUtc`: `2026-02-21T01:51:20Z`
+- `evidence`: `src/config/presets/kernel-paths/gemma3-f16-fused-f32a-online.json:2`, `src/config/presets/kernel-paths/registry.json:82`
+- `etaUtc`: `complete`
+- `blocker`: `none`
+
+3. Curated f32a model artifact exists with default f32a kernel path.
+- `status`: `implemented`
+- `owner`: `conversion-runtime`
+- `updatedUtc`: `2026-02-21T01:51:20Z`
+- `evidence`: `models/curated/gemma-3-270m-it-f16-f32a/manifest.json:9`, `models/curated/gemma-3-270m-it-f16-f32a/manifest.json:73`
+- `etaUtc`: `complete`
+- `blocker`: `none`
+
+4. wf16 curated manifest still points at f16a path (known risk if used as default).
+- `status`: `in_progress`
+- `owner`: `runtime-kernels`
+- `updatedUtc`: `2026-02-21T01:51:20Z`
+- `evidence`: `models/curated/gemma-3-270m-it-wf16/manifest.json:73`
+- `etaUtc`: `TBD`
+- `blocker`: `default migration decision not finalized`
+
+5. NaN regression test scaffold exists but is not yet CI-gated.
+- `status`: `in_progress`
+- `owner`: `test-infra`
+- `updatedUtc`: `2026-02-21T01:51:20Z`
+- `evidence`: `tests/inference/gemma3-nan-regression.test.js:1`
+- `etaUtc`: `TBD`
+- `blocker`: `test is untracked and not wired into CI`
+
 ## Incumbent Attack Map
 
 ### Transformers.js

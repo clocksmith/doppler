@@ -44,6 +44,8 @@ export const DEFAULT_CONVERTER_MANIFEST_CONFIG = {
 
 export const DEFAULT_CONVERTER_OUTPUT_CONFIG = {
   modelId: null,
+  dir: null,
+  baseDir: null,
   textOnly: false,
   fast: false,
 };

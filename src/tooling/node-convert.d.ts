@@ -10,7 +10,7 @@ export interface NodeConvertProgress {
 export interface ConvertSafetensorsDirectoryOptions {
   /** Directory with safetensors/diffusion assets, or a direct .gguf file path. */
   inputDir: string;
-  outputDir: string;
+  outputDir?: string | null;
   modelId?: string | null;
   converterConfig?: Partial<ConverterConfigSchema> | null;
   onProgress?: (progress: NodeConvertProgress) => void;

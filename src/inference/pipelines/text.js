@@ -42,14 +42,14 @@ import { selectRuleValue } from '../../rules/rule-registry.js';
 // ============================================================================
 
 export class InferencePipeline extends PipelineState {
-  
+
   generator;
 
   // Progress callback
-  
+
   _onProgress = null;
 
-  
+
   _preloadedWeights = null;
 
   constructor() {
@@ -63,7 +63,7 @@ export class InferencePipeline extends PipelineState {
   // Initialization
   // ==========================================================================
 
-  
+
   async initialize(contexts = {}) {
     const { runtimeConfig, sharedDebug } = applyPipelineContexts(this, contexts, {
       assignGpuContext: true,
@@ -85,12 +85,12 @@ export class InferencePipeline extends PipelineState {
     log.debug('Pipeline', 'Initialized', { useGPU: this.useGPU, debug: this.debug });
   }
 
-  
+
   async loadModel(manifest) {
     this.manifest = manifest;
     this.decodeRing?.release();
     // Pass runtime model overrides to merge with manifest inference config
-    const modelOverrides =  (this.runtimeConfig.inference.modelOverrides);
+    const modelOverrides = (this.runtimeConfig.inference.modelOverrides);
     this.modelConfig = parseModelConfig(manifest, modelOverrides);
     this.useTiedEmbeddings = this.modelConfig.useTiedEmbeddings;
     this.embeddingVocabSize = this.modelConfig.embeddingVocabSize;
@@ -158,16 +158,16 @@ export class InferencePipeline extends PipelineState {
     log.info('Pipeline', 'Model loaded successfully');
   }
 
-  
+
   async _loadWeights() {
     const result = this._preloadedWeights || await loadWeights(
-       (this.manifest),
-       (this.modelConfig),
+      (this.manifest),
+      (this.modelConfig),
       {
         storageContext: this.storageContext ?? undefined,
         loadingConfig: this.runtimeConfig.loading,
         baseUrl: this.baseUrl ?? undefined,
-        onProgress: ( info) => {
+        onProgress: (info) => {
           if (info.stage !== 'layers' && info.stage !== 'shards') {
             log.verbose('Loader', `${info.stage}: ${Math.round(info.progress * 100)}%${info.message ? ` - ${info.message}` : ''}`);
           }
@@ -193,9 +193,9 @@ export class InferencePipeline extends PipelineState {
 
     this.dopplerLoader = getDopplerLoader(this.runtimeConfig.loading);
 
-    if ( (this.modelConfig).useMoE && this.moeRouter) {
+    if ((this.modelConfig).useMoE && this.moeRouter) {
       this.moeRouter = initMoERouter(
-         (this.modelConfig),
+        (this.modelConfig),
         this.runtimeConfig.inference.moe.routing,
         result.layerWeights
       );
@@ -212,17 +212,26 @@ export class InferencePipeline extends PipelineState {
         activationDtype: this.runtimeConfig.inference.compute.activationDtype,
         enablePingPong: true,
       });
+
+      const device = getDevice();
+      if (device) {
+        this.finitenessBuffer = device.createBuffer({
+          label: 'finiteness_status',
+          size: 16,
+          usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST,
+        });
+      }
     }
   }
 
-  
+
   setPreloadedWeights(weights) {
     this._preloadedWeights = weights;
   }
 
-  
+
   async _initRoPE() {
-    const config =  (this.modelConfig);
+    const config = (this.modelConfig);
     const maxSeqLen = config.maxSeqLen;
     const ropeBuffers = await initRoPEFrequencies({
       headDim: config.headDim,
@@ -239,7 +248,7 @@ export class InferencePipeline extends PipelineState {
     this.ropeLocalSin = ropeBuffers.localSin ?? null;
   }
 
-  
+
   _resolveLayerPipeline() {
     if (!this.modelConfig) return;
     const runtimePlan = this.runtimeConfig.inference.pipeline ?? null;
@@ -257,7 +266,7 @@ export class InferencePipeline extends PipelineState {
   // Generation Delegates
   // ==========================================================================
 
-  
+
   generate(prompt, options = {}) {
     return this.generator.generate(prompt, options);
   }
@@ -274,7 +283,7 @@ export class InferencePipeline extends PipelineState {
     return this.generator.advanceWithTokenAndEmbedding(tokenId, options);
   }
 
-  
+
   prefillKVOnly(prompt, options = {}) {
     return this.generator.prefillKVOnly(prompt, options);
   }
@@ -309,7 +318,7 @@ export class InferencePipeline extends PipelineState {
     return this.generator.prefillWithLogits(prompt, options);
   }
 
-  
+
   applyKVCacheSnapshot(snapshot) {
     this.kvCache = snapshot.cache.clone();
     if (this.useGPU && this.kvCache) {
@@ -321,7 +330,7 @@ export class InferencePipeline extends PipelineState {
     this.currentSeqLen = snapshot.seqLen;
   }
 
-  
+
   generateWithPrefixKV(prefix, prompt, options = {}) {
     return this.generator.generateWithPrefixKV(prefix, prompt, options);
   }
@@ -330,7 +339,7 @@ export class InferencePipeline extends PipelineState {
   // Utility Methods
   // ==========================================================================
 
-  
+
   getStats() {
     const stats = { ...this.stats };
     const ringStats = this.decodeRing?.getStats();
@@ -340,14 +349,14 @@ export class InferencePipeline extends PipelineState {
     return stats;
   }
 
-  
+
   getBatchingStats() {
     return { ...this.batchingStats };
   }
 
-  
+
   getMemoryStats() {
-    
+
     const stats = { used: 0 };
 
     try {
@@ -371,14 +380,14 @@ export class InferencePipeline extends PipelineState {
     return stats;
   }
 
-  
+
   getKVCacheStats() {
     if (!this.kvCache) return null;
     const { seqLen, maxSeqLen } = this.kvCache.getMemoryStats();
     return { seqLen, maxSeqLen };
   }
 
-  
+
   getBufferPool() {
     try {
       return getGlobalBufferPool();
@@ -387,7 +396,7 @@ export class InferencePipeline extends PipelineState {
     }
   }
 
-  
+
   async unload() {
     await destroyEmulation(this.emulation);
     this.emulation = null;
@@ -396,23 +405,27 @@ export class InferencePipeline extends PipelineState {
     this.weights.clear();
     this.expertWeights.clear();
     this.lora = null;
+    if (this.finitenessBuffer) {
+      this.finitenessBuffer.destroy();
+      this.finitenessBuffer = null;
+    }
     setActiveKernelPath(null, 'none');
     this.isLoaded = false;
     this.currentSeqLen = 0;
     log.info('Pipeline', 'Unloaded');
   }
 
-  
+
   setLoRAAdapter(adapter) {
     this.lora = adapter;
   }
 
-  
+
   getActiveLoRA() {
     return this.lora;
   }
 
-  
+
   reset() {
     this.kvCache?.clear();
     this.currentSeqLen = 0;
@@ -431,10 +444,14 @@ export class InferencePipeline extends PipelineState {
     this.stats.attentionInputs = [];
   }
 
-  
+
   releaseGPUResources() {
     this.decodeBuffers?.release();
     this.decodeRing?.release();
+    if (this.finitenessBuffer) {
+      this.finitenessBuffer.destroy();
+      this.finitenessBuffer = null;
+    }
   }
 }
 

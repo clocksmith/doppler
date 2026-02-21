@@ -110,6 +110,8 @@ export function buildLayerContext(state, recorder, isDecodeMode, debugLayers, de
     decodeBuffers: isDecodeMode && state.decodeBuffers?.hasBuffers() ? state.decodeBuffers : null,
     activationDtype: state.runtimeConfig.inference.compute.activationDtype,
     debugLayers: resolvedDebugLayers,
+    finitenessBuffer: state.finitenessBuffer,
+    step: state.decodeStepCount,
   };
 }
 

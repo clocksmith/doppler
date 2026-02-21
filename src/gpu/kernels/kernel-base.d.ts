@@ -12,7 +12,8 @@ export declare abstract class KernelBase {
   protected getPipelineFor(
     operation: string,
     variant: string,
-    bindGroupLayout?: GPUBindGroupLayout | null
+    bindGroupLayout?: GPUBindGroupLayout | null,
+    constants?: Record<string, number | boolean> | null
   ): Promise<GPUComputePipeline>;
 
   protected dispatchKernel(

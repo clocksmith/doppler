@@ -14,11 +14,45 @@ function assertPath(value, label) {
   return path.resolve(value);
 }
 
-function parseModelId(value, outputDir) {
-  if (typeof value === 'string' && value.trim()) {
-    return value.trim();
+function readOptionalNonEmptyString(value) {
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  return trimmed || null;
+}
+
+function resolveConfiguredModelId(explicitModelId, converterConfig) {
+  return (
+    readOptionalNonEmptyString(explicitModelId)
+    ?? readOptionalNonEmptyString(converterConfig?.output?.modelId)
+  );
+}
+
+function resolveOutputDir(outputDirOverride, converterConfig, modelId) {
+  const override = readOptionalNonEmptyString(outputDirOverride);
+  if (override) {
+    return path.resolve(override);
   }
-  return path.basename(outputDir);
+
+  const configuredDir = readOptionalNonEmptyString(converterConfig?.output?.dir);
+  if (configuredDir) {
+    return path.resolve(configuredDir);
+  }
+
+  const configuredBaseDir = readOptionalNonEmptyString(converterConfig?.output?.baseDir);
+  if (configuredBaseDir) {
+    if (!modelId) {
+      throw new Error(
+        'node convert: converterConfig.output.baseDir requires modelId. ' +
+        'Set converterConfig.output.modelId or pass modelId.'
+      );
+    }
+    return path.resolve(configuredBaseDir, modelId);
+  }
+
+  throw new Error(
+    'node convert: outputDir is required. ' +
+    'Provide --output-dir, converterConfig.output.dir, or converterConfig.output.baseDir.'
+  );
 }
 
 function isPlainObject(value) {
@@ -202,8 +236,7 @@ function normalizeTokenizerManifest(manifest) {
 
 export async function convertSafetensorsDirectory(options) {
   const inputDir = assertPath(options?.inputDir, 'inputDir');
-  const outputDir = assertPath(options?.outputDir, 'outputDir');
-  const modelId = parseModelId(options?.modelId, outputDir);
+  const outputDirOverride = readOptionalNonEmptyString(options?.outputDir);
   const converterConfigOverride = normalizeConverterConfigOverride(options?.converterConfig);
   const onProgress = typeof options?.onProgress === 'function' ? options.onProgress : null;
   const inputStats = await getPathStats(inputDir, 'inputDir');
@@ -222,7 +255,7 @@ export async function convertSafetensorsDirectory(options) {
     { parseGGUFHeader },
     { convertModel, extractArchitecture },
     { parseGGUFModel },
-    { resolveConversionPlan, inferSourceWeightQuantization },
+    { resolveConversionPlan, inferSourceWeightQuantization, resolveConvertedModelId },
     { parseDiffusionModel },
     { parseTransformerModel },
     { createConverterConfig, HEADER_READ_SIZE },
@@ -238,9 +271,6 @@ export async function convertSafetensorsDirectory(options) {
     import('../config/schema/index.js'),
     import('../storage/shard-manager.js'),
   ]);
-
-  await fs.mkdir(outputDir, { recursive: true });
-  await clearExistingShardFiles(outputDir);
 
   const converterConfig = createConverterConfig(converterConfigOverride ?? undefined);
   const diffusionIndexPath = isInputDirectory ? path.join(inputDir, 'model_index.json') : null;
@@ -475,6 +505,26 @@ export async function convertSafetensorsDirectory(options) {
   const quantizationInfo = plan.quantizationInfo;
   const inference = plan.manifestInference;
   const presetId = plan.presetId;
+  const explicitModelId = resolveConfiguredModelId(options?.modelId, converterConfig);
+  if (!explicitModelId) {
+    throw new Error(
+      'node convert: modelId is required. ' +
+      'Set converterConfig.output.modelId.'
+    );
+  }
+  const modelId = resolveConvertedModelId({
+    explicitModelId,
+    converterConfig,
+    detectedModelId: explicitModelId,
+    quantizationInfo,
+  });
+  if (!modelId) {
+    throw new Error('node convert: failed to resolve modelId from converterConfig.output.modelId.');
+  }
+  const outputDir = resolveOutputDir(outputDirOverride, converterConfig, modelId);
+
+  await fs.mkdir(outputDir, { recursive: true });
+  await clearExistingShardFiles(outputDir);
 
   const model = {
     name: path.basename(inputDir),

@@ -147,6 +147,8 @@ export type BuiltinKernelPathId =
   | 'gemma3-f16-f16a'         // Gemma 3 F16 baseline path
   | 'gemma3-f16-f32a'         // Gemma 3 F16 weights, F32 activations
   | 'gemma3-f16-f16a-online'  // Gemma 3 F16 online attention path
+  | 'gemma3-f16-fused-f16a-online' // Gemma 3 F16 fused FFN online path
+  | 'gemma3-f16-fused-f32a-online' // Gemma 3 F16 fused FFN online path with F32 activations
   | 'gemma3-q4k-fused-f16a'   // Gemma 3 legacy fused alias (maps to dequant path)
   | 'gemma3-q4k-dequant-f16a' // Gemma 3 Q4K dequant path
   | 'gemma3-q4k-dequant-f32a' // Gemma 3 Q4K dequant path with F32 activations

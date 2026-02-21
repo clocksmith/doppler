@@ -17,7 +17,7 @@ enable f16;
 enable subgroups;
 
 override WORKGROUP_SIZE: u32 = 256u;
-const SHARED_INPUT_SIZE: u32 = 256u;
+override SHARED_INPUT_SIZE: u32 = 256u;
 const MAX_SUBGROUPS: u32 = 256u;
 
 struct Uniforms {

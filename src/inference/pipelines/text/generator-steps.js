@@ -28,6 +28,13 @@ export function sumProfileTimings(timings) {
   return total;
 }
 
+export class FinitenessError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'FinitenessError';
+  }
+}
+
 function shouldLogProfileStep(state, step) {
   const profilerConfig = state.runtimeConfig?.shared?.debug?.profiler;
   const every = profilerConfig?.logEveryDecodeSteps ?? 1;
@@ -227,6 +234,11 @@ export async function decodeStep(state, currentIds, opts, helpers) {
     const path = selectRuleValue('inference', 'config', 'tracePath', { useRecorder: Boolean(recorder) });
     log.debug('Decode', `Using ${path} path (recorder=${!!recorder}, debug=${opts.debug})`);
   }
+
+  if (state.finitenessBuffer && device) {
+    device.queue.writeBuffer(state.finitenessBuffer, 0, new Uint32Array([0, 0, 0, 0]));
+  }
+
   const context = helpers.buildLayerContext(recorder, true, opts.debugLayers);
 
   state.decodeBuffers.resetPingPong();
@@ -284,7 +296,7 @@ export async function decodeStep(state, currentIds, opts, helpers) {
 
   for (let l = 0; l < config.numLayers; l++) {
     const prevStates = hiddenStates;
-    hiddenStates =  (await processLayer(l, hiddenStates, numTokens, false, context));
+    hiddenStates = (await processLayer(l, hiddenStates, numTokens, false, context));
 
     state.decodeBuffers.swapPingPong();
 
@@ -334,35 +346,40 @@ export async function decodeStep(state, currentIds, opts, helpers) {
     const ringTokensBuffer = ringSlot?.tokens ?? null;
     const sampleOutputBuffer = opts.temperature < samplingDefaults.greedyThreshold
       ? await recordArgmax(recorder, logitsBuffer, vocabSize, {
-          padTokenId,
-          logitSoftcap,
-          logitsDtype,
-          outputBuffer: ringTokensBuffer ?? undefined,
-          outputIndex: 0,
-        })
+        padTokenId,
+        logitSoftcap,
+        logitsDtype,
+        outputBuffer: ringTokensBuffer ?? undefined,
+        outputIndex: 0,
+      })
       : await recordGPUSample(recorder, logitsBuffer, vocabSize, {
-          temperature: opts.temperature,
-          topK: opts.topK,
-          padTokenId,
-          logitSoftcap,
-          logitsDtype,
-          outputBuffer: ringTokensBuffer ?? undefined,
-          outputIndex: 0,
-          greedyThreshold: samplingDefaults.greedyThreshold,
-        });
+        temperature: opts.temperature,
+        topK: opts.topK,
+        padTokenId,
+        logitSoftcap,
+        logitsDtype,
+        outputBuffer: ringTokensBuffer ?? undefined,
+        outputIndex: 0,
+        greedyThreshold: samplingDefaults.greedyThreshold,
+        randomSeed: opts.seed,
+      });
 
     const ringStagingBuffer = ringSlot?.stagingTokens ?? null;
-    const stagingBuffer = ringStagingBuffer ?? device.createBuffer({
+    const stagingSize = state.finitenessBuffer ? 20 : 4;
+    const stagingBuffer = (ringStagingBuffer && !state.finitenessBuffer) ? ringStagingBuffer : device.createBuffer({
       label: 'sample_staging',
-      size: 4,
+      size: stagingSize,
       usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
     });
-    const ownsStagingBuffer = !ringStagingBuffer;
+    const ownsStagingBuffer = stagingBuffer !== ringStagingBuffer;
     const ownsSampleOutputBuffer = !ringTokensBuffer || sampleOutputBuffer !== ringTokensBuffer;
 
     const isPreAllocated = hiddenStates === decodeHiddenBuffer || hiddenStates === decodeAltBuffer;
     const encoder = recorder.getEncoder();
     encoder.copyBufferToBuffer(sampleOutputBuffer, 0, stagingBuffer, 0, 4);
+    if (state.finitenessBuffer) {
+      encoder.copyBufferToBuffer(state.finitenessBuffer, 0, stagingBuffer, 4, 16);
+    }
 
     recorder.submit();
 
@@ -371,12 +388,25 @@ export async function decodeStep(state, currentIds, opts, helpers) {
     }
 
     await stagingBuffer.mapAsync(GPUMapMode.READ);
-    const nextToken = new Uint32Array(stagingBuffer.getMappedRange())[0];
+    const mapped = new Uint32Array(stagingBuffer.getMappedRange());
+    const nextToken = mapped[0];
+    const isInfinite = state.finitenessBuffer ? mapped[1] > 0 : false;
+    let metadata = '';
+    if (isInfinite) {
+      metadata = ` (layer ${mapped[2]}, step ${mapped[3]})`;
+    }
     stagingBuffer.unmap();
     if (ownsStagingBuffer) {
       stagingBuffer.destroy();
     }
     ring?.advance();
+
+    if (isInfinite) {
+      releaseBuffer(logitsBuffer);
+      if (ownsSampleOutputBuffer) releaseBuffer(sampleOutputBuffer);
+      if (!isPreAllocated) releaseBuffer(hiddenStates);
+      throw new FinitenessError(`F16 bounds exceeded during generation${metadata}`);
+    }
 
     log.debug('Decode', `Step ${state.decodeStepCount}: token=${nextToken} (vocabSize=${config.vocabSize})`);
 
@@ -406,7 +436,7 @@ export async function decodeStep(state, currentIds, opts, helpers) {
           log.warn('Decode', `First 10 logits: ${Array.from(logitArr.slice(0, 10)).map((v) => v.toFixed(4)).join(', ')}`);
           log.warn('Decode', `Logit[0] (pad): ${logitArr[0].toFixed(4)}, Logit[${argmaxIdx}]: ${argmaxVal.toFixed(4)}`);
         } catch (e) {
-          log.warn('Decode', `Failed to read logits: ${ (e).message}`);
+          log.warn('Decode', `Failed to read logits: ${(e).message}`);
         }
       }
     }
@@ -534,14 +564,15 @@ export async function decodeStep(state, currentIds, opts, helpers) {
       const nextToken = opts.temperature < samplingDefaults.greedyThreshold
         ? await runArgmax(logitsBuffer, vocabSize, { padTokenId, logitSoftcap, logitsDtype, outputIndex: 0 })
         : await runGPUSample(logitsBuffer, vocabSize, {
-            temperature: opts.temperature,
-            topK: opts.topK,
-            padTokenId,
-            logitSoftcap,
-            logitsDtype,
-            outputIndex: 0,
-            greedyThreshold: samplingDefaults.greedyThreshold,
-          });
+          temperature: opts.temperature,
+          topK: opts.topK,
+          padTokenId,
+          logitSoftcap,
+          logitsDtype,
+          outputIndex: 0,
+          greedyThreshold: samplingDefaults.greedyThreshold,
+          randomSeed: opts.seed,
+        });
 
       releaseBuffer(logitsBuffer);
       if (!context.decodeBuffers?.ownsBuffer(hiddenStates)) {
@@ -549,6 +580,18 @@ export async function decodeStep(state, currentIds, opts, helpers) {
       }
       state.currentSeqLen++;
       return nextToken;
+    }
+  }
+
+  if (state.finitenessBuffer) {
+    const isInfiniteData = await readBuffer(state.finitenessBuffer, 16);
+    const u32 = new Uint32Array(isInfiniteData.buffer, isInfiniteData.byteOffset, 4);
+    const isInfinite = u32[0] > 0;
+    if (isInfinite) {
+      if (!context.decodeBuffers?.ownsBuffer(hiddenStates)) {
+        releaseBuffer(hiddenStates);
+      }
+      throw new FinitenessError(`F16 bounds exceeded during generation (layer ${u32[1]}, step ${u32[2]})`);
     }
   }
 
@@ -826,9 +869,9 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
   const stopCapacity = ringSlot?.stop ? ringSlot.tokensPerInterval + 1 : N + 1;
   const stopBuffer = useGpuStopFlags
     ? ringSlot?.stop ?? device.createBuffer({
-        size: stopCapacity * 4,
-        usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST,
-      })
+      size: stopCapacity * 4,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST,
+    })
     : null;
   const ownsStopBuffer = useGpuStopFlags && !ringSlot?.stop;
 
@@ -840,11 +883,15 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
 
   const stopStagingBuffer = useGpuStopFlags
     ? ringSlot?.stagingStop ?? device.createBuffer({
-        size: N * 4,
-        usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
-      })
+      size: N * 4,
+      usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
+    })
     : null;
   const ownsStopStaging = useGpuStopFlags && !ringSlot?.stagingStop;
+
+  if (state.finitenessBuffer) {
+    device.queue.writeBuffer(state.finitenessBuffer, 0, new Uint32Array([0, 0, 0, 0]));
+  }
 
   device.queue.writeBuffer(tokensBuffer, 0, new Uint32Array([startToken]));
   if (stopBuffer) {
@@ -932,13 +979,13 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
 
     const stopCheck = useGpuStopFlags
       ? recordCheckStop(recorder, {
-          sampledTokenBuffer: tokensBuffer,
-          shouldStopBuffer: stopBuffer,
-          tokenIndex: outputIndex,
-          eosTokenId,
-          maxTokens: maxSeqLen,
-          currentPos,
-        })
+        sampledTokenBuffer: tokensBuffer,
+        shouldStopBuffer: stopBuffer,
+        tokenIndex: outputIndex,
+        eosTokenId,
+        maxTokens: maxSeqLen,
+        currentPos,
+      })
       : null;
 
     if (hiddenStatesBuffer instanceof GPUBuffer && !context.decodeBuffers?.ownsBuffer(hiddenStatesBuffer)) {
@@ -961,6 +1008,15 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
     encoder.copyBufferToBuffer(stopBuffer, 4, stopStagingBuffer, 0, N * 4);
   }
 
+  let finitenessStagingBuffer = null;
+  if (state.finitenessBuffer) {
+    finitenessStagingBuffer = device.createBuffer({
+      size: 16,
+      usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ
+    });
+    encoder.copyBufferToBuffer(state.finitenessBuffer, 0, finitenessStagingBuffer, 0, 16);
+  }
+
   recorder.submit();
 
   if (!allowReadback('pipeline.decode.sample')) {
@@ -972,9 +1028,24 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
   if (stopStagingBuffer) {
     mapPromises.push(stopStagingBuffer.mapAsync(GPUMapMode.READ));
   }
+  if (finitenessStagingBuffer) {
+    mapPromises.push(finitenessStagingBuffer.mapAsync(GPUMapMode.READ));
+  }
   await Promise.all(mapPromises);
   const readbackWaitMs = performance.now() - readbackStart;
   state.stats.decodeReadbackWaitMs = (state.stats.decodeReadbackWaitMs ?? 0) + readbackWaitMs;
+
+  let isInfinite = false;
+  let metadata = '';
+  if (finitenessStagingBuffer) {
+    const finitenessData = new Uint32Array(finitenessStagingBuffer.getMappedRange());
+    isInfinite = finitenessData[0] > 0;
+    if (isInfinite) {
+      metadata = ` (layer ${finitenessData[1]}, step ${finitenessData[2]})`;
+    }
+    finitenessStagingBuffer.unmap();
+    finitenessStagingBuffer.destroy();
+  }
 
   const submitWaitMs = recorder.getSubmitLatencyMs();
   if (submitWaitMs != null) {
@@ -1007,6 +1078,10 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
   if (ownsStopBuffer) stopBuffer?.destroy();
   if (ownsTokensStaging) tokensStagingBuffer.destroy();
   if (ownsStopStaging) stopStagingBuffer?.destroy();
+
+  if (isInfinite) {
+    throw new FinitenessError(`F16 bounds exceeded during batch generation${metadata}`);
+  }
 
   if (opts.profile && recorder.isProfilingEnabled()) {
     const timings = await recorder.resolveProfileTimings();

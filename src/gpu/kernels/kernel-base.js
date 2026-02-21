@@ -5,24 +5,25 @@ import { getPipelineFast } from './utils.js';
 
 
 export class KernelBase {
-  
+
   device;
 
-  
+
   constructor(device) {
     this.device = device;
   }
 
-  
+
   async getPipelineFor(
     operation,
     variant,
-    bindGroupLayout = null
+    bindGroupLayout = null,
+    constants = null
   ) {
-    return getPipelineFast(operation, variant, bindGroupLayout);
+    return getPipelineFast(operation, variant, bindGroupLayout, constants);
   }
 
-  
+
   dispatchKernel(
     pipeline,
     bindGroup,
@@ -32,7 +33,7 @@ export class KernelBase {
     dispatch(this.device, pipeline, bindGroup, workgroups, label);
   }
 
-  
+
   recordKernel(
     recorder,
     pipeline,

@@ -30,6 +30,7 @@ const {
   generateNTokensGPU,
   shouldUseBatchDecode,
   sumProfileTimings,
+  FinitenessError,
 } = generatorSteps;
 
 const advanceWithTokenAndEmbedding = generatorSteps.advanceWithTokenAndEmbedding ?? null;
@@ -49,7 +50,7 @@ import {
 import { decodeReadback, getLogitsHealth } from './debug-utils.js';
 
 export class PipelineGenerator {
-  
+
   #state;
 
   _assertTokenIdsInRange(tokenIds, context = 'encode') {
@@ -60,7 +61,7 @@ export class PipelineGenerator {
     assertTokenIdInRange(this.#state, tokenId, context);
   }
 
-  
+
   constructor(state) {
     this.#state = state;
   }
@@ -98,7 +99,7 @@ export class PipelineGenerator {
   // Generation Public API
   // ==========================================================================
 
-  
+
   async *generate(prompt, options = {}) {
     if (!this.#state.isLoaded) throw new Error('Model not loaded');
     if (this.#state.isGenerating) throw new Error('Generation already in progress');
@@ -141,7 +142,42 @@ export class PipelineGenerator {
       }
 
       const prefillStart = performance.now();
-      const prefillLogits = await this._prefill(inputIds, opts);
+      let prefillLogits;
+      try {
+        prefillLogits = await this._prefill(inputIds, opts);
+      } catch (error) {
+        if (error.name === 'FinitenessError') {
+          log.warn('Pipeline', `FinitenessGuard caught NaN/Inf during prefill. Retrying with F32 precision.`);
+          this.#state.kvCache?.truncate(this.#state.currentSeqLen);
+          const originalDtype = this.#state.runtimeConfig.inference.compute.activationDtype;
+          this.#state.runtimeConfig.inference.compute.activationDtype = 'f32';
+
+          this.#state.decodeBuffers?.ensureBuffers({
+            hiddenSize: this.#state.modelConfig.hiddenSize,
+            intermediateSize: this.#state.modelConfig.intermediateSize,
+            activationDtype: 'f32',
+            enablePingPong: true,
+          });
+
+          const originalSeed = opts.seed;
+          opts.seed = originalSeed ?? Math.floor(Math.random() * 0xFFFFFFFF);
+
+          try {
+            prefillLogits = await this._prefill(inputIds, opts);
+          } finally {
+            opts.seed = originalSeed;
+            this.#state.runtimeConfig.inference.compute.activationDtype = originalDtype;
+            this.#state.decodeBuffers?.ensureBuffers({
+              hiddenSize: this.#state.modelConfig.hiddenSize,
+              intermediateSize: this.#state.modelConfig.intermediateSize,
+              activationDtype: originalDtype,
+              enablePingPong: true,
+            });
+          }
+        } else {
+          throw error;
+        }
+      }
       this.#state.stats.prefillTimeMs = performance.now() - prefillStart;
 
       const intentBundleConfig = this.#state.runtimeConfig.shared.intentBundle;
@@ -232,7 +268,7 @@ export class PipelineGenerator {
     }
   }
 
-  
+
   async prefillKVOnly(prompt, options = {}) {
     if (!this.#state.isLoaded) throw new Error('Model not loaded');
     this.#state.stats.gpuTimePrefillMs = undefined;
@@ -249,13 +285,50 @@ export class PipelineGenerator {
       log.debug('Pipeline', `PrefillKVOnly: ${inputIds.length} tokens`);
     }
 
+    let prefillResult;
+    try {
+      prefillResult = await this._prefillToHidden(inputIds, opts);
+    } catch (error) {
+      if (error.name === 'FinitenessError') {
+        log.warn('Pipeline', `FinitenessGuard caught NaN/Inf during prefillKVOnly. Retrying with F32 precision.`);
+        this.#state.kvCache?.truncate(this.#state.currentSeqLen);
+        const originalDtype = this.#state.runtimeConfig.inference.compute.activationDtype;
+        this.#state.runtimeConfig.inference.compute.activationDtype = 'f32';
+
+        this.#state.decodeBuffers?.ensureBuffers({
+          hiddenSize: this.#state.modelConfig.hiddenSize,
+          intermediateSize: this.#state.modelConfig.intermediateSize,
+          activationDtype: 'f32',
+          enablePingPong: true,
+        });
+
+        const originalSeed = opts.seed;
+        opts.seed = originalSeed ?? Math.floor(Math.random() * 0xFFFFFFFF);
+
+        try {
+          prefillResult = await this._prefillToHidden(inputIds, opts);
+        } finally {
+          opts.seed = originalSeed;
+          this.#state.runtimeConfig.inference.compute.activationDtype = originalDtype;
+          this.#state.decodeBuffers?.ensureBuffers({
+            hiddenSize: this.#state.modelConfig.hiddenSize,
+            intermediateSize: this.#state.modelConfig.intermediateSize,
+            activationDtype: originalDtype,
+            enablePingPong: true,
+          });
+        }
+      } else {
+        throw error;
+      }
+    }
+
     const {
       numTokens,
       startPos,
       currentRecorder,
       recordProfile,
       currentHiddenBuffer,
-    } = await this._prefillToHidden(inputIds, opts);
+    } = prefillResult;
 
     // Ensure prefill work completes before returning a usable snapshot.
     if (currentRecorder) {
@@ -299,6 +372,43 @@ export class PipelineGenerator {
       log.debug('Pipeline', `PrefillWithEmbedding: ${inputIds.length} tokens (mode=${opts.embeddingMode})`);
     }
 
+    let prefillResult;
+    try {
+      prefillResult = await this._prefillToHidden(inputIds, opts);
+    } catch (error) {
+      if (error.name === 'FinitenessError') {
+        log.warn('Pipeline', `FinitenessGuard caught NaN/Inf during prefillWithEmbedding. Retrying with F32 precision.`);
+        this.#state.kvCache?.truncate(this.#state.currentSeqLen);
+        const originalDtype = this.#state.runtimeConfig.inference.compute.activationDtype;
+        this.#state.runtimeConfig.inference.compute.activationDtype = 'f32';
+
+        this.#state.decodeBuffers?.ensureBuffers({
+          hiddenSize: this.#state.modelConfig.hiddenSize,
+          intermediateSize: this.#state.modelConfig.intermediateSize,
+          activationDtype: 'f32',
+          enablePingPong: true,
+        });
+
+        const originalSeed = opts.seed;
+        opts.seed = originalSeed ?? Math.floor(Math.random() * 0xFFFFFFFF);
+
+        try {
+          prefillResult = await this._prefillToHidden(inputIds, opts);
+        } finally {
+          opts.seed = originalSeed;
+          this.#state.runtimeConfig.inference.compute.activationDtype = originalDtype;
+          this.#state.decodeBuffers?.ensureBuffers({
+            hiddenSize: this.#state.modelConfig.hiddenSize,
+            intermediateSize: this.#state.modelConfig.intermediateSize,
+            activationDtype: originalDtype,
+            enablePingPong: true,
+          });
+        }
+      } else {
+        throw error;
+      }
+    }
+
     const {
       numTokens,
       config,
@@ -308,7 +418,7 @@ export class PipelineGenerator {
       currentRecorder,
       recordProfile,
       currentHiddenBuffer,
-    } = await this._prefillToHidden(inputIds, opts);
+    } = prefillResult;
 
     // Ensure prefill work completes before readback.
     if (currentRecorder) {
@@ -394,7 +504,7 @@ export class PipelineGenerator {
     };
   }
 
-  
+
   async *generateWithPrefixKV(prefix, prompt, options = {}) {
     if (!this.#state.isLoaded) throw new Error('Model not loaded');
     if (this.#state.isGenerating) throw new Error('Generation already in progress');
@@ -542,7 +652,43 @@ export class PipelineGenerator {
         } catch (error) {
           log.warn('Pipeline', `Batch decode failed, falling back to single-token: ${error}`);
           useBatchPath = false;
-          const nextToken = await this._decodeStep(generatedIds, opts);
+          let nextToken;
+          try {
+            nextToken = await this._decodeStep(generatedIds, opts);
+          } catch (singleTokenError) {
+            if (singleTokenError.name === 'FinitenessError') {
+              log.warn('Pipeline', `FinitenessGuard caught NaN/Inf at batch step ${tokensGenerated}. Truncating KV cache and retrying token with F32 precision.`);
+              this.#state.kvCache?.truncate(this.#state.currentSeqLen);
+
+              const originalDtype = this.#state.runtimeConfig.inference.compute.activationDtype;
+              this.#state.runtimeConfig.inference.compute.activationDtype = 'f32';
+
+              this.#state.decodeBuffers?.ensureBuffers({
+                hiddenSize: this.#state.modelConfig.hiddenSize,
+                intermediateSize: this.#state.modelConfig.intermediateSize,
+                activationDtype: 'f32',
+                enablePingPong: true,
+              });
+
+              const originalSeed = opts.seed;
+              opts.seed = originalSeed ?? Math.floor(Math.random() * 0xFFFFFFFF);
+
+              try {
+                nextToken = await this._decodeStep(generatedIds, opts);
+              } finally {
+                opts.seed = originalSeed;
+                this.#state.runtimeConfig.inference.compute.activationDtype = originalDtype;
+                this.#state.decodeBuffers?.ensureBuffers({
+                  hiddenSize: this.#state.modelConfig.hiddenSize,
+                  intermediateSize: this.#state.modelConfig.intermediateSize,
+                  activationDtype: originalDtype,
+                  enablePingPong: true,
+                });
+              }
+            } else {
+              throw singleTokenError;
+            }
+          }
           generatedIds.push(nextToken);
           tokensGenerated++;
           const tokenText = decodeToken(nextToken);
@@ -552,7 +698,43 @@ export class PipelineGenerator {
         }
       } else {
         const tokenStart = performance.now();
-        const nextToken = await this._decodeStep(generatedIds, opts);
+        let nextToken;
+        try {
+          nextToken = await this._decodeStep(generatedIds, opts);
+        } catch (error) {
+          if (error.name === 'FinitenessError') {
+            log.warn('Pipeline', `FinitenessGuard caught NaN/Inf at step ${tokensGenerated}. Truncating KV cache and retrying token with F32 precision.`);
+            this.#state.kvCache?.truncate(this.#state.currentSeqLen);
+
+            const originalDtype = this.#state.runtimeConfig.inference.compute.activationDtype;
+            this.#state.runtimeConfig.inference.compute.activationDtype = 'f32';
+
+            this.#state.decodeBuffers?.ensureBuffers({
+              hiddenSize: this.#state.modelConfig.hiddenSize,
+              intermediateSize: this.#state.modelConfig.intermediateSize,
+              activationDtype: 'f32',
+              enablePingPong: true,
+            });
+
+            const originalSeed = opts.seed;
+            opts.seed = originalSeed ?? Math.floor(Math.random() * 0xFFFFFFFF);
+
+            try {
+              nextToken = await this._decodeStep(generatedIds, opts);
+            } finally {
+              opts.seed = originalSeed;
+              this.#state.runtimeConfig.inference.compute.activationDtype = originalDtype;
+              this.#state.decodeBuffers?.ensureBuffers({
+                hiddenSize: this.#state.modelConfig.hiddenSize,
+                intermediateSize: this.#state.modelConfig.intermediateSize,
+                activationDtype: originalDtype,
+                enablePingPong: true,
+              });
+            }
+          } else {
+            throw error;
+          }
+        }
         const tokenTime = performance.now() - tokenStart;
         generatedIds.push(nextToken);
         tokensGenerated++;
@@ -584,7 +766,7 @@ export class PipelineGenerator {
     return this._prefill(inputIds, { ...opts, _returnHidden: true });
   }
 
-  
+
   async _prefill(inputIds, opts) {
     const numTokens = inputIds.length;
     const config = this.#state.modelConfig;
@@ -678,8 +860,14 @@ export class PipelineGenerator {
     if (opts.debug) {
       log.debug('Pipeline', `LAYER_LOOP_START: numLayers=${config.numLayers}, useGPU=${context.useGPU}`);
     }
+
+    if (this.#state.finitenessBuffer) {
+      const device = getDevice();
+      if (device) device.queue.writeBuffer(this.#state.finitenessBuffer, 0, new Uint32Array([0]));
+    }
+
     let currentRecorder = recorder;
-    
+
     let currentHiddenBuffer = hiddenStates.buffer;
     for (let l = 0; l < config.numLayers; l++) {
       context.recorder = currentRecorder;
@@ -748,6 +936,22 @@ export class PipelineGenerator {
       }
     }
 
+    if (this.#state.finitenessBuffer) {
+      if (currentRecorder) {
+        await currentRecorder.submitAndWait();
+        await recordProfile(currentRecorder);
+        currentRecorder = undefined;
+      }
+      const isInfiniteData = await readBuffer(this.#state.finitenessBuffer, 4);
+      const isInfinite = new Uint32Array(isInfiniteData.buffer, isInfiniteData.byteOffset, 1)[0] > 0;
+      if (isInfinite) {
+        if (currentHiddenBuffer instanceof GPUBuffer) {
+          releaseBuffer(currentHiddenBuffer);
+        }
+        throw new FinitenessError('F16 bounds exceeded during prefill');
+      }
+    }
+
     if (benchmarkSubmits) {
       logSubmitStats(`Prefill (${numTokens} tokens, ${config.numLayers} layers)`);
       setTrackSubmits(false);
@@ -794,7 +998,7 @@ export class PipelineGenerator {
       };
     }
 
-    
+
     let lastLogits;
     let logitsVocabSize = config.vocabSize;
     let usedRecordedLogits = false;
@@ -909,7 +1113,7 @@ export class PipelineGenerator {
     return lastLogits;
   }
 
-  
+
   async _decodeStep(currentIds, opts) {
     const debugCheckBuffer = this.#state.debug
       ? (buffer, label, numTokens, expectedDim) =>

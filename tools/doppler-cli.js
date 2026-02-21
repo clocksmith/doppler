@@ -13,7 +13,7 @@ const DEFAULT_BENCH_SURFACE = 'browser';
 function usage() {
   return [
     'Usage:',
-    '  doppler convert <inputPath> <outputDir> [--model-id <id>] [--surface auto|node]',
+    '  doppler convert <inputPath> --config <path.json> [--output-dir <path>] [--surface auto|node]',
     '  doppler debug --model-id <id> [--model-url <url>] [--runtime-preset <id>] [--runtime-config-url <url>] [--runtime-config-json <json>] [--surface auto|node|browser]',
     '  doppler bench [--model-id <id>] [--model-url <url>] [--runtime-preset <id>] [--runtime-config-url <url>] [--runtime-config-json <json>] [--surface auto|node|browser]',
     '  doppler test-model --suite <kernels|inference|diffusion|energy> [--model-id <id>] [--model-url <url>] [--runtime-preset <id>] [--runtime-config-url <url>] [--runtime-config-json <json>] [--surface auto|node|browser]',
@@ -37,6 +37,11 @@ function usage() {
     '  --browser-console               Stream browser console lines to stderr',
     '  --no-opfs-cache                 Disable OPFS caching (use HTTP shard loading every run)',
     '  --browser-user-data <path>      Persistent Chromium profile directory for OPFS cache',
+    '',
+    'Convert Flags:',
+    '  --config <path>                 Converter config JSON (required for convert)',
+    '  --output-dir <path>             Override output directory for convert',
+    '  --converter-config <path>       Deprecated alias for --config (convert only)',
     '',
     'Bench Flags:',
     '  --save                          Save bench result JSON to disk',
@@ -140,6 +145,41 @@ function parseRuntimeConfigJson(value) {
   } catch (error) {
     throw new Error(`Invalid --runtime-config-json: ${error.message}`);
   }
+}
+
+async function readJsonObjectFile(filePath, label) {
+  const resolved = path.resolve(String(filePath));
+  let raw;
+  try {
+    raw = await fs.readFile(resolved, 'utf8');
+  } catch (error) {
+    throw new Error(`${label} not found or unreadable: ${resolved}`);
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch (error) {
+    throw new Error(`${label} must contain valid JSON: ${error.message}`);
+  }
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    throw new Error(`${label} must be a JSON object.`);
+  }
+  return parsed;
+}
+
+function resolveConvertConfigFlag(parsed) {
+  const config = parsed.flags.config ?? null;
+  const legacy = parsed.flags['converter-config'] ?? null;
+  if (config && legacy) {
+    throw new Error('convert accepts one config flag. Use --config only.');
+  }
+  if (config) {
+    return { configPath: String(config), usedLegacyAlias: false };
+  }
+  if (legacy) {
+    return { configPath: String(legacy), usedLegacyAlias: true };
+  }
+  return { configPath: null, usedLegacyAlias: false };
 }
 
 function parseBooleanFlag(value, label) {
@@ -273,11 +313,12 @@ function parseSurface(value, command) {
   return normalized;
 }
 
-function buildRequest(parsed) {
+async function buildRequest(parsed, options = {}) {
   const command = parsed.command;
   if (!command || !TOOLING_COMMANDS.includes(command)) {
     throw new Error(`Unsupported command "${command || ''}"`);
   }
+  const jsonOutput = options.jsonOutput === true;
 
   const common = {
     command,
@@ -291,15 +332,36 @@ function buildRequest(parsed) {
   };
 
   if (command === 'convert') {
-    const inputDir = parsed.positional[0] ?? null;
-    const outputDir = parsed.positional[1] ?? null;
-    if (!inputDir || !outputDir) {
-      throw new Error('convert requires <inputPath> <outputDir>');
+    if (parsed.flags['model-id']) {
+      throw new Error('convert does not accept --model-id. Set output.modelId in --config.');
     }
+
+    const inputDir = parsed.positional[0] ?? null;
+    if (!inputDir) {
+      throw new Error('convert requires <inputPath>.');
+    }
+    if (parsed.positional.length > 1) {
+      throw new Error('convert accepts only one positional argument: <inputPath>. Use --output-dir for output override.');
+    }
+
+    const outputDir = parsed.flags['output-dir'] ?? null;
+    const { configPath, usedLegacyAlias } = resolveConvertConfigFlag(parsed);
+    if (!configPath) {
+      throw new Error('convert requires --config <path.json>.');
+    }
+    if (usedLegacyAlias && !jsonOutput) {
+      console.error('[warn] --converter-config is deprecated; use --config.');
+    }
+
+    const converterConfig = await readJsonObjectFile(configPath, '--config');
     return {
       ...common,
+      modelId: null,
       inputDir,
       outputDir,
+      convertPayload: {
+        converterConfig,
+      },
     };
   }
 
@@ -601,7 +663,7 @@ async function runManifestSweep(manifest, parsed, jsonOutput, surface) {
 
     const mergedParsed = { ...parsed, flags: mergedFlags };
     const mergedWithDefaults = applyCommandDefaults(mergedParsed);
-    const request = buildRequest(mergedWithDefaults);
+    const request = await buildRequest(mergedWithDefaults, { jsonOutput });
     if (!jsonOutput) mergedWithDefaults.flags['browser-console'] = true;
 
     try {
@@ -808,7 +870,7 @@ async function main() {
     return;
   }
 
-  const request = buildRequest(parsedWithDefaults);
+  const request = await buildRequest(parsedWithDefaults, { jsonOutput });
 
   let response;
   if (surface === 'auto') {

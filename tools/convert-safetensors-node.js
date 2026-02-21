@@ -7,26 +7,24 @@ function parseArgs(argv) {
   const out = {
     inputDir: null,
     outputDir: null,
-    modelId: null,
-    converterConfigPath: null,
+    configPath: null,
   };
   const positional = [];
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
-    if (arg === '--model-id') {
-      out.modelId = argv[i + 1] ?? null;
+    if (arg === '--output-dir') {
+      out.outputDir = argv[i + 1] ?? null;
       i += 1;
       continue;
     }
-    if (arg === '--converter-config') {
-      out.converterConfigPath = argv[i + 1] ?? null;
+    if (arg === '--config' || arg === '--converter-config') {
+      out.configPath = argv[i + 1] ?? null;
       i += 1;
       continue;
     }
     positional.push(arg);
   }
   out.inputDir = positional[0] ?? null;
-  out.outputDir = positional[1] ?? null;
   return out;
 }
 
@@ -35,27 +33,26 @@ async function readJsonFile(filePath) {
   const raw = await fs.readFile(filePath, 'utf8');
   const parsed = JSON.parse(raw);
   if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
-    throw new Error('--converter-config must point to a JSON object.');
+    throw new Error('--config must point to a JSON object.');
   }
   return parsed;
 }
 
 async function main() {
   const args = parseArgs(process.argv.slice(2));
-  if (!args.inputDir || !args.outputDir) {
+  if (!args.inputDir || !args.configPath) {
     console.error(
-      'Usage: node tools/convert-safetensors-node.js <inputPath> <outputDir> [--model-id <id>] [--converter-config <path.json>]'
+      'Usage: node tools/convert-safetensors-node.js <inputPath> --config <path.json> [--output-dir <path>]'
     );
     process.exit(2);
   }
-  const converterConfig = await readJsonFile(args.converterConfigPath);
+  const converterConfig = await readJsonFile(args.configPath);
 
   const response = await runNodeCommand(
     {
       command: 'convert',
       inputDir: args.inputDir,
       outputDir: args.outputDir,
-      modelId: args.modelId,
       convertPayload: converterConfig ? { converterConfig } : null,
     },
     {

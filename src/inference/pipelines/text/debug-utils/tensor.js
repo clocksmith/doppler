@@ -47,7 +47,7 @@ export async function dumpTensor(buffer, label, options = {}) {
 
     const shapeStr = shape ? `[${shape.join('x')}]` : `[${arr.length}]`;
 
-    
+
     const stats = {
       shape: shapeStr,
       dtype,
@@ -148,7 +148,7 @@ export async function dumpTokenVector(buffer, label, options) {
 
     const shapeStr = `[t${tokenIdx}x${rowSize}]`;
 
-    
+
     const stats = {
       shape: shapeStr,
       dtype,
@@ -241,18 +241,18 @@ export async function dumpKVCache(kvCache, layerIdx) {
     });
     const keysStats = keysGPU
       ? await dumpTensor(keysGPU, 'K_cache', {
-          layerIdx,
-          shape: [seqLen, numHeads * headDim],
-          dtype: kvDtype,
-        })
+        layerIdx,
+        shape: [seqLen, numHeads * headDim],
+        dtype: kvDtype,
+      })
       : null;
 
     const valuesStats = valuesGPU
       ? await dumpTensor(valuesGPU, 'V_cache', {
-          layerIdx,
-          shape: [seqLen, numHeads * headDim],
-          dtype: kvDtype,
-        })
+        layerIdx,
+        shape: [seqLen, numHeads * headDim],
+        dtype: kvDtype,
+      })
       : null;
 
     return { keys: keysStats, values: valuesStats };

@@ -3,6 +3,11 @@
 import { log, trace, isTraceEnabled } from '../../../debug/index.js';
 import { getRuntimeConfig } from '../../../config/runtime.js';
 
+function seededRandom(seed) {
+  const x = Math.sin(seed) * 10000;
+  return x - Math.floor(x);
+}
+
 
 export function applyRepetitionPenalty(logits, previousTokens, penalty) {
   if (penalty === 1.0) return;
@@ -43,7 +48,7 @@ export function softmax(logits) {
 
 
 export function sample(logits, opts) {
-  const { temperature, topP, topK, decode, debug = false, padTokenId } = opts;
+  const { temperature, topP, topK, decode, debug = false, padTokenId, seed } = opts;
 
   if (padTokenId !== undefined && padTokenId >= 0 && padTokenId < logits.length) {
     logits[padTokenId] = -Infinity;
@@ -76,7 +81,7 @@ export function sample(logits, opts) {
   const probs = softmax(logits);
 
   // Build candidate list
-  
+
   let candidates = [];
   for (let i = 0; i < probs.length; i++) {
     candidates.push({ token: i, prob: probs[i] });
@@ -91,7 +96,7 @@ export function sample(logits, opts) {
   // Top-p (nucleus) filtering
   if (topP < 1.0) {
     let cumProb = 0;
-    
+
     const filtered = [];
     for (const c of candidates) {
       filtered.push(c);
@@ -124,7 +129,7 @@ export function sample(logits, opts) {
   }
 
   // Sample from distribution
-  const r = Math.random();
+  const r = seed !== undefined ? seededRandom(seed) : Math.random();
   let cumProb = 0;
   for (const c of candidates) {
     cumProb += c.prob;
@@ -138,7 +143,7 @@ export function sample(logits, opts) {
 export function getTopK(logits, k = 5, decode) {
   const probs = softmax(new Float32Array(logits));
 
-  
+
   const indexed = [];
   for (let i = 0; i < logits.length; i++) {
     indexed.push({ token: i, logit: logits[i], prob: probs[i] });

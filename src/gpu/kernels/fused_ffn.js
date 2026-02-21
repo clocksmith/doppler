@@ -12,17 +12,17 @@ import { getKernelThresholds, QK_K } from '../../config/schema/index.js';
 import { selectRuleValue } from './rule-registry.js';
 
 class FusedFFNKernel extends KernelBase {
-  
-  async getPipeline(variant) {
-    return this.getPipelineFor('fused_ffn', variant);
+
+  async getPipeline(variant, constants = null) {
+    return this.getPipelineFor('fused_ffn', variant, null, constants);
   }
 
-  
+
   dispatch(pipeline, bindGroup, workgroupsX, workgroupsY = 1) {
     this.dispatchKernel(pipeline, bindGroup, [workgroupsX, workgroupsY, 1], 'fused_ffn');
   }
 
-  
+
   record(recorder, pipeline, bindGroup, workgroupsX, workgroupsY = 1) {
     this.recordKernel(recorder, pipeline, bindGroup, [workgroupsX, workgroupsY, 1], 'fused_ffn');
   }
@@ -122,7 +122,10 @@ export async function runFusedFFN(
   trace.kernels(`FusedFFN: variant=${variant}, batch=${batchSize}, hidden=${hiddenSize}, intermediate=${intermediateSize}, activation=${activation}, isQ4K=${isQ4K}`);
 
   const kernel = new FusedFFNKernel(device);
-  const pipeline = await kernel.getPipeline(variant);
+  const constants = (hiddenSize % 256 !== 0 && hiddenSize % 128 === 0)
+    ? { SHARED_INPUT_SIZE: 128 }
+    : null;
+  const pipeline = await kernel.getPipeline(variant, constants);
 
   // Create output buffer: f16_native outputs f16 (2 bytes), others output f32 (4 bytes)
   const outputBytesPerElement = isF16Native ? 2 : 4;
@@ -155,7 +158,7 @@ export async function runFusedFFN(
   });
 
   // Calculate workgroups
-  
+
   let workgroupsX;
   let workgroupsY = 1;
 
@@ -228,7 +231,10 @@ export async function recordFusedFFN(
   trace.kernels(`FusedFFN record: variant=${variant}, batch=${batchSize}, hidden=${hiddenSize}, intermediate=${intermediateSize}, activation=${activation}, isQ4K=${isQ4K}`);
 
   const kernel = new FusedFFNKernel(device);
-  const pipeline = await kernel.getPipeline(variant);
+  const constants = (hiddenSize % 256 !== 0 && hiddenSize % 128 === 0)
+    ? { SHARED_INPUT_SIZE: 128 }
+    : null;
+  const pipeline = await kernel.getPipeline(variant, constants);
 
   const outputBytesPerElement = isF16Native ? 2 : 4;
   const outputDtype = isF16Native ? 'f16' : 'f32';
@@ -257,7 +263,7 @@ export async function recordFusedFFN(
     ],
   });
 
-  
+
   let workgroupsX;
   let workgroupsY = 1;
 

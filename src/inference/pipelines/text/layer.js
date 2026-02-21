@@ -18,6 +18,7 @@ import { logLayer, logAttn, getBufferStats, isKernelDebugEnabled, dumpTokenVecto
 import { runProbes } from './probes.js';
 import { getLayerPlanSteps } from './layer-plan.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
+import { recordCheckFiniteness } from '../../../gpu/kernels/check-finiteness.js';
 
 // ============================================================================
 // Architecture Detection
@@ -81,7 +82,7 @@ export async function processLayer(layerIdx, hiddenStates, numTokens, isPrefill,
   }
 
   // CPU fallback path
-  return processLayerCPU(layerIdx,  (hiddenStates), numTokens, isPrefill, context);
+  return processLayerCPU(layerIdx, (hiddenStates), numTokens, isPrefill, context);
 }
 
 // ============================================================================
@@ -100,13 +101,13 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
   const { hiddenSize, numHeads, numKVHeads, headDim, rmsNormEps } = config;
 
   // Determine activation dtype from context (defaults to f32)
-  
+
   const activationDtype = resolveActivationDtype(context.activationDtype);
 
   // Wrap input buffer as Tensor for dtype-aware processing
   const inputTensor = createTensor(inputBuffer, activationDtype, [numTokens, hiddenSize], 'layer_input');
 
-  const layerWeights =  (weights.get(`layer_${layerIdx}`));
+  const layerWeights = (weights.get(`layer_${layerIdx}`));
   const sandwichNorm = detectSandwichNorm(config);
   const lastTokenIdx = Math.max(0, numTokens - 1);
 
@@ -133,7 +134,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
     trace.attn(layerIdx, `RoPE selection: layerType=${layerType}, isLocal=${isLocalLayer}, hasLocalCos=${!!context.ropeLocalCos}, hasLocalSin=${!!context.ropeLocalSin}`);
   }
 
-  
+
   const attnConfig = {
     layerIdx,
     numTokens,
@@ -157,15 +158,15 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
     rmsNormWeightOffset: config.rmsNormWeightOffset,
   };
 
-  
+
   const attnState = {
     ropeFreqsCos: (isLocalLayer && context.ropeLocalCos)
-      ?  (context.ropeLocalCos)
-      :  (ropeFreqsCos),
+      ? (context.ropeLocalCos)
+      : (ropeFreqsCos),
     ropeFreqsSin: (isLocalLayer && context.ropeLocalSin)
-      ?  (context.ropeLocalSin)
-      :  (ropeFreqsSin),
-    kvCache:  ( (kvCache)),
+      ? (context.ropeLocalSin)
+      : (ropeFreqsSin),
+    kvCache: ((kvCache)),
     stats: context.stats,
   };
 
@@ -237,7 +238,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
   });
 
   // 2. Handle residual connection based on architecture
-  
+
   let postAttn;
   if (residualFused) {
     postAttn = attnOutput;
@@ -302,12 +303,17 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
   });
 
   // 3. Feed-forward network
-  
+
   let outputTensor;
   if (sandwichNorm.useSandwichNorm) {
     outputTensor = await processFFNWithSandwichNorm(layerIdx, postAttn, numTokens, size, context, layerWeights, sandwichNorm);
   } else {
     outputTensor = await processFFNStandard(layerIdx, postAttn, numTokens, size, context, layerWeights);
+  }
+
+  // Early-stop check for F16 NaN/Infinity bounds
+  if (context.finitenessBuffer && context.dtype === 'f16') {
+    recordCheckFiniteness(recorder, outputTensor.buffer, size, context.finitenessBuffer, layerIdx, context.step);
   }
 
   return outputTensor.buffer;
@@ -351,30 +357,30 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
 
   const layerType = config.layerTypes?.[layerIdx];
   const isLocalLayer = layerType === 'sliding_attention';
-  
+
   const attnState = {
     ropeFreqsCos: (isLocalLayer && context.ropeLocalCos)
-      ?  (context.ropeLocalCos)
-      :  (ropeFreqsCos),
+      ? (context.ropeLocalCos)
+      : (ropeFreqsCos),
     ropeFreqsSin: (isLocalLayer && context.ropeLocalSin)
-      ?  (context.ropeLocalSin)
-      :  (ropeFreqsSin),
-    kvCache:  ( (kvCache)),
+      ? (context.ropeLocalSin)
+      : (ropeFreqsSin),
+    kvCache: ((kvCache)),
   };
 
   const allowResidualFuse = numTokens === 1 && !(sandwichNorm.useSandwichNorm && sandwichNorm.hasPostAttentionNorm);
 
-  
+
   const slots = new Map();
-  
+
   const refCounts = new Map();
   const protectedBuffers = new Set([inputBuffer]);
 
-  
+
   const addRef = (buf) => {
     refCounts.set(buf, (refCounts.get(buf) ?? 0) + 1);
   };
-  
+
   const releaseRef = (buf) => {
     const next = (refCounts.get(buf) ?? 0) - 1;
     if (next > 0) {
@@ -389,7 +395,7 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
       releaseBuffer(buf);
     }
   };
-  
+
   const getSlot = (name) => {
     const key = name.trim() || 'state';
     const buf = slots.get(key);
@@ -398,7 +404,7 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
     }
     return buf;
   };
-  
+
   const setSlot = (name, buf) => {
     const key = name.trim() || 'state';
     const prev = slots.get(key);
@@ -408,7 +414,7 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
     slots.set(key, buf);
     addRef(buf);
   };
-  
+
   const clearSlot = (name) => {
     const key = name.trim() || 'state';
     const prev = slots.get(key);
@@ -439,11 +445,11 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
       switch (step.op) {
         case 'save': {
           const src = getSlot(step.src);
-          setSlot( (step.name), src);
+          setSlot((step.name), src);
           break;
         }
         case 'load': {
-          const src = getSlot( (step.name));
+          const src = getSlot((step.name));
           setSlot(step.dst, src);
           break;
         }
@@ -451,14 +457,14 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
           const srcBuf = getSlot(step.src);
           const residualBuf = step.residual ? getSlot(step.residual) : null;
 
-          
+
           const activationDtype = resolveActivationDtype(context.activationDtype);
           const srcTensor = createTensor(srcBuf, activationDtype, [numTokens, hiddenSize], 'plan_attn_src');
           const residualTensor = (residualBuf && allowResidualFuse)
             ? createTensor(residualBuf, activationDtype, [numTokens, hiddenSize], 'plan_attn_residual')
             : null;
 
-          
+
           const attnConfig = {
             layerIdx,
             numTokens,
@@ -508,13 +514,13 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
         }
         case 'rmsnorm': {
           const srcBuf = getSlot(step.src);
-          const weight = resolveNormWeightForPlan( (step.weight), layerWeights);
+          const weight = resolveNormWeightForPlan((step.weight), layerWeights);
           if (!weight) {
             throw new Error(`Layer pipeline rmsnorm missing weights for "${step.weight}" at L${layerIdx}`);
           }
           const normWeightBuf = getNormWeightBuffer(weight, `rmsnorm_${step.weight}`, weightConfig, debugFlags);
           const residualBuf = step.residual ? getSlot(step.residual) : null;
-          
+
           const activationDtype = resolveActivationDtype(context.activationDtype);
           const srcTensor = createTensor(srcBuf, activationDtype, [numTokens, hiddenSize], 'plan_rmsnorm_src');
           const residualTensor = residualBuf ? createTensor(residualBuf, activationDtype, [numTokens, hiddenSize], 'plan_rmsnorm_residual') : null;
@@ -541,10 +547,10 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
         }
         case 'ffn': {
           const srcBuf = getSlot(step.src);
-          
+
           const activationDtype = resolveActivationDtype(context.activationDtype);
           const srcTensor = createTensor(srcBuf, activationDtype, [numTokens, hiddenSize], 'plan_ffn_src');
-          
+
           let outputTensor;
           const { runMoEFFNGPU, runDenseFFNGPU } = await import('./ffn.js');
 
@@ -575,7 +581,7 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
         case 'residual_add': {
           const aBuf = getSlot(step.a ?? 'state');
           const bBuf = getSlot(step.b ?? 'residual');
-          
+
           const activationDtype = resolveActivationDtype(context.activationDtype);
           const aTensor = createTensor(aBuf, activationDtype, [numTokens, hiddenSize], 'plan_residual_a');
           const bTensor = createTensor(bBuf, activationDtype, [numTokens, hiddenSize], 'plan_residual_b');
