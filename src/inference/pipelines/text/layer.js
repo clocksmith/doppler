@@ -312,7 +312,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
   }
 
   // Early-stop check for F16 NaN/Infinity bounds
-  if (context.finitenessBuffer && context.dtype === 'f16') {
+  if (context.finitenessBuffer && context.activationDtype === 'f16') {
     recordCheckFiniteness(recorder, outputTensor.buffer, size, context.finitenessBuffer, layerIdx, context.step);
   }
 

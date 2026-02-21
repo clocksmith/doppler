@@ -127,7 +127,14 @@ To definitively crush incumbent engines in raw performance and stability, Dopple
 **Objective:** Graceful degradation on poisoned token occurrences.
 - **Problem:** A single `NaN` generated in Layer 8 gets injected directly into the KV Cache, permanently corrupting the sequence. Current guards only happen after the sequence finishes (at the logits stage).
 - **Tactic:** Instrument an ultra-cheap, early-stop bitwise guard that detects non-finite values in the F16 buffers *before* they are written to the KV cache structure. If triggered, the engine drops the poisoned state and dynamically falls back to a slower, high-precision F32 path just to safely clear the "danger token" before resuming full speed.
-- **Status:** [ ] Not Started
+- **Status:** [~] In Progress
+- **Tracking:**
+  - `status`: `in_progress`
+  - `owner`: `runtime-kernels`
+  - `updatedUtc`: `2026-02-21T02:28:22Z`
+  - `evidence`: `src/gpu/kernels/check-finiteness.js:80`, `src/gpu/kernels/check_finiteness.wgsl:17`, `src/inference/pipelines/text/generator-steps.js:393`, `src/inference/pipelines/text/generator.js:153`
+  - `etaUtc`: `TBD`
+  - `blocker`: `layer hook currently gates on context.dtype (see src/inference/pipelines/text/layer.js:315), so guard coverage needs final verification; deterministic seed is only partially threaded across sampling paths; full browser regression run blocked in this environment by static-server EPERM`
 
 ## Gemma 3 Correctness Snapshot (UTC)
 
@@ -172,6 +179,14 @@ Snapshot timestamp: `2026-02-21T01:51:20Z`
 - `evidence`: `tests/inference/gemma3-nan-regression.test.js:1`
 - `etaUtc`: `TBD`
 - `blocker`: `test is untracked and not wired into CI`
+
+6. Always-on finiteness guard rollout has landed in code but is still being hardened.
+- `status`: `in_progress`
+- `owner`: `runtime-kernels`
+- `updatedUtc`: `2026-02-21T02:28:22Z`
+- `evidence`: `src/gpu/kernels/check-finiteness.js:107`, `src/inference/pipelines/text/generator-steps.js:408`, `src/inference/pipelines/text/generator.js:150`, `src/inference/pipelines/text/layer.js:315`
+- `etaUtc`: `TBD`
+- `blocker`: `remaining integration bug on f16-only guard gate and incomplete deterministic-seed threading; CI-grade NaN regression evidence pending`
 
 ## Incumbent Attack Map
 

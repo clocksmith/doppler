@@ -486,6 +486,7 @@ export async function decodeStep(state, currentIds, opts, helpers) {
         topP: opts.topP,
         topK: opts.topK,
         padTokenId,
+        seed: opts.seed,
       });
       if (!isPreAllocated) {
         releaseBuffer(hiddenStates);
@@ -621,6 +622,7 @@ export async function decodeStep(state, currentIds, opts, helpers) {
     topP: opts.topP,
     topK: opts.topK,
     padTokenId,
+    seed: opts.seed,
   });
 
   state.currentSeqLen++;

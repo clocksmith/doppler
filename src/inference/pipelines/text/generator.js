@@ -212,6 +212,7 @@ export class PipelineGenerator {
         topP: opts.topP,
         topK: opts.topK,
         padTokenId,
+        seed: opts.seed,
       });
 
       if (opts.debug) {
@@ -557,6 +558,7 @@ export class PipelineGenerator {
         topP: opts.topP,
         topK: opts.topK,
         padTokenId,
+        seed: opts.seed,
       });
 
       generatedIds.push(firstToken);
