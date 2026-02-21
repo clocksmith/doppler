@@ -20,9 +20,10 @@
  *   --prompt <text>        Prompt used for both engines (default: real language prompt)
  *   --mode <mode>          compute|cold|warm|all (default: all)
  *   --max-tokens <n>       Max new tokens (default: 64)
- *   --warmup <n>           Warmup runs per engine (default: 1)
+ *   --warmup <n>           Warmup runs per engine (default: 1, supports 0)
  *   --runs <n>             Timed runs per engine (default: 3)
- *   --decode-profile <profile>  parity|throughput|custom (default: throughput)
+ *   --decode-profile <profile>  parity|throughput|custom (default: parity)
+ *   --seed <n>             Deterministic Doppler sampling seed (default: 0)
  *   --doppler-kernel-path <id>  Doppler kernel path override (default: gemma3-f16-f16a-online)
  *   --doppler-batch-size <n>     Doppler decode batch size (only with --decode-profile custom)
  *   --doppler-readback-interval <n>  Doppler decode readback interval (only with --decode-profile custom)
@@ -50,8 +51,9 @@ const DEFAULT_PROMPT = 'In this benchmark scenario use a natural language prompt
 const DEFAULT_MAX_TOKENS = 64;
 const DEFAULT_WARMUP = 1;
 const DEFAULT_RUNS = 3;
+const DEFAULT_SEED = 0;
 const DEFAULT_DOPPLER_KERNEL_PATH = 'gemma3-f16-f16a-online';
-const DEFAULT_DECODE_PROFILE = 'throughput';
+const DEFAULT_DECODE_PROFILE = 'parity';
 const DECODE_PROFILE_PRESETS = Object.freeze({
   parity: Object.freeze({
     batchSize: 1,
@@ -76,6 +78,15 @@ function parsePositiveInt(value, fallback, label) {
   const parsed = Number(value);
   if (!Number.isFinite(parsed) || !Number.isInteger(parsed) || parsed <= 0) {
     throw new Error(`${label} must be a positive integer`);
+  }
+  return parsed;
+}
+
+function parseNonNegativeInt(value, fallback, label) {
+  if (value == null || value === '') return fallback;
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || !Number.isInteger(parsed) || parsed < 0) {
+    throw new Error(`${label} must be a non-negative integer`);
   }
   return parsed;
 }
@@ -112,10 +123,13 @@ function parseArgs(argv) {
 }
 
 async function runDoppler(modelId, modelUrl, prompt, maxTokens, warmupRuns, runs, cacheMode, options = {}) {
-  const resolvedPrompt = prompt || DEFAULT_PROMPT;
-  const resolvedMaxTokens = maxTokens || DEFAULT_MAX_TOKENS;
-  const resolvedWarmupRuns = warmupRuns || DEFAULT_WARMUP;
-  const resolvedTimedRuns = runs || DEFAULT_RUNS;
+  const resolvedPrompt = typeof prompt === 'string' && prompt.length > 0
+    ? prompt
+    : DEFAULT_PROMPT;
+  const resolvedMaxTokens = parsePositiveInt(maxTokens, DEFAULT_MAX_TOKENS, '--max-tokens');
+  const resolvedWarmupRuns = parseNonNegativeInt(warmupRuns, DEFAULT_WARMUP, '--warmup');
+  const resolvedTimedRuns = parsePositiveInt(runs, DEFAULT_RUNS, '--runs');
+  const resolvedSeed = parseNonNegativeInt(options.seed, DEFAULT_SEED, '--seed');
   const resolvedKernelPath = options.kernelPath || DEFAULT_DOPPLER_KERNEL_PATH;
   const resolvedBatchSize = parsePositiveInt(options.batchSize, DEFAULT_DOPPLER_BATCH_SIZE, '--doppler-batch-size');
   const resolvedReadbackInterval = parsePositiveInt(
@@ -142,6 +156,7 @@ async function runDoppler(modelId, modelUrl, prompt, maxTokens, warmupRuns, runs
               temperature: 0,
               topK: 1,
               topP: 1,
+              seed: resolvedSeed,
             },
           },
         },
@@ -149,6 +164,10 @@ async function runDoppler(modelId, modelUrl, prompt, maxTokens, warmupRuns, runs
       inference: {
         kernelPath: resolvedKernelPath,
         prompt: resolvedPrompt,
+        chatTemplate: {
+          type: null,
+          enabled: false,
+        },
         batching: {
           maxTokens: resolvedMaxTokens,
           batchSize: resolvedBatchSize,
@@ -159,6 +178,7 @@ async function runDoppler(modelId, modelUrl, prompt, maxTokens, warmupRuns, runs
           temperature: 0,
           topK: 1,
           topP: 1,
+          seed: resolvedSeed,
         },
       },
     }),
@@ -203,13 +223,19 @@ async function runDoppler(modelId, modelUrl, prompt, maxTokens, warmupRuns, runs
 }
 
 async function runTjs(modelId, prompt, maxTokens, warmupRuns, runs, cacheMode, tjsVersion, localModelPath) {
+  const resolvedPrompt = typeof prompt === 'string' && prompt.length > 0
+    ? prompt
+    : DEFAULT_PROMPT;
+  const resolvedMaxTokens = parsePositiveInt(maxTokens, DEFAULT_MAX_TOKENS, '--max-tokens');
+  const resolvedWarmupRuns = parseNonNegativeInt(warmupRuns, DEFAULT_WARMUP, '--warmup');
+  const resolvedTimedRuns = parsePositiveInt(runs, DEFAULT_RUNS, '--runs');
   const args = [
     path.join(DOPPLER_ROOT, 'external', 'transformersjs-bench.mjs'),
     '--model', modelId,
-    '--prompt', String(prompt || DEFAULT_PROMPT),
-    '--max-tokens', String(maxTokens || DEFAULT_MAX_TOKENS),
-    '--warmup', String(warmupRuns || DEFAULT_WARMUP),
-    '--runs', String(runs || DEFAULT_RUNS),
+    '--prompt', String(resolvedPrompt),
+    '--max-tokens', String(resolvedMaxTokens),
+    '--warmup', String(resolvedWarmupRuns),
+    '--runs', String(resolvedTimedRuns),
     '--cache-mode', cacheMode,
     '--tjs-version', tjsVersion,
   ];
@@ -326,9 +352,10 @@ async function main() {
   const tjsVersion = flags['tjs-version'] || '3';
   const mode = flags.mode || 'all';
   const prompt = flags.prompt || DEFAULT_PROMPT;
-  const maxTokens = Number(flags['max-tokens'] || DEFAULT_MAX_TOKENS);
-  const warmupRuns = Number(flags.warmup || DEFAULT_WARMUP);
-  const runs = Number(flags.runs || DEFAULT_RUNS);
+  const maxTokens = parsePositiveInt(flags['max-tokens'], DEFAULT_MAX_TOKENS, '--max-tokens');
+  const warmupRuns = parseNonNegativeInt(flags.warmup, DEFAULT_WARMUP, '--warmup');
+  const runs = parsePositiveInt(flags.runs, DEFAULT_RUNS, '--runs');
+  const seed = parseNonNegativeInt(flags.seed, DEFAULT_SEED, '--seed');
   const decodeProfile = parseDecodeProfile(flags['decode-profile']);
   const hasCustomDopplerBatchSize = flags['doppler-batch-size'] != null;
   const hasCustomDopplerReadbackInterval = flags['doppler-readback-interval'] != null;
@@ -368,7 +395,8 @@ async function main() {
   console.error(
     `[compare] mode: ${mode}, maxTokens: ${maxTokens}, warmupRuns: ${warmupRuns}, runs: ${runs}, `
     + `decodeProfile: ${decodeProfile}, dopplerBatchSize: ${dopplerBatchSize}, `
-    + `dopplerReadbackInterval: ${dopplerReadbackInterval}, dopplerTokensPerReadback: ${dopplerTokensPerReadback}`
+    + `dopplerReadbackInterval: ${dopplerReadbackInterval}, dopplerTokensPerReadback: ${dopplerTokensPerReadback}, `
+    + `seed: ${seed}`
   );
 
   const report = {
@@ -385,8 +413,13 @@ async function main() {
     maxTokens,
     warmupRuns,
     runs,
+    seed,
     methodology: {
       prefillTokensPerSec: 'prompt_tokens / ttft_ms',
+      cacheMode: {
+        warm: 'reuse persistent profile/caches from previous runs',
+        cold: 'clear persistent profile/caches before run',
+      },
       dopplerDecodeCadence: {
         batchSize: dopplerBatchSize,
         readbackInterval: dopplerReadbackInterval,
@@ -424,6 +457,7 @@ async function main() {
         readbackInterval: dopplerReadbackInterval,
         noOpfsCache: dopplerNoOpfsCache,
         browserUserData: dopplerBrowserUserData,
+        seed,
       }
     );
     tjsWarm = await runTjs(
@@ -454,6 +488,7 @@ async function main() {
         readbackInterval: dopplerReadbackInterval,
         noOpfsCache: dopplerNoOpfsCache,
         browserUserData: dopplerBrowserUserData,
+        seed,
       }
     );
     tjsCold = await runTjs(
@@ -467,6 +502,48 @@ async function main() {
       tjsLocalModelPath
     );
     report.sections.cold = { doppler: dopplerCold, tjs: tjsCold };
+  }
+
+  // Compute fairness: always emit both Doppler parity and throughput comparisons
+  // against the same warm TJS run.
+  if (mode === 'compute' || mode === 'all') {
+    const computeProfiles = ['parity', 'throughput'];
+    const computeSections = {};
+    for (const profile of computeProfiles) {
+      const profilePreset = DECODE_PROFILE_PRESETS[profile];
+      let dopplerProfileRun = null;
+      if (profile === decodeProfile && dopplerWarm) {
+        dopplerProfileRun = dopplerWarm;
+      } else {
+        dopplerProfileRun = await runDoppler(
+          dopplerModelId,
+          dopplerModelUrl,
+          prompt,
+          maxTokens,
+          warmupRuns,
+          runs,
+          'warm',
+          {
+            kernelPath: dopplerKernelPath,
+            batchSize: profilePreset.batchSize,
+            readbackInterval: profilePreset.readbackInterval,
+            noOpfsCache: dopplerNoOpfsCache,
+            browserUserData: dopplerBrowserUserData,
+            seed,
+          }
+        );
+      }
+      computeSections[profile] = {
+        doppler: dopplerProfileRun,
+        tjs: tjsWarm,
+        dopplerCadence: {
+          batchSize: profilePreset.batchSize,
+          readbackInterval: profilePreset.readbackInterval,
+          tokensPerReadback: profilePreset.batchSize * profilePreset.readbackInterval,
+        },
+      };
+    }
+    report.sections.compute = computeSections;
   }
 
   if (jsonOutput) {
@@ -485,7 +562,18 @@ async function main() {
     ];
 
     if (mode === 'compute' || mode === 'all') {
-      printSection('COMPUTE', dopplerWarm, tjsWarm, computeRows);
+      printSection(
+        'COMPUTE (PARITY)',
+        report.sections.compute?.parity?.doppler ?? null,
+        report.sections.compute?.parity?.tjs ?? null,
+        computeRows
+      );
+      printSection(
+        'COMPUTE (THROUGHPUT)',
+        report.sections.compute?.throughput?.doppler ?? null,
+        report.sections.compute?.throughput?.tjs ?? null,
+        computeRows
+      );
     }
     if (mode === 'warm' || mode === 'all') {
       printSection('WARM START', dopplerWarm, tjsWarm, computeRows);
