@@ -14,6 +14,7 @@ export {
 export { KVCache } from './base.js';
 export { SlidingWindowKVCache } from './sliding-window.js';
 export { TieredKVCache } from './tiered.js';
+export { BasisDecomposedPagedCache } from './basis-decomposed-paged.js';
 
 // Default export for backward compatibility
 export { KVCache as default } from './base.js';

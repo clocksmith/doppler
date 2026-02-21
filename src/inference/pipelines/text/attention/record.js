@@ -9,6 +9,7 @@ import {
   recordAttention,
   recordAttentionTiered,
   recordAttentionTieredQuant,
+  recordAttentionBDPA,
   recordCastF16ToF32,
   recordCastF32ToF16,
   recordSplitQKV,
@@ -93,7 +94,7 @@ export async function recordLayerAttentionGPU(
   const kvSize = numTokens * numKVHeads * headDim;
 
   // 1. Input norm
-  
+
   let normed = attentionInput;
   if (!skipInputNorm && layerWeights.inputNorm && getNormWeightBuffer) {
     const normWeightBuf = getNormWeightBuffer(layerWeights.inputNorm, 'input_norm');
@@ -123,17 +124,17 @@ export async function recordLayerAttentionGPU(
     useF16: useF16Activations,
     fallback: attentionInput.dtype,
   });
-  
+
   let qTensor;
-  
+
   let kTensor;
-  
+
   let vTensor;
 
   // Check for fused QKV path (3->1 matmul optimization)
   const hasLoRA = getLoRAModule(lora, layerIdx, 'q_proj') ||
-                  getLoRAModule(lora, layerIdx, 'k_proj') ||
-                  getLoRAModule(lora, layerIdx, 'v_proj');
+    getLoRAModule(lora, layerIdx, 'k_proj') ||
+    getLoRAModule(lora, layerIdx, 'v_proj');
   const useFusedQKV = selectRuleValue('inference', 'attention', 'useFusedQkv', {
     hasQkvProj: Boolean(layerWeights.qkvProj),
     hasQkvSizes: Boolean(layerWeights.qkvSizes),
@@ -322,9 +323,9 @@ export async function recordLayerAttentionGPU(
   }
 
   // 4. Update KV cache (cache stores raw GPUBuffers for memory efficiency)
-  
+
   let cachedK;
-  
+
   let cachedV;
   let kvLenForAttention = currentSeqLen + numTokens;
   let causalForAttention = config.causalAttention !== false;
@@ -347,6 +348,14 @@ export async function recordLayerAttentionGPU(
   let hotWindow = 0;
   let coldPageTable = null;
   let coldPageSize = 0;
+
+  // BDPA specifics
+  let bdpaBasisK = null;
+  let bdpaBasisV = null;
+  let bdpaPagedK = null;
+  let bdpaPagedV = null;
+  let bdpaIndex = null;
+
   const totalSeqLen = currentSeqLen + numTokens;
 
   const hasCache = state.kvCache?.hasGPUCache?.();
@@ -390,11 +399,17 @@ export async function recordLayerAttentionGPU(
       cachedV = gpuBuffers.valuesGPU;
       kvLenForAttention = gpuBuffers.seqLen;
       kvPageTable = gpuBuffers.pageTableGPU ?? null;
-      kvPageSize = gpuBuffers.pageSize ?? state.kvCache.pageSize ?? 0;
       if (state.kvCache instanceof SlidingWindowKVCache) {
         kvLayout = 'ring';
       } else if (state.kvCache.layout === 'paged') {
         kvLayout = 'paged';
+      } else if (gpuBuffers.layout === 'bdpa') {
+        kvLayout = 'bdpa';
+        bdpaBasisK = gpuBuffers.basisGPU.k;
+        bdpaBasisV = gpuBuffers.basisGPU.v;
+        bdpaPagedK = gpuBuffers.pagedGPU.k;
+        bdpaPagedV = gpuBuffers.pagedGPU.v;
+        bdpaIndex = gpuBuffers.indexGPU;
       }
     }
   } else {
@@ -425,7 +440,7 @@ export async function recordLayerAttentionGPU(
   const isLayerSliding = layerType === 'sliding_attention' || (hasSlidingWindow && !hasLayerTypes);
   const effectiveSlidingWindow = isLayerSliding ? slidingWindow : null;
   const canWindow = hasCache && effectiveSlidingWindow;
-  if (kvLayout !== 'tiered') {
+  if (kvLayout !== 'tiered' && kvLayout !== 'bdpa') {
     if (canWindow && kvLenForAttention > effectiveSlidingWindow) {
       kvLenForAttention = effectiveSlidingWindow;
     }
@@ -484,13 +499,33 @@ export async function recordLayerAttentionGPU(
     kvPageSize: kvLayout === 'tiered' ? (coldPageSize || null) : (kvPageSize || null),
     hotLen: kvLayout === 'tiered' ? hotLen : null,
     coldLen: kvLayout === 'tiered' ? coldLen : null,
-    hotWindow: kvLayout === 'tiered' ? hotWindow : null,
     hotStart: kvLayout === 'tiered' ? hotStart : null,
-    coldQuantMode: kvLayout === 'tiered' ? coldQuantMode : null,
   });
 
   let attnOutput;
-  if (kvLayout === 'tiered') {
+  if (kvLayout === 'bdpa') {
+    // 1. Create Typed Tensors for the BDPA GPU buffers
+    const basisKDtype = 'f16'; // Currently hardcoded f16 in Cache
+    const basisVDtype = 'f16';
+    const numBasisVectors = state.kvCache.basisVocabSize;
+    const basisKTensor = createTensor(bdpaBasisK, basisKDtype, [numBasisVectors, numKVHeads * headDim], 'bdpa_basis_k');
+    const basisVTensor = createTensor(bdpaBasisV, basisVDtype, [numBasisVectors, numKVHeads * headDim], 'bdpa_basis_v');
+
+    // We don't construct Tensors for P_delta and I_flat because they are custom layout bindings not used in standard MatMuls
+    attnOutput = await recordAttentionBDPA(recorder, qTensor, basisKTensor, basisVTensor, bdpaPagedK, bdpaPagedV, bdpaIndex, numHeads, headDim, {
+      seqLen: numTokens,
+      kvLen: kvLenForAttention,
+      numKVHeads,
+      causal: causalForAttention,
+      startPos: startPosForMask,
+      layerIdx,
+      slidingWindow: effectiveSlidingWindow,
+      attnSoftcap,
+      scale: attnScale,
+      ropeCos: state.ropeFreqsCos,
+      ropeSin: state.ropeFreqsSin,
+    });
+  } else if (kvLayout === 'tiered') {
     let qForAttention = qTensor;
     if (coldQuantMode !== 'none' && qTensor.dtype !== 'f32') {
       qForAttention = await recordCastF16ToF32(recorder, qTensor);
@@ -539,6 +574,10 @@ export async function recordLayerAttentionGPU(
       });
     }
   } else {
+    /** @type {'contiguous' | 'ring' | 'paged' | 'bdpa'} */
+    const typeCheckedLayout = kvLayout === 'tiered' ? 'contiguous' : kvLayout;
+
+    // We cast to `any` because `recordAttention` typings enforce contiguous/ring/paged. BDPA has its own path now but we need to satisfy TS.
     attnOutput = await recordAttention(recorder, qTensor, cachedKTensor, cachedVTensor, null, numHeads, headDim, {
       seqLen: numTokens,
       kvLen: kvLenForAttention,
@@ -550,14 +589,14 @@ export async function recordLayerAttentionGPU(
       attnSoftcap,
       scale: attnScale,
       kvStart,
-      kvLayout,
+      kvLayout: /** @type {any} */ (typeCheckedLayout),
       kvPageTable,
       kvPageSize,
     });
   }
 
   // 6. Output projection (with optional fused residual for decode)
-  
+
   let output;
   let residualFused = false;
   let oProjInput = attnOutput;
@@ -628,7 +667,7 @@ export async function recordLayerAttentionGPU(
   }
 
   let finalOutput = output;
-  
+
   const buffersToTrack = [];
   if (output.buffer !== attnOutput.buffer) {
     buffersToTrack.push(attnOutput.buffer);

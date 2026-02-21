@@ -58,10 +58,17 @@ DOPPLER makes deliberate architectural tradeoffs that diverge from pre-compiled 
 |-----------|----------------|-----|
 | **Code/Data Separation** | Generic WGSL kernels + weight shards | Enables shard verification and runtime adapter/component swaps |
 | **GPU Fusion** | All tensor ops stay on GPU | Makes JS vs WASM irrelevant (0.5ms vs 25ms GPU time) |
+| **Progressive Fusion** | Swap atomic kernels for fused kernels via config | Get the best of both worlds: hackability default, performance peaks |
 | **Minimal Readback** | Only final logits read to CPU | Avoids 2-6ms GPU→CPU transfer per readback |
 | **JavaScript Orchestration** | JS dispatches GPU work, handles sampling | Debugging, rapid iteration, browser integration |
 
-### GPU Fusion in Practice
+### Progressive Fusion in Practice
+
+Doppler begins with discrete, atomic WGSL kernels (e.g. `gate_proj`, `up_proj`, `down_proj`) to guarantee maximum observability, stability, and ease of patching. However, the architecture is designed to progressively *fuse* these operations. 
+
+Through `runtimeConfig` overrides (e.g. `fused_ffn.wgsl`), the engine natively bundles multiple discrete passes into single, highly optimized kernels. This guarantees the engine never sacrifices observability for optimization, allowing users to start with a decoupled pipeline and iteratively swap in monolithic fused kernels (like ONNX models) as architectural confidence scales.
+
+### GPU Execution Footprint
 
 ```
 Per-token decode step:

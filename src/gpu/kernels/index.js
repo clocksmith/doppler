@@ -49,6 +49,7 @@ export {
   recordAttentionTiered,
   runAttentionTieredQuant,
   recordAttentionTieredQuant,
+  recordAttentionBDPA,
 } from './attention.js';
 
 // RMSNorm

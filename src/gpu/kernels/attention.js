@@ -103,12 +103,12 @@ function getPageTableFallbackBuffer(device) {
 
 
 class AttentionKernel extends KernelBase {
-  
+
   async getPipeline(variant) {
     return this.getPipelineFor('attention', variant);
   }
 
-  
+
   dispatch(
     pipeline,
     bindGroup,
@@ -117,7 +117,7 @@ class AttentionKernel extends KernelBase {
     this.dispatchKernel(pipeline, bindGroup, workgroups, 'attention');
   }
 
-  
+
   record(
     recorder,
     pipeline,
@@ -129,12 +129,12 @@ class AttentionKernel extends KernelBase {
 }
 
 class AttentionTieredKernel extends KernelBase {
-  
+
   async getPipeline(variant) {
     return this.getPipelineFor('attention_tiered', variant);
   }
 
-  
+
   dispatch(
     pipeline,
     bindGroup,
@@ -143,7 +143,7 @@ class AttentionTieredKernel extends KernelBase {
     this.dispatchKernel(pipeline, bindGroup, workgroups, 'attention_tiered');
   }
 
-  
+
   record(
     recorder,
     pipeline,
@@ -155,12 +155,12 @@ class AttentionTieredKernel extends KernelBase {
 }
 
 class AttentionTieredQuantKernel extends KernelBase {
-  
+
   async getPipeline(variant) {
     return this.getPipelineFor('attention_tiered_quant', variant);
   }
 
-  
+
   dispatch(
     pipeline,
     bindGroup,
@@ -169,7 +169,7 @@ class AttentionTieredQuantKernel extends KernelBase {
     this.dispatchKernel(pipeline, bindGroup, workgroups, 'attention_tiered_quant');
   }
 
-  
+
   record(
     recorder,
     pipeline,
@@ -177,6 +177,29 @@ class AttentionTieredQuantKernel extends KernelBase {
     workgroups
   ) {
     this.recordKernel(recorder, pipeline, bindGroup, workgroups, 'attention_tiered_quant');
+  }
+}
+
+class AttentionBDPAKernel extends KernelBase {
+  async getPipeline(variant) {
+    return this.getPipelineFor('attention_bdpa', variant);
+  }
+
+  dispatch(
+    pipeline,
+    bindGroup,
+    workgroups
+  ) {
+    this.dispatchKernel(pipeline, bindGroup, workgroups, 'attention_bdpa');
+  }
+
+  record(
+    recorder,
+    pipeline,
+    bindGroup,
+    workgroups
+  ) {
+    this.recordKernel(recorder, pipeline, bindGroup, workgroups, 'attention_bdpa');
   }
 }
 
@@ -209,7 +232,7 @@ function selectAttentionTier(
     sharedLimit >= thresholds.subgroupShared &&
     isDecode;
 
-  
+
   let tier = forcedTier;
   let reason = forcedTier ? `forced:${forcedTier}` : '';
 
@@ -679,6 +702,36 @@ function createTieredQuantAttentionUniformBuffer(
   );
 }
 
+function createBDPAAttentionUniformBuffer(
+  device,
+  recorder,
+  params
+) {
+  return createUniformBufferWithView(
+    'attention_bdpa_uniforms',
+    64,
+    (view) => {
+      view.setUint32(0, params.numHeads, true);
+      view.setUint32(4, params.numKVHeads, true);
+      view.setUint32(8, params.headDim, true);
+      view.setUint32(12, params.kvLen, true);
+      view.setUint32(16, params.seqLen, true);
+      view.setFloat32(20, params.scale, true);
+      view.setUint32(24, params.causal ? 1 : 0, true);
+      view.setUint32(28, params.startPos, true);
+      view.setFloat32(32, params.attnSoftcap, true);
+      view.setUint32(36, params.slidingWindow, true);
+      view.setUint32(40, 0, true); // padding
+      view.setUint32(44, 0, true); // padding
+      view.setUint32(48, 0, true); // padding
+      view.setUint32(52, 0, true); // padding
+      view.setUint32(56, 0, true); // padding
+      view.setUint32(60, 0, true); // padding
+    },
+    recorder,
+    device
+  );
+}
 
 export async function runAttention(
   Q,
@@ -713,7 +766,7 @@ export async function runAttention(
   const limits = getDeviceLimits();
   const sharedLimit = limits?.maxComputeWorkgroupStorageSize ?? Infinity;
   const caps = getKernelCapabilities();
-  
+
   const kvDtype = K.dtype;
   const qDtype = Q.dtype;
   const isPaged = kvLayout === 'paged';
@@ -831,7 +884,7 @@ export async function recordAttention(
   const limits = getDeviceLimits();
   const sharedLimit = limits?.maxComputeWorkgroupStorageSize ?? Infinity;
   const caps = getKernelCapabilities();
-  
+
   const kvDtype = K.dtype;
   const qDtype = Q.dtype;
   const isPaged = kvLayout === 'paged';

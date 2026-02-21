@@ -17,6 +17,7 @@ export {
   type KVGetResult,
   type GPUBuffersResult,
   type TieredGPUBuffersResult,
+  type BDPAGPUBuffersResult,
   type MemoryStats,
   type GPUContext,
   isContiguousLayer,

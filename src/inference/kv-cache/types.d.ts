@@ -17,7 +17,7 @@ export interface KVCacheConfig {
   headDim: number;
   maxSeqLen: number;
   useGPU: boolean;
-  layout: 'contiguous' | 'paged' | 'tiered';
+  layout: 'contiguous' | 'paged' | 'tiered' | 'bdpa_paged';
   pageSize: number;
   kvDtype: 'f16' | 'f32';
   /** Window size for sliding window cache */
@@ -88,9 +88,9 @@ export interface KVGetResult {
 }
 
 /**
- * GPU buffers result
+ * GPU buffers result (Contiguous or Paged)
  */
-export interface GPUBuffersResult {
+export interface StandardGPUBuffersResult {
   keysGPU: GPUBuffer;
   valuesGPU: GPUBuffer;
   seqLen: number;
@@ -116,6 +116,17 @@ export interface TieredGPUBuffersResult {
   coldPackedStride?: number;
   coldQuantMode?: 'none' | 'int8' | 'int4';
 }
+
+export interface BDPAGPUBuffersResult {
+  layout: 'bdpa';
+  seqLen: number;
+  basisGPU: { k: GPUBuffer; v: GPUBuffer };
+  pagedGPU: { k: GPUBuffer; v: GPUBuffer };
+  indexGPU: GPUBuffer;
+  pageSize: number;
+}
+
+export type GPUBuffersResult = StandardGPUBuffersResult | TieredGPUBuffersResult | BDPAGPUBuffersResult;
 
 /**
  * Memory statistics
