@@ -15,6 +15,7 @@
  *   --max-tokens <n>     Max new tokens to generate (default: 128)
  *   --warmup <n>         Warmup runs (default: 1)
  *   --runs <n>           Timed runs (default: 3)
+ *   --seed <n>           Deterministic seed metadata (default: 0)
  *   --workload <id>      Use a predefined workload from workloads.json
  *   --cache-mode <mode>  cold|warm (default: warm)
  *                        cold: wipe persistent profile before launch
@@ -45,6 +46,7 @@ const DEFAULT_RUNS = 3;
 const DEFAULT_TIMEOUT = 600_000;
 const DEFAULT_PROFILE_TOP_N = 20;
 const DEFAULT_PROFILE_DIR = path.join(DOPPLER_ROOT, '.tjs-bench-profile');
+const DEFAULT_SEED = 0;
 
 const WEBGPU_ARGS = [
   '--enable-unsafe-webgpu',
@@ -96,6 +98,15 @@ function parsePositiveInt(value, flag, fallback) {
   return parsed;
 }
 
+function parseNonNegativeInt(value, flag, fallback) {
+  if (value == null) return fallback;
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || !Number.isInteger(parsed) || parsed < 0) {
+    throw new Error(`${flag} must be a non-negative integer`);
+  }
+  return parsed;
+}
+
 async function loadWorkload(workloadId) {
   const workloadsPath = path.join(DOPPLER_ROOT, 'benchmarks', 'competitors', 'workloads.json');
   const raw = await fs.readFile(workloadsPath, 'utf-8');
@@ -131,11 +142,11 @@ async function saveResult(result, saveDir) {
   return filePath;
 }
 
-const DEFAULT_SERVER_PORT = 9999;
+const DEFAULT_SERVER_PORT = 0;
 
 function createStaticServer(root, preferredPort) {
-  const listenPort = preferredPort || DEFAULT_SERVER_PORT;
-  return new Promise((resolve) => {
+  const listenPort = Number.isFinite(preferredPort) ? preferredPort : DEFAULT_SERVER_PORT;
+  return new Promise((resolve, reject) => {
     const mimeTypes = {
       '.html': 'text/html',
       '.js': 'text/javascript',
@@ -172,6 +183,9 @@ function createStaticServer(root, preferredPort) {
       }
     });
 
+    server.once('error', (error) => {
+      reject(error);
+    });
     server.listen(listenPort, '127.0.0.1', () => {
       const { port } = server.address();
       resolve({ server, port, baseUrl: `http://127.0.0.1:${port}` });
@@ -325,6 +339,13 @@ function summarizeOrtProfiling(events, topN) {
   };
 }
 
+function formatRecentBrowserMessages(messages, limit = 20) {
+  if (!Array.isArray(messages) || messages.length === 0) return '';
+  const start = Math.max(0, messages.length - limit);
+  const tail = messages.slice(start);
+  return tail.map((entry) => `[browser:${entry.type}] ${entry.text}`).join('\n');
+}
+
 async function main() {
   const flags = parseArgs(process.argv.slice(2));
   const showConsole = flags['browser-console'] === true;
@@ -342,12 +363,13 @@ async function main() {
 
   let modelId = flags.model || DEFAULT_MODEL;
   let prompt = flags.prompt || DEFAULT_PROMPT;
-  let maxNewTokens = Number(flags['max-tokens'] || DEFAULT_MAX_TOKENS);
-  let warmupRuns = Number(flags.warmup ?? DEFAULT_WARMUP);
-  let timedRuns = Number(flags.runs ?? DEFAULT_RUNS);
-  const timeoutMs = Number(flags.timeout ?? DEFAULT_TIMEOUT);
+  let maxNewTokens = parsePositiveInt(flags['max-tokens'], '--max-tokens', DEFAULT_MAX_TOKENS);
+  let warmupRuns = parseNonNegativeInt(flags.warmup, '--warmup', DEFAULT_WARMUP);
+  let timedRuns = parsePositiveInt(flags.runs, '--runs', DEFAULT_RUNS);
+  const timeoutMs = parsePositiveInt(flags.timeout, '--timeout', DEFAULT_TIMEOUT);
   const userDataDir = flags['user-data'] || DEFAULT_PROFILE_DIR;
-  const serverPort = parsePositiveInt(flags['server-port'], '--server-port', DEFAULT_SERVER_PORT);
+  const serverPort = parseNonNegativeInt(flags['server-port'], '--server-port', DEFAULT_SERVER_PORT);
+  const seed = parseNonNegativeInt(flags.seed, '--seed', DEFAULT_SEED);
   const localModelPath = flags['local-model-path'] || null;
 
   if (flags.workload) {
@@ -362,7 +384,10 @@ async function main() {
     }
   }
 
-  console.error(`[tjs-bench] tjs=v${tjsVersion} model=${modelId} maxTokens=${maxNewTokens} warmup=${warmupRuns} runs=${timedRuns} cache=${cacheMode} profileOps=${profileOps ? 'on' : 'off'}`);
+  console.error(
+    `[tjs-bench] tjs=v${tjsVersion} model=${modelId} maxTokens=${maxNewTokens} ` +
+    `warmup=${warmupRuns} runs=${timedRuns} cache=${cacheMode} profileOps=${profileOps ? 'on' : 'off'} timeout=${timeoutMs}ms`
+  );
 
   // Cold mode: wipe persistent profile to force full re-download + recompile
   if (cacheMode === 'cold') {
@@ -404,6 +429,8 @@ async function main() {
   const browserLaunchMs = performance.now() - launchStart;
 
   const page = await context.newPage();
+  page.setDefaultTimeout(timeoutMs);
+  page.setDefaultNavigationTimeout(timeoutMs);
   const browserMessages = [];
 
   page.on('console', (msg) => {
@@ -422,8 +449,8 @@ async function main() {
     const navStart = performance.now();
     const runnerParams = new URLSearchParams({ v: tjsVersion });
     if (localModelPath) runnerParams.set('localModelPath', localModelPath);
-    await page.goto(`${baseUrl}/external/transformersjs-runner.html?${runnerParams}`, { timeout: 30_000 });
-    await page.waitForFunction(() => window.__tfjsReady === true, { timeout: 30_000 });
+    await page.goto(`${baseUrl}/external/transformersjs-runner.html?${runnerParams}`, { timeout: timeoutMs });
+    await page.waitForFunction(() => window.__tfjsReady === true, { timeout: timeoutMs });
     const pageReadyMs = performance.now() - navStart;
     console.error(`[tjs-bench] runner page ready in ${pageReadyMs.toFixed(0)}ms, starting benchmark...`);
 
@@ -431,7 +458,7 @@ async function main() {
 
     const result = await page.evaluate(
       async (config) => window.__runBench(config),
-      { modelId, prompt, maxNewTokens, warmupRuns, timedRuns, profileOps, profileTopN },
+      { modelId, prompt, maxNewTokens, warmupRuns, timedRuns, profileOps, profileTopN, seed },
     );
 
     const totalBenchMs = performance.now() - benchStart;
@@ -453,6 +480,12 @@ async function main() {
       firstResponseMs: result.modelLoadMs + (result.runs?.[0]?.totalMs ?? 0),
       totalBenchMs,
     };
+    result.determinism = {
+      seed,
+      decoding: {
+        do_sample: false,
+      },
+    };
     result.profiling = {
       ...(result.profiling && typeof result.profiling === 'object' ? result.profiling : {}),
       ortConsole: ortSummary,
@@ -473,6 +506,10 @@ async function main() {
     }
   } catch (error) {
     console.error(`[tjs-bench] Benchmark failed: ${error.message}`);
+    const recentLogs = formatRecentBrowserMessages(browserMessages, 20);
+    if (recentLogs) {
+      console.error('[tjs-bench] recent browser console:\n' + recentLogs);
+    }
     process.exit(1);
   } finally {
     await page.close().catch(() => {});

@@ -20,15 +20,20 @@
  *   --prompt <text>        Prompt used for both engines (default: real language prompt)
  *   --mode <mode>          compute|cold|warm|all (default: all)
  *   --max-tokens <n>       Max new tokens (default: 64)
- *   --warmup <n>           Warmup runs per engine (default: 1, supports 0)
+ *   --warmup <n>           Warmup runs per engine (default: 1)
  *   --runs <n>             Timed runs per engine (default: 3)
  *   --decode-profile <profile>  parity|throughput|custom (default: parity)
- *   --seed <n>             Deterministic Doppler sampling seed (default: 0)
- *   --doppler-kernel-path <id>  Doppler kernel path override (default: gemma3-f16-f16a-online)
+ *   --seed <n>             Deterministic seed metadata (default: 0)
+ *   --doppler-kernel-path <id>  Doppler kernel path override (default: gemma3-f16-f32a for Gemma 3 1B; otherwise manifest default)
  *   --doppler-batch-size <n>     Doppler decode batch size (only with --decode-profile custom)
  *   --doppler-readback-interval <n>  Doppler decode readback interval (only with --decode-profile custom)
  *   --doppler-no-opfs-cache  Disable Doppler OPFS cache for browser runs
  *   --doppler-browser-user-data <path>  Doppler Chromium profile dir
+ *   --doppler-browser-port <n>  Doppler browser relay static port (default: 0 = random)
+ *   --tjs-profile-ops <on|off>    Transformers.js ORT op profiling (default: off)
+ *   --tjs-timeout-ms <ms>         Transformers.js timeout (default: 600000)
+ *   --tjs-server-port <n>         Transformers.js static server port (default: 0 = random)
+ *   --tjs-browser-console         Stream browser console on TJS failures/retries
  *   --save                 Save results to bench-results/
  *   --save-dir <dir>       Directory for saved results (default: ./bench-results)
  *   --json                 JSON-only output
@@ -52,8 +57,16 @@ const DEFAULT_MAX_TOKENS = 64;
 const DEFAULT_WARMUP = 1;
 const DEFAULT_RUNS = 3;
 const DEFAULT_SEED = 0;
-const DEFAULT_DOPPLER_KERNEL_PATH = 'gemma3-f16-f16a-online';
+const DEFAULT_DOPPLER_KERNEL_PATH = null;
+const AUTO_DOPPLER_KERNEL_PATH_BY_MODEL = Object.freeze({
+  'gemma-3-1b-it': 'gemma3-f16-f32a',
+  'gemma-3-1b-it-wf16': 'gemma3-f16-f32a',
+});
 const DEFAULT_DECODE_PROFILE = 'parity';
+const DEFAULT_TJS_PROFILE_OPS = false;
+const DEFAULT_TJS_TIMEOUT_MS = 600_000;
+const DEFAULT_TJS_SERVER_PORT = 0;
+const DEFAULT_DOPPLER_BROWSER_PORT = 0;
 const DECODE_PROFILE_PRESETS = Object.freeze({
   parity: Object.freeze({
     batchSize: 1,
@@ -91,6 +104,35 @@ function parseNonNegativeInt(value, fallback, label) {
   return parsed;
 }
 
+function parseOnOff(value, fallback, label) {
+  if (value == null || value === '') return fallback;
+  const normalized = String(value).trim().toLowerCase();
+  if (normalized === 'on' || normalized === 'true' || normalized === '1' || normalized === 'yes') return true;
+  if (normalized === 'off' || normalized === 'false' || normalized === '0' || normalized === 'no') return false;
+  throw new Error(`${label} must be one of: on, off, true, false, 1, 0`);
+}
+
+function clipTail(text, maxChars = 3000) {
+  if (text == null) return '';
+  const str = String(text);
+  if (str.length <= maxChars) return str;
+  return str.slice(str.length - maxChars);
+}
+
+function toFailurePayload(library, error) {
+  return {
+    failed: true,
+    env: { library },
+    error: {
+      message: String(error?.message || error),
+      code: error?.code ?? null,
+      signal: error?.signal ?? null,
+      killed: error?.killed === true,
+      stderrTail: clipTail(error?.stderr, 3000),
+    },
+  };
+}
+
 function parseDecodeProfile(value) {
   if (value == null || value === '') return DEFAULT_DECODE_PROFILE;
   const profile = String(value);
@@ -102,13 +144,39 @@ function parseDecodeProfile(value) {
   return profile;
 }
 
+function resolveDopplerKernelPath(modelId, kernelPathOverride) {
+  if (kernelPathOverride != null && kernelPathOverride !== '') {
+    return {
+      kernelPath: String(kernelPathOverride),
+      source: 'cli',
+    };
+  }
+  const normalizedModelId = String(modelId ?? '').trim().toLowerCase();
+  const autoKernelPath = AUTO_DOPPLER_KERNEL_PATH_BY_MODEL[normalizedModelId] ?? null;
+  if (autoKernelPath != null) {
+    return {
+      kernelPath: autoKernelPath,
+      source: 'auto-model-default',
+    };
+  }
+  return {
+    kernelPath: DEFAULT_DOPPLER_KERNEL_PATH,
+    source: 'manifest-default',
+  };
+}
+
 function parseArgs(argv) {
   const flags = {};
   for (let i = 0; i < argv.length; i++) {
     const token = argv[i];
     if (!token.startsWith('--')) continue;
     const key = token.slice(2);
-    if (key === 'json' || key === 'save' || key === 'doppler-no-opfs-cache') {
+    if (
+      key === 'json'
+      || key === 'save'
+      || key === 'doppler-no-opfs-cache'
+      || key === 'tjs-browser-console'
+    ) {
       flags[key] = true;
       continue;
     }
@@ -123,20 +191,60 @@ function parseArgs(argv) {
 }
 
 async function runDoppler(modelId, modelUrl, prompt, maxTokens, warmupRuns, runs, cacheMode, options = {}) {
-  const resolvedPrompt = typeof prompt === 'string' && prompt.length > 0
-    ? prompt
-    : DEFAULT_PROMPT;
+  const resolvedPrompt = prompt ?? DEFAULT_PROMPT;
   const resolvedMaxTokens = parsePositiveInt(maxTokens, DEFAULT_MAX_TOKENS, '--max-tokens');
   const resolvedWarmupRuns = parseNonNegativeInt(warmupRuns, DEFAULT_WARMUP, '--warmup');
   const resolvedTimedRuns = parsePositiveInt(runs, DEFAULT_RUNS, '--runs');
-  const resolvedSeed = parseNonNegativeInt(options.seed, DEFAULT_SEED, '--seed');
-  const resolvedKernelPath = options.kernelPath || DEFAULT_DOPPLER_KERNEL_PATH;
+  const resolvedKernelPath = options.kernelPath ?? DEFAULT_DOPPLER_KERNEL_PATH;
   const resolvedBatchSize = parsePositiveInt(options.batchSize, DEFAULT_DOPPLER_BATCH_SIZE, '--doppler-batch-size');
   const resolvedReadbackInterval = parsePositiveInt(
     options.readbackInterval,
     DEFAULT_DOPPLER_READBACK_INTERVAL,
     '--doppler-readback-interval'
   );
+  const resolvedBrowserPort = parseNonNegativeInt(
+    options.browserPort,
+    DEFAULT_DOPPLER_BROWSER_PORT,
+    '--doppler-browser-port'
+  );
+  const runtimeConfig = {
+    shared: {
+      benchmark: {
+        run: {
+          customPrompt: resolvedPrompt,
+          maxNewTokens: resolvedMaxTokens,
+          warmupRuns: resolvedWarmupRuns,
+          timedRuns: resolvedTimedRuns,
+          useChatTemplate: false,
+          sampling: {
+            temperature: 0,
+            topK: 1,
+            topP: 1,
+          },
+        },
+      },
+    },
+    inference: {
+      prompt: resolvedPrompt,
+      chatTemplate: {
+        enabled: false,
+      },
+      batching: {
+        maxTokens: resolvedMaxTokens,
+        batchSize: resolvedBatchSize,
+        readbackInterval: resolvedReadbackInterval,
+        stopCheckMode: 'per-token',
+      },
+      sampling: {
+        temperature: 0,
+        topK: 1,
+        topP: 1,
+      },
+    },
+  };
+  if (resolvedKernelPath) {
+    runtimeConfig.inference.kernelPath = resolvedKernelPath;
+  }
   const baseArgs = [
     path.join(DOPPLER_ROOT, 'tools', 'doppler-cli.js'),
     'bench',
@@ -144,44 +252,8 @@ async function runDoppler(modelId, modelUrl, prompt, maxTokens, warmupRuns, runs
     '--model-url', modelUrl,
     '--json',
     '--cache-mode', cacheMode,
-    '--runtime-config-json', JSON.stringify({
-      shared: {
-        benchmark: {
-          run: {
-            customPrompt: resolvedPrompt,
-            maxNewTokens: resolvedMaxTokens,
-            warmupRuns: resolvedWarmupRuns,
-            timedRuns: resolvedTimedRuns,
-            sampling: {
-              temperature: 0,
-              topK: 1,
-              topP: 1,
-              seed: resolvedSeed,
-            },
-          },
-        },
-      },
-      inference: {
-        kernelPath: resolvedKernelPath,
-        prompt: resolvedPrompt,
-        chatTemplate: {
-          type: null,
-          enabled: false,
-        },
-        batching: {
-          maxTokens: resolvedMaxTokens,
-          batchSize: resolvedBatchSize,
-          readbackInterval: resolvedReadbackInterval,
-          stopCheckMode: 'per-token',
-        },
-        sampling: {
-          temperature: 0,
-          topK: 1,
-          topP: 1,
-          seed: resolvedSeed,
-        },
-      },
-    }),
+    '--browser-port', String(resolvedBrowserPort),
+    '--runtime-config-json', JSON.stringify(runtimeConfig),
   ];
   if (options.noOpfsCache) {
     baseArgs.push('--no-opfs-cache');
@@ -214,21 +286,23 @@ async function runDoppler(modelId, modelUrl, prompt, maxTokens, warmupRuns, runs
         return await runOnce(['--no-opfs-cache']);
       } catch (retryError) {
         console.error(`[compare] Doppler (${cacheMode}) retry failed: ${retryError.message}`);
-        return null;
+        return toFailurePayload('doppler', retryError);
       }
     }
     console.error(`[compare] Doppler (${cacheMode}) failed: ${error.message}`);
-    return null;
+    return toFailurePayload('doppler', error);
   }
 }
 
-async function runTjs(modelId, prompt, maxTokens, warmupRuns, runs, cacheMode, tjsVersion, localModelPath) {
-  const resolvedPrompt = typeof prompt === 'string' && prompt.length > 0
-    ? prompt
-    : DEFAULT_PROMPT;
+async function runTjs(modelId, prompt, maxTokens, warmupRuns, runs, cacheMode, tjsVersion, localModelPath, options = {}) {
+  const resolvedPrompt = prompt ?? DEFAULT_PROMPT;
   const resolvedMaxTokens = parsePositiveInt(maxTokens, DEFAULT_MAX_TOKENS, '--max-tokens');
   const resolvedWarmupRuns = parseNonNegativeInt(warmupRuns, DEFAULT_WARMUP, '--warmup');
   const resolvedTimedRuns = parsePositiveInt(runs, DEFAULT_RUNS, '--runs');
+  const resolvedProfileOps = options.profileOps ?? DEFAULT_TJS_PROFILE_OPS;
+  const resolvedTimeoutMs = parsePositiveInt(options.timeoutMs, DEFAULT_TJS_TIMEOUT_MS, '--tjs-timeout-ms');
+  const resolvedServerPort = parseNonNegativeInt(options.serverPort, DEFAULT_TJS_SERVER_PORT, '--tjs-server-port');
+  const resolvedSeed = parseNonNegativeInt(options.seed, DEFAULT_SEED, '--seed');
   const args = [
     path.join(DOPPLER_ROOT, 'external', 'transformersjs-bench.mjs'),
     '--model', modelId,
@@ -238,22 +312,42 @@ async function runTjs(modelId, prompt, maxTokens, warmupRuns, runs, cacheMode, t
     '--runs', String(resolvedTimedRuns),
     '--cache-mode', cacheMode,
     '--tjs-version', tjsVersion,
+    '--profile-ops', resolvedProfileOps ? 'on' : 'off',
+    '--timeout', String(resolvedTimeoutMs),
+    '--server-port', String(resolvedServerPort),
+    '--seed', String(resolvedSeed),
   ];
   if (localModelPath) args.push('--local-model-path', localModelPath);
+  if (options.browserConsole === true) args.push('--browser-console');
 
   console.error(`[compare] running TJS v${tjsVersion} (${cacheMode})...`);
-  try {
-    const { stdout } = await execFileAsync('node', args, {
+  const runOnce = async (overrideArgs = []) => {
+    const { stdout } = await execFileAsync('node', [...args, ...overrideArgs], {
       cwd: DOPPLER_ROOT,
-      timeout: 600_000,
+      timeout: resolvedTimeoutMs,
       maxBuffer: 10 * 1024 * 1024,
     });
     const jsonMatch = stdout.match(/\{[\s\S]*\}/);
     if (!jsonMatch) throw new Error('No JSON in TJS output');
     return JSON.parse(jsonMatch[0]);
+  };
+  try {
+    return await runOnce();
   } catch (error) {
+    const message = String(error?.message || '');
+    const shouldRetryNoProfile = resolvedProfileOps
+      && /Target page, context or browser has been closed/i.test(message);
+    if (shouldRetryNoProfile) {
+      console.error('[compare] TJS closed page/context during profiled run; retrying with --profile-ops off...');
+      try {
+        return await runOnce(['--profile-ops', 'off']);
+      } catch (retryError) {
+        console.error(`[compare] TJS (${cacheMode}) retry failed: ${retryError.message}`);
+        return toFailurePayload('transformers.js', retryError);
+      }
+    }
     console.error(`[compare] TJS (${cacheMode}) failed: ${error.message}`);
-    return null;
+    return toFailurePayload('transformers.js', error);
   }
 }
 
@@ -357,6 +451,10 @@ async function main() {
   const runs = parsePositiveInt(flags.runs, DEFAULT_RUNS, '--runs');
   const seed = parseNonNegativeInt(flags.seed, DEFAULT_SEED, '--seed');
   const decodeProfile = parseDecodeProfile(flags['decode-profile']);
+  const tjsProfileOps = parseOnOff(flags['tjs-profile-ops'], DEFAULT_TJS_PROFILE_OPS, '--tjs-profile-ops');
+  const tjsTimeoutMs = parsePositiveInt(flags['tjs-timeout-ms'], DEFAULT_TJS_TIMEOUT_MS, '--tjs-timeout-ms');
+  const tjsServerPort = parseNonNegativeInt(flags['tjs-server-port'], DEFAULT_TJS_SERVER_PORT, '--tjs-server-port');
+  const tjsBrowserConsole = flags['tjs-browser-console'] === true;
   const hasCustomDopplerBatchSize = flags['doppler-batch-size'] != null;
   const hasCustomDopplerReadbackInterval = flags['doppler-readback-interval'] != null;
   const hasCustomDopplerDecodeTuning = hasCustomDopplerBatchSize || hasCustomDopplerReadbackInterval;
@@ -366,7 +464,9 @@ async function main() {
     );
   }
   const decodeProfilePreset = DECODE_PROFILE_PRESETS[decodeProfile] || DECODE_PROFILE_PRESETS[DEFAULT_DECODE_PROFILE];
-  const dopplerKernelPath = flags['doppler-kernel-path'] || DEFAULT_DOPPLER_KERNEL_PATH;
+  const dopplerKernelPathOverride = flags['doppler-kernel-path'] ?? DEFAULT_DOPPLER_KERNEL_PATH;
+  const dopplerKernelResolution = resolveDopplerKernelPath(dopplerModelId, dopplerKernelPathOverride);
+  const dopplerKernelPath = dopplerKernelResolution.kernelPath;
   const dopplerBatchSize = parsePositiveInt(
     flags['doppler-batch-size'],
     decodeProfilePreset.batchSize,
@@ -380,6 +480,11 @@ async function main() {
   const dopplerTokensPerReadback = dopplerBatchSize * dopplerReadbackInterval;
   const dopplerNoOpfsCache = flags['doppler-no-opfs-cache'] === true;
   const dopplerBrowserUserData = flags['doppler-browser-user-data'] || null;
+  const dopplerBrowserPort = parseNonNegativeInt(
+    flags['doppler-browser-port'],
+    DEFAULT_DOPPLER_BROWSER_PORT,
+    '--doppler-browser-port'
+  );
   const jsonOutput = flags.json === true;
   const shouldSave = flags.save === true;
   const saveDir = flags['save-dir'] || path.join(DOPPLER_ROOT, 'bench-results');
@@ -393,16 +498,20 @@ async function main() {
   console.error(`[compare] Doppler model: ${dopplerModelId}`);
   console.error(`[compare] TJS model:     ${tjsModelId} (v${tjsVersion})`);
   console.error(
+    `[compare] Doppler kernel path: ${dopplerKernelPath ?? 'manifest-default'} `
+    + `(${dopplerKernelResolution.source})`
+  );
+  console.error(
     `[compare] mode: ${mode}, maxTokens: ${maxTokens}, warmupRuns: ${warmupRuns}, runs: ${runs}, `
     + `decodeProfile: ${decodeProfile}, dopplerBatchSize: ${dopplerBatchSize}, `
-    + `dopplerReadbackInterval: ${dopplerReadbackInterval}, dopplerTokensPerReadback: ${dopplerTokensPerReadback}, `
-    + `seed: ${seed}`
+    + `dopplerReadbackInterval: ${dopplerReadbackInterval}, dopplerTokensPerReadback: ${dopplerTokensPerReadback}`
   );
 
   const report = {
     timestamp: new Date().toISOString(),
     dopplerModelId,
-    dopplerKernelPath,
+    dopplerKernelPath: dopplerKernelPath ?? 'manifest-default',
+    dopplerKernelPathSource: dopplerKernelResolution.source,
     decodeProfile,
     dopplerBatchSize,
     dopplerReadbackInterval,
@@ -416,9 +525,19 @@ async function main() {
     seed,
     methodology: {
       prefillTokensPerSec: 'prompt_tokens / ttft_ms',
-      cacheMode: {
-        warm: 'reuse persistent profile/caches from previous runs',
-        cold: 'clear persistent profile/caches before run',
+      deterministicDecoding: {
+        seed,
+        temperature: 0,
+        topK: 1,
+        topP: 1,
+      },
+      promptParity: {
+        dopplerChatTemplateEnabled: false,
+        transformersChatTemplateEquivalent: 'raw-prompt',
+      },
+      cacheSemantics: {
+        warm: 'Reuse engine-specific persistent cache state (Doppler OPFS/browser profile; TJS persistent browser profile).',
+        cold: 'Wipe engine-specific persistent cache state before run (Doppler OPFS/profile wipe; TJS profile wipe).',
       },
       dopplerDecodeCadence: {
         batchSize: dopplerBatchSize,
@@ -433,14 +552,76 @@ async function main() {
     sections: {},
   };
 
-  // Warm runs serve double duty: compute metrics come from warm runs
-  const needWarm = mode === 'warm' || mode === 'all' || mode === 'compute';
+  // Compute measures warm-cache behavior and reports both parity/throughput Doppler cadence.
+  const needCompute = mode === 'compute' || mode === 'all';
+  const needWarm = mode === 'warm' || mode === 'all';
   const needCold = mode === 'cold' || mode === 'all';
 
+  let dopplerComputeParity = null;
+  let dopplerComputeThroughput = null;
+  let tjsCompute = null;
   let dopplerWarm = null;
   let tjsWarm = null;
   let dopplerCold = null;
   let tjsCold = null;
+
+  if (needCompute) {
+    tjsCompute = await runTjs(
+      tjsModelId,
+      prompt,
+      maxTokens,
+      warmupRuns,
+      runs,
+      'warm',
+      tjsVersion,
+      tjsLocalModelPath,
+      {
+        profileOps: tjsProfileOps,
+        timeoutMs: tjsTimeoutMs,
+        serverPort: tjsServerPort,
+        browserConsole: tjsBrowserConsole,
+        seed,
+      }
+    );
+    dopplerComputeParity = await runDoppler(
+      dopplerModelId,
+      dopplerModelUrl,
+      prompt,
+      maxTokens,
+      warmupRuns,
+      runs,
+      'warm',
+      {
+        kernelPath: dopplerKernelPath,
+        batchSize: DECODE_PROFILE_PRESETS.parity.batchSize,
+        readbackInterval: DECODE_PROFILE_PRESETS.parity.readbackInterval,
+        noOpfsCache: dopplerNoOpfsCache,
+        browserUserData: dopplerBrowserUserData,
+        browserPort: dopplerBrowserPort,
+      }
+    );
+    dopplerComputeThroughput = await runDoppler(
+      dopplerModelId,
+      dopplerModelUrl,
+      prompt,
+      maxTokens,
+      warmupRuns,
+      runs,
+      'warm',
+      {
+        kernelPath: dopplerKernelPath,
+        batchSize: DECODE_PROFILE_PRESETS.throughput.batchSize,
+        readbackInterval: DECODE_PROFILE_PRESETS.throughput.readbackInterval,
+        noOpfsCache: dopplerNoOpfsCache,
+        browserUserData: dopplerBrowserUserData,
+        browserPort: dopplerBrowserPort,
+      }
+    );
+    report.sections.compute = {
+      parity: { doppler: dopplerComputeParity, tjs: tjsCompute },
+      throughput: { doppler: dopplerComputeThroughput, tjs: tjsCompute },
+    };
+  }
 
   if (needWarm) {
     dopplerWarm = await runDoppler(
@@ -457,7 +638,7 @@ async function main() {
         readbackInterval: dopplerReadbackInterval,
         noOpfsCache: dopplerNoOpfsCache,
         browserUserData: dopplerBrowserUserData,
-        seed,
+        browserPort: dopplerBrowserPort,
       }
     );
     tjsWarm = await runTjs(
@@ -468,7 +649,14 @@ async function main() {
       runs,
       'warm',
       tjsVersion,
-      tjsLocalModelPath
+      tjsLocalModelPath,
+      {
+        profileOps: tjsProfileOps,
+        timeoutMs: tjsTimeoutMs,
+        serverPort: tjsServerPort,
+        browserConsole: tjsBrowserConsole,
+        seed,
+      }
     );
     report.sections.warm = { doppler: dopplerWarm, tjs: tjsWarm };
   }
@@ -488,7 +676,7 @@ async function main() {
         readbackInterval: dopplerReadbackInterval,
         noOpfsCache: dopplerNoOpfsCache,
         browserUserData: dopplerBrowserUserData,
-        seed,
+        browserPort: dopplerBrowserPort,
       }
     );
     tjsCold = await runTjs(
@@ -499,51 +687,16 @@ async function main() {
       runs,
       'cold',
       tjsVersion,
-      tjsLocalModelPath
+      tjsLocalModelPath,
+      {
+        profileOps: tjsProfileOps,
+        timeoutMs: tjsTimeoutMs,
+        serverPort: tjsServerPort,
+        browserConsole: tjsBrowserConsole,
+        seed,
+      }
     );
     report.sections.cold = { doppler: dopplerCold, tjs: tjsCold };
-  }
-
-  // Compute fairness: always emit both Doppler parity and throughput comparisons
-  // against the same warm TJS run.
-  if (mode === 'compute' || mode === 'all') {
-    const computeProfiles = ['parity', 'throughput'];
-    const computeSections = {};
-    for (const profile of computeProfiles) {
-      const profilePreset = DECODE_PROFILE_PRESETS[profile];
-      let dopplerProfileRun = null;
-      if (profile === decodeProfile && dopplerWarm) {
-        dopplerProfileRun = dopplerWarm;
-      } else {
-        dopplerProfileRun = await runDoppler(
-          dopplerModelId,
-          dopplerModelUrl,
-          prompt,
-          maxTokens,
-          warmupRuns,
-          runs,
-          'warm',
-          {
-            kernelPath: dopplerKernelPath,
-            batchSize: profilePreset.batchSize,
-            readbackInterval: profilePreset.readbackInterval,
-            noOpfsCache: dopplerNoOpfsCache,
-            browserUserData: dopplerBrowserUserData,
-            seed,
-          }
-        );
-      }
-      computeSections[profile] = {
-        doppler: dopplerProfileRun,
-        tjs: tjsWarm,
-        dopplerCadence: {
-          batchSize: profilePreset.batchSize,
-          readbackInterval: profilePreset.readbackInterval,
-          tokensPerReadback: profilePreset.batchSize * profilePreset.readbackInterval,
-        },
-      };
-    }
-    report.sections.compute = computeSections;
   }
 
   if (jsonOutput) {
@@ -562,18 +715,8 @@ async function main() {
     ];
 
     if (mode === 'compute' || mode === 'all') {
-      printSection(
-        'COMPUTE (PARITY)',
-        report.sections.compute?.parity?.doppler ?? null,
-        report.sections.compute?.parity?.tjs ?? null,
-        computeRows
-      );
-      printSection(
-        'COMPUTE (THROUGHPUT)',
-        report.sections.compute?.throughput?.doppler ?? null,
-        report.sections.compute?.throughput?.tjs ?? null,
-        computeRows
-      );
+      printSection('COMPUTE (PARITY)', dopplerComputeParity, tjsCompute, computeRows);
+      printSection('COMPUTE (THROUGHPUT)', dopplerComputeThroughput, tjsCompute, computeRows);
     }
     if (mode === 'warm' || mode === 'all') {
       printSection('WARM START', dopplerWarm, tjsWarm, computeRows);

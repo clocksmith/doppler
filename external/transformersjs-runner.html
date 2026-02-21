@@ -112,6 +112,7 @@ window.__runBench = async (config) => {
     timedRuns,
     profileOps,
     profileTopN,
+    seed = 0,
   } = config;
   const enableOrtProfiling = profileOps !== false;
 
@@ -294,6 +295,7 @@ window.__runBench = async (config) => {
 
   return {
     modelId,
+    seed,
     modelLoadMs,
     warmupRuns,
     timedRuns,
