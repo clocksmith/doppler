@@ -77,56 +77,56 @@
       "index": 0,
       "filename": "shard_00000.bin",
       "size": 67108864,
-      "hash": "3f4369beb50460c76843aab54e36ab042fedffd0b0c03d09e39ec4fc995e6c67",
+      "hash": "5b344e431bb11e3127432f36b0f0f3cad973798409d6db3221790f674b6e76c1",
       "offset": 0
     },
     {
       "index": 1,
       "filename": "shard_00001.bin",
       "size": 67108864,
-      "hash": "7c9b6e74ef5738a687bbc28b80007ba154ad529ba121c3eecd3f73ac14b98e16",
+      "hash": "7b35202bcaac29c4a838747ebb2aaf1374d9eccb3eb521c8e7d06aec10de9695",
       "offset": 67108864
     },
     {
       "index": 2,
       "filename": "shard_00002.bin",
       "size": 67108864,
-      "hash": "1e9affca30a11b90d2cb02ce15aaab4e29a0d031c7696bceed344e7b80f7870b",
+      "hash": "eeb9dcb2776ddc21170a35aa5bf4994bfe3b8085cfcad831017cd0f1bfd1ddce",
       "offset": 134217728
     },
     {
       "index": 3,
       "filename": "shard_00003.bin",
       "size": 67108864,
-      "hash": "bdc8196efc0b2f4442bfb3aeff5097b96172bc4527693bd0bb8df5856d9fc496",
+      "hash": "bab8001b61aff054bf7df8d789c3a3e61b56ce6bb362deb9cd1c9fc1a78f6825",
       "offset": 201326592
     },
     {
       "index": 4,
       "filename": "shard_00004.bin",
       "size": 67108864,
-      "hash": "9e1391f8d5d66008df9a1fefbdf8c24105ac7f1c1b5340e474162e33a8480a30",
+      "hash": "0a934064e45218d9f95fb6e01ec96c2458a97441a70e22c8bd65f5a92cbef517",
       "offset": 268435456
     },
     {
       "index": 5,
       "filename": "shard_00005.bin",
       "size": 67108864,
-      "hash": "77919f04e4f8d305da5a77f101598c76ece5aaf27e32d886562a8407df04ccfc",
+      "hash": "008d0e7bc8e8d42d861e398b93cc8f4ad88a24d560f8b18631a62a4e465147d3",
       "offset": 335544320
     },
     {
       "index": 6,
       "filename": "shard_00006.bin",
       "size": 67108864,
-      "hash": "90ba4decd9bf93d04d0f4d3e90445ffab5bdb6a3d765807db5d42ac2a5bd94e5",
+      "hash": "14fc6517eb70bffc004e04b5e53c0b98dda28ec78f98fe5a2f92535e694ab7e7",
       "offset": 402653184
     },
     {
       "index": 7,
       "filename": "shard_00007.bin",
       "size": 66434304,
-      "hash": "dd66645ec0e22b4bf7cb08ed55c94bb22fe20921d54634382c17a216ac6c51cd",
+      "hash": "437b6cc9f63f27e791de535241415dfdf9535a5d92bd27bfcd2abe37422863fd",
       "offset": 469762048
     }
   ],
@@ -2666,13 +2666,14 @@
   },
   "totalSize": 536196352,
   "hashAlgorithm": "blake3",
-  "eos_token_id": [
-    1,
-    50
-  ],
+  "eos_token_id": 1,
   "metadata": {
     "source": "convert-core",
+<<<<<<< Updated upstream:models/curated/gemma-3-270m-it-f16-f32a-wf16/manifest.json
     "convertedAt": "2026-02-22T17:49:29.215Z",
+=======
+    "convertedAt": "2026-02-22T17:30:01.753Z",
+>>>>>>> Stashed changes:models/curated/gemma-3-270m-it-f16-f32a/manifest.json
     "hasTokenizer": true
   },
   "tokenizer": {
