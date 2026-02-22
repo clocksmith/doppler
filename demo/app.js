@@ -283,17 +283,30 @@ function normalizeQuickModes(rawMode, rawModes) {
 }
 
 function resolveQuickModelBaseUrl(baseUrl, modelId) {
-  if (typeof baseUrl === 'string' && baseUrl.trim()) {
-    return new URL(baseUrl.trim(), QUICK_MODEL_CATALOG_URL).toString();
+  const resolved = typeof baseUrl === 'string' && baseUrl.trim()
+    ? new URL(baseUrl.trim(), QUICK_MODEL_CATALOG_URL).toString()
+    : new URL(`./curated/${encodeURIComponent(modelId)}`, QUICK_MODEL_CATALOG_URL).toString();
+  return isQuickModelCuratedUrl(resolved) ? resolved : null;
+}
+
+function isQuickModelCuratedUrl(resolvedUrl) {
+  try {
+    const resolved = new URL(resolvedUrl);
+    const catalogUrl = new URL(QUICK_MODEL_CATALOG_URL);
+    if (resolved.origin !== catalogUrl.origin) return false;
+    const normalizedPath = resolved.pathname.replace(/\/+/g, '/');
+    return normalizedPath.startsWith('/models/curated/');
+  } catch {
+    return false;
   }
-  const encoded = encodeURIComponent(modelId);
-  return new URL(`./curated/${encoded}`, QUICK_MODEL_CATALOG_URL).toString();
 }
 
 function normalizeQuickCatalogEntry(raw, index) {
   if (!raw || typeof raw !== 'object') return null;
   const modelId = typeof raw.modelId === 'string' ? raw.modelId.trim() : '';
   if (!modelId) return null;
+  const resolvedBaseUrl = resolveQuickModelBaseUrl(raw.baseUrl, modelId);
+  if (!resolvedBaseUrl) return null;
   const modes = normalizeQuickModes(raw.mode, raw.modes);
   const sizeBytes = Number(raw.sizeBytes);
   return {
@@ -301,7 +314,7 @@ function normalizeQuickCatalogEntry(raw, index) {
     modelId,
     label: typeof raw.label === 'string' && raw.label.trim() ? raw.label.trim() : modelId,
     description: typeof raw.description === 'string' ? raw.description.trim() : '',
-    baseUrl: resolveQuickModelBaseUrl(raw.baseUrl, modelId),
+    baseUrl: resolvedBaseUrl,
     modes,
     sizeBytes: Number.isFinite(sizeBytes) && sizeBytes > 0 ? Math.floor(sizeBytes) : null,
     recommended: raw.recommended === true,

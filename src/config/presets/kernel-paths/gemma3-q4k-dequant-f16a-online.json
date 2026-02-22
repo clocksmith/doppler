@@ -50,7 +50,7 @@
 
   "postLayer": [
     { "op": "final_norm",   "kernel": "rmsnorm_f16.wgsl",          "entry": "main" },
-    { "op": "lm_head",      "kernel": "matmul_gemv_subgroup_f16a.wgsl", "entry": "main_multicol",  "weights": "lm_head" },
+    { "op": "lm_head",      "kernel": "matmul_gemv_subgroup_f16a.wgsl", "entry": "main_multicol",  "weights": "lm_head", "constants": { "MULTICOL_COLS_PER_WG": 64, "MULTICOL_THREADS_PER_COL": 4 } },
     { "op": "lm_head_prefill", "kernel": "matmul_f16.wgsl", "entry": "main",  "weights": "lm_head" }
   ],
 

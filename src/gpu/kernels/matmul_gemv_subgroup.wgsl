@@ -155,9 +155,10 @@ fn main(
 // - 262144/32 = 8192 workgroups (8x fewer than base kernel)
 // - Each thread handles more K elements, better amortizing A loads
 //
-// Layout: 256 threads = 8 threads per column × 32 columns
-const MULTICOL_COLS_PER_WG: u32 = 32u;
-const MULTICOL_THREADS_PER_COL: u32 = 8u;  // 256 / 32 = 8
+// Layout defaults: 256 threads = 8 threads per column × 32 columns.
+// Tune-time overrides can retile this without changing entry points.
+override MULTICOL_COLS_PER_WG: u32 = 32u;
+override MULTICOL_THREADS_PER_COL: u32 = 8u;
 const MULTICOL_MAX_SUBGROUPS: u32 = 8u;    // Support sg_size >= 1 (unlikely but safe)
 
 // Shared memory for reduction (one slot per thread)
