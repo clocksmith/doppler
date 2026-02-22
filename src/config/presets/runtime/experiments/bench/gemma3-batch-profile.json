@@ -1,6 +1,6 @@
 {
   "extends": "bench",
-  "model": "google-gemma-3-1b-it-wq4k-ef16",
+  "model": "gemma-3-1b-it-wq4k",
   "runtime": {
     "shared": {
       "tooling": {

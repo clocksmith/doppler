@@ -1,7 +1,10 @@
 {
     "output": {
         "baseDir": "models/local",
-        "modelId": "gemma-3-1b-it-f16-f32a"
+        "modelId": "gemma-3-1b-it-f16-f32a-wf16"
+    },
+    "presets": {
+        "model": "gemma3"
     },
     "quantization": {
         "weights": "f16",

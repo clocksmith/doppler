@@ -3,6 +3,9 @@
         "baseDir": "models/local",
         "modelId": "gemma-3-1b-it-wf16"
     },
+    "presets": {
+        "model": "gemma3"
+    },
     "quantization": {
         "weights": "f16",
         "embeddings": "f16",
@@ -10,6 +13,6 @@
         "computePrecision": "f16"
     },
     "inference": {
-        "defaultKernelPath": "gemma3-f16-fused-f32a-online"
+        "defaultKernelPath": "gemma3-f16-fused-f16a-online"
     }
 }

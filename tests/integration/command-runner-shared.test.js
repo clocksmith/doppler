@@ -45,7 +45,7 @@ function createRuntimeBridge(initialRuntime = {}) {
     command: 'test-model',
     suite: 'inference',
     intent: 'verify',
-    modelId: 'gemma-3-270m-it-wf16',
+    modelId: 'gemma-3-270m-it-f16-f32a',
     runtimePreset: 'modes/debug',
     runtimeConfigUrl: '/runtime/custom.json',
     runtimeConfig: {
@@ -72,7 +72,7 @@ function createRuntimeBridge(initialRuntime = {}) {
   assert.equal(runtime.getRuntime().inference.prompt, 'The sky is');
   assert.equal(runtime.getRuntime().inference.batching.maxTokens, 8);
   assert.equal(runtime.getRuntime().shared.harness.mode, 'inference');
-  assert.equal(runtime.getRuntime().shared.harness.modelId, 'gemma-3-270m-it-wf16');
+  assert.equal(runtime.getRuntime().shared.harness.modelId, 'gemma-3-270m-it-f16-f32a');
   assert.equal(runtime.getRuntime().shared.tooling.intent, 'verify');
 }
 
@@ -104,7 +104,7 @@ function createRuntimeBridge(initialRuntime = {}) {
 {
   const suiteOptions = buildSuiteOptions({
     suite: 'inference',
-    modelId: 'gemma-3-270m-it-wf16',
+    modelId: 'gemma-3-270m-it-f16-f32a',
     modelUrl: null,
     runtimePreset: null,
     captureOutput: true,
@@ -116,7 +116,7 @@ function createRuntimeBridge(initialRuntime = {}) {
 
   assert.deepEqual(suiteOptions, {
     suite: 'inference',
-    modelId: 'gemma-3-270m-it-wf16',
+    modelId: 'gemma-3-270m-it-f16-f32a',
     modelUrl: undefined,
     runtimePreset: null,
     captureOutput: true,

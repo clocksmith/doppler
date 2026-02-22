@@ -1,7 +1,10 @@
 {
     "output": {
-        "baseDir": "models/converted",
-        "modelId": "gemma-3-270m-it-f16-f32a"
+        "baseDir": "models/curated",
+        "modelId": "gemma-3-270m-it-f16-f32a-wf16"
+    },
+    "presets": {
+        "model": "gemma3"
     },
     "quantization": {
         "weights": "f16",

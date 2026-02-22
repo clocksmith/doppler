@@ -9,9 +9,13 @@
     "computePrecision": "f16"
   },
   "output": {
-    "modelId": "gpt-oss-20b",
+    "baseDir": "models/local",
+    "modelId": "gpt-oss-20b-wf16",
     "textOnly": true,
     "fast": false
+  },
+  "inference": {
+    "defaultKernelPath": null
   },
   "manifest": {
     "hashAlgorithm": "blake3"

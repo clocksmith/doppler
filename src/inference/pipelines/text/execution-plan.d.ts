@@ -28,6 +28,9 @@ export interface StaticExecutionPlan {
 }
 
 export interface ExecutionPlanState {
+  /**
+   * Mutable per-generator state; do not share one instance across concurrent generation sessions.
+   */
   primaryPlan: StaticExecutionPlan;
   fallbackPlan: StaticExecutionPlan | null;
   activePlanId: 'primary' | 'finiteness_fallback';

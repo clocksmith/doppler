@@ -2,7 +2,7 @@
   "name": "gemma3-q4k-debug",
   "description": "Debug Gemma 3 1B Q4K inference - check kernel selection and alignment",
   "extends": "default",
-  "model": "google-gemma-3-1b-it-wq4k-ef16",
+  "model": "gemma-3-1b-it-wq4k",
   "runtime": {
     "shared": {
       "tooling": {

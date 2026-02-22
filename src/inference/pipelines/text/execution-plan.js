@@ -59,13 +59,21 @@ function resolveFallbackKernelPath(primaryKernelPath) {
   const resolvedKernelPathId = typeof fallbackKernelPathId === 'string' && fallbackKernelPathId.length > 0
     ? fallbackKernelPathId
     : primaryKernelPathId;
+  const kernelPathSource = resolvedKernelPathId === primaryKernelPathId ? 'self' : 'rule';
+
+  if (kernelPathSource === 'self') {
+    log.warn(
+      'Pipeline',
+      `[ExecutionPlan] No finiteness fallback kernel path mapping for "${primaryKernelPathId}"; using primary kernel path.`
+    );
+  }
 
   try {
     const kernelPath = resolveKernelPath(resolvedKernelPathId);
     return {
       kernelPath,
       kernelPathId: resolvedKernelPathId,
-      kernelPathSource: resolvedKernelPathId === primaryKernelPathId ? 'self' : 'rule',
+      kernelPathSource,
     };
   } catch (error) {
     throw new Error(
@@ -161,6 +169,11 @@ export function compileExecutionPlanState(options) {
   let fallbackPlan = null;
   if (primaryPlan.finitenessGuardEnabled) {
     const fallbackActivationDtype = resolveFallbackActivationDtype(primaryPlan.activationDtype);
+    if (fallbackActivationDtype !== 'f32') {
+      throw new Error(
+        `[ExecutionPlan] finiteness fallback activation dtype must widen to "f32"; got "${fallbackActivationDtype}".`
+      );
+    }
     const fallbackKernelPathState = resolveFallbackKernelPath(primaryPlan.kernelPath);
 
     fallbackPlan = createStaticExecutionPlan({
@@ -174,6 +187,10 @@ export function compileExecutionPlanState(options) {
       generationConfig,
       batchingConfig,
     });
+
+    if (fallbackPlan.finitenessGuardEnabled) {
+      throw new Error('[ExecutionPlan] finiteness fallback plan cannot enable finiteness guard.');
+    }
   }
 
   return {

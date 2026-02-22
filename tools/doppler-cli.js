@@ -7,7 +7,7 @@ import { runBrowserCommandInNode } from '../src/tooling/node-browser-command-run
 import { TOOLING_COMMANDS } from '../src/tooling/command-api.js';
 
 const NODE_WEBGPU_INCOMPLETE_MESSAGE = 'node command: WebGPU runtime is incomplete in Node';
-const DEFAULT_BENCH_MODEL_ID = 'gemma-3-270m-it-wf16';
+const DEFAULT_BENCH_MODEL_ID = 'gemma-3-270m-it-f16-f32a';
 const DEFAULT_BENCH_SURFACE = 'browser';
 
 function usage() {
