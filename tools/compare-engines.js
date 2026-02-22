@@ -13,7 +13,7 @@
  *   node tools/compare-engines.js [options]
  *
  * Options:
- *   --model-id <id>        Doppler model ID (default: gemma-3-1b-it-f16-f32a)
+ *   --model-id <id>        Doppler model ID (default: gemma-3-1b-it-f16-f32a-wf16)
  *   --model-url <url>      Doppler model URL path (default: /models/local/<model-id>)
  *   --tjs-model <id>       TJS model ID (default: onnx-community/gemma-3-1b-it-ONNX-GQA)
  *   --tjs-version <3|4>    Transformers.js version (default: 3)
@@ -56,7 +56,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DOPPLER_ROOT = path.resolve(__dirname, '..');
 const WORKLOADS_PATH = path.join(DOPPLER_ROOT, 'benchmarks', 'competitors', 'workloads.json');
 
-const DEFAULT_DOPPLER_MODEL = 'gemma-3-1b-it-f16-f32a';
+const DEFAULT_DOPPLER_MODEL = 'gemma-3-1b-it-f16-f32a-wf16';
 const DEFAULT_TJS_MODEL = 'onnx-community/gemma-3-1b-it-ONNX-GQA';
 const FALLBACK_DEFAULT_WORKLOAD_ID = 'g3-p064-d064-t0-k32';
 const DEFAULT_PROMPT = 'word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 word30 word31';
@@ -72,7 +72,7 @@ const DEFAULT_SHARED_SAMPLING = Object.freeze({
 const DEFAULT_DOPPLER_KERNEL_PATH = null;
 const AUTO_DOPPLER_KERNEL_PATH_BY_MODEL = Object.freeze({
   'gemma-3-1b-it': 'gemma3-f16-fused-f32a-online',
-  'gemma-3-1b-it-f16-f32a': 'gemma3-f16-fused-f32a-online',
+  'gemma-3-1b-it-f16-f32a-wf16': 'gemma3-f16-fused-f32a-online',
   'gemma-3-1b-it-wf16': 'gemma3-f16-fused-f32a-online',
 });
 const DEFAULT_DECODE_PROFILE = 'parity';

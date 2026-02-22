@@ -13,11 +13,11 @@
       "sortOrder": 10
     },
     {
-      "modelId": "gemma-3-270m-it-f16-f32a",
+      "modelId": "gemma-3-270m-it-f16-f32a-wf16",
       "label": "Gemma 3 270M Instruct (F16/F32a)",
       "description": "Small text model for local prompting, quick checks, and diagnostics.",
       "mode": "text",
-      "baseUrl": "./curated/gemma-3-270m-it-f16-f32a",
+      "baseUrl": "./curated/gemma-3-270m-it-f16-f32a-wf16",
       "sizeBytes": 536196352,
       "recommended": false,
       "sortOrder": 20

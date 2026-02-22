@@ -20,6 +20,7 @@
     "maxSeqLen": 2048,
     "ropeTheta": 1000000
   },
+  "moeConfig": null,
   "inference": {
     "presetId": "embeddinggemma",
     "attention": {
@@ -61,7 +62,8 @@
     "layerPattern": {
       "type": "every_n",
       "globalPattern": null,
-      "period": 6
+      "period": 6,
+      "offset": 5
     },
     "chatTemplate": {
       "type": null,
@@ -3518,7 +3520,7 @@
   "eos_token_id": 1,
   "metadata": {
     "source": "convert-core",
-    "convertedAt": "2026-02-13T16:35:00.833Z",
+    "convertedAt": "2026-02-22T17:54:33.363Z",
     "hasTokenizer": true
   },
   "tokenizer": {

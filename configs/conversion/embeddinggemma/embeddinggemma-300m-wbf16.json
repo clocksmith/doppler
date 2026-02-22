@@ -1,0 +1,18 @@
+{
+  "output": {
+    "baseDir": "models/curated",
+    "modelId": "google-embeddinggemma-300m-wbf16"
+  },
+  "presets": {
+    "model": "embeddinggemma"
+  },
+  "quantization": {
+    "weights": "bf16",
+    "embeddings": "bf16",
+    "lmHead": "bf16",
+    "computePrecision": "f32"
+  },
+  "inference": {
+    "defaultKernelPath": "embeddinggemma-f16-f32a"
+  }
+}

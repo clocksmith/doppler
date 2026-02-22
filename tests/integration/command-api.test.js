@@ -35,7 +35,7 @@ import { normalizeToolingCommandRequest } from '../../src/tooling/command-api.js
     outputDir: '/tmp/out',
     convertPayload: {
       converterConfig: {
-        output: { modelId: 'gemma-3-1b-it-f16-f32a' },
+        output: { modelId: 'gemma-3-1b-it-f16-f32a-wf16' },
       },
     },
   });
@@ -44,7 +44,7 @@ import { normalizeToolingCommandRequest } from '../../src/tooling/command-api.js
   assert.equal(request.outputDir, '/tmp/out');
   assert.equal(
     request.convertPayload?.converterConfig?.output?.modelId,
-    'gemma-3-1b-it-f16-f32a'
+    'gemma-3-1b-it-f16-f32a-wf16'
   );
 }
 

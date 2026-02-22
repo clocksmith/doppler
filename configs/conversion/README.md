@@ -13,6 +13,7 @@ Notes:
 - Gemma configs pin `presets.model = gemma3` for deterministic preset selection.
 - `*-f16-f32a-*` configs are the stability-first path (F16 weights + F32 activations).
 - `*-wf16` configs are F16-activation experimental paths.
+- `*-wbf16` configs preserve BF16 weight storage with F32 compute.
 
 Current config intent:
 
@@ -40,3 +41,10 @@ Current config intent:
   - Output: `models/local/gpt-oss-20b-wf16`
   - Preset: `gpt_oss`
   - Compute: `f16`
+
+- `configs/conversion/embeddinggemma/embeddinggemma-300m-wbf16.json`
+  - Output: `models/curated/google-embeddinggemma-300m-wbf16`
+  - Preset: `embeddinggemma`
+  - Weights/Embeddings/lmHead: `bf16`
+  - Compute: `f32`
+  - Kernel path: `embeddinggemma-f16-f32a`

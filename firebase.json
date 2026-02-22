@@ -3,8 +3,13 @@
     "public": ".",
     "ignore": [
       "firebase.json",
+      ".firebaserc",
+      ".gitignore",
+      "README.md",
       "**/.*",
+      ".github/**",
       "**/node_modules/**",
+      "**/*.d.ts",
       "AGENTS.md",
       "CLAUDE.md",
       "GEMINI.md",
@@ -27,8 +32,7 @@
       "firebase-debug.log",
       ".tjs-bench-profile/**",
       "models/converted/**",
-      "models/local/**",
-      "models/curated/gemma-3-270m-it-f16-f32a/**"
+      "models/local/**"
     ],
     "rewrites": [
       {
