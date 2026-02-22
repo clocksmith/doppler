@@ -44,6 +44,8 @@ export class PipelineState {
   decodeStepCount: number;
   resolvedKernelPath: KernelPathSchema | null;
   kernelPathSource: KernelPathSource;
+  executionKernelPathOverride: KernelPathSchema | null;
+  executionActivationDtypeOverride: 'f16' | 'f32' | null;
   disableRecordedLogits: boolean;
   disableFusedDecode: boolean;
 

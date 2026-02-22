@@ -6,7 +6,13 @@ import { acquireBuffer } from '../../memory/buffer-pool.js';
 import { ALIGNMENT, QUANTIZATION, TILE_SIZES } from './constants.js';
 import { getKernelConfig, hasRequiredFeatures } from './utils.js';
 import { getKernelThresholds } from '../../config/schema/index.js';
-import { getKernelPathMatmulConstants, getKernelPathMatmulVariant, getKernelPathStrict, isActiveKernelPathFusedQ4K } from '../../config/kernel-path-loader.js';
+import {
+  getActiveKernelPath,
+  getKernelPathMatmulConstants,
+  getKernelPathMatmulVariant,
+  getKernelPathStrict,
+  isKernelPathFusedQ4K,
+} from '../../config/kernel-path-loader.js';
 import { selectRuleValue as selectKernelRuleValue } from './rule-registry.js';
 import { selectRuleValue as selectSharedRuleValue } from '../../rules/rule-registry.js';
 import { logKernelSelectionOnce } from '../kernel-selection-log.js';
@@ -32,7 +38,12 @@ export function resolveMatmulConstants(options, phase) {
   if (options.constants && Object.keys(options.constants).length > 0) {
     return options.constants;
   }
-  const pathConstants = getKernelPathMatmulConstants(options.role, phase, options.layerIdx);
+  const pathConstants = getKernelPathMatmulConstants(
+    options.role,
+    phase,
+    options.layerIdx,
+    options.kernelPath
+  );
   if (pathConstants && Object.keys(pathConstants).length > 0) {
     return pathConstants;
   }
@@ -74,8 +85,23 @@ export function getMatmulConfig(variant, constants) {
 }
 
 
-export function isFusedQ4KDisabled() {
-  return !isActiveKernelPathFusedQ4K();
+export function isFusedQ4KDisabled(options = {}) {
+  const capabilities = getKernelCapabilities();
+  const hasSubgroups = capabilities?.hasSubgroups === true;
+
+  if (options.kernelPath !== undefined) {
+    if (!options.kernelPath) {
+      return !hasSubgroups;
+    }
+    return !isKernelPathFusedQ4K(options.kernelPath);
+  }
+
+  const activeKernelPath = getActiveKernelPath();
+  if (activeKernelPath) {
+    return !isKernelPathFusedQ4K(activeKernelPath);
+  }
+
+  return !hasSubgroups;
 }
 
 
@@ -219,7 +245,17 @@ export function requiresF32Input(variant) {
 }
 
 
-function resolveMatmulOverride(variantOverride, M, K, aDtype, bDtype, requestedOutputDtype, capabilities, strict) {
+function resolveMatmulOverride(
+  variantOverride,
+  M,
+  K,
+  aDtype,
+  bDtype,
+  requestedOutputDtype,
+  capabilities,
+  strict,
+  fusedQ4KDisabled
+) {
   const override = variantOverride.trim();
   if (!override) return null;
 
@@ -268,7 +304,7 @@ function resolveMatmulOverride(variantOverride, M, K, aDtype, bDtype, requestedO
     if (bDtype !== 'q4k') {
       return failOrWarn(`Matmul kernel "${variantOverride}" requires Q4K weights but B dtype is ${bDtype}.`);
     }
-    if (isFusedQ4KDisabled()) {
+    if (fusedQ4KDisabled) {
       return failOrWarn(`Matmul kernel "${variantOverride}" blocked by kernel path (fused Q4K disabled).`);
     }
   }
@@ -306,7 +342,7 @@ export function selectMatmulVariantAndFlags(mode, M, N, K, aDtype, bDtype, trans
   const capabilities = getKernelCapabilities();
   const strict = getKernelPathStrict();
   const phase = resolveMatmulPhase(M);
-  let pathVariant = getKernelPathMatmulVariant(options.role, phase, options.layerIdx);
+  let pathVariant = getKernelPathMatmulVariant(options.role, phase, options.layerIdx, options.kernelPath);
   const hadPathVariant = Boolean(pathVariant);
 
   if (pathVariant && !strict && M === 1 && bDtype === 'f16' && capabilities.hasSubgroups) {
@@ -314,8 +350,20 @@ export function selectMatmulVariantAndFlags(mode, M, N, K, aDtype, bDtype, trans
     pathVariant = resolveGemvPathVariant(pathVariant, aDtype, requestedOutputDtype, N, multicolThreshold);
   }
 
+  const fusedQ4KDisabled = isFusedQ4KDisabled(options);
+
   if (pathVariant) {
-    const override = resolveMatmulOverride(pathVariant, M, K, aDtype, bDtype, requestedOutputDtype, capabilities, strict);
+    const override = resolveMatmulOverride(
+      pathVariant,
+      M,
+      K,
+      aDtype,
+      bDtype,
+      requestedOutputDtype,
+      capabilities,
+      strict,
+      fusedQ4KDisabled
+    );
     if (override) {
       if (
         phase === 'prefill'
@@ -358,7 +406,7 @@ export function selectMatmulVariantAndFlags(mode, M, N, K, aDtype, bDtype, trans
     }
   }
 
-  const fusedAllowed = !isFusedQ4KDisabled();
+  const fusedAllowed = !fusedQ4KDisabled;
   const isQ4K = bDtype === 'q4k';
   const wantF16Output = requestedOutputDtype === 'f16' && capabilities.hasF16;
   const q4kVariant = isQ4K && capabilities.hasSubgroups && fusedAllowed

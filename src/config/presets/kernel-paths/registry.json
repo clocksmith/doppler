@@ -107,6 +107,13 @@
       "notes": "Gemma 3 Q4K dequant path with F32 activation for quality-first runs."
     },
     {
+      "id": "gemma3-q4k-dequant-f32a-online",
+      "file": "gemma3-q4k-dequant-f32a-online.json",
+      "status": "canonical",
+      "statusReason": "default",
+      "notes": "Gemma 3 Q4K dequant default: subgroup GEMV + online attention + tuned lm_head multicol, F32 activations."
+    },
+    {
       "id": "gemma3-q4k-fused-f16a",
       "aliasOf": "gemma3-q4k-dequant-f16a",
       "status": "legacy",

@@ -7,7 +7,7 @@
  * @module inference/pipelines/text/logits/types
  */
 
-import type { LargeWeightConfigSchema } from '../../../../config/schema/index.js';
+import type { LargeWeightConfigSchema, KernelPathSchema } from '../../../../config/schema/index.js';
 import type { WeightBuffer, CpuWeightBuffer } from '../../../../gpu/weight-buffer.js';
 
 /**
@@ -23,6 +23,8 @@ export interface LogitsConfig {
   largeWeights?: LargeWeightConfigSchema;
   /** Dtype for hidden state activations */
   activationDtype?: 'f16' | 'f32';
+  /** Explicit kernel-path context for variant selection. */
+  kernelPath?: KernelPathSchema | null;
   /** Gemma 2 RMS scaling: (1+w)*x */
   rmsNormWeightOffset?: boolean;
 }

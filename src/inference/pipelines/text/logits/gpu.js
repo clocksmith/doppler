@@ -113,7 +113,8 @@ export async function computeChunkedLogitsGPU(
   vocabSize,
   weightVocabSize,
   debugProbes,
-  largeWeightConfig
+  largeWeightConfig,
+  kernelPath = null
 ) {
   const device = getDevice();
   if (!device) {
@@ -173,6 +174,7 @@ export async function computeChunkedLogitsGPU(
     const logitsTensor = await runMatmul(normedTensor, weightBuffer, numTokens, rowCount, hiddenSize, {
       transposeB: 'auto',
       role: 'lm_head',
+      kernelPath,
     });
 
     if (debugProbes?.length) {
@@ -298,6 +300,7 @@ export async function computeLogitsGPU(
   const logitsTensor = await runMatmul(normedTensor, lmHeadBuffer, numTokens, matmulVocabSize, hiddenSize, {
     transposeB: 'auto',
     role: forceStableF32Logits ? undefined : 'lm_head',
+    kernelPath: config.kernelPath ?? null,
   });
 
   // Cleanup intermediate buffers (but keep logitsBuffer)
@@ -384,6 +387,7 @@ export async function recordLogitsGPU(
   const logitsTensor = await recordMatmul(recorder, normedTensor, lmHeadBuffer, numTokens, matmulVocabSize, hiddenSize, {
     transposeB: 'auto',
     role: forceStableF32Logits ? undefined : 'lm_head',
+    kernelPath: config.kernelPath ?? null,
   });
 
   // Track intermediate buffer for cleanup after submit

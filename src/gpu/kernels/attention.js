@@ -493,13 +493,14 @@ function resolveAttentionPlan(
   sharedLimit,
   caps,
   layerIdx,
-  isPaged
+  isPaged,
+  kernelPath
 ) {
   const useF16KV = kvDtype === 'f16';
   const useF16Q = qDtype === 'f16';
   const isDecode = seqLen === 1;
   const phase = selectKernelRuleValue('attention', 'phase', { isDecode });
-  const pathVariant = getKernelPathAttentionVariant(phase, layerIdx);
+  const pathVariant = getKernelPathAttentionVariant(phase, layerIdx, kernelPath);
 
   if (pathVariant) {
     let variantOverride = validateAttentionVariant(
@@ -593,7 +594,8 @@ export function resolveAttentionPlanForTest(
   sharedLimit,
   caps,
   layerIdx,
-  isPaged = false
+  isPaged = false,
+  kernelPath = null
 ) {
   return resolveAttentionPlan(
     seqLen,
@@ -605,7 +607,8 @@ export function resolveAttentionPlanForTest(
     sharedLimit,
     caps,
     layerIdx,
-    isPaged
+    isPaged,
+    kernelPath
   );
 }
 
@@ -879,6 +882,7 @@ async function executeAttention(
     kvLayout = 'contiguous',
     kvPageTable = null,
     kvPageSize = 0,
+    kernelPath = null,
   } = options;
 
   const limits = getDeviceLimits();
@@ -898,7 +902,8 @@ async function executeAttention(
     sharedLimit,
     caps,
     layerIdx,
-    isPaged
+    isPaged,
+    kernelPath
   );
 
   if (execution.recorder) {

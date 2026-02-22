@@ -11,7 +11,7 @@ import { getDopplerLoader } from '../../../loader/doppler-loader.js';
 import { log, setGPUDevice, trace as debugTrace } from '../../../debug/index.js';
 import { getRuntimeConfig } from '../../../config/runtime.js';
 import { PAGED_LAYOUT_SEQ_LEN_THRESHOLD } from '../../../config/schema/index.js';
-import { getActiveKernelPath, getActiveKernelPathSource, isActiveKernelPathFusedQ4K } from '../../../config/kernel-path-loader.js';
+import { isKernelPathFusedQ4K } from '../../../config/kernel-path-loader.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 
 
@@ -20,9 +20,7 @@ function isRDRRManifest(manifest) {
 }
 
 
-function resolveQ4KConfig(manifest) {
-  const activeKernelPath = getActiveKernelPath();
-  const pathSource = getActiveKernelPathSource();
+function resolveQ4KConfig(manifest, kernelPath, kernelPathSource = 'none') {
   const caps = getKernelCapabilities();
   const hasSubgroups = caps?.hasSubgroups ?? false;
   // Layout in quantizationInfo: 'row' (fused) or 'col' (dequant)
@@ -40,14 +38,14 @@ function resolveQ4KConfig(manifest) {
   }
   const keepF32Weights = getRuntimeConfig().inference.compute.keepF32Weights;
 
-  let useFused = activeKernelPath ? isActiveKernelPathFusedQ4K() : hasSubgroups;
+  let useFused = kernelPath ? isKernelPathFusedQ4K(kernelPath) : hasSubgroups;
   if (q4kLayout === 'col') {
     useFused = false;
   }
 
-  const pathLabel = activeKernelPath?.id ?? 'auto';
+  const pathLabel = kernelPath?.id ?? 'auto';
   const layoutLabel = q4kLayout ?? 'none';
-  debugTrace.loader(`Q4K config: fused=${useFused}, kernelPath=${pathLabel}, source=${pathSource}, layout=${layoutLabel}, subgroups=${hasSubgroups}`);
+  debugTrace.loader(`Q4K config: fused=${useFused}, kernelPath=${pathLabel}, source=${kernelPathSource}, layout=${layoutLabel}, subgroups=${hasSubgroups}`);
 
   return {
     useFusedQ4K: useFused,
@@ -382,7 +380,13 @@ export async function loadWeights(manifest, modelConfig, options = {}) {
   }
 
   const dopplerLoader = getDopplerLoader(loadingConfig);
-  dopplerLoader.setQ4KConfig(resolveQ4KConfig(manifest));
+  dopplerLoader.setQ4KConfig(
+    resolveQ4KConfig(
+      manifest,
+      options.resolvedKernelPath ?? null,
+      options.kernelPathSource ?? 'none'
+    )
+  );
 
   const tensorsFile = isRDRRManifest(manifest) ? manifest.tensorsFile : null;
   if (baseUrl && tensorsFile) {

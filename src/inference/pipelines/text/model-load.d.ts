@@ -27,6 +27,14 @@ export interface KernelPathResolutionResult {
 
 export function runKernelWarmup(options: KernelWarmupOptions): Promise<void>;
 
+export function resolveKernelPathState(
+  options: KernelPathResolutionOptions
+): KernelPathResolutionResult;
+
+export function activateKernelPathState(
+  kernelPathState: KernelPathResolutionResult | null | undefined
+): void;
+
 export function resolveAndActivateKernelPath(
   options: KernelPathResolutionOptions
 ): KernelPathResolutionResult;

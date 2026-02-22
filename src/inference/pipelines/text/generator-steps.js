@@ -17,6 +17,7 @@ import { computeLogits, computeLogitsGPU, recordLogitsGPU, extractLastPositionLo
 import { isWeightBuffer, isCpuWeightBuffer, getWeightDtype } from '../../../gpu/weight-buffer.js';
 import { decodeReadback } from './debug-utils.js';
 import { getFinalNormWeights, extractEmbeddingFromHidden } from './generator-runtime.js';
+import { parseFinitenessStatusWords } from './finiteness-guard-status.js';
 
 export function sumProfileTimings(timings) {
   if (!timings || Object.keys(timings).length === 0) return null;
@@ -27,6 +28,11 @@ export function sumProfileTimings(timings) {
     }
   }
   return total;
+}
+
+function getEffectiveActivationDtype(state) {
+  return state.executionActivationDtypeOverride
+    ?? state.runtimeConfig.inference.compute.activationDtype;
 }
 
 export class FinitenessError extends Error {
@@ -103,7 +109,7 @@ async function runDecodeLayers(state, tokenId, opts, helpers) {
     : isCpuWeightBuffer(embedBufferRaw)
       ? embedBufferRaw.dtype
       : null;
-  const activationDtype = state.runtimeConfig.inference.compute.activationDtype;
+  const activationDtype = getEffectiveActivationDtype(state);
 
   const embedTensor = await embed([tokenId], embedBuffer, {
     hiddenSize: config.hiddenSize,
@@ -183,7 +189,7 @@ export async function decodeStep(state, currentIds, opts, helpers) {
     : isCpuWeightBuffer(embedBufferRaw)
       ? embedBufferRaw.dtype
       : null;
-  const activationDtype = state.runtimeConfig.inference.compute.activationDtype;
+  const activationDtype = getEffectiveActivationDtype(state);
   const activationBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: activationDtype });
 
   const embedTensor = await embed([lastToken], embedBuffer, {
@@ -317,22 +323,20 @@ export async function decodeStep(state, currentIds, opts, helpers) {
     await stagingBuffer.mapAsync(GPUMapMode.READ);
     const mapped = new Uint32Array(stagingBuffer.getMappedRange());
     const nextToken = mapped[0];
-    const isInfinite = state.finitenessBuffer ? mapped[1] > 0 : false;
-    let metadata = '';
-    if (isInfinite) {
-      metadata = ` (layer ${mapped[2]}, step ${mapped[3]})`;
-    }
+    const finitenessStatus = state.finitenessBuffer
+      ? parseFinitenessStatusWords(mapped, 1)
+      : parseFinitenessStatusWords(mapped, 0);
     stagingBuffer.unmap();
     if (ownsStagingBuffer) {
       stagingBuffer.destroy();
     }
     ring?.advance();
 
-    if (isInfinite) {
+    if (finitenessStatus.triggered) {
       releaseBuffer(logitsBuffer);
       if (ownsSampleOutputBuffer) releaseBuffer(sampleOutputBuffer);
       if (!isPreAllocated) releaseBuffer(hiddenStates);
-      throw new FinitenessError(`F16 bounds exceeded during generation${metadata}`);
+      throw new FinitenessError(`F16 bounds exceeded during generation${finitenessStatus.metadata}`);
     }
 
     log.debug('Decode', `Step ${state.decodeStepCount}: token=${nextToken} (vocabSize=${config.vocabSize})`);
@@ -514,12 +518,12 @@ export async function decodeStep(state, currentIds, opts, helpers) {
   if (state.finitenessBuffer) {
     const isInfiniteData = await readBuffer(state.finitenessBuffer, 16);
     const u32 = new Uint32Array(isInfiniteData.buffer, isInfiniteData.byteOffset, 4);
-    const isInfinite = u32[0] > 0;
-    if (isInfinite) {
+    const finitenessStatus = parseFinitenessStatusWords(u32, 0);
+    if (finitenessStatus.triggered) {
       if (!context.decodeBuffers?.ownsBuffer(hiddenStates)) {
         releaseBuffer(hiddenStates);
       }
-      throw new FinitenessError(`F16 bounds exceeded during generation (layer ${u32[1]}, step ${u32[2]})`);
+      throw new FinitenessError(`F16 bounds exceeded during generation${finitenessStatus.metadata}`);
     }
   }
 
@@ -677,7 +681,7 @@ export async function advanceWithTokenAndEmbedding(state, tokenId, opts, helpers
   }
 
   const config = state.modelConfig;
-  const activationDtype = state.runtimeConfig.inference.compute.activationDtype;
+  const activationDtype = getEffectiveActivationDtype(state);
   const activationBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: activationDtype });
 
   let embedding;
@@ -844,7 +848,7 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
   }
   const embedBuffer = isWeightBuffer(embedBufferRaw) ? embedBufferRaw.buffer : embedBufferRaw;
   const embedDtype = isWeightBuffer(embedBufferRaw) ? getWeightDtype(embedBufferRaw) : null;
-  const activationDtype = state.runtimeConfig.inference.compute.activationDtype;
+  const activationDtype = getEffectiveActivationDtype(state);
 
   for (let i = 0; i < N; i++) {
     const currentPos = state.currentSeqLen + i;
@@ -971,10 +975,9 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
   let metadata = '';
   if (finitenessStagingBuffer) {
     const finitenessData = new Uint32Array(finitenessStagingBuffer.getMappedRange());
-    isInfinite = finitenessData[0] > 0;
-    if (isInfinite) {
-      metadata = ` (layer ${finitenessData[1]}, step ${finitenessData[2]})`;
-    }
+    const finitenessStatus = parseFinitenessStatusWords(finitenessData, 0);
+    isInfinite = finitenessStatus.triggered;
+    metadata = finitenessStatus.metadata;
     finitenessStagingBuffer.unmap();
     finitenessStagingBuffer.destroy();
   }

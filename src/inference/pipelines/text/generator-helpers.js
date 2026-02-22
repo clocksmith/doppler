@@ -5,6 +5,7 @@ import { log } from '../../../debug/index.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { decodeReadback } from './debug-utils.js';
 import { isWeightBuffer, isCpuWeightBuffer } from '../../../gpu/weight-buffer.js';
+import { resolveRangeAwareSelectiveWideningConfig } from './finiteness-policy.js';
 
 
 export async function debugCheckBuffer(state, buffer, label, numTokens, expectedDim) {
@@ -79,6 +80,14 @@ export async function debugCheckBuffer(state, buffer, label, numTokens, expected
 
 export function buildLayerContext(state, recorder, isDecodeMode, debugLayers, debugCheckBufferFn) {
   const config = state.modelConfig;
+  const computeConfig = state.runtimeConfig.inference.compute;
+  const activeKernelPath = state.executionKernelPathOverride ?? state.resolvedKernelPath ?? null;
+  const effectiveActivationDtype = state.executionActivationDtypeOverride ?? computeConfig.activationDtype;
+  const effectiveComputeConfig = {
+    ...computeConfig,
+    activationDtype: effectiveActivationDtype,
+  };
+  const wideningPolicy = resolveRangeAwareSelectiveWideningConfig(computeConfig);
 
   const resolvedDebugLayers = debugLayers !== undefined
     ? debugLayers
@@ -109,9 +118,13 @@ export function buildLayerContext(state, recorder, isDecodeMode, debugLayers, de
     recorder,
     lora: state.lora,
     decodeBuffers: isDecodeMode && state.decodeBuffers?.hasBuffers() ? state.decodeBuffers : null,
-    activationDtype: state.runtimeConfig.inference.compute.activationDtype,
+    runtimeComputeConfig: effectiveComputeConfig,
+    activationDtype: effectiveActivationDtype,
+    kernelPath: activeKernelPath,
     debugLayers: resolvedDebugLayers,
     finitenessBuffer: state.finitenessBuffer,
+    finitenessGuardEnabled: wideningPolicy.enabled,
+    finitenessAbsThreshold: wideningPolicy.absThreshold,
     step: state.decodeStepCount,
   };
 }
@@ -139,6 +152,9 @@ export function getLogitsWeights(state) {
 
 export function getLogitsConfig(state) {
   const config = state.modelConfig;
+  const activeKernelPath = state.executionKernelPathOverride ?? state.resolvedKernelPath ?? null;
+  const effectiveActivationDtype = state.executionActivationDtypeOverride
+    ?? state.runtimeConfig.inference.compute.activationDtype;
   return {
     hiddenSize: config.hiddenSize,
     vocabSize: config.vocabSize,
@@ -148,6 +164,7 @@ export function getLogitsConfig(state) {
     embeddingVocabSize: state.embeddingVocabSize,
     finalLogitSoftcapping: config.finalLogitSoftcapping,
     largeWeights: state.runtimeConfig.inference.largeWeights,
-    activationDtype: state.runtimeConfig.inference.compute.activationDtype,
+    activationDtype: effectiveActivationDtype,
+    kernelPath: activeKernelPath,
   };
 }

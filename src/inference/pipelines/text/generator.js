@@ -9,7 +9,7 @@ import { createCommandRecorder, createProfilingRecorder, CommandRecorder } from 
 import { allowReadback } from '../../../gpu/perf-guards.js';
 import { log, trace } from '../../../debug/index.js';
 import { validateCallTimeOptions } from '../../../config/param-validator.js';
-import { resolveKernelPath, setActiveKernelPath } from '../../../config/kernel-path-loader.js';
+import { resolveKernelPath } from '../../../config/kernel-path-loader.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 
 // Pipeline sub-modules
@@ -49,10 +49,13 @@ import {
 } from './generator-runtime.js';
 
 import { decodeReadback, getLogitsHealth } from './debug-utils.js';
+import { parseFinitenessStatusWords } from './finiteness-guard-status.js';
+import { resolveDeferredRoundingWindowTokens } from './finiteness-policy.js';
 
 export class PipelineGenerator {
 
   #state;
+  #finitenessFallbackWindow;
 
   _assertTokenIdsInRange(tokenIds, context = 'encode') {
     assertTokenIdsInRange(this.#state, tokenIds, context);
@@ -65,6 +68,63 @@ export class PipelineGenerator {
 
   constructor(state) {
     this.#state = state;
+    this.#finitenessFallbackWindow = null;
+  }
+
+  _resolveDeferredRoundingWindowTokens() {
+    return resolveDeferredRoundingWindowTokens(this.#state.runtimeConfig?.inference?.compute);
+  }
+
+  _getEffectiveActivationDtype() {
+    return this.#state.executionActivationDtypeOverride
+      ?? this.#state.runtimeConfig.inference.compute.activationDtype;
+  }
+
+  _getEffectiveKernelPath() {
+    return this.#state.executionKernelPathOverride
+      ?? this.#state.resolvedKernelPath
+      ?? null;
+  }
+
+  _hasFinitenessFallbackWindow() {
+    return this.#finitenessFallbackWindow !== null;
+  }
+
+  _openFinitenessFallbackWindow(opts, reasonLabel, tokenCount) {
+    const normalizedCount = Number.isFinite(tokenCount)
+      ? Math.max(1, Math.floor(tokenCount))
+      : 1;
+    if (this.#finitenessFallbackWindow) {
+      this.#finitenessFallbackWindow.remainingTokens = Math.max(
+        this.#finitenessFallbackWindow.remainingTokens,
+        normalizedCount
+      );
+      return;
+    }
+    const original = this._beginFinitenessFallback(opts, reasonLabel);
+    this.#finitenessFallbackWindow = {
+      original,
+      remainingTokens: normalizedCount,
+    };
+  }
+
+  _closeFinitenessFallbackWindow(opts) {
+    if (!this.#finitenessFallbackWindow) {
+      return;
+    }
+    const original = this.#finitenessFallbackWindow.original;
+    this.#finitenessFallbackWindow = null;
+    this._endFinitenessFallback(opts, original);
+  }
+
+  _consumeFinitenessFallbackToken(opts) {
+    if (!this.#finitenessFallbackWindow) {
+      return;
+    }
+    this.#finitenessFallbackWindow.remainingTokens -= 1;
+    if (this.#finitenessFallbackWindow.remainingTokens <= 0) {
+      this._closeFinitenessFallbackWindow(opts);
+    }
   }
 
   _resolveStepOptions(options = {}) {
@@ -97,58 +157,52 @@ export class PipelineGenerator {
   }
 
   _resolveFinitenessFallbackKernelPathId() {
-    const currentId = this.#state.resolvedKernelPath?.id
+    const currentId = this._getEffectiveKernelPath()?.id
       ?? this.#state.runtimeConfig?.inference?.kernelPath
       ?? null;
     if (typeof currentId !== 'string' || currentId.length === 0) {
       return null;
     }
 
-    const candidates = [
-      currentId.replace('-f16a-online', '-f32a-online'),
-      currentId.replace('-f16a-online', '-f32a'),
-      currentId.replace('fused-f16a-online', 'fused-f32a-online'),
-      currentId.replace('-f16a', '-f32a'),
-      currentId.replace('f16a', 'f32a'),
-    ];
-    const seen = new Set();
-    for (const candidate of candidates) {
-      if (!candidate || candidate === currentId || seen.has(candidate)) {
-        continue;
-      }
-      seen.add(candidate);
-      try {
-        resolveKernelPath(candidate);
-        return candidate;
-      } catch {
-        // Keep searching for a compatible fallback path.
-      }
+    const fallbackKernelPathId = selectRuleValue(
+      'inference',
+      'kernelPath',
+      'finitenessFallback',
+      { kernelPathId: currentId }
+    );
+    if (typeof fallbackKernelPathId !== 'string' || fallbackKernelPathId.length === 0) {
+      return null;
     }
-    return null;
+    try {
+      resolveKernelPath(fallbackKernelPathId);
+      return fallbackKernelPathId;
+    } catch {
+      log.warn(
+        'Pipeline',
+        `Finiteness fallback rule mapped "${currentId}" -> "${fallbackKernelPathId}" but target path was not found.`
+      );
+      return null;
+    }
   }
 
   _beginFinitenessFallback(opts, reasonLabel) {
+    const originalKernelPath = this._getEffectiveKernelPath();
     const original = {
-      activationDtype: this.#state.runtimeConfig.inference.compute.activationDtype,
-      runtimeConfigKernelPath: this.#state.runtimeConfig.inference.kernelPath ?? null,
-      resolvedKernelPath: this.#state.resolvedKernelPath,
-      kernelPathSource: this.#state.kernelPathSource,
+      activationDtypeOverride: this.#state.executionActivationDtypeOverride,
+      kernelPathOverride: this.#state.executionKernelPathOverride,
       seed: opts.seed,
     };
 
-    this.#state.runtimeConfig.inference.compute.activationDtype = 'f32';
+    this.#state.executionActivationDtypeOverride = 'f32';
 
     const fallbackKernelPathId = this._resolveFinitenessFallbackKernelPathId();
     if (fallbackKernelPathId) {
       const fallbackKernelPath = resolveKernelPath(fallbackKernelPathId);
-      this.#state.runtimeConfig.inference.kernelPath = fallbackKernelPathId;
-      this.#state.resolvedKernelPath = fallbackKernelPath;
-      this.#state.kernelPathSource = 'runtime';
-      setActiveKernelPath(fallbackKernelPath, 'runtime');
+      this.#state.executionKernelPathOverride = fallbackKernelPath;
       log.warn(
         'Pipeline',
         `FinitenessGuard fallback (${reasonLabel}): ` +
-        `${original.resolvedKernelPath?.id ?? original.runtimeConfigKernelPath ?? 'none'} -> ${fallbackKernelPathId}`
+        `${originalKernelPath?.id ?? 'none'} -> ${fallbackKernelPathId}`
       );
     } else {
       log.warn('Pipeline', `FinitenessGuard fallback (${reasonLabel}): no f32-compatible kernel path found; keeping current path.`);
@@ -171,26 +225,47 @@ export class PipelineGenerator {
 
   _endFinitenessFallback(opts, original) {
     opts.seed = original.seed;
-    this.#state.runtimeConfig.inference.compute.activationDtype = original.activationDtype;
-    this.#state.runtimeConfig.inference.kernelPath = original.runtimeConfigKernelPath;
-    this.#state.resolvedKernelPath = original.resolvedKernelPath;
-    this.#state.kernelPathSource = original.kernelPathSource;
-    setActiveKernelPath(original.resolvedKernelPath, original.kernelPathSource);
+    this.#state.executionActivationDtypeOverride = original.activationDtypeOverride;
+    this.#state.executionKernelPathOverride = original.kernelPathOverride;
+    const nextActivationDtype = this._getEffectiveActivationDtype();
     this.#state.decodeBuffers?.ensureBuffers({
       hiddenSize: this.#state.modelConfig.hiddenSize,
       intermediateSize: this.#state.modelConfig.intermediateSize,
-      activationDtype: original.activationDtype,
+      activationDtype: nextActivationDtype,
       enablePingPong: true,
     });
   }
 
   async _retryWithFinitenessFallback(opts, reasonLabel, retryFn) {
+    if (this._hasFinitenessFallbackWindow()) {
+      return retryFn();
+    }
     this.#state.kvCache?.truncate(this.#state.currentSeqLen);
     const original = this._beginFinitenessFallback(opts, reasonLabel);
     try {
       return await retryFn();
     } finally {
       this._endFinitenessFallback(opts, original);
+    }
+  }
+
+  async _retryDecodeStepWithFinitenessWindow(generatedIds, opts, reasonLabel) {
+    const windowTokens = this._resolveDeferredRoundingWindowTokens();
+    if (windowTokens <= 1) {
+      return this._retryWithFinitenessFallback(
+        opts,
+        reasonLabel,
+        () => this._decodeStep(generatedIds, opts)
+      );
+    }
+
+    this.#state.kvCache?.truncate(this.#state.currentSeqLen);
+    this._openFinitenessFallbackWindow(opts, reasonLabel, windowTokens);
+    try {
+      return await this._decodeStep(generatedIds, opts);
+    } catch (error) {
+      this._closeFinitenessFallbackWindow(opts);
+      throw error;
     }
   }
 
@@ -209,6 +284,8 @@ export class PipelineGenerator {
     this.#state.decodeStepCount = 0;
     this.#state.disableRecordedLogits = false;
     this.#state.disableFusedDecode = false;
+    this.#state.executionKernelPathOverride = null;
+    this.#state.executionActivationDtypeOverride = null;
     this.#state.decodeRing?.reset();
     this.#state.stats.gpuTimePrefillMs = undefined;
     this.#state.stats.gpuTimeDecodeMs = undefined;
@@ -343,6 +420,7 @@ export class PipelineGenerator {
         totalMs: this.#state.stats.totalTimeMs,
       });
     } finally {
+      this._closeFinitenessFallbackWindow(opts);
       this.#state.isGenerating = false;
     }
   }
@@ -613,6 +691,7 @@ export class PipelineGenerator {
       });
       this.#state.stats.totalTimeMs = performance.now() - startTime;
     } finally {
+      this._closeFinitenessFallbackWindow(opts);
       this.#state.isGenerating = false;
     }
   }
@@ -660,6 +739,9 @@ export class PipelineGenerator {
 
     while (tokensGenerated < opts.maxTokens) {
       if (options.signal?.aborted) break;
+      if (this._hasFinitenessFallbackWindow() && useBatchPath) {
+        useBatchPath = false;
+      }
 
       if (useBatchPath) {
         const remaining = opts.maxTokens - tokensGenerated;
@@ -696,10 +778,10 @@ export class PipelineGenerator {
           } catch (singleTokenError) {
             if (singleTokenError.name === 'FinitenessError') {
               log.warn('Pipeline', `FinitenessGuard caught NaN/Inf at batch step ${tokensGenerated}. Truncating KV cache and retrying token with F32 precision.`);
-              nextToken = await this._retryWithFinitenessFallback(
+              nextToken = await this._retryDecodeStepWithFinitenessWindow(
+                generatedIds,
                 opts,
-                `decode-batch-step-${tokensGenerated}`,
-                () => this._decodeStep(generatedIds, opts)
+                `decode-batch-step-${tokensGenerated}`
               );
             } else {
               throw singleTokenError;
@@ -710,6 +792,7 @@ export class PipelineGenerator {
           const tokenText = decodeToken(nextToken);
           yield tokenText;
           if (options.onToken) options.onToken(nextToken, tokenText);
+          this._consumeFinitenessFallbackToken(opts);
           if (isStopToken(nextToken, stopTokenIds, eosToken)) break;
         }
       } else {
@@ -720,10 +803,10 @@ export class PipelineGenerator {
         } catch (error) {
           if (error.name === 'FinitenessError') {
             log.warn('Pipeline', `FinitenessGuard caught NaN/Inf at step ${tokensGenerated}. Truncating KV cache and retrying token with F32 precision.`);
-            nextToken = await this._retryWithFinitenessFallback(
+            nextToken = await this._retryDecodeStepWithFinitenessWindow(
+              generatedIds,
               opts,
-              `decode-step-${tokensGenerated}`,
-              () => this._decodeStep(generatedIds, opts)
+              `decode-step-${tokensGenerated}`
             );
           } else {
             throw error;
@@ -735,6 +818,7 @@ export class PipelineGenerator {
         const tokenText = decodeToken(nextToken);
         yield tokenText;
         if (options.onToken) options.onToken(nextToken, tokenText);
+        this._consumeFinitenessFallbackToken(opts);
 
         if (opts.debug || opts.benchmark) {
           const elapsedMs = performance.now() - decodeStart;
@@ -821,7 +905,7 @@ export class PipelineGenerator {
       resetSubmitStats();
     }
 
-    const activationDtype = this.#state.runtimeConfig.inference.compute.activationDtype;
+    const activationDtype = this._getEffectiveActivationDtype();
     const activationBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: activationDtype });
     let hiddenStates = await embed(inputIds, embedBuffer, {
       hiddenSize: config.hiddenSize,
@@ -860,7 +944,9 @@ export class PipelineGenerator {
 
     if (this.#state.finitenessBuffer) {
       const device = getDevice();
-      if (device) device.queue.writeBuffer(this.#state.finitenessBuffer, 0, new Uint32Array([0]));
+      if (device) {
+        device.queue.writeBuffer(this.#state.finitenessBuffer, 0, new Uint32Array([0, 0, 0, 0]));
+      }
     }
 
     let currentRecorder = recorder;
@@ -939,13 +1025,14 @@ export class PipelineGenerator {
         await recordProfile(currentRecorder);
         currentRecorder = undefined;
       }
-      const isInfiniteData = await readBuffer(this.#state.finitenessBuffer, 4);
-      const isInfinite = new Uint32Array(isInfiniteData.buffer, isInfiniteData.byteOffset, 1)[0] > 0;
-      if (isInfinite) {
+      const isInfiniteData = await readBuffer(this.#state.finitenessBuffer, 16);
+      const u32 = new Uint32Array(isInfiniteData.buffer, isInfiniteData.byteOffset, 4);
+      const finitenessStatus = parseFinitenessStatusWords(u32, 0);
+      if (finitenessStatus.triggered) {
         if (currentHiddenBuffer instanceof GPUBuffer) {
           releaseBuffer(currentHiddenBuffer);
         }
-        throw new FinitenessError('F16 bounds exceeded during prefill');
+        throw new FinitenessError(`F16 bounds exceeded during prefill${finitenessStatus.metadata}`);
       }
     }
 

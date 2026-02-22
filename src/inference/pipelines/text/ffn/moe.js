@@ -36,6 +36,7 @@ export async function runMoEFFNGPU(
       hiddenActivation: config.hiddenActivation,
       swigluLimit: config.swigluLimit,
       activationDtype: inputTensor.dtype,
+      kernelPath: context.kernelPath ?? null,
     },
     moeRouter,
     expertWeights,

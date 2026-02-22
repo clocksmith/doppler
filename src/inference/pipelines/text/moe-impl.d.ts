@@ -17,6 +17,7 @@
 import type { Tensor, TensorDtype } from '../../../gpu/tensor.js';
 import type { MoERouter } from '../../moe-router.js';
 import type { ExpertWeights } from './types.js';
+import type { KernelPathSchema } from '../../../config/schema/index.js';
 
 /**
  * Clear the dequantization cache (call on model unload).
@@ -51,6 +52,7 @@ export interface MoEConfig {
   hiddenActivation: string;
   swigluLimit: number | null;
   activationDtype?: TensorDtype;
+  kernelPath?: KernelPathSchema | null;
 }
 
 /**

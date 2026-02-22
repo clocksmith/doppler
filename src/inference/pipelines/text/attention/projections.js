@@ -57,6 +57,7 @@ async function projectSingleQkvTensor({
   numTokens,
   hiddenSize,
   layerIdx,
+  kernelPath,
   matmulOutputDtype,
   getWeightBuffer,
   lora,
@@ -72,6 +73,7 @@ async function projectSingleQkvTensor({
       transposeB: 'auto',
       role,
       layerIdx,
+      kernelPath,
       outputDtype: matmulOutputDtype,
     });
     releaseOwnedWeightBuffer(layerWeight, projBuffer, releaseTemporary);
@@ -88,7 +90,8 @@ async function projectSingleQkvTensor({
       loraModule,
       { M: numTokens, N: outputSize, K: hiddenSize },
       getWeightBuffer,
-      recorder ?? undefined
+      recorder ?? undefined,
+      { kernelPath }
     );
     if (combined.buffer !== projected.buffer) {
       releaseTemporary(projected.buffer);
@@ -129,6 +132,7 @@ export async function projectAttentionQKV({
   headDim,
   hiddenSize,
   layerIdx,
+  kernelPath,
   matmulOutputDtype,
   getWeightBuffer,
   lora,
@@ -154,6 +158,7 @@ export async function projectAttentionQKV({
       transposeB: 'auto',
       role: 'qkv_proj',
       layerIdx,
+      kernelPath,
       outputDtype: matmulOutputDtype,
     });
     const split = await runSplitForMode(qkvTensor, {
@@ -181,6 +186,7 @@ export async function projectAttentionQKV({
     numTokens,
     hiddenSize,
     layerIdx,
+    kernelPath,
     matmulOutputDtype,
     getWeightBuffer,
     lora,
@@ -199,6 +205,7 @@ export async function projectAttentionQKV({
     numTokens,
     hiddenSize,
     layerIdx,
+    kernelPath,
     matmulOutputDtype,
     getWeightBuffer,
     lora,
@@ -217,6 +224,7 @@ export async function projectAttentionQKV({
     numTokens,
     hiddenSize,
     layerIdx,
+    kernelPath,
     matmulOutputDtype,
     getWeightBuffer,
     lora,

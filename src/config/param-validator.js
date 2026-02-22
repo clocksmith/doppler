@@ -57,11 +57,20 @@ export function validateRuntimeConfig(runtimeConfig) {
   if (!batching) {
     throw new Error('DopplerConfigError: runtime.inference.batching is required.');
   }
+  const compute = runtimeConfig.inference?.compute;
+  if (!compute) {
+    throw new Error('DopplerConfigError: runtime.inference.compute is required.');
+  }
 
   assertNullablePositiveInt('runtime.inference.batching.readbackInterval', batching.readbackInterval);
   assertNullablePositiveInt('runtime.inference.batching.ringTokens', batching.ringTokens);
   assertNullablePositiveInt('runtime.inference.batching.ringStop', batching.ringStop);
   assertNullablePositiveInt('runtime.inference.batching.ringStaging', batching.ringStaging);
+  assertPositiveInt('runtime.inference.compute.deferredRoundingWindowTokens', compute.deferredRoundingWindowTokens);
+  validateRangeAwareSelectiveWidening(
+    'runtime.inference.compute.rangeAwareSelectiveWidening',
+    compute.rangeAwareSelectiveWidening
+  );
   assertEmbeddingMode('runtime.inference.generation.embeddingMode', generation.embeddingMode);
 
   validateToolingIntent(runtimeConfig);
@@ -69,7 +78,7 @@ export function validateRuntimeConfig(runtimeConfig) {
   const debug = runtimeConfig.shared?.debug;
   const debugEnabled = isDebugMode(debug);
   const allowF32Upcast = runtimeConfig.loading?.allowF32UpcastNonMatmul === true;
-  const keepF32Weights = runtimeConfig.inference?.compute?.keepF32Weights === true;
+  const keepF32Weights = compute.keepF32Weights === true;
 
   if (!debugEnabled && (allowF32Upcast || keepF32Weights)) {
     const flags = [];
@@ -167,5 +176,29 @@ function assertEmbeddingMode(label, value) {
   }
   if (value !== 'last' && value !== 'mean') {
     throw new Error(`DopplerConfigError: ${label} must be "last" or "mean".`);
+  }
+}
+
+function assertPositiveInt(label, value) {
+  if (value === undefined) {
+    throw new Error(`DopplerConfigError: ${label} is required.`);
+  }
+  if (!Number.isFinite(value) || value <= 0 || Math.floor(value) !== value) {
+    throw new Error(`DopplerConfigError: ${label} must be a positive integer.`);
+  }
+}
+
+function validateRangeAwareSelectiveWidening(label, value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error(`DopplerConfigError: ${label} is required.`);
+  }
+  if (value.enabled !== true && value.enabled !== false) {
+    throw new Error(`DopplerConfigError: ${label}.enabled must be boolean.`);
+  }
+  if (value.includeNonFinite !== true && value.includeNonFinite !== false) {
+    throw new Error(`DopplerConfigError: ${label}.includeNonFinite must be boolean.`);
+  }
+  if (!Number.isFinite(value.absThreshold) || value.absThreshold <= 0) {
+    throw new Error(`DopplerConfigError: ${label}.absThreshold must be a positive number.`);
   }
 }

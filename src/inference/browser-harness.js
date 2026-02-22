@@ -6,11 +6,11 @@ import { getRuntimeConfig, setRuntimeConfig } from '../config/runtime.js';
 import { initDevice, getKernelCapabilities, getDevice } from '../gpu/device.js';
 import { createPipeline } from './pipelines/text.js';
 import { parseModelConfigFromManifest } from './pipelines/text/config.js';
+import { resolveKernelPathState, activateKernelPathState } from './pipelines/text/model-load.js';
 import { openModelStore, loadManifestFromStore } from '../storage/shard-manager.js';
 import { parseManifest } from '../storage/rdrr-format.js';
 import { computeSampleStats } from '../debug/stats.js';
 import {
-  resolveKernelPath,
   setActiveKernelPath,
   getActiveKernelPath,
   getActiveKernelPathSource,
@@ -329,22 +329,17 @@ async function resolveKernelPathForModel(options = {}) {
   if (!manifest) return null;
 
   const modelConfig = parseModelConfigFromManifest(manifest, runtimeConfig);
-  const kernelPathRef = runtimeConfig?.inference?.kernelPath
-    ?? modelConfig?.kernelPath;
-
-  if (!kernelPathRef) {
-    setActiveKernelPath(null, 'none');
-    return { modelId: manifestModelId, kernelPath: null, source: 'none' };
-  }
-
-  const resolved = resolveKernelPath(kernelPathRef);
-  const source = runtimeConfig?.inference?.kernelPath
-    ? 'config'
-    : modelConfig?.kernelPath
-      ? 'model'
-      : 'manifest';
-  setActiveKernelPath(resolved, source);
-  return { modelId: manifestModelId, kernelPath: resolved, source };
+  const kernelPathState = resolveKernelPathState({
+    manifest,
+    runtimeConfig,
+    modelConfig,
+  });
+  activateKernelPathState(kernelPathState);
+  return {
+    modelId: manifestModelId,
+    kernelPath: kernelPathState.resolvedKernelPath,
+    source: kernelPathState.kernelPathSource,
+  };
 }
 
 async function initializeInferenceFromStorage(modelId, options = {}) {

@@ -9,6 +9,7 @@ import type { Tensor } from '../../../gpu/tensor.js';
 import type { WeightBuffer } from '../../../gpu/weight-buffer.js';
 import type { LoRAModuleWeights } from './lora.js';
 import type { MaybeGPUBuffer } from './types.js';
+import type { KernelPathSchema } from '../../../config/schema/index.js';
 
 interface LoRADims {
   M: number;
@@ -22,5 +23,6 @@ export function applyLoRA(
   lora: LoRAModuleWeights,
   dims: LoRADims,
   getWeightBuffer: (weight: MaybeGPUBuffer, label: string) => GPUBuffer | WeightBuffer,
-  recorder?: CommandRecorder
+  recorder?: CommandRecorder,
+  options?: { kernelPath?: KernelPathSchema | null }
 ): Promise<Tensor>;

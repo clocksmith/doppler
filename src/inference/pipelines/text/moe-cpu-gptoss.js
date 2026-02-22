@@ -21,6 +21,7 @@ export async function runGptOssExpertCPU(layerIdx, expertIdx, input, config, exp
   }
 
   const { hiddenSize, intermediateSize, numExperts, swigluLimit } = config;
+  const kernelPath = config.kernelPath ?? null;
   const numTokens = input.length / hiddenSize;
   const outDim = intermediateSize * 2;
   const gateUpGroups = hiddenSize / 32;
@@ -56,7 +57,13 @@ export async function runGptOssExpertCPU(layerIdx, expertIdx, input, config, exp
     numTokens,
     outDim,
     hiddenSize,
-    { transposeB: 'auto', bDtype: 'f32', outputDtype: 'f32', role: 'moe_gate_up' }
+    {
+      transposeB: 'auto',
+      bDtype: 'f32',
+      outputDtype: 'f32',
+      role: 'moe_gate_up',
+      kernelPath,
+    }
   );
 
   const biasOffset = expertIdx * outDim * 4;
@@ -72,7 +79,13 @@ export async function runGptOssExpertCPU(layerIdx, expertIdx, input, config, exp
     numTokens,
     hiddenSize,
     intermediateSize,
-    { transposeB: 'auto', bDtype: 'f32', outputDtype: 'f32', role: 'moe_down' }
+    {
+      transposeB: 'auto',
+      bDtype: 'f32',
+      outputDtype: 'f32',
+      role: 'moe_down',
+      kernelPath,
+    }
   );
 
   if (weights.downBias) {

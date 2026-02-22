@@ -338,9 +338,10 @@ function findKernelVariant(
 export function getKernelPathMatmulVariant(
   role,
   phase,
-  layerIndex
+  layerIndex,
+  path = undefined
 ) {
-  const step = getKernelPathMatmulStep(role, phase, layerIndex);
+  const step = getKernelPathMatmulStep(role, phase, layerIndex, path);
   if (!step) return null;
   return findKernelVariant('matmul', step.kernel, step.entry, phase, step.constants);
 }
@@ -348,20 +349,23 @@ export function getKernelPathMatmulVariant(
 export function getKernelPathMatmulConstants(
   role,
   phase,
-  layerIndex
+  layerIndex,
+  path = undefined
 ) {
-  const step = getKernelPathMatmulStep(role, phase, layerIndex);
+  const step = getKernelPathMatmulStep(role, phase, layerIndex, path);
   return step?.constants ?? null;
 }
 
 function getKernelPathMatmulStep(
   role,
   phase,
-  layerIndex
+  layerIndex,
+  path = undefined
 ) {
-  if (!activeKernelPath || !role) return null;
+  const lookupPath = path === undefined ? activeKernelPath : path;
+  if (!lookupPath || !role) return null;
   const alias = MATMUL_ROLE_ALIASES[role] ?? { section: 'layer', ops: [role] };
-  const steps = getKernelPathStepsForSection(activeKernelPath, alias.section, phase, layerIndex ?? 0);
+  const steps = getKernelPathStepsForSection(lookupPath, alias.section, phase, layerIndex ?? 0);
   if (role === 'lm_head' && phase === 'prefill') {
     const prefillStep = findStepByOp(steps, 'lm_head_prefill');
     if (prefillStep) {
@@ -379,10 +383,12 @@ function getKernelPathMatmulStep(
 
 export function getKernelPathAttentionVariant(
   phase,
-  layerIndex
+  layerIndex,
+  path = undefined
 ) {
-  if (!activeKernelPath) return null;
-  const steps = getKernelPathStepsForSection(activeKernelPath, 'layer', phase, layerIndex ?? 0);
+  const lookupPath = path === undefined ? activeKernelPath : path;
+  if (!lookupPath) return null;
+  const steps = getKernelPathStepsForSection(lookupPath, 'layer', phase, layerIndex ?? 0);
   const step = findStepByOp(steps, 'attention');
   if (!step) return null;
   return findKernelVariant('attention', step.kernel, step.entry, phase, step.constants);
@@ -412,28 +418,38 @@ export function getKernelPathStrict() {
   return true;
 }
 
-export function isActiveKernelPathFusedQ4K() {
-  if (!activeKernelPath) return true; // Default to fused when no explicit path is set
+export function isKernelPathFusedQ4K(path = undefined) {
+  const lookupPath = path === undefined ? activeKernelPath : path;
+  if (!lookupPath) return false;
   const kernelSteps = [
-    ...(activeKernelPath.decode?.steps ?? []),
-    ...(activeKernelPath.prefill?.steps ?? []),
-    ...(activeKernelPath.preLayer ?? []),
-    ...(activeKernelPath.postLayer ?? []),
-    ...(activeKernelPath.layerOverrides?.flatMap((override) => override.steps) ?? []),
+    ...(lookupPath.decode?.steps ?? []),
+    ...(lookupPath.prefill?.steps ?? []),
+    ...(lookupPath.preLayer ?? []),
+    ...(lookupPath.postLayer ?? []),
+    ...(lookupPath.layerOverrides?.flatMap((override) => override.steps) ?? []),
   ];
   return kernelSteps.some((step) => step.kernel.includes('fused_matmul_q4'));
 }
 
-export function isActiveKernelPathDequant() {
-  if (!activeKernelPath) return false;
+export function isActiveKernelPathFusedQ4K() {
+  return isKernelPathFusedQ4K(activeKernelPath);
+}
+
+export function isKernelPathDequant(path = undefined) {
+  const lookupPath = path === undefined ? activeKernelPath : path;
+  if (!lookupPath) return false;
   const kernelSteps = [
-    ...(activeKernelPath.decode?.steps ?? []),
-    ...(activeKernelPath.prefill?.steps ?? []),
-    ...(activeKernelPath.preLayer ?? []),
-    ...(activeKernelPath.postLayer ?? []),
-    ...(activeKernelPath.layerOverrides?.flatMap((override) => override.steps) ?? []),
+    ...(lookupPath.decode?.steps ?? []),
+    ...(lookupPath.prefill?.steps ?? []),
+    ...(lookupPath.preLayer ?? []),
+    ...(lookupPath.postLayer ?? []),
+    ...(lookupPath.layerOverrides?.flatMap((override) => override.steps) ?? []),
   ];
   return kernelSteps.some((step) => step.kernel.startsWith('matmul_'));
+}
+
+export function isActiveKernelPathDequant() {
+  return isKernelPathDequant(activeKernelPath);
 }
 
 // =============================================================================

@@ -41,6 +41,7 @@ export async function moeFeedForwardGPU(
   const { hiddenSize, numExperts, intermediateSize, moeTopK, hiddenActivation } = config;
   const expertFormat = config.expertFormat;
   const swigluLimit = config.swigluLimit;
+  const kernelPath = config.kernelPath ?? null;
   if (!expertFormat) {
     throw new Error('MoE expertFormat is required in config.');
   }
@@ -295,6 +296,7 @@ export async function moeFeedForwardGPU(
         numExperts,
         activationDtype,
         swigluLimit,
+        kernelPath,
         modelType,
         vendorProfile,
         gptOssKernelPathProfile
@@ -311,7 +313,8 @@ export async function moeFeedForwardGPU(
         intermediateSize,
         hiddenActivation,
         activationDtype,
-        swigluLimit
+        swigluLimit,
+        kernelPath
       );
     } else if (expertFormat === 'mixtral') {
       throw new Error(`[MoE] Missing Mixtral weights for ${expertKey}`);
@@ -383,6 +386,7 @@ async function runGptOssExpert(
   numExperts,
   activationDtype,
   swigluLimit,
+  kernelPath,
   modelType,
   vendorProfile,
   gptOssKernelPathProfile
@@ -473,6 +477,7 @@ async function runGptOssExpert(
       bDtype: activationDtype,
       outputDtype: activationDtype,
       role: 'moe_gate_up',
+      kernelPath,
     }
   );
 
@@ -513,6 +518,7 @@ async function runGptOssExpert(
       bDtype: activationDtype,
       outputDtype: activationDtype,
       role: 'moe_down',
+      kernelPath,
     }
   );
   releaseBuffer(activated.buffer);
@@ -542,7 +548,8 @@ async function runMixtralExpert(
   intermediateSize,
   hiddenActivation,
   activationDtype,
-  swigluLimit
+  swigluLimit,
+  kernelPath
 ) {
   const gateOut = await runMatmul(
     gathered,
@@ -550,7 +557,13 @@ async function runMixtralExpert(
     count,
     intermediateSize,
     hiddenSize,
-    { transposeB: 'auto', aOffset: inputOffset, outputDtype: activationDtype, role: 'moe_gate' }
+    {
+      transposeB: 'auto',
+      aOffset: inputOffset,
+      outputDtype: activationDtype,
+      role: 'moe_gate',
+      kernelPath,
+    }
   );
   const upOut = await runMatmul(
     gathered,
@@ -558,7 +571,13 @@ async function runMixtralExpert(
     count,
     intermediateSize,
     hiddenSize,
-    { transposeB: 'auto', aOffset: inputOffset, outputDtype: activationDtype, role: 'moe_up' }
+    {
+      transposeB: 'auto',
+      aOffset: inputOffset,
+      outputDtype: activationDtype,
+      role: 'moe_up',
+      kernelPath,
+    }
   );
 
   const activationFn = {
@@ -579,7 +598,14 @@ async function runMixtralExpert(
     count,
     hiddenSize,
     intermediateSize,
-    { transposeB: 'auto', outputBuffer: expertOutputs, cOffset: outputOffset, outputDtype: activationDtype, role: 'moe_down' }
+    {
+      transposeB: 'auto',
+      outputBuffer: expertOutputs,
+      cOffset: outputOffset,
+      outputDtype: activationDtype,
+      role: 'moe_down',
+      kernelPath,
+    }
   );
   releaseBuffer(activated.buffer);
 }

@@ -8,7 +8,7 @@ It is intentionally separate from style guides and from Doppler-only benchmark n
 - Track competitor targets in one machine-readable registry.
 - Keep one harness definition per competitor.
 - Normalize external benchmark outputs into a shared comparison record.
-- Keep one execution-focused competitive playbook tied to benchmark evidence.
+- Gate benchmark claims through reproducible CI checks and normalized result artifacts.
 
 ## Registry Files
 
@@ -19,7 +19,20 @@ It is intentionally separate from style guides and from Doppler-only benchmark n
 - `harnesses/*.json`: one harness definition per competitor.
 - `schema/*.json`: schemas for registry, harness, capabilities, and normalized result records.
 - `results/`: normalized comparison outputs.
-- `STRATEGY.md`: competitive attack plan and KPI/roadmap targets.
+
+## Closed Workstream Snapshot (2026-02-22 UTC)
+
+- Gemma 3 Q4K `f32a` now auto-selects `gemma3-q4k-dequant-f32a-online` on subgroup-capable devices (`src/rules/inference/kernel-path.rules.json`).
+- Kernel path registry marks `gemma3-q4k-dequant-f32a-online` as canonical/default (`src/config/presets/kernel-paths/registry.json`).
+- Structural CI sweep for Gemma 3 1b kernel-path invariants is enforced by `tests/inference/gemma3-1b-kernel-sweep.test.js`.
+- Inference guard workflow now triggers on inference rule changes and executes the sweep gate (`.github/workflows/inference-guard.yml`).
+- Historical local performance numbers are stale after kernel-path routing updates; re-run apples-to-apples benchmark suites before publishing comparative claims.
+
+Execution tracking now lives in:
+
+- normalized artifacts under `benchmarks/competitors/results/`
+- harness + workload contracts in this folder
+- CI gates in `.github/workflows/inference-guard.yml`
 
 ## CLI
 

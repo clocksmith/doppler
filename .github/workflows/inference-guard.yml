@@ -1,0 +1,61 @@
+name: Inference Guard Checks
+
+on:
+  pull_request:
+    paths:
+      - 'src/config/**'
+      - 'src/gpu/kernels/check-finiteness.js'
+      - 'src/gpu/kernels/check_finiteness.wgsl'
+      - 'src/inference/pipelines/text/**'
+      - 'src/rules/inference/**'
+      - 'tests/inference/**'
+      - '.github/workflows/inference-guard.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/config/**'
+      - 'src/gpu/kernels/check-finiteness.js'
+      - 'src/gpu/kernels/check_finiteness.wgsl'
+      - 'src/inference/pipelines/text/**'
+      - 'src/rules/inference/**'
+      - 'tests/inference/**'
+      - '.github/workflows/inference-guard.yml'
+  workflow_dispatch:
+
+jobs:
+  inference-guard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Kernel Path Auto Select
+        run: node tests/inference/kernel-path-auto-select.test.js
+
+      - name: Finiteness Policy
+        run: node tests/inference/finiteness-policy.test.js
+
+      - name: Finiteness Overflow Gate
+        run: node tests/inference/finiteness-overflow-gate.test.js
+
+      - name: Finiteness Status Parse
+        run: node tests/inference/finiteness-guard-status.test.js
+
+      - name: Attention Softmax Stability
+        run: node tests/inference/attention-softmax-stability.test.js
+
+      - name: BDPA Steamroller
+        run: node tests/inference/bdpa-steamroller.test.js
+
+      - name: Gemma 3 1b Kernel Sweep
+        run: node tests/inference/gemma3-1b-kernel-sweep.test.js

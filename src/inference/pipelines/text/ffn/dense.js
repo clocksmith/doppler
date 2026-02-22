@@ -39,6 +39,7 @@ export async function runDenseFFNGPU(
   const { hiddenSize, intermediateSize, hiddenActivation, swigluLimit } = config;
   const lastTokenIdx = Math.max(0, numTokens - 1);
   const lora = context.lora || null;
+  const kernelPath = context.kernelPath ?? null;
 
   if (layerWeights?.gateUp && layerWeights?.down) {
     const gateUpWeight = getWeightBuffer(layerWeights.gateUp, 'ffn_gate_up');
@@ -52,7 +53,14 @@ export async function runDenseFFNGPU(
     let gateUpOutput = await doMatmul(
       inputTensor, gateUpWeight,
       numTokens, intermediateSize * 2, hiddenSize,
-      { transposeB: 'auto', label: `L${layerIdx}.ffn_gate_up`, layerIdx, outputDtype: matmulOutputDtype, role: 'ffn_gate_up' },
+      {
+        transposeB: 'auto',
+        label: `L${layerIdx}.ffn_gate_up`,
+        layerIdx,
+        kernelPath,
+        outputDtype: matmulOutputDtype,
+        role: 'ffn_gate_up',
+      },
       recorder
     );
 
@@ -64,7 +72,8 @@ export async function runDenseFFNGPU(
         loraGateUp,
         { M: numTokens, N: intermediateSize * 2, K: hiddenSize },
         getWeightBuffer,
-        recorder
+        recorder,
+        { kernelPath }
       );
       if (combined.buffer !== gateUpOutput.buffer) {
         if (recorder) {
@@ -117,7 +126,14 @@ export async function runDenseFFNGPU(
     let output = await doMatmul(
       activatedOutput, downWeight,
       numTokens, hiddenSize, intermediateSize,
-      { transposeB: 'auto', label: `L${layerIdx}.ffn_down`, layerIdx, outputDtype: matmulOutputDtype, role: 'ffn_down' },
+      {
+        transposeB: 'auto',
+        label: `L${layerIdx}.ffn_down`,
+        layerIdx,
+        kernelPath,
+        outputDtype: matmulOutputDtype,
+        role: 'ffn_down',
+      },
       recorder
     );
 
@@ -129,7 +145,8 @@ export async function runDenseFFNGPU(
         loraDown,
         { M: numTokens, N: hiddenSize, K: intermediateSize },
         getWeightBuffer,
-        recorder
+        recorder,
+        { kernelPath }
       );
       if (combined.buffer !== output.buffer) {
         if (recorder) {
@@ -174,7 +191,7 @@ export async function runDenseFFNGPU(
   const gateDtype = hasGate && isWeightBuffer(layerWeights.gate) ? layerWeights.gate.dtype : (hasGate ? 'f32' : null);
   const upDtype = hasUp && isWeightBuffer(layerWeights.up) ? layerWeights.up.dtype : (hasUp ? 'f32' : null);
   const dtypeMatches = gateDtype != null && upDtype != null && gateDtype === upDtype;
-  const q4kFusedAllowed = gateDtype !== 'q4k' || !isFusedQ4KDisabled();
+  const q4kFusedAllowed = gateDtype !== 'q4k' || !isFusedQ4KDisabled({ kernelPath });
   const dtypeSupported = gateDtype === 'f16' || gateDtype === 'f32' || (gateDtype === 'q4k' && q4kFusedAllowed);
   const f16BatchSupported = gateDtype !== 'f16' || numTokens === 1;
   const activationDtype = selectRuleValue('shared', 'dtype', 'f16OrFallbackByFlag', {
@@ -260,7 +277,14 @@ export async function runDenseFFNGPU(
       numTokens,
       hiddenSize,
       intermediateSize,
-      { transposeB: 'auto', label: `L${layerIdx}.ffn_down`, layerIdx, outputDtype: matmulOutputDtype, role: 'ffn_down' },
+      {
+        transposeB: 'auto',
+        label: `L${layerIdx}.ffn_down`,
+        layerIdx,
+        kernelPath,
+        outputDtype: matmulOutputDtype,
+        role: 'ffn_down',
+      },
       recorder
     );
 
@@ -272,7 +296,8 @@ export async function runDenseFFNGPU(
         loraDown,
         { M: numTokens, N: hiddenSize, K: intermediateSize },
         getWeightBuffer,
-        recorder
+        recorder,
+        { kernelPath }
       );
       if (combined.buffer !== output.buffer) {
         if (recorder) {
@@ -320,7 +345,22 @@ export async function runDenseFFNGPU(
     fallback: inputTensor.dtype,
   });
   const gateWeight = getWeightBuffer(layerWeights.gate, 'ffn_gate');
-  let gateOutput = await doMatmul(inputTensor, gateWeight, numTokens, intermediateSize, hiddenSize, { transposeB: 'auto', label: `L${layerIdx}.ffn_gate`, layerIdx, outputDtype: matmulOutputDtype, role: 'ffn_gate' }, recorder);
+  let gateOutput = await doMatmul(
+    inputTensor,
+    gateWeight,
+    numTokens,
+    intermediateSize,
+    hiddenSize,
+    {
+      transposeB: 'auto',
+      label: `L${layerIdx}.ffn_gate`,
+      layerIdx,
+      kernelPath,
+      outputDtype: matmulOutputDtype,
+      role: 'ffn_gate',
+    },
+    recorder
+  );
   if (!(layerWeights.gate instanceof GPUBuffer) && !isWeightBuffer(layerWeights.gate)) {
     releaseOrTrack(recorder, isWeightBuffer(gateWeight) ? gateWeight.buffer : gateWeight);
   }
@@ -333,7 +373,8 @@ export async function runDenseFFNGPU(
       loraGate,
       { M: numTokens, N: intermediateSize, K: hiddenSize },
       getWeightBuffer,
-      recorder
+      recorder,
+      { kernelPath }
     );
     if (combined.buffer !== gateOutput.buffer) {
       if (recorder) {
@@ -346,7 +387,22 @@ export async function runDenseFFNGPU(
   }
 
   const upWeight = getWeightBuffer(layerWeights.up, 'ffn_up');
-  let upOutput = await doMatmul(inputTensor, upWeight, numTokens, intermediateSize, hiddenSize, { transposeB: 'auto', label: `L${layerIdx}.ffn_up`, layerIdx, outputDtype: matmulOutputDtype, role: 'ffn_up' }, recorder);
+  let upOutput = await doMatmul(
+    inputTensor,
+    upWeight,
+    numTokens,
+    intermediateSize,
+    hiddenSize,
+    {
+      transposeB: 'auto',
+      label: `L${layerIdx}.ffn_up`,
+      layerIdx,
+      kernelPath,
+      outputDtype: matmulOutputDtype,
+      role: 'ffn_up',
+    },
+    recorder
+  );
   if (!(layerWeights.up instanceof GPUBuffer) && !isWeightBuffer(layerWeights.up)) {
     releaseOrTrack(recorder, isWeightBuffer(upWeight) ? upWeight.buffer : upWeight);
   }
@@ -359,7 +415,8 @@ export async function runDenseFFNGPU(
       loraUp,
       { M: numTokens, N: intermediateSize, K: hiddenSize },
       getWeightBuffer,
-      recorder
+      recorder,
+      { kernelPath }
     );
     if (combined.buffer !== upOutput.buffer) {
       if (recorder) {
@@ -416,7 +473,22 @@ export async function runDenseFFNGPU(
   }
 
   const downWeight = getWeightBuffer(layerWeights.down, 'ffn_down');
-  let output = await doMatmul(activatedOutput, downWeight, numTokens, hiddenSize, intermediateSize, { transposeB: 'auto', label: `L${layerIdx}.ffn_down`, layerIdx, outputDtype: matmulOutputDtype, role: 'ffn_down' }, recorder);
+  let output = await doMatmul(
+    activatedOutput,
+    downWeight,
+    numTokens,
+    hiddenSize,
+    intermediateSize,
+    {
+      transposeB: 'auto',
+      label: `L${layerIdx}.ffn_down`,
+      layerIdx,
+      kernelPath,
+      outputDtype: matmulOutputDtype,
+      role: 'ffn_down',
+    },
+    recorder
+  );
 
   const loraDown = getLoRAModule(lora, layerIdx, 'down_proj');
   if (loraDown) {
@@ -426,7 +498,8 @@ export async function runDenseFFNGPU(
       loraDown,
       { M: numTokens, N: hiddenSize, K: intermediateSize },
       getWeightBuffer,
-      recorder
+      recorder,
+      { kernelPath }
     );
     if (combined.buffer !== output.buffer) {
       if (recorder) {
@@ -477,6 +550,7 @@ export async function runDenseFFNWithFusedPostNormGPU(
   const { config, weightConfig, debugFlags, recorder } = context;
   const { hiddenSize, intermediateSize, hiddenActivation, swigluLimit } = config;
   const lora = context.lora || null;
+  const kernelPath = context.kernelPath ?? null;
 
   if (!layerWeights.down || !layerWeights.postFeedforwardNorm) {
     throw new Error('Missing down or norm weights');
@@ -498,15 +572,16 @@ export async function runDenseFFNWithFusedPostNormGPU(
     let gateUpOutput = await doMatmul(
       inputTensor, gateUpWeight,
       numTokens, intermediateSize * 2, hiddenSize,
-      {
-        transposeB: 'auto',
-        outputDtype: matmulOutputDtype,
-        role: 'ffn_gate_up',
-        label: `L${layerIdx}.ffn_gate_up`,
-        layerIdx,
-      },
-      recorder
-    );
+        {
+          transposeB: 'auto',
+          outputDtype: matmulOutputDtype,
+          role: 'ffn_gate_up',
+          label: `L${layerIdx}.ffn_gate_up`,
+          layerIdx,
+          kernelPath,
+        },
+        recorder
+      );
 
     const loraGateUp = getLoRAModule(lora, layerIdx, 'gate_up_proj');
     if (loraGateUp) {
@@ -516,7 +591,8 @@ export async function runDenseFFNWithFusedPostNormGPU(
         loraGateUp,
         { M: numTokens, N: intermediateSize * 2, K: hiddenSize },
         getWeightBuffer,
-        recorder
+        recorder,
+        { kernelPath }
       );
       if (combined.buffer !== gateUpOutput.buffer) {
         if (recorder) {
@@ -553,7 +629,7 @@ export async function runDenseFFNWithFusedPostNormGPU(
     const hasLoRAGate = Boolean(getLoRAModule(lora, layerIdx, 'gate_proj'));
     const hasLoRAUp = Boolean(getLoRAModule(lora, layerIdx, 'up_proj'));
     const dtypeMatches = gateDtype != null && upDtype != null && gateDtype === upDtype;
-    const q4kFusedAllowed = gateDtype !== 'q4k' || !isFusedQ4KDisabled();
+    const q4kFusedAllowed = gateDtype !== 'q4k' || !isFusedQ4KDisabled({ kernelPath });
     const dtypeSupported = gateDtype === 'f16' || gateDtype === 'f32' || (gateDtype === 'q4k' && q4kFusedAllowed);
     const canUseFusedGateUp = !hasLoRAGate && !hasLoRAUp && dtypeMatches && dtypeSupported;
 
@@ -600,6 +676,7 @@ export async function runDenseFFNWithFusedPostNormGPU(
           role: 'ffn_gate',
           label: `L${layerIdx}.ffn_gate`,
           layerIdx,
+          kernelPath,
         },
         recorder
       );
@@ -613,6 +690,7 @@ export async function runDenseFFNWithFusedPostNormGPU(
           role: 'ffn_up',
           label: `L${layerIdx}.ffn_up`,
           layerIdx,
+          kernelPath,
         },
         recorder
       );

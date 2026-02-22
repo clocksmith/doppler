@@ -10,7 +10,7 @@
 import type { Tensor } from '../../../../gpu/tensor.js';
 import type { CpuWeightBuffer } from '../../../../gpu/weight-buffer.js';
 import type { CommandRecorder } from '../../../../gpu/command-recorder.js';
-import type { LargeWeightConfigSchema, ProbeConfigSchema } from '../../../../config/schema/index.js';
+import type { LargeWeightConfigSchema, ProbeConfigSchema, KernelPathSchema } from '../../../../config/schema/index.js';
 import type { LogitsConfig, LogitsWeights, LogitsDebugFlags } from './types.js';
 
 /**
@@ -66,7 +66,8 @@ export function computeChunkedLogitsGPU(
   vocabSize: number,
   weightVocabSize: number,
   debugProbes?: ProbeConfigSchema[] | null,
-  largeWeightConfig: LargeWeightConfigSchema
+  largeWeightConfig: LargeWeightConfigSchema,
+  kernelPath?: KernelPathSchema | null
 ): Promise<Float32Array>;
 
 /**

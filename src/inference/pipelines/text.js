@@ -2,7 +2,6 @@
 import { getDevice } from '../../gpu/device.js';
 import { getBufferPool as getGlobalBufferPool } from '../../memory/buffer-pool.js';
 import { log } from '../../debug/index.js';
-import { setActiveKernelPath } from '../../config/kernel-path-loader.js';
 import { configurePerfGuards } from '../../gpu/perf-guards.js';
 import { MoERouter } from '../moe-router.js';
 import { DecodeBufferManager } from '../decode-buffers.js';
@@ -26,7 +25,7 @@ import {
 } from './text/init.js';
 import {
   runKernelWarmup,
-  resolveAndActivateKernelPath,
+  resolveKernelPathState,
   initTokenizerFromManifestPreset,
 } from './text/model-load.js';
 import { applyPipelineDebugConfig } from './text/debug-utils.js';
@@ -98,7 +97,7 @@ export class InferencePipeline extends PipelineState {
       modelConfig: this.modelConfig,
     });
 
-    const kernelPathState = resolveAndActivateKernelPath({
+    const kernelPathState = resolveKernelPathState({
       manifest,
       runtimeConfig: this.runtimeConfig,
       modelConfig: this.modelConfig,
@@ -162,6 +161,8 @@ export class InferencePipeline extends PipelineState {
         storageContext: this.storageContext ?? undefined,
         loadingConfig: this.runtimeConfig.loading,
         baseUrl: this.baseUrl ?? undefined,
+        resolvedKernelPath: this.resolvedKernelPath,
+        kernelPathSource: this.kernelPathSource,
         onProgress: (info) => {
           if (info.stage !== 'layers' && info.stage !== 'shards') {
             log.verbose('Loader', `${info.stage}: ${Math.round(info.progress * 100)}%${info.message ? ` - ${info.message}` : ''}`);
@@ -404,7 +405,6 @@ export class InferencePipeline extends PipelineState {
       this.finitenessBuffer.destroy();
       this.finitenessBuffer = null;
     }
-    setActiveKernelPath(null, 'none');
     this.isLoaded = false;
     this.currentSeqLen = 0;
     log.info('Pipeline', 'Unloaded');

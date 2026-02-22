@@ -217,7 +217,8 @@ export async function computeLogits(
       matmulVocabSize,
       cpuWeightVocabSize,
       debugProbes,
-      largeWeights
+      largeWeights,
+      config.kernelPath ?? null
     );
 
     if (inputBufferOwned) releaseBuffer(inputBuffer);
@@ -254,6 +255,7 @@ export async function computeLogits(
   const logitsTensor = await runMatmul(normedTensor, lmHeadBuffer, numTokens, matmulVocabSize, hiddenSize, {
     transposeB: 'auto',
     role: forceStableF32Logits ? undefined : 'lm_head',
+    kernelPath: config.kernelPath ?? null,
   });
   await runProbes('logits', logitsTensor.buffer, {
     numTokens,

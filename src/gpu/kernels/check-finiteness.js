@@ -1,7 +1,22 @@
 import { getDevice, getDeviceEpoch } from '../device.js';
-import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { dispatchKernel } from './dispatch.js';
-import { createUniformBufferFromData, getOrCreateBindGroupLayout, getOrCreatePipelineLayout } from './utils.js';
+import { createUniformBufferWithView, getOrCreateBindGroupLayout, getOrCreatePipelineLayout } from './utils.js';
+
+export const DEFAULT_FINITENESS_ABS_THRESHOLD = 65500;
+
+export function resolveFinitenessAbsThreshold(value) {
+  if (Number.isFinite(value) && value > 0) {
+    return value;
+  }
+  return DEFAULT_FINITENESS_ABS_THRESHOLD;
+}
+
+export function shouldTriggerFinitenessValue(value, absThreshold = DEFAULT_FINITENESS_ABS_THRESHOLD) {
+  if (!Number.isFinite(value)) {
+    return true;
+  }
+  return Math.abs(value) > resolveFinitenessAbsThreshold(absThreshold);
+}
 
 let checkFinitenessPipeline = null;
 let checkFinitenessPipelineEpoch = -1;
@@ -15,6 +30,7 @@ struct Uniforms {
     size: u32,
     layer: u32,
     step: u32,
+    abs_threshold: f32,
 }
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
@@ -35,7 +51,9 @@ fn main(
     let bits = bitcast<u32>(val);
     
     // Check for NaN or Infinity (exponent bits all 1)
-    if ((bits & 0x7F800000u) == 0x7F800000u) {
+    let non_finite = (bits & 0x7F800000u) == 0x7F800000u;
+    let exceeds_abs_threshold = abs(val) > u.abs_threshold;
+    if (non_finite || exceeds_abs_threshold) {
         let old = atomicCompareExchangeWeak(&status[0], 0u, 1u);
         if (old.exchanged) {
             atomicStore(&status[1], u.layer);
@@ -83,15 +101,26 @@ export function recordCheckFiniteness(
     size,
     statusBuffer,
     layerIdx = 0,
-    step = 0
+    step = 0,
+    absThreshold = DEFAULT_FINITENESS_ABS_THRESHOLD
 ) {
     const isRecorder = target && typeof target.beginComputePass === 'function';
     const device = isRecorder ? target.device : getDevice();
     const pipeline = getCheckFinitenessPipeline();
+    const resolvedAbsThreshold = resolveFinitenessAbsThreshold(absThreshold);
 
-    // Create uniform buffer (size: 3 uints, padded by createUniformBufferFromData)
-    const uniformData = new Uint32Array([size, layerIdx, step]);
-    const uniformBuffer = createUniformBufferFromData('check_finiteness_uniforms', uniformData, isRecorder ? target : null, device);
+    const uniformBuffer = createUniformBufferWithView(
+        'check_finiteness_uniforms',
+        16,
+        (view) => {
+            view.setUint32(0, size, true);
+            view.setUint32(4, layerIdx, true);
+            view.setUint32(8, step, true);
+            view.setFloat32(12, resolvedAbsThreshold, true);
+        },
+        isRecorder ? target : null,
+        device
+    );
 
     // Create bind group
     const bindGroup = device.createBindGroup({

@@ -65,6 +65,7 @@ async function runExpertCPU(layerIdx, expertIdx, input, config, expertWeights) {
 
   const device = getDevice();
   const { hiddenSize, intermediateSize, hiddenActivation, swigluLimit } = config;
+  const kernelPath = config.kernelPath ?? null;
   const numTokens = input.length / hiddenSize;
 
   if (!device) {
@@ -78,11 +79,13 @@ async function runExpertCPU(layerIdx, expertIdx, input, config, expertWeights) {
   const gateOutput = await runMatmul(inputTensor, weights.gate, numTokens, intermediateSize, hiddenSize, {
     transposeB: 'auto',
     role: 'moe_gate',
+    kernelPath,
   });
 
   const upOutput = await runMatmul(inputTensor, weights.up, numTokens, intermediateSize, hiddenSize, {
     transposeB: 'auto',
     role: 'moe_up',
+    kernelPath,
   });
 
   const activationFn = {
@@ -98,6 +101,7 @@ async function runExpertCPU(layerIdx, expertIdx, input, config, expertWeights) {
   const output = await runMatmul(activatedOutput, weights.down, numTokens, hiddenSize, intermediateSize, {
     transposeB: 'auto',
     role: 'moe_down',
+    kernelPath,
   });
 
   const outputData = await readBuffer(output.buffer, input.byteLength);

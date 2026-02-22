@@ -11,6 +11,7 @@ struct Uniforms {
     size: u32,
     layer: u32,
     step: u32,
+    abs_threshold: f32,
 }
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
@@ -30,8 +31,10 @@ fn main(
     let val = f32(input[idx]);
     let bits = bitcast<u32>(val);
     
-    // Check for NaN or Infinity (exponent bits all 1)
-    if ((bits & 0x7F800000u) == 0x7F800000u) {
+    // Check for NaN/Infinity and near-overflow magnitude before corruption.
+    let non_finite = (bits & 0x7F800000u) == 0x7F800000u;
+    let exceeds_abs_threshold = abs(val) > u.abs_threshold;
+    if (non_finite || exceeds_abs_threshold) {
         let old = atomicCompareExchangeWeak(&status[0], 0u, 1u);
         if (old.exchanged) {
             atomicStore(&status[1], u.layer);

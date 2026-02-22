@@ -62,18 +62,21 @@ export type KernelPathSource = 'runtime' | 'config' | 'model' | 'manifest' | 'no
 export function getKernelPathMatmulVariant(
   role: string | undefined,
   phase: KernelPathPhase,
-  layerIndex?: number
+  layerIndex?: number,
+  path?: KernelPathSchema | null
 ): string | null;
 
 export function getKernelPathMatmulConstants(
   role: string | undefined,
   phase: KernelPathPhase,
-  layerIndex?: number
+  layerIndex?: number,
+  path?: KernelPathSchema | null
 ): Record<string, number | boolean> | null;
 
 export function getKernelPathAttentionVariant(
   phase: KernelPathPhase,
-  layerIndex?: number
+  layerIndex?: number,
+  path?: KernelPathSchema | null
 ): string | null;
 
 /**
@@ -92,10 +95,19 @@ export function getActiveKernelPathSource(): KernelPathSource;
 export function getKernelPathStrict(): boolean;
 
 /**
+ * Check if a kernel path uses fused Q4K matmul.
+ */
+export function isKernelPathFusedQ4K(path?: KernelPathSchema | null): boolean;
+
+/**
  * Check if the active kernel path uses fused Q4K matmul.
- * Returns true if no kernel path is set (default behavior).
  */
 export function isActiveKernelPathFusedQ4K(): boolean;
+
+/**
+ * Check if a kernel path uses dequant (non-fused) Q4K matmul.
+ */
+export function isKernelPathDequant(path?: KernelPathSchema | null): boolean;
 
 /**
  * Check if the active kernel path uses dequant (non-fused) Q4K matmul.

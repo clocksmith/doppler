@@ -11,7 +11,7 @@
 import type { ParsedModelConfig } from './config.js';
 import type { LoRAAdapter } from './lora-types.js';
 import type { WeightBuffer, CpuWeightBuffer } from '../../../gpu/weight-buffer.js';
-import type { ProbeConfigSchema } from '../../../config/schema/index.js';
+import type { ProbeConfigSchema, KernelPathSchema } from '../../../config/schema/index.js';
 import type { ExpertLoader } from './moe-impl.js';
 import type { MoERouter } from '../../moe-router.js';
 import type { DecodeBufferManager } from '../../decode-buffers.js';
@@ -87,8 +87,28 @@ export interface LayerContext {
   lora?: LoRAAdapter | null;
   /** Pre-allocated decode buffers (for M=1 decode optimization) */
   decodeBuffers?: DecodeBufferManager | null;
+  /** Runtime compute config snapshot for layer execution. */
+  runtimeComputeConfig?: {
+    activationDtype?: 'f16' | 'f32';
+    deferredRoundingWindowTokens?: number;
+    rangeAwareSelectiveWidening?: {
+      enabled?: boolean;
+      includeNonFinite?: boolean;
+      absThreshold?: number;
+    };
+  };
   /** Activation dtype for hidden states (default: 'f32', experimental: 'f16') */
   activationDtype?: 'f16' | 'f32';
+  /** Explicit kernel-path context for kernel variant selection. */
+  kernelPath?: KernelPathSchema | null;
+  /** Shared finiteness status buffer for always-on guard checks */
+  finitenessBuffer?: GPUBuffer | null;
+  /** Enable/disable guard dispatch for this layer context */
+  finitenessGuardEnabled?: boolean;
+  /** Absolute-value threshold used by finiteness guard */
+  finitenessAbsThreshold?: number;
+  /** Decode step index used for first-hit metadata */
+  step?: number;
 }
 
 /**

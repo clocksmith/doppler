@@ -12,6 +12,7 @@ import type { Tensor, TensorDtype } from '../tensor.js';
 import type { WeightBuffer } from '../weight-buffer.js';
 import type { CommandRecorder } from '../command-recorder.js';
 import type { OutputBufferOptions, OutputDtypeOptions, Vec4Options } from './types.js';
+import type { KernelPathSchema } from '../../config/schema/index.js';
 
 /** Matmul kernel options */
 export interface MatmulOptions extends OutputBufferOptions, OutputDtypeOptions, Vec4Options {
@@ -20,6 +21,8 @@ export interface MatmulOptions extends OutputBufferOptions, OutputDtypeOptions, 
   role?: string;
   /** Layer index for kernel path layer overrides */
   layerIdx?: number;
+  /** Explicit kernel path context for variant selection (avoids global path state). */
+  kernelPath?: KernelPathSchema | null;
   /**
    * Whether B matrix is stored transposed.
    * - true: B is [N,K] (SafeTensors/row-major), needs transpose

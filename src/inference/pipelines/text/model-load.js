@@ -99,7 +99,7 @@ function applyKernelPathRuntimeDtypeOverrides(resolvedKernelPath, runtimeConfig)
   return { ...runtimeConfig, inference: nextInference };
 }
 
-export function resolveAndActivateKernelPath(options) {
+export function resolveKernelPathState(options) {
   const {
     manifest,
     runtimeConfig,
@@ -148,13 +148,25 @@ export function resolveAndActivateKernelPath(options) {
     log.info('Pipeline', 'KernelPath: none (no kernel path configured)');
   }
 
-  setActiveKernelPath(resolvedKernelPath, kernelPathSource);
   const nextRuntimeConfig = applyKernelPathRuntimeDtypeOverrides(resolvedKernelPath, runtimeConfig);
   return {
     resolvedKernelPath,
     kernelPathSource,
     runtimeConfig: nextRuntimeConfig,
   };
+}
+
+export function activateKernelPathState(kernelPathState) {
+  setActiveKernelPath(
+    kernelPathState?.resolvedKernelPath ?? null,
+    kernelPathState?.kernelPathSource ?? 'none'
+  );
+}
+
+export function resolveAndActivateKernelPath(options) {
+  const state = resolveKernelPathState(options);
+  activateKernelPathState(state);
+  return state;
 }
 
 export async function initTokenizerFromManifestPreset(manifest, baseUrl) {

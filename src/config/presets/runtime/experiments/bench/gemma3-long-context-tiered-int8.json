@@ -1,0 +1,47 @@
+{
+  "name": "gemma3-long-context-tiered-int8",
+  "description": "Long-context Gemma 3 profile using tiered int8 KV cache and fused online F32a kernel path.",
+  "runtime": {
+    "shared": {
+      "tooling": {
+        "intent": "calibrate"
+      }
+    },
+    "inference": {
+      "kernelPath": "gemma3-f16-fused-f16a-online",
+      "batching": {
+        "batchSize": 1,
+        "readbackInterval": 1
+      },
+      "compute": {
+        "activationDtype": "f16",
+        "deferredRoundingWindowTokens": 4,
+        "rangeAwareSelectiveWidening": {
+          "enabled": true,
+          "absThreshold": 65500,
+          "includeNonFinite": true
+        }
+      },
+      "kvcache": {
+        "layout": "tiered",
+        "kvDtype": "f16",
+        "maxSeqLen": 16384,
+        "pageSize": 256,
+        "tiering": {
+          "mode": "int8",
+          "hotWindow": 512,
+          "coldPageSize": 256,
+          "coldDtype": "f16",
+          "compression": {
+            "mode": "int8",
+            "blockSize": 1
+          },
+          "gating": {
+            "mode": "force_on",
+            "minAluBwRatio": 0
+          }
+        }
+      }
+    }
+  }
+}

@@ -26,7 +26,9 @@ import type {
   LoadingConfigSchema,
   MoERoutingConfigSchema,
   SpeculativeConfigSchema,
+  KernelPathSchema,
 } from '../../../config/schema/index.js';
+import type { KernelPathSource } from '../../../config/kernel-path-loader.js';
 
 /**
  * External contexts that can be injected into the pipeline.
@@ -165,6 +167,8 @@ export interface LoadWeightsOptions {
   onProgress?: (info: { stage: string; progress: number }) => void;
   verifyHashes?: boolean;
   baseUrl?: string;
+  resolvedKernelPath?: KernelPathSchema | null;
+  kernelPathSource?: KernelPathSource;
 }
 
 /**

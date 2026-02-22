@@ -63,6 +63,7 @@ export async function recordLayerAttentionGPU(
     queryPreAttnScalar,
     skipInputNorm = false,
     tokenIds = null,
+    kernelPath = null,
   } = config;
 
   const wantsF16Output = input.dtype === 'f16';
@@ -124,6 +125,7 @@ export async function recordLayerAttentionGPU(
     headDim,
     hiddenSize,
     layerIdx,
+    kernelPath,
     matmulOutputDtype,
     getWeightBuffer,
     lora,
@@ -440,6 +442,7 @@ export async function recordLayerAttentionGPU(
       kvLayout: /** @type {any} */ (typeCheckedLayout),
       kvPageTable,
       kvPageSize,
+      kernelPath,
     });
   }
 
@@ -484,6 +487,7 @@ export async function recordLayerAttentionGPU(
         transposeB: 'auto',
         role: 'o_proj',
         layerIdx,
+        kernelPath,
         outputDtype: matmulOutputDtype,
       });
     }
@@ -505,7 +509,8 @@ export async function recordLayerAttentionGPU(
         loraO,
         { M: numTokens, N: hiddenSize, K: numHeads * headDim },
         getWeightBuffer,
-        recorder
+        recorder,
+        { kernelPath }
       );
       if (combined.buffer !== output.buffer) {
         recorder.trackTemporaryBuffer(output.buffer);

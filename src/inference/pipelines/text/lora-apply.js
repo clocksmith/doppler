@@ -7,9 +7,10 @@ import { runResidualAdd, recordResidualAdd } from '../../../gpu/kernels/residual
 import { runScale, recordScale } from '../../../gpu/kernels/scale.js';
 
 
-export async function applyLoRA(input, baseOutput, lora, dims, getWeightBuffer, recorder) {
+export async function applyLoRA(input, baseOutput, lora, dims, getWeightBuffer, recorder, options = {}) {
   const { M, N, K } = dims;
   const rank = lora.rank;
+  const kernelPath = options.kernelPath ?? null;
   if (!rank || rank <= 0) {
     return baseOutput;
   }
@@ -20,12 +21,12 @@ export async function applyLoRA(input, baseOutput, lora, dims, getWeightBuffer, 
   const ownsB = !(lora.b instanceof GPUBuffer) && !isWeightBuffer(lora.b);
 
   const loraIntermediate = recorder
-    ? await recordMatmul(recorder, input, aBuf, M, rank, K, { transposeB: 'auto', role: 'lora_a' })
-    : await runMatmul(input, aBuf, M, rank, K, { transposeB: 'auto', role: 'lora_a' });
+    ? await recordMatmul(recorder, input, aBuf, M, rank, K, { transposeB: 'auto', role: 'lora_a', kernelPath })
+    : await runMatmul(input, aBuf, M, rank, K, { transposeB: 'auto', role: 'lora_a', kernelPath });
 
   const loraOutput = recorder
-    ? await recordMatmul(recorder, loraIntermediate, bBuf, M, N, rank, { transposeB: 'auto', role: 'lora_b' })
-    : await runMatmul(loraIntermediate, bBuf, M, N, rank, { transposeB: 'auto', role: 'lora_b' });
+    ? await recordMatmul(recorder, loraIntermediate, bBuf, M, N, rank, { transposeB: 'auto', role: 'lora_b', kernelPath })
+    : await runMatmul(loraIntermediate, bBuf, M, N, rank, { transposeB: 'auto', role: 'lora_b', kernelPath });
 
   const scaled = recorder
     ? await recordScale(recorder, loraOutput, lora.scale, { outputBuffer: null })

@@ -24,7 +24,6 @@ Quick index for DOPPLER documentation.
 
 - [Benchmark Schema](schemas/benchmark-schema.json) - JSON schema for benchmark output.
 - [Competitor Registry](../benchmarks/competitors/README.md) - Cross-product benchmark targets, harnesses, and normalized results.
-- [Competitor Strategy](../benchmarks/competitors/STRATEGY.md) - Competitive attack plan, KPI set, and 30/60/90 execution.
 - [Training Engine](../src/training/README.md) - Training primitives and runners.
 - [Inference README](../src/inference/README.md) - Step-by-step inference flow.
 - [Kernel Tests (Implemented)](../tests/kernels/README.md) - Kernel correctness and microbenchmarks.

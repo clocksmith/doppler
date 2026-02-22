@@ -12,6 +12,7 @@
 import type { Tensor } from '../tensor.js';
 import type { CommandRecorder } from '../command-recorder.js';
 import type { OutputBufferOptions } from './types.js';
+import type { KernelPathSchema } from '../../config/schema/index.js';
 
 /** Attention kernel options */
 export interface AttentionOptions extends OutputBufferOptions {
@@ -24,6 +25,8 @@ export interface AttentionOptions extends OutputBufferOptions {
   slidingWindow?: number;
   /** Layer index for kernel path layer overrides */
   layerIdx?: number;
+  /** Explicit kernel path context for variant selection (avoids global path state). */
+  kernelPath?: KernelPathSchema | null;
   /** Gemma 2 attention softcapping: score = tanh(score / softcap) * softcap. 0 = disabled. */
   attnSoftcap?: number;
   /** Optional GPU buffer containing KV length (u32). When provided, kernel reads KV length from buffer. */
@@ -222,7 +225,8 @@ export declare function resolveAttentionPlanForTest(
   sharedLimit: number,
   caps: { hasSubgroups: boolean; hasF16?: boolean },
   layerIdx?: number,
-  isPaged?: boolean
+  isPaged?: boolean,
+  kernelPath?: KernelPathSchema | null
 ): {
   tier: AttentionTier;
   variant: string;

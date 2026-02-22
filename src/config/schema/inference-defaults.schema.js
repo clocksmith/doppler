@@ -41,6 +41,12 @@ export const DEFAULT_COMPUTE_DEFAULTS = {
   largeModelParamThreshold: 4e9,  // 4B parameters
   paramEstimationMultiplier: 12,  // Rough approximation: 12 * hidden^2 * layers
   keepF32Weights: false,  // Skip weight downcast (debug/compat)
+  rangeAwareSelectiveWidening: {
+    enabled: true,
+    absThreshold: 65500,
+    includeNonFinite: true,
+  },
+  deferredRoundingWindowTokens: 1,
 };
 
 // =============================================================================

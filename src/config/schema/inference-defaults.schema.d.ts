@@ -91,6 +91,28 @@ export interface ComputeDefaultsSchema {
 
   /** Keep weights in F32 (skip downcast even when F16 is available) */
   keepF32Weights: boolean;
+
+  /**
+   * Range-aware selective widening policy used by finiteness guard.
+   * When enabled, decode checks for abs(value) > absThreshold and widens
+   * dangerous tokens to F32 fallback before KV corruption.
+   */
+  rangeAwareSelectiveWidening: RangeAwareSelectiveWideningDefaultsSchema;
+
+  /**
+   * Number of decode tokens to keep in widened (F32) mode after an overflow
+   * hit before restoring the original dtype path.
+   */
+  deferredRoundingWindowTokens: number;
+}
+
+export interface RangeAwareSelectiveWideningDefaultsSchema {
+  /** Enable range-aware widening guard for F16 activations. */
+  enabled: boolean;
+  /** Absolute-value threshold used for early widening checks. */
+  absThreshold: number;
+  /** Whether non-finite values should always trigger widening. */
+  includeNonFinite: boolean;
 }
 
 /** Default compute configuration */

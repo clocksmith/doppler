@@ -19,6 +19,7 @@ import { runProbes } from './probes.js';
 import { getLayerPlanSteps } from './layer-plan.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { recordCheckFiniteness } from '../../../gpu/kernels/check-finiteness.js';
+import { shouldRunFinitenessGuard } from './finiteness-policy.js';
 
 // ============================================================================
 // Architecture Detection
@@ -157,6 +158,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
     causalAttention: config.causalAttention,
     rmsNormWeightOffset: config.rmsNormWeightOffset,
     tokenIds: context.currentTokenIds ?? null,
+    kernelPath: context.kernelPath ?? null,
   };
 
 
@@ -313,8 +315,20 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
   }
 
   // Early-stop check for F16 NaN/Infinity bounds
-  if (context.finitenessBuffer && context.activationDtype === 'f16') {
-    recordCheckFiniteness(recorder, outputTensor.buffer, size, context.finitenessBuffer, layerIdx, context.step);
+  const computeConfig = context.runtimeComputeConfig ?? null;
+  const shouldCheckFiniteness = context.finitenessGuardEnabled !== undefined
+    ? context.finitenessGuardEnabled
+    : shouldRunFinitenessGuard(context.activationDtype, computeConfig);
+  if (context.finitenessBuffer && context.activationDtype === 'f16' && shouldCheckFiniteness) {
+    recordCheckFiniteness(
+      recorder,
+      outputTensor.buffer,
+      size,
+      context.finitenessBuffer,
+      layerIdx,
+      context.step,
+      context.finitenessAbsThreshold
+    );
   }
 
   return outputTensor.buffer;
@@ -486,6 +500,7 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
             rmsNormWeightOffset: config.rmsNormWeightOffset,
             tokenIds: context.currentTokenIds ?? null,
             skipInputNorm: step.skipInputNorm === true,
+            kernelPath: context.kernelPath ?? null,
           };
 
           const result = await doAttention(
@@ -629,6 +644,22 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
     probes: context.debugProbes,
     recorder,
   });
+
+  const computeConfig = context.runtimeComputeConfig ?? null;
+  const shouldCheckFiniteness = context.finitenessGuardEnabled !== undefined
+    ? context.finitenessGuardEnabled
+    : shouldRunFinitenessGuard(context.activationDtype, computeConfig);
+  if (context.finitenessBuffer && context.activationDtype === 'f16' && shouldCheckFiniteness) {
+    recordCheckFiniteness(
+      recorder,
+      output,
+      size,
+      context.finitenessBuffer,
+      layerIdx,
+      context.step,
+      context.finitenessAbsThreshold
+    );
+  }
 
   return output;
 }

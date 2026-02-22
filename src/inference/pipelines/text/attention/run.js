@@ -68,6 +68,7 @@ export async function runLayerAttentionGPU(
     queryPreAttnScalar,
     skipInputNorm = false,
     tokenIds = null,
+    kernelPath = null,
   } = config;
 
   const device = getDevice();
@@ -175,6 +176,7 @@ export async function runLayerAttentionGPU(
     headDim,
     hiddenSize,
     layerIdx,
+    kernelPath,
     matmulOutputDtype,
     getWeightBuffer,
     lora,
@@ -599,6 +601,7 @@ export async function runLayerAttentionGPU(
       kvLayout,
       kvPageTable,
       kvPageSize,
+      kernelPath,
     });
   }
 
@@ -668,6 +671,7 @@ export async function runLayerAttentionGPU(
         transposeB: 'auto',
         role: 'o_proj',
         layerIdx,
+        kernelPath,
         outputDtype: matmulOutputDtype,
       });
     }
@@ -705,7 +709,9 @@ export async function runLayerAttentionGPU(
         output,
         loraO,
         { M: numTokens, N: hiddenSize, K: numHeads * headDim },
-        getWeightBuffer
+        getWeightBuffer,
+        undefined,
+        { kernelPath }
       );
       if (combined.buffer !== output.buffer) {
         releaseBuffer(output.buffer);
