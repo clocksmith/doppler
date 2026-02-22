@@ -9,7 +9,6 @@ import { createCommandRecorder, createProfilingRecorder, CommandRecorder } from 
 import { allowReadback } from '../../../gpu/perf-guards.js';
 import { log, trace } from '../../../debug/index.js';
 import { validateCallTimeOptions } from '../../../config/param-validator.js';
-import { resolveKernelPath } from '../../../config/kernel-path-loader.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 
 // Pipeline sub-modules
@@ -51,6 +50,13 @@ import {
 import { decodeReadback, getLogitsHealth } from './debug-utils.js';
 import { parseFinitenessStatusWords } from './finiteness-guard-status.js';
 import { resolveDeferredRoundingWindowTokens } from './finiteness-policy.js';
+import {
+  activateFallbackExecutionPlan,
+  rebaseExecutionSessionPlan,
+  resetActiveExecutionPlan,
+  resolveActiveExecutionPlan,
+  setActiveExecutionPlan,
+} from './execution-plan.js';
 
 export class PipelineGenerator {
 
@@ -72,18 +78,13 @@ export class PipelineGenerator {
   }
 
   _resolveDeferredRoundingWindowTokens() {
-    return resolveDeferredRoundingWindowTokens(this.#state.runtimeConfig?.inference?.compute);
+    const activePlan = resolveActiveExecutionPlan(this.#state);
+    return activePlan?.deferredRoundingWindowTokens
+      ?? resolveDeferredRoundingWindowTokens(this.#state.runtimeConfig?.inference?.compute);
   }
 
   _getEffectiveActivationDtype() {
-    return this.#state.executionActivationDtypeOverride
-      ?? this.#state.runtimeConfig.inference.compute.activationDtype;
-  }
-
-  _getEffectiveKernelPath() {
-    return this.#state.executionKernelPathOverride
-      ?? this.#state.resolvedKernelPath
-      ?? null;
+    return resolveActiveExecutionPlan(this.#state).activationDtype;
   }
 
   _hasFinitenessFallbackWindow() {
@@ -133,8 +134,8 @@ export class PipelineGenerator {
 
   _getDecodeHelpers(debugCheckBuffer) {
     return {
-      buildLayerContext: (recorder, isDecodeMode, debugLayers) =>
-        buildLayerContext(this.#state, recorder, isDecodeMode, debugLayers, debugCheckBuffer),
+      buildLayerContext: (recorder, isDecodeMode, debugLayers, executionPlan) =>
+        buildLayerContext(this.#state, recorder, isDecodeMode, debugLayers, debugCheckBuffer, executionPlan),
       getLogitsWeights: () => getLogitsWeights(this.#state),
       getLogitsConfig: () => getLogitsConfig(this.#state),
       debugCheckBuffer,
@@ -156,62 +157,27 @@ export class PipelineGenerator {
     );
   }
 
-  _resolveFinitenessFallbackKernelPathId() {
-    const currentId = this._getEffectiveKernelPath()?.id
-      ?? this.#state.runtimeConfig?.inference?.kernelPath
-      ?? null;
-    if (typeof currentId !== 'string' || currentId.length === 0) {
-      return null;
-    }
-
-    const fallbackKernelPathId = selectRuleValue(
-      'inference',
-      'kernelPath',
-      'finitenessFallback',
-      { kernelPathId: currentId }
-    );
-    if (typeof fallbackKernelPathId !== 'string' || fallbackKernelPathId.length === 0) {
-      return null;
-    }
-    try {
-      resolveKernelPath(fallbackKernelPathId);
-      return fallbackKernelPathId;
-    } catch {
-      log.warn(
-        'Pipeline',
-        `Finiteness fallback rule mapped "${currentId}" -> "${fallbackKernelPathId}" but target path was not found.`
-      );
-      return null;
-    }
-  }
-
   _beginFinitenessFallback(opts, reasonLabel) {
-    const originalKernelPath = this._getEffectiveKernelPath();
+    const originalPlan = resolveActiveExecutionPlan(this.#state);
     const original = {
-      activationDtypeOverride: this.#state.executionActivationDtypeOverride,
-      kernelPathOverride: this.#state.executionKernelPathOverride,
+      activePlanId: this.#state.executionPlanState?.activePlanId ?? 'primary',
       seed: opts.seed,
     };
 
-    this.#state.executionActivationDtypeOverride = 'f32';
-
-    const fallbackKernelPathId = this._resolveFinitenessFallbackKernelPathId();
-    if (fallbackKernelPathId) {
-      const fallbackKernelPath = resolveKernelPath(fallbackKernelPathId);
-      this.#state.executionKernelPathOverride = fallbackKernelPath;
-      log.warn(
-        'Pipeline',
-        `FinitenessGuard fallback (${reasonLabel}): ` +
-        `${originalKernelPath?.id ?? 'none'} -> ${fallbackKernelPathId}`
-      );
-    } else {
-      log.warn('Pipeline', `FinitenessGuard fallback (${reasonLabel}): no f32-compatible kernel path found; keeping current path.`);
+    const fallbackPlan = activateFallbackExecutionPlan(this.#state);
+    if (!fallbackPlan) {
+      throw new Error('[Pipeline] Finiteness fallback plan is unavailable for this model/runtime configuration.');
     }
+    log.warn(
+      'Pipeline',
+      `FinitenessGuard fallback (${reasonLabel}): ` +
+      `${originalPlan.kernelPathId ?? 'none'} -> ${fallbackPlan.kernelPathId ?? 'none'}`
+    );
 
     this.#state.decodeBuffers?.ensureBuffers({
       hiddenSize: this.#state.modelConfig.hiddenSize,
       intermediateSize: this.#state.modelConfig.intermediateSize,
-      activationDtype: 'f32',
+      activationDtype: fallbackPlan.activationDtype,
       enablePingPong: true,
     });
 
@@ -219,14 +185,15 @@ export class PipelineGenerator {
       const fallbackSeedBase = (this.#state.decodeStepCount + this.#state.currentSeqLen + 1) >>> 0;
       opts.seed = (fallbackSeedBase * 2654435761) >>> 0;
     }
+    opts.executionPlan = rebaseExecutionSessionPlan(this.#state, opts.executionPlan);
 
     return original;
   }
 
   _endFinitenessFallback(opts, original) {
     opts.seed = original.seed;
-    this.#state.executionActivationDtypeOverride = original.activationDtypeOverride;
-    this.#state.executionKernelPathOverride = original.kernelPathOverride;
+    setActiveExecutionPlan(this.#state, original.activePlanId);
+    opts.executionPlan = rebaseExecutionSessionPlan(this.#state, opts.executionPlan);
     const nextActivationDtype = this._getEffectiveActivationDtype();
     this.#state.decodeBuffers?.ensureBuffers({
       hiddenSize: this.#state.modelConfig.hiddenSize,
@@ -284,8 +251,7 @@ export class PipelineGenerator {
     this.#state.decodeStepCount = 0;
     this.#state.disableRecordedLogits = false;
     this.#state.disableFusedDecode = false;
-    this.#state.executionKernelPathOverride = null;
-    this.#state.executionActivationDtypeOverride = null;
+    resetActiveExecutionPlan(this.#state);
     this.#state.decodeRing?.reset();
     this.#state.stats.gpuTimePrefillMs = undefined;
     this.#state.stats.gpuTimeDecodeMs = undefined;
@@ -421,6 +387,7 @@ export class PipelineGenerator {
       });
     } finally {
       this._closeFinitenessFallbackWindow(opts);
+      resetActiveExecutionPlan(this.#state);
       this.#state.isGenerating = false;
     }
   }
@@ -428,6 +395,7 @@ export class PipelineGenerator {
 
   async prefillKVOnly(prompt, options = {}) {
     if (!this.#state.isLoaded) throw new Error('Model not loaded');
+    resetActiveExecutionPlan(this.#state);
     this.#state.stats.gpuTimePrefillMs = undefined;
     const opts = resolvePrefillOptions(this.#state, options);
 
@@ -494,6 +462,7 @@ export class PipelineGenerator {
 
   async prefillWithEmbedding(prompt, options = {}) {
     if (!this.#state.isLoaded) throw new Error('Model not loaded');
+    resetActiveExecutionPlan(this.#state);
     this.#state.stats.gpuTimePrefillMs = undefined;
     const opts = resolvePrefillEmbeddingOptions(this.#state, options);
 
@@ -590,6 +559,7 @@ export class PipelineGenerator {
 
   async prefillWithLogits(prompt, options = {}) {
     if (!this.#state.isLoaded) throw new Error('Model not loaded');
+    resetActiveExecutionPlan(this.#state);
     this.#state.stats.gpuTimePrefillMs = undefined;
     const opts = resolvePrefillOptions(this.#state, options);
 
@@ -638,6 +608,7 @@ export class PipelineGenerator {
 
     this.#state.isGenerating = true;
     this.#state.decodeStepCount = 0;
+    resetActiveExecutionPlan(this.#state);
     this.#state.stats.gpuTimePrefillMs = undefined;
     this.#state.stats.gpuTimeDecodeMs = undefined;
     this.#state.decodeRing?.reset();
@@ -692,6 +663,7 @@ export class PipelineGenerator {
       this.#state.stats.totalTimeMs = performance.now() - startTime;
     } finally {
       this._closeFinitenessFallbackWindow(opts);
+      resetActiveExecutionPlan(this.#state);
       this.#state.isGenerating = false;
     }
   }
@@ -720,20 +692,23 @@ export class PipelineGenerator {
       || lmHead instanceof Float32Array
       || embedBuffer instanceof Float32Array;
     const gpuSamplingAvailable = isGPUSamplingAvailable() && !hasCpuWeights;
+    const executionPlan = opts.executionPlan;
     let useBatchPath = shouldUseBatchDecode({
-      batchSize: opts.batchSize,
+      batchSize: executionPlan.batchSize,
       useGPU: this.#state.useGPU,
       gpuSamplingAvailable,
-      disableMultiTokenDecode: opts.disableMultiTokenDecode || this.#state.kvCache?.layout === 'bdpa_paged',
-      disableCommandBatching: opts.disableCommandBatching,
+      disableMultiTokenDecode: executionPlan.disableMultiTokenDecode,
+      disableCommandBatching: executionPlan.disableCommandBatching,
+      isBdpaPagedLayout: this.#state.kvCache?.layout === 'bdpa_paged',
+      finitenessFallbackWindowOpen: this._hasFinitenessFallbackWindow(),
     });
-    const readbackInterval = this.#state.runtimeConfig.inference.batching.readbackInterval;
+    const readbackInterval = executionPlan.readbackInterval;
     const intervalBatches = readbackInterval == null ? 1 : readbackInterval;
 
     if (logBatchPath && useBatchPath) {
       log.debug(
         'Pipeline',
-        `Using batch decode path with batchSize=${opts.batchSize}, stopCheckMode=${opts.stopCheckMode}, readbackInterval=${readbackInterval}`
+        `Using batch decode path with batchSize=${executionPlan.batchSize}, stopCheckMode=${executionPlan.stopCheckMode}, readbackInterval=${readbackInterval}`
       );
     }
 
@@ -745,7 +720,7 @@ export class PipelineGenerator {
 
       if (useBatchPath) {
         const remaining = opts.maxTokens - tokensGenerated;
-        const thisBatchSize = Math.min(opts.batchSize * intervalBatches, remaining);
+        const thisBatchSize = Math.min(executionPlan.batchSize * intervalBatches, remaining);
         const lastToken = generatedIds[generatedIds.length - 1];
 
         try {
@@ -758,7 +733,7 @@ export class PipelineGenerator {
             yield tokenText;
             if (options.onToken) options.onToken(tokenId, tokenText);
             batchTokens.push({ id: tokenId, text: tokenText });
-            if (batchTokens.length === opts.batchSize) {
+            if (batchTokens.length === executionPlan.batchSize) {
               if (options.onBatch) options.onBatch(batchTokens);
               batchTokens = [];
             }
@@ -881,7 +856,14 @@ export class PipelineGenerator {
       ? (buffer, label, numTokens, expectedDim) =>
         debugCheckBufferHelper(this.#state, buffer, label, numTokens, expectedDim)
       : undefined;
-    const context = buildLayerContext(this.#state, recorder, false, opts.debugLayers, debugCheckBuffer);
+    const context = buildLayerContext(
+      this.#state,
+      recorder,
+      false,
+      opts.debugLayers,
+      debugCheckBuffer,
+      opts.executionPlan
+    );
     context.currentTokenIds = inputIds;
     let gpuTimePrefillMs = 0;
     let hasGpuTimePrefill = false;
@@ -905,7 +887,7 @@ export class PipelineGenerator {
       resetSubmitStats();
     }
 
-    const activationDtype = this._getEffectiveActivationDtype();
+    const activationDtype = opts.executionPlan?.activationDtype ?? this._getEffectiveActivationDtype();
     const activationBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: activationDtype });
     let hiddenStates = await embed(inputIds, embedBuffer, {
       hiddenSize: config.hiddenSize,
@@ -1209,6 +1191,7 @@ export class PipelineGenerator {
   async decodeStepLogits(currentIds, options = {}) {
     if (!this.#state.isLoaded) throw new Error('Model not loaded');
     if (this.#state.isGenerating) throw new Error('Generation already in progress');
+    resetActiveExecutionPlan(this.#state);
 
     validateCallTimeOptions(options);
 
@@ -1224,6 +1207,7 @@ export class PipelineGenerator {
   async advanceWithToken(tokenId, options = {}) {
     if (!this.#state.isLoaded) throw new Error('Model not loaded');
     if (this.#state.isGenerating) throw new Error('Generation already in progress');
+    resetActiveExecutionPlan(this.#state);
 
     validateCallTimeOptions(options);
 
@@ -1240,6 +1224,7 @@ export class PipelineGenerator {
   async advanceWithTokenAndEmbedding(tokenId, options = {}) {
     if (!this.#state.isLoaded) throw new Error('Model not loaded');
     if (this.#state.isGenerating) throw new Error('Generation already in progress');
+    resetActiveExecutionPlan(this.#state);
 
     validateCallTimeOptions(options);
 

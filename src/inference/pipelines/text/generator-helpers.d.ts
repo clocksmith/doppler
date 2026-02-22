@@ -8,6 +8,7 @@ import type { PipelineState } from './state.js';
 import type { LayerContext } from './types.js';
 import type { LogitsConfig, LogitsWeights } from './logits.js';
 import type { WeightBufferConfig } from './weights.js';
+import type { ExecutionSessionPlan } from './execution-plan.js';
 
 export declare function debugCheckBuffer(
   state: PipelineState,
@@ -22,7 +23,8 @@ export declare function buildLayerContext(
   recorder: unknown,
   isDecodeMode: boolean,
   debugLayers: number[] | null | undefined,
-  debugCheckBufferFn?: (buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number) => Promise<void>
+  debugCheckBufferFn?: (buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number) => Promise<void>,
+  executionPlan?: ExecutionSessionPlan | null
 ): LayerContext;
 
 export declare function getWeightBufferConfig(state: PipelineState): WeightBufferConfig;

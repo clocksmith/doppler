@@ -1,0 +1,28 @@
+{
+    "shared": {
+        "tooling": {
+            "intent": "investigate"
+        },
+        "debug": {
+            "pipeline": {
+                "enabled": true,
+                "categories": [
+                    "layer",
+                    "kernel",
+                    "attn",
+                    "ffn",
+                    "logits"
+                ],
+                "maxDecodeSteps": 1
+            }
+        }
+    },
+    "inference": {
+        "batching": {
+            "maxTokens": 4
+        },
+        "sampling": {
+            "temperature": 0
+        }
+    }
+}

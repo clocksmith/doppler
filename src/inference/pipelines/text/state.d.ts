@@ -20,6 +20,7 @@ import type { LayerWeights, ExpertWeights, RouterWeights, PipelineStats, Batchin
 import type { WeightBuffer, CpuWeightBuffer } from '../../../gpu/weight-buffer.js';
 import type { DopplerLoader } from '../../../loader/doppler-loader.js';
 import type { CompiledLayerPipeline } from './layer-plan.js';
+import type { ExecutionPlanState } from './execution-plan.js';
 import type { LoRAAdapter } from './lora.js';
 import type { RuntimeConfigSchema, KernelPathSchema } from '../../../config/schema/index.js';
 import type { WeightDebugFlags } from './weights.js';
@@ -44,8 +45,7 @@ export class PipelineState {
   decodeStepCount: number;
   resolvedKernelPath: KernelPathSchema | null;
   kernelPathSource: KernelPathSource;
-  executionKernelPathOverride: KernelPathSchema | null;
-  executionActivationDtypeOverride: 'f16' | 'f32' | null;
+  executionPlanState: ExecutionPlanState | null;
   disableRecordedLogits: boolean;
   disableFusedDecode: boolean;
 

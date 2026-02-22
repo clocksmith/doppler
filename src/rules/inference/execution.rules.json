@@ -1,0 +1,32 @@
+{
+  "decodeRecorderEnabled": [
+    {
+      "match": {
+        "hasDevice": true,
+        "debug": false,
+        "disableCommandBatching": false,
+        "kvLayout": { "neq": "bdpa_paged" }
+      },
+      "value": true
+    },
+    { "match": {}, "value": false }
+  ],
+  "batchDecodeEnabled": [
+    {
+      "match": {
+        "batchSize": { "gt": 1 },
+        "useGPU": true,
+        "gpuSamplingAvailable": true,
+        "disableMultiTokenDecode": false,
+        "disableCommandBatching": false,
+        "isBdpaPagedLayout": false,
+        "finitenessFallbackWindowOpen": false
+      },
+      "value": true
+    },
+    { "match": {}, "value": false }
+  ],
+  "finitenessFallbackActivationDtype": [
+    { "match": {}, "value": "f32" }
+  ]
+}

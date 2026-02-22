@@ -8,6 +8,7 @@ import { allowReadback } from '../../../gpu/perf-guards.js';
 import { getUniformCache } from '../../../gpu/uniform-cache.js';
 import { log } from '../../../debug/index.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
+import { isBatchDecodeEnabled, isDecodeRecorderEnabled } from './execution-plan.js';
 
 import { sample, applyRepetitionPenalty, logitsSanity, getTopK } from './sampling.js';
 import { isStopToken } from './init.js';
@@ -30,8 +31,8 @@ export function sumProfileTimings(timings) {
   return total;
 }
 
-function getEffectiveActivationDtype(state) {
-  return state.executionActivationDtypeOverride
+function getEffectiveActivationDtype(state, opts) {
+  return opts?.executionPlan?.activationDtype
     ?? state.runtimeConfig.inference.compute.activationDtype;
 }
 
@@ -58,11 +59,7 @@ function recordDecodeProfileStep(state, entry) {
 }
 
 export function shouldUseBatchDecode(config) {
-  return config.batchSize > 1
-    && config.useGPU
-    && config.gpuSamplingAvailable
-    && !config.disableMultiTokenDecode
-    && !config.disableCommandBatching;
+  return isBatchDecodeEnabled(config);
 }
 
 export function resolveBatchStop(tokens, stopFlags, stopTokenIds, eosTokenId) {
@@ -91,7 +88,7 @@ async function runDecodeLayers(state, tokenId, opts, helpers) {
   const config = state.modelConfig;
   const debugCheckBuffer = state.debug ? helpers.debugCheckBuffer : undefined;
 
-  const context = helpers.buildLayerContext(undefined, true, opts.debugLayers);
+  const context = helpers.buildLayerContext(undefined, true, opts.debugLayers, opts.executionPlan);
   context.currentTokenIds = [tokenId];
 
   state.decodeBuffers.resetPingPong();
@@ -109,7 +106,7 @@ async function runDecodeLayers(state, tokenId, opts, helpers) {
     : isCpuWeightBuffer(embedBufferRaw)
       ? embedBufferRaw.dtype
       : null;
-  const activationDtype = getEffectiveActivationDtype(state);
+  const activationDtype = getEffectiveActivationDtype(state, opts);
 
   const embedTensor = await embed([tokenId], embedBuffer, {
     hiddenSize: config.hiddenSize,
@@ -144,7 +141,7 @@ export async function decodeStep(state, currentIds, opts, helpers) {
   const numTokens = 1;
   const config = state.modelConfig;
   const samplingDefaults = state.runtimeConfig.inference.sampling;
-  const batchingConfig = state.runtimeConfig.inference.batching;
+  const executionPlan = opts.executionPlan;
   const debugCheckBuffer = state.debug ? helpers.debugCheckBuffer : undefined;
 
   state.decodeStepCount++;
@@ -157,7 +154,13 @@ export async function decodeStep(state, currentIds, opts, helpers) {
   const device = getDevice();
 
   let recorder;
-  if (device && !opts.debug && !opts.disableCommandBatching && state.kvCache?.layout !== 'bdpa_paged') {
+  const recorderEnabled = isDecodeRecorderEnabled({
+    hasDevice: Boolean(device),
+    debug: opts.debug,
+    disableCommandBatching: executionPlan?.disableCommandBatching ?? opts.disableCommandBatching,
+    kvLayout: state.kvCache?.layout ?? null,
+  });
+  if (recorderEnabled) {
     recorder = opts.profile
       ? createProfilingRecorder('decode')
       : createCommandRecorder('decode');
@@ -171,7 +174,7 @@ export async function decodeStep(state, currentIds, opts, helpers) {
     device.queue.writeBuffer(state.finitenessBuffer, 0, new Uint32Array([0, 0, 0, 0]));
   }
 
-  const context = helpers.buildLayerContext(recorder, true, opts.debugLayers);
+  const context = helpers.buildLayerContext(recorder, true, opts.debugLayers, executionPlan);
   context.currentTokenIds = [lastToken];
 
   state.decodeBuffers.resetPingPong();
@@ -189,7 +192,7 @@ export async function decodeStep(state, currentIds, opts, helpers) {
     : isCpuWeightBuffer(embedBufferRaw)
       ? embedBufferRaw.dtype
       : null;
-  const activationDtype = getEffectiveActivationDtype(state);
+  const activationDtype = getEffectiveActivationDtype(state, opts);
   const activationBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: activationDtype });
 
   const embedTensor = await embed([lastToken], embedBuffer, {
@@ -260,10 +263,10 @@ export async function decodeStep(state, currentIds, opts, helpers) {
       ring.ensure({
         batchSize: 1,
         tokensPerInterval: 1,
-        stopCheckMode: batchingConfig.stopCheckMode,
-        ringTokens: batchingConfig.ringTokens,
-        ringStop: batchingConfig.ringStop,
-        ringStaging: batchingConfig.ringStaging,
+        stopCheckMode: executionPlan?.stopCheckMode ?? opts.stopCheckMode,
+        ringTokens: executionPlan?.ringTokens ?? state.runtimeConfig.inference.batching.ringTokens,
+        ringStop: executionPlan?.ringStop ?? state.runtimeConfig.inference.batching.ringStop,
+        ringStaging: executionPlan?.ringStaging ?? state.runtimeConfig.inference.batching.ringStaging,
       });
       ringSlot = ring.acquire();
     }
@@ -681,7 +684,7 @@ export async function advanceWithTokenAndEmbedding(state, tokenId, opts, helpers
   }
 
   const config = state.modelConfig;
-  const activationDtype = getEffectiveActivationDtype(state);
+  const activationDtype = getEffectiveActivationDtype(state, opts);
   const activationBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: activationDtype });
 
   let embedding;
@@ -737,10 +740,11 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
   const device = getDevice();
   const config = state.modelConfig;
   const samplingDefaults = state.runtimeConfig.inference.sampling;
-  const batchingConfig = state.runtimeConfig.inference.batching;
-  const batchSize = opts.batchSize ?? batchingConfig.batchSize;
-  const readbackInterval = batchingConfig.readbackInterval == null ? 1 : batchingConfig.readbackInterval;
-  const stopCheckMode = opts.stopCheckMode ?? batchingConfig.stopCheckMode;
+  const executionPlan = opts.executionPlan;
+  const batchSize = executionPlan?.batchSize ?? opts.batchSize ?? state.runtimeConfig.inference.batching.batchSize;
+  const readbackIntervalRaw = executionPlan?.readbackInterval ?? state.runtimeConfig.inference.batching.readbackInterval;
+  const readbackInterval = readbackIntervalRaw == null ? 1 : readbackIntervalRaw;
+  const stopCheckMode = executionPlan?.stopCheckMode ?? opts.stopCheckMode ?? state.runtimeConfig.inference.batching.stopCheckMode;
   // GPU stop-flag checks are only useful when we read back every token.
   // With deferred readback, we already scan sampled tokens on CPU to find the
   // earliest stop token, so extra stop buffers/kernels are redundant overhead.
@@ -775,7 +779,7 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
   if (eosTokenId == null) {
     throw new Error('[Pipeline] Missing EOS token. Ensure tokenizer or manifest provides stop tokens.');
   }
-  const maxTokens = opts.maxTokens ?? batchingConfig.maxTokens;
+  const maxTokens = executionPlan?.maxTokens ?? opts.maxTokens ?? state.runtimeConfig.inference.batching.maxTokens;
   const maxSeqLen = state.currentSeqLen + maxTokens;
 
   const recordStart = performance.now();
@@ -787,9 +791,9 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
       batchSize,
       tokensPerInterval,
       stopCheckMode: effectiveStopCheckMode,
-      ringTokens: batchingConfig.ringTokens,
-      ringStop: batchingConfig.ringStop,
-      ringStaging: batchingConfig.ringStaging,
+      ringTokens: executionPlan?.ringTokens ?? state.runtimeConfig.inference.batching.ringTokens,
+      ringStop: executionPlan?.ringStop ?? state.runtimeConfig.inference.batching.ringStop,
+      ringStaging: executionPlan?.ringStaging ?? state.runtimeConfig.inference.batching.ringStaging,
     });
     ringSlot = ring.acquire();
   }
@@ -838,7 +842,7 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
     device.queue.writeBuffer(stopBuffer, 0, clearData);
   }
 
-  const context = helpers.buildLayerContext(recorder, true, opts.debugLayers);
+  const context = helpers.buildLayerContext(recorder, true, opts.debugLayers, executionPlan);
   const embedBufferRaw = state.weights.get('embed');
   if (isCpuWeightBuffer(embedBufferRaw)) {
     throw new Error('[Pipeline] GPU-only decode not supported with CPU-resident embeddings.');
@@ -848,7 +852,7 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
   }
   const embedBuffer = isWeightBuffer(embedBufferRaw) ? embedBufferRaw.buffer : embedBufferRaw;
   const embedDtype = isWeightBuffer(embedBufferRaw) ? getWeightDtype(embedBufferRaw) : null;
-  const activationDtype = getEffectiveActivationDtype(state);
+  const activationDtype = getEffectiveActivationDtype(state, opts);
 
   for (let i = 0; i < N; i++) {
     const currentPos = state.currentSeqLen + i;

@@ -30,6 +30,7 @@ import {
 } from './text/model-load.js';
 import { applyPipelineDebugConfig } from './text/debug-utils.js';
 import { resolveLayerPipeline } from './text/layer-plan.js';
+import { compileExecutionPlanState, resolveActiveExecutionPlan } from './text/execution-plan.js';
 import { getDopplerLoader } from '../../loader/doppler-loader.js';
 import { registerPipeline, getPipelineFactory } from './registry.js';
 import { selectRuleValue } from '../../rules/rule-registry.js';
@@ -123,6 +124,17 @@ export class InferencePipeline extends PipelineState {
 
     // Initialize KV cache
     this.kvCache = createKVCache(this.modelConfig, this.useGPU, this.debug, this.runtimeConfig.inference.kvcache);
+    this.executionPlanState = compileExecutionPlanState({
+      runtimeConfig: this.runtimeConfig,
+      resolvedKernelPath: this.resolvedKernelPath,
+      kernelPathSource: this.kernelPathSource,
+    });
+    const activeExecutionPlan = resolveActiveExecutionPlan(this);
+    log.info(
+      'Pipeline',
+      `Execution plan: active=${activeExecutionPlan.id}, dtype=${activeExecutionPlan.activationDtype}, ` +
+      `kernelPath=${activeExecutionPlan.kernelPathId ?? 'none'}`
+    );
 
     // Initialize MoE router if needed
     if (this.modelConfig.useMoE) {
@@ -202,10 +214,11 @@ export class InferencePipeline extends PipelineState {
     }
 
     if (this.useGPU && this.modelConfig) {
+      const activeExecutionPlan = resolveActiveExecutionPlan(this);
       this.decodeBuffers?.ensureBuffers({
         hiddenSize: this.modelConfig.hiddenSize,
         intermediateSize: this.modelConfig.intermediateSize,
-        activationDtype: this.runtimeConfig.inference.compute.activationDtype,
+        activationDtype: activeExecutionPlan.activationDtype,
         enablePingPong: true,
       });
 

@@ -35,9 +35,7 @@ export class PipelineState {
 
     this.kernelPathSource = 'none';
 
-    this.executionKernelPathOverride = null;
-
-    this.executionActivationDtypeOverride = null;
+    this.executionPlanState = null;
 
     this.disableRecordedLogits = false;
 

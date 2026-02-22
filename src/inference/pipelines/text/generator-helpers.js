@@ -6,6 +6,7 @@ import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { decodeReadback } from './debug-utils.js';
 import { isWeightBuffer, isCpuWeightBuffer } from '../../../gpu/weight-buffer.js';
 import { resolveRangeAwareSelectiveWideningConfig } from './finiteness-policy.js';
+import { resolveActiveExecutionPlan } from './execution-plan.js';
 
 
 export async function debugCheckBuffer(state, buffer, label, numTokens, expectedDim) {
@@ -78,16 +79,19 @@ export async function debugCheckBuffer(state, buffer, label, numTokens, expected
 }
 
 
-export function buildLayerContext(state, recorder, isDecodeMode, debugLayers, debugCheckBufferFn) {
+export function buildLayerContext(state, recorder, isDecodeMode, debugLayers, debugCheckBufferFn, executionPlan = null) {
   const config = state.modelConfig;
   const computeConfig = state.runtimeConfig.inference.compute;
-  const activeKernelPath = state.executionKernelPathOverride ?? state.resolvedKernelPath ?? null;
-  const effectiveActivationDtype = state.executionActivationDtypeOverride ?? computeConfig.activationDtype;
+  const activeExecutionPlan = executionPlan ?? resolveActiveExecutionPlan(state);
+  const activeKernelPath = activeExecutionPlan.kernelPath ?? state.resolvedKernelPath ?? null;
+  const effectiveActivationDtype = activeExecutionPlan.activationDtype;
   const effectiveComputeConfig = {
     ...computeConfig,
     activationDtype: effectiveActivationDtype,
   };
   const wideningPolicy = resolveRangeAwareSelectiveWideningConfig(computeConfig);
+  const finitenessGuardEnabled = activeExecutionPlan.finitenessGuardEnabled;
+  const finitenessAbsThreshold = activeExecutionPlan.finitenessAbsThreshold ?? wideningPolicy.absThreshold;
 
   const resolvedDebugLayers = debugLayers !== undefined
     ? debugLayers
@@ -123,8 +127,8 @@ export function buildLayerContext(state, recorder, isDecodeMode, debugLayers, de
     kernelPath: activeKernelPath,
     debugLayers: resolvedDebugLayers,
     finitenessBuffer: state.finitenessBuffer,
-    finitenessGuardEnabled: wideningPolicy.enabled,
-    finitenessAbsThreshold: wideningPolicy.absThreshold,
+    finitenessGuardEnabled,
+    finitenessAbsThreshold,
     step: state.decodeStepCount,
   };
 }
@@ -152,9 +156,9 @@ export function getLogitsWeights(state) {
 
 export function getLogitsConfig(state) {
   const config = state.modelConfig;
-  const activeKernelPath = state.executionKernelPathOverride ?? state.resolvedKernelPath ?? null;
-  const effectiveActivationDtype = state.executionActivationDtypeOverride
-    ?? state.runtimeConfig.inference.compute.activationDtype;
+  const activeExecutionPlan = resolveActiveExecutionPlan(state);
+  const activeKernelPath = activeExecutionPlan.kernelPath ?? state.resolvedKernelPath ?? null;
+  const effectiveActivationDtype = activeExecutionPlan.activationDtype;
   return {
     hiddenSize: config.hiddenSize,
     vocabSize: config.vocabSize,

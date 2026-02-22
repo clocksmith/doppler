@@ -32,6 +32,7 @@ const splitQkvRules = await loadJson('./kernels/split-qkv.rules.json');
 const softmaxRules = await loadJson('./kernels/softmax.rules.json');
 const upsample2dRules = await loadJson('./kernels/upsample2d.rules.json');
 const configRules = await loadJson('./inference/config.rules.json');
+const inferenceExecutionRules = await loadJson('./inference/execution.rules.json');
 const inferenceAttentionRules = await loadJson('./inference/attention.rules.json');
 const dtypeRules = await loadJson('./inference/dtype.rules.json');
 const ffnRules = await loadJson('./inference/ffn.rules.json');
@@ -78,6 +79,7 @@ const RULE_SETS = {
   },
   inference: {
     config: configRules,
+    execution: inferenceExecutionRules,
     attention: inferenceAttentionRules,
     dtype: dtypeRules,
     ffn: ffnRules,

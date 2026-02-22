@@ -2,6 +2,7 @@ import { readBuffer } from '../../../memory/buffer-pool.js';
 import { rmsNormCPU } from './logits.js';
 import { isWeightBuffer, isCpuWeightBuffer } from '../../../gpu/weight-buffer.js';
 import { decodeReadback } from './debug-utils.js';
+import { resolveExecutionSessionPlan } from './execution-plan.js';
 
 export function assertTokenIdsInRange(state, tokenIds, context = 'encode') {
   const vocabSize = state?.modelConfig?.vocabSize;
@@ -72,8 +73,7 @@ function resolveChatTemplateEnabled(state, options) {
 export function resolveStepOptions(state, options = {}) {
   const runtimeDefaults = state.runtimeConfig.inference;
   const samplingDefaults = runtimeDefaults.sampling;
-  const batchingDefaults = runtimeDefaults.batching;
-  const generationDefaults = runtimeDefaults.generation;
+  const executionPlan = resolveExecutionSessionPlan(state, options);
 
   return {
     temperature: options.temperature ?? samplingDefaults.temperature,
@@ -82,22 +82,23 @@ export function resolveStepOptions(state, options = {}) {
     repetitionPenalty: options.repetitionPenalty ?? samplingDefaults.repetitionPenalty,
     debug: options.debug ?? state.debug,
     debugLayers: options.debugLayers,
-    profile: options.profile ?? generationDefaults.profile,
-    disableCommandBatching: options.disableCommandBatching ?? generationDefaults.disableCommandBatching,
-    disableMultiTokenDecode: options.disableMultiTokenDecode ?? generationDefaults.disableMultiTokenDecode,
-    batchSize: options.batchSize ?? batchingDefaults.batchSize,
-    stopCheckMode: options.stopCheckMode ?? batchingDefaults.stopCheckMode,
+    profile: options.profile ?? runtimeDefaults.generation.profile,
+    disableCommandBatching: executionPlan.disableCommandBatching,
+    disableMultiTokenDecode: executionPlan.disableMultiTokenDecode,
+    batchSize: executionPlan.batchSize,
+    stopCheckMode: executionPlan.stopCheckMode,
+    executionPlan,
   };
 }
 
 export function resolveGenerateOptions(state, options = {}) {
   const runtimeDefaults = state.runtimeConfig.inference;
   const samplingDefaults = runtimeDefaults.sampling;
-  const batchingDefaults = runtimeDefaults.batching;
   const generationDefaults = runtimeDefaults.generation;
+  const executionPlan = resolveExecutionSessionPlan(state, options);
 
   return {
-    maxTokens: options.maxTokens ?? batchingDefaults.maxTokens,
+    maxTokens: executionPlan.maxTokens,
     temperature: options.temperature ?? samplingDefaults.temperature,
     topP: options.topP ?? samplingDefaults.topP,
     topK: options.topK ?? samplingDefaults.topK,
@@ -109,22 +110,25 @@ export function resolveGenerateOptions(state, options = {}) {
     debugLayers: options.debugLayers,
     profile: options.profile ?? generationDefaults.profile,
     benchmark: options.benchmark ?? generationDefaults.benchmark,
-    disableCommandBatching: options.disableCommandBatching ?? generationDefaults.disableCommandBatching,
-    disableMultiTokenDecode: options.disableMultiTokenDecode ?? generationDefaults.disableMultiTokenDecode,
-    batchSize: options.batchSize ?? batchingDefaults.batchSize,
-    stopCheckMode: options.stopCheckMode ?? batchingDefaults.stopCheckMode,
+    disableCommandBatching: executionPlan.disableCommandBatching,
+    disableMultiTokenDecode: executionPlan.disableMultiTokenDecode,
+    batchSize: executionPlan.batchSize,
+    stopCheckMode: executionPlan.stopCheckMode,
+    executionPlan,
   };
 }
 
 export function resolvePrefillOptions(state, options = {}) {
   const generationDefaults = state.runtimeConfig.inference.generation;
+  const executionPlan = resolveExecutionSessionPlan(state, options);
   return {
     useChatTemplate: resolveChatTemplateEnabled(state, options),
     debug: options.debug ?? state.debug,
     debugLayers: options.debugLayers,
     profile: options.profile ?? generationDefaults.profile,
-    disableCommandBatching: options.disableCommandBatching ?? generationDefaults.disableCommandBatching,
-    disableMultiTokenDecode: options.disableMultiTokenDecode ?? generationDefaults.disableMultiTokenDecode,
+    disableCommandBatching: executionPlan.disableCommandBatching,
+    disableMultiTokenDecode: executionPlan.disableMultiTokenDecode,
+    executionPlan,
   };
 }
 

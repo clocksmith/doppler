@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-02-13",
+  "updatedAt": "2026-02-22",
   "models": [
     {
       "modelId": "google-embeddinggemma-300m-wbf16",
@@ -13,11 +13,11 @@
       "sortOrder": 10
     },
     {
-      "modelId": "gemma-3-270m-it-wf16",
-      "label": "Gemma 3 270M Instruct (F16)",
+      "modelId": "gemma-3-270m-it-f16-f32a",
+      "label": "Gemma 3 270M Instruct (F16/F32a)",
       "description": "Small text model for local prompting, quick checks, and diagnostics.",
       "mode": "text",
-      "baseUrl": "./curated/gemma-3-270m-it-wf16",
+      "baseUrl": "./curated/gemma-3-270m-it-f16-f32a",
       "sizeBytes": 536196352,
       "recommended": false,
       "sortOrder": 20

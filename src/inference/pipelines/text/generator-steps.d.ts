@@ -6,6 +6,8 @@ export interface BatchDecodeSelectionConfig {
   gpuSamplingAvailable: boolean;
   disableMultiTokenDecode: boolean;
   disableCommandBatching: boolean;
+  isBdpaPagedLayout?: boolean;
+  finitenessFallbackWindowOpen?: boolean;
 }
 
 export declare function shouldUseBatchDecode(config: BatchDecodeSelectionConfig): boolean;
@@ -22,7 +24,7 @@ export declare function decodeStep(
   currentIds: number[],
   opts: Record<string, unknown>,
   helpers: {
-    buildLayerContext: (recorder: unknown, isDecode: boolean, debugLayers: unknown) => unknown;
+    buildLayerContext: (recorder: unknown, isDecode: boolean, debugLayers: unknown, executionPlan?: unknown) => unknown;
     getLogitsWeights: () => unknown;
     getLogitsConfig: () => unknown;
     debugCheckBuffer?: (buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number) => Promise<void>;
@@ -34,7 +36,7 @@ export declare function decodeStepLogits(
   currentIds: number[],
   opts: Record<string, unknown>,
   helpers: {
-    buildLayerContext: (recorder: unknown, isDecode: boolean, debugLayers: unknown) => unknown;
+    buildLayerContext: (recorder: unknown, isDecode: boolean, debugLayers: unknown, executionPlan?: unknown) => unknown;
     getLogitsWeights: () => unknown;
     getLogitsConfig: () => unknown;
     debugCheckBuffer?: (buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number) => Promise<void>;
@@ -52,7 +54,7 @@ export declare function advanceWithToken(
   tokenId: number,
   opts: Record<string, unknown>,
   helpers: {
-    buildLayerContext: (recorder: unknown, isDecode: boolean, debugLayers: unknown) => unknown;
+    buildLayerContext: (recorder: unknown, isDecode: boolean, debugLayers: unknown, executionPlan?: unknown) => unknown;
     getLogitsWeights: () => unknown;
     getLogitsConfig: () => unknown;
     debugCheckBuffer?: (buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number) => Promise<void>;
@@ -66,7 +68,7 @@ export declare function generateNTokensGPU(
   currentIds: number[],
   opts: Record<string, unknown>,
   helpers: {
-    buildLayerContext: (recorder: unknown, isDecode: boolean, debugLayers: unknown) => unknown;
+    buildLayerContext: (recorder: unknown, isDecode: boolean, debugLayers: unknown, executionPlan?: unknown) => unknown;
     getLogitsWeights: () => unknown;
     getLogitsConfig: () => unknown;
   }

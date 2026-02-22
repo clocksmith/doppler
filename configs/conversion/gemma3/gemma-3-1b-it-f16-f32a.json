@@ -1,0 +1,15 @@
+{
+    "output": {
+        "baseDir": "models/local",
+        "modelId": "gemma-3-1b-it-f16-f32a"
+    },
+    "quantization": {
+        "weights": "f16",
+        "embeddings": "f16",
+        "lmHead": "f16",
+        "computePrecision": "f32"
+    },
+    "inference": {
+        "defaultKernelPath": "gemma3-f16-fused-f32a-online"
+    }
+}

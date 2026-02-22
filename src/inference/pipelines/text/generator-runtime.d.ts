@@ -1,6 +1,7 @@
 import type { PipelineState } from './state.js';
 import type { GenerateOptions } from './types.js';
 import type { ParsedModelConfig } from './config.js';
+import type { ExecutionSessionPlan } from './execution-plan.js';
 
 export interface StepOptionsResolved {
   temperature: number;
@@ -14,6 +15,7 @@ export interface StepOptionsResolved {
   disableMultiTokenDecode: boolean;
   batchSize: number;
   stopCheckMode: 'batch' | 'per-token';
+  executionPlan: ExecutionSessionPlan;
 }
 
 export interface GenerateOptionsResolved extends StepOptionsResolved {
@@ -31,6 +33,7 @@ export interface PrefillOptionsResolved {
   profile: boolean;
   disableCommandBatching: boolean;
   disableMultiTokenDecode: boolean;
+  executionPlan: ExecutionSessionPlan;
 }
 
 export interface PrefillEmbeddingOptionsResolved extends PrefillOptionsResolved {
