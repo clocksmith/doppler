@@ -4,7 +4,32 @@
     "ignore": [
       "firebase.json",
       "**/.*",
-      "**/node_modules/**"
+      "**/node_modules/**",
+      "AGENTS.md",
+      "CLAUDE.md",
+      "GEMINI.md",
+      "EMOJI.md",
+      "docs/**",
+      "tests/**",
+      "tools/**",
+      "benchmarks/**",
+      "bench-results/**",
+      "artifacts/**",
+      "external/**",
+      "skills/**",
+      "configs/**",
+      "app/**",
+      "serve.js",
+      "package.json",
+      "package-lock.json",
+      "tsconfig.json",
+      "tsconfig.build.json",
+      "firebase-debug.log",
+      ".tjs-bench-profile/**",
+      "models/converted/**",
+      "models/local/**",
+      "models/curated/gemma-3-270m-it-f16-f32a/**",
+      "models/curated/gemma-3-1b-it-f16-f32a/**"
     ],
     "rewrites": [
       {
