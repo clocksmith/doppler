@@ -39,10 +39,10 @@
     },
     "kernelPaths": {
       "f16": {
-        "default": "gemma3-f16-f32a",
-        "f16": "gemma3-f16-f32a",
+        "default": "gemma3-f16-fused-f32a-online",
+        "f16": "gemma3-f16-fused-f32a-online",
         "f16a": "gemma3-f16-f16a",
-        "f32": "gemma3-f16-f32a"
+        "f32": "gemma3-f16-fused-f32a-online"
       },
       "q4k": {
         "default": "gemma3-q4k-dequant-f32a",

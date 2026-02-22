@@ -29,7 +29,7 @@
  *   --runs <n>             Timed runs per engine (default: 3)
  *   --decode-profile <profile>  parity|throughput|custom (default: parity)
  *   --seed <n>             Deterministic seed metadata (default: 0)
- *   --doppler-kernel-path <id>  Doppler kernel path override (default: gemma3-f16-f32a for Gemma 3 1B; otherwise manifest default)
+ *   --doppler-kernel-path <id>  Doppler kernel path override (default: gemma3-f16-fused-f32a-online for Gemma 3 1B; otherwise manifest default)
  *   --doppler-batch-size <n>     Doppler decode batch size (only with --decode-profile custom)
  *   --doppler-readback-interval <n>  Doppler decode readback interval (only with --decode-profile custom)
  *   --doppler-no-opfs-cache  Disable Doppler OPFS cache for browser runs

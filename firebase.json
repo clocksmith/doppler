@@ -28,8 +28,7 @@
       ".tjs-bench-profile/**",
       "models/converted/**",
       "models/local/**",
-      "models/curated/gemma-3-270m-it-f16-f32a/**",
-      "models/curated/gemma-3-1b-it-f16-f32a/**"
+      "models/curated/gemma-3-270m-it-f16-f32a/**"
     ],
     "rewrites": [
       {

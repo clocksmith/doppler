@@ -24,7 +24,7 @@ In the short, frequent request pattern that local browser assistants need,
 Doppler reaches useful output faster and sustains stronger short-output decode.
 
 Reproduce:
-`node tools/compare-engines.js --mode compute --tjs-version 4 --workload g3-p032-d064-t0-k32 --model-id gemma-3-1b-it-f16-f32a --model-url /models/curated/gemma-3-1b-it-f16-f32a --doppler-kernel-path gemma3-f16-fused-f32a-online`
+`node tools/compare-engines.js --mode compute --tjs-version 4 --workload g3-p032-d064-t0-k32 --model-id gemma-3-1b-it-f16-f32a --model-url /models/local/gemma-3-1b-it-f16-f32a --doppler-kernel-path gemma3-f16-fused-f32a-online`
 
 ## Why This Works
 
