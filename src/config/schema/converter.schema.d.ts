@@ -52,6 +52,10 @@ export interface ConverterManifestConfigSchema {
   conversion: ConversionInfoSchema | null;
 }
 
+export interface ConverterInferenceConfigSchema {
+  defaultKernelPath: string | null;
+}
+
 export interface ConverterOutputConfigSchema {
   modelId: string | null;
   dir: string | null;
@@ -71,6 +75,7 @@ export interface ConverterConfigSchema {
   http: ConverterHttpConfigSchema;
   weightLayout: ConverterWeightLayoutConfigSchema;
   manifest: ConverterManifestConfigSchema;
+  inference: ConverterInferenceConfigSchema;
   output: ConverterOutputConfigSchema;
   presets: ConverterPresetConfigSchema;
 }
@@ -81,6 +86,7 @@ export declare const DEFAULT_CONVERTER_STREAMING_CONFIG: ConverterStreamingConfi
 export declare const DEFAULT_CONVERTER_HTTP_CONFIG: ConverterHttpConfigSchema;
 export declare const DEFAULT_CONVERTER_WEIGHT_LAYOUT_CONFIG: ConverterWeightLayoutConfigSchema;
 export declare const DEFAULT_CONVERTER_MANIFEST_CONFIG: ConverterManifestConfigSchema;
+export declare const DEFAULT_CONVERTER_INFERENCE_CONFIG: ConverterInferenceConfigSchema;
 export declare const DEFAULT_CONVERTER_OUTPUT_CONFIG: ConverterOutputConfigSchema;
 export declare const DEFAULT_CONVERTER_PRESET_CONFIG: ConverterPresetConfigSchema;
 export declare const DEFAULT_CONVERTER_CONFIG: ConverterConfigSchema;

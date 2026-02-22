@@ -1,0 +1,31 @@
+{
+  "capturedAt": "2026-02-22T00:42:32.676Z",
+  "request": {
+    "prompt": "The sky is",
+    "maxTokens": 8,
+    "sampling": {
+      "temperature": 0,
+      "topK": 1,
+      "topP": 1
+    }
+  },
+  "kernels": {
+    "passed": 67,
+    "failed": 0,
+    "durationMs": 142.89999997615814
+  },
+  "inference": {
+    "output": "<pad><pad><pad><pad><pad><pad><pad><pad>",
+    "tokensGenerated": 8,
+    "decodeProfileStepCount": 0,
+    "decodeProfileTimingKeys": [],
+    "tokenIds": "not_exposed_by_command_surface"
+  },
+  "finitenessEvents": [
+    "[browser:warning] [9521.5ms][Pipeline] Batch decode failed, falling back to single-token: FinitenessError: F16 bounds exceeded during batch generation (layer 8, step 0)",
+    "[browser:warning] [9549.0ms][Pipeline] FinitenessGuard caught NaN/Inf at batch step 1. Truncating KV cache and retrying token with F32 precision.",
+    "[browser:warning] [9549.2ms][Pipeline] FinitenessGuard fallback (decode-batch-step-1): gemma3-f16-f16a -> gemma3-f16-f32a",
+    "[browser:warning] [9584.7ms][Decode] Suspicious token 0 (vocabSize=262144, step=2)",
+    "[browser:warning] [9585.1ms][Decode] Logits: max=NaN at [0], min=NaN, hasNaN=true, hasInf=true"
+  ]
+}

@@ -17,6 +17,7 @@ import {
 } from '../config/kernel-path-loader.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
 import { mergeRuntimeValues } from '../config/runtime-merge.js';
+import { isPlainObject } from '../utils/plain-object.js';
 
 function resolveRuntime(options) {
   if (options.runtime) return options.runtime;
@@ -47,10 +48,6 @@ function resolveRuntimeFromConfig(config) {
   if (config.runtime && typeof config.runtime === 'object') return config.runtime;
   if (config.shared || config.loading || config.inference || config.emulation) return config;
   return null;
-}
-
-function isPlainObject(value) {
-  return !!value && typeof value === 'object' && !Array.isArray(value);
 }
 
 function sanitizeReportOutput(output) {

@@ -4,7 +4,6 @@
   "name": "Generic WebGPU Device",
   "detection": {},
   "isGeneric": true,
-  "kernelOverrides": {},
   "memoryHints": {
     "preferUnifiedMemory": false,
     "bufferAlignment": 256,

@@ -47,6 +47,60 @@ const converterConfig = createConverterConfig();
 }
 
 {
+  const overrideConfig = createConverterConfig({
+    inference: {
+      defaultKernelPath: 'gemma3-f16-fused-f32a-online',
+    },
+  });
+  const plan = resolveConversionPlan({
+    rawConfig: {
+      model_type: 'gemma3_text',
+      architectures: ['Gemma3ForCausalLM'],
+      hidden_size: 640,
+      num_attention_heads: 4,
+      num_hidden_layers: 18,
+    },
+    tensors: [
+      { name: 'model.embed_tokens.weight', dtype: 'F16' },
+      { name: 'model.layers.0.self_attn.q_proj.weight', dtype: 'F16' },
+    ],
+    converterConfig: overrideConfig,
+    modelKind: 'transformer',
+    architectureHint: 'Gemma3ForCausalLM',
+    architectureConfig: { headDim: 256 },
+  });
+  assert.equal(plan.manifestInference?.defaultKernelPath, 'gemma3-f16-fused-f32a-online');
+}
+
+{
+  const invalidOverrideConfig = createConverterConfig({
+    inference: {
+      defaultKernelPath: 42,
+    },
+  });
+  assert.throws(
+    () => resolveConversionPlan({
+      rawConfig: {
+        model_type: 'gemma3_text',
+        architectures: ['Gemma3ForCausalLM'],
+        hidden_size: 640,
+        num_attention_heads: 4,
+        num_hidden_layers: 18,
+      },
+      tensors: [
+        { name: 'model.embed_tokens.weight', dtype: 'F16' },
+        { name: 'model.layers.0.self_attn.q_proj.weight', dtype: 'F16' },
+      ],
+      converterConfig: invalidOverrideConfig,
+      modelKind: 'transformer',
+      architectureHint: 'Gemma3ForCausalLM',
+      architectureConfig: { headDim: 256 },
+    }),
+    /converterConfig\.inference\.defaultKernelPath must be a string/
+  );
+}
+
+{
   assert.throws(
     () => inferSourceWeightQuantization([
       { name: 'model.layers.0.self_attn.q_proj.weight', dtype: 'F16' },
@@ -147,7 +201,7 @@ const converterConfig = createConverterConfig();
   assert.equal(plan.quantizationInfo.embeddings, 'f16');
   assert.equal(plan.quantizationInfo.compute, 'f16');
   assert.equal(plan.quantizationInfo.variantTag, 'wf16');
-  assert.equal(plan.manifestInference?.defaultKernelPath, 'gemma3-f16-f16a');
+  assert.equal(plan.manifestInference?.defaultKernelPath, 'gemma3-f16-f32a');
   assert.equal(plan.manifestInference?.output?.tieWordEmbeddings, true);
   assert.equal(plan.manifestInference?.output?.scaleEmbeddings, true);
   assert.equal(plan.manifestInference?.attention?.queryKeyNorm, true);
@@ -186,7 +240,7 @@ const converterConfig = createConverterConfig();
   assert.equal(plan.quantizationInfo.weights, 'q4k');
   assert.equal(plan.quantizationInfo.layout, 'row');
   assert.equal(plan.quantizationInfo.variantTag, 'wq4k-ef16');
-  assert.equal(plan.manifestInference?.defaultKernelPath, 'gemma3-q4k-dequant-f16a');
+  assert.equal(plan.manifestInference?.defaultKernelPath, 'gemma3-q4k-dequant-f32a');
 }
 
 {

@@ -128,30 +128,6 @@ export function getCapabilities() {
   return currentCapabilities;
 }
 
-export function getKernelOverride(operation) {
-  const platform = getPlatform();
-  return platform.kernelOverrides?.[operation];
-}
-
-export function getPreferredVariant(operation) {
-  return getKernelOverride(operation)?.preferred;
-}
-
-export function shouldAvoidVariant(operation, variant) {
-  const override = getKernelOverride(operation);
-  return override?.avoid?.includes(variant) ?? false;
-}
-
-export function getWorkgroupOverride(operation, variant) {
-  const override = getKernelOverride(operation);
-  return override?.workgroupOverrides?.[variant];
-}
-
-export function getWgslOverrides(operation, variant) {
-  const override = getKernelOverride(operation);
-  return override?.wgslOverrides?.[variant];
-}
-
 export function getMemoryHints() {
   return getPlatform().memoryHints;
 }

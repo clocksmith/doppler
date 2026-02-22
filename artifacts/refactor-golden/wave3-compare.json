@@ -1,0 +1,44 @@
+{
+  "requestStable": true,
+  "kernels": {
+    "pre": {
+      "passed": 67,
+      "failed": 0,
+      "durationMs": 131.39999997615814
+    },
+    "post": {
+      "passed": 67,
+      "failed": 0,
+      "durationMs": 130.70000004768372
+    },
+    "passFailStable": true
+  },
+  "inference": {
+    "pre": {
+      "output": "<pad><pad><pad><pad><pad><pad><pad><pad>",
+      "tokensGenerated": 8,
+      "decodeProfileStepCount": 0
+    },
+    "post": {
+      "output": "<pad><pad><pad><pad><pad><pad><pad><pad>",
+      "tokensGenerated": 8,
+      "decodeProfileStepCount": 0
+    },
+    "outputStable": true,
+    "tokensStable": true,
+    "timingShapeStable": true
+  },
+  "commandSurfaceParity": {
+    "autoSurface": "browser",
+    "autoOk": true,
+    "autoMatchesBrowserPassFail": true,
+    "inferenceAutoSurface": "browser",
+    "inferenceAutoOk": true,
+    "inferenceAutoMatchesBrowserPassFail": true,
+    "nodeSurfaceError": "[error] node command: WebGPU runtime is incomplete in Node. Run in browser relay, or run under a WebGPU-enabled Node build."
+  },
+  "finitenessEventCount": {
+    "pre": 5,
+    "post": 0
+  }
+}

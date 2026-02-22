@@ -1,0 +1,15 @@
+{
+  "kernels": {
+    "pre": {
+      "passed": 67,
+      "failed": 0,
+      "durationMs": 131.39999997615814
+    },
+    "post": {
+      "passed": 67,
+      "failed": 0,
+      "durationMs": 205.4000000357628
+    },
+    "passFailStable": true
+  }
+}

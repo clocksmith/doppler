@@ -6,14 +6,6 @@
     "vendor": "apple",
     "architecture": "gpu-family-apple-7"
   },
-  "kernelOverrides": {
-    "matmul": {
-      "avoid": ["f32"]
-    },
-    "attention": {
-      "avoid": ["prefill_streaming"]
-    }
-  },
   "memoryHints": {
     "preferUnifiedMemory": true,
     "bufferAlignment": 256,

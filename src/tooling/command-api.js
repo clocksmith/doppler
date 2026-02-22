@@ -74,15 +74,42 @@ function assertModelId(value, command, suite) {
   return modelId;
 }
 
+function normalizeConvertPayload(value) {
+  const payload = asOptionalObject(value, 'convertPayload');
+  if (!payload) {
+    throw new Error(
+      'tooling command: convert requires convertPayload.converterConfig.'
+    );
+  }
+  const converterConfig = asOptionalObject(
+    payload.converterConfig,
+    'convertPayload.converterConfig'
+  );
+  if (!converterConfig) {
+    throw new Error(
+      'tooling command: convert requires convertPayload.converterConfig.'
+    );
+  }
+  return {
+    ...payload,
+    converterConfig,
+  };
+}
+
 function normalizeConvert(raw) {
   const inputDir = asOptionalString(raw.inputDir, 'inputDir');
   const outputDir = asOptionalString(raw.outputDir, 'outputDir');
   const modelId = asOptionalString(raw.modelId, 'modelId');
-  const payload = asOptionalObject(raw.convertPayload, 'convertPayload');
+  const payload = normalizeConvertPayload(raw.convertPayload);
 
-  if (!payload && (!inputDir || !outputDir)) {
+  if (!inputDir) {
     throw new Error(
-      'tooling command: convert requires inputDir+outputDir or convertPayload.'
+      'tooling command: convert requires inputDir.'
+    );
+  }
+  if (modelId) {
+    throw new Error(
+      'tooling command: convert does not accept modelId. Set convertPayload.converterConfig.output.modelId.'
     );
   }
 
@@ -90,7 +117,7 @@ function normalizeConvert(raw) {
     command: 'convert',
     suite: null,
     intent: null,
-    modelId,
+    modelId: null,
     modelUrl: asOptionalString(raw.modelUrl, 'modelUrl'),
     runtimePreset: asOptionalString(raw.runtimePreset, 'runtimePreset'),
     runtimeConfigUrl: asOptionalString(raw.runtimeConfigUrl, 'runtimeConfigUrl'),

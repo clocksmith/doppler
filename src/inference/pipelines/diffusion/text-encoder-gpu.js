@@ -1,7 +1,7 @@
-import { getDevice, getKernelCapabilities } from '../../../gpu/device.js';
+import { getDevice } from '../../../gpu/device.js';
 import { createTensor } from '../../../gpu/tensor.js';
 import { getBuffer } from '../../../gpu/weight-buffer.js';
-import { acquireBuffer, releaseBuffer, readBuffer, isBufferActive } from '../../../memory/buffer-pool.js';
+import { acquireBuffer, readBuffer } from '../../../memory/buffer-pool.js';
 import { CommandRecorder } from '../../../gpu/command-recorder.js';
 import {
   runGather,
@@ -28,12 +28,17 @@ import {
 import { log } from '../../../debug/index.js';
 import { createSD3WeightResolver } from './sd3-weights.js';
 import { f32ToF16Array } from '../../kv-cache/types.js';
-
-function resolveActivationDtype(runtime) {
-  const caps = getKernelCapabilities();
-  const wantsF16 = runtime?.latent?.dtype === 'f16';
-  return wantsF16 && caps.hasF16 ? 'f16' : 'f32';
-}
+import {
+  resolveDiffusionActivationDtype,
+  createDiffusionBufferReleaser,
+  createDiffusionBufferDestroyer,
+  createDiffusionIndexBuffer,
+  expectDiffusionWeight,
+  normalizeDiffusionLocationDtype,
+  normalizeDiffusionMatmulLocationDtype,
+  inferDiffusionMatmulDtypeFromBuffer,
+  sumDiffusionProfileTimings,
+} from './helpers.js';
 
 function padTokens(tokens, maxLength, padTokenId) {
   if (!Number.isFinite(maxLength) || maxLength <= 0) {
@@ -53,16 +58,6 @@ function findEosIndex(tokens, eosTokenId) {
     if (tokens[i] === eosTokenId) return i;
   }
   return tokens.length - 1;
-}
-
-function createIndexBuffer(device, indices, label) {
-  const buffer = device.createBuffer({
-    label,
-    size: indices.byteLength,
-    usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-  });
-  device.queue.writeBuffer(buffer, 0, indices);
-  return buffer;
 }
 
 function createVectorTensor(device, data, dtype, label) {
@@ -92,7 +87,7 @@ function createVectorTensor(device, data, dtype, label) {
 function resolveBiasDtype(weight, weightsEntry, key) {
   if (weight && weight.dtype) return weight.dtype;
   const locationDtype = weightsEntry?.dtypes?.get(key);
-  const mapped = normalizeLocationDtype(locationDtype);
+  const mapped = normalizeDiffusionLocationDtype(locationDtype);
   return mapped || 'f32';
 }
 
@@ -131,99 +126,31 @@ function createKernelOps(recorder) {
   };
 }
 
-function createBufferReleaser(recorder) {
-  if (!recorder) {
-    return (buffer) => {
-      if (!buffer || !isBufferActive(buffer)) return;
-      releaseBuffer(buffer);
-    };
-  }
-  return (buffer) => {
-    if (!buffer) return;
-    recorder.trackTemporaryBuffer(buffer);
-  };
-}
-
-function createBufferDestroyer(recorder) {
-  if (!recorder) return (buffer) => buffer?.destroy();
-  return (buffer) => {
-    if (!buffer) return;
-    recorder.trackTemporaryBuffer(buffer);
-  };
-}
-
-function sumProfileTimings(timings) {
-  if (!timings) return null;
-  return Object.values(timings).reduce((sum, value) => sum + value, 0);
-}
-
 function getWeight(weights, prefix, name) {
   const key = `${prefix}.${name}`;
   return weights.get(key) || null;
 }
 
-function expectWeight(weight, label) {
-  if (!weight) {
-    throw new Error(`Missing diffusion weight: ${label}`);
-  }
-  return weight;
-}
-
-function normalizeLocationDtype(dtype) {
-  if (!dtype) return null;
-  const normalized = String(dtype).toLowerCase();
-  if (normalized === 'f16' || normalized === 'float16') return 'f16';
-  if (normalized === 'f32' || normalized === 'float32') return 'f32';
-  if (normalized === 'bf16' || normalized === 'bfloat16') return 'f32';
-  return null;
-}
-
 function resolveEmbeddingDtype(weight, weightsEntry, key, runtime) {
   if (weight && weight.dtype) return weight.dtype;
   const locationDtype = weightsEntry?.dtypes?.get(key);
-  const mapped = normalizeLocationDtype(locationDtype);
+  const mapped = normalizeDiffusionLocationDtype(locationDtype);
   if (!mapped) return null;
   if (mapped !== 'f16') return mapped;
   const allowUpcast = runtime?.loading?.allowF32UpcastNonMatmul !== false;
   return allowUpcast ? 'f32' : 'f16';
 }
 
-function normalizeMatmulLocationDtype(dtype) {
-  if (!dtype) return null;
-  const normalized = String(dtype).toLowerCase();
-  if (normalized === 'f16' || normalized === 'float16') return 'f16';
-  if (normalized === 'bf16' || normalized === 'bfloat16') return 'bf16';
-  if (normalized === 'f32' || normalized === 'float32') return 'f32';
-  if (normalized === 'q4_k' || normalized === 'q4_k_m') return 'q4k';
-  return normalized;
-}
-
 function resolveMatmulDtype(weight, weightsEntry, key) {
   if (weight && weight.dtype) return weight.dtype;
   const locationDtype = weightsEntry?.dtypes?.get(key);
-  return normalizeMatmulLocationDtype(locationDtype);
-}
-
-function inferMatmulDtypeFromBuffer(weight, N, K, preferred) {
-  const buffer = getBuffer(weight);
-  if (!buffer || !Number.isFinite(N) || !Number.isFinite(K)) return preferred;
-  if (preferred === 'q4k') return preferred;
-  const expectedF16 = N * K * 2;
-  const expectedF32 = N * K * 4;
-  if (preferred === 'f32' && buffer.size < expectedF32 && buffer.size >= expectedF16) {
-    return 'f16';
-  }
-  if (!preferred) {
-    if (buffer.size >= expectedF32) return 'f32';
-    if (buffer.size >= expectedF16) return 'f16';
-  }
-  return preferred;
+  return normalizeDiffusionMatmulLocationDtype(locationDtype);
 }
 
 async function runMatmulResolved(input, weight, weightsEntry, key, M, N, K, options = {}) {
   const { recorder = null, ...rest } = options;
   const resolved = resolveMatmulDtype(weight, weightsEntry, key);
-  const bDtype = inferMatmulDtypeFromBuffer(weight, N, K, resolved);
+  const bDtype = inferDiffusionMatmulDtypeFromBuffer(weight, N, K, resolved);
   const nextOptions = bDtype ? { ...rest, bDtype } : rest;
   if (recorder) {
     return recordMatmul(recorder, input, weight, M, N, K, nextOptions);
@@ -244,8 +171,8 @@ async function runClipTextEncoder(tokens, weightsEntry, config, runtime, options
     : (options.profile ? new CommandRecorder(device, `${prefix || 'clip'}_encoder`, { profile: true }) : null);
   const recorder = options.recorder ?? localRecorder;
   const ops = createKernelOps(recorder);
-  const release = createBufferReleaser(recorder);
-  const destroy = createBufferDestroyer(recorder);
+  const release = createDiffusionBufferReleaser(recorder);
+  const destroy = createDiffusionBufferDestroyer(recorder);
   const weights = weightsEntry.weights;
   const hiddenSize = config.hidden_size;
   const numHeads = config.num_attention_heads;
@@ -253,18 +180,18 @@ async function runClipTextEncoder(tokens, weightsEntry, config, runtime, options
   const maxLength = config.max_position_embeddings;
   const padTokenId = config.pad_token_id ?? 0;
   const eosTokenId = config.eos_token_id ?? null;
-  const activationDtype = resolveActivationDtype(runtime);
+  const activationDtype = resolveDiffusionActivationDtype(runtime);
   const matmul = (input, weight, key, M, N, K, options = {}) =>
     runMatmulResolved(input, weight, weightsEntry, key, M, N, K, { ...options, recorder });
 
   const padded = padTokens(tokens, maxLength, padTokenId);
-  const tokenBuffer = createIndexBuffer(device, padded, `${prefix}_tokens`);
+  const tokenBuffer = createDiffusionIndexBuffer(device, padded, `${prefix}_tokens`);
 
-  const tokenEmbedWeight = expectWeight(
+  const tokenEmbedWeight = expectDiffusionWeight(
     getWeight(weights, prefix, 'text_model.embeddings.token_embedding.weight'),
     `${prefix}.text_model.embeddings.token_embedding.weight`
   );
-  const posEmbedWeight = expectWeight(
+  const posEmbedWeight = expectDiffusionWeight(
     getWeight(weights, prefix, 'text_model.embeddings.position_embedding.weight'),
     `${prefix}.text_model.embeddings.position_embedding.weight`
   );
@@ -289,7 +216,7 @@ async function runClipTextEncoder(tokens, weightsEntry, config, runtime, options
 
   const posIndices = new Uint32Array(maxLength);
   for (let i = 0; i < maxLength; i++) posIndices[i] = i;
-  const posBuffer = createIndexBuffer(device, posIndices, `${prefix}_pos_idx`);
+  const posBuffer = createDiffusionIndexBuffer(device, posIndices, `${prefix}_pos_idx`);
   const pos = await ops.gather(
     posBuffer,
     getBuffer(posEmbedWeight),
@@ -313,19 +240,19 @@ async function runClipTextEncoder(tokens, weightsEntry, config, runtime, options
 
   const layerCount = config.num_hidden_layers;
   for (let layerIdx = 0; layerIdx < layerCount; layerIdx++) {
-    const ln1Weight = expectWeight(
+    const ln1Weight = expectDiffusionWeight(
       getWeight(weights, prefix, `text_model.encoder.layers.${layerIdx}.layer_norm1.weight`),
       `${prefix}.text_model.encoder.layers.${layerIdx}.layer_norm1.weight`
     );
-    const ln1Bias = expectWeight(
+    const ln1Bias = expectDiffusionWeight(
       getWeight(weights, prefix, `text_model.encoder.layers.${layerIdx}.layer_norm1.bias`),
       `${prefix}.text_model.encoder.layers.${layerIdx}.layer_norm1.bias`
     );
-    const ln2Weight = expectWeight(
+    const ln2Weight = expectDiffusionWeight(
       getWeight(weights, prefix, `text_model.encoder.layers.${layerIdx}.layer_norm2.weight`),
       `${prefix}.text_model.encoder.layers.${layerIdx}.layer_norm2.weight`
     );
-    const ln2Bias = expectWeight(
+    const ln2Bias = expectDiffusionWeight(
       getWeight(weights, prefix, `text_model.encoder.layers.${layerIdx}.layer_norm2.bias`),
       `${prefix}.text_model.encoder.layers.${layerIdx}.layer_norm2.bias`
     );
@@ -338,40 +265,40 @@ async function runClipTextEncoder(tokens, weightsEntry, config, runtime, options
     const qKey = `${prefix}.text_model.encoder.layers.${layerIdx}.self_attn.q_proj.weight`;
     const kKey = `${prefix}.text_model.encoder.layers.${layerIdx}.self_attn.k_proj.weight`;
     const vKey = `${prefix}.text_model.encoder.layers.${layerIdx}.self_attn.v_proj.weight`;
-    const qWeight = expectWeight(
+    const qWeight = expectDiffusionWeight(
       getWeight(weights, prefix, `text_model.encoder.layers.${layerIdx}.self_attn.q_proj.weight`),
       qKey
     );
-    const kWeight = expectWeight(
+    const kWeight = expectDiffusionWeight(
       getWeight(weights, prefix, `text_model.encoder.layers.${layerIdx}.self_attn.k_proj.weight`),
       kKey
     );
-    const vWeight = expectWeight(
+    const vWeight = expectDiffusionWeight(
       getWeight(weights, prefix, `text_model.encoder.layers.${layerIdx}.self_attn.v_proj.weight`),
       vKey
     );
     const qBiasKey = `${prefix}.text_model.encoder.layers.${layerIdx}.self_attn.q_proj.bias`;
     const kBiasKey = `${prefix}.text_model.encoder.layers.${layerIdx}.self_attn.k_proj.bias`;
     const vBiasKey = `${prefix}.text_model.encoder.layers.${layerIdx}.self_attn.v_proj.bias`;
-    const qBias = expectWeight(
+    const qBias = expectDiffusionWeight(
       getWeight(weights, prefix, `text_model.encoder.layers.${layerIdx}.self_attn.q_proj.bias`),
       qBiasKey
     );
-    const kBias = expectWeight(
+    const kBias = expectDiffusionWeight(
       getWeight(weights, prefix, `text_model.encoder.layers.${layerIdx}.self_attn.k_proj.bias`),
       kBiasKey
     );
-    const vBias = expectWeight(
+    const vBias = expectDiffusionWeight(
       getWeight(weights, prefix, `text_model.encoder.layers.${layerIdx}.self_attn.v_proj.bias`),
       vBiasKey
     );
     const outKey = `${prefix}.text_model.encoder.layers.${layerIdx}.self_attn.out_proj.weight`;
-    const outWeight = expectWeight(
+    const outWeight = expectDiffusionWeight(
       getWeight(weights, prefix, `text_model.encoder.layers.${layerIdx}.self_attn.out_proj.weight`),
       outKey
     );
     const outBiasKey = `${prefix}.text_model.encoder.layers.${layerIdx}.self_attn.out_proj.bias`;
-    const outBias = expectWeight(
+    const outBias = expectDiffusionWeight(
       getWeight(weights, prefix, `text_model.encoder.layers.${layerIdx}.self_attn.out_proj.bias`),
       outBiasKey
     );
@@ -411,22 +338,22 @@ async function runClipTextEncoder(tokens, weightsEntry, config, runtime, options
     });
 
     const fc1Key = `${prefix}.text_model.encoder.layers.${layerIdx}.mlp.fc1.weight`;
-    const fc1Weight = expectWeight(
+    const fc1Weight = expectDiffusionWeight(
       getWeight(weights, prefix, `text_model.encoder.layers.${layerIdx}.mlp.fc1.weight`),
       fc1Key
     );
     const fc1BiasKey = `${prefix}.text_model.encoder.layers.${layerIdx}.mlp.fc1.bias`;
-    const fc1Bias = expectWeight(
+    const fc1Bias = expectDiffusionWeight(
       getWeight(weights, prefix, `text_model.encoder.layers.${layerIdx}.mlp.fc1.bias`),
       fc1BiasKey
     );
     const fc2Key = `${prefix}.text_model.encoder.layers.${layerIdx}.mlp.fc2.weight`;
-    const fc2Weight = expectWeight(
+    const fc2Weight = expectDiffusionWeight(
       getWeight(weights, prefix, `text_model.encoder.layers.${layerIdx}.mlp.fc2.weight`),
       fc2Key
     );
     const fc2BiasKey = `${prefix}.text_model.encoder.layers.${layerIdx}.mlp.fc2.bias`;
-    const fc2Bias = expectWeight(
+    const fc2Bias = expectDiffusionWeight(
       getWeight(weights, prefix, `text_model.encoder.layers.${layerIdx}.mlp.fc2.bias`),
       fc2BiasKey
     );
@@ -451,11 +378,11 @@ async function runClipTextEncoder(tokens, weightsEntry, config, runtime, options
     hidden = createTensor(mlpResidual.buffer, mlpResidual.dtype, [maxLength, hiddenSize], 'clip_mlp_out');
   }
 
-  const finalLnWeight = expectWeight(
+  const finalLnWeight = expectDiffusionWeight(
     getWeight(weights, prefix, 'text_model.final_layer_norm.weight'),
     `${prefix}.text_model.final_layer_norm.weight`
   );
-  const finalLnBias = expectWeight(
+  const finalLnBias = expectDiffusionWeight(
     getWeight(weights, prefix, 'text_model.final_layer_norm.bias'),
     `${prefix}.text_model.final_layer_norm.bias`
   );
@@ -466,7 +393,7 @@ async function runClipTextEncoder(tokens, weightsEntry, config, runtime, options
   release(hidden.buffer);
 
   const eosIndex = findEosIndex(padded, eosTokenId);
-  const eosIdxBuffer = createIndexBuffer(device, new Uint32Array([eosIndex]), `${prefix}_eos_idx`);
+  const eosIdxBuffer = createDiffusionIndexBuffer(device, new Uint32Array([eosIndex]), `${prefix}_eos_idx`);
   const pooledToken = await ops.gather(
     eosIdxBuffer,
     final.buffer,
@@ -482,7 +409,7 @@ async function runClipTextEncoder(tokens, weightsEntry, config, runtime, options
   destroy(eosIdxBuffer);
 
   const textProjKey = `${prefix}.text_projection.weight`;
-  const textProj = expectWeight(
+  const textProj = expectDiffusionWeight(
     getWeight(weights, prefix, 'text_projection.weight'),
     textProjKey
   );
@@ -503,7 +430,7 @@ async function runClipTextEncoder(tokens, weightsEntry, config, runtime, options
   let profile = null;
   if (localRecorder) {
     const timings = await localRecorder.resolveProfileTimings();
-    profile = timings ? { totalMs: sumProfileTimings(timings) ?? 0, timings } : { totalMs: null };
+    profile = timings ? { totalMs: sumDiffusionProfileTimings(timings) ?? 0, timings } : { totalMs: null };
   }
 
   const pooledView = pooled.dtype === 'f16'
@@ -549,20 +476,20 @@ async function runT5Encoder(tokens, weightsEntry, config, runtime, options = {})
     : (options.profile ? new CommandRecorder(device, `${prefix || 't5'}_encoder`, { profile: true }) : null);
   const recorder = options.recorder ?? localRecorder;
   const ops = createKernelOps(recorder);
-  const release = createBufferReleaser(recorder);
-  const destroy = createBufferDestroyer(recorder);
+  const release = createDiffusionBufferReleaser(recorder);
+  const destroy = createDiffusionBufferDestroyer(recorder);
   const weights = weightsEntry.weights;
   const hiddenSize = config.d_model;
   const numHeads = config.num_heads;
   const headDim = config.d_kv;
   const maxLength = options.maxLength;
   const padTokenId = config.pad_token_id ?? 0;
-  const activationDtype = resolveActivationDtype(runtime);
+  const activationDtype = resolveDiffusionActivationDtype(runtime);
   const matmul = (input, weight, key, M, N, K, options = {}) =>
     runMatmulResolved(input, weight, weightsEntry, key, M, N, K, { ...options, recorder });
 
   const padded = padTokens(tokens, maxLength, padTokenId);
-  const tokenBuffer = createIndexBuffer(device, padded, `${prefix}_tokens`);
+  const tokenBuffer = createDiffusionIndexBuffer(device, padded, `${prefix}_tokens`);
 
   const embedWeight = getWeight(weights, prefix, 'shared.weight');
   if (!embedWeight) {
@@ -588,7 +515,7 @@ async function runT5Encoder(tokens, weightsEntry, config, runtime, options = {})
 
   const layerCount = config.num_layers;
   for (let layerIdx = 0; layerIdx < layerCount; layerIdx++) {
-    const lnWeight = expectWeight(
+    const lnWeight = expectDiffusionWeight(
       getWeight(weights, prefix, `encoder.block.${layerIdx}.layer.0.layer_norm.weight`),
       `${prefix}.encoder.block.${layerIdx}.layer.0.layer_norm.weight`
     );
@@ -606,10 +533,10 @@ async function runT5Encoder(tokens, weightsEntry, config, runtime, options = {})
     const vKey = `${prefix}.${vName}`;
     const oKey = `${prefix}.${oName}`;
 
-    const qWeight = expectWeight(getWeight(weights, prefix, qName), qKey);
-    const kWeight = expectWeight(getWeight(weights, prefix, kName), kKey);
-    const vWeight = expectWeight(getWeight(weights, prefix, vName), vKey);
-    const oWeight = expectWeight(getWeight(weights, prefix, oName), oKey);
+    const qWeight = expectDiffusionWeight(getWeight(weights, prefix, qName), qKey);
+    const kWeight = expectDiffusionWeight(getWeight(weights, prefix, kName), kKey);
+    const vWeight = expectDiffusionWeight(getWeight(weights, prefix, vName), vKey);
+    const oWeight = expectDiffusionWeight(getWeight(weights, prefix, oName), oKey);
 
     let q = await matmul(normed, qWeight, qKey, maxLength, hiddenSize, hiddenSize, {
       outputDtype: activationDtype,
@@ -647,7 +574,7 @@ async function runT5Encoder(tokens, weightsEntry, config, runtime, options = {})
 
     hidden = createTensor(attnResidual.buffer, attnResidual.dtype, [maxLength, hiddenSize], 't5_attn_out');
 
-    const ln2Weight = expectWeight(
+    const ln2Weight = expectDiffusionWeight(
       getWeight(weights, prefix, `encoder.block.${layerIdx}.layer.1.layer_norm.weight`),
       `${prefix}.encoder.block.${layerIdx}.layer.1.layer_norm.weight`
     );
@@ -662,9 +589,9 @@ async function runT5Encoder(tokens, weightsEntry, config, runtime, options = {})
     const wi0Key = `${prefix}.${wi0Name}`;
     const wi1Key = `${prefix}.${wi1Name}`;
     const woKey = `${prefix}.${woName}`;
-    const wi0 = expectWeight(getWeight(weights, prefix, wi0Name), wi0Key);
-    const wi1 = expectWeight(getWeight(weights, prefix, wi1Name), wi1Key);
-    const wo = expectWeight(getWeight(weights, prefix, woName), woKey);
+    const wi0 = expectDiffusionWeight(getWeight(weights, prefix, wi0Name), wi0Key);
+    const wi1 = expectDiffusionWeight(getWeight(weights, prefix, wi1Name), wi1Key);
+    const wo = expectDiffusionWeight(getWeight(weights, prefix, woName), woKey);
 
     const dff = wi0.shape[0];
     const bytesPerElement = activationDtype === 'f16' ? 2 : 4;
@@ -708,7 +635,7 @@ async function runT5Encoder(tokens, weightsEntry, config, runtime, options = {})
     hidden = createTensor(ffResidual.buffer, ffResidual.dtype, [maxLength, hiddenSize], 't5_ff_out');
   }
 
-  const finalLn = expectWeight(
+  const finalLn = expectDiffusionWeight(
     getWeight(weights, prefix, 'encoder.final_layer_norm.weight'),
     `${prefix}.encoder.final_layer_norm.weight`
   );
@@ -722,7 +649,7 @@ async function runT5Encoder(tokens, weightsEntry, config, runtime, options = {})
   if (localRecorder) {
     localRecorder.submit();
     const timings = await localRecorder.resolveProfileTimings();
-    profile = timings ? { totalMs: sumProfileTimings(timings) ?? 0, timings } : { totalMs: null };
+    profile = timings ? { totalMs: sumDiffusionProfileTimings(timings) ?? 0, timings } : { totalMs: null };
   }
 
   return {
@@ -787,10 +714,10 @@ export async function runTextEncodersForPrompt(tokensByEncoder, weightsByCompone
 export async function buildTimeTextEmbedding(pooled, weightsEntry, modelConfig, runtime, options = {}) {
   const device = getDevice();
   if (!device) throw new Error('TimeText embedding requires a WebGPU device.');
-  const activationDtype = resolveActivationDtype(runtime);
+  const activationDtype = resolveDiffusionActivationDtype(runtime);
   const recorder = options.recorder ?? null;
   const ops = createKernelOps(recorder);
-  const release = createBufferReleaser(recorder);
+  const release = createDiffusionBufferReleaser(recorder);
 
   const resolver = createSD3WeightResolver(weightsEntry, modelConfig);
   const matmul = (input, weight, name, M, N, K, options = {}) =>
@@ -859,10 +786,10 @@ export async function buildTimestepEmbedding(timestep, weightsEntry, modelConfig
     emb[2 * i + 1] = Math.sin(angle);
   }
 
-  const activationDtype = resolveActivationDtype(runtime);
+  const activationDtype = resolveDiffusionActivationDtype(runtime);
   const recorder = options.recorder ?? null;
   const ops = createKernelOps(recorder);
-  const release = createBufferReleaser(recorder);
+  const release = createDiffusionBufferReleaser(recorder);
   const embTensor = createVectorTensor(device, emb, activationDtype, 'sd3_timestep');
 
   const resolver = createSD3WeightResolver(weightsEntry, modelConfig);
@@ -919,7 +846,7 @@ export async function buildTimestepEmbedding(timestep, weightsEntry, modelConfig
 export async function combineTimeTextEmbeddings(time, text, hiddenSize, options = {}) {
   const recorder = options.recorder ?? null;
   const ops = createKernelOps(recorder);
-  const release = createBufferReleaser(recorder);
+  const release = createDiffusionBufferReleaser(recorder);
   const combined = await ops.residualAdd(time, text, hiddenSize, { useVec4: true });
   release(time.buffer);
   release(text.buffer);
@@ -930,7 +857,7 @@ export async function projectContext(context, weightsEntry, modelConfig, runtime
   const resolver = createSD3WeightResolver(weightsEntry, modelConfig);
   const recorder = options.recorder ?? null;
   const ops = createKernelOps(recorder);
-  const release = createBufferReleaser(recorder);
+  const release = createDiffusionBufferReleaser(recorder);
   const matmul = (input, weight, name, M, N, K, options = {}) =>
     runMatmulResolved(input, weight, weightsEntry, resolver.key(name), M, N, K, { ...options, recorder });
   const projWeightName = 'context_embedder.weight';
@@ -944,7 +871,7 @@ export async function projectContext(context, weightsEntry, modelConfig, runtime
   const numTokens = context.shape[0];
   const inDim = context.shape[1];
   const outDim = projWeight.shape[0];
-  const activationDtype = resolveActivationDtype(runtime);
+  const activationDtype = resolveDiffusionActivationDtype(runtime);
   let projected = await matmul(context, projWeight, projWeightName, numTokens, outDim, inDim, {
     outputDtype: activationDtype,
     transposeB: 'auto',

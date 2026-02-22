@@ -38,6 +38,15 @@
   ],
   "variant": [
     { "match": { "canUseDecodeOptimized": true }, "value": { "context": "optimizedVariant" } },
+    {
+      "match": {
+        "platformId": { "in": ["apple-m2", "apple-m3", "amd-rdna3", "nvidia-rtx30", "nvidia-rtx40"] },
+        "isDecode": true,
+        "tier": "subgroup",
+        "canUseDecodeSubgroup": true
+      },
+      "value": "decode_subgroup"
+    },
     { "match": { "isPaged": true, "isDecode": true, "canUseChunked": true }, "value": { "context": "pagedVariant" } },
     { "match": { "tier": "subgroup", "useF16KV": true, "canUseChunked": true }, "value": { "context": "chunkedVariant" } },
     { "match": { "tier": "subgroup", "useF16KV": true }, "value": { "template": "prefill_streaming{suffix}" } },

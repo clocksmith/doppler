@@ -1,0 +1,202 @@
+{
+  "ok": true,
+  "surface": "browser",
+  "request": {
+    "command": "test-model",
+    "suite": "inference",
+    "intent": "verify",
+    "modelId": "gemma-3-270m-it-wf16",
+    "modelUrl": null,
+    "runtimePreset": null,
+    "runtimeConfigUrl": null,
+    "runtimeConfig": {
+      "inference": {
+        "prompt": "The sky is",
+        "batching": {
+          "maxTokens": 8
+        },
+        "sampling": {
+          "temperature": 0,
+          "topK": 1,
+          "topP": 1
+        }
+      }
+    },
+    "inputDir": null,
+    "outputDir": null,
+    "convertPayload": null,
+    "captureOutput": false,
+    "keepPipeline": false,
+    "report": null,
+    "timestamp": null,
+    "searchParams": null
+  },
+  "result": {
+    "suite": "inference",
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "duration": 1529.4000000357628,
+    "results": [
+      {
+        "name": "generation",
+        "passed": true,
+        "duration": 412.9000000357628
+      }
+    ],
+    "modelId": "gemma-3-270m-it-wf16",
+    "output": "<pad><pad><pad><pad><pad><pad><pad><pad>",
+    "metrics": {
+      "prompt": "The sky is",
+      "maxTokens": 8,
+      "tokensGenerated": 8,
+      "tokensPerSec": 19.38,
+      "totalMs": 412.7,
+      "ttftMs": 89.8,
+      "prefillMs": 88,
+      "decodeMs": 322.7,
+      "prefillTokens": 4,
+      "decodeTokens": 8,
+      "prefillTokensPerSec": 45.45,
+      "prefillTokensPerSecTtft": 44.54,
+      "decodeTokensPerSec": 24.79,
+      "modelLoadMs": 1116,
+      "gpu": {
+        "decodeRecordMs": 35.80000001192093,
+        "decodeSubmitWaitMs": 74.39999997615814,
+        "decodeReadbackWaitMs": 74.89999997615814
+      },
+      "decodeProfileSteps": []
+    },
+    "memoryStats": {
+      "used": 742822400,
+      "pool": {
+        "allocations": 2816,
+        "reuses": 261,
+        "totalBytesAllocated": 740115968,
+        "peakBytesAllocated": 734814720,
+        "currentBytesAllocated": 733385216,
+        "totalBytesRequested": 618910720,
+        "peakBytesRequested": 608813312,
+        "currentBytesRequested": 603305216,
+        "activeBuffers": 240,
+        "pooledBuffers": 57,
+        "budgetMaxBytes": 0,
+        "budgetUtilization": 0,
+        "hitRate": "8.5%"
+      },
+      "kvCache": {
+        "theoretical": 9437184,
+        "allocated": 9437184,
+        "used": 202752,
+        "efficiency": 0.021484375,
+        "seqLen": 11,
+        "maxSeqLen": 512,
+        "layout": "contiguous",
+        "windowSize": 512,
+        "totalTokensSeen": 11
+      }
+    },
+    "deviceInfo": {
+      "hasSubgroups": true,
+      "hasSubgroupsF16": false,
+      "hasF16": true,
+      "hasTimestampQuery": true,
+      "maxBufferSize": 4294967292,
+      "maxWorkgroupSize": 1024,
+      "maxWorkgroupStorageSize": 32768,
+      "adapterInfo": {
+        "vendor": "unknown",
+        "architecture": "unknown",
+        "device": "unknown",
+        "description": ""
+      }
+    },
+    "pipeline": null,
+    "report": {
+      "suite": "inference",
+      "modelId": "gemma-3-270m-it-wf16",
+      "runtimePreset": null,
+      "deviceInfo": {
+        "hasSubgroups": true,
+        "hasSubgroupsF16": false,
+        "hasF16": true,
+        "hasTimestampQuery": true,
+        "maxBufferSize": 4294967292,
+        "maxWorkgroupSize": 1024,
+        "maxWorkgroupStorageSize": 32768,
+        "adapterInfo": {
+          "vendor": "unknown",
+          "architecture": "unknown",
+          "device": "unknown",
+          "description": ""
+        }
+      },
+      "results": [
+        {
+          "name": "generation",
+          "passed": true,
+          "duration": 412.9000000357628
+        }
+      ],
+      "durationMs": 1529.4000000357628,
+      "timestamp": "2026-02-22T00:41:56.425Z",
+      "metrics": {
+        "prompt": "The sky is",
+        "maxTokens": 8,
+        "tokensGenerated": 8,
+        "tokensPerSec": 19.38,
+        "totalMs": 412.7,
+        "ttftMs": 89.8,
+        "prefillMs": 88,
+        "decodeMs": 322.7,
+        "prefillTokens": 4,
+        "decodeTokens": 8,
+        "prefillTokensPerSec": 45.45,
+        "prefillTokensPerSecTtft": 44.54,
+        "decodeTokensPerSec": 24.79,
+        "modelLoadMs": 1116,
+        "gpu": {
+          "decodeRecordMs": 35.80000001192093,
+          "decodeSubmitWaitMs": 74.39999997615814,
+          "decodeReadbackWaitMs": 74.89999997615814
+        },
+        "decodeProfileSteps": []
+      },
+      "output": "<pad><pad><pad><pad><pad><pad><pad><pad>",
+      "memory": {
+        "used": 742822400,
+        "pool": {
+          "allocations": 2816,
+          "reuses": 261,
+          "totalBytesAllocated": 740115968,
+          "peakBytesAllocated": 734814720,
+          "currentBytesAllocated": 733385216,
+          "totalBytesRequested": 618910720,
+          "peakBytesRequested": 608813312,
+          "currentBytesRequested": 603305216,
+          "activeBuffers": 240,
+          "pooledBuffers": 57,
+          "budgetMaxBytes": 0,
+          "budgetUtilization": 0,
+          "hitRate": "8.5%"
+        },
+        "kvCache": {
+          "theoretical": 9437184,
+          "allocated": 9437184,
+          "used": 202752,
+          "efficiency": 0.021484375,
+          "seqLen": 11,
+          "maxSeqLen": 512,
+          "layout": "contiguous",
+          "windowSize": 512,
+          "totalTokensSeen": 11
+        }
+      }
+    },
+    "reportInfo": {
+      "backend": "opfs",
+      "path": "reports/gemma-3-270m-it-wf16/2026-02-22T00-41-56.425Z.json"
+    }
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "capturedAt": "2026-02-22T01:09:37.698Z",
+  "request": {
+    "prompt": "The sky is",
+    "maxTokens": 8,
+    "sampling": {
+      "temperature": 0,
+      "topK": 1,
+      "topP": 1
+    }
+  },
+  "kernels": {
+    "passed": 67,
+    "failed": 0,
+    "durationMs": 130.70000004768372
+  },
+  "inference": {
+    "output": "<pad><pad><pad><pad><pad><pad><pad><pad>",
+    "tokensGenerated": 8,
+    "decodeProfileStepCount": 0,
+    "decodeProfileTimingKeys": [],
+    "tokenIds": "not_exposed_by_command_surface"
+  },
+  "commandSurfaceParity": {
+    "autoSurface": "browser",
+    "autoOk": true,
+    "autoMatchesBrowserPassFail": true,
+    "inferenceAutoSurface": "browser",
+    "inferenceAutoOk": true,
+    "inferenceAutoMatchesBrowserPassFail": true,
+    "nodeSurfaceError": "[error] node command: WebGPU runtime is incomplete in Node. Run in browser relay, or run under a WebGPU-enabled Node build."
+  },
+  "finitenessEvents": []
+}

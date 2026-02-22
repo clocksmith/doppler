@@ -1,5 +1,20 @@
 {
   "variant": [
+    {
+      "match": {
+        "platformId": { "in": ["apple-m2", "apple-m3", "nvidia-rtx30", "nvidia-rtx40"] },
+        "hasSubgroups": true,
+        "wantsF16Out": true
+      },
+      "value": "subgroup_f16out"
+    },
+    {
+      "match": {
+        "platformId": { "in": ["apple-m2", "apple-m3", "nvidia-rtx30", "nvidia-rtx40"] },
+        "hasSubgroups": true
+      },
+      "value": "subgroup"
+    },
     { "match": { "hasSubgroups": true, "wantsF16Out": true, "useVec4": true }, "value": "subgroup_vec4_f16out" },
     { "match": { "hasSubgroups": true, "wantsF16Out": true }, "value": "subgroup_f16out" },
     { "match": { "hasSubgroups": true, "useVec4": true }, "value": "subgroup_vec4" },

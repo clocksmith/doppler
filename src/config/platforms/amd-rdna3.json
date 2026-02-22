@@ -6,14 +6,6 @@
     "vendor": "amd",
     "architecture": "rdna3"
   },
-  "kernelOverrides": {
-    "matmul": {
-      "preferred": "gemv_subgroup"
-    },
-    "attention": {
-      "preferred": "decode_subgroup"
-    }
-  },
   "memoryHints": {
     "preferUnifiedMemory": false,
     "bufferAlignment": 256,

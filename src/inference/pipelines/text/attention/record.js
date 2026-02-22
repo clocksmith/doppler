@@ -12,7 +12,6 @@ import {
   recordAttentionBDPA,
   recordCastF16ToF32,
   recordCastF32ToF16,
-  recordSplitQKV,
   recordMatmulResidualFused,
   shouldUseFusedMatmulResidual,
 } from '../../../../gpu/kernel-selector.js';
@@ -22,22 +21,16 @@ import { getLoRAModule } from '../lora.js';
 import { log, trace } from '../../../../debug/index.js';
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
 import { SlidingWindowKVCache } from '../../../kv-cache.js';
+import {
+  recordAttentionInputs,
+  resolveAttentionProjectionOutputDtype,
+  projectAttentionQKV,
+  applyAttentionQKNorm,
+} from './projections.js';
 
 import { releaseOrTrack, shouldDebugLayer } from './types.js';
 
 const ATTENTION_DTYPE_LOGGED = new Set();
-
-function recordAttentionInputs(state, info) {
-  if (!state?.stats || !info) return;
-  if (!state.stats.attentionInputs) {
-    state.stats.attentionInputs = [];
-  }
-  const exists = state.stats.attentionInputs.some(
-    (entry) => entry.phase === info.phase && entry.layerIdx === info.layerIdx
-  );
-  if (exists) return;
-  state.stats.attentionInputs.push(info);
-}
 
 
 export async function recordLayerAttentionGPU(
@@ -119,154 +112,23 @@ export async function recordLayerAttentionGPU(
   }
 
   // 2. Q/K/V projections
-  // Use F16 activation outputs when KV cache is F16 (reduces memory bandwidth and avoids F32->F16 cast)
   const useF16Activations = attentionInput.dtype === 'f16';
-  const matmulOutputDtype = selectRuleValue('shared', 'dtype', 'f16OrFallbackByFlag', {
-    useF16: useF16Activations,
-    fallback: attentionInput.dtype,
+  const matmulOutputDtype = resolveAttentionProjectionOutputDtype(attentionInput.dtype);
+  let { qTensor, kTensor, vTensor, usedFusedQKV } = await projectAttentionQKV({
+    recorder,
+    normed,
+    layerWeights,
+    numTokens,
+    numHeads,
+    numKVHeads,
+    headDim,
+    hiddenSize,
+    layerIdx,
+    matmulOutputDtype,
+    getWeightBuffer,
+    lora,
+    releaseTemporary: (buffer) => releaseOrTrack(recorder, buffer),
   });
-
-  let qTensor;
-
-  let kTensor;
-
-  let vTensor;
-
-  // Check for fused QKV path (3->1 matmul optimization)
-  const hasLoRA = getLoRAModule(lora, layerIdx, 'q_proj') ||
-    getLoRAModule(lora, layerIdx, 'k_proj') ||
-    getLoRAModule(lora, layerIdx, 'v_proj');
-  const useFusedQKV = selectRuleValue('inference', 'attention', 'useFusedQkv', {
-    hasQkvProj: Boolean(layerWeights.qkvProj),
-    hasQkvSizes: Boolean(layerWeights.qkvSizes),
-    hasLoRA: Boolean(hasLoRA),
-  });
-
-  if (useFusedQKV && layerWeights.qkvProj && layerWeights.qkvSizes) {
-    // FUSED PATH: Single matmul for Q/K/V, then split
-    const [qSize_, kSize_, vSize_] = layerWeights.qkvSizes;
-    const qkvSizeTotal = qSize_ + kSize_ + vSize_;
-
-    // One fused matmul instead of 3 separate ones
-    const qkvTensor = await recordMatmul(recorder, normed, layerWeights.qkvProj, numTokens, qkvSizeTotal, hiddenSize, {
-      transposeB: 'auto',
-      role: 'qkv_proj',
-      layerIdx,
-      outputDtype: matmulOutputDtype,
-    });
-
-    // Split fused output into Q, K, V (returns Tensors)
-    const split = await recordSplitQKV(recorder, qkvTensor, {
-      numTokens,
-      qSize: qSize_,
-      kSize: kSize_,
-      vSize: vSize_,
-    });
-    // Already Tensors from recordSplitQKV
-    qTensor = split.Q;
-    kTensor = split.K;
-    vTensor = split.V;
-
-    // Track fused buffer for cleanup
-    recorder.trackTemporaryBuffer(qkvTensor.buffer);
-  } else {
-    // STANDARD PATH: Separate Q/K/V matmuls
-    if (layerWeights.qProj && getWeightBuffer) {
-      const qProjBuf = getWeightBuffer(layerWeights.qProj, 'q_proj');
-      qTensor = await recordMatmul(recorder, normed, qProjBuf, numTokens, numHeads * headDim, hiddenSize, {
-        transposeB: 'auto',
-        role: 'q_proj',
-        layerIdx,
-        outputDtype: matmulOutputDtype,
-      });
-      if (!(layerWeights.qProj instanceof GPUBuffer) && !isWeightBuffer(layerWeights.qProj)) {
-        releaseOrTrack(recorder, isWeightBuffer(qProjBuf) ? qProjBuf.buffer : qProjBuf);
-      }
-    } else {
-      const qBuf = acquireBuffer(qSize * 4, undefined, 'Q');
-      qTensor = createTensor(qBuf, normed.dtype, [numTokens, numHeads * headDim], 'Q');
-    }
-
-    const loraQ = getLoRAModule(lora, layerIdx, 'q_proj');
-    if (loraQ && getWeightBuffer) {
-      const combined = await applyLoRA(
-        normed,
-        qTensor,
-        loraQ,
-        { M: numTokens, N: numHeads * headDim, K: hiddenSize },
-        getWeightBuffer,
-        recorder
-      );
-      if (combined.buffer !== qTensor.buffer) {
-        recorder.trackTemporaryBuffer(qTensor.buffer);
-        qTensor = combined;
-      }
-    }
-
-    if (layerWeights.kProj && getWeightBuffer) {
-      const kProjBuf = getWeightBuffer(layerWeights.kProj, 'k_proj');
-      kTensor = await recordMatmul(recorder, normed, kProjBuf, numTokens, numKVHeads * headDim, hiddenSize, {
-        transposeB: 'auto',
-        role: 'k_proj',
-        layerIdx,
-        outputDtype: matmulOutputDtype,
-      });
-      if (!(layerWeights.kProj instanceof GPUBuffer) && !isWeightBuffer(layerWeights.kProj)) {
-        releaseOrTrack(recorder, isWeightBuffer(kProjBuf) ? kProjBuf.buffer : kProjBuf);
-      }
-    } else {
-      const kBuf = acquireBuffer(kvSize * 4, undefined, 'K');
-      kTensor = createTensor(kBuf, normed.dtype, [numTokens, numKVHeads * headDim], 'K');
-    }
-
-    const loraK = getLoRAModule(lora, layerIdx, 'k_proj');
-    if (loraK && getWeightBuffer) {
-      const combined = await applyLoRA(
-        normed,
-        kTensor,
-        loraK,
-        { M: numTokens, N: numKVHeads * headDim, K: hiddenSize },
-        getWeightBuffer,
-        recorder
-      );
-      if (combined.buffer !== kTensor.buffer) {
-        recorder.trackTemporaryBuffer(kTensor.buffer);
-        kTensor = combined;
-      }
-    }
-
-    if (layerWeights.vProj && getWeightBuffer) {
-      const vProjBuf = getWeightBuffer(layerWeights.vProj, 'v_proj');
-      vTensor = await recordMatmul(recorder, normed, vProjBuf, numTokens, numKVHeads * headDim, hiddenSize, {
-        transposeB: 'auto',
-        role: 'v_proj',
-        layerIdx,
-        outputDtype: matmulOutputDtype,
-      });
-      if (!(layerWeights.vProj instanceof GPUBuffer) && !isWeightBuffer(layerWeights.vProj)) {
-        releaseOrTrack(recorder, isWeightBuffer(vProjBuf) ? vProjBuf.buffer : vProjBuf);
-      }
-    } else {
-      const vBuf = acquireBuffer(kvSize * 4, undefined, 'V');
-      vTensor = createTensor(vBuf, normed.dtype, [numTokens, numKVHeads * headDim], 'V');
-    }
-
-    const loraV = getLoRAModule(lora, layerIdx, 'v_proj');
-    if (loraV && getWeightBuffer) {
-      const combined = await applyLoRA(
-        normed,
-        vTensor,
-        loraV,
-        { M: numTokens, N: numKVHeads * headDim, K: hiddenSize },
-        getWeightBuffer,
-        recorder
-      );
-      if (combined.buffer !== vTensor.buffer) {
-        recorder.trackTemporaryBuffer(vTensor.buffer);
-        vTensor = combined;
-      }
-    }
-  }
 
   // Optional per-head Q/K normalization.
   // Some models use RMSNorm with (1+weight) offset formula, controlled by rmsNormWeightOffset.
@@ -274,41 +136,20 @@ export async function recordLayerAttentionGPU(
   if (wantsQKNorm && layerIdx === 0 && (!layerWeights.qNorm || !layerWeights.kNorm)) {
     log.warn('Attention', `Q/K norm requested but weights missing (hasQ=${!!layerWeights.qNorm}, hasK=${!!layerWeights.kNorm}); skipping QK norm.`);
   }
-  if (layerWeights.qNorm && getNormWeightBuffer) {
-    const qNormBuf = getNormWeightBuffer(layerWeights.qNorm, 'q_norm');
-    // Handle both F16 (2 bytes) and F32 (4 bytes) norm weights
-    const qElemsF32 = qNormBuf.size / 4;
-    const qElemsF16 = qNormBuf.size / 2;
-    const qElems = qElemsF32 === headDim ? qElemsF32 : qElemsF16;
-    if (qElems === headDim) {
-      const qNormedTensor = await recordRMSNorm(recorder, qTensor, qNormBuf, rmsNormEps, {
-        batchSize: numTokens * numHeads,
-        hiddenSize: headDim,
-        rmsNormWeightOffset: config.rmsNormWeightOffset,
-      });
-      releaseOrTrack(recorder, qTensor.buffer);
-      qTensor = qNormedTensor;
-    }
-    if (!(layerWeights.qNorm instanceof GPUBuffer)) releaseOrTrack(recorder, qNormBuf);
-  }
-
-  if (layerWeights.kNorm && getNormWeightBuffer) {
-    const kNormBuf = getNormWeightBuffer(layerWeights.kNorm, 'k_norm');
-    // Handle both F16 (2 bytes) and F32 (4 bytes) norm weights
-    const kElemsF32 = kNormBuf.size / 4;
-    const kElemsF16 = kNormBuf.size / 2;
-    const kElems = kElemsF32 === headDim ? kElemsF32 : kElemsF16;
-    if (kElems === headDim) {
-      const kNormedTensor = await recordRMSNorm(recorder, kTensor, kNormBuf, rmsNormEps, {
-        batchSize: numTokens * numKVHeads,
-        hiddenSize: headDim,
-        rmsNormWeightOffset: config.rmsNormWeightOffset,
-      });
-      releaseOrTrack(recorder, kTensor.buffer);
-      kTensor = kNormedTensor;
-    }
-    if (!(layerWeights.kNorm instanceof GPUBuffer)) releaseOrTrack(recorder, kNormBuf);
-  }
+  ({ qTensor, kTensor } = await applyAttentionQKNorm({
+    recorder,
+    qTensor,
+    kTensor,
+    layerWeights,
+    getNormWeightBuffer,
+    rmsNormEps,
+    numTokens,
+    numHeads,
+    numKVHeads,
+    headDim,
+    rmsNormWeightOffset: config.rmsNormWeightOffset,
+    releaseTemporary: (buffer) => releaseOrTrack(recorder, buffer),
+  }));
 
   if (normed !== attentionInput) releaseOrTrack(recorder, normed.buffer);
   if (attentionInputTemp) recorder.trackTemporaryBuffer(attentionInput.buffer);
@@ -496,7 +337,7 @@ export async function recordLayerAttentionGPU(
     qDtype: qTensor?.dtype ?? null,
     kDtype: kTensor?.dtype ?? null,
     vDtype: vTensor?.dtype ?? null,
-    useFusedQKV,
+    useFusedQKV: usedFusedQKV,
     kvStart,
     kvLayout,
     kvPageSize: kvLayout === 'tiered' ? (coldPageSize || null) : (kvPageSize || null),

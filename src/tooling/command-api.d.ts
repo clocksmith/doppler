@@ -1,7 +1,14 @@
+import type { ConverterConfigSchema } from '../config/schema/converter.schema.js';
+
 export type ToolingCommand = 'convert' | 'debug' | 'bench' | 'test-model';
 export type ToolingSurface = 'browser' | 'node';
 export type ToolingSuite = 'kernels' | 'inference' | 'bench' | 'debug' | 'diffusion' | 'energy';
 export type ToolingIntent = 'verify' | 'investigate' | 'calibrate' | null;
+
+export interface ToolingConvertPayload {
+  converterConfig: Partial<ConverterConfigSchema>;
+  [key: string]: unknown;
+}
 
 export interface ToolingCommandRequestInput {
   command: ToolingCommand;
@@ -13,7 +20,7 @@ export interface ToolingCommandRequestInput {
   runtimeConfig?: Record<string, unknown>;
   inputDir?: string;
   outputDir?: string;
-  convertPayload?: Record<string, unknown>;
+  convertPayload?: ToolingConvertPayload;
   captureOutput?: boolean;
   keepPipeline?: boolean;
   report?: Record<string, unknown> | null;
@@ -32,7 +39,7 @@ export interface ToolingCommandRequest {
   runtimeConfig: Record<string, unknown> | null;
   inputDir: string | null;
   outputDir: string | null;
-  convertPayload: Record<string, unknown> | null;
+  convertPayload: ToolingConvertPayload | null;
   captureOutput: boolean;
   keepPipeline: boolean;
   report: Record<string, unknown> | null;

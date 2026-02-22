@@ -1,0 +1,35 @@
+{
+  "requestStable": true,
+  "kernels": {
+    "pre": {
+      "passed": 67,
+      "failed": 0,
+      "durationMs": 142.89999997615814
+    },
+    "post": {
+      "passed": 67,
+      "failed": 0,
+      "durationMs": 131.39999997615814
+    },
+    "passFailStable": true
+  },
+  "inference": {
+    "pre": {
+      "output": "<pad><pad><pad><pad><pad><pad><pad><pad>",
+      "tokensGenerated": 8,
+      "decodeProfileStepCount": 0
+    },
+    "post": {
+      "output": "<pad><pad><pad><pad><pad><pad><pad><pad>",
+      "tokensGenerated": 8,
+      "decodeProfileStepCount": 0
+    },
+    "outputStable": true,
+    "tokensStable": true,
+    "timingShapeStable": true
+  },
+  "finitenessEventCount": {
+    "pre": 5,
+    "post": 5
+  }
+}

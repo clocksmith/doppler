@@ -1,0 +1,10 @@
+{
+  "capturedAt": "2026-02-22T01:10:18.506Z",
+  "kernels": {
+    "passed": 67,
+    "failed": 0,
+    "durationMs": 205.4000000357628
+  },
+  "inference": "captured_in_wave3_post",
+  "note": "Wave 2 checkpoint captured before Wave 3 refactors (kernels suite only)."
+}

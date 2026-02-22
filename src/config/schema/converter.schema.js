@@ -42,6 +42,10 @@ export const DEFAULT_CONVERTER_MANIFEST_CONFIG = {
   conversion: null,
 };
 
+export const DEFAULT_CONVERTER_INFERENCE_CONFIG = {
+  defaultKernelPath: null,
+};
+
 export const DEFAULT_CONVERTER_OUTPUT_CONFIG = {
   modelId: null,
   dir: null,
@@ -61,6 +65,7 @@ export const DEFAULT_CONVERTER_CONFIG = {
   http: DEFAULT_CONVERTER_HTTP_CONFIG,
   weightLayout: DEFAULT_CONVERTER_WEIGHT_LAYOUT_CONFIG,
   manifest: DEFAULT_CONVERTER_MANIFEST_CONFIG,
+  inference: DEFAULT_CONVERTER_INFERENCE_CONFIG,
   output: DEFAULT_CONVERTER_OUTPUT_CONFIG,
   presets: DEFAULT_CONVERTER_PRESET_CONFIG,
 };
@@ -74,6 +79,7 @@ export function createConverterConfig(overrides) {
       http: { ...DEFAULT_CONVERTER_HTTP_CONFIG },
       weightLayout: { ...DEFAULT_CONVERTER_WEIGHT_LAYOUT_CONFIG },
       manifest: { ...DEFAULT_CONVERTER_MANIFEST_CONFIG },
+      inference: { ...DEFAULT_CONVERTER_INFERENCE_CONFIG },
       output: { ...DEFAULT_CONVERTER_OUTPUT_CONFIG },
       presets: { ...DEFAULT_CONVERTER_PRESET_CONFIG },
     };
@@ -98,6 +104,9 @@ export function createConverterConfig(overrides) {
     manifest: overrides.manifest
       ? { ...DEFAULT_CONVERTER_MANIFEST_CONFIG, ...overrides.manifest }
       : { ...DEFAULT_CONVERTER_MANIFEST_CONFIG },
+    inference: overrides.inference
+      ? { ...DEFAULT_CONVERTER_INFERENCE_CONFIG, ...overrides.inference }
+      : { ...DEFAULT_CONVERTER_INFERENCE_CONFIG },
     output: overrides.output
       ? { ...DEFAULT_CONVERTER_OUTPUT_CONFIG, ...overrides.output }
       : { ...DEFAULT_CONVERTER_OUTPUT_CONFIG },

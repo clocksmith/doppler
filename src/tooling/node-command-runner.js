@@ -1,16 +1,12 @@
 import {
   normalizeToolingCommandRequest,
-  buildRuntimeContractPatch,
   ensureCommandSupportedOnSurface,
 } from './command-api.js';
-import { mergeRuntimeValues } from '../config/runtime-merge.js';
 import { convertSafetensorsDirectory } from './node-convert.js';
 import { installNodeFileFetchShim } from './node-file-fetch.js';
 import { bootstrapNodeWebGPU } from './node-webgpu.js';
-
-function isPlainObject(value) {
-  return !!value && typeof value === 'object' && !Array.isArray(value);
-}
+import { applyRuntimeInputs, buildSuiteOptions } from './command-runner-shared.js';
+import { isPlainObject } from '../utils/plain-object.js';
 
 function asOptionalPlainObject(value, label) {
   if (value == null) return null;
@@ -53,44 +49,6 @@ async function assertNodeWebGPUSupport() {
   );
 }
 
-
-async function applyRuntimeInputs(request, modules, options = {}) {
-  const { harness, runtime } = modules;
-
-  if (request.runtimePreset) {
-    await harness.applyRuntimePreset(request.runtimePreset, options);
-  }
-
-  if (request.runtimeConfigUrl) {
-    await harness.applyRuntimeConfigFromUrl(request.runtimeConfigUrl, options);
-  }
-
-  if (request.runtimeConfig) {
-    const mergedRuntime = mergeRuntimeValues(runtime.getRuntimeConfig(), request.runtimeConfig);
-    runtime.setRuntimeConfig(mergedRuntime);
-  }
-
-  const patch = buildRuntimeContractPatch(request);
-  if (!patch) return;
-
-  const mergedRuntime = mergeRuntimeValues(runtime.getRuntimeConfig(), patch);
-  runtime.setRuntimeConfig(mergedRuntime);
-}
-
-function buildSuiteOptions(request) {
-  return {
-    suite: request.suite,
-    modelId: request.modelId ?? undefined,
-    modelUrl: request.modelUrl ?? undefined,
-    runtimePreset: request.runtimePreset ?? null,
-    captureOutput: request.captureOutput,
-    keepPipeline: request.keepPipeline,
-    report: request.report || undefined,
-    timestamp: request.timestamp ?? undefined,
-    searchParams: request.searchParams ?? undefined,
-  };
-}
-
 export async function runNodeCommand(commandRequest, options = {}) {
   const { request } = ensureCommandSupportedOnSurface(commandRequest, 'node');
 
@@ -102,7 +60,6 @@ export async function runNodeCommand(commandRequest, options = {}) {
     const result = await convertSafetensorsDirectory({
       inputDir: request.inputDir,
       outputDir: request.outputDir,
-      modelId: request.modelId,
       converterConfig,
       onProgress: options.onProgress,
     });
@@ -116,7 +73,12 @@ export async function runNodeCommand(commandRequest, options = {}) {
 
   await assertNodeWebGPUSupport();
   const modules = await loadRuntimeModules();
-  await applyRuntimeInputs(request, modules, options.runtimeLoadOptions || {});
+  await applyRuntimeInputs(request, {
+    applyRuntimePreset: modules.harness.applyRuntimePreset,
+    applyRuntimeConfigFromUrl: modules.harness.applyRuntimeConfigFromUrl,
+    getRuntimeConfig: modules.runtime.getRuntimeConfig,
+    setRuntimeConfig: modules.runtime.setRuntimeConfig,
+  }, options.runtimeLoadOptions || {});
   const result = await modules.harness.runBrowserSuite(buildSuiteOptions(request));
 
   return {

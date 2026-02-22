@@ -197,6 +197,7 @@ export {
   type ConverterHttpConfigSchema,
   type ConverterWeightLayoutConfigSchema,
   type ConverterManifestConfigSchema,
+  type ConverterInferenceConfigSchema,
   type ConverterOutputConfigSchema,
   type ConverterPresetConfigSchema,
   type ConverterConfigSchema,
@@ -208,6 +209,7 @@ export {
   DEFAULT_CONVERTER_HTTP_CONFIG,
   DEFAULT_CONVERTER_WEIGHT_LAYOUT_CONFIG,
   DEFAULT_CONVERTER_MANIFEST_CONFIG,
+  DEFAULT_CONVERTER_INFERENCE_CONFIG,
   DEFAULT_CONVERTER_OUTPUT_CONFIG,
   DEFAULT_CONVERTER_PRESET_CONFIG,
   DEFAULT_CONVERTER_CONFIG,
@@ -276,8 +278,6 @@ export {
 export {
   // Types
   type PlatformDetectionSchema,
-  type KernelOperationOverrideSchema,
-  type KernelOverridesSchema,
   type MemoryHintsSchema,
   type PlatformSchema,
   type RuntimeCapabilities,

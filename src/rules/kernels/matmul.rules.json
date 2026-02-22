@@ -22,6 +22,22 @@
     { "match": {}, "value": { "context": "pathVariant" } }
   ],
   "gemvVariant": [
+    {
+      "match": {
+        "platformId": { "in": ["apple-m2", "apple-m3", "amd-rdna3"] },
+        "hasSubgroups": true,
+        "useF16Gemv": true
+      },
+      "value": "gemv_subgroup_f16a"
+    },
+    {
+      "match": {
+        "platformId": { "in": ["apple-m2", "apple-m3", "amd-rdna3"] },
+        "hasSubgroups": true,
+        "useF32Gemv": true
+      },
+      "value": "gemv_subgroup"
+    },
     { "match": { "hasSubgroups": true, "useF16Gemv": true, "useVec4": true, "useMulticol": false }, "value": "gemv_subgroup_vec4_f16a" },
     { "match": { "hasSubgroups": true, "useF32Gemv": true, "useVec4": true, "useMulticol": false }, "value": "gemv_subgroup_vec4" },
     { "match": { "hasSubgroups": true, "useF16Gemv": true, "useMulticol": true }, "value": "gemv_subgroup_multicol_f16a" },

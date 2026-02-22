@@ -6,21 +6,6 @@
     "vendor": "nvidia",
     "device": "rtx 40"
   },
-  "kernelOverrides": {
-    "matmul": {
-      "preferred": "q4_fused",
-      "workgroupOverrides": {
-        "q4_fused": [256, 1, 1],
-        "gemv_subgroup": [256, 1, 1]
-      }
-    },
-    "attention": {
-      "preferred": "decode_subgroup"
-    },
-    "dequant": {
-      "preferred": "subgroup_f16out"
-    }
-  },
   "memoryHints": {
     "preferUnifiedMemory": false,
     "bufferAlignment": 256,

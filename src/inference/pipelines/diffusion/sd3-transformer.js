@@ -1,7 +1,7 @@
-import { getDevice, getKernelCapabilities } from '../../../gpu/device.js';
+import { getDevice } from '../../../gpu/device.js';
 import { createTensor, dtypeBytes } from '../../../gpu/tensor.js';
 import { getBuffer } from '../../../gpu/weight-buffer.js';
-import { acquireBuffer, releaseBuffer, isBufferActive } from '../../../memory/buffer-pool.js';
+import { acquireBuffer } from '../../../memory/buffer-pool.js';
 import {
   runConv2D,
   runTranspose,
@@ -32,15 +32,19 @@ import {
 } from '../../../gpu/kernels/index.js';
 import { log } from '../../../debug/index.js';
 import { createSD3WeightResolver } from './sd3-weights.js';
+import {
+  resolveDiffusionActivationDtype,
+  createDiffusionBufferReleaser,
+  createDiffusionBufferDestroyer,
+  createDiffusionIndexBuffer,
+  expectDiffusionWeight,
+  normalizeDiffusionLocationDtype,
+  normalizeDiffusionMatmulLocationDtype,
+  inferDiffusionMatmulDtypeFromBuffer,
+} from './helpers.js';
 
 function reshapeTensor(tensor, shape, label) {
   return createTensor(tensor.buffer, tensor.dtype, shape, label);
-}
-
-function resolveActivationDtype(runtime) {
-  const caps = getKernelCapabilities();
-  const wantsF16 = runtime?.latent?.dtype === 'f16';
-  return wantsF16 && caps.hasF16 ? 'f16' : 'f32';
 }
 
 function createKernelOps(recorder) {
@@ -76,119 +80,46 @@ function createKernelOps(recorder) {
   };
 }
 
-function createBufferReleaser(recorder) {
-  if (!recorder) {
-    return (buffer) => {
-      if (!buffer || !isBufferActive(buffer)) return;
-      releaseBuffer(buffer);
-    };
-  }
-  return (buffer) => {
-    if (!buffer) return;
-    recorder.trackTemporaryBuffer(buffer);
-  };
-}
-
-function createBufferDestroyer(recorder) {
-  if (!recorder) return (buffer) => buffer?.destroy();
-  return (buffer) => {
-    if (!buffer) return;
-    recorder.trackTemporaryBuffer(buffer);
-  };
-}
-
 function createVectorBuffer(device, data, label) {
   const buffer = acquireBuffer(data.byteLength, undefined, label);
   device.queue.writeBuffer(buffer, 0, data);
   return buffer;
 }
 
-function createIndexBuffer(device, indices, label) {
-  const buffer = device.createBuffer({
-    label,
-    size: indices.byteLength,
-    usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-  });
-  device.queue.writeBuffer(buffer, 0, indices);
-  return buffer;
-}
-
-function normalizeLocationDtype(dtype) {
-  if (!dtype) return null;
-  const normalized = String(dtype).toLowerCase();
-  if (normalized === 'f16' || normalized === 'float16') return 'f16';
-  if (normalized === 'f32' || normalized === 'float32') return 'f32';
-  if (normalized === 'bf16' || normalized === 'bfloat16') return 'f32';
-  return null;
-}
-
 function resolveEmbeddingDtype(weight, weightsEntry, key, runtime) {
   if (weight && weight.dtype) return weight.dtype;
   const locationDtype = weightsEntry?.dtypes?.get(key);
-  const mapped = normalizeLocationDtype(locationDtype);
+  const mapped = normalizeDiffusionLocationDtype(locationDtype);
   if (!mapped) return null;
   if (mapped !== 'f16') return mapped;
   const allowUpcast = runtime?.loading?.allowF32UpcastNonMatmul !== false;
   return allowUpcast ? 'f32' : 'f16';
 }
 
-function normalizeMatmulLocationDtype(dtype) {
-  if (!dtype) return null;
-  const normalized = String(dtype).toLowerCase();
-  if (normalized === 'f16' || normalized === 'float16') return 'f16';
-  if (normalized === 'bf16' || normalized === 'bfloat16') return 'bf16';
-  if (normalized === 'f32' || normalized === 'float32') return 'f32';
-  if (normalized === 'q4_k' || normalized === 'q4_k_m') return 'q4k';
-  return normalized;
-}
-
 function resolveMatmulDtype(weight, resolver, name) {
   if (weight && weight.dtype) return weight.dtype;
   if (!resolver || !name) return null;
   const locationDtype = resolver.dtype(name);
-  return normalizeMatmulLocationDtype(locationDtype);
+  return normalizeDiffusionMatmulLocationDtype(locationDtype);
 }
 
 function resolveBiasDtype(weight, resolver, name) {
   if (weight && weight.dtype) return weight.dtype;
   if (!resolver || !name) return 'f32';
   const locationDtype = resolver.dtype(name);
-  const mapped = normalizeLocationDtype(locationDtype);
+  const mapped = normalizeDiffusionLocationDtype(locationDtype);
   return mapped || 'f32';
-}
-
-function inferMatmulDtypeFromBuffer(weight, N, K, preferred) {
-  const buffer = getBuffer(weight);
-  if (!buffer || !Number.isFinite(N) || !Number.isFinite(K)) return preferred;
-  if (preferred === 'q4k') return preferred;
-  const expectedF16 = N * K * 2;
-  const expectedF32 = N * K * 4;
-  if (preferred === 'f32' && buffer.size < expectedF32 && buffer.size >= expectedF16) {
-    return 'f16';
-  }
-  if (!preferred) {
-    if (buffer.size >= expectedF32) return 'f32';
-    if (buffer.size >= expectedF16) return 'f16';
-  }
-  return preferred;
 }
 
 async function runMatmulResolved(input, weight, resolver, name, M, N, K, options = {}) {
   const { recorder = null, ...rest } = options;
   const resolved = resolveMatmulDtype(weight, resolver, name);
-  const bDtype = inferMatmulDtypeFromBuffer(weight, N, K, resolved);
+  const bDtype = inferDiffusionMatmulDtypeFromBuffer(weight, N, K, resolved);
   const nextOptions = bDtype ? { ...rest, bDtype } : rest;
   if (recorder) {
     return recordMatmul(recorder, input, weight, M, N, K, nextOptions);
   }
   return runMatmul(input, weight, M, N, K, nextOptions);
-}
-
-function expectWeight(weight, label) {
-  if (!weight) {
-    throw new Error(`Missing diffusion weight: ${label}`);
-  }
-  return weight;
 }
 
 function createBiasTensorWithDtype(weight, size, label, resolver, name) {
@@ -255,9 +186,9 @@ async function runQKV(input, weights, bias, numTokens, hiddenSize, label, matmul
     );
   }
 
-  const qWeight = expectWeight(weights.q, `${label}.q`);
-  const kWeight = expectWeight(weights.k, `${label}.k`);
-  const vWeight = expectWeight(weights.v, `${label}.v`);
+  const qWeight = expectDiffusionWeight(weights.q, `${label}.q`);
+  const kWeight = expectDiffusionWeight(weights.k, `${label}.k`);
+  const vWeight = expectDiffusionWeight(weights.v, `${label}.v`);
 
   let q = await matmul(input, qWeight, weightNames?.q ?? null, numTokens, hiddenSize, hiddenSize, {
     outputDtype,
@@ -385,7 +316,7 @@ function resolveModulationOffsets(segments, hiddenSize) {
 
 async function buildModulation(timeText, weight, bias, hiddenSize, segments, runtime, matmul, weightName, ops) {
   const device = getDevice();
-  const activationDtype = resolveActivationDtype(runtime);
+  const activationDtype = resolveDiffusionActivationDtype(runtime);
   const outDim = hiddenSize * segments;
   const bytesPerElement = activationDtype === 'f16' ? 2 : 4;
   const bufferSize = (outDim + hiddenSize) * bytesPerElement;
@@ -442,7 +373,7 @@ async function applyGate(output, mod, offsets, ops, release, options = {}) {
 }
 
 async function runFFN(input, weights, bias, numTokens, hiddenSize, runtime, matmul, weightNames, ops, release) {
-  const activationDtype = resolveActivationDtype(runtime);
+  const activationDtype = resolveDiffusionActivationDtype(runtime);
   const upDim = weights.up.shape[0];
   const downInput = weights.down.shape[1];
   let up = await matmul(input, weights.up, weightNames?.up ?? null, numTokens, upDim, hiddenSize, {
@@ -484,8 +415,8 @@ export async function runSD3Transformer(latents, context, timeText, weightsEntry
   const resolver = createSD3WeightResolver(weightsEntry, modelConfig);
   const recorder = options.recorder ?? null;
   const ops = createKernelOps(recorder);
-  const release = createBufferReleaser(recorder);
-  const destroy = createBufferDestroyer(recorder);
+  const release = createDiffusionBufferReleaser(recorder);
+  const destroy = createDiffusionBufferDestroyer(recorder);
   const matmul = (input, weight, name, M, N, K, options = {}) =>
     runMatmulResolved(input, weight, resolver, name, M, N, K, { ...options, recorder });
   const config = modelConfig?.components?.transformer?.config || {};
@@ -505,7 +436,7 @@ export async function runSD3Transformer(latents, context, timeText, weightsEntry
   const gridWidth = Math.floor(latentWidth / patchSize);
   const tokenCount = gridHeight * gridWidth;
 
-  const projWeight = expectWeight(resolver.get('pos_embed.proj.weight'), 'pos_embed.proj.weight');
+  const projWeight = expectDiffusionWeight(resolver.get('pos_embed.proj.weight'), 'pos_embed.proj.weight');
   const projBias = resolver.get('pos_embed.proj.bias');
 
   const conv = await ops.conv2d(latents, projWeight, projBias, {
@@ -522,7 +453,7 @@ export async function runSD3Transformer(latents, context, timeText, weightsEntry
   const tokens = await ops.transpose(conv, hiddenSize, tokenCount);
   release(conv.buffer);
 
-  const posEmbed = expectWeight(resolver.get('pos_embed.pos_embed'), 'pos_embed.pos_embed');
+  const posEmbed = expectDiffusionWeight(resolver.get('pos_embed.pos_embed'), 'pos_embed.pos_embed');
   const posShape = resolver.shape('pos_embed.pos_embed') || [1, tokenCount, hiddenSize];
   const maxTokens = posShape[1];
   const maxGrid = Math.floor(Math.sqrt(maxTokens));
@@ -542,7 +473,7 @@ export async function runSD3Transformer(latents, context, timeText, weightsEntry
     }
   }
 
-  const posBuffer = createIndexBuffer(device, posIndices, 'sd3_pos_idx');
+  const posBuffer = createDiffusionIndexBuffer(device, posIndices, 'sd3_pos_idx');
   const posEmbedKey = resolver.key('pos_embed.pos_embed');
   const posEmbedDtype = resolveEmbeddingDtype(posEmbed, weightsEntry, posEmbedKey, runtime);
   const pos = await ops.gather(
@@ -581,7 +512,7 @@ export async function runSD3Transformer(latents, context, timeText, weightsEntry
   for (let layerIdx = 0; layerIdx < numLayers; layerIdx++) {
     const modWeightName = `transformer_blocks.${layerIdx}.norm1.linear.weight`;
     const modBiasName = `transformer_blocks.${layerIdx}.norm1.linear.bias`;
-    const modWeight = expectWeight(
+    const modWeight = expectDiffusionWeight(
       resolver.get(modWeightName),
       modWeightName
     );
@@ -611,7 +542,7 @@ export async function runSD3Transformer(latents, context, timeText, weightsEntry
     if (dualLayers.has(layerIdx)) {
       const ctxWeightName = `transformer_blocks.${layerIdx}.norm1_context.linear.weight`;
       const ctxBiasName = `transformer_blocks.${layerIdx}.norm1_context.linear.bias`;
-      const ctxWeight = expectWeight(
+      const ctxWeight = expectDiffusionWeight(
         resolver.get(ctxWeightName),
         ctxWeightName
       );
@@ -831,14 +762,14 @@ export async function runSD3Transformer(latents, context, timeText, weightsEntry
       });
 
       const outWeightName = `transformer_blocks.${layerIdx}.attn.to_out.0.weight`;
-      const outWeight = expectWeight(
+      const outWeight = expectDiffusionWeight(
         resolver.get(outWeightName),
         outWeightName
       );
       const outBiasName = `transformer_blocks.${layerIdx}.attn.to_out.0.bias`;
       const outBias = resolver.get(outBiasName);
       const outAddWeightName = `transformer_blocks.${layerIdx}.attn.to_add_out.weight`;
-      const outAddWeight = expectWeight(
+      const outAddWeight = expectDiffusionWeight(
         resolver.get(outAddWeightName),
         outAddWeightName
       );
@@ -918,11 +849,11 @@ export async function runSD3Transformer(latents, context, timeText, weightsEntry
         down: `transformer_blocks.${layerIdx}.ff_context.net.2.weight`,
       };
       const ffCtxWeights = {
-        up: expectWeight(
+        up: expectDiffusionWeight(
           resolver.get(ffCtxWeightNames.up),
           ffCtxWeightNames.up
         ),
-        down: expectWeight(
+        down: expectDiffusionWeight(
           resolver.get(ffCtxWeightNames.down),
           ffCtxWeightNames.down
         ),
@@ -1073,7 +1004,7 @@ export async function runSD3Transformer(latents, context, timeText, weightsEntry
       });
 
       const attn2OutWeightName = `transformer_blocks.${layerIdx}.attn2.to_out.0.weight`;
-      const attn2OutWeight = expectWeight(
+      const attn2OutWeight = expectDiffusionWeight(
         resolver.get(attn2OutWeightName),
         attn2OutWeightName
       );
@@ -1125,11 +1056,11 @@ export async function runSD3Transformer(latents, context, timeText, weightsEntry
       down: `transformer_blocks.${layerIdx}.ff.net.2.weight`,
     };
     const ffWeights = {
-      up: expectWeight(
+      up: expectDiffusionWeight(
         resolver.get(ffWeightNames.up),
         ffWeightNames.up
       ),
-      down: expectWeight(
+      down: expectDiffusionWeight(
         resolver.get(ffWeightNames.down),
         ffWeightNames.down
       ),
@@ -1183,7 +1114,7 @@ export async function runSD3Transformer(latents, context, timeText, weightsEntry
   }
 
   const normOutWeightName = 'norm_out.linear.weight';
-  const normOutWeight = expectWeight(resolver.get(normOutWeightName), normOutWeightName);
+  const normOutWeight = expectDiffusionWeight(resolver.get(normOutWeightName), normOutWeightName);
   const normOutBias = resolver.get('norm_out.linear.bias');
   const normOutSegments = resolveModulationSegments(normOutWeight, hiddenSize, 2, resolver, normOutWeightName);
   const normOutBiasTensor = createBiasTensorWithDtype(
@@ -1216,7 +1147,7 @@ export async function runSD3Transformer(latents, context, timeText, weightsEntry
   release(zerosBuf);
 
   const projOutWeightName = 'proj_out.weight';
-  const projOutWeight = expectWeight(resolver.get(projOutWeightName), projOutWeightName);
+  const projOutWeight = expectDiffusionWeight(resolver.get(projOutWeightName), projOutWeightName);
   const projOutBiasName = 'proj_out.bias';
   const projOutBias = resolver.get(projOutBiasName);
   let patch = await matmul(xMod, projOutWeight, projOutWeightName, tokenCount, projOutWeight.shape[0], hiddenSize, {

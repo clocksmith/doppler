@@ -1,0 +1,747 @@
+{
+  "ok": true,
+  "surface": "browser",
+  "request": {
+    "command": "test-model",
+    "suite": "kernels",
+    "intent": "verify",
+    "modelId": null,
+    "modelUrl": null,
+    "runtimePreset": null,
+    "runtimeConfigUrl": null,
+    "runtimeConfig": null,
+    "inputDir": null,
+    "outputDir": null,
+    "convertPayload": null,
+    "captureOutput": false,
+    "keepPipeline": false,
+    "report": null,
+    "timestamp": null,
+    "searchParams": null
+  },
+  "result": {
+    "suite": "kernels",
+    "passed": 67,
+    "failed": 0,
+    "skipped": 0,
+    "duration": 135.5,
+    "results": [
+      {
+        "name": "matmul_f32",
+        "passed": true,
+        "duration": 5
+      },
+      {
+        "name": "matmul_q4k",
+        "passed": true,
+        "duration": 3
+      },
+      {
+        "name": "matmul_f16w",
+        "passed": true,
+        "duration": 2
+      },
+      {
+        "name": "dequant_matmul_f16w",
+        "passed": true,
+        "duration": 3
+      },
+      {
+        "name": "matmul_transpose_a",
+        "passed": true,
+        "duration": 2
+      },
+      {
+        "name": "matmul_f32_unaligned",
+        "passed": true,
+        "duration": 1
+      },
+      {
+        "name": "bias_add_backward",
+        "passed": true,
+        "duration": 1
+      },
+      {
+        "name": "upsample2d_backward",
+        "passed": true,
+        "duration": 2
+      },
+      {
+        "name": "conv2d_backward",
+        "passed": true,
+        "duration": 3
+      },
+      {
+        "name": "attention_backward",
+        "passed": true,
+        "duration": 6
+      },
+      {
+        "name": "rmsnorm_unaligned",
+        "passed": true,
+        "duration": 2
+      },
+      {
+        "name": "layernorm_unaligned",
+        "passed": true,
+        "duration": 2
+      },
+      {
+        "name": "softmax",
+        "passed": true,
+        "duration": 2
+      },
+      {
+        "name": "rmsnorm",
+        "passed": true,
+        "duration": 1
+      },
+      {
+        "name": "rope",
+        "passed": true,
+        "duration": 2
+      },
+      {
+        "name": "silu",
+        "passed": true,
+        "duration": 2
+      },
+      {
+        "name": "silu_gated",
+        "passed": true,
+        "duration": 1
+      },
+      {
+        "name": "gelu",
+        "passed": true,
+        "duration": 2
+      },
+      {
+        "name": "geglu",
+        "passed": true,
+        "duration": 1
+      },
+      {
+        "name": "gather",
+        "passed": true,
+        "duration": 2
+      },
+      {
+        "name": "residual",
+        "passed": true,
+        "duration": 2
+      },
+      {
+        "name": "topk",
+        "passed": true,
+        "duration": 2
+      },
+      {
+        "name": "softmax_topk",
+        "passed": true,
+        "duration": 1
+      },
+      {
+        "name": "scatter_add",
+        "passed": true,
+        "duration": 2
+      },
+      {
+        "name": "moe_gather",
+        "passed": true,
+        "duration": 2
+      },
+      {
+        "name": "attention",
+        "passed": true,
+        "duration": 2
+      },
+      {
+        "name": "dequant_q4k_f32",
+        "passed": true,
+        "duration": 2
+      },
+      {
+        "name": "dequant_q4k_f16",
+        "passed": true,
+        "duration": 1
+      },
+      {
+        "name": "dequant_q6k_smoke",
+        "passed": true,
+        "duration": 2
+      },
+      {
+        "name": "cast_f32_to_f16",
+        "passed": true,
+        "duration": 1
+      },
+      {
+        "name": "cast_f16_to_f32",
+        "passed": true,
+        "duration": 2
+      },
+      {
+        "name": "bf16_to_f32",
+        "passed": true,
+        "duration": 2
+      },
+      {
+        "name": "bf16_to_f16",
+        "passed": true,
+        "duration": 1
+      },
+      {
+        "name": "bias_add",
+        "passed": true,
+        "duration": 1
+      },
+      {
+        "name": "scale",
+        "passed": true,
+        "duration": 2
+      },
+      {
+        "name": "scale_backward",
+        "passed": true,
+        "duration": 1
+      },
+      {
+        "name": "softmax_backward",
+        "passed": true,
+        "duration": 1
+      },
+      {
+        "name": "silu_backward",
+        "passed": true,
+        "duration": 1
+      },
+      {
+        "name": "gelu_backward",
+        "passed": true,
+        "duration": 2
+      },
+      {
+        "name": "rmsnorm_backward",
+        "passed": true,
+        "duration": 1
+      },
+      {
+        "name": "rope_backward",
+        "passed": true,
+        "duration": 1
+      },
+      {
+        "name": "layernorm",
+        "passed": true,
+        "duration": 1
+      },
+      {
+        "name": "layernorm_backward",
+        "passed": true,
+        "duration": 2
+      },
+      {
+        "name": "groupnorm",
+        "passed": true,
+        "duration": 2
+      },
+      {
+        "name": "groupnorm_stats",
+        "passed": true,
+        "duration": 1
+      },
+      {
+        "name": "modulate",
+        "passed": true,
+        "duration": 1
+      },
+      {
+        "name": "conv2d",
+        "passed": true,
+        "duration": 2
+      },
+      {
+        "name": "pixel_shuffle",
+        "passed": true,
+        "duration": 1
+      },
+      {
+        "name": "upsample2d",
+        "passed": true,
+        "duration": 1
+      },
+      {
+        "name": "transpose",
+        "passed": true,
+        "duration": 0
+      },
+      {
+        "name": "split_qkv",
+        "passed": true,
+        "duration": 2
+      },
+      {
+        "name": "swiglu",
+        "passed": true,
+        "duration": 0
+      },
+      {
+        "name": "fused_matmul_residual",
+        "passed": true,
+        "duration": 2
+      },
+      {
+        "name": "fused_matmul_rmsnorm",
+        "passed": true,
+        "duration": 2
+      },
+      {
+        "name": "fused_ffn",
+        "passed": true,
+        "duration": 2
+      },
+      {
+        "name": "attention_decode_optimized",
+        "passed": true,
+        "duration": 2
+      },
+      {
+        "name": "attention_tiered",
+        "passed": true,
+        "duration": 2
+      },
+      {
+        "name": "attention_tiered_quant",
+        "passed": true,
+        "duration": 2
+      },
+      {
+        "name": "cross_entropy_loss",
+        "passed": true,
+        "duration": 1
+      },
+      {
+        "name": "cross_entropy_backward",
+        "passed": true,
+        "duration": 2
+      },
+      {
+        "name": "kv_quantize_smoke",
+        "passed": true,
+        "duration": 2
+      },
+      {
+        "name": "argmax",
+        "passed": true,
+        "duration": 2
+      },
+      {
+        "name": "sample_topk_smoke",
+        "passed": true,
+        "duration": 1
+      },
+      {
+        "name": "check_stop",
+        "passed": true,
+        "duration": 1
+      },
+      {
+        "name": "embed_backward",
+        "passed": true,
+        "duration": 1
+      },
+      {
+        "name": "attention_backward_smoke",
+        "passed": true,
+        "duration": 2
+      },
+      {
+        "name": "adam",
+        "passed": true,
+        "duration": 2
+      }
+    ],
+    "deviceInfo": {
+      "hasSubgroups": true,
+      "hasSubgroupsF16": false,
+      "hasF16": true,
+      "hasTimestampQuery": true,
+      "maxBufferSize": 4294967292,
+      "maxWorkgroupSize": 1024,
+      "maxWorkgroupStorageSize": 32768,
+      "adapterInfo": {
+        "vendor": "apple",
+        "architecture": "metal-3",
+        "device": "0x0000",
+        "description": "Apple M3"
+      }
+    },
+    "report": {
+      "suite": "kernels",
+      "modelId": "kernels",
+      "runtimePreset": null,
+      "deviceInfo": {
+        "hasSubgroups": true,
+        "hasSubgroupsF16": false,
+        "hasF16": true,
+        "hasTimestampQuery": true,
+        "maxBufferSize": 4294967292,
+        "maxWorkgroupSize": 1024,
+        "maxWorkgroupStorageSize": 32768,
+        "adapterInfo": {
+          "vendor": "apple",
+          "architecture": "metal-3",
+          "device": "0x0000",
+          "description": "Apple M3"
+        }
+      },
+      "results": [
+        {
+          "name": "matmul_f32",
+          "passed": true,
+          "duration": 5
+        },
+        {
+          "name": "matmul_q4k",
+          "passed": true,
+          "duration": 3
+        },
+        {
+          "name": "matmul_f16w",
+          "passed": true,
+          "duration": 2
+        },
+        {
+          "name": "dequant_matmul_f16w",
+          "passed": true,
+          "duration": 3
+        },
+        {
+          "name": "matmul_transpose_a",
+          "passed": true,
+          "duration": 2
+        },
+        {
+          "name": "matmul_f32_unaligned",
+          "passed": true,
+          "duration": 1
+        },
+        {
+          "name": "bias_add_backward",
+          "passed": true,
+          "duration": 1
+        },
+        {
+          "name": "upsample2d_backward",
+          "passed": true,
+          "duration": 2
+        },
+        {
+          "name": "conv2d_backward",
+          "passed": true,
+          "duration": 3
+        },
+        {
+          "name": "attention_backward",
+          "passed": true,
+          "duration": 6
+        },
+        {
+          "name": "rmsnorm_unaligned",
+          "passed": true,
+          "duration": 2
+        },
+        {
+          "name": "layernorm_unaligned",
+          "passed": true,
+          "duration": 2
+        },
+        {
+          "name": "softmax",
+          "passed": true,
+          "duration": 2
+        },
+        {
+          "name": "rmsnorm",
+          "passed": true,
+          "duration": 1
+        },
+        {
+          "name": "rope",
+          "passed": true,
+          "duration": 2
+        },
+        {
+          "name": "silu",
+          "passed": true,
+          "duration": 2
+        },
+        {
+          "name": "silu_gated",
+          "passed": true,
+          "duration": 1
+        },
+        {
+          "name": "gelu",
+          "passed": true,
+          "duration": 2
+        },
+        {
+          "name": "geglu",
+          "passed": true,
+          "duration": 1
+        },
+        {
+          "name": "gather",
+          "passed": true,
+          "duration": 2
+        },
+        {
+          "name": "residual",
+          "passed": true,
+          "duration": 2
+        },
+        {
+          "name": "topk",
+          "passed": true,
+          "duration": 2
+        },
+        {
+          "name": "softmax_topk",
+          "passed": true,
+          "duration": 1
+        },
+        {
+          "name": "scatter_add",
+          "passed": true,
+          "duration": 2
+        },
+        {
+          "name": "moe_gather",
+          "passed": true,
+          "duration": 2
+        },
+        {
+          "name": "attention",
+          "passed": true,
+          "duration": 2
+        },
+        {
+          "name": "dequant_q4k_f32",
+          "passed": true,
+          "duration": 2
+        },
+        {
+          "name": "dequant_q4k_f16",
+          "passed": true,
+          "duration": 1
+        },
+        {
+          "name": "dequant_q6k_smoke",
+          "passed": true,
+          "duration": 2
+        },
+        {
+          "name": "cast_f32_to_f16",
+          "passed": true,
+          "duration": 1
+        },
+        {
+          "name": "cast_f16_to_f32",
+          "passed": true,
+          "duration": 2
+        },
+        {
+          "name": "bf16_to_f32",
+          "passed": true,
+          "duration": 2
+        },
+        {
+          "name": "bf16_to_f16",
+          "passed": true,
+          "duration": 1
+        },
+        {
+          "name": "bias_add",
+          "passed": true,
+          "duration": 1
+        },
+        {
+          "name": "scale",
+          "passed": true,
+          "duration": 2
+        },
+        {
+          "name": "scale_backward",
+          "passed": true,
+          "duration": 1
+        },
+        {
+          "name": "softmax_backward",
+          "passed": true,
+          "duration": 1
+        },
+        {
+          "name": "silu_backward",
+          "passed": true,
+          "duration": 1
+        },
+        {
+          "name": "gelu_backward",
+          "passed": true,
+          "duration": 2
+        },
+        {
+          "name": "rmsnorm_backward",
+          "passed": true,
+          "duration": 1
+        },
+        {
+          "name": "rope_backward",
+          "passed": true,
+          "duration": 1
+        },
+        {
+          "name": "layernorm",
+          "passed": true,
+          "duration": 1
+        },
+        {
+          "name": "layernorm_backward",
+          "passed": true,
+          "duration": 2
+        },
+        {
+          "name": "groupnorm",
+          "passed": true,
+          "duration": 2
+        },
+        {
+          "name": "groupnorm_stats",
+          "passed": true,
+          "duration": 1
+        },
+        {
+          "name": "modulate",
+          "passed": true,
+          "duration": 1
+        },
+        {
+          "name": "conv2d",
+          "passed": true,
+          "duration": 2
+        },
+        {
+          "name": "pixel_shuffle",
+          "passed": true,
+          "duration": 1
+        },
+        {
+          "name": "upsample2d",
+          "passed": true,
+          "duration": 1
+        },
+        {
+          "name": "transpose",
+          "passed": true,
+          "duration": 0
+        },
+        {
+          "name": "split_qkv",
+          "passed": true,
+          "duration": 2
+        },
+        {
+          "name": "swiglu",
+          "passed": true,
+          "duration": 0
+        },
+        {
+          "name": "fused_matmul_residual",
+          "passed": true,
+          "duration": 2
+        },
+        {
+          "name": "fused_matmul_rmsnorm",
+          "passed": true,
+          "duration": 2
+        },
+        {
+          "name": "fused_ffn",
+          "passed": true,
+          "duration": 2
+        },
+        {
+          "name": "attention_decode_optimized",
+          "passed": true,
+          "duration": 2
+        },
+        {
+          "name": "attention_tiered",
+          "passed": true,
+          "duration": 2
+        },
+        {
+          "name": "attention_tiered_quant",
+          "passed": true,
+          "duration": 2
+        },
+        {
+          "name": "cross_entropy_loss",
+          "passed": true,
+          "duration": 1
+        },
+        {
+          "name": "cross_entropy_backward",
+          "passed": true,
+          "duration": 2
+        },
+        {
+          "name": "kv_quantize_smoke",
+          "passed": true,
+          "duration": 2
+        },
+        {
+          "name": "argmax",
+          "passed": true,
+          "duration": 2
+        },
+        {
+          "name": "sample_topk_smoke",
+          "passed": true,
+          "duration": 1
+        },
+        {
+          "name": "check_stop",
+          "passed": true,
+          "duration": 1
+        },
+        {
+          "name": "embed_backward",
+          "passed": true,
+          "duration": 1
+        },
+        {
+          "name": "attention_backward_smoke",
+          "passed": true,
+          "duration": 2
+        },
+        {
+          "name": "adam",
+          "passed": true,
+          "duration": 2
+        }
+      ],
+      "durationMs": 135.5,
+      "timestamp": "2026-02-22T01:06:59.134Z",
+      "metrics": null,
+      "output": null,
+      "memory": null
+    },
+    "reportInfo": {
+      "backend": "opfs",
+      "path": "reports/kernels/2026-02-22T01-06-59.134Z.json"
+    }
+  }
+}

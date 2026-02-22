@@ -13,9 +13,10 @@ import { sample, applyRepetitionPenalty, logitsSanity, getTopK } from './samplin
 import { isStopToken } from './init.js';
 import { embed } from './embed.js';
 import { processLayer } from './layer.js';
-import { computeLogits, computeLogitsGPU, recordLogitsGPU, extractLastPositionLogits, finalizeLogits, applySoftcapping, rmsNormCPU } from './logits.js';
+import { computeLogits, computeLogitsGPU, recordLogitsGPU, extractLastPositionLogits, finalizeLogits, applySoftcapping } from './logits.js';
 import { isWeightBuffer, isCpuWeightBuffer, getWeightDtype } from '../../../gpu/weight-buffer.js';
 import { decodeReadback } from './debug-utils.js';
+import { getFinalNormWeights, extractEmbeddingFromHidden } from './generator-runtime.js';
 
 export function sumProfileTimings(timings) {
   if (!timings || Object.keys(timings).length === 0) return null;
@@ -56,82 +57,6 @@ export function shouldUseBatchDecode(config) {
     && config.gpuSamplingAvailable
     && !config.disableMultiTokenDecode
     && !config.disableCommandBatching;
-}
-
-function resolveFloatDtypeFromByteSize(totalBytes, expectedLength, fallback = 'f32') {
-  if (!Number.isFinite(totalBytes) || totalBytes <= 0 || !Number.isFinite(expectedLength) || expectedLength <= 0) {
-    return fallback;
-  }
-  const bytesPerElement = totalBytes / expectedLength;
-  if (Math.abs(bytesPerElement - 2) < 0.5) return 'f16';
-  if (Math.abs(bytesPerElement - 4) < 0.5) return 'f32';
-  return bytesPerElement < 3 ? 'f16' : 'f32';
-}
-
-function decodeFloatWeights(data, dtype, expectedLength, label) {
-  const decodeDtype = dtype === 'bf16'
-    ? 'bf16'
-    : (dtype === 'f16' ? 'f16' : 'f32');
-  const decoded = decodeReadback(data, decodeDtype);
-  if (decoded.length !== expectedLength) {
-    throw new Error(
-      `[Pipeline] ${label} length mismatch: expected=${expectedLength}, got=${decoded.length}`
-    );
-  }
-  return decoded;
-}
-
-async function getFinalNormWeights(state, hiddenSize) {
-  const finalNorm = state.weights.get('final_norm');
-  if (!finalNorm) {
-    throw new Error('[Pipeline] final_norm weight is missing; cannot extract embedding.');
-  }
-
-  let weights;
-
-  if (finalNorm instanceof Float32Array) {
-    weights = finalNorm;
-  } else if (isCpuWeightBuffer(finalNorm)) {
-    const dtype = finalNorm.dtype === 'bf16' ? 'bf16' : (finalNorm.dtype === 'f16' ? 'f16' : 'f32');
-    const data = finalNorm.data;
-    if (!(data instanceof Float32Array) && !ArrayBuffer.isView(data)) {
-      throw new Error('[Pipeline] final_norm CPU weight buffer has unsupported data type.');
-    }
-    const bytes = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
-    weights = decodeFloatWeights(bytes, dtype, hiddenSize, 'final_norm');
-  } else if (isWeightBuffer(finalNorm)) {
-    const dtype = finalNorm.dtype === 'bf16' ? 'bf16' : (finalNorm.dtype === 'f16' ? 'f16' : 'f32');
-    const bytesPerElement = dtype === 'f16' || dtype === 'bf16' ? 2 : 4;
-    const readSize = hiddenSize * bytesPerElement;
-    const data = await readBuffer(finalNorm.buffer, readSize);
-    if (data.byteLength === 0) {
-      throw new Error('[Pipeline] final_norm readback returned empty buffer.');
-    }
-    weights = decodeFloatWeights(data, dtype, hiddenSize, 'final_norm');
-  } else if (finalNorm instanceof GPUBuffer) {
-    const dtype = resolveFloatDtypeFromByteSize(finalNorm.size, hiddenSize, 'f32');
-    const bytesPerElement = dtype === 'f16' ? 2 : 4;
-    const readSize = hiddenSize * bytesPerElement;
-    const data = await readBuffer(finalNorm, readSize);
-    if (data.byteLength === 0) {
-      throw new Error('[Pipeline] final_norm readback returned empty buffer.');
-    }
-    weights = decodeFloatWeights(data, dtype, hiddenSize, 'final_norm');
-  } else if (ArrayBuffer.isView(finalNorm)) {
-    const dtype = resolveFloatDtypeFromByteSize(finalNorm.byteLength, hiddenSize, 'f32');
-    const bytes = finalNorm.buffer.slice(finalNorm.byteOffset, finalNorm.byteOffset + finalNorm.byteLength);
-    weights = decodeFloatWeights(bytes, dtype, hiddenSize, 'final_norm');
-  } else {
-    throw new Error('[Pipeline] final_norm weight has unsupported type.');
-  }
-
-  if (!(weights instanceof Float32Array) || weights.length !== hiddenSize) {
-    throw new Error(
-      `[Pipeline] final_norm length mismatch: expected=${hiddenSize}, got=${weights?.length ?? 'unknown'}`
-    );
-  }
-
-  return weights;
 }
 
 export function resolveBatchStop(tokens, stopFlags, stopTokenIds, eosTokenId) {
@@ -779,12 +704,14 @@ export async function advanceWithTokenAndEmbedding(state, tokenId, opts, helpers
       }
       staging.destroy();
     }
-    const finalNormWeights = await getFinalNormWeights(state, config.hiddenSize);
-    embedding = rmsNormCPU(
+    const finalNormWeights = await getFinalNormWeights(state);
+    embedding = extractEmbeddingFromHidden(
       decodedHidden,
+      1,
+      config.hiddenSize,
+      'last',
       finalNormWeights,
-      config.rmsNormEps,
-      config.rmsNormWeightOffset
+      config
     );
   } finally {
     const isPreAllocated = hiddenStates === decodeHiddenBuffer || hiddenStates === decodeAltBuffer;

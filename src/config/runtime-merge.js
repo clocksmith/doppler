@@ -1,6 +1,4 @@
-function isPlainObject(value) {
-  return !!value && typeof value === 'object' && !Array.isArray(value);
-}
+import { isPlainObject } from '../utils/plain-object.js';
 
 // Runtime merge helper used by command runners and harness config resolution.
 // Behavior:
@@ -21,4 +19,3 @@ export function mergeRuntimeValues(base, override) {
   }
   return merged;
 }
-

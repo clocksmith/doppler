@@ -142,6 +142,24 @@ export function validateDefaultKernelPath(inference, context = {}) {
   }
 }
 
+function readConverterKernelPathOverride(converterConfig) {
+  const raw = converterConfig?.inference?.defaultKernelPath;
+  if (raw == null) return null;
+  if (typeof raw !== 'string') {
+    throw new Error('converterConfig.inference.defaultKernelPath must be a string when provided.');
+  }
+  const trimmed = raw.trim();
+  return trimmed || null;
+}
+
+function applyConverterInferenceOverrides(manifestInference, converterConfig, context) {
+  const overrideKernelPath = readConverterKernelPathOverride(converterConfig);
+  if (overrideKernelPath) {
+    manifestInference.defaultKernelPath = overrideKernelPath;
+  }
+  validateDefaultKernelPath(manifestInference, context);
+}
+
 export function resolveConversionPlan(options) {
   const rawConfig = options?.rawConfig || {};
   const tensors = Array.isArray(options?.tensors) ? options.tensors : [];
@@ -174,6 +192,11 @@ export function resolveConversionPlan(options) {
   const manifestQuantization = resolveManifestQuantization(weightOverride, sourceQuantization);
 
   if (options?.modelKind === 'diffusion') {
+    const manifestInference = { ...DEFAULT_MANIFEST_INFERENCE, presetId: 'diffusion' };
+    applyConverterInferenceOverrides(manifestInference, converterConfig, {
+      presetId: 'diffusion',
+      quantizationInfo,
+    });
     return {
       modelType: 'diffusion',
       presetId: 'diffusion',
@@ -181,7 +204,7 @@ export function resolveConversionPlan(options) {
       sourceQuantization,
       quantizationInfo,
       manifestQuantization,
-      manifestInference: { ...DEFAULT_MANIFEST_INFERENCE, presetId: 'diffusion' },
+      manifestInference,
     };
   }
 
@@ -206,7 +229,7 @@ export function resolveConversionPlan(options) {
   }
 
   const manifestInference = buildManifestInference(preset, rawConfig, headDim, quantizationInfo, tensorNames);
-  validateDefaultKernelPath(manifestInference, { presetId, quantizationInfo });
+  applyConverterInferenceOverrides(manifestInference, converterConfig, { presetId, quantizationInfo });
 
   return {
     modelType,

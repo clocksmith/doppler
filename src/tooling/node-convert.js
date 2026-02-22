@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { installNodeFileFetchShim } from './node-file-fetch.js';
+import { isPlainObject } from '../utils/plain-object.js';
 
 
 function generateShardFilename(index) {
@@ -53,10 +54,6 @@ function resolveOutputDir(outputDirOverride, converterConfig, modelId) {
     'node convert: outputDir is required. ' +
     'Provide --output-dir, converterConfig.output.dir, or converterConfig.output.baseDir.'
   );
-}
-
-function isPlainObject(value) {
-  return !!value && typeof value === 'object' && !Array.isArray(value);
 }
 
 function normalizeConverterConfigOverride(value) {

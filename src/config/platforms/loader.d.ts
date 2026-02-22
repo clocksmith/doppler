@@ -2,7 +2,7 @@
  * Platform Loader
  *
  * Detects the current GPU platform and loads appropriate configs.
- * Provides platform-specific kernel overrides and memory hints.
+ * Provides platform metadata and memory hints.
  *
  * @module config/platforms/loader
  */
@@ -11,7 +11,6 @@ import type {
   PlatformSchema,
   RuntimeCapabilities,
   ResolvedPlatformConfig,
-  KernelOperationOverrideSchema,
   MemoryHintsSchema,
 } from '../schema/platform.schema.js';
 
@@ -39,37 +38,6 @@ export function getPlatform(): PlatformSchema;
  * Get the current runtime capabilities (throws if not initialized).
  */
 export function getCapabilities(): RuntimeCapabilities;
-
-/**
- * Get kernel override for an operation on current platform.
- */
-export function getKernelOverride(operation: string): KernelOperationOverrideSchema | undefined;
-
-/**
- * Get preferred variant for an operation, if platform specifies one.
- */
-export function getPreferredVariant(operation: string): string | undefined;
-
-/**
- * Check if a variant should be avoided on current platform.
- */
-export function shouldAvoidVariant(operation: string, variant: string): boolean;
-
-/**
- * Get workgroup size override for a variant, if platform specifies one.
- */
-export function getWorkgroupOverride(
-  operation: string,
-  variant: string
-): [number, number, number] | undefined;
-
-/**
- * Get WGSL override constants for a variant, if platform specifies any.
- */
-export function getWgslOverrides(
-  operation: string,
-  variant: string
-): Record<string, number> | undefined;
 
 /**
  * Get memory hints for current platform.

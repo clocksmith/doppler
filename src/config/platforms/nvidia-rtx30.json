@@ -6,17 +6,6 @@
     "vendor": "nvidia",
     "device": "rtx 30"
   },
-  "kernelOverrides": {
-    "matmul": {
-      "preferred": "q4_fused"
-    },
-    "attention": {
-      "preferred": "decode_subgroup"
-    },
-    "dequant": {
-      "preferred": "subgroup_f16out"
-    }
-  },
   "memoryHints": {
     "preferUnifiedMemory": false,
     "bufferAlignment": 256,

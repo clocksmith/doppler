@@ -2,7 +2,7 @@
  * Platform Config Schema Definitions
  *
  * Defines the structure for device-family platform configurations.
- * Platforms provide kernel overrides and tuning hints for specific GPU families.
+ * Platforms provide detection metadata and memory hints for GPU families.
  *
  * Note: GPU capabilities (hasSubgroups, hasF16, etc.) are detected at runtime,
  * not stored in config. Platforms assume those capabilities are available.
@@ -26,28 +26,6 @@ export interface PlatformDetectionSchema {
   /** WebGPU adapter description pattern */
   description?: string;
 }
-
-/**
- * Overrides for a specific kernel operation on this platform.
- */
-export interface KernelOperationOverrideSchema {
-  /** Preferred variant to use (if requirements are met) */
-  preferred?: string;
-
-  /** Variants to avoid on this platform (known issues, poor performance) */
-  avoid?: string[];
-
-  /** Workgroup size overrides per variant */
-  workgroupOverrides?: Record<string, [number, number, number]>;
-
-  /** WGSL override constants per variant */
-  wgslOverrides?: Record<string, Record<string, number>>;
-}
-
-/**
- * All kernel overrides for this platform.
- */
-export type KernelOverridesSchema = Record<string, KernelOperationOverrideSchema>;
 
 /**
  * Memory-related hints for this platform.
@@ -78,9 +56,6 @@ export interface PlatformSchema {
 
   /** Detection patterns to match this platform */
   detection: PlatformDetectionSchema;
-
-  /** Kernel-specific overrides */
-  kernelOverrides?: KernelOverridesSchema;
 
   /** Memory hints */
   memoryHints?: MemoryHintsSchema;

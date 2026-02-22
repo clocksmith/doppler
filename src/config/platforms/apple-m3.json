@@ -6,22 +6,6 @@
     "vendor": "apple",
     "architecture": "gpu-family-apple-9"
   },
-  "kernelOverrides": {
-    "matmul": {
-      "preferred": "gemv_subgroup",
-      "avoid": ["f32"],
-      "workgroupOverrides": {
-        "q4_fused": [128, 1, 1]
-      }
-    },
-    "attention": {
-      "preferred": "decode_subgroup",
-      "avoid": ["prefill_streaming"]
-    },
-    "dequant": {
-      "preferred": "subgroup_f16out"
-    }
-  },
   "memoryHints": {
     "preferUnifiedMemory": true,
     "bufferAlignment": 256,
