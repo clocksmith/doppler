@@ -1,7 +1,6 @@
 import { markWarmed as markKernelCacheWarmed } from '../../../gpu/kernel-selection-cache.js';
 import { getKernelCapabilities } from '../../../gpu/device.js';
 import { log } from '../../../debug/index.js';
-import { setRuntimeConfig } from '../../../config/runtime.js';
 import { resolvePreset } from '../../../config/loader.js';
 import {
   resolveKernelPath,
@@ -9,7 +8,6 @@ import {
   getKernelPathActivationDtype,
   getKernelPathKVDtype,
   setActiveKernelPath,
-  applyKernelOverrides,
 } from '../../../config/kernel-path-loader.js';
 import { autoTuneKernels, prewarmKernels } from '../../../gpu/kernels/index.js';
 import { resolveCapabilityKernelPathRef } from './kernel-path-auto-select.js';
@@ -50,8 +48,7 @@ export async function runKernelWarmup(options) {
   }
 }
 
-function resolveKernelPathSource(runtimeKernelPath, runtimeConfigKernelPath, modelKernelPath) {
-  if (runtimeKernelPath) return 'runtime';
+function resolveKernelPathSource(runtimeConfigKernelPath, modelKernelPath) {
   if (runtimeConfigKernelPath) return 'config';
   if (modelKernelPath) return 'model';
   return 'manifest';
@@ -99,31 +96,28 @@ function applyKernelPathRuntimeDtypeOverrides(resolvedKernelPath, runtimeConfig)
     'Pipeline',
     `KernelPath ${resolvedKernelPath?.id ?? 'unknown'} runtime dtype overrides: ${dtypeChanges.join(', ')}`
   );
-  return setRuntimeConfig({ ...runtimeConfig, inference: nextInference });
+  return { ...runtimeConfig, inference: nextInference };
 }
 
 export function resolveAndActivateKernelPath(options) {
   const {
     manifest,
-    runtimeKernelPath,
     runtimeConfig,
     modelConfig,
   } = options;
 
   log.debug(
     'Pipeline',
-    `kernelPath sources: runtime=${runtimeKernelPath}, config=${runtimeConfig.inference.kernelPath}, model=${modelConfig.kernelPath}`
+    `kernelPath sources: config=${runtimeConfig.inference.kernelPath}, model=${modelConfig.kernelPath}`
   );
 
-  const configuredKernelPathRef = runtimeKernelPath
-    ?? runtimeConfig.inference.kernelPath
+  const configuredKernelPathRef = runtimeConfig.inference.kernelPath
     ?? modelConfig.kernelPath;
   let kernelPathSource = 'none';
   let resolvedKernelPath = null;
 
   if (configuredKernelPathRef) {
     kernelPathSource = resolveKernelPathSource(
-      runtimeKernelPath,
       runtimeConfig.inference.kernelPath,
       modelConfig.kernelPath
     );
@@ -141,13 +135,6 @@ export function resolveAndActivateKernelPath(options) {
     }
     try {
       resolvedKernelPath = resolveKernelPath(effectiveKernelPathRef);
-      if (runtimeConfig.inference.kernelOverrides) {
-        log.info('Pipeline', 'Applying kernel path overrides', runtimeConfig.inference.kernelOverrides);
-        resolvedKernelPath = applyKernelOverrides(
-          resolvedKernelPath,
-          runtimeConfig.inference.kernelOverrides
-        );
-      }
       const stats = getKernelPathStats(resolvedKernelPath);
       log.info(
         'Pipeline',

@@ -10,7 +10,6 @@ import { openModelStore, loadManifestFromStore } from '../storage/shard-manager.
 import { parseManifest } from '../storage/rdrr-format.js';
 import { computeSampleStats } from '../debug/stats.js';
 import {
-  applyKernelOverrides,
   resolveKernelPath,
   setActiveKernelPath,
   getActiveKernelPath,
@@ -318,7 +317,6 @@ function buildSuiteSummary(suite, results, startTime) {
 
 async function resolveKernelPathForModel(options = {}) {
   const runtimeConfig = options.runtime?.runtimeConfig ?? getRuntimeConfig();
-  const runtimeKernelPath = options.runtime?.kernelPath ?? null;
   let manifest = null;
   let manifestModelId = options.modelId || null;
 
@@ -334,8 +332,7 @@ async function resolveKernelPathForModel(options = {}) {
   if (!manifest) return null;
 
   const modelConfig = parseModelConfigFromManifest(manifest, runtimeConfig);
-  const kernelPathRef = runtimeKernelPath
-    ?? runtimeConfig?.inference?.kernelPath
+  const kernelPathRef = runtimeConfig?.inference?.kernelPath
     ?? modelConfig?.kernelPath;
 
   if (!kernelPathRef) {
@@ -343,17 +340,12 @@ async function resolveKernelPathForModel(options = {}) {
     return { modelId: manifestModelId, kernelPath: null, source: 'none' };
   }
 
-  let resolved = resolveKernelPath(kernelPathRef);
-  if (runtimeConfig?.inference?.kernelOverrides) {
-    resolved = applyKernelOverrides(resolved, runtimeConfig.inference.kernelOverrides);
-  }
-  const source = runtimeKernelPath
-    ? 'runtime'
-    : runtimeConfig?.inference?.kernelPath
-      ? 'config'
-      : modelConfig?.kernelPath
-        ? 'model'
-        : 'manifest';
+  const resolved = resolveKernelPath(kernelPathRef);
+  const source = runtimeConfig?.inference?.kernelPath
+    ? 'config'
+    : modelConfig?.kernelPath
+      ? 'model'
+      : 'manifest';
   setActiveKernelPath(resolved, source);
   return { modelId: manifestModelId, kernelPath: resolved, source };
 }
@@ -608,6 +600,33 @@ function resolveMaxTokens(runtimeConfig) {
   return DEFAULT_HARNESS_MAX_TOKENS;
 }
 
+function resolveBenchmarkRunSettings(runtimeConfig) {
+  const benchConfig = runtimeConfig?.shared?.benchmark?.run || {};
+  const runtimeSampling = isPlainObject(runtimeConfig?.inference?.sampling)
+    ? runtimeConfig.inference.sampling
+    : {};
+  const benchSampling = isPlainObject(benchConfig?.sampling)
+    ? benchConfig.sampling
+    : {};
+  const prompt = typeof benchConfig.customPrompt === 'string' && benchConfig.customPrompt.trim()
+    ? benchConfig.customPrompt.trim()
+    : resolvePrompt(runtimeConfig);
+  const maxTokens = Number.isFinite(benchConfig.maxNewTokens)
+    ? Math.max(1, Math.floor(benchConfig.maxNewTokens))
+    : resolveMaxTokens(runtimeConfig);
+
+  return {
+    warmupRuns: Math.max(0, Math.floor(benchConfig.warmupRuns ?? 0)),
+    timedRuns: Math.max(1, Math.floor(benchConfig.timedRuns ?? 1)),
+    prompt,
+    maxTokens,
+    sampling: {
+      ...runtimeSampling,
+      ...benchSampling,
+    },
+  };
+}
+
 function summarizeEmbeddingValues(embedding) {
   const values = ArrayBuffer.isView(embedding) || Array.isArray(embedding) ? embedding : null;
   const embeddingDim = Number.isFinite(values?.length) ? values.length : 0;
@@ -790,12 +809,18 @@ async function runEmbeddingSemanticChecks(pipeline) {
   };
 }
 
-async function runGeneration(pipeline, runtimeConfig) {
+async function runGeneration(pipeline, runtimeConfig, runOverrides = null) {
   const tokens = [];
   const tokenIds = [];
-  const prompt = resolvePrompt(runtimeConfig);
-  const maxTokens = resolveMaxTokens(runtimeConfig);
-  const sampling = runtimeConfig.inference?.sampling || {};
+  const prompt = typeof runOverrides?.prompt === 'string' && runOverrides.prompt.trim()
+    ? runOverrides.prompt.trim()
+    : resolvePrompt(runtimeConfig);
+  const maxTokens = Number.isFinite(runOverrides?.maxTokens)
+    ? Math.max(1, Math.floor(runOverrides.maxTokens))
+    : resolveMaxTokens(runtimeConfig);
+  const sampling = isPlainObject(runOverrides?.sampling)
+    ? runOverrides.sampling
+    : (runtimeConfig.inference?.sampling || {});
   const debugProbes = runtimeConfig.shared?.debug?.probes || [];
   const profile = runtimeConfig.shared?.debug?.profiler?.enabled === true;
   const disableCommandBatching = Array.isArray(debugProbes) && debugProbes.length > 0;
@@ -875,8 +900,10 @@ async function runGeneration(pipeline, runtimeConfig) {
   };
 }
 
-async function runEmbedding(pipeline, runtimeConfig) {
-  const prompt = resolvePrompt(runtimeConfig);
+async function runEmbedding(pipeline, runtimeConfig, runOverrides = null) {
+  const prompt = typeof runOverrides?.prompt === 'string' && runOverrides.prompt.trim()
+    ? runOverrides.prompt.trim()
+    : resolvePrompt(runtimeConfig);
   const start = performance.now();
   const result = await pipeline.embed(prompt);
   const durationMs = Math.max(1, performance.now() - start);
@@ -1043,24 +1070,9 @@ async function runInferenceSuite(options = {}) {
 async function runBenchSuite(options = {}) {
   const startTime = performance.now();
   const runtimeConfig = getRuntimeConfig();
-  const benchConfig = runtimeConfig.shared?.benchmark?.run || {};
-  const warmupRuns = Math.max(0, Math.floor(benchConfig.warmupRuns ?? 0));
-  const timedRuns = Math.max(1, Math.floor(benchConfig.timedRuns ?? 1));
-  const maxTokens = Number.isFinite(benchConfig.maxNewTokens) ? benchConfig.maxNewTokens : undefined;
-  const benchSampling = isPlainObject(benchConfig.sampling) ? benchConfig.sampling : null;
-  const benchOverrides = {};
-  if (Number.isFinite(maxTokens)) {
-    benchOverrides.inference = { batching: { maxTokens } };
-  }
-  if (benchSampling) {
-    benchOverrides.inference = {
-      ...(benchOverrides.inference || {}),
-      sampling: benchSampling,
-    };
-  }
-  const benchRuntime = Object.keys(benchOverrides).length > 0
-    ? mergeRuntimeValues(runtimeConfig, benchOverrides)
-    : runtimeConfig;
+  const benchRun = resolveBenchmarkRunSettings(runtimeConfig);
+  const warmupRuns = benchRun.warmupRuns;
+  const timedRuns = benchRun.timedRuns;
 
   const harness = await initializeSuiteModel(options);
   const modelType = harness.manifest?.modelType || 'transformer';
@@ -1079,7 +1091,7 @@ async function runBenchSuite(options = {}) {
     let totalNonFiniteValues = 0;
     for (let i = 0; i < warmupRuns + timedRuns; i++) {
       harness.pipeline.reset?.();
-      const run = await runEmbedding(harness.pipeline, benchRuntime);
+      const run = await runEmbedding(harness.pipeline, runtimeConfig, benchRun);
       if (i >= warmupRuns) {
         timedDurations.push(run.durationMs);
         if (firstTimedEmbeddingMs == null) {
@@ -1129,7 +1141,7 @@ async function runBenchSuite(options = {}) {
       validRuns: durations.length,
       invalidRuns,
       invalidRatePct: Number((timedRuns > 0 ? (invalidRuns / timedRuns) * 100 : 0).toFixed(2)),
-      prompt: resolvePrompt(benchRuntime),
+      prompt: benchRun.prompt,
       embeddingDim: Math.round(embeddingDims.reduce((a, b) => a + b, 0) / (embeddingDims.length || 1)),
       nonFiniteValues: totalNonFiniteValues,
       firstTimedEmbeddingMs: Number((firstTimedEmbeddingMs ?? 0).toFixed(2)),
@@ -1177,7 +1189,7 @@ async function runBenchSuite(options = {}) {
 
     for (let i = 0; i < warmupRuns + timedRuns; i++) {
       harness.pipeline.reset?.();
-      const run = await runGeneration(harness.pipeline, benchRuntime);
+      const run = await runGeneration(harness.pipeline, runtimeConfig, benchRun);
       if (i >= warmupRuns) {
         tokensPerSec.push(run.tokensPerSec);
         durations.push(run.durationMs);
@@ -1232,8 +1244,8 @@ async function runBenchSuite(options = {}) {
     metrics = {
       warmupRuns,
       timedRuns,
-      prompt: resolvePrompt(benchRuntime),
-      maxTokens: resolveMaxTokens(benchRuntime),
+      prompt: benchRun.prompt,
+      maxTokens: benchRun.maxTokens,
       medianTokensPerSec: Number(tokensPerSecStats.median.toFixed(2)),
       avgTokensPerSec: Number(tokensPerSecStats.mean.toFixed(2)),
       avgTokensGenerated: Math.round(tokensGeneratedStats.mean),

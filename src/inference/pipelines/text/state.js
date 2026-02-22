@@ -31,8 +31,6 @@ export class PipelineState {
 
     this.decodeStepCount = 0;
 
-    this.runtimeKernelPath = null;
-
     this.resolvedKernelPath = null;
 
     this.kernelPathSource = 'none';

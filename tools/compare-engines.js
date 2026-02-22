@@ -49,6 +49,7 @@ import { promisify } from 'node:util';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { mergeRuntimeValues } from '../src/config/runtime-merge.js';
 
 const execFileAsync = promisify(execFile);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -313,13 +314,10 @@ function buildDopplerRuntimeConfig(sharedContract, engineOverlay) {
   if (engineOverlay.runtimeConfigJson) {
     try {
       const parsedOverride = JSON.parse(engineOverlay.runtimeConfigJson);
-      if (parsedOverride.inference?.attention) {
-        runtimeConfig.inference.modelOverrides = runtimeConfig.inference.modelOverrides || {};
-        runtimeConfig.inference.modelOverrides.attention = {
-          ...runtimeConfig.inference.modelOverrides.attention,
-          ...parsedOverride.inference.attention,
-        };
+      if (parsedOverride && typeof parsedOverride === 'object' && !Array.isArray(parsedOverride)) {
+        return mergeRuntimeValues(runtimeConfig, parsedOverride);
       }
+      console.error('[compare] Ignoring --runtime-config-json because payload is not an object');
     } catch (e) {
       console.error(`[compare] Failed to parse --runtime-config-json: ${e.message}`);
     }

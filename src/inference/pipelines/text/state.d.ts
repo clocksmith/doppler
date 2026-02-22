@@ -21,7 +21,7 @@ import type { WeightBuffer, CpuWeightBuffer } from '../../../gpu/weight-buffer.j
 import type { DopplerLoader } from '../../../loader/doppler-loader.js';
 import type { CompiledLayerPipeline } from './layer-plan.js';
 import type { LoRAAdapter } from './lora.js';
-import type { RuntimeConfigSchema, KernelPathRef, KernelPathSchema } from '../../../config/schema/index.js';
+import type { RuntimeConfigSchema, KernelPathSchema } from '../../../config/schema/index.js';
 import type { WeightDebugFlags } from './weights.js';
 import type { LogitsDebugFlags } from './logits.js';
 import type { KernelPathSource } from '../../../config/kernel-path-loader.js';
@@ -42,7 +42,6 @@ export class PipelineState {
   // Debug flags (combined for both layer and logits)
   debugFlags: WeightDebugFlags & LogitsDebugFlags;
   decodeStepCount: number;
-  runtimeKernelPath: KernelPathRef | null;
   resolvedKernelPath: KernelPathSchema | null;
   kernelPathSource: KernelPathSource;
   disableRecordedLogits: boolean;

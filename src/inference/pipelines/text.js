@@ -75,10 +75,6 @@ export class InferencePipeline extends PipelineState {
     applyPipelineDebugConfig(sharedDebug?.pipeline);
     configurePerfGuards(sharedDebug?.perfGuards);
 
-    if (contexts.runtime?.kernelPath) {
-      this.runtimeKernelPath = contexts.runtime.kernelPath;
-    }
-
     this.emulation = await initEmulation(this.runtimeConfig);
 
     this.debug = sharedDebug?.pipeline?.enabled === true;
@@ -104,7 +100,6 @@ export class InferencePipeline extends PipelineState {
 
     const kernelPathState = resolveAndActivateKernelPath({
       manifest,
-      runtimeKernelPath: this.runtimeKernelPath,
       runtimeConfig: this.runtimeConfig,
       modelConfig: this.modelConfig,
     });

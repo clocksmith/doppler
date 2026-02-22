@@ -99,7 +99,6 @@ export {
   type LayerType,
   type GlobalLayerPattern,
   type LayerPatternSchema,
-  type InferenceKernelOverridesSchema,
   type InferenceConfigSchema,
   type SamplingSchema,
   type TokenizerConfigSchema,

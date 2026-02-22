@@ -3,7 +3,6 @@
  */
 
 import type { ModelConfig } from './model.js';
-import type { KernelPathRef } from '../config/schema/index.js';
 
 /** Inference configuration */
 export interface InferenceConfig {
@@ -173,8 +172,6 @@ export interface RuntimeOptions {
   debug?: boolean;
   profile?: boolean;
   kvCacheSize?: number;
-  /** @deprecated Use kernelPath instead */
-  kernelPath?: KernelPathRef;
 }
 
 /** Progress callback */

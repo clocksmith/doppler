@@ -214,7 +214,6 @@ function mergeInferenceConfig(
     generation: { ...base.generation, ...overrides.generation },
     pipeline: overrides.pipeline ?? base.pipeline,
     kernelPath: overrides.kernelPath ?? base.kernelPath,
-    kernelOverrides: overrides.kernelOverrides ?? base.kernelOverrides,
     chatTemplate: overrides.chatTemplate
       ? { ...base.chatTemplate, ...overrides.chatTemplate }
       : base.chatTemplate,

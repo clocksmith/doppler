@@ -144,57 +144,6 @@ export interface OutputSchema {
   tieWordEmbeddings?: boolean;
 }
 
-/** Kernel override schema for attention ops. */
-export interface KernelOverrideAttentionSchema {
-  prefill?: string | null;
-  decode?: string | null;
-}
-
-/** Kernel override schema for matmul ops. */
-export interface KernelOverrideMatmulSchema {
-  q_proj?: string | null;
-  k_proj?: string | null;
-  v_proj?: string | null;
-  o_proj?: string | null;
-  gate_proj?: string | null;
-  up_proj?: string | null;
-  down_proj?: string | null;
-  lm_head?: string | null;
-}
-
-/** Kernel override schema for FFN ops. */
-export interface KernelOverrideFFNSchema {
-  activation?: string | null;
-  rmsnorm?: string | null;
-}
-
-/** Kernel override schema for RoPE ops. */
-export interface KernelOverrideRoPESchema {
-  q?: string | null;
-  k?: string | null;
-}
-
-/** Kernel override schema for residual ops. */
-export interface KernelOverrideResidualSchema {
-  attn?: string | null;
-  ffn?: string | null;
-}
-
-/** Kernel override schema for KV ops. */
-export interface KernelOverrideKVSchema {
-  quantize?: string | null;
-}
-
-/** Kernel override map for targeted kernel variants. */
-export interface InferenceKernelOverridesSchema {
-  attention?: KernelOverrideAttentionSchema;
-  matmul?: KernelOverrideMatmulSchema;
-  ffn?: KernelOverrideFFNSchema;
-  rope?: KernelOverrideRoPESchema;
-  residual?: KernelOverrideResidualSchema;
-  kv?: KernelOverrideKVSchema;
-}
-
 /** Layer type for hybrid models */
 export type LayerType = 'attention' | 'mamba' | 'rwkv';
 

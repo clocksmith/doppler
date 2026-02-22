@@ -98,7 +98,6 @@ export class PipelineGenerator {
 
   _resolveFinitenessFallbackKernelPathId() {
     const currentId = this.#state.resolvedKernelPath?.id
-      ?? this.#state.runtimeKernelPath
       ?? this.#state.runtimeConfig?.inference?.kernelPath
       ?? null;
     if (typeof currentId !== 'string' || currentId.length === 0) {
@@ -131,7 +130,6 @@ export class PipelineGenerator {
   _beginFinitenessFallback(opts, reasonLabel) {
     const original = {
       activationDtype: this.#state.runtimeConfig.inference.compute.activationDtype,
-      runtimeKernelPath: this.#state.runtimeKernelPath,
       runtimeConfigKernelPath: this.#state.runtimeConfig.inference.kernelPath ?? null,
       resolvedKernelPath: this.#state.resolvedKernelPath,
       kernelPathSource: this.#state.kernelPathSource,
@@ -143,7 +141,6 @@ export class PipelineGenerator {
     const fallbackKernelPathId = this._resolveFinitenessFallbackKernelPathId();
     if (fallbackKernelPathId) {
       const fallbackKernelPath = resolveKernelPath(fallbackKernelPathId);
-      this.#state.runtimeKernelPath = fallbackKernelPathId;
       this.#state.runtimeConfig.inference.kernelPath = fallbackKernelPathId;
       this.#state.resolvedKernelPath = fallbackKernelPath;
       this.#state.kernelPathSource = 'runtime';
@@ -175,7 +172,6 @@ export class PipelineGenerator {
   _endFinitenessFallback(opts, original) {
     opts.seed = original.seed;
     this.#state.runtimeConfig.inference.compute.activationDtype = original.activationDtype;
-    this.#state.runtimeKernelPath = original.runtimeKernelPath;
     this.#state.runtimeConfig.inference.kernelPath = original.runtimeConfigKernelPath;
     this.#state.resolvedKernelPath = original.resolvedKernelPath;
     this.#state.kernelPathSource = original.kernelPathSource;

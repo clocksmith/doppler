@@ -133,7 +133,7 @@ inference). Document the merge chain per domain:
 - Loader/runtime slices (loading/storage/etc):
   `loadingConfig = merge(runtimeDefaultConfig.loading, runtimePresetConfig.loading, runtimeOverrideConfig.loading)`
 - Kernel path resolution:
-  `kernelPath = runtimeKernelPathOverride ?? runtimeConfig.inference.kernelPath ?? manifestInference.defaultKernelPath ?? 'auto'`
+  `kernelPath = runtimeConfig.inference.kernelPath ?? manifestInference.defaultKernelPath ?? 'auto'`
 
 ### No Runtime Defaults in Code
 

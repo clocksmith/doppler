@@ -2,7 +2,6 @@ import type {
   RuntimeConfigSchema,
   KernelWarmupConfigSchema,
   KernelPathSchema,
-  KernelPathRef,
 } from '../../../config/schema/index.js';
 import type { KernelPathSource } from '../../../config/kernel-path-loader.js';
 import type { ParsedModelConfig, Manifest } from './config.js';
@@ -16,7 +15,6 @@ export interface KernelWarmupOptions {
 
 export interface KernelPathResolutionOptions {
   manifest: Manifest;
-  runtimeKernelPath?: KernelPathRef | null;
   runtimeConfig: RuntimeConfigSchema;
   modelConfig: ParsedModelConfig;
 }

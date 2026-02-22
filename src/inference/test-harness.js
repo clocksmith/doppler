@@ -286,7 +286,6 @@ export async function initializeInference(modelUrl, options = {}) {
   const configSnapshot = {
      kernelPathId: pipeline.resolvedKernelPath?.id || null,
      kernelPathName: pipeline.resolvedKernelPath?.name || null,
-     activeOverrides: options.runtime?.runtimeConfig?.inference?.kernelOverrides || null,
      // Detailed per-op view could be expanded here if needed
   };
 

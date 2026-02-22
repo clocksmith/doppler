@@ -104,7 +104,6 @@ export const DEFAULT_INFERENCE_DEFAULTS_CONFIG = {
   energy: DEFAULT_ENERGY_CONFIG,
   pipeline: null,
   kernelPath: undefined,
-  kernelOverrides: null,
 };
 
 // =============================================================================

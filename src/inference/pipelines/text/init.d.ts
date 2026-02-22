@@ -24,7 +24,6 @@ import type {
   KVCacheConfigSchema,
   RuntimeConfigSchema,
   LoadingConfigSchema,
-  KernelPathRef,
   MoERoutingConfigSchema,
   SpeculativeConfigSchema,
 } from '../../../config/schema/index.js';
@@ -43,11 +42,6 @@ export interface PipelineContexts {
   };
   /** Base URL for loading model files */
   baseUrl?: string;
-  /** Runtime configuration overrides */
-  runtime?: {
-    /** Kernel path for explicit kernel dispatch ordering */
-    kernelPath?: KernelPathRef;
-  };
   /** Full runtime config (merged with defaults) */
   runtimeConfig?: Partial<RuntimeConfigSchema> | RuntimeConfigSchema;
   /** Progress callback for weight loading */
