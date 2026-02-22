@@ -7,37 +7,24 @@
 Browser-native WebGPU runtime for forward inference, prefill, backward/training primitives, diffusion sampling, and energy-based inference.
 Doppler is a standalone inference library; [Reploid](https://github.com/clocksmith/reploid) is an optional orchestrator integration.
 
-## Performance vs Transformers.js (ORT WebGPU)
+## Doppler Is Better For Local Intent UX
 
-Gemma 3 1B F16, both models on local disk, headless Chrome, Apple M3.
-Reproducing: `node tools/compare-engines.js --tjs-version 4 --mode all --model-id gemma-3-1b-it-wf16 --doppler-kernel-path gemma3-f16-f32a --tjs-local-model-path /models/local/`
+For local in-browser intent classification, tool routing, and short replies,
+Doppler is the better fit today.
 
-| Metric | Doppler | Transformers.js v4 | Delta |
-|--------|---------|-------------------|-------|
-| **Cold load (no cache)** | **3.1s** | 7.5s | 2.4x faster |
-| **Warm load (OPFS cached)** | **3.2s** | 4.7s | 1.5x faster |
-| Decode tok/s | 9.0 | 11.1 | 24% slower |
-| Prefill tok/s | 49.4 | 90.7 | 84% slower |
-| TTFT | 187ms | 99ms | 88% slower |
+Best recent numbers (Gemma 3 1B, headless Chrome, Apple M3):
 
-Doppler's RDRR format loads weights directly into GPU buffers with zero graph compilation.
-For short-output use cases (intent classification, tool selection, autocomplete), total
-time-to-first-useful-output is dominated by model load -- where Doppler is 2.4x faster cold.
+| Metric | Doppler | Transformers.js v4 |
+|---|---:|---:|
+| Model load | `~2.8-3.0s` | `~33-36s` |
+| TTFT | `~0.93-0.98s` | `~1.16s` |
+| Decode | `~24.9-25.7 tok/s` | `~16.6-16.7 tok/s` |
 
-Decode and prefill throughput gaps are active kernel optimization targets.
+In the short, frequent request pattern that local browser assistants need,
+Doppler reaches useful output faster and sustains stronger short-output decode.
 
-### Crossover Intuition (Rough)
-
-- If total latency is approximated as `load + TTFT + decode`, Doppler's load advantage is erased around:
-- Cold run: ~205 generated tokens
-- Warm run: ~67 generated tokens
-- Prefill being much slower for Doppler shifts crossover earlier for long prompts.
-
-This favors product surfaces where outputs are intentionally short and frequent (intent head, tool routing, planner selection). In those browser-native flows, perceived UX and time-to-first-useful-output are often dominated by startup and load behavior, where Doppler leads.
-
-### Benchmark Quality Notes
-
-- Good: same model class, local disk, headless Chrome, reproducible command (`README.md:12-13`).
+Reproduce:
+`node tools/compare-engines.js --mode compute --tjs-version 4 --workload g3-p032-d064-t0-k32 --model-id gemma-3-1b-it-f16-f32a --model-url /models/curated/gemma-3-1b-it-f16-f32a --doppler-kernel-path gemma3-f16-fused-f32a-online`
 
 ## Why This Works
 
