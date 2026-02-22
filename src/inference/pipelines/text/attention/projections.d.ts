@@ -7,14 +7,38 @@ import type { LoRAAdapter } from '../lora.js';
 export interface AttentionInputInfo {
   phase: 'prefill' | 'decode';
   layerIdx: number;
+  numTokens?: number;
+  kvLen?: number;
+  numHeads?: number;
+  numKVHeads?: number;
+  headDim?: number;
+  activationDtype?: string | null;
   inputDtype?: string | null;
+  normedDtype?: string | null;
   kvDtype?: string | null;
+  kvCacheDtype?: string | null;
+  cachedKDtype?: string | null;
+  cachedVDtype?: string | null;
+  qDtype?: string | null;
+  kDtype?: string | null;
+  vDtype?: string | null;
   qWeightDtype?: string | null;
   kWeightDtype?: string | null;
   vWeightDtype?: string | null;
   oWeightDtype?: string | null;
   useF16Attention?: boolean;
+  useF16Activations?: boolean;
   hasF16Weights?: boolean;
+  matmulOutputDtype?: string | null;
+  useFusedQKV?: boolean;
+  kvStart?: number;
+  kvLayout?: string;
+  kvPageSize?: number | null;
+  hotLen?: number | null;
+  coldLen?: number | null;
+  hotWindow?: number | null;
+  hotStart?: number | null;
+  coldQuantMode?: string | null;
 }
 
 export function recordAttentionInputs(

@@ -106,10 +106,9 @@ export function recordCheckFiniteness(
     const workgroups = Math.ceil(size / 256);
     dispatchKernel(target, pipeline, bindGroup, workgroups, 'check_finiteness');
 
-    // Need to cleanup uniform buffer
-    if (isRecorder) {
-        target.trackTemporaryBuffer(uniformBuffer);
-    } else {
+    // Recorder-created uniform buffers come from the uniform cache and must not
+    // be destroyed as temporaries. Non-recorder path uses direct allocations.
+    if (!isRecorder) {
         setTimeout(() => uniformBuffer.destroy(), 1);
     }
 }

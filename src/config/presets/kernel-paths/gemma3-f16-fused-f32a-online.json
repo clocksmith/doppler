@@ -41,7 +41,7 @@
             },
             {
                 "op": "attention",
-                "kernel": "attention_decode_chunked_f16kv.wgsl",
+                "kernel": "attention_decode_online_f16kv.wgsl",
                 "entry": "main"
             },
             {

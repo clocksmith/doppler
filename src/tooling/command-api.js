@@ -1,3 +1,5 @@
+import { isPlainObject } from '../utils/plain-object.js';
+
 const TOOLING_COMMAND_SET = ['convert', 'debug', 'bench', 'test-model'];
 const TOOLING_SURFACE_SET = ['browser', 'node'];
 const TOOLING_SUITE_SET = ['kernels', 'inference', 'bench', 'debug', 'diffusion', 'energy'];
@@ -12,10 +14,6 @@ const COMMAND_RUNTIME_CONTRACT = Object.freeze({
   bench: Object.freeze({ suite: 'bench', intent: 'calibrate' }),
   'test-model': Object.freeze({ suite: null, intent: 'verify' }),
 });
-
-function isPlainObject(value) {
-  return !!value && typeof value === 'object' && !Array.isArray(value);
-}
 
 function asOptionalString(value, label) {
   if (value === undefined || value === null || value === '') return null;
