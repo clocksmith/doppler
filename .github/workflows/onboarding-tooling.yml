@@ -1,0 +1,44 @@
+name: Onboarding Consistency Checks
+
+on:
+  pull_request:
+    paths:
+      - 'src/config/**'
+      - 'benchmarks/vendors/**'
+      - 'tools/onboarding-tooling.js'
+      - 'tools/configs/conversion/**'
+      - '.github/workflows/onboarding-tooling.yml'
+      - 'docs/onboarding-tooling.md'
+  push:
+    branches: [main]
+    paths:
+      - 'src/config/**'
+      - 'benchmarks/vendors/**'
+      - 'tools/onboarding-tooling.js'
+      - 'tools/configs/conversion/**'
+      - '.github/workflows/onboarding-tooling.yml'
+      - 'docs/onboarding-tooling.md'
+  workflow_dispatch:
+
+jobs:
+  onboarding:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run strict onboarding validator
+        run: npm run onboarding:check:strict
+
+      - name: Run vendor benchmark registry validation
+        run: npm run bench:vendors:validate
