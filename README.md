@@ -91,7 +91,7 @@ See [`docs/architecture.md`](docs/architecture.md) for full subsystem and bounda
 In the two workloads shown above, Doppler is faster on first-response latency and decode throughput, while Transformers.js (v4) is faster on TTFT and prefill throughput.
 Committed evidence:
 - chart artifact: `benchmarks/vendors/results/compare_1b_multi-workload_favorable_phases.svg`
-- committed compare fixture input: `benchmarks/vendors/fixtures/sample-compare.json`
+- committed compare fixture input: `benchmarks/vendors/fixtures/g3-p064-d064-t0-k1.compare.json`
 Local/generated compare outputs are written to `benchmarks/vendors/results/*.json` and are gitignored by policy.
 
 ### Reproduce

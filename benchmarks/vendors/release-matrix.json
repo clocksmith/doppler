@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-02-25T16:31:55.189Z",
+  "generatedAt": "2026-02-25T16:37:29.718Z",
   "release": {
     "channel": "main-snapshot",
     "version": null,
-    "commitSha": "6080b5a22b6ba32c2df82c1917756f10c2db75db",
+    "commitSha": "574951a0435d61f24e260830d5c51508ad2b2348",
     "dirty": true
   },
   "sources": {
@@ -692,7 +692,7 @@
       "benchmarks/vendors/results/compare_1b_multi-workload_favorable_phases.svg"
     ],
     "latestCompareResult": {
-      "path": "benchmarks/vendors/fixtures/sample-compare.json",
+      "path": "benchmarks/vendors/fixtures/g3-p064-d064-t0-k1.compare.json",
       "timestamp": "2026-02-25T12:00:00.000Z",
       "mode": "compute",
       "section": "compute/parity",

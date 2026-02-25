@@ -69,7 +69,7 @@ Use `tools/vendor-bench.js`:
 - `node tools/vendor-bench.js capabilities --target transformersjs`
 - `node tools/vendor-bench.js gap --base doppler --target transformersjs`
 - `node tools/vendor-bench.js matrix`
-- `node tools/vendor-bench.js matrix --compare-result benchmarks/vendors/fixtures/sample-compare.json`
+- `node tools/vendor-bench.js matrix --compare-result benchmarks/vendors/fixtures/g3-p064-d064-t0-k1.compare.json`
 - `node tools/vendor-bench.js matrix --include-local-results`
 - `node tools/vendor-bench.js show --target webllm`
 - `node tools/vendor-bench.js import --target webllm --input /tmp/webllm-result.json`
@@ -111,9 +111,9 @@ When `--compare-result` is provided, matrix generation also captures host/browse
 Use `benchmarks/vendors/compare-chart.js` to turn a saved compare result file into an SVG:
 
 ```bash
-node benchmarks/vendors/compare-chart.js --input benchmarks/vendors/fixtures/sample-compare.json
-node benchmarks/vendors/compare-chart.js --input benchmarks/vendors/fixtures/sample-compare.json --chart stacked
-node benchmarks/vendors/compare-chart.js --input benchmarks/vendors/fixtures/sample-compare.json --chart radar --section compute/parity
+node benchmarks/vendors/compare-chart.js --input benchmarks/vendors/fixtures/g3-p064-d064-t0-k1.compare.json
+node benchmarks/vendors/compare-chart.js --input benchmarks/vendors/fixtures/g3-p064-d064-t0-k1.compare.json --chart stacked
+node benchmarks/vendors/compare-chart.js --input benchmarks/vendors/fixtures/g3-p064-d064-t0-k1.compare.json --chart radar --section compute/parity
 ```
 
 Use `--section` to choose the section, `--chart` (`bar|stacked|radar`) to pick the renderer, and `--metrics` to limit metric IDs.
