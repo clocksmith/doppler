@@ -1,7 +1,7 @@
 # Release Matrix
 
-Generated: 2026-02-25T16:31:55.189Z
-Release: channel=main-snapshot, version=n/a, commit=6080b5a22b6ba32c2df82c1917756f10c2db75db, dirty=yes
+Generated: 2026-02-25T16:37:29.718Z
+Release: channel=main-snapshot, version=n/a, commit=574951a0435d61f24e260830d5c51508ad2b2348, dirty=yes
 
 ## Engine Matrix
 
@@ -29,19 +29,19 @@ Release: channel=main-snapshot, version=n/a, commit=6080b5a22b6ba32c2df82c191775
 
 | Workload ID | Workload Name | Prefill | Decode | Sampling | GPU/OS/Platform | JSON Runs |
 |---|---|---:|---:|---|---|---|
-| `decode-64-128-greedy` | Decode 64/128 Greedy | 64 | 128 | t=0, k=1, p=1 | not captured | not captured |
-| `decode-32-64-greedy` | Decode 32/64 Greedy | 32 | 64 | t=0, k=1, p=1 | not captured | not captured |
-| `decode-512-128-greedy` | Decode 512/128 Greedy | 512 | 128 | t=0, k=1, p=1 | not captured | not captured |
-| `g3-p032-d016-t0-k1` | Gemma3 Grid 32/16 Greedy | 32 | 16 | t=0, k=1, p=1 | not captured | not captured |
-| `g3-p032-d064-t0-k1` | Gemma3 Grid 32/64 Greedy | 32 | 64 | t=0, k=1, p=1 | not captured | not captured |
-| `g3-p032-d256-t0-k1` | Gemma3 Grid 32/256 Greedy | 32 | 256 | t=0, k=1, p=1 | not captured | not captured |
-| `g3-p064-d016-t0-k1` | Gemma3 Grid 64/16 Greedy | 64 | 16 | t=0, k=1, p=1 | not captured | not captured |
-| `g3-p064-d064-t0-k1` | Gemma3 Grid 64/64 Greedy | 64 | 64 | t=0, k=1, p=1 | GPU: Apple / gpu-family-apple-9 / M3 Pro; Backend: metal; OS: darwin; Platform: MacIntel | [sample-compare.json](../benchmarks/vendors/fixtures/sample-compare.json) (2026-02-25) |
+| `decode-64-128-greedy` | Decode 64/128 Greedy | 64 | 128 | greedy | not captured | not captured |
+| `decode-32-64-greedy` | Decode 32/64 Greedy | 32 | 64 | greedy | not captured | not captured |
+| `decode-512-128-greedy` | Decode 512/128 Greedy | 512 | 128 | greedy | not captured | not captured |
+| `g3-p032-d016-t0-k1` | Gemma3 Grid 32/16 Greedy | 32 | 16 | greedy | not captured | not captured |
+| `g3-p032-d064-t0-k1` | Gemma3 Grid 32/64 Greedy | 32 | 64 | greedy | not captured | not captured |
+| `g3-p032-d256-t0-k1` | Gemma3 Grid 32/256 Greedy | 32 | 256 | greedy | not captured | not captured |
+| `g3-p064-d016-t0-k1` | Gemma3 Grid 64/16 Greedy | 64 | 16 | greedy | not captured | not captured |
+| `g3-p064-d064-t0-k1` | Gemma3 Grid 64/64 Greedy | 64 | 64 | greedy | GPU: Apple / gpu-family-apple-9 / M3 Pro; Backend: metal; OS: darwin; Platform: MacIntel | [g3-p064-d064-t0-k1.compare.json](../benchmarks/vendors/fixtures/g3-p064-d064-t0-k1.compare.json) (2026-02-25) |
 | `g3-p064-d064-t1-k32` | Gemma3 Grid 64/64 t1 k32 (sampling) | 64 | 64 | t=1, k=32, p=1 | not captured | not captured |
-| `g3-p064-d256-t0-k1` | Gemma3 Grid 64/256 Greedy | 64 | 256 | t=0, k=1, p=1 | not captured | not captured |
-| `g3-p512-d016-t0-k1` | Gemma3 Grid 512/16 Greedy | 512 | 16 | t=0, k=1, p=1 | not captured | not captured |
-| `g3-p512-d064-t0-k1` | Gemma3 Grid 512/64 Greedy | 512 | 64 | t=0, k=1, p=1 | not captured | not captured |
-| `g3-p512-d256-t0-k1` | Gemma3 Grid 512/256 Greedy | 512 | 256 | t=0, k=1, p=1 | not captured | not captured |
+| `g3-p064-d256-t0-k1` | Gemma3 Grid 64/256 Greedy | 64 | 256 | greedy | not captured | not captured |
+| `g3-p512-d016-t0-k1` | Gemma3 Grid 512/16 Greedy | 512 | 16 | greedy | not captured | not captured |
+| `g3-p512-d064-t0-k1` | Gemma3 Grid 512/64 Greedy | 512 | 64 | greedy | not captured | not captured |
+| `g3-p512-d256-t0-k1` | Gemma3 Grid 512/256 Greedy | 512 | 256 | greedy | not captured | not captured |
 Captured workloads: 1/13
 
 ## Evidence
@@ -49,8 +49,8 @@ Captured workloads: 1/13
 - Committed charts: 1
   - [compare_1b_multi-workload_favorable_phases.svg](../benchmarks/vendors/results/compare_1b_multi-workload_favorable_phases.svg)
 - Compare JSON artifacts: 1
-  - [sample-compare.json](../benchmarks/vendors/fixtures/sample-compare.json) (workload `g3-p064-d064-t0-k1`, models `gemma-3-1b-it-f16-f32a` vs `onnx-community/gemma-3-1b-it-ONNX-GQA`, runtime `GPU: Apple / gpu-family-apple-9 / M3 Pro; Backend: metal; OS: darwin; Platform: MacIntel`) **(latest)**
-- Selected latest compare: [sample-compare.json](../benchmarks/vendors/fixtures/sample-compare.json) (section `compute/parity`, models `gemma-3-1b-it-f16-f32a` vs `onnx-community/gemma-3-1b-it-ONNX-GQA`)
+  - [g3-p064-d064-t0-k1.compare.json](../benchmarks/vendors/fixtures/g3-p064-d064-t0-k1.compare.json) (workload `g3-p064-d064-t0-k1`, models `gemma-3-1b-it-f16-f32a` vs `onnx-community/gemma-3-1b-it-ONNX-GQA`, runtime `GPU: Apple / gpu-family-apple-9 / M3 Pro; Backend: metal; OS: darwin; Platform: MacIntel`) **(latest)**
+- Selected latest compare: [g3-p064-d064-t0-k1.compare.json](../benchmarks/vendors/fixtures/g3-p064-d064-t0-k1.compare.json) (section `compute/parity`, models `gemma-3-1b-it-f16-f32a` vs `onnx-community/gemma-3-1b-it-ONNX-GQA`)
 
 ## Runtime Specs (Latest Compare)
 

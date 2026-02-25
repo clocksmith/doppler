@@ -1897,6 +1897,8 @@ function formatSamplingLabel(sampling) {
   const temp = asFiniteNumber(sampling.temperature);
   const topK = asFiniteNumber(sampling.topK);
   const topP = asFiniteNumber(sampling.topP);
+  const isGreedy = temp === 0 && topK === 1 && (topP == null || topP === 1);
+  if (isGreedy) return 'greedy';
   const parts = [];
   if (temp != null) parts.push(`t=${temp}`);
   if (topK != null) parts.push(`k=${topK}`);
