@@ -25,7 +25,9 @@ What these benchmarks do not prove:
 Claim format to keep reports auditable:
 - State the workload and cache/load mode.
 - State engine/version (`Doppler`, `Transformers.js (v4)`).
-- Include the exact command and artifact path under `benchmarks/vendors/results/`.
+- Include the exact command plus artifact paths:
+  - local/generated JSON under `benchmarks/vendors/results/` (gitignored)
+  - committed fixture evidence under `benchmarks/vendors/fixtures/` (when publishing claims)
 
 ## Registry Files
 
@@ -37,7 +39,7 @@ Claim format to keep reports auditable:
 - `schema/*.json`: schemas for registry, workloads, harness, capabilities, metric contract, and normalized result records.
 - `schema/compare-engines-config.schema.json`: schema for `compare-engines.config.json`.
 - `schema/release-matrix.schema.json`: schema for generated release/support matrix payload.
-- `results/`: normalized comparison outputs.
+- `results/`: local/generated normalized outputs (`*.json`, gitignored) and committed chart snapshots (`*.svg`).
 - `fixtures/`: committed sample compare payloads for clean-checkout chart/matrix smoke checks.
 - `compare-metrics.json`: shared compare metric contract for CLI and harness-driven extraction.
 - `release-matrix.json`: generated release/support matrix from registry + workloads + capabilities + model catalog (+ optional latest compare JSON).
@@ -52,7 +54,8 @@ Claim format to keep reports auditable:
 
 Execution tracking now lives in:
 
-- normalized artifacts under `benchmarks/vendors/results/`
+- local/generated normalized artifacts under `benchmarks/vendors/results/`
+- committed compare fixtures under `benchmarks/vendors/fixtures/`
 - harness + workload contracts in this folder
 - CI gates in `.github/workflows/inference-guard.yml`
 
@@ -66,17 +69,20 @@ Use `tools/vendor-bench.js`:
 - `node tools/vendor-bench.js capabilities --target transformersjs`
 - `node tools/vendor-bench.js gap --base doppler --target transformersjs`
 - `node tools/vendor-bench.js matrix`
-- `node tools/vendor-bench.js matrix --compare-result benchmarks/vendors/results/<compare-run>.json`
+- `node tools/vendor-bench.js matrix --compare-result benchmarks/vendors/fixtures/sample-compare.json`
+- `node tools/vendor-bench.js matrix --include-local-results`
 - `node tools/vendor-bench.js show --target webllm`
 - `node tools/vendor-bench.js import --target webllm --input /tmp/webllm-result.json`
 - `node tools/vendor-bench.js run --target webllm --workload decode-64-128-greedy -- node ./path/to/runner.js`
 
 `import` and `run` both produce normalized records under `benchmarks/vendors/results/` unless `--output` is specified.
 `matrix` writes `benchmarks/vendors/release-matrix.json` and `docs/release-matrix.md`.
-`matrix` auto-discovers compare JSON artifacts under `benchmarks/vendors/fixtures/` and `benchmarks/vendors/results/` (files containing `compare` in the name), then links those runs in the workloads/evidence markdown sections.
+By default, `matrix` auto-discovers compare JSON artifacts under `benchmarks/vendors/fixtures/` only.
+Use `--include-local-results` to also scan `benchmarks/vendors/results/` (files containing `compare` in the name).
+Use `--strict-compare-artifacts` to fail generation when any auto-discovered compare artifact is invalid.
 Workload rows in the markdown include a `GPU/OS/Platform` column derived from each linked compare artifact's runtime environment metadata.
 When `--compare-result` is provided, matrix generation also captures host/browser/GPU specs from that compare payload.
-`tools/compare-engines.js --save` now refreshes release-matrix artifacts automatically (use `--skip-matrix-update` to opt out).
+`tools/compare-engines.js --save` refreshes release-matrix artifacts automatically using fixture-only discovery by default (use `--skip-matrix-update` to opt out).
 
 ## Normalization Notes
 

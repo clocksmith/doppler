@@ -2121,14 +2121,13 @@ async function main() {
       const matrixArgs = [
         path.join(DOPPLER_ROOT, 'tools', 'vendor-bench.js'),
         'matrix',
-        '--compare-result', latestPath,
       ];
       await execFileAsync('node', matrixArgs, {
         cwd: DOPPLER_ROOT,
         timeout: 120_000,
         maxBuffer: 10 * 1024 * 1024,
       });
-      console.error('[compare] refreshed release matrix artifacts');
+      console.error('[compare] refreshed release matrix artifacts (committed fixtures only by default)');
     }
   }
 }

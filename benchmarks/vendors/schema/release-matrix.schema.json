@@ -25,7 +25,9 @@
       "type": "object",
       "required": [
         "channel",
-        "version"
+        "version",
+        "commitSha",
+        "dirty"
       ],
       "properties": {
         "channel": {
@@ -34,6 +36,18 @@
         "version": {
           "type": [
             "string",
+            "null"
+          ]
+        },
+        "commitSha": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "dirty": {
+          "type": [
+            "boolean",
             "null"
           ]
         }
@@ -374,6 +388,7 @@
           ],
           "required": [
             "path",
+            "origin",
             "timestamp",
             "mode",
             "section",
@@ -389,6 +404,14 @@
           "properties": {
             "path": {
               "type": "string"
+            },
+            "origin": {
+              "type": "string",
+              "enum": [
+                "fixture",
+                "local",
+                "explicit"
+              ]
             },
             "timestamp": {
               "type": [

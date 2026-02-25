@@ -1,9 +1,11 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-02-25T16:21:16.729Z",
+  "generatedAt": "2026-02-25T16:31:55.189Z",
   "release": {
     "channel": "main-snapshot",
-    "version": null
+    "version": null,
+    "commitSha": "6080b5a22b6ba32c2df82c1917756f10c2db75db",
+    "dirty": true
   },
   "sources": {
     "registry": {
@@ -802,7 +804,8 @@
           "doppler": 273.7,
           "transformersjs": 336.2
         }
-      }
+      },
+      "origin": "fixture"
     }
   }
 }

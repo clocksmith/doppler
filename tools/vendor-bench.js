@@ -5,7 +5,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -38,11 +38,13 @@ function usage() {
     '  node tools/vendor-bench.js validate',
     '  node tools/vendor-bench.js capabilities [--target <id>]',
     '  node tools/vendor-bench.js gap --base <id> --target <id>',
-    '  node tools/vendor-bench.js matrix [--compare-result <path>] [--output <path>] [--markdown-output <path>]',
+    '  node tools/vendor-bench.js matrix [--compare-result <path>] [--output <path>] [--markdown-output <path>] [--include-local-results] [--strict-compare-artifacts]',
     '  node tools/vendor-bench.js show --target <id>',
     '  node tools/vendor-bench.js import --target <id> --input <raw.json> [--output <result.json>] [--workload <id>] [--model <id>] [--notes <text>]',
     '  node tools/vendor-bench.js run --target <id> [--timeout-ms <ms>] [--output <result.json>] [--workload <id>] [--model <id>] [--notes <text>] -- <command ...>',
     '  --timeout-ms <ms>           Command timeout in milliseconds (default: 600000)',
+    '  --include-local-results      Include benchmarks/vendors/results/*.json in matrix discovery (default: fixtures only)',
+    '  --strict-compare-artifacts   Fail matrix generation on any auto-discovered compare artifact parse error',
     '',
     'Notes:',
     '  - `run` expects command stdout to include a JSON object payload.',
@@ -51,6 +53,7 @@ function usage() {
 }
 
 function parseArgs(argv) {
+  const booleanFlags = new Set(['help', 'h', 'include-local-results', 'strict-compare-artifacts']);
   const out = {
     command: argv[0] ?? null,
     flags: {},
@@ -75,8 +78,14 @@ function parseArgs(argv) {
     }
 
     const key = token.slice(2);
-    if (key === 'help' || key === 'h') {
-      out.flags.help = 'true';
+    if (booleanFlags.has(key)) {
+      const nextValue = argv[i + 1];
+      if (nextValue === undefined || nextValue.startsWith('--')) {
+        out.flags[key] = 'true';
+      } else {
+        out.flags[key] = nextValue;
+        i += 1;
+      }
       continue;
     }
 
@@ -98,6 +107,14 @@ function parsePositiveInt(value, fallback, label) {
     throw new Error(`${label} must be a positive integer`);
   }
   return parsed;
+}
+
+function parseBooleanFlag(value, fallback, label) {
+  if (value == null || value === '') return fallback;
+  const normalized = String(value).trim().toLowerCase();
+  if (normalized === 'true' || normalized === '1' || normalized === 'yes' || normalized === 'on') return true;
+  if (normalized === 'false' || normalized === '0' || normalized === 'no' || normalized === 'off') return false;
+  throw new Error(`${label} must be one of: true, false, 1, 0, yes, no, on, off`);
 }
 
 function parseJsonFromStdout(stdout, label) {
@@ -947,23 +964,31 @@ function buildNormalizedEnvironment(rawResult, harness, source) {
   };
 }
 
-function assertRunEnvironmentCompleteness(environment) {
+function assertRunEnvironmentCompleteness(environment, options = {}) {
+  const requireGpu = options.requireGpu === true;
   const missing = [];
   if (!asNonEmptyStringValue(environment?.host?.platform)) missing.push('environment.host.platform');
   if (!asNonEmptyStringValue(environment?.host?.arch)) missing.push('environment.host.arch');
   if (!asNonEmptyStringValue(environment?.host?.nodeVersion)) missing.push('environment.host.nodeVersion');
-  if (!asNonEmptyStringValue(environment?.browser?.userAgent)) missing.push('environment.browser.userAgent');
-  if (!asNonEmptyStringValue(environment?.browser?.platform)) missing.push('environment.browser.platform');
   if (!asNonEmptyStringValue(environment?.runtime?.library)) missing.push('environment.runtime.library');
   if (!asNonEmptyStringValue(environment?.runtime?.device)) missing.push('environment.runtime.device');
-  if (!asNonEmptyStringValue(environment?.gpu?.backend)) missing.push('environment.gpu.backend');
-  const gpuIdentity = [
-    asNonEmptyStringValue(environment?.gpu?.vendor),
-    asNonEmptyStringValue(environment?.gpu?.device),
-    asNonEmptyStringValue(environment?.gpu?.description),
-  ].filter(Boolean);
-  if (gpuIdentity.length === 0) {
-    missing.push('environment.gpu.[vendor|device|description]');
+  const browserRequired = asNonEmptyStringValue(environment?.runtime?.surface) === 'browser' || requireGpu;
+  if (browserRequired && !asNonEmptyStringValue(environment?.browser?.userAgent)) {
+    missing.push('environment.browser.userAgent');
+  }
+  if (browserRequired && !asNonEmptyStringValue(environment?.browser?.platform)) {
+    missing.push('environment.browser.platform');
+  }
+  if (requireGpu) {
+    if (!asNonEmptyStringValue(environment?.gpu?.backend)) missing.push('environment.gpu.backend');
+    const gpuIdentity = [
+      asNonEmptyStringValue(environment?.gpu?.vendor),
+      asNonEmptyStringValue(environment?.gpu?.device),
+      asNonEmptyStringValue(environment?.gpu?.description),
+    ].filter(Boolean);
+    if (gpuIdentity.length === 0) {
+      missing.push('environment.gpu.[vendor|device|description]');
+    }
   }
   if (missing.length > 0) {
     throw new Error(`missing required runtime environment capture fields: ${missing.join(', ')}`);
@@ -1131,7 +1156,9 @@ async function normalizeRecord(options) {
     metadata,
   };
   if (source?.mode === 'run') {
-    assertRunEnvironmentCompleteness(environment);
+    assertRunEnvironmentCompleteness(environment, {
+      requireGpu: String(product?.category || '').toLowerCase().includes('webgpu'),
+    });
   }
   await assertMatchesSchema(record, RESULT_SCHEMA_PATH, 'result record');
   assertResultRecordShape(record);
@@ -1147,6 +1174,31 @@ async function hashJsonBytes(value) {
   const bytes = Buffer.from(JSON.stringify(value), 'utf8');
   const digest = crypto.createHash('sha256').update(bytes).digest('hex');
   return { bytes: bytes.length, sha256: digest };
+}
+
+function resolveGitReleaseMetadata() {
+  const commit = spawnSync('git', ['rev-parse', 'HEAD'], {
+    cwd: ROOT_DIR,
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'ignore'],
+  });
+  const commitSha = commit.status === 0
+    ? asNonEmptyStringValue(commit.stdout)
+    : null;
+
+  const status = spawnSync('git', ['status', '--porcelain'], {
+    cwd: ROOT_DIR,
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'ignore'],
+  });
+  const dirty = status.status === 0
+    ? status.stdout.trim().length > 0
+    : null;
+
+  return {
+    commitSha,
+    dirty,
+  };
 }
 
 function defaultOutputPath(targetId) {
@@ -1674,19 +1726,42 @@ function isCompareResultArtifactFileName(fileName) {
   return lower.includes('compare');
 }
 
-async function listCompareResultCandidatePaths() {
+function isPathWithin(baseDir, candidatePath) {
+  const relativePath = path.relative(baseDir, candidatePath);
+  return relativePath !== ''
+    && !relativePath.startsWith('..')
+    && !path.isAbsolute(relativePath);
+}
+
+function resolveCompareArtifactOrigin(absolutePath) {
+  if (isPathWithin(FIXTURES_DIR, absolutePath)) return 'fixture';
+  if (isPathWithin(RESULTS_DIR, absolutePath)) return 'local';
+  return 'explicit';
+}
+
+async function listCompareResultCandidateEntries(options = {}) {
+  const includeLocalResults = options.includeLocalResults === true;
+  const scanDirs = [{ dirPath: FIXTURES_DIR, origin: 'fixture' }];
+  if (includeLocalResults) {
+    scanDirs.push({ dirPath: RESULTS_DIR, origin: 'local' });
+  }
+
   const out = [];
-  for (const dirPath of [FIXTURES_DIR, RESULTS_DIR]) {
+  for (const { dirPath, origin } of scanDirs) {
     const exists = await fileExists(dirPath);
     if (!exists) continue;
     const entries = await fs.readdir(dirPath, { withFileTypes: true });
     for (const entry of entries) {
       if (!entry.isFile()) continue;
       if (!isCompareResultArtifactFileName(entry.name)) continue;
-      out.push(path.join(dirPath, entry.name));
+      out.push({
+        absolutePath: path.join(dirPath, entry.name),
+        origin,
+      });
     }
   }
-  return out.sort();
+
+  return out.sort((left, right) => left.absolutePath.localeCompare(right.absolutePath));
 }
 
 function compareResultTimestampMs(summary) {
@@ -1700,27 +1775,70 @@ function compareResultTimestampMs(summary) {
 function compareResultSortDescending(left, right) {
   const delta = compareResultTimestampMs(right) - compareResultTimestampMs(left);
   if (delta !== 0) return delta;
+  const leftOrigin = String(left?.origin || '');
+  const rightOrigin = String(right?.origin || '');
+  if (leftOrigin !== rightOrigin) {
+    if (leftOrigin === 'local') return -1;
+    if (rightOrigin === 'local') return 1;
+  }
   return String(left?.path || '').localeCompare(String(right?.path || ''));
 }
 
-async function loadCompareResultSummaries(compareResultFlag) {
-  const candidatePaths = new Set(await listCompareResultCandidatePaths());
+function selectLatestCompareResult(compareResults) {
+  const normalized = Array.isArray(compareResults) ? compareResults : [];
+  if (normalized.length === 0) return null;
+  const nonFixture = normalized.filter((entry) => entry?.origin !== 'fixture');
+  const pool = nonFixture.length > 0 ? nonFixture : normalized;
+  return [...pool].sort(compareResultSortDescending)[0] || null;
+}
+
+async function loadCompareResultSummaries(options = {}) {
+  const compareResultFlag = options.compareResultFlag ?? null;
+  const includeLocalResults = options.includeLocalResults === true;
+  const strictCompareArtifacts = options.strictCompareArtifacts === true;
+  const candidateEntries = await listCompareResultCandidateEntries({ includeLocalResults });
+  const candidateMap = new Map();
+  for (const entry of candidateEntries) {
+    candidateMap.set(path.resolve(entry.absolutePath), entry);
+  }
   let preferredResolved = null;
   if (compareResultFlag) {
     preferredResolved = path.resolve(compareResultFlag);
-    candidatePaths.add(preferredResolved);
+    candidateMap.set(preferredResolved, {
+      absolutePath: preferredResolved,
+      origin: resolveCompareArtifactOrigin(preferredResolved),
+      explicit: true,
+    });
   }
 
   const summaries = [];
-  for (const candidatePath of [...candidatePaths].sort()) {
+  const droppedCompareArtifacts = [];
+  for (const candidateEntry of [...candidateMap.values()].sort((left, right) => left.absolutePath.localeCompare(right.absolutePath))) {
+    const candidatePath = candidateEntry.absolutePath;
     try {
       const summary = await maybeLoadCompareResultSummary(candidatePath);
-      if (summary) summaries.push(summary);
+      if (!summary) continue;
+      summary.origin = candidateEntry.origin || resolveCompareArtifactOrigin(candidatePath);
+      summaries.push(summary);
     } catch (error) {
-      if (preferredResolved != null && path.resolve(candidatePath) === preferredResolved) {
+      const isPreferred = preferredResolved != null && path.resolve(candidatePath) === preferredResolved;
+      const droppedRow = {
+        path: toPosixRelative(candidatePath),
+        origin: candidateEntry.origin || resolveCompareArtifactOrigin(candidatePath),
+        error: error?.message || String(error),
+      };
+      droppedCompareArtifacts.push(droppedRow);
+      if (isPreferred) {
         throw error;
       }
     }
+  }
+
+  if (strictCompareArtifacts && droppedCompareArtifacts.length > 0) {
+    const details = droppedCompareArtifacts
+      .map((entry) => `- ${entry.path} (${entry.origin}): ${entry.error}`)
+      .join('\n');
+    throw new Error(`invalid compare artifacts detected:\n${details}`);
   }
   summaries.sort(compareResultSortDescending);
 
@@ -1732,7 +1850,8 @@ async function loadCompareResultSummaries(compareResultFlag) {
 
   return {
     compareResults: summaries,
-    latestCompareResult: preferredSummary || summaries[0] || null,
+    latestCompareResult: preferredSummary || selectLatestCompareResult(summaries),
+    droppedCompareArtifacts,
   };
 }
 
@@ -1825,6 +1944,13 @@ function renderReleaseMatrixMarkdown(matrix, options = {}) {
   lines.push('# Release Matrix');
   lines.push('');
   lines.push(`Generated: ${matrix.generatedAt}`);
+  const releaseChannel = matrix?.release?.channel || 'n/a';
+  const releaseVersion = matrix?.release?.version || 'n/a';
+  const releaseCommit = matrix?.release?.commitSha || 'n/a';
+  const releaseDirty = matrix?.release?.dirty === true
+    ? 'yes'
+    : (matrix?.release?.dirty === false ? 'no' : 'n/a');
+  lines.push(`Release: channel=${releaseChannel}, version=${releaseVersion}, commit=${releaseCommit}, dirty=${releaseDirty}`);
   lines.push('');
   lines.push('## Engine Matrix');
   lines.push('');
@@ -1882,6 +2008,7 @@ function renderReleaseMatrixMarkdown(matrix, options = {}) {
       + `${markdownTableCell(formatSamplingLabel(workload.sampling))} | ${runtimeComboCell} | ${runCell} |`
     );
   }
+  lines.push(`Captured workloads: ${compareResultsByWorkload.size}/${matrix.workloads.length}`);
   lines.push('');
   lines.push('## Evidence');
   lines.push('');
@@ -1891,6 +2018,7 @@ function renderReleaseMatrixMarkdown(matrix, options = {}) {
   }
   if (compareResults.length > 0) {
     lines.push(`- Compare JSON artifacts: ${compareResults.length}`);
+    const latestPath = matrix.evidence.latestCompareResult?.path || null;
     for (const result of compareResults) {
       const notes = [];
       if (result.workloadId) notes.push(`workload \`${result.workloadId}\``);
@@ -1899,16 +2027,18 @@ function renderReleaseMatrixMarkdown(matrix, options = {}) {
       }
       notes.push(`runtime \`${formatRuntimeComboLabel(result)}\``);
       const suffix = notes.length > 0 ? ` (${notes.join(', ')})` : '';
-      lines.push(`  - ${formatRepoPathLink(result.path, markdownPath)}${suffix}`);
+      const latestTag = latestPath && result.path === latestPath ? ' **(latest)**' : '';
+      lines.push(`  - ${formatRepoPathLink(result.path, markdownPath)}${suffix}${latestTag}`);
     }
   } else {
     lines.push('- Compare JSON artifacts: none detected.');
   }
   if (matrix.evidence.latestCompareResult) {
     const latest = matrix.evidence.latestCompareResult;
-    lines.push(`- Latest compare result: ${formatRepoPathLink(latest.path, markdownPath)}`);
-    lines.push(`- Latest compare section: \`${latest.section || 'n/a'}\``);
-    lines.push(`- Latest compare models: \`${latest.dopplerModelId || 'n/a'}\` vs \`${latest.tjsModelId || 'n/a'}\``);
+    lines.push(
+      `- Selected latest compare: ${formatRepoPathLink(latest.path, markdownPath)} `
+      + `(section \`${latest.section || 'n/a'}\`, models \`${latest.dopplerModelId || 'n/a'}\` vs \`${latest.tjsModelId || 'n/a'}\`)`
+    );
   } else {
     lines.push('- Latest compare result: none detected (expected when JSON artifacts are gitignored).');
   }
@@ -1949,8 +2079,35 @@ async function doMatrix(flags) {
   const catalog = await loadModelCatalogBundle();
 
   const compareResultFlag = flags['compare-result'] ?? null;
-  const { compareResults, latestCompareResult } = await loadCompareResultSummaries(compareResultFlag);
+  const includeLocalResults = parseBooleanFlag(
+    flags['include-local-results'],
+    false,
+    '--include-local-results'
+  );
+  const strictCompareArtifacts = parseBooleanFlag(
+    flags['strict-compare-artifacts'],
+    false,
+    '--strict-compare-artifacts'
+  );
+  const {
+    compareResults,
+    latestCompareResult,
+    droppedCompareArtifacts,
+  } = await loadCompareResultSummaries({
+    compareResultFlag,
+    includeLocalResults,
+    strictCompareArtifacts,
+  });
+  if (droppedCompareArtifacts.length > 0) {
+    for (const dropped of droppedCompareArtifacts) {
+      console.error(
+        `[vendor-bench] warning: skipped compare artifact "${dropped.path}" `
+        + `(${dropped.origin}): ${dropped.error}`
+      );
+    }
+  }
   const committedCharts = await listCommittedCharts();
+  const releaseMetadata = resolveGitReleaseMetadata();
 
   const benchFeatureIds = capabilities.featureCatalog.bench.map((entry) => entry.id);
   const profileFeatureIds = capabilities.featureCatalog.profile.map((entry) => entry.id);
@@ -2060,6 +2217,8 @@ async function doMatrix(flags) {
     release: {
       channel: 'main-snapshot',
       version: null,
+      commitSha: releaseMetadata.commitSha,
+      dirty: releaseMetadata.dirty,
     },
     sources: {
       ...sourceHashes,
@@ -2153,6 +2312,44 @@ async function runCommandCaptureJson(commandParts, options = {}) {
   });
 }
 
+async function assertReleaseMatrixSourceHashes(matrix) {
+  const sourceRows = Object.entries(matrix?.sources || {});
+  const staleRows = [];
+  for (const [sourceId, sourceInfo] of sourceRows) {
+    const sourcePath = asNonEmptyStringValue(sourceInfo?.path);
+    if (!sourcePath) continue;
+    const absolutePath = path.resolve(ROOT_DIR, sourcePath);
+    if (!(await fileExists(absolutePath))) {
+      staleRows.push(`${sourceId}: source file missing (${sourcePath})`);
+      continue;
+    }
+
+    let payload;
+    try {
+      payload = await readJson(absolutePath);
+    } catch (error) {
+      staleRows.push(`${sourceId}: could not parse source JSON (${sourcePath}): ${error.message}`);
+      continue;
+    }
+
+    const currentHash = await hashJsonBytes(payload);
+    if (currentHash.sha256 !== sourceInfo.sha256 || currentHash.bytes !== sourceInfo.bytes) {
+      staleRows.push(
+        `${sourceId}: hash mismatch for ${sourcePath} `
+        + `(expected sha256=${sourceInfo.sha256}, bytes=${sourceInfo.bytes}; `
+        + `actual sha256=${currentHash.sha256}, bytes=${currentHash.bytes})`
+      );
+    }
+  }
+  if (staleRows.length > 0) {
+    throw new Error(
+      'release-matrix.json sources are stale:\n'
+      + staleRows.map((row) => `- ${row}`).join('\n')
+      + '\nRegenerate with: node tools/vendor-bench.js matrix'
+    );
+  }
+}
+
 async function doValidate() {
   const { registry, workloads } = await loadRegistryBundle();
   await loadCapabilitiesBundle(registry);
@@ -2170,6 +2367,7 @@ async function doValidate() {
   if (releaseMatrixExists) {
     const matrix = await readJson(DEFAULT_RELEASE_MATRIX_OUTPUT_PATH);
     await assertMatchesSchema(matrix, RELEASE_MATRIX_SCHEMA_PATH, 'release-matrix.json');
+    await assertReleaseMatrixSourceHashes(matrix);
   }
   console.log(`OK registry: ${registry.products.length} products, ${workloads.workloads.length} workloads, capabilities`);
 }
