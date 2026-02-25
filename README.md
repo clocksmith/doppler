@@ -97,4 +97,9 @@ For disclosure and community policies, see [`SECURITY.md`](SECURITY.md) and [`CO
 
 ## License
 
-MIT
+Apache License 2.0 (`Apache-2.0`). See [LICENSE](LICENSE) and [NOTICE](NOTICE).
+
+## Trademarks
+
+Trademark usage for the names "Doppler" and "Doppler.js" is described in
+[BRANDING.md](BRANDING.md).

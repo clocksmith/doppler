@@ -52,12 +52,14 @@
   "bugs": {
     "url": "https://github.com/clocksmith/doppler/issues"
   },
-  "license": "MIT",
+  "license": "Apache-2.0",
   "files": [
     "src",
     "src/gpu/kernels/*.wgsl",
     "README.md",
     "LICENSE",
+    "NOTICE",
+    "BRANDING.md",
     "SECURITY.md",
     "CODE_OF_CONDUCT.md",
     "tools/doppler-cli.js",
