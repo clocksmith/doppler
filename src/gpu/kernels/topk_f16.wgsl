@@ -1,3 +1,5 @@
+// AUTO-GENERATED from src/gpu/kernels/topk.wgsl.
+// Edit the source kernel and tools/configs/wgsl-variants.js, then run `npm run kernels:generate`.
 // topk_f16.wgsl
 
 /**

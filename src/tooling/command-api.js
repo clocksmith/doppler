@@ -40,6 +40,15 @@ function asOptionalObject(value, label) {
   return value;
 }
 
+function asOptionalPositiveInteger(value, label) {
+  if (value === undefined || value === null || value === '') return null;
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed < 1) {
+    throw new Error(`tooling command: ${label} must be a positive integer when provided.`);
+  }
+  return parsed;
+}
+
 function assertCommand(value) {
   const command = asOptionalString(value, 'command');
   if (!command) {
@@ -90,6 +99,42 @@ function assertModelId(value, command, suite) {
   return modelId;
 }
 
+function normalizeConvertExecution(value) {
+  const execution = asOptionalObject(value, 'convertPayload.execution');
+  if (!execution) return null;
+
+  const workerCountPolicy = asOptionalString(
+    execution.workerCountPolicy,
+    'convertPayload.execution.workerCountPolicy'
+  );
+  if (workerCountPolicy && workerCountPolicy !== 'cap' && workerCountPolicy !== 'error') {
+    throw new Error(
+      'tooling command: convertPayload.execution.workerCountPolicy must be "cap" or "error" when provided.'
+    );
+  }
+
+  return {
+    ...execution,
+    workers: asOptionalPositiveInteger(
+      execution.workers,
+      'convertPayload.execution.workers'
+    ),
+    workerCountPolicy,
+    maxInFlightJobs: asOptionalPositiveInteger(
+      execution.maxInFlightJobs,
+      'convertPayload.execution.maxInFlightJobs'
+    ),
+    rowChunkRows: asOptionalPositiveInteger(
+      execution.rowChunkRows,
+      'convertPayload.execution.rowChunkRows'
+    ),
+    rowChunkMinTensorBytes: asOptionalPositiveInteger(
+      execution.rowChunkMinTensorBytes,
+      'convertPayload.execution.rowChunkMinTensorBytes'
+    ),
+  };
+}
+
 function normalizeConvertPayload(value) {
   const payload = asOptionalObject(value, 'convertPayload');
   if (!payload) {
@@ -109,6 +154,7 @@ function normalizeConvertPayload(value) {
   return {
     ...payload,
     converterConfig,
+    execution: normalizeConvertExecution(payload.execution),
   };
 }
 

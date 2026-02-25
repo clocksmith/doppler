@@ -158,6 +158,19 @@ function mergeInferenceConfig(
   base,
   overrides
 ) {
+  const baseSession = base.session ?? {};
+  const overrideSession = overrides.session ?? {};
+  const baseSessionCompute = baseSession.compute ?? {};
+  const overrideSessionCompute = overrideSession.compute ?? {};
+  const baseSessionComputeDefaults = baseSessionCompute.defaults ?? {};
+  const overrideSessionComputeDefaults = overrideSessionCompute.defaults ?? {};
+  const baseExecutionPatch = base.executionPatch ?? {};
+  const overrideExecutionPatch = overrides.executionPatch ?? {};
+  const baseKernelPathPolicy = base.kernelPathPolicy ?? {};
+  const overrideKernelPathPolicy = overrides.kernelPathPolicy ?? {};
+  const baseKernelPathSourceScope = baseKernelPathPolicy.sourceScope ?? baseKernelPathPolicy.allowSources;
+  const overrideKernelPathSourceScope = overrideKernelPathPolicy.sourceScope ?? overrideKernelPathPolicy.allowSources;
+
   return {
     prompt: overrides.prompt ?? base.prompt,
     debugTokens: overrides.debugTokens ?? base.debugTokens,
@@ -214,9 +227,36 @@ function mergeInferenceConfig(
     generation: { ...base.generation, ...overrides.generation },
     pipeline: overrides.pipeline ?? base.pipeline,
     kernelPath: overrides.kernelPath ?? base.kernelPath,
+    kernelPathSource: overrides.kernelPathSource ?? base.kernelPathSource,
+    kernelPathPolicy: {
+      mode: overrideKernelPathPolicy.mode ?? baseKernelPathPolicy.mode,
+      sourceScope: overrideKernelPathSourceScope ?? baseKernelPathSourceScope,
+      allowSources: overrideKernelPathSourceScope ?? baseKernelPathSourceScope,
+      onIncompatible: overrideKernelPathPolicy.onIncompatible ?? baseKernelPathPolicy.onIncompatible,
+    },
     chatTemplate: overrides.chatTemplate
       ? { ...base.chatTemplate, ...overrides.chatTemplate }
       : base.chatTemplate,
+    session: {
+      ...baseSession,
+      ...overrideSession,
+      compute: {
+        ...baseSessionCompute,
+        ...overrideSessionCompute,
+        defaults: {
+          ...baseSessionComputeDefaults,
+          ...overrideSessionComputeDefaults,
+        },
+        kernelProfiles: overrideSessionCompute.kernelProfiles ?? baseSessionCompute.kernelProfiles,
+      },
+      kvcache: overrideSession.kvcache ?? baseSession.kvcache,
+      decodeLoop: overrideSession.decodeLoop ?? baseSession.decodeLoop,
+    },
+    executionPatch: {
+      set: overrideExecutionPatch.set ?? baseExecutionPatch.set ?? [],
+      remove: overrideExecutionPatch.remove ?? baseExecutionPatch.remove ?? [],
+      add: overrideExecutionPatch.add ?? baseExecutionPatch.add ?? [],
+    },
     // Model-specific inference overrides (merged with manifest.inference at load time)
     modelOverrides: overrides.modelOverrides ?? base.modelOverrides,
   };

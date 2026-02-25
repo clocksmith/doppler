@@ -1,3 +1,5 @@
+// AUTO-GENERATED from src/gpu/kernels/bias_add.wgsl.
+// Edit the source kernel and tools/configs/wgsl-variants.js, then run `npm run kernels:generate`.
 // bias_add_f16.wgsl
 
 /**

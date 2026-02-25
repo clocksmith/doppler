@@ -31,8 +31,3 @@ export declare function toTranslateTemplateLangCode(code: string): string;
 export declare function extractTranslateTextFields(
   request: TranslateTextRequest
 ): TranslateTextFields;
-
-export declare function buildTranslatePromptFromRequest(
-  request: TranslateTextRequest,
-  resolveLanguageName?: ((code: string) => string) | null
-): string;

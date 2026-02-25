@@ -1,5 +1,6 @@
 {
   "id": "experiments/verify/gemma3-verify",
+  "name": "gemma3-verify",
   "intent": "verify",
   "stability": "experimental",
   "owner": "doppler-core",

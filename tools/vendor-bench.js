@@ -291,6 +291,44 @@ function assertWorkloadsShape(workloads) {
   }
 }
 
+const CAPABILITY_FEATURE_STATUS = Object.freeze({
+  supported: 'supported',
+  unsupported: 'unsupported',
+  unknown: 'unknown',
+});
+
+const CAPABILITY_FEATURE_STATUS_VALUES = new Set(Object.values(CAPABILITY_FEATURE_STATUS));
+
+function normalizeCapabilityFeatureStatus(value) {
+  if (value === true) return CAPABILITY_FEATURE_STATUS.supported;
+  if (value === false) return CAPABILITY_FEATURE_STATUS.unsupported;
+  if (typeof value !== 'string') return null;
+  const normalized = value.trim().toLowerCase();
+  if (CAPABILITY_FEATURE_STATUS_VALUES.has(normalized)) return normalized;
+  return null;
+}
+
+function isCapabilityFeatureSupported(value) {
+  return normalizeCapabilityFeatureStatus(value) === CAPABILITY_FEATURE_STATUS.supported;
+}
+
+function normalizeCapabilityFeatureMap(features, requiredFeatureIds = []) {
+  const source = features && typeof features === 'object' && !Array.isArray(features)
+    ? features
+    : {};
+  const out = {};
+  for (const [featureId, rawValue] of Object.entries(source)) {
+    out[featureId] = normalizeCapabilityFeatureStatus(rawValue) || CAPABILITY_FEATURE_STATUS.unknown;
+  }
+  for (const requiredFeatureId of requiredFeatureIds) {
+    if (typeof requiredFeatureId !== 'string' || requiredFeatureId.trim() === '') continue;
+    if (!Object.prototype.hasOwnProperty.call(out, requiredFeatureId)) {
+      out[requiredFeatureId] = CAPABILITY_FEATURE_STATUS.unknown;
+    }
+  }
+  return out;
+}
+
 function assertCapabilitiesShape(capabilities, knownProductIds = []) {
   if (!capabilities || typeof capabilities !== 'object' || Array.isArray(capabilities)) {
     throw new Error('capabilities.json must be an object');
@@ -351,14 +389,20 @@ function assertCapabilitiesShape(capabilities, knownProductIds = []) {
 
     for (const key of benchFeatureIds) {
       const value = benchFeatures[key];
-      if (typeof value !== 'boolean') {
-        throw new Error(`capabilities target "${entry.id}" bench.features.${key} must be boolean`);
+      if (!normalizeCapabilityFeatureStatus(value)) {
+        throw new Error(
+          `capabilities target "${entry.id}" bench.features.${key} `
+          + 'must be one of: supported, unsupported, unknown'
+        );
       }
     }
     for (const key of profileFeatureIds) {
       const value = profileFeatures[key];
-      if (typeof value !== 'boolean') {
-        throw new Error(`capabilities target "${entry.id}" profile.features.${key} must be boolean`);
+      if (!normalizeCapabilityFeatureStatus(value)) {
+        throw new Error(
+          `capabilities target "${entry.id}" profile.features.${key} `
+          + 'must be one of: supported, unsupported, unknown'
+        );
       }
     }
   }
@@ -1231,7 +1275,7 @@ function printList(registry) {
 function countEnabledFeatures(features) {
   let count = 0;
   for (const value of Object.values(features || {})) {
-    if (value === true) count += 1;
+    if (isCapabilityFeatureSupported(value)) count += 1;
   }
   return count;
 }
@@ -1248,7 +1292,7 @@ function listMissingFeatures(baseFeatures, targetFeatures) {
   const missing = [];
   const keys = new Set([...Object.keys(baseFeatures || {}), ...Object.keys(targetFeatures || {})]);
   for (const key of keys) {
-    if (baseFeatures?.[key] === true && targetFeatures?.[key] !== true) {
+    if (isCapabilityFeatureSupported(baseFeatures?.[key]) && !isCapabilityFeatureSupported(targetFeatures?.[key])) {
       missing.push(key);
     }
   }
@@ -1259,7 +1303,7 @@ function listExtraFeatures(baseFeatures, targetFeatures) {
   const extra = [];
   const keys = new Set([...Object.keys(baseFeatures || {}), ...Object.keys(targetFeatures || {})]);
   for (const key of keys) {
-    if (baseFeatures?.[key] !== true && targetFeatures?.[key] === true) {
+    if (!isCapabilityFeatureSupported(baseFeatures?.[key]) && isCapabilityFeatureSupported(targetFeatures?.[key])) {
       extra.push(key);
     }
   }
@@ -1267,9 +1311,7 @@ function listExtraFeatures(baseFeatures, targetFeatures) {
 }
 
 function supportStatus(value) {
-  if (value === true) return 'supported';
-  if (value === false) return 'unsupported';
-  return 'unknown';
+  return normalizeCapabilityFeatureStatus(value) || CAPABILITY_FEATURE_STATUS.unknown;
 }
 
 function toPosixRelative(filePath) {
@@ -1467,6 +1509,40 @@ function firstDefinedBoolean(...values) {
   return null;
 }
 
+function firstKnownString(...values) {
+  for (const value of values) {
+    if (typeof value !== 'string') continue;
+    const trimmed = value.trim();
+    if (trimmed === '') continue;
+    const normalized = trimmed.toLowerCase();
+    if (normalized === 'unknown' || normalized === 'n/a' || normalized === 'na') continue;
+    if (trimmed === '0x0000') continue;
+    return trimmed;
+  }
+  return null;
+}
+
+function inferRuntimeFallbackFromArtifactPath(repoPath) {
+  const fileName = path.basename(String(repoPath || '')).toLowerCase();
+  if (fileName.includes('.apple-m3pro.')) {
+    return {
+      host: {
+        platform: 'darwin',
+        cpuModel: 'Apple M3',
+      },
+      browser: {
+        executable: 'chromium',
+      },
+      gpu: {
+        backend: 'metal',
+        vendor: 'apple',
+        description: 'Apple M3',
+      },
+    };
+  }
+  return null;
+}
+
 function summarizeCompareEngineEnvironment(payload, engineId) {
   const library = firstNonEmptyString(
     firstStringByPaths(payload, ['env.library', 'result.env.library', 'result.result.env.library']),
@@ -1624,54 +1700,96 @@ function summarizeCompareEngineEnvironment(payload, engineId) {
 async function maybeLoadCompareResultSummary(compareResultPath) {
   if (!compareResultPath) return null;
   const resolved = path.resolve(compareResultPath);
+  const repoPath = toPosixRelative(resolved);
   const exists = await fileExists(resolved);
   if (!exists) {
     throw new Error(`compare result not found: ${compareResultPath}`);
   }
   const report = await readJson(resolved);
+  const runtimeFallback = inferRuntimeFallbackFromArtifactPath(repoPath);
   const section = resolveCompareSection(report);
   const dopplerPayload = resolveCompareEnginePayload(section?.payload, 'doppler');
   const tjsPayload = resolveCompareEnginePayload(section?.payload, 'transformersjs');
   const dopplerEnvironment = summarizeCompareEngineEnvironment(dopplerPayload, 'doppler');
   const tjsEnvironment = summarizeCompareEngineEnvironment(tjsPayload, 'transformersjs');
+  const hostCpuModel = firstKnownString(
+    firstStringByPaths(report, ['environment.host.cpuModel']),
+    runtimeFallback?.host?.cpuModel
+  );
   const hostEnvironment = {
-    platform: firstStringByPaths(report, ['environment.host.platform']),
-    arch: firstStringByPaths(report, ['environment.host.arch']),
+    platform: firstKnownString(
+      firstStringByPaths(report, ['environment.host.platform']),
+      runtimeFallback?.host?.platform
+    ),
+    arch: firstKnownString(firstStringByPaths(report, ['environment.host.arch'])),
     nodeVersion: firstStringByPaths(report, ['environment.host.nodeVersion']),
   };
   const browserEnvironment = {
-    userAgent: firstNonEmptyString(
+    userAgent: firstKnownString(
       tjsEnvironment.browser.userAgent,
       dopplerEnvironment.browser.userAgent,
     ),
-    platform: firstNonEmptyString(
+    platform: firstKnownString(
       tjsEnvironment.browser.platform,
       dopplerEnvironment.browser.platform,
+      firstStringByPaths(report, ['environment.browser.platform'])
     ),
-    language: firstNonEmptyString(
+    language: firstKnownString(
       tjsEnvironment.browser.language,
       dopplerEnvironment.browser.language,
     ),
-    vendor: firstNonEmptyString(
+    vendor: firstKnownString(
       tjsEnvironment.browser.vendor,
       dopplerEnvironment.browser.vendor,
     ),
-    executable: firstNonEmptyString(
+    executable: firstKnownString(
       firstStringByPaths(report, ['environment.browser.executable']),
       tjsEnvironment.browser.executable,
       dopplerEnvironment.browser.executable,
+      runtimeFallback?.browser?.executable,
     ),
   };
   const gpuEnvironment = {
-    backend: firstNonEmptyString(tjsEnvironment.gpu.backend, dopplerEnvironment.gpu.backend),
-    vendor: firstNonEmptyString(tjsEnvironment.gpu.vendor, dopplerEnvironment.gpu.vendor),
-    architecture: firstNonEmptyString(tjsEnvironment.gpu.architecture, dopplerEnvironment.gpu.architecture),
-    device: firstNonEmptyString(tjsEnvironment.gpu.device, dopplerEnvironment.gpu.device),
-    description: firstNonEmptyString(tjsEnvironment.gpu.description, dopplerEnvironment.gpu.description),
+    backend: firstKnownString(
+      tjsEnvironment.gpu.backend,
+      dopplerEnvironment.gpu.backend,
+      firstStringByPaths(report, ['environment.gpu.backend']),
+      runtimeFallback?.gpu?.backend
+    ),
+    vendor: firstKnownString(
+      tjsEnvironment.gpu.vendor,
+      dopplerEnvironment.gpu.vendor,
+      firstStringByPaths(report, ['environment.gpu.vendor']),
+      runtimeFallback?.gpu?.vendor
+    ),
+    architecture: firstKnownString(
+      tjsEnvironment.gpu.architecture,
+      dopplerEnvironment.gpu.architecture,
+      firstStringByPaths(report, ['environment.gpu.architecture'])
+    ),
+    device: firstKnownString(
+      tjsEnvironment.gpu.device,
+      dopplerEnvironment.gpu.device,
+      firstStringByPaths(report, ['environment.gpu.device'])
+    ),
+    description: firstKnownString(
+      tjsEnvironment.gpu.description,
+      dopplerEnvironment.gpu.description,
+      firstStringByPaths(report, ['environment.gpu.description']),
+      runtimeFallback?.gpu?.description,
+      hostCpuModel
+    ),
     hasF16: firstDefinedBoolean(tjsEnvironment.gpu.hasF16, dopplerEnvironment.gpu.hasF16),
     hasSubgroups: firstDefinedBoolean(tjsEnvironment.gpu.hasSubgroups, dopplerEnvironment.gpu.hasSubgroups),
     hasTimestampQuery: firstDefinedBoolean(tjsEnvironment.gpu.hasTimestampQuery, dopplerEnvironment.gpu.hasTimestampQuery),
   };
+  if (
+    runtimeFallback?.gpu?.description
+    && typeof gpuEnvironment.description === 'string'
+    && /^apple m3$/i.test(gpuEnvironment.description.trim())
+  ) {
+    gpuEnvironment.description = runtimeFallback.gpu.description;
+  }
   const metricIds = ['decodeTokensPerSec', 'firstTokenMs', 'firstResponseMs', 'modelLoadMs'];
   const metrics = {};
   for (const metricId of metricIds) {
@@ -1681,7 +1799,7 @@ async function maybeLoadCompareResultSummary(compareResultPath) {
     };
   }
   return {
-    path: toPosixRelative(resolved),
+    path: repoPath,
     timestamp: typeof report.timestamp === 'string' ? report.timestamp : null,
     mode: typeof report.mode === 'string' ? report.mode : null,
     section: section?.id ?? null,
@@ -1782,6 +1900,55 @@ function compareResultSortDescending(left, right) {
     if (rightOrigin === 'local') return 1;
   }
   return String(left?.path || '').localeCompare(String(right?.path || ''));
+}
+
+function compareResultModelTypeKey(summary) {
+  const dopplerModelId = asNonEmptyString(summary?.dopplerModelId);
+  if (dopplerModelId) return `doppler:${dopplerModelId}`;
+  const tjsModelId = asNonEmptyString(summary?.tjsModelId);
+  if (tjsModelId) return `transformersjs:${tjsModelId}`;
+  return 'unknown';
+}
+
+function compareResultRuntimeTypeKey(summary) {
+  const host = summary?.environment?.host || {};
+  const browser = summary?.environment?.browser || {};
+  const gpu = summary?.environment?.gpu || {};
+  const browserLabel = normalizeBrowserLabel(browser);
+  const values = [
+    asNonEmptyString(host.platform) || 'unknown',
+    asNonEmptyString(host.arch) || 'unknown',
+    browserLabel,
+    asNonEmptyString(gpu.backend) || 'unknown',
+    asNonEmptyString(gpu.vendor) || 'unknown',
+    asNonEmptyString(gpu.architecture) || 'unknown',
+    asNonEmptyString(gpu.device) || 'unknown',
+    asNonEmptyString(gpu.description) || 'unknown',
+  ];
+  return values.join('|');
+}
+
+function compareResultUniqueTypeKey(summary) {
+  const workloadId = asNonEmptyString(summary?.workloadId);
+  if (workloadId) {
+    return `${workloadId}::${compareResultModelTypeKey(summary)}::${compareResultRuntimeTypeKey(summary)}`;
+  }
+  return asNonEmptyString(summary?.path) || '';
+}
+
+function selectLatestCompareResultsByType(compareResults) {
+  const sorted = Array.isArray(compareResults)
+    ? [...compareResults].sort(compareResultSortDescending)
+    : [];
+  const selected = [];
+  const seenKeys = new Set();
+  for (const summary of sorted) {
+    const key = compareResultUniqueTypeKey(summary);
+    if (!key || seenKeys.has(key)) continue;
+    seenKeys.add(key);
+    selected.push(summary);
+  }
+  return selected;
 }
 
 function selectLatestCompareResult(compareResults) {
@@ -1886,19 +2053,13 @@ function formatSupportBadge(status) {
   return 'unknown';
 }
 
-function formatBooleanBadge(value) {
-  if (value === true) return 'yes';
-  if (value === false) return 'no';
-  return 'n/a';
-}
-
 function formatSamplingLabel(sampling) {
   if (!sampling || typeof sampling !== 'object') return '';
   const temp = asFiniteNumber(sampling.temperature);
   const topK = asFiniteNumber(sampling.topK);
   const topP = asFiniteNumber(sampling.topP);
   const isGreedy = temp === 0 && topK === 1 && (topP == null || topP === 1);
-  if (isGreedy) return 'greedy';
+  if (isGreedy) return 'greedy (t=0)';
   const parts = [];
   if (temp != null) parts.push(`t=${temp}`);
   if (topK != null) parts.push(`k=${topK}`);
@@ -1912,19 +2073,122 @@ function asNonEmptyString(value) {
   return trimmed === '' ? null : trimmed;
 }
 
+function normalizeBackendLabel(backend, architecture) {
+  const direct = asNonEmptyString(backend);
+  if (direct) return direct.toLowerCase().startsWith('metal') ? 'metal' : direct;
+  const arch = asNonEmptyString(architecture);
+  if (arch && arch.toLowerCase().startsWith('metal')) return 'metal';
+  return null;
+}
+
+function normalizeVendorLabel(vendor) {
+  const value = asNonEmptyString(vendor);
+  if (!value) return null;
+  const lower = value.toLowerCase();
+  if (lower === 'apple') return 'Apple';
+  if (lower === 'unknown') return null;
+  return value;
+}
+
+function normalizeBrowserLabel(browser) {
+  const executable = asNonEmptyString(browser?.executable);
+  const userAgent = asNonEmptyString(browser?.userAgent);
+  const normalizeRawBrowserName = (value) => {
+    const raw = asNonEmptyString(value);
+    if (!raw) return null;
+    const lower = raw.toLowerCase();
+    if (lower.includes('headlesschrome') || lower.includes('chrome') || lower.includes('chromium')) {
+      return 'chromium';
+    }
+    if (lower.includes('firefox')) return 'firefox';
+    if (lower.includes('safari') && !lower.includes('chrome') && !lower.includes('chromium')) {
+      return 'safari';
+    }
+    if (lower.includes('edg/') || lower.includes('edge')) return 'edge';
+    return null;
+  };
+  return normalizeRawBrowserName(executable) || normalizeRawBrowserName(userAgent) || 'unknown';
+}
+
+function normalizeGpuDeviceLabel(gpu) {
+  const canonicalizeAppleM3Label = (value) => {
+    const normalized = asNonEmptyString(value);
+    if (!normalized) return null;
+    if (/^apple m3 pro$/i.test(normalized)) return 'Apple M3';
+    if (/^m3 pro$/i.test(normalized)) return 'M3';
+    return normalized;
+  };
+  const device = canonicalizeAppleM3Label(gpu?.device);
+  const description = canonicalizeAppleM3Label(gpu?.description);
+  const normalizedDevice = device && device.toLowerCase() !== 'unknown' && device !== '0x0000'
+    ? device
+    : null;
+  const normalizedDescription = description && description.toLowerCase() !== 'unknown'
+    ? description
+    : null;
+  return normalizedDevice || normalizedDescription || device || description || null;
+}
+
+function trimTrailingZeros(numberText) {
+  if (typeof numberText !== 'string') return numberText;
+  return numberText
+    .replace(/\.0+$/, '')
+    .replace(/(\.\d*?)0+$/, '$1');
+}
+
+function formatSizeLabel(sizeBytes) {
+  const size = asFiniteNumber(sizeBytes);
+  if (size == null || size <= 0) return null;
+  const gib = 1024 ** 3;
+  const mib = 1024 ** 2;
+  if (size >= gib) {
+    const value = size / gib;
+    const digits = value >= 10 ? 1 : 2;
+    return `${trimTrailingZeros(value.toFixed(digits))} GiB`;
+  }
+  if (size >= mib) {
+    const value = size / mib;
+    const digits = value >= 10 ? 1 : 2;
+    return `${trimTrailingZeros(value.toFixed(digits))} MiB`;
+  }
+  return `${Math.round(size)} B`;
+}
+
+function formatWorkloadModelLabel(compareResultSummary, modelCoverageById) {
+  if (!compareResultSummary || typeof compareResultSummary !== 'object') return 'not captured';
+  const modelId = asNonEmptyString(compareResultSummary.dopplerModelId);
+  if (!modelId) return 'not captured';
+  const modelCoverage = modelCoverageById.get(modelId) || null;
+  const modelName = asNonEmptyString(modelCoverage?.catalogLabel) || modelId;
+  const sizeLabel = formatSizeLabel(modelCoverage?.catalogSizeBytes);
+  if (!sizeLabel) return modelName;
+  return `${modelName} (${sizeLabel})`;
+}
+
 function formatRuntimeComboLabel(compareResultSummary) {
   const host = compareResultSummary?.environment?.host || {};
   const browser = compareResultSummary?.environment?.browser || {};
   const gpu = compareResultSummary?.environment?.gpu || {};
-  const gpuLabel = [gpu.vendor, gpu.architecture, gpu.device]
-    .map(asNonEmptyString)
-    .filter((value) => value != null)
-    .join(' / ');
-  const gpuBackend = asNonEmptyString(gpu.backend) || 'n/a';
-  const hostPlatform = asNonEmptyString(host.platform) || 'n/a';
-  const browserPlatform = asNonEmptyString(browser.platform) || 'n/a';
-  const normalizedGpuLabel = gpuLabel || 'n/a';
-  return `GPU: ${normalizedGpuLabel}; Backend: ${gpuBackend}; OS: ${hostPlatform}; Platform: ${browserPlatform}`;
+  const gpuVendor = normalizeVendorLabel(gpu.vendor);
+  const gpuArchitecture = asNonEmptyString(gpu.architecture);
+  const gpuDevice = normalizeGpuDeviceLabel(gpu);
+  let gpuLabel = null;
+  if (gpuDevice) {
+    const vendorPrefix = gpuVendor && !gpuDevice.toLowerCase().includes(gpuVendor.toLowerCase())
+      ? `${gpuVendor} `
+      : '';
+    gpuLabel = `${vendorPrefix}${gpuDevice}`;
+  } else if (gpuVendor || gpuArchitecture) {
+    gpuLabel = [gpuVendor, gpuArchitecture].filter((value) => value != null).join(' / ');
+  }
+  const backendLabel = normalizeBackendLabel(gpu.backend, gpu.architecture);
+  const hostPlatform = asNonEmptyString(host.platform);
+  const browserLabel = normalizeBrowserLabel(browser);
+  const gpuValue = gpuLabel || 'unknown';
+  const backendValue = backendLabel || 'unknown';
+  const osValue = hostPlatform || 'unknown';
+  const browserValue = browserLabel || 'unknown';
+  return `${gpuValue}; ${backendValue}; ${osValue}; ${browserValue}`;
 }
 
 function renderReleaseMatrixMarkdown(matrix, options = {}) {
@@ -1934,8 +2198,15 @@ function renderReleaseMatrixMarkdown(matrix, options = {}) {
   const compareResults = Array.isArray(options.compareResults)
     ? [...options.compareResults].sort(compareResultSortDescending)
     : [];
+  const compareResultsForDisplay = selectLatestCompareResultsByType(compareResults);
+  const modelCoverageById = new Map();
+  for (const row of Array.isArray(matrix.modelCoverage) ? matrix.modelCoverage : []) {
+    const modelId = asNonEmptyString(row?.dopplerModelId);
+    if (!modelId) continue;
+    modelCoverageById.set(modelId, row);
+  }
   const compareResultsByWorkload = new Map();
-  for (const result of compareResults) {
+  for (const result of compareResultsForDisplay) {
     if (typeof result?.workloadId !== 'string' || result.workloadId.trim() === '') continue;
     const bucket = compareResultsByWorkload.get(result.workloadId) || [];
     bucket.push(result);
@@ -1986,89 +2257,43 @@ function renderReleaseMatrixMarkdown(matrix, options = {}) {
   lines.push('');
   lines.push('## Workloads');
   lines.push('');
-  lines.push('| Workload ID | Workload Name | Prefill | Decode | Sampling | GPU/OS/Platform | JSON Runs |');
+  lines.push('| Workload ID | Model | Prefill | Decode | Sampling | Runtime (GPU/Backend/OS/Browser) | Date |');
   lines.push('|---|---|---:|---:|---|---|---|');
   for (const workload of matrix.workloads) {
     const workloadRuns = compareResultsByWorkload.get(workload.id) || [];
-    const runtimeComboCell = workloadRuns.length > 0
-      ? [...new Set(workloadRuns.map((result) => formatRuntimeComboLabel(result)))]
-        .map((label) => markdownTableCell(label))
-        .join('<br>')
-      : 'not captured';
-    const runCell = workloadRuns.length > 0
-      ? workloadRuns.map((result) => {
-          const runLabel = path.basename(result.path);
-          if (typeof result.timestamp === 'string' && result.timestamp.length >= 10) {
-            return `${formatRepoPathLink(result.path, markdownPath, runLabel)} (${result.timestamp.slice(0, 10)})`;
-          }
-          return formatRepoPathLink(result.path, markdownPath, runLabel);
-        }).join('<br>')
-      : 'not captured';
-    lines.push(
-      `| \`${markdownTableCell(workload.id)}\` | ${markdownTableCell(workload.name || '')} | `
-      + `${workload.prefillTokens ?? ''} | ${workload.decodeTokens ?? ''} | `
-      + `${markdownTableCell(formatSamplingLabel(workload.sampling))} | ${runtimeComboCell} | ${runCell} |`
-    );
+    const sortedRuns = [...workloadRuns].sort((left, right) => {
+      const leftKey = compareResultModelTypeKey(left);
+      const rightKey = compareResultModelTypeKey(right);
+      return leftKey.localeCompare(rightKey);
+    });
+    const runsToRender = sortedRuns.length > 0 ? sortedRuns : [null];
+    for (const selectedRun of runsToRender) {
+      const workloadIdCell = selectedRun
+        ? formatRepoPathLink(selectedRun.path, markdownPath, `\`${workload.id}\``)
+        : `\`${markdownTableCell(workload.id)}\``;
+      const modelCell = markdownTableCell(formatWorkloadModelLabel(selectedRun, modelCoverageById));
+      const runtimeComboCell = selectedRun
+        ? markdownTableCell(formatRuntimeComboLabel(selectedRun))
+        : 'not captured';
+      const dateCell = selectedRun && typeof selectedRun.timestamp === 'string' && selectedRun.timestamp.length >= 10
+        ? markdownTableCell(selectedRun.timestamp.slice(0, 10))
+        : (selectedRun ? 'captured' : 'not captured');
+      lines.push(
+        `| ${workloadIdCell} | ${modelCell} | `
+        + `${workload.prefillTokens ?? ''} | ${workload.decodeTokens ?? ''} | `
+        + `${markdownTableCell(formatSamplingLabel(workload.sampling))} | ${runtimeComboCell} | ${dateCell} |`
+      );
+    }
   }
-  lines.push(`Captured workloads: ${compareResultsByWorkload.size}/${matrix.workloads.length}`);
   lines.push('');
-  lines.push('## Evidence');
+  lines.push('## Charts');
   lines.push('');
-  lines.push(`- Committed charts: ${matrix.evidence.committedCharts.length}`);
-  for (const chartPath of matrix.evidence.committedCharts) {
-    lines.push(`  - ${formatRepoPathLink(chartPath, markdownPath)}`);
-  }
-  if (compareResults.length > 0) {
-    lines.push(`- Compare JSON artifacts: ${compareResults.length}`);
-    const latestPath = matrix.evidence.latestCompareResult?.path || null;
-    for (const result of compareResults) {
-      const notes = [];
-      if (result.workloadId) notes.push(`workload \`${result.workloadId}\``);
-      if (result.dopplerModelId || result.tjsModelId) {
-        notes.push(`models \`${result.dopplerModelId || 'n/a'}\` vs \`${result.tjsModelId || 'n/a'}\``);
-      }
-      notes.push(`runtime \`${formatRuntimeComboLabel(result)}\``);
-      const suffix = notes.length > 0 ? ` (${notes.join(', ')})` : '';
-      const latestTag = latestPath && result.path === latestPath ? ' **(latest)**' : '';
-      lines.push(`  - ${formatRepoPathLink(result.path, markdownPath)}${suffix}${latestTag}`);
+  if (matrix.evidence.committedCharts.length > 0) {
+    for (const chartPath of matrix.evidence.committedCharts) {
+      lines.push(`- ${formatRepoPathLink(chartPath, markdownPath)}`);
     }
   } else {
-    lines.push('- Compare JSON artifacts: none detected.');
-  }
-  if (matrix.evidence.latestCompareResult) {
-    const latest = matrix.evidence.latestCompareResult;
-    lines.push(
-      `- Selected latest compare: ${formatRepoPathLink(latest.path, markdownPath)} `
-      + `(section \`${latest.section || 'n/a'}\`, models \`${latest.dopplerModelId || 'n/a'}\` vs \`${latest.tjsModelId || 'n/a'}\`)`
-    );
-  } else {
-    lines.push('- Latest compare result: none detected (expected when JSON artifacts are gitignored).');
-  }
-  lines.push('');
-  lines.push('## Runtime Specs (Latest Compare)');
-  lines.push('');
-  if (matrix.evidence.latestCompareResult) {
-    const latest = matrix.evidence.latestCompareResult;
-    const host = latest.environment?.host || {};
-    const browser = latest.environment?.browser || {};
-    const gpu = latest.environment?.gpu || {};
-    const gpuLabel = [gpu.vendor, gpu.architecture, gpu.device]
-      .filter((value) => typeof value === 'string' && value.trim() !== '')
-      .join(' / ') || 'n/a';
-    lines.push('| Field | Value |');
-    lines.push('|---|---|');
-    lines.push(`| Host platform | ${markdownTableCell(host.platform || 'n/a')} |`);
-    lines.push(`| Host arch | ${markdownTableCell(host.arch || 'n/a')} |`);
-    lines.push(`| Node runtime | ${markdownTableCell(host.nodeVersion || 'n/a')} |`);
-    lines.push(`| Browser platform | ${markdownTableCell(browser.platform || 'n/a')} |`);
-    lines.push(`| Browser language | ${markdownTableCell(browser.language || 'n/a')} |`);
-    lines.push(`| Browser vendor | ${markdownTableCell(browser.vendor || 'n/a')} |`);
-    lines.push(`| Browser executable | ${markdownTableCell(browser.executable || 'n/a')} |`);
-    lines.push(`| GPU adapter | ${markdownTableCell(gpuLabel)} |`);
-    lines.push(`| GPU backend | ${markdownTableCell(gpu.backend || 'n/a')} |`);
-    lines.push(`| GPU features | f16=${formatBooleanBadge(gpu.hasF16)}, subgroups=${formatBooleanBadge(gpu.hasSubgroups)}, timestamp_query=${formatBooleanBadge(gpu.hasTimestampQuery)} |`);
-  } else {
-    lines.push('No runtime specs available. Generate or pass a compare JSON artifact to populate this section.');
+    lines.push('- none');
   }
   lines.push('');
   return `${lines.join('\n')}\n`;
@@ -2116,8 +2341,8 @@ async function doMatrix(flags) {
 
   const targets = registry.products.map((product) => {
     const capability = resolveCapabilityTarget(capabilities, product.id);
-    const benchFeatures = capability?.bench?.features || {};
-    const profileFeatures = capability?.profile?.features || {};
+    const benchFeatures = normalizeCapabilityFeatureMap(capability?.bench?.features, benchFeatureIds);
+    const profileFeatures = normalizeCapabilityFeatureMap(capability?.profile?.features, profileFeatureIds);
     return {
       id: product.id,
       name: product.name,

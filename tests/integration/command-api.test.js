@@ -48,4 +48,58 @@ import { normalizeToolingCommandRequest } from '../../src/tooling/command-api.js
   );
 }
 
+{
+  const request = normalizeToolingCommandRequest({
+    command: 'convert',
+    inputDir: '/tmp/model',
+    convertPayload: {
+      converterConfig: {
+        output: { modelBaseId: 'gemma-3-1b-it-f16-f32a' },
+      },
+      execution: {
+        workers: 8,
+        workerCountPolicy: 'error',
+      },
+    },
+  });
+  assert.equal(request.convertPayload?.execution?.workers, 8);
+  assert.equal(request.convertPayload?.execution?.workerCountPolicy, 'error');
+}
+
+{
+  assert.throws(
+    () => normalizeToolingCommandRequest({
+      command: 'convert',
+      inputDir: '/tmp/model',
+      convertPayload: {
+        converterConfig: {
+          output: { modelBaseId: 'gemma-3-1b-it-f16-f32a' },
+        },
+        execution: {
+          workers: 0,
+        },
+      },
+    }),
+    /convertPayload\.execution\.workers must be a positive integer/
+  );
+}
+
+{
+  assert.throws(
+    () => normalizeToolingCommandRequest({
+      command: 'convert',
+      inputDir: '/tmp/model',
+      convertPayload: {
+        converterConfig: {
+          output: { modelBaseId: 'gemma-3-1b-it-f16-f32a' },
+        },
+        execution: {
+          workerCountPolicy: 'auto',
+        },
+      },
+    }),
+    /workerCountPolicy must be "cap" or "error"/
+  );
+}
+
 console.log('command-api.test: ok');

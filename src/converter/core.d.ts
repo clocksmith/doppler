@@ -25,6 +25,7 @@ import type {
   TokenizerSchema,
   QuantizationInfoSchema,
   MoEConfigSchema,
+  ConversionInfoSchema,
 } from '../config/schema/index.js';
 
 export { generateShardFilename } from '../storage/rdrr-format.js';
@@ -112,6 +113,7 @@ export interface RDRRManifest {
   totalSize: number;
   hashAlgorithm: string;
   eos_token_id: number | number[] | null;
+  conversion?: ConversionInfoSchema;
   tokenizer?: TokenizerInfo;
   metadata: {
     source: string;
@@ -130,6 +132,8 @@ export interface CreateManifestOptions {
   hashAlgorithm: string;
   architecture?: ArchitectureConfig | string;
   eosTokenId?: number | number[] | null;
+  convertedAt?: string | null;
+  conversionInfo?: ConversionInfoSchema | null;
 }
 
 /**
@@ -162,7 +166,42 @@ export declare function formatBytes(bytes: number): string;
 /**
  * Check if tensor should be quantized based on name and shape
  */
-export declare function shouldQuantize(tensorName: string, shape: number[]): boolean;
+export declare function shouldQuantize(
+  tensorName: string,
+  shape: number[],
+  options?: { quantizeEmbeddings?: boolean | null }
+): boolean;
+
+export declare function normalizeStorageQuant(value: unknown): string | null;
+
+export declare function resolveTensorTargetQuant(
+  tensorName: string,
+  fallbackQuant: unknown,
+  quantizationInfo: Record<string, unknown> | null | undefined
+): string | null;
+
+export declare function transformTensorBytes(
+  tensor: {
+    name: string;
+    shape: number[];
+    dtype: string;
+  },
+  rawData: ArrayBuffer | Uint8Array,
+  options?: {
+    targetQuant?: unknown;
+    quantization?: unknown;
+    quantizationInfo?: Record<string, unknown> | null;
+    q4kLayout?: string | null;
+    quantizeEmbeddings?: boolean | null;
+    forceQuantizeDecision?: boolean | null;
+  }
+): {
+  tensorData: Uint8Array;
+  outDtype: string;
+  outLayout: string | null;
+  sourceDtype: string;
+  tensorTargetQuant: string | null;
+};
 
 /**
  * Extract architecture configuration from model config

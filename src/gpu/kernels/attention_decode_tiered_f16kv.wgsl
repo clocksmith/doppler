@@ -1,3 +1,5 @@
+// AUTO-GENERATED from src/gpu/kernels/attention_decode_tiered_f16.wgsl.
+// Edit the source kernel and tools/configs/wgsl-variants.js, then run `npm run kernels:generate`.
 // Tiered Decode Attention Kernel (f32 Q + f16 KV)
 //
 // Hot ring buffer + cold paged cache with split-domain softmax.

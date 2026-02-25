@@ -1,8 +1,9 @@
 {
-  "timestamp": "2026-02-25T12:00:00.000Z",
+  "timestamp": "2026-02-25T17:58:34.028Z",
   "mode": "compute",
   "dopplerModelId": "gemma-3-1b-it-f16-f32a",
   "tjsModelId": "onnx-community/gemma-3-1b-it-ONNX-GQA",
+  "dopplerKernelPath": "gemma3-f16-fused-f32a-online",
   "workload": {
     "id": "g3-p064-d064-t0-k1",
     "prefillTokenTarget": 64,
@@ -15,15 +16,15 @@
   },
   "environment": {
     "host": {
-      "platform": "darwin",
-      "arch": "arm64",
-      "nodeVersion": "v22.12.0",
-      "osRelease": "24.3.0",
-      "cpuModel": "Apple M3 Pro"
+      "platform": "linux",
+      "arch": "x64",
+      "nodeVersion": "v20.18.1",
+      "osRelease": "6.14.0-37-generic",
+      "cpuModel": "AMD RYZEN AI MAX+ 395 w/ Radeon 8060S"
     },
     "browser": {
-      "executable": "chromium",
-      "channel": "stable"
+      "executable": null,
+      "channel": null
     }
   },
   "metricContract": {
@@ -48,75 +49,42 @@
           "result": {
             "env": {
               "library": "doppler",
-              "version": "0.1.0",
               "runtime": "browser",
               "device": "webgpu",
-              "browserUserAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-              "browserPlatform": "MacIntel",
+              "browserUserAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/145.0.0.0 Safari/537.36",
+              "browserPlatform": "Linux x86_64",
               "browserLanguage": "en-US",
               "browserVendor": "Google Inc.",
-              "webgpuBackend": "metal"
+              "webgpuBackend": "vulkan"
             },
             "deviceInfo": {
-              "vendor": "Apple",
-              "architecture": "gpu-family-apple-9",
-              "device": "M3 Pro",
-              "description": "Apple M3 Pro",
-              "hasF16": true,
               "hasSubgroups": true,
-              "hasTimestampQuery": true
+              "hasSubgroupsF16": false,
+              "hasF16": true,
+              "hasTimestampQuery": true,
+              "maxBufferSize": 2147483648,
+              "maxWorkgroupSize": 1024,
+              "maxWorkgroupStorageSize": 65536,
+              "adapterInfo": {
+                "vendor": "unknown",
+                "architecture": "unknown",
+                "device": "unknown",
+                "description": ""
+              }
             },
             "timing": {
-              "decodeTokensPerSec": 45.8,
-              "prefillTokensPerSec": 512.4,
-              "firstTokenMs": 138.5,
-              "firstResponseMs": 412.2,
-              "prefillMs": 124.9,
-              "decodeMs": 1398.6,
-              "totalRunMs": 1810.8,
-              "modelLoadMs": 273.7,
-              "decodeMsPerTokenP50": 21.7,
-              "decodeMsPerTokenP95": 27.3,
-              "decodeMsPerTokenP99": 30.1
+              "decodeTokensPerSec": 28.15,
+              "prefillTokensPerSec": 277.02,
+              "firstTokenMs": 663.3,
+              "firstResponseMs": 5318.4,
+              "prefillMs": 660.6,
+              "decodeMs": 2273.9,
+              "totalRunMs": 2938.3,
+              "modelLoadMs": 4655.1,
+              "decodeMsPerTokenP50": 35.53,
+              "decodeMsPerTokenP95": 35.53,
+              "decodeMsPerTokenP99": 35.53
             }
-          }
-        },
-        "transformersjs": {
-          "env": {
-            "library": "transformers.js",
-            "version": "4.x",
-            "runtime": "browser",
-            "device": "webgpu",
-            "browserUserAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-            "browserPlatform": "MacIntel",
-            "browserLanguage": "en-US",
-            "browserVendor": "Google Inc.",
-            "dtype": "q4",
-            "requestedDtype": "q4",
-            "executionProviderMode": "webgpu-only",
-            "webgpuBackend": "metal"
-          },
-          "deviceInfo": {
-            "vendor": "Apple",
-            "architecture": "gpu-family-apple-9",
-            "device": "M3 Pro",
-            "description": "Apple M3 Pro",
-            "hasF16": true,
-            "hasSubgroups": true,
-            "hasTimestampQuery": true
-          },
-          "timing": {
-            "decodeTokensPerSec": 37.1,
-            "prefillTokensPerSec": 441.2,
-            "firstTokenMs": 169.2,
-            "firstResponseMs": 505.4,
-            "prefillMs": 145.1,
-            "decodeMs": 1725.4,
-            "totalRunMs": 2230.8,
-            "modelLoadMs": 336.2,
-            "decodeMsPerTokenP50": 26.8,
-            "decodeMsPerTokenP95": 34.9,
-            "decodeMsPerTokenP99": 38.5
           }
         }
       }

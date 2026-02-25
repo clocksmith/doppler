@@ -2,7 +2,7 @@ import {
   normalizeToolingCommandRequest,
   ensureCommandSupportedOnSurface,
 } from './command-api.js';
-import { convertSafetensorsDirectory } from './node-convert.js';
+import { convertSafetensorsDirectory } from './node-converter.js';
 import { installNodeFileFetchShim } from './node-file-fetch.js';
 import { bootstrapNodeWebGPU } from './node-webgpu.js';
 import { applyRuntimeInputs, buildSuiteOptions } from './command-runner-shared.js';
@@ -10,6 +10,7 @@ import { runWithRuntimeIsolation } from './command-runner-shared.js';
 import { isPlainObject } from '../utils/plain-object.js';
 import {
   getActiveKernelPath,
+  getActiveKernelPathPolicy,
   getActiveKernelPathSource,
   setActiveKernelPath,
 } from '../config/kernel-path-loader.js';
@@ -63,10 +64,14 @@ export async function runNodeCommand(commandRequest, options = {}) {
     const converterConfig = convertPayload
       ? asOptionalPlainObject(convertPayload.converterConfig, 'convertPayload.converterConfig')
       : null;
+    const execution = convertPayload
+      ? asOptionalPlainObject(convertPayload.execution, 'convertPayload.execution')
+      : null;
     const result = await convertSafetensorsDirectory({
       inputDir: request.inputDir,
       outputDir: request.outputDir,
       converterConfig,
+      execution,
       onProgress: options.onProgress,
     });
     return {
@@ -86,6 +91,7 @@ export async function runNodeCommand(commandRequest, options = {}) {
     setRuntimeConfig: modules.runtime.setRuntimeConfig,
     resetRuntimeConfig: modules.runtime.resetRuntimeConfig,
     getActiveKernelPath,
+    getActiveKernelPathPolicy,
     getActiveKernelPathSource,
     setActiveKernelPath,
   };

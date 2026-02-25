@@ -9,8 +9,8 @@ import { getKernelThresholds, padToQ4KBlock } from '../../config/schema/index.js
 import { createUniformBufferWithView, getKernelConfig, hasRequiredFeatures } from './utils.js';
 import { dispatchIndirect, recordDispatchIndirect } from './dispatch.js';
 import { releaseUniformBuffer } from '../uniform-cache.js';
-import { trace } from '../../debug/index.js';
-import { getKernelPathAttentionVariant } from '../../config/kernel-path-loader.js';
+import { log, trace } from '../../debug/index.js';
+import { getKernelPathAttentionVariant, getKernelPathStrict } from '../../config/kernel-path-loader.js';
 import { selectRuleValue as selectKernelRuleValue } from './rule-registry.js';
 import { selectRuleValue as selectSharedRuleValue } from '../../rules/rule-registry.js';
 import { logKernelSelectionOnce } from '../kernel-selection-log.js';
@@ -501,18 +501,55 @@ function resolveAttentionPlan(
   const isDecode = seqLen === 1;
   const phase = selectKernelRuleValue('attention', 'phase', { isDecode });
   const pathVariant = getKernelPathAttentionVariant(phase, layerIdx, kernelPath);
+  const strictPath = getKernelPathStrict();
 
   if (pathVariant) {
-    let variantOverride = validateAttentionVariant(
-      pathVariant,
-      isDecode,
-      useF16KV,
-      useF16Q,
-      caps,
-      headDim,
-      kvLen,
-      sharedLimit
-    );
+    let variantOverride;
+    try {
+      variantOverride = validateAttentionVariant(
+        pathVariant,
+        isDecode,
+        useF16KV,
+        useF16Q,
+        caps,
+        headDim,
+        kvLen,
+        sharedLimit
+      );
+    } catch (error) {
+      if (strictPath) {
+        throw error;
+      }
+      const reason = error instanceof Error ? error.message : String(error);
+      log.warn(
+        'Attention',
+        `Kernel path override "${pathVariant}" rejected; falling back to capability selection: ${reason}`
+      );
+      const adaptiveSelection = selectAttentionTier(headDim, seqLen, useF16KV, null, sharedLimit, caps);
+      const adaptiveVariant = resolveAttentionVariant(
+        adaptiveSelection.tier,
+        isDecode,
+        useF16KV,
+        useF16Q,
+        numHeads,
+        kvLen,
+        caps,
+        headDim,
+        sharedLimit
+      );
+      const workgroups = calculateAttentionWorkgroups(adaptiveSelection.tier, seqLen, numHeads);
+      logKernelSelectionOnce('attention', {
+        variant: adaptiveVariant,
+        reason: `path_override_fallback:${adaptiveSelection.tier}`,
+      });
+      return {
+        tier: adaptiveSelection.tier,
+        variant: adaptiveVariant,
+        workgroups,
+        useF16KV,
+        isDecode,
+      };
+    }
     let selectionReason = 'path_override';
 
     if (!isDecode && variantOverride.startsWith('prefill_streaming') && seqLen <= 64) {

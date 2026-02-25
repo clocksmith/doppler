@@ -57,7 +57,13 @@ export function validateKernelPath(path: KernelPathSchema): string[];
 
 export type KernelPathPhase = 'prefill' | 'decode';
 export type KernelPathSection = 'layer' | 'preLayer' | 'postLayer' | 'sampling';
-export type KernelPathSource = 'runtime' | 'config' | 'model' | 'manifest' | 'none';
+export type KernelPathSource = 'runtime' | 'config' | 'model' | 'manifest' | 'execution-v0' | 'none';
+export interface KernelPathPolicy {
+  mode: 'locked' | 'capability-aware';
+  sourceScope: KernelPathSource[];
+  allowSources?: KernelPathSource[];
+  onIncompatible: 'error' | 'remap';
+}
 
 export function getKernelPathMatmulVariant(
   role: string | undefined,
@@ -83,7 +89,11 @@ export function getKernelPathAttentionVariant(
  * Set the active kernel path for the current pipeline.
  * Called by Pipeline when resolving kernel path.
  */
-export function setActiveKernelPath(path: KernelPathSchema | null, source?: KernelPathSource): void;
+export function setActiveKernelPath(
+  path: KernelPathSchema | null,
+  source?: KernelPathSource,
+  policy?: KernelPathPolicy | null
+): void;
 
 /**
  * Get the active kernel path.
@@ -91,6 +101,7 @@ export function setActiveKernelPath(path: KernelPathSchema | null, source?: Kern
 export function getActiveKernelPath(): KernelPathSchema | null;
 
 export function getActiveKernelPathSource(): KernelPathSource;
+export function getActiveKernelPathPolicy(): KernelPathPolicy;
 
 export function getKernelPathStrict(): boolean;
 

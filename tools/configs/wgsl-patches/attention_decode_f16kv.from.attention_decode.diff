@@ -1,0 +1,88 @@
+--- src/gpu/kernels/attention_decode.wgsl	2026-02-20 10:04:55.691091915 -0500
++++ src/gpu/kernels/attention_decode_f16kv.wgsl	2026-02-20 10:04:55.691091915 -0500
+@@ -1,10 +1,9 @@
+-// Fused Multi-Head Attention Kernel
++// Fused Multi-Head Attention Kernel (f16 KV)
+ //
+-// Implements fused Q @ K^T → scale → mask → softmax → @ V
+-// Uses tiled/blocked approach to avoid materializing full attention matrix.
+-// Supports grouped query attention (GQA) where numKVHeads < numHeads.
+-//
+-// Based on Flash Attention principles adapted for WebGPU.
++// Same as attention.wgsl but K/V are stored as f16 for KV-cache compression.
++// Q and output remain f32; K/V are cast to f32 on load.
++
++enable f16;
+ 
+ const MAX_HEAD_DIM: u32 = 64u;
+ const MAX_WORKGROUP_SIZE: u32 = 256u;
+@@ -31,8 +30,8 @@
+ 
+ @group(0) @binding(0) var<uniform> u: Uniforms;
+ @group(0) @binding(1) var<storage, read> Q: array<f32>;       // [query_len, num_heads, head_dim]
+-@group(0) @binding(2) var<storage, read> K: array<f32>;       // [seq_len, num_kv_heads, head_dim]
+-@group(0) @binding(3) var<storage, read> V: array<f32>;       // [seq_len, num_kv_heads, head_dim]
++@group(0) @binding(2) var<storage, read> K: array<f16>;       // [seq_len, num_kv_heads, head_dim]
++@group(0) @binding(3) var<storage, read> V: array<f16>;       // [seq_len, num_kv_heads, head_dim]
+ @group(0) @binding(4) var<storage, read_write> output: array<f32>; // [query_len, num_heads, head_dim]
+ @group(0) @binding(5) var<storage, read> kv_len_buffer: array<u32>;
+ @group(0) @binding(6) var<storage, read> page_table: array<u32>;
+@@ -51,23 +50,14 @@
+ 
+ // Check if position should be masked (causal + sliding window attention)
+ fn is_masked(query_pos: u32, key_pos: u32) -> bool {
+-    // Compute absolute positions
+     let abs_query = query_pos + u.start_pos;
+     let abs_key = u.kv_start + key_pos;
+-
+-    // Causal mask: query can only attend to keys at same or earlier positions
+-    if (u.is_causal != 0u && abs_key > abs_query) {
+-        return true;
+-    }
+-
+-    // Sliding window mask: query can only attend to keys within the window
+-    // Key must be >= (query - window + 1), i.e., within the last `window` positions
++    // Causal mask
++    if (u.is_causal != 0u && abs_key > abs_query) { return true; }
++    // Sliding window mask
+     if (u.sliding_window > 0u && abs_query >= u.sliding_window) {
+-        if (abs_key < abs_query - u.sliding_window + 1u) {
+-            return true;  // Key is too far in the past
+-        }
++        if (abs_key < abs_query - u.sliding_window + 1u) { return true; }
+     }
+-
+     return false;
+ }
+ 
+@@ -143,11 +133,10 @@
+ 
+         var score: f32 = 0.0;
+         for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
+-            score = score + q_local[d] * K[k_offset + d];
++            score = score + q_local[d] * f32(K[k_offset + d]);
+         }
+         score = score * scale;
+ 
+-        // Gemma 2 attention softcapping
+         if (u.attn_softcap > 0.0) {
+             score = tanh(score / u.attn_softcap) * u.attn_softcap;
+         }
+@@ -187,7 +176,7 @@
+ 
+         var score: f32 = 0.0;
+         for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
+-            score = score + q_local[d] * K[k_offset + d];
++            score = score + q_local[d] * f32(K[k_offset + d]);
+         }
+         score = score * scale;
+ 
+@@ -198,7 +187,7 @@
+         let exp_score = exp(score - global_max);
+         local_sum = local_sum + exp_score;
+         for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
+-            local_out[d] = local_out[d] + exp_score * V[v_offset + d];
++            local_out[d] = local_out[d] + exp_score * f32(V[v_offset + d]);
+         }
+     }
+ 

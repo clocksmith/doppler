@@ -10,12 +10,15 @@
 import type {
   LayerPipelineSchema,
   LayerPipelineOp,
+  LayerPipelinePhase,
   LayerPipelineNormWeight,
+  LayerPipelineDtype,
   ProbeStage,
 } from '../../../config/schema/index.js';
 
 export interface CompiledLayerPipelineStep {
   op: LayerPipelineOp;
+  phase: LayerPipelinePhase;
   src: string;
   dst: string;
   name?: string;
@@ -25,6 +28,10 @@ export interface CompiledLayerPipelineStep {
   b?: string;
   variant?: 'auto' | 'dense' | 'moe';
   skipInputNorm?: boolean;
+  fromDtype?: LayerPipelineDtype | null;
+  toDtype?: LayerPipelineDtype;
+  inputDtype?: LayerPipelineDtype;
+  outputDtype?: LayerPipelineDtype;
   probeStage?: ProbeStage;
 }
 
@@ -51,3 +58,8 @@ export function resolveLayerPipeline(
 ): CompiledLayerPipeline | null;
 
 export function getLayerPlanSteps(plan: CompiledLayerPipeline, layerIdx: number): CompiledLayerPipelineStep[];
+
+export function filterLayerPlanStepsByPhase(
+  steps: CompiledLayerPipelineStep[],
+  isPrefill: boolean
+): CompiledLayerPipelineStep[];

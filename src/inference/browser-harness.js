@@ -14,6 +14,7 @@ import {
   setActiveKernelPath,
   getActiveKernelPath,
   getActiveKernelPathSource,
+  getActiveKernelPathPolicy,
 } from '../config/kernel-path-loader.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
 import { mergeRuntimeValues } from '../config/runtime-merge.js';
@@ -56,6 +57,7 @@ function snapshotRuntimeState() {
     runtimeConfig: cloneRuntimeConfig(getRuntimeConfig()),
     activeKernelPath: getActiveKernelPath(),
     activeKernelPathSource: getActiveKernelPathSource(),
+    activeKernelPathPolicy: getActiveKernelPathPolicy(),
   };
 }
 
@@ -64,7 +66,11 @@ function restoreRuntimeState(snapshot) {
     return;
   }
   setRuntimeConfig(snapshot.runtimeConfig);
-  setActiveKernelPath(snapshot.activeKernelPath, snapshot.activeKernelPathSource || 'none');
+  setActiveKernelPath(
+    snapshot.activeKernelPath,
+    snapshot.activeKernelPathSource || 'none',
+    snapshot.activeKernelPathPolicy ?? null
+  );
 }
 
 async function runWithRuntimeIsolationForSuite(run) {
@@ -515,6 +521,7 @@ async function runKernelSuite(options = {}) {
 
   const previousKernelPath = getActiveKernelPath();
   const previousKernelSource = getActiveKernelPathSource();
+  const previousKernelPathPolicy = getActiveKernelPathPolicy();
   if (options.modelId) {
     await resolveKernelPathForModel(options);
   }
@@ -522,7 +529,7 @@ async function runKernelSuite(options = {}) {
   try {
     results = await runAllKernelTests(testHarness);
   } finally {
-    setActiveKernelPath(previousKernelPath, previousKernelSource);
+    setActiveKernelPath(previousKernelPath, previousKernelSource, previousKernelPathPolicy);
   }
 
   const summary = buildSuiteSummary('kernels', results, startTime);
@@ -776,6 +783,30 @@ function resolvePrompt(runtimeConfig) {
   return DEFAULT_HARNESS_PROMPT;
 }
 
+function isStructuredPromptInput(value) {
+  return Array.isArray(value) || (value != null && typeof value === 'object');
+}
+
+function resolveGenerationPromptInput(runtimeConfig, runOverrides = null) {
+  const overridePrompt = runOverrides?.prompt;
+  if (typeof overridePrompt === 'string' && overridePrompt.trim()) {
+    return overridePrompt.trim();
+  }
+  if (isStructuredPromptInput(overridePrompt)) {
+    return overridePrompt;
+  }
+
+  const runtimePrompt = runtimeConfig?.inference?.prompt;
+  if (typeof runtimePrompt === 'string' && runtimePrompt.trim()) {
+    return runtimePrompt.trim();
+  }
+  if (isStructuredPromptInput(runtimePrompt)) {
+    return runtimePrompt;
+  }
+
+  return DEFAULT_HARNESS_PROMPT;
+}
+
 function resolveMaxTokens(runtimeConfig) {
   const runtimeMax = runtimeConfig?.inference?.batching?.maxTokens;
   if (Number.isFinite(runtimeMax)) {
@@ -1016,9 +1047,10 @@ function isCoherentOutput(tokens, output) {
 async function runGeneration(pipeline, runtimeConfig, runOverrides = null) {
   const tokens = [];
   const tokenIds = [];
-  const prompt = typeof runOverrides?.prompt === 'string' && runOverrides.prompt.trim()
-    ? runOverrides.prompt.trim()
-    : resolvePrompt(runtimeConfig);
+  const promptInput = resolveGenerationPromptInput(runtimeConfig, runOverrides);
+  const useChatTemplate = runOverrides?.useChatTemplate
+    ?? runtimeConfig?.inference?.chatTemplate?.enabled
+    ?? (isStructuredPromptInput(promptInput) ? true : undefined);
   const maxTokens = Number.isFinite(runOverrides?.maxTokens)
     ? Math.max(1, Math.floor(runOverrides.maxTokens))
     : resolveMaxTokens(runtimeConfig);
@@ -1030,13 +1062,14 @@ async function runGeneration(pipeline, runtimeConfig, runOverrides = null) {
   const disableCommandBatching = Array.isArray(debugProbes) && debugProbes.length > 0;
   const start = performance.now();
 
-  for await (const tokenText of pipeline.generate(prompt, {
+  for await (const tokenText of pipeline.generate(promptInput, {
     maxTokens,
     temperature: sampling.temperature,
     topP: sampling.topP,
     topK: sampling.topK,
     repetitionPenalty: sampling.repetitionPenalty,
     greedyThreshold: sampling.greedyThreshold,
+    useChatTemplate,
     profile,
     disableCommandBatching,
     onToken: (tokenId) => {
@@ -1081,7 +1114,7 @@ async function runGeneration(pipeline, runtimeConfig, runOverrides = null) {
     : null;
 
   return {
-    prompt,
+    prompt: promptInput,
     maxTokens,
     tokens,
     tokenIds,
@@ -1912,12 +1945,13 @@ export async function runBrowserManifest(manifest, options = {}) {
   const baseRuntimeConfig = cloneRuntimeConfig(getRuntimeConfig());
   const baseKernelPath = getActiveKernelPath();
   const baseKernelPathSource = getActiveKernelPathSource();
+  const baseKernelPathPolicy = getActiveKernelPathPolicy();
 
   for (let i = 0; i < normalized.runs.length; i++) {
     const run = mergeRunDefaults(normalized.defaults, normalized.runs[i] || {});
     try {
       setRuntimeConfig(baseRuntimeConfig);
-      setActiveKernelPath(baseKernelPath, baseKernelPathSource);
+      setActiveKernelPath(baseKernelPath, baseKernelPathSource, baseKernelPathPolicy);
       await applyRuntimeForRun(run, options);
       const result = await runBrowserSuite(run);
       results.push({
@@ -1931,7 +1965,7 @@ export async function runBrowserManifest(manifest, options = {}) {
       });
     } finally {
       setRuntimeConfig(baseRuntimeConfig);
-      setActiveKernelPath(baseKernelPath, baseKernelPathSource);
+      setActiveKernelPath(baseKernelPath, baseKernelPathSource, baseKernelPathPolicy);
     }
   }
 

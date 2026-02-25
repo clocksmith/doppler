@@ -16,6 +16,16 @@
         "ringTokens": 8,
         "ringStop": 8,
         "ringStaging": 8
+      },
+      "session": {
+        "decodeLoop": {
+          "batchSize": 16,
+          "stopCheckMode": "batch",
+          "readbackInterval": 8,
+          "ringTokens": 8,
+          "ringStop": 8,
+          "ringStaging": 8
+        }
       }
     }
   }

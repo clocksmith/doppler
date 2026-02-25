@@ -395,10 +395,49 @@ export function getKernelPathAttentionVariant(
 
 let activeKernelPath = null;
 let activeKernelPathSource = 'none';
+let activeKernelPathPolicy = {
+  mode: 'locked',
+  sourceScope: ['model', 'manifest'],
+  onIncompatible: 'error',
+};
 
-export function setActiveKernelPath(path, source = 'none') {
+function normalizeKernelPathSource(source) {
+  const normalized = String(source ?? '').trim().toLowerCase();
+  if (normalized === 'runtime') return 'config';
+  if (normalized === 'execution_v0') return 'execution-v0';
+  return normalized;
+}
+
+function normalizeKernelPathPolicy(policy) {
+  if (!policy || typeof policy !== 'object' || Array.isArray(policy)) {
+    return {
+      mode: 'locked',
+      sourceScope: ['model', 'manifest'],
+      onIncompatible: 'error',
+    };
+  }
+  const mode = String(policy.mode ?? '').trim().toLowerCase() === 'capability-aware'
+    ? 'capability-aware'
+    : 'locked';
+  const sourceScope = Array.isArray(policy.sourceScope ?? policy.allowSources)
+    ? (policy.sourceScope ?? policy.allowSources)
+      .map((source) => normalizeKernelPathSource(source))
+      .filter((source) => source.length > 0)
+    : ['model', 'manifest'];
+  const onIncompatible = String(policy.onIncompatible ?? '').trim().toLowerCase() === 'remap'
+    ? 'remap'
+    : 'error';
+  return {
+    mode,
+    sourceScope: sourceScope.length > 0 ? [...new Set(sourceScope)] : ['model', 'manifest'],
+    onIncompatible,
+  };
+}
+
+export function setActiveKernelPath(path, source = 'none', policy = null) {
   activeKernelPath = path;
   activeKernelPathSource = path ? source : 'none';
+  activeKernelPathPolicy = normalizeKernelPathPolicy(policy);
 }
 
 export function getActiveKernelPath() {
@@ -409,7 +448,17 @@ export function getActiveKernelPathSource() {
   return activeKernelPathSource;
 }
 
+export function getActiveKernelPathPolicy() {
+  return {
+    mode: activeKernelPathPolicy.mode,
+    sourceScope: [...activeKernelPathPolicy.sourceScope],
+    allowSources: [...activeKernelPathPolicy.sourceScope],
+    onIncompatible: activeKernelPathPolicy.onIncompatible,
+  };
+}
+
 export function getKernelPathStrict() {
+  // Kernel-path overrides stay strict; capability-aware policy is handled at path-selection time.
   return true;
 }
 

@@ -39,13 +39,19 @@ export function buildScheduler(config, stepsOverride = null) {
     throw new Error('Scheduler config is required');
   }
   const steps = resolveStepCount(config, stepsOverride);
-  const type = config.type || 'ddim';
+  const type = config.type;
+  if (typeof type !== 'string' || !type) {
+    throw new Error('Diffusion scheduler requires a scheduler type.');
+  }
   const sigmas = type === 'flowmatch_euler'
     ? buildFlowMatchSchedule(config, steps)
     : buildLinearSigmaSchedule(steps);
   const trainSteps = Number.isFinite(config.numTrainTimesteps)
     ? config.numTrainTimesteps
-    : 1000;
+    : null;
+  if (!Number.isFinite(trainSteps) || trainSteps <= 0) {
+    throw new Error('Diffusion scheduler requires valid numTrainTimesteps.');
+  }
   const timesteps = new Float32Array(steps);
   for (let i = 0; i < steps; i++) {
     timesteps[i] = sigmas[i] * trainSteps;

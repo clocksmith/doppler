@@ -24,6 +24,10 @@
     { "match": { "useVec4": true }, "value": "shared_vec4" },
     { "match": {}, "value": "shared" }
   ],
+  "rowwiseVariant": [
+    { "match": { "wantsF16Out": true }, "value": "f16_rowwise" },
+    { "match": {}, "value": "f32_rowwise" }
+  ],
   "mxfp4ExpertVariant": [
     {
       "match": {

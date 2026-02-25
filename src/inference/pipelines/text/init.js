@@ -401,16 +401,17 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig)
   }
 
   
-  const cacheConfig = {
-    numLayers: modelConfig.numLayers,
-    numHeads: modelConfig.numKVHeads,
-    headDim: modelConfig.headDim,
-    maxSeqLen: cacheMaxSeqLen,
-    useGPU,
-    layout: cacheLayout,
-    kvDtype,
-    pageSize: runtimeKV.pageSize,
-  };
+	  const cacheConfig = {
+	    numLayers: modelConfig.numLayers,
+	    numHeads: modelConfig.numKVHeads,
+	    headDim: modelConfig.headDim,
+	    maxSeqLen: cacheMaxSeqLen,
+	    useGPU,
+	    layout: cacheLayout,
+	    kvDtype,
+	    bdpaVocabSize: runtimeKV.bdpaVocabSize,
+	    pageSize: runtimeKV.pageSize,
+	  };
 
   
   let kvCache;
@@ -582,6 +583,13 @@ function applyChatMLTemplate(prompt) {
   return `<|im_start|>user\n${prompt}<|im_end|>\n<|im_start|>assistant\n`;
 }
 
+function applyTranslateGemmaTemplate() {
+  throw new Error(
+    'TranslateGemma template requires structured messages. ' +
+    'Use formatChatMessages(messages, "translategemma") instead of applyChatTemplate(prompt, ...).'
+  );
+}
+
 // Template type to formatter mapping.
 // Add new template types here rather than adding switch cases.
 const PROMPT_TEMPLATES = {
@@ -590,6 +598,7 @@ const PROMPT_TEMPLATES = {
   'gpt-oss': applyChannelBasedTemplate,
   'chatml': applyChatMLTemplate,
   'qwen': applyChatMLTemplate,  // Qwen uses ChatML format
+  'translategemma': applyTranslateGemmaTemplate,
 };
 
 export function applyChatTemplate(prompt, templateType) {

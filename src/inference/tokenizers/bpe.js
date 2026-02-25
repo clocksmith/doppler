@@ -18,8 +18,6 @@ export class BPETokenizer extends BaseTokenizer {
     // BPETokenizer gets vocabSize from load(), so defer validation
     super({
       ...config,
-      vocabSize: config.vocabSize ?? 0,
-      deferSpecialTokens: config.deferSpecialTokens ?? true,
     });
   }
 

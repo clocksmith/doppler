@@ -3,13 +3,37 @@
     { "match": { "useF16": true }, "value": "f16" },
     { "match": {}, "value": "f32" }
   ],
+  "dtypeFromAlias": [
+    { "match": { "dtype": "bf16" }, "value": "bf16" },
+    { "match": { "dtype": "f16" }, "value": "f16" },
+    { "match": { "dtype": "fp16" }, "value": "f16" },
+    { "match": { "dtype": "float16" }, "value": "f16" },
+    { "match": { "dtype": "f32" }, "value": "f32" },
+    { "match": { "dtype": "fp32" }, "value": "f32" },
+    { "match": { "dtype": "float32" }, "value": "f32" },
+    { "match": {}, "value": { "context": "fallback" } }
+  ],
   "f16OrF32FromDtype": [
     { "match": { "dtype": "f16" }, "value": "f16" },
     { "match": {}, "value": "f32" }
   ],
+  "f16OrF32FromDtypeAlias": [
+    { "match": { "dtype": "f16" }, "value": "f16" },
+    { "match": { "dtype": "bf16" }, "value": "f16" },
+    { "match": { "dtype": "fp16" }, "value": "f16" },
+    { "match": { "dtype": "float16" }, "value": "f16" },
+    { "match": { "dtype": "f32" }, "value": "f32" },
+    { "match": { "dtype": "fp32" }, "value": "f32" },
+    { "match": { "dtype": "float32" }, "value": "f32" },
+    { "match": {}, "value": { "context": "fallback" } }
+  ],
   "f16OrF32FromBytes": [
     { "match": { "bytesPerElement": { "lte": 2 } }, "value": "f16" },
     { "match": {}, "value": "f32" }
+  ],
+  "f16OrF32FromBytesOrFallback": [
+    { "match": { "bytesPerElement": { "lt": 3 } }, "value": "f16" },
+    { "match": {}, "value": { "context": "fallback" } }
   ],
   "f16OrF32FromToken": [
     { "match": { "token": "F16" }, "value": "f16" },
@@ -21,6 +45,10 @@
   ],
   "bothF16": [
     { "match": { "aDtype": "f16", "bDtype": "f16" }, "value": "f16" },
+    { "match": {}, "value": "f32" }
+  ],
+  "diffusionActivationDtype": [
+    { "match": { "requested": "f16", "hasF16": true }, "value": "f16" },
     { "match": {}, "value": "f32" }
   ],
   "f16OrFallback": [

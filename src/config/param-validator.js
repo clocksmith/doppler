@@ -61,12 +61,17 @@ export function validateRuntimeConfig(runtimeConfig) {
   if (!compute) {
     throw new Error('DopplerConfigError: runtime.inference.compute is required.');
   }
+  const kernelPathPolicy = runtimeConfig.inference?.kernelPathPolicy;
+  if (!kernelPathPolicy) {
+    throw new Error('DopplerConfigError: runtime.inference.kernelPathPolicy is required.');
+  }
 
   assertNullablePositiveInt('runtime.inference.batching.readbackInterval', batching.readbackInterval);
   assertNullablePositiveInt('runtime.inference.batching.ringTokens', batching.ringTokens);
   assertNullablePositiveInt('runtime.inference.batching.ringStop', batching.ringStop);
   assertNullablePositiveInt('runtime.inference.batching.ringStaging', batching.ringStaging);
   assertPositiveInt('runtime.inference.compute.deferredRoundingWindowTokens', compute.deferredRoundingWindowTokens);
+  validateKernelPathPolicy('runtime.inference.kernelPathPolicy', kernelPathPolicy);
   validateRangeAwareSelectiveWidening(
     'runtime.inference.compute.rangeAwareSelectiveWidening',
     compute.rangeAwareSelectiveWidening
@@ -200,5 +205,29 @@ function validateRangeAwareSelectiveWidening(label, value) {
   }
   if (!Number.isFinite(value.absThreshold) || value.absThreshold <= 0) {
     throw new Error(`DopplerConfigError: ${label}.absThreshold must be a positive number.`);
+  }
+}
+
+function validateKernelPathPolicy(label, value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error(`DopplerConfigError: ${label} must be an object.`);
+  }
+  if (value.mode !== 'locked' && value.mode !== 'capability-aware') {
+    throw new Error(`DopplerConfigError: ${label}.mode must be "locked" or "capability-aware".`);
+  }
+  const sourceScope = value.sourceScope ?? value.allowSources;
+  if (!Array.isArray(sourceScope) || sourceScope.length === 0) {
+    throw new Error(`DopplerConfigError: ${label}.sourceScope must be a non-empty array.`);
+  }
+  if (value.onIncompatible !== 'error' && value.onIncompatible !== 'remap') {
+    throw new Error(`DopplerConfigError: ${label}.onIncompatible must be "error" or "remap".`);
+  }
+  const validSources = new Set(['model', 'manifest', 'config', 'runtime', 'execution-v0']);
+  for (const source of sourceScope) {
+    if (!validSources.has(source)) {
+      throw new Error(
+        `DopplerConfigError: ${label}.sourceScope entries must be model|manifest|config|runtime|execution-v0.`
+      );
+    }
   }
 }

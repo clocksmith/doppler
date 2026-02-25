@@ -1,6 +1,7 @@
 import { getRuntimeConfig } from '../config/runtime.js';
 import { isIndexedDBAvailable, isOPFSAvailable } from './quota.js';
 import { createIdbStore } from './backends/idb-store.js';
+import { DEFAULT_OPFS_PATH_CONFIG } from '../config/schema/loading.schema.js';
 
 const LEGACY_OPFS_ROOTS = ['models'];
 const SYSTEM_DIRS = new Set(['reports']);
@@ -70,12 +71,16 @@ async function discoverOpfsRoots(rootHandle) {
   return roots;
 }
 
+function resolveOpfsRootDir(runtime) {
+  return runtime?.loading?.opfsPath?.opfsRootDir || DEFAULT_OPFS_PATH_CONFIG.opfsRootDir;
+}
+
 async function listOpfsRoots(runtime) {
   if (!isOPFSAvailable()) {
     return [];
   }
   const root = await navigator.storage.getDirectory();
-  const configured = runtime?.loading?.opfsPath?.opfsRootDir || 'doppler-models';
+  const configured = resolveOpfsRootDir(runtime);
   const roots = new Set([configured, ...LEGACY_OPFS_ROOTS]);
   const discovered = await discoverOpfsRoots(root);
   for (const name of discovered) {
@@ -182,7 +187,7 @@ export async function deleteStorageEntry(entry) {
     if (!isOPFSAvailable()) {
       throw new Error('OPFS not available in this browser');
     }
-    const rootName = entry.root || runtime?.loading?.opfsPath?.opfsRootDir || 'doppler-models';
+    const rootName = entry.root || resolveOpfsRootDir(runtime);
     const root = await navigator.storage.getDirectory();
     let opfsRoot = null;
     try {

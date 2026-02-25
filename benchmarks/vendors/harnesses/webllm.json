@@ -8,7 +8,7 @@
     "defaultCommand": null,
     "examples": [
       "node tools/vendor-bench.js import --target webllm --input /tmp/webllm-result.json",
-      "node tools/vendor-bench.js run --target webllm --workload decode-64-128-greedy -- node ./path/to/webllm-runner.js --json"
+      "node tools/vendor-bench.js run --target webllm --workload g3-p064-d064-t0-k1 -- node ./path/to/webllm-runner.js --json"
     ]
   },
   "normalization": {

@@ -9,6 +9,8 @@ export const DEFAULT_KVCACHE_CONFIG = {
   forceF32Softcap: false,
   layout: 'contiguous',
   pageSize: 256,
+  // Basis-decomposed paged KV cache controls (BDPA experimental layout)
+  bdpaVocabSize: 2048,
   windowSize: 1024,
   tiering: {
     mode: 'off',

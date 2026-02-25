@@ -132,12 +132,14 @@ export async function importGGUFFile(
     // Stream the file and create shards
     if (canStreamFile(file)) {
       await streamToShards(file, ggufInfo, modelDir, shardInfos, shardSizeBytes, {
+        converterConfig: resolvedConverterConfig,
         onProgress,
         signal,
       });
     } else {
       // Fallback for browsers without streaming
       await bufferToShards(file, ggufInfo, modelDir, shardInfos, shardSizeBytes, {
+        converterConfig: resolvedConverterConfig,
         onProgress,
         signal,
       });
@@ -170,7 +172,7 @@ export async function importGGUFFile(
         modelId,
         totalSize: file.size,
         quantization: ggufInfo.quantization,
-        hashAlgorithm: converterConfig.manifest.hashAlgorithm,
+        hashAlgorithm: resolvedConverterConfig.manifest.hashAlgorithm,
         backend: getStorageBackendType(),
       });
     } catch {
@@ -213,7 +215,7 @@ async function streamToShards(
   modelDir,
   shardInfos,
   shardSizeBytes,
-  { onProgress, signal }
+  { converterConfig, onProgress, signal }
 ) {
   const tensorDataOffset = ggufInfo.tensorDataOffset;
   const totalDataSize = file.size - tensorDataOffset;
@@ -303,7 +305,7 @@ async function bufferToShards(
   modelDir,
   shardInfos,
   shardSizeBytes,
-  { onProgress, signal }
+  { converterConfig, onProgress, signal }
 ) {
   const tensorDataOffset = ggufInfo.tensorDataOffset;
   const totalDataSize = file.size - tensorDataOffset;

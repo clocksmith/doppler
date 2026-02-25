@@ -1,0 +1,710 @@
+{
+  "output": {
+    "baseDir": "models/local",
+    "modelBaseId": "gemma-3-270m-it-wq4k-ef16"
+  },
+  "presets": {
+    "model": "gemma3"
+  },
+  "quantization": {
+    "weights": "q4k",
+    "embeddings": "f16",
+    "lmHead": "f16",
+    "computePrecision": "f16",
+    "q4kLayout": "row"
+  },
+  "inference": {
+    "defaultKernelPath": "gemma3-q4k-dequant-f16a-online",
+    "schema": "doppler.execution/v0",
+    "sessionDefaults": {
+      "compute": {
+        "defaults": {
+          "activationDtype": "f16",
+          "mathDtype": "f16",
+          "accumDtype": "f32",
+          "outputDtype": "f16"
+        },
+        "kernelProfiles": [
+          {
+            "kernelRef": {
+              "id": "gather.f16.main",
+              "version": "1.0.0",
+              "digest": "sha256:a4829f4067091c98ad6ebbc9b0744cdd5bbcd4fbf6092b2f7cc7f1098695860f"
+            }
+          },
+          {
+            "kernelRef": {
+              "id": "rmsnorm.f16.main",
+              "version": "1.0.0",
+              "digest": "sha256:21d6d702cfcb8d653d8e105bbbc522e85704fa5628b865a7d36cde338ca5c779"
+            }
+          },
+          {
+            "kernelRef": {
+              "id": "matmul.gemv.subgroup.f16a.main.vec4",
+              "version": "1.0.0",
+              "digest": "sha256:f227a403cdf9717dd68224c9ea55708ffe14c618d8146f5d48b42af0f253df29"
+            }
+          },
+          {
+            "kernelRef": {
+              "id": "rope.f16.main",
+              "version": "1.0.0",
+              "digest": "sha256:a87f2964b77e851a2fbcc88305adeecaf8eba372291d83a71b817c8ef3da5c58"
+            }
+          },
+          {
+            "kernelRef": {
+              "id": "attention.decode.online.f16.main",
+              "version": "1.0.0",
+              "digest": "sha256:953acecd07bd1e50829f26a7e6abb6c653331504d23914b77538da99ee1474dc"
+            }
+          },
+          {
+            "kernelRef": {
+              "id": "residual.f16.main",
+              "version": "1.0.0",
+              "digest": "sha256:d392433f3065d1caf68b033219f4ffacf022dc1f90fc3cf3fd620e4ba49f3219"
+            }
+          },
+          {
+            "kernelRef": {
+              "id": "gelu.f16.main",
+              "version": "1.0.0",
+              "digest": "sha256:34b2f981e8b96bd624748b84bad0512940a01ada1721e0ffb8e149259b82b22a"
+            }
+          },
+          {
+            "kernelRef": {
+              "id": "matmul.f16.main",
+              "version": "1.0.0",
+              "digest": "sha256:b2a7e4a4db27d008da957225b361ef688f299ece792c844e2d2542b21d3fdfbe"
+            }
+          },
+          {
+            "kernelRef": {
+              "id": "attention.streaming.f16.main",
+              "version": "1.0.0",
+              "digest": "sha256:2a1591412e581fb855bc54003c616819008c9ee21b56adee81afbe672eba32c9"
+            }
+          },
+          {
+            "kernelRef": {
+              "id": "matmul.gemv.subgroup.f16a.main.multicol",
+              "version": "1.0.0",
+              "digest": "sha256:c8e86ecbbefa27a3b7366af676d89a992c2e951329cdf19abb57b9c90144379e"
+            }
+          },
+          {
+            "kernelRef": {
+              "id": "sample.f16.sample.single.pass",
+              "version": "1.0.0",
+              "digest": "sha256:f3551288786f0a47f5222e07ab7f54a646e422c2493a62b8074202601eb06ddb"
+            }
+          }
+        ]
+      },
+      "kvcache": {
+        "kvDtype": "f16"
+      },
+      "decodeLoop": null
+    },
+    "execution": {
+      "steps": [
+        {
+          "id": "preLayer_both_0_embed",
+          "phase": "both",
+          "section": "preLayer",
+          "op": "embed",
+          "kernel": "gather_f16.wgsl",
+          "entry": "main",
+          "weights": "embed_tokens",
+          "layers": "all",
+          "src": "state",
+          "dst": "state",
+          "kernelRef": {
+            "id": "gather.f16.main",
+            "version": "1.0.0",
+            "digest": "sha256:a4829f4067091c98ad6ebbc9b0744cdd5bbcd4fbf6092b2f7cc7f1098695860f"
+          }
+        },
+        {
+          "id": "layer_decode_1_input_norm",
+          "phase": "decode",
+          "section": "layer",
+          "op": "input_norm",
+          "kernel": "rmsnorm_f16.wgsl",
+          "entry": "main",
+          "layers": "all",
+          "src": "state",
+          "dst": "state",
+          "kernelRef": {
+            "id": "rmsnorm.f16.main",
+            "version": "1.0.0",
+            "digest": "sha256:21d6d702cfcb8d653d8e105bbbc522e85704fa5628b865a7d36cde338ca5c779"
+          }
+        },
+        {
+          "id": "layer_decode_2_q_proj",
+          "phase": "decode",
+          "section": "layer",
+          "op": "q_proj",
+          "kernel": "matmul_gemv_subgroup_f16a.wgsl",
+          "entry": "main_vec4",
+          "weights": "layer.{L}.self_attn.q_proj",
+          "layers": "all",
+          "src": "state",
+          "dst": "state",
+          "kernelRef": {
+            "id": "matmul.gemv.subgroup.f16a.main.vec4",
+            "version": "1.0.0",
+            "digest": "sha256:f227a403cdf9717dd68224c9ea55708ffe14c618d8146f5d48b42af0f253df29"
+          }
+        },
+        {
+          "id": "layer_decode_3_k_proj",
+          "phase": "decode",
+          "section": "layer",
+          "op": "k_proj",
+          "kernel": "matmul_gemv_subgroup_f16a.wgsl",
+          "entry": "main_vec4",
+          "weights": "layer.{L}.self_attn.k_proj",
+          "layers": "all",
+          "src": "state",
+          "dst": "state",
+          "kernelRef": {
+            "id": "matmul.gemv.subgroup.f16a.main.vec4",
+            "version": "1.0.0",
+            "digest": "sha256:f227a403cdf9717dd68224c9ea55708ffe14c618d8146f5d48b42af0f253df29"
+          }
+        },
+        {
+          "id": "layer_decode_4_v_proj",
+          "phase": "decode",
+          "section": "layer",
+          "op": "v_proj",
+          "kernel": "matmul_gemv_subgroup_f16a.wgsl",
+          "entry": "main_vec4",
+          "weights": "layer.{L}.self_attn.v_proj",
+          "layers": "all",
+          "src": "state",
+          "dst": "state",
+          "kernelRef": {
+            "id": "matmul.gemv.subgroup.f16a.main.vec4",
+            "version": "1.0.0",
+            "digest": "sha256:f227a403cdf9717dd68224c9ea55708ffe14c618d8146f5d48b42af0f253df29"
+          }
+        },
+        {
+          "id": "layer_decode_5_rope_q",
+          "phase": "decode",
+          "section": "layer",
+          "op": "rope_q",
+          "kernel": "rope_f16.wgsl",
+          "entry": "main",
+          "layers": "all",
+          "src": "state",
+          "dst": "state",
+          "kernelRef": {
+            "id": "rope.f16.main",
+            "version": "1.0.0",
+            "digest": "sha256:a87f2964b77e851a2fbcc88305adeecaf8eba372291d83a71b817c8ef3da5c58"
+          }
+        },
+        {
+          "id": "layer_decode_6_rope_k",
+          "phase": "decode",
+          "section": "layer",
+          "op": "rope_k",
+          "kernel": "rope_f16.wgsl",
+          "entry": "main",
+          "layers": "all",
+          "src": "state",
+          "dst": "state",
+          "kernelRef": {
+            "id": "rope.f16.main",
+            "version": "1.0.0",
+            "digest": "sha256:a87f2964b77e851a2fbcc88305adeecaf8eba372291d83a71b817c8ef3da5c58"
+          }
+        },
+        {
+          "id": "layer_decode_7_attention",
+          "phase": "decode",
+          "section": "layer",
+          "op": "attention",
+          "kernel": "attention_decode_online_f16.wgsl",
+          "entry": "main",
+          "layers": "all",
+          "src": "state",
+          "dst": "state",
+          "kernelRef": {
+            "id": "attention.decode.online.f16.main",
+            "version": "1.0.0",
+            "digest": "sha256:953acecd07bd1e50829f26a7e6abb6c653331504d23914b77538da99ee1474dc"
+          }
+        },
+        {
+          "id": "layer_decode_8_o_proj",
+          "phase": "decode",
+          "section": "layer",
+          "op": "o_proj",
+          "kernel": "matmul_gemv_subgroup_f16a.wgsl",
+          "entry": "main_vec4",
+          "weights": "layer.{L}.self_attn.o_proj",
+          "layers": "all",
+          "src": "state",
+          "dst": "state",
+          "kernelRef": {
+            "id": "matmul.gemv.subgroup.f16a.main.vec4",
+            "version": "1.0.0",
+            "digest": "sha256:f227a403cdf9717dd68224c9ea55708ffe14c618d8146f5d48b42af0f253df29"
+          }
+        },
+        {
+          "id": "layer_decode_9_attn_residual",
+          "phase": "decode",
+          "section": "layer",
+          "op": "attn_residual",
+          "kernel": "residual_f16.wgsl",
+          "entry": "main",
+          "layers": "all",
+          "src": "state",
+          "dst": "state",
+          "kernelRef": {
+            "id": "residual.f16.main",
+            "version": "1.0.0",
+            "digest": "sha256:d392433f3065d1caf68b033219f4ffacf022dc1f90fc3cf3fd620e4ba49f3219"
+          }
+        },
+        {
+          "id": "layer_decode_10_post_attn_norm",
+          "phase": "decode",
+          "section": "layer",
+          "op": "post_attn_norm",
+          "kernel": "rmsnorm_f16.wgsl",
+          "entry": "main",
+          "layers": "all",
+          "src": "state",
+          "dst": "state",
+          "kernelRef": {
+            "id": "rmsnorm.f16.main",
+            "version": "1.0.0",
+            "digest": "sha256:21d6d702cfcb8d653d8e105bbbc522e85704fa5628b865a7d36cde338ca5c779"
+          }
+        },
+        {
+          "id": "layer_decode_11_gate_proj",
+          "phase": "decode",
+          "section": "layer",
+          "op": "gate_proj",
+          "kernel": "matmul_gemv_subgroup_f16a.wgsl",
+          "entry": "main_vec4",
+          "weights": "layer.{L}.mlp.gate_proj",
+          "layers": "all",
+          "src": "state",
+          "dst": "state",
+          "kernelRef": {
+            "id": "matmul.gemv.subgroup.f16a.main.vec4",
+            "version": "1.0.0",
+            "digest": "sha256:f227a403cdf9717dd68224c9ea55708ffe14c618d8146f5d48b42af0f253df29"
+          }
+        },
+        {
+          "id": "layer_decode_12_up_proj",
+          "phase": "decode",
+          "section": "layer",
+          "op": "up_proj",
+          "kernel": "matmul_gemv_subgroup_f16a.wgsl",
+          "entry": "main_vec4",
+          "weights": "layer.{L}.mlp.up_proj",
+          "layers": "all",
+          "src": "state",
+          "dst": "state",
+          "kernelRef": {
+            "id": "matmul.gemv.subgroup.f16a.main.vec4",
+            "version": "1.0.0",
+            "digest": "sha256:f227a403cdf9717dd68224c9ea55708ffe14c618d8146f5d48b42af0f253df29"
+          }
+        },
+        {
+          "id": "layer_decode_13_activation",
+          "phase": "decode",
+          "section": "layer",
+          "op": "activation",
+          "kernel": "gelu_f16.wgsl",
+          "entry": "main",
+          "constants": {
+            "HAS_GATE": true
+          },
+          "layers": "all",
+          "src": "state",
+          "dst": "state",
+          "kernelRef": {
+            "id": "gelu.f16.main",
+            "version": "1.0.0",
+            "digest": "sha256:34b2f981e8b96bd624748b84bad0512940a01ada1721e0ffb8e149259b82b22a"
+          }
+        },
+        {
+          "id": "layer_decode_14_down_proj",
+          "phase": "decode",
+          "section": "layer",
+          "op": "down_proj",
+          "kernel": "matmul_gemv_subgroup_f16a.wgsl",
+          "entry": "main_vec4",
+          "weights": "layer.{L}.mlp.down_proj",
+          "layers": "all",
+          "src": "state",
+          "dst": "state",
+          "kernelRef": {
+            "id": "matmul.gemv.subgroup.f16a.main.vec4",
+            "version": "1.0.0",
+            "digest": "sha256:f227a403cdf9717dd68224c9ea55708ffe14c618d8146f5d48b42af0f253df29"
+          }
+        },
+        {
+          "id": "layer_decode_15_ffn_residual",
+          "phase": "decode",
+          "section": "layer",
+          "op": "ffn_residual",
+          "kernel": "residual_f16.wgsl",
+          "entry": "main",
+          "layers": "all",
+          "src": "state",
+          "dst": "state",
+          "kernelRef": {
+            "id": "residual.f16.main",
+            "version": "1.0.0",
+            "digest": "sha256:d392433f3065d1caf68b033219f4ffacf022dc1f90fc3cf3fd620e4ba49f3219"
+          }
+        },
+        {
+          "id": "layer_prefill_16_input_norm",
+          "phase": "prefill",
+          "section": "layer",
+          "op": "input_norm",
+          "kernel": "rmsnorm_f16.wgsl",
+          "entry": "main",
+          "layers": "all",
+          "src": "state",
+          "dst": "state",
+          "kernelRef": {
+            "id": "rmsnorm.f16.main",
+            "version": "1.0.0",
+            "digest": "sha256:21d6d702cfcb8d653d8e105bbbc522e85704fa5628b865a7d36cde338ca5c779"
+          }
+        },
+        {
+          "id": "layer_prefill_17_q_proj",
+          "phase": "prefill",
+          "section": "layer",
+          "op": "q_proj",
+          "kernel": "matmul_f16.wgsl",
+          "entry": "main",
+          "weights": "layer.{L}.self_attn.q_proj",
+          "layers": "all",
+          "src": "state",
+          "dst": "state",
+          "kernelRef": {
+            "id": "matmul.f16.main",
+            "version": "1.0.0",
+            "digest": "sha256:b2a7e4a4db27d008da957225b361ef688f299ece792c844e2d2542b21d3fdfbe"
+          }
+        },
+        {
+          "id": "layer_prefill_18_k_proj",
+          "phase": "prefill",
+          "section": "layer",
+          "op": "k_proj",
+          "kernel": "matmul_f16.wgsl",
+          "entry": "main",
+          "weights": "layer.{L}.self_attn.k_proj",
+          "layers": "all",
+          "src": "state",
+          "dst": "state",
+          "kernelRef": {
+            "id": "matmul.f16.main",
+            "version": "1.0.0",
+            "digest": "sha256:b2a7e4a4db27d008da957225b361ef688f299ece792c844e2d2542b21d3fdfbe"
+          }
+        },
+        {
+          "id": "layer_prefill_19_v_proj",
+          "phase": "prefill",
+          "section": "layer",
+          "op": "v_proj",
+          "kernel": "matmul_f16.wgsl",
+          "entry": "main",
+          "weights": "layer.{L}.self_attn.v_proj",
+          "layers": "all",
+          "src": "state",
+          "dst": "state",
+          "kernelRef": {
+            "id": "matmul.f16.main",
+            "version": "1.0.0",
+            "digest": "sha256:b2a7e4a4db27d008da957225b361ef688f299ece792c844e2d2542b21d3fdfbe"
+          }
+        },
+        {
+          "id": "layer_prefill_20_rope_q",
+          "phase": "prefill",
+          "section": "layer",
+          "op": "rope_q",
+          "kernel": "rope_f16.wgsl",
+          "entry": "main",
+          "layers": "all",
+          "src": "state",
+          "dst": "state",
+          "kernelRef": {
+            "id": "rope.f16.main",
+            "version": "1.0.0",
+            "digest": "sha256:a87f2964b77e851a2fbcc88305adeecaf8eba372291d83a71b817c8ef3da5c58"
+          }
+        },
+        {
+          "id": "layer_prefill_21_rope_k",
+          "phase": "prefill",
+          "section": "layer",
+          "op": "rope_k",
+          "kernel": "rope_f16.wgsl",
+          "entry": "main",
+          "layers": "all",
+          "src": "state",
+          "dst": "state",
+          "kernelRef": {
+            "id": "rope.f16.main",
+            "version": "1.0.0",
+            "digest": "sha256:a87f2964b77e851a2fbcc88305adeecaf8eba372291d83a71b817c8ef3da5c58"
+          }
+        },
+        {
+          "id": "layer_prefill_22_attention",
+          "phase": "prefill",
+          "section": "layer",
+          "op": "attention",
+          "kernel": "attention_streaming_f16.wgsl",
+          "entry": "main",
+          "layers": "all",
+          "src": "state",
+          "dst": "state",
+          "kernelRef": {
+            "id": "attention.streaming.f16.main",
+            "version": "1.0.0",
+            "digest": "sha256:2a1591412e581fb855bc54003c616819008c9ee21b56adee81afbe672eba32c9"
+          }
+        },
+        {
+          "id": "layer_prefill_23_o_proj",
+          "phase": "prefill",
+          "section": "layer",
+          "op": "o_proj",
+          "kernel": "matmul_f16.wgsl",
+          "entry": "main",
+          "weights": "layer.{L}.self_attn.o_proj",
+          "layers": "all",
+          "src": "state",
+          "dst": "state",
+          "kernelRef": {
+            "id": "matmul.f16.main",
+            "version": "1.0.0",
+            "digest": "sha256:b2a7e4a4db27d008da957225b361ef688f299ece792c844e2d2542b21d3fdfbe"
+          }
+        },
+        {
+          "id": "layer_prefill_24_attn_residual",
+          "phase": "prefill",
+          "section": "layer",
+          "op": "attn_residual",
+          "kernel": "residual_f16.wgsl",
+          "entry": "main",
+          "layers": "all",
+          "src": "state",
+          "dst": "state",
+          "kernelRef": {
+            "id": "residual.f16.main",
+            "version": "1.0.0",
+            "digest": "sha256:d392433f3065d1caf68b033219f4ffacf022dc1f90fc3cf3fd620e4ba49f3219"
+          }
+        },
+        {
+          "id": "layer_prefill_25_post_attn_norm",
+          "phase": "prefill",
+          "section": "layer",
+          "op": "post_attn_norm",
+          "kernel": "rmsnorm_f16.wgsl",
+          "entry": "main",
+          "layers": "all",
+          "src": "state",
+          "dst": "state",
+          "kernelRef": {
+            "id": "rmsnorm.f16.main",
+            "version": "1.0.0",
+            "digest": "sha256:21d6d702cfcb8d653d8e105bbbc522e85704fa5628b865a7d36cde338ca5c779"
+          }
+        },
+        {
+          "id": "layer_prefill_26_gate_proj",
+          "phase": "prefill",
+          "section": "layer",
+          "op": "gate_proj",
+          "kernel": "matmul_f16.wgsl",
+          "entry": "main",
+          "weights": "layer.{L}.mlp.gate_proj",
+          "layers": "all",
+          "src": "state",
+          "dst": "state",
+          "kernelRef": {
+            "id": "matmul.f16.main",
+            "version": "1.0.0",
+            "digest": "sha256:b2a7e4a4db27d008da957225b361ef688f299ece792c844e2d2542b21d3fdfbe"
+          }
+        },
+        {
+          "id": "layer_prefill_27_up_proj",
+          "phase": "prefill",
+          "section": "layer",
+          "op": "up_proj",
+          "kernel": "matmul_f16.wgsl",
+          "entry": "main",
+          "weights": "layer.{L}.mlp.up_proj",
+          "layers": "all",
+          "src": "state",
+          "dst": "state",
+          "kernelRef": {
+            "id": "matmul.f16.main",
+            "version": "1.0.0",
+            "digest": "sha256:b2a7e4a4db27d008da957225b361ef688f299ece792c844e2d2542b21d3fdfbe"
+          }
+        },
+        {
+          "id": "layer_prefill_28_activation",
+          "phase": "prefill",
+          "section": "layer",
+          "op": "activation",
+          "kernel": "gelu_f16.wgsl",
+          "entry": "main",
+          "constants": {
+            "HAS_GATE": true
+          },
+          "layers": "all",
+          "src": "state",
+          "dst": "state",
+          "kernelRef": {
+            "id": "gelu.f16.main",
+            "version": "1.0.0",
+            "digest": "sha256:34b2f981e8b96bd624748b84bad0512940a01ada1721e0ffb8e149259b82b22a"
+          }
+        },
+        {
+          "id": "layer_prefill_29_down_proj",
+          "phase": "prefill",
+          "section": "layer",
+          "op": "down_proj",
+          "kernel": "matmul_f16.wgsl",
+          "entry": "main",
+          "weights": "layer.{L}.mlp.down_proj",
+          "layers": "all",
+          "src": "state",
+          "dst": "state",
+          "kernelRef": {
+            "id": "matmul.f16.main",
+            "version": "1.0.0",
+            "digest": "sha256:b2a7e4a4db27d008da957225b361ef688f299ece792c844e2d2542b21d3fdfbe"
+          }
+        },
+        {
+          "id": "layer_prefill_30_ffn_residual",
+          "phase": "prefill",
+          "section": "layer",
+          "op": "ffn_residual",
+          "kernel": "residual_f16.wgsl",
+          "entry": "main",
+          "layers": "all",
+          "src": "state",
+          "dst": "state",
+          "kernelRef": {
+            "id": "residual.f16.main",
+            "version": "1.0.0",
+            "digest": "sha256:d392433f3065d1caf68b033219f4ffacf022dc1f90fc3cf3fd620e4ba49f3219"
+          }
+        },
+        {
+          "id": "postLayer_both_31_final_norm",
+          "phase": "both",
+          "section": "postLayer",
+          "op": "final_norm",
+          "kernel": "rmsnorm_f16.wgsl",
+          "entry": "main",
+          "layers": "all",
+          "src": "state",
+          "dst": "state",
+          "kernelRef": {
+            "id": "rmsnorm.f16.main",
+            "version": "1.0.0",
+            "digest": "sha256:21d6d702cfcb8d653d8e105bbbc522e85704fa5628b865a7d36cde338ca5c779"
+          }
+        },
+        {
+          "id": "postLayer_both_32_lm_head",
+          "phase": "both",
+          "section": "postLayer",
+          "op": "lm_head",
+          "kernel": "matmul_gemv_subgroup_f16a.wgsl",
+          "entry": "main_multicol",
+          "weights": "lm_head",
+          "constants": {
+            "MULTICOL_COLS_PER_WG": 64,
+            "MULTICOL_THREADS_PER_COL": 4
+          },
+          "layers": "all",
+          "src": "state",
+          "dst": "state",
+          "kernelRef": {
+            "id": "matmul.gemv.subgroup.f16a.main.multicol",
+            "version": "1.0.0",
+            "digest": "sha256:c8e86ecbbefa27a3b7366af676d89a992c2e951329cdf19abb57b9c90144379e"
+          }
+        },
+        {
+          "id": "postLayer_both_33_lm_head_prefill",
+          "phase": "both",
+          "section": "postLayer",
+          "op": "lm_head_prefill",
+          "kernel": "matmul_f16.wgsl",
+          "entry": "main",
+          "weights": "lm_head",
+          "layers": "all",
+          "src": "state",
+          "dst": "state",
+          "kernelRef": {
+            "id": "matmul.f16.main",
+            "version": "1.0.0",
+            "digest": "sha256:b2a7e4a4db27d008da957225b361ef688f299ece792c844e2d2542b21d3fdfbe"
+          }
+        },
+        {
+          "id": "sampling_decode_34_sample",
+          "phase": "decode",
+          "section": "sampling",
+          "op": "sample",
+          "kernel": "sample_f16.wgsl",
+          "entry": "sample_single_pass",
+          "layers": "all",
+          "src": "state",
+          "dst": "state",
+          "kernelRef": {
+            "id": "sample.f16.sample.single.pass",
+            "version": "1.0.0",
+            "digest": "sha256:f3551288786f0a47f5222e07ab7f54a646e422c2493a62b8074202601eb06ddb"
+          }
+        }
+      ],
+      "policies": {
+        "precisionPrecedence": "step_then_kernel_profile_then_session_default",
+        "unsupportedPrecision": "error",
+        "dtypeTransition": "require_cast_step",
+        "unresolvedKernel": "error"
+      }
+    }
+  }
+}

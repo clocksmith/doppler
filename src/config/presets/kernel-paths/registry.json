@@ -16,6 +16,13 @@
       "notes": "Default Gemma 2 Q4K dequant path for baseline F16 activation workflows."
     },
     {
+      "id": "gemma2-q4k-dequant-f32a",
+      "file": "gemma2-q4k-dequant-f32a.json",
+      "status": "canonical",
+      "statusReason": "compatibility",
+      "notes": "Subgroup-free Gemma 2 Q4K dequant path with F32 activations."
+    },
+    {
       "id": "gemma2-f16-f16a",
       "file": "gemma2-f16-f16a.json",
       "status": "canonical",

@@ -16,6 +16,7 @@ import { PipelineGenerator } from './text/generator.js';
 import type { Manifest } from './text/config.js';
 import type { WeightLoadResult, PipelineContexts } from './text/init.js';
 import type { GenerateOptions, KVCacheSnapshot, LogitsStepResult, PrefillResult, PrefillEmbeddingResult, AdvanceEmbeddingResult, LayerWeights, ExpertWeights, RouterWeights, GenerationResult, PipelineStats, BatchingStats } from './text/types.js';
+import type { ChatMessage } from './text/chat-format.js';
 import type { LoRAAdapter } from './text/lora.js';
 import type { DiffusionPipeline } from './diffusion/pipeline.js';
 import type { EnergyPipeline } from './energy/pipeline.js';
@@ -27,6 +28,12 @@ import type { EmulationStats } from '../../config/schema/index.js';
 // Re-export types for external use
 export type { GenerateOptions, KVCacheSnapshot, LogitsStepResult, PrefillResult, PrefillEmbeddingResult, AdvanceEmbeddingResult, LayerWeights, ExpertWeights, RouterWeights, GenerationResult, PipelineStats, BatchingStats };
 export type { PipelineContexts };
+
+export interface ChatRequestInput {
+  messages: ChatMessage[];
+}
+
+export type PromptInput = string | ChatMessage[] | ChatRequestInput;
 
 // ============================================================================
 // Main Inference Pipeline Class
@@ -61,7 +68,7 @@ export declare class InferencePipeline extends PipelineState {
   // Generation Delegates
   // ==========================================================================
 
-  generate(prompt: string, options?: GenerateOptions): AsyncGenerator<string, void, void>;
+  generate(prompt: PromptInput, options?: GenerateOptions): AsyncGenerator<string, void, void>;
 
   decodeStepLogits(currentIds: number[], options?: GenerateOptions): Promise<LogitsStepResult>;
 
@@ -69,9 +76,9 @@ export declare class InferencePipeline extends PipelineState {
 
   advanceWithTokenAndEmbedding(tokenId: number, options?: GenerateOptions): Promise<AdvanceEmbeddingResult>;
 
-  prefillKVOnly(prompt: string, options?: GenerateOptions): Promise<KVCacheSnapshot>;
+  prefillKVOnly(prompt: PromptInput, options?: GenerateOptions): Promise<KVCacheSnapshot>;
 
-  prefillWithEmbedding(prompt: string, options?: GenerateOptions): Promise<PrefillEmbeddingResult>;
+  prefillWithEmbedding(prompt: PromptInput, options?: GenerateOptions): Promise<PrefillEmbeddingResult>;
 
   embed(prompt: string, options?: GenerateOptions): Promise<{
     embedding: Float32Array;
@@ -87,13 +94,13 @@ export declare class InferencePipeline extends PipelineState {
     embeddingMode: string;
   }>>;
 
-  prefillWithLogits(prompt: string, options?: GenerateOptions): Promise<PrefillResult>;
+  prefillWithLogits(prompt: PromptInput, options?: GenerateOptions): Promise<PrefillResult>;
 
   applyKVCacheSnapshot(snapshot: KVCacheSnapshot): void;
 
   generateWithPrefixKV(
     prefix: KVCacheSnapshot,
-    prompt: string,
+    prompt: PromptInput,
     options?: GenerateOptions
   ): AsyncGenerator<string, void, void>;
 
@@ -144,7 +151,7 @@ export declare function createPipeline(
 >;
 
 export declare class EmbeddingPipeline extends InferencePipeline {
-  generate(prompt: string, options?: GenerateOptions): AsyncGenerator<string, void, void>;
+  generate(prompt: PromptInput, options?: GenerateOptions): AsyncGenerator<string, void, void>;
 }
 
 export { InferencePipeline as Pipeline };

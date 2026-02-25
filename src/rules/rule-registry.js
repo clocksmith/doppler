@@ -38,6 +38,7 @@ const layerPatternRules = await loadJson('./inference/layer-pattern.rules.json',
 const inferenceMoeRules = await loadJson('./inference/moe.rules.json', import.meta.url, 'Failed to load rules');
 const tokenizerRules = await loadJson('./converter/tokenizer.rules.json', import.meta.url, 'Failed to load rules');
 const tensorRolesRules = await loadJson('./converter/tensor-roles.rules.json', import.meta.url, 'Failed to load rules');
+const converterExecutionRules = await loadJson('./converter/execution.rules.json', import.meta.url, 'Failed to load rules');
 const loaderWeightRules = await loadJson('./loader/weights.rules.json', import.meta.url, 'Failed to load rules');
 const tensorLoaderRules = await loadJson('./loader/tensor-loader.rules.json', import.meta.url, 'Failed to load rules');
 
@@ -91,6 +92,7 @@ const RULE_SETS = {
   converter: {
     tokenizer: tokenizerRules,
     tensorRoles: tensorRolesRules,
+    execution: converterExecutionRules,
   },
 };
 

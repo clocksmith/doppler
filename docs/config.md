@@ -95,10 +95,9 @@ Legacy IDs should remain in `status: \"legacy\"` until all conversion and docs c
 
 | Path | Description | Performance | Accuracy |
 |------|-------------|-------------|----------|
-| `gemma2-q4k-fused-f32a` | Fused dequant+matmul with F16 activations | Best (F16) | Good |
-| `gemma2-q4k-fused-f32a` | Fused dequant+matmul with F32 activations | Best (F32) | Good |
+| `gemma2-q4k-fused-f32a` | Fused dequant+matmul path (subgroups required) | Best | Good |
 | `gemma2-q4k-dequant-f16a` | Pre-dequant to F16 with F16 activations | Balanced | Good |
-| `gemma2-q4k-fused-f32a` | Pre-dequant to F32 with F32 activations | Slower | Best |
+| `gemma2-q4k-dequant-f32a` | Pre-dequant to F32 with F32 activations (no subgroups required) | Slower | Best |
 
 ### F16 Models
 
@@ -164,7 +163,11 @@ quantization and activation dtype (from `quantizationInfo.compute`):
 ```json
 {
   "inference": {
-    "kernelPath": "gemma2-q4k-fused-f32a"
+    "kernelPath": "gemma2-q4k-fused-f32a",
+    "kernelPathPolicy": {
+      "mode": "capability-aware",
+      "allowSources": ["config", "model", "manifest"]
+    }
   }
 }
 ```
@@ -215,7 +218,7 @@ At layer 5, this resolves to `layer.5.self_attn.q_proj`.
 | Old Config | New Kernel Path |
 |------------|-----------------|
 | `q4kStrategy: "fused_q4k"` + `fusedFFNQ4K: true` | `gemma2-q4k-fused-f32a` (F16 activations) or `gemma2-q4k-fused-f32a` (F32 activations) |
-| `q4kStrategy: "dequant_f32"` | `gemma2-q4k-fused-f32a` |
+| `q4kStrategy: "dequant_f32"` | `gemma2-q4k-dequant-f32a` |
 | `q4kStrategy: "dequant_f16"` | `gemma2-q4k-dequant-f16a` |
 
 ## See Also

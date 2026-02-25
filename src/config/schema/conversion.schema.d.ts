@@ -85,6 +85,17 @@ export interface ConversionOptionsSchema {
   shardSize?: number;
   /** Converter config overrides */
   converterConfig?: ConverterConfigSchema;
+  /** Optional tensor transform adapter (e.g., worker pool) */
+  tensorTransformer?: (input: {
+    tensor: TensorInfoSchema;
+    tensorData: Uint8Array;
+    transformContext: Record<string, unknown>;
+    reportProgress?: (currentBytes: number, totalBytes: number) => void;
+  }) => Promise<{
+    tensorData: Uint8Array;
+    outDtype?: string;
+    outLayout?: string | null;
+  }>;
   /** Progress callback */
   onProgress?: (progress: ConversionProgressSchema) => void;
   /** Abort signal */
@@ -115,6 +126,9 @@ export interface ConversionProgressSchema {
   current?: number;
   total?: number;
   percent?: number;
+  tensorName?: string;
+  tensorBytesCurrent?: number;
+  tensorBytesTotal?: number;
   shardCount?: number;
   error?: Error;
 }

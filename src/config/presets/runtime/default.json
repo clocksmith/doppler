@@ -73,6 +73,28 @@
         "cache": {
           "dequantCacheMaxEntries": 8
         }
+      },
+      "session": {
+        "compute": {
+          "defaults": {
+            "activationDtype": "f16"
+          }
+        },
+        "kvcache": {
+          "layout": "contiguous",
+          "kvDtype": "f16",
+          "pageSize": 256
+        }
+      },
+      "kernelPathPolicy": {
+        "mode": "capability-aware",
+        "sourceScope": [
+          "model",
+          "manifest",
+          "config",
+          "execution-v0"
+        ],
+        "onIncompatible": "remap"
       }
     }
   }

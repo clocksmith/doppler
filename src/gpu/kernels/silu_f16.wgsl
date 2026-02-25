@@ -1,3 +1,5 @@
+// AUTO-GENERATED from src/gpu/kernels/silu.wgsl.
+// Edit the source kernel and tools/configs/wgsl-variants.js, then run `npm run kernels:generate`.
 // SiLU (Swish) Activation Kernel with F16 Input/Output
 //
 // F16 variant for reduced memory bandwidth when using F16 activations.

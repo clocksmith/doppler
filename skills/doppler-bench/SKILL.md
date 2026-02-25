@@ -64,10 +64,10 @@ npm run debug -- --model-id MODEL_ID --runtime-preset experiments/gemma3-profile
 
 ```bash
 # Raw Transformers.js benchmark with ORT op profiling summary
-node benchmarks/runners/transformersjs-bench.js --workload decode-64-128-greedy --cache-mode warm --profile-ops on --profile-top 20 --json
+node benchmarks/runners/transformersjs-bench.js --workload g3-p064-d064-t0-k1 --cache-mode warm --profile-ops on --profile-top 20 --json
 
 # Normalize result into vendor registry output
-node tools/vendor-bench.js run --target transformersjs --workload decode-64-128-greedy -- node benchmarks/runners/transformersjs-bench.js --workload decode-64-128-greedy --cache-mode warm --profile-ops on --profile-top 20 --json
+node tools/vendor-bench.js run --target transformersjs --workload g3-p064-d064-t0-k1 -- node benchmarks/runners/transformersjs-bench.js --workload g3-p064-d064-t0-k1 --cache-mode warm --profile-ops on --profile-top 20 --json
 ```
 
 ## Coverage Tracking (Bench vs Profile)

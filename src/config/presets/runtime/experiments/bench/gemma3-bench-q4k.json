@@ -1,5 +1,6 @@
 {
   "id": "experiments/bench/gemma3-bench-q4k",
+  "name": "gemma3-bench-q4k",
   "intent": "investigate",
   "stability": "experimental",
   "owner": "doppler-core",
@@ -50,6 +51,16 @@
       },
       "sampling": {
         "temperature": 0
+      },
+      "session": {
+        "decodeLoop": {
+          "batchSize": 1,
+          "stopCheckMode": "per-token",
+          "readbackInterval": 8,
+          "ringTokens": 1,
+          "ringStop": 1,
+          "ringStaging": 1
+        }
       }
     }
   }

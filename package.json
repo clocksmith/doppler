@@ -22,7 +22,9 @@
     "onboarding:scaffold": "node tools/onboarding-tooling.js scaffold",
     "bench:vendors:list": "node tools/vendor-bench.js list",
     "bench:vendors:validate": "node tools/vendor-bench.js validate",
-    "bench:vendors:matrix": "node tools/vendor-bench.js matrix"
+    "bench:vendors:matrix": "node tools/vendor-bench.js matrix",
+    "kernels:generate": "node tools/generate-wgsl.js",
+    "kernels:check": "node tools/generate-wgsl.js --check"
   },
   "exports": {
     ".": {

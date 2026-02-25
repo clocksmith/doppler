@@ -19,6 +19,7 @@ import {
 } from './command-runner-shared.js';
 import {
   getActiveKernelPath,
+  getActiveKernelPathPolicy,
   getActiveKernelPathSource,
   setActiveKernelPath,
 } from '../config/kernel-path-loader.js';
@@ -48,6 +49,7 @@ export async function runBrowserCommand(commandRequest, options = {}) {
     setRuntimeConfig,
     resetRuntimeConfig,
     getActiveKernelPath,
+    getActiveKernelPathPolicy,
     getActiveKernelPathSource,
     setActiveKernelPath,
   };

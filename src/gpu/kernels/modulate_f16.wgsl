@@ -1,3 +1,5 @@
+// AUTO-GENERATED from src/gpu/kernels/modulate.wgsl.
+// Edit the source kernel and tools/configs/wgsl-variants.js, then run `npm run kernels:generate`.
 // Modulate kernel (f16)
 // Applies per-channel affine and optional gating.
 
