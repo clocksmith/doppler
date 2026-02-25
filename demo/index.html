@@ -36,6 +36,7 @@
                 <div class="nav-label type-caption">Run</div>
                 <div class="segmented-control" id="mode-tabs">
                   <button class="btn segmented-btn mode-tab" data-mode="run" type="button">Text</button>
+                  <button class="btn segmented-btn mode-tab" data-mode="translate" type="button">Translate</button>
                   <button class="btn segmented-btn mode-tab" data-mode="embedding" type="button">Embedding</button>
                   <button class="btn segmented-btn mode-tab" data-mode="diffusion" type="button">
                     Image
@@ -70,7 +71,7 @@
       <main class="main-layout io-dotted">
         <div class="panel-grid" id="panel-grid" data-layout="empty">
           <div class="panel-stack panel-stack-primary">
-            <section class="panel run-panel" data-modes="run embedding">
+            <section class="panel run-panel" data-modes="run translate embedding">
               <h2 class="type-label" id="run-panel-title">Text Decoding</h2>
               <div id="run-empty-notice" class="model-empty-notice" hidden>
                 <span id="run-empty-notice-text" class="type-caption"></span>
@@ -458,10 +459,30 @@
               </div>
             </section>
 
-            <section class="panel run-controls-panel" data-modes="run embedding">
+            <section class="panel run-controls-panel" data-modes="run translate embedding">
               <div class="panel-title-row">
                 <h2 class="type-label" id="run-controls-title">Run Controls</h2>
                 <button class="btn btn-small" id="run-prompt-shuffle" type="button">Shuffle</button>
+              </div>
+              <div class="panel-subsection" id="translate-controls" hidden>
+                <div class="playground-row translate-lang-row">
+                  <div class="playground-field">
+                    <label class="type-caption" for="translate-source-language">Source language</label>
+                    <select id="translate-source-language" class="w-full"></select>
+                  </div>
+                  <div class="playground-field translate-swap-field">
+                    <label class="type-caption" for="translate-swap-btn">Direction</label>
+                    <button id="translate-swap-btn" class="btn btn-small" type="button">Swap</button>
+                  </div>
+                  <div class="playground-field">
+                    <label class="type-caption" for="translate-target-language">Target language</label>
+                    <select id="translate-target-language" class="w-full"></select>
+                  </div>
+                </div>
+                <div class="playground-field">
+                  <label class="type-caption" for="translate-open-tab-btn">Deep link</label>
+                  <button id="translate-open-tab-btn" class="btn btn-small" type="button">Open in New Tab</button>
+                </div>
               </div>
               <div class="playground-field">
                 <div class="playground-label-row">
@@ -813,7 +834,7 @@
               </div>
             </section>
 
-            <section class="panel live-panel keyvalue-panel" data-modes="run embedding diffusion energy">
+            <section class="panel live-panel keyvalue-panel" data-modes="run translate embedding diffusion energy">
               <div class="pulse-header">
                 <h2 class="type-label">Inference Pulse</h2>
                 <button id="pulse-reset-btn" class="btn btn-small" type="button">Reset</button>
@@ -860,7 +881,7 @@
                   <div id="run-log-rows"></div>
                 </div>
               </div>
-              <div class="panel-subsection pulse-section" data-modes="run">
+              <div class="panel-subsection pulse-section" data-modes="run translate">
                 <h3 class="pulse-subheader">KV Cache</h3>
                 <div class="stats-grid" id="stats-kv">
                   <div class="stat-item">

@@ -10,7 +10,8 @@
     "workload",
     "model",
     "metrics",
-    "source"
+    "source",
+    "environment"
   ],
   "properties": {
     "schemaVersion": { "type": "integer", "const": 1 },
@@ -69,10 +70,106 @@
           "type": ["array", "null"],
           "items": { "type": "string" }
         },
+        "host": {
+          "type": ["object", "null"],
+          "required": ["platform", "arch", "nodeVersion", "osRelease", "cpuModel"],
+          "properties": {
+            "platform": { "type": ["string", "null"] },
+            "arch": { "type": ["string", "null"] },
+            "nodeVersion": { "type": ["string", "null"] },
+            "osRelease": { "type": ["string", "null"] },
+            "cpuModel": { "type": ["string", "null"] }
+          },
+          "additionalProperties": false
+        },
         "rawSha256": { "type": ["string", "null"] },
         "rawBytes": { "type": ["integer", "null"] }
       },
       "additionalProperties": true
+    },
+    "environment": {
+      "type": "object",
+      "required": ["host", "browser", "gpu", "runtime"],
+      "properties": {
+        "host": {
+          "type": "object",
+          "required": ["platform", "arch", "nodeVersion", "osRelease", "cpuModel"],
+          "properties": {
+            "platform": { "type": ["string", "null"] },
+            "arch": { "type": ["string", "null"] },
+            "nodeVersion": { "type": ["string", "null"] },
+            "osRelease": { "type": ["string", "null"] },
+            "cpuModel": { "type": ["string", "null"] }
+          },
+          "additionalProperties": false
+        },
+        "browser": {
+          "type": "object",
+          "required": ["userAgent", "platform", "language", "vendor", "executable", "channel"],
+          "properties": {
+            "userAgent": { "type": ["string", "null"] },
+            "platform": { "type": ["string", "null"] },
+            "language": { "type": ["string", "null"] },
+            "vendor": { "type": ["string", "null"] },
+            "executable": { "type": ["string", "null"] },
+            "channel": { "type": ["string", "null"] }
+          },
+          "additionalProperties": false
+        },
+        "gpu": {
+          "type": "object",
+          "required": [
+            "api",
+            "backend",
+            "vendor",
+            "architecture",
+            "device",
+            "description",
+            "hasF16",
+            "hasSubgroups",
+            "hasTimestampQuery"
+          ],
+          "properties": {
+            "api": { "type": ["string", "null"] },
+            "backend": { "type": ["string", "null"] },
+            "vendor": { "type": ["string", "null"] },
+            "architecture": { "type": ["string", "null"] },
+            "device": { "type": ["string", "null"] },
+            "description": { "type": ["string", "null"] },
+            "hasF16": { "type": ["boolean", "null"] },
+            "hasSubgroups": { "type": ["boolean", "null"] },
+            "hasTimestampQuery": { "type": ["boolean", "null"] }
+          },
+          "additionalProperties": false
+        },
+        "runtime": {
+          "type": "object",
+          "required": [
+            "library",
+            "version",
+            "surface",
+            "device",
+            "dtype",
+            "requestedDtype",
+            "executionProviderMode",
+            "cacheMode",
+            "loadMode"
+          ],
+          "properties": {
+            "library": { "type": ["string", "null"] },
+            "version": { "type": ["string", "null"] },
+            "surface": { "type": ["string", "null"] },
+            "device": { "type": ["string", "null"] },
+            "dtype": { "type": ["string", "null"] },
+            "requestedDtype": { "type": ["string", "null"] },
+            "executionProviderMode": { "type": ["string", "null"] },
+            "cacheMode": { "type": ["string", "null"] },
+            "loadMode": { "type": ["string", "null"] }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
     },
     "notes": { "type": ["string", "null"] },
     "metadata": {

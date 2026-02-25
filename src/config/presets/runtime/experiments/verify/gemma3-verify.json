@@ -1,5 +1,10 @@
 {
-  "extends": "bench",
+  "id": "experiments/verify/gemma3-verify",
+  "intent": "verify",
+  "stability": "experimental",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-02-25T00:00:00Z",
+  "extends": "modes/bench",
   "model": "gemma-3-1b-it-f16-f16a",
   "runtime": {
     "shared": {

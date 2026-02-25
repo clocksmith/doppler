@@ -55,7 +55,7 @@ function usage() {
     '  node tools/onboarding-tooling.js check --strict',
     '  node tools/onboarding-tooling.js scaffold --kind model --id gemma3-my-new-model',
     '  node tools/onboarding-tooling.js scaffold --kind conversion --id gemma3-my-new-model --family gemma3 --preset gemma3',
-    '  node tools/onboarding-tooling.js scaffold --kind kernel --id gemma3-f16-f16a-audit --status experimental',
+    '  node tools/onboarding-tooling.js scaffold --kind kernel --id gemma3-f16-fused-f16a-online-audit --status experimental',
     '  node tools/onboarding-tooling.js scaffold --kind behavior --id super-flash-memory-15-0',
     '',
     'Notes:',
@@ -465,7 +465,7 @@ async function validateKernelPathRegistry(root, issues, context) {
       issues.push(toIssue(WARN, 'KERNEL_PATH_STEPS', `${kernelFile}.prefill`, 'prefill.steps missing or empty'));
     }
 
-    const validateSteps = (sectionName, steps) => {
+    const validateSteps = async (sectionName, steps) => {
       if (!Array.isArray(steps)) return;
       for (let index = 0; index < steps.length; index += 1) {
         const step = steps[index];
@@ -506,11 +506,11 @@ async function validateKernelPathRegistry(root, issues, context) {
         }
       }
     };
-    validateSteps('decode', decodeSteps);
-    validateSteps('prefill', prefillSteps);
-    validateSteps('preLayer', kernelPathPayload.preLayer);
-    validateSteps('postLayer', kernelPathPayload.postLayer);
-    validateSteps('sampling', kernelPathPayload.sampling);
+    await validateSteps('decode', decodeSteps);
+    await validateSteps('prefill', prefillSteps);
+    await validateSteps('preLayer', kernelPathPayload.preLayer);
+    await validateSteps('postLayer', kernelPathPayload.postLayer);
+    await validateSteps('sampling', kernelPathPayload.sampling);
   }
 
   return { ids, statusById };

@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Vendor Benchmark Workloads",
+  "type": "object",
+  "required": ["schemaVersion", "workloads"],
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "const": 1
+    },
+    "defaults": {
+      "type": "object",
+      "properties": {
+        "compareEngines": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]*$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "workloads": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "prefillTokens", "decodeTokens", "sampling"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]*$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "prefillTokens": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "decodeTokens": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "sampling": {
+            "type": "object",
+            "required": ["temperature", "topK", "topP"],
+            "properties": {
+              "temperature": {
+                "type": "number",
+                "minimum": 0
+              },
+              "topK": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "topP": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "maximum": 1
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

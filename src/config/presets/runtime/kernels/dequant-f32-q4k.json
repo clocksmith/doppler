@@ -1,6 +1,11 @@
 {
+  "id": "kernels/dequant-f32-q4k",
   "name": "dequant-f32-q4k",
   "description": "Use dequant-to-F32 kernel path. Separate matmuls, no fused FFN. Best accuracy, slowest.",
+  "intent": "investigate",
+  "stability": "canonical",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-02-25T00:00:00Z",
   "extends": "default",
   "runtime": {
     "inference": {
@@ -10,7 +15,7 @@
       "kvcache": {
         "kvDtype": "f32"
       },
-      "kernelPath": "gemma2-q4k-dequant-f32a"
+      "kernelPath": "gemma2-q4k-fused-f32a"
     }
   }
 }

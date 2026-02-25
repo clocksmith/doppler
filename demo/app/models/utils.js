@@ -20,20 +20,26 @@ export function isCompatibleModelType(modelType, mode) {
   if (mode === 'embedding') {
     return normalized === 'embedding';
   }
-  if (mode === 'run') {
+  if (mode === 'run' || mode === 'translate') {
     return normalized !== 'diffusion' && normalized !== 'energy' && normalized !== 'embedding';
   }
   return true;
 }
 
 export function isModeModelSelectable(mode) {
-  return mode === 'run' || mode === 'embedding' || mode === 'diffusion' || mode === 'energy' || mode === 'kernels';
+  return mode === 'run'
+    || mode === 'translate'
+    || mode === 'embedding'
+    || mode === 'diffusion'
+    || mode === 'energy'
+    || mode === 'kernels';
 }
 
 export function getModeModelLabel(mode) {
   if (mode === 'diffusion') return 'diffusion';
   if (mode === 'energy') return 'energy';
   if (mode === 'embedding') return 'embedding';
+  if (mode === 'translate') return 'translation';
   if (mode === 'run') return 'text';
   if (mode === 'kernels' || mode === 'diagnostics' || mode === 'models') return 'models';
   return 'local';

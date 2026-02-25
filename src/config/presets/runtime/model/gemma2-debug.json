@@ -1,6 +1,11 @@
 {
+  "id": "model/gemma2-debug",
   "name": "gemma2-debug",
   "description": "Gemma 2 probe-focused debugging with targeted trace categories",
+  "intent": "investigate",
+  "stability": "canonical",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-02-25T00:00:00Z",
   "extends": "modes/debug",
   "runtime": {
     "inference": {
@@ -15,24 +20,45 @@
       "debug": {
         "trace": {
           "enabled": true,
-          "categories": ["ffn", "attn", "logits"],
-          "layers": [0, 17, 25],
+          "categories": [
+            "ffn",
+            "attn",
+            "logits"
+          ],
+          "layers": [
+            0,
+            17,
+            25
+          ],
           "maxDecodeSteps": 20
         },
         "probes": [
           {
             "id": "dim334-layer-out",
             "stage": "layer_out",
-            "layers": [0, 17, 25],
-            "tokens": [0, -1],
-            "dims": [334]
+            "layers": [
+              0,
+              17,
+              25
+            ],
+            "tokens": [
+              0,
+              -1
+            ],
+            "dims": [
+              334
+            ]
           },
           {
             "id": "dim334-final-norm",
             "stage": "final_norm",
             "layers": null,
-            "tokens": [-1],
-            "dims": [334]
+            "tokens": [
+              -1
+            ],
+            "dims": [
+              334
+            ]
           }
         ]
       }

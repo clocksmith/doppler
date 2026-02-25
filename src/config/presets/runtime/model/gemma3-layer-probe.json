@@ -1,6 +1,11 @@
 {
+  "id": "model/gemma3-layer-probe",
   "name": "gemma3-layer-probe",
   "description": "Probe layer outputs to compare against HuggingFace reference",
+  "intent": "investigate",
+  "stability": "canonical",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-02-25T00:00:00Z",
   "extends": "modes/debug",
   "runtime": {
     "inference": {
@@ -13,28 +18,65 @@
       "debug": {
         "trace": {
           "enabled": true,
-          "categories": ["embed", "attn", "logits"],
-          "layers": [0],
+          "categories": [
+            "embed",
+            "attn",
+            "logits"
+          ],
+          "layers": [
+            0
+          ],
           "maxDecodeSteps": 1
         },
         "probes": [
           {
             "id": "embed",
             "stage": "embed_out",
-            "tokens": [-1],
-            "dims": [0, 1, 2, 3, 4, 5, 6, 7]
+            "tokens": [
+              -1
+            ],
+            "dims": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ]
           },
           {
             "id": "final-norm",
             "stage": "final_norm",
-            "tokens": [-1],
-            "dims": [0, 1, 2, 3, 4, 5, 6, 7]
+            "tokens": [
+              -1
+            ],
+            "dims": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ]
           },
           {
             "id": "logits",
             "stage": "logits",
-            "tokens": [-1],
-            "dims": [138, 3730, 4781, 3187, 496, 506]
+            "tokens": [
+              -1
+            ],
+            "dims": [
+              138,
+              3730,
+              4781,
+              3187,
+              496,
+              506
+            ]
           }
         ]
       }

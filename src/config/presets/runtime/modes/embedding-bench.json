@@ -1,6 +1,11 @@
 {
+  "id": "modes/embedding-bench",
   "name": "embedding-bench",
   "description": "Benchmark preset for stable embedding runs",
+  "intent": "investigate",
+  "stability": "canonical",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-02-25T00:00:00Z",
   "extends": "modes/embedding",
   "runtime": {
     "shared": {

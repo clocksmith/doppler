@@ -23,7 +23,7 @@ runtimeConfig.inference.compute.activationDtype = 'f16';
 
 const planState = compileExecutionPlanState({
   runtimeConfig,
-  resolvedKernelPath: resolveKernelPath('gemma3-f16-f16a'),
+  resolvedKernelPath: resolveKernelPath('gemma3-f16-fused-f16a-online'),
   kernelPathSource: 'model',
 });
 
@@ -38,7 +38,7 @@ const container = { executionPlanState: planState };
   const active = resolveActiveExecutionPlan(container);
   assert.equal(active.id, 'primary');
   assert.equal(active.activationDtype, 'f16');
-  assert.equal(active.kernelPathId, 'gemma3-f16-f16a');
+  assert.equal(active.kernelPathId, 'gemma3-f16-fused-f16a-online');
   assert.equal(active.finitenessGuardEnabled, true);
 }
 
@@ -47,7 +47,7 @@ const container = { executionPlanState: planState };
   assert.ok(fallback);
   assert.equal(fallback.id, 'finiteness_fallback');
   assert.equal(fallback.activationDtype, 'f32');
-  assert.equal(fallback.kernelPathId, 'gemma3-f16-f32a');
+  assert.equal(fallback.kernelPathId, 'gemma3-f16-fused-f32a-online');
   const active = resolveActiveExecutionPlan(container);
   assert.equal(active.id, 'finiteness_fallback');
   const activeFromPlanState = resolveActiveExecutionPlan(planState);
@@ -127,7 +127,7 @@ const container = { executionPlanState: planState };
   runtimeConfigNoFallback.inference.compute.activationDtype = 'f32';
   const noFallbackPlanState = compileExecutionPlanState({
     runtimeConfig: runtimeConfigNoFallback,
-    resolvedKernelPath: resolveKernelPath('gemma3-f16-f32a'),
+    resolvedKernelPath: resolveKernelPath('gemma3-f16-fused-f32a-online'),
     kernelPathSource: 'model',
   });
 

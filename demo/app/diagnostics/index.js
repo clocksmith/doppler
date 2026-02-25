@@ -95,7 +95,7 @@ function getDiagnosticsPresetOrderForSuite(suite, presetIds, mode, modelType) {
   } else {
     if (key === 'debug') {
       preferred = 'modes/debug';
-    } else if (key === 'inference' && mode === 'run') {
+    } else if (key === 'inference' && (mode === 'run' || mode === 'translate')) {
       // Keep Run tab generation aligned with the default UI auto values.
       preferred = 'modes/debug';
     } else {
@@ -438,7 +438,15 @@ export async function refreshDiagnosticsRuntimeConfig(presetId) {
 }
 
 export async function syncDiagnosticsDefaultsForMode(mode) {
-  if (mode !== 'run' && mode !== 'embedding' && mode !== 'diffusion' && mode !== 'energy' && mode !== 'diagnostics' && mode !== 'kernels') {
+  if (
+    mode !== 'run'
+    && mode !== 'translate'
+    && mode !== 'embedding'
+    && mode !== 'diffusion'
+    && mode !== 'energy'
+    && mode !== 'diagnostics'
+    && mode !== 'kernels'
+  ) {
     return;
   }
   const profileSelect = $('diagnostics-profile');

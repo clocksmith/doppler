@@ -137,26 +137,17 @@ export interface KernelPathSchema {
  * These are the known preset IDs, but custom presets can also be registered.
  */
 export type BuiltinKernelPathId =
-  | 'gemma2-q4k-fused-f16a'   // Gemma 2 Q4K weights, fused matmul, F16 activations
-  | 'gemma2-q4k-fused-f16a-wg128' // Gemma 2 Q4K fused matmul, WG128 decode tuning
   | 'gemma2-q4k-fused-f32a'   // Gemma 2 Q4K weights, fused matmul, F32 activations
   | 'gemma2-q4k-dequant-f16a' // Gemma 2 Q4K -> F16 dequant, F16 activations
-  | 'gemma2-q4k-dequant-f32a' // Gemma 2 Q4K -> F32 dequant, F32 activations
   | 'gemma2-f16-f16a'         // Gemma 2 F16 weights, F16 activations
   | 'gemma2-f16-f32a'         // Gemma 2 F16 weights, F32 activations
-  | 'gemma3-f16-f16a'         // Gemma 3 F16 baseline path
-  | 'gemma3-f16-f32a'         // Gemma 3 F16 weights, F32 activations
-  | 'gemma3-f16-f16a-online'  // Gemma 3 F16 online attention path
   | 'gemma3-f16-fused-f16a-online' // Gemma 3 F16 fused FFN online path
   | 'gemma3-f16-fused-f32a-online' // Gemma 3 F16 fused FFN online path with F32 activations
-  | 'gemma3-q4k-fused-f16a'   // Gemma 3 legacy fused alias (maps to dequant path)
-  | 'gemma3-q4k-dequant-f16a' // Gemma 3 Q4K dequant path
+  | 'gemma3-q4k-dequant-f16a-online' // Gemma 3 Q4K dequant online path (F16 activations)
+  | 'gemma3-q4k-dequant-f32a-online' // Gemma 3 Q4K dequant online path with F32 activations
   | 'gemma3-q4k-dequant-f32a' // Gemma 3 Q4K dequant path with F32 activations
-  | 'embeddinggemma-f16-f16a' // EmbeddingGemma legacy alias (maps to f32 activations)
   | 'embeddinggemma-f16-f32a' // EmbeddingGemma F16 weights, F32 activations
   | 'embeddinggemma-f32-f32a' // EmbeddingGemma F32 weights, F32 activations
-  | 'embeddinggemma-q4k-fused-f16a' // EmbeddingGemma legacy alias (maps to f32 activations)
-  | 'embeddinggemma-q4k-dequant-f16a' // EmbeddingGemma legacy alias (maps to f32 activations)
   | 'embeddinggemma-q4k-dequant-f32a'; // EmbeddingGemma Q4K dequant, F32 activations
 
 /**

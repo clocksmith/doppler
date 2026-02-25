@@ -1,32 +1,32 @@
 #!/usr/bin/env python3
-"""
-GPT-OSS MoE benchmark ratchet scaffold.
+"""GPT-OSS MoE benchmark ratchet scaffold.
 
-Runs Doppler bench command and emits a JSON summary that can be tracked in CI.
+Runs Doppler bench via the current CLI contract and emits a JSON summary.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
-import re
 import subprocess
 import sys
 from pathlib import Path
 
-METRIC_PATTERNS = {
-    "first_token_ms": re.compile(r"First token\s*:\s*([0-9.]+)ms", re.IGNORECASE),
-    "tokens_per_s": re.compile(r"Generated\s*:\s*[0-9]+\s*tokens\s*\(([0-9.]+) tok/s\)", re.IGNORECASE),
-}
-
-
-def parse_metrics(output: str) -> dict[str, float | None]:
-    metrics: dict[str, float | None] = {"first_token_ms": None, "tokens_per_s": None}
-    for key, pattern in METRIC_PATTERNS.items():
-        match = pattern.search(output)
-        if match:
-            metrics[key] = float(match.group(1))
-    return metrics
+def parse_json_payload(output: str) -> dict | None:
+    text = (output or "").strip()
+    if not text:
+        return None
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        start = text.find("{")
+        end = text.rfind("}")
+        if start < 0 or end <= start:
+            return None
+        try:
+            return json.loads(text[start : end + 1])
+        except json.JSONDecodeError:
+            return None
 
 
 def main() -> int:
@@ -41,11 +41,12 @@ def main() -> int:
     cmd = [
         "npm",
         "run",
+        "--silent",
         "bench",
         "--",
-        "--config",
+        "--runtime-preset",
         args.runtime_preset,
-        "-m",
+        "--model-id",
         args.model,
         "--prompt",
         args.prompt,
@@ -55,19 +56,35 @@ def main() -> int:
         "1",
         "--warmup",
         "1",
+        "--json",
     ]
 
     proc = subprocess.run(cmd, capture_output=True, text=True)
     output = (proc.stdout or "") + "\n" + (proc.stderr or "")
-    metrics = parse_metrics(output)
+    parsed = parse_json_payload(proc.stdout or "")
+    bench_result = parsed.get("result") if isinstance(parsed, dict) else None
+    bench_metrics = bench_result.get("metrics") if isinstance(bench_result, dict) else {}
+
+    metrics = {
+        "first_token_ms": bench_metrics.get("firstTokenMs"),
+        "decode_tokens_per_s": bench_metrics.get("decodeTokensPerSec"),
+        "prefill_tokens_per_s": bench_metrics.get("prefillTokensPerSec"),
+        "model_load_ms": bench_metrics.get("modelLoadMs"),
+    }
 
     payload = {
+        "schemaVersion": 1,
         "model": args.model,
         "runtimePreset": args.runtime_preset,
         "prompt": args.prompt,
         "maxTokens": args.max_tokens,
+        "command": cmd,
         "returnCode": proc.returncode,
         "metrics": metrics,
+        "parseError": None if parsed is not None else "failed to parse bench JSON output",
+        "benchResult": bench_result if isinstance(bench_result, dict) else None,
+        "stdoutTail": (proc.stdout or "")[-1200:],
+        "stderrTail": (proc.stderr or "")[-1200:],
     }
 
     out_path = Path(args.output)

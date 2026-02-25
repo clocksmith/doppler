@@ -34,10 +34,13 @@ Claim format to keep reports auditable:
   - includes `defaults.compareEngines`, used by `tools/compare-engines.js` when no explicit workload/prompt/token lengths are passed.
 - `capabilities.json`: capability matrix for bench/profiling coverage by target.
 - `harnesses/*.json`: one harness definition per vendor.
-- `schema/*.json`: schemas for registry, harness, capabilities, metric contract, and normalized result records.
+- `schema/*.json`: schemas for registry, workloads, harness, capabilities, metric contract, and normalized result records.
 - `schema/compare-engines-config.schema.json`: schema for `compare-engines.config.json`.
+- `schema/release-matrix.schema.json`: schema for generated release/support matrix payload.
 - `results/`: normalized comparison outputs.
+- `fixtures/`: committed sample compare payloads for clean-checkout chart/matrix smoke checks.
 - `compare-metrics.json`: shared compare metric contract for CLI and harness-driven extraction.
+- `release-matrix.json`: generated release/support matrix from registry + workloads + capabilities + model catalog (+ optional latest compare JSON).
 
 ## Closed Workstream Snapshot (2026-02-22 UTC)
 
@@ -62,11 +65,18 @@ Use `tools/vendor-bench.js`:
 - `node tools/vendor-bench.js capabilities`
 - `node tools/vendor-bench.js capabilities --target transformersjs`
 - `node tools/vendor-bench.js gap --base doppler --target transformersjs`
+- `node tools/vendor-bench.js matrix`
+- `node tools/vendor-bench.js matrix --compare-result benchmarks/vendors/results/<compare-run>.json`
 - `node tools/vendor-bench.js show --target webllm`
 - `node tools/vendor-bench.js import --target webllm --input /tmp/webllm-result.json`
 - `node tools/vendor-bench.js run --target webllm --workload decode-64-128-greedy -- node ./path/to/runner.js`
 
 `import` and `run` both produce normalized records under `benchmarks/vendors/results/` unless `--output` is specified.
+`matrix` writes `benchmarks/vendors/release-matrix.json` and `docs/release-matrix.md`.
+`matrix` auto-discovers compare JSON artifacts under `benchmarks/vendors/fixtures/` and `benchmarks/vendors/results/` (files containing `compare` in the name), then links those runs in the workloads/evidence markdown sections.
+Workload rows in the markdown include a `GPU/OS/Platform` column derived from each linked compare artifact's runtime environment metadata.
+When `--compare-result` is provided, matrix generation also captures host/browser/GPU specs from that compare payload.
+`tools/compare-engines.js --save` now refreshes release-matrix artifacts automatically (use `--skip-matrix-update` to opt out).
 
 ## Normalization Notes
 
@@ -83,7 +93,10 @@ Use `tools/vendor-bench.js`:
   - `decodeMsPerTokenP95`
   - `decodeMsPerTokenP99`
 - `cacheMode` and `loadMode` are required under each run's `timing` object (`cacheMode`: `cold|warm`, `loadMode`: `opfs|http|memory`).
-- Harness mappings are now one-path canonical only (`normalization.metricPaths` / `metadataPaths` entries are single-string arrays). Mixed fallbacks are rejected by schema.
+- Normalized result records now require a canonical `environment` block (`host`, `browser`, `gpu`, `runtime`) so platform/hardware context is always captured in benchmark JSON.
+- For `vendor-bench run`, missing core environment capture fields fail normalization (`host`, browser identity, GPU identity, backend, runtime device/library).
+- Harness mappings allow ordered fallback path arrays (`normalization.metricPaths` / `metadataPaths`).
+- Path order is canonicalized in harness files and validated before comparison.
 - Metric paths are canonicalized through `benchmarks/vendors/harnesses/*.json` and validated as required before any comparison.
 - `tools/compare-engines.js` defaults to `--decode-profile parity` (Doppler `batchSize=1`, `readbackInterval=1`) for closer Transformers.js decode cadence matching; use `--decode-profile throughput` for Doppler-tuned runs.
 
@@ -92,9 +105,30 @@ Use `tools/vendor-bench.js`:
 Use `benchmarks/vendors/compare-chart.js` to turn a saved compare result file into an SVG:
 
 ```bash
-node benchmarks/vendors/compare-chart.js --input benchmarks/vendors/results/compare_latest.json
-node benchmarks/vendors/compare-chart.js --input benchmarks/vendors/results/compare_latest.json --chart stacked
-node benchmarks/vendors/compare-chart.js --input benchmarks/vendors/results/compare_latest.json --chart radar --section compute/parity
+node benchmarks/vendors/compare-chart.js --input benchmarks/vendors/fixtures/sample-compare.json
+node benchmarks/vendors/compare-chart.js --input benchmarks/vendors/fixtures/sample-compare.json --chart stacked
+node benchmarks/vendors/compare-chart.js --input benchmarks/vendors/fixtures/sample-compare.json --chart radar --section compute/parity
 ```
 
 Use `--section` to choose the section, `--chart` (`bar|stacked|radar`) to pick the renderer, and `--metrics` to limit metric IDs.
+
+## Change Checklist
+
+Add a vendor target:
+- Update `benchmarks/vendors/registry.json` with the product entry and harness path.
+- Add/update capability flags + evidence in `benchmarks/vendors/capabilities.json`.
+- Add a harness definition in `benchmarks/vendors/harnesses/<vendor>.json`.
+- Run `node tools/vendor-bench.js validate` and fix schema/shape violations.
+- Update this README if workflow/coverage expectations changed.
+
+Add a workload:
+- Add the workload row in `benchmarks/vendors/workloads.json`.
+- Ensure it passes `benchmarks/vendors/schema/workloads.schema.json`.
+- If it should be the default, update `defaults.compareEngines`.
+- Run `node tools/vendor-bench.js validate`.
+
+Add or rename a compare metric:
+- Update `benchmarks/vendors/compare-metrics.json` (id/label/unit/higherBetter/required).
+- Ensure harness path mappings are present in both Doppler and Transformers.js harness files.
+- Run `node tools/compare-engines.js --help` sanity checks and a sample compare run.
+- Regenerate chart artifacts if metric display is expected in committed visuals.

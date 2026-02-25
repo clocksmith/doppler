@@ -24,6 +24,12 @@ export interface RoPEConfigSchema {
   /** RoPE scaling factor */
   ropeScalingFactor?: number;
 
+  /** Local RoPE scaling type for sliding window layers */
+  ropeLocalScalingType?: 'linear' | 'dynamic' | 'yarn' | null;
+
+  /** Local RoPE scaling factor for sliding window layers */
+  ropeLocalScalingFactor?: number;
+
   /** YARN beta_fast parameter */
   yarnBetaFast?: number;
 
@@ -32,6 +38,15 @@ export interface RoPEConfigSchema {
 
   /** YARN original max position embeddings */
   yarnOriginalMaxPos?: number;
+
+  /** Local YARN beta_fast parameter */
+  ropeLocalYarnBetaFast?: number;
+
+  /** Local YARN beta_slow parameter */
+  ropeLocalYarnBetaSlow?: number;
+
+  /** Local YARN original max position embeddings */
+  ropeLocalYarnOriginalMaxPos?: number;
 }
 
 /** Attention mechanism configuration */

@@ -1,21 +1,64 @@
 {
+  "id": "model/gemma2-pipeline-debug",
   "name": "gemma2-pipeline-debug",
   "description": "Gemma 2 explicit pipeline with focused trace/probes",
+  "intent": "investigate",
+  "stability": "canonical",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-02-25T00:00:00Z",
   "extends": "model/gemma2-debug",
   "runtime": {
     "inference": {
       "pipeline": {
         "steps": [
-          { "op": "save", "name": "residual" },
-          { "op": "rmsnorm", "weight": "input" },
-          { "op": "attention", "skipInputNorm": true, "probeStage": "attn_out" },
-          { "op": "rmsnorm", "weight": "post_attn", "probeStage": "post_attn" },
-          { "op": "residual_add", "a": "state", "b": "residual", "probeStage": "post_attn" },
-          { "op": "save", "name": "residual" },
-          { "op": "rmsnorm", "weight": "pre_ffn", "probeStage": "ffn_in" },
-          { "op": "ffn", "probeStage": "ffn_out" },
-          { "op": "rmsnorm", "weight": "post_ffn", "probeStage": "ffn_out" },
-          { "op": "residual_add", "a": "state", "b": "residual", "probeStage": "layer_out" }
+          {
+            "op": "save",
+            "name": "residual"
+          },
+          {
+            "op": "rmsnorm",
+            "weight": "input"
+          },
+          {
+            "op": "attention",
+            "skipInputNorm": true,
+            "probeStage": "attn_out"
+          },
+          {
+            "op": "rmsnorm",
+            "weight": "post_attn",
+            "probeStage": "post_attn"
+          },
+          {
+            "op": "residual_add",
+            "a": "state",
+            "b": "residual",
+            "probeStage": "post_attn"
+          },
+          {
+            "op": "save",
+            "name": "residual"
+          },
+          {
+            "op": "rmsnorm",
+            "weight": "pre_ffn",
+            "probeStage": "ffn_in"
+          },
+          {
+            "op": "ffn",
+            "probeStage": "ffn_out"
+          },
+          {
+            "op": "rmsnorm",
+            "weight": "post_ffn",
+            "probeStage": "ffn_out"
+          },
+          {
+            "op": "residual_add",
+            "a": "state",
+            "b": "residual",
+            "probeStage": "layer_out"
+          }
         ]
       }
     }

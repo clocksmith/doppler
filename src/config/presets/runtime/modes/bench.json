@@ -1,6 +1,11 @@
 {
+  "id": "modes/bench",
   "name": "bench",
   "description": "Benchmark configuration with clean output and performance settings",
+  "intent": "calibrate",
+  "stability": "canonical",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-02-25T00:00:00Z",
   "extends": "default",
   "runtime": {
     "shared": {

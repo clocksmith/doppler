@@ -385,7 +385,7 @@ The `optimizations` field is legacy metadata. Runtime kernel selection reads
 ```json
 {
   "optimizations": {
-    "kernelPath": "gemma2-q4k-fused-f16a"
+    "kernelPath": "gemma2-q4k-fused-f32a"
   }
 }
 ```

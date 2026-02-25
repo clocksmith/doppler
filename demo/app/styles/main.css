@@ -201,6 +201,7 @@
     }
 
     #app[data-mode="run"] .panel-grid,
+    #app[data-mode="translate"] .panel-grid,
     #app[data-mode="embedding"] .panel-grid,
     #app[data-mode="diffusion"] .panel-grid,
     #app[data-mode="energy"] .panel-grid,
@@ -211,6 +212,7 @@
     }
 
     #app[data-mode="run"] .panel-stack-primary,
+    #app[data-mode="translate"] .panel-stack-primary,
     #app[data-mode="embedding"] .panel-stack-primary,
     #app[data-mode="diffusion"] .panel-stack-primary,
     #app[data-mode="energy"] .panel-stack-primary,
@@ -221,6 +223,7 @@
     }
 
     #app[data-mode="run"] .panel-stack-rail,
+    #app[data-mode="translate"] .panel-stack-rail,
     #app[data-mode="embedding"] .panel-stack-rail,
     #app[data-mode="diffusion"] .panel-stack-rail,
     #app[data-mode="energy"] .panel-stack-rail,
@@ -275,6 +278,7 @@
 
     /* Main tabs: 3-column shell with Inference Pulse in right rail */
     #app[data-mode="run"] .panel-grid,
+    #app[data-mode="translate"] .panel-grid,
     #app[data-mode="embedding"] .panel-grid,
     #app[data-mode="diffusion"] .panel-grid,
     #app[data-mode="energy"] .panel-grid {
@@ -282,6 +286,7 @@
     }
 
     #app[data-mode="run"] .panel-stack-controls,
+    #app[data-mode="translate"] .panel-stack-controls,
     #app[data-mode="embedding"] .panel-stack-controls,
     #app[data-mode="diffusion"] .panel-stack-controls,
     #app[data-mode="energy"] .panel-stack-controls {
@@ -290,6 +295,7 @@
     }
 
     #app[data-mode="run"] .panel-stack-primary,
+    #app[data-mode="translate"] .panel-stack-primary,
     #app[data-mode="embedding"] .panel-stack-primary,
     #app[data-mode="diffusion"] .panel-stack-primary,
     #app[data-mode="energy"] .panel-stack-primary {
@@ -298,6 +304,7 @@
     }
 
     #app[data-mode="run"] .panel-stack-rail,
+    #app[data-mode="translate"] .panel-stack-rail,
     #app[data-mode="embedding"] .panel-stack-rail,
     #app[data-mode="diffusion"] .panel-stack-rail,
     #app[data-mode="energy"] .panel-stack-rail {
@@ -337,6 +344,7 @@
       }
 
       #app[data-mode="run"] .panel-grid,
+      #app[data-mode="translate"] .panel-grid,
       #app[data-mode="embedding"] .panel-grid,
       #app[data-mode="diffusion"] .panel-grid,
       #app[data-mode="energy"] .panel-grid {
@@ -344,6 +352,7 @@
       }
 
       #app[data-mode="run"] .panel-stack-primary,
+      #app[data-mode="translate"] .panel-stack-primary,
       #app[data-mode="embedding"] .panel-stack-primary,
       #app[data-mode="diffusion"] .panel-stack-primary,
       #app[data-mode="energy"] .panel-stack-primary {
@@ -352,6 +361,7 @@
       }
 
       #app[data-mode="run"] .panel-stack-controls,
+      #app[data-mode="translate"] .panel-stack-controls,
       #app[data-mode="embedding"] .panel-stack-controls,
       #app[data-mode="diffusion"] .panel-stack-controls,
       #app[data-mode="energy"] .panel-stack-controls {
@@ -360,6 +370,7 @@
       }
 
       #app[data-mode="run"] .panel-stack-rail,
+      #app[data-mode="translate"] .panel-stack-rail,
       #app[data-mode="embedding"] .panel-stack-rail,
       #app[data-mode="diffusion"] .panel-stack-rail,
       #app[data-mode="energy"] .panel-stack-rail {
@@ -398,6 +409,7 @@
     }
 
     #app[data-mode="run"] [data-modes]:not([data-modes~="run"]),
+    #app[data-mode="translate"] [data-modes]:not([data-modes~="translate"]),
     #app[data-mode="embedding"] [data-modes]:not([data-modes~="embedding"]),
     #app[data-mode="models"] [data-modes]:not([data-modes~="models"]),
     #app[data-mode="diagnostics"] [data-modes]:not([data-modes~="diagnostics"]),
@@ -573,6 +585,16 @@
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
       gap: var(--space-xs);
+    }
+
+    .translate-lang-row {
+      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+      align-items: end;
+    }
+
+    .translate-swap-field {
+      width: 96px;
+      justify-content: flex-end;
     }
 
     .playground-actions {
@@ -1460,6 +1482,7 @@
 
       .panel-grid,
       #app[data-mode="run"] .panel-grid,
+      #app[data-mode="translate"] .panel-grid,
       #app[data-mode="embedding"] .panel-grid,
       #app[data-mode="diffusion"] .panel-grid,
       #app[data-mode="energy"] .panel-grid,
@@ -1481,6 +1504,7 @@
       }
 
       #app[data-mode="run"] .panel-stack-primary,
+      #app[data-mode="translate"] .panel-stack-primary,
       #app[data-mode="embedding"] .panel-stack-primary,
       #app[data-mode="diffusion"] .panel-stack-primary,
       #app[data-mode="energy"] .panel-stack-primary,
@@ -1492,6 +1516,7 @@
       }
 
       #app[data-mode="run"] .panel-stack-controls,
+      #app[data-mode="translate"] .panel-stack-controls,
       #app[data-mode="embedding"] .panel-stack-controls,
       #app[data-mode="diffusion"] .panel-stack-controls,
       #app[data-mode="energy"] .panel-stack-controls {
@@ -1500,6 +1525,7 @@
       }
 
       #app[data-mode="run"] .panel-stack-rail,
+      #app[data-mode="translate"] .panel-stack-rail,
       #app[data-mode="embedding"] .panel-stack-rail,
       #app[data-mode="diffusion"] .panel-stack-rail,
       #app[data-mode="energy"] .panel-stack-rail {

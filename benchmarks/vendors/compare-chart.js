@@ -2,77 +2,82 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const CHART_TYPES = Object.freeze(['bar', 'stacked', 'radar', 'phases']);
 const DEFAULT_CHART = 'bar';
 const DEFAULT_WIDTH = 960;
 const DEFAULT_HEIGHT = 560;
 const DEFAULT_SECTION = 'compute/parity';
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const COMPARE_METRICS_PATH = path.join(__dirname, 'compare-metrics.json');
+const DOPPLER_HARNESS_PATH = path.join(__dirname, 'harnesses', 'doppler.json');
+const TRANSFORMERSJS_HARNESS_PATH = path.join(__dirname, 'harnesses', 'transformersjs.json');
 
 const DEFAULT_METRICS = Object.freeze([
   {
     id: 'decodeTokensPerSec',
-    label: 'Decode tok/s',
+    label: 'decode tok/s',
     unit: 'tok/s',
     higherBetter: true,
   },
   {
     id: 'prefillTokensPerSec',
-    label: 'Prompt tok/s (prefill)',
+    label: 'prompt tok/s (prefill)',
     unit: 'tok/s',
     higherBetter: true,
   },
   {
     id: 'firstTokenMs',
-    label: 'TTFT (first token)',
+    label: 'first token (TTFT)',
     unit: 'ms',
     higherBetter: false,
   },
   {
     id: 'firstResponseMs',
-    label: 'First response (load + TTFT)',
+    label: 'first response (first token + load)',
     unit: 'ms',
     higherBetter: false,
   },
   {
     id: 'prefillMs',
-    label: 'Prefill',
+    label: 'prefill ms',
     unit: 'ms',
     higherBetter: false,
   },
   {
     id: 'decodeMs',
-    label: 'Decode',
+    label: 'decode ms',
     unit: 'ms',
     higherBetter: false,
   },
   {
     id: 'totalRunMs',
-    label: 'Total run',
+    label: 'total run ms',
     unit: 'ms',
     higherBetter: false,
   },
   {
     id: 'modelLoadMs',
-    label: 'Model load',
+    label: 'model load',
     unit: 'ms',
     higherBetter: false,
   },
   {
     id: 'decodeMsPerTokenP50',
-    label: 'Decode p50 ms/token',
+    label: 'decode p50 ms/token',
     unit: 'ms',
     higherBetter: false,
   },
   {
     id: 'decodeMsPerTokenP95',
-    label: 'Decode p95 ms/token',
+    label: 'decode p95 ms/token',
     unit: 'ms',
     higherBetter: false,
   },
   {
     id: 'decodeMsPerTokenP99',
-    label: 'Decode p99 ms/token',
+    label: 'decode p99 ms/token',
     unit: 'ms',
     higherBetter: false,
   },
@@ -122,13 +127,84 @@ const METRIC_PATH_HINTS = Object.freeze({
   ],
 });
 
+function readJsonFile(filePath) {
+  const raw = fs.readFileSync(filePath, 'utf-8');
+  return JSON.parse(raw);
+}
+
+function normalizeMetricRows(payload) {
+  const rows = Array.isArray(payload?.metrics) ? payload.metrics : [];
+  return rows
+    .filter((entry) => entry && typeof entry === 'object' && !Array.isArray(entry))
+    .filter((entry) => typeof entry.id === 'string' && entry.id.trim() !== '')
+    .map((entry) => ({
+      id: String(entry.id),
+      label: typeof entry.label === 'string' && entry.label.trim() ? entry.label : entry.id,
+      unit: typeof entry.unit === 'string' ? entry.unit : '',
+      higherBetter: entry.higherBetter,
+      required: entry.required === true,
+    }));
+}
+
+function expandMetricPathHint(pathExpr) {
+  if (typeof pathExpr !== 'string' || pathExpr.trim() === '') return [];
+  const trimmed = pathExpr.trim();
+  if (trimmed.startsWith('result.')) {
+    return [trimmed];
+  }
+  return [`result.${trimmed}`, trimmed];
+}
+
+function buildMetricPathHintsFromHarnesses(...harnesses) {
+  const byMetric = new Map();
+  for (const harness of harnesses) {
+    const metricPaths = harness?.normalization?.metricPaths;
+    if (!metricPaths || typeof metricPaths !== 'object') continue;
+    for (const [metricId, paths] of Object.entries(metricPaths)) {
+      if (!Array.isArray(paths)) continue;
+      const existing = byMetric.get(metricId) || [];
+      for (const candidate of paths) {
+        for (const expanded of expandMetricPathHint(candidate)) {
+          if (!existing.includes(expanded)) {
+            existing.push(expanded);
+          }
+        }
+      }
+      byMetric.set(metricId, existing);
+    }
+  }
+  const out = {};
+  for (const [metricId, paths] of byMetric.entries()) {
+    out[metricId] = paths;
+  }
+  return out;
+}
+
+function loadChartMetricContract() {
+  try {
+    const contract = readJsonFile(COMPARE_METRICS_PATH);
+    const dopplerHarness = readJsonFile(DOPPLER_HARNESS_PATH);
+    const transformersHarness = readJsonFile(TRANSFORMERSJS_HARNESS_PATH);
+    return Object.freeze({
+      metrics: normalizeMetricRows(contract),
+      metricPathHints: buildMetricPathHintsFromHarnesses(dopplerHarness, transformersHarness),
+    });
+  } catch {
+    return Object.freeze({
+      metrics: DEFAULT_METRICS,
+      metricPathHints: METRIC_PATH_HINTS,
+    });
+  }
+}
+
+const CHART_METRIC_CONTRACT = loadChartMetricContract();
+
 const PALETTE = Object.freeze({
-  bg: '#000000',
   text: '#ffffff',
   muted: '#cbd5e1',
   grid: '#1f2937',
   doppler: '#9d4edd',
-  tjs: '#ffbd45',
+  transformersjs: '#ffbd45',
   fail: '#3f3f46',
   failFill: '#7f1d1d',
   metric: [
@@ -143,22 +219,45 @@ const PALETTE = Object.freeze({
   ],
 });
 
+const FONT_UI = 'Segoe UI, Helvetica Neue, Arial, sans-serif';
+const FONT_MONO = 'SFMono-Regular, Menlo, Consolas, Liberation Mono, monospace';
+
+const SVG_STYLE = `<defs><style>
+  text { paint-order: stroke fill; stroke: #000000; stroke-width: 2px; stroke-linejoin: round; }
+</style></defs>`;
+
+let svgIdCounter = 0;
+
+function svgWrap(width, height, body, title = 'Benchmark Comparison', desc = '') {
+  svgIdCounter += 1;
+  const titleId = `chart-title-${svgIdCounter}`;
+  const descId = `chart-desc-${svgIdCounter}`;
+  const safeTitle = escapeXml(title);
+  const safeDesc = escapeXml(desc || 'Benchmark comparison chart');
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-labelledby="${titleId} ${descId}">
+  <title id="${titleId}">${safeTitle}</title>
+  <desc id="${descId}">${safeDesc}</desc>
+  ${SVG_STYLE}
+  ${body}
+</svg>`;
+}
+
 const ENGINE_META = Object.freeze({
   doppler: {
     key: 'doppler',
     label: 'Doppler.js',
     color: PALETTE.doppler,
   },
-  tjs: {
-    key: 'tjs',
+  transformersjs: {
+    key: 'transformersjs',
     label: 'Transformers.js',
-    color: PALETTE.tjs,
+    color: PALETTE.transformersjs,
   },
 });
 
 const DERIVED_KEY = Object.freeze({
   doppler: 'doppler',
-  tjs: 'transformersjs',
+  transformersjs: 'transformersjs',
 });
 
 function usage() {
@@ -176,7 +275,7 @@ function usage() {
     '  --help                        Show this help text',
     '',
     'Examples:',
-    '  node benchmarks/vendors/compare-chart.js --input benchmarks/vendors/results/compare_latest.json',
+    '  node benchmarks/vendors/compare-chart.js --input benchmarks/vendors/fixtures/sample-compare.json',
     '  node benchmarks/vendors/compare-chart.js --input ... --chart stacked --width 1200',
     '  node benchmarks/vendors/compare-chart.js --input ... --chart radar --metrics decodeTokensPerSec,firstTokenMs',
     '  node benchmarks/vendors/compare-chart.js --input ... --chart phases',
@@ -337,7 +436,7 @@ function getFirstFinitePathValue(obj, pathExpressions) {
 
 function sectionHasComparable(section) {
   if (!section || typeof section !== 'object') return false;
-  return Boolean(section?.doppler || section?.tjs || section?.transformersjs || section?.result);
+  return Boolean(section?.doppler || section?.transformersjs || section?.result || section?.tjs);
 }
 
 function resolveSection(report, requestedSection) {
@@ -377,8 +476,8 @@ function resolveSection(report, requestedSection) {
 
 function enginePayload(sectionPayload, engineId) {
   if (!sectionPayload || typeof sectionPayload !== 'object') return null;
-  if (engineId === 'tjs') {
-    return sectionPayload.tjs ?? sectionPayload.transformersjs ?? null;
+  if (engineId === 'transformersjs') {
+    return sectionPayload.transformersjs ?? sectionPayload.tjs ?? null;
   }
   return sectionPayload.doppler ?? sectionPayload[engineId] ?? sectionPayload.result ?? null;
 }
@@ -407,7 +506,7 @@ function resolveMetric(payload, metricDef, engineId) {
     }
   }
 
-  const hintPaths = METRIC_PATH_HINTS[metricDef.id] || [];
+  const hintPaths = CHART_METRIC_CONTRACT.metricPathHints[metricDef.id] || METRIC_PATH_HINTS[metricDef.id] || [];
   const value = getFirstFinitePathValue(scope, hintPaths);
   if (value !== null) return { value, status: 'ok' };
 
@@ -419,7 +518,7 @@ function resolveMetric(payload, metricDef, engineId) {
 function metricRowsFromReport(report, sectionPayload, metricIds) {
   const sourceMetrics = Array.isArray(report.metricContract?.metrics) && report.metricContract.metrics.length > 0
     ? report.metricContract.metrics
-    : DEFAULT_METRICS;
+    : CHART_METRIC_CONTRACT.metrics;
   const requested = metricIds && metricIds.length > 0
     ? new Set(metricIds)
     : null;
@@ -434,24 +533,27 @@ function metricRowsFromReport(report, sectionPayload, metricIds) {
 function collectRows(report, sectionPayload, metricIds) {
   const metrics = metricRowsFromReport(report, sectionPayload, metricIds);
   const dopplerPayload = enginePayload(sectionPayload, 'doppler');
-  const tjsPayload = enginePayload(sectionPayload, 'tjs');
+  const tjsPayload = enginePayload(sectionPayload, 'transformersjs');
 
   return metrics.map((metricDef) => {
+    if (typeof metricDef.higherBetter !== 'boolean') {
+      throw new Error(`Metric "${metricDef.id}" is missing required boolean "higherBetter".`);
+    }
     const doppler = resolveMetric(dopplerPayload, metricDef, 'doppler');
-    const tjs = resolveMetric(tjsPayload, metricDef, 'tjs');
+    const transformersjs = resolveMetric(tjsPayload, metricDef, 'transformersjs');
     return {
       id: metricDef.id,
       label: metricDef.label || metricDef.id,
       unit: metricDef.unit || '',
-      higherBetter: metricDef.higherBetter !== false,
+      higherBetter: metricDef.higherBetter,
       doppler,
-      tjs,
+      transformersjs,
     };
   });
 }
 
 function hasAnyValue(rows) {
-  return rows.some((row) => isFiniteNumber(row.doppler.value) || isFiniteNumber(row.tjs.value));
+  return rows.some((row) => isFiniteNumber(row.doppler.value) || isFiniteNumber(row.transformersjs.value));
 }
 
 function formatValue(value, unit) {
@@ -471,7 +573,7 @@ function escapeXml(raw) {
 function resolveScale(rows) {
   const scales = new Map();
   for (const row of rows) {
-    const values = [row.doppler.value, row.tjs.value].filter((value) => isFiniteNumber(value));
+    const values = [row.doppler.value, row.transformersjs.value].filter((value) => isFiniteNumber(value));
     if (values.length === 0) {
       scales.set(row.id, { min: null, max: null, hasValue: false });
       continue;
@@ -499,7 +601,7 @@ function buildScaledRows(rows) {
   const scales = resolveScale(rows);
   const enriched = rows.map((row) => {
     const dopplerScore = scoreMetric(row, scales.get(row.id), 'doppler');
-    const tjsScore = scoreMetric(row, scales.get(row.id), 'tjs');
+    const tjsScore = scoreMetric(row, scales.get(row.id), 'transformersjs');
     return { ...row, dopplerScore, tjsScore };
   });
   return enriched;
@@ -519,12 +621,12 @@ function renderBarChart(rows, width, height, title, subtitle, sectionLabel) {
     const maxValue = Math.max(
       1,
       metric.doppler.value ?? 1,
-      metric.tjs.value ?? 1,
+      metric.transformersjs.value ?? 1,
       ...(isFiniteNumber(metric.doppler.value) ? [metric.doppler.value] : []),
-      ...(isFiniteNumber(metric.tjs.value) ? [metric.tjs.value] : []),
+      ...(isFiniteNumber(metric.transformersjs.value) ? [metric.transformersjs.value] : []),
     );
     const dopplerWidth = isFiniteNumber(metric.doppler.value) ? (metric.doppler.value / maxValue) * barAreaMax : 0;
-    const tjsWidth = isFiniteNumber(metric.tjs.value) ? (metric.tjs.value / maxValue) * barAreaMax : 0;
+    const tjsWidth = isFiniteNumber(metric.transformersjs.value) ? (metric.transformersjs.value / maxValue) * barAreaMax : 0;
     const rowCenter = y + 34;
 
     body += `<text x="32" y="${y + 6}" fill="${PALETTE.text}" font-family="monospace" font-size="13">${escapeXml(metric.label)}</text>\n`;
@@ -542,10 +644,10 @@ function renderBarChart(rows, width, height, title, subtitle, sectionLabel) {
       body += `<text x="${left + 90}" y="${rowCenter - 5}" fill="${PALETTE.text}" font-family="monospace" font-size="11">Doppler.js failed</text>\n`;
     }
 
-    if (metric.tjs.status === 'ok') {
-      body += `<rect x="${left + 80}" y="${rowCenter + 2}" width="${tjsWidth}" height="16" fill="${PALETTE.tjs}" />\n`;
-      body += `<text x="${left + 88 + tjsWidth}" y="${rowCenter + 15}" fill="${PALETTE.tjs}" font-family="monospace" font-size="11">${formatValue(metric.tjs.value, metric.unit)}</text>\n`;
-      if (!isFiniteNumber(metric.tjs.value)) {
+    if (metric.transformersjs.status === 'ok') {
+      body += `<rect x="${left + 80}" y="${rowCenter + 2}" width="${tjsWidth}" height="16" fill="${PALETTE.transformersjs}" />\n`;
+      body += `<text x="${left + 88 + tjsWidth}" y="${rowCenter + 15}" fill="${PALETTE.transformersjs}" font-family="monospace" font-size="11">${formatValue(metric.transformersjs.value, metric.unit)}</text>\n`;
+      if (!isFiniteNumber(metric.transformersjs.value)) {
         body += `<text x="${left + 90}" y="${rowCenter + 15}" fill="${PALETTE.text}" font-family="monospace" font-size="11">n/a</text>\n`;
       }
     } else {
@@ -555,15 +657,12 @@ function renderBarChart(rows, width, height, title, subtitle, sectionLabel) {
   });
 
   body += `<text x="${left + 80}" y="${top - 24}" fill="${PALETTE.doppler}" font-family="monospace" font-size="11">${ENGINE_META.doppler.label}</text>\n`;
-  body += `<text x="${left + 170}" y="${top - 24}" fill="${PALETTE.tjs}" font-family="monospace" font-size="11">${ENGINE_META.tjs.label}</text>\n`;
+  body += `<text x="${left + 170}" y="${top - 24}" fill="${PALETTE.transformersjs}" font-family="monospace" font-size="11">${ENGINE_META.transformersjs.label}</text>\n`;
   body += `<text x="40" y="36" fill="${PALETTE.text}" font-family="monospace" font-size="18" font-weight="bold">${escapeXml(title)}</text>\n`;
   body += `<text x="40" y="54" fill="${PALETTE.muted}" font-family="monospace" font-size="12">${escapeXml(subtitle)}</text>\n`;
   body += `<text x="40" y="${height - 22}" fill="${PALETTE.muted}" font-family="monospace" font-size="11">${escapeXml(`Section: ${sectionLabel}`)}</text>\n`;
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
-  <rect width="${width}" height="${height}" fill="${PALETTE.bg}" />
-  ${body}
-</svg>`;
+  return svgWrap(width, height, body, title, `${subtitle} • Section: ${sectionLabel}`);
 }
 
 function renderStackedBars(rows, width, height, title, subtitle, sectionLabel) {
@@ -573,7 +672,7 @@ function renderStackedBars(rows, width, height, title, subtitle, sectionLabel) {
   const baseY = 102;
   const rowHeight = 110;
   const top = 84;
-  const engines = [ENGINE_META.doppler, ENGINE_META.tjs];
+  const engines = [ENGINE_META.doppler, ENGINE_META.transformersjs];
   const scaledRows = buildScaledRows(rows);
   let body = '';
   const scale = resolveScale(rows);
@@ -619,10 +718,7 @@ function renderStackedBars(rows, width, height, title, subtitle, sectionLabel) {
   body += `<text x="40" y="54" fill="${PALETTE.muted}" font-family="monospace" font-size="12">${escapeXml(subtitle)}</text>\n`;
   body += `<text x="40" y="${height - 22}" fill="${PALETTE.muted}" font-family="monospace" font-size="11">${escapeXml(`Section: ${sectionLabel}`)}</text>\n`;
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
-  <rect width="${width}" height="${height}" fill="${PALETTE.bg}" />
-  ${body}
-</svg>`;
+  return svgWrap(width, height, body, title, `${subtitle} • Section: ${sectionLabel}`);
 }
 
 const RADAR_DEFAULT_METRIC_IDS = Object.freeze(new Set([
@@ -641,13 +737,21 @@ function filterRadarRows(rows, metricIds) {
 function renderRadar(rows, width, height, title, subtitle, sectionLabel) {
   const centerX = width / 2;
   const centerY = height / 2 + 16;
-  const radius = Math.min(width, height - 170) / 2 - 110;
+  const radius = Math.max(40, Math.min(width, height - 170) / 2 - 110);
   const ringCount = 4;
   const axisCount = Math.max(rows.length, 1);
   const angleStep = (Math.PI * 2) / axisCount;
   const scale = resolveScale(rows);
   const scaledRows = buildScaledRows(rows);
   let body = '';
+
+  if (rows.length < 3) {
+    body += `<text x="40" y="36" fill="${PALETTE.text}" font-family="monospace" font-size="18" font-weight="bold">${escapeXml(title)}</text>\n`;
+    body += `<text x="40" y="54" fill="${PALETTE.muted}" font-family="monospace" font-size="12">${escapeXml(subtitle)}</text>\n`;
+    body += `<text x="${centerX}" y="${centerY}" fill="${PALETTE.muted}" font-family="monospace" font-size="12" text-anchor="middle">Radar chart requires at least 3 metrics.</text>\n`;
+    body += `<text x="40" y="${height - 22}" fill="${PALETTE.muted}" font-family="monospace" font-size="11">${escapeXml(`Section: ${sectionLabel}`)}</text>\n`;
+    return svgWrap(width, height, body, title, `${subtitle} • Section: ${sectionLabel}`);
+  }
 
   const rings = [];
   for (let ring = 1; ring <= ringCount; ring += 1) {
@@ -672,7 +776,7 @@ function renderRadar(rows, width, height, title, subtitle, sectionLabel) {
     body += `<text x="${x}" y="${y}" fill="${PALETTE.text}" text-anchor="${anchor}" font-family="monospace" font-size="11">${escapeXml(metric.label)}</text>\n`;
   });
 
-  const engines = [ENGINE_META.doppler, ENGINE_META.tjs];
+  const engines = [ENGINE_META.doppler, ENGINE_META.transformersjs];
   engines.forEach((engine, engineIndex) => {
     const points = rows.map((metric, i) => {
       const angle = -Math.PI / 2 + i * angleStep;
@@ -693,7 +797,7 @@ function renderRadar(rows, width, height, title, subtitle, sectionLabel) {
     const metricScores = rows.map((metric) => {
       return engine.key === 'doppler'
         ? scoreMetric(metric, scale.get(metric.id), 'doppler')
-        : scoreMetric(metric, scale.get(metric.id), 'tjs');
+        : scoreMetric(metric, scale.get(metric.id), 'transformersjs');
     });
     return metricScores.every((value) => value <= 0);
   });
@@ -706,10 +810,7 @@ function renderRadar(rows, width, height, title, subtitle, sectionLabel) {
   body += `<text x="40" y="70" fill="${PALETTE.muted}" font-family="monospace" font-size="11">All axes are latency (ms), inverted so bigger polygon = faster.</text>\n`;
   body += `<text x="40" y="${height - 22}" fill="${PALETTE.muted}" font-family="monospace" font-size="11">${escapeXml(`Section: ${sectionLabel}`)}</text>\n`;
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
-  <rect width="${width}" height="${height}" fill="${PALETTE.bg}" />
-  ${body}
-</svg>`;
+  return svgWrap(width, height, body, title, `${subtitle} • Section: ${sectionLabel}`);
 }
 
 const PHASE_COLORS = Object.freeze({
@@ -717,6 +818,11 @@ const PHASE_COLORS = Object.freeze({
   prefill: '#fbbf24',
   ttftMarker: '#ffffff',
   decode: '#3b82f6',
+});
+
+const LOAD_LABEL = Object.freeze({
+  doppler: 'OPFS \u2192 VRAM',
+  transformersjs: 'OPFS \u2192 ORT \u2192 VRAM',
 });
 
 function resolvePhaseValues(sectionPayload, engineId) {
@@ -740,7 +846,7 @@ function resolvePhaseValues(sectionPayload, engineId) {
 }
 
 function renderPhases(rows, width, height, title, subtitle, sectionLabel, sectionPayload) {
-  const engines = [ENGINE_META.doppler, ENGINE_META.tjs];
+  const engines = [ENGINE_META.doppler, ENGINE_META.transformersjs];
   const phaseData = new Map();
   let globalMax = 0;
 
@@ -766,11 +872,11 @@ function renderPhases(rows, width, height, title, subtitle, sectionLabel, sectio
     const y = baseY + engineIndex * engineGap;
     const resolved = phaseData.get(engine.key);
 
-    body += `<text x="32" y="${y + barHeight / 2 + 5}" fill="${engine.color}" font-family="monospace" font-size="14" font-weight="bold">${engine.label}</text>\n`;
+    body += `<text x="32" y="${y + barHeight / 2 + 5}" fill="${engine.color}" font-family="${FONT_UI}" font-size="14" font-weight="bold">${engine.label}</text>\n`;
 
     if (!resolved) {
       body += `<rect x="${left}" y="${y}" width="${barAreaMax}" height="${barHeight}" fill="${PALETTE.failFill}" />\n`;
-      body += `<text x="${left + 12}" y="${y + barHeight / 2 + 4}" fill="${PALETTE.text}" font-family="monospace" font-size="12">No data</text>\n`;
+      body += `<text x="${left + 12}" y="${y + barHeight / 2 + 4}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="12">No data</text>\n`;
       return;
     }
 
@@ -781,8 +887,8 @@ function renderPhases(rows, width, height, title, subtitle, sectionLabel, sectio
       const w = resolved.modelLoadMs * pxPerMs;
       body += `<rect x="${cursor}" y="${y}" width="${w}" height="${barHeight}" fill="${PHASE_COLORS.warmLoad}" />\n`;
       if (w > 80) {
-        body += `<text x="${cursor + 6}" y="${y + barHeight / 2 + 4}" fill="#000" font-family="monospace" font-size="11" font-weight="bold">OPFS to VRAM</text>\n`;
-        body += `<text x="${cursor + 6}" y="${y + barHeight / 2 + 16}" fill="#000" font-family="monospace" font-size="10">${resolved.modelLoadMs.toFixed(1)} ms</text>\n`;
+        body += `<text x="${cursor + 6}" y="${y + barHeight / 2 + 4}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="11" font-weight="bold">${LOAD_LABEL[engine.key] || 'Model Load'}</text>\n`;
+        body += `<text x="${cursor + 6}" y="${y + barHeight / 2 + 16}" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="10">${resolved.modelLoadMs.toFixed(1)} ms</text>\n`;
       }
       cursor += w;
     }
@@ -793,15 +899,15 @@ function renderPhases(rows, width, height, title, subtitle, sectionLabel, sectio
       body += `<rect x="${ttftX}" y="${y}" width="${ttftW}" height="${barHeight}" fill="${PHASE_COLORS.prefill}" />\n`;
 
       if (ttftW > 80) {
-        body += `<text x="${ttftX + 6}" y="${y + barHeight / 2 + 4}" fill="#000" font-family="monospace" font-size="11" font-weight="bold">Prefill ${resolved.ttft.toFixed(1)} ms</text>\n`;
+        body += `<text x="${ttftX + 6}" y="${y + barHeight / 2 + 4}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="11" font-weight="bold">Prefill ${resolved.ttft.toFixed(1)} ms</text>\n`;
       } else if (ttftW > 40) {
-        body += `<text x="${ttftX + 4}" y="${y + barHeight / 2 + 4}" fill="#000" font-family="monospace" font-size="10">${resolved.ttft.toFixed(0)}</text>\n`;
+        body += `<text x="${ttftX + 4}" y="${y + barHeight / 2 + 4}" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="10">${resolved.ttft.toFixed(0)}</text>\n`;
       }
 
       const ttftMarkerX = ttftX + ttftW;
       const markerSize = 5;
       body += `<polygon points="${ttftMarkerX},${y - 2} ${ttftMarkerX - markerSize},${y - markerSize - 4} ${ttftMarkerX + markerSize},${y - markerSize - 4}" fill="${PHASE_COLORS.ttftMarker}" />\n`;
-      body += `<text x="${ttftMarkerX}" y="${y - markerSize - 6}" fill="${PALETTE.muted}" font-family="monospace" font-size="9" text-anchor="middle">TTFT</text>\n`;
+      body += `<text x="${ttftMarkerX}" y="${y - markerSize - 6}" fill="${PALETTE.muted}" font-family="${FONT_UI}" font-size="10" text-anchor="middle">TTFT</text>\n`;
 
       cursor += ttftW;
     }
@@ -810,42 +916,39 @@ function renderPhases(rows, width, height, title, subtitle, sectionLabel, sectio
       const w = resolved.decodeMs * pxPerMs;
       body += `<rect x="${cursor}" y="${y}" width="${w}" height="${barHeight}" fill="${PHASE_COLORS.decode}" />\n`;
       if (w > 50) {
-        body += `<text x="${cursor + 6}" y="${y + barHeight / 2 + 4}" fill="#000" font-family="monospace" font-size="11" font-weight="bold">Decode</text>\n`;
-        body += `<text x="${cursor + 6}" y="${y + barHeight / 2 + 16}" fill="#000" font-family="monospace" font-size="10">${resolved.decodeMs.toFixed(1)} ms</text>\n`;
+        body += `<text x="${cursor + 6}" y="${y + barHeight / 2 + 4}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="11" font-weight="bold">Decode</text>\n`;
+        body += `<text x="${cursor + 6}" y="${y + barHeight / 2 + 16}" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="10">${resolved.decodeMs.toFixed(1)} ms</text>\n`;
       }
       cursor += w;
     }
 
-    body += `<text x="${cursor + 8}" y="${y + barHeight / 2 + 5}" fill="${PALETTE.text}" font-family="monospace" font-size="12">${resolved.endToEnd.toFixed(1)} ms</text>\n`;
+    body += `<text x="${cursor + 8}" y="${y + barHeight / 2 + 5}" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="12">${resolved.endToEnd.toFixed(1)} ms</text>\n`;
   });
 
   const legendY = baseY + engines.length * engineGap + 24;
   const legendItems = [
-    { id: 'warmLoad', label: 'OPFS to VRAM (Warm Load)' },
+    { id: 'warmLoad', label: 'Model Load (Warm)' },
     { id: 'prefill', label: 'Prefill' },
     { id: 'decode', label: 'Decode' },
   ];
   legendItems.forEach((item, i) => {
     const x = left + i * 210;
     body += `<rect x="${x}" y="${legendY}" width="14" height="14" fill="${PHASE_COLORS[item.id]}" />\n`;
-    body += `<text x="${x + 20}" y="${legendY + 11}" fill="${PALETTE.text}" font-family="monospace" font-size="11">${item.label}</text>\n`;
+    body += `<text x="${x + 20}" y="${legendY + 11}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="11">${item.label}</text>\n`;
   });
   const ttftLegendX = left + legendItems.length * 210;
   body += `<polygon points="${ttftLegendX + 7},${legendY} ${ttftLegendX + 2},${legendY + 7} ${ttftLegendX + 12},${legendY + 7}" fill="${PHASE_COLORS.ttftMarker}" />\n`;
-  body += `<text x="${ttftLegendX + 20}" y="${legendY + 11}" fill="${PALETTE.text}" font-family="monospace" font-size="11">TTFT marker</text>\n`;
+  body += `<text x="${ttftLegendX + 20}" y="${legendY + 11}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="11">TTFT marker</text>\n`;
 
-  body += `<text x="40" y="36" fill="${PALETTE.text}" font-family="monospace" font-size="18" font-weight="bold">${escapeXml(title)}</text>\n`;
-  body += `<text x="40" y="54" fill="${PALETTE.muted}" font-family="monospace" font-size="12">${escapeXml(subtitle)}</text>\n`;
-  body += `<text x="40" y="${height - 22}" fill="${PALETTE.muted}" font-family="monospace" font-size="11">${escapeXml(`Section: ${sectionLabel}`)}</text>\n`;
+  body += `<text x="40" y="36" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="18" font-weight="bold">${escapeXml(title)}</text>\n`;
+  body += `<text x="40" y="54" fill="${PALETTE.muted}" font-family="${FONT_UI}" font-size="12">${escapeXml(subtitle)}</text>\n`;
+  body += `<text x="40" y="${height - 22}" fill="${PALETTE.muted}" font-family="${FONT_UI}" font-size="11">${escapeXml(`Section: ${sectionLabel}`)}</text>\n`;
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
-  <rect width="${width}" height="${height}" fill="${PALETTE.bg}" />
-  ${body}
-</svg>`;
+  return svgWrap(width, height, body, title, `${subtitle} • Section: ${sectionLabel}`);
 }
 
 function renderMultiPhases(entries, width, title, subtitle) {
-  const engines = [ENGINE_META.doppler, ENGINE_META.tjs];
+  const engines = [ENGINE_META.doppler, ENGINE_META.transformersjs];
   const left = 200;
   const right = 120;
   const barAreaMax = width - left - right;
@@ -878,17 +981,17 @@ function renderMultiPhases(entries, width, title, subtitle) {
   workloads.forEach((workload, wIndex) => {
     const workloadY = baseY + wIndex * workloadBlockHeight;
 
-    body += `<text x="32" y="${workloadY - 8}" fill="${PALETTE.muted}" font-family="monospace" font-size="12" font-weight="bold">${escapeXml(workload.workloadLabel)}</text>\n`;
+    body += `<text x="32" y="${workloadY - 8}" fill="${PALETTE.muted}" font-family="${FONT_UI}" font-size="12" font-weight="bold">${escapeXml(workload.workloadLabel)}</text>\n`;
 
     engines.forEach((engine, engineIndex) => {
       const y = workloadY + engineIndex * engineGap;
       const resolved = workload.phaseData.get(engine.key);
 
-      body += `<text x="32" y="${y + barHeight / 2 + 5}" fill="${engine.color}" font-family="monospace" font-size="14" font-weight="bold">${engine.label}</text>\n`;
+      body += `<text x="32" y="${y + barHeight / 2 + 5}" fill="${engine.color}" font-family="${FONT_UI}" font-size="14" font-weight="bold">${engine.label}</text>\n`;
 
       if (!resolved) {
         body += `<rect x="${left}" y="${y}" width="${barAreaMax}" height="${barHeight}" fill="${PALETTE.failFill}" />\n`;
-        body += `<text x="${left + 12}" y="${y + barHeight / 2 + 4}" fill="${PALETTE.text}" font-family="monospace" font-size="12">No data</text>\n`;
+        body += `<text x="${left + 12}" y="${y + barHeight / 2 + 4}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="12">No data</text>\n`;
         return;
       }
 
@@ -899,8 +1002,8 @@ function renderMultiPhases(entries, width, title, subtitle) {
         const w = resolved.modelLoadMs * pxPerMs;
         body += `<rect x="${cursor}" y="${y}" width="${w}" height="${barHeight}" fill="${PHASE_COLORS.warmLoad}" />\n`;
         if (w > 80) {
-          body += `<text x="${cursor + 6}" y="${y + barHeight / 2 + 4}" fill="#000" font-family="monospace" font-size="11" font-weight="bold">OPFS to VRAM</text>\n`;
-          body += `<text x="${cursor + 6}" y="${y + barHeight / 2 + 16}" fill="#000" font-family="monospace" font-size="10">${resolved.modelLoadMs.toFixed(1)} ms</text>\n`;
+          body += `<text x="${cursor + 6}" y="${y + barHeight / 2 + 4}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="11" font-weight="bold">${LOAD_LABEL[engine.key] || 'Model Load'}</text>\n`;
+          body += `<text x="${cursor + 6}" y="${y + barHeight / 2 + 16}" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="10">${resolved.modelLoadMs.toFixed(1)} ms</text>\n`;
         }
         cursor += w;
       }
@@ -910,14 +1013,14 @@ function renderMultiPhases(entries, width, title, subtitle) {
         const ttftX = cursor;
         body += `<rect x="${ttftX}" y="${y}" width="${ttftW}" height="${barHeight}" fill="${PHASE_COLORS.prefill}" />\n`;
         if (ttftW > 80) {
-          body += `<text x="${ttftX + 6}" y="${y + barHeight / 2 + 4}" fill="#000" font-family="monospace" font-size="11" font-weight="bold">Prefill ${resolved.ttft.toFixed(1)} ms</text>\n`;
+          body += `<text x="${ttftX + 6}" y="${y + barHeight / 2 + 4}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="11" font-weight="bold">Prefill ${resolved.ttft.toFixed(1)} ms</text>\n`;
         } else if (ttftW > 40) {
-          body += `<text x="${ttftX + 4}" y="${y + barHeight / 2 + 4}" fill="#000" font-family="monospace" font-size="10">${resolved.ttft.toFixed(0)}</text>\n`;
+          body += `<text x="${ttftX + 4}" y="${y + barHeight / 2 + 4}" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="10">${resolved.ttft.toFixed(0)}</text>\n`;
         }
         const ttftMarkerX = ttftX + ttftW;
         const markerSize = 5;
         body += `<polygon points="${ttftMarkerX},${y - 2} ${ttftMarkerX - markerSize},${y - markerSize - 4} ${ttftMarkerX + markerSize},${y - markerSize - 4}" fill="${PHASE_COLORS.ttftMarker}" />\n`;
-        body += `<text x="${ttftMarkerX}" y="${y - markerSize - 6}" fill="${PALETTE.muted}" font-family="monospace" font-size="9" text-anchor="middle">TTFT</text>\n`;
+        body += `<text x="${ttftMarkerX}" y="${y - markerSize - 6}" fill="${PALETTE.muted}" font-family="${FONT_UI}" font-size="10" text-anchor="middle">TTFT</text>\n`;
         cursor += ttftW;
       }
 
@@ -925,44 +1028,45 @@ function renderMultiPhases(entries, width, title, subtitle) {
         const w = resolved.decodeMs * pxPerMs;
         body += `<rect x="${cursor}" y="${y}" width="${w}" height="${barHeight}" fill="${PHASE_COLORS.decode}" />\n`;
         if (w > 50) {
-          body += `<text x="${cursor + 6}" y="${y + barHeight / 2 + 4}" fill="#000" font-family="monospace" font-size="11" font-weight="bold">Decode</text>\n`;
-          body += `<text x="${cursor + 6}" y="${y + barHeight / 2 + 16}" fill="#000" font-family="monospace" font-size="10">${resolved.decodeMs.toFixed(1)} ms</text>\n`;
+          body += `<text x="${cursor + 6}" y="${y + barHeight / 2 + 4}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="11" font-weight="bold">Decode</text>\n`;
+          body += `<text x="${cursor + 6}" y="${y + barHeight / 2 + 16}" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="10">${resolved.decodeMs.toFixed(1)} ms</text>\n`;
         }
         cursor += w;
       }
 
-      body += `<text x="${cursor + 8}" y="${y + barHeight / 2 + 5}" fill="${PALETTE.text}" font-family="monospace" font-size="12">${resolved.endToEnd.toFixed(1)} ms</text>\n`;
+      body += `<text x="${cursor + 8}" y="${y + barHeight / 2 + 5}" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="12">${resolved.endToEnd.toFixed(1)} ms</text>\n`;
     });
   });
 
   const legendY = baseY + workloads.length * workloadBlockHeight;
   const legendItems = [
-    { id: 'warmLoad', label: 'OPFS to VRAM (Warm Load)' },
+    { id: 'warmLoad', label: 'Model Load (Warm)' },
     { id: 'prefill', label: 'Prefill' },
     { id: 'decode', label: 'Decode' },
   ];
   legendItems.forEach((item, i) => {
     const x = left + i * 210;
     body += `<rect x="${x}" y="${legendY}" width="14" height="14" fill="${PHASE_COLORS[item.id]}" />\n`;
-    body += `<text x="${x + 20}" y="${legendY + 11}" fill="${PALETTE.text}" font-family="monospace" font-size="11">${item.label}</text>\n`;
+    body += `<text x="${x + 20}" y="${legendY + 11}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="11">${item.label}</text>\n`;
   });
   const ttftLegendX = left + legendItems.length * 210;
   body += `<polygon points="${ttftLegendX + 7},${legendY} ${ttftLegendX + 2},${legendY + 7} ${ttftLegendX + 12},${legendY + 7}" fill="${PHASE_COLORS.ttftMarker}" />\n`;
-  body += `<text x="${ttftLegendX + 20}" y="${legendY + 11}" fill="${PALETTE.text}" font-family="monospace" font-size="11">TTFT marker</text>\n`;
+  body += `<text x="${ttftLegendX + 20}" y="${legendY + 11}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="11">TTFT marker</text>\n`;
 
-  body += `<text x="40" y="36" fill="${PALETTE.text}" font-family="monospace" font-size="18" font-weight="bold">${escapeXml(title)}</text>\n`;
-  body += `<text x="40" y="54" fill="${PALETTE.muted}" font-family="monospace" font-size="12">${escapeXml(subtitle)}</text>\n`;
+  body += `<text x="40" y="36" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="18" font-weight="bold">${escapeXml(title)}</text>\n`;
+  body += `<text x="40" y="54" fill="${PALETTE.muted}" font-family="${FONT_UI}" font-size="12">${escapeXml(subtitle)}</text>\n`;
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
-  <rect width="${width}" height="${height}" fill="${PALETTE.bg}" />
-  ${body}
-</svg>`;
+  return svgWrap(width, height, body, title, subtitle);
 }
 
 function renderMultiRadar(entries, perRadarHeight, title, subtitle, metricIds) {
   const numWorkloads = entries.length;
   const perRadarWidth = DEFAULT_WIDTH;
-  const totalWidth = perRadarWidth * numWorkloads;
+  const maxTotalWidth = 1920;
+  const maxColumns = Math.max(1, Math.floor(maxTotalWidth / perRadarWidth));
+  const columns = Math.max(1, Math.min(numWorkloads, maxColumns));
+  const rowsOfCharts = Math.ceil(numWorkloads / columns);
+  const totalWidth = perRadarWidth * columns;
 
   const allScaledData = entries.map((entry) => {
     const allRows = collectRows(entry.report, entry.sectionPayload, metricIds);
@@ -975,17 +1079,26 @@ function renderMultiRadar(entries, perRadarHeight, title, subtitle, metricIds) {
   let body = '';
   const headerHeight = 90;
   const legendHeight = 40;
-  const height = perRadarHeight + headerHeight + legendHeight;
+  const chartRowHeight = perRadarHeight + 24;
+  const height = headerHeight + rowsOfCharts * chartRowHeight + legendHeight;
 
   allScaledData.forEach((data, wIndex) => {
-    const offsetX = wIndex * perRadarWidth;
+    const col = wIndex % columns;
+    const row = Math.floor(wIndex / columns);
+    const offsetX = col * perRadarWidth;
+    const offsetY = headerHeight + row * chartRowHeight;
     const centerX = offsetX + perRadarWidth / 2;
-    const centerY = headerHeight + (perRadarHeight - 40) / 2;
-    const radius = Math.min(perRadarWidth, perRadarHeight - 40) / 2 - 110;
+    const centerY = offsetY + (perRadarHeight - 40) / 2;
+    const radius = Math.max(40, Math.min(perRadarWidth, perRadarHeight - 40) / 2 - 110);
     const ringCount = 4;
     const axisCount = Math.max(data.rows.length, 1);
     const angleStep = (Math.PI * 2) / axisCount;
-    const scale = resolveScale(data.rows);
+
+    if (data.rows.length < 3) {
+      body += `<text x="${centerX}" y="${centerY}" fill="${PALETTE.muted}" font-family="monospace" font-size="12" text-anchor="middle">Need at least 3 metrics.</text>\n`;
+      body += `<text x="${centerX}" y="${offsetY + perRadarHeight - 4}" fill="${PALETTE.muted}" font-family="monospace" font-size="12" text-anchor="middle">${escapeXml(data.workloadLabel)}</text>\n`;
+      return;
+    }
 
     for (let ring = 1; ring <= ringCount; ring += 1) {
       const r = (radius / ringCount) * ring;
@@ -1006,7 +1119,7 @@ function renderMultiRadar(entries, perRadarHeight, title, subtitle, metricIds) {
       body += `<text x="${x}" y="${y}" fill="${PALETTE.text}" text-anchor="${anchor}" font-family="monospace" font-size="11">${escapeXml(metric.label)}</text>\n`;
     });
 
-    const engines = [ENGINE_META.doppler, ENGINE_META.tjs];
+    const engines = [ENGINE_META.doppler, ENGINE_META.transformersjs];
     engines.forEach((engine) => {
       const points = data.rows.map((_, i) => {
         const angle = -Math.PI / 2 + i * angleStep;
@@ -1020,13 +1133,14 @@ function renderMultiRadar(entries, perRadarHeight, title, subtitle, metricIds) {
       body += `<polygon points="${points}" fill="${engine.color}" fill-opacity="${fillOpacity}" stroke="${engine.color}" stroke-width="2" />\n`;
     });
 
-    body += `<text x="${centerX}" y="${height - legendHeight - 4}" fill="${PALETTE.muted}" font-family="monospace" font-size="12" text-anchor="middle">${escapeXml(data.workloadLabel)}</text>\n`;
+    body += `<text x="${centerX}" y="${offsetY + perRadarHeight - 4}" fill="${PALETTE.muted}" font-family="monospace" font-size="12" text-anchor="middle">${escapeXml(data.workloadLabel)}</text>\n`;
   });
 
-  const engines = [ENGINE_META.doppler, ENGINE_META.tjs];
+  const engines = [ENGINE_META.doppler, ENGINE_META.transformersjs];
+  const legendBaseY = headerHeight + rowsOfCharts * chartRowHeight + 8;
+  const legendX = Math.max(40, totalWidth - 220);
   engines.forEach((engine, i) => {
-    const legendX = totalWidth - 200;
-    const legendY = headerHeight - 30 + i * 16;
+    const legendY = legendBaseY + i * 16;
     body += `<rect x="${legendX}" y="${legendY - 8}" width="12" height="12" fill="${engine.color}" />\n`;
     body += `<text x="${legendX + 18}" y="${legendY + 1}" fill="${PALETTE.text}" font-family="monospace" font-size="12">${engine.label}</text>\n`;
   });
@@ -1035,19 +1149,23 @@ function renderMultiRadar(entries, perRadarHeight, title, subtitle, metricIds) {
   body += `<text x="40" y="54" fill="${PALETTE.muted}" font-family="monospace" font-size="12">${escapeXml(subtitle)}</text>\n`;
   body += `<text x="40" y="70" fill="${PALETTE.muted}" font-family="monospace" font-size="11">All axes are latency (ms), inverted so bigger polygon = faster.</text>\n`;
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${totalWidth}" height="${height}" viewBox="0 0 ${totalWidth} ${height}">
-  <rect width="${totalWidth}" height="${height}" fill="${PALETTE.bg}" />
-  ${body}
-</svg>`;
+  return svgWrap(totalWidth, height, body, title, subtitle);
 }
 
-function prettifyModelId(raw) {
+const DTYPE_SEGMENT = /^(f\d+a?|q\d+[a-z]*|bf16|fp16|fp32|int[48])$/i;
+
+function prettifyModelId(raw, { stripDtype = false } = {}) {
   if (!raw) return 'unknown';
   const stripped = raw
     .replace(/^onnx-community\//, '')
     .replace(/-ONNX-GQA$/i, '')
     .replace(/-ONNX$/i, '');
   const parts = stripped.split('-');
+  if (stripDtype) {
+    while (parts.length > 1 && DTYPE_SEGMENT.test(parts[parts.length - 1])) {
+      parts.pop();
+    }
+  }
   const pretty = [];
   for (const part of parts) {
     if (/^f\d+$/i.test(part)) {
@@ -1091,10 +1209,26 @@ function prettifyWorkload(workload) {
   return parts.length > 0 ? parts.join(', ') : workload.id || '';
 }
 
+function formatDtypeSuffix(dtype) {
+  if (!dtype) return '';
+  return `, ${dtype.toUpperCase()}`;
+}
+
+function normalizeTjsDtype(raw) {
+  if (!raw) return null;
+  const upper = raw.toUpperCase();
+  if (upper.includes('/')) return upper;
+  return `${upper}/F32A`;
+}
+
 function buildTitle(report, selectedSection) {
-  const model = prettifyModelId(report.dopplerModelId || report.modelId);
-  const targetModel = prettifyModelId(report.tjsModelId);
-  return `${ENGINE_META.doppler.label} (${model}) vs ${ENGINE_META.tjs.label} (${targetModel})`;
+  const tjsDtype = report.transformersjsDtype;
+  const hasDtypeFields = report.dopplerDtype != null || tjsDtype != null;
+  const dopplerName = prettifyModelId(report.dopplerModelId || report.modelId, { stripDtype: hasDtypeFields });
+  const tjsName = prettifyModelId(report.tjsModelId);
+  const dopplerSuffix = hasDtypeFields ? formatDtypeSuffix(report.dopplerDtype) : '';
+  const tjsSuffix = hasDtypeFields ? formatDtypeSuffix(normalizeTjsDtype(tjsDtype)) : '';
+  return `${ENGINE_META.doppler.label} (${dopplerName}${dopplerSuffix}) vs ${ENGINE_META.transformersjs.label} (${tjsName}${tjsSuffix})`;
 }
 
 function buildSubtitle(report, inputPath) {

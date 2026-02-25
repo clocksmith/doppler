@@ -7,7 +7,7 @@
     "stdoutFormat": "json",
     "defaultCommand": null,
     "examples": [
-      "node external/mediapipe-llm-bench.js --workload decode-64-128-greedy --json"
+      "node tools/vendor-bench.js import --target mediapipe-llm --input /tmp/mediapipe-llm-result.json"
     ]
   },
   "normalization": {

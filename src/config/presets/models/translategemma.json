@@ -1,0 +1,24 @@
+{
+  "id": "translategemma",
+  "name": "TranslateGemma",
+  "extends": "gemma3",
+
+  "sampling": {
+    "temperature": 1.0,
+    "topK": 64,
+    "topP": 0.95,
+    "repetitionPenalty": 1.0
+  },
+
+  "detection": {
+    "architecturePatterns": [
+      "translategemma",
+      "TranslateGemma",
+      "Gemma3ForConditionalGeneration"
+    ],
+    "modelTypePatterns": [
+      "translategemma",
+      "translate_gemma"
+    ]
+  }
+}

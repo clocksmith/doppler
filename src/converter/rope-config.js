@@ -1,81 +1,218 @@
+function asObject(value) {
+  if (value == null || typeof value !== 'object' || Array.isArray(value)) {
+    return null;
+  }
+  return value;
+}
 
-export function buildRoPEConfig(presetInference, config) {
-  // Extract rope_scaling object from HF config
-  const ropeScaling = config.rope_scaling;
+function asFiniteNumber(value) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
 
-  // HF rope_scaling always takes precedence over preset (per-model config > family defaults)
-  let ropeScalingType = null;
+function normalizeRoPEType(value) {
+  if (typeof value !== 'string') return null;
+  const normalized = value.trim().toLowerCase();
+  if (normalized === '' || normalized === 'default' || normalized === 'none') {
+    return null;
+  }
+  return normalized;
+}
+
+function resolveScalingConfig(ropeScalingConfig, options = {}) {
+  const { strictMissingTypeAndFactor = false, sourceLabel = 'HF config' } = options;
+  const scalingTypeRaw = ropeScalingConfig.type ?? ropeScalingConfig.rope_type;
+  const scalingType = normalizeRoPEType(scalingTypeRaw);
+  const factor = asFiniteNumber(ropeScalingConfig.factor);
+
+  if (scalingTypeRaw == null && factor == null) {
+    if (strictMissingTypeAndFactor) {
+      throw new Error(
+        `${sourceLabel} includes rope_scaling but is missing type/rope_type and factor. ` +
+        'Provide a scaling type or factor to build manifest inference.'
+      );
+    }
+    return {
+      ropeScalingType: null,
+      ropeScalingFactor: 1.0,
+      yarnBetaFast: null,
+      yarnBetaSlow: null,
+      yarnOriginalMaxPos: null,
+    };
+  }
+
+  let ropeScalingType = scalingType;
   let ropeScalingFactor = 1.0;
-
-  // YARN params (only populated for YARN scaling)
   let yarnBetaFast = null;
   let yarnBetaSlow = null;
   let yarnOriginalMaxPos = null;
 
-  if (ropeScaling && typeof ropeScaling === 'object') {
-    // HF config is source of truth for rope_scaling
-    const scalingType = ropeScaling.type ?? ropeScaling.rope_type;
-    const factor = ropeScaling.factor;
-    if (scalingType == null) {
-      if (factor != null && factor > 0) {
-        // Infer linear scaling when factor is present but type is missing.
-        ropeScalingType = 'linear';
-        ropeScalingFactor = factor;
-      } else {
-        throw new Error(
-          'HF config includes rope_scaling but is missing type/rope_type and factor. ' +
-          'Provide a scaling type or factor to build manifest inference.'
-        );
-      }
-    } else {
-      ropeScalingType = scalingType;
-      if (factor != null && factor > 0) {
-        ropeScalingFactor = factor;
-      }
+  if (ropeScalingType == null) {
+    if (factor != null && factor > 0 && factor !== 1.0) {
+      ropeScalingType = 'linear';
+      ropeScalingFactor = factor;
     }
-
-    // Extract YARN-specific params (ALL required when type='yarn' - fail fast)
-    if (ropeScalingType === 'yarn') {
-      const betaFast = ropeScaling.beta_fast;
-      const betaSlow = ropeScaling.beta_slow;
-      const origMaxPos = ropeScaling.original_max_position_embeddings;
-      if (betaFast == null || betaSlow == null || origMaxPos == null) {
-        throw new Error(
-          'YARN scaling detected but required params missing in HF config. ' +
-          'YARN requires beta_fast, beta_slow, and original_max_position_embeddings. ' +
-          `Got: beta_fast=${betaFast}, beta_slow=${betaSlow}, original_max_position_embeddings=${origMaxPos}`
-        );
-      }
-      yarnBetaFast = betaFast;
-      yarnBetaSlow = betaSlow;
-      yarnOriginalMaxPos = origMaxPos;
-    }
-  } else {
-    // No HF rope_scaling - fall back to preset (check both canonical and deprecated locations)
-    const presetAttn = presetInference.attention;
-    ropeScalingType = presetInference.rope?.ropeScalingType
-      ?? presetAttn?.ropeScalingType  // Deprecated location
-      ?? null;
-    ropeScalingFactor = presetInference.rope?.ropeScalingFactor
-      ?? presetAttn?.ropeScalingFactor  // Deprecated location
-      ?? 1.0;
+  } else if (factor != null && factor > 0) {
+    ropeScalingFactor = factor;
   }
 
-  // HF config is source of truth for ropeTheta, preset is fallback
-  const ropeTheta = config.rope_theta
-    ?? presetInference.rope?.ropeTheta
-    ?? 10000;
-
-  // ropeLocalTheta is model-family specific (e.g., Gemma 3), comes from preset
-  const ropeLocalTheta = presetInference.rope?.ropeLocalTheta ?? null;
+  if (ropeScalingType === 'yarn') {
+    const betaFast = asFiniteNumber(ropeScalingConfig.beta_fast);
+    const betaSlow = asFiniteNumber(ropeScalingConfig.beta_slow);
+    const origMaxPos = asFiniteNumber(ropeScalingConfig.original_max_position_embeddings);
+    if (betaFast == null || betaSlow == null || origMaxPos == null) {
+      throw new Error(
+        'YARN scaling detected but required params missing in HF config. ' +
+        'YARN requires beta_fast, beta_slow, and original_max_position_embeddings. ' +
+        `Got: beta_fast=${betaFast}, beta_slow=${betaSlow}, original_max_position_embeddings=${origMaxPos}`
+      );
+    }
+    yarnBetaFast = betaFast;
+    yarnBetaSlow = betaSlow;
+    yarnOriginalMaxPos = origMaxPos;
+  }
 
   return {
-    ropeTheta,
-    ropeLocalTheta,
     ropeScalingType,
     ropeScalingFactor,
     yarnBetaFast,
     yarnBetaSlow,
     yarnOriginalMaxPos,
+  };
+}
+
+function hasScalingDirective(ropeScalingConfig) {
+  if (!ropeScalingConfig) return false;
+  return ropeScalingConfig.type != null
+    || ropeScalingConfig.rope_type != null
+    || ropeScalingConfig.factor != null
+    || ropeScalingConfig.beta_fast != null
+    || ropeScalingConfig.beta_slow != null
+    || ropeScalingConfig.original_max_position_embeddings != null;
+}
+
+function hasMeaningfulScalingConfig(resolvedScaling) {
+  if (!resolvedScaling) return false;
+  return resolvedScaling.ropeScalingType != null
+    || resolvedScaling.ropeScalingFactor !== 1.0
+    || resolvedScaling.yarnBetaFast != null
+    || resolvedScaling.yarnBetaSlow != null
+    || resolvedScaling.yarnOriginalMaxPos != null;
+}
+
+function isSameScalingConfig(left, right) {
+  return left.ropeScalingType === right.ropeScalingType
+    && left.ropeScalingFactor === right.ropeScalingFactor
+    && left.yarnBetaFast === right.yarnBetaFast
+    && left.yarnBetaSlow === right.yarnBetaSlow
+    && left.yarnOriginalMaxPos === right.yarnOriginalMaxPos;
+}
+
+function failOnConflictingScaling(sourceLabel, canonicalScaling, candidateScaling) {
+  if (!hasMeaningfulScalingConfig(candidateScaling)) {
+    return;
+  }
+  if (isSameScalingConfig(canonicalScaling, candidateScaling)) {
+    return;
+  }
+  throw new Error(
+    `${sourceLabel} scaling conflicts with top-level rope_scaling. ` +
+    'Doppler treats rope_scaling as highest precedence and cannot safely auto-resolve this mismatch. ' +
+    'Remove one source or align both scaling configs.'
+  );
+}
+
+export function buildRoPEConfig(presetInference, config) {
+  const ropeScaling = asObject(config.rope_scaling);
+  const ropeParameters = asObject(config.rope_parameters);
+  const fullAttentionRoPE = asObject(ropeParameters?.full_attention);
+  const slidingAttentionRoPE = asObject(ropeParameters?.sliding_attention);
+  const presetRoPE = presetInference.rope ?? {};
+  const presetAttn = presetInference.attention;
+
+  let globalScaling = {
+    ropeScalingType: presetRoPE.ropeScalingType
+      ?? presetAttn?.ropeScalingType  // Deprecated location
+      ?? null,
+    ropeScalingFactor: presetRoPE.ropeScalingFactor
+      ?? presetAttn?.ropeScalingFactor  // Deprecated location
+      ?? 1.0,
+    yarnBetaFast: presetRoPE.yarnBetaFast ?? null,
+    yarnBetaSlow: presetRoPE.yarnBetaSlow ?? null,
+    yarnOriginalMaxPos: presetRoPE.yarnOriginalMaxPos ?? null,
+  };
+
+  if (ropeScaling) {
+    // HF rope_scaling is source of truth when present.
+    globalScaling = resolveScalingConfig(ropeScaling, {
+      strictMissingTypeAndFactor: true,
+      sourceLabel: 'HF config',
+    });
+    if (slidingAttentionRoPE && hasScalingDirective(slidingAttentionRoPE)) {
+      failOnConflictingScaling(
+        'HF config rope_parameters.sliding_attention',
+        globalScaling,
+        resolveScalingConfig(slidingAttentionRoPE, {
+          strictMissingTypeAndFactor: false,
+          sourceLabel: 'HF config rope_parameters.sliding_attention',
+        })
+      );
+    }
+  } else if (fullAttentionRoPE) {
+    // Gemma 3 style rope_parameters uses per-layer-type settings.
+    globalScaling = resolveScalingConfig(fullAttentionRoPE, {
+      strictMissingTypeAndFactor: false,
+      sourceLabel: 'HF config rope_parameters.full_attention',
+    });
+  }
+
+  const hasPresetLocalScaling = presetRoPE.ropeLocalScalingType !== undefined
+    || presetRoPE.ropeLocalScalingFactor !== undefined
+    || presetRoPE.ropeLocalYarnBetaFast !== undefined
+    || presetRoPE.ropeLocalYarnBetaSlow !== undefined
+    || presetRoPE.ropeLocalYarnOriginalMaxPos !== undefined;
+  let localScaling = hasPresetLocalScaling
+    ? {
+        ropeScalingType: presetRoPE.ropeLocalScalingType ?? globalScaling.ropeScalingType,
+        ropeScalingFactor: presetRoPE.ropeLocalScalingFactor ?? globalScaling.ropeScalingFactor,
+        yarnBetaFast: presetRoPE.ropeLocalYarnBetaFast ?? globalScaling.yarnBetaFast,
+        yarnBetaSlow: presetRoPE.ropeLocalYarnBetaSlow ?? globalScaling.yarnBetaSlow,
+        yarnOriginalMaxPos: presetRoPE.ropeLocalYarnOriginalMaxPos ?? globalScaling.yarnOriginalMaxPos,
+      }
+    : { ...globalScaling };
+  if (ropeScaling) {
+    localScaling = { ...globalScaling };
+  } else if (slidingAttentionRoPE) {
+    localScaling = resolveScalingConfig(slidingAttentionRoPE, {
+      strictMissingTypeAndFactor: false,
+      sourceLabel: 'HF config rope_parameters.sliding_attention',
+    });
+  }
+
+  // HF config is source of truth for ropeTheta when provided:
+  // prefer rope_parameters.full_attention.rope_theta, then rope_theta.
+  const ropeTheta = asFiniteNumber(fullAttentionRoPE?.rope_theta)
+    ?? asFiniteNumber(config.rope_theta)
+    ?? presetInference.rope?.ropeTheta
+    ?? 10000;
+
+  // For Gemma 3, local sliding attention theta comes from rope_parameters.sliding_attention.
+  const ropeLocalTheta = asFiniteNumber(slidingAttentionRoPE?.rope_theta)
+    ?? presetInference.rope?.ropeLocalTheta
+    ?? null;
+
+  return {
+    ropeTheta,
+    ropeLocalTheta,
+    ropeScalingType: globalScaling.ropeScalingType,
+    ropeScalingFactor: globalScaling.ropeScalingFactor,
+    yarnBetaFast: globalScaling.yarnBetaFast,
+    yarnBetaSlow: globalScaling.yarnBetaSlow,
+    yarnOriginalMaxPos: globalScaling.yarnOriginalMaxPos,
+    ropeLocalScalingType: localScaling.ropeScalingType,
+    ropeLocalScalingFactor: localScaling.ropeScalingFactor,
+    ropeLocalYarnBetaFast: localScaling.yarnBetaFast,
+    ropeLocalYarnBetaSlow: localScaling.yarnBetaSlow,
+    ropeLocalYarnOriginalMaxPos: localScaling.yarnOriginalMaxPos,
   };
 }

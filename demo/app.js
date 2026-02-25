@@ -141,12 +141,23 @@ import {
   resumeActiveDownload,
   cancelActiveDownload,
 } from './app/downloads/index.js';
+import {
+  createTranslateTextRequest,
+  buildTranslatePromptFromRequest,
+} from './app/translate/request.js';
 
 const controller = new DiagnosticsController({ log });
 
-const PRIMARY_MODES = new Set(['run', 'embedding', 'diffusion', 'energy']);
+const PRIMARY_MODES = new Set(['run', 'translate', 'embedding', 'diffusion', 'energy']);
 let modelListRefreshVersion = 0;
-const DEFAULT_MODEL_AVAILABILITY = Object.freeze({ total: 0, run: 0, embedding: 0, diffusion: 0, energy: 0 });
+const DEFAULT_MODEL_AVAILABILITY = Object.freeze({
+  total: 0,
+  run: 0,
+  translate: 0,
+  embedding: 0,
+  diffusion: 0,
+  energy: 0,
+});
 const QUICK_MODEL_CATALOG_URL = new URL('../models/catalog.json', import.meta.url).toString();
 const RUN_STARTER_PROMPTS = Object.freeze([
   'is potential energy real?',
@@ -160,6 +171,86 @@ const RUN_STARTER_PROMPTS = Object.freeze([
   'describe a toy store where the shelves are sorted by cognitive development stages and every single game has a proof of educational value attached',
   'is human intuition just a fast, low-energy heuristic that our biological hardware runs when the cost of slow, symbolic reasoning is too high for survival',
   'write a technical fable about an agent tasked with solving a paradox, forever rolling a high-energy gradient up a hill only for it to reset at every epoch',
+]);
+const TRANSLATE_STARTER_PROMPTS = Object.freeze([
+  'Good software should fail loudly and explain why.',
+  'Never silently fall back when model capabilities are unsupported.',
+  'Please translate this release note into clear, natural language.',
+  'On-device inference keeps sensitive data local to the machine.',
+  'A deterministic benchmark needs fixed prompts, seeds, and token budgets.',
+]);
+const TRANSLATE_LANGUAGE_OPTIONS = Object.freeze([
+  Object.freeze({ code: 'ar_EG', name: 'Arabic (Egypt)' }),
+  Object.freeze({ code: 'ar_SA', name: 'Arabic (Saudi Arabia)' }),
+  Object.freeze({ code: 'bg_BG', name: 'Bulgarian' }),
+  Object.freeze({ code: 'bn_IN', name: 'Bengali' }),
+  Object.freeze({ code: 'ca_ES', name: 'Catalan' }),
+  Object.freeze({ code: 'cs_CZ', name: 'Czech' }),
+  Object.freeze({ code: 'da_DK', name: 'Danish' }),
+  Object.freeze({ code: 'de_DE', name: 'German' }),
+  Object.freeze({ code: 'el_GR', name: 'Greek' }),
+  Object.freeze({ code: 'en', name: 'English' }),
+  Object.freeze({ code: 'es_XX', name: 'Spanish' }),
+  Object.freeze({ code: 'et_EE', name: 'Estonian' }),
+  Object.freeze({ code: 'fa_IR', name: 'Persian' }),
+  Object.freeze({ code: 'fi_FI', name: 'Finnish' }),
+  Object.freeze({ code: 'fil_PH', name: 'Filipino' }),
+  Object.freeze({ code: 'fr_CA', name: 'French (Canada)' }),
+  Object.freeze({ code: 'fr_FR', name: 'French' }),
+  Object.freeze({ code: 'gu_IN', name: 'Gujarati' }),
+  Object.freeze({ code: 'he_IL', name: 'Hebrew' }),
+  Object.freeze({ code: 'hi_IN', name: 'Hindi' }),
+  Object.freeze({ code: 'hr_HR', name: 'Croatian' }),
+  Object.freeze({ code: 'hu_HU', name: 'Hungarian' }),
+  Object.freeze({ code: 'id_ID', name: 'Indonesian' }),
+  Object.freeze({ code: 'is_IS', name: 'Icelandic' }),
+  Object.freeze({ code: 'it_IT', name: 'Italian' }),
+  Object.freeze({ code: 'ja_JP', name: 'Japanese' }),
+  Object.freeze({ code: 'kn_IN', name: 'Kannada' }),
+  Object.freeze({ code: 'ko_KR', name: 'Korean' }),
+  Object.freeze({ code: 'lt_LT', name: 'Lithuanian' }),
+  Object.freeze({ code: 'lv_LV', name: 'Latvian' }),
+  Object.freeze({ code: 'ml_IN', name: 'Malayalam' }),
+  Object.freeze({ code: 'mr_IN', name: 'Marathi' }),
+  Object.freeze({ code: 'nl_NL', name: 'Dutch' }),
+  Object.freeze({ code: 'no_NO', name: 'Norwegian' }),
+  Object.freeze({ code: 'pa_IN', name: 'Punjabi' }),
+  Object.freeze({ code: 'pl_PL', name: 'Polish' }),
+  Object.freeze({ code: 'pt_BR', name: 'Portuguese (Brazil)' }),
+  Object.freeze({ code: 'pt_PT', name: 'Portuguese (Portugal)' }),
+  Object.freeze({ code: 'ro_RO', name: 'Romanian' }),
+  Object.freeze({ code: 'ru_RU', name: 'Russian' }),
+  Object.freeze({ code: 'sk_SK', name: 'Slovak' }),
+  Object.freeze({ code: 'sl_SI', name: 'Slovenian' }),
+  Object.freeze({ code: 'sr_RS', name: 'Serbian' }),
+  Object.freeze({ code: 'sv_SE', name: 'Swedish' }),
+  Object.freeze({ code: 'sw_KE', name: 'Swahili' }),
+  Object.freeze({ code: 'sw_TZ', name: 'Swahili (Tanzania)' }),
+  Object.freeze({ code: 'ta_IN', name: 'Tamil' }),
+  Object.freeze({ code: 'te_IN', name: 'Telugu' }),
+  Object.freeze({ code: 'th_TH', name: 'Thai' }),
+  Object.freeze({ code: 'tr_TR', name: 'Turkish' }),
+  Object.freeze({ code: 'uk_UA', name: 'Ukrainian' }),
+  Object.freeze({ code: 'ur_PK', name: 'Urdu' }),
+  Object.freeze({ code: 'vi_VN', name: 'Vietnamese' }),
+  Object.freeze({ code: 'zh_TW', name: 'Chinese (Traditional)' }),
+  Object.freeze({ code: 'zu_ZA', name: 'Zulu' }),
+]);
+const DEFAULT_TRANSLATE_SOURCE = 'en';
+const DEFAULT_TRANSLATE_TARGET = 'es_XX';
+const DEFAULT_TRANSLATE_TEMPERATURE = 1.0;
+const DEFAULT_TRANSLATE_TOP_P = 0.95;
+const DEFAULT_TRANSLATE_TOP_K = 64;
+const DEFAULT_TRANSLATE_MAX_TOKENS = 1024;
+const DEEP_LINK_MODES = new Set([
+  'run',
+  'translate',
+  'embedding',
+  'diffusion',
+  'energy',
+  'models',
+  'diagnostics',
+  'kernels',
 ]);
 const EMBEDDING_DEMO_DOCUMENT_CATALOG = Object.freeze([
   Object.freeze({
@@ -244,9 +335,216 @@ const DIFFUSION_NEGATIVE_STARTER_PROMPTS = Object.freeze([
   'compression blocks, aliasing, moire patterns, scan lines',
 ]);
 
+function normalizeTranslateLanguageCode(code, fallbackCode = DEFAULT_TRANSLATE_SOURCE) {
+  const requested = String(code || '').trim();
+  if (TRANSLATE_LANGUAGE_OPTIONS.some((entry) => entry.code === requested)) {
+    return requested;
+  }
+  return fallbackCode;
+}
+
+function getTranslateLanguageName(code) {
+  const found = TRANSLATE_LANGUAGE_OPTIONS.find((entry) => entry.code === code);
+  return found?.name || code;
+}
+
+function populateTranslateLanguageSelect(selectEl, selectedCode) {
+  if (!(selectEl instanceof HTMLSelectElement)) return;
+  const previousCode = normalizeTranslateLanguageCode(selectedCode || selectEl.value || '', DEFAULT_TRANSLATE_SOURCE);
+  selectEl.innerHTML = '';
+  for (const entry of TRANSLATE_LANGUAGE_OPTIONS) {
+    const option = document.createElement('option');
+    option.value = entry.code;
+    option.textContent = `${entry.name} (${entry.code})`;
+    selectEl.appendChild(option);
+  }
+  selectEl.value = previousCode;
+}
+
+function populateTranslateLanguageControls() {
+  const sourceSelect = $('translate-source-language');
+  const targetSelect = $('translate-target-language');
+  populateTranslateLanguageSelect(sourceSelect, DEFAULT_TRANSLATE_SOURCE);
+  populateTranslateLanguageSelect(targetSelect, DEFAULT_TRANSLATE_TARGET);
+  if (sourceSelect && targetSelect && sourceSelect.value === targetSelect.value) {
+    targetSelect.value = DEFAULT_TRANSLATE_TARGET;
+  }
+}
+
+function swapTranslateLanguages() {
+  const sourceSelect = $('translate-source-language');
+  const targetSelect = $('translate-target-language');
+  if (!(sourceSelect instanceof HTMLSelectElement) || !(targetSelect instanceof HTMLSelectElement)) {
+    return;
+  }
+  const sourceCode = normalizeTranslateLanguageCode(sourceSelect.value, DEFAULT_TRANSLATE_SOURCE);
+  const targetCode = normalizeTranslateLanguageCode(targetSelect.value, DEFAULT_TRANSLATE_TARGET);
+  sourceSelect.value = targetCode;
+  targetSelect.value = sourceCode;
+}
+
+function getTranslateLanguageSelection() {
+  const sourceSelect = $('translate-source-language');
+  const targetSelect = $('translate-target-language');
+  const sourceCode = normalizeTranslateLanguageCode(sourceSelect?.value, DEFAULT_TRANSLATE_SOURCE);
+  let targetCode = normalizeTranslateLanguageCode(targetSelect?.value, DEFAULT_TRANSLATE_TARGET);
+  if (targetCode === sourceCode) {
+    targetCode = sourceCode === DEFAULT_TRANSLATE_TARGET
+      ? DEFAULT_TRANSLATE_SOURCE
+      : DEFAULT_TRANSLATE_TARGET;
+    if (targetSelect instanceof HTMLSelectElement) {
+      targetSelect.value = targetCode;
+    }
+  }
+  return { sourceCode, targetCode };
+}
+
+function normalizeDeepLinkMode(mode, fallback = null) {
+  const normalized = String(mode || '').trim().toLowerCase();
+  if (normalized === 'text') return 'run';
+  if (normalized === 'translation') return 'translate';
+  if (normalized === 'embed') return 'embedding';
+  if (normalized === 'image') return 'diffusion';
+  if (DEEP_LINK_MODES.has(normalized)) return normalized;
+  return fallback;
+}
+
+function readDeepLinkValue(hashParams, queryParams, keys) {
+  for (const key of keys) {
+    const hashValue = hashParams.get(key);
+    if (hashValue != null && hashValue !== '') return hashValue;
+    const queryValue = queryParams.get(key);
+    if (queryValue != null && queryValue !== '') return queryValue;
+  }
+  return null;
+}
+
+function decodeDeepLinkText(rawText) {
+  const text = String(rawText ?? '');
+  if (!text) return '';
+  try {
+    return decodeURIComponent(text);
+  } catch {
+    return text;
+  }
+}
+
+function readDeepLinkStateFromLocation() {
+  if (typeof window === 'undefined') {
+    return {
+      mode: null,
+      sourceCode: DEFAULT_TRANSLATE_SOURCE,
+      targetCode: DEFAULT_TRANSLATE_TARGET,
+      text: null,
+    };
+  }
+
+  const queryParams = new URLSearchParams(window.location.search);
+  const hashRaw = String(window.location.hash || '').replace(/^#/, '').replace(/^\?/, '');
+  const hashParams = new URLSearchParams(hashRaw);
+
+  const sourceRaw = readDeepLinkValue(hashParams, queryParams, ['sl', 'source', 'source_lang_code']);
+  const targetRaw = readDeepLinkValue(hashParams, queryParams, ['tl', 'target', 'target_lang_code']);
+  const textRaw = readDeepLinkValue(hashParams, queryParams, ['text', 'prompt', 'q']);
+  const modeRaw = readDeepLinkValue(hashParams, queryParams, ['mode', 'm']);
+
+  let mode = normalizeDeepLinkMode(modeRaw, null);
+  if (!mode && (sourceRaw != null || targetRaw != null || textRaw != null)) {
+    mode = 'translate';
+  }
+
+  const sourceCode = normalizeTranslateLanguageCode(sourceRaw, DEFAULT_TRANSLATE_SOURCE);
+  let targetCode = normalizeTranslateLanguageCode(targetRaw, DEFAULT_TRANSLATE_TARGET);
+  if (targetCode === sourceCode) {
+    targetCode = sourceCode === DEFAULT_TRANSLATE_TARGET
+      ? DEFAULT_TRANSLATE_SOURCE
+      : DEFAULT_TRANSLATE_TARGET;
+  }
+
+  return {
+    mode,
+    sourceCode,
+    targetCode,
+    text: textRaw == null ? null : decodeDeepLinkText(textRaw),
+  };
+}
+
+function applyDeepLinkStateToUI(deepLinkState) {
+  const sourceSelect = $('translate-source-language');
+  const targetSelect = $('translate-target-language');
+  if (sourceSelect instanceof HTMLSelectElement) {
+    sourceSelect.value = normalizeTranslateLanguageCode(deepLinkState?.sourceCode, DEFAULT_TRANSLATE_SOURCE);
+  }
+  if (targetSelect instanceof HTMLSelectElement) {
+    targetSelect.value = normalizeTranslateLanguageCode(deepLinkState?.targetCode, DEFAULT_TRANSLATE_TARGET);
+  }
+  if (sourceSelect instanceof HTMLSelectElement && targetSelect instanceof HTMLSelectElement) {
+    const selected = getTranslateLanguageSelection();
+    sourceSelect.value = selected.sourceCode;
+    targetSelect.value = selected.targetCode;
+  }
+
+  if (typeof deepLinkState?.text === 'string') {
+    const promptEl = $('run-prompt');
+    if (promptEl instanceof HTMLTextAreaElement) {
+      promptEl.value = deepLinkState.text;
+      setStarterExampleInput(promptEl, false);
+    }
+  }
+}
+
+function buildDeepLinkHash(modeOverride = null) {
+  const mode = normalizeDeepLinkMode(modeOverride || state.uiMode, 'run');
+  const params = new URLSearchParams();
+
+  if (mode !== 'run') {
+    params.set('mode', mode);
+  }
+
+  if (mode === 'translate') {
+    const promptEl = $('run-prompt');
+    const prompt = String(promptEl?.value || '').trim();
+    const { sourceCode, targetCode } = getTranslateLanguageSelection();
+    params.set('sl', sourceCode);
+    params.set('tl', targetCode);
+    const shouldIncludePrompt = prompt.length > 0 && !isStarterExampleInput(promptEl);
+    if (shouldIncludePrompt) {
+      params.set('text', prompt);
+    }
+  }
+
+  return params.toString();
+}
+
+function syncDeepLinkFromUI() {
+  if (typeof window === 'undefined' || typeof window.history?.replaceState !== 'function') {
+    return;
+  }
+  const next = new URL(window.location.href);
+  next.hash = buildDeepLinkHash();
+  const nextPath = `${next.pathname}${next.search}${next.hash}`;
+  const currentPath = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+  if (nextPath === currentPath) return;
+  window.history.replaceState(null, '', nextPath);
+}
+
+function buildTranslateDeepLinkUrl() {
+  const next = new URL(window.location.href);
+  next.hash = buildDeepLinkHash('translate');
+  return next.toString();
+}
+
+function getRunStarterPromptPool() {
+  if (state.uiMode === 'translate') {
+    return TRANSLATE_STARTER_PROMPTS;
+  }
+  return RUN_STARTER_PROMPTS;
+}
+
 function normalizeQuickModeToken(value) {
   const normalized = String(value || '').trim().toLowerCase();
   if (normalized === 'run' || normalized === 'text') return 'run';
+  if (normalized === 'translate' || normalized === 'translation') return 'translate';
   if (normalized === 'embedding' || normalized === 'embed') return 'embedding';
   if (normalized === 'diffusion' || normalized === 'image') return 'diffusion';
   if (normalized === 'energy') return 'energy';
@@ -263,6 +561,7 @@ function normalizeQuickModes(rawMode, rawModes) {
       const lowered = value.trim().toLowerCase();
       if (lowered === 'both' || lowered === 'all' || lowered === 'text+embedding') {
         tokens.add('run');
+        tokens.add('translate');
         tokens.add('embedding');
         continue;
       }
@@ -276,8 +575,11 @@ function normalizeQuickModes(rawMode, rawModes) {
     const normalized = normalizeQuickModeToken(value);
     if (normalized) tokens.add(normalized);
   }
+  if (tokens.has('run')) tokens.add('translate');
+  if (tokens.has('translate')) tokens.add('run');
   if (tokens.size === 0) {
     tokens.add('run');
+    tokens.add('translate');
   }
   return [...tokens];
 }
@@ -375,7 +677,11 @@ function findQuickModelEntry(modelId) {
 function formatQuickModelModeBadge(modes = []) {
   if (!Array.isArray(modes) || modes.length === 0) return 'text';
   const labels = [];
-  if (modes.includes('run')) labels.push('text');
+  if (modes.includes('run')) {
+    labels.push('text');
+  } else if (modes.includes('translate')) {
+    labels.push('translate');
+  }
   if (modes.includes('embedding')) labels.push('embedding');
   if (modes.includes('diffusion')) labels.push('diffusion');
   if (modes.includes('energy')) labels.push('energy');
@@ -458,7 +764,7 @@ function ensurePrimaryModeControlStack() {
   if (!controlsStack) {
     controlsStack = document.createElement('div');
     controlsStack.className = 'panel-stack panel-stack-controls';
-    controlsStack.dataset.modes = 'run embedding diffusion energy';
+    controlsStack.dataset.modes = 'run translate embedding diffusion energy';
     panelGrid.insertBefore(controlsStack, railStack);
   }
 
@@ -477,22 +783,36 @@ function ensurePrimaryModeControlStack() {
 
 function syncRunModeUI(mode) {
   const isEmbeddingMode = mode === 'embedding';
-  setText($('run-panel-title'), isEmbeddingMode ? 'Embeddings' : 'Text Decoding');
-  setText($('run-controls-title'), isEmbeddingMode ? 'Embedding Controls' : 'Run Controls');
-  setText($('run-prompt-label'), isEmbeddingMode ? 'Input text' : 'Prompt');
-  setText($('run-generate-btn'), isEmbeddingMode ? 'Embed' : 'Generate');
+  const isTranslateMode = mode === 'translate';
+  setText(
+    $('run-panel-title'),
+    isEmbeddingMode ? 'Embeddings' : (isTranslateMode ? 'Translation' : 'Text Decoding')
+  );
+  setText(
+    $('run-controls-title'),
+    isEmbeddingMode ? 'Embedding Controls' : (isTranslateMode ? 'Translation Controls' : 'Run Controls')
+  );
+  setText($('run-prompt-label'), isEmbeddingMode ? 'Input text' : (isTranslateMode ? 'Text to translate' : 'Prompt'));
+  setText($('run-generate-btn'), isEmbeddingMode ? 'Embed' : (isTranslateMode ? 'Translate' : 'Generate'));
   const prompt = $('run-prompt');
   if (prompt) {
     prompt.placeholder = isEmbeddingMode
       ? 'Enter text to embed...'
-      : 'Ask a question or provide a prompt...';
+      : (isTranslateMode
+        ? 'Enter text to translate...'
+        : 'Ask a question or provide a prompt...');
+    if (isTranslateMode && isStarterExampleInput(prompt)) {
+      applyStarterPrompt(prompt, TRANSLATE_STARTER_PROMPTS, { force: true });
+    }
   }
   setHidden($('run-sampling-controls'), isEmbeddingMode);
   setHidden($('run-embedding-docs'), !isEmbeddingMode);
+  setHidden($('translate-controls'), !isTranslateMode);
   if (isEmbeddingMode) {
     refreshEmbeddingDemoDocuments();
   }
   renderEmbeddingDocumentSet();
+  updateRunAutoLabels();
 }
 
 function setUiMode(mode) {
@@ -529,6 +849,7 @@ function setUiMode(mode) {
   if (mode === 'energy') {
     syncEnergyDemoSelection();
   }
+  syncDeepLinkFromUI();
 }
 
 function getModelAvailability() {
@@ -539,6 +860,7 @@ function getModelAvailability() {
   return {
     total: Number.isFinite(availability.total) ? availability.total : 0,
     run: Number.isFinite(availability.run) ? availability.run : 0,
+    translate: Number.isFinite(availability.translate) ? availability.translate : 0,
     embedding: Number.isFinite(availability.embedding) ? availability.embedding : 0,
     diffusion: Number.isFinite(availability.diffusion) ? availability.diffusion : 0,
     energy: Number.isFinite(availability.energy) ? availability.energy : 0,
@@ -589,6 +911,9 @@ function getMissingModelMessage(mode, availability) {
   if (compatible > 0) return '';
   if (mode === 'embedding') {
     return 'No embedding model available in OPFS for this mode.';
+  }
+  if (mode === 'translate') {
+    return 'No text translation model available in OPFS for this mode.';
   }
   if (mode === 'diffusion') {
     return 'No diffusion model available in OPFS for this mode.';
@@ -898,7 +1223,9 @@ async function runQuickModelAction(action, modelId) {
 
 function updateModelEmptyStates() {
   const availability = getModelAvailability();
-  const runTargetMode = state.uiMode === 'embedding' ? 'embedding' : 'run';
+  const runTargetMode = state.uiMode === 'embedding'
+    ? 'embedding'
+    : (state.uiMode === 'translate' ? 'translate' : 'run');
   const runMessage = getMissingModelMessage(runTargetMode, availability);
   const diffusionMessage = getMissingModelMessage('diffusion', availability);
   const energyMessage = getMissingModelMessage('energy', availability);
@@ -1197,6 +1524,7 @@ async function computeModelAvailability(models) {
       modelType = normalizeModelType(await getModelTypeForId(modelId));
     }
     if (isCompatibleModelType(modelType, 'run')) availability.run += 1;
+    if (isCompatibleModelType(modelType, 'translate')) availability.translate += 1;
     if (isCompatibleModelType(modelType, 'embedding')) availability.embedding += 1;
     if (isCompatibleModelType(modelType, 'diffusion')) availability.diffusion += 1;
     if (isCompatibleModelType(modelType, 'energy')) availability.energy += 1;
@@ -1465,18 +1793,26 @@ function syncRunControls() {
   const runStop = $('run-stop-btn');
   const runClear = $('run-clear-btn');
   const runResetKvToggle = $('run-reset-kv-toggle');
+  const translateSourceSelect = $('translate-source-language');
+  const translateTargetSelect = $('translate-target-language');
+  const translateSwapBtn = $('translate-swap-btn');
   const temperatureInput = $('temperature-input');
   const topPInput = $('top-p-input');
   const topKInput = $('top-k-input');
   const maxTokensInput = $('max-tokens-input');
   const availability = getModelAvailability();
-  const needsEmbeddingModel = state.uiMode === 'embedding';
-  const hasCompatibleModel = needsEmbeddingModel ? availability.embedding > 0 : availability.run > 0;
+  const modeKey = state.uiMode === 'embedding'
+    ? 'embedding'
+    : (state.uiMode === 'translate' ? 'translate' : 'run');
+  const hasCompatibleModel = Number.isFinite(availability[modeKey]) && availability[modeKey] > 0;
   const disabled = state.runGenerating || state.runLoading;
   if (runPrompt) runPrompt.disabled = disabled;
   if (runGenerate) runGenerate.disabled = disabled || !hasCompatibleModel;
   if (runClear) runClear.disabled = disabled;
   if (runResetKvToggle) runResetKvToggle.disabled = disabled;
+  if (translateSourceSelect) translateSourceSelect.disabled = disabled;
+  if (translateTargetSelect) translateTargetSelect.disabled = disabled;
+  if (translateSwapBtn) translateSwapBtn.disabled = disabled;
   if (temperatureInput) temperatureInput.disabled = disabled;
   if (topPInput) topPInput.disabled = disabled;
   if (topKInput) topKInput.disabled = disabled;
@@ -1512,10 +1848,15 @@ function updateRunAutoLabels() {
   const runtime = getRuntimeConfig();
   const sampling = runtime?.inference?.sampling ?? {};
   const batching = runtime?.inference?.batching ?? {};
-  setRunAutoLabel('temperature-input', 'temperature-auto', sampling.temperature);
-  setRunAutoLabel('top-p-input', 'top-p-auto', sampling.topP);
-  setRunAutoLabel('top-k-input', 'top-k-auto', sampling.topK, { integer: true });
-  setRunAutoLabel('max-tokens-input', 'max-tokens-auto', batching.maxTokens, { integer: true });
+  const useTranslateDefaults = state.uiMode === 'translate';
+  const defaultTemperature = useTranslateDefaults ? DEFAULT_TRANSLATE_TEMPERATURE : sampling.temperature;
+  const defaultTopP = useTranslateDefaults ? DEFAULT_TRANSLATE_TOP_P : sampling.topP;
+  const defaultTopK = useTranslateDefaults ? DEFAULT_TRANSLATE_TOP_K : sampling.topK;
+  const defaultMaxTokens = useTranslateDefaults ? DEFAULT_TRANSLATE_MAX_TOKENS : batching.maxTokens;
+  setRunAutoLabel('temperature-input', 'temperature-auto', defaultTemperature);
+  setRunAutoLabel('top-p-input', 'top-p-auto', defaultTopP);
+  setRunAutoLabel('top-k-input', 'top-k-auto', defaultTopK, { integer: true });
+  setRunAutoLabel('max-tokens-input', 'max-tokens-auto', defaultMaxTokens, { integer: true });
 }
 
 function formatCharCounter(value, maxLength) {
@@ -1546,6 +1887,7 @@ function buildRunGenerateOptions() {
   if (state.uiMode === 'embedding') {
     return {};
   }
+  const isTranslateMode = state.uiMode === 'translate';
   const temperature = readOptionalNumber($('temperature-input'));
   const topP = readOptionalNumber($('top-p-input'));
   const topK = readOptionalNumber($('top-k-input'), { integer: true });
@@ -1562,6 +1904,20 @@ function buildRunGenerateOptions() {
   }
   if (maxTokens != null && maxTokens > 0) {
     options.maxTokens = Math.max(1, maxTokens);
+  }
+  if (isTranslateMode) {
+    if (temperature == null) {
+      options.temperature = DEFAULT_TRANSLATE_TEMPERATURE;
+    }
+    if (topP == null) {
+      options.topP = DEFAULT_TRANSLATE_TOP_P;
+    }
+    if (topK == null) {
+      options.topK = DEFAULT_TRANSLATE_TOP_K;
+    }
+    if (maxTokens == null) {
+      options.maxTokens = DEFAULT_TRANSLATE_MAX_TOKENS;
+    }
   }
   return options;
 }
@@ -1611,7 +1967,9 @@ async function ensurePipeline(modelId, overlayTitle, modeKey) {
 
 async function ensureRunPipeline() {
   const modelId = getSelectedModelId();
-  const modeKey = state.uiMode === 'embedding' ? 'embedding' : 'run';
+  const modeKey = state.uiMode === 'embedding'
+    ? 'embedding'
+    : (state.uiMode === 'translate' ? 'translate' : 'run');
   setRunLoading(true);
   try {
     return await ensurePipeline(modelId, 'Loading Model', modeKey);
@@ -2144,12 +2502,32 @@ async function handleRunGenerate() {
   const outputEl = $('run-output');
   const prompt = promptEl?.value?.trim() || '';
   const isEmbeddingMode = state.uiMode === 'embedding';
+  const isTranslateMode = state.uiMode === 'translate';
   const runResetKvToggle = $('run-reset-kv-toggle');
   const resetContextEachRun = !isEmbeddingMode && Boolean(runResetKvToggle?.checked);
   if (!prompt) {
-    updateRunStatus(isEmbeddingMode ? 'Enter text to embed.' : 'Enter a prompt to generate.');
+    updateRunStatus(
+      isEmbeddingMode
+        ? 'Enter text to embed.'
+        : (isTranslateMode ? 'Enter text to translate.' : 'Enter a prompt to generate.')
+    );
     return;
   }
+
+  const translateSelection = isTranslateMode ? getTranslateLanguageSelection() : null;
+  const translateRequest = isTranslateMode
+    ? createTranslateTextRequest(
+      prompt,
+      translateSelection.sourceCode,
+      translateSelection.targetCode
+    )
+    : null;
+  const generationPrompt = isTranslateMode
+    ? buildTranslatePromptFromRequest(
+      translateRequest,
+      (languageCode) => getTranslateLanguageName(languageCode)
+    )
+    : prompt;
 
   updateRunStatus('Preparing...');
   let pipeline;
@@ -2175,7 +2553,7 @@ async function handleRunGenerate() {
   state.runAbortController = controller;
   state.runPrefilling = !isEmbeddingMode;
   setRunGenerating(true);
-  updateRunStatus(isEmbeddingMode ? 'Embedding...' : 'Generating...');
+  updateRunStatus(isEmbeddingMode ? 'Embedding...' : (isTranslateMode ? 'Translating...' : 'Generating...'));
   if (outputEl) outputEl.textContent = '';
 
   const options = buildRunGenerateOptions();
@@ -2250,7 +2628,7 @@ async function handleRunGenerate() {
       if (outputEl) outputEl.textContent = output;
       updateRunStatus('Complete');
     } else {
-      for await (const token of pipeline.generate(prompt, {
+      for await (const token of pipeline.generate(generationPrompt, {
         ...options,
         signal: controller.signal,
       })) {
@@ -2291,6 +2669,11 @@ async function handleRunGenerate() {
       tokensPerSec,
       liveTokensPerSec: null,
     };
+    if (translateSelection) {
+      state.lastMetrics.translateSource = translateSelection.sourceCode;
+      state.lastMetrics.translateTarget = translateSelection.targetCode;
+      state.lastMetrics.translateRequest = translateRequest;
+    }
     state.lastMemoryStats = pipeline?.getMemoryStats?.() ?? state.lastMemoryStats;
     state.lastInferenceStats = pipeline?.getStats?.() ?? state.lastInferenceStats;
     if (state.lastInferenceStats) {
@@ -2320,6 +2703,7 @@ function handleRunClear() {
   }
   if (outputEl) outputEl.textContent = '';
   updateRunStatus('Idle');
+  syncDeepLinkFromUI();
 }
 
 function handleInferencePulseReset() {
@@ -3155,6 +3539,10 @@ function bindUI() {
   const runGenerate = $('run-generate-btn');
   const runStop = $('run-stop-btn');
   const runClear = $('run-clear-btn');
+  const translateSourceLanguage = $('translate-source-language');
+  const translateTargetLanguage = $('translate-target-language');
+  const translateSwapBtn = $('translate-swap-btn');
+  const translateOpenTabBtn = $('translate-open-tab-btn');
   const pulseReset = $('pulse-reset-btn');
   const temperatureInput = $('temperature-input');
   const topPInput = $('top-p-input');
@@ -3201,6 +3589,34 @@ function bindUI() {
   bindStarterPromptInput(runPrompt);
   bindStarterPromptInput(diffusionPrompt);
   bindStarterPromptInput(diffusionNegative);
+  populateTranslateLanguageControls();
+
+  const syncTranslateDirection = () => {
+    const sourceCode = normalizeTranslateLanguageCode(translateSourceLanguage?.value, DEFAULT_TRANSLATE_SOURCE);
+    if (translateSourceLanguage instanceof HTMLSelectElement) {
+      translateSourceLanguage.value = sourceCode;
+    }
+    let targetCode = normalizeTranslateLanguageCode(translateTargetLanguage?.value, DEFAULT_TRANSLATE_TARGET);
+    if (targetCode === sourceCode) {
+      targetCode = sourceCode === DEFAULT_TRANSLATE_TARGET
+        ? DEFAULT_TRANSLATE_SOURCE
+        : DEFAULT_TRANSLATE_TARGET;
+    }
+    if (translateTargetLanguage instanceof HTMLSelectElement) {
+      translateTargetLanguage.value = targetCode;
+    }
+    syncDeepLinkFromUI();
+  };
+  translateSourceLanguage?.addEventListener('change', syncTranslateDirection);
+  translateTargetLanguage?.addEventListener('change', syncTranslateDirection);
+  translateSwapBtn?.addEventListener('click', () => {
+    swapTranslateLanguages();
+    syncTranslateDirection();
+  });
+  translateOpenTabBtn?.addEventListener('click', () => {
+    const url = buildTranslateDeepLinkUrl();
+    window.open(url, '_blank', 'noopener,noreferrer');
+  });
 
   document.querySelectorAll('.mode-tab').forEach((button) => {
     button.addEventListener('click', () => {
@@ -3362,12 +3778,18 @@ function bindUI() {
       });
     }
   });
+  runPrompt?.addEventListener('input', () => {
+    if (state.uiMode === 'translate') {
+      syncDeepLinkFromUI();
+    }
+  });
 
   runPromptShuffle?.addEventListener('click', () => {
-    applyStarterPrompt(runPrompt, RUN_STARTER_PROMPTS, { force: true });
+    applyStarterPrompt(runPrompt, getRunStarterPromptPool(), { force: true });
     if (state.uiMode === 'embedding') {
       refreshEmbeddingDemoDocuments({ force: true });
     }
+    syncDeepLinkFromUI();
     runPrompt?.focus();
     runPrompt?.select();
   });
@@ -3470,6 +3892,11 @@ async function init() {
   setStatusIndicator('Initializing...', 'info');
   ensurePrimaryModeControlStack();
   bindUI();
+  const deepLinkState = readDeepLinkStateFromLocation();
+  if (deepLinkState.mode) {
+    state.uiMode = deepLinkState.mode;
+  }
+  applyDeepLinkStateToUI(deepLinkState);
   prefillDemoTextInputs();
   updateDiffusionCharCounters();
   configureDownloadCallbacks({
