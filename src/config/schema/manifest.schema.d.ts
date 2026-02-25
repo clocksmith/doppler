@@ -209,12 +209,22 @@ export interface ManifestRoPESchema {
   ropeScalingType: string | null;
   /** RoPE scaling factor (1.0 if no scaling) */
   ropeScalingFactor: number;
+  /** Local RoPE scaling type for sliding window layers (null = no local scaling) */
+  ropeLocalScalingType: string | null;
+  /** Local RoPE scaling factor for sliding window layers (1.0 if no local scaling) */
+  ropeLocalScalingFactor: number;
   /** YARN beta_fast parameter (null if not YARN scaling) */
   yarnBetaFast: number | null;
   /** YARN beta_slow parameter (null if not YARN scaling) */
   yarnBetaSlow: number | null;
   /** YARN original max position embeddings (null if not YARN scaling) */
   yarnOriginalMaxPos: number | null;
+  /** Local YARN beta_fast parameter (null if not local YARN scaling) */
+  ropeLocalYarnBetaFast: number | null;
+  /** Local YARN beta_slow parameter (null if not local YARN scaling) */
+  ropeLocalYarnBetaSlow: number | null;
+  /** Local YARN original max position embeddings (null if not local YARN scaling) */
+  ropeLocalYarnOriginalMaxPos: number | null;
 }
 
 /**

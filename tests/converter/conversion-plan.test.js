@@ -12,6 +12,11 @@ const {
 const { resolveEffectiveQuantizationInfo } = await import('../../src/converter/quantization-info.js');
 
 const converterConfig = createConverterConfig();
+const embeddingComputeF32Config = createConverterConfig({
+  quantization: {
+    computePrecision: 'f32',
+  },
+});
 
 {
   const reconciled = resolveEffectiveQuantizationInfo(
@@ -49,7 +54,7 @@ const converterConfig = createConverterConfig();
 {
   const overrideConfig = createConverterConfig({
     inference: {
-      defaultKernelPath: 'gemma3-f16-fused-f32a-online',
+      defaultKernelPath: 'gemma3-f16-fused-f16a-online',
     },
   });
   const plan = resolveConversionPlan({
@@ -69,7 +74,7 @@ const converterConfig = createConverterConfig();
     architectureHint: 'Gemma3ForCausalLM',
     architectureConfig: { headDim: 256 },
   });
-  assert.equal(plan.manifestInference?.defaultKernelPath, 'gemma3-f16-fused-f32a-online');
+  assert.equal(plan.manifestInference?.defaultKernelPath, 'gemma3-f16-fused-f16a-online');
 }
 
 {
@@ -214,6 +219,121 @@ const converterConfig = createConverterConfig();
 }
 
 {
+  // TranslateGemma style rope_parameters should map to manifest rope fields.
+  const plan = resolveConversionPlan({
+    rawConfig: {
+      model_type: 'gemma3_text',
+      architectures: ['Gemma3ForCausalLM'],
+      hidden_size: 2560,
+      intermediate_size: 10240,
+      num_hidden_layers: 34,
+      num_attention_heads: 8,
+      num_key_value_heads: 4,
+      rope_parameters: {
+        full_attention: {
+          rope_type: 'linear',
+          factor: 8.0,
+          rope_theta: 1000000,
+        },
+        sliding_attention: {
+          rope_type: 'default',
+          rope_theta: 10000,
+        },
+      },
+    },
+    tensors: [
+      { name: 'model.embed_tokens.weight', dtype: 'F16' },
+      { name: 'model.layers.0.self_attn.q_proj.weight', dtype: 'F16' },
+    ],
+    converterConfig,
+    modelKind: 'transformer',
+    architectureHint: 'Gemma3ForCausalLM',
+    architectureConfig: { headDim: 256 },
+  });
+  assert.equal(plan.manifestInference?.rope?.ropeTheta, 1000000);
+  assert.equal(plan.manifestInference?.rope?.ropeLocalTheta, 10000);
+  assert.equal(plan.manifestInference?.rope?.ropeScalingType, 'linear');
+  assert.equal(plan.manifestInference?.rope?.ropeScalingFactor, 8);
+  assert.equal(plan.manifestInference?.rope?.ropeLocalScalingType, null);
+  assert.equal(plan.manifestInference?.rope?.ropeLocalScalingFactor, 1);
+}
+
+{
+  // Per-layer scaling should map to global/local RoPE scaling fields.
+  const plan = resolveConversionPlan({
+    rawConfig: {
+      model_type: 'gemma3_text',
+      architectures: ['Gemma3ForCausalLM'],
+      hidden_size: 2560,
+      intermediate_size: 10240,
+      num_hidden_layers: 34,
+      num_attention_heads: 8,
+      num_key_value_heads: 4,
+      rope_parameters: {
+        full_attention: {
+          rope_type: 'linear',
+          factor: 8.0,
+          rope_theta: 1000000,
+        },
+        sliding_attention: {
+          rope_type: 'linear',
+          factor: 4.0,
+          rope_theta: 10000,
+        },
+      },
+    },
+    tensors: [
+      { name: 'model.embed_tokens.weight', dtype: 'F16' },
+      { name: 'model.layers.0.self_attn.q_proj.weight', dtype: 'F16' },
+    ],
+    converterConfig,
+    modelKind: 'transformer',
+    architectureHint: 'Gemma3ForCausalLM',
+    architectureConfig: { headDim: 256 },
+  });
+  assert.equal(plan.manifestInference?.rope?.ropeScalingType, 'linear');
+  assert.equal(plan.manifestInference?.rope?.ropeScalingFactor, 8);
+  assert.equal(plan.manifestInference?.rope?.ropeLocalScalingType, 'linear');
+  assert.equal(plan.manifestInference?.rope?.ropeLocalScalingFactor, 4);
+}
+
+{
+  // TranslateGemma architecture should resolve to translategemma preset.
+  const plan = resolveConversionPlan({
+    rawConfig: {
+      model_type: 'translategemma',
+      architectures: ['Gemma3ForConditionalGeneration'],
+      hidden_size: 2560,
+      intermediate_size: 10240,
+      num_hidden_layers: 34,
+      num_attention_heads: 8,
+      num_key_value_heads: 4,
+      rope_parameters: {
+        full_attention: {
+          rope_type: 'linear',
+          factor: 8.0,
+          rope_theta: 1000000,
+        },
+        sliding_attention: {
+          rope_type: 'default',
+          rope_theta: 10000,
+        },
+      },
+    },
+    tensors: [
+      { name: 'model.embed_tokens.weight', dtype: 'F16' },
+      { name: 'model.layers.0.self_attn.q_proj.weight', dtype: 'F16' },
+    ],
+    converterConfig,
+    modelKind: 'transformer',
+    architectureHint: 'Gemma3ForConditionalGeneration',
+    architectureConfig: { headDim: 256 },
+  });
+  assert.equal(plan.presetId, 'translategemma');
+  assert.equal(plan.modelType, 'transformer');
+}
+
+{
   const q4kConverterConfig = createConverterConfig({
     quantization: {
       weights: 'q4k',
@@ -240,7 +360,7 @@ const converterConfig = createConverterConfig();
   assert.equal(plan.quantizationInfo.weights, 'q4k');
   assert.equal(plan.quantizationInfo.layout, 'row');
   assert.equal(plan.quantizationInfo.variantTag, 'wq4k-ef16');
-  assert.equal(plan.manifestInference?.defaultKernelPath, 'gemma3-q4k-dequant-f32a');
+  assert.equal(plan.manifestInference?.defaultKernelPath, 'gemma3-q4k-dequant-f16a-online');
 }
 
 {
@@ -271,7 +391,7 @@ const converterConfig = createConverterConfig();
   assert.equal(plan.quantizationInfo.weights, 'q4k');
   assert.equal(plan.quantizationInfo.compute, 'f32');
   assert.equal(plan.quantizationInfo.layout, 'row');
-  assert.equal(plan.manifestInference?.defaultKernelPath, 'gemma3-q4k-dequant-f32a');
+  assert.equal(plan.manifestInference?.defaultKernelPath, 'gemma3-q4k-dequant-f32a-online');
 }
 
 {
@@ -300,7 +420,7 @@ const converterConfig = createConverterConfig();
       { name: 'model.layers.0.mlp.down_proj.weight', dtype: 'F16' },
       { name: 'model.norm.weight', dtype: 'F16' },
     ],
-    converterConfig,
+    converterConfig: embeddingComputeF32Config,
     modelKind: 'transformer',
     architectureHint: 'gemma3_text',
     architectureConfig: { headDim: 256 },
@@ -343,6 +463,7 @@ const converterConfig = createConverterConfig();
     quantization: {
       weights: 'q4k',
       q4kLayout: 'row',
+      computePrecision: 'f32',
     },
   });
   const plan = resolveConversionPlan({
@@ -383,7 +504,7 @@ const converterConfig = createConverterConfig();
       { name: 'model.embed_tokens.weight', dtype: 'F32' },
       { name: 'model.layers.0.self_attn.q_proj.weight', dtype: 'F32' },
     ],
-    converterConfig,
+    converterConfig: embeddingComputeF32Config,
     modelKind: 'transformer',
     architectureHint: 'gemma3_text',
     architectureConfig: { headDim: 256 },

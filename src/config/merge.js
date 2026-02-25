@@ -161,6 +161,18 @@ function mergeRoPE(
       runtime?.ropeScalingFactor,
       sources
     ),
+    ropeLocalScalingType: overlay(
+      `${prefix}.ropeLocalScalingType`,
+      manifest.ropeLocalScalingType,
+      runtime?.ropeLocalScalingType,
+      sources
+    ),
+    ropeLocalScalingFactor: overlay(
+      `${prefix}.ropeLocalScalingFactor`,
+      manifest.ropeLocalScalingFactor,
+      runtime?.ropeLocalScalingFactor,
+      sources
+    ),
     yarnBetaFast: overlay(
       `${prefix}.yarnBetaFast`,
       manifest.yarnBetaFast,
@@ -177,6 +189,24 @@ function mergeRoPE(
       `${prefix}.yarnOriginalMaxPos`,
       manifest.yarnOriginalMaxPos,
       runtime?.yarnOriginalMaxPos,
+      sources
+    ),
+    ropeLocalYarnBetaFast: overlay(
+      `${prefix}.ropeLocalYarnBetaFast`,
+      manifest.ropeLocalYarnBetaFast,
+      runtime?.ropeLocalYarnBetaFast,
+      sources
+    ),
+    ropeLocalYarnBetaSlow: overlay(
+      `${prefix}.ropeLocalYarnBetaSlow`,
+      manifest.ropeLocalYarnBetaSlow,
+      runtime?.ropeLocalYarnBetaSlow,
+      sources
+    ),
+    ropeLocalYarnOriginalMaxPos: overlay(
+      `${prefix}.ropeLocalYarnOriginalMaxPos`,
+      manifest.ropeLocalYarnOriginalMaxPos,
+      runtime?.ropeLocalYarnOriginalMaxPos,
       sources
     ),
   };

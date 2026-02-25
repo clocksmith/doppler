@@ -248,8 +248,11 @@ export class InferencePipeline extends PipelineState {
       ropeTheta: config.ropeTheta,
       ropeLocalTheta: config.ropeLocalTheta,
       ropeScale: config.ropeScale,
+      ropeLocalScale: config.ropeLocalScale,
       ropeScalingType: config.ropeScalingType,
+      ropeLocalScalingType: config.ropeLocalScalingType,
       ropeScaling: config.ropeScaling,
+      ropeLocalScaling: config.ropeLocalScaling,
     }, this.useGPU);
     this.ropeFreqsCos = ropeBuffers.cos;
     this.ropeFreqsSin = ropeBuffers.sin;

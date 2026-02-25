@@ -253,6 +253,9 @@ export function toParsedConfigFromMerged(merged, manifest) {
   // RoPE scaling - use manifest inference as source of truth (not raw config)
   const ropeScale = inf.rope.ropeScalingFactor;
   const ropeScalingType = inf.rope.ropeScalingType;
+  const ropeLocalScale = inf.rope.ropeLocalScalingFactor ?? ropeScale;
+  const ropeLocalScalingType = inf.rope.ropeLocalScalingType ?? ropeScalingType;
+
   // Build ropeScaling object from manifest values if scaling is enabled
   // Include YARN params when present
   
@@ -263,6 +266,21 @@ export function toParsedConfigFromMerged(merged, manifest) {
     ...(ropeScalingType === 'yarn' && inf.rope.yarnBetaSlow != null && { beta_slow: inf.rope.yarnBetaSlow }),
     ...(ropeScalingType === 'yarn' && inf.rope.yarnOriginalMaxPos != null && {
       original_max_position_embeddings: inf.rope.yarnOriginalMaxPos
+    }),
+  } : null;
+  const ropeLocalScaling = ropeLocalScalingType ? {
+    type: ropeLocalScalingType,
+    factor: ropeLocalScale,
+    ...(ropeLocalScalingType === 'yarn' && (inf.rope.ropeLocalYarnBetaFast ?? inf.rope.yarnBetaFast) != null && {
+      beta_fast: inf.rope.ropeLocalYarnBetaFast ?? inf.rope.yarnBetaFast
+    }),
+    ...(ropeLocalScalingType === 'yarn' && (inf.rope.ropeLocalYarnBetaSlow ?? inf.rope.yarnBetaSlow) != null && {
+      beta_slow: inf.rope.ropeLocalYarnBetaSlow ?? inf.rope.yarnBetaSlow
+    }),
+    ...(ropeLocalScalingType === 'yarn'
+      && (inf.rope.ropeLocalYarnOriginalMaxPos ?? inf.rope.yarnOriginalMaxPos) != null && {
+      original_max_position_embeddings:
+        inf.rope.ropeLocalYarnOriginalMaxPos ?? inf.rope.yarnOriginalMaxPos
     }),
   } : null;
 
@@ -296,8 +314,11 @@ export function toParsedConfigFromMerged(merged, manifest) {
     ropeTheta: inf.rope.ropeTheta,
     ropeLocalTheta: inf.rope.ropeLocalTheta,
     ropeScale,
+    ropeLocalScale,
     ropeScalingType,
+    ropeLocalScalingType,
     ropeScaling,
+    ropeLocalScaling,
     quantization: manifest.quantization,
     quantMethod: config.quantization_config?.quant_method ?? null,
     rmsNormEps: inf.normalization.rmsNormEps,

@@ -1,88 +1,83 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="616" viewBox="0 0 1200 616">
-  <style>
-    text {
-      paint-order: stroke fill;
-      stroke: #111111;
-      stroke-width: 0.9px;
-      stroke-linejoin: round;
-    }
-  </style>
-  <text x="32" y="92" fill="#cbd5e1" font-family="monospace" font-size="12" font-weight="bold">32 prompt tokens, 256 decode tokens, greedy</text>
-<text x="32" y="123" fill="#9d4edd" font-family="monospace" font-size="14" font-weight="bold">Doppler.js</text>
+  <defs><style>
+    text { paint-order: stroke fill; stroke: #000000; stroke-width: 2px; stroke-linejoin: round; }
+  </style></defs>
+  <text x="32" y="92" fill="#cbd5e1" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="12" font-weight="bold">32 prompt tokens, 256 decode tokens, greedy</text>
+<text x="32" y="123" fill="#9d4edd" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="14" font-weight="bold">Doppler.js</text>
 <rect x="200" y="100" width="160.51119310873946" height="36" fill="#ef4444" />
-<text x="206" y="122" fill="#000" font-family="monospace" font-size="11" font-weight="bold">OPFS to VRAM</text>
-<text x="206" y="134" fill="#000" font-family="monospace" font-size="10">3221.0 ms</text>
+<text x="206" y="122" fill="#ffffff" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="11" font-weight="bold">OPFS &#x2192; VRAM</text>
+<text x="206" y="134" fill="#ffffff" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="10">3221.0 ms</text>
 <rect x="360.51119310873946" y="100" width="16.823526480444098" height="36" fill="#fbbf24" />
 <polygon points="377.3347195891836,98 372.3347195891836,91 382.3347195891836,91" fill="#ffffff" />
-<text x="377.3347195891836" y="89" fill="#cbd5e1" font-family="monospace" font-size="9" text-anchor="middle">TTFT</text>
+<text x="377.3347195891836" y="89" fill="#cbd5e1" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="9" text-anchor="middle">TTFT</text>
 <rect x="377.3347195891836" y="100" width="544.6965527088099" height="36" fill="#3b82f6" />
-<text x="383.3347195891836" y="122" fill="#000" font-family="monospace" font-size="11" font-weight="bold">Decode</text>
-<text x="383.3347195891836" y="134" fill="#000" font-family="monospace" font-size="10">10930.5 ms</text>
-<text x="930.0312722979935" y="123" fill="#ffffff" font-family="monospace" font-size="12">14489.1 ms</text>
-<text x="32" y="179" fill="#ffbd45" font-family="monospace" font-size="14" font-weight="bold">Transformers.js (v4)</text>
+<text x="383.3347195891836" y="122" fill="#ffffff" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="11" font-weight="bold">Decode</text>
+<text x="383.3347195891836" y="134" fill="#ffffff" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="10">10930.5 ms</text>
+<text x="930.0312722979935" y="123" fill="#ffffff" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="12">14489.1 ms</text>
+<text x="32" y="179" fill="#ffbd45" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="14" font-weight="bold">Transformers.js (v4)</text>
 <rect x="200" y="156" width="265.7853070496836" height="36" fill="#ef4444" />
-<text x="206" y="178" fill="#000" font-family="monospace" font-size="11" font-weight="bold">OPFS to VRAM</text>
-<text x="206" y="190" fill="#000" font-family="monospace" font-size="10">5333.6 ms</text>
+<text x="206" y="178" fill="#ffffff" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="11" font-weight="bold">OPFS &#x2192; ORT &#x2192; VRAM</text>
+<text x="206" y="190" fill="#ffffff" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="10">5333.6 ms</text>
 <rect x="465.7853070496836" y="156" width="7.837441133918073" height="36" fill="#fbbf24" />
 <polygon points="473.62274818360163,154 468.62274818360163,147 478.62274818360163,147" fill="#ffffff" />
-<text x="473.62274818360163" y="145" fill="#cbd5e1" font-family="monospace" font-size="9" text-anchor="middle">TTFT</text>
+<text x="473.62274818360163" y="145" fill="#cbd5e1" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="9" text-anchor="middle">TTFT</text>
 <rect x="473.62274818360163" y="156" width="606.3772518163984" height="36" fill="#3b82f6" />
-<text x="479.62274818360163" y="178" fill="#000" font-family="monospace" font-size="11" font-weight="bold">Decode</text>
-<text x="479.62274818360163" y="190" fill="#000" font-family="monospace" font-size="10">12168.3 ms</text>
-<text x="1088" y="179" fill="#ffffff" font-family="monospace" font-size="12">17659.1 ms</text>
-<text x="32" y="234" fill="#cbd5e1" font-family="monospace" font-size="12" font-weight="bold">64 prompt tokens, 64 decode tokens, greedy</text>
-<text x="32" y="265" fill="#9d4edd" font-family="monospace" font-size="14" font-weight="bold">Doppler.js</text>
+<text x="479.62274818360163" y="178" fill="#ffffff" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="11" font-weight="bold">Decode</text>
+<text x="479.62274818360163" y="190" fill="#ffffff" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="10">12168.3 ms</text>
+<text x="1088" y="179" fill="#ffffff" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="12">17659.1 ms</text>
+<text x="32" y="234" fill="#cbd5e1" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="12" font-weight="bold">64 prompt tokens, 64 decode tokens, greedy</text>
+<text x="32" y="265" fill="#9d4edd" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="14" font-weight="bold">Doppler.js</text>
 <rect x="200" y="242" width="155.58772031173746" height="36" fill="#ef4444" />
-<text x="206" y="264" fill="#000" font-family="monospace" font-size="11" font-weight="bold">OPFS to VRAM</text>
-<text x="206" y="276" fill="#000" font-family="monospace" font-size="10">3122.2 ms</text>
+<text x="206" y="264" fill="#ffffff" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="11" font-weight="bold">OPFS &#x2192; VRAM</text>
+<text x="206" y="276" fill="#ffffff" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="10">3122.2 ms</text>
 <rect x="355.5877203117375" y="242" width="28.36229293940983" height="36" fill="#fbbf24" />
 <polygon points="383.9500132511473,240 378.9500132511473,233 388.9500132511473,233" fill="#ffffff" />
-<text x="383.9500132511473" y="231" fill="#cbd5e1" font-family="monospace" font-size="9" text-anchor="middle">TTFT</text>
+<text x="383.9500132511473" y="231" fill="#cbd5e1" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="9" text-anchor="middle">TTFT</text>
 <rect x="383.9500132511473" y="242" width="135.84897967517375" height="36" fill="#3b82f6" />
-<text x="389.9500132511473" y="264" fill="#000" font-family="monospace" font-size="11" font-weight="bold">Decode</text>
-<text x="389.9500132511473" y="276" fill="#000" font-family="monospace" font-size="10">2726.1 ms</text>
-<text x="527.798992926321" y="265" fill="#ffffff" font-family="monospace" font-size="12">6417.4 ms</text>
-<text x="32" y="321" fill="#ffbd45" font-family="monospace" font-size="14" font-weight="bold">Transformers.js (v4)</text>
+<text x="389.9500132511473" y="264" fill="#ffffff" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="11" font-weight="bold">Decode</text>
+<text x="389.9500132511473" y="276" fill="#ffffff" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="10">2726.1 ms</text>
+<text x="527.798992926321" y="265" fill="#ffffff" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="12">6417.4 ms</text>
+<text x="32" y="321" fill="#ffbd45" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="14" font-weight="bold">Transformers.js (v4)</text>
 <rect x="200" y="298" width="245.4797192149085" height="36" fill="#ef4444" />
-<text x="206" y="320" fill="#000" font-family="monospace" font-size="11" font-weight="bold">OPFS to VRAM</text>
-<text x="206" y="332" fill="#000" font-family="monospace" font-size="10">4926.1 ms</text>
+<text x="206" y="320" fill="#ffffff" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="11" font-weight="bold">OPFS &#x2192; ORT &#x2192; VRAM</text>
+<text x="206" y="332" fill="#ffffff" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="10">4926.1 ms</text>
 <rect x="445.4797192149085" y="298" width="14.843174162335194" height="36" fill="#fbbf24" />
 <polygon points="460.3228933772437,296 455.3228933772437,289 465.3228933772437,289" fill="#ffffff" />
-<text x="460.3228933772437" y="287" fill="#cbd5e1" font-family="monospace" font-size="9" text-anchor="middle">TTFT</text>
+<text x="460.3228933772437" y="287" fill="#cbd5e1" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="9" text-anchor="middle">TTFT</text>
 <rect x="460.3228933772437" y="298" width="151.03325881126395" height="36" fill="#3b82f6" />
-<text x="466.3228933772437" y="320" fill="#000" font-family="monospace" font-size="11" font-weight="bold">Decode</text>
-<text x="466.3228933772437" y="332" fill="#000" font-family="monospace" font-size="10">3030.8 ms</text>
-<text x="619.3561521885076" y="321" fill="#ffffff" font-family="monospace" font-size="12">8254.7 ms</text>
-<text x="32" y="376" fill="#cbd5e1" font-family="monospace" font-size="12" font-weight="bold">64 prompt tokens, 64 decode tokens, top-k 32</text>
-<text x="32" y="407" fill="#9d4edd" font-family="monospace" font-size="14" font-weight="bold">Doppler.js</text>
+<text x="466.3228933772437" y="320" fill="#ffffff" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="11" font-weight="bold">Decode</text>
+<text x="466.3228933772437" y="332" fill="#ffffff" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="10">3030.8 ms</text>
+<text x="619.3561521885076" y="321" fill="#ffffff" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="12">8254.7 ms</text>
+<text x="32" y="376" fill="#cbd5e1" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="12" font-weight="bold">64 prompt tokens, 64 decode tokens, top-k 32</text>
+<text x="32" y="407" fill="#9d4edd" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="14" font-weight="bold">Doppler.js</text>
 <rect x="200" y="384" width="159.5843045052553" height="36" fill="#ef4444" />
-<text x="206" y="406" fill="#000" font-family="monospace" font-size="11" font-weight="bold">OPFS to VRAM</text>
-<text x="206" y="418" fill="#000" font-family="monospace" font-size="10">3202.4 ms</text>
+<text x="206" y="406" fill="#ffffff" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="11" font-weight="bold">OPFS &#x2192; VRAM</text>
+<text x="206" y="418" fill="#ffffff" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="10">3202.4 ms</text>
 <rect x="359.5843045052553" y="384" width="32.635448732354384" height="36" fill="#fbbf24" />
 <polygon points="392.2197532376097,382 387.2197532376097,375 397.2197532376097,375" fill="#ffffff" />
-<text x="392.2197532376097" y="373" fill="#cbd5e1" font-family="monospace" font-size="9" text-anchor="middle">TTFT</text>
+<text x="392.2197532376097" y="373" fill="#cbd5e1" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="9" text-anchor="middle">TTFT</text>
 <rect x="392.2197532376097" y="384" width="136.5765373961882" height="36" fill="#3b82f6" />
-<text x="398.2197532376097" y="406" fill="#000" font-family="monospace" font-size="11" font-weight="bold">Decode</text>
-<text x="398.2197532376097" y="418" fill="#000" font-family="monospace" font-size="10">2740.7 ms</text>
-<text x="536.796290633798" y="407" fill="#ffffff" font-family="monospace" font-size="12">6598.0 ms</text>
-<text x="32" y="463" fill="#ffbd45" font-family="monospace" font-size="14" font-weight="bold">Transformers.js (v4)</text>
+<text x="398.2197532376097" y="406" fill="#ffffff" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="11" font-weight="bold">Decode</text>
+<text x="398.2197532376097" y="418" fill="#ffffff" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="10">2740.7 ms</text>
+<text x="536.796290633798" y="407" fill="#ffffff" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="12">6598.0 ms</text>
+<text x="32" y="463" fill="#ffbd45" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="14" font-weight="bold">Transformers.js (v4)</text>
 <rect x="200" y="440" width="256.6028807828556" height="36" fill="#ef4444" />
-<text x="206" y="462" fill="#000" font-family="monospace" font-size="11" font-weight="bold">OPFS to VRAM</text>
-<text x="206" y="474" fill="#000" font-family="monospace" font-size="10">5149.3 ms</text>
+<text x="206" y="462" fill="#ffffff" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="11" font-weight="bold">OPFS &#x2192; ORT &#x2192; VRAM</text>
+<text x="206" y="474" fill="#ffffff" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="10">5149.3 ms</text>
 <rect x="456.6028807828556" y="440" width="15.211188805104797" height="36" fill="#fbbf24" />
 <polygon points="471.8140695879604,438 466.8140695879604,431 476.8140695879604,431" fill="#ffffff" />
-<text x="471.8140695879604" y="429" fill="#cbd5e1" font-family="monospace" font-size="9" text-anchor="middle">TTFT</text>
+<text x="471.8140695879604" y="429" fill="#cbd5e1" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="9" text-anchor="middle">TTFT</text>
 <rect x="471.8140695879604" y="440" width="153.31235828941493" height="36" fill="#3b82f6" />
-<text x="477.8140695879604" y="462" fill="#000" font-family="monospace" font-size="11" font-weight="bold">Decode</text>
-<text x="477.8140695879604" y="474" fill="#000" font-family="monospace" font-size="10">3076.5 ms</text>
-<text x="633.1264278773754" y="463" fill="#ffffff" font-family="monospace" font-size="12">8531.1 ms</text>
+<text x="477.8140695879604" y="462" fill="#ffffff" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="11" font-weight="bold">Decode</text>
+<text x="477.8140695879604" y="474" fill="#ffffff" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="10">3076.5 ms</text>
+<text x="633.1264278773754" y="463" fill="#ffffff" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="12">8531.1 ms</text>
 <rect x="200" y="526" width="14" height="14" fill="#ef4444" />
-<text x="220" y="537" fill="#ffffff" font-family="monospace" font-size="11">OPFS to VRAM (Warm Load)</text>
+<text x="220" y="537" fill="#ffffff" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="11">Model Load (Warm)</text>
 <rect x="410" y="526" width="14" height="14" fill="#fbbf24" />
-<text x="430" y="537" fill="#ffffff" font-family="monospace" font-size="11">Prefill</text>
+<text x="430" y="537" fill="#ffffff" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="11">Prefill</text>
 <rect x="620" y="526" width="14" height="14" fill="#3b82f6" />
-<text x="640" y="537" fill="#ffffff" font-family="monospace" font-size="11">Decode</text>
-<text x="40" y="36" fill="#ffffff" font-family="monospace" font-size="18" font-weight="bold">Doppler.js (Gemma 3 1B Instruct F16 F32A) vs Transformers.js (v4, Gemma 3 1B Instruct)</text>
-<text x="40" y="54" fill="#cbd5e1" font-family="monospace" font-size="12">Chrome (WebGPU) • Apple M3</text>
+<text x="640" y="537" fill="#ffffff" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="11">Decode</text>
+<text x="40" y="36" fill="#ffffff" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="18" font-weight="bold">Doppler.js (Gemma 3 1B Instruct, F16/F32A) vs Transformers.js (Gemma 3 1B Instruct, FP16/F32A)</text>
+<text x="40" y="54" fill="#cbd5e1" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="12">Chrome (WebGPU) • Apple M3</text>
 
 </svg>

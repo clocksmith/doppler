@@ -193,7 +193,7 @@ const useSoftcapping = config.attnLogitSoftcapping !== null;
 - Precedence (low → high): manifest `inference.defaultKernelPath` → runtime config `runtime.inference.kernelPath`.
 - Kernel path overrides are config-only; do not add harness/UI flags for kernel selection.
 - Populate `inference.defaultKernelPath` during conversion using model preset `inference.kernelPaths` (keys: weights quantization → activation dtype).
-- Avoid semantic aliases (e.g. "safe/fast/balanced"). Use explicit IDs that encode quantization and activation dtype (e.g. `gemma2-q4k-dequant-f32a`, `gemma2-q4k-fused-f16a`).
+- Avoid semantic aliases (e.g. "safe/fast/balanced"). Use explicit IDs that encode quantization and activation dtype (e.g. `gemma2-q4k-fused-f32a`, `gemma2-q4k-fused-f32a`).
 - `status: experimental` is for tune-time probing. Keep semantic suffixes where useful.
 - Kernel selection logic lives in `src/gpu/kernels/*.js`; config files are data only.
 

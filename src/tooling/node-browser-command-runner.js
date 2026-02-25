@@ -292,6 +292,55 @@ function uniqueArgs(args) {
   return [...new Set(args)];
 }
 
+function asNonEmptyString(value) {
+  if (value == null) return null;
+  const normalized = String(value).trim();
+  return normalized === '' ? null : normalized;
+}
+
+function normalizeWebgpuBackend(value) {
+  const raw = asNonEmptyString(value);
+  if (!raw) return null;
+  const normalized = raw.toLowerCase();
+  if (normalized.includes('metal')) return 'metal';
+  if (normalized.includes('vulkan')) return 'vulkan';
+  if (normalized.includes('d3d12')) return 'd3d12';
+  if (normalized.includes('d3d11')) return 'd3d11';
+  if (normalized.includes('opengl') || normalized === 'gl') return 'opengl';
+  if (normalized.includes('swiftshader')) return 'swiftshader';
+  return normalized;
+}
+
+function readFlagValue(args, flagName) {
+  if (!Array.isArray(args)) return null;
+  for (let i = 0; i < args.length; i += 1) {
+    const token = String(args[i] ?? '');
+    if (token === flagName) {
+      return asNonEmptyString(args[i + 1]);
+    }
+    if (token.startsWith(`${flagName}=`)) {
+      return asNonEmptyString(token.slice(flagName.length + 1));
+    }
+  }
+  return null;
+}
+
+function inferWebgpuBackendFromArgs(args, hostPlatform) {
+  const explicit = normalizeWebgpuBackend(readFlagValue(args, '--use-angle'));
+  if (explicit) return explicit;
+  const normalizedArgs = Array.isArray(args)
+    ? args.map((value) => String(value ?? '').toLowerCase())
+    : [];
+  if (normalizedArgs.some((value) => value.includes('vulkan'))) return 'vulkan';
+  if (normalizedArgs.some((value) => value.includes('metal'))) return 'metal';
+  if (normalizedArgs.some((value) => value.includes('d3d12'))) return 'd3d12';
+  if (normalizedArgs.some((value) => value.includes('d3d11'))) return 'd3d11';
+  if (hostPlatform === 'darwin') return 'metal';
+  if (hostPlatform === 'linux') return 'vulkan';
+  if (hostPlatform === 'win32') return 'd3d12';
+  return null;
+}
+
 function withCrashRecoveryArgs(args = []) {
   return uniqueArgs([...args, ...CRASH_RECOVERY_BROWSER_ARGS]);
 }
@@ -695,6 +744,90 @@ export async function runBrowserCommandInNode(commandRequest, options = {}) {
         runtimeLoadOptions: options.runtimeLoadOptions || {},
       },
     });
+
+    const result = response?.result;
+    if (result && typeof result === 'object' && !Array.isArray(result)) {
+      const cpuInfo = typeof os.cpus === 'function' ? os.cpus() : null;
+      const hostEnvironment = {
+        platform: process.platform,
+        arch: process.arch,
+        nodeVersion: process.version,
+        osRelease: typeof os.release === 'function' ? os.release() : null,
+        cpuModel: Array.isArray(cpuInfo) && cpuInfo.length > 0 ? asNonEmptyString(cpuInfo[0]?.model) : null,
+      };
+      const webgpuBackend = inferWebgpuBackendFromArgs(launchOptions.args, hostEnvironment.platform);
+      const env = result.env && typeof result.env === 'object' ? result.env : {};
+      const deviceInfo = result.deviceInfo && typeof result.deviceInfo === 'object'
+        ? result.deviceInfo
+        : {};
+      result.env = {
+        ...env,
+        webgpuBackend: normalizeWebgpuBackend(env.webgpuBackend)
+          || normalizeWebgpuBackend(env.gpuBackend)
+          || normalizeWebgpuBackend(env.graphicsBackend)
+          || webgpuBackend,
+      };
+      const existingEnvironment = result.environment && typeof result.environment === 'object'
+        ? result.environment
+        : {};
+      result.environment = {
+        ...existingEnvironment,
+        host: {
+          ...(existingEnvironment.host && typeof existingEnvironment.host === 'object' ? existingEnvironment.host : {}),
+          platform: asNonEmptyString(existingEnvironment?.host?.platform) || hostEnvironment.platform,
+          arch: asNonEmptyString(existingEnvironment?.host?.arch) || hostEnvironment.arch,
+          nodeVersion: asNonEmptyString(existingEnvironment?.host?.nodeVersion) || hostEnvironment.nodeVersion,
+          osRelease: asNonEmptyString(existingEnvironment?.host?.osRelease) || hostEnvironment.osRelease,
+          cpuModel: asNonEmptyString(existingEnvironment?.host?.cpuModel) || hostEnvironment.cpuModel,
+        },
+        browser: {
+          ...(existingEnvironment.browser && typeof existingEnvironment.browser === 'object' ? existingEnvironment.browser : {}),
+          userAgent: asNonEmptyString(existingEnvironment?.browser?.userAgent) || asNonEmptyString(env.browserUserAgent),
+          platform: asNonEmptyString(existingEnvironment?.browser?.platform) || asNonEmptyString(env.browserPlatform),
+          language: asNonEmptyString(existingEnvironment?.browser?.language) || asNonEmptyString(env.browserLanguage),
+          vendor: asNonEmptyString(existingEnvironment?.browser?.vendor) || asNonEmptyString(env.browserVendor),
+          executable: asNonEmptyString(existingEnvironment?.browser?.executable) || asNonEmptyString(options.executablePath),
+          channel: asNonEmptyString(existingEnvironment?.browser?.channel) || asNonEmptyString(options.channel),
+        },
+        gpu: {
+          ...(existingEnvironment.gpu && typeof existingEnvironment.gpu === 'object' ? existingEnvironment.gpu : {}),
+          api: asNonEmptyString(existingEnvironment?.gpu?.api) || 'webgpu',
+          backend: normalizeWebgpuBackend(existingEnvironment?.gpu?.backend)
+            || normalizeWebgpuBackend(env.webgpuBackend)
+            || webgpuBackend,
+          vendor: asNonEmptyString(existingEnvironment?.gpu?.vendor) || asNonEmptyString(deviceInfo.vendor),
+          architecture: asNonEmptyString(existingEnvironment?.gpu?.architecture) || asNonEmptyString(deviceInfo.architecture),
+          device: asNonEmptyString(existingEnvironment?.gpu?.device) || asNonEmptyString(deviceInfo.device),
+          description: asNonEmptyString(existingEnvironment?.gpu?.description) || asNonEmptyString(deviceInfo.description),
+          hasF16: typeof existingEnvironment?.gpu?.hasF16 === 'boolean'
+            ? existingEnvironment.gpu.hasF16
+            : (typeof deviceInfo.hasF16 === 'boolean' ? deviceInfo.hasF16 : null),
+          hasSubgroups: typeof existingEnvironment?.gpu?.hasSubgroups === 'boolean'
+            ? existingEnvironment.gpu.hasSubgroups
+            : (typeof deviceInfo.hasSubgroups === 'boolean' ? deviceInfo.hasSubgroups : null),
+          hasTimestampQuery: typeof existingEnvironment?.gpu?.hasTimestampQuery === 'boolean'
+            ? existingEnvironment.gpu.hasTimestampQuery
+            : (typeof deviceInfo.hasTimestampQuery === 'boolean' ? deviceInfo.hasTimestampQuery : null),
+        },
+        runtime: {
+          ...(existingEnvironment.runtime && typeof existingEnvironment.runtime === 'object' ? existingEnvironment.runtime : {}),
+          library: asNonEmptyString(existingEnvironment?.runtime?.library) || asNonEmptyString(env.library) || 'doppler',
+          version: asNonEmptyString(existingEnvironment?.runtime?.version) || asNonEmptyString(env.version),
+          surface: asNonEmptyString(existingEnvironment?.runtime?.surface) || asNonEmptyString(env.runtime) || 'browser',
+          device: asNonEmptyString(existingEnvironment?.runtime?.device) || asNonEmptyString(env.device),
+          dtype: asNonEmptyString(existingEnvironment?.runtime?.dtype) || asNonEmptyString(env.dtype),
+          requestedDtype: asNonEmptyString(existingEnvironment?.runtime?.requestedDtype) || asNonEmptyString(env.requestedDtype),
+          executionProviderMode: asNonEmptyString(existingEnvironment?.runtime?.executionProviderMode)
+            || asNonEmptyString(env.executionProviderMode),
+          cacheMode: asNonEmptyString(existingEnvironment?.runtime?.cacheMode)
+            || asNonEmptyString(result.cacheMode)
+            || asNonEmptyString(result?.timing?.cacheMode),
+          loadMode: asNonEmptyString(existingEnvironment?.runtime?.loadMode)
+            || asNonEmptyString(result.loadMode)
+            || asNonEmptyString(result?.timing?.loadMode),
+        },
+      };
+    }
 
     return response;
   } finally {

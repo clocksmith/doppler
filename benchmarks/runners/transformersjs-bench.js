@@ -38,6 +38,7 @@ import fs from 'node:fs/promises';
 import fsSync from 'node:fs';
 import path from 'node:path';
 import http from 'node:http';
+import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -68,7 +69,7 @@ const DEFAULT_BENCHMARK_POLICY = Object.freeze({
       '--disable-dawn-features=disallow_unsafe_apis',
       '--ignore-gpu-blocklist',
     ]),
-    crashRecoveryArgs: Object.freeze([
+    stableArgs: Object.freeze([
       '--disable-breakpad',
       '--disable-gpu-sandbox',
       '--no-sandbox',
@@ -142,10 +143,12 @@ function loadBenchmarkPolicy() {
     webgpuArgs: Object.freeze(
       normalizeStringArray(browserPolicy.webgpuArgs ?? DEFAULT_BENCHMARK_POLICY.browser.webgpuArgs, 'browser.webgpuArgs')
     ),
-    crashRecoveryArgs: Object.freeze(
+    stableArgs: Object.freeze(
       normalizeStringArray(
-        browserPolicy.crashRecoveryArgs ?? DEFAULT_BENCHMARK_POLICY.browser.crashRecoveryArgs,
-        'browser.crashRecoveryArgs'
+        browserPolicy.stableArgs
+          ?? browserPolicy.crashRecoveryArgs
+          ?? DEFAULT_BENCHMARK_POLICY.browser.stableArgs,
+        'browser.stableArgs'
       )
     ),
     platformArgs: normalizePlatformArgs(
@@ -158,20 +161,70 @@ function loadBenchmarkPolicy() {
 const BENCHMARK_POLICY = loadBenchmarkPolicy();
 const DEFAULT_TIMEOUT = BENCHMARK_POLICY.timeoutMs;
 const WEBGPU_ARGS = BENCHMARK_POLICY.webgpuArgs;
-const CRASH_RECOVERY_ARGS = BENCHMARK_POLICY.crashRecoveryArgs;
+const STABLE_BROWSER_ARGS = BENCHMARK_POLICY.stableArgs;
 const PLATFORM_ARGS = BENCHMARK_POLICY.platformArgs;
 
 function uniqueArgs(values) {
   return [...new Set(values)];
 }
 
+function asNonEmptyString(value) {
+  if (value == null) return null;
+  const normalized = String(value).trim();
+  return normalized === '' ? null : normalized;
+}
+
+function normalizeGpuBackend(value) {
+  const raw = asNonEmptyString(value);
+  if (!raw) return null;
+  const normalized = raw.toLowerCase();
+  if (normalized.includes('metal')) return 'metal';
+  if (normalized.includes('vulkan')) return 'vulkan';
+  if (normalized.includes('d3d12')) return 'd3d12';
+  if (normalized.includes('d3d11')) return 'd3d11';
+  if (normalized.includes('opengl') || normalized === 'gl') return 'opengl';
+  if (normalized.includes('swiftshader')) return 'swiftshader';
+  return normalized;
+}
+
+function readArgFlagValue(args, flagName) {
+  if (!Array.isArray(args)) return null;
+  for (let i = 0; i < args.length; i += 1) {
+    const token = String(args[i] ?? '');
+    if (token === flagName) {
+      return asNonEmptyString(args[i + 1]);
+    }
+    if (token.startsWith(`${flagName}=`)) {
+      return asNonEmptyString(token.slice(flagName.length + 1));
+    }
+  }
+  return null;
+}
+
+function inferWebgpuBackendFromArgs(args, hostPlatform) {
+  const useAngle = normalizeGpuBackend(readArgFlagValue(args, '--use-angle'));
+  if (useAngle) return useAngle;
+  const normalizedArgs = Array.isArray(args)
+    ? args.map((value) => String(value ?? '').toLowerCase())
+    : [];
+  if (normalizedArgs.some((value) => value.includes('vulkan'))) return 'vulkan';
+  if (normalizedArgs.some((value) => value.includes('metal'))) return 'metal';
+  if (normalizedArgs.some((value) => value.includes('d3d12'))) return 'd3d12';
+  if (normalizedArgs.some((value) => value.includes('d3d11'))) return 'd3d11';
+  const platform = asNonEmptyString(hostPlatform);
+  if (platform === 'darwin') return 'metal';
+  if (platform === 'linux') return 'vulkan';
+  if (platform === 'win32') return 'd3d12';
+  return null;
+}
+
 function hasCrashRecoveryArgs(args = []) {
   const argSet = new Set(args);
-  return CRASH_RECOVERY_ARGS.every((value) => argSet.has(value));
+  return STABLE_BROWSER_ARGS.every((value) => argSet.has(value));
 }
 
 function withCrashRecoveryArgs(args = []) {
-  return uniqueArgs([...args, ...CRASH_RECOVERY_ARGS]);
+  return uniqueArgs([...args, ...STABLE_BROWSER_ARGS]);
 }
 
 const PERSISTENT_LAUNCH_ERROR_HINTS = Object.freeze([
@@ -381,24 +434,6 @@ async function createStaticServer(root, preferredPort) {
         const address = server.address();
         const resolvedPort = Number.isFinite(address?.port) ? address.port : listenPort;
         const resolvedHost = typeof address?.address === 'string'
-          ? address.address
-          : '127.0.0.1';
-        const urlHost = resolvedHost === '::' || resolvedHost === '0.0.0.0'
-          ? '127.0.0.1'
-          : resolvedHost;
-        resolve({
-          server,
-          port: resolvedPort,
-          host: urlHost,
-        });
-      });
-      return;
-    }
-    if (host == null) {
-      server.listen(listenPort, () => {
-        const address = server.address();
-        const resolvedPort = Number.isFinite(address?.port) ? address.port : listenPort;
-        const resolvedHost = typeof address?.address === 'string' && address.address.length > 0
           ? address.address
           : '127.0.0.1';
         const urlHost = resolvedHost === '::' || resolvedHost === '0.0.0.0'
@@ -710,6 +745,18 @@ async function main() {
   const cliBrowserArgs = Array.isArray(flags['browser-arg']) ? flags['browser-arg'] : [];
   const allArgs = uniqueArgs([...WEBGPU_ARGS, ...platformArgs, ...cliBrowserArgs]);
   const browserExecutable = flags['browser-executable'] || null;
+  const hostEnvironment = {
+    platform: process.platform,
+    arch: process.arch,
+    nodeVersion: process.version,
+    osRelease: typeof os.release === 'function' ? os.release() : null,
+    cpuModel: (() => {
+      const cpuInfo = typeof os.cpus === 'function' ? os.cpus() : null;
+      if (!Array.isArray(cpuInfo) || cpuInfo.length === 0) return null;
+      return asNonEmptyString(cpuInfo[0]?.model);
+    })(),
+  };
+  const webgpuBackend = inferWebgpuBackendFromArgs(allArgs, hostEnvironment.platform);
 
   // Measure browser launch time as part of cold/warm UX
   const launchStart = performance.now();
@@ -898,6 +945,46 @@ async function main() {
       ort_top_op_total_ms: ortSummary.topOperations[0]?.totalMs ?? null,
     };
     result.cachePrime = cachePrime;
+    result.env = {
+      ...(result.env && typeof result.env === 'object' ? result.env : {}),
+      webgpuBackend,
+      browserExecutable: asNonEmptyString(browserExecutable),
+    };
+    result.environment = {
+      host: hostEnvironment,
+      browser: {
+        userAgent: asNonEmptyString(result?.env?.browserUserAgent),
+        platform: asNonEmptyString(result?.env?.browserPlatform),
+        language: asNonEmptyString(result?.env?.browserLanguage),
+        vendor: asNonEmptyString(result?.env?.browserVendor),
+        executable: asNonEmptyString(browserExecutable),
+        channel: null,
+      },
+      gpu: {
+        api: 'webgpu',
+        backend: webgpuBackend,
+        vendor: asNonEmptyString(result?.deviceInfo?.vendor),
+        architecture: asNonEmptyString(result?.deviceInfo?.architecture),
+        device: asNonEmptyString(result?.deviceInfo?.device),
+        description: asNonEmptyString(result?.deviceInfo?.description),
+        hasF16: typeof result?.deviceInfo?.hasF16 === 'boolean' ? result.deviceInfo.hasF16 : null,
+        hasSubgroups: typeof result?.deviceInfo?.hasSubgroups === 'boolean' ? result.deviceInfo.hasSubgroups : null,
+        hasTimestampQuery: typeof result?.deviceInfo?.hasTimestampQuery === 'boolean'
+          ? result.deviceInfo.hasTimestampQuery
+          : null,
+      },
+      runtime: {
+        library: 'transformers.js',
+        version: asNonEmptyString(result?.env?.version),
+        surface: 'browser',
+        device: asNonEmptyString(result?.env?.device),
+        dtype: asNonEmptyString(result?.env?.dtype),
+        requestedDtype: asNonEmptyString(result?.env?.requestedDtype),
+        executionProviderMode: asNonEmptyString(result?.env?.executionProviderMode),
+        cacheMode: asNonEmptyString(result?.cacheMode),
+        loadMode: asNonEmptyString(result?.loadMode),
+      },
+    };
 
     console.log(JSON.stringify(result, null, 2));
 

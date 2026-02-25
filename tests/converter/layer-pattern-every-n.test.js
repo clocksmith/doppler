@@ -47,9 +47,14 @@ const manifest = {
       ropeLocalTheta: 10000,
       ropeScalingType: null,
       ropeScalingFactor: 1.0,
+      ropeLocalScalingType: null,
+      ropeLocalScalingFactor: 1.0,
       yarnBetaFast: null,
       yarnBetaSlow: null,
       yarnOriginalMaxPos: null,
+      ropeLocalYarnBetaFast: null,
+      ropeLocalYarnBetaSlow: null,
+      ropeLocalYarnOriginalMaxPos: null,
     },
     output: {
       finalLogitSoftcapping: null,
@@ -68,7 +73,7 @@ const manifest = {
       type: 'gemma',
       enabled: true,
     },
-    defaultKernelPath: 'gemma3-f16-f16a',
+    defaultKernelPath: 'gemma3-f16-fused-f16a-online',
   },
   config: {
     model_type: 'gemma3_text',

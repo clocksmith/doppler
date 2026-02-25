@@ -1,23 +1,51 @@
 {
+  "id": "diagnostics/debug-logits",
   "name": "debug-logits",
   "description": "Trace sample + logits with a top-k probe for a single token.",
+  "intent": "investigate",
+  "stability": "canonical",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-02-25T00:00:00Z",
   "extends": "modes/debug",
   "runtime": {
     "inference": {
       "prompt": "The sky is",
-      "batching": { "maxTokens": 1 },
-      "sampling": { "temperature": 0 }
+      "batching": {
+        "maxTokens": 1
+      },
+      "sampling": {
+        "temperature": 0
+      }
     },
     "shared": {
       "debug": {
-        "logLevel": { "defaultLogLevel": "debug" },
+        "logLevel": {
+          "defaultLogLevel": "debug"
+        },
         "trace": {
           "enabled": true,
-          "categories": ["sample", "logits"],
+          "categories": [
+            "sample",
+            "logits"
+          ],
           "maxDecodeSteps": 1
         },
         "probes": [
-          { "id": "topk", "stage": "logits_final", "tokens": [-1], "dims": [138, 496, 0, 1, 2, 3] }
+          {
+            "id": "topk",
+            "stage": "logits_final",
+            "tokens": [
+              -1
+            ],
+            "dims": [
+              138,
+              496,
+              0,
+              1,
+              2,
+              3
+            ]
+          }
         ]
       }
     }

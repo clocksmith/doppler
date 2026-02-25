@@ -18,7 +18,7 @@ This replaces the implicit `q4kStrategy` and `fusedFFNQ4K` configuration flags w
 
 ```json
 {
-  "id": "gemma2-q4k-fused-f16a",
+  "id": "gemma2-q4k-fused-f32a",
   "name": "Gemma 2 Q4K Fused F16A",
   "description": "Q4K weights with fused dequant+matmul using F16 activations",
   "activationDtype": "f16",
@@ -95,10 +95,10 @@ Legacy IDs should remain in `status: \"legacy\"` until all conversion and docs c
 
 | Path | Description | Performance | Accuracy |
 |------|-------------|-------------|----------|
-| `gemma2-q4k-fused-f16a` | Fused dequant+matmul with F16 activations | Best (F16) | Good |
+| `gemma2-q4k-fused-f32a` | Fused dequant+matmul with F16 activations | Best (F16) | Good |
 | `gemma2-q4k-fused-f32a` | Fused dequant+matmul with F32 activations | Best (F32) | Good |
 | `gemma2-q4k-dequant-f16a` | Pre-dequant to F16 with F16 activations | Balanced | Good |
-| `gemma2-q4k-dequant-f32a` | Pre-dequant to F32 with F32 activations | Slower | Best |
+| `gemma2-q4k-fused-f32a` | Pre-dequant to F32 with F32 activations | Slower | Best |
 
 ### F16 Models
 
@@ -132,7 +132,7 @@ gate_proj → up_proj → activation → down_proj → ffn_residual
 The fused path has 2 fewer dispatches because:
 - `ffn_gate_up` fuses: gate_proj + up_proj + activation
 
-Note: `gemma2-q4k-fused-f16a` uses separate gate/up matmuls because `fused_ffn_q4k` requires F32 activations, so expect 2 extra dispatches vs the fused FFN path.
+Note: `gemma2-q4k-fused-f32a` uses separate gate/up matmuls because `fused_ffn_q4k` requires F32 activations, so expect 2 extra dispatches vs the fused FFN path.
 
 ## Usage
 
@@ -151,7 +151,7 @@ quantization and activation dtype (from `quantizationInfo.compute`):
         "f32": "gemma2-f16-f32a"
       },
       "q4k": {
-        "f16": "gemma2-q4k-fused-f16a",
+        "f16": "gemma2-q4k-fused-f32a",
         "f32": "gemma2-q4k-fused-f32a"
       }
     }
@@ -164,7 +164,7 @@ quantization and activation dtype (from `quantizationInfo.compute`):
 ```json
 {
   "inference": {
-    "kernelPath": "gemma2-q4k-fused-f16a"
+    "kernelPath": "gemma2-q4k-fused-f32a"
   }
 }
 ```
@@ -214,8 +214,8 @@ At layer 5, this resolves to `layer.5.self_attn.q_proj`.
 
 | Old Config | New Kernel Path |
 |------------|-----------------|
-| `q4kStrategy: "fused_q4k"` + `fusedFFNQ4K: true` | `gemma2-q4k-fused-f16a` (F16 activations) or `gemma2-q4k-fused-f32a` (F32 activations) |
-| `q4kStrategy: "dequant_f32"` | `gemma2-q4k-dequant-f32a` |
+| `q4kStrategy: "fused_q4k"` + `fusedFFNQ4K: true` | `gemma2-q4k-fused-f32a` (F16 activations) or `gemma2-q4k-fused-f32a` (F32 activations) |
+| `q4kStrategy: "dequant_f32"` | `gemma2-q4k-fused-f32a` |
 | `q4kStrategy: "dequant_f16"` | `gemma2-q4k-dequant-f16a` |
 
 ## See Also

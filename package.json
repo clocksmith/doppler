@@ -21,7 +21,8 @@
     "onboarding:check:strict": "node tools/onboarding-tooling.js check --strict",
     "onboarding:scaffold": "node tools/onboarding-tooling.js scaffold",
     "bench:vendors:list": "node tools/vendor-bench.js list",
-    "bench:vendors:validate": "node tools/vendor-bench.js validate"
+    "bench:vendors:validate": "node tools/vendor-bench.js validate",
+    "bench:vendors:matrix": "node tools/vendor-bench.js matrix"
   },
   "exports": {
     ".": {

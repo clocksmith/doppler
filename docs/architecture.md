@@ -2,7 +2,7 @@
 
 ## Architecture Overview
 
-**DOPPLER** (Distributed On-device Processing for Prefill, Learning, and Execution Runtime) is a standalone WebGPU-native ML runtime for forward inference, prefill, and backward/training paths in browser and Node environments.
+**DOPPLER** (Deterministic On-device Processing for Prefill, Learning, and Execution Runtime) is a standalone WebGPU-native ML runtime for forward inference, prefill, and backward/training paths in browser and Node environments.
 
 See also: `index.md`
 

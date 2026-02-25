@@ -132,8 +132,11 @@ export interface ParsedModelConfig {
   ropeTheta: number;
   ropeLocalTheta: number | null;
   ropeScale: number;
+  ropeLocalScale: number;
   ropeScalingType: string | null;
+  ropeLocalScalingType: string | null;
   ropeScaling: RopeScalingConfig | null;
+  ropeLocalScaling: RopeScalingConfig | null;
   quantization: string;
   quantMethod: string | null;
   rmsNormEps: number;

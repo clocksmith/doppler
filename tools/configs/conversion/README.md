@@ -38,6 +38,15 @@ Current config intent:
   - Compute: `f16`
   - Kernel path: `gemma3-f16-fused-f16a-online`
 
+- `tools/configs/conversion/gemma3/translategemma-4b-it-wq4.json`
+  - Output base: `models/curated/translategemma-4b-it-wq4`
+  - Resolved modelId: `translategemma-4b-it-wq4`
+  - Preset: `translategemma`
+  - Output mode: `textOnly: true` (skip vision/projector tensors)
+  - Weights: `q4k` (row layout), embeddings/lmHead: `f16`
+  - Compute: `f16`
+  - Kernel path: `gemma3-q4k-dequant-f16a-online`
+
 - `tools/configs/conversion/gpt-oss-20b.json`
   - Output base: `models/local/gpt-oss-20b`
   - Resolved modelId: `gpt-oss-20b`

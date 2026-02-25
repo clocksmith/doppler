@@ -29,13 +29,13 @@ Notes:
 
 ```bash
 # Warm-cache benchmark (recommended baseline)
-npm run bench -- --model-id MODEL_ID --runtime-preset experiments/gemma3-bench-q4k --cache-mode warm --save --json
+npm run bench -- --model-id MODEL_ID --runtime-preset experiments/bench/gemma3-bench-q4k --cache-mode warm --save --json
 
 # Cold-cache benchmark (cache disabled per run)
-npm run bench -- --model-id MODEL_ID --runtime-preset experiments/gemma3-bench-q4k --cache-mode cold --save --json
+npm run bench -- --model-id MODEL_ID --runtime-preset experiments/bench/gemma3-bench-q4k --cache-mode cold --save --json
 
 # Compare against last saved run
-npm run bench -- --model-id MODEL_ID --runtime-preset experiments/gemma3-bench-q4k --compare last --save --json
+npm run bench -- --model-id MODEL_ID --runtime-preset experiments/bench/gemma3-bench-q4k --compare last --save --json
 ```
 
 Notes:

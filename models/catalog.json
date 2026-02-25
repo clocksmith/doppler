@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-02-22",
+  "updatedAt": "2026-02-25",
   "models": [
     {
       "modelId": "google-embeddinggemma-300m-wbf16",
@@ -11,6 +11,16 @@
       "sizeBytes": 605726208,
       "recommended": true,
       "sortOrder": 10
+    },
+    {
+      "modelId": "translategemma-4b-it-wq4",
+      "label": "TranslateGemma 4B Instruct (Q4)",
+      "description": "TranslateGemma text-generation model. Place converted RDRR shards under models/curated/translategemma-4b-it-wq4 for local loading.",
+      "mode": "translate",
+      "baseUrl": "./curated/translategemma-4b-it-wq4",
+      "sizeBytes": 3111894696,
+      "recommended": false,
+      "sortOrder": 15
     },
     {
       "modelId": "gemma-3-270m-it-f16-f32a",

@@ -62,10 +62,16 @@ export const DEFAULT_MANIFEST_INFERENCE = {
     ropeLocalTheta: null,  // Same as ropeTheta (null = use ropeTheta)
     ropeScalingType: null,  // No scaling (null = disabled)
     ropeScalingFactor: 1.0,
+    ropeLocalScalingType: null,  // Local scaling policy (null = no scaling)
+    ropeLocalScalingFactor: 1.0,
     // YARN parameters - only relevant when ropeScalingType='yarn'
     yarnBetaFast: 32,
     yarnBetaSlow: 1,
     yarnOriginalMaxPos: 4096,
+    // Local YARN parameters - only relevant when ropeLocalScalingType='yarn'
+    ropeLocalYarnBetaFast: null,
+    ropeLocalYarnBetaSlow: null,
+    ropeLocalYarnOriginalMaxPos: null,
   },
   output: {
     finalLogitSoftcapping: null,  // No softcapping (null = disabled)

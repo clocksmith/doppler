@@ -121,6 +121,49 @@ function normalizeQ4KLayout(value) {
   return normalized === 'col' ? 'col' : 'row';
 }
 
+function normalizeTensorName(tensor) {
+  const name = tensor?.name;
+  return typeof name === 'string' ? name : '';
+}
+
+function shouldExcludeTextOnlyTensor(name) {
+  const lower = name.toLowerCase();
+  return lower.startsWith('vision_tower.')
+    || lower.startsWith('vision_model.')
+    || lower.startsWith('vision_encoder.')
+    || lower.startsWith('image_encoder.')
+    || lower.startsWith('image_tower.')
+    || lower.startsWith('audio_tower.')
+    || lower.startsWith('audio_model.')
+    || lower.startsWith('audio_encoder.')
+    || lower.startsWith('multi_modal_projector.')
+    || lower.startsWith('mm_projector.');
+}
+
+function resolveConversionTensors(model, converterConfig) {
+  const source = Array.isArray(model?.tensors) ? model.tensors : [];
+  if (source.length === 0) {
+    return source;
+  }
+  const textOnly = converterConfig?.output?.textOnly === true;
+  if (!textOnly) {
+    return source;
+  }
+
+  const hasLanguageModelNamespace = source.some((tensor) => (
+    normalizeTensorName(tensor).toLowerCase().startsWith('language_model.')
+  ));
+  if (hasLanguageModelNamespace) {
+    return source.filter((tensor) => (
+      normalizeTensorName(tensor).toLowerCase().startsWith('language_model.')
+    ));
+  }
+
+  return source.filter((tensor) => (
+    !shouldExcludeTextOnlyTensor(normalizeTensorName(tensor))
+  ));
+}
+
 function toFloat32ForQ4K(tensorData, sourceDtype, tensorName) {
   const dtype = String(sourceDtype || '').toUpperCase();
   if (dtype === 'F32') {
@@ -403,33 +446,46 @@ export function extractArchitecture(config, ggufConfig) {
 
   // Try HuggingFace config first
   if (config && Object.keys(config).length > 0) {
+    const textConfig = (
+      config.text_config && typeof config.text_config === 'object' && !Array.isArray(config.text_config)
+    ) ? config.text_config : null;
+    const fromConfig = (...keys) => {
+      const values = [];
+      for (const key of keys) {
+        values.push(config[key]);
+      }
+      for (const key of keys) {
+        values.push(textConfig?.[key]);
+      }
+      return firstNumber(...values);
+    };
     const numLayers = requireNumber(
-      firstNumber(config.num_hidden_layers, config.n_layer, config.num_layers),
+      fromConfig('num_hidden_layers', 'n_layer', 'num_layers'),
       'num_hidden_layers'
     );
     const hiddenSize = requireNumber(
-      firstNumber(config.hidden_size, config.n_embd, config.embedding_size),
+      fromConfig('hidden_size', 'n_embd', 'embedding_size'),
       'hidden_size'
     );
     const intermediateSize = requireNumber(
-      firstNumber(config.intermediate_size, config.n_inner, config.ffn_dim),
+      fromConfig('intermediate_size', 'n_inner', 'ffn_dim'),
       'intermediate_size'
     );
     const numHeads = requireNumber(
-      firstNumber(config.num_attention_heads, config.n_head, config.attention_heads),
+      fromConfig('num_attention_heads', 'n_head', 'attention_heads'),
       'num_attention_heads'
     );
-    const numKVHeads = firstNumber(config.num_key_value_heads, config.num_kv_heads) ?? numHeads;
-    const headDimFromConfig = config.head_dim ?? Math.floor(hiddenSize / numHeads);
+    const numKVHeads = fromConfig('num_key_value_heads', 'num_kv_heads') ?? numHeads;
+    const headDimFromConfig = fromConfig('head_dim') ?? Math.floor(hiddenSize / numHeads);
     const vocabSize = requireNumber(
-      firstNumber(config.vocab_size, config.n_vocab),
+      fromConfig('vocab_size', 'n_vocab'),
       'vocab_size'
     );
     const maxSeqLen = requireNumber(
-      firstNumber(config.max_position_embeddings, config.n_positions, config.max_seq_len),
+      fromConfig('max_position_embeddings', 'n_positions', 'max_seq_len'),
       'max_position_embeddings'
     );
-    const ropeTheta = config.rope_theta ?? undefined;
+    const ropeTheta = fromConfig('rope_theta') ?? undefined;
 
     return {
       numLayers,
@@ -708,7 +764,17 @@ export async function convertModel(model, io, options = {}) {
   if (!modelId) {
     throw new Error('Missing modelId for conversion');
   }
-  const tensors = model.tensors;
+  const tensors = resolveConversionTensors(model, converterConfig);
+  if (!Array.isArray(tensors) || tensors.length === 0) {
+    const textOnly = converterConfig?.output?.textOnly === true;
+    if (textOnly) {
+      throw new Error(
+        'No tensors selected for text-only conversion. ' +
+        'Expected language_model.* tensors or non-vision tensor names.'
+      );
+    }
+    throw new Error('Missing tensors for conversion');
+  }
   const totalTensors = tensors.length;
   const targetQuant = String(options.quantization ?? model.quantization ?? '').trim().toLowerCase();
   const q4kLayout = normalizeQ4KLayout(options.quantizationInfo?.layout);

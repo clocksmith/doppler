@@ -1,6 +1,11 @@
 {
+  "id": "modes/production",
   "name": "production",
   "description": "Production configuration with optimized settings",
+  "intent": "verify",
+  "stability": "canonical",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-02-25T00:00:00Z",
   "extends": "default",
   "runtime": {
     "shared": {

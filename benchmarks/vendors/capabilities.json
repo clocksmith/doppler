@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-02-23",
+  "updated": "2026-02-25",
   "featureCatalog": {
     "bench": [
       {
@@ -218,7 +218,11 @@
           "decodeMsPerTokenP95": false,
           "decodeMsPerTokenP99": false,
           "js_heap_memory_metrics": false,
-          "gpu_memory_metrics": false
+          "gpu_memory_metrics": false,
+          "firstResponseMs": false,
+          "prefillMs": false,
+          "decodeMs": false,
+          "totalRunMs": false
         }
       },
       "profile": {
@@ -255,7 +259,11 @@
           "decodeMsPerTokenP95": false,
           "decodeMsPerTokenP99": false,
           "js_heap_memory_metrics": false,
-          "gpu_memory_metrics": false
+          "gpu_memory_metrics": false,
+          "firstResponseMs": false,
+          "prefillMs": false,
+          "decodeMs": false,
+          "totalRunMs": false
         }
       },
       "profile": {
@@ -292,7 +300,11 @@
           "decodeMsPerTokenP95": false,
           "decodeMsPerTokenP99": false,
           "js_heap_memory_metrics": false,
-          "gpu_memory_metrics": false
+          "gpu_memory_metrics": false,
+          "firstResponseMs": false,
+          "prefillMs": false,
+          "decodeMs": false,
+          "totalRunMs": false
         }
       },
       "profile": {
@@ -329,7 +341,11 @@
           "decodeMsPerTokenP95": false,
           "decodeMsPerTokenP99": false,
           "js_heap_memory_metrics": false,
-          "gpu_memory_metrics": false
+          "gpu_memory_metrics": false,
+          "firstResponseMs": false,
+          "prefillMs": false,
+          "decodeMs": false,
+          "totalRunMs": false
         }
       },
       "profile": {
@@ -366,7 +382,11 @@
           "decodeMsPerTokenP95": false,
           "decodeMsPerTokenP99": false,
           "js_heap_memory_metrics": false,
-          "gpu_memory_metrics": false
+          "gpu_memory_metrics": false,
+          "firstResponseMs": false,
+          "prefillMs": false,
+          "decodeMs": false,
+          "totalRunMs": false
         }
       },
       "profile": {
@@ -403,7 +423,11 @@
           "decodeMsPerTokenP95": false,
           "decodeMsPerTokenP99": false,
           "js_heap_memory_metrics": false,
-          "gpu_memory_metrics": false
+          "gpu_memory_metrics": false,
+          "firstResponseMs": false,
+          "prefillMs": false,
+          "decodeMs": false,
+          "totalRunMs": false
         }
       },
       "profile": {

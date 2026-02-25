@@ -59,13 +59,21 @@ export interface RoPEConfig {
   ropeTheta: number;
   ropeLocalTheta?: number | null;
   ropeScale: number;
-  ropeScalingType?: string;
+  ropeLocalScale?: number;
+  ropeScalingType?: string | null;
+  ropeLocalScalingType?: string | null;
   ropeScaling?: {
     factor: number;
     beta_fast?: number;
     beta_slow?: number;
     original_max_position_embeddings?: number;
-  };
+  } | null;
+  ropeLocalScaling?: {
+    factor: number;
+    beta_fast?: number;
+    beta_slow?: number;
+    original_max_position_embeddings?: number;
+  } | null;
 }
 
 /**

@@ -98,7 +98,7 @@ function createRuntimeBridge(initialRuntime = {}) {
   }, runtime.bridge);
 
   assert.deepEqual(runtime.calls, []);
-  assert.deepEqual(runtime.getRuntime(), { inference: { prompt: 'base' } });
+  assert.equal(runtime.getRuntime(), null);
 }
 
 {
@@ -118,6 +118,8 @@ function createRuntimeBridge(initialRuntime = {}) {
     suite: 'inference',
     modelId: 'gemma-3-270m-it-f16-f32a',
     modelUrl: undefined,
+    cacheMode: 'warm',
+    loadMode: null,
     runtimePreset: null,
     captureOutput: true,
     keepPipeline: false,

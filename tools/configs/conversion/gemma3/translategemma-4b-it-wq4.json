@@ -1,0 +1,20 @@
+{
+    "output": {
+        "baseDir": "models/curated",
+        "modelBaseId": "translategemma-4b-it-wq4",
+        "textOnly": true
+    },
+    "presets": {
+        "model": "translategemma"
+    },
+    "quantization": {
+        "weights": "q4k",
+        "embeddings": "f16",
+        "lmHead": "f16",
+        "q4kLayout": "row",
+        "computePrecision": "f16"
+    },
+    "inference": {
+        "defaultKernelPath": "gemma3-q4k-dequant-f16a-online"
+    }
+}
