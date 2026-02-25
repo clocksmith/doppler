@@ -16,13 +16,15 @@ export class BaseTokenizer {
   
   constructor(config = {}) {
     const runtimeDefaults = getRuntimeConfig().inference.tokenizer;
-    if (config.vocabSize == null) {
+    const deferSpecialTokens = config.deferSpecialTokens ?? runtimeDefaults.deferSpecialTokens;
+    const vocabSize = (config.vocabSize == null && deferSpecialTokens) ? 0 : config.vocabSize;
+    if (vocabSize == null) {
       throw new Error('[Tokenizer] vocabSize is required.');
     }
-    this.vocabSize = config.vocabSize;
+    this.vocabSize = vocabSize;
 
     const specialTokens = config.specialTokens ?? {};
-    const deferSpecialTokens = config.deferSpecialTokens === true;
+    
     const padToken = specialTokens.pad ?? config.padToken;
     const bosToken = specialTokens.bos ?? config.bosToken;
     const eosToken = specialTokens.eos ?? config.eosToken;

@@ -24,6 +24,12 @@ export interface RoPEConfigSchema {
   /** RoPE scaling factor */
   ropeScalingFactor?: number;
 
+  /** Local RoPE scaling type for sliding window layers */
+  ropeLocalScalingType?: 'linear' | 'dynamic' | 'yarn' | null;
+
+  /** Local RoPE scaling factor for sliding window layers */
+  ropeLocalScalingFactor?: number;
+
   /** YARN beta_fast parameter */
   yarnBetaFast?: number;
 
@@ -32,6 +38,15 @@ export interface RoPEConfigSchema {
 
   /** YARN original max position embeddings */
   yarnOriginalMaxPos?: number;
+
+  /** Local YARN beta_fast parameter */
+  ropeLocalYarnBetaFast?: number;
+
+  /** Local YARN beta_slow parameter */
+  ropeLocalYarnBetaSlow?: number;
+
+  /** Local YARN original max position embeddings */
+  ropeLocalYarnOriginalMaxPos?: number;
 }
 
 /** Attention mechanism configuration */
@@ -73,11 +88,18 @@ export interface FFNSchema {
 }
 
 /** Built-in chat template types */
-export type ChatTemplateType = 'gemma' | 'llama3' | 'gpt-oss' | 'chatml' | 'qwen' | null;
+export type ChatTemplateType =
+  | 'gemma'
+  | 'llama3'
+  | 'gpt-oss'
+  | 'chatml'
+  | 'qwen'
+  | 'translategemma'
+  | null;
 
 /** Chat template configuration for instruct models */
 export interface ChatTemplateSchema {
-  /** Template type identifier (gemma, llama3, gpt-oss, chatml, qwen) */
+  /** Template type identifier (gemma, llama3, gpt-oss, chatml, qwen, translategemma) */
   type?: ChatTemplateType;
 
   /** Whether to apply chat template by default (instruct models should set true) */
@@ -94,7 +116,11 @@ export type LayerPipelineOp =
   | 'rmsnorm'
   | 'ffn'
   | 'residual_add'
+  | 'cast'
   | 'noop';
+
+export type LayerPipelinePhase = 'prefill' | 'decode' | 'both';
+export type LayerPipelineDtype = 'f16' | 'f32';
 
 export type LayerPipelineNormWeight =
   | 'input'
@@ -105,6 +131,8 @@ export type LayerPipelineNormWeight =
 
 export interface LayerPipelineStepSchema {
   op: LayerPipelineOp;
+  /** Optional phase gate for this step (default: both) */
+  phase?: LayerPipelinePhase;
   /** Source slot (default: "state") */
   src?: string;
   /** Destination slot (default: "state") */
@@ -124,6 +152,14 @@ export interface LayerPipelineStepSchema {
   skipInputNorm?: boolean;
   /** Optional probe stage to emit for this step */
   probeStage?: ProbeStage;
+  /** Explicit input dtype requirement for this step */
+  inputDtype?: LayerPipelineDtype;
+  /** Explicit output dtype contract for this step */
+  outputDtype?: LayerPipelineDtype;
+  /** Cast source dtype (cast op only) */
+  fromDtype?: LayerPipelineDtype;
+  /** Cast target dtype (cast op only) */
+  toDtype?: LayerPipelineDtype;
 }
 
 export interface LayerPipelineOverrideSchema {
@@ -227,6 +263,8 @@ export interface TokenizerConfigSchema {
   addBosToken?: boolean;
   /** Add EOS token to output */
   addEosToken?: boolean;
+  /** Defer special-token validation until tokenizer metadata is fully loaded */
+  deferSpecialTokens?: boolean;
   /** HuggingFace model ID for tokenizer fallback */
   hfModel?: string;
   /** Allow architecture-based fallback when hfModel is missing */

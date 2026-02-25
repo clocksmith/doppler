@@ -11,17 +11,26 @@
   "scripts": {
     "cli": "node tools/doppler-cli.js",
     "convert": "node tools/doppler-cli.js convert",
+    "manifest-refresh": "node tools/refresh-converted-manifest.js",
     "debug": "node tools/doppler-cli.js debug",
     "bench": "node tools/doppler-cli.js bench",
     "bench:chart": "node ./benchmarks/vendors/compare-chart.js",
+    "test:unit": "node tools/run-node-tests.mjs --suite unit",
+    "test:gpu": "node tools/run-node-tests.mjs --suite gpu",
+    "test:gpu:browser": "node tools/doppler-cli.js test-model --suite kernels --surface browser --no-opfs-cache --browser-headless true --browser-channel chromium --browser-arg --use-angle=swiftshader --browser-arg --disable-vulkan-surface --browser-console",
     "agents:verify": "node tools/verify-agent-parity.js",
+    "agents:freshness": "node tools/verify-agent-freshness.js",
+    "agents:freshness:strict": "node tools/verify-agent-freshness.js --strict",
     "conflicts:check": "node tools/check-merge-markers.js",
     "test:model": "node tools/doppler-cli.js test-model",
     "onboarding:check": "node tools/onboarding-tooling.js check",
     "onboarding:check:strict": "node tools/onboarding-tooling.js check --strict",
     "onboarding:scaffold": "node tools/onboarding-tooling.js scaffold",
     "bench:vendors:list": "node tools/vendor-bench.js list",
-    "bench:vendors:validate": "node tools/vendor-bench.js validate"
+    "bench:vendors:validate": "node tools/vendor-bench.js validate",
+    "bench:vendors:matrix": "node tools/vendor-bench.js matrix",
+    "kernels:generate": "node tools/generate-wgsl.js",
+    "kernels:check": "node tools/generate-wgsl.js --check"
   },
   "exports": {
     ".": {

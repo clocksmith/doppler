@@ -6,23 +6,22 @@
 {
   "imports": {
     "onnxruntime-common": "/node_modules/onnxruntime-common/dist/esm/index.js",
-    "onnxruntime-web": "/node_modules/onnxruntime-web/dist/ort.webgpu.bundle.min.mjs",
-    "onnxruntime-web/webgpu": "/node_modules/onnxruntime-web/dist/ort.webgpu.bundle.min.mjs"
+    "onnxruntime-web": "/benchmarks/runners/transformersjs-ort.webgpu.bundle.min.js",
+    "onnxruntime-web/webgpu": "/benchmarks/runners/transformersjs-ort.webgpu.bundle.min.js"
   }
 }
 </script>
 <script type="module">
-// ORT's WebGPU bundle creates a self-referencing Worker via import.meta.url,
-// but the baked-in URL loses the filename and resolves to the /dist directory.
-// Intercept Worker construction to rewrite that URL to the actual bundle file.
+// ORT's WebGPU bundle can create a self-referencing Worker via import.meta.url.
+// If it resolves to a bare /dist directory, rewrite it to the bundled filename.
 const _OrigWorker = globalThis.Worker;
 globalThis.Worker = class extends _OrigWorker {
   constructor(url, opts) {
     let resolved = typeof url === 'string' ? url : url instanceof URL ? url.href : url;
     if (typeof resolved === 'string' &&
         resolved.includes('onnxruntime-web') &&
-        resolved.endsWith('/dist')) {
-      resolved = resolved + '/ort.webgpu.bundle.min.mjs';
+        (resolved.endsWith('/dist') || resolved.endsWith('/dist/'))) {
+      resolved = `${resolved.replace(/\/dist\/?$/, '')}/transformersjs-ort.webgpu.bundle.min.js`;
       console.log(`[tjs-bench] Worker URL rewrite: ${resolved}`);
     }
     super(resolved, opts);
@@ -672,6 +671,10 @@ window.__runBench = async (config) => {
       library: 'transformers.js',
       version: tjsVersion === '4' ? '4.x' : '3.x',
       device: 'webgpu',
+      browserUserAgent: typeof navigator !== 'undefined' ? (navigator.userAgent || null) : null,
+      browserPlatform: typeof navigator !== 'undefined' ? (navigator.platform || null) : null,
+      browserLanguage: typeof navigator !== 'undefined' ? (navigator.language || null) : null,
+      browserVendor: typeof navigator !== 'undefined' ? (navigator.vendor || null) : null,
       dtype: load.effectiveDtype || 'fp16',
       requestedDtype,
       dtypeFallbackUsed: load.effectiveDtype !== requestedDtype,

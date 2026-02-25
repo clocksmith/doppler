@@ -1,6 +1,11 @@
 {
+  "id": "default",
   "name": "default",
   "description": "Default DOPPLER configuration with balanced settings",
+  "intent": "investigate",
+  "stability": "canonical",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-02-25T00:00:00Z",
   "runtime": {
     "shared": {
       "debug": {
@@ -47,10 +52,10 @@
         "maxTokens": 128
       },
       "sampling": {
-        "temperature": 1.0,
+        "temperature": 1,
         "topK": 32,
         "topP": 0.95,
-        "repetitionPenalty": 1.0,
+        "repetitionPenalty": 1,
         "greedyThreshold": 0.01
       },
       "kvcache": {
@@ -68,6 +73,28 @@
         "cache": {
           "dequantCacheMaxEntries": 8
         }
+      },
+      "session": {
+        "compute": {
+          "defaults": {
+            "activationDtype": "f16"
+          }
+        },
+        "kvcache": {
+          "layout": "contiguous",
+          "kvDtype": "f16",
+          "pageSize": 256
+        }
+      },
+      "kernelPathPolicy": {
+        "mode": "capability-aware",
+        "sourceScope": [
+          "model",
+          "manifest",
+          "config",
+          "execution-v0"
+        ],
+        "onIncompatible": "remap"
       }
     }
   }

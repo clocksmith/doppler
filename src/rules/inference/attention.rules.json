@@ -27,5 +27,28 @@
       "value": true
     },
     { "match": {}, "value": false }
+  ],
+  "attentionKernelVariant": [
+    {
+      "match": {
+        "kvLayout": "tiered",
+        "numTokens": {
+          "gt": 1
+        }
+      },
+      "value": "contiguous"
+    },
+    { "match": { "kvLayout": "bdpa" }, "value": "bdpa" },
+    {
+      "match": {
+        "kvLayout": "tiered",
+        "coldQuantMode": {
+          "neq": "none"
+        }
+      },
+      "value": "tieredQuant"
+    },
+    { "match": { "kvLayout": "tiered" }, "value": "tiered" },
+    { "match": {}, "value": "contiguous" }
   ]
 }

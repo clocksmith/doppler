@@ -18,6 +18,10 @@ import type {
   SamplingSchema,
   TokenizerConfigSchema,
 } from './inference.schema.js';
+import type {
+  ExecutionV0PatchSchema,
+  ExecutionV0SessionDefaultsSchema,
+} from './execution-v0.schema.js';
 import type { KVCacheConfigSchema } from './kvcache.schema.js';
 import type { MoERuntimeConfigSchema } from './moe.schema.js';
 import type { KernelPathRef } from './kernel-path.schema.js';
@@ -182,6 +186,9 @@ export interface TokenizerDefaultsSchema {
 
   /** Add EOS token to output (default: false, model decides) */
   addEosToken: boolean;
+
+  /** Defer token validation until token metadata is fully loaded */
+  deferSpecialTokens: boolean;
 }
 
 /** Default tokenizer configuration */
@@ -216,12 +223,27 @@ export interface InferenceDefaultsConfigSchema {
   /** Log token ids in test harness output */
   debugTokens?: boolean;
   pipeline?: LayerPipelineSchema | null;
+  /** Session overrides for execution v0 (session-only runtime knobs). */
+  session?: ExecutionV0SessionDefaultsSchema;
+  /** Atomic execution graph patch for execution v0. */
+  executionPatch?: ExecutionV0PatchSchema;
   /**
    * Kernel path for explicit kernel dispatch ordering.
    * Specifies exactly which kernels run, in what order, with what configs.
    * Can be a preset ID (e.g., 'gemma2-q4k-fused-f32a') or inline KernelPathSchema.
    */
   kernelPath?: KernelPathRef;
+  /**
+   * Internal kernel-path source hint used by execution-v0 runtime patching.
+   * Not intended for direct user configuration.
+   */
+  kernelPathSource?: 'runtime' | 'config' | 'model' | 'manifest' | 'execution-v0' | 'none';
+  /**
+   * Kernel-path auto-selection policy.
+   * locked: preserve configured kernelPath as-is.
+   * capability-aware: allow rule-driven remap for selected sources.
+   */
+  kernelPathPolicy?: KernelPathPolicySchema;
   /**
    * Chat template override for runtime config.
    * When set, overrides the model preset's chatTemplate.enabled setting.
@@ -235,8 +257,20 @@ export interface InferenceDefaultsConfigSchema {
   modelOverrides?: ModelInferenceOverrides;
 }
 
+export interface KernelPathPolicySchema {
+  mode: 'locked' | 'capability-aware';
+  sourceScope: Array<'model' | 'manifest' | 'config' | 'runtime' | 'execution-v0'>;
+  /**
+   * Backward-compatible alias for sourceScope.
+   * Prefer sourceScope in new configs.
+   */
+  allowSources?: Array<'model' | 'manifest' | 'config' | 'runtime' | 'execution-v0'>;
+  onIncompatible: 'error' | 'remap';
+}
+
 /** Default inference configuration */
 export declare const DEFAULT_INFERENCE_DEFAULTS_CONFIG: InferenceDefaultsConfigSchema;
+export declare const DEFAULT_KERNEL_PATH_POLICY: KernelPathPolicySchema;
 
 /** Default inference configuration for model presets */
 export declare const DEFAULT_PRESET_INFERENCE_CONFIG: InferenceConfigSchema;

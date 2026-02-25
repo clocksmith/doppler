@@ -82,7 +82,7 @@ function resolveTokenizerVocabSize(tokenizerConfig, rawConfig, architecture) {
   return tokenizerVocab ?? configVocab ?? archVocab ?? null;
 }
 
-function normalizeStorageQuant(value) {
+export function normalizeStorageQuant(value) {
   if (value == null) return null;
   const lower = String(value).trim().toLowerCase();
   if (!lower) return null;
@@ -93,7 +93,7 @@ function normalizeStorageQuant(value) {
   return lower;
 }
 
-function resolveTensorTargetQuant(tensorName, fallbackQuant, quantizationInfo) {
+export function resolveTensorTargetQuant(tensorName, fallbackQuant, quantizationInfo) {
   const fallback = normalizeStorageQuant(fallbackQuant);
   if (!quantizationInfo || typeof quantizationInfo !== 'object') {
     return fallback;
@@ -119,6 +119,49 @@ function bf16ToFloat32(value) {
 function normalizeQ4KLayout(value) {
   const normalized = String(value || '').trim().toLowerCase();
   return normalized === 'col' ? 'col' : 'row';
+}
+
+function normalizeTensorName(tensor) {
+  const name = tensor?.name;
+  return typeof name === 'string' ? name : '';
+}
+
+function shouldExcludeTextOnlyTensor(name) {
+  const lower = name.toLowerCase();
+  return lower.startsWith('vision_tower.')
+    || lower.startsWith('vision_model.')
+    || lower.startsWith('vision_encoder.')
+    || lower.startsWith('image_encoder.')
+    || lower.startsWith('image_tower.')
+    || lower.startsWith('audio_tower.')
+    || lower.startsWith('audio_model.')
+    || lower.startsWith('audio_encoder.')
+    || lower.startsWith('multi_modal_projector.')
+    || lower.startsWith('mm_projector.');
+}
+
+function resolveConversionTensors(model, converterConfig) {
+  const source = Array.isArray(model?.tensors) ? model.tensors : [];
+  if (source.length === 0) {
+    return source;
+  }
+  const textOnly = converterConfig?.output?.textOnly === true;
+  if (!textOnly) {
+    return source;
+  }
+
+  const hasLanguageModelNamespace = source.some((tensor) => (
+    normalizeTensorName(tensor).toLowerCase().startsWith('language_model.')
+  ));
+  if (hasLanguageModelNamespace) {
+    return source.filter((tensor) => (
+      normalizeTensorName(tensor).toLowerCase().startsWith('language_model.')
+    ));
+  }
+
+  return source.filter((tensor) => (
+    !shouldExcludeTextOnlyTensor(normalizeTensorName(tensor))
+  ));
 }
 
 function toFloat32ForQ4K(tensorData, sourceDtype, tensorName) {
@@ -363,6 +406,16 @@ function float32ToBFloat16(value) {
   return ((bits + roundingBias) >> 16) & 0xffff;
 }
 
+function resolveQuantizeEmbeddings(quantizationInfo, explicitValue = null) {
+  if (typeof explicitValue === 'boolean') {
+    return explicitValue;
+  }
+  return (
+    normalizeStorageQuant(quantizationInfo?.embeddings ?? null) === 'q4k'
+    || normalizeStorageQuant(quantizationInfo?.lmHead ?? null) === 'q4k'
+  );
+}
+
 
 export function shouldQuantize(tensorName, shape, options = {}) {
   if (!shape || !Array.isArray(shape) || shape.length === 0) {
@@ -381,6 +434,151 @@ export function shouldQuantize(tensorName, shape, options = {}) {
     isBias,
     quantizeEmbeddings,
   });
+}
+
+export function transformTensorBytes(tensor, rawData, options = {}) {
+  const tensorDataInput = rawData instanceof Uint8Array ? rawData : new Uint8Array(rawData);
+  let tensorData = tensorDataInput;
+  let outDtype = tensor.dtype;
+  let outLayout = null;
+
+  const sourceDtype = String(tensor.dtype).toUpperCase();
+  const targetQuant = normalizeStorageQuant(options.targetQuant ?? options.quantization ?? null);
+  const quantizationInfo = options.quantizationInfo ?? null;
+  const tensorTargetQuant = resolveTensorTargetQuant(
+    tensor.name,
+    targetQuant,
+    quantizationInfo
+  );
+  const q4kLayout = normalizeQ4KLayout(options.q4kLayout ?? quantizationInfo?.layout);
+  const quantizeEmbeddings = resolveQuantizeEmbeddings(
+    quantizationInfo,
+    options.quantizeEmbeddings
+  );
+  const forceQuantizeDecision = (
+    typeof options.forceQuantizeDecision === 'boolean'
+      ? options.forceQuantizeDecision
+      : null
+  );
+
+  if (tensorTargetQuant === 'q4k') {
+    const sourceQuant = normalizeStorageQuant(sourceDtype);
+    if (sourceQuant === 'q4k') {
+      outDtype = 'Q4_K_M';
+      if (Array.isArray(tensor.shape) && tensor.shape.length === 2) {
+        outLayout = q4kLayout;
+      }
+      return {
+        tensorData,
+        outDtype,
+        outLayout,
+        sourceDtype,
+        tensorTargetQuant,
+      };
+    }
+
+    const shouldQuantizeTensor = (
+      forceQuantizeDecision ?? shouldQuantize(tensor.name, tensor.shape, { quantizeEmbeddings })
+    );
+    if (shouldQuantizeTensor) {
+      const f32Data = toFloat32ForQ4K(tensorData, sourceDtype, tensor.name);
+      const quantized = (
+        Array.isArray(tensor.shape) && tensor.shape.length === 2
+          ? (q4kLayout === 'col'
+            ? quantizeToQ4KMColumnWise(f32Data, tensor.shape)
+            : quantizeToQ4KMRowWise(f32Data, tensor.shape))
+          : quantizeToQ4KM(f32Data, tensor.shape)
+      );
+      tensorData = quantized.quantized;
+      outDtype = 'Q4_K_M';
+      if (Array.isArray(tensor.shape) && tensor.shape.length === 2) {
+        outLayout = q4kLayout;
+      }
+    }
+  } else if (tensorTargetQuant === 'f16' && sourceDtype === 'F32') {
+    if (tensorData.byteLength % 4 !== 0) {
+      throw new Error(`Invalid F32 tensor byte length for ${tensor.name}: ${tensorData.byteLength}`);
+    }
+    const f32 = new Float32Array(
+      tensorData.buffer,
+      tensorData.byteOffset,
+      tensorData.byteLength / 4
+    );
+    const f16 = new Uint16Array(f32.length);
+    for (let j = 0; j < f32.length; j++) {
+      f16[j] = float32ToFloat16(f32[j]);
+    }
+    tensorData = new Uint8Array(f16.buffer, f16.byteOffset, f16.byteLength);
+    outDtype = 'F16';
+  } else if (tensorTargetQuant === 'f16' && sourceDtype === 'BF16') {
+    if (tensorData.byteLength % 2 !== 0) {
+      throw new Error(`Invalid BF16 tensor byte length for ${tensor.name}: ${tensorData.byteLength}`);
+    }
+    const bf16 = new Uint16Array(
+      tensorData.buffer,
+      tensorData.byteOffset,
+      tensorData.byteLength / 2
+    );
+    const f16 = new Uint16Array(bf16.length);
+    for (let j = 0; j < bf16.length; j++) {
+      f16[j] = float32ToFloat16(bf16ToFloat32(bf16[j]));
+    }
+    tensorData = new Uint8Array(f16.buffer, f16.byteOffset, f16.byteLength);
+    outDtype = 'F16';
+  } else if (tensorTargetQuant === 'bf16' && sourceDtype === 'F32') {
+    if (tensorData.byteLength % 4 !== 0) {
+      throw new Error(`Invalid F32 tensor byte length for ${tensor.name}: ${tensorData.byteLength}`);
+    }
+    const f32 = new Float32Array(
+      tensorData.buffer,
+      tensorData.byteOffset,
+      tensorData.byteLength / 4
+    );
+    const bf16 = new Uint16Array(f32.length);
+    for (let j = 0; j < f32.length; j++) {
+      bf16[j] = float32ToBFloat16(f32[j]);
+    }
+    tensorData = new Uint8Array(bf16.buffer, bf16.byteOffset, bf16.byteLength);
+    outDtype = 'BF16';
+  } else if (tensorTargetQuant === 'f32' && sourceDtype === 'F16') {
+    if (tensorData.byteLength % 2 !== 0) {
+      throw new Error(`Invalid F16 tensor byte length for ${tensor.name}: ${tensorData.byteLength}`);
+    }
+    const f16 = new Uint16Array(
+      tensorData.buffer,
+      tensorData.byteOffset,
+      tensorData.byteLength / 2
+    );
+    const f32 = new Float32Array(f16.length);
+    for (let j = 0; j < f16.length; j++) {
+      f32[j] = float16ToFloat32(f16[j]);
+    }
+    tensorData = new Uint8Array(f32.buffer, f32.byteOffset, f32.byteLength);
+    outDtype = 'F32';
+  } else if (tensorTargetQuant === 'f32' && sourceDtype === 'BF16') {
+    if (tensorData.byteLength % 2 !== 0) {
+      throw new Error(`Invalid BF16 tensor byte length for ${tensor.name}: ${tensorData.byteLength}`);
+    }
+    const bf16 = new Uint16Array(
+      tensorData.buffer,
+      tensorData.byteOffset,
+      tensorData.byteLength / 2
+    );
+    const f32 = new Float32Array(bf16.length);
+    for (let j = 0; j < bf16.length; j++) {
+      f32[j] = bf16ToFloat32(bf16[j]);
+    }
+    tensorData = new Uint8Array(f32.buffer, f32.byteOffset, f32.byteLength);
+    outDtype = 'F32';
+  }
+
+  return {
+    tensorData,
+    outDtype,
+    outLayout,
+    sourceDtype,
+    tensorTargetQuant,
+  };
 }
 
 
@@ -403,33 +601,46 @@ export function extractArchitecture(config, ggufConfig) {
 
   // Try HuggingFace config first
   if (config && Object.keys(config).length > 0) {
+    const textConfig = (
+      config.text_config && typeof config.text_config === 'object' && !Array.isArray(config.text_config)
+    ) ? config.text_config : null;
+    const fromConfig = (...keys) => {
+      const values = [];
+      for (const key of keys) {
+        values.push(config[key]);
+      }
+      for (const key of keys) {
+        values.push(textConfig?.[key]);
+      }
+      return firstNumber(...values);
+    };
     const numLayers = requireNumber(
-      firstNumber(config.num_hidden_layers, config.n_layer, config.num_layers),
+      fromConfig('num_hidden_layers', 'n_layer', 'num_layers'),
       'num_hidden_layers'
     );
     const hiddenSize = requireNumber(
-      firstNumber(config.hidden_size, config.n_embd, config.embedding_size),
+      fromConfig('hidden_size', 'n_embd', 'embedding_size'),
       'hidden_size'
     );
     const intermediateSize = requireNumber(
-      firstNumber(config.intermediate_size, config.n_inner, config.ffn_dim),
+      fromConfig('intermediate_size', 'n_inner', 'ffn_dim'),
       'intermediate_size'
     );
     const numHeads = requireNumber(
-      firstNumber(config.num_attention_heads, config.n_head, config.attention_heads),
+      fromConfig('num_attention_heads', 'n_head', 'attention_heads'),
       'num_attention_heads'
     );
-    const numKVHeads = firstNumber(config.num_key_value_heads, config.num_kv_heads) ?? numHeads;
-    const headDimFromConfig = config.head_dim ?? Math.floor(hiddenSize / numHeads);
+    const numKVHeads = fromConfig('num_key_value_heads', 'num_kv_heads') ?? numHeads;
+    const headDimFromConfig = fromConfig('head_dim') ?? Math.floor(hiddenSize / numHeads);
     const vocabSize = requireNumber(
-      firstNumber(config.vocab_size, config.n_vocab),
+      fromConfig('vocab_size', 'n_vocab'),
       'vocab_size'
     );
     const maxSeqLen = requireNumber(
-      firstNumber(config.max_position_embeddings, config.n_positions, config.max_seq_len),
+      fromConfig('max_position_embeddings', 'n_positions', 'max_seq_len'),
       'max_position_embeddings'
     );
-    const ropeTheta = config.rope_theta ?? undefined;
+    const ropeTheta = fromConfig('rope_theta') ?? undefined;
 
     return {
       numLayers,
@@ -543,6 +754,20 @@ export function buildTensorMap(tensors, shardSize) {
   return tensorMap;
 }
 
+function resolveConvertedAt(value) {
+  if (value === undefined || value === null || value === '') {
+    return new Date().toISOString();
+  }
+  if (typeof value !== 'string') {
+    throw new Error('manifest convertedAt must be a string when provided.');
+  }
+  const parsed = Date.parse(value);
+  if (Number.isNaN(parsed)) {
+    throw new Error(`Invalid manifest convertedAt timestamp: "${value}"`);
+  }
+  return new Date(parsed).toISOString();
+}
+
 
 export function createManifest(
   modelId,
@@ -650,9 +875,13 @@ export function createManifest(
     hashAlgorithm,
     eos_token_id: eosTokenId,
     config: isDiffusion ? rawConfig : undefined,
+    conversion: options.conversionInfo ?? undefined,
     metadata: {
       source,
-      convertedAt: new Date().toISOString(),
+      convertedAt: resolveConvertedAt(
+        options.convertedAt
+        ?? options.conversionInfo?.convertedAt
+      ),
     },
   };
 
@@ -708,13 +937,23 @@ export async function convertModel(model, io, options = {}) {
   if (!modelId) {
     throw new Error('Missing modelId for conversion');
   }
-  const tensors = model.tensors;
+  const tensors = resolveConversionTensors(model, converterConfig);
+  if (!Array.isArray(tensors) || tensors.length === 0) {
+    const textOnly = converterConfig?.output?.textOnly === true;
+    if (textOnly) {
+      throw new Error(
+        'No tensors selected for text-only conversion. ' +
+        'Expected language_model.* tensors or non-vision tensor names.'
+      );
+    }
+    throw new Error('Missing tensors for conversion');
+  }
   const totalTensors = tensors.length;
   const targetQuant = String(options.quantization ?? model.quantization ?? '').trim().toLowerCase();
   const q4kLayout = normalizeQ4KLayout(options.quantizationInfo?.layout);
-  const quantizeEmbeddings = (
-    normalizeStorageQuant(options.quantizationInfo?.embeddings ?? null) === 'q4k'
-    || normalizeStorageQuant(options.quantizationInfo?.lmHead ?? null) === 'q4k'
+  const quantizeEmbeddings = resolveQuantizeEmbeddings(
+    options.quantizationInfo ?? null,
+    options.quantizeEmbeddings
   );
   const shards = [];
   const tensorLocations = {};
@@ -724,7 +963,6 @@ export async function convertModel(model, io, options = {}) {
   let currentShardData = [];
   let currentShardSize = 0;
   let totalSize = 0;
-  let globalOffset = 0;
 
   // Helper to flush current shard
   const flushShard = async () => {
@@ -773,116 +1011,42 @@ export async function convertModel(model, io, options = {}) {
 
     // Read tensor data
     const data = await io.readTensorData(tensor);
-    let tensorData = new Uint8Array(data);
-    let outDtype = tensor.dtype;
-    let outLayout = null;
-
-    // Convert storage to requested format when needed so shard bytes stay consistent
-    // with mixed-precision quantization metadata.
-    const sourceDtype = String(tensor.dtype).toUpperCase();
-    const tensorTargetQuant = resolveTensorTargetQuant(
-      tensor.name,
+    const tensorDataInput = new Uint8Array(data);
+    const transformContext = {
       targetQuant,
-      options.quantizationInfo ?? null
+      q4kLayout,
+      quantizationInfo: options.quantizationInfo ?? null,
+      quantizeEmbeddings,
+    };
+    const transformResult = (
+      typeof options.tensorTransformer === 'function'
+        ? await options.tensorTransformer({
+          tensor,
+          tensorData: tensorDataInput,
+          transformContext,
+          reportProgress(currentBytes, totalBytes) {
+            if (!Number.isFinite(currentBytes) || !Number.isFinite(totalBytes)) return;
+            onProgress?.({
+              stage: ConvertStage.WRITING,
+              message: `Processing ${tensor.name}`,
+              current: i + 1,
+              total: totalTensors,
+              percent: Math.round(((i + 1) / totalTensors) * 100),
+              tensorName: tensor.name,
+              tensorBytesCurrent: currentBytes,
+              tensorBytesTotal: totalBytes,
+            });
+          },
+        })
+        : transformTensorBytes(tensor, tensorDataInput, transformContext)
     );
-    if (tensorTargetQuant === 'q4k') {
-      const sourceQuant = normalizeStorageQuant(sourceDtype);
-      if (sourceQuant === 'q4k') {
-        outDtype = 'Q4_K_M';
-        if (Array.isArray(tensor.shape) && tensor.shape.length === 2) {
-          outLayout = q4kLayout;
-        }
-      } else if (shouldQuantize(tensor.name, tensor.shape, { quantizeEmbeddings })) {
-        const f32Data = toFloat32ForQ4K(tensorData, sourceDtype, tensor.name);
-        const quantized = (
-          Array.isArray(tensor.shape) && tensor.shape.length === 2
-            ? (q4kLayout === 'col'
-              ? quantizeToQ4KMColumnWise(f32Data, tensor.shape)
-              : quantizeToQ4KMRowWise(f32Data, tensor.shape))
-            : quantizeToQ4KM(f32Data, tensor.shape)
-        );
-        tensorData = quantized.quantized;
-        outDtype = 'Q4_K_M';
-        if (Array.isArray(tensor.shape) && tensor.shape.length === 2) {
-          outLayout = q4kLayout;
-        }
-      }
-    } else if (tensorTargetQuant === 'f16' && sourceDtype === 'F32') {
-      if (tensorData.byteLength % 4 !== 0) {
-        throw new Error(`Invalid F32 tensor byte length for ${tensor.name}: ${tensorData.byteLength}`);
-      }
-      const f32 = new Float32Array(
-        tensorData.buffer,
-        tensorData.byteOffset,
-        tensorData.byteLength / 4
-      );
-      const f16 = new Uint16Array(f32.length);
-      for (let j = 0; j < f32.length; j++) {
-        f16[j] = float32ToFloat16(f32[j]);
-      }
-      tensorData = new Uint8Array(f16.buffer, f16.byteOffset, f16.byteLength);
-      outDtype = 'F16';
-    } else if (tensorTargetQuant === 'f16' && sourceDtype === 'BF16') {
-      if (tensorData.byteLength % 2 !== 0) {
-        throw new Error(`Invalid BF16 tensor byte length for ${tensor.name}: ${tensorData.byteLength}`);
-      }
-      const bf16 = new Uint16Array(
-        tensorData.buffer,
-        tensorData.byteOffset,
-        tensorData.byteLength / 2
-      );
-      const f16 = new Uint16Array(bf16.length);
-      for (let j = 0; j < bf16.length; j++) {
-        f16[j] = float32ToFloat16(bf16ToFloat32(bf16[j]));
-      }
-      tensorData = new Uint8Array(f16.buffer, f16.byteOffset, f16.byteLength);
-      outDtype = 'F16';
-    } else if (tensorTargetQuant === 'bf16' && sourceDtype === 'F32') {
-      if (tensorData.byteLength % 4 !== 0) {
-        throw new Error(`Invalid F32 tensor byte length for ${tensor.name}: ${tensorData.byteLength}`);
-      }
-      const f32 = new Float32Array(
-        tensorData.buffer,
-        tensorData.byteOffset,
-        tensorData.byteLength / 4
-      );
-      const bf16 = new Uint16Array(f32.length);
-      for (let j = 0; j < f32.length; j++) {
-        bf16[j] = float32ToBFloat16(f32[j]);
-      }
-      tensorData = new Uint8Array(bf16.buffer, bf16.byteOffset, bf16.byteLength);
-      outDtype = 'BF16';
-    } else if (tensorTargetQuant === 'f32' && sourceDtype === 'F16') {
-      if (tensorData.byteLength % 2 !== 0) {
-        throw new Error(`Invalid F16 tensor byte length for ${tensor.name}: ${tensorData.byteLength}`);
-      }
-      const f16 = new Uint16Array(
-        tensorData.buffer,
-        tensorData.byteOffset,
-        tensorData.byteLength / 2
-      );
-      const f32 = new Float32Array(f16.length);
-      for (let j = 0; j < f16.length; j++) {
-        f32[j] = float16ToFloat32(f16[j]);
-      }
-      tensorData = new Uint8Array(f32.buffer, f32.byteOffset, f32.byteLength);
-      outDtype = 'F32';
-    } else if (tensorTargetQuant === 'f32' && sourceDtype === 'BF16') {
-      if (tensorData.byteLength % 2 !== 0) {
-        throw new Error(`Invalid BF16 tensor byte length for ${tensor.name}: ${tensorData.byteLength}`);
-      }
-      const bf16 = new Uint16Array(
-        tensorData.buffer,
-        tensorData.byteOffset,
-        tensorData.byteLength / 2
-      );
-      const f32 = new Float32Array(bf16.length);
-      for (let j = 0; j < bf16.length; j++) {
-        f32[j] = bf16ToFloat32(bf16[j]);
-      }
-      tensorData = new Uint8Array(f32.buffer, f32.byteOffset, f32.byteLength);
-      outDtype = 'F32';
+
+    let tensorData = transformResult?.tensorData;
+    if (!(tensorData instanceof Uint8Array)) {
+      throw new Error(`Tensor transformer must return Uint8Array data for ${tensor.name}.`);
     }
+    const outDtype = transformResult?.outDtype ?? tensor.dtype;
+    const outLayout = transformResult?.outLayout ?? null;
 
     const tensorSize = tensorData.byteLength;
 
@@ -939,7 +1103,6 @@ export async function convertModel(model, io, options = {}) {
       };
     }
 
-    globalOffset += tensorSize;
   }
 
   // Flush final shard
@@ -979,6 +1142,8 @@ export async function convertModel(model, io, options = {}) {
     architecture: options.architecture,
     inference: options.inference,
     eosTokenId: options.eosTokenId,
+    convertedAt: converterConfig?.manifest?.conversion?.convertedAt ?? null,
+    conversionInfo: converterConfig?.manifest?.conversion ?? null,
   });
 
   // Write manifest

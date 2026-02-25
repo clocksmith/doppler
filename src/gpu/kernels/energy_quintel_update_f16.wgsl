@@ -1,3 +1,5 @@
+// AUTO-GENERATED from src/gpu/kernels/energy_quintel_update.wgsl.
+// Edit the source kernel and tools/configs/wgsl-variants.js, then run `npm run kernels:generate`.
 // energy_quintel_update_f16.wgsl
 // Quintel update kernel for f16 state.
 

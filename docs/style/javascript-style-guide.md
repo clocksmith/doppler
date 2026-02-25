@@ -2,7 +2,7 @@
 
 JavaScript conventions for kernel wrappers and pipeline code.
 
-See [General Style Guide](./general-style-guide.md#language-policy-javascript--declaration-files) for the rationale behind JavaScript-first development.
+See [General Style Guide](./general-style-guide.md#language-policy-javascript-declaration-files) for the rationale behind JavaScript-first development.
 
 ## Core Principle: Config as Code
 

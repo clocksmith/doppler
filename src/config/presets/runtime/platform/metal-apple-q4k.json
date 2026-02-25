@@ -1,5 +1,11 @@
 {
+  "id": "platform/metal-apple-q4k",
   "name": "metal-apple-q4k",
   "description": "Metal (Apple GPU) tuned default for Q4K (dequant F16 kernel path).",
-  "extends": "kernels/dequant-f16-q4k"
+  "intent": "investigate",
+  "stability": "canonical",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-02-25T00:00:00Z",
+  "extends": "kernels/dequant-f16-q4k",
+  "runtime": {}
 }

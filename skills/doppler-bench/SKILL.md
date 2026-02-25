@@ -29,13 +29,13 @@ Notes:
 
 ```bash
 # Warm-cache benchmark (recommended baseline)
-npm run bench -- --model-id MODEL_ID --runtime-preset experiments/gemma3-bench-q4k --cache-mode warm --save --json
+npm run bench -- --model-id MODEL_ID --runtime-preset experiments/bench/gemma3-bench-q4k --cache-mode warm --save --json
 
 # Cold-cache benchmark (cache disabled per run)
-npm run bench -- --model-id MODEL_ID --runtime-preset experiments/gemma3-bench-q4k --cache-mode cold --save --json
+npm run bench -- --model-id MODEL_ID --runtime-preset experiments/bench/gemma3-bench-q4k --cache-mode cold --save --json
 
 # Compare against last saved run
-npm run bench -- --model-id MODEL_ID --runtime-preset experiments/gemma3-bench-q4k --compare last --save --json
+npm run bench -- --model-id MODEL_ID --runtime-preset experiments/bench/gemma3-bench-q4k --compare last --save --json
 ```
 
 Notes:
@@ -64,10 +64,10 @@ npm run debug -- --model-id MODEL_ID --runtime-preset experiments/gemma3-profile
 
 ```bash
 # Raw Transformers.js benchmark with ORT op profiling summary
-node benchmarks/runners/transformersjs-bench.js --workload decode-64-128-greedy --cache-mode warm --profile-ops on --profile-top 20 --json
+node benchmarks/runners/transformersjs-bench.js --workload g3-p064-d064-t0-k1 --cache-mode warm --profile-ops on --profile-top 20 --json
 
 # Normalize result into vendor registry output
-node tools/vendor-bench.js run --target transformersjs --workload decode-64-128-greedy -- node benchmarks/runners/transformersjs-bench.js --workload decode-64-128-greedy --cache-mode warm --profile-ops on --profile-top 20 --json
+node tools/vendor-bench.js run --target transformersjs --workload g3-p064-d064-t0-k1 -- node benchmarks/runners/transformersjs-bench.js --workload g3-p064-d064-t0-k1 --cache-mode warm --profile-ops on --profile-top 20 --json
 ```
 
 ## Coverage Tracking (Bench vs Profile)

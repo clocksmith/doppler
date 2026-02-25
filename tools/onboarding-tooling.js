@@ -6,6 +6,7 @@ import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { resolveConvertedModelId } from '../src/converter/conversion-plan.js';
 import { buildQuantizationInfo } from '../src/converter/quantization-info.js';
+import { generateWgslVariants } from './wgsl-variant-generator.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -55,7 +56,7 @@ function usage() {
     '  node tools/onboarding-tooling.js check --strict',
     '  node tools/onboarding-tooling.js scaffold --kind model --id gemma3-my-new-model',
     '  node tools/onboarding-tooling.js scaffold --kind conversion --id gemma3-my-new-model --family gemma3 --preset gemma3',
-    '  node tools/onboarding-tooling.js scaffold --kind kernel --id gemma3-f16-f16a-audit --status experimental',
+    '  node tools/onboarding-tooling.js scaffold --kind kernel --id gemma3-f16-fused-f16a-online-audit --status experimental',
     '  node tools/onboarding-tooling.js scaffold --kind behavior --id super-flash-memory-15-0',
     '',
     'Notes:',
@@ -171,9 +172,8 @@ function resolveConversionConfigModelId(config) {
   const embeddings = safeTrim(config?.quantization?.embeddings) || weights;
   const lmHead = safeTrim(config?.quantization?.lmHead) || embeddings;
 
-  let quantizationInfo;
   try {
-    quantizationInfo = buildQuantizationInfo(
+    buildQuantizationInfo(
       { converterConfig: config },
       weights,
       embeddings,
@@ -187,9 +187,8 @@ function resolveConversionConfigModelId(config) {
   }
 
   const modelId = resolveConvertedModelId({
+    explicitModelId: modelBaseId,
     converterConfig: config,
-    detectedModelId: modelBaseId,
-    quantizationInfo,
   });
   if (!modelId) {
     return {
@@ -353,6 +352,246 @@ function validateStringList(fieldPath, values, issues, code) {
   }
 }
 
+function toSnakeCase(value) {
+  return String(value ?? '')
+    .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+    .replace(/-/g, '_')
+    .toLowerCase();
+}
+
+function collectDirectRuleStringValues(ruleEntries) {
+  const values = new Set();
+  if (!Array.isArray(ruleEntries)) {
+    return values;
+  }
+  for (const entry of ruleEntries) {
+    if (!isObject(entry)) continue;
+    const rawValue = entry.value;
+    if (typeof rawValue !== 'string') continue;
+    const normalized = rawValue.trim();
+    if (normalized) {
+      values.add(normalized);
+    }
+  }
+  return values;
+}
+
+function inferOperationFromRuleName(baseOperation, ruleName, operations, variantValues) {
+  if (!isObject(operations)) return null;
+  const operationIds = new Set(Object.keys(operations));
+  if (operationIds.size === 0) return null;
+
+  const candidates = [];
+  const appendCandidate = (value) => {
+    if (!assertString(value)) return;
+    const trimmed = value.trim();
+    if (!trimmed || candidates.includes(trimmed)) return;
+    candidates.push(trimmed);
+  };
+
+  const normalizedRuleName = String(ruleName ?? '');
+  if (normalizedRuleName === 'variant') {
+    appendCandidate(baseOperation);
+  } else if (/variant$/i.test(normalizedRuleName) && !/suffix$/i.test(normalizedRuleName)) {
+    const stem = normalizedRuleName.slice(0, -'Variant'.length);
+    const suffix = toSnakeCase(stem);
+    appendCandidate(`${baseOperation}_${suffix}`);
+    appendCandidate(suffix);
+    appendCandidate(baseOperation);
+  } else {
+    return null;
+  }
+
+  const scoreOperation = (operationId) => {
+    const variants = isObject(operations[operationId]?.variants) ? operations[operationId].variants : {};
+    const variantIds = new Set(Object.keys(variants));
+    let missing = 0;
+    for (const value of variantValues.values()) {
+      if (!variantIds.has(value)) {
+        missing += 1;
+      }
+    }
+    return { candidate: operationId, missing };
+  };
+
+  const scored = candidates
+    .filter((candidate) => operationIds.has(candidate))
+    .map((candidate) => scoreOperation(candidate));
+
+  if (!scored.length) {
+    const fallback = Array.from(operationIds.values()).map((operationId) => scoreOperation(operationId));
+    fallback.sort((left, right) => left.missing - right.missing || left.candidate.localeCompare(right.candidate));
+    return fallback[0]?.missing === 0 ? fallback[0].candidate : null;
+  }
+
+  scored.sort((left, right) => {
+    if (left.missing !== right.missing) {
+      return left.missing - right.missing;
+    }
+    return candidates.indexOf(left.candidate) - candidates.indexOf(right.candidate);
+  });
+
+  const localBest = scored[0];
+  if (localBest.missing === 0) {
+    return localBest.candidate;
+  }
+
+  const globalBest = Array.from(operationIds.values())
+    .map((operationId) => scoreOperation(operationId))
+    .sort((left, right) => left.missing - right.missing || left.candidate.localeCompare(right.candidate))[0];
+  if (!globalBest) {
+    return localBest.candidate;
+  }
+  if (globalBest.missing < localBest.missing) {
+    return globalBest.candidate;
+  }
+  return localBest.candidate;
+}
+
+async function validateKernelRuleVariantParity(root, issues, context) {
+  const rulesDir = path.join(root, 'src/rules/kernels');
+  const kernelRegistryPath = path.join(root, 'src/config/kernels/registry.json');
+
+  let kernelRegistry;
+  try {
+    kernelRegistry = await readJson(kernelRegistryPath, 'object');
+  } catch (error) {
+    issues.push(toIssue(ERROR, 'KERNEL_RULE_REGISTRY_READ', kernelRegistryPath, error.message));
+    return;
+  }
+
+  const operations = isObject(kernelRegistry?.operations) ? kernelRegistry.operations : null;
+  if (!operations) {
+    issues.push(toIssue(
+      ERROR,
+      'KERNEL_RULE_REGISTRY_FORMAT',
+      kernelRegistryPath,
+      'kernel registry operations must be an object'
+    ));
+    return;
+  }
+
+  let entries = [];
+  try {
+    entries = await fs.readdir(rulesDir, { withFileTypes: true });
+  } catch (error) {
+    issues.push(toIssue(ERROR, 'KERNEL_RULE_READ', rulesDir, error.message));
+    return;
+  }
+
+  let checkedRuleSets = 0;
+  let checkedVariants = 0;
+  for (const entry of entries.sort((a, b) => a.name.localeCompare(b.name))) {
+    if (!entry.isFile()) continue;
+    if (!entry.name.endsWith('.rules.json')) continue;
+
+    const stem = entry.name.slice(0, -'.rules.json'.length);
+    const baseOperation = stem.replace(/-/g, '_');
+    const rulesPath = path.join(rulesDir, entry.name);
+    let rulesPayload;
+    try {
+      rulesPayload = await readJson(rulesPath, 'object');
+    } catch (error) {
+      issues.push(toIssue(ERROR, 'KERNEL_RULE_JSON', rulesPath, error.message));
+      continue;
+    }
+
+    for (const [ruleName, ruleEntries] of Object.entries(rulesPayload)) {
+      if (!/variant$/i.test(ruleName) || /suffix$/i.test(ruleName)) {
+        continue;
+      }
+      const variantValues = collectDirectRuleStringValues(ruleEntries);
+      if (variantValues.size === 0) {
+        continue;
+      }
+
+      checkedRuleSets += 1;
+      const operationId = inferOperationFromRuleName(baseOperation, ruleName, operations, variantValues);
+      if (!operationId) {
+        issues.push(toIssue(
+          WARN,
+          'KERNEL_RULE_VARIANT_OPERATION_UNKNOWN',
+          `${rulesPath}::${ruleName}`,
+          `could not map kernel rule set to a registry operation (baseOperation="${baseOperation}")`
+        ));
+        continue;
+      }
+
+      const variants = isObject(operations?.[operationId]?.variants)
+        ? operations[operationId].variants
+        : null;
+      if (!variants) {
+        issues.push(toIssue(
+          ERROR,
+          'KERNEL_RULE_OPERATION_VARIANTS_MISSING',
+          `${kernelRegistryPath}::${operationId}`,
+          `operation "${operationId}" does not define variants`
+        ));
+        continue;
+      }
+
+      for (const value of variantValues.values()) {
+        checkedVariants += 1;
+        if (!(value in variants)) {
+          issues.push(toIssue(
+            ERROR,
+            'KERNEL_RULE_VARIANT_MISSING',
+            `${rulesPath}::${ruleName}`,
+            `rule variant "${value}" is not declared in kernel registry operation "${operationId}"`
+          ));
+        }
+      }
+    }
+  }
+
+  context.kernelRuleVariantParity = {
+    ruleSets: checkedRuleSets,
+    variants: checkedVariants,
+  };
+}
+
+async function validateGeneratedWgsl(root, issues, context) {
+  let report;
+  try {
+    report = await generateWgslVariants({
+      rootDir: root,
+      checkOnly: true,
+    });
+  } catch (error) {
+    issues.push(toIssue(
+      ERROR,
+      'WGSL_GENERATED_CHECK_FAILED',
+      path.join(root, 'tools/configs/wgsl-variants.js'),
+      error.message
+    ));
+    return;
+  }
+
+  for (const errorMessage of report.errors) {
+    issues.push(toIssue(
+      ERROR,
+      'WGSL_GENERATED_INVALID',
+      path.join(root, 'tools/configs/wgsl-variants.js'),
+      errorMessage
+    ));
+  }
+
+  for (const target of report.changedTargets) {
+    issues.push(toIssue(
+      ERROR,
+      'WGSL_GENERATED_DRIFT',
+      path.join(root, target),
+      'generated WGSL file is out of date',
+      'Run `npm run kernels:generate`.'
+    ));
+  }
+
+  context.generatedWgsl = {
+    variants: report.variantCount,
+    drift: report.changedCount,
+  };
+}
+
 async function validateKernelPathRegistry(root, issues, context) {
   const registryPath = path.join(root, 'src/config/presets/kernel-paths/registry.json');
   let registryPayload;
@@ -465,7 +704,7 @@ async function validateKernelPathRegistry(root, issues, context) {
       issues.push(toIssue(WARN, 'KERNEL_PATH_STEPS', `${kernelFile}.prefill`, 'prefill.steps missing or empty'));
     }
 
-    const validateSteps = (sectionName, steps) => {
+    const validateSteps = async (sectionName, steps) => {
       if (!Array.isArray(steps)) return;
       for (let index = 0; index < steps.length; index += 1) {
         const step = steps[index];
@@ -506,11 +745,11 @@ async function validateKernelPathRegistry(root, issues, context) {
         }
       }
     };
-    validateSteps('decode', decodeSteps);
-    validateSteps('prefill', prefillSteps);
-    validateSteps('preLayer', kernelPathPayload.preLayer);
-    validateSteps('postLayer', kernelPathPayload.postLayer);
-    validateSteps('sampling', kernelPathPayload.sampling);
+    await validateSteps('decode', decodeSteps);
+    await validateSteps('prefill', prefillSteps);
+    await validateSteps('preLayer', kernelPathPayload.preLayer);
+    await validateSteps('postLayer', kernelPathPayload.postLayer);
+    await validateSteps('sampling', kernelPathPayload.sampling);
   }
 
   return { ids, statusById };
@@ -1213,6 +1452,8 @@ async function writeJsonFile(filePath, payload) {
 
 async function runCheck(context) {
   const issues = Array.isArray(context.issues) ? context.issues : [];
+  await validateKernelRuleVariantParity(context.rootDir, issues, context);
+  await validateGeneratedWgsl(context.rootDir, issues, context);
   await validateModelPresets(context.rootDir, issues, context);
   await validateConversionConfigs(context.rootDir, issues, context);
   await validateRuntimePresets(context.rootDir, issues, context);
@@ -1229,6 +1470,8 @@ async function runCheck(context) {
     compareProfilesWithoutConversion = new Set(),
     modelPresetNotInLoaderIds = new Set(),
     modelPresetDetectionOrderMissingIds = new Set(),
+    kernelRuleVariantParity = { ruleSets: 0, variants: 0 },
+    generatedWgsl = { variants: 0, drift: 0 },
   } = context;
   const resolvedContext = {
     ...context,
@@ -1251,6 +1494,10 @@ async function runCheck(context) {
         modelPresets: modelPresetIds.size,
         loaderPresets: loaderPresetIds.size,
         kernelPaths: kernelPathIds.size,
+        kernelRuleVariantRuleSets: kernelRuleVariantParity.ruleSets,
+        kernelRuleVariantValues: kernelRuleVariantParity.variants,
+        generatedWgslVariants: generatedWgsl.variants,
+        generatedWgslDrifted: generatedWgsl.drift,
         loaderDetectionOrder: Array.isArray(loaderPresetDetectionOrder) ? loaderPresetDetectionOrder.length : 0,
         runtimePresets: resolvedContext.runtimePresetIds ? resolvedContext.runtimePresetIds.size : 0,
         conversionProfiles: resolvedContext.conversionModelIds ? resolvedContext.conversionModelIds.size : 0,

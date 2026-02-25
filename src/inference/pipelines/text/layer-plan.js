@@ -3,11 +3,33 @@
 import { log } from '../../../debug/index.js';
 
 const DEFAULT_SLOT = 'state';
+const VALID_PHASES = new Set(['prefill', 'decode', 'both']);
+const VALID_DTYPES = new Set(['f16', 'f32']);
 
 
 function normalizeSlot(name) {
   const value = (name ?? '').trim();
   return value.length > 0 ? value : DEFAULT_SLOT;
+}
+
+function normalizePhase(phase, index) {
+  if (phase == null || phase === '') {
+    return 'both';
+  }
+  const normalized = String(phase).trim().toLowerCase();
+  if (!VALID_PHASES.has(normalized)) {
+    throw new Error(`Layer pipeline step phase@${index} must be prefill|decode|both`);
+  }
+  return normalized;
+}
+
+function normalizeOptionalDtype(dtype, label) {
+  if (dtype == null || dtype === '') return undefined;
+  const normalized = String(dtype).trim().toLowerCase();
+  if (!VALID_DTYPES.has(normalized)) {
+    throw new Error(`Layer pipeline step "${label}" dtype must be f16 or f32`);
+  }
+  return normalized;
 }
 
 
@@ -40,25 +62,35 @@ function compileStep(step, index) {
   const op = step.op;
   const src = normalizeSlot(step.src);
   const dst = normalizeSlot(step.dst);
+  const phase = normalizePhase(step.phase, index);
+  const inputDtype = normalizeOptionalDtype(step.inputDtype, `inputDtype@${index}`);
+  const outputDtype = normalizeOptionalDtype(step.outputDtype, `outputDtype@${index}`);
+
+  const withCommon = (payload) => ({
+    ...payload,
+    phase,
+    inputDtype,
+    outputDtype,
+  });
 
   switch (op) {
     case 'save': {
       const name = requireName(step.name, `save@${index}`);
-      return { op, src, dst, name, probeStage: step.probeStage };
+      return withCommon({ op, src, dst, name, probeStage: step.probeStage });
     }
     case 'load': {
       const name = requireName(step.name, `load@${index}`);
-      return { op, src, dst, name, probeStage: step.probeStage };
+      return withCommon({ op, src, dst, name, probeStage: step.probeStage });
     }
     case 'attention':
-      return {
+      return withCommon({
         op,
         src,
         dst,
         residual: step.residual ?? null,
         skipInputNorm: step.skipInputNorm === true,
         probeStage: step.probeStage,
-      };
+      });
     case 'rmsnorm': {
       if (!step.weight) {
         throw new Error(`Layer pipeline step "rmsnorm@${index}" requires weight`);
@@ -67,34 +99,49 @@ function compileStep(step, index) {
       if (step.weight === 'post_attention') {
         log.warn('Pipeline', `Step ${index}: "post_attention" is deprecated, use "post_attn"`);
       }
-      return {
+      return withCommon({
         op,
         src,
         dst,
         weight: step.weight,
         residual: step.residual ?? null,
         probeStage: step.probeStage,
-      };
+      });
     }
     case 'ffn':
-      return {
+      return withCommon({
         op,
         src,
         dst,
         variant: step.variant ?? 'auto',
         probeStage: step.probeStage,
-      };
+      });
     case 'residual_add':
-      return {
+      return withCommon({
         op,
         src,
         dst,
         a: normalizeSlot(step.a ?? DEFAULT_SLOT),
         b: normalizeSlot(step.b ?? 'residual'),
         probeStage: step.probeStage,
-      };
+      });
+    case 'cast': {
+      const fromDtype = normalizeOptionalDtype(step.fromDtype, `fromDtype@${index}`);
+      const toDtype = normalizeOptionalDtype(step.toDtype, `toDtype@${index}`);
+      if (!toDtype) {
+        throw new Error(`Layer pipeline step "cast@${index}" requires toDtype`);
+      }
+      return withCommon({
+        op,
+        src,
+        dst,
+        fromDtype: fromDtype ?? null,
+        toDtype,
+        probeStage: step.probeStage,
+      });
+    }
     case 'noop':
-      return { op, src, dst, probeStage: step.probeStage };
+      return withCommon({ op, src, dst, probeStage: step.probeStage });
     default:
       throw new Error(`Unknown layer pipeline op "${op}" at step ${index}`);
   }
@@ -185,4 +232,9 @@ export function getLayerPlanSteps(plan, layerIdx) {
     }
   }
   return plan.steps;
+}
+
+export function filterLayerPlanStepsByPhase(steps, isPrefill) {
+  const phase = isPrefill ? 'prefill' : 'decode';
+  return steps.filter((step) => step.phase === 'both' || step.phase === phase);
 }

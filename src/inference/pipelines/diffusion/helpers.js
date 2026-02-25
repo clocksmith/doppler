@@ -1,11 +1,14 @@
 import { getDevice, getKernelCapabilities } from '../../../gpu/device.js';
 import { getBuffer } from '../../../gpu/weight-buffer.js';
 import { releaseBuffer, isBufferActive } from '../../../memory/buffer-pool.js';
+import { selectRuleValue } from '../../../rules/rule-registry.js';
 
 export function resolveDiffusionActivationDtype(runtime) {
   const caps = getKernelCapabilities();
-  const wantsF16 = runtime?.latent?.dtype === 'f16';
-  return wantsF16 && caps.hasF16 ? 'f16' : 'f32';
+  return selectRuleValue('inference', 'dtype', 'diffusionActivationDtype', {
+    requested: runtime?.latent?.dtype,
+    hasF16: caps.hasF16,
+  });
 }
 
 export function createDiffusionBufferReleaser(recorder) {

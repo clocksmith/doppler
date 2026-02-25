@@ -1,0 +1,690 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-02-25T19:22:12.061Z",
+  "release": {
+    "channel": "main-snapshot",
+    "version": null,
+    "commitSha": "d10a6ac38483bf2579f72fc3290d22ed1c4cbcd1",
+    "dirty": true
+  },
+  "sources": {
+    "registry": {
+      "path": "benchmarks/vendors/registry.json",
+      "sha256": "2ea55ebecee3d4b0d48fc9bd239fea992e691f9d0c42c94cf7636ec2c9655f81",
+      "bytes": 1445,
+      "updated": "2026-02-17"
+    },
+    "workloads": {
+      "path": "benchmarks/vendors/workloads.json",
+      "sha256": "6257c24d5addd2d7c8f2406d73888c728c6b83bfa26a36e171ac80f2c04b444b",
+      "bytes": 389,
+      "updated": null
+    },
+    "capabilities": {
+      "path": "benchmarks/vendors/capabilities.json",
+      "sha256": "ae24bfe829ebb815adfa5d142e6070c9b81dc383cb3369c031cdfe4977f4d015",
+      "bytes": 10742,
+      "updated": "2026-02-25"
+    },
+    "compareConfig": {
+      "path": "benchmarks/vendors/compare-engines.config.json",
+      "sha256": "826b9e037888b72da575817825c01f4ebe3d29b31528aa606a9bd74fc4b3f91e",
+      "bytes": 392,
+      "updated": "2026-02-23"
+    },
+    "modelCatalog": {
+      "path": "models/catalog.json",
+      "sha256": "8ee993209310e9f5ec1d05bdefe3e68b69f2dac76256e8e942eb3d1ea3ccc32a",
+      "bytes": 980,
+      "updated": "2026-02-25"
+    }
+  },
+  "summary": {
+    "targetCount": 8,
+    "modelCoverageCount": 4,
+    "compareProfileCount": 2,
+    "catalogModelCount": 3,
+    "workloadCount": 2,
+    "committedChartCount": 1,
+    "hasLatestCompareResult": true
+  },
+  "targets": [
+    {
+      "id": "doppler",
+      "name": "Doppler",
+      "status": "active",
+      "category": "webgpu-runtime",
+      "website": "https://github.com/clocksmith/doppler",
+      "platformSupport": {
+        "browserWebgpu": "supported",
+        "nodeWebgpu": "supported",
+        "headlessBrowserHarness": "supported",
+        "cacheModeControl": "supported"
+      },
+      "bench": {
+        "enabledFeatures": 18,
+        "totalFeatures": 18,
+        "features": {
+          "browser_webgpu": "supported",
+          "node_webgpu": "supported",
+          "headless_browser_harness": "supported",
+          "standardized_workloads": "supported",
+          "cache_mode_control": "supported",
+          "decodeTokensPerSec": "supported",
+          "prefillTokensPerSec": "supported",
+          "firstTokenMs": "supported",
+          "firstResponseMs": "supported",
+          "modelLoadMs": "supported",
+          "prefillMs": "supported",
+          "decodeMs": "supported",
+          "totalRunMs": "supported",
+          "decodeMsPerTokenP50": "supported",
+          "decodeMsPerTokenP95": "supported",
+          "decodeMsPerTokenP99": "supported",
+          "js_heap_memory_metrics": "supported",
+          "gpu_memory_metrics": "supported"
+        }
+      },
+      "profile": {
+        "enabledFeatures": 7,
+        "totalFeatures": 8,
+        "features": {
+          "kernel_level_gpu_timing": "supported",
+          "operator_level_timing": "supported",
+          "top_ops_summary": "supported",
+          "per_decode_step_breakdown": "supported",
+          "kernel_selection_trace": "supported",
+          "phase_memory_breakdown": "supported",
+          "cache_events": "supported",
+          "replayable_trace_artifact": "unsupported"
+        }
+      },
+      "evidence": [
+        "src/gpu/command-recorder.js",
+        "src/inference/pipelines/text/generator-steps.js",
+        "docs/operations.md",
+        "tools/compare-engines.js"
+      ]
+    },
+    {
+      "id": "webllm",
+      "name": "WebLLM",
+      "status": "active",
+      "category": "webgpu-runtime",
+      "website": "https://webllm.mlc.ai/",
+      "platformSupport": {
+        "browserWebgpu": "supported",
+        "nodeWebgpu": "unsupported",
+        "headlessBrowserHarness": "unsupported",
+        "cacheModeControl": "unsupported"
+      },
+      "bench": {
+        "enabledFeatures": 5,
+        "totalFeatures": 18,
+        "features": {
+          "browser_webgpu": "supported",
+          "node_webgpu": "unsupported",
+          "headless_browser_harness": "unsupported",
+          "standardized_workloads": "supported",
+          "cache_mode_control": "unsupported",
+          "decodeTokensPerSec": "supported",
+          "prefillTokensPerSec": "supported",
+          "firstTokenMs": "supported",
+          "modelLoadMs": "unsupported",
+          "decodeMsPerTokenP50": "unsupported",
+          "decodeMsPerTokenP95": "unsupported",
+          "decodeMsPerTokenP99": "unsupported",
+          "js_heap_memory_metrics": "unsupported",
+          "gpu_memory_metrics": "unsupported",
+          "firstResponseMs": "unsupported",
+          "prefillMs": "unsupported",
+          "decodeMs": "unsupported",
+          "totalRunMs": "unsupported"
+        }
+      },
+      "profile": {
+        "enabledFeatures": 0,
+        "totalFeatures": 8,
+        "features": {
+          "kernel_level_gpu_timing": "unsupported",
+          "operator_level_timing": "unsupported",
+          "top_ops_summary": "unsupported",
+          "per_decode_step_breakdown": "unsupported",
+          "kernel_selection_trace": "unsupported",
+          "phase_memory_breakdown": "unsupported",
+          "cache_events": "unsupported",
+          "replayable_trace_artifact": "unsupported"
+        }
+      },
+      "evidence": [
+        "benchmarks/vendors/harnesses/webllm.json"
+      ]
+    },
+    {
+      "id": "transformersjs",
+      "name": "Transformers.js",
+      "status": "active",
+      "category": "webgpu-wasm-runtime",
+      "website": "https://huggingface.co/docs/transformers.js/",
+      "platformSupport": {
+        "browserWebgpu": "supported",
+        "nodeWebgpu": "unsupported",
+        "headlessBrowserHarness": "supported",
+        "cacheModeControl": "supported"
+      },
+      "bench": {
+        "enabledFeatures": 16,
+        "totalFeatures": 18,
+        "features": {
+          "browser_webgpu": "supported",
+          "node_webgpu": "unsupported",
+          "headless_browser_harness": "supported",
+          "standardized_workloads": "supported",
+          "cache_mode_control": "supported",
+          "decodeTokensPerSec": "supported",
+          "prefillTokensPerSec": "supported",
+          "firstTokenMs": "supported",
+          "firstResponseMs": "supported",
+          "modelLoadMs": "supported",
+          "prefillMs": "supported",
+          "decodeMs": "supported",
+          "totalRunMs": "supported",
+          "decodeMsPerTokenP50": "supported",
+          "decodeMsPerTokenP95": "supported",
+          "decodeMsPerTokenP99": "supported",
+          "js_heap_memory_metrics": "supported",
+          "gpu_memory_metrics": "unsupported"
+        }
+      },
+      "profile": {
+        "enabledFeatures": 2,
+        "totalFeatures": 8,
+        "features": {
+          "kernel_level_gpu_timing": "unsupported",
+          "operator_level_timing": "supported",
+          "top_ops_summary": "supported",
+          "per_decode_step_breakdown": "unsupported",
+          "kernel_selection_trace": "unsupported",
+          "phase_memory_breakdown": "unsupported",
+          "cache_events": "unsupported",
+          "replayable_trace_artifact": "unsupported"
+        }
+      },
+      "evidence": [
+        "benchmarks/runners/transformersjs-bench.js",
+        "benchmarks/runners/transformersjs-runner.html",
+        "benchmarks/vendors/harnesses/transformersjs.json",
+        "tools/compare-engines.js"
+      ]
+    },
+    {
+      "id": "ratchet",
+      "name": "Ratchet",
+      "status": "experimental",
+      "category": "rust-webgpu-runtime",
+      "website": "https://github.com/huggingface/ratchet",
+      "platformSupport": {
+        "browserWebgpu": "supported",
+        "nodeWebgpu": "unsupported",
+        "headlessBrowserHarness": "unsupported",
+        "cacheModeControl": "unsupported"
+      },
+      "bench": {
+        "enabledFeatures": 5,
+        "totalFeatures": 18,
+        "features": {
+          "browser_webgpu": "supported",
+          "node_webgpu": "unsupported",
+          "headless_browser_harness": "unsupported",
+          "standardized_workloads": "supported",
+          "cache_mode_control": "unsupported",
+          "decodeTokensPerSec": "supported",
+          "prefillTokensPerSec": "supported",
+          "firstTokenMs": "supported",
+          "modelLoadMs": "unsupported",
+          "decodeMsPerTokenP50": "unsupported",
+          "decodeMsPerTokenP95": "unsupported",
+          "decodeMsPerTokenP99": "unsupported",
+          "js_heap_memory_metrics": "unsupported",
+          "gpu_memory_metrics": "unsupported",
+          "firstResponseMs": "unsupported",
+          "prefillMs": "unsupported",
+          "decodeMs": "unsupported",
+          "totalRunMs": "unsupported"
+        }
+      },
+      "profile": {
+        "enabledFeatures": 0,
+        "totalFeatures": 8,
+        "features": {
+          "kernel_level_gpu_timing": "unsupported",
+          "operator_level_timing": "unsupported",
+          "top_ops_summary": "unsupported",
+          "per_decode_step_breakdown": "unsupported",
+          "kernel_selection_trace": "unsupported",
+          "phase_memory_breakdown": "unsupported",
+          "cache_events": "unsupported",
+          "replayable_trace_artifact": "unsupported"
+        }
+      },
+      "evidence": [
+        "benchmarks/vendors/harnesses/ratchet.json"
+      ]
+    },
+    {
+      "id": "candle",
+      "name": "Candle",
+      "status": "experimental",
+      "category": "rust-ml-framework",
+      "website": "https://github.com/huggingface/candle",
+      "platformSupport": {
+        "browserWebgpu": "unsupported",
+        "nodeWebgpu": "unsupported",
+        "headlessBrowserHarness": "unsupported",
+        "cacheModeControl": "unsupported"
+      },
+      "bench": {
+        "enabledFeatures": 4,
+        "totalFeatures": 18,
+        "features": {
+          "browser_webgpu": "unsupported",
+          "node_webgpu": "unsupported",
+          "headless_browser_harness": "unsupported",
+          "standardized_workloads": "supported",
+          "cache_mode_control": "unsupported",
+          "decodeTokensPerSec": "supported",
+          "prefillTokensPerSec": "supported",
+          "firstTokenMs": "supported",
+          "modelLoadMs": "unsupported",
+          "decodeMsPerTokenP50": "unsupported",
+          "decodeMsPerTokenP95": "unsupported",
+          "decodeMsPerTokenP99": "unsupported",
+          "js_heap_memory_metrics": "unsupported",
+          "gpu_memory_metrics": "unsupported",
+          "firstResponseMs": "unsupported",
+          "prefillMs": "unsupported",
+          "decodeMs": "unsupported",
+          "totalRunMs": "unsupported"
+        }
+      },
+      "profile": {
+        "enabledFeatures": 0,
+        "totalFeatures": 8,
+        "features": {
+          "kernel_level_gpu_timing": "unsupported",
+          "operator_level_timing": "unsupported",
+          "top_ops_summary": "unsupported",
+          "per_decode_step_breakdown": "unsupported",
+          "kernel_selection_trace": "unsupported",
+          "phase_memory_breakdown": "unsupported",
+          "cache_events": "unsupported",
+          "replayable_trace_artifact": "unsupported"
+        }
+      },
+      "evidence": [
+        "benchmarks/vendors/harnesses/candle.json"
+      ]
+    },
+    {
+      "id": "burn",
+      "name": "Burn",
+      "status": "experimental",
+      "category": "rust-ml-framework",
+      "website": "https://burn.dev/",
+      "platformSupport": {
+        "browserWebgpu": "unsupported",
+        "nodeWebgpu": "unsupported",
+        "headlessBrowserHarness": "unsupported",
+        "cacheModeControl": "unsupported"
+      },
+      "bench": {
+        "enabledFeatures": 4,
+        "totalFeatures": 18,
+        "features": {
+          "browser_webgpu": "unsupported",
+          "node_webgpu": "unsupported",
+          "headless_browser_harness": "unsupported",
+          "standardized_workloads": "supported",
+          "cache_mode_control": "unsupported",
+          "decodeTokensPerSec": "supported",
+          "prefillTokensPerSec": "supported",
+          "firstTokenMs": "supported",
+          "modelLoadMs": "unsupported",
+          "decodeMsPerTokenP50": "unsupported",
+          "decodeMsPerTokenP95": "unsupported",
+          "decodeMsPerTokenP99": "unsupported",
+          "js_heap_memory_metrics": "unsupported",
+          "gpu_memory_metrics": "unsupported",
+          "firstResponseMs": "unsupported",
+          "prefillMs": "unsupported",
+          "decodeMs": "unsupported",
+          "totalRunMs": "unsupported"
+        }
+      },
+      "profile": {
+        "enabledFeatures": 0,
+        "totalFeatures": 8,
+        "features": {
+          "kernel_level_gpu_timing": "unsupported",
+          "operator_level_timing": "unsupported",
+          "top_ops_summary": "unsupported",
+          "per_decode_step_breakdown": "unsupported",
+          "kernel_selection_trace": "unsupported",
+          "phase_memory_breakdown": "unsupported",
+          "cache_events": "unsupported",
+          "replayable_trace_artifact": "unsupported"
+        }
+      },
+      "evidence": [
+        "benchmarks/vendors/harnesses/burn.json"
+      ]
+    },
+    {
+      "id": "mediapipe-llm",
+      "name": "MediaPipe LLM Inference",
+      "status": "active",
+      "category": "google-edge-runtime",
+      "website": "https://ai.google.dev/edge/mediapipe/solutions/genai/llm_inference",
+      "platformSupport": {
+        "browserWebgpu": "supported",
+        "nodeWebgpu": "unsupported",
+        "headlessBrowserHarness": "unsupported",
+        "cacheModeControl": "unsupported"
+      },
+      "bench": {
+        "enabledFeatures": 5,
+        "totalFeatures": 18,
+        "features": {
+          "browser_webgpu": "supported",
+          "node_webgpu": "unsupported",
+          "headless_browser_harness": "unsupported",
+          "standardized_workloads": "supported",
+          "cache_mode_control": "unsupported",
+          "decodeTokensPerSec": "supported",
+          "prefillTokensPerSec": "supported",
+          "firstTokenMs": "supported",
+          "modelLoadMs": "unsupported",
+          "decodeMsPerTokenP50": "unsupported",
+          "decodeMsPerTokenP95": "unsupported",
+          "decodeMsPerTokenP99": "unsupported",
+          "js_heap_memory_metrics": "unsupported",
+          "gpu_memory_metrics": "unsupported",
+          "firstResponseMs": "unsupported",
+          "prefillMs": "unsupported",
+          "decodeMs": "unsupported",
+          "totalRunMs": "unsupported"
+        }
+      },
+      "profile": {
+        "enabledFeatures": 0,
+        "totalFeatures": 8,
+        "features": {
+          "kernel_level_gpu_timing": "unsupported",
+          "operator_level_timing": "unsupported",
+          "top_ops_summary": "unsupported",
+          "per_decode_step_breakdown": "unsupported",
+          "kernel_selection_trace": "unsupported",
+          "phase_memory_breakdown": "unsupported",
+          "cache_events": "unsupported",
+          "replayable_trace_artifact": "unsupported"
+        }
+      },
+      "evidence": [
+        "benchmarks/vendors/harnesses/mediapipe-llm.json"
+      ]
+    },
+    {
+      "id": "wllama",
+      "name": "Wllama",
+      "status": "active",
+      "category": "wasm-cpu-runtime",
+      "website": "https://github.com/ngxson/wllama",
+      "platformSupport": {
+        "browserWebgpu": "unsupported",
+        "nodeWebgpu": "unsupported",
+        "headlessBrowserHarness": "unsupported",
+        "cacheModeControl": "unsupported"
+      },
+      "bench": {
+        "enabledFeatures": 4,
+        "totalFeatures": 18,
+        "features": {
+          "browser_webgpu": "unsupported",
+          "node_webgpu": "unsupported",
+          "headless_browser_harness": "unsupported",
+          "standardized_workloads": "supported",
+          "cache_mode_control": "unsupported",
+          "decodeTokensPerSec": "supported",
+          "prefillTokensPerSec": "supported",
+          "firstTokenMs": "supported",
+          "modelLoadMs": "unsupported",
+          "decodeMsPerTokenP50": "unsupported",
+          "decodeMsPerTokenP95": "unsupported",
+          "decodeMsPerTokenP99": "unsupported",
+          "js_heap_memory_metrics": "unsupported",
+          "gpu_memory_metrics": "unsupported",
+          "firstResponseMs": "unsupported",
+          "prefillMs": "unsupported",
+          "decodeMs": "unsupported",
+          "totalRunMs": "unsupported"
+        }
+      },
+      "profile": {
+        "enabledFeatures": 0,
+        "totalFeatures": 8,
+        "features": {
+          "kernel_level_gpu_timing": "unsupported",
+          "operator_level_timing": "unsupported",
+          "top_ops_summary": "unsupported",
+          "per_decode_step_breakdown": "unsupported",
+          "kernel_selection_trace": "unsupported",
+          "phase_memory_breakdown": "unsupported",
+          "cache_events": "unsupported",
+          "replayable_trace_artifact": "unsupported"
+        }
+      },
+      "evidence": [
+        "benchmarks/vendors/harnesses/wllama.json"
+      ]
+    }
+  ],
+  "modelCoverage": [
+    {
+      "dopplerModelId": "gemma-3-1b-it-wf16-ef16-hf16",
+      "dopplerModelBaseDir": "local",
+      "defaultTjsModelId": "onnx-community/gemma-3-1b-it-ONNX-GQA",
+      "defaultKernelPath": "gemma3-f16-fused-f32a-online",
+      "inCatalog": false,
+      "catalogLabel": null,
+      "catalogModes": [],
+      "catalogBaseUrl": null,
+      "catalogSizeBytes": null
+    },
+    {
+      "dopplerModelId": "gemma-3-270m-it-wf16-ef16-hf16",
+      "dopplerModelBaseDir": "curated",
+      "defaultTjsModelId": "onnx-community/gemma-3-270m-it-ONNX",
+      "defaultKernelPath": null,
+      "inCatalog": true,
+      "catalogLabel": "Gemma 3 270M Instruct (F16/F32a)",
+      "catalogModes": [
+        "run",
+        "translate"
+      ],
+      "catalogBaseUrl": "./curated/gemma-3-270m-it-wf16-ef16-hf16",
+      "catalogSizeBytes": 536196352
+    },
+    {
+      "dopplerModelId": "google-embeddinggemma-300m-wbf16",
+      "dopplerModelBaseDir": null,
+      "defaultTjsModelId": null,
+      "defaultKernelPath": null,
+      "inCatalog": true,
+      "catalogLabel": "EmbeddingGemma 300M (BF16)",
+      "catalogModes": [
+        "embedding"
+      ],
+      "catalogBaseUrl": "./curated/google-embeddinggemma-300m-wbf16",
+      "catalogSizeBytes": 605726208
+    },
+    {
+      "dopplerModelId": "translategemma-4b-it-wq4k-ef16-hf16",
+      "dopplerModelBaseDir": null,
+      "defaultTjsModelId": null,
+      "defaultKernelPath": null,
+      "inCatalog": true,
+      "catalogLabel": "TranslateGemma 4B Instruct (Q4)",
+      "catalogModes": [
+        "run",
+        "translate"
+      ],
+      "catalogBaseUrl": "./local/translategemma-4b-it-wq4k-ef16-hf16",
+      "catalogSizeBytes": 3111894696
+    }
+  ],
+  "workloads": [
+    {
+      "id": "g3-p064-d064-t0-k1",
+      "name": "Gemma3 Grid 64/64 Greedy",
+      "prefillTokens": 64,
+      "decodeTokens": 64,
+      "sampling": {
+        "temperature": 0,
+        "topK": 1,
+        "topP": 1
+      }
+    },
+    {
+      "id": "g3-p064-d064-t1-k32",
+      "name": "Gemma3 Grid 64/64 t1 k32 (sampling)",
+      "prefillTokens": 64,
+      "decodeTokens": 64,
+      "sampling": {
+        "temperature": 1,
+        "topK": 32,
+        "topP": 1
+      }
+    }
+  ],
+  "evidence": {
+    "committedCharts": [
+      "benchmarks/vendors/results/compare_1b_multi-workload_favorable_phases.svg"
+    ],
+    "latestCompareResult": {
+      "path": "benchmarks/vendors/fixtures/g3-p064-d064-t1-k32.compare.json",
+      "timestamp": "2026-02-25T17:58:54.492Z",
+      "mode": "compute",
+      "section": "compute/parity",
+      "decodeProfile": null,
+      "dopplerModelId": "gemma-3-1b-it-wf16-ef16-hf16",
+      "tjsModelId": "onnx-community/gemma-3-1b-it-ONNX-GQA",
+      "dopplerKernelPath": "gemma3-f16-fused-f32a-online",
+      "workloadId": "g3-p064-d064-t1-k32",
+      "workload": {
+        "prefillTokenTarget": 64,
+        "decodeTokenTarget": 64
+      },
+      "environment": {
+        "host": {
+          "platform": "linux",
+          "arch": "x64",
+          "nodeVersion": "v20.18.1"
+        },
+        "browser": {
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/145.0.0.0 Safari/537.36",
+          "platform": "Linux x86_64",
+          "language": "en-US",
+          "vendor": "Google Inc.",
+          "executable": null
+        },
+        "gpu": {
+          "backend": "vulkan",
+          "vendor": null,
+          "architecture": null,
+          "device": null,
+          "description": "AMD RYZEN AI MAX+ 395 w/ Radeon 8060S",
+          "hasF16": true,
+          "hasSubgroups": true,
+          "hasTimestampQuery": true
+        },
+        "engines": {
+          "doppler": {
+            "library": "doppler",
+            "version": null,
+            "surface": null,
+            "runtime": {
+              "device": "webgpu",
+              "dtype": null,
+              "requestedDtype": null,
+              "executionProviderMode": null
+            },
+            "browser": {
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/145.0.0.0 Safari/537.36",
+              "platform": "Linux x86_64",
+              "language": "en-US",
+              "vendor": "Google Inc.",
+              "executable": null
+            },
+            "gpu": {
+              "backend": "vulkan",
+              "vendor": "unknown",
+              "architecture": "unknown",
+              "device": "unknown",
+              "description": null,
+              "hasF16": true,
+              "hasSubgroups": true,
+              "hasTimestampQuery": true
+            }
+          },
+          "transformersjs": {
+            "library": "transformers.js",
+            "version": null,
+            "surface": null,
+            "runtime": {
+              "device": null,
+              "dtype": null,
+              "requestedDtype": null,
+              "executionProviderMode": null
+            },
+            "browser": {
+              "userAgent": null,
+              "platform": null,
+              "language": null,
+              "vendor": null,
+              "executable": null
+            },
+            "gpu": {
+              "backend": null,
+              "vendor": null,
+              "architecture": null,
+              "device": null,
+              "description": null,
+              "hasF16": null,
+              "hasSubgroups": null,
+              "hasTimestampQuery": null
+            }
+          }
+        }
+      },
+      "metrics": {
+        "decodeTokensPerSec": {
+          "doppler": 28.62,
+          "transformersjs": null
+        },
+        "firstTokenMs": {
+          "doppler": 754.5,
+          "transformersjs": null
+        },
+        "firstResponseMs": {
+          "doppler": 5291.8,
+          "transformersjs": null
+        },
+        "modelLoadMs": {
+          "doppler": 4537.3,
+          "transformersjs": null
+        }
+      },
+      "origin": "fixture"
+    }
+  }
+}

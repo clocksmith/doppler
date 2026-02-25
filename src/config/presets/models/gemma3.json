@@ -47,7 +47,7 @@
       },
       "q4k": {
         "default": "gemma3-q4k-dequant-f32a-online",
-        "f16": "gemma3-q4k-dequant-f32a-online",
+        "f16": "gemma3-q4k-dequant-f16a-online",
         "f16a": "gemma3-q4k-dequant-f16a-online",
         "f32": "gemma3-q4k-dequant-f32a-online"
       }

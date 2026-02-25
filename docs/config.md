@@ -11,6 +11,7 @@ A kernel path defines:
 - **In what order** they execute
 - **With what configuration** (entry points, override constants)
 - **Activation dtype** for the path (`activationDtype`, required)
+- Optional **`outputDtype`** for the path (`f16` or `f32`, default: `activationDtype`)
 
 This replaces the implicit `q4kStrategy` and `fusedFFNQ4K` configuration flags with fully declarative paths.
 
@@ -18,7 +19,7 @@ This replaces the implicit `q4kStrategy` and `fusedFFNQ4K` configuration flags w
 
 ```json
 {
-  "id": "gemma2-q4k-fused-f16a",
+  "id": "gemma2-q4k-fused-f32a",
   "name": "Gemma 2 Q4K Fused F16A",
   "description": "Q4K weights with fused dequant+matmul using F16 activations",
   "activationDtype": "f16",
@@ -41,7 +42,7 @@ This replaces the implicit `q4kStrategy` and `fusedFFNQ4K` configuration flags w
 }
 ```
 
-`activationDtype` is required. Kernel paths must declare the activation dtype they expect so runtime dtypes stay consistent.
+`activationDtype` is required. Kernel paths must declare the activation dtype they expect so runtime dtypes stay consistent. If `outputDtype` is set, runtime session output precision follows it; otherwise it defaults to `activationDtype`.
 
 ## Step Schema
 
@@ -95,10 +96,9 @@ Legacy IDs should remain in `status: \"legacy\"` until all conversion and docs c
 
 | Path | Description | Performance | Accuracy |
 |------|-------------|-------------|----------|
-| `gemma2-q4k-fused-f16a` | Fused dequant+matmul with F16 activations | Best (F16) | Good |
-| `gemma2-q4k-fused-f32a` | Fused dequant+matmul with F32 activations | Best (F32) | Good |
+| `gemma2-q4k-fused-f32a` | Fused dequant+matmul path (subgroups required) | Best | Good |
 | `gemma2-q4k-dequant-f16a` | Pre-dequant to F16 with F16 activations | Balanced | Good |
-| `gemma2-q4k-dequant-f32a` | Pre-dequant to F32 with F32 activations | Slower | Best |
+| `gemma2-q4k-dequant-f32a` | Pre-dequant to F32 with F32 activations (no subgroups required) | Slower | Best |
 
 ### F16 Models
 
@@ -112,6 +112,17 @@ the pipeline aligns `runtime.inference.compute.activationDtype` and
 `runtime.inference.kvcache.kvDtype` to the path so kernel dtypes stay consistent.
 For LM head overrides, `lm_head_prefill` can be added to `postLayer` to supply a
 batched matmul kernel for prefill while keeping `lm_head` on GEMV for decode.
+
+### Conversion Profiles: explicit runtime intent
+
+Model ID naming (and `quantizationInfo.variantTag`) is storage-only.  
+Your runtime contract must live in inference settings:
+
+- `quantization.computePrecision` (e.g. `f16` or `f32`) in conversion config
+- `inference.defaultKernelPath` in conversion config
+- optional explicit `inference.execution` / `inference.sessionDefaults` for pinned kernels
+
+These fields replace implicit defaults for repeatable conversion/runtime behavior.
 
 ## Path Comparison
 
@@ -132,7 +143,7 @@ gate_proj → up_proj → activation → down_proj → ffn_residual
 The fused path has 2 fewer dispatches because:
 - `ffn_gate_up` fuses: gate_proj + up_proj + activation
 
-Note: `gemma2-q4k-fused-f16a` uses separate gate/up matmuls because `fused_ffn_q4k` requires F32 activations, so expect 2 extra dispatches vs the fused FFN path.
+Note: `gemma2-q4k-fused-f32a` uses separate gate/up matmuls because `fused_ffn_q4k` requires F32 activations, so expect 2 extra dispatches vs the fused FFN path.
 
 ## Usage
 
@@ -151,7 +162,7 @@ quantization and activation dtype (from `quantizationInfo.compute`):
         "f32": "gemma2-f16-f32a"
       },
       "q4k": {
-        "f16": "gemma2-q4k-fused-f16a",
+        "f16": "gemma2-q4k-fused-f32a",
         "f32": "gemma2-q4k-fused-f32a"
       }
     }
@@ -164,7 +175,11 @@ quantization and activation dtype (from `quantizationInfo.compute`):
 ```json
 {
   "inference": {
-    "kernelPath": "gemma2-q4k-fused-f16a"
+    "kernelPath": "gemma2-q4k-fused-f32a",
+    "kernelPathPolicy": {
+      "mode": "capability-aware",
+      "allowSources": ["config", "model", "manifest"]
+    }
   }
 }
 ```
@@ -214,7 +229,7 @@ At layer 5, this resolves to `layer.5.self_attn.q_proj`.
 
 | Old Config | New Kernel Path |
 |------------|-----------------|
-| `q4kStrategy: "fused_q4k"` + `fusedFFNQ4K: true` | `gemma2-q4k-fused-f16a` (F16 activations) or `gemma2-q4k-fused-f32a` (F32 activations) |
+| `q4kStrategy: "fused_q4k"` + `fusedFFNQ4K: true` | `gemma2-q4k-fused-f32a` (F16 activations) or `gemma2-q4k-fused-f32a` (F32 activations) |
 | `q4kStrategy: "dequant_f32"` | `gemma2-q4k-dequant-f32a` |
 | `q4kStrategy: "dequant_f16"` | `gemma2-q4k-dequant-f16a` |
 

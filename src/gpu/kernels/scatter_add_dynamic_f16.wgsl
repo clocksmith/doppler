@@ -1,3 +1,5 @@
+// AUTO-GENERATED from src/gpu/kernels/scatter_add_dynamic.wgsl.
+// Edit the source kernel and tools/configs/wgsl-variants.js, then run `npm run kernels:generate`.
 // scatter_add_dynamic_f16.wgsl
 
 /**

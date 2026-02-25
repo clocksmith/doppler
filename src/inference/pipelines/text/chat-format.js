@@ -1,29 +1,142 @@
-
 // Chat template formatters keyed by template type.
 // Template types are stored in manifest.inference.chatTemplate.type.
+
+const TRANSLATEGEMMA_LANGUAGE_ENTRIES = Object.freeze([
+  ['ar-EG', 'Arabic'],
+  ['ar-SA', 'Arabic'],
+  ['bg-BG', 'Bulgarian'],
+  ['bn-IN', 'Bengali'],
+  ['ca-ES', 'Catalan'],
+  ['cs-CZ', 'Czech'],
+  ['da-DK', 'Danish'],
+  ['de-DE', 'German'],
+  ['el-GR', 'Greek'],
+  ['en', 'English'],
+  ['es-XX', 'Spanish'],
+  ['et-EE', 'Estonian'],
+  ['fa-IR', 'Persian'],
+  ['fi-FI', 'Finnish'],
+  ['fil-PH', 'Filipino'],
+  ['fr-CA', 'French'],
+  ['fr-FR', 'French'],
+  ['gu-IN', 'Gujarati'],
+  ['he-IL', 'Hebrew'],
+  ['hi-IN', 'Hindi'],
+  ['hr-HR', 'Croatian'],
+  ['hu-HU', 'Hungarian'],
+  ['id-ID', 'Indonesian'],
+  ['is-IS', 'Icelandic'],
+  ['it-IT', 'Italian'],
+  ['ja-JP', 'Japanese'],
+  ['kn-IN', 'Kannada'],
+  ['ko-KR', 'Korean'],
+  ['lt-LT', 'Lithuanian'],
+  ['lv-LV', 'Latvian'],
+  ['ml-IN', 'Malayalam'],
+  ['mr-IN', 'Marathi'],
+  ['nl-NL', 'Dutch'],
+  ['no-NO', 'Norwegian'],
+  ['pa-IN', 'Punjabi'],
+  ['pl-PL', 'Polish'],
+  ['pt-BR', 'Portuguese'],
+  ['pt-PT', 'Portuguese'],
+  ['ro-RO', 'Romanian'],
+  ['ru-RU', 'Russian'],
+  ['sk-SK', 'Slovak'],
+  ['sl-SI', 'Slovenian'],
+  ['sr-RS', 'Serbian'],
+  ['sv-SE', 'Swedish'],
+  ['sw-KE', 'Swahili'],
+  ['sw-TZ', 'Swahili'],
+  ['ta-IN', 'Tamil'],
+  ['te-IN', 'Telugu'],
+  ['th-TH', 'Thai'],
+  ['tr-TR', 'Turkish'],
+  ['uk-UA', 'Ukrainian'],
+  ['ur-PK', 'Urdu'],
+  ['vi-VN', 'Vietnamese'],
+  ['zh-TW', 'Chinese'],
+  ['zu-ZA', 'Zulu'],
+]);
+
+const TRANSLATEGEMMA_LANGUAGE_NAMES = new Map();
+for (const [code, name] of TRANSLATEGEMMA_LANGUAGE_ENTRIES) {
+  TRANSLATEGEMMA_LANGUAGE_NAMES.set(code, name);
+  const rootCode = code.split('-')[0];
+  if (!TRANSLATEGEMMA_LANGUAGE_NAMES.has(rootCode)) {
+    TRANSLATEGEMMA_LANGUAGE_NAMES.set(rootCode, name);
+  }
+}
+
+function normalizeChatRole(role) {
+  const normalized = String(role || '').trim().toLowerCase();
+  if (normalized === 'system' || normalized === 'user' || normalized === 'assistant') {
+    return normalized;
+  }
+  return null;
+}
+
+function normalizeTranslateLanguageCode(value) {
+  const normalized = String(value ?? '').trim().replace(/_/g, '-');
+  return normalized || null;
+}
+
+function resolveTranslateLanguageName(value) {
+  const normalized = normalizeTranslateLanguageCode(value);
+  if (!normalized) return null;
+  return TRANSLATEGEMMA_LANGUAGE_NAMES.get(normalized) ?? null;
+}
+
+function normalizeChatMessageContent(content) {
+  if (typeof content === 'string') {
+    return content;
+  }
+  if (Array.isArray(content) && content.length > 0) {
+    const block = content[0];
+    if (block && typeof block === 'object' && !Array.isArray(block)) {
+      if (block.type === 'text') {
+        return String(block.text ?? '');
+      }
+      if (block.type === 'image') {
+        return '<start_of_image>';
+      }
+    }
+    return content.map((entry) => String(entry ?? '')).join('\n');
+  }
+  if (content && typeof content === 'object' && !Array.isArray(content)) {
+    if (content.type === 'text') return String(content.text ?? '');
+    if (content.type === 'image') return '<start_of_image>';
+  }
+  return String(content ?? '');
+}
 
 function formatTurnBased(messages) {
   // Turn-based format: <start_of_turn>role\ncontent<end_of_turn>
   const parts = [];
   let systemContent = '';
 
-  for (const m of messages) {
-    if (m.role === 'system') {
-      systemContent += (systemContent ? '\n\n' : '') + m.content;
+  for (const message of messages) {
+    const role = normalizeChatRole(message?.role);
+    if (role === 'system') {
+      const content = normalizeChatMessageContent(message?.content);
+      systemContent += (systemContent ? '\n\n' : '') + content;
     }
   }
 
-  for (const m of messages) {
-    if (m.role === 'system') continue;
+  for (const message of messages) {
+    const role = normalizeChatRole(message?.role);
+    if (role === 'system') continue;
 
-    if (m.role === 'user') {
-      const content = systemContent
-        ? `${systemContent}\n\n${m.content}`
-        : m.content;
+    if (role === 'user') {
+      const content = normalizeChatMessageContent(message?.content);
+      const fullContent = systemContent ? `${systemContent}\n\n${content}` : content;
       systemContent = '';
-      parts.push(`<start_of_turn>user\n${content}<end_of_turn>\n`);
-    } else if (m.role === 'assistant') {
-      parts.push(`<start_of_turn>model\n${m.content}<end_of_turn>\n`);
+      parts.push(`<start_of_turn>user\n${fullContent}<end_of_turn>\n`);
+      continue;
+    }
+    if (role === 'assistant') {
+      const content = normalizeChatMessageContent(message?.content);
+      parts.push(`<start_of_turn>model\n${content}<end_of_turn>\n`);
     }
   }
 
@@ -32,18 +145,19 @@ function formatTurnBased(messages) {
   return parts.join('');
 }
 
-
 function formatHeaderBased(messages) {
   // Header-based format: <|start_header_id|>role<|end_header_id|>\n\ncontent<|eot_id|>
   const parts = ['<|begin_of_text|>'];
 
-  for (const m of messages) {
-    if (m.role === 'system') {
-      parts.push(`<|start_header_id|>system<|end_header_id|>\n\n${m.content}<|eot_id|>`);
-    } else if (m.role === 'user') {
-      parts.push(`<|start_header_id|>user<|end_header_id|>\n\n${m.content}<|eot_id|>`);
-    } else if (m.role === 'assistant') {
-      parts.push(`<|start_header_id|>assistant<|end_header_id|>\n\n${m.content}<|eot_id|>`);
+  for (const message of messages) {
+    const role = normalizeChatRole(message?.role);
+    const content = normalizeChatMessageContent(message?.content);
+    if (role === 'system') {
+      parts.push(`<|start_header_id|>system<|end_header_id|>\n\n${content}<|eot_id|>`);
+    } else if (role === 'user') {
+      parts.push(`<|start_header_id|>user<|end_header_id|>\n\n${content}<|eot_id|>`);
+    } else if (role === 'assistant') {
+      parts.push(`<|start_header_id|>assistant<|end_header_id|>\n\n${content}<|eot_id|>`);
     }
   }
 
@@ -52,18 +166,19 @@ function formatHeaderBased(messages) {
   return parts.join('');
 }
 
-
 function formatChannelBased(messages) {
   // Channel-based format: <|start|>role<|channel|>channel<|message|>content<|end|>
   const parts = [];
 
-  for (const m of messages) {
-    if (m.role === 'system') {
-      parts.push(`<|start|>system<|message|>${m.content}<|end|>`);
-    } else if (m.role === 'user') {
-      parts.push(`<|start|>user<|message|>${m.content}<|end|>`);
-    } else if (m.role === 'assistant') {
-      parts.push(`<|start|>assistant<|channel|>final<|message|>${m.content}<|end|>`);
+  for (const message of messages) {
+    const role = normalizeChatRole(message?.role);
+    const content = normalizeChatMessageContent(message?.content);
+    if (role === 'system') {
+      parts.push(`<|start|>system<|message|>${content}<|end|>`);
+    } else if (role === 'user') {
+      parts.push(`<|start|>user<|message|>${content}<|end|>`);
+    } else if (role === 'assistant') {
+      parts.push(`<|start|>assistant<|channel|>final<|message|>${content}<|end|>`);
     }
   }
 
@@ -72,15 +187,131 @@ function formatChannelBased(messages) {
   return parts.join('');
 }
 
+function formatChatML(messages) {
+  // ChatML format: <|im_start|>role\ncontent<|im_end|>
+  const parts = [];
+  for (const message of messages) {
+    const role = normalizeChatRole(message?.role);
+    const content = normalizeChatMessageContent(message?.content);
+    if (role === 'system') {
+      parts.push(`<|im_start|>system\n${content}<|im_end|>\n`);
+    } else if (role === 'user') {
+      parts.push(`<|im_start|>user\n${content}<|im_end|>\n`);
+    } else if (role === 'assistant') {
+      parts.push(`<|im_start|>assistant\n${content}<|im_end|>\n`);
+    }
+  }
+  parts.push('<|im_start|>assistant\n');
+  return parts.join('');
+}
+
+function formatTranslateGemmaUserPrompt(content) {
+  if (!Array.isArray(content) || content.length !== 1) {
+    throw new Error(
+      'TranslateGemma template requires user content as an array with exactly one item.'
+    );
+  }
+  const block = content[0];
+  if (!block || typeof block !== 'object' || Array.isArray(block)) {
+    throw new Error(
+      'TranslateGemma template requires content[0] to be an object with type/source_lang_code/target_lang_code.'
+    );
+  }
+
+  const sourceLangCode = normalizeTranslateLanguageCode(block.source_lang_code);
+  const targetLangCode = normalizeTranslateLanguageCode(block.target_lang_code);
+  if (!sourceLangCode) {
+    throw new Error('TranslateGemma template requires source_lang_code.');
+  }
+  if (!targetLangCode) {
+    throw new Error('TranslateGemma template requires target_lang_code.');
+  }
+
+  const sourceLang = resolveTranslateLanguageName(sourceLangCode);
+  const targetLang = resolveTranslateLanguageName(targetLangCode);
+  if (!sourceLang) {
+    throw new Error(`TranslateGemma template: unsupported source_lang_code "${sourceLangCode}".`);
+  }
+  if (!targetLang) {
+    throw new Error(`TranslateGemma template: unsupported target_lang_code "${targetLangCode}".`);
+  }
+
+  const instructionPrefix = (
+    `You are a professional ${sourceLang} (${sourceLangCode}) to ${targetLang} (${targetLangCode}) translator. ` +
+    `Your goal is to accurately convey the meaning and nuances of the original ${sourceLang} text while ` +
+    `adhering to ${targetLang} grammar, vocabulary, and cultural sensitivities.\n`
+  );
+
+  if (block.type === 'text') {
+    return (
+      instructionPrefix +
+      `Produce only the ${targetLang} translation, without any additional explanations or ` +
+      `commentary. Please translate the following ${sourceLang} text into ${targetLang}:\n\n\n` +
+      String(block.text ?? '').trim()
+    );
+  }
+
+  if (block.type === 'image') {
+    return (
+      instructionPrefix +
+      `Please translate the ${sourceLang} text in the provided image into ${targetLang}. ` +
+      `Produce only the ${targetLang} translation, without any additional explanations, ` +
+      `alternatives or commentary. Focus only on the text, do not output where the text is located, ` +
+      `surrounding objects or any other explanation about the picture. Ignore symbols, pictogram, and ` +
+      `arrows!\n\n\n<start_of_image>`
+    );
+  }
+
+  throw new Error('TranslateGemma template only supports user content type "text" or "image".');
+}
+
+function formatTranslateGemma(messages) {
+  if (!Array.isArray(messages) || messages.length === 0) {
+    throw new Error('TranslateGemma template requires at least one message.');
+  }
+  if (normalizeChatRole(messages[0]?.role) !== 'user') {
+    throw new Error('TranslateGemma template requires the conversation to start with a user message.');
+  }
+
+  const parts = [];
+  for (let index = 0; index < messages.length; index++) {
+    const message = messages[index];
+    const role = normalizeChatRole(message?.role);
+    if ((role === 'user') !== (index % 2 === 0)) {
+      throw new Error('TranslateGemma template requires alternating user/assistant roles.');
+    }
+
+    if (role === 'assistant') {
+      if (message?.content == null || typeof message.content !== 'string') {
+        throw new Error('TranslateGemma template requires assistant messages to use string content.');
+      }
+      parts.push(`<start_of_turn>model\n${message.content.trim()}<end_of_turn>\n`);
+      continue;
+    }
+
+    if (role === 'user') {
+      const userPrompt = formatTranslateGemmaUserPrompt(message?.content);
+      parts.push(`<start_of_turn>user\n${userPrompt}<end_of_turn>\n`);
+      continue;
+    }
+
+    throw new Error('TranslateGemma template only supports user and assistant roles.');
+  }
+
+  parts.push('<start_of_turn>model\n');
+  return parts.join('');
+}
 
 function formatPlaintext(messages) {
   // Simple plaintext format for unknown templates
   return messages
-    .map((m) => {
-      if (m.role === 'system') return `System: ${m.content}`;
-      if (m.role === 'user') return `User: ${m.content}`;
-      if (m.role === 'assistant') return `Assistant: ${m.content}`;
-      return m.content;
+    .map((message) => {
+      const role = normalizeChatRole(message?.role);
+      const content = normalizeChatMessageContent(message?.content);
+      if (role === 'system') return `System: ${content}`;
+      if (role === 'user') return `User: ${content}`;
+      if (role === 'assistant') return `Assistant: ${content}`;
+      return content;
     })
     .join('\n') + '\nAssistant:';
 }
@@ -91,8 +322,10 @@ const CHAT_FORMATTERS = {
   'gemma': formatTurnBased,
   'llama3': formatHeaderBased,
   'gpt-oss': formatChannelBased,
+  'chatml': formatChatML,
+  'qwen': formatChatML,
+  'translategemma': formatTranslateGemma,
 };
-
 
 export function formatChatMessages(messages, templateType) {
   const formatter = CHAT_FORMATTERS[templateType];
@@ -106,3 +339,4 @@ export function formatChatMessages(messages, templateType) {
 export const formatGemmaChat = formatTurnBased;
 export const formatLlama3Chat = formatHeaderBased;
 export const formatGptOssChat = formatChannelBased;
+export const formatTranslateGemmaChat = formatTranslateGemma;

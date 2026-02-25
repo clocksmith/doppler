@@ -3,6 +3,7 @@ import { rmsNormCPU } from './logits.js';
 import { isWeightBuffer, isCpuWeightBuffer } from '../../../gpu/weight-buffer.js';
 import { decodeReadback } from './debug-utils.js';
 import { resolveExecutionSessionPlan } from './execution-plan.js';
+import { selectRuleValue } from '../../../rules/rule-registry.js';
 
 export function assertTokenIdsInRange(state, tokenIds, context = 'encode') {
   const vocabSize = state?.modelConfig?.vocabSize;
@@ -150,20 +151,28 @@ export function resolveAdvanceEmbeddingMode(state, options = {}) {
   return options.embeddingMode ?? (modelType === 'embedding' ? 'mean' : configuredMode);
 }
 
+function resolveFloatDtypeFromAlias(dtype, fallback = 'f32') {
+  const normalized = String(dtype || '').trim().toLowerCase();
+  if (!normalized) return fallback;
+  return selectRuleValue('inference', 'dtype', 'dtypeFromAlias', {
+    dtype: normalized,
+    fallback,
+  });
+}
+
 export function resolveFloatDtypeFromByteSize(totalBytes, expectedLength, fallback = 'f32') {
   if (!Number.isFinite(totalBytes) || totalBytes <= 0 || !Number.isFinite(expectedLength) || expectedLength <= 0) {
     return fallback;
   }
   const bytesPerElement = totalBytes / expectedLength;
-  if (Math.abs(bytesPerElement - 2) < 0.5) return 'f16';
-  if (Math.abs(bytesPerElement - 4) < 0.5) return 'f32';
-  return bytesPerElement < 3 ? 'f16' : 'f32';
+  return selectRuleValue('inference', 'dtype', 'f16OrF32FromBytesOrFallback', {
+    bytesPerElement,
+    fallback,
+  });
 }
 
 export function decodeFloatWeights(data, dtype, expectedLength, label) {
-  const decodeDtype = dtype === 'bf16'
-    ? 'bf16'
-    : (dtype === 'f16' ? 'f16' : 'f32');
+  const decodeDtype = resolveFloatDtypeFromAlias(dtype, 'f32');
   const decoded = decodeReadback(data, decodeDtype);
   if (decoded.length !== expectedLength) {
     throw new Error(
@@ -185,7 +194,7 @@ export async function getFinalNormWeights(state) {
   if (finalNorm instanceof Float32Array) {
     weights = finalNorm;
   } else if (isCpuWeightBuffer(finalNorm)) {
-    const dtype = finalNorm.dtype === 'bf16' ? 'bf16' : (finalNorm.dtype === 'f16' ? 'f16' : 'f32');
+    const dtype = resolveFloatDtypeFromAlias(finalNorm.dtype, 'f32');
     const data = finalNorm.data;
     if (!(data instanceof Float32Array) && !ArrayBuffer.isView(data)) {
       throw new Error('[Pipeline] final_norm CPU weight buffer has unsupported data type.');
@@ -193,8 +202,11 @@ export async function getFinalNormWeights(state) {
     const bytes = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
     weights = decodeFloatWeights(bytes, dtype, hiddenSize, 'final_norm');
   } else if (isWeightBuffer(finalNorm)) {
-    const dtype = finalNorm.dtype === 'bf16' ? 'bf16' : (finalNorm.dtype === 'f16' ? 'f16' : 'f32');
-    const bytesPerElement = dtype === 'f16' || dtype === 'bf16' ? 2 : 4;
+    const dtype = selectRuleValue('inference', 'dtype', 'f16OrF32FromDtypeAlias', {
+      dtype: String(finalNorm.dtype || '').trim().toLowerCase(),
+      fallback: 'f32',
+    });
+    const bytesPerElement = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype });
     const readSize = hiddenSize * bytesPerElement;
     const data = await readBuffer(finalNorm.buffer, readSize);
     if (data.byteLength === 0) {
@@ -203,7 +215,7 @@ export async function getFinalNormWeights(state) {
     weights = decodeFloatWeights(data, dtype, hiddenSize, 'final_norm');
   } else if (finalNorm instanceof GPUBuffer) {
     const dtype = resolveFloatDtypeFromByteSize(finalNorm.size, hiddenSize, 'f32');
-    const bytesPerElement = dtype === 'f16' ? 2 : 4;
+    const bytesPerElement = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype });
     const readSize = hiddenSize * bytesPerElement;
     const data = await readBuffer(finalNorm, readSize);
     if (data.byteLength === 0) {

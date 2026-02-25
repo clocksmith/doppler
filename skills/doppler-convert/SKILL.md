@@ -19,7 +19,7 @@ node tools/convert-safetensors-node.js INPUT_PATH models/local/OUTPUT_ID --model
 
 Notes:
 - `INPUT_PATH` can be a Safetensors directory, diffusion directory, or `.gguf` file.
-- Unified CLI convert path is `tools/doppler-cli.js` -> `runNodeCommand()` -> `src/tooling/node-convert.js`.
+- Unified CLI convert path is `tools/doppler-cli.js` -> `runNodeCommand()` -> `src/tooling/node-converter.js`.
 - Browser surface is intentionally rejected for `convert`.
 
 ## Converter Config JSON (Optional)
@@ -71,7 +71,7 @@ When conversion quality is in question, follow `AGENTS.md` triage protocol:
 - `tools/doppler-cli.js`
 - `tools/convert-safetensors-node.js`
 - `src/tooling/node-command-runner.js`
-- `src/tooling/node-convert.js`
+- `src/tooling/node-converter.js`
 - `src/converter/core.js`
 - `src/converter/conversion-plan.js`
 - `docs/formats.md`

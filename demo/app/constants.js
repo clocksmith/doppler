@@ -191,8 +191,8 @@ export const RUNTIME_PRESET_REGISTRY = [
   { id: 'model/gemma3-layer-probe', label: 'model/gemma3-layer-probe', base: false, override: true },
   { id: 'model/gemma2-pipeline', label: 'model/gemma2-pipeline', base: false, override: true },
   { id: 'model/gemma2-pipeline-debug', label: 'model/gemma2-pipeline-debug', base: false, override: true },
-  { id: 'experiments/gemma3-verify', label: 'experiments/gemma3-verify', base: false, override: true },
-  { id: 'experiments/gemma3-debug-q4k', label: 'experiments/gemma3-debug-q4k', base: false, override: true },
+  { id: 'experiments/verify/gemma3-verify', label: 'experiments/verify/gemma3-verify', base: false, override: true },
+  { id: 'experiments/debug/gemma3-debug-q4k', label: 'experiments/debug/gemma3-debug-q4k', base: false, override: true },
 ];
 
 export const DIAGNOSTICS_SUITE_INFO = {
@@ -241,6 +241,7 @@ export const BENCH_INTENTS = new Set(['investigate', 'calibrate']);
 export const DEFAULT_RUNTIME_PRESET = 'modes/debug';
 export const DIAGNOSTICS_DEFAULTS = {
   run: { suite: 'inference' },
+  translate: { suite: 'inference' },
   embedding: { suite: 'inference', preset: 'modes/embedding' },
   diffusion: { suite: 'diffusion' },
   energy: { suite: 'energy' },

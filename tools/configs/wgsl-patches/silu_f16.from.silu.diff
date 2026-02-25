@@ -1,0 +1,81 @@
+--- src/gpu/kernels/silu.wgsl	2026-02-20 10:04:55.694977493 -0500
++++ src/gpu/kernels/silu_f16.wgsl	2026-02-20 10:04:55.694977493 -0500
+@@ -1,11 +1,9 @@
+-// SiLU (Swish) Activation Kernel
++// SiLU (Swish) Activation Kernel with F16 Input/Output
+ //
+-// SiLU(x) = x * sigmoid(x)
+-// Variants:
+-// - silu_gate: SiLU(gate) * up (separate gate buffer)
+-// - silu_gate_split: input = [gate..., up...]
+-// - silu_vec4: 4 elements per thread
+-// - silu_gate_rowsplit: input = [numTokens, 2*dim] row-split
++// F16 variant for reduced memory bandwidth when using F16 activations.
++// Intermediate computations use F32 for precision.
++
++enable f16;
+ 
+ override WORKGROUP_SIZE: u32 = 256u;
+ override HAS_GATE: bool = false;
+@@ -21,9 +19,9 @@
+ }
+ 
+ @group(0) @binding(0) var<uniform> u: Uniforms;
+-@group(0) @binding(1) var<storage, read> input: array<f32>;
+-@group(0) @binding(2) var<storage, read_write> output: array<f32>;
+-@group(0) @binding(3) var<storage, read> gate: array<f32>;
++@group(0) @binding(1) var<storage, read> input: array<f16>;
++@group(0) @binding(2) var<storage, read_write> output: array<f16>;
++@group(0) @binding(3) var<storage, read> gate: array<f16>;
+ 
+ fn sigmoid(x: f32) -> f32 {
+     let clamped = clamp(x, -15.0, 15.0);
+@@ -53,8 +51,8 @@
+ 
+         let remaining = min(4u, u.size - base_idx);
+         for (var i: u32 = 0u; i < remaining; i = i + 1u) {
+-            let x = input[base_idx + i];
+-            output[base_idx + i] = silu(x);
++            let x = f32(input[base_idx + i]);
++            output[base_idx + i] = f16(silu(x));
+         }
+         return;
+     }
+@@ -72,26 +70,26 @@
+         let token_idx = idx / dim;
+         let dim_idx = idx % dim;
+         let row_base = token_idx * dim * 2u;
+-        let g = input[row_base + dim_idx];
+-        let up = input[row_base + dim + dim_idx];
+-        output[idx] = clamp_swiglu(silu(g) * up);
++        let g = f32(input[row_base + dim_idx]);
++        let up = f32(input[row_base + dim + dim_idx]);
++        output[idx] = f16(clamp_swiglu(silu(g) * up));
+         return;
+     }
+ 
+     if (HAS_GATE) {
+-        let up = input[idx];
+-        let g = gate[idx];
+-        output[idx] = clamp_swiglu(silu(g) * up);
++        let up = f32(input[idx]);
++        let g = f32(gate[idx]);
++        output[idx] = f16(clamp_swiglu(silu(g) * up));
+         return;
+     }
+ 
+     if (USE_SPLIT) {
+-        let g = input[idx];
+-        let up = input[idx + u.size];
+-        output[idx] = clamp_swiglu(silu(g) * up);
++        let g = f32(input[idx]);
++        let up = f32(input[idx + u.size]);
++        output[idx] = f16(clamp_swiglu(silu(g) * up));
+         return;
+     }
+ 
+-    let x = input[idx];
+-    output[idx] = silu(x);
++    let x = f32(input[idx]);
++    output[idx] = f16(silu(x));
+ }

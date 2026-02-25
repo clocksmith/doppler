@@ -76,8 +76,6 @@ export class TransformersTokenizer extends BaseTokenizer {
     // TransformersTokenizer gets vocabSize from setTokenizer(), so defer validation
     super({
       ...config,
-      vocabSize: config.vocabSize ?? 0,
-      deferSpecialTokens: config.deferSpecialTokens ?? true,
     });
     this.#modelId = config.modelId;
   }
@@ -161,8 +159,6 @@ export class BundledTokenizer extends BaseTokenizer {
     // BundledTokenizer gets vocabSize from load(), so defer validation
     super({
       ...config,
-      vocabSize: config.vocabSize ?? 0,
-      deferSpecialTokens: config.deferSpecialTokens ?? true,
     });
   }
 

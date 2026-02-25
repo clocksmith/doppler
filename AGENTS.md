@@ -20,14 +20,30 @@ These guides define performance and architecture invariants. Do not bypass them.
 ```
 doppler/
 ├── src/
-│   ├── inference/        # Pipeline, attention, FFN, embeddings
-│   ├── gpu/              # WebGPU device, buffer pools, kernels
-│   ├── storage/          # OPFS shard manager, model loading
-│   ├── loader/           # GGUF parsing, RDRR manifest
+│   ├── adapters/         # External integration adapters
+│   ├── bridge/           # Browser/Node bridge layer
+│   ├── browser/          # Browser-specific entry points
+│   ├── client/           # Client API surface
 │   ├── config/           # Runtime/model schemas + presets
-│   ├── tooling/          # Shared command contract + runners
+│   ├── converter/        # SafeTensors/GGUF → RDRR conversion
+│   ├── debug/            # Logging and tracing
+│   ├── errors/           # Error types and handling
+│   ├── formats/          # Format parsing utilities
+│   ├── gpu/              # WebGPU device, buffer pools, kernels
+│   ├── hotswap/          # Live model/adapter swap
+│   ├── inference/        # Pipeline, attention, FFN, embeddings
+│   ├── loader/           # GGUF parsing, RDRR manifest
 │   ├── memory/           # Heap management, capability detection
-│   └── debug/            # Logging and tracing
+│   ├── rules/            # Validation rules (kernel path, etc.)
+│   ├── storage/          # OPFS shard manager, model loading
+│   ├── tooling/          # Shared command contract + runners
+│   ├── tools/            # Internal tool utilities
+│   ├── training/         # Backward/training primitives
+│   ├── types/            # Shared type definitions
+│   └── utils/            # General utilities
+├── benchmarks/           # Vendor benchmark registry + harnesses
+├── models/               # Local model artifacts
+├── skills/               # Agent skill definitions
 ├── tools/                # CLI entry points and scripts
 ├── tests/                # Browser harnesses + kernel tests
 ├── demo/                 # Browser UI

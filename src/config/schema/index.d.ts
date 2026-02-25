@@ -106,6 +106,46 @@ export {
 } from './inference.schema.js';
 
 // =============================================================================
+// Execution v0 Schema
+// =============================================================================
+export {
+  type ExecutionV0Dtype,
+  type ExecutionV0Phase,
+  type ExecutionV0Section,
+  type ExecutionV0LayerSelector,
+  type ExecutionV0KernelRefSchema,
+  type ExecutionV0PrecisionSchema,
+  type ExecutionV0KVIO,
+  type ExecutionV0KernelProfileSchema,
+  type ExecutionV0ComputeDefaultsSchema,
+  type ExecutionV0ComputeSessionSchema,
+  type ExecutionV0DecodeLoopSchema,
+  type ExecutionV0SessionDefaultsSchema,
+  type ExecutionV0PoliciesSchema,
+  type ExecutionV0StepSchema,
+  type ExecutionV0GraphSchema,
+  type ExecutionV0ModelSchema,
+  type ExecutionV0ConfigSchema,
+  type ExecutionV0PatchSetSchema,
+  type ExecutionV0PatchRemoveSchema,
+  type ExecutionV0PatchAddSchema,
+  type ExecutionV0PatchSchema,
+  type ResolvedExecutionV0StepSchema,
+  type ExecutionV0ResolveSourceSchema,
+  type ExecutionV0FieldSourceMap,
+  EXECUTION_V0_SCHEMA_ID,
+  EXECUTION_V0_HASH_PATTERN,
+  EXECUTION_V0_SEMVER_PATTERN,
+  DEFAULT_EXECUTION_V0_COMPUTE_DEFAULTS,
+  DEFAULT_EXECUTION_V0_SESSION_DEFAULTS,
+  DEFAULT_EXECUTION_V0_POLICIES,
+  DEFAULT_EXECUTION_V0_CONFIG,
+  DEFAULT_EXECUTION_V0_PATCH,
+  isExecutionV0Digest,
+  isExecutionV0Semver,
+} from './execution-v0.schema.js';
+
+// =============================================================================
 // Diffusion Schema
 // =============================================================================
 export {
@@ -199,6 +239,7 @@ export {
   type ConverterManifestConfigSchema,
   type ConverterInferenceConfigSchema,
   type ConverterOutputConfigSchema,
+  type GGUFParserDefaultsSchema,
   type ConverterPresetConfigSchema,
   type ConverterConfigSchema,
 
@@ -212,6 +253,7 @@ export {
   DEFAULT_CONVERTER_INFERENCE_CONFIG,
   DEFAULT_CONVERTER_OUTPUT_CONFIG,
   DEFAULT_CONVERTER_PRESET_CONFIG,
+  DEFAULT_GGUF_PARSER_DEFAULTS,
   DEFAULT_CONVERTER_CONFIG,
 
   // Factory
@@ -313,6 +355,7 @@ export {
   type SamplingDefaultsSchema,
   type GenerationDefaultsSchema,
   type TokenizerDefaultsSchema,
+  type KernelPathPolicySchema,
   type InferenceDefaultsConfigSchema,
   type ModelInferenceOverrides,
 
@@ -323,6 +366,7 @@ export {
   DEFAULT_SAMPLING_DEFAULTS,
   DEFAULT_GENERATION_CONFIG,
   DEFAULT_TOKENIZER_DEFAULTS,
+  DEFAULT_KERNEL_PATH_POLICY,
   DEFAULT_INFERENCE_DEFAULTS_CONFIG,
   DEFAULT_PRESET_INFERENCE_CONFIG,
 } from './inference-defaults.schema.js';

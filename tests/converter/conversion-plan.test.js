@@ -10,8 +10,14 @@ const {
   resolveConvertedModelId,
 } = await import('../../src/converter/conversion-plan.js');
 const { resolveEffectiveQuantizationInfo } = await import('../../src/converter/quantization-info.js');
+const { buildKernelRefFromKernelEntry } = await import('../../src/config/kernels/kernel-ref.js');
 
 const converterConfig = createConverterConfig();
+const embeddingComputeF32Config = createConverterConfig({
+  quantization: {
+    computePrecision: 'f32',
+  },
+});
 
 {
   const reconciled = resolveEffectiveQuantizationInfo(
@@ -44,12 +50,14 @@ const converterConfig = createConverterConfig();
   assert.equal(plan.modelType, 'diffusion');
   assert.equal(plan.presetId, 'diffusion');
   assert.equal(plan.manifestInference?.presetId, 'diffusion');
+  assert.equal(plan.manifestInference?.schema, null);
+  assert.equal(plan.manifestInference?.execution, null);
 }
 
 {
   const overrideConfig = createConverterConfig({
     inference: {
-      defaultKernelPath: 'gemma3-f16-fused-f32a-online',
+      defaultKernelPath: 'gemma3-f16-fused-f16a-online',
     },
   });
   const plan = resolveConversionPlan({
@@ -69,7 +77,14 @@ const converterConfig = createConverterConfig();
     architectureHint: 'Gemma3ForCausalLM',
     architectureConfig: { headDim: 256 },
   });
-  assert.equal(plan.manifestInference?.defaultKernelPath, 'gemma3-f16-fused-f32a-online');
+  assert.equal(plan.manifestInference?.defaultKernelPath, 'gemma3-f16-fused-f16a-online');
+  assert.equal(plan.manifestInference?.schema, 'doppler.execution/v0');
+  assert.ok(Array.isArray(plan.manifestInference?.execution?.steps));
+  assert.ok(plan.manifestInference.execution.steps.length > 0);
+  assert.ok(plan.manifestInference.execution.steps[0].src);
+  assert.ok(plan.manifestInference.execution.steps[0].dst);
+  assert.ok(plan.manifestInference.execution.steps[0].kernelRef);
+  assert.ok((plan.manifestInference.sessionDefaults?.compute?.kernelProfiles?.length ?? 0) > 0);
 }
 
 {
@@ -97,6 +112,232 @@ const converterConfig = createConverterConfig();
       architectureConfig: { headDim: 256 },
     }),
     /converterConfig\.inference\.defaultKernelPath must be a string/
+  );
+}
+
+{
+  const attentionKernelRef = buildKernelRefFromKernelEntry('attention_streaming_f16.wgsl', 'main');
+  const executionOverrideConfig = createConverterConfig({
+    inference: {
+      sessionDefaults: {
+        compute: {
+          defaults: {
+            activationDtype: 'f16',
+            mathDtype: 'f16',
+            accumDtype: 'f32',
+            outputDtype: 'f16',
+          },
+          kernelProfiles: [
+            {
+              kernelRef: attentionKernelRef,
+            },
+          ],
+        },
+        kvcache: {
+          layout: 'bdpa',
+          kvDtype: 'f16',
+          pageSize: 128,
+          windowSize: 1024,
+          bdpaVocabSize: 4096,
+        },
+        decodeLoop: {
+          batchSize: 8,
+          stopCheckMode: 'batch',
+          readbackInterval: 4,
+          ringTokens: 4,
+          ringStop: 4,
+          ringStaging: 4,
+        },
+      },
+      execution: {
+        steps: [
+          {
+            id: 'attn_prefill',
+            phase: 'prefill',
+            section: 'layer',
+            op: 'attention',
+            src: 'state',
+            dst: 'state',
+            layers: 'all',
+            kernel: 'attention_streaming_f16.wgsl',
+            entry: 'main',
+            kernelRef: attentionKernelRef,
+          },
+        ],
+        policies: {
+          precisionPrecedence: 'step_then_kernel_profile_then_session_default',
+          unsupportedPrecision: 'error',
+          dtypeTransition: 'require_cast_step',
+          unresolvedKernel: 'error',
+        },
+      },
+    },
+  });
+  const plan = resolveConversionPlan({
+    rawConfig: {
+      model_type: 'gemma3_text',
+      architectures: ['Gemma3ForCausalLM'],
+      hidden_size: 640,
+      num_attention_heads: 4,
+      num_hidden_layers: 18,
+    },
+    tensors: [
+      { name: 'model.embed_tokens.weight', dtype: 'F16' },
+      { name: 'model.layers.0.self_attn.q_proj.weight', dtype: 'F16' },
+    ],
+    converterConfig: executionOverrideConfig,
+    modelKind: 'transformer',
+    architectureHint: 'Gemma3ForCausalLM',
+    architectureConfig: { headDim: 256 },
+  });
+  assert.equal(plan.manifestInference?.sessionDefaults?.decodeLoop?.batchSize, 8);
+  assert.equal(plan.manifestInference?.execution?.steps?.length, 1);
+  assert.equal(plan.manifestInference?.execution?.steps?.[0]?.id, 'attn_prefill');
+  assert.equal(plan.manifestInference?.schema, 'doppler.execution/v0');
+}
+
+{
+  const invalidSessionDefaultsConfig = createConverterConfig({
+    inference: {
+      sessionDefaults: 'bad',
+    },
+  });
+  assert.throws(
+    () => resolveConversionPlan({
+      rawConfig: {
+        model_type: 'gemma3_text',
+        architectures: ['Gemma3ForCausalLM'],
+        hidden_size: 640,
+        num_attention_heads: 4,
+        num_hidden_layers: 18,
+      },
+      tensors: [
+        { name: 'model.embed_tokens.weight', dtype: 'F16' },
+        { name: 'model.layers.0.self_attn.q_proj.weight', dtype: 'F16' },
+      ],
+      converterConfig: invalidSessionDefaultsConfig,
+      modelKind: 'transformer',
+      architectureHint: 'Gemma3ForCausalLM',
+      architectureConfig: { headDim: 256 },
+    }),
+    /converterConfig\.inference\.sessionDefaults must be an object/
+  );
+}
+
+{
+  const invalidExecutionConfig = createConverterConfig({
+    inference: {
+      execution: {
+        policies: {
+          dtypeTransition: 'require_cast_step',
+        },
+      },
+    },
+  });
+  assert.throws(
+    () => resolveConversionPlan({
+      rawConfig: {
+        model_type: 'gemma3_text',
+        architectures: ['Gemma3ForCausalLM'],
+        hidden_size: 640,
+        num_attention_heads: 4,
+        num_hidden_layers: 18,
+      },
+      tensors: [
+        { name: 'model.embed_tokens.weight', dtype: 'F16' },
+        { name: 'model.layers.0.self_attn.q_proj.weight', dtype: 'F16' },
+      ],
+      converterConfig: invalidExecutionConfig,
+      modelKind: 'transformer',
+      architectureHint: 'Gemma3ForCausalLM',
+      architectureConfig: { headDim: 256 },
+    }),
+    /converterConfig\.inference\.execution\.steps must be an array/
+  );
+}
+
+{
+  const invalidPinnedKernelConfig = createConverterConfig({
+    inference: {
+      execution: {
+        steps: [
+          {
+            id: 'attn_prefill',
+            phase: 'prefill',
+            section: 'layer',
+            op: 'attention',
+            src: 'state',
+            dst: 'state',
+            layers: 'all',
+            kernel: 'attention_streaming_f16.wgsl',
+            entry: 'main',
+            kernelRef: buildKernelRefFromKernelEntry('matmul_f16.wgsl', 'main'),
+          },
+        ],
+      },
+    },
+  });
+  assert.throws(
+    () => resolveConversionPlan({
+      rawConfig: {
+        model_type: 'gemma3_text',
+        architectures: ['Gemma3ForCausalLM'],
+        hidden_size: 640,
+        num_attention_heads: 4,
+        num_hidden_layers: 18,
+      },
+      tensors: [
+        { name: 'model.embed_tokens.weight', dtype: 'F16' },
+        { name: 'model.layers.0.self_attn.q_proj.weight', dtype: 'F16' },
+      ],
+      converterConfig: invalidPinnedKernelConfig,
+      modelKind: 'transformer',
+      architectureHint: 'Gemma3ForCausalLM',
+      architectureConfig: { headDim: 256 },
+    }),
+    /kernelRef must match kernel binding/
+  );
+}
+
+{
+  const missingKernelRefConfig = createConverterConfig({
+    inference: {
+      execution: {
+        steps: [
+          {
+            id: 'attn_prefill',
+            phase: 'prefill',
+            section: 'layer',
+            op: 'attention',
+            src: 'state',
+            dst: 'state',
+            layers: 'all',
+            kernel: 'attention_streaming_f16.wgsl',
+            entry: 'main',
+          },
+        ],
+      },
+    },
+  });
+  assert.throws(
+    () => resolveConversionPlan({
+      rawConfig: {
+        model_type: 'gemma3_text',
+        architectures: ['Gemma3ForCausalLM'],
+        hidden_size: 640,
+        num_attention_heads: 4,
+        num_hidden_layers: 18,
+      },
+      tensors: [
+        { name: 'model.embed_tokens.weight', dtype: 'F16' },
+        { name: 'model.layers.0.self_attn.q_proj.weight', dtype: 'F16' },
+      ],
+      converterConfig: missingKernelRefConfig,
+      modelKind: 'transformer',
+      architectureHint: 'Gemma3ForCausalLM',
+      architectureConfig: { headDim: 256 },
+    }),
+    /kernelRef \{id, version, digest\} is required/
   );
 }
 
@@ -135,6 +376,9 @@ const converterConfig = createConverterConfig();
   assert.equal(plan.modelType, 'transformer');
   assert.equal(typeof plan.presetId, 'string');
   assert.equal(typeof plan.manifestInference?.defaultKernelPath, 'string');
+  assert.equal(plan.manifestInference?.schema, 'doppler.execution/v0');
+  assert.ok(Array.isArray(plan.manifestInference?.execution?.steps));
+  assert.ok(plan.manifestInference.execution.steps.length > 0);
 }
 
 {
@@ -214,6 +458,123 @@ const converterConfig = createConverterConfig();
 }
 
 {
+  // TranslateGemma style rope_parameters should map to manifest rope fields.
+  const plan = resolveConversionPlan({
+    rawConfig: {
+      model_type: 'gemma3_text',
+      architectures: ['Gemma3ForCausalLM'],
+      hidden_size: 2560,
+      intermediate_size: 10240,
+      num_hidden_layers: 34,
+      num_attention_heads: 8,
+      num_key_value_heads: 4,
+      rope_parameters: {
+        full_attention: {
+          rope_type: 'linear',
+          factor: 8.0,
+          rope_theta: 1000000,
+        },
+        sliding_attention: {
+          rope_type: 'default',
+          rope_theta: 10000,
+        },
+      },
+    },
+    tensors: [
+      { name: 'model.embed_tokens.weight', dtype: 'F16' },
+      { name: 'model.layers.0.self_attn.q_proj.weight', dtype: 'F16' },
+    ],
+    converterConfig,
+    modelKind: 'transformer',
+    architectureHint: 'Gemma3ForCausalLM',
+    architectureConfig: { headDim: 256 },
+  });
+  assert.equal(plan.manifestInference?.rope?.ropeTheta, 1000000);
+  assert.equal(plan.manifestInference?.rope?.ropeLocalTheta, 10000);
+  assert.equal(plan.manifestInference?.rope?.ropeScalingType, 'linear');
+  assert.equal(plan.manifestInference?.rope?.ropeScalingFactor, 8);
+  assert.equal(plan.manifestInference?.rope?.ropeLocalScalingType, null);
+  assert.equal(plan.manifestInference?.rope?.ropeLocalScalingFactor, 1);
+}
+
+{
+  // Per-layer scaling should map to global/local RoPE scaling fields.
+  const plan = resolveConversionPlan({
+    rawConfig: {
+      model_type: 'gemma3_text',
+      architectures: ['Gemma3ForCausalLM'],
+      hidden_size: 2560,
+      intermediate_size: 10240,
+      num_hidden_layers: 34,
+      num_attention_heads: 8,
+      num_key_value_heads: 4,
+      rope_parameters: {
+        full_attention: {
+          rope_type: 'linear',
+          factor: 8.0,
+          rope_theta: 1000000,
+        },
+        sliding_attention: {
+          rope_type: 'linear',
+          factor: 4.0,
+          rope_theta: 10000,
+        },
+      },
+    },
+    tensors: [
+      { name: 'model.embed_tokens.weight', dtype: 'F16' },
+      { name: 'model.layers.0.self_attn.q_proj.weight', dtype: 'F16' },
+    ],
+    converterConfig,
+    modelKind: 'transformer',
+    architectureHint: 'Gemma3ForCausalLM',
+    architectureConfig: { headDim: 256 },
+  });
+  assert.equal(plan.manifestInference?.rope?.ropeScalingType, 'linear');
+  assert.equal(plan.manifestInference?.rope?.ropeScalingFactor, 8);
+  assert.equal(plan.manifestInference?.rope?.ropeLocalScalingType, 'linear');
+  assert.equal(plan.manifestInference?.rope?.ropeLocalScalingFactor, 4);
+}
+
+{
+  // TranslateGemma architecture should resolve to translategemma preset.
+  const plan = resolveConversionPlan({
+    rawConfig: {
+      model_type: 'translategemma',
+      architectures: ['Gemma3ForConditionalGeneration'],
+      hidden_size: 2560,
+      intermediate_size: 10240,
+      num_hidden_layers: 34,
+      num_attention_heads: 8,
+      num_key_value_heads: 4,
+      rope_parameters: {
+        full_attention: {
+          rope_type: 'linear',
+          factor: 8.0,
+          rope_theta: 1000000,
+        },
+        sliding_attention: {
+          rope_type: 'default',
+          rope_theta: 10000,
+        },
+      },
+    },
+    tensors: [
+      { name: 'model.embed_tokens.weight', dtype: 'F16' },
+      { name: 'model.layers.0.self_attn.q_proj.weight', dtype: 'F16' },
+    ],
+    converterConfig,
+    modelKind: 'transformer',
+    architectureHint: 'Gemma3ForConditionalGeneration',
+    architectureConfig: { headDim: 256 },
+  });
+  assert.equal(plan.presetId, 'translategemma');
+  assert.equal(plan.modelType, 'transformer');
+  assert.equal(plan.manifestInference?.chatTemplate?.type, 'translategemma');
+  assert.equal(plan.manifestInference?.chatTemplate?.enabled, true);
+}
+
+{
   const q4kConverterConfig = createConverterConfig({
     quantization: {
       weights: 'q4k',
@@ -240,7 +601,7 @@ const converterConfig = createConverterConfig();
   assert.equal(plan.quantizationInfo.weights, 'q4k');
   assert.equal(plan.quantizationInfo.layout, 'row');
   assert.equal(plan.quantizationInfo.variantTag, 'wq4k-ef16');
-  assert.equal(plan.manifestInference?.defaultKernelPath, 'gemma3-q4k-dequant-f32a');
+  assert.equal(plan.manifestInference?.defaultKernelPath, 'gemma3-q4k-dequant-f16a-online');
 }
 
 {
@@ -271,7 +632,7 @@ const converterConfig = createConverterConfig();
   assert.equal(plan.quantizationInfo.weights, 'q4k');
   assert.equal(plan.quantizationInfo.compute, 'f32');
   assert.equal(plan.quantizationInfo.layout, 'row');
-  assert.equal(plan.manifestInference?.defaultKernelPath, 'gemma3-q4k-dequant-f32a');
+  assert.equal(plan.manifestInference?.defaultKernelPath, 'gemma3-q4k-dequant-f32a-online');
 }
 
 {
@@ -300,7 +661,7 @@ const converterConfig = createConverterConfig();
       { name: 'model.layers.0.mlp.down_proj.weight', dtype: 'F16' },
       { name: 'model.norm.weight', dtype: 'F16' },
     ],
-    converterConfig,
+    converterConfig: embeddingComputeF32Config,
     modelKind: 'transformer',
     architectureHint: 'gemma3_text',
     architectureConfig: { headDim: 256 },
@@ -343,6 +704,7 @@ const converterConfig = createConverterConfig();
     quantization: {
       weights: 'q4k',
       q4kLayout: 'row',
+      computePrecision: 'f32',
     },
   });
   const plan = resolveConversionPlan({
@@ -383,7 +745,7 @@ const converterConfig = createConverterConfig();
       { name: 'model.embed_tokens.weight', dtype: 'F32' },
       { name: 'model.layers.0.self_attn.q_proj.weight', dtype: 'F32' },
     ],
-    converterConfig,
+    converterConfig: embeddingComputeF32Config,
     modelKind: 'transformer',
     architectureHint: 'gemma3_text',
     architectureConfig: { headDim: 256 },

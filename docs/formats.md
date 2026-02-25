@@ -48,15 +48,17 @@ A JSON file describing model metadata, shard layout, and tensor locations within
 
 ```
 model-name-rdrr/
-├── manifest.json       # ~5KB - Model metadata + component groups
-├── tensors.json        # ~40KB - Tensor locations (external)
-├── tokenizer.json      # Tokenizer data
+├── manifest.json       # Required: metadata + inference + shard layout (+ tensor map when inline)
+├── tensors.json        # Optional: external tensor map (legacy/size-optimized form)
+├── tokenizer.json      # Optional tokenizer data
 ├── shard_00000.bin     # 64MB shards (flat naming)
 ├── shard_00001.bin
 └── ...
 ```
 
-The v1 format separates tensor locations into `tensors.json` to keep the manifest small (~5KB vs ~68KB).
+RDRR v1 accepts either:
+- Inline tensor map in `manifest.tensors` (common in current conversions)
+- External tensor map referenced by `manifest.tensorsFile` (for smaller manifests)
 
 ---
 
@@ -76,7 +78,7 @@ The v1 format separates tensor locations into `tensors.json` to keep the manifes
     "lmHead": "f16",
     "variantTag": "wq4k-ef16"
   },
-  "hashAlgorithm": "sha256",
+  "hashAlgorithm": "blake3",
   "architecture": {
     "numLayers": 26,
     "hiddenSize": 2304,
@@ -124,7 +126,7 @@ The v1 format separates tensor locations into `tensors.json` to keep the manifes
     },
     "layerPattern": { "type": "uniform" },
     "chatTemplate": { "type": null, "enabled": false },
-    "defaultKernelPath": "gemma2-q4k-dequant-f16a"
+    "defaultKernelPath": "gemma3-q4k-dequant-f16a-online"
   },
   "groups": {
     "embed": { "type": "embed", "version": "1.0.0", "shards": [0], "tensors": ["model.embed_tokens.weight"], "hash": "..." },
@@ -132,7 +134,7 @@ The v1 format separates tensor locations into `tensors.json` to keep the manifes
     "head": { "type": "head", "version": "1.0.0", "shards": [10], "tensors": [...], "hash": "..." }
   },
   "shards": [...],
-  "tensorsFile": "tensors.json",
+  "tensors": { "...": "..." },
   "tensorCount": 340,
   "totalSize": 3400000000
 }
@@ -191,7 +193,7 @@ Groups enable per-component version tracking; runtime hot-swap is planned:
 | `version` | string | Semantic version for hot-swap tracking (e.g., `"1.0.0"`) |
 | `shards` | number[] | Indices into manifest.shards[] |
 | `tensors` | string[] | Tensor names in this group |
-| `hash` | string | SHA256 hash of concatenated tensor data |
+| `hash` | string | Group hash using manifest `hashAlgorithm` |
 | `layerIndex` | number? | Layer index (for layer/expert groups) |
 | `expertIndex` | number? | Expert index within layer |
 
@@ -202,14 +204,15 @@ Groups enable per-component version tracking; runtime hot-swap is planned:
   "index": 0,
   "filename": "shard_00000.bin",
   "size": 67108864,
-  "hash": "sha256-hex-64-chars",
-  "hashAlgorithm": "sha256"
+  "hash": "64-char-hex",
+  "hashAlgorithm": "blake3"
 }
 ```
 
-### External tensors.json
+### Tensor Map (Inline or External)
 
-Tensor locations are stored in a separate `tensors.json` file:
+Tensor locations can be stored inline in `manifest.tensors`, or in an external
+file referenced by `manifest.tensorsFile`:
 
 ```json
 {
@@ -264,9 +267,9 @@ embeddings, lm_head, and MoE experts can be distinguished from core weights.
 | Field | Type | Description |
 |-------|------|-------------|
 | `weights` | string | Quantization for main weights (`q4k`, `f16`, etc.) |
-| `embeddings` | string? | Quantization for embedding table |
-| `lmHead` | string? | Quantization for LM head (if different from embeddings) |
-| `experts` | string? | Quantization for MoE expert weights |
+| `embeddings` | string? | Quantization for embedding table. If omitted, treat as `weights`. |
+| `lmHead` | string? | Quantization for LM head. If omitted, treat as `embeddings`. |
+| `experts` | string? | Quantization for MoE expert weights. |
 | `expertsFormat` | string? | Expert tensor format hint (`mixtral`, `gpt-oss`) |
 | `vision` | string? | Vision encoder quantization (multimodal models) |
 | `audio` | string? | Audio encoder quantization (speech models) |
@@ -278,11 +281,34 @@ embeddings, lm_head, and MoE experts can be distinguished from core weights.
 
 ### Naming Convention
 
-DOPPLER uses a concise naming convention that describes **storage only** (not runtime behavior):
+DOPPLER names model variants to describe **storage quantization only** (not runtime behavior).  
+Canonical names are emitted in `quantizationInfo.variantTag` and are used to build `modelId`.
+
+Canonical full-form (explicit, no inference) format:
+
+```
+{model-name}-w{weights}-e{embeddings}-h{lmHead}-x{experts}-v{vision}-a{audio}-t{tts}-p{projector}
+```
+
+Only include a role token if that role exists in the model architecture (for example, no `x` if there are no experts).  
+Include every present tensor-group dtype explicitly to remove ambiguity.
+
+Recommended compact-form (omits unchanged/default fields):
 
 ```
 {model-name}-w{weights}[-e{embeddings}][-h{head}][-x{experts}][-v{vision}][-a{audio}][-t{tts}][-p{projector}]
 ```
+
+In compact-form, `e` and `h` may be omitted when they match the preceding storage dtype.
+
+Model IDs are **not** expected to include runtime-activation suffixes like `-f16a` or `-f32a`.
+Runtime intent belongs in conversion manifest/runtime (`quantization.computePrecision`,
+`inference.defaultKernelPath`, `inference.execution`, `inference.sessionDefaults`).
+
+Canonical Gemma-1B model IDs:
+
+- `gemma-3-1b-it-wf16-ef16-hf16`
+- `gemma-3-1b-it-wq4k-ef16-hf16`
 
 **Component prefixes:**
 
@@ -297,29 +323,35 @@ DOPPLER uses a concise naming convention that describes **storage only** (not ru
 | `t` | TTS | Text-to-speech decoder |
 | `p` | Projector | Cross-modal projection layers |
 
-The `x` suffix is emitted only when expert quantization differs from core weights.
-
 **Quantization tokens:**
 
-| Token | Description | Token | Description |
-|-------|-------------|-------|-------------|
-| `q4k` | Q4_K_M block quant | `f16` | Float16 |
-| `q6k` | Q6_K block quant | `bf16` | BFloat16 |
-| `q8_0` | Q8_0 quant | `f32` | Float32 |
-| `mxfp4` | MXFP4 quant | `fp8e4` | Float8 E4M3 |
-| `i4` | Int4 | `fp8e4` | Float8 E4M3 |
-| `i8` | Int8 | `fp8e5` | Float8 E5M2 |
+| Token | Description |
+|-------|-------------|
+| `q4k` | Q4_K_M block quant |
+| `q4` | Alias of `q4k` in historical metadata; do not use in canonical IDs |
+| `q6k` | Q6_K block quant |
+| `q8_0` | Q8_0 quant |
+| `f16` | Float16 |
+| `bf16` | BFloat16 |
+| `f32` | Float32 |
+| `mxfp4` | MXFP4 quant |
+| `i4` | Int4 |
+| `i8` | Int8 |
+| `fp8e4` | Float8 E4M3 |
+| `fp8e5` | Float8 E5M2 |
+
+`q4_0` and `q4_1` (GGUF source tags) must not appear in canonical names; normalize to `q4k`.
 
 **Examples:**
 
 | Model ID | Description |
 |----------|-------------|
-| `gemma-2b-wq4k` | Weights Q4K, embeddings default to weights |
+| `gemma-2b-wf16-ef16-hf16` | Explicit full-form; embeddings and head both shown even when unchanged |
 | `gemma-2b-wq4k-ef16` | Weights Q4K, embeddings F16 |
-| `llama-8b-wq4k-ef16-hf16` | With explicit head quantization |
-| `gpt-oss-20b-wf16-xmxfp4` | F16 dense weights with MXFP4 expert blocks |
-| `qwen2-vl-7b-wq4k-vf16-pf16` | Multimodal with vision + projector |
-| `phi-3.5-mini-wq4k-ebf16` | BFloat16 embeddings |
+| `llama-8b-wq4k-ef16-hf16` | Explicit head quantization included |
+| `gpt-oss-20b-wf16-ef16-hf16-xmxfp4` | Explicit full-form (weights and output path share F16, experts use MXFP4) |
+| `qwen2-vl-7b-wq4k-ef16-hf16-vf16-pf16` | Multimodal with explicit vision + projector |
+| `phi-3.5-mini-wq4k-ebf16-hfbf16` | BFloat16 embeddings/head, explicit full form |
 
 **Adapter naming:**
 
@@ -379,13 +411,14 @@ For tensors spanning multiple shards, use the `spans` field:
 ### optimizations Schema
 
 The `optimizations` field is legacy metadata. Runtime kernel selection reads
-`inference.defaultKernelPath` (manifest default) and `runtime.inference.kernelPath`
-(runtime override).
+`inference.defaultKernelPath` (manifest default), `runtime.inference.kernelPath`
+(runtime override), and `runtime.inference.kernelPathPolicy`
+(capability remap policy).
 
 ```json
 {
   "optimizations": {
-    "kernelPath": "gemma2-q4k-fused-f16a"
+    "kernelPath": "gemma2-q4k-fused-f32a"
   }
 }
 ```
@@ -402,7 +435,9 @@ The `optimizations` field is legacy metadata. Runtime kernel selection reads
 2. runtime config `runtime.inference.kernelPath`
 3. per-run context override (pipeline context only)
 
-See `config.md` for how kernel paths integrate with capability-based kernel selection.
+`runtime.inference.kernelPathPolicy.mode` controls whether capability remap is applied
+(`locked` vs `capability-aware`), and `allowSources` controls which sources may remap.
+See `config.md` for full examples.
 
 ---
 
@@ -424,7 +459,7 @@ carry adapter metadata fields, but adapters themselves are not RDRR bundles.
 
 ### Integrity Verification
 
-- Per-shard hash (SHA-256 supported everywhere, BLAKE3 optional)
+- Per-shard hash via manifest `hashAlgorithm` (`blake3` or `sha256`; converter default is `blake3`)
 - Enables shard integrity verification regardless of distribution channel
 - Peers can verify shard integrity independently
 
@@ -451,18 +486,46 @@ parameters (attention, norms, RoPE, FFN, output). The converter writes this
 at conversion time; runtime merges overrides. Missing fields fail validation.
 Use `null` to explicitly disable features; `undefined` is invalid.
 
+For explicit execution manifests, set:
+
+- `inference.schema = "doppler.execution/v0"`
+- `inference.sessionDefaults` for session defaults (compute/KV/decode loop)
+- `inference.execution` for step graph + policies
+- each execution step with explicit `src` and `dst`
+- non-`cast` steps with explicit `kernel` and pinned `kernelRef`
+- `sessionDefaults.compute.kernelProfiles` entries matching every non-`cast` step `kernelRef`
+
+`kernelRef` pinning contract:
+
+- `kernelRef.id`: canonical symbolic kernel identity
+- `kernelRef.version`: pinned registry contract version
+- `kernelRef.digest`: content digest of the WGSL shader body + entrypoint
+
+Converter can derive these automatically from `inference.defaultKernelPath`
+when execution-v0 fields are omitted in conversion config.
+
+When `inference.execution` exists, runtime requires the v0 schema discriminator
+and applies runtime patching via `runtime.inference.session` and
+`runtime.inference.executionPatch`. Execution compile is strict-fail for:
+
+- unknown runtime overlay keys (only `session` + `executionPatch` are accepted)
+- dangling slot reads
+- prefill/decode boundary dtype mismatches without explicit cast step
+- kernel precision tuples unsupported by the pinned kernel shader entry (when output dtype metadata is declared for that kernel variant)
+- KV IO dtype mismatches against session KV cache dtype
+
 ---
 
 ## Field Normalization
 
-The on-disk `manifest.json` may vary in naming. At runtime, `formats/rdrr/manifest.js` normalizes:
+The on-disk `manifest.json` may vary in naming. At runtime, `formats/rdrr/parsing.js` normalizes:
 
 | On-Disk | Normalized |
 |---------|------------|
 | `fileName` or `filename` | `filename` |
 | `hash` or `blake3` | `hash` (with `blake3` alias) |
 | missing `offset` | computed from previous shards |
-| `hashAlgorithm` | inferred from manifest or shard entry |
+| optional `shard.hashAlgorithm` | preserved on shard entries (manifest `hashAlgorithm` remains required) |
 
 This ensures compatibility across converter versions.
 
@@ -472,14 +535,14 @@ This ensures compatibility across converter versions.
 
 ### Converting Models
 
-Use the browser conversion UI in `demo/index.html`. The converter writes RDRR
-artifacts into OPFS and is the primary workflow.
+Primary conversion flow (Node/CLI):
 
-For programmatic conversion in the browser, import the converter directly:
-
-```javascript
-import convertModel from '../src/browser/browser-converter.js';
+```bash
+node tools/doppler-cli.js convert <inputPath> --config tools/configs/conversion/<profile>.json
 ```
+
+Browser conversion/import tooling is also available for UI workflows via
+`src/browser/browser-converter.js`.
 
 ### Serving Models
 
@@ -514,21 +577,23 @@ for await (const token of pipeline.generate('Hello')) {
 
 | Version | Changes |
 |---------|---------|
-| 1 | Component groups, external tensors.json, multi-architecture support |
+| 1 | Component groups, inline/external tensor map support, multi-architecture support |
 
 ---
 
 ## Related Files
 
-- `src/formats/rdrr/manifest.js`: Parser and validation
+- `src/formats/rdrr/parsing.js`: Manifest/tensor parsing + field normalization
+- `src/formats/rdrr/validation.js`: Manifest validation
+- `src/formats/rdrr/manifest.js`: Manifest creation + serialization helpers
 - `src/converter/core.js`: Platform-agnostic conversion types and functions
 - `src/browser/browser-converter.js`: Browser conversion with OPFS output
-- `storage/shard-manager.js`: OPFS shard management
-- `storage/downloader.js`: Resumable downloads
+- `src/storage/shard-manager.js`: OPFS shard management
+- `src/storage/downloader.js`: Resumable downloads
 
 ---
 
-*Last updated: 2026-02-23*
+*Last updated: 2026-02-25*
 
 ## Kernel Overrides & Compatibility
 See `operations.md#kernel-overrides--compatibility` (canonical section) and `style/wgsl-style-guide.md`.
@@ -622,97 +687,3 @@ RDRR-LoRA is optimized for Doppler. If you need GGUF:
 
 Conversion to GGUF is external to Doppler. Use the adapter export helper and
 llama.cpp tooling; there is no in-repo browser command runner for this flow.
-
-
-## Adapter Manifest
-
-Defines the JSON manifest format used by the LoRA/QLoRA adapter loader.
-Adapters are not RDRR bundles; they use a separate schema and loader path.
-
-Schema source: `src/adapters/adapter-manifest.js`
-
----
-
-## Required Fields
-
-```json
-{
-  "id": "gemma-3-1b-coding",
-  "name": "Gemma 3 Coding Adapter",
-  "baseModel": "gemma-3-1b",
-  "rank": 16,
-  "alpha": 32,
-  "targetModules": ["q_proj", "k_proj", "v_proj", "o_proj"],
-  "tensors": []
-}
-```
-
-| Field | Type | Notes |
-|-------|------|-------|
-| `id` | string | Slug/ID, `[a-zA-Z0-9_-]+` |
-| `name` | string | Human-readable name |
-| `baseModel` | string | Base model identifier |
-| `rank` | number | LoRA rank (integer) |
-| `alpha` | number | LoRA alpha scaling |
-| `targetModules` | string[] | Modules to modify |
-
----
-
-## Optional Fields
-
-| Field | Type | Notes |
-|-------|------|-------|
-| `version` | string | SemVer, default `1.0.0` |
-| `description` | string | Adapter description |
-| `checksum` | string | SHA-256 or BLAKE3 hash |
-| `checksumAlgorithm` | string | `sha256` (default) or `blake3` |
-| `weightsFormat` | string | `safetensors`, `npz`, `json`, `binary` |
-| `weightsPath` | string | Path/URL to weight file |
-| `weightsSize` | number | Size in bytes |
-| `tensors` | array | Inline tensor specs (see below) |
-| `metadata` | object | Arbitrary metadata |
-
----
-
-## Tensor Entries
-
-Inline tensors are provided as objects in `tensors`. Each tensor must include
-`name` and `shape`, and must have data in one of `data`, `base64`, `opfsPath`,
-or `url`.
-
-```json
-{
-  "name": "layers.0.q_proj.lora_a",
-  "shape": [4096, 16],
-  "dtype": "f32",
-  "base64": "..."
-}
-```
-
-| Field | Type | Notes |
-|-------|------|-------|
-| `name` | string | `layers.<idx>.<module>.lora_a|lora_b` |
-| `shape` | number[] | 2D tensor shape |
-| `dtype` | string | `f32`, `f16`, or `bf16` |
-| `data` | number[] | Inline float data |
-| `base64` | string | Base64-encoded buffer |
-| `opfsPath` | string | Path in OPFS |
-| `url` | string | URL to tensor data |
-
-The loader normalizes module names using `LORA_MODULE_ALIASES` and skips
-unknown tensors.
-
----
-
-## Loading
-
-Adapters are loaded via the adapter loader:
-
-```javascript
-import { loadLoRAFromUrl } from './adapters/lora-loader.js';
-
-const adapter = await loadLoRAFromUrl('https://.../adapter.json');
-```
-
-Checksum verification runs when `checksum` is present and `skipVerify` is not
-set in loader options.

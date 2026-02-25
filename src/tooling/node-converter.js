@@ -1,0 +1,911 @@
+import fs from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+import { installNodeFileFetchShim } from './node-file-fetch.js';
+import { NodeConvertWorkerPool } from './node-convert-worker-pool.js';
+import { isPlainObject } from '../utils/plain-object.js';
+import { selectRuleValue } from '../rules/rule-registry.js';
+
+const MB = 1024 * 1024;
+
+const DEFAULT_CONVERT_EXECUTION_CONFIG = {
+  workers: 8,
+  workerCountPolicy: 'cap',
+  rowChunkRows: null,
+  rowChunkMinTensorBytes: 128 * MB,
+  maxInFlightJobs: null,
+};
+
+function asPositiveInteger(value, label) {
+  if (!Number.isInteger(value) || value < 1) {
+    throw new Error(`node convert: ${label} must be a positive integer.`);
+  }
+  return value;
+}
+
+function normalizeExecutionConfig(value) {
+  if (value == null) {
+    return { ...DEFAULT_CONVERT_EXECUTION_CONFIG };
+  }
+  if (!isPlainObject(value)) {
+    throw new Error('node convert: execution must be an object when provided.');
+  }
+  const workers = value.workers == null
+    ? DEFAULT_CONVERT_EXECUTION_CONFIG.workers
+    : asPositiveInteger(Number(value.workers), 'execution.workers');
+  const workerCountPolicyRaw = value.workerCountPolicy == null
+    ? DEFAULT_CONVERT_EXECUTION_CONFIG.workerCountPolicy
+    : String(value.workerCountPolicy).trim().toLowerCase();
+  if (workerCountPolicyRaw !== 'cap' && workerCountPolicyRaw !== 'error') {
+    throw new Error('node convert: execution.workerCountPolicy must be "cap" or "error".');
+  }
+  const rowChunkRows = value.rowChunkRows == null
+    ? DEFAULT_CONVERT_EXECUTION_CONFIG.rowChunkRows
+    : asPositiveInteger(Number(value.rowChunkRows), 'execution.rowChunkRows');
+  const rowChunkMinTensorBytes = value.rowChunkMinTensorBytes == null
+    ? DEFAULT_CONVERT_EXECUTION_CONFIG.rowChunkMinTensorBytes
+    : asPositiveInteger(Number(value.rowChunkMinTensorBytes), 'execution.rowChunkMinTensorBytes');
+  const maxInFlightJobs = value.maxInFlightJobs == null
+    ? DEFAULT_CONVERT_EXECUTION_CONFIG.maxInFlightJobs
+    : asPositiveInteger(Number(value.maxInFlightJobs), 'execution.maxInFlightJobs');
+
+  return {
+    workers,
+    workerCountPolicy: workerCountPolicyRaw,
+    rowChunkRows,
+    rowChunkMinTensorBytes,
+    maxInFlightJobs,
+  };
+}
+
+function resolveHostParallelism() {
+  if (typeof os.availableParallelism === 'function') {
+    const value = os.availableParallelism();
+    if (Number.isInteger(value) && value > 0) return value;
+  }
+  const cpus = typeof os.cpus === 'function' ? os.cpus() : null;
+  return Array.isArray(cpus) && cpus.length > 0 ? cpus.length : 1;
+}
+
+function resolveExecutionPlan(executionConfig) {
+  const requestedWorkers = executionConfig.workers;
+  const availableWorkers = resolveHostParallelism();
+  if (executionConfig.workerCountPolicy === 'error' && requestedWorkers > availableWorkers) {
+    throw new Error(
+      `node convert: requested workers (${requestedWorkers}) exceed available CPU parallelism (${availableWorkers}).`
+    );
+  }
+
+  const effectiveWorkers = executionConfig.workerCountPolicy === 'cap'
+    ? Math.min(requestedWorkers, availableWorkers)
+    : requestedWorkers;
+
+  return {
+    ...executionConfig,
+    requestedWorkers,
+    availableWorkers,
+    effectiveWorkers: Math.max(1, effectiveWorkers),
+  };
+}
+
+function getDtypeBytes(dtype) {
+  const upper = String(dtype || '').toUpperCase();
+  if (upper === 'F32') return 4;
+  if (upper === 'F16' || upper === 'BF16') return 2;
+  return null;
+}
+
+function normalizeWorkerTransformResult(result, tensor) {
+  if (!result || !(result.tensorData instanceof Uint8Array)) {
+    throw new Error(`node convert: worker transform returned invalid bytes for ${tensor.name}.`);
+  }
+  return {
+    tensorData: result.tensorData,
+    outDtype: result.outDtype ?? tensor.dtype,
+    outLayout: result.outLayout ?? null,
+  };
+}
+
+async function mapWithConcurrency(items, concurrency, mapper) {
+  if (!Array.isArray(items) || items.length === 0) return [];
+  const workerCount = Math.max(1, Math.min(concurrency, items.length));
+  const results = new Array(items.length);
+  let nextIndex = 0;
+
+  const runners = Array.from({ length: workerCount }, async () => {
+    while (nextIndex < items.length) {
+      const index = nextIndex++;
+      results[index] = await mapper(items[index], index);
+    }
+  });
+  await Promise.all(runners);
+  return results;
+}
+
+
+function generateShardFilename(index) {
+  return `shard_${String(index).padStart(5, '0')}.bin`;
+}
+
+function assertPath(value, label) {
+  if (typeof value !== 'string' || !value.trim()) {
+    throw new Error(`node convert: ${label} is required.`);
+  }
+  return path.resolve(value);
+}
+
+function readOptionalNonEmptyString(value) {
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  return trimmed || null;
+}
+
+function resolveConfiguredModelId(explicitModelId, converterConfig) {
+  return (
+    readOptionalNonEmptyString(explicitModelId)
+    ?? readOptionalNonEmptyString(converterConfig?.output?.modelBaseId)
+  );
+}
+
+function resolveOutputDir(outputDirOverride, converterConfig, modelId) {
+  const override = readOptionalNonEmptyString(outputDirOverride);
+  if (override) {
+    return path.resolve(override);
+  }
+
+  const configuredDir = readOptionalNonEmptyString(converterConfig?.output?.dir);
+  if (configuredDir) {
+    return path.resolve(configuredDir);
+  }
+
+  const configuredBaseDir = readOptionalNonEmptyString(converterConfig?.output?.baseDir);
+  if (configuredBaseDir) {
+    if (!modelId) {
+      throw new Error(
+        'node convert: converterConfig.output.baseDir requires modelId. ' +
+        'Set converterConfig.output.modelBaseId or pass modelId.'
+      );
+    }
+    return path.resolve(configuredBaseDir, modelId);
+  }
+
+  throw new Error(
+    'node convert: outputDir is required. ' +
+    'Provide --output-dir, converterConfig.output.dir, or converterConfig.output.baseDir.'
+  );
+}
+
+function normalizeConverterConfigOverride(value) {
+  if (value == null) return null;
+  if (!isPlainObject(value)) {
+    throw new Error('node convert: converterConfig must be an object when provided.');
+  }
+  return value;
+}
+
+function isGgufPath(filePath) {
+  return String(filePath || '').toLowerCase().endsWith('.gguf');
+}
+
+async function getPathStats(targetPath, label) {
+  try {
+    return await fs.stat(targetPath);
+  } catch (error) {
+    if (error?.code === 'ENOENT') {
+      throw new Error(`node convert: ${label} does not exist: ${targetPath}`);
+    }
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`node convert: failed to stat ${label} "${targetPath}": ${message}`);
+  }
+}
+
+async function readOptionalJson(filePath) {
+  try {
+    const text = await fs.readFile(filePath, 'utf8');
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+}
+
+async function fileExists(filePath) {
+  try {
+    await fs.access(filePath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function resolveGgufPathFromDirectory(inputDir) {
+  const entries = await fs.readdir(inputDir, { withFileTypes: true });
+  const ggufFiles = entries
+    .filter((entry) => entry.isFile() && isGgufPath(entry.name))
+    .map((entry) => entry.name)
+    .sort((a, b) => a.localeCompare(b));
+
+  if (ggufFiles.length === 0) {
+    return null;
+  }
+  if (ggufFiles.length > 1) {
+    throw new Error(
+      `node convert: multiple GGUF files found in "${inputDir}": ${ggufFiles.join(', ')}. ` +
+      'Pass a .gguf file path directly.'
+    );
+  }
+  return path.join(inputDir, ggufFiles[0]);
+}
+
+async function readFileRange(filePath, offset, length) {
+  if (!Number.isFinite(offset) || !Number.isFinite(length) || length <= 0) {
+    return new ArrayBuffer(0);
+  }
+  const fd = await fs.open(filePath, 'r');
+  try {
+    const size = (await fd.stat()).size;
+    const start = Math.max(0, Math.floor(offset));
+    const end = Math.min(size, start + Math.floor(length));
+    if (end <= start) {
+      return new ArrayBuffer(0);
+    }
+    const out = Buffer.allocUnsafe(end - start);
+    await fd.read(out, 0, out.length, start);
+    return out.buffer.slice(out.byteOffset, out.byteOffset + out.byteLength);
+  } finally {
+    await fd.close();
+  }
+}
+
+async function readSafetensorsHeader(filePath, parseSafetensorsHeader) {
+  const fd = await fs.open(filePath, 'r');
+  try {
+    const sizeBuf = Buffer.allocUnsafe(8);
+    await fd.read(sizeBuf, 0, 8, 0);
+    const headerSize = Number(sizeBuf.readBigUInt64LE(0));
+    const fullHeader = Buffer.allocUnsafe(8 + headerSize);
+    await fd.read(fullHeader, 0, fullHeader.length, 0);
+    return parseSafetensorsHeader(
+      fullHeader.buffer.slice(fullHeader.byteOffset, fullHeader.byteOffset + fullHeader.byteLength)
+    );
+  } finally {
+    await fd.close();
+  }
+}
+
+async function listRelativeFiles(rootDir, relDir = '', out = []) {
+  const currentDir = relDir ? path.join(rootDir, relDir) : rootDir;
+  const entries = await fs.readdir(currentDir, { withFileTypes: true });
+  for (const entry of entries) {
+    const relPath = relDir ? `${relDir}/${entry.name}` : entry.name;
+    if (entry.isDirectory()) {
+      await listRelativeFiles(rootDir, relPath, out);
+      continue;
+    }
+    out.push(relPath.replace(/\\/g, '/'));
+  }
+  return out;
+}
+
+async function clearExistingShardFiles(outputDir) {
+  let entries;
+  try {
+    entries = await fs.readdir(outputDir, { withFileTypes: true });
+  } catch {
+    return;
+  }
+  const shardFiles = entries
+    .filter((entry) => entry.isFile() && /^shard_\d{5}\.bin$/i.test(entry.name))
+    .map((entry) => path.join(outputDir, entry.name));
+  if (shardFiles.length === 0) return;
+  await Promise.all(shardFiles.map((filePath) => fs.unlink(filePath)));
+}
+
+function createNodeConvertIO(outputDir, options) {
+  const hashAlgorithm = options?.hashAlgorithm;
+  const computeHash = options?.computeHash;
+  if (!hashAlgorithm || typeof hashAlgorithm !== 'string') {
+    throw new Error('node convert: hashAlgorithm is required.');
+  }
+  if (typeof computeHash !== 'function') {
+    throw new Error('node convert: computeHash(data, algorithm) is required.');
+  }
+  return {
+    async readTensorData(tensor) {
+      return readFileRange(tensor.sourcePath, tensor.offset, tensor.size);
+    },
+    async writeShard(index, data) {
+      const filename = generateShardFilename(index);
+      await fs.writeFile(path.join(outputDir, filename), data);
+      return computeHash(data, hashAlgorithm);
+    },
+    async writeManifest(manifest) {
+      await fs.writeFile(
+        path.join(outputDir, 'manifest.json'),
+        JSON.stringify(manifest, null, 2),
+        'utf8'
+      );
+    },
+  };
+}
+
+function toNodeProgress(update) {
+  if (!update) return null;
+  return {
+    stage: update.stage ?? null,
+    current: Number.isFinite(update.current) ? update.current : null,
+    total: Number.isFinite(update.total) ? update.total : null,
+    message: typeof update.message === 'string' ? update.message : null,
+    tensorName: typeof update.tensorName === 'string' ? update.tensorName : null,
+    tensorBytesCurrent: Number.isFinite(update.tensorBytesCurrent)
+      ? update.tensorBytesCurrent
+      : null,
+    tensorBytesTotal: Number.isFinite(update.tensorBytesTotal)
+      ? update.tensorBytesTotal
+      : null,
+  };
+}
+
+function normalizeTokenizerManifest(manifest) {
+  if (!manifest?.tokenizer) return manifest;
+  const tokenizer = manifest.tokenizer;
+  if (tokenizer.type === 'bundled' || tokenizer.type === 'huggingface') {
+    tokenizer.file = tokenizer.file ?? 'tokenizer.json';
+  }
+  if (tokenizer.type === 'sentencepiece') {
+    tokenizer.sentencepieceModel = tokenizer.sentencepieceModel ?? 'tokenizer.model';
+  }
+  return manifest;
+}
+
+function createNodeTensorTransformer(options) {
+  const pool = options?.pool;
+  const execution = options?.execution;
+  const transformTensorBytes = options?.transformTensorBytes;
+  const resolveTensorTargetQuant = options?.resolveTensorTargetQuant;
+  const normalizeStorageQuant = options?.normalizeStorageQuant;
+  const shouldQuantize = options?.shouldQuantize;
+
+  if (!pool || !execution || typeof transformTensorBytes !== 'function') {
+    throw new Error('node convert: invalid worker tensor transformer setup.');
+  }
+
+  return async function tensorTransformer(input) {
+    const tensor = input?.tensor;
+    const tensorData = input?.tensorData;
+    const transformContext = input?.transformContext ?? {};
+    const reportProgress = typeof input?.reportProgress === 'function'
+      ? input.reportProgress
+      : null;
+
+    if (!tensor || !(tensorData instanceof Uint8Array)) {
+      throw new Error('node convert: invalid tensor transform input.');
+    }
+
+    const sourceDtype = String(tensor.dtype || '').toUpperCase();
+    const sourceQuant = normalizeStorageQuant(sourceDtype);
+    const tensorTargetQuant = resolveTensorTargetQuant(
+      tensor.name,
+      transformContext.targetQuant,
+      transformContext.quantizationInfo ?? null
+    );
+
+    const is2D = Array.isArray(tensor.shape) && tensor.shape.length === 2;
+    const rows = is2D ? tensor.shape[0] : 0;
+    const cols = is2D ? tensor.shape[1] : 0;
+    const sourceBytesPerElement = getDtypeBytes(sourceDtype);
+    const q4kLayout = String(transformContext.q4kLayout || 'row').trim().toLowerCase() === 'col'
+      ? 'col'
+      : 'row';
+    const canChunkRows = (
+      is2D
+      && rows > 0
+      && cols > 0
+      && sourceBytesPerElement != null
+      && sourceQuant !== 'q4k'
+      && tensorData.byteLength >= execution.rowChunkMinTensorBytes
+      && !(tensorTargetQuant === 'q4k' && q4kLayout === 'col')
+    );
+
+    const jobMode = selectRuleValue('converter', 'execution', 'jobMode', {
+      workers: execution.effectiveWorkers,
+      canChunkRows,
+    });
+
+    if (jobMode !== 'row_chunks' || !canChunkRows) {
+      const transformed = await pool.transformTensor(tensor, tensorData, transformContext);
+      const normalized = normalizeWorkerTransformResult(transformed, tensor);
+      reportProgress?.(tensorData.byteLength, tensorData.byteLength);
+      return normalized;
+    }
+
+    const rowChunkRows = execution.rowChunkRows
+      ?? selectRuleValue('converter', 'execution', 'rowChunkRows', {
+        workers: execution.effectiveWorkers,
+        canChunkRows,
+      });
+    if (!Number.isInteger(rowChunkRows) || rowChunkRows < 1) {
+      const transformed = await pool.transformTensor(tensor, tensorData, transformContext);
+      const normalized = normalizeWorkerTransformResult(transformed, tensor);
+      reportProgress?.(tensorData.byteLength, tensorData.byteLength);
+      return normalized;
+    }
+
+    const rowSourceBytes = cols * sourceBytesPerElement;
+    if (!Number.isInteger(rowSourceBytes) || rowSourceBytes < 1) {
+      const transformed = await pool.transformTensor(tensor, tensorData, transformContext);
+      const normalized = normalizeWorkerTransformResult(transformed, tensor);
+      reportProgress?.(tensorData.byteLength, tensorData.byteLength);
+      return normalized;
+    }
+
+    const forceQuantizeDecision = tensorTargetQuant === 'q4k'
+      ? shouldQuantize(tensor.name, tensor.shape, {
+        quantizeEmbeddings: Boolean(transformContext.quantizeEmbeddings),
+      })
+      : null;
+
+    const chunks = [];
+    for (let rowStart = 0; rowStart < rows; rowStart += rowChunkRows) {
+      const rowCount = Math.min(rowChunkRows, rows - rowStart);
+      const start = rowStart * rowSourceBytes;
+      const end = start + (rowCount * rowSourceBytes);
+      chunks.push({ rowStart, rowCount, start, end });
+    }
+
+    const maxInFlightJobs = execution.maxInFlightJobs
+      ?? selectRuleValue('converter', 'execution', 'maxInFlightJobs', {
+        workers: execution.effectiveWorkers,
+      });
+    const concurrency = Number.isInteger(maxInFlightJobs) && maxInFlightJobs > 0
+      ? maxInFlightJobs
+      : execution.effectiveWorkers;
+
+    let processedBytes = 0;
+    const chunkResults = await mapWithConcurrency(chunks, concurrency, async (chunk) => {
+      const chunkTensorData = tensorData.subarray(chunk.start, chunk.end);
+      const chunkTensor = {
+        ...tensor,
+        shape: [chunk.rowCount, cols],
+      };
+      const transformed = await pool.transformTensor(chunkTensor, chunkTensorData, {
+        ...transformContext,
+        forceQuantizeDecision,
+      });
+      const normalized = normalizeWorkerTransformResult(transformed, chunkTensor);
+      processedBytes += chunkTensorData.byteLength;
+      reportProgress?.(
+        Math.min(processedBytes, tensorData.byteLength),
+        tensorData.byteLength
+      );
+      return normalized;
+    });
+
+    if (chunkResults.length === 0) {
+      return transformTensorBytes(tensor, tensorData, transformContext);
+    }
+
+    const outDtype = chunkResults[0].outDtype ?? tensor.dtype;
+    const outLayout = chunkResults[0].outLayout ?? null;
+    for (const chunkResult of chunkResults) {
+      if ((chunkResult.outDtype ?? tensor.dtype) !== outDtype) {
+        throw new Error(`node convert: inconsistent chunk dtype for ${tensor.name}.`);
+      }
+      if ((chunkResult.outLayout ?? null) !== outLayout) {
+        throw new Error(`node convert: inconsistent chunk layout for ${tensor.name}.`);
+      }
+    }
+
+    const totalOutputBytes = chunkResults.reduce((sum, chunkResult) => (
+      sum + chunkResult.tensorData.byteLength
+    ), 0);
+    const combined = new Uint8Array(totalOutputBytes);
+    let outputOffset = 0;
+    for (const chunkResult of chunkResults) {
+      combined.set(chunkResult.tensorData, outputOffset);
+      outputOffset += chunkResult.tensorData.byteLength;
+    }
+
+    return {
+      tensorData: combined,
+      outDtype,
+      outLayout,
+    };
+  };
+}
+
+export async function convertSafetensorsDirectory(options) {
+  const inputDir = assertPath(options?.inputDir, 'inputDir');
+  const outputDirOverride = readOptionalNonEmptyString(options?.outputDir);
+  const converterConfigOverride = normalizeConverterConfigOverride(options?.converterConfig);
+  const onProgress = typeof options?.onProgress === 'function' ? options.onProgress : null;
+  const inputStats = await getPathStats(inputDir, 'inputDir');
+  const isInputDirectory = inputStats.isDirectory();
+  const inputGgufPath = (
+    inputStats.isFile() && isGgufPath(inputDir)
+      ? inputDir
+      : (isInputDirectory ? await resolveGgufPathFromDirectory(inputDir) : null)
+  );
+  const isInputGgufFile = Boolean(inputGgufPath);
+
+  installNodeFileFetchShim();
+
+  const [
+    { parseSafetensorsHeader },
+    { parseGGUFHeader },
+    {
+      convertModel,
+      extractArchitecture,
+      transformTensorBytes,
+      resolveTensorTargetQuant,
+      normalizeStorageQuant,
+      shouldQuantize,
+    },
+    { parseGGUFModel },
+    { resolveConversionPlan, inferSourceWeightQuantization, resolveConvertedModelId },
+    { parseDiffusionModel },
+    { parseTransformerModel },
+    { createConverterConfig, HEADER_READ_SIZE },
+    { computeHash },
+  ] = await Promise.all([
+    import('../formats/safetensors/types.js'),
+    import('../formats/gguf/types.js'),
+    import('../converter/core.js'),
+    import('../converter/parsers/gguf.js'),
+    import('../converter/conversion-plan.js'),
+    import('../converter/parsers/diffusion.js'),
+    import('../converter/parsers/transformer.js'),
+    import('../config/schema/index.js'),
+    import('../storage/shard-manager.js'),
+  ]);
+
+  const converterConfig = createConverterConfig(converterConfigOverride ?? undefined);
+  const executionConfig = normalizeExecutionConfig(options?.execution);
+  const executionPlan = resolveExecutionPlan(executionConfig);
+  const diffusionIndexPath = isInputDirectory ? path.join(inputDir, 'model_index.json') : null;
+  const isDiffusionInput = isInputDirectory && diffusionIndexPath ? await fileExists(diffusionIndexPath) : false;
+
+  let config = null;
+  let tensors = [];
+  let architectureHint = '';
+  let architecture = null;
+  let modelKind = 'transformer';
+  let sourceQuantization = null;
+  let tokenizerJson = null;
+  let tokenizerConfig = null;
+  let hasTokenizerModel = false;
+  let tokenizerModelPath = null;
+  let diffusionAuxFiles = [];
+
+  if (isDiffusionInput) {
+    const relativeFiles = await listRelativeFiles(inputDir);
+    const fileSet = new Set(relativeFiles);
+    const toArrayBuffer = (buffer) => (
+      buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength)
+    );
+    const parsedDiffusion = await parseDiffusionModel({
+      onProgress,
+      findExistingSuffix(suffixes) {
+        for (const suffix of suffixes || []) {
+          if (fileSet.has(suffix)) return suffix;
+        }
+        return null;
+      },
+      async readJson(suffix, label = 'json') {
+        if (!fileSet.has(suffix)) {
+          throw new Error(`Missing ${label} (${suffix})`);
+        }
+        const text = await fs.readFile(path.join(inputDir, suffix), 'utf8');
+        try {
+          return JSON.parse(text);
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          throw new Error(`Invalid JSON in ${label} (${suffix}): ${message}`);
+        }
+      },
+      async readText(suffix, label = 'text') {
+        if (!fileSet.has(suffix)) {
+          throw new Error(`Missing ${label} (${suffix})`);
+        }
+        return fs.readFile(path.join(inputDir, suffix), 'utf8');
+      },
+      async readBinary(suffix, label = 'binary') {
+        if (!fileSet.has(suffix)) {
+          throw new Error(`Missing ${label} (${suffix})`);
+        }
+        const bytes = await fs.readFile(path.join(inputDir, suffix));
+        return toArrayBuffer(bytes);
+      },
+      async parseSingleSafetensors(suffix) {
+        if (!fileSet.has(suffix)) {
+          throw new Error(`Missing safetensors file (${suffix})`);
+        }
+        const fullPath = path.join(inputDir, suffix);
+        const parsed = await readSafetensorsHeader(fullPath, parseSafetensorsHeader);
+        return {
+          tensors: parsed.tensors.map((tensor) => ({
+            ...tensor,
+            sourcePath: fullPath,
+          })),
+        };
+      },
+      async parseShardedSafetensors(indexSuffix, indexJson, componentId) {
+        const weightMap = indexJson?.weight_map || {};
+        const shardNames = Array.from(new Set(Object.values(weightMap)));
+        if (shardNames.length === 0) {
+          throw new Error(`No shards listed in ${componentId} index file`);
+        }
+        const baseDir = indexSuffix.includes('/')
+          ? indexSuffix.split('/').slice(0, -1).join('/')
+          : '';
+        const shardSuffixes = shardNames.map((name) => (baseDir ? `${baseDir}/${name}` : name));
+        const missing = shardSuffixes.filter((suffix) => !fileSet.has(suffix));
+        if (missing.length > 0) {
+          throw new Error(
+            `Missing shard files for ${componentId} (${shardSuffixes.length - missing.length}/${shardSuffixes.length} found)`
+          );
+        }
+        const tensorsOut = [];
+        for (const shardSuffix of shardSuffixes) {
+          const fullPath = path.join(inputDir, shardSuffix);
+          const parsed = await readSafetensorsHeader(fullPath, parseSafetensorsHeader);
+          for (const tensor of parsed.tensors) {
+            tensorsOut.push({
+              ...tensor,
+              sourcePath: fullPath,
+            });
+          }
+        }
+        return { tensors: tensorsOut };
+      },
+    });
+    config = parsedDiffusion.config;
+    tensors = parsedDiffusion.tensors;
+    architectureHint = 'diffusion';
+    modelKind = 'diffusion';
+    diffusionAuxFiles = parsedDiffusion.auxFiles ?? [];
+  } else if (isInputGgufFile) {
+    const ggufPath = inputGgufPath;
+    const ggufStats = await getPathStats(ggufPath, 'GGUF file');
+    const ggufSource = {
+      sourceType: 'node-file',
+      name: path.basename(ggufPath),
+      size: ggufStats.size,
+      file: {
+        name: path.basename(ggufPath),
+        size: ggufStats.size,
+      },
+      async readRange(offset, length) {
+        return readFileRange(ggufPath, offset, length);
+      },
+    };
+    const normalizeTensorSource = (input) => {
+      if (input && typeof input.readRange === 'function' && Number.isFinite(input.size)) {
+        return input;
+      }
+      return ggufSource;
+    };
+    const parseGGUFHeaderFromSource = async (source) => {
+      const resolved = normalizeTensorSource(source);
+      const readSize = Math.min(resolved.size, HEADER_READ_SIZE);
+      const buffer = await resolved.readRange(0, readSize);
+      const info = parseGGUFHeader(buffer);
+      return {
+        ...info,
+        fileSize: resolved.size,
+      };
+    };
+    const parsedGGUF = await parseGGUFModel({
+      file: ggufSource,
+      parseGGUFHeaderFromSource,
+      normalizeTensorSource,
+      onProgress(update) {
+        onProgress?.(toNodeProgress({
+          stage: update?.stage ?? 'parsing',
+          message: update?.message ?? null,
+        }));
+      },
+      signal: null,
+    });
+    config = parsedGGUF.config;
+    tensors = parsedGGUF.tensors.map((tensor) => ({
+      ...tensor,
+      sourcePath: ggufPath,
+    }));
+    architectureHint = parsedGGUF.architecture;
+    sourceQuantization = parsedGGUF.quantization ?? null;
+    architecture = extractArchitecture({}, parsedGGUF.config || {});
+  } else {
+    if (!isInputDirectory) {
+      throw new Error(
+        'node convert: inputDir must be a directory containing safetensors files or a .gguf file path.'
+      );
+    }
+    const parsedTransformer = await parseTransformerModel({
+      async readJson(suffix, label = 'json') {
+        const filePath = path.join(inputDir, suffix);
+        let text;
+        try {
+          text = await fs.readFile(filePath, 'utf8');
+        } catch (error) {
+          if (error?.code === 'ENOENT') {
+            throw new Error(`Missing ${label} (${suffix})`);
+          }
+          const message = error instanceof Error ? error.message : String(error);
+          throw new Error(`Failed to read ${label} (${suffix}): ${message}`);
+        }
+        try {
+          return JSON.parse(text);
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          throw new Error(`Invalid JSON in ${label} (${suffix}): ${message}`);
+        }
+      },
+      async fileExists(suffix) {
+        return fileExists(path.join(inputDir, suffix));
+      },
+      async loadSingleSafetensors(suffix) {
+        const filePath = path.join(inputDir, suffix);
+        const parsed = await readSafetensorsHeader(filePath, parseSafetensorsHeader);
+        return parsed.tensors.map((tensor) => ({
+          ...tensor,
+          sourcePath: filePath,
+        }));
+      },
+      async loadShardedSafetensors(indexJson) {
+        const shardFiles = [...new Set(Object.values(indexJson.weight_map || {}))];
+        const tensorsOut = [];
+        for (const shardFile of shardFiles) {
+          const shardPath = path.join(inputDir, shardFile);
+          const parsed = await readSafetensorsHeader(shardPath, parseSafetensorsHeader);
+          for (const tensor of parsed.tensors) {
+            tensorsOut.push({ ...tensor, sourcePath: shardPath });
+          }
+        }
+        return tensorsOut;
+      },
+    });
+    config = parsedTransformer.config;
+    tensors = parsedTransformer.tensors;
+    architectureHint = parsedTransformer.architectureHint;
+    architecture = extractArchitecture(config, null);
+    const tokenizerJsonPath = path.join(inputDir, 'tokenizer.json');
+    tokenizerModelPath = path.join(inputDir, 'tokenizer.model');
+    const tokenizerConfigPath = path.join(inputDir, 'tokenizer_config.json');
+    tokenizerJson = await readOptionalJson(tokenizerJsonPath);
+    tokenizerConfig = await readOptionalJson(tokenizerConfigPath);
+    hasTokenizerModel = await fileExists(tokenizerModelPath);
+  }
+
+  const weightOverride = converterConfig.quantization?.weights ?? null;
+  sourceQuantization = sourceQuantization || weightOverride || inferSourceWeightQuantization(tensors);
+  const plan = resolveConversionPlan({
+    rawConfig: config,
+    tensors,
+    converterConfig,
+    sourceQuantization,
+    modelKind,
+    architectureHint,
+    architectureConfig: architecture,
+    includePresetOverrideHint: modelKind === 'transformer',
+  });
+  const resolvedModelType = plan.modelType;
+  const targetQuantization = plan.manifestQuantization;
+  const quantizationInfo = plan.quantizationInfo;
+  const inference = plan.manifestInference;
+  const presetId = plan.presetId;
+  const explicitModelId = resolveConfiguredModelId(options?.modelId, converterConfig);
+  if (!explicitModelId) {
+    throw new Error(
+      'node convert: modelId is required. ' +
+      'Set converterConfig.output.modelBaseId.'
+    );
+  }
+  const modelId = resolveConvertedModelId({
+    explicitModelId,
+    converterConfig,
+    detectedModelId: explicitModelId,
+    quantizationInfo,
+  });
+  if (!modelId) {
+    throw new Error('node convert: failed to resolve modelId from converterConfig.output.modelBaseId.');
+  }
+  const outputDir = resolveOutputDir(outputDirOverride, converterConfig, modelId);
+
+  await fs.mkdir(outputDir, { recursive: true });
+  await clearExistingShardFiles(outputDir);
+
+  const model = {
+    name: path.basename(inputDir),
+    modelId,
+    tensors: tensors.map((tensor) => ({
+      name: tensor.name,
+      shape: tensor.shape,
+      dtype: tensor.dtype,
+      size: tensor.size,
+      offset: tensor.offset,
+      sourcePath: tensor.sourcePath,
+    })),
+    config,
+    architecture: architectureHint || 'unknown',
+    quantization: targetQuantization,
+    tokenizerJson,
+    tokenizerConfig,
+    tokenizerModel: hasTokenizerModel ? 'tokenizer.model' : null,
+  };
+
+  const io = createNodeConvertIO(outputDir, {
+    hashAlgorithm: converterConfig.manifest.hashAlgorithm,
+    computeHash,
+  });
+  const manifestArchitecture = modelKind === 'diffusion' ? 'diffusion' : architecture;
+  let workerPool = null;
+  let tensorTransformer = null;
+  let result = null;
+  try {
+    if (executionPlan.effectiveWorkers > 1) {
+      workerPool = new NodeConvertWorkerPool({ size: executionPlan.effectiveWorkers });
+      tensorTransformer = createNodeTensorTransformer({
+        pool: workerPool,
+        execution: executionPlan,
+        transformTensorBytes,
+        resolveTensorTargetQuant,
+        normalizeStorageQuant,
+        shouldQuantize,
+      });
+    }
+    onProgress?.(toNodeProgress({
+      stage: 'writing',
+      message: (
+        `Convert execution workers: requested=${executionPlan.requestedWorkers}, ` +
+        `effective=${executionPlan.effectiveWorkers}, available=${executionPlan.availableWorkers}`
+      ),
+    }));
+
+    result = await convertModel(model, io, {
+      modelId,
+      modelType: resolvedModelType,
+      quantization: targetQuantization,
+      quantizationInfo,
+      architecture: manifestArchitecture,
+      inference,
+      converterConfig,
+      tensorTransformer,
+      onProgress(update) {
+        onProgress?.(toNodeProgress(update));
+      },
+    });
+  } finally {
+    if (workerPool) {
+      await workerPool.close();
+    }
+  }
+
+  if (tokenizerJson) {
+    await fs.writeFile(path.join(outputDir, 'tokenizer.json'), JSON.stringify(tokenizerJson), 'utf8');
+  }
+  if (hasTokenizerModel && tokenizerModelPath) {
+    await fs.copyFile(tokenizerModelPath, path.join(outputDir, 'tokenizer.model'));
+  }
+  if (diffusionAuxFiles.length > 0) {
+    for (const asset of diffusionAuxFiles) {
+      const outPath = path.join(outputDir, asset.name);
+      if (typeof asset.data === 'string') {
+        await fs.writeFile(outPath, asset.data, 'utf8');
+      } else {
+        await fs.writeFile(outPath, Buffer.from(asset.data));
+      }
+    }
+  }
+
+  normalizeTokenizerManifest(result.manifest);
+  await io.writeManifest(result.manifest);
+
+  return {
+    manifest: result.manifest,
+    shardCount: result.shardCount,
+    tensorCount: result.tensorCount,
+    presetId,
+    modelType: resolvedModelType,
+    outputDir,
+  };
+}

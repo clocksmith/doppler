@@ -109,6 +109,15 @@ export function doMatmulRMSNormFused(
 ): Promise<Tensor>;
 
 /**
+ * Dtype cast helper that uses record variants when recorder is provided.
+ */
+export function doCast(
+  input: Tensor,
+  toDtype: 'f16' | 'f32',
+  recorder?: CommandRecorder
+): Promise<Tensor>;
+
+/**
  * Attention that uses record variant when recorder is provided.
  * Input is Tensor for dtype-aware processing.
  */

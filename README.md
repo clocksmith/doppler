@@ -1,6 +1,6 @@
 # Doppler.js
 
-**D**eterministic **O**n-device **P**rocessing for **P**refill, **L**oading, and **E**xecution **R**untime
+**D**eterministic **O**n-device **P**rocessing for **P**refill, **L**earning, and **E**xecution **R**untime
 
 **[Try it live](https://d4da.com)**
 
@@ -52,9 +52,17 @@ App (JS)                                     App (JS)
 
 Transformers.js wraps a C++-to-WASM compiled ONNX runtime that interprets an exported graph and generates GPU shaders at runtime from a generic op library.
 Models must be manually exported from PyTorch to ONNX format before they can run (maintained per-model by `onnx-community`).
-Doppler is JS end-to-end with prewritten WGSL kernels per operation (attention, RoPE, RMSNorm, FFN) — no graph interpreter, no WASM layer, no runtime shader generation.
+<<<<<<< HEAD
+
+Doppler is JS end-to-end with prewritten WGSL kernels per operation (attention, RoPE, RMSNorm, FFN), with no graph interpreter and no WASM runtime layer in the inference path.
+Some specialized paths still compile WGSL generated from templates/config at runtime (for example kernel tuning and router-specialized variants).
+
+=======
+Doppler is JS end-to-end with mostly prewritten WGSL kernels per operation (attention, RoPE, RMSNorm, FFN), with no graph interpreter and no WASM runtime layer in the inference path.
+Some specialized paths still compile WGSL generated from templates/config at runtime (for example kernel tuning and router-specialized variants).
+>>>>>>> 6080b5a (.)
 The RDRR format maps weight shards directly to GPU buffers, and conversion runs directly from SafeTensors or GGUF sources without an intermediate export step.
-Architecture-specific patterns like sliding/full attention windows are runtime config in Doppler, not frozen in an exported graph.
+Architecture-specific patterns like sliding/full attention windows are runtime config in Doppler, as opposed to frozen in an exported graph.
 
 ## Runtime architecture and boundaries
 
@@ -80,20 +88,37 @@ See [`docs/architecture.md`](docs/architecture.md) for full subsystem and bounda
 | `g3-p064-d064-t1-k32` | Doppler              |      **3184.7** |     675.7 |          **3860.4** |          323.65 |      **23.26** |
 | `g3-p064-d064-t1-k32` | Transformers.js (v4) |          4417.0 | **317.6** |              4734.5 |      **577.39** |          20.92 |
 
-Based on repeated apples-to-apples runs (3 greedy + 2 sampling), Doppler is faster on first-response latency and decode throughput, while Transformers.js (v4) is faster on TTFT and prefill throughput.
-Artifacts: `benchmarks/vendors/results/`.
+In the two workloads shown above, Doppler is faster on first-response latency and decode throughput, while Transformers.js (v4) is faster on TTFT and prefill throughput.
+Committed evidence:
+- chart artifact: `benchmarks/vendors/results/compare_1b_multi-workload_favorable_phases.svg`
+- committed compare fixture input: `benchmarks/vendors/fixtures/g3-p064-d064-t0-k1.compare.json`
+Local/generated compare outputs are written to `benchmarks/vendors/results/*.json` and are gitignored by policy.
 
 ### Reproduce
 
 ```bash
-node tools/compare-engines.js --mode compute --cache-mode warm --load-mode opfs --decode-profile parity --tjs-version 4 --model-id gemma-3-1b-it-f16-f32a --tjs-model onnx-community/gemma-3-1b-it-ONNX-GQA --workload <workload-id> --warmup 1 --runs 1 --seed 0 --save --save-dir benchmarks/vendors/results
+for workload in g3-p064-d064-t0-k1 g3-p064-d064-t1-k32; do
+  node tools/compare-engines.js \
+    --mode compute \
+    --load-mode opfs \
+    --decode-profile parity \
+    --tjs-version 4 \
+    --model-id gemma-3-1b-it-wf16-ef16-hf16 \
+    --tjs-model onnx-community/gemma-3-1b-it-ONNX-GQA \
+    --workload "$workload" \
+    --warmup 1 \
+    --runs 3 \
+    --seed 0 \
+    --save \
+    --save-dir benchmarks/vendors/results
+done
 ```
 
 ## Getting started
 
 See [`docs/setup-instructions.md`](docs/setup-instructions.md) for install, conversion, and run guides.
 For contribution workflow, see [`docs/contributing.md`](docs/contributing.md).
-For disclosure and community policies, see [`SECURITY.md`](SECURITY.md) and [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md).
+For disclosure and community policies, see [`SECURITY.md`](SECURITY.md).
 
 ## Glossary
 

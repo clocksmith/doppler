@@ -1,6 +1,11 @@
 {
+  "id": "modes/embedding",
   "name": "embedding",
   "description": "Embedding-focused runtime preset tuned for stable finite vectors",
+  "intent": "investigate",
+  "stability": "canonical",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-02-25T00:00:00Z",
   "extends": "default",
   "runtime": {
     "shared": {
@@ -33,6 +38,16 @@
       "kvcache": {
         "maxSeqLen": 1024,
         "kvDtype": "f32"
+      },
+      "session": {
+        "compute": {
+          "defaults": {
+            "activationDtype": "f32"
+          }
+        },
+        "kvcache": {
+          "kvDtype": "f32"
+        }
       }
     }
   }

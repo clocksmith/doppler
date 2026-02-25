@@ -13,6 +13,13 @@ const execFileAsync = promisify(execFile);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DOPPLER_ROOT = path.resolve(__dirname, '..');
 const WORKLOADS_PATH = path.join(DOPPLER_ROOT, 'benchmarks', 'vendors', 'workloads.json');
+const WORKLOADS_SCHEMA_PATH = path.join(
+  DOPPLER_ROOT,
+  'benchmarks',
+  'vendors',
+  'schema',
+  'workloads.schema.json',
+);
 const COMPARE_ENGINES_CONFIG_PATH = path.join(
   DOPPLER_ROOT,
   'benchmarks',
@@ -67,9 +74,6 @@ const TJS_HARNESS_PATH = path.join(
   'transformersjs.json',
 );
 
-const DEFAULT_DOPPLER_MODEL = 'gemma-3-1b-it-f16-f32a';
-const DEFAULT_TJS_MODEL = 'onnx-community/gemma-3-1b-it-ONNX-GQA';
-const FALLBACK_DEFAULT_WORKLOAD_ID = 'g3-p064-d064-t0-k1';
 const DEFAULT_PROMPT = 'word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 word30 word31';
 const DEFAULT_MAX_TOKENS = 64;
 const DEFAULT_WARMUP = 1;
@@ -77,7 +81,7 @@ const DEFAULT_RUNS = 3;
 const DEFAULT_SEED = 0;
 const DEFAULT_SHARED_SAMPLING = Object.freeze({
   temperature: 0,
-  topK: 32,
+  topK: 1,
   topP: 1,
 });
 const DEFAULT_BENCHMARK_POLICY = Object.freeze({
@@ -123,7 +127,7 @@ const DEFAULT_BENCHMARK_POLICY = Object.freeze({
   }),
   kernelPathPolicy: Object.freeze({
     knownBadByModel: Object.freeze({
-      'gemma-3-270m-it-f16-f32a': Object.freeze(['gemma3-f16-fused-f16a-online']),
+      'gemma-3-270m-it-wf16-ef16-hf16': Object.freeze(['gemma3-f16-fused-f16a-online']),
     }),
   }),
 });
@@ -296,9 +300,9 @@ function usage() {
     '',
     'Common options:',
     '  --help, -h                    Show this help text',
-    '  --model-id <id>               Doppler model ID (default: gemma-3-1b-it-f16-f32a)',
+    '  --model-id <id>               Doppler model ID (default: first profile in compare-engines.config.json)',
     '  --model-url <url>             Doppler model URL path (default: /models/local/<model-id>)',
-    '  --tjs-model <id>              TJS model ID (default: onnx-community/gemma-3-1b-it-ONNX-GQA)',
+    '  --tjs-model <id>              Transformers.js model ID (default: profile mapping in compare-engines.config.json)',
     '  --tjs-version <3|4>           Transformers.js version (default: 4)',
     '  --tjs-dtype <fp16|q4|q4f16>   Transformers.js dtype (default: fp16)',
     '  --workload <id>               Shared workload id from benchmarks/vendors/workloads.json',
@@ -335,6 +339,7 @@ function usage() {
     '  --tjs-browser-console             Stream browser console on TJS failures/retries',
     '  --save                           Save results to benchmarks/vendors/results/',
     '  --save-dir <dir>                 Directory for saved results (default: ./benchmarks/vendors/results)',
+    '  --skip-matrix-update             Skip automatic vendor release-matrix refresh when --save is enabled',
     '  --json                           JSON-only output',
     '',
     'See these usage lines for the full authoritative option list.',
@@ -719,6 +724,7 @@ function buildSyntheticPrompt(prefillTokens) {
 async function loadWorkloadCatalog() {
   const raw = await fs.readFile(WORKLOADS_PATH, 'utf-8');
   const payload = JSON.parse(raw);
+  await assertMatchesSchema(payload, WORKLOADS_SCHEMA_PATH, `workload catalog ${WORKLOADS_PATH}`);
   const rows = Array.isArray(payload?.workloads) ? payload.workloads : [];
   const configuredDefault = payload?.defaults?.compareEngines;
   return {
@@ -736,6 +742,19 @@ function resolveWorkloadById(workloadCatalog, workloadId) {
     throw new Error(`Unknown workload "${workloadId}". Available: ${rows.map((row) => row.id).join(', ')}`);
   }
   return selected;
+}
+
+function resolveDefaultDopplerModelId(compareConfig) {
+  const firstProfile = Array.isArray(compareConfig?.profiles) ? compareConfig.profiles[0] : null;
+  const modelId = typeof firstProfile?.dopplerModelId === 'string'
+    ? firstProfile.dopplerModelId.trim()
+    : '';
+  if (!modelId) {
+    throw new Error(
+      'compare-engines.config.json must include at least one modelProfiles entry with dopplerModelId'
+    );
+  }
+  return modelId;
 }
 
 async function loadCompareEnginesConfig(rawPath) {
@@ -861,6 +880,22 @@ function hashText(input) {
   return crypto.createHash('sha256').update(input).digest('hex');
 }
 
+const DTYPE_PATTERN = /^(f\d+a?|q\d+[a-z]*|bf16|fp16|fp32|int[48])$/i;
+
+function parseDopplerDtype(modelId) {
+  if (!modelId) return null;
+  const parts = modelId.split('-');
+  const dtypes = [];
+  for (let i = parts.length - 1; i >= 0; i--) {
+    if (DTYPE_PATTERN.test(parts[i])) {
+      dtypes.unshift(parts[i].toUpperCase());
+    } else {
+      break;
+    }
+  }
+  return dtypes.length > 0 ? dtypes.join('/') : null;
+}
+
 function parseRuntimeConfigJson(raw) {
   if (raw == null) return null;
   const parsed = (() => {
@@ -953,6 +988,7 @@ function parseArgs(argv) {
       || key === 'doppler-no-opfs-cache'
       || key === 'tjs-browser-console'
       || key === 'use-chat-template'
+      || key === 'skip-matrix-update'
       || key === 'help'
       || key === 'h'
     ) {
@@ -1216,7 +1252,7 @@ async function runTjs(modelId, sharedContract, cacheMode, tjsVersion, localModel
 
 function resolveMetric(result, definition, engine) {
   if (definition == null || typeof definition !== 'object') return null;
-  const metricEngine = engine === 'tjs' ? 'transformersjs' : engine;
+  const metricEngine = engine;
   if (definition.derived != null) {
     const spec = definition.derived[metricEngine];
     if (spec != null) {
@@ -1386,10 +1422,10 @@ function buildCorrectnessReport(dopplerResult, tjsResult, prompt) {
       reason: 'engine-run-failed',
       engines: {
         doppler: dopplerFailed ? (dopplerResult?.error?.message || 'failed') : null,
-        tjs: tjsFailed ? (tjsResult?.error?.message || 'failed') : null,
+        transformersjs: tjsFailed ? (tjsResult?.error?.message || 'failed') : null,
       },
       doppler: dopplerText,
-      tjs: tjsText,
+      transformersjs: tjsText,
       exactMatch: null,
       normalizedMatch: null,
     };
@@ -1400,7 +1436,7 @@ function buildCorrectnessReport(dopplerResult, tjsResult, prompt) {
       status: 'unavailable',
       reason: 'missing-generated-text',
       doppler: dopplerText,
-      tjs: tjsText,
+      transformersjs: tjsText,
       exactMatch: null,
       normalizedMatch: null,
     };
@@ -1418,7 +1454,7 @@ function buildCorrectnessReport(dopplerResult, tjsResult, prompt) {
     prompt: typeof prompt === 'string' ? prompt.slice(0, 120) : null,
     status,
     doppler: dopplerText,
-    tjs: tjsText,
+    transformersjs: tjsText,
     exactMatch,
     normalizedMatch,
     charMismatchIndex,
@@ -1484,7 +1520,7 @@ function printSection(title, dopplerResult, tjsResult, rows) {
   console.log(`  ${''.padEnd(20)} ${'Doppler'.padStart(14)} ${'TJS'.padStart(14)} ${'delta'.padStart(18)}`);
   for (const row of rows) {
     const dVal = resolveMetric(dopplerResult, row, 'doppler');
-    const tVal = resolveMetric(tjsResult, row, 'tjs');
+    const tVal = resolveMetric(tjsResult, row, 'transformersjs');
     printRow(row.label, dVal, tVal, row.unit, row.higherBetter);
   }
 }
@@ -1502,7 +1538,10 @@ async function main() {
     return;
   }
   const workloadCatalog = await loadWorkloadCatalog();
-  const defaultWorkloadId = workloadCatalog.defaultWorkloadId ?? FALLBACK_DEFAULT_WORKLOAD_ID;
+  const defaultWorkloadId = workloadCatalog.defaultWorkloadId;
+  if (!defaultWorkloadId) {
+    throw new Error('workloads.json defaults.compareEngines is required for compare-engines defaults');
+  }
   resolveWorkloadById(workloadCatalog, defaultWorkloadId);
   const useDefaultWorkload = flags.workload == null
     && flags.prompt == null
@@ -1525,8 +1564,9 @@ async function main() {
     || (Number.isFinite(prefillTokenTarget) ? buildSyntheticPrompt(prefillTokenTarget) : DEFAULT_PROMPT);
   const maxTokensInput = flags['max-tokens'] ?? workload?.decodeTokens ?? DEFAULT_MAX_TOKENS;
 
-  const dopplerModelId = flags['model-id'] || DEFAULT_DOPPLER_MODEL;
   const compareProfileConfig = await loadCompareEnginesConfig(flags['compare-config']);
+  const defaultDopplerModelId = resolveDefaultDopplerModelId(compareProfileConfig);
+  const dopplerModelId = flags['model-id'] || defaultDopplerModelId;
   const compareProfile = resolveCompareProfile(compareProfileConfig, dopplerModelId);
   const dopplerModelBaseDir = compareProfile.modelBaseDir || 'local';
   const compareMetricContractConfig = await loadCompareMetricContract(flags['compare-metric-contract']);
@@ -1549,9 +1589,15 @@ async function main() {
   assertHarnessRequiredMetricCoverage(tjsHarnessMetricPaths, requiredMetricIds, 'transformersjs');
 
   const dopplerModelUrl = flags['model-url'] || `/models/${dopplerModelBaseDir}/${dopplerModelId}`;
-  const resolvedDefaultTjsModel = compareProfile.defaultTjsModelId || DEFAULT_TJS_MODEL;
+  const resolvedDefaultTjsModel = compareProfile.defaultTjsModelId || null;
   const tjsModelOverridden = flags['tjs-model'] != null;
   const tjsModelId = flags['tjs-model'] || resolvedDefaultTjsModel;
+  if (!tjsModelId) {
+    throw new Error(
+      `No default Transformers.js model mapping for "${dopplerModelId}". `
+      + 'Set defaultTjsModelId in compare-engines.config.json or pass --tjs-model.'
+    );
+  }
   const tjsLocalModelPath = flags['tjs-local-model-path'] || null;
   const tjsVersion = flags['tjs-version'] || '4';
   const tjsDtype = parseChoice(flags['tjs-dtype'], ['fp16', 'q4', 'q4f16'], '--tjs-dtype', 'fp16');
@@ -1647,6 +1693,7 @@ async function main() {
     : hashJsonPayload(runtimeConfigOverride);
   const jsonOutput = flags.json === true;
   const shouldSave = flags.save === true;
+  const skipMatrixUpdate = flags['skip-matrix-update'] === true;
   const saveDir = flags['save-dir'] || path.join(DOPPLER_ROOT, 'benchmarks', 'vendors', 'results');
 
   const validModes = ['compute', 'cold', 'warm', 'all'];
@@ -1730,6 +1777,7 @@ async function main() {
       compareProfileSchemaVersion: compareProfileConfig.schemaVersion ?? DEFAULT_COMPARE_CONFIG_SCHEMA_VERSION,
     },
     dopplerModelId,
+    dopplerDtype: parseDopplerDtype(dopplerModelId),
     dopplerKernelPath: dopplerKernelPath ?? 'manifest-default',
     dopplerKernelPathSource: dopplerKernelResolution.source,
     decodeProfile,
@@ -1737,7 +1785,7 @@ async function main() {
     dopplerReadbackInterval,
     dopplerTokensPerReadback,
     tjsModelId,
-    tjsDtype,
+    transformersjsDtype: tjsDtype,
     mode,
     prompt,
     maxTokens,
@@ -1748,6 +1796,17 @@ async function main() {
       id: workloadId,
       prefillTokenTarget: prefillTokenTarget ?? null,
       decodeTokenTarget: maxTokens,
+    },
+    environment: {
+      host: {
+        platform: process.platform,
+        arch: process.arch,
+        nodeVersion: process.version,
+      },
+      browser: {
+        executable: browserExecutable || null,
+        baseUrl: browserBaseUrl || null,
+      },
     },
     timeoutMs: compareSharedTimeoutMs ?? compareDopplerTimeoutMs,
     dopplerTimeoutMs: compareDopplerTimeoutMs,
@@ -1876,8 +1935,8 @@ async function main() {
     );
 
     report.sections.compute = {
-      parity: { doppler: dopplerComputeParity, tjs: tjsCompute },
-      throughput: { doppler: dopplerComputeThroughput, tjs: tjsCompute },
+      parity: { doppler: dopplerComputeParity, transformersjs: tjsCompute },
+      throughput: { doppler: dopplerComputeThroughput, transformersjs: tjsCompute },
     };
     report.correctness = buildCorrectnessReport(dopplerComputeParity, tjsCompute, sharedContract.prompt);
   }
@@ -1934,7 +1993,7 @@ async function main() {
       'TJS'
     );
 
-    report.sections.warm = { doppler: dopplerWarm, tjs: tjsWarm };
+    report.sections.warm = { doppler: dopplerWarm, transformersjs: tjsWarm };
   }
 
   if (needCold) {
@@ -1989,7 +2048,7 @@ async function main() {
       'TJS'
     );
 
-    report.sections.cold = { doppler: dopplerCold, tjs: tjsCold };
+    report.sections.cold = { doppler: dopplerCold, transformersjs: tjsCold };
   }
 
   if (jsonOutput) {
@@ -2017,15 +2076,15 @@ async function main() {
       const truncate = (s, n) => typeof s === 'string' ? (s.length > n ? s.slice(0, n) + '…' : s) : '(unavailable)';
       console.log('\n=== CORRECTNESS (last compute run, parity cadence) ===');
       console.log(`  Doppler:   ${truncate(c.doppler, 200)}`);
-      console.log(`  TJS:       ${truncate(c.tjs, 200)}`);
+      console.log(`  TJS:       ${truncate(c.transformersjs, 200)}`);
       if (c.status === 'unavailable') {
         const reason = c.reason || 'unavailable';
         console.log(`  Match:     unavailable (${reason})`);
         if (c.engines?.doppler) {
           console.log(`  Doppler error: ${truncate(c.engines.doppler, 200)}`);
         }
-        if (c.engines?.tjs) {
-          console.log(`  TJS error:     ${truncate(c.engines.tjs, 200)}`);
+        if (c.engines?.transformersjs) {
+          console.log(`  TJS error:     ${truncate(c.engines.transformersjs, 200)}`);
         }
       } else {
         const label = c.exactMatch
@@ -2054,9 +2113,22 @@ async function main() {
     const ts = compactTimestamp();
     const filename = `compare_${ts}.json`;
     const filePath = path.join(saveDir, filename);
+    const latestPath = path.join(saveDir, 'compare_latest.json');
     await fs.writeFile(filePath, JSON.stringify(report, null, 2), 'utf-8');
-    await fs.writeFile(path.join(saveDir, 'compare_latest.json'), JSON.stringify(report, null, 2), 'utf-8');
+    await fs.writeFile(latestPath, JSON.stringify(report, null, 2), 'utf-8');
     console.error(`[compare] saved to ${filePath}`);
+    if (!skipMatrixUpdate) {
+      const matrixArgs = [
+        path.join(DOPPLER_ROOT, 'tools', 'vendor-bench.js'),
+        'matrix',
+      ];
+      await execFileAsync('node', matrixArgs, {
+        cwd: DOPPLER_ROOT,
+        timeout: 120_000,
+        maxBuffer: 10 * 1024 * 1024,
+      });
+      console.error('[compare] refreshed release matrix artifacts (committed fixtures only by default)');
+    }
   }
 }
 

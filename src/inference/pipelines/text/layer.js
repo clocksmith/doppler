@@ -7,6 +7,7 @@ import { allowReadback } from '../../../gpu/perf-guards.js';
 import { createTensor } from '../../../gpu/tensor.js';
 import {
   doAttention, doRMSNorm, doResidualAdd,
+  doCast,
   releaseOrTrack
 } from './ops.js';
 import {
@@ -16,7 +17,7 @@ import {
 import { getWeightBuffer, getNormWeightBuffer } from './weights.js';
 import { logLayer, logAttn, getBufferStats, isKernelDebugEnabled, dumpTokenVector, logKernelStep, shouldDebugLayerOutput } from './debug-utils.js';
 import { runProbes } from './probes.js';
-import { getLayerPlanSteps } from './layer-plan.js';
+import { getLayerPlanSteps, filterLayerPlanStepsByPhase } from './layer-plan.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { recordCheckFiniteness } from '../../../gpu/kernels/check-finiteness.js';
 import { shouldRunFinitenessGuard } from './finiteness-policy.js';
@@ -378,12 +379,14 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
     throw new Error('Layer pipeline plan missing from context');
   }
 
-  const steps = getLayerPlanSteps(context.pipelinePlan, layerIdx);
+  const planSteps = getLayerPlanSteps(context.pipelinePlan, layerIdx);
+  const steps = filterLayerPlanStepsByPhase(planSteps, isPrefill);
   const device = getDevice();
   if (!device) throw new Error('No GPU device available');
 
   const layerType = config.layerTypes?.[layerIdx];
   const isLocalLayer = isSlidingLayerType(layerType);
+  const activationDtype = resolveActivationDtype(context.activationDtype);
 
   const attnState = {
     ropeFreqsCos: (isLocalLayer && context.ropeLocalCos)
@@ -399,6 +402,7 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
 
 
   const slots = new Map();
+  const slotDtypes = new Map();
 
   const refCounts = new Map();
   const protectedBuffers = new Set([inputBuffer]);
@@ -432,13 +436,51 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
     return buf;
   };
 
-  const setSlot = (name, buf) => {
+  const getSlotDtype = (name) => {
+    const key = name.trim() || 'state';
+    return slotDtypes.get(key) ?? null;
+  };
+
+  const resolveStepInputDtype = (step, slotName) => {
+    const slotDtype = getSlotDtype(slotName) ?? resolveActivationDtype(context.activationDtype);
+    if (!step.inputDtype) {
+      return slotDtype;
+    }
+    const required = resolveActivationDtype(step.inputDtype);
+    if (slotDtype !== required) {
+      throw new Error(
+        `Layer pipeline dtype mismatch at L${layerIdx} step "${step.op}": ` +
+        `slot "${slotName}" is ${slotDtype} but step requires ${required}. ` +
+        'Insert an explicit cast step.'
+      );
+    }
+    return required;
+  };
+
+  const resolveStepOutputDtype = (step, actualOutputDtype) => {
+    if (!step.outputDtype) {
+      return actualOutputDtype;
+    }
+    const required = resolveActivationDtype(step.outputDtype);
+    if (actualOutputDtype !== required) {
+      throw new Error(
+        `Layer pipeline output dtype mismatch at L${layerIdx} step "${step.op}": ` +
+        `kernel produced ${actualOutputDtype} but step declares ${required}.`
+      );
+    }
+    return required;
+  };
+
+  const setSlot = (name, buf, dtype) => {
     const key = name.trim() || 'state';
     const prev = slots.get(key);
     if (prev && prev !== buf) {
       releaseRef(prev);
     }
     slots.set(key, buf);
+    if (dtype) {
+      slotDtypes.set(key, dtype);
+    }
     addRef(buf);
   };
 
@@ -447,10 +489,11 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
     const prev = slots.get(key);
     if (!prev) return;
     slots.delete(key);
+    slotDtypes.delete(key);
     releaseRef(prev);
   };
 
-  setSlot('state', inputBuffer);
+  setSlot('state', inputBuffer, activationDtype);
 
   const cleanupSlots = () => {
     for (const [name, buf] of slots) {
@@ -472,12 +515,14 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
       switch (step.op) {
         case 'save': {
           const src = getSlot(step.src);
-          setSlot((step.name), src);
+          const srcDtype = getSlotDtype(step.src) ?? resolveActivationDtype(context.activationDtype);
+          setSlot((step.name), src, srcDtype);
           break;
         }
         case 'load': {
           const src = getSlot((step.name));
-          setSlot(step.dst, src);
+          const srcDtype = getSlotDtype(step.name) ?? resolveActivationDtype(context.activationDtype);
+          setSlot(step.dst, src, srcDtype);
           break;
         }
         case 'attention': {
@@ -485,7 +530,7 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
           const residualBuf = step.residual ? getSlot(step.residual) : null;
 
 
-          const activationDtype = resolveActivationDtype(context.activationDtype);
+          const activationDtype = resolveStepInputDtype(step, step.src);
           const srcTensor = createTensor(srcBuf, activationDtype, [numTokens, hiddenSize], 'plan_attn_src');
           const residualTensor = (residualBuf && allowResidualFuse)
             ? createTensor(residualBuf, activationDtype, [numTokens, hiddenSize], 'plan_attn_residual')
@@ -509,11 +554,12 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
             queryPreAttnScalar: config.queryPreAttnScalar,
             queryKeyNorm: config.queryKeyNorm,
             causalAttention: config.causalAttention,
-            rmsNormWeightOffset: config.rmsNormWeightOffset,
-            tokenIds: context.currentTokenIds ?? null,
-            skipInputNorm: step.skipInputNorm === true,
-            kernelPath: context.kernelPath ?? null,
-          };
+    rmsNormWeightOffset: config.rmsNormWeightOffset,
+    tokenIds: context.currentTokenIds ?? null,
+    skipInputNorm: step.skipInputNorm === true,
+    activationDtype,
+    kernelPath: context.kernelPath ?? null,
+  };
 
           const result = await doAttention(
             srcTensor,
@@ -529,7 +575,8 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
             context.lora
           );
 
-          setSlot(step.dst, result.output.buffer);
+          const outputDtype = resolveStepOutputDtype(step, resolveActivationDtype(result.output.dtype));
+          setSlot(step.dst, result.output.buffer, outputDtype);
           if (step.probeStage) {
             await runProbes(step.probeStage, result.output.buffer, {
               layerIdx,
@@ -550,7 +597,7 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
           const normWeightBuf = getNormWeightBuffer(weight, `rmsnorm_${step.weight}`, weightConfig, debugFlags);
           const residualBuf = step.residual ? getSlot(step.residual) : null;
 
-          const activationDtype = resolveActivationDtype(context.activationDtype);
+          const activationDtype = resolveStepInputDtype(step, step.src);
           const srcTensor = createTensor(srcBuf, activationDtype, [numTokens, hiddenSize], 'plan_rmsnorm_src');
           const residualTensor = residualBuf ? createTensor(residualBuf, activationDtype, [numTokens, hiddenSize], 'plan_rmsnorm_residual') : null;
           const outputTensor = await doRMSNorm(srcTensor, normWeightBuf, rmsNormEps, {
@@ -562,7 +609,8 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
             rmsNormWeightOffset: weightConfig.rmsNormWeightOffset,
           }, recorder);
           if (!(weight instanceof GPUBuffer)) releaseOrTrack(recorder, normWeightBuf);
-          setSlot(step.dst, outputTensor.buffer);
+          const outputDtype = resolveStepOutputDtype(step, resolveActivationDtype(outputTensor.dtype));
+          setSlot(step.dst, outputTensor.buffer, outputDtype);
           if (step.probeStage) {
             await runProbes(step.probeStage, outputTensor.buffer, {
               layerIdx,
@@ -577,7 +625,7 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
         case 'ffn': {
           const srcBuf = getSlot(step.src);
 
-          const activationDtype = resolveActivationDtype(context.activationDtype);
+          const activationDtype = resolveStepInputDtype(step, step.src);
           const srcTensor = createTensor(srcBuf, activationDtype, [numTokens, hiddenSize], 'plan_ffn_src');
 
           let outputTensor;
@@ -595,7 +643,8 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
           } else {
             outputTensor = await runDenseFFNGPU(layerIdx, srcTensor, numTokens, context, layerWeights);
           }
-          setSlot(step.dst, outputTensor.buffer);
+          const outputDtype = resolveStepOutputDtype(step, resolveActivationDtype(outputTensor.dtype));
+          setSlot(step.dst, outputTensor.buffer, outputDtype);
           if (step.probeStage) {
             await runProbes(step.probeStage, outputTensor.buffer, {
               layerIdx,
@@ -611,14 +660,41 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
           const aBuf = getSlot(step.a ?? 'state');
           const bBuf = getSlot(step.b ?? 'residual');
 
-          const activationDtype = resolveActivationDtype(context.activationDtype);
+          const activationDtype = resolveStepInputDtype(step, step.a ?? 'state');
           const aTensor = createTensor(aBuf, activationDtype, [numTokens, hiddenSize], 'plan_residual_a');
           const bTensor = createTensor(bBuf, activationDtype, [numTokens, hiddenSize], 'plan_residual_b');
           const outputTensor = await doResidualAdd(aTensor, bTensor, size, recorder, {
             label: `L${layerIdx}.residual_add`,
             layerIdx,
           });
-          setSlot(step.dst, outputTensor.buffer);
+          const outputDtype = resolveStepOutputDtype(step, resolveActivationDtype(outputTensor.dtype));
+          setSlot(step.dst, outputTensor.buffer, outputDtype);
+          if (step.probeStage) {
+            await runProbes(step.probeStage, outputTensor.buffer, {
+              layerIdx,
+              numTokens,
+              hiddenSize,
+              probes: context.debugProbes,
+              recorder,
+            });
+          }
+          break;
+        }
+        case 'cast': {
+          const srcBuf = getSlot(step.src);
+          const inputDtype = resolveStepInputDtype(step, step.src);
+          const srcTensor = createTensor(srcBuf, inputDtype, [numTokens, hiddenSize], 'plan_cast_src');
+          if (step.fromDtype) {
+            const expected = resolveActivationDtype(step.fromDtype);
+            if (inputDtype !== expected) {
+              throw new Error(
+                `Layer pipeline cast mismatch at L${layerIdx}: fromDtype=${expected}, actual=${inputDtype}`
+              );
+            }
+          }
+          const toDtype = resolveActivationDtype(step.toDtype);
+          const outputTensor = await doCast(srcTensor, toDtype, recorder);
+          setSlot(step.dst, outputTensor.buffer, toDtype);
           if (step.probeStage) {
             await runProbes(step.probeStage, outputTensor.buffer, {
               layerIdx,

@@ -128,6 +128,23 @@ function computeRoPEFreqsForTheta(theta, headDim, maxSeqLen, ropeScale, ropeScal
   return { cos: cosValues, sin: sinValues };
 }
 
+function isSameRoPEScalingConfig(
+  leftType,
+  leftScale,
+  leftScaling,
+  rightType,
+  rightScale,
+  rightScaling
+) {
+  if (leftType !== rightType) return false;
+  if (leftScale !== rightScale) return false;
+  if (leftType !== 'yarn') return true;
+  return (leftScaling?.beta_fast ?? null) === (rightScaling?.beta_fast ?? null)
+    && (leftScaling?.beta_slow ?? null) === (rightScaling?.beta_slow ?? null)
+    && (leftScaling?.original_max_position_embeddings ?? null)
+      === (rightScaling?.original_max_position_embeddings ?? null);
+}
+
 
 export async function initRoPEFrequencies(config, useGPU) {
   const {
@@ -136,15 +153,26 @@ export async function initRoPEFrequencies(config, useGPU) {
     ropeTheta,
     ropeLocalTheta,
     ropeScale,
+    ropeLocalScale,
     ropeScalingType,
+    ropeLocalScalingType,
     ropeScaling,
+    ropeLocalScaling,
   } = config;
   if (!Number.isFinite(ropeScale) || ropeScale <= 0) {
     throw new Error(`RoPE scale must be a positive number; got "${ropeScale}".`);
   }
+  const resolvedLocalScale = ropeLocalScale ?? ropeScale;
+  if (!Number.isFinite(resolvedLocalScale) || resolvedLocalScale <= 0) {
+    throw new Error(`Local RoPE scale must be a positive number; got "${resolvedLocalScale}".`);
+  }
+  const resolvedLocalTheta = ropeLocalTheta ?? ropeTheta;
+  const resolvedLocalScalingType = ropeLocalScalingType ?? ropeScalingType;
+  const resolvedLocalScaling = ropeLocalScaling ?? ropeScaling;
 
   const halfDim = headDim / 2;
   const isYarn = ropeScalingType === 'yarn';
+  const isLocalYarn = resolvedLocalScalingType === 'yarn';
 
   // Compute global (full_attention) frequencies
   const globalFreqs = computeRoPEFreqsForTheta(
@@ -155,16 +183,42 @@ export async function initRoPEFrequencies(config, useGPU) {
   // Models with dual RoPE use different theta for local vs global attention layers.
   
   let localFreqs = null;
-  if (ropeLocalTheta && ropeLocalTheta !== ropeTheta) {
+  const hasDistinctLocalTheta = resolvedLocalTheta !== ropeTheta;
+  const hasDistinctLocalScaling = !isSameRoPEScalingConfig(
+    ropeScalingType,
+    ropeScale,
+    ropeScaling,
+    resolvedLocalScalingType,
+    resolvedLocalScale,
+    resolvedLocalScaling
+  );
+  if (hasDistinctLocalTheta || hasDistinctLocalScaling) {
     localFreqs = computeRoPEFreqsForTheta(
-      ropeLocalTheta, headDim, maxSeqLen, ropeScale, ropeScalingType, ropeScaling
+      resolvedLocalTheta,
+      headDim,
+      maxSeqLen,
+      resolvedLocalScale,
+      resolvedLocalScalingType,
+      resolvedLocalScaling
     );
-    log.debug('Pipeline', `Dual RoPE: local theta=${ropeLocalTheta}, global theta=${ropeTheta}`);
+    log.debug(
+      'Pipeline',
+      `Dual RoPE: local theta=${resolvedLocalTheta}, global theta=${ropeTheta}, ` +
+      `localScaling=${resolvedLocalScalingType ?? 'none'}:${resolvedLocalScale}, ` +
+      `globalScaling=${ropeScalingType ?? 'none'}:${ropeScale}`
+    );
   }
 
   if (isYarn) {
     // Log YARN params (already validated in computeRoPEFreqs)
     log.debug('Pipeline', `YARN RoPE: factor=${ropeScaling?.factor}, beta_fast=${ropeScaling?.beta_fast}, beta_slow=${ropeScaling?.beta_slow}`);
+  }
+  if (isLocalYarn && hasDistinctLocalScaling) {
+    log.debug(
+      'Pipeline',
+      `Local YARN RoPE: factor=${resolvedLocalScaling?.factor}, ` +
+      `beta_fast=${resolvedLocalScaling?.beta_fast}, beta_slow=${resolvedLocalScaling?.beta_slow}`
+    );
   }
 
   // Upload to GPU if available
@@ -186,7 +240,12 @@ export async function initRoPEFrequencies(config, useGPU) {
       device.queue.writeBuffer(localSinBuffer, 0, localFreqs.sin.buffer, localFreqs.sin.byteOffset, localFreqs.sin.byteLength);
     }
 
-    log.debug('Pipeline', `RoPE frequencies initialized (GPU): ${maxSeqLen} positions, dim=${halfDim}, headDim=${headDim}, theta=${ropeTheta}${ropeLocalTheta ? `, localTheta=${ropeLocalTheta}` : ''}, scaling=${isYarn ? 'yarn' : 'linear'}`);
+    log.debug(
+      'Pipeline',
+      `RoPE frequencies initialized (GPU): ${maxSeqLen} positions, dim=${halfDim}, headDim=${headDim}, ` +
+      `theta=${ropeTheta}${hasDistinctLocalTheta ? `, localTheta=${resolvedLocalTheta}` : ''}, ` +
+      `scaling=${ropeScalingType ?? 'none'}:${ropeScale}${hasDistinctLocalScaling ? `, localScaling=${resolvedLocalScalingType ?? 'none'}:${resolvedLocalScale}` : ''}`
+    );
 
     return {
       cos: cosBuffer,
@@ -196,7 +255,12 @@ export async function initRoPEFrequencies(config, useGPU) {
     };
   }
 
-  log.debug('Pipeline', `RoPE frequencies initialized (CPU): ${maxSeqLen} positions, dim=${halfDim}, headDim=${headDim}, theta=${ropeTheta}${ropeLocalTheta ? `, localTheta=${ropeLocalTheta}` : ''}, scaling=${isYarn ? 'yarn' : 'linear'}`);
+  log.debug(
+    'Pipeline',
+    `RoPE frequencies initialized (CPU): ${maxSeqLen} positions, dim=${halfDim}, headDim=${headDim}, ` +
+    `theta=${ropeTheta}${hasDistinctLocalTheta ? `, localTheta=${resolvedLocalTheta}` : ''}, ` +
+    `scaling=${ropeScalingType ?? 'none'}:${ropeScale}${hasDistinctLocalScaling ? `, localScaling=${resolvedLocalScalingType ?? 'none'}:${resolvedLocalScale}` : ''}`
+  );
 
   return {
     cos: globalFreqs.cos,
@@ -337,16 +401,17 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig)
   }
 
   
-  const cacheConfig = {
-    numLayers: modelConfig.numLayers,
-    numHeads: modelConfig.numKVHeads,
-    headDim: modelConfig.headDim,
-    maxSeqLen: cacheMaxSeqLen,
-    useGPU,
-    layout: cacheLayout,
-    kvDtype,
-    pageSize: runtimeKV.pageSize,
-  };
+	  const cacheConfig = {
+	    numLayers: modelConfig.numLayers,
+	    numHeads: modelConfig.numKVHeads,
+	    headDim: modelConfig.headDim,
+	    maxSeqLen: cacheMaxSeqLen,
+	    useGPU,
+	    layout: cacheLayout,
+	    kvDtype,
+	    bdpaVocabSize: runtimeKV.bdpaVocabSize,
+	    pageSize: runtimeKV.pageSize,
+	  };
 
   
   let kvCache;
@@ -518,6 +583,13 @@ function applyChatMLTemplate(prompt) {
   return `<|im_start|>user\n${prompt}<|im_end|>\n<|im_start|>assistant\n`;
 }
 
+function applyTranslateGemmaTemplate() {
+  throw new Error(
+    'TranslateGemma template requires structured messages. ' +
+    'Use formatChatMessages(messages, "translategemma") instead of applyChatTemplate(prompt, ...).'
+  );
+}
+
 // Template type to formatter mapping.
 // Add new template types here rather than adding switch cases.
 const PROMPT_TEMPLATES = {
@@ -526,6 +598,7 @@ const PROMPT_TEMPLATES = {
   'gpt-oss': applyChannelBasedTemplate,
   'chatml': applyChatMLTemplate,
   'qwen': applyChatMLTemplate,  // Qwen uses ChatML format
+  'translategemma': applyTranslateGemmaTemplate,
 };
 
 export function applyChatTemplate(prompt, templateType) {

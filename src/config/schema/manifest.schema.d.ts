@@ -10,6 +10,10 @@
 import type { KernelPathRef } from './kernel-path.schema.js';
 import type { LayerPipelineSchema } from './inference.schema.js';
 import type { EnergyModelConfigSchema } from './energy.schema.js';
+import type {
+  ExecutionV0ConfigSchema,
+  ExecutionV0SessionDefaultsSchema,
+} from './execution-v0.schema.js';
 
 /** Supported hash algorithms */
 export type HashAlgorithm = 'sha256' | 'blake3';
@@ -209,12 +213,22 @@ export interface ManifestRoPESchema {
   ropeScalingType: string | null;
   /** RoPE scaling factor (1.0 if no scaling) */
   ropeScalingFactor: number;
+  /** Local RoPE scaling type for sliding window layers (null = no local scaling) */
+  ropeLocalScalingType: string | null;
+  /** Local RoPE scaling factor for sliding window layers (1.0 if no local scaling) */
+  ropeLocalScalingFactor: number;
   /** YARN beta_fast parameter (null if not YARN scaling) */
   yarnBetaFast: number | null;
   /** YARN beta_slow parameter (null if not YARN scaling) */
   yarnBetaSlow: number | null;
   /** YARN original max position embeddings (null if not YARN scaling) */
   yarnOriginalMaxPos: number | null;
+  /** Local YARN beta_fast parameter (null if not local YARN scaling) */
+  ropeLocalYarnBetaFast: number | null;
+  /** Local YARN beta_slow parameter (null if not local YARN scaling) */
+  ropeLocalYarnBetaSlow: number | null;
+  /** Local YARN original max position embeddings (null if not local YARN scaling) */
+  ropeLocalYarnOriginalMaxPos: number | null;
 }
 
 /**
@@ -254,7 +268,7 @@ export interface ManifestLayerPatternSchema {
  */
 export interface ManifestChatTemplateSchema {
   /** Chat template type (null = no chat template) */
-  type: 'gemma' | 'llama3' | 'gpt-oss' | 'chatml' | 'qwen' | null;
+  type: 'gemma' | 'llama3' | 'gpt-oss' | 'chatml' | 'qwen' | 'translategemma' | null;
   /** Whether chat template is enabled */
   enabled: boolean;
 }
@@ -265,6 +279,8 @@ export interface ManifestChatTemplateSchema {
  * Use `null` values to indicate "not applicable" or "disabled".
  */
 export interface ManifestInferenceSchema {
+  /** Execution contract discriminator (null = legacy inference contract). */
+  schema: string | null;
   /** Preset ID used during conversion (for config-first resolution) */
   presetId?: string | null;
   /** Attention configuration */
@@ -283,6 +299,10 @@ export interface ManifestInferenceSchema {
   chatTemplate: ManifestChatTemplateSchema;
   /** Layer pipeline override (null = use optimized hardcoded path) */
   pipeline: LayerPipelineSchema | null;
+  /** Session defaults for explicit execution v0 manifests */
+  sessionDefaults: ExecutionV0SessionDefaultsSchema | null;
+  /** Explicit execution graph v0 */
+  execution: ExecutionV0ConfigSchema['execution'] | null;
   /** Default kernel path for this model (null = no explicit path) */
   defaultKernelPath: string | null;
 }

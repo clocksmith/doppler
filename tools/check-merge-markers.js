@@ -19,7 +19,6 @@ const SEARCH_ROOTS = Object.freeze([
 
 const ALLOWED_EXTENSIONS = new Set([
   '.js',
-  '.mjs',
   '.cjs',
   '.d.ts',
   '.json',

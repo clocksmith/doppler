@@ -12,6 +12,10 @@ export interface RuntimeBridge {
   ) => Promise<void>;
   getRuntimeConfig: () => Record<string, unknown>;
   setRuntimeConfig: (runtimeConfig: Record<string, unknown> | null) => void;
+  getActiveKernelPath?: () => unknown;
+  getActiveKernelPathSource?: () => string;
+  getActiveKernelPathPolicy?: () => Record<string, unknown> | null;
+  setActiveKernelPath?: (path: unknown, source?: string, policy?: Record<string, unknown> | null) => void;
 }
 
 export declare function applyRuntimeInputs(

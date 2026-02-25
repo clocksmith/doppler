@@ -1,0 +1,1040 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Vendor Release Matrix",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "generatedAt",
+    "release",
+    "sources",
+    "summary",
+    "targets",
+    "modelCoverage",
+    "workloads",
+    "evidence"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "const": 1
+    },
+    "generatedAt": {
+      "type": "string"
+    },
+    "release": {
+      "type": "object",
+      "required": [
+        "channel",
+        "version",
+        "commitSha",
+        "dirty"
+      ],
+      "properties": {
+        "channel": {
+          "type": "string"
+        },
+        "version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "commitSha": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "dirty": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "sources": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "path",
+          "sha256",
+          "bytes",
+          "updated"
+        ],
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "sha256": {
+            "type": "string"
+          },
+          "bytes": {
+            "type": "integer"
+          },
+          "updated": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "targetCount",
+        "modelCoverageCount",
+        "compareProfileCount",
+        "catalogModelCount",
+        "workloadCount",
+        "committedChartCount",
+        "hasLatestCompareResult"
+      ],
+      "properties": {
+        "targetCount": {
+          "type": "integer"
+        },
+        "modelCoverageCount": {
+          "type": "integer"
+        },
+        "compareProfileCount": {
+          "type": "integer"
+        },
+        "catalogModelCount": {
+          "type": "integer"
+        },
+        "workloadCount": {
+          "type": "integer"
+        },
+        "committedChartCount": {
+          "type": "integer"
+        },
+        "hasLatestCompareResult": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "targets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "status",
+          "category",
+          "website",
+          "platformSupport",
+          "bench",
+          "profile",
+          "evidence"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "website": {
+            "type": "string"
+          },
+          "platformSupport": {
+            "type": "object",
+            "required": [
+              "browserWebgpu",
+              "nodeWebgpu",
+              "headlessBrowserHarness",
+              "cacheModeControl"
+            ],
+            "properties": {
+              "browserWebgpu": {
+                "type": "string"
+              },
+              "nodeWebgpu": {
+                "type": "string"
+              },
+              "headlessBrowserHarness": {
+                "type": "string"
+              },
+              "cacheModeControl": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          },
+          "bench": {
+            "type": "object",
+            "required": [
+              "enabledFeatures",
+              "totalFeatures",
+              "features"
+            ],
+            "properties": {
+              "enabledFeatures": {
+                "type": "integer"
+              },
+              "totalFeatures": {
+                "type": "integer"
+              },
+              "features": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string",
+                  "enum": [
+                    "supported",
+                    "unsupported",
+                    "unknown"
+                  ]
+                }
+              }
+            },
+            "additionalProperties": false
+          },
+          "profile": {
+            "type": "object",
+            "required": [
+              "enabledFeatures",
+              "totalFeatures",
+              "features"
+            ],
+            "properties": {
+              "enabledFeatures": {
+                "type": "integer"
+              },
+              "totalFeatures": {
+                "type": "integer"
+              },
+              "features": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string",
+                  "enum": [
+                    "supported",
+                    "unsupported",
+                    "unknown"
+                  ]
+                }
+              }
+            },
+            "additionalProperties": false
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "modelCoverage": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "dopplerModelId",
+          "dopplerModelBaseDir",
+          "defaultTjsModelId",
+          "defaultKernelPath",
+          "inCatalog",
+          "catalogLabel",
+          "catalogModes",
+          "catalogBaseUrl",
+          "catalogSizeBytes"
+        ],
+        "properties": {
+          "dopplerModelId": {
+            "type": "string"
+          },
+          "dopplerModelBaseDir": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "defaultTjsModelId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "defaultKernelPath": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "inCatalog": {
+            "type": "boolean"
+          },
+          "catalogLabel": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "catalogModes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "catalogBaseUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "catalogSizeBytes": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "workloads": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "prefillTokens",
+          "decodeTokens",
+          "sampling"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "prefillTokens": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "decodeTokens": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "sampling": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "temperature": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "topK": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "topP": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "temperature",
+              "topK",
+              "topP"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "required": [
+        "committedCharts",
+        "latestCompareResult"
+      ],
+      "properties": {
+        "committedCharts": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "latestCompareResult": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "required": [
+            "path",
+            "origin",
+            "timestamp",
+            "mode",
+            "section",
+            "decodeProfile",
+            "dopplerModelId",
+            "tjsModelId",
+            "dopplerKernelPath",
+            "workloadId",
+            "workload",
+            "environment",
+            "metrics"
+          ],
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "origin": {
+              "type": "string",
+              "enum": [
+                "fixture",
+                "local",
+                "explicit"
+              ]
+            },
+            "timestamp": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "mode": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "section": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "decodeProfile": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "dopplerModelId": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "tjsModelId": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "dopplerKernelPath": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "workloadId": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "workload": {
+              "type": [
+                "object",
+                "null"
+              ],
+              "required": [
+                "prefillTokenTarget",
+                "decodeTokenTarget"
+              ],
+              "properties": {
+                "prefillTokenTarget": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "decodeTokenTarget": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                }
+              },
+              "additionalProperties": false
+            },
+            "environment": {
+              "type": "object",
+              "required": [
+                "host",
+                "browser",
+                "gpu",
+                "engines"
+              ],
+              "properties": {
+                "host": {
+                  "type": "object",
+                  "required": [
+                    "platform",
+                    "arch",
+                    "nodeVersion"
+                  ],
+                  "properties": {
+                    "platform": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "arch": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "nodeVersion": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "browser": {
+                  "type": "object",
+                  "required": [
+                    "userAgent",
+                    "platform",
+                    "language",
+                    "vendor",
+                    "executable"
+                  ],
+                  "properties": {
+                    "userAgent": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "platform": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "language": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "vendor": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "executable": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "gpu": {
+                  "type": "object",
+                  "required": [
+                    "backend",
+                    "vendor",
+                    "architecture",
+                    "device",
+                    "description",
+                    "hasF16",
+                    "hasSubgroups",
+                    "hasTimestampQuery"
+                  ],
+                  "properties": {
+                    "backend": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "vendor": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "architecture": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "device": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "description": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "hasF16": {
+                      "type": [
+                        "boolean",
+                        "null"
+                      ]
+                    },
+                    "hasSubgroups": {
+                      "type": [
+                        "boolean",
+                        "null"
+                      ]
+                    },
+                    "hasTimestampQuery": {
+                      "type": [
+                        "boolean",
+                        "null"
+                      ]
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "engines": {
+                  "type": "object",
+                  "required": [
+                    "doppler",
+                    "transformersjs"
+                  ],
+                  "properties": {
+                    "doppler": {
+                      "type": "object",
+                      "required": [
+                        "library",
+                        "version",
+                        "surface",
+                        "runtime",
+                        "browser",
+                        "gpu"
+                      ],
+                      "properties": {
+                        "library": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "version": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "surface": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "runtime": {
+                          "type": "object",
+                          "required": [
+                            "device",
+                            "dtype",
+                            "requestedDtype",
+                            "executionProviderMode"
+                          ],
+                          "properties": {
+                            "device": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "dtype": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "requestedDtype": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "executionProviderMode": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "browser": {
+                          "type": "object",
+                          "required": [
+                            "userAgent",
+                            "platform",
+                            "language",
+                            "vendor",
+                            "executable"
+                          ],
+                          "properties": {
+                            "userAgent": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "platform": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "language": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "vendor": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "executable": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "gpu": {
+                          "type": "object",
+                          "required": [
+                            "backend",
+                            "vendor",
+                            "architecture",
+                            "device",
+                            "description",
+                            "hasF16",
+                            "hasSubgroups",
+                            "hasTimestampQuery"
+                          ],
+                          "properties": {
+                            "backend": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "vendor": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "architecture": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "device": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "description": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "hasF16": {
+                              "type": [
+                                "boolean",
+                                "null"
+                              ]
+                            },
+                            "hasSubgroups": {
+                              "type": [
+                                "boolean",
+                                "null"
+                              ]
+                            },
+                            "hasTimestampQuery": {
+                              "type": [
+                                "boolean",
+                                "null"
+                              ]
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "transformersjs": {
+                      "type": "object",
+                      "required": [
+                        "library",
+                        "version",
+                        "surface",
+                        "runtime",
+                        "browser",
+                        "gpu"
+                      ],
+                      "properties": {
+                        "library": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "version": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "surface": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "runtime": {
+                          "type": "object",
+                          "required": [
+                            "device",
+                            "dtype",
+                            "requestedDtype",
+                            "executionProviderMode"
+                          ],
+                          "properties": {
+                            "device": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "dtype": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "requestedDtype": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "executionProviderMode": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "browser": {
+                          "type": "object",
+                          "required": [
+                            "userAgent",
+                            "platform",
+                            "language",
+                            "vendor",
+                            "executable"
+                          ],
+                          "properties": {
+                            "userAgent": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "platform": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "language": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "vendor": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "executable": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "gpu": {
+                          "type": "object",
+                          "required": [
+                            "backend",
+                            "vendor",
+                            "architecture",
+                            "device",
+                            "description",
+                            "hasF16",
+                            "hasSubgroups",
+                            "hasTimestampQuery"
+                          ],
+                          "properties": {
+                            "backend": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "vendor": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "architecture": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "device": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "description": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "hasF16": {
+                              "type": [
+                                "boolean",
+                                "null"
+                              ]
+                            },
+                            "hasSubgroups": {
+                              "type": [
+                                "boolean",
+                                "null"
+                              ]
+                            },
+                            "hasTimestampQuery": {
+                              "type": [
+                                "boolean",
+                                "null"
+                              ]
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            },
+            "metrics": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "required": [
+                  "doppler",
+                  "transformersjs"
+                ],
+                "properties": {
+                  "doppler": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "transformersjs": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

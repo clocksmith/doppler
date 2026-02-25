@@ -21,12 +21,14 @@ export interface State {
   modelAvailability: {
     total: number;
     run: number;
+    translate: number;
     embedding: number;
     diffusion: number;
     energy: number;
   };
   modeModelId: {
     run: string | null;
+    translate: string | null;
     embedding: string | null;
     diffusion: string | null;
     energy: string | null;

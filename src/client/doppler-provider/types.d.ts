@@ -49,7 +49,7 @@ export interface GenerateOptions {
 
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
-  content: string;
+  content: string | Array<Record<string, unknown>>;
 }
 
 export interface ChatResponse {

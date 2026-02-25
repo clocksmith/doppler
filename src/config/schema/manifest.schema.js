@@ -36,6 +36,7 @@ export const DEFAULT_HIGH_PRECISION_EPS = 1e-6;
 // =============================================================================
 
 export const DEFAULT_MANIFEST_INFERENCE = {
+  schema: null,
   presetId: null,
   attention: {
     queryPreAttnScalar: 8,  // sqrt(64) for standard 64-dim heads
@@ -62,10 +63,16 @@ export const DEFAULT_MANIFEST_INFERENCE = {
     ropeLocalTheta: null,  // Same as ropeTheta (null = use ropeTheta)
     ropeScalingType: null,  // No scaling (null = disabled)
     ropeScalingFactor: 1.0,
+    ropeLocalScalingType: null,  // Local scaling policy (null = no scaling)
+    ropeLocalScalingFactor: 1.0,
     // YARN parameters - only relevant when ropeScalingType='yarn'
     yarnBetaFast: 32,
     yarnBetaSlow: 1,
     yarnOriginalMaxPos: 4096,
+    // Local YARN parameters - only relevant when ropeLocalScalingType='yarn'
+    ropeLocalYarnBetaFast: null,
+    ropeLocalYarnBetaSlow: null,
+    ropeLocalYarnOriginalMaxPos: null,
   },
   output: {
     finalLogitSoftcapping: null,  // No softcapping (null = disabled)
@@ -85,6 +92,8 @@ export const DEFAULT_MANIFEST_INFERENCE = {
     enabled: false,
   },
   pipeline: null,
+  sessionDefaults: null,
+  execution: null,
   defaultKernelPath: null,  // Use default kernel selection (null = no explicit path)
 };
 

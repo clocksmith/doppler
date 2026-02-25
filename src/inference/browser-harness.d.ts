@@ -87,6 +87,7 @@ export interface BrowserSuiteResult extends SuiteSummary {
   modelId?: string;
   timing?: BrowserSuiteTiming | null;
   metrics?: Record<string, unknown>;
+  env?: Record<string, unknown>;
   cacheMode?: 'cold' | 'warm' | null;
   loadMode?: 'opfs' | 'http' | 'memory' | null;
   output?: string | DiffusionOutput | null;

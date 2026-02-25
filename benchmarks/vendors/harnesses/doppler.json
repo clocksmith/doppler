@@ -7,7 +7,7 @@
     "stdoutFormat": "json",
     "defaultCommand": null,
     "examples": [
-      "node tools/doppler-cli.js bench --model-id gemma-3-1b-it-f16-f32a --json"
+      "node tools/doppler-cli.js bench --model-id gemma-3-1b-it-wf16-ef16-hf16 --json"
     ]
   },
   "normalization": {

@@ -1,0 +1,93 @@
+{
+  "timestamp": "2026-02-25T17:58:54.492Z",
+  "mode": "compute",
+  "dopplerModelId": "gemma-3-1b-it-wf16-ef16-hf16",
+  "tjsModelId": "onnx-community/gemma-3-1b-it-ONNX-GQA",
+  "dopplerKernelPath": "gemma3-f16-fused-f32a-online",
+  "workload": {
+    "id": "g3-p064-d064-t1-k32",
+    "prefillTokenTarget": 64,
+    "decodeTokenTarget": 64,
+    "sampling": {
+      "temperature": 1,
+      "topK": 32,
+      "topP": 1
+    }
+  },
+  "environment": {
+    "host": {
+      "platform": "linux",
+      "arch": "x64",
+      "nodeVersion": "v20.18.1",
+      "osRelease": "6.14.0-37-generic",
+      "cpuModel": "AMD RYZEN AI MAX+ 395 w/ Radeon 8060S"
+    },
+    "browser": {
+      "executable": null,
+      "channel": null
+    }
+  },
+  "metricContract": {
+    "metrics": [
+      { "id": "decodeTokensPerSec", "label": "decode tok/s", "unit": "tok/s", "higherBetter": true, "required": true },
+      { "id": "prefillTokensPerSec", "label": "prompt tok/s (prefill)", "unit": "tok/s", "higherBetter": true, "required": true },
+      { "id": "firstTokenMs", "label": "first token (TTFT)", "unit": "ms", "higherBetter": false, "required": true },
+      { "id": "firstResponseMs", "label": "first response (first token + load)", "unit": "ms", "higherBetter": false, "required": true },
+      { "id": "prefillMs", "label": "prefill ms", "unit": "ms", "higherBetter": false, "required": true },
+      { "id": "decodeMs", "label": "decode ms", "unit": "ms", "higherBetter": false, "required": true },
+      { "id": "totalRunMs", "label": "total run ms", "unit": "ms", "higherBetter": false, "required": true },
+      { "id": "modelLoadMs", "label": "model load", "unit": "ms", "higherBetter": false, "required": true },
+      { "id": "decodeMsPerTokenP50", "label": "decode p50 ms/token", "unit": "ms", "higherBetter": false, "required": true },
+      { "id": "decodeMsPerTokenP95", "label": "decode p95 ms/token", "unit": "ms", "higherBetter": false, "required": true },
+      { "id": "decodeMsPerTokenP99", "label": "decode p99 ms/token", "unit": "ms", "higherBetter": false, "required": true }
+    ]
+  },
+  "sections": {
+    "compute": {
+      "parity": {
+        "doppler": {
+          "result": {
+            "env": {
+              "library": "doppler",
+              "runtime": "browser",
+              "device": "webgpu",
+              "browserUserAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/145.0.0.0 Safari/537.36",
+              "browserPlatform": "Linux x86_64",
+              "browserLanguage": "en-US",
+              "browserVendor": "Google Inc.",
+              "webgpuBackend": "vulkan"
+            },
+            "deviceInfo": {
+              "hasSubgroups": true,
+              "hasSubgroupsF16": false,
+              "hasF16": true,
+              "hasTimestampQuery": true,
+              "maxBufferSize": 2147483648,
+              "maxWorkgroupSize": 1024,
+              "maxWorkgroupStorageSize": 65536,
+              "adapterInfo": {
+                "vendor": "unknown",
+                "architecture": "unknown",
+                "device": "unknown",
+                "description": ""
+              }
+            },
+            "timing": {
+              "decodeTokensPerSec": 28.62,
+              "prefillTokensPerSec": 301.63,
+              "firstTokenMs": 754.5,
+              "firstResponseMs": 5291.8,
+              "prefillMs": 606.7,
+              "decodeMs": 2236.0,
+              "totalRunMs": 2991.7,
+              "modelLoadMs": 4537.3,
+              "decodeMsPerTokenP50": 34.94,
+              "decodeMsPerTokenP95": 34.94,
+              "decodeMsPerTokenP99": 34.94
+            }
+          }
+        }
+      }
+    }
+  }
+}

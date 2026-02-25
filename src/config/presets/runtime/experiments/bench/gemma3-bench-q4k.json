@@ -1,22 +1,14 @@
 {
-  "extends": "bench",
-  "model": "gemma-3-1b-it-wq4k",
+  "id": "experiments/bench/gemma3-bench-q4k",
+  "name": "gemma3-bench-q4k",
+  "intent": "investigate",
+  "stability": "experimental",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-02-25T00:00:00Z",
+  "extends": "modes/bench",
+  "model": "gemma-3-1b-it-wq4k-ef16-hf16",
   "runtime": {
     "shared": {
-      "tooling": {
-        "intent": "investigate"
-      },
-      "debug": {
-        "logLevel": {
-          "defaultLogLevel": "warn"
-        },
-        "trace": {
-          "enabled": false
-        },
-        "profiler": {
-          "enabled": true
-        }
-      },
       "benchmark": {
         "run": {
           "promptName": "xs",
@@ -28,7 +20,7 @@
             "topK": 1,
             "topP": 1
           },
-          "profile": true,
+          "profile": false,
           "captureMemoryTimeSeries": false
         }
       }
@@ -45,6 +37,16 @@
       },
       "sampling": {
         "temperature": 0
+      },
+      "session": {
+        "decodeLoop": {
+          "batchSize": 1,
+          "stopCheckMode": "per-token",
+          "readbackInterval": 8,
+          "ringTokens": 1,
+          "ringStop": 1,
+          "ringStaging": 1
+        }
       }
     }
   }

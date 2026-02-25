@@ -1,0 +1,60 @@
+--- src/gpu/kernels/fused_swiglu.wgsl	2026-02-20 10:04:55.692844357 -0500
++++ src/gpu/kernels/fused_swiglu_f16.wgsl	2026-02-20 10:04:55.692844357 -0500
+@@ -1,30 +1,24 @@
+-// fused_swiglu.wgsl
++// fused_swiglu_f16.wgsl
+ 
+ /**
+- * SwiGLU Activation Kernel (Row-Split Fused Gate/Up)
+- *
+- * Computes: output = SiLU(gate + gate_bias) * (up + up_bias)
+- *
+- * input layout: [num_tokens, 2 * dim] flattened, row-major
+- *   row = [gate[0..dim), up[0..dim)]
+- * bias layout: [2 * dim]
+- *   bias = [gate_bias[0..dim), up_bias[0..dim)]
+- * output layout: [num_tokens, dim]
++ * SwiGLU Activation Kernel (Row-Split Fused Gate/Up, f16 IO)
+  */
+ 
++enable f16;
++
+ override WORKGROUP_SIZE: u32 = 256u;
+ 
+ struct Uniforms {
+     num_tokens: u32,
+     dim: u32,
+-    bias_offset: u32,  // byte offset into bias buffer (divide by 4 for F32 index)
+-    clamp_max: f32,    // SwiGLU clamp (0 = disabled)
++    bias_offset: u32,
++    clamp_max: f32,
+ }
+ 
+ @group(0) @binding(0) var<uniform> u: Uniforms;
+-@group(0) @binding(1) var<storage, read> input: array<f32>;
+-@group(0) @binding(2) var<storage, read> bias: array<f32>;
+-@group(0) @binding(3) var<storage, read_write> output: array<f32>;
++@group(0) @binding(1) var<storage, read> input: array<f16>;
++@group(0) @binding(2) var<storage, read> bias: array<f16>;
++@group(0) @binding(3) var<storage, read_write> output: array<f16>;
+ 
+ fn sigmoid(x: f32) -> f32 {
+     return 1.0 / (1.0 + exp(-x));
+@@ -51,13 +45,11 @@
+ 
+     let token_idx = idx / u.dim;
+     let dim_idx = idx % u.dim;
+-
+-    // bias_offset is in bytes, convert to F32 index
+-    let bias_base = u.bias_offset / 4u;
++    let bias_base = u.bias_offset / 2u;
+ 
+     let row_base = token_idx * u.dim * 2u;
+-    let gate = input[row_base + dim_idx] + bias[bias_base + dim_idx];
+-    let up = input[row_base + u.dim + dim_idx] + bias[bias_base + u.dim + dim_idx];
++    let gate = f32(input[row_base + dim_idx]) + f32(bias[bias_base + dim_idx]);
++    let up = f32(input[row_base + u.dim + dim_idx]) + f32(bias[bias_base + u.dim + dim_idx]);
+ 
+-    output[idx] = clamp_swiglu(silu(gate) * up);
++    output[idx] = f16(clamp_swiglu(silu(gate) * up));
+ }
