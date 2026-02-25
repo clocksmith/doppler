@@ -1,0 +1,1996 @@
+{
+  "timestamp": "2026-02-24T18:09:13.134Z",
+  "benchmarkPolicy": {
+    "source": "/Users/xyz/deco/doppler/benchmarks/vendors/benchmark-policy.json",
+    "schemaVersion": 1,
+    "sourceSha256": "eb2a27c32bb5955088dfeee89737f986d386a45cf43a8db85d86fccc61fcfb41",
+    "updated": "2026-02-23"
+  },
+  "compareConfig": {
+    "source": "/Users/xyz/deco/doppler/benchmarks/vendors/compare-engines.config.json",
+    "schemaVersion": 1,
+    "sourceSha256": "3f05fc2b1f83071b83cf67d097e0ab79d95b69b8ed76754e6a4e7e6803ec4aa6",
+    "profileSource": "config",
+    "updated": "2026-02-23"
+  },
+  "metricContract": {
+    "source": "/Users/xyz/deco/doppler/benchmarks/vendors/compare-metrics.json",
+    "schemaVersion": 1,
+    "sourceSha256": "316e2a656411649bc02af267a944ebc8f989c77189514f1f7ef59e0ae54c4db6",
+    "updated": "2026-02-23",
+    "metrics": [
+      {
+        "id": "decodeTokensPerSec",
+        "label": "decode tok/s",
+        "unit": "tok/s",
+        "higherBetter": true,
+        "required": true
+      },
+      {
+        "id": "prefillTokensPerSec",
+        "label": "prompt tok/s (prefill)",
+        "unit": "tok/s",
+        "higherBetter": true,
+        "required": true
+      },
+      {
+        "id": "firstTokenMs",
+        "label": "first token (TTFT)",
+        "unit": "ms",
+        "higherBetter": false,
+        "required": true
+      },
+      {
+        "id": "firstResponseMs",
+        "label": "first response (first token + load)",
+        "unit": "ms",
+        "higherBetter": false,
+        "required": true
+      },
+      {
+        "id": "prefillMs",
+        "label": "prefill ms",
+        "unit": "ms",
+        "higherBetter": false,
+        "required": true
+      },
+      {
+        "id": "decodeMs",
+        "label": "decode ms",
+        "unit": "ms",
+        "higherBetter": false,
+        "required": true
+      },
+      {
+        "id": "totalRunMs",
+        "label": "total run ms",
+        "unit": "ms",
+        "higherBetter": false,
+        "required": true
+      },
+      {
+        "id": "modelLoadMs",
+        "label": "model load",
+        "unit": "ms",
+        "higherBetter": false,
+        "required": true
+      },
+      {
+        "id": "decodeMsPerTokenP50",
+        "label": "decode p50 ms/token",
+        "unit": "ms",
+        "higherBetter": false,
+        "required": true
+      },
+      {
+        "id": "decodeMsPerTokenP95",
+        "label": "decode p95 ms/token",
+        "unit": "ms",
+        "higherBetter": false,
+        "required": true
+      },
+      {
+        "id": "decodeMsPerTokenP99",
+        "label": "decode p99 ms/token",
+        "unit": "ms",
+        "higherBetter": false,
+        "required": true
+      }
+    ]
+  },
+  "harnesses": {
+    "doppler": {
+      "source": "/Users/xyz/deco/doppler/benchmarks/vendors/harnesses/doppler.json",
+      "sourceSha256": "a53d577d93aa9f4cb85310f46885fa9464ce2c1cd40de5aab69db86629a005b9",
+      "requiredMetrics": [
+        "decodeTokensPerSec",
+        "prefillTokensPerSec",
+        "firstTokenMs",
+        "firstResponseMs",
+        "prefillMs",
+        "decodeMs",
+        "totalRunMs",
+        "modelLoadMs",
+        "decodeMsPerTokenP50",
+        "decodeMsPerTokenP95",
+        "decodeMsPerTokenP99"
+      ]
+    },
+    "transformersjs": {
+      "source": "/Users/xyz/deco/doppler/benchmarks/vendors/harnesses/transformersjs.json",
+      "sourceSha256": "e6b96ad52c3d1f80a3856c9d582bee6184576edaebf11039fecb26f92274493f",
+      "requiredMetrics": [
+        "decodeTokensPerSec",
+        "prefillTokensPerSec",
+        "firstTokenMs",
+        "firstResponseMs",
+        "prefillMs",
+        "decodeMs",
+        "totalRunMs",
+        "modelLoadMs",
+        "decodeMsPerTokenP50",
+        "decodeMsPerTokenP95",
+        "decodeMsPerTokenP99"
+      ]
+    }
+  },
+  "runtimeConfig": {
+    "overrideProvided": false,
+    "runtimeConfigSha256": null,
+    "compareProfileSchemaVersion": 1
+  },
+  "dopplerModelId": "gemma-3-1b-it-f16-f32a",
+  "dopplerKernelPath": "gemma3-f16-fused-f32a-online",
+  "dopplerKernelPathSource": "cli",
+  "decodeProfile": "parity",
+  "dopplerBatchSize": 1,
+  "dopplerReadbackInterval": 1,
+  "dopplerTokensPerReadback": 1,
+  "tjsModelId": "onnx-community/gemma-3-1b-it-ONNX-GQA",
+  "tjsDtype": "fp16",
+  "mode": "compute",
+  "prompt": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 word30 word31 word32 word33 word34 word35 word36 word37 word38 word39 word40 word41 word42 word43 word44 word45 word46 word47 word48 word49 word50 word51 word52 word53 word54 word55 word56 word57 word58 word59 word60 word61 word62 word63",
+  "maxTokens": 64,
+  "warmupRuns": 1,
+  "runs": 1,
+  "seed": 0,
+  "workload": {
+    "id": "g3-p064-d064-t0-k1",
+    "prefillTokenTarget": 64,
+    "decodeTokenTarget": 64
+  },
+  "timeoutMs": 600000,
+  "dopplerTimeoutMs": 600000,
+  "tjsTimeoutMs": 600000,
+  "methodology": {
+    "prefillTokensPerSec": "prompt_tokens / prefill_ms",
+    "deterministicDecoding": {
+      "seed": 0,
+      "temperature": 0,
+      "topK": 1,
+      "topP": 1
+    },
+    "promptParity": {
+      "dopplerChatTemplateEnabled": false,
+      "transformersChatTemplateEquivalent": "raw-prompt"
+    },
+    "cacheSemantics": {
+      "warm": "Prime engine cache before timed run, then run from local persistent cache only (Doppler OPFS; TJS persistent browser cache).",
+      "cold": "Wipe engine-specific persistent cache state before run (Doppler OPFS/profile wipe; TJS profile wipe)."
+    },
+    "dopplerDecodeCadence": {
+      "batchSize": 1,
+      "readbackInterval": 1,
+      "tokensPerReadback": 1
+    },
+    "transformersjsDecodeCadence": {
+      "streamerCallbackGranularityTokens": 1,
+      "readbackControl": "runtime-internal"
+    }
+  },
+  "sections": {
+    "compute": {
+      "parity": {
+        "doppler": {
+          "ok": true,
+          "surface": "browser",
+          "request": {
+            "command": "bench",
+            "suite": "bench",
+            "intent": "calibrate",
+            "modelId": "gemma-3-1b-it-f16-f32a",
+            "modelUrl": null,
+            "cacheMode": "warm",
+            "loadMode": "opfs",
+            "runtimePreset": null,
+            "runtimeConfigUrl": null,
+            "runtimeConfig": {
+              "shared": {
+                "benchmark": {
+                  "run": {
+                    "customPrompt": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 word30 word31 word32 word33 word34 word35 word36 word37 word38 word39 word40 word41 word42 word43 word44 word45 word46 word47 word48 word49 word50 word51 word52 word53 word54 word55 word56 word57 word58 word59 word60 word61 word62 word63",
+                    "maxNewTokens": 64,
+                    "warmupRuns": 1,
+                    "timedRuns": 1,
+                    "useChatTemplate": false,
+                    "loadMode": null,
+                    "sampling": {
+                      "temperature": 0,
+                      "topK": 1,
+                      "topP": 1
+                    }
+                  }
+                }
+              },
+              "inference": {
+                "prompt": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 word30 word31 word32 word33 word34 word35 word36 word37 word38 word39 word40 word41 word42 word43 word44 word45 word46 word47 word48 word49 word50 word51 word52 word53 word54 word55 word56 word57 word58 word59 word60 word61 word62 word63",
+                "chatTemplate": {
+                  "enabled": false
+                },
+                "batching": {
+                  "maxTokens": 64,
+                  "batchSize": 1,
+                  "readbackInterval": 1,
+                  "stopCheckMode": "per-token"
+                },
+                "sampling": {
+                  "temperature": 0,
+                  "topK": 1,
+                  "topP": 1
+                },
+                "kernelPath": "gemma3-f16-fused-f32a-online"
+              }
+            },
+            "inputDir": null,
+            "outputDir": null,
+            "convertPayload": null,
+            "captureOutput": false,
+            "keepPipeline": false,
+            "report": null,
+            "timestamp": null,
+            "searchParams": null
+          },
+          "result": {
+            "suite": "bench",
+            "passed": 1,
+            "failed": 0,
+            "skipped": 0,
+            "duration": 9838.5,
+            "results": [
+              {
+                "name": "benchmark",
+                "passed": true,
+                "duration": 3182.5
+              }
+            ],
+            "modelId": "gemma-3-1b-it-f16-f32a",
+            "cacheMode": "warm",
+            "loadMode": "opfs",
+            "timing": {
+              "modelLoadMs": 3234,
+              "firstTokenMs": 597.6,
+              "firstResponseMs": 3831.6,
+              "prefillMs": 595.6,
+              "decodeMs": 2584.7,
+              "decodeMsPerTokenP50": 40.39,
+              "decodeMsPerTokenP95": 40.39,
+              "decodeMsPerTokenP99": 40.39,
+              "decodeTokensPerSec": 24.76,
+              "prefillTokensPerSec": 307.25,
+              "totalRunMs": 3182.5,
+              "cacheMode": "warm",
+              "loadMode": "opfs"
+            },
+            "output": null,
+            "metrics": {
+              "warmupRuns": 1,
+              "timedRuns": 1,
+              "prompt": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 word30 word31 word32 word33 word34 word35 word36 word37 word38 word39 word40 word41 word42 word43 word44 word45 word46 word47 word48 word49 word50 word51 word52 word53 word54 word55 word56 word57 word58 word59 word60 word61 word62 word63",
+              "maxTokens": 64,
+              "decodeTokensPerSec": 24.76,
+              "avgTokensGenerated": 64,
+              "avgPrefillTokens": 183,
+              "avgDecodeTokens": 64,
+              "medianPrefillTokensPerSec": 307.25,
+              "avgPrefillTokensPerSec": 307.25,
+              "medianPrefillTokensPerSecTtft": 306.22,
+              "avgPrefillTokensPerSecTtft": 306.22,
+              "avgDecodeTokensPerSec": 24.76,
+              "firstTokenMs": 597.6,
+              "firstResponseMs": 3831.6,
+              "prefillMs": 595.6,
+              "decodeMs": 2584.7,
+              "totalRunMs": 3182.5,
+              "decodeMsPerTokenP50": 40.39,
+              "decodeMsPerTokenP95": 40.39,
+              "decodeMsPerTokenP99": 40.39,
+              "avgPrefillMs": 595.6,
+              "modelLoadMs": 3234,
+              "throughput": {
+                "tokensPerSec": {
+                  "mean": 20.109976433621366,
+                  "median": 20.109976433621366,
+                  "min": 20.109976433621366,
+                  "max": 20.109976433621366,
+                  "p95": 20.109976433621366,
+                  "p99": 20.109976433621366,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 1,
+                  "samplesAfterOutlierRemoval": 1,
+                  "outliersRemoved": 0
+                },
+                "prefillTokensPerSec": {
+                  "mean": 307.2531900481439,
+                  "median": 307.2531900481439,
+                  "min": 307.2531900481439,
+                  "max": 307.2531900481439,
+                  "p95": 307.2531900481439,
+                  "p99": 307.2531900481439,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 1,
+                  "samplesAfterOutlierRemoval": 1,
+                  "outliersRemoved": 0
+                },
+                "prefillTokensPerSecTtft": {
+                  "mean": 306.22489958617643,
+                  "median": 306.22489958617643,
+                  "min": 306.22489958617643,
+                  "max": 306.22489958617643,
+                  "p95": 306.22489958617643,
+                  "p99": 306.22489958617643,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 1,
+                  "samplesAfterOutlierRemoval": 1,
+                  "outliersRemoved": 0
+                },
+                "decodeTokensPerSec": {
+                  "mean": 24.76109413096111,
+                  "median": 24.76109413096111,
+                  "min": 24.76109413096111,
+                  "max": 24.76109413096111,
+                  "p95": 24.76109413096111,
+                  "p99": 24.76109413096111,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 1,
+                  "samplesAfterOutlierRemoval": 1,
+                  "outliersRemoved": 0
+                }
+              },
+              "latency": {
+                "totalMs": {
+                  "mean": 3182.5,
+                  "median": 3182.5,
+                  "min": 3182.5,
+                  "max": 3182.5,
+                  "p95": 3182.5,
+                  "p99": 3182.5,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 1,
+                  "samplesAfterOutlierRemoval": 1,
+                  "outliersRemoved": 0
+                },
+                "prefillMs": {
+                  "mean": 595.6000000238419,
+                  "median": 595.6000000238419,
+                  "min": 595.6000000238419,
+                  "max": 595.6000000238419,
+                  "p95": 595.6000000238419,
+                  "p99": 595.6000000238419,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 1,
+                  "samplesAfterOutlierRemoval": 1,
+                  "outliersRemoved": 0
+                },
+                "decodeMs": {
+                  "mean": 2584.699999988079,
+                  "median": 2584.699999988079,
+                  "min": 2584.699999988079,
+                  "max": 2584.699999988079,
+                  "p95": 2584.699999988079,
+                  "p99": 2584.699999988079,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 1,
+                  "samplesAfterOutlierRemoval": 1,
+                  "outliersRemoved": 0
+                },
+                "firstTokenMs": {
+                  "mean": 597.6000000238419,
+                  "median": 597.6000000238419,
+                  "min": 597.6000000238419,
+                  "max": 597.6000000238419,
+                  "p95": 597.6000000238419,
+                  "p99": 597.6000000238419,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 1,
+                  "samplesAfterOutlierRemoval": 1,
+                  "outliersRemoved": 0
+                }
+              },
+              "tokens": {
+                "generated": {
+                  "mean": 64,
+                  "median": 64,
+                  "min": 64,
+                  "max": 64,
+                  "p95": 64,
+                  "p99": 64,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 1,
+                  "samplesAfterOutlierRemoval": 1,
+                  "outliersRemoved": 0
+                },
+                "prefill": {
+                  "mean": 183,
+                  "median": 183,
+                  "min": 183,
+                  "max": 183,
+                  "p95": 183,
+                  "p99": 183,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 1,
+                  "samplesAfterOutlierRemoval": 1,
+                  "outliersRemoved": 0
+                },
+                "decode": {
+                  "mean": 64,
+                  "median": 64,
+                  "min": 64,
+                  "max": 64,
+                  "p95": 64,
+                  "p99": 64,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 1,
+                  "samplesAfterOutlierRemoval": 1,
+                  "outliersRemoved": 0
+                }
+              },
+              "gpu": {
+                "prefillMs": {
+                  "mean": 0,
+                  "median": 0,
+                  "min": 0,
+                  "max": 0,
+                  "p95": 0,
+                  "p99": 0,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 0,
+                  "samplesAfterOutlierRemoval": 0,
+                  "outliersRemoved": 0
+                },
+                "decodeMs": {
+                  "mean": 0,
+                  "median": 0,
+                  "min": 0,
+                  "max": 0,
+                  "p95": 0,
+                  "p99": 0,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 0,
+                  "samplesAfterOutlierRemoval": 0,
+                  "outliersRemoved": 0
+                },
+                "decodeRecordMs": {
+                  "mean": 0,
+                  "median": 0,
+                  "min": 0,
+                  "max": 0,
+                  "p95": 0,
+                  "p99": 0,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 1,
+                  "samplesAfterOutlierRemoval": 1,
+                  "outliersRemoved": 0
+                },
+                "decodeSubmitWaitMs": {
+                  "mean": 0,
+                  "median": 0,
+                  "min": 0,
+                  "max": 0,
+                  "p95": 0,
+                  "p99": 0,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 1,
+                  "samplesAfterOutlierRemoval": 1,
+                  "outliersRemoved": 0
+                },
+                "decodeReadbackWaitMs": {
+                  "mean": 0,
+                  "median": 0,
+                  "min": 0,
+                  "max": 0,
+                  "p95": 0,
+                  "p99": 0,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 1,
+                  "samplesAfterOutlierRemoval": 1,
+                  "outliersRemoved": 0
+                }
+              },
+              "generatedText": " word64 word65 word66 word67 word68 word69 word70 word71 word72 word73 word74 word75 word76 word77 word78 word79 word80 word81 word82 word83 word84 word"
+            },
+            "memoryStats": {
+              "used": 2431133184,
+              "pool": {
+                "allocations": 53496,
+                "reuses": 4248,
+                "totalBytesAllocated": 4751547904,
+                "peakBytesAllocated": 3237673472,
+                "currentBytesAllocated": 2322081280,
+                "totalBytesRequested": 3818959872,
+                "peakBytesRequested": 2711791104,
+                "currentBytesRequested": 2066880768,
+                "activeBuffers": 344,
+                "pooledBuffers": 64,
+                "budgetMaxBytes": 0,
+                "budgetUtilization": 0,
+                "hitRate": "7.4%"
+              },
+              "kvCache": {
+                "theoretical": 109051904,
+                "allocated": 109051904,
+                "used": 6549504,
+                "efficiency": 0.06005859375,
+                "seqLen": 246,
+                "maxSeqLen": 4096,
+                "layout": "contiguous"
+              }
+            },
+            "deviceInfo": {
+              "hasSubgroups": true,
+              "hasSubgroupsF16": false,
+              "hasF16": true,
+              "hasTimestampQuery": true,
+              "maxBufferSize": 4294967292,
+              "maxWorkgroupSize": 1024,
+              "maxWorkgroupStorageSize": 32768,
+              "adapterInfo": {
+                "vendor": "unknown",
+                "architecture": "unknown",
+                "device": "unknown",
+                "description": ""
+              }
+            },
+            "pipeline": null,
+            "report": {
+              "suite": "bench",
+              "modelId": "gemma-3-1b-it-f16-f32a",
+              "runtimePreset": null,
+              "deviceInfo": {
+                "hasSubgroups": true,
+                "hasSubgroupsF16": false,
+                "hasF16": true,
+                "hasTimestampQuery": true,
+                "maxBufferSize": 4294967292,
+                "maxWorkgroupSize": 1024,
+                "maxWorkgroupStorageSize": 32768,
+                "adapterInfo": {
+                  "vendor": "unknown",
+                  "architecture": "unknown",
+                  "device": "unknown",
+                  "description": ""
+                }
+              },
+              "results": [
+                {
+                  "name": "benchmark",
+                  "passed": true,
+                  "duration": 3182.5
+                }
+              ],
+              "durationMs": 9838.5,
+              "timestamp": "2026-02-24T18:10:29.197Z",
+              "metrics": {
+                "warmupRuns": 1,
+                "timedRuns": 1,
+                "prompt": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 word30 word31 word32 word33 word34 word35 word36 word37 word38 word39 word40 word41 word42 word43 word44 word45 word46 word47 word48 word49 word50 word51 word52 word53 word54 word55 word56 word57 word58 word59 word60 word61 word62 word63",
+                "maxTokens": 64,
+                "decodeTokensPerSec": 24.76,
+                "avgTokensGenerated": 64,
+                "avgPrefillTokens": 183,
+                "avgDecodeTokens": 64,
+                "medianPrefillTokensPerSec": 307.25,
+                "avgPrefillTokensPerSec": 307.25,
+                "medianPrefillTokensPerSecTtft": 306.22,
+                "avgPrefillTokensPerSecTtft": 306.22,
+                "avgDecodeTokensPerSec": 24.76,
+                "firstTokenMs": 597.6,
+                "firstResponseMs": 3831.6,
+                "prefillMs": 595.6,
+                "decodeMs": 2584.7,
+                "totalRunMs": 3182.5,
+                "decodeMsPerTokenP50": 40.39,
+                "decodeMsPerTokenP95": 40.39,
+                "decodeMsPerTokenP99": 40.39,
+                "avgPrefillMs": 595.6,
+                "modelLoadMs": 3234,
+                "throughput": {
+                  "tokensPerSec": {
+                    "mean": 20.109976433621366,
+                    "median": 20.109976433621366,
+                    "min": 20.109976433621366,
+                    "max": 20.109976433621366,
+                    "p95": 20.109976433621366,
+                    "p99": 20.109976433621366,
+                    "stdDev": 0,
+                    "ci95": 0,
+                    "samples": 1,
+                    "samplesAfterOutlierRemoval": 1,
+                    "outliersRemoved": 0
+                  },
+                  "prefillTokensPerSec": {
+                    "mean": 307.2531900481439,
+                    "median": 307.2531900481439,
+                    "min": 307.2531900481439,
+                    "max": 307.2531900481439,
+                    "p95": 307.2531900481439,
+                    "p99": 307.2531900481439,
+                    "stdDev": 0,
+                    "ci95": 0,
+                    "samples": 1,
+                    "samplesAfterOutlierRemoval": 1,
+                    "outliersRemoved": 0
+                  },
+                  "prefillTokensPerSecTtft": {
+                    "mean": 306.22489958617643,
+                    "median": 306.22489958617643,
+                    "min": 306.22489958617643,
+                    "max": 306.22489958617643,
+                    "p95": 306.22489958617643,
+                    "p99": 306.22489958617643,
+                    "stdDev": 0,
+                    "ci95": 0,
+                    "samples": 1,
+                    "samplesAfterOutlierRemoval": 1,
+                    "outliersRemoved": 0
+                  },
+                  "decodeTokensPerSec": {
+                    "mean": 24.76109413096111,
+                    "median": 24.76109413096111,
+                    "min": 24.76109413096111,
+                    "max": 24.76109413096111,
+                    "p95": 24.76109413096111,
+                    "p99": 24.76109413096111,
+                    "stdDev": 0,
+                    "ci95": 0,
+                    "samples": 1,
+                    "samplesAfterOutlierRemoval": 1,
+                    "outliersRemoved": 0
+                  }
+                },
+                "latency": {
+                  "totalMs": {
+                    "mean": 3182.5,
+                    "median": 3182.5,
+                    "min": 3182.5,
+                    "max": 3182.5,
+                    "p95": 3182.5,
+                    "p99": 3182.5,
+                    "stdDev": 0,
+                    "ci95": 0,
+                    "samples": 1,
+                    "samplesAfterOutlierRemoval": 1,
+                    "outliersRemoved": 0
+                  },
+                  "prefillMs": {
+                    "mean": 595.6000000238419,
+                    "median": 595.6000000238419,
+                    "min": 595.6000000238419,
+                    "max": 595.6000000238419,
+                    "p95": 595.6000000238419,
+                    "p99": 595.6000000238419,
+                    "stdDev": 0,
+                    "ci95": 0,
+                    "samples": 1,
+                    "samplesAfterOutlierRemoval": 1,
+                    "outliersRemoved": 0
+                  },
+                  "decodeMs": {
+                    "mean": 2584.699999988079,
+                    "median": 2584.699999988079,
+                    "min": 2584.699999988079,
+                    "max": 2584.699999988079,
+                    "p95": 2584.699999988079,
+                    "p99": 2584.699999988079,
+                    "stdDev": 0,
+                    "ci95": 0,
+                    "samples": 1,
+                    "samplesAfterOutlierRemoval": 1,
+                    "outliersRemoved": 0
+                  },
+                  "firstTokenMs": {
+                    "mean": 597.6000000238419,
+                    "median": 597.6000000238419,
+                    "min": 597.6000000238419,
+                    "max": 597.6000000238419,
+                    "p95": 597.6000000238419,
+                    "p99": 597.6000000238419,
+                    "stdDev": 0,
+                    "ci95": 0,
+                    "samples": 1,
+                    "samplesAfterOutlierRemoval": 1,
+                    "outliersRemoved": 0
+                  }
+                },
+                "tokens": {
+                  "generated": {
+                    "mean": 64,
+                    "median": 64,
+                    "min": 64,
+                    "max": 64,
+                    "p95": 64,
+                    "p99": 64,
+                    "stdDev": 0,
+                    "ci95": 0,
+                    "samples": 1,
+                    "samplesAfterOutlierRemoval": 1,
+                    "outliersRemoved": 0
+                  },
+                  "prefill": {
+                    "mean": 183,
+                    "median": 183,
+                    "min": 183,
+                    "max": 183,
+                    "p95": 183,
+                    "p99": 183,
+                    "stdDev": 0,
+                    "ci95": 0,
+                    "samples": 1,
+                    "samplesAfterOutlierRemoval": 1,
+                    "outliersRemoved": 0
+                  },
+                  "decode": {
+                    "mean": 64,
+                    "median": 64,
+                    "min": 64,
+                    "max": 64,
+                    "p95": 64,
+                    "p99": 64,
+                    "stdDev": 0,
+                    "ci95": 0,
+                    "samples": 1,
+                    "samplesAfterOutlierRemoval": 1,
+                    "outliersRemoved": 0
+                  }
+                },
+                "gpu": {
+                  "prefillMs": {
+                    "mean": 0,
+                    "median": 0,
+                    "min": 0,
+                    "max": 0,
+                    "p95": 0,
+                    "p99": 0,
+                    "stdDev": 0,
+                    "ci95": 0,
+                    "samples": 0,
+                    "samplesAfterOutlierRemoval": 0,
+                    "outliersRemoved": 0
+                  },
+                  "decodeMs": {
+                    "mean": 0,
+                    "median": 0,
+                    "min": 0,
+                    "max": 0,
+                    "p95": 0,
+                    "p99": 0,
+                    "stdDev": 0,
+                    "ci95": 0,
+                    "samples": 0,
+                    "samplesAfterOutlierRemoval": 0,
+                    "outliersRemoved": 0
+                  },
+                  "decodeRecordMs": {
+                    "mean": 0,
+                    "median": 0,
+                    "min": 0,
+                    "max": 0,
+                    "p95": 0,
+                    "p99": 0,
+                    "stdDev": 0,
+                    "ci95": 0,
+                    "samples": 1,
+                    "samplesAfterOutlierRemoval": 1,
+                    "outliersRemoved": 0
+                  },
+                  "decodeSubmitWaitMs": {
+                    "mean": 0,
+                    "median": 0,
+                    "min": 0,
+                    "max": 0,
+                    "p95": 0,
+                    "p99": 0,
+                    "stdDev": 0,
+                    "ci95": 0,
+                    "samples": 1,
+                    "samplesAfterOutlierRemoval": 1,
+                    "outliersRemoved": 0
+                  },
+                  "decodeReadbackWaitMs": {
+                    "mean": 0,
+                    "median": 0,
+                    "min": 0,
+                    "max": 0,
+                    "p95": 0,
+                    "p99": 0,
+                    "stdDev": 0,
+                    "ci95": 0,
+                    "samples": 1,
+                    "samplesAfterOutlierRemoval": 1,
+                    "outliersRemoved": 0
+                  }
+                },
+                "generatedText": " word64 word65 word66 word67 word68 word69 word70 word71 word72 word73 word74 word75 word76 word77 word78 word79 word80 word81 word82 word83 word84 word"
+              },
+              "output": null,
+              "memory": {
+                "used": 2431133184,
+                "pool": {
+                  "allocations": 53496,
+                  "reuses": 4248,
+                  "totalBytesAllocated": 4751547904,
+                  "peakBytesAllocated": 3237673472,
+                  "currentBytesAllocated": 2322081280,
+                  "totalBytesRequested": 3818959872,
+                  "peakBytesRequested": 2711791104,
+                  "currentBytesRequested": 2066880768,
+                  "activeBuffers": 344,
+                  "pooledBuffers": 64,
+                  "budgetMaxBytes": 0,
+                  "budgetUtilization": 0,
+                  "hitRate": "7.4%"
+                },
+                "kvCache": {
+                  "theoretical": 109051904,
+                  "allocated": 109051904,
+                  "used": 6549504,
+                  "efficiency": 0.06005859375,
+                  "seqLen": 246,
+                  "maxSeqLen": 4096,
+                  "layout": "contiguous"
+                }
+              }
+            },
+            "reportInfo": {
+              "backend": "opfs",
+              "path": "reports/gemma-3-1b-it-f16-f32a/2026-02-24T18-10-29.201Z.json"
+            }
+          }
+        },
+        "tjs": {
+          "modelId": "onnx-community/gemma-3-1b-it-ONNX-GQA",
+          "seed": 0,
+          "generatedText": "\n\nThe word1 to word20 is a series of 1000 words.\nThe word1 to word20 is a series of 1000 words.\nThe word1 to word20 is a series of 1000 words.\nThe word1 to word2",
+          "modelLoadMs": 29155.97000002861,
+          "warmupRuns": 1,
+          "timedRuns": 1,
+          "prompt": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 word30 word31 word32 word33 word34 word35 word36 word37 word38 word39 word40 word41 word42 word43 word44 word45 word46 word47 word48 word49 word50 word51 word52 word53 word54 word55 word56 word57 word58 word59 word60 word61 word62 word63",
+          "promptRendered": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 word30 word31 word32 word33 word34 word35 word36 word37 word38 word39 word40 word41 word42 word43 word44 word45 word46 word47 word48 word49 word50 word51 word52 word53 word54 word55 word56 word57 word58 word59 word60 word61 word62 word63",
+          "useChatTemplate": false,
+          "maxNewTokens": 64,
+          "sampling": {
+            "temperature": 0,
+            "topK": 1,
+            "topP": 1,
+            "doSample": false
+          },
+          "cacheMode": "warm",
+          "loadMode": "opfs",
+          "timing": {
+            "modelLoadMs": 29155.97000002861,
+            "firstTokenMs": 290.2049999833107,
+            "firstResponseMs": 29446.17500001192,
+            "prefillMs": 290.2049999833107,
+            "decodeMs": 3012.3299999833107,
+            "totalRunMs": 3302.5349999666214,
+            "decodeTokensPerSec": 20.914043282226398,
+            "prefillTokensPerSec": 630.5887218019128,
+            "decodeMsPerTokenP50": 47.34999996423721,
+            "decodeMsPerTokenP95": 49.84750001430511,
+            "decodeMsPerTokenP99": 50.718200016021726,
+            "cacheMode": "warm",
+            "loadMode": "opfs"
+          },
+          "deviceInfo": {
+            "vendor": "apple",
+            "architecture": "metal-3",
+            "device": "0x0000",
+            "description": "Apple M3",
+            "hasF16": true,
+            "hasSubgroups": true,
+            "hasTimestampQuery": true
+          },
+          "metrics": {
+            "decodeTokensPerSec": 20.914043282226398,
+            "prefillTokensPerSec": 630.5887218019128,
+            "firstTokenMs": 290.2049999833107,
+            "firstResponseMs": 29446.17500001192,
+            "prefillMs": 290.2049999833107,
+            "decodeMs": 3012.3299999833107,
+            "totalRunMs": 3302.5349999666214,
+            "modelLoadMs": 29155.97000002861,
+            "decodeMsPerTokenP50": 47.34999996423721,
+            "decodeMsPerTokenP95": 49.84750001430511,
+            "decodeMsPerTokenP99": 50.718200016021726,
+            "ort_profiled_total_ms": 0,
+            "ort_profiled_event_count": 0,
+            "ort_top_op_total_ms": null
+          },
+          "runs": [
+            {
+              "ttftMs": 290.2049999833107,
+              "totalMs": 3302.5349999666214,
+              "decodeMs": 3012.3299999833107,
+              "newTokens": 64,
+              "decodeTokens": 63,
+              "prefillTokens": 183,
+              "tokensPerSec": 19.37905275815301,
+              "decodeTokensPerSec": 20.914043282226398,
+              "prefillTokensPerSecTtft": 630.5887218019128,
+              "prefillTokensPerSec": 630.5887218019128,
+              "perTokenMs": [
+                50.80500000715256,
+                47.65499997138977,
+                47.830000042915344,
+                47.34999996423721,
+                48.280000030994415,
+                47.19499999284744,
+                47.060000002384186,
+                46.7049999833107,
+                49.2950000166893,
+                47.22999995946884,
+                47.26500004529953,
+                47.27999997138977,
+                49.24000000953674,
+                46.86500000953674,
+                46.719999969005585,
+                47.439999997615814,
+                48.9200000166893,
+                47.59500002861023,
+                46.419999957084656,
+                46.9650000333786,
+                48.810000002384186,
+                46.844999969005585,
+                47.14500004053116,
+                47.049999952316284,
+                48.42500001192093,
+                46.875,
+                46.910000026226044,
+                47.019999980926514,
+                48.894999980926514,
+                46.84500002861023,
+                46.63499999046326,
+                47.15000003576279,
+                49.35499995946884,
+                46.87999999523163,
+                46.51500004529953,
+                46.814999997615814,
+                48.7049999833107,
+                47.310000002384186,
+                46.94499999284744,
+                46.764999985694885,
+                48.90000003576279,
+                46.514999985694885,
+                47.219999969005585,
+                47.4650000333786,
+                49.860000014305115,
+                48.97499996423721,
+                49.52500003576279,
+                50.41499996185303,
+                49.735000014305115,
+                47.344999969005585,
+                47.17500001192093,
+                47.63499999046326,
+                48.8400000333786,
+                47.560000002384186,
+                47.4099999666214,
+                47.52000004053116,
+                49.14999997615814,
+                47.99000000953674,
+                47.44499999284744,
+                49.07499998807907,
+                50.66500002145767,
+                47.06999999284744,
+                46.44499999284744
+              ]
+            }
+          ],
+          "env": {
+            "library": "transformers.js",
+            "version": "4.x",
+            "device": "webgpu",
+            "dtype": "fp16",
+            "requestedDtype": "fp16",
+            "dtypeFallbackUsed": false,
+            "executionProviderMode": "default",
+            "executionProviderFallbackUsed": false,
+            "ortProxyMode": "off",
+            "ortProxyFallbackUsed": false
+          },
+          "profiling": {
+            "enabled": false,
+            "topN": 20,
+            "ort": {
+              "sessionCount": 0,
+              "endedCount": 0,
+              "sessions": []
+            },
+            "ortConsole": {
+              "eventCount": 0,
+              "durationEventCount": 0,
+              "totalDurationMs": 0,
+              "topOperations": [],
+              "categories": [],
+              "parseErrorCount": 0,
+              "rawLogCount": 0,
+              "enabled": false,
+              "topN": 20
+            }
+          },
+          "generationConfig": {
+            "strictDeterministicGreedy": true,
+            "modelDefaults": {
+              "do_sample": true,
+              "top_k": 64,
+              "top_p": 0.95
+            }
+          },
+          "memoryInfo": {
+            "before": {
+              "usedJSHeapSize": 2190000000,
+              "totalJSHeapSize": 2190000000,
+              "jsHeapSizeLimit": 3760000000
+            },
+            "after": {
+              "usedJSHeapSize": 2190000000,
+              "totalJSHeapSize": 2190000000,
+              "jsHeapSizeLimit": 3760000000
+            }
+          },
+          "benchmarkPolicy": {
+            "source": "/Users/xyz/deco/doppler/benchmarks/vendors/benchmark-policy.json",
+            "schemaVersion": 1,
+            "updated": "2026-02-23"
+          },
+          "determinism": {
+            "seed": 0,
+            "decoding": {
+              "do_sample": false,
+              "temperature": 0,
+              "topK": 1,
+              "topP": 1
+            }
+          },
+          "cachePrime": {
+            "enabled": true,
+            "primed": true,
+            "primeMs": 28081.560000002384
+          }
+        }
+      },
+      "throughput": {
+        "doppler": {
+          "ok": true,
+          "surface": "browser",
+          "request": {
+            "command": "bench",
+            "suite": "bench",
+            "intent": "calibrate",
+            "modelId": "gemma-3-1b-it-f16-f32a",
+            "modelUrl": null,
+            "cacheMode": "warm",
+            "loadMode": "opfs",
+            "runtimePreset": null,
+            "runtimeConfigUrl": null,
+            "runtimeConfig": {
+              "shared": {
+                "benchmark": {
+                  "run": {
+                    "customPrompt": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 word30 word31 word32 word33 word34 word35 word36 word37 word38 word39 word40 word41 word42 word43 word44 word45 word46 word47 word48 word49 word50 word51 word52 word53 word54 word55 word56 word57 word58 word59 word60 word61 word62 word63",
+                    "maxNewTokens": 64,
+                    "warmupRuns": 1,
+                    "timedRuns": 1,
+                    "useChatTemplate": false,
+                    "loadMode": null,
+                    "sampling": {
+                      "temperature": 0,
+                      "topK": 1,
+                      "topP": 1
+                    }
+                  }
+                }
+              },
+              "inference": {
+                "prompt": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 word30 word31 word32 word33 word34 word35 word36 word37 word38 word39 word40 word41 word42 word43 word44 word45 word46 word47 word48 word49 word50 word51 word52 word53 word54 word55 word56 word57 word58 word59 word60 word61 word62 word63",
+                "chatTemplate": {
+                  "enabled": false
+                },
+                "batching": {
+                  "maxTokens": 64,
+                  "batchSize": 4,
+                  "readbackInterval": 4,
+                  "stopCheckMode": "per-token"
+                },
+                "sampling": {
+                  "temperature": 0,
+                  "topK": 1,
+                  "topP": 1
+                },
+                "kernelPath": "gemma3-f16-fused-f32a-online"
+              }
+            },
+            "inputDir": null,
+            "outputDir": null,
+            "convertPayload": null,
+            "captureOutput": false,
+            "keepPipeline": false,
+            "report": null,
+            "timestamp": null,
+            "searchParams": null
+          },
+          "result": {
+            "suite": "bench",
+            "passed": 1,
+            "failed": 0,
+            "skipped": 0,
+            "duration": 9546.199999988079,
+            "results": [
+              {
+                "name": "benchmark",
+                "passed": true,
+                "duration": 3316.900000035763
+              }
+            ],
+            "modelId": "gemma-3-1b-it-f16-f32a",
+            "cacheMode": "warm",
+            "loadMode": "opfs",
+            "timing": {
+              "modelLoadMs": 2953,
+              "firstTokenMs": 607.5,
+              "firstResponseMs": 3560.5,
+              "prefillMs": 605.7,
+              "decodeMs": 2709,
+              "decodeMsPerTokenP50": 42.33,
+              "decodeMsPerTokenP95": 42.33,
+              "decodeMsPerTokenP99": 42.33,
+              "decodeTokensPerSec": 23.62,
+              "prefillTokensPerSec": 302.13,
+              "totalRunMs": 3316.9,
+              "cacheMode": "warm",
+              "loadMode": "opfs"
+            },
+            "output": null,
+            "metrics": {
+              "warmupRuns": 1,
+              "timedRuns": 1,
+              "prompt": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 word30 word31 word32 word33 word34 word35 word36 word37 word38 word39 word40 word41 word42 word43 word44 word45 word46 word47 word48 word49 word50 word51 word52 word53 word54 word55 word56 word57 word58 word59 word60 word61 word62 word63",
+              "maxTokens": 64,
+              "decodeTokensPerSec": 23.62,
+              "avgTokensGenerated": 64,
+              "avgPrefillTokens": 183,
+              "avgDecodeTokens": 64,
+              "medianPrefillTokensPerSec": 302.13,
+              "avgPrefillTokensPerSec": 302.13,
+              "medianPrefillTokensPerSecTtft": 301.23,
+              "avgPrefillTokensPerSecTtft": 301.23,
+              "avgDecodeTokensPerSec": 23.62,
+              "firstTokenMs": 607.5,
+              "firstResponseMs": 3560.5,
+              "prefillMs": 605.7,
+              "decodeMs": 2709,
+              "totalRunMs": 3316.9,
+              "decodeMsPerTokenP50": 42.33,
+              "decodeMsPerTokenP95": 42.33,
+              "decodeMsPerTokenP99": 42.33,
+              "avgPrefillMs": 605.7,
+              "modelLoadMs": 2953,
+              "throughput": {
+                "tokensPerSec": {
+                  "mean": 19.29512496587475,
+                  "median": 19.29512496587475,
+                  "min": 19.29512496587475,
+                  "max": 19.29512496587475,
+                  "p95": 19.29512496587475,
+                  "p99": 19.29512496587475,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 1,
+                  "samplesAfterOutlierRemoval": 1,
+                  "outliersRemoved": 0
+                },
+                "prefillTokensPerSec": {
+                  "mean": 302.1297672174371,
+                  "median": 302.1297672174371,
+                  "min": 302.1297672174371,
+                  "max": 302.1297672174371,
+                  "p95": 302.1297672174371,
+                  "p99": 302.1297672174371,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 1,
+                  "samplesAfterOutlierRemoval": 1,
+                  "outliersRemoved": 0
+                },
+                "prefillTokensPerSecTtft": {
+                  "mean": 301.2345679012346,
+                  "median": 301.2345679012346,
+                  "min": 301.2345679012346,
+                  "max": 301.2345679012346,
+                  "p95": 301.2345679012346,
+                  "p99": 301.2345679012346,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 1,
+                  "samplesAfterOutlierRemoval": 1,
+                  "outliersRemoved": 0
+                },
+                "decodeTokensPerSec": {
+                  "mean": 23.624953857511997,
+                  "median": 23.624953857511997,
+                  "min": 23.624953857511997,
+                  "max": 23.624953857511997,
+                  "p95": 23.624953857511997,
+                  "p99": 23.624953857511997,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 1,
+                  "samplesAfterOutlierRemoval": 1,
+                  "outliersRemoved": 0
+                }
+              },
+              "latency": {
+                "totalMs": {
+                  "mean": 3316.900000035763,
+                  "median": 3316.900000035763,
+                  "min": 3316.900000035763,
+                  "max": 3316.900000035763,
+                  "p95": 3316.900000035763,
+                  "p99": 3316.900000035763,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 1,
+                  "samplesAfterOutlierRemoval": 1,
+                  "outliersRemoved": 0
+                },
+                "prefillMs": {
+                  "mean": 605.6999999880791,
+                  "median": 605.6999999880791,
+                  "min": 605.6999999880791,
+                  "max": 605.6999999880791,
+                  "p95": 605.6999999880791,
+                  "p99": 605.6999999880791,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 1,
+                  "samplesAfterOutlierRemoval": 1,
+                  "outliersRemoved": 0
+                },
+                "decodeMs": {
+                  "mean": 2709,
+                  "median": 2709,
+                  "min": 2709,
+                  "max": 2709,
+                  "p95": 2709,
+                  "p99": 2709,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 1,
+                  "samplesAfterOutlierRemoval": 1,
+                  "outliersRemoved": 0
+                },
+                "firstTokenMs": {
+                  "mean": 607.5,
+                  "median": 607.5,
+                  "min": 607.5,
+                  "max": 607.5,
+                  "p95": 607.5,
+                  "p99": 607.5,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 1,
+                  "samplesAfterOutlierRemoval": 1,
+                  "outliersRemoved": 0
+                }
+              },
+              "tokens": {
+                "generated": {
+                  "mean": 64,
+                  "median": 64,
+                  "min": 64,
+                  "max": 64,
+                  "p95": 64,
+                  "p99": 64,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 1,
+                  "samplesAfterOutlierRemoval": 1,
+                  "outliersRemoved": 0
+                },
+                "prefill": {
+                  "mean": 183,
+                  "median": 183,
+                  "min": 183,
+                  "max": 183,
+                  "p95": 183,
+                  "p99": 183,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 1,
+                  "samplesAfterOutlierRemoval": 1,
+                  "outliersRemoved": 0
+                },
+                "decode": {
+                  "mean": 64,
+                  "median": 64,
+                  "min": 64,
+                  "max": 64,
+                  "p95": 64,
+                  "p99": 64,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 1,
+                  "samplesAfterOutlierRemoval": 1,
+                  "outliersRemoved": 0
+                }
+              },
+              "gpu": {
+                "prefillMs": {
+                  "mean": 0,
+                  "median": 0,
+                  "min": 0,
+                  "max": 0,
+                  "p95": 0,
+                  "p99": 0,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 0,
+                  "samplesAfterOutlierRemoval": 0,
+                  "outliersRemoved": 0
+                },
+                "decodeMs": {
+                  "mean": 0,
+                  "median": 0,
+                  "min": 0,
+                  "max": 0,
+                  "p95": 0,
+                  "p99": 0,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 0,
+                  "samplesAfterOutlierRemoval": 0,
+                  "outliersRemoved": 0
+                },
+                "decodeRecordMs": {
+                  "mean": 249.9000000357628,
+                  "median": 249.9000000357628,
+                  "min": 249.9000000357628,
+                  "max": 249.9000000357628,
+                  "p95": 249.9000000357628,
+                  "p99": 249.9000000357628,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 1,
+                  "samplesAfterOutlierRemoval": 1,
+                  "outliersRemoved": 0
+                },
+                "decodeSubmitWaitMs": {
+                  "mean": 2444.6999999284744,
+                  "median": 2444.6999999284744,
+                  "min": 2444.6999999284744,
+                  "max": 2444.6999999284744,
+                  "p95": 2444.6999999284744,
+                  "p99": 2444.6999999284744,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 1,
+                  "samplesAfterOutlierRemoval": 1,
+                  "outliersRemoved": 0
+                },
+                "decodeReadbackWaitMs": {
+                  "mean": 2458,
+                  "median": 2458,
+                  "min": 2458,
+                  "max": 2458,
+                  "p95": 2458,
+                  "p99": 2458,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 1,
+                  "samplesAfterOutlierRemoval": 1,
+                  "outliersRemoved": 0
+                }
+              },
+              "generatedText": " word64 word65 word66 word67 word68 word69 word70 word71 word72 word73 word74 word75 word76 word77 word78 word79 word80 word81 word82 word83 word84 word"
+            },
+            "memoryStats": {
+              "used": 2431165696,
+              "pool": {
+                "allocations": 57452,
+                "reuses": 292,
+                "totalBytesAllocated": 4787086592,
+                "peakBytesAllocated": 3237705984,
+                "currentBytesAllocated": 2322113792,
+                "totalBytesRequested": 3847663872,
+                "peakBytesRequested": 2711791104,
+                "currentBytesRequested": 2066880768,
+                "activeBuffers": 344,
+                "pooledBuffers": 64,
+                "budgetMaxBytes": 0,
+                "budgetUtilization": 0,
+                "hitRate": "0.5%"
+              },
+              "kvCache": {
+                "theoretical": 109051904,
+                "allocated": 109051904,
+                "used": 6549504,
+                "efficiency": 0.06005859375,
+                "seqLen": 246,
+                "maxSeqLen": 4096,
+                "layout": "contiguous"
+              }
+            },
+            "deviceInfo": {
+              "hasSubgroups": true,
+              "hasSubgroupsF16": false,
+              "hasF16": true,
+              "hasTimestampQuery": true,
+              "maxBufferSize": 4294967292,
+              "maxWorkgroupSize": 1024,
+              "maxWorkgroupStorageSize": 32768,
+              "adapterInfo": {
+                "vendor": "unknown",
+                "architecture": "unknown",
+                "device": "unknown",
+                "description": ""
+              }
+            },
+            "pipeline": null,
+            "report": {
+              "suite": "bench",
+              "modelId": "gemma-3-1b-it-f16-f32a",
+              "runtimePreset": null,
+              "deviceInfo": {
+                "hasSubgroups": true,
+                "hasSubgroupsF16": false,
+                "hasF16": true,
+                "hasTimestampQuery": true,
+                "maxBufferSize": 4294967292,
+                "maxWorkgroupSize": 1024,
+                "maxWorkgroupStorageSize": 32768,
+                "adapterInfo": {
+                  "vendor": "unknown",
+                  "architecture": "unknown",
+                  "device": "unknown",
+                  "description": ""
+                }
+              },
+              "results": [
+                {
+                  "name": "benchmark",
+                  "passed": true,
+                  "duration": 3316.900000035763
+                }
+              ],
+              "durationMs": 9546.199999988079,
+              "timestamp": "2026-02-24T18:10:39.663Z",
+              "metrics": {
+                "warmupRuns": 1,
+                "timedRuns": 1,
+                "prompt": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 word30 word31 word32 word33 word34 word35 word36 word37 word38 word39 word40 word41 word42 word43 word44 word45 word46 word47 word48 word49 word50 word51 word52 word53 word54 word55 word56 word57 word58 word59 word60 word61 word62 word63",
+                "maxTokens": 64,
+                "decodeTokensPerSec": 23.62,
+                "avgTokensGenerated": 64,
+                "avgPrefillTokens": 183,
+                "avgDecodeTokens": 64,
+                "medianPrefillTokensPerSec": 302.13,
+                "avgPrefillTokensPerSec": 302.13,
+                "medianPrefillTokensPerSecTtft": 301.23,
+                "avgPrefillTokensPerSecTtft": 301.23,
+                "avgDecodeTokensPerSec": 23.62,
+                "firstTokenMs": 607.5,
+                "firstResponseMs": 3560.5,
+                "prefillMs": 605.7,
+                "decodeMs": 2709,
+                "totalRunMs": 3316.9,
+                "decodeMsPerTokenP50": 42.33,
+                "decodeMsPerTokenP95": 42.33,
+                "decodeMsPerTokenP99": 42.33,
+                "avgPrefillMs": 605.7,
+                "modelLoadMs": 2953,
+                "throughput": {
+                  "tokensPerSec": {
+                    "mean": 19.29512496587475,
+                    "median": 19.29512496587475,
+                    "min": 19.29512496587475,
+                    "max": 19.29512496587475,
+                    "p95": 19.29512496587475,
+                    "p99": 19.29512496587475,
+                    "stdDev": 0,
+                    "ci95": 0,
+                    "samples": 1,
+                    "samplesAfterOutlierRemoval": 1,
+                    "outliersRemoved": 0
+                  },
+                  "prefillTokensPerSec": {
+                    "mean": 302.1297672174371,
+                    "median": 302.1297672174371,
+                    "min": 302.1297672174371,
+                    "max": 302.1297672174371,
+                    "p95": 302.1297672174371,
+                    "p99": 302.1297672174371,
+                    "stdDev": 0,
+                    "ci95": 0,
+                    "samples": 1,
+                    "samplesAfterOutlierRemoval": 1,
+                    "outliersRemoved": 0
+                  },
+                  "prefillTokensPerSecTtft": {
+                    "mean": 301.2345679012346,
+                    "median": 301.2345679012346,
+                    "min": 301.2345679012346,
+                    "max": 301.2345679012346,
+                    "p95": 301.2345679012346,
+                    "p99": 301.2345679012346,
+                    "stdDev": 0,
+                    "ci95": 0,
+                    "samples": 1,
+                    "samplesAfterOutlierRemoval": 1,
+                    "outliersRemoved": 0
+                  },
+                  "decodeTokensPerSec": {
+                    "mean": 23.624953857511997,
+                    "median": 23.624953857511997,
+                    "min": 23.624953857511997,
+                    "max": 23.624953857511997,
+                    "p95": 23.624953857511997,
+                    "p99": 23.624953857511997,
+                    "stdDev": 0,
+                    "ci95": 0,
+                    "samples": 1,
+                    "samplesAfterOutlierRemoval": 1,
+                    "outliersRemoved": 0
+                  }
+                },
+                "latency": {
+                  "totalMs": {
+                    "mean": 3316.900000035763,
+                    "median": 3316.900000035763,
+                    "min": 3316.900000035763,
+                    "max": 3316.900000035763,
+                    "p95": 3316.900000035763,
+                    "p99": 3316.900000035763,
+                    "stdDev": 0,
+                    "ci95": 0,
+                    "samples": 1,
+                    "samplesAfterOutlierRemoval": 1,
+                    "outliersRemoved": 0
+                  },
+                  "prefillMs": {
+                    "mean": 605.6999999880791,
+                    "median": 605.6999999880791,
+                    "min": 605.6999999880791,
+                    "max": 605.6999999880791,
+                    "p95": 605.6999999880791,
+                    "p99": 605.6999999880791,
+                    "stdDev": 0,
+                    "ci95": 0,
+                    "samples": 1,
+                    "samplesAfterOutlierRemoval": 1,
+                    "outliersRemoved": 0
+                  },
+                  "decodeMs": {
+                    "mean": 2709,
+                    "median": 2709,
+                    "min": 2709,
+                    "max": 2709,
+                    "p95": 2709,
+                    "p99": 2709,
+                    "stdDev": 0,
+                    "ci95": 0,
+                    "samples": 1,
+                    "samplesAfterOutlierRemoval": 1,
+                    "outliersRemoved": 0
+                  },
+                  "firstTokenMs": {
+                    "mean": 607.5,
+                    "median": 607.5,
+                    "min": 607.5,
+                    "max": 607.5,
+                    "p95": 607.5,
+                    "p99": 607.5,
+                    "stdDev": 0,
+                    "ci95": 0,
+                    "samples": 1,
+                    "samplesAfterOutlierRemoval": 1,
+                    "outliersRemoved": 0
+                  }
+                },
+                "tokens": {
+                  "generated": {
+                    "mean": 64,
+                    "median": 64,
+                    "min": 64,
+                    "max": 64,
+                    "p95": 64,
+                    "p99": 64,
+                    "stdDev": 0,
+                    "ci95": 0,
+                    "samples": 1,
+                    "samplesAfterOutlierRemoval": 1,
+                    "outliersRemoved": 0
+                  },
+                  "prefill": {
+                    "mean": 183,
+                    "median": 183,
+                    "min": 183,
+                    "max": 183,
+                    "p95": 183,
+                    "p99": 183,
+                    "stdDev": 0,
+                    "ci95": 0,
+                    "samples": 1,
+                    "samplesAfterOutlierRemoval": 1,
+                    "outliersRemoved": 0
+                  },
+                  "decode": {
+                    "mean": 64,
+                    "median": 64,
+                    "min": 64,
+                    "max": 64,
+                    "p95": 64,
+                    "p99": 64,
+                    "stdDev": 0,
+                    "ci95": 0,
+                    "samples": 1,
+                    "samplesAfterOutlierRemoval": 1,
+                    "outliersRemoved": 0
+                  }
+                },
+                "gpu": {
+                  "prefillMs": {
+                    "mean": 0,
+                    "median": 0,
+                    "min": 0,
+                    "max": 0,
+                    "p95": 0,
+                    "p99": 0,
+                    "stdDev": 0,
+                    "ci95": 0,
+                    "samples": 0,
+                    "samplesAfterOutlierRemoval": 0,
+                    "outliersRemoved": 0
+                  },
+                  "decodeMs": {
+                    "mean": 0,
+                    "median": 0,
+                    "min": 0,
+                    "max": 0,
+                    "p95": 0,
+                    "p99": 0,
+                    "stdDev": 0,
+                    "ci95": 0,
+                    "samples": 0,
+                    "samplesAfterOutlierRemoval": 0,
+                    "outliersRemoved": 0
+                  },
+                  "decodeRecordMs": {
+                    "mean": 249.9000000357628,
+                    "median": 249.9000000357628,
+                    "min": 249.9000000357628,
+                    "max": 249.9000000357628,
+                    "p95": 249.9000000357628,
+                    "p99": 249.9000000357628,
+                    "stdDev": 0,
+                    "ci95": 0,
+                    "samples": 1,
+                    "samplesAfterOutlierRemoval": 1,
+                    "outliersRemoved": 0
+                  },
+                  "decodeSubmitWaitMs": {
+                    "mean": 2444.6999999284744,
+                    "median": 2444.6999999284744,
+                    "min": 2444.6999999284744,
+                    "max": 2444.6999999284744,
+                    "p95": 2444.6999999284744,
+                    "p99": 2444.6999999284744,
+                    "stdDev": 0,
+                    "ci95": 0,
+                    "samples": 1,
+                    "samplesAfterOutlierRemoval": 1,
+                    "outliersRemoved": 0
+                  },
+                  "decodeReadbackWaitMs": {
+                    "mean": 2458,
+                    "median": 2458,
+                    "min": 2458,
+                    "max": 2458,
+                    "p95": 2458,
+                    "p99": 2458,
+                    "stdDev": 0,
+                    "ci95": 0,
+                    "samples": 1,
+                    "samplesAfterOutlierRemoval": 1,
+                    "outliersRemoved": 0
+                  }
+                },
+                "generatedText": " word64 word65 word66 word67 word68 word69 word70 word71 word72 word73 word74 word75 word76 word77 word78 word79 word80 word81 word82 word83 word84 word"
+              },
+              "output": null,
+              "memory": {
+                "used": 2431165696,
+                "pool": {
+                  "allocations": 57452,
+                  "reuses": 292,
+                  "totalBytesAllocated": 4787086592,
+                  "peakBytesAllocated": 3237705984,
+                  "currentBytesAllocated": 2322113792,
+                  "totalBytesRequested": 3847663872,
+                  "peakBytesRequested": 2711791104,
+                  "currentBytesRequested": 2066880768,
+                  "activeBuffers": 344,
+                  "pooledBuffers": 64,
+                  "budgetMaxBytes": 0,
+                  "budgetUtilization": 0,
+                  "hitRate": "0.5%"
+                },
+                "kvCache": {
+                  "theoretical": 109051904,
+                  "allocated": 109051904,
+                  "used": 6549504,
+                  "efficiency": 0.06005859375,
+                  "seqLen": 246,
+                  "maxSeqLen": 4096,
+                  "layout": "contiguous"
+                }
+              }
+            },
+            "reportInfo": {
+              "backend": "opfs",
+              "path": "reports/gemma-3-1b-it-f16-f32a/2026-02-24T18-10-39.664Z.json"
+            }
+          }
+        },
+        "tjs": {
+          "modelId": "onnx-community/gemma-3-1b-it-ONNX-GQA",
+          "seed": 0,
+          "generatedText": "\n\nThe word1 to word20 is a series of 1000 words.\nThe word1 to word20 is a series of 1000 words.\nThe word1 to word20 is a series of 1000 words.\nThe word1 to word2",
+          "modelLoadMs": 29155.97000002861,
+          "warmupRuns": 1,
+          "timedRuns": 1,
+          "prompt": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 word30 word31 word32 word33 word34 word35 word36 word37 word38 word39 word40 word41 word42 word43 word44 word45 word46 word47 word48 word49 word50 word51 word52 word53 word54 word55 word56 word57 word58 word59 word60 word61 word62 word63",
+          "promptRendered": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 word30 word31 word32 word33 word34 word35 word36 word37 word38 word39 word40 word41 word42 word43 word44 word45 word46 word47 word48 word49 word50 word51 word52 word53 word54 word55 word56 word57 word58 word59 word60 word61 word62 word63",
+          "useChatTemplate": false,
+          "maxNewTokens": 64,
+          "sampling": {
+            "temperature": 0,
+            "topK": 1,
+            "topP": 1,
+            "doSample": false
+          },
+          "cacheMode": "warm",
+          "loadMode": "opfs",
+          "timing": {
+            "modelLoadMs": 29155.97000002861,
+            "firstTokenMs": 290.2049999833107,
+            "firstResponseMs": 29446.17500001192,
+            "prefillMs": 290.2049999833107,
+            "decodeMs": 3012.3299999833107,
+            "totalRunMs": 3302.5349999666214,
+            "decodeTokensPerSec": 20.914043282226398,
+            "prefillTokensPerSec": 630.5887218019128,
+            "decodeMsPerTokenP50": 47.34999996423721,
+            "decodeMsPerTokenP95": 49.84750001430511,
+            "decodeMsPerTokenP99": 50.718200016021726,
+            "cacheMode": "warm",
+            "loadMode": "opfs"
+          },
+          "deviceInfo": {
+            "vendor": "apple",
+            "architecture": "metal-3",
+            "device": "0x0000",
+            "description": "Apple M3",
+            "hasF16": true,
+            "hasSubgroups": true,
+            "hasTimestampQuery": true
+          },
+          "metrics": {
+            "decodeTokensPerSec": 20.914043282226398,
+            "prefillTokensPerSec": 630.5887218019128,
+            "firstTokenMs": 290.2049999833107,
+            "firstResponseMs": 29446.17500001192,
+            "prefillMs": 290.2049999833107,
+            "decodeMs": 3012.3299999833107,
+            "totalRunMs": 3302.5349999666214,
+            "modelLoadMs": 29155.97000002861,
+            "decodeMsPerTokenP50": 47.34999996423721,
+            "decodeMsPerTokenP95": 49.84750001430511,
+            "decodeMsPerTokenP99": 50.718200016021726,
+            "ort_profiled_total_ms": 0,
+            "ort_profiled_event_count": 0,
+            "ort_top_op_total_ms": null
+          },
+          "runs": [
+            {
+              "ttftMs": 290.2049999833107,
+              "totalMs": 3302.5349999666214,
+              "decodeMs": 3012.3299999833107,
+              "newTokens": 64,
+              "decodeTokens": 63,
+              "prefillTokens": 183,
+              "tokensPerSec": 19.37905275815301,
+              "decodeTokensPerSec": 20.914043282226398,
+              "prefillTokensPerSecTtft": 630.5887218019128,
+              "prefillTokensPerSec": 630.5887218019128,
+              "perTokenMs": [
+                50.80500000715256,
+                47.65499997138977,
+                47.830000042915344,
+                47.34999996423721,
+                48.280000030994415,
+                47.19499999284744,
+                47.060000002384186,
+                46.7049999833107,
+                49.2950000166893,
+                47.22999995946884,
+                47.26500004529953,
+                47.27999997138977,
+                49.24000000953674,
+                46.86500000953674,
+                46.719999969005585,
+                47.439999997615814,
+                48.9200000166893,
+                47.59500002861023,
+                46.419999957084656,
+                46.9650000333786,
+                48.810000002384186,
+                46.844999969005585,
+                47.14500004053116,
+                47.049999952316284,
+                48.42500001192093,
+                46.875,
+                46.910000026226044,
+                47.019999980926514,
+                48.894999980926514,
+                46.84500002861023,
+                46.63499999046326,
+                47.15000003576279,
+                49.35499995946884,
+                46.87999999523163,
+                46.51500004529953,
+                46.814999997615814,
+                48.7049999833107,
+                47.310000002384186,
+                46.94499999284744,
+                46.764999985694885,
+                48.90000003576279,
+                46.514999985694885,
+                47.219999969005585,
+                47.4650000333786,
+                49.860000014305115,
+                48.97499996423721,
+                49.52500003576279,
+                50.41499996185303,
+                49.735000014305115,
+                47.344999969005585,
+                47.17500001192093,
+                47.63499999046326,
+                48.8400000333786,
+                47.560000002384186,
+                47.4099999666214,
+                47.52000004053116,
+                49.14999997615814,
+                47.99000000953674,
+                47.44499999284744,
+                49.07499998807907,
+                50.66500002145767,
+                47.06999999284744,
+                46.44499999284744
+              ]
+            }
+          ],
+          "env": {
+            "library": "transformers.js",
+            "version": "4.x",
+            "device": "webgpu",
+            "dtype": "fp16",
+            "requestedDtype": "fp16",
+            "dtypeFallbackUsed": false,
+            "executionProviderMode": "default",
+            "executionProviderFallbackUsed": false,
+            "ortProxyMode": "off",
+            "ortProxyFallbackUsed": false
+          },
+          "profiling": {
+            "enabled": false,
+            "topN": 20,
+            "ort": {
+              "sessionCount": 0,
+              "endedCount": 0,
+              "sessions": []
+            },
+            "ortConsole": {
+              "eventCount": 0,
+              "durationEventCount": 0,
+              "totalDurationMs": 0,
+              "topOperations": [],
+              "categories": [],
+              "parseErrorCount": 0,
+              "rawLogCount": 0,
+              "enabled": false,
+              "topN": 20
+            }
+          },
+          "generationConfig": {
+            "strictDeterministicGreedy": true,
+            "modelDefaults": {
+              "do_sample": true,
+              "top_k": 64,
+              "top_p": 0.95
+            }
+          },
+          "memoryInfo": {
+            "before": {
+              "usedJSHeapSize": 2190000000,
+              "totalJSHeapSize": 2190000000,
+              "jsHeapSizeLimit": 3760000000
+            },
+            "after": {
+              "usedJSHeapSize": 2190000000,
+              "totalJSHeapSize": 2190000000,
+              "jsHeapSizeLimit": 3760000000
+            }
+          },
+          "benchmarkPolicy": {
+            "source": "/Users/xyz/deco/doppler/benchmarks/vendors/benchmark-policy.json",
+            "schemaVersion": 1,
+            "updated": "2026-02-23"
+          },
+          "determinism": {
+            "seed": 0,
+            "decoding": {
+              "do_sample": false,
+              "temperature": 0,
+              "topK": 1,
+              "topP": 1
+            }
+          },
+          "cachePrime": {
+            "enabled": true,
+            "primed": true,
+            "primeMs": 28081.560000002384
+          }
+        }
+      }
+    }
+  },
+  "correctness": {
+    "prompt": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word",
+    "status": "mismatch",
+    "doppler": " word64 word65 word66 word67 word68 word69 word70 word71 word72 word73 word74 word75 word76 word77 word78 word79 word80 word81 word82 word83 word84 word",
+    "tjs": "\n\nThe word1 to word20 is a series of 1000 words.\nThe word1 to word20 is a series of 1000 words.\nThe word1 to word20 is a series of 1000 words.\nThe word1 to word2",
+    "exactMatch": false,
+    "normalizedMatch": false,
+    "charMismatchIndex": 0,
+    "tokenMatch": {
+      "leftTokenCount": 22,
+      "rightTokenCount": 34,
+      "matchingPrefixTokens": 0,
+      "firstMismatchTokenIndex": 0
+    }
+  }
+}
