@@ -35,6 +35,27 @@ JS+WGSL advantages:
 - **Performance**: GPU compute dominates per-token latency, tensor ops stay on GPU, and readback is minimized to final logits.
 - **Velocity**: handwritten WGSL kernels (human and/or coding agent) enable progressive fusion from debuggable atomic kernels to fused kernels without full model recompiles.
 
+## Architecture comparison
+
+```
+Transformers.js                              Doppler
+─────────────                                ───────
+App (JS)                                     App (JS)
+ └─ @huggingface/transformers (JS)            └─ Doppler runtime (JS)
+     └─ onnxruntime-web (C++ → WASM)              └─ WebGPU
+         └─ ONNX graph interpreter                     ├─ WGSL kernels (prewritten)
+             └─ WebGPU                                 └─ RDRR weight shards
+                 ├─ WGSL kernels (generated at
+                 │   runtime from generic op library)
+                 └─ ONNX weight shards
+```
+
+Transformers.js wraps a C++-to-WASM compiled ONNX runtime that interprets an exported graph and generates GPU shaders at runtime from a generic op library.
+Models must be manually exported from PyTorch to ONNX format before they can run (maintained per-model by `onnx-community`).
+Doppler is JS end-to-end with prewritten WGSL kernels per operation (attention, RoPE, RMSNorm, FFN) — no graph interpreter, no WASM layer, no runtime shader generation.
+The RDRR format maps weight shards directly to GPU buffers, and conversion runs directly from SafeTensors or GGUF sources without an intermediate export step.
+Architecture-specific patterns like sliding/full attention windows are runtime config in Doppler, not frozen in an exported graph.
+
 ## Runtime architecture and boundaries
 
 ![Doppler architecture overview](docs/architecture-overview.svg)
