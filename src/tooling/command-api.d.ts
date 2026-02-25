@@ -5,8 +5,18 @@ export type ToolingSurface = 'browser' | 'node';
 export type ToolingSuite = 'kernels' | 'inference' | 'bench' | 'debug' | 'diffusion' | 'energy';
 export type ToolingIntent = 'verify' | 'investigate' | 'calibrate' | null;
 
+export interface ToolingConvertExecutionPayload {
+  workers?: number | null;
+  workerCountPolicy?: 'cap' | 'error' | null;
+  maxInFlightJobs?: number | null;
+  rowChunkRows?: number | null;
+  rowChunkMinTensorBytes?: number | null;
+  [key: string]: unknown;
+}
+
 export interface ToolingConvertPayload {
   converterConfig: Partial<ConverterConfigSchema>;
+  execution?: ToolingConvertExecutionPayload | null;
   [key: string]: unknown;
 }
 

@@ -15,15 +15,15 @@ export class BasisDecomposedPagedCache extends KVCache {
             // Force BDPA to identify as paged for downstream assertions, but we implement custom layout
             layout: 'bdpa_paged'
         });
+	    
+		if (!config.useGPU) {
+	            throw new Error('BasisDecomposedPagedCache requires a GPU device.');
+	        }
 
-        if (!config.useGPU) {
-            throw new Error('BasisDecomposedPagedCache requires a GPU device.');
-        }
-
-        // Configurable BDPA hyperparameters
-        this.basisVocabSize = config.bdpaVocabSize || 2048;
-        this.pageSize = config.pageSize || 128;
-        this.maxContextPages = Math.ceil(this.maxSeqLen / this.pageSize);
+	        // Configurable BDPA hyperparameters
+	        this.basisVocabSize = config.bdpaVocabSize;
+	        this.pageSize = config.pageSize;
+	        this.maxContextPages = Math.ceil(this.maxSeqLen / this.pageSize);
 
         // BDA Specific Memory Overrides
         this.basisDtype = 'f16';

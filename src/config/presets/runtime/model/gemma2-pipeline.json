@@ -59,6 +59,16 @@
             "b": "residual"
           }
         ]
+      },
+      "session": {
+        "compute": {
+          "defaults": {
+            "activationDtype": "f16"
+          }
+        },
+        "kvcache": {
+          "kvDtype": "f16"
+        }
       }
     }
   }

@@ -31,6 +31,7 @@ import {
 import { applyPipelineDebugConfig } from './text/debug-utils.js';
 import { resolveLayerPipeline } from './text/layer-plan.js';
 import { compileExecutionPlanState, resolveActiveExecutionPlan } from './text/execution-plan.js';
+import { applyExecutionV0RuntimeConfig } from './text/execution-v0.js';
 import { getDopplerLoader } from '../../loader/doppler-loader.js';
 import { registerPipeline, getPipelineFactory } from './registry.js';
 import { selectRuleValue } from '../../rules/rule-registry.js';
@@ -85,6 +86,26 @@ export class InferencePipeline extends PipelineState {
   async loadModel(manifest) {
     this.manifest = manifest;
     this.decodeRing?.release();
+
+    const executionV0Runtime = applyExecutionV0RuntimeConfig({
+      runtimeConfig: this.runtimeConfig,
+      manifest,
+      modelId: manifest.modelId ?? 'model',
+      numLayers: Number(manifest.architecture?.numLayers ?? 0),
+    });
+    if (executionV0Runtime.executionV0State) {
+      this.runtimeConfig = executionV0Runtime.runtimeConfig;
+      this.executionV0State = executionV0Runtime.executionV0State;
+      log.info(
+        'Pipeline',
+        `Execution v0 enabled (steps=${this.executionV0State.resolvedSteps.all.length}, ` +
+        `kernelPathInline=${this.executionV0State.runtimeInferencePatch.kernelPath ? 'yes' : 'no'}, ` +
+        `pipelineInline=${this.executionV0State.runtimeInferencePatch.pipeline ? 'yes' : 'no'})`
+      );
+    } else {
+      this.executionV0State = null;
+    }
+
     // Pass runtime model overrides to merge with manifest inference config
     const modelOverrides = (this.runtimeConfig.inference.modelOverrides);
     this.modelConfig = parseModelConfig(manifest, modelOverrides);

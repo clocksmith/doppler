@@ -8,6 +8,38 @@
       },
       "value": "gemma3-q4k-dequant-f32a-online"
     },
+    {
+      "match": {
+        "allowCapabilityAutoSelection": true,
+        "hasSubgroups": false,
+        "kernelPathRef": "gemma3-q4k-dequant-f16a-online"
+      },
+      "value": "gemma3-q4k-dequant-f32a"
+    },
+    {
+      "match": {
+        "allowCapabilityAutoSelection": true,
+        "hasSubgroups": false,
+        "kernelPathRef": "gemma3-q4k-dequant-f32a-online"
+      },
+      "value": "gemma3-q4k-dequant-f32a"
+    },
+    {
+      "match": {
+        "allowCapabilityAutoSelection": true,
+        "hasSubgroups": false,
+        "kernelPathRef": "gemma2-q4k-dequant-f16a"
+      },
+      "value": "gemma2-q4k-dequant-f32a"
+    },
+    {
+      "match": {
+        "allowCapabilityAutoSelection": true,
+        "hasSubgroups": false,
+        "kernelPathRef": "gemma2-q4k-fused-f32a"
+      },
+      "value": "gemma2-q4k-dequant-f32a"
+    },
     { "match": {}, "value": { "context": "kernelPathRef" } }
   ],
   "finitenessFallback": [
@@ -17,7 +49,7 @@
     },
     {
       "match": { "kernelPathId": "gemma3-q4k-dequant-f16a-online" },
-      "value": "gemma3-q4k-dequant-f32a-online"
+      "value": "gemma3-q4k-dequant-f32a"
     },
     {
       "match": { "kernelPathId": "gemma2-f16-f16a" },
@@ -25,7 +57,7 @@
     },
     {
       "match": { "kernelPathId": "gemma2-q4k-dequant-f16a" },
-      "value": "gemma2-q4k-fused-f32a"
+      "value": "gemma2-q4k-dequant-f32a"
     },
     { "match": {}, "value": null }
   ]

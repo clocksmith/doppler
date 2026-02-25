@@ -3292,7 +3292,8 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "outputDtype": "f32"
         },
         "vec4": {
           "wgsl": "gather_vec4.wgsl",
@@ -3302,7 +3303,8 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "outputDtype": "f32"
         },
         "f16": {
           "wgsl": "gather_f16.wgsl",
@@ -3315,6 +3317,7 @@
           "requires": [
             "shader-f16"
           ],
+          "outputDtype": "f32",
           "description": "F16 embeddings -> F32 output (for weight-tied lm_head optimization)"
         },
         "f16_vec4": {
@@ -3327,7 +3330,8 @@
           ],
           "requires": [
             "shader-f16"
-          ]
+          ],
+          "outputDtype": "f32"
         },
         "f16_out": {
           "wgsl": "gather_f16_out.wgsl",
@@ -4261,6 +4265,18 @@
             1
           ],
           "requires": []
+        },
+        "f16": {
+          "wgsl": "split_qkv_f16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ]
         }
       }
     },

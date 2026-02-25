@@ -3,7 +3,7 @@ import type {
   KernelWarmupConfigSchema,
   KernelPathSchema,
 } from '../../../config/schema/index.js';
-import type { KernelPathSource } from '../../../config/kernel-path-loader.js';
+import type { KernelPathPolicy, KernelPathSource } from '../../../config/kernel-path-loader.js';
 import type { ParsedModelConfig, Manifest } from './config.js';
 import type { Tokenizer } from '../../tokenizer.js';
 
@@ -22,6 +22,7 @@ export interface KernelPathResolutionOptions {
 export interface KernelPathResolutionResult {
   resolvedKernelPath: KernelPathSchema | null;
   kernelPathSource: KernelPathSource;
+  kernelPathPolicy: KernelPathPolicy;
   runtimeConfig: RuntimeConfigSchema;
 }
 

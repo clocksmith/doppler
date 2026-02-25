@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-02-25T16:41:24.646Z",
+  "generatedAt": "2026-02-25T19:22:12.061Z",
   "release": {
     "channel": "main-snapshot",
     "version": null,
-    "commitSha": "a37553a2c6e693ab87ded1b1ca44de009cc959a9",
+    "commitSha": "d10a6ac38483bf2579f72fc3290d22ed1c4cbcd1",
     "dirty": true
   },
   "sources": {
@@ -16,14 +16,14 @@
     },
     "workloads": {
       "path": "benchmarks/vendors/workloads.json",
-      "sha256": "a4762cc62fef60180c50a762912436cdd70b6748486aaaadba73ec2fd052a33b",
-      "bytes": 2004,
+      "sha256": "6257c24d5addd2d7c8f2406d73888c728c6b83bfa26a36e171ac80f2c04b444b",
+      "bytes": 389,
       "updated": null
     },
     "capabilities": {
       "path": "benchmarks/vendors/capabilities.json",
-      "sha256": "37529349db431886c6397722887a555eda61de3b9b2f5af66aac1bd603c21ba0",
-      "bytes": 9148,
+      "sha256": "ae24bfe829ebb815adfa5d142e6070c9b81dc383cb3369c031cdfe4977f4d015",
+      "bytes": 10742,
       "updated": "2026-02-25"
     },
     "compareConfig": {
@@ -44,7 +44,7 @@
     "modelCoverageCount": 4,
     "compareProfileCount": 2,
     "catalogModelCount": 3,
-    "workloadCount": 13,
+    "workloadCount": 2,
     "committedChartCount": 1,
     "hasLatestCompareResult": true
   },
@@ -65,38 +65,38 @@
         "enabledFeatures": 18,
         "totalFeatures": 18,
         "features": {
-          "browser_webgpu": true,
-          "node_webgpu": true,
-          "headless_browser_harness": true,
-          "standardized_workloads": true,
-          "cache_mode_control": true,
-          "decodeTokensPerSec": true,
-          "prefillTokensPerSec": true,
-          "firstTokenMs": true,
-          "firstResponseMs": true,
-          "modelLoadMs": true,
-          "prefillMs": true,
-          "decodeMs": true,
-          "totalRunMs": true,
-          "decodeMsPerTokenP50": true,
-          "decodeMsPerTokenP95": true,
-          "decodeMsPerTokenP99": true,
-          "js_heap_memory_metrics": true,
-          "gpu_memory_metrics": true
+          "browser_webgpu": "supported",
+          "node_webgpu": "supported",
+          "headless_browser_harness": "supported",
+          "standardized_workloads": "supported",
+          "cache_mode_control": "supported",
+          "decodeTokensPerSec": "supported",
+          "prefillTokensPerSec": "supported",
+          "firstTokenMs": "supported",
+          "firstResponseMs": "supported",
+          "modelLoadMs": "supported",
+          "prefillMs": "supported",
+          "decodeMs": "supported",
+          "totalRunMs": "supported",
+          "decodeMsPerTokenP50": "supported",
+          "decodeMsPerTokenP95": "supported",
+          "decodeMsPerTokenP99": "supported",
+          "js_heap_memory_metrics": "supported",
+          "gpu_memory_metrics": "supported"
         }
       },
       "profile": {
         "enabledFeatures": 7,
         "totalFeatures": 8,
         "features": {
-          "kernel_level_gpu_timing": true,
-          "operator_level_timing": true,
-          "top_ops_summary": true,
-          "per_decode_step_breakdown": true,
-          "kernel_selection_trace": true,
-          "phase_memory_breakdown": true,
-          "cache_events": true,
-          "replayable_trace_artifact": false
+          "kernel_level_gpu_timing": "supported",
+          "operator_level_timing": "supported",
+          "top_ops_summary": "supported",
+          "per_decode_step_breakdown": "supported",
+          "kernel_selection_trace": "supported",
+          "phase_memory_breakdown": "supported",
+          "cache_events": "supported",
+          "replayable_trace_artifact": "unsupported"
         }
       },
       "evidence": [
@@ -122,38 +122,38 @@
         "enabledFeatures": 5,
         "totalFeatures": 18,
         "features": {
-          "browser_webgpu": true,
-          "node_webgpu": false,
-          "headless_browser_harness": false,
-          "standardized_workloads": true,
-          "cache_mode_control": false,
-          "decodeTokensPerSec": true,
-          "prefillTokensPerSec": true,
-          "firstTokenMs": true,
-          "modelLoadMs": false,
-          "decodeMsPerTokenP50": false,
-          "decodeMsPerTokenP95": false,
-          "decodeMsPerTokenP99": false,
-          "js_heap_memory_metrics": false,
-          "gpu_memory_metrics": false,
-          "firstResponseMs": false,
-          "prefillMs": false,
-          "decodeMs": false,
-          "totalRunMs": false
+          "browser_webgpu": "supported",
+          "node_webgpu": "unsupported",
+          "headless_browser_harness": "unsupported",
+          "standardized_workloads": "supported",
+          "cache_mode_control": "unsupported",
+          "decodeTokensPerSec": "supported",
+          "prefillTokensPerSec": "supported",
+          "firstTokenMs": "supported",
+          "modelLoadMs": "unsupported",
+          "decodeMsPerTokenP50": "unsupported",
+          "decodeMsPerTokenP95": "unsupported",
+          "decodeMsPerTokenP99": "unsupported",
+          "js_heap_memory_metrics": "unsupported",
+          "gpu_memory_metrics": "unsupported",
+          "firstResponseMs": "unsupported",
+          "prefillMs": "unsupported",
+          "decodeMs": "unsupported",
+          "totalRunMs": "unsupported"
         }
       },
       "profile": {
         "enabledFeatures": 0,
         "totalFeatures": 8,
         "features": {
-          "kernel_level_gpu_timing": false,
-          "operator_level_timing": false,
-          "top_ops_summary": false,
-          "per_decode_step_breakdown": false,
-          "kernel_selection_trace": false,
-          "phase_memory_breakdown": false,
-          "cache_events": false,
-          "replayable_trace_artifact": false
+          "kernel_level_gpu_timing": "unsupported",
+          "operator_level_timing": "unsupported",
+          "top_ops_summary": "unsupported",
+          "per_decode_step_breakdown": "unsupported",
+          "kernel_selection_trace": "unsupported",
+          "phase_memory_breakdown": "unsupported",
+          "cache_events": "unsupported",
+          "replayable_trace_artifact": "unsupported"
         }
       },
       "evidence": [
@@ -176,38 +176,38 @@
         "enabledFeatures": 16,
         "totalFeatures": 18,
         "features": {
-          "browser_webgpu": true,
-          "node_webgpu": false,
-          "headless_browser_harness": true,
-          "standardized_workloads": true,
-          "cache_mode_control": true,
-          "decodeTokensPerSec": true,
-          "prefillTokensPerSec": true,
-          "firstTokenMs": true,
-          "firstResponseMs": true,
-          "modelLoadMs": true,
-          "prefillMs": true,
-          "decodeMs": true,
-          "totalRunMs": true,
-          "decodeMsPerTokenP50": true,
-          "decodeMsPerTokenP95": true,
-          "decodeMsPerTokenP99": true,
-          "js_heap_memory_metrics": true,
-          "gpu_memory_metrics": false
+          "browser_webgpu": "supported",
+          "node_webgpu": "unsupported",
+          "headless_browser_harness": "supported",
+          "standardized_workloads": "supported",
+          "cache_mode_control": "supported",
+          "decodeTokensPerSec": "supported",
+          "prefillTokensPerSec": "supported",
+          "firstTokenMs": "supported",
+          "firstResponseMs": "supported",
+          "modelLoadMs": "supported",
+          "prefillMs": "supported",
+          "decodeMs": "supported",
+          "totalRunMs": "supported",
+          "decodeMsPerTokenP50": "supported",
+          "decodeMsPerTokenP95": "supported",
+          "decodeMsPerTokenP99": "supported",
+          "js_heap_memory_metrics": "supported",
+          "gpu_memory_metrics": "unsupported"
         }
       },
       "profile": {
         "enabledFeatures": 2,
         "totalFeatures": 8,
         "features": {
-          "kernel_level_gpu_timing": false,
-          "operator_level_timing": true,
-          "top_ops_summary": true,
-          "per_decode_step_breakdown": false,
-          "kernel_selection_trace": false,
-          "phase_memory_breakdown": false,
-          "cache_events": false,
-          "replayable_trace_artifact": false
+          "kernel_level_gpu_timing": "unsupported",
+          "operator_level_timing": "supported",
+          "top_ops_summary": "supported",
+          "per_decode_step_breakdown": "unsupported",
+          "kernel_selection_trace": "unsupported",
+          "phase_memory_breakdown": "unsupported",
+          "cache_events": "unsupported",
+          "replayable_trace_artifact": "unsupported"
         }
       },
       "evidence": [
@@ -233,38 +233,38 @@
         "enabledFeatures": 5,
         "totalFeatures": 18,
         "features": {
-          "browser_webgpu": true,
-          "node_webgpu": false,
-          "headless_browser_harness": false,
-          "standardized_workloads": true,
-          "cache_mode_control": false,
-          "decodeTokensPerSec": true,
-          "prefillTokensPerSec": true,
-          "firstTokenMs": true,
-          "modelLoadMs": false,
-          "decodeMsPerTokenP50": false,
-          "decodeMsPerTokenP95": false,
-          "decodeMsPerTokenP99": false,
-          "js_heap_memory_metrics": false,
-          "gpu_memory_metrics": false,
-          "firstResponseMs": false,
-          "prefillMs": false,
-          "decodeMs": false,
-          "totalRunMs": false
+          "browser_webgpu": "supported",
+          "node_webgpu": "unsupported",
+          "headless_browser_harness": "unsupported",
+          "standardized_workloads": "supported",
+          "cache_mode_control": "unsupported",
+          "decodeTokensPerSec": "supported",
+          "prefillTokensPerSec": "supported",
+          "firstTokenMs": "supported",
+          "modelLoadMs": "unsupported",
+          "decodeMsPerTokenP50": "unsupported",
+          "decodeMsPerTokenP95": "unsupported",
+          "decodeMsPerTokenP99": "unsupported",
+          "js_heap_memory_metrics": "unsupported",
+          "gpu_memory_metrics": "unsupported",
+          "firstResponseMs": "unsupported",
+          "prefillMs": "unsupported",
+          "decodeMs": "unsupported",
+          "totalRunMs": "unsupported"
         }
       },
       "profile": {
         "enabledFeatures": 0,
         "totalFeatures": 8,
         "features": {
-          "kernel_level_gpu_timing": false,
-          "operator_level_timing": false,
-          "top_ops_summary": false,
-          "per_decode_step_breakdown": false,
-          "kernel_selection_trace": false,
-          "phase_memory_breakdown": false,
-          "cache_events": false,
-          "replayable_trace_artifact": false
+          "kernel_level_gpu_timing": "unsupported",
+          "operator_level_timing": "unsupported",
+          "top_ops_summary": "unsupported",
+          "per_decode_step_breakdown": "unsupported",
+          "kernel_selection_trace": "unsupported",
+          "phase_memory_breakdown": "unsupported",
+          "cache_events": "unsupported",
+          "replayable_trace_artifact": "unsupported"
         }
       },
       "evidence": [
@@ -287,38 +287,38 @@
         "enabledFeatures": 4,
         "totalFeatures": 18,
         "features": {
-          "browser_webgpu": false,
-          "node_webgpu": false,
-          "headless_browser_harness": false,
-          "standardized_workloads": true,
-          "cache_mode_control": false,
-          "decodeTokensPerSec": true,
-          "prefillTokensPerSec": true,
-          "firstTokenMs": true,
-          "modelLoadMs": false,
-          "decodeMsPerTokenP50": false,
-          "decodeMsPerTokenP95": false,
-          "decodeMsPerTokenP99": false,
-          "js_heap_memory_metrics": false,
-          "gpu_memory_metrics": false,
-          "firstResponseMs": false,
-          "prefillMs": false,
-          "decodeMs": false,
-          "totalRunMs": false
+          "browser_webgpu": "unsupported",
+          "node_webgpu": "unsupported",
+          "headless_browser_harness": "unsupported",
+          "standardized_workloads": "supported",
+          "cache_mode_control": "unsupported",
+          "decodeTokensPerSec": "supported",
+          "prefillTokensPerSec": "supported",
+          "firstTokenMs": "supported",
+          "modelLoadMs": "unsupported",
+          "decodeMsPerTokenP50": "unsupported",
+          "decodeMsPerTokenP95": "unsupported",
+          "decodeMsPerTokenP99": "unsupported",
+          "js_heap_memory_metrics": "unsupported",
+          "gpu_memory_metrics": "unsupported",
+          "firstResponseMs": "unsupported",
+          "prefillMs": "unsupported",
+          "decodeMs": "unsupported",
+          "totalRunMs": "unsupported"
         }
       },
       "profile": {
         "enabledFeatures": 0,
         "totalFeatures": 8,
         "features": {
-          "kernel_level_gpu_timing": false,
-          "operator_level_timing": false,
-          "top_ops_summary": false,
-          "per_decode_step_breakdown": false,
-          "kernel_selection_trace": false,
-          "phase_memory_breakdown": false,
-          "cache_events": false,
-          "replayable_trace_artifact": false
+          "kernel_level_gpu_timing": "unsupported",
+          "operator_level_timing": "unsupported",
+          "top_ops_summary": "unsupported",
+          "per_decode_step_breakdown": "unsupported",
+          "kernel_selection_trace": "unsupported",
+          "phase_memory_breakdown": "unsupported",
+          "cache_events": "unsupported",
+          "replayable_trace_artifact": "unsupported"
         }
       },
       "evidence": [
@@ -341,38 +341,38 @@
         "enabledFeatures": 4,
         "totalFeatures": 18,
         "features": {
-          "browser_webgpu": false,
-          "node_webgpu": false,
-          "headless_browser_harness": false,
-          "standardized_workloads": true,
-          "cache_mode_control": false,
-          "decodeTokensPerSec": true,
-          "prefillTokensPerSec": true,
-          "firstTokenMs": true,
-          "modelLoadMs": false,
-          "decodeMsPerTokenP50": false,
-          "decodeMsPerTokenP95": false,
-          "decodeMsPerTokenP99": false,
-          "js_heap_memory_metrics": false,
-          "gpu_memory_metrics": false,
-          "firstResponseMs": false,
-          "prefillMs": false,
-          "decodeMs": false,
-          "totalRunMs": false
+          "browser_webgpu": "unsupported",
+          "node_webgpu": "unsupported",
+          "headless_browser_harness": "unsupported",
+          "standardized_workloads": "supported",
+          "cache_mode_control": "unsupported",
+          "decodeTokensPerSec": "supported",
+          "prefillTokensPerSec": "supported",
+          "firstTokenMs": "supported",
+          "modelLoadMs": "unsupported",
+          "decodeMsPerTokenP50": "unsupported",
+          "decodeMsPerTokenP95": "unsupported",
+          "decodeMsPerTokenP99": "unsupported",
+          "js_heap_memory_metrics": "unsupported",
+          "gpu_memory_metrics": "unsupported",
+          "firstResponseMs": "unsupported",
+          "prefillMs": "unsupported",
+          "decodeMs": "unsupported",
+          "totalRunMs": "unsupported"
         }
       },
       "profile": {
         "enabledFeatures": 0,
         "totalFeatures": 8,
         "features": {
-          "kernel_level_gpu_timing": false,
-          "operator_level_timing": false,
-          "top_ops_summary": false,
-          "per_decode_step_breakdown": false,
-          "kernel_selection_trace": false,
-          "phase_memory_breakdown": false,
-          "cache_events": false,
-          "replayable_trace_artifact": false
+          "kernel_level_gpu_timing": "unsupported",
+          "operator_level_timing": "unsupported",
+          "top_ops_summary": "unsupported",
+          "per_decode_step_breakdown": "unsupported",
+          "kernel_selection_trace": "unsupported",
+          "phase_memory_breakdown": "unsupported",
+          "cache_events": "unsupported",
+          "replayable_trace_artifact": "unsupported"
         }
       },
       "evidence": [
@@ -395,38 +395,38 @@
         "enabledFeatures": 5,
         "totalFeatures": 18,
         "features": {
-          "browser_webgpu": true,
-          "node_webgpu": false,
-          "headless_browser_harness": false,
-          "standardized_workloads": true,
-          "cache_mode_control": false,
-          "decodeTokensPerSec": true,
-          "prefillTokensPerSec": true,
-          "firstTokenMs": true,
-          "modelLoadMs": false,
-          "decodeMsPerTokenP50": false,
-          "decodeMsPerTokenP95": false,
-          "decodeMsPerTokenP99": false,
-          "js_heap_memory_metrics": false,
-          "gpu_memory_metrics": false,
-          "firstResponseMs": false,
-          "prefillMs": false,
-          "decodeMs": false,
-          "totalRunMs": false
+          "browser_webgpu": "supported",
+          "node_webgpu": "unsupported",
+          "headless_browser_harness": "unsupported",
+          "standardized_workloads": "supported",
+          "cache_mode_control": "unsupported",
+          "decodeTokensPerSec": "supported",
+          "prefillTokensPerSec": "supported",
+          "firstTokenMs": "supported",
+          "modelLoadMs": "unsupported",
+          "decodeMsPerTokenP50": "unsupported",
+          "decodeMsPerTokenP95": "unsupported",
+          "decodeMsPerTokenP99": "unsupported",
+          "js_heap_memory_metrics": "unsupported",
+          "gpu_memory_metrics": "unsupported",
+          "firstResponseMs": "unsupported",
+          "prefillMs": "unsupported",
+          "decodeMs": "unsupported",
+          "totalRunMs": "unsupported"
         }
       },
       "profile": {
         "enabledFeatures": 0,
         "totalFeatures": 8,
         "features": {
-          "kernel_level_gpu_timing": false,
-          "operator_level_timing": false,
-          "top_ops_summary": false,
-          "per_decode_step_breakdown": false,
-          "kernel_selection_trace": false,
-          "phase_memory_breakdown": false,
-          "cache_events": false,
-          "replayable_trace_artifact": false
+          "kernel_level_gpu_timing": "unsupported",
+          "operator_level_timing": "unsupported",
+          "top_ops_summary": "unsupported",
+          "per_decode_step_breakdown": "unsupported",
+          "kernel_selection_trace": "unsupported",
+          "phase_memory_breakdown": "unsupported",
+          "cache_events": "unsupported",
+          "replayable_trace_artifact": "unsupported"
         }
       },
       "evidence": [
@@ -449,38 +449,38 @@
         "enabledFeatures": 4,
         "totalFeatures": 18,
         "features": {
-          "browser_webgpu": false,
-          "node_webgpu": false,
-          "headless_browser_harness": false,
-          "standardized_workloads": true,
-          "cache_mode_control": false,
-          "decodeTokensPerSec": true,
-          "prefillTokensPerSec": true,
-          "firstTokenMs": true,
-          "modelLoadMs": false,
-          "decodeMsPerTokenP50": false,
-          "decodeMsPerTokenP95": false,
-          "decodeMsPerTokenP99": false,
-          "js_heap_memory_metrics": false,
-          "gpu_memory_metrics": false,
-          "firstResponseMs": false,
-          "prefillMs": false,
-          "decodeMs": false,
-          "totalRunMs": false
+          "browser_webgpu": "unsupported",
+          "node_webgpu": "unsupported",
+          "headless_browser_harness": "unsupported",
+          "standardized_workloads": "supported",
+          "cache_mode_control": "unsupported",
+          "decodeTokensPerSec": "supported",
+          "prefillTokensPerSec": "supported",
+          "firstTokenMs": "supported",
+          "modelLoadMs": "unsupported",
+          "decodeMsPerTokenP50": "unsupported",
+          "decodeMsPerTokenP95": "unsupported",
+          "decodeMsPerTokenP99": "unsupported",
+          "js_heap_memory_metrics": "unsupported",
+          "gpu_memory_metrics": "unsupported",
+          "firstResponseMs": "unsupported",
+          "prefillMs": "unsupported",
+          "decodeMs": "unsupported",
+          "totalRunMs": "unsupported"
         }
       },
       "profile": {
         "enabledFeatures": 0,
         "totalFeatures": 8,
         "features": {
-          "kernel_level_gpu_timing": false,
-          "operator_level_timing": false,
-          "top_ops_summary": false,
-          "per_decode_step_breakdown": false,
-          "kernel_selection_trace": false,
-          "phase_memory_breakdown": false,
-          "cache_events": false,
-          "replayable_trace_artifact": false
+          "kernel_level_gpu_timing": "unsupported",
+          "operator_level_timing": "unsupported",
+          "top_ops_summary": "unsupported",
+          "per_decode_step_breakdown": "unsupported",
+          "kernel_selection_trace": "unsupported",
+          "phase_memory_breakdown": "unsupported",
+          "cache_events": "unsupported",
+          "replayable_trace_artifact": "unsupported"
         }
       },
       "evidence": [
@@ -544,83 +544,6 @@
   ],
   "workloads": [
     {
-      "id": "decode-64-128-greedy",
-      "name": "Decode 64/128 Greedy",
-      "prefillTokens": 64,
-      "decodeTokens": 128,
-      "sampling": {
-        "temperature": 0,
-        "topK": 1,
-        "topP": 1
-      }
-    },
-    {
-      "id": "decode-32-64-greedy",
-      "name": "Decode 32/64 Greedy",
-      "prefillTokens": 32,
-      "decodeTokens": 64,
-      "sampling": {
-        "temperature": 0,
-        "topK": 1,
-        "topP": 1
-      }
-    },
-    {
-      "id": "decode-512-128-greedy",
-      "name": "Decode 512/128 Greedy",
-      "prefillTokens": 512,
-      "decodeTokens": 128,
-      "sampling": {
-        "temperature": 0,
-        "topK": 1,
-        "topP": 1
-      }
-    },
-    {
-      "id": "g3-p032-d016-t0-k1",
-      "name": "Gemma3 Grid 32/16 Greedy",
-      "prefillTokens": 32,
-      "decodeTokens": 16,
-      "sampling": {
-        "temperature": 0,
-        "topK": 1,
-        "topP": 1
-      }
-    },
-    {
-      "id": "g3-p032-d064-t0-k1",
-      "name": "Gemma3 Grid 32/64 Greedy",
-      "prefillTokens": 32,
-      "decodeTokens": 64,
-      "sampling": {
-        "temperature": 0,
-        "topK": 1,
-        "topP": 1
-      }
-    },
-    {
-      "id": "g3-p032-d256-t0-k1",
-      "name": "Gemma3 Grid 32/256 Greedy",
-      "prefillTokens": 32,
-      "decodeTokens": 256,
-      "sampling": {
-        "temperature": 0,
-        "topK": 1,
-        "topP": 1
-      }
-    },
-    {
-      "id": "g3-p064-d016-t0-k1",
-      "name": "Gemma3 Grid 64/16 Greedy",
-      "prefillTokens": 64,
-      "decodeTokens": 16,
-      "sampling": {
-        "temperature": 0,
-        "topK": 1,
-        "topP": 1
-      }
-    },
-    {
       "id": "g3-p064-d064-t0-k1",
       "name": "Gemma3 Grid 64/64 Greedy",
       "prefillTokens": 64,
@@ -641,50 +564,6 @@
         "topK": 32,
         "topP": 1
       }
-    },
-    {
-      "id": "g3-p064-d256-t0-k1",
-      "name": "Gemma3 Grid 64/256 Greedy",
-      "prefillTokens": 64,
-      "decodeTokens": 256,
-      "sampling": {
-        "temperature": 0,
-        "topK": 1,
-        "topP": 1
-      }
-    },
-    {
-      "id": "g3-p512-d016-t0-k1",
-      "name": "Gemma3 Grid 512/16 Greedy",
-      "prefillTokens": 512,
-      "decodeTokens": 16,
-      "sampling": {
-        "temperature": 0,
-        "topK": 1,
-        "topP": 1
-      }
-    },
-    {
-      "id": "g3-p512-d064-t0-k1",
-      "name": "Gemma3 Grid 512/64 Greedy",
-      "prefillTokens": 512,
-      "decodeTokens": 64,
-      "sampling": {
-        "temperature": 0,
-        "topK": 1,
-        "topP": 1
-      }
-    },
-    {
-      "id": "g3-p512-d256-t0-k1",
-      "name": "Gemma3 Grid 512/256 Greedy",
-      "prefillTokens": 512,
-      "decodeTokens": 256,
-      "sampling": {
-        "temperature": 0,
-        "topK": 1,
-        "topP": 1
-      }
     }
   ],
   "evidence": {
@@ -692,38 +571,38 @@
       "benchmarks/vendors/results/compare_1b_multi-workload_favorable_phases.svg"
     ],
     "latestCompareResult": {
-      "path": "benchmarks/vendors/fixtures/g3-p064-d064-t0-k1.compare.json",
-      "timestamp": "2026-02-25T12:00:00.000Z",
+      "path": "benchmarks/vendors/fixtures/g3-p064-d064-t1-k32.compare.json",
+      "timestamp": "2026-02-25T17:58:54.492Z",
       "mode": "compute",
       "section": "compute/parity",
       "decodeProfile": null,
       "dopplerModelId": "gemma-3-1b-it-f16-f32a",
       "tjsModelId": "onnx-community/gemma-3-1b-it-ONNX-GQA",
-      "dopplerKernelPath": null,
-      "workloadId": "g3-p064-d064-t0-k1",
+      "dopplerKernelPath": "gemma3-f16-fused-f32a-online",
+      "workloadId": "g3-p064-d064-t1-k32",
       "workload": {
         "prefillTokenTarget": 64,
         "decodeTokenTarget": 64
       },
       "environment": {
         "host": {
-          "platform": "darwin",
-          "arch": "arm64",
-          "nodeVersion": "v22.12.0"
+          "platform": "linux",
+          "arch": "x64",
+          "nodeVersion": "v20.18.1"
         },
         "browser": {
-          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-          "platform": "MacIntel",
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/145.0.0.0 Safari/537.36",
+          "platform": "Linux x86_64",
           "language": "en-US",
           "vendor": "Google Inc.",
-          "executable": "chromium"
+          "executable": null
         },
         "gpu": {
-          "backend": "metal",
-          "vendor": "Apple",
-          "architecture": "gpu-family-apple-9",
-          "device": "M3 Pro",
-          "description": "Apple M3 Pro",
+          "backend": "vulkan",
+          "vendor": null,
+          "architecture": null,
+          "device": null,
+          "description": "AMD RYZEN AI MAX+ 395 w/ Radeon 8060S",
           "hasF16": true,
           "hasSubgroups": true,
           "hasTimestampQuery": true
@@ -731,7 +610,7 @@
         "engines": {
           "doppler": {
             "library": "doppler",
-            "version": "0.1.0",
+            "version": null,
             "surface": null,
             "runtime": {
               "device": "webgpu",
@@ -740,18 +619,18 @@
               "executionProviderMode": null
             },
             "browser": {
-              "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-              "platform": "MacIntel",
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/145.0.0.0 Safari/537.36",
+              "platform": "Linux x86_64",
               "language": "en-US",
               "vendor": "Google Inc.",
               "executable": null
             },
             "gpu": {
-              "backend": "metal",
-              "vendor": "Apple",
-              "architecture": "gpu-family-apple-9",
-              "device": "M3 Pro",
-              "description": "Apple M3 Pro",
+              "backend": "vulkan",
+              "vendor": "unknown",
+              "architecture": "unknown",
+              "device": "unknown",
+              "description": null,
               "hasF16": true,
               "hasSubgroups": true,
               "hasTimestampQuery": true
@@ -759,50 +638,50 @@
           },
           "transformersjs": {
             "library": "transformers.js",
-            "version": "4.x",
+            "version": null,
             "surface": null,
             "runtime": {
-              "device": "webgpu",
-              "dtype": "q4",
-              "requestedDtype": "q4",
-              "executionProviderMode": "webgpu-only"
+              "device": null,
+              "dtype": null,
+              "requestedDtype": null,
+              "executionProviderMode": null
             },
             "browser": {
-              "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-              "platform": "MacIntel",
-              "language": "en-US",
-              "vendor": "Google Inc.",
+              "userAgent": null,
+              "platform": null,
+              "language": null,
+              "vendor": null,
               "executable": null
             },
             "gpu": {
-              "backend": "metal",
-              "vendor": "Apple",
-              "architecture": "gpu-family-apple-9",
-              "device": "M3 Pro",
-              "description": "Apple M3 Pro",
-              "hasF16": true,
-              "hasSubgroups": true,
-              "hasTimestampQuery": true
+              "backend": null,
+              "vendor": null,
+              "architecture": null,
+              "device": null,
+              "description": null,
+              "hasF16": null,
+              "hasSubgroups": null,
+              "hasTimestampQuery": null
             }
           }
         }
       },
       "metrics": {
         "decodeTokensPerSec": {
-          "doppler": 45.8,
-          "transformersjs": 37.1
+          "doppler": 28.62,
+          "transformersjs": null
         },
         "firstTokenMs": {
-          "doppler": 138.5,
-          "transformersjs": 169.2
+          "doppler": 754.5,
+          "transformersjs": null
         },
         "firstResponseMs": {
-          "doppler": 412.2,
-          "transformersjs": 505.4
+          "doppler": 5291.8,
+          "transformersjs": null
         },
         "modelLoadMs": {
-          "doppler": 273.7,
-          "transformersjs": 336.2
+          "doppler": 4537.3,
+          "transformersjs": null
         }
       },
       "origin": "fixture"

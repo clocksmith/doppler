@@ -1,3 +1,5 @@
+// AUTO-GENERATED from src/gpu/kernels/energy_update.wgsl.
+// Edit the source kernel and tools/configs/wgsl-variants.js, then run `npm run kernels:generate`.
 // energy_update_f16.wgsl
 // Gradient step on f16 state towards f16 target.
 

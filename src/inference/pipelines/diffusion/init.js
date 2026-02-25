@@ -51,7 +51,7 @@ function resolveSchedulerType(modelScheduler, runtimeScheduler) {
   if (modelClass === 'DPMSolverMultistepScheduler') {
     return 'dpmpp_2m';
   }
-  return runtimeScheduler?.type || DEFAULT_DIFFUSION_CONFIG.scheduler.type;
+  return runtimeScheduler?.type;
 }
 
 function mergeSchedulerConfig(modelConfig, runtimeScheduler) {
@@ -76,7 +76,7 @@ function resolveLatentScale(modelConfig, runtimeConfig) {
   }
   const runtimeScale = runtimeConfig?.latent?.scale;
   if (Number.isFinite(runtimeScale) && runtimeScale > 0) return runtimeScale;
-  return DEFAULT_DIFFUSION_CONFIG.latent.scale;
+  throw new Error('Diffusion runtime requires a valid latent scale.');
 }
 
 function resolveLatentChannels(modelConfig, runtimeConfig) {
@@ -84,7 +84,7 @@ function resolveLatentChannels(modelConfig, runtimeConfig) {
   if (Number.isFinite(vaeChannels) && vaeChannels > 0) return vaeChannels;
   const runtimeChannels = runtimeConfig?.latent?.channels;
   if (Number.isFinite(runtimeChannels) && runtimeChannels > 0) return runtimeChannels;
-  return DEFAULT_DIFFUSION_CONFIG.latent.channels;
+  throw new Error('Diffusion runtime requires valid latent channels.');
 }
 
 export function initializeDiffusion(manifest, runtimeConfig) {

@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 
 const {
   createTranslateTextRequest,
-  buildTranslatePromptFromRequest,
 } = await import('../../demo/app/translate/request.js');
+const { formatChatMessages } = await import('../../src/inference/pipelines/text/chat-format.js');
 
 {
   const request = createTranslateTextRequest('Hello world.', 'en', 'es_XX');
@@ -17,21 +17,38 @@ const {
 }
 
 {
-  const request = createTranslateTextRequest('Hello world.', 'en', 'es_XX');
-  const prompt = buildTranslatePromptFromRequest(request, (code) => {
-    if (code === 'en') return 'English';
-    if (code === 'es_XX') return 'Spanish';
-    return code;
-  });
-  assert.match(prompt, /professional English \(en\) to Spanish \(es-XX\) translator/);
-  assert.match(prompt, /Produce only the Spanish translation/);
+  const request = createTranslateTextRequest('Hello world.', 'en', 'fr');
+  const prompt = formatChatMessages(request.messages, 'translategemma');
+  assert.match(prompt, /^<start_of_turn>user\n/);
+  assert.match(prompt, /professional English \(en\) to French \(fr\) translator/);
+  assert.match(prompt, /Produce only the French translation/);
   assert.match(prompt, /Hello world\./);
+  assert.match(prompt, /<end_of_turn>\n<start_of_turn>model\n$/);
 }
 
 {
   assert.throws(
-    () => buildTranslatePromptFromRequest({ messages: [] }),
-    /exactly one user message/
+    () => formatChatMessages([
+      {
+        role: 'user',
+        content: [
+          {
+            type: 'text',
+            source_lang_code: 'xx',
+            target_lang_code: 'fr',
+            text: 'Hello world.',
+          },
+        ],
+      },
+    ], 'translategemma'),
+    /unsupported source_lang_code/i
+  );
+}
+
+{
+  assert.throws(
+    () => formatChatMessages([], 'translategemma'),
+    /requires at least one message/i
   );
 }
 

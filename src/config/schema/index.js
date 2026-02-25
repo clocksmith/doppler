@@ -33,6 +33,22 @@ export {
 } from './inference.schema.js';
 
 // =============================================================================
+// Execution v0 Schema
+// =============================================================================
+export {
+  EXECUTION_V0_SCHEMA_ID,
+  EXECUTION_V0_HASH_PATTERN,
+  EXECUTION_V0_SEMVER_PATTERN,
+  DEFAULT_EXECUTION_V0_COMPUTE_DEFAULTS,
+  DEFAULT_EXECUTION_V0_SESSION_DEFAULTS,
+  DEFAULT_EXECUTION_V0_POLICIES,
+  DEFAULT_EXECUTION_V0_CONFIG,
+  DEFAULT_EXECUTION_V0_PATCH,
+  isExecutionV0Digest,
+  isExecutionV0Semver,
+} from './execution-v0.schema.js';
+
+// =============================================================================
 // Conversion Schema
 // =============================================================================
 export {
@@ -51,6 +67,7 @@ export {
   DEFAULT_CONVERTER_MANIFEST_CONFIG,
   DEFAULT_CONVERTER_INFERENCE_CONFIG,
   DEFAULT_CONVERTER_OUTPUT_CONFIG,
+  DEFAULT_GGUF_PARSER_DEFAULTS,
   DEFAULT_CONVERTER_PRESET_CONFIG,
   DEFAULT_CONVERTER_CONFIG,
   createConverterConfig,
@@ -98,6 +115,7 @@ export {
   DEFAULT_SAMPLING_DEFAULTS,
   DEFAULT_TOKENIZER_DEFAULTS,
   DEFAULT_CHAT_TEMPLATE_CONFIG,
+  DEFAULT_KERNEL_PATH_POLICY,
   DEFAULT_INFERENCE_DEFAULTS_CONFIG,
   DEFAULT_PRESET_INFERENCE_CONFIG,
 } from './inference-defaults.schema.js';

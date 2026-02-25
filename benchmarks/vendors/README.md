@@ -35,6 +35,7 @@ Claim format to keep reports auditable:
 - `workloads.json`: shared workload IDs used for apples-to-apples comparisons.
   - includes `defaults.compareEngines`, used by `tools/compare-engines.js` when no explicit workload/prompt/token lengths are passed.
 - `capabilities.json`: capability matrix for bench/profiling coverage by target.
+  Feature values are tri-state: `supported`, `unsupported`, `unknown`.
 - `harnesses/*.json`: one harness definition per vendor.
 - `schema/*.json`: schemas for registry, workloads, harness, capabilities, metric contract, and normalized result records.
 - `schema/compare-engines-config.schema.json`: schema for `compare-engines.config.json`.
@@ -73,7 +74,7 @@ Use `tools/vendor-bench.js`:
 - `node tools/vendor-bench.js matrix --include-local-results`
 - `node tools/vendor-bench.js show --target webllm`
 - `node tools/vendor-bench.js import --target webllm --input /tmp/webllm-result.json`
-- `node tools/vendor-bench.js run --target webllm --workload decode-64-128-greedy -- node ./path/to/runner.js`
+- `node tools/vendor-bench.js run --target webllm --workload g3-p064-d064-t0-k1 -- node ./path/to/runner.js`
 
 `import` and `run` both produce normalized records under `benchmarks/vendors/results/` unless `--output` is specified.
 `matrix` writes `benchmarks/vendors/release-matrix.json` and `docs/release-matrix.md`.
@@ -81,6 +82,10 @@ By default, `matrix` auto-discovers compare JSON artifacts under `benchmarks/ven
 Use `--include-local-results` to also scan `benchmarks/vendors/results/` (files containing `compare` in the name).
 Use `--strict-compare-artifacts` to fail generation when any auto-discovered compare artifact is invalid.
 Workload rows in the markdown include a `GPU/OS/Platform` column derived from each linked compare artifact's runtime environment metadata.
+When multiple compare artifacts exist, markdown selects the latest artifact per `(workloadId, modelId, runtime)` tuple.
+Runtime labeling prefers explicit GPU adapter metadata, then falls back to host CPU model when adapter fields are missing.
+For fixtures tagged `.apple-m3pro.compare.json`, missing runtime fields default to `Apple M3 / metal / darwin / chromium`.
+Browser labeling prefers explicit browser executable and falls back to `userAgent` parsing; browser platform is not used as browser identity.
 When `--compare-result` is provided, matrix generation also captures host/browser/GPU specs from that compare payload.
 `tools/compare-engines.js --save` refreshes release-matrix artifacts automatically using fixture-only discovery by default (use `--skip-matrix-update` to opt out).
 
@@ -122,7 +127,7 @@ Use `--section` to choose the section, `--chart` (`bar|stacked|radar`) to pick t
 
 Add a vendor target:
 - Update `benchmarks/vendors/registry.json` with the product entry and harness path.
-- Add/update capability flags + evidence in `benchmarks/vendors/capabilities.json`.
+- Add/update capability statuses (`supported`/`unsupported`/`unknown`) + evidence in `benchmarks/vendors/capabilities.json`.
 - Add a harness definition in `benchmarks/vendors/harnesses/<vendor>.json`.
 - Run `node tools/vendor-bench.js validate` and fix schema/shape violations.
 - Update this README if workflow/coverage expectations changed.

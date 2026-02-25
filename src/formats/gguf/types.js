@@ -1,6 +1,6 @@
 
 
-import { DEFAULT_RMS_NORM_EPS } from '../../config/schema/index.js';
+import { DEFAULT_GGUF_PARSER_DEFAULTS } from '../../config/schema/index.js';
 
 export const GGUFValueType = {
   UINT8: 0,
@@ -94,6 +94,13 @@ export const GGML_TYPE_SIZE = {
 const GGUF_MAGIC = 0x46554747;
 const GGUF_VERSION_MIN = 2;
 const GGUF_VERSION_MAX = 3;
+
+const {
+  contextLength: DEFAULT_GGUF_CONTEXT_LENGTH,
+  attentionLayerNormEpsilon: DEFAULT_ATTENTION_LAYER_NORM_EPSILON,
+  attentionLayerNormRMSEpsilon: DEFAULT_ATTENTION_LAYER_NORM_RMS_EPSILON,
+  ropeFreqBase: DEFAULT_ROPE_FREQ_BASE,
+} = DEFAULT_GGUF_PARSER_DEFAULTS;
 
 class GGUFReader {
   constructor(buffer) {
@@ -256,15 +263,17 @@ function extractModelConfig(metadata, architecture) {
   return {
     architecture,
     vocabSize: get(`${prefix}vocab_size`) ?? get('tokenizer.ggml.vocab_size'),
-    contextLength: get(`${prefix}context_length`) ?? 2048,
+    contextLength: get(`${prefix}context_length`) ?? DEFAULT_GGUF_CONTEXT_LENGTH,
     embeddingLength: get(`${prefix}embedding_length`),
     blockCount: get(`${prefix}block_count`),
     feedForwardLength: get(`${prefix}feed_forward_length`),
     attentionHeadCount: get(`${prefix}attention.head_count`),
     attentionHeadCountKV: get(`${prefix}attention.head_count_kv`),
-    attentionLayerNormEpsilon: get(`${prefix}attention.layer_norm_epsilon`) ?? DEFAULT_RMS_NORM_EPS,
-    attentionLayerNormRMSEpsilon: get(`${prefix}attention.layer_norm_rms_epsilon`) ?? DEFAULT_RMS_NORM_EPS,
-    ropeFreqBase: get(`${prefix}rope.freq_base`) ?? 10000,
+    attentionLayerNormEpsilon:
+      get(`${prefix}attention.layer_norm_epsilon`) ?? DEFAULT_ATTENTION_LAYER_NORM_EPSILON,
+    attentionLayerNormRMSEpsilon:
+      get(`${prefix}attention.layer_norm_rms_epsilon`) ?? DEFAULT_ATTENTION_LAYER_NORM_RMS_EPSILON,
+    ropeFreqBase: get(`${prefix}rope.freq_base`) ?? DEFAULT_ROPE_FREQ_BASE,
     ropeScalingType: get(`${prefix}rope.scaling.type`),
     ropeScalingFactor: get(`${prefix}rope.scaling.factor`),
     expertCount: get(`${prefix}expert_count`),

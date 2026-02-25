@@ -38,6 +38,16 @@
       "kvcache": {
         "maxSeqLen": 1024,
         "kvDtype": "f32"
+      },
+      "session": {
+        "compute": {
+          "defaults": {
+            "activationDtype": "f32"
+          }
+        },
+        "kvcache": {
+          "kvDtype": "f32"
+        }
       }
     }
   }

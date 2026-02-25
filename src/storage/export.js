@@ -2,6 +2,8 @@ import { getRuntimeConfig } from '../config/runtime.js';
 import { isIndexedDBAvailable, isOPFSAvailable } from './quota.js';
 import { createOpfsStore } from './backends/opfs-store.js';
 import { createIdbStore } from './backends/idb-store.js';
+import { DEFAULT_OPFS_PATH_CONFIG } from '../config/schema/loading.schema.js';
+import { DEFAULT_STORAGE_BACKEND_CONFIG } from '../config/schema/storage.schema.js';
 
 function requireDirectoryHandle(handle) {
   if (!handle || typeof handle.getFileHandle !== 'function') {
@@ -19,20 +21,26 @@ function sanitizeFilename(name) {
   return String(name).replace(/[\\/:*?"<>|]/g, '_');
 }
 
+function resolveOpfsRootDir(runtime) {
+  return runtime?.loading?.opfsPath?.opfsRootDir ?? DEFAULT_OPFS_PATH_CONFIG.opfsRootDir;
+}
+
 function resolveChunkBytes(runtime, chunkBytesOverride) {
-  const runtimeDefault = runtime?.loading?.storage?.backend?.streaming?.readChunkBytes ?? (4 * 1024 * 1024);
+  const runtimeDefault = runtime?.loading?.storage?.backend?.streaming?.readChunkBytes
+    ?? DEFAULT_STORAGE_BACKEND_CONFIG.streaming.readChunkBytes;
   const val = chunkBytesOverride ?? runtimeDefault;
-  return Number.isFinite(val) && val > 0 ? Math.floor(val) : (4 * 1024 * 1024);
+  return Number.isFinite(val) && val > 0 ? Math.floor(val) : runtimeDefault;
 }
 
 function resolveExportStore(runtime) {
-  const mode = runtime?.loading?.storage?.backend?.backend ?? 'auto';
+  const mode = runtime?.loading?.storage?.backend?.backend
+    ?? DEFAULT_STORAGE_BACKEND_CONFIG.backend;
   if (mode === 'opfs') {
     if (!isOPFSAvailable()) {
       throw new Error('OPFS requested but not available');
     }
     const opfsCfg = runtime?.loading?.storage?.backend?.opfs ?? {};
-    const rootCfg = runtime?.loading?.opfsPath?.opfsRootDir ?? 'doppler-models';
+    const rootCfg = resolveOpfsRootDir(runtime);
     return {
       backend: 'opfs',
       store: createOpfsStore({
@@ -53,7 +61,7 @@ function resolveExportStore(runtime) {
   // auto: prefer OPFS then IDB
   if (isOPFSAvailable()) {
     const opfsCfg = runtime?.loading?.storage?.backend?.opfs ?? {};
-    const rootCfg = runtime?.loading?.opfsPath?.opfsRootDir ?? 'doppler-models';
+    const rootCfg = resolveOpfsRootDir(runtime);
     return {
       backend: 'opfs',
       store: createOpfsStore({

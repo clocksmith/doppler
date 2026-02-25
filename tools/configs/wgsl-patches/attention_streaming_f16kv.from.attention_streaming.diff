@@ -1,0 +1,53 @@
+--- src/gpu/kernels/attention_streaming.wgsl	2026-02-20 10:04:55.691091915 -0500
++++ src/gpu/kernels/attention_streaming_f16kv.wgsl	2026-02-20 10:04:55.691091915 -0500
+@@ -1,8 +1,8 @@
+-// Streaming Multi-Head Attention Kernel (no workgroup storage)
++// Streaming Multi-Head Attention Kernel (f16 KV, no workgroup storage)
+ //
+-// Fallback variant for devices with extremely small shared memory or
+-// models with head_dim beyond tiled support. Uses two-pass softmax and
+-// reads K/V directly from storage. Slower but compatible.
++// Same as attention_streaming.wgsl but K/V are stored as f16.
++
++enable f16;
+ 
+ override WORKGROUP_SIZE: u32 = 1u;
+ const MAX_HEAD_DIM: u32 = 256u;
+@@ -27,8 +27,8 @@
+ 
+ @group(0) @binding(0) var<uniform> u: Uniforms;
+ @group(0) @binding(1) var<storage, read> Q: array<f32>;
+-@group(0) @binding(2) var<storage, read> K: array<f32>;
+-@group(0) @binding(3) var<storage, read> V: array<f32>;
++@group(0) @binding(2) var<storage, read> K: array<f16>;
++@group(0) @binding(3) var<storage, read> V: array<f16>;
+ @group(0) @binding(4) var<storage, read_write> output: array<f32>;
+ @group(0) @binding(5) var<storage, read> kv_len_buffer: array<u32>;
+ @group(0) @binding(6) var<storage, read> page_table: array<u32>;
+@@ -99,7 +99,7 @@
+         let k_offset = k_idx * u.num_kv_heads * head_dim + kv_head_idx * head_dim;
+         var dot: f32 = 0.0;
+         for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
+-            dot = dot + q_local[d] * K[k_offset + d];
++            dot = dot + q_local[d] * f32(K[k_offset + d]);
+         }
+         dot = dot * scale;
+         // Gemma 2 attention softcapping
+@@ -122,7 +122,7 @@
+         let v_offset = k_idx * u.num_kv_heads * head_dim + kv_head_idx * head_dim;
+         var dot: f32 = 0.0;
+         for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
+-            dot = dot + q_local[d] * K[k_offset + d];
++            dot = dot + q_local[d] * f32(K[k_offset + d]);
+         }
+         dot = dot * scale;
+         // Gemma 2 attention softcapping
+@@ -132,7 +132,7 @@
+         let w = exp(dot - max_score);
+         sum_exp = sum_exp + w;
+         for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
+-            acc[d] = acc[d] + w * V[v_offset + d];
++            acc[d] = acc[d] + w * f32(V[v_offset + d]);
+         }
+     }
+ 

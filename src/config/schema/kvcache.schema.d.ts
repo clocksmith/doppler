@@ -111,6 +111,9 @@ export interface KVCacheConfigSchema {
   /** Page size for paged layout (number of tokens per page) */
   pageSize: number;
 
+  /** Basis vocabulary size used by basis-decomposed paged cache layouts (experimental). */
+  bdpaVocabSize: number;
+
   /** Sliding window size for sliding window attention models */
   windowSize: number;
 

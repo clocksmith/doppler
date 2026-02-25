@@ -1,7 +1,126 @@
 import fs from 'node:fs/promises';
+import os from 'node:os';
 import path from 'node:path';
 import { installNodeFileFetchShim } from './node-file-fetch.js';
+import { NodeConvertWorkerPool } from './node-convert-worker-pool.js';
 import { isPlainObject } from '../utils/plain-object.js';
+import { selectRuleValue } from '../rules/rule-registry.js';
+
+const MB = 1024 * 1024;
+
+const DEFAULT_CONVERT_EXECUTION_CONFIG = {
+  workers: 8,
+  workerCountPolicy: 'cap',
+  rowChunkRows: null,
+  rowChunkMinTensorBytes: 128 * MB,
+  maxInFlightJobs: null,
+};
+
+function asPositiveInteger(value, label) {
+  if (!Number.isInteger(value) || value < 1) {
+    throw new Error(`node convert: ${label} must be a positive integer.`);
+  }
+  return value;
+}
+
+function normalizeExecutionConfig(value) {
+  if (value == null) {
+    return { ...DEFAULT_CONVERT_EXECUTION_CONFIG };
+  }
+  if (!isPlainObject(value)) {
+    throw new Error('node convert: execution must be an object when provided.');
+  }
+  const workers = value.workers == null
+    ? DEFAULT_CONVERT_EXECUTION_CONFIG.workers
+    : asPositiveInteger(Number(value.workers), 'execution.workers');
+  const workerCountPolicyRaw = value.workerCountPolicy == null
+    ? DEFAULT_CONVERT_EXECUTION_CONFIG.workerCountPolicy
+    : String(value.workerCountPolicy).trim().toLowerCase();
+  if (workerCountPolicyRaw !== 'cap' && workerCountPolicyRaw !== 'error') {
+    throw new Error('node convert: execution.workerCountPolicy must be "cap" or "error".');
+  }
+  const rowChunkRows = value.rowChunkRows == null
+    ? DEFAULT_CONVERT_EXECUTION_CONFIG.rowChunkRows
+    : asPositiveInteger(Number(value.rowChunkRows), 'execution.rowChunkRows');
+  const rowChunkMinTensorBytes = value.rowChunkMinTensorBytes == null
+    ? DEFAULT_CONVERT_EXECUTION_CONFIG.rowChunkMinTensorBytes
+    : asPositiveInteger(Number(value.rowChunkMinTensorBytes), 'execution.rowChunkMinTensorBytes');
+  const maxInFlightJobs = value.maxInFlightJobs == null
+    ? DEFAULT_CONVERT_EXECUTION_CONFIG.maxInFlightJobs
+    : asPositiveInteger(Number(value.maxInFlightJobs), 'execution.maxInFlightJobs');
+
+  return {
+    workers,
+    workerCountPolicy: workerCountPolicyRaw,
+    rowChunkRows,
+    rowChunkMinTensorBytes,
+    maxInFlightJobs,
+  };
+}
+
+function resolveHostParallelism() {
+  if (typeof os.availableParallelism === 'function') {
+    const value = os.availableParallelism();
+    if (Number.isInteger(value) && value > 0) return value;
+  }
+  const cpus = typeof os.cpus === 'function' ? os.cpus() : null;
+  return Array.isArray(cpus) && cpus.length > 0 ? cpus.length : 1;
+}
+
+function resolveExecutionPlan(executionConfig) {
+  const requestedWorkers = executionConfig.workers;
+  const availableWorkers = resolveHostParallelism();
+  if (executionConfig.workerCountPolicy === 'error' && requestedWorkers > availableWorkers) {
+    throw new Error(
+      `node convert: requested workers (${requestedWorkers}) exceed available CPU parallelism (${availableWorkers}).`
+    );
+  }
+
+  const effectiveWorkers = executionConfig.workerCountPolicy === 'cap'
+    ? Math.min(requestedWorkers, availableWorkers)
+    : requestedWorkers;
+
+  return {
+    ...executionConfig,
+    requestedWorkers,
+    availableWorkers,
+    effectiveWorkers: Math.max(1, effectiveWorkers),
+  };
+}
+
+function getDtypeBytes(dtype) {
+  const upper = String(dtype || '').toUpperCase();
+  if (upper === 'F32') return 4;
+  if (upper === 'F16' || upper === 'BF16') return 2;
+  return null;
+}
+
+function normalizeWorkerTransformResult(result, tensor) {
+  if (!result || !(result.tensorData instanceof Uint8Array)) {
+    throw new Error(`node convert: worker transform returned invalid bytes for ${tensor.name}.`);
+  }
+  return {
+    tensorData: result.tensorData,
+    outDtype: result.outDtype ?? tensor.dtype,
+    outLayout: result.outLayout ?? null,
+  };
+}
+
+async function mapWithConcurrency(items, concurrency, mapper) {
+  if (!Array.isArray(items) || items.length === 0) return [];
+  const workerCount = Math.max(1, Math.min(concurrency, items.length));
+  const results = new Array(items.length);
+  let nextIndex = 0;
+
+  const runners = Array.from({ length: workerCount }, async () => {
+    while (nextIndex < items.length) {
+      const index = nextIndex++;
+      results[index] = await mapper(items[index], index);
+    }
+  });
+  await Promise.all(runners);
+  return results;
+}
 
 
 function generateShardFilename(index) {
@@ -216,6 +335,13 @@ function toNodeProgress(update) {
     current: Number.isFinite(update.current) ? update.current : null,
     total: Number.isFinite(update.total) ? update.total : null,
     message: typeof update.message === 'string' ? update.message : null,
+    tensorName: typeof update.tensorName === 'string' ? update.tensorName : null,
+    tensorBytesCurrent: Number.isFinite(update.tensorBytesCurrent)
+      ? update.tensorBytesCurrent
+      : null,
+    tensorBytesTotal: Number.isFinite(update.tensorBytesTotal)
+      ? update.tensorBytesTotal
+      : null,
   };
 }
 
@@ -229,6 +355,162 @@ function normalizeTokenizerManifest(manifest) {
     tokenizer.sentencepieceModel = tokenizer.sentencepieceModel ?? 'tokenizer.model';
   }
   return manifest;
+}
+
+function createNodeTensorTransformer(options) {
+  const pool = options?.pool;
+  const execution = options?.execution;
+  const transformTensorBytes = options?.transformTensorBytes;
+  const resolveTensorTargetQuant = options?.resolveTensorTargetQuant;
+  const normalizeStorageQuant = options?.normalizeStorageQuant;
+  const shouldQuantize = options?.shouldQuantize;
+
+  if (!pool || !execution || typeof transformTensorBytes !== 'function') {
+    throw new Error('node convert: invalid worker tensor transformer setup.');
+  }
+
+  return async function tensorTransformer(input) {
+    const tensor = input?.tensor;
+    const tensorData = input?.tensorData;
+    const transformContext = input?.transformContext ?? {};
+    const reportProgress = typeof input?.reportProgress === 'function'
+      ? input.reportProgress
+      : null;
+
+    if (!tensor || !(tensorData instanceof Uint8Array)) {
+      throw new Error('node convert: invalid tensor transform input.');
+    }
+
+    const sourceDtype = String(tensor.dtype || '').toUpperCase();
+    const sourceQuant = normalizeStorageQuant(sourceDtype);
+    const tensorTargetQuant = resolveTensorTargetQuant(
+      tensor.name,
+      transformContext.targetQuant,
+      transformContext.quantizationInfo ?? null
+    );
+
+    const is2D = Array.isArray(tensor.shape) && tensor.shape.length === 2;
+    const rows = is2D ? tensor.shape[0] : 0;
+    const cols = is2D ? tensor.shape[1] : 0;
+    const sourceBytesPerElement = getDtypeBytes(sourceDtype);
+    const q4kLayout = String(transformContext.q4kLayout || 'row').trim().toLowerCase() === 'col'
+      ? 'col'
+      : 'row';
+    const canChunkRows = (
+      is2D
+      && rows > 0
+      && cols > 0
+      && sourceBytesPerElement != null
+      && sourceQuant !== 'q4k'
+      && tensorData.byteLength >= execution.rowChunkMinTensorBytes
+      && !(tensorTargetQuant === 'q4k' && q4kLayout === 'col')
+    );
+
+    const jobMode = selectRuleValue('converter', 'execution', 'jobMode', {
+      workers: execution.effectiveWorkers,
+      canChunkRows,
+    });
+
+    if (jobMode !== 'row_chunks' || !canChunkRows) {
+      const transformed = await pool.transformTensor(tensor, tensorData, transformContext);
+      const normalized = normalizeWorkerTransformResult(transformed, tensor);
+      reportProgress?.(tensorData.byteLength, tensorData.byteLength);
+      return normalized;
+    }
+
+    const rowChunkRows = execution.rowChunkRows
+      ?? selectRuleValue('converter', 'execution', 'rowChunkRows', {
+        workers: execution.effectiveWorkers,
+        canChunkRows,
+      });
+    if (!Number.isInteger(rowChunkRows) || rowChunkRows < 1) {
+      const transformed = await pool.transformTensor(tensor, tensorData, transformContext);
+      const normalized = normalizeWorkerTransformResult(transformed, tensor);
+      reportProgress?.(tensorData.byteLength, tensorData.byteLength);
+      return normalized;
+    }
+
+    const rowSourceBytes = cols * sourceBytesPerElement;
+    if (!Number.isInteger(rowSourceBytes) || rowSourceBytes < 1) {
+      const transformed = await pool.transformTensor(tensor, tensorData, transformContext);
+      const normalized = normalizeWorkerTransformResult(transformed, tensor);
+      reportProgress?.(tensorData.byteLength, tensorData.byteLength);
+      return normalized;
+    }
+
+    const forceQuantizeDecision = tensorTargetQuant === 'q4k'
+      ? shouldQuantize(tensor.name, tensor.shape, {
+        quantizeEmbeddings: Boolean(transformContext.quantizeEmbeddings),
+      })
+      : null;
+
+    const chunks = [];
+    for (let rowStart = 0; rowStart < rows; rowStart += rowChunkRows) {
+      const rowCount = Math.min(rowChunkRows, rows - rowStart);
+      const start = rowStart * rowSourceBytes;
+      const end = start + (rowCount * rowSourceBytes);
+      chunks.push({ rowStart, rowCount, start, end });
+    }
+
+    const maxInFlightJobs = execution.maxInFlightJobs
+      ?? selectRuleValue('converter', 'execution', 'maxInFlightJobs', {
+        workers: execution.effectiveWorkers,
+      });
+    const concurrency = Number.isInteger(maxInFlightJobs) && maxInFlightJobs > 0
+      ? maxInFlightJobs
+      : execution.effectiveWorkers;
+
+    let processedBytes = 0;
+    const chunkResults = await mapWithConcurrency(chunks, concurrency, async (chunk) => {
+      const chunkTensorData = tensorData.subarray(chunk.start, chunk.end);
+      const chunkTensor = {
+        ...tensor,
+        shape: [chunk.rowCount, cols],
+      };
+      const transformed = await pool.transformTensor(chunkTensor, chunkTensorData, {
+        ...transformContext,
+        forceQuantizeDecision,
+      });
+      const normalized = normalizeWorkerTransformResult(transformed, chunkTensor);
+      processedBytes += chunkTensorData.byteLength;
+      reportProgress?.(
+        Math.min(processedBytes, tensorData.byteLength),
+        tensorData.byteLength
+      );
+      return normalized;
+    });
+
+    if (chunkResults.length === 0) {
+      return transformTensorBytes(tensor, tensorData, transformContext);
+    }
+
+    const outDtype = chunkResults[0].outDtype ?? tensor.dtype;
+    const outLayout = chunkResults[0].outLayout ?? null;
+    for (const chunkResult of chunkResults) {
+      if ((chunkResult.outDtype ?? tensor.dtype) !== outDtype) {
+        throw new Error(`node convert: inconsistent chunk dtype for ${tensor.name}.`);
+      }
+      if ((chunkResult.outLayout ?? null) !== outLayout) {
+        throw new Error(`node convert: inconsistent chunk layout for ${tensor.name}.`);
+      }
+    }
+
+    const totalOutputBytes = chunkResults.reduce((sum, chunkResult) => (
+      sum + chunkResult.tensorData.byteLength
+    ), 0);
+    const combined = new Uint8Array(totalOutputBytes);
+    let outputOffset = 0;
+    for (const chunkResult of chunkResults) {
+      combined.set(chunkResult.tensorData, outputOffset);
+      outputOffset += chunkResult.tensorData.byteLength;
+    }
+
+    return {
+      tensorData: combined,
+      outDtype,
+      outLayout,
+    };
+  };
 }
 
 export async function convertSafetensorsDirectory(options) {
@@ -250,7 +532,14 @@ export async function convertSafetensorsDirectory(options) {
   const [
     { parseSafetensorsHeader },
     { parseGGUFHeader },
-    { convertModel, extractArchitecture },
+    {
+      convertModel,
+      extractArchitecture,
+      transformTensorBytes,
+      resolveTensorTargetQuant,
+      normalizeStorageQuant,
+      shouldQuantize,
+    },
     { parseGGUFModel },
     { resolveConversionPlan, inferSourceWeightQuantization, resolveConvertedModelId },
     { parseDiffusionModel },
@@ -270,6 +559,8 @@ export async function convertSafetensorsDirectory(options) {
   ]);
 
   const converterConfig = createConverterConfig(converterConfigOverride ?? undefined);
+  const executionConfig = normalizeExecutionConfig(options?.execution);
+  const executionPlan = resolveExecutionPlan(executionConfig);
   const diffusionIndexPath = isInputDirectory ? path.join(inputDir, 'model_index.json') : null;
   const isDiffusionInput = isInputDirectory && diffusionIndexPath ? await fileExists(diffusionIndexPath) : false;
 
@@ -547,18 +838,47 @@ export async function convertSafetensorsDirectory(options) {
     computeHash,
   });
   const manifestArchitecture = modelKind === 'diffusion' ? 'diffusion' : architecture;
-  const result = await convertModel(model, io, {
-    modelId,
-    modelType: resolvedModelType,
-    quantization: targetQuantization,
-    quantizationInfo,
-    architecture: manifestArchitecture,
-    inference,
-    converterConfig,
-    onProgress(update) {
-      onProgress?.(toNodeProgress(update));
-    },
-  });
+  let workerPool = null;
+  let tensorTransformer = null;
+  let result = null;
+  try {
+    if (executionPlan.effectiveWorkers > 1) {
+      workerPool = new NodeConvertWorkerPool({ size: executionPlan.effectiveWorkers });
+      tensorTransformer = createNodeTensorTransformer({
+        pool: workerPool,
+        execution: executionPlan,
+        transformTensorBytes,
+        resolveTensorTargetQuant,
+        normalizeStorageQuant,
+        shouldQuantize,
+      });
+    }
+    onProgress?.(toNodeProgress({
+      stage: 'writing',
+      message: (
+        `Convert execution workers: requested=${executionPlan.requestedWorkers}, ` +
+        `effective=${executionPlan.effectiveWorkers}, available=${executionPlan.availableWorkers}`
+      ),
+    }));
+
+    result = await convertModel(model, io, {
+      modelId,
+      modelType: resolvedModelType,
+      quantization: targetQuantization,
+      quantizationInfo,
+      architecture: manifestArchitecture,
+      inference,
+      converterConfig,
+      tensorTransformer,
+      onProgress(update) {
+        onProgress?.(toNodeProgress(update));
+      },
+    });
+  } finally {
+    if (workerPool) {
+      await workerPool.close();
+    }
+  }
 
   if (tokenizerJson) {
     await fs.writeFile(path.join(outputDir, 'tokenizer.json'), JSON.stringify(tokenizerJson), 'utf8');

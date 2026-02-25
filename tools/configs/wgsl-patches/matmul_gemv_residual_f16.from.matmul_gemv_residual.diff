@@ -1,0 +1,88 @@
+--- src/gpu/kernels/matmul_gemv_residual.wgsl	2026-02-20 10:04:55.693844318 -0500
++++ src/gpu/kernels/matmul_gemv_residual_f16.wgsl	2026-02-20 10:04:55.693844318 -0500
+@@ -1,10 +1,7 @@
+ // Fused GEMV + Residual Kernel - Single dispatch for output projection + residual add
+ // For M=1 decode: C[N] = A[K] * B^T[K,N] + residual[N]
+ //
+-// This fuses the attention output projection with the residual connection,
+-// eliminating one dispatch barrier per layer.
+-//
+-// A is f32 (activations), B is f16 (weights transposed [N,K]), C is f32, residual is f32.
++// A is f16 (activations), B is f16 (weights transposed [N,K]), C is f16, residual is f16.
+ 
+ enable f16;
+ 
+@@ -23,10 +20,10 @@
+ }
+ 
+ @group(0) @binding(0) var<uniform> u: Uniforms;
+-@group(0) @binding(1) var<storage, read> A: array<f32>;
++@group(0) @binding(1) var<storage, read> A: array<f16>;
+ @group(0) @binding(2) var<storage, read> B: array<f16>;
+-@group(0) @binding(3) var<storage, read_write> C: array<f32>;
+-@group(0) @binding(4) var<storage, read> residual: array<f32>;
++@group(0) @binding(3) var<storage, read_write> C: array<f16>;
++@group(0) @binding(4) var<storage, read> residual: array<f16>;
+ 
+ // Shared memory for parallel reduction
+ var<workgroup> shared_sum: array<f32, MAX_WORKGROUP_SIZE>;
+@@ -53,7 +50,7 @@
+     // Stride through K with workgroup-sized steps
+     var k: u32 = local_id;
+     for (; k < u.K; k = k + WORKGROUP_SIZE) {
+-        let a_val = A[k];
++        let a_val = f32(A[k]);
+         let b_val = f32(B[b_row_offset + k]);
+         partial_sum = partial_sum + a_val * b_val;
+     }
+@@ -73,47 +70,7 @@
+ 
+     // Thread 0 writes the final result with residual addition
+     if (local_id == 0u) {
+-        C[col] = shared_sum[0] * u.alpha + residual[col];
+-    }
+-}
+-
+-// F32 weights variant
+-@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
+-fn main_f32(
+-    @builtin(global_invocation_id) gid: vec3<u32>,
+-    @builtin(local_invocation_id) lid: vec3<u32>,
+-    @builtin(workgroup_id) wg_id: vec3<u32>
+-) {
+-    let col = wg_id.x;
+-    let local_id = lid.x;
+-
+-    if (col >= u.N) {
+-        return;
+-    }
+-
+-    var partial_sum: f32 = 0.0;
+-    let b_row_offset = col * u.K;
+-
+-    var k: u32 = local_id;
+-    for (; k < u.K; k = k + WORKGROUP_SIZE) {
+-        // B is f32 in this variant - need separate buffer type
+-        // For now, use main() variant which casts f16->f32
+-        let a_val = A[k];
+-        let b_val = f32(B[b_row_offset + k]);
+-        partial_sum = partial_sum + a_val * b_val;
+-    }
+-
+-    shared_sum[local_id] = partial_sum;
+-    workgroupBarrier();
+-
+-    for (var stride: u32 = WORKGROUP_SIZE / 2u; stride > 0u; stride = stride / 2u) {
+-        if (local_id < stride) {
+-            shared_sum[local_id] = shared_sum[local_id] + shared_sum[local_id + stride];
+-        }
+-        workgroupBarrier();
+-    }
+-
+-    if (local_id == 0u) {
+-        C[col] = shared_sum[0] * u.alpha + residual[col];
++        let result = shared_sum[0] * u.alpha + f32(residual[col]);
++        C[col] = f16(result);
+     }
+ }
+\ No newline at end of file

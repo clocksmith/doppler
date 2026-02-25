@@ -1,7 +1,7 @@
 {
   "id": "kernels/safe-q4k",
   "name": "safe-q4k",
-  "description": "Maximum compatibility Q4K path. Uses dequant-to-F32, no fusion, no subgroups required.",
+  "description": "Maximum compatibility Q4K path. Uses dequant-to-F32, no fused matmul/FFN, no subgroup requirement.",
   "intent": "investigate",
   "stability": "canonical",
   "owner": "doppler-core",
@@ -15,7 +15,22 @@
       "kvcache": {
         "kvDtype": "f32"
       },
-      "kernelPath": "gemma2-q4k-fused-f32a"
+      "kernelPath": "gemma2-q4k-dequant-f32a",
+      "kernelPathPolicy": {
+        "mode": "capability-aware",
+        "sourceScope": ["config", "model", "manifest", "execution-v0"],
+        "onIncompatible": "remap"
+      },
+      "session": {
+        "compute": {
+          "defaults": {
+            "activationDtype": "f32"
+          }
+        },
+        "kvcache": {
+          "kvDtype": "f32"
+        }
+      }
     }
   }
 }

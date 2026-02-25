@@ -1,3 +1,5 @@
+// AUTO-GENERATED from src/gpu/kernels/gather.wgsl.
+// Edit the source kernel and tools/configs/wgsl-variants.js, then run `npm run kernels:generate`.
 // gather_f16.wgsl
 
 /**

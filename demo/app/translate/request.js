@@ -59,32 +59,3 @@ export function extractTranslateTextFields(request) {
     text: String(content.text ?? ''),
   };
 }
-
-export function buildTranslatePromptFromRequest(request, resolveLanguageName = null) {
-  const {
-    sourceLangCode,
-    targetLangCode,
-    text,
-  } = extractTranslateTextFields(request);
-
-  const languageNameResolver = typeof resolveLanguageName === 'function'
-    ? resolveLanguageName
-    : (code) => code;
-
-  const sourceName = String(languageNameResolver(sourceLangCode) || sourceLangCode);
-  const targetName = String(languageNameResolver(targetLangCode) || targetLangCode);
-  const sourceCodeLabel = toTranslateTemplateLangCode(sourceLangCode);
-  const targetCodeLabel = toTranslateTemplateLangCode(targetLangCode);
-
-  return [
-    `You are a professional ${sourceName} (${sourceCodeLabel}) to ${targetName} (${targetCodeLabel}) translator. ` +
-      `Your goal is to accurately convey the meaning and nuances of the original ${sourceName} text while ` +
-      `adhering to ${targetName} grammar, vocabulary, and cultural sensitivities.`,
-    '',
-    `Produce only the ${targetName} translation, without any additional explanations or commentary. ` +
-      `Please translate the following ${sourceName} text into ${targetName}:`,
-    '',
-    '',
-    text,
-  ].join('\n');
-}

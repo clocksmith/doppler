@@ -6,6 +6,12 @@ import {
   runSiLURowSplit, recordSiLURowSplit,
   runMatmulRMSNormFused, recordMatmulRMSNormFused,
 } from '../../../gpu/kernel-selector.js';
+import {
+  castF16ToF32,
+  castF32ToF16,
+  recordCastF16ToF32,
+  recordCastF32ToF16,
+} from '../../../gpu/kernels/cast.js';
 import { releaseBuffer } from '../../../memory/buffer-pool.js';
 import { kernelTrace, traceStep } from './kernel-trace.js';
 import {
@@ -142,6 +148,26 @@ export async function doMatmulRMSNormFused(input, weight, normWeight, options, r
   }
 
   return resultTensor;
+}
+
+export async function doCast(input, toDtype, recorder) {
+  if (toDtype !== 'f16' && toDtype !== 'f32') {
+    throw new Error(`Unsupported cast target dtype "${toDtype}"`);
+  }
+  if (input.dtype === toDtype) {
+    return input;
+  }
+  if (input.dtype === 'f16' && toDtype === 'f32') {
+    return recorder
+      ? recordCastF16ToF32(recorder, input)
+      : castF16ToF32(input);
+  }
+  if (input.dtype === 'f32' && toDtype === 'f16') {
+    return recorder
+      ? recordCastF32ToF16(recorder, input)
+      : castF32ToF16(input);
+  }
+  throw new Error(`Unsupported cast path ${input.dtype} -> ${toDtype}`);
 }
 
 

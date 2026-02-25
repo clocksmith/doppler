@@ -1,3 +1,5 @@
+// AUTO-GENERATED from src/gpu/kernels/split_qkv.wgsl.
+// Edit the source kernel and tools/configs/wgsl-variants.js, then run `npm run kernels:generate`.
 // split_qkv_f16.wgsl
 
 /**

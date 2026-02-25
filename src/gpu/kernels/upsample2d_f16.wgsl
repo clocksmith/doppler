@@ -1,3 +1,5 @@
+// AUTO-GENERATED from src/gpu/kernels/upsample2d.wgsl.
+// Edit the source kernel and tools/configs/wgsl-variants.js, then run `npm run kernels:generate`.
 // Upsample2D Kernel (nearest, NCHW, f16)
 
 enable f16;

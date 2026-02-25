@@ -59,4 +59,4 @@ This codebase follows a **strict no-emoji policy**. Use Unicode symbols for visu
 3. **Accessibility** - Better screen reader support
 4. **Consistency** - Same symbols across all platforms
 
-See also: [docs/style-guide.md](docs/style-guide.md) for complete style guidelines.
+See also: [docs/style/README.md](docs/style/README.md) for complete style guidelines.

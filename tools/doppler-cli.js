@@ -42,6 +42,8 @@ function usage() {
     'Convert Flags:',
     '  --config <path>                 Converter config JSON (required for convert)',
     '  --output-dir <path>             Override output directory for convert',
+    '  --workers <n>                   Converter worker count (default: 8)',
+    '  --worker-policy <cap|error>     Handle workers > available CPU cores',
     '  --converter-config <path>       Deprecated alias for --config (convert only)',
     '',
     'Bench Flags:',
@@ -204,6 +206,24 @@ function parseNumberFlag(value, label) {
     throw new Error(`${label} must be a number`);
   }
   return parsed;
+}
+
+function parsePositiveIntegerFlag(value, label) {
+  if (value === undefined || value === null || value === '') return null;
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed < 1) {
+    throw new Error(`${label} must be a positive integer`);
+  }
+  return parsed;
+}
+
+function parseWorkerPolicy(value, label) {
+  if (value == null || value === '') return null;
+  const normalized = String(value).trim().toLowerCase();
+  if (normalized !== 'cap' && normalized !== 'error') {
+    throw new Error(`${label} must be one of: cap, error`);
+  }
+  return normalized;
 }
 
 function parseLoadMode(value, label, fallback) {
@@ -377,6 +397,15 @@ async function buildRequest(parsed, options = {}) {
       console.error('[warn] --converter-config is deprecated; use --config.');
     }
 
+    const workers = parsePositiveIntegerFlag(parsed.flags.workers, '--workers');
+    const workerCountPolicy = parseWorkerPolicy(parsed.flags['worker-policy'], '--worker-policy');
+    const execution = (workers !== null || workerCountPolicy !== null)
+      ? {
+        ...(workers !== null ? { workers } : {}),
+        ...(workerCountPolicy !== null ? { workerCountPolicy } : {}),
+      }
+      : null;
+
     const converterConfig = await readJsonObjectFile(configPath, '--config');
     return {
       ...common,
@@ -385,6 +414,7 @@ async function buildRequest(parsed, options = {}) {
       outputDir,
       convertPayload: {
         converterConfig,
+        execution,
       },
     };
   }

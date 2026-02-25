@@ -23,7 +23,7 @@ function alignTo(size, alignment) {
 function getSizeBucket(
   size,
   maxAllowedSize = Infinity,
-  bucketConfig = getRuntimeConfig().shared.bufferPool.bucket
+  bucketConfig
 ) {
   // Minimum bucket from config
   const minBucket = bucketConfig.minBucketSizeBytes;
@@ -106,6 +106,9 @@ export class BufferPool {
 
   
   constructor(debugMode = false, schemaConfig) {
+    if (!schemaConfig) {
+      throw new Error('BufferPool requires schemaConfig from runtime.shared.bufferPool.');
+    }
     this.#pools = new Map();
     this.#activeBuffers = new Set();
     this.#bufferMetadata = new Map();
@@ -114,7 +117,7 @@ export class BufferPool {
     this.#bufferLabels = new WeakMap();
     this.#nextBufferId = 1;
     this.#debugMode = debugMode;
-    this.#schemaConfig = schemaConfig ?? getRuntimeConfig().shared.bufferPool;
+    this.#schemaConfig = schemaConfig;
     this.#pendingDestruction = new Set();
     this.#destructionScheduled = false;
 
@@ -652,13 +655,16 @@ let globalPool = null;
 
 export function getBufferPool() {
   if (!globalPool) {
-    globalPool = new BufferPool();
+    globalPool = new BufferPool(false, getRuntimeConfig().shared.bufferPool);
   }
   return globalPool;
 }
 
 
 export function createBufferPool(debugMode, schemaConfig) {
+  if (!schemaConfig) {
+    throw new Error('createBufferPool requires schemaConfig from runtime.shared.bufferPool.');
+  }
   return new BufferPool(debugMode, schemaConfig);
 }
 

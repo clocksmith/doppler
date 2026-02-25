@@ -11,6 +11,9 @@ export interface NodeCommandRunOptions {
     current: number | null;
     total: number | null;
     message: string | null;
+    tensorName?: string | null;
+    tensorBytesCurrent?: number | null;
+    tensorBytesTotal?: number | null;
   }) => void;
 }
 

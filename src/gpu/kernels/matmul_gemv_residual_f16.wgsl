@@ -1,3 +1,5 @@
+// AUTO-GENERATED from src/gpu/kernels/matmul_gemv_residual.wgsl.
+// Edit the source kernel and tools/configs/wgsl-variants.js, then run `npm run kernels:generate`.
 // Fused GEMV + Residual Kernel - Single dispatch for output projection + residual add
 // For M=1 decode: C[N] = A[K] * B^T[K,N] + residual[N]
 //

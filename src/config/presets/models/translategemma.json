@@ -9,6 +9,12 @@
     "topP": 0.95,
     "repetitionPenalty": 1.0
   },
+  "inference": {
+    "chatTemplate": {
+      "type": "translategemma",
+      "enabled": true
+    }
+  },
 
   "detection": {
     "architecturePatterns": [

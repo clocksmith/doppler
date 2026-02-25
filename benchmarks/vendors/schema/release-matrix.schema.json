@@ -192,7 +192,12 @@
               "features": {
                 "type": "object",
                 "additionalProperties": {
-                  "type": "boolean"
+                  "type": "string",
+                  "enum": [
+                    "supported",
+                    "unsupported",
+                    "unknown"
+                  ]
                 }
               }
             },
@@ -215,7 +220,12 @@
               "features": {
                 "type": "object",
                 "additionalProperties": {
-                  "type": "boolean"
+                  "type": "string",
+                  "enum": [
+                    "supported",
+                    "unsupported",
+                    "unknown"
+                  ]
                 }
               }
             },

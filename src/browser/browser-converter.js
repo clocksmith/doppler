@@ -699,6 +699,8 @@ export async function convertModel(files, options = {}) {
         hashAlgorithm,
         architecture: diffusionArchitecture ?? undefined,
         eosTokenId: diffusionEosTokenId,
+        convertedAt: resolvedConverterConfig?.manifest?.conversion?.convertedAt ?? null,
+        conversionInfo: resolvedConverterConfig?.manifest?.conversion ?? null,
       }
     );
 

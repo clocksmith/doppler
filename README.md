@@ -118,7 +118,7 @@ done
 
 See [`docs/setup-instructions.md`](docs/setup-instructions.md) for install, conversion, and run guides.
 For contribution workflow, see [`docs/contributing.md`](docs/contributing.md).
-For disclosure and community policies, see [`SECURITY.md`](SECURITY.md) and [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md).
+For disclosure and community policies, see [`SECURITY.md`](SECURITY.md).
 
 ## Glossary
 

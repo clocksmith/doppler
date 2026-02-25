@@ -37,6 +37,11 @@
       },
       "kvcache": {
         "kvDtype": "f16"
+      },
+      "session": {
+        "kvcache": {
+          "kvDtype": "f16"
+        }
       }
     }
   }

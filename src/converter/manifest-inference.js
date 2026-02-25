@@ -256,6 +256,7 @@ export function buildManifestInference(preset, config, headDim = 64, quantizatio
   const detectedTieWordEmbeddings = detectTieWordEmbeddingsFromTensors(tensorNames);
   const detectedCausalAttention = detectCausalAttention(modelConfig);
   const inference = {
+    schema: defaults.schema ?? null,
     presetId: preset.id ?? null,
     attention: {
       queryPreAttnScalar: modelConfig.query_pre_attn_scalar ?? Math.sqrt(headDim),
@@ -289,6 +290,8 @@ export function buildManifestInference(preset, config, headDim = 64, quantizatio
     layerPattern: { ...defaults.layerPattern },
     chatTemplate,
     pipeline: presetInference.pipeline ?? defaults.pipeline,
+    sessionDefaults: defaults.sessionDefaults,
+    execution: defaults.execution,
   };
 
   // Add layer pattern if defined

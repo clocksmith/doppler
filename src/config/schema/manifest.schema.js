@@ -36,6 +36,7 @@ export const DEFAULT_HIGH_PRECISION_EPS = 1e-6;
 // =============================================================================
 
 export const DEFAULT_MANIFEST_INFERENCE = {
+  schema: null,
   presetId: null,
   attention: {
     queryPreAttnScalar: 8,  // sqrt(64) for standard 64-dim heads
@@ -91,6 +92,8 @@ export const DEFAULT_MANIFEST_INFERENCE = {
     enabled: false,
   },
   pipeline: null,
+  sessionDefaults: null,
+  execution: null,
   defaultKernelPath: null,  // Use default kernel selection (null = no explicit path)
 };
 

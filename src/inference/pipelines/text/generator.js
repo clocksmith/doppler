@@ -15,6 +15,7 @@ import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { sample, applyRepetitionPenalty, logitsSanity, getTopK } from './sampling.js';
 import { enforceLogitDrift } from '../../../hotswap/intent-bundle.js';
 import { applyChatTemplate, isStopToken } from './init.js';
+import { formatChatMessages } from './chat-format.js';
 import { embed } from './embed.js';
 import { processLayer } from './layer.js';
 import { computeLogits, recordLogitsGPU, extractLastPositionLogits, applySoftcapping } from './logits.js';
@@ -57,6 +58,39 @@ import {
   resolveActiveExecutionPlan,
   setActiveExecutionPlan,
 } from './execution-plan.js';
+
+function isStructuredChatRequest(prompt) {
+  return prompt != null
+    && typeof prompt === 'object'
+    && !Array.isArray(prompt)
+    && Array.isArray(prompt.messages);
+}
+
+function resolvePromptInput(state, prompt, useChatTemplate, contextLabel) {
+  if (typeof prompt === 'string') {
+    if (useChatTemplate && state.modelConfig.chatTemplateType) {
+      if (state.modelConfig.chatTemplateType === 'translategemma') {
+        throw new Error(
+          `[Pipeline] ${contextLabel}: translategemma chat template requires structured messages. ` +
+          'Pass { messages: [...] } instead of a plain string prompt.'
+        );
+      }
+      return applyChatTemplate(prompt, state.modelConfig.chatTemplateType);
+    }
+    return prompt;
+  }
+
+  const messages = isStructuredChatRequest(prompt)
+    ? prompt.messages
+    : (Array.isArray(prompt) ? prompt : null);
+  if (!messages) {
+    throw new Error(
+      `[Pipeline] ${contextLabel}: prompt must be a string, chat message array, or { messages: [...] }.`
+    );
+  }
+  const templateType = useChatTemplate ? state.modelConfig.chatTemplateType : null;
+  return formatChatMessages(messages, templateType);
+}
 
 export class PipelineGenerator {
 
@@ -268,10 +302,9 @@ export class PipelineGenerator {
     }
 
     try {
-      let processedPrompt = prompt;
-      if (opts.useChatTemplate && this.#state.modelConfig.chatTemplateType) {
-        processedPrompt = applyChatTemplate(prompt, this.#state.modelConfig.chatTemplateType);
-        if (opts.debug) log.debug('Pipeline', `Applied ${this.#state.modelConfig.chatTemplateType} chat template`);
+      const processedPrompt = resolvePromptInput(this.#state, prompt, opts.useChatTemplate, 'generate');
+      if (opts.debug && opts.useChatTemplate) {
+        log.debug('Pipeline', `Applied ${this.#state.modelConfig.chatTemplateType} chat template`);
       }
 
       const inputIds = this.#state.tokenizer.encode(processedPrompt);
@@ -399,10 +432,7 @@ export class PipelineGenerator {
     this.#state.stats.gpuTimePrefillMs = undefined;
     const opts = resolvePrefillOptions(this.#state, options);
 
-    let processedPrompt = prompt;
-    if (opts.useChatTemplate && this.#state.modelConfig.chatTemplateType) {
-      processedPrompt = applyChatTemplate(prompt, this.#state.modelConfig.chatTemplateType);
-    }
+    const processedPrompt = resolvePromptInput(this.#state, prompt, opts.useChatTemplate, 'prefillKVOnly');
 
     const inputIds = this.#state.tokenizer.encode(processedPrompt);
     this._assertTokenIdsInRange(inputIds, 'prefillKVOnly.encode');
@@ -466,10 +496,7 @@ export class PipelineGenerator {
     this.#state.stats.gpuTimePrefillMs = undefined;
     const opts = resolvePrefillEmbeddingOptions(this.#state, options);
 
-    let processedPrompt = prompt;
-    if (opts.useChatTemplate && this.#state.modelConfig.chatTemplateType) {
-      processedPrompt = applyChatTemplate(prompt, this.#state.modelConfig.chatTemplateType);
-    }
+    const processedPrompt = resolvePromptInput(this.#state, prompt, opts.useChatTemplate, 'prefillWithEmbedding');
 
     const inputIds = this.#state.tokenizer.encode(processedPrompt);
     this._assertTokenIdsInRange(inputIds, 'prefillWithEmbedding.encode');
@@ -563,10 +590,7 @@ export class PipelineGenerator {
     this.#state.stats.gpuTimePrefillMs = undefined;
     const opts = resolvePrefillOptions(this.#state, options);
 
-    let processedPrompt = prompt;
-    if (opts.useChatTemplate && this.#state.modelConfig.chatTemplateType) {
-      processedPrompt = applyChatTemplate(prompt, this.#state.modelConfig.chatTemplateType);
-    }
+    const processedPrompt = resolvePromptInput(this.#state, prompt, opts.useChatTemplate, 'prefillWithLogits');
 
     const inputIds = this.#state.tokenizer.encode(processedPrompt);
     this._assertTokenIdsInRange(inputIds, 'prefillWithLogits.encode');
@@ -621,10 +645,7 @@ export class PipelineGenerator {
     const opts = resolveGenerateOptions(this.#state, options);
 
     try {
-      let processedPrompt = prompt;
-      if (opts.useChatTemplate && this.#state.modelConfig.chatTemplateType) {
-        processedPrompt = applyChatTemplate(prompt, this.#state.modelConfig.chatTemplateType);
-      }
+      const processedPrompt = resolvePromptInput(this.#state, prompt, opts.useChatTemplate, 'generateWithPrefixKV');
 
       const inputIds = this.#state.tokenizer.encode(processedPrompt);
       this._assertTokenIdsInRange(inputIds, 'generateWithPrefixKV.encode');

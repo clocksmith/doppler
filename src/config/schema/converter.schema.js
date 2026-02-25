@@ -1,4 +1,4 @@
-import { SHARD_SIZE } from './manifest.schema.js';
+import { DEFAULT_RMS_NORM_EPS, SHARD_SIZE } from './manifest.schema.js';
 import { DEFAULT_QUANTIZATION_DEFAULTS } from './quantization-defaults.schema.js';
 import { MB } from './units.schema.js';
 
@@ -44,6 +44,15 @@ export const DEFAULT_CONVERTER_MANIFEST_CONFIG = {
 
 export const DEFAULT_CONVERTER_INFERENCE_CONFIG = {
   defaultKernelPath: null,
+  sessionDefaults: null,
+  execution: null,
+};
+
+export const DEFAULT_GGUF_PARSER_DEFAULTS = {
+  contextLength: 2048,
+  attentionLayerNormEpsilon: DEFAULT_RMS_NORM_EPS,
+  attentionLayerNormRMSEpsilon: DEFAULT_RMS_NORM_EPS,
+  ropeFreqBase: 10000,
 };
 
 export const DEFAULT_CONVERTER_OUTPUT_CONFIG = {

@@ -12,6 +12,13 @@ import type { PipelineState } from './state.js';
 import type { GenerateOptions, KVCacheSnapshot, LogitsStepResult, PrefillResult, PrefillEmbeddingResult, AdvanceEmbeddingResult, LayerContext } from './types.js';
 import type { LogitsConfig, LogitsWeights } from './logits.js';
 import type { WeightBufferConfig } from './weights.js';
+import type { ChatMessage } from './chat-format.js';
+
+export interface ChatRequestInput {
+  messages: ChatMessage[];
+}
+
+export type PromptInput = string | ChatMessage[] | ChatRequestInput;
 
 export declare class PipelineGenerator {
   constructor(state: PipelineState);
@@ -19,16 +26,16 @@ export declare class PipelineGenerator {
   /**
    * Batching and readback cadence are controlled by runtime.inference.batching.
    */
-  generate(prompt: string, options?: GenerateOptions): AsyncGenerator<string, void, void>;
-  prefillKVOnly(prompt: string, options?: GenerateOptions): Promise<KVCacheSnapshot>;
-  prefillWithEmbedding(prompt: string, options?: GenerateOptions): Promise<PrefillEmbeddingResult>;
-  prefillWithLogits(prompt: string, options?: GenerateOptions): Promise<PrefillResult>;
+  generate(prompt: PromptInput, options?: GenerateOptions): AsyncGenerator<string, void, void>;
+  prefillKVOnly(prompt: PromptInput, options?: GenerateOptions): Promise<KVCacheSnapshot>;
+  prefillWithEmbedding(prompt: PromptInput, options?: GenerateOptions): Promise<PrefillEmbeddingResult>;
+  prefillWithLogits(prompt: PromptInput, options?: GenerateOptions): Promise<PrefillResult>;
   decodeStepLogits(currentIds: number[], options?: GenerateOptions): Promise<LogitsStepResult>;
   advanceWithToken(tokenId: number, options?: GenerateOptions): Promise<void>;
   advanceWithTokenAndEmbedding(tokenId: number, options?: GenerateOptions): Promise<AdvanceEmbeddingResult>;
   generateWithPrefixKV(
     prefix: KVCacheSnapshot,
-    prompt: string,
+    prompt: PromptInput,
     options?: GenerateOptions
   ): AsyncGenerator<string, void, void>;
 }

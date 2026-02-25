@@ -1,6 +1,12 @@
 import { resolveKernelPath, getKernelPathActivationDtype } from '../config/kernel-path-loader.js';
 import { detectPreset, listPresets, resolvePreset } from '../config/loader.js';
-import { DEFAULT_MANIFEST_INFERENCE } from '../config/schema/index.js';
+import {
+  DEFAULT_MANIFEST_INFERENCE,
+  EXECUTION_V0_SCHEMA_ID,
+  isExecutionV0Digest,
+  isExecutionV0Semver,
+} from '../config/schema/index.js';
+import { buildExecutionV0FromKernelPath } from './execution-v0-manifest.js';
 import { buildManifestInference } from './manifest-inference.js';
 import {
   buildQuantizationInfo,
@@ -9,25 +15,36 @@ import {
 } from './quantization-info.js';
 import { sanitizeModelId } from './core.js';
 import { classifyTensorRole } from '../storage/rdrr-format.js';
+import { selectRuleValue } from '../rules/rule-registry.js';
+import { buildKernelRefFromKernelEntry, isKernelRefBoundToKernel } from '../config/kernels/kernel-ref.js';
 
 const KNOWN_MODEL_PRESETS = new Set(listPresets());
 const CONVERSION_SUPPORTED_PRESETS = [...KNOWN_MODEL_PRESETS]
   .filter((presetId) => !['transformer', 'diffusion'].includes(presetId))
   .sort()
   .join(', ');
+const EXECUTION_V0_PHASES = new Set(['prefill', 'decode', 'both']);
+const EXECUTION_V0_SECTIONS = new Set(['preLayer', 'layer', 'postLayer', 'sampling']);
 
 function normalizeWeightDtype(dtype) {
-  const upper = String(dtype || '').toUpperCase();
-  return upper === 'BF16' ? 'F16' : upper;
+  if (!dtype) return null;
+  const lower = String(dtype).trim().toLowerCase();
+  const upper = String(dtype).trim().toUpperCase();
+  const normalized = selectRuleValue('inference', 'dtype', 'f16OrF32FromDtypeAlias', {
+    dtype: lower,
+    fallback: upper,
+  });
+  return normalized ? normalized.toUpperCase() : null;
 }
 
 function normalizeKernelDtype(dtype) {
   if (!dtype) return null;
   const lower = String(dtype).trim().toLowerCase();
   if (!lower) return null;
-  if (lower === 'bf16' || lower === 'fp16' || lower === 'float16') return 'f16';
-  if (lower === 'fp32' || lower === 'float32') return 'f32';
-  return lower;
+  return selectRuleValue('inference', 'dtype', 'f16OrF32FromDtypeAlias', {
+    dtype: lower,
+    fallback: null,
+  });
 }
 
 function findTensorDtypeByRole(tensors, targetRole) {
@@ -181,10 +198,157 @@ function readConverterKernelPathOverride(converterConfig) {
   return trimmed || null;
 }
 
+function cloneJson(value) {
+  if (typeof structuredClone === 'function') {
+    return structuredClone(value);
+  }
+  return JSON.parse(JSON.stringify(value));
+}
+
+function readConverterSessionDefaultsOverride(converterConfig) {
+  const raw = converterConfig?.inference?.sessionDefaults;
+  if (raw == null) return null;
+  if (typeof raw !== 'object' || Array.isArray(raw)) {
+    throw new Error(
+      'converterConfig.inference.sessionDefaults must be an object when provided.'
+    );
+  }
+  return cloneJson(raw);
+}
+
+function readConverterExecutionOverride(converterConfig) {
+  const raw = converterConfig?.inference?.execution;
+  if (raw == null) return null;
+  if (typeof raw !== 'object' || Array.isArray(raw)) {
+    throw new Error('converterConfig.inference.execution must be an object when provided.');
+  }
+  const steps = raw.steps;
+  if (!Array.isArray(steps)) {
+    throw new Error('converterConfig.inference.execution.steps must be an array.');
+  }
+  if (raw.policies != null && (typeof raw.policies !== 'object' || Array.isArray(raw.policies))) {
+    throw new Error('converterConfig.inference.execution.policies must be an object when provided.');
+  }
+  validateConverterExecutionSteps(steps);
+  return cloneJson(raw);
+}
+
+function assertString(value, label) {
+  if (typeof value !== 'string' || value.trim().length === 0) {
+    throw new Error(`${label} must be a non-empty string.`);
+  }
+  return value.trim();
+}
+
+function assertOptionalDtype(value, label) {
+  if (value == null) return;
+  const normalized = String(value).trim().toLowerCase();
+  if (normalized !== 'f16' && normalized !== 'f32') {
+    throw new Error(`${label} must be "f16" or "f32".`);
+  }
+}
+
+function validateConverterExecutionSteps(steps) {
+  const ids = new Set();
+  for (let index = 0; index < steps.length; index += 1) {
+    const step = steps[index];
+    const prefix = `converterConfig.inference.execution.steps[${index}]`;
+    if (!step || typeof step !== 'object' || Array.isArray(step)) {
+      throw new Error(`${prefix} must be an object.`);
+    }
+
+    const id = assertString(step.id, `${prefix}.id`);
+    if (ids.has(id)) {
+      throw new Error(`${prefix}.id "${id}" is duplicated.`);
+    }
+    ids.add(id);
+
+    assertString(step.op, `${prefix}.op`);
+    const phase = assertString(step.phase, `${prefix}.phase`).toLowerCase();
+    if (!EXECUTION_V0_PHASES.has(phase)) {
+      throw new Error(`${prefix}.phase must be prefill|decode|both.`);
+    }
+    const section = assertString(step.section, `${prefix}.section`);
+    if (!EXECUTION_V0_SECTIONS.has(section)) {
+      throw new Error(`${prefix}.section must be preLayer|layer|postLayer|sampling.`);
+    }
+    assertString(step.src, `${prefix}.src`);
+    assertString(step.dst, `${prefix}.dst`);
+
+    if (step.layers !== 'all' && !Array.isArray(step.layers)) {
+      throw new Error(`${prefix}.layers must be "all" or number[].`);
+    }
+    if (Array.isArray(step.layers)) {
+      for (const layer of step.layers) {
+        if (!Number.isInteger(layer) || layer < 0) {
+          throw new Error(`${prefix}.layers must contain non-negative integers.`);
+        }
+      }
+    }
+
+    if (step.op === 'cast') {
+      assertOptionalDtype(step.fromDtype, `${prefix}.fromDtype`);
+      assertOptionalDtype(step.toDtype, `${prefix}.toDtype`);
+      if (step.toDtype == null) {
+        throw new Error(`${prefix}.toDtype is required for cast steps.`);
+      }
+      continue;
+    }
+
+    const kernel = assertString(step.kernel, `${prefix}.kernel`);
+    const entry = String(step.entry ?? 'main').trim() || 'main';
+    if (!step.kernelRef || typeof step.kernelRef !== 'object' || Array.isArray(step.kernelRef)) {
+      throw new Error(`${prefix}.kernelRef {id, version, digest} is required for non-cast steps.`);
+    }
+    assertString(step.kernelRef.id, `${prefix}.kernelRef.id`);
+    if (!isExecutionV0Semver(step.kernelRef.version)) {
+      throw new Error(`${prefix}.kernelRef.version must be semver.`);
+    }
+    if (!isExecutionV0Digest(step.kernelRef.digest)) {
+      throw new Error(`${prefix}.kernelRef.digest must match sha256:<64-hex>.`);
+    }
+
+    try {
+      buildKernelRefFromKernelEntry(kernel, entry);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(`${prefix}.kernel cannot be content-pinned: ${message}`);
+    }
+    if (!isKernelRefBoundToKernel(step.kernelRef, kernel, entry)) {
+      throw new Error(
+        `${prefix}.kernelRef must match kernel binding "${kernel}#${entry}" (id/version/digest).`
+      );
+    }
+  }
+}
+
 function applyConverterInferenceOverrides(manifestInference, converterConfig, context) {
   const overrideKernelPath = readConverterKernelPathOverride(converterConfig);
   if (overrideKernelPath) {
     manifestInference.defaultKernelPath = overrideKernelPath;
+  }
+  const sessionDefaults = readConverterSessionDefaultsOverride(converterConfig);
+  if (sessionDefaults) {
+    manifestInference.sessionDefaults = sessionDefaults;
+  }
+  const execution = readConverterExecutionOverride(converterConfig);
+  if (execution) {
+    manifestInference.execution = execution;
+  }
+
+  if (!manifestInference.execution && manifestInference.defaultKernelPath) {
+    const generatedExecution = buildExecutionV0FromKernelPath(manifestInference.defaultKernelPath);
+    if (generatedExecution) {
+      manifestInference.execution = generatedExecution.execution;
+      if (!manifestInference.sessionDefaults) {
+        manifestInference.sessionDefaults = generatedExecution.sessionDefaults;
+      }
+      manifestInference.schema = generatedExecution.schema;
+    }
+  }
+
+  if (manifestInference.execution || sessionDefaults || execution) {
+    manifestInference.schema = EXECUTION_V0_SCHEMA_ID;
   }
   validateDefaultKernelPath(manifestInference, context);
 }

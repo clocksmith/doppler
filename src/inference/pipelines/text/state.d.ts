@@ -21,6 +21,7 @@ import type { WeightBuffer, CpuWeightBuffer } from '../../../gpu/weight-buffer.j
 import type { DopplerLoader } from '../../../loader/doppler-loader.js';
 import type { CompiledLayerPipeline } from './layer-plan.js';
 import type { ExecutionPlanState } from './execution-plan.js';
+import type { CompiledExecutionV0RuntimeState } from './execution-v0.js';
 import type { LoRAAdapter } from './lora.js';
 import type { RuntimeConfigSchema, KernelPathSchema } from '../../../config/schema/index.js';
 import type { WeightDebugFlags } from './weights.js';
@@ -46,6 +47,7 @@ export class PipelineState {
   resolvedKernelPath: KernelPathSchema | null;
   kernelPathSource: KernelPathSource;
   executionPlanState: ExecutionPlanState | null;
+  executionV0State: CompiledExecutionV0RuntimeState | null;
   disableRecordedLogits: boolean;
   disableFusedDecode: boolean;
 

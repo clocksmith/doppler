@@ -1,0 +1,19 @@
+{
+  "jobMode": [
+    { "match": { "workers": { "lte": 1 } }, "value": "main" },
+    { "match": { "canChunkRows": true }, "value": "row_chunks" },
+    { "match": {}, "value": "tensor" }
+  ],
+  "rowChunkRows": [
+    { "match": { "canChunkRows": false }, "value": 0 },
+    { "match": { "workers": { "lte": 2 } }, "value": 256 },
+    { "match": { "workers": { "lte": 4 } }, "value": 512 },
+    { "match": {}, "value": 1024 }
+  ],
+  "maxInFlightJobs": [
+    { "match": { "workers": { "lte": 2 } }, "value": 4 },
+    { "match": { "workers": { "lte": 4 } }, "value": 8 },
+    { "match": { "workers": { "lte": 8 } }, "value": 16 },
+    { "match": {}, "value": 24 }
+  ]
+}

@@ -7,7 +7,17 @@ Purpose: Catalog and guidance for Doppler's WGSL kernel library.
 - Kernel categories, counts, and naming conventions.
 - Entry points, uniforms, and reuse strategies.
 
-79 WebGPU compute shaders for LLM inference.
+The repository currently ships over 100 WebGPU compute shaders for inference and auxiliary pipelines.
+
+## Generated Variants
+
+Selected duplicate dtype variants are generated from canonical kernels:
+
+- Source of truth: `tools/configs/wgsl-variants.js`
+- Generator: `node tools/generate-wgsl.js`
+- Drift check: `node tools/generate-wgsl.js --check`
+
+Generated targets keep the same runtime file names, so kernel-path IDs and manifest wiring stay stable.
 
 ## Categories
 

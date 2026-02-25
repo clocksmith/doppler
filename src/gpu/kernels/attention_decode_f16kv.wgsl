@@ -1,3 +1,5 @@
+// AUTO-GENERATED from src/gpu/kernels/attention_decode.wgsl.
+// Edit the source kernel and tools/configs/wgsl-variants.js, then run `npm run kernels:generate`.
 // Fused Multi-Head Attention Kernel (f16 KV)
 //
 // Same as attention.wgsl but K/V are stored as f16 for KV-cache compression.

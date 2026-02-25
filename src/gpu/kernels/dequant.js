@@ -141,18 +141,18 @@ export async function dequantizeRowwise(
 ) {
   const device = getDevice();
   const { outputBuffer = null, outputDtype = 'f16' } = options;
-  const caps = getKernelCapabilities();
-  const wantsF16Out = outputDtype === 'f16' && caps.hasF16;
-  const finalOutputDtype = wantsF16Out ? 'f16' : 'f32';
+  const finalOutputDtype = selectSharedRuleValue('shared', 'dtype', 'f16OrF32FromDtype', { dtype: outputDtype });
+  const pipelineVariant = selectKernelRuleValue(
+    'dequant',
+    'rowwiseVariant',
+    { wantsF16Out: finalOutputDtype === 'f16' }
+  );
 
   const QK_K = TILE_SIZES.Q4K_SUPER_BLOCK_SIZE;
   const blocksPerRow = Math.ceil(K / QK_K);
   const numBlocks = rows * blocksPerRow;
 
-  const pipeline = await getPipelineFast(
-    'dequant',
-    wantsF16Out ? 'f16_rowwise' : 'f32_rowwise'
-  );
+  const pipeline = await getPipelineFast('dequant', pipelineVariant);
 
   const bytesPerElem = finalOutputDtype === 'f16' ? 2 : 4;
   const outputSize = rows * K * bytesPerElem;

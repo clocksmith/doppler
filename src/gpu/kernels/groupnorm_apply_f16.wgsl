@@ -1,3 +1,5 @@
+// AUTO-GENERATED from src/gpu/kernels/groupnorm_apply.wgsl.
+// Edit the source kernel and tools/configs/wgsl-variants.js, then run `npm run kernels:generate`.
 // GroupNorm Apply Kernel (NCHW, f16)
 
 enable f16;

@@ -1,0 +1,113 @@
+--- src/gpu/kernels/attention.wgsl	2026-02-20 10:04:55.691091915 -0500
++++ src/gpu/kernels/attention_f16kv.wgsl	2026-02-20 10:04:55.691091915 -0500
+@@ -1,19 +1,18 @@
+-// Fused Multi-Head Attention Kernel
++// Fused Multi-Head Attention Kernel (f16 KV)
+ //
+-// Implements fused Q @ K^T → scale → mask → softmax → @ V
+-// Uses tiled/blocked approach to avoid materializing full attention matrix.
+-// Supports grouped query attention (GQA) where numKVHeads < numHeads.
+-//
+-// Based on Flash Attention principles adapted for WebGPU.
++// Same as attention.wgsl but K/V are stored as f16 for KV-cache compression.
++// Q and output remain f32; K/V are cast to f32 on load.
++
++enable f16;
+ 
+ // Tile sizes for blocked attention
+-const MAX_BLOCK_SIZE: u32 = 32u;
++const MAX_BLOCK_SIZE: u32 = 64u;
+ const MAX_HEAD_TILE: u32 = 64u;
+ const MAX_HEAD_DIM: u32 = 64u;
+ 
+-override BLOCK_SIZE: u32 = 32u;       // Sequence tile size (must match WORKGROUP_SIZE)
++override BLOCK_SIZE: u32 = 64u;       // Sequence tile size (must match WORKGROUP_SIZE)
+ override HEAD_TILE: u32 = 64u;        // Head dimension tile
+-override WORKGROUP_SIZE: u32 = 32u;   // One thread per query position
++override WORKGROUP_SIZE: u32 = 64u;   // One thread per query position
+ 
+ struct Uniforms {
+     num_heads: u32,       // Number of query heads
+@@ -35,8 +34,8 @@
+ 
+ @group(0) @binding(0) var<uniform> u: Uniforms;
+ @group(0) @binding(1) var<storage, read> Q: array<f32>;       // [query_len, num_heads, head_dim]
+-@group(0) @binding(2) var<storage, read> K: array<f32>;       // [seq_len, num_kv_heads, head_dim]
+-@group(0) @binding(3) var<storage, read> V: array<f32>;       // [seq_len, num_kv_heads, head_dim]
++@group(0) @binding(2) var<storage, read> K: array<f16>;       // [seq_len, num_kv_heads, head_dim]
++@group(0) @binding(3) var<storage, read> V: array<f16>;       // [seq_len, num_kv_heads, head_dim]
+ @group(0) @binding(4) var<storage, read_write> output: array<f32>; // [query_len, num_heads, head_dim]
+ @group(0) @binding(5) var<storage, read> kv_len_buffer: array<u32>;
+ @group(0) @binding(6) var<storage, read> page_table: array<u32>;
+@@ -55,23 +54,14 @@
+ 
+ // Check if position should be masked (causal + sliding window attention)
+ fn is_masked(query_pos: u32, key_pos: u32) -> bool {
+-    // Compute absolute positions
+     let abs_query = query_pos + u.start_pos;
+     let abs_key = u.kv_start + key_pos;
+-
+-    // Causal mask: query can only attend to keys at same or earlier positions
+-    if (u.is_causal != 0u && abs_key > abs_query) {
+-        return true;
+-    }
+-
+-    // Sliding window mask: query can only attend to keys within the window
+-    // Key must be >= (query - window + 1), i.e., within the last `window` positions
++    // Causal mask
++    if (u.is_causal != 0u && abs_key > abs_query) { return true; }
++    // Sliding window mask
+     if (u.sliding_window > 0u && abs_query >= u.sliding_window) {
+-        if (abs_key < abs_query - u.sliding_window + 1u) {
+-            return true;  // Key is too far in the past
+-        }
++        if (abs_key < abs_query - u.sliding_window + 1u) { return true; }
+     }
+-
+     return false;
+ }
+ 
+@@ -101,6 +91,7 @@
+ // head_idx and query_block_idx are derived from workgroup_id.x.
+ @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
+ fn main(
++    @builtin(global_invocation_id) global_id: vec3<u32>,
+     @builtin(local_invocation_id) local_id: vec3<u32>,
+     @builtin(workgroup_id) wg_id: vec3<u32>
+ ) {
+@@ -125,7 +116,7 @@
+     // Initialize online softmax accumulators
+     var m_i: f32 = -3.402823e+38;  // -inf for max tracking
+     var l_i: f32 = 0.0;            // Sum of exp(x - max)
+-    var acc: array<f32, MAX_HEAD_DIM>;       // Accumulator for output [head_dim], assuming head_dim <= MAX_HEAD_DIM
++    var acc: array<f32, MAX_HEAD_DIM>;
+ 
+     // Initialize accumulator
+     for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
+@@ -153,7 +144,7 @@
+             let k_idx = get_kv_pos(k_load_idx);
+             let k_offset = k_idx * u.num_kv_heads * head_dim + kv_head_idx * head_dim;
+             for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
+-                shared_K[thread_idx * head_dim + d] = K[k_offset + d];
++                shared_K[thread_idx * head_dim + d] = f32(K[k_offset + d]);
+             }
+         } else {
+             for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
+@@ -167,7 +158,7 @@
+             let v_idx = get_kv_pos(v_load_idx);
+             let v_offset = v_idx * u.num_kv_heads * head_dim + kv_head_idx * head_dim;
+             for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
+-                shared_V[thread_idx * head_dim + d] = V[v_offset + d];
++                shared_V[thread_idx * head_dim + d] = f32(V[v_offset + d]);
+             }
+         } else {
+             for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
+@@ -196,7 +187,7 @@
+                 }
+                 score = score * scale;
+ 
+-                // Gemma 2 attention softcapping: score = tanh(score / softcap) * softcap
++                // Gemma 2 attention softcapping
+                 if (u.attn_softcap > 0.0) {
+                     score = tanh(score / u.attn_softcap) * u.attn_softcap;
+                 }

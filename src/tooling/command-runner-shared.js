@@ -37,6 +37,9 @@ function snapshotRuntimeState(runtimeBridge) {
     activeKernelPathSource: runtimeBridge.getActiveKernelPathSource
       ? runtimeBridge.getActiveKernelPathSource()
       : 'none',
+    activeKernelPathPolicy: runtimeBridge.getActiveKernelPathPolicy
+      ? runtimeBridge.getActiveKernelPathPolicy()
+      : null,
   };
 }
 
@@ -57,13 +60,14 @@ function restoreRuntimeState(runtimeBridge, snapshot) {
   ) {
     runtimeBridge.setActiveKernelPath(
       snapshot.activeKernelPath,
-      snapshot.activeKernelPathSource
+      snapshot.activeKernelPathSource,
+      snapshot.activeKernelPathPolicy
     );
     return;
   }
 
   if (typeof runtimeBridge.setActiveKernelPath === 'function') {
-    runtimeBridge.setActiveKernelPath(null, 'none');
+    runtimeBridge.setActiveKernelPath(null, 'none', snapshot.activeKernelPathPolicy);
   }
 }
 

@@ -5,6 +5,17 @@ export interface NodeConvertProgress {
   current: number | null;
   total: number | null;
   message: string | null;
+  tensorName?: string | null;
+  tensorBytesCurrent?: number | null;
+  tensorBytesTotal?: number | null;
+}
+
+export interface NodeConvertExecutionConfig {
+  workers?: number | null;
+  workerCountPolicy?: 'cap' | 'error' | null;
+  maxInFlightJobs?: number | null;
+  rowChunkRows?: number | null;
+  rowChunkMinTensorBytes?: number | null;
 }
 
 export interface ConvertSafetensorsDirectoryOptions {
@@ -13,6 +24,7 @@ export interface ConvertSafetensorsDirectoryOptions {
   outputDir?: string | null;
   modelId?: string | null;
   converterConfig?: Partial<ConverterConfigSchema> | null;
+  execution?: NodeConvertExecutionConfig | null;
   onProgress?: (progress: NodeConvertProgress) => void;
 }
 

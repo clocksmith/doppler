@@ -143,7 +143,6 @@ import {
 } from './app/downloads/index.js';
 import {
   createTranslateTextRequest,
-  buildTranslatePromptFromRequest,
 } from './app/translate/request.js';
 
 const controller = new DiagnosticsController({ log });
@@ -341,11 +340,6 @@ function normalizeTranslateLanguageCode(code, fallbackCode = DEFAULT_TRANSLATE_S
     return requested;
   }
   return fallbackCode;
-}
-
-function getTranslateLanguageName(code) {
-  const found = TRANSLATE_LANGUAGE_OPTIONS.find((entry) => entry.code === code);
-  return found?.name || code;
 }
 
 function populateTranslateLanguageSelect(selectEl, selectedCode) {
@@ -2522,12 +2516,7 @@ async function handleRunGenerate() {
       translateSelection.targetCode
     )
     : null;
-  const generationPrompt = isTranslateMode
-    ? buildTranslatePromptFromRequest(
-      translateRequest,
-      (languageCode) => getTranslateLanguageName(languageCode)
-    )
-    : prompt;
+  const generationInput = isTranslateMode ? translateRequest : prompt;
 
   updateRunStatus('Preparing...');
   let pipeline;
@@ -2628,9 +2617,10 @@ async function handleRunGenerate() {
       if (outputEl) outputEl.textContent = output;
       updateRunStatus('Complete');
     } else {
-      for await (const token of pipeline.generate(generationPrompt, {
+      for await (const token of pipeline.generate(generationInput, {
         ...options,
         signal: controller.signal,
+        ...(isTranslateMode ? { useChatTemplate: true } : {}),
       })) {
         if (controller.signal.aborted) break;
         output += token;

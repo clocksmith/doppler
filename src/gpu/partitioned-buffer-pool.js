@@ -1,6 +1,7 @@
 
 
 import { BufferPool } from '../memory/buffer-pool.js';
+import { getRuntimeConfig } from '../config/runtime.js';
 
 
 
@@ -11,11 +12,11 @@ export class PartitionedBufferPool {
   #expertPools;
 
   
-  constructor(partitions) {
-    this.#sharedPool = new BufferPool(false);
+  constructor(partitions, schemaConfig = getRuntimeConfig().shared.bufferPool) {
+    this.#sharedPool = new BufferPool(false, schemaConfig);
     this.#expertPools = new Map();
     for (const partition of partitions) {
-      this.#expertPools.set(partition.id, new BufferPool(false));
+      this.#expertPools.set(partition.id, new BufferPool(false, schemaConfig));
     }
   }
 
