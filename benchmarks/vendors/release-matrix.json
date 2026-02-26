@@ -490,7 +490,7 @@
   ],
   "modelCoverage": [
     {
-      "dopplerModelId": "gemma-3-1b-it-f16-f32a",
+      "dopplerModelId": "gemma-3-1b-it-wf16-ef16-hf16",
       "dopplerModelBaseDir": "local",
       "defaultTjsModelId": "onnx-community/gemma-3-1b-it-ONNX-GQA",
       "defaultKernelPath": "gemma3-f16-fused-f32a-online",
@@ -576,7 +576,7 @@
       "mode": "compute",
       "section": "compute/parity",
       "decodeProfile": null,
-      "dopplerModelId": "gemma-3-1b-it-f16-f32a",
+      "dopplerModelId": "gemma-3-1b-it-wf16-ef16-hf16",
       "tjsModelId": "onnx-community/gemma-3-1b-it-ONNX-GQA",
       "dopplerKernelPath": "gemma3-f16-fused-f32a-online",
       "workloadId": "g3-p064-d064-t1-k32",

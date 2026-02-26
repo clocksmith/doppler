@@ -112,6 +112,17 @@ the pipeline aligns `runtime.inference.compute.activationDtype` and
 For LM head overrides, `lm_head_prefill` can be added to `postLayer` to supply a
 batched matmul kernel for prefill while keeping `lm_head` on GEMV for decode.
 
+### Conversion Profiles: explicit runtime intent
+
+Model ID naming (and `quantizationInfo.variantTag`) is storage-only.  
+Your runtime contract must live in inference settings:
+
+- `quantization.computePrecision` (e.g. `f16` or `f32`) in conversion config
+- `inference.defaultKernelPath` in conversion config
+- optional explicit `inference.execution` / `inference.sessionDefaults` for pinned kernels
+
+These fields replace implicit defaults for repeatable conversion/runtime behavior.
+
 ## Path Comparison
 
 ### Q4K Fused (13 dispatches/layer)
