@@ -6,6 +6,7 @@ import {
   resolveKernelPath,
   getKernelPathStats,
   getKernelPathActivationDtype,
+  getKernelPathOutputDtype,
   getKernelPathKVDtype,
   setActiveKernelPath,
 } from '../../../config/kernel-path-loader.js';
@@ -249,13 +250,15 @@ function getKernelCapabilitiesSafe() {
 
 function applyKernelPathRuntimeDtypeOverrides(resolvedKernelPath, runtimeConfig) {
   const kernelPathActivationDtype = getKernelPathActivationDtype(resolvedKernelPath);
+  const kernelPathOutputDtype = getKernelPathOutputDtype(resolvedKernelPath) ?? kernelPathActivationDtype;
   const kernelPathKVDtype = getKernelPathKVDtype(resolvedKernelPath);
-  if (!kernelPathActivationDtype && !kernelPathKVDtype) {
+  if (!kernelPathActivationDtype && !kernelPathOutputDtype && !kernelPathKVDtype) {
     return runtimeConfig;
   }
 
   const currentActivation = runtimeConfig.inference.compute.activationDtype;
   const currentKV = runtimeConfig.inference.kvcache.kvDtype;
+  const currentOutput = runtimeConfig.inference?.session?.compute?.defaults?.outputDtype;
   const nextInference = {
     ...runtimeConfig.inference,
     compute: { ...runtimeConfig.inference.compute },
@@ -271,6 +274,20 @@ function applyKernelPathRuntimeDtypeOverrides(resolvedKernelPath, runtimeConfig)
   if (kernelPathKVDtype && currentKV !== kernelPathKVDtype) {
     nextInference.kvcache.kvDtype = kernelPathKVDtype;
     dtypeChanges.push(`kv=${currentKV}->${kernelPathKVDtype}`);
+  }
+
+  if (kernelPathOutputDtype && currentOutput !== kernelPathOutputDtype) {
+    nextInference.session = {
+      ...(nextInference.session ?? {}),
+      compute: {
+        ...(nextInference.session?.compute ?? {}),
+        defaults: {
+          ...(nextInference.session?.compute?.defaults ?? {}),
+          outputDtype: kernelPathOutputDtype,
+        },
+      },
+    };
+    dtypeChanges.push(`session.outputDtype=${currentOutput ?? 'undefined'}->${kernelPathOutputDtype}`);
   }
 
   if (dtypeChanges.length === 0) {

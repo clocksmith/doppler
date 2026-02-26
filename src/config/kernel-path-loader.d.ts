@@ -36,6 +36,14 @@ export function getKernelPathActivationDtype(
 ): string | null;
 
 /**
+ * Get the output dtype required by a kernel path.
+ * Returns null when the path does not override output dtype.
+ */
+export function getKernelPathOutputDtype(
+  path: KernelPathSchema | null
+): string | null;
+
+/**
  * Resolve layer index template in weight references.
  * Replaces {L} with the actual layer index.
  */

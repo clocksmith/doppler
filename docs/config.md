@@ -11,6 +11,7 @@ A kernel path defines:
 - **In what order** they execute
 - **With what configuration** (entry points, override constants)
 - **Activation dtype** for the path (`activationDtype`, required)
+- Optional **`outputDtype`** for the path (`f16` or `f32`, default: `activationDtype`)
 
 This replaces the implicit `q4kStrategy` and `fusedFFNQ4K` configuration flags with fully declarative paths.
 
@@ -41,7 +42,7 @@ This replaces the implicit `q4kStrategy` and `fusedFFNQ4K` configuration flags w
 }
 ```
 
-`activationDtype` is required. Kernel paths must declare the activation dtype they expect so runtime dtypes stay consistent.
+`activationDtype` is required. Kernel paths must declare the activation dtype they expect so runtime dtypes stay consistent. If `outputDtype` is set, runtime session output precision follows it; otherwise it defaults to `activationDtype`.
 
 ## Step Schema
 

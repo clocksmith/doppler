@@ -5,6 +5,27 @@ on:
     paths:
       - 'src/config/**'
       - 'benchmarks/vendors/**'
+      - 'skills/**'
+      - 'AGENTS.md'
+      - 'CLAUDE.md'
+      - 'GEMINI.md'
+      - '.claude/skills'
+      - '.gemini/skills'
+      - 'docs/architecture.md'
+      - 'docs/formats.md'
+      - 'docs/config.md'
+      - 'docs/style/general-style-guide.md'
+      - 'docs/style/javascript-style-guide.md'
+      - 'docs/style/command-interface-design-guide.md'
+      - 'src/inference/pipelines/text.js'
+      - 'src/tooling/command-api.js'
+      - 'src/tooling/browser-command-runner.js'
+      - 'src/tooling/node-command-runner.js'
+      - 'tools/doppler-cli.js'
+      - 'tools/policies/agent-parity-policy.json'
+      - 'tools/verify-agent-parity.js'
+      - 'tools/verify-agent-freshness.js'
+      - 'benchmarks/vendors/benchmark-policy.json'
       - 'tools/onboarding-tooling.js'
       - 'tools/configs/conversion/**'
       - '.github/workflows/onboarding-tooling.yml'
@@ -14,6 +35,27 @@ on:
     paths:
       - 'src/config/**'
       - 'benchmarks/vendors/**'
+      - 'skills/**'
+      - 'AGENTS.md'
+      - 'CLAUDE.md'
+      - 'GEMINI.md'
+      - '.claude/skills'
+      - '.gemini/skills'
+      - 'docs/architecture.md'
+      - 'docs/formats.md'
+      - 'docs/config.md'
+      - 'docs/style/general-style-guide.md'
+      - 'docs/style/javascript-style-guide.md'
+      - 'docs/style/command-interface-design-guide.md'
+      - 'src/inference/pipelines/text.js'
+      - 'src/tooling/command-api.js'
+      - 'src/tooling/browser-command-runner.js'
+      - 'src/tooling/node-command-runner.js'
+      - 'tools/doppler-cli.js'
+      - 'tools/policies/agent-parity-policy.json'
+      - 'tools/verify-agent-parity.js'
+      - 'tools/verify-agent-freshness.js'
+      - 'benchmarks/vendors/benchmark-policy.json'
       - 'tools/onboarding-tooling.js'
       - 'tools/configs/conversion/**'
       - '.github/workflows/onboarding-tooling.yml'
@@ -39,6 +81,9 @@ jobs:
 
       - name: Run strict onboarding validator
         run: npm run onboarding:check:strict
+
+      - name: Run strict AGENTS freshness check
+        run: npm run agents:freshness:strict
 
       - name: Run vendor benchmark registry validation
         run: npm run bench:vendors:validate

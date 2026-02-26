@@ -28,6 +28,7 @@ import {
   resolveKernelPathState,
   initTokenizerFromManifestPreset,
 } from './text/model-load.js';
+import { getKernelPathActivationDtype } from '../../config/kernel-path-loader.js';
 import { applyPipelineDebugConfig } from './text/debug-utils.js';
 import { resolveLayerPipeline } from './text/layer-plan.js';
 import { compileExecutionPlanState, resolveActiveExecutionPlan } from './text/execution-plan.js';
@@ -156,6 +157,14 @@ export class InferencePipeline extends PipelineState {
       `Execution plan: active=${activeExecutionPlan.id}, dtype=${activeExecutionPlan.activationDtype}, ` +
       `kernelPath=${activeExecutionPlan.kernelPathId ?? 'none'}`
     );
+
+    const kpActivation = getKernelPathActivationDtype(this.resolvedKernelPath);
+    if (kpActivation && kpActivation !== activeExecutionPlan.activationDtype) {
+      throw new Error(
+        `Dtype contract violation: execution plan activationDtype="${activeExecutionPlan.activationDtype}" ` +
+        `but kernel path "${this.resolvedKernelPath.id}" declares activationDtype="${kpActivation}".`
+      );
+    }
 
     // Initialize MoE router if needed
     if (this.modelConfig.useMoE) {

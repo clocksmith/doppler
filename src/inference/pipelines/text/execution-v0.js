@@ -673,33 +673,80 @@ function resolvePhaseSteps(phase, steps, sessionDefaults, profileIndex, policies
   };
 }
 
+function stripPresetComputeDefaults(compute, manifestComputeDefaults) {
+  if (!compute?.defaults || !manifestComputeDefaults) {
+    return compute;
+  }
+  const dtypeKeys = ['activationDtype', 'mathDtype', 'accumDtype', 'outputDtype'];
+  const hasManifestDtype = dtypeKeys.some(
+    (key) => manifestComputeDefaults[key] !== undefined && manifestComputeDefaults[key] !== null
+  );
+  if (!hasManifestDtype) {
+    return compute;
+  }
+  const nextDefaults = { ...compute.defaults };
+  for (const key of dtypeKeys) {
+    if (manifestComputeDefaults[key] !== undefined && manifestComputeDefaults[key] !== null) {
+      delete nextDefaults[key];
+    }
+  }
+  if (Object.keys(nextDefaults).length === 0) {
+    const nextCompute = { ...compute };
+    delete nextCompute.defaults;
+    return Object.keys(nextCompute).length === 0 ? null : nextCompute;
+  }
+  return { ...compute, defaults: nextDefaults };
+}
+
 function normalizeRuntimeSessionForExecutionV0(runtimeSession, manifestInference) {
-  const manifestProfiles = manifestInference?.sessionDefaults?.compute?.kernelProfiles;
+  const manifestSessionDefaults = manifestInference?.sessionDefaults ?? null;
+  const manifestProfiles = manifestSessionDefaults?.compute?.kernelProfiles;
   const hasManifestProfiles = Array.isArray(manifestProfiles) && manifestProfiles.length > 0;
+  const manifestComputeDefaults = manifestSessionDefaults?.compute?.defaults ?? null;
 
   if (!runtimeSession || !runtimeSession.compute) {
     return runtimeSession;
   }
 
-  const compute = runtimeSession.compute;
-  if (!Object.prototype.hasOwnProperty.call(compute, 'kernelProfiles')) {
+  let compute = runtimeSession.compute;
+  let changed = false;
+
+  // Strip preset compute dtype defaults when manifest provides model-specific values.
+  // default.json sets session.compute.defaults.activationDtype="f16" as a preset default.
+  // When the manifest declares its own compute dtypes (e.g. activationDtype="f32" for f32
+  // variants), the manifest must win. Only explicit user overrides (via --runtime-config-json
+  // or CLI flags) should take precedence, not baked-in preset values.
+  if (manifestComputeDefaults) {
+    const stripped = stripPresetComputeDefaults(compute, manifestComputeDefaults);
+    if (stripped !== compute) {
+      compute = stripped;
+      changed = true;
+    }
+  }
+
+  // Strip empty kernelProfiles when manifest provides them.
+  if (compute && Object.prototype.hasOwnProperty.call(compute, 'kernelProfiles')) {
+    const kernelProfiles = compute.kernelProfiles;
+    if (Array.isArray(kernelProfiles) && kernelProfiles.length === 0 && hasManifestProfiles) {
+      const nextCompute = { ...compute };
+      delete nextCompute.kernelProfiles;
+      compute = Object.keys(nextCompute).length === 0 ? null : nextCompute;
+      changed = true;
+    }
+  }
+
+  if (!changed) {
     return runtimeSession;
   }
 
-  const kernelProfiles = compute.kernelProfiles;
-  if (!Array.isArray(kernelProfiles) || kernelProfiles.length > 0) {
-    return runtimeSession;
+  if (!compute) {
+    const { compute: _removed, ...rest } = runtimeSession;
+    return Object.keys(rest).length === 0 ? {} : rest;
   }
 
-  if (!hasManifestProfiles) {
-    return runtimeSession;
-  }
-
-  const nextCompute = { ...compute };
-  delete nextCompute.kernelProfiles;
   return {
     ...runtimeSession,
-    compute: nextCompute,
+    compute,
   };
 }
 

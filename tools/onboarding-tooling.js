@@ -172,9 +172,8 @@ function resolveConversionConfigModelId(config) {
   const embeddings = safeTrim(config?.quantization?.embeddings) || weights;
   const lmHead = safeTrim(config?.quantization?.lmHead) || embeddings;
 
-  let quantizationInfo;
   try {
-    quantizationInfo = buildQuantizationInfo(
+    buildQuantizationInfo(
       { converterConfig: config },
       weights,
       embeddings,
@@ -188,9 +187,8 @@ function resolveConversionConfigModelId(config) {
   }
 
   const modelId = resolveConvertedModelId({
+    explicitModelId: modelBaseId,
     converterConfig: config,
-    detectedModelId: modelBaseId,
-    quantizationInfo,
   });
   if (!modelId) {
     return {

@@ -85,7 +85,10 @@ export async function runLayerAttentionGPU(
 
   const device = getDevice();
 
-  const wantsF16Output = input.dtype === 'f16';
+  const desiredOutputDtype = selectRuleValue('shared', 'dtype', 'f16OrF32FromDtype', {
+    dtype: config.activationDtype,
+  });
+  const wantsF16Output = desiredOutputDtype === 'f16';
   const kvCacheFallback = selectRuleValue('inference', 'dtype', 'f16OrF32', { useF16: wantsF16Output });
   const kvCacheDtype = state.kvCache?.kvDtype ?? kvCacheFallback;
   const allowF16Attention = wantsF16Output && kvCacheDtype === 'f16';
@@ -176,8 +179,7 @@ export async function runLayerAttentionGPU(
   }
 
   // 2. Q/K/V projections
-  const useF16Activations = attentionInput.dtype === 'f16';
-  const matmulOutputDtype = resolveAttentionProjectionOutputDtype(attentionInput.dtype);
+  const matmulOutputDtype = resolveAttentionProjectionOutputDtype(desiredOutputDtype);
   let { qTensor, kTensor, vTensor, usedFusedQKV } = await projectAttentionQKV({
     recorder: null,
     normed,

@@ -1,7 +1,7 @@
 {
   "id": "kernels/dequant-f32-q4k",
   "name": "dequant-f32-q4k",
-  "description": "Use dequant-to-F32 kernel path. Separate matmuls, no fused FFN, no subgroup requirement.",
+  "description": "Runtime alias preset for Gemma 2 Q4K dequant-to-F32 kernel path.",
   "intent": "investigate",
   "stability": "canonical",
   "owner": "doppler-core",
@@ -9,27 +9,11 @@
   "extends": "default",
   "runtime": {
     "inference": {
-      "compute": {
-        "activationDtype": "f32"
-      },
-      "kvcache": {
-        "kvDtype": "f32"
-      },
       "kernelPath": "gemma2-q4k-dequant-f32a",
       "kernelPathPolicy": {
         "mode": "capability-aware",
         "sourceScope": ["config", "model", "manifest", "execution-v0"],
         "onIncompatible": "remap"
-      },
-      "session": {
-        "compute": {
-          "defaults": {
-            "activationDtype": "f32"
-          }
-        },
-        "kvcache": {
-          "kvDtype": "f32"
-        }
       }
     }
   }

@@ -1,5 +1,6 @@
 import {
   getKernelPathActivationDtype,
+  getKernelPathOutputDtype,
   getKernelPathKVDtype,
   resolveKernelPath,
 } from '../config/kernel-path-loader.js';
@@ -104,6 +105,7 @@ function buildKernelProfiles(steps) {
 
 function buildSessionDefaults(kernelPath) {
   const activationDtype = normalizeKernelDtype(getKernelPathActivationDtype(kernelPath)) ?? 'f16';
+  const outputDtype = normalizeKernelDtype(getKernelPathOutputDtype(kernelPath)) ?? activationDtype;
   const kvDtype = normalizeKernelDtype(getKernelPathKVDtype(kernelPath)) ?? activationDtype;
   return {
     compute: {
@@ -111,7 +113,7 @@ function buildSessionDefaults(kernelPath) {
         activationDtype,
         mathDtype: activationDtype,
         accumDtype: 'f32',
-        outputDtype: activationDtype,
+        outputDtype,
       },
       kernelProfiles: [],
     },

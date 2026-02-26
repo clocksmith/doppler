@@ -140,6 +140,72 @@ Generates:
 
 Includes a runtime preset scaffold (`name`, `description`, `runtime.inference`).
 
+## Canonical model workflow (adaptable to any model)
+
+Use this when validating a conversion config end-to-end:
+
+1. Convert the source into RDRR.
+2. Run an inference correctness check (`test-model`).
+3. Run a performance benchmark.
+
+```bash
+# Required:
+INPUT_PATH=/path/to/source/model
+CONVERSION_CONFIG=tools/configs/conversion/<family>/<model-variant>.json
+MODEL_ID=gemma-3-1b-it-wf16-ef16-hf16-f16
+
+# 1) Convert
+node tools/doppler-cli.js convert "$INPUT_PATH" --config "$CONVERSION_CONFIG"
+
+# 2) Correctness check
+node tools/doppler-cli.js test-model --suite inference --model-id "$MODEL_ID" --runtime-preset modes/debug --surface auto --json
+
+# 3) Benchmark
+node tools/doppler-cli.js bench --model-id "$MODEL_ID" --surface browser --save --json
+```
+
+Notes:
+
+- `--runtime-preset` is optional on `bench` and `test-model`; include only when you want an explicit runtime profile.
+- `bench` defaults to browser, headless mode, and cache warm.
+- Use the same pattern for any model family: swap `MODEL_ID` + `CONVERSION_CONFIG`.
+
+Example multi-variant loop for Gemma-3:
+
+```bash
+for cfg in \
+  tools/configs/conversion/gemma3/gemma-3-1b-it-wf16-ef16-hf16-f16.json \
+  tools/configs/conversion/gemma3/gemma-3-1b-it-wf16-ef16-hf16-f32.json \
+  tools/configs/conversion/gemma3/gemma-3-1b-it-wq4k-ef16-hf16-f16.json \
+  tools/configs/conversion/gemma3/gemma-3-1b-it-wq4k-ef16-hf16-f32.json \
+  tools/configs/conversion/gemma3/gemma-3-270m-it-wf16-ef16-hf16-f16.json \
+  tools/configs/conversion/gemma3/gemma-3-270m-it-wf16-ef16-hf16-f32.json \
+  tools/configs/conversion/gemma3/gemma-3-270m-it-wq4k-ef16-hf16-f16.json \
+  tools/configs/conversion/gemma3/gemma-3-270m-it-wq4k-ef16-hf16-f32.json; do
+  MODEL_ID="$(jq -r '.output.modelBaseId' "$cfg")"
+  node tools/doppler-cli.js convert "$INPUT_PATH" --config "$cfg"
+  node tools/doppler-cli.js test-model --suite inference --model-id "$MODEL_ID" --runtime-preset modes/debug --surface auto --json
+  node tools/doppler-cli.js bench --model-id "$MODEL_ID" --surface browser --save --json
+done
+```
+
+## Rebuilding only a manifest (no shard rewrite)
+
+If you only changed conversion metadata (kernel path, session defaults, etc.) and want to avoid
+re-quantizing/repacking shards, regenerate only `manifest.json`:
+
+```bash
+node tools/refresh-converted-manifest.js models/local/<model-id> \
+  --config tools/configs/conversion/gemma3/gemma-3-270m-it-wf16-ef16-hf16-f16.json
+```
+
+Options:
+
+- `--manifest <path>`: explicit manifest path (defaults to `<model-dir>/manifest.json`).
+- `--model-id <id>`: override `manifest.modelId` in the refreshed file.
+- `--skip-shard-check`: do not validate shard files exist before writing.
+- `--dry-run`: validate and print what would change without writing.
+
 ## CLI examples
 
 - Validate all onboarding artifacts:

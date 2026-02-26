@@ -96,6 +96,12 @@ export interface KernelPathSchema {
   /** Activation dtype for this path (e.g., 'f16', 'f32') */
   activationDtype: string;
 
+  /**
+   * Output dtype for kernels in this path (e.g., 'f16', 'f32').
+   * Defaults to `activationDtype` when omitted.
+   */
+  outputDtype?: string;
+
   /** KV cache dtype for this path; defaults to activationDtype when omitted. */
   kvDtype?: string;
 

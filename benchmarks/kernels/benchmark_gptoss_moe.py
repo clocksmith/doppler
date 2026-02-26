@@ -31,7 +31,11 @@ def parse_json_payload(output: str) -> dict | None:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model", required=True, help="Model ID (e.g. gpt-oss-20b)")
+    parser.add_argument(
+        "--model",
+        required=True,
+        help="Model ID (e.g. gpt-oss-20b-wf16-ef16-hf16-xmxfp4)",
+    )
     parser.add_argument("--runtime-preset", default="bench")
     parser.add_argument("--prompt", default="short")
     parser.add_argument("--max-tokens", type=int, default=64)
