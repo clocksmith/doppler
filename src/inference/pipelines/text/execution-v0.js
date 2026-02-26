@@ -876,9 +876,21 @@ function buildLayerPipelineFromExecution(steps) {
 
 function buildSessionRuntimePatch(sessionDefaults) {
   const patch = {};
-  const activationDtype = sessionDefaults?.compute?.defaults?.activationDtype;
+  const computeDefaults = sessionDefaults?.compute?.defaults ?? null;
+  const computePatch = {};
+  const activationDtype = computeDefaults?.activationDtype;
   if (activationDtype) {
-    patch.compute = { activationDtype };
+    computePatch.activationDtype = activationDtype;
+  }
+  if (computeDefaults && (computeDefaults.mathDtype || computeDefaults.accumDtype || computeDefaults.outputDtype)) {
+    computePatch.defaults = {
+      ...(computeDefaults.mathDtype ? { mathDtype: computeDefaults.mathDtype } : {}),
+      ...(computeDefaults.accumDtype ? { accumDtype: computeDefaults.accumDtype } : {}),
+      ...(computeDefaults.outputDtype ? { outputDtype: computeDefaults.outputDtype } : {}),
+    };
+  }
+  if (Object.keys(computePatch).length > 0) {
+    patch.compute = computePatch;
   }
   if (sessionDefaults?.kvcache) {
     patch.kvcache = sessionDefaults.kvcache;
