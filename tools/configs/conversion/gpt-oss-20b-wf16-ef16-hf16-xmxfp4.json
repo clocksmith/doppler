@@ -10,7 +10,7 @@
   },
   "output": {
     "baseDir": "models/local",
-    "modelBaseId": "gpt-oss-20b",
+    "modelBaseId": "gpt-oss-20b-wf16-ef16-hf16-xmxfp4",
     "textOnly": true,
     "fast": false
   },

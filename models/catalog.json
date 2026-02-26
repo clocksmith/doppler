@@ -3,34 +3,14 @@
   "updatedAt": "2026-02-25",
   "models": [
     {
-      "modelId": "google-embeddinggemma-300m-wbf16",
-      "label": "EmbeddingGemma 300M (BF16)",
-      "description": "Small embedding model for quick local indexing and diagnostics.",
-      "mode": "embedding",
-      "baseUrl": "./curated/google-embeddinggemma-300m-wbf16",
-      "sizeBytes": 605726208,
-      "recommended": true,
-      "sortOrder": 10
-    },
-    {
-      "modelId": "translategemma-4b-it-wq4",
+      "modelId": "translategemma-4b-it-wq4k-ef16-hf16",
       "label": "TranslateGemma 4B Instruct (Q4)",
-      "description": "TranslateGemma text-generation model. Place converted RDRR shards under models/local/translategemma-4b-it-wq4 for local loading.",
+      "description": "TranslateGemma text-generation model. Place converted RDRR shards under models/local/translategemma-4b-it-wq4k-ef16-hf16 for local loading.",
       "mode": "translate",
-      "baseUrl": "./local/translategemma-4b-it-wq4",
+      "baseUrl": "./local/translategemma-4b-it-wq4k-ef16-hf16",
       "sizeBytes": 3111894696,
       "recommended": false,
       "sortOrder": 15
-    },
-    {
-      "modelId": "gemma-3-270m-it-wf16-ef16-hf16",
-      "label": "Gemma 3 270M Instruct (F16)",
-      "description": "Small text model for local prompting, quick checks, and diagnostics.",
-      "mode": "text",
-      "baseUrl": "./curated/gemma-3-270m-it-wf16-ef16-hf16",
-      "sizeBytes": 536196352,
-      "recommended": false,
-      "sortOrder": 20
     }
   ]
 }

@@ -386,6 +386,7 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
 
   const layerType = config.layerTypes?.[layerIdx];
   const isLocalLayer = isSlidingLayerType(layerType);
+  const activationDtype = resolveActivationDtype(context.activationDtype);
 
   const attnState = {
     ropeFreqsCos: (isLocalLayer && context.ropeLocalCos)
@@ -492,7 +493,7 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
     releaseRef(prev);
   };
 
-  setSlot('state', inputBuffer, resolveActivationDtype(context.activationDtype));
+  setSlot('state', inputBuffer, activationDtype);
 
   const cleanupSlots = () => {
     for (const [name, buf] of slots) {
@@ -553,11 +554,12 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
             queryPreAttnScalar: config.queryPreAttnScalar,
             queryKeyNorm: config.queryKeyNorm,
             causalAttention: config.causalAttention,
-            rmsNormWeightOffset: config.rmsNormWeightOffset,
-            tokenIds: context.currentTokenIds ?? null,
-            skipInputNorm: step.skipInputNorm === true,
-            kernelPath: context.kernelPath ?? null,
-          };
+    rmsNormWeightOffset: config.rmsNormWeightOffset,
+    tokenIds: context.currentTokenIds ?? null,
+    skipInputNorm: step.skipInputNorm === true,
+    activationDtype,
+    kernelPath: context.kernelPath ?? null,
+  };
 
           const result = await doAttention(
             srcTensor,

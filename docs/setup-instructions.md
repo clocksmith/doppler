@@ -197,6 +197,12 @@ python3 -m http.server 8080
 # Run benchmarks in the demo diagnostics UI (/demo/)
 ```
 
+For a canonical source→convert→test-model→bench workflow (adaptable to any model), use:
+
+- `docs/onboarding-tooling.md`
+
+section: "Canonical model workflow (adaptable to any model)".
+
 ### Metrics Collected
 
 The test suite measures:

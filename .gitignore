@@ -53,6 +53,8 @@ downloads/
 !/models/catalog.json
 !/models/README.md
 !/models/curated/
+/models/curated/**
+!/models/curated/**/
 !/models/curated/**/manifest.json
 !/models/curated/**/tokenizer.json
 !/models/curated/**/tokenizer.model

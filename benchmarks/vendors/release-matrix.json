@@ -528,7 +528,7 @@
       "catalogSizeBytes": 605726208
     },
     {
-      "dopplerModelId": "translategemma-4b-it-wq4",
+      "dopplerModelId": "translategemma-4b-it-wq4k-ef16-hf16",
       "dopplerModelBaseDir": null,
       "defaultTjsModelId": null,
       "defaultKernelPath": null,
@@ -538,7 +538,7 @@
         "run",
         "translate"
       ],
-      "catalogBaseUrl": "./local/translategemma-4b-it-wq4",
+      "catalogBaseUrl": "./local/translategemma-4b-it-wq4k-ef16-hf16",
       "catalogSizeBytes": 3111894696
     }
   ],

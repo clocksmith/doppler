@@ -145,6 +145,11 @@ export function getKernelPathActivationDtype(path) {
   return path.activationDtype;
 }
 
+export function getKernelPathOutputDtype(path) {
+  if (!path?.outputDtype) return null;
+  return path.outputDtype;
+}
+
 export function getKernelPathKVDtype(path) {
   if (!path) return null;
   if (path.kvDtype) return path.kvDtype;

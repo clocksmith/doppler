@@ -1,7 +1,7 @@
 {
   "output": {
     "baseDir": "models/local",
-    "modelBaseId": "translategemma-4b-it-wq4",
+    "modelBaseId": "translategemma-4b-it-wq4k-ef16-hf16",
     "textOnly": true
   },
   "presets": {

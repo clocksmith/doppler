@@ -1,7 +1,7 @@
 {
   "id": "kernels/fused-q4k",
   "name": "fused-q4k",
-  "description": "Use fused Q4K kernel path with optimized dequant+matmul and fused FFN. Best throughput.",
+  "description": "Runtime alias preset for Gemma 2 fused Q4K kernel path.",
   "intent": "investigate",
   "stability": "canonical",
   "owner": "doppler-core",
@@ -9,27 +9,11 @@
   "extends": "default",
   "runtime": {
     "inference": {
-      "compute": {
-        "activationDtype": "f16"
-      },
-      "kvcache": {
-        "kvDtype": "f16"
-      },
       "kernelPath": "gemma2-q4k-fused-f32a",
       "kernelPathPolicy": {
         "mode": "capability-aware",
         "sourceScope": ["config", "model", "manifest", "execution-v0"],
         "onIncompatible": "remap"
-      },
-      "session": {
-        "compute": {
-          "defaults": {
-            "activationDtype": "f16"
-          }
-        },
-        "kvcache": {
-          "kvDtype": "f16"
-        }
       }
     }
   }

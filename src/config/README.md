@@ -99,6 +99,11 @@ Dimensions come from the model manifest at runtime.
 
 Source of truth for kernel-path IDs is `src/config/presets/kernel-paths/registry.json`.
 
+These runtime presets in `src/config/presets/runtime/kernels/` are **execution aliases**.
+They select a kernel-path ID and rely on the model/manifest inference contract for
+kernel behavior. Keep the kernel-path IDs in kernel-paths as canonical runtime
+execution definitions and use runtime/kernels presets only as selection presets.
+
 This registry is the only place to define kernel-path identity, status, and compatibility.
 `kernel-path-loader.js` resolves all IDs from this file at runtime.
 

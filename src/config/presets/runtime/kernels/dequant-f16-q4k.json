@@ -1,7 +1,7 @@
 {
   "id": "kernels/dequant-f16-q4k",
   "name": "dequant-f16-q4k",
-  "description": "Use dequant-to-F16 kernel path. Good balance of speed and accuracy, lower VRAM than F32.",
+  "description": "Runtime alias preset for Gemma 2 Q4K dequant-to-F16 kernel path.",
   "intent": "investigate",
   "stability": "canonical",
   "owner": "doppler-core",
@@ -9,27 +9,11 @@
   "extends": "default",
   "runtime": {
     "inference": {
-      "compute": {
-        "activationDtype": "f16"
-      },
-      "kvcache": {
-        "kvDtype": "f16"
-      },
       "kernelPath": "gemma2-q4k-dequant-f16a",
       "kernelPathPolicy": {
         "mode": "capability-aware",
         "sourceScope": ["config", "model", "manifest", "execution-v0"],
         "onIncompatible": "remap"
-      },
-      "session": {
-        "compute": {
-          "defaults": {
-            "activationDtype": "f16"
-          }
-        },
-        "kvcache": {
-          "kvDtype": "f16"
-        }
       }
     }
   }
