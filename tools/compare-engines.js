@@ -127,7 +127,7 @@ const DEFAULT_BENCHMARK_POLICY = Object.freeze({
   }),
   kernelPathPolicy: Object.freeze({
     knownBadByModel: Object.freeze({
-      'gemma-3-270m-it-f16-f32a': Object.freeze(['gemma3-f16-fused-f16a-online']),
+      'gemma-3-270m-it-wf16-ef16-hf16': Object.freeze(['gemma3-f16-fused-f16a-online']),
     }),
   }),
 });

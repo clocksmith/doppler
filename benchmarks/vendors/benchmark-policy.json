@@ -60,7 +60,7 @@
   },
   "kernelPathPolicy": {
     "knownBadByModel": {
-      "gemma-3-270m-it-f16-f32a": [
+      "gemma-3-270m-it-wf16-ef16-hf16": [
         "gemma3-f16-fused-f16a-online"
       ]
     }

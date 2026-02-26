@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "modelId": "gemma-3-270m-it-f16-f32a",
+  "modelId": "gemma-3-270m-it-wf16-ef16-hf16",
   "modelType": "transformer",
   "quantization": "F16",
   "quantizationInfo": {

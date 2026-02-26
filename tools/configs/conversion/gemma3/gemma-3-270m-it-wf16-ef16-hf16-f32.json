@@ -1,7 +1,7 @@
 {
   "output": {
     "baseDir": "models/local",
-    "modelBaseId": "gemma-3-270m-it-f16-f32a"
+    "modelBaseId": "gemma-3-270m-it-wf16-ef16-hf16"
   },
   "presets": {
     "model": "gemma3"

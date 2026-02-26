@@ -83,7 +83,7 @@ function parseJsonFromStdout(stdout, label) {
 
 // E2E NaN Regression Test for Gemma 3 F16a/F32a Stability
 async function runTest() {
-    const modelId = process.env.MODEL_ID || 'gemma-3-270m-it-f16-f32a';
+    const modelId = process.env.MODEL_ID || 'gemma-3-270m-it-wf16-ef16-hf16';
     console.log(`[NaN Regression] Testing model: ${modelId}`);
 
     try {

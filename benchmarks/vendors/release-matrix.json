@@ -501,7 +501,7 @@
       "catalogSizeBytes": null
     },
     {
-      "dopplerModelId": "gemma-3-270m-it-f16-f32a",
+      "dopplerModelId": "gemma-3-270m-it-wf16-ef16-hf16",
       "dopplerModelBaseDir": "curated",
       "defaultTjsModelId": "onnx-community/gemma-3-270m-it-ONNX",
       "defaultKernelPath": null,
@@ -511,7 +511,7 @@
         "run",
         "translate"
       ],
-      "catalogBaseUrl": "./curated/gemma-3-270m-it-f16-f32a",
+      "catalogBaseUrl": "./curated/gemma-3-270m-it-wf16-ef16-hf16",
       "catalogSizeBytes": 536196352
     },
     {
