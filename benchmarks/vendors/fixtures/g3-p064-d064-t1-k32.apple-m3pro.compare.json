@@ -139,7 +139,7 @@
     "runtimeConfigSha256": null,
     "compareProfileSchemaVersion": 1
   },
-  "dopplerModelId": "gemma-3-1b-it-f16-f32a",
+  "dopplerModelId": "gemma-3-1b-it-wf16-ef16-hf16",
   "dopplerKernelPath": "gemma3-f16-fused-f32a-online",
   "dopplerKernelPathSource": "cli",
   "decodeProfile": "parity",
@@ -198,7 +198,7 @@
             "command": "bench",
             "suite": "bench",
             "intent": "calibrate",
-            "modelId": "gemma-3-1b-it-f16-f32a",
+            "modelId": "gemma-3-1b-it-wf16-ef16-hf16",
             "modelUrl": null,
             "cacheMode": "warm",
             "loadMode": "opfs",
@@ -263,7 +263,7 @@
                 "duration": 3389.199999988079
               }
             ],
-            "modelId": "gemma-3-1b-it-f16-f32a",
+            "modelId": "gemma-3-1b-it-wf16-ef16-hf16",
             "cacheMode": "warm",
             "loadMode": "opfs",
             "timing": {
@@ -569,7 +569,7 @@
             "pipeline": null,
             "report": {
               "suite": "bench",
-              "modelId": "gemma-3-1b-it-f16-f32a",
+              "modelId": "gemma-3-1b-it-wf16-ef16-hf16",
               "runtimePreset": null,
               "deviceInfo": {
                 "hasSubgroups": true,
@@ -868,7 +868,7 @@
             },
             "reportInfo": {
               "backend": "opfs",
-              "path": "reports/gemma-3-1b-it-f16-f32a/2026-02-24T18-24-34.663Z.json"
+              "path": "reports/gemma-3-1b-it-wf16-ef16-hf16/2026-02-24T18-24-34.663Z.json"
             }
           }
         },
@@ -1091,7 +1091,7 @@
             "command": "bench",
             "suite": "bench",
             "intent": "calibrate",
-            "modelId": "gemma-3-1b-it-f16-f32a",
+            "modelId": "gemma-3-1b-it-wf16-ef16-hf16",
             "modelUrl": null,
             "cacheMode": "warm",
             "loadMode": "opfs",
@@ -1156,7 +1156,7 @@
                 "duration": 3241
               }
             ],
-            "modelId": "gemma-3-1b-it-f16-f32a",
+            "modelId": "gemma-3-1b-it-wf16-ef16-hf16",
             "cacheMode": "warm",
             "loadMode": "opfs",
             "timing": {
@@ -1462,7 +1462,7 @@
             "pipeline": null,
             "report": {
               "suite": "bench",
-              "modelId": "gemma-3-1b-it-f16-f32a",
+              "modelId": "gemma-3-1b-it-wf16-ef16-hf16",
               "runtimePreset": null,
               "deviceInfo": {
                 "hasSubgroups": true,
@@ -1761,7 +1761,7 @@
             },
             "reportInfo": {
               "backend": "opfs",
-              "path": "reports/gemma-3-1b-it-f16-f32a/2026-02-24T18-24-44.993Z.json"
+              "path": "reports/gemma-3-1b-it-wf16-ef16-hf16/2026-02-24T18-24-44.993Z.json"
             }
           }
         },

@@ -9,7 +9,7 @@
       "modelBaseDir": "curated"
     },
     {
-      "dopplerModelId": "gemma-3-1b-it-f16-f32a",
+      "dopplerModelId": "gemma-3-1b-it-wf16-ef16-hf16",
       "defaultTjsModelId": "onnx-community/gemma-3-1b-it-ONNX-GQA",
       "defaultKernelPath": "gemma3-f16-fused-f32a-online",
       "modelBaseDir": "local"

@@ -267,9 +267,9 @@ embeddings, lm_head, and MoE experts can be distinguished from core weights.
 | Field | Type | Description |
 |-------|------|-------------|
 | `weights` | string | Quantization for main weights (`q4k`, `f16`, etc.) |
-| `embeddings` | string? | Quantization for embedding table |
-| `lmHead` | string? | Quantization for LM head (if different from embeddings) |
-| `experts` | string? | Quantization for MoE expert weights |
+| `embeddings` | string? | Quantization for embedding table. If omitted, treat as `weights`. |
+| `lmHead` | string? | Quantization for LM head. If omitted, treat as `embeddings`. |
+| `experts` | string? | Quantization for MoE expert weights. |
 | `expertsFormat` | string? | Expert tensor format hint (`mixtral`, `gpt-oss`) |
 | `vision` | string? | Vision encoder quantization (multimodal models) |
 | `audio` | string? | Audio encoder quantization (speech models) |
@@ -281,11 +281,35 @@ embeddings, lm_head, and MoE experts can be distinguished from core weights.
 
 ### Naming Convention
 
-DOPPLER uses a concise naming convention that describes **storage only** (not runtime behavior):
+DOPPLER names model variants to describe **storage quantization only** (not runtime behavior).  
+Canonical names are emitted in `quantizationInfo.variantTag` and are used to build `modelId`.
+
+Canonical full-form (explicit, no inference) format:
+
+```
+{model-name}-w{weights}-e{embeddings}-h{lmHead}-x{experts}-v{vision}-a{audio}-t{tts}-p{projector}
+```
+
+Only include a role token if that role exists in the model architecture (for example, no `x` if there are no experts).  
+Include every present tensor-group dtype explicitly to remove ambiguity.
+
+Recommended compact-form (omits unchanged/default fields):
 
 ```
 {model-name}-w{weights}[-e{embeddings}][-h{head}][-x{experts}][-v{vision}][-a{audio}][-t{tts}][-p{projector}]
 ```
+
+In compact-form, `e` and `h` may be omitted when they match the preceding storage dtype.
+
+Model IDs are **not** expected to include runtime-activation suffixes like `-f16a` or `-f32a`.
+Runtime intent belongs in conversion manifest/runtime (`quantization.computePrecision`,
+`inference.defaultKernelPath`, `inference.execution`, `inference.sessionDefaults`).
+
+Canonical-only equivalents for Gemma-1B profiles:
+
+- `gemma-3-1b-it-f16-f16a` → `gemma-3-1b-it-wf16-ef16-hf16` (compute `f16`)
+- `gemma-3-1b-it-f16-f32a` → `gemma-3-1b-it-wf16-ef16-hf16` (compute `f32`)
+- `gemma-3-1b-it-wq4k-ef16` → `gemma-3-1b-it-wq4k-ef16-hf16` (compute `f16`)
 
 **Component prefixes:**
 
@@ -300,13 +324,12 @@ DOPPLER uses a concise naming convention that describes **storage only** (not ru
 | `t` | TTS | Text-to-speech decoder |
 | `p` | Projector | Cross-modal projection layers |
 
-The `x` suffix is emitted only when expert quantization differs from core weights.
-
 **Quantization tokens:**
 
 | Token | Description |
 |-------|-------------|
 | `q4k` | Q4_K_M block quant |
+| `q4` | Alias of `q4k` in historical metadata; do not use in canonical IDs |
 | `q6k` | Q6_K block quant |
 | `q8_0` | Q8_0 quant |
 | `f16` | Float16 |
@@ -318,16 +341,18 @@ The `x` suffix is emitted only when expert quantization differs from core weight
 | `fp8e4` | Float8 E4M3 |
 | `fp8e5` | Float8 E5M2 |
 
+`q4_0` and `q4_1` (GGUF source tags) must not appear in canonical names; normalize to `q4k`.
+
 **Examples:**
 
 | Model ID | Description |
 |----------|-------------|
-| `gemma-2b-wq4k` | Weights Q4K, embeddings default to weights |
+| `gemma-2b-wf16-ef16-hf16` | Explicit full-form; embeddings and head both shown even when unchanged |
 | `gemma-2b-wq4k-ef16` | Weights Q4K, embeddings F16 |
-| `llama-8b-wq4k-ef16-hf16` | With explicit head quantization |
-| `gpt-oss-20b-wf16-xmxfp4` | F16 dense weights with MXFP4 expert blocks |
-| `qwen2-vl-7b-wq4k-vf16-pf16` | Multimodal with vision + projector |
-| `phi-3.5-mini-wq4k-ebf16` | BFloat16 embeddings |
+| `llama-8b-wq4k-ef16-hf16` | Explicit head quantization included |
+| `gpt-oss-20b-wf16-ef16-hf16-xmxfp4` | Explicit full-form (weights and output path share F16, experts use MXFP4) |
+| `qwen2-vl-7b-wq4k-ef16-hf16-vf16-pf16` | Multimodal with explicit vision + projector |
+| `phi-3.5-mini-wq4k-ebf16-hfbf16` | BFloat16 embeddings/head, explicit full form |
 
 **Adapter naming:**
 

@@ -1,7 +1,7 @@
 {
   "timestamp": "2026-02-25T17:58:34.028Z",
   "mode": "compute",
-  "dopplerModelId": "gemma-3-1b-it-f16-f32a",
+  "dopplerModelId": "gemma-3-1b-it-wf16-ef16-hf16",
   "tjsModelId": "onnx-community/gemma-3-1b-it-ONNX-GQA",
   "dopplerKernelPath": "gemma3-f16-fused-f32a-online",
   "workload": {
