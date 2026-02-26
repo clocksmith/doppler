@@ -15,9 +15,9 @@
     {
       "modelId": "translategemma-4b-it-wq4",
       "label": "TranslateGemma 4B Instruct (Q4)",
-      "description": "TranslateGemma text-generation model. Place converted RDRR shards under models/curated/translategemma-4b-it-wq4 for local loading.",
+      "description": "TranslateGemma text-generation model. Place converted RDRR shards under models/local/translategemma-4b-it-wq4 for local loading.",
       "mode": "translate",
-      "baseUrl": "./curated/translategemma-4b-it-wq4",
+      "baseUrl": "./local/translategemma-4b-it-wq4",
       "sizeBytes": 3111894696,
       "recommended": false,
       "sortOrder": 15
@@ -27,7 +27,7 @@
       "label": "Gemma 3 270M Instruct (F16/F32a)",
       "description": "Small text model for local prompting, quick checks, and diagnostics.",
       "mode": "text",
-      "baseUrl": "./curated/gemma-3-270m-it-f16-f32a",
+      "baseUrl": "./local/gemma-3-270m-it-f16-f32a",
       "sizeBytes": 536196352,
       "recommended": false,
       "sortOrder": 20

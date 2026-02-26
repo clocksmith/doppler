@@ -673,6 +673,36 @@ function resolvePhaseSteps(phase, steps, sessionDefaults, profileIndex, policies
   };
 }
 
+function normalizeRuntimeSessionForExecutionV0(runtimeSession, manifestInference) {
+  const manifestProfiles = manifestInference?.sessionDefaults?.compute?.kernelProfiles;
+  const hasManifestProfiles = Array.isArray(manifestProfiles) && manifestProfiles.length > 0;
+
+  if (!runtimeSession || !runtimeSession.compute) {
+    return runtimeSession;
+  }
+
+  const compute = runtimeSession.compute;
+  if (!Object.prototype.hasOwnProperty.call(compute, 'kernelProfiles')) {
+    return runtimeSession;
+  }
+
+  const kernelProfiles = compute.kernelProfiles;
+  if (!Array.isArray(kernelProfiles) || kernelProfiles.length > 0) {
+    return runtimeSession;
+  }
+
+  if (!hasManifestProfiles) {
+    return runtimeSession;
+  }
+
+  const nextCompute = { ...compute };
+  delete nextCompute.kernelProfiles;
+  return {
+    ...runtimeSession,
+    compute: nextCompute,
+  };
+}
+
 function validatePhaseBoundaryCompatibility(options) {
   const {
     steps,
@@ -694,13 +724,13 @@ function validatePhaseBoundaryCompatibility(options) {
     if (readsCarriedSlot && step.op !== 'cast') {
       const profile = resolveProfile(profileIndex, step);
       const { precision } = resolvePrecision(step, profile, sessionDefaults);
+      const carriedDtype = prefillFinalSlotDtypes.get(src);
       const decodeInput = normalizeDtype(
         precision.inputDtype
-          ?? decodeInitialSlotDtypes.get(src)
-          ?? prefillFinalSlotDtypes.get(src),
+          ?? carriedDtype
+          ?? decodeInitialSlotDtypes.get(src),
         `${step.id}.precision.inputDtype`
       );
-      const carriedDtype = prefillFinalSlotDtypes.get(src);
       if (decodeInput !== carriedDtype) {
         throw new Error(
           `[ExecutionV0] decode step "${step.id}" reads carried slot "${src}" as ${decodeInput} ` +
@@ -893,13 +923,17 @@ export function compileExecutionV0(options = {}) {
     ...DEFAULT_EXECUTION_V0_POLICIES,
     ...(manifestInference.execution?.policies ?? {}),
   };
+  const normalizedRuntimeSession = normalizeRuntimeSessionForExecutionV0(
+    runtimeInference.session ?? {},
+    manifestInference
+  );
   const sessionDefaults = mergeRuntimeValues(
     DEFAULT_EXECUTION_V0_SESSION_DEFAULTS,
     manifestInference.sessionDefaults ?? {}
   );
   const resolvedSession = mergeRuntimeValues(
     sessionDefaults,
-    runtimeInference.session ?? {}
+    normalizedRuntimeSession ?? {}
   );
 
   const baseSteps = cloneJson(manifestInference.execution.steps ?? []);
