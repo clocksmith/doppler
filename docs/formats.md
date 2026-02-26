@@ -305,11 +305,10 @@ Model IDs are **not** expected to include runtime-activation suffixes like `-f16
 Runtime intent belongs in conversion manifest/runtime (`quantization.computePrecision`,
 `inference.defaultKernelPath`, `inference.execution`, `inference.sessionDefaults`).
 
-Canonical-only equivalents for Gemma-1B profiles:
+Canonical Gemma-1B model IDs:
 
-- `gemma-3-1b-it-f16-f16a` → `gemma-3-1b-it-wf16-ef16-hf16` (compute `f16`)
-- `gemma-3-1b-it-f16-f32a` → `gemma-3-1b-it-wf16-ef16-hf16` (compute `f32`)
-- `gemma-3-1b-it-wq4k-ef16` → `gemma-3-1b-it-wq4k-ef16-hf16` (compute `f16`)
+- `gemma-3-1b-it-wf16-ef16-hf16`
+- `gemma-3-1b-it-wq4k-ef16-hf16`
 
 **Component prefixes:**
 

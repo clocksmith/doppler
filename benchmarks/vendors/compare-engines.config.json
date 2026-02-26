@@ -3,7 +3,7 @@
   "updated": "2026-02-23",
   "modelProfiles": [
     {
-      "dopplerModelId": "gemma-3-270m-it-f16-f32a",
+      "dopplerModelId": "gemma-3-270m-it-wf16-ef16-hf16",
       "defaultTjsModelId": "onnx-community/gemma-3-270m-it-ONNX",
       "defaultKernelPath": null,
       "modelBaseDir": "curated"

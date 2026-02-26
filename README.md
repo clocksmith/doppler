@@ -103,7 +103,7 @@ for workload in g3-p064-d064-t0-k1 g3-p064-d064-t1-k32; do
     --load-mode opfs \
     --decode-profile parity \
     --tjs-version 4 \
-    --model-id gemma-3-1b-it-f16-f32a \
+    --model-id gemma-3-1b-it-wf16-ef16-hf16 \
     --tjs-model onnx-community/gemma-3-1b-it-ONNX-GQA \
     --workload "$workload" \
     --warmup 1 \
