@@ -538,7 +538,7 @@
         "run",
         "translate"
       ],
-      "catalogBaseUrl": "./curated/translategemma-4b-it-wq4",
+      "catalogBaseUrl": "./local/translategemma-4b-it-wq4",
       "catalogSizeBytes": 3111894696
     }
   ],

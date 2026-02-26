@@ -49,6 +49,8 @@ function resolveFallbackKernelPath(primaryKernelPath) {
     };
   }
 
+  const primaryKernelPathIsObject = typeof primaryKernelPath === 'object' && primaryKernelPath !== null;
+
   const fallbackKernelPathId = selectRuleValue(
     'inference',
     'kernelPath',
@@ -76,6 +78,18 @@ function resolveFallbackKernelPath(primaryKernelPath) {
       kernelPathSource,
     };
   } catch (error) {
+    if (primaryKernelPathIsObject) {
+      log.warn(
+        'Pipeline',
+        `[ExecutionPlan] Failed to resolve finiteness fallback kernel path "${resolvedKernelPathId}" ` +
+        `for "${primaryKernelPathId}", using inline kernel path as fallback. ${error?.message || error}`
+      );
+      return {
+        kernelPath: primaryKernelPath,
+        kernelPathId: primaryKernelPathId,
+        kernelPathSource,
+      };
+    }
     throw new Error(
       `[ExecutionPlan] Failed to resolve finiteness fallback kernel path "${resolvedKernelPathId}" ` +
       `(from "${primaryKernelPathId}"): ${error?.message || error}`

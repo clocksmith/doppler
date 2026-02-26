@@ -1,6 +1,6 @@
 {
   "output": {
-    "baseDir": "models/curated",
+    "baseDir": "models/local",
     "modelBaseId": "translategemma-4b-it-wq4",
     "textOnly": true
   },

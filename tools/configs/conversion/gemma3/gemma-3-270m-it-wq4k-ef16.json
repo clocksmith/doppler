@@ -10,11 +10,11 @@
     "weights": "q4k",
     "embeddings": "f16",
     "lmHead": "f16",
-    "computePrecision": "f16",
+    "computePrecision": "f32",
     "q4kLayout": "row"
   },
   "inference": {
-    "defaultKernelPath": "gemma3-q4k-dequant-f16a-online",
+    "defaultKernelPath": "gemma3-q4k-dequant-f32a-online",
     "schema": "doppler.execution/v0",
     "sessionDefaults": {
       "compute": {

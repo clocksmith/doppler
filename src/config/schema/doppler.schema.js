@@ -170,6 +170,10 @@ function mergeInferenceConfig(
   const overrideKernelPathPolicy = overrides.kernelPathPolicy ?? {};
   const baseKernelPathSourceScope = baseKernelPathPolicy.sourceScope ?? baseKernelPathPolicy.allowSources;
   const overrideKernelPathSourceScope = overrideKernelPathPolicy.sourceScope ?? overrideKernelPathPolicy.allowSources;
+  const hasRuntimeKernelProfiles = Object.prototype.hasOwnProperty.call(
+    overrideSessionCompute,
+    'kernelProfiles'
+  );
 
   return {
     prompt: overrides.prompt ?? base.prompt,
@@ -247,7 +251,9 @@ function mergeInferenceConfig(
           ...baseSessionComputeDefaults,
           ...overrideSessionComputeDefaults,
         },
-        kernelProfiles: overrideSessionCompute.kernelProfiles ?? baseSessionCompute.kernelProfiles,
+        ...(hasRuntimeKernelProfiles
+          ? { kernelProfiles: overrideSessionCompute.kernelProfiles }
+          : { kernelProfiles: baseSessionCompute.kernelProfiles }),
       },
       kvcache: overrideSession.kvcache ?? baseSession.kvcache,
       decodeLoop: overrideSession.decodeLoop ?? baseSession.decodeLoop,
