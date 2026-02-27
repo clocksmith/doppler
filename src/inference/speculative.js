@@ -1,32 +1,95 @@
+function createRng(seed) {
+  let state = seed >>> 0;
+  if (!state) state = 0x6d2b79f5;
+  return () => {
+    state |= 0;
+    state = (state + 0x6d2b79f5) | 0;
+    let t = Math.imul(state ^ (state >>> 15), 1 | state);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
 
+function createUnseededRng() {
+  let fallbackState = ((Date.now() >>> 0) ^ 0xa341316c) >>> 0;
+  return () => {
+    const cryptoApi = typeof globalThis !== 'undefined' ? globalThis.crypto : null;
+    if (cryptoApi && typeof cryptoApi.getRandomValues === 'function') {
+      const random = new Uint32Array(1);
+      cryptoApi.getRandomValues(random);
+      return random[0] / 4294967296;
+    }
+    fallbackState = (fallbackState + 0x6d2b79f5) | 0;
+    let t = Math.imul(fallbackState ^ (fallbackState >>> 15), 1 | fallbackState);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
 
+function coerceLogitsVector(value, label) {
+  if (value instanceof Float32Array) {
+    if (value.length === 0) {
+      throw new Error(`SpeculativeDecoder: ${label} must not be empty.`);
+    }
+    return value;
+  }
 
+  if (ArrayBuffer.isView(value)) {
+    if (value.length === 0) {
+      throw new Error(`SpeculativeDecoder: ${label} must not be empty.`);
+    }
+    return Float32Array.from(value);
+  }
 
+  if (Array.isArray(value)) {
+    if (value.length === 0) {
+      throw new Error(`SpeculativeDecoder: ${label} must not be empty.`);
+    }
 
+    if (typeof value[0] === 'number') {
+      return Float32Array.from(value);
+    }
 
+    const last = value[value.length - 1];
+    if (last instanceof Float32Array) {
+      if (last.length === 0) {
+        throw new Error(`SpeculativeDecoder: ${label} must not be empty.`);
+      }
+      return last;
+    }
+    if (ArrayBuffer.isView(last)) {
+      if (last.length === 0) {
+        throw new Error(`SpeculativeDecoder: ${label} must not be empty.`);
+      }
+      return Float32Array.from(last);
+    }
+    if (Array.isArray(last) && (last.length === 0 || typeof last[0] === 'number')) {
+      if (last.length === 0) {
+        throw new Error(`SpeculativeDecoder: ${label} must not be empty.`);
+      }
+      return Float32Array.from(last);
+    }
+  }
 
+  throw new Error(
+    `SpeculativeDecoder: ${label} must be a numeric logits vector (Float32Array or number[]).`
+  );
+}
 
+function assertTemperature(temperature, label) {
+  if (!Number.isFinite(temperature) || temperature <= 0) {
+    throw new Error(`SpeculativeDecoder: ${label} must be a positive finite number.`);
+  }
+}
 
 export class SpeculativeDecoder {
-  
   numDraftTokens;
-
-  
   maxRejectionRetries;
-
-  
   enableTreeDraft;
-
-  
   temperature;
-
-  
+  random;
   draftModel = null;
-
-  
   mainModel = null;
-
-  
   stats = {
     totalDrafted: 0,
     totalAccepted: 0,
@@ -34,7 +97,6 @@ export class SpeculativeDecoder {
     averageAcceptRate: 0,
   };
 
-  
   constructor(config = {}) {
     if (config.numDraftTokens == null) {
       throw new Error('SpeculativeDecoder requires numDraftTokens.');
@@ -48,50 +110,58 @@ export class SpeculativeDecoder {
     if (config.temperature == null) {
       throw new Error('SpeculativeDecoder requires temperature.');
     }
+
+    assertTemperature(config.temperature, 'temperature');
     this.numDraftTokens = config.numDraftTokens;
     this.maxRejectionRetries = config.maxRejectionRetries;
     this.enableTreeDraft = config.enableTreeDraft;
     this.temperature = config.temperature;
+
+    const seed = Number.isFinite(config.randomSeed) ? Math.floor(config.randomSeed) : null;
+    this.random = seed === null ? createUnseededRng() : createRng(seed);
   }
 
-  
   setDraftModel(model) {
     this.draftModel = model;
   }
 
-  
   setMainModel(model) {
     this.mainModel = model;
   }
 
-  
+  async _forwardForLogits(model, inputIds, kvCache, label) {
+    const result = await model.forward(inputIds, kvCache);
+    if (!result || typeof result !== 'object') {
+      throw new Error(`SpeculativeDecoder: ${label} forward() must return an object.`);
+    }
+    return {
+      logits: coerceLogitsVector(result.logits, `${label} logits`),
+      kvCache: result.newKVCache ?? kvCache,
+    };
+  }
+
   async generateDraftTokens(inputIds, kvCache, numTokens = this.numDraftTokens) {
     if (!this.draftModel) {
       throw new Error('Draft model not set');
     }
 
-    
     const draftTokens = [];
-    
     const draftLogprobs = [];
-
-    // Clone KV cache for draft generation (don't pollute main cache)
-    const draftKVCache = kvCache?.clone?.() ?? kvCache;
+    let draftKVCache = kvCache?.clone?.() ?? kvCache;
     let currentIds = [...inputIds];
 
     for (let i = 0; i < numTokens; i++) {
-      // Forward pass through draft model
-      const { logits, newKVCache } = await this.draftModel.forward(
+      const forwardResult = await this._forwardForLogits(
+        this.draftModel,
         currentIds,
-        draftKVCache
+        draftKVCache,
+        `draft step ${i}`
       );
+      draftKVCache = forwardResult.kvCache;
 
-      // Sample next token
-      const { token, logprob } = this.sampleToken(logits, this.temperature);
+      const { token, logprob } = this.sampleToken(forwardResult.logits, this.temperature);
       draftTokens.push(token);
       draftLogprobs.push(logprob);
-
-      // Append for next iteration
       currentIds = [...currentIds, token];
     }
 
@@ -101,25 +171,23 @@ export class SpeculativeDecoder {
     };
   }
 
-  
   sampleToken(logits, temperature) {
-    const vocabSize = logits.length;
+    const logitsVector = coerceLogitsVector(logits, 'sample logits');
+    assertTemperature(temperature, 'temperature');
+    const vocabSize = logitsVector.length;
 
-    // Apply temperature
     const scaledLogits = new Float32Array(vocabSize);
     for (let i = 0; i < vocabSize; i++) {
-      scaledLogits[i] = logits[i] / temperature;
+      scaledLogits[i] = logitsVector[i] / temperature;
     }
 
-    // Compute softmax (log probabilities)
     const logprobs = this.logSoftmax(scaledLogits);
     const probs = new Float32Array(vocabSize);
     for (let i = 0; i < vocabSize; i++) {
       probs[i] = Math.exp(logprobs[i]);
     }
 
-    // Sample from distribution
-    const r = Math.random();
+    const r = this.random();
     let cumSum = 0;
     for (let i = 0; i < vocabSize; i++) {
       cumSum += probs[i];
@@ -128,96 +196,121 @@ export class SpeculativeDecoder {
       }
     }
 
-    // Fallback to last token
     return { token: vocabSize - 1, logprob: logprobs };
   }
 
-  
   logSoftmax(logits) {
-    const n = logits.length;
+    const logitsVector = coerceLogitsVector(logits, 'logSoftmax logits');
+    const n = logitsVector.length;
     const result = new Float32Array(n);
 
-    // Find max for stability
     let max = -Infinity;
     for (let i = 0; i < n; i++) {
-      if (logits[i] > max) max = logits[i];
+      if (logitsVector[i] > max) max = logitsVector[i];
     }
 
-    // Compute log-sum-exp
     let sumExp = 0;
     for (let i = 0; i < n; i++) {
-      sumExp += Math.exp(logits[i] - max);
+      sumExp += Math.exp(logitsVector[i] - max);
     }
     const logSumExp = max + Math.log(sumExp);
 
-    // Compute log probabilities
     for (let i = 0; i < n; i++) {
-      result[i] = logits[i] - logSumExp;
+      result[i] = logitsVector[i] - logSumExp;
     }
 
     return result;
   }
 
-  
   async verifyDraftTokens(inputIds, draftTokens, draftLogprobs, kvCache) {
     if (!this.mainModel) {
       throw new Error('Main model not set');
     }
-
-    // Concatenate input + draft tokens for parallel verification
-    const fullSequence = [...inputIds, ...draftTokens];
-
-    // Forward pass through main model (processes all positions at once)
-    const { logits: mainLogits } = await this.mainModel.forward(
-      fullSequence,
-      kvCache
-    );
+    if (!Array.isArray(draftTokens) || !Array.isArray(draftLogprobs)) {
+      throw new Error('SpeculativeDecoder: draft tokens and logprobs must be arrays.');
+    }
+    if (draftTokens.length !== draftLogprobs.length) {
+      throw new Error('SpeculativeDecoder: draft token/logprob length mismatch.');
+    }
 
     const numDraft = draftTokens.length;
-    
     const acceptedTokens = [];
     let acceptedCount = 0;
+    let verifyIds = [...inputIds];
+    let verifyKVCache = kvCache?.clone?.() ?? kvCache;
+    let rejectedMainLogits = null;
 
-    // Verify each draft token using rejection sampling
     for (let i = 0; i < numDraft; i++) {
-      const draftToken = draftTokens[i];
-      const draftLogprob = draftLogprobs[i][draftToken];
-
-      // Get main model's logprob for this position
-      const mainLogprob = this.logSoftmax(
-        mainLogits.subarray(
-          (i * mainLogits.length) / numDraft,
-          ((i + 1) * mainLogits.length) / numDraft
-        )
+      const forwardResult = await this._forwardForLogits(
+        this.mainModel,
+        verifyIds,
+        verifyKVCache,
+        `verify step ${i}`
       );
-      const mainTokenLogprob = mainLogprob[draftToken];
+      verifyKVCache = forwardResult.kvCache;
+      const mainLogits = forwardResult.logits;
+      const mainLogprob = this.logSoftmax(mainLogits);
+      const draftToken = draftTokens[i];
+      const draftLogprobVec = coerceLogitsVector(draftLogprobs[i], `draft logprobs[${i}]`);
 
-      // Acceptance probability: min(1, p_main / p_draft)
+      if (!Number.isInteger(draftToken) || draftToken < 0 || draftToken >= mainLogprob.length) {
+        throw new Error(
+          `SpeculativeDecoder: draft token at index ${i} is out of vocabulary range.`
+        );
+      }
+      if (draftLogprobVec.length !== mainLogprob.length) {
+        throw new Error(
+          `SpeculativeDecoder: draft logprobs[${i}] length (${draftLogprobVec.length}) ` +
+          `does not match main logits length (${mainLogprob.length}).`
+        );
+      }
+
+      const draftLogprob = draftLogprobVec[draftToken];
+      const mainTokenLogprob = mainLogprob[draftToken];
       const acceptProb = Math.min(1, Math.exp(mainTokenLogprob - draftLogprob));
 
-      if (Math.random() < acceptProb) {
-        // Accept this token
+      if (this.random() < acceptProb) {
         acceptedTokens.push(draftToken);
         acceptedCount++;
+        verifyIds = [...verifyIds, draftToken];
       } else {
-        // Reject - stop here and sample from adjusted distribution
+        rejectedMainLogits = mainLogits;
         break;
       }
     }
 
-    // Sample final token from the residual distribution
-    const sampledToken = this.sampleFromResidual(
-      mainLogits,
-      draftLogprobs[acceptedCount] ?? new Float32Array(mainLogits.length),
-      acceptedCount < numDraft
-    );
+    let sampledToken;
+    if (acceptedCount === numDraft) {
+      const continuation = await this._forwardForLogits(
+        this.mainModel,
+        verifyIds,
+        verifyKVCache,
+        'verify continuation'
+      );
+      sampledToken = this.sampleToken(continuation.logits, this.temperature).token;
+    } else {
+      if (!rejectedMainLogits) {
+        throw new Error('SpeculativeDecoder: missing main logits for rejected token.');
+      }
+      const rejectedDraftLogprobs = draftLogprobs[acceptedCount];
+      if (!rejectedDraftLogprobs) {
+        throw new Error(
+          `SpeculativeDecoder: missing draft logprobs for rejected token at index ${acceptedCount}.`
+        );
+      }
+      sampledToken = this.sampleFromResidual(
+        rejectedMainLogits,
+        rejectedDraftLogprobs,
+        true
+      );
+    }
 
-    // Update statistics
     this.stats.totalDrafted += numDraft;
     this.stats.totalAccepted += acceptedCount;
     this.stats.totalRejected += numDraft - acceptedCount;
-    this.stats.averageAcceptRate =
-      this.stats.totalAccepted / this.stats.totalDrafted;
+    this.stats.averageAcceptRate = this.stats.totalDrafted > 0
+      ? this.stats.totalAccepted / this.stats.totalDrafted
+      : 0;
 
     return {
       acceptedCount,
@@ -227,25 +320,29 @@ export class SpeculativeDecoder {
     };
   }
 
-  
   sampleFromResidual(mainLogits, draftLogprobs, wasRejected) {
+    const mainLogitsVec = coerceLogitsVector(mainLogits, 'residual main logits');
     if (!wasRejected) {
-      // All accepted - sample normally from main model
-      return this.sampleToken(mainLogits, this.temperature).token;
+      return this.sampleToken(mainLogitsVec, this.temperature).token;
     }
 
-    const vocabSize = mainLogits.length;
+    const draftLogprobVec = coerceLogitsVector(draftLogprobs, 'residual draft logprobs');
+    if (draftLogprobVec.length !== mainLogitsVec.length) {
+      throw new Error(
+        `SpeculativeDecoder: residual draft/main length mismatch (${draftLogprobVec.length} vs ${mainLogitsVec.length}).`
+      );
+    }
+
+    const vocabSize = mainLogitsVec.length;
     const mainProbs = new Float32Array(vocabSize);
     const draftProbs = new Float32Array(vocabSize);
 
-    // Convert to probabilities
-    const mainLogprobsArr = this.logSoftmax(mainLogits);
+    const mainLogprobsArr = this.logSoftmax(mainLogitsVec);
     for (let i = 0; i < vocabSize; i++) {
       mainProbs[i] = Math.exp(mainLogprobsArr[i]);
-      draftProbs[i] = Math.exp(draftLogprobs[i] ?? -Infinity);
+      draftProbs[i] = Math.exp(draftLogprobVec[i] ?? -Infinity);
     }
 
-    // Compute residual: max(0, p_main - p_draft)
     const residual = new Float32Array(vocabSize);
     let residualSum = 0;
     for (let i = 0; i < vocabSize; i++) {
@@ -253,9 +350,8 @@ export class SpeculativeDecoder {
       residualSum += residual[i];
     }
 
-    // Normalize and sample
     if (residualSum > 0) {
-      const r = Math.random() * residualSum;
+      const r = this.random() * residualSum;
       let cumSum = 0;
       for (let i = 0; i < vocabSize; i++) {
         cumSum += residual[i];
@@ -265,17 +361,13 @@ export class SpeculativeDecoder {
       }
     }
 
-    // Fallback: sample from main distribution
-    return this.sampleToken(mainLogits, this.temperature).token;
+    return this.sampleToken(mainLogitsVec, this.temperature).token;
   }
 
-  
   async step(inputIds, mainKVCache, draftKVCache) {
-    // Generate draft tokens
     const { tokens: draftTokens, logprobs: draftLogprobs } =
       await this.generateDraftTokens(inputIds, draftKVCache);
 
-    // Verify against main model
     const result = await this.verifyDraftTokens(
       inputIds,
       draftTokens,
@@ -283,17 +375,16 @@ export class SpeculativeDecoder {
       mainKVCache
     );
 
-    // Combine accepted tokens + sampled token
     const newTokens = [...result.acceptedTokens, result.sampledToken];
+    const draftedCount = draftTokens.length;
 
     return {
       newTokens,
       mainKVCache,
-      acceptRate: result.acceptedCount / draftTokens.length,
+      acceptRate: draftedCount > 0 ? result.acceptedCount / draftedCount : 0,
     };
   }
 
-  
   getStats() {
     return {
       ...this.stats,
@@ -301,23 +392,17 @@ export class SpeculativeDecoder {
     };
   }
 
-  
   estimateSpeedup() {
     if (this.stats.totalDrafted === 0) return 1.0;
 
     const acceptRate = this.stats.averageAcceptRate;
     const k = this.numDraftTokens;
-
-    // Account for draft model overhead (assume ~0.1x main model cost)
     const draftOverhead = 0.1 * k;
-
-    // Effective tokens per main model call
     const tokensPerCall = 1 + acceptRate * k;
 
     return tokensPerCall / (1 + draftOverhead);
   }
 
-  
   resetStats() {
     this.stats = {
       totalDrafted: 0,

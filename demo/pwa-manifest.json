@@ -2,13 +2,14 @@
   "name": "DOPPLER",
   "short_name": "DOPPLER",
   "description": "Local WebGPU Inference Engine",
-  "start_url": "./index.html",
+  "start_url": "/demo/index.html",
+  "scope": "/demo/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#ffffff",
   "icons": [
     {
-      "src": "/favicon.svg",
+      "src": "/demo/favicon.svg",
       "sizes": "any",
       "type": "image/svg+xml"
     }

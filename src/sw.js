@@ -1,6 +1,7 @@
 import { log } from './debug/index.js';
 
-const BASE_PATH = self.location.pathname.replace(/\/sw\.js$/, '');
+const workerGlobal = globalThis;
+const BASE_PATH = workerGlobal.location.pathname.replace(/\/sw\.js$/, '');
 const withBase = (path) => (BASE_PATH ? `${BASE_PATH}${path}` : path);
 
 const DB_NAME = 'doppler-vfs-v0';
@@ -16,7 +17,7 @@ const APP_SHELL = [
     withBase('/src/bootstrap.js'),
     withBase('/src/boot/vfs-bootstrap.js'),
     withBase('/src/debug/index.js'),
-    '/favicon.svg',
+    '/demo/favicon.svg',
     withBase('/config/vfs-manifest.json'),
 ];
 
@@ -131,18 +132,18 @@ async function respondFromVfs(path) {
 
 // === SW LIFECYCLE ===
 
-self.addEventListener('install', (event) => {
+workerGlobal.addEventListener('install', (event) => {
     event.waitUntil(
         (async () => {
             const cache = await caches.open(CACHE_NAME);
             log.info('SW', 'Caching app shell...', APP_SHELL);
             await cache.addAll(APP_SHELL);
-            return self.skipWaiting();
+            return workerGlobal.skipWaiting();
         })()
     );
 });
 
-self.addEventListener('activate', (event) => {
+workerGlobal.addEventListener('activate', (event) => {
     event.waitUntil(
         (async () => {
             // Clean up old caches if any (simple version)
@@ -150,17 +151,17 @@ self.addEventListener('activate', (event) => {
             for (const key of keys) {
                 if (key !== CACHE_NAME) await caches.delete(key);
             }
-            return self.clients.claim();
+            return workerGlobal.clients.claim();
         })()
     );
 });
 
-self.addEventListener('fetch', (event) => {
+workerGlobal.addEventListener('fetch', (event) => {
     const request = event.request;
     if (request.method !== 'GET') return;
 
     const url = new URL(request.url);
-    if (url.origin !== self.location.origin) return;
+    if (url.origin !== workerGlobal.location.origin) return;
 
     const path = url.pathname;
 

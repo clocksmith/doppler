@@ -21,7 +21,12 @@ function isRDRRManifest(manifest) {
 }
 
 
-function resolveQ4KConfig(manifest, kernelPath, kernelPathSource = 'none') {
+function resolveQ4KConfig(
+  manifest,
+  kernelPath,
+  kernelPathSource = 'none',
+  keepF32Weights = false
+) {
   const caps = getKernelCapabilities();
   const hasSubgroups = caps?.hasSubgroups ?? false;
   // Layout in quantizationInfo: 'row' (fused) or 'col' (dequant)
@@ -37,8 +42,6 @@ function resolveQ4KConfig(manifest, kernelPath, kernelPathSource = 'none') {
       `Manifest "${manifest?.modelId ?? 'unknown'}" has invalid quantizationInfo.layout "${q4kLayout}". Expected "row" or "col".`
     );
   }
-  const keepF32Weights = getRuntimeConfig().inference.compute.keepF32Weights;
-
   let useFused = kernelPath ? isKernelPathFusedQ4K(kernelPath) : hasSubgroups;
   if (q4kLayout === 'col') {
     useFused = false;
@@ -272,7 +275,8 @@ export async function initRoPEFrequencies(config, useGPU) {
 
 
 export function isGPURoPEBuffers(buffers) {
-  return buffers.cos instanceof GPUBuffer;
+  if (typeof GPUBuffer === 'undefined') return false;
+  return !!buffers?.cos && buffers.cos instanceof GPUBuffer;
 }
 
 
@@ -471,11 +475,13 @@ export async function loadWeights(manifest, modelConfig, options = {}) {
   }
 
   const dopplerLoader = getDopplerLoader(loadingConfig);
+  const keepF32Weights = options.keepF32Weights === true;
   dopplerLoader.setQ4KConfig(
     resolveQ4KConfig(
       manifest,
       options.resolvedKernelPath ?? null,
-      options.kernelPathSource ?? 'none'
+      options.kernelPathSource ?? 'none',
+      keepF32Weights
     )
   );
 
@@ -669,6 +675,7 @@ export function initSpeculativeDecoder(manifest, speculativeConfig) {
     maxRejectionRetries: speculativeConfig.maxRejectionRetries,
     enableTreeDraft: speculativeConfig.enableTreeDraft,
     temperature: speculativeConfig.temperature,
+    randomSeed: speculativeConfig.randomSeed,
   });
 }
 
@@ -855,11 +862,9 @@ export async function initEmulation(runtimeConfig) {
         new EmulatedVramStore(config.opfsRootPath, budgets.vramBudgetBytes, budgets.ramBudgetBytes),
     });
 
-    // Check if emulation is supported
     const supported = await isEmulationSupported();
     if (!supported) {
-      log.warn('Pipeline', 'Emulation requested but not supported in this environment');
-      return null;
+      throw new Error('Emulation requested but not supported in this environment.');
     }
 
     // Create emulation context
@@ -870,9 +875,9 @@ export async function initEmulation(runtimeConfig) {
 
     return ctx;
   } catch (err) {
-    log.error('Pipeline', `Failed to initialize emulation: ${err.message}`);
-    // Graceful fallback - continue without emulation
-    return null;
+    const message = err?.message || String(err);
+    log.error('Pipeline', `Failed to initialize emulation: ${message}`);
+    throw new Error(`Failed to initialize emulation: ${message}`);
   }
 }
 

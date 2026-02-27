@@ -763,6 +763,155 @@
       background: var(--bg);
     }
 
+    .status-indicator.status-initializing {
+      flex-direction: column;
+      justify-content: center;
+      text-align: center;
+      gap: 2px;
+      padding-top: 6px;
+      padding-bottom: 6px;
+    }
+
+    .app-bootstrap-overlay {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      align-content: center;
+      justify-content: center;
+      z-index: 1200;
+      pointer-events: none;
+      background: color-mix(in srgb, var(--bg) 75%, transparent);
+      backdrop-filter: blur(2px);
+    }
+
+    body.app-booting #app {
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .app-bootstrap-overlay[hidden] {
+      display: none;
+    }
+
+    .app-bootstrap-panel {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-md);
+      text-align: center;
+    }
+
+    .app-bootstrap-message {
+      color: var(--fg);
+    }
+
+    .app-bootstrap-d4-loading {
+      display: inline-flex !important;
+      width: 64px;
+      height: 64px;
+    }
+
+    .app-bootstrap-d4-loading .status-d4-a,
+    .app-bootstrap-d4-loading .status-d4-b,
+    .app-bootstrap-d4-loading .status-d4-c,
+    .app-bootstrap-d4-loading .status-d4-d {
+      width: 64px;
+      font-size: 64px;
+      line-height: 1;
+      left: 0;
+      top: 0;
+    }
+
+    .status-marker {
+      flex-shrink: 0;
+      line-height: 1;
+      color: var(--fg);
+    }
+
+    .status-indicator.status-initializing .status-marker {
+      display: none;
+    }
+
+    .status-d4-loading {
+      position: relative;
+      display: none;
+      flex-shrink: 0;
+      width: 16px;
+      height: 16px;
+      line-height: 1;
+      vertical-align: middle;
+    }
+
+    .status-indicator.status-initializing .status-d4-loading {
+      display: inline-flex;
+      visibility: visible;
+      opacity: 0.95;
+      margin-right: 0;
+    }
+
+    .status-d4-a,
+    .status-d4-b,
+    .status-d4-c,
+    .status-d4-d {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 16px;
+      text-align: center;
+      color: var(--fg);
+      font-size: 16px;
+      line-height: 1;
+      font-weight: var(--demo-value-weight);
+      will-change: transform, opacity;
+      transform-origin: center center;
+      opacity: 1;
+    }
+
+    .status-d4-a { animation: doppler-d4-a 4.444s ease-in-out infinite; }
+    .status-d4-b { animation: doppler-d4-b 4.444s ease-in-out infinite; }
+    .status-d4-c { animation: doppler-d4-c 4.444s ease-in-out infinite; }
+    .status-d4-d { animation: doppler-d4-d 4.444s ease-in-out infinite; }
+
+    .status-indicator.status-initializing .status-text {
+      margin-left: 0;
+      width: 100%;
+      text-align: center;
+    }
+
+    @keyframes doppler-d4-a {
+      0%, 3% { transform: scale(1) translate(0px, 0px); opacity: 1; }
+      22%, 28% { transform: scale(0.45) translate(-6px, -7px); opacity: 0.55; }
+      47%, 53% { transform: scale(0.45) translate(9px, -7px); opacity: 0.55; }
+      72%, 78% { transform: scale(0.45) translate(1px, 7px); opacity: 0.55; }
+      97%, 100% { transform: scale(1) translate(0px, 0px); opacity: 1; }
+    }
+
+    @keyframes doppler-d4-b {
+      0%, 3% { transform: scale(0.45) translate(-6px, -7px); opacity: 0.55; }
+      22%, 28% { transform: scale(0.45) translate(9px, -7px); opacity: 0.55; }
+      47%, 53% { transform: scale(0.45) translate(1px, 7px); opacity: 0.55; }
+      72%, 78% { transform: scale(1) translate(0px, 0px); opacity: 1; }
+      97%, 100% { transform: scale(0.45) translate(-6px, -7px); opacity: 0.55; }
+    }
+
+    @keyframes doppler-d4-c {
+      0%, 3% { transform: scale(0.45) translate(9px, -7px); opacity: 0.55; }
+      22%, 28% { transform: scale(0.45) translate(1px, 7px); opacity: 0.55; }
+      47%, 53% { transform: scale(1) translate(0px, 0px); opacity: 1; }
+      72%, 78% { transform: scale(0.45) translate(-6px, -7px); opacity: 0.55; }
+      97%, 100% { transform: scale(0.45) translate(9px, -7px); opacity: 0.55; }
+    }
+
+    @keyframes doppler-d4-d {
+      0%, 3% { transform: scale(0.45) translate(1px, 7px); opacity: 0.55; }
+      22%, 28% { transform: scale(1) translate(0px, 0px); opacity: 1; }
+      47%, 53% { transform: scale(0.45) translate(-6px, -7px); opacity: 0.55; }
+      72%, 78% { transform: scale(0.45) translate(9px, -7px); opacity: 0.55; }
+      97%, 100% { transform: scale(0.45) translate(1px, 7px); opacity: 0.55; }
+    }
+
     .status-indicator .status-text {
       line-height: var(--demo-label-line-height);
       white-space: nowrap;

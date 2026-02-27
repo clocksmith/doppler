@@ -21,8 +21,8 @@ Release: channel=main-snapshot, version=n/a, commit=d10a6ac38483bf2579f72fc3290d
 | Doppler Model | In Catalog | Catalog Modes | TJS Mapping | Kernel Path | Base Dir |
 |---|---|---|---|---|---|
 | `gemma-3-1b-it-wf16-ef16-hf16` | no |  | `onnx-community/gemma-3-1b-it-ONNX-GQA` | `gemma3-f16-fused-f32a-online` | local |
-| `gemma-3-270m-it-wf16-ef16-hf16` | yes | run, translate | `onnx-community/gemma-3-270m-it-ONNX` |  | curated |
-| `google-embeddinggemma-300m-wbf16` | yes | embedding |  |  |  |
+| `gemma-3-270m-it-wq4k-ef16-hf16-f32` | yes | run, translate | `onnx-community/gemma-3-270m-it-ONNX` |  | curated |
+| `google-embeddinggemma-300m-wq4k-ef16` | yes | embedding |  |  |  |
 | `translategemma-4b-it-wq4k-ef16-hf16` | yes | run, translate |  |  |  |
 
 ## Workloads

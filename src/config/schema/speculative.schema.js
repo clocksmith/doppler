@@ -7,4 +7,5 @@ export const DEFAULT_SPECULATIVE_CONFIG = {
   maxRejectionRetries: 3,
   enableTreeDraft: false,
   temperature: 1.0,
+  randomSeed: null,
 };

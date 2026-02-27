@@ -1,7 +1,19 @@
+let fallbackRandomState = (Date.now() >>> 0) || 0x6d2b79f5;
+
+function unseededRandom() {
+  if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
+    const values = new Uint32Array(1);
+    crypto.getRandomValues(values);
+    return values[0] / 4294967296;
+  }
+  fallbackRandomState = (fallbackRandomState + 0x6d2b79f5) >>> 0;
+  return fallbackRandomState / 4294967296;
+}
+
 function shuffledIndices(length) {
   const indices = Array.from({ length }, (_, i) => i);
   for (let i = indices.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(unseededRandom() * (i + 1));
     const tmp = indices[i];
     indices[i] = indices[j];
     indices[j] = tmp;

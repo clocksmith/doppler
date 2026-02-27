@@ -49,26 +49,54 @@ var<workgroup> shared_partial: array<f32, MAX_WORKGROUP_SIZE>;
 var<workgroup> shared_max: f32;
 var<workgroup> shared_sum: f32;
 var<workgroup> shared_acc: array<f32, MAX_WORKGROUP_SIZE>;
+var<workgroup> shared_k_raw: array<f32, MAX_WORKGROUP_SIZE>;
 
 fn get_kv_head_idx(query_head_idx: u32) -> u32 {
     let heads_per_kv = u.num_heads / u.num_kv_heads;
     return query_head_idx / heads_per_kv;
 }
 
-// On-the-fly RoPE reconstruction 
-fn apply_rope_to_key(raw_k: f32, pos: u32, dim_idx: u32, head_dim: u32, kv_head_idx: u32) -> f32 {
-    // A simplified RoPE applied directly to the reconstructed element
-    // Full RoPE needs adjacent pair elements [2i, 2i+1] which complicates
-    // standard 1D thread layouts, but can be managed by tracking adjacent memory
-    
-    let rope_offset = pos * head_dim;
-    let cos_val = rope_cos[rope_offset + dim_idx];
-    let sin_val = rope_sin[rope_offset + dim_idx];
-    
-    // In actual implementation we need adjacent dimensional state.
-    // For this prototype, we assume RoPE already applied or use the standard phase.
-    // *TODO: Plumb full Llama/Gemma RoPE pair extraction here*
-    return raw_k * cos_val; // simplified stub
+fn reconstruct_key_component(
+    basis_id: u32,
+    delta_id: u32,
+    kv_head_idx: u32,
+    head_dim: u32,
+    dim_idx: u32
+) -> f32 {
+    let basis_offset = basis_id * (u.num_kv_heads * head_dim) + (kv_head_idx * head_dim) + dim_idx;
+    let basis_k = f32(T_basis_k[basis_offset]);
+
+    let delta_offset_flat = delta_id * (u.num_kv_heads * head_dim) + (kv_head_idx * head_dim) + dim_idx;
+    let delta_packed_idx = delta_offset_flat / 4u;
+    let delta_packed = P_delta_k[delta_packed_idx];
+    let delta_k = unpack_int8(delta_packed, delta_offset_flat);
+    return basis_k + delta_k;
+}
+
+// On-the-fly RoPE application using rotate-half pairing:
+// pair (x[i], x[i + head_dim/2]) for i in [0, head_dim/2).
+fn apply_rope_to_component(
+    self_val: f32,
+    mate_val: f32,
+    pos: u32,
+    dim_idx: u32,
+    head_dim: u32
+) -> f32 {
+    let half_dim = head_dim / 2u;
+
+    if (half_dim == 0u || (half_dim * 2u) != head_dim) {
+        return self_val;
+    }
+
+    let pair_idx = select(dim_idx - half_dim, dim_idx, dim_idx < half_dim);
+    let rope_offset = pos * half_dim + pair_idx;
+    let cos_val = rope_cos[rope_offset];
+    let sin_val = rope_sin[rope_offset];
+
+    if (dim_idx < half_dim) {
+        return self_val * cos_val - mate_val * sin_val;
+    }
+    return mate_val * sin_val + self_val * cos_val;
 }
 
 // Extract Int8 from packed i32 buffer
@@ -89,6 +117,7 @@ fn main(
     let head_idx = workgroup_id.x;
     let tid = local_id.x;
     let head_dim = u.head_dim;
+    let half_dim = head_dim / 2u;
     let kv_len = u.kv_len;
     let scale = u.scale;
     let kv_head_idx = get_kv_head_idx(head_idx);
@@ -121,21 +150,20 @@ fn main(
         // Causal Masking logic based on Original Position
         let is_masked = (u.is_causal != 0u && orig_pos > u.start_pos);
 
+        var k_raw: f32 = 0.0;
+        if (valid && !is_masked) {
+            k_raw = reconstruct_key_component(basis_id, delta_id, kv_head_idx, head_dim, tid);
+        }
+        if (valid) {
+            shared_k_raw[tid] = k_raw;
+        }
+        workgroupBarrier();
+
         var k_val: f32 = 0.0;
         if (valid && !is_masked) {
-            // Factor 1: Basis Centroid
-            let basis_offset = basis_id * (u.num_kv_heads * head_dim) + (kv_head_idx * head_dim) + tid;
-            let basis_k = f32(T_basis_k[basis_offset]);
-
-            // Factor 2: Quantized Residual
-            let delta_offset_flat = delta_id * (u.num_kv_heads * head_dim) + (kv_head_idx * head_dim) + tid;
-            let delta_packed_idx = delta_offset_flat / 4u;
-            let delta_packed = P_delta_k[delta_packed_idx];
-            let delta_k = unpack_int8(delta_packed, delta_offset_flat);
-
-            // Reconstruct and RoPE 
-            let raw_k = basis_k + delta_k;
-            k_val = apply_rope_to_key(raw_k, orig_pos, tid, head_dim, kv_head_idx);
+            let mate_dim = select(tid - half_dim, tid + half_dim, tid < half_dim);
+            let mate_val = shared_k_raw[mate_dim];
+            k_val = apply_rope_to_component(k_raw, mate_val, orig_pos, tid, head_dim);
         }
 
         let partial = q_val * k_val;

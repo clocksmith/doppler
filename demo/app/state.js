@@ -30,6 +30,8 @@ export const state = {
   energyLoading: false,
   convertActive: false,
   downloadActive: false,
+  appInitializing: false,
+  modelAvailabilityLoading: false,
   uiMode: 'run',
   lastPrimaryMode: 'run',
   runLog: [],

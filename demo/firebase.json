@@ -1,6 +1,17 @@
 {
   "hosting": {
     "public": ".",
+    "headers": [
+      {
+        "source": "/models/catalog.json",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-store, no-cache, must-revalidate, max-age=0"
+          }
+        ]
+      }
+    ],
     "rewrites": [
       { "source": "/", "destination": "/demo/index.html" }
     ],

@@ -8,6 +8,17 @@ import { createHttpTensorSource } from './tensor-source-http.js';
 
 const TEMP_DIR = 'temp-downloads';
 const TEMP_MODEL_PREFIX = '__temp_download__';
+let tempNameCounter = 0;
+
+function randomSuffix() {
+  if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
+    const bytes = new Uint8Array(4);
+    crypto.getRandomValues(bytes);
+    return Array.from(bytes, (value) => value.toString(16).padStart(2, '0')).join('').slice(0, 8);
+  }
+  tempNameCounter = (tempNameCounter + 1) >>> 0;
+  return tempNameCounter.toString(36).padStart(8, '0').slice(-8);
+}
 
 function resolveMaxDownloadBytes(options) {
   const raw = options?.maxDownloadBytes;
@@ -18,7 +29,8 @@ function resolveMaxDownloadBytes(options) {
 
 function inferNameFromUrl(url) {
   try {
-    const parsed = new URL(url, typeof window !== 'undefined' ? window.location.href : undefined);
+    const baseHref = typeof globalThis.location !== 'undefined' ? globalThis.location.href : undefined;
+    const parsed = new URL(url, baseHref);
     const pathname = parsed.pathname || '';
     const part = pathname.split('/').filter(Boolean).pop();
     return part || 'remote';
@@ -35,7 +47,7 @@ function sanitizeFilename(name) {
 function buildTempFilename(name) {
   const safe = sanitizeFilename(name);
   const stamp = Date.now().toString(36);
-  const rand = Math.random().toString(36).slice(2, 8);
+  const rand = randomSuffix();
   return `${stamp}-${rand}-${safe}`;
 }
 

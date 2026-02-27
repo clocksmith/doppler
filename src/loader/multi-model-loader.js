@@ -26,6 +26,7 @@ export class MultiModelLoader {
     this.baseManifest = manifest;
     this.baseWeights = await loadWeights(manifest, config, {
       storageContext: options.storageContext,
+      keepF32Weights: runtimeConfig.inference.compute.keepF32Weights === true,
     });
     return this.baseWeights;
   }

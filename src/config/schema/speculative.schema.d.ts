@@ -13,6 +13,8 @@ export interface SpeculativeConfigSchema {
   enableTreeDraft: boolean;
   /** Temperature for speculative sampling */
   temperature: number;
+  /** Optional deterministic seed for speculative sampling */
+  randomSeed: number | null;
 }
 
 /** Default speculative decoding configuration */

@@ -501,31 +501,31 @@
       "catalogSizeBytes": null
     },
     {
-      "dopplerModelId": "gemma-3-270m-it-wf16-ef16-hf16",
+      "dopplerModelId": "gemma-3-270m-it-wq4k-ef16-hf16-f32",
       "dopplerModelBaseDir": "curated",
       "defaultTjsModelId": "onnx-community/gemma-3-270m-it-ONNX",
       "defaultKernelPath": null,
       "inCatalog": true,
-      "catalogLabel": "Gemma 3 270M Instruct (F16/F32a)",
+      "catalogLabel": "Gemma 3 270M Instruct (Q4K/F32a)",
       "catalogModes": [
         "run",
         "translate"
       ],
-      "catalogBaseUrl": "./curated/gemma-3-270m-it-wf16-ef16-hf16",
-      "catalogSizeBytes": 536196352
+      "catalogBaseUrl": "./curated/gemma-3-270m-it-wq4k-ef16",
+      "catalogSizeBytes": 418512553
     },
     {
-      "dopplerModelId": "google-embeddinggemma-300m-wbf16",
+      "dopplerModelId": "google-embeddinggemma-300m-wq4k-ef16",
       "dopplerModelBaseDir": null,
       "defaultTjsModelId": null,
       "defaultKernelPath": null,
       "inCatalog": true,
-      "catalogLabel": "EmbeddingGemma 300M (BF16)",
+      "catalogLabel": "EmbeddingGemma 300M (Q4K)",
       "catalogModes": [
         "embedding"
       ],
-      "catalogBaseUrl": "./curated/google-embeddinggemma-300m-wbf16",
-      "catalogSizeBytes": 605726208
+      "catalogBaseUrl": "./curated/google-embeddinggemma-300m-wq4k-ef16",
+      "catalogSizeBytes": 480562497
     },
     {
       "dopplerModelId": "translategemma-4b-it-wq4k-ef16-hf16",

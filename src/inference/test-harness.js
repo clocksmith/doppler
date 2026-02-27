@@ -51,7 +51,8 @@ export async function discoverModels(
 
 
 export function parseRuntimeOverridesFromURL(searchParams) {
-  const params = searchParams || new URLSearchParams(window.location.search);
+  const query = typeof globalThis.location !== 'undefined' ? globalThis.location.search : '';
+  const params = searchParams || new URLSearchParams(query);
 
   
   const runtime = {};

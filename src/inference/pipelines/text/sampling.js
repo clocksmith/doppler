@@ -8,12 +8,24 @@ function seededRandom(seed) {
   return x - Math.floor(x);
 }
 
+let fallbackRandomState = (Date.now() >>> 0) || 0x6d2b79f5;
+
+function unseededRandom() {
+  if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
+    const values = new Uint32Array(1);
+    crypto.getRandomValues(values);
+    return values[0] / 4294967296;
+  }
+  fallbackRandomState = (fallbackRandomState + 0x6d2b79f5) >>> 0;
+  return fallbackRandomState / 4294967296;
+}
+
 
 export function applyRepetitionPenalty(logits, previousTokens, penalty) {
   if (penalty === 1.0) return;
 
-  const window = getRuntimeConfig().inference.sampling.repetitionPenaltyWindow;
-  const seen = new Set(previousTokens.slice(-window));
+  const windowSize = getRuntimeConfig().inference.sampling.repetitionPenaltyWindow;
+  const seen = new Set(previousTokens.slice(-windowSize));
   for (const token of seen) {
     if (token < logits.length) {
       logits[token] = logits[token] > 0
@@ -129,7 +141,7 @@ export function sample(logits, opts) {
   }
 
   // Sample from distribution
-  const r = seed !== undefined ? seededRandom(seed) : Math.random();
+  const r = seed !== undefined ? seededRandom(seed) : unseededRandom();
   let cumProb = 0;
   for (const c of candidates) {
     cumProb += c.prob;

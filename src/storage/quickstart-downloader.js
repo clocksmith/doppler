@@ -22,8 +22,8 @@ function getEffectiveCDNBaseUrl() {
   if (base) return base;
 
   // Auto-detect: use same origin for Firebase Hosting or local dev
-  if (typeof window !== 'undefined') {
-    const path = window.location.pathname || '';
+  if (typeof globalThis.location !== 'undefined') {
+    const path = globalThis.location.pathname || '';
     if (
       path === '/d' ||
       path.startsWith('/d/') ||
@@ -31,13 +31,13 @@ function getEffectiveCDNBaseUrl() {
       path.startsWith('/doppler/') ||
       path === '/dr' ||
       path.startsWith('/dr/') ||
-      window.location.host.includes('replo')
+      globalThis.location.host.includes('replo')
     ) {
-      return `${window.location.origin}/doppler/models`;
+      return `${globalThis.location.origin}/doppler/models`;
     }
-    return `${window.location.origin}/models`;
+    return `${globalThis.location.origin}/models`;
   }
-  // Fallback for non-window contexts
+  // Fallback for non-browser-global contexts
   return '/models';
 }
 

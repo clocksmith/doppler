@@ -12,7 +12,8 @@ function parseContentLength(value) {
 
 function inferNameFromUrl(url) {
   try {
-    const parsed = new URL(url, typeof window !== 'undefined' ? window.location.href : undefined);
+    const baseHref = typeof globalThis.location !== 'undefined' ? globalThis.location.href : undefined;
+    const parsed = new URL(url, baseHref);
     const pathname = parsed.pathname || '';
     const part = pathname.split('/').filter(Boolean).pop();
     return part || 'remote';

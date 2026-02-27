@@ -48,10 +48,10 @@ function restoreRuntimeState(runtimeBridge, snapshot) {
     return;
   }
 
-  if (snapshot.runtimeConfig) {
+  if (snapshot.runtimeConfig != null) {
     runtimeBridge.setRuntimeConfig(snapshot.runtimeConfig);
   } else {
-    runtimeBridge.resetRuntimeConfig();
+    resetRuntimeState(runtimeBridge);
   }
 
   if (

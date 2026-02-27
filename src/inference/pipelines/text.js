@@ -205,6 +205,7 @@ export class InferencePipeline extends PipelineState {
         baseUrl: this.baseUrl ?? undefined,
         resolvedKernelPath: this.resolvedKernelPath,
         kernelPathSource: this.kernelPathSource,
+        keepF32Weights: this.runtimeConfig.inference.compute.keepF32Weights === true,
         onProgress: (info) => {
           if (info.stage !== 'layers' && info.stage !== 'shards') {
             log.verbose('Loader', `${info.stage}: ${Math.round(info.progress * 100)}%${info.message ? ` - ${info.message}` : ''}`);

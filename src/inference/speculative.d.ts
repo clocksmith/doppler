@@ -66,6 +66,8 @@ export interface SpeculativeConfig {
   enableTreeDraft: boolean;
   /** Temperature for draft sampling */
   temperature: number;
+  /** Optional deterministic seed for speculative sampling */
+  randomSeed?: number | null;
 }
 
 /**
@@ -147,6 +149,7 @@ export declare class SpeculativeDecoder {
   private maxRejectionRetries;
   private enableTreeDraft;
   private temperature;
+  private random;
 
   // Draft model reference (smaller/faster model)
   protected draftModel: DraftModel | null;
@@ -189,7 +192,7 @@ export declare class SpeculativeDecoder {
 
   /**
    * Verify draft tokens against the main model
-   * Uses parallel forward pass for efficiency
+   * Uses iterative forward passes with explicit logits-shape validation
    */
   verifyDraftTokens(
     inputIds: number[],

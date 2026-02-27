@@ -847,10 +847,15 @@ function extractModelId(files, config) {
 
 
 export async function pickModelFiles() {
+  const browserGlobal = typeof globalThis !== 'undefined' ? globalThis : null;
+  if (!browserGlobal) {
+    throw new Error('File picker APIs are unavailable outside browser contexts');
+  }
+
   // Try directory picker first (for HuggingFace models)
-  if ('showDirectoryPicker' in window) {
+  if ('showDirectoryPicker' in browserGlobal) {
     try {
-      const dirHandle = await window.showDirectoryPicker({
+      const dirHandle = await browserGlobal.showDirectoryPicker({
         mode: 'read',
       });
       return await collectFilesFromDirectory(dirHandle);
@@ -861,8 +866,8 @@ export async function pickModelFiles() {
   }
 
   // Fall back to file picker
-  if ('showOpenFilePicker' in window) {
-    const handles = await window.showOpenFilePicker({
+  if ('showOpenFilePicker' in browserGlobal) {
+    const handles = await browserGlobal.showOpenFilePicker({
       multiple: true,
       types: [
         {

@@ -21,7 +21,11 @@ export function isCompatibleModelType(modelType, mode) {
     return normalized === 'embedding';
   }
   if (mode === 'run' || mode === 'translate') {
-    return normalized !== 'diffusion' && normalized !== 'energy' && normalized !== 'embedding';
+    return normalized !== 'diffusion'
+      && normalized !== 'energy'
+      && normalized !== 'embedding'
+      && normalized !== 'unknown'
+      && normalized.length > 0;
   }
   return true;
 }

@@ -177,6 +177,7 @@ export interface LoadWeightsOptions {
   baseUrl?: string;
   resolvedKernelPath?: KernelPathSchema | null;
   kernelPathSource?: KernelPathSource;
+  keepF32Weights?: boolean;
 }
 
 /**
@@ -259,7 +260,8 @@ export function fuseQKVWeights(
  * simulation for testing distributed inference patterns.
  *
  * @param runtimeConfig - Runtime configuration with emulation settings
- * @returns EmulationContext if enabled and supported, null otherwise
+ * @returns EmulationContext when enabled; null when emulation is disabled
+ * @throws Error when emulation is enabled but unsupported or initialization fails
  */
 export function initEmulation(
   runtimeConfig: RuntimeConfigSchema

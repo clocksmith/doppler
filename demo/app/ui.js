@@ -1,5 +1,5 @@
 import { state } from './state.js';
-import { $, setText } from './dom.js';
+import { $, setText, setHidden } from './dom.js';
 
 const STATUS_CLASSES = ['status-success', 'status-warning', 'status-error', 'status-info'];
 const STATUS_MARKERS = {
@@ -29,11 +29,24 @@ export function setStatusIndicator(message, tone) {
   if (!indicator) return;
   const textEl = indicator.querySelector('.status-text');
   const marker = STATUS_MARKERS[tone] || STATUS_MARKERS.default;
-  setText(textEl, `${marker} ${message}`);
+  const markerEl = indicator.querySelector('.status-marker');
+  const loaderEl = indicator.querySelector('.status-d4-loading');
+  const isInitializing = typeof message === 'string' && /initializ/i.test(message);
+  const showLoadingSpinner = isInitializing || state.appInitializing || state.modelAvailabilityLoading;
+
+  if (markerEl) {
+    setText(markerEl, marker);
+  }
+  if (loaderEl) {
+    setHidden(loaderEl, !showLoadingSpinner);
+  }
+  indicator.classList.toggle('status-initializing', showLoadingSpinner);
   indicator.classList.remove(...STATUS_CLASSES);
   if (tone) {
     indicator.classList.add(`status-${tone}`);
   }
+  if (!textEl) return;
+  setText(textEl, message || '');
 }
 
 function formatMegabytes(bytes) {
@@ -64,6 +77,14 @@ function formatDownloadStatus(progress) {
 }
 
 export function updateStatusIndicator() {
+  if (state.appInitializing) {
+    setStatusIndicator('Initializing application...', 'info');
+    return;
+  }
+  if (state.modelAvailabilityLoading) {
+    setStatusIndicator('Loading model catalog...', 'info');
+    return;
+  }
   if (state.runLoading || state.diffusionLoading || state.energyLoading) {
     setStatusIndicator('Loading...', 'info');
     return;

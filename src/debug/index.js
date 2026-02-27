@@ -146,10 +146,10 @@ const DOPPLER_API = {
   signalProgress,
 };
 
-// Expose to window in browser environment
-if (typeof window !== 'undefined') {
-  window.DOPPLER = {
-    ...(window.DOPPLER || {}),
+// Expose to globalThis in browser-like environments
+if (typeof globalThis !== 'undefined') {
+  globalThis.DOPPLER = {
+    ...(globalThis.DOPPLER || {}),
     ...DOPPLER_API,
   };
 

@@ -51,7 +51,13 @@ function contentTypeFor(filePath) {
 }
 
 function resolveStaticPath(rootDir, requestPath) {
-  const normalizedPath = decodeURIComponent(requestPath || '/').replace(/^\/+/, '');
+  let decodedPath = '/';
+  try {
+    decodedPath = decodeURIComponent(requestPath || '/');
+  } catch {
+    return null;
+  }
+  const normalizedPath = decodedPath.replace(/^\/+/, '');
   const candidate = path.resolve(rootDir, normalizedPath || 'index.html');
   const normalizedRoot = path.resolve(rootDir);
   if (candidate !== normalizedRoot && !candidate.startsWith(`${normalizedRoot}${path.sep}`)) {
@@ -663,7 +669,7 @@ export async function runBrowserCommandInNode(commandRequest, options = {}) {
     runnerUrl.searchParams.set('_dopplerRunner', String(Date.now()));
     await page.goto(runnerUrl.toString(), { waitUntil: 'load' });
     try {
-      await page.waitForFunction(() => window.__dopplerRunnerReady === true, null, {
+      await page.waitForFunction(() => globalThis.__dopplerRunnerReady === true, null, {
         timeout: timeoutMs,
       });
     } catch (error) {
@@ -680,10 +686,10 @@ export async function runBrowserCommandInNode(commandRequest, options = {}) {
     if (useOpfsCache && request.modelId && request.modelUrl) {
       try {
         const cacheResult = await page.evaluate(async (payload) => {
-          if (typeof window.__dopplerEnsureCached !== 'function') {
+          if (typeof globalThis.__dopplerEnsureCached !== 'function') {
             return { cached: false, error: '__dopplerEnsureCached not available' };
           }
-          return window.__dopplerEnsureCached(payload.modelId, payload.modelBaseUrl);
+          return globalThis.__dopplerEnsureCached(payload.modelId, payload.modelBaseUrl);
         }, {
           modelId: request.modelId,
           modelBaseUrl: request.modelUrl,
@@ -734,10 +740,10 @@ export async function runBrowserCommandInNode(commandRequest, options = {}) {
     }
 
     const response = await page.evaluate(async (payload) => {
-      if (typeof window.__dopplerRunBrowserCommand !== 'function') {
-        throw new Error('browser command runner is missing window.__dopplerRunBrowserCommand');
+      if (typeof globalThis.__dopplerRunBrowserCommand !== 'function') {
+        throw new Error('browser command runner is missing globalThis.__dopplerRunBrowserCommand');
       }
-      return window.__dopplerRunBrowserCommand(payload.request, payload.options || {});
+      return globalThis.__dopplerRunBrowserCommand(payload.request, payload.options || {});
     }, {
       request,
       options: {

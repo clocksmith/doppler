@@ -7,6 +7,13 @@ import { log } from '../../debug/index.js';
 // ============================================================================
 
 const NATIVE_HOST_NAME = 'dev.reploid.doppler';
+let nextPortCounter = 0;
+
+function createPortId() {
+  const now = Date.now().toString(36);
+  nextPortCounter = (nextPortCounter + 1) >>> 0;
+  return `${now}-${nextPortCounter.toString(36)}`;
+}
 
 // ============================================================================
 // Global State
@@ -30,7 +37,7 @@ function handleWebConnection(webPort) {
 
   log.info('DopplerBridge', 'Web page connected');
 
-  const portId = crypto.randomUUID();
+  const portId = createPortId();
   let nativePort;
 
   // Connect to native host

@@ -3,6 +3,22 @@
 
 import { DEFAULT_RMS_NORM_EPS } from '../../config/schema/index.js';
 
+function createRng(seed = 0x9e3779b9) {
+  let state = seed >>> 0;
+  if (!state) state = 0x6d2b79f5;
+  return () => {
+    state |= 0;
+    state = (state + 0x6d2b79f5) | 0;
+    let t = Math.imul(state ^ (state >>> 15), 1 | state);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function fillRandom(data, rng) {
+  for (let i = 0; i < data.length; i++) data[i] = rng();
+}
+
 
 export async function benchmarkPipeline(
   device,
@@ -99,8 +115,9 @@ export async function tuneMatmul(
   // Initialize with random data
   const dataA = new Float32Array(M * K);
   const dataB = new Float32Array(K * N);
-  for (let i = 0; i < dataA.length; i++) dataA[i] = Math.random();
-  for (let i = 0; i < dataB.length; i++) dataB[i] = Math.random();
+  const matmulRng = createRng(0x13579bdf);
+  fillRandom(dataA, matmulRng);
+  fillRandom(dataB, matmulRng);
   device.queue.writeBuffer(bufferA, 0, dataA);
   device.queue.writeBuffer(bufferB, 0, dataB);
 
@@ -262,10 +279,9 @@ export async function tuneAttention(
 
   const dataQ = new Float32Array(totalElements);
   const dataK = new Float32Array(totalElements);
-  for (let i = 0; i < totalElements; i++) {
-    dataQ[i] = Math.random();
-    dataK[i] = Math.random();
-  }
+  const attentionRng = createRng(0x2468ace1);
+  fillRandom(dataQ, attentionRng);
+  fillRandom(dataK, attentionRng);
   device.queue.writeBuffer(bufferQ, 0, dataQ);
   device.queue.writeBuffer(bufferK, 0, dataK);
 
@@ -422,9 +438,8 @@ export async function tuneSoftmax(
   });
 
   const dataIn = new Float32Array(totalElements);
-  for (let i = 0; i < totalElements; i++) {
-    dataIn[i] = Math.random();
-  }
+  const softmaxRng = createRng(0x31415926);
+  fillRandom(dataIn, softmaxRng);
   device.queue.writeBuffer(bufferIn, 0, dataIn);
 
   for (const [wgX] of softmaxCandidates) {
@@ -607,12 +622,9 @@ export async function tuneRMSNorm(
 
   const dataIn = new Float32Array(totalElements);
   const dataWeight = new Float32Array(hiddenSize);
-  for (let i = 0; i < totalElements; i++) {
-    dataIn[i] = Math.random();
-  }
-  for (let i = 0; i < hiddenSize; i++) {
-    dataWeight[i] = Math.random();
-  }
+  const rmsRng = createRng(0x27182818);
+  fillRandom(dataIn, rmsRng);
+  fillRandom(dataWeight, rmsRng);
   device.queue.writeBuffer(bufferIn, 0, dataIn);
   device.queue.writeBuffer(bufferWeight, 0, dataWeight);
 

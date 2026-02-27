@@ -1,16 +1,31 @@
 {
   "version": 1,
-  "updatedAt": "2026-02-25",
+  "updatedAt": "2026-02-26",
   "models": [
     {
-      "modelId": "translategemma-4b-it-wq4k-ef16-hf16",
-      "label": "TranslateGemma 4B Instruct (Q4)",
-      "description": "TranslateGemma text-generation model. Place converted RDRR shards under models/local/translategemma-4b-it-wq4k-ef16-hf16 for local loading.",
-      "mode": "translate",
-      "baseUrl": "./local/translategemma-4b-it-wq4k-ef16-hf16",
-      "sizeBytes": 3111894696,
+      "modelId": "gemma-3-270m-it-wq4k-ef16-hf16-f32",
+      "label": "Gemma 3 270M Instruct (Q4K/F32a)",
+      "description": "Gemma 3 270M text model. Place converted RDRR shards under models/curated/gemma-3-270m-it-wq4k-ef16 for hosted deployment.",
+      "modes": [
+        "run",
+        "translate"
+      ],
+      "baseUrl": "./curated/gemma-3-270m-it-wq4k-ef16",
+      "sizeBytes": 418512553,
       "recommended": false,
-      "sortOrder": 15
+      "sortOrder": 10
+    },
+    {
+      "modelId": "google-embeddinggemma-300m-wq4k-ef16",
+      "label": "EmbeddingGemma 300M (Q4K)",
+      "description": "EmbeddingGemma sentence embedding model. Place converted RDRR shards under models/curated/google-embeddinggemma-300m-wq4k-ef16 for hosted deployment.",
+      "modes": [
+        "embedding"
+      ],
+      "baseUrl": "./curated/google-embeddinggemma-300m-wq4k-ef16",
+      "sizeBytes": 480562497,
+      "recommended": false,
+      "sortOrder": 11
     }
   ]
 }

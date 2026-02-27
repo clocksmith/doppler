@@ -23,7 +23,7 @@ import { isPlainObject } from '../utils/plain-object.js';
 function resolveRuntime(options) {
   if (options.runtime) return options.runtime;
   if (options.searchParams) return parseRuntimeOverridesFromURL(options.searchParams);
-  if (typeof window === 'undefined') return parseRuntimeOverridesFromURL(new URLSearchParams());
+  if (typeof globalThis.location === 'undefined') return parseRuntimeOverridesFromURL(new URLSearchParams());
   return parseRuntimeOverridesFromURL();
 }
 
@@ -37,8 +37,8 @@ function resolvePresetBaseUrl() {
   try {
     return new URL('../config/presets/runtime/', import.meta.url).toString().replace(/\/$/, '');
   } catch {
-    if (typeof window !== 'undefined' && window.location?.href) {
-      return new URL('/src/config/presets/runtime/', window.location.href).toString().replace(/\/$/, '');
+    if (typeof globalThis.location !== 'undefined' && globalThis.location?.href) {
+      return new URL('/src/config/presets/runtime/', globalThis.location.href).toString().replace(/\/$/, '');
     }
     return '/src/config/presets/runtime';
   }
@@ -139,8 +139,8 @@ function resolveAbsoluteUrl(target, base) {
     if (base) {
       return new URL(target, base).toString();
     }
-    if (typeof window !== 'undefined' && window.location?.href) {
-      return new URL(target, window.location.href).toString();
+    if (typeof globalThis.location !== 'undefined' && globalThis.location?.href) {
+      return new URL(target, globalThis.location.href).toString();
     }
     return new URL(target, import.meta.url).toString();
   } catch {

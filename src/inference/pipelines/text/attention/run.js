@@ -530,6 +530,21 @@ export async function runLayerAttentionGPU(
 
   const attentionKernelRunners = {
     bdpa: async () => {
+      const BDPA_MAX_HEAD_DIM = 256;
+      const BDPA_MAX_KV_LEN = 2048;
+      if (numTokens !== 1) {
+        throw new Error(`BDPA attention supports decode-only seqLen=1; got seqLen=${numTokens}.`);
+      }
+      if (headDim > BDPA_MAX_HEAD_DIM) {
+        throw new Error(
+          `BDPA attention kernel supports headDim <= ${BDPA_MAX_HEAD_DIM}; got headDim=${headDim}.`
+        );
+      }
+      if (kvLenForAttention > BDPA_MAX_KV_LEN) {
+        throw new Error(
+          `BDPA attention kernel supports kvLen <= ${BDPA_MAX_KV_LEN}; got kvLen=${kvLenForAttention}.`
+        );
+      }
       const basisKDtype = 'f16';
       const basisVDtype = 'f16';
       const basisCount = Math.max(1, bdpaBasisCount);

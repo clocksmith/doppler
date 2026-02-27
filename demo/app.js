@@ -157,7 +157,10 @@ const DEFAULT_MODEL_AVAILABILITY = Object.freeze({
   diffusion: 0,
   energy: 0,
 });
-const QUICK_MODEL_CATALOG_URL = new URL('../models/catalog.json', import.meta.url).toString();
+const QUICK_MODEL_CATALOG_BASE_URL = typeof window === 'object' && window.location?.origin
+  ? new URL('/models/catalog.json', window.location.origin).toString()
+  : new URL('../models/catalog.json', import.meta.url).toString();
+const QUICK_MODEL_CATALOG_URL = `${QUICK_MODEL_CATALOG_BASE_URL}?cacheBust=${Date.now()}`;
 const RUN_STARTER_PROMPTS = Object.freeze([
   'is potential energy real?',
   'compare zig to rust in elvish',
@@ -580,15 +583,15 @@ function normalizeQuickModes(rawMode, rawModes) {
 
 function resolveQuickModelBaseUrl(baseUrl, modelId) {
   const resolved = typeof baseUrl === 'string' && baseUrl.trim()
-    ? new URL(baseUrl.trim(), QUICK_MODEL_CATALOG_URL).toString()
-    : new URL(`./curated/${encodeURIComponent(modelId)}`, QUICK_MODEL_CATALOG_URL).toString();
+    ? new URL(baseUrl.trim(), QUICK_MODEL_CATALOG_BASE_URL).toString()
+    : new URL(`./curated/${encodeURIComponent(modelId)}`, QUICK_MODEL_CATALOG_BASE_URL).toString();
   return isQuickModelCuratedUrl(resolved) ? resolved : null;
 }
 
 function isQuickModelCuratedUrl(resolvedUrl) {
   try {
     const resolved = new URL(resolvedUrl);
-    const catalogUrl = new URL(QUICK_MODEL_CATALOG_URL);
+    const catalogUrl = new URL(QUICK_MODEL_CATALOG_BASE_URL);
     if (resolved.origin !== catalogUrl.origin) return false;
     const normalizedPath = resolved.pathname.replace(/\/+/g, '/');
     return normalizedPath.startsWith('/models/curated/');
@@ -809,10 +812,9 @@ function syncRunModeUI(mode) {
   updateRunAutoLabels();
 }
 
-function setUiMode(mode) {
+async function setUiMode(mode) {
   const app = $('app');
   if (!app) return;
-  const previousMode = state.uiMode;
   state.uiMode = mode;
   if (PRIMARY_MODES.has(mode)) {
     state.lastPrimaryMode = mode;
@@ -822,9 +824,6 @@ function setUiMode(mode) {
   applyModeVisibility(mode);
   syncRunModeUI(mode);
   syncDiagnosticsModeUI(mode);
-  updateModelEmptyStates();
-  updatePerformancePanel();
-  renderRunLog();
   if (mode === 'models') {
     refreshStorageInspector({
       onSelectModel: selectDiagnosticsModel,
@@ -832,17 +831,24 @@ function setUiMode(mode) {
       onUnloadActiveModel: unloadActivePipeline,
       onStorageInventoryRefreshed: renderQuickModelPanels,
       onModelsUpdated: refreshModelList,
+    }).catch((error) => {
+      log.warn('DopplerDemo', `Storage inspector refresh failed: ${error.message}`);
     });
   }
-  refreshModelList().catch((error) => {
+  try {
+    await refreshModelList();
+  } catch (error) {
     log.warn('DopplerDemo', `Model list refresh failed: ${error.message}`);
-  });
+  }
+  updatePerformancePanel();
+  renderRunLog();
   syncDiagnosticsDefaultsForMode(mode).catch((error) => {
     updateDiagnosticsStatus(`Diagnostics config error: ${error.message}`, true);
   });
   if (mode === 'energy') {
     syncEnergyDemoSelection();
   }
+  updateModelEmptyStates();
   syncDeepLinkFromUI();
 }
 
@@ -896,10 +902,13 @@ function setEmptyNoticeAction(scope, quickModelEntry) {
   button.disabled = hasBusyImport;
 }
 
-function getMissingModelMessage(mode, availability) {
+function getMissingModelMessage(mode, availability, quickModelEntry) {
   const total = Number.isFinite(availability?.total) ? availability.total : 0;
+  const hasQuickSuggestion = !!(quickModelEntry && typeof quickModelEntry.modelId === 'string' && quickModelEntry.modelId.length > 0);
   if (total <= 0) {
-    return 'No models found in OPFS. Import a model from the Models tab.';
+    return hasQuickSuggestion
+      ? 'Import a compatible model to continue.'
+      : 'No models found in OPFS. Import a model from the Models tab.';
   }
   const compatible = Number.isFinite(availability?.[mode]) ? availability[mode] : 0;
   if (compatible > 0) return '';
@@ -1216,17 +1225,35 @@ async function runQuickModelAction(action, modelId) {
 }
 
 function updateModelEmptyStates() {
+  if (state.modelAvailabilityLoading) {
+    const emptyMessage = '';
+    setEmptyNotice('run', emptyMessage);
+    setEmptyNotice('diffusion', emptyMessage);
+    setEmptyNotice('energy', emptyMessage);
+    setEmptyNotice('diagnostics', emptyMessage);
+    setEmptyNoticeAction('run', null);
+    setEmptyNoticeAction('diffusion', null);
+    setEmptyNoticeAction('energy', null);
+    setEmptyNoticeAction('diagnostics', null);
+    renderQuickModelPanels();
+    return;
+  }
+
   const availability = getModelAvailability();
   const runTargetMode = state.uiMode === 'embedding'
     ? 'embedding'
     : (state.uiMode === 'translate' ? 'translate' : 'run');
-  const runMessage = getMissingModelMessage(runTargetMode, availability);
-  const diffusionMessage = getMissingModelMessage('diffusion', availability);
-  const energyMessage = getMissingModelMessage('energy', availability);
+  const runQuickSuggestion = getSmallestQuickModelForMode(runTargetMode);
+  const diffusionQuickSuggestion = getSmallestQuickModelForMode('diffusion');
+  const energyQuickSuggestion = getSmallestQuickModelForMode('energy');
+  const diagnosticsQuickSuggestion = getSmallestQuickModelForMode(getDiagnosticsRequiredQuickMode());
+  const runMessage = getMissingModelMessage(runTargetMode, availability, runQuickSuggestion);
+  const diffusionMessage = getMissingModelMessage('diffusion', availability, diffusionQuickSuggestion);
+  const energyMessage = getMissingModelMessage('energy', availability, energyQuickSuggestion);
   const diagnosticsTargetMode = getDiagnosticsRequiredQuickMode();
   const diagnosticsMessage = (
     state.uiMode === 'diagnostics'
-      ? (diagnosticsTargetMode ? getMissingModelMessage(diagnosticsTargetMode, availability) : '')
+      ? (diagnosticsTargetMode ? getMissingModelMessage(diagnosticsTargetMode, availability, diagnosticsQuickSuggestion) : '')
       : ''
   );
 
@@ -1234,10 +1261,10 @@ function updateModelEmptyStates() {
   setEmptyNotice('diffusion', diffusionMessage);
   setEmptyNotice('energy', energyMessage);
   setEmptyNotice('diagnostics', diagnosticsMessage);
-  setEmptyNoticeAction('run', runMessage ? getSmallestQuickModelForMode(runTargetMode) : null);
-  setEmptyNoticeAction('diffusion', diffusionMessage ? getSmallestQuickModelForMode('diffusion') : null);
-  setEmptyNoticeAction('energy', energyMessage ? getSmallestQuickModelForMode('energy') : null);
-  setEmptyNoticeAction('diagnostics', diagnosticsMessage ? getSmallestQuickModelForMode(diagnosticsTargetMode) : null);
+  setEmptyNoticeAction('run', runMessage ? runQuickSuggestion : null);
+  setEmptyNoticeAction('diffusion', diffusionMessage ? diffusionQuickSuggestion : null);
+  setEmptyNoticeAction('energy', energyMessage ? energyQuickSuggestion : null);
+  setEmptyNoticeAction('diagnostics', diagnosticsMessage ? diagnosticsQuickSuggestion : null);
   renderQuickModelPanels();
 
   const diffusionRun = $('diffusion-run-btn');
@@ -1489,8 +1516,7 @@ async function handleStorageTryModel(modelId) {
   if (!modelId) return;
   const modelType = await getModelTypeForId(modelId);
   const targetMode = getUiModeForModelType(modelType);
-  setUiMode(targetMode);
-  await refreshModelList();
+  await setUiMode(targetMode);
   selectDiagnosticsModel(modelId);
 }
 
@@ -1530,67 +1556,79 @@ async function refreshModelList() {
   const modelSelect = $('diagnostics-model');
   if (!modelSelect) return;
   const refreshVersion = ++modelListRefreshVersion;
+  state.modelAvailabilityLoading = true;
+  state.modelAvailability = { ...DEFAULT_MODEL_AVAILABILITY };
+  updateStatusIndicator();
   let models = [];
   try {
     models = await listRegisteredModels();
   } catch (error) {
     log.warn('DopplerDemo', `Model registry unavailable: ${error.message}`);
   }
-  state.registeredModelIds = [...new Set(models
-    .map((entry) => {
-      if (typeof entry?.modelId === 'string' && entry.modelId) return entry.modelId;
-      if (typeof entry?.id === 'string' && entry.id) return entry.id;
-      return '';
-    })
-    .filter(Boolean))];
-  const filteredModels = await filterModelsForMode(models, state.uiMode);
-  if (refreshVersion !== modelListRefreshVersion) return;
-  modelSelect.innerHTML = '';
-  const modelIds = [];
-  const seenModelIds = new Set();
-  for (const model of filteredModels) {
-    const modelId = typeof model?.modelId === 'string' && model.modelId
-      ? model.modelId
-      : (typeof model?.id === 'string' ? model.id : '');
-    if (!modelId || seenModelIds.has(modelId)) continue;
-    const entryModelType = normalizeModelType(model?.modelType);
-    if (entryModelType) {
-      state.modelTypeCache[modelId] = entryModelType;
+  try {
+    state.registeredModelIds = [...new Set(models
+      .map((entry) => {
+        if (typeof entry?.modelId === 'string' && entry.modelId) return entry.modelId;
+        if (typeof entry?.id === 'string' && entry.id) return entry.id;
+        return '';
+      })
+      .filter(Boolean))];
+    const filteredModels = await filterModelsForMode(models, state.uiMode);
+    if (refreshVersion !== modelListRefreshVersion) return;
+    modelSelect.innerHTML = '';
+    const modelIds = [];
+    const seenModelIds = new Set();
+    for (const model of filteredModels) {
+      const modelId = typeof model?.modelId === 'string' && model.modelId
+        ? model.modelId
+        : (typeof model?.id === 'string' ? model.id : '');
+      if (!modelId || seenModelIds.has(modelId)) continue;
+      const entryModelType = normalizeModelType(model?.modelType);
+      if (entryModelType) {
+        state.modelTypeCache[modelId] = entryModelType;
+      }
+      seenModelIds.add(modelId);
+      modelIds.push(modelId);
     }
-    seenModelIds.add(modelId);
-    modelIds.push(modelId);
-  }
-  if (!modelIds.length) {
-    const opt = document.createElement('option');
-    opt.value = '';
-    opt.textContent = `No ${getModeModelLabel(state.uiMode)} models`;
-    modelSelect.appendChild(opt);
-  } else {
-    for (const modelId of modelIds) {
+    if (!modelIds.length) {
       const opt = document.createElement('option');
-      opt.value = modelId;
-      opt.textContent = modelId;
+      opt.value = '';
+      opt.textContent = `No ${getModeModelLabel(state.uiMode)} models`;
       modelSelect.appendChild(opt);
+    } else {
+      for (const modelId of modelIds) {
+        const opt = document.createElement('option');
+        opt.value = modelId;
+        opt.textContent = modelId;
+        modelSelect.appendChild(opt);
+      }
     }
-  }
-  updateSidebarLayout(models);
-  state.modelAvailability = await computeModelAvailability(models);
-  await updateStorageInfo();
-  await syncModelForMode(state.uiMode);
-  updateModelEmptyStates();
-  updateDiagnosticsGuidance();
-  if (state.uiMode === 'energy') {
-    await preloadEnergyPipelineIfNeeded();
-  }
-  if (state.uiMode === 'models') {
-    await refreshStorageInspector({
-      onSelectModel: selectDiagnosticsModel,
-      onTryModel: handleStorageTryModel,
-      onUnloadActiveModel: unloadActivePipeline,
-      onStorageInventoryRefreshed: renderQuickModelPanels,
-      onModelsUpdated: refreshModelList,
-    });
-    renderQuickModelPanels();
+    updateSidebarLayout(models);
+    state.modelAvailability = await computeModelAvailability(models);
+    await updateStorageInfo();
+    await syncModelForMode(state.uiMode);
+    if (state.uiMode === 'energy') {
+      await preloadEnergyPipelineIfNeeded();
+    }
+    if (state.uiMode === 'models') {
+      await refreshStorageInspector({
+        onSelectModel: selectDiagnosticsModel,
+        onTryModel: handleStorageTryModel,
+        onUnloadActiveModel: unloadActivePipeline,
+        onStorageInventoryRefreshed: renderQuickModelPanels,
+        onModelsUpdated: refreshModelList,
+      });
+      renderQuickModelPanels();
+    }
+    updateDiagnosticsGuidance();
+    updateModelEmptyStates();
+  } finally {
+    if (refreshVersion === modelListRefreshVersion) {
+      state.modelAvailabilityLoading = false;
+      if (!state.appInitializing) {
+        updateStatusIndicator();
+      }
+    }
   }
 }
 
@@ -3878,42 +3916,76 @@ function bindUI() {
   updateDiffusionCharCounters();
 }
 
-async function init() {
-  setStatusIndicator('Initializing...', 'info');
-  ensurePrimaryModeControlStack();
-  bindUI();
-  const deepLinkState = readDeepLinkStateFromLocation();
-  if (deepLinkState.mode) {
-    state.uiMode = deepLinkState.mode;
+function setAppBootstrapMessage(message) {
+  const overlayText = $('app-bootstrap-message');
+  if (!overlayText) return;
+  setText(overlayText, typeof message === 'string' && message.trim() ? message.trim() : 'Initializing...');
+}
+
+function setAppBootstrapVisible(visible, message = null) {
+  const overlay = $('app-bootstrap-overlay');
+  const body = document.body;
+  if (!overlay) return;
+  if (typeof message === 'string' && message.trim()) {
+    setAppBootstrapMessage(message);
   }
-  applyDeepLinkStateToUI(deepLinkState);
-  prefillDemoTextInputs();
-  updateDiffusionCharCounters();
-  configureDownloadCallbacks({
-    onModelRegistered: registerDownloadedModel,
-    onModelsUpdated: refreshModelList,
-    onProgress: handleDownloadProgressEvent,
-    onStateChange: handleDownloadStateChangeEvent,
-  });
-  populateModelPresets();
-  populateRuntimePresetSelects();
-  populateEnergyDemoSelect();
-  setUiMode(state.uiMode);
-  setStatusIndicator('Initializing GPU...', 'info');
-  await Promise.all([
-    loadQuickModelCatalog(),
-    refreshModelList(),
-    refreshGpuInfo(),
-    refreshDownloads(),
-  ]);
-  updateMemoryControls();
-  startTelemetryLoop();
-  setRunLoading(false);
-  setRunGenerating(false);
-  updateRunStatus('Idle');
-  updateDiffusionStatus('Idle');
-  updateEnergyStatus('Idle');
-  updateStatusIndicator();
+  if (body) {
+    if (visible) {
+      body.classList.add('app-booting');
+    } else {
+      body.classList.remove('app-booting');
+    }
+  }
+  setHidden(overlay, !visible);
+}
+
+async function init() {
+  state.appInitializing = true;
+  setStatusIndicator('Initializing...', 'info');
+  setAppBootstrapMessage('Initializing demo...');
+  setAppBootstrapVisible(true);
+  try {
+    ensurePrimaryModeControlStack();
+    const deepLinkState = readDeepLinkStateFromLocation();
+    if (deepLinkState.mode) {
+      state.uiMode = deepLinkState.mode;
+    }
+    applyDeepLinkStateToUI(deepLinkState);
+    prefillDemoTextInputs();
+    updateDiffusionCharCounters();
+    configureDownloadCallbacks({
+      onModelRegistered: registerDownloadedModel,
+      onModelsUpdated: refreshModelList,
+      onProgress: handleDownloadProgressEvent,
+      onStateChange: handleDownloadStateChangeEvent,
+    });
+    populateModelPresets();
+    populateRuntimePresetSelects();
+    populateEnergyDemoSelect();
+    setStatusIndicator('Initializing GPU...', 'info');
+    setAppBootstrapMessage('Loading app artifacts...');
+
+    const startupTasks = Promise.all([
+      loadQuickModelCatalog(),
+      refreshGpuInfo(),
+      refreshDownloads(),
+    ]);
+    await startupTasks;
+
+    await setUiMode(state.uiMode);
+    bindUI();
+    updateMemoryControls();
+    startTelemetryLoop();
+    setRunLoading(false);
+    setRunGenerating(false);
+    updateRunStatus('Idle');
+    updateDiffusionStatus('Idle');
+    updateEnergyStatus('Idle');
+  } finally {
+    state.appInitializing = false;
+    setAppBootstrapVisible(false);
+    updateStatusIndicator();
+  }
 }
 
 init().catch((error) => {

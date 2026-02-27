@@ -2,7 +2,7 @@
 // Content hash input: normalized WGSL source + "\n@@entry:<entry>"
 export const KERNEL_REF_CONTENT_DIGESTS = Object.freeze({
   "attention.wgsl#main": "05eeaecb208128a415df3ab3acfc0642272a934d97bc919d00b59fdbaa35687b",
-  "attention_bdpa_decode_f16.wgsl#main": "981f4b77d064ddea32e2469073a30abeaa0c6995727ffdfe10c837edb34286f5",
+  "attention_bdpa_decode_f16.wgsl#main": "e2d73e455ea26a1cddb27eef2835e9e404db731255c7d2c6a5812245375562f2",
   "attention_decode.wgsl#attention_decode": "14cbf16eebe643d2cb0c957d5f125f6f69ea34957f2daa19488ee8985f81db1b",
   "attention_decode_chunked_f16.wgsl#main": "9733ffdcf79d064322ef400635104f2b4e3f9e34ca08a6e2638bab72769bac0a",
   "attention_decode_chunked_f16kv.wgsl#main": "21ea87fa5a0267ee2a960fa24d7a6582fe9b3d8276695289f924601236a29d62",

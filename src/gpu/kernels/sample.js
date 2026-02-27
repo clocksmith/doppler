@@ -365,7 +365,7 @@ export async function runGPUSample(
 
   const randomValue = randomSeed !== undefined
     ? seededRandom(randomSeed)
-    : Math.random();
+    : unseededRandom();
 
   const variants = resolveSampleVariants(logitsDtype);
   const phase1Pipeline = await createSamplePipeline(device, variants.phase1);
@@ -489,7 +489,7 @@ export async function recordGPUSample(
 
   const randomValue = randomSeed !== undefined
     ? seededRandom(randomSeed)
-    : Math.random();
+    : unseededRandom();
 
   const variants = resolveSampleVariants(logitsDtype);
   const phase1Pipeline = await createSamplePipeline(device, variants.phase1);
@@ -557,6 +557,18 @@ export async function recordGPUSample(
 function seededRandom(seed) {
   const x = Math.sin(seed) * 10000;
   return x - Math.floor(x);
+}
+
+let fallbackRandomState = (Date.now() >>> 0) || 0x6d2b79f5;
+
+function unseededRandom() {
+  if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
+    const values = new Uint32Array(1);
+    crypto.getRandomValues(values);
+    return values[0] / 4294967296;
+  }
+  fallbackRandomState = (fallbackRandomState + 0x6d2b79f5) >>> 0;
+  return fallbackRandomState / 4294967296;
 }
 
 

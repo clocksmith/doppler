@@ -28,12 +28,21 @@ import { castF32ToF16 } from '../../../gpu/kernels/cast.js';
 import { runResidualAdd, runScale, recordResidualAdd, recordScale } from '../../../gpu/kernels/index.js';
 import { f16ToF32 } from '../../../loader/dtype-utils.js';
 
+function createRandomSeed() {
+  if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
+    const values = new Uint32Array(1);
+    crypto.getRandomValues(values);
+    return values[0] >>> 0;
+  }
+  return Date.now() >>> 0;
+}
+
 function generateLatents(width, height, channels, latentScale, seed) {
   const latentWidth = Math.max(1, Math.floor(width / latentScale));
   const latentHeight = Math.max(1, Math.floor(height / latentScale));
   const size = latentWidth * latentHeight * channels;
   const latents = new Float32Array(size);
-  const rand = createRng(seed ?? Math.floor(Math.random() * 1e9));
+  const rand = createRng(seed ?? createRandomSeed());
   for (let i = 0; i < size; i++) {
     latents[i] = sampleNormal(rand);
   }
@@ -316,7 +325,7 @@ export class DiffusionPipeline {
     const guidanceScale = Number.isFinite(request.guidanceScale) && request.guidanceScale > 0
       ? request.guidanceScale
       : runtime.scheduler.guidanceScale;
-    const seed = Number.isFinite(request.seed) ? Math.floor(request.seed) : Math.floor(Math.random() * 1e9);
+    const seed = Number.isFinite(request.seed) ? Math.floor(request.seed) : createRandomSeed();
 
     if (!Number.isFinite(width) || width <= 0 || !Number.isFinite(height) || height <= 0) {
       throw new Error(`Invalid diffusion dimensions: ${width}x${height}`);
@@ -437,7 +446,7 @@ export class DiffusionPipeline {
     const guidanceScale = Number.isFinite(request.guidanceScale) && request.guidanceScale > 0
       ? request.guidanceScale
       : runtime.scheduler.guidanceScale;
-    const seed = Number.isFinite(request.seed) ? Math.floor(request.seed) : Math.floor(Math.random() * 1e9);
+    const seed = Number.isFinite(request.seed) ? Math.floor(request.seed) : createRandomSeed();
     const profilerEnabled = this.runtimeConfig?.shared?.debug?.profiler?.enabled === true;
     const canProfileGpu = profilerEnabled && getKernelCapabilities().hasTimestampQuery;
     let gpuPrefillMs = canProfileGpu ? 0 : null;

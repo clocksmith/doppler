@@ -64,10 +64,6 @@ function appendWordsFromBytes(words, bytes, offset) {
   }
 }
 
-/**
- * Return the SHA-256 hex digest for a UTF-8 string.
- * Uses a synchronous JS implementation so it is safe in both browser and Node.
- */
 export function sha256Hex(value) {
   const padded = toSha256PaddedBytes(value);
   const hashState = INITIAL_STATE.slice();

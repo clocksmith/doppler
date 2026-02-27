@@ -35,12 +35,12 @@ function attachRelativePath(file, relativePath) {
 
 
 export function hasFileSystemAccess() {
-  return 'showOpenFilePicker' in window;
+  return 'showOpenFilePicker' in globalThis;
 }
 
 
 export function hasDirectoryPicker() {
-  return 'showDirectoryPicker' in window;
+  return 'showDirectoryPicker' in globalThis;
 }
 
 
@@ -75,7 +75,7 @@ export async function pickModelDirectory() {
 
 async function pickFilesWithFileSystemAccess(multiple) {
   try {
-    const fileHandles = await window.showOpenFilePicker({
+    const fileHandles = await globalThis.showOpenFilePicker({
       types: MODEL_FILE_TYPES,
       multiple,
     });
@@ -97,7 +97,7 @@ async function pickFilesWithFileSystemAccess(multiple) {
 
 async function pickDirectoryWithFileSystemAccess() {
   try {
-    const dirHandle = await window.showDirectoryPicker({
+    const dirHandle = await globalThis.showDirectoryPicker({
       mode: 'read',
     });
 
@@ -181,13 +181,13 @@ function pickFilesWithFileInput(multiple) {
     };
 
     const cleanup = () => {
-      window.removeEventListener('focus', handleFocusBack);
+      globalThis.removeEventListener('focus', handleFocusBack);
       if (document.body.contains(input)) {
         document.body.removeChild(input);
       }
     };
 
-    window.addEventListener('focus', handleFocusBack, { once: true });
+    globalThis.addEventListener('focus', handleFocusBack, { once: true });
     document.body.appendChild(input);
     input.click();
   });
@@ -241,13 +241,13 @@ function pickDirectoryWithFileInput() {
     };
 
     const cleanup = () => {
-      window.removeEventListener('focus', handleFocusBack);
+      globalThis.removeEventListener('focus', handleFocusBack);
       if (document.body.contains(input)) {
         document.body.removeChild(input);
       }
     };
 
-    window.addEventListener('focus', handleFocusBack, { once: true });
+    globalThis.addEventListener('focus', handleFocusBack, { once: true });
     document.body.appendChild(input);
     input.click();
   });
