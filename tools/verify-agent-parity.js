@@ -4,6 +4,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
+import { isObject } from './utils/policy-utils.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = path.resolve(__dirname, '..');
@@ -16,10 +17,6 @@ async function pathExists(filePath) {
   } catch {
     return false;
   }
-}
-
-function isObject(value) {
-  return value != null && typeof value === 'object' && !Array.isArray(value);
 }
 
 function normalizeRuleArray(value, label) {

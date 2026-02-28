@@ -9,6 +9,21 @@ General coding conventions and patterns for the DOPPLER codebase.
 3. **Pure Functions** - Config transformations should be pure
 4. **Explicit over Implicit** - No magic, document everything
 
+## Execution Plane Contract
+
+Execution is partitioned into three planes:
+
+- JSON plane: contract and policy in manifests, presets, and rule assets.
+- JS plane: orchestration and I/O with resolved config.
+- WGSL plane: deterministic arithmetic kernels.
+
+Determinism requirement:
+
+- JSON must resolve decisions before pipeline execution.
+- JS may not introduce behavior not represented in resolved config.
+- WGSL may not contain runtime policy branching for selection behavior.
+- Legacy compatibility is allowed only through explicit JSON rule/registry entries and must be visible in config.
+
 ---
 
 ## Language Policy: JavaScript + Declaration Files
@@ -139,6 +154,10 @@ inference). Document the merge chain per domain:
 
 Runtime code should read resolved config values directly. Do not add literal fallbacks
 for tunables in JS; put defaults in schemas and merge them in the config layer.
+
+For all behavior-changing choices (kernel selection, precision mode, fallback variants),
+the only fallback source is explicit config/rule assets. If policy is not present,
+raise a typed configuration error instead of silently selecting an alternate behavior.
 
 ### Reuse Config Merge Utilities
 

@@ -101,6 +101,15 @@ InferenceConfigSchema (runtime.inference)
 | Session | activationDtype, kvDtype, batchSize, logLevel |
 | Hybrid | useChatTemplate, kernelPath |
 
+## Fallback Rule: What Is Allowed
+
+- No behavior-changing fallback may be implemented as ad-hoc JS branching.
+- All allowed fallbacks are explicit in config/rule assets:
+  - manifest and presets (for supported model/config combinations)
+  - rule-map alias entries
+  - capability-based kernel and dtype policy in registry overlays
+- Any unresolvable choice must raise a typed error before execution begins.
+
 ---
 
 ## Harness Restrictions

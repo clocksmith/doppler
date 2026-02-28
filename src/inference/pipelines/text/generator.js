@@ -32,9 +32,8 @@ const {
   shouldUseBatchDecode,
   sumProfileTimings,
   FinitenessError,
+  advanceWithTokenAndEmbedding: resolveAdvanceWithTokenAndEmbedding,
 } = generatorSteps;
-
-const advanceWithTokenAndEmbedding = generatorSteps.advanceWithTokenAndEmbedding ?? null;
 import { buildLayerContext, debugCheckBuffer as debugCheckBufferHelper, getLogitsConfig, getLogitsWeights } from './generator-helpers.js';
 import {
   assertTokenIdsInRange,
@@ -90,6 +89,27 @@ function resolvePromptInput(state, prompt, useChatTemplate, contextLabel) {
   }
   const templateType = useChatTemplate ? state.modelConfig.chatTemplateType : null;
   return formatChatMessages(messages, templateType);
+}
+
+function resolveTokenText(tokenizer, tokenIds, fallbackText = '?', renderTokenText, renderFallbackTokenText) {
+  const renderPrimary = typeof renderTokenText === 'function'
+    ? renderTokenText
+    : (ids) => tokenizer?.decode?.(ids);
+  const renderFallback = typeof renderFallbackTokenText === 'function'
+    ? renderFallbackTokenText
+    : (ids) => tokenizer?.decode?.(ids, false);
+
+  const primaryText = renderPrimary(tokenIds);
+  if (typeof primaryText === 'string' && primaryText.length > 0) {
+    return primaryText;
+  }
+
+  const fallback = renderFallback(tokenIds);
+  if (typeof fallback === 'string' && fallback.length > 0) {
+    return fallback;
+  }
+
+  return fallbackText;
 }
 
 export class PipelineGenerator {
@@ -345,8 +365,8 @@ export class PipelineGenerator {
         const actualTopK = getTopK(
           prefillLogits,
           expectedTopK.length,
-          (tokens) => this.#state.tokenizer?.decode?.(tokens) || '?'
-        ).map((token) => token.token);
+        (tokens) => resolveTokenText(this.#state.tokenizer, tokens),
+      ).map((token) => token.token);
         const driftResult = enforceLogitDrift(expectedTopK, actualTopK, maxDriftThreshold);
         if (!driftResult.ok) {
           throw new Error(`Intent bundle drift check failed: ${driftResult.reason}`);
@@ -357,7 +377,11 @@ export class PipelineGenerator {
       const padTokenId = this.#state.tokenizer?.getSpecialTokens?.()?.pad;
 
       if (opts.debug) {
-        const topAfterPenalty = getTopK(prefillLogits, 5, (tokens) => this.#state.tokenizer?.decode?.(tokens) || '?');
+        const topAfterPenalty = getTopK(
+          prefillLogits,
+          5,
+          (tokens) => resolveTokenText(this.#state.tokenizer, tokens)
+        );
         log.debug('Pipeline', `After rep penalty top-5: ${topAfterPenalty.map(t => `"${t.text}"(${(t.prob * 100).toFixed(1)}%)`).join(', ')}`);
       }
 
@@ -370,19 +394,20 @@ export class PipelineGenerator {
       });
 
       if (opts.debug) {
-        log.debug('Pipeline', `First token sampled: id=${firstToken} text="${this.#state.tokenizer?.decode?.([firstToken]) || '?'}"`);
+        const firstTokenText = resolveTokenText(this.#state.tokenizer, [firstToken], `[${firstToken}]`, (tokens) => this.#state.tokenizer?.decode?.(tokens, true, false));
+        log.debug('Pipeline', `First token sampled: id=${firstToken} text="${firstTokenText}"`);
       }
 
       generatedIds.push(firstToken);
       this.#state.stats.ttftMs = performance.now() - startTime;
 
-      const decodeToken = (tokenId) => {
-        const text = this.#state.tokenizer.decode([tokenId], true, false);
-        if (text.length > 0) return text;
-        const raw = this.#state.tokenizer.decode([tokenId], false, false);
-        if (raw.length > 0) return raw;
-        return `[${tokenId}]`;
-      };
+      const decodeToken = (tokenId) => resolveTokenText(
+        this.#state.tokenizer,
+        [tokenId],
+        `[${tokenId}]`,
+        (tokens) => this.#state.tokenizer?.decode?.(tokens, true, false),
+        (tokens) => this.#state.tokenizer?.decode?.(tokens, false, false)
+      );
 
       const firstText = decodeToken(firstToken);
       yield firstText;
@@ -402,7 +427,7 @@ export class PipelineGenerator {
         log.debug('Pipeline', `Generated ${tokensGenerated} tokens in ${this.#state.stats.totalTimeMs.toFixed(0)}ms`);
       }
 
-      const ttft = this.#state.stats.ttftMs || this.#state.stats.prefillTimeMs;
+      const ttft = this.#state.stats.ttftMs ?? this.#state.stats.prefillTimeMs;
       const decodeTokens = Math.max(0, tokensGenerated - 1);
       const decodeSpeed = decodeTokens > 0 ? (decodeTokens / this.#state.stats.decodeTimeMs * 1000) : 0;
       if (opts.benchmark) {
@@ -621,7 +646,7 @@ export class PipelineGenerator {
     validateCallTimeOptions(options);
 
     // Apply snapshot
-    this.#state.kvCache = prefix.cache.clone();
+        this.#state.kvCache = prefix.cache.clone();
     if (this.#state.useGPU && this.#state.kvCache) {
       const device = getDevice();
       if (device) {
@@ -670,7 +695,13 @@ export class PipelineGenerator {
       generatedIds.push(firstToken);
       this.#state.stats.ttftMs = performance.now() - startTime;
 
-      const firstText = this.#state.tokenizer.decode([firstToken], true, false);
+      const firstText = resolveTokenText(
+        this.#state.tokenizer,
+        [firstToken],
+        `[${firstToken}]`,
+        (tokens) => this.#state.tokenizer?.decode?.(tokens, true, false),
+        (tokens) => this.#state.tokenizer?.decode?.(tokens, false, false)
+      );
       yield firstText;
       if (options.onToken) options.onToken(firstToken, firstText);
 
@@ -1190,7 +1221,7 @@ export class PipelineGenerator {
     }
 
     if (opts.debug) {
-      logitsSanity(lastLogits, 'Prefill', (tokens) => this.#state.tokenizer?.decode?.(tokens) || '?');
+      logitsSanity(lastLogits, 'Prefill', (tokens) => resolveTokenText(this.#state.tokenizer, tokens));
     }
 
     if (opts.debug) {
@@ -1268,12 +1299,12 @@ export class PipelineGenerator {
       );
     }
 
-    return advanceWithTokenAndEmbedding(
-      this.#state,
-      tokenId,
-      opts,
-      this._getDecodeHelpers(debugCheckBuffer),
-      embeddingMode
+      return resolveAdvanceWithTokenAndEmbedding(
+        this.#state,
+        tokenId,
+        opts,
+        this._getDecodeHelpers(debugCheckBuffer),
+        embeddingMode
     );
   }
 

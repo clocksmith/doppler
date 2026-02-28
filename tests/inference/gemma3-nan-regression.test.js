@@ -4,6 +4,9 @@ import { promisify } from 'node:util';
 import path from 'node:path';
 
 const execFileAsync = promisify(execFile);
+const modelId = 'gemma-3-1b-it-wf16-ef16-hf16-f32';
+const modelUrl = '/models/local/gemma-3-1b-it-wf16-ef16-hf16-f32';
+const runtimeConfig = '{"inference":{"session":{"kvcache":{"kvDtype":"f16"}}}}';
 
 function extractTopLevelJsonObjects(text) {
   const source = String(text == null ? '' : text);
@@ -81,10 +84,13 @@ function parseJsonFromStdout(stdout, label) {
   throw new Error(`Could not parse JSON payload from ${label}`);
 }
 
+const DEFAULT_GEMMA_1B_MODEL_ID = 'gemma-3-1b-it-wf16-ef16-hf16-f32';
+const DEFAULT_GEMMA_270M_MODEL_ID = 'gemma-3-270m-it-wq4k-ef16';
+
 // E2E NaN Regression Test for Gemma 3 F16a/F32a Stability
 async function runTest() {
-    const modelId = process.env.MODEL_ID || 'gemma-3-270m-it-wf16-ef16-hf16';
     console.log(`[NaN Regression] Testing model: ${modelId}`);
+    console.log(`[NaN Regression] Using model URL: ${modelUrl}`);
 
     try {
         const { stdout, stderr } = await execFileAsync(
@@ -93,7 +99,8 @@ async function runTest() {
                 'tools/doppler-cli.js',
                 'debug',
                 '--model-id', modelId,
-                '--model-url', `/models/converted/${modelId}`,
+                '--model-url', modelUrl,
+                '--runtime-config-json', runtimeConfig,
                 '-p', 'Briefly explain why the sky is blue in one sentence.',
                 '--chat', 'gemma',
                 '--json'

@@ -559,7 +559,8 @@ function seededRandom(seed) {
   return x - Math.floor(x);
 }
 
-let fallbackRandomState = (Date.now() >>> 0) || 0x6d2b79f5;
+const UNSEEDED_RANDOM_DEFAULT_STATE = 0x6d2b79f5;
+let fallbackRandomState = UNSEEDED_RANDOM_DEFAULT_STATE;
 
 function unseededRandom() {
   if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {

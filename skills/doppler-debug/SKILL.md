@@ -8,10 +8,17 @@ description: Diagnose inference regressions with Doppler's shared browser/Node c
 Use this skill when generation fails, outputs drift, or Node/browser parity breaks.
 Use this skill with `doppler-bench` when investigating performance regressions.
 
+## Execution Plane Contract
+
+- Contract and tunables are declared in JSON (`runtime` + harness contract); do not substitute behavior in-place.
+- JS coordinates deterministic execution: resolve/validate config, dispatch pipelines, and collect artifacts.
+- WGSL executes resolved kernels; any policy branch belongs to config/rule selection before dispatch.
+- For parity checks, command intent must match: unknown/mismatched intent is a failure, not an alternate path.
+
 ## Fast Triage
 
 ```bash
-# Primary debug run (auto surface: Node first, browser fallback)
+# Primary debug run (auto surface = node-first transport; browser fallback only when node transport is unavailable)
 npm run debug -- --model-id MODEL_ID --runtime-preset modes/debug --surface auto --json
 
 # Verify pass/fail with inference suite

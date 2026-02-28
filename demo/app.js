@@ -160,7 +160,8 @@ const DEFAULT_MODEL_AVAILABILITY = Object.freeze({
 const QUICK_MODEL_CATALOG_BASE_URL = typeof window === 'object' && window.location?.origin
   ? new URL('/models/catalog.json', window.location.origin).toString()
   : new URL('../models/catalog.json', import.meta.url).toString();
-const QUICK_MODEL_CATALOG_URL = `${QUICK_MODEL_CATALOG_BASE_URL}?cacheBust=${Date.now()}`;
+const QUICK_MODEL_CATALOG_CACHE_BUST = 'catalog-v1';
+const QUICK_MODEL_CATALOG_URL = `${QUICK_MODEL_CATALOG_BASE_URL}?cacheBust=${QUICK_MODEL_CATALOG_CACHE_BUST}`;
 const RUN_STARTER_PROMPTS = Object.freeze([
   'is potential energy real?',
   'compare zig to rust in elvish',
@@ -176,7 +177,7 @@ const RUN_STARTER_PROMPTS = Object.freeze([
 ]);
 const TRANSLATE_STARTER_PROMPTS = Object.freeze([
   'Good software should fail loudly and explain why.',
-  'Never silently fall back when model capabilities are unsupported.',
+  'Never silently fall back when model capabilities are not supported.',
   'Please translate this release note into clear, natural language.',
   'On-device inference keeps sensitive data local to the machine.',
   'A deterministic benchmark needs fixed prompts, seeds, and token budgets.',
@@ -337,17 +338,22 @@ const DIFFUSION_NEGATIVE_STARTER_PROMPTS = Object.freeze([
   'compression blocks, aliasing, moire patterns, scan lines',
 ]);
 
-function normalizeTranslateLanguageCode(code, fallbackCode = DEFAULT_TRANSLATE_SOURCE) {
-  const requested = String(code || '').trim();
+function resolveText(value, defaultValue = '') {
+  if (value == null) return defaultValue;
+  return String(value).trim();
+}
+
+function normalizeTranslateLanguageCode(code, defaultLanguageCode = DEFAULT_TRANSLATE_SOURCE) {
+  const requested = resolveText(code, '');
   if (TRANSLATE_LANGUAGE_OPTIONS.some((entry) => entry.code === requested)) {
     return requested;
   }
-  return fallbackCode;
+  return defaultLanguageCode;
 }
 
 function populateTranslateLanguageSelect(selectEl, selectedCode) {
   if (!(selectEl instanceof HTMLSelectElement)) return;
-  const previousCode = normalizeTranslateLanguageCode(selectedCode || selectEl.value || '', DEFAULT_TRANSLATE_SOURCE);
+  const previousCode = resolveText(selectedCode, selectEl.value || DEFAULT_TRANSLATE_SOURCE);
   selectEl.innerHTML = '';
   for (const entry of TRANSLATE_LANGUAGE_OPTIONS) {
     const option = document.createElement('option');
@@ -355,7 +361,7 @@ function populateTranslateLanguageSelect(selectEl, selectedCode) {
     option.textContent = `${entry.name} (${entry.code})`;
     selectEl.appendChild(option);
   }
-  selectEl.value = previousCode;
+  selectEl.value = normalizeTranslateLanguageCode(previousCode, DEFAULT_TRANSLATE_SOURCE);
 }
 
 function populateTranslateLanguageControls() {
@@ -396,14 +402,14 @@ function getTranslateLanguageSelection() {
   return { sourceCode, targetCode };
 }
 
-function normalizeDeepLinkMode(mode, fallback = null) {
-  const normalized = String(mode || '').trim().toLowerCase();
+function normalizeDeepLinkMode(mode, defaultMode = null) {
+  const normalized = resolveText(mode, '').toLowerCase();
   if (normalized === 'text') return 'run';
   if (normalized === 'translation') return 'translate';
   if (normalized === 'embed') return 'embedding';
   if (normalized === 'image') return 'diffusion';
   if (DEEP_LINK_MODES.has(normalized)) return normalized;
-  return fallback;
+  return defaultMode;
 }
 
 function readDeepLinkValue(hashParams, queryParams, keys) {
@@ -417,7 +423,7 @@ function readDeepLinkValue(hashParams, queryParams, keys) {
 }
 
 function decodeDeepLinkText(rawText) {
-  const text = String(rawText ?? '');
+  const text = resolveText(rawText);
   if (!text) return '';
   try {
     return decodeURIComponent(text);
@@ -437,7 +443,7 @@ function readDeepLinkStateFromLocation() {
   }
 
   const queryParams = new URLSearchParams(window.location.search);
-  const hashRaw = String(window.location.hash || '').replace(/^#/, '').replace(/^\?/, '');
+  const hashRaw = resolveText(window.location.hash).replace(/^#/, '').replace(/^\?/, '');
   const hashParams = new URLSearchParams(hashRaw);
 
   const sourceRaw = readDeepLinkValue(hashParams, queryParams, ['sl', 'source', 'source_lang_code']);
@@ -491,7 +497,7 @@ function applyDeepLinkStateToUI(deepLinkState) {
 }
 
 function buildDeepLinkHash(modeOverride = null) {
-  const mode = normalizeDeepLinkMode(modeOverride || state.uiMode, 'run');
+  const mode = normalizeDeepLinkMode(resolveText(modeOverride, state.uiMode || 'run'), 'run');
   const params = new URLSearchParams();
 
   if (mode !== 'run') {
@@ -500,7 +506,7 @@ function buildDeepLinkHash(modeOverride = null) {
 
   if (mode === 'translate') {
     const promptEl = $('run-prompt');
-    const prompt = String(promptEl?.value || '').trim();
+    const prompt = resolveText(promptEl?.value, '');
     const { sourceCode, targetCode } = getTranslateLanguageSelection();
     params.set('sl', sourceCode);
     params.set('tl', targetCode);
@@ -907,7 +913,7 @@ function getMissingModelMessage(mode, availability, quickModelEntry) {
   const hasQuickSuggestion = !!(quickModelEntry && typeof quickModelEntry.modelId === 'string' && quickModelEntry.modelId.length > 0);
   if (total <= 0) {
     return hasQuickSuggestion
-      ? 'Import a compatible model to continue.'
+      ? 'Import a model that supports this mode to continue.'
       : 'No models found in OPFS. Import a model from the Models tab.';
   }
   const compatible = Number.isFinite(availability?.[mode]) ? availability[mode] : 0;
@@ -2223,7 +2229,7 @@ async function handleEnergyRun() {
   if (problem === 'vliw') {
     let datasetId = $('energy-vliw-dataset')?.value || 'vliw-simd-frozen';
     const selectedDatasetId = datasetId;
-    const specText = $('energy-vliw-spec')?.value?.trim() || '';
+    const specText = resolveText($('energy-vliw-spec')?.value, '');
     const bundleLimit = readOptionalNumber($('energy-vliw-bundle-limit'), { integer: true });
     const restarts = readOptionalNumber($('energy-vliw-restarts'), { integer: true });
     const tempStart = readOptionalNumber($('energy-vliw-temp-start'));

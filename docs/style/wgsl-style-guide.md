@@ -2,6 +2,13 @@
 
 WebGPU Shading Language conventions for DOPPLER kernels.
 
+## Kernel Plane Responsibility
+
+- WGSL is the compute plane and executes resolved dispatch parameters only.
+- Control-plane decisions (kernel choice, precision policy, fallback mode) must be resolved before dispatch.
+- WGSL may use constants and uniforms for values but must not branch for policy selection.
+- Keep variant and compatibility policy in JSON/rule assets and JS wrappers, then compile deterministic shader paths.
+
 ## File Structure
 
 ```wgsl

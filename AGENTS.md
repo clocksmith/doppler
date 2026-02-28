@@ -155,6 +155,17 @@ Use:
 - Bench/debug outputs must preserve deterministic knobs (seed, sampling, cache/load mode, kernel path source).
 - Apples-to-apples claims require matched workload semantics and explicit mode labeling.
 
+### Execution Plane Contract (Required)
+
+- JSON is the behavior contract. Resolved `manifest.json`, presets, and rule assets must define the runtime decisions before any execution path is entered.
+- JavaScript is orchestration: merge/validate config, allocate buffers, copy shards, build pipelines, dispatch work, and read back.
+- WGSL is compute only: apply arithmetic using resolved constants/uniforms; no policy branching or command semantics.
+- Exceptions are only rule-based and explicit:
+  - legacy/compat aliases via registry rule assets
+  - capability-gated selection through structured config and rule maps
+  - explicit kernel-path overrides in runtime config
+- Missing/ambiguous contract must fail fast. No hidden fallbacks for behavior-changing logic.
+
 ### Doppler Non-negotiables
 
 1. No silent fallback for command semantics
@@ -195,5 +206,6 @@ Canonical path: `skills/` (see `skills/README.md`).
 - `doppler-perf-squeeze`: investigate and improve decode/prefill performance.
 - `doppler-convert`: convert models to RDRR.
 - `doppler-kernel-reviewer`: review WGSL/JS kernel implementations against style rules.
+- `doppler-bench`, `doppler-convert`, `doppler-debug`, `doppler-kernel-reviewer`, and `doppler-perf-squeeze` are the canonical skill set under `skills/`.
 
 See `docs/config.md` for kernel overrides and runtime modes.

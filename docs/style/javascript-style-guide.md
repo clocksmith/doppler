@@ -14,6 +14,18 @@ Model Manifest → ModelConfig → PipelineSpec → KernelSpec → Execution
  manifest.json   .d.ts types    Op sequence   GPU params    Dispatch
 ```
 
+## Role Boundaries (JSON, JS, WGSL)
+
+- JSON owns policy and selection state (`manifest`, presets, runtime config, rule maps).
+- JS owns orchestration: validation, pipeline setup, resource lifecycle, dispatch, and readback.
+- WGSL owns only math and memory transforms.
+
+For deterministic behavior:
+
+- All variant decisions must come from `selectRuleValue()` backed by JSON rules.
+- If rules or required config are missing, throw a configuration error.
+- Compatibility aliases are allowed only from explicit registry/JSON entries.
+
 ## JSON Rule Maps (Required for Selection Logic)
 
 Any selection of kernel variants, dtype strings, or op names must use JSON rule maps.

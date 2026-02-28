@@ -52,15 +52,9 @@ App (JS)                                     App (JS)
 
 Transformers.js wraps a C++-to-WASM compiled ONNX runtime that interprets an exported graph and generates GPU shaders at runtime from a generic op library.
 Models must be manually exported from PyTorch to ONNX format before they can run (maintained per-model by `onnx-community`).
-<<<<<<< HEAD
-
-Doppler is JS end-to-end with prewritten WGSL kernels per operation (attention, RoPE, RMSNorm, FFN), with no graph interpreter and no WASM runtime layer in the inference path.
-Some specialized paths still compile WGSL generated from templates/config at runtime (for example kernel tuning and router-specialized variants).
-
-=======
 Doppler is JS end-to-end with mostly prewritten WGSL kernels per operation (attention, RoPE, RMSNorm, FFN), with no graph interpreter and no WASM runtime layer in the inference path.
 Some specialized paths still compile WGSL generated from templates/config at runtime (for example kernel tuning and router-specialized variants).
->>>>>>> 6080b5a (.)
+JSON manifests and runtime presets drive selection; JS orchestrates execution and WGSL remains deterministic math.
 The RDRR format maps weight shards directly to GPU buffers, and conversion runs directly from SafeTensors or GGUF sources without an intermediate export step.
 Architecture-specific patterns like sliding/full attention windows are runtime config in Doppler, as opposed to frozen in an exported graph.
 

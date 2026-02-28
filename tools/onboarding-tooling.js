@@ -7,11 +7,17 @@ import { fileURLToPath } from 'node:url';
 import { resolveConvertedModelId } from '../src/converter/conversion-plan.js';
 import { buildQuantizationInfo } from '../src/converter/quantization-info.js';
 import { generateWgslVariants } from './wgsl-variant-generator.js';
+import {
+  isObject,
+  normalizeTrimmedText,
+  resolvePolicyText,
+  resolveText,
+  resolveTextArray,
+} from './utils/policy-utils.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const REPO_ROOT = path.resolve(__dirname, '..');
-const DEFAULT_ROOT = REPO_ROOT;
 const WARN = 'warning';
 const ERROR = 'error';
 const REQUIRED_COMPARE_TIMING_METRICS = Object.freeze([
@@ -27,6 +33,128 @@ const REQUIRED_COMPARE_TIMING_METRICS = Object.freeze([
   'totalRunMs',
   'modelLoadMs',
 ]);
+const ONBOARDING_POLICY_PATH = fileURLToPath(new URL('./configs/onboarding/onboarding-tooling-policy.json', import.meta.url));
+const DEFAULT_ONBOARDING_POLICY = Object.freeze({
+  modes: ['check', 'scaffold'],
+  scaffoldKinds: ['model', 'conversion', 'kernel', 'behavior'],
+  defaults: {
+    root: {
+      path: 'REPO_ROOT',
+    },
+    model: {
+      runtimePreset: 'transformer',
+    },
+    conversion: {
+      family: 'custom',
+      preset: 'transformer',
+      baseDir: 'models/local',
+      quantization: {
+        weights: 'f16',
+        embeddings: 'weights',
+        lmHead: 'embeddings',
+      },
+    },
+    kernelPath: {
+      activationDtype: 'f16',
+      kvDtype: 'f16',
+      statusDefault: 'experimental',
+      statusReason: 'scaffolded',
+      excludeStatuses: ['legacy'],
+      descriptionTemplate: 'Scaffolded kernel path for {id}.',
+    },
+    behavior: {
+      scope: 'modes',
+    },
+    errors: {
+      unsupportedMode: 'Unsupported mode',
+      unsupportedModeHint: 'Expected one of: {supportedModes}',
+      unsupportedKind: 'Unsupported scaffold kind',
+      unsupportedKindHint: 'Expected one of: {supportedKinds}',
+        missingId: '--id is required for scaffold',
+      missingKind: '--kind is required for scaffold',
+    },
+  },
+  paths: {
+    modelPreset: 'src/config/presets/models',
+    conversion: 'tools/configs/conversion',
+    kernelPath: 'src/config/presets/kernel-paths',
+    runtimePreset: 'src/config/presets/runtime',
+  },
+});
+let activeOnboardingPolicy = DEFAULT_ONBOARDING_POLICY;
+
+function policyDefaultsFromActivePolicy(policy = getActivePolicy()) {
+  return policy.defaults || {};
+}
+
+function resolveOnboardingPolicy(payload) {
+  const input = isObject(payload) ? payload : {};
+  const defaults = isObject(input.defaults) ? input.defaults : {};
+  const paths = isObject(input.paths) ? input.paths : {};
+  const modelDefaults = isObject(defaults.model) ? defaults.model : {};
+  const conversionDefaults = isObject(defaults.conversion) ? defaults.conversion : {};
+  const kernelDefaults = isObject(defaults.kernelPath) ? defaults.kernelPath : {};
+  const behaviorDefaults = isObject(defaults.behavior) ? defaults.behavior : {};
+  const rootDefaults = isObject(defaults.root) ? defaults.root : {};
+  const errorDefaults = isObject(defaults.errors) ? defaults.errors : {};
+  const quantizationDefaults = isObject(conversionDefaults.quantization) ? conversionDefaults.quantization : {};
+
+  return {
+    modes: resolveTextArray(input.modes, DEFAULT_ONBOARDING_POLICY.modes),
+    scaffoldKinds: resolveTextArray(input.scaffoldKinds, DEFAULT_ONBOARDING_POLICY.scaffoldKinds),
+    defaults: {
+      root: {
+        path: resolvePolicyText(rootDefaults.path, DEFAULT_ONBOARDING_POLICY.defaults.root.path),
+      },
+      model: {
+        runtimePreset: resolvePolicyText(modelDefaults.runtimePreset, DEFAULT_ONBOARDING_POLICY.defaults.model.runtimePreset),
+      },
+      conversion: {
+        family: resolvePolicyText(conversionDefaults.family, DEFAULT_ONBOARDING_POLICY.defaults.conversion.family),
+        preset: resolvePolicyText(conversionDefaults.preset, DEFAULT_ONBOARDING_POLICY.defaults.conversion.preset),
+        baseDir: resolvePolicyText(conversionDefaults.baseDir, DEFAULT_ONBOARDING_POLICY.defaults.conversion.baseDir),
+        quantization: {
+          weights: resolvePolicyText(quantizationDefaults.weights, DEFAULT_ONBOARDING_POLICY.defaults.conversion.quantization.weights),
+          embeddings: resolvePolicyText(quantizationDefaults.embeddings, DEFAULT_ONBOARDING_POLICY.defaults.conversion.quantization.embeddings),
+          lmHead: resolvePolicyText(quantizationDefaults.lmHead, DEFAULT_ONBOARDING_POLICY.defaults.conversion.quantization.lmHead),
+        },
+      },
+      kernelPath: {
+        activationDtype: resolvePolicyText(kernelDefaults.activationDtype, DEFAULT_ONBOARDING_POLICY.defaults.kernelPath.activationDtype),
+        kvDtype: resolvePolicyText(kernelDefaults.kvDtype, DEFAULT_ONBOARDING_POLICY.defaults.kernelPath.kvDtype),
+        statusDefault: resolvePolicyText(kernelDefaults.statusDefault, DEFAULT_ONBOARDING_POLICY.defaults.kernelPath.statusDefault),
+        statusReason: resolvePolicyText(kernelDefaults.statusReason, DEFAULT_ONBOARDING_POLICY.defaults.kernelPath.statusReason),
+        excludeStatuses: resolveTextArray(kernelDefaults.excludeStatuses, DEFAULT_ONBOARDING_POLICY.defaults.kernelPath.excludeStatuses),
+        descriptionTemplate: resolvePolicyText(kernelDefaults.descriptionTemplate, DEFAULT_ONBOARDING_POLICY.defaults.kernelPath.descriptionTemplate),
+      },
+      behavior: {
+        scope: resolvePolicyText(behaviorDefaults.scope, DEFAULT_ONBOARDING_POLICY.defaults.behavior.scope),
+      },
+      errors: {
+        unsupportedMode: resolvePolicyText(errorDefaults.unsupportedMode, DEFAULT_ONBOARDING_POLICY.defaults.errors.unsupportedMode),
+        unsupportedModeHint: resolvePolicyText(errorDefaults.unsupportedModeHint, DEFAULT_ONBOARDING_POLICY.defaults.errors.unsupportedModeHint),
+        unsupportedKind: resolvePolicyText(errorDefaults.unsupportedKind, DEFAULT_ONBOARDING_POLICY.defaults.errors.unsupportedKind),
+        unsupportedKindHint: resolvePolicyText(errorDefaults.unsupportedKindHint, DEFAULT_ONBOARDING_POLICY.defaults.errors.unsupportedKindHint),
+        missingId: resolvePolicyText(errorDefaults.missingId, DEFAULT_ONBOARDING_POLICY.defaults.errors.missingId),
+        missingKind: resolvePolicyText(errorDefaults.missingKind, DEFAULT_ONBOARDING_POLICY.defaults.errors.missingKind),
+      },
+    },
+    paths: {
+      modelPreset: resolvePolicyText(paths.modelPreset, DEFAULT_ONBOARDING_POLICY.paths.modelPreset),
+      conversion: resolvePolicyText(paths.conversion, DEFAULT_ONBOARDING_POLICY.paths.conversion),
+      kernelPath: resolvePolicyText(paths.kernelPath, DEFAULT_ONBOARDING_POLICY.paths.kernelPath),
+      runtimePreset: resolvePolicyText(paths.runtimePreset, DEFAULT_ONBOARDING_POLICY.paths.runtimePreset),
+    },
+  };
+}
+
+function setActivePolicy(payload) {
+  activeOnboardingPolicy = resolveOnboardingPolicy(payload);
+}
+
+function getActivePolicy() {
+  return activeOnboardingPolicy;
+}
 
 function usage() {
   return [
@@ -68,10 +196,6 @@ function toJsonText(value) {
   return JSON.stringify(value, null, 2);
 }
 
-function isObject(value) {
-  return value !== null && typeof value === 'object' && !Array.isArray(value);
-}
-
 function assertString(value, label, options = {}) {
   if (typeof value !== 'string' || value.trim() === '') {
     if (options.required) {
@@ -82,19 +206,20 @@ function assertString(value, label, options = {}) {
   return true;
 }
 
-function normalizeId(rawValue, fallback = null) {
-  const value = String(rawValue ?? '').trim().toLowerCase();
-  if (!value) return fallback;
+function normalizeId(rawValue, options = {}) {
+  const value = normalizeTrimmedText(rawValue).toLowerCase();
+  if (!value) return options.defaultValue;
   return value.replace(/[^a-z0-9._-]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
 }
 
 function toIssue(severity, code, location, message, hint) {
+  const hintText = typeof hint === 'string' && hint.length > 0 ? hint : null;
   return {
     severity,
     code,
     location,
     message,
-    hint: hint || null,
+    hint: hintText,
   };
 }
 
@@ -160,7 +285,7 @@ function safeTrim(value) {
   return typeof value === 'string' ? value.trim() : '';
 }
 
-function resolveConversionConfigModelId(config) {
+function resolveConversionConfigModelId(config, policy = getActivePolicy()) {
   const modelBaseId = safeTrim(config?.output?.modelBaseId);
   if (!modelBaseId) {
     return {
@@ -168,9 +293,21 @@ function resolveConversionConfigModelId(config) {
       error: 'output.modelBaseId is required',
     };
   }
-  const weights = safeTrim(config?.quantization?.weights) || 'f16';
-  const embeddings = safeTrim(config?.quantization?.embeddings) || weights;
-  const lmHead = safeTrim(config?.quantization?.lmHead) || embeddings;
+  const conversionDefaults = isObject(policy.defaults?.conversion) ? policy.defaults.conversion : {};
+  const conversionQuant = isObject(conversionDefaults.quantization) ? conversionDefaults.quantization : {};
+  const weightsDefault = resolvePolicyText(conversionQuant.weights, 'f16');
+  const embeddingsDefault = resolvePolicyText(conversionQuant.embeddings, 'weights');
+  const lmHeadDefault = resolvePolicyText(conversionQuant.lmHead, 'embeddings');
+
+  const weights = resolvePolicyText(config?.quantization?.weights, weightsDefault);
+  const embeddingsByPolicy = embeddingsDefault === 'weights'
+    ? weights
+    : resolvePolicyText(config?.quantization?.embeddings, embeddingsDefault);
+  const embeddings = resolvePolicyText(config?.quantization?.embeddings, embeddingsByPolicy);
+  const lmHeadByPolicy = lmHeadDefault === 'embeddings'
+    ? embeddings
+    : resolvePolicyText(config?.quantization?.lmHead, lmHeadDefault);
+  const lmHead = resolvePolicyText(config?.quantization?.lmHead, lmHeadByPolicy);
 
   try {
     buildQuantizationInfo(
@@ -592,7 +729,7 @@ async function validateGeneratedWgsl(root, issues, context) {
   };
 }
 
-async function validateKernelPathRegistry(root, issues, context) {
+async function validateKernelPathRegistry(root, issues, context, policy = getActivePolicy()) {
   const registryPath = path.join(root, 'src/config/presets/kernel-paths/registry.json');
   let registryPayload;
   try {
@@ -617,7 +754,7 @@ async function validateKernelPathRegistry(root, issues, context) {
       issues.push(toIssue(ERROR, 'REGISTRY_ENTRY_FORMAT', registryPath, `entries[${index}] must be an object`));
       continue;
     }
-    const id = String(entry.id ?? '').trim();
+    const id = normalizeTrimmedText(entry.id);
     if (!id) {
       issues.push(toIssue(ERROR, 'REGISTRY_ID_MISSING', registryPath, `entries[${index}] has no id`));
       continue;
@@ -628,7 +765,9 @@ async function validateKernelPathRegistry(root, issues, context) {
     }
     seen.add(id);
     ids.add(id);
-    statusById.set(id, String(entry.status ?? 'canonical').trim() || 'canonical');
+    const defaultStatus = resolveText(policy.defaults?.kernelPath?.statusDefault, 'canonical');
+    const status = normalizeTrimmedText(entry.status);
+    statusById.set(id, status || defaultStatus);
     entryById.set(id, entry);
 
     if (!assertString(entry.file) && !assertString(entry.aliasOf)) {
@@ -682,16 +821,17 @@ async function validateKernelPathRegistry(root, issues, context) {
       continue;
     }
 
-    if (String(kernelPathPayload.id ?? '').trim() !== id) {
+    const payloadId = normalizeTrimmedText(kernelPathPayload.id);
+    if (payloadId !== id) {
       issues.push(toIssue(
         WARN,
         'KERNEL_PATH_ID_MISMATCH',
         kernelFile,
-        `id="${kernelPathPayload.id ?? ''}" does not match registry id "${id}"`
+        `id="${payloadId}" does not match registry id "${id}"`
       ));
     }
 
-    const activationDtype = String(kernelPathPayload.activationDtype ?? '').trim();
+    const activationDtype = resolveText(kernelPathPayload.activationDtype, policy.defaults?.kernelPath?.activationDtype);
     if (!activationDtype) {
       issues.push(toIssue(ERROR, 'KERNEL_PATH_MISSING_DTYPE', kernelFile, 'activationDtype is required'));
     }
@@ -921,7 +1061,7 @@ async function validateModelPresets(root, issues, context) {
   context.modelPresetDetectionOrderMissingIds = detectionOrderMissingIds;
 }
 
-async function validateConversionConfigs(root, issues, context) {
+async function validateConversionConfigs(root, issues, context, policy = getActivePolicy()) {
   const conversionRoot = path.join(root, 'tools/configs/conversion');
   const files = await collectJsonFiles(conversionRoot);
   const modelIds = new Set();
@@ -935,8 +1075,8 @@ async function validateConversionConfigs(root, issues, context) {
       continue;
     }
 
-    const presetId = String(config.presets?.model ?? '').trim();
-    const resolved = resolveConversionConfigModelId(config);
+    const presetId = resolveText(config.presets?.model);
+    const resolved = resolveConversionConfigModelId(config, policy);
     if (!resolved.modelId) {
       issues.push(toIssue(ERROR, 'CONVERSION_MODEL_ID', filePath, resolved.error));
     } else if (modelIds.has(resolved.modelId)) {
@@ -966,7 +1106,8 @@ async function validateConversionConfigs(root, issues, context) {
     }
 
     const kernelId = config.inference?.defaultKernelPath;
-    if (kernelId != null && !context.kernelPathIds.has(String(kernelId).trim())) {
+    const normalizedKernelId = resolveText(kernelId);
+    if (kernelId != null && normalizedKernelId && !context.kernelPathIds.has(normalizedKernelId)) {
       issues.push(toIssue(
         ERROR,
         'CONVERSION_KERNEL_MISSING',
@@ -1276,25 +1417,32 @@ async function validateCompareConfigs(root, issues, context) {
   context.compareProfilesWithoutConversion = noConfigProfiles;
 }
 
-function kernelRegistrySnippet(kindId, fileName, status = 'experimental', statusReason = null) {
+function kernelRegistrySnippet(kindId, fileName, status, statusReason, policy = getActivePolicy()) {
+  const defaults = policy.defaults?.kernelPath || {};
+  const statusDefault = resolveText(defaults.statusDefault, 'experimental');
+  const statusValue = resolveText(status, statusDefault);
+  const statusReasonValue = resolveText(statusReason, resolveText(defaults.statusReason, 'scaffolded'));
   return toJsonText({
     id: kindId,
     file: fileName,
-    status,
-    statusReason: statusReason || 'scaffolded',
+    status: statusValue,
+    statusReason: statusReasonValue,
     notes: `Add ${kindId} kernel path and update as needed.`,
   });
 }
 
-function renderKernelPathTemplate(id, options = {}) {
+function renderKernelPathTemplate(id, options = {}, policy = getActivePolicy()) {
   const kernelId = normalizeId(id);
-  const status = (String(options.status ?? 'experimental')).trim() || 'experimental';
+  const kernelDefaults = policy.defaults?.kernelPath || {};
+  const statusValue = resolveText(options.status, resolveText(kernelDefaults.statusDefault, 'experimental'));
+  const excludedStatuses = resolveTextArray(kernelDefaults.excludeStatuses, []);
+  const shouldHideStatus = excludedStatuses.includes(statusValue);
   return {
     id: kernelId,
     name: `${kernelId}`,
-    description: `Scaffolded kernel path for ${kernelId}.`,
-    activationDtype: 'f16',
-    kvDtype: 'f16',
+    description: `${kernelDefaults.descriptionTemplate ? kernelDefaults.descriptionTemplate.replace('{id}', kernelId) : `Scaffolded kernel path for ${kernelId}.`}`,
+    activationDtype: resolveText(kernelDefaults.activationDtype, 'f16'),
+    kvDtype: resolveText(kernelDefaults.kvDtype, 'f16'),
     decode: {
       steps: [
         { op: 'input_norm', kernel: 'rmsnorm.wgsl', entry: 'main' },
@@ -1343,19 +1491,20 @@ function renderKernelPathTemplate(id, options = {}) {
     sampling: [
       { op: 'sample', kernel: 'sample.wgsl', entry: 'sample_single_pass' },
     ],
-    ...((String(status).trim() === 'legacy')
+    ...(shouldHideStatus
       ? {}
       : {
-        status,
+        status: statusValue,
       }),
   };
 }
 
-function renderModelPresetTemplate(id, runtimePresetId = null) {
+function renderModelPresetTemplate(id, runtimePresetId = null, policy = getActivePolicy()) {
+  const modelDefaults = policy.defaults?.model || {};
   return {
     id,
     name: id,
-    extends: runtimePresetId ?? 'transformer',
+    extends: resolveText(runtimePresetId, resolveText(modelDefaults.runtimePreset, 'transformer')),
     architecture: {},
     inference: {
       attention: {},
@@ -1391,19 +1540,34 @@ function renderLoaderRegistrationTemplate(presetId) {
   ];
 }
 
-function renderConversionTemplate(id, presetId, options = {}) {
+function renderConversionTemplate(id, presetId, options = {}, policy = getActivePolicy()) {
+  const defaults = policyDefaultsFromActivePolicy(policy);
+  const conversionDefaults = isObject(defaults.conversion) ? defaults.conversion : {};
+  const quantizationDefaults = isObject(conversionDefaults.quantization) ? conversionDefaults.quantization : {};
+  const defaultWeights = resolveText(quantizationDefaults.weights, 'f16');
+  const defaultEmbeddingsSource = resolveText(quantizationDefaults.embeddings, 'weights');
+  const defaultLmHeadSource = resolveText(quantizationDefaults.lmHead, 'embeddings');
+  const weights = resolveText(options.weights, defaultWeights);
+  const embeddingsSource = resolveText(options.embeddings, defaultEmbeddingsSource);
+  const lmHeadSource = resolveText(options.lmHead, defaultLmHeadSource);
+  const embeddings = embeddingsSource === 'weights'
+    ? weights
+    : resolveText(embeddingsSource, weights);
+  const lmHead = lmHeadSource === 'embeddings'
+    ? embeddings
+    : resolveText(lmHeadSource, embeddings);
   return {
     output: {
-      baseDir: String(options.baseDir ?? 'models/local'),
+      baseDir: resolveText(options.baseDir, resolveText(conversionDefaults.baseDir, 'models/local')),
       modelBaseId: id,
     },
     presets: {
-      model: presetId || 'transformer',
+      model: resolveText(presetId, resolveText(conversionDefaults.preset, 'transformer')),
     },
     quantization: {
-      weights: 'f16',
-      embeddings: 'f16',
-      lmHead: 'f16',
+      weights,
+      embeddings,
+      lmHead,
       computePrecision: 'f16',
     },
     inference: options.defaultKernelPath ? {
@@ -1412,12 +1576,15 @@ function renderConversionTemplate(id, presetId, options = {}) {
   };
 }
 
-function renderBehaviorTemplate(id, scope = 'modes') {
+function renderBehaviorTemplate(id, scope = null, policy = getActivePolicy()) {
   const safeId = normalizeId(id);
+  const behaviorDefaults = policyDefaultsFromActivePolicy(policy).behavior || {};
+  const scopeDefault = resolveText(behaviorDefaults.scope, 'modes');
+  const safeScope = normalizeId(scope, { defaultValue: scopeDefault });
   return {
     name: safeId,
     description: `Behavior preset for ${safeId}`,
-    extends: 'modes/default',
+    extends: `${safeScope}/default`,
     runtime: {
       inference: {
         batching: {
@@ -1450,12 +1617,12 @@ async function writeJsonFile(filePath, payload) {
   await fs.writeFile(filePath, `${toJsonText(payload)}\n`, 'utf-8');
 }
 
-async function runCheck(context) {
+async function runCheck(context, policy = getActivePolicy()) {
   const issues = Array.isArray(context.issues) ? context.issues : [];
   await validateKernelRuleVariantParity(context.rootDir, issues, context);
   await validateGeneratedWgsl(context.rootDir, issues, context);
   await validateModelPresets(context.rootDir, issues, context);
-  await validateConversionConfigs(context.rootDir, issues, context);
+  await validateConversionConfigs(context.rootDir, issues, context, policy);
   await validateRuntimePresets(context.rootDir, issues, context);
   await validateCompareConfigs(context.rootDir, issues, context);
   const {
@@ -1518,7 +1685,7 @@ async function runCheck(context) {
   };
 }
 
-async function runScaffold(context) {
+async function runScaffold(context, policy = getActivePolicy()) {
   const {
     kind,
     id,
@@ -1535,11 +1702,11 @@ async function runScaffold(context) {
   if (kind === 'model') {
     const target = outputOverride
       ? path.resolve(rootDir, outputOverride)
-      : path.join(rootDir, 'src/config/presets/models', `${safeId}.json`);
+      : path.join(rootDir, resolveText(policy.paths?.modelPreset, 'src/config/presets/models'), `${safeId}.json`);
     if ((await fileExists(target)) && !force) {
       throw new Error(`Refusing to overwrite ${target} (use --force)`);
     }
-    const payload = renderModelPresetTemplate(safeId, context.presetId);
+    const payload = renderModelPresetTemplate(safeId, context.presetId, policy);
     await writeJsonFile(target, payload);
     console.log(`[onboarding] wrote model preset: ${path.relative(rootDir, target)}`);
     console.log('[onboarding] add the following model preset registration steps:');
@@ -1550,14 +1717,24 @@ async function runScaffold(context) {
   }
 
   if (kind === 'conversion') {
-    const family = normalizeId(context.family ?? 'custom');
+    const family = normalizeId(context.family, { defaultValue: policy.defaults?.conversion?.family || 'custom' });
     const target = outputOverride
       ? path.resolve(rootDir, outputOverride)
-      : path.join(rootDir, 'tools/configs/conversion', family, `${safeId}.json`);
+      : path.join(
+        rootDir,
+        resolveText(policy.paths?.conversion, 'tools/configs/conversion'),
+        family,
+        `${safeId}.json`
+      );
     if ((await fileExists(target)) && !force) {
       throw new Error(`Refusing to overwrite ${target} (use --force)`);
     }
-    const payload = renderConversionTemplate(safeId, context.presetId || 'transformer', context);
+    const payload = renderConversionTemplate(
+      safeId,
+      context.presetId,
+      context,
+      policy
+    );
     await writeJsonFile(target, payload);
     console.log(`[onboarding] wrote conversion config: ${path.relative(rootDir, target)}`);
     return 0;
@@ -1566,33 +1743,46 @@ async function runScaffold(context) {
   if (kind === 'kernel') {
     const target = outputOverride
       ? path.resolve(rootDir, outputOverride)
-      : path.join(rootDir, 'src/config/presets/kernel-paths', `${safeId}.json`);
+      : path.join(
+        rootDir,
+        resolveText(policy.paths?.kernelPath, 'src/config/presets/kernel-paths'),
+        `${safeId}.json`
+      );
     if ((await fileExists(target)) && !force) {
       throw new Error(`Refusing to overwrite ${target} (use --force)`);
     }
-    const payload = renderKernelPathTemplate(safeId, context);
+    const payload = renderKernelPathTemplate(safeId, context, policy);
     await writeJsonFile(target, payload);
     console.log(`[onboarding] wrote kernel-path template: ${path.relative(rootDir, target)}`);
     console.log('[onboarding] add this entry to registry.json:');
-    console.log(kernelRegistrySnippet(safeId, `${safeId}.json`, context.status || 'experimental', context.statusReason));
+    const defaultStatus = resolveText(policy.defaults?.kernelPath?.statusDefault, 'experimental');
+    const defaultStatusReason = resolveText(policy.defaults?.kernelPath?.statusReason, 'scaffolded');
+    console.log(kernelRegistrySnippet(safeId, `${safeId}.json`, context.status || defaultStatus, resolveText(context.statusReason, defaultStatusReason), policy));
     return 0;
   }
 
   if (kind === 'behavior') {
-    const scope = normalizeId(context.scope ?? 'modes');
+    const scope = normalizeId(context.scope, { defaultValue: resolveText(policy.defaults?.behavior?.scope, 'modes') });
     const target = outputOverride
       ? path.resolve(rootDir, outputOverride)
-      : path.join(rootDir, 'src/config/presets/runtime', scope, `${safeId}.json`);
+      : path.join(
+        rootDir,
+        resolveText(policy.paths?.runtimePreset, 'src/config/presets/runtime'),
+        scope,
+        `${safeId}.json`
+      );
     if ((await fileExists(target)) && !force) {
       throw new Error(`Refusing to overwrite ${target} (use --force)`);
     }
-    const payload = renderBehaviorTemplate(safeId, scope);
+    const payload = renderBehaviorTemplate(safeId, scope, policy);
     await writeJsonFile(target, payload);
     console.log(`[onboarding] wrote runtime preset: ${path.relative(rootDir, target)}`);
     return 0;
   }
 
-  throw new Error(`Unsupported scaffold kind "${kind}"`);
+  const supportedKinds = resolveTextArray(policy.scaffoldKinds, ['model', 'conversion', 'kernel', 'behavior']);
+  const kindError = resolveText(policy.defaults?.errors?.unsupportedKind, 'Unsupported scaffold kind');
+  throw new Error(`${kindError} "${kind}"`);
 }
 
 function printReport(report, jsonMode = false) {
@@ -1621,8 +1811,23 @@ async function main() {
     process.exit(1);
   }
 
-  const rootDir = path.resolve(process.cwd(), args.flags.root || DEFAULT_ROOT);
+  const policy = resolveOnboardingPolicy(await readJson(ONBOARDING_POLICY_PATH, 'object'));
+  setActivePolicy(policy);
+  const rootPolicyPath = resolveText(policy.defaults?.root?.path, 'REPO_ROOT');
+  const configuredRoot = normalizeTrimmedText(args.flags.root);
+  const rootDir = configuredRoot
+    ? path.resolve(process.cwd(), configuredRoot)
+    : (rootPolicyPath === 'REPO_ROOT'
+      ? REPO_ROOT
+      : path.resolve(process.cwd(), rootPolicyPath));
   const mode = String(args.mode);
+  const supportedModes = resolveTextArray(policy.modes, ['check', 'scaffold']);
+  if (!supportedModes.includes(mode)) {
+    const unsupportedModeError = resolveText(policy.defaults?.errors?.unsupportedMode, 'Unsupported mode');
+    const unsupportedHint = resolveText(policy.defaults?.errors?.unsupportedModeHint, 'Expected one of: {supportedModes}')
+      .replace('{supportedModes}', supportedModes.join(', '));
+    throw new Error(`${unsupportedModeError} \"${mode}\". ${unsupportedHint}`);
+  }
   if (mode === 'check') {
     const {
       ids: loaderPresetIds,
@@ -1642,8 +1847,8 @@ async function main() {
     if (loaderError) {
       context.issues.push(toIssue(ERROR, 'LOADER_IMPORT', 'src/config/loader.js', loaderError.message));
     }
-    await validateKernelPathRegistry(rootDir, context.issues, context);
-    const report = await runCheck(context);
+    await validateKernelPathRegistry(rootDir, context.issues, context, policy);
+    const report = await runCheck(context, policy);
 
     report.registries = {
       loaderPresetCount: loaderPresetIds.size,
@@ -1655,38 +1860,52 @@ async function main() {
     };
     report.strict = Boolean(args.flags.strict);
     printReport(report, Boolean(args.flags.json));
-    const failing = issueCounts(report.issues).errors > 0 || (Boolean(args.flags.strict) && issueCounts(report.issues).warnings > 0);
+    const strictMode = Boolean(args.flags.strict);
+    const failing = issueCounts(report.issues).errors > 0 || (strictMode && issueCounts(report.issues).warnings > 0);
+    report.strict = strictMode;
     process.exit(failing ? 1 : 0);
   }
 
-  if (mode !== 'scaffold') {
-    console.error(`Unsupported mode "${mode}".`);
-    process.exit(1);
+  if (mode === 'scaffold') {
+    const kind = normalizeTrimmedText(args.flags.kind);
+    const supportedKinds = resolveTextArray(policy.scaffoldKinds, ['model', 'conversion', 'kernel', 'behavior']);
+    if (!kind) {
+      const missingKind = resolveText(policy.defaults?.errors?.missingKind, '--kind is required for scaffold');
+      throw new Error(missingKind);
+    }
+    if (!supportedKinds.includes(kind)) {
+      const unsupportedKindError = resolveText(policy.defaults?.errors?.unsupportedKind, 'Unsupported scaffold kind');
+      const unsupportedKindHint = resolveText(policy.defaults?.errors?.unsupportedKindHint, 'Expected one of: {supportedKinds}')
+        .replace('{supportedKinds}', supportedKinds.join(', '));
+      throw new Error(`${unsupportedKindError} "${kind}". ${unsupportedKindHint}`);
+    }
+    const id = normalizeTrimmedText(args.flags.id);
+    if (!id) {
+      const missingId = resolveText(policy.defaults?.errors?.missingId, '--id is required for scaffold');
+      throw new Error(missingId);
+    }
+    const scaffoldContext = {
+      kind,
+      id,
+      rootDir,
+      force: Boolean(args.flags.force),
+      outputOverride: args.flags.output,
+      presetId: args.flags.preset,
+      family: args.flags.family,
+      baseDir: args.flags['base-dir'],
+      defaultKernelPath: args.flags['default-kernel-path'],
+      status: args.flags.status,
+      statusReason: args.flags['status-reason'],
+      scope: args.flags.scope,
+    };
+    await runScaffold(scaffoldContext, policy);
+    return;
   }
 
-  const kind = String(args.flags.kind ?? '').trim();
-  if (!kind) {
-    throw new Error('--kind is required for scaffold');
-  }
-  const id = String(args.flags.id ?? '').trim();
-  if (!id) {
-    throw new Error('--id is required for scaffold');
-  }
-  const scaffoldContext = {
-    kind,
-    id,
-    rootDir,
-    force: Boolean(args.flags.force),
-    outputOverride: args.flags.output,
-    presetId: args.flags.preset,
-    family: args.flags.family,
-    baseDir: args.flags['base-dir'],
-    defaultKernelPath: args.flags['default-kernel-path'],
-    status: args.flags.status,
-    statusReason: args.flags['status-reason'],
-    scope: args.flags.scope,
-  };
-  await runScaffold(scaffoldContext);
+  const unsupportedModeError = resolveText(policy.defaults?.errors?.unsupportedMode, 'Unsupported mode');
+  const unsupportedModeHint = resolveText(policy.defaults?.errors?.unsupportedModeHint, 'Expected one of: {supportedModes}')
+    .replace('{supportedModes}', supportedModes.join(', '));
+  throw new Error(`${unsupportedModeError} "${mode}". ${unsupportedModeHint}`);
 }
 
 main().catch((error) => {

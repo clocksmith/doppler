@@ -129,8 +129,15 @@ export class ShardCache {
   }
 
   async loadRange(shardIndex, offset = 0, length = null, options = {}) {
-    const start = Math.max(0, offset | 0);
-    const want = length == null ? null : Math.max(0, length | 0);
+    const toRangeOffset = (value) => {
+      const normalized = Number(value);
+      if (!Number.isFinite(normalized)) return 0;
+      const offsetValue = Math.trunc(normalized);
+      return offsetValue > 0 ? offsetValue : 0;
+    };
+
+    const start = toRangeOffset(offset);
+    const want = length == null ? null : toRangeOffset(length);
 
     if (this.#cache.has(shardIndex)) {
       const cached = this.#cache.get(shardIndex);

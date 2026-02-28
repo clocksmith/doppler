@@ -15,6 +15,15 @@ import { isKernelPathFusedQ4K } from '../../../config/kernel-path-loader.js';
 import { createWeightBuffer, getWeightDtype, isWeightBuffer } from '../../../gpu/weight-buffer.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 
+function resolveErrorMessage(error) {
+  if (error && typeof error === 'object' && typeof error.message === 'string') {
+    return error.message;
+  }
+  if (typeof error === 'string') {
+    return error;
+  }
+  return String(error);
+}
 
 function isRDRRManifest(manifest) {
   return manifest !== null && typeof manifest === 'object' && Array.isArray( (manifest).shards);
@@ -28,7 +37,7 @@ function resolveQ4KConfig(
   keepF32Weights = false
 ) {
   const caps = getKernelCapabilities();
-  const hasSubgroups = caps?.hasSubgroups ?? false;
+  const hasSubgroups = caps != null && caps.hasSubgroups === true;
   // Layout in quantizationInfo: 'row' (fused) or 'col' (dequant)
   const q4kLayout = manifest?.quantizationInfo?.layout ?? null;
   const isQ4KModel = manifest?.quantization === 'Q4_K_M';
@@ -615,10 +624,10 @@ export function applyChatTemplate(prompt, templateType) {
   if (formatter) {
     return formatter(prompt);
   }
-  throw new Error(`Unsupported chat template type: ${templateType}`);
+  throw new Error(`Unrecognized chat template type: ${templateType}`);
 }
 
-// Legacy exports for backwards compatibility
+// Exports preserved for existing external imports.
 export const applyGemmaChatTemplate = applyTurnBasedTemplate;
 export const applyLlama3ChatTemplate = applyHeaderBasedTemplate;
 export const applyGptOssChatTemplate = applyChannelBasedTemplate;
@@ -754,7 +763,7 @@ export function fuseQKVWeights(layerWeights, modelConfig) {
     const vBytesPerElement = resolveBytesPerElement(vProj, vExpectedElements);
 
     // Pool allocation can round GPUBuffer.size up, so infer logical dtype first and
-    // only use buffer size as a lower-bound fallback.
+    // only use buffer size as a minimum-size inference.
     if ((bytesPerElement !== 2 && bytesPerElement !== 4)
       || kBytesPerElement !== bytesPerElement
       || vBytesPerElement !== bytesPerElement) {
@@ -875,7 +884,7 @@ export async function initEmulation(runtimeConfig) {
 
     return ctx;
   } catch (err) {
-    const message = err?.message || String(err);
+    const message = resolveErrorMessage(err);
     log.error('Pipeline', `Failed to initialize emulation: ${message}`);
     throw new Error(`Failed to initialize emulation: ${message}`);
   }

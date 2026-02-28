@@ -21,6 +21,12 @@
 - **Runtime config drives behavior**; set `runtime.shared.tooling.intent` for verify/debug/bench.
 - **Models load from OPFS/IndexedDB or `/models/local/<id>` when served locally.**
 
+Behavior contract:
+
+- **JSON contract** (`manifest`, presets, rule assets) supplies kernel/path and policy.
+- **JavaScript tests/harnesses** enforce that contract and orchestrate execution.
+- **WGSL** is not used for test-policy decisions.
+
 ## Related Documentation
 
 | Doc | Purpose |

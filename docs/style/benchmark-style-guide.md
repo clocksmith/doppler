@@ -65,7 +65,7 @@ Fairness rule: the shared contract must be identical for all engines in a direct
 Profiling is an investigation workflow. Do not profile while calibrating.
 
 - Use `gpu/profiler.js` for GPU timestamps (not ad-hoc timers).
-- Keep CPU timing in benchmark harnesses as a fallback.
+- Keep CPU timing in benchmark harnesses as a deterministic fallback only when GPU timestamps are unavailable or explicitly disabled.
 
 ---
 

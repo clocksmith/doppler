@@ -26,6 +26,11 @@ Doppler uses **JavaScript** with **.d.ts** declaration files for all source modu
 manifest.json → ModelConfig → PipelineSpec → KernelSpec → GPU Dispatch
 ```
 
+Interpretation:
+1. JSON assets define policy and selection.
+2. JS resolves and enforces config, then executes dispatch.
+3. WGSL performs deterministic numeric execution only.
+
 ### Benchmark Flow (Config-First)
 
 ```

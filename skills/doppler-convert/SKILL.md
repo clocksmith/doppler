@@ -7,6 +7,13 @@ description: Convert GGUF or SafeTensors assets into Doppler RDRR manifests/shar
 
 Use this skill to add or re-convert models for Doppler runtime.
 
+## Execution Plane Contract
+
+- JSON is the conversion contract (presets, manifests, converter config).
+- JS is orchestration (parsing, conversion flow, validation, and artifact emission).
+- WGSL is not selected here; compute policy is resolved later at runtime by manifest + kernel-path rules.
+- Conversion must remain config-first and fail fast on unresolved kernel/policy requirements.
+
 ## Primary Conversion Commands
 
 ```bash

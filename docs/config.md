@@ -15,6 +15,12 @@ A kernel path defines:
 
 This replaces the implicit `q4kStrategy` and `fusedFFNQ4K` configuration flags with fully declarative paths.
 
+Execution ownership for kernel-path behavior:
+
+- **JSON contracts** (`inference.defaultKernelPath`, `inference.kernelPaths`, presets, rule assets) choose the path.
+- **JavaScript** validates and enforces the resolved path, builds dispatch sequences, and executes kernels.
+- **WGSL** receives resolved dispatch parameters and performs deterministic math only.
+
 ## Path Structure
 
 ```json
@@ -188,6 +194,9 @@ quantization and activation dtype (from `quantizationInfo.compute`):
 
 Kernel selection is config-only; harnesses must not add per-field URL overrides
 for kernel paths.
+
+Any policy choice not represented in manifest presets or runtime config
+must fail fast during contract validation rather than being inferred at runtime.
 
 ## Creating Custom Paths
 

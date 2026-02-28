@@ -331,6 +331,7 @@ function usage() {
   '  --browser-base-url <url>         Base URL for both benchmark runners (skips local server startup)',
   '  --browser-executable <path>      Browser executable for both benchmark runners',
   '  --runtime-config-json <json>      JSON overlay merged into Doppler runtime config',
+  '  --timestamp <iso|ms>               Report timestamp override (ISO-8601 or epoch milliseconds)',
     '  --tjs-profile-ops <on|off>       TJS ORT op profiling',
   '  --timeout-ms <ms>                 Shared benchmark timeout',
   '  --doppler-timeout-ms <ms>         Doppler-only benchmark timeout',
@@ -369,7 +370,7 @@ function valueType(value) {
 }
 
 function ensureSchemaMatch(value, schema, trace) {
-  const label = trace || '$';
+  const label = trace == null ? '$' : String(trace);
   if (!schema || !isJsonObject(schema)) {
     throw new Error(`Invalid schema at ${label}: expected object`);
   }
@@ -939,6 +940,21 @@ function parseDecodeProfile(value) {
     );
   }
   return profile;
+}
+
+function parseTimestampValue(rawValue, label) {
+  if (rawValue == null || rawValue === '') return null;
+  if (typeof rawValue !== 'string') {
+    throw new Error(`${label} must be a string`);
+  }
+  const trimmed = rawValue.trim();
+  if (trimmed === '') return null;
+  const asMs = /^[-+]?\d+$/.test(trimmed) ? Number(trimmed) : NaN;
+  const parsed = Number.isFinite(asMs) ? new Date(asMs) : new Date(trimmed);
+  if (Number.isNaN(parsed.getTime())) {
+    throw new Error(`${label} must be ISO-8601 or epoch milliseconds`);
+  }
+  return parsed.toISOString();
 }
 
 function resolveDopplerKernelPath(profile, kernelPathOverride) {
@@ -1525,10 +1541,10 @@ function printSection(title, dopplerResult, tjsResult, rows) {
   }
 }
 
-function compactTimestamp() {
-  const d = new Date();
+function compactTimestamp(timestamp = null) {
+  const d = timestamp == null ? new Date() : new Date(timestamp);
   const pad = (n, w = 2) => String(n).padStart(w, '0');
-  return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+  return `${d.getUTCFullYear()}${pad(d.getUTCMonth() + 1)}${pad(d.getUTCDate())}T${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}${pad(d.getUTCSeconds())}`;
 }
 
 async function main() {
@@ -1537,6 +1553,7 @@ async function main() {
     console.log(usage());
     return;
   }
+  const runTimestamp = parseTimestampValue(flags.timestamp, '--timestamp');
   const workloadCatalog = await loadWorkloadCatalog();
   const defaultWorkloadId = workloadCatalog.defaultWorkloadId;
   if (!defaultWorkloadId) {
@@ -1732,7 +1749,7 @@ async function main() {
   );
 
   const report = {
-    timestamp: new Date().toISOString(),
+    timestamp: runTimestamp ?? new Date().toISOString(),
     benchmarkPolicy: {
       source: BENCHMARK_POLICY.source,
       schemaVersion: BENCHMARK_POLICY.schemaVersion,
@@ -2110,7 +2127,7 @@ async function main() {
 
   if (shouldSave) {
     await fs.mkdir(saveDir, { recursive: true });
-    const ts = compactTimestamp();
+    const ts = compactTimestamp(runTimestamp);
     const filename = `compare_${ts}.json`;
     const filePath = path.join(saveDir, filename);
     const latestPath = path.join(saveDir, 'compare_latest.json');
@@ -2122,6 +2139,9 @@ async function main() {
         path.join(DOPPLER_ROOT, 'tools', 'vendor-bench.js'),
         'matrix',
       ];
+      if (runTimestamp) {
+        matrixArgs.push('--timestamp', runTimestamp);
+      }
       await execFileAsync('node', matrixArgs, {
         cwd: DOPPLER_ROOT,
         timeout: 120_000,

@@ -20,6 +20,8 @@ import { decodeReadback } from './debug-utils.js';
 import { getFinalNormWeights, extractEmbeddingFromHidden } from './generator-runtime.js';
 import { parseFinitenessStatusWords } from './finiteness-guard-status.js';
 
+const UNKNOWN_TOKEN_TEXT = '<unknown>';
+
 export function sumProfileTimings(timings) {
   if (!timings || Object.keys(timings).length === 0) return null;
   let total = 0;
@@ -32,8 +34,34 @@ export function sumProfileTimings(timings) {
 }
 
 function getEffectiveActivationDtype(state, opts) {
-  return opts?.executionPlan?.activationDtype
-    ?? state.runtimeConfig.inference.compute.activationDtype;
+  const executionPlanDtype = opts?.executionPlan?.activationDtype;
+  if (executionPlanDtype !== undefined && executionPlanDtype !== null) {
+    return executionPlanDtype;
+  }
+  if (executionPlanDtype === null) {
+    throw new Error('[Pipeline] executionPlan.activationDtype is required when provided and cannot be null.');
+  }
+  return state.runtimeConfig.inference.compute.activationDtype;
+}
+
+function getTokenTextOrUnknown(tokenizer, tokenId) {
+  if (!tokenizer || typeof tokenizer.decode !== 'function') {
+    return UNKNOWN_TOKEN_TEXT;
+  }
+
+  const tokenText = tokenizer.decode([tokenId], false, false);
+  if (typeof tokenText !== 'string' || tokenText.length === 0) {
+    return UNKNOWN_TOKEN_TEXT;
+  }
+
+  return tokenText;
+}
+
+function isOwnedDecodeBuffer(candidate, decodeHiddenBuffer, decodeAltBuffer) {
+  if (candidate === decodeHiddenBuffer) {
+    return true;
+  }
+  return candidate === decodeAltBuffer;
 }
 
 export class FinitenessError extends Error {
@@ -126,7 +154,7 @@ async function runDecodeLayers(state, tokenId, opts, helpers) {
     hiddenStates = (await processLayer(l, hiddenStates, 1, false, context));
     state.decodeBuffers.swapPingPong();
     if (prevStates instanceof GPUBuffer && prevStates !== hiddenStates) {
-      const isPreAllocated = prevStates === decodeHiddenBuffer || prevStates === decodeAltBuffer;
+      const isPreAllocated = isOwnedDecodeBuffer(prevStates, decodeHiddenBuffer, decodeAltBuffer);
       if (!isPreAllocated) {
         releaseBuffer(prevStates);
       }
@@ -147,7 +175,7 @@ export async function decodeStep(state, currentIds, opts, helpers) {
   state.decodeStepCount++;
   const isDebugStep = opts.debug && state.decodeStepCount <= 5;
   if (isDebugStep) {
-    const tokenText = state.tokenizer?.decode?.([lastToken]) || '?';
+    const tokenText = getTokenTextOrUnknown(state.tokenizer, lastToken);
     log.debug('Decode', `[${state.decodeStepCount}] token="${tokenText}" pos=${state.currentSeqLen}`);
   }
 
@@ -237,7 +265,7 @@ export async function decodeStep(state, currentIds, opts, helpers) {
     state.decodeBuffers.swapPingPong();
 
     if (prevStates instanceof GPUBuffer && prevStates !== hiddenStates) {
-      const isPreAllocated = prevStates === decodeHiddenBuffer || prevStates === decodeAltBuffer;
+      const isPreAllocated = isOwnedDecodeBuffer(prevStates, decodeHiddenBuffer, decodeAltBuffer);
       if (!isPreAllocated) {
         if (recorder) {
           recorder.trackTemporaryBuffer(prevStates);
@@ -310,7 +338,7 @@ export async function decodeStep(state, currentIds, opts, helpers) {
     const ownsStagingBuffer = stagingBuffer !== ringStagingBuffer;
     const ownsSampleOutputBuffer = !ringTokensBuffer || sampleOutputBuffer !== ringTokensBuffer;
 
-    const isPreAllocated = hiddenStates === decodeHiddenBuffer || hiddenStates === decodeAltBuffer;
+    const isPreAllocated = isOwnedDecodeBuffer(hiddenStates, decodeHiddenBuffer, decodeAltBuffer);
     const encoder = recorder.getEncoder();
     encoder.copyBufferToBuffer(sampleOutputBuffer, 0, stagingBuffer, 0, 4);
     if (state.finitenessBuffer) {
@@ -350,28 +378,24 @@ export async function decodeStep(state, currentIds, opts, helpers) {
     if (invalidToken) {
       log.warn('Decode', `Suspicious token ${nextToken} (vocabSize=${config.vocabSize}, step=${state.decodeStepCount})`);
       if (allowReadback('pipeline.decode.debug-logits')) {
-        try {
-          const logitsBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: logitsDtype });
-          const logitSample = await readBuffer(logitsBuffer, Math.min(config.vocabSize * logitsBytes, 4096));
-          const logitArr = decodeReadback(logitSample, logitsDtype);
-          const maxLogit = Math.max(...logitArr);
-          const minLogit = Math.min(...logitArr);
-          const hasNaN = logitArr.some((v) => Number.isNaN(v));
-          const hasInf = logitArr.some((v) => !Number.isFinite(v));
-          let argmaxIdx = 0;
-          let argmaxVal = logitArr[0];
-          for (let i = 1; i < logitArr.length; i++) {
-            if (logitArr[i] > argmaxVal) {
-              argmaxVal = logitArr[i];
-              argmaxIdx = i;
-            }
+        const logitsBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: logitsDtype });
+        const logitSample = await readBuffer(logitsBuffer, Math.min(config.vocabSize * logitsBytes, 4096));
+        const logitArr = decodeReadback(logitSample, logitsDtype);
+        const maxLogit = Math.max(...logitArr);
+        const minLogit = Math.min(...logitArr);
+        const hasNaN = logitArr.some((v) => Number.isNaN(v));
+        const hasInf = logitArr.some((v) => !Number.isFinite(v));
+        let argmaxIdx = 0;
+        let argmaxVal = logitArr[0];
+        for (let i = 1; i < logitArr.length; i++) {
+          if (logitArr[i] > argmaxVal) {
+            argmaxVal = logitArr[i];
+            argmaxIdx = i;
           }
-          log.warn('Decode', `Logits: max=${maxLogit.toFixed(4)} at [${argmaxIdx}], min=${minLogit.toFixed(4)}, hasNaN=${hasNaN}, hasInf=${hasInf}`);
-          log.warn('Decode', `First 10 logits: ${Array.from(logitArr.slice(0, 10)).map((v) => v.toFixed(4)).join(', ')}`);
-          log.warn('Decode', `Logit[0] (pad): ${logitArr[0].toFixed(4)}, Logit[${argmaxIdx}]: ${argmaxVal.toFixed(4)}`);
-        } catch (e) {
-          log.warn('Decode', `Failed to read logits: ${(e).message}`);
         }
+        log.warn('Decode', `Logits: max=${maxLogit.toFixed(4)} at [${argmaxIdx}], min=${minLogit.toFixed(4)}, hasNaN=${hasNaN}, hasInf=${hasInf}`);
+        log.warn('Decode', `First 10 logits: ${Array.from(logitSample.slice(0, 10)).map((v) => v.toFixed(4)).join(', ')}`);
+        log.warn('Decode', `Logit[0] (pad): ${logitArr[0].toFixed(4)}, Logit[${argmaxIdx}]: ${argmaxVal.toFixed(4)}`);
       }
     }
 
@@ -626,7 +650,7 @@ export async function decodeStepLogits(state, currentIds, opts, helpers) {
     logits = extractLastPositionLogits(rawLogits, numTokens, config.vocabSize);
   }
 
-  const isPreAllocated = hiddenStates === decodeHiddenBuffer || hiddenStates === decodeAltBuffer;
+  const isPreAllocated = isOwnedDecodeBuffer(hiddenStates, decodeHiddenBuffer, decodeAltBuffer);
   if (!isPreAllocated) {
     releaseBuffer(hiddenStates);
   }
@@ -652,7 +676,7 @@ export async function advanceWithToken(state, tokenId, opts, helpers) {
     helpers
   );
 
-  const isPreAllocated = hiddenStates === decodeHiddenBuffer || hiddenStates === decodeAltBuffer;
+  const isPreAllocated = isOwnedDecodeBuffer(hiddenStates, decodeHiddenBuffer, decodeAltBuffer);
   if (!isPreAllocated) {
     releaseBuffer(hiddenStates);
   }
@@ -661,9 +685,6 @@ export async function advanceWithToken(state, tokenId, opts, helpers) {
 }
 
 export async function advanceWithTokenAndEmbedding(state, tokenId, opts, helpers, embeddingMode) {
-  if (embeddingMode !== 'last' && embeddingMode !== 'mean') {
-    throw new Error(`advanceWithTokenAndEmbedding: unsupported embeddingMode "${embeddingMode}" (expected "last" or "mean")`);
-  }
 
   state.decodeStepCount++;
 
@@ -696,18 +717,18 @@ export async function advanceWithTokenAndEmbedding(state, tokenId, opts, helpers
     });
 
     let decodedHidden;
+    let stagingMapped = false;
     try {
       const enc = device.createCommandEncoder({ label: 'advance_with_embedding_copy' });
       enc.copyBufferToBuffer(hiddenStates, 0, staging, 0, sampleSize);
       device.queue.submit([enc.finish()]);
 
       await staging.mapAsync(GPUMapMode.READ);
+      stagingMapped = true;
       decodedHidden = decodeReadback(staging.getMappedRange().slice(0), activationDtype);
     } finally {
-      try {
+      if (stagingMapped) {
         staging.unmap();
-      } catch {
-        // Buffer may already be unmapped.
       }
       staging.destroy();
     }
@@ -716,12 +737,12 @@ export async function advanceWithTokenAndEmbedding(state, tokenId, opts, helpers
       decodedHidden,
       1,
       config.hiddenSize,
-      'last',
+      embeddingMode,
       finalNormWeights,
       config
     );
   } finally {
-    const isPreAllocated = hiddenStates === decodeHiddenBuffer || hiddenStates === decodeAltBuffer;
+    const isPreAllocated = isOwnedDecodeBuffer(hiddenStates, decodeHiddenBuffer, decodeAltBuffer);
     if (!isPreAllocated) {
       releaseBuffer(hiddenStates);
     }

@@ -30,6 +30,18 @@ DOPPLER makes deliberate architectural tradeoffs that diverge from pre-compiled 
 | **Minimal Readback** | Only final logits read to CPU | Avoids 2-6ms GPU→CPU transfer per readback |
 | **JavaScript Orchestration** | JS dispatches GPU work, handles sampling | Debugging, rapid iteration, browser integration |
 
+## Execution Planes
+
+- **JSON plane** (`manifest.json`, presets, rule maps): policy, selection, and execution contract.
+- **JS plane** (`src/**/*.js` orchestration): merge/validate config, allocate buffers, build pipelines, dispatch work, collect artifacts.
+- **WGSL plane** (`src/gpu/kernels/*.wgsl`): deterministic arithmetic execution only.
+
+Behavior-changing choices must be fully represented before dispatch:
+
+- No implicit runtime detection from model names at execution time.
+- No hidden policy branching in WGSL.
+- No implicit defaults for capability fallback; unresolved decisions fail fast.
+
 ### Doppler vs Transformers.js (v4): Execution Boundary View
 
 This comparison is about architecture and control surfaces, not blanket speed claims.
@@ -95,6 +107,14 @@ DOPPLER is the **Engine** (mechanism); a caller/orchestrator is the **Policy Lay
 ### The Principle
 
 **DOPPLER never decides, it only executes.** All policy decisions (what to do, when to do it, what weights to use) come from the caller/orchestrator. DOPPLER provides primitives that accept parameters and execute them efficiently on the GPU.
+
+In Doppler terms:
+
+- **JSON contract** (`manifest`, presets, rule assets) owns policy, selection, and fallback policy.
+- **JS orchestration** (`src/**/*.js`) resolves/validates config, builds bind groups, creates pipelines, dispatches kernels, and handles readback.
+- **WGSL execution** (`src/gpu/kernels/*.wgsl`) receives fully-resolved dispatch parameters and performs deterministic math only.
+
+Any unresolved behavior choice is a contract error at runtime boundary, not an implicit runtime branch.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
@@ -759,7 +779,7 @@ model-directory/
 
 ### shard-manager.js - Storage Backends
 
-Uses config-driven storage backends with OPFS as the preferred path and IndexedDB/memory fallbacks:
+Uses config-driven storage backends with OPFS as the preferred path and IndexedDB/memory transport backends selected by explicit storage policy:
 - `initStorage()` - Initialize selected backend
 - `openModelStore(modelId)` - Set active model storage
 - `loadShard(idx)` - Read shard to ArrayBuffer

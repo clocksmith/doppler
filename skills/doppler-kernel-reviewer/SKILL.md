@@ -7,6 +7,13 @@ description: Review kernels against DOPPLER style guide and propose style guide 
 
 This skill helps you review DOPPLER kernels (WGSL, JS wrappers, .d.ts) against the official style guides. It also supports proposing changes to the style guides themselves.
 
+## Plane Contract (Review Invariant)
+
+- JSON rules + presets own kernel selection and feature toggles.
+- JS wrappers own orchestration (validation, binding/pipeline setup, dispatch lifecycle).
+- WGSL owns deterministic arithmetic and memory transforms only.
+- A review must flag any ad-hoc, implicit behavior branching in JS or WGSL that bypasses rule assets/config resolution.
+
 ## Workflows
 
 ### 1. Review Kernel

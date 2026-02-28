@@ -20,6 +20,50 @@ import { selectRuleValue } from '../rules/rule-registry.js';
 import { mergeRuntimeValues } from '../config/runtime-merge.js';
 import { isPlainObject } from '../utils/plain-object.js';
 
+function parseReportTimestamp(rawTimestamp, label = 'timestamp') {
+  if (rawTimestamp == null) {
+    return null;
+  }
+
+  if (rawTimestamp instanceof Date) {
+    const timestamp = rawTimestamp.getTime();
+    if (!Number.isFinite(timestamp)) {
+      throw new Error(`Invalid ${label}: not a valid Date.`);
+    }
+    return rawTimestamp.toISOString();
+  }
+
+  if (typeof rawTimestamp === 'number') {
+    if (!Number.isFinite(rawTimestamp)) {
+      throw new Error(`Invalid ${label}: must be a finite epoch timestamp.`);
+    }
+    return new Date(rawTimestamp).toISOString();
+  }
+
+  if (typeof rawTimestamp === 'string') {
+    const trimmed = rawTimestamp.trim();
+    if (trimmed.length === 0) {
+      return null;
+    }
+    const numericCandidate = Number(trimmed);
+    if (Number.isFinite(numericCandidate)) {
+      return new Date(numericCandidate).toISOString();
+    }
+    const parsed = new Date(trimmed);
+    if (Number.isNaN(parsed.getTime())) {
+      throw new Error(`Invalid ${label}: expected ISO-8601 string or epoch milliseconds.`);
+    }
+    return parsed.toISOString();
+  }
+
+  throw new Error(`Invalid ${label}: expected Date, ISO-8601 string, epoch milliseconds, or nullish.`);
+}
+
+function resolveReportTimestamp(rawTimestamp, label, fallbackTimestamp = null) {
+  const parsed = parseReportTimestamp(rawTimestamp, label);
+  return parsed ?? (fallbackTimestamp == null ? new Date().toISOString() : String(fallbackTimestamp));
+}
+
 function resolveRuntime(options) {
   if (options.runtime) return options.runtime;
   if (options.searchParams) return parseRuntimeOverridesFromURL(options.searchParams);
@@ -310,6 +354,7 @@ export async function saveBrowserReport(modelId, report, options = {}) {
 
 export async function runBrowserHarness(options = {}) {
   const harness = await initializeBrowserHarness(options);
+  const reportTimestamp = resolveReportTimestamp(options.timestamp, 'runBrowserHarness timestamp');
   const modelId = options.modelId || harness.manifest?.modelId || 'unknown';
 
   let report = options.report || null;
@@ -319,11 +364,13 @@ export async function runBrowserHarness(options = {}) {
   if (!report) {
     report = {
       modelId,
-      timestamp: new Date().toISOString(),
+      timestamp: reportTimestamp,
     };
+  } else if (!report.timestamp) {
+    report = { ...report, timestamp: reportTimestamp };
   }
 
-  const reportInfo = await saveReport(modelId, report, { timestamp: options.timestamp });
+  const reportInfo = await saveReport(modelId, report, { timestamp: report.timestamp || reportTimestamp });
   return { ...harness, report, reportInfo };
 }
 
@@ -1837,6 +1884,7 @@ async function runEnergySuite(options = {}) {
 
 export async function runBrowserSuite(options = {}) {
   return runWithRuntimeIsolationForSuite(async () => {
+    const suiteTimestamp = resolveReportTimestamp(options.timestamp, 'runBrowserSuite timestamp');
     const suite = normalizeSuite(options.suite);
     let suiteResult;
     if (suite === 'kernels') {
@@ -1862,13 +1910,16 @@ export async function runBrowserSuite(options = {}) {
       deviceInfo: suiteResult.deviceInfo ?? null,
       results: suiteResult.results,
       durationMs: suiteResult.duration,
-      timestamp: new Date().toISOString(),
+      timestamp: suiteTimestamp,
       metrics: suiteResult.metrics ?? null,
       output: reportOutput,
       memory: suiteResult.memoryStats ?? null,
       ...options.report,
     };
-    const reportInfo = await saveReport(modelId, report, { timestamp: options.timestamp });
+    if (!report.timestamp) {
+      report.timestamp = suiteTimestamp;
+    }
+    const reportInfo = await saveReport(modelId, report, { timestamp: report.timestamp });
     return { ...suiteResult, report, reportInfo };
   });
 }
@@ -1942,6 +1993,7 @@ function summarizeManifestRuns(results) {
 export async function runBrowserManifest(manifest, options = {}) {
   const normalized = normalizeManifest(manifest);
   const results = [];
+  const manifestTimestamp = resolveReportTimestamp(options.timestamp, 'runBrowserManifest timestamp');
   const baseRuntimeConfig = cloneRuntimeConfig(getRuntimeConfig());
   const baseKernelPath = getActiveKernelPath();
   const baseKernelPathSource = getActiveKernelPathSource();
@@ -1953,7 +2005,12 @@ export async function runBrowserManifest(manifest, options = {}) {
       setRuntimeConfig(baseRuntimeConfig);
       setActiveKernelPath(baseKernelPath, baseKernelPathSource, baseKernelPathPolicy);
       await applyRuntimeForRun(run, options);
-      const result = await runBrowserSuite(run);
+      const runTimestamp = resolveReportTimestamp(
+        run.timestamp,
+        `runBrowserManifest run[${i}] timestamp`,
+        manifestTimestamp
+      );
+      const result = await runBrowserSuite({ ...run, timestamp: runTimestamp });
       results.push({
         ...result,
         label: run.label ?? `${run.suite || 'inference'}:${result.modelId || 'unknown'}`,
@@ -1971,7 +2028,7 @@ export async function runBrowserManifest(manifest, options = {}) {
 
   const summary = summarizeManifestRuns(results);
   const report = {
-    timestamp: new Date().toISOString(),
+    timestamp: manifestTimestamp,
     summary,
     runs: results.map((result) => ({
       label: result.label,

@@ -70,3 +70,12 @@ flowchart TD
   dispatch/transport details, not separate semantics.
 - Prefill and decode share kernel modules but differ in attention/cache behavior and
   prompt-length assumptions.
+
+## Plane Interpretation
+
+- **JSON plane**: manifests, presets, and rule assets define supported command and inference policies.
+- **JS plane**: command normalization, config merge/validation, resource allocation, dispatch orchestration.
+- **WGSL plane**: deterministic arithmetic kernels only, driven by resolved dispatch parameters.
+
+The contract is strict: if a selection path is missing (kernel path, dtype mode, or runtime
+policy), fail before dispatch; never synthesize behavior by JS or WGSL fallback.

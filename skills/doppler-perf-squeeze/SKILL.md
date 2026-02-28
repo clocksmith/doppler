@@ -7,6 +7,13 @@ description: Diagnose and improve Doppler decode/prefill performance with parity
 
 Use this skill when Doppler is slower than expected on decode, prefill, TTFT, or model-load-sensitive warm UX.
 
+## Execution Plane Contract
+
+- The benchmarking and tuning contract is JSON-first (`runtime` presets + workload contracts).
+- JS orchestrates timing, profiling hooks, and runtime overlays without policy drift from command examples.
+- WGSL changes are code-path changes only; throughput/quality conclusions must be tied to explicit config deltas.
+- Any implicit fallback (e.g., automatic policy downgrades) invalidates baseline comparisons and should be blocked.
+
 ## Workflow
 
 ### 1) Establish Baselines (Parity First)

@@ -60,6 +60,18 @@ const TRANSLATEGEMMA_LANGUAGE_ENTRIES = Object.freeze([
 ]);
 
 const TRANSLATEGEMMA_LANGUAGE_NAMES = new Map();
+const CHAT_ROLES = Object.freeze(['system', 'user', 'assistant']);
+const CHAT_ROLE_SET = new Set(CHAT_ROLES);
+
+function assertSupportedChatRole(role, templateName, messageIndex) {
+  if (!CHAT_ROLE_SET.has(role)) {
+    const suffix = Number.isInteger(messageIndex) ? ` at message index ${messageIndex}` : '';
+    throw new Error(
+      `${templateName} formatter expects message role "${CHAT_ROLES.join('", "')}".${suffix}`
+    );
+  }
+}
+
 for (const [code, name] of TRANSLATEGEMMA_LANGUAGE_ENTRIES) {
   TRANSLATEGEMMA_LANGUAGE_NAMES.set(code, name);
   const rootCode = code.split('-')[0];
@@ -69,7 +81,8 @@ for (const [code, name] of TRANSLATEGEMMA_LANGUAGE_ENTRIES) {
 }
 
 function normalizeChatRole(role) {
-  const normalized = String(role || '').trim().toLowerCase();
+  if (typeof role !== 'string') return null;
+  const normalized = role.trim().toLowerCase();
   if (normalized === 'system' || normalized === 'user' || normalized === 'assistant') {
     return normalized;
   }
@@ -77,7 +90,8 @@ function normalizeChatRole(role) {
 }
 
 function normalizeTranslateLanguageCode(value) {
-  const normalized = String(value ?? '').trim().replace(/_/g, '-');
+  if (typeof value !== 'string') return null;
+  const normalized = value.trim().replace(/_/g, '-');
   return normalized || null;
 }
 
@@ -115,16 +129,18 @@ function formatTurnBased(messages) {
   const parts = [];
   let systemContent = '';
 
-  for (const message of messages) {
+  for (const [index, message] of messages.entries()) {
     const role = normalizeChatRole(message?.role);
+    assertSupportedChatRole(role, 'Turn-based', index);
     if (role === 'system') {
       const content = normalizeChatMessageContent(message?.content);
       systemContent += (systemContent ? '\n\n' : '') + content;
     }
   }
 
-  for (const message of messages) {
+  for (const [index, message] of messages.entries()) {
     const role = normalizeChatRole(message?.role);
+    assertSupportedChatRole(role, 'Turn-based', index);
     if (role === 'system') continue;
 
     if (role === 'user') {
@@ -149,8 +165,9 @@ function formatHeaderBased(messages) {
   // Header-based format: <|start_header_id|>role<|end_header_id|>\n\ncontent<|eot_id|>
   const parts = ['<|begin_of_text|>'];
 
-  for (const message of messages) {
+  for (const [index, message] of messages.entries()) {
     const role = normalizeChatRole(message?.role);
+    assertSupportedChatRole(role, 'Header-based', index);
     const content = normalizeChatMessageContent(message?.content);
     if (role === 'system') {
       parts.push(`<|start_header_id|>system<|end_header_id|>\n\n${content}<|eot_id|>`);
@@ -170,8 +187,9 @@ function formatChannelBased(messages) {
   // Channel-based format: <|start|>role<|channel|>channel<|message|>content<|end|>
   const parts = [];
 
-  for (const message of messages) {
+  for (const [index, message] of messages.entries()) {
     const role = normalizeChatRole(message?.role);
+    assertSupportedChatRole(role, 'Channel-based', index);
     const content = normalizeChatMessageContent(message?.content);
     if (role === 'system') {
       parts.push(`<|start|>system<|message|>${content}<|end|>`);
@@ -190,8 +208,9 @@ function formatChannelBased(messages) {
 function formatChatML(messages) {
   // ChatML format: <|im_start|>role\ncontent<|im_end|>
   const parts = [];
-  for (const message of messages) {
+  for (const [index, message] of messages.entries()) {
     const role = normalizeChatRole(message?.role);
+    assertSupportedChatRole(role, 'ChatML', index);
     const content = normalizeChatMessageContent(message?.content);
     if (role === 'system') {
       parts.push(`<|im_start|>system\n${content}<|im_end|>\n`);
@@ -269,7 +288,9 @@ function formatTranslateGemma(messages) {
   if (!Array.isArray(messages) || messages.length === 0) {
     throw new Error('TranslateGemma template requires at least one message.');
   }
-  if (normalizeChatRole(messages[0]?.role) !== 'user') {
+  const firstRole = normalizeChatRole(messages[0]?.role);
+  assertSupportedChatRole(firstRole, 'TranslateGemma', 0);
+  if (firstRole !== 'user') {
     throw new Error('TranslateGemma template requires the conversation to start with a user message.');
   }
 
@@ -277,6 +298,7 @@ function formatTranslateGemma(messages) {
   for (let index = 0; index < messages.length; index++) {
     const message = messages[index];
     const role = normalizeChatRole(message?.role);
+    assertSupportedChatRole(role, 'TranslateGemma', index);
     if ((role === 'user') !== (index % 2 === 0)) {
       throw new Error('TranslateGemma template requires alternating user/assistant roles.');
     }
@@ -328,6 +350,9 @@ const CHAT_FORMATTERS = {
 };
 
 export function formatChatMessages(messages, templateType) {
+  if (!Array.isArray(messages)) {
+    throw new Error('formatChatMessages expects an array of messages.');
+  }
   const formatter = CHAT_FORMATTERS[templateType];
   if (formatter) {
     return formatter(messages);
@@ -335,7 +360,6 @@ export function formatChatMessages(messages, templateType) {
   return formatPlaintext(messages);
 }
 
-// Legacy exports for backwards compatibility
 export const formatGemmaChat = formatTurnBased;
 export const formatLlama3Chat = formatHeaderBased;
 export const formatGptOssChat = formatChannelBased;

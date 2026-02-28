@@ -31,6 +31,7 @@
 //   --use-chat-template   Apply model chat template before generation
 //   --save               Save result JSON to benchmarks/vendors/results/
 //   --save-dir <dir>     Directory for saved results (default: ./benchmarks/vendors/results)
+//   --timestamp <iso|ms> Result timestamp override (ISO-8601 or epoch milliseconds)
 //   --json               Output only JSON (default: true)
 //   --browser-console    Stream browser console to stderr
 
@@ -273,19 +274,19 @@ function isRecoverablePersistentLaunchError(error) {
   return PERSISTENT_LAUNCH_ERROR_HINTS.some((hint) => message.includes(hint));
 }
 
-function parseToggle(value, flag, fallback) {
-  if (value == null) return fallback;
+function parseBooleanFlag(value, fallback, label) {
+  if (value == null || value === '') return fallback;
   const normalized = String(value).trim().toLowerCase();
   if (normalized === 'on' || normalized === 'true' || normalized === '1' || normalized === 'yes') return true;
   if (normalized === 'off' || normalized === 'false' || normalized === '0' || normalized === 'no') return false;
-  throw new Error(`${flag} must be one of: on, off, true, false, 1, 0`);
+  throw new Error(`${label} must be one of: on, off, true, false, 1, 0`);
 }
 
-function parsePositiveInt(value, flag, fallback) {
-  if (value == null) return fallback;
+function parsePositiveInteger(value, fallback, label) {
+  if (value == null || value === '') return fallback;
   const parsed = Number(value);
   if (!Number.isFinite(parsed) || !Number.isInteger(parsed) || parsed <= 0) {
-    throw new Error(`${flag} must be a positive integer`);
+    throw new Error(`${label} must be a positive integer`);
   }
   return parsed;
 }
@@ -350,16 +351,31 @@ async function wipeDir(dirPath) {
   } catch { /* ignore if not exists */ }
 }
 
-function compactTimestamp() {
-  const d = new Date();
-  const pad = (n, w = 2) => String(n).padStart(w, '0');
-  return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+function parseTimestampValue(rawValue, label) {
+  if (rawValue == null || rawValue === '') return null;
+  if (typeof rawValue !== 'string') {
+    throw new Error(`${label} must be a string`);
+  }
+  const trimmed = rawValue.trim();
+  if (trimmed === '') return null;
+  const asMs = /^[-+]?\d+$/.test(trimmed) ? Number(trimmed) : NaN;
+  const parsed = Number.isFinite(asMs) ? new Date(asMs) : new Date(trimmed);
+  if (Number.isNaN(parsed.getTime())) {
+    throw new Error(`${label} must be ISO-8601 or epoch milliseconds`);
+  }
+  return parsed.toISOString();
 }
 
-async function saveResult(result, saveDir) {
+function compactTimestamp(timestamp = null) {
+  const d = timestamp == null ? new Date() : new Date(timestamp);
+  const pad = (n, w = 2) => String(n).padStart(w, '0');
+  return `${d.getUTCFullYear()}${pad(d.getUTCMonth() + 1)}${pad(d.getUTCDate())}T${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}${pad(d.getUTCSeconds())}`;
+}
+
+async function saveResult(result, saveDir, timestamp = null) {
   await fs.mkdir(saveDir, { recursive: true });
   const modelSlug = String(result?.modelId || 'unknown').replace(/[^a-zA-Z0-9_-]/g, '_');
-  const ts = compactTimestamp();
+  const ts = compactTimestamp(timestamp);
   const filename = `tjs_${modelSlug}_${ts}.json`;
   const filePath = path.join(saveDir, filename);
   const json = JSON.stringify(result, null, 2);
@@ -651,8 +667,9 @@ async function main() {
   const loadMode = parseLoadMode(flags['load-mode'], '--load-mode', 'http');
   const strictWarmOpfs = cacheMode === 'warm' && loadMode === 'opfs';
   const tjsVersion = flags['tjs-version'] || '4';
-  const profileOps = parseToggle(flags['profile-ops'], '--profile-ops', true);
-  const profileTopN = parsePositiveInt(flags['profile-top'], '--profile-top', DEFAULT_PROFILE_TOP_N);
+  const timestamp = parseTimestampValue(flags.timestamp, '--timestamp');
+  const profileOps = parseBooleanFlag(flags['profile-ops'], true, '--profile-ops');
+  const profileTopN = parsePositiveInteger(flags['profile-top'], DEFAULT_PROFILE_TOP_N, '--profile-top');
   const useChatTemplate = flags['use-chat-template'] === true;
   const tjsDtype = parseTjsDtype(flags.dtype, '--dtype', 'fp16');
 
@@ -665,13 +682,13 @@ async function main() {
 
   let modelId = flags.model || DEFAULT_MODEL;
   let prompt = flags.prompt || DEFAULT_PROMPT;
-  let maxNewTokens = parsePositiveInt(flags['max-tokens'], '--max-tokens', DEFAULT_MAX_TOKENS);
+  let maxNewTokens = parsePositiveInteger(flags['max-tokens'], DEFAULT_MAX_TOKENS, '--max-tokens');
   let temperature = parseNonNegativeNumber(flags.temperature, '--temperature', DEFAULT_TEMPERATURE);
-  let topK = parsePositiveInt(flags['top-k'], '--top-k', DEFAULT_TOP_K);
+  let topK = parsePositiveInteger(flags['top-k'], DEFAULT_TOP_K, '--top-k');
   let topP = parseProbability(flags['top-p'], '--top-p', DEFAULT_TOP_P);
   let warmupRuns = parseNonNegativeInt(flags.warmup, '--warmup', DEFAULT_WARMUP);
-  let timedRuns = parsePositiveInt(flags.runs, '--runs', DEFAULT_RUNS);
-  const timeoutMs = parsePositiveInt(flags.timeout, '--timeout', DEFAULT_TIMEOUT);
+  let timedRuns = parsePositiveInteger(flags.runs, DEFAULT_RUNS, '--runs');
+  const timeoutMs = parsePositiveInteger(flags.timeout, DEFAULT_TIMEOUT, '--timeout');
   const userDataDir = flags['user-data'] || DEFAULT_PROFILE_DIR;
   const serverPort = parseNonNegativeInt(flags['server-port'], '--server-port', DEFAULT_SERVER_PORT);
   const seed = parseNonNegativeInt(flags.seed, '--seed', DEFAULT_SEED);
@@ -989,7 +1006,7 @@ async function main() {
 
     if (flags.save) {
       const saveDir = flags['save-dir'] || path.join(BENCHMARKS_ROOT, 'vendors', 'results');
-      const savedPath = await saveResult(result, saveDir);
+      const savedPath = await saveResult(result, saveDir, timestamp);
       console.error(`[tjs-bench] saved to ${savedPath}`);
     }
   } catch (error) {

@@ -286,7 +286,7 @@ export function mergeConfig(
   const manifestInf = manifest.inference;
 
   // Merge layerPattern with source tracking.
-  let layerPattern = manifestInf.layerPattern ?? null;
+  let layerPattern = manifestInf.layerPattern;
   const runtimeLayerPattern = runtimeOverrides?.layerPattern;
   if (runtimeLayerPattern !== undefined) {
     layerPattern = runtimeLayerPattern;
@@ -296,7 +296,7 @@ export function mergeConfig(
   }
 
   // Merge defaultKernelPath with source tracking.
-  let defaultKernelPath = manifestInf.defaultKernelPath ?? null;
+  let defaultKernelPath = manifestInf.defaultKernelPath;
   const runtimeKernelPath = runtimeOverrides?.defaultKernelPath;
   if (runtimeKernelPath !== undefined) {
     defaultKernelPath = runtimeKernelPath;

@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "modes": [
+    "check",
+    "scaffold"
+  ],
+  "scaffoldKinds": [
+    "model",
+    "conversion",
+    "kernel",
+    "behavior"
+  ],
+  "defaults": {
+    "root": {
+      "path": "REPO_ROOT"
+    },
+    "model": {
+      "runtimePreset": "transformer"
+    },
+    "conversion": {
+      "family": "custom",
+      "preset": "transformer",
+      "baseDir": "models/local",
+      "quantization": {
+        "weights": "f16",
+        "embeddings": "weights",
+        "lmHead": "embeddings"
+      }
+    },
+    "kernelPath": {
+      "activationDtype": "f16",
+      "kvDtype": "f16",
+      "statusDefault": "experimental",
+      "statusReason": "scaffolded",
+      "descriptionTemplate": "Scaffolded kernel path for {id}.",
+      "excludeStatuses": [
+        "legacy"
+      ]
+    },
+    "behavior": {
+      "scope": "modes"
+    },
+    "errors": {
+      "unsupportedMode": "Unsupported mode",
+      "unsupportedModeHint": "Expected one of: {supportedModes}",
+      "unsupportedKind": "Unsupported scaffold kind",
+      "unsupportedKindHint": "Expected one of: {supportedKinds}",
+      "missingKind": "--kind is required for scaffold",
+      "missingId": "--id is required for scaffold"
+    }
+  },
+  "paths": {
+    "modelPreset": "src/config/presets/models",
+    "conversion": "tools/configs/conversion",
+    "kernelPath": "src/config/presets/kernel-paths",
+    "runtimePreset": "src/config/presets/runtime"
+  }
+}

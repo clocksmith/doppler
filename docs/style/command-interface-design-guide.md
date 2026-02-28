@@ -14,6 +14,17 @@ This applies to browser clients and the Node CLI equally.
 - **Deterministic intent mapping**: command -> intent cluster is fixed.
 - **Parity by default**: no browser-only or CLI-only command semantics.
 
+## Deterministic Command Mapping
+
+- The only supported mapping is:
+  - `convert` → convert intent
+  - `debug` → investigate intent
+  - `bench` → calibrate intent
+  - `test-model` → verify intent
+- Mapping lives in JSON-first runtime command metadata and `normalizeToolingCommandRequest()`.
+- Any unknown command, unsupported surface combination, or missing required contract value must fail fast.
+- No command surface may substitute behavior when capabilities differ; failures must surface at surface boundary.
+
 ---
 
 ## Canonical Commands
@@ -97,7 +108,7 @@ Commands are rejected when:
 ### CLI Surface Selection
 
 - CLI supports `--surface auto|node|browser`.
-- `auto` first attempts Node for harnessed commands and falls back to browser relay only when Node WebGPU is unavailable.
+- `--surface auto` is explicit transport resolution for harnessed commands: try Node first, then browser relay only when Node WebGPU is unavailable. Command intent and contract stay unchanged.
 - Node runner may bootstrap WebGPU from available runtime support before failing.
 - Browser relay executes `runBrowserCommand()` in a browser via `src/tooling/command-runner.html`
   (default headless, with `--headed` for headed mode).

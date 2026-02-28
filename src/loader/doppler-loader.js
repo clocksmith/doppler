@@ -445,13 +445,34 @@ export class DopplerLoader {
       reportProgress('shards', 0.1, 'Loading embeddings...');
       await this.#loadEmbeddings(onProgress);
 
+      const resolveNumLayers = (value) => {
+        const normalized = Number(value);
+        if (!Number.isInteger(normalized) || normalized <= 0) {
+          return 0;
+        }
+        return normalized;
+      };
+
       const manifestConfig = this.manifest.config;
-      const numLayers = manifestConfig?.num_hidden_layers ||
-                        manifestConfig?.blockCount ||
-                        manifestConfig?.text_config?.num_hidden_layers ||
-                        manifestConfig?.n_layer ||
-                         (this.manifest.architecture)?.numLayers ||
-                        32;
+      const layerCountCandidates = [
+        manifestConfig?.num_hidden_layers,
+        manifestConfig?.blockCount,
+        manifestConfig?.text_config?.num_hidden_layers,
+        manifestConfig?.n_layer,
+        this.manifest.architecture?.numLayers,
+      ];
+      const numLayers = layerCountCandidates
+        .map(resolveNumLayers)
+        .find((count) => Number.isInteger(count) && count > 0);
+
+      if (!Number.isInteger(numLayers)) {
+        throw new Error(
+          `Manifest "${this.manifest.modelId ?? 'unknown'}" missing or invalid layer count. ` +
+          `Expected one of manifest.config.num_hidden_layers/blockCount/text_config.num_hidden_layers/n_layer ` +
+          `or manifest.architecture.numLayers.`
+        );
+      }
+
       log.info('Loader', `Layers: 0-${numLayers - 1}`);
 
       inLayerPhase = true;
@@ -715,7 +736,10 @@ export class DopplerLoader {
     if (!device) {
       throw new Error('GPU device not available');
     }
-    const chunkBytes = Math.max(1, this.#loadingConfig?.storage?.backend?.streaming?.readChunkBytes | 0);
+    const rawChunkBytes = Number(this.#loadingConfig?.storage?.backend?.streaming?.readChunkBytes);
+    const chunkBytes = Number.isFinite(rawChunkBytes) && rawChunkBytes > 0
+      ? Math.floor(rawChunkBytes)
+      : 1;
 
     // queue.writeBuffer requires 4-byte aligned sizes; we pad the buffer.
     const alignedSize = Math.ceil(location.size / 4) * 4;

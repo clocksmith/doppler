@@ -413,7 +413,8 @@ For tensors spanning multiple shards, use the `spans` field:
 The `optimizations` field is legacy metadata. Runtime kernel selection reads
 `inference.defaultKernelPath` (manifest default), `runtime.inference.kernelPath`
 (runtime override), and `runtime.inference.kernelPathPolicy`
-(capability remap policy).
+(capability remap policy). Legacy fields are informational only when the contract
+fields above are present.
 
 ```json
 {
@@ -503,6 +504,11 @@ For explicit execution manifests, set:
 
 Converter can derive these automatically from `inference.defaultKernelPath`
 when execution-v0 fields are omitted in conversion config.
+
+Execution determinism rule:
+
+- `inference.defaultKernelPath` and execution v0 metadata are the authoritative policy inputs.
+- `src/config/presets/kernel-paths/` and rule assets resolve aliases and compatibility; WGSL never decides between kernel paths.
 
 When `inference.execution` exists, runtime requires the v0 schema discriminator
 and applies runtime patching via `runtime.inference.session` and

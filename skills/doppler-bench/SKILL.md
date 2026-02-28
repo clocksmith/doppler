@@ -7,6 +7,14 @@ description: Run Doppler and vendor benchmark workflows, capture reproducible JS
 
 Use this skill for repeatable performance measurement and cross-product comparisons.
 
+## Execution Plane Contract
+
+- JSON governs benchmark policy and engine selection (`runtimeConfig`, presets, rule assets).
+- JS wraps execution: contract validation, harness/runtime assembly, config isolation, and dispatch orchestration.
+- WGSL remains deterministic compute; it must not own benchmark semantics or fallback logic.
+- Any benchmark fairness axis (`sampling`, `seed`, budget, run policy) must come from shared contract JSON and be identical across engines.
+- Any unrepresented behavior choice must fail fast instead of falling back.
+
 ## Cross-Engine Compare (Canonical)
 
 ```bash

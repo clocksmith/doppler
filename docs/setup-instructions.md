@@ -81,7 +81,7 @@ Doppler detects GPU capabilities and assigns a tier level to guide model sizing.
 
 **Recommended Models:**
 - Gemma 3 1B Q4_K_M (primary recommendation)
-- SmolLM 135M (fallback)
+- SmolLM 135M (fallback model for constrained tier-3 hardware)
 
 ## Model VRAM Requirements
 
@@ -248,7 +248,8 @@ The test suite measures:
 - Streams GGUF/safetensors → RDRR directly into OPFS with progress UI. No CLI/server needed.
 
 3) Convert via remote URLs
-- Use the demo UI URL import to stream remote safetensors shards (with HTTP range + download fallback).
+- Use the demo UI URL import to stream remote safetensors shards.
+  HTTP range is attempted first; full-shard download is the explicit transport fallback.
 - Converted output is cached in OPFS.
 
 Notes:

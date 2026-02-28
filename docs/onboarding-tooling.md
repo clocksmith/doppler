@@ -144,6 +144,11 @@ Includes a runtime preset scaffold (`name`, `description`, `runtime.inference`).
 
 Use this when validating a conversion config end-to-end:
 
+`--surface auto` is transport resolution only:
+- Node runner attempt first for harnessed commands; browser relay is used only when Node
+  WebGPU transport is unavailable.
+- Command intent and contract remain unchanged across transports.
+
 1. Convert the source into RDRR.
 2. Run an inference correctness check (`test-model`).
 3. Run a performance benchmark.

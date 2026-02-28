@@ -5,6 +5,40 @@ import { decodeReadback } from './debug-utils.js';
 import { resolveExecutionSessionPlan } from './execution-plan.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 
+const UNKNOWN_TOKENIZER_VOCAB_SIZE = 'unknown';
+const DEFAULT_DTYPE = 'f32';
+
+function resolveConfiguredValue(value, defaultValue, context, validate) {
+  if (value === undefined) {
+    return defaultValue;
+  }
+  if (value === null) {
+    throw new Error(`[Pipeline] ${context}: null is unsupported; omit the key or pass an explicit value.`);
+  }
+  if (validate && !validate(value)) {
+    throw new Error(`[Pipeline] ${context}: invalid value "${value}".`);
+  }
+  return value;
+}
+
+function readTokenizerVocabSize(tok) {
+  const tokenizerVocabSize = tok?.getVocabSize?.();
+  return typeof tokenizerVocabSize === 'number' && Number.isFinite(tokenizerVocabSize)
+    ? tokenizerVocabSize
+    : null;
+}
+
+function readOptionalTokenizerText(tok, tokenId) {
+  if (!tok || typeof tok.decode !== 'function') {
+    return null;
+  }
+  try {
+    return tok.decode([tokenId], false, false);
+  } catch {
+    return null;
+  }
+}
+
 export function assertTokenIdsInRange(state, tokenIds, context = 'encode') {
   const vocabSize = state?.modelConfig?.vocabSize;
   if (!Array.isArray(tokenIds)) {
@@ -32,19 +66,17 @@ export function assertTokenIdsInRange(state, tokenIds, context = 'encode') {
   if (badCount === 0) return;
 
   const tok = state?.tokenizer;
-  const tokenizerVocabSize = tok?.getVocabSize?.() ?? null;
-  let badText = null;
-  try {
-    badText = tok?.decode?.([firstBadId], false, false) ?? null;
-  } catch {
-    badText = null;
-  }
+  const tokenizerVocabSize = readTokenizerVocabSize(tok);
+  const badText = readOptionalTokenizerText(tok, firstBadId);
+  const safeTokenizerVocabSize = tokenizerVocabSize === null
+    ? UNKNOWN_TOKENIZER_VOCAB_SIZE
+    : tokenizerVocabSize;
 
   throw new Error(
     `[Tokenizer] ${context}: token id out of range for model vocab. ` +
-    `modelVocabSize=${vocabSize}, tokenizerVocabSize=${tokenizerVocabSize ?? 'unknown'}, ` +
+    `modelVocabSize=${vocabSize}, tokenizerVocabSize=${safeTokenizerVocabSize}, ` +
     `badCount=${badCount}/${tokenIds.length}, firstBadIdx=${firstBadIdx}, firstBadId=${firstBadId}` +
-    (badText ? ` ("${badText}")` : '') +
+    (badText === null ? '' : ` ("${badText}")`) +
     `, maxId=${maxId}. ` +
     'This will poison GPU embedding gather (NaNs). Fix by re-converting the model or aligning tokenizer.json IDs to embedding/LM-head shapes.'
   );
@@ -57,18 +89,48 @@ export function assertTokenIdInRange(state, tokenId, context = 'token') {
   }
   if (!Number.isFinite(tokenId) || tokenId < 0 || tokenId >= vocabSize) {
     const tok = state?.tokenizer;
-    const tokenizerVocabSize = tok?.getVocabSize?.() ?? null;
+    const tokenizerVocabSize = readTokenizerVocabSize(tok);
+    const safeTokenizerVocabSize = tokenizerVocabSize === null
+      ? UNKNOWN_TOKENIZER_VOCAB_SIZE
+      : tokenizerVocabSize;
     throw new Error(
-      `[Tokenizer] ${context}: tokenId=${tokenId} out of range (modelVocabSize=${vocabSize}, tokenizerVocabSize=${tokenizerVocabSize ?? 'unknown'}).`
+      `[Tokenizer] ${context}: tokenId=${tokenId} out of range (modelVocabSize=${vocabSize}, tokenizerVocabSize=${safeTokenizerVocabSize}).`
     );
   }
 }
 
 function resolveChatTemplateEnabled(state, options) {
-  return options.useChatTemplate
-    ?? state.runtimeConfig.inference.chatTemplate?.enabled
-    ?? state.modelConfig?.chatTemplateEnabled
-    ?? false;
+  const fromOptions = resolveConfiguredValue(
+    options.useChatTemplate,
+    undefined,
+    'options.useChatTemplate',
+    (value) => typeof value === 'boolean'
+  );
+  if (fromOptions !== undefined) {
+    return fromOptions;
+  }
+
+  const fromRuntime = resolveConfiguredValue(
+    state.runtimeConfig.inference.chatTemplate?.enabled,
+    undefined,
+    'state.runtimeConfig.inference.chatTemplate.enabled',
+    (value) => typeof value === 'boolean'
+  );
+  if (fromRuntime !== undefined) {
+    return fromRuntime;
+  }
+
+  const fromModel = resolveConfiguredValue(
+    state.modelConfig?.chatTemplateEnabled,
+    undefined,
+    'state.modelConfig.chatTemplateEnabled',
+    (value) => typeof value === 'boolean'
+  );
+  if (fromModel !== undefined) {
+    return fromModel;
+  }
+
+  return false;
 }
 
 export function resolveStepOptions(state, options = {}) {
@@ -77,13 +139,17 @@ export function resolveStepOptions(state, options = {}) {
   const executionPlan = resolveExecutionSessionPlan(state, options);
 
   return {
-    temperature: options.temperature ?? samplingDefaults.temperature,
-    topP: options.topP ?? samplingDefaults.topP,
-    topK: options.topK ?? samplingDefaults.topK,
-    repetitionPenalty: options.repetitionPenalty ?? samplingDefaults.repetitionPenalty,
-    debug: options.debug ?? state.debug,
+    temperature: resolveConfiguredValue(options.temperature, samplingDefaults.temperature, 'options.temperature'),
+    topP: resolveConfiguredValue(options.topP, samplingDefaults.topP, 'options.topP'),
+    topK: resolveConfiguredValue(options.topK, samplingDefaults.topK, 'options.topK'),
+    repetitionPenalty: resolveConfiguredValue(
+      options.repetitionPenalty,
+      samplingDefaults.repetitionPenalty,
+      'options.repetitionPenalty'
+    ),
+    debug: resolveConfiguredValue(options.debug, state.debug, 'options.debug', (value) => typeof value === 'boolean'),
     debugLayers: options.debugLayers,
-    profile: options.profile ?? runtimeDefaults.generation.profile,
+    profile: resolveConfiguredValue(options.profile, runtimeDefaults.generation.profile, 'options.profile'),
     disableCommandBatching: executionPlan.disableCommandBatching,
     disableMultiTokenDecode: executionPlan.disableMultiTokenDecode,
     batchSize: executionPlan.batchSize,
@@ -100,17 +166,26 @@ export function resolveGenerateOptions(state, options = {}) {
 
   return {
     maxTokens: executionPlan.maxTokens,
-    temperature: options.temperature ?? samplingDefaults.temperature,
-    topP: options.topP ?? samplingDefaults.topP,
-    topK: options.topK ?? samplingDefaults.topK,
-    repetitionPenalty: options.repetitionPenalty ?? samplingDefaults.repetitionPenalty,
-    stopSequences: options.stopSequences ?? [],
-    useSpeculative: options.useSpeculative ?? generationDefaults.useSpeculative,
+    temperature: resolveConfiguredValue(options.temperature, samplingDefaults.temperature, 'options.temperature'),
+    topP: resolveConfiguredValue(options.topP, samplingDefaults.topP, 'options.topP'),
+    topK: resolveConfiguredValue(options.topK, samplingDefaults.topK, 'options.topK'),
+    repetitionPenalty: resolveConfiguredValue(
+      options.repetitionPenalty,
+      samplingDefaults.repetitionPenalty,
+      'options.repetitionPenalty'
+    ),
+    stopSequences: resolveConfiguredValue(options.stopSequences, [], 'options.stopSequences', Array.isArray),
+    useSpeculative: resolveConfiguredValue(
+      options.useSpeculative,
+      generationDefaults.useSpeculative,
+      'options.useSpeculative',
+      (value) => typeof value === 'boolean'
+    ),
     useChatTemplate: resolveChatTemplateEnabled(state, options),
-    debug: options.debug ?? state.debug,
+    debug: resolveConfiguredValue(options.debug, state.debug, 'options.debug', (value) => typeof value === 'boolean'),
     debugLayers: options.debugLayers,
-    profile: options.profile ?? generationDefaults.profile,
-    benchmark: options.benchmark ?? generationDefaults.benchmark,
+    profile: resolveConfiguredValue(options.profile, generationDefaults.profile, 'options.profile'),
+    benchmark: resolveConfiguredValue(options.benchmark, generationDefaults.benchmark, 'options.benchmark'),
     disableCommandBatching: executionPlan.disableCommandBatching,
     disableMultiTokenDecode: executionPlan.disableMultiTokenDecode,
     batchSize: executionPlan.batchSize,
@@ -124,9 +199,9 @@ export function resolvePrefillOptions(state, options = {}) {
   const executionPlan = resolveExecutionSessionPlan(state, options);
   return {
     useChatTemplate: resolveChatTemplateEnabled(state, options),
-    debug: options.debug ?? state.debug,
+    debug: resolveConfiguredValue(options.debug, state.debug, 'options.debug', (value) => typeof value === 'boolean'),
     debugLayers: options.debugLayers,
-    profile: options.profile ?? generationDefaults.profile,
+    profile: resolveConfiguredValue(options.profile, generationDefaults.profile, 'options.profile'),
     disableCommandBatching: executionPlan.disableCommandBatching,
     disableMultiTokenDecode: executionPlan.disableMultiTokenDecode,
     executionPlan,
@@ -134,45 +209,54 @@ export function resolvePrefillOptions(state, options = {}) {
 }
 
 export function resolvePrefillEmbeddingOptions(state, options = {}) {
-  const modelType = String(state.manifest?.modelType || '').toLowerCase();
+  const modelType = typeof state.manifest?.modelType === 'string'
+    ? state.manifest.modelType.toLowerCase()
+    : '';
   const generationDefaults = state.runtimeConfig.inference.generation;
   const defaultEmbeddingMode = modelType === 'embedding'
     ? 'mean'
     : generationDefaults.embeddingMode;
   return {
     ...resolvePrefillOptions(state, options),
-    embeddingMode: options.embeddingMode ?? defaultEmbeddingMode,
+    embeddingMode: resolveConfiguredValue(options.embeddingMode, defaultEmbeddingMode, 'options.embeddingMode'),
   };
 }
 
 export function resolveAdvanceEmbeddingMode(state, options = {}) {
-  const modelType = String(state.manifest?.modelType || '').toLowerCase();
+  const modelType = typeof state.manifest?.modelType === 'string'
+    ? state.manifest.modelType.toLowerCase()
+    : '';
   const configuredMode = state.runtimeConfig.inference.generation.embeddingMode;
-  return options.embeddingMode ?? (modelType === 'embedding' ? 'mean' : configuredMode);
+  return resolveConfiguredValue(
+    options.embeddingMode,
+    modelType === 'embedding' ? 'mean' : configuredMode,
+    'options.embeddingMode',
+    (value) => value === 'last' || value === 'mean'
+  );
 }
 
-function resolveFloatDtypeFromAlias(dtype, fallback = 'f32') {
-  const normalized = String(dtype || '').trim().toLowerCase();
-  if (!normalized) return fallback;
+function resolveFloatDtypeFromAlias(dtype) {
+  const normalized = typeof dtype === 'string' ? dtype.trim().toLowerCase() : '';
+  if (!normalized) return DEFAULT_DTYPE;
   return selectRuleValue('inference', 'dtype', 'dtypeFromAlias', {
     dtype: normalized,
-    fallback,
+    fallback: DEFAULT_DTYPE,
   });
 }
 
-export function resolveFloatDtypeFromByteSize(totalBytes, expectedLength, fallback = 'f32') {
+export function resolveFloatDtypeFromByteSize(totalBytes, expectedLength) {
   if (!Number.isFinite(totalBytes) || totalBytes <= 0 || !Number.isFinite(expectedLength) || expectedLength <= 0) {
-    return fallback;
+    return DEFAULT_DTYPE;
   }
   const bytesPerElement = totalBytes / expectedLength;
   return selectRuleValue('inference', 'dtype', 'f16OrF32FromBytesOrFallback', {
     bytesPerElement,
-    fallback,
+    fallback: DEFAULT_DTYPE,
   });
 }
 
 export function decodeFloatWeights(data, dtype, expectedLength, label) {
-  const decodeDtype = resolveFloatDtypeFromAlias(dtype, 'f32');
+  const decodeDtype = resolveFloatDtypeFromAlias(dtype);
   const decoded = decodeReadback(data, decodeDtype);
   if (decoded.length !== expectedLength) {
     throw new Error(
@@ -194,7 +278,7 @@ export async function getFinalNormWeights(state) {
   if (finalNorm instanceof Float32Array) {
     weights = finalNorm;
   } else if (isCpuWeightBuffer(finalNorm)) {
-    const dtype = resolveFloatDtypeFromAlias(finalNorm.dtype, 'f32');
+    const dtype = resolveFloatDtypeFromAlias(finalNorm.dtype);
     const data = finalNorm.data;
     if (!(data instanceof Float32Array) && !ArrayBuffer.isView(data)) {
       throw new Error('[Pipeline] final_norm CPU weight buffer has unsupported data type.');
@@ -202,9 +286,10 @@ export async function getFinalNormWeights(state) {
     const bytes = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
     weights = decodeFloatWeights(bytes, dtype, hiddenSize, 'final_norm');
   } else if (isWeightBuffer(finalNorm)) {
+    const dtypeValue = typeof finalNorm.dtype === 'string' ? finalNorm.dtype.trim().toLowerCase() : '';
     const dtype = selectRuleValue('inference', 'dtype', 'f16OrF32FromDtypeAlias', {
-      dtype: String(finalNorm.dtype || '').trim().toLowerCase(),
-      fallback: 'f32',
+      dtype: dtypeValue === '' ? undefined : dtypeValue,
+      fallback: DEFAULT_DTYPE,
     });
     const bytesPerElement = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype });
     const readSize = hiddenSize * bytesPerElement;
@@ -214,7 +299,7 @@ export async function getFinalNormWeights(state) {
     }
     weights = decodeFloatWeights(data, dtype, hiddenSize, 'final_norm');
   } else if (finalNorm instanceof GPUBuffer) {
-    const dtype = resolveFloatDtypeFromByteSize(finalNorm.size, hiddenSize, 'f32');
+    const dtype = resolveFloatDtypeFromByteSize(finalNorm.size, hiddenSize);
     const bytesPerElement = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype });
     const readSize = hiddenSize * bytesPerElement;
     const data = await readBuffer(finalNorm, readSize);
@@ -224,15 +309,16 @@ export async function getFinalNormWeights(state) {
     weights = decodeFloatWeights(data, dtype, hiddenSize, 'final_norm');
   } else if (ArrayBuffer.isView(finalNorm)) {
     const view = finalNorm;
-    const dtype = resolveFloatDtypeFromByteSize(view.byteLength, hiddenSize, 'f32');
+    const dtype = resolveFloatDtypeFromByteSize(view.byteLength, hiddenSize);
     const bytes = view.buffer.slice(view.byteOffset, view.byteOffset + view.byteLength);
     weights = decodeFloatWeights(bytes, dtype, hiddenSize, 'final_norm');
   } else {
     throw new Error('[Pipeline] final_norm weight has unsupported type.');
   }
   if (!(weights instanceof Float32Array) || weights.length !== hiddenSize) {
+    const reportedLength = weights === undefined || weights === null ? UNKNOWN_TOKENIZER_VOCAB_SIZE : weights.length;
     throw new Error(
-      `[Pipeline] final_norm length mismatch: expected=${hiddenSize}, got=${weights?.length ?? 'unknown'}`
+      `[Pipeline] final_norm length mismatch: expected=${hiddenSize}, got=${reportedLength}`
     );
   }
   return weights;

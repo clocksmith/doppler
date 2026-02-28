@@ -1,0 +1,30 @@
+{
+  "defaults": {
+    "surface": {
+      "default": "auto",
+      "allowed": [
+        "auto",
+        "node",
+        "browser"
+      ]
+    },
+    "bench": {
+      "modelId": "gemma-3-270m-it-wf16-ef16-hf16",
+      "surface": "browser",
+      "cacheMode": "warm"
+    },
+    "cacheMode": null,
+    "loadMode": null,
+    "benchmark": {
+      "saveDir": "./benchmarks/vendors/results"
+    }
+  },
+  "surfaceFallback": {
+    "enabled": true,
+    "from": "auto",
+    "to": "browser",
+    "errorFragments": [
+      "node command: WebGPU runtime is incomplete in Node"
+    ]
+  }
+}

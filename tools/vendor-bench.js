@@ -38,11 +38,12 @@ function usage() {
     '  node tools/vendor-bench.js validate',
     '  node tools/vendor-bench.js capabilities [--target <id>]',
     '  node tools/vendor-bench.js gap --base <id> --target <id>',
-    '  node tools/vendor-bench.js matrix [--compare-result <path>] [--output <path>] [--markdown-output <path>] [--include-local-results] [--strict-compare-artifacts]',
+    '  node tools/vendor-bench.js matrix [--compare-result <path>] [--output <path>] [--markdown-output <path>] [--timestamp <iso|ms>] [--include-local-results] [--strict-compare-artifacts]',
     '  node tools/vendor-bench.js show --target <id>',
-    '  node tools/vendor-bench.js import --target <id> --input <raw.json> [--output <result.json>] [--workload <id>] [--model <id>] [--notes <text>]',
-    '  node tools/vendor-bench.js run --target <id> [--timeout-ms <ms>] [--output <result.json>] [--workload <id>] [--model <id>] [--notes <text>] -- <command ...>',
+    '  node tools/vendor-bench.js import --target <id> --input <raw.json> [--output <result.json>] [--timestamp <iso|ms>] [--workload <id>] [--model <id>] [--notes <text>]',
+    '  node tools/vendor-bench.js run --target <id> [--timeout-ms <ms>] [--timestamp <iso|ms>] [--output <result.json>] [--workload <id>] [--model <id>] [--notes <text>] -- <command ...>',
     '  --timeout-ms <ms>           Command timeout in milliseconds (default: 600000)',
+    '  --timestamp <iso|ms>         Override deterministic timestamp for generated record/matrix timestamps',
     '  --include-local-results      Include benchmarks/vendors/results/*.json in matrix discovery (default: fixtures only)',
     '  --strict-compare-artifacts   Fail matrix generation on any auto-discovered compare artifact parse error',
     '',
@@ -54,8 +55,13 @@ function usage() {
 
 function parseArgs(argv) {
   const booleanFlags = new Set(['help', 'h', 'include-local-results', 'strict-compare-artifacts']);
+  const asCommandValue = (value) => {
+    if (typeof value !== 'string') return null;
+    const normalized = value.trim();
+    return normalized === '' ? null : normalized;
+  };
   const out = {
-    command: argv[0] ?? null,
+    command: asCommandValue(argv[0]),
     flags: {},
     positional: [],
     passthrough: [],
@@ -77,7 +83,19 @@ function parseArgs(argv) {
       continue;
     }
 
-    const key = token.slice(2);
+    const eqIndex = token.indexOf('=');
+    const normalizedToken = eqIndex === -1 ? token : token.slice(0, eqIndex);
+    const inlineValue = eqIndex === -1 ? null : token.slice(eqIndex + 1);
+    const key = normalizedToken.slice(2);
+
+    if (inlineValue !== null) {
+      if (inlineValue === '') {
+        throw new Error(`Missing value for --${key}`);
+      }
+      out.flags[key] = inlineValue;
+      continue;
+    }
+
     if (booleanFlags.has(key)) {
       const nextValue = argv[i + 1];
       if (nextValue === undefined || nextValue.startsWith('--')) {
@@ -100,8 +118,8 @@ function parseArgs(argv) {
   return out;
 }
 
-function parsePositiveInt(value, fallback, label) {
-  if (value == null || value === '') return fallback;
+function parsePositiveInteger(value, defaultValue, label) {
+  if (value == null || value === '') return defaultValue;
   const parsed = Number(value);
   if (!Number.isFinite(parsed) || !Number.isInteger(parsed) || parsed <= 0) {
     throw new Error(`${label} must be a positive integer`);
@@ -109,12 +127,27 @@ function parsePositiveInt(value, fallback, label) {
   return parsed;
 }
 
-function parseBooleanFlag(value, fallback, label) {
-  if (value == null || value === '') return fallback;
+function parseBooleanFlag(value, defaultValue, label) {
+  if (value == null || value === '') return defaultValue;
   const normalized = String(value).trim().toLowerCase();
   if (normalized === 'true' || normalized === '1' || normalized === 'yes' || normalized === 'on') return true;
   if (normalized === 'false' || normalized === '0' || normalized === 'no' || normalized === 'off') return false;
   throw new Error(`${label} must be one of: true, false, 1, 0, yes, no, on, off`);
+}
+
+function parseTimestampValue(rawValue, label) {
+  if (rawValue == null || rawValue === '') return null;
+  if (typeof rawValue !== 'string') {
+    throw new Error(`${label} must be a string`);
+  }
+  const trimmed = rawValue.trim();
+  if (trimmed === '') return null;
+  const asMs = /^[-+]?\d+$/.test(trimmed) ? Number(trimmed) : NaN;
+  const parsed = Number.isFinite(asMs) ? new Date(asMs) : new Date(trimmed);
+  if (Number.isNaN(parsed.getTime())) {
+    throw new Error(`${label} must be ISO-8601 or epoch milliseconds`);
+  }
+  return parsed.toISOString();
 }
 
 function parseJsonFromStdout(stdout, label) {
@@ -124,7 +157,7 @@ function parseJsonFromStdout(stdout, label) {
   }
 
   const tail = (text, maxChars = 2000) => {
-    const str = String(text || '');
+    const str = text == null ? '' : String(text);
     if (str.length <= maxChars) return str;
     return str.slice(str.length - maxChars);
   };
@@ -296,6 +329,7 @@ const CAPABILITY_FEATURE_STATUS = Object.freeze({
   unsupported: 'unsupported',
   unknown: 'unknown',
 });
+const CAPABILITY_FEATURE_STATUS_TEXT = Object.values(CAPABILITY_FEATURE_STATUS).join(', ');
 
 const CAPABILITY_FEATURE_STATUS_VALUES = new Set(Object.values(CAPABILITY_FEATURE_STATUS));
 
@@ -392,7 +426,7 @@ function assertCapabilitiesShape(capabilities, knownProductIds = []) {
       if (!normalizeCapabilityFeatureStatus(value)) {
         throw new Error(
           `capabilities target "${entry.id}" bench.features.${key} `
-          + 'must be one of: supported, unsupported, unknown'
+          + `must be one of: ${CAPABILITY_FEATURE_STATUS_TEXT}`
         );
       }
     }
@@ -401,7 +435,7 @@ function assertCapabilitiesShape(capabilities, knownProductIds = []) {
       if (!normalizeCapabilityFeatureStatus(value)) {
         throw new Error(
           `capabilities target "${entry.id}" profile.features.${key} `
-          + 'must be one of: supported, unsupported, unknown'
+          + `must be one of: ${CAPABILITY_FEATURE_STATUS_TEXT}`
         );
       }
     }
@@ -1118,12 +1152,12 @@ function assertResultRecordShape(record) {
   }
 }
 
-function toIsoTimestamp() {
-  return new Date().toISOString();
+function toIsoTimestamp(timestamp = null) {
+  return timestamp || new Date().toISOString();
 }
 
-function toFileTimestamp() {
-  return toIsoTimestamp()
+function toFileTimestamp(timestamp = null) {
+  return toIsoTimestamp(timestamp)
     .replace(/[:]/g, '-')
     .replace(/\.\d{3}Z$/, 'Z');
 }
@@ -1138,6 +1172,7 @@ async function normalizeRecord(options) {
     modelId,
     notes,
     source,
+    timestamp,
   } = options;
 
   const metricPaths = harness.normalization.metricPaths;
@@ -1173,7 +1208,7 @@ async function normalizeRecord(options) {
 
   const record = {
     schemaVersion: 1,
-    timestamp: toIsoTimestamp(),
+    timestamp: toIsoTimestamp(timestamp),
     target: {
       id: product.id,
       name: product.name,
@@ -1245,8 +1280,8 @@ function resolveGitReleaseMetadata() {
   };
 }
 
-function defaultOutputPath(targetId) {
-  return path.join(RESULTS_DIR, `${targetId}-${toFileTimestamp()}.json`);
+function defaultOutputPath(targetId, timestamp = null) {
+  return path.join(RESULTS_DIR, `${targetId}-${toFileTimestamp(timestamp)}.json`);
 }
 
 async function loadTargetBundle(targetId, registry) {
@@ -2048,9 +2083,9 @@ function markdownTableCell(value) {
 }
 
 function formatSupportBadge(status) {
-  if (status === 'supported') return 'yes';
-  if (status === 'unsupported') return 'no';
-  return 'unknown';
+  if (status === CAPABILITY_FEATURE_STATUS.supported) return 'yes';
+  if (status === CAPABILITY_FEATURE_STATUS.unsupported) return 'no';
+  return CAPABILITY_FEATURE_STATUS.unknown;
 }
 
 function formatSamplingLabel(sampling) {
@@ -2299,7 +2334,7 @@ function renderReleaseMatrixMarkdown(matrix, options = {}) {
   return `${lines.join('\n')}\n`;
 }
 
-async function doMatrix(flags) {
+async function doMatrix(flags, timestamp = null) {
   const { registry, workloads } = await loadRegistryBundle();
   const capabilities = await loadCapabilitiesBundle(registry);
   const compareConfig = await loadCompareConfigBundle();
@@ -2440,7 +2475,7 @@ async function doMatrix(flags) {
 
   const matrix = {
     schemaVersion: 1,
-    generatedAt: toIsoTimestamp(),
+    generatedAt: toIsoTimestamp(timestamp),
     release: {
       channel: 'main-snapshot',
       version: null,
@@ -2491,7 +2526,7 @@ async function runCommandCaptureJson(commandParts, options = {}) {
     throw new Error('No command provided for run mode');
   }
   const [command, ...args] = commandParts;
-  const timeoutMs = parsePositiveInt(options.timeoutMs, DEFAULT_COMMAND_TIMEOUT_MS, '--timeout-ms');
+  const timeoutMs = parsePositiveInteger(options.timeoutMs, DEFAULT_COMMAND_TIMEOUT_MS, '--timeout-ms');
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
       cwd: ROOT_DIR,
@@ -2658,7 +2693,7 @@ async function doShow(flags) {
   console.log(JSON.stringify({ product, harness }, null, 2));
 }
 
-async function doImport(flags) {
+async function doImport(flags, timestamp = null) {
   const targetId = flags.target;
   const inputPath = flags.input;
   if (!targetId) {
@@ -2682,6 +2717,7 @@ async function doImport(flags) {
     workloadId: flags.workload ?? null,
     modelId: flags.model ?? null,
     notes: flags.notes ?? null,
+    timestamp,
     source: {
       mode: 'import',
       inputPath: path.resolve(inputPath),
@@ -2695,17 +2731,17 @@ async function doImport(flags) {
 
   const outputPath = flags.output
     ? path.resolve(flags.output)
-    : defaultOutputPath(product.id);
+    : defaultOutputPath(product.id, timestamp);
   await writeRecord(record, outputPath);
   console.log(outputPath);
 }
 
-async function doRun(flags, passthrough) {
+async function doRun(flags, passthrough, timestamp = null) {
   const targetId = flags.target;
   if (!targetId) {
     throw new Error('run requires --target <id>');
   }
-  const commandTimeoutMs = parsePositiveInt(flags['timeout-ms'], DEFAULT_COMMAND_TIMEOUT_MS, '--timeout-ms');
+  const commandTimeoutMs = parsePositiveInteger(flags['timeout-ms'], DEFAULT_COMMAND_TIMEOUT_MS, '--timeout-ms');
 
   const { registry, workloads } = await loadRegistryBundle();
   const { product, harness } = await loadTargetBundle(targetId, registry);
@@ -2731,6 +2767,7 @@ async function doRun(flags, passthrough) {
     workloadId: flags.workload ?? null,
     modelId: flags.model ?? null,
     notes: flags.notes ?? null,
+    timestamp,
     source: {
       mode: 'run',
       inputPath: null,
@@ -2754,7 +2791,7 @@ async function doRun(flags, passthrough) {
 
   const outputPath = flags.output
     ? path.resolve(flags.output)
-    : defaultOutputPath(product.id);
+    : defaultOutputPath(product.id, timestamp);
   await writeRecord(record, outputPath);
   console.log(outputPath);
 }
@@ -2762,11 +2799,13 @@ async function doRun(flags, passthrough) {
 async function main() {
   const parsed = parseArgs(process.argv.slice(2));
   const command = parsed.command;
-  const helpRequested = parsed.flags.help === 'true';
+  const rawHelp = parsed.flags.help ?? parsed.flags.h ?? false;
+  const helpRequested = parseBooleanFlag(rawHelp, false, '--help');
   if (!command || helpRequested) {
     console.log(usage());
     return;
   }
+  const timestamp = parseTimestampValue(parsed.flags.timestamp, '--timestamp');
 
   if (command === 'list') {
     const { registry } = await loadRegistryBundle();
@@ -2786,7 +2825,7 @@ async function main() {
     return;
   }
   if (command === 'matrix') {
-    await doMatrix(parsed.flags);
+    await doMatrix(parsed.flags, timestamp);
     return;
   }
   if (command === 'show') {
@@ -2794,11 +2833,11 @@ async function main() {
     return;
   }
   if (command === 'import') {
-    await doImport(parsed.flags);
+    await doImport(parsed.flags, timestamp);
     return;
   }
   if (command === 'run') {
-    await doRun(parsed.flags, parsed.passthrough);
+    await doRun(parsed.flags, parsed.passthrough, timestamp);
     return;
   }
 

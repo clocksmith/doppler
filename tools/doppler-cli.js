@@ -2,15 +2,50 @@
 
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { runNodeCommand } from '../src/tooling/node-command-runner.js';
 import { runBrowserCommandInNode } from '../src/tooling/node-browser-command-runner.js';
 import { TOOLING_COMMANDS } from '../src/tooling/command-api.js';
 
 const NODE_WEBGPU_INCOMPLETE_MESSAGE = 'node command: WebGPU runtime is incomplete in Node';
-const DEFAULT_BENCH_MODEL_ID = 'gemma-3-270m-it-wf16-ef16-hf16';
-const DEFAULT_BENCH_SURFACE = 'browser';
+const CLI_POLICY_PATH = fileURLToPath(new URL('./configs/cli/doppler-cli-policy.json', import.meta.url));
+const DEFAULT_CLI_POLICY = {
+  defaults: {
+    surface: {
+      default: 'auto',
+      allowed: ['auto', 'node', 'browser'],
+    },
+    bench: {
+      modelId: 'gemma-3-270m-it-wf16-ef16-hf16',
+      surface: 'browser',
+      cacheMode: 'warm',
+    },
+    cacheMode: null,
+    loadMode: null,
+    benchmark: {
+      saveDir: './benchmarks/vendors/results',
+    },
+  },
+  surfaceFallback: {
+    enabled: true,
+    from: 'auto',
+    to: 'browser',
+    errorFragments: [NODE_WEBGPU_INCOMPLETE_MESSAGE],
+  },
+};
+
+function asStringOrNull(value) {
+  if (value === undefined || value === null) return null;
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed.length) return null;
+    return trimmed;
+  }
+  return String(value);
+}
 
 function usage() {
+  const defaults = DEFAULT_CLI_POLICY.defaults.bench;
   return [
     'Usage:',
     '  doppler convert <inputPath> --config <path.json> [--output-dir <path>] [--surface auto|node]',
@@ -53,24 +88,25 @@ function usage() {
     '  --manifest <path>               Run a multi-model bench sweep from a manifest JSON',
     '  --cache-mode <cold|warm>        cold: wipe OPFS cache before run; warm: reuse (default: warm)',
     '',
-    `Bench Defaults: --model-id ${DEFAULT_BENCH_MODEL_ID}, --surface ${DEFAULT_BENCH_SURFACE}, --browser-console (browser channel auto-selected)`,
+    `Bench Defaults: --model-id ${defaults.modelId}, --surface ${defaults.surface}, --browser-console (browser channel auto-selected)`,
   ].join('\n');
 }
 
-function applyCommandDefaults(parsed) {
+function applyCommandDefaults(parsed, policy = DEFAULT_CLI_POLICY) {
   if (!parsed || parsed.command !== 'bench') {
     return parsed;
   }
 
+  const benchDefaults = policy.defaults && policy.defaults.bench ? policy.defaults.bench : DEFAULT_CLI_POLICY.defaults.bench;
   const flags = { ...parsed.flags };
   if (!flags['model-id'] && !flags['model-url']) {
-    flags['model-id'] = DEFAULT_BENCH_MODEL_ID;
+    flags['model-id'] = benchDefaults.modelId;
   }
   if (!flags.surface) {
-    flags.surface = DEFAULT_BENCH_SURFACE;
+    flags.surface = benchDefaults.surface;
   }
   if (!flags['cache-mode']) {
-    flags['cache-mode'] = 'warm';
+    flags['cache-mode'] = benchDefaults.cacheMode;
   }
   flags['browser-console'] = true;
 
@@ -88,7 +124,7 @@ function parseArgs(argv) {
   };
 
   if (!argv.length) return out;
-  out.command = argv[0] ?? null;
+  out.command = asStringOrNull(argv[0]);
 
   for (let i = 1; i < argv.length; i += 1) {
     const token = argv[i];
@@ -141,7 +177,7 @@ function parseArgs(argv) {
 }
 
 function parseRuntimeConfigJson(value) {
-  if (!value) return null;
+  if (asStringOrNull(value) === null) return null;
   try {
     const parsed = JSON.parse(value);
     if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
@@ -174,8 +210,8 @@ async function readJsonObjectFile(filePath, label) {
 }
 
 function resolveConvertConfigFlag(parsed) {
-  const config = parsed.flags.config ?? null;
-  const legacy = parsed.flags['converter-config'] ?? null;
+  const config = asStringOrNull(parsed.flags.config);
+  const legacy = asStringOrNull(parsed.flags['converter-config']);
   if (config && legacy) {
     throw new Error('convert accepts one config flag. Use --config only.');
   }
@@ -189,10 +225,11 @@ function resolveConvertConfigFlag(parsed) {
 }
 
 function parseBooleanFlag(value, label) {
-  if (value === undefined || value === null || value === '') return null;
+  const normalizedInput = asStringOrNull(value);
+  if (normalizedInput === null) return null;
   if (typeof value === 'boolean') return value;
   if (typeof value === 'string') {
-    const normalized = value.trim().toLowerCase();
+    const normalized = normalizedInput.toLowerCase();
     if (normalized === 'true') return true;
     if (normalized === 'false') return false;
   }
@@ -200,8 +237,9 @@ function parseBooleanFlag(value, label) {
 }
 
 function parseNumberFlag(value, label) {
-  if (value === undefined || value === null || value === '') return null;
-  const parsed = Number(value);
+  const normalized = asStringOrNull(value);
+  if (normalized === null) return null;
+  const parsed = Number(normalized);
   if (!Number.isFinite(parsed)) {
     throw new Error(`${label} must be a number`);
   }
@@ -209,8 +247,9 @@ function parseNumberFlag(value, label) {
 }
 
 function parsePositiveIntegerFlag(value, label) {
-  if (value === undefined || value === null || value === '') return null;
-  const parsed = Number(value);
+  const normalized = asStringOrNull(value);
+  if (normalized === null) return null;
+  const parsed = Number(normalized);
   if (!Number.isInteger(parsed) || parsed < 1) {
     throw new Error(`${label} must be a positive integer`);
   }
@@ -218,28 +257,31 @@ function parsePositiveIntegerFlag(value, label) {
 }
 
 function parseWorkerPolicy(value, label) {
-  if (value == null || value === '') return null;
-  const normalized = String(value).trim().toLowerCase();
-  if (normalized !== 'cap' && normalized !== 'error') {
+  const normalized = asStringOrNull(value);
+  if (normalized === null) return null;
+  const normalizedLower = normalized.toLowerCase();
+  if (normalizedLower !== 'cap' && normalizedLower !== 'error') {
     throw new Error(`${label} must be one of: cap, error`);
   }
-  return normalized;
+  return normalizedLower;
 }
 
 function parseLoadMode(value, label, fallback) {
-  if (value == null || value === '') return fallback;
-  const normalized = String(value).trim().toLowerCase();
-  if (normalized === 'opfs' || normalized === 'http' || normalized === 'memory') {
-    return normalized;
+  const normalized = asStringOrNull(value);
+  if (normalized === null) return fallback;
+  const normalizedLower = normalized.toLowerCase();
+  if (normalizedLower === 'opfs' || normalizedLower === 'http' || normalizedLower === 'memory') {
+    return normalizedLower;
   }
   throw new Error(`${label} must be one of: opfs, http, memory`);
 }
 
 function parseCacheMode(value, label, fallback) {
-  if (value == null || value === '') return fallback;
-  const normalized = String(value).trim().toLowerCase();
-  if (normalized === 'cold' || normalized === 'warm') {
-    return normalized;
+  const normalized = asStringOrNull(value);
+  if (normalized === null) return fallback;
+  const normalizedLower = normalized.toLowerCase();
+  if (normalizedLower === 'cold' || normalizedLower === 'warm') {
+    return normalizedLower;
   }
   throw new Error(`${label} must be one of: cold, warm`);
 }
@@ -344,9 +386,16 @@ async function resolveBrowserModelUrl(request, parsed) {
   };
 }
 
-function parseSurface(value, command) {
-  const normalized = String(value || 'auto').trim().toLowerCase();
-  if (normalized !== 'auto' && normalized !== 'node' && normalized !== 'browser') {
+function parseSurface(value, command, policy = DEFAULT_CLI_POLICY) {
+  const normalizedInput = asStringOrNull(value);
+  const normalizedSurface = policy.defaults && policy.defaults.surface && policy.defaults.surface.default
+    ? policy.defaults.surface.default
+    : 'auto';
+  const allowedSurfaces = policy.defaults && Array.isArray(policy.defaults.surface?.allowed)
+    ? policy.defaults.surface.allowed
+    : ['auto', 'node', 'browser'];
+  const normalized = String(normalizedInput === null ? normalizedSurface : normalizedInput).trim().toLowerCase();
+  if (!allowedSurfaces.includes(normalized)) {
     throw new Error('--surface must be one of auto, node, browser');
   }
   if (command === 'convert' && normalized === 'browser') {
@@ -355,22 +404,23 @@ function parseSurface(value, command) {
   return normalized;
 }
 
-async function buildRequest(parsed, options = {}) {
+async function buildRequest(parsed, options = {}, policy = DEFAULT_CLI_POLICY) {
   const command = parsed.command;
   if (!command || !TOOLING_COMMANDS.includes(command)) {
     throw new Error(`Unsupported command "${command || ''}"`);
   }
   const jsonOutput = options.jsonOutput === true;
+  const policyDefaults = policy && policy.defaults ? policy.defaults : DEFAULT_CLI_POLICY.defaults;
 
   const common = {
     command,
-    modelId: parsed.flags['model-id'] ?? null,
-    modelUrl: parsed.flags['model-url'] ?? null,
-    cacheMode: parseCacheMode(parsed.flags['cache-mode'], '--cache-mode', null),
-    runtimePreset: parsed.flags['runtime-preset'] ?? null,
-    runtimeConfigUrl: parsed.flags['runtime-config-url'] ?? null,
-    runtimeConfig: parseRuntimeConfigJson(parsed.flags['runtime-config-json'] ?? null),
-    loadMode: parseLoadMode(parsed.flags['load-mode'], '--load-mode', null),
+    modelId: asStringOrNull(parsed.flags['model-id']),
+    modelUrl: asStringOrNull(parsed.flags['model-url']),
+    cacheMode: parseCacheMode(parsed.flags['cache-mode'], '--cache-mode', policyDefaults.cacheMode),
+    runtimePreset: asStringOrNull(parsed.flags['runtime-preset']),
+    runtimeConfigUrl: asStringOrNull(parsed.flags['runtime-config-url']),
+    runtimeConfig: parseRuntimeConfigJson(parsed.flags['runtime-config-json']),
+    loadMode: parseLoadMode(parsed.flags['load-mode'], '--load-mode', policyDefaults.loadMode),
     captureOutput: parsed.flags['capture-output'] === true,
     keepPipeline: parsed.flags['keep-pipeline'] === true,
   };
@@ -388,7 +438,7 @@ async function buildRequest(parsed, options = {}) {
       throw new Error('convert accepts only one positional argument: <inputPath>. Use --output-dir for output override.');
     }
 
-    const outputDir = parsed.flags['output-dir'] ?? null;
+    const outputDir = asStringOrNull(parsed.flags['output-dir']);
     const { configPath, usedLegacyAlias } = resolveConvertConfigFlag(parsed);
     if (!configPath) {
       throw new Error('convert requires --config <path.json>.');
@@ -504,9 +554,12 @@ function buildBrowserRunOptions(parsed, jsonOutput) {
   return options;
 }
 
-function isNodeWebGPUFallbackCandidate(error) {
+function isNodeWebGPUFallbackCandidate(error, fallbackPolicy = DEFAULT_CLI_POLICY.surfaceFallback) {
   const message = error?.message || String(error || '');
-  return message.includes(NODE_WEBGPU_INCOMPLETE_MESSAGE);
+  const fallbackSignatures = Array.isArray(fallbackPolicy?.errorFragments) && fallbackPolicy.errorFragments.length > 0
+    ? fallbackPolicy.errorFragments
+    : [NODE_WEBGPU_INCOMPLETE_MESSAGE];
+  return fallbackSignatures.some((signature) => message.includes(signature));
 }
 
 async function runCommandOnSurface(request, surface, parsed, jsonOutput) {
@@ -526,15 +579,19 @@ async function runCommandOnSurface(request, surface, parsed, jsonOutput) {
   return runBrowserCommandInNode(browserRequest, buildBrowserRunOptions(parsed, jsonOutput));
 }
 
-async function runWithAutoSurface(request, parsed, jsonOutput) {
+async function runWithAutoSurface(request, parsed, jsonOutput, policy = DEFAULT_CLI_POLICY) {
   if (request.command === 'convert') {
     return runCommandOnSurface(request, 'node', parsed, jsonOutput);
   }
+  const fallbackPolicy = policy?.surfaceFallback || { enabled: false };
 
   try {
     return await runCommandOnSurface(request, 'node', parsed, jsonOutput);
   } catch (error) {
-    if (!isNodeWebGPUFallbackCandidate(error)) {
+    if (!fallbackPolicy.enabled || !isNodeWebGPUFallbackCandidate(error, fallbackPolicy)) {
+      throw error;
+    }
+    if (fallbackPolicy.to !== 'browser') {
       throw error;
     }
     return runCommandOnSurface(request, 'browser', parsed, jsonOutput);
@@ -575,8 +632,6 @@ function quoteOneLine(value) {
   const clipped = s.length > 120 ? `${s.slice(0, 117)}...` : s;
   return JSON.stringify(clipped);
 }
-
-const DEFAULT_SAVE_DIR = './benchmarks/vendors/results';
 
 function compactTimestamp() {
   return new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+Z$/, '');
@@ -693,7 +748,7 @@ async function loadManifest(manifestPath) {
   return manifest;
 }
 
-async function runManifestSweep(manifest, parsed, jsonOutput, surface) {
+async function runManifestSweep(manifest, parsed, jsonOutput, surface, policy = DEFAULT_CLI_POLICY) {
   const defaults = manifest.defaults || {};
   const results = [];
 
@@ -712,13 +767,13 @@ async function runManifestSweep(manifest, parsed, jsonOutput, surface) {
     }
 
     const mergedParsed = { ...parsed, flags: mergedFlags };
-    const mergedWithDefaults = applyCommandDefaults(mergedParsed);
-    const request = await buildRequest(mergedWithDefaults, { jsonOutput });
+    const mergedWithDefaults = applyCommandDefaults(mergedParsed, policy);
+    const request = await buildRequest(mergedWithDefaults, { jsonOutput }, policy);
     if (!jsonOutput) mergedWithDefaults.flags['browser-console'] = true;
 
     try {
       const response = surface === 'auto'
-        ? await runWithAutoSurface(request, mergedWithDefaults, jsonOutput)
+        ? await runWithAutoSurface(request, mergedWithDefaults, jsonOutput, policy)
         : await runCommandOnSurface(request, surface, mergedWithDefaults, jsonOutput);
       results.push({ label, response, error: null });
     } catch (error) {
@@ -876,23 +931,28 @@ async function main() {
     return;
   }
 
+  const cliPolicy = await readJsonObjectFile(CLI_POLICY_PATH, '--cli-policy');
   const parsed = parseArgs(argv);
-  const parsedWithDefaults = applyCommandDefaults(parsed);
+  const parsedWithDefaults = applyCommandDefaults(parsed, cliPolicy);
   if (parsedWithDefaults.flags.help === true || parsedWithDefaults.flags.h === true) {
     console.log(usage());
     return;
   }
 
   const jsonOutput = parsedWithDefaults.flags.json === true;
-  const surface = parseSurface(parsedWithDefaults.flags.surface, parsedWithDefaults.command);
-  const saveDir = String(parsedWithDefaults.flags['save-dir'] || DEFAULT_SAVE_DIR);
+  const surface = parseSurface(parsedWithDefaults.flags.surface, parsedWithDefaults.command, cliPolicy);
+  const configuredSaveDir = asStringOrNull(parsedWithDefaults.flags['save-dir']);
+  const defaultSaveDir = asStringOrNull(cliPolicy?.defaults?.benchmark?.saveDir);
+  const saveDir = configuredSaveDir === null
+    ? defaultSaveDir || './benchmarks/vendors/results'
+    : configuredSaveDir;
   const shouldSave = parsedWithDefaults.flags.save === true;
-  const comparePath = parsedWithDefaults.flags.compare ?? null;
-  const manifestPath = parsedWithDefaults.flags.manifest ?? null;
+  const comparePath = asStringOrNull(parsedWithDefaults.flags.compare);
+  const manifestPath = asStringOrNull(parsedWithDefaults.flags.manifest);
 
   if (manifestPath) {
     const manifest = await loadManifest(String(manifestPath));
-    const results = await runManifestSweep(manifest, parsedWithDefaults, jsonOutput, surface);
+    const results = await runManifestSweep(manifest, parsedWithDefaults, jsonOutput, surface, cliPolicy);
 
     if (shouldSave) {
       for (const r of results) {
@@ -918,11 +978,11 @@ async function main() {
     return;
   }
 
-  const request = await buildRequest(parsedWithDefaults, { jsonOutput });
+  const request = await buildRequest(parsedWithDefaults, { jsonOutput }, cliPolicy);
 
   let response;
   if (surface === 'auto') {
-    response = await runWithAutoSurface(request, parsedWithDefaults, jsonOutput);
+    response = await runWithAutoSurface(request, parsedWithDefaults, jsonOutput, cliPolicy);
   } else {
     response = await runCommandOnSurface(request, surface, parsedWithDefaults, jsonOutput);
   }
