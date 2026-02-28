@@ -103,6 +103,7 @@ function createRuntimeBridge(initialRuntime = {}) {
 
 {
   const suiteOptions = buildSuiteOptions({
+    command: 'test-model',
     suite: 'inference',
     modelId: 'gemma-3-270m-it-wf16-ef16-hf16',
     modelUrl: null,
@@ -112,10 +113,12 @@ function createRuntimeBridge(initialRuntime = {}) {
     report: null,
     timestamp: '2026-02-22T00:00:00.000Z',
     searchParams: null,
-  });
+  }, 'node');
 
   assert.deepEqual(suiteOptions, {
     suite: 'inference',
+    command: 'test-model',
+    surface: 'node',
     modelId: 'gemma-3-270m-it-wf16-ef16-hf16',
     modelUrl: undefined,
     cacheMode: 'warm',

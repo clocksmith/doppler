@@ -374,11 +374,59 @@ export async function runBrowserHarness(options = {}) {
   return { ...harness, report, reportInfo };
 }
 
-function normalizeSuite(value) {
+const BROWSER_SUITE_SET = Object.freeze([
+  'kernels',
+  'inference',
+  'training',
+  'bench',
+  'debug',
+  'diffusion',
+  'energy',
+]);
+
+function createUnsupportedSuiteError(requestedSuite, context = {}) {
+  const command = typeof context.command === 'string' && context.command.trim()
+    ? context.command.trim()
+    : 'run-browser-suite';
+  const surface = typeof context.surface === 'string' && context.surface.trim()
+    ? context.surface.trim()
+    : 'browser';
+  const allowedSuites = [...BROWSER_SUITE_SET];
+  const error = new Error(
+    `Unsupported suite "${requestedSuite}". Allowed suites: ${allowedSuites.join(', ')}. ` +
+    `command="${command}" surface="${surface}".`
+  );
+  error.code = 'unsupported_suite';
+  error.requestedSuite = requestedSuite;
+  error.allowedSuites = allowedSuites;
+  error.command = command;
+  error.surface = surface;
+  error.details = {
+    requestedSuite,
+    allowedSuites,
+    command,
+    surface,
+  };
+  return error;
+}
+
+function resolveSuiteContext(options = {}) {
+  const command = typeof options.command === 'string' ? options.command : null;
+  const surface = typeof options.surface === 'string' ? options.surface : null;
+  return {
+    command: command ?? 'run-browser-suite',
+    surface: surface ?? 'browser',
+  };
+}
+
+function normalizeSuite(value, context = {}) {
   const suite = String(value || '').trim().toLowerCase();
   if (!suite) return 'inference';
-  if (suite === 'benchmark') return 'bench';
-  return suite;
+  const normalized = suite === 'benchmark' ? 'bench' : suite;
+  if (!BROWSER_SUITE_SET.includes(normalized)) {
+    throw createUnsupportedSuiteError(normalized, context);
+  }
+  return normalized;
 }
 
 function buildSuiteSummary(suite, results, startTime) {
@@ -582,6 +630,74 @@ async function runKernelSuite(options = {}) {
   const summary = buildSuiteSummary('kernels', results, startTime);
   return {
     ...summary,
+    deviceInfo: getKernelCapabilities(),
+  };
+}
+
+function normalizeTrainingTestNames(names) {
+  if (!Array.isArray(names)) return null;
+  const normalized = names
+    .map((name) => String(name || '').trim())
+    .filter(Boolean);
+  return normalized.length > 0 ? normalized : null;
+}
+
+async function runTrainingSuite(options = {}) {
+  const startTime = performance.now();
+  const { trainingHarness } = await import('../../tests/training/browser/test-page.js');
+  await trainingHarness.getGPU();
+
+  const listedTests = trainingHarness.listTests?.();
+  const availableTests = Array.isArray(listedTests) ? listedTests : [];
+  if (!availableTests.length) {
+    throw new Error('Training suite has no registered tests.');
+  }
+
+  const requestedTests = normalizeTrainingTestNames(options.trainingTests);
+  if (requestedTests) {
+    const unknownTests = requestedTests.filter((name) => !availableTests.includes(name));
+    if (unknownTests.length > 0) {
+      throw new Error(`Unknown training test(s): ${unknownTests.join(', ')}`);
+    }
+  }
+  const testsToRun = requestedTests ?? availableTests;
+
+  const results = [];
+  for (const testName of testsToRun) {
+    const testStart = performance.now();
+    try {
+      const outcome = await trainingHarness.runTest(testName);
+      const passed = outcome?.passed === true;
+      const skipped = outcome?.skipped === true;
+      const errorMessage = skipped
+        ? undefined
+        : (passed ? undefined : String(outcome?.error || 'Training test failed'));
+      results.push({
+        name: testName,
+        passed,
+        skipped,
+        duration: Math.max(0, performance.now() - testStart),
+        ...(errorMessage ? { error: errorMessage } : {}),
+      });
+    } catch (error) {
+      results.push({
+        name: testName,
+        passed: false,
+        duration: Math.max(0, performance.now() - testStart),
+        error: String(error?.message || error),
+      });
+    }
+  }
+
+  const summary = buildSuiteSummary('training', results, startTime);
+  return {
+    ...summary,
+    modelId: options.modelId || options.modelUrl || 'training',
+    metrics: {
+      testsRun: results.length,
+      selectedTests: testsToRun,
+      availableTests,
+    },
     deviceInfo: getKernelCapabilities(),
   };
 }
@@ -1885,10 +2001,13 @@ async function runEnergySuite(options = {}) {
 export async function runBrowserSuite(options = {}) {
   return runWithRuntimeIsolationForSuite(async () => {
     const suiteTimestamp = resolveReportTimestamp(options.timestamp, 'runBrowserSuite timestamp');
-    const suite = normalizeSuite(options.suite);
+    const suiteContext = resolveSuiteContext(options);
+    const suite = normalizeSuite(options.suite, suiteContext);
     let suiteResult;
     if (suite === 'kernels') {
       suiteResult = await runKernelSuite(options);
+    } else if (suite === 'training') {
+      suiteResult = await runTrainingSuite(options);
     } else if (suite === 'bench') {
       suiteResult = await runBenchSuite(options);
     } else if (suite === 'diffusion') {
@@ -1897,8 +2016,10 @@ export async function runBrowserSuite(options = {}) {
       suiteResult = await runEnergySuite(options);
     } else if (suite === 'debug') {
       suiteResult = await runInferenceSuite({ ...options, suiteName: 'debug' });
-    } else {
+    } else if (suite === 'inference') {
       suiteResult = await runInferenceSuite({ ...options, suiteName: 'inference' });
+    } else {
+      throw createUnsupportedSuiteError(suite, suiteContext);
     }
 
     const modelId = suiteResult.modelId || options.modelId || options.modelUrl || suite;
