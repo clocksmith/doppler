@@ -17,6 +17,22 @@ function setGlobalIfMissing(name, value) {
   });
 }
 
+function installGlobalsFromModule(mod) {
+  const globals = mod?.globals;
+  if (!globals || typeof globals !== 'object') return;
+  for (const [name, value] of Object.entries(globals)) {
+    setGlobalIfMissing(name, value);
+  }
+}
+
+function resolveWebgpuModuleSpecifier() {
+  const fromEnv = process.env.DOPPLER_NODE_WEBGPU_MODULE;
+  if (typeof fromEnv === 'string' && fromEnv.trim().length > 0) {
+    return fromEnv.trim();
+  }
+  return 'webgpu';
+}
+
 function installNavigatorGpu(gpu) {
   if (!gpu || typeof gpu.requestAdapter !== 'function') return false;
   if (typeof globalThis.navigator === 'undefined') {
@@ -52,9 +68,13 @@ function resolveGpuFromModule(mod) {
   if (typeof factory === 'function') {
     let created = null;
     try {
-      created = factory();
+      created = factory([]);
     } catch {
-      created = null;
+      try {
+        created = factory();
+      } catch {
+        created = null;
+      }
     }
     if (created) {
       if (typeof created.requestAdapter === 'function') {
@@ -80,7 +100,7 @@ export async function bootstrapNodeWebGPU() {
 
   let mod;
   try {
-    mod = await import('webgpu');
+    mod = await import(resolveWebgpuModuleSpecifier());
   } catch {
     return false;
   }
@@ -90,10 +110,11 @@ export async function bootstrapNodeWebGPU() {
     return false;
   }
 
-  setGlobalIfMissing('GPUBufferUsage', mod.GPUBufferUsage || mod.default?.GPUBufferUsage);
-  setGlobalIfMissing('GPUShaderStage', mod.GPUShaderStage || mod.default?.GPUShaderStage);
-  setGlobalIfMissing('GPUMapMode', mod.GPUMapMode || mod.default?.GPUMapMode);
-  setGlobalIfMissing('GPUTextureUsage', mod.GPUTextureUsage || mod.default?.GPUTextureUsage);
+  installGlobalsFromModule(mod);
+  setGlobalIfMissing('GPUBufferUsage', mod.GPUBufferUsage || mod.default?.GPUBufferUsage || mod.globals?.GPUBufferUsage);
+  setGlobalIfMissing('GPUShaderStage', mod.GPUShaderStage || mod.default?.GPUShaderStage || mod.globals?.GPUShaderStage);
+  setGlobalIfMissing('GPUMapMode', mod.GPUMapMode || mod.default?.GPUMapMode || mod.globals?.GPUMapMode);
+  setGlobalIfMissing('GPUTextureUsage', mod.GPUTextureUsage || mod.default?.GPUTextureUsage || mod.globals?.GPUTextureUsage);
 
   return hasNavigatorGpu() && hasGpuEnums();
 }

@@ -51,7 +51,7 @@ function usage() {
     '  doppler convert <inputPath> --config <path.json> [--output-dir <path>] [--surface auto|node]',
     '  doppler debug --model-id <id> [--model-url <url>] [--runtime-preset <id>] [--runtime-config-url <url>] [--runtime-config-json <json>] [--surface auto|node|browser]',
     '  doppler bench [--model-id <id>] [--model-url <url>] [--runtime-preset <id>] [--runtime-config-url <url>] [--runtime-config-json <json>] [--surface auto|node|browser]',
-    '  doppler test-model --suite <kernels|inference|diffusion|energy> [--model-id <id>] [--model-url <url>] [--runtime-preset <id>] [--runtime-config-url <url>] [--runtime-config-json <json>] [--surface auto|node|browser]',
+    '  doppler test-model --suite <kernels|inference|training|diffusion|energy> [--model-id <id>] [--model-url <url>] [--runtime-preset <id>] [--runtime-config-url <url>] [--runtime-config-json <json>] [--surface auto|node|browser]',
     '',
     'Flags:',
     '  --surface <auto|node|browser>   Execution surface (default: auto)',
@@ -921,6 +921,20 @@ function printMetricsSummary(result) {
     printDeviceInfo(result);
     printGpuPhases(metrics);
     printMemoryReport(result);
+    return;
+  }
+
+  if (suite === 'training') {
+    const selectedTests = Array.isArray(metrics.selectedTests)
+      ? metrics.selectedTests.length
+      : 'n/a';
+    const availableTests = Array.isArray(metrics.availableTests)
+      ? metrics.availableTests.length
+      : 'n/a';
+    console.log(
+      `[metrics] training tests=${Number.isFinite(metrics.testsRun) ? metrics.testsRun : 'n/a'} ` +
+      `selected=${selectedTests} available=${availableTests}`
+    );
   }
 }
 

@@ -75,6 +75,8 @@ For harnessed commands (`debug`, `bench`, `test-model`), runners must apply:
 - `runtime.shared.harness.modelId` (required except `kernels` suite)
 - `runtime.shared.tooling.intent`
 
+`test-model` verify suites are: `kernels`, `inference`, `training`, `diffusion`, and `energy`.
+
 Use `buildRuntimeContractPatch()` and merge into runtime config before execution.
 
 For cross-engine benchmarks, maintain a two-layer contract:

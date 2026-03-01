@@ -2,8 +2,8 @@ import { isPlainObject } from '../utils/plain-object.js';
 
 const TOOLING_COMMAND_SET = ['convert', 'debug', 'bench', 'test-model'];
 const TOOLING_SURFACE_SET = ['browser', 'node'];
-const TOOLING_SUITE_SET = ['kernels', 'inference', 'bench', 'debug', 'diffusion', 'energy'];
-const VERIFY_SUITES = ['kernels', 'inference', 'diffusion', 'energy'];
+const TOOLING_SUITE_SET = ['kernels', 'inference', 'training', 'bench', 'debug', 'diffusion', 'energy'];
+const VERIFY_SUITES = ['kernels', 'inference', 'training', 'diffusion', 'energy'];
 
 export const TOOLING_COMMANDS = Object.freeze([...TOOLING_COMMAND_SET]);
 export const TOOLING_SURFACES = Object.freeze([...TOOLING_SURFACE_SET]);

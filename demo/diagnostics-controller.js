@@ -7,7 +7,7 @@ import {
 } from '@doppler/core';
 
 const ALLOWED_INTENTS = new Set(TOOLING_INTENTS);
-const SUPPORTED_VERIFY_SUITES = new Set(['kernels', 'inference', 'diffusion', 'energy']);
+const SUPPORTED_VERIFY_SUITES = new Set(['kernels', 'inference', 'training', 'diffusion', 'energy']);
 
 function normalizeSuite(suite) {
   return String(suite || '').trim().toLowerCase();

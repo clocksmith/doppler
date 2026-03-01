@@ -98,7 +98,7 @@ export async function runNodeCommand(commandRequest, options = {}) {
 
   return runWithRuntimeIsolation(runtimeBridge, async () => {
     await applyRuntimeInputs(request, runtimeBridge, options.runtimeLoadOptions || {});
-    const result = await modules.harness.runBrowserSuite(buildSuiteOptions(request));
+    const result = await modules.harness.runBrowserSuite(buildSuiteOptions(request, 'node'));
 
     return {
       ok: true,

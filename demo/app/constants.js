@@ -211,6 +211,11 @@ export const DIAGNOSTICS_SUITE_INFO = {
     requiresModel: true,
     requiresBenchIntent: false,
   },
+  training: {
+    description: 'Runs training/distillation validation checks on the Active model.',
+    requiresModel: true,
+    requiresBenchIntent: false,
+  },
   diffusion: {
     description: 'Benchmarks diffusion generation using the Active model.',
     requiresModel: true,
@@ -230,6 +235,7 @@ export const DIAGNOSTICS_SUITE_INFO = {
 
 export const DIAGNOSTICS_SUITE_ORDER = [
   'inference',
+  'training',
   'debug',
   'bench',
   'diffusion',

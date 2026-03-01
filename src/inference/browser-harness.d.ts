@@ -27,7 +27,7 @@ export interface RuntimeConfigLoadOptions {
   signal?: AbortSignal;
 }
 
-export type BrowserSuite = 'kernels' | 'inference' | 'bench' | 'debug' | 'diffusion' | 'energy';
+export type BrowserSuite = 'kernels' | 'inference' | 'training' | 'bench' | 'debug' | 'diffusion' | 'energy';
 
 export interface SuiteTestResult {
   name: string;
@@ -54,8 +54,11 @@ export interface DiffusionOutput {
 
 export interface BrowserSuiteOptions extends InferenceHarnessOptions {
   suite?: BrowserSuite;
+  command?: string;
+  surface?: string;
   modelUrl?: string;
   modelId?: string;
+  trainingTests?: string[];
   cacheMode?: 'cold' | 'warm' | null;
   loadMode?: 'opfs' | 'http' | 'memory' | null;
   runtimePreset?: string | null;

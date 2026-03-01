@@ -95,9 +95,14 @@ export async function runWithRuntimeIsolation(runtimeBridge, run) {
   }
 }
 
-export function buildSuiteOptions(request) {
+export function buildSuiteOptions(request, surface = null) {
+  const normalizedSurface = typeof surface === 'string' && surface.trim()
+    ? surface.trim()
+    : null;
   return {
     suite: request.suite,
+    command: request.command,
+    surface: normalizedSurface,
     modelId: request.modelId ?? undefined,
     modelUrl: request.modelUrl ?? undefined,
     cacheMode: request.cacheMode ?? 'warm',
