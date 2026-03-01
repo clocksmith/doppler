@@ -16,7 +16,7 @@ Design rules for command execution across browser harnesses and the Node CLI.
 ## Vocabulary
 
 - **Command**: `convert`, `debug`, `bench`, `test-model`
-- **Suite**: `kernels`, `inference`, `bench`, `debug`, `diffusion`, `energy`
+- **Suite**: `kernels`, `inference`, `training`, `bench`, `debug`, `diffusion`, `energy`
 - **Runtime contract patch**: `{ shared.harness.mode, shared.harness.modelId, shared.tooling.intent }`
 - **Surface**: `browser` or `node`
 

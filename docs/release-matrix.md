@@ -1,7 +1,7 @@
 # Release Matrix
 
-Generated: 2026-02-25T19:22:12.061Z
-Release: channel=main-snapshot, version=n/a, commit=d10a6ac38483bf2579f72fc3290d22ed1c4cbcd1, dirty=yes
+Generated: 2026-03-01T14:32:44.569Z
+Release: channel=main-snapshot, version=n/a, commit=6b34cb7d65841b2d6a6d983dc0c0c809fa3a4f13, dirty=yes
 
 ## Engine Matrix
 
@@ -21,9 +21,9 @@ Release: channel=main-snapshot, version=n/a, commit=d10a6ac38483bf2579f72fc3290d
 | Doppler Model | In Catalog | Catalog Modes | TJS Mapping | Kernel Path | Base Dir |
 |---|---|---|---|---|---|
 | `gemma-3-1b-it-wf16-ef16-hf16` | no |  | `onnx-community/gemma-3-1b-it-ONNX-GQA` | `gemma3-f16-fused-f32a-online` | local |
-| `gemma-3-270m-it-wq4k-ef16-hf16-f32` | yes | run, translate | `onnx-community/gemma-3-270m-it-ONNX` |  | curated |
+| `gemma-3-270m-it-wf16-ef16-hf16` | no |  | `onnx-community/gemma-3-270m-it-ONNX` |  | curated |
+| `gemma-3-270m-it-wq4k-ef16-hf16-f32` | yes | run, translate |  |  |  |
 | `google-embeddinggemma-300m-wq4k-ef16` | yes | embedding |  |  |  |
-| `translategemma-4b-it-wq4k-ef16-hf16` | yes | run, translate |  |  |  |
 
 ## Workloads
 
@@ -37,3 +37,4 @@ Release: channel=main-snapshot, version=n/a, commit=d10a6ac38483bf2579f72fc3290d
 ## Charts
 
 - [compare_1b_multi-workload_favorable_phases.svg](../benchmarks/vendors/results/compare_1b_multi-workload_favorable_phases.svg)
+

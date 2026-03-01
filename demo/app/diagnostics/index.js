@@ -139,6 +139,8 @@ function getDiagnosticsProfileLabel(suite, presetId) {
     'bench|modes/bench': 'Text Benchmark',
     'bench|modes/embedding-bench': 'Embedding Benchmark',
     'bench|modes/debug': 'Text Benchmark (Debug)',
+    'training|modes/bench': 'Training Validation',
+    'training|modes/debug': 'Training Validation (Debug)',
     'diffusion|modes/bench': 'Diffusion Benchmark',
     'diffusion|modes/debug': 'Diffusion Benchmark (Debug)',
     'energy|modes/bench': 'Energy Check',
@@ -187,6 +189,12 @@ function getDiagnosticsProfileDescription(suite, presetId, modelType) {
     return {
       summary: 'Runs repeated timed generations for throughput benchmarking.',
       produces: 'tokens/sec, TTFT, prefill/decode latency distributions.',
+    };
+  }
+  if (key === 'training|modes/bench' || key === 'training|modes/debug') {
+    return {
+      summary: 'Runs training correctness checks and reports pass/fail results.',
+      produces: 'training test results and suite summary metrics.',
     };
   }
   if (key === 'diffusion|modes/bench') {
@@ -548,6 +556,14 @@ function formatDiagnosticsMetricsLine(payload, fallbackSuite = null) {
       return `Energy ${metrics.energy} • Steps ${metrics.steps ?? '--'}`;
     }
   }
+  if (suite === 'training') {
+    const testsRun = Number.isFinite(metrics.testsRun) ? metrics.testsRun : '--';
+    const selected = Array.isArray(metrics.selectedTests) ? metrics.selectedTests.length : null;
+    const available = Array.isArray(metrics.availableTests) ? metrics.availableTests.length : null;
+    const selectedText = Number.isFinite(selected) ? selected : '--';
+    const availableText = Number.isFinite(available) ? available : '--';
+    return `Training tests ${testsRun} • Selected ${selectedText} • Available ${availableText}`;
+  }
   if (suite === 'diffusion') {
     if (Number.isFinite(metrics.width) && Number.isFinite(metrics.height)) {
       return `Resolution ${metrics.width}×${metrics.height} • Steps ${metrics.steps ?? '--'}`;
@@ -614,6 +630,9 @@ function formatDiagnosticsOutputSummary(payload, fallbackSuite, captureOutput) {
   }
   if (suite === 'energy') {
     return 'Energy convergence summary shown above. Raw JSON below.';
+  }
+  if (suite === 'training') {
+    return 'Training validation summary shown above. Raw JSON below.';
   }
   if (suite === 'kernels') {
     return 'Kernel validation summary shown above. Raw JSON below.';
@@ -778,7 +797,7 @@ export function renderDiagnosticsOutput(result, fallbackSuite, captureOutput) {
       (typeof output === 'string' && output.trim().length > 0)
       || (output && typeof output === 'object')
     );
-    if (suite !== 'bench' && suite !== 'energy' && suite !== 'kernels' && !hasDirectOutput) {
+    if (suite !== 'bench' && suite !== 'energy' && suite !== 'training' && suite !== 'kernels' && !hasDirectOutput) {
       fallback = captureOutput ? 'No output captured.' : 'Output capture disabled.';
     }
     textEl.textContent = [prefix, fallback].filter(Boolean).join('\n').trim();

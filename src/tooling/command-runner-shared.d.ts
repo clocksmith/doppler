@@ -25,9 +25,12 @@ export declare function applyRuntimeInputs(
 ): Promise<void>;
 
 export declare function buildSuiteOptions(
-  request: ToolingCommandRequest
+  request: ToolingCommandRequest,
+  surface?: string | null
 ): {
   suite: ToolingCommandRequest['suite'];
+  command: ToolingCommandRequest['command'];
+  surface: string | null;
   modelId?: string;
   cacheMode: ToolingCommandRequest['cacheMode'];
   loadMode: 'opfs' | 'http' | 'memory' | null;

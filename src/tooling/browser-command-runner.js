@@ -56,7 +56,7 @@ export async function runBrowserCommand(commandRequest, options = {}) {
 
   const result = await runWithRuntimeIsolation(runtimeBridge, async () => {
     await applyRuntimeInputs(request, runtimeBridge, options.runtimeLoadOptions || {});
-    return runBrowserSuite(buildSuiteOptions(request));
+    return runBrowserSuite(buildSuiteOptions(request, 'browser'));
   });
 
   return {

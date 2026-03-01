@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-02-25T19:22:12.061Z",
+  "generatedAt": "2026-03-01T14:32:44.569Z",
   "release": {
     "channel": "main-snapshot",
     "version": null,
-    "commitSha": "d10a6ac38483bf2579f72fc3290d22ed1c4cbcd1",
+    "commitSha": "6b34cb7d65841b2d6a6d983dc0c0c809fa3a4f13",
     "dirty": true
   },
   "sources": {
@@ -28,22 +28,22 @@
     },
     "compareConfig": {
       "path": "benchmarks/vendors/compare-engines.config.json",
-      "sha256": "826b9e037888b72da575817825c01f4ebe3d29b31528aa606a9bd74fc4b3f91e",
-      "bytes": 392,
+      "sha256": "f469dd7de445f0775e8fb712d388cb94009acbcdf13dfe0f779009deef2a2886",
+      "bytes": 404,
       "updated": "2026-02-23"
     },
     "modelCatalog": {
       "path": "models/catalog.json",
-      "sha256": "8ee993209310e9f5ec1d05bdefe3e68b69f2dac76256e8e942eb3d1ea3ccc32a",
-      "bytes": 980,
-      "updated": "2026-02-25"
+      "sha256": "4a06f0c0375f75dd00a43a02beaadd13dfdcbd8ba7e472a1210a59b885784975",
+      "bytes": 804,
+      "updated": "2026-02-26"
     }
   },
   "summary": {
     "targetCount": 8,
     "modelCoverageCount": 4,
     "compareProfileCount": 2,
-    "catalogModelCount": 3,
+    "catalogModelCount": 2,
     "workloadCount": 2,
     "committedChartCount": 1,
     "hasLatestCompareResult": true
@@ -501,9 +501,20 @@
       "catalogSizeBytes": null
     },
     {
-      "dopplerModelId": "gemma-3-270m-it-wq4k-ef16-hf16-f32",
+      "dopplerModelId": "gemma-3-270m-it-wf16-ef16-hf16",
       "dopplerModelBaseDir": "curated",
       "defaultTjsModelId": "onnx-community/gemma-3-270m-it-ONNX",
+      "defaultKernelPath": null,
+      "inCatalog": false,
+      "catalogLabel": null,
+      "catalogModes": [],
+      "catalogBaseUrl": null,
+      "catalogSizeBytes": null
+    },
+    {
+      "dopplerModelId": "gemma-3-270m-it-wq4k-ef16-hf16-f32",
+      "dopplerModelBaseDir": null,
+      "defaultTjsModelId": null,
       "defaultKernelPath": null,
       "inCatalog": true,
       "catalogLabel": "Gemma 3 270M Instruct (Q4K/F32a)",
@@ -526,20 +537,6 @@
       ],
       "catalogBaseUrl": "./curated/google-embeddinggemma-300m-wq4k-ef16",
       "catalogSizeBytes": 480562497
-    },
-    {
-      "dopplerModelId": "translategemma-4b-it-wq4k-ef16-hf16",
-      "dopplerModelBaseDir": null,
-      "defaultTjsModelId": null,
-      "defaultKernelPath": null,
-      "inCatalog": true,
-      "catalogLabel": "TranslateGemma 4B Instruct (Q4)",
-      "catalogModes": [
-        "run",
-        "translate"
-      ],
-      "catalogBaseUrl": "./local/translategemma-4b-it-wq4k-ef16-hf16",
-      "catalogSizeBytes": 3111894696
     }
   ],
   "workloads": [
