@@ -5,7 +5,7 @@
  */
 
 export interface SavedReportInfo {
-  backend: 'opfs' | 'indexeddb';
+  backend: 'opfs' | 'indexeddb' | 'node-fs';
   path: string;
 }
 

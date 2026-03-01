@@ -55,6 +55,16 @@ function usage() {
     '',
     'Flags:',
     '  --surface <auto|node|browser>   Execution surface (default: auto)',
+    '  --workload-type <string>        Custom workload type (e.g. training) for commands',
+    '  --training-tests <list>         Comma-separated training test ids (training suite only)',
+    '  --training-stage <stage>        UL stage for training suite (stage1_joint|stage2_base)',
+    '  --training-config-json <json>   Training config override object (training suite only)',
+    '  --training-schema-version <n>   Training command schema version (must be 1)',
+    '  --training-bench-steps <n>      Training benchmark steps per timed run (bench training)',
+    '  --stage1-artifact <path>        Stage1 manifest path required for stage2 runs',
+    '  --stage1-artifact-hash <hash>   Optional sha256 hash check for stage1 manifest file',
+    '  --ul-artifact-dir <path>        Output directory for UL manifests + metrics',
+    '  UL claim boundary: UL-inspired practical two-stage pipeline; not paper-equivalent SOTA.',
     '  --json                          Print machine-readable result JSON',
     '  --capture-output                Include captured output for supported suites',
     '  --keep-pipeline                 Keep loaded pipeline in result payload (node surface only)',
@@ -176,17 +186,25 @@ function parseArgs(argv) {
   return out;
 }
 
-function parseRuntimeConfigJson(value) {
+function parseJsonObjectFlag(value, label) {
   if (asStringOrNull(value) === null) return null;
   try {
     const parsed = JSON.parse(value);
     if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
-      throw new Error('runtime config must be an object');
+      throw new Error('value must be a JSON object');
     }
     return parsed;
   } catch (error) {
-    throw new Error(`Invalid --runtime-config-json: ${error.message}`);
+    throw new Error(`Invalid ${label}: ${error.message}`);
   }
+}
+
+function parseRuntimeConfigJson(value) {
+  return parseJsonObjectFlag(value, '--runtime-config-json');
+}
+
+function parseTrainingConfigJson(value) {
+  return parseJsonObjectFlag(value, '--training-config-json');
 }
 
 async function readJsonObjectFile(filePath, label) {
@@ -289,6 +307,19 @@ function parseCacheMode(value, label, fallback) {
 function parseBrowserArgs(value) {
   if (value === undefined || value === null) return [];
   return Array.isArray(value) ? value.map((item) => String(item)) : [String(value)];
+}
+
+function parseStringListFlag(value, label) {
+  const normalized = asStringOrNull(value);
+  if (normalized === null) return null;
+  const entries = normalized
+    .split(',')
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+  if (!entries.length) {
+    throw new Error(`${label} must include at least one non-empty value`);
+  }
+  return entries;
 }
 
 async function pathExists(filePath) {
@@ -415,6 +446,21 @@ async function buildRequest(parsed, options = {}, policy = DEFAULT_CLI_POLICY) {
   const common = {
     command,
     modelId: asStringOrNull(parsed.flags['model-id']),
+    trainingTests: parseStringListFlag(parsed.flags['training-tests'], '--training-tests'),
+    trainingStage: asStringOrNull(parsed.flags['training-stage']),
+    trainingConfig: parseTrainingConfigJson(parsed.flags['training-config-json']),
+    trainingSchemaVersion: parsePositiveIntegerFlag(
+      parsed.flags['training-schema-version'],
+      '--training-schema-version'
+    ),
+    trainingBenchSteps: parsePositiveIntegerFlag(
+      parsed.flags['training-bench-steps'],
+      '--training-bench-steps'
+    ),
+    stage1Artifact: asStringOrNull(parsed.flags['stage1-artifact']),
+    stage1ArtifactHash: asStringOrNull(parsed.flags['stage1-artifact-hash']),
+    ulArtifactDir: asStringOrNull(parsed.flags['ul-artifact-dir']),
+    workloadType: asStringOrNull(parsed.flags['workload-type']),
     modelUrl: asStringOrNull(parsed.flags['model-url']),
     cacheMode: parseCacheMode(parsed.flags['cache-mode'], '--cache-mode', policyDefaults.cacheMode),
     runtimePreset: asStringOrNull(parsed.flags['runtime-preset']),
@@ -562,6 +608,12 @@ function isNodeWebGPUFallbackCandidate(error, fallbackPolicy = DEFAULT_CLI_POLIC
   return fallbackSignatures.some((signature) => message.includes(signature));
 }
 
+function isTrainingCommandFlow(request) {
+  if (!request || typeof request !== 'object') return false;
+  if (request.suite === 'training') return true;
+  return request.command === 'bench' && request.workloadType === 'training';
+}
+
 async function runCommandOnSurface(request, surface, parsed, jsonOutput) {
   if (surface === 'node') {
     return runNodeCommand(request, buildNodeRunOptions(jsonOutput));
@@ -590,6 +642,18 @@ async function runWithAutoSurface(request, parsed, jsonOutput, policy = DEFAULT_
   } catch (error) {
     if (!fallbackPolicy.enabled || !isNodeWebGPUFallbackCandidate(error, fallbackPolicy)) {
       throw error;
+    }
+    if (isTrainingCommandFlow(request)) {
+      const downgradeError = new Error(
+        'Training command auto-surface downgrade is blocked. Re-run with --surface node after fixing Node WebGPU support, or explicitly choose --surface browser.'
+      );
+      downgradeError.code = 'training_surface_downgrade_blocked';
+      downgradeError.command = request.command;
+      downgradeError.suite = request.suite;
+      downgradeError.workloadType = request.workloadType || null;
+      downgradeError.fromSurface = 'node';
+      downgradeError.toSurface = fallbackPolicy.to || 'browser';
+      throw downgradeError;
     }
     if (fallbackPolicy.to !== 'browser') {
       throw error;
@@ -931,9 +995,10 @@ function printMetricsSummary(result) {
     const availableTests = Array.isArray(metrics.availableTests)
       ? metrics.availableTests.length
       : 'n/a';
+    const stage = typeof metrics.trainingStage === 'string' ? metrics.trainingStage : 'n/a';
     console.log(
       `[metrics] training tests=${Number.isFinite(metrics.testsRun) ? metrics.testsRun : 'n/a'} ` +
-      `selected=${selectedTests} available=${availableTests}`
+      `selected=${selectedTests} available=${availableTests} stage=${stage}`
     );
   }
 }

@@ -1,5 +1,4 @@
 
-
 import { initializeInference, parseRuntimeOverridesFromURL } from './test-harness.js';
 import { saveReport } from '../storage/reports.js';
 import { getRuntimeConfig, setRuntimeConfig } from '../config/runtime.js';
@@ -19,6 +18,10 @@ import {
 import { selectRuleValue } from '../rules/rule-registry.js';
 import { mergeRuntimeValues } from '../config/runtime-merge.js';
 import { isPlainObject } from '../utils/plain-object.js';
+import { validateTrainingMetricsReport } from '../config/schema/training-metrics.schema.js';
+import { runTrainingSuite, runTrainingBenchSuite } from '../training/suite.js';
+
+export { runTrainingSuite };
 
 function parseReportTimestamp(rawTimestamp, label = 'timestamp') {
   if (rawTimestamp == null) {
@@ -384,6 +387,24 @@ const BROWSER_SUITE_SET = Object.freeze([
   'energy',
 ]);
 
+const BROWSER_SUITE_DISPATCH_MAP = Object.freeze({
+  kernels: 'runKernelSuite',
+  inference: 'runInferenceSuite',
+  training: 'runTrainingSuite',
+  bench: 'runBenchSuite',
+  debug: 'runInferenceSuite(debug)',
+  diffusion: 'runDiffusionSuite',
+  energy: 'runEnergySuite',
+});
+
+export function getBrowserSupportedSuites() {
+  return [...BROWSER_SUITE_SET];
+}
+
+export function getBrowserSuiteDispatchMap() {
+  return { ...BROWSER_SUITE_DISPATCH_MAP };
+}
+
 function createUnsupportedSuiteError(requestedSuite, context = {}) {
   const command = typeof context.command === 'string' && context.command.trim()
     ? context.command.trim()
@@ -421,7 +442,9 @@ function resolveSuiteContext(options = {}) {
 
 function normalizeSuite(value, context = {}) {
   const suite = String(value || '').trim().toLowerCase();
-  if (!suite) return 'inference';
+  if (!suite) {
+    throw createUnsupportedSuiteError(suite, context);
+  }
   const normalized = suite === 'benchmark' ? 'bench' : suite;
   if (!BROWSER_SUITE_SET.includes(normalized)) {
     throw createUnsupportedSuiteError(normalized, context);
@@ -429,11 +452,22 @@ function normalizeSuite(value, context = {}) {
   return normalized;
 }
 
-function buildSuiteSummary(suite, results, startTime) {
+/**
+ * @typedef {Object} SuiteSummary
+ * @property {string} suite
+ * @property {number} passed
+ * @property {number} failed
+ * @property {number} skipped
+ * @property {number} duration
+ * @property {any[]} results
+ */
+
+export function buildSuiteSummary(suiteName, results, startTimeMs) {
   let passed = 0;
   let failed = 0;
   let skipped = 0;
-  for (const result of results) {
+  const safeResults = Array.isArray(results) ? results : [];
+  for (const result of safeResults) {
     if (result.skipped) {
       skipped++;
     } else if (result.passed) {
@@ -442,8 +476,8 @@ function buildSuiteSummary(suite, results, startTime) {
       failed++;
     }
   }
-  const duration = Math.max(0, performance.now() - startTime);
-  return { suite, passed, failed, skipped, duration, results };
+  const duration = Math.max(0, performance.now() - (Number.isFinite(startTimeMs) ? startTimeMs : performance.now()));
+  return { suite: suiteName, passed, failed, skipped, duration, results: safeResults };
 }
 
 function normalizeCacheMode(value) {
@@ -455,6 +489,11 @@ function normalizeLoadMode(value, hasModelUrl) {
     return value;
   }
   return hasModelUrl ? 'http' : 'opfs';
+}
+
+function normalizeWorkloadType(value) {
+  const normalized = String(value || '').trim().toLowerCase();
+  return normalized || null;
 }
 
 function toTimingNumber(value, fallback = 0) {
@@ -634,73 +673,9 @@ async function runKernelSuite(options = {}) {
   };
 }
 
-function normalizeTrainingTestNames(names) {
-  if (!Array.isArray(names)) return null;
-  const normalized = names
-    .map((name) => String(name || '').trim())
-    .filter(Boolean);
-  return normalized.length > 0 ? normalized : null;
-}
 
-async function runTrainingSuite(options = {}) {
-  const startTime = performance.now();
-  const { trainingHarness } = await import('../../tests/training/browser/test-page.js');
-  await trainingHarness.getGPU();
 
-  const listedTests = trainingHarness.listTests?.();
-  const availableTests = Array.isArray(listedTests) ? listedTests : [];
-  if (!availableTests.length) {
-    throw new Error('Training suite has no registered tests.');
-  }
 
-  const requestedTests = normalizeTrainingTestNames(options.trainingTests);
-  if (requestedTests) {
-    const unknownTests = requestedTests.filter((name) => !availableTests.includes(name));
-    if (unknownTests.length > 0) {
-      throw new Error(`Unknown training test(s): ${unknownTests.join(', ')}`);
-    }
-  }
-  const testsToRun = requestedTests ?? availableTests;
-
-  const results = [];
-  for (const testName of testsToRun) {
-    const testStart = performance.now();
-    try {
-      const outcome = await trainingHarness.runTest(testName);
-      const passed = outcome?.passed === true;
-      const skipped = outcome?.skipped === true;
-      const errorMessage = skipped
-        ? undefined
-        : (passed ? undefined : String(outcome?.error || 'Training test failed'));
-      results.push({
-        name: testName,
-        passed,
-        skipped,
-        duration: Math.max(0, performance.now() - testStart),
-        ...(errorMessage ? { error: errorMessage } : {}),
-      });
-    } catch (error) {
-      results.push({
-        name: testName,
-        passed: false,
-        duration: Math.max(0, performance.now() - testStart),
-        error: String(error?.message || error),
-      });
-    }
-  }
-
-  const summary = buildSuiteSummary('training', results, startTime);
-  return {
-    ...summary,
-    modelId: options.modelId || options.modelUrl || 'training',
-    metrics: {
-      testsRun: results.length,
-      selectedTests: testsToRun,
-      availableTests,
-    },
-    deviceInfo: getKernelCapabilities(),
-  };
-}
 
 const DEFAULT_HARNESS_PROMPT = 'Summarize this input in one sentence.';
 const DEFAULT_HARNESS_MAX_TOKENS = 32;
@@ -1511,6 +1486,54 @@ async function runBenchSuite(options = {}) {
   const timedRuns = benchRun.timedRuns;
   const cacheMode = normalizeCacheMode(options.cacheMode);
   const loadMode = normalizeLoadMode(options.loadMode, !options.modelUrl);
+  const workloadType = normalizeWorkloadType(options.workloadType);
+
+  if (workloadType === 'training') {
+    const trainingBench = await runTrainingBenchSuite({
+      ...options,
+      benchRun,
+      workloadType,
+    });
+    const trainingReport = trainingBench?.metrics?.trainingMetricsReport;
+    if (Array.isArray(trainingReport) && trainingReport.length > 0) {
+      validateTrainingMetricsReport(trainingReport);
+    }
+    const runStats = trainingBench?.metrics?.latency?.runMs || computeSampleStats([]);
+    const stepStats = trainingBench?.metrics?.latency?.stepMs || computeSampleStats([]);
+    const throughputStats = trainingBench?.metrics?.throughput?.stepsPerSec || computeSampleStats([]);
+    const timing = buildCanonicalTiming({
+      modelLoadMs: 0,
+      firstTokenMs: null,
+      firstResponseMs: null,
+      prefillMs: null,
+      decodeMs: stepStats.median,
+      totalRunMs: runStats.median,
+      decodeTokensPerSec: throughputStats.median,
+      prefillTokensPerSec: null,
+      cacheMode,
+      loadMode,
+    });
+    return {
+      ...trainingBench,
+      modelId: trainingBench.modelId || options.modelId || options.modelUrl || 'training',
+      cacheMode,
+      loadMode,
+      env: {
+        library: 'doppler',
+        runtime: 'browser',
+        device: 'webgpu',
+        browserUserAgent: typeof navigator !== 'undefined' ? (navigator.userAgent || null) : null,
+        browserPlatform: typeof navigator !== 'undefined' ? (navigator.platform || null) : null,
+        browserLanguage: typeof navigator !== 'undefined' ? (navigator.language || null) : null,
+        browserVendor: typeof navigator !== 'undefined' ? (navigator.vendor || null) : null,
+      },
+      timing,
+      output: null,
+      memoryStats: null,
+      deviceInfo: trainingBench.deviceInfo ?? getKernelCapabilities(),
+      pipeline: null,
+    };
+  }
 
   const harness = await initializeSuiteModel(options);
   const modelType = harness.manifest?.modelType || 'transformer';
@@ -1691,12 +1714,12 @@ async function runBenchSuite(options = {}) {
     const gpuPhaseStats = gpuPrefillMs.length > 0 || gpuDecodeMs.length > 0 || gpuDecodeRecordMs.length > 0
       || gpuDecodeSubmitWaitMs.length > 0 || gpuDecodeReadbackWaitMs.length > 0
       ? {
-          prefillMs: computeSampleStats(gpuPrefillMs),
-          decodeMs: computeSampleStats(gpuDecodeMs),
-          decodeRecordMs: computeSampleStats(gpuDecodeRecordMs),
-          decodeSubmitWaitMs: computeSampleStats(gpuDecodeSubmitWaitMs),
-          decodeReadbackWaitMs: computeSampleStats(gpuDecodeReadbackWaitMs),
-        }
+        prefillMs: computeSampleStats(gpuPrefillMs),
+        decodeMs: computeSampleStats(gpuDecodeMs),
+        decodeRecordMs: computeSampleStats(gpuDecodeRecordMs),
+        decodeSubmitWaitMs: computeSampleStats(gpuDecodeSubmitWaitMs),
+        decodeReadbackWaitMs: computeSampleStats(gpuDecodeReadbackWaitMs),
+      }
       : null;
 
     results = [
@@ -1913,12 +1936,12 @@ async function runDiffusionSuite(options = {}) {
   };
   const gpuStats = gpuTotalMs.length > 0
     ? {
-        available: true,
-        totalMs: computeSampleStats(gpuTotalMs),
-        prefillMs: computeSampleStats(gpuPrefillMs),
-        denoiseMs: computeSampleStats(gpuDenoiseMs),
-        vaeMs: computeSampleStats(gpuVaeMs),
-      }
+      available: true,
+      totalMs: computeSampleStats(gpuTotalMs),
+      prefillMs: computeSampleStats(gpuPrefillMs),
+      denoiseMs: computeSampleStats(gpuDenoiseMs),
+      vaeMs: computeSampleStats(gpuVaeMs),
+    }
     : { available: false };
 
   const avgPrefillTokens = prefillTokens.length
@@ -1998,32 +2021,71 @@ async function runEnergySuite(options = {}) {
   };
 }
 
+async function dispatchBrowserSuite(suite, options) {
+  if (suite === 'kernels') {
+    return runKernelSuite(options);
+  }
+  if (suite === 'training') {
+    return runTrainingSuite(options);
+  }
+  if (suite === 'bench') {
+    return runBenchSuite(options);
+  }
+  if (suite === 'diffusion') {
+    return runDiffusionSuite(options);
+  }
+  if (suite === 'energy') {
+    return runEnergySuite(options);
+  }
+  if (suite === 'debug') {
+    return runInferenceSuite({ ...options, suiteName: 'debug' });
+  }
+  if (suite === 'inference') {
+    return runInferenceSuite({ ...options, suiteName: 'inference' });
+  }
+  return null;
+}
+
+function collectUlArtifactsFromSuiteResult(suiteResult) {
+  const artifacts = [];
+  const metricArtifacts = Array.isArray(suiteResult?.metrics?.ulArtifacts)
+    ? suiteResult.metrics.ulArtifacts
+    : [];
+  for (const artifact of metricArtifacts) {
+    if (artifact && typeof artifact === 'object' && typeof artifact.manifestPath === 'string') {
+      artifacts.push(artifact);
+    }
+  }
+  const resultEntries = Array.isArray(suiteResult?.results) ? suiteResult.results : [];
+  for (const entry of resultEntries) {
+    const artifact = entry?.artifact;
+    if (artifact && typeof artifact === 'object' && typeof artifact.manifestPath === 'string') {
+      artifacts.push(artifact);
+    }
+  }
+  return artifacts;
+}
+
 export async function runBrowserSuite(options = {}) {
   return runWithRuntimeIsolationForSuite(async () => {
     const suiteTimestamp = resolveReportTimestamp(options.timestamp, 'runBrowserSuite timestamp');
     const suiteContext = resolveSuiteContext(options);
     const suite = normalizeSuite(options.suite, suiteContext);
-    let suiteResult;
-    if (suite === 'kernels') {
-      suiteResult = await runKernelSuite(options);
-    } else if (suite === 'training') {
-      suiteResult = await runTrainingSuite(options);
-    } else if (suite === 'bench') {
-      suiteResult = await runBenchSuite(options);
-    } else if (suite === 'diffusion') {
-      suiteResult = await runDiffusionSuite(options);
-    } else if (suite === 'energy') {
-      suiteResult = await runEnergySuite(options);
-    } else if (suite === 'debug') {
-      suiteResult = await runInferenceSuite({ ...options, suiteName: 'debug' });
-    } else if (suite === 'inference') {
-      suiteResult = await runInferenceSuite({ ...options, suiteName: 'inference' });
-    } else {
+    const suiteResult = await dispatchBrowserSuite(suite, options);
+    if (!suiteResult) {
       throw createUnsupportedSuiteError(suite, suiteContext);
+    }
+
+    if (suite === 'bench' && suiteResult?.metrics?.workloadType === 'training') {
+      const trainingReport = suiteResult?.metrics?.trainingMetricsReport;
+      if (Array.isArray(trainingReport) && trainingReport.length > 0) {
+        validateTrainingMetricsReport(trainingReport);
+      }
     }
 
     const modelId = suiteResult.modelId || options.modelId || options.modelUrl || suite;
     const reportOutput = sanitizeReportOutput(suiteResult.output);
+    const ulArtifacts = collectUlArtifactsFromSuiteResult(suiteResult);
     const report = {
       suite,
       modelId,
@@ -2037,6 +2099,19 @@ export async function runBrowserSuite(options = {}) {
       memory: suiteResult.memoryStats ?? null,
       ...options.report,
     };
+    if (ulArtifacts.length > 0) {
+      report.lineage = {
+        ...(report.lineage && typeof report.lineage === 'object' ? report.lineage : {}),
+        training: {
+          ...(
+            report.lineage?.training && typeof report.lineage.training === 'object'
+              ? report.lineage.training
+              : {}
+          ),
+          ulArtifacts,
+        },
+      };
+    }
     if (!report.timestamp) {
       report.timestamp = suiteTimestamp;
     }

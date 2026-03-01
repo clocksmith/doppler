@@ -46,6 +46,19 @@ export interface SuiteSummary {
   results: SuiteTestResult[];
 }
 
+export interface TrainingSuiteMetrics {
+  testsRun: number;
+  selectedTests: string[];
+  availableTests: string[];
+  trainingSchemaVersion?: number;
+}
+
+export interface TrainingSuiteResult extends SuiteSummary {
+  modelId: string;
+  metrics: TrainingSuiteMetrics;
+  deviceInfo: Record<string, unknown> | null;
+}
+
 export interface DiffusionOutput {
   pixels: Uint8ClampedArray;
   width: number;
@@ -59,6 +72,13 @@ export interface BrowserSuiteOptions extends InferenceHarnessOptions {
   modelUrl?: string;
   modelId?: string;
   trainingTests?: string[];
+  trainingStage?: 'stage1_joint' | 'stage2_base';
+  trainingConfig?: Record<string, unknown>;
+  stage1Artifact?: string;
+  stage1ArtifactHash?: string;
+  ulArtifactDir?: string;
+  trainingSchemaVersion?: number;
+  trainingBenchSteps?: number;
   cacheMode?: 'cold' | 'warm' | null;
   loadMode?: 'opfs' | 'http' | 'memory' | null;
   runtimePreset?: string | null;
@@ -164,6 +184,19 @@ export declare function runBrowserHarness(
 export declare function runBrowserSuite(
   options: BrowserSuiteOptions
 ): Promise<BrowserSuiteResult>;
+
+export declare function runTrainingSuite(
+  options?: BrowserSuiteOptions
+): Promise<TrainingSuiteResult>;
+
+export declare function buildSuiteSummary(
+  suiteName: string,
+  results: SuiteTestResult[],
+  startTimeMs: number
+): SuiteSummary;
+
+export declare function getBrowserSupportedSuites(): BrowserSuite[];
+export declare function getBrowserSuiteDispatchMap(): Record<BrowserSuite, string>;
 
 export declare function runBrowserManifest(
   manifest: BrowserManifest,

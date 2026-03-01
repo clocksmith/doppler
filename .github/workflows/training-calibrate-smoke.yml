@@ -1,0 +1,51 @@
+name: Training Calibrate Smoke
+
+on:
+  pull_request:
+    paths:
+      - 'src/config/**'
+      - 'src/inference/**'
+      - 'src/tooling/**'
+      - 'src/training/**'
+      - 'tests/config/**'
+      - 'tests/integration/**'
+      - 'tools/verify-training-provenance.mjs'
+      - '.github/workflows/training-calibrate-smoke.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/config/**'
+      - 'src/inference/**'
+      - 'src/tooling/**'
+      - 'src/training/**'
+      - 'tests/config/**'
+      - 'tests/integration/**'
+      - 'tools/verify-training-provenance.mjs'
+      - '.github/workflows/training-calibrate-smoke.yml'
+  workflow_dispatch:
+
+jobs:
+  training-calibrate-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run calibrate-path contract tests
+        run: node tools/run-node-tests.mjs tests/integration/command-api.test.js tests/integration/command-runner-shared.test.js tests/integration/training-intent-split.test.js tests/integration/training-report-lineage.test.js tests/integration/ul-stage-workflow-regression.test.js
+
+      - name: Run UL artifact contract tests
+        run: node tools/run-node-tests.mjs tests/config/ul-artifacts-contract.test.js tests/config/ul-stage1-determinism.test.js tests/config/training-telemetry-alerts.test.js
+
+      - name: Run provenance coherence self-test gate
+        run: node tools/verify-training-provenance.mjs --self-test

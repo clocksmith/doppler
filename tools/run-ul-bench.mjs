@@ -1,0 +1,199 @@
+#!/usr/bin/env node
+
+import { spawn } from 'node:child_process';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { resolve, join } from 'node:path';
+
+function parseArgs(argv) {
+  const parsed = {
+    surface: 'node',
+    outDir: 'bench/out/ul',
+    workload: 'tiny',
+  };
+  for (let i = 2; i < argv.length; i += 1) {
+    const arg = argv[i];
+    if (arg === '--surface') {
+      parsed.surface = String(argv[i + 1] || 'node');
+      i += 1;
+      continue;
+    }
+    if (arg === '--out-dir') {
+      parsed.outDir = String(argv[i + 1] || parsed.outDir);
+      i += 1;
+      continue;
+    }
+    if (arg === '--workload') {
+      parsed.workload = String(argv[i + 1] || parsed.workload);
+      i += 1;
+      continue;
+    }
+    throw new Error(`Unknown flag: ${arg}`);
+  }
+  return parsed;
+}
+
+async function loadWorkloadConfig(workloadArg) {
+  const presets = {
+    tiny: 'tools/configs/training-workloads/ul-training-tiny.json',
+    medium: 'tools/configs/training-workloads/ul-training-medium.json',
+  };
+  const candidate = presets[workloadArg] || workloadArg;
+  const absolute = resolve(candidate);
+  const raw = await readFile(absolute, 'utf8');
+  const parsed = JSON.parse(raw);
+  if (!parsed || typeof parsed !== 'object') {
+    throw new Error(`Invalid UL workload config at ${absolute}`);
+  }
+  return { path: absolute, config: parsed };
+}
+
+async function runCli(args) {
+  return new Promise((resolvePromise, rejectPromise) => {
+    const proc = spawn('node', ['tools/doppler-cli.js', ...args], {
+      stdio: ['ignore', 'pipe', 'pipe'],
+      cwd: process.cwd(),
+      env: process.env,
+    });
+    let stdout = '';
+    let stderr = '';
+    proc.stdout.on('data', (chunk) => {
+      stdout += chunk.toString();
+    });
+    proc.stderr.on('data', (chunk) => {
+      stderr += chunk.toString();
+    });
+    proc.on('error', rejectPromise);
+    proc.on('close', (code) => {
+      if (code !== 0) {
+        rejectPromise(new Error(`doppler-cli exited ${code}\n${stderr || stdout}`));
+        return;
+      }
+      try {
+        resolvePromise(JSON.parse(stdout));
+      } catch {
+        rejectPromise(new Error(`Failed to parse doppler-cli JSON output:\n${stdout}`));
+      }
+    });
+  });
+}
+
+function extractStage1Artifact(trainingResult) {
+  const result = trainingResult?.result;
+  const entries = Array.isArray(result?.results) ? result.results : [];
+  for (const entry of entries) {
+    const artifact = entry?.artifact;
+    if (artifact?.manifestPath) {
+      return {
+        stage1Artifact: artifact.manifestPath,
+        stage1ArtifactHash: artifact.manifestFileHash || artifact.manifestHash || null,
+      };
+    }
+  }
+  throw new Error('Unable to find stage1 artifact in training suite output.');
+}
+
+async function main() {
+  const args = parseArgs(process.argv);
+  const outDirAbs = resolve(args.outDir);
+  const workload = await loadWorkloadConfig(args.workload);
+  const trainingSchemaVersion = Number(workload.config.trainingSchemaVersion || 1);
+  const trainingBenchSteps = Number(workload.config.trainingBenchSteps || 2);
+  const seed = Number(workload.config.seed || 1337);
+  const trainingTests = Array.isArray(workload.config.trainingTests)
+    ? workload.config.trainingTests.map((value) => String(value))
+    : [];
+  const stage1TestId = trainingTests.includes('ul-stage1') ? 'ul-stage1' : 'ul-stage1';
+  const runtimeConfigJson = JSON.stringify({
+    shared: {
+      benchmark: {
+        run: workload.config.benchRun || {},
+      },
+    },
+  });
+  const trainingConfigJson = JSON.stringify({
+    ul: {
+      seed,
+    },
+  });
+  await mkdir(outDirAbs, { recursive: true });
+
+  const stage1Verify = await runCli([
+    'test-model',
+    '--suite',
+    'training',
+    '--surface',
+    args.surface,
+    '--training-schema-version',
+    String(trainingSchemaVersion),
+    '--training-config-json',
+    trainingConfigJson,
+    '--training-stage',
+    'stage1_joint',
+    '--training-tests',
+    stage1TestId,
+    '--json',
+  ]);
+  const stage1Artifact = extractStage1Artifact(stage1Verify);
+
+  const stage1Bench = await runCli([
+    'bench',
+    '--surface',
+    args.surface,
+    '--training-schema-version',
+    String(trainingSchemaVersion),
+    '--training-bench-steps',
+    String(trainingBenchSteps),
+    '--training-config-json',
+    trainingConfigJson,
+    '--runtime-config-json',
+    runtimeConfigJson,
+    '--workload-type',
+    'training',
+    '--training-stage',
+    'stage1_joint',
+    '--json',
+  ]);
+
+  const stage2Bench = await runCli([
+    'bench',
+    '--surface',
+    args.surface,
+    '--training-schema-version',
+    String(trainingSchemaVersion),
+    '--training-bench-steps',
+    String(trainingBenchSteps),
+    '--training-config-json',
+    trainingConfigJson,
+    '--runtime-config-json',
+    runtimeConfigJson,
+    '--workload-type',
+    'training',
+    '--training-stage',
+    'stage2_base',
+    '--stage1-artifact',
+    stage1Artifact.stage1Artifact,
+    '--stage1-artifact-hash',
+    String(stage1Artifact.stage1ArtifactHash || ''),
+    '--json',
+  ]);
+
+  const summary = {
+    schemaVersion: 1,
+    generatedAt: new Date().toISOString(),
+    claimBoundary: 'UL-inspired practical two-stage pipeline; not paper-equivalent SOTA.',
+    workload: {
+      path: workload.path,
+      config: workload.config,
+    },
+    stage1Artifact,
+    stage1Verify,
+    stage1Bench,
+    stage2Bench,
+  };
+  const outPath = join(outDirAbs, 'ul-bench-summary.json');
+  await writeFile(outPath, `${JSON.stringify(summary, null, 2)}\n`, 'utf8');
+
+  process.stdout.write(`${JSON.stringify({ ok: true, outPath }, null, 2)}\n`);
+}
+
+await main();

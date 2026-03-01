@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "id": "ul-training-medium",
+  "description": "Deterministic medium UL training workload for pre-release calibration.",
+  "seed": 1337,
+  "trainingSchemaVersion": 1,
+  "benchRun": {
+    "warmupRuns": 1,
+    "timedRuns": 3
+  },
+  "trainingBenchSteps": 8,
+  "trainingTests": [
+    "ul-stage1",
+    "ul-stage2"
+  ]
+}

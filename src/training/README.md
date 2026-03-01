@@ -6,6 +6,13 @@ Purpose: Training primitives for Doppler, including autograd, losses, and adapte
 
 - Autograd tape, backward kernels, and loss scaling.
 - Training runner, optimizers, datasets, and LoRA export helpers.
+- UL-inspired practical two-stage training-validation pipeline artifacts.
+
+Claim boundary:
+
+- UL support in Doppler is currently **UL-inspired practical v1**.
+- It is not a claim of paper-equivalent Unified Latents parity or paper-scale
+  SOTA metrics.
 
 This directory provides training primitives for Doppler:
 

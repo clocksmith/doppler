@@ -4,10 +4,14 @@ const TOOLING_COMMAND_SET = ['convert', 'debug', 'bench', 'test-model'];
 const TOOLING_SURFACE_SET = ['browser', 'node'];
 const TOOLING_SUITE_SET = ['kernels', 'inference', 'training', 'bench', 'debug', 'diffusion', 'energy'];
 const VERIFY_SUITES = ['kernels', 'inference', 'training', 'diffusion', 'energy'];
+const TRAINING_STAGE_SET = ['stage1_joint', 'stage2_base'];
+const TRAINING_COMMAND_SCHEMA_VERSION = 1;
 
 export const TOOLING_COMMANDS = Object.freeze([...TOOLING_COMMAND_SET]);
 export const TOOLING_SURFACES = Object.freeze([...TOOLING_SURFACE_SET]);
 export const TOOLING_SUITES = Object.freeze([...TOOLING_SUITE_SET]);
+export const TOOLING_VERIFY_SUITES = Object.freeze([...VERIFY_SUITES]);
+export const TOOLING_TRAINING_COMMAND_SCHEMA_VERSION = TRAINING_COMMAND_SCHEMA_VERSION;
 
 const COMMAND_RUNTIME_CONTRACT = Object.freeze({
   debug: Object.freeze({ suite: 'debug', intent: 'investigate' }),
@@ -40,6 +44,24 @@ function asOptionalObject(value, label) {
   return value;
 }
 
+function asOptionalStringArray(value, label) {
+  if (value === undefined || value === null) return null;
+  if (!Array.isArray(value)) {
+    throw new Error(`tooling command: ${label} must be an array of strings when provided.`);
+  }
+  const normalized = value.map((entry, index) => {
+    if (typeof entry !== 'string') {
+      throw new Error(`tooling command: ${label}[${index}] must be a string.`);
+    }
+    const trimmed = entry.trim();
+    if (!trimmed) {
+      throw new Error(`tooling command: ${label}[${index}] must not be empty.`);
+    }
+    return trimmed;
+  });
+  return normalized.length > 0 ? normalized : null;
+}
+
 function asOptionalPositiveInteger(value, label) {
   if (value === undefined || value === null || value === '') return null;
   const parsed = Number(value);
@@ -47,6 +69,15 @@ function asOptionalPositiveInteger(value, label) {
     throw new Error(`tooling command: ${label} must be a positive integer when provided.`);
   }
   return parsed;
+}
+
+function asOptionalTrainingStage(value, label) {
+  const stage = asOptionalString(value, label);
+  if (!stage) return null;
+  if (!TRAINING_STAGE_SET.includes(stage)) {
+    throw new Error(`tooling command: ${label} must be one of ${TRAINING_STAGE_SET.join(', ')}.`);
+  }
+  return stage;
 }
 
 function assertCommand(value) {
@@ -180,6 +211,15 @@ function normalizeConvert(raw) {
     suite: null,
     intent: null,
     modelId: null,
+    trainingTests: null,
+    trainingStage: null,
+    trainingConfig: null,
+    stage1Artifact: null,
+    stage1ArtifactHash: null,
+    ulArtifactDir: null,
+    trainingSchemaVersion: null,
+    trainingBenchSteps: null,
+    workloadType: asOptionalString(raw.workloadType, 'workloadType'),
     modelUrl: asOptionalString(raw.modelUrl, 'modelUrl'),
     cacheMode: asOptionalCacheMode(raw.cacheMode, 'cacheMode'),
     loadMode: asOptionalLoadMode(raw.loadMode, 'loadMode'),
@@ -209,8 +249,53 @@ function normalizeSuiteCommand(raw, command) {
     }
   }
 
-  const requiresModel = suite !== 'kernels';
-  const modelId = requiresModel
+  const modelUrl = asOptionalString(raw.modelUrl, 'modelUrl');
+  const trainingTests = asOptionalStringArray(raw.trainingTests, 'trainingTests');
+  const trainingStage = asOptionalTrainingStage(raw.trainingStage, 'trainingStage');
+  const trainingConfig = asOptionalObject(raw.trainingConfig, 'trainingConfig');
+  const stage1Artifact = asOptionalString(raw.stage1Artifact, 'stage1Artifact');
+  const stage1ArtifactHash = asOptionalString(raw.stage1ArtifactHash, 'stage1ArtifactHash');
+  const ulArtifactDir = asOptionalString(raw.ulArtifactDir, 'ulArtifactDir');
+  const trainingSchemaVersionInput = asOptionalPositiveInteger(
+    raw.trainingSchemaVersion,
+    'trainingSchemaVersion'
+  );
+  const trainingBenchSteps = asOptionalPositiveInteger(raw.trainingBenchSteps, 'trainingBenchSteps');
+  const workloadType = asOptionalString(raw.workloadType, 'workloadType');
+  const isTrainingBenchWorkload = command === 'bench' && suite === 'bench' && workloadType === 'training';
+  const allowsTrainingFields = suite === 'training' || isTrainingBenchWorkload;
+  if (!allowsTrainingFields && (
+    trainingTests
+    || trainingStage
+    || trainingConfig
+    || stage1Artifact
+    || stage1ArtifactHash
+    || ulArtifactDir
+    || trainingSchemaVersionInput
+    || trainingBenchSteps
+  )) {
+    throw new Error(
+      'tooling command: training-only fields require suite="training" or bench workloadType="training".'
+    );
+  }
+  const trainingSchemaVersion = allowsTrainingFields
+    ? (trainingSchemaVersionInput ?? TRAINING_COMMAND_SCHEMA_VERSION)
+    : null;
+  if (trainingSchemaVersionInput != null && trainingSchemaVersionInput !== TRAINING_COMMAND_SCHEMA_VERSION) {
+    throw new Error(
+      `tooling command: trainingSchemaVersion must be ${TRAINING_COMMAND_SCHEMA_VERSION}.`
+    );
+  }
+
+  const requiresModel = suite !== 'kernels' && !isTrainingBenchWorkload;
+  const hasTrainingSource = allowsTrainingFields && (
+    !!modelUrl
+    || !!trainingStage
+    || !!stage1Artifact
+    || !!trainingConfig?.ul?.stage
+    || !!trainingConfig?.dataset
+  );
+  const modelId = (requiresModel && !hasTrainingSource)
     ? assertModelId(raw.modelId, command, suite)
     : asOptionalString(raw.modelId, 'modelId');
 
@@ -219,7 +304,16 @@ function normalizeSuiteCommand(raw, command) {
     suite,
     intent: runtimeContract.intent,
     modelId,
-    modelUrl: asOptionalString(raw.modelUrl, 'modelUrl'),
+    trainingTests,
+    trainingStage,
+    trainingConfig,
+    stage1Artifact,
+    stage1ArtifactHash,
+    ulArtifactDir,
+    trainingSchemaVersion,
+    trainingBenchSteps,
+    workloadType,
+    modelUrl,
     cacheMode: asOptionalCacheMode(raw.cacheMode, 'cacheMode'),
     loadMode: asOptionalLoadMode(raw.loadMode, 'loadMode'),
     runtimePreset: asOptionalString(raw.runtimePreset, 'runtimePreset'),

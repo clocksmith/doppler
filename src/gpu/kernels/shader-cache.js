@@ -47,6 +47,11 @@ function getKernelBasePath() {
     return override.replace(/\/+$/, '');
   }
 
+  // Node runtimes do not have location; resolve kernels relative to this module.
+  if (typeof location === 'undefined') {
+    return new URL('.', import.meta.url).toString().replace(/\/$/, '');
+  }
+
   // Check common deployed Doppler paths.
   if (typeof location !== 'undefined') {
     const path = location.pathname || '';

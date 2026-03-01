@@ -58,6 +58,9 @@ All surfaces must normalize via `normalizeToolingCommandRequest()`.
 - **Intent**: `calibrate`
 - **Exit**: comparable scalar metrics
 - **Command**: `bench`
+- Training calibration runs through `bench` with `workloadType="training"` and
+  must remain behaviorally distinct from verify-path `test-model --suite training`.
+- Training payloads are schema-pinned (`trainingSchemaVersion=1` for training flows).
 
 ### Maintenance
 
@@ -111,6 +114,7 @@ Commands are rejected when:
 
 - CLI supports `--surface auto|node|browser`.
 - `--surface auto` is explicit transport resolution for harnessed commands: try Node first, then browser relay only when Node WebGPU is unavailable. Command intent and contract stay unchanged.
+- Exception: training flows (`suite="training"` or `bench + workloadType="training"`) must not auto-downgrade from node to browser; this is fail-closed.
 - Node runner may bootstrap WebGPU from available runtime support before failing.
 - Browser relay executes `runBrowserCommand()` in a browser via `src/tooling/command-runner.html`
   (default headless, with `--headed` for headed mode).

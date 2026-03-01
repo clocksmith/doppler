@@ -126,6 +126,24 @@ function resolveConstants(operation, variant, constants) {
   return { ...constants, ...overrides };
 }
 
+function normalizePipelineConstants(constants) {
+  if (!constants) return null;
+  const normalized = {};
+  for (const [key, value] of Object.entries(constants)) {
+    if (typeof value === 'boolean') {
+      normalized[key] = value ? 1 : 0;
+      continue;
+    }
+    if (typeof value !== 'number' || !Number.isFinite(value)) {
+      throw new Error(
+        `Kernel pipeline constant "${key}" must be a finite number or boolean, got ${typeof value}.`
+      );
+    }
+    normalized[key] = value;
+  }
+  return normalized;
+}
+
 function isPowerOfTwo(value) {
   return Number.isInteger(value) && value > 0 && (value & (value - 1)) === 0;
 }
@@ -163,7 +181,9 @@ export function getCachedPipeline(
   if (!device) {
     return null;
   }
-  const resolvedConstants = resolveConstants(operation, variant, constants);
+  const resolvedConstants = normalizePipelineConstants(
+    resolveConstants(operation, variant, constants)
+  );
   const cacheKey = buildPipelineCacheKey(operation, variant, resolvedConstants, null, device);
   return pipelineCache.get(cacheKey) || null;
 }
@@ -180,7 +200,9 @@ export async function getPipelineFast(
   if (!device) {
     throw new Error('Device not initialized');
   }
-  const resolvedConstants = resolveConstants(operation, variant, constants);
+  const resolvedConstants = normalizePipelineConstants(
+    resolveConstants(operation, variant, constants)
+  );
   if (bindGroupLayout) {
     const layoutKey = buildPipelineCacheKey(operation, variant, resolvedConstants, bindGroupLayout, device);
     const cached = pipelineCache.get(layoutKey);
@@ -207,7 +229,9 @@ export async function createPipeline(
   }
 
   const config = getKernelConfig(operation, variant);
-  const resolvedConstants = resolveConstants(operation, variant, constants);
+  const resolvedConstants = normalizePipelineConstants(
+    resolveConstants(operation, variant, constants)
+  );
   const constantsKey = resolvedConstants
     ? Object.entries(resolvedConstants).sort().map(([k, v]) => `${k}=${v}`).join('|')
     : '';
