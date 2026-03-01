@@ -40,7 +40,30 @@ if (typeof globalThis.GPUTextureUsage === 'undefined') {
   };
 }
 
-const { runBrowserSuite } = await import('../../src/inference/browser-harness.js');
+const { runBrowserSuite, buildSuiteSummary } = await import('../../src/inference/browser-harness.js');
+const { trainingHarness } = await import('../../src/training/suite.js');
+
+{
+  const startTime = performance.now() - 5;
+  const summary = buildSuiteSummary('training', [
+    { name: 'runner-smoke', passed: true, duration: 1 },
+    { name: 'legacy-case', passed: true, skipped: true, duration: 1 },
+  ], startTime);
+  assert.equal(summary.suite, 'training');
+  assert.equal(summary.passed, 1);
+  assert.equal(summary.failed, 0);
+  assert.equal(summary.skipped, 1);
+  assert.ok(Number.isFinite(summary.duration));
+}
+
+{
+  const tests = trainingHarness.listTests();
+  assert.ok(Array.isArray(tests));
+  assert.ok(tests.includes('runner-smoke'));
+  assert.ok(tests.includes('train-step-metrics'));
+  assert.ok(tests.includes('ul-stage1'));
+  assert.ok(tests.includes('ul-stage2'));
+}
 
 await assert.rejects(
   () => runBrowserSuite({
@@ -56,6 +79,32 @@ await assert.rejects(
     assert.ok(Array.isArray(error.allowedSuites));
     assert.ok(error.allowedSuites.includes('training'));
     assert.ok(error.allowedSuites.includes('inference'));
+    return true;
+  }
+);
+
+await assert.rejects(
+  () => runBrowserSuite({
+    suite: undefined,
+    command: 'test-model',
+    surface: 'node',
+  }),
+  (error) => {
+    assert.equal(error.code, 'unsupported_suite');
+    assert.equal(error.requestedSuite, '');
+    return true;
+  }
+);
+
+await assert.rejects(
+  () => runBrowserSuite({
+    suite: '',
+    command: 'test-model',
+    surface: 'node',
+  }),
+  (error) => {
+    assert.equal(error.code, 'unsupported_suite');
+    assert.equal(error.requestedSuite, '');
     return true;
   }
 );

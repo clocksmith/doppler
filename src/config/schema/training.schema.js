@@ -1,4 +1,5 @@
 import { DEFAULT_LORA_CONFIG } from './lora.schema.js';
+import { DEFAULT_UL_TRAINING_CONFIG } from './ul-training.schema.js';
 
 // =============================================================================
 // Optimizer Defaults
@@ -11,6 +12,15 @@ export const DEFAULT_TRAINING_OPTIMIZER_CONFIG = {
   beta2: 0.999,
   eps: 1e-8,
   weightDecay: 0.0,
+  scheduler: {
+    enabled: false,
+    type: 'constant',
+    warmupSteps: 0,
+    stepSize: 1000,
+    gamma: 0.95,
+    totalSteps: 10000,
+    minLr: 0,
+  },
 };
 
 // =============================================================================
@@ -56,6 +66,28 @@ export const DEFAULT_TRAINING_ATTENTION_CONFIG = {
 };
 
 // =============================================================================
+// Telemetry Defaults
+// =============================================================================
+
+export const DEFAULT_TRAINING_TELEMETRY_CONFIG = {
+  mode: 'step',
+  windowSize: 8,
+  emitNaNInfCounters: true,
+  alerts: {
+    enabled: false,
+    failOnAlert: false,
+    thresholds: {
+      maxStepTimeMs: null,
+      maxGradientNorm: null,
+      maxNaNCount: null,
+      maxInfCount: null,
+      maxSaturationCount: null,
+      minEffectiveLr: null,
+    },
+  },
+};
+
+// =============================================================================
 // Training Defaults
 // =============================================================================
 
@@ -66,5 +98,7 @@ export const DEFAULT_TRAINING_SETTINGS = {
   gradient: DEFAULT_TRAINING_GRADIENT_CONFIG,
   precision: DEFAULT_TRAINING_PRECISION_CONFIG,
   attention: DEFAULT_TRAINING_ATTENTION_CONFIG,
+  telemetry: DEFAULT_TRAINING_TELEMETRY_CONFIG,
   lossScaling: DEFAULT_TRAINING_LOSS_SCALING_CONFIG,
+  ul: DEFAULT_UL_TRAINING_CONFIG,
 };

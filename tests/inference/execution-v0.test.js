@@ -604,13 +604,16 @@ function sessionDefaultsFor(kernels, activationDtype = 'f16') {
               kernel: 'matmul_f16.wgsl',
               entry: 'main',
               kernelRef: kernelRef('matmul_f16.wgsl', 'main'),
+              precision: {
+                inputDtype: 'f16',
+              },
             },
           ],
           policies: DEFAULT_POLICIES,
         },
       },
     }),
-    /reads carried slot "state" as f16 but prefill left f32/
+    /decode step "decode_matmul" reads carried slot "state" as f16 but prefill left f32/
   );
 }
 

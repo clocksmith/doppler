@@ -21,6 +21,10 @@ function formatTimestamp(value) {
   return new Date().toISOString().replace(/[:]/g, '-');
 }
 
+function isNodeRuntime() {
+  return typeof process !== 'undefined' && !!process.versions?.node;
+}
+
 async function saveReportToOpfs(modelId, filename, payload) {
   const runtime = getRuntimeConfig();
   const root = await navigator.storage.getDirectory();
@@ -45,6 +49,24 @@ async function saveReportToIdb(modelId, filename, payload) {
   return `reports/${modelId}/${filename}`;
 }
 
+async function saveReportToNodeFs(modelId, filename, payload) {
+  const [{ mkdir, writeFile }, { dirname, join, relative, resolve, sep }] = await Promise.all([
+    import('node:fs/promises'),
+    import('node:path'),
+  ]);
+
+  const rootDir = process.env.DOPPLER_REPORTS_DIR
+    ? resolve(String(process.env.DOPPLER_REPORTS_DIR))
+    : resolve(process.cwd(), 'reports');
+  const filePath = join(rootDir, modelId, filename);
+  await mkdir(dirname(filePath), { recursive: true });
+  await writeFile(filePath, payload, 'utf8');
+
+  const relativePath = relative(process.cwd(), filePath);
+  const outsideCwd = relativePath.startsWith('..') || relativePath.includes(`${sep}..${sep}`);
+  return outsideCwd ? filePath : relativePath.split(sep).join('/');
+}
+
 export async function saveReport(modelId, report, options = {}) {
   const normalized = normalizeModelId(modelId);
   const timestamp = formatTimestamp(options.timestamp);
@@ -58,6 +80,10 @@ export async function saveReport(modelId, report, options = {}) {
   if (isIndexedDBAvailable()) {
     const path = await saveReportToIdb(normalized, filename, payload);
     return { backend: 'indexeddb', path };
+  }
+  if (isNodeRuntime()) {
+    const path = await saveReportToNodeFs(normalized, filename, payload);
+    return { backend: 'node-fs', path };
   }
 
   throw new Error('No storage backend available for reports');

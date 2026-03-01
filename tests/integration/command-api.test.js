@@ -9,11 +9,28 @@ import {
     command: 'test-model',
     suite: 'training',
     modelId: 'gemma-3-1b-it-wf16-ef16-hf16',
+    trainingTests: ['runner-smoke', 'train-step-metrics'],
+    trainingStage: 'stage1_joint',
   });
   assert.equal(request.command, 'test-model');
   assert.equal(request.suite, 'training');
   assert.equal(request.intent, 'verify');
   assert.equal(request.modelId, 'gemma-3-1b-it-wf16-ef16-hf16');
+  assert.deepEqual(request.trainingTests, ['runner-smoke', 'train-step-metrics']);
+  assert.equal(request.trainingStage, 'stage1_joint');
+  assert.equal(request.trainingSchemaVersion, 1);
+}
+
+{
+  const request = normalizeToolingCommandRequest({
+    command: 'test-model',
+    suite: 'training',
+    modelId: null,
+    trainingStage: 'stage1_joint',
+  });
+  assert.equal(request.modelId, null);
+  assert.equal(request.trainingStage, 'stage1_joint');
+  assert.equal(request.trainingSchemaVersion, 1);
 }
 
 {
@@ -24,6 +41,85 @@ import {
       modelId: 'gemma-3-1b-it-wf16-ef16-hf16',
     }),
     /suite must be one of kernels, inference, training, diffusion, energy/
+  );
+}
+
+{
+  assert.throws(
+    () => normalizeToolingCommandRequest({
+      command: 'debug',
+      modelId: 'gemma-3-1b-it-wf16-ef16-hf16',
+      trainingTests: ['runner-smoke'],
+    }),
+    /training-only fields require suite="training" or bench workloadType="training"/
+  );
+}
+
+{
+  const request = normalizeToolingCommandRequest({
+    command: 'bench',
+    modelId: null,
+    workloadType: 'training',
+    trainingStage: 'stage1_joint',
+    trainingTests: ['ul-stage1'],
+  });
+  assert.equal(request.command, 'bench');
+  assert.equal(request.suite, 'bench');
+  assert.equal(request.intent, 'calibrate');
+  assert.equal(request.workloadType, 'training');
+  assert.equal(request.modelId, null);
+  assert.equal(request.trainingStage, 'stage1_joint');
+  assert.deepEqual(request.trainingTests, ['ul-stage1']);
+  assert.equal(request.trainingSchemaVersion, 1);
+}
+
+{
+  const request = normalizeToolingCommandRequest({
+    command: 'bench',
+    modelId: null,
+    workloadType: 'training',
+    trainingStage: 'stage1_joint',
+    trainingSchemaVersion: 1,
+    trainingBenchSteps: 5,
+  });
+  assert.equal(request.trainingSchemaVersion, 1);
+  assert.equal(request.trainingBenchSteps, 5);
+}
+
+{
+  assert.throws(
+    () => normalizeToolingCommandRequest({
+      command: 'test-model',
+      suite: 'training',
+      modelId: null,
+      trainingStage: 'stage1_joint',
+      trainingSchemaVersion: 2,
+    }),
+    /trainingSchemaVersion must be 1/
+  );
+}
+
+{
+  assert.throws(
+    () => normalizeToolingCommandRequest({
+      command: 'bench',
+      modelId: null,
+      workloadType: 'inference',
+      trainingStage: 'stage1_joint',
+    }),
+    /training-only fields require suite="training" or bench workloadType="training"/
+  );
+}
+
+{
+  assert.throws(
+    () => normalizeToolingCommandRequest({
+      command: 'test-model',
+      suite: 'training',
+      modelId: null,
+      trainingStage: 'stage3_unknown',
+    }),
+    /trainingStage must be one of stage1_joint, stage2_base/
   );
 }
 

@@ -13,13 +13,12 @@ async function readGradData(grad) {
 
 export async function clipGradients(grads, config) {
   const maxNorm = config?.training?.gradient?.maxNorm;
-  if (!maxNorm || maxNorm <= 0) {
-    return grads;
-  }
-
   let sumSq = 0;
+  let totalParamCount = 0;
+
   for (const grad of grads.values()) {
     const data = await readGradData(grad);
+    totalParamCount += data.length;
     for (let i = 0; i < data.length; i += 1) {
       const value = data[i];
       sumSq += value * value;
@@ -27,8 +26,15 @@ export async function clipGradients(grads, config) {
   }
 
   const globalNorm = Math.sqrt(sumSq);
-  if (!globalNorm || globalNorm <= maxNorm) {
-    return grads;
+
+  if (!maxNorm || maxNorm <= 0 || !globalNorm || globalNorm <= maxNorm) {
+    return {
+      clippedGrads: grads,
+      gradient_norm_unclipped: globalNorm,
+      gradient_norm_clipped: globalNorm,
+      clipped_event_count: 0,
+      total_param_count: totalParamCount,
+    };
   }
 
   const scale = maxNorm / (globalNorm + 1e-6);
@@ -38,5 +44,11 @@ export async function clipGradients(grads, config) {
     clipped.set(param, scaled);
   }
 
-  return clipped;
+  return {
+    clippedGrads: clipped,
+    gradient_norm_unclipped: globalNorm,
+    gradient_norm_clipped: maxNorm,
+    clipped_event_count: 1,
+    total_param_count: totalParamCount,
+  };
 }
