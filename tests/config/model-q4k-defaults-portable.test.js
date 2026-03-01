@@ -23,10 +23,10 @@ async function readPreset(relativePath) {
   const gemma3 = await readPreset('src/config/presets/models/gemma3.json');
   const q4k = gemma3?.inference?.kernelPaths?.q4k;
   assert.ok(q4k, 'gemma3 q4k kernelPaths must exist');
-  assert.equal(q4k.default, 'gemma3-q4k-dequant-f32a');
-  assert.equal(q4k.f16, 'gemma3-q4k-dequant-f32a');
-  assert.equal(q4k.f16a, 'gemma3-q4k-dequant-f32a');
-  assert.equal(q4k.f32, 'gemma3-q4k-dequant-f32a');
+  assert.equal(q4k.default, 'gemma3-q4k-dequant-f32a-online');
+  assert.equal(q4k.f16, 'gemma3-q4k-dequant-f16a-online');
+  assert.equal(q4k.f16a, 'gemma3-q4k-dequant-f16a-online');
+  assert.equal(q4k.f32, 'gemma3-q4k-dequant-f32a-online');
 }
 
 console.log('model-q4k-defaults-portable.test: ok');

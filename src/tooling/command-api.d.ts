@@ -4,6 +4,7 @@ export type ToolingCommand = 'convert' | 'debug' | 'bench' | 'test-model';
 export type ToolingSurface = 'browser' | 'node';
 export type ToolingSuite = 'kernels' | 'inference' | 'training' | 'bench' | 'debug' | 'diffusion' | 'energy';
 export type ToolingIntent = 'verify' | 'investigate' | 'calibrate' | null;
+export type ToolingTrainingStage = 'stage1_joint' | 'stage2_base';
 
 export interface ToolingConvertExecutionPayload {
   workers?: number | null;
@@ -24,6 +25,15 @@ export interface ToolingCommandRequestInput {
   command: ToolingCommand;
   suite?: ToolingSuite;
   modelId?: string;
+  trainingTests?: string[];
+  trainingStage?: ToolingTrainingStage;
+  trainingConfig?: Record<string, unknown>;
+  stage1Artifact?: string;
+  stage1ArtifactHash?: string;
+  ulArtifactDir?: string;
+  trainingSchemaVersion?: number;
+  trainingBenchSteps?: number;
+  workloadType?: string;
   modelUrl?: string;
   cacheMode?: 'cold' | 'warm';
   loadMode?: 'opfs' | 'http' | 'memory';
@@ -45,6 +55,15 @@ export interface ToolingCommandRequest {
   suite: ToolingSuite | null;
   intent: ToolingIntent;
   modelId: string | null;
+  trainingTests: string[] | null;
+  trainingStage: ToolingTrainingStage | null;
+  trainingConfig: Record<string, unknown> | null;
+  stage1Artifact: string | null;
+  stage1ArtifactHash: string | null;
+  ulArtifactDir: string | null;
+  trainingSchemaVersion: number | null;
+  trainingBenchSteps: number | null;
+  workloadType: string | null;
   modelUrl: string | null;
   cacheMode: 'cold' | 'warm' | null;
   loadMode: 'opfs' | 'http' | 'memory' | null;
@@ -64,6 +83,8 @@ export interface ToolingCommandRequest {
 export declare const TOOLING_COMMANDS: readonly ToolingCommand[];
 export declare const TOOLING_SURFACES: readonly ToolingSurface[];
 export declare const TOOLING_SUITES: readonly ToolingSuite[];
+export declare const TOOLING_VERIFY_SUITES: readonly Exclude<ToolingSuite, 'bench' | 'debug'>[];
+export declare const TOOLING_TRAINING_COMMAND_SCHEMA_VERSION: number;
 
 export declare function normalizeToolingCommandRequest(
   input: ToolingCommandRequestInput

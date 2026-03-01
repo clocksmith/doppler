@@ -1,0 +1,17 @@
+{
+  "id": "ul-tiny-ci-dataset-v1",
+  "seed": 1337,
+  "expectedStepCount": 2,
+  "inputShape": [2, 3],
+  "targetShape": [2],
+  "batches": [
+    {
+      "input": [0.5, 0.1, -0.3, 0.2, 0.4, -0.1],
+      "targets": [1, 0]
+    },
+    {
+      "input": [0.45, 0.08, -0.25, 0.24, 0.38, -0.12],
+      "targets": [1, 0]
+    }
+  ]
+}

@@ -32,6 +32,15 @@ export declare function buildSuiteOptions(
   command: ToolingCommandRequest['command'];
   surface: string | null;
   modelId?: string;
+  trainingTests?: string[];
+  trainingStage?: 'stage1_joint' | 'stage2_base';
+  trainingConfig?: Record<string, unknown>;
+  stage1Artifact?: string;
+  stage1ArtifactHash?: string;
+  ulArtifactDir?: string;
+  trainingSchemaVersion?: number;
+  trainingBenchSteps?: number;
+  workloadType?: string;
   cacheMode: ToolingCommandRequest['cacheMode'];
   loadMode: 'opfs' | 'http' | 'memory' | null;
   modelUrl?: string;

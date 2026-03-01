@@ -4,7 +4,7 @@
 
 **[Try it live](https://d4da.com)**
 
-Doppler is a browser-native WebGPU runtime for local intent and inference loops.
+Doppler is a local WebGPU runtime for browser, Node, and CLI intent/inference loops.
 It provides explicit load-path and kernel-path control, reproducible phase benchmarks against Transformers.js (v4), and auditable kernel execution tracing.
 
 ## Evidence
@@ -69,11 +69,18 @@ See [`docs/architecture.md`](docs/architecture.md) for full subsystem and bounda
 - Unified browser/CLI command surface with reproducible cross-engine benchmark tooling.
 - Manifest-driven model loading with explicit runtime overrides and kernel-path tracing.
 - Local intent stack support (embedding retrieval + compact generative control outputs).
-- In development: backward/training primitives, diffusion sampling, and energy-based inference.
+- Available now: training verify/calibrate command paths with UL-inspired
+  practical two-stage training-validation artifacts (not paper-equivalent
+  SOTA).
+- In development: broader backward/training primitives, diffusion sampling, and
+  energy-based inference.
 
 ## Performance
 
 ### Snapshot table (1B, warm-opfs, parity)
+
+Snapshot context: captured on 2026-03-01 on Apple M3 (Metal, macOS 26.1) with
+`warm-opfs` load mode and parity decode profile.
 
 | Workload              | Engine               | Model load (ms) | TTFT (ms) | First response (ms) | Prefill (tok/s) | Decode (tok/s) |
 | --------------------- | -------------------- | --------------: | --------: | ------------------: | --------------: | -------------: |

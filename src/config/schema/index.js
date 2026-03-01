@@ -299,6 +299,29 @@ export {
 } from './training.schema.js';
 
 // =============================================================================
+// UL Training Schema
+// =============================================================================
+export {
+  UL_STAGE_VALUES,
+  UL_TRAINING_SCHEMA_VERSION,
+  DEFAULT_UL_NOISE_SCHEDULE,
+  DEFAULT_UL_PRIOR_ALIGNMENT,
+  DEFAULT_UL_DECODER_SIGMOID_WEIGHT,
+  DEFAULT_UL_FREEZE_GROUPS,
+  DEFAULT_UL_TRAINING_CONFIG,
+  validateUlTrainingConfig,
+} from './ul-training.schema.js';
+
+// =============================================================================
+// Training Metrics Schema
+// =============================================================================
+export {
+  DEFAULT_TRAINING_METRICS_REPORT,
+  validateTrainingMetricsEntry,
+  validateTrainingMetricsReport,
+} from './training-metrics.schema.js';
+
+// =============================================================================
 // Backward Registry Schema
 // =============================================================================
 export {
