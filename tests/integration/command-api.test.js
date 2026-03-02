@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {
   normalizeToolingCommandRequest,
   buildRuntimeContractPatch,
+  ensureCommandSupportedOnSurface,
 } from '../../src/tooling/command-api.js';
 
 {
@@ -303,6 +304,175 @@ import {
       },
     }),
     /convertPayload\.execution\.rowChunkRows must be a positive integer/
+  );
+}
+
+{
+  assert.throws(
+    () => normalizeToolingCommandRequest(null),
+    /request must be an object/
+  );
+}
+
+{
+  assert.throws(
+    () => normalizeToolingCommandRequest({}),
+    /command is required/
+  );
+}
+
+{
+  assert.throws(
+    () => normalizeToolingCommandRequest({ command: 'train' }),
+    /unsupported command/
+  );
+}
+
+{
+  assert.throws(
+    () => normalizeToolingCommandRequest({
+      command: 'test-model',
+      modelId: 'gemma-3-1b-it-wf16-ef16-hf16',
+    }),
+    /suite is required/
+  );
+}
+
+{
+  assert.throws(
+    () => normalizeToolingCommandRequest({
+      command: 'test-model',
+      suite: 'unknown',
+      modelId: 'gemma-3-1b-it-wf16-ef16-hf16',
+    }),
+    /unsupported suite/
+  );
+}
+
+{
+  assert.throws(
+    () => normalizeToolingCommandRequest({
+      command: 'test-model',
+      suite: 'inference',
+      modelId: null,
+    }),
+    /modelId is required/
+  );
+}
+
+{
+  assert.throws(
+    () => normalizeToolingCommandRequest({
+      command: 'bench',
+      suite: 'inference',
+      modelId: 'gemma-3-1b-it-wf16-ef16-hf16',
+      trainingTests: 'runner-smoke',
+    }),
+    /trainingTests must be an array of strings/
+  );
+}
+
+{
+  assert.throws(
+    () => normalizeToolingCommandRequest({
+      command: 'bench',
+      suite: 'training',
+      modelId: null,
+      trainingTests: ['runner-smoke', 7],
+      trainingStage: 'stage1_joint',
+    }),
+    /trainingTests\[1\] must be a string/
+  );
+}
+
+{
+  assert.throws(
+    () => normalizeToolingCommandRequest({
+      command: 'bench',
+      suite: 'training',
+      modelId: null,
+      trainingTests: ['runner-smoke', ''],
+      trainingStage: 'stage1_joint',
+    }),
+    /trainingTests\[1\] must not be empty/
+  );
+}
+
+{
+  assert.throws(
+    () => normalizeToolingCommandRequest({
+      command: 'bench',
+      suite: 'inference',
+      modelId: 'gemma-3-1b-it-wf16-ef16-hf16',
+      captureOutput: 'true',
+    }),
+    /captureOutput must be a boolean/
+  );
+}
+
+{
+  assert.throws(
+    () => normalizeToolingCommandRequest({
+      command: 'bench',
+      suite: 'inference',
+      modelId: 'gemma-3-1b-it-wf16-ef16-hf16',
+      runtimePreset: 7,
+    }),
+    /runtimePreset must be a string/
+  );
+}
+
+{
+  assert.throws(
+    () => normalizeToolingCommandRequest({
+      command: 'convert',
+      inputDir: '/tmp/model',
+      cacheMode: 'hot',
+      convertPayload: {
+        converterConfig: {
+          output: { modelBaseId: 'gemma-3-1b-it-wf16-ef16-hf16' },
+        },
+      },
+    }),
+    /cacheMode must be "cold" or "warm"/
+  );
+}
+
+{
+  assert.throws(
+    () => normalizeToolingCommandRequest({
+      command: 'convert',
+      inputDir: '/tmp/model',
+      loadMode: 'disk',
+      convertPayload: {
+        converterConfig: {
+          output: { modelBaseId: 'gemma-3-1b-it-wf16-ef16-hf16' },
+        },
+      },
+    }),
+    /loadMode must be "opfs", "http", or "memory"/
+  );
+}
+
+{
+  assert.throws(
+    () => normalizeToolingCommandRequest({
+      command: 'convert',
+      inputDir: '/tmp/model',
+      convertPayload: {},
+    }),
+    /convert requires convertPayload\.converterConfig/
+  );
+}
+
+{
+  assert.throws(
+    () => ensureCommandSupportedOnSurface({
+      command: 'bench',
+      suite: 'inference',
+      modelId: 'gemma-3-1b-it-wf16-ef16-hf16',
+    }, 'desktop'),
+    /unsupported surface/
   );
 }
 

@@ -79,3 +79,35 @@ flowchart TD
 
 The contract is strict: if a selection path is missing (kernel path, dtype mode, or runtime
 policy), fail before dispatch; never synthesize behavior by JS or WGSL fallback.
+
+## Current Findings (Conversion + Direct-Source Modes)
+
+By severity:
+
+1. **High:** Conversion is still CPU-first; Doppler WebGPU kernels are not used during convert.
+   - Convert runs before Node WebGPU runtime path (`src/tooling/node-command-runner.js:62`).
+   - Tensor transform/quantization are JS loops (`src/converter/core.js:439`, `src/converter/quantizer.js:210`).
+2. **High:** Inference runtime is manifest+shard (RDRR) contract today, not direct SafeTensors/GGUF contract.
+   - Manifest-first enforcement is explicit (`src/inference/pipelines/text/config.js:383`).
+   - Harness loads `manifest.json` directly (`src/inference/test-harness.js:228`).
+3. **Medium:** Doppler GPU kernels/pipelines are used heavily at load/inference time, but only after RDRR is present.
+   - Loader tensor upload/transform path (`src/loader/tensor-loader.js:331`).
+   - Large-tensor stream-to-GPU upload exists for stored shards (`src/loader/doppler-loader.js:734`).
+4. **Medium:** Direct-source mode is feasible with existing primitives, but there are hard gaps.
+   - Feasible hooks: `setCustomShardLoader` + `setManifest` (`src/loader/doppler-loader.js:199`, `src/loader/doppler-loader.js:251`), used by runtime init (`src/inference/pipelines/text/init.js:514`).
+   - Gap: custom loader lacks true range API (full-shard load then slice) (`src/loader/shard-cache.js:154`).
+   - Gap: stream-to-GPU is disabled when custom loader is active (`src/loader/doppler-loader.js:721`).
+5. **Medium:** "Source-in-VRAM inference" is realistic only for supported dtypes/paths (not all GGUF quant types).
+   - Current loader dispatch is focused on Q4_K/Q6_K/BF16/F16/F32 families (`src/rules/loader/tensor-loader.rules.json:2`).
+
+## Completion Targets (Three Things)
+
+1. **GPU-accelerated conversion path (Node + Browser):**
+   - Move heavy conversion hot loops (dtype transform + quantize + shard assembly) onto WebGPU pipelines where supported.
+   - Keep deterministic CPU fallback and parity checks as contract requirements.
+2. **Direct-source streaming mode (`SafeTensors/GGUF -> RDRR-like runtime view`):**
+   - Add true range reads for custom loaders.
+   - Re-enable/extend stream-to-GPU for custom loader mode.
+3. **Direct-source inference mode (`SafeTensors/GGUF -> VRAM` without persisted RDRR artifacts):**
+   - Define explicit source-manifest contract that maps source tensors to runtime loader semantics.
+   - Gate by supported dtype/kernel-path matrix and fail fast on unsupported GGUF quant variants.

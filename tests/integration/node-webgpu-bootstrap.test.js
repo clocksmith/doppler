@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 import { bootstrapNodeWebGPU } from '../../src/tooling/node-webgpu.js';
 
@@ -49,7 +50,9 @@ function restoreState(snapshot) {
     globalThis.GPUTextureUsage = snapshot.GPUTextureUsage;
   }
 
-  if (snapshot.hadNavigator && typeof globalThis.navigator !== 'undefined') {
+  if (!snapshot.hadNavigator) {
+    delete globalThis.navigator;
+  } else if (typeof globalThis.navigator !== 'undefined') {
     if (snapshot.navigatorGpuDescriptor) {
       Object.defineProperty(globalThis.navigator, 'gpu', snapshot.navigatorGpuDescriptor);
     } else {
@@ -101,6 +104,10 @@ function clearRuntime() {
   delete globalThis.__dopplerNodeWebgpuMarkerB;
 }
 
+function removeNavigator() {
+  delete globalThis.navigator;
+}
+
 {
   const snapshot = snapshotState();
   try {
@@ -112,6 +119,7 @@ function clearRuntime() {
 
     const ready = await bootstrapNodeWebGPU();
     assert.equal(ready, true);
+    await globalThis.navigator.gpu.requestAdapter();
   } finally {
     restoreState(snapshot);
   }
@@ -126,6 +134,159 @@ function clearRuntime() {
     const ready = await bootstrapNodeWebGPU();
     assert.equal(ready, false);
   } finally {
+    restoreState(snapshot);
+  }
+}
+
+{
+  const snapshot = snapshotState();
+  try {
+    clearRuntime();
+    delete process.env.DOPPLER_NODE_WEBGPU_MODULE;
+
+    const ready = await bootstrapNodeWebGPU();
+    assert.equal(typeof ready, 'boolean');
+  } finally {
+    restoreState(snapshot);
+  }
+}
+
+{
+  const snapshot = snapshotState();
+  const tempDir = mkdtempSync(path.join(tmpdir(), 'doppler-webgpu-fileurl-'));
+  try {
+    clearRuntime();
+    const modulePath = path.join(tempDir, 'webgpu-file-url.mjs');
+    writeFileSync(modulePath, `
+export const gpu = { async requestAdapter() { return null; } };
+export const GPUBufferUsage = { COPY_SRC: 2 };
+export const GPUShaderStage = { COMPUTE: 2 };
+`, 'utf8');
+    process.env.DOPPLER_NODE_WEBGPU_MODULE = pathToFileURL(modulePath).href;
+
+    const ready = await bootstrapNodeWebGPU();
+    assert.equal(ready, true);
+    await globalThis.navigator.gpu.requestAdapter();
+    assert.equal(globalThis.GPUBufferUsage.COPY_SRC, 2);
+    assert.equal(globalThis.GPUShaderStage.COMPUTE, 2);
+  } finally {
+    rmSync(tempDir, { recursive: true, force: true });
+    restoreState(snapshot);
+  }
+}
+
+{
+  const snapshot = snapshotState();
+  const tempDir = mkdtempSync(path.join(tmpdir(), 'doppler-webgpu-malformed-pkg-'));
+  try {
+    clearRuntime();
+    writeFileSync(path.join(tempDir, 'package.json'), '{not-json', 'utf8');
+    writeFileSync(path.join(tempDir, 'index.js'), `
+module.exports = {
+  async requestAdapter() {
+    return null;
+  },
+  GPUBufferUsage: { COPY_SRC: 3 },
+  GPUShaderStage: { COMPUTE: 3 },
+};
+`, 'utf8');
+    process.env.DOPPLER_NODE_WEBGPU_MODULE = tempDir;
+
+    const ready = await bootstrapNodeWebGPU();
+    assert.equal(ready, false);
+  } finally {
+    rmSync(tempDir, { recursive: true, force: true });
+    restoreState(snapshot);
+  }
+}
+
+{
+  const snapshot = snapshotState();
+  const tempDir = mkdtempSync(path.join(tmpdir(), 'doppler-webgpu-exports-string-'));
+  try {
+    clearRuntime();
+    writeFileSync(path.join(tempDir, 'package.json'), JSON.stringify({
+      name: 'doppler-webgpu-exports-string',
+      version: '1.0.0',
+      type: 'module',
+      exports: './runtime.js',
+    }), 'utf8');
+    writeFileSync(path.join(tempDir, 'runtime.js'), `
+export default { async requestAdapter() { return null; } };
+export const GPUBufferUsage = { COPY_SRC: 5 };
+export const GPUShaderStage = { COMPUTE: 5 };
+`, 'utf8');
+    process.env.DOPPLER_NODE_WEBGPU_MODULE = tempDir;
+
+    const ready = await bootstrapNodeWebGPU();
+    assert.equal(ready, true);
+    await globalThis.navigator.gpu.requestAdapter();
+    assert.equal(globalThis.GPUBufferUsage.COPY_SRC, 5);
+    assert.equal(globalThis.GPUShaderStage.COMPUTE, 5);
+  } finally {
+    rmSync(tempDir, { recursive: true, force: true });
+    restoreState(snapshot);
+  }
+}
+
+{
+  const snapshot = snapshotState();
+  const tempDir = mkdtempSync(path.join(tmpdir(), 'doppler-webgpu-exports-array-'));
+  try {
+    clearRuntime();
+    writeFileSync(path.join(tempDir, 'package.json'), JSON.stringify({
+      name: 'doppler-webgpu-exports-array',
+      version: '1.0.0',
+      type: 'module',
+      exports: ['./runtime.js'],
+    }), 'utf8');
+    writeFileSync(path.join(tempDir, 'index.js'), `
+export default { async requestAdapter() { return null; } };
+export const GPUBufferUsage = { COPY_SRC: 6 };
+export const GPUShaderStage = { COMPUTE: 6 };
+`, 'utf8');
+    process.env.DOPPLER_NODE_WEBGPU_MODULE = tempDir;
+
+    const ready = await bootstrapNodeWebGPU();
+    assert.equal(ready, true);
+    await globalThis.navigator.gpu.requestAdapter();
+    assert.equal(globalThis.GPUBufferUsage.COPY_SRC, 6);
+    assert.equal(globalThis.GPUShaderStage.COMPUTE, 6);
+  } finally {
+    rmSync(tempDir, { recursive: true, force: true });
+    restoreState(snapshot);
+  }
+}
+
+{
+  const snapshot = snapshotState();
+  const tempDir = mkdtempSync(path.join(tmpdir(), 'doppler-webgpu-dot-import-'));
+  try {
+    clearRuntime();
+    writeFileSync(path.join(tempDir, 'package.json'), JSON.stringify({
+      name: 'doppler-webgpu-dot-import',
+      version: '1.0.0',
+      type: 'module',
+      exports: {
+        '.': {
+          import: './entry.js',
+        },
+      },
+    }), 'utf8');
+    writeFileSync(path.join(tempDir, 'entry.js'), `
+export default { async requestAdapter() { return null; } };
+export const GPUBufferUsage = { COPY_SRC: 7 };
+export const GPUShaderStage = { COMPUTE: 7 };
+`, 'utf8');
+    process.env.DOPPLER_NODE_WEBGPU_MODULE = tempDir;
+
+    const ready = await bootstrapNodeWebGPU();
+    assert.equal(ready, true);
+    await globalThis.navigator.gpu.requestAdapter();
+    assert.equal(globalThis.GPUBufferUsage.COPY_SRC, 7);
+    assert.equal(globalThis.GPUShaderStage.COMPUTE, 7);
+  } finally {
+    rmSync(tempDir, { recursive: true, force: true });
     restoreState(snapshot);
   }
 }
@@ -148,6 +309,7 @@ export const GPUTextureUsage = { COPY_SRC: 1, COPY_DST: 2 };
 
     const ready = await bootstrapNodeWebGPU();
     assert.equal(ready, true);
+    await globalThis.navigator.gpu.requestAdapter();
     assert.equal(typeof globalThis.navigator?.gpu?.requestAdapter, 'function');
     assert.equal(globalThis.GPUBufferUsage.COPY_SRC, 4);
     assert.equal(globalThis.GPUShaderStage.COMPUTE, 4);
@@ -182,6 +344,7 @@ export const GPUShaderStage = { COMPUTE: 8 };
 
     const ready = await bootstrapNodeWebGPU();
     assert.equal(ready, true);
+    await globalThis.navigator.gpu.requestAdapter();
     assert.equal(globalThis.GPUBufferUsage.COPY_SRC, 64);
     assert.equal(globalThis.GPUShaderStage.COMPUTE, 8);
   } finally {
@@ -220,6 +383,7 @@ export const GPUShaderStage = { COMPUTE: 16 };
 
     const ready = await bootstrapNodeWebGPU();
     assert.equal(ready, true);
+    await globalThis.navigator.gpu.requestAdapter();
     assert.equal(globalThis.GPUBufferUsage.COPY_SRC, 512);
     assert.equal(globalThis.GPUShaderStage.COMPUTE, 16);
     assert.equal(globalThis.__dopplerNodeWebgpuMarkerB, 'exports-node');
@@ -248,10 +412,90 @@ export const GPUShaderStage = { COMPUTE: 32 };
 
     const ready = await bootstrapNodeWebGPU();
     assert.equal(ready, true);
+    await globalThis.navigator.gpu.requestAdapter();
     assert.equal(globalThis.GPUBufferUsage.COPY_SRC, 1024);
     assert.equal(globalThis.GPUShaderStage.COMPUTE, 32);
   } finally {
     rmSync(tempDir, { recursive: true, force: true });
+    restoreState(snapshot);
+  }
+}
+
+{
+  const snapshot = snapshotState();
+  const tempDir = mkdtempSync(path.join(tmpdir(), 'doppler-webgpu-factory-direct-'));
+  try {
+    clearRuntime();
+    removeNavigator();
+    const modulePath = path.join(tempDir, 'webgpu-factory-direct.mjs');
+    writeFileSync(modulePath, `
+export function create(args) {
+  if (Array.isArray(args) && args.length > 0) {
+    throw new Error('retry-without-args');
+  }
+  return {
+    async requestAdapter() {
+      return null;
+    },
+  };
+}
+export const GPUBufferUsage = { COPY_SRC: 9 };
+export const GPUShaderStage = { COMPUTE: 9 };
+`, 'utf8');
+    process.env.DOPPLER_NODE_WEBGPU_MODULE = modulePath;
+
+    const ready = await bootstrapNodeWebGPU();
+    assert.equal(ready, true);
+    await globalThis.navigator.gpu.requestAdapter();
+    assert.equal(globalThis.GPUBufferUsage.COPY_SRC, 9);
+    assert.equal(globalThis.GPUShaderStage.COMPUTE, 9);
+    assert.equal(typeof globalThis.navigator?.gpu?.requestAdapter, 'function');
+  } finally {
+    rmSync(tempDir, { recursive: true, force: true });
+    restoreState(snapshot);
+  }
+}
+
+{
+  const snapshot = snapshotState();
+  const tempDir = mkdtempSync(path.join(tmpdir(), 'doppler-webgpu-factory-fallback-default-'));
+  try {
+    clearRuntime();
+    const modulePath = path.join(tempDir, 'webgpu-factory-fallback-default.mjs');
+    writeFileSync(modulePath, `
+export function create() {
+  throw new Error('factory-failed');
+}
+export default {
+  async requestAdapter() {
+    return null;
+  },
+};
+export const GPUBufferUsage = { COPY_SRC: 10 };
+export const GPUShaderStage = { COMPUTE: 10 };
+`, 'utf8');
+    process.env.DOPPLER_NODE_WEBGPU_MODULE = modulePath;
+
+    const ready = await bootstrapNodeWebGPU();
+    assert.equal(ready, true);
+    await globalThis.navigator.gpu.requestAdapter();
+    assert.equal(globalThis.GPUBufferUsage.COPY_SRC, 10);
+    assert.equal(globalThis.GPUShaderStage.COMPUTE, 10);
+  } finally {
+    rmSync(tempDir, { recursive: true, force: true });
+    restoreState(snapshot);
+  }
+}
+
+{
+  const snapshot = snapshotState();
+  try {
+    clearRuntime();
+    process.env.DOPPLER_NODE_WEBGPU_MODULE = '/dev/null';
+
+    const ready = await bootstrapNodeWebGPU();
+    assert.equal(ready, false);
+  } finally {
     restoreState(snapshot);
   }
 }

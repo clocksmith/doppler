@@ -1,4 +1,5 @@
 export const DISTILL_STAGE_VALUES = Object.freeze(['stage_a', 'stage_b']);
+export const DISTILL_STUDENT_GRAPH_MODE_VALUES = Object.freeze(['projection_head', 'transformer_full']);
 
 export const DISTILL_TRAINING_SCHEMA_VERSION = 1;
 
@@ -30,6 +31,7 @@ export const DEFAULT_DISTILL_TRAINING_CONFIG = Object.freeze({
   alphaCe: 0,
   allowHintFallback: false,
   tripletMargin: 0.2,
+  studentGraphMode: 'transformer_full',
   freeze: DEFAULT_DISTILL_FREEZE_GROUPS,
 });
 
@@ -82,6 +84,15 @@ export function validateDistillTrainingConfig(config) {
   assertFiniteNumber(config.alphaCe, 'alphaCe');
   assertBoolean(config.allowHintFallback, 'allowHintFallback');
   assertFiniteNumber(config.tripletMargin, 'tripletMargin');
+  assertNullableString(config.studentGraphMode, 'studentGraphMode');
+  if (
+    config.studentGraphMode !== null
+    && !DISTILL_STUDENT_GRAPH_MODE_VALUES.includes(config.studentGraphMode)
+  ) {
+    throw new Error(
+      `Distill config: studentGraphMode must be one of ${DISTILL_STUDENT_GRAPH_MODE_VALUES.join(', ')} or null.`
+    );
+  }
 
   const freeze = config.freeze;
   if (!freeze || typeof freeze !== 'object' || Array.isArray(freeze)) {
