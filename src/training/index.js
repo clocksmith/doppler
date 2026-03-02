@@ -15,10 +15,15 @@ export {
   isTrainingObjective,
   createCrossEntropyObjective,
   CROSS_ENTROPY_OBJECTIVE,
+  createDistillKdObjective,
+  createDistillTripletObjective,
   createUlStage1JointObjective,
   createUlStage2BaseObjective,
 } from './objectives/index.js';
 export {
+  createDistillArtifactSession,
+  resolveDistillTrainingContract,
+  resolveStageAArtifactContext,
   createUlArtifactSession,
   resolveUlTrainingContract,
   resolveStage1ArtifactContext,

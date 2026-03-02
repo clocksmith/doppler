@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "id": "distill-translategemma-tiny",
+  "description": "Deterministic tiny translategemma distill workload for CI smoke lanes.",
+  "seed": 1337,
+  "teacherModelId": "translategemma-4b-it-wq4k-ef16-hf16",
+  "studentModelId": "gemma-3-1b-it-wq4k-ef16-hf16",
+  "distillDatasetId": "en-es-tiny",
+  "distillLanguagePair": "en-es",
+  "trainingSchemaVersion": 1,
+  "benchRun": {
+    "warmupRuns": 0,
+    "timedRuns": 1
+  },
+  "trainingBenchSteps": 2,
+  "trainingTests": [
+    "distill-stage-a",
+    "distill-stage-b"
+  ]
+}

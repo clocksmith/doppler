@@ -100,8 +100,9 @@ function makeBaseEntry(overrides = {}) {
   assert.throws(
     () => validateTrainingMetricsEntry(makeBaseEntry({
       objective: 'kd',
+      loss_kd: 0.12,
     })),
-    /loss_kd must be a finite number/
+    /kd objective requires distill_stage="stage_a"/
   );
 }
 
@@ -109,9 +110,28 @@ function makeBaseEntry(overrides = {}) {
   assert.throws(
     () => validateTrainingMetricsEntry(makeBaseEntry({
       objective: 'triplet',
+      loss_triplet: 0.21,
     })),
-    /loss_triplet must be a finite number/
+    /triplet objective requires distill_stage="stage_b"/
   );
+}
+
+{
+  const kd = validateTrainingMetricsEntry(makeBaseEntry({
+    objective: 'kd',
+    loss_kd: 0.12,
+    distill_stage: 'stage_a',
+  }));
+  assert.equal(kd.distill_stage, 'stage_a');
+}
+
+{
+  const triplet = validateTrainingMetricsEntry(makeBaseEntry({
+    objective: 'triplet',
+    loss_triplet: 0.21,
+    distill_stage: 'stage_b',
+  }));
+  assert.equal(triplet.distill_stage, 'stage_b');
 }
 
 {

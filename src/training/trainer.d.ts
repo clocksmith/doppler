@@ -42,6 +42,7 @@ export interface TrainStepOptions {
   epochIndex?: number | null;
   batchIndex?: number | null;
   stage1ArtifactContext?: Record<string, unknown> | null;
+  stageAArtifactContext?: Record<string, unknown> | null;
 }
 
 export interface ClipMetrics {

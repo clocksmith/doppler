@@ -1,4 +1,5 @@
 const UL_STAGE_SET = new Set(['stage1_joint', 'stage2_base']);
+const DISTILL_STAGE_SET = new Set(['stage_a', 'stage_b']);
 const OBJECTIVE_SET = new Set([
   'cross_entropy',
   'ul_stage1_joint',
@@ -77,6 +78,14 @@ export const DEFAULT_TRAINING_METRICS_REPORT = Object.freeze({
   window_step_time_ms_avg: null,
   loss_kd: null,
   loss_triplet: null,
+  distill_stage: null,
+  distill_temperature: null,
+  distill_alpha_kd: null,
+  distill_alpha_ce: null,
+  distill_loss_ce_aux: null,
+  distill_triplet_margin: null,
+  distill_stage_a_step_count: null,
+  distill_stage_a_kd_mean: null,
   ul_stage: null,
   lambda: null,
   loss_total: null,
@@ -145,6 +154,16 @@ export function validateTrainingMetricsEntry(entry) {
   assertNullableFiniteNumber(entry.window_step_time_ms_avg, 'window_step_time_ms_avg');
   assertNullableFiniteNumber(entry.loss_kd, 'loss_kd');
   assertNullableFiniteNumber(entry.loss_triplet, 'loss_triplet');
+  assertNullableFiniteNumber(entry.distill_temperature, 'distill_temperature');
+  assertNullableFiniteNumber(entry.distill_alpha_kd, 'distill_alpha_kd');
+  assertNullableFiniteNumber(entry.distill_alpha_ce, 'distill_alpha_ce');
+  assertNullableFiniteNumber(entry.distill_loss_ce_aux, 'distill_loss_ce_aux');
+  assertNullableFiniteNumber(entry.distill_triplet_margin, 'distill_triplet_margin');
+  assertNullableFiniteNumber(entry.distill_stage_a_step_count, 'distill_stage_a_step_count');
+  assertNullableFiniteNumber(entry.distill_stage_a_kd_mean, 'distill_stage_a_kd_mean');
+  if (entry.distill_stage !== undefined && entry.distill_stage !== null && !DISTILL_STAGE_SET.has(entry.distill_stage)) {
+    throw new Error('training metrics: distill_stage must be "stage_a", "stage_b", or null.');
+  }
   if (entry.trainable_groups !== undefined) {
     assertStringArray(entry.trainable_groups, 'trainable_groups');
   }
@@ -159,17 +178,35 @@ export function validateTrainingMetricsEntry(entry) {
     if (entry.ul_stage != null) {
       throw new Error('training metrics: cross_entropy objective must not set ul_stage.');
     }
+    if (entry.distill_stage != null) {
+      throw new Error('training metrics: cross_entropy objective must not set distill_stage.');
+    }
   }
 
   if (entry.objective === 'kd') {
+    if (entry.ul_stage != null) {
+      throw new Error('training metrics: kd objective must not set ul_stage.');
+    }
     assertFiniteNumber(entry.loss_kd, 'loss_kd');
+    if (entry.distill_stage !== 'stage_a') {
+      throw new Error('training metrics: kd objective requires distill_stage="stage_a".');
+    }
   }
 
   if (entry.objective === 'triplet') {
+    if (entry.ul_stage != null) {
+      throw new Error('training metrics: triplet objective must not set ul_stage.');
+    }
     assertFiniteNumber(entry.loss_triplet, 'loss_triplet');
+    if (entry.distill_stage !== 'stage_b') {
+      throw new Error('training metrics: triplet objective requires distill_stage="stage_b".');
+    }
   }
 
   if (entry.objective === 'ul_stage1_joint' || entry.objective === 'ul_stage2_base') {
+    if (entry.distill_stage != null) {
+      throw new Error('training metrics: UL objectives must not set distill_stage.');
+    }
     if (entry.objective === 'ul_stage1_joint' && entry.ul_stage !== 'stage1_joint') {
       throw new Error('training metrics: ul_stage1_joint objective requires ul_stage="stage1_joint".');
     }

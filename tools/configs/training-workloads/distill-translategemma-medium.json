@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "id": "distill-translategemma-medium",
+  "description": "Deterministic medium translategemma distill workload for pre-release calibration.",
+  "seed": 1337,
+  "teacherModelId": "translategemma-4b-it-wq4k-ef16-hf16",
+  "studentModelId": "gemma-3-1b-it-wq4k-ef16-hf16",
+  "distillDatasetId": "en-es-medium",
+  "distillLanguagePair": "en-es",
+  "trainingSchemaVersion": 1,
+  "benchRun": {
+    "warmupRuns": 1,
+    "timedRuns": 3
+  },
+  "trainingBenchSteps": 8,
+  "trainingTests": [
+    "distill-stage-a",
+    "distill-stage-b"
+  ]
+}

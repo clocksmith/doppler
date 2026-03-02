@@ -4,7 +4,7 @@ import type { DynamicLossScaler } from './loss-scaling.js';
 import type { TrainingBatch, TrainingOptimizer, ClipMetrics } from './trainer.js';
 import type { DataLoader } from './dataloader.js';
 import type { TrainingObjective } from './objectives/base.js';
-import type { UlArtifactFinalizeResult } from './artifacts.js';
+import type { UlArtifactFinalizeResult, DistillArtifactFinalizeResult } from './artifacts.js';
 
 export interface TrainingStepMetricsEntry {
   schemaVersion: number;
@@ -35,7 +35,17 @@ export interface TrainingStepMetricsEntry {
   window_loss_avg?: number | null;
   window_step_time_ms_avg?: number | null;
   ul_stage?: string | null;
+  distill_stage?: string | null;
   lambda?: number | null;
+  loss_kd?: number | null;
+  loss_triplet?: number | null;
+  distill_temperature?: number | null;
+  distill_alpha_kd?: number | null;
+  distill_alpha_ce?: number | null;
+  distill_loss_ce_aux?: number | null;
+  distill_triplet_margin?: number | null;
+  distill_stage_a_step_count?: number | null;
+  distill_stage_a_kd_mean?: number | null;
   objective?: string;
   loss_total?: number | null;
   coeff_ce?: number | null;
@@ -86,6 +96,13 @@ export interface TrainingRunOptions {
   logEvery?: number;
   prepareBatch?: (batch: unknown) => Promise<TrainingBatch> | TrainingBatch;
   ulArtifactDir?: string | null;
+  distillArtifactDir?: string | null;
+  stageAArtifact?: string | null;
+  stageAArtifactHash?: string | null;
+  teacherModelId?: string | null;
+  studentModelId?: string | null;
+  distillDatasetId?: string | null;
+  distillLanguagePair?: string | null;
   modelId?: string | null;
   modelUrl?: string | null;
   timestamp?: string | Date | null;
@@ -94,7 +111,7 @@ export interface TrainingRunOptions {
 
 export declare class TrainingRunner {
   constructor(config: TrainingConfigSchema, options?: TrainingRunnerOptions);
-  lastArtifact: UlArtifactFinalizeResult | null;
+  lastArtifact: UlArtifactFinalizeResult | DistillArtifactFinalizeResult | null;
   run(
     model: {
       forward: (input: Tensor, tape: unknown) => Promise<Tensor>;

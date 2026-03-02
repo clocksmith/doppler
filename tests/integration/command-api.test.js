@@ -119,8 +119,26 @@ import {
       modelId: null,
       trainingStage: 'stage3_unknown',
     }),
-    /trainingStage must be one of stage1_joint, stage2_base/
+    /trainingStage must be one of stage1_joint, stage2_base, stage_a, stage_b/
   );
+}
+
+{
+  const request = normalizeToolingCommandRequest({
+    command: 'test-model',
+    suite: 'training',
+    modelId: null,
+    trainingStage: 'stage_a',
+    teacherModelId: 'translategemma-4b-it-wq4k-ef16-hf16',
+    studentModelId: 'translategemma-270m-it-wf16-ef16-hf16',
+    distillDatasetId: 'en-es',
+    distillLanguagePair: 'en-es',
+  });
+  assert.equal(request.trainingStage, 'stage_a');
+  assert.equal(request.teacherModelId, 'translategemma-4b-it-wq4k-ef16-hf16');
+  assert.equal(request.studentModelId, 'translategemma-270m-it-wf16-ef16-hf16');
+  assert.equal(request.distillDatasetId, 'en-es');
+  assert.equal(request.distillLanguagePair, 'en-es');
 }
 
 {

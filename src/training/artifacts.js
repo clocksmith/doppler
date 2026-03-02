@@ -1,6 +1,8 @@
 import { sha256Hex } from '../utils/sha256.js';
+import { DISTILL_TRAINING_SCHEMA_VERSION } from '../config/schema/distill-training.schema.js';
 import { UL_TRAINING_SCHEMA_VERSION } from '../config/schema/ul-training.schema.js';
 
+const DISTILL_MANIFEST_SCHEMA_VERSION = 1;
 const UL_MANIFEST_SCHEMA_VERSION = 1;
 const TRAINING_METRICS_SCHEMA_VERSION = 1;
 
@@ -221,6 +223,8 @@ async function resolveBuildProvenance() {
       commitHash: null,
       kernelRegistryDigest: null,
       schemaVersions: {
+        distillManifest: DISTILL_MANIFEST_SCHEMA_VERSION,
+        distillTraining: DISTILL_TRAINING_SCHEMA_VERSION,
         ulManifest: UL_MANIFEST_SCHEMA_VERSION,
         ulTraining: UL_TRAINING_SCHEMA_VERSION,
         trainingMetrics: TRAINING_METRICS_SCHEMA_VERSION,
@@ -253,6 +257,8 @@ async function resolveBuildProvenance() {
     commitHash: process.env.DOPPLER_GIT_COMMIT || process.env.GITHUB_SHA || null,
     kernelRegistryDigest,
     schemaVersions: {
+      distillManifest: DISTILL_MANIFEST_SCHEMA_VERSION,
+      distillTraining: DISTILL_TRAINING_SCHEMA_VERSION,
       ulManifest: UL_MANIFEST_SCHEMA_VERSION,
       ulTraining: UL_TRAINING_SCHEMA_VERSION,
       trainingMetrics: TRAINING_METRICS_SCHEMA_VERSION,
@@ -512,6 +518,8 @@ export async function createUlArtifactSession(options) {
       await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8');
       const manifestFileHash = await computeFileHash(manifestPath);
       return {
+        kind: 'ul',
+        stage: resolvedStage,
         runDir: relative(process.cwd(), runDir),
         metricsPath: relative(process.cwd(), metricsPath),
         manifestPath: relative(process.cwd(), manifestPath),
@@ -519,6 +527,345 @@ export async function createUlArtifactSession(options) {
         manifestContentHash,
         manifestFileHash,
         stage1Dependency: manifest.stage1Dependency,
+      };
+    },
+  };
+}
+
+function buildDistillContractPayload(distillConfig) {
+  if (!distillConfig) return {};
+  return {
+    temperature: toFiniteNumber(distillConfig.temperature, 1),
+    alphaKd: toFiniteNumber(distillConfig.alphaKd, 1),
+    alphaCe: toFiniteNumber(distillConfig.alphaCe, 0),
+    tripletMargin: toFiniteNumber(distillConfig.tripletMargin, 0.2),
+    teacherModelId: distillConfig.teacherModelId || null,
+    studentModelId: distillConfig.studentModelId || null,
+    datasetId: distillConfig.datasetId || null,
+    languagePair: distillConfig.languagePair || null,
+  };
+}
+
+function buildResolvedDistillConfigSnapshot(distillConfig) {
+  if (!distillConfig) return null;
+  return {
+    enabled: distillConfig.enabled === true,
+    stage: distillConfig.stage || null,
+    teacherModelId: distillConfig.teacherModelId || null,
+    studentModelId: distillConfig.studentModelId || null,
+    datasetId: distillConfig.datasetId || null,
+    languagePair: distillConfig.languagePair || null,
+    temperature: toFiniteNumber(distillConfig.temperature, 1),
+    alphaKd: toFiniteNumber(distillConfig.alphaKd, 1),
+    alphaCe: toFiniteNumber(distillConfig.alphaCe, 0),
+    tripletMargin: toFiniteNumber(distillConfig.tripletMargin, 0.2),
+    freeze: distillConfig.freeze || null,
+  };
+}
+
+function buildDistillRuntimeDump(distillConfig, runOptions = {}) {
+  if (!distillConfig) return null;
+  return {
+    stage: distillConfig.stage || null,
+    teacherModelId: runOptions.teacherModelId || distillConfig.teacherModelId || null,
+    studentModelId: runOptions.studentModelId || distillConfig.studentModelId || null,
+    datasetId: runOptions.distillDatasetId || distillConfig.datasetId || null,
+    languagePair: runOptions.distillLanguagePair || distillConfig.languagePair || null,
+    temperature: toFiniteNumber(distillConfig.temperature, 1),
+    alphaKd: toFiniteNumber(distillConfig.alphaKd, 1),
+    alphaCe: toFiniteNumber(distillConfig.alphaCe, 0),
+    tripletMargin: toFiniteNumber(distillConfig.tripletMargin, 0.2),
+    freeze: distillConfig.freeze || null,
+    artifactDir: runOptions.distillArtifactDir || distillConfig.artifactDir || 'bench/out/distill',
+    stageAArtifact: runOptions.stageAArtifact || distillConfig.stageAArtifact || null,
+    stageAArtifactHash: runOptions.stageAArtifactHash || distillConfig.stageAArtifactHash || null,
+  };
+}
+
+function buildDeterministicDistillManifestView(manifestBase) {
+  return {
+    schemaVersion: manifestBase.schemaVersion,
+    stage: manifestBase.stage,
+    configHash: manifestBase.configHash,
+    modelHash: manifestBase.modelHash,
+    datasetHash: manifestBase.datasetHash,
+    distillContractHash: manifestBase.distillContractHash,
+    distillResolvedConfig: manifestBase.distillResolvedConfig || null,
+    runtimeDump: manifestBase.runtimeDump || null,
+    buildProvenance: manifestBase.buildProvenance || null,
+    freeze: manifestBase.freeze || null,
+    metrics: {
+      count: manifestBase.metrics?.count ?? 0,
+    },
+    lossSummary: manifestBase.lossSummary || null,
+    lineage: manifestBase.lineage || null,
+    stageADependency: manifestBase.stageADependency
+      ? {
+        hash: manifestBase.stageADependency.hash,
+        manifestHash: manifestBase.stageADependency.manifestHash || null,
+      }
+      : null,
+  };
+}
+
+function summarizeDistillMetrics(entries) {
+  if (!Array.isArray(entries) || entries.length === 0) {
+    return {
+      stepCount: 0,
+      kdCount: 0,
+      tripletCount: 0,
+      kdMean: null,
+      tripletMean: null,
+      totalLossMean: null,
+    };
+  }
+  let totalLossSum = 0;
+  let totalLossCount = 0;
+  let kdSum = 0;
+  let kdCount = 0;
+  let tripletSum = 0;
+  let tripletCount = 0;
+  for (const entry of entries) {
+    if (isFiniteNumber(entry?.total_loss)) {
+      totalLossSum += entry.total_loss;
+      totalLossCount += 1;
+    }
+    if (isFiniteNumber(entry?.loss_kd)) {
+      kdSum += entry.loss_kd;
+      kdCount += 1;
+    }
+    if (isFiniteNumber(entry?.loss_triplet)) {
+      tripletSum += entry.loss_triplet;
+      tripletCount += 1;
+    }
+  }
+  return {
+    stepCount: entries.length,
+    kdCount,
+    tripletCount,
+    kdMean: kdCount > 0 ? (kdSum / kdCount) : null,
+    tripletMean: tripletCount > 0 ? (tripletSum / tripletCount) : null,
+    totalLossMean: totalLossCount > 0 ? (totalLossSum / totalLossCount) : null,
+  };
+}
+
+export function resolveDistillTrainingContract(distillConfig) {
+  if (!distillConfig?.enabled) {
+    return {
+      enabled: false,
+      stage: null,
+      artifactDir: null,
+      stageAArtifact: null,
+      stageAArtifactHash: null,
+      teacherModelId: null,
+      studentModelId: null,
+      datasetId: null,
+      languagePair: null,
+    };
+  }
+  return {
+    enabled: true,
+    stage: distillConfig.stage,
+    artifactDir: distillConfig.artifactDir || 'bench/out/distill',
+    stageAArtifact: distillConfig.stageAArtifact || null,
+    stageAArtifactHash: distillConfig.stageAArtifactHash || null,
+    teacherModelId: distillConfig.teacherModelId || null,
+    studentModelId: distillConfig.studentModelId || null,
+    datasetId: distillConfig.datasetId || null,
+    languagePair: distillConfig.languagePair || null,
+  };
+}
+
+async function validateDistillStageBDependency(config, contractHash) {
+  const distillConfig = config.training?.distill;
+  if (!distillConfig?.stageAArtifact) {
+    throw new Error('Distill stage_b requires training.distill.stageAArtifact.');
+  }
+  const manifestPath = await resolveNodePath(distillConfig.stageAArtifact);
+  const manifestHash = await computeFileHash(manifestPath);
+  const manifest = await readJson(manifestPath);
+  if (!manifest || typeof manifest !== 'object') {
+    throw new Error('Distill stage_b requires a valid StageA manifest JSON.');
+  }
+  const providedHash = distillConfig.stageAArtifactHash;
+  if (providedHash) {
+    const accepted = [
+      manifestHash,
+      manifest.manifestHash || null,
+      manifest.manifestContentHash || null,
+      manifest.manifestFileHash || null,
+    ];
+    if (!accepted.includes(providedHash)) {
+      throw new Error(
+        `Distill stage_b artifact hash mismatch: expected ${providedHash}, got ${manifestHash}.`
+      );
+    }
+  }
+  if (manifest.stage !== 'stage_a') {
+    throw new Error(`Distill stage_b requires stage_a artifact, got "${manifest.stage}".`);
+  }
+  if (manifest.distillContractHash !== contractHash) {
+    throw new Error(
+      `Distill stage_b contract mismatch: expected ${contractHash}, got ${manifest.distillContractHash || 'unknown'}.`
+    );
+  }
+  if (!manifest.metrics || typeof manifest.metrics !== 'object' || !manifest.metrics.stepMetricsPath) {
+    throw new Error('Distill stage_b requires stage_a metrics path metadata.');
+  }
+  const metricsPath = await resolveNodePath(manifest.metrics.stepMetricsPath);
+  const metricsHash = await computeFileHash(metricsPath);
+  const metrics = await readNdjson(metricsPath);
+  if (!Array.isArray(metrics.entries) || metrics.entries.length === 0) {
+    throw new Error('Distill stage_b requires non-empty stage_a metrics.');
+  }
+  return {
+    path: manifestPath,
+    hash: manifestHash,
+    manifest,
+    metrics: {
+      path: metricsPath,
+      hash: metricsHash,
+      entries: metrics.entries,
+      summary: summarizeDistillMetrics(metrics.entries),
+    },
+  };
+}
+
+export async function resolveStageAArtifactContext(config) {
+  const distillConfig = config?.training?.distill;
+  if (!distillConfig?.enabled || distillConfig.stage !== 'stage_b') {
+    return null;
+  }
+  if (!isNodeRuntime()) {
+    throw new Error('Distill stage_b artifact context currently requires Node runtime.');
+  }
+  const distillContractHash = hashStableJson(buildDistillContractPayload(distillConfig));
+  const dependency = await validateDistillStageBDependency(config, distillContractHash);
+  return {
+    manifestPath: dependency.path,
+    manifestHash: dependency.hash,
+    distillContractHash: dependency.manifest?.distillContractHash || null,
+    metrics: {
+      path: dependency.metrics.path,
+      hash: dependency.metrics.hash,
+      count: dependency.metrics.entries.length,
+      summary: dependency.metrics.summary,
+      entries: dependency.metrics.entries,
+    },
+    metricsSummary: dependency.metrics.summary,
+  };
+}
+
+export async function createDistillArtifactSession(options) {
+  const {
+    config,
+    stage,
+    runOptions = {},
+  } = options || {};
+  const distillConfig = config?.training?.distill;
+  if (!distillConfig?.enabled) {
+    return null;
+  }
+  if (!isNodeRuntime()) {
+    throw new Error('Distill artifacts currently require Node runtime.');
+  }
+  const { mkdir, appendFile, writeFile } = await nodeFs();
+  const { join, relative } = await nodePath();
+
+  const resolvedStage = stage || distillConfig.stage || 'stage_a';
+  const timestamp = normalizeTimestamp(runOptions.timestamp);
+  const artifactRoot = await resolveNodePath(
+    runOptions.distillArtifactDir || distillConfig.artifactDir || 'bench/out/distill'
+  );
+  const runDir = join(artifactRoot, `${resolvedStage}_${timestamp}`);
+  await mkdir(runDir, { recursive: true });
+  const metricsPath = join(runDir, 'metrics.ndjson');
+  const manifestPath = join(
+    runDir,
+    resolvedStage === 'stage_b' ? 'distill_stage_b_manifest.json' : 'distill_stage_a_manifest.json'
+  );
+  const distillContractHash = hashStableJson(buildDistillContractPayload(distillConfig));
+  const stageDependency = resolvedStage === 'stage_b'
+    ? await validateDistillStageBDependency(config, distillContractHash)
+    : null;
+
+  return {
+    async appendStep(entry) {
+      await appendFile(metricsPath, `${JSON.stringify(entry)}\n`, 'utf8');
+    },
+    async finalize(stepMetrics) {
+      const configHash = hashStableJson(config);
+      const modelHash = sha256Hex(
+        stableJson({
+          modelId: runOptions.modelId || config?.model?.modelId || null,
+          modelUrl: runOptions.modelUrl || null,
+          teacherModelId: runOptions.teacherModelId || distillConfig.teacherModelId || null,
+          studentModelId: runOptions.studentModelId || distillConfig.studentModelId || null,
+        })
+      );
+      const datasetHash = sha256Hex(
+        stableJson({
+          datasetId: runOptions.distillDatasetId || distillConfig.datasetId || null,
+          languagePair: runOptions.distillLanguagePair || distillConfig.languagePair || null,
+          batchSize: runOptions.batchSize ?? null,
+          epochs: runOptions.epochs ?? null,
+          maxSteps: runOptions.maxSteps ?? null,
+        })
+      );
+      const buildProvenance = await resolveBuildProvenance();
+      const parsedMetrics = await readNdjson(metricsPath);
+      const lossSummary = summarizeDistillMetrics(parsedMetrics.entries);
+
+      const manifestBase = {
+        schemaVersion: DISTILL_MANIFEST_SCHEMA_VERSION,
+        stage: resolvedStage,
+        createdAt: new Date().toISOString(),
+        runId: `${resolvedStage}_${timestamp}`,
+        configHash,
+        modelHash,
+        datasetHash,
+        distillContractHash,
+        distillResolvedConfig: buildResolvedDistillConfigSnapshot(distillConfig),
+        runtimeDump: buildDistillRuntimeDump(distillConfig, runOptions),
+        buildProvenance,
+        freeze: distillConfig.freeze,
+        metrics: {
+          count: Array.isArray(stepMetrics) ? stepMetrics.length : 0,
+          stepMetricsPath: relative(process.cwd(), metricsPath),
+          hash: sha256Hex(parsedMetrics.raw),
+        },
+        lossSummary,
+        lineage: {
+          parentManifestHash: stageDependency?.manifest?.manifestHash || null,
+          parentContractHash: stageDependency?.manifest?.distillContractHash || null,
+        },
+        stageADependency: stageDependency
+          ? {
+            path: relative(process.cwd(), stageDependency.path),
+            hash: stageDependency.hash,
+            manifestHash: stageDependency.manifest?.manifestHash || null,
+            metricsHash: stageDependency.metrics.hash,
+            metricsSummary: stageDependency.metrics.summary,
+          }
+          : null,
+      };
+      const manifestContentHash = hashStableJson(
+        buildDeterministicDistillManifestView(manifestBase)
+      );
+      const manifestHash = manifestContentHash;
+      const manifest = { ...manifestBase, manifestHash, manifestContentHash };
+      await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8');
+      const manifestFileHash = await computeFileHash(manifestPath);
+      return {
+        kind: 'distill',
+        stage: resolvedStage,
+        runDir: relative(process.cwd(), runDir),
+        metricsPath: relative(process.cwd(), metricsPath),
+        manifestPath: relative(process.cwd(), manifestPath),
+        manifestHash,
+        manifestContentHash,
+        manifestFileHash,
+        stageADependency: manifest.stageADependency,
       };
     },
   };

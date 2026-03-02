@@ -1,3 +1,7 @@
+import { existsSync, readFileSync, statSync } from 'node:fs';
+import { isAbsolute, resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
+
 function hasNavigatorGpu() {
   return typeof globalThis.navigator !== 'undefined' && !!globalThis.navigator?.gpu;
 }
@@ -28,9 +32,95 @@ function installGlobalsFromModule(mod) {
 function resolveWebgpuModuleSpecifier() {
   const fromEnv = process.env.DOPPLER_NODE_WEBGPU_MODULE;
   if (typeof fromEnv === 'string' && fromEnv.trim().length > 0) {
-    return fromEnv.trim();
+    const candidate = fromEnv.trim();
+    if (candidate.startsWith('file://')) {
+      return candidate;
+    }
+    if (candidate.startsWith('.') || candidate.startsWith('/') || candidate.includes('/')) {
+      const normalizedPath = isAbsolute(candidate)
+        ? candidate
+        : resolve(process.cwd(), candidate);
+      const resolvedFilePath = resolveNodeModuleFilePath(normalizedPath);
+      if (resolvedFilePath) {
+        return pathToFileURL(resolvedFilePath).href;
+      }
+    }
+    return candidate;
   }
   return 'webgpu';
+}
+
+function resolveNodeModuleFilePath(candidatePath) {
+  if (!existsSync(candidatePath)) return null;
+  const stat = statSync(candidatePath);
+  if (stat.isFile()) {
+    return candidatePath;
+  }
+  if (!stat.isDirectory()) {
+    return null;
+  }
+  const packageJsonPath = resolve(candidatePath, 'package.json');
+  if (existsSync(packageJsonPath)) {
+    try {
+      const pkg = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
+      if (typeof pkg.main === 'string' && pkg.main.trim()) {
+        const mainPath = resolve(candidatePath, pkg.main);
+        if (existsSync(mainPath)) {
+          return mainPath;
+        }
+      }
+      const nodeExportPath = resolveExportsPath(pkg.exports, candidatePath);
+      if (nodeExportPath) {
+        return nodeExportPath;
+      }
+    } catch {
+      // Ignore malformed package.json and fall through to file candidates.
+    }
+  }
+  const fallbackPaths = [
+    resolve(candidatePath, 'index.js'),
+    resolve(candidatePath, 'src/index.js'),
+    resolve(candidatePath, 'src/node-runtime.js'),
+  ];
+  for (const fallbackPath of fallbackPaths) {
+    if (existsSync(fallbackPath)) {
+      return fallbackPath;
+    }
+  }
+  return null;
+}
+
+function resolveExportsPath(exportsField, rootPath) {
+  if (!exportsField) return null;
+  if (typeof exportsField === 'string') {
+    const candidate = resolve(rootPath, exportsField);
+    return existsSync(candidate) ? candidate : null;
+  }
+  if (typeof exportsField !== 'object' || Array.isArray(exportsField)) {
+    return null;
+  }
+  if (typeof exportsField['./node'] === 'string') {
+    const nodePath = resolve(rootPath, exportsField['./node']);
+    if (existsSync(nodePath)) {
+      return nodePath;
+    }
+  }
+  const dot = exportsField['.'];
+  if (typeof dot === 'string') {
+    const dotPath = resolve(rootPath, dot);
+    if (existsSync(dotPath)) {
+      return dotPath;
+    }
+  } else if (dot && typeof dot === 'object') {
+    const preferred = dot.default || dot.node || dot.import;
+    if (typeof preferred === 'string') {
+      const preferredPath = resolve(rootPath, preferred);
+      if (existsSync(preferredPath)) {
+        return preferredPath;
+      }
+    }
+  }
+  return null;
 }
 
 function installNavigatorGpu(gpu) {

@@ -1,10 +1,15 @@
 import { createDopplerConfig, DEFAULT_TRAINING_SETTINGS } from './schema/index.js';
+import { validateDistillTrainingConfig } from './schema/distill-training.schema.js';
 import { validateUlTrainingConfig } from './schema/ul-training.schema.js';
 
 function mergeTrainingSettings(base, overrides) {
   if (!overrides) {
     const merged = { ...base };
+    validateDistillTrainingConfig(merged.distill);
     validateUlTrainingConfig(merged.ul);
+    if (merged.distill.enabled === true && merged.ul.enabled === true) {
+      throw new Error('training config: distill and ul modes cannot both be enabled.');
+    }
     return merged;
   }
 
@@ -32,6 +37,11 @@ function mergeTrainingSettings(base, overrides) {
       },
     },
     lossScaling: { ...base.lossScaling, ...overrides.lossScaling },
+    distill: {
+      ...base.distill,
+      ...overrides.distill,
+      freeze: { ...base.distill.freeze, ...overrides.distill?.freeze },
+    },
     ul: {
       ...base.ul,
       ...overrides.ul,
@@ -42,7 +52,11 @@ function mergeTrainingSettings(base, overrides) {
       freeze: { ...base.ul.freeze, ...overrides.ul?.freeze },
     },
   };
+  validateDistillTrainingConfig(merged.distill);
   validateUlTrainingConfig(merged.ul);
+  if (merged.distill.enabled === true && merged.ul.enabled === true) {
+    throw new Error('training config: distill and ul modes cannot both be enabled.');
+  }
   return merged;
 }
 

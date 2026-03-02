@@ -1,4 +1,5 @@
 import { DEFAULT_LORA_CONFIG } from './lora.schema.js';
+import { DEFAULT_DISTILL_TRAINING_CONFIG } from './distill-training.schema.js';
 import { DEFAULT_UL_TRAINING_CONFIG } from './ul-training.schema.js';
 
 // =============================================================================
@@ -100,5 +101,6 @@ export const DEFAULT_TRAINING_SETTINGS = {
   attention: DEFAULT_TRAINING_ATTENTION_CONFIG,
   telemetry: DEFAULT_TRAINING_TELEMETRY_CONFIG,
   lossScaling: DEFAULT_TRAINING_LOSS_SCALING_CONFIG,
+  distill: DEFAULT_DISTILL_TRAINING_CONFIG,
   ul: DEFAULT_UL_TRAINING_CONFIG,
 };
