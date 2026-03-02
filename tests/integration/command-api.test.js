@@ -132,12 +132,14 @@ import {
     teacherModelId: 'translategemma-4b-it-wq4k-ef16-hf16',
     studentModelId: 'translategemma-270m-it-wf16-ef16-hf16',
     distillDatasetId: 'en-es',
+    distillDatasetPath: '/tmp/en-es.jsonl',
     distillLanguagePair: 'en-es',
   });
   assert.equal(request.trainingStage, 'stage_a');
   assert.equal(request.teacherModelId, 'translategemma-4b-it-wq4k-ef16-hf16');
   assert.equal(request.studentModelId, 'translategemma-270m-it-wf16-ef16-hf16');
   assert.equal(request.distillDatasetId, 'en-es');
+  assert.equal(request.distillDatasetPath, '/tmp/en-es.jsonl');
   assert.equal(request.distillLanguagePair, 'en-es');
 }
 

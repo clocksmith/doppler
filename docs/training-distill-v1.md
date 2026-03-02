@@ -8,6 +8,7 @@ Doppler supports a practical two-stage distill workflow:
 
 1. `stage_a`: KD-oriented stage (`objective="kd"`)
 2. `stage_b`: triplet-oriented stage (`objective="triplet"`) with mandatory stage_a dependency
+3. Distill batches are built from live teacher/student model logits (no synthetic KD/triplet hint fallback)
 
 It does not claim architecture-paper parity or leaderboard SOTA.
 
@@ -24,6 +25,7 @@ node tools/doppler-cli.js test-model \
   --teacher-model-id translategemma-4b-it-wq4k-ef16-hf16 \
   --student-model-id gemma-3-1b-it-wq4k-ef16-hf16 \
   --distill-dataset-id en-es \
+  --distill-dataset-path /abs/path/translate_distill_pairs_en_es_2way.train.jsonl \
   --distill-language-pair en-es \
   --json
 ```
@@ -38,6 +40,7 @@ node tools/doppler-cli.js test-model \
   --training-stage stage_b \
   --teacher-model-id translategemma-4b-it-wq4k-ef16-hf16 \
   --student-model-id gemma-3-1b-it-wq4k-ef16-hf16 \
+  --distill-dataset-path /abs/path/translate_distill_pairs_en_es_2way.train.jsonl \
   --stagea-artifact <path/to/distill_stage_a_manifest.json> \
   --stagea-artifact-hash <hash> \
   --json
@@ -46,9 +49,15 @@ node tools/doppler-cli.js test-model \
 Distill bench helper:
 
 ```bash
-node tools/run-distill-bench.mjs --surface node --workload tiny --out-dir bench/out/distill
-node tools/run-distill-bench.mjs --surface node --workload medium --out-dir bench/out/distill
+node tools/run-distill-bench.mjs --surface node --workload tiny --out-dir bench/out/distill --distill-dataset-path /abs/path/translate_distill_pairs_en_es_2way.train.jsonl
+node tools/run-distill-bench.mjs --surface node --workload medium --out-dir bench/out/distill --distill-dataset-path /abs/path/translate_distill_pairs_en_es_2way.train.jsonl
 ```
+
+Node runtime note:
+
+- `--distill-dataset-path` is Node-only right now.
+- Optional WebGPU module override:
+  `DOPPLER_NODE_WEBGPU_MODULE=../fawn/nursery/webgpu-core`
 
 ## Artifact + Provenance
 
