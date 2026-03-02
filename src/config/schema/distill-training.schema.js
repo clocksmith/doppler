@@ -17,6 +17,7 @@ export const DEFAULT_DISTILL_TRAINING_CONFIG = Object.freeze({
   teacherModelId: null,
   studentModelId: null,
   datasetId: null,
+  datasetPath: null,
   languagePair: null,
   artifactDir: 'bench/out/distill',
   stageAArtifact: null,
@@ -58,6 +59,7 @@ export function validateDistillTrainingConfig(config) {
   assertNullableString(config.teacherModelId, 'teacherModelId');
   assertNullableString(config.studentModelId, 'studentModelId');
   assertNullableString(config.datasetId, 'datasetId');
+  assertNullableString(config.datasetPath, 'datasetPath');
   assertNullableString(config.languagePair, 'languagePair');
   assertNullableString(config.artifactDir, 'artifactDir');
   assertNullableString(config.stageAArtifact, 'stageAArtifact');

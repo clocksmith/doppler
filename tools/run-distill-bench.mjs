@@ -9,6 +9,7 @@ function parseArgs(argv) {
     surface: 'node',
     outDir: 'bench/out/distill',
     workload: 'tiny',
+    distillDatasetPath: null,
   };
   for (let i = 2; i < argv.length; i += 1) {
     const arg = argv[i];
@@ -24,6 +25,11 @@ function parseArgs(argv) {
     }
     if (arg === '--workload') {
       parsed.workload = String(argv[i + 1] || parsed.workload);
+      i += 1;
+      continue;
+    }
+    if (arg === '--distill-dataset-path') {
+      parsed.distillDatasetPath = String(argv[i + 1] || '').trim() || null;
       i += 1;
       continue;
     }
@@ -101,6 +107,11 @@ async function main() {
   const teacherModelId = String(workload.config.teacherModelId || 'translategemma-4b-it-wq4k-ef16-hf16');
   const studentModelId = String(workload.config.studentModelId || 'gemma-3-1b-it-wq4k-ef16-hf16');
   const distillDatasetId = String(workload.config.distillDatasetId || 'en-es');
+  const distillDatasetPath = args.distillDatasetPath || (
+    workload.config.distillDatasetPath
+    ? String(workload.config.distillDatasetPath)
+    : null
+  );
   const distillLanguagePair = String(workload.config.distillLanguagePair || 'en-es');
   const trainingTests = Array.isArray(workload.config.trainingTests)
     ? workload.config.trainingTests.map((value) => String(value))
@@ -135,6 +146,7 @@ async function main() {
     studentModelId,
     '--distill-dataset-id',
     distillDatasetId,
+    ...(distillDatasetPath ? ['--distill-dataset-path', distillDatasetPath] : []),
     '--distill-language-pair',
     distillLanguagePair,
     '--distill-artifact-dir',
@@ -163,6 +175,7 @@ async function main() {
     studentModelId,
     '--distill-dataset-id',
     distillDatasetId,
+    ...(distillDatasetPath ? ['--distill-dataset-path', distillDatasetPath] : []),
     '--distill-language-pair',
     distillLanguagePair,
     '--distill-artifact-dir',
@@ -190,6 +203,7 @@ async function main() {
     studentModelId,
     '--distill-dataset-id',
     distillDatasetId,
+    ...(distillDatasetPath ? ['--distill-dataset-path', distillDatasetPath] : []),
     '--distill-language-pair',
     distillLanguagePair,
     '--distill-artifact-dir',

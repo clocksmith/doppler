@@ -44,6 +44,7 @@ export declare function buildSuiteOptions(
   teacherModelId?: string;
   studentModelId?: string;
   distillDatasetId?: string;
+  distillDatasetPath?: string;
   distillLanguagePair?: string;
   trainingSchemaVersion?: number;
   trainingBenchSteps?: number;

@@ -25,6 +25,7 @@ const raw = {
   teacherModelId: 'translategemma-4b-it-wq4k-ef16-hf16',
   studentModelId: 'translategemma-270m-it-wf16-ef16-hf16',
   distillDatasetId: 'en-es',
+  distillDatasetPath: '/tmp/translate_distill_pairs_en_es.jsonl',
   distillLanguagePair: 'en-es',
   trainingSchemaVersion: 1,
   trainingBenchSteps: 7,
@@ -46,6 +47,7 @@ assert.equal(nodeRequest.distillArtifactDir, '/tmp/distill');
 assert.equal(nodeRequest.teacherModelId, 'translategemma-4b-it-wq4k-ef16-hf16');
 assert.equal(nodeRequest.studentModelId, 'translategemma-270m-it-wf16-ef16-hf16');
 assert.equal(nodeRequest.distillDatasetId, 'en-es');
+assert.equal(nodeRequest.distillDatasetPath, '/tmp/translate_distill_pairs_en_es.jsonl');
 assert.equal(nodeRequest.distillLanguagePair, 'en-es');
 
 console.log('distill-command-threading-parity.test: ok');

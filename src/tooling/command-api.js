@@ -223,6 +223,7 @@ function normalizeConvert(raw) {
     teacherModelId: null,
     studentModelId: null,
     distillDatasetId: null,
+    distillDatasetPath: null,
     distillLanguagePair: null,
     trainingSchemaVersion: null,
     trainingBenchSteps: null,
@@ -269,6 +270,7 @@ function normalizeSuiteCommand(raw, command) {
   const teacherModelId = asOptionalString(raw.teacherModelId, 'teacherModelId');
   const studentModelId = asOptionalString(raw.studentModelId, 'studentModelId');
   const distillDatasetId = asOptionalString(raw.distillDatasetId, 'distillDatasetId');
+  const distillDatasetPath = asOptionalString(raw.distillDatasetPath, 'distillDatasetPath');
   const distillLanguagePair = asOptionalString(raw.distillLanguagePair, 'distillLanguagePair');
   const trainingSchemaVersionInput = asOptionalPositiveInteger(
     raw.trainingSchemaVersion,
@@ -291,6 +293,7 @@ function normalizeSuiteCommand(raw, command) {
     || teacherModelId
     || studentModelId
     || distillDatasetId
+    || distillDatasetPath
     || distillLanguagePair
     || trainingSchemaVersionInput
     || trainingBenchSteps
@@ -318,8 +321,10 @@ function normalizeSuiteCommand(raw, command) {
     || !!trainingConfig?.distill?.stage
     || !!trainingConfig?.dataset
     || !!trainingConfig?.distill?.datasetId
+    || !!trainingConfig?.distill?.datasetPath
     || !!teacherModelId
     || !!studentModelId
+    || !!distillDatasetPath
   );
   const modelId = (requiresModel && !hasTrainingSource)
     ? assertModelId(raw.modelId, command, suite)
@@ -342,6 +347,7 @@ function normalizeSuiteCommand(raw, command) {
     teacherModelId,
     studentModelId,
     distillDatasetId,
+    distillDatasetPath,
     distillLanguagePair,
     trainingSchemaVersion,
     trainingBenchSteps,

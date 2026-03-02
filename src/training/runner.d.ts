@@ -102,6 +102,7 @@ export interface TrainingRunOptions {
   teacherModelId?: string | null;
   studentModelId?: string | null;
   distillDatasetId?: string | null;
+  distillDatasetPath?: string | null;
   distillLanguagePair?: string | null;
   modelId?: string | null;
   modelUrl?: string | null;
