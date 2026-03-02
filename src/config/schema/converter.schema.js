@@ -73,6 +73,8 @@ export const DEFAULT_CONVERTER_EXECUTION_CONFIG = {
   rowChunkRows: null,
   rowChunkMinTensorBytes: 32 * MB,
   maxInFlightJobs: null,
+  useGpuCast: false,
+  gpuCastMinTensorBytes: 32 * MB,
 };
 
 export const DEFAULT_CONVERTER_CONFIG = {

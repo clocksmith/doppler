@@ -185,6 +185,14 @@ function normalizeConvertExecution(value) {
       execution.rowChunkMinTensorBytes,
       'convertPayload.execution.rowChunkMinTensorBytes'
     ),
+    useGpuCast: asOptionalBoolean(
+      execution.useGpuCast,
+      'convertPayload.execution.useGpuCast'
+    ),
+    gpuCastMinTensorBytes: asOptionalPositiveInteger(
+      execution.gpuCastMinTensorBytes,
+      'convertPayload.execution.gpuCastMinTensorBytes'
+    ),
   };
 }
 

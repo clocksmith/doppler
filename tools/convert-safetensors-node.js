@@ -19,10 +19,13 @@ function parseArgs(argv) {
       i += 1;
       continue;
     }
-    if (arg === '--config' || arg === '--converter-config') {
+    if (arg === '--config') {
       out.configPath = argv[i + 1] ?? null;
       i += 1;
       continue;
+    }
+    if (arg === '--converter-config') {
+      throw new Error('--converter-config has been removed. Use --config <path.json>.');
     }
     if (arg === '--workers') {
       execution.workers = argv[i + 1] ?? null;
@@ -46,6 +49,15 @@ function parseArgs(argv) {
     }
     if (arg === '--max-in-flight-jobs') {
       execution.maxInFlightJobs = argv[i + 1] ?? null;
+      i += 1;
+      continue;
+    }
+    if (arg === '--use-gpu-cast') {
+      execution.useGpuCast = true;
+      continue;
+    }
+    if (arg === '--gpu-cast-min-tensor-bytes') {
+      execution.gpuCastMinTensorBytes = argv[i + 1] ?? null;
       i += 1;
       continue;
     }
@@ -87,12 +99,19 @@ function normalizeExecutionConfig(rawExecution) {
     rawExecution.maxInFlightJobs,
     '--max-in-flight-jobs'
   );
+  const useGpuCast = rawExecution.useGpuCast === true;
+  const gpuCastMinTensorBytes = parseOptionalPositiveInteger(
+    rawExecution.gpuCastMinTensorBytes,
+    '--gpu-cast-min-tensor-bytes'
+  );
   if (
     workers == null
     && workerCountPolicy == null
     && rowChunkRows == null
     && rowChunkMinTensorBytes == null
     && maxInFlightJobs == null
+    && !useGpuCast
+    && gpuCastMinTensorBytes == null
   ) {
     return null;
   }
@@ -102,6 +121,8 @@ function normalizeExecutionConfig(rawExecution) {
     ...(rowChunkRows != null ? { rowChunkRows } : {}),
     ...(rowChunkMinTensorBytes != null ? { rowChunkMinTensorBytes } : {}),
     ...(maxInFlightJobs != null ? { maxInFlightJobs } : {}),
+    ...(useGpuCast ? { useGpuCast: true } : {}),
+    ...(gpuCastMinTensorBytes != null ? { gpuCastMinTensorBytes } : {}),
   };
 }
 
@@ -119,7 +140,7 @@ async function main() {
   const args = parseArgs(process.argv.slice(2));
   if (!args.inputDir || !args.configPath) {
     console.error(
-      'Usage: node tools/convert-safetensors-node.js <inputPath> --config <path.json> [--output-dir <path>] [--workers <n>] [--worker-policy <cap|error>] [--row-chunk-rows <n>] [--row-chunk-min-tensor-bytes <n>] [--max-in-flight-jobs <n>]'
+      'Usage: node tools/convert-safetensors-node.js <inputPath> --config <path.json> [--output-dir <path>] [--workers <n>] [--worker-policy <cap|error>] [--row-chunk-rows <n>] [--row-chunk-min-tensor-bytes <n>] [--max-in-flight-jobs <n>] [--use-gpu-cast] [--gpu-cast-min-tensor-bytes <n>]'
     );
     process.exit(2);
   }

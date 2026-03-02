@@ -30,6 +30,24 @@ import type {
 } from '../../../config/schema/index.js';
 import type { KernelPathSource } from '../../../config/kernel-path-loader.js';
 
+export interface PipelineStorageContext {
+  loadShard?: (index: number) => Promise<ArrayBuffer | Uint8Array>;
+  loadShardRange?: (
+    index: number,
+    offset: number,
+    length?: number | null
+  ) => Promise<ArrayBuffer | Uint8Array>;
+  streamShardRange?: (
+    index: number,
+    offset?: number,
+    length?: number | null,
+    options?: { chunkBytes?: number }
+  ) => AsyncIterable<ArrayBuffer | Uint8Array>;
+  loadTokenizerJson?: () => Promise<Record<string, unknown> | string | null | undefined>;
+  loadTokenizerModel?: (path?: string) => Promise<ArrayBuffer | Uint8Array | null | undefined>;
+  verifyHashes?: boolean;
+}
+
 /**
  * External contexts that can be injected into the pipeline.
  */
@@ -39,9 +57,7 @@ export interface PipelineContexts {
   /** Memory context for allocation */
   memory?: Record<string, unknown>;
   /** Storage context for custom shard loading */
-  storage?: {
-    loadShard?: (index: number) => Promise<ArrayBuffer | Uint8Array>;
-  };
+  storage?: PipelineStorageContext;
   /** Base URL for loading model files */
   baseUrl?: string;
   /** Full runtime config (merged with defaults) */
@@ -147,6 +163,8 @@ export interface InitTokenizerOptions {
     hfModel?: string;
     allowArchFallback?: boolean;
   };
+  /** Optional direct tokenizer loaders (for source-backed runtime bundles) */
+  storageContext?: PipelineStorageContext;
 }
 
 /**
@@ -170,7 +188,7 @@ export interface WeightLoadResult {
 
 /** Options for loadWeights */
 export interface LoadWeightsOptions {
-  storageContext?: { loadShard?: (shardIdx: number) => Promise<ArrayBuffer | Uint8Array> };
+  storageContext?: PipelineStorageContext;
   loadingConfig?: LoadingConfigSchema;
   onProgress?: (info: { stage: string; progress: number }) => void;
   verifyHashes?: boolean;

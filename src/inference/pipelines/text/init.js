@@ -25,6 +25,26 @@ function resolveErrorMessage(error) {
   return String(error);
 }
 
+function toArrayBuffer(value, label) {
+  if (value instanceof ArrayBuffer) {
+    return value;
+  }
+  if (value instanceof Uint8Array) {
+    return value.buffer.slice(value.byteOffset, value.byteOffset + value.byteLength);
+  }
+  throw new Error(`${label} must return ArrayBuffer or Uint8Array.`);
+}
+
+function toUint8Array(value, label) {
+  if (value instanceof Uint8Array) {
+    return value;
+  }
+  if (value instanceof ArrayBuffer) {
+    return new Uint8Array(value);
+  }
+  throw new Error(`${label} must return ArrayBuffer or Uint8Array.`);
+}
+
 function isRDRRManifest(manifest) {
   return manifest !== null && typeof manifest === 'object' && Array.isArray( (manifest).shards);
 }
@@ -464,9 +484,18 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig)
 
 
 export async function initTokenizer(manifest, options = {}) {
-  const { baseUrl, presetTokenizer } = options;
+  const { baseUrl, presetTokenizer, storageContext } = options;
   const tokenizer = new Tokenizer();
-  await tokenizer.initialize(manifest, { baseUrl, presetTokenizer });
+  await tokenizer.initialize(manifest, {
+    baseUrl,
+    presetTokenizer,
+    loadTokenizerJson: typeof storageContext?.loadTokenizerJson === 'function'
+      ? () => storageContext.loadTokenizerJson()
+      : null,
+    loadTokenizerModel: typeof storageContext?.loadTokenizerModel === 'function'
+      ? (path) => storageContext.loadTokenizerModel(path)
+      : null,
+  });
   return tokenizer;
 }
 
@@ -477,8 +506,11 @@ export async function initTokenizer(manifest, options = {}) {
 
 export async function loadWeights(manifest, modelConfig, options = {}) {
   const { storageContext, onProgress, loadingConfig, baseUrl } = options;
-  const verifyHashes = options.verifyHashes
-    ?? loadingConfig?.shardCache?.verifyHashes;
+  const verifyHashes = (
+    typeof storageContext?.verifyHashes === 'boolean'
+      ? storageContext.verifyHashes
+      : options.verifyHashes
+  ) ?? loadingConfig?.shardCache?.verifyHashes;
   if (verifyHashes == null) {
     throw new Error('runtime.loading.shardCache.verifyHashes is required.');
   }
@@ -503,15 +535,42 @@ export async function loadWeights(manifest, modelConfig, options = {}) {
     dopplerLoader.setTensorsJsonUrl(null);
   }
 
-  // Configure custom shard loader if provided (Native Bridge)
-  if (storageContext?.loadShard) {
+  // Configure custom shard loader if provided (Native Bridge or direct-source bundle)
+  const hasLoadShard = typeof storageContext?.loadShard === 'function';
+  const hasLoadShardRange = typeof storageContext?.loadShardRange === 'function';
+  const hasStreamShardRange = typeof storageContext?.streamShardRange === 'function';
+  if (hasLoadShard || hasLoadShardRange) {
     log.debug('Pipeline', 'Using custom shard loader (Native Bridge or external)');
-    
+
     const loadShard = async (index) => {
-      const data = await storageContext.loadShard(index);
-      return data instanceof Uint8Array ? data : new Uint8Array(data);
+      if (hasLoadShard) {
+        const data = await storageContext.loadShard(index);
+        return toUint8Array(data, 'storageContext.loadShard');
+      }
+      const rangeData = await storageContext.loadShardRange(index, 0, null);
+      return toUint8Array(rangeData, 'storageContext.loadShardRange');
     };
-    dopplerLoader.setCustomShardLoader(loadShard, { verify: verifyHashes });
+
+    const loadShardRange = hasLoadShardRange
+      ? async (index, offset, length = null) => {
+        const data = await storageContext.loadShardRange(index, offset, length);
+        return toArrayBuffer(data, 'storageContext.loadShardRange');
+      }
+      : null;
+
+    const streamShardRange = hasStreamShardRange
+      ? async function* (index, offset = 0, length = null, streamOptions = {}) {
+        for await (const chunk of storageContext.streamShardRange(index, offset, length, streamOptions)) {
+          yield toUint8Array(chunk, 'storageContext.streamShardRange');
+        }
+      }
+      : null;
+
+    dopplerLoader.setCustomShardLoader(loadShard, {
+      verify: verifyHashes,
+      loadShardRange,
+      streamShardRange,
+    });
     if (isRDRRManifest(manifest)) {
       dopplerLoader.setManifest(manifest);
     }

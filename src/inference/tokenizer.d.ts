@@ -26,6 +26,10 @@ export interface TokenizerInitOptions {
     hfModel?: string;
     allowArchFallback?: boolean;
   };
+  /** Optional direct loader for tokenizer.json */
+  loadTokenizerJson?: (() => Promise<Record<string, unknown> | string | null | undefined>) | null;
+  /** Optional direct loader for tokenizer.model (SentencePiece) */
+  loadTokenizerModel?: ((path?: string) => Promise<ArrayBuffer | Uint8Array | null | undefined>) | null;
 }
 
 /**

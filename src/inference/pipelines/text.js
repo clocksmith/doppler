@@ -136,7 +136,11 @@ export class InferencePipeline extends PipelineState {
     const kernelInfo = this.resolvedKernelPath ? `kernelPath=${this.resolvedKernelPath.id}` : 'kernelPath=none';
     log.info('Pipeline', `${cfg.numLayers}L/${cfg.hiddenSize}H/${cfg.numHeads}heads (${cfg.headDim}dim)${moeStr}, ${kernelInfo}`);
 
-    this.tokenizer = await initTokenizerFromManifestPreset(manifest, this.baseUrl);
+    this.tokenizer = await initTokenizerFromManifestPreset(
+      manifest,
+      this.baseUrl,
+      this.storageContext
+    );
     const tokenizerVocabSize = this.tokenizer.getVocabSize();
     if (Number.isFinite(tokenizerVocabSize) && tokenizerVocabSize > 0) {
       if (tokenizerVocabSize !== this.modelConfig.vocabSize) {

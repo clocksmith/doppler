@@ -256,6 +256,27 @@ const DEEP_LINK_MODES = new Set([
   'diagnostics',
   'kernels',
 ]);
+const TASK_SET = new Set(['run', 'evaluate', 'manage']);
+const TASK_MODE_ALLOWLIST = Object.freeze({
+  run: Object.freeze(['run', 'translate', 'embedding', 'diffusion']),
+  evaluate: Object.freeze(['diagnostics', 'kernels', 'energy']),
+  manage: Object.freeze(['models']),
+});
+const MODE_TASK_MAP = Object.freeze({
+  run: 'run',
+  translate: 'run',
+  embedding: 'run',
+  diffusion: 'run',
+  diagnostics: 'evaluate',
+  kernels: 'evaluate',
+  energy: 'evaluate',
+  models: 'manage',
+});
+const DEFAULT_TASK_MODE = Object.freeze({
+  run: 'run',
+  evaluate: 'diagnostics',
+  manage: 'models',
+});
 const SURFACE_SET = new Set(['demo', 'lab']);
 const SURFACE_MODE_ALLOWLIST = Object.freeze({
   demo: new Set(['run', 'embedding', 'models']),
@@ -264,13 +285,9 @@ const SURFACE_MODE_ALLOWLIST = Object.freeze({
 const SURFACE_META = Object.freeze({
   demo: Object.freeze({
     label: 'Demo',
-    caption: 'Guided workflows',
-    description: 'Focused text and embedding workflows.',
   }),
   lab: Object.freeze({
     label: 'Lab',
-    caption: 'Advanced workflows',
-    description: 'Translation, diffusion, diagnostics, conversion, energy optimization, and system tooling.',
   }),
 });
 const EMBEDDING_DEMO_DOCUMENT_CATALOG = Object.freeze([
@@ -430,6 +447,25 @@ function normalizeDeepLinkMode(mode, defaultMode = null) {
   return defaultMode;
 }
 
+function normalizeTask(value, fallback = null) {
+  const normalized = resolveText(value, '').toLowerCase();
+  if (TASK_SET.has(normalized)) return normalized;
+  return fallback;
+}
+
+function getTaskModes(task) {
+  const normalizedTask = normalizeTask(task, 'run');
+  return TASK_MODE_ALLOWLIST[normalizedTask] || TASK_MODE_ALLOWLIST.run;
+}
+
+function getTaskForMode(mode, fallback = null) {
+  const normalizedMode = normalizeDeepLinkMode(mode, null);
+  if (normalizedMode && MODE_TASK_MAP[normalizedMode]) {
+    return MODE_TASK_MAP[normalizedMode];
+  }
+  return normalizeTask(fallback, null);
+}
+
 function normalizeSurface(value, fallback = 'demo') {
   const normalized = resolveText(value, fallback).toLowerCase();
   if (SURFACE_SET.has(normalized)) return normalized;
@@ -440,8 +476,17 @@ function getAllowedModesForSurface(surface) {
   return SURFACE_MODE_ALLOWLIST[normalizeSurface(surface, 'demo')] || SURFACE_MODE_ALLOWLIST.demo;
 }
 
+function getAllowedModesForTask(task, surface) {
+  const modesForTask = getTaskModes(task);
+  return modesForTask.filter((mode) => isModeAllowedForSurface(mode, surface));
+}
+
 function isModeAllowedForSurface(mode, surface) {
   return getAllowedModesForSurface(surface).has(mode);
+}
+
+function isTaskAllowedForSurface(task, surface) {
+  return getAllowedModesForTask(task, surface).length > 0;
 }
 
 function resolveModeForSurface(mode, surface) {
@@ -456,14 +501,77 @@ function resolveModeForSurface(mode, surface) {
   return 'run';
 }
 
+function resolveTaskForSurface(task, surface, modeHint = null) {
+  const normalizedSurface = normalizeSurface(surface, 'demo');
+  const requestedTask = normalizeTask(task, null);
+  if (requestedTask && isTaskAllowedForSurface(requestedTask, normalizedSurface)) {
+    return requestedTask;
+  }
+  const modeTask = getTaskForMode(modeHint, null);
+  if (modeTask && isTaskAllowedForSurface(modeTask, normalizedSurface)) {
+    return modeTask;
+  }
+  const rememberedTask = normalizeTask(state.uiTask, null);
+  if (rememberedTask && isTaskAllowedForSurface(rememberedTask, normalizedSurface)) {
+    return rememberedTask;
+  }
+  for (const fallbackTask of ['run', 'manage', 'evaluate']) {
+    if (isTaskAllowedForSurface(fallbackTask, normalizedSurface)) {
+      return fallbackTask;
+    }
+  }
+  return 'run';
+}
+
+function resolveModeForTask(task, surface, preferredMode = null) {
+  const normalizedSurface = normalizeSurface(surface, 'demo');
+  const resolvedTask = resolveTaskForSurface(task, normalizedSurface, preferredMode);
+  const allowedModes = getAllowedModesForTask(resolvedTask, normalizedSurface);
+  if (allowedModes.length === 0) {
+    return resolveModeForSurface(preferredMode || state.uiMode || 'run', normalizedSurface);
+  }
+  const normalizedPreferred = normalizeDeepLinkMode(preferredMode, null);
+  if (normalizedPreferred && allowedModes.includes(normalizedPreferred)) {
+    return normalizedPreferred;
+  }
+  const rememberedMode = normalizeDeepLinkMode(state.lastTaskMode?.[resolvedTask], null);
+  if (rememberedMode && allowedModes.includes(rememberedMode)) {
+    return rememberedMode;
+  }
+  const defaultTaskMode = normalizeDeepLinkMode(DEFAULT_TASK_MODE[resolvedTask], null);
+  if (defaultTaskMode && allowedModes.includes(defaultTaskMode)) {
+    return defaultTaskMode;
+  }
+  return allowedModes[0];
+}
+
 function getSurfaceMeta(surface) {
   const normalizedSurface = normalizeSurface(surface, 'demo');
   return SURFACE_META[normalizedSurface] || SURFACE_META.demo;
 }
 
+function parseAllowedSurfaces(rawSurfaces) {
+  return resolveText(rawSurfaces, '')
+    .split(/\s+/)
+    .map((value) => resolveText(value, '').toLowerCase())
+    .filter(Boolean);
+}
+
+function parseAllowedTasks(rawTasks) {
+  return resolveText(rawTasks, '')
+    .split(/\s+/)
+    .map((value) => normalizeTask(value, null))
+    .filter(Boolean);
+}
+
 function syncSurfaceUI(surface) {
   const normalizedSurface = normalizeSurface(surface, 'demo');
   const surfaceMeta = getSurfaceMeta(normalizedSurface);
+  const normalizedTask = resolveTaskForSurface(
+    getTaskForMode(state.uiMode, state.uiTask || 'run'),
+    normalizedSurface,
+    state.uiMode
+  );
   const app = $('app');
   if (app) {
     app.dataset.surface = normalizedSurface;
@@ -473,16 +581,40 @@ function syncSurfaceUI(surface) {
     button.classList.toggle('is-active', isActive);
     button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
   });
-  const caption = $('surface-caption');
-  if (caption) {
-    setText(caption, `${surfaceMeta.caption} • ${surfaceMeta.description}`);
-  }
-  const subtitle = $('brand-subtitle');
-  if (subtitle) {
-    setText(subtitle, `D4DA Studio • ${surfaceMeta.label} Surface`);
-  }
+  document.querySelectorAll('.task-tab').forEach((button) => {
+    const allowedSurfaces = parseAllowedSurfaces(button.dataset.surfaces);
+    const task = normalizeTask(button.dataset.task, null);
+    const surfaceAllowed = allowedSurfaces.length === 0 || allowedSurfaces.includes(normalizedSurface);
+    const taskAllowed = task != null && isTaskAllowedForSurface(task, normalizedSurface);
+    const isAllowed = surfaceAllowed && taskAllowed;
+    if (button instanceof HTMLButtonElement) {
+      button.hidden = !isAllowed;
+      button.disabled = !isAllowed;
+    }
+    button.setAttribute('aria-disabled', isAllowed ? 'false' : 'true');
+    button.setAttribute('aria-hidden', isAllowed ? 'false' : 'true');
+  });
+  document.querySelectorAll('.mode-subtab').forEach((button) => {
+    const allowedSurfaces = parseAllowedSurfaces(button.dataset.surfaces);
+    const mode = normalizeDeepLinkMode(button.dataset.mode, null);
+    const explicitTasks = parseAllowedTasks(button.dataset.tasks);
+    const inferredTask = getTaskForMode(mode, null);
+    const allowedTasks = explicitTasks.length > 0
+      ? explicitTasks
+      : (inferredTask ? [inferredTask] : []);
+    const surfaceAllowed = allowedSurfaces.length === 0 || allowedSurfaces.includes(normalizedSurface);
+    const modeAllowed = mode != null && isModeAllowedForSurface(mode, normalizedSurface);
+    const taskAllowed = allowedTasks.includes(normalizedTask);
+    const isVisible = surfaceAllowed && modeAllowed && taskAllowed;
+    button.hidden = !isVisible;
+    if (button instanceof HTMLButtonElement) {
+      button.disabled = !isVisible;
+    }
+    button.setAttribute('aria-disabled', isVisible ? 'false' : 'true');
+    button.setAttribute('aria-hidden', isVisible ? 'false' : 'true');
+  });
   if (typeof document !== 'undefined') {
-    document.title = `D4DA Studio · ${surfaceMeta.label} Surface`;
+    document.title = `D4DA Studio ${surfaceMeta.label} Surface`;
   }
 }
 
@@ -523,6 +655,7 @@ function readDeepLinkStateFromLocation() {
   if (typeof window === 'undefined') {
     return {
       surface: 'demo',
+      task: null,
       mode: null,
       sourceCode: DEFAULT_TRANSLATE_SOURCE,
       targetCode: DEFAULT_TRANSLATE_TARGET,
@@ -537,16 +670,26 @@ function readDeepLinkStateFromLocation() {
   const sourceRaw = readDeepLinkValue(hashParams, queryParams, ['sl', 'source', 'source_lang_code']);
   const targetRaw = readDeepLinkValue(hashParams, queryParams, ['tl', 'target', 'target_lang_code']);
   const textRaw = readDeepLinkValue(hashParams, queryParams, ['text', 'prompt', 'q']);
+  const taskRaw = readDeepLinkValue(hashParams, queryParams, ['task', 't']);
   const modeRaw = readDeepLinkValue(hashParams, queryParams, ['mode', 'm']);
   const surfaceRaw = readDeepLinkValue(hashParams, queryParams, ['surface', 's']);
   const surface = normalizeSurface(surfaceRaw, 'demo');
 
+  let task = normalizeTask(taskRaw, null);
   let mode = normalizeDeepLinkMode(modeRaw, null);
   if (!mode && (sourceRaw != null || targetRaw != null || textRaw != null)) {
     mode = 'translate';
   }
+  if (!mode && task) {
+    mode = resolveModeForTask(task, surface, null);
+  }
   if (mode && !isModeAllowedForSurface(mode, surface)) {
     mode = resolveModeForSurface(mode, surface);
+  }
+  if (mode) {
+    task = resolveTaskForSurface(getTaskForMode(mode, task), surface, mode);
+  } else if (task && !isTaskAllowedForSurface(task, surface)) {
+    task = resolveTaskForSurface(task, surface, null);
   }
 
   const sourceCode = normalizeTranslateLanguageCode(sourceRaw, DEFAULT_TRANSLATE_SOURCE);
@@ -559,6 +702,7 @@ function readDeepLinkStateFromLocation() {
 
   return {
     surface,
+    task,
     mode,
     sourceCode,
     targetCode,
@@ -590,12 +734,22 @@ function applyDeepLinkStateToUI(deepLinkState) {
   }
 }
 
-function buildDeepLinkHash(modeOverride = null) {
+function buildDeepLinkHash(modeOverride = null, taskOverride = null) {
   const surface = normalizeSurface(state.surface, 'demo');
   const mode = resolveModeForSurface(resolveText(modeOverride, state.uiMode || 'run'), surface);
+  const modeTask = getTaskForMode(mode, 'run');
+  const task = resolveTaskForSurface(
+    resolveText(taskOverride, modeTask),
+    surface,
+    mode
+  );
   const params = new URLSearchParams();
   if (surface === 'lab') {
     params.set('surface', 'lab');
+  }
+
+  if (task !== 'run') {
+    params.set('task', task);
   }
 
   if (mode !== 'run') {
@@ -631,7 +785,7 @@ function syncDeepLinkFromUI() {
 
 function buildTranslateDeepLinkUrl() {
   const next = new URL(window.location.href);
-  next.hash = buildDeepLinkHash('translate');
+  next.hash = buildDeepLinkHash('translate', 'run');
   return next.toString();
 }
 
@@ -826,19 +980,29 @@ function getDiagnosticsRequiredQuickMode() {
   return 'run';
 }
 
-function updateNavState(mode) {
-  // Treat top navigation buttons as a single selection control.
-  // One visible mode is active at a time.
-  const normalizedMode = mode === 'kernels' ? 'diagnostics' : mode;
-  const isPrimary = PRIMARY_MODES.has(normalizedMode);
+function updateNavState(mode, task = null) {
+  const normalizedMode = normalizeDeepLinkMode(mode, 'run');
+  const normalizedTask = resolveTaskForSurface(
+    getTaskForMode(normalizedMode, task || state.uiTask || 'run'),
+    state.surface,
+    normalizedMode
+  );
 
-  document.querySelectorAll('.mode-tab').forEach((button) => {
-    const isActive = isPrimary && button.dataset.mode === normalizedMode;
+  document.querySelectorAll('.task-tab').forEach((button) => {
+    const buttonTask = normalizeTask(button.dataset.task, null);
+    const isActive = buttonTask === normalizedTask && !button.hidden;
     button.classList.toggle('is-active', isActive);
     button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
   });
-  document.querySelectorAll('.mode-tool').forEach((button) => {
-    const isActive = !isPrimary && button.dataset.mode === normalizedMode;
+
+  document.querySelectorAll('.mode-subtab').forEach((button) => {
+    const buttonMode = normalizeDeepLinkMode(button.dataset.mode, null);
+    const explicitTasks = parseAllowedTasks(button.dataset.tasks);
+    const inferredTask = getTaskForMode(buttonMode, null);
+    const buttonTasks = explicitTasks.length > 0
+      ? explicitTasks
+      : (inferredTask ? [inferredTask] : []);
+    const isActive = buttonMode === normalizedMode && buttonTasks.includes(normalizedTask) && !button.hidden;
     button.classList.toggle('is-active', isActive);
     button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
   });
@@ -927,18 +1091,38 @@ function syncRunModeUI(mode) {
   updateRunAutoLabels();
 }
 
-async function setUiMode(mode) {
+async function setUiTask(task, modeHint = null) {
+  const surface = normalizeSurface(state.surface, 'demo');
+  const resolvedTask = resolveTaskForSurface(task, surface, modeHint || state.uiMode);
+  const targetMode = resolveModeForTask(
+    resolvedTask,
+    surface,
+    modeHint || state.lastTaskMode?.[resolvedTask] || state.uiMode || DEFAULT_TASK_MODE[resolvedTask]
+  );
+  await setUiMode(targetMode, { task: resolvedTask });
+}
+
+async function setUiMode(mode, options = {}) {
   const app = $('app');
   if (!app) return;
   const surface = normalizeSurface(state.surface, 'demo');
   const resolvedMode = resolveModeForSurface(mode, surface);
+  const modeTask = getTaskForMode(resolvedMode, options?.task || state.uiTask || 'run');
+  const resolvedTask = resolveTaskForSurface(
+    modeTask,
+    surface,
+    resolvedMode
+  );
   state.uiMode = resolvedMode;
+  state.uiTask = resolvedTask;
+  state.lastTaskMode[resolvedTask] = resolvedMode;
   if (PRIMARY_MODES.has(resolvedMode)) {
     state.lastPrimaryMode = resolvedMode;
   }
   app.dataset.mode = resolvedMode;
+  app.dataset.task = resolvedTask;
   syncSurfaceUI(surface);
-  updateNavState(resolvedMode);
+  updateNavState(resolvedMode, resolvedTask);
   applyModeVisibility(resolvedMode);
   syncRunModeUI(resolvedMode);
   syncDiagnosticsModeUI(resolvedMode);
@@ -975,7 +1159,8 @@ async function setSurface(surface, modeHint = null) {
   state.surface = nextSurface;
   syncSurfaceUI(nextSurface);
   const targetMode = modeHint || state.uiMode || 'run';
-  await setUiMode(targetMode);
+  const targetTask = resolveTaskForSurface(getTaskForMode(targetMode, state.uiTask || 'run'), nextSurface, targetMode);
+  await setUiMode(targetMode, { task: targetTask });
 }
 
 function getModelAvailability() {
@@ -3684,6 +3869,7 @@ function exportEnergyRun() {
 function bindUI() {
   const errorModal = $('error-modal');
   const errorClose = $('error-close');
+  const advancedNav = $('advanced-nav');
   const surfaceOpenLabBtn = $('surface-open-lab-btn');
   const convertBtn = $('convert-btn');
   const convertUrlBtn = $('convert-url-btn');
@@ -3733,6 +3919,28 @@ function bindUI() {
   const energyRun = $('energy-run-btn');
   const energyExport = $('energy-export-btn');
   const energyClear = $('energy-clear-btn');
+  const closeAdvancedNav = () => {
+    if (advancedNav instanceof HTMLDetailsElement) {
+      advancedNav.open = false;
+    }
+  };
+
+  if (advancedNav instanceof HTMLDetailsElement) {
+    advancedNav.open = false;
+    document.addEventListener('click', (event) => {
+      if (!advancedNav.open) return;
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+      if (!advancedNav.contains(target)) {
+        advancedNav.open = false;
+      }
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        advancedNav.open = false;
+      }
+    });
+  }
 
   errorClose?.addEventListener('click', () => hideErrorModal());
   errorModal?.addEventListener('click', (event) => {
@@ -3789,15 +3997,19 @@ function bindUI() {
     window.open(url, '_blank', 'noopener,noreferrer');
   });
 
-  document.querySelectorAll('.mode-tab').forEach((button) => {
+  document.querySelectorAll('.task-tab').forEach((button) => {
     button.addEventListener('click', () => {
-      const mode = button.dataset.mode || 'run';
-      setUiMode(mode);
+      if (button instanceof HTMLButtonElement && button.disabled) return;
+      if (button.hidden) return;
+      closeAdvancedNav();
+      const task = button.dataset.task || 'run';
+      setUiTask(task);
     });
   });
 
   document.querySelectorAll('.surface-tab').forEach((button) => {
     button.addEventListener('click', () => {
+      closeAdvancedNav();
       const surface = button.dataset.surface || 'demo';
       setSurface(surface).catch((error) => {
         log.warn('DopplerDemo', `Surface switch failed: ${error.message}`);
@@ -3806,14 +4018,18 @@ function bindUI() {
   });
 
   surfaceOpenLabBtn?.addEventListener('click', () => {
+    closeAdvancedNav();
     setSurface('lab', 'models').catch((error) => {
       log.warn('DopplerDemo', `Open Lab failed: ${error.message}`);
     });
   });
 
-  document.querySelectorAll('.mode-tool').forEach((button) => {
+  document.querySelectorAll('.mode-subtab').forEach((button) => {
     button.addEventListener('click', () => {
-      const mode = button.dataset.mode || 'diagnostics';
+      if (button instanceof HTMLButtonElement && button.disabled) return;
+      if (button.hidden) return;
+      closeAdvancedNav();
+      const mode = button.dataset.mode || 'run';
       setUiMode(mode);
     });
   });
@@ -4109,7 +4325,6 @@ async function init() {
   console.log('[Bootstrap] Loading... evaluating demo module graph and preparing bootstrap overlay.');
   setAppBootstrapVisible(true);
   try {
-    await new Promise((resolve) => setTimeout(resolve, 300000));
     ensurePrimaryModeControlStack();
     const deepLinkState = readDeepLinkStateFromLocation();
     state.surface = normalizeSurface(deepLinkState.surface, state.surface || 'demo');
@@ -4117,6 +4332,16 @@ async function init() {
     if (deepLinkState.mode) {
       state.uiMode = resolveModeForSurface(deepLinkState.mode, state.surface);
     }
+    if (deepLinkState.task) {
+      const deepLinkTask = deepLinkState.mode
+        ? getTaskForMode(deepLinkState.mode, deepLinkState.task)
+        : deepLinkState.task;
+      state.uiTask = resolveTaskForSurface(deepLinkTask, state.surface, deepLinkState.mode || state.uiMode);
+    }
+    if (!deepLinkState.mode && deepLinkState.task) {
+      state.uiMode = resolveModeForTask(state.uiTask, state.surface, state.uiMode);
+    }
+    state.uiTask = resolveTaskForSurface(getTaskForMode(state.uiMode, state.uiTask || 'run'), state.surface, state.uiMode);
     applyDeepLinkStateToUI(deepLinkState);
     prefillDemoTextInputs();
     updateDiffusionCharCounters();
@@ -4139,7 +4364,7 @@ async function init() {
     ]);
     await startupTasks;
 
-    await setUiMode(state.uiMode);
+    await setUiMode(state.uiMode, { task: state.uiTask });
     bindUI();
     applyDeepLinkStateToUI(deepLinkState);
     updateMemoryControls();

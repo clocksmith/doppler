@@ -45,7 +45,9 @@ Design rules for command execution across browser harnesses and the Node CLI.
 
 - Node runner entrypoint: `runNodeCommand()`.
 - Node CLI entrypoint: `tools/doppler-cli.js`.
-- Node suite runs require WebGPU support; runner may bootstrap from optional `webgpu` dependency before explicit failure.
+- Node suite runs require WebGPU support. Provider resolution order is:
+  `DOPPLER_NODE_WEBGPU_MODULE` (explicit override) -> local sibling `../fawn/nursery/webgpu-core` when present
+  -> `@doe/webgpu-core` -> optional `webgpu`; if none resolve, fail explicitly.
 
 ---
 

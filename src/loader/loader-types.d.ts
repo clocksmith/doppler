@@ -108,12 +108,42 @@ export interface ShardLoadOptions {
  */
 export interface CustomShardLoaderOptions {
   verify?: boolean;
+  loadShardRange?: CustomShardRangeLoader;
+  streamShardRange?: CustomShardStreamLoader;
 }
 
 /**
  * Custom shard loader function
  */
-export type CustomShardLoader = (shardIndex: number) => Promise<Uint8Array>;
+export type CustomShardLoader = (
+  shardIndex: number
+) => Promise<ArrayBuffer | Uint8Array>;
+
+/**
+ * Custom shard range loader function
+ */
+export type CustomShardRangeLoader = (
+  shardIndex: number,
+  offset: number,
+  length?: number | null
+) => Promise<ArrayBuffer | Uint8Array>;
+
+/**
+ * Custom shard range stream options
+ */
+export interface CustomShardStreamOptions {
+  chunkBytes?: number;
+}
+
+/**
+ * Custom shard range stream loader function
+ */
+export type CustomShardStreamLoader = (
+  shardIndex: number,
+  offset?: number,
+  length?: number | null,
+  options?: CustomShardStreamOptions
+) => AsyncIterable<Uint8Array>;
 
 /**
  * Loader statistics
@@ -167,6 +197,27 @@ export interface ModelConfig {
  * Shard source tracking
  */
 export interface ShardSourceInfo {
-  source: 'RAM' | 'OPFS' | 'custom' | 'network';
+  source: 'RAM' | 'OPFS' | 'custom' | 'network' | 'indexeddb' | 'memory' | 'storage' | string;
   elapsed: number;
+  mode?: 'full' | 'range' | 'stream';
+  path?:
+    | 'cache'
+    | 'custom-loader'
+    | 'custom-range'
+    | 'custom-stream'
+    | 'custom-loader-slice'
+    | 'custom-range-fallback'
+    | 'backend-full'
+    | 'backend-range'
+    | 'backend-stream';
+  fallback?:
+    | 'none'
+    | 'custom_range_unavailable'
+    | 'custom_range_not_supported'
+    | 'custom_stream_not_supported'
+    | 'custom_stream_not_supported_resume'
+    | 'custom_stream_interrupted'
+    | 'custom_stream_interrupted_resume'
+    | 'custom_stream_partial_resume'
+    | 'custom_range_partial_retry';
 }

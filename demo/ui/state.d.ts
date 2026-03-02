@@ -44,8 +44,10 @@ export interface State {
   convertActive: boolean;
   downloadActive: boolean;
   surface: string;
+  uiTask: string;
   uiMode: string;
   lastPrimaryMode: string;
+  lastTaskMode: Record<string, string>;
   runLog: any[];
   runCounter: number;
   embeddingDemoDocuments: any[];

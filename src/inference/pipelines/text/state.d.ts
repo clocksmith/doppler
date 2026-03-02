@@ -28,6 +28,7 @@ import type { WeightDebugFlags } from './weights.js';
 import type { LogitsDebugFlags } from './logits.js';
 import type { KernelPathSource } from '../../../config/kernel-path-loader.js';
 import type { EmulationContext } from '/proto/simulator/index.js';
+import type { PipelineStorageContext } from './init.js';
 
 export class PipelineState {
   // Components
@@ -73,7 +74,7 @@ export class PipelineState {
 
   // Memory and storage contexts
   memoryContext: Record<string, unknown> | null;
-  storageContext: { loadShard?: (index: number) => Promise<ArrayBuffer | Uint8Array> } | null;
+  storageContext: PipelineStorageContext | null;
 
   // Stats
   stats: PipelineStats;

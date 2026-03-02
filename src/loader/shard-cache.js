@@ -1,6 +1,7 @@
 import {
   loadShard as loadShardFromStore,
   loadShardRange as loadShardRangeFromStore,
+  streamShardRange as streamShardRangeFromStore,
   computeHash,
   getStorageBackendType,
 } from '../storage/shard-manager.js';
@@ -12,6 +13,8 @@ export class ShardCache {
   #cache = new Map();
   #maxEntries;
   #customLoader = null;
+  #customRangeLoader = null;
+  #customStreamLoader = null;
   #verifyHashes;
   #manifest = null;
   #loadingConfig;
@@ -26,6 +29,8 @@ export class ShardCache {
   constructor(config) {
     this.#maxEntries = config.maxEntries;
     this.#customLoader = config.customLoader ?? null;
+    this.#customRangeLoader = config.customRangeLoader ?? null;
+    this.#customStreamLoader = config.customStreamLoader ?? null;
     this.#verifyHashes = config.verifyHashes
       ?? config.loadingConfig?.verifyHashes
       ?? true;
@@ -42,6 +47,12 @@ export class ShardCache {
     }
     if (config.customLoader !== undefined) {
       this.#customLoader = config.customLoader;
+    }
+    if (config.customRangeLoader !== undefined) {
+      this.#customRangeLoader = config.customRangeLoader;
+    }
+    if (config.customStreamLoader !== undefined) {
+      this.#customStreamLoader = config.customStreamLoader;
     }
     if (config.verifyHashes !== undefined) {
       this.#verifyHashes = config.verifyHashes;
@@ -62,8 +73,14 @@ export class ShardCache {
     }
   }
 
-  setCustomLoader(loader, verify = true) {
+  setCustomLoader(loader, verify = true, options = {}) {
     this.#customLoader = loader;
+    this.#customRangeLoader = typeof options.loadRange === 'function'
+      ? options.loadRange
+      : null;
+    this.#customStreamLoader = typeof options.streamRange === 'function'
+      ? options.streamRange
+      : null;
     this.#verifyHashes = verify;
     if (loader) {
       log.info('ShardCache', 'Custom shard loader configured');
@@ -76,6 +93,18 @@ export class ShardCache {
 
   get hasCustomLoader() {
     return this.#customLoader !== null;
+  }
+
+  get hasCustomRangeLoader() {
+    return this.#customRangeLoader !== null;
+  }
+
+  get hasCustomStreamLoader() {
+    return this.#customStreamLoader !== null;
+  }
+
+  get canStreamRanges() {
+    return this.#customStreamLoader !== null || this.#customRangeLoader !== null;
   }
 
   has(shardIndex) {
@@ -101,7 +130,7 @@ export class ShardCache {
       // Refresh LRU order
       this.#cache.delete(shardIndex);
       this.#cache.set(shardIndex, cached);
-      this.lastSource = { source: 'RAM', elapsed: 0 };
+      this.#setLastSource('RAM', 0, 'full', 'cache');
       log.verbose('ShardCache', `Shard ${shardIndex}: RAM${sizeStr ? ` (${sizeStr})` : ''}`);
       return cached;
     }
@@ -128,39 +157,269 @@ export class ShardCache {
     }
   }
 
-  async loadRange(shardIndex, offset = 0, length = null, options = {}) {
-    const toRangeOffset = (value) => {
-      const normalized = Number(value);
-      if (!Number.isFinite(normalized)) return 0;
-      const offsetValue = Math.trunc(normalized);
-      return offsetValue > 0 ? offsetValue : 0;
-    };
+  #toRangeOffset(value) {
+    const normalized = Number(value);
+    if (!Number.isFinite(normalized)) return 0;
+    const offsetValue = Math.trunc(normalized);
+    return offsetValue > 0 ? offsetValue : 0;
+  }
 
-    const start = toRangeOffset(offset);
-    const want = length == null ? null : toRangeOffset(length);
+  #setLastSource(source, elapsed, mode, path, fallback = 'none') {
+    this.lastSource = {
+      source,
+      elapsed,
+      mode,
+      path,
+      fallback,
+    };
+  }
+
+  #isUnsupportedRangeOrStream(error) {
+    const code = String(error?.code || '').toLowerCase();
+    if (code.includes('unsupported') || code.includes('not_supported')) {
+      return true;
+    }
+    const message = String(error?.message || '').toLowerCase();
+    return message.includes('not supported') || message.includes('unsupported');
+  }
+
+  #toArrayBuffer(data) {
+    if (data instanceof Uint8Array) {
+      return (data.byteOffset === 0 && data.byteLength === data.buffer.byteLength)
+        ? data.buffer
+        : data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
+    }
+    if (data instanceof ArrayBuffer) {
+      return data;
+    }
+    throw new Error('Custom shard loader must return ArrayBuffer or Uint8Array.');
+  }
+
+  async loadRange(shardIndex, offset = 0, length = null, options = {}) {
+    const start = this.#toRangeOffset(offset);
+    const want = length == null ? null : this.#toRangeOffset(length);
 
     if (this.#cache.has(shardIndex)) {
       const cached = this.#cache.get(shardIndex);
       // Refresh LRU order
       this.#cache.delete(shardIndex);
       this.#cache.set(shardIndex, cached);
-      this.lastSource = { source: 'RAM', elapsed: 0 };
+      this.#setLastSource('RAM', 0, 'range', 'cache');
       const view = new Uint8Array(cached);
       const end = want == null ? view.length : Math.min(view.length, start + want);
       // Return a compact ArrayBuffer (downstream expects independent buffers).
       return view.slice(start, end).buffer;
     }
 
+    if (this.#customRangeLoader) {
+      try {
+        const rangeStart = performance.now();
+        const rangeData = await this.#customRangeLoader(shardIndex, start, want);
+        const elapsed = (performance.now() - rangeStart) / 1000;
+        this.#setLastSource('custom', elapsed, 'range', 'custom-range');
+        return this.#toArrayBuffer(rangeData);
+      } catch (error) {
+        const unsupported = this.#isUnsupportedRangeOrStream(error);
+        if (!unsupported) {
+          throw error;
+        }
+        if (!this.#customLoader) {
+          const backendStart = performance.now();
+          const data = await loadShardRangeFromStore(shardIndex, start, want, options);
+          const elapsed = (performance.now() - backendStart) / 1000;
+          const backend = getStorageBackendType() ?? 'storage';
+          this.#setLastSource(
+            backend,
+            elapsed,
+            'range',
+            'backend-range',
+            'custom_range_not_supported'
+          );
+          return data;
+        }
+      }
+    }
+
     if (this.#customLoader) {
-      // Custom loaders only support whole-shard loads; fall back to full shard then slice.
+      // Custom loaders without a range API: full-shard load, then slice.
       const full = await this.load(shardIndex, options);
       const view = new Uint8Array(full);
       const end = want == null ? view.length : Math.min(view.length, start + want);
+      const fallbackTag = this.#customRangeLoader
+        ? 'custom_range_not_supported'
+        : 'custom_range_unavailable';
+      this.#setLastSource('custom', this.lastSource?.elapsed ?? 0, 'range', 'custom-loader-slice', fallbackTag);
       return view.slice(start, end).buffer;
     }
 
     // Direct backend range read (no shard cache population).
-    return loadShardRangeFromStore(shardIndex, start, want, options);
+    const backendStart = performance.now();
+    const data = await loadShardRangeFromStore(shardIndex, start, want, options);
+    const elapsed = (performance.now() - backendStart) / 1000;
+    const backend = getStorageBackendType() ?? 'storage';
+    this.#setLastSource(backend, elapsed, 'range', 'backend-range');
+    return data;
+  }
+
+  async *streamRange(shardIndex, offset = 0, length = null, options = {}) {
+    const start = this.#toRangeOffset(offset);
+    const want = length == null ? null : this.#toRangeOffset(length);
+    const chunkBytesRaw = Number(options?.chunkBytes);
+    const chunkBytes = Number.isFinite(chunkBytesRaw) && chunkBytesRaw > 0
+      ? Math.floor(chunkBytesRaw)
+      : 4 * 1024 * 1024;
+
+    if (this.#cache.has(shardIndex)) {
+      const cached = this.#cache.get(shardIndex);
+      this.#cache.delete(shardIndex);
+      this.#cache.set(shardIndex, cached);
+      this.#setLastSource('RAM', 0, 'stream', 'cache');
+      const view = new Uint8Array(cached);
+      const end = want == null ? view.length : Math.min(view.length, start + want);
+      for (let cursor = start; cursor < end; cursor += chunkBytes) {
+        const sliceEnd = Math.min(end, cursor + chunkBytes);
+        yield view.slice(cursor, sliceEnd);
+      }
+      return;
+    }
+
+    if (this.#customStreamLoader) {
+      const streamStart = performance.now();
+      let produced = 0;
+      try {
+        for await (const chunk of this.#customStreamLoader(shardIndex, start, want, { chunkBytes })) {
+          const bytes = chunk instanceof Uint8Array ? chunk : new Uint8Array(this.#toArrayBuffer(chunk));
+          if (bytes.byteLength > 0) {
+            produced += bytes.byteLength;
+            yield bytes;
+          }
+        }
+      } catch (error) {
+        const unsupported = this.#isUnsupportedRangeOrStream(error);
+        if (!this.#customRangeLoader || (!unsupported && produced <= 0)) {
+          throw error;
+        }
+        const fallbackReason = unsupported ? 'custom_stream_not_supported' : 'custom_stream_interrupted';
+        let resumed = 0;
+        let emptyRetries = 0;
+        while (true) {
+          const remaining = want == null ? chunkBytes : Math.max(0, want - produced - resumed);
+          if (want != null && remaining <= 0) break;
+          const requestLength = Math.min(chunkBytes, remaining);
+          const chunk = await this.#customRangeLoader(
+            shardIndex,
+            start + produced + resumed,
+            requestLength
+          );
+          const bytes = new Uint8Array(this.#toArrayBuffer(chunk));
+          if (bytes.byteLength === 0) {
+            if (emptyRetries < 1) {
+              emptyRetries++;
+              continue;
+            }
+            break;
+          }
+          emptyRetries = 0;
+          resumed += bytes.byteLength;
+          yield bytes;
+        }
+        const elapsed = (performance.now() - streamStart) / 1000;
+        this.#setLastSource(
+          'custom',
+          elapsed,
+          'stream',
+          'custom-range-fallback',
+          `${fallbackReason}${resumed > 0 ? '_resume' : ''}`
+        );
+        return;
+      }
+
+      if (want != null && produced < want && this.#customRangeLoader) {
+        // Deterministic fallback: resume remaining bytes with the range loader.
+        let resumed = 0;
+        let emptyRetries = 0;
+        while (produced + resumed < want) {
+          const remaining = want - produced - resumed;
+          const requestLength = Math.min(chunkBytes, remaining);
+          const chunk = await this.#customRangeLoader(
+            shardIndex,
+            start + produced + resumed,
+            requestLength
+          );
+          const bytes = new Uint8Array(this.#toArrayBuffer(chunk));
+          if (bytes.byteLength === 0) {
+            if (emptyRetries < 1) {
+              emptyRetries++;
+              continue;
+            }
+            break;
+          }
+          emptyRetries = 0;
+          resumed += bytes.byteLength;
+          yield bytes;
+        }
+        const elapsed = (performance.now() - streamStart) / 1000;
+        this.#setLastSource(
+          'custom',
+          elapsed,
+          'stream',
+          'custom-range-fallback',
+          'custom_stream_partial_resume'
+        );
+        return;
+      }
+
+      const elapsed = (performance.now() - streamStart) / 1000;
+      this.#setLastSource('custom', elapsed, 'stream', 'custom-stream');
+      return;
+    }
+
+    if (this.#customRangeLoader) {
+      const rangeStart = performance.now();
+      let partialRetryUsed = false;
+      let emptyRetries = 0;
+      let produced = 0;
+      while (true) {
+        const remaining = want == null ? chunkBytes : Math.max(0, want - produced);
+        if (want != null && remaining <= 0) break;
+        const requestLength = Math.min(chunkBytes, remaining);
+        const chunk = await this.#customRangeLoader(shardIndex, start + produced, requestLength);
+        const bytes = new Uint8Array(this.#toArrayBuffer(chunk));
+        if (bytes.byteLength === 0) {
+          if (emptyRetries < 1) {
+            emptyRetries++;
+            partialRetryUsed = true;
+            continue;
+          }
+          break;
+        }
+        emptyRetries = 0;
+        produced += bytes.byteLength;
+        yield bytes;
+        if (bytes.byteLength < requestLength) {
+          partialRetryUsed = true;
+          if (want == null) {
+            break;
+          }
+        }
+      }
+      this.#setLastSource(
+        'custom',
+        (performance.now() - rangeStart) / 1000,
+        'stream',
+        'custom-range',
+        partialRetryUsed ? 'custom_range_partial_retry' : 'none'
+      );
+      return;
+    }
+
+    const streamStart = performance.now();
+    for await (const chunk of streamShardRangeFromStore(shardIndex, start, want, { chunkBytes })) {
+      yield chunk instanceof Uint8Array ? chunk : new Uint8Array(chunk);
+    }
+    const elapsed = (performance.now() - streamStart) / 1000;
+    const backend = getStorageBackendType() ?? 'storage';
+    this.#setLastSource(backend, elapsed, 'stream', 'backend-stream');
   }
 
   prefetch(shardIndex) {
@@ -192,20 +451,12 @@ export class ShardCache {
       }
 
       // Normalize to ArrayBuffer for downstream slicing
-      let arrayBuffer;
-      if (data instanceof Uint8Array) {
-        // Avoid copying when the Uint8Array already covers the full buffer
-        arrayBuffer = (data.byteOffset === 0 && data.byteLength === data.buffer.byteLength)
-          ? data.buffer
-          : data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
-      } else {
-        arrayBuffer = data;
-      }
+      const arrayBuffer = this.#toArrayBuffer(data);
 
       this.#add(shardIndex, arrayBuffer);
 
       const elapsed = (performance.now() - startTime) / 1000;
-      this.lastSource = { source: 'custom', elapsed };
+      this.#setLastSource('custom', elapsed, 'full', 'custom-loader');
       log.verbose('ShardCache', `Shard ${shardIndex}: network (${sizeStr}, ${elapsed.toFixed(2)}s)`);
       return arrayBuffer;
     }
@@ -215,7 +466,7 @@ export class ShardCache {
     this.#add(shardIndex, data);
     const elapsed = (performance.now() - storageStart) / 1000;
     const backend = getStorageBackendType() ?? 'storage';
-    this.lastSource = { source: backend, elapsed };
+    this.#setLastSource(backend, elapsed, 'full', 'backend-full');
     log.verbose('ShardCache', `Shard ${shardIndex}: ${backend} (${sizeStr}, ${elapsed.toFixed(2)}s)`);
     return data;
   }

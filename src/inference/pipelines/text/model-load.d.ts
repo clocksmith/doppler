@@ -6,6 +6,7 @@ import type {
 import type { KernelPathPolicy, KernelPathSource } from '../../../config/kernel-path-loader.js';
 import type { ParsedModelConfig, Manifest } from './config.js';
 import type { Tokenizer } from '../../tokenizer.js';
+import type { PipelineStorageContext } from './init.js';
 
 export interface KernelWarmupOptions {
   useGPU: boolean;
@@ -42,5 +43,6 @@ export function resolveAndActivateKernelPath(
 
 export function initTokenizerFromManifestPreset(
   manifest: Manifest,
-  baseUrl?: string | null
+  baseUrl?: string | null,
+  storageContext?: PipelineStorageContext | null
 ): Promise<Tokenizer>;

@@ -19,6 +19,7 @@ import { getDopplerLoader } from '../../loader/doppler-loader.js';
 import { log } from '../../debug/index.js';
 import { DopplerCapabilities } from './types.js';
 import { GB, HEADER_READ_SIZE } from '../../config/schema/index.js';
+import { resolveBridgeSourceRuntimeBundle } from './source-runtime.js';
 
 let pipeline = null;
 let currentModelId = null;
@@ -220,6 +221,8 @@ export async function loadModel(modelId, modelUrl = null, onProgress = null, loc
 
     let manifest = null;
     let useBridge = false;
+    let bridgeStorageContext = null;
+    let bridgeSourceMode = false;
 
     if (localPath && isBridgeAvailable()) {
       log.info('DopplerProvider', `Using Native Bridge for local path: ${localPath}`);
@@ -234,12 +237,36 @@ export async function loadModel(modelId, modelUrl = null, onProgress = null, loc
 
         if (onProgress) onProgress({ stage: 'connecting', message: 'Connecting to Native Bridge...' });
 
-        const manifestBytes = await bridgeClient.read(manifestPath, 0, HEADER_READ_SIZE);
-        const manifestJson = new TextDecoder().decode(manifestBytes);
-        manifest = parseManifest(manifestJson);
-
-        log.info('DopplerProvider', `Loaded manifest via bridge: ${manifest.modelId}`);
-        if (onProgress) onProgress({ stage: 'manifest', message: 'Manifest loaded via bridge' });
+        try {
+          const manifestBytes = await bridgeClient.read(manifestPath, 0, HEADER_READ_SIZE);
+          const manifestJson = new TextDecoder().decode(manifestBytes);
+          manifest = parseManifest(manifestJson);
+          log.info('DopplerProvider', `Loaded manifest via bridge: ${manifest.modelId}`);
+          if (onProgress) onProgress({ stage: 'manifest', message: 'Manifest loaded via bridge' });
+        } catch (manifestError) {
+          log.warn(
+            'DopplerProvider',
+            `Bridge manifest probe failed, trying direct source runtime: ${manifestError.message}`
+          );
+          const sourceBundle = await resolveBridgeSourceRuntimeBundle({
+            bridgeClient,
+            localPath,
+            modelId,
+            onProgress: (progress) => onProgress?.(progress),
+          });
+          if (!sourceBundle) {
+            throw manifestError;
+          }
+          manifest = sourceBundle.manifest;
+          bridgeStorageContext = sourceBundle.storageContext;
+          bridgeSourceMode = true;
+          if (onProgress) {
+            onProgress({
+              stage: 'manifest',
+              message: `Synthetic manifest ready (${sourceBundle.sourceKind} direct-source mode)`,
+            });
+          }
+        }
 
         DopplerCapabilities.bridgeClient = bridgeClient;
         DopplerCapabilities.localPath = localPath;
@@ -361,38 +388,78 @@ export async function loadModel(modelId, modelUrl = null, onProgress = null, loc
     const gpuCaps = getKernelCapabilities();
     const memCaps = await getMemoryCapabilities();
 
-    let loadShardFn;
-    if (useBridge && DopplerCapabilities.bridgeClient && DopplerCapabilities.localPath) {
+    let storageContext = bridgeStorageContext;
+    if (!storageContext && useBridge && DopplerCapabilities.bridgeClient && DopplerCapabilities.localPath) {
       const bridgeClient = DopplerCapabilities.bridgeClient;
       const basePath = DopplerCapabilities.localPath.endsWith('/')
         ? DopplerCapabilities.localPath
         : `${DopplerCapabilities.localPath}/`;
 
       const manifestRef = manifest;
-      loadShardFn = async (idx) => {
+      const resolveShard = (idx) => {
         const shardInfo = manifestRef.shards[idx];
         if (!shardInfo) throw new Error(`Invalid shard index: ${idx}`);
-        const shardPath = `${basePath}${shardInfo.filename}`;
-        log.info('DopplerProvider', `Loading shard ${idx} via bridge: ${shardPath}`);
-        const data = await bridgeClient.read(shardPath, 0, shardInfo.size);
-        return data;
+        return {
+          shardInfo,
+          shardPath: `${basePath}${shardInfo.filename}`,
+        };
       };
-    } else {
-      loadShardFn = async (idx) => {
-        const m = await import('../../storage/shard-manager.js');
-        const arrayBuffer = await m.loadShard(idx);
-        return new Uint8Array(arrayBuffer);
+
+      const loadShard = async (idx) => {
+        const { shardInfo, shardPath } = resolveShard(idx);
+        log.info('DopplerProvider', `Loading shard ${idx} via bridge: ${shardPath}`);
+        return bridgeClient.read(shardPath, 0, shardInfo.size);
+      };
+
+      const loadShardRange = async (idx, offset, length = null) => {
+        const { shardInfo, shardPath } = resolveShard(idx);
+        const startRaw = Number(offset);
+        const start = Number.isFinite(startRaw) ? Math.max(0, Math.floor(startRaw)) : 0;
+        const maxLength = Math.max(0, shardInfo.size - start);
+        const requested = length == null
+          ? maxLength
+          : Math.max(0, Math.min(Math.floor(Number(length) || 0), maxLength));
+        if (requested <= 0) {
+          return new ArrayBuffer(0);
+        }
+        return bridgeClient.read(shardPath, start, requested);
+      };
+
+      const streamShardRange = async function* (idx, offset = 0, length = null, options = {}) {
+        const chunkRaw = Number(options?.chunkBytes);
+        const chunkBytes = Number.isFinite(chunkRaw) && chunkRaw > 0
+          ? Math.floor(chunkRaw)
+          : 4 * 1024 * 1024;
+        let produced = 0;
+        while (true) {
+          const remaining = length == null ? chunkBytes : Math.max(0, length - produced);
+          if (length != null && remaining <= 0) break;
+          const requestLength = Math.min(chunkBytes, remaining);
+          const chunk = await loadShardRange(idx, offset + produced, requestLength);
+          const bytes = chunk instanceof Uint8Array ? chunk : new Uint8Array(chunk);
+          if (bytes.byteLength === 0) break;
+          produced += bytes.byteLength;
+          yield bytes;
+          if (bytes.byteLength < requestLength) break;
+        }
+      };
+
+      storageContext = {
+        loadShard,
+        loadShardRange,
+        streamShardRange,
+        verifyHashes: false,
       };
     }
 
     let baseUrl = null;
-    if (useBridge && DopplerCapabilities.localPath) {
+    if (useBridge && DopplerCapabilities.localPath && !bridgeSourceMode) {
       baseUrl = DopplerCapabilities.localPath;
     } else if (modelUrl) {
       baseUrl = modelUrl;
     }
 
-    pipeline = await createPipeline(manifest, {
+    const pipelineContexts = {
       gpu: {
         capabilities: gpuCaps,
         device: getDevice(),
@@ -401,11 +468,13 @@ export async function loadModel(modelId, modelUrl = null, onProgress = null, loc
         capabilities: memCaps,
         heapManager: getHeapManager(),
       },
-      storage: {
-        loadShard: loadShardFn,
-      },
       baseUrl,
-    });
+    };
+    if (storageContext) {
+      pipelineContexts.storage = storageContext;
+    }
+
+    pipeline = await createPipeline(manifest, pipelineContexts);
 
     currentModelId = modelId;
     DopplerCapabilities.currentModelId = modelId;
