@@ -9,6 +9,10 @@ Doppler supports a practical two-stage distill workflow:
 1. `stage_a`: KD-oriented stage (`objective="kd"`)
 2. `stage_b`: triplet-oriented stage (`objective="triplet"`) with mandatory stage_a dependency
 3. Distill batches are built from live teacher/student model logits (no synthetic KD/triplet hint fallback)
+4. Stage B triplet margins are recomputed from per-step anchor/positive/negative student forwards.
+5. Runner checkpoints persist trainable state (adapter weights + optimizer step counters) for resume.
+6. `--distill-dataset-path` accepts single JSONL or shard-manifest JSON with native shard scheduling.
+7. `training.distill.allowHintFallback=false` by default (legacy hint fallback is opt-in only).
 
 It does not claim architecture-paper parity or leaderboard SOTA.
 

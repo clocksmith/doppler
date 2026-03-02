@@ -72,6 +72,9 @@ function usage() {
     '  --distill-dataset-id <id>       Distill dataset identifier (e.g. en-es-large)',
     '  --distill-dataset-path <path>   Distill dataset JSONL path (node surface)',
     '  --distill-language-pair <pair>  Distill language pair label (e.g. en-es)',
+    '  --distill-shard-index <n>       1-based shard index for global progress reporting',
+    '  --distill-shard-count <n>       Total shard count for global progress reporting',
+    '  --resume-from <ref>             Resume reference (checkpoint/manifest) for timeline lineage',
     '  UL claim boundary: UL-inspired practical two-stage pipeline; not paper-equivalent SOTA.',
     '  Distill claim boundary: practical stage_a/stage_b distill workflow; not paper-equivalent SOTA.',
     '  --json                          Print machine-readable result JSON',
@@ -98,6 +101,9 @@ function usage() {
     '  --output-dir <path>             Override output directory for convert',
     '  --workers <n>                   Converter worker count (default: 8)',
     '  --worker-policy <cap|error>     Handle workers > available CPU cores',
+    '  --row-chunk-rows <n>            Row chunk size for 2D tensor worker jobs',
+    '  --row-chunk-min-tensor-bytes <n>  Minimum tensor size before row chunking',
+    '  --max-in-flight-jobs <n>        Max concurrent worker jobs for row chunks',
     '  --converter-config <path>       Deprecated alias for --config (convert only)',
     '',
     'Bench Flags:',
@@ -477,6 +483,15 @@ async function buildRequest(parsed, options = {}, policy = DEFAULT_CLI_POLICY) {
     distillDatasetId: asStringOrNull(parsed.flags['distill-dataset-id']),
     distillDatasetPath: asStringOrNull(parsed.flags['distill-dataset-path']),
     distillLanguagePair: asStringOrNull(parsed.flags['distill-language-pair']),
+    distillShardIndex: parsePositiveIntegerFlag(
+      parsed.flags['distill-shard-index'],
+      '--distill-shard-index'
+    ),
+    distillShardCount: parsePositiveIntegerFlag(
+      parsed.flags['distill-shard-count'],
+      '--distill-shard-count'
+    ),
+    resumeFrom: asStringOrNull(parsed.flags['resume-from']),
     workloadType: asStringOrNull(parsed.flags['workload-type']),
     modelUrl: asStringOrNull(parsed.flags['model-url']),
     cacheMode: parseCacheMode(parsed.flags['cache-mode'], '--cache-mode', policyDefaults.cacheMode),
@@ -512,10 +527,28 @@ async function buildRequest(parsed, options = {}, policy = DEFAULT_CLI_POLICY) {
 
     const workers = parsePositiveIntegerFlag(parsed.flags.workers, '--workers');
     const workerCountPolicy = parseWorkerPolicy(parsed.flags['worker-policy'], '--worker-policy');
-    const execution = (workers !== null || workerCountPolicy !== null)
+    const rowChunkRows = parsePositiveIntegerFlag(parsed.flags['row-chunk-rows'], '--row-chunk-rows');
+    const rowChunkMinTensorBytes = parsePositiveIntegerFlag(
+      parsed.flags['row-chunk-min-tensor-bytes'],
+      '--row-chunk-min-tensor-bytes'
+    );
+    const maxInFlightJobs = parsePositiveIntegerFlag(
+      parsed.flags['max-in-flight-jobs'],
+      '--max-in-flight-jobs'
+    );
+    const execution = (
+      workers !== null
+      || workerCountPolicy !== null
+      || rowChunkRows !== null
+      || rowChunkMinTensorBytes !== null
+      || maxInFlightJobs !== null
+    )
       ? {
         ...(workers !== null ? { workers } : {}),
         ...(workerCountPolicy !== null ? { workerCountPolicy } : {}),
+        ...(rowChunkRows !== null ? { rowChunkRows } : {}),
+        ...(rowChunkMinTensorBytes !== null ? { rowChunkMinTensorBytes } : {}),
+        ...(maxInFlightJobs !== null ? { maxInFlightJobs } : {}),
       }
       : null;
 

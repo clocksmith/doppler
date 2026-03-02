@@ -83,11 +83,23 @@ export const DEFAULT_TRAINING_METRICS_REPORT = Object.freeze({
   distill_alpha_kd: null,
   distill_alpha_ce: null,
   distill_loss_ce_aux: null,
+  distill_loss_total: null,
   distill_triplet_margin: null,
+  distill_triplet_active_count: null,
   distill_stage_a_step_count: null,
   distill_stage_a_kd_mean: null,
   ul_stage: null,
   lambda: null,
+  progress_shard_index: null,
+  progress_shard_count: null,
+  progress_step_in_shard: null,
+  progress_steps_in_shard: null,
+  progress_global_step: null,
+  progress_global_steps: null,
+  progress_percent_complete: null,
+  progress_elapsed_ms: null,
+  progress_eta_ms: null,
+  progress_eta_iso: null,
   loss_total: null,
   loss_prior: null,
   loss_decoder: null,
@@ -158,7 +170,9 @@ export function validateTrainingMetricsEntry(entry) {
   assertNullableFiniteNumber(entry.distill_alpha_kd, 'distill_alpha_kd');
   assertNullableFiniteNumber(entry.distill_alpha_ce, 'distill_alpha_ce');
   assertNullableFiniteNumber(entry.distill_loss_ce_aux, 'distill_loss_ce_aux');
+  assertNullableFiniteNumber(entry.distill_loss_total, 'distill_loss_total');
   assertNullableFiniteNumber(entry.distill_triplet_margin, 'distill_triplet_margin');
+  assertOptionalIntegerGte(entry.distill_triplet_active_count, 0, 'distill_triplet_active_count');
   assertNullableFiniteNumber(entry.distill_stage_a_step_count, 'distill_stage_a_step_count');
   assertNullableFiniteNumber(entry.distill_stage_a_kd_mean, 'distill_stage_a_kd_mean');
   if (entry.distill_stage !== undefined && entry.distill_stage !== null && !DISTILL_STAGE_SET.has(entry.distill_stage)) {
@@ -169,6 +183,51 @@ export function validateTrainingMetricsEntry(entry) {
   }
   if (entry.frozen_groups !== undefined) {
     assertStringArray(entry.frozen_groups, 'frozen_groups');
+  }
+  assertOptionalIntegerGte(entry.progress_shard_index, 1, 'progress_shard_index');
+  assertOptionalIntegerGte(entry.progress_shard_count, 1, 'progress_shard_count');
+  assertOptionalIntegerGte(entry.progress_step_in_shard, 1, 'progress_step_in_shard');
+  assertOptionalIntegerGte(entry.progress_steps_in_shard, 1, 'progress_steps_in_shard');
+  assertOptionalIntegerGte(entry.progress_global_step, 1, 'progress_global_step');
+  assertOptionalIntegerGte(entry.progress_global_steps, 1, 'progress_global_steps');
+  assertNullableFiniteNumber(entry.progress_percent_complete, 'progress_percent_complete');
+  if (
+    Number.isFinite(entry.progress_percent_complete)
+    && (entry.progress_percent_complete < 0 || entry.progress_percent_complete > 100)
+  ) {
+    throw new Error('training metrics: progress_percent_complete must be between 0 and 100.');
+  }
+  assertNullableFiniteNumber(entry.progress_elapsed_ms, 'progress_elapsed_ms');
+  if (Number.isFinite(entry.progress_elapsed_ms) && entry.progress_elapsed_ms < 0) {
+    throw new Error('training metrics: progress_elapsed_ms must be >= 0.');
+  }
+  assertNullableFiniteNumber(entry.progress_eta_ms, 'progress_eta_ms');
+  if (Number.isFinite(entry.progress_eta_ms) && entry.progress_eta_ms < 0) {
+    throw new Error('training metrics: progress_eta_ms must be >= 0.');
+  }
+  if (entry.progress_eta_iso !== undefined && entry.progress_eta_iso !== null) {
+    assertString(entry.progress_eta_iso, 'progress_eta_iso');
+  }
+  if (
+    Number.isInteger(entry.progress_shard_index)
+    && Number.isInteger(entry.progress_shard_count)
+    && entry.progress_shard_index > entry.progress_shard_count
+  ) {
+    throw new Error('training metrics: progress_shard_index must be <= progress_shard_count.');
+  }
+  if (
+    Number.isInteger(entry.progress_step_in_shard)
+    && Number.isInteger(entry.progress_steps_in_shard)
+    && entry.progress_step_in_shard > entry.progress_steps_in_shard
+  ) {
+    throw new Error('training metrics: progress_step_in_shard must be <= progress_steps_in_shard.');
+  }
+  if (
+    Number.isInteger(entry.progress_global_step)
+    && Number.isInteger(entry.progress_global_steps)
+    && entry.progress_global_step > entry.progress_global_steps
+  ) {
+    throw new Error('training metrics: progress_global_step must be <= progress_global_steps.');
   }
   if (entry.ul_stage !== undefined && entry.ul_stage !== null && !UL_STAGE_SET.has(entry.ul_stage)) {
     throw new Error('training metrics: ul_stage must be "stage1_joint", "stage2_base", or null.');

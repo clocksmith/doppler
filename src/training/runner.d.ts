@@ -37,13 +37,25 @@ export interface TrainingStepMetricsEntry {
   ul_stage?: string | null;
   distill_stage?: string | null;
   lambda?: number | null;
+  progress_shard_index?: number | null;
+  progress_shard_count?: number | null;
+  progress_step_in_shard?: number | null;
+  progress_steps_in_shard?: number | null;
+  progress_global_step?: number | null;
+  progress_global_steps?: number | null;
+  progress_percent_complete?: number | null;
+  progress_elapsed_ms?: number | null;
+  progress_eta_ms?: number | null;
+  progress_eta_iso?: string | null;
   loss_kd?: number | null;
   loss_triplet?: number | null;
   distill_temperature?: number | null;
   distill_alpha_kd?: number | null;
   distill_alpha_ce?: number | null;
   distill_loss_ce_aux?: number | null;
+  distill_loss_total?: number | null;
   distill_triplet_margin?: number | null;
+  distill_triplet_active_count?: number | null;
   distill_stage_a_step_count?: number | null;
   distill_stage_a_kd_mean?: number | null;
   objective?: string;
@@ -104,15 +116,31 @@ export interface TrainingRunOptions {
   distillDatasetId?: string | null;
   distillDatasetPath?: string | null;
   distillLanguagePair?: string | null;
+  distillShardIndex?: number | null;
+  distillShardCount?: number | null;
+  resumeFrom?: string | null;
   modelId?: string | null;
   modelUrl?: string | null;
   timestamp?: string | Date | null;
   persistStage1Latents?: boolean;
+  checkpointEvery?: number | null;
 }
 
 export declare class TrainingRunner {
   constructor(config: TrainingConfigSchema, options?: TrainingRunnerOptions);
   lastArtifact: UlArtifactFinalizeResult | DistillArtifactFinalizeResult | null;
+  lastCheckpoint: {
+    key: string;
+    step: number;
+    epoch: number;
+    batch: number;
+  } | null;
+  resumeState: {
+    step: number;
+    epoch: number;
+    batch: number;
+    checkpointHash?: string | null;
+  } | null;
   run(
     model: {
       forward: (input: Tensor, tape: unknown) => Promise<Tensor>;

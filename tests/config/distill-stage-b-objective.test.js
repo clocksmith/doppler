@@ -21,14 +21,40 @@ const config = {
       stage: 'stage_b',
       stageAArtifact: '/tmp/distill_stage_a_manifest.json',
       tripletMargin: 0.2,
+      allowHintFallback: true,
     },
   },
 };
+
+await assert.rejects(
+  () => objective.prepareBatch({
+    batch: {
+      input: { label: 'input' },
+      targets: { label: 'targets' },
+    },
+    model: {},
+    config,
+    options: {
+      stageAArtifactContext: {
+        metricsSummary: {
+          kdMean: 0.3,
+          stepCount: 2,
+        },
+      },
+    },
+    lossScale: 1,
+  }),
+  /Distill triplet objective requires per-step positive\/negative triplet inputs/
+);
 
 await objective.prepareBatch({
   batch: {
     input: { label: 'input' },
     targets: { label: 'targets' },
+    distill: {
+      tripletPositivePrompts: ['positive sample'],
+      tripletNegativePrompts: ['negative sample'],
+    },
   },
   model: {},
   config,

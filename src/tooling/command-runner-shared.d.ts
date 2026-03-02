@@ -46,6 +46,9 @@ export declare function buildSuiteOptions(
   distillDatasetId?: string;
   distillDatasetPath?: string;
   distillLanguagePair?: string;
+  distillShardIndex?: number;
+  distillShardCount?: number;
+  resumeFrom?: string;
   trainingSchemaVersion?: number;
   trainingBenchSteps?: number;
   workloadType?: string;

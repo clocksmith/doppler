@@ -95,9 +95,9 @@ export async function parseSafetensorsSharded(
   files,
   indexJson = null
 ) {
+  const sources = files.map((file) => normalizeTensorSource(file));
   const fileMap = new Map();
-  for (const file of files) {
-    const source = normalizeTensorSource(file);
+  for (const source of sources) {
     fileMap.set(source.name, source);
   }
 
@@ -108,24 +108,29 @@ export async function parseSafetensorsSharded(
     metadata = indexJson.metadata || {};
   }
 
-  // Parse each safetensors file
+  const safetensorsSources = sources
+    .filter((source) => source.name.endsWith('.safetensors'));
+  const parsedShards = await Promise.all(
+    safetensorsSources.map(async (source) => {
+      const parsed = await parseSafetensorsFile(source);
+      return {
+        source,
+        parsed,
+      };
+    })
+  );
+
   const shards = [];
   const allTensors = [];
-
-  for (const file of files) {
-    const source = normalizeTensorSource(file);
-    if (!source.name.endsWith('.safetensors')) continue;
-
-    const parsed = await parseSafetensorsFile(source);
+  for (const parsedShard of parsedShards) {
     shards.push({
-      file: source.name,
-      size: source.size,
-      tensorCount: parsed.tensors.length,
+      file: parsedShard.source.name,
+      size: parsedShard.source.size,
+      tensorCount: parsedShard.parsed.tensors.length,
     });
 
-    // Add shard info to tensors
-    for (const tensor of parsed.tensors) {
-      tensor.shardFile = source.name;
+    for (const tensor of parsedShard.parsed.tensors) {
+      tensor.shardFile = parsedShard.source.name;
       allTensors.push(tensor);
     }
   }

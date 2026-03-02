@@ -8,7 +8,9 @@ function parseArgs(argv) {
     inputDir: null,
     outputDir: null,
     configPath: null,
+    execution: null,
   };
+  const execution = {};
   const positional = [];
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
@@ -22,10 +24,85 @@ function parseArgs(argv) {
       i += 1;
       continue;
     }
+    if (arg === '--workers') {
+      execution.workers = argv[i + 1] ?? null;
+      i += 1;
+      continue;
+    }
+    if (arg === '--worker-policy') {
+      execution.workerCountPolicy = argv[i + 1] ?? null;
+      i += 1;
+      continue;
+    }
+    if (arg === '--row-chunk-rows') {
+      execution.rowChunkRows = argv[i + 1] ?? null;
+      i += 1;
+      continue;
+    }
+    if (arg === '--row-chunk-min-tensor-bytes') {
+      execution.rowChunkMinTensorBytes = argv[i + 1] ?? null;
+      i += 1;
+      continue;
+    }
+    if (arg === '--max-in-flight-jobs') {
+      execution.maxInFlightJobs = argv[i + 1] ?? null;
+      i += 1;
+      continue;
+    }
     positional.push(arg);
   }
   out.inputDir = positional[0] ?? null;
+  out.execution = Object.keys(execution).length > 0 ? execution : null;
   return out;
+}
+
+function parseOptionalPositiveInteger(value, label) {
+  if (value == null || value === '') return null;
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed < 1) {
+    throw new Error(`${label} must be a positive integer.`);
+  }
+  return parsed;
+}
+
+function parseWorkerPolicy(value, label) {
+  if (value == null || value === '') return null;
+  const normalized = String(value).trim().toLowerCase();
+  if (normalized !== 'cap' && normalized !== 'error') {
+    throw new Error(`${label} must be "cap" or "error".`);
+  }
+  return normalized;
+}
+
+function normalizeExecutionConfig(rawExecution) {
+  if (!rawExecution || typeof rawExecution !== 'object') return null;
+  const workers = parseOptionalPositiveInteger(rawExecution.workers, '--workers');
+  const workerCountPolicy = parseWorkerPolicy(rawExecution.workerCountPolicy, '--worker-policy');
+  const rowChunkRows = parseOptionalPositiveInteger(rawExecution.rowChunkRows, '--row-chunk-rows');
+  const rowChunkMinTensorBytes = parseOptionalPositiveInteger(
+    rawExecution.rowChunkMinTensorBytes,
+    '--row-chunk-min-tensor-bytes'
+  );
+  const maxInFlightJobs = parseOptionalPositiveInteger(
+    rawExecution.maxInFlightJobs,
+    '--max-in-flight-jobs'
+  );
+  if (
+    workers == null
+    && workerCountPolicy == null
+    && rowChunkRows == null
+    && rowChunkMinTensorBytes == null
+    && maxInFlightJobs == null
+  ) {
+    return null;
+  }
+  return {
+    ...(workers != null ? { workers } : {}),
+    ...(workerCountPolicy != null ? { workerCountPolicy } : {}),
+    ...(rowChunkRows != null ? { rowChunkRows } : {}),
+    ...(rowChunkMinTensorBytes != null ? { rowChunkMinTensorBytes } : {}),
+    ...(maxInFlightJobs != null ? { maxInFlightJobs } : {}),
+  };
 }
 
 async function readJsonFile(filePath) {
@@ -42,18 +119,19 @@ async function main() {
   const args = parseArgs(process.argv.slice(2));
   if (!args.inputDir || !args.configPath) {
     console.error(
-      'Usage: node tools/convert-safetensors-node.js <inputPath> --config <path.json> [--output-dir <path>]'
+      'Usage: node tools/convert-safetensors-node.js <inputPath> --config <path.json> [--output-dir <path>] [--workers <n>] [--worker-policy <cap|error>] [--row-chunk-rows <n>] [--row-chunk-min-tensor-bytes <n>] [--max-in-flight-jobs <n>]'
     );
     process.exit(2);
   }
   const converterConfig = await readJsonFile(args.configPath);
+  const execution = normalizeExecutionConfig(args.execution);
 
   const response = await runNodeCommand(
     {
       command: 'convert',
       inputDir: args.inputDir,
       outputDir: args.outputDir,
-      convertPayload: converterConfig ? { converterConfig } : null,
+      convertPayload: converterConfig ? { converterConfig, execution } : null,
     },
     {
       onProgress(progress) {

@@ -2,6 +2,7 @@ export interface CheckpointStoreOptions {
   dbName?: string;
   storeName?: string;
   version?: number;
+  nodeDir?: string;
   configHash?: string;
   datasetHash?: string;
   tokenizerHash?: string;

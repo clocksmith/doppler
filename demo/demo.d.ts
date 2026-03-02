@@ -1,7 +1,7 @@
 /**
- * Demo application wiring.
+ * Demo surface wiring.
  *
- * @module demo/app
+ * @module demo/demo
  */
 
 export {};

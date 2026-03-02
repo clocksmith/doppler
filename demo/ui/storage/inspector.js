@@ -179,6 +179,7 @@ export async function refreshStorageInspector(callbacks = {}) {
   setStorageInspectorStatus('Scanning storage...');
 
   const runtime = getRuntimeConfig();
+  const isLabSurface = () => state.surface === 'lab';
 
   let registryEntries = [];
   const registryIds = new Set();
@@ -296,7 +297,7 @@ export async function refreshStorageInspector(callbacks = {}) {
         summaryParts.push(`${label}: ${count}`);
       }
     }
-    if (systemEntries.length) {
+    if (isLabSurface() && systemEntries.length) {
       summaryParts.push(`System: ${formatBytes(systemBytes)}`);
     }
     if (summaryEl) {
@@ -414,33 +415,36 @@ export async function refreshStorageInspector(callbacks = {}) {
           });
           actions.appendChild(tryBtn);
 
-          const exportBtn = document.createElement('button');
-          exportBtn.className = 'btn btn-small';
-          exportBtn.type = 'button';
-          exportBtn.textContent = 'Export';
-          exportBtn.addEventListener('click', async (event) => {
-            event.stopPropagation();
-            await handleExportStorageEntry(entry);
-          });
-          actions.appendChild(exportBtn);
+          if (isLabSurface()) {
+            const exportBtn = document.createElement('button');
+            exportBtn.className = 'btn btn-small';
+            exportBtn.type = 'button';
+            exportBtn.textContent = 'Export';
+            exportBtn.addEventListener('click', async (event) => {
+              event.stopPropagation();
+              await handleExportStorageEntry(entry);
+            });
+            actions.appendChild(exportBtn);
 
-          const deleteBtn = document.createElement('button');
-          deleteBtn.className = 'btn btn-small';
-          deleteBtn.type = 'button';
-          deleteBtn.textContent = 'Delete';
-          if (entry.modelId === state.activeModelId && state.activePipeline) {
-            deleteBtn.title = 'Will unload active model, then delete.';
-          }
-          deleteBtn.addEventListener('click', async (event) => {
-            event.stopPropagation();
-            try {
-              await handleDeleteStorageEntry(entry, callbacks);
-            } catch (error) {
-              log.warn('DopplerDemo', `Delete failed: ${error.message}`);
-              showErrorModal(`Delete failed: ${error.message}`);
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'btn btn-small';
+            deleteBtn.type = 'button';
+            deleteBtn.textContent = 'Delete';
+            if (entry.modelId === state.activeModelId && state.activePipeline) {
+              deleteBtn.title = 'Will unload active model, then delete.';
             }
-          });
-          actions.appendChild(deleteBtn);
+            deleteBtn.addEventListener('click', async (event) => {
+              event.stopPropagation();
+              try {
+                await handleDeleteStorageEntry(entry, callbacks);
+              } catch (error) {
+                log.warn('DopplerDemo', `Delete failed: ${error.message}`);
+                showErrorModal(`Delete failed: ${error.message}`);
+              }
+            });
+            actions.appendChild(deleteBtn);
+          }
+
           row.appendChild(actions);
           if (callbacks?.onSelectModel) {
             row.addEventListener('click', () => callbacks.onSelectModel(entry.modelId));
@@ -450,7 +454,7 @@ export async function refreshStorageInspector(callbacks = {}) {
       }
     }
 
-    if (systemEntries.length) {
+    if (isLabSurface() && systemEntries.length) {
       systemSection.hidden = false;
       for (const entry of systemEntries) {
         const row = document.createElement('div');

@@ -56,6 +56,7 @@ import {
   setStatusIndicator,
   updateStatusIndicator,
   clampPercent,
+  showErrorModal,
   hideErrorModal,
 } from './ui/ui.js';
 import {
@@ -255,6 +256,23 @@ const DEEP_LINK_MODES = new Set([
   'diagnostics',
   'kernels',
 ]);
+const SURFACE_SET = new Set(['demo', 'lab']);
+const SURFACE_MODE_ALLOWLIST = Object.freeze({
+  demo: new Set(['run', 'embedding', 'models']),
+  lab: new Set([...DEEP_LINK_MODES]),
+});
+const SURFACE_META = Object.freeze({
+  demo: Object.freeze({
+    label: 'Demo',
+    caption: 'Guided workflows',
+    description: 'Focused text and embedding workflows.',
+  }),
+  lab: Object.freeze({
+    label: 'Lab',
+    caption: 'Advanced workflows',
+    description: 'Translation, diffusion, diagnostics, conversion, energy optimization, and system tooling.',
+  }),
+});
 const EMBEDDING_DEMO_DOCUMENT_CATALOG = Object.freeze([
   Object.freeze({
     id: 'doc_webgpu_local',
@@ -412,6 +430,75 @@ function normalizeDeepLinkMode(mode, defaultMode = null) {
   return defaultMode;
 }
 
+function normalizeSurface(value, fallback = 'demo') {
+  const normalized = resolveText(value, fallback).toLowerCase();
+  if (SURFACE_SET.has(normalized)) return normalized;
+  return fallback;
+}
+
+function getAllowedModesForSurface(surface) {
+  return SURFACE_MODE_ALLOWLIST[normalizeSurface(surface, 'demo')] || SURFACE_MODE_ALLOWLIST.demo;
+}
+
+function isModeAllowedForSurface(mode, surface) {
+  return getAllowedModesForSurface(surface).has(mode);
+}
+
+function resolveModeForSurface(mode, surface) {
+  const normalizedMode = normalizeDeepLinkMode(mode, 'run');
+  if (isModeAllowedForSurface(normalizedMode, surface)) {
+    return normalizedMode;
+  }
+  const fallbackPrimary = normalizeDeepLinkMode(state.lastPrimaryMode, 'run');
+  if (isModeAllowedForSurface(fallbackPrimary, surface)) {
+    return fallbackPrimary;
+  }
+  return 'run';
+}
+
+function getSurfaceMeta(surface) {
+  const normalizedSurface = normalizeSurface(surface, 'demo');
+  return SURFACE_META[normalizedSurface] || SURFACE_META.demo;
+}
+
+function syncSurfaceUI(surface) {
+  const normalizedSurface = normalizeSurface(surface, 'demo');
+  const surfaceMeta = getSurfaceMeta(normalizedSurface);
+  const app = $('app');
+  if (app) {
+    app.dataset.surface = normalizedSurface;
+  }
+  document.querySelectorAll('.surface-tab').forEach((button) => {
+    const isActive = button.dataset.surface === normalizedSurface;
+    button.classList.toggle('is-active', isActive);
+    button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+  });
+  const caption = $('surface-caption');
+  if (caption) {
+    setText(caption, `${surfaceMeta.caption} • ${surfaceMeta.description}`);
+  }
+  const subtitle = $('brand-subtitle');
+  if (subtitle) {
+    setText(subtitle, `D4DA Studio • ${surfaceMeta.label} Surface`);
+  }
+  if (typeof document !== 'undefined') {
+    document.title = `D4DA Studio · ${surfaceMeta.label} Surface`;
+  }
+}
+
+function requireLabSurface(actionLabel, hintMode = 'models') {
+  if (state.surface === 'lab') return true;
+  const action = resolveText(actionLabel, 'This action');
+  const message = `${action} is available in Lab surface. Switch to Lab to continue.`;
+  showErrorModal(message);
+  if (hintMode) {
+    setUiMode(hintMode).catch((error) => {
+      log.warn('DopplerDemo', `Surface hint navigation failed: ${error.message}`);
+    });
+  }
+  return false;
+}
+
 function readDeepLinkValue(hashParams, queryParams, keys) {
   for (const key of keys) {
     const hashValue = hashParams.get(key);
@@ -435,6 +522,7 @@ function decodeDeepLinkText(rawText) {
 function readDeepLinkStateFromLocation() {
   if (typeof window === 'undefined') {
     return {
+      surface: 'demo',
       mode: null,
       sourceCode: DEFAULT_TRANSLATE_SOURCE,
       targetCode: DEFAULT_TRANSLATE_TARGET,
@@ -450,10 +538,15 @@ function readDeepLinkStateFromLocation() {
   const targetRaw = readDeepLinkValue(hashParams, queryParams, ['tl', 'target', 'target_lang_code']);
   const textRaw = readDeepLinkValue(hashParams, queryParams, ['text', 'prompt', 'q']);
   const modeRaw = readDeepLinkValue(hashParams, queryParams, ['mode', 'm']);
+  const surfaceRaw = readDeepLinkValue(hashParams, queryParams, ['surface', 's']);
+  const surface = normalizeSurface(surfaceRaw, 'demo');
 
   let mode = normalizeDeepLinkMode(modeRaw, null);
   if (!mode && (sourceRaw != null || targetRaw != null || textRaw != null)) {
     mode = 'translate';
+  }
+  if (mode && !isModeAllowedForSurface(mode, surface)) {
+    mode = resolveModeForSurface(mode, surface);
   }
 
   const sourceCode = normalizeTranslateLanguageCode(sourceRaw, DEFAULT_TRANSLATE_SOURCE);
@@ -465,6 +558,7 @@ function readDeepLinkStateFromLocation() {
   }
 
   return {
+    surface,
     mode,
     sourceCode,
     targetCode,
@@ -497,8 +591,12 @@ function applyDeepLinkStateToUI(deepLinkState) {
 }
 
 function buildDeepLinkHash(modeOverride = null) {
-  const mode = normalizeDeepLinkMode(resolveText(modeOverride, state.uiMode || 'run'), 'run');
+  const surface = normalizeSurface(state.surface, 'demo');
+  const mode = resolveModeForSurface(resolveText(modeOverride, state.uiMode || 'run'), surface);
   const params = new URLSearchParams();
+  if (surface === 'lab') {
+    params.set('surface', 'lab');
+  }
 
   if (mode !== 'run') {
     params.set('mode', mode);
@@ -650,6 +748,13 @@ function getQuickCatalogEntries() {
   return Array.isArray(state.quickModelCatalog) ? state.quickModelCatalog : [];
 }
 
+function getQuickCatalogEntriesForSurface(surface = state.surface) {
+  const allowedModes = getAllowedModesForSurface(surface);
+  return getQuickCatalogEntries().filter((entry) => (
+    Array.isArray(entry?.modes) && entry.modes.some((modeToken) => allowedModes.has(modeToken))
+  ));
+}
+
 function formatQuickModelBytes(bytes) {
   if (!Number.isFinite(bytes) || bytes <= 0) return 'size unknown';
   return formatBytes(bytes);
@@ -749,10 +854,14 @@ function cloneRuntimeConfig(config) {
 }
 
 function applyModeVisibility(mode) {
-  const panels = document.querySelectorAll('[data-modes]');
+  const surface = normalizeSurface(state.surface, 'demo');
+  const panels = document.querySelectorAll('[data-modes], [data-surfaces]');
   panels.forEach((panel) => {
     const modes = panel.dataset.modes?.split(/\s+/).filter(Boolean) || [];
-    panel.hidden = modes.length > 0 && !modes.includes(mode);
+    const surfaces = panel.dataset.surfaces?.split(/\s+/).filter(Boolean) || [];
+    const modeVisible = modes.length === 0 || modes.includes(mode);
+    const surfaceVisible = surfaces.length === 0 || surfaces.includes(surface);
+    panel.hidden = !(modeVisible && surfaceVisible);
   });
 }
 
@@ -789,7 +898,7 @@ function syncRunModeUI(mode) {
   const isTranslateMode = mode === 'translate';
   setText(
     $('run-panel-title'),
-    isEmbeddingMode ? 'Embeddings' : (isTranslateMode ? 'Translation' : 'Text Decoding')
+    isEmbeddingMode ? 'Embeddings' : (isTranslateMode ? 'Translation' : 'Text Generation')
   );
   setText(
     $('run-controls-title'),
@@ -821,16 +930,19 @@ function syncRunModeUI(mode) {
 async function setUiMode(mode) {
   const app = $('app');
   if (!app) return;
-  state.uiMode = mode;
-  if (PRIMARY_MODES.has(mode)) {
-    state.lastPrimaryMode = mode;
+  const surface = normalizeSurface(state.surface, 'demo');
+  const resolvedMode = resolveModeForSurface(mode, surface);
+  state.uiMode = resolvedMode;
+  if (PRIMARY_MODES.has(resolvedMode)) {
+    state.lastPrimaryMode = resolvedMode;
   }
-  app.dataset.mode = mode;
-  updateNavState(mode);
-  applyModeVisibility(mode);
-  syncRunModeUI(mode);
-  syncDiagnosticsModeUI(mode);
-  if (mode === 'models') {
+  app.dataset.mode = resolvedMode;
+  syncSurfaceUI(surface);
+  updateNavState(resolvedMode);
+  applyModeVisibility(resolvedMode);
+  syncRunModeUI(resolvedMode);
+  syncDiagnosticsModeUI(resolvedMode);
+  if (resolvedMode === 'models') {
     refreshStorageInspector({
       onSelectModel: selectDiagnosticsModel,
       onTryModel: handleStorageTryModel,
@@ -848,14 +960,22 @@ async function setUiMode(mode) {
   }
   updatePerformancePanel();
   renderRunLog();
-  syncDiagnosticsDefaultsForMode(mode).catch((error) => {
+  syncDiagnosticsDefaultsForMode(resolvedMode).catch((error) => {
     updateDiagnosticsStatus(`Diagnostics config error: ${error.message}`, true);
   });
-  if (mode === 'energy') {
+  if (resolvedMode === 'energy') {
     syncEnergyDemoSelection();
   }
   updateModelEmptyStates();
   syncDeepLinkFromUI();
+}
+
+async function setSurface(surface, modeHint = null) {
+  const nextSurface = normalizeSurface(surface, state.surface || 'demo');
+  state.surface = nextSurface;
+  syncSurfaceUI(nextSurface);
+  const targetMode = modeHint || state.uiMode || 'run';
+  await setUiMode(targetMode);
 }
 
 function getModelAvailability() {
@@ -1046,7 +1166,9 @@ function renderQuickModelList(listEl, entries) {
 }
 
 function renderQuickModelPanels() {
-  const catalog = getQuickCatalogEntries();
+  const catalog = getQuickCatalogEntriesForSurface();
+  const rawCatalog = getQuickCatalogEntries();
+  const isDemoSurface = normalizeSurface(state.surface, 'demo') === 'demo';
 
   if (state.quickModelActionModelId) {
     const modelId = state.quickModelActionModelId;
@@ -1058,6 +1180,8 @@ function renderQuickModelPanels() {
   } else if (state.quickModelCatalogError) {
     const message = `Quick model catalog unavailable: ${state.quickModelCatalogError}`;
     setQuickModelStatus(message);
+  } else if (isDemoSurface && rawCatalog.length > 0 && catalog.length === 0) {
+    setQuickModelStatus('No quick models are tagged for Demo surface. Switch to Lab for full intake catalog.');
   } else {
     setQuickModelStatus(
       catalog.length > 0
@@ -1522,6 +1646,10 @@ async function handleStorageTryModel(modelId) {
   if (!modelId) return;
   const modelType = await getModelTypeForId(modelId);
   const targetMode = getUiModeForModelType(modelType);
+  if (!isModeAllowedForSurface(targetMode, state.surface)) {
+    requireLabSurface('This model type');
+    return;
+  }
   await setUiMode(targetMode);
   selectDiagnosticsModel(modelId);
 }
@@ -2040,6 +2168,7 @@ function drawDiffusionCanvas(result) {
 }
 
 async function handleDiffusionRun() {
+  if (!requireLabSurface('Image generation')) return;
   if (state.diffusionGenerating || state.diffusionLoading) return;
   const promptEl = $('diffusion-prompt');
   const negativeEl = $('diffusion-negative');
@@ -2156,6 +2285,7 @@ async function ensureEnergyPipeline() {
 }
 
 async function handleEnergyRun() {
+  if (!requireLabSurface('Energy optimization')) return;
   if (state.energyGenerating || state.energyLoading) return;
   const demo = getEnergyDemoById(state.energyDemoId) || getEnergyDemoById(DEFAULT_ENERGY_DEMO_ID);
   const problem = demo?.problem || 'quintel';
@@ -2610,7 +2740,7 @@ async function handleRunGenerate() {
         throw new Error(`Embedding contains non-finite values (${querySummary.nonFiniteCount}/${querySummary.dimension}).`);
       }
       const embeddingDocuments = refreshEmbeddingDemoDocuments({ force: true });
-      updateRunStatus('Embedding demo documents...');
+      updateRunStatus('Embedding reference documents...');
       const scoredDocuments = [];
       for (const doc of embeddingDocuments) {
         pipeline.reset?.();
@@ -2804,6 +2934,7 @@ async function unloadActivePipeline() {
 }
 
 async function clearAllMemory() {
+  if (!requireLabSurface('Memory control', null)) return;
   await unloadActivePipeline();
   destroyBufferPool();
   const snapshot = captureMemorySnapshot();
@@ -3197,6 +3328,7 @@ async function regenerateManifest(modelId) {
 }
 
 async function handleRegenerateManifest() {
+  if (!requireLabSurface('Manifest regeneration')) return;
   if (state.convertActive) return;
   const modelId = getSelectedModelId();
   updateConvertStatus(`Regenerating manifest${modelId ? ` (${modelId})` : ''}...`, 0);
@@ -3219,6 +3351,7 @@ async function handleRegenerateManifest() {
 }
 
 async function handleConvertFiles() {
+  if (!requireLabSurface('Local model conversion')) return;
   if (state.convertActive) return;
   updateConvertStatus('Select a model folder or files...', 0);
   let files = null;
@@ -3283,6 +3416,7 @@ async function handleConvertFiles() {
 }
 
 async function handleConvertUrls() {
+  if (!requireLabSurface('URL model conversion')) return;
   const urlInput = $('convert-url-input');
   if (!urlInput) return;
   const urls = urlInput.value
@@ -3296,6 +3430,7 @@ async function handleConvertUrls() {
 }
 
 async function handleDiagnosticsRun(mode) {
+  if (!requireLabSurface('Diagnostics')) return;
   const profileSelect = $('diagnostics-profile');
   const modelSelect = $('diagnostics-model');
   const presetSelect = $('runtime-preset');
@@ -3496,6 +3631,7 @@ function serializeOps(ops) {
 }
 
 function exportEnergyRun() {
+  if (!requireLabSurface('Energy export', null)) return;
   if (!state.lastEnergyResult || !state.energyVliwTasks || !state.energyVliwCaps) {
     updateEnergyStatus('No VLIW run available to export.');
     return;
@@ -3548,6 +3684,7 @@ function exportEnergyRun() {
 function bindUI() {
   const errorModal = $('error-modal');
   const errorClose = $('error-close');
+  const surfaceOpenLabBtn = $('surface-open-lab-btn');
   const convertBtn = $('convert-btn');
   const convertUrlBtn = $('convert-url-btn');
   const regenManifestBtn = $('regen-manifest-btn');
@@ -3659,6 +3796,21 @@ function bindUI() {
     });
   });
 
+  document.querySelectorAll('.surface-tab').forEach((button) => {
+    button.addEventListener('click', () => {
+      const surface = button.dataset.surface || 'demo';
+      setSurface(surface).catch((error) => {
+        log.warn('DopplerDemo', `Surface switch failed: ${error.message}`);
+      });
+    });
+  });
+
+  surfaceOpenLabBtn?.addEventListener('click', () => {
+    setSurface('lab', 'models').catch((error) => {
+      log.warn('DopplerDemo', `Open Lab failed: ${error.message}`);
+    });
+  });
+
   document.querySelectorAll('.mode-tool').forEach((button) => {
     button.addEventListener('click', () => {
       const mode = button.dataset.mode || 'diagnostics';
@@ -3711,22 +3863,27 @@ function bindUI() {
   });
 
   downloadStart?.addEventListener('click', () => {
+    if (!requireLabSurface('RDRR URL import')) return;
     startDownload();
   });
 
   downloadPause?.addEventListener('click', () => {
+    if (!requireLabSurface('RDRR URL import controls')) return;
     pauseActiveDownload();
   });
 
   downloadResume?.addEventListener('click', () => {
+    if (!requireLabSurface('RDRR URL import controls')) return;
     resumeActiveDownload();
   });
 
   downloadCancel?.addEventListener('click', () => {
+    if (!requireLabSurface('RDRR URL import controls')) return;
     cancelActiveDownload();
   });
 
   downloadRefresh?.addEventListener('click', () => {
+    if (!requireLabSurface('RDRR URL import controls')) return;
     refreshDownloads();
   });
 
@@ -3925,7 +4082,7 @@ function bindUI() {
 function setAppBootstrapMessage(message) {
   const overlayText = $('app-bootstrap-message');
   if (!overlayText) return;
-  setText(overlayText, typeof message === 'string' && message.trim() ? message.trim() : 'Initializing...');
+  setText(overlayText, typeof message === 'string' && message.trim() ? message.trim() : 'Loading...');
 }
 
 function setAppBootstrapVisible(visible, message = null) {
@@ -3948,13 +4105,16 @@ function setAppBootstrapVisible(visible, message = null) {
 async function init() {
   state.appInitializing = true;
   setStatusIndicator('Initializing...', 'info');
-  setAppBootstrapMessage('Initializing Doppler Demo...');
+  setAppBootstrapMessage('Loading...');
+  console.log('[Bootstrap] Loading... evaluating demo module graph and preparing bootstrap overlay.');
   setAppBootstrapVisible(true);
   try {
     ensurePrimaryModeControlStack();
     const deepLinkState = readDeepLinkStateFromLocation();
+    state.surface = normalizeSurface(deepLinkState.surface, state.surface || 'demo');
+    syncSurfaceUI(state.surface);
     if (deepLinkState.mode) {
-      state.uiMode = deepLinkState.mode;
+      state.uiMode = resolveModeForSurface(deepLinkState.mode, state.surface);
     }
     applyDeepLinkStateToUI(deepLinkState);
     prefillDemoTextInputs();
@@ -3968,8 +4128,9 @@ async function init() {
     populateModelPresets();
     populateRuntimePresetSelects();
     populateEnergyDemoSelect();
-    setStatusIndicator('Initializing GPU...', 'info');
-    setAppBootstrapMessage('Loading demo artifacts...');
+    setStatusIndicator('Initializing...', 'info');
+    setAppBootstrapMessage('Initializing...');
+    console.log('[Bootstrap] Initializing... running startup tasks: quick model catalog fetch, WebGPU capability init, and download-state refresh.');
 
     const startupTasks = Promise.all([
       loadQuickModelCatalog(),
@@ -3980,6 +4141,7 @@ async function init() {
 
     await setUiMode(state.uiMode);
     bindUI();
+    applyDeepLinkStateToUI(deepLinkState);
     updateMemoryControls();
     startTelemetryLoop();
     setRunLoading(false);

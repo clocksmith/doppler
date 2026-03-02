@@ -460,7 +460,7 @@ carry adapter metadata fields, but adapters themselves are not RDRR bundles.
 
 ### Integrity Verification
 
-- Per-shard hash via manifest `hashAlgorithm` (`blake3` or `sha256`; converter default is `blake3`)
+- Per-shard hash via manifest `hashAlgorithm` (`blake3` or `sha256`; converter default is `sha256`)
 - Enables shard integrity verification regardless of distribution channel
 - Peers can verify shard integrity independently
 

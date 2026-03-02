@@ -16,7 +16,6 @@ export async function parseTransformerModel(adapter) {
   } else {
     tensors = await loadSingleSafetensors('model.safetensors');
   }
-  tensors.sort((a, b) => String(a?.name || '').localeCompare(String(b?.name || '')));
 
   return {
     config,

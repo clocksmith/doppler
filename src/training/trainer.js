@@ -69,6 +69,73 @@ function flattenUniqueParams(paramGroups) {
   return output;
 }
 
+function isTensorLike(value) {
+  return !!value
+    && typeof value === 'object'
+    && Array.isArray(value.shape)
+    && value.buffer != null;
+}
+
+function normalizeBackwardSeedPayload(payload, loss, lossScale) {
+  const collectSeedTensors = (value) => {
+    const seedTensors = [];
+    if (value instanceof Map) {
+      for (const grad of value.values()) {
+        if (isTensorLike(grad)) {
+          seedTensors.push(grad);
+        }
+      }
+      return seedTensors;
+    }
+    if (Array.isArray(value)) {
+      for (const seed of value) {
+        if (isTensorLike(seed?.grad)) {
+          seedTensors.push(seed.grad);
+        }
+      }
+      return seedTensors;
+    }
+    if (value && typeof value === 'object' && Array.isArray(value.seeds)) {
+      for (const seed of value.seeds) {
+        if (isTensorLike(seed?.grad)) {
+          seedTensors.push(seed.grad);
+        }
+      }
+      return seedTensors;
+    }
+    if (isTensorLike(value)) {
+      seedTensors.push(value);
+    }
+    return seedTensors;
+  };
+
+  if (payload instanceof Map) {
+    return { seedArg: payload, seedTensors: collectSeedTensors(payload) };
+  }
+  if (Array.isArray(payload)) {
+    return { seedArg: payload, seedTensors: collectSeedTensors(payload) };
+  }
+  if (payload && typeof payload === 'object' && Array.isArray(payload.seeds)) {
+    return { seedArg: payload, seedTensors: collectSeedTensors(payload) };
+  }
+  if (isTensorLike(payload)) {
+    return { seedArg: payload, seedTensors: [payload] };
+  }
+  const fallback = createLossGradient(loss, lossScale);
+  return { seedArg: fallback, seedTensors: [fallback] };
+}
+
+function filterGradientsForParams(grads, params) {
+  const filtered = new Map();
+  for (const param of params) {
+    const grad = grads.get(param);
+    if (grad) {
+      filtered.set(param, grad);
+    }
+  }
+  return filtered;
+}
+
 export async function trainStep(
   model,
   batch,
@@ -145,11 +212,13 @@ export async function trainStep(
   const forward_ms = globalThis.performance.now() - t0;
 
   const t1 = globalThis.performance.now();
-  const backwardSeed = gradOutput || createLossGradient(loss, lossScale);
-  const grads = await tape.backward(backwardSeed);
+  const backwardSeed = normalizeBackwardSeedPayload(gradOutput, loss, lossScale);
+  const grads = await tape.backward(backwardSeed.seedArg);
   const backward_ms = globalThis.performance.now() - t1;
-  if (backwardSeed?.buffer) {
-    releaseBuffer(backwardSeed.buffer);
+  for (const seedTensor of backwardSeed.seedTensors) {
+    if (seedTensor?.buffer) {
+      releaseBuffer(seedTensor.buffer);
+    }
   }
   let processed = grads;
   if (lossScale !== 1) {
@@ -161,6 +230,13 @@ export async function trainStep(
     }
     processed = unscaled;
   }
+  const paramGroups = resolveModelParamGroups(model);
+  const freezeMap = config.training?.ul?.freeze
+    ?? config.training?.distill?.freeze
+    ?? {};
+  const { trainableGroups, frozenGroups } = selectTrainableParamGroups(paramGroups, freezeMap);
+  const trainableParams = flattenUniqueParams(trainableGroups);
+  processed = filterGradientsForParams(processed, trainableParams);
 
   let clipMetrics = null;
   if (applyClip) {
@@ -171,10 +247,6 @@ export async function trainStep(
   let optimizerMetrics = null;
   let paramGroupMetrics = null;
   if (applyOptimizer) {
-    const paramGroups = resolveModelParamGroups(model);
-    const freezeMap = config.training?.ul?.freeze ?? {};
-    const { trainableGroups, frozenGroups } = selectTrainableParamGroups(paramGroups, freezeMap);
-    const trainableParams = flattenUniqueParams(trainableGroups);
     optimizerMetrics = await optimizer.step(trainableParams, processed, config, {
       trainableGroups: Object.keys(trainableGroups),
       frozenGroups,

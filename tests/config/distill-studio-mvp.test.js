@@ -1,28 +1,41 @@
 import assert from 'node:assert/strict';
-import { execFile } from 'node:child_process';
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { spawnSync } from 'node:child_process';
+import { closeSync, mkdtempSync, openSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import path from 'node:path';
 
 function runNodeScript(args) {
-  return new Promise((resolve, reject) => {
-    execFile('node', args, { cwd: process.cwd() }, (error, stdout, stderr) => {
-      if (error) {
-        reject(new Error(`${error.message}\n${stderr || stdout}`));
-        return;
-      }
-      resolve({ stdout, stderr });
-    });
+  const logDir = mkdtempSync(path.join(tmpdir(), 'doppler-distill-mvp-run-'));
+  const stdoutPath = path.join(logDir, 'stdout.log');
+  const stderrPath = path.join(logDir, 'stderr.log');
+  const stdoutFd = openSync(stdoutPath, 'w');
+  const stderrFd = openSync(stderrPath, 'w');
+
+  const result = spawnSync(process.execPath, args, {
+    cwd: process.cwd(),
+    stdio: ['ignore', stdoutFd, stderrFd],
   });
+
+  closeSync(stdoutFd);
+  closeSync(stderrFd);
+
+  const output = {
+    code: result.status ?? 1,
+    stdout: readFileSync(stdoutPath, 'utf8'),
+    stderr: readFileSync(stderrPath, 'utf8'),
+  };
+  rmSync(logDir, { recursive: true, force: true });
+  return output;
 }
 
-const tempDir = await mkdtemp(join(tmpdir(), 'doppler-distill-mvp-test-'));
+const tempDir = mkdtempSync(path.join(tmpdir(), 'doppler-distill-mvp-test-'));
 try {
-  const teacherPath = join(tempDir, 'teacher.json');
-  const studentPath = join(tempDir, 'student.json');
-  const holdoutPath = join(tempDir, 'holdout.json');
-  const outPath = join(tempDir, 'out.json');
-  await writeFile(teacherPath, JSON.stringify({
+  const teacherPath = path.join(tempDir, 'teacher.json');
+  const studentPath = path.join(tempDir, 'student.json');
+  const holdoutPath = path.join(tempDir, 'holdout.json');
+  const invalidHoldoutPath = path.join(tempDir, 'holdout-invalid.json');
+  const outPath = path.join(tempDir, 'out.json');
+  writeFileSync(teacherPath, JSON.stringify({
     suite: 'bench',
     modelId: 'teacher',
     metrics: {
@@ -32,7 +45,7 @@ try {
       ],
     },
   }, null, 2), 'utf8');
-  await writeFile(studentPath, JSON.stringify({
+  writeFileSync(studentPath, JSON.stringify({
     suite: 'bench',
     modelId: 'student',
     metrics: {
@@ -42,39 +55,121 @@ try {
       ],
     },
   }, null, 2), 'utf8');
-  await writeFile(holdoutPath, JSON.stringify([{ id: 'a' }, { id: 'b' }], null, 2), 'utf8');
+  writeFileSync(holdoutPath, JSON.stringify([{ id: 'a' }, { id: 'b' }], null, 2), 'utf8');
+  writeFileSync(invalidHoldoutPath, JSON.stringify({ id: 'not-array' }, null, 2), 'utf8');
 
-  await runNodeScript([
-    'tools/distill-studio-mvp.mjs',
-    'branch-compare',
-    '--teacher',
-    teacherPath,
-    '--student',
-    studentPath,
-    '--out',
-    outPath,
-  ]);
-  const branchCompare = JSON.parse(await readFile(outPath, 'utf8'));
-  assert.equal(branchCompare.mode, 'branch-compare');
-  assert.equal(branchCompare.comparedSteps, 2);
+  {
+    const result = runNodeScript([
+      'tools/distill-studio-mvp.mjs',
+      'replay-teacher',
+      '--teacher',
+      teacherPath,
+      '--out',
+      outPath,
+    ]);
+    assert.equal(result.code, 0);
+    const replay = JSON.parse(readFileSync(outPath, 'utf8'));
+    assert.equal(replay.mode, 'replay-teacher');
+    assert.equal(Array.isArray(replay.timeline), true);
+    assert.equal(replay.timeline.length, 2);
+  }
 
-  await runNodeScript([
-    'tools/distill-studio-mvp.mjs',
-    'mini-eval',
-    '--teacher',
-    teacherPath,
-    '--student',
-    studentPath,
-    '--holdout',
-    holdoutPath,
-    '--out',
-    outPath,
-  ]);
-  const miniEval = JSON.parse(await readFile(outPath, 'utf8'));
-  assert.equal(miniEval.mode, 'mini-eval');
-  assert.equal(miniEval.holdoutSize, 2);
+  {
+    const result = runNodeScript([
+      'tools/distill-studio-mvp.mjs',
+      'branch-compare',
+      '--teacher',
+      teacherPath,
+      '--student',
+      studentPath,
+      '--out',
+      outPath,
+    ]);
+    assert.equal(result.code, 0);
+    const branchCompare = JSON.parse(readFileSync(outPath, 'utf8'));
+    assert.equal(branchCompare.mode, 'branch-compare');
+    assert.equal(branchCompare.comparedSteps, 2);
+  }
+
+  {
+    const result = runNodeScript([
+      'tools/distill-studio-mvp.mjs',
+      'mini-eval',
+      '--teacher',
+      teacherPath,
+      '--student',
+      studentPath,
+      '--holdout',
+      holdoutPath,
+      '--out',
+      outPath,
+    ]);
+    assert.equal(result.code, 0);
+    const miniEval = JSON.parse(readFileSync(outPath, 'utf8'));
+    assert.equal(miniEval.mode, 'mini-eval');
+    assert.equal(miniEval.holdoutSize, 2);
+  }
+
+  {
+    const result = runNodeScript([
+      'tools/distill-studio-mvp.mjs',
+      'replay-teacher',
+    ]);
+    assert.equal(result.code, 1);
+    assert.match(result.stderr, /--teacher is required\./);
+  }
+
+  {
+    const result = runNodeScript([
+      'tools/distill-studio-mvp.mjs',
+      'branch-compare',
+      '--teacher',
+      teacherPath,
+    ]);
+    assert.equal(result.code, 1);
+    assert.match(result.stderr, /--student is required for branch-compare\./);
+  }
+
+  {
+    const result = runNodeScript([
+      'tools/distill-studio-mvp.mjs',
+      'mini-eval',
+      '--teacher',
+      teacherPath,
+      '--student',
+      studentPath,
+      '--holdout',
+      invalidHoldoutPath,
+    ]);
+    assert.equal(result.code, 1);
+    assert.match(result.stderr, /--holdout must be a JSON array\./);
+  }
+
+  {
+    const result = runNodeScript([
+      'tools/distill-studio-mvp.mjs',
+      'not-a-mode',
+      '--teacher',
+      teacherPath,
+    ]);
+    assert.equal(result.code, 1);
+    assert.match(result.stderr, /Unknown mode: not-a-mode/);
+  }
+
+  {
+    const result = runNodeScript([
+      'tools/distill-studio-mvp.mjs',
+      'replay-teacher',
+      '--teacher',
+      teacherPath,
+      '--nope',
+      'x',
+    ]);
+    assert.equal(result.code, 1);
+    assert.match(result.stderr, /Unknown flag: --nope/);
+  }
 } finally {
-  await rm(tempDir, { recursive: true, force: true });
+  rmSync(tempDir, { recursive: true, force: true });
 }
 
 console.log('distill-studio-mvp.test: ok');

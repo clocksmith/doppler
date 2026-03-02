@@ -78,7 +78,7 @@ function formatDownloadStatus(progress) {
 
 export function updateStatusIndicator() {
   if (state.appInitializing) {
-    setStatusIndicator('Initializing application...', 'info');
+    setStatusIndicator('Initializing D4DA Studio...', 'info');
     return;
   }
   if (state.modelAvailabilityLoading) {
