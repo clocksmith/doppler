@@ -1,4 +1,5 @@
 import type { LoraConfigSchema } from './lora.schema.js';
+import type { DistillTrainingConfigSchema } from './distill-training.schema.js';
 import type { UlTrainingConfigSchema } from './ul-training.schema.js';
 
 export interface TrainingSchedulerConfigSchema {
@@ -74,6 +75,7 @@ export interface TrainingSettingsSchema {
   attention: TrainingAttentionConfigSchema;
   telemetry: TrainingTelemetryConfigSchema;
   lossScaling: TrainingLossScalingConfigSchema;
+  distill: DistillTrainingConfigSchema;
   ul: UlTrainingConfigSchema;
 }
 

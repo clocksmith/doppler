@@ -23,6 +23,7 @@ Quick index for DOPPLER documentation.
 - [Training Artifact Conventions](training-artifact-conventions.md) - Naming/versioning policy for training and UL artifacts.
 - [Training Hash Policy](training-hash-policy.md) - Canonical hashing policy for linkage and claims.
 - [Training Timestamp Policy](training-deterministic-timestamp-policy.md) - Deterministic hash behavior vs volatile timestamps.
+- [Training Distill v1 (Practical)](training-distill-v1.md) - TranslateGemma stage_a/stage_b distill workflow.
 - [Distill Studio MVP](distill-studio-mvp.md) - MVP contract surface and operator commands.
 - [Distill Studio Rollout Checklist](distill-studio-rollout-checklist.md) - Staged rollout controls.
 - [Distill Studio Reliability Dashboard](distill-studio-reliability-dashboard.md) - Operator dashboard signals.

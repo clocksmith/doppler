@@ -299,6 +299,17 @@ export {
 } from './training.schema.js';
 
 // =============================================================================
+// Distill Training Schema
+// =============================================================================
+export {
+  DISTILL_STAGE_VALUES,
+  DISTILL_TRAINING_SCHEMA_VERSION,
+  DEFAULT_DISTILL_FREEZE_GROUPS,
+  DEFAULT_DISTILL_TRAINING_CONFIG,
+  validateDistillTrainingConfig,
+} from './distill-training.schema.js';
+
+// =============================================================================
 // UL Training Schema
 // =============================================================================
 export {

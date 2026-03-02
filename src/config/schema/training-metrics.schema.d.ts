@@ -14,6 +14,14 @@ export interface TrainingMetricsReportSchema {
     scheduler_phase?: string | null;
     loss_kd?: number | null;
     loss_triplet?: number | null;
+    distill_stage?: 'stage_a' | 'stage_b' | null;
+    distill_temperature?: number | null;
+    distill_alpha_kd?: number | null;
+    distill_alpha_ce?: number | null;
+    distill_loss_ce_aux?: number | null;
+    distill_triplet_margin?: number | null;
+    distill_stage_a_step_count?: number | null;
+    distill_stage_a_kd_mean?: number | null;
     gradient_norm_unclipped?: number;
     gradient_norm_clipped?: number;
     clipped_event_count?: number;
