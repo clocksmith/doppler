@@ -2049,6 +2049,10 @@ async function dispatchBrowserSuite(suite, options) {
 function collectTrainingArtifactsFromSuiteResult(suiteResult) {
   const ulArtifacts = [];
   const distillArtifacts = [];
+  const checkpointResumeTimeline = Array.isArray(suiteResult?.metrics?.checkpointResumeTimeline)
+    ? suiteResult.metrics.checkpointResumeTimeline
+      .filter((entry) => entry && typeof entry === 'object')
+    : [];
   const addArtifact = (artifact, source = null) => {
     if (!artifact || typeof artifact !== 'object' || typeof artifact.manifestPath !== 'string') {
       return;
@@ -2082,7 +2086,7 @@ function collectTrainingArtifactsFromSuiteResult(suiteResult) {
   for (const entry of resultEntries) {
     addArtifact(entry?.artifact, null);
   }
-  return { ulArtifacts, distillArtifacts };
+  return { ulArtifacts, distillArtifacts, checkpointResumeTimeline };
 }
 
 export async function runBrowserSuite(options = {}) {
@@ -2107,6 +2111,7 @@ export async function runBrowserSuite(options = {}) {
     const trainingArtifacts = collectTrainingArtifactsFromSuiteResult(suiteResult);
     const ulArtifacts = trainingArtifacts.ulArtifacts;
     const distillArtifacts = trainingArtifacts.distillArtifacts;
+    const checkpointResumeTimeline = trainingArtifacts.checkpointResumeTimeline;
     const report = {
       suite,
       modelId,
@@ -2120,7 +2125,7 @@ export async function runBrowserSuite(options = {}) {
       memory: suiteResult.memoryStats ?? null,
       ...options.report,
     };
-    if (ulArtifacts.length > 0 || distillArtifacts.length > 0) {
+    if (ulArtifacts.length > 0 || distillArtifacts.length > 0 || checkpointResumeTimeline.length > 0) {
       report.lineage = {
         ...(report.lineage && typeof report.lineage === 'object' ? report.lineage : {}),
         training: {
@@ -2131,6 +2136,7 @@ export async function runBrowserSuite(options = {}) {
           ),
           ...(ulArtifacts.length > 0 ? { ulArtifacts } : {}),
           ...(distillArtifacts.length > 0 ? { distillArtifacts } : {}),
+          ...(checkpointResumeTimeline.length > 0 ? { checkpointResumeTimeline } : {}),
         },
       };
     }

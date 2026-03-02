@@ -31,6 +31,14 @@
       gap: var(--space-md);
     }
 
+    .app-header {
+      padding: var(--space-sm) var(--space-md);
+      border: var(--border-md) dotted var(--fg);
+      background:
+        radial-gradient(circle at 0 0, color-mix(in srgb, var(--fg) 7%, transparent), transparent 52%),
+        linear-gradient(180deg, color-mix(in srgb, var(--bg-contrast) 78%, var(--bg) 22%), var(--bg));
+    }
+
     .brand-block {
       display: flex;
       flex-direction: column;
@@ -47,6 +55,13 @@
     .brand-subtitle {
       margin-top: 2px;
       white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      max-width: 100%;
+      padding: 1px 6px;
+      border: var(--border-sm) dashed var(--fg);
+      background: color-mix(in srgb, var(--bg-contrast) 74%, transparent);
     }
 
     .header-actions {
@@ -90,6 +105,10 @@
       gap: 4px;
     }
 
+    .surface-nav-group {
+      min-width: 300px;
+    }
+
     .nav-label {
       font-family: var(--demo-label-family);
       font-size: var(--demo-label-size);
@@ -116,6 +135,27 @@
     .mode-tool {
       padding: 6px 12px;
       border-radius: 0;
+    }
+
+    .surface-tab {
+      min-width: 72px;
+      transition: background-color 150ms ease, color 150ms ease;
+    }
+
+    .surface-tab.is-active {
+      background: var(--fg);
+      color: var(--bg);
+      border-style: solid;
+    }
+
+    .surface-caption {
+      min-height: calc(var(--demo-label-line-height) * var(--demo-label-size) * 2);
+      max-width: 360px;
+      opacity: 0.8;
+    }
+
+    #app[data-surface="lab"] .surface-caption {
+      opacity: 1;
     }
 
     .btn-small {
@@ -256,6 +296,19 @@
 
     #app[data-mode="models"] .storage-panel {
       grid-column: 2 / 4;
+    }
+
+    #app[data-mode="models"][data-surface="demo"] .panel-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    #app[data-mode="models"][data-surface="demo"] .panel-stack-primary {
+      grid-column: 1 / 2;
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    #app[data-mode="models"][data-surface="demo"] .storage-panel {
+      grid-column: 1 / 2;
     }
 
     /* Diagnostics mode: left stats + wide diagnostics panel */
@@ -874,6 +927,12 @@
     .status-d4-c { animation: doppler-d4-c 4.444s ease-in-out infinite; }
     .status-d4-d { animation: doppler-d4-d 4.444s ease-in-out infinite; }
 
+    /* Bootstrap overlay uses the stronger orbit from ../d4da/rotating-four.css. */
+    .app-bootstrap-d4-loading .status-d4-a { animation: doppler-d4-overlay-a 4.444s ease-in-out infinite; }
+    .app-bootstrap-d4-loading .status-d4-b { animation: doppler-d4-overlay-b 4.444s ease-in-out infinite; }
+    .app-bootstrap-d4-loading .status-d4-c { animation: doppler-d4-overlay-c 4.444s ease-in-out infinite; }
+    .app-bootstrap-d4-loading .status-d4-d { animation: doppler-d4-overlay-d 4.444s ease-in-out infinite; }
+
     .status-indicator.status-initializing .status-text {
       margin-left: 0;
       width: 100%;
@@ -910,6 +969,38 @@
       47%, 53% { transform: scale(0.45) translate(-6px, -7px); opacity: 0.55; }
       72%, 78% { transform: scale(0.45) translate(9px, -7px); opacity: 0.55; }
       97%, 100% { transform: scale(0.45) translate(1px, 7px); opacity: 0.55; }
+    }
+
+    @keyframes doppler-d4-overlay-a {
+      0%, 3% { transform: scale(1) translate(0px, 0px); opacity: 1; }
+      22%, 28% { transform: scale(0.45) translate(-12px, -14px); opacity: 0.5; }
+      47%, 53% { transform: scale(0.45) translate(18px, -14px); opacity: 0.5; }
+      72%, 78% { transform: scale(0.45) translate(3px, 12px); opacity: 0.5; }
+      97%, 100% { transform: scale(1) translate(0px, 0px); opacity: 1; }
+    }
+
+    @keyframes doppler-d4-overlay-b {
+      0%, 3% { transform: scale(0.45) translate(-12px, -14px); opacity: 0.5; }
+      22%, 28% { transform: scale(0.45) translate(18px, -14px); opacity: 0.5; }
+      47%, 53% { transform: scale(0.45) translate(3px, 12px); opacity: 0.5; }
+      72%, 78% { transform: scale(1) translate(0px, 0px); opacity: 1; }
+      97%, 100% { transform: scale(0.45) translate(-12px, -14px); opacity: 0.5; }
+    }
+
+    @keyframes doppler-d4-overlay-c {
+      0%, 3% { transform: scale(0.45) translate(18px, -14px); opacity: 0.5; }
+      22%, 28% { transform: scale(0.45) translate(3px, 12px); opacity: 0.5; }
+      47%, 53% { transform: scale(1) translate(0px, 0px); opacity: 1; }
+      72%, 78% { transform: scale(0.45) translate(-12px, -14px); opacity: 0.5; }
+      97%, 100% { transform: scale(0.45) translate(18px, -14px); opacity: 0.5; }
+    }
+
+    @keyframes doppler-d4-overlay-d {
+      0%, 3% { transform: scale(0.45) translate(3px, 12px); opacity: 0.5; }
+      22%, 28% { transform: scale(1) translate(0px, 0px); opacity: 1; }
+      47%, 53% { transform: scale(0.45) translate(-12px, -14px); opacity: 0.5; }
+      72%, 78% { transform: scale(0.45) translate(18px, -14px); opacity: 0.5; }
+      97%, 100% { transform: scale(0.45) translate(3px, 12px); opacity: 0.5; }
     }
 
     .status-indicator .status-text {
@@ -1440,6 +1531,20 @@
       background: var(--bg-contrast);
     }
 
+    .surface-context {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      padding: var(--space-sm);
+      border: var(--border-sm) dashed var(--fg);
+      background: color-mix(in srgb, var(--bg-contrast) 70%, var(--bg) 30%);
+    }
+
+    .surface-context .btn {
+      flex: 0 0 auto;
+    }
+
     /* Downloader */
     .download-field {
       display: flex;
@@ -1586,6 +1691,14 @@
         white-space: normal;
       }
 
+      .surface-nav-group {
+        min-width: 0;
+      }
+
+      .surface-caption {
+        max-width: none;
+      }
+
       .header-actions {
         width: 100%;
         grid-template-columns: 1fr;
@@ -1727,6 +1840,15 @@
       .download-row {
         grid-template-columns: 1fr;
         gap: var(--space-xs);
+      }
+
+      .surface-context {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .surface-context .btn {
+        width: 100%;
       }
 
       .diagnostics-config-row,

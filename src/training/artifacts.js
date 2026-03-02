@@ -538,6 +538,7 @@ function buildDistillContractPayload(distillConfig) {
     temperature: toFiniteNumber(distillConfig.temperature, 1),
     alphaKd: toFiniteNumber(distillConfig.alphaKd, 1),
     alphaCe: toFiniteNumber(distillConfig.alphaCe, 0),
+    allowHintFallback: distillConfig.allowHintFallback === true,
     tripletMargin: toFiniteNumber(distillConfig.tripletMargin, 0.2),
     teacherModelId: distillConfig.teacherModelId || null,
     studentModelId: distillConfig.studentModelId || null,
@@ -557,9 +558,13 @@ function buildResolvedDistillConfigSnapshot(distillConfig) {
     datasetId: distillConfig.datasetId || null,
     datasetPath: distillConfig.datasetPath || null,
     languagePair: distillConfig.languagePair || null,
+    shardIndex: Number.isInteger(distillConfig.shardIndex) ? distillConfig.shardIndex : null,
+    shardCount: Number.isInteger(distillConfig.shardCount) ? distillConfig.shardCount : null,
+    resumeFrom: distillConfig.resumeFrom || null,
     temperature: toFiniteNumber(distillConfig.temperature, 1),
     alphaKd: toFiniteNumber(distillConfig.alphaKd, 1),
     alphaCe: toFiniteNumber(distillConfig.alphaCe, 0),
+    allowHintFallback: distillConfig.allowHintFallback === true,
     tripletMargin: toFiniteNumber(distillConfig.tripletMargin, 0.2),
     freeze: distillConfig.freeze || null,
   };
@@ -574,9 +579,17 @@ function buildDistillRuntimeDump(distillConfig, runOptions = {}) {
     datasetId: runOptions.distillDatasetId || distillConfig.datasetId || null,
     datasetPath: runOptions.distillDatasetPath || distillConfig.datasetPath || null,
     languagePair: runOptions.distillLanguagePair || distillConfig.languagePair || null,
+    shardIndex: Number.isInteger(runOptions.distillShardIndex)
+      ? runOptions.distillShardIndex
+      : (Number.isInteger(distillConfig.shardIndex) ? distillConfig.shardIndex : null),
+    shardCount: Number.isInteger(runOptions.distillShardCount)
+      ? runOptions.distillShardCount
+      : (Number.isInteger(distillConfig.shardCount) ? distillConfig.shardCount : null),
+    resumeFrom: runOptions.resumeFrom || distillConfig.resumeFrom || null,
     temperature: toFiniteNumber(distillConfig.temperature, 1),
     alphaKd: toFiniteNumber(distillConfig.alphaKd, 1),
     alphaCe: toFiniteNumber(distillConfig.alphaCe, 0),
+    allowHintFallback: distillConfig.allowHintFallback === true,
     tripletMargin: toFiniteNumber(distillConfig.tripletMargin, 0.2),
     freeze: distillConfig.freeze || null,
     artifactDir: runOptions.distillArtifactDir || distillConfig.artifactDir || 'bench/out/distill',
@@ -665,6 +678,7 @@ export function resolveDistillTrainingContract(distillConfig) {
       datasetId: null,
       datasetPath: null,
       languagePair: null,
+      allowHintFallback: false,
     };
   }
   return {
@@ -678,6 +692,7 @@ export function resolveDistillTrainingContract(distillConfig) {
     datasetId: distillConfig.datasetId || null,
     datasetPath: distillConfig.datasetPath || null,
     languagePair: distillConfig.languagePair || null,
+    allowHintFallback: distillConfig.allowHintFallback === true,
   };
 }
 
@@ -813,6 +828,9 @@ export async function createDistillArtifactSession(options) {
           datasetId: runOptions.distillDatasetId || distillConfig.datasetId || null,
           datasetPath: runOptions.distillDatasetPath || distillConfig.datasetPath || null,
           languagePair: runOptions.distillLanguagePair || distillConfig.languagePair || null,
+          distillShardIndex: runOptions.distillShardIndex ?? distillConfig.shardIndex ?? null,
+          distillShardCount: runOptions.distillShardCount ?? distillConfig.shardCount ?? null,
+          resumeFrom: runOptions.resumeFrom || distillConfig.resumeFrom || null,
           batchSize: runOptions.batchSize ?? null,
           epochs: runOptions.epochs ?? null,
           maxSteps: runOptions.maxSteps ?? null,

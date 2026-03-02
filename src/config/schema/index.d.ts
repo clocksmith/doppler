@@ -239,6 +239,8 @@ export {
   type ConverterManifestConfigSchema,
   type ConverterInferenceConfigSchema,
   type ConverterOutputConfigSchema,
+  type ConverterExecutionConfigSchema,
+  type ConverterWorkerCountPolicy,
   type GGUFParserDefaultsSchema,
   type ConverterPresetConfigSchema,
   type ConverterConfigSchema,
@@ -253,6 +255,7 @@ export {
   DEFAULT_CONVERTER_INFERENCE_CONFIG,
   DEFAULT_CONVERTER_OUTPUT_CONFIG,
   DEFAULT_CONVERTER_PRESET_CONFIG,
+  DEFAULT_CONVERTER_EXECUTION_CONFIG,
   DEFAULT_GGUF_PARSER_DEFAULTS,
   DEFAULT_CONVERTER_CONFIG,
 

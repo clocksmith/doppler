@@ -10,6 +10,9 @@ function parseArgs(argv) {
     outDir: 'bench/out/distill',
     workload: 'tiny',
     distillDatasetPath: null,
+    distillShardIndex: null,
+    distillShardCount: null,
+    resumeFrom: null,
   };
   for (let i = 2; i < argv.length; i += 1) {
     const arg = argv[i];
@@ -30,6 +33,29 @@ function parseArgs(argv) {
     }
     if (arg === '--distill-dataset-path') {
       parsed.distillDatasetPath = String(argv[i + 1] || '').trim() || null;
+      i += 1;
+      continue;
+    }
+    if (arg === '--distill-shard-index') {
+      const parsedValue = Number(argv[i + 1]);
+      if (!Number.isInteger(parsedValue) || parsedValue < 1) {
+        throw new Error('--distill-shard-index must be a positive integer');
+      }
+      parsed.distillShardIndex = parsedValue;
+      i += 1;
+      continue;
+    }
+    if (arg === '--distill-shard-count') {
+      const parsedValue = Number(argv[i + 1]);
+      if (!Number.isInteger(parsedValue) || parsedValue < 1) {
+        throw new Error('--distill-shard-count must be a positive integer');
+      }
+      parsed.distillShardCount = parsedValue;
+      i += 1;
+      continue;
+    }
+    if (arg === '--resume-from') {
+      parsed.resumeFrom = String(argv[i + 1] || '').trim() || null;
       i += 1;
       continue;
     }
@@ -112,6 +138,20 @@ async function main() {
     ? String(workload.config.distillDatasetPath)
     : null
   );
+  const distillShardIndex = args.distillShardIndex
+    ?? (Number.isInteger(workload.config.distillShardIndex) ? workload.config.distillShardIndex : null);
+  const distillShardCount = args.distillShardCount
+    ?? (Number.isInteger(workload.config.distillShardCount) ? workload.config.distillShardCount : null);
+  const resumeFrom = args.resumeFrom || (
+    workload.config.resumeFrom ? String(workload.config.resumeFrom) : null
+  );
+  if (
+    Number.isInteger(distillShardIndex)
+    && Number.isInteger(distillShardCount)
+    && distillShardIndex > distillShardCount
+  ) {
+    throw new Error('distillShardIndex must be <= distillShardCount');
+  }
   const distillLanguagePair = String(workload.config.distillLanguagePair || 'en-es');
   const trainingTests = Array.isArray(workload.config.trainingTests)
     ? workload.config.trainingTests.map((value) => String(value))
@@ -149,6 +189,9 @@ async function main() {
     ...(distillDatasetPath ? ['--distill-dataset-path', distillDatasetPath] : []),
     '--distill-language-pair',
     distillLanguagePair,
+    ...(distillShardIndex ? ['--distill-shard-index', String(distillShardIndex)] : []),
+    ...(distillShardCount ? ['--distill-shard-count', String(distillShardCount)] : []),
+    ...(resumeFrom ? ['--resume-from', resumeFrom] : []),
     '--distill-artifact-dir',
     outDirAbs,
     '--json',
@@ -178,6 +221,9 @@ async function main() {
     ...(distillDatasetPath ? ['--distill-dataset-path', distillDatasetPath] : []),
     '--distill-language-pair',
     distillLanguagePair,
+    ...(distillShardIndex ? ['--distill-shard-index', String(distillShardIndex)] : []),
+    ...(distillShardCount ? ['--distill-shard-count', String(distillShardCount)] : []),
+    ...(resumeFrom ? ['--resume-from', resumeFrom] : []),
     '--distill-artifact-dir',
     outDirAbs,
     '--json',
@@ -206,6 +252,9 @@ async function main() {
     ...(distillDatasetPath ? ['--distill-dataset-path', distillDatasetPath] : []),
     '--distill-language-pair',
     distillLanguagePair,
+    ...(distillShardIndex ? ['--distill-shard-index', String(distillShardIndex)] : []),
+    ...(distillShardCount ? ['--distill-shard-count', String(distillShardCount)] : []),
+    ...(resumeFrom ? ['--resume-from', resumeFrom] : []),
     '--distill-artifact-dir',
     outDirAbs,
     '--stagea-artifact',

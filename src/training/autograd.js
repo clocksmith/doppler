@@ -40,9 +40,9 @@ export class AutogradTape {
 
   async backward(gradOutput) {
     const grads = new Map();
-    const last = this.records[this.records.length - 1];
-    if (last) {
-      grads.set(last.output, gradOutput);
+    const seeds = this.normalizeBackwardSeeds(gradOutput);
+    for (const seed of seeds) {
+      await this.accumulateGrad(grads, seed.tensor, seed.grad);
     }
 
     for (let i = this.records.length - 1; i >= 0; i -= 1) {
@@ -66,6 +66,48 @@ export class AutogradTape {
     }
 
     return grads;
+  }
+
+  isTensorLike(value) {
+    return !!value
+      && typeof value === 'object'
+      && Array.isArray(value.shape)
+      && value.buffer != null;
+  }
+
+  normalizeBackwardSeeds(gradOutput) {
+    const seeds = [];
+    const pushSeed = (tensor, grad) => {
+      if (!this.isTensorLike(tensor) || !this.isTensorLike(grad)) {
+        return;
+      }
+      seeds.push({ tensor, grad });
+    };
+    if (gradOutput instanceof Map) {
+      for (const [tensor, grad] of gradOutput.entries()) {
+        pushSeed(tensor, grad);
+      }
+      return seeds;
+    }
+    if (Array.isArray(gradOutput)) {
+      for (const seed of gradOutput) {
+        if (!seed || typeof seed !== 'object') continue;
+        pushSeed(seed.tensor || seed.output || null, seed.grad || null);
+      }
+      return seeds;
+    }
+    if (gradOutput && typeof gradOutput === 'object' && Array.isArray(gradOutput.seeds)) {
+      for (const seed of gradOutput.seeds) {
+        if (!seed || typeof seed !== 'object') continue;
+        pushSeed(seed.tensor || seed.output || null, seed.grad || null);
+      }
+      return seeds;
+    }
+    const last = this.records[this.records.length - 1];
+    if (last && this.isTensorLike(gradOutput)) {
+      pushSeed(last.output, gradOutput);
+    }
+    return seeds;
   }
 
   async runBackward(backwardName, record, gradOut) {

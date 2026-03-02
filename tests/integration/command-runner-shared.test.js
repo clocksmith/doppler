@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {
   applyRuntimeInputs,
   buildSuiteOptions,
+  runWithRuntimeIsolation,
 } from '../../src/tooling/command-runner-shared.js';
 
 function createRuntimeBridge(initialRuntime = {}) {
@@ -152,6 +153,9 @@ function createRuntimeBridge(initialRuntime = {}) {
     distillDatasetId: undefined,
     distillDatasetPath: undefined,
     distillLanguagePair: undefined,
+    distillShardIndex: undefined,
+    distillShardCount: undefined,
+    resumeFrom: undefined,
     trainingSchemaVersion: undefined,
     trainingBenchSteps: undefined,
     modelUrl: undefined,
@@ -217,6 +221,9 @@ function createRuntimeBridge(initialRuntime = {}) {
     distillDatasetId: undefined,
     distillDatasetPath: undefined,
     distillLanguagePair: undefined,
+    distillShardIndex: undefined,
+    distillShardCount: undefined,
+    resumeFrom: undefined,
     trainingSchemaVersion: 1,
     trainingBenchSteps: 4,
     modelUrl: undefined,
@@ -229,6 +236,168 @@ function createRuntimeBridge(initialRuntime = {}) {
     timestamp: undefined,
     searchParams: undefined,
   });
+}
+
+{
+  let runtime = {
+    inference: {
+      prompt: 'baseline',
+    },
+  };
+  let kernelPath = '/tmp/kernel/default.wgsl';
+  let kernelSource = 'runtime';
+  let kernelPolicy = { policy: 'strict' };
+  const bridge = {
+    getRuntimeConfig() {
+      return runtime;
+    },
+    setRuntimeConfig(nextRuntime) {
+      runtime = nextRuntime;
+    },
+    getActiveKernelPath() {
+      return kernelPath;
+    },
+    getActiveKernelPathSource() {
+      return kernelSource;
+    },
+    getActiveKernelPathPolicy() {
+      return kernelPolicy;
+    },
+    setActiveKernelPath(nextKernelPath, nextKernelSource, nextKernelPolicy) {
+      kernelPath = nextKernelPath;
+      kernelSource = nextKernelSource;
+      kernelPolicy = nextKernelPolicy;
+    },
+  };
+
+  const result = await runWithRuntimeIsolation(bridge, async () => {
+    bridge.setRuntimeConfig({
+      inference: {
+        prompt: 'mutated',
+      },
+    });
+    bridge.setActiveKernelPath('/tmp/kernel/override.wgsl', 'override', { policy: 'override' });
+    return 'ok';
+  });
+
+  assert.equal(result, 'ok');
+  assert.deepEqual(runtime, {
+    inference: {
+      prompt: 'baseline',
+    },
+  });
+  assert.equal(kernelPath, '/tmp/kernel/default.wgsl');
+  assert.equal(kernelSource, 'runtime');
+  assert.deepEqual(kernelPolicy, { policy: 'strict' });
+}
+
+{
+  let runtime = {
+    shared: {
+      tooling: {
+        intent: 'verify',
+      },
+    },
+  };
+  let kernelPath = null;
+  let kernelSource = 'none';
+  let kernelPolicy = { mode: 'auto' };
+  const bridge = {
+    getRuntimeConfig() {
+      return runtime;
+    },
+    setRuntimeConfig(nextRuntime) {
+      runtime = nextRuntime;
+    },
+    getActiveKernelPath() {
+      return kernelPath;
+    },
+    getActiveKernelPathSource() {
+      return kernelSource;
+    },
+    getActiveKernelPathPolicy() {
+      return kernelPolicy;
+    },
+    setActiveKernelPath(nextKernelPath, nextKernelSource, nextKernelPolicy) {
+      kernelPath = nextKernelPath;
+      kernelSource = nextKernelSource;
+      kernelPolicy = nextKernelPolicy;
+    },
+  };
+
+  await assert.rejects(
+    () => runWithRuntimeIsolation(bridge, async () => {
+      bridge.setRuntimeConfig({
+        shared: {
+          tooling: {
+            intent: 'mutated',
+          },
+        },
+      });
+      bridge.setActiveKernelPath('/tmp/kernel/override.wgsl', 'override', { mode: 'manual' });
+      throw new Error('isolation failure');
+    }),
+    /isolation failure/
+  );
+
+  assert.deepEqual(runtime, {
+    shared: {
+      tooling: {
+        intent: 'verify',
+      },
+    },
+  });
+  assert.equal(kernelPath, null);
+  assert.equal(kernelSource, 'none');
+  assert.deepEqual(kernelPolicy, { mode: 'auto' });
+}
+
+{
+  let resetCalls = 0;
+  let setCalls = 0;
+  await applyRuntimeInputs({
+    command: 'convert',
+    inputDir: '/tmp/input',
+    convertPayload: {
+      converterConfig: {},
+    },
+  }, {
+    async applyRuntimePreset() {},
+    async applyRuntimeConfigFromUrl() {},
+    getRuntimeConfig() {
+      return {
+        inference: {
+          prompt: 'base',
+        },
+      };
+    },
+    setRuntimeConfig() {
+      setCalls += 1;
+    },
+    resetRuntimeConfig() {
+      resetCalls += 1;
+    },
+  });
+
+  assert.equal(resetCalls, 1);
+  assert.equal(setCalls, 0);
+}
+
+{
+  await assert.rejects(
+    () => applyRuntimeInputs({
+      command: 'convert',
+      inputDir: '/tmp/input',
+      convertPayload: {
+        converterConfig: {},
+      },
+    }, {
+      getRuntimeConfig() {
+        return null;
+      },
+    }),
+    /runtime bridge must provide setRuntimeConfig\(\)\./
+  );
 }
 
 console.log('command-runner-shared.test: ok');

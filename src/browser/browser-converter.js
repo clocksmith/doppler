@@ -172,6 +172,31 @@ function pathEndsWith(path, suffix) {
   return normalized.endsWith(suffix);
 }
 
+function compareNullableStrings(left, right) {
+  const a = typeof left === 'string' ? left : '';
+  const b = typeof right === 'string' ? right : '';
+  return a.localeCompare(b);
+}
+
+function sortTensorsByDeterministicLocality(tensors) {
+  if (!Array.isArray(tensors) || tensors.length <= 1) {
+    return tensors;
+  }
+  tensors.sort((left, right) => {
+    const leftPath = left?.source?.name ?? left?.shardFile ?? left?.file?.name ?? '';
+    const rightPath = right?.source?.name ?? right?.shardFile ?? right?.file?.name ?? '';
+    const sourcePathCmp = compareNullableStrings(leftPath, rightPath);
+    if (sourcePathCmp !== 0) return sourcePathCmp;
+    const leftOffset = Number.isFinite(left?.offset) ? Number(left.offset) : 0;
+    const rightOffset = Number.isFinite(right?.offset) ? Number(right.offset) : 0;
+    if (leftOffset !== rightOffset) {
+      return leftOffset - rightOffset;
+    }
+    return compareNullableStrings(left?.name, right?.name);
+  });
+  return tensors;
+}
+
 function findFileBySuffix(files, suffix) {
   return files.find((file) => pathEndsWith(getFilePath(file), suffix)) || null;
 }
@@ -429,7 +454,8 @@ export async function convertModel(files, options = {}) {
     if (signal?.aborted) throw new DOMException('Cancelled', 'AbortError');
 
     const rawConfig = (config || modelInfo.config || {});
-    const tensors = modelInfo.tensors;
+    const tensors = sortTensorsByDeterministicLocality(modelInfo.tensors || []);
+    modelInfo.tensors = tensors;
     const totalTensorBytes = tensors.reduce((sum, tensor) => sum + (tensor.size || 0), 0);
     let architectureConfig = null;
     if (!diffusionInfo) {

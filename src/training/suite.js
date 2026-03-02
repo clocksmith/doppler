@@ -37,7 +37,6 @@ const LEGACY_BROWSER_TESTS = Object.freeze([
 const TRAINING_COMMAND_SCHEMA_VERSION = 1;
 const DISTILL_ADAPTER_TOP_K = 64;
 const DISTILL_LOGIT_FALLBACK = -80;
-const DISTILL_EPS = 1e-8;
 
 function buildSuiteSummary(suiteName, results, startTimeMs) {
   let passed = 0;
@@ -306,18 +305,6 @@ function softmax(values, temperature = 1) {
   return exps;
 }
 
-function klDivergence(teacherProbs, studentProbs) {
-  const size = Math.min(teacherProbs.length, studentProbs.length);
-  if (size <= 0) return 0;
-  let total = 0;
-  for (let i = 0; i < size; i += 1) {
-    const p = Math.max(DISTILL_EPS, teacherProbs[i]);
-    const q = Math.max(DISTILL_EPS, studentProbs[i]);
-    total += p * (Math.log(p) - Math.log(q));
-  }
-  return total;
-}
-
 function disposePrefillSnapshot(result) {
   const cache = result?.cache;
   if (cache && typeof cache.clear === 'function') {
@@ -343,22 +330,15 @@ function normalizeDistillStage(value) {
   return stage === 'stage_b' ? 'stage_b' : 'stage_a';
 }
 
-async function computePromptDistillFeatures(sample, prompt, runtime) {
+async function computeTeacherPromptDistillFeatures(sample, prompt, runtime) {
   const teacherResult = await runtime.teacherPipeline.prefillWithLogits(prompt, {
     useChatTemplate: false,
   });
-  const studentResult = await runtime.studentPipeline.prefillWithLogits(prompt, {
-    useChatTemplate: false,
-  });
-
   try {
     const teacherLogits = toFloat32Array(teacherResult?.logits, 'teacher logits');
-    const studentLogits = toFloat32Array(studentResult?.logits, 'student logits');
     const topTokenIndices = selectTopKIndices(teacherLogits, runtime.topK);
     const teacherTopLogits = gatherLogitsByIndices(teacherLogits, topTokenIndices, DISTILL_LOGIT_FALLBACK);
-    const studentTopLogits = gatherLogitsByIndices(studentLogits, topTokenIndices, DISTILL_LOGIT_FALLBACK);
     const teacherTopProbs = softmax(teacherTopLogits, runtime.temperature);
-    const studentTopProbs = softmax(studentTopLogits, runtime.temperature);
     const targetClass = argmax(teacherTopLogits);
     return {
       source: sample.source,
@@ -366,15 +346,11 @@ async function computePromptDistillFeatures(sample, prompt, runtime) {
       targetClass,
       topTokenIndices: Array.from(topTokenIndices),
       teacherTopLogits,
-      studentTopLogits,
       teacherTopProbs,
-      kdLoss: klDivergence(teacherTopProbs, studentTopProbs),
     };
   } finally {
     disposePrefillSnapshot(teacherResult);
-    disposePrefillSnapshot(studentResult);
     runtime.teacherPipeline.reset();
-    runtime.studentPipeline.reset();
   }
 }
 
@@ -385,8 +361,8 @@ function createDistillTensorDataset(samples, options = {}) {
   const distillRuntime = options.distillRuntime && typeof options.distillRuntime === 'object'
     ? options.distillRuntime
     : null;
-  if (!distillRuntime?.teacherPipeline || !distillRuntime?.studentPipeline) {
-    throw new Error('Distill dataset requires teacherPipeline and studentPipeline.');
+  if (!distillRuntime?.teacherPipeline) {
+    throw new Error('Distill dataset requires teacherPipeline.');
   }
   const batchSize = Math.max(1, Math.floor(Number(options.batchSize) || 1));
   const shuffle = options.shuffle === true;
@@ -410,47 +386,38 @@ function createDistillTensorDataset(samples, options = {}) {
           const teacherTopProbs = [];
           const teacherTopTokenIndices = [];
           const teacherTopLogits = [];
-          const studentTopLogits = [];
           const teacherTargetIndices = [];
-          const tripletLossValues = [];
-          let kdLossSum = 0;
-          let tripletLossSum = 0;
-          let tripletLossCount = 0;
+          const prompts = [];
+          const tripletPositivePrompts = [];
+          const tripletNegativePrompts = [];
+          const tripletMask = [];
           const directionCounts = {};
 
           for (let i = 0; i < batchIndices.length; i += 1) {
             const sample = samples[batchIndices[i]];
             const prompt = buildDistillPrompt(sample);
-            const baseDistill = await computePromptDistillFeatures(sample, prompt, {
+            const baseDistill = await computeTeacherPromptDistillFeatures(sample, prompt, {
               ...distillRuntime,
               topK,
             });
 
             const baseOffset = i * topK;
-            features.set(baseDistill.studentTopLogits, baseOffset);
+            features.set(baseDistill.teacherTopLogits, baseOffset);
             targets[i] = baseDistill.targetClass;
             teacherTargetIndices.push(baseDistill.targetClass);
             teacherTopProbs.push(baseDistill.teacherTopProbs);
             teacherTopTokenIndices.push(baseDistill.topTokenIndices);
             teacherTopLogits.push(baseDistill.teacherTopLogits);
-            studentTopLogits.push(baseDistill.studentTopLogits);
-            kdLossSum += baseDistill.kdLoss;
+            prompts.push(prompt);
 
-            if (stage === 'stage_b' && sample.targetNeg) {
+            if (stage === 'stage_b') {
               const posPrompt = buildDistillCandidatePrompt(sample, sample.targetPos);
-              const negPrompt = buildDistillCandidatePrompt(sample, sample.targetNeg);
-              const positive = await computePromptDistillFeatures(sample, posPrompt, {
-                ...distillRuntime,
-                topK,
-              });
-              const negative = await computePromptDistillFeatures(sample, negPrompt, {
-                ...distillRuntime,
-                topK,
-              });
-              const tripletLoss = positive.kdLoss - negative.kdLoss;
-              tripletLossValues.push(tripletLoss);
-              tripletLossSum += tripletLoss;
-              tripletLossCount += 1;
+              const negPrompt = sample.targetNeg
+                ? buildDistillCandidatePrompt(sample, sample.targetNeg)
+                : null;
+              tripletPositivePrompts.push(posPrompt);
+              tripletNegativePrompts.push(negPrompt || posPrompt);
+              tripletMask.push(Boolean(negPrompt));
             }
 
             directionCounts[sample.direction] = (directionCounts[sample.direction] || 0) + 1;
@@ -478,14 +445,14 @@ function createDistillTensorDataset(samples, options = {}) {
             input: inputTensor,
             targets: targetTensor,
             distill: {
+              prompts,
+              tripletPositivePrompts,
+              tripletNegativePrompts,
+              tripletMask,
               teacherTopProbs,
               teacherTopTokenIndices,
               teacherTopLogits,
-              studentTopLogits,
               teacherTargetIndices,
-              kdLossMean: batchIndices.length > 0 ? (kdLossSum / batchIndices.length) : 0,
-              tripletLossValues,
-              tripletLossMean: tripletLossCount > 0 ? (tripletLossSum / tripletLossCount) : 0,
               batchSampleCount: batchIndices.length,
               directionCounts,
               distillStage: stage,
@@ -513,10 +480,35 @@ async function loadDistillDatasetFromJsonl(datasetPath) {
     throw new Error('distillDatasetPath currently requires Node runtime.');
   }
 
-  const [{ readFile }, { resolve }] = await Promise.all([
+  const [{ readFile }, { resolve, dirname, isAbsolute, join }] = await Promise.all([
     import('node:fs/promises'),
     import('node:path'),
   ]);
+
+  const isShardManifest = (candidate) => {
+    if (!candidate || typeof candidate !== 'object' || Array.isArray(candidate)) return false;
+    if (!Array.isArray(candidate.shards) || candidate.shards.length === 0) return false;
+    return candidate.shards.every((entry) => {
+      if (typeof entry === 'string' && entry.trim()) return true;
+      if (entry && typeof entry === 'object' && typeof entry.path === 'string' && entry.path.trim()) return true;
+      return false;
+    });
+  };
+  const resolveShardPath = (entry, manifestDir) => {
+    const rawPath = typeof entry === 'string' ? entry : entry.path;
+    const normalized = String(rawPath || '').trim();
+    if (!normalized) return null;
+    if (isAbsolute(normalized)) return normalized;
+    return join(manifestDir, normalized);
+  };
+  const loadEncodedRows = (rawRows) => {
+    const encodedRows = [];
+    for (let i = 0; i < rawRows.length; i += 1) {
+      const encoded = encodeDistillRow(rawRows[i], i);
+      if (encoded) encodedRows.push(encoded);
+    }
+    return encodedRows;
+  };
 
   const absolutePath = resolve(normalizedPath);
   let raw;
@@ -527,12 +519,75 @@ async function loadDistillDatasetFromJsonl(datasetPath) {
     throw new Error(`Failed to read distillDatasetPath "${absolutePath}": ${message}`);
   }
 
-  const rows = parseJsonl(raw);
-  const encodedRows = [];
-  for (let i = 0; i < rows.length; i += 1) {
-    const encoded = encodeDistillRow(rows[i], i);
-    if (encoded) encodedRows.push(encoded);
+  let parsedJson = null;
+  try {
+    parsedJson = JSON.parse(raw);
+  } catch {
+    parsedJson = null;
   }
+  if (isShardManifest(parsedJson)) {
+    const manifestDir = dirname(absolutePath);
+    const shardPaths = parsedJson.shards
+      .map((entry) => resolveShardPath(entry, manifestDir))
+      .filter(Boolean);
+    if (shardPaths.length === 0) {
+      throw new Error(`Distill shard manifest "${absolutePath}" has no valid shard paths.`);
+    }
+    let rowCount = 0;
+    let sampleCount = 0;
+    const directionCounts = {};
+    for (const shardPath of shardPaths) {
+      const shardRaw = await readFile(shardPath, 'utf8');
+      const shardRows = parseJsonl(shardRaw);
+      const encodedRows = loadEncodedRows(shardRows);
+      rowCount += shardRows.length;
+      sampleCount += encodedRows.length;
+      const shardDirections = summarizeDirectionCounts(encodedRows);
+      for (const [direction, count] of Object.entries(shardDirections)) {
+        directionCounts[direction] = (directionCounts[direction] || 0) + count;
+      }
+    }
+    if (sampleCount <= 0) {
+      throw new Error(`Distill shard manifest "${absolutePath}" has no usable rows across shards.`);
+    }
+    return {
+      absolutePath,
+      rowCount,
+      sampleCount,
+      directionCounts,
+      shardCount: shardPaths.length,
+      shardPaths,
+      createDataset(runOptions = {}) {
+        const shardSeedBase = Number.isInteger(runOptions.seed) ? runOptions.seed : 1337;
+        return {
+          async *batches() {
+            for (let shardIndex = 0; shardIndex < shardPaths.length; shardIndex += 1) {
+              const shardPath = shardPaths[shardIndex];
+              const shardRaw = await readFile(shardPath, 'utf8');
+              const shardRows = parseJsonl(shardRaw);
+              const encodedRows = loadEncodedRows(shardRows);
+              if (encodedRows.length === 0) continue;
+              const shardDataset = createDistillTensorDataset(encodedRows, {
+                ...runOptions,
+                seed: shardSeedBase + shardIndex,
+              });
+              for await (const batch of shardDataset.batches()) {
+                if (batch?.distill && typeof batch.distill === 'object') {
+                  batch.distill.datasetShardIndex = shardIndex + 1;
+                  batch.distill.datasetShardCount = shardPaths.length;
+                  batch.distill.datasetShardPath = shardPath;
+                }
+                yield batch;
+              }
+            }
+          },
+        };
+      },
+    };
+  }
+
+  const rows = parseJsonl(raw);
+  const encodedRows = loadEncodedRows(rows);
   if (encodedRows.length === 0) {
     throw new Error(`Distill dataset "${absolutePath}" has no usable rows.`);
   }
@@ -788,8 +843,26 @@ function createToyModelFixture(overrides = {}) {
   };
 }
 
-function createDistillAdapterModelFixture(overrides = {}, options = {}) {
-  const inputDim = clampDistillTopK(options.inputDim ?? DISTILL_ADAPTER_TOP_K);
+function createDistillStudentRuntimeModelFixture(overrides = {}, options = {}) {
+  const distillRuntime = options.distillRuntime && typeof options.distillRuntime === 'object'
+    ? options.distillRuntime
+    : null;
+  if (!distillRuntime?.studentPipeline) {
+    throw new Error('Distill student fixture requires distillRuntime.studentPipeline.');
+  }
+  const outputDim = clampDistillTopK(
+    options.outputDim
+    ?? options.inputDim
+    ?? DISTILL_ADAPTER_TOP_K
+  );
+  const inferredEmbeddingDim = Math.floor(
+    Number(distillRuntime.studentPipeline?.modelConfig?.hiddenSize)
+  );
+  const embeddingDim = Number.isInteger(options.embeddingDim) && options.embeddingDim > 0
+    ? options.embeddingDim
+    : (Number.isFinite(inferredEmbeddingDim) && inferredEmbeddingDim > 0
+      ? inferredEmbeddingDim
+      : outputDim);
   const config = createTrainingConfig({
     ...overrides,
     training: {
@@ -800,37 +873,89 @@ function createDistillAdapterModelFixture(overrides = {}, options = {}) {
     },
   });
 
-  const adapterWeights = new Float32Array(inputDim * inputDim);
-  for (let row = 0; row < inputDim; row += 1) {
-    const offset = row * inputDim;
-    adapterWeights[offset + row] = 1;
-  }
-  const adapterWeight = makeTensorFromFloat32(
-    adapterWeights,
-    [inputDim, inputDim],
-    'distill_adapter_weight'
+  const projectionWeights = new Float32Array(embeddingDim * outputDim);
+  const projectionWeight = makeTensorFromFloat32(
+    projectionWeights,
+    [embeddingDim, outputDim],
+    'distill_student_head_weight'
   );
+  const temporaryInputs = new Set();
+
+  async function projectEmbeddingInput(inputTensor, tape) {
+    const rows = Number.isFinite(inputTensor?.shape?.[0]) ? inputTensor.shape[0] : 1;
+    return tape.record(
+      OpType.MATMUL,
+      (a, b) => runMatmul(a, b, rows, outputDim, embeddingDim, { transposeB: false }),
+      [inputTensor, projectionWeight],
+      { M: rows, N: outputDim, K: embeddingDim, transposeB: false }
+    );
+  }
+
+  async function buildStudentEmbeddingInput(batch, phase = 'anchor') {
+    const distill = batch?.distill || {};
+    const prompts = phase === 'positive'
+      ? distill.tripletPositivePrompts
+      : (phase === 'negative' ? distill.tripletNegativePrompts : distill.prompts);
+    if (!Array.isArray(prompts) || prompts.length === 0) {
+      throw new Error(`Distill student fixture requires distill prompts for phase "${phase}".`);
+    }
+
+    const rows = prompts.length;
+    const features = new Float32Array(rows * embeddingDim);
+    for (let row = 0; row < rows; row += 1) {
+      const prompt = String(prompts[row] || '').trim();
+      const studentResult = await distillRuntime.studentPipeline.prefillWithEmbedding(prompt, {
+        useChatTemplate: false,
+        embeddingMode: 'last',
+      });
+      try {
+        const studentEmbedding = toFloat32Array(studentResult?.embedding, 'student embedding');
+        const rowOffset = row * embeddingDim;
+        const copyCount = Math.min(embeddingDim, studentEmbedding.length);
+        features.set(studentEmbedding.subarray(0, copyCount), rowOffset);
+      } finally {
+        disposePrefillSnapshot(studentResult);
+        distillRuntime.studentPipeline.reset();
+      }
+    }
+    const inputTensor = makeTensorFromFloat32(
+      features,
+      [rows, embeddingDim],
+      `distill_student_${phase}_embedding`
+    );
+    temporaryInputs.add(inputTensor);
+    return inputTensor;
+  }
 
   const model = {
     async forward(inputTensor, tape) {
-      const rows = Number.isFinite(inputTensor?.shape?.[0]) ? inputTensor.shape[0] : 1;
-      return tape.record(
-        OpType.MATMUL,
-        (a, b) => runMatmul(a, b, rows, inputDim, inputDim, { transposeB: false }),
-        [inputTensor, adapterWeight],
-        { M: rows, N: inputDim, K: inputDim, transposeB: false }
-      );
+      return projectEmbeddingInput(inputTensor, tape);
+    },
+    async forwardDistill(batch, tape, forwardOptions = {}) {
+      const requestedPhase = String(forwardOptions?.phase || 'anchor').trim();
+      const phase = requestedPhase === 'positive'
+        ? 'positive'
+        : (requestedPhase === 'negative' ? 'negative' : 'anchor');
+      const inputTensor = await buildStudentEmbeddingInput(batch, phase);
+      const logits = await projectEmbeddingInput(inputTensor, tape);
+      return { logits };
+    },
+    cleanupDistillStep() {
+      for (const tensor of temporaryInputs) {
+        releaseTensor(tensor);
+      }
+      temporaryInputs.clear();
     },
     loraParams() {
-      return [adapterWeight];
+      return [projectionWeight];
     },
     paramGroups() {
       return {
         encoder: [],
         prior: [],
         decoder: [],
-        base: [adapterWeight],
-        lora: [adapterWeight],
+        base: [projectionWeight],
+        lora: [projectionWeight],
       };
     },
   };
@@ -838,9 +963,11 @@ function createDistillAdapterModelFixture(overrides = {}, options = {}) {
   return {
     config,
     model,
-    inputDim,
+    outputDim,
+    embeddingDim,
     cleanup() {
-      releaseTensor(adapterWeight);
+      model.cleanupDistillStep();
+      releaseTensor(projectionWeight);
     },
   };
 }
@@ -985,6 +1112,9 @@ function buildDistillTrainingOverrides(options = {}) {
     datasetId: options.distillDatasetId ?? trainingConfig?.distill?.datasetId ?? null,
     datasetPath: options.distillDatasetPath ?? trainingConfig?.distill?.datasetPath ?? null,
     languagePair: options.distillLanguagePair ?? trainingConfig?.distill?.languagePair ?? null,
+    shardIndex: options.distillShardIndex ?? trainingConfig?.distill?.shardIndex ?? null,
+    shardCount: options.distillShardCount ?? trainingConfig?.distill?.shardCount ?? null,
+    resumeFrom: options.resumeFrom ?? trainingConfig?.distill?.resumeFrom ?? null,
     stageAArtifact: options.stageAArtifact ?? trainingConfig?.distill?.stageAArtifact ?? null,
     stageAArtifactHash: options.stageAArtifactHash ?? trainingConfig?.distill?.stageAArtifactHash ?? null,
     artifactDir: options.distillArtifactDir ?? trainingConfig?.distill?.artifactDir ?? 'bench/out/distill',
@@ -1160,16 +1290,15 @@ async function runDistillStageTest(stage, options = {}) {
     ...options,
     trainingStage: stage,
   });
-  const adapterInputDim = clampDistillTopK(distillTraining?.distill?.topK ?? DISTILL_ADAPTER_TOP_K);
-  const fixture = createDistillAdapterModelFixture({
+  const distillOutputDim = clampDistillTopK(distillTraining?.distill?.topK ?? DISTILL_ADAPTER_TOP_K);
+  const resolvedTrainingConfig = createTrainingConfig({
     training: distillTraining || undefined,
-  }, {
-    inputDim: adapterInputDim,
-  });
+  }).training;
+  let fixture = null;
   let distillRuntime = null;
 
   try {
-    const distillDatasetPath = resolveDistillDatasetPath(options, fixture.config.training);
+    const distillDatasetPath = resolveDistillDatasetPath(options, resolvedTrainingConfig);
     if (!distillDatasetPath) {
       throw new Error('Distill stage requires --distill-dataset-path (training.distill.datasetPath).');
     }
@@ -1177,24 +1306,34 @@ async function runDistillStageTest(stage, options = {}) {
     distillRuntime = await createDistillRuntimeContext({
       ...options,
       trainingStage: stage,
-    }, fixture.config.training);
+    }, resolvedTrainingConfig);
+    fixture = createDistillStudentRuntimeModelFixture({
+      training: distillTraining || undefined,
+    }, {
+      outputDim: distillOutputDim,
+      distillRuntime,
+    });
 
     const runner = new TrainingRunner(fixture.config, {
       optimizer: new AdamOptimizer(fixture.config),
       crossEntropyLoss,
       clipGradients,
     });
+    const distillMaxSteps = Number.isInteger(options.trainingBenchSteps) && options.trainingBenchSteps > 0
+      ? options.trainingBenchSteps
+      : 2;
     const dataset = distillDatasetReport.createDataset({
       batchSize: 1,
       shuffle: false,
       seed: 1337,
       distillRuntime,
     });
+    const distillRunStartMs = performance.now();
     const metrics = await runner.run(fixture.model, dataset, {
       epochs: 1,
       batchSize: 1,
       shuffle: false,
-      maxSteps: 2,
+      maxSteps: distillMaxSteps,
       modelId: options.modelId || distillRuntime.studentModelId || 'training',
       modelUrl: options.modelUrl || distillRuntime.studentModelUrl || null,
       timestamp: options.timestamp || null,
@@ -1206,6 +1345,9 @@ async function runDistillStageTest(stage, options = {}) {
       distillDatasetId: options.distillDatasetId || null,
       distillDatasetPath: distillDatasetReport.absolutePath,
       distillLanguagePair: options.distillLanguagePair || null,
+      distillShardIndex: options.distillShardIndex ?? fixture.config.training?.distill?.shardIndex ?? null,
+      distillShardCount: options.distillShardCount ?? fixture.config.training?.distill?.shardCount ?? null,
+      resumeFrom: options.resumeFrom ?? fixture.config.training?.distill?.resumeFrom ?? null,
     });
     if (!Array.isArray(metrics) || metrics.length === 0) {
       return { passed: false, error: `Distill ${stage} produced no metrics.` };
@@ -1222,12 +1364,23 @@ async function runDistillStageTest(stage, options = {}) {
     if (!artifact || !artifact.manifestPath) {
       return { passed: false, error: `Distill ${stage} did not produce artifacts.` };
     }
+    const progress = resolveBenchProgressSummary(
+      metrics,
+      resolveDistillShardProgressContext(
+        options,
+        fixture.config.training,
+        distillMaxSteps,
+        distillDatasetReport?.shardCount ?? null
+      ),
+      distillRunStartMs
+    );
     return {
       passed: true,
       artifact,
       metrics: {
         stage,
         steps: metrics.length,
+        progress,
         manifestPath: artifact.manifestPath,
         manifestHash: artifact.manifestHash,
         manifestContentHash: artifact.manifestContentHash,
@@ -1240,11 +1393,14 @@ async function runDistillStageTest(stage, options = {}) {
           datasetId: fixture.config.training?.distill?.datasetId ?? null,
           datasetPath: fixture.config.training?.distill?.datasetPath ?? null,
           languagePair: fixture.config.training?.distill?.languagePair ?? null,
+          shardIndex: fixture.config.training?.distill?.shardIndex ?? null,
+          shardCount: fixture.config.training?.distill?.shardCount ?? null,
+          resumeFrom: fixture.config.training?.distill?.resumeFrom ?? null,
           temperature: fixture.config.training?.distill?.temperature ?? null,
           alphaKd: fixture.config.training?.distill?.alphaKd ?? null,
           alphaCe: fixture.config.training?.distill?.alphaCe ?? null,
           tripletMargin: fixture.config.training?.distill?.tripletMargin ?? null,
-          topK: fixture.config.training?.distill?.topK ?? adapterInputDim,
+          topK: fixture.config.training?.distill?.topK ?? distillOutputDim,
           freeze: fixture.config.training?.distill?.freeze ?? null,
         },
         distillRuntime: {
@@ -1258,15 +1414,19 @@ async function runDistillStageTest(stage, options = {}) {
           path: distillDatasetReport.absolutePath,
           rowCount: distillDatasetReport.rowCount,
           sampleCount: distillDatasetReport.sampleCount,
+          shardCount: distillDatasetReport.shardCount ?? 1,
           directionCounts: distillDatasetReport.directionCounts,
         },
+        checkpoint: runner.lastCheckpoint || null,
       },
     };
   } finally {
     if (distillRuntime && typeof distillRuntime.cleanup === 'function') {
       await distillRuntime.cleanup();
     }
-    fixture.cleanup();
+    if (fixture) {
+      fixture.cleanup();
+    }
   }
 }
 
@@ -1426,6 +1586,107 @@ function toPositiveInteger(value, fallback) {
   return floored > 0 ? floored : fallback;
 }
 
+function toPositiveIntegerOrNull(value) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return null;
+  const floored = Math.floor(parsed);
+  return floored > 0 ? floored : null;
+}
+
+function resolveDistillShardProgressContext(
+  options = {},
+  trainingOverrides = null,
+  stepsPerShard = null,
+  fallbackShardCount = null
+) {
+  const distillConfig = trainingOverrides?.distill || {};
+  const shardIndexInput = toPositiveIntegerOrNull(
+    options.distillShardIndex ?? distillConfig.shardIndex ?? null
+  );
+  const shardCountInput = toPositiveIntegerOrNull(
+    options.distillShardCount ?? distillConfig.shardCount ?? null
+  );
+  const fallbackShardCountInput = toPositiveIntegerOrNull(fallbackShardCount);
+  if (
+    shardIndexInput !== null
+    && shardCountInput !== null
+    && shardIndexInput > shardCountInput
+  ) {
+    throw new Error('distillShardIndex must be <= distillShardCount.');
+  }
+  const shardCount = shardCountInput ?? fallbackShardCountInput ?? 1;
+  const shardIndex = shardIndexInput ?? 1;
+  const normalizedStepsPerShard = toPositiveIntegerOrNull(stepsPerShard);
+  const totalGlobalSteps = normalizedStepsPerShard
+    ? (normalizedStepsPerShard * shardCount)
+    : null;
+  return {
+    shardIndex: Math.min(Math.max(1, shardIndex), shardCount),
+    shardCount: Math.max(1, shardCount),
+    stepsPerShard: normalizedStepsPerShard,
+    totalGlobalSteps,
+  };
+}
+
+function resolveBenchProgressSummary(stepEntries, context, startTimeMs) {
+  const entries = Array.isArray(stepEntries) ? stepEntries : [];
+  const lastEntry = entries.length > 0 ? entries[entries.length - 1] : null;
+  const shardIndex = context?.shardIndex ?? 1;
+  const shardCount = context?.shardCount ?? 1;
+  const stepsPerShard = context?.stepsPerShard ?? null;
+  const totalGlobalSteps = context?.totalGlobalSteps ?? null;
+  const fallbackGlobalStep = stepsPerShard
+    ? (((shardIndex - 1) * stepsPerShard) + Math.min(entries.length, stepsPerShard))
+    : null;
+  const completedGlobalSteps = Number.isFinite(lastEntry?.progress_global_step)
+    ? lastEntry.progress_global_step
+    : fallbackGlobalStep;
+  const resolvedTotalGlobalSteps = Number.isFinite(lastEntry?.progress_global_steps)
+    ? lastEntry.progress_global_steps
+    : totalGlobalSteps;
+  const percentComplete = Number.isFinite(lastEntry?.progress_percent_complete)
+    ? lastEntry.progress_percent_complete
+    : (
+      Number.isFinite(completedGlobalSteps)
+      && Number.isFinite(resolvedTotalGlobalSteps)
+      && resolvedTotalGlobalSteps > 0
+      ? Math.min(100, (completedGlobalSteps / resolvedTotalGlobalSteps) * 100)
+      : null
+    );
+  const etaMs = Number.isFinite(lastEntry?.progress_eta_ms)
+    ? Math.max(0, lastEntry.progress_eta_ms)
+    : (
+      Number.isFinite(percentComplete)
+      && percentComplete >= 100
+      ? 0
+      : null
+    );
+  const elapsedMs = Number.isFinite(lastEntry?.progress_elapsed_ms)
+    ? Math.max(0, lastEntry.progress_elapsed_ms)
+    : Math.max(0, performance.now() - startTimeMs);
+  return {
+    shardIndex,
+    shardCount,
+    stepsPerShard,
+    completedGlobalSteps: Number.isFinite(completedGlobalSteps) ? completedGlobalSteps : null,
+    totalGlobalSteps: Number.isFinite(resolvedTotalGlobalSteps) ? resolvedTotalGlobalSteps : null,
+    percentComplete,
+    etaMs,
+    etaIso: Number.isFinite(etaMs) ? new Date(Date.now() + etaMs).toISOString() : null,
+    elapsedMs,
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+function appendTimelineEvent(timeline, type, details = {}) {
+  timeline.push({
+    index: timeline.length + 1,
+    timestamp: new Date().toISOString(),
+    type,
+    ...details,
+  });
+}
+
 function resolveBenchRunSettings(options = {}) {
   const benchRun = options.benchRun && typeof options.benchRun === 'object'
     ? options.benchRun
@@ -1465,6 +1726,11 @@ export async function runTrainingBenchSuite(options = {}) {
   const distillDatasetReport = distillEnabled
     ? await loadDistillDatasetFromJsonl(distillDatasetPath)
     : null;
+  const resolvedResumeFrom = options.resumeFrom || trainingOverrides?.distill?.resumeFrom || null;
+  const resolvedStage1Artifact = options.stage1Artifact || trainingOverrides?.ul?.stage1Artifact || null;
+  const resolvedStage1ArtifactHash = options.stage1ArtifactHash || trainingOverrides?.ul?.stage1ArtifactHash || null;
+  const resolvedStageAArtifact = options.stageAArtifact || trainingOverrides?.distill?.stageAArtifact || null;
+  const resolvedStageAArtifactHash = options.stageAArtifactHash || trainingOverrides?.distill?.stageAArtifactHash || null;
   let distillRuntime = null;
   if (distillEnabled) {
     if (!distillDatasetPath) {
@@ -1479,15 +1745,54 @@ export async function runTrainingBenchSuite(options = {}) {
   const timedRunUlArtifacts = [];
   const timedRunDistillArtifacts = [];
   const trainingMetricsReport = [];
+  const distillShardProgress = resolveDistillShardProgressContext(
+    options,
+    trainingOverrides,
+    benchSettings.stepsPerRun,
+    distillDatasetReport?.shardCount ?? null
+  );
+  const checkpointResumeTimeline = [];
+  appendTimelineEvent(checkpointResumeTimeline, 'benchmark_started', {
+    workloadType: 'training',
+    trainingStage: (
+      options.trainingStage
+      || trainingOverrides?.distill?.stage
+      || trainingOverrides?.ul?.stage
+      || null
+    ),
+    shardIndex: distillShardProgress.shardIndex,
+    shardCount: distillShardProgress.shardCount,
+    stepsPerShard: distillShardProgress.stepsPerShard,
+  });
+  if (resolvedResumeFrom) {
+    appendTimelineEvent(checkpointResumeTimeline, 'resume_requested', {
+      resumeFrom: String(resolvedResumeFrom),
+    });
+  }
+  if (resolvedStage1Artifact) {
+    appendTimelineEvent(checkpointResumeTimeline, 'resume_dependency_declared', {
+      dependencyType: 'ul_stage1',
+      stage1Artifact: String(resolvedStage1Artifact),
+      stage1ArtifactHash: resolvedStage1ArtifactHash,
+    });
+  }
+  if (resolvedStageAArtifact) {
+    appendTimelineEvent(checkpointResumeTimeline, 'resume_dependency_declared', {
+      dependencyType: 'distill_stage_a',
+      stageAArtifact: String(resolvedStageAArtifact),
+      stageAArtifactHash: resolvedStageAArtifactHash,
+    });
+  }
   let completedTimedRuns = 0;
 
   try {
     for (let runIndex = 0; runIndex < totalRuns; runIndex += 1) {
       const fixture = distillEnabled
-        ? createDistillAdapterModelFixture({
+        ? createDistillStudentRuntimeModelFixture({
           training: trainingOverrides,
         }, {
-          inputDim: distillRuntime?.topK ?? DISTILL_ADAPTER_TOP_K,
+          outputDim: distillRuntime?.topK ?? DISTILL_ADAPTER_TOP_K,
+          distillRuntime,
         })
         : createToyModelFixture({
           training: trainingOverrides,
@@ -1514,6 +1819,11 @@ export async function runTrainingBenchSuite(options = {}) {
           };
 
         const runStart = performance.now();
+        const isTimedRun = runIndex >= benchSettings.warmupRuns;
+        appendTimelineEvent(checkpointResumeTimeline, 'run_started', {
+          runIndex: runIndex + 1,
+          phase: isTimedRun ? 'timed' : 'warmup',
+        });
         const runMetrics = await runner.run(fixture.model, dataset, {
           epochs: 1,
           batchSize: 1,
@@ -1524,16 +1834,34 @@ export async function runTrainingBenchSuite(options = {}) {
           timestamp: options.timestamp || null,
           ulArtifactDir: options.ulArtifactDir || null,
           distillArtifactDir: options.distillArtifactDir || null,
-          stageAArtifact: options.stageAArtifact || null,
-          stageAArtifactHash: options.stageAArtifactHash || null,
+          stageAArtifact: resolvedStageAArtifact,
+          stageAArtifactHash: resolvedStageAArtifactHash,
           teacherModelId: distillRuntime?.teacherModelId || options.teacherModelId || null,
           studentModelId: distillRuntime?.studentModelId || options.studentModelId || null,
           distillDatasetId: options.distillDatasetId || null,
           distillDatasetPath: distillDatasetReport?.absolutePath || null,
           distillLanguagePair: options.distillLanguagePair || null,
+          distillShardIndex: distillShardProgress.shardIndex,
+          distillShardCount: distillShardProgress.shardCount,
+          resumeFrom: resolvedResumeFrom,
         });
         const runDurationMs = Math.max(0, performance.now() - runStart);
-        const isTimedRun = runIndex >= benchSettings.warmupRuns;
+        if (runner.resumeState && typeof runner.resumeState === 'object') {
+          appendTimelineEvent(checkpointResumeTimeline, 'run_resumed', {
+            runIndex: runIndex + 1,
+            phase: isTimedRun ? 'timed' : 'warmup',
+            resumedStep: runner.resumeState.step ?? null,
+            resumedEpoch: runner.resumeState.epoch ?? null,
+            resumedBatch: runner.resumeState.batch ?? null,
+            resumedCheckpointHash: runner.resumeState.checkpointHash ?? null,
+          });
+        }
+        appendTimelineEvent(checkpointResumeTimeline, 'run_completed', {
+          runIndex: runIndex + 1,
+          phase: isTimedRun ? 'timed' : 'warmup',
+          durationMs: runDurationMs,
+          stepCount: Array.isArray(runMetrics) ? runMetrics.length : 0,
+        });
         if (isTimedRun) {
           completedTimedRuns += 1;
           timedRunDurationsMs.push(runDurationMs);
@@ -1542,16 +1870,54 @@ export async function runTrainingBenchSuite(options = {}) {
             timedRunStepsPerSec.push((runStepCount * 1000) / runDurationMs);
           }
           for (const stepEntry of runMetrics) {
-            if (isFiniteNumber(stepEntry?.step_time_ms)) {
-              timedStepDurationsMs.push(stepEntry.step_time_ms);
+            const stepWithRun = {
+              ...stepEntry,
+              bench_run_index: completedTimedRuns,
+              bench_run_global_index: runIndex + 1,
+            };
+            if (isFiniteNumber(stepWithRun?.step_time_ms)) {
+              timedStepDurationsMs.push(stepWithRun.step_time_ms);
             }
-            trainingMetricsReport.push(stepEntry);
+            trainingMetricsReport.push(stepWithRun);
+          }
+          if (runner.lastCheckpoint && typeof runner.lastCheckpoint === 'object') {
+            appendTimelineEvent(checkpointResumeTimeline, 'checkpoint_state_written', {
+              runIndex: runIndex + 1,
+              timedRunIndex: completedTimedRuns,
+              checkpointKey: runner.lastCheckpoint.key || null,
+              checkpointStep: runner.lastCheckpoint.step ?? null,
+              checkpointEpoch: runner.lastCheckpoint.epoch ?? null,
+              checkpointBatch: runner.lastCheckpoint.batch ?? null,
+            });
           }
           if (runner.lastArtifact && typeof runner.lastArtifact === 'object') {
             const artifactEntry = {
               runIndex: completedTimedRuns,
               ...runner.lastArtifact,
             };
+            appendTimelineEvent(checkpointResumeTimeline, 'checkpoint_written', {
+              runIndex: runIndex + 1,
+              timedRunIndex: completedTimedRuns,
+              artifactKind: artifactEntry.kind || null,
+              stage: artifactEntry.stage || null,
+              manifestPath: artifactEntry.manifestPath || null,
+              manifestHash: artifactEntry.manifestHash || null,
+              manifestFileHash: artifactEntry.manifestFileHash || null,
+            });
+            if (artifactEntry.stageADependency) {
+              appendTimelineEvent(checkpointResumeTimeline, 'resume_dependency_resolved', {
+                dependencyType: 'distill_stage_a',
+                runIndex: runIndex + 1,
+                stageADependency: artifactEntry.stageADependency,
+              });
+            }
+            if (artifactEntry.stage1Dependency) {
+              appendTimelineEvent(checkpointResumeTimeline, 'resume_dependency_resolved', {
+                dependencyType: 'ul_stage1',
+                runIndex: runIndex + 1,
+                stage1Dependency: artifactEntry.stage1Dependency,
+              });
+            }
             if (runner.lastArtifact.kind === 'distill') {
               timedRunDistillArtifacts.push(artifactEntry);
             } else {
@@ -1572,6 +1938,13 @@ export async function runTrainingBenchSuite(options = {}) {
   const runMsStats = computeSampleStats(timedRunDurationsMs);
   const stepMsStats = computeSampleStats(timedStepDurationsMs);
   const stepsPerSecStats = computeSampleStats(timedRunStepsPerSec);
+  const progress = resolveBenchProgressSummary(trainingMetricsReport, distillShardProgress, startTime);
+  appendTimelineEvent(checkpointResumeTimeline, 'benchmark_completed', {
+    completedTimedRuns,
+    metricEntryCount: trainingMetricsReport.length,
+    percentComplete: progress.percentComplete,
+    etaMs: progress.etaMs,
+  });
 
   const results = [
     {
@@ -1596,13 +1969,16 @@ export async function runTrainingBenchSuite(options = {}) {
       stepsPerRun: benchSettings.stepsPerRun,
       trainingSchemaVersion,
       trainingMetricsReport,
+      progress,
       ulArtifacts: timedRunUlArtifacts,
       distillArtifacts: timedRunDistillArtifacts,
+      checkpointResumeTimeline,
       distillDataset: distillDatasetReport
         ? {
           path: distillDatasetReport.absolutePath,
           rowCount: distillDatasetReport.rowCount,
           sampleCount: distillDatasetReport.sampleCount,
+          shardCount: distillDatasetReport.shardCount ?? 1,
           directionCounts: distillDatasetReport.directionCounts,
         }
         : null,

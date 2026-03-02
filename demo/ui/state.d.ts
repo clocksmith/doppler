@@ -43,6 +43,7 @@ export interface State {
   energyLoading: boolean;
   convertActive: boolean;
   downloadActive: boolean;
+  surface: string;
   uiMode: string;
   lastPrimaryMode: string;
   runLog: any[];

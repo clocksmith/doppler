@@ -5,16 +5,7 @@ import { installNodeFileFetchShim } from './node-file-fetch.js';
 import { NodeConvertWorkerPool } from './node-convert-worker-pool.js';
 import { isPlainObject } from '../utils/plain-object.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
-
-const MB = 1024 * 1024;
-
-const DEFAULT_CONVERT_EXECUTION_CONFIG = {
-  workers: 8,
-  workerCountPolicy: 'cap',
-  rowChunkRows: null,
-  rowChunkMinTensorBytes: 128 * MB,
-  maxInFlightJobs: null,
-};
+import { log, trace } from '../debug/index.js';
 
 function asPositiveInteger(value, label) {
   if (!Number.isInteger(value) || value < 1) {
@@ -23,30 +14,34 @@ function asPositiveInteger(value, label) {
   return value;
 }
 
-function normalizeExecutionConfig(value) {
+function normalizeExecutionConfig(value, defaults) {
+  if (!isPlainObject(defaults)) {
+    throw new Error('node convert: execution defaults must be an object.');
+  }
+
   if (value == null) {
-    return { ...DEFAULT_CONVERT_EXECUTION_CONFIG };
+    return { ...defaults };
   }
   if (!isPlainObject(value)) {
     throw new Error('node convert: execution must be an object when provided.');
   }
   const workers = value.workers == null
-    ? DEFAULT_CONVERT_EXECUTION_CONFIG.workers
+    ? defaults.workers
     : asPositiveInteger(Number(value.workers), 'execution.workers');
   const workerCountPolicyRaw = value.workerCountPolicy == null
-    ? DEFAULT_CONVERT_EXECUTION_CONFIG.workerCountPolicy
+    ? defaults.workerCountPolicy
     : String(value.workerCountPolicy).trim().toLowerCase();
   if (workerCountPolicyRaw !== 'cap' && workerCountPolicyRaw !== 'error') {
     throw new Error('node convert: execution.workerCountPolicy must be "cap" or "error".');
   }
   const rowChunkRows = value.rowChunkRows == null
-    ? DEFAULT_CONVERT_EXECUTION_CONFIG.rowChunkRows
+    ? defaults.rowChunkRows
     : asPositiveInteger(Number(value.rowChunkRows), 'execution.rowChunkRows');
   const rowChunkMinTensorBytes = value.rowChunkMinTensorBytes == null
-    ? DEFAULT_CONVERT_EXECUTION_CONFIG.rowChunkMinTensorBytes
+    ? defaults.rowChunkMinTensorBytes
     : asPositiveInteger(Number(value.rowChunkMinTensorBytes), 'execution.rowChunkMinTensorBytes');
   const maxInFlightJobs = value.maxInFlightJobs == null
-    ? DEFAULT_CONVERT_EXECUTION_CONFIG.maxInFlightJobs
+    ? defaults.maxInFlightJobs
     : asPositiveInteger(Number(value.maxInFlightJobs), 'execution.maxInFlightJobs');
 
   return {
@@ -93,6 +88,45 @@ function getDtypeBytes(dtype) {
   if (upper === 'F32') return 4;
   if (upper === 'F16' || upper === 'BF16') return 2;
   return null;
+}
+
+function createStageTimer(label) {
+  const start = performance.now();
+  return {
+    stop(extra = '', data = null) {
+      const elapsed = performance.now() - start;
+      const suffix = extra ? ` - ${extra}` : '';
+      log.verbose('NodeConvert', `${label}: ${elapsed.toFixed(0)}ms${suffix}`);
+      trace.perf(`NodeConvert ${label}`, {
+        ms: elapsed,
+        ...(data && typeof data === 'object' ? data : {}),
+      });
+      return elapsed;
+    },
+  };
+}
+
+function compareNullableStrings(a, b) {
+  const left = typeof a === 'string' ? a : '';
+  const right = typeof b === 'string' ? b : '';
+  return left.localeCompare(right);
+}
+
+function sortTensorsByDeterministicLocality(tensors) {
+  if (!Array.isArray(tensors) || tensors.length <= 1) {
+    return tensors;
+  }
+  tensors.sort((left, right) => {
+    const sourcePathCmp = compareNullableStrings(left?.sourcePath, right?.sourcePath);
+    if (sourcePathCmp !== 0) return sourcePathCmp;
+    const leftOffset = Number.isFinite(left?.offset) ? Number(left.offset) : 0;
+    const rightOffset = Number.isFinite(right?.offset) ? Number(right.offset) : 0;
+    if (leftOffset !== rightOffset) {
+      return leftOffset - rightOffset;
+    }
+    return compareNullableStrings(left?.name, right?.name);
+  });
+  return tensors;
 }
 
 function normalizeWorkerTransformResult(result, tensor) {
@@ -236,40 +270,82 @@ async function resolveGgufPathFromDirectory(inputDir) {
   return path.join(inputDir, ggufFiles[0]);
 }
 
-async function readFileRange(filePath, offset, length) {
-  if (!Number.isFinite(offset) || !Number.isFinite(length) || length <= 0) {
-    return new ArrayBuffer(0);
-  }
-  const fd = await fs.open(filePath, 'r');
-  try {
-    const size = (await fd.stat()).size;
-    const start = Math.max(0, Math.floor(offset));
-    const end = Math.min(size, start + Math.floor(length));
-    if (end <= start) {
-      return new ArrayBuffer(0);
+function createFileRangeReader() {
+  const handleMap = new Map();
+
+  async function getHandleEntry(filePath) {
+    const existingPromise = handleMap.get(filePath);
+    if (existingPromise) {
+      return existingPromise;
     }
-    const out = Buffer.allocUnsafe(end - start);
-    await fd.read(out, 0, out.length, start);
-    return out.buffer.slice(out.byteOffset, out.byteOffset + out.byteLength);
-  } finally {
-    await fd.close();
+    const openPromise = (async () => {
+      const fd = await fs.open(filePath, 'r');
+      try {
+        const stats = await fd.stat();
+        return {
+          fd,
+          size: Number(stats.size),
+        };
+      } catch (error) {
+        await fd.close().catch(() => {});
+        throw error;
+      }
+    })();
+    handleMap.set(filePath, openPromise);
+    try {
+      return await openPromise;
+    } catch (error) {
+      if (handleMap.get(filePath) === openPromise) {
+        handleMap.delete(filePath);
+      }
+      throw error;
+    }
   }
+
+  return {
+    async readRange(filePath, offset, length) {
+      if (!Number.isFinite(offset) || !Number.isFinite(length) || length <= 0) {
+        return new ArrayBuffer(0);
+      }
+
+      const entry = await getHandleEntry(filePath);
+      const start = Math.max(0, Math.floor(offset));
+      const end = Math.min(entry.size, start + Math.floor(length));
+      if (end <= start) {
+        return new ArrayBuffer(0);
+      }
+
+      const out = Buffer.allocUnsafe(end - start);
+      await entry.fd.read(out, 0, out.length, start);
+      return out.buffer.slice(out.byteOffset, out.byteOffset + out.byteLength);
+    },
+    async closeAll() {
+      const closes = [];
+      for (const entryPromise of handleMap.values()) {
+        closes.push(
+          Promise.resolve(entryPromise).then((entry) => entry.fd.close())
+        );
+      }
+      handleMap.clear();
+      await Promise.allSettled(closes);
+    },
+  };
 }
 
-async function readSafetensorsHeader(filePath, parseSafetensorsHeader) {
-  const fd = await fs.open(filePath, 'r');
-  try {
-    const sizeBuf = Buffer.allocUnsafe(8);
-    await fd.read(sizeBuf, 0, 8, 0);
-    const headerSize = Number(sizeBuf.readBigUInt64LE(0));
-    const fullHeader = Buffer.allocUnsafe(8 + headerSize);
-    await fd.read(fullHeader, 0, fullHeader.length, 0);
-    return parseSafetensorsHeader(
-      fullHeader.buffer.slice(fullHeader.byteOffset, fullHeader.byteOffset + fullHeader.byteLength)
-    );
-  } finally {
-    await fd.close();
+async function readSafetensorsHeader(filePath, parseSafetensorsHeader, readRange) {
+  const headerPrefixBuffer = await readRange(filePath, 0, 8);
+  const headerPrefixBytes = new Uint8Array(headerPrefixBuffer);
+  if (headerPrefixBytes.byteLength < 8) {
+    throw new Error(`Invalid safetensors header prefix for "${filePath}"`);
   }
+  const headerSize = Number(new DataView(headerPrefixBuffer).getBigUint64(0, true));
+  const headerBuffer = await readRange(filePath, 8, headerSize);
+  const fullHeader = new Uint8Array(8 + headerSize);
+  fullHeader.set(headerPrefixBytes, 0);
+  fullHeader.set(new Uint8Array(headerBuffer), 8);
+  return parseSafetensorsHeader(
+    fullHeader.buffer.slice(fullHeader.byteOffset, fullHeader.byteOffset + fullHeader.byteLength)
+  );
 }
 
 async function listRelativeFiles(rootDir, relDir = '', out = []) {
@@ -303,15 +379,19 @@ async function clearExistingShardFiles(outputDir) {
 function createNodeConvertIO(outputDir, options) {
   const hashAlgorithm = options?.hashAlgorithm;
   const computeHash = options?.computeHash;
+  const readRange = options?.readRange;
   if (!hashAlgorithm || typeof hashAlgorithm !== 'string') {
     throw new Error('node convert: hashAlgorithm is required.');
   }
   if (typeof computeHash !== 'function') {
     throw new Error('node convert: computeHash(data, algorithm) is required.');
   }
+  if (typeof readRange !== 'function') {
+    throw new Error('node convert: readRange(filePath, offset, length) is required.');
+  }
   return {
     async readTensorData(tensor) {
-      return readFileRange(tensor.sourcePath, tensor.offset, tensor.size);
+      return readRange(tensor.sourcePath, tensor.offset, tensor.size);
     },
     async writeShard(index, data) {
       const filename = generateShardFilename(index);
@@ -528,6 +608,9 @@ export async function convertSafetensorsDirectory(options) {
   const isInputGgufFile = Boolean(inputGgufPath);
 
   installNodeFileFetchShim();
+  const fileRangeReader = createFileRangeReader();
+  const totalTimer = createStageTimer('Total');
+  try {
 
   const [
     { parseSafetensorsHeader },
@@ -544,7 +627,7 @@ export async function convertSafetensorsDirectory(options) {
     { resolveConversionPlan, inferSourceWeightQuantization, resolveConvertedModelId },
     { parseDiffusionModel },
     { parseTransformerModel },
-    { createConverterConfig, HEADER_READ_SIZE },
+    { createConverterConfig, HEADER_READ_SIZE, DEFAULT_CONVERTER_EXECUTION_CONFIG },
     { computeHash },
   ] = await Promise.all([
     import('../formats/safetensors/types.js'),
@@ -559,7 +642,10 @@ export async function convertSafetensorsDirectory(options) {
   ]);
 
   const converterConfig = createConverterConfig(converterConfigOverride ?? undefined);
-  const executionConfig = normalizeExecutionConfig(options?.execution);
+  const executionConfig = normalizeExecutionConfig(
+    options?.execution,
+    DEFAULT_CONVERTER_EXECUTION_CONFIG
+  );
   const executionPlan = resolveExecutionPlan(executionConfig);
   const diffusionIndexPath = isInputDirectory ? path.join(inputDir, 'model_index.json') : null;
   const isDiffusionInput = isInputDirectory && diffusionIndexPath ? await fileExists(diffusionIndexPath) : false;
@@ -575,6 +661,7 @@ export async function convertSafetensorsDirectory(options) {
   let hasTokenizerModel = false;
   let tokenizerModelPath = null;
   let diffusionAuxFiles = [];
+  const parseTimer = createStageTimer('Parse input');
 
   if (isDiffusionInput) {
     const relativeFiles = await listRelativeFiles(inputDir);
@@ -620,7 +707,11 @@ export async function convertSafetensorsDirectory(options) {
           throw new Error(`Missing safetensors file (${suffix})`);
         }
         const fullPath = path.join(inputDir, suffix);
-        const parsed = await readSafetensorsHeader(fullPath, parseSafetensorsHeader);
+        const parsed = await readSafetensorsHeader(
+          fullPath,
+          parseSafetensorsHeader,
+          fileRangeReader.readRange
+        );
         return {
           tensors: parsed.tensors.map((tensor) => ({
             ...tensor,
@@ -644,14 +735,26 @@ export async function convertSafetensorsDirectory(options) {
             `Missing shard files for ${componentId} (${shardSuffixes.length - missing.length}/${shardSuffixes.length} found)`
           );
         }
+        const parsedShards = await Promise.all(
+          shardSuffixes.map(async (shardSuffix) => {
+            const fullPath = path.join(inputDir, shardSuffix);
+            const parsed = await readSafetensorsHeader(
+              fullPath,
+              parseSafetensorsHeader,
+              fileRangeReader.readRange
+            );
+            return {
+              fullPath,
+              tensors: parsed.tensors,
+            };
+          })
+        );
         const tensorsOut = [];
-        for (const shardSuffix of shardSuffixes) {
-          const fullPath = path.join(inputDir, shardSuffix);
-          const parsed = await readSafetensorsHeader(fullPath, parseSafetensorsHeader);
-          for (const tensor of parsed.tensors) {
+        for (const parsedShard of parsedShards) {
+          for (const tensor of parsedShard.tensors) {
             tensorsOut.push({
               ...tensor,
-              sourcePath: fullPath,
+              sourcePath: parsedShard.fullPath,
             });
           }
         }
@@ -675,7 +778,7 @@ export async function convertSafetensorsDirectory(options) {
         size: ggufStats.size,
       },
       async readRange(offset, length) {
-        return readFileRange(ggufPath, offset, length);
+        return fileRangeReader.readRange(ggufPath, offset, length);
       },
     };
     const normalizeTensorSource = (input) => {
@@ -745,7 +848,11 @@ export async function convertSafetensorsDirectory(options) {
       },
       async loadSingleSafetensors(suffix) {
         const filePath = path.join(inputDir, suffix);
-        const parsed = await readSafetensorsHeader(filePath, parseSafetensorsHeader);
+        const parsed = await readSafetensorsHeader(
+          filePath,
+          parseSafetensorsHeader,
+          fileRangeReader.readRange
+        );
         return parsed.tensors.map((tensor) => ({
           ...tensor,
           sourcePath: filePath,
@@ -753,12 +860,24 @@ export async function convertSafetensorsDirectory(options) {
       },
       async loadShardedSafetensors(indexJson) {
         const shardFiles = [...new Set(Object.values(indexJson.weight_map || {}))];
+        const parsedShards = await Promise.all(
+          shardFiles.map(async (shardFile) => {
+            const shardPath = path.join(inputDir, shardFile);
+            const parsed = await readSafetensorsHeader(
+              shardPath,
+              parseSafetensorsHeader,
+              fileRangeReader.readRange
+            );
+            return {
+              shardPath,
+              tensors: parsed.tensors,
+            };
+          })
+        );
         const tensorsOut = [];
-        for (const shardFile of shardFiles) {
-          const shardPath = path.join(inputDir, shardFile);
-          const parsed = await readSafetensorsHeader(shardPath, parseSafetensorsHeader);
-          for (const tensor of parsed.tensors) {
-            tensorsOut.push({ ...tensor, sourcePath: shardPath });
+        for (const parsedShard of parsedShards) {
+          for (const tensor of parsedShard.tensors) {
+            tensorsOut.push({ ...tensor, sourcePath: parsedShard.shardPath });
           }
         }
         return tensorsOut;
@@ -775,6 +894,9 @@ export async function convertSafetensorsDirectory(options) {
     tokenizerConfig = await readOptionalJson(tokenizerConfigPath);
     hasTokenizerModel = await fileExists(tokenizerModelPath);
   }
+  parseTimer.stop(`${modelKind} tensors=${tensors.length}`);
+
+  sortTensorsByDeterministicLocality(tensors);
 
   const weightOverride = converterConfig.quantization?.weights ?? null;
   sourceQuantization = sourceQuantization || weightOverride || inferSourceWeightQuantization(tensors);
@@ -836,6 +958,7 @@ export async function convertSafetensorsDirectory(options) {
   const io = createNodeConvertIO(outputDir, {
     hashAlgorithm: converterConfig.manifest.hashAlgorithm,
     computeHash,
+    readRange: fileRangeReader.readRange,
   });
   const manifestArchitecture = modelKind === 'diffusion' ? 'diffusion' : architecture;
   let workerPool = null;
@@ -861,6 +984,7 @@ export async function convertSafetensorsDirectory(options) {
       ),
     }));
 
+    const convertTimer = createStageTimer('Convert tensors');
     result = await convertModel(model, io, {
       modelId,
       modelType: resolvedModelType,
@@ -874,6 +998,7 @@ export async function convertSafetensorsDirectory(options) {
         onProgress?.(toNodeProgress(update));
       },
     });
+    convertTimer.stop(`tensors=${result.tensorCount}, shards=${result.shardCount}`);
   } finally {
     if (workerPool) {
       await workerPool.close();
@@ -908,4 +1033,8 @@ export async function convertSafetensorsDirectory(options) {
     modelType: resolvedModelType,
     outputDir,
   };
+  } finally {
+    await fileRangeReader.closeAll();
+    totalTimer.stop();
+  }
 }

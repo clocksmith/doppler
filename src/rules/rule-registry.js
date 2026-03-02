@@ -41,6 +41,11 @@ const tensorRolesRules = await loadJson('./converter/tensor-roles.rules.json', i
 const converterExecutionRules = await loadJson('./converter/execution.rules.json', import.meta.url, 'Failed to load rules');
 const loaderWeightRules = await loadJson('./loader/weights.rules.json', import.meta.url, 'Failed to load rules');
 const tensorLoaderRules = await loadJson('./loader/tensor-loader.rules.json', import.meta.url, 'Failed to load rules');
+const toolingCommandRuntimeRules = await loadJson(
+  './tooling/command-runtime.rules.json',
+  import.meta.url,
+  'Failed to load rules'
+);
 
 const RULE_SETS = {
   shared: {
@@ -93,6 +98,9 @@ const RULE_SETS = {
     tokenizer: tokenizerRules,
     tensorRoles: tensorRolesRules,
     execution: converterExecutionRules,
+  },
+  tooling: {
+    commandRuntime: toolingCommandRuntimeRules,
   },
 };
 

@@ -151,6 +151,33 @@ function makeBaseEntry(overrides = {}) {
 }
 
 {
+  const entry = validateTrainingMetricsEntry(makeBaseEntry({
+    progress_shard_index: 2,
+    progress_shard_count: 5,
+    progress_step_in_shard: 1,
+    progress_steps_in_shard: 2,
+    progress_global_step: 3,
+    progress_global_steps: 10,
+    progress_percent_complete: 30,
+    progress_elapsed_ms: 1000,
+    progress_eta_ms: 2000,
+    progress_eta_iso: '2026-03-02T17:00:00.000Z',
+  }));
+  assert.equal(entry.progress_shard_index, 2);
+  assert.equal(entry.progress_percent_complete, 30);
+}
+
+{
+  assert.throws(
+    () => validateTrainingMetricsEntry(makeBaseEntry({
+      progress_shard_index: 6,
+      progress_shard_count: 5,
+    })),
+    /progress_shard_index must be <= progress_shard_count/
+  );
+}
+
+{
   assert.throws(
     () => validateTrainingMetricsEntry(makeBaseEntry({
       telemetry_alerts: [123],

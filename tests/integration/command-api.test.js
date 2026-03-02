@@ -134,6 +134,9 @@ import {
     distillDatasetId: 'en-es',
     distillDatasetPath: '/tmp/en-es.jsonl',
     distillLanguagePair: 'en-es',
+    distillShardIndex: 2,
+    distillShardCount: 5,
+    resumeFrom: '/tmp/checkpoint-latest.json',
   });
   assert.equal(request.trainingStage, 'stage_a');
   assert.equal(request.teacherModelId, 'translategemma-4b-it-wq4k-ef16-hf16');
@@ -141,6 +144,22 @@ import {
   assert.equal(request.distillDatasetId, 'en-es');
   assert.equal(request.distillDatasetPath, '/tmp/en-es.jsonl');
   assert.equal(request.distillLanguagePair, 'en-es');
+  assert.equal(request.distillShardIndex, 2);
+  assert.equal(request.distillShardCount, 5);
+  assert.equal(request.resumeFrom, '/tmp/checkpoint-latest.json');
+}
+
+{
+  assert.throws(
+    () => normalizeToolingCommandRequest({
+      command: 'bench',
+      workloadType: 'training',
+      trainingStage: 'stage_a',
+      distillShardIndex: 6,
+      distillShardCount: 5,
+    }),
+    /distillShardIndex must be <= distillShardCount/
+  );
 }
 
 {
@@ -220,11 +239,17 @@ import {
       execution: {
         workers: 8,
         workerCountPolicy: 'error',
+        rowChunkRows: 512,
+        rowChunkMinTensorBytes: 33554432,
+        maxInFlightJobs: 24,
       },
     },
   });
   assert.equal(request.convertPayload?.execution?.workers, 8);
   assert.equal(request.convertPayload?.execution?.workerCountPolicy, 'error');
+  assert.equal(request.convertPayload?.execution?.rowChunkRows, 512);
+  assert.equal(request.convertPayload?.execution?.rowChunkMinTensorBytes, 33554432);
+  assert.equal(request.convertPayload?.execution?.maxInFlightJobs, 24);
 }
 
 {
@@ -260,6 +285,24 @@ import {
       },
     }),
     /workerCountPolicy must be "cap" or "error"/
+  );
+}
+
+{
+  assert.throws(
+    () => normalizeToolingCommandRequest({
+      command: 'convert',
+      inputDir: '/tmp/model',
+      convertPayload: {
+        converterConfig: {
+          output: { modelBaseId: 'gemma-3-1b-it-wf16-ef16-hf16' },
+        },
+        execution: {
+          rowChunkRows: 0,
+        },
+      },
+    }),
+    /convertPayload\.execution\.rowChunkRows must be a positive integer/
   );
 }
 

@@ -1,37 +1,62 @@
 import assert from 'node:assert/strict';
-import { execFile } from 'node:child_process';
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { spawnSync } from 'node:child_process';
+import { closeSync, mkdtempSync, openSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import path from 'node:path';
 
 function runNodeScript(args) {
-  return new Promise((resolve, reject) => {
-    execFile('node', args, { cwd: process.cwd() }, (error, stdout, stderr) => {
-      if (error) {
-        reject(new Error(`${error.message}\n${stderr || stdout}`));
-        return;
-      }
-      resolve({ stdout, stderr });
-    });
+  const logDir = mkdtempSync(path.join(tmpdir(), 'doppler-distill-diag-run-'));
+  const stdoutPath = path.join(logDir, 'stdout.log');
+  const stderrPath = path.join(logDir, 'stderr.log');
+  const stdoutFd = openSync(stdoutPath, 'w');
+  const stderrFd = openSync(stderrPath, 'w');
+
+  const result = spawnSync(process.execPath, args, {
+    cwd: process.cwd(),
+    stdio: ['ignore', stdoutFd, stderrFd],
   });
+
+  closeSync(stdoutFd);
+  closeSync(stderrFd);
+
+  const output = {
+    code: result.status ?? 1,
+    stdout: readFileSync(stdoutPath, 'utf8'),
+    stderr: readFileSync(stderrPath, 'utf8'),
+  };
+  rmSync(logDir, { recursive: true, force: true });
+  return output;
 }
 
-const tempDir = await mkdtemp(join(tmpdir(), 'doppler-distill-diag-test-'));
+{
+  const result = runNodeScript(['tools/distill-studio-diagnostics.mjs']);
+  assert.equal(result.code, 1);
+  assert.match(result.stderr, /Usage: node tools\/distill-studio-diagnostics\.mjs --report/);
+}
+
+{
+  const result = runNodeScript(['tools/distill-studio-diagnostics.mjs', '--unknown']);
+  assert.equal(result.code, 1);
+  assert.match(result.stderr, /Unknown flag: --unknown/);
+}
+
+const tempDir = mkdtempSync(path.join(tmpdir(), 'doppler-distill-diag-test-'));
 try {
-  const reportPath = join(tempDir, 'report.json');
-  await writeFile(reportPath, JSON.stringify({
+  const reportPath = path.join(tempDir, 'report.json');
+  writeFileSync(reportPath, JSON.stringify({
     suite: 'training',
     modelId: 'toy-model',
     metrics: null,
   }, null, 2), 'utf8');
-  const result = await runNodeScript([
+  const result = runNodeScript([
     'tools/distill-studio-diagnostics.mjs',
     '--report',
     reportPath,
   ]);
+  assert.equal(result.code, 0);
   assert.match(result.stdout, /"ok": true/);
 } finally {
-  await rm(tempDir, { recursive: true, force: true });
+  rmSync(tempDir, { recursive: true, force: true });
 }
 
 console.log('distill-studio-diagnostics.test: ok');

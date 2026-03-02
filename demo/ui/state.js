@@ -32,6 +32,7 @@ export const state = {
   downloadActive: false,
   appInitializing: false,
   modelAvailabilityLoading: false,
+  surface: 'demo',
   uiMode: 'run',
   lastPrimaryMode: 'run',
   runLog: [],

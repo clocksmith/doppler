@@ -21,6 +21,17 @@ export interface AutogradRecord {
   options?: Record<string, unknown>;
 }
 
+export interface BackwardSeed {
+  tensor: Tensor;
+  grad: Tensor;
+}
+
+export type BackwardSeedInput =
+  | Tensor
+  | Map<Tensor, Tensor>
+  | BackwardSeed[]
+  | { seeds: BackwardSeed[] };
+
 export declare class AutogradTape {
   constructor(registry: BackwardRegistrySchema);
   registry: BackwardRegistrySchema;
@@ -32,6 +43,6 @@ export declare class AutogradTape {
     inputs: Tensor[],
     options?: Record<string, unknown>
   ): Promise<Tensor>;
-  backward(gradOutput: Tensor): Promise<Map<Tensor, Tensor>>;
+  backward(gradOutput: BackwardSeedInput): Promise<Map<Tensor, Tensor>>;
   reset(): void;
 }

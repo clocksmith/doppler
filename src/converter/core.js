@@ -960,22 +960,14 @@ export async function convertModel(model, io, options = {}) {
 
   // Current shard accumulator
   let currentShardIndex = 0;
-  let currentShardData = [];
+  let currentShardBuffer = new Uint8Array(shardSize);
   let currentShardSize = 0;
   let totalSize = 0;
 
   // Helper to flush current shard
   const flushShard = async () => {
-    if (currentShardData.length === 0) return;
-
-    // Concatenate chunks
-    const shardTotalSize = currentShardData.reduce((sum, chunk) => sum + chunk.length, 0);
-    const shardData = new Uint8Array(shardTotalSize);
-    let offset = 0;
-    for (const chunk of currentShardData) {
-      shardData.set(chunk, offset);
-      offset += chunk.length;
-    }
+    if (currentShardSize === 0) return;
+    const shardData = currentShardBuffer.subarray(0, currentShardSize);
 
     // Write shard and get hash
     const hash = await io.writeShard(currentShardIndex, shardData);
@@ -983,13 +975,12 @@ export async function convertModel(model, io, options = {}) {
     shards.push({
       index: currentShardIndex,
       filename: generateShardFilename(currentShardIndex),
-      size: shardData.length,
+      size: currentShardSize,
       hash,
       offset: currentShardIndex * shardSize,
     });
 
     currentShardIndex++;
-    currentShardData = [];
     currentShardSize = 0;
   };
 
@@ -1051,27 +1042,28 @@ export async function convertModel(model, io, options = {}) {
     const tensorSize = tensorData.byteLength;
 
     // Track tensor location
-    const startShard = currentShardIndex;
-    const offsetInShard = currentShardSize;
     const tensorSpans = [];
 
     // Add to current shard, splitting if necessary
-    let remaining = tensorData;
-    while (remaining.length > 0) {
+    let remainingOffset = 0;
+    while (remainingOffset < tensorData.length) {
       const availableInShard = shardSize - currentShardSize;
-      const chunkSize = Math.min(remaining.length, availableInShard);
+      const remainingSize = tensorData.length - remainingOffset;
+      const chunkSize = Math.min(remainingSize, availableInShard);
+      const chunk = tensorData.subarray(remainingOffset, remainingOffset + chunkSize);
+      currentShardBuffer.set(chunk, currentShardSize);
 
-      currentShardData.push(remaining.slice(0, chunkSize));
+      const chunkOffset = currentShardSize;
       currentShardSize += chunkSize;
       totalSize += chunkSize;
 
       tensorSpans.push({
         shardIndex: currentShardIndex,
-        offset: currentShardSize - chunkSize,
+        offset: chunkOffset,
         size: chunkSize,
       });
 
-      remaining = remaining.slice(chunkSize);
+      remainingOffset += chunkSize;
 
       // Flush shard if full
       if (currentShardSize >= shardSize) {

@@ -1,0 +1,38 @@
+{
+  "runtimeContract": [
+    {
+      "match": {
+        "command": "debug"
+      },
+      "value": {
+        "suite": "debug",
+        "intent": "investigate"
+      }
+    },
+    {
+      "match": {
+        "command": "bench"
+      },
+      "value": {
+        "suite": "bench",
+        "intent": "calibrate"
+      }
+    },
+    {
+      "match": {
+        "command": "test-model"
+      },
+      "value": {
+        "suite": null,
+        "intent": "verify"
+      }
+    },
+    {
+      "match": {},
+      "value": {
+        "suite": null,
+        "intent": null
+      }
+    }
+  ]
+}

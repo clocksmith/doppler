@@ -22,6 +22,7 @@ const config = {
       temperature: 1,
       alphaKd: 1,
       alphaCe: 0.5,
+      allowHintFallback: true,
     },
   },
 };

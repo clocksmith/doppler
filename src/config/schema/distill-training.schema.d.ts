@@ -17,12 +17,16 @@ export interface DistillTrainingConfigSchema {
   datasetId: string | null;
   datasetPath: string | null;
   languagePair: string | null;
+  shardIndex: number | null;
+  shardCount: number | null;
+  resumeFrom: string | null;
   artifactDir: string | null;
   stageAArtifact: string | null;
   stageAArtifactHash: string | null;
   temperature: number;
   alphaKd: number;
   alphaCe: number;
+  allowHintFallback: boolean;
   tripletMargin: number;
   freeze: DistillFreezeConfigSchema;
 }

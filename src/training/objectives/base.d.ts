@@ -12,9 +12,21 @@ export interface TrainingObjectiveContext {
 
 export interface TrainingObjectiveLossResult {
   loss: Tensor;
-  components?: Record<string, number | null | undefined>;
+  components?: Record<string, number | string | boolean | null | undefined>;
   [key: string]: unknown;
 }
+
+export interface TrainingObjectiveBackwardSeed {
+  tensor: Tensor;
+  grad: Tensor;
+}
+
+export type TrainingObjectiveBackwardTargets =
+  | Tensor
+  | null
+  | Map<Tensor, Tensor>
+  | TrainingObjectiveBackwardSeed[]
+  | { seeds: TrainingObjectiveBackwardSeed[] };
 
 export interface TrainingObjective {
   name: string;
@@ -29,7 +41,7 @@ export interface TrainingObjective {
   ) => Promise<Tensor | TrainingObjectiveLossResult> | Tensor | TrainingObjectiveLossResult;
   backwardTargets?: (
     context: TrainingObjectiveContext & { loss: Tensor; lossResult: TrainingObjectiveLossResult }
-  ) => Promise<Tensor | null> | Tensor | null;
+  ) => Promise<TrainingObjectiveBackwardTargets> | TrainingObjectiveBackwardTargets;
   metrics?: (
     context: TrainingObjectiveContext & {
       forwardState: Record<string, unknown>;
