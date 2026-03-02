@@ -42,9 +42,23 @@ export function createDistillTripletObjective(options = {}) {
       const margin = Math.max(0, toFinite(batch?.distill?.tripletMargin, toFinite(distill.tripletMargin, 0.2)));
       const stageAContext = runOptions?.stageAArtifactContext;
       const referenceKdMean = toFinite(stageAContext?.metricsSummary?.kdMean, 0.08);
-      const tripletHint = Math.max(0, toFinite(batch?.distill?.tripletHint, NaN));
-      const fallbackHint = referenceKdMean + (Math.abs(Math.floor(toFinite(runOptions?.stepIndex, 0))) * 0.02);
-      const lossTriplet = Math.max(0, (Number.isFinite(tripletHint) ? tripletHint : fallbackHint) + margin);
+      const tripletValues = Array.isArray(batch?.distill?.tripletLossValues)
+        ? batch.distill.tripletLossValues
+        : [];
+      let tripletSum = 0;
+      let tripletCount = 0;
+      for (const value of tripletValues) {
+        const normalized = toFinite(value, NaN);
+        if (!Number.isFinite(normalized)) continue;
+        tripletSum += normalized;
+        tripletCount += 1;
+      }
+      const runtimeTripletMean = tripletCount > 0
+        ? (tripletSum / tripletCount)
+        : toFinite(batch?.distill?.tripletLossMean, 0);
+      const lossTriplet = Math.max(0, runtimeTripletMean + margin);
+      const teacherModelId = batch?.distill?.teacherModelId || distill.teacherModelId || null;
+      const studentModelId = batch?.distill?.studentModelId || distill.studentModelId || null;
       return {
         loss,
         components: {
@@ -53,6 +67,8 @@ export function createDistillTripletObjective(options = {}) {
           distill_triplet_margin: margin,
           distill_stage_a_step_count: toFinite(stageAContext?.metricsSummary?.stepCount, 0),
           distill_stage_a_kd_mean: referenceKdMean,
+          distill_teacher_model_id: teacherModelId,
+          distill_student_model_id: studentModelId,
         },
       };
     },
@@ -71,6 +87,12 @@ export function createDistillTripletObjective(options = {}) {
         distill_stage_a_kd_mean: Number.isFinite(components.distill_stage_a_kd_mean)
           ? components.distill_stage_a_kd_mean
           : null,
+        distill_teacher_model_id: typeof components.distill_teacher_model_id === 'string'
+          ? components.distill_teacher_model_id
+          : (distill.teacherModelId || null),
+        distill_student_model_id: typeof components.distill_student_model_id === 'string'
+          ? components.distill_student_model_id
+          : (distill.studentModelId || null),
       };
     },
   });

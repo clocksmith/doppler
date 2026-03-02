@@ -44,6 +44,12 @@ export interface TrainingBenchSuiteResult {
     trainingMetricsReport: Record<string, unknown>[];
     ulArtifacts: Record<string, unknown>[];
     distillArtifacts: Record<string, unknown>[];
+    distillDataset?: {
+      path: string;
+      rowCount: number;
+      sampleCount: number;
+      directionCounts: Record<string, number>;
+    } | null;
     latency: {
       runMs: Record<string, unknown>;
       stepMs: Record<string, unknown>;
@@ -87,6 +93,7 @@ export interface RunTrainingSuiteOptions {
   teacherModelId?: string;
   studentModelId?: string;
   distillDatasetId?: string;
+  distillDatasetPath?: string;
   distillLanguagePair?: string;
   trainingBenchSteps?: number;
   benchRun?: Record<string, unknown> | null;

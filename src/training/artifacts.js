@@ -542,6 +542,7 @@ function buildDistillContractPayload(distillConfig) {
     teacherModelId: distillConfig.teacherModelId || null,
     studentModelId: distillConfig.studentModelId || null,
     datasetId: distillConfig.datasetId || null,
+    datasetPath: distillConfig.datasetPath || null,
     languagePair: distillConfig.languagePair || null,
   };
 }
@@ -554,6 +555,7 @@ function buildResolvedDistillConfigSnapshot(distillConfig) {
     teacherModelId: distillConfig.teacherModelId || null,
     studentModelId: distillConfig.studentModelId || null,
     datasetId: distillConfig.datasetId || null,
+    datasetPath: distillConfig.datasetPath || null,
     languagePair: distillConfig.languagePair || null,
     temperature: toFiniteNumber(distillConfig.temperature, 1),
     alphaKd: toFiniteNumber(distillConfig.alphaKd, 1),
@@ -570,6 +572,7 @@ function buildDistillRuntimeDump(distillConfig, runOptions = {}) {
     teacherModelId: runOptions.teacherModelId || distillConfig.teacherModelId || null,
     studentModelId: runOptions.studentModelId || distillConfig.studentModelId || null,
     datasetId: runOptions.distillDatasetId || distillConfig.datasetId || null,
+    datasetPath: runOptions.distillDatasetPath || distillConfig.datasetPath || null,
     languagePair: runOptions.distillLanguagePair || distillConfig.languagePair || null,
     temperature: toFiniteNumber(distillConfig.temperature, 1),
     alphaKd: toFiniteNumber(distillConfig.alphaKd, 1),
@@ -660,6 +663,7 @@ export function resolveDistillTrainingContract(distillConfig) {
       teacherModelId: null,
       studentModelId: null,
       datasetId: null,
+      datasetPath: null,
       languagePair: null,
     };
   }
@@ -672,6 +676,7 @@ export function resolveDistillTrainingContract(distillConfig) {
     teacherModelId: distillConfig.teacherModelId || null,
     studentModelId: distillConfig.studentModelId || null,
     datasetId: distillConfig.datasetId || null,
+    datasetPath: distillConfig.datasetPath || null,
     languagePair: distillConfig.languagePair || null,
   };
 }
@@ -806,6 +811,7 @@ export async function createDistillArtifactSession(options) {
       const datasetHash = sha256Hex(
         stableJson({
           datasetId: runOptions.distillDatasetId || distillConfig.datasetId || null,
+          datasetPath: runOptions.distillDatasetPath || distillConfig.datasetPath || null,
           languagePair: runOptions.distillLanguagePair || distillConfig.languagePair || null,
           batchSize: runOptions.batchSize ?? null,
           epochs: runOptions.epochs ?? null,

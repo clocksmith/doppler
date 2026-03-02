@@ -15,6 +15,7 @@ export interface DistillTrainingConfigSchema {
   teacherModelId: string | null;
   studentModelId: string | null;
   datasetId: string | null;
+  datasetPath: string | null;
   languagePair: string | null;
   artifactDir: string | null;
   stageAArtifact: string | null;

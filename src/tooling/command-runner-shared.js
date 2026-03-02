@@ -116,6 +116,7 @@ export function buildSuiteOptions(request, surface = null) {
     teacherModelId: request.teacherModelId ?? undefined,
     studentModelId: request.studentModelId ?? undefined,
     distillDatasetId: request.distillDatasetId ?? undefined,
+    distillDatasetPath: request.distillDatasetPath ?? undefined,
     distillLanguagePair: request.distillLanguagePair ?? undefined,
     trainingSchemaVersion: request.trainingSchemaVersion ?? undefined,
     trainingBenchSteps: request.trainingBenchSteps ?? undefined,

@@ -1,6 +1,14 @@
 import assert from 'node:assert/strict';
 
-import { createDistillTripletObjective } from '../../src/training/objectives/distill_triplet.js';
+globalThis.GPUBufferUsage ??= {
+  STORAGE: 1 << 0,
+  COPY_DST: 1 << 1,
+  COPY_SRC: 1 << 2,
+  UNIFORM: 1 << 3,
+};
+globalThis.GPUMapMode ??= { READ: 1, WRITE: 2 };
+
+const { createDistillTripletObjective } = await import('../../src/training/objectives/distill_triplet.js');
 
 const objective = createDistillTripletObjective({
   crossEntropyLoss: async () => ({ label: 'loss' }),
@@ -39,7 +47,7 @@ const lossResult = await objective.computeLoss({
   batch: {
     targets: { label: 'targets' },
     distill: {
-      tripletHint: 0.3,
+      tripletLossValues: [0.4, 0.2],
       tripletMargin: 0.2,
     },
   },

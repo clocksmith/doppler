@@ -83,6 +83,7 @@ export interface BrowserSuiteOptions extends InferenceHarnessOptions {
   teacherModelId?: string;
   studentModelId?: string;
   distillDatasetId?: string;
+  distillDatasetPath?: string;
   distillLanguagePair?: string;
   trainingSchemaVersion?: number;
   trainingBenchSteps?: number;

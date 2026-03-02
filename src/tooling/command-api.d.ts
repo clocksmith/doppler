@@ -37,6 +37,7 @@ export interface ToolingCommandRequestInput {
   teacherModelId?: string;
   studentModelId?: string;
   distillDatasetId?: string;
+  distillDatasetPath?: string;
   distillLanguagePair?: string;
   trainingSchemaVersion?: number;
   trainingBenchSteps?: number;
@@ -74,6 +75,7 @@ export interface ToolingCommandRequest {
   teacherModelId: string | null;
   studentModelId: string | null;
   distillDatasetId: string | null;
+  distillDatasetPath: string | null;
   distillLanguagePair: string | null;
   trainingSchemaVersion: number | null;
   trainingBenchSteps: number | null;

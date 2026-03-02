@@ -1,0 +1,61 @@
+{
+  "suite": "training",
+  "modelId": "training",
+  "runtimePreset": null,
+  "deviceInfo": {
+    "hasSubgroups": true,
+    "hasSubgroupsF16": false,
+    "hasF16": true,
+    "hasTimestampQuery": true,
+    "maxBufferSize": 4294967292,
+    "maxWorkgroupSize": 1024,
+    "maxWorkgroupStorageSize": 65536,
+    "adapterInfo": {
+      "vendor": "unknown",
+      "architecture": "unknown",
+      "device": "unknown",
+      "description": ""
+    }
+  },
+  "results": [
+    {
+      "name": "distill-stage-a",
+      "passed": false,
+      "duration": 27781.404910999998,
+      "error": "Attention kernel \"prefill_small_f16kv\" requires f32 Q with f16 KV but got Q=f32, KV=f32."
+    }
+  ],
+  "durationMs": 27829.178984,
+  "timestamp": "2026-03-02T15:53:54.729Z",
+  "metrics": {
+    "testsRun": 1,
+    "selectedTests": [
+      "distill-stage-a"
+    ],
+    "availableTests": [
+      "runner-smoke",
+      "train-step-metrics",
+      "ul-stage1",
+      "ul-stage2",
+      "distill-stage-a",
+      "distill-stage-b",
+      "loss-forward",
+      "softmax-backward",
+      "cross-entropy-backward",
+      "rmsnorm-backward",
+      "layernorm-backward",
+      "conv2d-backward",
+      "matmul-backward",
+      "embed-backward",
+      "ebm-state-optimize",
+      "ebm-recorded-bench",
+      "parity-fixture",
+      "training-leak-perf",
+      "autograd-branching"
+    ],
+    "trainingStage": "stage_a",
+    "trainingSchemaVersion": 1
+  },
+  "output": null,
+  "memory": null
+}
