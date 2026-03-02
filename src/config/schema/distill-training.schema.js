@@ -1,4 +1,5 @@
 export const DISTILL_STAGE_VALUES = Object.freeze(['stage_a', 'stage_b']);
+export const DISTILL_STUDENT_GRAPH_MODE_VALUES = Object.freeze(['projection_head', 'transformer_full']);
 
 export const DISTILL_TRAINING_SCHEMA_VERSION = 1;
 
@@ -19,13 +20,18 @@ export const DEFAULT_DISTILL_TRAINING_CONFIG = Object.freeze({
   datasetId: null,
   datasetPath: null,
   languagePair: null,
+  shardIndex: null,
+  shardCount: null,
+  resumeFrom: null,
   artifactDir: 'bench/out/distill',
   stageAArtifact: null,
   stageAArtifactHash: null,
   temperature: 1,
   alphaKd: 1,
   alphaCe: 0,
+  allowHintFallback: false,
   tripletMargin: 0.2,
+  studentGraphMode: 'transformer_full',
   freeze: DEFAULT_DISTILL_FREEZE_GROUPS,
 });
 
@@ -47,6 +53,12 @@ function assertNullableString(value, label) {
   throw new Error(`Distill config: ${label} must be a non-empty string or null.`);
 }
 
+function assertNullablePositiveInteger(value, label) {
+  if (value === null) return;
+  if (Number.isInteger(value) && value >= 1) return;
+  throw new Error(`Distill config: ${label} must be a positive integer or null.`);
+}
+
 export function validateDistillTrainingConfig(config) {
   if (!config || typeof config !== 'object' || Array.isArray(config)) {
     throw new Error('Distill config: expected an object.');
@@ -61,13 +73,26 @@ export function validateDistillTrainingConfig(config) {
   assertNullableString(config.datasetId, 'datasetId');
   assertNullableString(config.datasetPath, 'datasetPath');
   assertNullableString(config.languagePair, 'languagePair');
+  assertNullablePositiveInteger(config.shardIndex, 'shardIndex');
+  assertNullablePositiveInteger(config.shardCount, 'shardCount');
+  assertNullableString(config.resumeFrom, 'resumeFrom');
   assertNullableString(config.artifactDir, 'artifactDir');
   assertNullableString(config.stageAArtifact, 'stageAArtifact');
   assertNullableString(config.stageAArtifactHash, 'stageAArtifactHash');
   assertFiniteNumber(config.temperature, 'temperature');
   assertFiniteNumber(config.alphaKd, 'alphaKd');
   assertFiniteNumber(config.alphaCe, 'alphaCe');
+  assertBoolean(config.allowHintFallback, 'allowHintFallback');
   assertFiniteNumber(config.tripletMargin, 'tripletMargin');
+  assertNullableString(config.studentGraphMode, 'studentGraphMode');
+  if (
+    config.studentGraphMode !== null
+    && !DISTILL_STUDENT_GRAPH_MODE_VALUES.includes(config.studentGraphMode)
+  ) {
+    throw new Error(
+      `Distill config: studentGraphMode must be one of ${DISTILL_STUDENT_GRAPH_MODE_VALUES.join(', ')} or null.`
+    );
+  }
 
   const freeze = config.freeze;
   if (!freeze || typeof freeze !== 'object' || Array.isArray(freeze)) {
@@ -81,6 +106,13 @@ export function validateDistillTrainingConfig(config) {
 
   if (config.stage === 'stage_b' && !config.stageAArtifact) {
     throw new Error('Distill config: stage_b requires stageAArtifact.');
+  }
+  if (
+    config.shardIndex !== null
+    && config.shardCount !== null
+    && config.shardIndex > config.shardCount
+  ) {
+    throw new Error('Distill config: shardIndex must be <= shardCount.');
   }
 
   return config;

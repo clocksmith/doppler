@@ -37,7 +37,7 @@ export const DEFAULT_CONVERTER_WEIGHT_LAYOUT_CONFIG = {
 };
 
 export const DEFAULT_CONVERTER_MANIFEST_CONFIG = {
-  hashAlgorithm: 'blake3',
+  hashAlgorithm: 'sha256',
   optimizations: null,
   conversion: null,
 };
@@ -65,6 +65,16 @@ export const DEFAULT_CONVERTER_OUTPUT_CONFIG = {
 
 export const DEFAULT_CONVERTER_PRESET_CONFIG = {
   model: null,
+};
+
+export const DEFAULT_CONVERTER_EXECUTION_CONFIG = {
+  workers: 8,
+  workerCountPolicy: 'cap',
+  rowChunkRows: null,
+  rowChunkMinTensorBytes: 32 * MB,
+  maxInFlightJobs: null,
+  useGpuCast: false,
+  gpuCastMinTensorBytes: 32 * MB,
 };
 
 export const DEFAULT_CONVERTER_CONFIG = {

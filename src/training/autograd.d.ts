@@ -5,10 +5,13 @@ export const OpType: {
   EMBED: 'embed';
   MATMUL: 'matmul';
   RMSNORM: 'rmsnorm';
+  RESIDUAL_ADD: 'residual_add';
+  ROW_SLICE: 'row_slice';
   ATTENTION: 'attention';
   SOFTMAX: 'softmax';
   ROPE: 'rope';
   SILU: 'silu';
+  SILU_ROWSPLIT: 'silu_rowsplit';
   GELU: 'gelu';
   SCALE: 'scale';
   CROSS_ENTROPY: 'cross_entropy';
@@ -21,6 +24,17 @@ export interface AutogradRecord {
   options?: Record<string, unknown>;
 }
 
+export interface BackwardSeed {
+  tensor: Tensor;
+  grad: Tensor;
+}
+
+export type BackwardSeedInput =
+  | Tensor
+  | Map<Tensor, Tensor>
+  | BackwardSeed[]
+  | { seeds: BackwardSeed[] };
+
 export declare class AutogradTape {
   constructor(registry: BackwardRegistrySchema);
   registry: BackwardRegistrySchema;
@@ -32,6 +46,6 @@ export declare class AutogradTape {
     inputs: Tensor[],
     options?: Record<string, unknown>
   ): Promise<Tensor>;
-  backward(gradOutput: Tensor): Promise<Map<Tensor, Tensor>>;
+  backward(gradOutput: BackwardSeedInput): Promise<Map<Tensor, Tensor>>;
   reset(): void;
 }

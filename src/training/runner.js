@@ -4,7 +4,7 @@ import { crossEntropyLoss } from './loss.js';
 import { clipGradients } from './clip.js';
 import { AdamOptimizer } from './optimizer.js';
 import { DynamicLossScaler, detectOverflow } from './loss-scaling.js';
-import { readBuffer } from '../memory/buffer-pool.js';
+import { readBuffer, uploadData } from '../memory/buffer-pool.js';
 import { f16ToF32Array } from '../inference/kv-cache/types.js';
 import { DataLoader } from './dataloader.js';
 import { createCrossEntropyObjective } from './objectives/cross_entropy.js';
@@ -20,6 +20,7 @@ import {
   resolveUlTrainingContract,
   resolveStage1ArtifactContext,
 } from './artifacts.js';
+import { loadCheckpoint, saveCheckpoint } from './checkpoint.js';
 import { validateTrainingMetricsEntry } from '../config/schema/training-metrics.schema.js';
 
 function toFloat32(buffer, dtype) {
@@ -146,6 +147,87 @@ function resolveObjectiveDistillStage(objectiveName) {
   return null;
 }
 
+function toPositiveIntegerOrNull(value) {
+  if (value === null || value === undefined) return null;
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return null;
+  const floored = Math.floor(parsed);
+  return floored >= 1 ? floored : null;
+}
+
+function resolveProgressContext(config, runOptions = {}) {
+  const distillConfig = config?.training?.distill || {};
+  const shardIndexInput = toPositiveIntegerOrNull(
+    runOptions.distillShardIndex ?? distillConfig.shardIndex ?? null
+  );
+  const shardCountInput = toPositiveIntegerOrNull(
+    runOptions.distillShardCount ?? distillConfig.shardCount ?? null
+  );
+  if (
+    shardIndexInput !== null
+    && shardCountInput !== null
+    && shardIndexInput > shardCountInput
+  ) {
+    throw new Error('TrainingRunner: distillShardIndex must be <= distillShardCount.');
+  }
+  const shardCount = shardCountInput ?? 1;
+  const shardIndex = shardIndexInput ?? 1;
+  const stepsPerShard = toPositiveIntegerOrNull(runOptions.maxSteps);
+  return {
+    shardIndex: Math.min(Math.max(1, shardIndex), shardCount),
+    shardCount: Math.max(1, shardCount),
+    stepsPerShard,
+  };
+}
+
+function buildProgressSnapshot(step, elapsedMs, context) {
+  const shardIndex = context?.shardIndex ?? 1;
+  const shardCount = context?.shardCount ?? 1;
+  const stepsPerShard = context?.stepsPerShard ?? null;
+  const stepInShard = stepsPerShard !== null
+    ? Math.min(step, stepsPerShard)
+    : step;
+  const globalStep = stepsPerShard !== null
+    ? (((shardIndex - 1) * stepsPerShard) + stepInShard)
+    : null;
+  const globalSteps = stepsPerShard !== null
+    ? (stepsPerShard * shardCount)
+    : null;
+  const percentComplete = (
+    Number.isFinite(globalStep)
+    && Number.isFinite(globalSteps)
+    && globalSteps > 0
+  )
+    ? Math.min(100, (globalStep / globalSteps) * 100)
+    : null;
+  let etaMs = null;
+  if (
+    Number.isFinite(globalStep)
+    && Number.isFinite(globalSteps)
+    && globalStep > 0
+    && globalSteps >= globalStep
+    && Number.isFinite(elapsedMs)
+  ) {
+    const meanStepMs = elapsedMs / globalStep;
+    const remainingSteps = globalSteps - globalStep;
+    if (Number.isFinite(meanStepMs)) {
+      etaMs = Math.max(0, remainingSteps * meanStepMs);
+    }
+  }
+  return {
+    shardIndex,
+    shardCount,
+    stepInShard,
+    stepsPerShard,
+    globalStep,
+    globalSteps,
+    percentComplete,
+    elapsedMs: Number.isFinite(elapsedMs) ? Math.max(0, elapsedMs) : null,
+    etaMs,
+    etaIso: Number.isFinite(etaMs) ? new Date(Date.now() + etaMs).toISOString() : null,
+  };
+}
+
 function countNumericAnomaliesFromObject(value, counters) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return;
   for (const candidate of Object.values(value)) {
@@ -270,6 +352,199 @@ function flattenUniqueParams(paramGroups) {
   return output;
 }
 
+function isTensorLike(value) {
+  return !!value
+    && typeof value === 'object'
+    && Array.isArray(value.shape)
+    && value.buffer != null;
+}
+
+function isNodeRuntime() {
+  return typeof process !== 'undefined' && !!process.versions?.node;
+}
+
+function normalizeOptionalString(value) {
+  if (value === undefined || value === null) return null;
+  const trimmed = String(value).trim();
+  return trimmed || null;
+}
+
+function toBase64(bytes) {
+  if (typeof Buffer !== 'undefined') {
+    return Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength).toString('base64');
+  }
+  let binary = '';
+  for (let i = 0; i < bytes.length; i += 1) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
+function fromBase64(base64) {
+  if (typeof Buffer !== 'undefined') {
+    const buffer = Buffer.from(base64, 'base64');
+    return new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength);
+  }
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes;
+}
+
+async function serializeTensorSnapshot(tensor) {
+  const raw = await readBuffer(tensor.buffer);
+  const bytes = new Uint8Array(raw);
+  return {
+    dtype: tensor.dtype,
+    shape: Array.isArray(tensor.shape) ? [...tensor.shape] : [],
+    dataBase64: toBase64(bytes),
+  };
+}
+
+async function restoreTensorSnapshot(tensor, snapshot) {
+  if (!isTensorLike(tensor)) return false;
+  if (!snapshot || typeof snapshot !== 'object') return false;
+  const encoded = normalizeOptionalString(snapshot.dataBase64);
+  if (!encoded) return false;
+  const decoded = fromBase64(encoded);
+  uploadData(tensor.buffer, decoded);
+  return true;
+}
+
+function buildTrainableParamRefs(model, freezeMap = null) {
+  const paramGroups = resolveModelParamGroups(model);
+  const { trainableGroups } = selectTrainableParamGroups(paramGroups, freezeMap || {});
+  const refs = [];
+  const seen = new Set();
+  for (const [groupName, params] of Object.entries(trainableGroups)) {
+    for (let index = 0; index < params.length; index += 1) {
+      const tensor = params[index];
+      if (!isTensorLike(tensor) || seen.has(tensor)) continue;
+      seen.add(tensor);
+      refs.push({
+        key: `${groupName}[${index}]`,
+        tensor,
+      });
+    }
+  }
+  return refs;
+}
+
+function looksLikeTrainingCheckpointRecord(value) {
+  const trainingState = value?.trainingState;
+  if (!trainingState || typeof trainingState !== 'object') return false;
+  const progress = trainingState.progress;
+  if (!progress || typeof progress !== 'object') return false;
+  return Number.isInteger(progress.step) && progress.step >= 0;
+}
+
+async function createTrainingCheckpointPayload(model, optimizer, context) {
+  const freezeMap = context.config?.training?.ul?.freeze
+    ?? context.config?.training?.distill?.freeze
+    ?? {};
+  const refs = buildTrainableParamRefs(model, freezeMap);
+  const params = {};
+  const optimizerSlots = {};
+  for (const ref of refs) {
+    params[ref.key] = await serializeTensorSnapshot(ref.tensor);
+    const optimizerStateEntry = optimizer?.state instanceof Map
+      ? optimizer.state.get(ref.tensor)
+      : null;
+    if (optimizerStateEntry?.m && optimizerStateEntry?.v) {
+      optimizerSlots[ref.key] = {
+        m: await serializeTensorSnapshot(optimizerStateEntry.m),
+        v: await serializeTensorSnapshot(optimizerStateEntry.v),
+      };
+    }
+  }
+  return {
+    trainingState: {
+      schemaVersion: 1,
+      progress: {
+        step: context.step,
+        epoch: context.epoch,
+        batch: context.batch,
+      },
+      optimizerStepCount: Number.isInteger(optimizer?.stepCount) ? optimizer.stepCount : 0,
+      params,
+      optimizerSlots,
+    },
+  };
+}
+
+async function restoreTrainingCheckpointState(model, optimizer, checkpointRecord, config) {
+  if (!looksLikeTrainingCheckpointRecord(checkpointRecord)) {
+    return null;
+  }
+  const trainingState = checkpointRecord.trainingState;
+  const freezeMap = config?.training?.ul?.freeze
+    ?? config?.training?.distill?.freeze
+    ?? {};
+  const refs = buildTrainableParamRefs(model, freezeMap);
+  const refMap = new Map(refs.map((entry) => [entry.key, entry.tensor]));
+  const params = trainingState.params && typeof trainingState.params === 'object'
+    ? trainingState.params
+    : {};
+  for (const [key, snapshot] of Object.entries(params)) {
+    const tensor = refMap.get(key);
+    if (!tensor) continue;
+    await restoreTensorSnapshot(tensor, snapshot);
+  }
+  if (optimizer && Number.isInteger(trainingState.optimizerStepCount)) {
+    optimizer.stepCount = trainingState.optimizerStepCount;
+  }
+  const optimizerSlots = trainingState.optimizerSlots && typeof trainingState.optimizerSlots === 'object'
+    ? trainingState.optimizerSlots
+    : {};
+  if (optimizer && typeof optimizer.getState === 'function') {
+    for (const [key, snapshot] of Object.entries(optimizerSlots)) {
+      const tensor = refMap.get(key);
+      if (!tensor) continue;
+      const slot = optimizer.getState(tensor);
+      if (slot?.m) {
+        await restoreTensorSnapshot(slot.m, snapshot?.m);
+      }
+      if (slot?.v) {
+        await restoreTensorSnapshot(slot.v, snapshot?.v);
+      }
+    }
+  }
+  const progress = trainingState.progress || {};
+  return {
+    step: Number.isInteger(progress.step) ? progress.step : 0,
+    epoch: Number.isInteger(progress.epoch) ? progress.epoch : 0,
+    batch: Number.isInteger(progress.batch) ? progress.batch : 0,
+    checkpointHash: checkpointRecord?.metadata?.checkpointHash || null,
+  };
+}
+
+async function resolveDefaultCheckpointKey(runOptions, distillContract, ulContract) {
+  const artifactDir = normalizeOptionalString(
+    runOptions.distillArtifactDir
+    || runOptions.ulArtifactDir
+    || distillContract?.artifactDir
+    || ulContract?.artifactDir
+  );
+  if (!artifactDir) return null;
+  if (!isNodeRuntime()) {
+    const mode = distillContract?.enabled ? 'distill' : (ulContract?.enabled ? 'ul' : 'training');
+    return `${mode}.latest.checkpoint`;
+  }
+  const { resolve, join } = await import('node:path');
+  const mode = distillContract?.enabled ? 'distill' : (ulContract?.enabled ? 'ul' : 'training');
+  return resolve(join(artifactDir, `${mode}.latest.checkpoint.json`));
+}
+
+async function resolveCheckpointKey(runOptions, distillContract, ulContract) {
+  const explicit = normalizeOptionalString(runOptions.resumeFrom);
+  if (explicit) {
+    return { explicit, fallback: await resolveDefaultCheckpointKey(runOptions, distillContract, ulContract) };
+  }
+  return { explicit: null, fallback: await resolveDefaultCheckpointKey(runOptions, distillContract, ulContract) };
+}
+
 export class TrainingRunner {
   constructor(config, options = {}) {
     this.config = config;
@@ -281,6 +556,8 @@ export class TrainingRunner {
     this.onStep = options.onStep || null;
     this.onEpoch = options.onEpoch || null;
     this.lastArtifact = null;
+    this.lastCheckpoint = null;
+    this.resumeState = null;
   }
 
   async run(model, dataset, options = {}) {
@@ -298,6 +575,46 @@ export class TrainingRunner {
     if (distillContract.enabled && ulContract.enabled) {
       throw new Error('TrainingRunner cannot run distill and ul modes simultaneously.');
     }
+    const checkpointInterval = toPositiveIntegerOrNull(options.checkpointEvery) ?? 1;
+    const checkpointKeys = await resolveCheckpointKey(options, distillContract, ulContract);
+    let checkpointKey = checkpointKeys.fallback;
+    let restoredProgress = null;
+    const tryRestoreCheckpoint = async (key) => {
+      if (!key) return null;
+      try {
+        const checkpointRecord = await loadCheckpoint(key);
+        return restoreTrainingCheckpointState(model, this.optimizer, checkpointRecord, this.config);
+      } catch {
+        return null;
+      }
+    };
+    if (checkpointKeys.explicit) {
+      restoredProgress = await tryRestoreCheckpoint(checkpointKeys.explicit);
+      if (restoredProgress) {
+        checkpointKey = checkpointKeys.explicit;
+      }
+    }
+    if (!restoredProgress && checkpointKeys.fallback && checkpointKeys.fallback !== checkpointKeys.explicit) {
+      restoredProgress = await tryRestoreCheckpoint(checkpointKeys.fallback);
+    }
+    this.resumeState = restoredProgress || null;
+    const persistCheckpoint = async (checkpointContext) => {
+      if (!checkpointKey) return;
+      const payload = await createTrainingCheckpointPayload(model, this.optimizer, {
+        step: checkpointContext.step,
+        epoch: checkpointContext.epoch,
+        batch: checkpointContext.batch,
+        config: this.config,
+      });
+      await saveCheckpoint(checkpointKey, payload);
+      this.lastCheckpoint = {
+        key: checkpointKey,
+        step: checkpointContext.step,
+        epoch: checkpointContext.epoch,
+        batch: checkpointContext.batch,
+      };
+    };
+
     const artifactSession = distillContract.enabled
       ? await createDistillArtifactSession({
         config: this.config,
@@ -318,16 +635,23 @@ export class TrainingRunner {
       ? await resolveStageAArtifactContext(this.config)
       : null;
 
-    let step = 0;
+    let step = restoredProgress?.step || 0;
+    let resumeSkipRemaining = restoredProgress?.step || 0;
     const metrics = [];
     const telemetry = resolveTelemetrySettings(this.config);
     const lossWindow = [];
     const stepTimeWindow = [];
+    const progressContext = resolveProgressContext(this.config, { ...options, maxSteps });
+    const runStartMs = globalThis.performance.now();
 
     for (let epoch = 0; epoch < epochs; epoch += 1) {
       const batches = await resolveBatches(dataset, batchSize, shuffle);
       let batchIndex = 0;
       for await (const rawBatch of batches) {
+        if (resumeSkipRemaining > 0) {
+          resumeSkipRemaining -= 1;
+          continue;
+        }
         step += 1;
         batchIndex += 1;
         const batch = prepareBatch ? await prepareBatch(rawBatch) : rawBatch;
@@ -340,6 +664,11 @@ export class TrainingRunner {
           stageAArtifactContext,
         });
         const step_time_ms = globalThis.performance.now() - step_start_ms;
+        const progressSnapshot = buildProgressSnapshot(
+          step,
+          globalThis.performance.now() - runStartMs,
+          progressContext
+        );
         const meanLoss = await computeLossMean(stepResult.loss);
         pushRolling(lossWindow, meanLoss, telemetry.windowSize);
         pushRolling(stepTimeWindow, step_time_ms, telemetry.windowSize);
@@ -376,6 +705,16 @@ export class TrainingRunner {
             stepResult.objectiveMetrics?.lambda,
             objectiveStage ? toMetricNumber(this.config.training?.ul?.lambda0, null) : null
           ),
+          progress_shard_index: progressSnapshot.shardIndex,
+          progress_shard_count: progressSnapshot.shardCount,
+          progress_step_in_shard: progressSnapshot.stepInShard,
+          progress_steps_in_shard: progressSnapshot.stepsPerShard,
+          progress_global_step: progressSnapshot.globalStep,
+          progress_global_steps: progressSnapshot.globalSteps,
+          progress_percent_complete: progressSnapshot.percentComplete,
+          progress_elapsed_ms: progressSnapshot.elapsedMs,
+          progress_eta_ms: progressSnapshot.etaMs,
+          progress_eta_iso: progressSnapshot.etaIso,
           telemetry_mode: telemetry.mode,
           telemetry_window_size: telemetry.windowSize,
           window_loss_avg: average(lossWindow),
@@ -406,6 +745,17 @@ export class TrainingRunner {
         if (artifactSession) {
           await artifactSession.appendStep(entry);
         }
+        if (
+          checkpointKey
+          && checkpointInterval !== null
+          && (checkpointInterval <= 1 || step % checkpointInterval === 0)
+        ) {
+          await persistCheckpoint({
+            step,
+            epoch,
+            batch: batchIndex,
+          });
+        }
 
         if (this.onStep && (logEvery <= 0 || step % logEvery === 0)) {
           await this.onStep(entry);
@@ -417,6 +767,13 @@ export class TrainingRunner {
           }
           if (this.onEpoch) {
             await this.onEpoch({ epoch, steps: batchIndex, loss: meanLoss });
+          }
+          if (checkpointKey) {
+            await persistCheckpoint({
+              step,
+              epoch,
+              batch: batchIndex,
+            });
           }
           return metrics;
         }
@@ -432,6 +789,17 @@ export class TrainingRunner {
       this.lastArtifact = await artifactSession.finalize(metrics);
     } else {
       this.lastArtifact = null;
+    }
+    if (checkpointKey) {
+      const finalEpoch = Math.max(0, epochs - 1);
+      const finalBatch = metrics.length > 0
+        ? (metrics[metrics.length - 1]?.batch ?? 0)
+        : 0;
+      await persistCheckpoint({
+        step,
+        epoch: finalEpoch,
+        batch: finalBatch,
+      });
     }
 
     return metrics;

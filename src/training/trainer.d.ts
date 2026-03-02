@@ -68,7 +68,7 @@ export interface TrainStepResult {
   clipMetrics?: ClipMetrics;
   optimizerMetrics?: OptimizerMetrics;
   objectiveName?: string;
-  objectiveMetrics?: Record<string, number | string | null | undefined>;
+  objectiveMetrics?: Record<string, number | string | boolean | null | undefined>;
   paramGroupMetrics?: {
     trainableGroups: string[];
     frozenGroups: string[];

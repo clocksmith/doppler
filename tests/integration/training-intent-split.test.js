@@ -42,6 +42,10 @@ if (!webgpuReady) {
   assert.equal(benchResult.metrics.workloadType, 'training');
   assert.ok(Array.isArray(benchResult.metrics.trainingMetricsReport));
   assert.ok(benchResult.metrics.trainingMetricsReport.length > 0);
+  assert.ok(benchResult.metrics.progress && typeof benchResult.metrics.progress === 'object');
+  assert.ok(Number.isFinite(benchResult.metrics.progress.percentComplete));
+  assert.ok(Array.isArray(benchResult.metrics.checkpointResumeTimeline));
+  assert.ok(benchResult.metrics.checkpointResumeTimeline.length > 0);
   assert.ok(benchResult.metrics.latency && typeof benchResult.metrics.latency === 'object');
   assert.ok(benchResult.metrics.throughput && typeof benchResult.metrics.throughput === 'object');
 }

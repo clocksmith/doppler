@@ -45,6 +45,7 @@ Behavior contract:
 |--------|-----|-------------|
 | Kernel correctness | `tests/harness.html` mode `kernels` | After GPU kernel changes |
 | Inference smoke test | `tests/harness.html` mode `inference` | After pipeline changes |
+| Node coverage gate | `npm run test:coverage` | Validate Node test coverage floor before PR/merge |
 | Benchmarks | Demo diagnostics (suite: `bench`) | Performance measurement |
 | Training kernels | `tests/harness.html` mode `training` | Training work |
 
@@ -132,6 +133,10 @@ Its tunables are runtime-config driven:
 
 Browser automation is not wired in this repo yet. Run the harness and diagnostics
 flows locally for validation until a browser CI runner is added.
+
+Node coverage gate is policy-driven via `tools/policies/test-coverage-policy.json`.
+Use `npm run test:coverage:report` for a non-gating local coverage snapshot.
+The same policy file lists tests excluded from `node --test` coverage runs.
 
 ## Kernel Overrides & Compatibility
 See `operations.md#kernel-overrides--compatibility` (canonical section) and `style/wgsl-style-guide.md`.

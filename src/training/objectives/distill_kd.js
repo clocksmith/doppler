@@ -1,7 +1,8 @@
 import { crossEntropyLoss as defaultCrossEntropyLoss } from '../loss.js';
 import { createTrainingObjective } from './base.js';
-import { readBuffer } from '../../memory/buffer-pool.js';
-import { f16ToF32Array } from '../../inference/kv-cache/types.js';
+import { acquireBuffer, readBuffer, uploadData } from '../../memory/buffer-pool.js';
+import { createTensor } from '../../gpu/tensor.js';
+import { f16ToF32Array, f32ToF16Array } from '../../inference/kv-cache/types.js';
 
 const EPS = 1e-8;
 
@@ -14,8 +15,40 @@ function resolveDistillConfig(config) {
   return config?.training?.distill || {};
 }
 
+function allowHintFallback(config, batch) {
+  const distill = resolveDistillConfig(config);
+  return distill.allowHintFallback === true || batch?.distill?.allowHintFallback === true;
+}
+
+function isTensorLike(value) {
+  return !!value
+    && typeof value === 'object'
+    && Array.isArray(value.shape)
+    && value.buffer != null;
+}
+
+function createLossGradient(loss, lossScale) {
+  const lossElements = loss.shape.reduce((acc, value) => acc * value, 1);
+  const gradData = new Float32Array(lossElements);
+  gradData.fill(lossScale);
+  const gradBuf = acquireBuffer(gradData.byteLength, undefined, 'distill_kd_loss_grad_output');
+  uploadData(gradBuf, gradData);
+  return createTensor(gradBuf, 'f32', [...loss.shape], 'distill_kd_loss_grad_output');
+}
+
+function createGradientTensor(values, shape, dtype, label) {
+  const floatValues = values instanceof Float32Array ? values : new Float32Array(values);
+  const tensorDtype = dtype === 'f16' ? 'f16' : 'f32';
+  const payload = tensorDtype === 'f16'
+    ? f32ToF16Array(floatValues)
+    : floatValues;
+  const gradBuf = acquireBuffer(payload.byteLength, undefined, label);
+  uploadData(gradBuf, payload);
+  return createTensor(gradBuf, tensorDtype, [...shape], label);
+}
+
 async function readLogitsRows(logitsTensor) {
-  if (!logitsTensor?.buffer || !Array.isArray(logitsTensor?.shape) || logitsTensor.shape.length < 2) {
+  if (!isTensorLike(logitsTensor) || logitsTensor.shape.length < 2) {
     throw new Error('Distill KD objective requires logits tensor with shape [batch, dim].');
   }
   const rows = Math.max(1, Math.floor(Number(logitsTensor.shape[0]) || 0));
@@ -36,7 +69,7 @@ async function readLogitsRows(logitsTensor) {
     const end = start + cols;
     slices.push(flat.subarray(start, end));
   }
-  return slices;
+  return { rows, cols, slices };
 }
 
 function softmax(values, temperature = 1) {
@@ -88,6 +121,24 @@ function normalizeProbRow(values, expectedSize) {
   return output;
 }
 
+function gatherStudentLogitsRow(logitsRow, tokenIndices, expectedSize) {
+  const size = Math.max(1, Math.floor(expectedSize));
+  const gathered = new Float32Array(size);
+  for (let i = 0; i < size; i += 1) {
+    const tokenIndex = Array.isArray(tokenIndices) ? Number(tokenIndices[i]) : NaN;
+    if (Number.isInteger(tokenIndex) && tokenIndex >= 0 && tokenIndex < logitsRow.length) {
+      gathered[i] = logitsRow[tokenIndex];
+      continue;
+    }
+    if (i < logitsRow.length) {
+      gathered[i] = logitsRow[i];
+      continue;
+    }
+    gathered[i] = DISTILL_LOGIT_FALLBACK;
+  }
+  return gathered;
+}
+
 function klDivergence(teacherProbs, studentProbs) {
   const size = Math.min(teacherProbs.length, studentProbs.length);
   if (size <= 0) return 0;
@@ -113,6 +164,20 @@ function argmax(values) {
   return bestIndex;
 }
 
+async function resolveForwardLogits(model, batch, tape) {
+  if (model && typeof model.forwardDistill === 'function') {
+    const output = await model.forwardDistill(batch, tape, { phase: 'anchor', stage: 'stage_a' });
+    if (isTensorLike(output)) {
+      return output;
+    }
+    if (isTensorLike(output?.logits)) {
+      return output.logits;
+    }
+    throw new Error('Distill KD objective: model.forwardDistill() must return a logits tensor.');
+  }
+  return model.forward(batch.input, tape);
+}
+
 export function createDistillKdObjective(options = {}) {
   const lossFn = options.crossEntropyLoss || defaultCrossEntropyLoss;
   if (typeof lossFn !== 'function') {
@@ -122,7 +187,7 @@ export function createDistillKdObjective(options = {}) {
   return createTrainingObjective({
     name: 'kd',
     async forward({ model, batch, tape }) {
-      const logits = await model.forward(batch.input, tape);
+      const logits = await resolveForwardLogits(model, batch, tape);
       return { logits };
     },
     async computeLoss({ batch, config, tape, forwardState }) {
@@ -138,55 +203,89 @@ export function createDistillKdObjective(options = {}) {
         throw new Error('Distill KD objective requires batch.distill.teacherTopProbs from teacher logits.');
       }
 
-      let studentRows = null;
+      const hintFallbackAllowed = allowHintFallback(config, batch);
+      let logitsRows = null;
       try {
-        const logitsRows = await readLogitsRows(forwardState.logits);
-        studentRows = logitsRows.map((row) => softmax(row, temperature));
-      } catch {
-        studentRows = null;
-      }
-      if (!studentRows) {
-        if (Array.isArray(batch?.distill?.studentTopProbs) && batch.distill.studentTopProbs.length > 0) {
-          studentRows = batch.distill.studentTopProbs.map((row) => normalizeProbRow(row, teacherRowsRaw[0].length));
-        } else if (Array.isArray(batch?.distill?.studentTopLogits) && batch.distill.studentTopLogits.length > 0) {
-          studentRows = batch.distill.studentTopLogits.map((row) => {
-            const logits = new Float32Array(teacherRowsRaw[0].length);
-            if (Array.isArray(row) || ArrayBuffer.isView(row)) {
-              const source = Array.isArray(row) ? row : Array.from(row);
-              const count = Math.min(logits.length, source.length);
-              for (let i = 0; i < count; i += 1) {
-                logits[i] = toFinite(source[i], 0);
-              }
-            }
-            return softmax(logits, temperature);
-          });
-        } else {
-          throw new Error(
-            'Distill KD objective requires forward logits readback or batch.distill.studentTopProbs.'
-          );
+        logitsRows = await readLogitsRows(forwardState.logits);
+      } catch (error) {
+        logitsRows = null;
+        if (
+          !hintFallbackAllowed
+          || !Array.isArray(batch?.distill?.studentTopProbs)
+          || batch.distill.studentTopProbs.length === 0
+        ) {
+          throw error;
         }
       }
-
       const teacherTargets = Array.isArray(batch?.distill?.teacherTargetIndices)
         ? batch.distill.teacherTargetIndices
         : [];
+      const teacherTargetTokenIds = Array.isArray(batch?.distill?.teacherTargetTokenIds)
+        ? batch.distill.teacherTargetTokenIds
+        : [];
+      const teacherTokenRows = Array.isArray(batch?.distill?.teacherTopTokenIndices)
+        ? batch.distill.teacherTopTokenIndices
+        : [];
+      const studentProbRowsFallback = Array.isArray(batch?.distill?.studentTopProbs)
+        ? batch.distill.studentTopProbs
+        : [];
+      const rowCount = logitsRows
+        ? Math.min(teacherRowsRaw.length, logitsRows.rows)
+        : Math.min(teacherRowsRaw.length, studentProbRowsFallback.length);
+      if (rowCount <= 0) {
+        throw new Error('Distill KD objective requires at least one aligned teacher/student row.');
+      }
+
+      const gradValues = logitsRows
+        ? new Float32Array(logitsRows.rows * logitsRows.cols)
+        : null;
       let kdSum = 0;
       let ceAuxSum = 0;
-      let rowCount = 0;
-      const rowLimit = Math.min(teacherRowsRaw.length, studentRows.length);
-      for (let row = 0; row < rowLimit; row += 1) {
-        const studentProbs = normalizeProbRow(studentRows[row], studentRows[row].length);
+      for (let row = 0; row < rowCount; row += 1) {
+        const teacherTokens = Array.isArray(teacherTokenRows[row]) ? teacherTokenRows[row] : [];
+        const expectedSize = teacherRowsRaw[row]?.length || 1;
+        const studentProbs = logitsRows
+          ? softmax(
+            gatherStudentLogitsRow(logitsRows.slices[row], teacherTokens, expectedSize),
+            temperature
+          )
+          : normalizeProbRow(studentProbRowsFallback[row], teacherRowsRaw[row]?.length || 1);
         const teacherProbs = normalizeProbRow(teacherRowsRaw[row], studentProbs.length);
         kdSum += klDivergence(teacherProbs, studentProbs);
-        const targetIndex = Number.isInteger(teacherTargets[row])
+        let targetIndex = Number.isInteger(teacherTargets[row])
           ? teacherTargets[row]
           : argmax(teacherProbs);
+        const targetTokenId = Number.isInteger(teacherTargetTokenIds[row])
+          ? teacherTargetTokenIds[row]
+          : null;
+        if (targetTokenId !== null && teacherTokens.length > 0) {
+          const tokenPosition = teacherTokens.indexOf(targetTokenId);
+          if (tokenPosition >= 0) {
+            targetIndex = tokenPosition;
+          }
+        }
         const clampedTarget = Math.max(0, Math.min(studentProbs.length - 1, targetIndex));
         ceAuxSum += -Math.log(Math.max(EPS, studentProbs[clampedTarget]));
-        rowCount += 1;
+
+        if (logitsRows && gradValues) {
+          const rowOffset = row * logitsRows.cols;
+          for (let col = 0; col < studentProbs.length; col += 1) {
+            const mappedToken = Number(teacherTokens[col]);
+            const mappedCol = Number.isInteger(mappedToken) && mappedToken >= 0 && mappedToken < logitsRows.cols
+              ? mappedToken
+              : (col < logitsRows.cols ? col : -1);
+            if (mappedCol < 0) continue;
+            const studentProb = studentProbs[col];
+            const teacherProb = col < teacherProbs.length ? teacherProbs[col] : 0;
+            const targetOneHot = col === clampedTarget ? 1 : 0;
+            const grad = ((alphaKd * (studentProb - teacherProb)) + (alphaCe * (studentProb - targetOneHot))) / temperature;
+            gradValues[rowOffset + mappedCol] += grad / rowCount;
+          }
+        }
       }
-      const lossKd = rowCount > 0 ? (alphaKd * (kdSum / rowCount)) : 0;
-      const lossCe = rowCount > 0 ? (alphaCe * (ceAuxSum / rowCount)) : 0;
+
+      const lossKd = alphaKd * (kdSum / rowCount);
+      const lossCe = alphaCe * (ceAuxSum / rowCount);
       const teacherModelId = batch?.distill?.teacherModelId || distill.teacherModelId || null;
       const studentModelId = batch?.distill?.studentModelId || distill.studentModelId || null;
       return {
@@ -198,10 +297,39 @@ export function createDistillKdObjective(options = {}) {
           distill_alpha_kd: alphaKd,
           distill_alpha_ce: alphaCe,
           distill_loss_ce_aux: lossCe,
+          distill_loss_total: lossKd + lossCe,
           distill_teacher_model_id: teacherModelId,
           distill_student_model_id: studentModelId,
         },
+        _distillBackward: logitsRows && gradValues
+          ? {
+            logitsShape: [logitsRows.rows, logitsRows.cols],
+            logitsDtype: forwardState.logits?.dtype || 'f32',
+            logitsGradValues: gradValues,
+          }
+          : null,
       };
+    },
+    backwardTargets({ loss, lossScale, lossResult, forwardState }) {
+      const seeds = [];
+      const ceSeed = createLossGradient(loss, lossScale);
+      seeds.push({ tensor: loss, grad: ceSeed });
+      const distillBackward = lossResult?._distillBackward;
+      if (
+        distillBackward
+        && Array.isArray(distillBackward.logitsShape)
+        && (distillBackward.logitsGradValues instanceof Float32Array)
+        && isTensorLike(forwardState?.logits)
+      ) {
+        const kdSeed = createGradientTensor(
+          distillBackward.logitsGradValues,
+          distillBackward.logitsShape,
+          distillBackward.logitsDtype,
+          'distill_kd_logits_grad_output'
+        );
+        seeds.push({ tensor: forwardState.logits, grad: kdSeed });
+      }
+      return { seeds };
     },
     metrics({ config, lossResult }) {
       const distill = resolveDistillConfig(config);
@@ -221,6 +349,9 @@ export function createDistillKdObjective(options = {}) {
         distill_loss_ce_aux: Number.isFinite(components.distill_loss_ce_aux)
           ? components.distill_loss_ce_aux
           : 0,
+        distill_loss_total: Number.isFinite(components.distill_loss_total)
+          ? components.distill_loss_total
+          : null,
         distill_teacher_model_id: typeof components.distill_teacher_model_id === 'string'
           ? components.distill_teacher_model_id
           : (distill.teacherModelId || null),
@@ -228,6 +359,11 @@ export function createDistillKdObjective(options = {}) {
           ? components.distill_student_model_id
           : (distill.studentModelId || null),
       };
+    },
+    cleanup({ model }) {
+      if (model && typeof model.cleanupDistillStep === 'function') {
+        model.cleanupDistillStep();
+      }
     },
   });
 }

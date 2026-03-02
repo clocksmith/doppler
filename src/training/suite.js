@@ -2,9 +2,19 @@ import { initDevice, getKernelCapabilities, getDevice } from '../gpu/device.js';
 import { setPlatformsBaseUrl } from '../config/platforms/loader.js';
 import { setRegistryUrl } from '../config/kernels/registry.js';
 import { createTrainingConfig } from '../config/training-defaults.js';
-import { runMatmul } from '../gpu/kernels/index.js';
+import {
+  runAttention,
+  castF16ToF32,
+  runGather,
+  runMatmul,
+  runResidualAdd,
+  runRMSNorm,
+  runRoPE,
+  runSiLURowSplit,
+} from '../gpu/kernels/index.js';
 import { createTensor } from '../gpu/tensor.js';
 import { acquireBuffer, uploadData, releaseBuffer } from '../memory/buffer-pool.js';
+import { getBufferDtype, getWeightDtype, isCpuWeightBuffer, isWeightBuffer } from '../gpu/weight-buffer.js';
 import { OpType } from './autograd.js';
 import { AdamOptimizer } from './optimizer.js';
 import { TrainingRunner } from './runner.js';
@@ -37,7 +47,8 @@ const LEGACY_BROWSER_TESTS = Object.freeze([
 const TRAINING_COMMAND_SCHEMA_VERSION = 1;
 const DISTILL_ADAPTER_TOP_K = 64;
 const DISTILL_LOGIT_FALLBACK = -80;
-const DISTILL_EPS = 1e-8;
+const DISTILL_STUDENT_GRAPH_PROJECTION = 'projection_head';
+const DISTILL_STUDENT_GRAPH_FULL = 'transformer_full';
 
 function buildSuiteSummary(suiteName, results, startTimeMs) {
   let passed = 0;
@@ -86,6 +97,13 @@ function makeTensorFromFloat32(values, shape, label) {
   const buffer = acquireBuffer(data.byteLength, undefined, label || 'train_tensor');
   uploadData(buffer, data);
   return createTensor(buffer, 'f32', shape, label || 'train_tensor');
+}
+
+function makeTensorFromF16Bits(values, shape, label) {
+  const data = values instanceof Uint16Array ? values : new Uint16Array(values);
+  const buffer = acquireBuffer(data.byteLength, undefined, label || 'train_tensor_f16');
+  uploadData(buffer, data);
+  return createTensor(buffer, 'f16', shape, label || 'train_tensor_f16');
 }
 
 function makeTensorFromUint32(values, shape, label) {
@@ -216,6 +234,16 @@ function clampDistillTopK(value) {
   return Math.max(2, Math.min(256, parsed));
 }
 
+function normalizeDistillStudentGraphMode(value) {
+  const normalized = normalizeOptionalString(value);
+  if (!normalized) return DISTILL_STUDENT_GRAPH_FULL;
+  const compact = normalized.toLowerCase().replace(/[-\s]/g, '_');
+  if (compact === 'projection_head' || compact === 'projection') {
+    return DISTILL_STUDENT_GRAPH_PROJECTION;
+  }
+  return DISTILL_STUDENT_GRAPH_FULL;
+}
+
 function toFloat32Array(values, label = 'values') {
   if (values instanceof Float32Array) return values;
   if (ArrayBuffer.isView(values)) {
@@ -306,18 +334,6 @@ function softmax(values, temperature = 1) {
   return exps;
 }
 
-function klDivergence(teacherProbs, studentProbs) {
-  const size = Math.min(teacherProbs.length, studentProbs.length);
-  if (size <= 0) return 0;
-  let total = 0;
-  for (let i = 0; i < size; i += 1) {
-    const p = Math.max(DISTILL_EPS, teacherProbs[i]);
-    const q = Math.max(DISTILL_EPS, studentProbs[i]);
-    total += p * (Math.log(p) - Math.log(q));
-  }
-  return total;
-}
-
 function disposePrefillSnapshot(result) {
   const cache = result?.cache;
   if (cache && typeof cache.clear === 'function') {
@@ -343,22 +359,15 @@ function normalizeDistillStage(value) {
   return stage === 'stage_b' ? 'stage_b' : 'stage_a';
 }
 
-async function computePromptDistillFeatures(sample, prompt, runtime) {
+async function computeTeacherPromptDistillFeatures(sample, prompt, runtime) {
   const teacherResult = await runtime.teacherPipeline.prefillWithLogits(prompt, {
     useChatTemplate: false,
   });
-  const studentResult = await runtime.studentPipeline.prefillWithLogits(prompt, {
-    useChatTemplate: false,
-  });
-
   try {
     const teacherLogits = toFloat32Array(teacherResult?.logits, 'teacher logits');
-    const studentLogits = toFloat32Array(studentResult?.logits, 'student logits');
     const topTokenIndices = selectTopKIndices(teacherLogits, runtime.topK);
     const teacherTopLogits = gatherLogitsByIndices(teacherLogits, topTokenIndices, DISTILL_LOGIT_FALLBACK);
-    const studentTopLogits = gatherLogitsByIndices(studentLogits, topTokenIndices, DISTILL_LOGIT_FALLBACK);
     const teacherTopProbs = softmax(teacherTopLogits, runtime.temperature);
-    const studentTopProbs = softmax(studentTopLogits, runtime.temperature);
     const targetClass = argmax(teacherTopLogits);
     return {
       source: sample.source,
@@ -366,15 +375,11 @@ async function computePromptDistillFeatures(sample, prompt, runtime) {
       targetClass,
       topTokenIndices: Array.from(topTokenIndices),
       teacherTopLogits,
-      studentTopLogits,
       teacherTopProbs,
-      kdLoss: klDivergence(teacherTopProbs, studentTopProbs),
     };
   } finally {
     disposePrefillSnapshot(teacherResult);
-    disposePrefillSnapshot(studentResult);
     runtime.teacherPipeline.reset();
-    runtime.studentPipeline.reset();
   }
 }
 
@@ -385,8 +390,8 @@ function createDistillTensorDataset(samples, options = {}) {
   const distillRuntime = options.distillRuntime && typeof options.distillRuntime === 'object'
     ? options.distillRuntime
     : null;
-  if (!distillRuntime?.teacherPipeline || !distillRuntime?.studentPipeline) {
-    throw new Error('Distill dataset requires teacherPipeline and studentPipeline.');
+  if (!distillRuntime?.teacherPipeline) {
+    throw new Error('Distill dataset requires teacherPipeline.');
   }
   const batchSize = Math.max(1, Math.floor(Number(options.batchSize) || 1));
   const shuffle = options.shuffle === true;
@@ -410,47 +415,45 @@ function createDistillTensorDataset(samples, options = {}) {
           const teacherTopProbs = [];
           const teacherTopTokenIndices = [];
           const teacherTopLogits = [];
-          const studentTopLogits = [];
           const teacherTargetIndices = [];
-          const tripletLossValues = [];
-          let kdLossSum = 0;
-          let tripletLossSum = 0;
-          let tripletLossCount = 0;
+          const teacherTargetTokenIds = [];
+          const prompts = [];
+          const tripletPositivePrompts = [];
+          const tripletNegativePrompts = [];
+          const tripletMask = [];
           const directionCounts = {};
 
           for (let i = 0; i < batchIndices.length; i += 1) {
             const sample = samples[batchIndices[i]];
             const prompt = buildDistillPrompt(sample);
-            const baseDistill = await computePromptDistillFeatures(sample, prompt, {
+            const baseDistill = await computeTeacherPromptDistillFeatures(sample, prompt, {
               ...distillRuntime,
               topK,
             });
 
             const baseOffset = i * topK;
-            features.set(baseDistill.studentTopLogits, baseOffset);
-            targets[i] = baseDistill.targetClass;
-            teacherTargetIndices.push(baseDistill.targetClass);
+            features.set(baseDistill.teacherTopLogits, baseOffset);
+            const targetClass = baseDistill.targetClass;
+            const targetToken = Number.isInteger(baseDistill.topTokenIndices?.[targetClass])
+              ? baseDistill.topTokenIndices[targetClass]
+              : targetClass;
+            const targetTokenMode = distillRuntime.targetTokenMode === 'teacher_top_token';
+            targets[i] = targetTokenMode ? targetToken : targetClass;
+            teacherTargetIndices.push(targetClass);
+            teacherTargetTokenIds.push(targetToken);
             teacherTopProbs.push(baseDistill.teacherTopProbs);
             teacherTopTokenIndices.push(baseDistill.topTokenIndices);
             teacherTopLogits.push(baseDistill.teacherTopLogits);
-            studentTopLogits.push(baseDistill.studentTopLogits);
-            kdLossSum += baseDistill.kdLoss;
+            prompts.push(prompt);
 
-            if (stage === 'stage_b' && sample.targetNeg) {
+            if (stage === 'stage_b') {
               const posPrompt = buildDistillCandidatePrompt(sample, sample.targetPos);
-              const negPrompt = buildDistillCandidatePrompt(sample, sample.targetNeg);
-              const positive = await computePromptDistillFeatures(sample, posPrompt, {
-                ...distillRuntime,
-                topK,
-              });
-              const negative = await computePromptDistillFeatures(sample, negPrompt, {
-                ...distillRuntime,
-                topK,
-              });
-              const tripletLoss = positive.kdLoss - negative.kdLoss;
-              tripletLossValues.push(tripletLoss);
-              tripletLossSum += tripletLoss;
-              tripletLossCount += 1;
+              const negPrompt = sample.targetNeg
+                ? buildDistillCandidatePrompt(sample, sample.targetNeg)
+                : null;
+              tripletPositivePrompts.push(posPrompt);
+              tripletNegativePrompts.push(negPrompt || posPrompt);
+              tripletMask.push(Boolean(negPrompt));
             }
 
             directionCounts[sample.direction] = (directionCounts[sample.direction] || 0) + 1;
@@ -478,14 +481,16 @@ function createDistillTensorDataset(samples, options = {}) {
             input: inputTensor,
             targets: targetTensor,
             distill: {
+              prompts,
+              tripletPositivePrompts,
+              tripletNegativePrompts,
+              tripletMask,
               teacherTopProbs,
               teacherTopTokenIndices,
               teacherTopLogits,
-              studentTopLogits,
               teacherTargetIndices,
-              kdLossMean: batchIndices.length > 0 ? (kdLossSum / batchIndices.length) : 0,
-              tripletLossValues,
-              tripletLossMean: tripletLossCount > 0 ? (tripletLossSum / tripletLossCount) : 0,
+              teacherTargetTokenIds,
+              targetTokenMode: distillRuntime.targetTokenMode || 'topk_class',
               batchSampleCount: batchIndices.length,
               directionCounts,
               distillStage: stage,
@@ -513,10 +518,47 @@ async function loadDistillDatasetFromJsonl(datasetPath) {
     throw new Error('distillDatasetPath currently requires Node runtime.');
   }
 
-  const [{ readFile }, { resolve }] = await Promise.all([
+  const [{ readFile }, { resolve, dirname, isAbsolute, join, sep }] = await Promise.all([
     import('node:fs/promises'),
     import('node:path'),
   ]);
+
+  const isShardManifest = (candidate) => {
+    if (!candidate || typeof candidate !== 'object' || Array.isArray(candidate)) return false;
+    if (!Array.isArray(candidate.shards) || candidate.shards.length === 0) return false;
+    return candidate.shards.every((entry) => {
+      if (typeof entry === 'string' && entry.trim()) return true;
+      if (entry && typeof entry === 'object' && typeof entry.path === 'string' && entry.path.trim()) return true;
+      return false;
+    });
+  };
+  const resolveShardPath = (entry, manifestDir) => {
+    const rawPath = typeof entry === 'string' ? entry : entry.path;
+    const normalized = String(rawPath || '').trim();
+    if (!normalized) return null;
+    if (isAbsolute(normalized)) return normalized;
+    if (normalized.startsWith(`.${sep}`) || normalized.startsWith(`..${sep}`)) {
+      return resolve(manifestDir, normalized);
+    }
+    const projectsPrefix = `projects${sep}`;
+    if (normalized.startsWith(projectsPrefix)) {
+      const marker = `${sep}projects${sep}`;
+      const markerIndex = manifestDir.lastIndexOf(marker);
+      if (markerIndex >= 0) {
+        const workspaceRoot = manifestDir.slice(0, markerIndex);
+        return join(workspaceRoot, normalized);
+      }
+    }
+    return join(manifestDir, normalized);
+  };
+  const loadEncodedRows = (rawRows) => {
+    const encodedRows = [];
+    for (let i = 0; i < rawRows.length; i += 1) {
+      const encoded = encodeDistillRow(rawRows[i], i);
+      if (encoded) encodedRows.push(encoded);
+    }
+    return encodedRows;
+  };
 
   const absolutePath = resolve(normalizedPath);
   let raw;
@@ -527,12 +569,75 @@ async function loadDistillDatasetFromJsonl(datasetPath) {
     throw new Error(`Failed to read distillDatasetPath "${absolutePath}": ${message}`);
   }
 
-  const rows = parseJsonl(raw);
-  const encodedRows = [];
-  for (let i = 0; i < rows.length; i += 1) {
-    const encoded = encodeDistillRow(rows[i], i);
-    if (encoded) encodedRows.push(encoded);
+  let parsedJson = null;
+  try {
+    parsedJson = JSON.parse(raw);
+  } catch {
+    parsedJson = null;
   }
+  if (isShardManifest(parsedJson)) {
+    const manifestDir = dirname(absolutePath);
+    const shardPaths = parsedJson.shards
+      .map((entry) => resolveShardPath(entry, manifestDir))
+      .filter(Boolean);
+    if (shardPaths.length === 0) {
+      throw new Error(`Distill shard manifest "${absolutePath}" has no valid shard paths.`);
+    }
+    let rowCount = 0;
+    let sampleCount = 0;
+    const directionCounts = {};
+    for (const shardPath of shardPaths) {
+      const shardRaw = await readFile(shardPath, 'utf8');
+      const shardRows = parseJsonl(shardRaw);
+      const encodedRows = loadEncodedRows(shardRows);
+      rowCount += shardRows.length;
+      sampleCount += encodedRows.length;
+      const shardDirections = summarizeDirectionCounts(encodedRows);
+      for (const [direction, count] of Object.entries(shardDirections)) {
+        directionCounts[direction] = (directionCounts[direction] || 0) + count;
+      }
+    }
+    if (sampleCount <= 0) {
+      throw new Error(`Distill shard manifest "${absolutePath}" has no usable rows across shards.`);
+    }
+    return {
+      absolutePath,
+      rowCount,
+      sampleCount,
+      directionCounts,
+      shardCount: shardPaths.length,
+      shardPaths,
+      createDataset(runOptions = {}) {
+        const shardSeedBase = Number.isInteger(runOptions.seed) ? runOptions.seed : 1337;
+        return {
+          async *batches() {
+            for (let shardIndex = 0; shardIndex < shardPaths.length; shardIndex += 1) {
+              const shardPath = shardPaths[shardIndex];
+              const shardRaw = await readFile(shardPath, 'utf8');
+              const shardRows = parseJsonl(shardRaw);
+              const encodedRows = loadEncodedRows(shardRows);
+              if (encodedRows.length === 0) continue;
+              const shardDataset = createDistillTensorDataset(encodedRows, {
+                ...runOptions,
+                seed: shardSeedBase + shardIndex,
+              });
+              for await (const batch of shardDataset.batches()) {
+                if (batch?.distill && typeof batch.distill === 'object') {
+                  batch.distill.datasetShardIndex = shardIndex + 1;
+                  batch.distill.datasetShardCount = shardPaths.length;
+                  batch.distill.datasetShardPath = shardPath;
+                }
+                yield batch;
+              }
+            }
+          },
+        };
+      },
+    };
+  }
+
+  const rows = parseJsonl(raw);
+  const encodedRows = loadEncodedRows(rows);
   if (encodedRows.length === 0) {
     throw new Error(`Distill dataset "${absolutePath}" has no usable rows.`);
   }
@@ -598,7 +703,7 @@ async function initializeInferenceFromStore(modelId) {
   return { pipeline, manifest };
 }
 
-async function loadDistillModelHandle(modelRef, role) {
+async function loadDistillModelHandle(modelRef, role, loadOptions = {}) {
   const normalizedRef = normalizeOptionalString(modelRef);
   if (!normalizedRef) {
     throw new Error(`Distill ${role} model reference is required.`);
@@ -608,6 +713,7 @@ async function loadDistillModelHandle(modelRef, role) {
     const initialized = await initializeInference(url, {
       log: () => {},
       onProgress: () => {},
+      runtime: loadOptions.runtime || undefined,
     });
     return {
       modelRef: normalizedRef,
@@ -660,10 +766,35 @@ async function createDistillRuntimeContext(options = {}, trainingConfig = null) 
   }
 
   const distillConfig = trainingConfig?.distill || {};
+  const studentGraphMode = normalizeDistillStudentGraphMode(
+    options.studentGraphMode
+    ?? distillConfig.studentGraphMode
+  );
   const teacher = await loadDistillModelHandle(teacherModelRef, 'teacher');
+  const studentRuntime = studentGraphMode === DISTILL_STUDENT_GRAPH_FULL
+    ? {
+      runtimeConfig: {
+        shared: {
+          debug: {
+            logLevel: {
+              defaultLogLevel: 'debug',
+            },
+          },
+        },
+        inference: {
+          compute: {
+            activationDtype: 'f32',
+            keepF32Weights: true,
+          },
+        },
+      },
+    }
+    : null;
   let student = null;
   try {
-    student = await loadDistillModelHandle(studentModelRef, 'student');
+    student = await loadDistillModelHandle(studentModelRef, 'student', {
+      runtime: studentRuntime,
+    });
   } catch (error) {
     if (teacher?.pipeline && typeof teacher.pipeline.unload === 'function') {
       await teacher.pipeline.unload();
@@ -684,6 +815,10 @@ async function createDistillRuntimeContext(options = {}, trainingConfig = null) 
     alphaKd: toFiniteNumber(distillConfig.alphaKd, 1),
     alphaCe: toFiniteNumber(distillConfig.alphaCe, 0),
     tripletMargin: Math.max(0, toFiniteNumber(distillConfig.tripletMargin, 0.2)),
+    studentGraphMode,
+    targetTokenMode: studentGraphMode === DISTILL_STUDENT_GRAPH_FULL
+      ? 'teacher_top_token'
+      : 'topk_class',
     async cleanup() {
       if (teacher?.pipeline && typeof teacher.pipeline.unload === 'function') {
         await teacher.pipeline.unload();
@@ -788,8 +923,194 @@ function createToyModelFixture(overrides = {}) {
   };
 }
 
-function createDistillAdapterModelFixture(overrides = {}, options = {}) {
-  const inputDim = clampDistillTopK(options.inputDim ?? DISTILL_ADAPTER_TOP_K);
+function resolveTensorDtype(value, fallback = 'f32') {
+  const dtype = isWeightBuffer(value)
+    ? value.dtype
+    : (value?.dtype || getWeightDtype(value) || null);
+  const normalized = String(dtype || '').toLowerCase();
+  return normalized === 'f16' ? 'f16' : (normalized === 'f32' ? 'f32' : fallback);
+}
+
+async function ensureTrainableTensor(value, shape, label, ownedTrainables = null) {
+  if (!value) {
+    throw new Error(`Distill full-graph student missing required weight "${label}".`);
+  }
+  const registerOwned = (tensor) => {
+    if (ownedTrainables instanceof Set && tensor?.buffer instanceof GPUBuffer) {
+      ownedTrainables.add(tensor);
+    }
+    return tensor;
+  };
+  if (isWeightBuffer(value)) {
+    if (value.dtype === 'f32') {
+      return value;
+    }
+    if (value.dtype === 'f16') {
+      const sourceShape = Array.isArray(value.shape) && value.shape.length > 0 ? value.shape : [...shape];
+      const source = createTensor(value.buffer, 'f16', sourceShape, `${label}_source_f16`);
+      const promoted = await castF16ToF32(source);
+      return registerOwned(createTensor(promoted.buffer, 'f32', sourceShape, `${label}_trainable_f32`));
+    }
+    throw new Error(`Distill full-graph student weight "${label}" uses unsupported dtype "${value.dtype}".`);
+  }
+  if (value instanceof GPUBuffer) {
+    const sourceShape = [...shape];
+    const rawDtype = String(getBufferDtype(value) || 'f32').toLowerCase();
+    const dtype = rawDtype === 'f16' ? 'f16' : 'f32';
+    const tensor = createTensor(value, dtype, sourceShape, label);
+    if (dtype === 'f16') {
+      const promoted = await castF16ToF32(tensor);
+      return registerOwned(createTensor(promoted.buffer, 'f32', sourceShape, `${label}_trainable_f32`));
+    }
+    return tensor;
+  }
+  if (isCpuWeightBuffer(value)) {
+    const sourceShape = Array.isArray(value.shape) && value.shape.length > 0 ? value.shape : [...shape];
+    const dtype = resolveTensorDtype(value, 'f32');
+    if (dtype === 'f32') {
+      const tensor = makeTensorFromFloat32(value.data, sourceShape, `${label}_cpu_f32`);
+      return registerOwned(tensor);
+    }
+    if (dtype === 'f16') {
+      let raw = null;
+      if (value.data instanceof Uint16Array) {
+        raw = value.data;
+      } else if (ArrayBuffer.isView(value.data)) {
+        raw = new Uint16Array(
+          value.data.buffer,
+          value.data.byteOffset,
+          Math.floor(value.data.byteLength / 2)
+        );
+      } else if (value.data instanceof ArrayBuffer) {
+        raw = new Uint16Array(value.data);
+      }
+      if (!raw) {
+        throw new Error(`Distill full-graph student weight "${label}" has non-typed f16 CPU data.`);
+      }
+      const source = makeTensorFromF16Bits(raw, sourceShape, `${label}_cpu_f16`);
+      const promoted = await castF16ToF32(source);
+      releaseTensor(source);
+      return registerOwned(createTensor(promoted.buffer, 'f32', sourceShape, `${label}_trainable_f32`));
+    }
+    throw new Error(`Distill full-graph student weight "${label}" has unsupported CPU dtype "${dtype}".`);
+  }
+  if (value.buffer instanceof GPUBuffer) {
+    const resolvedShape = Array.isArray(value.shape) && value.shape.length > 0 ? value.shape : [...shape];
+    const tensor = createTensor(
+      value.buffer,
+      resolveTensorDtype(value, 'f32'),
+      resolvedShape,
+      label
+    );
+    if (tensor.dtype === 'f16') {
+      const promoted = await castF16ToF32(tensor);
+      return registerOwned(createTensor(promoted.buffer, 'f32', resolvedShape, `${label}_trainable_f32`));
+    }
+    return tensor;
+  }
+  throw new Error(`Distill full-graph student weight "${label}" is not GPU-resident.`);
+}
+
+async function ensureNormTensor(value, hiddenSize, label, ownedTrainables = null) {
+  return ensureTrainableTensor(value, [hiddenSize], label, ownedTrainables);
+}
+
+function hasTensorPayload(value) {
+  if (!value) return false;
+  if (value instanceof GPUBuffer) return true;
+  if (isWeightBuffer(value) || isCpuWeightBuffer(value)) return true;
+  if (value?.buffer instanceof GPUBuffer) return true;
+  if (ArrayBuffer.isView(value) || Array.isArray(value)) return true;
+  return false;
+}
+
+async function fuseGateUpTensors(gateTensor, upTensor, intermediateSize, hiddenSize, label, ownedTrainables = null) {
+  const device = getDevice();
+  if (!device) {
+    throw new Error('Distill full-graph student requires active GPU device.');
+  }
+  if (gateTensor?.dtype !== 'f32' || upTensor?.dtype !== 'f32') {
+    throw new Error(`Distill fused gate_up expects f32 tensors for "${label}".`);
+  }
+  const expectedRows = intermediateSize;
+  const expectedCols = hiddenSize;
+  const gateRows = Number.isFinite(gateTensor?.shape?.[0]) ? gateTensor.shape[0] : 0;
+  const gateCols = Number.isFinite(gateTensor?.shape?.[1]) ? gateTensor.shape[1] : 0;
+  const upRows = Number.isFinite(upTensor?.shape?.[0]) ? upTensor.shape[0] : 0;
+  const upCols = Number.isFinite(upTensor?.shape?.[1]) ? upTensor.shape[1] : 0;
+  if (gateRows !== expectedRows || gateCols !== expectedCols || upRows !== expectedRows || upCols !== expectedCols) {
+    throw new Error(
+      `Distill gate/up shape mismatch for "${label}": gate=[${gateRows},${gateCols}] up=[${upRows},${upCols}] ` +
+      `expected=[${expectedRows},${expectedCols}]`
+    );
+  }
+  const rowBytes = expectedCols * 4;
+  const blockBytes = expectedRows * rowBytes;
+  const fusedBuffer = acquireBuffer(blockBytes * 2, undefined, `${label}_fused`);
+  const encoder = device.createCommandEncoder();
+  encoder.copyBufferToBuffer(gateTensor.buffer, 0, fusedBuffer, 0, blockBytes);
+  encoder.copyBufferToBuffer(upTensor.buffer, 0, fusedBuffer, blockBytes, blockBytes);
+  device.queue.submit([encoder.finish()]);
+  const fused = createTensor(fusedBuffer, 'f32', [expectedRows * 2, expectedCols], `${label}_fused`);
+  if (ownedTrainables instanceof Set) {
+    ownedTrainables.add(fused);
+  }
+  return fused;
+}
+
+function resolvePhasePrompts(batch, phase) {
+  const distill = batch?.distill || {};
+  const prompts = phase === 'positive'
+    ? distill.tripletPositivePrompts
+    : (phase === 'negative' ? distill.tripletNegativePrompts : distill.prompts);
+  if (!Array.isArray(prompts) || prompts.length === 0) {
+    throw new Error(`Distill student fixture requires distill prompts for phase "${phase}".`);
+  }
+  return prompts;
+}
+
+function createRowSliceTensor(inputTensor, rows, cols, rowIndex, label) {
+  const device = getDevice();
+  if (!device) {
+    throw new Error('Distill full-graph student requires active GPU device.');
+  }
+  const dtype = inputTensor?.dtype === 'f16' ? 'f16' : 'f32';
+  const bytesPerElement = dtype === 'f16' ? 2 : 4;
+  const rowBytes = cols * bytesPerElement;
+  const clampedRow = Math.max(0, Math.min(rows - 1, rowIndex));
+  const outputBuffer = acquireBuffer(rowBytes, undefined, label);
+  const encoder = device.createCommandEncoder();
+  encoder.copyBufferToBuffer(
+    inputTensor.buffer,
+    clampedRow * rowBytes,
+    outputBuffer,
+    0,
+    rowBytes
+  );
+  device.queue.submit([encoder.finish()]);
+  return createTensor(outputBuffer, dtype, [1, cols], label);
+}
+
+function createDistillStudentProjectionModelFixture(overrides = {}, options = {}) {
+  const distillRuntime = options.distillRuntime && typeof options.distillRuntime === 'object'
+    ? options.distillRuntime
+    : null;
+  if (!distillRuntime?.studentPipeline) {
+    throw new Error('Distill student fixture requires distillRuntime.studentPipeline.');
+  }
+  const outputDim = clampDistillTopK(
+    options.outputDim
+    ?? options.inputDim
+    ?? DISTILL_ADAPTER_TOP_K
+  );
+  const inferredEmbeddingDim = Math.floor(
+    Number(distillRuntime.studentPipeline?.modelConfig?.hiddenSize)
+  );
+  const embeddingDim = Number.isInteger(options.embeddingDim) && options.embeddingDim > 0
+    ? options.embeddingDim
+    : (Number.isFinite(inferredEmbeddingDim) && inferredEmbeddingDim > 0
+      ? inferredEmbeddingDim
+      : outputDim);
   const config = createTrainingConfig({
     ...overrides,
     training: {
@@ -800,37 +1121,89 @@ function createDistillAdapterModelFixture(overrides = {}, options = {}) {
     },
   });
 
-  const adapterWeights = new Float32Array(inputDim * inputDim);
-  for (let row = 0; row < inputDim; row += 1) {
-    const offset = row * inputDim;
-    adapterWeights[offset + row] = 1;
-  }
-  const adapterWeight = makeTensorFromFloat32(
-    adapterWeights,
-    [inputDim, inputDim],
-    'distill_adapter_weight'
+  const projectionWeights = new Float32Array(embeddingDim * outputDim);
+  const projectionWeight = makeTensorFromFloat32(
+    projectionWeights,
+    [embeddingDim, outputDim],
+    'distill_student_head_weight'
   );
+  const temporaryInputs = new Set();
+
+  async function projectEmbeddingInput(inputTensor, tape) {
+    const rows = Number.isFinite(inputTensor?.shape?.[0]) ? inputTensor.shape[0] : 1;
+    return tape.record(
+      OpType.MATMUL,
+      (a, b) => runMatmul(a, b, rows, outputDim, embeddingDim, { transposeB: false }),
+      [inputTensor, projectionWeight],
+      { M: rows, N: outputDim, K: embeddingDim, transposeB: false }
+    );
+  }
+
+  async function buildStudentEmbeddingInput(batch, phase = 'anchor') {
+    const distill = batch?.distill || {};
+    const prompts = phase === 'positive'
+      ? distill.tripletPositivePrompts
+      : (phase === 'negative' ? distill.tripletNegativePrompts : distill.prompts);
+    if (!Array.isArray(prompts) || prompts.length === 0) {
+      throw new Error(`Distill student fixture requires distill prompts for phase "${phase}".`);
+    }
+
+    const rows = prompts.length;
+    const features = new Float32Array(rows * embeddingDim);
+    for (let row = 0; row < rows; row += 1) {
+      const prompt = String(prompts[row] || '').trim();
+      const studentResult = await distillRuntime.studentPipeline.prefillWithEmbedding(prompt, {
+        useChatTemplate: false,
+        embeddingMode: 'last',
+      });
+      try {
+        const studentEmbedding = toFloat32Array(studentResult?.embedding, 'student embedding');
+        const rowOffset = row * embeddingDim;
+        const copyCount = Math.min(embeddingDim, studentEmbedding.length);
+        features.set(studentEmbedding.subarray(0, copyCount), rowOffset);
+      } finally {
+        disposePrefillSnapshot(studentResult);
+        distillRuntime.studentPipeline.reset();
+      }
+    }
+    const inputTensor = makeTensorFromFloat32(
+      features,
+      [rows, embeddingDim],
+      `distill_student_${phase}_embedding`
+    );
+    temporaryInputs.add(inputTensor);
+    return inputTensor;
+  }
 
   const model = {
     async forward(inputTensor, tape) {
-      const rows = Number.isFinite(inputTensor?.shape?.[0]) ? inputTensor.shape[0] : 1;
-      return tape.record(
-        OpType.MATMUL,
-        (a, b) => runMatmul(a, b, rows, inputDim, inputDim, { transposeB: false }),
-        [inputTensor, adapterWeight],
-        { M: rows, N: inputDim, K: inputDim, transposeB: false }
-      );
+      return projectEmbeddingInput(inputTensor, tape);
+    },
+    async forwardDistill(batch, tape, forwardOptions = {}) {
+      const requestedPhase = String(forwardOptions?.phase || 'anchor').trim();
+      const phase = requestedPhase === 'positive'
+        ? 'positive'
+        : (requestedPhase === 'negative' ? 'negative' : 'anchor');
+      const inputTensor = await buildStudentEmbeddingInput(batch, phase);
+      const logits = await projectEmbeddingInput(inputTensor, tape);
+      return { logits };
+    },
+    cleanupDistillStep() {
+      for (const tensor of temporaryInputs) {
+        releaseTensor(tensor);
+      }
+      temporaryInputs.clear();
     },
     loraParams() {
-      return [adapterWeight];
+      return [projectionWeight];
     },
     paramGroups() {
       return {
         encoder: [],
         prior: [],
         decoder: [],
-        base: [adapterWeight],
-        lora: [adapterWeight],
+        base: [projectionWeight],
+        lora: [projectionWeight],
       };
     },
   };
@@ -838,11 +1211,481 @@ function createDistillAdapterModelFixture(overrides = {}, options = {}) {
   return {
     config,
     model,
-    inputDim,
+    outputDim,
+    embeddingDim,
     cleanup() {
-      releaseTensor(adapterWeight);
+      model.cleanupDistillStep();
+      releaseTensor(projectionWeight);
     },
   };
+}
+
+async function createDistillStudentTransformerModelFixture(overrides = {}, options = {}) {
+  const distillRuntime = options.distillRuntime && typeof options.distillRuntime === 'object'
+    ? options.distillRuntime
+    : null;
+  const studentPipeline = distillRuntime?.studentPipeline || null;
+  if (!studentPipeline?.modelConfig || !(studentPipeline.weights instanceof Map)) {
+    throw new Error('Distill full-graph student fixture requires loaded student pipeline weights.');
+  }
+  const modelConfig = studentPipeline.modelConfig;
+  const hiddenSize = Math.max(1, Math.floor(Number(modelConfig.hiddenSize) || 0));
+  const intermediateSize = Math.max(1, Math.floor(Number(modelConfig.intermediateSize) || 0));
+  const numLayers = Math.max(1, Math.floor(Number(modelConfig.numLayers) || 0));
+  const numHeads = Math.max(1, Math.floor(Number(modelConfig.numHeads) || 0));
+  const numKVHeads = Math.max(1, Math.floor(Number(modelConfig.numKVHeads || numHeads) || 0));
+  const headDim = Math.max(1, Math.floor(Number(modelConfig.headDim) || 0));
+  const vocabSize = Math.max(1, Math.floor(Number(modelConfig.vocabSize) || 0));
+  const rmsNormEps = Number.isFinite(modelConfig.rmsNormEps) ? modelConfig.rmsNormEps : 1e-6;
+  const hiddenActivation = String(modelConfig.hiddenActivation || 'silu').toLowerCase();
+  const swigluLimit = Number.isFinite(modelConfig.swigluLimit) ? modelConfig.swigluLimit : 0;
+  const useEmbeddingTranspose = modelConfig.embeddingTranspose === true;
+  const tieWordEmbeddings = modelConfig.useTiedEmbeddings === true;
+
+  const config = createTrainingConfig({
+    ...overrides,
+    training: {
+      enabled: true,
+      lossScaling: { enabled: false },
+      gradient: { maxNorm: 0 },
+      ...(overrides.training || {}),
+    },
+  });
+
+  const ownedTrainables = new Set();
+  const embeddingWeight = await ensureTrainableTensor(
+    studentPipeline.weights.get('embed'),
+    [vocabSize, hiddenSize],
+    'embed',
+    ownedTrainables
+  );
+  const lmHeadWeight = tieWordEmbeddings
+    ? embeddingWeight
+    : await ensureTrainableTensor(
+      studentPipeline.weights.get('lm_head'),
+      [vocabSize, hiddenSize],
+      'lm_head',
+      ownedTrainables
+    );
+  const finalNormWeight = await ensureNormTensor(
+    studentPipeline.weights.get('final_norm'),
+    hiddenSize,
+    'final_norm',
+    ownedTrainables
+  );
+
+  const ropeDim = Math.max(1, Math.floor(headDim / 2));
+  const ropeRows = Math.max(1, Math.floor(Number(modelConfig.maxSeqLen) || 1));
+  const ropeCos = await ensureTrainableTensor(
+    createTensor(studentPipeline.ropeFreqsCos, 'f32', [ropeRows, ropeDim], 'rope_cos'),
+    [ropeRows, ropeDim],
+    'rope_cos',
+    ownedTrainables
+  );
+  const ropeSin = await ensureTrainableTensor(
+    createTensor(studentPipeline.ropeFreqsSin, 'f32', [ropeRows, ropeDim], 'rope_sin'),
+    [ropeRows, ropeDim],
+    'rope_sin',
+    ownedTrainables
+  );
+
+  const layerParams = [];
+  const layers = [];
+  for (let layerIdx = 0; layerIdx < numLayers; layerIdx += 1) {
+    const layerWeights = studentPipeline.weights.get(`layer_${layerIdx}`);
+    if (!layerWeights) {
+      throw new Error(`Distill full-graph student missing layer_${layerIdx} weights.`);
+    }
+    const gateUpWeight = layerWeights.gateUp || layerWeights.ffnGateUp || null;
+    let layerGateUp = null;
+    if (hasTensorPayload(gateUpWeight)) {
+      layerGateUp = await ensureTrainableTensor(
+        gateUpWeight,
+        [intermediateSize * 2, hiddenSize],
+        `layer_${layerIdx}.ffn_gate_up`,
+        ownedTrainables
+      );
+    } else {
+      const gateWeight = layerWeights.gate || layerWeights.ffnGate || null;
+      const upWeight = layerWeights.up || layerWeights.ffnUp || null;
+      if (!hasTensorPayload(gateWeight) || !hasTensorPayload(upWeight)) {
+        throw new Error(
+          `Distill full-graph student missing gate/up projections on layer ${layerIdx}.`
+        );
+      }
+      const gateTensor = await ensureTrainableTensor(
+        gateWeight,
+        [intermediateSize, hiddenSize],
+        `layer_${layerIdx}.ffn_gate`,
+        ownedTrainables
+      );
+      const upTensor = await ensureTrainableTensor(
+        upWeight,
+        [intermediateSize, hiddenSize],
+        `layer_${layerIdx}.ffn_up`,
+        ownedTrainables
+      );
+      layerGateUp = await fuseGateUpTensors(
+        gateTensor,
+        upTensor,
+        intermediateSize,
+        hiddenSize,
+        `layer_${layerIdx}.ffn_gate_up`,
+        ownedTrainables
+      );
+    }
+    const layer = {
+      inputNorm: await ensureNormTensor(
+        layerWeights.inputNorm,
+        hiddenSize,
+        `layer_${layerIdx}.input_norm`,
+        ownedTrainables
+      ),
+      qProj: await ensureTrainableTensor(
+        layerWeights.qProj,
+        [numHeads * headDim, hiddenSize],
+        `layer_${layerIdx}.q_proj`,
+        ownedTrainables
+      ),
+      kProj: await ensureTrainableTensor(
+        layerWeights.kProj,
+        [numKVHeads * headDim, hiddenSize],
+        `layer_${layerIdx}.k_proj`,
+        ownedTrainables
+      ),
+      vProj: await ensureTrainableTensor(
+        layerWeights.vProj,
+        [numKVHeads * headDim, hiddenSize],
+        `layer_${layerIdx}.v_proj`,
+        ownedTrainables
+      ),
+      oProj: await ensureTrainableTensor(
+        layerWeights.oProj,
+        [hiddenSize, hiddenSize],
+        `layer_${layerIdx}.o_proj`,
+        ownedTrainables
+      ),
+      postAttentionNorm: layerWeights.postAttentionNorm
+        ? await ensureNormTensor(
+          layerWeights.postAttentionNorm,
+          hiddenSize,
+          `layer_${layerIdx}.post_attention_norm`,
+          ownedTrainables
+        )
+        : null,
+      gateUp: layerGateUp,
+      down: await ensureTrainableTensor(
+        layerWeights.down || layerWeights.ffnDown,
+        [hiddenSize, intermediateSize],
+        `layer_${layerIdx}.ffn_down`,
+        ownedTrainables
+      ),
+    };
+    layers.push(layer);
+    layerParams.push(layer.inputNorm, layer.qProj, layer.kProj, layer.vProj, layer.oProj, layer.gateUp, layer.down);
+    if (layer.postAttentionNorm) {
+      layerParams.push(layer.postAttentionNorm);
+    }
+  }
+
+  const encoderParams = [embeddingWeight, ...layerParams];
+  const decoderParams = [finalNormWeight, lmHeadWeight];
+  const baseParams = [...encoderParams, ...decoderParams];
+  const temporaryInputs = new Set();
+
+  async function buildPromptTokens(prompt) {
+    const normalized = String(prompt || '').trim();
+    if (!normalized) {
+      throw new Error('Distill full-graph student prompt is empty.');
+    }
+    const tokenIds = studentPipeline.tokenizer.encode(normalized);
+    if (!Array.isArray(tokenIds) || tokenIds.length === 0) {
+      throw new Error('Distill full-graph student tokenizer produced no tokens.');
+    }
+    const tokenTensor = makeTensorFromUint32(
+      tokenIds,
+      [tokenIds.length],
+      'distill_student_prompt_tokens'
+    );
+    temporaryInputs.add(tokenTensor);
+    return { tokenTensor, seqLen: tokenIds.length };
+  }
+
+  async function runTransformerPrompt(prompt, tape) {
+    const { tokenTensor, seqLen } = await buildPromptTokens(prompt);
+    let hidden = await tape.record(
+      OpType.EMBED,
+      (indices, embeddings) => runGather(
+        indices,
+        embeddings,
+        seqLen,
+        hiddenSize,
+        vocabSize,
+        {
+          embeddingDtype: resolveTensorDtype(embeddingWeight, 'f32'),
+          outputDtype: 'f32',
+          transpose: useEmbeddingTranspose,
+        }
+      ),
+      [tokenTensor, embeddingWeight],
+      {
+        numTokens: seqLen,
+        hiddenSize,
+        vocabSize,
+        transpose: useEmbeddingTranspose,
+        indexOffset: 0,
+      }
+    );
+
+    for (let layerIdx = 0; layerIdx < layers.length; layerIdx += 1) {
+      const layer = layers[layerIdx];
+      const normed = await tape.record(
+        OpType.RMSNORM,
+        (x, gamma) => runRMSNorm(x, gamma, rmsNormEps, {
+          batchSize: seqLen,
+          hiddenSize,
+          rmsNormWeightOffset: modelConfig.rmsNormWeightOffset === true,
+        }),
+        [hidden, layer.inputNorm],
+        { numTokens: seqLen, hiddenSize, eps: rmsNormEps }
+      );
+
+      const q2d = await tape.record(
+        OpType.MATMUL,
+        (x, w) => runMatmul(x, w, seqLen, numHeads * headDim, hiddenSize, {
+          transposeB: 'auto',
+          outputDtype: 'f32',
+        }),
+        [normed, layer.qProj],
+        { M: seqLen, N: numHeads * headDim, K: hiddenSize, transposeB: 'auto' }
+      );
+      const k2d = await tape.record(
+        OpType.MATMUL,
+        (x, w) => runMatmul(x, w, seqLen, numKVHeads * headDim, hiddenSize, {
+          transposeB: 'auto',
+          outputDtype: 'f32',
+        }),
+        [normed, layer.kProj],
+        { M: seqLen, N: numKVHeads * headDim, K: hiddenSize, transposeB: 'auto' }
+      );
+      const v2d = await tape.record(
+        OpType.MATMUL,
+        (x, w) => runMatmul(x, w, seqLen, numKVHeads * headDim, hiddenSize, {
+          transposeB: 'auto',
+          outputDtype: 'f32',
+        }),
+        [normed, layer.vProj],
+        { M: seqLen, N: numKVHeads * headDim, K: hiddenSize, transposeB: 'auto' }
+      );
+
+      const q3d = createTensor(q2d.buffer, q2d.dtype, [seqLen, numHeads, headDim], `layer_${layerIdx}_q`);
+      const k3d = createTensor(k2d.buffer, k2d.dtype, [seqLen, numKVHeads, headDim], `layer_${layerIdx}_k`);
+      const v3d = createTensor(v2d.buffer, v2d.dtype, [seqLen, numKVHeads, headDim], `layer_${layerIdx}_v`);
+
+      const qRope = await tape.record(
+        OpType.ROPE,
+        (q, cos, sin) => runRoPE(q, cos, sin, seqLen, { numHeads, headDim, startPos: 0 }),
+        [q3d, ropeCos, ropeSin],
+        { seqLen, numHeads, headDim, startPos: 0 }
+      );
+      const kRope = await tape.record(
+        OpType.ROPE,
+        (k, cos, sin) => runRoPE(k, cos, sin, seqLen, { numHeads: numKVHeads, headDim, startPos: 0 }),
+        [k3d, ropeCos, ropeSin],
+        { seqLen, numHeads: numKVHeads, headDim, startPos: 0 }
+      );
+
+      const attention = await tape.record(
+        OpType.ATTENTION,
+        (q, k, v) => runAttention(q, k, v, null, numHeads, headDim, {
+          seqLen,
+          kvLen: seqLen,
+          numKVHeads,
+          causal: true,
+          startPos: 0,
+          scale: 1 / Math.sqrt(headDim),
+        }),
+        [qRope, kRope, v3d],
+        { seqLen, numHeads, headDim, scale: 1 / Math.sqrt(headDim), causal: true, recomputeForward: true }
+      );
+      const attention2d = createTensor(
+        attention.buffer,
+        attention.dtype,
+        [seqLen, hiddenSize],
+        `layer_${layerIdx}_attn_2d`
+      );
+
+      const attentionOutput = await tape.record(
+        OpType.MATMUL,
+        (x, w) => runMatmul(x, w, seqLen, hiddenSize, hiddenSize, {
+          transposeB: 'auto',
+          outputDtype: 'f32',
+        }),
+        [attention2d, layer.oProj],
+        { M: seqLen, N: hiddenSize, K: hiddenSize, transposeB: 'auto' }
+      );
+      const postAttention = await tape.record(
+        OpType.RESIDUAL_ADD,
+        (a, b) => runResidualAdd(a, b, seqLen * hiddenSize),
+        [attentionOutput, hidden],
+        { size: seqLen * hiddenSize }
+      );
+
+      const ffnInput = layer.postAttentionNorm
+        ? await tape.record(
+          OpType.RMSNORM,
+          (x, gamma) => runRMSNorm(x, gamma, rmsNormEps, {
+            batchSize: seqLen,
+            hiddenSize,
+            rmsNormWeightOffset: modelConfig.rmsNormWeightOffset === true,
+          }),
+          [postAttention, layer.postAttentionNorm],
+          { numTokens: seqLen, hiddenSize, eps: rmsNormEps }
+        )
+        : postAttention;
+      const gateUp = await tape.record(
+        OpType.MATMUL,
+        (x, w) => runMatmul(x, w, seqLen, intermediateSize * 2, hiddenSize, {
+          transposeB: 'auto',
+          outputDtype: 'f32',
+        }),
+        [ffnInput, layer.gateUp],
+        { M: seqLen, N: intermediateSize * 2, K: hiddenSize, transposeB: 'auto' }
+      );
+      const activated = await tape.record(
+        OpType.SILU_ROWSPLIT,
+        (x) => runSiLURowSplit(x, {
+          numTokens: seqLen,
+          dim: intermediateSize,
+          activation: hiddenActivation === 'gelu' ? 'gelu' : 'silu',
+          swigluLimit: hiddenActivation === 'gelu' ? null : swigluLimit,
+        }),
+        [gateUp],
+        {
+          numTokens: seqLen,
+          dim: intermediateSize,
+          activation: hiddenActivation === 'gelu' ? 'gelu' : 'silu',
+          swigluLimit: hiddenActivation === 'gelu' ? 0 : swigluLimit,
+        }
+      );
+      const ffnOutput = await tape.record(
+        OpType.MATMUL,
+        (x, w) => runMatmul(x, w, seqLen, hiddenSize, intermediateSize, {
+          transposeB: 'auto',
+          outputDtype: 'f32',
+        }),
+        [activated, layer.down],
+        { M: seqLen, N: hiddenSize, K: intermediateSize, transposeB: 'auto' }
+      );
+      hidden = await tape.record(
+        OpType.RESIDUAL_ADD,
+        (a, b) => runResidualAdd(a, b, seqLen * hiddenSize),
+        [ffnOutput, postAttention],
+        { size: seqLen * hiddenSize }
+      );
+    }
+
+    const finalHidden = await tape.record(
+      OpType.RMSNORM,
+      (x, gamma) => runRMSNorm(x, gamma, rmsNormEps, {
+        batchSize: seqLen,
+        hiddenSize,
+        rmsNormWeightOffset: modelConfig.rmsNormWeightOffset === true,
+      }),
+      [hidden, finalNormWeight],
+      { numTokens: seqLen, hiddenSize, eps: rmsNormEps }
+    );
+    const lastHidden = await tape.record(
+      OpType.ROW_SLICE,
+      (x) => createRowSliceTensor(x, seqLen, hiddenSize, seqLen - 1, 'distill_last_hidden'),
+      [finalHidden],
+      { rows: seqLen, cols: hiddenSize, rowIndex: seqLen - 1 }
+    );
+    return tape.record(
+      OpType.MATMUL,
+      (x, w) => runMatmul(x, w, 1, vocabSize, hiddenSize, {
+        transposeB: 'auto',
+        outputDtype: 'f32',
+      }),
+      [lastHidden, lmHeadWeight],
+      { M: 1, N: vocabSize, K: hiddenSize, transposeB: 'auto' }
+    );
+  }
+
+  const model = {
+    async forward(inputTensor, tape) {
+      return tape.record(
+        OpType.MATMUL,
+        (x, w) => runMatmul(x, w, 1, vocabSize, hiddenSize, {
+          transposeB: 'auto',
+          outputDtype: 'f32',
+        }),
+        [inputTensor, lmHeadWeight],
+        { M: 1, N: vocabSize, K: hiddenSize, transposeB: 'auto' }
+      );
+    },
+    async forwardDistill(batch, tape, forwardOptions = {}) {
+      const requestedPhase = String(forwardOptions?.phase || 'anchor').trim();
+      const phase = requestedPhase === 'positive'
+        ? 'positive'
+        : (requestedPhase === 'negative' ? 'negative' : 'anchor');
+      const prompts = resolvePhasePrompts(batch, phase);
+      if (prompts.length !== 1) {
+        throw new Error(
+          `Distill full-graph student currently requires batchSize=1, got ${prompts.length}.`
+        );
+      }
+      const logits = await runTransformerPrompt(prompts[0], tape);
+      return { logits };
+    },
+    cleanupDistillStep() {
+      for (const tensor of temporaryInputs) {
+        releaseTensor(tensor);
+      }
+      temporaryInputs.clear();
+    },
+    loraParams() {
+      return decoderParams;
+    },
+    paramGroups() {
+      return {
+        encoder: encoderParams,
+        prior: [],
+        decoder: decoderParams,
+        base: baseParams,
+        lora: [],
+      };
+    },
+  };
+
+  return {
+    config,
+    model,
+    outputDim: vocabSize,
+    embeddingDim: hiddenSize,
+    cleanup() {
+      model.cleanupDistillStep();
+      for (const tensor of ownedTrainables) {
+        releaseTensor(tensor);
+      }
+      ownedTrainables.clear();
+    },
+  };
+}
+
+async function createDistillStudentRuntimeModelFixture(overrides = {}, options = {}) {
+  const distillRuntime = options.distillRuntime && typeof options.distillRuntime === 'object'
+    ? options.distillRuntime
+    : null;
+  const graphMode = normalizeDistillStudentGraphMode(
+    options.studentGraphMode
+    ?? distillRuntime?.studentGraphMode
+    ?? overrides?.training?.distill?.studentGraphMode
+  );
+  if (graphMode === DISTILL_STUDENT_GRAPH_PROJECTION) {
+    return createDistillStudentProjectionModelFixture(overrides, options);
+  }
+  return createDistillStudentTransformerModelFixture(overrides, options);
 }
 
 async function runRunnerSmokeTest() {
@@ -985,6 +1828,9 @@ function buildDistillTrainingOverrides(options = {}) {
     datasetId: options.distillDatasetId ?? trainingConfig?.distill?.datasetId ?? null,
     datasetPath: options.distillDatasetPath ?? trainingConfig?.distill?.datasetPath ?? null,
     languagePair: options.distillLanguagePair ?? trainingConfig?.distill?.languagePair ?? null,
+    shardIndex: options.distillShardIndex ?? trainingConfig?.distill?.shardIndex ?? null,
+    shardCount: options.distillShardCount ?? trainingConfig?.distill?.shardCount ?? null,
+    resumeFrom: options.resumeFrom ?? trainingConfig?.distill?.resumeFrom ?? null,
     stageAArtifact: options.stageAArtifact ?? trainingConfig?.distill?.stageAArtifact ?? null,
     stageAArtifactHash: options.stageAArtifactHash ?? trainingConfig?.distill?.stageAArtifactHash ?? null,
     artifactDir: options.distillArtifactDir ?? trainingConfig?.distill?.artifactDir ?? 'bench/out/distill',
@@ -1160,16 +2006,15 @@ async function runDistillStageTest(stage, options = {}) {
     ...options,
     trainingStage: stage,
   });
-  const adapterInputDim = clampDistillTopK(distillTraining?.distill?.topK ?? DISTILL_ADAPTER_TOP_K);
-  const fixture = createDistillAdapterModelFixture({
+  const distillOutputDim = clampDistillTopK(distillTraining?.distill?.topK ?? DISTILL_ADAPTER_TOP_K);
+  const resolvedTrainingConfig = createTrainingConfig({
     training: distillTraining || undefined,
-  }, {
-    inputDim: adapterInputDim,
-  });
+  }).training;
+  let fixture = null;
   let distillRuntime = null;
 
   try {
-    const distillDatasetPath = resolveDistillDatasetPath(options, fixture.config.training);
+    const distillDatasetPath = resolveDistillDatasetPath(options, resolvedTrainingConfig);
     if (!distillDatasetPath) {
       throw new Error('Distill stage requires --distill-dataset-path (training.distill.datasetPath).');
     }
@@ -1177,24 +2022,34 @@ async function runDistillStageTest(stage, options = {}) {
     distillRuntime = await createDistillRuntimeContext({
       ...options,
       trainingStage: stage,
-    }, fixture.config.training);
+    }, resolvedTrainingConfig);
+    fixture = await createDistillStudentRuntimeModelFixture({
+      training: distillTraining || undefined,
+    }, {
+      outputDim: distillOutputDim,
+      distillRuntime,
+    });
 
     const runner = new TrainingRunner(fixture.config, {
       optimizer: new AdamOptimizer(fixture.config),
       crossEntropyLoss,
       clipGradients,
     });
+    const distillMaxSteps = Number.isInteger(options.trainingBenchSteps) && options.trainingBenchSteps > 0
+      ? options.trainingBenchSteps
+      : 2;
     const dataset = distillDatasetReport.createDataset({
       batchSize: 1,
       shuffle: false,
       seed: 1337,
       distillRuntime,
     });
+    const distillRunStartMs = performance.now();
     const metrics = await runner.run(fixture.model, dataset, {
       epochs: 1,
       batchSize: 1,
       shuffle: false,
-      maxSteps: 2,
+      maxSteps: distillMaxSteps,
       modelId: options.modelId || distillRuntime.studentModelId || 'training',
       modelUrl: options.modelUrl || distillRuntime.studentModelUrl || null,
       timestamp: options.timestamp || null,
@@ -1206,6 +2061,9 @@ async function runDistillStageTest(stage, options = {}) {
       distillDatasetId: options.distillDatasetId || null,
       distillDatasetPath: distillDatasetReport.absolutePath,
       distillLanguagePair: options.distillLanguagePair || null,
+      distillShardIndex: options.distillShardIndex ?? fixture.config.training?.distill?.shardIndex ?? null,
+      distillShardCount: options.distillShardCount ?? fixture.config.training?.distill?.shardCount ?? null,
+      resumeFrom: options.resumeFrom ?? fixture.config.training?.distill?.resumeFrom ?? null,
     });
     if (!Array.isArray(metrics) || metrics.length === 0) {
       return { passed: false, error: `Distill ${stage} produced no metrics.` };
@@ -1222,12 +2080,23 @@ async function runDistillStageTest(stage, options = {}) {
     if (!artifact || !artifact.manifestPath) {
       return { passed: false, error: `Distill ${stage} did not produce artifacts.` };
     }
+    const progress = resolveBenchProgressSummary(
+      metrics,
+      resolveDistillShardProgressContext(
+        options,
+        fixture.config.training,
+        distillMaxSteps,
+        distillDatasetReport?.shardCount ?? null
+      ),
+      distillRunStartMs
+    );
     return {
       passed: true,
       artifact,
       metrics: {
         stage,
         steps: metrics.length,
+        progress,
         manifestPath: artifact.manifestPath,
         manifestHash: artifact.manifestHash,
         manifestContentHash: artifact.manifestContentHash,
@@ -1240,11 +2109,15 @@ async function runDistillStageTest(stage, options = {}) {
           datasetId: fixture.config.training?.distill?.datasetId ?? null,
           datasetPath: fixture.config.training?.distill?.datasetPath ?? null,
           languagePair: fixture.config.training?.distill?.languagePair ?? null,
+          shardIndex: fixture.config.training?.distill?.shardIndex ?? null,
+          shardCount: fixture.config.training?.distill?.shardCount ?? null,
+          resumeFrom: fixture.config.training?.distill?.resumeFrom ?? null,
           temperature: fixture.config.training?.distill?.temperature ?? null,
           alphaKd: fixture.config.training?.distill?.alphaKd ?? null,
           alphaCe: fixture.config.training?.distill?.alphaCe ?? null,
           tripletMargin: fixture.config.training?.distill?.tripletMargin ?? null,
-          topK: fixture.config.training?.distill?.topK ?? adapterInputDim,
+          studentGraphMode: fixture.config.training?.distill?.studentGraphMode ?? null,
+          topK: fixture.config.training?.distill?.topK ?? distillOutputDim,
           freeze: fixture.config.training?.distill?.freeze ?? null,
         },
         distillRuntime: {
@@ -1253,20 +2126,26 @@ async function runDistillStageTest(stage, options = {}) {
           teacherModelUrl: distillRuntime.teacherModelUrl || null,
           studentModelUrl: distillRuntime.studentModelUrl || null,
           topK: distillRuntime.topK,
+          studentGraphMode: distillRuntime.studentGraphMode || null,
+          targetTokenMode: distillRuntime.targetTokenMode || null,
         },
         distillDataset: {
           path: distillDatasetReport.absolutePath,
           rowCount: distillDatasetReport.rowCount,
           sampleCount: distillDatasetReport.sampleCount,
+          shardCount: distillDatasetReport.shardCount ?? 1,
           directionCounts: distillDatasetReport.directionCounts,
         },
+        checkpoint: runner.lastCheckpoint || null,
       },
     };
   } finally {
     if (distillRuntime && typeof distillRuntime.cleanup === 'function') {
       await distillRuntime.cleanup();
     }
-    fixture.cleanup();
+    if (fixture) {
+      fixture.cleanup();
+    }
   }
 }
 
@@ -1426,6 +2305,107 @@ function toPositiveInteger(value, fallback) {
   return floored > 0 ? floored : fallback;
 }
 
+function toPositiveIntegerOrNull(value) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return null;
+  const floored = Math.floor(parsed);
+  return floored > 0 ? floored : null;
+}
+
+function resolveDistillShardProgressContext(
+  options = {},
+  trainingOverrides = null,
+  stepsPerShard = null,
+  fallbackShardCount = null
+) {
+  const distillConfig = trainingOverrides?.distill || {};
+  const shardIndexInput = toPositiveIntegerOrNull(
+    options.distillShardIndex ?? distillConfig.shardIndex ?? null
+  );
+  const shardCountInput = toPositiveIntegerOrNull(
+    options.distillShardCount ?? distillConfig.shardCount ?? null
+  );
+  const fallbackShardCountInput = toPositiveIntegerOrNull(fallbackShardCount);
+  if (
+    shardIndexInput !== null
+    && shardCountInput !== null
+    && shardIndexInput > shardCountInput
+  ) {
+    throw new Error('distillShardIndex must be <= distillShardCount.');
+  }
+  const shardCount = shardCountInput ?? fallbackShardCountInput ?? 1;
+  const shardIndex = shardIndexInput ?? 1;
+  const normalizedStepsPerShard = toPositiveIntegerOrNull(stepsPerShard);
+  const totalGlobalSteps = normalizedStepsPerShard
+    ? (normalizedStepsPerShard * shardCount)
+    : null;
+  return {
+    shardIndex: Math.min(Math.max(1, shardIndex), shardCount),
+    shardCount: Math.max(1, shardCount),
+    stepsPerShard: normalizedStepsPerShard,
+    totalGlobalSteps,
+  };
+}
+
+function resolveBenchProgressSummary(stepEntries, context, startTimeMs) {
+  const entries = Array.isArray(stepEntries) ? stepEntries : [];
+  const lastEntry = entries.length > 0 ? entries[entries.length - 1] : null;
+  const shardIndex = context?.shardIndex ?? 1;
+  const shardCount = context?.shardCount ?? 1;
+  const stepsPerShard = context?.stepsPerShard ?? null;
+  const totalGlobalSteps = context?.totalGlobalSteps ?? null;
+  const fallbackGlobalStep = stepsPerShard
+    ? (((shardIndex - 1) * stepsPerShard) + Math.min(entries.length, stepsPerShard))
+    : null;
+  const completedGlobalSteps = Number.isFinite(lastEntry?.progress_global_step)
+    ? lastEntry.progress_global_step
+    : fallbackGlobalStep;
+  const resolvedTotalGlobalSteps = Number.isFinite(lastEntry?.progress_global_steps)
+    ? lastEntry.progress_global_steps
+    : totalGlobalSteps;
+  const percentComplete = Number.isFinite(lastEntry?.progress_percent_complete)
+    ? lastEntry.progress_percent_complete
+    : (
+      Number.isFinite(completedGlobalSteps)
+      && Number.isFinite(resolvedTotalGlobalSteps)
+      && resolvedTotalGlobalSteps > 0
+      ? Math.min(100, (completedGlobalSteps / resolvedTotalGlobalSteps) * 100)
+      : null
+    );
+  const etaMs = Number.isFinite(lastEntry?.progress_eta_ms)
+    ? Math.max(0, lastEntry.progress_eta_ms)
+    : (
+      Number.isFinite(percentComplete)
+      && percentComplete >= 100
+      ? 0
+      : null
+    );
+  const elapsedMs = Number.isFinite(lastEntry?.progress_elapsed_ms)
+    ? Math.max(0, lastEntry.progress_elapsed_ms)
+    : Math.max(0, performance.now() - startTimeMs);
+  return {
+    shardIndex,
+    shardCount,
+    stepsPerShard,
+    completedGlobalSteps: Number.isFinite(completedGlobalSteps) ? completedGlobalSteps : null,
+    totalGlobalSteps: Number.isFinite(resolvedTotalGlobalSteps) ? resolvedTotalGlobalSteps : null,
+    percentComplete,
+    etaMs,
+    etaIso: Number.isFinite(etaMs) ? new Date(Date.now() + etaMs).toISOString() : null,
+    elapsedMs,
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+function appendTimelineEvent(timeline, type, details = {}) {
+  timeline.push({
+    index: timeline.length + 1,
+    timestamp: new Date().toISOString(),
+    type,
+    ...details,
+  });
+}
+
 function resolveBenchRunSettings(options = {}) {
   const benchRun = options.benchRun && typeof options.benchRun === 'object'
     ? options.benchRun
@@ -1465,6 +2445,11 @@ export async function runTrainingBenchSuite(options = {}) {
   const distillDatasetReport = distillEnabled
     ? await loadDistillDatasetFromJsonl(distillDatasetPath)
     : null;
+  const resolvedResumeFrom = options.resumeFrom || trainingOverrides?.distill?.resumeFrom || null;
+  const resolvedStage1Artifact = options.stage1Artifact || trainingOverrides?.ul?.stage1Artifact || null;
+  const resolvedStage1ArtifactHash = options.stage1ArtifactHash || trainingOverrides?.ul?.stage1ArtifactHash || null;
+  const resolvedStageAArtifact = options.stageAArtifact || trainingOverrides?.distill?.stageAArtifact || null;
+  const resolvedStageAArtifactHash = options.stageAArtifactHash || trainingOverrides?.distill?.stageAArtifactHash || null;
   let distillRuntime = null;
   if (distillEnabled) {
     if (!distillDatasetPath) {
@@ -1479,15 +2464,54 @@ export async function runTrainingBenchSuite(options = {}) {
   const timedRunUlArtifacts = [];
   const timedRunDistillArtifacts = [];
   const trainingMetricsReport = [];
+  const distillShardProgress = resolveDistillShardProgressContext(
+    options,
+    trainingOverrides,
+    benchSettings.stepsPerRun,
+    distillDatasetReport?.shardCount ?? null
+  );
+  const checkpointResumeTimeline = [];
+  appendTimelineEvent(checkpointResumeTimeline, 'benchmark_started', {
+    workloadType: 'training',
+    trainingStage: (
+      options.trainingStage
+      || trainingOverrides?.distill?.stage
+      || trainingOverrides?.ul?.stage
+      || null
+    ),
+    shardIndex: distillShardProgress.shardIndex,
+    shardCount: distillShardProgress.shardCount,
+    stepsPerShard: distillShardProgress.stepsPerShard,
+  });
+  if (resolvedResumeFrom) {
+    appendTimelineEvent(checkpointResumeTimeline, 'resume_requested', {
+      resumeFrom: String(resolvedResumeFrom),
+    });
+  }
+  if (resolvedStage1Artifact) {
+    appendTimelineEvent(checkpointResumeTimeline, 'resume_dependency_declared', {
+      dependencyType: 'ul_stage1',
+      stage1Artifact: String(resolvedStage1Artifact),
+      stage1ArtifactHash: resolvedStage1ArtifactHash,
+    });
+  }
+  if (resolvedStageAArtifact) {
+    appendTimelineEvent(checkpointResumeTimeline, 'resume_dependency_declared', {
+      dependencyType: 'distill_stage_a',
+      stageAArtifact: String(resolvedStageAArtifact),
+      stageAArtifactHash: resolvedStageAArtifactHash,
+    });
+  }
   let completedTimedRuns = 0;
 
   try {
     for (let runIndex = 0; runIndex < totalRuns; runIndex += 1) {
       const fixture = distillEnabled
-        ? createDistillAdapterModelFixture({
+        ? await createDistillStudentRuntimeModelFixture({
           training: trainingOverrides,
         }, {
-          inputDim: distillRuntime?.topK ?? DISTILL_ADAPTER_TOP_K,
+          outputDim: distillRuntime?.topK ?? DISTILL_ADAPTER_TOP_K,
+          distillRuntime,
         })
         : createToyModelFixture({
           training: trainingOverrides,
@@ -1514,6 +2538,11 @@ export async function runTrainingBenchSuite(options = {}) {
           };
 
         const runStart = performance.now();
+        const isTimedRun = runIndex >= benchSettings.warmupRuns;
+        appendTimelineEvent(checkpointResumeTimeline, 'run_started', {
+          runIndex: runIndex + 1,
+          phase: isTimedRun ? 'timed' : 'warmup',
+        });
         const runMetrics = await runner.run(fixture.model, dataset, {
           epochs: 1,
           batchSize: 1,
@@ -1524,16 +2553,34 @@ export async function runTrainingBenchSuite(options = {}) {
           timestamp: options.timestamp || null,
           ulArtifactDir: options.ulArtifactDir || null,
           distillArtifactDir: options.distillArtifactDir || null,
-          stageAArtifact: options.stageAArtifact || null,
-          stageAArtifactHash: options.stageAArtifactHash || null,
+          stageAArtifact: resolvedStageAArtifact,
+          stageAArtifactHash: resolvedStageAArtifactHash,
           teacherModelId: distillRuntime?.teacherModelId || options.teacherModelId || null,
           studentModelId: distillRuntime?.studentModelId || options.studentModelId || null,
           distillDatasetId: options.distillDatasetId || null,
           distillDatasetPath: distillDatasetReport?.absolutePath || null,
           distillLanguagePair: options.distillLanguagePair || null,
+          distillShardIndex: distillShardProgress.shardIndex,
+          distillShardCount: distillShardProgress.shardCount,
+          resumeFrom: resolvedResumeFrom,
         });
         const runDurationMs = Math.max(0, performance.now() - runStart);
-        const isTimedRun = runIndex >= benchSettings.warmupRuns;
+        if (runner.resumeState && typeof runner.resumeState === 'object') {
+          appendTimelineEvent(checkpointResumeTimeline, 'run_resumed', {
+            runIndex: runIndex + 1,
+            phase: isTimedRun ? 'timed' : 'warmup',
+            resumedStep: runner.resumeState.step ?? null,
+            resumedEpoch: runner.resumeState.epoch ?? null,
+            resumedBatch: runner.resumeState.batch ?? null,
+            resumedCheckpointHash: runner.resumeState.checkpointHash ?? null,
+          });
+        }
+        appendTimelineEvent(checkpointResumeTimeline, 'run_completed', {
+          runIndex: runIndex + 1,
+          phase: isTimedRun ? 'timed' : 'warmup',
+          durationMs: runDurationMs,
+          stepCount: Array.isArray(runMetrics) ? runMetrics.length : 0,
+        });
         if (isTimedRun) {
           completedTimedRuns += 1;
           timedRunDurationsMs.push(runDurationMs);
@@ -1542,16 +2589,54 @@ export async function runTrainingBenchSuite(options = {}) {
             timedRunStepsPerSec.push((runStepCount * 1000) / runDurationMs);
           }
           for (const stepEntry of runMetrics) {
-            if (isFiniteNumber(stepEntry?.step_time_ms)) {
-              timedStepDurationsMs.push(stepEntry.step_time_ms);
+            const stepWithRun = {
+              ...stepEntry,
+              bench_run_index: completedTimedRuns,
+              bench_run_global_index: runIndex + 1,
+            };
+            if (isFiniteNumber(stepWithRun?.step_time_ms)) {
+              timedStepDurationsMs.push(stepWithRun.step_time_ms);
             }
-            trainingMetricsReport.push(stepEntry);
+            trainingMetricsReport.push(stepWithRun);
+          }
+          if (runner.lastCheckpoint && typeof runner.lastCheckpoint === 'object') {
+            appendTimelineEvent(checkpointResumeTimeline, 'checkpoint_state_written', {
+              runIndex: runIndex + 1,
+              timedRunIndex: completedTimedRuns,
+              checkpointKey: runner.lastCheckpoint.key || null,
+              checkpointStep: runner.lastCheckpoint.step ?? null,
+              checkpointEpoch: runner.lastCheckpoint.epoch ?? null,
+              checkpointBatch: runner.lastCheckpoint.batch ?? null,
+            });
           }
           if (runner.lastArtifact && typeof runner.lastArtifact === 'object') {
             const artifactEntry = {
               runIndex: completedTimedRuns,
               ...runner.lastArtifact,
             };
+            appendTimelineEvent(checkpointResumeTimeline, 'checkpoint_written', {
+              runIndex: runIndex + 1,
+              timedRunIndex: completedTimedRuns,
+              artifactKind: artifactEntry.kind || null,
+              stage: artifactEntry.stage || null,
+              manifestPath: artifactEntry.manifestPath || null,
+              manifestHash: artifactEntry.manifestHash || null,
+              manifestFileHash: artifactEntry.manifestFileHash || null,
+            });
+            if (artifactEntry.stageADependency) {
+              appendTimelineEvent(checkpointResumeTimeline, 'resume_dependency_resolved', {
+                dependencyType: 'distill_stage_a',
+                runIndex: runIndex + 1,
+                stageADependency: artifactEntry.stageADependency,
+              });
+            }
+            if (artifactEntry.stage1Dependency) {
+              appendTimelineEvent(checkpointResumeTimeline, 'resume_dependency_resolved', {
+                dependencyType: 'ul_stage1',
+                runIndex: runIndex + 1,
+                stage1Dependency: artifactEntry.stage1Dependency,
+              });
+            }
             if (runner.lastArtifact.kind === 'distill') {
               timedRunDistillArtifacts.push(artifactEntry);
             } else {
@@ -1572,6 +2657,13 @@ export async function runTrainingBenchSuite(options = {}) {
   const runMsStats = computeSampleStats(timedRunDurationsMs);
   const stepMsStats = computeSampleStats(timedStepDurationsMs);
   const stepsPerSecStats = computeSampleStats(timedRunStepsPerSec);
+  const progress = resolveBenchProgressSummary(trainingMetricsReport, distillShardProgress, startTime);
+  appendTimelineEvent(checkpointResumeTimeline, 'benchmark_completed', {
+    completedTimedRuns,
+    metricEntryCount: trainingMetricsReport.length,
+    percentComplete: progress.percentComplete,
+    etaMs: progress.etaMs,
+  });
 
   const results = [
     {
@@ -1596,13 +2688,16 @@ export async function runTrainingBenchSuite(options = {}) {
       stepsPerRun: benchSettings.stepsPerRun,
       trainingSchemaVersion,
       trainingMetricsReport,
+      progress,
       ulArtifacts: timedRunUlArtifacts,
       distillArtifacts: timedRunDistillArtifacts,
+      checkpointResumeTimeline,
       distillDataset: distillDatasetReport
         ? {
           path: distillDatasetReport.absolutePath,
           rowCount: distillDatasetReport.rowCount,
           sampleCount: distillDatasetReport.sampleCount,
+          shardCount: distillDatasetReport.shardCount ?? 1,
           directionCounts: distillDatasetReport.directionCounts,
         }
         : null,

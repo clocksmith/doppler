@@ -3,18 +3,10 @@ import os from 'node:os';
 import path from 'node:path';
 import { installNodeFileFetchShim } from './node-file-fetch.js';
 import { NodeConvertWorkerPool } from './node-convert-worker-pool.js';
+import { bootstrapNodeWebGPU } from './node-webgpu.js';
 import { isPlainObject } from '../utils/plain-object.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
-
-const MB = 1024 * 1024;
-
-const DEFAULT_CONVERT_EXECUTION_CONFIG = {
-  workers: 8,
-  workerCountPolicy: 'cap',
-  rowChunkRows: null,
-  rowChunkMinTensorBytes: 128 * MB,
-  maxInFlightJobs: null,
-};
+import { log, trace } from '../debug/index.js';
 
 function asPositiveInteger(value, label) {
   if (!Number.isInteger(value) || value < 1) {
@@ -23,31 +15,47 @@ function asPositiveInteger(value, label) {
   return value;
 }
 
-function normalizeExecutionConfig(value) {
+function normalizeExecutionConfig(value, defaults) {
+  if (!isPlainObject(defaults)) {
+    throw new Error('node convert: execution defaults must be an object.');
+  }
+
   if (value == null) {
-    return { ...DEFAULT_CONVERT_EXECUTION_CONFIG };
+    return { ...defaults };
   }
   if (!isPlainObject(value)) {
     throw new Error('node convert: execution must be an object when provided.');
   }
   const workers = value.workers == null
-    ? DEFAULT_CONVERT_EXECUTION_CONFIG.workers
+    ? defaults.workers
     : asPositiveInteger(Number(value.workers), 'execution.workers');
   const workerCountPolicyRaw = value.workerCountPolicy == null
-    ? DEFAULT_CONVERT_EXECUTION_CONFIG.workerCountPolicy
+    ? defaults.workerCountPolicy
     : String(value.workerCountPolicy).trim().toLowerCase();
   if (workerCountPolicyRaw !== 'cap' && workerCountPolicyRaw !== 'error') {
     throw new Error('node convert: execution.workerCountPolicy must be "cap" or "error".');
   }
   const rowChunkRows = value.rowChunkRows == null
-    ? DEFAULT_CONVERT_EXECUTION_CONFIG.rowChunkRows
+    ? defaults.rowChunkRows
     : asPositiveInteger(Number(value.rowChunkRows), 'execution.rowChunkRows');
   const rowChunkMinTensorBytes = value.rowChunkMinTensorBytes == null
-    ? DEFAULT_CONVERT_EXECUTION_CONFIG.rowChunkMinTensorBytes
+    ? defaults.rowChunkMinTensorBytes
     : asPositiveInteger(Number(value.rowChunkMinTensorBytes), 'execution.rowChunkMinTensorBytes');
   const maxInFlightJobs = value.maxInFlightJobs == null
-    ? DEFAULT_CONVERT_EXECUTION_CONFIG.maxInFlightJobs
+    ? defaults.maxInFlightJobs
     : asPositiveInteger(Number(value.maxInFlightJobs), 'execution.maxInFlightJobs');
+  const useGpuCast = value.useGpuCast == null
+    ? defaults.useGpuCast === true
+    : value.useGpuCast === true;
+  if (value.useGpuCast != null && typeof value.useGpuCast !== 'boolean') {
+    throw new Error('node convert: execution.useGpuCast must be a boolean when provided.');
+  }
+  const gpuCastMinTensorBytes = value.gpuCastMinTensorBytes == null
+    ? asPositiveInteger(
+      Number(defaults.gpuCastMinTensorBytes ?? defaults.rowChunkMinTensorBytes ?? (32 * 1024 * 1024)),
+      'execution.gpuCastMinTensorBytes'
+    )
+    : asPositiveInteger(Number(value.gpuCastMinTensorBytes), 'execution.gpuCastMinTensorBytes');
 
   return {
     workers,
@@ -55,6 +63,8 @@ function normalizeExecutionConfig(value) {
     rowChunkRows,
     rowChunkMinTensorBytes,
     maxInFlightJobs,
+    useGpuCast,
+    gpuCastMinTensorBytes,
   };
 }
 
@@ -95,6 +105,45 @@ function getDtypeBytes(dtype) {
   return null;
 }
 
+function createStageTimer(label) {
+  const start = performance.now();
+  return {
+    stop(extra = '', data = null) {
+      const elapsed = performance.now() - start;
+      const suffix = extra ? ` - ${extra}` : '';
+      log.verbose('NodeConvert', `${label}: ${elapsed.toFixed(0)}ms${suffix}`);
+      trace.perf(`NodeConvert ${label}`, {
+        ms: elapsed,
+        ...(data && typeof data === 'object' ? data : {}),
+      });
+      return elapsed;
+    },
+  };
+}
+
+function compareNullableStrings(a, b) {
+  const left = typeof a === 'string' ? a : '';
+  const right = typeof b === 'string' ? b : '';
+  return left.localeCompare(right);
+}
+
+function sortTensorsByDeterministicLocality(tensors) {
+  if (!Array.isArray(tensors) || tensors.length <= 1) {
+    return tensors;
+  }
+  tensors.sort((left, right) => {
+    const sourcePathCmp = compareNullableStrings(left?.sourcePath, right?.sourcePath);
+    if (sourcePathCmp !== 0) return sourcePathCmp;
+    const leftOffset = Number.isFinite(left?.offset) ? Number(left.offset) : 0;
+    const rightOffset = Number.isFinite(right?.offset) ? Number(right.offset) : 0;
+    if (leftOffset !== rightOffset) {
+      return leftOffset - rightOffset;
+    }
+    return compareNullableStrings(left?.name, right?.name);
+  });
+  return tensors;
+}
+
 function normalizeWorkerTransformResult(result, tensor) {
   if (!result || !(result.tensorData instanceof Uint8Array)) {
     throw new Error(`node convert: worker transform returned invalid bytes for ${tensor.name}.`);
@@ -120,6 +169,148 @@ async function mapWithConcurrency(items, concurrency, mapper) {
   });
   await Promise.all(runners);
   return results;
+}
+
+let gpuCastRuntimePromise = null;
+
+async function loadNodeGpuCastRuntime() {
+  if (!gpuCastRuntimePromise) {
+    gpuCastRuntimePromise = (async () => {
+      await bootstrapNodeWebGPU();
+      const [
+        { initDevice, getDevice },
+        { castF32ToF16, runBF16ToF16 },
+        { createTensor },
+        { acquireBuffer, releaseBuffer, getBufferPool },
+      ] = await Promise.all([
+        import('../gpu/device.js'),
+        import('../gpu/kernel-selector.js'),
+        import('../gpu/tensor.js'),
+        import('../memory/buffer-pool.js'),
+      ]);
+      const device = await initDevice();
+      if (!device || !getDevice()) {
+        throw new Error(
+          'node convert: execution.useGpuCast requires a WebGPU-capable Node runtime.'
+        );
+      }
+      return {
+        getDevice,
+        castF32ToF16,
+        runBF16ToF16,
+        createTensor,
+        acquireBuffer,
+        releaseBuffer,
+        getBufferPool,
+      };
+    })();
+  }
+  try {
+    return await gpuCastRuntimePromise;
+  } catch (error) {
+    gpuCastRuntimePromise = null;
+    throw error;
+  }
+}
+
+function createNodeGpuTensorTransformer(options) {
+  const {
+    runtime,
+    gpuCastMinTensorBytes,
+    resolveTensorTargetQuant,
+  } = options;
+  const {
+    getDevice,
+    castF32ToF16,
+    runBF16ToF16,
+    createTensor,
+    acquireBuffer,
+    releaseBuffer,
+    getBufferPool,
+  } = runtime;
+  const minTensorBytes = Math.max(1, Number(gpuCastMinTensorBytes) || 1);
+  let warnedFallback = false;
+
+  return async function maybeTransformWithGPU(input) {
+    const tensor = input?.tensor;
+    const tensorData = input?.tensorData;
+    const transformContext = input?.transformContext ?? {};
+    const reportProgress = typeof input?.reportProgress === 'function'
+      ? input.reportProgress
+      : null;
+    if (!tensor || !(tensorData instanceof Uint8Array)) {
+      return null;
+    }
+
+    const sourceDtype = String(tensor.dtype || '').toUpperCase();
+    if (sourceDtype !== 'F32' && sourceDtype !== 'BF16') {
+      return null;
+    }
+
+    const targetQuant = resolveTensorTargetQuant(
+      tensor.name,
+      transformContext.targetQuant,
+      transformContext.quantizationInfo ?? null
+    );
+    if (targetQuant !== 'f16') {
+      return null;
+    }
+    if (tensorData.byteLength < minTensorBytes) {
+      return null;
+    }
+
+    const elementBytes = sourceDtype === 'F32' ? 4 : 2;
+    if (tensorData.byteLength % elementBytes !== 0) {
+      return null;
+    }
+    const numElements = tensorData.byteLength / elementBytes;
+    const outputBytes = numElements * 2;
+
+    let inputBuffer = null;
+    let outputBuffer = null;
+    try {
+      const device = getDevice();
+      if (!device) {
+        return null;
+      }
+      inputBuffer = acquireBuffer(tensorData.byteLength, undefined, `convert_gpu_cast_in_${tensor.name}`);
+      device.queue.writeBuffer(inputBuffer, 0, tensorData, tensorData.byteOffset, tensorData.byteLength);
+
+      if (sourceDtype === 'F32') {
+        const inputTensor = createTensor(inputBuffer, 'f32', [numElements], `${tensor.name}_f32`);
+        const converted = await castF32ToF16(inputTensor);
+        outputBuffer = converted.buffer;
+      } else {
+        const converted = await runBF16ToF16(inputBuffer, [numElements], `${tensor.name}_f16`);
+        outputBuffer = converted.buffer;
+      }
+
+      const readback = await getBufferPool().readBuffer(outputBuffer, outputBytes);
+      if (!(readback instanceof ArrayBuffer) || readback.byteLength !== outputBytes) {
+        return null;
+      }
+      reportProgress?.(tensorData.byteLength, tensorData.byteLength);
+      return {
+        tensorData: new Uint8Array(readback),
+        outDtype: 'F16',
+        outLayout: null,
+      };
+    } catch (error) {
+      if (!warnedFallback) {
+        warnedFallback = true;
+        const message = error instanceof Error ? error.message : String(error);
+        log.warn('NodeConvert', `GPU cast fallback to CPU: ${message}`);
+      }
+      return null;
+    } finally {
+      if (outputBuffer && outputBuffer !== inputBuffer) {
+        releaseBuffer(outputBuffer);
+      }
+      if (inputBuffer) {
+        releaseBuffer(inputBuffer);
+      }
+    }
+  };
 }
 
 
@@ -236,40 +427,82 @@ async function resolveGgufPathFromDirectory(inputDir) {
   return path.join(inputDir, ggufFiles[0]);
 }
 
-async function readFileRange(filePath, offset, length) {
-  if (!Number.isFinite(offset) || !Number.isFinite(length) || length <= 0) {
-    return new ArrayBuffer(0);
-  }
-  const fd = await fs.open(filePath, 'r');
-  try {
-    const size = (await fd.stat()).size;
-    const start = Math.max(0, Math.floor(offset));
-    const end = Math.min(size, start + Math.floor(length));
-    if (end <= start) {
-      return new ArrayBuffer(0);
+function createFileRangeReader() {
+  const handleMap = new Map();
+
+  async function getHandleEntry(filePath) {
+    const existingPromise = handleMap.get(filePath);
+    if (existingPromise) {
+      return existingPromise;
     }
-    const out = Buffer.allocUnsafe(end - start);
-    await fd.read(out, 0, out.length, start);
-    return out.buffer.slice(out.byteOffset, out.byteOffset + out.byteLength);
-  } finally {
-    await fd.close();
+    const openPromise = (async () => {
+      const fd = await fs.open(filePath, 'r');
+      try {
+        const stats = await fd.stat();
+        return {
+          fd,
+          size: Number(stats.size),
+        };
+      } catch (error) {
+        await fd.close().catch(() => {});
+        throw error;
+      }
+    })();
+    handleMap.set(filePath, openPromise);
+    try {
+      return await openPromise;
+    } catch (error) {
+      if (handleMap.get(filePath) === openPromise) {
+        handleMap.delete(filePath);
+      }
+      throw error;
+    }
   }
+
+  return {
+    async readRange(filePath, offset, length) {
+      if (!Number.isFinite(offset) || !Number.isFinite(length) || length <= 0) {
+        return new ArrayBuffer(0);
+      }
+
+      const entry = await getHandleEntry(filePath);
+      const start = Math.max(0, Math.floor(offset));
+      const end = Math.min(entry.size, start + Math.floor(length));
+      if (end <= start) {
+        return new ArrayBuffer(0);
+      }
+
+      const out = Buffer.allocUnsafe(end - start);
+      await entry.fd.read(out, 0, out.length, start);
+      return out.buffer.slice(out.byteOffset, out.byteOffset + out.byteLength);
+    },
+    async closeAll() {
+      const closes = [];
+      for (const entryPromise of handleMap.values()) {
+        closes.push(
+          Promise.resolve(entryPromise).then((entry) => entry.fd.close())
+        );
+      }
+      handleMap.clear();
+      await Promise.allSettled(closes);
+    },
+  };
 }
 
-async function readSafetensorsHeader(filePath, parseSafetensorsHeader) {
-  const fd = await fs.open(filePath, 'r');
-  try {
-    const sizeBuf = Buffer.allocUnsafe(8);
-    await fd.read(sizeBuf, 0, 8, 0);
-    const headerSize = Number(sizeBuf.readBigUInt64LE(0));
-    const fullHeader = Buffer.allocUnsafe(8 + headerSize);
-    await fd.read(fullHeader, 0, fullHeader.length, 0);
-    return parseSafetensorsHeader(
-      fullHeader.buffer.slice(fullHeader.byteOffset, fullHeader.byteOffset + fullHeader.byteLength)
-    );
-  } finally {
-    await fd.close();
+async function readSafetensorsHeader(filePath, parseSafetensorsHeader, readRange) {
+  const headerPrefixBuffer = await readRange(filePath, 0, 8);
+  const headerPrefixBytes = new Uint8Array(headerPrefixBuffer);
+  if (headerPrefixBytes.byteLength < 8) {
+    throw new Error(`Invalid safetensors header prefix for "${filePath}"`);
   }
+  const headerSize = Number(new DataView(headerPrefixBuffer).getBigUint64(0, true));
+  const headerBuffer = await readRange(filePath, 8, headerSize);
+  const fullHeader = new Uint8Array(8 + headerSize);
+  fullHeader.set(headerPrefixBytes, 0);
+  fullHeader.set(new Uint8Array(headerBuffer), 8);
+  return parseSafetensorsHeader(
+    fullHeader.buffer.slice(fullHeader.byteOffset, fullHeader.byteOffset + fullHeader.byteLength)
+  );
 }
 
 async function listRelativeFiles(rootDir, relDir = '', out = []) {
@@ -303,15 +536,19 @@ async function clearExistingShardFiles(outputDir) {
 function createNodeConvertIO(outputDir, options) {
   const hashAlgorithm = options?.hashAlgorithm;
   const computeHash = options?.computeHash;
+  const readRange = options?.readRange;
   if (!hashAlgorithm || typeof hashAlgorithm !== 'string') {
     throw new Error('node convert: hashAlgorithm is required.');
   }
   if (typeof computeHash !== 'function') {
     throw new Error('node convert: computeHash(data, algorithm) is required.');
   }
+  if (typeof readRange !== 'function') {
+    throw new Error('node convert: readRange(filePath, offset, length) is required.');
+  }
   return {
     async readTensorData(tensor) {
-      return readFileRange(tensor.sourcePath, tensor.offset, tensor.size);
+      return readRange(tensor.sourcePath, tensor.offset, tensor.size);
     },
     async writeShard(index, data) {
       const filename = generateShardFilename(index);
@@ -528,6 +765,9 @@ export async function convertSafetensorsDirectory(options) {
   const isInputGgufFile = Boolean(inputGgufPath);
 
   installNodeFileFetchShim();
+  const fileRangeReader = createFileRangeReader();
+  const totalTimer = createStageTimer('Total');
+  try {
 
   const [
     { parseSafetensorsHeader },
@@ -544,7 +784,7 @@ export async function convertSafetensorsDirectory(options) {
     { resolveConversionPlan, inferSourceWeightQuantization, resolveConvertedModelId },
     { parseDiffusionModel },
     { parseTransformerModel },
-    { createConverterConfig, HEADER_READ_SIZE },
+    { createConverterConfig, HEADER_READ_SIZE, DEFAULT_CONVERTER_EXECUTION_CONFIG },
     { computeHash },
   ] = await Promise.all([
     import('../formats/safetensors/types.js'),
@@ -559,7 +799,10 @@ export async function convertSafetensorsDirectory(options) {
   ]);
 
   const converterConfig = createConverterConfig(converterConfigOverride ?? undefined);
-  const executionConfig = normalizeExecutionConfig(options?.execution);
+  const executionConfig = normalizeExecutionConfig(
+    options?.execution,
+    DEFAULT_CONVERTER_EXECUTION_CONFIG
+  );
   const executionPlan = resolveExecutionPlan(executionConfig);
   const diffusionIndexPath = isInputDirectory ? path.join(inputDir, 'model_index.json') : null;
   const isDiffusionInput = isInputDirectory && diffusionIndexPath ? await fileExists(diffusionIndexPath) : false;
@@ -575,6 +818,7 @@ export async function convertSafetensorsDirectory(options) {
   let hasTokenizerModel = false;
   let tokenizerModelPath = null;
   let diffusionAuxFiles = [];
+  const parseTimer = createStageTimer('Parse input');
 
   if (isDiffusionInput) {
     const relativeFiles = await listRelativeFiles(inputDir);
@@ -620,7 +864,11 @@ export async function convertSafetensorsDirectory(options) {
           throw new Error(`Missing safetensors file (${suffix})`);
         }
         const fullPath = path.join(inputDir, suffix);
-        const parsed = await readSafetensorsHeader(fullPath, parseSafetensorsHeader);
+        const parsed = await readSafetensorsHeader(
+          fullPath,
+          parseSafetensorsHeader,
+          fileRangeReader.readRange
+        );
         return {
           tensors: parsed.tensors.map((tensor) => ({
             ...tensor,
@@ -644,14 +892,26 @@ export async function convertSafetensorsDirectory(options) {
             `Missing shard files for ${componentId} (${shardSuffixes.length - missing.length}/${shardSuffixes.length} found)`
           );
         }
+        const parsedShards = await Promise.all(
+          shardSuffixes.map(async (shardSuffix) => {
+            const fullPath = path.join(inputDir, shardSuffix);
+            const parsed = await readSafetensorsHeader(
+              fullPath,
+              parseSafetensorsHeader,
+              fileRangeReader.readRange
+            );
+            return {
+              fullPath,
+              tensors: parsed.tensors,
+            };
+          })
+        );
         const tensorsOut = [];
-        for (const shardSuffix of shardSuffixes) {
-          const fullPath = path.join(inputDir, shardSuffix);
-          const parsed = await readSafetensorsHeader(fullPath, parseSafetensorsHeader);
-          for (const tensor of parsed.tensors) {
+        for (const parsedShard of parsedShards) {
+          for (const tensor of parsedShard.tensors) {
             tensorsOut.push({
               ...tensor,
-              sourcePath: fullPath,
+              sourcePath: parsedShard.fullPath,
             });
           }
         }
@@ -675,7 +935,7 @@ export async function convertSafetensorsDirectory(options) {
         size: ggufStats.size,
       },
       async readRange(offset, length) {
-        return readFileRange(ggufPath, offset, length);
+        return fileRangeReader.readRange(ggufPath, offset, length);
       },
     };
     const normalizeTensorSource = (input) => {
@@ -745,7 +1005,11 @@ export async function convertSafetensorsDirectory(options) {
       },
       async loadSingleSafetensors(suffix) {
         const filePath = path.join(inputDir, suffix);
-        const parsed = await readSafetensorsHeader(filePath, parseSafetensorsHeader);
+        const parsed = await readSafetensorsHeader(
+          filePath,
+          parseSafetensorsHeader,
+          fileRangeReader.readRange
+        );
         return parsed.tensors.map((tensor) => ({
           ...tensor,
           sourcePath: filePath,
@@ -753,12 +1017,24 @@ export async function convertSafetensorsDirectory(options) {
       },
       async loadShardedSafetensors(indexJson) {
         const shardFiles = [...new Set(Object.values(indexJson.weight_map || {}))];
+        const parsedShards = await Promise.all(
+          shardFiles.map(async (shardFile) => {
+            const shardPath = path.join(inputDir, shardFile);
+            const parsed = await readSafetensorsHeader(
+              shardPath,
+              parseSafetensorsHeader,
+              fileRangeReader.readRange
+            );
+            return {
+              shardPath,
+              tensors: parsed.tensors,
+            };
+          })
+        );
         const tensorsOut = [];
-        for (const shardFile of shardFiles) {
-          const shardPath = path.join(inputDir, shardFile);
-          const parsed = await readSafetensorsHeader(shardPath, parseSafetensorsHeader);
-          for (const tensor of parsed.tensors) {
-            tensorsOut.push({ ...tensor, sourcePath: shardPath });
+        for (const parsedShard of parsedShards) {
+          for (const tensor of parsedShard.tensors) {
+            tensorsOut.push({ ...tensor, sourcePath: parsedShard.shardPath });
           }
         }
         return tensorsOut;
@@ -775,6 +1051,9 @@ export async function convertSafetensorsDirectory(options) {
     tokenizerConfig = await readOptionalJson(tokenizerConfigPath);
     hasTokenizerModel = await fileExists(tokenizerModelPath);
   }
+  parseTimer.stop(`${modelKind} tensors=${tensors.length}`);
+
+  sortTensorsByDeterministicLocality(tensors);
 
   const weightOverride = converterConfig.quantization?.weights ?? null;
   sourceQuantization = sourceQuantization || weightOverride || inferSourceWeightQuantization(tensors);
@@ -836,15 +1115,26 @@ export async function convertSafetensorsDirectory(options) {
   const io = createNodeConvertIO(outputDir, {
     hashAlgorithm: converterConfig.manifest.hashAlgorithm,
     computeHash,
+    readRange: fileRangeReader.readRange,
   });
   const manifestArchitecture = modelKind === 'diffusion' ? 'diffusion' : architecture;
   let workerPool = null;
+  let workerTensorTransformer = null;
+  let gpuTensorTransformer = null;
   let tensorTransformer = null;
   let result = null;
   try {
+    if (executionPlan.useGpuCast) {
+      const gpuRuntime = await loadNodeGpuCastRuntime();
+      gpuTensorTransformer = createNodeGpuTensorTransformer({
+        runtime: gpuRuntime,
+        gpuCastMinTensorBytes: executionPlan.gpuCastMinTensorBytes,
+        resolveTensorTargetQuant,
+      });
+    }
     if (executionPlan.effectiveWorkers > 1) {
       workerPool = new NodeConvertWorkerPool({ size: executionPlan.effectiveWorkers });
-      tensorTransformer = createNodeTensorTransformer({
+      workerTensorTransformer = createNodeTensorTransformer({
         pool: workerPool,
         execution: executionPlan,
         transformTensorBytes,
@@ -853,14 +1143,35 @@ export async function convertSafetensorsDirectory(options) {
         shouldQuantize,
       });
     }
+    if (gpuTensorTransformer || workerTensorTransformer) {
+      tensorTransformer = async (input) => {
+        if (gpuTensorTransformer) {
+          const gpuResult = await gpuTensorTransformer(input);
+          if (gpuResult) {
+            return gpuResult;
+          }
+        }
+        if (workerTensorTransformer) {
+          return workerTensorTransformer(input);
+        }
+        const tensor = input?.tensor;
+        const tensorData = input?.tensorData;
+        if (!tensor || !(tensorData instanceof Uint8Array)) {
+          throw new Error('node convert: invalid tensor transform input.');
+        }
+        return transformTensorBytes(tensor, tensorData, input?.transformContext ?? {});
+      };
+    }
     onProgress?.(toNodeProgress({
       stage: 'writing',
       message: (
         `Convert execution workers: requested=${executionPlan.requestedWorkers}, ` +
-        `effective=${executionPlan.effectiveWorkers}, available=${executionPlan.availableWorkers}`
+        `effective=${executionPlan.effectiveWorkers}, available=${executionPlan.availableWorkers}, ` +
+        `gpuCast=${executionPlan.useGpuCast ? 'on' : 'off'}`
       ),
     }));
 
+    const convertTimer = createStageTimer('Convert tensors');
     result = await convertModel(model, io, {
       modelId,
       modelType: resolvedModelType,
@@ -874,6 +1185,7 @@ export async function convertSafetensorsDirectory(options) {
         onProgress?.(toNodeProgress(update));
       },
     });
+    convertTimer.stop(`tensors=${result.tensorCount}, shards=${result.shardCount}`);
   } finally {
     if (workerPool) {
       await workerPool.close();
@@ -908,4 +1220,8 @@ export async function convertSafetensorsDirectory(options) {
     modelType: resolvedModelType,
     outputDir,
   };
+  } finally {
+    await fileRangeReader.closeAll();
+    totalTimer.stop();
+  }
 }

@@ -5,13 +5,46 @@ import { allowReadback, trackAllocation } from '../gpu/perf-guards.js';
 import { log, trace, isTraceEnabled } from '../debug/index.js';
 import { getRuntimeConfig } from '../config/runtime.js';
 
+const RESOLVED_GPU_BUFFER_USAGE = (
+  typeof GPUBufferUsage === 'object'
+  && GPUBufferUsage
+)
+  ? GPUBufferUsage
+  : {
+    MAP_READ: 0x0001,
+    MAP_WRITE: 0x0002,
+    COPY_SRC: 0x0004,
+    COPY_DST: 0x0008,
+    INDEX: 0x0010,
+    VERTEX: 0x0020,
+    UNIFORM: 0x0040,
+    STORAGE: 0x0080,
+    INDIRECT: 0x0100,
+    QUERY_RESOLVE: 0x0200,
+  };
+
+const RESOLVED_GPU_MAP_MODE = (
+  typeof GPUMapMode === 'object'
+  && GPUMapMode
+)
+  ? GPUMapMode
+  : {
+    READ: 1 << 0,
+    WRITE: 1 << 1,
+  };
 
 export const BufferUsage =  ({
-  STORAGE: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
-  STORAGE_READ: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-  UNIFORM: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-  STAGING_READ: GPUMapMode.READ | GPUBufferUsage.COPY_DST,
-  STAGING_WRITE: GPUMapMode.WRITE | GPUBufferUsage.COPY_SRC,
+  STORAGE: RESOLVED_GPU_BUFFER_USAGE.STORAGE
+    | RESOLVED_GPU_BUFFER_USAGE.COPY_DST
+    | RESOLVED_GPU_BUFFER_USAGE.COPY_SRC,
+  STORAGE_READ: RESOLVED_GPU_BUFFER_USAGE.STORAGE
+    | RESOLVED_GPU_BUFFER_USAGE.COPY_DST,
+  UNIFORM: RESOLVED_GPU_BUFFER_USAGE.UNIFORM
+    | RESOLVED_GPU_BUFFER_USAGE.COPY_DST,
+  STAGING_READ: RESOLVED_GPU_BUFFER_USAGE.MAP_READ
+    | RESOLVED_GPU_BUFFER_USAGE.COPY_DST,
+  STAGING_WRITE: RESOLVED_GPU_BUFFER_USAGE.MAP_WRITE
+    | RESOLVED_GPU_BUFFER_USAGE.COPY_SRC,
 });
 
 
@@ -152,7 +185,7 @@ export class BufferPool {
     const limits = getDeviceLimits();
     const maxSize = limits?.maxBufferSize || Infinity;
     const maxStorageSize = limits?.maxStorageBufferBindingSize || Infinity;
-    const isStorageBuffer = (usage & GPUBufferUsage.STORAGE) !== 0;
+    const isStorageBuffer = (usage & RESOLVED_GPU_BUFFER_USAGE.STORAGE) !== 0;
 
     // Align size and compute bucket, respecting device limits
     const alignedSize = alignTo(size, this.#config.alignmentBytes);
@@ -557,7 +590,7 @@ export class BufferPool {
     device.queue.submit([encoder.finish()]);
 
     // Map and read
-    await staging.mapAsync(GPUMapMode.READ);
+    await staging.mapAsync(RESOLVED_GPU_MAP_MODE.READ);
     const data = staging.getMappedRange(0, alignedSize).slice(0, size);
     staging.unmap();
 

@@ -20,6 +20,7 @@ import type {
 export type ComputePrecision = 'f16' | 'f32' | 'auto' | null;
 /** Q4K layout: 'row' = fused kernel (fast), 'col' = dequant fallback */
 export type Q4KLayout = 'row' | 'col' | null;
+export type ConverterWorkerCountPolicy = 'cap' | 'error';
 
 export interface ConverterQuantizationConfigSchema {
   weights: QuantizationValue | null;
@@ -81,6 +82,17 @@ export interface ConverterPresetConfigSchema {
   model: string | null;
 }
 
+/** Node convert command execution defaults (worker scheduling policy) */
+export interface ConverterExecutionConfigSchema {
+  workers: number;
+  workerCountPolicy: ConverterWorkerCountPolicy;
+  rowChunkRows: number | null;
+  rowChunkMinTensorBytes: number;
+  maxInFlightJobs: number | null;
+  useGpuCast: boolean;
+  gpuCastMinTensorBytes: number;
+}
+
 export interface ConverterConfigSchema {
   quantization: ConverterQuantizationConfigSchema;
   sharding: ConverterShardingConfigSchema;
@@ -103,6 +115,7 @@ export declare const DEFAULT_CONVERTER_INFERENCE_CONFIG: ConverterInferenceConfi
 export declare const DEFAULT_CONVERTER_OUTPUT_CONFIG: ConverterOutputConfigSchema;
 export declare const DEFAULT_CONVERTER_PRESET_CONFIG: ConverterPresetConfigSchema;
 export declare const DEFAULT_GGUF_PARSER_DEFAULTS: GGUFParserDefaultsSchema;
+export declare const DEFAULT_CONVERTER_EXECUTION_CONFIG: ConverterExecutionConfigSchema;
 export declare const DEFAULT_CONVERTER_CONFIG: ConverterConfigSchema;
 
 export declare function createConverterConfig(

@@ -7,13 +7,14 @@
   "rowChunkRows": [
     { "match": { "canChunkRows": false }, "value": 0 },
     { "match": { "workers": { "lte": 2 } }, "value": 256 },
-    { "match": { "workers": { "lte": 4 } }, "value": 512 },
-    { "match": {}, "value": 1024 }
+    { "match": { "workers": { "lte": 16 } }, "value": 512 },
+    { "match": {}, "value": 768 }
   ],
   "maxInFlightJobs": [
     { "match": { "workers": { "lte": 2 } }, "value": 4 },
     { "match": { "workers": { "lte": 4 } }, "value": 8 },
     { "match": { "workers": { "lte": 8 } }, "value": 16 },
-    { "match": {}, "value": 24 }
+    { "match": { "workers": { "lte": 16 } }, "value": 24 },
+    { "match": {}, "value": 32 }
   ]
 }

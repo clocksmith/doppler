@@ -1,6 +1,16 @@
 import { existsSync, readFileSync, statSync } from 'node:fs';
-import { isAbsolute, resolve } from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { dirname, isAbsolute, resolve } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+
+const DEFAULT_LOCAL_DOE_PROVIDER_PATH = resolve(
+  dirname(fileURLToPath(import.meta.url)),
+  '..',
+  '..',
+  '..',
+  'fawn',
+  'nursery',
+  'webgpu-core',
+);
 
 function hasNavigatorGpu() {
   return typeof globalThis.navigator !== 'undefined' && !!globalThis.navigator?.gpu;
@@ -29,25 +39,51 @@ function installGlobalsFromModule(mod) {
   }
 }
 
-function resolveWebgpuModuleSpecifier() {
-  const fromEnv = process.env.DOPPLER_NODE_WEBGPU_MODULE;
-  if (typeof fromEnv === 'string' && fromEnv.trim().length > 0) {
-    const candidate = fromEnv.trim();
-    if (candidate.startsWith('file://')) {
-      return candidate;
-    }
-    if (candidate.startsWith('.') || candidate.startsWith('/') || candidate.includes('/')) {
-      const normalizedPath = isAbsolute(candidate)
-        ? candidate
-        : resolve(process.cwd(), candidate);
-      const resolvedFilePath = resolveNodeModuleFilePath(normalizedPath);
-      if (resolvedFilePath) {
-        return pathToFileURL(resolvedFilePath).href;
-      }
-    }
+function resolveCandidateModuleSpecifier(candidate) {
+  if (candidate.startsWith('file://')) {
     return candidate;
   }
-  return 'webgpu';
+  if (candidate.startsWith('.') || candidate.startsWith('/') || candidate.includes('/')) {
+    const normalizedPath = isAbsolute(candidate)
+      ? candidate
+      : resolve(process.cwd(), candidate);
+    const resolvedFilePath = resolveNodeModuleFilePath(normalizedPath);
+    if (resolvedFilePath) {
+      return pathToFileURL(resolvedFilePath).href;
+    }
+  }
+  return candidate;
+}
+
+function resolveDefaultWebgpuModuleSpecifiers() {
+  const specifiers = [];
+  const localCandidates = [
+    resolve(process.cwd(), '..', 'fawn', 'nursery', 'webgpu-core'),
+    DEFAULT_LOCAL_DOE_PROVIDER_PATH,
+  ];
+  for (const localCandidate of localCandidates) {
+    const resolvedPath = resolveNodeModuleFilePath(localCandidate);
+    if (resolvedPath) {
+      specifiers.push(pathToFileURL(resolvedPath).href);
+    }
+  }
+  specifiers.push('@doe/webgpu-core');
+  specifiers.push('webgpu');
+  return [...new Set(specifiers)];
+}
+
+function resolveWebgpuModuleSpecifiers() {
+  const fromEnv = process.env.DOPPLER_NODE_WEBGPU_MODULE;
+  if (typeof fromEnv === 'string' && fromEnv.trim().length > 0) {
+    return {
+      explicit: true,
+      specifiers: [resolveCandidateModuleSpecifier(fromEnv.trim())],
+    };
+  }
+  return {
+    explicit: false,
+    specifiers: resolveDefaultWebgpuModuleSpecifiers(),
+  };
 }
 
 function resolveNodeModuleFilePath(candidatePath) {
@@ -183,18 +219,7 @@ function resolveGpuFromModule(mod) {
   return null;
 }
 
-export async function bootstrapNodeWebGPU() {
-  if (hasNavigatorGpu() && hasGpuEnums()) {
-    return true;
-  }
-
-  let mod;
-  try {
-    mod = await import(resolveWebgpuModuleSpecifier());
-  } catch {
-    return false;
-  }
-
+function installWebgpuFromModule(mod) {
   const gpu = resolveGpuFromModule(mod);
   if (!installNavigatorGpu(gpu)) {
     return false;
@@ -207,4 +232,31 @@ export async function bootstrapNodeWebGPU() {
   setGlobalIfMissing('GPUTextureUsage', mod.GPUTextureUsage || mod.default?.GPUTextureUsage || mod.globals?.GPUTextureUsage);
 
   return hasNavigatorGpu() && hasGpuEnums();
+}
+
+export async function bootstrapNodeWebGPU() {
+  if (hasNavigatorGpu() && hasGpuEnums()) {
+    return true;
+  }
+
+  const { specifiers, explicit } = resolveWebgpuModuleSpecifiers();
+  for (const specifier of specifiers) {
+    let mod;
+    try {
+      mod = await import(specifier);
+    } catch {
+      if (explicit) {
+        return false;
+      }
+      continue;
+    }
+    if (installWebgpuFromModule(mod)) {
+      return true;
+    }
+    if (explicit) {
+      return false;
+    }
+  }
+
+  return false;
 }

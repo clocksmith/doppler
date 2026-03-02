@@ -42,12 +42,26 @@ export interface TrainingBenchSuiteResult {
     stepsPerRun: number;
     trainingSchemaVersion: number;
     trainingMetricsReport: Record<string, unknown>[];
+    progress: {
+      shardIndex: number;
+      shardCount: number;
+      stepsPerShard: number | null;
+      completedGlobalSteps: number | null;
+      totalGlobalSteps: number | null;
+      percentComplete: number | null;
+      etaMs: number | null;
+      etaIso: string | null;
+      elapsedMs: number;
+      updatedAt: string;
+    };
     ulArtifacts: Record<string, unknown>[];
     distillArtifacts: Record<string, unknown>[];
+    checkpointResumeTimeline: Array<Record<string, unknown>>;
     distillDataset?: {
       path: string;
       rowCount: number;
       sampleCount: number;
+      shardCount?: number;
       directionCounts: Record<string, number>;
     } | null;
     latency: {
@@ -95,8 +109,12 @@ export interface RunTrainingSuiteOptions {
   distillDatasetId?: string;
   distillDatasetPath?: string;
   distillLanguagePair?: string;
+  distillShardIndex?: number;
+  distillShardCount?: number;
+  resumeFrom?: string;
   trainingBenchSteps?: number;
   benchRun?: Record<string, unknown> | null;
+  checkpointEvery?: number;
   timestamp?: string | Date;
 }
 

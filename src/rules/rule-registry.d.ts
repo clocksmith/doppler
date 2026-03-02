@@ -2,7 +2,7 @@ import type { Rule } from '../gpu/kernels/rule-matcher.js';
 
 type RuleSet = Array<Rule<unknown>>;
 
-type RuleDomain = 'kernels' | 'inference' | 'shared' | 'loader' | 'converter';
+type RuleDomain = 'kernels' | 'inference' | 'shared' | 'loader' | 'converter' | 'tooling';
 
 type KernelRuleGroup =
   | 'attention'

@@ -1,8 +1,10 @@
 import { isPlainObject } from '../utils/plain-object.js';
+import { selectRuleValue } from '../rules/rule-registry.js';
 
 const TOOLING_COMMAND_SET = ['convert', 'debug', 'bench', 'test-model'];
 const TOOLING_SURFACE_SET = ['browser', 'node'];
 const TOOLING_SUITE_SET = ['kernels', 'inference', 'training', 'bench', 'debug', 'diffusion', 'energy'];
+const TOOLING_INTENT_SET = ['verify', 'investigate', 'calibrate'];
 const VERIFY_SUITES = ['kernels', 'inference', 'training', 'diffusion', 'energy'];
 const TRAINING_STAGE_SET = ['stage1_joint', 'stage2_base', 'stage_a', 'stage_b'];
 const TRAINING_COMMAND_SCHEMA_VERSION = 1;
@@ -12,12 +14,6 @@ export const TOOLING_SURFACES = Object.freeze([...TOOLING_SURFACE_SET]);
 export const TOOLING_SUITES = Object.freeze([...TOOLING_SUITE_SET]);
 export const TOOLING_VERIFY_SUITES = Object.freeze([...VERIFY_SUITES]);
 export const TOOLING_TRAINING_COMMAND_SCHEMA_VERSION = TRAINING_COMMAND_SCHEMA_VERSION;
-
-const COMMAND_RUNTIME_CONTRACT = Object.freeze({
-  debug: Object.freeze({ suite: 'debug', intent: 'investigate' }),
-  bench: Object.freeze({ suite: 'bench', intent: 'calibrate' }),
-  'test-model': Object.freeze({ suite: null, intent: 'verify' }),
-});
 
 function asOptionalString(value, label) {
   if (value === undefined || value === null || value === '') return null;
@@ -102,6 +98,32 @@ function assertSuite(value, command) {
   return suite;
 }
 
+function resolveCommandRuntimeContract(command) {
+  const runtimeContract = selectRuleValue('tooling', 'commandRuntime', 'runtimeContract', { command });
+  if (!isPlainObject(runtimeContract)) {
+    throw new Error(`tooling command: missing runtime contract metadata for "${command}".`);
+  }
+
+  const suite = runtimeContract.suite == null
+    ? null
+    : asOptionalString(runtimeContract.suite, `runtime contract suite for "${command}"`);
+  if (suite && !TOOLING_SUITE_SET.includes(suite)) {
+    throw new Error(`tooling command: runtime contract suite "${suite}" is not supported.`);
+  }
+
+  const intent = runtimeContract.intent == null
+    ? null
+    : asOptionalString(runtimeContract.intent, `runtime contract intent for "${command}"`);
+  if (intent && !TOOLING_INTENT_SET.includes(intent)) {
+    throw new Error(`tooling command: runtime contract intent "${intent}" is not supported.`);
+  }
+
+  return {
+    suite,
+    intent,
+  };
+}
+
 function asOptionalCacheMode(value, label) {
   const cacheMode = asOptionalString(value, label);
   if (!cacheMode) return null;
@@ -162,6 +184,14 @@ function normalizeConvertExecution(value) {
     rowChunkMinTensorBytes: asOptionalPositiveInteger(
       execution.rowChunkMinTensorBytes,
       'convertPayload.execution.rowChunkMinTensorBytes'
+    ),
+    useGpuCast: asOptionalBoolean(
+      execution.useGpuCast,
+      'convertPayload.execution.useGpuCast'
+    ),
+    gpuCastMinTensorBytes: asOptionalPositiveInteger(
+      execution.gpuCastMinTensorBytes,
+      'convertPayload.execution.gpuCastMinTensorBytes'
     ),
   };
 }
@@ -225,6 +255,9 @@ function normalizeConvert(raw) {
     distillDatasetId: null,
     distillDatasetPath: null,
     distillLanguagePair: null,
+    distillShardIndex: null,
+    distillShardCount: null,
+    resumeFrom: null,
     trainingSchemaVersion: null,
     trainingBenchSteps: null,
     workloadType: asOptionalString(raw.workloadType, 'workloadType'),
@@ -246,7 +279,7 @@ function normalizeConvert(raw) {
 }
 
 function normalizeSuiteCommand(raw, command) {
-  const runtimeContract = COMMAND_RUNTIME_CONTRACT[command];
+  const runtimeContract = resolveCommandRuntimeContract(command);
   let suite = runtimeContract.suite;
   if (!suite) {
     suite = assertSuite(raw.suite, command);
@@ -272,6 +305,9 @@ function normalizeSuiteCommand(raw, command) {
   const distillDatasetId = asOptionalString(raw.distillDatasetId, 'distillDatasetId');
   const distillDatasetPath = asOptionalString(raw.distillDatasetPath, 'distillDatasetPath');
   const distillLanguagePair = asOptionalString(raw.distillLanguagePair, 'distillLanguagePair');
+  const distillShardIndex = asOptionalPositiveInteger(raw.distillShardIndex, 'distillShardIndex');
+  const distillShardCount = asOptionalPositiveInteger(raw.distillShardCount, 'distillShardCount');
+  const resumeFrom = asOptionalString(raw.resumeFrom, 'resumeFrom');
   const trainingSchemaVersionInput = asOptionalPositiveInteger(
     raw.trainingSchemaVersion,
     'trainingSchemaVersion'
@@ -295,6 +331,9 @@ function normalizeSuiteCommand(raw, command) {
     || distillDatasetId
     || distillDatasetPath
     || distillLanguagePair
+    || distillShardIndex
+    || distillShardCount
+    || resumeFrom
     || trainingSchemaVersionInput
     || trainingBenchSteps
   )) {
@@ -309,6 +348,13 @@ function normalizeSuiteCommand(raw, command) {
     throw new Error(
       `tooling command: trainingSchemaVersion must be ${TRAINING_COMMAND_SCHEMA_VERSION}.`
     );
+  }
+  if (
+    distillShardIndex != null
+    && distillShardCount != null
+    && distillShardIndex > distillShardCount
+  ) {
+    throw new Error('tooling command: distillShardIndex must be <= distillShardCount.');
   }
 
   const requiresModel = suite !== 'kernels' && !isTrainingBenchWorkload;
@@ -349,6 +395,9 @@ function normalizeSuiteCommand(raw, command) {
     distillDatasetId,
     distillDatasetPath,
     distillLanguagePair,
+    distillShardIndex,
+    distillShardCount,
+    resumeFrom,
     trainingSchemaVersion,
     trainingBenchSteps,
     workloadType,

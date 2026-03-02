@@ -1,5 +1,14 @@
 import { sha256Hex } from '../utils/sha256.js';
 
+function isNodeRuntime() {
+  return typeof process !== 'undefined' && !!process.versions?.node;
+}
+
+function looksLikePath(value) {
+  const normalized = String(value || '').trim();
+  return normalized.includes('/') || normalized.includes('\\') || normalized.endsWith('.json');
+}
+
 function openCheckpointDB(options = {}) {
   const {
     dbName = 'doppler-training',
@@ -20,6 +29,47 @@ function openCheckpointDB(options = {}) {
     request.onerror = () => reject(request.error);
     request.onsuccess = () => resolve({ db: request.result, storeName });
   });
+}
+
+async function resolveNodeCheckpointPath(key, options = {}) {
+  const [{ resolve, join, dirname }, { mkdir }] = await Promise.all([
+    import('node:path'),
+    import('node:fs/promises'),
+  ]);
+  const configuredRoot = typeof options.nodeDir === 'string' && options.nodeDir.trim()
+    ? options.nodeDir.trim()
+    : '.doppler-checkpoints';
+  if (looksLikePath(key)) {
+    const direct = resolve(String(key));
+    await mkdir(dirname(direct), { recursive: true });
+    return direct;
+  }
+  const safeKey = String(key).replace(/[^a-zA-Z0-9._-]/g, '_');
+  const root = resolve(configuredRoot);
+  await mkdir(root, { recursive: true });
+  return join(root, `${safeKey}.json`);
+}
+
+async function readNodeCheckpointRecord(filePath) {
+  const { readFile } = await import('node:fs/promises');
+  try {
+    const raw = await readFile(filePath, 'utf8');
+    return JSON.parse(raw);
+  } catch (error) {
+    if (error?.code === 'ENOENT') {
+      return null;
+    }
+    throw error;
+  }
+}
+
+async function writeNodeCheckpointRecord(filePath, data) {
+  const [{ writeFile, mkdir }, { dirname }] = await Promise.all([
+    import('node:fs/promises'),
+    import('node:path'),
+  ]);
+  await mkdir(dirname(filePath), { recursive: true });
+  await writeFile(filePath, `${JSON.stringify(data, null, 2)}\n`, 'utf8');
 }
 
 function readCheckpointRecord(db, storeName, key) {
@@ -78,8 +128,12 @@ function buildCheckpointHashPayload(data) {
 }
 
 export async function saveCheckpoint(key, payload, options = {}) {
-  const { db, storeName } = await openCheckpointDB(options);
-  const previousData = await readCheckpointRecord(db, storeName, key);
+  const useNodeStore = isNodeRuntime() && typeof indexedDB === 'undefined';
+  const nodePath = useNodeStore ? await resolveNodeCheckpointPath(key, options) : null;
+  const browserStore = useNodeStore ? null : await openCheckpointDB(options);
+  const previousData = useNodeStore
+    ? await readNodeCheckpointRecord(nodePath)
+    : await readCheckpointRecord(browserStore.db, browserStore.storeName, key);
   const previousMetadata = previousData?.metadata || {};
   const previousLineage = previousMetadata.lineage || {};
   const previousCheckpointHash = options.priorCheckpointHash
@@ -112,18 +166,29 @@ export async function saveCheckpoint(key, payload, options = {}) {
     stableJson(buildCheckpointHashPayload(data))
   );
 
+  if (useNodeStore) {
+    await writeNodeCheckpointRecord(nodePath, data);
+    return;
+  }
+
   return new Promise((resolve, reject) => {
-    const tx = db.transaction(storeName, 'readwrite');
+    const tx = browserStore.db.transaction(browserStore.storeName, 'readwrite');
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
-    const store = tx.objectStore(storeName);
+    const store = tx.objectStore(browserStore.storeName);
     store.put(data, key);
   });
 }
 
 export async function loadCheckpoint(key, options = {}) {
-  const { db, storeName } = await openCheckpointDB(options);
-  const data = await readCheckpointRecord(db, storeName, key);
+  const useNodeStore = isNodeRuntime() && typeof indexedDB === 'undefined';
+  const nodePath = useNodeStore ? await resolveNodeCheckpointPath(key, options) : null;
+  const data = useNodeStore
+    ? await readNodeCheckpointRecord(nodePath)
+    : await (async () => {
+      const { db, storeName } = await openCheckpointDB(options);
+      return readCheckpointRecord(db, storeName, key);
+    })();
 
   if (!data || !data.metadata || !options.expectedMetadata) {
     return data;

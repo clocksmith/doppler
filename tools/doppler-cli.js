@@ -2,7 +2,7 @@
 
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { runNodeCommand } from '../src/tooling/node-command-runner.js';
 import { runBrowserCommandInNode } from '../src/tooling/node-browser-command-runner.js';
 import { TOOLING_COMMANDS } from '../src/tooling/command-api.js';
@@ -49,9 +49,9 @@ function usage() {
   return [
     'Usage:',
     '  doppler convert <inputPath> --config <path.json> [--output-dir <path>] [--surface auto|node]',
-    '  doppler debug --model-id <id> [--model-url <url>] [--runtime-preset <id>] [--runtime-config-url <url>] [--runtime-config-json <json>] [--surface auto|node|browser]',
-    '  doppler bench [--model-id <id>] [--model-url <url>] [--runtime-preset <id>] [--runtime-config-url <url>] [--runtime-config-json <json>] [--surface auto|node|browser]',
-    '  doppler test-model --suite <kernels|inference|training|diffusion|energy> [--model-id <id>] [--model-url <url>] [--runtime-preset <id>] [--runtime-config-url <url>] [--runtime-config-json <json>] [--surface auto|node|browser]',
+    '  doppler debug --model-id <id> [--model-url <url>] [--runtime-config <path|url|json>] [--surface auto|node|browser]',
+    '  doppler bench [--model-id <id>] [--model-url <url>] [--runtime-config <path|url|json>] [--surface auto|node|browser]',
+    '  doppler test-model --suite <kernels|inference|training|diffusion|energy> [--model-id <id>] [--model-url <url>] [--runtime-config <path|url|json>] [--surface auto|node|browser]',
     '',
     'Flags:',
     '  --surface <auto|node|browser>   Execution surface (default: auto)',
@@ -72,6 +72,11 @@ function usage() {
     '  --distill-dataset-id <id>       Distill dataset identifier (e.g. en-es-large)',
     '  --distill-dataset-path <path>   Distill dataset JSONL path (node surface)',
     '  --distill-language-pair <pair>  Distill language pair label (e.g. en-es)',
+    '  --distill-shard-index <n>       1-based shard index for global progress reporting',
+    '  --distill-shard-count <n>       Total shard count for global progress reporting',
+    '  --resume-from <ref>             Resume reference (checkpoint/manifest) for timeline lineage',
+    '  --runtime-config <value>        Unified runtime config input: JSON object, URL, or relative/absolute file path',
+    '                                  (cannot be combined with --runtime-preset/--runtime-config-url/--runtime-config-json)',
     '  UL claim boundary: UL-inspired practical two-stage pipeline; not paper-equivalent SOTA.',
     '  Distill claim boundary: practical stage_a/stage_b distill workflow; not paper-equivalent SOTA.',
     '  --json                          Print machine-readable result JSON',
@@ -98,7 +103,11 @@ function usage() {
     '  --output-dir <path>             Override output directory for convert',
     '  --workers <n>                   Converter worker count (default: 8)',
     '  --worker-policy <cap|error>     Handle workers > available CPU cores',
-    '  --converter-config <path>       Deprecated alias for --config (convert only)',
+    '  --row-chunk-rows <n>            Row chunk size for 2D tensor worker jobs',
+    '  --row-chunk-min-tensor-bytes <n>  Minimum tensor size before row chunking',
+    '  --max-in-flight-jobs <n>        Max concurrent worker jobs for row chunks',
+    '  --use-gpu-cast <true|false>     Enable WebGPU cast path for large cast-heavy tensors',
+    '  --gpu-cast-min-tensor-bytes <n>  Minimum tensor size before GPU cast is considered',
     '',
     'Bench Flags:',
     '  --save                          Save bench result JSON to disk',
@@ -212,6 +221,62 @@ function parseRuntimeConfigJson(value) {
   return parseJsonObjectFlag(value, '--runtime-config-json');
 }
 
+function isAbsoluteUrl(value) {
+  const normalized = asStringOrNull(value);
+  if (normalized === null) return false;
+  try {
+    const parsed = new URL(normalized);
+    return typeof parsed.protocol === 'string' && parsed.protocol.length > 0;
+  } catch {
+    return false;
+  }
+}
+
+function parseUnifiedRuntimeConfig(value) {
+  const normalized = asStringOrNull(value);
+  if (normalized === null) return null;
+  if (normalized.startsWith('{')) {
+    return {
+      runtimePreset: null,
+      runtimeConfigUrl: null,
+      runtimeConfig: parseJsonObjectFlag(normalized, '--runtime-config'),
+    };
+  }
+  if (isAbsoluteUrl(normalized)) {
+    return {
+      runtimePreset: null,
+      runtimeConfigUrl: normalized,
+      runtimeConfig: null,
+    };
+  }
+  return {
+    runtimePreset: null,
+    runtimeConfigUrl: pathToFileURL(path.resolve(normalized)).href,
+    runtimeConfig: null,
+  };
+}
+
+function resolveRuntimeConfigFlags(parsed) {
+  const unifiedRaw = asStringOrNull(parsed.flags['runtime-config']);
+  const legacyPreset = asStringOrNull(parsed.flags['runtime-preset']);
+  const legacyUrl = asStringOrNull(parsed.flags['runtime-config-url']);
+  const hasLegacyJson = asStringOrNull(parsed.flags['runtime-config-json']) !== null;
+  if (unifiedRaw !== null && (legacyPreset !== null || legacyUrl !== null || hasLegacyJson)) {
+    throw new Error(
+      '--runtime-config cannot be combined with --runtime-preset, --runtime-config-url, or --runtime-config-json.'
+    );
+  }
+  const unified = parseUnifiedRuntimeConfig(unifiedRaw);
+  if (unified) {
+    return unified;
+  }
+  return {
+    runtimePreset: legacyPreset,
+    runtimeConfigUrl: legacyUrl,
+    runtimeConfig: parseRuntimeConfigJson(parsed.flags['runtime-config-json']),
+  };
+}
+
 function parseTrainingConfigJson(value) {
   return parseJsonObjectFlag(value, '--training-config-json');
 }
@@ -239,16 +304,10 @@ async function readJsonObjectFile(filePath, label) {
 function resolveConvertConfigFlag(parsed) {
   const config = asStringOrNull(parsed.flags.config);
   const legacy = asStringOrNull(parsed.flags['converter-config']);
-  if (config && legacy) {
-    throw new Error('convert accepts one config flag. Use --config only.');
+  if (legacy !== null) {
+    throw new Error('--converter-config has been removed. Use --config <path.json>.');
   }
-  if (config) {
-    return { configPath: String(config), usedLegacyAlias: false };
-  }
-  if (legacy) {
-    return { configPath: String(legacy), usedLegacyAlias: true };
-  }
-  return { configPath: null, usedLegacyAlias: false };
+  return config ? String(config) : null;
 }
 
 function parseBooleanFlag(value, label) {
@@ -451,6 +510,7 @@ async function buildRequest(parsed, options = {}, policy = DEFAULT_CLI_POLICY) {
   }
   const jsonOutput = options.jsonOutput === true;
   const policyDefaults = policy && policy.defaults ? policy.defaults : DEFAULT_CLI_POLICY.defaults;
+  const runtimeConfigFlags = resolveRuntimeConfigFlags(parsed);
 
   const common = {
     command,
@@ -477,12 +537,21 @@ async function buildRequest(parsed, options = {}, policy = DEFAULT_CLI_POLICY) {
     distillDatasetId: asStringOrNull(parsed.flags['distill-dataset-id']),
     distillDatasetPath: asStringOrNull(parsed.flags['distill-dataset-path']),
     distillLanguagePair: asStringOrNull(parsed.flags['distill-language-pair']),
+    distillShardIndex: parsePositiveIntegerFlag(
+      parsed.flags['distill-shard-index'],
+      '--distill-shard-index'
+    ),
+    distillShardCount: parsePositiveIntegerFlag(
+      parsed.flags['distill-shard-count'],
+      '--distill-shard-count'
+    ),
+    resumeFrom: asStringOrNull(parsed.flags['resume-from']),
     workloadType: asStringOrNull(parsed.flags['workload-type']),
     modelUrl: asStringOrNull(parsed.flags['model-url']),
     cacheMode: parseCacheMode(parsed.flags['cache-mode'], '--cache-mode', policyDefaults.cacheMode),
-    runtimePreset: asStringOrNull(parsed.flags['runtime-preset']),
-    runtimeConfigUrl: asStringOrNull(parsed.flags['runtime-config-url']),
-    runtimeConfig: parseRuntimeConfigJson(parsed.flags['runtime-config-json']),
+    runtimePreset: runtimeConfigFlags.runtimePreset,
+    runtimeConfigUrl: runtimeConfigFlags.runtimeConfigUrl,
+    runtimeConfig: runtimeConfigFlags.runtimeConfig,
     loadMode: parseLoadMode(parsed.flags['load-mode'], '--load-mode', policyDefaults.loadMode),
     captureOutput: parsed.flags['capture-output'] === true,
     keepPipeline: parsed.flags['keep-pipeline'] === true,
@@ -502,20 +571,47 @@ async function buildRequest(parsed, options = {}, policy = DEFAULT_CLI_POLICY) {
     }
 
     const outputDir = asStringOrNull(parsed.flags['output-dir']);
-    const { configPath, usedLegacyAlias } = resolveConvertConfigFlag(parsed);
+    const configPath = resolveConvertConfigFlag(parsed);
     if (!configPath) {
       throw new Error('convert requires --config <path.json>.');
-    }
-    if (usedLegacyAlias && !jsonOutput) {
-      console.error('[warn] --converter-config is deprecated; use --config.');
     }
 
     const workers = parsePositiveIntegerFlag(parsed.flags.workers, '--workers');
     const workerCountPolicy = parseWorkerPolicy(parsed.flags['worker-policy'], '--worker-policy');
-    const execution = (workers !== null || workerCountPolicy !== null)
+    const rowChunkRows = parsePositiveIntegerFlag(parsed.flags['row-chunk-rows'], '--row-chunk-rows');
+    const rowChunkMinTensorBytes = parsePositiveIntegerFlag(
+      parsed.flags['row-chunk-min-tensor-bytes'],
+      '--row-chunk-min-tensor-bytes'
+    );
+    const maxInFlightJobs = parsePositiveIntegerFlag(
+      parsed.flags['max-in-flight-jobs'],
+      '--max-in-flight-jobs'
+    );
+    const useGpuCast = parseBooleanFlag(parsed.flags['use-gpu-cast'], '--use-gpu-cast');
+    const gpuCastMinTensorBytes = parsePositiveIntegerFlag(
+      parsed.flags['gpu-cast-min-tensor-bytes'],
+      '--gpu-cast-min-tensor-bytes'
+    );
+    if (gpuCastMinTensorBytes !== null && useGpuCast !== true) {
+      throw new Error('--gpu-cast-min-tensor-bytes requires --use-gpu-cast true.');
+    }
+    const execution = (
+      workers !== null
+      || workerCountPolicy !== null
+      || rowChunkRows !== null
+      || rowChunkMinTensorBytes !== null
+      || maxInFlightJobs !== null
+      || useGpuCast !== null
+      || gpuCastMinTensorBytes !== null
+    )
       ? {
         ...(workers !== null ? { workers } : {}),
         ...(workerCountPolicy !== null ? { workerCountPolicy } : {}),
+        ...(rowChunkRows !== null ? { rowChunkRows } : {}),
+        ...(rowChunkMinTensorBytes !== null ? { rowChunkMinTensorBytes } : {}),
+        ...(maxInFlightJobs !== null ? { maxInFlightJobs } : {}),
+        ...(useGpuCast !== null ? { useGpuCast } : {}),
+        ...(gpuCastMinTensorBytes !== null ? { gpuCastMinTensorBytes } : {}),
       }
       : null;
 

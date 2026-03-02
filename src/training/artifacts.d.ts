@@ -21,6 +21,7 @@ export interface DistillTrainingContract {
   datasetId: string | null;
   datasetPath: string | null;
   languagePair: string | null;
+  allowHintFallback: boolean;
 }
 
 export interface UlArtifactFinalizeResult {

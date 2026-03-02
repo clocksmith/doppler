@@ -12,6 +12,8 @@ export interface ToolingConvertExecutionPayload {
   maxInFlightJobs?: number | null;
   rowChunkRows?: number | null;
   rowChunkMinTensorBytes?: number | null;
+  useGpuCast?: boolean | null;
+  gpuCastMinTensorBytes?: number | null;
   [key: string]: unknown;
 }
 
@@ -39,6 +41,9 @@ export interface ToolingCommandRequestInput {
   distillDatasetId?: string;
   distillDatasetPath?: string;
   distillLanguagePair?: string;
+  distillShardIndex?: number;
+  distillShardCount?: number;
+  resumeFrom?: string;
   trainingSchemaVersion?: number;
   trainingBenchSteps?: number;
   workloadType?: string;
@@ -77,6 +82,9 @@ export interface ToolingCommandRequest {
   distillDatasetId: string | null;
   distillDatasetPath: string | null;
   distillLanguagePair: string | null;
+  distillShardIndex: number | null;
+  distillShardCount: number | null;
+  resumeFrom: string | null;
   trainingSchemaVersion: number | null;
   trainingBenchSteps: number | null;
   workloadType: string | null;

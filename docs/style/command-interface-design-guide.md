@@ -114,13 +114,14 @@ Commands are rejected when:
 
 - CLI supports `--surface auto|node|browser`.
 - `--surface auto` is explicit transport resolution for harnessed commands: try Node first, then browser relay only when Node WebGPU is unavailable. Command intent and contract stay unchanged.
-- Exception: training flows (`suite="training"` or `bench + workloadType="training"`) must not auto-downgrade from node to browser; this is fail-closed.
+- Exception: training flows (`suite="training"` or `bench + workloadType="training"`) must not auto-downgrade from node to browser; this is a fail-closed transport rule that preserves command semantics.
 - Node runner may bootstrap WebGPU from available runtime support before failing.
 - Browser relay executes `runBrowserCommand()` in a browser via `src/tooling/command-runner.html`
   (default headless, with `--headed` for headed mode).
 - Browser relay can attach to an existing server with `--browser-base-url`.
 - `convert` is Node-only in CLI (`--surface browser` is rejected).
 - `keepPipeline=true` is rejected on browser relay because pipeline objects are not serializable across process boundaries.
+- `convert` execution tuning flags (`--workers`, `--worker-policy`, `--row-chunk-rows`, `--row-chunk-min-tensor-bytes`, `--max-in-flight-jobs`) map to `convertPayload.execution` and must not change command semantics.
 
 ---
 

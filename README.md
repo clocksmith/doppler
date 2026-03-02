@@ -64,16 +64,43 @@ Architecture-specific patterns like sliding/full attention windows are runtime c
 
 See [`docs/architecture.md`](docs/architecture.md) for full subsystem and boundary details.
 
-## Current capabilities
+## Capability checklist
 
-- Unified browser/CLI command surface with reproducible cross-engine benchmark tooling.
-- Manifest-driven model loading with explicit runtime overrides and kernel-path tracing.
-- Local intent stack support (embedding retrieval + compact generative control outputs).
-- Available now: training verify/calibrate command paths with UL-inspired
-  practical two-stage training-validation artifacts (not paper-equivalent
-  SOTA).
-- In development: broader backward/training primitives, diffusion sampling, and
-  energy-based inference.
+### Execution engine
+
+- Local WebGPU inference runtime for browser and Node.
+- Loader and memory orchestration for manifests/shards, range/stream reads, and GPU upload paths.
+- Kernel execution layer with explicit kernel-path selection and traceable runtime behavior.
+
+### Model I/O and preparation
+
+- Model conversion from SafeTensors/GGUF to RDRR (`convert`, Node surface).
+- Manifest-first loading contract with storage-backed and direct-source runtime paths.
+- `loadMode=memory` supports Node-only local filesystem source-runtime inputs (`.gguf` or SafeTensors directory), not remote URLs.
+
+### Operator tooling
+
+- Unified command surface: `convert`, `debug`, `bench`, `test-model`.
+- Supported suites: `kernels`, `inference`, `training`, `bench`, `debug`, `diffusion`, `energy`.
+- `--surface auto` behavior: `convert` is forced to Node; other commands try Node first and only fall back to browser when configured Node-WebGPU fallback signatures match.
+- Training flows block auto-downgrade and fail fast with explicit guidance.
+- Reproducible benchmark/reporting outputs via `--json`, `--capture-output`, and `bench --save --save-dir` (artifacts in `benchmarks/vendors/results/`).
+
+### Training and validation plane
+
+- Practical verify/calibrate workflows for training and distill stages.
+- Contract-driven schema/field validation and fail-closed command behavior.
+- Hash-linked artifact lineage and provenance checks for claimable outputs.
+
+### Details in docs
+
+- Setup and day-1 workflows: [`docs/setup-instructions.md`](docs/setup-instructions.md)
+- Architecture and boundaries: [`docs/architecture.md`](docs/architecture.md)
+- RDRR and direct-source contract details: [`docs/formats.md`](docs/formats.md)
+- Command contract/parity rules: [`src/tooling/command-api.js`](src/tooling/command-api.js)
+- Benchmark policy and harness registry: [`benchmarks/vendors/README.md`](benchmarks/vendors/README.md)
+- Testing workflows: [`docs/testing.md`](docs/testing.md)
+- Training docs: [`docs/training-overview.md`](docs/training-overview.md), [`docs/training-artifact-policy.md`](docs/training-artifact-policy.md), [`docs/training-migrations.md`](docs/training-migrations.md)
 
 ## Performance
 
