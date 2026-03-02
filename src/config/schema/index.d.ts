@@ -569,14 +569,30 @@ export {
   type TrainingLossScalingConfigSchema,
   type TrainingPrecisionConfigSchema,
   type TrainingAttentionConfigSchema,
+  type TrainingTelemetryConfigSchema,
   type TrainingSettingsSchema,
   DEFAULT_TRAINING_OPTIMIZER_CONFIG,
   DEFAULT_TRAINING_GRADIENT_CONFIG,
   DEFAULT_TRAINING_LOSS_SCALING_CONFIG,
   DEFAULT_TRAINING_PRECISION_CONFIG,
   DEFAULT_TRAINING_ATTENTION_CONFIG,
+  DEFAULT_TRAINING_TELEMETRY_CONFIG,
   DEFAULT_TRAINING_SETTINGS,
 } from './training.schema.js';
+
+// =============================================================================
+// Distill Training Schema
+// =============================================================================
+export {
+  type DistillTrainingStage,
+  type DistillFreezeConfigSchema,
+  type DistillTrainingConfigSchema,
+  DISTILL_STAGE_VALUES,
+  DISTILL_TRAINING_SCHEMA_VERSION,
+  DEFAULT_DISTILL_FREEZE_GROUPS,
+  DEFAULT_DISTILL_TRAINING_CONFIG,
+  validateDistillTrainingConfig,
+} from './distill-training.schema.js';
 
 // =============================================================================
 // UL Training Schema

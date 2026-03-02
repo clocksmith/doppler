@@ -19,7 +19,7 @@ await assertRejectsOnBothSurfaces({
   suite: 'training',
   modelId: null,
   trainingStage: 'stage3_unknown',
-}, /trainingStage must be one of stage1_joint, stage2_base/);
+}, /trainingStage must be one of stage1_joint, stage2_base, stage_a, stage_b/);
 
 await assertRejectsOnBothSurfaces({
   command: 'test-model',

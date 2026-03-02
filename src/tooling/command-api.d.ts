@@ -4,7 +4,7 @@ export type ToolingCommand = 'convert' | 'debug' | 'bench' | 'test-model';
 export type ToolingSurface = 'browser' | 'node';
 export type ToolingSuite = 'kernels' | 'inference' | 'training' | 'bench' | 'debug' | 'diffusion' | 'energy';
 export type ToolingIntent = 'verify' | 'investigate' | 'calibrate' | null;
-export type ToolingTrainingStage = 'stage1_joint' | 'stage2_base';
+export type ToolingTrainingStage = 'stage1_joint' | 'stage2_base' | 'stage_a' | 'stage_b';
 
 export interface ToolingConvertExecutionPayload {
   workers?: number | null;
@@ -31,6 +31,13 @@ export interface ToolingCommandRequestInput {
   stage1Artifact?: string;
   stage1ArtifactHash?: string;
   ulArtifactDir?: string;
+  stageAArtifact?: string;
+  stageAArtifactHash?: string;
+  distillArtifactDir?: string;
+  teacherModelId?: string;
+  studentModelId?: string;
+  distillDatasetId?: string;
+  distillLanguagePair?: string;
   trainingSchemaVersion?: number;
   trainingBenchSteps?: number;
   workloadType?: string;
@@ -61,6 +68,13 @@ export interface ToolingCommandRequest {
   stage1Artifact: string | null;
   stage1ArtifactHash: string | null;
   ulArtifactDir: string | null;
+  stageAArtifact: string | null;
+  stageAArtifactHash: string | null;
+  distillArtifactDir: string | null;
+  teacherModelId: string | null;
+  studentModelId: string | null;
+  distillDatasetId: string | null;
+  distillLanguagePair: string | null;
   trainingSchemaVersion: number | null;
   trainingBenchSteps: number | null;
   workloadType: string | null;

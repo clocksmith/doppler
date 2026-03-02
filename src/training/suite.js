@@ -246,14 +246,24 @@ async function runTrainStepMetricsTest() {
 }
 
 const UL_STAGE_SET = Object.freeze(['stage1_joint', 'stage2_base']);
+const DISTILL_STAGE_SET = Object.freeze(['stage_a', 'stage_b']);
+const TRAINING_STAGE_SET = Object.freeze([...UL_STAGE_SET, ...DISTILL_STAGE_SET]);
 
 function normalizeTrainingStage(stage) {
   const normalized = String(stage || '').trim();
   if (!normalized) return null;
-  if (!UL_STAGE_SET.includes(normalized)) {
-    throw new Error(`Unknown training stage "${normalized}". Expected one of: ${UL_STAGE_SET.join(', ')}.`);
+  if (!TRAINING_STAGE_SET.includes(normalized)) {
+    throw new Error(`Unknown training stage "${normalized}". Expected one of: ${TRAINING_STAGE_SET.join(', ')}.`);
   }
   return normalized;
+}
+
+function isUlStage(stage) {
+  return UL_STAGE_SET.includes(String(stage || ''));
+}
+
+function isDistillStage(stage) {
+  return DISTILL_STAGE_SET.includes(String(stage || ''));
 }
 
 function normalizeTrainingConfigOverride(value) {
@@ -267,11 +277,11 @@ function normalizeTrainingConfigOverride(value) {
 function buildUlTrainingOverrides(options = {}) {
   const trainingConfig = normalizeTrainingConfigOverride(options.trainingConfig);
   const explicitStage = normalizeTrainingStage(options.trainingStage || trainingConfig?.ul?.stage);
-  const ulEnabled = explicitStage !== null || trainingConfig?.ul?.enabled === true;
+  const ulEnabled = isUlStage(explicitStage) || trainingConfig?.ul?.enabled === true;
   if (!ulEnabled) {
     return trainingConfig || null;
   }
-  const stage = explicitStage || 'stage1_joint';
+  const stage = isUlStage(explicitStage) ? explicitStage : 'stage1_joint';
   const ulOverride = {
     ...(trainingConfig?.ul || {}),
     enabled: true,
@@ -293,6 +303,42 @@ function buildUlTrainingOverrides(options = {}) {
   return {
     ...(trainingConfig || {}),
     ul: ulOverride,
+  };
+}
+
+function buildDistillTrainingOverrides(options = {}) {
+  const trainingConfig = normalizeTrainingConfigOverride(options.trainingConfig);
+  const explicitStage = normalizeTrainingStage(options.trainingStage || trainingConfig?.distill?.stage);
+  const distillEnabled = isDistillStage(explicitStage) || trainingConfig?.distill?.enabled === true;
+  if (!distillEnabled) {
+    return trainingConfig || null;
+  }
+  const stage = isDistillStage(explicitStage) ? explicitStage : 'stage_a';
+  const distillOverride = {
+    ...(trainingConfig?.distill || {}),
+    enabled: true,
+    stage,
+    teacherModelId: options.teacherModelId ?? trainingConfig?.distill?.teacherModelId ?? null,
+    studentModelId: options.studentModelId ?? trainingConfig?.distill?.studentModelId ?? null,
+    datasetId: options.distillDatasetId ?? trainingConfig?.distill?.datasetId ?? null,
+    languagePair: options.distillLanguagePair ?? trainingConfig?.distill?.languagePair ?? null,
+    stageAArtifact: options.stageAArtifact ?? trainingConfig?.distill?.stageAArtifact ?? null,
+    stageAArtifactHash: options.stageAArtifactHash ?? trainingConfig?.distill?.stageAArtifactHash ?? null,
+    artifactDir: options.distillArtifactDir ?? trainingConfig?.distill?.artifactDir ?? 'bench/out/distill',
+  };
+  if (stage === 'stage_b') {
+    distillOverride.freeze = {
+      encoder: true,
+      prior: true,
+      decoder: true,
+      base: false,
+      lora: false,
+      ...(trainingConfig?.distill?.freeze || {}),
+    };
+  }
+  return {
+    ...(trainingConfig || {}),
+    distill: distillOverride,
   };
 }
 
@@ -446,6 +492,122 @@ async function runUlStage2Test(options = {}) {
   });
 }
 
+async function runDistillStageTest(stage, options = {}) {
+  const distillTraining = buildDistillTrainingOverrides({
+    ...options,
+    trainingStage: stage,
+  });
+  const fixture = createToyModelFixture({
+    training: distillTraining || undefined,
+  });
+
+  try {
+    const runner = new TrainingRunner(fixture.config, {
+      optimizer: new AdamOptimizer(fixture.config),
+      crossEntropyLoss,
+      clipGradients,
+    });
+    const dataset = {
+      async *batches() {
+        for (let i = 0; i < 2; i += 1) {
+          yield fixture.batch;
+        }
+      },
+    };
+    const metrics = await runner.run(fixture.model, dataset, {
+      epochs: 1,
+      batchSize: 1,
+      shuffle: false,
+      maxSteps: 2,
+      modelId: options.modelId || 'training',
+      modelUrl: options.modelUrl || null,
+      timestamp: options.timestamp || null,
+      distillArtifactDir: options.distillArtifactDir || null,
+      stageAArtifact: options.stageAArtifact || null,
+      stageAArtifactHash: options.stageAArtifactHash || null,
+      teacherModelId: options.teacherModelId || null,
+      studentModelId: options.studentModelId || null,
+      distillDatasetId: options.distillDatasetId || null,
+      distillLanguagePair: options.distillLanguagePair || null,
+    });
+    if (!Array.isArray(metrics) || metrics.length === 0) {
+      return { passed: false, error: `Distill ${stage} produced no metrics.` };
+    }
+    const requiredFields = stage === 'stage_a'
+      ? ['loss_kd', 'distill_stage']
+      : ['loss_triplet', 'distill_stage', 'distill_triplet_margin'];
+    for (const field of requiredFields) {
+      if (!(field in metrics[0])) {
+        return { passed: false, error: `Distill ${stage} missing metric field "${field}".` };
+      }
+    }
+    const artifact = runner.lastArtifact;
+    if (!artifact || !artifact.manifestPath) {
+      return { passed: false, error: `Distill ${stage} did not produce artifacts.` };
+    }
+    return {
+      passed: true,
+      artifact,
+      metrics: {
+        stage,
+        steps: metrics.length,
+        manifestPath: artifact.manifestPath,
+        manifestHash: artifact.manifestHash,
+        manifestContentHash: artifact.manifestContentHash,
+        manifestFileHash: artifact.manifestFileHash ?? null,
+        distillResolvedConfig: {
+          enabled: fixture.config.training?.distill?.enabled === true,
+          stage: fixture.config.training?.distill?.stage ?? null,
+          teacherModelId: fixture.config.training?.distill?.teacherModelId ?? null,
+          studentModelId: fixture.config.training?.distill?.studentModelId ?? null,
+          datasetId: fixture.config.training?.distill?.datasetId ?? null,
+          languagePair: fixture.config.training?.distill?.languagePair ?? null,
+          temperature: fixture.config.training?.distill?.temperature ?? null,
+          alphaKd: fixture.config.training?.distill?.alphaKd ?? null,
+          alphaCe: fixture.config.training?.distill?.alphaCe ?? null,
+          tripletMargin: fixture.config.training?.distill?.tripletMargin ?? null,
+          freeze: fixture.config.training?.distill?.freeze ?? null,
+        },
+      },
+    };
+  } finally {
+    fixture.cleanup();
+  }
+}
+
+async function runDistillStageATest(options = {}) {
+  return runDistillStageTest('stage_a', options);
+}
+
+async function runDistillStageBTest(options = {}) {
+  const explicitStageAArtifact = String(options.stageAArtifact || '').trim();
+  let stageAArtifact = explicitStageAArtifact || null;
+  let stageAArtifactHash = String(options.stageAArtifactHash || '').trim() || null;
+
+  if (!stageAArtifact) {
+    const stageA = await runDistillStageATest({
+      ...options,
+      trainingStage: 'stage_a',
+    });
+    if (!stageA?.passed || !stageA?.artifact?.manifestPath) {
+      return { passed: false, error: 'Distill stage_b preflight failed to generate stage_a artifact.' };
+    }
+    stageAArtifact = stageA.artifact.manifestPath;
+    stageAArtifactHash = stageA.artifact.manifestHash;
+    const nodeHash = await computeNodeFileHash(stageAArtifact);
+    if (nodeHash?.hash) {
+      stageAArtifactHash = nodeHash.hash;
+      stageAArtifact = nodeHash.absolutePath;
+    }
+  }
+
+  return runDistillStageTest('stage_b', {
+    ...options,
+    stageAArtifact,
+    stageAArtifactHash,
+  });
+}
+
 function createLegacySkippedTest(name) {
   return async () => ({
     passed: true,
@@ -459,6 +621,8 @@ const CORE_TESTS = Object.freeze({
   'train-step-metrics': runTrainStepMetricsTest,
   'ul-stage1': runUlStage1Test,
   'ul-stage2': runUlStage2Test,
+  'distill-stage-a': runDistillStageATest,
+  'distill-stage-b': runDistillStageBTest,
 });
 
 const TESTS = Object.freeze({
@@ -493,7 +657,15 @@ export async function runTrainingSuite(options = {}) {
   const requestedStage = normalizeTrainingStage(options.trainingStage);
   const stageDefaultTests = requestedStage === 'stage1_joint'
     ? ['ul-stage1']
-    : (requestedStage === 'stage2_base' ? ['ul-stage2'] : null);
+    : (
+      requestedStage === 'stage2_base'
+        ? ['ul-stage2']
+        : (
+          requestedStage === 'stage_a'
+            ? ['distill-stage-a']
+            : (requestedStage === 'stage_b' ? ['distill-stage-b'] : null)
+        )
+    );
   const requestedTests = requestedTestsFromOptions || stageDefaultTests;
   if (requestedTests) {
     const unknownTests = requestedTests.filter((name) => !availableTests.includes(name));
@@ -574,6 +746,10 @@ function resolveBenchRunSettings(options = {}) {
 }
 
 function resolveTrainingOverrides(options = {}) {
+  const distillTraining = buildDistillTrainingOverrides(options);
+  if (distillTraining?.distill?.enabled) {
+    return distillTraining;
+  }
   const ulTraining = buildUlTrainingOverrides(options);
   if (ulTraining) {
     return ulTraining;
@@ -593,7 +769,8 @@ export async function runTrainingBenchSuite(options = {}) {
   const timedRunDurationsMs = [];
   const timedRunStepsPerSec = [];
   const timedStepDurationsMs = [];
-  const timedRunArtifacts = [];
+  const timedRunUlArtifacts = [];
+  const timedRunDistillArtifacts = [];
   const trainingMetricsReport = [];
   let completedTimedRuns = 0;
 
@@ -625,6 +802,13 @@ export async function runTrainingBenchSuite(options = {}) {
         modelUrl: options.modelUrl || null,
         timestamp: options.timestamp || null,
         ulArtifactDir: options.ulArtifactDir || null,
+        distillArtifactDir: options.distillArtifactDir || null,
+        stageAArtifact: options.stageAArtifact || null,
+        stageAArtifactHash: options.stageAArtifactHash || null,
+        teacherModelId: options.teacherModelId || null,
+        studentModelId: options.studentModelId || null,
+        distillDatasetId: options.distillDatasetId || null,
+        distillLanguagePair: options.distillLanguagePair || null,
       });
       const runDurationMs = Math.max(0, performance.now() - runStart);
       const isTimedRun = runIndex >= benchSettings.warmupRuns;
@@ -642,10 +826,15 @@ export async function runTrainingBenchSuite(options = {}) {
           trainingMetricsReport.push(stepEntry);
         }
         if (runner.lastArtifact && typeof runner.lastArtifact === 'object') {
-          timedRunArtifacts.push({
+          const artifactEntry = {
             runIndex: completedTimedRuns,
             ...runner.lastArtifact,
-          });
+          };
+          if (runner.lastArtifact.kind === 'distill') {
+            timedRunDistillArtifacts.push(artifactEntry);
+          } else {
+            timedRunUlArtifacts.push(artifactEntry);
+          }
         }
       }
     } finally {
@@ -680,7 +869,8 @@ export async function runTrainingBenchSuite(options = {}) {
       stepsPerRun: benchSettings.stepsPerRun,
       trainingSchemaVersion,
       trainingMetricsReport,
-      ulArtifacts: timedRunArtifacts,
+      ulArtifacts: timedRunUlArtifacts,
+      distillArtifacts: timedRunDistillArtifacts,
       latency: {
         runMs: runMsStats,
         stepMs: stepMsStats,

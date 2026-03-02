@@ -76,9 +76,19 @@ function verifyBuildProvenance(manifest) {
   assert(provenance && typeof provenance === 'object' && !Array.isArray(provenance), 'buildProvenance must be an object.');
   assertNonEmptyString(provenance.runtime, 'buildProvenance.runtime');
   assert(provenance.schemaVersions && typeof provenance.schemaVersions === 'object', 'buildProvenance.schemaVersions must be an object.');
-  assertFiniteNumber(provenance.schemaVersions.ulManifest, 'buildProvenance.schemaVersions.ulManifest');
-  assertFiniteNumber(provenance.schemaVersions.ulTraining, 'buildProvenance.schemaVersions.ulTraining');
   assertFiniteNumber(provenance.schemaVersions.trainingMetrics, 'buildProvenance.schemaVersions.trainingMetrics');
+  if (provenance.schemaVersions.ulManifest != null) {
+    assertFiniteNumber(provenance.schemaVersions.ulManifest, 'buildProvenance.schemaVersions.ulManifest');
+  }
+  if (provenance.schemaVersions.ulTraining != null) {
+    assertFiniteNumber(provenance.schemaVersions.ulTraining, 'buildProvenance.schemaVersions.ulTraining');
+  }
+  if (provenance.schemaVersions.distillManifest != null) {
+    assertFiniteNumber(provenance.schemaVersions.distillManifest, 'buildProvenance.schemaVersions.distillManifest');
+  }
+  if (provenance.schemaVersions.distillTraining != null) {
+    assertFiniteNumber(provenance.schemaVersions.distillTraining, 'buildProvenance.schemaVersions.distillTraining');
+  }
 }
 
 function verifyMetricsBlock(manifest) {
@@ -116,7 +126,31 @@ function verifyUlRuntimeDump(manifest) {
   assert(dump.noiseSchedule && typeof dump.noiseSchedule === 'object', 'runtimeDump.noiseSchedule must be an object.');
 }
 
-async function verifyManifestShape(manifest) {
+function isDistillManifest(manifest) {
+  const stage = String(manifest?.stage || '').trim();
+  if (stage === 'stage_a' || stage === 'stage_b') return true;
+  return typeof manifest?.distillContractHash === 'string';
+}
+
+function verifyDistillRuntimeDump(manifest) {
+  const dump = manifest.runtimeDump;
+  assert(dump && typeof dump === 'object' && !Array.isArray(dump), 'runtimeDump must be an object.');
+  assertNonEmptyString(dump.stage, 'runtimeDump.stage');
+  if (dump.temperature != null) {
+    assertFiniteNumber(dump.temperature, 'runtimeDump.temperature');
+  }
+  if (dump.alphaKd != null) {
+    assertFiniteNumber(dump.alphaKd, 'runtimeDump.alphaKd');
+  }
+  if (dump.alphaCe != null) {
+    assertFiniteNumber(dump.alphaCe, 'runtimeDump.alphaCe');
+  }
+  if (dump.tripletMargin != null) {
+    assertFiniteNumber(dump.tripletMargin, 'runtimeDump.tripletMargin');
+  }
+}
+
+async function verifyUlManifestShape(manifest) {
   assertFiniteNumber(manifest.schemaVersion, 'schemaVersion');
   assertNonEmptyString(manifest.stage, 'stage');
   assertNonEmptyString(manifest.configHash, 'configHash');
@@ -138,6 +172,37 @@ async function verifyManifestShape(manifest) {
     assertFiniteNumber(manifest.latentDataset.summary?.vectorCount, 'latentDataset.summary.vectorCount');
     assert(manifest.latentDataset.summary.vectorCount >= 1, 'latentDataset.summary.vectorCount must be >= 1.');
   }
+}
+
+async function verifyDistillManifestShape(manifest) {
+  assertFiniteNumber(manifest.schemaVersion, 'schemaVersion');
+  assertNonEmptyString(manifest.stage, 'stage');
+  assertNonEmptyString(manifest.configHash, 'configHash');
+  assertNonEmptyString(manifest.modelHash, 'modelHash');
+  assertNonEmptyString(manifest.datasetHash, 'datasetHash');
+  assertNonEmptyString(manifest.distillContractHash, 'distillContractHash');
+  assertNonEmptyString(manifest.manifestHash, 'manifestHash');
+  assertNonEmptyString(manifest.manifestContentHash, 'manifestContentHash');
+  assert(manifest.manifestHash === manifest.manifestContentHash, 'manifestHash and manifestContentHash must match.');
+  verifyBuildProvenance(manifest);
+  verifyDistillRuntimeDump(manifest);
+  verifyMetricsBlock(manifest);
+  await verifyManifestMetricsPayload(manifest);
+
+  if (manifest.stage === 'stage_b') {
+    assert(manifest.stageADependency && typeof manifest.stageADependency === 'object', 'stage_b stageADependency must exist.');
+    assertNonEmptyString(manifest.stageADependency.hash, 'stageADependency.hash');
+    assertNonEmptyString(manifest.lineage?.parentManifestHash, 'lineage.parentManifestHash');
+    assertNonEmptyString(manifest.lineage?.parentContractHash, 'lineage.parentContractHash');
+  }
+}
+
+async function verifyManifestShape(manifest) {
+  if (isDistillManifest(manifest)) {
+    await verifyDistillManifestShape(manifest);
+    return;
+  }
+  await verifyUlManifestShape(manifest);
 }
 
 function verifyCheckpointShape(checkpoint) {
@@ -166,9 +231,17 @@ async function verifyReportShape(report, options = {}) {
   if (Array.isArray(metricsArtifacts)) {
     artifactEntries.push(...metricsArtifacts);
   }
+  const metricsDistillArtifacts = report.metrics?.distillArtifacts;
+  if (Array.isArray(metricsDistillArtifacts)) {
+    artifactEntries.push(...metricsDistillArtifacts);
+  }
   const lineageArtifacts = report.lineage?.training?.ulArtifacts;
   if (Array.isArray(lineageArtifacts)) {
     artifactEntries.push(...lineageArtifacts);
+  }
+  const lineageDistillArtifacts = report.lineage?.training?.distillArtifacts;
+  if (Array.isArray(lineageDistillArtifacts)) {
+    artifactEntries.push(...lineageDistillArtifacts);
   }
 
   for (const artifact of artifactEntries) {

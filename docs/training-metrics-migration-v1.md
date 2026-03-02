@@ -34,10 +34,11 @@ This note documents the training metrics schema contract tightening.
 ## Behavioral Changes
 
 - `cross_entropy` entries must not set `ul_stage`.
+- `cross_entropy` entries must not set `distill_stage`.
 - `ul_stage1_joint` requires `ul_stage="stage1_joint"`.
 - `ul_stage2_base` requires `ul_stage="stage2_base"`.
-- `kd` requires `loss_kd`.
-- `triplet` requires `loss_triplet`.
+- `kd` requires `loss_kd` and `distill_stage="stage_a"`.
+- `triplet` requires `loss_triplet` and `distill_stage="stage_b"`.
 
 ## Compatibility Guidance
 

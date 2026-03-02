@@ -4,7 +4,7 @@ const TOOLING_COMMAND_SET = ['convert', 'debug', 'bench', 'test-model'];
 const TOOLING_SURFACE_SET = ['browser', 'node'];
 const TOOLING_SUITE_SET = ['kernels', 'inference', 'training', 'bench', 'debug', 'diffusion', 'energy'];
 const VERIFY_SUITES = ['kernels', 'inference', 'training', 'diffusion', 'energy'];
-const TRAINING_STAGE_SET = ['stage1_joint', 'stage2_base'];
+const TRAINING_STAGE_SET = ['stage1_joint', 'stage2_base', 'stage_a', 'stage_b'];
 const TRAINING_COMMAND_SCHEMA_VERSION = 1;
 
 export const TOOLING_COMMANDS = Object.freeze([...TOOLING_COMMAND_SET]);
@@ -217,6 +217,13 @@ function normalizeConvert(raw) {
     stage1Artifact: null,
     stage1ArtifactHash: null,
     ulArtifactDir: null,
+    stageAArtifact: null,
+    stageAArtifactHash: null,
+    distillArtifactDir: null,
+    teacherModelId: null,
+    studentModelId: null,
+    distillDatasetId: null,
+    distillLanguagePair: null,
     trainingSchemaVersion: null,
     trainingBenchSteps: null,
     workloadType: asOptionalString(raw.workloadType, 'workloadType'),
@@ -256,6 +263,13 @@ function normalizeSuiteCommand(raw, command) {
   const stage1Artifact = asOptionalString(raw.stage1Artifact, 'stage1Artifact');
   const stage1ArtifactHash = asOptionalString(raw.stage1ArtifactHash, 'stage1ArtifactHash');
   const ulArtifactDir = asOptionalString(raw.ulArtifactDir, 'ulArtifactDir');
+  const stageAArtifact = asOptionalString(raw.stageAArtifact, 'stageAArtifact');
+  const stageAArtifactHash = asOptionalString(raw.stageAArtifactHash, 'stageAArtifactHash');
+  const distillArtifactDir = asOptionalString(raw.distillArtifactDir, 'distillArtifactDir');
+  const teacherModelId = asOptionalString(raw.teacherModelId, 'teacherModelId');
+  const studentModelId = asOptionalString(raw.studentModelId, 'studentModelId');
+  const distillDatasetId = asOptionalString(raw.distillDatasetId, 'distillDatasetId');
+  const distillLanguagePair = asOptionalString(raw.distillLanguagePair, 'distillLanguagePair');
   const trainingSchemaVersionInput = asOptionalPositiveInteger(
     raw.trainingSchemaVersion,
     'trainingSchemaVersion'
@@ -271,6 +285,13 @@ function normalizeSuiteCommand(raw, command) {
     || stage1Artifact
     || stage1ArtifactHash
     || ulArtifactDir
+    || stageAArtifact
+    || stageAArtifactHash
+    || distillArtifactDir
+    || teacherModelId
+    || studentModelId
+    || distillDatasetId
+    || distillLanguagePair
     || trainingSchemaVersionInput
     || trainingBenchSteps
   )) {
@@ -292,8 +313,13 @@ function normalizeSuiteCommand(raw, command) {
     !!modelUrl
     || !!trainingStage
     || !!stage1Artifact
+    || !!stageAArtifact
     || !!trainingConfig?.ul?.stage
+    || !!trainingConfig?.distill?.stage
     || !!trainingConfig?.dataset
+    || !!trainingConfig?.distill?.datasetId
+    || !!teacherModelId
+    || !!studentModelId
   );
   const modelId = (requiresModel && !hasTrainingSource)
     ? assertModelId(raw.modelId, command, suite)
@@ -310,6 +336,13 @@ function normalizeSuiteCommand(raw, command) {
     stage1Artifact,
     stage1ArtifactHash,
     ulArtifactDir,
+    stageAArtifact,
+    stageAArtifactHash,
+    distillArtifactDir,
+    teacherModelId,
+    studentModelId,
+    distillDatasetId,
+    distillLanguagePair,
     trainingSchemaVersion,
     trainingBenchSteps,
     workloadType,

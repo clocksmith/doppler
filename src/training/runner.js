@@ -8,10 +8,15 @@ import { readBuffer } from '../memory/buffer-pool.js';
 import { f16ToF32Array } from '../inference/kv-cache/types.js';
 import { DataLoader } from './dataloader.js';
 import { createCrossEntropyObjective } from './objectives/cross_entropy.js';
+import { createDistillKdObjective } from './objectives/distill_kd.js';
+import { createDistillTripletObjective } from './objectives/distill_triplet.js';
 import { createUlStage1JointObjective } from './objectives/ul_stage1_joint.js';
 import { createUlStage2BaseObjective } from './objectives/ul_stage2_base.js';
 import {
+  createDistillArtifactSession,
   createUlArtifactSession,
+  resolveDistillTrainingContract,
+  resolveStageAArtifactContext,
   resolveUlTrainingContract,
   resolveStage1ArtifactContext,
 } from './artifacts.js';
@@ -50,6 +55,15 @@ async function resolveBatches(dataset, batchSize, shuffle) {
 function resolveTrainingObjective(config, options) {
   if (options.trainingObjective) {
     return options.trainingObjective;
+  }
+  const distill = config.training?.distill;
+  if (distill?.enabled) {
+    if (distill.stage === 'stage_a') {
+      return createDistillKdObjective({ crossEntropyLoss: options.crossEntropyLoss });
+    }
+    if (distill.stage === 'stage_b') {
+      return createDistillTripletObjective({ crossEntropyLoss: options.crossEntropyLoss });
+    }
   }
   const ul = config.training?.ul;
   if (!ul?.enabled) {
@@ -126,6 +140,12 @@ function resolveObjectiveStage(objectiveName) {
   return null;
 }
 
+function resolveObjectiveDistillStage(objectiveName) {
+  if (objectiveName === 'kd') return 'stage_a';
+  if (objectiveName === 'triplet') return 'stage_b';
+  return null;
+}
+
 function countNumericAnomaliesFromObject(value, counters) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return;
   for (const candidate of Object.values(value)) {
@@ -189,6 +209,14 @@ function collectObjectiveMetrics(entry, objectiveMetrics) {
     }
     if (value === null) {
       entry[key] = null;
+      continue;
+    }
+    if (
+      (key === 'distill_stage' || key === 'distill_teacher_model_id' || key === 'distill_student_model_id')
+      && typeof value === 'string'
+      && value.trim()
+    ) {
+      entry[key] = value.trim();
       continue;
     }
     if (
@@ -265,16 +293,29 @@ export class TrainingRunner {
       prepareBatch = null,
     } = options;
 
+    const distillContract = resolveDistillTrainingContract(this.config.training?.distill);
     const ulContract = resolveUlTrainingContract(this.config.training?.ul);
-    const artifactSession = ulContract.enabled
-      ? await createUlArtifactSession({
+    if (distillContract.enabled && ulContract.enabled) {
+      throw new Error('TrainingRunner cannot run distill and ul modes simultaneously.');
+    }
+    const artifactSession = distillContract.enabled
+      ? await createDistillArtifactSession({
         config: this.config,
-        stage: ulContract.stage,
+        stage: distillContract.stage,
         runOptions: options,
       })
-      : null;
+      : (ulContract.enabled
+        ? await createUlArtifactSession({
+          config: this.config,
+          stage: ulContract.stage,
+          runOptions: options,
+        })
+        : null);
     const stage1ArtifactContext = ulContract.enabled && ulContract.stage === 'stage2_base'
       ? await resolveStage1ArtifactContext(this.config)
+      : null;
+    const stageAArtifactContext = distillContract.enabled && distillContract.stage === 'stage_b'
+      ? await resolveStageAArtifactContext(this.config)
       : null;
 
     let step = 0;
@@ -296,6 +337,7 @@ export class TrainingRunner {
           epoch,
           batch: batchIndex,
           stage1ArtifactContext,
+          stageAArtifactContext,
         });
         const step_time_ms = globalThis.performance.now() - step_start_ms;
         const meanLoss = await computeLossMean(stepResult.loss);
@@ -303,6 +345,7 @@ export class TrainingRunner {
         pushRolling(stepTimeWindow, step_time_ms, telemetry.windowSize);
         const objectiveName = stepResult.objectiveName || this.trainingObjective?.name || 'cross_entropy';
         const objectiveStage = resolveObjectiveStage(objectiveName);
+        const objectiveDistillStage = resolveObjectiveDistillStage(objectiveName);
 
         const entry = {
           schemaVersion: 1,
@@ -328,6 +371,7 @@ export class TrainingRunner {
           trainable_groups: stepResult.paramGroupMetrics?.trainableGroups ?? [],
           frozen_groups: stepResult.paramGroupMetrics?.frozenGroups ?? [],
           ul_stage: objectiveStage,
+          distill_stage: objectiveDistillStage,
           lambda: toMetricNumber(
             stepResult.objectiveMetrics?.lambda,
             objectiveStage ? toMetricNumber(this.config.training?.ul?.lambda0, null) : null
@@ -405,6 +449,7 @@ export class TrainingRunner {
       epochIndex: context.epoch ?? null,
       batchIndex: context.batch ?? null,
       stage1ArtifactContext: context.stage1ArtifactContext ?? null,
+      stageAArtifactContext: context.stageAArtifactContext ?? null,
       applyClip: false,
       applyOptimizer: false,
     };
@@ -430,7 +475,9 @@ export class TrainingRunner {
 
     const clipMetrics = await this.clipFn(grads, this.config);
     const paramGroups = resolveModelParamGroups(model);
-    const freezeMap = this.config.training?.ul?.freeze ?? {};
+    const freezeMap = this.config.training?.ul?.freeze
+      ?? this.config.training?.distill?.freeze
+      ?? {};
     const { trainableGroups, frozenGroups } = selectTrainableParamGroups(paramGroups, freezeMap);
     const trainableParams = flattenUniqueParams(trainableGroups);
     const optimizerMetrics = await this.optimizer.step(trainableParams, clipMetrics.clippedGrads, this.config, {

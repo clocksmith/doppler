@@ -2046,24 +2046,43 @@ async function dispatchBrowserSuite(suite, options) {
   return null;
 }
 
-function collectUlArtifactsFromSuiteResult(suiteResult) {
-  const artifacts = [];
-  const metricArtifacts = Array.isArray(suiteResult?.metrics?.ulArtifacts)
+function collectTrainingArtifactsFromSuiteResult(suiteResult) {
+  const ulArtifacts = [];
+  const distillArtifacts = [];
+  const addArtifact = (artifact, source = null) => {
+    if (!artifact || typeof artifact !== 'object' || typeof artifact.manifestPath !== 'string') {
+      return;
+    }
+    const stage = String(artifact.stage || '').trim();
+    const kind = String(artifact.kind || '').trim();
+    if (kind === 'distill' || stage === 'stage_a' || stage === 'stage_b') {
+      distillArtifacts.push(artifact);
+      return;
+    }
+    if (kind === 'ul' || stage === 'stage1_joint' || stage === 'stage2_base' || source === 'ul') {
+      ulArtifacts.push(artifact);
+      return;
+    }
+    ulArtifacts.push(artifact);
+  };
+
+  const metricUlArtifacts = Array.isArray(suiteResult?.metrics?.ulArtifacts)
     ? suiteResult.metrics.ulArtifacts
     : [];
-  for (const artifact of metricArtifacts) {
-    if (artifact && typeof artifact === 'object' && typeof artifact.manifestPath === 'string') {
-      artifacts.push(artifact);
-    }
+  for (const artifact of metricUlArtifacts) {
+    addArtifact(artifact, 'ul');
+  }
+  const metricDistillArtifacts = Array.isArray(suiteResult?.metrics?.distillArtifacts)
+    ? suiteResult.metrics.distillArtifacts
+    : [];
+  for (const artifact of metricDistillArtifacts) {
+    addArtifact(artifact, 'distill');
   }
   const resultEntries = Array.isArray(suiteResult?.results) ? suiteResult.results : [];
   for (const entry of resultEntries) {
-    const artifact = entry?.artifact;
-    if (artifact && typeof artifact === 'object' && typeof artifact.manifestPath === 'string') {
-      artifacts.push(artifact);
-    }
+    addArtifact(entry?.artifact, null);
   }
-  return artifacts;
+  return { ulArtifacts, distillArtifacts };
 }
 
 export async function runBrowserSuite(options = {}) {
@@ -2085,7 +2104,9 @@ export async function runBrowserSuite(options = {}) {
 
     const modelId = suiteResult.modelId || options.modelId || options.modelUrl || suite;
     const reportOutput = sanitizeReportOutput(suiteResult.output);
-    const ulArtifacts = collectUlArtifactsFromSuiteResult(suiteResult);
+    const trainingArtifacts = collectTrainingArtifactsFromSuiteResult(suiteResult);
+    const ulArtifacts = trainingArtifacts.ulArtifacts;
+    const distillArtifacts = trainingArtifacts.distillArtifacts;
     const report = {
       suite,
       modelId,
@@ -2099,7 +2120,7 @@ export async function runBrowserSuite(options = {}) {
       memory: suiteResult.memoryStats ?? null,
       ...options.report,
     };
-    if (ulArtifacts.length > 0) {
+    if (ulArtifacts.length > 0 || distillArtifacts.length > 0) {
       report.lineage = {
         ...(report.lineage && typeof report.lineage === 'object' ? report.lineage : {}),
         training: {
@@ -2108,7 +2129,8 @@ export async function runBrowserSuite(options = {}) {
               ? report.lineage.training
               : {}
           ),
-          ulArtifacts,
+          ...(ulArtifacts.length > 0 ? { ulArtifacts } : {}),
+          ...(distillArtifacts.length > 0 ? { distillArtifacts } : {}),
         },
       };
     }
