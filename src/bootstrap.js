@@ -19,7 +19,7 @@ function withBase(path) {
 }
 
 // No SW/VFS bootstrap in package+demo mode. Host app owns that integration.
-const APP_ENTRY_URL = withBase('/demo/app.js');
+const APP_ENTRY_URL = withBase('/demo/demo.js');
 
 async function main() {
   await import(APP_ENTRY_URL);

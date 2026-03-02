@@ -1,0 +1,133 @@
+{
+  "suite": "training",
+  "modelId": "training",
+  "runtimePreset": null,
+  "deviceInfo": {
+    "hasSubgroups": true,
+    "hasSubgroupsF16": false,
+    "hasF16": true,
+    "hasTimestampQuery": true,
+    "maxBufferSize": 134217728,
+    "maxWorkgroupSize": 1024,
+    "maxWorkgroupStorageSize": 32768,
+    "adapterInfo": {
+      "vendor": "mesa",
+      "architecture": "software",
+      "device": "llvmpipe-llvm-20-1-2-256-bits-",
+      "description": "llvmpipe: Mesa 25.0.7-0ubuntu0.25.04.2 (LLVM 20.1.2) 0.0.1"
+    }
+  },
+  "results": [
+    {
+      "name": "ul-stage2",
+      "passed": true,
+      "skipped": false,
+      "duration": 19.118014000000016,
+      "metrics": {
+        "stage": "stage2_base",
+        "steps": 2,
+        "manifestPath": "bench/out/ul/stage2_base_2026-03-02T16-39-27.054Z/ul_stage2_manifest.json",
+        "manifestHash": "28ada599686fdf24316e3777cc32c10c14e4d2dfb1ab5e61a238186c1c1023d8",
+        "manifestContentHash": "28ada599686fdf24316e3777cc32c10c14e4d2dfb1ab5e61a238186c1c1023d8",
+        "manifestFileHash": "f424d7b4ed3d440ac0d2b3b5e791e5ee964a03191fd5d3f3c671b08aaf7f7f6d",
+        "ulResolvedConfig": {
+          "enabled": true,
+          "stage": "stage2_base",
+          "lambda0": 5,
+          "seed": 1337,
+          "noiseSchedule": {
+            "type": "log_snr_linear",
+            "minLogSNR": -4,
+            "maxLogSNR": 5,
+            "steps": 64
+          },
+          "priorAlignment": {
+            "enabled": true,
+            "weight": 1
+          },
+          "decoderSigmoidWeight": {
+            "enabled": true,
+            "slope": 1,
+            "midpoint": 0
+          },
+          "freeze": {
+            "encoder": true,
+            "prior": true,
+            "decoder": true,
+            "base": false,
+            "lora": false
+          }
+        }
+      },
+      "artifact": {
+        "kind": "ul",
+        "stage": "stage2_base",
+        "runDir": "bench/out/ul/stage2_base_2026-03-02T16-39-27.054Z",
+        "metricsPath": "bench/out/ul/stage2_base_2026-03-02T16-39-27.054Z/metrics.ndjson",
+        "manifestPath": "bench/out/ul/stage2_base_2026-03-02T16-39-27.054Z/ul_stage2_manifest.json",
+        "manifestHash": "28ada599686fdf24316e3777cc32c10c14e4d2dfb1ab5e61a238186c1c1023d8",
+        "manifestContentHash": "28ada599686fdf24316e3777cc32c10c14e4d2dfb1ab5e61a238186c1c1023d8",
+        "manifestFileHash": "f424d7b4ed3d440ac0d2b3b5e791e5ee964a03191fd5d3f3c671b08aaf7f7f6d",
+        "stage1Dependency": {
+          "path": "bench/out/ul/stage1_joint_2026-03-02T16-39-26.443Z/ul_stage1_manifest.json",
+          "hash": "0b66e1c75966431e95b45a8914bdda473d8deff2fb452f6d65c97d6c0d6e805e",
+          "manifestHash": "1fb6c654e65cdbdccdb93e445572d5fcd2f6764c6351de6682a60395605eb0b4"
+        }
+      }
+    }
+  ],
+  "durationMs": 19.181093000000033,
+  "timestamp": "2026-03-02T16:39:27.053Z",
+  "metrics": {
+    "testsRun": 1,
+    "selectedTests": [
+      "ul-stage2"
+    ],
+    "availableTests": [
+      "runner-smoke",
+      "train-step-metrics",
+      "ul-stage1",
+      "ul-stage2",
+      "distill-stage-a",
+      "distill-stage-b",
+      "loss-forward",
+      "softmax-backward",
+      "cross-entropy-backward",
+      "rmsnorm-backward",
+      "layernorm-backward",
+      "conv2d-backward",
+      "matmul-backward",
+      "embed-backward",
+      "ebm-state-optimize",
+      "ebm-recorded-bench",
+      "parity-fixture",
+      "training-leak-perf",
+      "autograd-branching"
+    ],
+    "trainingStage": "stage2_base",
+    "trainingSchemaVersion": 1
+  },
+  "output": null,
+  "memory": null,
+  "lineage": {
+    "training": {
+      "ulArtifacts": [
+        {
+          "kind": "ul",
+          "stage": "stage2_base",
+          "runDir": "bench/out/ul/stage2_base_2026-03-02T16-39-27.054Z",
+          "metricsPath": "bench/out/ul/stage2_base_2026-03-02T16-39-27.054Z/metrics.ndjson",
+          "manifestPath": "bench/out/ul/stage2_base_2026-03-02T16-39-27.054Z/ul_stage2_manifest.json",
+          "manifestHash": "28ada599686fdf24316e3777cc32c10c14e4d2dfb1ab5e61a238186c1c1023d8",
+          "manifestContentHash": "28ada599686fdf24316e3777cc32c10c14e4d2dfb1ab5e61a238186c1c1023d8",
+          "manifestFileHash": "f424d7b4ed3d440ac0d2b3b5e791e5ee964a03191fd5d3f3c671b08aaf7f7f6d",
+          "stage1Dependency": {
+            "path": "bench/out/ul/stage1_joint_2026-03-02T16-39-26.443Z/ul_stage1_manifest.json",
+            "hash": "0b66e1c75966431e95b45a8914bdda473d8deff2fb452f6d65c97d6c0d6e805e",
+            "manifestHash": "1fb6c654e65cdbdccdb93e445572d5fcd2f6764c6351de6682a60395605eb0b4"
+          }
+        }
+      ]
+    }
+  }
+}

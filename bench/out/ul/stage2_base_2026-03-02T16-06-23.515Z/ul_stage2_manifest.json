@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "stage": "stage2_base",
+  "createdAt": "2026-03-02T16:06:23.536Z",
+  "runId": "stage2_base_2026-03-02T16-06-23.515Z",
+  "configHash": "e8105f079a10e5786f90d197b47ff91cf4f4b8d5c5107d61d4ada71ac2190c47",
+  "modelHash": "adbc58235df80b6d048f9d83ce87d08b1fcac9fe7eba836fdfc652328851a370",
+  "datasetHash": "e67e7d839d957690963447e4b2b001b0b8e7a1b9f26311a00f718a34be80bbaf",
+  "ulContractHash": "897e184d02d8d3a9184be8e61d5a2efb18edb2b9c0885c3750f91fd4e6e47aff",
+  "ulResolvedConfig": {
+    "enabled": true,
+    "stage": "stage2_base",
+    "lambda0": 5,
+    "seed": 1337,
+    "noiseSchedule": {
+      "type": "log_snr_linear",
+      "minLogSNR": -4,
+      "maxLogSNR": 5,
+      "steps": 64
+    },
+    "priorAlignment": {
+      "enabled": true,
+      "weight": 1
+    },
+    "decoderSigmoidWeight": {
+      "enabled": true,
+      "slope": 1,
+      "midpoint": 0
+    },
+    "freeze": {
+      "encoder": true,
+      "prior": true,
+      "decoder": true,
+      "base": false,
+      "lora": false
+    }
+  },
+  "runtimeDump": {
+    "stage": "stage2_base",
+    "lambda0": 5,
+    "seed": 1337,
+    "noiseSchedule": {
+      "type": "log_snr_linear",
+      "minLogSNR": -4,
+      "maxLogSNR": 5,
+      "steps": 64
+    },
+    "priorAlignment": {
+      "enabled": true,
+      "weight": 1
+    },
+    "decoderSigmoidWeight": {
+      "enabled": true,
+      "slope": 1,
+      "midpoint": 0
+    },
+    "lossWeights": {
+      "ce": 1,
+      "prior": 1,
+      "decoder": 1,
+      "recon": 1
+    },
+    "freeze": {
+      "encoder": true,
+      "prior": true,
+      "decoder": true,
+      "base": false,
+      "lora": false
+    },
+    "artifactDir": "bench/out/ul",
+    "stage1Artifact": "bench/out/ul/stage1_joint_2026-03-02T16-06-23.489Z/ul_stage1_manifest.json",
+    "stage1ArtifactHash": "155718851065a7ff0546be12471a3911286f3299afa1c910e59097d0df3615ee"
+  },
+  "buildProvenance": {
+    "runtime": "node",
+    "nodeVersion": "v20.18.1",
+    "dopplerVersion": "0.1.0",
+    "commitHash": null,
+    "kernelRegistryDigest": "4d95f0b913610455ab95477d72e2ea0959c4ee53e759ef55e4751770d8e7d58b",
+    "schemaVersions": {
+      "distillManifest": 1,
+      "distillTraining": 1,
+      "ulManifest": 1,
+      "ulTraining": 1,
+      "trainingMetrics": 1
+    }
+  },
+  "freeze": {
+    "encoder": true,
+    "prior": true,
+    "decoder": true,
+    "base": false,
+    "lora": false
+  },
+  "metrics": {
+    "count": 2,
+    "stepMetricsPath": "bench/out/ul/stage2_base_2026-03-02T16-06-23.515Z/metrics.ndjson"
+  },
+  "latentDataset": {
+    "path": "bench/out/ul/stage1_joint_2026-03-02T16-06-23.489Z/latents.ndjson",
+    "hash": "32bf514ef1f508235f5008e670c5e6ab8dd316f2f0158d5a86488ee4b460d4f3",
+    "count": 2,
+    "summary": {
+      "lambdaMean": 4.928571428571429,
+      "noisyStdMean": 0.25794194796384134,
+      "cleanStdMean": 0.27487371277162004,
+      "noiseStdMean": 0.7694617389032388,
+      "scheduleMaxStep": 1,
+      "vectorCount": 2
+    }
+  },
+  "lineage": {
+    "parentManifestHash": "f450eab62fa936076a320137e4818be02aa2223769c7fca4475386aa157aa0c6",
+    "parentContractHash": "897e184d02d8d3a9184be8e61d5a2efb18edb2b9c0885c3750f91fd4e6e47aff"
+  },
+  "stage1Dependency": {
+    "path": "bench/out/ul/stage1_joint_2026-03-02T16-06-23.489Z/ul_stage1_manifest.json",
+    "hash": "155718851065a7ff0546be12471a3911286f3299afa1c910e59097d0df3615ee",
+    "manifestHash": "f450eab62fa936076a320137e4818be02aa2223769c7fca4475386aa157aa0c6"
+  },
+  "manifestHash": "4b52d7e4fab88409d04c99fa43ca6479442c20a5503fc6c6197794f0d979ab81",
+  "manifestContentHash": "4b52d7e4fab88409d04c99fa43ca6479442c20a5503fc6c6197794f0d979ab81"
+}

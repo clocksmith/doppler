@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 
 const {
   createTranslateTextRequest,
-} = await import('../../demo/app/translate/request.js');
+} = await import('../../demo/ui/translate/request.js');
 const { formatChatMessages } = await import('../../src/inference/pipelines/text/chat-format.js');
 
 {
