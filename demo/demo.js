@@ -43,35 +43,35 @@ import {
   destroyBufferPool,
 } from '@doppler/core';
 import { DiagnosticsController } from './diagnostics-controller.js';
-import { state } from './app/state.js';
-import { $, setText, setHidden } from './app/dom.js';
-import { formatAutoValue } from './app/format.js';
-import { readOptionalNumber } from './app/input.js';
+import { state } from './ui/state.js';
+import { $, setText, setHidden } from './ui/dom.js';
+import { formatAutoValue } from './ui/format.js';
+import { readOptionalNumber } from './ui/input.js';
 import {
   showProgressOverlay,
   hideProgressOverlay,
   updateProgressFromLoader,
-} from './app/progress.js';
+} from './ui/progress.js';
 import {
   setStatusIndicator,
   updateStatusIndicator,
   clampPercent,
   hideErrorModal,
-} from './app/ui.js';
+} from './ui/ui.js';
 import {
   updatePerformancePanel,
   updateMemoryPanel,
   updateMemoryControls,
   renderRunLog,
   recordRunLog,
-} from './app/stats.js';
+} from './ui/stats.js';
 import {
   VLIW_DATASETS,
   ENERGY_DEMOS,
   DEFAULT_ENERGY_DEMO_ID,
   DEFAULT_RUNTIME_PRESET,
   RUNTIME_PRESET_REGISTRY,
-} from './app/constants.js';
+} from './ui/constants.js';
 import {
   updateEnergyStatus,
   getEnergyDemoById,
@@ -80,7 +80,7 @@ import {
   syncEnergyDemoSelection,
   populateEnergyDemoSelect,
   applyEnergyDemoDefaults,
-} from './app/energy/controls.js';
+} from './ui/energy/controls.js';
 import {
   clearEnergyBoard,
   clearEnergyChart,
@@ -94,18 +94,18 @@ import {
   renderVliwBundleView,
   drawEnergyChart,
   updateEnergyStats,
-} from './app/energy/render.js';
+} from './ui/energy/render.js';
 import {
   loadVliwDataset,
   applyWorkloadSpec,
   buildVliwDatasetFromSpecInput,
   sliceVliwDataset,
-} from './app/energy/datasets.js';
+} from './ui/energy/datasets.js';
 import {
   resolveBaseSpec,
   runVliwSpecSearch,
   formatSpecSignature,
-} from './app/energy/spec-search.js';
+} from './ui/energy/spec-search.js';
 import {
   storeDiagnosticsSelection,
   syncDiagnosticsModeUI,
@@ -123,15 +123,15 @@ import {
   handleRuntimeConfigFile,
   applyRuntimeConfigPreset,
   applySelectedRuntimePreset,
-} from './app/diagnostics/index.js';
+} from './ui/diagnostics/index.js';
 import {
   normalizeModelType,
   isCompatibleModelType,
   isModeModelSelectable,
   getModeModelLabel,
   getModelTypeForId,
-} from './app/models/utils.js';
-import { updateStorageInfo, refreshStorageInspector } from './app/storage/inspector.js';
+} from './ui/models/utils.js';
+import { updateStorageInfo, refreshStorageInspector } from './ui/storage/inspector.js';
 import {
   configureDownloadCallbacks,
   refreshDownloads,
@@ -140,10 +140,10 @@ import {
   pauseActiveDownload,
   resumeActiveDownload,
   cancelActiveDownload,
-} from './app/downloads/index.js';
+} from './ui/downloads/index.js';
 import {
   createTranslateTextRequest,
-} from './app/translate/request.js';
+} from './ui/translate/request.js';
 
 const controller = new DiagnosticsController({ log });
 
@@ -3948,7 +3948,7 @@ function setAppBootstrapVisible(visible, message = null) {
 async function init() {
   state.appInitializing = true;
   setStatusIndicator('Initializing...', 'info');
-  setAppBootstrapMessage('Initializing demo...');
+  setAppBootstrapMessage('Initializing Doppler Demo...');
   setAppBootstrapVisible(true);
   try {
     ensurePrimaryModeControlStack();
@@ -3969,7 +3969,7 @@ async function init() {
     populateRuntimePresetSelects();
     populateEnergyDemoSelect();
     setStatusIndicator('Initializing GPU...', 'info');
-    setAppBootstrapMessage('Loading app artifacts...');
+    setAppBootstrapMessage('Loading demo artifacts...');
 
     const startupTasks = Promise.all([
       loadQuickModelCatalog(),

@@ -13,7 +13,7 @@ const DB_TIMEOUT_MS = 2000;
 const CACHE_NAME = 'doppler-app-shell-v2';
 const APP_SHELL = [
     withBase('/demo/index.html'),
-    withBase('/demo/app/styles/main.css'),
+    withBase('/demo/ui/styles/main.css'),
     withBase('/src/bootstrap.js'),
     withBase('/src/boot/vfs-bootstrap.js'),
     withBase('/src/debug/index.js'),

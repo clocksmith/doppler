@@ -17,6 +17,8 @@
     "bench:chart": "node ./benchmarks/vendors/compare-chart.js",
     "test:unit": "node tools/run-node-tests.mjs --suite unit",
     "test:gpu": "node tools/run-node-tests.mjs --suite gpu",
+    "test:coverage": "node tools/run-node-coverage.mjs",
+    "test:coverage:report": "node tools/run-node-coverage.mjs --no-threshold",
     "test:gpu:browser": "node tools/doppler-cli.js test-model --suite kernels --surface browser --no-opfs-cache --browser-headless true --browser-channel chromium --browser-arg --use-angle=swiftshader --browser-arg --disable-vulkan-surface --browser-console",
     "agents:verify": "node tools/verify-agent-parity.js",
     "agents:freshness": "node tools/verify-agent-freshness.js",
