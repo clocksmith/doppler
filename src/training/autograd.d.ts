@@ -5,10 +5,13 @@ export const OpType: {
   EMBED: 'embed';
   MATMUL: 'matmul';
   RMSNORM: 'rmsnorm';
+  RESIDUAL_ADD: 'residual_add';
+  ROW_SLICE: 'row_slice';
   ATTENTION: 'attention';
   SOFTMAX: 'softmax';
   ROPE: 'rope';
   SILU: 'silu';
+  SILU_ROWSPLIT: 'silu_rowsplit';
   GELU: 'gelu';
   SCALE: 'scale';
   CROSS_ENTROPY: 'cross_entropy';

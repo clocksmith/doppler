@@ -835,12 +835,17 @@
       z-index: 1200;
       pointer-events: none;
       background: color-mix(in srgb, var(--bg) 75%, transparent);
-      backdrop-filter: blur(2px);
+      backdrop-filter: none;
+      text-shadow: none;
     }
 
     body.app-booting #app {
       visibility: hidden;
       pointer-events: none;
+    }
+
+    body.app-booting .status-indicator {
+      display: none !important;
     }
 
     .app-bootstrap-overlay[hidden] {
@@ -854,27 +859,18 @@
       justify-content: center;
       gap: var(--space-md);
       text-align: center;
+      width: max-content;
     }
 
     .app-bootstrap-message {
       color: var(--fg);
-    }
-
-    .app-bootstrap-d4-loading {
-      display: inline-flex !important;
-      width: 64px;
-      height: 64px;
-    }
-
-    .app-bootstrap-d4-loading .status-d4-a,
-    .app-bootstrap-d4-loading .status-d4-b,
-    .app-bootstrap-d4-loading .status-d4-c,
-    .app-bootstrap-d4-loading .status-d4-d {
-      width: 64px;
-      font-size: 64px;
-      line-height: 1;
-      left: 0;
-      top: 0;
+      order: 1;
+      text-shadow: none;
+      margin: 0;
+      font-weight: var(--demo-label-weight);
+      letter-spacing: 0.02em;
+      transform: none;
+      padding-top: 2px;
     }
 
     .status-marker {
@@ -891,10 +887,31 @@
       position: relative;
       display: none;
       flex-shrink: 0;
-      width: 16px;
-      height: 16px;
+      width: var(--d4-loading-size, 16px);
+      height: var(--d4-loading-size, 16px);
+      --d4-loading-glyph-size: var(--d4-loading-size, 16px);
       line-height: 1;
       vertical-align: middle;
+      text-shadow: none;
+      filter: none;
+      box-shadow: none;
+      isolation: isolate;
+      perspective: 1200px;
+      outline: none;
+    }
+
+    #app-bootstrap-d4.status-d4-loading {
+      --d4-loading-size: 64px;
+      --d4-loading-glyph-size: 38px;
+      --d4-orbit-left-x: -31px;
+      --d4-orbit-top-right-x: 31px;
+      --d4-orbit-top-y: -18px;
+      --d4-orbit-bottom-y: 35px;
+      display: inline-flex !important;
+      opacity: 0.95;
+      margin: 0;
+      transform: translateZ(0);
+      align-self: center;
     }
 
     .status-indicator.status-initializing .status-d4-loading {
@@ -911,15 +928,19 @@
       position: absolute;
       left: 0;
       top: 0;
-      width: 16px;
+      width: var(--d4-loading-size, 16px);
       text-align: center;
       color: var(--fg);
-      font-size: 16px;
+      font-size: var(--d4-loading-glyph-size, var(--d4-loading-size, 16px));
       line-height: 1;
       font-weight: var(--demo-value-weight);
       will-change: transform, opacity;
       transform-origin: center center;
       opacity: 1;
+      text-shadow: none;
+      filter: none;
+      box-shadow: none;
+      outline: none;
     }
 
     .status-d4-a { animation: doppler-d4-a 4.444s ease-in-out infinite; }
@@ -927,11 +948,37 @@
     .status-d4-c { animation: doppler-d4-c 4.444s ease-in-out infinite; }
     .status-d4-d { animation: doppler-d4-d 4.444s ease-in-out infinite; }
 
-    /* Bootstrap overlay uses the stronger orbit from ../d4da/rotating-four.css. */
-    .app-bootstrap-d4-loading .status-d4-a { animation: doppler-d4-overlay-a 4.444s ease-in-out infinite; }
-    .app-bootstrap-d4-loading .status-d4-b { animation: doppler-d4-overlay-b 4.444s ease-in-out infinite; }
-    .app-bootstrap-d4-loading .status-d4-c { animation: doppler-d4-overlay-c 4.444s ease-in-out infinite; }
-    .app-bootstrap-d4-loading .status-d4-d { animation: doppler-d4-overlay-d 4.444s ease-in-out infinite; }
+    #app-bootstrap-d4.status-d4-loading .status-d4-a {
+      animation-name: doppler-d4-overlay-a;
+      animation-duration: 4.444s;
+      animation-timing-function: ease-in-out;
+      animation-iteration-count: infinite;
+      animation-delay: 0s;
+    }
+
+    #app-bootstrap-d4.status-d4-loading .status-d4-b {
+      animation-name: doppler-d4-overlay-b;
+      animation-duration: 4.444s;
+      animation-timing-function: ease-in-out;
+      animation-iteration-count: infinite;
+      animation-delay: -1.111s;
+    }
+
+    #app-bootstrap-d4.status-d4-loading .status-d4-c {
+      animation-name: doppler-d4-overlay-c;
+      animation-duration: 4.444s;
+      animation-timing-function: ease-in-out;
+      animation-iteration-count: infinite;
+      animation-delay: -2.222s;
+    }
+
+    #app-bootstrap-d4.status-d4-loading .status-d4-d {
+      animation-name: doppler-d4-overlay-d;
+      animation-duration: 4.444s;
+      animation-timing-function: ease-in-out;
+      animation-iteration-count: infinite;
+      animation-delay: -3.333s;
+    }
 
     .status-indicator.status-initializing .status-text {
       margin-left: 0;
@@ -973,34 +1020,34 @@
 
     @keyframes doppler-d4-overlay-a {
       0%, 3% { transform: scale(1) translate(0px, 0px); opacity: 1; }
-      22%, 28% { transform: scale(0.45) translate(-12px, -14px); opacity: 0.5; }
-      47%, 53% { transform: scale(0.45) translate(18px, -14px); opacity: 0.5; }
-      72%, 78% { transform: scale(0.45) translate(3px, 12px); opacity: 0.5; }
+      22%, 28% { transform: scale(0.45) translate(var(--d4-orbit-left-x), var(--d4-orbit-top-y)); opacity: 0.5; }
+      47%, 53% { transform: scale(0.45) translate(var(--d4-orbit-top-right-x), var(--d4-orbit-top-y)); opacity: 0.5; }
+      72%, 78% { transform: scale(0.45) translate(0px, var(--d4-orbit-bottom-y)); opacity: 0.5; }
       97%, 100% { transform: scale(1) translate(0px, 0px); opacity: 1; }
     }
 
     @keyframes doppler-d4-overlay-b {
-      0%, 3% { transform: scale(0.45) translate(-12px, -14px); opacity: 0.5; }
-      22%, 28% { transform: scale(0.45) translate(18px, -14px); opacity: 0.5; }
-      47%, 53% { transform: scale(0.45) translate(3px, 12px); opacity: 0.5; }
+      0%, 3% { transform: scale(0.45) translate(var(--d4-orbit-left-x), var(--d4-orbit-top-y)); opacity: 0.5; }
+      22%, 28% { transform: scale(0.45) translate(var(--d4-orbit-top-right-x), var(--d4-orbit-top-y)); opacity: 0.5; }
+      47%, 53% { transform: scale(0.45) translate(0px, var(--d4-orbit-bottom-y)); opacity: 0.5; }
       72%, 78% { transform: scale(1) translate(0px, 0px); opacity: 1; }
-      97%, 100% { transform: scale(0.45) translate(-12px, -14px); opacity: 0.5; }
+      97%, 100% { transform: scale(0.45) translate(var(--d4-orbit-left-x), var(--d4-orbit-top-y)); opacity: 0.5; }
     }
 
     @keyframes doppler-d4-overlay-c {
-      0%, 3% { transform: scale(0.45) translate(18px, -14px); opacity: 0.5; }
-      22%, 28% { transform: scale(0.45) translate(3px, 12px); opacity: 0.5; }
+      0%, 3% { transform: scale(0.45) translate(var(--d4-orbit-top-right-x), var(--d4-orbit-top-y)); opacity: 0.5; }
+      22%, 28% { transform: scale(0.45) translate(0px, var(--d4-orbit-bottom-y)); opacity: 0.5; }
       47%, 53% { transform: scale(1) translate(0px, 0px); opacity: 1; }
-      72%, 78% { transform: scale(0.45) translate(-12px, -14px); opacity: 0.5; }
-      97%, 100% { transform: scale(0.45) translate(18px, -14px); opacity: 0.5; }
+      72%, 78% { transform: scale(0.45) translate(var(--d4-orbit-left-x), var(--d4-orbit-top-y)); opacity: 0.5; }
+      97%, 100% { transform: scale(0.45) translate(var(--d4-orbit-top-right-x), var(--d4-orbit-top-y)); opacity: 0.5; }
     }
 
     @keyframes doppler-d4-overlay-d {
-      0%, 3% { transform: scale(0.45) translate(3px, 12px); opacity: 0.5; }
+      0%, 3% { transform: scale(0.45) translate(0px, var(--d4-orbit-bottom-y)); opacity: 0.5; }
       22%, 28% { transform: scale(1) translate(0px, 0px); opacity: 1; }
-      47%, 53% { transform: scale(0.45) translate(-12px, -14px); opacity: 0.5; }
-      72%, 78% { transform: scale(0.45) translate(18px, -14px); opacity: 0.5; }
-      97%, 100% { transform: scale(0.45) translate(3px, 12px); opacity: 0.5; }
+      47%, 53% { transform: scale(0.45) translate(var(--d4-orbit-left-x), var(--d4-orbit-top-y)); opacity: 0.5; }
+      72%, 78% { transform: scale(0.45) translate(var(--d4-orbit-top-right-x), var(--d4-orbit-top-y)); opacity: 0.5; }
+      97%, 100% { transform: scale(0.45) translate(0px, var(--d4-orbit-bottom-y)); opacity: 0.5; }
     }
 
     .status-indicator .status-text {

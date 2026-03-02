@@ -65,6 +65,14 @@ await assert.rejects(
 );
 
 await assert.rejects(
+  () => runBrowserCommandInNode(KERNELS_REQUEST, {
+    baseUrl: 'http://127.0.0.1:1',
+    browserArgs: [null],
+  }),
+  /browser command: --browser-arg values must be strings\./
+);
+
+await assert.rejects(
   () => runBrowserCommandInNode({
     ...KERNELS_REQUEST,
     loadMode: 'opfs',
@@ -109,11 +117,68 @@ await assert.rejects(
   /browser command: loadMode=opfs requires persistent browser context; persistent launch failed\./
 );
 
+{
+  const warnings = [];
+  await assert.rejects(
+    () => runBrowserCommandInNode({
+      ...KERNELS_REQUEST,
+      loadMode: 'opfs',
+    }, {
+      baseUrl: 'http://127.0.0.1:1',
+      opfsCache: true,
+      timeoutMs: 1500,
+      onConsole(message) {
+        warnings.push(message);
+      },
+    }),
+    /browser command: loadMode=opfs requires persistent browser context; persistent launch failed\./
+  );
+
+  assert.ok(
+    warnings.some((message) => message?.text?.includes('Persistent browser launch failed')),
+    'expected persistent-launch warning to be emitted'
+  );
+}
+
+{
+  const warnings = [];
+  await assert.rejects(
+    () => runBrowserCommandInNode({
+      ...KERNELS_REQUEST,
+      modelUrl: 'https://example.com/model/',
+    }, {
+      baseUrl: 'http://127.0.0.1:1',
+      opfsCache: true,
+      timeoutMs: 1500,
+      onConsole(message) {
+        warnings.push(message);
+      },
+    }),
+    /browser command: failed to launch browser/
+  );
+
+  assert.ok(
+    warnings.some((message) => message?.text?.includes('Persistent launch still failing; falling back to non-persistent mode.')),
+    'expected fallback-to-non-persistent warning to be emitted'
+  );
+}
+
 await assert.rejects(
   () => runBrowserCommandInNode(KERNELS_REQUEST, {
     baseUrl: 'http://127.0.0.1:1',
     opfsCache: false,
     timeoutMs: 1500,
+  }),
+  /browser command: failed to launch browser/
+);
+
+await assert.rejects(
+  () => runBrowserCommandInNode(KERNELS_REQUEST, {
+    baseUrl: 'http://127.0.0.1:1',
+    runnerPath: 'src/tooling/command-runner.html',
+    opfsCache: false,
+    timeoutMs: 1500,
+    executablePath: '/definitely/missing/chrome',
   }),
   /browser command: failed to launch browser/
 );

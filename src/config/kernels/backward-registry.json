@@ -15,6 +15,15 @@
       "grads": ["input", "gamma"],
       "params": ["numTokens", "hiddenSize", "eps"]
     },
+    "residual_add": {
+      "backward": "residual_add_backward",
+      "grads": ["a", "b"]
+    },
+    "row_slice": {
+      "backward": "row_slice_backward",
+      "grads": ["input"],
+      "params": ["rows", "cols", "rowIndex"]
+    },
     "layernorm": {
       "backward": "layernorm_backward",
       "grads": ["input", "weight", "bias"],
@@ -34,6 +43,11 @@
     "silu": {
       "backward": "silu_backward",
       "grads": ["input"]
+    },
+    "silu_rowsplit": {
+      "backward": "silu_rowsplit_backward",
+      "grads": ["input"],
+      "params": ["numTokens", "dim", "activation", "swigluLimit"]
     },
     "gelu": {
       "backward": "gelu_backward",

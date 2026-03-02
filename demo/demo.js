@@ -4109,6 +4109,7 @@ async function init() {
   console.log('[Bootstrap] Loading... evaluating demo module graph and preparing bootstrap overlay.');
   setAppBootstrapVisible(true);
   try {
+    await new Promise((resolve) => setTimeout(resolve, 300000));
     ensurePrimaryModeControlStack();
     const deepLinkState = readDeepLinkStateFromLocation();
     state.surface = normalizeSurface(deepLinkState.surface, state.surface || 'demo');
@@ -4129,7 +4130,6 @@ async function init() {
     populateRuntimePresetSelects();
     populateEnergyDemoSelect();
     setStatusIndicator('Initializing...', 'info');
-    setAppBootstrapMessage('Initializing...');
     console.log('[Bootstrap] Initializing... running startup tasks: quick model catalog fetch, WebGPU capability init, and download-state refresh.');
 
     const startupTasks = Promise.all([

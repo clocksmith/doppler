@@ -91,6 +91,32 @@ function resolveRowTensorCount(...entries) {
   return Number.isFinite(rowCount) ? rowCount : 0;
 }
 
+function gatherTripletRow(values, tokenIndices, expectedSize) {
+  const size = Math.max(1, Math.floor(expectedSize));
+  const output = new Float32Array(size);
+  for (let i = 0; i < size; i += 1) {
+    const tokenIndex = Array.isArray(tokenIndices) ? Number(tokenIndices[i]) : NaN;
+    if (Number.isInteger(tokenIndex) && tokenIndex >= 0 && tokenIndex < values.length) {
+      output[i] = values[tokenIndex];
+      continue;
+    }
+    if (i < values.length) {
+      output[i] = values[i];
+      continue;
+    }
+    output[i] = 0;
+  }
+  return output;
+}
+
+function mapTripletGradIndex(tokenIndices, logicalIndex, rowCols) {
+  const tokenIndex = Array.isArray(tokenIndices) ? Number(tokenIndices[logicalIndex]) : NaN;
+  if (Number.isInteger(tokenIndex) && tokenIndex >= 0 && tokenIndex < rowCols) {
+    return tokenIndex;
+  }
+  return logicalIndex < rowCols ? logicalIndex : -1;
+}
+
 function extractLogitsFromForwardOutput(output) {
   if (isTensorLike(output)) return output;
   if (isTensorLike(output?.logits)) return output.logits;
@@ -208,7 +234,12 @@ export function createDistillTripletObjective(options = {}) {
       if (rowCount <= 0) {
         throw new Error('Distill triplet objective requires non-empty anchor/positive/negative logits.');
       }
-      const dim = Math.min(anchorRows.cols, positiveRows.cols, negativeRows.cols);
+      const teacherTokenRows = Array.isArray(batch?.distill?.teacherTopTokenIndices)
+        ? batch.distill.teacherTopTokenIndices
+        : [];
+      const fallbackDim = Math.min(anchorRows.cols, positiveRows.cols, negativeRows.cols);
+      const hintedDim = Math.floor(Number(batch?.distill?.teacherTopProbs?.[0]?.length) || 0);
+      const dim = hintedDim > 0 ? hintedDim : fallbackDim;
       if (dim <= 0) {
         throw new Error('Distill triplet objective requires non-empty logits dimension.');
       }
@@ -224,9 +255,10 @@ export function createDistillTripletObjective(options = {}) {
       for (let row = 0; row < rowCount; row += 1) {
         if (!mask[row]) continue;
         consideredRows += 1;
-        const anchor = anchorRows.slices[row];
-        const positive = positiveRows.slices[row];
-        const negative = negativeRows.slices[row];
+        const teacherTokens = Array.isArray(teacherTokenRows[row]) ? teacherTokenRows[row] : [];
+        const anchor = gatherTripletRow(anchorRows.slices[row], teacherTokens, dim);
+        const positive = gatherTripletRow(positiveRows.slices[row], teacherTokens, dim);
+        const negative = gatherTripletRow(negativeRows.slices[row], teacherTokens, dim);
 
         let dPos = 0;
         let dNeg = 0;
@@ -251,9 +283,18 @@ export function createDistillTripletObjective(options = {}) {
           const a = anchor[col];
           const p = positive[col];
           const n = negative[col];
-          anchorGrad[anchorOffset + col] += (2 * (n - p)) / dim;
-          positiveGrad[positiveOffset + col] += (2 * (p - a)) / dim;
-          negativeGrad[negativeOffset + col] += (2 * (a - n)) / dim;
+          const mappedAnchorCol = mapTripletGradIndex(teacherTokens, col, anchorRows.cols);
+          const mappedPositiveCol = mapTripletGradIndex(teacherTokens, col, positiveRows.cols);
+          const mappedNegativeCol = mapTripletGradIndex(teacherTokens, col, negativeRows.cols);
+          if (mappedAnchorCol >= 0) {
+            anchorGrad[anchorOffset + mappedAnchorCol] += (2 * (n - p)) / dim;
+          }
+          if (mappedPositiveCol >= 0) {
+            positiveGrad[positiveOffset + mappedPositiveCol] += (2 * (p - a)) / dim;
+          }
+          if (mappedNegativeCol >= 0) {
+            negativeGrad[negativeOffset + mappedNegativeCol] += (2 * (a - n)) / dim;
+          }
         }
       }
 

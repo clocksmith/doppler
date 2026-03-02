@@ -121,6 +121,24 @@ function normalizeProbRow(values, expectedSize) {
   return output;
 }
 
+function gatherStudentLogitsRow(logitsRow, tokenIndices, expectedSize) {
+  const size = Math.max(1, Math.floor(expectedSize));
+  const gathered = new Float32Array(size);
+  for (let i = 0; i < size; i += 1) {
+    const tokenIndex = Array.isArray(tokenIndices) ? Number(tokenIndices[i]) : NaN;
+    if (Number.isInteger(tokenIndex) && tokenIndex >= 0 && tokenIndex < logitsRow.length) {
+      gathered[i] = logitsRow[tokenIndex];
+      continue;
+    }
+    if (i < logitsRow.length) {
+      gathered[i] = logitsRow[i];
+      continue;
+    }
+    gathered[i] = DISTILL_LOGIT_FALLBACK;
+  }
+  return gathered;
+}
+
 function klDivergence(teacherProbs, studentProbs) {
   const size = Math.min(teacherProbs.length, studentProbs.length);
   if (size <= 0) return 0;
@@ -202,6 +220,12 @@ export function createDistillKdObjective(options = {}) {
       const teacherTargets = Array.isArray(batch?.distill?.teacherTargetIndices)
         ? batch.distill.teacherTargetIndices
         : [];
+      const teacherTargetTokenIds = Array.isArray(batch?.distill?.teacherTargetTokenIds)
+        ? batch.distill.teacherTargetTokenIds
+        : [];
+      const teacherTokenRows = Array.isArray(batch?.distill?.teacherTopTokenIndices)
+        ? batch.distill.teacherTopTokenIndices
+        : [];
       const studentProbRowsFallback = Array.isArray(batch?.distill?.studentTopProbs)
         ? batch.distill.studentTopProbs
         : [];
@@ -218,25 +242,44 @@ export function createDistillKdObjective(options = {}) {
       let kdSum = 0;
       let ceAuxSum = 0;
       for (let row = 0; row < rowCount; row += 1) {
+        const teacherTokens = Array.isArray(teacherTokenRows[row]) ? teacherTokenRows[row] : [];
+        const expectedSize = teacherRowsRaw[row]?.length || 1;
         const studentProbs = logitsRows
-          ? softmax(logitsRows.slices[row], temperature)
+          ? softmax(
+            gatherStudentLogitsRow(logitsRows.slices[row], teacherTokens, expectedSize),
+            temperature
+          )
           : normalizeProbRow(studentProbRowsFallback[row], teacherRowsRaw[row]?.length || 1);
         const teacherProbs = normalizeProbRow(teacherRowsRaw[row], studentProbs.length);
         kdSum += klDivergence(teacherProbs, studentProbs);
-        const targetIndex = Number.isInteger(teacherTargets[row])
+        let targetIndex = Number.isInteger(teacherTargets[row])
           ? teacherTargets[row]
           : argmax(teacherProbs);
+        const targetTokenId = Number.isInteger(teacherTargetTokenIds[row])
+          ? teacherTargetTokenIds[row]
+          : null;
+        if (targetTokenId !== null && teacherTokens.length > 0) {
+          const tokenPosition = teacherTokens.indexOf(targetTokenId);
+          if (tokenPosition >= 0) {
+            targetIndex = tokenPosition;
+          }
+        }
         const clampedTarget = Math.max(0, Math.min(studentProbs.length - 1, targetIndex));
         ceAuxSum += -Math.log(Math.max(EPS, studentProbs[clampedTarget]));
 
         if (logitsRows && gradValues) {
           const rowOffset = row * logitsRows.cols;
-          for (let col = 0; col < logitsRows.cols; col += 1) {
-            const studentProb = col < studentProbs.length ? studentProbs[col] : 0;
+          for (let col = 0; col < studentProbs.length; col += 1) {
+            const mappedToken = Number(teacherTokens[col]);
+            const mappedCol = Number.isInteger(mappedToken) && mappedToken >= 0 && mappedToken < logitsRows.cols
+              ? mappedToken
+              : (col < logitsRows.cols ? col : -1);
+            if (mappedCol < 0) continue;
+            const studentProb = studentProbs[col];
             const teacherProb = col < teacherProbs.length ? teacherProbs[col] : 0;
             const targetOneHot = col === clampedTarget ? 1 : 0;
             const grad = ((alphaKd * (studentProb - teacherProb)) + (alphaCe * (studentProb - targetOneHot))) / temperature;
-            gradValues[rowOffset + col] = grad / rowCount;
+            gradValues[rowOffset + mappedCol] += grad / rowCount;
           }
         }
       }
