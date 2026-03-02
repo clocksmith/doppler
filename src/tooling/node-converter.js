@@ -3,6 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { installNodeFileFetchShim } from './node-file-fetch.js';
 import { NodeConvertWorkerPool } from './node-convert-worker-pool.js';
+import { bootstrapNodeWebGPU } from './node-webgpu.js';
 import { isPlainObject } from '../utils/plain-object.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
 import { log, trace } from '../debug/index.js';
@@ -43,6 +44,18 @@ function normalizeExecutionConfig(value, defaults) {
   const maxInFlightJobs = value.maxInFlightJobs == null
     ? defaults.maxInFlightJobs
     : asPositiveInteger(Number(value.maxInFlightJobs), 'execution.maxInFlightJobs');
+  const useGpuCast = value.useGpuCast == null
+    ? defaults.useGpuCast === true
+    : value.useGpuCast === true;
+  if (value.useGpuCast != null && typeof value.useGpuCast !== 'boolean') {
+    throw new Error('node convert: execution.useGpuCast must be a boolean when provided.');
+  }
+  const gpuCastMinTensorBytes = value.gpuCastMinTensorBytes == null
+    ? asPositiveInteger(
+      Number(defaults.gpuCastMinTensorBytes ?? defaults.rowChunkMinTensorBytes ?? (32 * 1024 * 1024)),
+      'execution.gpuCastMinTensorBytes'
+    )
+    : asPositiveInteger(Number(value.gpuCastMinTensorBytes), 'execution.gpuCastMinTensorBytes');
 
   return {
     workers,
@@ -50,6 +63,8 @@ function normalizeExecutionConfig(value, defaults) {
     rowChunkRows,
     rowChunkMinTensorBytes,
     maxInFlightJobs,
+    useGpuCast,
+    gpuCastMinTensorBytes,
   };
 }
 
@@ -154,6 +169,148 @@ async function mapWithConcurrency(items, concurrency, mapper) {
   });
   await Promise.all(runners);
   return results;
+}
+
+let gpuCastRuntimePromise = null;
+
+async function loadNodeGpuCastRuntime() {
+  if (!gpuCastRuntimePromise) {
+    gpuCastRuntimePromise = (async () => {
+      await bootstrapNodeWebGPU();
+      const [
+        { initDevice, getDevice },
+        { castF32ToF16, runBF16ToF16 },
+        { createTensor },
+        { acquireBuffer, releaseBuffer, getBufferPool },
+      ] = await Promise.all([
+        import('../gpu/device.js'),
+        import('../gpu/kernel-selector.js'),
+        import('../gpu/tensor.js'),
+        import('../memory/buffer-pool.js'),
+      ]);
+      const device = await initDevice();
+      if (!device || !getDevice()) {
+        throw new Error(
+          'node convert: execution.useGpuCast requires a WebGPU-capable Node runtime.'
+        );
+      }
+      return {
+        getDevice,
+        castF32ToF16,
+        runBF16ToF16,
+        createTensor,
+        acquireBuffer,
+        releaseBuffer,
+        getBufferPool,
+      };
+    })();
+  }
+  try {
+    return await gpuCastRuntimePromise;
+  } catch (error) {
+    gpuCastRuntimePromise = null;
+    throw error;
+  }
+}
+
+function createNodeGpuTensorTransformer(options) {
+  const {
+    runtime,
+    gpuCastMinTensorBytes,
+    resolveTensorTargetQuant,
+  } = options;
+  const {
+    getDevice,
+    castF32ToF16,
+    runBF16ToF16,
+    createTensor,
+    acquireBuffer,
+    releaseBuffer,
+    getBufferPool,
+  } = runtime;
+  const minTensorBytes = Math.max(1, Number(gpuCastMinTensorBytes) || 1);
+  let warnedFallback = false;
+
+  return async function maybeTransformWithGPU(input) {
+    const tensor = input?.tensor;
+    const tensorData = input?.tensorData;
+    const transformContext = input?.transformContext ?? {};
+    const reportProgress = typeof input?.reportProgress === 'function'
+      ? input.reportProgress
+      : null;
+    if (!tensor || !(tensorData instanceof Uint8Array)) {
+      return null;
+    }
+
+    const sourceDtype = String(tensor.dtype || '').toUpperCase();
+    if (sourceDtype !== 'F32' && sourceDtype !== 'BF16') {
+      return null;
+    }
+
+    const targetQuant = resolveTensorTargetQuant(
+      tensor.name,
+      transformContext.targetQuant,
+      transformContext.quantizationInfo ?? null
+    );
+    if (targetQuant !== 'f16') {
+      return null;
+    }
+    if (tensorData.byteLength < minTensorBytes) {
+      return null;
+    }
+
+    const elementBytes = sourceDtype === 'F32' ? 4 : 2;
+    if (tensorData.byteLength % elementBytes !== 0) {
+      return null;
+    }
+    const numElements = tensorData.byteLength / elementBytes;
+    const outputBytes = numElements * 2;
+
+    let inputBuffer = null;
+    let outputBuffer = null;
+    try {
+      const device = getDevice();
+      if (!device) {
+        return null;
+      }
+      inputBuffer = acquireBuffer(tensorData.byteLength, undefined, `convert_gpu_cast_in_${tensor.name}`);
+      device.queue.writeBuffer(inputBuffer, 0, tensorData, tensorData.byteOffset, tensorData.byteLength);
+
+      if (sourceDtype === 'F32') {
+        const inputTensor = createTensor(inputBuffer, 'f32', [numElements], `${tensor.name}_f32`);
+        const converted = await castF32ToF16(inputTensor);
+        outputBuffer = converted.buffer;
+      } else {
+        const converted = await runBF16ToF16(inputBuffer, [numElements], `${tensor.name}_f16`);
+        outputBuffer = converted.buffer;
+      }
+
+      const readback = await getBufferPool().readBuffer(outputBuffer, outputBytes);
+      if (!(readback instanceof ArrayBuffer) || readback.byteLength !== outputBytes) {
+        return null;
+      }
+      reportProgress?.(tensorData.byteLength, tensorData.byteLength);
+      return {
+        tensorData: new Uint8Array(readback),
+        outDtype: 'F16',
+        outLayout: null,
+      };
+    } catch (error) {
+      if (!warnedFallback) {
+        warnedFallback = true;
+        const message = error instanceof Error ? error.message : String(error);
+        log.warn('NodeConvert', `GPU cast fallback to CPU: ${message}`);
+      }
+      return null;
+    } finally {
+      if (outputBuffer && outputBuffer !== inputBuffer) {
+        releaseBuffer(outputBuffer);
+      }
+      if (inputBuffer) {
+        releaseBuffer(inputBuffer);
+      }
+    }
+  };
 }
 
 
@@ -962,12 +1119,22 @@ export async function convertSafetensorsDirectory(options) {
   });
   const manifestArchitecture = modelKind === 'diffusion' ? 'diffusion' : architecture;
   let workerPool = null;
+  let workerTensorTransformer = null;
+  let gpuTensorTransformer = null;
   let tensorTransformer = null;
   let result = null;
   try {
+    if (executionPlan.useGpuCast) {
+      const gpuRuntime = await loadNodeGpuCastRuntime();
+      gpuTensorTransformer = createNodeGpuTensorTransformer({
+        runtime: gpuRuntime,
+        gpuCastMinTensorBytes: executionPlan.gpuCastMinTensorBytes,
+        resolveTensorTargetQuant,
+      });
+    }
     if (executionPlan.effectiveWorkers > 1) {
       workerPool = new NodeConvertWorkerPool({ size: executionPlan.effectiveWorkers });
-      tensorTransformer = createNodeTensorTransformer({
+      workerTensorTransformer = createNodeTensorTransformer({
         pool: workerPool,
         execution: executionPlan,
         transformTensorBytes,
@@ -976,11 +1143,31 @@ export async function convertSafetensorsDirectory(options) {
         shouldQuantize,
       });
     }
+    if (gpuTensorTransformer || workerTensorTransformer) {
+      tensorTransformer = async (input) => {
+        if (gpuTensorTransformer) {
+          const gpuResult = await gpuTensorTransformer(input);
+          if (gpuResult) {
+            return gpuResult;
+          }
+        }
+        if (workerTensorTransformer) {
+          return workerTensorTransformer(input);
+        }
+        const tensor = input?.tensor;
+        const tensorData = input?.tensorData;
+        if (!tensor || !(tensorData instanceof Uint8Array)) {
+          throw new Error('node convert: invalid tensor transform input.');
+        }
+        return transformTensorBytes(tensor, tensorData, input?.transformContext ?? {});
+      };
+    }
     onProgress?.(toNodeProgress({
       stage: 'writing',
       message: (
         `Convert execution workers: requested=${executionPlan.requestedWorkers}, ` +
-        `effective=${executionPlan.effectiveWorkers}, available=${executionPlan.availableWorkers}`
+        `effective=${executionPlan.effectiveWorkers}, available=${executionPlan.availableWorkers}, ` +
+        `gpuCast=${executionPlan.useGpuCast ? 'on' : 'off'}`
       ),
     }));
 

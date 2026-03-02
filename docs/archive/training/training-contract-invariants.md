@@ -32,5 +32,5 @@ This file is the canonical invariants block for training command flows.
 - `trainingSchemaVersion` must be `1` for training flows.
 - Any other value is rejected.
 
-4. Auto-surface fallback is blocked for training flows.
-- CLI `--surface auto` may not silently downgrade training commands from node to browser.
+4. Auto-surface fallback is allowed for training flows.
+- CLI `--surface auto` may downgrade training commands from node to browser when Node WebGPU is incomplete.

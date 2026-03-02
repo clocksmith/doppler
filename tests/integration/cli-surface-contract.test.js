@@ -97,13 +97,32 @@ function makeTempDir() {
 {
   const result = runCli(['convert', '/tmp/in', '--config', '/tmp/cfg-a.json', '--converter-config', '/tmp/cfg-b.json']);
   assert.equal(result.code, 1);
-  assert.match(result.stderr, /\[error\] convert accepts one config flag\. Use --config only\./);
+  assert.match(result.stderr, /\[error\] --converter-config has been removed\. Use --config <path\.json>\./);
 }
 
 {
   const result = runCli(['convert', '/tmp/in', '--config', '/tmp/cfg.json', '--row-chunk-rows', '0']);
   assert.equal(result.code, 1);
   assert.match(result.stderr, /\[error\] --row-chunk-rows must be a positive integer/);
+}
+
+{
+  const result = runCli(['convert', '/tmp/in', '--config', '/tmp/cfg.json', '--use-gpu-cast', 'maybe']);
+  assert.equal(result.code, 1);
+  assert.match(result.stderr, /\[error\] --use-gpu-cast must be true or false/);
+}
+
+{
+  const result = runCli([
+    'convert',
+    '/tmp/in',
+    '--config',
+    '/tmp/cfg.json',
+    '--gpu-cast-min-tensor-bytes',
+    '1024',
+  ]);
+  assert.equal(result.code, 1);
+  assert.match(result.stderr, /\[error\] --gpu-cast-min-tensor-bytes requires --use-gpu-cast true\./);
 }
 
 {
@@ -130,8 +149,7 @@ function makeTempDir() {
   writeFileSync(converterConfigPath, JSON.stringify({ output: { dir: '/tmp/out' } }), 'utf8');
   const result = runCli(['convert', '/tmp/does-not-exist', '--converter-config', converterConfigPath]);
   assert.equal(result.code, 1);
-  assert.match(result.stderr, /\[warn\] --converter-config is deprecated; use --config\./);
-  assert.match(result.stderr, /\[error\] node convert: inputDir does not exist:/);
+  assert.match(result.stderr, /\[error\] --converter-config has been removed\. Use --config <path\.json>\./);
   rmSync(fixtureDir, { recursive: true, force: true });
 }
 
@@ -211,6 +229,40 @@ function makeTempDir() {
   const result = runCli(['bench', '--runtime-config-json', '[]']);
   assert.equal(result.code, 1);
   assert.match(result.stderr, /\[error\] Invalid --runtime-config-json: value must be a JSON object/);
+}
+
+{
+  const result = runCli([
+    'debug',
+    '--model-id',
+    'toy-model',
+    '--runtime-config',
+    '{"runtime":{"shared":{"harness":{"mode":"debug"}}}}',
+    '--runtime-config-json',
+    '{"runtime":{"shared":{"harness":{"mode":"inference"}}}}',
+  ]);
+  assert.equal(result.code, 1);
+  assert.match(
+    result.stderr,
+    /\[error\] --runtime-config cannot be combined with --runtime-preset, --runtime-config-url, or --runtime-config-json\./
+  );
+}
+
+{
+  const result = runCli([
+    'debug',
+    '--model-id',
+    'toy-model',
+    '--runtime-config',
+    'tools/configs/runtime/modes/debug.json',
+    '--runtime-preset',
+    'modes/debug',
+  ]);
+  assert.equal(result.code, 1);
+  assert.match(
+    result.stderr,
+    /\[error\] --runtime-config cannot be combined with --runtime-preset, --runtime-config-url, or --runtime-config-json\./
+  );
 }
 
 {

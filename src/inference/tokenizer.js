@@ -10,6 +10,29 @@ function hasScheme(value) {
   return /^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(value);
 }
 
+function toArrayBuffer(value, label) {
+  if (value instanceof ArrayBuffer) {
+    return value;
+  }
+  if (value instanceof Uint8Array) {
+    return value.buffer.slice(value.byteOffset, value.byteOffset + value.byteLength);
+  }
+  throw new Error(`${label} must return ArrayBuffer or Uint8Array.`);
+}
+
+function parseTokenizerJsonPayload(value) {
+  if (value == null) {
+    return null;
+  }
+  if (typeof value === 'string') {
+    return JSON.parse(value);
+  }
+  if (typeof value === 'object') {
+    return value;
+  }
+  throw new Error('Tokenizer JSON loader must return an object, JSON string, or null.');
+}
+
 export class Tokenizer {
   
   backend = null;
@@ -55,7 +78,17 @@ export class Tokenizer {
       let tokenizerJson = null;
 
       // Try to load tokenizer.json
-      if (baseUrl) {
+      if (typeof options.loadTokenizerJson === 'function') {
+        try {
+          const loaded = await options.loadTokenizerJson();
+          tokenizerJson = parseTokenizerJsonPayload(loaded);
+        } catch (err) {
+          const message = err instanceof Error ? err.message : String(err);
+          log.warn('Tokenizer', `Failed to load bundled tokenizer from custom loader: ${message}`);
+        }
+      }
+
+      if (!tokenizerJson && baseUrl) {
         // Load from remote URL
         const tokenizerUrl = `${baseUrl}/${tokenizerConfig.file}`;
         try {
@@ -122,12 +155,27 @@ export class Tokenizer {
       // Load the model data from the provided source
       
       let modelData;
-      if (tokenizerConfig.sentencepieceModel instanceof ArrayBuffer) {
+      if (typeof options.loadTokenizerModel === 'function') {
+        try {
+          const loaded = await options.loadTokenizerModel(
+            typeof tokenizerConfig.sentencepieceModel === 'string'
+              ? tokenizerConfig.sentencepieceModel
+              : undefined
+          );
+          if (loaded != null) {
+            modelData = toArrayBuffer(loaded, 'options.loadTokenizerModel');
+          }
+        } catch (err) {
+          const message = err instanceof Error ? err.message : String(err);
+          log.warn('Tokenizer', `Failed to load sentencepiece model from custom loader: ${message}`);
+        }
+      }
+      if (!modelData && tokenizerConfig.sentencepieceModel instanceof ArrayBuffer) {
         modelData = tokenizerConfig.sentencepieceModel;
-      } else if (tokenizerConfig.loadShard) {
+      } else if (!modelData && tokenizerConfig.loadShard) {
         // Use provided shard loader
         modelData = await tokenizerConfig.loadShard(tokenizerConfig.sentencepieceModel);
-      } else if (typeof tokenizerConfig.sentencepieceModel === 'string') {
+      } else if (!modelData && typeof tokenizerConfig.sentencepieceModel === 'string') {
         if (options.baseUrl && !hasScheme(tokenizerConfig.sentencepieceModel)) {
           const url = `${options.baseUrl}/${tokenizerConfig.sentencepieceModel}`;
           const response = await fetch(url);

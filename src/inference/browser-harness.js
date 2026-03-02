@@ -491,6 +491,10 @@ function normalizeLoadMode(value, hasModelUrl) {
   return hasModelUrl ? 'http' : 'opfs';
 }
 
+function isNodeRuntime() {
+  return typeof process !== 'undefined' && !!process.versions?.node;
+}
+
 function normalizeWorkloadType(value) {
   const normalized = String(value || '').trim().toLowerCase();
   return normalized || null;
@@ -627,11 +631,68 @@ async function initializeInferenceFromStorage(modelId, options = {}) {
   return { pipeline, manifest, capabilities };
 }
 
+async function initializeInferenceFromSourcePath(sourcePath, options = {}) {
+  const { onProgress } = options;
+  if (!sourcePath || typeof sourcePath !== 'string') {
+    throw new Error('modelUrl is required for loadMode=memory.');
+  }
+  if (!isNodeRuntime()) {
+    throw new Error('loadMode=memory source runtime is currently supported on Node only.');
+  }
+  if (/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//.test(sourcePath)) {
+    throw new Error(
+      'loadMode=memory expects a local filesystem path (Safetensors directory or .gguf file), not an URL.'
+    );
+  }
+
+  if (options.runtime?.runtimeConfig) {
+    setRuntimeConfig(options.runtime.runtimeConfig);
+  }
+
+  onProgress?.('source', 0.05, 'Preparing source runtime bundle...');
+  const { resolveNodeSourceRuntimeBundle } = await import('../tooling/node-source-runtime.js');
+  const sourceBundle = await resolveNodeSourceRuntimeBundle({
+    inputPath: sourcePath,
+    modelId: options.modelId || null,
+  });
+  if (!sourceBundle) {
+    throw new Error(
+      `No source-runtime model detected at "${sourcePath}". ` +
+      'Expected a Safetensors directory or a .gguf file path.'
+    );
+  }
+
+  onProgress?.('gpu', 0.2, 'Initializing WebGPU...');
+  await initDevice();
+  const device = getDevice();
+  const capabilities = getKernelCapabilities();
+
+  onProgress?.('pipeline', 0.3, 'Creating pipeline...');
+  const pipeline = await createPipeline(sourceBundle.manifest, {
+    gpu: { device },
+    runtime: options.runtime,
+    storage: sourceBundle.storageContext,
+    onProgress,
+  });
+
+  return {
+    pipeline,
+    manifest: sourceBundle.manifest,
+    capabilities,
+  };
+}
+
 async function initializeSuiteModel(options = {}) {
   const loadStart = performance.now();
   const runtime = resolveRuntime(options);
+  const loadMode = normalizeLoadMode(options.loadMode, !options.modelUrl);
   let harness;
-  if (options.modelId && !options.modelUrl) {
+  if (loadMode === 'memory') {
+    if (!options.modelUrl) {
+      throw new Error('loadMode=memory requires modelUrl to be a local model path.');
+    }
+    harness = await initializeInferenceFromSourcePath(options.modelUrl, { ...options, runtime });
+  } else if (options.modelId && !options.modelUrl) {
     harness = await initializeInferenceFromStorage(options.modelId, { ...options, runtime });
   } else {
     if (!options.modelUrl) {

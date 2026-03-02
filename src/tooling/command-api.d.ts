@@ -12,6 +12,8 @@ export interface ToolingConvertExecutionPayload {
   maxInFlightJobs?: number | null;
   rowChunkRows?: number | null;
   rowChunkMinTensorBytes?: number | null;
+  useGpuCast?: boolean | null;
+  gpuCastMinTensorBytes?: number | null;
   [key: string]: unknown;
 }
 

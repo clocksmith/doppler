@@ -89,6 +89,8 @@ export interface ConverterExecutionConfigSchema {
   rowChunkRows: number | null;
   rowChunkMinTensorBytes: number;
   maxInFlightJobs: number | null;
+  useGpuCast: boolean;
+  gpuCastMinTensorBytes: number;
 }
 
 export interface ConverterConfigSchema {

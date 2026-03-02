@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -19,6 +19,7 @@ function snapshotState() {
     GPUTextureUsage: globalThis.GPUTextureUsage,
     markerA: globalThis.__dopplerNodeWebgpuMarkerA,
     markerB: globalThis.__dopplerNodeWebgpuMarkerB,
+    cwd: process.cwd(),
   };
 }
 
@@ -69,6 +70,10 @@ function restoreState(snapshot) {
     delete globalThis.__dopplerNodeWebgpuMarkerB;
   } else {
     globalThis.__dopplerNodeWebgpuMarkerB = snapshot.markerB;
+  }
+
+  if (process.cwd() !== snapshot.cwd) {
+    process.chdir(snapshot.cwd);
   }
 }
 
@@ -148,6 +153,110 @@ function removeNavigator() {
     assert.equal(typeof ready, 'boolean');
   } finally {
     restoreState(snapshot);
+  }
+}
+
+{
+  const snapshot = snapshotState();
+  const tempDir = mkdtempSync(path.join(tmpdir(), 'doppler-webgpu-local-provider-prefer-'));
+  try {
+    clearRuntime();
+    const tempDopplerDir = path.join(tempDir, 'doppler');
+    const tempFawnProviderDir = path.join(tempDir, 'fawn', 'nursery', 'webgpu-core');
+    const tempWebgpuDir = path.join(tempDopplerDir, 'node_modules', 'webgpu');
+
+    mkdirSync(tempDopplerDir, { recursive: true });
+    mkdirSync(tempFawnProviderDir, { recursive: true });
+    mkdirSync(tempWebgpuDir, { recursive: true });
+
+    writeFileSync(path.join(tempFawnProviderDir, 'package.json'), JSON.stringify({
+      name: '@doe/webgpu-core',
+      version: '1.0.0',
+      type: 'module',
+      exports: './index.js',
+    }), 'utf8');
+    writeFileSync(path.join(tempFawnProviderDir, 'index.js'), `
+export const gpu = { async requestAdapter() { return null; } };
+export const GPUBufferUsage = { COPY_SRC: 111 };
+export const GPUShaderStage = { COMPUTE: 111 };
+`, 'utf8');
+
+    writeFileSync(path.join(tempWebgpuDir, 'package.json'), JSON.stringify({
+      name: 'webgpu',
+      version: '1.0.0',
+      type: 'module',
+      exports: './index.js',
+    }), 'utf8');
+    writeFileSync(path.join(tempWebgpuDir, 'index.js'), `
+export const gpu = { async requestAdapter() { return null; } };
+export const GPUBufferUsage = { COPY_SRC: 999 };
+export const GPUShaderStage = { COMPUTE: 999 };
+`, 'utf8');
+
+    process.chdir(tempDopplerDir);
+    delete process.env.DOPPLER_NODE_WEBGPU_MODULE;
+
+    const ready = await bootstrapNodeWebGPU();
+    assert.equal(ready, true);
+    await globalThis.navigator.gpu.requestAdapter();
+    assert.equal(globalThis.GPUBufferUsage.COPY_SRC, 111);
+    assert.equal(globalThis.GPUShaderStage.COMPUTE, 111);
+  } finally {
+    restoreState(snapshot);
+    rmSync(tempDir, { recursive: true, force: true });
+  }
+}
+
+{
+  const snapshot = snapshotState();
+  const tempDir = mkdtempSync(path.join(tmpdir(), 'doppler-webgpu-local-provider-fallback-'));
+  try {
+    clearRuntime();
+    const tempDopplerDir = path.join(tempDir, 'doppler');
+    const tempFawnProviderDir = path.join(tempDir, 'fawn', 'nursery', 'webgpu-core');
+    const tempWebgpuDir = path.join(tempDopplerDir, 'node_modules', 'webgpu');
+
+    mkdirSync(tempDopplerDir, { recursive: true });
+    mkdirSync(tempFawnProviderDir, { recursive: true });
+    mkdirSync(tempWebgpuDir, { recursive: true });
+
+    writeFileSync(path.join(tempFawnProviderDir, 'package.json'), JSON.stringify({
+      name: '@doe/webgpu-core',
+      version: '1.0.0',
+      type: 'module',
+      exports: './index.js',
+    }), 'utf8');
+    writeFileSync(path.join(tempFawnProviderDir, 'index.js'), `
+export const gpu = { requestAdapter: 1 };
+export const GPUBufferUsage = { COPY_SRC: 321 };
+export const GPUShaderStage = { COMPUTE: 321 };
+`, 'utf8');
+
+    writeFileSync(path.join(tempWebgpuDir, 'package.json'), JSON.stringify({
+      name: 'webgpu',
+      version: '1.0.0',
+      type: 'module',
+      exports: './index.js',
+    }), 'utf8');
+    writeFileSync(path.join(tempWebgpuDir, 'index.js'), `
+export const gpu = { async requestAdapter() { return null; } };
+export const GPUBufferUsage = { COPY_SRC: 222 };
+export const GPUShaderStage = { COMPUTE: 222 };
+`, 'utf8');
+
+    process.chdir(tempDopplerDir);
+    delete process.env.DOPPLER_NODE_WEBGPU_MODULE;
+
+    const ready = await bootstrapNodeWebGPU();
+    assert.equal(ready, true);
+    await globalThis.navigator.gpu.requestAdapter();
+    assert.equal(typeof globalThis.GPUBufferUsage?.COPY_SRC, 'number');
+    assert.equal(typeof globalThis.GPUShaderStage?.COMPUTE, 'number');
+    assert.notEqual(globalThis.GPUBufferUsage.COPY_SRC, 321);
+    assert.notEqual(globalThis.GPUShaderStage.COMPUTE, 321);
+  } finally {
+    restoreState(snapshot);
+    rmSync(tempDir, { recursive: true, force: true });
   }
 }
 

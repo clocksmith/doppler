@@ -449,4 +449,114 @@ await assert.rejects(
   }
 }
 
+{
+  const fixtureDir = createTempDir('doppler-converter-invalid-model-id-');
+  writeFileSync(path.join(fixtureDir, 'config.json'), JSON.stringify({
+    architectures: ['Gemma2ForCausalLM'],
+    model_type: 'gemma2',
+    num_hidden_layers: 1,
+    hidden_size: 1,
+    num_attention_heads: 1,
+    num_key_value_heads: 1,
+    head_dim: 1,
+    intermediate_size: 1,
+    vocab_size: 10,
+    max_position_embeddings: 8,
+    bos_token_id: 1,
+    eos_token_id: 2,
+    rms_norm_eps: 1e-6,
+  }), 'utf8');
+  writeMinimalGemma2Safetensors(path.join(fixtureDir, 'model.safetensors'));
+  try {
+    await assert.rejects(
+      () => convertSafetensorsDirectory({
+        inputDir: fixtureDir,
+        converterConfig: {
+          output: {
+            modelBaseId: '---',
+            dir: path.join(fixtureDir, 'out'),
+          },
+          inference: {
+            execution: {
+              steps: [
+                {
+                  id: 'cast.identity',
+                  op: 'cast',
+                  phase: 'both',
+                  section: 'layer',
+                  src: 'attn_q',
+                  dst: 'attn_q',
+                  layers: 'all',
+                  toDtype: 'f16',
+                },
+              ],
+            },
+          },
+        },
+      }),
+      /failed to resolve modelId/
+    );
+  } finally {
+    rmSync(fixtureDir, { recursive: true, force: true });
+  }
+}
+
+{
+  const fixtureDir = createTempDir('doppler-converter-sharded-index-path-');
+  writeFileSync(path.join(fixtureDir, 'config.json'), JSON.stringify({
+    architectures: ['Gemma2ForCausalLM'],
+    model_type: 'gemma2',
+    num_hidden_layers: 1,
+    hidden_size: 1,
+    num_attention_heads: 1,
+    num_key_value_heads: 1,
+    head_dim: 1,
+    intermediate_size: 1,
+    vocab_size: 10,
+    max_position_embeddings: 8,
+    bos_token_id: 1,
+    eos_token_id: 2,
+    rms_norm_eps: 1e-6,
+  }), 'utf8');
+  writeFileSync(path.join(fixtureDir, 'model.safetensors.index.json'), JSON.stringify({
+    metadata: {},
+    weight_map: {
+      'model.embed_tokens.weight': 'model-00001-of-00001.safetensors',
+    },
+  }), 'utf8');
+  writeSingleWeightSafetensors(path.join(fixtureDir, 'model-00001-of-00001.safetensors'));
+  try {
+    const result = await convertSafetensorsDirectory({
+      inputDir: fixtureDir,
+      converterConfig: {
+        output: {
+          modelBaseId: 'gemma2-sharded-index',
+          dir: path.join(fixtureDir, 'out'),
+        },
+        inference: {
+          execution: {
+            steps: [
+              {
+                id: 'cast.identity',
+                op: 'cast',
+                phase: 'both',
+                section: 'layer',
+                src: 'attn_q',
+                dst: 'attn_q',
+                layers: 'all',
+                toDtype: 'f16',
+              },
+            ],
+          },
+        },
+      },
+    });
+    assert.equal(result.outputDir, path.join(fixtureDir, 'out'));
+    assert.ok(result.tensorCount >= 1);
+    assert.ok(result.shardCount >= 1);
+  } finally {
+    rmSync(fixtureDir, { recursive: true, force: true });
+  }
+}
+
 console.log('node-converter-surface-errors.test: ok');

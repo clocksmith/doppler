@@ -8,7 +8,6 @@ import {
   openModelStore,
   verifyIntegrity,
   loadManifestFromStore,
-  streamShardRange,
 } from '../storage/shard-manager.js';
 import { parseManifest } from '../storage/rdrr-format.js';
 import { initDevice, getDevice, getKernelCapabilities } from '../gpu/device.js';
@@ -197,7 +196,10 @@ export class DopplerLoader {
 
   
   setCustomShardLoader(loadShardFn, options = {}) {
-    this.shardCache.setCustomLoader(loadShardFn, options.verify !== false);
+    this.shardCache.setCustomLoader(loadShardFn, options.verify !== false, {
+      loadRange: options.loadShardRange ?? null,
+      streamRange: options.streamShardRange ?? null,
+    });
   }
 
   
@@ -420,7 +422,12 @@ export class DopplerLoader {
           const elapsed = (Date.now() - loadStartTime) / 1000;
           const speed = elapsed > 0 ? bytesLoaded / elapsed : 0;
           const sourceInfo = this.shardCache.lastSource;
-          const sourceStr = sourceInfo ? sourceInfo.source : 'unknown';
+          const sourceStr = sourceInfo
+            ? [sourceInfo.source, sourceInfo.mode, sourceInfo.path].filter(Boolean).join('/')
+            : 'unknown';
+          const fallbackStr = sourceInfo?.fallback && sourceInfo.fallback !== 'none'
+            ? ` fallback=${sourceInfo.fallback}`
+            : '';
           const elapsedStr = sourceInfo && sourceInfo.elapsed > 0 ? ` ${sourceInfo.elapsed.toFixed(2)}s` : '';
           if (onProgress) {
             onProgress({
@@ -431,7 +438,7 @@ export class DopplerLoader {
               bytesLoaded,
               totalBytes,
               bytesPerSecond: speed,
-              message: `Shard ${shardIndex}: ${sourceStr} (${formatBytes(shardSize)}${elapsedStr})`,
+              message: `Shard ${shardIndex}: ${sourceStr} (${formatBytes(shardSize)}${elapsedStr}${fallbackStr})`,
             });
           }
         }
@@ -718,7 +725,7 @@ export class DopplerLoader {
 
   #shouldStreamUploadToGPU(location) {
     if (!location?.size || location.size <= 0) return false;
-    if (this.shardCache.hasCustomLoader) return false;
+    if (this.shardCache.hasCustomLoader && !this.shardCache.canStreamRanges) return false;
     const chunkBytes = this.#loadingConfig?.storage?.backend?.streaming?.readChunkBytes ?? 0;
     if (!Number.isFinite(chunkBytes) || chunkBytes <= 0) return false;
     // Always stream multi-span tensors to avoid loading whole shards + assembling on CPU.
@@ -750,15 +757,16 @@ export class DopplerLoader {
       device.queue.writeBuffer(raw, dstOffset, bytes, bytes.byteOffset, bytes.byteLength);
       dstOffset += bytes.byteLength;
     };
+    const streamRange = (idx, offset, length) => this.shardCache.streamRange(idx, offset, length, { chunkBytes });
 
     if (location.spans) {
       for (const span of location.spans) {
-        for await (const chunk of streamShardRange(span.shardIndex, span.offset, span.size, { chunkBytes })) {
+        for await (const chunk of streamRange(span.shardIndex, span.offset, span.size)) {
           uploadChunk(chunk);
         }
       }
     } else {
-      for await (const chunk of streamShardRange(location.shardIndex, location.offset, location.size, { chunkBytes })) {
+      for await (const chunk of streamRange(location.shardIndex, location.offset, location.size)) {
         uploadChunk(chunk);
       }
     }

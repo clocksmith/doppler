@@ -387,7 +387,7 @@ export function resolveAndActivateKernelPath(options) {
   return state;
 }
 
-export async function initTokenizerFromManifestPreset(manifest, baseUrl) {
+export async function initTokenizerFromManifestPreset(manifest, baseUrl, storageContext = null) {
   const presetId = manifest.inference?.presetId;
   if (!presetId) {
     throw new Error(
@@ -399,5 +399,6 @@ export async function initTokenizerFromManifestPreset(manifest, baseUrl) {
   return initTokenizer(manifest, {
     baseUrl: baseUrl ?? undefined,
     presetTokenizer: preset?.tokenizer,
+    storageContext: storageContext ?? undefined,
   });
 }

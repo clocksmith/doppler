@@ -62,6 +62,58 @@ RDRR v1 accepts either:
 
 ---
 
+## Direct-Source Runtime (Experimental)
+
+Doppler also supports an experimental direct-source runtime path for local SafeTensors/GGUF inputs.
+This path synthesizes an RDRR-compatible manifest contract in memory, then serves shard reads from source files.
+
+### Contract Invariants
+
+`manifest.metadata.sourceRuntime` must include:
+
+```json
+{
+  "mode": "direct-source",
+  "schema": "direct-source/v1",
+  "schemaVersion": 1
+}
+```
+
+Direct-source invariants:
+- `tensorIdentity`: `tensor.name`
+- `shardIdentity`: `sourcePath -> shard index` (deterministic, path-sorted)
+- `byteOffsets`: shard-relative byte offsets and sizes
+- `cacheKeying`: `sourcePath:size`
+- `hashSemantics`: placeholder shard/group hashes; runtime `verifyHashes` must be `false`
+
+### Fallback Matrix (Deterministic)
+
+| Request | Primary path | Fallback path | Telemetry tag |
+|---------|--------------|---------------|---------------|
+| `loadRange` | `customRangeLoader` | `customLoader` slice or backend range | `custom_range_not_supported` / `custom_range_unavailable` |
+| `streamRange` | `customStreamLoader` | `customRangeLoader` resume | `custom_stream_not_supported(_resume)` / `custom_stream_interrupted(_resume)` / `custom_stream_partial_resume` |
+| `streamRange` (range-only) | `customRangeLoader` chunk loop | one deterministic partial/empty retry | `custom_range_partial_retry` |
+
+`ShardCache.lastSource` exposes structured tags: `source`, `mode`, `path`, `fallback`, `elapsed`.
+
+### Compatibility Matrix
+
+| Surface | Model source | Full | Range | Stream | Tokenizer mode |
+|---------|--------------|------|-------|--------|----------------|
+| Node | RDRR shards | Yes | Yes | Yes | `tokenizer.json` and/or `tokenizer.model` |
+| Node | Direct SafeTensors/GGUF | Yes | Yes | Yes (with fallback matrix above) | `tokenizer.json` and optional `tokenizer.model` |
+| Browser bridge | RDRR shards | Yes | Yes | Yes | `tokenizer.json` and/or `tokenizer.model` |
+| Browser bridge | Direct SafeTensors/GGUF | Yes | Yes | Yes (with fallback matrix above) | `tokenizer.json` and optional `tokenizer.model` |
+
+### Rollback Switches
+
+If direct-source rollout causes errors or latency variance:
+1. Use persisted RDRR flow (`loadMode=opfs` or `loadMode=http`) instead of direct-source (`loadMode=memory`).
+2. Disable direct-source entrypoints in tooling/workflows and convert sources to RDRR first.
+3. Keep `runtime.loading.shardCache.verifyHashes=true` for persisted RDRR; direct-source must keep it disabled by contract.
+
+---
+
 ## Manifest Schema
 
 ### Required Fields (v1)

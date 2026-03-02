@@ -16,6 +16,8 @@ export interface NodeConvertExecutionConfig {
   maxInFlightJobs?: number | null;
   rowChunkRows?: number | null;
   rowChunkMinTensorBytes?: number | null;
+  useGpuCast?: boolean | null;
+  gpuCastMinTensorBytes?: number | null;
 }
 
 export interface ConvertSafetensorsDirectoryOptions {
