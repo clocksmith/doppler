@@ -54,28 +54,33 @@
                 </div>
               </div>
               <details class="advanced-nav" id="advanced-nav">
-                <summary class="btn segmented-btn btn-small advanced-toggle">Advanced</summary>
+                <summary class="btn segmented-btn btn-small advanced-toggle">Settings</summary>
                 <div class="advanced-nav-grid" id="advanced-nav-panel">
-                  <div class="segmented-control" id="surface-tabs">
-                    <button class="btn segmented-btn surface-tab" data-surface="demo" type="button">Demo</button>
-                    <button class="btn segmented-btn surface-tab" data-surface="lab" type="button">Lab</button>
+                  <div class="advanced-nav-section">
+                    <div class="type-caption nav-label">Surface</div>
+                    <div class="segmented-control" id="surface-tabs">
+                      <button class="btn segmented-btn surface-tab" data-surface="demo" type="button">Demo</button>
+                      <button class="btn segmented-btn surface-tab" data-surface="lab" type="button">Lab</button>
+                    </div>
                   </div>
-                  <div class="segmented-control" id="mode-tabs">
-                    <button class="btn segmented-btn mode-subtab" data-mode="run" data-tasks="run" type="button">Text</button>
-                    <button class="btn segmented-btn mode-subtab" data-mode="translate" data-tasks="run" data-surfaces="lab" type="button">Translate</button>
-                    <button class="btn segmented-btn mode-subtab" data-mode="embedding" data-tasks="run" type="button">Embedding</button>
-                    <button class="btn segmented-btn mode-subtab" data-mode="diffusion" data-tasks="run" data-surfaces="lab" type="button">
-                      Image
-                    </button>
-                    <button class="btn segmented-btn mode-subtab" data-mode="diagnostics" data-tasks="evaluate" data-surfaces="lab" type="button">Diagnostics</button>
-                    <button class="btn segmented-btn mode-subtab" data-mode="kernels" data-tasks="evaluate" data-surfaces="lab" type="button">Kernels</button>
-                    <button class="btn segmented-btn mode-subtab" data-mode="energy" data-tasks="evaluate" data-surfaces="lab" type="button">Energy</button>
-                    <button class="btn segmented-btn mode-subtab" data-mode="models" data-tasks="manage" type="button">Models</button>
+                  <div class="advanced-nav-section">
+                    <div class="type-caption nav-label">Mode</div>
+                    <div class="segmented-control" id="mode-tabs">
+                      <button class="btn segmented-btn mode-subtab" data-mode="run" data-tasks="run" type="button">Text</button>
+                      <button class="btn segmented-btn mode-subtab" data-mode="translate" data-tasks="run" data-surfaces="lab" type="button">Translate</button>
+                      <button class="btn segmented-btn mode-subtab" data-mode="embedding" data-tasks="run" type="button">Embedding</button>
+                      <button class="btn segmented-btn mode-subtab" data-mode="diffusion" data-tasks="run" data-surfaces="lab" type="button">
+                        Image
+                      </button>
+                      <button class="btn segmented-btn mode-subtab" data-mode="diagnostics" data-tasks="evaluate" data-surfaces="lab" type="button">Diagnostics</button>
+                      <button class="btn segmented-btn mode-subtab" data-mode="kernels" data-tasks="evaluate" data-surfaces="lab" type="button">Kernels</button>
+                      <button class="btn segmented-btn mode-subtab" data-mode="energy" data-tasks="evaluate" data-surfaces="lab" type="button">Energy</button>
+                      <button class="btn segmented-btn mode-subtab" data-mode="models" data-tasks="manage" type="button">Models</button>
+                    </div>
                   </div>
                 </div>
               </details>
             </div>
-            <div class="nav-divider header-divider" aria-hidden="true"></div>
             <div class="header-model">
               <label class="type-caption nav-label" for="diagnostics-model">Active Model</label>
               <select id="diagnostics-model" class="w-full"></select>

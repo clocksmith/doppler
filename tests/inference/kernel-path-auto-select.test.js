@@ -122,6 +122,19 @@ const { setActiveKernelPath, getKernelPathStrict } = await import('../../src/con
 
 {
   const selected = resolveCapabilityKernelPathRef(
+    'lfm2-q4k-dequant-f32a-online',
+    'config',
+    { hasSubgroups: false },
+    {
+      mode: 'capability-aware',
+      sourceScope: ['config'],
+    }
+  );
+  assert.equal(selected, 'gemma3-q4k-dequant-f32a');
+}
+
+{
+  const selected = resolveCapabilityKernelPathRef(
     'gemma3-f16-fused-f32a-online',
     'model',
     { hasSubgroups: true }
@@ -154,6 +167,16 @@ const { setActiveKernelPath, getKernelPathStrict } = await import('../../src/con
     'kernelPath',
     'finitenessFallback',
     { kernelPathId: 'gemma3-q4k-dequant-f16a-online' }
+  );
+  assert.equal(selected, 'gemma3-q4k-dequant-f32a');
+}
+
+{
+  const selected = selectRuleValue(
+    'inference',
+    'kernelPath',
+    'finitenessFallback',
+    { kernelPathId: 'lfm2-q4k-dequant-f32a-online' }
   );
   assert.equal(selected, 'gemma3-q4k-dequant-f32a');
 }

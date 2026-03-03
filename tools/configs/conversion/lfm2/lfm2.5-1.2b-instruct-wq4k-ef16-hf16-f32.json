@@ -14,7 +14,7 @@
     "q4kLayout": "row"
   },
   "inference": {
-    "defaultKernelPath": "gemma3-q4k-dequant-f16a-online",
+    "defaultKernelPath": "lfm2-q4k-dequant-f32a-online",
     "sessionDefaults": {
       "decodeLoop": {
         "batchSize": 8,

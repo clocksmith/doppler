@@ -72,6 +72,13 @@
       "notes": "Gemma 3 Q4K dequant default: subgroup GEMV + online attention + tuned lm_head multicol, F32 activations."
     },
     {
+      "id": "lfm2-q4k-dequant-f32a-online",
+      "file": "lfm2-q4k-dequant-f32a-online.json",
+      "status": "canonical",
+      "statusReason": "default",
+      "notes": "LFM2 Q4K default: subgroup GEMV decode with tiled fast-prefill path and F32 activations."
+    },
+    {
       "id": "embeddinggemma-f16-f32a",
       "file": "embeddinggemma-f16-f32a.json",
       "status": "canonical",
