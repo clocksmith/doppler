@@ -4,15 +4,17 @@
 
 **[Try it live](https://d4da.com)**
 
-Doppler is a local WebGPU runtime for browser, Node, and CLI intent/inference loops.
-It provides explicit load-path and kernel-path control, reproducible phase benchmarks against Transformers.js (v4), and auditable kernel execution tracing.
+Doppler is a local WebGPU runtime for browser-hosted and on-device AI workloads.
+It provides explicit control over load-path and kernel-path selection, reproducible phase-level benchmarking (see below for Transformers.js (v4)), and auditable kernel execution tracing.
 
 ## Evidence
 
-![Doppler vs Transformers.js v4 phase comparison (1B, selected warm OPFS workloads)](benchmarks/vendors/results/compare_1b_multi-workload_favorable_phases.svg)
+Lower is better, comparing per-phase latency by workload.
 
-This chart covers three 1B workloads (`g3-p032-d256-t0-k1`, `g3-p064-d064-t0-k1`, `g3-p064-d064-t1-k32`) under the same warm-opfs parity contract.
-In this snapshot, Doppler leads first-response latency and decode throughput, while Transformers.js (v4) leads TTFT and prefill throughput.
+![Phase-latency comparison on one workload across models](benchmarks/vendors/results/compare_1b_multi-workload_favorable_phases.svg)
+
+This chart uses the warm-opfs 1B workload (`64 prompt tokens, 64 decode tokens, greedy`) with one panel for Gemma 3 and one for LFM2.5.
+In this snapshot, Doppler is lower across first-response, prefill, and decode than Transformers.js (v4).
 Definitions and reproducibility details are in the Performance section.
 
 ## Local intent latency constraints
@@ -128,7 +130,11 @@ Snapshot context: captured on 2026-03-01 on Apple M3 (Metal, macOS 26.1) with
 In the two workloads shown above, Doppler is faster on first-response latency and decode throughput, while Transformers.js (v4) is faster on TTFT and prefill throughput.
 Committed evidence:
 - chart artifact: `benchmarks/vendors/results/compare_1b_multi-workload_favorable_phases.svg`
-- committed compare fixture input: `benchmarks/vendors/fixtures/g3-p064-d064-t0-k1.compare.json`
+- committed compare result inputs:
+  - `benchmarks/vendors/results/compare_20260303T175640.json` (Gemma 3 vs Transformers.js)
+  - `benchmarks/vendors/results/compare_20260303T175208.json` (LFM2.5 vs Transformers.js)
+- regenerate the README chart:
+  - `npm run bench:chart:readme`
 Local/generated compare outputs are written to `benchmarks/vendors/results/*.json` and are gitignored by policy.
 
 ### Reproduce

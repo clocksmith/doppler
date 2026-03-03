@@ -1,0 +1,8 @@
+label	decodeTokensPerSec	avgDecodeTokensPerSec	ttftMs	decodeMsPerTokenP50	prefillTokensPerSec	totalRunMs
+default(manifest kernel + decodeLoop)	30.61	30.6	143.03	32.67	63.27	4329.06
+f16a b4 r4	30.92	30.96	142.83	32.35	63.17	4283.19
+f16a b8 r8	30.82	30.8	143.57	32.45	63.26	4295.06
+f16a b16 r16	31.02	31.03	143.51	32.24	62.84	4269.82
+f32a b4 r4	28.39	28.28	97.6	35.23	92.97	4606.55
+f32a b8 r8	27.32	27.03	104.16	36.6	86.62	4789.04
+f32a b16 r16	21.84	21.88	144.43	45.78	63.07	6001.34

@@ -15,6 +15,8 @@
     "debug": "node tools/doppler-cli.js debug",
     "bench": "node tools/doppler-cli.js bench",
     "bench:chart": "node ./benchmarks/vendors/compare-chart.js",
+    "bench:chart:readme": "node ./benchmarks/vendors/compare-chart.js --preset readme-evidence",
+    "bench:architecture:chart": "node ./benchmarks/vendors/generate-architecture-overview-svg.js",
     "test:unit": "node tools/run-node-tests.mjs --suite unit",
     "test:gpu": "node tools/run-node-tests.mjs --suite gpu",
     "test:coverage": "node tools/run-node-coverage.mjs",

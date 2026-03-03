@@ -110,7 +110,8 @@ Current config intent:
   - Preset: `lfm2`
   - Weights: `q4k` (row layout), embeddings/lmHead: `f16`
   - Compute: `f32`
-  - Kernel path: `gemma3-q4k-dequant-f16a-online` (preset-mapped; LFM2 mixed-precision path)
+  - Kernel path: `gemma3-q4k-dequant-f16a-online` (explicit; LFM2 mixed-precision path)
+  - Session defaults: decode loop `batchSize=8`, `stopCheckMode=batch`, `readbackInterval=8`
 
 - `tools/configs/conversion/lfm2/lfm2.5-1.2b-instruct-wq4k-ef16-hf16-f16.json`
   - Output base: `models/local/lfm2.5-1.2b-instruct-wq4k-ef16-hf16-f16`

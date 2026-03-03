@@ -68,16 +68,28 @@ function resolveModelBatchingDefaults(manifest, modelConfig) {
   });
 }
 
-export function applyModelBatchingRuntimeDefaults(runtimeConfig, manifest, modelConfig) {
-  if (runtimeConfig?.shared?.tooling?.intent === 'calibrate') {
-    return runtimeConfig;
+function resolveManifestDecodeLoopDefaults(manifest) {
+  const decodeLoop = manifest?.inference?.sessionDefaults?.decodeLoop;
+  if (!decodeLoop || typeof decodeLoop !== 'object') {
+    return null;
   }
+  const batchSize = normalizePositiveInt(decodeLoop.batchSize);
+  const stopCheckMode = normalizeStopCheckMode(decodeLoop.stopCheckMode);
+  const readbackInterval = normalizeReadbackInterval(decodeLoop.readbackInterval);
+  if (batchSize == null || stopCheckMode == null || readbackInterval == null) {
+    return null;
+  }
+  return { batchSize, stopCheckMode, readbackInterval };
+}
+
+export function applyModelBatchingRuntimeDefaults(runtimeConfig, manifest, modelConfig) {
   const batching = runtimeConfig?.inference?.batching;
   if (!isRuntimeBatchingAtGlobalDefaults(batching)) {
     return runtimeConfig;
   }
 
-  const defaults = resolveModelBatchingDefaults(manifest, modelConfig);
+  const defaults = resolveManifestDecodeLoopDefaults(manifest)
+    ?? resolveModelBatchingDefaults(manifest, modelConfig);
   if (!defaults || typeof defaults !== 'object') {
     return runtimeConfig;
   }

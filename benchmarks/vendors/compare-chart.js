@@ -3,16 +3,40 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {
+  SVG_FONTS,
+  SVG_THEME,
+  makeSvgTextStyle,
+} from './svg-theme.js';
 
 const CHART_TYPES = Object.freeze(['bar', 'stacked', 'radar', 'phases']);
 const DEFAULT_CHART = 'bar';
 const DEFAULT_WIDTH = 960;
 const DEFAULT_HEIGHT = 560;
 const DEFAULT_SECTION = 'compute/parity';
+const CANVAS_PADDING = 14;
+const STATIC_CHART_TITLE = 'Phase-latency comparison on one workload across models';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const COMPARE_METRICS_PATH = path.join(__dirname, 'compare-metrics.json');
 const DOPPLER_HARNESS_PATH = path.join(__dirname, 'harnesses', 'doppler.json');
 const TRANSFORMERSJS_HARNESS_PATH = path.join(__dirname, 'harnesses', 'transformersjs.json');
+const README_PRESET_NAME = 'readme-evidence';
+
+const CHART_PRESETS = Object.freeze({
+  [README_PRESET_NAME]: Object.freeze({
+    inputs: Object.freeze([
+      path.join(__dirname, 'results', 'compare_20260303T175640.json'),
+      path.join(__dirname, 'results', 'compare_20260303T181233.json'),
+    ]),
+    chart: 'phases',
+    section: 'warm',
+    width: 1200,
+    height: 474,
+    output: path.join(__dirname, 'results', 'compare_1b_multi-workload_favorable_phases.svg'),
+    description: 'README chart: Gemma 3 and LFM2.5 warm-opfs phase comparison',
+  }),
+});
+const PRESET_NAMES = Object.keys(CHART_PRESETS);
 
 const DEFAULT_METRICS = Object.freeze([
   {
@@ -198,35 +222,29 @@ function loadChartMetricContract() {
 }
 
 const CHART_METRIC_CONTRACT = loadChartMetricContract();
-
-const PALETTE = Object.freeze({
-  text: '#ffffff',
-  muted: '#cbd5e1',
-  grid: '#1f2937',
-  doppler: '#9d4edd',
-  transformersjs: '#ffbd45',
-  fail: '#3f3f46',
-  failFill: '#7f1d1d',
-  metric: [
-    '#9d4edd',
-    '#c77dff',
-    '#7c3aed',
-    '#ffbd45',
-    '#ffd580',
-    '#22d3ee',
-    '#4ade80',
-    '#f59e0b',
-  ],
-});
-
-const FONT_UI = 'Segoe UI, Helvetica Neue, Arial, sans-serif';
-const FONT_MONO = 'SFMono-Regular, Menlo, Consolas, Liberation Mono, monospace';
-
-const SVG_STYLE = `<defs><style>
-  text { paint-order: stroke fill; stroke: #000000; stroke-width: 2px; stroke-linejoin: round; }
-</style></defs>`;
+const PALETTE = SVG_THEME.palette;
+const PHASE_COLORS = PALETTE.phase;
+const FONT_UI = SVG_FONTS.uiCss.replaceAll('"', "'");
+const FONT_MONO = SVG_FONTS.monoCss.replaceAll('"', "'");
+const SVG_STYLE = makeSvgTextStyle();
+const PHASE_PANEL_OPACITY = '0.35';
 
 let svgIdCounter = 0;
+
+function renderChartCanvas(width, height) {
+  return `<rect x="0" y="0" width="${width}" height="${height}" fill="#020617" />
+  <rect x="${CANVAS_PADDING}" y="${CANVAS_PADDING}" width="${Math.max(0, width - CANVAS_PADDING * 2)}" height="${height - CANVAS_PADDING * 2}" rx="0" fill="#020817" fill-opacity="0.50" stroke="${PALETTE.grid}" stroke-opacity="0.65" stroke-width="2" />`;
+}
+
+function renderChartHeaderBand(width, title, subtitle, sectionLabel) {
+  const safeTitle = escapeXml(title || subtitle || '');
+  const textY = CANVAS_PADDING + 34;
+  return `<text x="${CANVAS_PADDING + 16}" y="${textY}" fill="#dbeafe" font-family="${FONT_UI}" font-size="14" font-weight="bold" stroke="none">${safeTitle}</text>`;
+}
+
+function renderPhaseTrackPanel(x, y, width, height, tint = PALETTE.grid) {
+  return `<rect x="${x}" y="${y}" width="${width}" height="${height}" rx="0" fill="${PALETTE.grid}" fill-opacity="${PHASE_PANEL_OPACITY}" stroke="${tint}" stroke-opacity="0.55" stroke-width="2" />`;
+}
 
 function svgWrap(width, height, body, title = 'Benchmark Comparison', desc = '') {
   svgIdCounter += 1;
@@ -238,6 +256,7 @@ function svgWrap(width, height, body, title = 'Benchmark Comparison', desc = '')
   <title id="${titleId}">${safeTitle}</title>
   <desc id="${descId}">${safeDesc}</desc>
   ${SVG_STYLE}
+  ${renderChartCanvas(width, height)}
   ${body}
 </svg>`;
 }
@@ -250,7 +269,7 @@ const ENGINE_META = Object.freeze({
   },
   transformersjs: {
     key: 'transformersjs',
-    label: 'Transformers.js',
+    label: 'Transformers.js (v4)',
     color: PALETTE.transformersjs,
   },
 });
@@ -269,6 +288,11 @@ function usage() {
     '  --output <path>               Output SVG path',
     '  --section <path>              Section path in result payload (default: compute/parity)',
     '  --chart <bar|stacked|radar|phases>  Chart family (default: bar)',
+    `  --preset <${PRESET_NAMES.join(', ')}>  Use predefined input preset (main chart generator shortcut)`,
+    `  --preset ${README_PRESET_NAME}   Gemma 3 + LFM2.5 warm-opfs phase evidence chart`,
+    '  --include-workload <id|label>  Include only workloads matching by id or rendered label (repeatable)',
+    '  --exclude-workload <id|label>  Exclude workloads by id or rendered label (repeatable)',
+    '  --allow-non-comparable        Allow mixed benchmark settings across inputs (default: strict apples-to-apples)',
     '  --metrics <id,id,...>         Comma-separated metric IDs',
     '  --width <n>                   SVG width (default: 960)',
     '  --height <n>                  SVG height (default: 560)',
@@ -278,10 +302,102 @@ function usage() {
     '  node benchmarks/vendors/compare-chart.js --input benchmarks/vendors/fixtures/sample-compare.json',
     '  node benchmarks/vendors/compare-chart.js --input ... --chart stacked --width 1200',
     '  node benchmarks/vendors/compare-chart.js --input ... --chart radar --metrics decodeTokensPerSec,firstTokenMs',
-    '  node benchmarks/vendors/compare-chart.js --input ... --chart phases',
+    '  node benchmarks/vendors/compare-chart.js --input ... --chart phases --include-workload "64 prompt tokens, 64 decode tokens, greedy"',
+    '  node benchmarks/vendors/compare-chart.js --input ... --chart phases --exclude-workload g3-p064-d064-t0-k1',
     '  node benchmarks/vendors/compare-chart.js --chart phases --input workload1.json --input workload2.json',
+    `  node benchmarks/vendors/compare-chart.js --preset ${README_PRESET_NAME}`,
     '  node benchmarks/vendors/compare-chart.js --chart radar --input workload1.json --input workload2.json',
   ].join('\n');
+}
+
+function splitCommaList(raw) {
+  return String(raw || '')
+    .split(',')
+    .map((item) => item.trim())
+    .filter((item) => item.length > 0);
+}
+
+function splitWorkloadFilterList(raw) {
+  const rawText = String(raw || '').trim();
+  if (rawText.length === 0) return [];
+  const parts = rawText.split(',').map((item) => item.trim()).filter((item) => item.length > 0);
+  if (parts.length === 0) return [];
+  if (parts.length === 1) return [rawText];
+
+  const isLikelyFilterList = parts.every((item) => !/\s/.test(item));
+  if (!isLikelyFilterList) return [rawText];
+
+  return parts;
+}
+
+function normalizeWorkloadFilterToken(raw) {
+  return String(raw || '')
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, ' ');
+}
+
+function workloadFilterTokens(entry) {
+  const workload = entry?.report?.workload || {};
+  const inputBase = path.basename(entry.inputPath || '', '.json');
+  const sampling = workload.sampling || {};
+  const prefill = workload.prefillTokenTarget ?? workload.prefillTokens;
+  const decode = workload.decodeTokenTarget ?? workload.decodeTokens;
+  const label = prettifyWorkload(workload);
+
+  const tokens = new Set([
+    inputBase,
+    workload.id,
+    label,
+    `${prefill} ${decode}`,
+    `${prefill} prompt tokens, ${decode} decode tokens`,
+  ]);
+
+  if (isFiniteNumber(sampling.temperature)) {
+    tokens.add(`temperature ${sampling.temperature}`);
+    if (sampling.temperature === 0) {
+      tokens.add('greedy');
+      tokens.add(`${prefill} prompt tokens, ${decode} decode tokens, greedy`);
+    } else {
+      tokens.add(`temp ${sampling.temperature}`);
+    }
+  }
+  if (isFiniteNumber(sampling.topK)) {
+    tokens.add(`k${sampling.topK}`);
+    tokens.add(`top-k ${sampling.topK}`);
+    if (sampling.topK > 1) {
+      tokens.add(`${prefill} prompt tokens, ${decode} decode tokens, top-k ${sampling.topK}`);
+    }
+  }
+
+  const normalized = new Set();
+  for (const token of tokens) {
+    const normalizedToken = normalizeWorkloadFilterToken(token);
+    if (normalizedToken.length > 0) normalized.add(normalizedToken);
+  }
+  return normalized;
+}
+
+function shouldExcludeWorkload(entry, excludeSet) {
+  if (excludeSet.size === 0) return false;
+  const tokens = workloadFilterTokens(entry);
+  const workloadLabel = normalizeWorkloadFilterToken(prettifyWorkload(entry.report?.workload));
+  for (const selector of excludeSet) {
+    if (tokens.has(selector)) return true;
+    if (workloadLabel.length > 0 && workloadLabel.includes(selector)) return true;
+  }
+  return false;
+}
+
+function shouldIncludeWorkload(entry, includeSet) {
+  if (includeSet.size === 0) return true;
+  const tokens = workloadFilterTokens(entry);
+  const workloadLabel = normalizeWorkloadFilterToken(prettifyWorkload(entry.report?.workload));
+  for (const selector of includeSet) {
+    if (tokens.has(selector)) return true;
+    if (workloadLabel.length > 0 && workloadLabel.includes(selector)) return true;
+  }
+  return false;
 }
 
 function parseArgs(argv) {
@@ -290,7 +406,16 @@ function parseArgs(argv) {
     height: DEFAULT_HEIGHT,
     chart: DEFAULT_CHART,
     section: DEFAULT_SECTION,
+    sectionExplicit: false,
+    chartExplicit: false,
+    widthExplicit: false,
+    heightExplicit: false,
+    outputExplicit: false,
+    preset: null,
     metricIds: [],
+    includeWorkloads: [],
+    excludeWorkloads: [],
+    allowNonComparable: false,
     inputs: [],
   };
 
@@ -315,30 +440,36 @@ function parseArgs(argv) {
     if (arg === '--output') {
       parsed.output = argv[i + 1];
       i += 1;
+      parsed.outputExplicit = true;
       continue;
     }
     if (arg.startsWith('--output=')) {
       parsed.output = arg.substring('--output='.length);
+      parsed.outputExplicit = true;
       continue;
     }
 
     if (arg === '--section') {
       parsed.section = argv[i + 1] || DEFAULT_SECTION;
+      parsed.sectionExplicit = true;
       i += 1;
       continue;
     }
     if (arg.startsWith('--section=')) {
       parsed.section = arg.substring('--section='.length);
+      parsed.sectionExplicit = true;
       continue;
     }
 
     if (arg === '--chart') {
       parsed.chart = argv[i + 1];
+      parsed.chartExplicit = true;
       i += 1;
       continue;
     }
     if (arg.startsWith('--chart=')) {
       parsed.chart = arg.substring('--chart='.length);
+      parsed.chartExplicit = true;
       continue;
     }
 
@@ -358,23 +489,62 @@ function parseArgs(argv) {
       continue;
     }
 
+    if (arg === '--exclude-workload') {
+      parsed.excludeWorkloads.push(...splitWorkloadFilterList(argv[i + 1]));
+      i += 1;
+      continue;
+    }
+    if (arg.startsWith('--exclude-workload=')) {
+      parsed.excludeWorkloads.push(...splitWorkloadFilterList(arg.substring('--exclude-workload='.length)));
+      continue;
+    }
+
+    if (arg === '--include-workload') {
+      parsed.includeWorkloads.push(...splitWorkloadFilterList(argv[i + 1]));
+      i += 1;
+      continue;
+    }
+    if (arg.startsWith('--include-workload=')) {
+      parsed.includeWorkloads.push(...splitWorkloadFilterList(arg.substring('--include-workload='.length)));
+      continue;
+    }
+
     if (arg === '--width') {
       parsed.width = Number.parseInt(argv[i + 1], 10);
+      parsed.widthExplicit = true;
       i += 1;
       continue;
     }
     if (arg.startsWith('--width=')) {
       parsed.width = Number.parseInt(arg.substring('--width='.length), 10);
+      parsed.widthExplicit = true;
       continue;
     }
 
     if (arg === '--height') {
       parsed.height = Number.parseInt(argv[i + 1], 10);
+      parsed.heightExplicit = true;
       i += 1;
       continue;
     }
     if (arg.startsWith('--height=')) {
       parsed.height = Number.parseInt(arg.substring('--height='.length), 10);
+      parsed.heightExplicit = true;
+      continue;
+    }
+
+    if (arg === '--allow-non-comparable') {
+      parsed.allowNonComparable = true;
+      continue;
+    }
+
+    if (arg === '--preset') {
+      parsed.preset = (argv[i + 1] || '').trim();
+      i += 1;
+      continue;
+    }
+    if (arg.startsWith('--preset=')) {
+      parsed.preset = arg.substring('--preset='.length).trim();
       continue;
     }
 
@@ -383,9 +553,6 @@ function parseArgs(argv) {
     }
   }
 
-  if (parsed.inputs.length === 0) {
-    throw new Error('Missing required --input path.');
-  }
   if (!Number.isFinite(parsed.width) || parsed.width < 300) {
     throw new Error('--width must be a number >= 300.');
   }
@@ -396,7 +563,156 @@ function parseArgs(argv) {
     throw new Error(`--chart must be one of ${CHART_TYPES.join(', ')}`);
   }
 
+  parsed.excludeWorkloads = [...new Set(parsed.excludeWorkloads.map((item) => item.trim()).filter((item) => item.length > 0))];
+  parsed.includeWorkloads = [...new Set(parsed.includeWorkloads.map((item) => item.trim()).filter((item) => item.length > 0))];
   return parsed;
+}
+
+function normalizeComparableNumber(value) {
+  if (!isFiniteNumber(value)) return null;
+  return Number(value.toFixed(6));
+}
+
+function normalizeComparableValue(value) {
+  if (isFiniteNumber(value)) return normalizeComparableNumber(value);
+  if (value == null) return null;
+  return value;
+}
+
+function firstNonNull(...values) {
+  for (const value of values) {
+    if (value != null) return value;
+  }
+  return null;
+}
+
+function buildComparabilityRecord(entry) {
+  const report = entry?.report || {};
+  const workload = report.workload || {};
+  const sampling = workload.sampling || {};
+  const sectionPayload = entry?.sectionPayload || {};
+  const dopplerRequest = sectionPayload?.doppler?.request || {};
+  const tjsPayload = sectionPayload?.transformersjs ?? sectionPayload?.tjs ?? {};
+  const resolvedMode = typeof entry?.resolvedSection === 'string'
+    ? entry.resolvedSection.split('/')[0]
+    : null;
+
+  return {
+    section: normalizeComparableValue(entry?.resolvedSection || null),
+    mode: normalizeComparableValue(firstNonNull(report.mode, resolvedMode)),
+    decodeProfile: normalizeComparableValue(report.decodeProfile ?? null),
+    workloadId: normalizeComparableValue(workload.id ?? null),
+    prefillTokenTarget: normalizeComparableValue(firstNonNull(
+      workload.prefillTokenTarget,
+      workload.prefillTokens,
+    )),
+    decodeTokenTarget: normalizeComparableValue(firstNonNull(
+      workload.decodeTokenTarget,
+      workload.decodeTokens,
+    )),
+    temperature: normalizeComparableValue(sampling.temperature ?? null),
+    topK: normalizeComparableValue(sampling.topK ?? null),
+    topP: normalizeComparableValue(sampling.topP ?? null),
+    warmupRuns: normalizeComparableValue(report.warmupRuns ?? null),
+    runs: normalizeComparableValue(report.runs ?? null),
+    seed: normalizeComparableValue(report.seed ?? null),
+    loadMode: normalizeComparableValue(firstNonNull(
+      report.methodology?.loadMode,
+      dopplerRequest.loadMode,
+      tjsPayload.loadMode,
+      report.loadMode,
+    )),
+    cacheMode: normalizeComparableValue(firstNonNull(
+      dopplerRequest.cacheMode,
+      report.cacheMode,
+    )),
+  };
+}
+
+function formatComparableValue(value) {
+  if (value == null) return 'null';
+  if (typeof value === 'string') return value;
+  return String(value);
+}
+
+function assertComparableEntries(entries, { allowNonComparable = false } = {}) {
+  if (allowNonComparable || !Array.isArray(entries) || entries.length <= 1) {
+    return;
+  }
+
+  const records = entries.map((entry) => ({
+    inputPath: entry.inputPath,
+    values: buildComparabilityRecord(entry),
+  }));
+  const fieldOrder = Object.keys(records[0].values);
+  const mismatchedFields = [];
+
+  for (const field of fieldOrder) {
+    const baseline = records[0].values[field];
+    const mismatch = records.some((record, index) => index > 0 && record.values[field] !== baseline);
+    if (mismatch) {
+      mismatchedFields.push(field);
+    }
+  }
+
+  if (mismatchedFields.length === 0) {
+    return;
+  }
+
+  const fieldLabels = Object.freeze({
+    section: 'section',
+    mode: 'mode',
+    decodeProfile: 'decode profile',
+    workloadId: 'workload id',
+    prefillTokenTarget: 'prefill token target',
+    decodeTokenTarget: 'decode token target',
+    temperature: 'temperature',
+    topK: 'top-k',
+    topP: 'top-p',
+    warmupRuns: 'warmup runs',
+    runs: 'timed runs',
+    seed: 'seed',
+    loadMode: 'load mode',
+    cacheMode: 'cache mode',
+  });
+
+  const detailLines = records.map((record) => {
+    const fileLabel = path.basename(record.inputPath);
+    const parts = mismatchedFields.map((field) => {
+      const label = fieldLabels[field] || field;
+      return `${label}=${formatComparableValue(record.values[field])}`;
+    });
+    return `- ${fileLabel}: ${parts.join(', ')}`;
+  });
+
+  throw new Error([
+    'Inputs are not apples-to-apples for charting.',
+    `Mismatched fields: ${mismatchedFields.map((field) => fieldLabels[field] || field).join(', ')}`,
+    ...detailLines,
+    'Re-run with matched benchmark settings or pass --allow-non-comparable to bypass.',
+  ].join('\n'));
+}
+
+function applyPresetOptions(parsed) {
+  if (!parsed.preset) return;
+  const preset = CHART_PRESETS[parsed.preset];
+  if (!preset) {
+    const names = PRESET_NAMES.length > 0 ? PRESET_NAMES.join(', ') : 'none';
+    throw new Error(`Unknown preset "${parsed.preset}". Available presets: ${names}`);
+  }
+
+  if (parsed.inputs.length > 0) {
+    throw new Error('--preset is not compatible with --input; use one or the other');
+  }
+
+  parsed.inputs = [...preset.inputs];
+  if (!parsed.chartExplicit && preset.chart) parsed.chart = preset.chart;
+  if (!parsed.sectionExplicit && preset.section) parsed.section = preset.section;
+  if (!parsed.widthExplicit && preset.width) parsed.width = preset.width;
+  if (!parsed.heightExplicit && preset.height) parsed.height = preset.height;
+  if (!parsed.outputExplicit && preset.output) {
+    parsed.output = preset.output;
+  }
 }
 
 function isFiniteNumber(value) {
@@ -629,38 +945,38 @@ function renderBarChart(rows, width, height, title, subtitle, sectionLabel) {
     const tjsWidth = isFiniteNumber(metric.transformersjs.value) ? (metric.transformersjs.value / maxValue) * barAreaMax : 0;
     const rowCenter = y + 34;
 
-    body += `<text x="32" y="${y + 6}" fill="${PALETTE.text}" font-family="monospace" font-size="13">${escapeXml(metric.label)}</text>\n`;
-    body += `<text x="32" y="${y + 22}" fill="${PALETTE.muted}" font-family="monospace" font-size="11">${metric.higherBetter ? 'higher is better' : 'lower is better'}</text>\n`;
+    body += `<text x="32" y="${y + 6}" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="13">${escapeXml(metric.label)}</text>\n`;
+    body += `<text x="32" y="${y + 22}" fill="${PALETTE.muted}" font-family="${FONT_MONO}" font-size="11">${metric.higherBetter ? 'higher is better' : 'lower is better'}</text>\n`;
     body += `<line x1="${left}" y1="${y + 44}" x2="${left + barAreaMax}" y2="${y + 44}" stroke="${PALETTE.grid}" stroke-width="1" />\n`;
 
     if (metric.doppler.status === 'ok') {
       body += `<rect x="${left + 80}" y="${rowCenter - 18}" width="${dopplerWidth}" height="16" fill="${PALETTE.doppler}" />\n`;
-      body += `<text x="${left + 88 + dopplerWidth}" y="${rowCenter - 5}" fill="${PALETTE.doppler}" font-family="monospace" font-size="11">${formatValue(metric.doppler.value, metric.unit)}</text>\n`;
+      body += `<text x="${left + 88 + dopplerWidth}" y="${rowCenter - 5}" fill="${PALETTE.doppler}" font-family="${FONT_MONO}" font-size="11">${formatValue(metric.doppler.value, metric.unit)}</text>\n`;
       if (!isFiniteNumber(metric.doppler.value)) {
-        body += `<text x="${left + 90}" y="${rowCenter - 5}" fill="${PALETTE.text}" font-family="monospace" font-size="11">n/a</text>\n`;
+        body += `<text x="${left + 90}" y="${rowCenter - 5}" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="11">n/a</text>\n`;
       }
     } else {
       body += `<rect x="${left + 80}" y="${rowCenter - 18}" width="${barAreaMax}" height="16" fill="${PALETTE.failFill}" />\n`;
-      body += `<text x="${left + 90}" y="${rowCenter - 5}" fill="${PALETTE.text}" font-family="monospace" font-size="11">Doppler.js failed</text>\n`;
+      body += `<text x="${left + 90}" y="${rowCenter - 5}" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="11">Doppler.js failed</text>\n`;
     }
 
     if (metric.transformersjs.status === 'ok') {
       body += `<rect x="${left + 80}" y="${rowCenter + 2}" width="${tjsWidth}" height="16" fill="${PALETTE.transformersjs}" />\n`;
-      body += `<text x="${left + 88 + tjsWidth}" y="${rowCenter + 15}" fill="${PALETTE.transformersjs}" font-family="monospace" font-size="11">${formatValue(metric.transformersjs.value, metric.unit)}</text>\n`;
+      body += `<text x="${left + 88 + tjsWidth}" y="${rowCenter + 15}" fill="${PALETTE.transformersjs}" font-family="${FONT_MONO}" font-size="11">${formatValue(metric.transformersjs.value, metric.unit)}</text>\n`;
       if (!isFiniteNumber(metric.transformersjs.value)) {
-        body += `<text x="${left + 90}" y="${rowCenter + 15}" fill="${PALETTE.text}" font-family="monospace" font-size="11">n/a</text>\n`;
+        body += `<text x="${left + 90}" y="${rowCenter + 15}" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="11">n/a</text>\n`;
       }
     } else {
       body += `<rect x="${left + 80}" y="${rowCenter + 2}" width="${barAreaMax}" height="16" fill="${PALETTE.failFill}" />\n`;
-      body += `<text x="${left + 90}" y="${rowCenter + 15}" fill="${PALETTE.text}" font-family="monospace" font-size="11">Transformers.js failed</text>\n`;
+      body += `<text x="${left + 90}" y="${rowCenter + 15}" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="11">Transformers.js failed</text>\n`;
     }
   });
 
-  body += `<text x="${left + 80}" y="${top - 24}" fill="${PALETTE.doppler}" font-family="monospace" font-size="11">${ENGINE_META.doppler.label}</text>\n`;
-  body += `<text x="${left + 170}" y="${top - 24}" fill="${PALETTE.transformersjs}" font-family="monospace" font-size="11">${ENGINE_META.transformersjs.label}</text>\n`;
-  body += `<text x="40" y="36" fill="${PALETTE.text}" font-family="monospace" font-size="18" font-weight="bold">${escapeXml(title)}</text>\n`;
-  body += `<text x="40" y="54" fill="${PALETTE.muted}" font-family="monospace" font-size="12">${escapeXml(subtitle)}</text>\n`;
-  body += `<text x="40" y="${height - 22}" fill="${PALETTE.muted}" font-family="monospace" font-size="11">${escapeXml(`Section: ${sectionLabel}`)}</text>\n`;
+  body += `<text x="${left + 80}" y="${top - 24}" fill="${PALETTE.doppler}" stroke="#ffffff" stroke-width="2" font-family="${FONT_MONO}" font-size="14">${ENGINE_META.doppler.label}</text>\n`;
+  body += `<text x="${left + 170}" y="${top - 24}" fill="${PALETTE.transformersjs}" stroke="#ffffff" stroke-width="2" font-family="${FONT_MONO}" font-size="14">${ENGINE_META.transformersjs.label}</text>\n`;
+  body += `<text x="40" y="36" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="18" font-weight="bold">${escapeXml(title)}</text>\n`;
+  body += `<text x="40" y="54" fill="${PALETTE.muted}" font-family="${FONT_MONO}" font-size="12">${escapeXml(subtitle)}</text>\n`;
+  body += `<text x="40" y="${height - 22}" fill="${PALETTE.muted}" font-family="${FONT_MONO}" font-size="11">${escapeXml(`Section: ${sectionLabel}`)}</text>\n`;
 
   return svgWrap(width, height, body, title, `${subtitle} • Section: ${sectionLabel}`);
 }
@@ -683,11 +999,11 @@ function renderStackedBars(rows, width, height, title, subtitle, sectionLabel) {
     const scoreTotal = scaledRows.reduce((sum, metric) => sum + (scoreMetric(metric, scale.get(metric.id), engine.key)), 0);
     const base = baseY + index * rowHeight;
 
-    body += `<text x="32" y="${y + 8}" fill="${PALETTE.text}" font-family="monospace" font-size="14" font-weight="bold">${escapeXml(label)}</text>\n`;
+    body += `<text x="32" y="${y + 8}" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="14" font-weight="bold">${escapeXml(label)}</text>\n`;
     body += `<line x1="${chartLeft}" y1="${base + 26}" x2="${chartLeft + barMaxWidth}" y2="${base + 26}" stroke="${PALETTE.grid}" stroke-width="1" />\n`;
 
     if (scoreTotal <= 0) {
-      body += `<text x="${chartLeft + 90}" y="${base + 18}" fill="${PALETTE.muted}" font-family="monospace" font-size="11">${engine.label} has no valid metric values.</text>\n`;
+      body += `<text x="${chartLeft + 90}" y="${base + 18}" fill="${PALETTE.muted}" font-family="${FONT_MONO}" font-size="11">${engine.label} has no valid metric values.</text>\n`;
       return;
     }
 
@@ -700,7 +1016,7 @@ function renderStackedBars(rows, width, height, title, subtitle, sectionLabel) {
       const label = `${metric.label}: ${formatValue(metric[engine.key].value, metric.unit)}`;
       const safeLabel = escapeXml(label.length > 34 ? `${label.substring(0, 31)}...` : label);
       if (segmentWidth > 40) {
-        body += `<text x="${cursor + 4}" y="${base + 23}" fill="#000" font-family="monospace" font-size="10">${safeLabel}</text>\n`;
+        body += `<text x="${cursor + 4}" y="${base + 23}" fill="#000" font-family="${FONT_MONO}" font-size="10">${safeLabel}</text>\n`;
       }
       cursor += segmentWidth;
     });
@@ -710,13 +1026,13 @@ function renderStackedBars(rows, width, height, title, subtitle, sectionLabel) {
     const x = 32 + (index % 2) * ((width - 64) / 2);
     const y = height - 50 + Math.floor(index / 2) * 16;
     const fill = PALETTE.metric[index % PALETTE.metric.length];
-    body += `<rect x="${x}" y="${y}" width="12" height="12" fill="${fill}" />\n`;
-    body += `<text x="${x + 16}" y="${y + 10}" fill="${PALETTE.text}" font-family="monospace" font-size="10">${escapeXml(metric.label)}</text>\n`;
+    body += `<rect x="${x}" y="${y}" width="14" height="14" fill="${fill}" />\n`;
+    body += `<text x="${x + 18}" y="${y + 11}" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="11">${escapeXml(metric.label)}</text>\n`;
   });
 
-  body += `<text x="40" y="36" fill="${PALETTE.text}" font-family="monospace" font-size="18" font-weight="bold">${escapeXml(title)}</text>\n`;
-  body += `<text x="40" y="54" fill="${PALETTE.muted}" font-family="monospace" font-size="12">${escapeXml(subtitle)}</text>\n`;
-  body += `<text x="40" y="${height - 22}" fill="${PALETTE.muted}" font-family="monospace" font-size="11">${escapeXml(`Section: ${sectionLabel}`)}</text>\n`;
+  body += `<text x="40" y="36" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="18" font-weight="bold">${escapeXml(title)}</text>\n`;
+  body += `<text x="40" y="54" fill="${PALETTE.muted}" font-family="${FONT_MONO}" font-size="12">${escapeXml(subtitle)}</text>\n`;
+  body += `<text x="40" y="${height - 22}" fill="${PALETTE.muted}" font-family="${FONT_MONO}" font-size="11">${escapeXml(`Section: ${sectionLabel}`)}</text>\n`;
 
   return svgWrap(width, height, body, title, `${subtitle} • Section: ${sectionLabel}`);
 }
@@ -746,10 +1062,10 @@ function renderRadar(rows, width, height, title, subtitle, sectionLabel) {
   let body = '';
 
   if (rows.length < 3) {
-    body += `<text x="40" y="36" fill="${PALETTE.text}" font-family="monospace" font-size="18" font-weight="bold">${escapeXml(title)}</text>\n`;
-    body += `<text x="40" y="54" fill="${PALETTE.muted}" font-family="monospace" font-size="12">${escapeXml(subtitle)}</text>\n`;
-    body += `<text x="${centerX}" y="${centerY}" fill="${PALETTE.muted}" font-family="monospace" font-size="12" text-anchor="middle">Radar chart requires at least 3 metrics.</text>\n`;
-    body += `<text x="40" y="${height - 22}" fill="${PALETTE.muted}" font-family="monospace" font-size="11">${escapeXml(`Section: ${sectionLabel}`)}</text>\n`;
+    body += `<text x="40" y="36" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="18" font-weight="bold">${escapeXml(title)}</text>\n`;
+    body += `<text x="40" y="54" fill="${PALETTE.muted}" font-family="${FONT_MONO}" font-size="12">${escapeXml(subtitle)}</text>\n`;
+    body += `<text x="${centerX}" y="${centerY}" fill="${PALETTE.muted}" font-family="${FONT_MONO}" font-size="12" text-anchor="middle">Radar chart requires at least 3 metrics.</text>\n`;
+    body += `<text x="40" y="${height - 22}" fill="${PALETTE.muted}" font-family="${FONT_MONO}" font-size="11">${escapeXml(`Section: ${sectionLabel}`)}</text>\n`;
     return svgWrap(width, height, body, title, `${subtitle} • Section: ${sectionLabel}`);
   }
 
@@ -773,7 +1089,7 @@ function renderRadar(rows, width, height, title, subtitle, sectionLabel) {
     const y = centerY + labelRadius * Math.sin(angle);
     body += `<line x1="${centerX}" y1="${centerY}" x2="${centerX + radius * Math.cos(angle)}" y2="${centerY + radius * Math.sin(angle)}" stroke="${PALETTE.grid}" stroke-width="1" />\n`;
     const anchor = Math.abs(x - centerX) < 10 ? 'middle' : x < centerX ? 'end' : 'start';
-    body += `<text x="${x}" y="${y}" fill="${PALETTE.text}" text-anchor="${anchor}" font-family="monospace" font-size="11">${escapeXml(metric.label)}</text>\n`;
+    body += `<text x="${x}" y="${y}" fill="${PALETTE.text}" text-anchor="${anchor}" font-family="${FONT_MONO}" font-size="11">${escapeXml(metric.label)}</text>\n`;
   });
 
   const engines = [ENGINE_META.doppler, ENGINE_META.transformersjs];
@@ -790,7 +1106,7 @@ function renderRadar(rows, width, height, title, subtitle, sectionLabel) {
     const fillOpacity = engine.key === 'doppler' ? '0.4' : '0.25';
     body += `<polygon points="${points}" fill="${engine.color}" fill-opacity="${fillOpacity}" stroke="${engine.color}" stroke-width="2" />\n`;
     body += `<rect x="${width - 190}" y="${yLegend - 8}" width="12" height="12" fill="${engine.color}" />\n`;
-    body += `<text x="${width - 170}" y="${yLegend + 1}" fill="${PALETTE.text}" font-family="monospace" font-size="12">${engine.label}</text>\n`;
+    body += `<text x="${width - 170}" y="${yLegend + 1}" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="12">${engine.label}</text>\n`;
   });
 
   const allBad = engines.every((engine) => {
@@ -802,23 +1118,16 @@ function renderRadar(rows, width, height, title, subtitle, sectionLabel) {
     return metricScores.every((value) => value <= 0);
   });
   if (allBad) {
-    body += `<text x="${centerX - 120}" y="${centerY}" fill="${PALETTE.muted}" font-family="monospace" font-size="12">No comparable valid values for this section.</text>\n`;
+    body += `<text x="${centerX - 120}" y="${centerY}" fill="${PALETTE.muted}" font-family="${FONT_MONO}" font-size="12">No comparable valid values for this section.</text>\n`;
   }
 
-  body += `<text x="40" y="36" fill="${PALETTE.text}" font-family="monospace" font-size="18" font-weight="bold">${escapeXml(title)}</text>\n`;
-  body += `<text x="40" y="54" fill="${PALETTE.muted}" font-family="monospace" font-size="12">${escapeXml(subtitle)}</text>\n`;
-  body += `<text x="40" y="70" fill="${PALETTE.muted}" font-family="monospace" font-size="11">All axes are latency (ms), inverted so bigger polygon = faster.</text>\n`;
-  body += `<text x="40" y="${height - 22}" fill="${PALETTE.muted}" font-family="monospace" font-size="11">${escapeXml(`Section: ${sectionLabel}`)}</text>\n`;
+  body += `<text x="40" y="36" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="18" font-weight="bold">${escapeXml(title)}</text>\n`;
+  body += `<text x="40" y="54" fill="${PALETTE.muted}" font-family="${FONT_MONO}" font-size="12">${escapeXml(subtitle)}</text>\n`;
+  body += `<text x="40" y="70" fill="${PALETTE.muted}" font-family="${FONT_MONO}" font-size="11">All axes are latency (ms), inverted so bigger polygon = faster.</text>\n`;
+  body += `<text x="40" y="${height - 22}" fill="${PALETTE.muted}" font-family="${FONT_MONO}" font-size="11">${escapeXml(`Section: ${sectionLabel}`)}</text>\n`;
 
   return svgWrap(width, height, body, title, `${subtitle} • Section: ${sectionLabel}`);
 }
-
-const PHASE_COLORS = Object.freeze({
-  warmLoad: '#ef4444',
-  prefill: '#fbbf24',
-  ttftMarker: '#ffffff',
-  decode: '#3b82f6',
-});
 
 const LOAD_LABEL = Object.freeze({
   doppler: 'OPFS \u2192 VRAM',
@@ -867,12 +1176,14 @@ function renderPhases(rows, width, height, title, subtitle, sectionLabel, sectio
   const engineGap = 100;
   const baseY = 100;
   let body = '';
+  body += renderChartHeaderBand(width, title, subtitle, sectionLabel);
 
   engines.forEach((engine, engineIndex) => {
     const y = baseY + engineIndex * engineGap;
     const resolved = phaseData.get(engine.key);
+    body += renderPhaseTrackPanel(left - 8, y - 4, barAreaMax + 16, barHeight + 8, engine.color);
 
-    body += `<text x="32" y="${y + barHeight / 2 + 5}" fill="${engine.color}" font-family="${FONT_UI}" font-size="14" font-weight="bold">${engine.label}</text>\n`;
+    body += `<text x="32" y="${y + barHeight / 2 + 5}" fill="${engine.color}" stroke="#ffffff" stroke-width="2" font-family="${FONT_UI}" font-size="16" font-weight="bold">${engine.label}</text>\n`;
 
     if (!resolved) {
       body += `<rect x="${left}" y="${y}" width="${barAreaMax}" height="${barHeight}" fill="${PALETTE.failFill}" />\n`;
@@ -901,7 +1212,7 @@ function renderPhases(rows, width, height, title, subtitle, sectionLabel, sectio
       if (ttftW > 80) {
         body += `<text x="${ttftX + 6}" y="${y + barHeight / 2 + 4}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="11" font-weight="bold">Prefill ${resolved.ttft.toFixed(1)} ms</text>\n`;
       } else if (ttftW > 40) {
-        body += `<text x="${ttftX + 4}" y="${y + barHeight / 2 + 4}" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="10">${resolved.ttft.toFixed(0)}</text>\n`;
+        body += `<text x="${ttftX + 4}" y="${y + barHeight / 2 + 4}" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="10">Prefill ${resolved.ttft.toFixed(0)} ms</text>\n`;
       }
 
       const ttftMarkerX = ttftX + ttftW;
@@ -933,17 +1244,9 @@ function renderPhases(rows, width, height, title, subtitle, sectionLabel, sectio
   ];
   legendItems.forEach((item, i) => {
     const x = left + i * 210;
-    body += `<rect x="${x}" y="${legendY}" width="14" height="14" fill="${PHASE_COLORS[item.id]}" />\n`;
-    body += `<text x="${x + 20}" y="${legendY + 11}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="11">${item.label}</text>\n`;
+    body += `<rect x="${x}" y="${legendY}" width="16" height="16" fill="${PHASE_COLORS[item.id]}" />\n`;
+    body += `<text x="${x + 22}" y="${legendY + 13}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="12">${item.label}</text>\n`;
   });
-  const ttftLegendX = left + legendItems.length * 210;
-  body += `<polygon points="${ttftLegendX + 7},${legendY} ${ttftLegendX + 2},${legendY + 7} ${ttftLegendX + 12},${legendY + 7}" fill="${PHASE_COLORS.ttftMarker}" />\n`;
-  body += `<text x="${ttftLegendX + 20}" y="${legendY + 11}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="11">TTFT marker</text>\n`;
-
-  body += `<text x="40" y="36" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="18" font-weight="bold">${escapeXml(title)}</text>\n`;
-  body += `<text x="40" y="54" fill="${PALETTE.muted}" font-family="${FONT_UI}" font-size="12">${escapeXml(subtitle)}</text>\n`;
-  body += `<text x="40" y="${height - 22}" fill="${PALETTE.muted}" font-family="${FONT_UI}" font-size="11">${escapeXml(`Section: ${sectionLabel}`)}</text>\n`;
-
   return svgWrap(width, height, body, title, `${subtitle} • Section: ${sectionLabel}`);
 }
 
@@ -954,8 +1257,8 @@ function renderMultiPhases(entries, width, title, subtitle) {
   const barAreaMax = width - left - right;
   const barHeight = 36;
   const engineGap = 56;
-  const workloadGap = 30;
-  const baseY = 100;
+  const workloadGap = 20;
+  const baseY = 120;
   const workloadBlockHeight = engines.length * engineGap + workloadGap;
 
   let globalMax = 0;
@@ -968,7 +1271,8 @@ function renderMultiPhases(entries, width, title, subtitle) {
         globalMax = resolved.endToEnd;
       }
     }
-    const workloadLabel = prettifyWorkload(entry.report.workload) || entry.report.workload?.id || path.basename(entry.inputPath, '.json');
+    const fallbackWorkload = entry.report.workload?.id || path.basename(entry.inputPath, '.json');
+    const workloadLabel = buildWorkloadPanelLabel(entry.report, fallbackWorkload);
     return { phaseData, workloadLabel, sectionLabel: entry.resolvedSection };
   });
 
@@ -977,17 +1281,22 @@ function renderMultiPhases(entries, width, title, subtitle) {
   const legendHeight = 50;
   const height = baseY + workloads.length * workloadBlockHeight + legendHeight + 40;
   let body = '';
+  body += renderChartHeaderBand(width, title, subtitle);
 
   workloads.forEach((workload, wIndex) => {
     const workloadY = baseY + wIndex * workloadBlockHeight;
+    const panelY = workloadY - 26;
+    const panelHeight = engines.length * engineGap + 16;
+    body += `<rect x="${CANVAS_PADDING}" y="${panelY}" width="${width - CANVAS_PADDING * 2}" height="${panelHeight}" rx="0" fill="${PALETTE.grid}" fill-opacity="0.12" stroke="${PALETTE.grid}" stroke-opacity="0.5" stroke-width="2" />`;
 
     body += `<text x="32" y="${workloadY - 8}" fill="${PALETTE.muted}" font-family="${FONT_UI}" font-size="12" font-weight="bold">${escapeXml(workload.workloadLabel)}</text>\n`;
 
     engines.forEach((engine, engineIndex) => {
       const y = workloadY + engineIndex * engineGap;
       const resolved = workload.phaseData.get(engine.key);
+      body += renderPhaseTrackPanel(left - 8, y - 4, barAreaMax + 16, barHeight + 8, engine.color);
 
-      body += `<text x="32" y="${y + barHeight / 2 + 5}" fill="${engine.color}" font-family="${FONT_UI}" font-size="14" font-weight="bold">${engine.label}</text>\n`;
+    body += `<text x="32" y="${y + barHeight / 2 + 5}" fill="${engine.color}" stroke="#ffffff" stroke-width="2" font-family="${FONT_UI}" font-size="16" font-weight="bold">${engine.label}</text>\n`;
 
       if (!resolved) {
         body += `<rect x="${left}" y="${y}" width="${barAreaMax}" height="${barHeight}" fill="${PALETTE.failFill}" />\n`;
@@ -1012,11 +1321,11 @@ function renderMultiPhases(entries, width, title, subtitle) {
         const ttftW = resolved.ttft * pxPerMs;
         const ttftX = cursor;
         body += `<rect x="${ttftX}" y="${y}" width="${ttftW}" height="${barHeight}" fill="${PHASE_COLORS.prefill}" />\n`;
-        if (ttftW > 80) {
-          body += `<text x="${ttftX + 6}" y="${y + barHeight / 2 + 4}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="11" font-weight="bold">Prefill ${resolved.ttft.toFixed(1)} ms</text>\n`;
-        } else if (ttftW > 40) {
-          body += `<text x="${ttftX + 4}" y="${y + barHeight / 2 + 4}" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="10">${resolved.ttft.toFixed(0)}</text>\n`;
-        }
+      if (ttftW > 80) {
+        body += `<text x="${ttftX + 6}" y="${y + barHeight / 2 + 4}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="11" font-weight="bold">Prefill ${resolved.ttft.toFixed(1)} ms</text>\n`;
+      } else if (ttftW > 40) {
+        body += `<text x="${ttftX + 4}" y="${y + barHeight / 2 + 4}" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="10">Prefill ${resolved.ttft.toFixed(0)} ms</text>\n`;
+      }
         const ttftMarkerX = ttftX + ttftW;
         const markerSize = 5;
         body += `<polygon points="${ttftMarkerX},${y - 2} ${ttftMarkerX - markerSize},${y - markerSize - 4} ${ttftMarkerX + markerSize},${y - markerSize - 4}" fill="${PHASE_COLORS.ttftMarker}" />\n`;
@@ -1046,16 +1355,9 @@ function renderMultiPhases(entries, width, title, subtitle) {
   ];
   legendItems.forEach((item, i) => {
     const x = left + i * 210;
-    body += `<rect x="${x}" y="${legendY}" width="14" height="14" fill="${PHASE_COLORS[item.id]}" />\n`;
-    body += `<text x="${x + 20}" y="${legendY + 11}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="11">${item.label}</text>\n`;
+    body += `<rect x="${x}" y="${legendY}" width="16" height="16" fill="${PHASE_COLORS[item.id]}" />\n`;
+    body += `<text x="${x + 22}" y="${legendY + 13}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="12">${item.label}</text>\n`;
   });
-  const ttftLegendX = left + legendItems.length * 210;
-  body += `<polygon points="${ttftLegendX + 7},${legendY} ${ttftLegendX + 2},${legendY + 7} ${ttftLegendX + 12},${legendY + 7}" fill="${PHASE_COLORS.ttftMarker}" />\n`;
-  body += `<text x="${ttftLegendX + 20}" y="${legendY + 11}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="11">TTFT marker</text>\n`;
-
-  body += `<text x="40" y="36" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="18" font-weight="bold">${escapeXml(title)}</text>\n`;
-  body += `<text x="40" y="54" fill="${PALETTE.muted}" font-family="${FONT_UI}" font-size="12">${escapeXml(subtitle)}</text>\n`;
-
   return svgWrap(width, height, body, title, subtitle);
 }
 
@@ -1072,7 +1374,8 @@ function renderMultiRadar(entries, perRadarHeight, title, subtitle, metricIds) {
     const allRows = collectRows(entry.report, entry.sectionPayload, metricIds);
     const rows = filterRadarRows(allRows, metricIds);
     const scaledRows = buildScaledRows(rows);
-    const workloadLabel = prettifyWorkload(entry.report.workload) || entry.report.workload?.id || path.basename(entry.inputPath, '.json');
+    const fallbackWorkload = entry.report.workload?.id || path.basename(entry.inputPath, '.json');
+    const workloadLabel = buildWorkloadPanelLabel(entry.report, fallbackWorkload);
     return { rows, scaledRows, workloadLabel };
   });
 
@@ -1095,8 +1398,8 @@ function renderMultiRadar(entries, perRadarHeight, title, subtitle, metricIds) {
     const angleStep = (Math.PI * 2) / axisCount;
 
     if (data.rows.length < 3) {
-      body += `<text x="${centerX}" y="${centerY}" fill="${PALETTE.muted}" font-family="monospace" font-size="12" text-anchor="middle">Need at least 3 metrics.</text>\n`;
-      body += `<text x="${centerX}" y="${offsetY + perRadarHeight - 4}" fill="${PALETTE.muted}" font-family="monospace" font-size="12" text-anchor="middle">${escapeXml(data.workloadLabel)}</text>\n`;
+      body += `<text x="${centerX}" y="${centerY}" fill="${PALETTE.muted}" font-family="${FONT_MONO}" font-size="12" text-anchor="middle">Need at least 3 metrics.</text>\n`;
+      body += `<text x="${centerX}" y="${offsetY + perRadarHeight - 4}" fill="${PALETTE.muted}" font-family="${FONT_MONO}" font-size="12" text-anchor="middle">${escapeXml(data.workloadLabel)}</text>\n`;
       return;
     }
 
@@ -1116,7 +1419,7 @@ function renderMultiRadar(entries, perRadarHeight, title, subtitle, metricIds) {
       const y = centerY + labelRadius * Math.sin(angle);
       body += `<line x1="${centerX}" y1="${centerY}" x2="${centerX + radius * Math.cos(angle)}" y2="${centerY + radius * Math.sin(angle)}" stroke="${PALETTE.grid}" stroke-width="1" />\n`;
       const anchor = Math.abs(x - centerX) < 10 ? 'middle' : x < centerX ? 'end' : 'start';
-      body += `<text x="${x}" y="${y}" fill="${PALETTE.text}" text-anchor="${anchor}" font-family="monospace" font-size="11">${escapeXml(metric.label)}</text>\n`;
+      body += `<text x="${x}" y="${y}" fill="${PALETTE.text}" text-anchor="${anchor}" font-family="${FONT_MONO}" font-size="11">${escapeXml(metric.label)}</text>\n`;
     });
 
     const engines = [ENGINE_META.doppler, ENGINE_META.transformersjs];
@@ -1133,7 +1436,7 @@ function renderMultiRadar(entries, perRadarHeight, title, subtitle, metricIds) {
       body += `<polygon points="${points}" fill="${engine.color}" fill-opacity="${fillOpacity}" stroke="${engine.color}" stroke-width="2" />\n`;
     });
 
-    body += `<text x="${centerX}" y="${offsetY + perRadarHeight - 4}" fill="${PALETTE.muted}" font-family="monospace" font-size="12" text-anchor="middle">${escapeXml(data.workloadLabel)}</text>\n`;
+    body += `<text x="${centerX}" y="${offsetY + perRadarHeight - 4}" fill="${PALETTE.muted}" font-family="${FONT_MONO}" font-size="12" text-anchor="middle">${escapeXml(data.workloadLabel)}</text>\n`;
   });
 
   const engines = [ENGINE_META.doppler, ENGINE_META.transformersjs];
@@ -1141,13 +1444,13 @@ function renderMultiRadar(entries, perRadarHeight, title, subtitle, metricIds) {
   const legendX = Math.max(40, totalWidth - 220);
   engines.forEach((engine, i) => {
     const legendY = legendBaseY + i * 16;
-    body += `<rect x="${legendX}" y="${legendY - 8}" width="12" height="12" fill="${engine.color}" />\n`;
-    body += `<text x="${legendX + 18}" y="${legendY + 1}" fill="${PALETTE.text}" font-family="monospace" font-size="12">${engine.label}</text>\n`;
+    body += `<rect x="${legendX}" y="${legendY - 8}" width="14" height="14" fill="${engine.color}" />\n`;
+    body += `<text x="${legendX + 20}" y="${legendY + 2}" fill="${PALETTE.text}" stroke="#ffffff" stroke-width="2" font-family="${FONT_MONO}" font-size="13">${engine.label}</text>\n`;
   });
 
-  body += `<text x="40" y="36" fill="${PALETTE.text}" font-family="monospace" font-size="18" font-weight="bold">${escapeXml(title)}</text>\n`;
-  body += `<text x="40" y="54" fill="${PALETTE.muted}" font-family="monospace" font-size="12">${escapeXml(subtitle)}</text>\n`;
-  body += `<text x="40" y="70" fill="${PALETTE.muted}" font-family="monospace" font-size="11">All axes are latency (ms), inverted so bigger polygon = faster.</text>\n`;
+  body += `<text x="40" y="36" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="18" font-weight="bold">${escapeXml(title)}</text>\n`;
+  body += `<text x="40" y="54" fill="${PALETTE.muted}" font-family="${FONT_MONO}" font-size="12">${escapeXml(subtitle)}</text>\n`;
+  body += `<text x="40" y="70" fill="${PALETTE.muted}" font-family="${FONT_MONO}" font-size="11">All axes are latency (ms), inverted so bigger polygon = faster.</text>\n`;
 
   return svgWrap(totalWidth, height, body, title, subtitle);
 }
@@ -1157,34 +1460,47 @@ const DTYPE_SEGMENT = /^(f\d+a?|q\d+[a-z]*|bf16|fp16|fp32|int[48])$/i;
 function prettifyModelId(raw, { stripDtype = false } = {}) {
   if (!raw) return 'unknown';
   const stripped = raw
-    .replace(/^onnx-community\//, '')
+    .replace(/^[^/]+\//, '')
     .replace(/-ONNX-GQA$/i, '')
     .replace(/-ONNX$/i, '');
-  const parts = stripped.split('-');
+  const lowerParts = stripped.toLowerCase().split('-');
+  const parts = stripDtype
+    ? lowerParts.filter((part) => !DTYPE_SEGMENT.test(part))
+    : lowerParts;
+  const mergedParts = [];
+
+  for (let i = 0; i < parts.length; i += 1) {
+    const part = parts[i];
+    const next = parts[i + 1];
+
+    if (/^lfm\d+$/.test(part) && next && /^\d+$/.test(next)) {
+      mergedParts.push(`${part}.${next}`);
+      i += 1;
+      continue;
+    }
+    if (/^\d+$/.test(part) && next && /^\d+b$/.test(next)) {
+      mergedParts.push(`${part}.${next}`);
+      i += 1;
+      continue;
+    }
+    mergedParts.push(part);
+  }
+
   if (stripDtype) {
-    while (parts.length > 1 && DTYPE_SEGMENT.test(parts[parts.length - 1])) {
-      parts.pop();
+    while (mergedParts.length > 1 && DTYPE_SEGMENT.test(mergedParts[mergedParts.length - 1])) {
+      mergedParts.pop();
     }
   }
-  const pretty = [];
-  for (const part of parts) {
-    if (/^f\d+$/i.test(part)) {
-      pretty.push(part.toUpperCase());
-    } else if (/^f\d+a$/i.test(part)) {
-      pretty.push(part.toUpperCase());
-    } else if (/^q\d+/i.test(part)) {
-      pretty.push(part.toUpperCase());
-    } else if (/^(bf16|fp16|fp32|int8|int4)$/i.test(part)) {
-      pretty.push(part.toUpperCase());
-    } else if (/^\d+[bBmM]$/.test(part)) {
-      pretty.push(part.toUpperCase());
-    } else if (part === 'it') {
-      pretty.push('Instruct');
-    } else {
-      pretty.push(part.charAt(0).toUpperCase() + part.slice(1));
-    }
-  }
-  return pretty.join(' ');
+  return mergedParts
+    .map((part) => {
+      if (part === 'gemma') return 'Gemma';
+      if (part === 'it') return 'instruct';
+      if (/^lfm\d+(?:\.\d+)?$/.test(part)) {
+        return `LFM${part.slice(3)}`;
+      }
+      return part;
+    })
+    .join(' ');
 }
 
 function prettifyWorkload(workload) {
@@ -1211,31 +1527,45 @@ function prettifyWorkload(workload) {
 
 function formatDtypeSuffix(dtype) {
   if (!dtype) return '';
-  return `, ${dtype.toUpperCase()}`;
+  const lower = dtype.toLowerCase();
+  const normalized = lower === 'f32' ? 'f32a' : lower;
+  return `, ${normalized}`;
 }
 
 function normalizeTjsDtype(raw) {
   if (!raw) return null;
-  const upper = raw.toUpperCase();
-  if (upper.includes('/')) return upper;
-  return `${upper}/F32A`;
+  const lower = raw.toLowerCase();
+  if (lower.includes('/')) return lower;
+  return `${lower}/f32a`;
 }
 
-function buildTitle(report, selectedSection) {
-  const tjsDtype = report.transformersjsDtype;
-  const hasDtypeFields = report.dopplerDtype != null || tjsDtype != null;
-  const dopplerName = prettifyModelId(report.dopplerModelId || report.modelId, { stripDtype: hasDtypeFields });
-  const tjsName = prettifyModelId(report.tjsModelId);
+function buildTitle() {
+  return STATIC_CHART_TITLE;
+}
+
+function buildModelLabel(report) {
+  const hasDtypeFields = report.dopplerDtype != null || report.transformersjsDtype != null;
+  const dopplerModelId = report.dopplerModelId || report.modelId || '';
+  const dopplerName = prettifyModelId(dopplerModelId, { stripDtype: hasDtypeFields });
   const dopplerSuffix = hasDtypeFields ? formatDtypeSuffix(report.dopplerDtype) : '';
-  const tjsSuffix = hasDtypeFields ? formatDtypeSuffix(normalizeTjsDtype(tjsDtype)) : '';
-  return `${ENGINE_META.doppler.label} (${dopplerName}${dopplerSuffix}) vs ${ENGINE_META.transformersjs.label} (${tjsName}${tjsSuffix})`;
+  return `${dopplerName}${dopplerSuffix}`;
+}
+
+function buildWorkloadPanelLabel(report, fallbackWorkload) {
+  const model = buildModelLabel(report);
+  const workload = prettifyWorkload(report.workload) || fallbackWorkload || '';
+  return workload.length > 0 ? `${model} • ${workload}` : model;
+}
+
+function buildHeaderLabel(report) {
+  const model = buildModelLabel(report);
+  const workloadDesc = prettifyWorkload(report.workload);
+  const workloadPart = workloadDesc ? ` • ${workloadDesc}` : '';
+  return `${model}${workloadPart}`;
 }
 
 function buildSubtitle(report, inputPath) {
-  const timestamp = report.timestamp || 'unknown run';
-  const workloadDesc = prettifyWorkload(report.workload);
-  const workloadPart = workloadDesc ? ` • ${workloadDesc}` : '';
-  return `${timestamp}${workloadPart}`;
+  return buildHeaderLabel(report);
 }
 
 function defaultOutputPath(inputPath, sectionLabel, chartType, width, height) {
@@ -1256,8 +1586,14 @@ function main() {
     console.log(usage());
     process.exit(0);
   }
+  applyPresetOptions(options);
+  if (options.inputs.length === 0) {
+    throw new Error('Missing required --input path.');
+  }
+  const excludeSet = new Set(options.excludeWorkloads.map((item) => normalizeWorkloadFilterToken(item)));
+  const includeSet = new Set(options.includeWorkloads.map((item) => normalizeWorkloadFilterToken(item)));
 
-  const entries = options.inputs.map((raw) => {
+  const rawEntries = options.inputs.map((raw) => {
     const inputPath = path.resolve(raw);
     const report = JSON.parse(fs.readFileSync(inputPath, 'utf-8'));
     const resolved = resolveSection(report, options.section);
@@ -1271,14 +1607,23 @@ function main() {
       inputPath,
     };
   });
+  const entries = rawEntries
+    .filter((entry) => shouldIncludeWorkload(entry, includeSet))
+    .filter((entry) => !shouldExcludeWorkload(entry, excludeSet));
+
+  if (entries.length === 0) {
+    throw new Error('No workload data remains after applying workload filters.');
+  }
+  assertComparableEntries(entries, { allowNonComparable: options.allowNonComparable });
 
   const firstEntry = entries[0];
-  const title = buildTitle(firstEntry.report, firstEntry.resolvedSection);
+  const title = buildTitle();
+  const headerLabel = buildHeaderLabel(firstEntry.report);
   const isMulti = entries.length > 1;
 
   let svg;
   if ((options.chart === 'phases' || options.chart === 'radar') && isMulti) {
-    const subtitle = firstEntry.report.timestamp || 'unknown run';
+    const subtitle = headerLabel;
 
     if (options.chart === 'phases') {
       svg = renderMultiPhases(entries, options.width, title, subtitle);
