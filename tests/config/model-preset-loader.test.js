@@ -13,12 +13,14 @@ import {
 assert.ok(PRESET_DETECTION_ORDER.length > 0);
 assert.ok(PRESET_DETECTION_ORDER.includes('transformer'));
 assert.ok(PRESET_DETECTION_ORDER.includes('gemma2'));
+assert.ok(PRESET_DETECTION_ORDER.includes('lfm2'));
 
 {
   const presets = listPresets();
   assert.ok(Array.isArray(presets));
   assert.ok(presets.includes('transformer'));
   assert.ok(presets.includes('gemma2'));
+  assert.ok(presets.includes('lfm2'));
   assert.ok(getPreset('transformer'));
   assert.equal(getPreset('missing-preset'), null);
 }
@@ -29,6 +31,13 @@ assert.ok(PRESET_DETECTION_ORDER.includes('gemma2'));
   assert.equal(resolved.extends, undefined);
   assert.equal(resolved.modelType, 'transformer');
   assert.ok(resolved.inference);
+}
+
+{
+  const resolved = resolvePreset('lfm2');
+  assert.equal(resolved.id, 'lfm2');
+  assert.equal(resolved.inference?.kernelPaths?.q4k?.f16, 'gemma3-q4k-dequant-f16a-online');
+  assert.equal(resolved.inference?.kernelPaths?.q4k?.f32, 'lfm2-q4k-dequant-f32a-online');
 }
 
 {
@@ -46,6 +55,10 @@ assert.ok(PRESET_DETECTION_ORDER.includes('gemma2'));
   assert.equal(
     detectPreset({ model_type: 'unknown' }, 'DeepSeekV2ForCausalLM'),
     'deepseek'
+  );
+  assert.equal(
+    detectPreset({ model_type: 'lfm2' }, 'Lfm2ForCausalLM'),
+    'lfm2'
   );
   assert.equal(
     detectPreset({ model_type: 'gemma2' }, 'irrelevant'),

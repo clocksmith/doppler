@@ -1,7 +1,7 @@
 # Release Matrix
 
-Generated: 2026-03-01T14:32:44.569Z
-Release: channel=main-snapshot, version=n/a, commit=6b34cb7d65841b2d6a6d983dc0c0c809fa3a4f13, dirty=yes
+Generated: 2026-03-03T21:44:04.664Z
+Release: channel=main-snapshot, version=n/a, commit=e40750863b77f4f1d954b00b6445d9b0a18394d0, dirty=yes
 
 ## Engine Matrix
 
@@ -20,8 +20,8 @@ Release: channel=main-snapshot, version=n/a, commit=6b34cb7d65841b2d6a6d983dc0c0
 
 | Doppler Model | In Catalog | Catalog Modes | TJS Mapping | Kernel Path | Base Dir |
 |---|---|---|---|---|---|
-| `gemma-3-1b-it-wf16-ef16-hf16` | no |  | `onnx-community/gemma-3-1b-it-ONNX-GQA` | `gemma3-f16-fused-f32a-online` | local |
-| `gemma-3-270m-it-wf16-ef16-hf16` | no |  | `onnx-community/gemma-3-270m-it-ONNX` |  | curated |
+| `gemma-3-1b-it-wf16-ef16-hf16-f32` | no |  | `onnx-community/gemma-3-1b-it-ONNX-GQA` | `gemma3-f16-fused-f32a-online` | local |
+| `gemma-3-270m-it-wf16-ef16-hf16-f32` | no |  | `onnx-community/gemma-3-270m-it-ONNX` |  | local |
 | `gemma-3-270m-it-wq4k-ef16-hf16-f32` | yes | run, translate |  |  |  |
 | `google-embeddinggemma-300m-wq4k-ef16` | yes | embedding |  |  |  |
 

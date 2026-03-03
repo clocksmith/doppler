@@ -15,6 +15,7 @@ import { KERNEL_CONFIGS } from '../../../gpu/kernels/kernel-configs.js';
 import { resolveCapabilityKernelPathRef, resolveKernelPathPolicy } from './kernel-path-auto-select.js';
 import { initTokenizer } from './init.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
+import { DEFAULT_BATCHING_DEFAULTS } from '../../../config/schema/inference-defaults.schema.js';
 
 function validateKernelWarmupMode(mode) {
   if (mode !== 'parallel' && mode !== 'sequential') {
@@ -22,6 +23,105 @@ function validateKernelWarmupMode(mode) {
       `runtime.shared.kernelWarmup.prewarmMode must be "parallel" or "sequential"; got "${mode}".`
     );
   }
+}
+
+function normalizePositiveInt(value) {
+  if (!Number.isFinite(value)) return null;
+  const normalized = Math.floor(value);
+  return normalized >= 1 ? normalized : null;
+}
+
+function normalizeStopCheckMode(value) {
+  if (value === 'batch' || value === 'per-token') return value;
+  return null;
+}
+
+function normalizeReadbackInterval(value) {
+  if (value == null) return null;
+  return normalizePositiveInt(value);
+}
+
+const GLOBAL_DEFAULT_BATCHING = Object.freeze({
+  batchSize: normalizePositiveInt(DEFAULT_BATCHING_DEFAULTS.batchSize) ?? 4,
+  stopCheckMode: normalizeStopCheckMode(DEFAULT_BATCHING_DEFAULTS.stopCheckMode) ?? 'batch',
+  readbackInterval: normalizeReadbackInterval(DEFAULT_BATCHING_DEFAULTS.readbackInterval) ?? 1,
+});
+
+function isRuntimeBatchingAtGlobalDefaults(batching) {
+  if (!batching || typeof batching !== 'object') {
+    return false;
+  }
+  return normalizePositiveInt(batching.batchSize) === GLOBAL_DEFAULT_BATCHING.batchSize
+    && normalizeStopCheckMode(batching.stopCheckMode) === GLOBAL_DEFAULT_BATCHING.stopCheckMode
+    && normalizeReadbackInterval(batching.readbackInterval) === GLOBAL_DEFAULT_BATCHING.readbackInterval;
+}
+
+function resolveModelBatchingDefaults(manifest, modelConfig) {
+  const presetId = String(manifest?.inference?.presetId ?? '').trim().toLowerCase();
+  const modelType = String(manifest?.modelType ?? '').trim().toLowerCase();
+  return selectRuleValue('inference', 'execution', 'modelBatchingDefaults', {
+    modelId: manifest?.modelId ?? null,
+    presetId: presetId || null,
+    modelType: modelType || null,
+    numLayers: Number(modelConfig?.numLayers ?? 0),
+    hiddenSize: Number(modelConfig?.hiddenSize ?? 0),
+  });
+}
+
+function resolveManifestDecodeLoopDefaults(manifest) {
+  const decodeLoop = manifest?.inference?.sessionDefaults?.decodeLoop;
+  if (!decodeLoop || typeof decodeLoop !== 'object') {
+    return null;
+  }
+  const batchSize = normalizePositiveInt(decodeLoop.batchSize);
+  const stopCheckMode = normalizeStopCheckMode(decodeLoop.stopCheckMode);
+  const readbackInterval = normalizeReadbackInterval(decodeLoop.readbackInterval);
+  if (batchSize == null || stopCheckMode == null || readbackInterval == null) {
+    return null;
+  }
+  return { batchSize, stopCheckMode, readbackInterval };
+}
+
+export function applyModelBatchingRuntimeDefaults(runtimeConfig, manifest, modelConfig) {
+  const batching = runtimeConfig?.inference?.batching;
+  if (!isRuntimeBatchingAtGlobalDefaults(batching)) {
+    return runtimeConfig;
+  }
+
+  const defaults = resolveManifestDecodeLoopDefaults(manifest)
+    ?? resolveModelBatchingDefaults(manifest, modelConfig);
+  if (!defaults || typeof defaults !== 'object') {
+    return runtimeConfig;
+  }
+
+  const nextBatchSize = normalizePositiveInt(defaults.batchSize);
+  const nextStopCheckMode = normalizeStopCheckMode(defaults.stopCheckMode);
+  const nextReadbackInterval = normalizeReadbackInterval(defaults.readbackInterval);
+  if (nextBatchSize == null || nextStopCheckMode == null || nextReadbackInterval == null) {
+    return runtimeConfig;
+  }
+
+  const nextBatching = {
+    ...batching,
+    batchSize: nextBatchSize,
+    stopCheckMode: nextStopCheckMode,
+    readbackInterval: nextReadbackInterval,
+  };
+
+  log.info(
+    'Pipeline',
+    `Model batching defaults applied (${manifest?.inference?.presetId ?? 'unknown'}): ` +
+    `batchSize=${nextBatching.batchSize}, stopCheckMode=${nextBatching.stopCheckMode}, ` +
+    `readbackInterval=${nextBatching.readbackInterval}`
+  );
+
+  return {
+    ...runtimeConfig,
+    inference: {
+      ...runtimeConfig.inference,
+      batching: nextBatching,
+    },
+  };
 }
 
 export async function runKernelWarmup(options) {
@@ -231,6 +331,16 @@ function assertManifestKernelPathDtypeCompatibility(manifest, resolvedKernelPath
   const kernelActivation = normalizeKernelDtype(getKernelPathActivationDtype(resolvedKernelPath));
   if (!manifestCompute || !kernelActivation) return;
   if (manifestCompute === kernelActivation) return;
+
+  const presetId = String(manifest?.inference?.presetId ?? '').trim().toLowerCase();
+  if (presetId === 'lfm2' && manifestCompute === 'f32' && kernelActivation === 'f16') {
+    log.warn(
+      'Pipeline',
+      `Manifest "${manifest?.modelId ?? 'unknown'}" uses quantizationInfo.compute=f32 ` +
+      `with kernelPath activationDtype=f16 (${resolvedKernelPath.id}); continuing for LFM2 mixed-precision compatibility.`
+    );
+    return;
+  }
 
   throw new Error(
     `Manifest kernel path dtype mismatch for "${manifest?.modelId ?? 'unknown'}": ` +

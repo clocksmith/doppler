@@ -43,6 +43,9 @@ export interface LayerWeights {
   postFeedforwardNorm: GPUBuffer | Float32Array | null;
   postNorm: GPUBuffer | Float32Array | null;
   postAttnNorm: GPUBuffer | Float32Array | null;
+  convInProj?: GPUBuffer | WeightBuffer | Float32Array | null;
+  convKernel?: GPUBuffer | WeightBuffer | Float32Array | null;
+  convOutProj?: GPUBuffer | WeightBuffer | Float32Array | null;
   ffnGate: GPUBuffer | WeightBuffer | Float32Array | null;
   ffnUp: GPUBuffer | WeightBuffer | Float32Array | null;
   ffnDown: GPUBuffer | WeightBuffer | Float32Array | null;

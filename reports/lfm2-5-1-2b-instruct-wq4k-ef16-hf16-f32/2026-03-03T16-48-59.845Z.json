@@ -1,0 +1,299 @@
+{
+  "suite": "bench",
+  "modelId": "lfm2-5-1-2b-instruct-wq4k-ef16-hf16-f32",
+  "runtimePreset": null,
+  "deviceInfo": {
+    "hasSubgroups": true,
+    "hasSubgroupsF16": false,
+    "hasF16": true,
+    "hasTimestampQuery": true,
+    "maxBufferSize": 14302248960,
+    "maxWorkgroupSize": 1024,
+    "maxWorkgroupStorageSize": 32768,
+    "adapterInfo": {
+      "vendor": "unknown",
+      "architecture": "unknown",
+      "device": "unknown",
+      "description": ""
+    }
+  },
+  "results": [
+    {
+      "name": "benchmark",
+      "passed": true,
+      "duration": 12726.756374999997
+    }
+  ],
+  "durationMs": 22522.082167,
+  "timestamp": "2026-03-03T16:48:59.845Z",
+  "metrics": {
+    "warmupRuns": 2,
+    "timedRuns": 3,
+    "prompt": "Summarize this input in one sentence.",
+    "maxTokens": 128,
+    "decodeTokensPerSec": 31.23,
+    "avgTokensGenerated": 128,
+    "avgPrefillTokens": 9,
+    "avgDecodeTokens": 128,
+    "medianPrefillTokensPerSec": 63.67,
+    "avgPrefillTokensPerSec": 63.59,
+    "medianPrefillTokensPerSecTtft": 63.55,
+    "avgPrefillTokensPerSecTtft": 63.29,
+    "avgDecodeTokensPerSec": 31.22,
+    "firstTokenMs": 141.62,
+    "firstResponseMs": 1212.96,
+    "prefillMs": 141.35,
+    "decodeMs": 4098.31,
+    "totalRunMs": 4239.74,
+    "decodeMsPerTokenP50": 32.02,
+    "decodeMsPerTokenP95": 32.07,
+    "decodeMsPerTokenP99": 32.07,
+    "avgPrefillMs": 141.54,
+    "modelLoadMs": 1071.34,
+    "throughput": {
+      "tokensPerSec": {
+        "mean": 30.17269737113899,
+        "median": 30.190564674528606,
+        "min": 30.121559608444198,
+        "max": 30.205967830444163,
+        "p95": 30.204427514852608,
+        "p99": 30.20565976732585,
+        "stdDev": 0.04495127788073776,
+        "ci95": 0.07785789715458485,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "prefillTokensPerSec": {
+        "mean": 63.58801783914532,
+        "median": 63.67291928838548,
+        "min": 63.25334825625059,
+        "max": 63.83778597279991,
+        "p95": 63.82129930435846,
+        "p99": 63.83448863911162,
+        "stdDev": 0.3013271530971841,
+        "ci95": 0.5219139388644085,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "prefillTokensPerSecTtft": {
+        "mean": 63.29000459570534,
+        "median": 63.55111289967531,
+        "min": 62.633422237997245,
+        "max": 63.68547864944346,
+        "p95": 63.672042074466646,
+        "p99": 63.6827913344481,
+        "stdDev": 0.5725721203637397,
+        "ci95": 0.9917240034674399,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "decodeTokensPerSec": {
+        "mean": 31.220118728323047,
+        "median": 31.232421911041964,
+        "min": 31.176664561390133,
+        "max": 31.25126971253705,
+        "p95": 31.24938493238754,
+        "p99": 31.250892756507145,
+        "stdDev": 0.038794437399900385,
+        "ci95": 0.06719393662767773,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      }
+    },
+    "latency": {
+      "totalMs": {
+        "mean": 4242.252124999999,
+        "median": 4239.735208,
+        "min": 4237.573207999998,
+        "max": 4249.447958999999,
+        "p95": 4248.476683899999,
+        "p99": 4249.253703979999,
+        "stdDev": 6.324838434036902,
+        "ci95": 10.954941517416291,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "prefillMs": {
+        "mean": 141.53822199999922,
+        "median": 141.34737499999756,
+        "min": 140.98233299999993,
+        "max": 142.2849580000002,
+        "p95": 142.1911996999999,
+        "p99": 142.26620634000014,
+        "stdDev": 0.6719560295984016,
+        "ci95": 1.163861983716688,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "decodeMs": {
+        "mean": 4099.924569333333,
+        "median": 4098.305291999999,
+        "min": 4095.8335829999996,
+        "max": 4105.634833,
+        "p95": 4104.9018789,
+        "p99": 4105.48824218,
+        "stdDev": 5.097319854817205,
+        "ci95": 8.828816970973012,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "firstTokenMs": {
+        "mean": 142.21034699999896,
+        "median": 141.61829099999886,
+        "min": 141.3194999999996,
+        "max": 143.69324999999844,
+        "p95": 143.48575409999847,
+        "p99": 143.65175081999845,
+        "stdDev": 1.2928921053110791,
+        "ci95": 2.239354815103481,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      }
+    },
+    "tokens": {
+      "generated": {
+        "mean": 128,
+        "median": 128,
+        "min": 128,
+        "max": 128,
+        "p95": 128,
+        "p99": 128,
+        "stdDev": 0,
+        "ci95": 0,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "prefill": {
+        "mean": 9,
+        "median": 9,
+        "min": 9,
+        "max": 9,
+        "p95": 9,
+        "p99": 9,
+        "stdDev": 0,
+        "ci95": 0,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "decode": {
+        "mean": 128,
+        "median": 128,
+        "min": 128,
+        "max": 128,
+        "p95": 128,
+        "p99": 128,
+        "stdDev": 0,
+        "ci95": 0,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      }
+    },
+    "gpu": {
+      "prefillMs": {
+        "mean": 0,
+        "median": 0,
+        "min": 0,
+        "max": 0,
+        "p95": 0,
+        "p99": 0,
+        "stdDev": 0,
+        "ci95": 0,
+        "samples": 0,
+        "samplesAfterOutlierRemoval": 0,
+        "outliersRemoved": 0
+      },
+      "decodeMs": {
+        "mean": 0,
+        "median": 0,
+        "min": 0,
+        "max": 0,
+        "p95": 0,
+        "p99": 0,
+        "stdDev": 0,
+        "ci95": 0,
+        "samples": 0,
+        "samplesAfterOutlierRemoval": 0,
+        "outliersRemoved": 0
+      },
+      "decodeRecordMs": {
+        "mean": 422.24754133333346,
+        "median": 424.45391599999857,
+        "min": 416.0497910000013,
+        "max": 426.2389170000006,
+        "p95": 426.0604169000004,
+        "p99": 426.20321698000055,
+        "stdDev": 5.441106416735625,
+        "ci95": 9.42427276317514,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "decodeSubmitWaitMs": {
+        "mean": 3666.9984296666657,
+        "median": 3668.832373999998,
+        "min": 3663.313582999999,
+        "max": 3668.849332,
+        "p95": 3668.8476361999997,
+        "p99": 3668.84899284,
+        "stdDev": 3.1911820867936753,
+        "ci95": 5.527289510530321,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "decodeReadbackWaitMs": {
+        "mean": 3583.3974163333332,
+        "median": 3584.259250000003,
+        "min": 3579.6750409999986,
+        "max": 3586.2579579999983,
+        "p95": 3586.0580871999987,
+        "p99": 3586.2179838399984,
+        "stdDev": 3.3750210383011185,
+        "ci95": 5.8457079149514035,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      }
+    },
+    "generatedText": " the"
+  },
+  "output": null,
+  "memory": {
+    "used": 2632073728,
+    "pool": {
+      "allocations": 86146,
+      "reuses": 647,
+      "totalBytesAllocated": 3104926208,
+      "peakBytesAllocated": 2554241536,
+      "currentBytesAllocated": 2497856000,
+      "totalBytesRequested": 2955466752,
+      "peakBytesRequested": 2430337024,
+      "currentBytesRequested": 2373582848,
+      "activeBuffers": 138,
+      "pooledBuffers": 64,
+      "budgetMaxBytes": 0,
+      "budgetUtilization": 0,
+      "hitRate": "0.7%"
+    },
+    "kvCache": {
+      "theoretical": 134217728,
+      "allocated": 134217728,
+      "used": 0,
+      "efficiency": 0,
+      "seqLen": 0,
+      "maxSeqLen": 4096,
+      "layout": "contiguous"
+    }
+  }
+}

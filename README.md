@@ -4,21 +4,21 @@
 
 **[Try it live](https://d4da.com)**
 
-Doppler is a local WebGPU runtime for browser, Node, and CLI intent/inference loops.
-It provides explicit load-path and kernel-path control, reproducible phase benchmarks against Transformers.js (v4), and auditable kernel execution tracing.
+Doppler is a local WebGPU runtime for browser-hosted and on-device AI workloads.
+It provides explicit control over load-path and kernel-path selection, reproducible phase-level benchmarking (see below for Transformers.js (v4)), and auditable kernel execution tracing.
 
 ## Evidence
 
-![Doppler vs Transformers.js v4 phase comparison (1B, selected warm OPFS workloads)](benchmarks/vendors/results/compare_1b_multi-workload_favorable_phases.svg)
+Lower is better, comparing per-phase latency by workload.
 
-This chart covers three 1B workloads (`g3-p032-d256-t0-k1`, `g3-p064-d064-t0-k1`, `g3-p064-d064-t1-k32`) under the same warm-opfs parity contract.
-In this snapshot, Doppler leads first-response latency and decode throughput, while Transformers.js (v4) leads TTFT and prefill throughput.
-Definitions and reproducibility details are in the Performance section.
+![Phase-latency comparison on one workload across models](benchmarks/vendors/results/compare_1b_multi-workload_favorable_phases.svg)
+
+This chart uses the 1B warm-opfs workload (`64 prompt tokens, 64 decode tokens, greedy`; `warm-opfs` = `cacheMode=warm` + `loadMode=opfs`) with one panel for Gemma 3 ([compare_20260303T175640.json](benchmarks/vendors/results/compare_20260303T175640.json)) and one for LFM2.5 ([compare_20260303T210150.json](benchmarks/vendors/results/compare_20260303T210150.json)). In this snapshot, Doppler is lower on first-response and decode latency, while Transformers.js (v4) is lower on prefill latency. For user-perceived startup after model availability, treat `model load + prefill` as the visible first-response path (loading from local cache/storage, not downloading model artifacts). Definitions and reproducibility details are in the Performance section.
 
 ## Local intent latency constraints
 
 Intent pipelines are front-loaded: the first response determines perceived speed.
-If load or TTFT drifts, the whole workflow feels delayed even when later decode is fast.
+If load or time-to-first-token (TTFT) drifts, the whole workflow feels delayed even when later decode is fast.
 Browser-local inference keeps private prompt data local and makes control decisions resilient when connectivity is limited.
 Doppler targets this critical path directly by making load mode, prefill, decode cadence, and kernel path explicit and tunable.
 
@@ -113,45 +113,54 @@ See [`docs/architecture.md`](docs/architecture.md) for full subsystem and bounda
 
 ## Performance
 
-### Snapshot table (1B, warm-opfs, parity)
+### Methodology and reproducibility
 
-Snapshot context: captured on 2026-03-01 on Apple M3 (Metal, macOS 26.1) with
-`warm-opfs` load mode and parity decode profile.
-
-| Workload              | Engine               | Model load (ms) | TTFT (ms) | First response (ms) | Prefill (tok/s) | Decode (tok/s) |
-| --------------------- | -------------------- | --------------: | --------: | ------------------: | --------------: | -------------: |
-| `g3-p064-d064-t0-k1`  | Doppler              |      **3172.4** |     568.9 |          **3739.7** |          324.12 |      **23.40** |
-| `g3-p064-d064-t0-k1`  | Transformers.js (v4) |          4738.6 | **300.8** |              5053.4 |      **608.34** |          21.06 |
-| `g3-p064-d064-t1-k32` | Doppler              |      **3184.7** |     675.7 |          **3860.4** |          323.65 |      **23.26** |
-| `g3-p064-d064-t1-k32` | Transformers.js (v4) |          4417.0 | **317.6** |              4734.5 |      **577.39** |          20.92 |
-
-In the two workloads shown above, Doppler is faster on first-response latency and decode throughput, while Transformers.js (v4) is faster on TTFT and prefill throughput.
-Committed evidence:
-- chart artifact: `benchmarks/vendors/results/compare_1b_multi-workload_favorable_phases.svg`
-- committed compare fixture input: `benchmarks/vendors/fixtures/g3-p064-d064-t0-k1.compare.json`
-Local/generated compare outputs are written to `benchmarks/vendors/results/*.json` and are gitignored by policy.
+The Evidence chart is generated from two compare artifacts captured on March 3, 2026 on Apple M3 (Metal, macOS 26.1) using:
+- mode `warm`
+- load mode `opfs`
+- decode profile `parity`
+- workload `g3-p064-d064-t0-k1`
+- warmup `1`, runs `3`, seed `0`
 
 ### Reproduce
 
+Prerequisite: converted local model artifacts exist for Gemma 3 1B and LFM2.5 1.2B under `models/local/...` (see setup instructions).
+
 ```bash
-for workload in g3-p064-d064-t0-k1 g3-p064-d064-t1-k32; do
-  node tools/compare-engines.js \
-    --mode compute \
-    --load-mode opfs \
-    --decode-profile parity \
-    --tjs-version 4 \
-    --model-id gemma-3-1b-it-wf16-ef16-hf16 \
-    --tjs-model onnx-community/gemma-3-1b-it-ONNX-GQA \
-    --workload "$workload" \
-    --warmup 1 \
-    --runs 3 \
-    --seed 0 \
-    --save \
-    --save-dir benchmarks/vendors/results
-done
+# Gemma 3 1B
+node tools/compare-engines.js \
+  --mode warm \
+  --load-mode opfs \
+  --decode-profile parity \
+  --tjs-version 4 \
+  --model-id gemma-3-1b-it-wf16-ef16-hf16-f32 \
+  --tjs-model onnx-community/gemma-3-1b-it-ONNX-GQA \
+  --workload g3-p064-d064-t0-k1 \
+  --warmup 1 \
+  --runs 3 \
+  --seed 0 \
+  --save \
+  --save-dir benchmarks/vendors/results
+
+# LFM2.5 1.2B
+node tools/compare-engines.js \
+  --mode warm \
+  --load-mode opfs \
+  --decode-profile parity \
+  --tjs-version 4 \
+  --model-id lfm2-5-1-2b-instruct-wq4k-ef16-hf16-f32 \
+  --tjs-model LiquidAI/LFM2.5-1.2B-Instruct-ONNX \
+  --workload g3-p064-d064-t0-k1 \
+  --warmup 1 \
+  --runs 3 \
+  --seed 0 \
+  --save \
+  --save-dir benchmarks/vendors/results
+
+node benchmarks/vendors/compare-chart.js --preset readme-evidence
 ```
 
-## Getting started
+## Further docs
 
 See [`docs/setup-instructions.md`](docs/setup-instructions.md) for install, conversion, and run guides.
 For contribution workflow, see [`docs/contributing.md`](docs/contributing.md).
@@ -159,12 +168,13 @@ For disclosure and community policies, see [`SECURITY.md`](SECURITY.md).
 
 ## Glossary
 
-- **TTFT**: time-to-first-token from generation start.
-- **First response**: `modelLoadMs + firstTokenMs`.
-- **OPFS**: Origin Private File System browser storage used for persistent local model artifacts.
-- **RDRR**: Doppler model artifact format used by loader/runtime contracts.
-- **Parity profile**: one-token decode cadence used for cross-engine comparison.
-- **Warm-opfs**: warm cache mode with OPFS local load path.
+- **RDRR**: Recursive DOPPLER Runtime Registry format (`manifest.json` + `shard_*.bin` + tokenizer assets). This is the runtime contract Doppler loads and executes.
+- **Kernel path**: A named execution policy (kernels, dtypes, and per-op routing) for prefill/decode. Selected from manifest defaults or runtime config.
+- **Load mode**: Where runtime reads model artifacts from (`opfs`, `http`, `memory`).
+- **Cache mode**: Benchmark cache policy (`warm` reuses local cached artifacts, `cold` clears local cached artifacts before run).
+- **Warm-opfs**: `cacheMode=warm` + `loadMode=opfs`; intended to measure local-start latency without model download time in the timed window.
+- **Parity profile**: Cross-engine decode cadence alignment (`batchSize=1`, `readbackInterval=1`) for apples-to-apples comparison with Transformers.js.
+- **First response**: `modelLoadMs + firstTokenMs` (the perceived startup path after model availability).
 
 ## Inspiration
 

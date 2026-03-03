@@ -175,6 +175,76 @@ function asNonEmptyString(value) {
   return normalized === '' ? null : normalized;
 }
 
+function toTimingNumber(value, fallback = null) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Number(parsed.toFixed(2));
+}
+
+function buildFirstLoadComposition(fields = {}) {
+  const browserLaunchMs = toTimingNumber(fields.browserLaunchMs);
+  const pageReadyMs = toTimingNumber(fields.pageReadyMs);
+  const cachePrimeMs = toTimingNumber(fields.cachePrimeMs, 0);
+  const modelLoadMs = toTimingNumber(fields.modelLoadMs);
+  const firstTokenMs = toTimingNumber(fields.firstTokenMs);
+  const firstResponseMs = toTimingNumber(fields.firstResponseMs);
+
+  const firstResponseFromLoadAndFirstTokenMs = (
+    Number.isFinite(modelLoadMs) && Number.isFinite(firstTokenMs)
+  )
+    ? toTimingNumber(modelLoadMs + firstTokenMs)
+    : null;
+  const harnessWarmStartToFirstResponseMs = (
+    Number.isFinite(pageReadyMs) && Number.isFinite(cachePrimeMs) && Number.isFinite(firstResponseMs)
+  )
+    ? toTimingNumber(pageReadyMs + cachePrimeMs + firstResponseMs)
+    : null;
+  const endToEndFirstResponseMs = (
+    Number.isFinite(browserLaunchMs) && Number.isFinite(harnessWarmStartToFirstResponseMs)
+  )
+    ? toTimingNumber(browserLaunchMs + harnessWarmStartToFirstResponseMs)
+    : null;
+
+  const firstResponseResidualMs = (
+    Number.isFinite(firstResponseMs) && Number.isFinite(firstResponseFromLoadAndFirstTokenMs)
+  )
+    ? toTimingNumber(firstResponseMs - firstResponseFromLoadAndFirstTokenMs)
+    : null;
+
+  return {
+    schemaVersion: 1,
+    semantics: {
+      browserLaunchMs: 'node launch request -> browser/context ready',
+      pageReadyMs: 'runner navigation + startup',
+      cachePrimeMs: 'untimed warm-opfs prefetch/load pass',
+      modelLoadMs: 'model initialization/load before generation',
+      firstTokenMs: 'ttft from generation start',
+      firstResponseMs: 'modelLoadMs + firstTokenMs',
+      harnessWarmStartToFirstResponseMs: 'pageReadyMs + cachePrimeMs + firstResponseMs',
+      endToEndFirstResponseMs: 'browserLaunchMs + pageReadyMs + cachePrimeMs + firstResponseMs',
+    },
+    componentsMs: {
+      browserLaunchMs,
+      pageReadyMs,
+      cachePrimeMs,
+      modelLoadMs,
+      firstTokenMs,
+      firstResponseMs,
+    },
+    sumsMs: {
+      firstResponseFromLoadAndFirstTokenMs,
+      harnessWarmStartToFirstResponseMs,
+      endToEndFirstResponseMs,
+    },
+    residualsMs: {
+      firstResponseResidualMs,
+    },
+    consistent: {
+      firstResponse: Number.isFinite(firstResponseResidualMs) ? Math.abs(firstResponseResidualMs) <= 2 : null,
+    },
+  };
+}
+
 function normalizeGpuBackend(value) {
   const raw = asNonEmptyString(value);
   if (!raw) return null;
@@ -961,6 +1031,21 @@ async function main() {
       ort_top_op_total_ms: ortSummary.topOperations[0]?.totalMs ?? null,
     };
     result.cachePrime = cachePrime;
+    result.firstLoad = {
+      ...buildFirstLoadComposition({
+        browserLaunchMs,
+        pageReadyMs,
+        cachePrimeMs: cachePrime.primeMs,
+        modelLoadMs: result?.timing?.modelLoadMs,
+        firstTokenMs: result?.timing?.firstTokenMs,
+        firstResponseMs: result?.timing?.firstResponseMs,
+      }),
+      mode: {
+        cachePrimeEnabled: cachePrime.enabled,
+        cachePrimePrimed: cachePrime.primed,
+        strictWarmOpfs,
+      },
+    };
     result.env = {
       ...(result.env && typeof result.env === 'object' ? result.env : {}),
       webgpuBackend,

@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-03-01T14:32:44.569Z",
+  "generatedAt": "2026-03-03T21:44:04.664Z",
   "release": {
     "channel": "main-snapshot",
     "version": null,
-    "commitSha": "6b34cb7d65841b2d6a6d983dc0c0c809fa3a4f13",
+    "commitSha": "e40750863b77f4f1d954b00b6445d9b0a18394d0",
     "dirty": true
   },
   "sources": {
@@ -28,8 +28,8 @@
     },
     "compareConfig": {
       "path": "benchmarks/vendors/compare-engines.config.json",
-      "sha256": "f469dd7de445f0775e8fb712d388cb94009acbcdf13dfe0f779009deef2a2886",
-      "bytes": 404,
+      "sha256": "5f24039e37de943cfe0043f8cf0430f7606eb35cfc851205cdf13f35162049f6",
+      "bytes": 410,
       "updated": "2026-02-23"
     },
     "modelCatalog": {
@@ -490,7 +490,7 @@
   ],
   "modelCoverage": [
     {
-      "dopplerModelId": "gemma-3-1b-it-wf16-ef16-hf16",
+      "dopplerModelId": "gemma-3-1b-it-wf16-ef16-hf16-f32",
       "dopplerModelBaseDir": "local",
       "defaultTjsModelId": "onnx-community/gemma-3-1b-it-ONNX-GQA",
       "defaultKernelPath": "gemma3-f16-fused-f32a-online",
@@ -501,8 +501,8 @@
       "catalogSizeBytes": null
     },
     {
-      "dopplerModelId": "gemma-3-270m-it-wf16-ef16-hf16",
-      "dopplerModelBaseDir": "curated",
+      "dopplerModelId": "gemma-3-270m-it-wf16-ef16-hf16-f32",
+      "dopplerModelBaseDir": "local",
       "defaultTjsModelId": "onnx-community/gemma-3-270m-it-ONNX",
       "defaultKernelPath": null,
       "inCatalog": false,

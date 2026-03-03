@@ -26,9 +26,9 @@
     "schema": "doppler.execution/v0",
     "presetId": "gemma3",
     "attention": {
-      "queryPreAttnScalar": 256,
+      "queryPreAttnScalar": 16,
       "attnLogitSoftcapping": null,
-      "slidingWindow": 512,
+      "slidingWindow": null,
       "queryKeyNorm": true,
       "causal": true,
       "attentionBias": false
@@ -64,7 +64,7 @@
       "tieWordEmbeddings": true,
       "scaleEmbeddings": true,
       "embeddingTranspose": false,
-      "embeddingVocabSize": 262144
+      "embeddingVocabSize": null
     },
     "layerPattern": {
       "type": "every_n",
@@ -795,42 +795,48 @@
       "index": 0,
       "filename": "shard_00000.bin",
       "size": 67108864,
-      "hash": "5b344e431bb11e3127432f36b0f0f3cad973798409d6db3221790f674b6e76c1",
+      "hash": "3f4369beb50460c76843aab54e36ab042fedffd0b0c03d09e39ec4fc995e6c67",
+      "blake3": "3f4369beb50460c76843aab54e36ab042fedffd0b0c03d09e39ec4fc995e6c67",
       "offset": 0
     },
     {
       "index": 1,
       "filename": "shard_00001.bin",
       "size": 67108864,
-      "hash": "7b35202bcaac29c4a838747ebb2aaf1374d9eccb3eb521c8e7d06aec10de9695",
+      "hash": "7c9b6e74ef5738a687bbc28b80007ba154ad529ba121c3eecd3f73ac14b98e16",
+      "blake3": "7c9b6e74ef5738a687bbc28b80007ba154ad529ba121c3eecd3f73ac14b98e16",
       "offset": 67108864
     },
     {
       "index": 2,
       "filename": "shard_00002.bin",
       "size": 67108864,
-      "hash": "eeb9dcb2776ddc21170a35aa5bf4994bfe3b8085cfcad831017cd0f1bfd1ddce",
+      "hash": "1e9affca30a11b90d2cb02ce15aaab4e29a0d031c7696bceed344e7b80f7870b",
+      "blake3": "1e9affca30a11b90d2cb02ce15aaab4e29a0d031c7696bceed344e7b80f7870b",
       "offset": 134217728
     },
     {
       "index": 3,
       "filename": "shard_00003.bin",
       "size": 67108864,
-      "hash": "bab8001b61aff054bf7df8d789c3a3e61b56ce6bb362deb9cd1c9fc1a78f6825",
+      "hash": "bdc8196efc0b2f4442bfb3aeff5097b96172bc4527693bd0bb8df5856d9fc496",
+      "blake3": "bdc8196efc0b2f4442bfb3aeff5097b96172bc4527693bd0bb8df5856d9fc496",
       "offset": 201326592
     },
     {
       "index": 4,
       "filename": "shard_00004.bin",
       "size": 67108864,
-      "hash": "0a934064e45218d9f95fb6e01ec96c2458a97441a70e22c8bd65f5a92cbef517",
+      "hash": "9e1391f8d5d66008df9a1fefbdf8c24105ac7f1c1b5340e474162e33a8480a30",
+      "blake3": "9e1391f8d5d66008df9a1fefbdf8c24105ac7f1c1b5340e474162e33a8480a30",
       "offset": 268435456
     },
     {
       "index": 5,
       "filename": "shard_00005.bin",
       "size": 63812864,
-      "hash": "07a282772f8e57c8904424b5bcfcdfe07493b17dfa208a4876e058489c5f05d2",
+      "hash": "b0bae3311c0c8b9edeec774e25f585f233b31ca79d37e5709eed733c7a932031",
+      "blake3": "b0bae3311c0c8b9edeec774e25f585f233b31ca79d37e5709eed733c7a932031",
       "offset": 335544320
     }
   ],
@@ -3476,11 +3482,18 @@
   },
   "totalSize": 399357184,
   "hashAlgorithm": "blake3",
-  "eos_token_id": 1,
+  "eos_token_id": [
+    1,
+    50
+  ],
   "metadata": {
     "source": "convert-core",
-    "convertedAt": "2026-02-26T22:31:28.088Z",
-    "hasTokenizer": true
+    "convertedAt": "2026-02-26T17:04:12.403Z",
+    "hasTokenizer": true,
+    "manifestRefresh": {
+      "at": "2026-02-26T20:36:34.427Z",
+      "config": "gemma-3-270m-it-wq4k-ef16-hf16-f32.json"
+    }
   },
   "tokenizer": {
     "type": "bundled",

@@ -150,6 +150,78 @@ function pickGenerationConfigSnapshot(config) {
   return hasAny ? out : null;
 }
 
+function normalizeTimingNumber(value, fallback = null, digits = 2) {
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) return fallback;
+  return Number(numericValue.toFixed(digits));
+}
+
+function buildTimingDiagnostics(timing = {}, options = {}) {
+  const prefillSemantics = String(options.prefillSemantics || 'ttft_proxy');
+  const source = String(options.source || 'transformers.js');
+  const modelLoadMs = normalizeTimingNumber(timing.modelLoadMs);
+  const firstTokenMs = normalizeTimingNumber(timing.firstTokenMs);
+  const firstResponseMs = normalizeTimingNumber(timing.firstResponseMs);
+  const prefillMs = normalizeTimingNumber(timing.prefillMs);
+  const decodeMs = normalizeTimingNumber(timing.decodeMs);
+  const totalRunMs = normalizeTimingNumber(timing.totalRunMs);
+
+  const firstResponseFromLoadAndFirstTokenMs = (
+    Number.isFinite(modelLoadMs) && Number.isFinite(firstTokenMs)
+  )
+    ? normalizeTimingNumber(modelLoadMs + firstTokenMs)
+    : null;
+  const runFromPrefillAndDecodeMs = (
+    Number.isFinite(prefillMs) && Number.isFinite(decodeMs)
+  )
+    ? normalizeTimingNumber(prefillMs + decodeMs)
+    : null;
+
+  const firstResponseResidualMs = (
+    Number.isFinite(firstResponseMs) && Number.isFinite(firstResponseFromLoadAndFirstTokenMs)
+  )
+    ? normalizeTimingNumber(firstResponseMs - firstResponseFromLoadAndFirstTokenMs)
+    : null;
+  const runResidualMs = (
+    Number.isFinite(totalRunMs) && Number.isFinite(runFromPrefillAndDecodeMs)
+  )
+    ? normalizeTimingNumber(totalRunMs - runFromPrefillAndDecodeMs)
+    : null;
+
+  return {
+    schemaVersion: 1,
+    source,
+    semantics: {
+      modelLoadMs: 'model initialization/load before generation',
+      firstTokenMs: 'ttft from generation start',
+      firstResponseMs: 'modelLoadMs + firstTokenMs',
+      prefillMs: prefillSemantics,
+      decodeMs: 'time after first token',
+      totalRunMs: 'prefillMs + decodeMs',
+    },
+    componentsMs: {
+      modelLoadMs,
+      firstTokenMs,
+      firstResponseMs,
+      prefillMs,
+      decodeMs,
+      totalRunMs,
+    },
+    sumsMs: {
+      firstResponseFromLoadAndFirstTokenMs,
+      runFromPrefillAndDecodeMs,
+    },
+    residualsMs: {
+      firstResponseResidualMs,
+      runResidualMs,
+    },
+    consistent: {
+      firstResponse: Number.isFinite(firstResponseResidualMs) ? Math.abs(firstResponseResidualMs) <= 2 : null,
+      totalRun: Number.isFinite(runResidualMs) ? Math.abs(runResidualMs) <= 2 : null,
+    },
+  };
+}
+
 const SUPPORTED_TJS_DTYPES = Object.freeze(['fp16', 'q4', 'q4f16']);
 const EXECUTION_PROVIDER_MODES = Object.freeze(['default', 'webgpu-only', 'webgpu+wasm', 'webgpu+wasm-safe']);
 
@@ -602,6 +674,25 @@ window.__runBench = async (config) => {
   const firstResponseMs = Number.isFinite(modelLoadMs) && Number.isFinite(medianTtftMs)
     ? modelLoadMs + medianTtftMs
     : null;
+  const timing = {
+    modelLoadMs,
+    firstTokenMs: medianTtftMs,
+    firstResponseMs,
+    prefillMs: medianTtftMs,
+    decodeMs: medianDecodeMs,
+    totalRunMs: medianTotalRunMs,
+    decodeTokensPerSec,
+    prefillTokensPerSec,
+    decodeMsPerTokenP50: percentile(allDecodeLatencies, 50),
+    decodeMsPerTokenP95: percentile(allDecodeLatencies, 95),
+    decodeMsPerTokenP99: percentile(allDecodeLatencies, 99),
+    cacheMode,
+    loadMode,
+  };
+  const timingDiagnostics = buildTimingDiagnostics(timing, {
+    source: 'transformers.js',
+    prefillSemantics: 'ttft_proxy',
+  });
 
   // Best-effort memory snapshot after inference
   const memoryAfter = performance.memory ? {
@@ -637,21 +728,8 @@ window.__runBench = async (config) => {
     },
     cacheMode,
     loadMode,
-    timing: {
-      modelLoadMs,
-      firstTokenMs: medianTtftMs,
-      firstResponseMs,
-      prefillMs: medianTtftMs,
-      decodeMs: medianDecodeMs,
-      totalRunMs: medianTotalRunMs,
-      decodeTokensPerSec,
-      prefillTokensPerSec,
-      decodeMsPerTokenP50: percentile(allDecodeLatencies, 50),
-      decodeMsPerTokenP95: percentile(allDecodeLatencies, 95),
-      decodeMsPerTokenP99: percentile(allDecodeLatencies, 99),
-      cacheMode,
-      loadMode,
-    },
+    timing,
+    timingDiagnostics,
     deviceInfo,
     metrics: {
       decodeTokensPerSec,

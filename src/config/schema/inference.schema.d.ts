@@ -112,6 +112,7 @@ export interface ChatTemplateSchema {
 export type LayerPipelineOp =
   | 'save'
   | 'load'
+  | 'conv'
   | 'attention'
   | 'rmsnorm'
   | 'ffn'
@@ -181,7 +182,13 @@ export interface OutputSchema {
 }
 
 /** Layer type for hybrid models */
-export type LayerType = 'attention' | 'mamba' | 'rwkv';
+export type LayerType =
+  | 'attention'
+  | 'full_attention'
+  | 'sliding_attention'
+  | 'conv'
+  | 'mamba'
+  | 'rwkv';
 
 /** Global layer pattern (computed at runtime from numLayers) */
 export type GlobalLayerPattern =

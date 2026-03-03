@@ -566,6 +566,72 @@ function buildCanonicalTiming(overrides = {}) {
   };
 }
 
+function buildTimingDiagnostics(timing = {}, options = {}) {
+  const prefillSemantics = String(options.prefillSemantics || 'internal_prefill_phase');
+  const source = String(options.source || 'doppler');
+  const modelLoadMs = Number.isFinite(timing.modelLoadMs) ? toTimingNumber(timing.modelLoadMs) : null;
+  const firstTokenMs = Number.isFinite(timing.firstTokenMs) ? toTimingNumber(timing.firstTokenMs) : null;
+  const firstResponseMs = Number.isFinite(timing.firstResponseMs) ? toTimingNumber(timing.firstResponseMs) : null;
+  const prefillMs = Number.isFinite(timing.prefillMs) ? toTimingNumber(timing.prefillMs) : null;
+  const decodeMs = Number.isFinite(timing.decodeMs) ? toTimingNumber(timing.decodeMs) : null;
+  const totalRunMs = Number.isFinite(timing.totalRunMs) ? toTimingNumber(timing.totalRunMs) : null;
+
+  const firstResponseFromLoadAndFirstTokenMs = (
+    Number.isFinite(modelLoadMs) && Number.isFinite(firstTokenMs)
+  )
+    ? toTimingNumber(modelLoadMs + firstTokenMs)
+    : null;
+  const runFromPrefillAndDecodeMs = (
+    Number.isFinite(prefillMs) && Number.isFinite(decodeMs)
+  )
+    ? toTimingNumber(prefillMs + decodeMs)
+    : null;
+
+  const firstResponseResidualMs = (
+    Number.isFinite(firstResponseMs) && Number.isFinite(firstResponseFromLoadAndFirstTokenMs)
+  )
+    ? toTimingNumber(firstResponseMs - firstResponseFromLoadAndFirstTokenMs)
+    : null;
+  const runResidualMs = (
+    Number.isFinite(totalRunMs) && Number.isFinite(runFromPrefillAndDecodeMs)
+  )
+    ? toTimingNumber(totalRunMs - runFromPrefillAndDecodeMs)
+    : null;
+
+  return {
+    schemaVersion: 1,
+    source,
+    semantics: {
+      modelLoadMs: 'model initialization/load before generation',
+      firstTokenMs: 'ttft from generation start',
+      firstResponseMs: 'modelLoadMs + firstTokenMs',
+      prefillMs: prefillSemantics,
+      decodeMs: 'time after first token',
+      totalRunMs: 'prefillMs + decodeMs',
+    },
+    componentsMs: {
+      modelLoadMs,
+      firstTokenMs,
+      firstResponseMs,
+      prefillMs,
+      decodeMs,
+      totalRunMs,
+    },
+    sumsMs: {
+      firstResponseFromLoadAndFirstTokenMs,
+      runFromPrefillAndDecodeMs,
+    },
+    residualsMs: {
+      firstResponseResidualMs,
+      runResidualMs,
+    },
+    consistent: {
+      firstResponse: Number.isFinite(firstResponseResidualMs) ? Math.abs(firstResponseResidualMs) <= 2 : null,
+      totalRun: Number.isFinite(runResidualMs) ? Math.abs(runResidualMs) <= 2 : null,
+    },
+  };
+}
+
 async function resolveKernelPathForModel(options = {}) {
   const runtimeConfig = options.runtime?.runtimeConfig ?? getRuntimeConfig();
   let manifest = null;
@@ -1516,6 +1582,10 @@ async function runInferenceSuite(options = {}) {
     cacheMode,
     loadMode,
   });
+  const timingDiagnostics = buildTimingDiagnostics(timing, {
+    source: 'doppler',
+    prefillSemantics: 'internal_prefill_phase',
+  });
   return {
     ...summary,
     modelId: options.modelId || harness.manifest?.modelId || 'unknown',
@@ -1531,6 +1601,7 @@ async function runInferenceSuite(options = {}) {
       browserVendor: typeof navigator !== 'undefined' ? (navigator.vendor || null) : null,
     },
     timing,
+    timingDiagnostics,
     output,
     metrics,
     memoryStats,
@@ -1574,6 +1645,10 @@ async function runBenchSuite(options = {}) {
       cacheMode,
       loadMode,
     });
+    const timingDiagnostics = buildTimingDiagnostics(timing, {
+      source: 'doppler',
+      prefillSemantics: 'not_applicable_training_workload',
+    });
     return {
       ...trainingBench,
       modelId: trainingBench.modelId || options.modelId || options.modelUrl || 'training',
@@ -1589,6 +1664,7 @@ async function runBenchSuite(options = {}) {
         browserVendor: typeof navigator !== 'undefined' ? (navigator.vendor || null) : null,
       },
       timing,
+      timingDiagnostics,
       output: null,
       memoryStats: null,
       deviceInfo: trainingBench.deviceInfo ?? getKernelCapabilities(),
@@ -1867,6 +1943,10 @@ async function runBenchSuite(options = {}) {
   }
 
   const summary = buildSuiteSummary('bench', results, startTime);
+  const timingDiagnostics = buildTimingDiagnostics(timing, {
+    source: 'doppler',
+    prefillSemantics: 'internal_prefill_phase',
+  });
   return {
     ...summary,
     modelId: options.modelId || harness.manifest?.modelId || 'unknown',
@@ -1882,6 +1962,7 @@ async function runBenchSuite(options = {}) {
       browserVendor: typeof navigator !== 'undefined' ? (navigator.vendor || null) : null,
     },
     timing,
+    timingDiagnostics,
     output,
     metrics,
     memoryStats,

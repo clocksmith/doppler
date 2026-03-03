@@ -7,6 +7,7 @@ import { allowReadback } from '../../../gpu/perf-guards.js';
 import { createTensor } from '../../../gpu/tensor.js';
 import {
   doAttention, doRMSNorm, doResidualAdd,
+  doConv,
   doCast,
   releaseOrTrack
 } from './ops.js';
@@ -71,6 +72,14 @@ function isSlidingLayerType(layerType) {
     || normalized === 'local_attention'
     || normalized === 'local'
     || normalized === 'sliding';
+}
+
+function isConvLayerType(layerType) {
+  const normalized = normalizeLayerType(layerType);
+  return normalized === 'conv'
+    || normalized === 'convolution'
+    || normalized === 'liv_conv'
+    || normalized === 'liv_convolution';
 }
 
 // ============================================================================
@@ -139,68 +148,95 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
     });
   }
 
-  // 1. Self-attention
+  // 1. Layer mixer (attention or conv)
   const layerType = config.layerTypes?.[layerIdx];
+  const isConvLayer = isConvLayerType(layerType);
   const isLocalLayer = isSlidingLayerType(layerType);
 
   // Debug: log RoPE selection for first few layers
   if (context.debug && layerIdx < 3) {
-    trace.attn(layerIdx, `RoPE selection: layerType=${layerType}, isLocal=${isLocalLayer}, hasLocalCos=${!!context.ropeLocalCos}, hasLocalSin=${!!context.ropeLocalSin}`);
+    trace.attn(layerIdx, `Layer routing: layerType=${layerType}, isConv=${isConvLayer}, isLocal=${isLocalLayer}, hasLocalCos=${!!context.ropeLocalCos}, hasLocalSin=${!!context.ropeLocalSin}`);
   }
 
+  let attnOutput;
+  let residualFused = false;
+  if (isConvLayer) {
+    const convInProj = layerWeights?.convInProj ?? null;
+    const convOutProj = layerWeights?.convOutProj ?? null;
+    if (!convInProj || !convOutProj) {
+      throw new Error(
+        `Missing conv weights for L${layerIdx}. Expected conv.in_proj.weight and conv.out_proj.weight.`
+      );
+    }
+    const convKernel = layerWeights?.convKernel ?? null;
+    attnOutput = await doConv(
+      inputTensor,
+      getWeightBuffer(convInProj, `L${layerIdx}.conv_in_proj`),
+      convKernel ? getWeightBuffer(convKernel, `L${layerIdx}.conv_kernel`) : null,
+      getWeightBuffer(convOutProj, `L${layerIdx}.conv_out_proj`),
+      {
+        numTokens,
+        hiddenSize,
+        layerIdx,
+        label: `L${layerIdx}.conv`,
+        swigluLimit: config.swigluLimit,
+        kernelPath: context.kernelPath ?? null,
+      },
+      recorder
+    );
+  } else {
+    const attnConfig = {
+      layerIdx,
+      numTokens,
+      isPrefill,
+      numHeads,
+      numKVHeads,
+      headDim,
+      hiddenSize,
+      rmsNormEps,
+      currentSeqLen: context.currentSeqLen,
+      activationDtype,
+      slidingWindow: config.slidingWindow,
+      layerType,
+      residualTensor: (numTokens === 1 && !(sandwichNorm.useSandwichNorm && sandwichNorm.hasPostAttentionNorm))
+        ? inputTensor
+        : null,
+      attnSoftcap: config.attnLogitSoftcapping === null ? 0 : config.attnLogitSoftcapping,
+      queryPreAttnScalar: config.queryPreAttnScalar,
+      queryKeyNorm: config.queryKeyNorm,
+      causalAttention: config.causalAttention,
+      rmsNormWeightOffset: config.rmsNormWeightOffset,
+      tokenIds: context.currentTokenIds ?? null,
+      kernelPath: context.kernelPath ?? null,
+    };
 
-  const attnConfig = {
-    layerIdx,
-    numTokens,
-    isPrefill,
-    numHeads,
-    numKVHeads,
-    headDim,
-    hiddenSize,
-    rmsNormEps,
-    currentSeqLen: context.currentSeqLen,
-    activationDtype,
-    slidingWindow: config.slidingWindow,
-    layerType,
-    residualTensor: (numTokens === 1 && !(sandwichNorm.useSandwichNorm && sandwichNorm.hasPostAttentionNorm))
-      ? inputTensor
-      : null,
-    attnSoftcap: config.attnLogitSoftcapping === null ? 0 : config.attnLogitSoftcapping,
-    queryPreAttnScalar: config.queryPreAttnScalar,
-    queryKeyNorm: config.queryKeyNorm,
-    causalAttention: config.causalAttention,
-    rmsNormWeightOffset: config.rmsNormWeightOffset,
-    tokenIds: context.currentTokenIds ?? null,
-    kernelPath: context.kernelPath ?? null,
-  };
+    const attnState = {
+      ropeFreqsCos: (isLocalLayer && context.ropeLocalCos)
+        ? (context.ropeLocalCos)
+        : (ropeFreqsCos),
+      ropeFreqsSin: (isLocalLayer && context.ropeLocalSin)
+        ? (context.ropeLocalSin)
+        : (ropeFreqsSin),
+      kvCache: ((kvCache)),
+      stats: context.stats,
+    };
 
-
-  const attnState = {
-    ropeFreqsCos: (isLocalLayer && context.ropeLocalCos)
-      ? (context.ropeLocalCos)
-      : (ropeFreqsCos),
-    ropeFreqsSin: (isLocalLayer && context.ropeLocalSin)
-      ? (context.ropeLocalSin)
-      : (ropeFreqsSin),
-    kvCache: ((kvCache)),
-    stats: context.stats,
-  };
-
-  const attnResult = await doAttention(
-    inputTensor,
-    layerWeights ?? null,
-    attnConfig,
-    attnState,
-    context.debug,
-    { debugLayers: context.debugLayers },
-    (weight, label) => getWeightBuffer(weight, label),
-    (weight, label) => getNormWeightBuffer(weight, label, weightConfig, debugFlags),
-    context.debugCheckBuffer,
-    recorder,
-    context.lora
-  );
-  const attnOutput = attnResult.output;
-  const residualFused = attnResult.residualFused;
+    const attnResult = await doAttention(
+      inputTensor,
+      layerWeights ?? null,
+      attnConfig,
+      attnState,
+      context.debug,
+      { debugLayers: context.debugLayers },
+      (weight, label) => getWeightBuffer(weight, label),
+      (weight, label) => getNormWeightBuffer(weight, label, weightConfig, debugFlags),
+      context.debugCheckBuffer,
+      recorder,
+      context.lora
+    );
+    attnOutput = attnResult.output;
+    residualFused = attnResult.residualFused;
+  }
 
   if (isKernelDebugEnabled(layerIdx) && !recorder) {
     await dumpTokenVector(attnOutput.buffer, 'attn_out', {
@@ -579,6 +615,49 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
           setSlot(step.dst, result.output.buffer, outputDtype);
           if (step.probeStage) {
             await runProbes(step.probeStage, result.output.buffer, {
+              layerIdx,
+              numTokens,
+              hiddenSize,
+              probes: context.debugProbes,
+              recorder,
+            });
+          }
+          break;
+        }
+        case 'conv': {
+          const srcBuf = getSlot(step.src);
+          const inputDtype = resolveStepInputDtype(step, step.src);
+          const srcTensor = createTensor(srcBuf, inputDtype, [numTokens, hiddenSize], 'plan_conv_src');
+
+          const convInProj = layerWeights?.convInProj ?? null;
+          const convOutProj = layerWeights?.convOutProj ?? null;
+          if (!convInProj || !convOutProj) {
+            throw new Error(
+              `Layer pipeline conv step missing conv weights at L${layerIdx}. ` +
+              'Expected conv.in_proj.weight and conv.out_proj.weight.'
+            );
+          }
+          const convKernel = layerWeights?.convKernel ?? null;
+
+          const outputTensor = await doConv(
+            srcTensor,
+            getWeightBuffer(convInProj, `L${layerIdx}.plan_conv_in_proj`),
+            convKernel ? getWeightBuffer(convKernel, `L${layerIdx}.plan_conv_kernel`) : null,
+            getWeightBuffer(convOutProj, `L${layerIdx}.plan_conv_out_proj`),
+            {
+              numTokens,
+              hiddenSize,
+              layerIdx,
+              label: `L${layerIdx}.plan_conv`,
+              swigluLimit: config.swigluLimit,
+              kernelPath: context.kernelPath ?? null,
+            },
+            recorder
+          );
+          const outputDtype = resolveStepOutputDtype(step, resolveActivationDtype(outputTensor.dtype));
+          setSlot(step.dst, outputTensor.buffer, outputDtype);
+          if (step.probeStage) {
+            await runProbes(step.probeStage, outputTensor.buffer, {
               layerIdx,
               numTokens,
               hiddenSize,

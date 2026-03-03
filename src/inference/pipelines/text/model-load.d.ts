@@ -33,6 +33,12 @@ export interface KernelPathResolutionResult {
 
 export function runKernelWarmup(options: KernelWarmupOptions): Promise<void>;
 
+export function applyModelBatchingRuntimeDefaults(
+  runtimeConfig: RuntimeConfigSchema,
+  manifest: Manifest,
+  modelConfig: ParsedModelConfig | null | undefined
+): RuntimeConfigSchema;
+
 export function resolveKernelPathState(
   options: KernelPathResolutionOptions
 ): KernelPathResolutionResult;

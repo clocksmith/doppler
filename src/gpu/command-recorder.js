@@ -28,6 +28,10 @@ export class CommandRecorder {
 
   #pooledBuffers;
 
+  #tempBufferSet;
+
+  #pooledBufferSet;
+
   #cleanupPromise = null;
 
   
@@ -70,6 +74,8 @@ export class CommandRecorder {
     this.#tempBuffers = [];
     // Pooled buffers to release after submit (came from buffer pool)
     this.#pooledBuffers = [];
+    this.#tempBufferSet = new Set();
+    this.#pooledBufferSet = new Set();
     this.#cleanupPromise = null;
 
     // Track if already submitted
@@ -156,6 +162,7 @@ export class CommandRecorder {
     trackAllocation(size, label);
 
     this.#tempBuffers.push(buffer);
+    this.#tempBufferSet.add(buffer);
     return buffer;
   }
 
@@ -258,8 +265,14 @@ export class CommandRecorder {
       throw new Error('[CommandRecorder] Cannot track buffers after submit');
     }
     if (isBufferActive(buffer)) {
-      this.#pooledBuffers.push(buffer);
-    } else {
+      if (!this.#pooledBufferSet.has(buffer)) {
+        this.#pooledBufferSet.add(buffer);
+        this.#pooledBuffers.push(buffer);
+      }
+      return;
+    }
+    if (!this.#tempBufferSet.has(buffer)) {
+      this.#tempBufferSet.add(buffer);
       this.#tempBuffers.push(buffer);
     }
   }
@@ -280,6 +293,8 @@ export class CommandRecorder {
     const buffersToRelease = this.#pooledBuffers;
     this.#tempBuffers = [];
     this.#pooledBuffers = [];
+    this.#tempBufferSet.clear();
+    this.#pooledBufferSet.clear();
 
     this.#cleanupPromise = this.device.queue.onSubmittedWorkDone().then(() => {
       this.#submitLatencyMs = performance.now() - submitStart;
@@ -338,6 +353,8 @@ export class CommandRecorder {
     }
     this.#tempBuffers = [];
     this.#pooledBuffers = [];
+    this.#tempBufferSet.clear();
+    this.#pooledBufferSet.clear();
     this.#destroyProfilingResources();
     this.#submitted = true; // Prevent further use
   }
