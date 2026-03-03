@@ -25,6 +25,7 @@ import {
 } from './text/init.js';
 import {
   runKernelWarmup,
+  applyModelBatchingRuntimeDefaults,
   resolveKernelPathState,
   initTokenizerFromManifestPreset,
 } from './text/model-load.js';
@@ -110,6 +111,11 @@ export class InferencePipeline extends PipelineState {
     // Pass runtime model overrides to merge with manifest inference config
     const modelOverrides = (this.runtimeConfig.inference.modelOverrides);
     this.modelConfig = parseModelConfig(manifest, modelOverrides);
+    this.runtimeConfig = applyModelBatchingRuntimeDefaults(
+      this.runtimeConfig,
+      manifest,
+      this.modelConfig
+    );
     this.useTiedEmbeddings = this.modelConfig.useTiedEmbeddings;
     this.embeddingVocabSize = this.modelConfig.embeddingVocabSize;
     this.embeddingTranspose = this.modelConfig.embeddingTranspose;

@@ -246,15 +246,7 @@ function parseUnifiedRuntimeConfig(value) {
 
 function resolveRuntimeConfigFlags(parsed) {
   const unifiedRaw = asStringOrNull(parsed.flags['runtime-config']);
-  const unified = parseUnifiedRuntimeConfig(unifiedRaw);
-  if (!unified) {
-    return {
-      runtimePreset: null,
-      runtimeConfigUrl: null,
-      runtimeConfig: null,
-    };
-  }
-  return unified;
+  return parseUnifiedRuntimeConfig(unifiedRaw);
 }
 
 async function readJsonObjectFile(filePath, label) {

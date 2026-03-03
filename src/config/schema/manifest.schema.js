@@ -86,6 +86,7 @@ export const DEFAULT_MANIFEST_INFERENCE = {
     globalPattern: null,  // No alternating pattern (null = not applicable)
     period: null,  // No periodic pattern (null = not applicable)
     offset: null,  // For every_n: first global layer index modulo period
+    layerTypes: null,  // For custom: explicit per-layer tags
   },
   chatTemplate: {
     type: null,  // No chat template (null = disabled)

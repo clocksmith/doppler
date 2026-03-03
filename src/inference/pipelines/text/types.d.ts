@@ -462,6 +462,9 @@ export interface LayerWeights {
   kProj: LayerWeightBuffer;
   vProj: LayerWeightBuffer;
   oProj: LayerWeightBuffer;
+  convInProj?: LayerWeightBuffer;
+  convKernel?: LayerWeightBuffer;
+  convOutProj?: LayerWeightBuffer;
   /** Fused Q/K/V projection (runtime-generated for 3->1 matmul optimization) */
   qkvProj?: GPUBuffer | WeightBuffer | null;
   /** Sizes for splitting fused QKV output: [qSize, kSize, vSize] in elements */

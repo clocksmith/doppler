@@ -231,6 +231,101 @@ function resolveMoEConfigNumber(rawConfig, ...keys) {
   return null;
 }
 
+function normalizeTensorShape(value) {
+  if (!Array.isArray(value) || value.length !== 2) return null;
+  const rows = Number(value[0]);
+  const cols = Number(value[1]);
+  if (!Number.isFinite(rows) || !Number.isFinite(cols)) return null;
+  if (rows <= 0 || cols <= 0) return null;
+  return [Math.trunc(rows), Math.trunc(cols)];
+}
+
+function isExpertTensorName(name) {
+  const lower = String(name || '').toLowerCase();
+  return lower.includes('.experts.') || lower.includes('.expert.') || lower.includes('block_sparse_moe');
+}
+
+function inferDenseIntermediateSizeFromTensorEntries(entries) {
+  if (!Array.isArray(entries) || entries.length === 0) return null;
+  const candidates = [];
+  for (const entry of entries) {
+    const name = String(entry?.name || '');
+    if (!name || isExpertTensorName(name)) continue;
+    const shape = normalizeTensorShape(entry?.shape);
+    if (!shape) continue;
+    const lower = name.toLowerCase();
+    if (
+      lower.endsWith('.feed_forward.w1.weight')
+      || lower.endsWith('.feed_forward.w3.weight')
+      || lower.endsWith('.ffn_gate.weight')
+      || lower.endsWith('.ffn_up.weight')
+      || lower.endsWith('.ffn.gate_proj.weight')
+      || lower.endsWith('.ffn.up_proj.weight')
+      || lower.endsWith('.mlp.gate_proj.weight')
+      || lower.endsWith('.mlp.up_proj.weight')
+    ) {
+      candidates.push(shape[0]);
+      continue;
+    }
+    if (
+      lower.endsWith('.feed_forward.w2.weight')
+      || lower.endsWith('.ffn_down.weight')
+      || lower.endsWith('.ffn.down_proj.weight')
+      || lower.endsWith('.mlp.down_proj.weight')
+    ) {
+      candidates.push(shape[1]);
+      continue;
+    }
+    if (
+      lower.endsWith('.feed_forward.w1_w3.weight')
+      || lower.endsWith('.ffn_gate_up.weight')
+      || lower.endsWith('.ffn.gate_up_proj.weight')
+      || lower.endsWith('.mlp.gate_up_proj.weight')
+    ) {
+      if (shape[0] % 2 === 0) {
+        candidates.push(Math.trunc(shape[0] / 2));
+      }
+    }
+  }
+  if (candidates.length === 0) return null;
+  const counts = new Map();
+  for (const value of candidates) {
+    counts.set(value, (counts.get(value) ?? 0) + 1);
+  }
+  return [...counts.entries()]
+    .sort((a, b) => {
+      if (b[1] !== a[1]) return b[1] - a[1];
+      return a[0] - b[0];
+    })[0]?.[0] ?? null;
+}
+
+function resolveIntermediateSizeFromTensors(architecture, model, tensorLocations, rawConfig, modelId) {
+  if (!architecture || typeof architecture !== 'object') return architecture;
+  const current = architecture.intermediateSize;
+  if (typeof current !== 'number' || !Number.isFinite(current) || current <= 0) {
+    return architecture;
+  }
+  const modelType = String(rawConfig?.model_type ?? rawConfig?.text_config?.model_type ?? '').toLowerCase();
+  if (modelType !== 'lfm2') {
+    return architecture;
+  }
+  const entries = Array.isArray(model?.tensors) && model.tensors.length > 0
+    ? model.tensors
+    : Object.entries(tensorLocations ?? {}).map(([name, location]) => ({ name, shape: location?.shape }));
+  const inferred = inferDenseIntermediateSizeFromTensorEntries(entries);
+  if (inferred == null || inferred === current) {
+    return architecture;
+  }
+  log.warn(
+    'Convert',
+    `Adjusted architecture.intermediateSize for "${modelId}": ${current} -> ${inferred} (from FFN tensor shapes)`
+  );
+  return {
+    ...architecture,
+    intermediateSize: inferred,
+  };
+}
+
 function modelHasMoETensors(model) {
   if (!Array.isArray(model?.tensors)) return false;
   return model.tensors.some((tensor) => {
@@ -797,6 +892,9 @@ export function createManifest(
     isDiffusion ? 'diffusion' : extractArchitecture(model.config, model.ggufConfig)
   );
   const rawConfig = model.config || {};
+  const resolvedArchitecture = isDiffusion
+    ? architecture
+    : resolveIntermediateSizeFromTensors(architecture, model, tensorLocations, rawConfig, modelId);
   const moeConfig = isDiffusion
     ? null
     : resolveManifestMoEConfig(model, { ...options, modelId }, rawConfig, resolvedModelType);
@@ -820,7 +918,7 @@ export function createManifest(
         );
       }
       const preset = resolvePreset(presetId);
-      const headDim = rawConfig.head_dim ?? (architecture && typeof architecture === 'object' ? architecture.headDim : null);
+      const headDim = rawConfig.head_dim ?? (resolvedArchitecture && typeof resolvedArchitecture === 'object' ? resolvedArchitecture.headDim : null);
       if (!headDim) {
         throw new Error('Missing headDim in architecture');
       }
@@ -866,7 +964,7 @@ export function createManifest(
     modelType: resolvedModelType,
     quantization: resolvedQuantization,
     quantizationInfo: options.quantizationInfo ?? undefined,
-    architecture,
+    architecture: resolvedArchitecture,
     moeConfig,
     inference,
     shards,

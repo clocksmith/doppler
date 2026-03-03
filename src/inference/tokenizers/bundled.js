@@ -321,8 +321,18 @@ export class BundledTokenizer extends BaseTokenizer {
 
     // Handle behavior flags (use HF config if present, else runtime defaults)
     const runtimeDefaults = getRuntimeConfig().inference.tokenizer;
-    this.addBosToken = hf.add_bos_token ?? runtimeDefaults.addBosToken;
-    this.addEosToken = hf.add_eos_token ?? runtimeDefaults.addEosToken;
+    const configuredAddBosToken = this.addBosToken;
+    const configuredAddEosToken = this.addEosToken;
+    this.addBosToken =
+      hf.add_bos_token
+      ?? hf.addBosToken
+      ?? configuredAddBosToken
+      ?? runtimeDefaults.addBosToken;
+    this.addEosToken =
+      hf.add_eos_token
+      ?? hf.addEosToken
+      ?? configuredAddEosToken
+      ?? runtimeDefaults.addEosToken;
     if (this.addBosToken && this.specialTokens.bos == null) {
       throw new Error('[Tokenizer] addBosToken is enabled but bos token is missing.');
     }
@@ -443,8 +453,18 @@ export class BundledTokenizer extends BaseTokenizer {
     }
 
     const runtimeDefaults = getRuntimeConfig().inference.tokenizer;
-    this.addBosToken = tokenizerJson.addBosToken ?? runtimeDefaults.addBosToken;
-    this.addEosToken = tokenizerJson.addEosToken ?? runtimeDefaults.addEosToken;
+    const configuredAddBosToken = this.addBosToken;
+    const configuredAddEosToken = this.addEosToken;
+    this.addBosToken =
+      tokenizerJson.addBosToken
+      ?? tokenizerJson.add_bos_token
+      ?? configuredAddBosToken
+      ?? runtimeDefaults.addBosToken;
+    this.addEosToken =
+      tokenizerJson.addEosToken
+      ?? tokenizerJson.add_eos_token
+      ?? configuredAddEosToken
+      ?? runtimeDefaults.addEosToken;
     if (this.addBosToken && this.specialTokens.bos == null) {
       throw new Error('[Tokenizer] addBosToken is enabled but bos token is missing.');
     }

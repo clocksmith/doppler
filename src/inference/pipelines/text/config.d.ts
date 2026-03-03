@@ -19,6 +19,13 @@ import type {
 import type { MergedConfig, RuntimeInferenceOverrides } from '../../../config/merge.js';
 
 export type ActivationType = 'silu' | 'gelu';
+export type ParsedLayerType =
+  | 'full_attention'
+  | 'sliding_attention'
+  | 'conv'
+  | 'moe'
+  | 'mamba'
+  | 'rwkv';
 
 export interface RawConfig {
   model_type?: string;
@@ -151,7 +158,7 @@ export interface ParsedModelConfig {
   hiddenActivation: ActivationType;
   swigluLimit: number | null;
   stopTokenIds: number[];
-  layerTypes: string[] | null;
+  layerTypes: ParsedLayerType[] | null;
   attentionBias: boolean;
   causalAttention: boolean;
   embeddingScale?: number;

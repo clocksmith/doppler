@@ -28,5 +28,18 @@
   ],
   "finitenessFallbackActivationDtype": [
     { "match": {}, "value": "f32" }
+  ],
+  "modelBatchingDefaults": [
+    {
+      "match": {
+        "presetId": { "in": ["lfm2"] }
+      },
+      "value": {
+        "batchSize": 8,
+        "stopCheckMode": "batch",
+        "readbackInterval": 8
+      }
+    },
+    { "match": {}, "value": null }
   ]
 }

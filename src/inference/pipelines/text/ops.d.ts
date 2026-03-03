@@ -109,6 +109,37 @@ export function doMatmulRMSNormFused(
 ): Promise<Tensor>;
 
 /**
+ * Hybrid conv block helper for per-layer conv schedules.
+ * Uses linear projections and optional conv2d dispatch when shape metadata is provided.
+ */
+export function doConv(
+  inputTensor: Tensor,
+  convInProj: GPUBuffer | WeightBuffer,
+  convKernel: GPUBuffer | WeightBuffer | Float32Array | null,
+  convOutProj: GPUBuffer | WeightBuffer,
+  options: {
+    numTokens: number;
+    hiddenSize: number;
+    swigluLimit?: number | null;
+    layerIdx?: number;
+    label?: string;
+    kernelPath?: unknown;
+    conv2d?: {
+      enabled: boolean;
+      inChannels: number;
+      outChannels: number;
+      height: number;
+      width: number;
+      kernelH: number;
+      kernelW: number;
+      stride?: number;
+      pad?: number;
+    } | null;
+  },
+  recorder?: CommandRecorder
+): Promise<Tensor>;
+
+/**
  * Dtype cast helper that uses record variants when recorder is provided.
  */
 export function doCast(

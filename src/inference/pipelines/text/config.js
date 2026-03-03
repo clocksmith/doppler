@@ -16,6 +16,94 @@ export function getStopTokenIds(manifest) {
   );
 }
 
+function normalizeFfnTensorShape(value) {
+  if (!Array.isArray(value) || value.length !== 2) return null;
+  const rows = Number(value[0]);
+  const cols = Number(value[1]);
+  if (!Number.isFinite(rows) || !Number.isFinite(cols)) return null;
+  if (rows <= 0 || cols <= 0) return null;
+  return [Math.trunc(rows), Math.trunc(cols)];
+}
+
+function isExpertTensorName(name) {
+  const lower = String(name || '').toLowerCase();
+  return lower.includes('.experts.') || lower.includes('.expert.') || lower.includes('block_sparse_moe');
+}
+
+function inferLfm2IntermediateSizeFromManifest(manifest) {
+  const tensors = manifest?.tensors;
+  if (!tensors || typeof tensors !== 'object') return null;
+  const candidates = [];
+  for (const [name, entry] of Object.entries(tensors)) {
+    if (!name || isExpertTensorName(name)) continue;
+    const shape = normalizeFfnTensorShape(entry?.shape);
+    if (!shape) continue;
+    const lower = name.toLowerCase();
+    if (
+      lower.endsWith('.feed_forward.w1.weight')
+      || lower.endsWith('.feed_forward.w3.weight')
+      || lower.endsWith('.ffn_gate.weight')
+      || lower.endsWith('.ffn_up.weight')
+      || lower.endsWith('.ffn.gate_proj.weight')
+      || lower.endsWith('.ffn.up_proj.weight')
+      || lower.endsWith('.mlp.gate_proj.weight')
+      || lower.endsWith('.mlp.up_proj.weight')
+    ) {
+      candidates.push(shape[0]);
+      continue;
+    }
+    if (
+      lower.endsWith('.feed_forward.w2.weight')
+      || lower.endsWith('.ffn_down.weight')
+      || lower.endsWith('.ffn.down_proj.weight')
+      || lower.endsWith('.mlp.down_proj.weight')
+    ) {
+      candidates.push(shape[1]);
+      continue;
+    }
+    if (
+      lower.endsWith('.feed_forward.w1_w3.weight')
+      || lower.endsWith('.ffn_gate_up.weight')
+      || lower.endsWith('.ffn.gate_up_proj.weight')
+      || lower.endsWith('.mlp.gate_up_proj.weight')
+    ) {
+      if (shape[0] % 2 === 0) {
+        candidates.push(Math.trunc(shape[0] / 2));
+      }
+    }
+  }
+  if (candidates.length === 0) return null;
+  const counts = new Map();
+  for (const value of candidates) {
+    counts.set(value, (counts.get(value) ?? 0) + 1);
+  }
+  return [...counts.entries()]
+    .sort((a, b) => {
+      if (b[1] !== a[1]) return b[1] - a[1];
+      return a[0] - b[0];
+    })[0]?.[0] ?? null;
+}
+
+function resolveIntermediateSizeForRuntime(manifest, inf, arch, modelId) {
+  const fromArch = arch?.intermediateSize;
+  if (typeof fromArch !== 'number' || !Number.isFinite(fromArch) || fromArch <= 0) {
+    return fromArch;
+  }
+  const presetId = String(manifest?.inference?.presetId ?? inf?.presetId ?? '').toLowerCase();
+  if (presetId !== 'lfm2') {
+    return fromArch;
+  }
+  const inferred = inferLfm2IntermediateSizeFromManifest(manifest);
+  if (inferred == null || inferred === fromArch) {
+    return fromArch;
+  }
+  log.warn(
+    'Config',
+    `Manifest "${modelId}" has intermediateSize=${fromArch}, inferred ${inferred} from FFN tensor shapes; using inferred value.`
+  );
+  return inferred;
+}
+
 // =============================================================================
 // Manifest-First Config Resolution (NEW)
 // =============================================================================
@@ -127,6 +215,12 @@ function validateRequiredInferenceFields(inf, modelId) {
   if (inf.layerPattern?.period === undefined) {
     errors.push('layerPattern.period must be explicitly set (null if not applicable)');
   }
+  if (inf.layerPattern?.offset === undefined) {
+    errors.push('layerPattern.offset must be explicitly set (null if not applicable)');
+  }
+  if (inf.layerPattern?.type === 'custom' && inf.layerPattern?.layerTypes === undefined) {
+    errors.push('layerPattern.layerTypes must be explicitly set for custom patterns');
+  }
 
   // Chat template fields
   if (inf.chatTemplate?.type === undefined) {
@@ -156,6 +250,65 @@ function validateRequiredInferenceFields(inf, modelId) {
   }
 }
 
+function normalizeLayerTypeTag(value) {
+  const normalized = typeof value === 'string' ? value.trim().toLowerCase() : '';
+  if (!normalized) return null;
+  if (
+    normalized === 'full_attention'
+    || normalized === 'global_attention'
+    || normalized === 'full'
+    || normalized === 'global'
+    || normalized === 'attention'
+  ) {
+    return 'full_attention';
+  }
+  if (
+    normalized === 'sliding_attention'
+    || normalized === 'local_attention'
+    || normalized === 'local'
+    || normalized === 'sliding'
+  ) {
+    return 'sliding_attention';
+  }
+  if (
+    normalized === 'conv'
+    || normalized === 'convolution'
+    || normalized === 'liv_conv'
+    || normalized === 'liv_convolution'
+  ) {
+    return 'conv';
+  }
+  if (normalized === 'moe' || normalized === 'mamba' || normalized === 'rwkv') {
+    return normalized;
+  }
+  return null;
+}
+
+function parseCustomLayerTypes(layerTypes, numLayers, modelId) {
+  if (!Array.isArray(layerTypes) || layerTypes.length === 0) {
+    throw new Error(
+      `Manifest "${modelId}" has layerPattern.type='custom' but layerPattern.layerTypes is missing or empty. ` +
+      'Re-convert the model to include explicit layer types.'
+    );
+  }
+  if (layerTypes.length !== numLayers) {
+    throw new Error(
+      `Manifest "${modelId}" has layerPattern.type='custom' with ${layerTypes.length} layer types, ` +
+      `expected ${numLayers}. Re-convert the model to preserve full per-layer metadata.`
+    );
+  }
+  return layerTypes.map((layerType, index) => {
+    const normalized = normalizeLayerTypeTag(layerType);
+    if (!normalized) {
+      throw new Error(
+        `Manifest "${modelId}" has unknown layerPattern.layerTypes[${index}]="${layerType}". ` +
+        'Supported types: conv, full_attention, sliding_attention, moe, mamba, rwkv.'
+      );
+    }
+    return normalized;
+  });
+}
+
 
 export function toParsedConfigFromMerged(merged, manifest) {
   const rawConfig = manifest.config ?? {};
@@ -178,6 +331,7 @@ export function toParsedConfigFromMerged(merged, manifest) {
       `Re-convert the model using the latest converter to add manifest.architecture.`
     );
   }
+  const resolvedIntermediateSize = resolveIntermediateSizeForRuntime(manifest, inf, arch, merged.modelId);
 
   // Compute layer types from layerPattern
   
@@ -186,48 +340,52 @@ export function toParsedConfigFromMerged(merged, manifest) {
     const numLayers = arch.numLayers;
     const patternType = inf.layerPattern.type;
 
-    // Fail fast if alternating pattern lacks required globalPattern
-    if (patternType === 'alternating' && inf.layerPattern.globalPattern == null) {
-      throw new Error(
-        `Manifest "${merged.modelId}" has layerPattern.type='alternating' but globalPattern is missing. ` +
-        `Re-convert the model to include layerPattern.globalPattern.`
-      );
-    }
-
-    // Fail fast if every_n pattern lacks required period
-    if (patternType === 'every_n' && inf.layerPattern.period == null) {
-      throw new Error(
-        `Manifest "${merged.modelId}" has layerPattern.type='every_n' but period is missing. ` +
-        `Re-convert the model to include layerPattern.period.`
-      );
-    }
-    const period = inf.layerPattern.period;
-    const rawOffset = inf.layerPattern.offset;
-    const offset = (
-      Number.isFinite(rawOffset) && period != null && period > 0
-    )
-      ? ((Math.trunc(rawOffset) % period) + period) % period
-      : 0;
-    const pattern = inf.layerPattern.globalPattern;
-    const patternKind = selectRuleValue(
-      'inference',
-      'layerPattern',
-      'patternKind',
-      { patternType, globalPattern: pattern }
-    );
-    if (patternKind) {
-      layerTypes = Array.from({ length: numLayers }, (_, i) => {
-        const isEven = i % 2 === 0;
-        // For every_n pattern: global at layer "offset" and every N thereafter.
-        // e.g. period=6, offset=5 => indices 5,11,17,...
-        const isStride = period == null ? false : (((i - offset) % period + period) % period) === 0;
-        return selectRuleValue(
-          'inference',
-          'layerPattern',
-          'layerType',
-          { patternKind, isEven, isStride }
+    if (patternType === 'custom') {
+      layerTypes = parseCustomLayerTypes(inf.layerPattern.layerTypes, numLayers, merged.modelId);
+    } else {
+      // Fail fast if alternating pattern lacks required globalPattern
+      if (patternType === 'alternating' && inf.layerPattern.globalPattern == null) {
+        throw new Error(
+          `Manifest "${merged.modelId}" has layerPattern.type='alternating' but globalPattern is missing. ` +
+          `Re-convert the model to include layerPattern.globalPattern.`
         );
-      });
+      }
+
+      // Fail fast if every_n pattern lacks required period
+      if (patternType === 'every_n' && inf.layerPattern.period == null) {
+        throw new Error(
+          `Manifest "${merged.modelId}" has layerPattern.type='every_n' but period is missing. ` +
+          `Re-convert the model to include layerPattern.period.`
+        );
+      }
+      const period = inf.layerPattern.period;
+      const rawOffset = inf.layerPattern.offset;
+      const offset = (
+        Number.isFinite(rawOffset) && period != null && period > 0
+      )
+        ? ((Math.trunc(rawOffset) % period) + period) % period
+        : 0;
+      const pattern = inf.layerPattern.globalPattern;
+      const patternKind = selectRuleValue(
+        'inference',
+        'layerPattern',
+        'patternKind',
+        { patternType, globalPattern: pattern }
+      );
+      if (patternKind) {
+        layerTypes = Array.from({ length: numLayers }, (_, i) => {
+          const isEven = i % 2 === 0;
+          // For every_n pattern: global at layer "offset" and every N thereafter.
+          // e.g. period=6, offset=5 => indices 5,11,17,...
+          const isStride = period == null ? false : (((i - offset) % period + period) % period) === 0;
+          return selectRuleValue(
+            'inference',
+            'layerPattern',
+            'layerType',
+            { patternKind, isEven, isStride }
+          );
+        });
+      }
     }
   }
 
@@ -300,7 +458,7 @@ export function toParsedConfigFromMerged(merged, manifest) {
   return {
     numLayers: arch.numLayers,
     hiddenSize: arch.hiddenSize,
-    intermediateSize: arch.intermediateSize,
+    intermediateSize: resolvedIntermediateSize,
     numHeads: arch.numAttentionHeads,
     numKVHeads: arch.numKeyValueHeads,
     headDim: arch.headDim,

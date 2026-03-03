@@ -458,6 +458,126 @@ const embeddingComputeF32Config = createConverterConfig({
 }
 
 {
+  // LFM2 hybrid configs must preserve explicit custom layer schedule.
+  const layerTypes = [
+    'conv',
+    'conv',
+    'full_attention',
+    'conv',
+  ];
+  const plan = resolveConversionPlan({
+    rawConfig: {
+      model_type: 'lfm2',
+      architectures: ['Lfm2ForCausalLM'],
+      vocab_size: 65536,
+      hidden_size: 2048,
+      intermediate_size: 12288,
+      num_hidden_layers: 4,
+      num_attention_heads: 32,
+      num_key_value_heads: 8,
+      max_position_embeddings: 32768,
+      layer_types: layerTypes,
+      tie_embedding: true,
+    },
+    tensors: [
+      { name: 'model.embed_tokens.weight', dtype: 'BF16' },
+      { name: 'model.layers.0.conv.in_proj.weight', dtype: 'BF16' },
+      { name: 'model.layers.0.conv.conv.weight', dtype: 'BF16' },
+      { name: 'model.layers.0.conv.out_proj.weight', dtype: 'BF16' },
+      { name: 'model.layers.0.feed_forward.w1.weight', dtype: 'BF16' },
+      { name: 'model.layers.2.self_attn.q_proj.weight', dtype: 'BF16' },
+      { name: 'model.layers.2.self_attn.k_proj.weight', dtype: 'BF16' },
+      { name: 'model.layers.2.self_attn.v_proj.weight', dtype: 'BF16' },
+      { name: 'model.layers.2.self_attn.out_proj.weight', dtype: 'BF16' },
+      { name: 'model.norm.weight', dtype: 'BF16' },
+    ],
+    converterConfig,
+    modelKind: 'transformer',
+    architectureHint: 'Lfm2ForCausalLM',
+    architectureConfig: { headDim: 64 },
+  });
+
+  assert.equal(plan.presetId, 'lfm2');
+  assert.equal(plan.modelType, 'transformer');
+  assert.equal(plan.manifestInference?.layerPattern?.type, 'custom');
+  assert.deepEqual(plan.manifestInference?.layerPattern?.layerTypes, layerTypes);
+  assert.equal(plan.manifestInference?.layerPattern?.period, null);
+  assert.equal(plan.manifestInference?.layerPattern?.globalPattern, null);
+}
+
+{
+  const rawLfm2Config = {
+    model_type: 'lfm2',
+    architectures: ['Lfm2ForCausalLM'],
+    vocab_size: 65536,
+    hidden_size: 2048,
+    intermediate_size: 12288,
+    num_hidden_layers: 4,
+    num_attention_heads: 32,
+    num_key_value_heads: 8,
+    max_position_embeddings: 32768,
+    tie_embedding: true,
+    layer_types: ['conv', 'conv', 'full_attention', 'conv'],
+  };
+  const lfm2Tensors = [
+    { name: 'model.embed_tokens.weight', dtype: 'BF16' },
+    { name: 'model.layers.0.conv.in_proj.weight', dtype: 'BF16' },
+    { name: 'model.layers.0.conv.conv.weight', dtype: 'BF16' },
+    { name: 'model.layers.0.conv.out_proj.weight', dtype: 'BF16' },
+    { name: 'model.layers.0.feed_forward.w1.weight', dtype: 'BF16' },
+    { name: 'model.layers.2.self_attn.q_proj.weight', dtype: 'BF16' },
+    { name: 'model.layers.2.self_attn.k_proj.weight', dtype: 'BF16' },
+    { name: 'model.layers.2.self_attn.v_proj.weight', dtype: 'BF16' },
+    { name: 'model.layers.2.self_attn.out_proj.weight', dtype: 'BF16' },
+    { name: 'model.norm.weight', dtype: 'BF16' },
+  ];
+  const lfm2Q4kF16Config = createConverterConfig({
+    quantization: {
+      weights: 'q4k',
+      embeddings: 'f16',
+      lmHead: 'f16',
+      computePrecision: 'f16',
+      q4kLayout: 'row',
+    },
+  });
+  const lfm2Q4kF32Config = createConverterConfig({
+    quantization: {
+      weights: 'q4k',
+      embeddings: 'f16',
+      lmHead: 'f16',
+      computePrecision: 'f32',
+      q4kLayout: 'row',
+    },
+  });
+
+  const f16Plan = resolveConversionPlan({
+    rawConfig: rawLfm2Config,
+    tensors: lfm2Tensors,
+    converterConfig: lfm2Q4kF16Config,
+    modelKind: 'transformer',
+    architectureHint: 'Lfm2ForCausalLM',
+    architectureConfig: { headDim: 64 },
+  });
+  assert.equal(f16Plan.manifestInference?.defaultKernelPath, 'gemma3-q4k-dequant-f16a-online');
+  assert.equal(f16Plan.manifestInference?.schema, null);
+  assert.equal(f16Plan.manifestInference?.execution, null);
+  assert.equal(f16Plan.manifestInference?.sessionDefaults, null);
+
+  const f32Plan = resolveConversionPlan({
+    rawConfig: rawLfm2Config,
+    tensors: lfm2Tensors,
+    converterConfig: lfm2Q4kF32Config,
+    modelKind: 'transformer',
+    architectureHint: 'Lfm2ForCausalLM',
+    architectureConfig: { headDim: 64 },
+  });
+  assert.equal(f32Plan.manifestInference?.defaultKernelPath, 'gemma3-q4k-dequant-f16a-online');
+  assert.equal(f32Plan.manifestInference?.schema, null);
+  assert.equal(f32Plan.manifestInference?.execution, null);
+  assert.equal(f32Plan.manifestInference?.sessionDefaults, null);
+}
+
+{
   // TranslateGemma style rope_parameters should map to manifest rope fields.
   const plan = resolveConversionPlan({
     rawConfig: {

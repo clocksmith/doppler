@@ -19,16 +19,22 @@ const LAYER_PREFIXES = (layerIdx) => [
 
 
 const ATTN_SUFFIXES = {
-  inputNorm: ['input_layernorm.weight', 'attn_norm.weight'],
+  inputNorm: ['input_layernorm.weight', 'attn_norm.weight', 'operator_norm.weight'],
   qProj: ['self_attn.q_proj.weight', 'attention.wq.weight', 'attn_q.weight'],
   kProj: ['self_attn.k_proj.weight', 'attention.wk.weight', 'attn_k.weight'],
   vProj: ['self_attn.v_proj.weight', 'attention.wv.weight', 'attn_v.weight'],
-  oProj: ['self_attn.o_proj.weight', 'attention.wo.weight', 'attn_output.weight'],
+  oProj: ['self_attn.o_proj.weight', 'self_attn.out_proj.weight', 'attention.wo.weight', 'attn_output.weight'],
   qNorm: ['self_attn.q_norm.weight', 'attn_q_norm.weight'],
   kNorm: ['self_attn.k_norm.weight', 'attn_k_norm.weight'],
   postAttentionNorm: ['post_attention_layernorm.weight', 'post_attention_norm.weight', 'ffn_norm.weight'],
   preFeedforwardNorm: ['pre_feedforward_layernorm.weight'],
   postFeedforwardNorm: ['post_feedforward_layernorm.weight', 'post_ffw_norm.weight'],
+};
+
+const CONV_SUFFIXES = {
+  convInProj: ['conv.in_proj.weight', 'convolution.in_proj.weight'],
+  convKernel: ['conv.conv.weight', 'convolution.conv.weight', 'conv.weight'],
+  convOutProj: ['conv.out_proj.weight', 'convolution.out_proj.weight'],
 };
 
 
@@ -52,6 +58,7 @@ const SINK_SUFFIXES = ['self_attn.sinks'];
 const MATMUL_KEYS = [
   'qProj', 'kProj', 'vProj', 'oProj',
   'ffnGate', 'ffnUp', 'ffnDown', 'ffnGateUp',
+  'convInProj', 'convOutProj',
   'routerWeight',
 ];
 
@@ -77,6 +84,9 @@ export async function loadLayer(ctx, layerIdx) {
     postFeedforwardNorm: null,
     postNorm: null,
     postAttnNorm: null,
+    convInProj: null,
+    convKernel: null,
+    convOutProj: null,
     ffnGate: null,
     ffnUp: null,
     ffnDown: null,
@@ -158,6 +168,9 @@ async function loadAttentionWeights(ctx, weights, layerIdx, tryLoad, tryLoadNorm
     postAttentionNorm,
     preFeedforwardNorm,
     postFeedforwardNorm,
+    convInProj,
+    convKernel,
+    convOutProj,
   ] = await Promise.all([
     tryLoadNorm(ATTN_SUFFIXES.inputNorm),
     tryLoad(ATTN_SUFFIXES.qProj),
@@ -170,6 +183,9 @@ async function loadAttentionWeights(ctx, weights, layerIdx, tryLoad, tryLoadNorm
     tryLoadNorm(ATTN_SUFFIXES.postAttentionNorm),
     tryLoadNorm(ATTN_SUFFIXES.preFeedforwardNorm),
     tryLoadNorm(ATTN_SUFFIXES.postFeedforwardNorm),
+    tryLoad(CONV_SUFFIXES.convInProj),
+    tryLoad(CONV_SUFFIXES.convKernel),
+    tryLoad(CONV_SUFFIXES.convOutProj),
   ]);
 
   weights.inputNorm = inputNorm;
@@ -194,6 +210,9 @@ async function loadAttentionWeights(ctx, weights, layerIdx, tryLoad, tryLoadNorm
   weights.postFeedforwardNorm = postFeedforwardNorm;
   weights.postNorm = weights.postAttentionNorm || weights.preFeedforwardNorm;
   weights.postAttnNorm = weights.postNorm;
+  weights.convInProj = convInProj;
+  weights.convKernel = convKernel;
+  weights.convOutProj = convOutProj;
 }
 
 

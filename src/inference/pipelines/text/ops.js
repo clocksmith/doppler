@@ -5,6 +5,7 @@ import {
   recordRMSNorm, recordResidualAdd, recordMatmul, recordSiLU, recordGeLU,
   runSiLURowSplit, recordSiLURowSplit,
   runMatmulRMSNormFused, recordMatmulRMSNormFused,
+  runConv2D, recordConv2D,
 } from '../../../gpu/kernel-selector.js';
 import {
   castF16ToF32,
@@ -12,6 +13,7 @@ import {
   recordCastF16ToF32,
   recordCastF32ToF16,
 } from '../../../gpu/kernels/cast.js';
+import { createTensor } from '../../../gpu/tensor.js';
 import { releaseBuffer } from '../../../memory/buffer-pool.js';
 import { kernelTrace, traceStep } from './kernel-trace.js';
 import {
@@ -148,6 +150,127 @@ export async function doMatmulRMSNormFused(input, weight, normWeight, options, r
   }
 
   return resultTensor;
+}
+
+export async function doConv(
+  inputTensor,
+  convInProj,
+  convKernel,
+  convOutProj,
+  options = {},
+  recorder
+) {
+  const numTokens = Number(options.numTokens);
+  const hiddenSize = Number(options.hiddenSize);
+  const layerIdx = Number.isFinite(options.layerIdx) ? options.layerIdx : -1;
+  const label = options.label ?? 'conv';
+  const kernelPath = options.kernelPath ?? null;
+
+  if (!Number.isFinite(numTokens) || numTokens <= 0) {
+    throw new Error('doConv requires numTokens > 0.');
+  }
+  if (!Number.isFinite(hiddenSize) || hiddenSize <= 0) {
+    throw new Error('doConv requires hiddenSize > 0.');
+  }
+
+  // Use the first 2x hidden projection channels as a gated conv-state projection.
+  const inProj = await doMatmul(
+    inputTensor,
+    convInProj,
+    numTokens,
+    hiddenSize * 2,
+    hiddenSize,
+    {
+      transposeB: 'auto',
+      label: `${label}.in_proj`,
+      layerIdx,
+      kernelPath,
+      role: 'conv_in_proj',
+    },
+    recorder
+  );
+  const activated = await doSiLURowSplit(inProj, {
+    numTokens,
+    dim: hiddenSize,
+    activation: 'silu',
+    swigluLimit: options.swigluLimit ?? null,
+    label: `${label}.activation`,
+    layerIdx,
+  }, recorder);
+
+  if (recorder) {
+    recorder.trackTemporaryBuffer(inProj.buffer);
+  } else {
+    releaseBuffer(inProj.buffer);
+  }
+
+  // Optional generic conv2d stage when explicit shape metadata is provided.
+  // LFM2 depthwise conv kernels use model-specific packing, so this path is best-effort only.
+  let convInput = activated;
+  if (convKernel && options.conv2d && options.conv2d.enabled === true) {
+    const convTensorInput = createTensor(activated.buffer, activated.dtype, [
+      options.conv2d.inChannels,
+      options.conv2d.height,
+      options.conv2d.width,
+    ], `${label}.conv_input`);
+    const convOptions = {
+      inChannels: options.conv2d.inChannels,
+      outChannels: options.conv2d.outChannels,
+      height: options.conv2d.height,
+      width: options.conv2d.width,
+      kernelH: options.conv2d.kernelH,
+      kernelW: options.conv2d.kernelW,
+      stride: options.conv2d.stride ?? 1,
+      pad: options.conv2d.pad ?? 0,
+    };
+    const convResult = recorder
+      ? await recordConv2D(recorder, convTensorInput, convKernel, null, convOptions)
+      : await runConv2D(convTensorInput, convKernel, null, convOptions);
+    convInput = createTensor(
+      convResult.buffer,
+      convResult.dtype,
+      [numTokens, hiddenSize],
+      `${label}.conv_output`
+    );
+    if (recorder) {
+      recorder.trackTemporaryBuffer(activated.buffer);
+    } else {
+      releaseBuffer(activated.buffer);
+    }
+  }
+
+  const outProj = await doMatmul(
+    convInput,
+    convOutProj,
+    numTokens,
+    hiddenSize,
+    hiddenSize,
+    {
+      transposeB: 'auto',
+      label: `${label}.out_proj`,
+      layerIdx,
+      kernelPath,
+      role: 'conv_out_proj',
+    },
+    recorder
+  );
+
+  if (convInput.buffer !== activated.buffer) {
+    if (recorder) {
+      recorder.trackTemporaryBuffer(convInput.buffer);
+    } else {
+      releaseBuffer(convInput.buffer);
+    }
+  } else if (recorder) {
+    recorder.trackTemporaryBuffer(activated.buffer);
+  } else {
+    releaseBuffer(activated.buffer);
+  }
+
+  if (kernelTrace.enabled && !recorder) {
+    await traceStep('conv', label, layerIdx, outProj.buffer, [numTokens, hiddenSize]);
+  }
+  return outProj;
 }
 
 export async function doCast(input, toDtype, recorder) {

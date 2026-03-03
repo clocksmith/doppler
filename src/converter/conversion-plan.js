@@ -179,6 +179,9 @@ export function validateDefaultKernelPath(inference, context = {}) {
     && expectedComputeDtype !== kernelActivationDtype
   ) {
     const presetId = context?.presetId ?? 'unknown';
+    if (presetId === 'lfm2' && expectedComputeDtype === 'f32' && kernelActivationDtype === 'f16') {
+      return;
+    }
     throw new Error(
       `Invalid defaultKernelPath "${inference.defaultKernelPath}" for preset "${presetId}" ` +
       `(weights=${quantizationInfo?.weights ?? 'unknown'}, compute=${expectedComputeDtype}, ` +
@@ -336,7 +339,15 @@ function applyConverterInferenceOverrides(manifestInference, converterConfig, co
     manifestInference.execution = execution;
   }
 
-  if (!manifestInference.execution && manifestInference.defaultKernelPath) {
+  const layerPatternType = String(manifestInference?.layerPattern?.type ?? '').trim().toLowerCase();
+  const hasCustomConvLayers = layerPatternType === 'custom'
+    && Array.isArray(manifestInference?.layerPattern?.layerTypes)
+    && manifestInference.layerPattern.layerTypes.some((type) => {
+      const normalized = String(type ?? '').trim().toLowerCase();
+      return normalized === 'conv' || normalized === 'convolution' || normalized === 'liv_conv';
+    });
+
+  if (!manifestInference.execution && manifestInference.defaultKernelPath && !hasCustomConvLayers) {
     const generatedExecution = buildExecutionV0FromKernelPath(manifestInference.defaultKernelPath);
     if (generatedExecution) {
       manifestInference.execution = generatedExecution.execution;
