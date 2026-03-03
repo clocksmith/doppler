@@ -32,6 +32,29 @@ function createRuntimeConfig() {
 
 {
   const runtimeConfig = createRuntimeConfig();
+  const manifest = {
+    modelId: 'lfm2-manifest-session-defaults-test',
+    modelType: 'transformer',
+    inference: {
+      presetId: 'lfm2',
+      sessionDefaults: {
+        decodeLoop: {
+          batchSize: 16,
+          stopCheckMode: 'batch',
+          readbackInterval: 4,
+        },
+      },
+    },
+  };
+
+  const nextRuntime = applyModelBatchingRuntimeDefaults(runtimeConfig, manifest, null);
+  assert.notStrictEqual(nextRuntime, runtimeConfig);
+  assert.equal(nextRuntime.inference.batching.batchSize, 16);
+  assert.equal(nextRuntime.inference.batching.readbackInterval, 4);
+}
+
+{
+  const runtimeConfig = createRuntimeConfig();
   runtimeConfig.shared.tooling.intent = 'calibrate';
   const manifest = {
     modelId: 'lfm2-calibrate-batching-test',
@@ -40,7 +63,9 @@ function createRuntimeConfig() {
   };
 
   const nextRuntime = applyModelBatchingRuntimeDefaults(runtimeConfig, manifest, null);
-  assert.strictEqual(nextRuntime, runtimeConfig);
+  assert.notStrictEqual(nextRuntime, runtimeConfig);
+  assert.equal(nextRuntime.inference.batching.batchSize, 8);
+  assert.equal(nextRuntime.inference.batching.readbackInterval, 8);
 }
 
 {

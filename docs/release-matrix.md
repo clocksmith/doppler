@@ -1,7 +1,7 @@
 # Release Matrix
 
-Generated: 2026-03-01T14:32:44.569Z
-Release: channel=main-snapshot, version=n/a, commit=6b34cb7d65841b2d6a6d983dc0c0c809fa3a4f13, dirty=yes
+Generated: 2026-03-03T17:25:38.817Z
+Release: channel=main-snapshot, version=n/a, commit=b0e2891eef597d2ab46f3b04f7fb57e1f3d74df9, dirty=yes
 
 ## Engine Matrix
 
@@ -34,7 +34,10 @@ Release: channel=main-snapshot, version=n/a, commit=6b34cb7d65841b2d6a6d983dc0c0
 | [`g3-p064-d064-t1-k32`](../benchmarks/vendors/fixtures/g3-p064-d064-t1-k32.compare.json) | gemma-3-1b-it-wf16-ef16-hf16 | 64 | 64 | t=1, k=32, p=1 | AMD RYZEN AI MAX+ 395 w/ Radeon 8060S; vulkan; linux; chromium | 2026-02-25 |
 | [`g3-p064-d064-t1-k32`](../benchmarks/vendors/fixtures/g3-p064-d064-t1-k32.apple-m3pro.compare.json) | gemma-3-1b-it-wf16-ef16-hf16 | 64 | 64 | t=1, k=32, p=1 | Apple M3; metal; darwin; chromium | 2026-02-24 |
 
+## Evidence
+
+This chart compares per-phase latency; lower is better.
+
 ## Charts
 
 - [compare_1b_multi-workload_favorable_phases.svg](../benchmarks/vendors/results/compare_1b_multi-workload_favorable_phases.svg)
-

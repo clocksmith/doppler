@@ -1,45 +1,69 @@
-<?xml version="1.0" encoding="UTF-8"?>
+#!/usr/bin/env node
+
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+import { SVG_FONTS, SVG_THEME } from './svg-theme.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+const OUTPUT_PATH = path.join(__dirname, '..', '..', 'docs', 'architecture-overview.svg');
+
+const {
+  palette,
+} = SVG_THEME;
+const {
+  uiCss: architectureUIFont,
+  monoCss: architectureMonoFont,
+} = SVG_FONTS;
+const architecture = palette.architecture;
+const textPaint = `paint-order: stroke fill; stroke: ${SVG_THEME.textStroke.color}; stroke-width: ${SVG_THEME.textStroke.width}; stroke-linejoin: ${SVG_THEME.textStroke.lineJoin};`;
+
+const body = `  <defs>
+  <style>
+    .title { font: 700 32px ${architectureUIFont}; fill: ${palette.text}; ${textPaint} }
+    .section { font: 700 24px ${architectureUIFont}; fill: ${palette.text}; ${textPaint} }
+    .node-title { font: 700 20px ${architectureUIFont}; fill: ${palette.text}; ${textPaint} }
+    .node-text { font: 500 17px ${architectureUIFont}; fill: ${palette.text}; ${textPaint} }
+    .code-text { font: 500 17px ${architectureMonoFont}; fill: ${palette.text}; ${textPaint} }
+    .edge-label { font: 500 15px ${architectureUIFont}; fill: ${palette.text}; ${textPaint} }
+    .column-left { fill: url(#col-left-grad); stroke: ${architecture.loadBorder}; stroke-width: 4.4; }
+    .column-right { fill: url(#col-right-grad); stroke: ${architecture.inferBorder}; stroke-width: 4.4; }
+    .node { fill: transparent; stroke-width: 2; }
+    .node-load { stroke: ${architecture.nodeLoad}; }
+    .node-infer { stroke: ${architecture.nodeInfer}; }
+    .edge { stroke: ${architecture.edge}; stroke-width: 2.5; fill: none; }
+    .edge-dashed { stroke: ${architecture.inferBorder}; stroke-width: 2.5; fill: none; stroke-dasharray: 8 8; }
+  </style>
+
+  <linearGradient id="col-left-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0%" stop-color="${architecture.columnLeftStart}" />
+    <stop offset="60%" stop-color="${architecture.columnLeftMid}" />
+    <stop offset="100%" stop-color="${architecture.columnLeftEnd}" />
+  </linearGradient>
+
+  <linearGradient id="col-right-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0%" stop-color="${architecture.columnRightStart}" />
+    <stop offset="60%" stop-color="${architecture.columnRightMid}" />
+    <stop offset="100%" stop-color="${architecture.columnRightEnd}" />
+  </linearGradient>
+
+  <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+    <path d="M 0 0 L 12 6 L 0 12 z" fill="${architecture.arrow}" />
+  </marker>
+
+  <marker id="arrow-muted" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+    <path d="M 0 0 L 12 6 L 0 12 z" fill="${architecture.arrowMuted}" />
+  </marker>
+</defs>`;
+
+const svg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="1400" height="700" viewBox="0 0 1400 700" role="img" aria-labelledby="title desc">
   <title id="title">Doppler Architecture Overview</title>
   <desc id="desc">Two-column architecture: Load Model path on the left and Inference path on the right, each with its own Config as Code node and a shared WebGPU lifecycle link.</desc>
 
-  <defs>
-  <style>
-    .title { font: 700 32px "Segoe UI", "Helvetica Neue", Arial, sans-serif; fill: #ffffff; paint-order: stroke fill; stroke: #000000; stroke-width: 2px; stroke-linejoin: round; }
-    .section { font: 700 24px "Segoe UI", "Helvetica Neue", Arial, sans-serif; fill: #ffffff; paint-order: stroke fill; stroke: #000000; stroke-width: 2px; stroke-linejoin: round; }
-    .node-title { font: 700 20px "Segoe UI", "Helvetica Neue", Arial, sans-serif; fill: #ffffff; paint-order: stroke fill; stroke: #000000; stroke-width: 2px; stroke-linejoin: round; }
-    .node-text { font: 500 17px "Segoe UI", "Helvetica Neue", Arial, sans-serif; fill: #ffffff; paint-order: stroke fill; stroke: #000000; stroke-width: 2px; stroke-linejoin: round; }
-    .code-text { font: 500 17px SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; fill: #ffffff; paint-order: stroke fill; stroke: #000000; stroke-width: 2px; stroke-linejoin: round; }
-    .edge-label { font: 500 15px "Segoe UI", "Helvetica Neue", Arial, sans-serif; fill: #ffffff; paint-order: stroke fill; stroke: #000000; stroke-width: 2px; stroke-linejoin: round; }
-    .column-left { fill: url(#col-left-grad); stroke: #ef4444; stroke-width: 4.4; }
-    .column-right { fill: url(#col-right-grad); stroke: #2563eb; stroke-width: 4.4; }
-    .node { fill: transparent; stroke-width: 2; }
-    .node-load { stroke: #ef4444; }
-    .node-infer { stroke: #2563eb; }
-    .edge { stroke: #7c3aed; stroke-width: 2.5; fill: none; }
-    .edge-dashed { stroke: #2563eb; stroke-width: 2.5; fill: none; stroke-dasharray: 8 8; }
-  </style>
-
-  <linearGradient id="col-left-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-    <stop offset="0%" stop-color="#ef444412" />
-    <stop offset="60%" stop-color="#ef444418" />
-    <stop offset="100%" stop-color="#7c3aed16" />
-  </linearGradient>
-
-  <linearGradient id="col-right-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-    <stop offset="0%" stop-color="#7c3aed12" />
-    <stop offset="60%" stop-color="#7c3aed16" />
-    <stop offset="100%" stop-color="#2563eb16" />
-  </linearGradient>
-
-  <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
-    <path d="M 0 0 L 12 6 L 0 12 z" fill="#7c3aed" />
-  </marker>
-
-  <marker id="arrow-muted" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
-    <path d="M 0 0 L 12 6 L 0 12 z" fill="#2563eb" />
-  </marker>
-</defs>
+${body}
 
   <text x="700" y="52" text-anchor="middle" class="title">DOPPLER Architecture Overview</text>
 
@@ -97,4 +121,9 @@
 
   <path d="M 625 561 L 775 561" class="edge-dashed" marker-end="url(#arrow-muted)" />
   <text x="700" y="545" text-anchor="middle" class="edge-label">shared WebGPU lifecycle</text>
-</svg>
+</svg>`;
+
+fs.mkdirSync(path.dirname(OUTPUT_PATH), { recursive: true });
+fs.writeFileSync(OUTPUT_PATH, `${svg}
+`, 'utf-8');
+console.log(`wrote ${OUTPUT_PATH}`);
