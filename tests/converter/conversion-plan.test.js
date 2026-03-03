@@ -571,7 +571,7 @@ const embeddingComputeF32Config = createConverterConfig({
     architectureHint: 'Lfm2ForCausalLM',
     architectureConfig: { headDim: 64 },
   });
-  assert.equal(f32Plan.manifestInference?.defaultKernelPath, 'gemma3-q4k-dequant-f16a-online');
+  assert.equal(f32Plan.manifestInference?.defaultKernelPath, 'lfm2-q4k-dequant-f32a-online');
   assert.equal(f32Plan.manifestInference?.schema, null);
   assert.equal(f32Plan.manifestInference?.execution, null);
   assert.equal(f32Plan.manifestInference?.sessionDefaults, null);

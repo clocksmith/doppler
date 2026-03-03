@@ -27,7 +27,7 @@
     "kernelPaths": {
       "q4k": {
         "f16": "gemma3-q4k-dequant-f16a-online",
-        "f32": "gemma3-q4k-dequant-f16a-online"
+        "f32": "lfm2-q4k-dequant-f32a-online"
       }
     },
     "output": {

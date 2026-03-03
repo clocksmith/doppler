@@ -84,7 +84,7 @@
 
     .header-controls {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) auto auto;
+      grid-template-columns: minmax(0, 1fr) auto;
       align-items: center;
       gap: var(--space-md);
       min-width: 0;
@@ -112,7 +112,7 @@
 
     .advanced-nav {
       position: relative;
-      margin-left: auto;
+      margin-left: 0;
       border: none;
       padding: 0;
       background: transparent;
@@ -154,6 +154,13 @@
       border: var(--border-sm) dashed var(--fg);
       background: color-mix(in srgb, var(--bg-contrast) 86%, var(--bg) 14%);
       box-shadow: 0 10px 24px color-mix(in srgb, var(--fg) 16%, transparent);
+    }
+
+    .advanced-nav-section {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
     }
 
     .advanced-nav-grid #mode-tabs {
@@ -1735,10 +1742,10 @@
       flex: 1 1 auto;
     }
 
-  .header-controls {
-    grid-template-columns: minmax(0, 1fr) auto auto;
+    .header-controls {
+      grid-template-columns: minmax(0, 1fr);
     width: auto;
-  }
+    }
 
       .header-model {
         width: 100%;

@@ -37,7 +37,7 @@ assert.ok(PRESET_DETECTION_ORDER.includes('lfm2'));
   const resolved = resolvePreset('lfm2');
   assert.equal(resolved.id, 'lfm2');
   assert.equal(resolved.inference?.kernelPaths?.q4k?.f16, 'gemma3-q4k-dequant-f16a-online');
-  assert.equal(resolved.inference?.kernelPaths?.q4k?.f32, 'gemma3-q4k-dequant-f16a-online');
+  assert.equal(resolved.inference?.kernelPaths?.q4k?.f32, 'lfm2-q4k-dequant-f32a-online');
 }
 
 {

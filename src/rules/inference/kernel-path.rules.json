@@ -28,6 +28,14 @@
       "match": {
         "allowCapabilityAutoSelection": true,
         "hasSubgroups": false,
+        "kernelPathRef": "lfm2-q4k-dequant-f32a-online"
+      },
+      "value": "gemma3-q4k-dequant-f32a"
+    },
+    {
+      "match": {
+        "allowCapabilityAutoSelection": true,
+        "hasSubgroups": false,
         "kernelPathRef": "gemma2-q4k-dequant-f16a"
       },
       "value": "gemma2-q4k-dequant-f32a"
@@ -49,6 +57,10 @@
     },
     {
       "match": { "kernelPathId": "gemma3-q4k-dequant-f16a-online" },
+      "value": "gemma3-q4k-dequant-f32a"
+    },
+    {
+      "match": { "kernelPathId": "lfm2-q4k-dequant-f32a-online" },
       "value": "gemma3-q4k-dequant-f32a"
     },
     {
