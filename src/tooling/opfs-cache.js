@@ -69,6 +69,9 @@ function buildManifestFingerprint(manifest) {
         globalPattern: layerPattern.globalPattern ?? null,
         period: layerPattern.period ?? null,
         offset: layerPattern.offset ?? null,
+        layerTypes: Array.isArray(layerPattern.layerTypes)
+          ? [...layerPattern.layerTypes]
+          : null,
       },
     },
     shards,

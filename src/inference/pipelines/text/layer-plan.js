@@ -91,6 +91,13 @@ function compileStep(step, index) {
         skipInputNorm: step.skipInputNorm === true,
         probeStage: step.probeStage,
       });
+    case 'conv':
+      return withCommon({
+        op,
+        src,
+        dst,
+        probeStage: step.probeStage,
+      });
     case 'rmsnorm': {
       if (!step.weight) {
         throw new Error(`Layer pipeline step "rmsnorm@${index}" requires weight`);

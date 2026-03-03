@@ -129,6 +129,65 @@ function sessionDefaultsFor(kernels, activationDtype = 'f16') {
 }
 
 {
+  const compiled = compileExecutionV0({
+    modelId: 'hybrid-conv-attn',
+    numLayers: 4,
+    manifestInference: {
+      schema: 'doppler.execution/v0',
+      sessionDefaults: sessionDefaultsFor([
+        { kernel: 'matmul_f16.wgsl', entry: 'main' },
+        { kernel: 'attention_streaming_f16.wgsl', entry: 'main' },
+      ]),
+      execution: {
+        steps: [
+          {
+            id: 'conv_mix',
+            phase: 'both',
+            section: 'layer',
+            op: 'conv',
+            src: 'state',
+            dst: 'state',
+            layers: 'all',
+            kernel: 'matmul_f16.wgsl',
+            kernelRef: kernelRef('matmul_f16.wgsl', 'main'),
+          },
+          {
+            id: 'attn_mix',
+            phase: 'both',
+            section: 'layer',
+            op: 'attention',
+            src: 'state',
+            dst: 'state',
+            layers: 'all',
+            kernel: 'attention_streaming_f16.wgsl',
+            kernelRef: kernelRef('attention_streaming_f16.wgsl', 'main'),
+          },
+          {
+            id: 'ffn_mix',
+            phase: 'both',
+            section: 'layer',
+            op: 'ffn',
+            src: 'state',
+            dst: 'state',
+            layers: 'all',
+            kernel: 'matmul_f16.wgsl',
+            kernelRef: kernelRef('matmul_f16.wgsl', 'main'),
+          },
+        ],
+        policies: DEFAULT_POLICIES,
+      },
+    },
+  });
+
+  assert.ok(compiled);
+  assert.deepEqual(
+    compiled.resolvedSteps.prefill.map((step) => step.id),
+    ['conv_mix', 'attn_mix', 'ffn_mix']
+  );
+  assert.ok(compiled.runtimeInferencePatch.pipeline.steps.some((step) => step.op === 'conv'));
+}
+
+{
   assert.throws(
     () => compileExecutionV0({
       modelId: 'dtype-mismatch-test',

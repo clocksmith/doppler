@@ -8,7 +8,7 @@
  */
 
 import type { KernelPathRef } from './kernel-path.schema.js';
-import type { LayerPipelineSchema } from './inference.schema.js';
+import type { LayerPipelineSchema, LayerType } from './inference.schema.js';
 import type { EnergyModelConfigSchema } from './energy.schema.js';
 import type {
   ExecutionV0ConfigSchema,
@@ -254,13 +254,15 @@ export interface ManifestOutputSchema {
  */
 export interface ManifestLayerPatternSchema {
   /** Pattern type */
-  type: 'uniform' | 'alternating' | 'every_n';
+  type: 'uniform' | 'alternating' | 'every_n' | 'custom';
   /** For alternating: which layers are global ('odd' or 'even'), null if not applicable */
   globalPattern: 'odd' | 'even' | null;
   /** For every_n: period of global layers, null if not applicable */
   period: number | null;
   /** For every_n: first global layer index modulo period, null if not applicable */
   offset: number | null;
+  /** For custom: explicit per-layer architecture tags, null if not applicable */
+  layerTypes: LayerType[] | null;
 }
 
 /**
@@ -335,6 +337,7 @@ export type TensorRole =
   | 'lm_head'
   | 'norm'
   | 'matmul'
+  | 'conv'
   | 'expert'
   | 'router'
   | 'other';

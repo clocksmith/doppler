@@ -223,6 +223,25 @@ function writeJsonFixture(content) {
 
 {
   const result = runCli([
+    'verify',
+    '--config',
+    JSON.stringify({
+      request: {
+        suite: 'inference',
+        modelId: 'toy-model',
+        runtimePreset: 'modes/debug',
+      },
+    }),
+  ]);
+  assert.equal(result.code, 1);
+  assert.doesNotMatch(
+    result.stderr,
+    /\[error\] --runtime-config cannot be combined with runtimePreset\/runtimeConfigUrl\/runtimeConfig values inside --config request payload\./
+  );
+}
+
+{
+  const result = runCli([
     'debug',
     '--config',
     JSON.stringify({

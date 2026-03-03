@@ -24,6 +24,8 @@ Notes:
   Use this to emit explicit runtime session defaults and execution policy/steps into manifest inference.
 - If `inference.defaultKernelPath` is set and no explicit `inference.execution` is provided,
   converter auto-generates execution-v0 steps/session defaults from that kernel path.
+  Hybrid custom-layer models with explicit `layerPattern.layerTypes` containing `conv`
+  skip this auto-generation and keep layer scheduling in manifest inference.
 
 Current config intent:
 
@@ -101,3 +103,28 @@ Current config intent:
   - Weights/Embeddings/lmHead: `bf16`
   - Compute: `f32`
   - Kernel path: `embeddinggemma-f16-f32a`
+
+- `tools/configs/conversion/lfm2/lfm2.5-1.2b-instruct-wq4k-ef16-hf16-f32.json`
+  - Output base: `models/local/lfm2.5-1.2b-instruct-wq4k-ef16-hf16-f32`
+  - Resolved modelId: `lfm2.5-1.2b-instruct-wq4k-ef16-hf16-f32`
+  - Preset: `lfm2`
+  - Weights: `q4k` (row layout), embeddings/lmHead: `f16`
+  - Compute: `f32`
+  - Kernel path: `gemma3-q4k-dequant-f16a-online` (preset-mapped; LFM2 mixed-precision path)
+
+- `tools/configs/conversion/lfm2/lfm2.5-1.2b-instruct-wq4k-ef16-hf16-f16.json`
+  - Output base: `models/local/lfm2.5-1.2b-instruct-wq4k-ef16-hf16-f16`
+  - Resolved modelId: `lfm2.5-1.2b-instruct-wq4k-ef16-hf16-f16`
+  - Preset: `lfm2`
+  - Weights: `q4k` (row layout), embeddings/lmHead: `f16`
+  - Compute: `f16`
+  - Kernel path: `gemma3-q4k-dequant-f16a-online` (preset-mapped from quantization/dtype)
+
+LFM2.5 q4 kernel planning notes:
+
+- Reuse candidates:
+  - Q4K dequant primitives (`dequant_q4k*`) and q4k matmul backends (`matmul_q4k`, `dequant_matmul_f16w`) for linear weights.
+  - Existing attention, RoPE, RMSNorm, residual, and sampler kernels for layers using `self_attn.*` tensors.
+- New kernels required:
+  - Conv operator kernels for `model.layers.*.conv.{in_proj,conv,out_proj}` blocks.
+  - Execution-plan support that follows explicit hybrid `layer_types` schedules (conv vs full_attention), not only alternating/every_n attention patterns.

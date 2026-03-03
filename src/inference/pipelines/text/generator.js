@@ -106,6 +106,14 @@ function resolveTokenText(tokenizer, tokenIds, fallbackText = '?', renderTokenTe
 
   const fallback = renderFallback(tokenIds);
   if (typeof fallback === 'string' && fallback.length > 0) {
+    // Keep skip-special behavior deterministic: if primary decoding filtered this
+    // token to empty, do not reintroduce obvious special-token text via fallback.
+    if (
+      primaryText === ''
+      && /^<[^>\n]{1,80}>$/.test(fallback.trim())
+    ) {
+      return '';
+    }
     return fallback;
   }
 

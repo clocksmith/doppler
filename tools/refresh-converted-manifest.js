@@ -196,6 +196,36 @@ function mergeMetadata(manifest, conversionConfigPath) {
   return metadata;
 }
 
+function buildRefreshRawConfig(manifest) {
+  const baseConfig = (manifest?.config && typeof manifest.config === 'object')
+    ? { ...manifest.config }
+    : {};
+  const modelType = toSafeString(baseConfig.model_type).toLowerCase();
+  const presetId = toSafeString(manifest?.inference?.presetId).toLowerCase();
+  const isLfm2 = modelType === 'lfm2' || presetId === 'lfm2';
+  if (!isLfm2) {
+    return baseConfig;
+  }
+
+  if (!modelType) {
+    baseConfig.model_type = 'lfm2';
+  }
+
+  if (Array.isArray(baseConfig.layer_types) && baseConfig.layer_types.length > 0) {
+    return baseConfig;
+  }
+
+  const manifestLayerTypes = manifest?.inference?.layerPattern?.layerTypes;
+  if (Array.isArray(manifestLayerTypes) && manifestLayerTypes.length > 0) {
+    return {
+      ...baseConfig,
+      layer_types: [...manifestLayerTypes],
+    };
+  }
+
+  return baseConfig;
+}
+
 async function main() {
   const args = parseArgs(process.argv.slice(2));
 
@@ -217,7 +247,7 @@ async function main() {
     : null;
 
   const plan = resolveConversionPlan({
-    rawConfig: manifest.config || {},
+    rawConfig: buildRefreshRawConfig(manifest),
     tensors: tensorEntries,
     converterConfig,
     sourceQuantization: normalizeQuantizationTag(extractSourceQuantization(manifest)),
@@ -266,4 +296,3 @@ async function main() {
 main().catch((error) => {
   fail(error?.message || String(error));
 });
-

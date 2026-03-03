@@ -136,6 +136,54 @@ function normalizeLayerTypeName(value) {
   return value.trim().toLowerCase();
 }
 
+function normalizeCustomLayerType(value) {
+  const normalized = normalizeLayerTypeName(value);
+  if (!normalized) return null;
+  if (
+    normalized === 'full_attention'
+    || normalized === 'global_attention'
+    || normalized === 'full'
+    || normalized === 'global'
+    || normalized === 'attention'
+  ) {
+    return 'full_attention';
+  }
+  if (
+    normalized === 'sliding_attention'
+    || normalized === 'local_attention'
+    || normalized === 'sliding'
+    || normalized === 'local'
+  ) {
+    return 'sliding_attention';
+  }
+  if (
+    normalized === 'conv'
+    || normalized === 'convolution'
+    || normalized === 'liv_conv'
+    || normalized === 'liv_convolution'
+  ) {
+    return 'conv';
+  }
+  return null;
+}
+
+function normalizeLayerTypesForManifest(layerTypes, contextLabel) {
+  if (!Array.isArray(layerTypes)) {
+    throw new Error(`${contextLabel} requires layerTypes array.`);
+  }
+
+  return layerTypes.map((layerType, index) => {
+    const normalized = normalizeCustomLayerType(layerType);
+    if (!normalized) {
+      throw new Error(
+        `${contextLabel} has unsupported layerTypes[${index}]="${layerType}". ` +
+        'Supported: conv, full_attention, sliding_attention.'
+      );
+    }
+    return normalized;
+  });
+}
+
 function detectEveryNOffsetFromLayerTypes(layerTypes, period) {
   if (!Array.isArray(layerTypes) || !Number.isFinite(period) || period <= 0) {
     return null;
@@ -302,9 +350,19 @@ export function buildManifestInference(preset, config, headDim = 64, quantizatio
     let globalPattern = null;
     let period = null;
     let offset = null;
+    let layerTypes = null;
 
-    if (presetType === 'all_attention' || presetType === 'custom') {
+    if (presetType === 'all_attention') {
       manifestType = 'uniform';
+    } else if (presetType === 'custom') {
+      manifestType = 'custom';
+      const customLayerTypes = Array.isArray(modelConfig.layer_types) && modelConfig.layer_types.length > 0
+        ? modelConfig.layer_types
+        : presetPattern.layerTypes;
+      layerTypes = normalizeLayerTypesForManifest(
+        customLayerTypes,
+        `Preset "${preset.id ?? 'unknown'}" layerPattern`
+      );
     } else if (presetType === 'alternating') {
       if (presetPattern.globalPattern === 'every_n') {
         manifestType = 'every_n';
@@ -338,6 +396,15 @@ export function buildManifestInference(preset, config, headDim = 64, quantizatio
       }
       period = null;
       offset = null;
+    } else if (manifestType === 'custom') {
+      if (!Array.isArray(layerTypes) || layerTypes.length === 0) {
+        throw new Error(
+          `Preset "${preset.id ?? 'unknown'}" layerPattern requires non-empty layerTypes for custom pattern.`
+        );
+      }
+      globalPattern = null;
+      period = null;
+      offset = null;
     }
 
     inference.layerPattern = {
@@ -345,6 +412,7 @@ export function buildManifestInference(preset, config, headDim = 64, quantizatio
       globalPattern,
       period,
       offset,
+      layerTypes: manifestType === 'custom' ? layerTypes : null,
     };
   }
 

@@ -1,0 +1,83 @@
+{
+  "id": "lfm2",
+  "name": "Liquid LFM2",
+  "extends": "transformer",
+  "modelType": "transformer",
+
+  "architecture": {
+    "ropeTheta": 1000000
+  },
+
+  "inference": {
+    "attention": {
+      "slidingWindow": null,
+      "queryKeyNorm": true
+    },
+    "normalization": {
+      "rmsNormWeightOffset": false,
+      "rmsNormEps": 1e-5
+    },
+    "rope": {
+      "ropeTheta": 1000000
+    },
+    "ffn": {
+      "activation": "silu",
+      "gatedActivation": true
+    },
+    "kernelPaths": {
+      "q4k": {
+        "f16": "gemma3-q4k-dequant-f16a-online",
+        "f32": "gemma3-q4k-dequant-f16a-online"
+      }
+    },
+    "output": {
+      "tieWordEmbeddings": true
+    },
+    "layerPattern": {
+      "type": "custom",
+      "globalPattern": null,
+      "period": null,
+      "offset": null,
+      "layerTypes": null
+    }
+  },
+
+  "tokenizer": {
+    "addBosToken": false,
+    "addEosToken": false
+  },
+
+  "tensorPatterns": {
+    "embedding": [
+      "model.embed_tokens.weight"
+    ],
+    "lmHead": [
+      "lm_head.weight",
+      "output.weight"
+    ],
+    "attention": {
+      "qProj": ["model.layers.{layer}.self_attn.q_proj.weight"],
+      "kProj": ["model.layers.{layer}.self_attn.k_proj.weight"],
+      "vProj": ["model.layers.{layer}.self_attn.v_proj.weight"],
+      "oProj": ["model.layers.{layer}.self_attn.out_proj.weight"]
+    },
+    "ffn": {
+      "gate": ["model.layers.{layer}.feed_forward.w1.weight"],
+      "up": ["model.layers.{layer}.feed_forward.w3.weight"],
+      "down": ["model.layers.{layer}.feed_forward.w2.weight"]
+    },
+    "norm": {
+      "input": ["model.layers.{layer}.operator_norm.weight"],
+      "postAttn": ["model.layers.{layer}.ffn_norm.weight"],
+      "final": ["model.embedding_norm.weight"]
+    }
+  },
+
+  "detection": {
+    "architecturePatterns": ["lfm2", "Lfm2ForCausalLM"],
+    "modelTypePatterns": ["lfm2"],
+    "configPatterns": {
+      "model_type": "lfm2"
+    }
+  }
+}

@@ -14,6 +14,7 @@ const EXECUTION_V0_RUNTIME_KEYS = new Set(['session', 'executionPatch']);
 const PIPELINE_COMPATIBLE_OPS = new Set([
   'save',
   'load',
+  'conv',
   'attention',
   'rmsnorm',
   'ffn',
