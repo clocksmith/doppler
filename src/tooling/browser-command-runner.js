@@ -13,6 +13,10 @@ import {
   ensureCommandSupportedOnSurface,
 } from './command-api.js';
 import {
+  createToolingSuccessEnvelope,
+  normalizeToToolingCommandError,
+} from './command-envelope.js';
+import {
   applyRuntimeInputs,
   buildSuiteOptions,
   runWithRuntimeIsolation,
@@ -25,46 +29,52 @@ import {
 } from '../config/kernel-path-loader.js';
 
 export async function runBrowserCommand(commandRequest, options = {}) {
-  const { request } = ensureCommandSupportedOnSurface(commandRequest, 'browser');
+  let request = null;
+  try {
+    ({ request } = ensureCommandSupportedOnSurface(commandRequest, 'browser'));
 
-  if (request.command === 'convert') {
-    if (typeof options.convertHandler !== 'function') {
-      throw new Error(
-        'browser command convert requires options.convertHandler(request) to be provided.'
-      );
+    if (request.command === 'convert') {
+      if (typeof options.convertHandler !== 'function') {
+        throw new Error(
+          'browser command convert requires options.convertHandler(request) to be provided.'
+        );
+      }
+      const result = await options.convertHandler(request);
+      return createToolingSuccessEnvelope({
+        surface: 'browser',
+        request,
+        result,
+      });
     }
-    const result = await options.convertHandler(request);
-    return {
-      ok: true,
+
+    const runtimeBridge = {
+      applyRuntimePreset,
+      applyRuntimeConfigFromUrl,
+      getRuntimeConfig,
+      setRuntimeConfig,
+      resetRuntimeConfig,
+      getActiveKernelPath,
+      getActiveKernelPathPolicy,
+      getActiveKernelPathSource,
+      setActiveKernelPath,
+    };
+
+    const result = await runWithRuntimeIsolation(runtimeBridge, async () => {
+      await applyRuntimeInputs(request, runtimeBridge, options.runtimeLoadOptions || {});
+      return runBrowserSuite(buildSuiteOptions(request, 'browser'));
+    });
+
+    return createToolingSuccessEnvelope({
       surface: 'browser',
       request,
       result,
-    };
+    });
+  } catch (error) {
+    throw normalizeToToolingCommandError(error, {
+      surface: 'browser',
+      request,
+    });
   }
-
-  const runtimeBridge = {
-    applyRuntimePreset,
-    applyRuntimeConfigFromUrl,
-    getRuntimeConfig,
-    setRuntimeConfig,
-    resetRuntimeConfig,
-    getActiveKernelPath,
-    getActiveKernelPathPolicy,
-    getActiveKernelPathSource,
-    setActiveKernelPath,
-  };
-
-  const result = await runWithRuntimeIsolation(runtimeBridge, async () => {
-    await applyRuntimeInputs(request, runtimeBridge, options.runtimeLoadOptions || {});
-    return runBrowserSuite(buildSuiteOptions(request, 'browser'));
-  });
-
-  return {
-    ok: true,
-    surface: 'browser',
-    request,
-    result,
-  };
 }
 
 export function normalizeBrowserCommand(commandRequest) {

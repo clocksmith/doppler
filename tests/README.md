@@ -23,11 +23,11 @@ The harness does not accept per-field query overrides.
 ## Unified Commands (CLI, 1:1 schema)
 
 ```bash
-npm run test:model -- --suite kernels --surface auto
-npm run test:model -- --suite inference --model-id gemma-3-1b-q4 --surface auto
-npm run test:model -- --suite training --model-id gemma-3-1b-q4 --surface auto
-npm run debug -- --model-id gemma-3-1b-q4 --runtime-preset modes/debug --surface auto
-npm run bench -- --model-id gemma-3-1b-q4 --runtime-preset experiments/bench/gemma3-bench-q4k --surface auto
+npm run verify:model -- --config '{"request":{"suite":"kernels"},"run":{"surface":"auto"}}'
+npm run verify:model -- --config '{"request":{"suite":"inference","modelId":"gemma-3-1b-q4"},"run":{"surface":"auto"}}'
+npm run verify:model -- --config '{"request":{"suite":"training","modelId":"gemma-3-1b-q4"},"run":{"surface":"auto"}}'
+npm run debug -- --config '{"request":{"modelId":"gemma-3-1b-q4","runtimePreset":"modes/debug"},"run":{"surface":"auto"}}'
+npm run bench -- --config '{"request":{"modelId":"gemma-3-1b-q4","runtimePreset":"experiments/bench/gemma3-bench-q4k"},"run":{"surface":"auto"}}'
 ```
 
 Surface behavior:
@@ -36,19 +36,11 @@ Surface behavior:
 - `--surface node` requires a WebGPU-enabled Node runtime.
 - `--surface browser` runs headless browser harness through `src/tooling/command-runner.html`.
 
-## Browser Relay Flags
+## Browser Relay Config
 
-```bash
---browser-channel chrome
---browser-executable /path/to/chrome
---browser-headless true
---browser-port 8080
---browser-timeout-ms 180000
---browser-url-path /src/tooling/command-runner.html
---browser-static-root /abs/path/to/doppler
---browser-base-url http://127.0.0.1:8080
---browser-console
-```
+Browser relay options are configured under `run.browser` in `--config`
+(for example `channel`, `executablePath`, `headless`, `port`, `timeoutMs`,
+`runnerPath`, `staticRootDir`, `baseUrl`, `browserArgs`, and `console`).
 
 ## Running Browser Harness Manually
 

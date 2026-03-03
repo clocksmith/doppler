@@ -3,6 +3,7 @@ import type {
   ToolingCommandRequest,
   ToolingCommandRequestInput,
 } from './command-api.js';
+import type { ToolingSuccessEnvelope } from './command-envelope.js';
 
 export interface BrowserCommandRunOptions {
   runtimeLoadOptions?: RuntimeConfigLoadOptions;
@@ -11,11 +12,10 @@ export interface BrowserCommandRunOptions {
   ) => Promise<unknown> | unknown;
 }
 
-export interface BrowserCommandRunResult {
+export interface BrowserCommandRunResult extends ToolingSuccessEnvelope<unknown> {
   ok: true;
   surface: 'browser';
   request: ToolingCommandRequest;
-  result: unknown;
 }
 
 export declare function runBrowserCommand(

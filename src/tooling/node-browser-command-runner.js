@@ -9,6 +9,7 @@ import {
   ensureCommandSupportedOnSurface,
   normalizeToolingCommandRequest,
 } from './command-api.js';
+import { normalizeToToolingCommandError } from './command-envelope.js';
 
 const DEFAULT_HOST = '127.0.0.1';
 const DEFAULT_RUNNER_PATH = '/src/tooling/command-runner.html';
@@ -514,17 +515,19 @@ async function launchPersistentBrowser(chromium, userDataDir, launchOptions, opt
 }
 
 export async function runBrowserCommandInNode(commandRequest, options = {}) {
-  let { request } = ensureCommandSupportedOnSurface(commandRequest, 'browser');
+  let request = null;
+  try {
+    ({ request } = ensureCommandSupportedOnSurface(commandRequest, 'browser'));
 
-  if (request.keepPipeline) {
-    throw new Error(
-      'browser command relay does not support keepPipeline=true because pipeline objects are not serializable across process boundaries.'
-    );
-  }
+    if (request.keepPipeline) {
+      throw new Error(
+        'browser command relay does not support keepPipeline=true because pipeline objects are not serializable across process boundaries.'
+      );
+    }
 
-  if (request.command === 'convert') {
-    throw new Error('browser command relay does not support convert. Use --surface node for convert commands.');
-  }
+    if (request.command === 'convert') {
+      throw new Error('browser command relay does not support convert. Use --surface node for convert commands.');
+    }
 
   let useOpfsCache = options.opfsCache !== false;
   const userDataDir = options.userDataDir || DEFAULT_OPFS_CACHE_DIR;
@@ -578,9 +581,9 @@ export async function runBrowserCommandInNode(commandRequest, options = {}) {
     };
   }
 
-  let browser = null;
-  let context = null;
-  try {
+    let browser = null;
+    let context = null;
+    try {
     if (useOpfsCache) {
       // Persistent context: OPFS data survives between runs.
       // launchPersistentContext returns a BrowserContext directly (no separate Browser).
@@ -835,17 +838,28 @@ export async function runBrowserCommandInNode(commandRequest, options = {}) {
       };
     }
 
-    return response;
-  } finally {
-    if (context) {
-      await context.close().catch(() => {});
+      return response;
+    } catch (error) {
+      throw normalizeToToolingCommandError(error, {
+        surface: 'browser',
+        request,
+      });
+    } finally {
+      if (context) {
+        await context.close().catch(() => {});
+      }
+      if (browser) {
+        await browser.close().catch(() => {});
+      }
+      if (server) {
+        await server.close().catch(() => {});
+      }
     }
-    if (browser) {
-      await browser.close().catch(() => {});
-    }
-    if (server) {
-      await server.close().catch(() => {});
-    }
+  } catch (error) {
+    throw normalizeToToolingCommandError(error, {
+      surface: 'browser',
+      request,
+    });
   }
 }
 

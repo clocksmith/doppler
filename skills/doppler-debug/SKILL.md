@@ -19,13 +19,13 @@ Use this skill with `doppler-bench` when investigating performance regressions.
 
 ```bash
 # Primary debug run (auto surface = node-first transport; browser fallback only when node transport is unavailable)
-npm run debug -- --model-id MODEL_ID --runtime-preset modes/debug --surface auto --json
+npm run debug -- --config '{"request":{"modelId":"MODEL_ID","runtimePreset":"modes/debug"},"run":{"surface":"auto"}}' --json
 
 # Verify pass/fail with inference suite
-npm run test:model -- --suite inference --model-id MODEL_ID --runtime-preset modes/debug --surface auto --json
+npm run verify:model -- --config '{"request":{"suite":"inference","modelId":"MODEL_ID","runtimePreset":"modes/debug"},"run":{"surface":"auto"}}' --json
 
 # Force browser relay for mobile/WebGPU parity checks
-npm run debug -- --model-id MODEL_ID --runtime-preset diagnostics/debug-logits --surface browser --browser-channel chrome --browser-console --json
+npm run debug -- --config '{"request":{"modelId":"MODEL_ID","runtimePreset":"diagnostics/debug-logits"},"run":{"surface":"browser","browser":{"channel":"chrome","console":true}}}' --json
 ```
 
 ## Runtime Overrides (Config-First)
@@ -33,21 +33,27 @@ npm run debug -- --model-id MODEL_ID --runtime-preset diagnostics/debug-logits -
 Use runtime JSON patches instead of ad-hoc flags:
 
 ```bash
-npm run debug -- --model-id MODEL_ID --surface auto --runtime-config-json '{"shared":{"tooling":{"intent":"investigate"},"debug":{"trace":{"enabled":true,"categories":["attn","ffn"],"maxDecodeSteps":2}}},"inference":{"batching":{"maxTokens":8},"sampling":{"temperature":0}}}' --json
+npm run debug -- \
+  --config '{"request":{"modelId":"MODEL_ID"},"run":{"surface":"auto"}}' \
+  --runtime-config '{"shared":{"tooling":{"intent":"investigate"},"debug":{"trace":{"enabled":true,"categories":["attn","ffn"],"maxDecodeSteps":2}}},"inference":{"batching":{"maxTokens":8},"sampling":{"temperature":0}}}' \
+  --json
 ```
 
 ## Perf-Focused Investigation
 
 ```bash
 # Investigate-mode profile run (trace/profiler enabled by preset)
-npm run debug -- --model-id MODEL_ID --runtime-preset experiments/gemma3-profile --json
+npm run debug -- --config '{"request":{"modelId":"MODEL_ID","runtimePreset":"experiments/gemma3-profile"},"run":{"surface":"auto"}}' --json
 
 # Fast readback sensitivity checks
-npm run bench -- --model-id MODEL_ID --runtime-preset experiments/gemma3-investigate-readback-r1 --cache-mode warm --json
-npm run bench -- --model-id MODEL_ID --runtime-preset experiments/gemma3-investigate-readback-r8 --cache-mode warm --json
+npm run bench -- --config '{"request":{"modelId":"MODEL_ID","runtimePreset":"experiments/gemma3-investigate-readback-r1","cacheMode":"warm"},"run":{"surface":"browser"}}' --json
+npm run bench -- --config '{"request":{"modelId":"MODEL_ID","runtimePreset":"experiments/gemma3-investigate-readback-r8","cacheMode":"warm"},"run":{"surface":"browser"}}' --json
 
 # Direct override for decode cadence tuning
-npm run bench -- --model-id MODEL_ID --cache-mode warm --runtime-config-json '{"shared":{"tooling":{"intent":"investigate"}},"inference":{"batching":{"batchSize":4,"readbackInterval":4,"stopCheckMode":"per-token","maxTokens":128},"sampling":{"temperature":0}}}' --json
+npm run bench -- \
+  --config '{"request":{"modelId":"MODEL_ID","cacheMode":"warm"},"run":{"surface":"browser"}}' \
+  --runtime-config '{"shared":{"tooling":{"intent":"investigate"}},"inference":{"batching":{"batchSize":4,"readbackInterval":4,"stopCheckMode":"per-token","maxTokens":128},"sampling":{"temperature":0}}}' \
+  --json
 ```
 
 Notes:
@@ -58,10 +64,10 @@ Notes:
 
 ```bash
 # Cold browser run (wipe OPFS cache before launch)
-npm run debug -- --model-id MODEL_ID --surface browser --cache-mode cold --json
+npm run debug -- --config '{"request":{"modelId":"MODEL_ID","cacheMode":"cold"},"run":{"surface":"browser"}}' --json
 
 # Warm browser run (reuse OPFS cache)
-npm run debug -- --model-id MODEL_ID --surface browser --cache-mode warm --json
+npm run debug -- --config '{"request":{"modelId":"MODEL_ID","cacheMode":"warm"},"run":{"surface":"browser"}}' --json
 ```
 
 ## What to Inspect in Results

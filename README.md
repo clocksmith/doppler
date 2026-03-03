@@ -64,32 +64,34 @@ Architecture-specific patterns like sliding/full attention windows are runtime c
 
 See [`docs/architecture.md`](docs/architecture.md) for full subsystem and boundary details.
 
-## Capability checklist
+## Capability domains
 
-### Execution engine
-
-- Local WebGPU inference runtime for browser and Node.
-- Loader and memory orchestration for manifests/shards, range/stream reads, and GPU upload paths.
-- Kernel execution layer with explicit kernel-path selection and traceable runtime behavior.
-
-### Model I/O and preparation
+### Artifact Domain
 
 - Model conversion from SafeTensors/GGUF to RDRR (`convert`, Node surface).
-- Manifest-first loading contract with storage-backed and direct-source runtime paths.
+- Manifest-first model contract with storage-backed and direct-source load paths.
+- Artifact loading paths (`opfs`/`http`/`memory`) and shard/range/stream ingest behavior.
 - `loadMode=memory` supports Node-only local filesystem source-runtime inputs (`.gguf` or SafeTensors directory), not remote URLs.
 
-### Operator tooling
+### Runtime Domain
 
-- Unified command surface: `convert`, `debug`, `bench`, `test-model`.
+- Local WebGPU runtime for browser and Node inference/compute.
+- Kernel execution with explicit kernel-path selection and traceable runtime behavior.
+- Runtime memory/buffer orchestration and GPU dispatch lifecycle.
+- Training execution mechanics (step/runtime behavior) live here.
+
+### Interface Domain
+
+- Unified command surface: `convert`, `debug`, `bench`, `verify`.
 - Supported suites: `kernels`, `inference`, `training`, `bench`, `debug`, `diffusion`, `energy`.
 - `--surface auto` behavior: `convert` is forced to Node; other commands try Node first and only fall back to browser when configured Node-WebGPU fallback signatures match.
 - Training flows block auto-downgrade and fail fast with explicit guidance.
-- Reproducible benchmark/reporting outputs via `--json`, `--capture-output`, and `bench --save --save-dir` (artifacts in `benchmarks/vendors/results/`).
 
-### Training and validation plane
+### Assurance Domain
 
-- Practical verify/calibrate workflows for training and distill stages.
+- Practical verify/calibrate workflows for inference, training, and distill stages.
 - Contract-driven schema/field validation and fail-closed command behavior.
+- Reproducible benchmark/reporting outputs via `--json`, `--capture-output`, and `bench --save --save-dir` (artifacts in `benchmarks/vendors/results/`).
 - Hash-linked artifact lineage and provenance checks for claimable outputs.
 
 ### Details in docs
@@ -101,6 +103,13 @@ See [`docs/architecture.md`](docs/architecture.md) for full subsystem and bounda
 - Benchmark policy and harness registry: [`benchmarks/vendors/README.md`](benchmarks/vendors/README.md)
 - Testing workflows: [`docs/testing.md`](docs/testing.md)
 - Training docs: [`docs/training-overview.md`](docs/training-overview.md), [`docs/training-artifact-policy.md`](docs/training-artifact-policy.md), [`docs/training-migrations.md`](docs/training-migrations.md)
+
+### Output and tooling directories
+
+- `tools/`: CLI entrypoints and engineering scripts.
+- `benchmarks/`: benchmark registry, harness contracts, and benchmark fixtures/results policy.
+- `reports/`: generated run outputs (gitignored); training artifacts are emitted to `reports/training/` by default.
+- `bench/`: legacy output location; no active command defaults write here.
 
 ## Performance
 

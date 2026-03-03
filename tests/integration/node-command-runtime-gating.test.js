@@ -13,7 +13,7 @@ try {
 
   await assert.rejects(
     () => runNodeCommand({
-      command: 'test-model',
+      command: 'verify',
       suite: 'kernels',
     }),
     /node command: WebGPU runtime is incomplete in Node\./

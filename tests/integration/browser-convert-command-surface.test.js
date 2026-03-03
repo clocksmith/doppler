@@ -4,6 +4,7 @@ import {
   runBrowserCommand,
   normalizeBrowserCommand,
 } from '../../src/tooling/browser-command-runner.js';
+import { TOOLING_ENVELOPE_SCHEMA_VERSION } from '../../src/tooling/command-envelope.js';
 
 await assert.rejects(
   () => runBrowserCommand({
@@ -54,6 +55,7 @@ await assert.rejects(
   assert.equal(calls[0].outputDir, '/tmp/out');
   assert.equal(calls[0].convertPayload?.execution?.workers, 4);
   assert.equal(result.ok, true);
+  assert.equal(result.schemaVersion, TOOLING_ENVELOPE_SCHEMA_VERSION);
   assert.equal(result.surface, 'browser');
   assert.deepEqual(result.request, calls[0]);
   assert.deepEqual(result.result, {

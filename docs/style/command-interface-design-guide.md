@@ -20,7 +20,7 @@ This applies to browser clients and the Node CLI equally.
   - `convert` → convert intent
   - `debug` → investigate intent
   - `bench` → calibrate intent
-  - `test-model` → verify intent
+  - `verify` → verify intent
 - Mapping lives in JSON-first runtime command metadata and `normalizeToolingCommandRequest()`.
 - Any unknown command, unsupported surface combination, or missing required contract value must fail fast.
 - No command surface may substitute behavior when capabilities differ; failures must surface at surface boundary.
@@ -32,7 +32,7 @@ This applies to browser clients and the Node CLI equally.
 - `convert`
 - `debug`
 - `bench`
-- `test-model`
+- `verify`
 
 Defined in `src/tooling/command-api.js`.
 All surfaces must normalize via `normalizeToolingCommandRequest()`.
@@ -45,7 +45,7 @@ All surfaces must normalize via `normalizeToolingCommandRequest()`.
 
 - **Intent**: `verify`
 - **Exit**: pass/fail suite summary + diagnostics
-- **Command**: `test-model`
+- **Command**: `verify`
 
 ### Investigation (Microscope)
 
@@ -59,7 +59,8 @@ All surfaces must normalize via `normalizeToolingCommandRequest()`.
 - **Exit**: comparable scalar metrics
 - **Command**: `bench`
 - Training calibration runs through `bench` with `workloadType="training"` and
-  must remain behaviorally distinct from verify-path `test-model --suite training`.
+  must remain behaviorally distinct from verify-path `verify` with
+  `request.suite="training"` in `--config`.
 - Training payloads are schema-pinned (`trainingSchemaVersion=1` for training flows).
 
 ### Maintenance
@@ -72,13 +73,13 @@ All surfaces must normalize via `normalizeToolingCommandRequest()`.
 
 ## Runtime Contract
 
-For harnessed commands (`debug`, `bench`, `test-model`), runners must apply:
+For harnessed commands (`debug`, `bench`, `verify`), runners must apply:
 
 - `runtime.shared.harness.mode`
 - `runtime.shared.harness.modelId` (required except `kernels` suite)
 - `runtime.shared.tooling.intent`
 
-`test-model` verify suites are: `kernels`, `inference`, `training`, `diffusion`, and `energy`.
+`verify` verify suites are: `kernels`, `inference`, `training`, `diffusion`, and `energy`.
 
 Use `buildRuntimeContractPatch()` and merge into runtime config before execution.
 
@@ -104,7 +105,8 @@ Commands are rejected when:
 - Every command must run through `ensureCommandSupportedOnSurface()`.
 - Surface capability limits are explicit failures, not alternate behavior.
 - Output envelope shape is stable across surfaces:
-  - `{ ok, surface, request, result }`
+  - Success: `{ ok: true, schemaVersion: 1, surface, request, result }`
+  - Error: `{ ok: false, schemaVersion: 1, surface|null, request|null, error: { code, message, details, retryable } }`
 - New command capability is valid only when:
   1. Added to `src/tooling/command-api.js`
   2. Implemented in both browser and Node runners
@@ -117,11 +119,11 @@ Commands are rejected when:
 - Exception: training flows (`suite="training"` or `bench + workloadType="training"`) must not auto-downgrade from node to browser; this is a fail-closed transport rule that preserves command semantics.
 - Node runner may bootstrap WebGPU from available runtime support before failing.
 - Browser relay executes `runBrowserCommand()` in a browser via `src/tooling/command-runner.html`
-  (default headless, with `--headed` for headed mode).
-- Browser relay can attach to an existing server with `--browser-base-url`.
+  (default headless, configured via `run.browser` fields in CLI `--config`).
+- Browser relay can attach to an existing server with `run.browser.baseUrl`.
 - `convert` is Node-only in CLI (`--surface browser` is rejected).
 - `keepPipeline=true` is rejected on browser relay because pipeline objects are not serializable across process boundaries.
-- `convert` execution tuning flags (`--workers`, `--worker-policy`, `--row-chunk-rows`, `--row-chunk-min-tensor-bytes`, `--max-in-flight-jobs`) map to `convertPayload.execution` and must not change command semantics.
+- `convert` execution tuning belongs in `request.convertPayload.execution` and must not change command semantics.
 
 ---
 

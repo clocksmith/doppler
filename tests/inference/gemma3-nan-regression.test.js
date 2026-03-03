@@ -6,7 +6,13 @@ import path from 'node:path';
 const execFileAsync = promisify(execFile);
 const modelId = 'gemma-3-1b-it-wf16-ef16-hf16-f32';
 const modelUrl = `file://${path.resolve(process.cwd(), 'models/local/gemma-3-1b-it-wf16-ef16-hf16-f32')}`;
-const runtimeConfig = '{"inference":{"session":{"kvcache":{"kvDtype":"f16"}}}}';
+const runtimeConfig = '{"inference":{"prompt":"Briefly explain why the sky is blue in one sentence.","session":{"kvcache":{"kvDtype":"f16"}}}}';
+const cliConfig = JSON.stringify({
+  request: {
+    modelId,
+    modelUrl,
+  },
+});
 
 function extractTopLevelJsonObjects(text) {
   const source = String(text == null ? '' : text);
@@ -98,11 +104,8 @@ async function runTest() {
       [
         'tools/doppler-cli.js',
         'debug',
-        '--model-id', modelId,
-        '--model-url', modelUrl,
-        '--runtime-config-json', runtimeConfig,
-        '-p', 'Briefly explain why the sky is blue in one sentence.',
-        '--chat', 'gemma',
+        '--config', cliConfig,
+        '--runtime-config', runtimeConfig,
         '--json'
       ],
       {
