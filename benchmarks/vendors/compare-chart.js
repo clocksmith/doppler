@@ -26,7 +26,7 @@ const CHART_PRESETS = Object.freeze({
   [README_PRESET_NAME]: Object.freeze({
     inputs: Object.freeze([
       path.join(__dirname, 'results', 'compare_20260303T175640.json'),
-      path.join(__dirname, 'results', 'compare_20260303T181233.json'),
+      path.join(__dirname, 'results', 'compare_20260303T210150.json'),
     ]),
     chart: 'phases',
     section: 'warm',
@@ -243,7 +243,7 @@ function renderChartHeaderBand(width, title, subtitle, sectionLabel) {
 }
 
 function renderPhaseTrackPanel(x, y, width, height, tint = PALETTE.grid) {
-  return `<rect x="${x}" y="${y}" width="${width}" height="${height}" rx="0" fill="${PALETTE.grid}" fill-opacity="${PHASE_PANEL_OPACITY}" stroke="${tint}" stroke-opacity="0.55" stroke-width="2" />`;
+  return `<rect x="${x}" y="${y}" width="${width}" height="${height}" rx="0" fill="${PALETTE.grid}" fill-opacity="${PHASE_PANEL_OPACITY}" stroke="none" />`;
 }
 
 function svgWrap(width, height, body, title = 'Benchmark Comparison', desc = '') {
@@ -1181,7 +1181,7 @@ function renderPhases(rows, width, height, title, subtitle, sectionLabel, sectio
   engines.forEach((engine, engineIndex) => {
     const y = baseY + engineIndex * engineGap;
     const resolved = phaseData.get(engine.key);
-    body += renderPhaseTrackPanel(left - 8, y - 4, barAreaMax + 16, barHeight + 8, engine.color);
+    body += renderPhaseTrackPanel(left - 4, y - 4, barAreaMax + 8, barHeight + 8, engine.color);
 
     body += `<text x="32" y="${y + barHeight / 2 + 5}" fill="${engine.color}" stroke="#ffffff" stroke-width="2" font-family="${FONT_UI}" font-size="16" font-weight="bold">${engine.label}</text>\n`;
 
@@ -1214,11 +1214,6 @@ function renderPhases(rows, width, height, title, subtitle, sectionLabel, sectio
       } else if (ttftW > 40) {
         body += `<text x="${ttftX + 4}" y="${y + barHeight / 2 + 4}" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="10">Prefill ${resolved.ttft.toFixed(0)} ms</text>\n`;
       }
-
-      const ttftMarkerX = ttftX + ttftW;
-      const markerSize = 5;
-      body += `<polygon points="${ttftMarkerX},${y - 2} ${ttftMarkerX - markerSize},${y - markerSize - 4} ${ttftMarkerX + markerSize},${y - markerSize - 4}" fill="${PHASE_COLORS.ttftMarker}" />\n`;
-      body += `<text x="${ttftMarkerX}" y="${y - markerSize - 6}" fill="${PALETTE.muted}" font-family="${FONT_UI}" font-size="10" text-anchor="middle">TTFT</text>\n`;
 
       cursor += ttftW;
     }
@@ -1256,8 +1251,10 @@ function renderMultiPhases(entries, width, title, subtitle) {
   const right = 120;
   const barAreaMax = width - left - right;
   const barHeight = 36;
-  const engineGap = 56;
-  const workloadGap = 20;
+  const engineGap = 64;
+  const workloadGap = 44;
+  const workloadSubtitleGap = 20;
+  const subtitleToBarsGap = 12;
   const baseY = 120;
   const workloadBlockHeight = engines.length * engineGap + workloadGap;
 
@@ -1286,15 +1283,15 @@ function renderMultiPhases(entries, width, title, subtitle) {
   workloads.forEach((workload, wIndex) => {
     const workloadY = baseY + wIndex * workloadBlockHeight;
     const panelY = workloadY - 26;
-    const panelHeight = engines.length * engineGap + 16;
-    body += `<rect x="${CANVAS_PADDING}" y="${panelY}" width="${width - CANVAS_PADDING * 2}" height="${panelHeight}" rx="0" fill="${PALETTE.grid}" fill-opacity="0.12" stroke="${PALETTE.grid}" stroke-opacity="0.5" stroke-width="2" />`;
+    const panelHeight = engines.length * engineGap + 16 + subtitleToBarsGap;
+    body += `<rect x="${CANVAS_PADDING}" y="${panelY}" width="${width - CANVAS_PADDING * 2}" height="${panelHeight}" rx="0" fill="${PALETTE.grid}" fill-opacity="0.12" stroke="none" />`;
 
-    body += `<text x="32" y="${workloadY - 8}" fill="${PALETTE.muted}" font-family="${FONT_UI}" font-size="12" font-weight="bold">${escapeXml(workload.workloadLabel)}</text>\n`;
+    body += `<text x="32" y="${workloadY - workloadSubtitleGap}" fill="${PALETTE.muted}" font-family="${FONT_UI}" font-size="12" font-weight="bold">${escapeXml(workload.workloadLabel)}</text>\n`;
 
     engines.forEach((engine, engineIndex) => {
-      const y = workloadY + engineIndex * engineGap;
+      const y = workloadY + subtitleToBarsGap + engineIndex * engineGap;
       const resolved = workload.phaseData.get(engine.key);
-      body += renderPhaseTrackPanel(left - 8, y - 4, barAreaMax + 16, barHeight + 8, engine.color);
+      body += renderPhaseTrackPanel(left - 4, y - 4, barAreaMax + 8, barHeight + 8, engine.color);
 
     body += `<text x="32" y="${y + barHeight / 2 + 5}" fill="${engine.color}" stroke="#ffffff" stroke-width="2" font-family="${FONT_UI}" font-size="16" font-weight="bold">${engine.label}</text>\n`;
 
@@ -1321,15 +1318,13 @@ function renderMultiPhases(entries, width, title, subtitle) {
         const ttftW = resolved.ttft * pxPerMs;
         const ttftX = cursor;
         body += `<rect x="${ttftX}" y="${y}" width="${ttftW}" height="${barHeight}" fill="${PHASE_COLORS.prefill}" />\n`;
-      if (ttftW > 80) {
-        body += `<text x="${ttftX + 6}" y="${y + barHeight / 2 + 4}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="11" font-weight="bold">Prefill ${resolved.ttft.toFixed(1)} ms</text>\n`;
-      } else if (ttftW > 40) {
-        body += `<text x="${ttftX + 4}" y="${y + barHeight / 2 + 4}" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="10">Prefill ${resolved.ttft.toFixed(0)} ms</text>\n`;
-      }
-        const ttftMarkerX = ttftX + ttftW;
-        const markerSize = 5;
-        body += `<polygon points="${ttftMarkerX},${y - 2} ${ttftMarkerX - markerSize},${y - markerSize - 4} ${ttftMarkerX + markerSize},${y - markerSize - 4}" fill="${PHASE_COLORS.ttftMarker}" />\n`;
-        body += `<text x="${ttftMarkerX}" y="${y - markerSize - 6}" fill="${PALETTE.muted}" font-family="${FONT_UI}" font-size="10" text-anchor="middle">TTFT</text>\n`;
+        if (ttftW > 80) {
+          body += `<text x="${ttftX + 6}" y="${y + barHeight / 2 + 4}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="11" font-weight="bold">Prefill</text>\n`;
+          body += `<text x="${ttftX + 6}" y="${y + barHeight / 2 + 16}" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="10">${resolved.ttft.toFixed(1)} ms</text>\n`;
+        } else if (ttftW > 40) {
+          body += `<text x="${ttftX + 4}" y="${y + barHeight / 2 + 4}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="10" font-weight="bold">Prefill</text>\n`;
+          body += `<text x="${ttftX + 4}" y="${y + barHeight / 2 + 15}" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="10">${resolved.ttft.toFixed(0)} ms</text>\n`;
+        }
         cursor += ttftW;
       }
 
@@ -1455,7 +1450,7 @@ function renderMultiRadar(entries, perRadarHeight, title, subtitle, metricIds) {
   return svgWrap(totalWidth, height, body, title, subtitle);
 }
 
-const DTYPE_SEGMENT = /^(f\d+a?|q\d+[a-z]*|bf16|fp16|fp32|int[48])$/i;
+const DTYPE_SEGMENT = /^(?:[weh]?(?:f\d+a?|q\d+[a-z]*)|bf16|fp16|fp32|int[48])$/i;
 
 function prettifyModelId(raw, { stripDtype = false } = {}) {
   if (!raw) return 'unknown';
@@ -1478,7 +1473,8 @@ function prettifyModelId(raw, { stripDtype = false } = {}) {
       i += 1;
       continue;
     }
-    if (/^\d+$/.test(part) && next && /^\d+b$/.test(next)) {
+    const prev = i > 0 ? parts[i - 1] : null;
+    if (/^\d+$/.test(part) && next && /^\d+b$/.test(next) && prev !== 'gemma') {
       mergedParts.push(`${part}.${next}`);
       i += 1;
       continue;
@@ -1494,12 +1490,13 @@ function prettifyModelId(raw, { stripDtype = false } = {}) {
   return mergedParts
     .map((part) => {
       if (part === 'gemma') return 'Gemma';
-      if (part === 'it') return 'instruct';
+      if (part === 'it' || part === 'instruct') return null;
       if (/^lfm\d+(?:\.\d+)?$/.test(part)) {
-        return `LFM${part.slice(3)}`;
+        return `LFM ${part.slice(3)}`;
       }
       return part;
     })
+    .filter((part) => typeof part === 'string' && part.length > 0)
     .join(' ');
 }
 
@@ -1547,8 +1544,7 @@ function buildModelLabel(report) {
   const hasDtypeFields = report.dopplerDtype != null || report.transformersjsDtype != null;
   const dopplerModelId = report.dopplerModelId || report.modelId || '';
   const dopplerName = prettifyModelId(dopplerModelId, { stripDtype: hasDtypeFields });
-  const dopplerSuffix = hasDtypeFields ? formatDtypeSuffix(report.dopplerDtype) : '';
-  return `${dopplerName}${dopplerSuffix}`;
+  return dopplerName;
 }
 
 function buildWorkloadPanelLabel(report, fallbackWorkload) {

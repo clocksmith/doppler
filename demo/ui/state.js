@@ -36,7 +36,7 @@ export const state = {
   uiTask: 'run',
   uiMode: 'run',
   lastPrimaryMode: 'run',
-  lastTaskMode: { run: 'run', evaluate: 'diagnostics', manage: 'models' },
+  lastTaskMode: { run: 'run', evaluate: 'diagnostics' },
   runLog: [],
   runCounter: 0,
   embeddingDemoDocuments: [],

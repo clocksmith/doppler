@@ -1,64 +1,58 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="474" viewBox="0 0 1200 474" role="img" aria-labelledby="chart-title-1 chart-desc-1">
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="554" viewBox="0 0 1200 554" role="img" aria-labelledby="chart-title-1 chart-desc-1">
   <title id="chart-title-1">Phase-latency comparison on one workload across models</title>
-  <desc id="chart-desc-1">Gemma 3.1b instruct wf16 ef16 hf16, f32a • 64 prompt tokens, 64 decode tokens, greedy</desc>
+  <desc id="chart-desc-1">Gemma 3 1b • 64 prompt tokens, 64 decode tokens, greedy</desc>
   <defs><style>
   text { paint-order: stroke fill; stroke: #000000; stroke-width: 2px; stroke-linejoin: round; }
 </style></defs>
-  <rect x="0" y="0" width="1200" height="474" fill="#020617" />
-  <rect x="14" y="14" width="1172" height="446" rx="0" fill="#020817" fill-opacity="0.50" stroke="#1f2937" stroke-opacity="0.65" stroke-width="2" />
-  <text x="30" y="48" fill="#dbeafe" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="14" font-weight="bold" stroke="none">Phase-latency comparison on one workload across models</text><rect x="14" y="94" width="1172" height="128" rx="0" fill="#1f2937" fill-opacity="0.12" stroke="#1f2937" stroke-opacity="0.5" stroke-width="2" /><text x="32" y="112" fill="#cbd5e1" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="bold">Gemma 3.1b instruct wf16 ef16 hf16, f32a • 64 prompt tokens, 64 decode tokens, greedy</text>
-<rect x="192" y="116" width="896" height="44" rx="0" fill="#1f2937" fill-opacity="0.35" stroke="#9d4edd" stroke-opacity="0.55" stroke-width="2" /><text x="32" y="143" fill="#9d4edd" stroke="#ffffff" stroke-width="2" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="16" font-weight="bold">Doppler.js</text>
-<rect x="200" y="120" width="347.8771963919492" height="36" fill="#ef4444" />
-<text x="206" y="142" fill="#ffffff" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="bold">OPFS → VRAM</text>
-<text x="206" y="154" fill="#ffffff" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="10">2919.0 ms</text>
-<rect x="547.8771963919492" y="120" width="67.43025615572623" height="36" fill="#fbbf24" />
-<text x="551.8771963919492" y="142" fill="#ffffff" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="10">Prefill 566 ms</text>
-<polygon points="615.3074525476754,118 610.3074525476754,111 620.3074525476754,111" fill="#ffffff" />
-<text x="615.3074525476754" y="109" fill="#cbd5e1" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="10" text-anchor="middle">TTFT</text>
-<rect x="615.3074525476754" y="120" width="326.3776944292539" height="36" fill="#3b82f6" />
-<text x="621.3074525476754" y="142" fill="#ffffff" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="bold">Decode</text>
-<text x="621.3074525476754" y="154" fill="#ffffff" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="10">2738.6 ms</text>
-<text x="949.6851469769293" y="143" fill="#ffffff" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="12">6223.4 ms</text>
-<rect x="192" y="172" width="896" height="44" rx="0" fill="#1f2937" fill-opacity="0.35" stroke="#ffbd45" stroke-opacity="0.55" stroke-width="2" /><text x="32" y="199" fill="#ffbd45" stroke="#ffffff" stroke-width="2" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="16" font-weight="bold">Transformers.js (v4)</text>
-<rect x="200" y="176" width="492.46492239613764" height="36" fill="#ef4444" />
-<text x="206" y="198" fill="#ffffff" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="bold">OPFS → ORT → VRAM</text>
-<text x="206" y="210" fill="#ffffff" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="10">4132.2 ms</text>
-<rect x="692.4649223961376" y="176" width="35.47358235438861" height="36" fill="#fbbf24" />
-<polygon points="727.9385047505261,174 722.9385047505261,167 732.9385047505261,167" fill="#ffffff" />
-<text x="727.9385047505261" y="165" fill="#cbd5e1" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="10" text-anchor="middle">TTFT</text>
-<rect x="727.9385047505261" y="176" width="352.0614952494737" height="36" fill="#3b82f6" />
-<text x="733.9385047505261" y="198" fill="#ffffff" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="bold">Decode</text>
-<text x="733.9385047505261" y="210" fill="#ffffff" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="10">2954.1 ms</text>
-<text x="1087.9999999999998" y="199" fill="#ffffff" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="12">7384.0 ms</text>
-<rect x="14" y="226" width="1172" height="128" rx="0" fill="#1f2937" fill-opacity="0.12" stroke="#1f2937" stroke-opacity="0.5" stroke-width="2" /><text x="32" y="244" fill="#cbd5e1" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="bold">LFM2.5 1.2b instruct wq4k ef16 hf16, f32a • 64 prompt tokens, 64 decode tokens, greedy</text>
-<rect x="192" y="248" width="896" height="44" rx="0" fill="#1f2937" fill-opacity="0.35" stroke="#9d4edd" stroke-opacity="0.55" stroke-width="2" /><text x="32" y="275" fill="#9d4edd" stroke="#ffffff" stroke-width="2" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="16" font-weight="bold">Doppler.js</text>
-<rect x="200" y="252" width="103.15947283209019" height="36" fill="#ef4444" />
-<text x="206" y="274" fill="#ffffff" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="bold">OPFS → VRAM</text>
-<text x="206" y="286" fill="#ffffff" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="10">865.6 ms</text>
-<rect x="303.15947283209016" y="252" width="208.05892753034087" height="36" fill="#fbbf24" />
-<text x="309.15947283209016" y="274" fill="#ffffff" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="bold">Prefill 1745.8 ms</text>
-<polygon points="511.218400362431,250 506.218400362431,243 516.218400362431,243" fill="#ffffff" />
-<text x="511.218400362431" y="241" fill="#cbd5e1" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="10" text-anchor="middle">TTFT</text>
-<rect x="511.218400362431" y="252" width="279.2551718347432" height="36" fill="#3b82f6" />
-<text x="517.218400362431" y="274" fill="#ffffff" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="bold">Decode</text>
-<text x="517.218400362431" y="286" fill="#ffffff" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="10">2343.2 ms</text>
-<text x="798.4735721971742" y="275" fill="#ffffff" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="12">4954.6 ms</text>
-<rect x="192" y="304" width="896" height="44" rx="0" fill="#1f2937" fill-opacity="0.35" stroke="#ffbd45" stroke-opacity="0.55" stroke-width="2" /><text x="32" y="331" fill="#ffbd45" stroke="#ffffff" stroke-width="2" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="16" font-weight="bold">Transformers.js (v4)</text>
-<rect x="200" y="308" width="298.06842782078724" height="36" fill="#ef4444" />
-<text x="206" y="330" fill="#ffffff" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="bold">OPFS → ORT → VRAM</text>
-<text x="206" y="342" fill="#ffffff" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="10">2501.1 ms</text>
-<rect x="498.06842782078724" y="308" width="23.81093677757847" height="36" fill="#fbbf24" />
-<polygon points="521.8793645983657,306 516.8793645983657,299 526.8793645983657,299" fill="#ffffff" />
-<text x="521.8793645983657" y="297" fill="#cbd5e1" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="10" text-anchor="middle">TTFT</text>
-<rect x="521.8793645983657" y="308" width="291.46901029759294" height="36" fill="#3b82f6" />
-<text x="527.8793645983657" y="330" fill="#ffffff" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="bold">Decode</text>
-<text x="527.8793645983657" y="342" fill="#ffffff" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="10">2445.7 ms</text>
-<text x="821.3483748959586" y="331" fill="#ffffff" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="12">5146.5 ms</text>
-<rect x="200" y="384" width="16" height="16" fill="#ef4444" />
-<text x="222" y="397" fill="#ffffff" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="12">Model Load (Warm)</text>
-<rect x="410" y="384" width="16" height="16" fill="#fbbf24" />
-<text x="432" y="397" fill="#ffffff" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="12">Prefill</text>
-<rect x="620" y="384" width="16" height="16" fill="#3b82f6" />
-<text x="642" y="397" fill="#ffffff" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="12">Decode</text>
+  <rect x="0" y="0" width="1200" height="554" fill="#020617" />
+  <rect x="14" y="14" width="1172" height="526" rx="0" fill="#020817" fill-opacity="0.50" stroke="#1f2937" stroke-opacity="0.65" stroke-width="2" />
+  <text x="30" y="48" fill="#dbeafe" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="14" font-weight="bold" stroke="none">Phase-latency comparison on one workload across models</text><rect x="14" y="94" width="1172" height="156" rx="0" fill="#1f2937" fill-opacity="0.12" stroke="none" /><text x="32" y="100" fill="#cbd5e1" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="bold">Gemma 3 1b • 64 prompt tokens, 64 decode tokens, greedy</text>
+<rect x="196" y="128" width="888" height="44" rx="0" fill="#1f2937" fill-opacity="0.35" stroke="none" /><text x="32" y="155" fill="#9d4edd" stroke="#ffffff" stroke-width="2" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="16" font-weight="bold">Doppler.js</text>
+<rect x="200" y="132" width="347.8771963919492" height="36" fill="#ef4444" />
+<text x="206" y="154" fill="#ffffff" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="bold">OPFS → VRAM</text>
+<text x="206" y="166" fill="#ffffff" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="10">2919.0 ms</text>
+<rect x="547.8771963919492" y="132" width="67.43025615572623" height="36" fill="#fbbf24" />
+<text x="551.8771963919492" y="154" fill="#ffffff" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="10" font-weight="bold">Prefill</text>
+<text x="551.8771963919492" y="165" fill="#ffffff" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="10">566 ms</text>
+<rect x="615.3074525476754" y="132" width="326.3776944292539" height="36" fill="#3b82f6" />
+<text x="621.3074525476754" y="154" fill="#ffffff" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="bold">Decode</text>
+<text x="621.3074525476754" y="166" fill="#ffffff" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="10">2738.6 ms</text>
+<text x="949.6851469769293" y="155" fill="#ffffff" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="12">6223.4 ms</text>
+<rect x="196" y="192" width="888" height="44" rx="0" fill="#1f2937" fill-opacity="0.35" stroke="none" /><text x="32" y="219" fill="#ffbd45" stroke="#ffffff" stroke-width="2" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="16" font-weight="bold">Transformers.js (v4)</text>
+<rect x="200" y="196" width="492.46492239613764" height="36" fill="#ef4444" />
+<text x="206" y="218" fill="#ffffff" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="bold">OPFS → ORT → VRAM</text>
+<text x="206" y="230" fill="#ffffff" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="10">4132.2 ms</text>
+<rect x="692.4649223961376" y="196" width="35.47358235438861" height="36" fill="#fbbf24" />
+<rect x="727.9385047505261" y="196" width="352.0614952494737" height="36" fill="#3b82f6" />
+<text x="733.9385047505261" y="218" fill="#ffffff" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="bold">Decode</text>
+<text x="733.9385047505261" y="230" fill="#ffffff" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="10">2954.1 ms</text>
+<text x="1087.9999999999998" y="219" fill="#ffffff" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="12">7384.0 ms</text>
+<rect x="14" y="266" width="1172" height="156" rx="0" fill="#1f2937" fill-opacity="0.12" stroke="none" /><text x="32" y="272" fill="#cbd5e1" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="bold">LFM 2.5 1.2b • 64 prompt tokens, 64 decode tokens, greedy</text>
+<rect x="196" y="300" width="888" height="44" rx="0" fill="#1f2937" fill-opacity="0.35" stroke="none" /><text x="32" y="327" fill="#9d4edd" stroke="#ffffff" stroke-width="2" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="16" font-weight="bold">Doppler.js</text>
+<rect x="200" y="304" width="101.52675012206288" height="36" fill="#ef4444" />
+<text x="206" y="326" fill="#ffffff" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="bold">OPFS → VRAM</text>
+<text x="206" y="338" fill="#ffffff" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="10">851.9 ms</text>
+<rect x="301.5267501220629" y="304" width="41.04450374696379" height="36" fill="#fbbf24" />
+<text x="305.5267501220629" y="326" fill="#ffffff" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="10" font-weight="bold">Prefill</text>
+<text x="305.5267501220629" y="337" fill="#ffffff" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="10">344 ms</text>
+<rect x="342.5712538690267" y="304" width="259.4241456341196" height="36" fill="#3b82f6" />
+<text x="348.5712538690267" y="326" fill="#ffffff" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="bold">Decode</text>
+<text x="348.5712538690267" y="338" fill="#ffffff" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="10">2176.8 ms</text>
+<text x="609.9953995031462" y="327" fill="#ffffff" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="12">3373.1 ms</text>
+<rect x="196" y="364" width="888" height="44" rx="0" fill="#1f2937" fill-opacity="0.35" stroke="none" /><text x="32" y="391" fill="#ffbd45" stroke="#ffffff" stroke-width="2" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="16" font-weight="bold">Transformers.js (v4)</text>
+<rect x="200" y="368" width="315.4658629443105" height="36" fill="#ef4444" />
+<text x="206" y="390" fill="#ffffff" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="bold">OPFS → ORT → VRAM</text>
+<text x="206" y="402" fill="#ffffff" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="10">2647.0 ms</text>
+<rect x="515.4658629443105" y="368" width="22.231843645617754" height="36" fill="#fbbf24" />
+<rect x="537.6977065899283" y="368" width="272.87801911814074" height="36" fill="#3b82f6" />
+<text x="543.6977065899283" y="390" fill="#ffffff" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="bold">Decode</text>
+<text x="543.6977065899283" y="402" fill="#ffffff" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="10">2289.7 ms</text>
+<text x="818.5757257080691" y="391" fill="#ffffff" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="12">5123.3 ms</text>
+<rect x="200" y="464" width="16" height="16" fill="#ef4444" />
+<text x="222" y="477" fill="#ffffff" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="12">Model Load (Warm)</text>
+<rect x="410" y="464" width="16" height="16" fill="#fbbf24" />
+<text x="432" y="477" fill="#ffffff" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="12">Prefill</text>
+<rect x="620" y="464" width="16" height="16" fill="#3b82f6" />
+<text x="642" y="477" fill="#ffffff" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="12">Decode</text>
 
 </svg>
