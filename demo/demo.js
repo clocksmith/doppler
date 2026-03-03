@@ -256,11 +256,10 @@ const DEEP_LINK_MODES = new Set([
   'diagnostics',
   'kernels',
 ]);
-const TASK_SET = new Set(['run', 'evaluate', 'manage']);
+const TASK_SET = new Set(['run', 'evaluate']);
 const TASK_MODE_ALLOWLIST = Object.freeze({
   run: Object.freeze(['run', 'translate', 'embedding', 'diffusion']),
   evaluate: Object.freeze(['diagnostics', 'kernels', 'energy']),
-  manage: Object.freeze(['models']),
 });
 const MODE_TASK_MAP = Object.freeze({
   run: 'run',
@@ -270,16 +269,14 @@ const MODE_TASK_MAP = Object.freeze({
   diagnostics: 'evaluate',
   kernels: 'evaluate',
   energy: 'evaluate',
-  models: 'manage',
 });
 const DEFAULT_TASK_MODE = Object.freeze({
   run: 'run',
   evaluate: 'diagnostics',
-  manage: 'models',
 });
 const SURFACE_SET = new Set(['demo', 'lab']);
 const SURFACE_MODE_ALLOWLIST = Object.freeze({
-  demo: new Set(['run', 'embedding', 'models']),
+  demo: new Set([...DEEP_LINK_MODES]),
   lab: new Set([...DEEP_LINK_MODES]),
 });
 const SURFACE_META = Object.freeze({
@@ -515,7 +512,7 @@ function resolveTaskForSurface(task, surface, modeHint = null) {
   if (rememberedTask && isTaskAllowedForSurface(rememberedTask, normalizedSurface)) {
     return rememberedTask;
   }
-  for (const fallbackTask of ['run', 'manage', 'evaluate']) {
+  for (const fallbackTask of ['run', 'evaluate']) {
     if (isTaskAllowedForSurface(fallbackTask, normalizedSurface)) {
       return fallbackTask;
     }
@@ -566,7 +563,6 @@ function parseAllowedTasks(rawTasks) {
 
 function syncSurfaceUI(surface) {
   const normalizedSurface = normalizeSurface(surface, 'demo');
-  const surfaceMeta = getSurfaceMeta(normalizedSurface);
   const normalizedTask = resolveTaskForSurface(
     getTaskForMode(state.uiMode, state.uiTask || 'run'),
     normalizedSurface,
@@ -582,53 +578,41 @@ function syncSurfaceUI(surface) {
     button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
   });
   document.querySelectorAll('.task-tab').forEach((button) => {
-    const allowedSurfaces = parseAllowedSurfaces(button.dataset.surfaces);
     const task = normalizeTask(button.dataset.task, null);
-    const surfaceAllowed = allowedSurfaces.length === 0 || allowedSurfaces.includes(normalizedSurface);
-    const taskAllowed = task != null && isTaskAllowedForSurface(task, normalizedSurface);
-    const isAllowed = surfaceAllowed && taskAllowed;
+    const taskAllowedForSurface = task != null && isTaskAllowedForSurface(task, normalizedSurface);
+    const isVisible = true;
     if (button instanceof HTMLButtonElement) {
-      button.hidden = !isAllowed;
-      button.disabled = !isAllowed;
+      button.hidden = !isVisible;
     }
-    button.setAttribute('aria-disabled', isAllowed ? 'false' : 'true');
-    button.setAttribute('aria-hidden', isAllowed ? 'false' : 'true');
+    button.classList.toggle('is-unavailable', isVisible && !taskAllowedForSurface);
+    button.setAttribute('aria-disabled', (isVisible && !taskAllowedForSurface) ? 'true' : 'false');
+    button.setAttribute('aria-hidden', isVisible ? 'false' : 'true');
   });
   document.querySelectorAll('.mode-subtab').forEach((button) => {
-    const allowedSurfaces = parseAllowedSurfaces(button.dataset.surfaces);
     const mode = normalizeDeepLinkMode(button.dataset.mode, null);
     const explicitTasks = parseAllowedTasks(button.dataset.tasks);
     const inferredTask = getTaskForMode(mode, null);
     const allowedTasks = explicitTasks.length > 0
       ? explicitTasks
       : (inferredTask ? [inferredTask] : []);
-    const surfaceAllowed = allowedSurfaces.length === 0 || allowedSurfaces.includes(normalizedSurface);
     const modeAllowed = mode != null && isModeAllowedForSurface(mode, normalizedSurface);
     const taskAllowed = allowedTasks.includes(normalizedTask);
-    const isVisible = surfaceAllowed && modeAllowed && taskAllowed;
+    const isVisible = taskAllowed;
+    const isUnavailable = isVisible && !modeAllowed;
     button.hidden = !isVisible;
-    if (button instanceof HTMLButtonElement) {
-      button.disabled = !isVisible;
-    }
-    button.setAttribute('aria-disabled', isVisible ? 'false' : 'true');
+    button.classList.toggle('is-unavailable', isUnavailable);
+    button.setAttribute('aria-disabled', isUnavailable ? 'true' : 'false');
     button.setAttribute('aria-hidden', isVisible ? 'false' : 'true');
   });
   if (typeof document !== 'undefined') {
-    document.title = `D4DA Studio ${surfaceMeta.label} Surface`;
+    document.title = 'D4DA Studio';
   }
 }
 
 function requireLabSurface(actionLabel, hintMode = 'models') {
-  if (state.surface === 'lab') return true;
-  const action = resolveText(actionLabel, 'This action');
-  const message = `${action} is available in Lab surface. Switch to Lab to continue.`;
-  showErrorModal(message);
-  if (hintMode) {
-    setUiMode(hintMode).catch((error) => {
-      log.warn('DopplerDemo', `Surface hint navigation failed: ${error.message}`);
-    });
-  }
-  return false;
+  void actionLabel;
+  void hintMode;
+  return true;
 }
 
 function readDeepLinkValue(hashParams, queryParams, keys) {
@@ -1006,6 +990,13 @@ function updateNavState(mode, task = null) {
     button.classList.toggle('is-active', isActive);
     button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
   });
+
+  const openModelsButton = $('header-open-models');
+  if (openModelsButton) {
+    const isActive = normalizedMode === 'models';
+    openModelsButton.classList.toggle('is-active', isActive);
+    openModelsButton.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+  }
 }
 
 
@@ -1018,14 +1009,11 @@ function cloneRuntimeConfig(config) {
 }
 
 function applyModeVisibility(mode) {
-  const surface = normalizeSurface(state.surface, 'demo');
   const panels = document.querySelectorAll('[data-modes], [data-surfaces]');
   panels.forEach((panel) => {
     const modes = panel.dataset.modes?.split(/\s+/).filter(Boolean) || [];
-    const surfaces = panel.dataset.surfaces?.split(/\s+/).filter(Boolean) || [];
     const modeVisible = modes.length === 0 || modes.includes(mode);
-    const surfaceVisible = surfaces.length === 0 || surfaces.includes(surface);
-    panel.hidden = !(modeVisible && surfaceVisible);
+    panel.hidden = !modeVisible;
   });
 }
 
@@ -1686,9 +1674,94 @@ function findPickedFileByBaseName(files, name) {
   return matches[0];
 }
 
+const MODEL_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]{1,127}$/;
+const MODEL_ID_LABEL_MAX = 56;
+
+function normalizeModelIdInput(value) {
+  return String(value || '').trim();
+}
+
+function isValidModelId(value) {
+  return MODEL_ID_PATTERN.test(normalizeModelIdInput(value));
+}
+
+function assertValidModelId(value, sourceLabel = 'modelId') {
+  const normalized = normalizeModelIdInput(value);
+  if (!normalized) {
+    throw new Error(`${sourceLabel} is required.`);
+  }
+  if (!isValidModelId(normalized)) {
+    throw new Error(
+      `${sourceLabel} must match ${MODEL_ID_PATTERN.source} (2-128 chars, alnum, dot, underscore, hyphen).`
+    );
+  }
+  return normalized;
+}
+
+function formatModelIdLabel(modelId, maxLength = MODEL_ID_LABEL_MAX) {
+  const normalized = normalizeModelIdInput(modelId).replace(/\s+/g, ' ');
+  if (normalized.length <= maxLength) return normalized;
+  return `${normalized.slice(0, Math.max(0, maxLength - 3))}...`;
+}
+
+function getRegisteredModelId(entry) {
+  const candidate = typeof entry?.modelId === 'string' && entry.modelId
+    ? entry.modelId
+    : (typeof entry?.id === 'string' ? entry.id : '');
+  const normalized = normalizeModelIdInput(candidate);
+  if (!normalized) return '';
+  if (!isValidModelId(normalized)) {
+    log.warn('DopplerDemo', `Skipping invalid modelId from registry: ${formatModelIdLabel(normalized, 96)}`);
+    return '';
+  }
+  return normalized;
+}
+
+const TRANSLATE_MODEL_HINTS = Object.freeze([
+  'translate',
+  'translation',
+  'nllb',
+  'm2m',
+  'marian',
+  'madlad',
+  'seamless',
+  'opus',
+  'mt',
+]);
+
+function getModelSelectionScore(mode, modelId) {
+  const normalizedMode = normalizeDeepLinkMode(mode, 'run');
+  const id = String(modelId || '').toLowerCase();
+  let score = 0;
+
+  if (normalizedMode === 'run') {
+    if (id.includes('gemma-3')) score += 50;
+    else if (id.includes('gemma')) score += 25;
+  }
+
+  if (normalizedMode === 'translate') {
+    let hasTranslateHint = false;
+    for (const hint of TRANSLATE_MODEL_HINTS) {
+      if (id.includes(hint)) {
+        score += 24;
+        hasTranslateHint = true;
+      }
+    }
+    if (id.includes('gemma-3')) score -= 60;
+    else if (id.includes('gemma')) score -= 30;
+    if (!hasTranslateHint) score -= 10;
+  }
+
+  if (id.includes('embedding') || id.includes('diffusion') || id.includes('energy')) {
+    score -= 80;
+  }
+
+  return score;
+}
+
 async function deriveModelIdFromFiles(files, fallbackLabel) {
-  const fallback = fallbackLabel?.trim();
-  if (fallback) return fallback;
+  const fallback = normalizeModelIdInput(fallbackLabel);
+  if (isValidModelId(fallback)) return fallback;
 
   const configFile = files.find((file) => file.name === 'config.json');
   if (configFile) {
@@ -1699,7 +1772,7 @@ async function deriveModelIdFromFiles(files, fallbackLabel) {
       if (typeof rawName === 'string' && rawName.trim()) {
         const parts = rawName.trim().split('/');
         const name = parts[parts.length - 1];
-        if (name) return name;
+        if (isValidModelId(name)) return name;
       }
     } catch {
       // Ignore config parsing errors here; converter will handle validation.
@@ -1712,7 +1785,7 @@ async function deriveModelIdFromFiles(files, fallbackLabel) {
   });
   if (weightFile) {
     const base = weightFile.name.replace(/\.(safetensors|gguf)$/i, '');
-    if (base) return base;
+    if (isValidModelId(base)) return base;
   }
 
   return null;
@@ -1722,7 +1795,7 @@ async function filterModelsForMode(models, mode) {
   if (!isModeModelSelectable(mode)) return models;
   const filtered = [];
   for (const model of models) {
-    const modelId = model.modelId || model.id;
+    const modelId = getRegisteredModelId(model);
     if (!modelId) continue;
     const modelType = await getModelTypeForId(modelId);
     if (isCompatibleModelType(modelType, mode)) {
@@ -1733,19 +1806,19 @@ async function filterModelsForMode(models, mode) {
 }
 
 async function registerDownloadedModel(modelId) {
-  if (!modelId) return null;
-  await openModelStore(modelId);
+  const normalizedModelId = assertValidModelId(modelId, 'Downloaded modelId');
+  await openModelStore(normalizedModelId);
   const manifestText = await loadManifestFromStore();
   if (!manifestText) return null;
   const manifest = parseManifest(manifestText);
   const entry = {
-    modelId,
+    modelId: normalizedModelId,
     totalSize: manifest.totalSize,
     quantization: manifest.quantization,
     hashAlgorithm: manifest.hashAlgorithm,
     modelType: manifest.modelType,
   };
-  if (manifest.modelId && manifest.modelId !== modelId) {
+  if (manifest.modelId && manifest.modelId !== normalizedModelId) {
     entry.sourceModelId = manifest.modelId;
   }
   return registerModel(entry);
@@ -1753,6 +1826,7 @@ async function registerDownloadedModel(modelId) {
 
 async function resolveCompatibleModelId(mode) {
   if (!isModeModelSelectable(mode)) return null;
+  const normalizedMode = normalizeDeepLinkMode(mode, 'run');
   let models = [];
   try {
     models = await listRegisteredModels();
@@ -1760,42 +1834,51 @@ async function resolveCompatibleModelId(mode) {
     log.warn('DopplerDemo', `Model registry unavailable: ${error.message}`);
   }
   const modelIds = models
-    .map((entry) => entry.modelId || entry.id)
+    .map((entry) => getRegisteredModelId(entry))
     .filter(Boolean);
   if (!modelIds.length) return null;
 
-  const pipelineId = state.activePipelineModelId;
-  if (pipelineId && modelIds.includes(pipelineId)) {
-    const pipelineType = normalizeModelType(state.activePipeline?.manifest?.modelType)
-      || await getModelTypeForId(pipelineId);
-    if (isCompatibleModelType(pipelineType, mode)) {
-      return pipelineId;
-    }
-  }
-
-  const preferred = state.modeModelId?.[mode] || null;
+  const preferred = state.modeModelId?.[normalizedMode] || null;
   if (preferred && modelIds.includes(preferred)) {
     const preferredType = await getModelTypeForId(preferred);
-    if (isCompatibleModelType(preferredType, mode)) {
+    if (isCompatibleModelType(preferredType, normalizedMode)) {
       return preferred;
     }
   }
 
-  const current = state.activeModelId;
-  if (current && modelIds.includes(current)) {
-    const currentType = await getModelTypeForId(current);
-    if (isCompatibleModelType(currentType, mode)) {
-      return current;
+  if (normalizedMode !== 'translate') {
+    const pipelineId = state.activePipelineModelId;
+    if (pipelineId && modelIds.includes(pipelineId)) {
+      const pipelineType = normalizeModelType(state.activePipeline?.manifest?.modelType)
+        || await getModelTypeForId(pipelineId);
+      if (isCompatibleModelType(pipelineType, normalizedMode)) {
+        return pipelineId;
+      }
+    }
+
+    const current = state.activeModelId;
+    if (current && modelIds.includes(current)) {
+      const currentType = await getModelTypeForId(current);
+      if (isCompatibleModelType(currentType, normalizedMode)) {
+        return current;
+      }
     }
   }
 
+  let bestModelId = null;
+  let bestScore = Number.NEGATIVE_INFINITY;
   for (const modelId of modelIds) {
     const modelType = await getModelTypeForId(modelId);
-    if (isCompatibleModelType(modelType, mode)) {
-      return modelId;
+    if (!isCompatibleModelType(modelType, normalizedMode)) {
+      continue;
+    }
+    const score = getModelSelectionScore(normalizedMode, modelId);
+    if (bestModelId == null || score > bestScore) {
+      bestModelId = modelId;
+      bestScore = score;
     }
   }
-  return null;
+  return bestModelId;
 }
 
 async function syncModelForMode(mode) {
@@ -1851,9 +1934,7 @@ async function computeModelAvailability(models) {
   if (!Array.isArray(models)) return availability;
   const seenModelIds = new Set();
   for (const model of models) {
-    const modelId = typeof model?.modelId === 'string' && model.modelId
-      ? model.modelId
-      : (typeof model?.id === 'string' ? model.id : '');
+    const modelId = getRegisteredModelId(model);
     if (!modelId || seenModelIds.has(modelId)) continue;
     seenModelIds.add(modelId);
     availability.total += 1;
@@ -1886,11 +1967,7 @@ async function refreshModelList() {
   }
   try {
     state.registeredModelIds = [...new Set(models
-      .map((entry) => {
-        if (typeof entry?.modelId === 'string' && entry.modelId) return entry.modelId;
-        if (typeof entry?.id === 'string' && entry.id) return entry.id;
-        return '';
-      })
+      .map((entry) => getRegisteredModelId(entry))
       .filter(Boolean))];
     const filteredModels = await filterModelsForMode(models, state.uiMode);
     if (refreshVersion !== modelListRefreshVersion) return;
@@ -1898,9 +1975,7 @@ async function refreshModelList() {
     const modelIds = [];
     const seenModelIds = new Set();
     for (const model of filteredModels) {
-      const modelId = typeof model?.modelId === 'string' && model.modelId
-        ? model.modelId
-        : (typeof model?.id === 'string' ? model.id : '');
+      const modelId = getRegisteredModelId(model);
       if (!modelId || seenModelIds.has(modelId)) continue;
       const entryModelType = normalizeModelType(model?.modelType);
       if (entryModelType) {
@@ -1918,7 +1993,8 @@ async function refreshModelList() {
       for (const modelId of modelIds) {
         const opt = document.createElement('option');
         opt.value = modelId;
-        opt.textContent = modelId;
+        opt.textContent = formatModelIdLabel(modelId);
+        opt.title = modelId;
         modelSelect.appendChild(opt);
       }
     }
@@ -3221,6 +3297,9 @@ async function runConversion(files, converterConfig, label, modelIdOverride) {
   if (!isConversionSupported()) {
     throw new Error('Browser conversion requires OPFS or IndexedDB.');
   }
+  if (modelIdOverride != null) {
+    assertValidModelId(modelIdOverride, 'Conversion modelId');
+  }
   updateConvertStatus(`Preparing conversion${label ? ` (${label})` : ''}...`, 0);
   state.convertActive = true;
   updateStatusIndicator();
@@ -3322,10 +3401,7 @@ async function importRdrrFromFiles(files, detection, label) {
   updateStatusIndicator();
   try {
     const manifest = parseManifest(detection.manifestText);
-    const modelId = String(manifest.modelId || '').trim();
-    if (!modelId) {
-      throw new Error('RDRR manifest is missing modelId.');
-    }
+    const modelId = assertValidModelId(manifest.modelId, 'RDRR manifest modelId');
 
     await openModelStore(modelId);
 
@@ -3588,7 +3664,10 @@ async function handleConvertFiles() {
 
   const modelIdOverride = await deriveModelIdFromFiles(files, pickedLabel);
   if (!modelIdOverride) {
-    updateConvertStatus('Missing modelId. Rename the folder or provide config.json.', 0);
+    updateConvertStatus(
+      'Missing valid modelId. Use 2-128 chars: letters/numbers plus dot, underscore, hyphen.',
+      0
+    );
     return;
   }
 
@@ -3870,7 +3949,6 @@ function bindUI() {
   const errorModal = $('error-modal');
   const errorClose = $('error-close');
   const advancedNav = $('advanced-nav');
-  const surfaceOpenLabBtn = $('surface-open-lab-btn');
   const convertBtn = $('convert-btn');
   const convertUrlBtn = $('convert-url-btn');
   const regenManifestBtn = $('regen-manifest-btn');
@@ -3888,6 +3966,7 @@ function bindUI() {
   const diagnosticsRun = $('diagnostics-run-btn');
   const diagnosticsVerify = $('diagnostics-verify-btn');
   const diagnosticsExport = $('diagnostics-export-btn');
+  const headerOpenModelsBtn = $('header-open-models');
   const unloadModelBtn = $('unload-model-btn');
   const clearMemoryBtn = $('clear-memory-btn');
   const modelsQuickModelsList = $('models-quick-models-list');
@@ -3999,39 +4078,29 @@ function bindUI() {
 
   document.querySelectorAll('.task-tab').forEach((button) => {
     button.addEventListener('click', () => {
-      if (button instanceof HTMLButtonElement && button.disabled) return;
       if (button.hidden) return;
       closeAdvancedNav();
       const task = button.dataset.task || 'run';
-      setUiTask(task);
-    });
-  });
-
-  document.querySelectorAll('.surface-tab').forEach((button) => {
-    button.addEventListener('click', () => {
-      closeAdvancedNav();
-      const surface = button.dataset.surface || 'demo';
-      setSurface(surface).catch((error) => {
-        log.warn('DopplerDemo', `Surface switch failed: ${error.message}`);
+      setUiTask(task).catch((error) => {
+        log.warn('DopplerDemo', `Task switch failed: ${error.message}`);
       });
-    });
-  });
-
-  surfaceOpenLabBtn?.addEventListener('click', () => {
-    closeAdvancedNav();
-    setSurface('lab', 'models').catch((error) => {
-      log.warn('DopplerDemo', `Open Lab failed: ${error.message}`);
     });
   });
 
   document.querySelectorAll('.mode-subtab').forEach((button) => {
     button.addEventListener('click', () => {
-      if (button instanceof HTMLButtonElement && button.disabled) return;
       if (button.hidden) return;
       closeAdvancedNav();
       const mode = button.dataset.mode || 'run';
-      setUiMode(mode);
+      setUiMode(mode).catch((error) => {
+        log.warn('DopplerDemo', `Mode switch failed: ${error.message}`);
+      });
     });
+  });
+
+  headerOpenModelsBtn?.addEventListener('click', () => {
+    closeAdvancedNav();
+    setUiMode('models');
   });
 
   document.querySelectorAll('.diagnostics-mode-tab').forEach((button) => {

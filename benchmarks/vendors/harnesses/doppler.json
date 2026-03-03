@@ -20,9 +20,9 @@
       "decodeMs": ["result.timing.decodeMs"],
       "totalRunMs": ["result.timing.totalRunMs"],
       "modelLoadMs": ["result.timing.modelLoadMs"],
-      "decodeMsPerTokenP50": ["result.timing.decodeMsPerTokenP50", "result.metrics.decodeMsPerTokenP50"],
-      "decodeMsPerTokenP95": ["result.timing.decodeMsPerTokenP95", "result.metrics.decodeMsPerTokenP95"],
-      "decodeMsPerTokenP99": ["result.timing.decodeMsPerTokenP99", "result.metrics.decodeMsPerTokenP99"],
+      "decodeMsPerTokenP50": ["result.timing.decodeMsPerTokenP50"],
+      "decodeMsPerTokenP95": ["result.timing.decodeMsPerTokenP95"],
+      "decodeMsPerTokenP99": ["result.timing.decodeMsPerTokenP99"],
       "peak_memory_mb": ["result.memoryStats.used"]
     },
     "metadataPaths": {

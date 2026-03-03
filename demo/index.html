@@ -46,60 +46,53 @@
         <div class="header-actions">
           <div class="header-controls">
             <div class="header-nav">
-              <div class="nav-group">
+              <div class="nav-group nav-group-workflow">
+                <div class="type-caption nav-label">Workflow</div>
                 <div class="segmented-control" id="task-tabs">
                   <button class="btn segmented-btn task-tab" data-task="run" type="button">Run</button>
                   <button class="btn segmented-btn task-tab" data-task="evaluate" type="button">Evaluate</button>
-                  <button class="btn segmented-btn task-tab" data-task="manage" type="button">Manage</button>
                 </div>
               </div>
-              <details class="advanced-nav" id="advanced-nav">
-                <summary class="btn segmented-btn btn-small advanced-toggle">Settings</summary>
-                <div class="advanced-nav-grid" id="advanced-nav-panel">
-                  <div class="advanced-nav-section">
-                    <div class="type-caption nav-label">Surface</div>
-                    <div class="segmented-control" id="surface-tabs">
-                      <button class="btn segmented-btn surface-tab" data-surface="demo" type="button">Demo</button>
-                      <button class="btn segmented-btn surface-tab" data-surface="lab" type="button">Lab</button>
-                    </div>
-                  </div>
-                  <div class="advanced-nav-section">
-                    <div class="type-caption nav-label">Mode</div>
-                    <div class="segmented-control" id="mode-tabs">
-                      <button class="btn segmented-btn mode-subtab" data-mode="run" data-tasks="run" type="button">Text</button>
-                      <button class="btn segmented-btn mode-subtab" data-mode="translate" data-tasks="run" data-surfaces="lab" type="button">Translate</button>
-                      <button class="btn segmented-btn mode-subtab" data-mode="embedding" data-tasks="run" type="button">Embedding</button>
-                      <button class="btn segmented-btn mode-subtab" data-mode="diffusion" data-tasks="run" data-surfaces="lab" type="button">
-                        Image
-                      </button>
-                      <button class="btn segmented-btn mode-subtab" data-mode="diagnostics" data-tasks="evaluate" data-surfaces="lab" type="button">Diagnostics</button>
-                      <button class="btn segmented-btn mode-subtab" data-mode="kernels" data-tasks="evaluate" data-surfaces="lab" type="button">Kernels</button>
-                      <button class="btn segmented-btn mode-subtab" data-mode="energy" data-tasks="evaluate" data-surfaces="lab" type="button">Energy</button>
-                      <button class="btn segmented-btn mode-subtab" data-mode="models" data-tasks="manage" type="button">Models</button>
-                    </div>
-                  </div>
+              <div class="nav-group nav-group-mode">
+                <div class="type-caption nav-label">Tool</div>
+                <div class="segmented-control" id="mode-tabs">
+                  <button class="btn segmented-btn mode-subtab" data-mode="run" data-tasks="run" type="button">Text</button>
+                  <button class="btn segmented-btn mode-subtab" data-mode="translate" data-tasks="run" type="button">Translate</button>
+                  <button class="btn segmented-btn mode-subtab" data-mode="embedding" data-tasks="run" type="button">Embedding</button>
+                  <button class="btn segmented-btn mode-subtab" data-mode="diffusion" data-tasks="run" type="button">
+                    Image
+                  </button>
+                  <button class="btn segmented-btn mode-subtab" data-mode="diagnostics" data-tasks="evaluate" type="button">Diagnostics</button>
+                  <button class="btn segmented-btn mode-subtab" data-mode="kernels" data-tasks="evaluate" type="button">Kernels</button>
+                  <button class="btn segmented-btn mode-subtab" data-mode="energy" data-tasks="evaluate" type="button">Energy</button>
                 </div>
-              </details>
+              </div>
             </div>
-            <div class="header-model">
-              <label class="type-caption nav-label" for="diagnostics-model">Active Model</label>
-              <select id="diagnostics-model" class="w-full"></select>
+            <div class="header-meta">
+              <div class="header-meta-item header-model">
+                <label class="type-caption nav-label" for="diagnostics-model">Active Model</label>
+                <select id="diagnostics-model" class="w-full"></select>
+              </div>
+              <div class="header-meta-item header-model-nav">
+                <div class="type-caption nav-label">Navigate</div>
+                <button id="header-open-models" class="btn segmented-btn header-models-btn" type="button">Models</button>
+              </div>
+              <div class="header-meta-item header-status">
+                <div class="type-caption nav-label">Status</div>
+                <div id="status-indicator" class="status-indicator">
+                  <span class="status-marker" aria-hidden="true">○</span>
+                  <span class="status-d4-loading" aria-hidden="true" hidden>
+                    <span class="status-d4-a">D</span>
+                    <span class="status-d4-b">4</span>
+                    <span class="status-d4-c">D</span>
+                    <span class="status-d4-d">A</span>
+                  </span>
+                  <span class="status-text type-caption">Initializing...</span>
+                </div>
+              </div>
             </div>
           </div>
-          <div class="header-status">
-            <div class="type-caption nav-label">Status</div>
-            <div id="status-indicator" class="status-indicator">
-              <span class="status-marker" aria-hidden="true">○</span>
-              <span class="status-d4-loading" aria-hidden="true" hidden>
-                <span class="status-d4-a">D</span>
-                <span class="status-d4-b">4</span>
-                <span class="status-d4-c">D</span>
-                <span class="status-d4-d">A</span>
-              </span>
-              <span class="status-text type-caption">Initializing...</span>
-            </div>
-          </div>
-          </div>
+        </div>
       </div>
 
       <!-- Main Layout -->
@@ -357,10 +350,6 @@
                 <span class="type-caption">Curated hosted model imports</span>
                 <div id="models-quick-models-status" class="type-caption"></div>
                 <div id="models-quick-models-list" class="quick-models-list"></div>
-              </div>
-              <div class="surface-context" data-surfaces="demo">
-                <span class="type-caption">Need diagnostics, conversion, and low-level controls?</span>
-                <button id="surface-open-lab-btn" class="btn btn-small" type="button">Open Lab</button>
               </div>
               <div class="storage-inspector">
                 <div id="storage-inspector-status" class="type-caption">Idle</div>
