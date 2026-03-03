@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>D4DA Studio</title>
+  <title>D4DA</title>
   <link rel="icon" type="image/svg+xml" href="/demo/favicon.svg">
   <link rel="manifest" href="/demo/pwa-manifest.json">
   <link rel="stylesheet" href="/demo/styles/rd.css">
@@ -69,25 +69,25 @@
               </div>
             </div>
             <div class="header-meta">
-              <div class="header-meta-item header-model">
-                <label class="type-caption nav-label" for="diagnostics-model">Active Model</label>
-                <select id="diagnostics-model" class="w-full"></select>
-              </div>
-              <div class="header-meta-item header-model-nav">
-                <div class="type-caption nav-label">Navigate</div>
-                <button id="header-open-models" class="btn segmented-btn header-models-btn" type="button">Models</button>
-              </div>
-              <div class="header-meta-item header-status">
-                <div class="type-caption nav-label">Status</div>
-                <div id="status-indicator" class="status-indicator">
-                  <span class="status-marker" aria-hidden="true">○</span>
-                  <span class="status-d4-loading" aria-hidden="true" hidden>
-                    <span class="status-d4-a">D</span>
-                    <span class="status-d4-b">4</span>
-                    <span class="status-d4-c">D</span>
-                    <span class="status-d4-d">A</span>
-                  </span>
-                  <span class="status-text type-caption">Initializing...</span>
+              <div class="header-meta-item header-meta-group">
+                <div class="type-caption nav-label">Model</div>
+                <div class="header-meta-controls">
+                  <div class="header-model">
+                    <select id="diagnostics-model" class="w-full" aria-label="Active Model"></select>
+                  </div>
+                  <button id="header-open-models" class="btn segmented-btn header-models-btn" type="button">Models</button>
+                  <div class="header-status">
+                    <div id="status-indicator" class="status-indicator">
+                      <span class="status-marker" aria-hidden="true">○</span>
+                      <span class="status-d4-loading" aria-hidden="true" hidden>
+                        <span class="status-d4-a">D</span>
+                        <span class="status-d4-b">4</span>
+                        <span class="status-d4-c">D</span>
+                        <span class="status-d4-d">A</span>
+                      </span>
+                      <span class="status-text type-caption">Initializing...</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
