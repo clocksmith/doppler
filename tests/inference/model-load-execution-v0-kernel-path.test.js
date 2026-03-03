@@ -25,6 +25,10 @@ if (!globalThis.GPUMapMode) {
 }
 
 const { resolveKernelPathState } = await import('../../src/inference/pipelines/text/model-load.js');
+const NO_SUBGROUP_CAPABILITIES = Object.freeze({
+  hasSubgroups: false,
+  hasF16: false,
+});
 
 function createRuntimeConfig(kernelPath) {
   return {
@@ -59,7 +63,12 @@ const manifest = { modelId: 'model-load-execution-v0-test', inference: {} };
     },
   };
   assert.throws(
-    () => resolveKernelPathState({ manifest, runtimeConfig, modelConfig }),
+    () => resolveKernelPathState({
+      manifest,
+      runtimeConfig,
+      modelConfig,
+      kernelCapabilities: NO_SUBGROUP_CAPABILITIES,
+    }),
     /no explicit auto-select remap matched/
   );
 }
@@ -82,7 +91,12 @@ const manifest = { modelId: 'model-load-execution-v0-test', inference: {} };
   });
 
   assert.throws(
-    () => resolveKernelPathState({ manifest, runtimeConfig, modelConfig }),
+    () => resolveKernelPathState({
+      manifest,
+      runtimeConfig,
+      modelConfig,
+      kernelCapabilities: NO_SUBGROUP_CAPABILITIES,
+    }),
     /ExecutionV0.*unsupported GPU features.*matmul_gemv_subgroup\.wgsl#main_vec4/
   );
 }
@@ -104,7 +118,12 @@ const manifest = { modelId: 'model-load-execution-v0-test', inference: {} };
     },
   });
 
-  const resolved = resolveKernelPathState({ manifest, runtimeConfig, modelConfig });
+  const resolved = resolveKernelPathState({
+    manifest,
+    runtimeConfig,
+    modelConfig,
+    kernelCapabilities: NO_SUBGROUP_CAPABILITIES,
+  });
   assert.equal(resolved.kernelPathSource, 'execution-v0');
   assert.equal(resolved.resolvedKernelPath?.id, 'inline-execution-v0-portable');
 }

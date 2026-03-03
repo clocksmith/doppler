@@ -522,8 +522,8 @@ should be `calibrate`. Save results under `tests/results/` for comparisons.
 The same contract is available through npm scripts and `doppler`:
 
 ```bash
-npm run bench -- --model-id gemma-3-1b-q4 --runtime-preset experiments/bench/gemma3-bench-q4k
-npm run bench -- --model-id gemma-3-1b-q4 --runtime-config-url /src/config/presets/runtime/bench.json
+npm run bench -- --config '{"request":{"modelId":"gemma-3-1b-q4","runtimePreset":"experiments/bench/gemma3-bench-q4k"}}'
+npm run bench -- --config '{"request":{"modelId":"gemma-3-1b-q4","runtimeConfigUrl":"/src/config/presets/runtime/bench.json"}}'
 ```
 
 Node runs still require WebGPU support in the Node runtime.

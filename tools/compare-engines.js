@@ -1133,38 +1133,41 @@ async function runDoppler(modelId, modelUrl, sharedContract, cacheMode, options 
     readbackInterval: resolvedReadbackInterval,
     runtimeConfigJson: options.runtimeConfigJson,
   });
-  const baseArgs = [
-    path.join(DOPPLER_ROOT, 'tools', 'doppler-cli.js'),
-    'bench',
-    '--model-id', modelId,
-    '--model-url', modelUrl,
-    '--json',
-    '--cache-mode', cacheMode,
-    ...(resolvedBrowserBaseUrl
-      ? ['--browser-base-url', String(resolvedBrowserBaseUrl)]
-      : (options.browserPort != null ? ['--browser-port', String(resolvedBrowserPort)] : [])),
-    '--runtime-config-json', JSON.stringify(runtimeConfig),
-  ];
   const stableBrowserArgs = appendBrowserArgs([], STABLE_BROWSER_ARGS);
-  for (const browserArg of stableBrowserArgs) {
-    baseArgs.push('--browser-arg', browserArg);
-  }
-  if (resolvedLoadMode != null) {
-    baseArgs.push('--load-mode', String(resolvedLoadMode));
-  }
-  if (resolvedBrowserExecutable) {
-    baseArgs.push('--browser-executable', String(resolvedBrowserExecutable));
-  }
-  if (options.noOpfsCache) {
-    baseArgs.push('--no-opfs-cache');
-  }
-  if (options.browserUserData) {
-    baseArgs.push('--browser-user-data', String(options.browserUserData));
-  }
+
+  const buildCliConfig = (forceNoOpfs = false) => ({
+    request: {
+      modelId,
+      modelUrl,
+      cacheMode,
+      ...(resolvedLoadMode != null ? { loadMode: String(resolvedLoadMode) } : {}),
+    },
+    run: {
+      surface: 'browser',
+      browser: {
+        ...(resolvedBrowserBaseUrl
+          ? { baseUrl: String(resolvedBrowserBaseUrl) }
+          : (options.browserPort != null ? { port: resolvedBrowserPort } : {})),
+        ...(resolvedBrowserExecutable ? { executablePath: String(resolvedBrowserExecutable) } : {}),
+        ...(options.browserUserData ? { userDataDir: String(options.browserUserData) } : {}),
+        ...(options.noOpfsCache || forceNoOpfs ? { opfsCache: false } : {}),
+        browserArgs: stableBrowserArgs,
+      },
+    },
+  });
 
   console.error(`[compare] running Doppler (${cacheMode})...`);
-  const runOnce = async (extraArgs = []) => {
-    const args = [...baseArgs, ...extraArgs];
+  const runOnce = async ({ forceNoOpfs = false } = {}) => {
+    const cliConfig = buildCliConfig(forceNoOpfs);
+    const args = [
+      path.join(DOPPLER_ROOT, 'tools', 'doppler-cli.js'),
+      'bench',
+      '--config',
+      JSON.stringify(cliConfig),
+      '--runtime-config',
+      JSON.stringify(runtimeConfig),
+      '--json',
+    ];
     const { stdout } = await execFileAsync('node', args, {
       cwd: DOPPLER_ROOT,
       timeout: resolvedTimeoutMs,
@@ -1181,7 +1184,7 @@ async function runDoppler(modelId, modelUrl, sharedContract, cacheMode, options 
     if (shouldRetryNoOpfs) {
       console.error('[compare] Doppler failed with cached manifest mismatch; retrying with --no-opfs-cache...');
       try {
-        return await runOnce(['--no-opfs-cache']);
+        return await runOnce({ forceNoOpfs: true });
       } catch (retryError) {
         console.error(`[compare] Doppler (${cacheMode}) retry failed: ${retryError.message}`);
         return toFailurePayload('doppler', retryError);

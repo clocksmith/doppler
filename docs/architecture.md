@@ -939,7 +939,7 @@ the full debugging timeline.
 ## 9. Tools
 
 DOPPLER ships Node tooling via `tools/doppler-cli.js` and npm scripts
-(`convert`, `debug`, `bench`, `test:model`). The demo UI and browser harness
+(`convert`, `debug`, `bench`, `verify:model`). The demo UI and browser harness
 remain the primary interactive diagnostics surfaces.
 
 ---

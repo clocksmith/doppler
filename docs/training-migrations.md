@@ -11,8 +11,8 @@ Migration summary for training command schema, UL schema, and metrics schema.
 ## Command contract migration highlights
 
 - Training-only fields are valid only for:
-  - `test-model --suite training`
-  - `bench --workload-type training`
+  - `verify --config '{"request":{"suite":"training",...}}'`
+  - `bench --config '{"request":{"workloadType":"training",...}}'`
 - Invalid field/suite combinations are fail-closed.
 
 ## Metrics schema migration highlights
@@ -41,6 +41,6 @@ artifact fields suitable for stage-to-stage verification.
 
 ## Historical notes
 
-Detailed v1 migration/changelog documents are archived under:
-
-- `docs/archive/training/`
+Older migration details were removed from the public docs tree during
+documentation consolidation. Use git history for prior training migration
+iterations and changelog context.

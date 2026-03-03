@@ -7,13 +7,13 @@ import {
 
 {
   const request = normalizeToolingCommandRequest({
-    command: 'test-model',
+    command: 'verify',
     suite: 'training',
     modelId: 'gemma-3-1b-it-wf16-ef16-hf16',
     trainingTests: ['runner-smoke', 'train-step-metrics'],
     trainingStage: 'stage1_joint',
   });
-  assert.equal(request.command, 'test-model');
+  assert.equal(request.command, 'verify');
   assert.equal(request.suite, 'training');
   assert.equal(request.intent, 'verify');
   assert.equal(request.modelId, 'gemma-3-1b-it-wf16-ef16-hf16');
@@ -24,7 +24,7 @@ import {
 
 {
   const request = normalizeToolingCommandRequest({
-    command: 'test-model',
+    command: 'verify',
     suite: 'training',
     modelId: null,
     trainingStage: 'stage1_joint',
@@ -37,7 +37,7 @@ import {
 {
   assert.throws(
     () => normalizeToolingCommandRequest({
-      command: 'test-model',
+      command: 'verify',
       suite: 'bench',
       modelId: 'gemma-3-1b-it-wf16-ef16-hf16',
     }),
@@ -90,7 +90,7 @@ import {
 {
   assert.throws(
     () => normalizeToolingCommandRequest({
-      command: 'test-model',
+      command: 'verify',
       suite: 'training',
       modelId: null,
       trainingStage: 'stage1_joint',
@@ -115,7 +115,7 @@ import {
 {
   assert.throws(
     () => normalizeToolingCommandRequest({
-      command: 'test-model',
+      command: 'verify',
       suite: 'training',
       modelId: null,
       trainingStage: 'stage3_unknown',
@@ -126,7 +126,7 @@ import {
 
 {
   const request = normalizeToolingCommandRequest({
-    command: 'test-model',
+    command: 'verify',
     suite: 'training',
     modelId: null,
     trainingStage: 'stage_a',
@@ -165,7 +165,7 @@ import {
 
 {
   const patch = buildRuntimeContractPatch({
-    command: 'test-model',
+    command: 'verify',
     suite: 'training',
     modelId: 'gemma-3-1b-it-wf16-ef16-hf16',
   });
@@ -331,7 +331,7 @@ import {
 {
   assert.throws(
     () => normalizeToolingCommandRequest({
-      command: 'test-model',
+      command: 'verify',
       modelId: 'gemma-3-1b-it-wf16-ef16-hf16',
     }),
     /suite is required/
@@ -341,7 +341,7 @@ import {
 {
   assert.throws(
     () => normalizeToolingCommandRequest({
-      command: 'test-model',
+      command: 'verify',
       suite: 'unknown',
       modelId: 'gemma-3-1b-it-wf16-ef16-hf16',
     }),
@@ -352,7 +352,7 @@ import {
 {
   assert.throws(
     () => normalizeToolingCommandRequest({
-      command: 'test-model',
+      command: 'verify',
       suite: 'inference',
       modelId: null,
     }),

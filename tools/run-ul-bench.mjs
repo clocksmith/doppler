@@ -7,7 +7,7 @@ import { resolve, join } from 'node:path';
 function parseArgs(argv) {
   const parsed = {
     surface: 'node',
-    outDir: 'bench/out/ul',
+    outDir: 'reports/training/ul',
     workload: 'tiny',
   };
   for (let i = 2; i < argv.length; i += 1) {
@@ -110,70 +110,71 @@ async function main() {
       },
     },
   });
-  const trainingConfigJson = JSON.stringify({
+  const trainingConfig = {
     ul: {
       seed,
     },
-  });
+  };
   await mkdir(outDirAbs, { recursive: true });
 
   const stage1Verify = await runCli([
-    'test-model',
-    '--suite',
-    'training',
-    '--surface',
-    args.surface,
-    '--training-schema-version',
-    String(trainingSchemaVersion),
-    '--training-config-json',
-    trainingConfigJson,
-    '--training-stage',
-    'stage1_joint',
-    '--training-tests',
-    stage1TestId,
+    'verify',
+    '--config',
+    JSON.stringify({
+      request: {
+        suite: 'training',
+        trainingSchemaVersion,
+        trainingConfig,
+        trainingStage: 'stage1_joint',
+        trainingTests: [stage1TestId],
+      },
+      run: {
+        surface: args.surface,
+      },
+    }),
     '--json',
   ]);
   const stage1Artifact = extractStage1Artifact(stage1Verify);
 
   const stage1Bench = await runCli([
     'bench',
-    '--surface',
-    args.surface,
-    '--training-schema-version',
-    String(trainingSchemaVersion),
-    '--training-bench-steps',
-    String(trainingBenchSteps),
-    '--training-config-json',
-    trainingConfigJson,
-    '--runtime-config-json',
+    '--config',
+    JSON.stringify({
+      request: {
+        trainingSchemaVersion,
+        trainingBenchSteps,
+        trainingConfig,
+        workloadType: 'training',
+        trainingStage: 'stage1_joint',
+      },
+      run: {
+        surface: args.surface,
+      },
+    }),
+    '--runtime-config',
     runtimeConfigJson,
-    '--workload-type',
-    'training',
-    '--training-stage',
-    'stage1_joint',
     '--json',
   ]);
 
   const stage2Bench = await runCli([
     'bench',
-    '--surface',
-    args.surface,
-    '--training-schema-version',
-    String(trainingSchemaVersion),
-    '--training-bench-steps',
-    String(trainingBenchSteps),
-    '--training-config-json',
-    trainingConfigJson,
-    '--runtime-config-json',
+    '--config',
+    JSON.stringify({
+      request: {
+        trainingSchemaVersion,
+        trainingBenchSteps,
+        trainingConfig,
+        workloadType: 'training',
+        trainingStage: 'stage2_base',
+        stage1Artifact: stage1Artifact.stage1Artifact,
+        stage1ArtifactHash: String(stage1Artifact.stage1ArtifactHash || ''),
+      },
+      run: {
+        surface: args.surface,
+      },
+    }),
+    '--runtime-config',
     runtimeConfigJson,
-    '--workload-type',
-    'training',
-    '--training-stage',
-    'stage2_base',
-    '--stage1-artifact',
-    stage1Artifact.stage1Artifact,
-    '--stage1-artifact-hash',
-    String(stage1Artifact.stage1ArtifactHash || ''),
     '--json',
   ]);
 

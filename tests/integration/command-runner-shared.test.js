@@ -43,7 +43,7 @@ function createRuntimeBridge(initialRuntime = {}) {
   });
 
   await applyRuntimeInputs({
-    command: 'test-model',
+    command: 'verify',
     suite: 'inference',
     intent: 'verify',
     modelId: 'gemma-3-270m-it-wf16-ef16-hf16',
@@ -104,7 +104,7 @@ function createRuntimeBridge(initialRuntime = {}) {
 
 {
   const suiteOptions = buildSuiteOptions({
-    command: 'test-model',
+    command: 'verify',
     suite: 'inference',
     modelId: 'gemma-3-270m-it-wf16-ef16-hf16',
     workloadType: null,
@@ -135,7 +135,7 @@ function createRuntimeBridge(initialRuntime = {}) {
 
   assert.deepEqual(suiteOptions, {
     suite: 'inference',
-    command: 'test-model',
+    command: 'verify',
     surface: 'node',
     modelId: 'gemma-3-270m-it-wf16-ef16-hf16',
     workloadType: undefined,
@@ -172,7 +172,7 @@ function createRuntimeBridge(initialRuntime = {}) {
 
 {
   const trainingSuiteOptions = buildSuiteOptions({
-    command: 'test-model',
+    command: 'verify',
     suite: 'training',
     modelId: null,
     workloadType: 'training',
@@ -203,7 +203,7 @@ function createRuntimeBridge(initialRuntime = {}) {
 
   assert.deepEqual(trainingSuiteOptions, {
     suite: 'training',
-    command: 'test-model',
+    command: 'verify',
     surface: 'node',
     modelId: undefined,
     workloadType: 'training',

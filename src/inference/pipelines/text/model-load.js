@@ -306,6 +306,7 @@ export function resolveKernelPathState(options) {
     manifest,
     runtimeConfig,
     modelConfig,
+    kernelCapabilities = null,
   } = options;
 
   log.debug(
@@ -325,7 +326,9 @@ export function resolveKernelPathState(options) {
       runtimeConfig.inference.kernelPathSource,
       modelConfig.kernelPath
     );
-    const capabilities = getKernelCapabilitiesSafe();
+    const capabilities = kernelCapabilities && typeof kernelCapabilities === 'object'
+      ? kernelCapabilities
+      : getKernelCapabilitiesSafe();
     const effectiveKernelPathRef = resolveCapabilityKernelPathRef(
       configuredKernelPathRef,
       kernelPathSource,

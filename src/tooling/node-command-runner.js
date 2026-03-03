@@ -2,6 +2,10 @@ import {
   normalizeToolingCommandRequest,
   ensureCommandSupportedOnSurface,
 } from './command-api.js';
+import {
+  createToolingSuccessEnvelope,
+  normalizeToToolingCommandError,
+} from './command-envelope.js';
 import { convertSafetensorsDirectory } from './node-converter.js';
 import { installNodeFileFetchShim } from './node-file-fetch.js';
 import { bootstrapNodeWebGPU } from './node-webgpu.js';
@@ -57,56 +61,62 @@ async function assertNodeWebGPUSupport() {
 }
 
 export async function runNodeCommand(commandRequest, options = {}) {
-  const { request } = ensureCommandSupportedOnSurface(commandRequest, 'node');
+  let request = null;
+  try {
+    ({ request } = ensureCommandSupportedOnSurface(commandRequest, 'node'));
 
-  if (request.command === 'convert') {
-    const convertPayload = asOptionalPlainObject(request.convertPayload, 'convertPayload');
-    const converterConfig = convertPayload
-      ? asOptionalPlainObject(convertPayload.converterConfig, 'convertPayload.converterConfig')
-      : null;
-    const execution = convertPayload
-      ? asOptionalPlainObject(convertPayload.execution, 'convertPayload.execution')
-      : null;
-    const result = await convertSafetensorsDirectory({
-      inputDir: request.inputDir,
-      outputDir: request.outputDir,
-      converterConfig,
-      execution,
-      onProgress: options.onProgress,
+    if (request.command === 'convert') {
+      const convertPayload = asOptionalPlainObject(request.convertPayload, 'convertPayload');
+      const converterConfig = convertPayload
+        ? asOptionalPlainObject(convertPayload.converterConfig, 'convertPayload.converterConfig')
+        : null;
+      const execution = convertPayload
+        ? asOptionalPlainObject(convertPayload.execution, 'convertPayload.execution')
+        : null;
+      const result = await convertSafetensorsDirectory({
+        inputDir: request.inputDir,
+        outputDir: request.outputDir,
+        converterConfig,
+        execution,
+        onProgress: options.onProgress,
+      });
+      return createToolingSuccessEnvelope({
+        surface: 'node',
+        request,
+        result,
+      });
+    }
+
+    await assertNodeWebGPUSupport();
+    const modules = await loadRuntimeModules();
+    const runtimeBridge = {
+      applyRuntimePreset: modules.harness.applyRuntimePreset,
+      applyRuntimeConfigFromUrl: modules.harness.applyRuntimeConfigFromUrl,
+      getRuntimeConfig: modules.runtime.getRuntimeConfig,
+      setRuntimeConfig: modules.runtime.setRuntimeConfig,
+      resetRuntimeConfig: modules.runtime.resetRuntimeConfig,
+      getActiveKernelPath,
+      getActiveKernelPathPolicy,
+      getActiveKernelPathSource,
+      setActiveKernelPath,
+    };
+
+    return runWithRuntimeIsolation(runtimeBridge, async () => {
+      await applyRuntimeInputs(request, runtimeBridge, options.runtimeLoadOptions || {});
+      const result = await modules.harness.runBrowserSuite(buildSuiteOptions(request, 'node'));
+
+      return createToolingSuccessEnvelope({
+        surface: 'node',
+        request,
+        result,
+      });
     });
-    return {
-      ok: true,
+  } catch (error) {
+    throw normalizeToToolingCommandError(error, {
       surface: 'node',
       request,
-      result,
-    };
+    });
   }
-
-  await assertNodeWebGPUSupport();
-  const modules = await loadRuntimeModules();
-  const runtimeBridge = {
-    applyRuntimePreset: modules.harness.applyRuntimePreset,
-    applyRuntimeConfigFromUrl: modules.harness.applyRuntimeConfigFromUrl,
-    getRuntimeConfig: modules.runtime.getRuntimeConfig,
-    setRuntimeConfig: modules.runtime.setRuntimeConfig,
-    resetRuntimeConfig: modules.runtime.resetRuntimeConfig,
-    getActiveKernelPath,
-    getActiveKernelPathPolicy,
-    getActiveKernelPathSource,
-    setActiveKernelPath,
-  };
-
-  return runWithRuntimeIsolation(runtimeBridge, async () => {
-    await applyRuntimeInputs(request, runtimeBridge, options.runtimeLoadOptions || {});
-    const result = await modules.harness.runBrowserSuite(buildSuiteOptions(request, 'node'));
-
-    return {
-      ok: true,
-      surface: 'node',
-      request,
-      result,
-    };
-  });
 }
 
 export function normalizeNodeCommand(commandRequest) {

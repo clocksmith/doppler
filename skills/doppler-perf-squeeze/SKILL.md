@@ -42,20 +42,23 @@ Methodology note:
 
 ```bash
 # Readback-heavy profile (r1)
-npm run bench -- --model-id MODEL_ID --runtime-preset experiments/gemma3-investigate-readback-r1 --cache-mode warm --save --json
+npm run bench -- --config '{"request":{"modelId":"MODEL_ID","runtimePreset":"experiments/gemma3-investigate-readback-r1","cacheMode":"warm"},"run":{"surface":"browser","bench":{"save":true}}}' --json
 
 # Deferred readback profile (r8)
-npm run bench -- --model-id MODEL_ID --runtime-preset experiments/gemma3-investigate-readback-r8 --cache-mode warm --save --json
+npm run bench -- --config '{"request":{"modelId":"MODEL_ID","runtimePreset":"experiments/gemma3-investigate-readback-r8","cacheMode":"warm"},"run":{"surface":"browser","bench":{"save":true}}}' --json
 
 # Explicit custom cadence override
-npm run bench -- --model-id MODEL_ID --cache-mode warm --runtime-config-json '{"shared":{"tooling":{"intent":"investigate"}},"inference":{"batching":{"batchSize":4,"readbackInterval":4,"stopCheckMode":"per-token","maxTokens":128},"sampling":{"temperature":0}}}' --save --json
+npm run bench -- \
+  --config '{"request":{"modelId":"MODEL_ID","cacheMode":"warm"},"run":{"surface":"browser","bench":{"save":true}}}' \
+  --runtime-config '{"shared":{"tooling":{"intent":"investigate"}},"inference":{"batching":{"batchSize":4,"readbackInterval":4,"stopCheckMode":"per-token","maxTokens":128},"sampling":{"temperature":0}}}' \
+  --json
 ```
 
 ### 3) Run Profiling/Tracing for Bottlenecks
 
 ```bash
 # Profiling preset (investigate intent + profiler enabled)
-npm run debug -- --model-id MODEL_ID --runtime-preset experiments/gemma3-profile --json
+npm run debug -- --config '{"request":{"modelId":"MODEL_ID","runtimePreset":"experiments/gemma3-profile"},"run":{"surface":"auto"}}' --json
 ```
 
 Rules:

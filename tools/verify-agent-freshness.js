@@ -164,7 +164,7 @@ function ensureScripts(issues) {
     return;
   }
   const scripts = pkg.scripts || {};
-  const required = ['agents:verify', 'convert', 'debug', 'bench', 'test:model'];
+  const required = ['agents:verify', 'convert', 'debug', 'bench', 'verify:model'];
   for (const key of required) {
     if (!scripts[key]) {
       issues.warnings.push({

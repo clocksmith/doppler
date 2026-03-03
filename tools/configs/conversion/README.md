@@ -3,7 +3,12 @@
 Use these files with:
 
 ```bash
-node tools/doppler-cli.js convert <inputPath> --config <config.json>
+node tools/doppler-cli.js convert --config '{
+  "request": {
+    "inputDir": "/path/to/source",
+    "convertPayload": { "converterConfig": { ... } }
+  }
+}'
 ```
 
 Notes:
@@ -11,9 +16,9 @@ Notes:
 - `output.modelBaseId` is now authoritative; converter does not append implicit variant suffixes.
 - All configs use `output.baseDir` (no implicit `--output-dir` requirement).
 - Gemma configs pin `presets.model = gemma3` for deterministic preset selection.
-- CLI worker execution can be tuned via `--workers`, `--worker-policy`,
-  `--row-chunk-rows`, `--row-chunk-min-tensor-bytes`, and `--max-in-flight-jobs`
-  (command payload execution policy, not manifest policy).
+- Worker execution tuning belongs in `request.convertPayload.execution`
+  (`workers`, `workerCountPolicy`, `rowChunkRows`, `rowChunkMinTensorBytes`,
+  `maxInFlightJobs`, `useGpuCast`, `gpuCastMinTensorBytes`).
 - To pin deterministic manifest timestamps, set `manifest.conversion.convertedAt` in converter config.
 - Execution-v0 fields are now supported under `inference.sessionDefaults` and `inference.execution`.
   Use this to emit explicit runtime session defaults and execution policy/steps into manifest inference.
