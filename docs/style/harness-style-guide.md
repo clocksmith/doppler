@@ -15,7 +15,7 @@ Design rules for command execution across browser harnesses and the Node CLI.
 
 ## Vocabulary
 
-- **Command**: `convert`, `debug`, `bench`, `test-model`
+- **Command**: `convert`, `debug`, `bench`, `verify`
 - **Suite**: `kernels`, `inference`, `training`, `bench`, `debug`, `diffusion`, `energy`
 - **Runtime contract patch**: `{ shared.harness.mode, shared.harness.modelId, shared.tooling.intent }`
 - **Surface**: `browser` or `node`
@@ -62,9 +62,8 @@ Browser harness URLs accept only:
 
 CLI equivalents:
 
-- `--runtime-preset`
-- `--runtime-config-json`
-- `--runtime-config-url`
+- `--config` (canonical command payload)
+- `--runtime-config` (optional runtime override: JSON, URL, or file path)
 
 No per-field tunable flags are allowed outside runtime config.
 For benchmarked commands, shared-contract values (prompt/workload/sampling/run
@@ -78,7 +77,9 @@ policy) must be provided through
 
 - Runtime code uses debug module (`src/debug/*`).
 - Entrypoints may print status and progress to console.
-- Result envelopes must keep `{ ok, surface, request, result }` shape.
+- Result envelopes must keep a stable schema:
+  - Success: `{ ok: true, schemaVersion: 1, surface, request, result }`
+  - Error: `{ ok: false, schemaVersion: 1, surface|null, request|null, error: { code, message, details, retryable } }`
 
 ---
 

@@ -15,14 +15,14 @@ async function assertRejectsOnBothSurfaces(request, pattern) {
 }
 
 await assertRejectsOnBothSurfaces({
-  command: 'test-model',
+  command: 'verify',
   suite: 'training',
   modelId: null,
   trainingStage: 'stage3_unknown',
 }, /trainingStage must be one of stage1_joint, stage2_base, stage_a, stage_b/);
 
 await assertRejectsOnBothSurfaces({
-  command: 'test-model',
+  command: 'verify',
   suite: 'inference',
   modelId: 'gemma-3-270m-it-wf16-ef16-hf16',
   trainingTests: ['ul-stage1'],

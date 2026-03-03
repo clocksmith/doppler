@@ -5,7 +5,11 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { runNodeCommand } from '../src/tooling/node-command-runner.js';
 import { runBrowserCommandInNode } from '../src/tooling/node-browser-command-runner.js';
-import { TOOLING_COMMANDS } from '../src/tooling/command-api.js';
+import {
+  TOOLING_COMMANDS,
+  normalizeToolingCommandRequest,
+} from '../src/tooling/command-api.js';
+import { createToolingErrorEnvelope } from '../src/tooling/command-envelope.js';
 
 const NODE_WEBGPU_INCOMPLETE_MESSAGE = 'node command: WebGPU runtime is incomplete in Node';
 const CLI_POLICY_PATH = fileURLToPath(new URL('./configs/cli/doppler-cli-policy.json', import.meta.url));
@@ -18,10 +22,7 @@ const DEFAULT_CLI_POLICY = {
     bench: {
       modelId: 'gemma-3-270m-it-wf16-ef16-hf16',
       surface: 'browser',
-      cacheMode: 'warm',
     },
-    cacheMode: null,
-    loadMode: null,
     benchmark: {
       saveDir: './benchmarks/vendors/results',
     },
@@ -34,6 +35,15 @@ const DEFAULT_CLI_POLICY = {
   },
 };
 
+const COMMON_CLI_FLAGS = Object.freeze([
+  'config',
+  'runtime-config',
+  'surface',
+  'json',
+  'help',
+  'h',
+]);
+
 function asStringOrNull(value) {
   if (value === undefined || value === null) return null;
   if (typeof value === 'string') {
@@ -45,109 +55,33 @@ function asStringOrNull(value) {
 }
 
 function usage() {
-  const defaults = DEFAULT_CLI_POLICY.defaults.bench;
   return [
     'Usage:',
-    '  doppler convert <inputPath> --config <path.json> [--output-dir <path>] [--surface auto|node]',
-    '  doppler debug --model-id <id> [--model-url <url>] [--runtime-config <path|url|json>] [--surface auto|node|browser]',
-    '  doppler bench [--model-id <id>] [--model-url <url>] [--runtime-config <path|url|json>] [--surface auto|node|browser]',
-    '  doppler test-model --suite <kernels|inference|training|diffusion|energy> [--model-id <id>] [--model-url <url>] [--runtime-config <path|url|json>] [--surface auto|node|browser]',
+    '  doppler convert --config <path.json|json> [--runtime-config <path|url|json>] [--surface auto|node]',
+    '  doppler debug --config <path.json|json> [--runtime-config <path|url|json>] [--surface auto|node|browser]',
+    '  doppler bench --config <path.json|json> [--runtime-config <path|url|json>] [--surface auto|node|browser]',
+    '  doppler verify --config <path.json|json> [--runtime-config <path|url|json>] [--surface auto|node|browser]',
     '',
     'Flags:',
-    '  --surface <auto|node|browser>   Execution surface (default: auto)',
-    '  --workload-type <string>        Custom workload type (e.g. training) for commands',
-    '  --training-tests <list>         Comma-separated training test ids (training suite only)',
-    '  --training-stage <stage>        Training stage (stage1_joint|stage2_base|stage_a|stage_b)',
-    '  --training-config-json <json>   Training config override object (training suite only)',
-    '  --training-schema-version <n>   Training command schema version (must be 1)',
-    '  --training-bench-steps <n>      Training benchmark steps per timed run (bench training)',
-    '  --stage1-artifact <path>        Stage1 manifest path required for stage2 runs',
-    '  --stage1-artifact-hash <hash>   Optional sha256 hash check for stage1 manifest file',
-    '  --ul-artifact-dir <path>        Output directory for UL manifests + metrics',
-    '  --stagea-artifact <path>        Distill stage_a manifest path required for stage_b runs',
-    '  --stagea-artifact-hash <hash>   Optional sha256 hash check for distill stage_a manifest',
-    '  --distill-artifact-dir <path>   Output directory for distill manifests + metrics',
-    '  --teacher-model-id <id>         Distill teacher model id (training flows)',
-    '  --student-model-id <id>         Distill student model id (training flows)',
-    '  --distill-dataset-id <id>       Distill dataset identifier (e.g. en-es-large)',
-    '  --distill-dataset-path <path>   Distill dataset JSONL path (node surface)',
-    '  --distill-language-pair <pair>  Distill language pair label (e.g. en-es)',
-    '  --distill-shard-index <n>       1-based shard index for global progress reporting',
-    '  --distill-shard-count <n>       Total shard count for global progress reporting',
-    '  --resume-from <ref>             Resume reference (checkpoint/manifest) for timeline lineage',
-    '  --runtime-config <value>        Unified runtime config input: JSON object, URL, or relative/absolute file path',
-    '                                  (cannot be combined with --runtime-preset/--runtime-config-url/--runtime-config-json)',
-    '  UL claim boundary: UL-inspired practical two-stage pipeline; not paper-equivalent SOTA.',
-    '  Distill claim boundary: practical stage_a/stage_b distill workflow; not paper-equivalent SOTA.',
+    '  --config <path|json>            Required command config payload (file path or JSON object string).',
+    '  --runtime-config <value>        Optional runtime override (JSON object, URL, or file path).',
+    '  --surface <auto|node|browser>   Optional execution surface override.',
     '  --json                          Print machine-readable result JSON',
-    '  --capture-output                Include captured output for supported suites',
-    '  --keep-pipeline                 Keep loaded pipeline in result payload (node surface only)',
-    '  --browser-channel <name>        Browser channel for Playwright launch (e.g. chrome)',
-    '  --browser-executable <path>     Browser executable path for Playwright launch',
-    '  --headed                        Run browser relay in headed mode',
-    '  --headless <true|false>         Browser relay headless mode',
-    '  --browser-headless <true|false>  Deprecated alias for --headless',
-    '  --browser-port <port>           Static server port for browser relay (default: random)',
-    '  --browser-timeout-ms <ms>       Browser command timeout (default: 180000)',
-    '  --browser-arg <arg>            Extra launch arg (repeatable); WebGPU/Vulkan args are applied automatically',
-    '  --browser-url-path <path>       Runner page path (default: /src/tooling/command-runner.html)',
-    '  --browser-static-root <path>    Static server root directory (default: doppler root)',
-    '  --browser-base-url <url>        Reuse an existing static server base URL',
-    '  --browser-console               Stream browser console lines to stderr',
-    '  --no-opfs-cache                 Disable OPFS caching (use HTTP shard loading every run)',
-    '  --load-mode <opfs|http|memory>  Bench/runtime load mode hint',
-    '  --browser-user-data <path>      Persistent Chromium profile directory for OPFS cache',
+    '  --help, -h                      Show this help message',
     '',
-    'Convert Flags:',
-    '  --config <path>                 Converter config JSON (required for convert)',
-    '  --output-dir <path>             Override output directory for convert',
-    '  --workers <n>                   Converter worker count (default: 8)',
-    '  --worker-policy <cap|error>     Handle workers > available CPU cores',
-    '  --row-chunk-rows <n>            Row chunk size for 2D tensor worker jobs',
-    '  --row-chunk-min-tensor-bytes <n>  Minimum tensor size before row chunking',
-    '  --max-in-flight-jobs <n>        Max concurrent worker jobs for row chunks',
-    '  --use-gpu-cast <true|false>     Enable WebGPU cast path for large cast-heavy tensors',
-    '  --gpu-cast-min-tensor-bytes <n>  Minimum tensor size before GPU cast is considered',
+    'Command Config Contract:',
+    '  The config payload must be a JSON object and may include:',
+    '    - request: tooling command request fields (suite, modelId, training fields, convertPayload, etc).',
+    '    - run: CLI-only run controls (surface, browser options, and bench save/compare/manifest settings).',
     '',
-    'Bench Flags:',
-    '  --save                          Save bench result JSON to disk',
-    '  --save-dir <path>               Output directory for saved results (default: ./benchmarks/vendors/results)',
-    '  --compare <path|last>           Compare against a previous result file or "last"',
-    '  --manifest <path>               Run a multi-model bench sweep from a manifest JSON',
-    '  --cache-mode <cold|warm>        cold: wipe OPFS cache before run; warm: reuse (default: warm)',
-    '',
-    `Bench Defaults: --model-id ${defaults.modelId}, --surface ${defaults.surface}, --browser-console (browser channel auto-selected)`,
+    'Example:',
+    '  doppler verify --config \'{"request":{"suite":"inference","modelId":"gemma-3-270m-it-wf16-ef16-hf16"}}\' --json',
   ].join('\n');
-}
-
-function applyCommandDefaults(parsed, policy = DEFAULT_CLI_POLICY) {
-  if (!parsed || parsed.command !== 'bench') {
-    return parsed;
-  }
-
-  const benchDefaults = policy.defaults && policy.defaults.bench ? policy.defaults.bench : DEFAULT_CLI_POLICY.defaults.bench;
-  const flags = { ...parsed.flags };
-  if (!flags['model-id'] && !flags['model-url']) {
-    flags['model-id'] = benchDefaults.modelId;
-  }
-  if (!flags.surface) {
-    flags.surface = benchDefaults.surface;
-  }
-  if (!flags['cache-mode']) {
-    flags['cache-mode'] = benchDefaults.cacheMode;
-  }
-  flags['browser-console'] = true;
-
-  return {
-    ...parsed,
-    flags,
-  };
 }
 
 function parseArgs(argv) {
   const out = {
     command: null,
-    positional: [],
     flags: {},
   };
 
@@ -156,22 +90,22 @@ function parseArgs(argv) {
 
   for (let i = 1; i < argv.length; i += 1) {
     const token = argv[i];
-    if (!token.startsWith('--')) {
-      out.positional.push(token);
+    if (token === '-h') {
+      out.flags.h = true;
       continue;
+    }
+    if (token.startsWith('-') && !token.startsWith('--')) {
+      throw new Error(`Unsupported short flag "${token}". Use long-form flags (for example --help).`);
+    }
+    if (!token.startsWith('--')) {
+      throw new Error('Positional arguments are not supported. Use --config for command payloads.');
     }
 
     const key = token.slice(2);
     if (
       key === 'json'
-      || key === 'capture-output'
-      || key === 'keep-pipeline'
-      || key === 'headed'
       || key === 'help'
       || key === 'h'
-      || key === 'browser-console'
-      || key === 'no-opfs-cache'
-      || key === 'save'
     ) {
       out.flags[key] = true;
       continue;
@@ -182,19 +116,8 @@ function parseArgs(argv) {
       throw new Error(`Missing value for --${key}`);
     }
 
-    if (key !== 'browser-arg' && value.startsWith('--')) {
+    if (value.startsWith('--')) {
       throw new Error(`Missing value for --${key}`);
-    }
-
-    if (key === 'browser-arg') {
-      const previous = out.flags[key];
-      if (Array.isArray(previous)) {
-        previous.push(value);
-      } else {
-        out.flags[key] = [value];
-      }
-      i += 1;
-      continue;
     }
 
     out.flags[key] = value;
@@ -202,6 +125,75 @@ function parseArgs(argv) {
   }
 
   return out;
+}
+
+function levenshteinDistance(a, b) {
+  const source = String(a ?? '');
+  const target = String(b ?? '');
+  if (source === target) return 0;
+  if (source.length === 0) return target.length;
+  if (target.length === 0) return source.length;
+
+  const previous = new Array(target.length + 1);
+  const current = new Array(target.length + 1);
+
+  for (let i = 0; i <= target.length; i += 1) {
+    previous[i] = i;
+  }
+
+  for (let i = 1; i <= source.length; i += 1) {
+    current[0] = i;
+    for (let j = 1; j <= target.length; j += 1) {
+      const cost = source[i - 1] === target[j - 1] ? 0 : 1;
+      current[j] = Math.min(
+        previous[j] + 1,
+        current[j - 1] + 1,
+        previous[j - 1] + cost
+      );
+    }
+    for (let j = 0; j <= target.length; j += 1) {
+      previous[j] = current[j];
+    }
+  }
+
+  return previous[target.length];
+}
+
+function findClosestFlag(flag, allowedFlags) {
+  const normalizedFlag = String(flag ?? '').trim();
+  if (!normalizedFlag) return null;
+
+  let candidate = null;
+  let distance = Infinity;
+  for (const allowedFlag of allowedFlags) {
+    const nextDistance = levenshteinDistance(normalizedFlag, allowedFlag);
+    if (nextDistance < distance) {
+      candidate = allowedFlag;
+      distance = nextDistance;
+    }
+  }
+  return distance <= 3 ? candidate : null;
+}
+
+function validateCommandFlags(parsed) {
+  const command = parsed?.command;
+  if (!command || !TOOLING_COMMANDS.includes(command)) {
+    return;
+  }
+
+  const allowedFlags = new Set(COMMON_CLI_FLAGS);
+  const keys = Object.keys(parsed.flags || {});
+  for (const key of keys) {
+    if (allowedFlags.has(key)) {
+      continue;
+    }
+
+    const suggestion = findClosestFlag(key, allowedFlags);
+    if (suggestion) {
+      throw new Error(`Unknown flag --${key} for "${command}". Did you mean --${suggestion}?`);
+    }
+    throw new Error(`Unknown flag --${key} for "${command}".`);
+  }
 }
 
 function parseJsonObjectFlag(value, label) {
@@ -215,10 +207,6 @@ function parseJsonObjectFlag(value, label) {
   } catch (error) {
     throw new Error(`Invalid ${label}: ${error.message}`);
   }
-}
-
-function parseRuntimeConfigJson(value) {
-  return parseJsonObjectFlag(value, '--runtime-config-json');
 }
 
 function isAbsoluteUrl(value) {
@@ -258,27 +246,15 @@ function parseUnifiedRuntimeConfig(value) {
 
 function resolveRuntimeConfigFlags(parsed) {
   const unifiedRaw = asStringOrNull(parsed.flags['runtime-config']);
-  const legacyPreset = asStringOrNull(parsed.flags['runtime-preset']);
-  const legacyUrl = asStringOrNull(parsed.flags['runtime-config-url']);
-  const hasLegacyJson = asStringOrNull(parsed.flags['runtime-config-json']) !== null;
-  if (unifiedRaw !== null && (legacyPreset !== null || legacyUrl !== null || hasLegacyJson)) {
-    throw new Error(
-      '--runtime-config cannot be combined with --runtime-preset, --runtime-config-url, or --runtime-config-json.'
-    );
-  }
   const unified = parseUnifiedRuntimeConfig(unifiedRaw);
-  if (unified) {
-    return unified;
+  if (!unified) {
+    return {
+      runtimePreset: null,
+      runtimeConfigUrl: null,
+      runtimeConfig: null,
+    };
   }
-  return {
-    runtimePreset: legacyPreset,
-    runtimeConfigUrl: legacyUrl,
-    runtimeConfig: parseRuntimeConfigJson(parsed.flags['runtime-config-json']),
-  };
-}
-
-function parseTrainingConfigJson(value) {
-  return parseJsonObjectFlag(value, '--training-config-json');
+  return unified;
 }
 
 async function readJsonObjectFile(filePath, label) {
@@ -301,13 +277,23 @@ async function readJsonObjectFile(filePath, label) {
   return parsed;
 }
 
-function resolveConvertConfigFlag(parsed) {
-  const config = asStringOrNull(parsed.flags.config);
-  const legacy = asStringOrNull(parsed.flags['converter-config']);
-  if (legacy !== null) {
-    throw new Error('--converter-config has been removed. Use --config <path.json>.');
+async function readJsonObjectInput(inputValue, label) {
+  const normalized = asStringOrNull(inputValue);
+  if (normalized === null) {
+    throw new Error(`${label} is required.`);
   }
-  return config ? String(config) : null;
+  if (normalized.startsWith('{')) {
+    return parseJsonObjectFlag(normalized, label);
+  }
+  return readJsonObjectFile(normalized, label);
+}
+
+function resolveCommandConfigFlag(parsed) {
+  const config = asStringOrNull(parsed.flags.config);
+  if (!config) {
+    throw new Error('command requires --config <path.json|json>.');
+  }
+  return config;
 }
 
 function parseBooleanFlag(value, label) {
@@ -332,62 +318,9 @@ function parseNumberFlag(value, label) {
   return parsed;
 }
 
-function parsePositiveIntegerFlag(value, label) {
-  const normalized = asStringOrNull(value);
-  if (normalized === null) return null;
-  const parsed = Number(normalized);
-  if (!Number.isInteger(parsed) || parsed < 1) {
-    throw new Error(`${label} must be a positive integer`);
-  }
-  return parsed;
-}
-
-function parseWorkerPolicy(value, label) {
-  const normalized = asStringOrNull(value);
-  if (normalized === null) return null;
-  const normalizedLower = normalized.toLowerCase();
-  if (normalizedLower !== 'cap' && normalizedLower !== 'error') {
-    throw new Error(`${label} must be one of: cap, error`);
-  }
-  return normalizedLower;
-}
-
-function parseLoadMode(value, label, fallback) {
-  const normalized = asStringOrNull(value);
-  if (normalized === null) return fallback;
-  const normalizedLower = normalized.toLowerCase();
-  if (normalizedLower === 'opfs' || normalizedLower === 'http' || normalizedLower === 'memory') {
-    return normalizedLower;
-  }
-  throw new Error(`${label} must be one of: opfs, http, memory`);
-}
-
-function parseCacheMode(value, label, fallback) {
-  const normalized = asStringOrNull(value);
-  if (normalized === null) return fallback;
-  const normalizedLower = normalized.toLowerCase();
-  if (normalizedLower === 'cold' || normalizedLower === 'warm') {
-    return normalizedLower;
-  }
-  throw new Error(`${label} must be one of: cold, warm`);
-}
-
 function parseBrowserArgs(value) {
   if (value === undefined || value === null) return [];
   return Array.isArray(value) ? value.map((item) => String(item)) : [String(value)];
-}
-
-function parseStringListFlag(value, label) {
-  const normalized = asStringOrNull(value);
-  if (normalized === null) return null;
-  const entries = normalized
-    .split(',')
-    .map((entry) => entry.trim())
-    .filter(Boolean);
-  if (!entries.length) {
-    throw new Error(`${label} must include at least one non-empty value`);
-  }
-  return entries;
 }
 
 async function pathExists(filePath) {
@@ -399,15 +332,15 @@ async function pathExists(filePath) {
   }
 }
 
-function resolveStaticRootDir(parsed) {
-  const configured = parsed.flags['browser-static-root'];
+function resolveStaticRootDir(browserOptions = {}) {
+  const configured = asStringOrNull(browserOptions.staticRootDir);
   if (configured) {
     return path.resolve(String(configured));
   }
   return process.cwd();
 }
 
-async function resolveBrowserModelUrl(request, parsed) {
+async function resolveBrowserModelUrl(request, browserOptions = {}) {
   if (request.modelUrl || !request.modelId) {
     return request;
   }
@@ -415,14 +348,14 @@ async function resolveBrowserModelUrl(request, parsed) {
   const modelId = String(request.modelId);
   const encodedModelId = encodeURIComponent(modelId);
 
-  if (parsed.flags['browser-base-url']) {
+  if (asStringOrNull(browserOptions.baseUrl)) {
     return {
       ...request,
       modelUrl: `/models/${encodedModelId}`,
     };
   }
 
-  const staticRootDir = resolveStaticRootDir(parsed);
+  const staticRootDir = resolveStaticRootDir(browserOptions);
   const curatedCandidate = {
     modelUrl: `/models/curated/${encodedModelId}`,
     manifestPath: path.join(staticRootDir, 'models', 'curated', modelId, 'manifest.json'),
@@ -475,7 +408,7 @@ async function resolveBrowserModelUrl(request, parsed) {
       .join(', ');
     throw new Error(
       `Model "${modelId}" was found, but no shard files (shard_*.bin) are present. ` +
-      `Checked: ${paths}. Add shard files beside the manifest, or pass --model-url to a complete model directory.`
+      `Checked: ${paths}. Add shard files beside the manifest, or set request.modelUrl in --config to a complete model directory.`
     );
   }
 
@@ -503,139 +436,105 @@ function parseSurface(value, command, policy = DEFAULT_CLI_POLICY) {
   return normalized;
 }
 
-async function buildRequest(parsed, options = {}, policy = DEFAULT_CLI_POLICY) {
+function isPlainObject(value) {
+  return !!value && typeof value === 'object' && !Array.isArray(value);
+}
+
+function resolveConfigEnvelope(configPayload) {
+  if (!isPlainObject(configPayload)) {
+    throw new Error('--config must resolve to a JSON object.');
+  }
+  if (configPayload.request !== undefined && !isPlainObject(configPayload.request)) {
+    throw new Error('--config field "request" must be a JSON object when provided.');
+  }
+  if (configPayload.run !== undefined && !isPlainObject(configPayload.run)) {
+    throw new Error('--config field "run" must be a JSON object when provided.');
+  }
+  return {
+    request: isPlainObject(configPayload.request) ? configPayload.request : configPayload,
+    run: isPlainObject(configPayload.run) ? configPayload.run : {},
+  };
+}
+
+function applyRuntimeFlagOverride(requestInput, runtimeOverride) {
+  if (!runtimeOverride) {
+    return;
+  }
+  const hasInlineRuntime = (
+    requestInput.runtimePreset != null
+    || requestInput.runtimeConfigUrl != null
+    || requestInput.runtimeConfig != null
+  );
+  if (hasInlineRuntime) {
+    throw new Error(
+      '--runtime-config cannot be combined with runtimePreset/runtimeConfigUrl/runtimeConfig values inside --config request payload.'
+    );
+  }
+  requestInput.runtimePreset = runtimeOverride.runtimePreset;
+  requestInput.runtimeConfigUrl = runtimeOverride.runtimeConfigUrl;
+  requestInput.runtimeConfig = runtimeOverride.runtimeConfig;
+}
+
+function resolveBenchRunOptions(runConfig, policy = DEFAULT_CLI_POLICY) {
+  const benchConfig = isPlainObject(runConfig?.bench) ? runConfig.bench : {};
+  const configuredSaveDir = asStringOrNull(benchConfig.saveDir);
+  const defaultSaveDir = asStringOrNull(policy?.defaults?.benchmark?.saveDir);
+  return {
+    shouldSave: benchConfig.save === true,
+    saveDir: configuredSaveDir === null
+      ? defaultSaveDir || './benchmarks/vendors/results'
+      : configuredSaveDir,
+    comparePath: asStringOrNull(benchConfig.compare),
+    manifestPath: asStringOrNull(benchConfig.manifest),
+  };
+}
+
+function resolveSurfaceForCommand(command, parsed, runConfig, policy = DEFAULT_CLI_POLICY) {
+  const fromCli = asStringOrNull(parsed.flags.surface);
+  const fromRun = asStringOrNull(runConfig?.surface);
+  const fromPolicy = command === 'bench'
+    ? asStringOrNull(policy?.defaults?.bench?.surface)
+    : null;
+  return parseSurface(fromCli ?? fromRun ?? fromPolicy, command, policy);
+}
+
+async function buildRequest(parsed, policy = DEFAULT_CLI_POLICY) {
   const command = parsed.command;
   if (!command || !TOOLING_COMMANDS.includes(command)) {
     throw new Error(`Unsupported command "${command || ''}"`);
   }
-  const jsonOutput = options.jsonOutput === true;
-  const policyDefaults = policy && policy.defaults ? policy.defaults : DEFAULT_CLI_POLICY.defaults;
-  const runtimeConfigFlags = resolveRuntimeConfigFlags(parsed);
 
-  const common = {
-    command,
-    modelId: asStringOrNull(parsed.flags['model-id']),
-    trainingTests: parseStringListFlag(parsed.flags['training-tests'], '--training-tests'),
-    trainingStage: asStringOrNull(parsed.flags['training-stage']),
-    trainingConfig: parseTrainingConfigJson(parsed.flags['training-config-json']),
-    trainingSchemaVersion: parsePositiveIntegerFlag(
-      parsed.flags['training-schema-version'],
-      '--training-schema-version'
-    ),
-    trainingBenchSteps: parsePositiveIntegerFlag(
-      parsed.flags['training-bench-steps'],
-      '--training-bench-steps'
-    ),
-    stage1Artifact: asStringOrNull(parsed.flags['stage1-artifact']),
-    stage1ArtifactHash: asStringOrNull(parsed.flags['stage1-artifact-hash']),
-    ulArtifactDir: asStringOrNull(parsed.flags['ul-artifact-dir']),
-    stageAArtifact: asStringOrNull(parsed.flags['stagea-artifact']),
-    stageAArtifactHash: asStringOrNull(parsed.flags['stagea-artifact-hash']),
-    distillArtifactDir: asStringOrNull(parsed.flags['distill-artifact-dir']),
-    teacherModelId: asStringOrNull(parsed.flags['teacher-model-id']),
-    studentModelId: asStringOrNull(parsed.flags['student-model-id']),
-    distillDatasetId: asStringOrNull(parsed.flags['distill-dataset-id']),
-    distillDatasetPath: asStringOrNull(parsed.flags['distill-dataset-path']),
-    distillLanguagePair: asStringOrNull(parsed.flags['distill-language-pair']),
-    distillShardIndex: parsePositiveIntegerFlag(
-      parsed.flags['distill-shard-index'],
-      '--distill-shard-index'
-    ),
-    distillShardCount: parsePositiveIntegerFlag(
-      parsed.flags['distill-shard-count'],
-      '--distill-shard-count'
-    ),
-    resumeFrom: asStringOrNull(parsed.flags['resume-from']),
-    workloadType: asStringOrNull(parsed.flags['workload-type']),
-    modelUrl: asStringOrNull(parsed.flags['model-url']),
-    cacheMode: parseCacheMode(parsed.flags['cache-mode'], '--cache-mode', policyDefaults.cacheMode),
-    runtimePreset: runtimeConfigFlags.runtimePreset,
-    runtimeConfigUrl: runtimeConfigFlags.runtimeConfigUrl,
-    runtimeConfig: runtimeConfigFlags.runtimeConfig,
-    loadMode: parseLoadMode(parsed.flags['load-mode'], '--load-mode', policyDefaults.loadMode),
-    captureOutput: parsed.flags['capture-output'] === true,
-    keepPipeline: parsed.flags['keep-pipeline'] === true,
+  const configValue = resolveCommandConfigFlag(parsed);
+  const configPayload = await readJsonObjectInput(configValue, '--config');
+  const envelope = resolveConfigEnvelope(configPayload);
+  const runtimeOverride = resolveRuntimeConfigFlags(parsed);
+
+  const requestInput = { ...envelope.request };
+  if (requestInput.command != null && requestInput.command !== command) {
+    throw new Error(
+      `--config request command mismatch: CLI command is "${command}" but config command is "${requestInput.command}".`
+    );
+  }
+  requestInput.command = command;
+
+  if (command === 'bench' && !asStringOrNull(requestInput.modelId) && !asStringOrNull(requestInput.modelUrl)) {
+    const benchDefaultModelId = asStringOrNull(policy?.defaults?.bench?.modelId);
+    if (benchDefaultModelId) {
+      requestInput.modelId = benchDefaultModelId;
+    }
+  }
+
+  applyRuntimeFlagOverride(requestInput, runtimeOverride);
+
+  const surfaceFromCli = asStringOrNull(parsed.flags.surface) !== null;
+
+  return {
+    request: normalizeToolingCommandRequest(requestInput),
+    runConfig: envelope.run,
+    surface: resolveSurfaceForCommand(command, parsed, envelope.run, policy),
+    surfaceFromCli,
+    benchRunOptions: resolveBenchRunOptions(envelope.run, policy),
   };
-
-  if (command === 'convert') {
-    if (parsed.flags['model-id']) {
-      throw new Error('convert does not accept --model-id. Set output.modelBaseId in --config.');
-    }
-
-    const inputDir = parsed.positional[0] ?? null;
-    if (!inputDir) {
-      throw new Error('convert requires <inputPath>.');
-    }
-    if (parsed.positional.length > 1) {
-      throw new Error('convert accepts only one positional argument: <inputPath>. Use --output-dir for output override.');
-    }
-
-    const outputDir = asStringOrNull(parsed.flags['output-dir']);
-    const configPath = resolveConvertConfigFlag(parsed);
-    if (!configPath) {
-      throw new Error('convert requires --config <path.json>.');
-    }
-
-    const workers = parsePositiveIntegerFlag(parsed.flags.workers, '--workers');
-    const workerCountPolicy = parseWorkerPolicy(parsed.flags['worker-policy'], '--worker-policy');
-    const rowChunkRows = parsePositiveIntegerFlag(parsed.flags['row-chunk-rows'], '--row-chunk-rows');
-    const rowChunkMinTensorBytes = parsePositiveIntegerFlag(
-      parsed.flags['row-chunk-min-tensor-bytes'],
-      '--row-chunk-min-tensor-bytes'
-    );
-    const maxInFlightJobs = parsePositiveIntegerFlag(
-      parsed.flags['max-in-flight-jobs'],
-      '--max-in-flight-jobs'
-    );
-    const useGpuCast = parseBooleanFlag(parsed.flags['use-gpu-cast'], '--use-gpu-cast');
-    const gpuCastMinTensorBytes = parsePositiveIntegerFlag(
-      parsed.flags['gpu-cast-min-tensor-bytes'],
-      '--gpu-cast-min-tensor-bytes'
-    );
-    if (gpuCastMinTensorBytes !== null && useGpuCast !== true) {
-      throw new Error('--gpu-cast-min-tensor-bytes requires --use-gpu-cast true.');
-    }
-    const execution = (
-      workers !== null
-      || workerCountPolicy !== null
-      || rowChunkRows !== null
-      || rowChunkMinTensorBytes !== null
-      || maxInFlightJobs !== null
-      || useGpuCast !== null
-      || gpuCastMinTensorBytes !== null
-    )
-      ? {
-        ...(workers !== null ? { workers } : {}),
-        ...(workerCountPolicy !== null ? { workerCountPolicy } : {}),
-        ...(rowChunkRows !== null ? { rowChunkRows } : {}),
-        ...(rowChunkMinTensorBytes !== null ? { rowChunkMinTensorBytes } : {}),
-        ...(maxInFlightJobs !== null ? { maxInFlightJobs } : {}),
-        ...(useGpuCast !== null ? { useGpuCast } : {}),
-        ...(gpuCastMinTensorBytes !== null ? { gpuCastMinTensorBytes } : {}),
-      }
-      : null;
-
-    const converterConfig = await readJsonObjectFile(configPath, '--config');
-    return {
-      ...common,
-      modelId: null,
-      inputDir,
-      outputDir,
-      convertPayload: {
-        converterConfig,
-        execution,
-      },
-    };
-  }
-
-  if (command === 'test-model') {
-    return {
-      ...common,
-      suite: parsed.flags.suite ?? null,
-    };
-  }
-
-  return common;
 }
 
 function buildNodeRunOptions(jsonOutput) {
@@ -652,59 +551,52 @@ function buildNodeRunOptions(jsonOutput) {
   };
 }
 
-function buildBrowserRunOptions(parsed, jsonOutput) {
-  const hasHeadlessFlag = Object.hasOwn(parsed.flags, 'headless');
-  const hasBrowserHeadlessFlag = Object.hasOwn(parsed.flags, 'browser-headless');
-  const hasHeadedFlag = Object.hasOwn(parsed.flags, 'headed');
+function buildBrowserRunOptions(runConfig, jsonOutput, request = {}) {
+  const browser = isPlainObject(runConfig?.browser) ? runConfig.browser : {};
 
-  if (
-    hasHeadedFlag
-    && (hasHeadlessFlag || hasBrowserHeadlessFlag)
-  ) {
-    throw new Error('--headed is mutually exclusive with --headless / --browser-headless.');
+  const headed = parseBooleanFlag(browser.headed, 'run.browser.headed') === true;
+  const explicitHeadless = parseBooleanFlag(browser.headless, 'run.browser.headless');
+  if (headed && explicitHeadless !== null) {
+    throw new Error('run.browser.headed is mutually exclusive with run.browser.headless.');
   }
-
-  let headless;
-  if (hasHeadedFlag) {
-    headless = false;
-  } else {
-    const rawHeadless = hasHeadlessFlag
-      ? parsed.flags.headless
-      : parsed.flags['browser-headless'];
-    headless = parseBooleanFlag(rawHeadless, '--headless/--browser-headless');
-    headless = headless === null ? true : headless;
-  }
-  const port = parseNumberFlag(parsed.flags['browser-port'], '--browser-port');
-  const timeoutMs = parseNumberFlag(parsed.flags['browser-timeout-ms'], '--browser-timeout-ms');
 
   const options = {
-    channel: parsed.flags['browser-channel'] ?? null,
-    executablePath: parsed.flags['browser-executable'] ?? null,
-    runnerPath: parsed.flags['browser-url-path'] ?? null,
-    staticRootDir: parsed.flags['browser-static-root'] ?? null,
-    baseUrl: parsed.flags['browser-base-url'] ?? null,
-    browserArgs: parseBrowserArgs(parsed.flags['browser-arg']),
+    channel: asStringOrNull(browser.channel),
+    executablePath: asStringOrNull(browser.executablePath),
+    runnerPath: asStringOrNull(browser.runnerPath),
+    staticRootDir: asStringOrNull(browser.staticRootDir),
+    baseUrl: asStringOrNull(browser.baseUrl),
+    browserArgs: parseBrowserArgs(browser.browserArgs),
+    headless: headed ? false : (explicitHeadless ?? true),
   };
 
-  options.headless = headless;
+  const port = parseNumberFlag(browser.port, 'run.browser.port');
   if (port !== null) {
     options.port = port;
   }
+
+  const timeoutMs = parseNumberFlag(browser.timeoutMs, 'run.browser.timeoutMs');
   if (timeoutMs !== null) {
     options.timeoutMs = timeoutMs;
   }
 
-  if (parsed.flags['no-opfs-cache'] === true) {
+  const opfsCache = parseBooleanFlag(browser.opfsCache, 'run.browser.opfsCache');
+  if (opfsCache === false) {
     options.opfsCache = false;
   }
-  if (parsed.flags['browser-user-data']) {
-    options.userDataDir = String(parsed.flags['browser-user-data']);
+
+  const userDataDir = asStringOrNull(browser.userDataDir);
+  if (userDataDir) {
+    options.userDataDir = userDataDir;
   }
-  if (parsed.flags['cache-mode'] === 'cold') {
+
+  if (request.cacheMode === 'cold') {
     options.wipeCacheBeforeLaunch = true;
   }
 
-  if (parsed.flags['browser-console'] === true && !jsonOutput) {
+  const streamConsole = parseBooleanFlag(browser.console, 'run.browser.console');
+  const shouldStreamConsole = streamConsole === true;
+  if (shouldStreamConsole && !jsonOutput) {
     options.onConsole = ({ type, text }) => {
       console.error(`[browser:${type}] ${text}`);
     };
@@ -727,12 +619,13 @@ function isTrainingCommandFlow(request) {
   return request.command === 'bench' && request.workloadType === 'training';
 }
 
-async function runCommandOnSurface(request, surface, parsed, jsonOutput) {
+async function runCommandOnSurface(request, surface, runConfig, jsonOutput) {
   if (surface === 'node') {
     return runNodeCommand(request, buildNodeRunOptions(jsonOutput));
   }
 
-  const browserRequest = await resolveBrowserModelUrl(request, parsed);
+  const browserOptions = buildBrowserRunOptions(runConfig, jsonOutput, request);
+  const browserRequest = await resolveBrowserModelUrl(request, browserOptions);
 
   if (!jsonOutput) {
     console.error('[progress] browser launching WebGPU harness...');
@@ -741,17 +634,17 @@ async function runCommandOnSurface(request, surface, parsed, jsonOutput) {
     }
   }
 
-  return runBrowserCommandInNode(browserRequest, buildBrowserRunOptions(parsed, jsonOutput));
+  return runBrowserCommandInNode(browserRequest, browserOptions);
 }
 
-async function runWithAutoSurface(request, parsed, jsonOutput, policy = DEFAULT_CLI_POLICY) {
+async function runWithAutoSurface(request, runConfig, jsonOutput, policy = DEFAULT_CLI_POLICY) {
   if (request.command === 'convert') {
-    return runCommandOnSurface(request, 'node', parsed, jsonOutput);
+    return runCommandOnSurface(request, 'node', runConfig, jsonOutput);
   }
   const fallbackPolicy = policy?.surfaceFallback || { enabled: false };
 
   try {
-    return await runCommandOnSurface(request, 'node', parsed, jsonOutput);
+    return await runCommandOnSurface(request, 'node', runConfig, jsonOutput);
   } catch (error) {
     if (!fallbackPolicy.enabled || !isNodeWebGPUFallbackCandidate(error, fallbackPolicy)) {
       throw error;
@@ -771,7 +664,7 @@ async function runWithAutoSurface(request, parsed, jsonOutput, policy = DEFAULT_
     if (fallbackPolicy.to !== 'browser') {
       throw error;
     }
-    return runCommandOnSurface(request, 'browser', parsed, jsonOutput);
+    return runCommandOnSurface(request, 'browser', runConfig, jsonOutput);
   }
 }
 
@@ -925,36 +818,82 @@ async function loadManifest(manifestPath) {
   return manifest;
 }
 
-async function runManifestSweep(manifest, parsed, jsonOutput, surface, policy = DEFAULT_CLI_POLICY) {
+function mergeRunConfig(base, ...overrides) {
+  const merged = isPlainObject(base) ? { ...base } : {};
+  for (const source of overrides) {
+    if (!isPlainObject(source)) {
+      continue;
+    }
+    for (const [key, value] of Object.entries(source)) {
+      if ((key === 'browser' || key === 'bench') && isPlainObject(value)) {
+        merged[key] = {
+          ...(isPlainObject(merged[key]) ? merged[key] : {}),
+          ...value,
+        };
+        continue;
+      }
+      merged[key] = value;
+    }
+  }
+  return merged;
+}
+
+async function runManifestSweep(manifest, commandContext, jsonOutput, policy = DEFAULT_CLI_POLICY) {
   const defaults = manifest.defaults || {};
   const results = [];
 
   for (let i = 0; i < manifest.runs.length; i++) {
     const run = manifest.runs[i];
-    const label = run.label || run.modelId || `run-${i}`;
+    const label = run.label || run.modelId || run.request?.modelId || `run-${i}`;
     if (!jsonOutput) {
       console.error(`[sweep] (${i + 1}/${manifest.runs.length}) ${label}`);
     }
 
-    const mergedFlags = { ...parsed.flags };
-    const modelId = run.modelId || defaults.modelId || parsed.flags['model-id'];
-    if (modelId) mergedFlags['model-id'] = modelId;
-    if (run.runtimePreset || defaults.runtimePreset) {
-      mergedFlags['runtime-preset'] = run.runtimePreset || defaults.runtimePreset;
+    const requestInput = {
+      ...commandContext.request,
+      ...(isPlainObject(defaults.request) ? defaults.request : {}),
+      ...(isPlainObject(run.request) ? run.request : {}),
+      command: commandContext.request.command,
+    };
+    const modelId = asStringOrNull(run.modelId) || asStringOrNull(defaults.modelId);
+    if (modelId) {
+      requestInput.modelId = modelId;
+    }
+    const modelUrl = asStringOrNull(run.modelUrl) || asStringOrNull(defaults.modelUrl);
+    if (modelUrl) {
+      requestInput.modelUrl = modelUrl;
+    }
+    const runtimePreset = asStringOrNull(run.runtimePreset) || asStringOrNull(defaults.runtimePreset);
+    if (runtimePreset) {
+      requestInput.runtimePreset = runtimePreset;
     }
 
-    const mergedParsed = { ...parsed, flags: mergedFlags };
-    const mergedWithDefaults = applyCommandDefaults(mergedParsed, policy);
-    const request = await buildRequest(mergedWithDefaults, { jsonOutput }, policy);
-    if (!jsonOutput) mergedWithDefaults.flags['browser-console'] = true;
-
+    const mergedRunConfig = mergeRunConfig(commandContext.runConfig, defaults.run, run.run);
+    let request = null;
+    let surface = commandContext.surface;
     try {
+      request = normalizeToolingCommandRequest(requestInput);
+      surface = commandContext.surfaceFromCli
+        ? commandContext.surface
+        : resolveSurfaceForCommand(
+          request.command,
+          { flags: { surface: null } },
+          mergedRunConfig,
+          policy
+        );
       const response = surface === 'auto'
-        ? await runWithAutoSurface(request, mergedWithDefaults, jsonOutput, policy)
-        : await runCommandOnSurface(request, surface, mergedWithDefaults, jsonOutput);
+        ? await runWithAutoSurface(request, mergedRunConfig, jsonOutput, policy)
+        : await runCommandOnSurface(request, surface, mergedRunConfig, jsonOutput);
       results.push({ label, response, error: null });
     } catch (error) {
-      results.push({ label, response: null, error });
+      results.push({
+        label,
+        response: null,
+        error: createToolingErrorEnvelope(error, {
+          surface: surface === 'auto' ? null : surface,
+          request,
+        }),
+      });
       if (!jsonOutput) {
         console.error(`[sweep] ${label} FAILED: ${error.message}`);
       }
@@ -1118,90 +1057,109 @@ function printMetricsSummary(result) {
 
 async function main() {
   const argv = process.argv.slice(2);
-  if (!argv.length || argv[0] === '--help' || argv[0] === '-h') {
-    console.log(usage());
-    return;
-  }
+  const jsonOutputRequested = argv.includes('--json');
+  const errorContext = {
+    surface: null,
+    request: null,
+  };
 
-  const cliPolicy = await readJsonObjectFile(CLI_POLICY_PATH, '--cli-policy');
-  const parsed = parseArgs(argv);
-  const parsedWithDefaults = applyCommandDefaults(parsed, cliPolicy);
-  if (parsedWithDefaults.flags.help === true || parsedWithDefaults.flags.h === true) {
-    console.log(usage());
-    return;
-  }
+  try {
+    if (!argv.length || argv[0] === '--help' || argv[0] === '-h') {
+      console.log(usage());
+      return;
+    }
 
-  const jsonOutput = parsedWithDefaults.flags.json === true;
-  const surface = parseSurface(parsedWithDefaults.flags.surface, parsedWithDefaults.command, cliPolicy);
-  const configuredSaveDir = asStringOrNull(parsedWithDefaults.flags['save-dir']);
-  const defaultSaveDir = asStringOrNull(cliPolicy?.defaults?.benchmark?.saveDir);
-  const saveDir = configuredSaveDir === null
-    ? defaultSaveDir || './benchmarks/vendors/results'
-    : configuredSaveDir;
-  const shouldSave = parsedWithDefaults.flags.save === true;
-  const comparePath = asStringOrNull(parsedWithDefaults.flags.compare);
-  const manifestPath = asStringOrNull(parsedWithDefaults.flags.manifest);
+    const cliPolicy = await readJsonObjectFile(CLI_POLICY_PATH, '--cli-policy');
+    const parsed = parseArgs(argv);
+    if (parsed.flags.help === true || parsed.flags.h === true) {
+      console.log(usage());
+      return;
+    }
+    validateCommandFlags(parsed);
 
-  if (manifestPath) {
-    const manifest = await loadManifest(String(manifestPath));
-    const results = await runManifestSweep(manifest, parsedWithDefaults, jsonOutput, surface, cliPolicy);
+    const jsonOutput = parsed.flags.json === true;
+    const commandContext = await buildRequest(parsed, cliPolicy);
+    const { request, runConfig, surface, surfaceFromCli, benchRunOptions } = commandContext;
+    errorContext.surface = surface === 'auto' ? null : surface;
+    errorContext.request = request;
+    const { saveDir, shouldSave, comparePath, manifestPath } = benchRunOptions;
 
-    if (shouldSave) {
+    if (manifestPath) {
+      const manifest = await loadManifest(String(manifestPath));
+      const results = await runManifestSweep(
+        manifest,
+        {
+          request,
+          runConfig,
+          surface,
+          surfaceFromCli,
+        },
+        jsonOutput,
+        cliPolicy
+      );
+
+      if (shouldSave) {
+        for (const r of results) {
+          if (r.response?.result) {
+            const savedPath = await saveBenchResult(r.response.result, saveDir);
+            if (!jsonOutput) console.error(`[save] ${r.label}: ${savedPath}`);
+          }
+        }
+      }
+
+      if (jsonOutput) {
+        console.log(JSON.stringify(results.map((r) => r.response ?? r.error), null, 2));
+        return;
+      }
+
+      printManifestSummary(results);
       for (const r of results) {
         if (r.response?.result) {
-          const savedPath = await saveBenchResult(r.response.result, saveDir);
-          if (!jsonOutput) console.error(`[save] ${r.label}: ${savedPath}`);
+          console.log(`\n--- ${r.label} ---`);
+          printMetricsSummary(r.response.result);
         }
+      }
+      return;
+    }
+
+    let response;
+    if (surface === 'auto') {
+      response = await runWithAutoSurface(request, runConfig, jsonOutput, cliPolicy);
+    } else {
+      response = await runCommandOnSurface(request, surface, runConfig, jsonOutput);
+    }
+
+    const isBench = response.result?.suite === 'bench';
+
+    if (comparePath && isBench) {
+      const baseline = await loadBaseline(String(comparePath), saveDir);
+      if (baseline) {
+        compareBenchResults(response.result, baseline);
+      }
+    }
+
+    if (shouldSave && isBench) {
+      const savedPath = await saveBenchResult(response.result, saveDir);
+      if (!jsonOutput) {
+        console.error(`[save] ${savedPath}`);
       }
     }
 
     if (jsonOutput) {
-      console.log(JSON.stringify(results.map((r) => r.response ?? { error: r.error?.message }), null, 2));
+      console.log(JSON.stringify(response, null, 2));
       return;
     }
 
-    printManifestSummary(results);
-    for (const r of results) {
-      if (r.response?.result) {
-        console.log(`\n--- ${r.label} ---`);
-        printMetricsSummary(r.response.result);
-      }
+    console.log(`[ok] ${toSummary(response.result)}`);
+    printMetricsSummary(response.result);
+  } catch (error) {
+    if (jsonOutputRequested) {
+      console.log(JSON.stringify(createToolingErrorEnvelope(error, errorContext), null, 2));
+      process.exitCode = 1;
+      return;
     }
-    return;
+    throw error;
   }
-
-  const request = await buildRequest(parsedWithDefaults, { jsonOutput }, cliPolicy);
-
-  let response;
-  if (surface === 'auto') {
-    response = await runWithAutoSurface(request, parsedWithDefaults, jsonOutput, cliPolicy);
-  } else {
-    response = await runCommandOnSurface(request, surface, parsedWithDefaults, jsonOutput);
-  }
-
-  const isBench = response.result?.suite === 'bench';
-
-  if (comparePath && isBench) {
-    const baseline = await loadBaseline(String(comparePath), saveDir);
-    if (baseline) {
-      compareBenchResults(response.result, baseline);
-    }
-  }
-
-  if (shouldSave && isBench) {
-    const savedPath = await saveBenchResult(response.result, saveDir);
-    if (!jsonOutput) {
-      console.error(`[save] ${savedPath}`);
-    }
-  }
-
-  if (jsonOutput) {
-    console.log(JSON.stringify(response, null, 2));
-    return;
-  }
-
-  console.log(`[ok] ${toSummary(response.result)}`);
-  printMetricsSummary(response.result);
 }
 
 main().catch((error) => {

@@ -596,7 +596,12 @@ This ensures compatibility across converter versions.
 Primary conversion flow (Node/CLI):
 
 ```bash
-node tools/doppler-cli.js convert <inputPath> --config tools/configs/conversion/<profile>.json
+node tools/doppler-cli.js convert --config '{
+  "request": {
+    "inputDir": "/path/to/source",
+    "convertPayload": { "converterConfig": { ... } }
+  }
+}'
 ```
 
 Browser conversion/import tooling is also available for UI workflows via

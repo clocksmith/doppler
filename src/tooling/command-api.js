@@ -1,7 +1,7 @@
 import { isPlainObject } from '../utils/plain-object.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
 
-const TOOLING_COMMAND_SET = ['convert', 'debug', 'bench', 'test-model'];
+const TOOLING_COMMAND_SET = ['convert', 'debug', 'bench', 'verify'];
 const TOOLING_SURFACE_SET = ['browser', 'node'];
 const TOOLING_SUITE_SET = ['kernels', 'inference', 'training', 'bench', 'debug', 'diffusion', 'energy'];
 const TOOLING_INTENT_SET = ['verify', 'investigate', 'calibrate'];

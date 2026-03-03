@@ -12,20 +12,20 @@ verify/calibrate workflows, artifact lineage, and deterministic reporting.
 
 ## Command intents
 
-- Verify path: `test-model --suite training`
-- Calibrate path: `bench --workload-type training`
+- Verify path: `verify --config '{"request":{"suite":"training",...}}'`
+- Calibrate path: `bench --config '{"request":{"workloadType":"training",...}}'`
 - These paths are intentionally non-interchangeable and fail closed on invalid
   field combinations.
 
 ## Supported command fields
 
-- Stage and workload: `--training-stage`, `--workload-type training`
-- Schema/versioning: `--training-schema-version` (pinned to `1`)
-- Bench steps: `--training-bench-steps`
-- Stage linkage: `--stage1-artifact`, `--stage1-artifact-hash`,
-  `--stagea-artifact`, `--stagea-artifact-hash`
-- Distill inputs: `--teacher-model-id`, `--student-model-id`,
-  `--distill-dataset-path`, `--distill-language-pair`
+- Stage and workload: `request.trainingStage`, `request.workloadType="training"`
+- Schema/versioning: `request.trainingSchemaVersion` (pinned to `1`)
+- Bench steps: `request.trainingBenchSteps`
+- Stage linkage: `request.stage1Artifact`, `request.stage1ArtifactHash`,
+  `request.stageAArtifact`, `request.stageAArtifactHash`
+- Distill inputs: `request.teacherModelId`, `request.studentModelId`,
+  `request.distillDatasetPath`, `request.distillLanguagePair`
 
 ## Runtime/surface notes
 

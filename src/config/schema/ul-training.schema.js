@@ -40,7 +40,7 @@ export const DEFAULT_UL_TRAINING_CONFIG = Object.freeze({
   stage: 'stage1_joint',
   lambda0: 5,
   seed: 1337,
-  artifactDir: 'bench/out/ul',
+  artifactDir: 'reports/training/ul',
   stage1Artifact: null,
   stage1ArtifactHash: null,
   noiseSchedule: DEFAULT_UL_NOISE_SCHEDULE,

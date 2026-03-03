@@ -13,7 +13,7 @@ flowchart TD
   end
 
   subgraph Dispatch["2) Surface Dispatch"]
-    C["tools/doppler-cli.js<br/>--surface + mode routing"]
+    C["tools/doppler-cli.js<br/>--config + --surface routing"]
     D["src/tooling/node-command-runner.js"]
     E["src/tooling/node-browser-command-runner.js<br/>Playwright relay + command-runner.html"]
     F["src/tooling/browser-command-runner.js<br/>in-browser execution"]
@@ -30,7 +30,7 @@ flowchart TD
   end
 
   subgraph Runtime["4) Runtime Inference Path"]
-    J["doppler debug/bench/test-model"]
+    J["doppler debug/bench/verify"]
     K["Artifact resolution + model metadata<br/>(src/storage/shard-manager.js, docs/formats.md)"]
     L["Manifest preflight + schema validation<br/>(src/formats/rdrr, config merge)"]
     M["Config assembly<br/>src/config/ + runtime overrides"]
@@ -40,7 +40,7 @@ flowchart TD
     Q["Decode loop + KV cache update<br/>src/inference/pipelines/text/generator.js"]
     R["Sampling & stopping<br/>src/inference/pipelines/text/sampling.js"]
     S["Materialization<br/>result + metadata + traces"]
-    C -->|if infer/bench/test| J
+    C -->|if debug/bench/verify| J
     J --> K --> L --> M --> N --> O --> P --> Q --> R --> S
   end
 ```
@@ -49,7 +49,7 @@ flowchart TD
 
 | # | Boundary | Input | Implementation (main) | Output |
 |---|---|---|---|---|
-| 1 | Command normalization | Raw CLI/web call, flags | `tools/doppler-cli.js`, `src/tooling/command-api.js` | Canonical request + runtime intent |
+| 1 | Command normalization | Raw CLI/web call, config payload | `tools/doppler-cli.js`, `src/tooling/command-api.js` | Canonical request + runtime intent |
 | 2 | Surface dispatch | Canonical request + mode | `src/tooling/node-command-runner.js`, `src/tooling/node-browser-command-runner.js`, `src/tooling/browser-command-runner.js` | Surface-specific execution |
 | 3 | Conversion preflight | Source path + converter config | `src/converter/*.js`, `src/browser/browser-converter.js` | RDRR artifact set (manifest + shards) |
 | 4 | Artifact resolution | `modelId`/`modelUrl` + runtime intent | `tools/doppler-cli.js`, `src/storage/shard-manager.js` | Manifest URI + shard/cached assets |

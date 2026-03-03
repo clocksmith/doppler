@@ -7,7 +7,7 @@ deterministic behavior.
 
 UL run directories typically follow:
 
-- `bench/out/ul/<stage>_<timestamp>/`
+- `reports/training/ul/<stage>_<timestamp>/`
 
 Common outputs:
 

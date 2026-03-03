@@ -20,7 +20,7 @@
     },
     {
       "match": {
-        "command": "test-model"
+        "command": "verify"
       },
       "value": {
         "suite": null,

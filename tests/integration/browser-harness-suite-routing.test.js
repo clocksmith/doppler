@@ -68,13 +68,13 @@ const { trainingHarness } = await import('../../src/training/suite.js');
 await assert.rejects(
   () => runBrowserSuite({
     suite: 'unknown-suite',
-    command: 'test-model',
+    command: 'verify',
     surface: 'node',
   }),
   (error) => {
     assert.equal(error.code, 'unsupported_suite');
     assert.equal(error.requestedSuite, 'unknown-suite');
-    assert.equal(error.command, 'test-model');
+    assert.equal(error.command, 'verify');
     assert.equal(error.surface, 'node');
     assert.ok(Array.isArray(error.allowedSuites));
     assert.ok(error.allowedSuites.includes('training'));
@@ -86,7 +86,7 @@ await assert.rejects(
 await assert.rejects(
   () => runBrowserSuite({
     suite: undefined,
-    command: 'test-model',
+    command: 'verify',
     surface: 'node',
   }),
   (error) => {
@@ -99,7 +99,7 @@ await assert.rejects(
 await assert.rejects(
   () => runBrowserSuite({
     suite: '',
-    command: 'test-model',
+    command: 'verify',
     surface: 'node',
   }),
   (error) => {

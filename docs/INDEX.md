@@ -36,13 +36,6 @@ Quick index for DOPPLER documentation.
 - [Kernel Tests (Implemented)](../tests/kernels/README.md) - Kernel correctness and microbenchmarks.
 - [Kernel Benchmarks](../tests/kernels/benchmarks.md) - Baseline expectations and notes.
 
-## Archive
-
-Historical training/distill docs were consolidated and moved under:
-
-- [Training archive](archive/training/README.md)
-- [Distill Studio archive](archive/distill-studio/README.md)
-
 *Last updated: 2026-03-02*
 
 Note: Internal postmortems, planning notes, and capability matrices live in the private wrapper repo.

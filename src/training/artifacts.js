@@ -83,7 +83,7 @@ function buildUlRuntimeDump(ulConfig, runOptions = {}) {
     decoderSigmoidWeight: ulConfig.decoderSigmoidWeight || null,
     lossWeights: ulConfig.lossWeights || null,
     freeze: ulConfig.freeze || null,
-    artifactDir: runOptions.ulArtifactDir || ulConfig.artifactDir || 'bench/out/ul',
+    artifactDir: runOptions.ulArtifactDir || ulConfig.artifactDir || 'reports/training/ul',
     stage1Artifact: runOptions.stage1Artifact || ulConfig.stage1Artifact || null,
     stage1ArtifactHash: runOptions.stage1ArtifactHash || ulConfig.stage1ArtifactHash || null,
   };
@@ -304,7 +304,7 @@ export function resolveUlTrainingContract(ulConfig) {
   return {
     enabled: true,
     stage: ulConfig.stage,
-    artifactDir: ulConfig.artifactDir || 'bench/out/ul',
+    artifactDir: ulConfig.artifactDir || 'reports/training/ul',
     stage1Artifact: ulConfig.stage1Artifact || null,
     stage1ArtifactHash: ulConfig.stage1ArtifactHash || null,
   };
@@ -427,7 +427,7 @@ export async function createUlArtifactSession(options) {
   const resolvedStage = stage || ulConfig.stage || 'stage1_joint';
   const timestamp = normalizeTimestamp(runOptions.timestamp);
   const artifactRoot = await resolveNodePath(
-    runOptions.ulArtifactDir || ulConfig.artifactDir || 'bench/out/ul'
+    runOptions.ulArtifactDir || ulConfig.artifactDir || 'reports/training/ul'
   );
   const runDir = join(artifactRoot, `${resolvedStage}_${timestamp}`);
   await mkdir(runDir, { recursive: true });
@@ -592,7 +592,7 @@ function buildDistillRuntimeDump(distillConfig, runOptions = {}) {
     allowHintFallback: distillConfig.allowHintFallback === true,
     tripletMargin: toFiniteNumber(distillConfig.tripletMargin, 0.2),
     freeze: distillConfig.freeze || null,
-    artifactDir: runOptions.distillArtifactDir || distillConfig.artifactDir || 'bench/out/distill',
+    artifactDir: runOptions.distillArtifactDir || distillConfig.artifactDir || 'reports/training/distill',
     stageAArtifact: runOptions.stageAArtifact || distillConfig.stageAArtifact || null,
     stageAArtifactHash: runOptions.stageAArtifactHash || distillConfig.stageAArtifactHash || null,
   };
@@ -684,7 +684,7 @@ export function resolveDistillTrainingContract(distillConfig) {
   return {
     enabled: true,
     stage: distillConfig.stage,
-    artifactDir: distillConfig.artifactDir || 'bench/out/distill',
+    artifactDir: distillConfig.artifactDir || 'reports/training/distill',
     stageAArtifact: distillConfig.stageAArtifact || null,
     stageAArtifactHash: distillConfig.stageAArtifactHash || null,
     teacherModelId: distillConfig.teacherModelId || null,
@@ -795,7 +795,7 @@ export async function createDistillArtifactSession(options) {
   const resolvedStage = stage || distillConfig.stage || 'stage_a';
   const timestamp = normalizeTimestamp(runOptions.timestamp);
   const artifactRoot = await resolveNodePath(
-    runOptions.distillArtifactDir || distillConfig.artifactDir || 'bench/out/distill'
+    runOptions.distillArtifactDir || distillConfig.artifactDir || 'reports/training/distill'
   );
   const runDir = join(artifactRoot, `${resolvedStage}_${timestamp}`);
   await mkdir(runDir, { recursive: true });

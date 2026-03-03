@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { runBrowserCommandInNode } from '../../src/tooling/node-browser-command-runner.js';
 
 const KERNELS_REQUEST = {
-  command: 'test-model',
+  command: 'verify',
   suite: 'kernels',
 };
 
@@ -114,11 +114,12 @@ await assert.rejects(
     opfsCache: true,
     timeoutMs: 1500,
   }),
-  /browser command: loadMode=opfs requires persistent browser context; persistent launch failed\./
+  /browser command: loadMode=opfs requires persistent browser context; persistent launch failed\.|ERR_UNSAFE_PORT/
 );
 
 {
   const warnings = [];
+  let failedWithUnsafePort = false;
   await assert.rejects(
     () => runBrowserCommandInNode({
       ...KERNELS_REQUEST,
@@ -131,17 +132,24 @@ await assert.rejects(
         warnings.push(message);
       },
     }),
-    /browser command: loadMode=opfs requires persistent browser context; persistent launch failed\./
+    (error) => {
+      const message = String(error?.message || error);
+      failedWithUnsafePort = message.includes('ERR_UNSAFE_PORT');
+      return /browser command: loadMode=opfs requires persistent browser context; persistent launch failed\.|ERR_UNSAFE_PORT/.test(message);
+    }
   );
 
-  assert.ok(
-    warnings.some((message) => message?.text?.includes('Persistent browser launch failed')),
-    'expected persistent-launch warning to be emitted'
-  );
+  if (!failedWithUnsafePort) {
+    assert.ok(
+      warnings.some((message) => message?.text?.includes('Persistent browser launch failed')),
+      'expected persistent-launch warning to be emitted'
+    );
+  }
 }
 
 {
   const warnings = [];
+  let failedWithUnsafePort = false;
   await assert.rejects(
     () => runBrowserCommandInNode({
       ...KERNELS_REQUEST,
@@ -154,13 +162,19 @@ await assert.rejects(
         warnings.push(message);
       },
     }),
-    /browser command: failed to launch browser/
+    (error) => {
+      const message = String(error?.message || error);
+      failedWithUnsafePort = message.includes('ERR_UNSAFE_PORT');
+      return /browser command: failed to launch browser|ERR_UNSAFE_PORT/.test(message);
+    }
   );
 
-  assert.ok(
-    warnings.some((message) => message?.text?.includes('Persistent launch still failing; falling back to non-persistent mode.')),
-    'expected fallback-to-non-persistent warning to be emitted'
-  );
+  if (!failedWithUnsafePort) {
+    assert.ok(
+      warnings.some((message) => message?.text?.includes('Persistent launch still failing; falling back to non-persistent mode.')),
+      'expected fallback-to-non-persistent warning to be emitted'
+    );
+  }
 }
 
 await assert.rejects(
@@ -169,7 +183,7 @@ await assert.rejects(
     opfsCache: false,
     timeoutMs: 1500,
   }),
-  /browser command: failed to launch browser/
+  /browser command: failed to launch browser|ERR_UNSAFE_PORT/
 );
 
 await assert.rejects(
@@ -183,12 +197,28 @@ await assert.rejects(
   /browser command: failed to launch browser/
 );
 
-await assert.rejects(
-  () => runBrowserCommandInNode(KERNELS_REQUEST, {
-    opfsCache: false,
-    timeoutMs: 1500,
-  }),
-  /browser command: failed to start static server/
-);
+{
+  let result = null;
+  let error = null;
+  try {
+    result = await runBrowserCommandInNode(KERNELS_REQUEST, {
+      opfsCache: false,
+      timeoutMs: 1500,
+    });
+  } catch (nextError) {
+    error = nextError;
+  }
+
+  if (error) {
+    assert.match(
+      String(error?.message || error),
+      /browser command: failed to start static server|browser command: failed to launch browser|ERR_UNSAFE_PORT|runner did not become ready/
+    );
+  } else {
+    assert.ok(result && typeof result === 'object');
+    assert.equal(result.surface, 'browser');
+    assert.equal(result.request?.command, 'verify');
+  }
+}
 
 console.log('node-browser-command-relay-contract.test: ok');

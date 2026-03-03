@@ -1793,7 +1793,7 @@ function buildUlTrainingOverrides(options = {}) {
     stage,
     stage1Artifact: options.stage1Artifact ?? trainingConfig?.ul?.stage1Artifact ?? null,
     stage1ArtifactHash: options.stage1ArtifactHash ?? trainingConfig?.ul?.stage1ArtifactHash ?? null,
-    artifactDir: options.ulArtifactDir ?? trainingConfig?.ul?.artifactDir ?? 'bench/out/ul',
+    artifactDir: options.ulArtifactDir ?? trainingConfig?.ul?.artifactDir ?? 'reports/training/ul',
   };
   if (stage === 'stage2_base') {
     ulOverride.freeze = {
@@ -1833,7 +1833,7 @@ function buildDistillTrainingOverrides(options = {}) {
     resumeFrom: options.resumeFrom ?? trainingConfig?.distill?.resumeFrom ?? null,
     stageAArtifact: options.stageAArtifact ?? trainingConfig?.distill?.stageAArtifact ?? null,
     stageAArtifactHash: options.stageAArtifactHash ?? trainingConfig?.distill?.stageAArtifactHash ?? null,
-    artifactDir: options.distillArtifactDir ?? trainingConfig?.distill?.artifactDir ?? 'bench/out/distill',
+    artifactDir: options.distillArtifactDir ?? trainingConfig?.distill?.artifactDir ?? 'reports/training/distill',
   };
   if (stage === 'stage_b') {
     distillOverride.freeze = {
@@ -1867,6 +1867,22 @@ async function computeNodeFileHash(filePath) {
   };
 }
 
+async function resolveIsolatedArtifactDir(explicitDir, prefix) {
+  const normalized = normalizeOptionalString(explicitDir);
+  if (normalized) {
+    return normalized;
+  }
+  if (!(typeof process !== 'undefined' && process.versions?.node)) {
+    return null;
+  }
+  const [{ mkdtemp }, { tmpdir }, { join }] = await Promise.all([
+    import('node:fs/promises'),
+    import('node:os'),
+    import('node:path'),
+  ]);
+  return mkdtemp(join(tmpdir(), `doppler-${prefix}-`));
+}
+
 async function runUlStageTest(stage, options = {}) {
   const ulTraining = buildUlTrainingOverrides({
     ...options,
@@ -1889,6 +1905,7 @@ async function runUlStageTest(stage, options = {}) {
         }
       },
     };
+    const ulArtifactDir = await resolveIsolatedArtifactDir(options.ulArtifactDir, 'ul');
     const metrics = await runner.run(fixture.model, dataset, {
       epochs: 1,
       batchSize: 1,
@@ -1897,7 +1914,7 @@ async function runUlStageTest(stage, options = {}) {
       modelId: options.modelId || 'training',
       modelUrl: options.modelUrl || null,
       timestamp: options.timestamp || null,
-      ulArtifactDir: options.ulArtifactDir || null,
+      ulArtifactDir,
     });
     if (!Array.isArray(metrics) || metrics.length === 0) {
       return { passed: false, error: `UL ${stage} produced no metrics.` };
@@ -2045,6 +2062,7 @@ async function runDistillStageTest(stage, options = {}) {
       distillRuntime,
     });
     const distillRunStartMs = performance.now();
+    const distillArtifactDir = await resolveIsolatedArtifactDir(options.distillArtifactDir, 'distill');
     const metrics = await runner.run(fixture.model, dataset, {
       epochs: 1,
       batchSize: 1,
@@ -2053,7 +2071,7 @@ async function runDistillStageTest(stage, options = {}) {
       modelId: options.modelId || distillRuntime.studentModelId || 'training',
       modelUrl: options.modelUrl || distillRuntime.studentModelUrl || null,
       timestamp: options.timestamp || null,
-      distillArtifactDir: options.distillArtifactDir || null,
+      distillArtifactDir,
       stageAArtifact: options.stageAArtifact || null,
       stageAArtifactHash: options.stageAArtifactHash || null,
       teacherModelId: distillRuntime.teacherModelId || null,

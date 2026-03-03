@@ -18,6 +18,10 @@ export interface KernelPathResolutionOptions {
   manifest: Manifest;
   runtimeConfig: RuntimeConfigSchema;
   modelConfig: ParsedModelConfig;
+  kernelCapabilities?: {
+    hasSubgroups?: boolean;
+    hasF16?: boolean;
+  } | null;
 }
 
 export interface KernelPathResolutionResult {

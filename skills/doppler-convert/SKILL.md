@@ -18,7 +18,22 @@ Use this skill to add or re-convert models for Doppler runtime.
 
 ```bash
 # Convert from Safetensors directory (or GGUF file path) via unified CLI
-npm run convert -- INPUT_PATH models/local/OUTPUT_ID --model-id OUTPUT_ID
+npm run convert -- --config '{
+  "request": {
+    "inputDir": "INPUT_PATH",
+    "outputDir": "models/local/OUTPUT_ID",
+    "convertPayload": {
+      "converterConfig": {
+        "output": {
+          "modelBaseId": "OUTPUT_ID"
+        }
+      }
+    }
+  },
+  "run": {
+    "surface": "node"
+  }
+}'
 
 # Same conversion through direct Node helper with converter-config JSON
 node tools/convert-safetensors-node.js INPUT_PATH models/local/OUTPUT_ID --model-id OUTPUT_ID --converter-config ./converter-config.json
@@ -61,7 +76,7 @@ jq '.modelId, .modelType, .quantization, .quantizationInfo, .inference.defaultKe
 ls models/local/OUTPUT_ID/shard_*.bin | wc -l
 
 # 4) Sanity-run inference
-npm run debug -- --model-id OUTPUT_ID --runtime-preset modes/debug --surface auto --json
+npm run debug -- --config '{"request":{"modelId":"OUTPUT_ID","runtimePreset":"modes/debug"},"run":{"surface":"auto"}}' --json
 ```
 
 ## Conversion Triage Contract

@@ -3,6 +3,7 @@ import type {
   ToolingCommandRequest,
   ToolingCommandRequestInput,
 } from './command-api.js';
+import type { ToolingSuccessEnvelope } from './command-envelope.js';
 
 export interface NodeCommandRunOptions {
   runtimeLoadOptions?: RuntimeConfigLoadOptions;
@@ -17,11 +18,10 @@ export interface NodeCommandRunOptions {
   }) => void;
 }
 
-export interface NodeCommandRunResult {
+export interface NodeCommandRunResult extends ToolingSuccessEnvelope<unknown> {
   ok: true;
   surface: 'node';
   request: ToolingCommandRequest;
-  result: unknown;
 }
 
 export declare function hasNodeWebGPUSupport(): boolean;

@@ -1,6 +1,6 @@
 import type { ConverterConfigSchema } from '../config/schema/converter.schema.js';
 
-export type ToolingCommand = 'convert' | 'debug' | 'bench' | 'test-model';
+export type ToolingCommand = 'convert' | 'debug' | 'bench' | 'verify';
 export type ToolingSurface = 'browser' | 'node';
 export type ToolingSuite = 'kernels' | 'inference' | 'training' | 'bench' | 'debug' | 'diffusion' | 'energy';
 export type ToolingIntent = 'verify' | 'investigate' | 'calibrate' | null;

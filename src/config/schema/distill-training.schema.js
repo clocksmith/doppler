@@ -23,7 +23,7 @@ export const DEFAULT_DISTILL_TRAINING_CONFIG = Object.freeze({
   shardIndex: null,
   shardCount: null,
   resumeFrom: null,
-  artifactDir: 'bench/out/distill',
+  artifactDir: 'reports/training/distill',
   stageAArtifact: null,
   stageAArtifactHash: null,
   temperature: 1,
