@@ -175,6 +175,9 @@ const RUN_STARTER_PROMPTS = Object.freeze([
   'describe a toy store where the shelves are sorted by cognitive development stages and every single game has a proof of educational value attached',
   'is human intuition just a fast, low-energy heuristic that our biological hardware runs when the cost of slow, symbolic reasoning is too high for survival',
   'write a technical fable about an agent tasked with solving a paradox, forever rolling a high-energy gradient up a hill only for it to reset at every epoch',
+  'is interpretability mostly archaeology on activations, or can it become a design-time discipline',
+  'prove or disprove that benchmark parity without workload parity is a category error',
+  'prove or disprove that deterministic failure modes outperform probabilistic success in trust-critical workflows',
 ]);
 const TRANSLATE_STARTER_PROMPTS = Object.freeze([
   'Good software should fail loudly and explain why.',
