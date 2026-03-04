@@ -35,6 +35,21 @@ export function createMemoryStore(config) {
     }
   }
 
+  function normalizeWriteStreamOptions(options = {}) {
+    const append = options?.append === true;
+    const expectedOffsetRaw = options?.expectedOffset;
+    const expectedOffset = expectedOffsetRaw == null
+      ? null
+      : Number(expectedOffsetRaw);
+    if (
+      expectedOffset != null
+      && (!Number.isInteger(expectedOffset) || expectedOffset < 0)
+    ) {
+      throw new Error('createWriteStream expectedOffset must be a non-negative integer');
+    }
+    return { append, expectedOffset };
+  }
+
   function adjustBytes(delta) {
     totalBytes += delta;
     if (totalBytes > maxBytes) {
@@ -51,6 +66,16 @@ export function createMemoryStore(config) {
       throw new Error(`File not found: ${filename}`);
     }
     return entry.buffer.slice(entry.byteOffset, entry.byteOffset + entry.byteLength);
+  }
+
+  async function getFileSize(filename) {
+    requireModel();
+    const model = ensureModel(models, currentModelId);
+    const entry = model.files.get(filename);
+    if (!entry) {
+      throw new Error(`File not found: ${filename}`);
+    }
+    return entry.byteLength;
   }
 
   async function readText(filename) {
@@ -77,33 +102,54 @@ export function createMemoryStore(config) {
     model.files.set(filename, bytes.slice(0));
   }
 
-  async function createWriteStream(filename) {
+  async function createWriteStream(filename, options = {}) {
     requireModel();
+    const { append, expectedOffset } = normalizeWriteStreamOptions(options);
     const model = ensureModel(models, currentModelId);
+    const previous = model.files.get(filename) ?? null;
+    const base = append && previous
+      ? previous.slice(0)
+      : new Uint8Array(0);
+    if (expectedOffset != null && expectedOffset !== base.byteLength) {
+      throw new Error(
+        `createWriteStream expectedOffset mismatch for ${filename}: expected ${expectedOffset}, got ${base.byteLength}`
+      );
+    }
     let chunks = [];
-    let total = 0;
+    let total = base.byteLength;
+    let closed = false;
     return {
       write: async (chunk) => {
+        if (closed) {
+          throw new Error('Write after close');
+        }
         const bytes = chunk instanceof ArrayBuffer ? new Uint8Array(chunk) : chunk;
         chunks.push(bytes.slice(0));
         total += bytes.byteLength;
       },
       close: async () => {
+        if (closed) return;
+        closed = true;
         const combined = new Uint8Array(total);
         let offset = 0;
+        if (base.byteLength > 0) {
+          combined.set(base, offset);
+          offset += base.byteLength;
+        }
         for (const chunk of chunks) {
           combined.set(chunk, offset);
           offset += chunk.byteLength;
         }
-        const prev = model.files.get(filename);
-        if (prev) {
-          adjustBytes(-prev.byteLength);
+        if (previous) {
+          adjustBytes(-previous.byteLength);
         }
         adjustBytes(combined.byteLength);
         model.files.set(filename, combined);
         chunks = [];
       },
       abort: async () => {
+        if (closed) return;
+        closed = true;
         chunks = [];
       },
     };
@@ -178,6 +224,7 @@ export function createMemoryStore(config) {
     init,
     openModel,
     getCurrentModelId,
+    getFileSize,
     readFile,
     readText,
     writeFile,

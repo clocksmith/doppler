@@ -14,6 +14,7 @@ Migration summary for training command schema, UL schema, and metrics schema.
   - `verify --config '{"request":{"suite":"training",...}}'`
   - `bench --config '{"request":{"workloadType":"training",...}}'`
 - Invalid field/suite combinations are fail-closed.
+- `forceResumeReason` requires `forceResume=true`.
 
 ## Metrics schema migration highlights
 
@@ -28,10 +29,29 @@ Objective-aware metrics schema includes explicit unions for:
 Each objective requires its own field set and rejects incompatible stage/objective
 mixes.
 
+Core replay context fields are now treated as part of the metrics contract:
+
+- `lr` / `effective_lr`
+- `seed`
+- `model_id`
+- `runtime_preset`
+- `kernel_path`
+- `environment_metadata`
+- `memory_stats`
+- `build_provenance`
+
 ## UL schema migration highlights
 
 UL config includes explicit stage/version controls, dependency linkage, and
 artifact fields suitable for stage-to-stage verification.
+
+## Checkpoint provenance + resume migration highlights
+
+- Checkpoints persist metadata hashes for config/dataset/optimizer lineage.
+- Build provenance fields (commit/build/timestamp) are persisted when available.
+- Resume metadata mismatches fail closed by default.
+- Forced resume writes explicit `resumeAudits` records, including source,
+  operator, reason, mismatch list, and prior checkpoint metadata hash.
 
 ## Migration guidance
 

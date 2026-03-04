@@ -1,4 +1,4 @@
-import type { RDRRManifest } from '../storage/rdrr-format.js';
+import type { RDRRManifest } from '../formats/rdrr/index.js';
 
 export declare const DIRECT_SOURCE_RUNTIME_MODE: 'direct-source';
 export declare const DIRECT_SOURCE_RUNTIME_SCHEMA_VERSION: 1;

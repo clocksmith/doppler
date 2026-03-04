@@ -1,8 +1,7 @@
 /**
- * Attention Module - Re-export facade
+ * Attention Module - Public aggregation entrypoint
  *
- * This file re-exports from the attention/ directory for backward compatibility.
- * New code should import directly from 'inference/pipelines/text/attention/index.js'.
+ * This file re-exports the attention public API from the attention/ directory.
  *
  * @module inference/pipelines/text/attention
  */

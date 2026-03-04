@@ -8,14 +8,20 @@ export interface MemoryWriteStream {
   abort(): Promise<void>;
 }
 
+export interface MemoryWriteStreamOptions {
+  append?: boolean;
+  expectedOffset?: number | null;
+}
+
 export interface MemoryStore {
   init(): Promise<void>;
   openModel(modelId: string, options?: { create?: boolean }): Promise<null>;
   getCurrentModelId(): string | null;
+  getFileSize(filename: string): Promise<number>;
   readFile(filename: string): Promise<ArrayBuffer>;
   readText(filename: string): Promise<string | null>;
   writeFile(filename: string, data: Uint8Array | ArrayBuffer): Promise<void>;
-  createWriteStream(filename: string): Promise<MemoryWriteStream>;
+  createWriteStream(filename: string, options?: MemoryWriteStreamOptions): Promise<MemoryWriteStream>;
   deleteFile(filename: string): Promise<boolean>;
   listFiles(): Promise<string[]>;
   listModels(): Promise<string[]>;

@@ -27,7 +27,7 @@ import {
   createStreamingHasher,
   getStorageBackendType,
 } from '../storage/shard-manager.js';
-import { classifyTensorRole } from '../storage/rdrr-format.js';
+import { classifyTensorRole } from '../formats/rdrr/index.js';
 import { registerModel } from '../storage/registry.js';
 import {
   checkSpaceAvailable,

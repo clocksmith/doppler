@@ -121,6 +121,8 @@ export function buildSuiteOptions(request, surface = null) {
     distillShardIndex: request.distillShardIndex ?? undefined,
     distillShardCount: request.distillShardCount ?? undefined,
     resumeFrom: request.resumeFrom ?? undefined,
+    forceResume: request.forceResume ?? undefined,
+    forceResumeReason: request.forceResumeReason ?? undefined,
     trainingSchemaVersion: request.trainingSchemaVersion ?? undefined,
     trainingBenchSteps: request.trainingBenchSteps ?? undefined,
     workloadType: request.workloadType ?? undefined,

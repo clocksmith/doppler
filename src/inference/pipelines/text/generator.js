@@ -18,13 +18,9 @@ import { applyChatTemplate, isStopToken } from './init.js';
 import { formatChatMessages } from './chat-format.js';
 import { embed } from './embed.js';
 import { processLayer } from './layer.js';
-import { computeLogits, recordLogitsGPU, extractLastPositionLogits, applySoftcapping } from './logits.js';
+import { computeLogits, recordLogitsGPU, extractLastPositionLogits, applySoftcapping } from './logits/index.js';
 import { isWeightBuffer, isCpuWeightBuffer, getWeightDtype } from '../../../gpu/weight-buffer.js';
-// Import as a namespace so the module can still link if the browser cache has a
-// slightly older generator-steps.js (avoids hard "missing export" crashes).
-import * as generatorSteps from './generator-steps.js';
-
-const {
+import {
   decodeStep,
   decodeStepLogits,
   advanceWithToken,
@@ -32,8 +28,8 @@ const {
   shouldUseBatchDecode,
   sumProfileTimings,
   FinitenessError,
-  advanceWithTokenAndEmbedding: resolveAdvanceWithTokenAndEmbedding,
-} = generatorSteps;
+  advanceWithTokenAndEmbedding as runAdvanceWithTokenAndEmbedding,
+} from './generator-steps.js';
 import { buildLayerContext, debugCheckBuffer as debugCheckBufferHelper, getLogitsConfig, getLogitsWeights } from './generator-helpers.js';
 import {
   assertTokenIdsInRange,
@@ -47,7 +43,7 @@ import {
   extractEmbeddingFromHidden,
 } from './generator-runtime.js';
 
-import { decodeReadback, getLogitsHealth } from './debug-utils.js';
+import { decodeReadback, getLogitsHealth } from './debug-utils/index.js';
 import { parseFinitenessStatusWords } from './finiteness-guard-status.js';
 import { resolveDeferredRoundingWindowTokens } from './finiteness-policy.js';
 import {
@@ -1330,19 +1326,12 @@ export class PipelineGenerator {
       : undefined;
 
     this._assertTokenIdInRange(tokenId, 'advanceWithTokenAndEmbedding');
-    if (!advanceWithTokenAndEmbedding) {
-      throw new Error(
-        'advanceWithTokenAndEmbedding not available (likely stale module cache). ' +
-        'Hard-reload the page to refresh @doppler/core.'
-      );
-    }
-
-      return resolveAdvanceWithTokenAndEmbedding(
-        this.#state,
-        tokenId,
-        opts,
-        this._getDecodeHelpers(debugCheckBuffer),
-        embeddingMode
+    return runAdvanceWithTokenAndEmbedding(
+      this.#state,
+      tokenId,
+      opts,
+      this._getDecodeHelpers(debugCheckBuffer),
+      embeddingMode
     );
   }
 

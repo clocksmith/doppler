@@ -3,7 +3,7 @@ import { readBuffer } from '../../../memory/buffer-pool.js';
 import { allowReadback } from '../../../gpu/perf-guards.js';
 import { log } from '../../../debug/index.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
-import { decodeReadback } from './debug-utils.js';
+import { decodeReadback } from './debug-utils/index.js';
 import { isWeightBuffer, isCpuWeightBuffer } from '../../../gpu/weight-buffer.js';
 import { resolveRangeAwareSelectiveWideningConfig } from './finiteness-policy.js';
 import { resolveActiveExecutionPlan } from './execution-plan.js';

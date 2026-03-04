@@ -14,7 +14,7 @@ import {
   resolveModelId,
 } from './quantization-info.js';
 import { sanitizeModelId } from './core.js';
-import { classifyTensorRole } from '../storage/rdrr-format.js';
+import { classifyTensorRole } from '../formats/rdrr/index.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
 import { buildKernelRefFromKernelEntry, isKernelRefBoundToKernel } from '../config/kernels/kernel-ref.js';
 

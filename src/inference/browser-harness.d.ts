@@ -88,6 +88,8 @@ export interface BrowserSuiteOptions extends InferenceHarnessOptions {
   distillShardIndex?: number;
   distillShardCount?: number;
   resumeFrom?: string;
+  forceResume?: boolean;
+  forceResumeReason?: string;
   trainingSchemaVersion?: number;
   trainingBenchSteps?: number;
   cacheMode?: 'cold' | 'warm' | null;

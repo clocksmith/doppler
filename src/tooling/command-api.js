@@ -25,7 +25,7 @@ function asOptionalString(value, label) {
 }
 
 function asOptionalBoolean(value, label) {
-  if (value === undefined) return null;
+  if (value === undefined || value === null) return null;
   if (typeof value !== 'boolean') {
     throw new Error(`tooling command: ${label} must be a boolean when provided.`);
   }
@@ -74,6 +74,12 @@ function asOptionalTrainingStage(value, label) {
     throw new Error(`tooling command: ${label} must be one of ${TRAINING_STAGE_SET.join(', ')}.`);
   }
   return stage;
+}
+
+function asOptionalForceResumeReason(value, label) {
+  const reason = asOptionalString(value, label);
+  if (!reason) return null;
+  return reason;
 }
 
 function assertCommand(value) {
@@ -258,6 +264,8 @@ function normalizeConvert(raw) {
     distillShardIndex: null,
     distillShardCount: null,
     resumeFrom: null,
+    forceResume: null,
+    forceResumeReason: null,
     trainingSchemaVersion: null,
     trainingBenchSteps: null,
     workloadType: asOptionalString(raw.workloadType, 'workloadType'),
@@ -308,6 +316,8 @@ function normalizeSuiteCommand(raw, command) {
   const distillShardIndex = asOptionalPositiveInteger(raw.distillShardIndex, 'distillShardIndex');
   const distillShardCount = asOptionalPositiveInteger(raw.distillShardCount, 'distillShardCount');
   const resumeFrom = asOptionalString(raw.resumeFrom, 'resumeFrom');
+  const forceResume = asOptionalBoolean(raw.forceResume, 'forceResume');
+  const forceResumeReason = asOptionalForceResumeReason(raw.forceResumeReason, 'forceResumeReason');
   const trainingSchemaVersionInput = asOptionalPositiveInteger(
     raw.trainingSchemaVersion,
     'trainingSchemaVersion'
@@ -334,11 +344,18 @@ function normalizeSuiteCommand(raw, command) {
     || distillShardIndex
     || distillShardCount
     || resumeFrom
+    || forceResume !== null
+    || forceResumeReason
     || trainingSchemaVersionInput
     || trainingBenchSteps
   )) {
     throw new Error(
       'tooling command: training-only fields require suite="training" or bench workloadType="training".'
+    );
+  }
+  if (forceResumeReason && forceResume !== true) {
+    throw new Error(
+      'tooling command: forceResumeReason requires forceResume=true.'
     );
   }
   const trainingSchemaVersion = allowsTrainingFields
@@ -398,6 +415,10 @@ function normalizeSuiteCommand(raw, command) {
     distillShardIndex,
     distillShardCount,
     resumeFrom,
+    forceResume: allowsTrainingFields
+      ? (forceResume == null ? null : forceResume === true)
+      : null,
+    forceResumeReason: allowsTrainingFields ? forceResumeReason : null,
     trainingSchemaVersion,
     trainingBenchSteps,
     workloadType,

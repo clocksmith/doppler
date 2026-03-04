@@ -1,4 +1,4 @@
-import type { RDRRManifest } from '../storage/rdrr-format.js';
+import type { RDRRManifest } from '../formats/rdrr/index.js';
 import type { ShardCacheConfigSchema } from '../config/schema/loading.schema.js';
 import type {
   CustomShardLoader,

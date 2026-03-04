@@ -1,0 +1,81 @@
+{
+  "suite": "inference",
+  "modelId": "translategemma-4b-it-wq4k-ef16-hf16",
+  "runtimePreset": "modes/bench",
+  "deviceInfo": {
+    "hasSubgroups": true,
+    "hasSubgroupsF16": false,
+    "hasF16": true,
+    "hasTimestampQuery": true,
+    "maxBufferSize": 4294967292,
+    "maxWorkgroupSize": 1024,
+    "maxWorkgroupStorageSize": 65536,
+    "adapterInfo": {
+      "vendor": "unknown",
+      "architecture": "unknown",
+      "device": "unknown",
+      "description": ""
+    }
+  },
+  "results": [
+    {
+      "name": "generation",
+      "passed": false,
+      "duration": 16849.191125000012,
+      "error": "Output dominated by padding or special tokens"
+    }
+  ],
+  "durationMs": 160674.791765,
+  "timestamp": "2026-03-04T20:15:41.954Z",
+  "metrics": {
+    "prompt": "Hello from Doppler.",
+    "maxTokens": 64,
+    "tokensGenerated": 64,
+    "tokensPerSec": 3.8,
+    "totalRunMs": 16848.54,
+    "firstTokenMs": 615.01,
+    "firstResponseMs": 144439.05,
+    "prefillMs": 612.08,
+    "decodeMs": 16232.51,
+    "prefillTokens": 5,
+    "decodeTokens": 64,
+    "prefillTokensPerSec": 8.17,
+    "prefillTokensPerSecTtft": 8.13,
+    "decodeTokensPerSec": 3.94,
+    "modelLoadMs": 143824.04,
+    "gpu": {
+      "decodeRecordMs": 1372.9986280000012,
+      "decodeSubmitWaitMs": 14809.494997000002,
+      "decodeReadbackWaitMs": 14697.879463999998
+    },
+    "decodeProfileSteps": []
+  },
+  "output": "\n",
+  "memory": {
+    "used": 11376104960,
+    "pool": {
+      "allocations": 29153,
+      "reuses": 446,
+      "totalBytesAllocated": 10534149632,
+      "peakBytesAllocated": 10517667328,
+      "currentBytesAllocated": 10235254272,
+      "totalBytesRequested": 8552701440,
+      "peakBytesRequested": 8219572992,
+      "currentBytesRequested": 8029698048,
+      "activeBuffers": 448,
+      "pooledBuffers": 64,
+      "budgetMaxBytes": 0,
+      "budgetUtilization": 0,
+      "hitRate": "1.5%"
+    },
+    "kvCache": {
+      "theoretical": 1140850688,
+      "allocated": 1140850688,
+      "used": 9469952,
+      "efficiency": 0.00830078125,
+      "seqLen": 68,
+      "maxSeqLen": 8192,
+      "layout": "contiguous"
+    }
+  }
+}

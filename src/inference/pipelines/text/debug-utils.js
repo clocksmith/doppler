@@ -1,7 +1,7 @@
 
 
-// Re-export facade for backward compatibility
-// Implementation split into debug-utils/ submodules
+// Public aggregation entrypoint.
+// Implementation is split into debug-utils/ submodules.
 
 export {
   setDebugCategories,

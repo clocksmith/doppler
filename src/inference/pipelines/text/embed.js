@@ -5,7 +5,7 @@ import { acquireBuffer, releaseBuffer, readBuffer } from '../../../memory/buffer
 import { runGather, recordGather } from '../../../gpu/kernel-selector.js';
 import { trace } from '../../../debug/index.js';
 import { runProbes } from './probes.js';
-import { decodeReadback } from './debug-utils.js';
+import { decodeReadback } from './debug-utils/index.js';
 import { createTensor } from '../../../gpu/tensor.js';
 import { castF32ToF16, recordCastF32ToF16 } from '../../../gpu/kernels/cast.js';
 import { isCpuWeightBuffer } from '../../../gpu/weight-buffer.js';

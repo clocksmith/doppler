@@ -35,6 +35,8 @@ export interface P2PTransportResultEnvelope {
   data: ArrayBuffer;
   manifestVersionSet: string | null;
   manifestHash: string | null;
+  rangeStart: number | null;
+  totalSize: number | null;
 }
 
 export declare function normalizeP2PTransportResult(

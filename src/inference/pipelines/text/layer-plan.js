@@ -102,9 +102,11 @@ function compileStep(step, index) {
       if (!step.weight) {
         throw new Error(`Layer pipeline step "rmsnorm@${index}" requires weight`);
       }
-      // Deprecation warning for post_attention -> post_attn
       if (step.weight === 'post_attention') {
-        log.warn('Pipeline', `Step ${index}: "post_attention" is deprecated, use "post_attn"`);
+        throw new Error(
+          `Layer pipeline step "rmsnorm@${index}" uses removed weight key "post_attention". ` +
+          'Use "post_attn".'
+        );
       }
       return withCommon({
         op,

@@ -10,6 +10,14 @@ export interface TrainingMetricsReportSchema {
     backward_ms?: number;
     optimizer_ms?: number;
     effective_lr?: number | null;
+    lr?: number | null;
+    seed?: number;
+    model_id?: string;
+    runtime_preset?: string | null;
+    kernel_path?: string | null;
+    environment_metadata?: Record<string, unknown>;
+    memory_stats?: Record<string, unknown> | null;
+    build_provenance?: Record<string, unknown> | null;
     scheduler_index?: number | null;
     scheduler_phase?: string | null;
     loss_kd?: number | null;

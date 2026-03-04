@@ -1,6 +1,6 @@
 
 
-import { generateShardFilename } from '../storage/rdrr-format.js';
+import { generateShardFilename } from '../formats/rdrr/index.js';
 import { createStreamingHasher } from '../storage/shard-manager.js';
 
 

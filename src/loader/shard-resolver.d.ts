@@ -1,4 +1,4 @@
-import type { RDRRManifest } from '../storage/rdrr-format.js';
+import type { RDRRManifest } from '../formats/rdrr/index.js';
 import type { TensorLocation } from './loader-types.js';
 
 export interface BuildTensorLocationsOptions {

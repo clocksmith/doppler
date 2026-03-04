@@ -1,4 +1,3 @@
-// Re-export everything from the modular implementation
 export {
   // Version
   DOPPLER_PROVIDER_VERSION,
@@ -44,4 +43,4 @@ export {
   // Main provider
   DopplerProvider,
   default,
-} from './doppler-provider/index.js';
+} from './doppler-provider.js';

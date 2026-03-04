@@ -27,6 +27,19 @@ import {
     command: 'verify',
     suite: 'training',
     modelId: null,
+    trainingStage: 'stage_a',
+    forceResume: true,
+    forceResumeReason: 'intentional schema transition',
+  });
+  assert.equal(request.forceResume, true);
+  assert.equal(request.forceResumeReason, 'intentional schema transition');
+}
+
+{
+  const request = normalizeToolingCommandRequest({
+    command: 'verify',
+    suite: 'training',
+    modelId: null,
     trainingStage: 'stage1_joint',
   });
   assert.equal(request.modelId, null);
@@ -118,6 +131,19 @@ import {
       command: 'verify',
       suite: 'training',
       modelId: null,
+      trainingStage: 'stage_a',
+      forceResumeReason: 'missing flag',
+    }),
+    /forceResumeReason requires forceResume=true/
+  );
+}
+
+{
+  assert.throws(
+    () => normalizeToolingCommandRequest({
+      command: 'verify',
+      suite: 'training',
+      modelId: null,
       trainingStage: 'stage3_unknown',
     }),
     /trainingStage must be one of stage1_joint, stage2_base, stage_a, stage_b/
@@ -174,6 +200,26 @@ import {
       harness: {
         mode: 'training',
         modelId: 'gemma-3-1b-it-wf16-ef16-hf16',
+      },
+      tooling: {
+        intent: 'verify',
+      },
+    },
+  });
+}
+
+{
+  const normalized = normalizeToolingCommandRequest({
+    command: 'verify',
+    suite: 'inference',
+    modelId: 'gemma-3-270m-it-wq4k-ef16-hf16',
+  });
+  const patch = buildRuntimeContractPatch(normalized);
+  assert.deepEqual(patch, {
+    shared: {
+      harness: {
+        mode: 'inference',
+        modelId: 'gemma-3-270m-it-wq4k-ef16-hf16',
       },
       tooling: {
         intent: 'verify',

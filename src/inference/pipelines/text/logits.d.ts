@@ -1,8 +1,8 @@
 /**
  * Logits computation - final layer norm and LM head projection.
  *
- * This is a re-export facade for backward compatibility.
- * Implementation has been split into focused modules under logits/.
+ * Public aggregation entrypoint.
+ * Implementation is split into focused modules under logits/.
  *
  * @module inference/pipelines/text/logits
  */

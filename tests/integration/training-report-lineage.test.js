@@ -47,4 +47,3 @@ if (!webgpuReady) {
 }
 
 console.log('training-report-lineage.test: ok');
-process.exit(0);

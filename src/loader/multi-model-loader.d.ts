@@ -9,7 +9,7 @@ import type { Manifest } from '../inference/pipelines/text/config.js';
 import type { InferencePipeline, PipelineContexts } from '../inference/pipelines/text.js';
 import type { LoRAManifest } from '../adapters/lora-loader.js';
 import type { LoRAAdapter } from '../inference/pipelines/text/lora.js';
-import type { RDRRManifest } from '../storage/rdrr-format.js';
+import type { RDRRManifest } from '../formats/rdrr/index.js';
 
 export type AdapterSource =
   | LoRAAdapter
