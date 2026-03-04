@@ -30,18 +30,7 @@ const SUPPORTED_SOURCE_DTYPES = new Set([
 ]);
 
 const SOURCE_RUNTIME_EXECUTION_OVERRIDE = {
-  steps: [
-    {
-      id: 'cast.identity',
-      op: 'cast',
-      phase: 'both',
-      section: 'layer',
-      src: 'attn_q',
-      dst: 'attn_q',
-      layers: 'all',
-      toDtype: 'f16',
-    },
-  ],
+  steps: [],
 };
 
 function toArrayBuffer(value, label) {
@@ -226,7 +215,7 @@ async function parseSafetensorsInput(inputDir) {
     tensors,
     architectureHint,
     architecture,
-    sourceQuantization: inferSourceWeightQuantization(tensors),
+    sourceQuantization: inferSourceQuantizationForSourceRuntime(tensors, 'safetensors'),
     tokenizerJson,
     tokenizerConfig,
     tokenizerModelName: hasTokenizerModel ? 'tokenizer.model' : null,
@@ -289,7 +278,7 @@ async function parseGgufInput(ggufPath) {
     tensors,
     architectureHint: parsed.architecture,
     architecture: extractArchitecture({}, parsed.config || {}),
-    sourceQuantization: parsed.quantization ?? inferSourceWeightQuantization(tensors),
+    sourceQuantization: parsed.quantization ?? inferSourceQuantizationForSourceRuntime(tensors, 'gguf'),
     tokenizerJson: null,
     tokenizerConfig: null,
     tokenizerModelName: null,
@@ -317,6 +306,31 @@ function assertSupportedSourceDtypes(tensors, sourceKind) {
       `${Array.from(unsupported).sort((a, b) => a.localeCompare(b)).join(', ')}. ` +
       'Convert to RDRR first for this model.'
     );
+  }
+}
+
+function inferSourceQuantizationForSourceRuntime(tensors, sourceKind) {
+  try {
+    return inferSourceWeightQuantization(tensors);
+  } catch (error) {
+    const dtypes = new Set();
+    for (const tensor of tensors) {
+      const dtype = String(tensor?.dtype || '').trim().toUpperCase();
+      if (dtype) dtypes.add(dtype);
+    }
+    const hasLowPrecision = dtypes.has('F16') || dtypes.has('BF16');
+    const onlyLowAndF32 = dtypes.size > 0 && Array.from(dtypes).every(
+      (dtype) => dtype === 'F16' || dtype === 'BF16' || dtype === 'F32'
+    );
+    if (hasLowPrecision && onlyLowAndF32) {
+      log.warn(
+        'NodeSourceRuntime',
+        `Mixed ${sourceKind} tensor dtypes detected (${Array.from(dtypes).sort((a, b) => a.localeCompare(b)).join(', ')}). ` +
+        'Using F32 source quantization for direct-source parity.'
+      );
+      return 'F32';
+    }
+    throw error;
   }
 }
 
@@ -453,4 +467,3 @@ export async function resolveNodeSourceRuntimeBundle(options = {}) {
     sourceRoot: parsed.sourceRoot,
   };
 }
-

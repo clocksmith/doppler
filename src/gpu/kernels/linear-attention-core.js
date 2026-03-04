@@ -11,7 +11,6 @@ import { recordDispatch } from './dispatch.js';
 
 const CONV_WORKGROUP_SIZE = WORKGROUP_SIZES.DEFAULT;
 const HEAD_WORKGROUP_SIZE = 64;
-const MAX_HEAD_V_DIM = 256;
 
 const CONV_SHADER = /* wgsl */ `
 override WORKGROUP_SIZE: u32 = 256u;
@@ -81,7 +80,6 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
 
 const RECURRENT_SHADER = /* wgsl */ `
 override WORKGROUP_SIZE: u32 = 64u;
-const MAX_HEAD_V_DIM: u32 = 256u;
 
 struct LinearAttentionParams {
   num_tokens: u32,
@@ -95,7 +93,7 @@ struct LinearAttentionParams {
   k_size: u32,
   value_dim: u32,
   q_rep: u32,
-  _pad_u32_0: u32,
+  norm_mode: u32,
   rms_norm_eps: f32,
   qk_l2norm_eps: f32,
   _pad_f32_0: f32,
@@ -139,10 +137,6 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     return;
   }
 
-  var kv_mem: array<f32, MAX_HEAD_V_DIM>;
-  var delta: array<f32, MAX_HEAD_V_DIM>;
-  var out_head: array<f32, MAX_HEAD_V_DIM>;
-
   let head_k_dim = params.head_k_dim;
   let head_v_dim = params.head_v_dim;
   let head_scale = inverseSqrt(f32(head_k_dim));
@@ -160,8 +154,8 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     let ab_row_base = token_idx * params.num_v_heads + head;
     let out_row_base = token_idx * params.value_dim + head * head_v_dim;
 
-    var q_norm_sq: f32 = 0.0;
-    var k_norm_sq: f32 = 0.0;
+    var q_norm_sq = 0.0;
+    var k_norm_sq = 0.0;
     for (var d: u32 = 0u; d < head_k_dim; d = d + 1u) {
       let q_val = conv_out[conv_row_base + q_base + d];
       let k_val = conv_out[conv_row_base + k_base + d];
@@ -180,49 +174,38 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     }
 
     for (var vd: u32 = 0u; vd < head_v_dim; vd = vd + 1u) {
-      kv_mem[vd] = 0.0;
-      out_head[vd] = 0.0;
-    }
-
-    for (var kd: u32 = 0u; kd < head_k_dim; kd = kd + 1u) {
-      let k_normed = conv_out[conv_row_base + k_base + kd] * k_norm_scale;
-      let state_row_base = recurrent_head_base + kd * head_v_dim;
-      for (var vd: u32 = 0u; vd < head_v_dim; vd = vd + 1u) {
-        kv_mem[vd] = kv_mem[vd] + recurrent_state[state_row_base + vd] * k_normed;
+      var kv_mem = 0.0;
+      for (var kd: u32 = 0u; kd < head_k_dim; kd = kd + 1u) {
+        let k_normed = conv_out[conv_row_base + k_base + kd] * k_norm_scale;
+        let state_idx = recurrent_head_base + kd * head_v_dim + vd;
+        kv_mem = kv_mem + recurrent_state[state_idx] * k_normed;
+      }
+      let delta = (conv_out[conv_row_base + v_base + vd] - kv_mem) * beta;
+      for (var kd: u32 = 0u; kd < head_k_dim; kd = kd + 1u) {
+        let k_normed = conv_out[conv_row_base + k_base + kd] * k_norm_scale;
+        let state_idx = recurrent_head_base + kd * head_v_dim + vd;
+        recurrent_state[state_idx] = recurrent_state[state_idx] + k_normed * delta;
       }
     }
 
+    var mean_sq = 0.0;
     for (var vd: u32 = 0u; vd < head_v_dim; vd = vd + 1u) {
-      delta[vd] = (conv_out[conv_row_base + v_base + vd] - kv_mem[vd]) * beta;
-    }
-
-    for (var kd: u32 = 0u; kd < head_k_dim; kd = kd + 1u) {
-      let k_normed = conv_out[conv_row_base + k_base + kd] * k_norm_scale;
-      let state_row_base = recurrent_head_base + kd * head_v_dim;
-      for (var vd: u32 = 0u; vd < head_v_dim; vd = vd + 1u) {
-        recurrent_state[state_row_base + vd] = recurrent_state[state_row_base + vd] + k_normed * delta[vd];
+      var out_value = 0.0;
+      for (var kd: u32 = 0u; kd < head_k_dim; kd = kd + 1u) {
+        let q_normed = conv_out[conv_row_base + q_base + kd] * q_norm_scale;
+        let state_idx = recurrent_head_base + kd * head_v_dim + vd;
+        out_value = out_value + recurrent_state[state_idx] * q_normed;
       }
-    }
-
-    for (var kd: u32 = 0u; kd < head_k_dim; kd = kd + 1u) {
-      let q_normed = conv_out[conv_row_base + q_base + kd] * q_norm_scale;
-      let state_row_base = recurrent_head_base + kd * head_v_dim;
-      for (var vd: u32 = 0u; vd < head_v_dim; vd = vd + 1u) {
-        out_head[vd] = out_head[vd] + recurrent_state[state_row_base + vd] * q_normed;
-      }
-    }
-
-    var mean_sq: f32 = 0.0;
-    for (var vd: u32 = 0u; vd < head_v_dim; vd = vd + 1u) {
-      let value = out_head[vd];
+      output[out_row_base + vd] = out_value;
+      let value = out_value;
       mean_sq = mean_sq + value * value;
     }
     let inv_rms = inverseSqrt(mean_sq / f32(head_v_dim) + params.rms_norm_eps);
 
-    let norm_base = head * head_v_dim;
     for (var vd: u32 = 0u; vd < head_v_dim; vd = vd + 1u) {
       let gate = silu(z_proj[z_row_base + vd]);
-      output[out_row_base + vd] = (out_head[vd] * inv_rms) * norm_weight[norm_base + vd] * gate;
+      let norm_index = select(vd, head * head_v_dim + vd, params.norm_mode == 1u);
+      output[out_row_base + vd] = (output[out_row_base + vd] * inv_rms) * norm_weight[norm_index] * gate;
     }
   }
 }
@@ -318,7 +301,7 @@ function buildParamsData(params) {
   view.setUint32(32, params.kSize, true);
   view.setUint32(36, params.valueDim, true);
   view.setUint32(40, params.qRep, true);
-  view.setUint32(44, 0, true);
+  view.setUint32(44, params.normMode, true);
   view.setFloat32(48, params.rmsNormEps, true);
   view.setFloat32(52, params.qkL2NormEps, true);
   view.setFloat32(56, 0, true);
@@ -357,10 +340,11 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
   if (!Number.isFinite(numTokens) || numTokens <= 0) {
     throw new Error('runLinearAttentionCoreGPU requires numTokens > 0.');
   }
-  if (!Number.isFinite(layerState.headVDim) || layerState.headVDim <= 0 || layerState.headVDim > MAX_HEAD_V_DIM) {
-    throw new Error(
-      `linear_attention headVDim=${layerState.headVDim} exceeds supported MAX_HEAD_V_DIM=${MAX_HEAD_V_DIM}.`
-    );
+  if (!Number.isFinite(layerState.headVDim) || layerState.headVDim <= 0) {
+    throw new Error(`linear_attention requires positive headVDim, got ${layerState.headVDim}.`);
+  }
+  if (layerState.normMode !== 'shared' && layerState.normMode !== 'per_head') {
+    throw new Error(`linear_attention requires supported normMode, got ${layerState.normMode}.`);
   }
 
   ensurePipelines(device);
@@ -384,6 +368,7 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
         kSize: layerState.kSize,
         valueDim: layerState.valueDim,
         qRep: layerState.qRep,
+        normMode: layerState.normMode === 'per_head' ? 1 : 0,
         rmsNormEps: Number(layerState.rmsNormEps) || 1e-6,
         qkL2NormEps: Number(options.qkL2NormEps) || 1e-6,
       }),
@@ -463,6 +448,7 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
       kSize: layerState.kSize,
       valueDim: layerState.valueDim,
       qRep: layerState.qRep,
+      normMode: layerState.normMode === 'per_head' ? 1 : 0,
       rmsNormEps: Number(layerState.rmsNormEps) || 1e-6,
       qkL2NormEps: Number(options.qkL2NormEps) || 1e-6,
     }),

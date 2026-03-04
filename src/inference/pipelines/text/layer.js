@@ -418,6 +418,19 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
     outputTensor = await processFFNStandard(layerIdx, postAttn, numTokens, size, context, layerWeights);
   }
 
+  // Keep activation dtype consistent across layers. Some FFN paths can emit f32
+  // tensors even when the execution plan is f16; leaving that unnormalized causes
+  // downstream kernels to decode the buffer with the wrong dtype contract.
+  let finalOutput = outputTensor;
+  if (outputTensor.dtype !== activationDtype) {
+    finalOutput = await doCast(
+      outputTensor,
+      activationDtype,
+      recorder
+    );
+    releaseOrTrack(recorder, outputTensor.buffer, context.decodeBuffers);
+  }
+
   // Early-stop check for F16 NaN/Infinity bounds
   const computeConfig = context.runtimeComputeConfig ?? null;
   const shouldCheckFiniteness = context.finitenessGuardEnabled !== undefined
@@ -426,7 +439,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
   if (context.finitenessBuffer && context.activationDtype === 'f16' && shouldCheckFiniteness) {
     recordCheckFiniteness(
       recorder,
-      outputTensor.buffer,
+      finalOutput.buffer,
       size,
       context.finitenessBuffer,
       layerIdx,
@@ -435,7 +448,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
     );
   }
 
-  return outputTensor.buffer;
+  return finalOutput.buffer;
 }
 
 // ============================================================================

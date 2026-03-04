@@ -706,6 +706,23 @@ export function extractArchitecture(config, ggufConfig) {
     return value;
   };
 
+  const normalizeLinearNormMode = (value, sharedFlag = null) => {
+    if (typeof value === 'string') {
+      const normalized = value.trim().toLowerCase();
+      if (normalized === 'shared') return 'shared';
+      if (normalized === 'per_head' || normalized === 'per-head' || normalized === 'perhead') {
+        return 'per_head';
+      }
+      throw new Error(
+        `Unsupported linear_norm_mode="${value}" in model config. Supported values: "shared", "per_head".`
+      );
+    }
+    if (typeof sharedFlag === 'boolean') {
+      return sharedFlag ? 'shared' : 'per_head';
+    }
+    return undefined;
+  };
+
   // Try HuggingFace config first
   if (config && Object.keys(config).length > 0) {
     const textConfig = (
@@ -720,6 +737,15 @@ export function extractArchitecture(config, ggufConfig) {
         values.push(textConfig?.[key]);
       }
       return firstNumber(...values);
+    };
+    const fromConfigValue = (...keys) => {
+      for (const key of keys) {
+        if (config[key] !== undefined) return config[key];
+      }
+      for (const key of keys) {
+        if (textConfig?.[key] !== undefined) return textConfig[key];
+      }
+      return undefined;
     };
     const numLayers = requireNumber(
       fromConfig('num_hidden_layers', 'n_layer', 'num_layers'),
@@ -753,6 +779,23 @@ export function extractArchitecture(config, ggufConfig) {
     const linearKeyHeadDim = fromConfig('linear_key_head_dim');
     const linearValueHeadDim = fromConfig('linear_value_head_dim');
     const linearConvKernelDim = fromConfig('linear_conv_kernel_dim');
+    const linearNormModeConfigured = normalizeLinearNormMode(
+      fromConfigValue('linear_norm_mode'),
+      fromConfigValue('linear_norm_shared')
+    );
+    const modelType = String(fromConfigValue('model_type') ?? '').trim().toLowerCase();
+    const rawLayerTypes = fromConfigValue('layer_types');
+    const layerTypes = Array.isArray(rawLayerTypes) ? rawLayerTypes : null;
+    const hasLinearLayers = Array.isArray(layerTypes)
+      && layerTypes.some((entry) => {
+        const normalized = String(entry ?? '').trim().toLowerCase();
+        return normalized === 'linear_attention'
+          || normalized === 'linear'
+          || normalized === 'gated_delta'
+          || normalized === 'gated_delta_net';
+      });
+    const linearNormMode = linearNormModeConfigured
+      ?? ((hasLinearLayers && modelType.startsWith('qwen')) ? 'shared' : undefined);
 
     return {
       numLayers,
@@ -769,6 +812,7 @@ export function extractArchitecture(config, ggufConfig) {
       linearKeyHeadDim: linearKeyHeadDim ?? undefined,
       linearValueHeadDim: linearValueHeadDim ?? undefined,
       linearConvKernelDim: linearConvKernelDim ?? undefined,
+      linearNormMode,
     };
   }
 
@@ -1017,6 +1061,7 @@ export function createManifest(
     manifest.tokenizer = {
       type: 'bundled',
       vocabSize,
+      file: 'tokenizer.json',
     };
     manifest.metadata.hasTokenizer = true;
   } else {

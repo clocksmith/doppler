@@ -12,6 +12,7 @@ export interface LinearAttentionCoreLayerState {
   qSize: number;
   kSize: number;
   qRep: number;
+  normMode: 'shared' | 'per_head';
   rmsNormEps: number;
   convWeightGPU: GPUBuffer;
   dtBiasGPU: GPUBuffer;

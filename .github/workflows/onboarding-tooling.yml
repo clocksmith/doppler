@@ -27,9 +27,12 @@ on:
       - 'tools/verify-agent-freshness.js'
       - 'tools/run-registry-verify.js'
       - 'tools/sync-registry-scripts.js'
+      - 'tools/sync-model-support-matrix.js'
       - 'benchmarks/vendors/benchmark-policy.json'
       - 'tools/onboarding-tooling.js'
       - 'tools/configs/conversion/**'
+      - 'models/catalog.json'
+      - 'docs/model-support-matrix.md'
       - 'package.json'
       - '.github/workflows/onboarding-tooling.yml'
       - 'docs/onboarding-tooling.md'
@@ -60,9 +63,12 @@ on:
       - 'tools/verify-agent-freshness.js'
       - 'tools/run-registry-verify.js'
       - 'tools/sync-registry-scripts.js'
+      - 'tools/sync-model-support-matrix.js'
       - 'benchmarks/vendors/benchmark-policy.json'
       - 'tools/onboarding-tooling.js'
       - 'tools/configs/conversion/**'
+      - 'models/catalog.json'
+      - 'docs/model-support-matrix.md'
       - 'package.json'
       - '.github/workflows/onboarding-tooling.yml'
       - 'docs/onboarding-tooling.md'
@@ -87,6 +93,9 @@ jobs:
 
       - name: Run HF registry script sync check
         run: npm run registry:sync:scripts:check
+
+      - name: Run model support matrix check
+        run: npm run support:matrix:check
 
       - name: Run strict onboarding validator
         run: npm run onboarding:check:strict

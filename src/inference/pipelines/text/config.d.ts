@@ -15,6 +15,7 @@ import type {
   KernelPathRef,
   ManifestInferenceSchema,
   ArchitectureSchema,
+  LinearNormMode,
 } from '../../../config/schema/index.js';
 import type { MergedConfig, RuntimeInferenceOverrides } from '../../../config/merge.js';
 
@@ -72,6 +73,8 @@ export interface RawConfig {
   linear_key_head_dim?: number;
   linear_value_head_dim?: number;
   linear_conv_kernel_dim?: number;
+  linear_norm_mode?: LinearNormMode;
+  linear_norm_shared?: boolean;
   attention_bias?: boolean;
   quantization_config?: { quant_method?: string };
   scale_embeddings?: boolean;
@@ -171,6 +174,7 @@ export interface ParsedModelConfig {
   linearKeyHeadDim: number | null;
   linearValueHeadDim: number | null;
   linearConvKernelDim: number | null;
+  linearNormMode: LinearNormMode | null;
   attentionBias: boolean;
   causalAttention: boolean;
   embeddingScale?: number;

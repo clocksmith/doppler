@@ -2,6 +2,7 @@ import type { LayerWeights } from './types.js';
 import type { Tensor } from '../../../gpu/tensor.js';
 import type { WeightBuffer } from '../../../gpu/weight-buffer.js';
 import type { CommandRecorder } from '../../../gpu/command-recorder.js';
+import type { LinearNormMode } from '../../../config/schema/index.js';
 
 export interface LinearLayerRuntimeState {
   layerIdx: number;
@@ -19,6 +20,7 @@ export interface LinearLayerRuntimeState {
   kSize: number;
   vSize: number;
   qRep: number;
+  normMode: LinearNormMode;
   rmsNormEps: number;
   convWeight: Float32Array;
   dtBias: Float32Array;
@@ -49,6 +51,7 @@ export interface RunLinearAttentionLayerOptions {
     linearKeyHeadDim: number | null;
     linearValueHeadDim: number | null;
     linearConvKernelDim?: number | null;
+    linearNormMode?: LinearNormMode | null;
     rmsNormEps: number;
     rmsNormWeightOffset: boolean;
   };
