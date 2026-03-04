@@ -6,7 +6,7 @@
  * @module storage/download-types
  */
 
-import type { RDRRManifest } from './rdrr-format.js';
+import type { RDRRManifest } from '../formats/rdrr/types.js';
 
 /**
  * Download progress information

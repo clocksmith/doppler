@@ -29,9 +29,9 @@ Notes:
 
 Current config intent:
 
-- `tools/configs/conversion/gemma3/gemma-3-270m-it-wf16-ef16-hf16-f32.json`
-  - Output base: `models/local/gemma-3-270m-it-wf16-ef16-hf16-f32`
-  - Resolved modelId: `gemma-3-270m-it-wf16-ef16-hf16-f32`
+- `tools/configs/conversion/gemma3/gemma-3-270m-it-wf16-ef16-hf16.json`
+  - Output base: `models/local/gemma-3-270m-it-wf16-ef16-hf16`
+  - Resolved modelId: `gemma-3-270m-it-wf16-ef16-hf16`
   - Compute: `f32`
   - Kernel path: `gemma3-f16-fused-f32a-online`
 
@@ -48,9 +48,9 @@ Current config intent:
   - Compute: `f16`
   - Kernel path: `gemma3-q4k-dequant-f16a-online`
 
-- `tools/configs/conversion/gemma3/gemma-3-270m-it-wq4k-ef16-hf16-f32.json`
-  - Output base: `models/local/gemma-3-270m-it-wq4k-ef16-hf16-f32`
-  - Resolved modelId: `gemma-3-270m-it-wq4k-ef16-hf16-f32`
+- `tools/configs/conversion/gemma3/gemma-3-270m-it-wq4k-ef16-hf16.json`
+  - Output base: `models/local/gemma-3-270m-it-wq4k-ef16-hf16`
+  - Resolved modelId: `gemma-3-270m-it-wq4k-ef16-hf16`
   - Weights: `q4k` (row layout), embeddings/lmHead: `f16`
   - Compute: `f32`
   - Kernel path: `gemma3-q4k-dequant-f32a-online`
@@ -67,9 +67,9 @@ Current config intent:
   - Compute: `f16`
   - Kernel path: `gemma3-f16-fused-f16a-online`
 
-- `tools/configs/conversion/gemma3/gemma-3-1b-it-wq4k-ef16-hf16-f16.json`
-  - Output base: `models/local/gemma-3-1b-it-wq4k-ef16-hf16-f16`
-  - Resolved modelId: `gemma-3-1b-it-wq4k-ef16-hf16-f16`
+- `tools/configs/conversion/gemma3/gemma-3-1b-it-wq4k-ef16-hf16.json`
+  - Output base: `models/local/gemma-3-1b-it-wq4k-ef16-hf16`
+  - Resolved modelId: `gemma-3-1b-it-wq4k-ef16-hf16`
   - Compute: `f16`
   - Kernel path: `gemma3-q4k-dequant-f16a-online`
 

@@ -36,6 +36,22 @@ function assertString(value, label) {
   }
 }
 
+function assertOptionalString(value, label) {
+  if (value === undefined || value === null) return;
+  assertString(value, label);
+}
+
+function assertPlainObject(value, label) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error(`training metrics: ${label} must be an object.`);
+  }
+}
+
+function assertNullablePlainObject(value, label) {
+  if (value === undefined || value === null) return;
+  assertPlainObject(value, label);
+}
+
 function assertStringArray(value, label) {
   if (!Array.isArray(value)) {
     throw new Error(`training metrics: ${label} must be an array of strings.`);
@@ -63,6 +79,16 @@ export const DEFAULT_TRAINING_METRICS_REPORT = Object.freeze({
   clipped_event_count: 0,
   total_param_count: 0,
   trainable_param_count: 0,
+  lr: null,
+  seed: 1337,
+  model_id: 'training',
+  runtime_preset: null,
+  kernel_path: null,
+  environment_metadata: {
+    runtime: 'unknown',
+  },
+  memory_stats: null,
+  build_provenance: null,
   trainable_groups: [],
   frozen_groups: [],
   effective_lr: null,
@@ -145,6 +171,38 @@ export function validateTrainingMetricsEntry(entry) {
   assertOptionalIntegerGte(entry.clipped_event_count, 0, 'clipped_event_count');
   assertOptionalIntegerGte(entry.total_param_count, 0, 'total_param_count');
   assertOptionalIntegerGte(entry.trainable_param_count, 0, 'trainable_param_count');
+  if (!('lr' in entry)) {
+    throw new Error('training metrics: lr is required (nullable).');
+  }
+  assertNullableFiniteNumber(entry.lr, 'lr');
+  if (!('seed' in entry)) {
+    throw new Error('training metrics: seed is required.');
+  }
+  assertFiniteNumber(entry.seed, 'seed');
+  if (!('model_id' in entry)) {
+    throw new Error('training metrics: model_id is required.');
+  }
+  assertString(entry.model_id, 'model_id');
+  if (!('runtime_preset' in entry)) {
+    throw new Error('training metrics: runtime_preset is required (nullable).');
+  }
+  assertOptionalString(entry.runtime_preset, 'runtime_preset');
+  if (!('kernel_path' in entry)) {
+    throw new Error('training metrics: kernel_path is required (nullable).');
+  }
+  assertOptionalString(entry.kernel_path, 'kernel_path');
+  if (!('environment_metadata' in entry)) {
+    throw new Error('training metrics: environment_metadata is required.');
+  }
+  assertPlainObject(entry.environment_metadata, 'environment_metadata');
+  if (!('memory_stats' in entry)) {
+    throw new Error('training metrics: memory_stats is required (nullable).');
+  }
+  assertNullablePlainObject(entry.memory_stats, 'memory_stats');
+  if (!('build_provenance' in entry)) {
+    throw new Error('training metrics: build_provenance is required (nullable).');
+  }
+  assertNullablePlainObject(entry.build_provenance, 'build_provenance');
   assertNullableFiniteNumber(entry.effective_lr, 'effective_lr');
   assertOptionalIntegerGte(entry.scheduler_index, 0, 'scheduler_index');
   if (entry.scheduler_phase !== undefined && entry.scheduler_phase !== null) {

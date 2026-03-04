@@ -9,7 +9,7 @@
  * @module loader/manifest-config
  */
 
-import type { RDRRManifest } from '../storage/rdrr-format.js';
+import type { RDRRManifest } from '../formats/rdrr/index.js';
 import type { TensorLocation, KernelCapabilities } from './loader-types.js';
 import type { WeightLayout, WeightDtype } from '../gpu/weight-buffer.js';
 

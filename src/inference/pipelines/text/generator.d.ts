@@ -10,7 +10,7 @@
 import type { CommandRecorder, ProfileTimings } from '../../../gpu/command-recorder.js';
 import type { PipelineState } from './state.js';
 import type { GenerateOptions, KVCacheSnapshot, LogitsStepResult, PrefillResult, PrefillEmbeddingResult, AdvanceEmbeddingResult, LayerContext } from './types.js';
-import type { LogitsConfig, LogitsWeights } from './logits.js';
+import type { LogitsConfig, LogitsWeights } from './logits/index.js';
 import type { WeightBufferConfig } from './weights.js';
 import type { ChatMessage } from './chat-format.js';
 

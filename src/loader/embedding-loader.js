@@ -8,7 +8,7 @@ import {
   getLayout,
 } from '../gpu/weight-buffer.js';
 import { maybeDowncastToF16 } from './weight-downcast.js';
-import { getTensorNamesByRole } from './tensor-role.js';
+import { getTensorNamesByRole } from './tensors/tensor-role.js';
 import { log } from '../debug/index.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
 import { createTensor } from '../gpu/tensor.js';

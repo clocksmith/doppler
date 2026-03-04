@@ -7,7 +7,7 @@
  * @module inference/pipelines/text/debug-utils
  */
 
-// Re-export facade for backward compatibility
+// Public aggregation entrypoint
 export {
   type DebugCategory,
   type DebugConfig,

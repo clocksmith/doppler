@@ -15,6 +15,8 @@ export interface CheckpointStoreOptions {
   expectedMetadata?: Record<string, unknown>;
   forceResume?: boolean;
   forceResumeReason?: string;
+  forceResumeSource?: string;
+  forceResumeOperator?: string | null;
 }
 
 export declare function saveCheckpoint(

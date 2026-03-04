@@ -147,6 +147,71 @@ function resolveRuntimeStatus(modelType) {
   return RUNTIME_BLOCKED_MODEL_TYPES.has(modelType) ? 'blocked' : 'active';
 }
 
+function createEmptyLifecycleAggregate() {
+  return {
+    hosted: false,
+    demo: 'none',
+    tested: 'unknown',
+    testedAt: null,
+  };
+}
+
+function normalizeTestedState(value) {
+  const normalized = normalizeText(value);
+  if (normalized === 'verified' || normalized === 'pass' || normalized === 'passed') return 'verified';
+  if (normalized === 'failed' || normalized === 'fail') return 'failed';
+  return 'unknown';
+}
+
+function resolveCatalogLifecycle(model) {
+  const lifecycle = model?.lifecycle && typeof model.lifecycle === 'object' ? model.lifecycle : {};
+  const availability = lifecycle?.availability && typeof lifecycle.availability === 'object'
+    ? lifecycle.availability
+    : {};
+  const status = lifecycle?.status && typeof lifecycle.status === 'object' ? lifecycle.status : {};
+  const tested = lifecycle?.tested && typeof lifecycle.tested === 'object' ? lifecycle.tested : {};
+
+  const baseUrl = typeof model?.baseUrl === 'string' ? model.baseUrl.trim() : '';
+  const fallbackDemo = baseUrl.startsWith('./curated/') || baseUrl.startsWith('curated/')
+    ? 'curated'
+    : (baseUrl.startsWith('./local/') || baseUrl.startsWith('local/') ? 'local' : 'none');
+  const demo = normalizeText(status.demo) || fallbackDemo;
+
+  const hosted = typeof availability.hf === 'boolean'
+    ? availability.hf
+    : (model?.hf && typeof model.hf === 'object');
+
+  const testedState = normalizeTestedState(tested.result || status.tested);
+  const testedAt = typeof tested.lastVerifiedAt === 'string' && tested.lastVerifiedAt.trim()
+    ? tested.lastVerifiedAt.trim()
+    : null;
+
+  return {
+    hosted,
+    demo,
+    tested: testedState,
+    testedAt,
+  };
+}
+
+function mergeLifecycleAggregate(left, right) {
+  const tested = left.tested === 'failed' || right.tested === 'failed'
+    ? 'failed'
+    : (left.tested === 'verified' || right.tested === 'verified' ? 'verified' : 'unknown');
+  const testedAt = [left.testedAt, right.testedAt]
+    .filter((value) => typeof value === 'string' && value.length > 0)
+    .sort((a, b) => b.localeCompare(a))[0] || null;
+  const demo = left.demo === 'curated' || right.demo === 'curated'
+    ? 'curated'
+    : (left.demo === 'local' || right.demo === 'local' ? 'local' : 'none');
+  return {
+    hosted: left.hosted || right.hosted,
+    demo,
+    tested,
+    testedAt,
+  };
+}
+
 function resolveRowStatus(row) {
   if (row.conversionCount === 0) return 'missing-conversion';
   if (row.runtimeStatus === 'blocked') return 'blocked-runtime';
@@ -168,12 +233,13 @@ function renderMatrix(rows, metadata) {
   lines.push('# Model Support Matrix');
   lines.push('');
   lines.push('Auto-generated from preset registry (`src/config/loader.js`), conversion configs (`tools/configs/conversion/**`), and catalog (`models/catalog.json`).');
+  lines.push('`models/catalog.json` lifecycle metadata is the canonical source for hosted/demo/tested status.');
   lines.push('Run `npm run support:matrix:sync` after adding/changing presets, conversion configs, or catalog entries.');
   lines.push('');
   lines.push(`Updated at: ${metadata.generatedAt}`);
   lines.push('');
-  lines.push('| Preset | Runtime modelType | Runtime | Conversion configs | Catalog models | Status | Notes |');
-  lines.push('| --- | --- | --- | --- | --- | --- | --- |');
+  lines.push('| Preset | Runtime modelType | Runtime | Conversion configs | Catalog models | Hosted (HF) | Demo | Tested | Status | Notes |');
+  lines.push('| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |');
   for (const row of rows) {
     const notes = [];
     if (row.runtimeStatus === 'blocked') {
@@ -182,10 +248,17 @@ function renderMatrix(rows, metadata) {
     if (row.catalogCount === 0) {
       notes.push('not in local catalog');
     }
+    if (row.lifecycleTested === 'unknown') {
+      notes.push('not verified in catalog lifecycle');
+    }
     const noteText = notes.length > 0 ? notes.join('; ') : '-';
+    const testedLabel = row.lifecycleTested === 'verified' && row.lifecycleTestedAt
+      ? `verified (${row.lifecycleTestedAt})`
+      : row.lifecycleTested;
     lines.push(
       `| ${row.presetId} | ${row.runtimeModelType} | ${row.runtimeStatus} | ` +
-      `${summarizeList(row.conversionFiles)} | ${summarizeList(row.catalogModels)} | ${row.status} | ${noteText} |`
+      `${summarizeList(row.conversionFiles)} | ${summarizeList(row.catalogModels)} | ` +
+      `${row.lifecycleHosted ? 'yes' : 'no'} | ${row.lifecycleDemo} | ${testedLabel} | ${row.status} | ${noteText} |`
     );
   }
   lines.push('');
@@ -195,6 +268,8 @@ function renderMatrix(rows, metadata) {
   lines.push(`- Presets with conversion configs: ${metadata.presetsWithConversion}`);
   lines.push(`- Presets present in catalog: ${metadata.presetsInCatalog}`);
   lines.push(`- Ready presets (active runtime + conversion + catalog): ${metadata.readyCount}`);
+  lines.push(`- Presets with HF-hosted catalog entries: ${metadata.hostedCount}`);
+  lines.push(`- Presets with verified catalog lifecycle: ${metadata.verifiedCount}`);
   lines.push(`- Blocked runtime presets: ${metadata.blockedCount}`);
   lines.push(`- Catalog entries: ${metadata.catalogCount}`);
   lines.push('');
@@ -222,6 +297,9 @@ async function main() {
   const catalogPayload = await readJson(CATALOG_PATH);
   const catalogModels = Array.isArray(catalogPayload?.models) ? catalogPayload.models : [];
   const catalogByPreset = new Map(presetIds.map((presetId) => [presetId, []]));
+  const lifecycleByPreset = new Map(
+    presetIds.map((presetId) => [presetId, createEmptyLifecycleAggregate()])
+  );
   const unmappedCatalogModels = [];
   for (const model of catalogModels) {
     const inferredPreset = inferPresetFromCatalogModel(model, presetOrder, presetSet);
@@ -236,6 +314,13 @@ async function main() {
       ? model.modelId.trim()
       : 'unknown-model';
     catalogByPreset.get(inferredPreset).push(modelId);
+    lifecycleByPreset.set(
+      inferredPreset,
+      mergeLifecycleAggregate(
+        lifecycleByPreset.get(inferredPreset) || createEmptyLifecycleAggregate(),
+        resolveCatalogLifecycle(model)
+      )
+    );
   }
   for (const presetId of presetIds) {
     catalogByPreset.get(presetId).sort((left, right) => left.localeCompare(right));
@@ -246,6 +331,7 @@ async function main() {
     const runtimeStatus = resolveRuntimeStatus(runtimeModelType);
     const conversionFilesForPreset = conversionByPreset.get(presetId) || [];
     const catalogModelsForPreset = catalogByPreset.get(presetId) || [];
+    const lifecycleForPreset = lifecycleByPreset.get(presetId) || createEmptyLifecycleAggregate();
     const row = {
       presetId,
       runtimeModelType,
@@ -254,6 +340,10 @@ async function main() {
       conversionCount: conversionFilesForPreset.length,
       catalogModels: catalogModelsForPreset,
       catalogCount: catalogModelsForPreset.length,
+      lifecycleHosted: lifecycleForPreset.hosted === true,
+      lifecycleDemo: lifecycleForPreset.demo,
+      lifecycleTested: lifecycleForPreset.tested,
+      lifecycleTestedAt: lifecycleForPreset.testedAt,
     };
     return {
       ...row,
@@ -284,6 +374,8 @@ async function main() {
     presetsWithConversion: rows.filter((row) => row.conversionCount > 0).length,
     presetsInCatalog: rows.filter((row) => row.catalogCount > 0).length,
     readyCount: rows.filter((row) => row.status === 'ready').length,
+    hostedCount: rows.filter((row) => row.lifecycleHosted).length,
+    verifiedCount: rows.filter((row) => row.lifecycleTested === 'verified').length,
     blockedCount: rows.filter((row) => row.runtimeStatus === 'blocked').length,
     catalogCount: catalogModels.length,
   };

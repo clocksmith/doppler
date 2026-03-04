@@ -1,5 +1,5 @@
 import { loadTensorsFromStore } from '../storage/shard-manager.js';
-import { parseTensorMap } from '../storage/rdrr-format.js';
+import { parseTensorMap } from '../formats/rdrr/index.js';
 import { log, trace as debugTrace } from '../debug/index.js';
 
 export async function buildTensorLocations(manifest, options = {}) {

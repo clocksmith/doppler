@@ -6,6 +6,7 @@ This document tracks what is implemented directly in the Doppler repository for 
 - Transport contract versioning and typed error normalization.
 - Deterministic source routing (`cache -> p2p -> http`) with optional decision trace.
 - In-flight shard request dedupe.
+- Persistent store-backed resume parity for both HTTP and P2P paths (including p2p `resumeOffset` threading and range-start alignment checks).
 - Anti-rollback guards for expected hash, size, and manifest version-set.
 - Downloader integration with manifest version-set propagation.
 

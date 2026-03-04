@@ -25,7 +25,7 @@ import type { CompiledExecutionV0RuntimeState } from './execution-v0.js';
 import type { LoRAAdapter } from './lora.js';
 import type { RuntimeConfigSchema, KernelPathSchema } from '../../../config/schema/index.js';
 import type { WeightDebugFlags } from './weights.js';
-import type { LogitsDebugFlags } from './logits.js';
+import type { LogitsDebugFlags } from './logits/index.js';
 import type { KernelPathSource } from '../../../config/kernel-path-loader.js';
 import type { EmulationContext } from '/proto/simulator/index.js';
 import type { PipelineStorageContext } from './init.js';

@@ -7,7 +7,7 @@ import {
   listModels,
   loadManifestFromStore,
 } from '../../storage/shard-manager.js';
-import { getManifest, parseManifest, getManifestUrl } from '../../storage/rdrr-format.js';
+import { getManifest, parseManifest, getManifestUrl } from '../../formats/rdrr/index.js';
 import { downloadModel } from '../../storage/downloader.js';
 import { requestPersistence, getStorageReport } from '../../storage/quota.js';
 import { initDevice, getKernelCapabilities, getDeviceLimits, destroyDevice, getDevice } from '../../gpu/device.js';

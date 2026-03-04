@@ -13,7 +13,7 @@ import {
   parseGroupExpertIndex,
   parseGroupLayerIndex,
   sortGroupIds,
-} from '../storage/rdrr-format.js';
+} from '../formats/rdrr/index.js';
 
 const PLACEHOLDER_HASH = '0'.repeat(64);
 export const DIRECT_SOURCE_RUNTIME_MODE = 'direct-source';

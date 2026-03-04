@@ -28,6 +28,8 @@ import { castF32ToF16 } from '../../../gpu/kernels/cast.js';
 import { runResidualAdd, runScale, recordResidualAdd, recordScale } from '../../../gpu/kernels/index.js';
 import { f16ToF32 } from '../../../loader/dtype-utils.js';
 
+const SUPPORTED_DIFFUSION_BACKEND_PIPELINES = new Set(['cpu', 'gpu_scaffold', 'gpu']);
+
 function createRandomSeed() {
   if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
     const values = new Uint32Array(1);
@@ -189,13 +191,19 @@ export class DiffusionPipeline {
       runtimeConfig: this.runtimeConfig,
     });
     const pipelineMode = this.diffusionState.runtime?.backend?.pipeline;
+    if (!SUPPORTED_DIFFUSION_BACKEND_PIPELINES.has(pipelineMode)) {
+      throw new Error(
+        `Unsupported diffusion backend.pipeline "${pipelineMode}". ` +
+        'Expected one of: cpu, gpu_scaffold, gpu.'
+      );
+    }
     if (pipelineMode === 'gpu_scaffold') {
       this.gpuScaffold = initializeDiffusionGpuScaffold(this.diffusionState.runtime);
       logDiffusionGpuScaffold(this.gpuScaffold);
     } else if (pipelineMode === 'gpu') {
       log.info('Diffusion', 'GPU diffusion pipeline enabled.');
     } else {
-      log.warn('Diffusion', 'Diffusion kernels are not implemented yet; using CPU placeholder pipeline.');
+      log.info('Diffusion', 'CPU diffusion pipeline enabled.');
     }
   }
 
@@ -302,7 +310,13 @@ export class DiffusionPipeline {
     if (pipelineMode === 'gpu') {
       return this.generateGPU(request);
     }
-    return this.generateCPU(request);
+    if (pipelineMode === 'gpu_scaffold' || pipelineMode === 'cpu') {
+      return this.generateCPU(request);
+    }
+    throw new Error(
+      `Unsupported diffusion backend.pipeline "${pipelineMode}". ` +
+      'Expected one of: cpu, gpu_scaffold, gpu.'
+    );
   }
 
   async generateCPU(request = {}) {
@@ -543,7 +557,9 @@ export class DiffusionPipeline {
 
     const scheduler = buildScheduler(runtime.scheduler, steps);
     if (scheduler.type !== 'flowmatch_euler') {
-      log.warn('Diffusion', `GPU pipeline tuned for flowmatch_euler; running "${scheduler.type}" may be inaccurate.`);
+      throw new Error(
+        `Diffusion GPU pipeline requires scheduler.type="flowmatch_euler"; got "${scheduler.type}".`
+      );
     }
     const latentScale = this.diffusionState.latentScale;
     const latentChannels = this.diffusionState.latentChannels;

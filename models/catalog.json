@@ -1,9 +1,10 @@
 {
   "version": 1,
+  "lifecycleSchemaVersion": 1,
   "updatedAt": "2026-03-04",
   "models": [
     {
-      "modelId": "gemma-3-270m-it-wq4k-ef16-hf16-f32",
+      "modelId": "gemma-3-270m-it-wq4k-ef16-hf16",
       "preset": "gemma3",
       "label": "Gemma 3 270M Instruct (Q4K/F32a)",
       "description": "Gemma 3 270M text model. Prefers Hugging Face-hosted prebuilt RDRR shards with local curated fallback.",
@@ -14,17 +15,38 @@
       "aliases": [
         "gemma3-270m",
         "google/gemma-3-270m-it",
-        "gemma-3-270m-it-wq4k-ef16"
+        "gemma-3-270m-it-wq4k-ef16",
+        "gemma-3-270m-it-wq4k-ef16-hf16-f32"
       ],
       "hf": {
         "repoId": "Clocksmith/rdrr",
         "revision": "4efe64a914892e98be50842aeb16c3b648cc68a5",
         "path": "models/gemma-3-270m-it-wq4k-ef16"
       },
-      "baseUrl": "./curated/gemma-3-270m-it-wq4k-ef16",
+      "baseUrl": "./curated/gemma-3-270m-it-wq4k-ef16-hf16",
       "sizeBytes": 418512553,
       "recommended": false,
-      "sortOrder": 10
+      "sortOrder": 10,
+      "lifecycle": {
+        "availability": {
+          "curated": true,
+          "local": true,
+          "hf": true
+        },
+        "status": {
+          "runtime": "active",
+          "conversion": "ready",
+          "demo": "curated",
+          "tested": "verified"
+        },
+        "tested": {
+          "suite": "inference",
+          "surface": "auto",
+          "result": "pass",
+          "lastVerifiedAt": "2026-03-04",
+          "source": "registry-verify"
+        }
+      }
     },
     {
       "modelId": "google-embeddinggemma-300m-wq4k-ef16",
@@ -47,7 +69,27 @@
       "baseUrl": "./curated/google-embeddinggemma-300m-wq4k-ef16",
       "sizeBytes": 480562497,
       "recommended": false,
-      "sortOrder": 11
+      "sortOrder": 11,
+      "lifecycle": {
+        "availability": {
+          "curated": true,
+          "local": true,
+          "hf": true
+        },
+        "status": {
+          "runtime": "active",
+          "conversion": "ready",
+          "demo": "curated",
+          "tested": "verified"
+        },
+        "tested": {
+          "suite": "inference",
+          "surface": "auto",
+          "result": "pass",
+          "lastVerifiedAt": "2026-03-04",
+          "source": "registry-verify"
+        }
+      }
     }
   ]
 }

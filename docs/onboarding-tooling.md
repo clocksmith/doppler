@@ -192,12 +192,12 @@ Example multi-variant loop for Gemma-3:
 for cfg in \
   tools/configs/conversion/gemma3/gemma-3-1b-it-wf16-ef16-hf16-f16.json \
   tools/configs/conversion/gemma3/gemma-3-1b-it-wf16-ef16-hf16-f32.json \
-  tools/configs/conversion/gemma3/gemma-3-1b-it-wq4k-ef16-hf16-f16.json \
+  tools/configs/conversion/gemma3/gemma-3-1b-it-wq4k-ef16-hf16.json \
   tools/configs/conversion/gemma3/gemma-3-1b-it-wq4k-ef16-hf16-f32.json \
   tools/configs/conversion/gemma3/gemma-3-270m-it-wf16-ef16-hf16-f16.json \
-  tools/configs/conversion/gemma3/gemma-3-270m-it-wf16-ef16-hf16-f32.json \
+  tools/configs/conversion/gemma3/gemma-3-270m-it-wf16-ef16-hf16.json \
   tools/configs/conversion/gemma3/gemma-3-270m-it-wq4k-ef16-hf16-f16.json \
-  tools/configs/conversion/gemma3/gemma-3-270m-it-wq4k-ef16-hf16-f32.json; do
+  tools/configs/conversion/gemma3/gemma-3-270m-it-wq4k-ef16-hf16.json; do
   MODEL_ID="$(jq -r '.output.modelBaseId' "$cfg")"
   node tools/doppler-cli.js convert --config "{\"request\":{\"inputDir\":\"$INPUT_PATH\",\"convertPayload\":{\"converterConfig\":$(cat "$cfg")}}}"
   node tools/doppler-cli.js verify --config "{\"request\":{\"suite\":\"inference\",\"modelId\":\"$MODEL_ID\",\"runtimePreset\":\"modes/debug\"},\"run\":{\"surface\":\"auto\"}}" --json

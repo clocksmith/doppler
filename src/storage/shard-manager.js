@@ -3,7 +3,7 @@ import {
   getShardInfo,
   getShardCount,
   generateShardFilename,
-} from './rdrr-format.js';
+} from '../formats/rdrr/index.js';
 import {
   isOPFSAvailable,
   isIndexedDBAvailable,
@@ -17,7 +17,7 @@ import { createOpfsStore } from './backends/opfs-store.js';
 import { createIdbStore } from './backends/idb-store.js';
 import { createMemoryStore } from './backends/memory-store.js';
 
-export { getManifest } from './rdrr-format.js';
+export { getManifest } from '../formats/rdrr/index.js';
 
 let opfsPathConfigOverride = null;
 let blake3Module = null;
@@ -299,7 +299,22 @@ export async function writeShard(shardIndex, data, options = { verify: true }) {
   }
 }
 
-export async function createShardWriter(shardIndex) {
+function normalizeShardWriterOptions(options = {}) {
+  const append = options?.append === true;
+  const expectedOffsetRaw = options?.expectedOffset;
+  const expectedOffset = expectedOffsetRaw == null
+    ? null
+    : Number(expectedOffsetRaw);
+  if (
+    expectedOffset != null
+    && (!Number.isInteger(expectedOffset) || expectedOffset < 0)
+  ) {
+    throw new Error('Shard writer expectedOffset must be a non-negative integer');
+  }
+  return { append, expectedOffset };
+}
+
+export async function createShardWriter(shardIndex, options = {}) {
   await ensureBackend();
   requireModel();
   const shardInfo = getShardInfo(shardIndex);
@@ -309,7 +324,8 @@ export async function createShardWriter(shardIndex) {
   if (!backend.createWriteStream) {
     throw new Error('Storage backend does not support streaming writes');
   }
-  return backend.createWriteStream(shardInfo.filename);
+  const writerOptions = normalizeShardWriterOptions(options);
+  return backend.createWriteStream(shardInfo.filename, writerOptions);
 }
 
 export async function createConversionShardWriter(shardIndex) {
@@ -448,6 +464,30 @@ export async function shardExists(shardIndex) {
     return true;
   } catch {
     return false;
+  }
+}
+
+export async function getShardStoredSize(shardIndex) {
+  await ensureBackend();
+  requireModel();
+  const shardInfo = getShardInfo(shardIndex);
+  if (!shardInfo) {
+    throw new Error(`Invalid shard index: ${shardIndex}`);
+  }
+
+  try {
+    if (typeof backend.getFileSize === 'function') {
+      const size = await backend.getFileSize(shardInfo.filename);
+      return Number.isFinite(size) ? Math.max(0, Math.floor(size)) : 0;
+    }
+    const buffer = await backend.readFile(shardInfo.filename);
+    return buffer.byteLength;
+  } catch (error) {
+    const message = String(error?.message || '');
+    if (error?.name === 'NotFoundError' || message.toLowerCase().includes('not found')) {
+      return 0;
+    }
+    throw new Error(`Failed to read shard ${shardIndex} size: ${message}`);
   }
 }
 

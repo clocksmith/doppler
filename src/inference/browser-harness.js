@@ -7,7 +7,7 @@ import { createPipeline } from './pipelines/text.js';
 import { parseModelConfigFromManifest } from './pipelines/text/config.js';
 import { resolveKernelPathState, activateKernelPathState } from './pipelines/text/model-load.js';
 import { openModelStore, loadManifestFromStore } from '../storage/shard-manager.js';
-import { parseManifest } from '../storage/rdrr-format.js';
+import { parseManifest } from '../formats/rdrr/index.js';
 import { computeSampleStats } from '../debug/stats.js';
 import {
   setActiveKernelPath,

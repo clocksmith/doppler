@@ -1,13 +1,18 @@
 #!/usr/bin/env node
 
 import { spawn } from 'node:child_process';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const DEFAULT_REGISTRY_URL = process.env.DOPPLER_HF_REGISTRY_URL
   || 'https://huggingface.co/Clocksmith/rdrr/resolve/main/registry/catalog.json';
+const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const DEFAULT_CATALOG_FILE = path.join(REPO_ROOT, 'models', 'catalog.json');
 
 function usage() {
   console.error(
-    'Usage: node tools/run-registry-verify.js <model-alias-or-id> [--registry-url <url>] [--surface <auto|node|browser>]'
+    'Usage: node tools/run-registry-verify.js <model-alias-or-id> [--registry-url <url>] [--surface <auto|node|browser>] [--update-catalog] [--catalog-file <path>]'
   );
 }
 
@@ -61,6 +66,8 @@ function parseArgs(argv) {
     model: '',
     registryUrl: DEFAULT_REGISTRY_URL,
     surface: 'auto',
+    updateCatalog: false,
+    catalogFile: DEFAULT_CATALOG_FILE,
   };
 
   const positional = [];
@@ -73,6 +80,15 @@ function parseArgs(argv) {
     }
     if (arg === '--surface') {
       out.surface = argv[i + 1] ? String(argv[i + 1]).trim() : '';
+      i += 1;
+      continue;
+    }
+    if (arg === '--update-catalog') {
+      out.updateCatalog = true;
+      continue;
+    }
+    if (arg === '--catalog-file') {
+      out.catalogFile = argv[i + 1] ? String(argv[i + 1]).trim() : '';
       i += 1;
       continue;
     }
@@ -110,14 +126,75 @@ function runVerify(config, surface) {
     args.push('--surface', surface);
   }
 
-  const child = spawn('node', args, { stdio: 'inherit', env: process.env });
-  child.on('exit', (code) => {
-    process.exit(code ?? 1);
+  return new Promise((resolve, reject) => {
+    const child = spawn('node', args, { stdio: 'inherit', env: process.env });
+    child.on('exit', (code) => {
+      resolve(code ?? 1);
+    });
+    child.on('error', (error) => {
+      reject(error);
+    });
   });
-  child.on('error', (error) => {
-    console.error(`[registry-verify] ${error.message}`);
-    process.exit(1);
-  });
+}
+
+function toIsoDate(value = new Date()) {
+  return value.toISOString().slice(0, 10);
+}
+
+function isPlainObject(value) {
+  return value != null && typeof value === 'object' && !Array.isArray(value);
+}
+
+async function updateCatalogTestStatus(options) {
+  const {
+    catalogFile,
+    modelId,
+    surface,
+    suite,
+    result,
+    source = 'registry-verify',
+  } = options;
+
+  if (!catalogFile) {
+    throw new Error('Catalog file path is empty.');
+  }
+  const raw = await fs.readFile(catalogFile, 'utf8');
+  const payload = JSON.parse(raw);
+  if (!isPlainObject(payload) || !Array.isArray(payload.models)) {
+    throw new Error(`Catalog payload is invalid at ${catalogFile}.`);
+  }
+
+  const model = payload.models.find((entry) => entry?.modelId === modelId);
+  if (!model) {
+    throw new Error(`Model "${modelId}" was not found in catalog ${catalogFile}.`);
+  }
+
+  const lifecycle = isPlainObject(model.lifecycle) ? model.lifecycle : {};
+  const status = isPlainObject(lifecycle.status) ? lifecycle.status : {};
+  const tested = isPlainObject(lifecycle.tested) ? lifecycle.tested : {};
+
+  model.lifecycle = {
+    ...lifecycle,
+    status: {
+      ...status,
+      tested: result === 'pass' ? 'verified' : 'failed',
+    },
+    tested: {
+      ...tested,
+      suite,
+      surface,
+      result,
+      lastVerifiedAt: toIsoDate(),
+      source,
+    },
+  };
+
+  payload.updatedAt = toIsoDate();
+  await fs.writeFile(catalogFile, `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
+  console.error(
+    `[registry-verify] updated catalog lifecycle for ${modelId} ` +
+    `(tested=${model.lifecycle.status.tested}, result=${result})`
+  );
 }
 
 async function main() {
@@ -154,7 +231,27 @@ async function main() {
   };
   const run = { surface: parsed.surface || 'auto' };
 
-  runVerify({ request, run }, parsed.surface);
+  let exitCode = 1;
+  try {
+    exitCode = await runVerify({ request, run }, parsed.surface);
+  } catch (error) {
+    console.error(`[registry-verify] ${error.message}`);
+    process.exit(1);
+  }
+
+  if (parsed.updateCatalog) {
+    const result = exitCode === 0 ? 'pass' : 'fail';
+    await updateCatalogTestStatus({
+      catalogFile: parsed.catalogFile,
+      modelId: entry.modelId,
+      surface: parsed.surface || 'auto',
+      suite: request.suite,
+      result,
+      source: 'registry-verify',
+    });
+  }
+
+  process.exit(exitCode);
 }
 
 main().catch((error) => {

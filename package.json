@@ -17,6 +17,10 @@
     "bench:chart": "node ./benchmarks/vendors/compare-chart.js",
     "bench:chart:readme": "node ./benchmarks/vendors/compare-chart.js --preset readme-evidence",
     "bench:architecture:chart": "node ./benchmarks/vendors/generate-architecture-overview-svg.js",
+    "ci:training:contract": "node tools/ci-training-contract-gates.mjs",
+    "ci:training:contract:list": "node tools/ci-training-contract-gates.mjs --list",
+    "training:contract:delta": "node tools/emit-training-contract-delta.mjs",
+    "distill:quality-gate": "node tools/distill-studio-quality-gate.mjs",
     "test:unit": "node tools/run-node-tests.mjs --suite unit",
     "test:gpu": "node tools/run-node-tests.mjs --suite gpu",
     "test:coverage": "node tools/run-node-coverage.mjs",
@@ -36,12 +40,13 @@
     "kernels:generate": "node tools/generate-wgsl.js",
     "kernels:check": "node tools/generate-wgsl.js --check",
     "verify": "node tools/run-registry-verify.js",
+    "verify:catalog": "node tools/run-registry-verify.js --update-catalog",
     "registry:sync:scripts": "node tools/sync-registry-scripts.js",
     "registry:sync:scripts:check": "node tools/sync-registry-scripts.js --check",
     "support:matrix:sync": "node tools/sync-model-support-matrix.js",
     "support:matrix:check": "node tools/sync-model-support-matrix.js --check",
     "verify:gemma-3-270m-it-wq4k-ef16": "node tools/run-registry-verify.js gemma-3-270m-it-wq4k-ef16",
-    "verify:gemma-3-270m-it-wq4k-ef16-hf16-f32": "node tools/run-registry-verify.js gemma-3-270m-it-wq4k-ef16-hf16-f32",
+    "verify:gemma-3-270m-it-wq4k-ef16-hf16": "node tools/run-registry-verify.js gemma-3-270m-it-wq4k-ef16-hf16",
     "verify:google-embeddinggemma-300m": "node tools/run-registry-verify.js google-embeddinggemma-300m",
     "verify:google-embeddinggemma-300m-wq4k-ef16": "node tools/run-registry-verify.js google-embeddinggemma-300m-wq4k-ef16",
     "verify:google-gemma-3-270m-it": "node tools/run-registry-verify.js google-gemma-3-270m-it"
@@ -54,6 +59,26 @@
     "./provider": {
       "types": "./src/client/doppler-provider.d.ts",
       "import": "./src/client/doppler-provider.js"
+    },
+    "./tooling": {
+      "types": "./src/tooling-exports.d.ts",
+      "import": "./src/tooling-exports.js"
+    },
+    "./internal": {
+      "types": "./src/index-internal.d.ts",
+      "import": "./src/index-internal.js"
+    },
+    "./generation": {
+      "types": "./src/generation/index.d.ts",
+      "import": "./src/generation/index.js"
+    },
+    "./diffusion": {
+      "types": "./src/diffusion/index.d.ts",
+      "import": "./src/diffusion/index.js"
+    },
+    "./energy": {
+      "types": "./src/energy/index.d.ts",
+      "import": "./src/energy/index.js"
     },
     "./*": "./src/*"
   },
@@ -84,7 +109,6 @@
     "NOTICE",
     "BRANDING.md",
     "SECURITY.md",
-    "CODE_OF_CONDUCT.md",
     "tools/doppler-cli.js",
     "tools/convert-safetensors-node.js"
   ],

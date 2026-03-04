@@ -22,6 +22,7 @@ import {
 } from './artifacts.js';
 import { loadCheckpoint, saveCheckpoint } from './checkpoint.js';
 import { validateTrainingMetricsEntry } from '../config/schema/training-metrics.schema.js';
+import { sha256Hex } from '../utils/sha256.js';
 
 function toFloat32(buffer, dtype) {
   if (dtype === 'f16') {
@@ -369,6 +370,207 @@ function normalizeOptionalString(value) {
   return trimmed || null;
 }
 
+function stableSortObject(value) {
+  if (Array.isArray(value)) {
+    return value.map((entry) => stableSortObject(entry));
+  }
+  if (!value || typeof value !== 'object') {
+    return value;
+  }
+  const sorted = {};
+  for (const key of Object.keys(value).sort()) {
+    sorted[key] = stableSortObject(value[key]);
+  }
+  return sorted;
+}
+
+function stableJson(value) {
+  return JSON.stringify(stableSortObject(value));
+}
+
+function hashStableJson(value) {
+  return sha256Hex(stableJson(value));
+}
+
+function resolveRuntimeEnvironmentMetadata() {
+  const environment = {
+    runtime: isNodeRuntime() ? 'node' : 'browser',
+  };
+  if (typeof process !== 'undefined' && process.versions?.node) {
+    environment.nodeVersion = process.versions.node;
+    environment.platform = process.platform;
+    environment.arch = process.arch;
+  }
+  if (typeof navigator !== 'undefined') {
+    environment.userAgent = normalizeOptionalString(navigator.userAgent);
+    environment.hardwareConcurrency = Number.isFinite(navigator.hardwareConcurrency)
+      ? navigator.hardwareConcurrency
+      : null;
+  }
+  return environment;
+}
+
+function normalizeIsoTimestamp(value) {
+  if (value === undefined || value === null || value === '') return null;
+  if (value instanceof Date) {
+    return Number.isFinite(value.getTime()) ? value.toISOString() : null;
+  }
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? new Date(value).toISOString() : null;
+  }
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+    const parsedNumeric = Number(trimmed);
+    if (Number.isFinite(parsedNumeric)) {
+      return new Date(parsedNumeric).toISOString();
+    }
+    const parsedDate = new Date(trimmed);
+    return Number.isFinite(parsedDate.getTime()) ? parsedDate.toISOString() : null;
+  }
+  return null;
+}
+
+function resolveBuildProvenance(runOptions = {}) {
+  const optionsProvenance = (
+    runOptions.buildProvenance
+    && typeof runOptions.buildProvenance === 'object'
+    && !Array.isArray(runOptions.buildProvenance)
+  )
+    ? runOptions.buildProvenance
+    : {};
+  const env = (typeof process !== 'undefined' && process.env) ? process.env : {};
+  const commitHash = normalizeOptionalString(
+    optionsProvenance.commitHash
+    || runOptions.buildCommitHash
+    || env.DOPPLER_BUILD_COMMIT
+    || env.GIT_COMMIT
+    || env.COMMIT_SHA
+    || env.SOURCE_VERSION
+    || env.VERCEL_GIT_COMMIT_SHA
+  );
+  const buildId = normalizeOptionalString(
+    optionsProvenance.buildId
+    || runOptions.buildId
+    || env.DOPPLER_BUILD_ID
+    || env.BUILD_ID
+    || env.VERCEL_BUILD_ID
+    || env.GITHUB_RUN_ID
+  );
+  const buildTimestamp = normalizeIsoTimestamp(
+    optionsProvenance.buildTimestamp
+    || runOptions.buildTimestamp
+    || env.DOPPLER_BUILD_TIMESTAMP
+    || env.BUILD_TIMESTAMP
+    || env.VERCEL_GIT_COMMIT_TIMESTAMP
+  );
+  return {
+    commitHash,
+    buildId,
+    buildTimestamp,
+  };
+}
+
+function resolveTrainingSeed(config, runOptions = {}) {
+  const candidates = [
+    runOptions.seed,
+    config?.training?.seed,
+    config?.training?.distill?.seed,
+    config?.training?.ul?.seed,
+  ];
+  for (const candidate of candidates) {
+    const parsed = Number(candidate);
+    if (Number.isFinite(parsed)) {
+      return Math.floor(parsed);
+    }
+  }
+  return 1337;
+}
+
+function resolveRuntimeMemoryStats() {
+  const perf = globalThis.performance;
+  const memory = perf && typeof perf === 'object' ? perf.memory : null;
+  if (!memory || typeof memory !== 'object') {
+    return null;
+  }
+  return {
+    js_heap_used_bytes: Number.isFinite(memory.usedJSHeapSize) ? memory.usedJSHeapSize : null,
+    js_heap_total_bytes: Number.isFinite(memory.totalJSHeapSize) ? memory.totalJSHeapSize : null,
+    js_heap_limit_bytes: Number.isFinite(memory.jsHeapSizeLimit) ? memory.jsHeapSizeLimit : null,
+  };
+}
+
+function resolveCheckpointMetadataContext(config, runOptions = {}) {
+  const runtimePresetId = normalizeOptionalString(runOptions.runtimePreset);
+  const kernelPathId = normalizeOptionalString(
+    runOptions.kernelPathId
+    || config?.runtime?.inference?.kernelPath
+    || config?.inference?.defaultKernelPath
+  );
+  const datasetIdentity = {
+    modelId: normalizeOptionalString(runOptions.modelId),
+    modelUrl: normalizeOptionalString(runOptions.modelUrl),
+    distillDatasetId: normalizeOptionalString(runOptions.distillDatasetId),
+    distillDatasetPath: normalizeOptionalString(runOptions.distillDatasetPath),
+    distillLanguagePair: normalizeOptionalString(runOptions.distillLanguagePair),
+    distillShardIndex: Number.isInteger(runOptions.distillShardIndex) ? runOptions.distillShardIndex : null,
+    distillShardCount: Number.isInteger(runOptions.distillShardCount) ? runOptions.distillShardCount : null,
+    trainingStage: normalizeOptionalString(
+      runOptions.trainingStage
+      || config?.training?.distill?.stage
+      || config?.training?.ul?.stage
+    ),
+  };
+  const configHash = hashStableJson(config?.training || {});
+  const datasetHash = hashStableJson(datasetIdentity);
+  const tokenizerHash = normalizeOptionalString(runOptions.tokenizerHash);
+  const optimizerHash = hashStableJson({
+    optimizerConfig: config?.training?.optimizer || null,
+    stepCount: Number.isInteger(runOptions.optimizerStepCount) ? runOptions.optimizerStepCount : null,
+  });
+  return {
+    configHash,
+    datasetHash,
+    tokenizerHash,
+    optimizerHash,
+    runtimePresetId,
+    kernelPathId,
+    environmentMetadata: resolveRuntimeEnvironmentMetadata(),
+    buildProvenance: resolveBuildProvenance(runOptions),
+  };
+}
+
+function buildExpectedCheckpointMetadata(metadata) {
+  const expected = {};
+  for (const key of [
+    'configHash',
+    'datasetHash',
+    'tokenizerHash',
+    'optimizerHash',
+    'runtimePresetId',
+    'kernelPathId',
+  ]) {
+    const value = metadata?.[key];
+    if (value !== null && value !== undefined) {
+      expected[key] = value;
+    }
+  }
+  return Object.keys(expected).length > 0 ? expected : null;
+}
+
+function resolveForceResumeSource(runOptions = {}) {
+  return normalizeOptionalString(
+    runOptions.forceResumeSource
+    || (
+      runOptions.command && runOptions.surface
+        ? `${runOptions.command}:${runOptions.surface}`
+        : null
+    )
+    || runOptions.command
+    || 'training_runner'
+  );
+}
+
 function toBase64(bytes) {
   if (typeof Buffer !== 'undefined') {
     return Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength).toString('base64');
@@ -512,11 +714,20 @@ async function restoreTrainingCheckpointState(model, optimizer, checkpointRecord
     }
   }
   const progress = trainingState.progress || {};
+  const resumeAudits = Array.isArray(checkpointRecord?.metadata?.resumeAudits)
+    ? checkpointRecord.metadata.resumeAudits
+        .filter((entry) => entry && typeof entry === 'object')
+        .map((entry) => ({ ...entry }))
+    : [];
   return {
     step: Number.isInteger(progress.step) ? progress.step : 0,
     epoch: Number.isInteger(progress.epoch) ? progress.epoch : 0,
     batch: Number.isInteger(progress.batch) ? progress.batch : 0,
     checkpointHash: checkpointRecord?.metadata?.checkpointHash || null,
+    previousCheckpointHash: checkpointRecord?.metadata?.lineage?.previousCheckpointHash || null,
+    checkpointKey: checkpointRecord?.metadata?.lineage?.checkpointKey || null,
+    resumeAudits,
+    resumeAuditCount: resumeAudits.length,
   };
 }
 
@@ -576,23 +787,46 @@ export class TrainingRunner {
       throw new Error('TrainingRunner cannot run distill and ul modes simultaneously.');
     }
     const checkpointInterval = toPositiveIntegerOrNull(options.checkpointEvery) ?? 1;
+    const checkpointMetadata = resolveCheckpointMetadataContext(this.config, {
+      ...options,
+      optimizerStepCount: this.optimizer?.stepCount,
+    });
+    const trainingSeed = resolveTrainingSeed(this.config, options);
+    const trainingModelId = normalizeOptionalString(
+      options.modelId || options.studentModelId
+    ) || 'training';
+    const runtimePreset = normalizeOptionalString(options.runtimePreset);
+    const kernelPath = normalizeOptionalString(checkpointMetadata.kernelPathId);
+    const environmentMetadata = checkpointMetadata.environmentMetadata || resolveRuntimeEnvironmentMetadata();
+    const buildProvenance = checkpointMetadata.buildProvenance || null;
+    const expectedCheckpointMetadata = buildExpectedCheckpointMetadata(checkpointMetadata);
+    const forceResumeEnabled = options.forceResume === true;
+    const forceResumeReason = normalizeOptionalString(options.forceResumeReason);
+    const checkpointLoadOptions = {
+      ...checkpointMetadata,
+      ...(expectedCheckpointMetadata ? { expectedMetadata: expectedCheckpointMetadata } : {}),
+      forceResume: forceResumeEnabled,
+      forceResumeReason: forceResumeReason || undefined,
+      forceResumeSource: resolveForceResumeSource(options),
+      forceResumeOperator: normalizeOptionalString(options.checkpointOperator),
+    };
     const checkpointKeys = await resolveCheckpointKey(options, distillContract, ulContract);
     let checkpointKey = checkpointKeys.fallback;
     let restoredProgress = null;
     const tryRestoreCheckpoint = async (key) => {
       if (!key) return null;
-      try {
-        const checkpointRecord = await loadCheckpoint(key);
-        return restoreTrainingCheckpointState(model, this.optimizer, checkpointRecord, this.config);
-      } catch {
+      const checkpointRecord = await loadCheckpoint(key, checkpointLoadOptions);
+      if (!checkpointRecord) {
         return null;
       }
+      return restoreTrainingCheckpointState(model, this.optimizer, checkpointRecord, this.config);
     };
     if (checkpointKeys.explicit) {
       restoredProgress = await tryRestoreCheckpoint(checkpointKeys.explicit);
-      if (restoredProgress) {
-        checkpointKey = checkpointKeys.explicit;
+      if (!restoredProgress) {
+        throw new Error(`TrainingRunner: resume checkpoint not found or invalid: ${checkpointKeys.explicit}`);
       }
+      checkpointKey = checkpointKeys.explicit;
     }
     if (!restoredProgress && checkpointKeys.fallback && checkpointKeys.fallback !== checkpointKeys.explicit) {
       restoredProgress = await tryRestoreCheckpoint(checkpointKeys.fallback);
@@ -606,7 +840,10 @@ export class TrainingRunner {
         batch: checkpointContext.batch,
         config: this.config,
       });
-      await saveCheckpoint(checkpointKey, payload);
+      await saveCheckpoint(checkpointKey, payload, {
+        ...checkpointMetadata,
+        optimizerHash: hashStableJson(payload?.trainingState?.optimizerSlots || {}),
+      });
       this.lastCheckpoint = {
         key: checkpointKey,
         step: checkpointContext.step,
@@ -688,10 +925,18 @@ export class TrainingRunner {
           backward_ms: stepResult.backward_ms,
           optimizer_ms: stepResult.optimizerMetrics?.optimizer_ms,
           effective_lr: toMetricNumber(stepResult.optimizerMetrics?.effective_lr, null),
+          lr: toMetricNumber(stepResult.optimizerMetrics?.effective_lr, null),
           scheduler_index: Number.isInteger(stepResult.optimizerMetrics?.scheduler_index)
             ? stepResult.optimizerMetrics.scheduler_index
             : null,
           scheduler_phase: stepResult.optimizerMetrics?.scheduler_phase ?? null,
+          seed: trainingSeed,
+          model_id: trainingModelId,
+          runtime_preset: runtimePreset,
+          kernel_path: kernelPath,
+          environment_metadata: environmentMetadata,
+          memory_stats: resolveRuntimeMemoryStats(),
+          build_provenance: buildProvenance,
           gradient_norm_unclipped: stepResult.clipMetrics?.gradient_norm_unclipped,
           gradient_norm_clipped: stepResult.clipMetrics?.gradient_norm_clipped,
           clipped_event_count: stepResult.clipMetrics?.clipped_event_count,

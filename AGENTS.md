@@ -27,17 +27,20 @@ doppler/
 │   ├── config/           # Runtime/model schemas + presets
 │   ├── converter/        # SafeTensors/GGUF → RDRR conversion
 │   ├── debug/            # Logging and tracing
+│   ├── diffusion/        # Image diffusion pipeline surface
+│   ├── distribution/     # P2P shard transport (experimental)
 │   ├── errors/           # Error types and handling
 │   ├── formats/          # Format parsing utilities
 │   ├── gpu/              # WebGPU device, buffer pools, kernels
-│   ├── hotswap/          # Live model/adapter swap
+│   ├── hotswap/          # Live model/adapter swap (experimental)
 │   ├── inference/        # Pipeline, attention, FFN, embeddings
+│   ├── generation/       # Text pipeline surface
 │   ├── loader/           # GGUF parsing, RDRR manifest
 │   ├── memory/           # Heap management, capability detection
 │   ├── rules/            # Validation rules (kernel path, etc.)
+│   ├── energy/           # Energy pipeline tools and VLIW scheduling
 │   ├── storage/          # OPFS shard manager, model loading
 │   ├── tooling/          # Shared command contract + runners
-│   ├── tools/            # Internal tool utilities
 │   ├── training/         # Backward/training primitives
 │   ├── types/            # Shared type definitions
 │   └── utils/            # General utilities
@@ -192,6 +195,7 @@ Use:
 - `skills/` is the canonical skill registry directory.
 - `.claude/skills` must be a symlink to `../skills`.
 - `.gemini/skills` must be a symlink to `../skills`.
+- `.codex/skills` must be a symlink to `../skills`.
 
 Validate parity before committing instruction or skill changes:
 

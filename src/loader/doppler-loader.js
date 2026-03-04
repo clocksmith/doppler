@@ -9,10 +9,10 @@ import {
   verifyIntegrity,
   loadManifestFromStore,
 } from '../storage/shard-manager.js';
-import { parseManifest } from '../storage/rdrr-format.js';
+import { parseManifest } from '../formats/rdrr/index.js';
 import { initDevice, getDevice, getKernelCapabilities } from '../gpu/device.js';
 import { acquireBuffer, releaseBuffer, forceBufferPoolReclaim } from '../memory/buffer-pool.js';
-import { getExpertCache } from './expert-cache.js';
+import { getExpertCache } from './experts/expert-cache.js';
 import { formatBytes } from '../storage/quota.js';
 import { log, trace as debugTrace } from '../debug/index.js';
 import { isWeightBuffer } from '../gpu/weight-buffer.js';
@@ -33,7 +33,7 @@ import { MemoryMonitor } from './memory-monitor.js';
 import {
   loadTensorToGPU,
   loadTensorToCPU,
-} from './tensor-loader.js';
+} from './tensors/tensor-loader.js';
 import { loadEmbeddings } from './embedding-loader.js';
 import { loadLayer } from './layer-loader.js';
 import { loadFinalWeights } from './final-weights-loader.js';
@@ -41,9 +41,9 @@ import {
   loadExpert as loadExpertFromModule,
   prefetchExperts as prefetchExpertsFromModule,
   predictNextLayerExperts as predictNextLayerExpertsFromModule,
-} from './expert-loader.js';
-import { loadLoRAWeights as loadLoRAWeightsFromModule } from './lora-loader.js';
-import { assembleShardData } from './tensor-reader.js';
+} from './experts/expert-loader.js';
+import { loadLoRAWeights as loadLoRAWeightsFromModule } from '../adapters/lora-loader.js';
+import { assembleShardData } from './tensors/tensor-reader.js';
 
 function hasExpertGroups(manifest) {
   if (!manifest?.groups) return false;

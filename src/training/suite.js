@@ -27,7 +27,7 @@ import { computeSampleStats } from '../debug/stats.js';
 import { parseJsonl } from './datasets/jsonl.js';
 import { initializeInference } from '../inference/test-harness.js';
 import { createPipeline } from '../inference/pipelines/text.js';
-import { parseManifest } from '../storage/rdrr-format.js';
+import { parseManifest } from '../formats/rdrr/index.js';
 import { openModelStore, loadManifestFromStore } from '../storage/shard-manager.js';
 
 const LEGACY_BROWSER_TESTS = Object.freeze([
@@ -2071,6 +2071,13 @@ async function runUlStageTest(stage, options = {}) {
       maxSteps: 2,
       modelId: options.modelId || 'training',
       modelUrl: options.modelUrl || null,
+      runtimePreset: options.runtimePreset || null,
+      trainingStage: stage,
+      command: options.command || null,
+      surface: options.surface || null,
+      forceResume: options.forceResume === true,
+      forceResumeReason: options.forceResumeReason || null,
+      checkpointOperator: options.checkpointOperator || null,
       timestamp: options.timestamp || null,
       ulArtifactDir,
     });
@@ -2118,7 +2125,12 @@ async function runUlStageTest(stage, options = {}) {
     }
     return {
       passed: true,
-      artifact,
+      artifact: {
+        ...artifact,
+        resumeAudits: Array.isArray(runner.resumeState?.resumeAudits)
+          ? runner.resumeState.resumeAudits
+          : [],
+      },
       metrics: {
         stage,
         steps: metrics.length,
@@ -2136,6 +2148,9 @@ async function runUlStageTest(stage, options = {}) {
           decoderSigmoidWeight: fixture.config.training?.ul?.decoderSigmoidWeight ?? null,
           freeze: fixture.config.training?.ul?.freeze ?? null,
         },
+        resumeAuditCount: Number.isInteger(runner.resumeState?.resumeAuditCount)
+          ? runner.resumeState.resumeAuditCount
+          : 0,
       },
     };
   } finally {
@@ -2228,6 +2243,13 @@ async function runDistillStageTest(stage, options = {}) {
       maxSteps: distillMaxSteps,
       modelId: options.modelId || distillRuntime.studentModelId || 'training',
       modelUrl: options.modelUrl || distillRuntime.studentModelUrl || null,
+      runtimePreset: options.runtimePreset || null,
+      trainingStage: stage,
+      command: options.command || null,
+      surface: options.surface || null,
+      forceResume: options.forceResume === true,
+      forceResumeReason: options.forceResumeReason || null,
+      checkpointOperator: options.checkpointOperator || null,
       timestamp: options.timestamp || null,
       distillArtifactDir,
       stageAArtifact: options.stageAArtifact || null,
@@ -2268,7 +2290,12 @@ async function runDistillStageTest(stage, options = {}) {
     );
     return {
       passed: true,
-      artifact,
+      artifact: {
+        ...artifact,
+        resumeAudits: Array.isArray(runner.resumeState?.resumeAudits)
+          ? runner.resumeState.resumeAudits
+          : [],
+      },
       metrics: {
         stage,
         steps: metrics.length,
@@ -2313,6 +2340,9 @@ async function runDistillStageTest(stage, options = {}) {
           directionCounts: distillDatasetReport.directionCounts,
         },
         checkpoint: runner.lastCheckpoint || null,
+        resumeAuditCount: Number.isInteger(runner.resumeState?.resumeAuditCount)
+          ? runner.resumeState.resumeAuditCount
+          : 0,
       },
     };
   } finally {
@@ -2665,6 +2695,10 @@ export async function runTrainingBenchSuite(options = {}) {
       || trainingOverrides?.ul?.stage
       || null
     ),
+    forceResume: options.forceResume === true,
+    forceResumeReason: options.forceResume === true
+      ? (options.forceResumeReason || null)
+      : null,
     shardIndex: distillShardProgress.shardIndex,
     shardCount: distillShardProgress.shardCount,
     stepsPerShard: distillShardProgress.stepsPerShard,
@@ -2737,6 +2771,18 @@ export async function runTrainingBenchSuite(options = {}) {
           maxSteps: benchSettings.stepsPerRun,
           modelId: options.modelId || distillRuntime?.studentModelId || 'training',
           modelUrl: options.modelUrl || distillRuntime?.studentModelUrl || null,
+          runtimePreset: options.runtimePreset || null,
+          trainingStage: (
+            options.trainingStage
+            || trainingOverrides?.distill?.stage
+            || trainingOverrides?.ul?.stage
+            || null
+          ),
+          command: options.command || null,
+          surface: options.surface || null,
+          forceResume: options.forceResume === true,
+          forceResumeReason: options.forceResumeReason || null,
+          checkpointOperator: options.checkpointOperator || null,
           timestamp: options.timestamp || null,
           ulArtifactDir: options.ulArtifactDir || null,
           distillArtifactDir: options.distillArtifactDir || null,
@@ -2760,7 +2806,21 @@ export async function runTrainingBenchSuite(options = {}) {
             resumedEpoch: runner.resumeState.epoch ?? null,
             resumedBatch: runner.resumeState.batch ?? null,
             resumedCheckpointHash: runner.resumeState.checkpointHash ?? null,
+            previousCheckpointHash: runner.resumeState.previousCheckpointHash ?? null,
+            resumeAuditCount: Number.isInteger(runner.resumeState.resumeAuditCount)
+              ? runner.resumeState.resumeAuditCount
+              : 0,
+            checkpointKey: runner.resumeState.checkpointKey ?? null,
           });
+          if (Number.isInteger(runner.resumeState.resumeAuditCount) && runner.resumeState.resumeAuditCount > 0) {
+            appendTimelineEvent(checkpointResumeTimeline, 'resume_override_applied', {
+              runIndex: runIndex + 1,
+              phase: isTimedRun ? 'timed' : 'warmup',
+              resumeAudits: Array.isArray(runner.resumeState.resumeAudits)
+                ? runner.resumeState.resumeAudits
+                : [],
+            });
+          }
         }
         appendTimelineEvent(checkpointResumeTimeline, 'run_completed', {
           runIndex: runIndex + 1,
@@ -2800,6 +2860,9 @@ export async function runTrainingBenchSuite(options = {}) {
             const artifactEntry = {
               runIndex: completedTimedRuns,
               ...runner.lastArtifact,
+              resumeAudits: Array.isArray(runner.resumeState?.resumeAudits)
+                ? runner.resumeState.resumeAudits
+                : [],
             };
             appendTimelineEvent(checkpointResumeTimeline, 'checkpoint_written', {
               runIndex: runIndex + 1,

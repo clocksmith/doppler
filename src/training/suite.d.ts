@@ -109,8 +109,11 @@ export interface TrainingHarness {
 }
 
 export interface RunTrainingSuiteOptions {
+  command?: string;
+  surface?: string;
   modelId?: string;
   modelUrl?: string;
+  runtimePreset?: string | null;
   workloadType?: string;
   trainingTests?: string[];
   trainingStage?: 'stage1_joint' | 'stage2_base' | 'stage_a' | 'stage_b';
@@ -130,6 +133,9 @@ export interface RunTrainingSuiteOptions {
   distillShardIndex?: number;
   distillShardCount?: number;
   resumeFrom?: string;
+  forceResume?: boolean;
+  forceResumeReason?: string;
+  checkpointOperator?: string | null;
   trainingBenchSteps?: number;
   benchRun?: Record<string, unknown> | null;
   adapterActivation?: {

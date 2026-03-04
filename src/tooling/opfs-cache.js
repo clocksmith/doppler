@@ -6,7 +6,7 @@ import {
 } from '../storage/shard-manager.js';
 import { downloadModel } from '../storage/downloader.js';
 import { isOPFSAvailable } from '../storage/quota.js';
-import { parseManifest, getManifestUrl } from '../storage/rdrr-format.js';
+import { parseManifest, getManifestUrl } from '../formats/rdrr/index.js';
 import { log } from '../debug/index.js';
 
 const MODULE = 'OPFSCache';

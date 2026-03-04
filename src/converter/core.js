@@ -9,7 +9,7 @@ import {
   formatBytes,
 } from '../config/schema/index.js';
 
-import { classifyTensorRole, generateShardFilename } from '../storage/rdrr-format.js';
+import { classifyTensorRole, generateShardFilename } from '../formats/rdrr/index.js';
 import { log } from '../debug/index.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
 import {

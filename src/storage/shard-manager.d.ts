@@ -1,7 +1,7 @@
-import type { RDRRManifest, HashAlgorithm } from './rdrr-format.js';
+import type { RDRRManifest, HashAlgorithm } from '../formats/rdrr/types.js';
 import type { OpfsPathConfigSchema } from '../config/schema/loading.schema.js';
 
-export { getManifest } from './rdrr-format.js';
+export { getManifest } from '../formats/rdrr/parsing.js';
 
 export interface ShardWriteOptions {
   verify?: boolean;
@@ -40,6 +40,11 @@ export interface ShardWriteStream {
   abort(): Promise<void>;
 }
 
+export interface ShardWriterOptions {
+  append?: boolean;
+  expectedOffset?: number | null;
+}
+
 export interface StorageCapabilities {
   opfs: boolean;
   indexeddb: boolean;
@@ -71,7 +76,8 @@ export function writeShard(
 ): Promise<ShardWriteResult>;
 
 export function createShardWriter(
-  shardIndex: number
+  shardIndex: number,
+  options?: ShardWriterOptions
 ): Promise<ShardWriteStream>;
 
 export function createConversionShardWriter(
@@ -104,6 +110,7 @@ export function loadShardSync(
 ): Promise<Uint8Array>;
 
 export function shardExists(shardIndex: number): Promise<boolean>;
+export function getShardStoredSize(shardIndex: number): Promise<number>;
 export function verifyIntegrity(options?: { checkHashes?: boolean }): Promise<IntegrityResult>;
 export function deleteShard(shardIndex: number): Promise<boolean>;
 export function deleteModel(modelId: string): Promise<boolean>;

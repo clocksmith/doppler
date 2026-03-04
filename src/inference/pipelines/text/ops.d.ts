@@ -16,7 +16,7 @@ import type {
   AttentionState,
   AttentionDebugFlags,
   AttentionResult
-} from './attention.js';
+} from './attention/index.js';
 import type { LayerWeights } from './types.js';
 import type { LoRAAdapter } from './lora.js';
 

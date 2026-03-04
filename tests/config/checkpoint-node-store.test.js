@@ -39,6 +39,7 @@ try {
   const loadedNext = await loadCheckpoint(checkpointPath);
   assert.equal(loadedNext.trainingState?.progress?.step, 4);
   assert.equal(loadedNext.metadata?.lineage?.sequence, 2);
+  const priorCheckpointMetadataHash = loadedNext.metadata?.checkpointHash;
 
   await assert.rejects(
     () => loadCheckpoint(checkpointPath, {
@@ -55,10 +56,18 @@ try {
     },
     forceResume: true,
     forceResumeReason: 'intentional test mismatch',
+    forceResumeSource: 'checkpoint-node-store-test',
+    forceResumeOperator: 'unit-test',
   });
   assert.ok(Array.isArray(forced.metadata?.resumeAudits));
   assert.equal(forced.metadata.resumeAudits.length, 1);
   assert.equal(forced.metadata.resumeAudits[0].reason, 'intentional test mismatch');
+  assert.equal(forced.metadata.resumeAudits[0].source, 'checkpoint-node-store-test');
+  assert.equal(forced.metadata.resumeAudits[0].operator, 'unit-test');
+  assert.equal(
+    forced.metadata.resumeAudits[0].priorCheckpointMetadataHash,
+    priorCheckpointMetadataHash
+  );
 } finally {
   await rm(tempDir, { recursive: true, force: true });
 }

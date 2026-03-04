@@ -28,7 +28,7 @@ import type {
   ConversionInfoSchema,
 } from '../config/schema/index.js';
 
-export { generateShardFilename } from '../storage/rdrr-format.js';
+export { generateShardFilename } from '../formats/rdrr/index.js';
 
 // Re-exports for Backward Compatibility
 /** @deprecated Use TensorInfoSchema from config/schema */

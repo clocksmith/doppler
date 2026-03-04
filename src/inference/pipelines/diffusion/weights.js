@@ -4,8 +4,8 @@ import { getKernelCapabilities } from '../../../gpu/device.js';
 import { releaseBuffer } from '../../../memory/buffer-pool.js';
 import { createShardCache } from '../../../loader/shard-cache.js';
 import { buildTensorLocations } from '../../../loader/shard-resolver.js';
-import { assembleShardData } from '../../../loader/tensor-reader.js';
-import { loadTensorToGPU, loadTensorToCPU } from '../../../loader/tensor-loader.js';
+import { assembleShardData } from '../../../loader/tensors/tensor-reader.js';
+import { loadTensorToGPU, loadTensorToCPU } from '../../../loader/tensors/tensor-loader.js';
 import { initStorage, openModelStore } from '../../../storage/shard-manager.js';
 import { setManifest } from '../../../formats/rdrr/parsing.js';
 

@@ -26,7 +26,7 @@ export const DEFAULT_DIFFUSION_DECODE_CONFIG = {
 };
 
 export const DEFAULT_DIFFUSION_BACKEND_CONFIG = {
-  pipeline: 'cpu',
+  pipeline: 'gpu',
   scaffold: {
     tokens: 64,
     hiddenSize: 128,

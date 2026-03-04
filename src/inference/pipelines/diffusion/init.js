@@ -90,7 +90,14 @@ function resolveLatentChannels(modelConfig, runtimeConfig) {
 export function initializeDiffusion(manifest, runtimeConfig) {
   const modelConfig = manifest?.config?.diffusion;
   if (!modelConfig) {
-    throw new Error('Diffusion manifest missing config.diffusion.');
+    const hasInferenceDiffusion = manifest?.inference?.diffusion && typeof manifest.inference.diffusion === 'object';
+    if (hasInferenceDiffusion) {
+      throw new Error(
+        'Diffusion manifest provides inference.diffusion, but runtime expects config.diffusion model contract. ' +
+        'Re-convert the model with config.diffusion populated.'
+      );
+    }
+    throw new Error('Diffusion manifest missing config.diffusion model contract.');
   }
 
   const runtimeBase = mergeDiffusionConfig(DEFAULT_DIFFUSION_CONFIG, runtimeConfig?.inference?.diffusion);
@@ -98,8 +105,20 @@ export function initializeDiffusion(manifest, runtimeConfig) {
     ...runtimeBase,
     scheduler: mergeSchedulerConfig(modelConfig, runtimeBase.scheduler),
   };
+  if (
+    runtime.backend?.pipeline !== 'cpu'
+    && runtime.backend?.pipeline !== 'gpu_scaffold'
+    && runtime.backend?.pipeline !== 'gpu'
+  ) {
+    throw new Error(
+      `Diffusion runtime backend.pipeline must be one of cpu|gpu_scaffold|gpu; got "${runtime.backend?.pipeline}".`
+    );
+  }
   if (modelConfig?.components?.transformer && runtime.backend?.pipeline === 'cpu') {
-    runtime.backend = { ...runtime.backend, pipeline: 'gpu' };
+    throw new Error(
+      'Diffusion model includes transformer component, but runtime.inference.diffusion.backend.pipeline="cpu". ' +
+      'Set backend.pipeline to "gpu" or "gpu_scaffold".'
+    );
   }
   const latentScale = resolveLatentScale(modelConfig, runtime);
   const latentChannels = resolveLatentChannels(modelConfig, runtime);
