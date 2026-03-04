@@ -96,6 +96,24 @@ export interface DopplerProviderInterface {
   prefillKV(prompt: string, options?: GenerateOptions): Promise<KVCacheSnapshot>;
   generateWithPrefixKV(prefix: KVCacheSnapshot, prompt: string, options?: GenerateOptions): AsyncGenerator<string>;
   loadLoRAAdapter(adapter: LoRAManifest | RDRRManifest | string): Promise<void>;
+  activateLoRAFromTrainingOutput(
+    trainingOutput:
+      | string
+      | {
+        adapter?: LoRAManifest | RDRRManifest | string;
+        adapterManifest?: LoRAManifest | RDRRManifest;
+        adapterManifestJson?: string;
+        adapterManifestUrl?: string;
+        adapterManifestPath?: string;
+      }
+      | null
+      | undefined
+  ): Promise<{
+    activated: boolean;
+    adapterName: string | null;
+    source: string | null;
+    reason: string | null;
+  }>;
   unloadLoRAAdapter(): Promise<void>;
   getActiveLoRA(): string | null;
   getPipeline(): InferencePipeline | null;

@@ -9,6 +9,7 @@ enable f16;
 
 override WORKGROUP_SIZE: u32 = 256u;
 override HAS_GATE: bool = false;
+override GATE_USE_SIGMOID: bool = false;
 override USE_SPLIT: bool = false;
 override USE_VEC4: bool = false;
 override USE_ROWSPLIT: bool = false;
@@ -81,7 +82,8 @@ fn main(
     if (HAS_GATE) {
         let up = f32(input[idx]);
         let g = f32(gate[idx]);
-        output[idx] = f16(clamp_swiglu(silu(g) * up));
+        let gateAct = select(silu(g), sigmoid(g), GATE_USE_SIGMOID);
+        output[idx] = f16(clamp_swiglu(gateAct * up));
         return;
     }
 

@@ -15,6 +15,7 @@ import type { OutputBufferOptions } from './types.js';
 export interface SiLUOptions extends OutputBufferOptions {
   size?: number | null;
   gate?: Tensor | null;
+  gateActivation?: 'silu' | 'sigmoid';
   useVec4?: boolean;
   biasOffset?: number;
   swigluLimit: number | null;

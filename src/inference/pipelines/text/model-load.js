@@ -15,7 +15,10 @@ import { KERNEL_CONFIGS } from '../../../gpu/kernels/kernel-configs.js';
 import { resolveCapabilityKernelPathRef, resolveKernelPathPolicy } from './kernel-path-auto-select.js';
 import { initTokenizer } from './init.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
-import { DEFAULT_BATCHING_DEFAULTS } from '../../../config/schema/inference-defaults.schema.js';
+import {
+  DEFAULT_BATCHING_DEFAULTS,
+  DEFAULT_GENERATION_CONFIG,
+} from '../../../config/schema/inference-defaults.schema.js';
 
 function validateKernelWarmupMode(mode) {
   if (mode !== 'parallel' && mode !== 'sequential') {
@@ -41,10 +44,18 @@ function normalizeReadbackInterval(value) {
   return normalizePositiveInt(value);
 }
 
+function normalizeBoolean(value) {
+  return typeof value === 'boolean' ? value : null;
+}
+
 const GLOBAL_DEFAULT_BATCHING = Object.freeze({
   batchSize: normalizePositiveInt(DEFAULT_BATCHING_DEFAULTS.batchSize) ?? 4,
   stopCheckMode: normalizeStopCheckMode(DEFAULT_BATCHING_DEFAULTS.stopCheckMode) ?? 'batch',
   readbackInterval: normalizeReadbackInterval(DEFAULT_BATCHING_DEFAULTS.readbackInterval) ?? 1,
+});
+
+const GLOBAL_DEFAULT_GENERATION = Object.freeze({
+  disableCommandBatching: DEFAULT_GENERATION_CONFIG.disableCommandBatching === true,
 });
 
 function isRuntimeBatchingAtGlobalDefaults(batching) {
@@ -54,6 +65,13 @@ function isRuntimeBatchingAtGlobalDefaults(batching) {
   return normalizePositiveInt(batching.batchSize) === GLOBAL_DEFAULT_BATCHING.batchSize
     && normalizeStopCheckMode(batching.stopCheckMode) === GLOBAL_DEFAULT_BATCHING.stopCheckMode
     && normalizeReadbackInterval(batching.readbackInterval) === GLOBAL_DEFAULT_BATCHING.readbackInterval;
+}
+
+function isRuntimeGenerationAtGlobalDefaults(generation) {
+  if (!generation || typeof generation !== 'object') {
+    return false;
+  }
+  return (generation.disableCommandBatching === true) === GLOBAL_DEFAULT_GENERATION.disableCommandBatching;
 }
 
 function resolveModelBatchingDefaults(manifest, modelConfig) {
@@ -76,17 +94,23 @@ function resolveManifestDecodeLoopDefaults(manifest) {
   const batchSize = normalizePositiveInt(decodeLoop.batchSize);
   const stopCheckMode = normalizeStopCheckMode(decodeLoop.stopCheckMode);
   const readbackInterval = normalizeReadbackInterval(decodeLoop.readbackInterval);
+  const disableCommandBatching = normalizeBoolean(decodeLoop.disableCommandBatching);
   if (batchSize == null || stopCheckMode == null || readbackInterval == null) {
     return null;
   }
-  return { batchSize, stopCheckMode, readbackInterval };
+  return {
+    batchSize,
+    stopCheckMode,
+    readbackInterval,
+    ...(disableCommandBatching == null ? {} : { disableCommandBatching }),
+  };
 }
 
 export function applyModelBatchingRuntimeDefaults(runtimeConfig, manifest, modelConfig) {
   const batching = runtimeConfig?.inference?.batching;
-  if (!isRuntimeBatchingAtGlobalDefaults(batching)) {
-    return runtimeConfig;
-  }
+  const generation = runtimeConfig?.inference?.generation;
+  const runtimeBatchingAtDefaults = isRuntimeBatchingAtGlobalDefaults(batching);
+  const runtimeGenerationAtDefaults = isRuntimeGenerationAtGlobalDefaults(generation);
 
   const defaults = resolveManifestDecodeLoopDefaults(manifest)
     ?? resolveModelBatchingDefaults(manifest, modelConfig);
@@ -94,32 +118,52 @@ export function applyModelBatchingRuntimeDefaults(runtimeConfig, manifest, model
     return runtimeConfig;
   }
 
-  const nextBatchSize = normalizePositiveInt(defaults.batchSize);
-  const nextStopCheckMode = normalizeStopCheckMode(defaults.stopCheckMode);
-  const nextReadbackInterval = normalizeReadbackInterval(defaults.readbackInterval);
-  if (nextBatchSize == null || nextStopCheckMode == null || nextReadbackInterval == null) {
+  let nextBatching = batching;
+  let appliedBatching = false;
+  if (runtimeBatchingAtDefaults) {
+    const nextBatchSize = normalizePositiveInt(defaults.batchSize);
+    const nextStopCheckMode = normalizeStopCheckMode(defaults.stopCheckMode);
+    const nextReadbackInterval = normalizeReadbackInterval(defaults.readbackInterval);
+    if (nextBatchSize != null && nextStopCheckMode != null && nextReadbackInterval != null) {
+      nextBatching = {
+        ...batching,
+        batchSize: nextBatchSize,
+        stopCheckMode: nextStopCheckMode,
+        readbackInterval: nextReadbackInterval,
+      };
+      appliedBatching = true;
+    }
+  }
+
+  const shouldApplyDisableCommandBatching = runtimeGenerationAtDefaults
+    && normalizeBoolean(defaults.disableCommandBatching) != null;
+  const nextGeneration = shouldApplyDisableCommandBatching
+    ? {
+        ...generation,
+        disableCommandBatching: defaults.disableCommandBatching === true,
+      }
+    : generation;
+
+  if (!appliedBatching && !shouldApplyDisableCommandBatching) {
     return runtimeConfig;
   }
 
-  const nextBatching = {
-    ...batching,
-    batchSize: nextBatchSize,
-    stopCheckMode: nextStopCheckMode,
-    readbackInterval: nextReadbackInterval,
-  };
-
-  log.info(
-    'Pipeline',
-    `Model batching defaults applied (${manifest?.inference?.presetId ?? 'unknown'}): ` +
-    `batchSize=${nextBatching.batchSize}, stopCheckMode=${nextBatching.stopCheckMode}, ` +
-    `readbackInterval=${nextBatching.readbackInterval}`
-  );
+  if (appliedBatching || shouldApplyDisableCommandBatching) {
+    log.info(
+      'Pipeline',
+      `Model defaults applied (${manifest?.inference?.presetId ?? 'unknown'}): ` +
+      `batchSize=${nextBatching.batchSize}, stopCheckMode=${nextBatching.stopCheckMode}, ` +
+      `readbackInterval=${nextBatching.readbackInterval}, ` +
+      `disableCommandBatching=${nextGeneration.disableCommandBatching === true}`
+    );
+  }
 
   return {
     ...runtimeConfig,
     inference: {
       ...runtimeConfig.inference,
-      batching: nextBatching,
+      ...(appliedBatching ? { batching: nextBatching } : {}),
+      ...(shouldApplyDisableCommandBatching ? { generation: nextGeneration } : {}),
     },
   };
 }

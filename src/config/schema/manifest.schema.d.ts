@@ -148,6 +148,11 @@ export interface ArchitectureSchema {
   maxSeqLen: number;
   ropeTheta?: number;
   rmsNormEps?: number;
+  linearNumKeyHeads?: number;
+  linearNumValueHeads?: number;
+  linearKeyHeadDim?: number;
+  linearValueHeadDim?: number;
+  linearConvKernelDim?: number;
 }
 
 /**
@@ -168,6 +173,8 @@ export interface ManifestAttentionSchema {
   causal: boolean;
   /** Attention bias mask enabled */
   attentionBias: boolean;
+  /** Apply sigmoid gate from q_proj second half before o_proj */
+  attentionOutputGate: boolean;
 }
 
 /**

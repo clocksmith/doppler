@@ -22,6 +22,14 @@ export interface DownloadProgress {
   status: DownloadStatus;
   currentShard: number | null;
   speed: number;
+  lastSource?: 'cache' | 'p2p' | 'http' | 'unknown' | null;
+  lastSourcePath?: string | null;
+  sourceStats?: {
+    cache: number;
+    p2p: number;
+    http: number;
+    unknown: number;
+  };
   stage?: string;
 }
 
@@ -47,7 +55,16 @@ export interface DownloadState {
   modelId: string;
   baseUrl: string;
   manifest: RDRRManifest;
+  manifestVersionSet?: string;
   completedShards: Set<number>;
+  sourceStats?: {
+    cache: number;
+    p2p: number;
+    http: number;
+    unknown: number;
+  };
+  lastSource?: string | null;
+  lastSourcePath?: string | null;
   startTime: number;
   status: DownloadStatus;
   error?: string;
@@ -60,7 +77,16 @@ export interface SerializedDownloadState {
   modelId: string;
   baseUrl: string;
   manifest: RDRRManifest;
+  manifestVersionSet?: string;
   completedShards: number[];
+  sourceStats?: {
+    cache: number;
+    p2p: number;
+    http: number;
+    unknown: number;
+  };
+  lastSource?: string | null;
+  lastSourcePath?: string | null;
   startTime: number;
   status: DownloadStatus;
   error?: string;
@@ -100,6 +126,7 @@ export interface DownloadNeededResult {
 export interface ActiveDownload {
   state: DownloadState;
   abortController: AbortController;
+  promise?: Promise<boolean>;
 }
 
 /**

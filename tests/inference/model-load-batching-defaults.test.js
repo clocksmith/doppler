@@ -55,6 +55,29 @@ function createRuntimeConfig() {
 
 {
   const runtimeConfig = createRuntimeConfig();
+  const manifest = {
+    modelId: 'qwen3-manifest-disable-recorder-default-test',
+    modelType: 'transformer',
+    inference: {
+      presetId: 'qwen3',
+      sessionDefaults: {
+        decodeLoop: {
+          batchSize: 4,
+          stopCheckMode: 'batch',
+          readbackInterval: 1,
+          disableCommandBatching: true,
+        },
+      },
+    },
+  };
+
+  const nextRuntime = applyModelBatchingRuntimeDefaults(runtimeConfig, manifest, null);
+  assert.notStrictEqual(nextRuntime, runtimeConfig);
+  assert.equal(nextRuntime.inference.generation.disableCommandBatching, true);
+}
+
+{
+  const runtimeConfig = createRuntimeConfig();
   runtimeConfig.shared.tooling.intent = 'calibrate';
   const manifest = {
     modelId: 'lfm2-calibrate-batching-test',

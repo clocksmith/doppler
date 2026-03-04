@@ -107,6 +107,10 @@ export function classifyTensorRole(name) {
   const matmulSuffixes = [
     'in_proj.weight',
     'in_proj_weight',
+    'in_proj_qkv.weight',
+    'in_proj_z.weight',
+    'in_proj_a.weight',
+    'in_proj_b.weight',
     'q_proj.weight',
     'k_proj.weight',
     'v_proj.weight',

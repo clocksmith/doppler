@@ -57,6 +57,12 @@ import {
   resolveActiveExecutionPlan,
   setActiveExecutionPlan,
 } from './execution-plan.js';
+import {
+  cloneLinearAttentionRuntime,
+  hasLinearAttentionLayers,
+  resetLinearAttentionRuntime,
+  restoreLinearAttentionRuntime,
+} from './linear-attention.js';
 
 function isStructuredChatRequest(prompt) {
   return prompt != null
@@ -520,6 +526,7 @@ export class PipelineGenerator {
       cache: snapshot,
       seqLen: this.#state.currentSeqLen,
       tokens: inputIds,
+      linearAttention: await cloneLinearAttentionRuntime(this.#state.linearAttentionRuntime),
     };
   }
 
@@ -614,6 +621,7 @@ export class PipelineGenerator {
       tokens: inputIds,
       embedding,
       embeddingMode: opts.embeddingMode,
+      linearAttention: await cloneLinearAttentionRuntime(this.#state.linearAttentionRuntime),
     };
   }
 
@@ -643,6 +651,7 @@ export class PipelineGenerator {
       seqLen: this.#state.currentSeqLen,
       tokens: inputIds,
       logits,
+      linearAttention: await cloneLinearAttentionRuntime(this.#state.linearAttentionRuntime),
     };
   }
 
@@ -654,13 +663,26 @@ export class PipelineGenerator {
     validateCallTimeOptions(options);
 
     // Apply snapshot
-        this.#state.kvCache = prefix.cache.clone();
+    this.#state.kvCache = prefix.cache.clone();
     if (this.#state.useGPU && this.#state.kvCache) {
       const device = getDevice();
       if (device) {
         this.#state.kvCache.setGPUContext({ device });
       }
     }
+    if (
+      hasLinearAttentionLayers(this.#state.modelConfig.layerTypes)
+      && prefix.linearAttention == null
+    ) {
+      throw new Error(
+        'Prefix snapshot is missing linear_attention recurrent state. ' +
+        'Regenerate the prefix snapshot using the current runtime.'
+      );
+    }
+    this.#state.linearAttentionRuntime = restoreLinearAttentionRuntime(
+      this.#state.linearAttentionRuntime,
+      prefix.linearAttention ?? null
+    );
     this.#state.currentSeqLen = prefix.seqLen;
 
     this.#state.isGenerating = true;
@@ -751,6 +773,7 @@ export class PipelineGenerator {
       || isCpuWeightBuffer(embedBuffer)
       || lmHead instanceof Float32Array
       || embedBuffer instanceof Float32Array;
+    const hasLinearLayers = hasLinearAttentionLayers(this.#state.modelConfig.layerTypes);
     const gpuSamplingAvailable = isGPUSamplingAvailable() && !hasCpuWeights;
     const executionPlan = opts.executionPlan;
     let useBatchPath = shouldUseBatchDecode({
@@ -762,6 +785,9 @@ export class PipelineGenerator {
       isBdpaPagedLayout: this.#state.kvCache?.layout === 'bdpa_paged',
       finitenessFallbackWindowOpen: this._hasFinitenessFallbackWindow(),
     });
+    if (hasLinearLayers) {
+      useBatchPath = false;
+    }
     const readbackInterval = executionPlan.readbackInterval;
     const intervalBatches = readbackInterval == null ? 1 : readbackInterval;
 
@@ -886,6 +912,10 @@ export class PipelineGenerator {
     const startPos = this.#state.currentSeqLen;
     const returnHidden = opts?._returnHidden === true;
     this.#state.stats.gpuTimePrefillMs = undefined;
+
+    if (startPos === 0 && hasLinearAttentionLayers(config.layerTypes)) {
+      this.#state.linearAttentionRuntime = resetLinearAttentionRuntime(this.#state.linearAttentionRuntime);
+    }
 
     const embedBufferRaw = this.#state.weights.get('embed');
     if (!(embedBufferRaw instanceof GPUBuffer) && !isWeightBuffer(embedBufferRaw) && !isCpuWeightBuffer(embedBufferRaw) && !(embedBufferRaw instanceof Float32Array)) {

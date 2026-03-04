@@ -11,6 +11,7 @@ import {
   runAttentionBDPA,
   runAttentionTieredQuant,
   runAttentionTiered,
+  runSiLU,
   castF16ToF32,
   castF32ToF16,
   runMatmulResidualFused,
@@ -81,6 +82,7 @@ export async function runLayerAttentionGPU(
     skipInputNorm = false,
     tokenIds = null,
     kernelPath = null,
+    disableRoPE = false,
   } = config;
 
   const device = getDevice();
@@ -89,6 +91,7 @@ export async function runLayerAttentionGPU(
     dtype: config.activationDtype,
   });
   const wantsF16Output = desiredOutputDtype === 'f16';
+  const useF16Activations = wantsF16Output;
   const kvCacheFallback = selectRuleValue('inference', 'dtype', 'f16OrF32', { useF16: wantsF16Output });
   const kvCacheDtype = state.kvCache?.kvDtype ?? kvCacheFallback;
   const allowF16Attention = wantsF16Output && kvCacheDtype === 'f16';
@@ -180,7 +183,7 @@ export async function runLayerAttentionGPU(
 
   // 2. Q/K/V projections
   const matmulOutputDtype = resolveAttentionProjectionOutputDtype(desiredOutputDtype);
-  let { qTensor, kTensor, vTensor, usedFusedQKV } = await projectAttentionQKV({
+  let { qTensor, qGateTensor, kTensor, vTensor, usedFusedQKV } = await projectAttentionQKV({
     recorder: null,
     normed,
     layerWeights,
@@ -194,6 +197,7 @@ export async function runLayerAttentionGPU(
     matmulOutputDtype,
     getWeightBuffer,
     lora,
+    attentionOutputGate: config.attentionOutputGate === true,
     releaseTemporary: (buffer) => releaseBuffer(buffer),
     onFusedQKV: layerIdx === 0 && isPrefill
       ? ({ qSize: qSizeFused, kSize: kSizeFused, vSize: vSizeFused, totalSize }) => {
@@ -293,7 +297,7 @@ export async function runLayerAttentionGPU(
 
   // 3. RoPE (modifies tensor in-place)
 
-  if (state.ropeFreqsCos && state.ropeFreqsSin) {
+  if (!disableRoPE && state.ropeFreqsCos && state.ropeFreqsSin) {
     await runRoPE(qTensor, state.ropeFreqsCos, state.ropeFreqsSin, numTokens, {
       numHeads, headDim, startPos: currentSeqLen,
     });
@@ -680,11 +684,22 @@ export async function runLayerAttentionGPU(
     await debugCheckBuffer(attnOutput.buffer, `L${layerIdx} attention output (before o_proj, GPU)`, numTokens, numHeads * headDim);
   }
 
+  let attnForProjection = attnOutput;
+  if (qGateTensor) {
+    attnForProjection = await runSiLU(attnOutput, {
+      size: numTokens * numHeads * headDim,
+      gate: qGateTensor,
+      gateActivation: 'sigmoid',
+      swigluLimit: null,
+    });
+    releaseBuffer(attnOutput.buffer);
+  }
+
   // 6. Output projection (with optional fused residual for decode)
   
   let output;
   let residualFused = false;
-  let oProjInput = attnOutput;
+  let oProjInput = attnForProjection;
   let oProjInputTemp = null;
   if (layerWeights.oProj && getWeightBuffer) {
     const oProjBuf = getWeightBuffer(layerWeights.oProj, 'o_proj');
@@ -751,7 +766,7 @@ export async function runLayerAttentionGPU(
     }
 
   } else {
-    output = attnOutput;
+    output = oProjInput;
   }
 
   // Apply LoRA to output projection if present (only if not using fused path)
@@ -786,8 +801,8 @@ export async function runLayerAttentionGPU(
   let finalOutput = output;
   
   const buffersToRelease = [];
-  if (output.buffer !== attnOutput.buffer) {
-    buffersToRelease.push(attnOutput.buffer);
+  if (output.buffer !== attnForProjection.buffer) {
+    buffersToRelease.push(attnForProjection.buffer);
   }
 
   if (wantsF16Output && output.dtype !== 'f16') {
@@ -798,6 +813,9 @@ export async function runLayerAttentionGPU(
 
   // Cleanup
   releaseBuffer(qTensor.buffer);
+  if (qGateTensor) {
+    releaseBuffer(qGateTensor.buffer);
+  }
   releaseBuffer(kTensor.buffer);
   releaseBuffer(vTensor.buffer);
   for (const buffer of buffersToRelease) {
