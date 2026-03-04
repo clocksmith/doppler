@@ -1,36 +1,3 @@
 // Types and interfaces
-export {
-  DOPPLER_PROVIDER_VERSION,
-  DopplerCapabilities,
-} from './types.js';
-
-// Model management
-export {
-  initDoppler,
-  loadModel,
-  unloadModel,
-  loadLoRAAdapter,
-  activateLoRAFromTrainingOutput,
-  unloadLoRAAdapter,
-  getActiveLoRA,
-  getAvailableModels,
-  destroyDoppler,
-  getPipeline,
-  getCurrentModelId,
-} from './model-manager.js';
-
-// Generation
-export {
-  generate,
-  prefillKV,
-  generateWithPrefixKV,
-  formatGemmaChat,
-  formatLlama3Chat,
-  formatGptOssChat,
-  formatChatMessages,
-  buildChatPrompt,
-  dopplerChat,
-} from './generation.js';
-
-// Main provider
-export { DopplerProvider, default } from './provider.js';
+export * from '../doppler-provider.js';
+export { default } from '../doppler-provider.js';

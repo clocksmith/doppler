@@ -91,7 +91,7 @@ By severity:
    - Manifest-first enforcement is explicit (`src/inference/pipelines/text/config.js:383`).
    - Harness loads `manifest.json` directly (`src/inference/test-harness.js:228`).
 3. **Medium:** Doppler GPU kernels/pipelines are used heavily at load/inference time, but only after RDRR is present.
-   - Loader tensor upload/transform path (`src/loader/tensor-loader.js:331`).
+- Loader tensor upload/transform path (`src/loader/tensors/tensor-loader.js:331`).
    - Large-tensor stream-to-GPU upload exists for stored shards (`src/loader/doppler-loader.js:734`).
 4. **Medium:** Direct-source mode is feasible with existing primitives, but there are hard gaps.
    - Feasible hooks: `setCustomShardLoader` + `setManifest` (`src/loader/doppler-loader.js:199`, `src/loader/doppler-loader.js:251`), used by runtime init (`src/inference/pipelines/text/init.js:514`).

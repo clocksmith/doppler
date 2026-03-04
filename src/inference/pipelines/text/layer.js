@@ -14,9 +14,9 @@ import {
 import {
   processFFNWithSandwichNorm,
   processFFNStandard
-} from './ffn.js';
+} from './ffn/index.js';
 import { getWeightBuffer, getNormWeightBuffer } from './weights.js';
-import { logLayer, logAttn, getBufferStats, isKernelDebugEnabled, dumpTokenVector, logKernelStep, shouldDebugLayerOutput } from './debug-utils.js';
+import { logLayer, logAttn, getBufferStats, isKernelDebugEnabled, dumpTokenVector, logKernelStep, shouldDebugLayerOutput } from './debug-utils/index.js';
 import { runProbes } from './probes.js';
 import { getLayerPlanSteps, filterLayerPlanStepsByPhase } from './layer-plan.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
@@ -778,7 +778,7 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
           const srcTensor = createTensor(srcBuf, activationDtype, [numTokens, hiddenSize], 'plan_ffn_src');
 
           let outputTensor;
-          const { runMoEFFNGPU, runDenseFFNGPU } = await import('./ffn.js');
+          const { runMoEFFNGPU, runDenseFFNGPU } = await import('./ffn/index.js');
 
           const canAutoMoe = config.useMoE && isMoELayer(layerIdx, config, layerWeights);
           const useMoe = selectRuleValue(

@@ -72,4 +72,3 @@ if (!webgpuReady) {
 }
 
 console.log('ul-stage-workflow-regression.test: ok');
-process.exit(0);

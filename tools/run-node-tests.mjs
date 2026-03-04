@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { existsSync, readdirSync } from 'node:fs';
+import { existsSync, readdirSync, statSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import './node-test-runtime-setup.mjs';
@@ -67,6 +67,21 @@ function collectTestFiles(dir, files) {
   }
 }
 
+function addTestFileIfValid(pathValue, files) {
+  if (!existsSync(pathValue)) {
+    return false;
+  }
+  const stats = statSync(pathValue);
+  if (!stats.isFile()) {
+    return false;
+  }
+  const normalized = String(pathValue);
+  if (normalized.endsWith('.test.js')) {
+    files.push(pathValue);
+  }
+  return true;
+}
+
 function listRootsFromSuite(suiteName, explicitDirs) {
   if (explicitDirs.length > 0) return explicitDirs;
   return suites[suiteName] ? suites[suiteName].map((dir) => resolve(ROOT_DIR, dir)) : suites.all.map((dir) => resolve(ROOT_DIR, dir));
@@ -81,6 +96,9 @@ async function main() {
   for (const root of selectedRoots) {
     if (!existsSync(root)) {
       // keep behavior permissive: skip missing directories
+      continue;
+    }
+    if (addTestFileIfValid(root, testFiles)) {
       continue;
     }
     collectTestFiles(root, testFiles);

@@ -28,7 +28,7 @@ Use this when the model already exists in the Doppler RDRR registry.
 
 ```bash
 HF_REVISION=4efe64a914892e98be50842aeb16c3b648cc68a5
-MODEL_ID=gemma-3-270m-it-wq4k-ef16-hf16-f32
+MODEL_ID=gemma-3-270m-it-wq4k-ef16-hf16
 MODEL_URL="https://huggingface.co/Clocksmith/rdrr/resolve/${HF_REVISION}/models/gemma-3-270m-it-wq4k-ef16"
 ```
 

@@ -44,6 +44,8 @@ export interface ToolingCommandRequestInput {
   distillShardIndex?: number;
   distillShardCount?: number;
   resumeFrom?: string;
+  forceResume?: boolean;
+  forceResumeReason?: string;
   trainingSchemaVersion?: number;
   trainingBenchSteps?: number;
   workloadType?: string;
@@ -85,6 +87,8 @@ export interface ToolingCommandRequest {
   distillShardIndex: number | null;
   distillShardCount: number | null;
   resumeFrom: string | null;
+  forceResume: boolean | null;
+  forceResumeReason: string | null;
   trainingSchemaVersion: number | null;
   trainingBenchSteps: number | null;
   workloadType: string | null;

@@ -26,6 +26,31 @@ verify/calibrate workflows, artifact lineage, and deterministic reporting.
   `request.stageAArtifact`, `request.stageAArtifactHash`
 - Distill inputs: `request.teacherModelId`, `request.studentModelId`,
   `request.distillDatasetPath`, `request.distillLanguagePair`
+- Resume override controls: `request.forceResume=true` with
+  `request.forceResumeReason` for audited compatibility overrides.
+
+## Training metrics contract (core context fields)
+
+Training metrics entries are objective-aware and include run context needed for
+auditable replay:
+
+- `lr` / `effective_lr`
+- `seed`
+- `model_id`
+- `runtime_preset`
+- `kernel_path`
+- `environment_metadata`
+- `memory_stats`
+- `build_provenance`
+
+## Resume compatibility + audit behavior
+
+- Resume compatibility checks are fail-closed by default when checkpoint
+  metadata mismatches expected run metadata.
+- `forceResume=true` allows continuation but writes an audit record including
+  mismatched fields, source/operator context, timestamp, reason, and prior
+  checkpoint metadata hash.
+- Resume override evidence is carried into training lineage artifacts/timelines.
 
 ## Runtime/surface notes
 
@@ -38,9 +63,14 @@ verify/calibrate workflows, artifact lineage, and deterministic reporting.
 - Verify lane, calibrate lane, and provenance checks must pass before training
   claimable outputs are published.
 - Artifacts must be hash-linked and replayable.
+- CI/release gate entrypoint: `npm run ci:training:contract`
+- Weekly contract delta artifact: `npm run training:contract:delta`
+- Distill quality gates + reproducibility bundle:
+  `npm run distill:quality-gate -- --report <report.json> --out-dir <dir>`
 
 ## See also
 
 - [Training Artifact Policy](training-artifact-policy.md)
 - [Training Migrations](training-migrations.md)
 - [Distill Studio Ops](distill-studio-ops.md)
+- [Training Contract Governance](training-governance.md)

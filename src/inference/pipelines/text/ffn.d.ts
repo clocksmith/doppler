@@ -7,8 +7,8 @@
  * - Sandwich Norm variations
  * - Fused optimizations (Fused FFN, Fused Down+Norm)
  *
- * Re-export facade for backward compatibility.
- * Implementation split into submodules under ./ffn/
+ * Public aggregation entrypoint.
+ * Implementation is split into submodules under ./ffn/
  *
  * @module inference/pipelines/text/ffn
  */

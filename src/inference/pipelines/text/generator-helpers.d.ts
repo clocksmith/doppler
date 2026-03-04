@@ -6,7 +6,7 @@
 
 import type { PipelineState } from './state.js';
 import type { LayerContext } from './types.js';
-import type { LogitsConfig, LogitsWeights } from './logits.js';
+import type { LogitsConfig, LogitsWeights } from './logits/index.js';
 import type { WeightBufferConfig } from './weights.js';
 import type { ExecutionSessionPlan } from './execution-plan.js';
 

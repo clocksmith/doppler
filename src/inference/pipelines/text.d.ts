@@ -2,9 +2,9 @@
  * text.d.ts - Main Text Inference Pipeline (Thin Orchestrator)
  *
  * This module orchestrates inference by delegating to specialized modules:
- * - state.ts: Holds model configuration, weights, and runtime state
- * - generator.ts: Handles token generation loops and decoding
- * - init.ts: Initialization, weight loading, KV cache, RoPE
+ * - state.js: Holds model configuration, weights, and runtime state
+ * - generator.js: Handles token generation loops and decoding
+ * - init.js: Initialization, weight loading, KV cache, RoPE
  *
  * The pipeline maintains state and coordinates the flow from input tokens to generated output.
  *

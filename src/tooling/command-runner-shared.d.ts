@@ -49,6 +49,8 @@ export declare function buildSuiteOptions(
   distillShardIndex?: number;
   distillShardCount?: number;
   resumeFrom?: string;
+  forceResume?: boolean;
+  forceResumeReason?: string;
   trainingSchemaVersion?: number;
   trainingBenchSteps?: number;
   workloadType?: string;

@@ -501,7 +501,7 @@
       "catalogSizeBytes": null
     },
     {
-      "dopplerModelId": "gemma-3-270m-it-wf16-ef16-hf16-f32",
+      "dopplerModelId": "gemma-3-270m-it-wf16-ef16-hf16",
       "dopplerModelBaseDir": "local",
       "defaultTjsModelId": "onnx-community/gemma-3-270m-it-ONNX",
       "defaultKernelPath": null,
@@ -512,7 +512,7 @@
       "catalogSizeBytes": null
     },
     {
-      "dopplerModelId": "gemma-3-270m-it-wq4k-ef16-hf16-f32",
+      "dopplerModelId": "gemma-3-270m-it-wq4k-ef16-hf16",
       "dopplerModelBaseDir": null,
       "defaultTjsModelId": null,
       "defaultKernelPath": null,
@@ -522,7 +522,7 @@
         "run",
         "translate"
       ],
-      "catalogBaseUrl": "./curated/gemma-3-270m-it-wq4k-ef16",
+      "catalogBaseUrl": "./curated/gemma-3-270m-it-wq4k-ef16-hf16",
       "catalogSizeBytes": 418512553
     },
     {

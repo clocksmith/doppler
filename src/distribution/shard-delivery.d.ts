@@ -23,6 +23,7 @@ export interface P2PTransportContext {
   contractVersion: number;
   attempt: number;
   maxRetries: number;
+  resumeOffset?: number;
   expectedHash?: string | null;
   expectedSize?: number | null;
   expectedManifestVersionSet?: string | null;
@@ -36,6 +37,9 @@ export type P2PTransportResult =
     buffer?: ArrayBuffer | Uint8Array;
     manifestVersionSet?: string | null;
     manifestHash?: string | null;
+    rangeStart?: number | null;
+    offset?: number | null;
+    totalSize?: number | null;
     miss?: boolean;
     notFound?: boolean;
     error?: unknown;

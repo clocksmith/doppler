@@ -13,7 +13,7 @@ import {
 import {
   RDRR_VERSION,
   generateShardFilename,
-} from '../storage/rdrr-format.js';
+} from '../formats/rdrr/index.js';
 import { log } from '../debug/index.js';
 import { createConverterConfig } from '../config/index.js';
 import { extractArchitecture } from '../converter/core.js';

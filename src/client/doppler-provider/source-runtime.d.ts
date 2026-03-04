@@ -1,5 +1,5 @@
 import type { ExtensionBridgeClient } from '../../bridge/extension-client.js';
-import type { RDRRManifest } from '../../storage/rdrr-format.js';
+import type { RDRRManifest } from '../../formats/rdrr/index.js';
 import type { PipelineStorageContext } from '../../inference/pipelines/text/init.js';
 
 export interface ResolveBridgeSourceRuntimeBundleOptions {

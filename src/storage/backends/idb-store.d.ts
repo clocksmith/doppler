@@ -11,10 +11,16 @@ export interface IdbWriteStream {
   abort(): Promise<void>;
 }
 
+export interface IdbWriteStreamOptions {
+  append?: boolean;
+  expectedOffset?: number | null;
+}
+
 export interface IdbStore {
   init(): Promise<void>;
   openModel(modelId: string, options?: { create?: boolean }): Promise<null>;
   getCurrentModelId(): string | null;
+  getFileSize(filename: string): Promise<number>;
   readFile(filename: string): Promise<ArrayBuffer>;
   readFileRange(filename: string, offset?: number, length?: number | null): Promise<ArrayBuffer>;
   readFileRangeStream(
@@ -25,7 +31,7 @@ export interface IdbStore {
   ): AsyncIterable<Uint8Array>;
   readText(filename: string): Promise<string | null>;
   writeFile(filename: string, data: Uint8Array | ArrayBuffer): Promise<void>;
-  createWriteStream(filename: string): Promise<IdbWriteStream>;
+  createWriteStream(filename: string, options?: IdbWriteStreamOptions): Promise<IdbWriteStream>;
   deleteFile(filename: string): Promise<boolean>;
   listFiles(): Promise<string[]>;
   listModels(): Promise<string[]>;

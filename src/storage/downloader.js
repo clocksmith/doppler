@@ -3,7 +3,7 @@
 import {
   parseManifest,
   getManifestUrl,
-} from './rdrr-format.js';
+} from '../formats/rdrr/index.js';
 
 import {
   openModelStore,

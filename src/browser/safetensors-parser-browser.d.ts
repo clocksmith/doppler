@@ -7,12 +7,12 @@
  * @module browser/safetensors-parser-browser
  */
 
-import type { SafetensorsTensor as CoreSafetensorsTensor, SafetensorsIndexJson } from '../formats/safetensors.js';
+import type { SafetensorsTensor as CoreSafetensorsTensor, SafetensorsIndexJson } from '../formats/safetensors/types.js';
 import type { TensorSource } from './tensor-source-file.js';
 
-export { DTYPE_SIZE, DTYPE_MAP } from '../formats/safetensors.js';
+export { DTYPE_SIZE, DTYPE_MAP } from '../formats/safetensors/types.js';
 
-export type { SafetensorsDtype, SafetensorsIndexJson } from '../formats/safetensors.js';
+export type { SafetensorsDtype, SafetensorsIndexJson } from '../formats/safetensors/types.js';
 
 /**
  * Tensor information from safetensors file

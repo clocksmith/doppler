@@ -279,7 +279,9 @@ async function decodeLatentsGPU(latents, options) {
     throw new Error('VAE decode requires runtime.latent.dtype.');
   }
   if (computeDtype !== 'f16') {
-    log.warn('Diffusion', `VAE GPU decode supports f16 only (requested ${computeDtype}). Using f16.`);
+    throw new Error(
+      `VAE GPU decode requires runtime.latent.dtype="f16"; got "${computeDtype}".`
+    );
   }
   const casted = await ops.castF32ToF16(state.tensor);
   release(state.tensor.buffer);
@@ -299,7 +301,9 @@ async function decodeLatentsGPU(latents, options) {
   }
 
   if (weights.has('vae.decoder.mid_block.attentions.0.to_q.weight')) {
-    log.warn('Diffusion', 'VAE mid-block attention is not implemented yet; skipping.');
+    throw new Error(
+      'VAE mid-block attention weights were detected, but GPU decode support for VAE mid-block attention is not implemented.'
+    );
   }
 
   const upBlockPrefix = 'vae.decoder.up_blocks.';

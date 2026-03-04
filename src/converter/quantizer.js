@@ -1,4 +1,4 @@
-import { classifyTensorRole } from '../storage/rdrr-format.js';
+import { classifyTensorRole } from '../formats/rdrr/index.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
 import {
   QK_K,

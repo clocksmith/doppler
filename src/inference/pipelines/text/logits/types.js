@@ -1,5 +1,4 @@
 
 
-// This file contains only type definitions.
-// All types are exported from types.d.ts.
-// This .js file exists for module resolution compatibility.
+// Runtime placeholder for the type-only logits/types module.
+// All public types are declared in types.d.ts.

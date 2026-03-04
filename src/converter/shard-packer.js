@@ -6,7 +6,7 @@ import {
   classifyTensorRole,
   getGroupType,
   sortGroupIds,
-} from '../storage/rdrr-format.js';
+} from '../formats/rdrr/index.js';
 
 
 export class ShardPacker {

@@ -1,12 +1,11 @@
-// Re-export everything from the modular implementation
+// Types and interfaces
 export {
-  // Version
   DOPPLER_PROVIDER_VERSION,
-
-  // Capability flags
   DopplerCapabilities,
+} from './doppler-provider/types.js';
 
-  // Model management
+// Model management
+export {
   initDoppler,
   loadModel,
   unloadModel,
@@ -18,8 +17,10 @@ export {
   destroyDoppler,
   getPipeline,
   getCurrentModelId,
+} from './doppler-provider/model-manager.js';
 
-  // Generation
+// Generation
+export {
   generate,
   prefillKV,
   generateWithPrefixKV,
@@ -29,8 +30,7 @@ export {
   formatChatMessages,
   buildChatPrompt,
   dopplerChat,
+} from './doppler-provider/generation.js';
 
-  // Main provider
-  DopplerProvider,
-  default,
-} from './doppler-provider/index.js';
+// Main provider
+export { DopplerProvider, default } from './doppler-provider/provider.js';

@@ -1,6 +1,6 @@
 
 
-import { classifyTensorRole } from '../storage/rdrr-format.js';
+import { classifyTensorRole } from '../formats/rdrr/index.js';
 import { shouldQuantize } from '../converter/core.js';
 import {
   float16ToFloat32,

@@ -2,12 +2,13 @@ import {
   log,
   getRuntimeConfig,
   TOOLING_INTENTS,
+  TOOLING_VERIFY_SUITES,
   applyRuntimePreset,
   runBrowserCommand,
 } from '@doppler/core';
 
 const ALLOWED_INTENTS = new Set(TOOLING_INTENTS);
-const SUPPORTED_VERIFY_SUITES = new Set(['kernels', 'inference', 'training', 'diffusion', 'energy']);
+const SUPPORTED_VERIFY_SUITES = new Set(TOOLING_VERIFY_SUITES);
 
 function normalizeSuite(suite) {
   return String(suite || '').trim().toLowerCase();

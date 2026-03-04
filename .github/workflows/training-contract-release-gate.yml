@@ -1,0 +1,56 @@
+name: Training Contract Release Gate
+
+on:
+  pull_request:
+    paths:
+      - 'src/config/**'
+      - 'src/inference/**'
+      - 'src/tooling/**'
+      - 'src/training/**'
+      - 'tests/config/**'
+      - 'tests/integration/**'
+      - 'tools/ci-training-contract-gates.mjs'
+      - 'tools/emit-training-contract-delta.mjs'
+      - 'tools/distill-studio-quality-gate.mjs'
+      - 'tools/run-node-tests.mjs'
+      - 'tools/verify-training-provenance.mjs'
+      - '.github/workflows/training-contract-release-gate.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/config/**'
+      - 'src/inference/**'
+      - 'src/tooling/**'
+      - 'src/training/**'
+      - 'tests/config/**'
+      - 'tests/integration/**'
+      - 'tools/ci-training-contract-gates.mjs'
+      - 'tools/emit-training-contract-delta.mjs'
+      - 'tools/distill-studio-quality-gate.mjs'
+      - 'tools/run-node-tests.mjs'
+      - 'tools/verify-training-provenance.mjs'
+      - '.github/workflows/training-contract-release-gate.yml'
+  workflow_dispatch:
+
+jobs:
+  training-contract-release-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Enforce training contract release gates
+        run: npm run ci:training:contract
+
+      - name: Emit machine-readable contract delta artifact
+        run: node tools/emit-training-contract-delta.mjs --out /tmp/training-contract-delta.json --note github-actions

@@ -19,7 +19,7 @@ import { kernelTrace, traceStep } from './kernel-trace.js';
 import {
   runLayerAttentionGPU,
   recordLayerAttentionGPU,
-} from './attention.js';
+} from './attention/index.js';
 import { runLinearAttentionLayer } from './linear-attention.js';
 
 

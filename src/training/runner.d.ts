@@ -17,6 +17,14 @@ export interface TrainingStepMetricsEntry {
   backward_ms?: number;
   optimizer_ms?: number;
   effective_lr?: number | null;
+  lr?: number | null;
+  seed?: number;
+  model_id?: string;
+  runtime_preset?: string | null;
+  kernel_path?: string | null;
+  environment_metadata?: Record<string, unknown>;
+  memory_stats?: Record<string, unknown> | null;
+  build_provenance?: Record<string, unknown> | null;
   scheduler_index?: number | null;
   scheduler_phase?: string | null;
   gradient_norm_unclipped?: number;
@@ -119,6 +127,21 @@ export interface TrainingRunOptions {
   distillShardIndex?: number | null;
   distillShardCount?: number | null;
   resumeFrom?: string | null;
+  forceResume?: boolean;
+  forceResumeReason?: string | null;
+  forceResumeSource?: string | null;
+  runtimePreset?: string | null;
+  seed?: number | null;
+  kernelPathId?: string | null;
+  tokenizerHash?: string | null;
+  optimizerStepCount?: number | null;
+  buildProvenance?: Record<string, unknown> | null;
+  buildId?: string | null;
+  buildCommitHash?: string | null;
+  buildTimestamp?: string | number | Date | null;
+  command?: string | null;
+  surface?: string | null;
+  checkpointOperator?: string | null;
   modelId?: string | null;
   modelUrl?: string | null;
   timestamp?: string | Date | null;
@@ -140,6 +163,10 @@ export declare class TrainingRunner {
     epoch: number;
     batch: number;
     checkpointHash?: string | null;
+    resumeAudits?: Array<Record<string, unknown>>;
+    resumeAuditCount?: number;
+    previousCheckpointHash?: string | null;
+    checkpointKey?: string | null;
   } | null;
   run(
     model: {

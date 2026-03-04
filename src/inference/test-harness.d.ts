@@ -13,7 +13,7 @@
  */
 
 import { type KernelCapabilities } from '../gpu/device.js';
-import { type RDRRManifest } from '../storage/rdrr-format.js';
+import { type RDRRManifest } from '../formats/rdrr/index.js';
 import { type Pipeline } from './pipelines/text.js';
 import type { RuntimeConfigSchema } from '../config/schema/index.js';
 

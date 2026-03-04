@@ -21,6 +21,7 @@ The transport callback receives:
   contractVersion: 1,
   attempt: number,
   maxRetries: number,
+  resumeOffset?: number,
   expectedHash?: string | null,
   expectedSize?: number | null,
   expectedManifestVersionSet?: string | null,
@@ -31,6 +32,7 @@ Semantics:
 - `attempt` starts at `0` and increments per retry.
 - `maxRetries` is the retry budget for P2P only.
 - `signal` cancellation must stop transport work promptly.
+- `resumeOffset` is provided when Doppler has persisted a shard prefix and is requesting remaining bytes.
 
 ## Response Payload (transport -> runtime)
 Accepted shapes:
@@ -47,6 +49,8 @@ ArrayBuffer | Uint8Array
   buffer?: ArrayBuffer | Uint8Array,
   manifestVersionSet?: string | null,
   manifestHash?: string | null,
+  rangeStart?: number | null,
+  totalSize?: number | null,
   miss?: boolean,
   notFound?: boolean,
   error?: unknown,
@@ -55,6 +59,8 @@ ArrayBuffer | Uint8Array
 
 Notes:
 - `data`/`buffer` are equivalent.
+- `rangeStart` should match the requested `resumeOffset` when partial resume is used.
+- `totalSize` should be set when available and must align with expected shard size if provided.
 - `miss`/`notFound` indicate provider miss (`unavailable`) and trigger fallback policy.
 - `manifestVersionSet` is used by anti-rollback checks when enabled.
 
@@ -81,6 +87,7 @@ Retry behavior:
 
 ## Integrity + Rollback Expectations
 - Doppler computes shard hash and checks expected hash/size.
+- Doppler validates P2P resume alignment (`resumeOffset` vs payload `rangeStart`) and fails that source attempt on mismatch.
 - When anti-rollback requires `manifestVersionSet`, mismatched or missing version-set fails that source attempt.
 - Source transition behavior remains controlled by configured source matrix (`onMiss`/`onFailure`).
 

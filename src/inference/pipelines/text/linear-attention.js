@@ -2,7 +2,7 @@ import { getBufferDtype, isWeightBuffer } from '../../../gpu/weight-buffer.js';
 import { recordMatmul, recordRMSNorm, runMatmul, runRMSNorm } from '../../../gpu/kernel-selector.js';
 import { readBuffer, releaseBuffer, uploadData, acquireBuffer } from '../../../memory/buffer-pool.js';
 import { log } from '../../../debug/index.js';
-import { decodeReadback } from './debug-utils.js';
+import { decodeReadback } from './debug-utils/index.js';
 import { runLinearAttentionCoreGPU } from '../../../gpu/kernels/linear-attention-core.js';
 
 const LINEAR_RUNTIME_SCHEMA_VERSION = 1;

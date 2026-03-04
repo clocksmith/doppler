@@ -1,7 +1,7 @@
 import type { ExtensionBridgeClient } from '../../bridge/index.js';
 import type { InferencePipeline, KVCacheSnapshot } from '../../inference/pipelines/text.js';
 import type { LoRAManifest } from '../../adapters/lora-loader.js';
-import type { RDRRManifest } from '../../storage/rdrr-format.js';
+import type { RDRRManifest } from '../../formats/rdrr/index.js';
 
 export declare const DOPPLER_PROVIDER_VERSION: string;
 

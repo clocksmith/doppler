@@ -1,6 +1,7 @@
 # Quick Model Catalog
 
 Use `catalog.json` to define hosted models that the demo can import directly into OPFS.
+`catalog.json` is the canonical model registry for runtime/demo/hosted/tested lifecycle tracking.
 
 Model storage under this directory is split into two buckets:
 
@@ -17,6 +18,15 @@ Each entry supports:
 - `sizeBytes` (number, optional)
 - `recommended` (boolean, optional)
 - `sortOrder` (number, optional)
+- `lifecycle` (object, optional but recommended)
+  - `availability` (object): `curated` | `local` | `hf` booleans
+  - `status` (object): `runtime`, `conversion`, `demo`, `tested` labels
+  - `tested` (object): latest verification metadata
+    - `suite` (string)
+    - `surface` (string)
+    - `result` (`pass` | `fail` | `unknown`)
+    - `lastVerifiedAt` (`YYYY-MM-DD`)
+    - `source` (string, e.g. `registry-verify`)
 
 Recommended layout for deployable assets:
 
@@ -49,6 +59,26 @@ Example `catalog.json` entry:
   "baseUrl": "./curated/example-embedding-model",
   "sizeBytes": 123456789,
   "recommended": true,
-  "sortOrder": 10
+  "sortOrder": 10,
+  "lifecycle": {
+    "availability": {
+      "curated": true,
+      "local": true,
+      "hf": true
+    },
+    "status": {
+      "runtime": "active",
+      "conversion": "ready",
+      "demo": "curated",
+      "tested": "verified"
+    },
+    "tested": {
+      "suite": "inference",
+      "surface": "auto",
+      "result": "pass",
+      "lastVerifiedAt": "2026-03-04",
+      "source": "registry-verify"
+    }
+  }
 }
 ```

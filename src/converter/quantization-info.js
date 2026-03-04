@@ -1,6 +1,6 @@
 
 import { DEFAULT_QUANTIZATION_DEFAULTS, DEFAULT_Q4K_LAYOUT } from '../config/index.js';
-import { classifyTensorRole } from '../storage/rdrr-format.js';
+import { classifyTensorRole } from '../formats/rdrr/index.js';
 
 // Quantization tag aliases mapped to canonical names.
 // Add new aliases here rather than adding if/else branches.

@@ -3,8 +3,11 @@ import {
   computeHash,
   createStreamingHasher,
   createShardWriter,
+  deleteShard,
+  getShardStoredSize,
   loadShard as loadShardFromStore,
   shardExists,
+  streamShardRange,
 } from '../storage/shard-manager.js';
 import { ERROR_CODES, createDopplerError } from '../errors/doppler-error.js';
 import { DEFAULT_DISTRIBUTION_CONFIG } from '../config/schema/distribution.schema.js';
@@ -77,6 +80,224 @@ function normalizeManifestVersionSet(value) {
   if (value === undefined || value === null) return null;
   const normalized = String(value).trim();
   return normalized || null;
+}
+
+function createShardSizeMismatchError(message, details = {}) {
+  const error = createDopplerError(
+    ERROR_CODES.DISTRIBUTION_SHARD_SIZE_MISMATCH,
+    message
+  );
+  Object.assign(error, details);
+  return error;
+}
+
+function parseContentLengthHeader(response, shardIndex) {
+  const raw = response?.headers?.get?.('content-length');
+  if (raw == null || raw === '') return null;
+  const parsed = Number(raw);
+  if (!Number.isInteger(parsed) || parsed < 0) {
+    throw createShardSizeMismatchError(
+      `Invalid content-length header for shard ${shardIndex}: ${raw}`,
+      {
+        code: 'http_content_length_invalid',
+        headerValue: raw,
+      }
+    );
+  }
+  return parsed;
+}
+
+function parseContentRangeHeader(response, shardIndex) {
+  const raw = response?.headers?.get?.('content-range');
+  if (raw == null || raw.trim() === '') return null;
+  const match = /^bytes\s+(\d+)-(\d+)\/(\d+|\*)$/iu.exec(raw.trim());
+  if (!match) {
+    throw createShardSizeMismatchError(
+      `Invalid content-range header for shard ${shardIndex}: ${raw}`,
+      {
+        code: 'http_content_range_invalid',
+        headerValue: raw,
+      }
+    );
+  }
+  const start = Number(match[1]);
+  const end = Number(match[2]);
+  const total = match[3] === '*' ? null : Number(match[3]);
+  if (!Number.isInteger(start) || !Number.isInteger(end) || end < start) {
+    throw createShardSizeMismatchError(
+      `Invalid content-range byte span for shard ${shardIndex}: ${raw}`,
+      {
+        code: 'http_content_range_invalid_span',
+        headerValue: raw,
+      }
+    );
+  }
+  if (total != null && (!Number.isInteger(total) || total <= 0 || total <= end)) {
+    throw createShardSizeMismatchError(
+      `Invalid content-range total size for shard ${shardIndex}: ${raw}`,
+      {
+        code: 'http_content_range_invalid_total',
+        headerValue: raw,
+      }
+    );
+  }
+  return {
+    start,
+    end,
+    total,
+    length: end - start + 1,
+  };
+}
+
+function assertHttpResponseBoundaryHeaders(response, shardIndex, contentLength, contentRange) {
+  if (response.status === 206 && !contentRange) {
+    throw createShardSizeMismatchError(
+      `Shard ${shardIndex} returned HTTP 206 without content-range header.`,
+      {
+        code: 'http_content_range_missing',
+      }
+    );
+  }
+  if (contentRange && response.status !== 206) {
+    throw createShardSizeMismatchError(
+      `Shard ${shardIndex} returned content-range header with unexpected HTTP ${response.status}.`,
+      {
+        code: 'http_content_range_unexpected_status',
+        status: response.status,
+      }
+    );
+  }
+  if (
+    contentLength != null
+    && contentRange
+    && contentLength !== contentRange.length
+  ) {
+    throw createShardSizeMismatchError(
+      `Shard ${shardIndex} content-length/content-range mismatch: content-length=${contentLength}, range-length=${contentRange.length}.`,
+      {
+        code: 'http_header_length_mismatch',
+        contentLength,
+        contentRangeLength: contentRange.length,
+      }
+    );
+  }
+}
+
+function assertHttpResumeAlignment(
+  response,
+  shardIndex,
+  resumeOffset,
+  contentRange
+) {
+  if (!Number.isInteger(resumeOffset) || resumeOffset <= 0) {
+    return { resetState: false };
+  }
+  if (response.status === 200) {
+    return { resetState: true };
+  }
+  if (response.status !== 206 || !contentRange) {
+    throw createShardSizeMismatchError(
+      `Shard ${shardIndex} resume response mismatch: expected HTTP 206 with content-range for offset ${resumeOffset}, got HTTP ${response.status}.`,
+      {
+        code: 'http_resume_response_mismatch',
+        status: response.status,
+        resumeOffset,
+      }
+    );
+  }
+  if (contentRange.start !== resumeOffset) {
+    throw createShardSizeMismatchError(
+      `Shard ${shardIndex} resume content-range start mismatch: expected ${resumeOffset}, got ${contentRange.start}.`,
+      {
+        code: 'http_resume_offset_mismatch',
+        resumeOffset,
+        contentRangeStart: contentRange.start,
+      }
+    );
+  }
+  return { resetState: false };
+}
+
+function assertHttpPayloadBoundary(shardIndex, bytesReceived, contentLength, contentRange, expectedSize) {
+  if (contentLength != null && bytesReceived !== contentLength) {
+    throw createShardSizeMismatchError(
+      `Shard ${shardIndex} content-length mismatch: expected ${contentLength}, received ${bytesReceived}.`,
+      {
+        code: 'http_content_length_mismatch',
+        contentLength,
+        bytesReceived,
+      }
+    );
+  }
+  if (contentRange && bytesReceived !== contentRange.length) {
+    throw createShardSizeMismatchError(
+      `Shard ${shardIndex} content-range mismatch: expected ${contentRange.length} bytes, received ${bytesReceived}.`,
+      {
+        code: 'http_content_range_length_mismatch',
+        contentRangeLength: contentRange.length,
+        bytesReceived,
+      }
+    );
+  }
+  if (contentRange?.total != null && Number.isFinite(expectedSize)) {
+    const normalizedExpectedSize = Math.floor(expectedSize);
+    if (normalizedExpectedSize >= 0 && contentRange.total !== normalizedExpectedSize) {
+      throw createShardSizeMismatchError(
+        `Shard ${shardIndex} content-range total mismatch: expected ${normalizedExpectedSize}, got ${contentRange.total}.`,
+        {
+          code: 'http_content_range_total_mismatch',
+          expectedSize: normalizedExpectedSize,
+          contentRangeTotal: contentRange.total,
+        }
+      );
+    }
+  }
+}
+
+function assertP2PPayloadRangeStart(
+  shardIndex,
+  rangeStart,
+  expectedStart
+) {
+  if (rangeStart == null) {
+    return;
+  }
+  if (!Number.isInteger(rangeStart) || rangeStart < 0) {
+    throw createShardSizeMismatchError(
+      `Shard ${shardIndex} p2p payload rangeStart must be a non-negative integer.`,
+      {
+        code: 'p2p_range_start_invalid',
+        rangeStart,
+      }
+    );
+  }
+  if (rangeStart !== expectedStart) {
+    throw createShardSizeMismatchError(
+      `Shard ${shardIndex} p2p resume range mismatch: expected start ${expectedStart}, got ${rangeStart}.`,
+      {
+        code: 'p2p_resume_offset_mismatch',
+        expectedStart,
+        rangeStart,
+      }
+    );
+  }
+}
+
+function assertP2PTotalSize(shardIndex, totalSize, expectedSize) {
+  if (totalSize == null || !Number.isFinite(expectedSize)) {
+    return;
+  }
+  const normalizedExpectedSize = Math.floor(expectedSize);
+  if (totalSize !== normalizedExpectedSize) {
+    throw createShardSizeMismatchError(
+      `Shard ${shardIndex} p2p totalSize mismatch: expected ${normalizedExpectedSize}, got ${totalSize}.`,
+      {
+        code: 'p2p_total_size_mismatch',
+        expectedSize: normalizedExpectedSize,
+        totalSize,
+      }
+    );
+  }
 }
 
 function assertRequiredContentEncoding(response, requiredEncoding, context) {
@@ -392,6 +613,170 @@ export function resolveShardDeliveryPlan(options = {}) {
   return { order, plan };
 }
 
+async function seedHasherFromStoredPrefix(hasher, shardIndex, expectedPrefixBytes) {
+  if (!Number.isInteger(expectedPrefixBytes) || expectedPrefixBytes <= 0) {
+    return;
+  }
+  let hashedBytes = 0;
+  for await (const chunk of streamShardRange(shardIndex, 0, expectedPrefixBytes)) {
+    if (!chunk?.byteLength) continue;
+    const remaining = expectedPrefixBytes - hashedBytes;
+    if (remaining <= 0) break;
+    const next = chunk.byteLength > remaining
+      ? chunk.subarray(0, remaining)
+      : chunk;
+    hasher.update(next);
+    hashedBytes += next.byteLength;
+    if (hashedBytes >= expectedPrefixBytes) break;
+  }
+  if (hashedBytes !== expectedPrefixBytes) {
+    throw createShardSizeMismatchError(
+      `Shard ${shardIndex} stored resume prefix mismatch: expected ${expectedPrefixBytes} bytes, read ${hashedBytes}.`,
+      {
+        code: 'resume_state_prefix_mismatch',
+        expectedPrefixBytes,
+        actualPrefixBytes: hashedBytes,
+      }
+    );
+  }
+}
+
+async function resolvePersistedResumeOffset(writeToStore, shardIndex, expectedSize) {
+  if (!writeToStore) return 0;
+  const storedSize = await getShardStoredSize(shardIndex);
+  const resumeOffset = Number.isFinite(storedSize)
+    ? Math.max(0, Math.floor(storedSize))
+    : 0;
+  if (resumeOffset <= 0) return 0;
+  if (Number.isFinite(expectedSize)) {
+    const normalizedExpected = Math.max(0, Math.floor(expectedSize));
+    if (resumeOffset > normalizedExpected) {
+      throw createShardSizeMismatchError(
+        `Shard ${shardIndex} stored resume bytes exceed expected size: stored=${resumeOffset}, expected=${normalizedExpected}.`,
+        {
+          code: 'resume_state_oversize',
+          storedBytes: resumeOffset,
+          expectedSize: normalizedExpected,
+        }
+      );
+    }
+    if (resumeOffset === normalizedExpected) {
+      return 0;
+    }
+  }
+  return resumeOffset;
+}
+
+async function createHttpTransferState(writeToStore, shardIndex, algorithm, resumeOffset = 0) {
+  const normalizedResumeOffset = Number.isInteger(resumeOffset) && resumeOffset > 0
+    ? resumeOffset
+    : 0;
+  const hasher = await createStreamingHasher(algorithm);
+  if (normalizedResumeOffset > 0) {
+    await seedHasherFromStoredPrefix(hasher, shardIndex, normalizedResumeOffset);
+  }
+  return {
+    hasher,
+    chunks: writeToStore ? null : [],
+    writer: writeToStore
+      ? await createShardWriter(shardIndex, {
+        append: normalizedResumeOffset > 0,
+        expectedOffset: normalizedResumeOffset,
+      })
+      : null,
+    writerClosed: false,
+    receivedBytes: normalizedResumeOffset,
+  };
+}
+
+async function resetHttpTransferState(state, writeToStore, shardIndex, algorithm) {
+  await state.writer?.abort?.();
+  state.hasher = await createStreamingHasher(algorithm);
+  state.chunks = writeToStore ? null : [];
+  state.writer = writeToStore ? await createShardWriter(shardIndex) : null;
+  state.writerClosed = false;
+  state.receivedBytes = 0;
+}
+
+async function appendHttpTransferChunk(state, chunk) {
+  const bytes = chunk instanceof Uint8Array ? chunk : new Uint8Array(chunk);
+  state.hasher.update(bytes);
+  if (state.writer) {
+    await state.writer.write(bytes);
+  } else if (state.chunks) {
+    state.chunks.push(bytes.slice(0));
+  }
+  state.receivedBytes += bytes.byteLength;
+}
+
+async function finalizeHttpTransferState(state, startTime, shardIndex) {
+  const hashBytes = await state.hasher.finalize();
+  const hash = bytesToHex(hashBytes);
+  if (state.writer) {
+    await state.writer.close();
+    state.writerClosed = true;
+    const elapsed = (performance.now() - startTime) / 1000;
+    const speed = elapsed > 0 ? state.receivedBytes / elapsed : 0;
+    const speedDisplay = `${(speed / (1024 * 1024)).toFixed(2)}MB/s`;
+    log.verbose(
+      'Distribution',
+      `Shard ${shardIndex}: http stream (${state.receivedBytes} bytes, ${elapsed.toFixed(2)}s, ${speedDisplay})`
+    );
+    return {
+      buffer: null,
+      bytes: state.receivedBytes,
+      hash,
+      wrote: true,
+      source: DISTRIBUTION_SOURCE_HTTP,
+      path: 'http-stream-store',
+    };
+  }
+
+  const buffer = !state.chunks || state.chunks.length === 0
+    ? new ArrayBuffer(0)
+    : await new Blob(state.chunks).arrayBuffer();
+  return {
+    buffer,
+    bytes: buffer.byteLength,
+    hash,
+    wrote: false,
+    source: DISTRIBUTION_SOURCE_HTTP,
+    path: 'http-stream-buffer',
+  };
+}
+
+async function abortHttpTransferState(state) {
+  if (state.writer && !state.writerClosed) {
+    await state.writer.abort?.();
+    state.writerClosed = true;
+  }
+}
+
+async function persistHttpTransferState(state) {
+  if (!state.writer || state.writerClosed) {
+    return;
+  }
+  if (state.receivedBytes > 0) {
+    await state.writer.close();
+    state.writerClosed = true;
+    return;
+  }
+  await state.writer.abort?.();
+  state.writerClosed = true;
+}
+
+async function clearPersistedShardState(shardIndex) {
+  const deleted = await deleteShard(shardIndex);
+  if (deleted) {
+    return;
+  }
+  const writer = await createShardWriter(shardIndex, {
+    append: false,
+    expectedOffset: 0,
+  });
+  await writer.abort?.();
+}
+
 async function downloadShardFromHttp(baseUrl, shardInfo, shardIndex, options = {}) {
   const {
     signal,
@@ -411,47 +796,125 @@ async function downloadShardFromHttp(baseUrl, shardInfo, shardIndex, options = {
   const maxRetries = normalizeInteger(options.maxRetries, 3, true);
   const initialRetryDelayMs = normalizeInteger(options.initialRetryDelayMs, 1000);
   const maxRetryDelayMs = normalizeInteger(options.maxRetryDelayMs, 30000);
+  const progressTotalBytes = Number.isFinite(options.expectedSize)
+    ? Math.floor(options.expectedSize)
+    : (Number.isFinite(shardInfo?.size) ? Math.floor(shardInfo.size) : 0);
   let retryDelay = initialRetryDelayMs;
+  const disablePersistedResume = options.__disablePersistedResume === true;
+  let resumeOffset = 0;
+  if (!disablePersistedResume) {
+    try {
+      resumeOffset = await resolvePersistedResumeOffset(
+        writeToStore,
+        shardIndex,
+        options.expectedSize
+      );
+    } catch (error) {
+      if (writeToStore && error?.code === 'resume_state_oversize') {
+        await clearPersistedShardState(shardIndex);
+        resumeOffset = 0;
+      } else {
+        throw error;
+      }
+    }
+  }
+  const startedWithResume = resumeOffset > 0;
+  let transferState;
+  try {
+    transferState = await createHttpTransferState(
+      writeToStore,
+      shardIndex,
+      algorithm,
+      resumeOffset
+    );
+  } catch (error) {
+    if (writeToStore && error?.code === 'resume_state_prefix_mismatch') {
+      await clearPersistedShardState(shardIndex);
+      resumeOffset = 0;
+      transferState = await createHttpTransferState(
+        writeToStore,
+        shardIndex,
+        algorithm,
+        0
+      );
+    } else {
+      throw error;
+    }
+  }
 
   for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
     try {
-      const response = await fetch(url, { signal });
+      const resumeOffset = transferState.receivedBytes;
+      const requestHeaders = resumeOffset > 0
+        ? { range: `bytes=${resumeOffset}-` }
+        : undefined;
+      const response = await fetch(url, { signal, headers: requestHeaders });
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        const error = new Error(`HTTP ${response.status}: ${response.statusText}`);
+        error.status = response.status;
+        throw error;
       }
 
       assertRequiredContentEncoding(response, requiredEncoding, `shard ${shardIndex}`);
+      const contentLength = parseContentLengthHeader(response, shardIndex);
+      const contentRange = parseContentRangeHeader(response, shardIndex);
+      assertHttpResponseBoundaryHeaders(response, shardIndex, contentLength, contentRange);
+      const { resetState } = assertHttpResumeAlignment(
+        response,
+        shardIndex,
+        resumeOffset,
+        contentRange
+      );
+      if (resetState) {
+        await resetHttpTransferState(transferState, writeToStore, shardIndex, algorithm);
+      }
 
       if (!response.body) {
         const buffer = await response.arrayBuffer();
-        const hash = await computeHash(buffer, algorithm);
-        const percent = shardInfo?.size
-          ? Math.min(100, Math.floor((buffer.byteLength / shardInfo.size) * 100))
+        assertHttpPayloadBoundary(
+          shardIndex,
+          buffer.byteLength,
+          contentLength,
+          contentRange,
+          options.expectedSize
+        );
+        await appendHttpTransferChunk(transferState, new Uint8Array(buffer));
+        const total = progressTotalBytes > 0 ? progressTotalBytes : transferState.receivedBytes;
+        const percent = total > 0
+          ? Math.min(100, Math.floor((transferState.receivedBytes / total) * 100))
           : 100;
         onProgress?.({
           shardIndex,
-          receivedBytes: buffer.byteLength,
-          totalBytes: shardInfo.size ?? buffer.byteLength,
+          receivedBytes: transferState.receivedBytes,
+          totalBytes: total,
           percent,
         });
 
-        return {
-          buffer,
-          bytes: buffer.byteLength,
-          hash,
-          wrote: false,
-          source: DISTRIBUTION_SOURCE_HTTP,
-          path: 'http-blob',
+        const finalized = await finalizeHttpTransferState(transferState, startTime, shardIndex);
+        const result = {
+          ...finalized,
+          path: finalized.wrote ? finalized.path : 'http-blob',
           manifestVersionSet: options.expectedManifestVersionSet ?? null,
         };
+        if (
+          writeToStore
+          && startedWithResume
+          && options.__resumeRecoveryAttempted !== true
+          && options.expectedHash
+          && result.hash !== options.expectedHash
+        ) {
+          await clearPersistedShardState(shardIndex);
+          return downloadShardFromHttp(baseUrl, shardInfo, shardIndex, {
+            ...options,
+            __disablePersistedResume: true,
+            __resumeRecoveryAttempted: true,
+          });
+        }
+        return result;
       }
 
-      const totalBytes = shardInfo?.size ?? 0;
       const reader = response.body.getReader();
-      const hasher = await createStreamingHasher(algorithm);
-      const chunks = writeToStore ? null : [];
-      const writer = writeToStore ? await createShardWriter(shardIndex) : null;
-      let receivedBytes = 0;
+      let attemptBytes = 0;
 
       try {
         while (true) {
@@ -459,68 +922,67 @@ async function downloadShardFromHttp(baseUrl, shardInfo, shardIndex, options = {
           if (done) break;
 
           if (value?.length) {
-            hasher.update(value);
-            if (writer) {
-              await writer.write(value);
-            } else {
-              chunks.push(value);
-            }
-            receivedBytes += value.length;
+            await appendHttpTransferChunk(transferState, value);
+            attemptBytes += value.length;
           }
 
+          const total = progressTotalBytes > 0 ? progressTotalBytes : transferState.receivedBytes;
           onProgress?.({
             shardIndex,
-            receivedBytes,
-            totalBytes,
-            percent: totalBytes > 0 ? (receivedBytes / totalBytes) * 100 : 0,
+            receivedBytes: transferState.receivedBytes,
+            totalBytes: total,
+            percent: total > 0 ? (transferState.receivedBytes / total) * 100 : 0,
           });
         }
 
-        const hashBytes = await hasher.finalize();
-        const hash = bytesToHex(hashBytes);
-
-        if (writer) {
-          await writer.close();
-          const elapsed = (performance.now() - startTime) / 1000;
-          const speed = elapsed > 0 ? receivedBytes / elapsed : 0;
-          const speedDisplay = `${(speed / (1024 * 1024)).toFixed(2)}MB/s`;
-          log.verbose('Distribution', `Shard ${shardIndex}: http stream (${receivedBytes} bytes, ${elapsed.toFixed(2)}s, ${speedDisplay})`);
-          return {
-            buffer: null,
-            bytes: receivedBytes,
-            hash,
-            wrote: true,
-            source: DISTRIBUTION_SOURCE_HTTP,
-            path: 'http-stream-store',
-            manifestVersionSet: options.expectedManifestVersionSet ?? null,
-          };
-        }
-
-        const buffer = new Blob(chunks).size === 0
-          ? new ArrayBuffer(0)
-          : await new Blob(chunks).arrayBuffer();
-
-        return {
-          buffer,
-          bytes: buffer.byteLength,
-          hash,
-          wrote: false,
-          source: DISTRIBUTION_SOURCE_HTTP,
-          path: 'http-stream-buffer',
+        assertHttpPayloadBoundary(
+          shardIndex,
+          attemptBytes,
+          contentLength,
+          contentRange,
+          options.expectedSize
+        );
+        const finalized = await finalizeHttpTransferState(transferState, startTime, shardIndex);
+        const result = {
+          ...finalized,
           manifestVersionSet: options.expectedManifestVersionSet ?? null,
         };
+        if (
+          writeToStore
+          && startedWithResume
+          && options.__resumeRecoveryAttempted !== true
+          && options.expectedHash
+          && result.hash !== options.expectedHash
+        ) {
+          await clearPersistedShardState(shardIndex);
+          return downloadShardFromHttp(baseUrl, shardInfo, shardIndex, {
+            ...options,
+            __disablePersistedResume: true,
+            __resumeRecoveryAttempted: true,
+          });
+        }
+        return result;
       } catch (error) {
-        await writer?.abort?.();
         throw error;
       }
     } catch (error) {
       lastError = error;
 
       if (error?.name === 'AbortError') {
+        if (writeToStore) {
+          await persistHttpTransferState(transferState);
+        } else {
+          await abortHttpTransferState(transferState);
+        }
         throw error;
       }
 
-      if (String(error?.message || '').includes('HTTP 4') && !String(error?.message || '').includes('HTTP 429')) {
+      if (Number.isInteger(error?.status) && error.status >= 400 && error.status < 500 && error.status !== 429) {
+        await abortHttpTransferState(transferState);
+        throw error;
+      }
+      if (typeof error?.code === 'string' && error.code.startsWith('http_')) {
+        await abortHttpTransferState(transferState);
         throw error;
       }
 
@@ -529,9 +991,20 @@ async function downloadShardFromHttp(baseUrl, shardInfo, shardIndex, options = {
         retryDelay = Math.min(retryDelay * 2, maxRetryDelayMs);
         continue;
       }
+
+      if (writeToStore) {
+        await persistHttpTransferState(transferState);
+      } else {
+        await abortHttpTransferState(transferState);
+      }
     }
   }
 
+  if (writeToStore) {
+    await persistHttpTransferState(transferState);
+  } else {
+    await abortHttpTransferState(transferState);
+  }
   throw lastError;
 }
 
@@ -545,10 +1018,56 @@ async function downloadShardFromP2P(shardIndex, shardInfo, p2pConfig, options = 
     );
   }
 
+  const writeToStore = options.writeToStore === true;
+  const algorithm = options.algorithm;
+  if (writeToStore && !algorithm) {
+    throw new Error(`Missing hash algorithm for shard ${shardIndex} p2p transfer.`);
+  }
+
+  const expectedSize = Number.isFinite(options.expectedSize)
+    ? Math.floor(options.expectedSize)
+    : null;
+  let seededResumeOffset = 0;
+  let transferState = null;
+  if (writeToStore) {
+    try {
+      seededResumeOffset = await resolvePersistedResumeOffset(
+        true,
+        shardIndex,
+        expectedSize
+      );
+    } catch (error) {
+      if (error?.code === 'resume_state_oversize') {
+        await clearPersistedShardState(shardIndex);
+        seededResumeOffset = 0;
+      } else {
+        throw error;
+      }
+    }
+    try {
+      transferState = await createHttpTransferState(
+        true,
+        shardIndex,
+        algorithm,
+        seededResumeOffset
+      );
+    } catch (error) {
+      if (error?.code === 'resume_state_prefix_mismatch') {
+        await clearPersistedShardState(shardIndex);
+        seededResumeOffset = 0;
+        transferState = await createHttpTransferState(true, shardIndex, algorithm, 0);
+      } else {
+        throw error;
+      }
+    }
+  }
+
+  const startTime = performance.now();
   let lastError = null;
   const maxRetries = Math.max(0, p2pConfig.maxRetries);
   for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
     try {
+      const requestResumeOffset = transferState?.receivedBytes ?? 0;
       const transportResult = await withTimeout(
         transport({
           shardIndex,
@@ -559,6 +1078,7 @@ async function downloadShardFromP2P(shardIndex, shardInfo, p2pConfig, options = 
           contractVersion: p2pConfig.contractVersion,
           attempt,
           maxRetries,
+          resumeOffset: requestResumeOffset,
           expectedHash: options.expectedHash ?? null,
           expectedSize: options.expectedSize ?? null,
           expectedManifestVersionSet: options.expectedManifestVersionSet ?? null,
@@ -578,17 +1098,74 @@ async function downloadShardFromP2P(shardIndex, shardInfo, p2pConfig, options = 
         );
       }
 
+      const payloadRangeStart = payload.rangeStart;
+      const payloadTotalSize = payload.totalSize;
+      assertP2PTotalSize(shardIndex, payloadTotalSize, expectedSize);
+
+      const onProgress = options.onProgress ?? null;
       return {
-        buffer: payload.data,
-        bytes: payload.data.byteLength,
-        source: DISTRIBUTION_SOURCE_P2P,
-        path: 'p2p-transport',
-        wrote: false,
+        ...(await (async () => {
+          if (!writeToStore) {
+            assertP2PPayloadRangeStart(shardIndex, payloadRangeStart, 0);
+            onProgress?.({
+              shardIndex,
+              receivedBytes: payload.data.byteLength,
+              totalBytes: expectedSize ?? payloadTotalSize ?? payload.data.byteLength,
+              percent: 100,
+            });
+            return {
+              buffer: payload.data,
+              bytes: payload.data.byteLength,
+              source: DISTRIBUTION_SOURCE_P2P,
+              path: 'p2p-transport',
+              wrote: false,
+            };
+          }
+
+          let effectiveRangeStart = payloadRangeStart;
+          if (effectiveRangeStart == null) {
+            effectiveRangeStart = requestResumeOffset;
+          }
+          if (requestResumeOffset > 0 && effectiveRangeStart === 0) {
+            await resetHttpTransferState(transferState, true, shardIndex, algorithm);
+          } else {
+            assertP2PPayloadRangeStart(
+              shardIndex,
+              effectiveRangeStart,
+              transferState.receivedBytes
+            );
+          }
+          await appendHttpTransferChunk(transferState, new Uint8Array(payload.data));
+          onProgress?.({
+            shardIndex,
+            receivedBytes: transferState.receivedBytes,
+            totalBytes: expectedSize ?? payloadTotalSize ?? transferState.receivedBytes,
+            percent: 100,
+          });
+          const finalized = await finalizeHttpTransferState(transferState, startTime, shardIndex);
+          if (Number.isFinite(expectedSize)) {
+            assertExpectedSize(finalized.bytes, expectedSize, shardIndex);
+          } else if (Number.isInteger(payloadTotalSize)) {
+            assertExpectedSize(finalized.bytes, payloadTotalSize, shardIndex);
+          }
+          return {
+            ...finalized,
+            source: DISTRIBUTION_SOURCE_P2P,
+            path: 'p2p-stream-store',
+          };
+        })()),
         manifestVersionSet: normalizeManifestVersionSet(
           payload.manifestVersionSet ?? options.expectedManifestVersionSet
         ),
       };
     } catch (error) {
+      if (typeof error?.code === 'string' && error.code.startsWith('p2p_')) {
+        if (writeToStore) {
+          await clearPersistedShardState(shardIndex);
+        }
+        throw error;
+      }
+
       const normalized = normalizeP2PTransportError(error, {
         shardIndex,
         attempt,
@@ -597,6 +1174,9 @@ async function downloadShardFromP2P(shardIndex, shardInfo, p2pConfig, options = 
       });
       lastError = normalized;
       if (normalized?.code === P2P_TRANSPORT_ERROR_CODES.aborted) {
+        if (writeToStore) {
+          await persistHttpTransferState(transferState);
+        }
         const abortError = createAbortError(normalized.message || 'P2P transport aborted');
         throw abortError;
       }
@@ -604,10 +1184,16 @@ async function downloadShardFromP2P(shardIndex, shardInfo, p2pConfig, options = 
         await new Promise((resolve) => setTimeout(resolve, p2pConfig.retryDelayMs));
         continue;
       }
+      if (writeToStore) {
+        await persistHttpTransferState(transferState);
+      }
       throw normalized;
     }
   }
 
+  if (writeToStore) {
+    await persistHttpTransferState(transferState);
+  }
   throw lastError;
 }
 
@@ -658,7 +1244,12 @@ async function executeDeliveryPlan(
         };
       } else if (step.source === DISTRIBUTION_SOURCE_P2P) {
         result = await downloadShardFromP2P(shardIndex, shardInfo, p2p, options);
-        result.hash = await computeHash(result.buffer, options.algorithm);
+        if (!result.hash) {
+          if (!(result.buffer instanceof ArrayBuffer)) {
+            throw new Error(`Shard ${shardIndex} p2p result missing hash and buffer.`);
+          }
+          result.hash = await computeHash(result.buffer, options.algorithm);
+        }
       } else if (step.source === DISTRIBUTION_SOURCE_HTTP) {
         result = await downloadShardFromHttp(baseUrl, shardInfo, shardIndex, { ...options });
       }

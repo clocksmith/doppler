@@ -47,6 +47,19 @@ function normalizeOptionalString(value, label) {
   return trimmed || null;
 }
 
+function normalizeOptionalNonNegativeInteger(value, label) {
+  if (value === undefined || value === null) return null;
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed < 0) {
+    throw createP2PTransportError(
+      P2P_TRANSPORT_ERROR_CODES.payloadInvalid,
+      `${label} must be a non-negative integer when provided.`,
+      { label }
+    );
+  }
+  return parsed;
+}
+
 function normalizeTransportErrorCode(rawCode) {
   if (typeof rawCode !== 'string') return null;
   const normalized = rawCode.trim().toLowerCase().replace(/[\s_-]+/g, '');
@@ -172,6 +185,8 @@ export function normalizeP2PTransportResult(value, label = 'p2p transport payloa
       data: toArrayBuffer(value, label),
       manifestVersionSet: null,
       manifestHash: null,
+      rangeStart: null,
+      totalSize: null,
     };
   }
 
@@ -204,6 +219,14 @@ export function normalizeP2PTransportResult(value, label = 'p2p transport payloa
       manifestHash: normalizeOptionalString(
         value.manifestHash,
         `${label}.manifestHash`
+      ),
+      rangeStart: normalizeOptionalNonNegativeInteger(
+        value.rangeStart ?? value.offset,
+        `${label}.rangeStart`
+      ),
+      totalSize: normalizeOptionalNonNegativeInteger(
+        value.totalSize,
+        `${label}.totalSize`
       ),
     };
   }

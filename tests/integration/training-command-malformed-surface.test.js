@@ -44,4 +44,12 @@ await assertRejectsOnBothSurfaces({
   trainingBenchSteps: 0,
 }, /trainingBenchSteps must be a positive integer/);
 
+await assertRejectsOnBothSurfaces({
+  command: 'verify',
+  suite: 'training',
+  modelId: null,
+  trainingStage: 'stage_a',
+  forceResumeReason: 'missing flag',
+}, /forceResumeReason requires forceResume=true/);
+
 console.log('training-command-malformed-surface.test: ok');

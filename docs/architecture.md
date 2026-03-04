@@ -741,7 +741,7 @@ Loads a base model plus adapters (LoRA) for multi-model and expert scenarios.
 
 Custom model format optimized for browser streaming:
 
-Note: `src/storage/rdrr-format.js` is a compatibility re-export of `formats/rdrr/`.
+Note: RDRR helpers are exported from `src/formats/rdrr/index.js`; `src/storage` should remain storage-focused and no longer re-exports format internals.
 
 ```
 model-directory/
@@ -1123,6 +1123,14 @@ See `config.md` for kernel selection rules and runtime overrides.
 - `formats.md` - RDRR format specification
 
 ---
+
+## Tokenizer Boundary Notes
+
+- `src/formats/tokenizer/` owns tokenizer file parsing and metadata normalization.
+- `src/inference/tokenizer.js` owns tokenizer runtime setup and output shaping.
+- `src/inference/pipelines/text/tokenizer.js` owns prompt-format-specific behavior.
+- Keep format parsing and runtime inference logic in separate layers; avoid importing
+  tokenizer parser internals directly into inference execution paths.
 
 *Last updated: 2026-02-23*
 

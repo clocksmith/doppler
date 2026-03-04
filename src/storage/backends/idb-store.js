@@ -97,6 +97,21 @@ export function createIdbStore(config) {
     }
   }
 
+  function normalizeWriteStreamOptions(options = {}) {
+    const append = options?.append === true;
+    const expectedOffsetRaw = options?.expectedOffset;
+    const expectedOffset = expectedOffsetRaw == null
+      ? null
+      : Number(expectedOffsetRaw);
+    if (
+      expectedOffset != null
+      && (!Number.isInteger(expectedOffset) || expectedOffset < 0)
+    ) {
+      throw new Error('createWriteStream expectedOffset must be a non-negative integer');
+    }
+    return { append, expectedOffset };
+  }
+
   async function readMeta(key) {
     const tx = db.transaction(metaStore, 'readonly');
     const store = tx.objectStore(metaStore);
@@ -138,6 +153,16 @@ export function createIdbStore(config) {
 
     await transactionDone(tx);
     return buffer.buffer;
+  }
+
+  async function getFileSize(filename) {
+    requireModel();
+    const fileKey = buildFileKey(currentModelId, filename);
+    const fileMeta = await readMeta(fileKey);
+    if (!fileMeta) {
+      throw new Error(`File not found: ${filename}`);
+    }
+    return Number.isFinite(fileMeta.size) ? Math.floor(fileMeta.size) : 0;
   }
 
   async function readFileRange(filename, offset = 0, length = null) {
@@ -301,14 +326,42 @@ export function createIdbStore(config) {
     await transactionDone(tx);
   }
 
-  async function createWriteStream(filename) {
+  async function createWriteStream(filename, options = {}) {
     requireModel();
-    await deleteFile(filename);
-    let chunkIndex = 0;
-    let totalBytes = 0;
+    const { append, expectedOffset } = normalizeWriteStreamOptions(options);
+    const fileKey = buildFileKey(currentModelId, filename);
+    let initialChunkIndex = 0;
+    let initialSize = 0;
+
+    if (append) {
+      const existingMeta = await readMeta(fileKey);
+      if (existingMeta) {
+        initialChunkIndex = Number.isFinite(existingMeta.chunkCount)
+          ? Math.max(0, Math.floor(existingMeta.chunkCount))
+          : 0;
+        initialSize = Number.isFinite(existingMeta.size)
+          ? Math.max(0, Math.floor(existingMeta.size))
+          : 0;
+      }
+    } else {
+      await deleteFile(filename);
+    }
+
+    if (expectedOffset != null && expectedOffset !== initialSize) {
+      throw new Error(
+        `createWriteStream expectedOffset mismatch for ${filename}: expected ${expectedOffset}, got ${initialSize}`
+      );
+    }
+
+    let chunkIndex = initialChunkIndex;
+    let totalBytes = initialSize;
+    let closed = false;
 
     return {
       write: async (chunk) => {
+        if (closed) {
+          throw new Error('Write after close');
+        }
         const bytes = chunk instanceof ArrayBuffer ? new Uint8Array(chunk) : chunk;
         const tx = db.transaction(shardStore, 'readwrite');
         const store = tx.objectStore(shardStore);
@@ -323,17 +376,38 @@ export function createIdbStore(config) {
         totalBytes += bytes.byteLength;
       },
       close: async () => {
+        if (closed) return;
+        closed = true;
         const tx = db.transaction(metaStore, 'readwrite');
         const store = tx.objectStore(metaStore);
         store.put({
-          key: buildFileKey(currentModelId, filename),
+          key: fileKey,
           value: { size: totalBytes, chunkCount: chunkIndex },
         });
         store.put({ key: buildModelKey(currentModelId), value: true });
         await transactionDone(tx);
       },
       abort: async () => {
-        await deleteFile(filename);
+        if (closed) return;
+        closed = true;
+        const tx = db.transaction([shardStore, metaStore], 'readwrite');
+        const shardStoreRef = tx.objectStore(shardStore);
+        const metaStoreRef = tx.objectStore(metaStore);
+        const range = IDBKeyRange.bound(
+          [currentModelId, filename, initialChunkIndex],
+          [currentModelId, filename, Number.MAX_SAFE_INTEGER]
+        );
+        shardStoreRef.delete(range);
+        if (initialChunkIndex === 0 && initialSize === 0) {
+          metaStoreRef.delete(fileKey);
+        } else {
+          metaStoreRef.put({
+            key: fileKey,
+            value: { size: initialSize, chunkCount: initialChunkIndex },
+          });
+          metaStoreRef.put({ key: buildModelKey(currentModelId), value: true });
+        }
+        await transactionDone(tx);
       },
     };
   }
@@ -497,6 +571,7 @@ export function createIdbStore(config) {
     init,
     openModel,
     getCurrentModelId,
+    getFileSize,
     readFile,
     readText,
     writeFile,

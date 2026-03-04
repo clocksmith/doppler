@@ -1,7 +1,7 @@
 import { readBuffer } from '../../../memory/buffer-pool.js';
-import { rmsNormCPU } from './logits.js';
+import { rmsNormCPU } from './logits/index.js';
 import { isWeightBuffer, isCpuWeightBuffer } from '../../../gpu/weight-buffer.js';
-import { decodeReadback } from './debug-utils.js';
+import { decodeReadback } from './debug-utils/index.js';
 import { resolveExecutionSessionPlan } from './execution-plan.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 

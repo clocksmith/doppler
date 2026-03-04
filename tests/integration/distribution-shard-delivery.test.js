@@ -5,6 +5,16 @@ const {
   resolveShardDeliveryPlan,
   getInFlightShardDeliveryCount,
 } = await import('../../src/distribution/shard-delivery.js');
+const {
+  cleanup: cleanupStorage,
+  createShardWriter,
+  loadShard,
+  openModelStore,
+} = await import('../../src/storage/shard-manager.js');
+const {
+  clearManifest,
+  setManifest,
+} = await import('../../src/formats/rdrr/parsing.js');
 
 const sha256Data = {
   p2p: 'e1e853684a206f162ee800a54b695c9cc1a8d1d554a47fcb13fe51229c17773f',
@@ -24,6 +34,37 @@ function createResponse(payload) {
       'content-encoding': 'gzip',
     },
   });
+}
+
+function createCustomResponse(payload, options = {}) {
+  const status = Number.isInteger(options.status) ? options.status : 200;
+  const headers = options.headers && typeof options.headers === 'object'
+    ? options.headers
+    : {};
+  return new Response(payload, { status, headers });
+}
+
+function createStreamingErrorResponse(firstChunk, options = {}) {
+  const status = Number.isInteger(options.status) ? options.status : 200;
+  const headers = options.headers && typeof options.headers === 'object'
+    ? options.headers
+    : {};
+  let sent = false;
+  return new Response(
+    new ReadableStream({
+      pull(controller) {
+        if (!sent) {
+          sent = true;
+          if (firstChunk?.length) {
+            controller.enqueue(firstChunk);
+            return;
+          }
+        }
+        controller.error(new Error('socket dropped'));
+      },
+    }),
+    { status, headers }
+  );
 }
 
 function toHex(value) {
@@ -75,6 +116,247 @@ try {
 
   assert.equal(directHttp.source, 'http');
   assert.equal(toHex(new Uint8Array(directHttp.buffer)), '01020304');
+
+  await openModelStore('distribution_resume_model');
+  setManifest({
+    hashAlgorithm: 'sha256',
+    shards: [
+      {
+        index: 0,
+        filename: 'shard_0.bin',
+        size: 4,
+        hash: sha256Data.http,
+      },
+    ],
+  });
+
+  let persistedResumeCalls = 0;
+  const persistedResumeRanges = [];
+  globalThis.fetch = async (_url, init = {}) => {
+    persistedResumeCalls += 1;
+    const headerSource = init?.headers;
+    const rangeValue = headerSource instanceof Headers
+      ? headerSource.get('range')
+      : (headerSource?.range ?? headerSource?.Range ?? null);
+    persistedResumeRanges.push(rangeValue ?? null);
+    if (persistedResumeCalls === 1) {
+      return createStreamingErrorResponse(httpData.slice(0, 2), {
+        status: 200,
+        headers: {
+          'content-encoding': 'gzip',
+          'content-length': '4',
+        },
+      });
+    }
+    return createCustomResponse(httpData.slice(2), {
+      status: 206,
+      headers: {
+        'content-encoding': 'gzip',
+        'content-length': '2',
+        'content-range': 'bytes 2-3/4',
+      },
+    });
+  };
+
+  await assert.rejects(
+    () => downloadShard('https://example.com/models', 0, shardInfo, {
+      algorithm: 'sha256',
+      expectedManifestVersionSet: manifestVersionSet,
+      distributionConfig: {
+        sourceOrder: ['http'],
+        requiredContentEncoding: 'gzip',
+        maxRetries: 0,
+      },
+      writeToStore: true,
+    }),
+    /socket dropped/
+  );
+
+  const resumedStoredHttp = await downloadShard('https://example.com/models', 0, shardInfo, {
+    algorithm: 'sha256',
+    expectedManifestVersionSet: manifestVersionSet,
+    distributionConfig: {
+      sourceOrder: ['http'],
+      requiredContentEncoding: 'gzip',
+      maxRetries: 0,
+    },
+    writeToStore: true,
+  });
+
+  assert.equal(resumedStoredHttp.source, 'http');
+  assert.equal(resumedStoredHttp.wrote, true);
+  assert.equal(persistedResumeCalls, 2);
+  assert.equal(persistedResumeRanges[0], null);
+  assert.equal(persistedResumeRanges[1], 'bytes=2-');
+  const resumedStoredBytes = await loadShard(0, { verify: false });
+  assert.equal(toHex(new Uint8Array(resumedStoredBytes)), '01020304');
+
+  const corruptWriter = await createShardWriter(0, {
+    append: false,
+    expectedOffset: 0,
+  });
+  await corruptWriter.write(new Uint8Array([9, 10]));
+  await corruptWriter.close();
+
+  let corruptedRecoveryCalls = 0;
+  const corruptedRecoveryRanges = [];
+  globalThis.fetch = async (_url, init = {}) => {
+    corruptedRecoveryCalls += 1;
+    const headerSource = init?.headers;
+    const rangeValue = headerSource instanceof Headers
+      ? headerSource.get('range')
+      : (headerSource?.range ?? headerSource?.Range ?? null);
+    corruptedRecoveryRanges.push(rangeValue ?? null);
+    if (rangeValue === 'bytes=2-') {
+      return createCustomResponse(httpData.slice(2), {
+        status: 206,
+        headers: {
+          'content-encoding': 'gzip',
+          'content-length': '2',
+          'content-range': 'bytes 2-3/4',
+        },
+      });
+    }
+    return createResponse(httpData);
+  };
+
+  const recoveredCorruptPartial = await downloadShard('https://example.com/models', 0, shardInfo, {
+    algorithm: 'sha256',
+    expectedManifestVersionSet: manifestVersionSet,
+    distributionConfig: {
+      sourceOrder: ['http'],
+      requiredContentEncoding: 'gzip',
+      maxRetries: 0,
+    },
+    writeToStore: true,
+  });
+  assert.equal(recoveredCorruptPartial.source, 'http');
+  assert.equal(recoveredCorruptPartial.wrote, true);
+  assert.equal(corruptedRecoveryCalls, 2);
+  assert.equal(corruptedRecoveryRanges[0], 'bytes=2-');
+  assert.equal(corruptedRecoveryRanges[1], null);
+  const recoveredCorruptBytes = await loadShard(0, { verify: false });
+  assert.equal(toHex(new Uint8Array(recoveredCorruptBytes)), '01020304');
+
+  let resumedFetchCalls = 0;
+  const resumedRanges = [];
+  globalThis.fetch = async (_url, init = {}) => {
+    resumedFetchCalls += 1;
+    const headerSource = init?.headers;
+    const rangeValue = headerSource instanceof Headers
+      ? headerSource.get('range')
+      : (headerSource?.range ?? headerSource?.Range ?? null);
+    resumedRanges.push(rangeValue ?? null);
+    if (resumedFetchCalls === 1) {
+      return createStreamingErrorResponse(httpData.slice(0, 2), {
+        status: 200,
+        headers: {
+          'content-encoding': 'gzip',
+        },
+      });
+    }
+    return createCustomResponse(httpData.slice(2), {
+      status: 206,
+      headers: {
+        'content-encoding': 'gzip',
+        'content-length': '2',
+        'content-range': 'bytes 2-3/4',
+      },
+    });
+  };
+
+  const resumedHttp = await downloadShard('https://example.com/models', 15, shardInfo, {
+    algorithm: 'sha256',
+    expectedManifestVersionSet: manifestVersionSet,
+    distributionConfig: {
+      sourceOrder: ['http'],
+      requiredContentEncoding: 'gzip',
+      maxRetries: 1,
+      initialRetryDelayMs: 0,
+      maxRetryDelayMs: 0,
+    },
+    writeToStore: false,
+  });
+  assert.equal(resumedHttp.source, 'http');
+  assert.equal(resumedFetchCalls, 2);
+  assert.equal(resumedRanges[0], null);
+  assert.equal(resumedRanges[1], 'bytes=2-');
+  assert.equal(toHex(new Uint8Array(resumedHttp.buffer)), '01020304');
+
+  globalThis.fetch = async () => createResponse(new Uint8Array([1, 2, 3, 5]));
+  await assert.rejects(
+    () => downloadShard('https://example.com/models', 16, shardInfo, {
+      algorithm: 'sha256',
+      expectedManifestVersionSet: manifestVersionSet,
+      distributionConfig: {
+        sourceOrder: ['http'],
+        requiredContentEncoding: 'gzip',
+      },
+      writeToStore: false,
+    }),
+    /Hash mismatch/
+  );
+
+  globalThis.fetch = async () => createCustomResponse(httpData, {
+    status: 200,
+    headers: {
+      'content-encoding': 'gzip',
+      'content-length': '10',
+    },
+  });
+  await assert.rejects(
+    () => downloadShard('https://example.com/models', 100, shardInfo, {
+      algorithm: 'sha256',
+      expectedManifestVersionSet: manifestVersionSet,
+      distributionConfig: {
+        sourceOrder: ['http'],
+        requiredContentEncoding: 'gzip',
+      },
+      writeToStore: false,
+    }),
+    /content-length mismatch/
+  );
+
+  globalThis.fetch = async () => createCustomResponse(httpData, {
+    status: 206,
+    headers: {
+      'content-encoding': 'gzip',
+      'content-length': '4',
+    },
+  });
+  await assert.rejects(
+    () => downloadShard('https://example.com/models', 101, shardInfo, {
+      algorithm: 'sha256',
+      expectedManifestVersionSet: manifestVersionSet,
+      distributionConfig: {
+        sourceOrder: ['http'],
+        requiredContentEncoding: 'gzip',
+      },
+      writeToStore: false,
+    }),
+    /without content-range header/
+  );
+
+  globalThis.fetch = async () => createCustomResponse(httpData, {
+    status: 206,
+    headers: {
+      'content-encoding': 'gzip',
+      'content-length': '4',
+      'content-range': 'bytes 0-3/5',
+    },
+  });
+  await assert.rejects(
+    () => downloadShard('https://example.com/models', 102, shardInfo, {
+      algorithm: 'sha256',
+      expectedManifestVersionSet: manifestVersionSet,
+      distributionConfig: {
+        sourceOrder: ['http'],
+        requiredContentEncoding: 'gzip',
+      },
+      writeToStore: false,
+    }),
+    /content-range total mismatch/
+  );
 
   let p2pCalls = 0;
   let fetchCalls = 0;
@@ -135,6 +417,129 @@ try {
   assert.equal(p2pCalls, 1);
   assert.equal(fetchCalls, 0);
   assert.equal(toHex(new Uint8Array(p2pEnvelope.buffer)), '090a0b0c');
+
+  const p2pResumeSeedWriter = await createShardWriter(0, {
+    append: false,
+    expectedOffset: 0,
+  });
+  await p2pResumeSeedWriter.write(httpData.slice(0, 2));
+  await p2pResumeSeedWriter.close();
+
+  const observedP2PResumeOffsets = [];
+  p2pCalls = 0;
+  fetchCalls = 0;
+  const p2pResumedStored = await downloadShard('https://example.com/models', 0, shardInfo, {
+    algorithm: 'sha256',
+    expectedHash: sha256Data.http,
+    expectedManifestVersionSet: manifestVersionSet,
+    distributionConfig: {
+      sourceOrder: ['p2p'],
+      p2p: {
+        enabled: true,
+        timeoutMs: 1000,
+        maxRetries: 0,
+        transport: async (context) => {
+          p2pCalls += 1;
+          observedP2PResumeOffsets.push(context.resumeOffset ?? null);
+          return {
+            data: httpData.slice(2),
+            manifestVersionSet,
+            rangeStart: 2,
+            totalSize: 4,
+          };
+        },
+      },
+      requiredContentEncoding: null,
+    },
+    writeToStore: true,
+  });
+  assert.equal(p2pResumedStored.source, 'p2p');
+  assert.equal(p2pResumedStored.wrote, true);
+  assert.equal(p2pResumedStored.path, 'p2p-stream-store');
+  assert.equal(p2pCalls, 1);
+  assert.equal(fetchCalls, 0);
+  assert.deepEqual(observedP2PResumeOffsets, [2]);
+  const p2pResumedStoredBytes = await loadShard(0, { verify: false });
+  assert.equal(toHex(new Uint8Array(p2pResumedStoredBytes)), '01020304');
+
+  const p2pMismatchSeedWriter = await createShardWriter(0, {
+    append: false,
+    expectedOffset: 0,
+  });
+  await p2pMismatchSeedWriter.write(httpData.slice(0, 2));
+  await p2pMismatchSeedWriter.close();
+
+  p2pCalls = 0;
+  fetchCalls = 0;
+  const fallbackRanges = [];
+  globalThis.fetch = async (_url, init = {}) => {
+    fetchCalls += 1;
+    const headerSource = init?.headers;
+    const rangeValue = headerSource instanceof Headers
+      ? headerSource.get('range')
+      : (headerSource?.range ?? headerSource?.Range ?? null);
+    fallbackRanges.push(rangeValue ?? null);
+    return createResponse(httpData);
+  };
+  const p2pResumeMismatchFallsBackToHttp = await downloadShard('https://example.com/models', 0, shardInfo, {
+    algorithm: 'sha256',
+    expectedHash: sha256Data.http,
+    expectedManifestVersionSet: manifestVersionSet,
+    distributionConfig: {
+      sourceOrder: ['p2p', 'http'],
+      p2p: {
+        enabled: true,
+        timeoutMs: 1000,
+        maxRetries: 0,
+        transport: async () => {
+          p2pCalls += 1;
+          return {
+            data: httpData.slice(2),
+            manifestVersionSet,
+            rangeStart: 1,
+            totalSize: 4,
+          };
+        },
+      },
+      requiredContentEncoding: null,
+    },
+    writeToStore: true,
+  });
+  assert.equal(p2pResumeMismatchFallsBackToHttp.source, 'http');
+  assert.equal(p2pCalls, 1);
+  assert.equal(fetchCalls, 1);
+  assert.deepEqual(fallbackRanges, [null]);
+  const p2pFallbackStoredBytes = await loadShard(0, { verify: false });
+  assert.equal(toHex(new Uint8Array(p2pFallbackStoredBytes)), '01020304');
+
+  p2pCalls = 0;
+  fetchCalls = 0;
+  const p2pTotalSizeMismatchFallsBackToHttp = await downloadShard('https://example.com/models', 17, shardInfo, {
+    algorithm: 'sha256',
+    expectedManifestVersionSet: manifestVersionSet,
+    distributionConfig: {
+      sourceOrder: ['p2p', 'http'],
+      p2p: {
+        enabled: true,
+        timeoutMs: 1000,
+        maxRetries: 0,
+        transport: async () => {
+          p2pCalls += 1;
+          return {
+            data: p2pData,
+            manifestVersionSet,
+            totalSize: 5,
+          };
+        },
+      },
+      requiredContentEncoding: null,
+    },
+    writeToStore: false,
+  });
+  assert.equal(p2pTotalSizeMismatchFallsBackToHttp.source, 'http');
+  assert.equal(p2pCalls, 1);
+  assert.equal(fetchCalls, 1);
+  assert.equal(toHex(new Uint8Array(p2pTotalSizeMismatchFallsBackToHttp.buffer)), '01020304');
 
   p2pCalls = 0;
   fetchCalls = 0;
@@ -399,6 +804,8 @@ try {
   assert.equal(directHttp.hash.length, 64);
 } finally {
   globalThis.fetch = originalFetch;
+  clearManifest();
+  await cleanupStorage();
 }
 
 console.log('distribution-shard-delivery.test: ok');

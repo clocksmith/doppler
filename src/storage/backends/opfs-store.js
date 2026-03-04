@@ -96,6 +96,36 @@ export function createOpfsStore(config) {
     }
   }
 
+  function normalizeWriteStreamOptions(options = {}) {
+    const append = options?.append === true;
+    const expectedOffsetRaw = options?.expectedOffset;
+    const expectedOffset = expectedOffsetRaw == null
+      ? null
+      : Number(expectedOffsetRaw);
+    if (
+      expectedOffset != null
+      && (!Number.isInteger(expectedOffset) || expectedOffset < 0)
+    ) {
+      throw new Error('createWriteStream expectedOffset must be a non-negative integer');
+    }
+    return { append, expectedOffset };
+  }
+
+  async function getFileSize(filename) {
+    await ensureModelDir();
+    const fileHandle = await currentModelDir.getFileHandle(filename);
+    const access = await openSyncAccessHandle(fileHandle);
+    if (access) {
+      try {
+        return access.handle.getSize();
+      } finally {
+        access.release();
+      }
+    }
+    const file = await fileHandle.getFile();
+    return file.size;
+  }
+
   async function readFile(filename) {
     await ensureModelDir();
     const fileHandle = await currentModelDir.getFileHandle(filename);
@@ -240,14 +270,29 @@ export function createOpfsStore(config) {
     await writable.close();
   }
 
-  async function createWriteStream(filename) {
+  async function createWriteStream(filename, options = {}) {
     await ensureModelDir();
+    const { append, expectedOffset } = normalizeWriteStreamOptions(options);
     const fileHandle = await currentModelDir.getFileHandle(filename, { create: true });
+    const existingSize = await getFileSize(filename).catch((error) => {
+      if (error?.name === 'NotFoundError') {
+        return 0;
+      }
+      throw error;
+    });
+    if (expectedOffset != null && expectedOffset !== existingSize) {
+      throw new Error(
+        `createWriteStream expectedOffset mismatch for ${filename}: expected ${expectedOffset}, got ${existingSize}`
+      );
+    }
     const access = await openSyncAccessHandle(fileHandle);
     if (access) {
-      let offset = 0;
+      const initialOffset = append ? existingSize : 0;
+      let offset = initialOffset;
       let closed = false;
-      access.handle.truncate(0);
+      if (!append) {
+        access.handle.truncate(0);
+      }
       return {
         write: async (chunk) => {
           if (closed) {
@@ -266,20 +311,38 @@ export function createOpfsStore(config) {
         abort: async () => {
           if (closed) return;
           closed = true;
-          access.handle.truncate(0);
+          access.handle.truncate(initialOffset);
           access.release();
         },
       };
     }
 
-    const writable = await fileHandle.createWritable();
+    const writable = await fileHandle.createWritable({ keepExistingData: append });
+    let closed = false;
+    let offset = append ? existingSize : 0;
     return {
       write: async (chunk) => {
+        if (closed) {
+          throw new Error('Write after close');
+        }
         const bytes = chunk instanceof ArrayBuffer ? new Uint8Array(chunk) : chunk;
-        await writable.write(bytes);
+        await writable.write({
+          type: 'write',
+          position: offset,
+          data: bytes,
+        });
+        offset += bytes.byteLength;
       },
-      close: async () => writable.close(),
-      abort: async () => writable.abort(),
+      close: async () => {
+        if (closed) return;
+        closed = true;
+        await writable.close();
+      },
+      abort: async () => {
+        if (closed) return;
+        closed = true;
+        await writable.abort();
+      },
     };
   }
 
@@ -350,6 +413,7 @@ export function createOpfsStore(config) {
     init,
     openModel,
     getCurrentModelId,
+    getFileSize,
     readFile,
     readFileRange,
     readFileRangeStream,

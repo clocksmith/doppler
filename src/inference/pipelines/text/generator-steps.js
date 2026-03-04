@@ -14,9 +14,9 @@ import { sample, applyRepetitionPenalty, logitsSanity, getTopK } from './samplin
 import { isStopToken } from './init.js';
 import { embed } from './embed.js';
 import { processLayer } from './layer.js';
-import { computeLogits, computeLogitsGPU, recordLogitsGPU, extractLastPositionLogits, finalizeLogits, applySoftcapping } from './logits.js';
+import { computeLogits, computeLogitsGPU, recordLogitsGPU, extractLastPositionLogits, finalizeLogits, applySoftcapping } from './logits/index.js';
 import { isWeightBuffer, isCpuWeightBuffer, getWeightDtype } from '../../../gpu/weight-buffer.js';
-import { decodeReadback } from './debug-utils.js';
+import { decodeReadback } from './debug-utils/index.js';
 import { getFinalNormWeights, extractEmbeddingFromHidden } from './generator-runtime.js';
 import { parseFinitenessStatusWords } from './finiteness-guard-status.js';
 import { hasLinearAttentionLayers } from './linear-attention.js';

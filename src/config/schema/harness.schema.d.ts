@@ -4,7 +4,7 @@
  * @module config/schema/harness
  */
 
-export type HarnessMode = 'kernels' | 'inference' | 'bench' | 'training' | 'energy';
+export type HarnessMode = 'kernels' | 'inference' | 'training' | 'bench' | 'debug' | 'diffusion' | 'energy';
 
 export interface EbmRecordedBenchDimsSchema {
   M: number;

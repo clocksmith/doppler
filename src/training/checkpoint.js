@@ -101,6 +101,15 @@ function stableJson(value) {
   return JSON.stringify(stableSortObject(value));
 }
 
+function coalesceMetadataValue(...candidates) {
+  for (const value of candidates) {
+    if (value !== undefined && value !== null) {
+      return value;
+    }
+  }
+  return null;
+}
+
 function buildCheckpointHashPayload(data) {
   const metadata = data?.metadata || {};
   const lineage = metadata.lineage || {};
@@ -145,17 +154,24 @@ export async function saveCheckpoint(key, payload, options = {}) {
     : 1;
 
   const data = { ...payload };
+  const payloadMetadata = data.metadata && typeof data.metadata === 'object'
+    ? data.metadata
+    : {};
   data.metadata = {
-    ...(data.metadata || {}),
+    ...payloadMetadata,
     timestamp: Date.now(),
-    configHash: options.configHash,
-    datasetHash: options.datasetHash,
-    tokenizerHash: options.tokenizerHash,
-    optimizerHash: options.optimizerHash,
-    runtimePresetId: options.runtimePresetId,
-    kernelPathId: options.kernelPathId,
-    environmentMetadata: options.environmentMetadata,
-    buildProvenance: options.buildProvenance ?? null,
+    configHash: coalesceMetadataValue(options.configHash, payloadMetadata.configHash, previousMetadata.configHash),
+    datasetHash: coalesceMetadataValue(options.datasetHash, payloadMetadata.datasetHash, previousMetadata.datasetHash),
+    tokenizerHash: coalesceMetadataValue(options.tokenizerHash, payloadMetadata.tokenizerHash, previousMetadata.tokenizerHash),
+    optimizerHash: coalesceMetadataValue(options.optimizerHash, payloadMetadata.optimizerHash, previousMetadata.optimizerHash),
+    runtimePresetId: coalesceMetadataValue(options.runtimePresetId, payloadMetadata.runtimePresetId, previousMetadata.runtimePresetId),
+    kernelPathId: coalesceMetadataValue(options.kernelPathId, payloadMetadata.kernelPathId, previousMetadata.kernelPathId),
+    environmentMetadata: coalesceMetadataValue(
+      options.environmentMetadata,
+      payloadMetadata.environmentMetadata,
+      previousMetadata.environmentMetadata
+    ),
+    buildProvenance: coalesceMetadataValue(options.buildProvenance, payloadMetadata.buildProvenance, previousMetadata.buildProvenance),
     lineage: {
       checkpointKey: key,
       sequence: lineageSequence,
@@ -205,11 +221,15 @@ export async function loadCheckpoint(key, options = {}) {
     if (!options.forceResume) {
       throw new Error(`Checkpoint mismatch on fields: ${mismatches.join(', ')}`);
     }
+    const priorCheckpointMetadataHash = data.metadata?.checkpointHash ?? null;
     data.metadata.resumeAudits = data.metadata.resumeAudits || [];
     data.metadata.resumeAudits.push({
       timestamp: Date.now(),
       mismatchedFields: mismatches,
+      source: options.forceResumeSource || 'unspecified',
+      operator: options.forceResumeOperator || null,
       reason: options.forceResumeReason || 'forced resume flag provided',
+      priorCheckpointMetadataHash,
     });
     await saveCheckpoint(key, data, options);
   }
