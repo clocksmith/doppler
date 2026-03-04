@@ -1,6 +1,7 @@
 import { log } from '../debug/index.js';
 import { PARAM_CATEGORIES, CategoryRules } from './param-categories.js';
 import { TOOLING_INTENTS, TOOLING_DIAGNOSTICS } from './schema/tooling.schema.js';
+import { validateEcosystemConfig } from './schema/ecosystem.schema.js';
 
 export function validateCallTimeOptions(options) {
   if (!options) return;
@@ -79,6 +80,7 @@ export function validateRuntimeConfig(runtimeConfig) {
   assertEmbeddingMode('runtime.inference.generation.embeddingMode', generation.embeddingMode);
 
   validateToolingIntent(runtimeConfig);
+  validateEcosystemConfig(runtimeConfig.shared?.ecosystem);
 
   const debug = runtimeConfig.shared?.debug;
   const debugEnabled = isDebugMode(debug);

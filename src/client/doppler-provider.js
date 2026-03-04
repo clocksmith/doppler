@@ -11,6 +11,7 @@ export {
   loadModel,
   unloadModel,
   loadLoRAAdapter,
+  activateLoRAFromTrainingOutput,
   unloadLoRAAdapter,
   getActiveLoRA,
   getAvailableModels,

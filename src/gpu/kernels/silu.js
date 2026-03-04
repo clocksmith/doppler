@@ -53,7 +53,14 @@ export async function runSiLU(
   options = {}
 ) {
   const device = getDevice();
-  const { size, gate = null, outputBuffer = null, useVec4 = false, swigluLimit } = options;
+  const {
+    size,
+    gate = null,
+    outputBuffer = null,
+    useVec4 = false,
+    swigluLimit,
+    gateActivation = 'silu',
+  } = options;
   const resolvedSwigluLimit = resolveSwigluLimit(swigluLimit, 'SiLU');
 
   const isF16 = canUseF16(input);
@@ -67,7 +74,10 @@ export async function runSiLU(
     useSplit: false,
     useRowsplit: false,
   });
-  const pipeline = await getPipelineFast('silu', variant, null, overrides);
+  const constants = gate && gateActivation === 'sigmoid'
+    ? { ...(overrides || {}), GATE_USE_SIGMOID: true }
+    : overrides;
+  const pipeline = await getPipelineFast('silu', variant, null, constants);
 
   const inferredSize = size || (input.buffer.size / bytesPerElement);
   const outputSize = inferredSize * bytesPerElement;
@@ -272,7 +282,13 @@ export async function recordSiLU(
   options = {}
 ) {
   const device = recorder.device;
-  const { size, gate = null, outputBuffer = null, swigluLimit } = options;
+  const {
+    size,
+    gate = null,
+    outputBuffer = null,
+    swigluLimit,
+    gateActivation = 'silu',
+  } = options;
   const resolvedSwigluLimit = resolveSwigluLimit(swigluLimit, 'SiLU');
 
   const isF16 = canUseF16(input);
@@ -286,7 +302,10 @@ export async function recordSiLU(
     useSplit: false,
     useRowsplit: false,
   });
-  const pipeline = await getPipelineFast('silu', variant, null, overrides);
+  const constants = gate && gateActivation === 'sigmoid'
+    ? { ...(overrides || {}), GATE_USE_SIGMOID: true }
+    : overrides;
+  const pipeline = await getPipelineFast('silu', variant, null, constants);
 
   const inferredSize = size || (input.buffer.size / bytesPerElement);
   const outputSize = inferredSize * bytesPerElement;

@@ -228,6 +228,23 @@ export {
 } from './tooling.schema.js';
 
 // =============================================================================
+// Ecosystem Schema
+// =============================================================================
+export {
+  ECOSYSTEM_STABILITY_MODES,
+  ECOSYSTEM_RANKING_MODES,
+  ECOSYSTEM_INCENTIVE_MODES,
+  ECOSYSTEM_ANTISYBIL_COST,
+  ECOSYSTEM_ENFORCEMENT_MODES,
+  ECOSYSTEM_FAILOVER_TIERS,
+  ECOSYSTEM_NOTARIZATION_ALGORITHMS,
+  DEFAULT_ECOSYSTEM_CONFIG,
+  mergeEcosystemConfig,
+  createEcosystemConfig,
+  validateEcosystemConfig,
+} from './ecosystem.schema.js';
+
+// =============================================================================
 // Hot-Swap Schema
 // =============================================================================
 export {

@@ -22,6 +22,7 @@ export type ActivationType = 'silu' | 'gelu';
 export type ParsedLayerType =
   | 'full_attention'
   | 'sliding_attention'
+  | 'linear_attention'
   | 'conv'
   | 'moe'
   | 'mamba'
@@ -66,6 +67,11 @@ export interface RawConfig {
   num_experts_per_tok?: number;
   top_k?: number;
   layer_types?: string[];
+  linear_num_key_heads?: number;
+  linear_num_value_heads?: number;
+  linear_key_head_dim?: number;
+  linear_value_head_dim?: number;
+  linear_conv_kernel_dim?: number;
   attention_bias?: boolean;
   quantization_config?: { quant_method?: string };
   scale_embeddings?: boolean;
@@ -73,6 +79,7 @@ export interface RawConfig {
   final_logit_softcapping?: number;
   attn_logit_softcapping?: number;
   query_pre_attn_scalar?: number;
+  attn_output_gate?: boolean;
 }
 
 export interface RopeScalingConfig {
@@ -159,12 +166,18 @@ export interface ParsedModelConfig {
   swigluLimit: number | null;
   stopTokenIds: number[];
   layerTypes: ParsedLayerType[] | null;
+  linearNumKeyHeads: number | null;
+  linearNumValueHeads: number | null;
+  linearKeyHeadDim: number | null;
+  linearValueHeadDim: number | null;
+  linearConvKernelDim: number | null;
   attentionBias: boolean;
   causalAttention: boolean;
   embeddingScale?: number;
   finalLogitSoftcapping: number | null;
   attnLogitSoftcapping: number | null;
   queryKeyNorm: boolean;
+  attentionOutputGate: boolean;
   queryPreAttnScalar: number;
   layerPipeline?: LayerPipelineSchema | null;
   chatTemplateType?: string | null;

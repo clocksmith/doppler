@@ -31,6 +31,25 @@ export declare function unloadModel(): Promise<void>;
 
 export declare function loadLoRAAdapter(adapter: LoRAManifest | RDRRManifest | string): Promise<void>;
 
+export declare function activateLoRAFromTrainingOutput(
+  trainingOutput:
+    | string
+    | {
+      adapter?: LoRAManifest | RDRRManifest | string;
+      adapterManifest?: LoRAManifest | RDRRManifest;
+      adapterManifestJson?: string;
+      adapterManifestUrl?: string;
+      adapterManifestPath?: string;
+    }
+    | null
+    | undefined
+): Promise<{
+  activated: boolean;
+  adapterName: string | null;
+  source: string | null;
+  reason: string | null;
+}>;
+
 export declare function unloadLoRAAdapter(): Promise<void>;
 
 export declare function getActiveLoRA(): string | null;

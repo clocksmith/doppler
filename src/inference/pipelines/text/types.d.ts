@@ -20,6 +20,7 @@ import type { CompiledLayerPipeline } from './layer-plan.js';
 import type { WeightBufferConfig, WeightDebugFlags } from './weights.js';
 import type { KVCache, SlidingWindowKVCache, TieredKVCache, BasisDecomposedPagedCache } from '../../kv-cache.js';
 import type { DecodeRingStats } from '../../decode-ring.js';
+import type { LinearAttentionRuntime } from './linear-attention.js';
 
 // ============================================================================
 // Core Context Types
@@ -29,6 +30,7 @@ export interface KVCacheSnapshot {
   cache: KVCache;
   seqLen: number;
   tokens: number[];
+  linearAttention?: LinearAttentionRuntime | null;
 }
 
 export interface AdvanceEmbeddingResult {
@@ -47,6 +49,8 @@ export interface LayerContext {
   weights: Map<string, LayerWeights | Float32Array | GPUBuffer | WeightBuffer | CpuWeightBuffer>;
   /** KV cache instance */
   kvCache: KVCache | SlidingWindowKVCache | TieredKVCache | BasisDecomposedPagedCache;
+  /** Recurrent runtime state for linear_attention layers */
+  linearAttentionRuntime?: LinearAttentionRuntime | null;
   /** Current sequence length */
   currentSeqLen: number;
   /** Token IDs for the current micro-batch (required by BDPA ingestion). */

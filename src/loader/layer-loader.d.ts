@@ -38,6 +38,16 @@ export interface LayerLoaderContext {
   isMoE: boolean;
   /** Check if layer is an expert layer */
   isExpertLayer: (layerIdx: number) => boolean;
+  /** Optional attention dimensions for fused QKV sizing */
+  numHeads?: number;
+  numKVHeads?: number;
+  headDim?: number;
+  hiddenSize?: number;
+  /** Optional linear-attention dimensions for hybrid models (e.g. Qwen3.5) */
+  linearNumKeyHeads?: number;
+  linearNumValueHeads?: number;
+  linearKeyHeadDim?: number;
+  linearValueHeadDim?: number;
 }
 
 /**

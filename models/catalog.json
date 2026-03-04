@@ -1,15 +1,25 @@
 {
   "version": 1,
-  "updatedAt": "2026-02-26",
+  "updatedAt": "2026-03-04",
   "models": [
     {
       "modelId": "gemma-3-270m-it-wq4k-ef16-hf16-f32",
       "label": "Gemma 3 270M Instruct (Q4K/F32a)",
-      "description": "Gemma 3 270M text model. Place converted RDRR shards under models/curated/gemma-3-270m-it-wq4k-ef16 for hosted deployment.",
+      "description": "Gemma 3 270M text model. Prefers Hugging Face-hosted prebuilt RDRR shards with local curated fallback.",
       "modes": [
         "run",
         "translate"
       ],
+      "aliases": [
+        "gemma3-270m",
+        "google/gemma-3-270m-it",
+        "gemma-3-270m-it-wq4k-ef16"
+      ],
+      "hf": {
+        "repoId": "Clocksmith/rdrr",
+        "revision": "4efe64a914892e98be50842aeb16c3b648cc68a5",
+        "path": "models/gemma-3-270m-it-wq4k-ef16"
+      },
       "baseUrl": "./curated/gemma-3-270m-it-wq4k-ef16",
       "sizeBytes": 418512553,
       "recommended": false,
@@ -18,10 +28,20 @@
     {
       "modelId": "google-embeddinggemma-300m-wq4k-ef16",
       "label": "EmbeddingGemma 300M (Q4K)",
-      "description": "EmbeddingGemma sentence embedding model. Place converted RDRR shards under models/curated/google-embeddinggemma-300m-wq4k-ef16 for hosted deployment.",
+      "description": "EmbeddingGemma sentence embedding model. Prefers Hugging Face-hosted prebuilt RDRR shards with local curated fallback.",
       "modes": [
         "embedding"
       ],
+      "aliases": [
+        "embeddinggemma-300m",
+        "google/embeddinggemma-300m",
+        "google-embeddinggemma-300m-wq4k-ef16"
+      ],
+      "hf": {
+        "repoId": "Clocksmith/rdrr",
+        "revision": "4efe64a914892e98be50842aeb16c3b648cc68a5",
+        "path": "models/google-embeddinggemma-300m-wq4k-ef16"
+      },
       "baseUrl": "./curated/google-embeddinggemma-300m-wq4k-ef16",
       "sizeBytes": 480562497,
       "recommended": false,

@@ -158,11 +158,21 @@ const DEFAULT_MODEL_AVAILABILITY = Object.freeze({
   diffusion: 0,
   energy: 0,
 });
-const QUICK_MODEL_CATALOG_BASE_URL = typeof window === 'object' && window.location?.origin
+const QUICK_MODEL_CATALOG_LOCAL_BASE_URL = typeof window === 'object' && window.location?.origin
   ? new URL('/models/catalog.json', window.location.origin).toString()
   : new URL('../models/catalog.json', import.meta.url).toString();
-const QUICK_MODEL_CATALOG_CACHE_BUST = 'catalog-v1';
-const QUICK_MODEL_CATALOG_URL = `${QUICK_MODEL_CATALOG_BASE_URL}?cacheBust=${QUICK_MODEL_CATALOG_CACHE_BUST}`;
+const QUICK_MODEL_CATALOG_CACHE_BUST = 'catalog-v2';
+const QUICK_MODEL_CATALOG_LOCAL_URL = `${QUICK_MODEL_CATALOG_LOCAL_BASE_URL}?cacheBust=${QUICK_MODEL_CATALOG_CACHE_BUST}`;
+const QUICK_MODEL_CATALOG_DEFAULT_HF_REPO_ID = 'Clocksmith/rdrr';
+const QUICK_MODEL_CATALOG_DEFAULT_HF_REVISION = 'main';
+const QUICK_MODEL_CATALOG_DEFAULT_HF_PATH = 'registry/catalog.json';
+const QUICK_MODEL_CATALOG_OVERRIDE_URL = readGlobalString('__DOPPLER_QUICK_MODEL_CATALOG_URL');
+const QUICK_MODEL_CATALOG_HF_REPO_ID = readGlobalString('__DOPPLER_HF_REGISTRY_REPO_ID') || QUICK_MODEL_CATALOG_DEFAULT_HF_REPO_ID;
+const QUICK_MODEL_CATALOG_HF_REVISION = readGlobalString('__DOPPLER_HF_REGISTRY_REVISION') || QUICK_MODEL_CATALOG_DEFAULT_HF_REVISION;
+const QUICK_MODEL_CATALOG_HF_PATH = readGlobalString('__DOPPLER_HF_REGISTRY_CATALOG_PATH') || QUICK_MODEL_CATALOG_DEFAULT_HF_PATH;
+const QUICK_MODEL_CATALOG_URLS = buildQuickCatalogCandidateUrls();
+const QUICK_MODEL_HF_HOST = 'huggingface.co';
+const QUICK_MODEL_HF_COMMIT_PATTERN = /^[a-f0-9]{7,64}$/i;
 const RUN_STARTER_PROMPTS = Object.freeze([
   'is potential energy real?',
   'compare zig to rust in elvish',
@@ -783,6 +793,194 @@ function getRunStarterPromptPool() {
   return RUN_STARTER_PROMPTS;
 }
 
+function readGlobalString(key) {
+  if (!key || typeof globalThis !== 'object' || !globalThis) return '';
+  const value = globalThis[key];
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+function normalizeUrlPathname(pathname) {
+  return typeof pathname === 'string' ? pathname.replace(/\/+/g, '/') : '';
+}
+
+function isHuggingFaceHost(hostname) {
+  if (typeof hostname !== 'string' || !hostname) return false;
+  const lowered = hostname.toLowerCase();
+  return lowered === QUICK_MODEL_HF_HOST || lowered.endsWith(`.${QUICK_MODEL_HF_HOST}`);
+}
+
+function buildHfResolveUrl(repoId, revision, path) {
+  const normalizedRepoId = typeof repoId === 'string' ? repoId.trim().replace(/^\/+|\/+$/g, '') : '';
+  const normalizedRevision = typeof revision === 'string' ? revision.trim() : '';
+  const normalizedPath = typeof path === 'string' ? path.trim().replace(/^\/+/, '') : '';
+  if (!normalizedRepoId || !normalizedRevision) return '';
+  const pathSuffix = normalizedPath ? `/${normalizedPath}` : '';
+  return `https://huggingface.co/${normalizedRepoId}/resolve/${encodeURIComponent(normalizedRevision)}${pathSuffix}`;
+}
+
+function extractHfResolveRevisionFromUrl(inputUrl) {
+  try {
+    const parsed = new URL(inputUrl);
+    if (!isHuggingFaceHost(parsed.hostname)) return null;
+    const parts = normalizeUrlPathname(parsed.pathname).split('/').filter(Boolean);
+    const resolveIndex = parts.indexOf('resolve');
+    if (resolveIndex < 0 || resolveIndex + 1 >= parts.length) return null;
+    return decodeURIComponent(parts[resolveIndex + 1]);
+  } catch {
+    return null;
+  }
+}
+
+function isImmutableHfResolveUrl(inputUrl) {
+  const revision = extractHfResolveRevisionFromUrl(inputUrl);
+  return !!(revision && QUICK_MODEL_HF_COMMIT_PATTERN.test(revision));
+}
+
+function resolveRemoteCacheMode(inputUrl) {
+  return isImmutableHfResolveUrl(inputUrl) ? 'force-cache' : 'default';
+}
+
+function buildQuickCatalogCandidateUrls() {
+  const candidates = [];
+  if (QUICK_MODEL_CATALOG_OVERRIDE_URL) {
+    candidates.push(QUICK_MODEL_CATALOG_OVERRIDE_URL);
+  }
+  const hfCatalogUrl = buildHfResolveUrl(
+    QUICK_MODEL_CATALOG_HF_REPO_ID,
+    QUICK_MODEL_CATALOG_HF_REVISION,
+    QUICK_MODEL_CATALOG_HF_PATH
+  );
+  if (hfCatalogUrl) {
+    candidates.push(hfCatalogUrl);
+  }
+  candidates.push(QUICK_MODEL_CATALOG_LOCAL_URL);
+  const deduped = [];
+  const seen = new Set();
+  for (const candidate of candidates) {
+    if (typeof candidate !== 'string') continue;
+    const trimmed = candidate.trim();
+    if (!trimmed || seen.has(trimmed)) continue;
+    seen.add(trimmed);
+    deduped.push(trimmed);
+  }
+  return deduped;
+}
+
+function normalizeQuickLookupToken(value) {
+  return typeof value === 'string' ? value.trim().toLowerCase() : '';
+}
+
+function normalizeQuickCatalogAliases(rawAliases, modelId) {
+  const aliases = [];
+  if (Array.isArray(rawAliases)) {
+    for (const alias of rawAliases) {
+      if (typeof alias !== 'string') continue;
+      const trimmed = alias.trim();
+      if (trimmed) aliases.push(trimmed);
+    }
+  } else if (typeof rawAliases === 'string') {
+    const trimmed = rawAliases.trim();
+    if (trimmed) aliases.push(trimmed);
+  }
+  aliases.push(modelId);
+  const deduped = [];
+  const seen = new Set();
+  for (const alias of aliases) {
+    const token = normalizeQuickLookupToken(alias);
+    if (!token || seen.has(token)) continue;
+    seen.add(token);
+    deduped.push(alias.trim());
+  }
+  return deduped;
+}
+
+function normalizeQuickCatalogHfSpec(rawHf) {
+  if (!rawHf || typeof rawHf !== 'object' || Array.isArray(rawHf)) return null;
+  const repoId = typeof rawHf.repoId === 'string' ? rawHf.repoId.trim() : '';
+  const revision = typeof rawHf.revision === 'string' ? rawHf.revision.trim() : '';
+  const path = typeof rawHf.path === 'string' ? rawHf.path.trim() : '';
+  if (!repoId || !revision) return null;
+  return {
+    repoId,
+    revision,
+    path,
+  };
+}
+
+function extractHfRepoIdFromInput(value) {
+  const raw = typeof value === 'string' ? value.trim() : '';
+  if (!raw) return '';
+  if (raw.startsWith('hf://')) {
+    const sliced = raw.slice(5).replace(/^\/+/, '');
+    const [owner, repo] = sliced.split('/');
+    if (owner && repo) {
+      return `${owner}/${repo}`.toLowerCase();
+    }
+  }
+  try {
+    const parsed = new URL(raw);
+    if (!isHuggingFaceHost(parsed.hostname)) return '';
+    const [owner, repo] = normalizeUrlPathname(parsed.pathname).split('/').filter(Boolean);
+    if (owner && repo) {
+      return `${owner}/${repo}`.toLowerCase();
+    }
+    return '';
+  } catch {
+    const match = raw.match(/^([A-Za-z0-9._-]+)\/([A-Za-z0-9._-]+)$/);
+    if (!match) return '';
+    return `${match[1]}/${match[2]}`.toLowerCase();
+  }
+}
+
+function collectQuickCatalogLookupTokens(values) {
+  const tokens = new Set();
+  for (const value of values || []) {
+    const raw = typeof value === 'string' ? value.trim() : '';
+    if (!raw) continue;
+    tokens.add(normalizeQuickLookupToken(raw));
+    const hfRepoId = extractHfRepoIdFromInput(raw);
+    if (hfRepoId) {
+      tokens.add(hfRepoId);
+    }
+  }
+  return tokens;
+}
+
+function findQuickCatalogEntryForRegistryInput(values) {
+  const lookup = collectQuickCatalogLookupTokens(values);
+  if (lookup.size === 0) return null;
+  for (const entry of getQuickCatalogEntries()) {
+    const modelToken = normalizeQuickLookupToken(entry?.modelId);
+    if (modelToken && lookup.has(modelToken)) return entry;
+    const hfRepoToken = normalizeQuickLookupToken(entry?.hfRepoId);
+    if (hfRepoToken && lookup.has(hfRepoToken)) return entry;
+    const aliases = Array.isArray(entry?.aliases) ? entry.aliases : [];
+    for (const alias of aliases) {
+      const aliasToken = normalizeQuickLookupToken(alias);
+      if (aliasToken && lookup.has(aliasToken)) {
+        return entry;
+      }
+    }
+  }
+  return null;
+}
+
+function resolveDirectRdrrBaseUrlFromInput(value) {
+  const raw = typeof value === 'string' ? value.trim() : '';
+  if (!raw) return '';
+  try {
+    const parsed = new URL(raw);
+    const normalizedPath = normalizeUrlPathname(parsed.pathname);
+    if (!normalizedPath.endsWith('/manifest.json')) return '';
+    parsed.pathname = normalizedPath.replace(/\/manifest\.json$/, '/');
+    parsed.search = '';
+    parsed.hash = '';
+    return parsed.toString().replace(/\/+$/, '');
+  } catch {
+    return '';
+  }
+}
+
 function normalizeQuickModeToken(value) {
   const normalized = String(value || '').trim().toLowerCase();
   if (normalized === 'run' || normalized === 'text') return 'run';
@@ -826,39 +1024,73 @@ function normalizeQuickModes(rawMode, rawModes) {
   return [...tokens];
 }
 
-function resolveQuickModelBaseUrl(baseUrl, modelId) {
+function resolveQuickModelBaseUrl(baseUrl, modelId, catalogSourceUrl, hfSpec = null) {
+  if (hfSpec?.repoId && hfSpec?.revision) {
+    const hfPath = hfSpec.path || `models/${encodeURIComponent(modelId)}`;
+    const resolvedHfUrl = buildHfResolveUrl(hfSpec.repoId, hfSpec.revision, hfPath).replace(/\/+$/, '');
+    return isQuickModelAllowedUrl(resolvedHfUrl) ? resolvedHfUrl : null;
+  }
+
   const resolved = typeof baseUrl === 'string' && baseUrl.trim()
-    ? new URL(baseUrl.trim(), QUICK_MODEL_CATALOG_BASE_URL).toString()
-    : new URL(`./curated/${encodeURIComponent(modelId)}`, QUICK_MODEL_CATALOG_BASE_URL).toString();
-  return isQuickModelCuratedUrl(resolved) ? resolved : null;
+    ? new URL(baseUrl.trim(), catalogSourceUrl || QUICK_MODEL_CATALOG_LOCAL_BASE_URL).toString()
+    : new URL(`./curated/${encodeURIComponent(modelId)}`, QUICK_MODEL_CATALOG_LOCAL_BASE_URL).toString();
+  return isQuickModelAllowedUrl(resolved) ? resolved : null;
 }
 
 function isQuickModelCuratedUrl(resolvedUrl) {
   try {
     const resolved = new URL(resolvedUrl);
-    const catalogUrl = new URL(QUICK_MODEL_CATALOG_BASE_URL);
+    const catalogUrl = new URL(QUICK_MODEL_CATALOG_LOCAL_BASE_URL);
     if (resolved.origin !== catalogUrl.origin) return false;
-    const normalizedPath = resolved.pathname.replace(/\/+/g, '/');
+    const normalizedPath = normalizeUrlPathname(resolved.pathname);
     return normalizedPath.startsWith('/models/curated/');
   } catch {
     return false;
   }
 }
 
-function normalizeQuickCatalogEntry(raw, index) {
+function isQuickModelHfResolveUrl(resolvedUrl) {
+  try {
+    const resolved = new URL(resolvedUrl);
+    if (!isHuggingFaceHost(resolved.hostname)) return false;
+    const normalizedPath = normalizeUrlPathname(resolved.pathname);
+    return normalizedPath.includes('/resolve/');
+  } catch {
+    return false;
+  }
+}
+
+function isQuickModelAllowedUrl(resolvedUrl) {
+  return isQuickModelCuratedUrl(resolvedUrl) || isQuickModelHfResolveUrl(resolvedUrl);
+}
+
+function normalizeQuickCatalogEntry(raw, index, catalogSourceUrl) {
   if (!raw || typeof raw !== 'object') return null;
   const modelId = typeof raw.modelId === 'string' ? raw.modelId.trim() : '';
   if (!modelId) return null;
-  const resolvedBaseUrl = resolveQuickModelBaseUrl(raw.baseUrl, modelId);
+  const hfSpec = normalizeQuickCatalogHfSpec(
+    (raw.hf && typeof raw.hf === 'object' && !Array.isArray(raw.hf))
+      ? raw.hf
+      : {
+        repoId: raw.hfRepoId,
+        revision: raw.hfRevision,
+        path: raw.hfPath,
+      }
+  );
+  const resolvedBaseUrl = resolveQuickModelBaseUrl(raw.baseUrl, modelId, catalogSourceUrl, hfSpec);
   if (!resolvedBaseUrl) return null;
   const modes = normalizeQuickModes(raw.mode, raw.modes);
   const sizeBytes = Number(raw.sizeBytes);
+  const aliases = normalizeQuickCatalogAliases(raw.aliases, modelId);
   return {
     id: modelId,
     modelId,
+    aliases,
     label: typeof raw.label === 'string' && raw.label.trim() ? raw.label.trim() : modelId,
     description: typeof raw.description === 'string' ? raw.description.trim() : '',
     baseUrl: resolvedBaseUrl,
+    hfRepoId: hfSpec?.repoId || null,
+    hfRevision: hfSpec?.revision || null,
     modes,
     sizeBytes: Number.isFinite(sizeBytes) && sizeBytes > 0 ? Math.floor(sizeBytes) : null,
     recommended: raw.recommended === true,
@@ -866,14 +1098,14 @@ function normalizeQuickCatalogEntry(raw, index) {
   };
 }
 
-function parseQuickCatalogPayload(payload) {
+function parseQuickCatalogPayload(payload, catalogSourceUrl) {
   if (!payload || typeof payload !== 'object') {
     return [];
   }
   const entries = Array.isArray(payload.models) ? payload.models : [];
   const normalized = [];
   for (let i = 0; i < entries.length; i += 1) {
-    const entry = normalizeQuickCatalogEntry(entries[i], i);
+    const entry = normalizeQuickCatalogEntry(entries[i], i, catalogSourceUrl);
     if (!entry) continue;
     normalized.push(entry);
   }
@@ -1374,12 +1606,25 @@ async function loadQuickModelCatalog() {
   state.quickModelCatalogError = null;
   renderQuickModelPanels();
   try {
-    const response = await fetch(QUICK_MODEL_CATALOG_URL, { cache: 'no-store' });
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
+    let lastError = null;
+    let loaded = false;
+    for (const catalogUrl of QUICK_MODEL_CATALOG_URLS) {
+      try {
+        const response = await fetch(catalogUrl, { cache: resolveRemoteCacheMode(catalogUrl) });
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status} (${catalogUrl})`);
+        }
+        const payload = await response.json();
+        state.quickModelCatalog = parseQuickCatalogPayload(payload, catalogUrl);
+        loaded = true;
+        break;
+      } catch (error) {
+        lastError = error;
+      }
     }
-    const payload = await response.json();
-    state.quickModelCatalog = parseQuickCatalogPayload(payload);
+    if (!loaded) {
+      throw lastError || new Error('Quick model catalog fetch failed.');
+    }
   } catch (error) {
     state.quickModelCatalog = [];
     state.quickModelCatalogError = error instanceof Error ? error.message : String(error);
@@ -1472,6 +1717,29 @@ function handleDownloadStateChangeEvent(update) {
   }
 }
 
+async function importRdrrFromBaseUrl(baseUrl, modelIdOverride = '') {
+  const imported = await startDownloadFromBaseUrl(baseUrl, modelIdOverride);
+  if (!imported) {
+    throw new Error(`Could not import model ${modelIdOverride || baseUrl}.`);
+  }
+  await updateStorageInfo();
+  await refreshModelList();
+  if (state.uiMode === 'models') {
+    await refreshStorageInspector({
+      onSelectModel: selectDiagnosticsModel,
+      onTryModel: handleStorageTryModel,
+      onUnloadActiveModel: unloadActivePipeline,
+      onStorageInventoryRefreshed: renderQuickModelPanels,
+      onModelsUpdated: refreshModelList,
+    });
+  }
+}
+
+async function importQuickModelEntry(entry) {
+  await importRdrrFromBaseUrl(entry.baseUrl, entry.modelId);
+  await applyImportedModelToCurrentMode(entry.modelId);
+}
+
 async function runQuickModelAction(action, modelId) {
   if (action !== 'download') return;
   const entry = findQuickModelEntry(modelId);
@@ -1491,22 +1759,7 @@ async function runQuickModelAction(action, modelId) {
   updateModelEmptyStates();
   renderQuickModelPanels();
   try {
-    const imported = await startDownloadFromBaseUrl(entry.baseUrl, entry.modelId);
-    if (!imported) {
-      throw new Error(`Could not import model ${modelId}.`);
-    }
-    await updateStorageInfo();
-    await refreshModelList();
-    await applyImportedModelToCurrentMode(modelId);
-    if (state.uiMode === 'models') {
-      await refreshStorageInspector({
-        onSelectModel: selectDiagnosticsModel,
-        onTryModel: handleStorageTryModel,
-        onUnloadActiveModel: unloadActivePipeline,
-        onStorageInventoryRefreshed: renderQuickModelPanels,
-        onModelsUpdated: refreshModelList,
-      });
-    }
+    await importQuickModelEntry(entry);
     finalQuickStatus = `Imported ${modelId} to OPFS.`;
     renderQuickModelPanels();
   } catch (error) {
@@ -3691,6 +3944,30 @@ async function handleConvertUrls() {
     .map((line) => line.trim())
     .filter(Boolean);
   if (!urls.length) return;
+
+  const directRdrrBaseUrl = urls.length === 1 ? resolveDirectRdrrBaseUrlFromInput(urls[0]) : '';
+  if (directRdrrBaseUrl) {
+    updateConvertStatus('Detected direct RDRR manifest URL. Importing prebuilt package...', 0);
+    await importRdrrFromBaseUrl(directRdrrBaseUrl);
+    updateConvertStatus('Imported prebuilt RDRR package from manifest URL.', 100);
+    return;
+  }
+
+  if (!state.quickModelCatalogLoading && getQuickCatalogEntries().length === 0) {
+    await loadQuickModelCatalog();
+  }
+  const registryEntry = findQuickCatalogEntryForRegistryInput(urls);
+  if (registryEntry) {
+    updateConvertStatus(
+      `Found ${registryEntry.modelId} in Doppler registry. Importing prebuilt RDRR instead of converting...`,
+      0
+    );
+    await importQuickModelEntry(registryEntry);
+    updateConvertStatus(`Imported prebuilt RDRR package: ${registryEntry.modelId}`, 100);
+    return;
+  }
+
+  updateConvertStatus('No prebuilt RDRR match found in registry. Starting conversion...', 0);
   const converterConfig = buildConverterConfig();
   const sources = await createRemoteModelSources(urls, { converterConfig });
   await runConversion(sources, converterConfig);

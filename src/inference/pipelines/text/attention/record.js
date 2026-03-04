@@ -10,6 +10,7 @@ import {
   recordAttentionTiered,
   recordAttentionTieredQuant,
   recordAttentionBDPA,
+  recordSiLU,
   recordCastF16ToF32,
   recordCastF32ToF16,
   recordMatmulResidualFused,
@@ -76,6 +77,7 @@ export async function recordLayerAttentionGPU(
     skipInputNorm = false,
     tokenIds = null,
     kernelPath = null,
+    disableRoPE = false,
   } = config;
 
   const desiredOutputDtype = selectRuleValue('shared', 'dtype', 'f16OrF32FromDtype', {
@@ -130,7 +132,7 @@ export async function recordLayerAttentionGPU(
 
   // 2. Q/K/V projections
   const matmulOutputDtype = resolveAttentionProjectionOutputDtype(desiredOutputDtype);
-  let { qTensor, kTensor, vTensor, usedFusedQKV } = await projectAttentionQKV({
+  let { qTensor, qGateTensor, kTensor, vTensor, usedFusedQKV } = await projectAttentionQKV({
     recorder,
     normed,
     layerWeights,
@@ -144,6 +146,7 @@ export async function recordLayerAttentionGPU(
     matmulOutputDtype,
     getWeightBuffer,
     lora,
+    attentionOutputGate: config.attentionOutputGate === true,
     releaseTemporary: (buffer) => releaseOrTrack(recorder, buffer),
     onFusedQKV: layerIdx === 0 && isPrefill
       ? ({ qSize: qSizeFused, kSize: kSizeFused, vSize: vSizeFused, totalSize }) => {
@@ -177,7 +180,7 @@ export async function recordLayerAttentionGPU(
   if (attentionInputTemp) recorder.trackTemporaryBuffer(attentionInput.buffer);
 
   // 3. RoPE (modifies tensor in-place)
-  if (state.ropeFreqsCos && state.ropeFreqsSin) {
+  if (!disableRoPE && state.ropeFreqsCos && state.ropeFreqsSin) {
     await recordRoPE(recorder, qTensor, state.ropeFreqsCos, state.ropeFreqsSin, numTokens, {
       numHeads, headDim, startPos: currentSeqLen,
     });
@@ -493,18 +496,29 @@ export async function recordLayerAttentionGPU(
 
   const attnOutput = await runAttentionKernel();
 
+  let attnForProjection = attnOutput;
+  if (qGateTensor) {
+    attnForProjection = await recordSiLU(recorder, attnOutput, {
+      size: numTokens * numHeads * headDim,
+      gate: qGateTensor,
+      gateActivation: 'sigmoid',
+      swigluLimit: null,
+    });
+    recorder.trackTemporaryBuffer(attnOutput.buffer);
+  }
+
   // 6. Output projection (with optional fused residual for decode)
 
   let output;
   let residualFused = false;
-  let oProjInput = attnOutput;
+  let oProjInput = attnForProjection;
   let oProjInputTemp = null;
   if (layerWeights.oProj && getWeightBuffer) {
     const oProjBuf = getWeightBuffer(layerWeights.oProj, 'o_proj');
     const loraO = getLoRAModule(lora, layerIdx, 'o_proj');
 
-    if (matmulOutputDtype === 'f16' && attnOutput.dtype !== 'f16') {
-      oProjInput = await recordCastF32ToF16(recorder, attnOutput);
+    if (matmulOutputDtype === 'f16' && attnForProjection.dtype !== 'f16') {
+      oProjInput = await recordCastF32ToF16(recorder, attnForProjection);
       oProjInputTemp = oProjInput;
     }
 
@@ -543,7 +557,7 @@ export async function recordLayerAttentionGPU(
       releaseOrTrack(recorder, isWeightBuffer(oProjBuf) ? oProjBuf.buffer : oProjBuf);
     }
   } else {
-    output = attnOutput;
+    output = oProjInput;
   }
 
   // Apply LoRA to output projection if present (only if not using fused path)
@@ -569,10 +583,10 @@ export async function recordLayerAttentionGPU(
   let finalOutput = output;
 
   const buffersToTrack = [];
-  if (output.buffer !== attnOutput.buffer) {
-    buffersToTrack.push(attnOutput.buffer);
+  if (output.buffer !== attnForProjection.buffer) {
+    buffersToTrack.push(attnForProjection.buffer);
   }
-  if (oProjInputTemp && oProjInputTemp.buffer !== attnOutput.buffer) {
+  if (oProjInputTemp && oProjInputTemp.buffer !== attnForProjection.buffer) {
     buffersToTrack.push(oProjInputTemp.buffer);
   }
   if (wantsF16Output && output.dtype !== 'f16') {
@@ -586,6 +600,9 @@ export async function recordLayerAttentionGPU(
   // Releasing them back to the pool would allow reuse before the encoder is submitted,
   // causing data corruption (especially for small decode buffers).
   recorder.trackTemporaryBuffer(qTensor.buffer);
+  if (qGateTensor) {
+    recorder.trackTemporaryBuffer(qGateTensor.buffer);
+  }
   recorder.trackTemporaryBuffer(kTensor.buffer);
   recorder.trackTemporaryBuffer(vTensor.buffer);
   for (const buffer of buffersToTrack) {

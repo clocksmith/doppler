@@ -52,6 +52,7 @@ export interface RawModelConfigSchema {
   rope_theta?: number;
   rms_norm_eps?: number;
   head_dim?: number;
+  attn_output_gate?: boolean;
   _name_or_path?: string;
 
   // GGUF style

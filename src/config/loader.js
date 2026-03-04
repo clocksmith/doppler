@@ -336,6 +336,7 @@ function extractInferenceFromConfig(config) {
     attention: {
       slidingWindow: config.sliding_window,
       attnLogitSoftcapping: config.attn_logit_softcapping,
+      attentionOutputGate: config.attn_output_gate,
     },
     output: {
       finalLogitSoftcapping: config.final_logit_softcapping,

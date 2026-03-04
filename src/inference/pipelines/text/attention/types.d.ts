@@ -9,6 +9,7 @@
 import type { CommandRecorder } from '../../../../gpu/kernel-selector.js';
 import type { KVCacheInterface } from '../types.js';
 import type { Tensor } from '../../../../gpu/tensor.js';
+import type { LinearAttentionRuntime } from '../linear-attention.js';
 
 /**
  * Attention configuration for a layer.
@@ -37,6 +38,8 @@ export interface AttentionConfig {
   queryPreAttnScalar?: number;
   /** Apply query/key RMSNorm even when per-head weights are absent. */
   queryKeyNorm?: boolean;
+  /** Apply sigmoid gate from q_proj split to attention output before o_proj. */
+  attentionOutputGate?: boolean;
   /** Gemma 2 RMS scaling: (1+w)*x */
   rmsNormWeightOffset?: boolean;
   /** Token IDs for the current micro-batch (required by BDPA KV ingestion). */
@@ -50,6 +53,7 @@ export interface AttentionState {
   ropeFreqsCos: GPUBuffer | null;
   ropeFreqsSin: GPUBuffer | null;
   kvCache: KVCacheInterface;
+  linearRuntime?: LinearAttentionRuntime | null;
 }
 
 /**

@@ -9,6 +9,7 @@
 
 override WORKGROUP_SIZE: u32 = 256u;
 override HAS_GATE: bool = false;
+override GATE_USE_SIGMOID: bool = false;
 override USE_SPLIT: bool = false;
 override USE_VEC4: bool = false;
 override USE_ROWSPLIT: bool = false;
@@ -81,7 +82,8 @@ fn main(
     if (HAS_GATE) {
         let up = input[idx];
         let g = gate[idx];
-        output[idx] = clamp_swiglu(silu(g) * up);
+        let gateAct = select(silu(g), sigmoid(g), GATE_USE_SIGMOID);
+        output[idx] = clamp_swiglu(gateAct * up);
         return;
     }
 

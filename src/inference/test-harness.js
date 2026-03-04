@@ -5,11 +5,12 @@ import { parseManifest } from '../storage/rdrr-format.js';
 import { createPipeline } from './pipelines/text.js';
 import { log as debugLog } from '../debug/index.js';
 import { getRuntimeConfig, setRuntimeConfig } from '../config/runtime.js';
+import { downloadShard as downloadShardFromDistribution } from '../distribution/shard-delivery.js';
 import {
   fetchHotSwapManifest,
   verifyHotSwapManifest,
 } from '../hotswap/manifest.js';
-import { setHotSwapManifest } from '../hotswap/runtime.js';
+import { evaluateHotSwapRollout, setHotSwapManifest } from '../hotswap/runtime.js';
 import {
   fetchIntentBundle,
   getKernelRegistryVersion,
@@ -91,32 +92,51 @@ export function parseRuntimeOverridesFromURL(searchParams) {
 // Shard Loading
 // ============================================================================
 
-function normalizeContentEncodings(value) {
-  if (!value) return [];
-  return value
-    .split(',')
-    .map((entry) => entry.trim().toLowerCase())
-    .filter(Boolean);
+function buildManifestVersionSet(manifest) {
+  if (!manifest || typeof manifest !== 'object') return 'manifest:invalid';
+  const shards = Array.isArray(manifest.shards)
+    ? manifest.shards.map((shard, index) => ({
+      index,
+      filename: shard?.filename ?? null,
+      size: shard?.size ?? null,
+      hash: shard?.hash ?? null,
+    }))
+    : [];
+  const payload = {
+    modelId: manifest.modelId ?? null,
+    version: manifest.version ?? null,
+    hashAlgorithm: manifest.hashAlgorithm ?? null,
+    tensorCount: manifest.tensorCount ?? null,
+    totalSize: manifest.totalSize ?? null,
+    shards,
+  };
+  return JSON.stringify(payload);
 }
 
-function assertRequiredContentEncoding(response, requiredEncoding, context) {
-  if (!requiredEncoding) return;
-  const required = requiredEncoding.trim().toLowerCase();
-  if (!required) return;
-  const encodings = normalizeContentEncodings(response.headers.get('content-encoding'));
-  if (!encodings.includes(required)) {
-    const found = encodings.length > 0 ? encodings.join(', ') : 'none';
-    throw new Error(`Missing required content-encoding "${required}" for ${context} (found: ${found})`);
+function toShardBytes(buffer, shardIndex) {
+  if (buffer instanceof ArrayBuffer) {
+    return new Uint8Array(buffer);
   }
+  if (ArrayBuffer.isView(buffer)) {
+    const view = buffer;
+    return new Uint8Array(view.buffer, view.byteOffset, view.byteLength);
+  }
+  throw new Error(`Shard ${shardIndex} did not return an in-memory buffer`);
 }
 
 
 export function createHttpShardLoader(baseUrl, manifest, log) {
+  const algorithm = manifest.hashAlgorithm;
+  if (!algorithm) {
+    throw new Error('Manifest missing hashAlgorithm for shard delivery.');
+  }
+
+  const runtimeConfig = getRuntimeConfig();
+  const distributionConfig = runtimeConfig.loading?.distribution || {};
   const totalShards = manifest.shards?.length || 0;
-  const requiredEncoding = getRuntimeConfig().loading.distribution.requiredContentEncoding;
-  
+  const requiredEncoding = distributionConfig.requiredContentEncoding ?? null;
+  const manifestVersionSet = buildManifestVersionSet(manifest);
   const shardCache = new Map();
-  
   const pendingLoads = new Map();
   let shardsLoaded = 0;
   let totalBytesLoaded = 0;
@@ -139,30 +159,36 @@ export function createHttpShardLoader(baseUrl, manifest, log) {
     }
 
     // Start new load and track it as pending
-    const shardStartTime = Date.now();
-    
     const loadPromise = (async () => {
-      const resp = await fetch(`${baseUrl}/${shard.filename}`);
-      if (!resp.ok) {
-        throw new Error(`Failed to load shard ${idx}: ${resp.status}`);
+      try {
+        const result = await downloadShardFromDistribution(baseUrl, idx, shard, {
+          distributionConfig,
+          algorithm,
+          requiredEncoding,
+          expectedHash: shard.hash ?? null,
+          expectedSize: Number.isFinite(shard.size) ? Math.floor(shard.size) : null,
+          expectedManifestVersionSet: manifestVersionSet,
+          writeToStore: false,
+          enableSourceCache: true,
+        });
+
+        const data = toShardBytes(result.buffer, idx);
+        shardCache.set(idx, data);
+        shardsLoaded++;
+        totalBytesLoaded += data.byteLength;
+
+        // Note: Individual shard progress is now reported through pipeline onProgress callback
+        // to avoid noisy duplicate logging. Log summary only when all shards loaded.
+        if (log && shardsLoaded === totalShards) {
+          const totalElapsed = (Date.now() - loadStartTime) / 1000;
+          const avgSpeed = totalElapsed > 0 ? totalBytesLoaded / totalElapsed : 0;
+          log(`All ${totalShards} shards loaded: ${(totalBytesLoaded / 1024 / 1024).toFixed(1)}MB in ${totalElapsed.toFixed(1)}s (${(avgSpeed / 1024 / 1024).toFixed(0)} MB/s avg)`);
+        }
+
+        return data;
+      } finally {
+        pendingLoads.delete(idx);
       }
-      assertRequiredContentEncoding(resp, requiredEncoding, `shard ${idx}`);
-
-      const data = new Uint8Array(await resp.arrayBuffer());
-      shardCache.set(idx, data);
-      pendingLoads.delete(idx);
-      shardsLoaded++;
-      totalBytesLoaded += data.byteLength;
-
-      // Note: Individual shard progress is now reported through pipeline onProgress callback
-      // to avoid noisy duplicate logging. Log summary only when all shards loaded.
-      if (log && shardsLoaded === totalShards) {
-        const totalElapsed = (Date.now() - loadStartTime) / 1000;
-        const avgSpeed = totalElapsed > 0 ? totalBytesLoaded / totalElapsed : 0;
-        log(`All ${totalShards} shards loaded: ${(totalBytesLoaded / 1024 / 1024).toFixed(1)}MB in ${totalElapsed.toFixed(1)}s (${(avgSpeed / 1024 / 1024).toFixed(0)} MB/s avg)`);
-      }
-
-      return data;
     })();
 
     pendingLoads.set(idx, loadPromise);
@@ -200,15 +226,27 @@ export async function initializeInference(modelUrl, options = {}) {
   const hotSwapConfig = getRuntimeConfig().shared.hotSwap;
   const intentBundleConfig = getRuntimeConfig().shared.intentBundle;
   if (hotSwapConfig.enabled && hotSwapConfig.manifestUrl) {
-    onProgress('hotswap', 0.05, 'Loading hot-swap manifest...');
-    log(`Hot-swap: loading manifest ${hotSwapConfig.manifestUrl}`);
-    const hotSwapManifest = await fetchHotSwapManifest(hotSwapConfig.manifestUrl);
-    const verification = await verifyHotSwapManifest(hotSwapManifest, hotSwapConfig);
-    if (!verification.ok) {
-      throw new Error(`Hot-swap manifest rejected: ${verification.reason}`);
+    const rolloutDecision = evaluateHotSwapRollout(hotSwapConfig, {
+      modelUrl,
+      subjectId: options.modelId || null,
+      sessionId: options.sessionId || null,
+      optInTag: options.hotSwapOptInTag || null,
+    });
+    if (!rolloutDecision.allowed) {
+      log(`Hot-swap: rollout skipped (${rolloutDecision.reason})`);
+    } else {
+      onProgress('hotswap', 0.05, 'Loading hot-swap manifest...');
+      log(`Hot-swap: loading manifest ${hotSwapConfig.manifestUrl}`);
+      const hotSwapManifest = await fetchHotSwapManifest(hotSwapConfig.manifestUrl);
+      const verification = await verifyHotSwapManifest(hotSwapManifest, hotSwapConfig);
+      if (!verification.ok) {
+        throw new Error(`Hot-swap manifest rejected: ${verification.reason}`);
+      }
+      setHotSwapManifest(hotSwapManifest);
+      log(
+        `Hot-swap manifest accepted: ${hotSwapManifest.bundleId} (${verification.reason}, rollout=${rolloutDecision.reason})`
+      );
     }
-    setHotSwapManifest(hotSwapManifest);
-    log(`Hot-swap manifest accepted: ${hotSwapManifest.bundleId} (${verification.reason})`);
   }
 
   // 1. Initialize WebGPU

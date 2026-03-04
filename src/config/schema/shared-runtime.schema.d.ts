@@ -20,6 +20,7 @@ import type { BridgeConfigSchema } from './bridge.schema.js';
 import type { PlatformSchema } from './platform.schema.js';
 import type { HarnessConfigSchema } from './harness.schema.js';
 import type { ToolingConfigSchema } from './tooling.schema.js';
+import type { EcosystemConfigSchema } from './ecosystem.schema.js';
 
 /**
  * Kernel registry configuration (source/override).
@@ -44,6 +45,8 @@ export interface SharedRuntimeConfigSchema {
   harness: HarnessConfigSchema;
   /** Tooling intent and diagnostics policy */
   tooling: ToolingConfigSchema;
+  /** Ecosystem/platform-layer policy contract */
+  ecosystem: EcosystemConfigSchema;
   /** Optional platform override (auto-detect when null) */
   platform: Partial<PlatformSchema> | null;
   /** Kernel registry source config */

@@ -44,7 +44,8 @@
       ".tjs-bench-profile/**",
       "tmp/**",
       "models/converted/**",
-      "models/local/**"
+      "models/local/**",
+      "models/curated/**"
     ]
   }
 }

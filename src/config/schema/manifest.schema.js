@@ -45,6 +45,7 @@ export const DEFAULT_MANIFEST_INFERENCE = {
     queryKeyNorm: false,
     causal: true,  // Causal mask enabled by default (decoder-style attention)
     attentionBias: false,
+    attentionOutputGate: false,
   },
   normalization: {
     rmsNormEps: DEFAULT_RMS_NORM_EPS,

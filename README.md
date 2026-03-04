@@ -94,7 +94,17 @@ See [`docs/architecture.md`](docs/architecture.md) for full subsystem and bounda
 - Reproducible benchmark/reporting outputs via `--json`, `--capture-output`, and `bench --save --save-dir` (artifacts in `benchmarks/vendors/results/`).
 - Hash-linked artifact lineage and provenance checks for claimable outputs.
 
-### Details in docs
+### Quick start
+
+Run a hosted model verify from the HF registry:
+
+```bash
+npm run verify:google-gemma-3-270m-it
+```
+
+For full CLI usage and options, see [`docs/cli-quickstart.md`](docs/cli-quickstart.md).
+
+### Reference docs
 
 - Setup and day-1 workflows: [`docs/setup-instructions.md`](docs/setup-instructions.md)
 - Architecture and boundaries: [`docs/architecture.md`](docs/architecture.md)
@@ -162,7 +172,6 @@ node benchmarks/vendors/compare-chart.js --preset readme-evidence
 
 ## Further docs
 
-See [`docs/setup-instructions.md`](docs/setup-instructions.md) for install, conversion, and run guides.
 For contribution workflow, see [`docs/contributing.md`](docs/contributing.md).
 For disclosure and community policies, see [`SECURITY.md`](SECURITY.md).
 
