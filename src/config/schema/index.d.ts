@@ -97,6 +97,7 @@ export {
   type LayerPipelineSchema,
   type OutputSchema,
   type LayerType,
+  type LinearNormMode,
   type GlobalLayerPattern,
   type LayerPatternSchema,
   type InferenceConfigSchema,

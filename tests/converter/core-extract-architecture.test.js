@@ -52,4 +52,55 @@ const { extractArchitecture } = await import('../../src/converter/core.js');
   assert.equal(architecture.ropeTheta, 1000000);
 }
 
+{
+  const architecture = extractArchitecture({
+    model_type: 'qwen2',
+    num_hidden_layers: 4,
+    hidden_size: 512,
+    intermediate_size: 2048,
+    num_attention_heads: 8,
+    num_key_value_heads: 2,
+    head_dim: 64,
+    vocab_size: 151936,
+    max_position_embeddings: 32768,
+    linear_norm_mode: 'per_head',
+    layer_types: ['linear_attention', 'full_attention', 'linear_attention', 'full_attention'],
+  });
+  assert.equal(architecture.linearNormMode, 'per_head');
+}
+
+{
+  const architecture = extractArchitecture({
+    model_type: 'qwen2',
+    num_hidden_layers: 4,
+    hidden_size: 512,
+    intermediate_size: 2048,
+    num_attention_heads: 8,
+    num_key_value_heads: 2,
+    head_dim: 64,
+    vocab_size: 151936,
+    max_position_embeddings: 32768,
+    layer_types: ['linear_attention', 'full_attention', 'linear_attention', 'full_attention'],
+  });
+  assert.equal(architecture.linearNormMode, 'shared');
+}
+
+{
+  assert.throws(
+    () => extractArchitecture({
+      model_type: 'qwen2',
+      num_hidden_layers: 4,
+      hidden_size: 512,
+      intermediate_size: 2048,
+      num_attention_heads: 8,
+      num_key_value_heads: 2,
+      head_dim: 64,
+      vocab_size: 151936,
+      max_position_embeddings: 32768,
+      linear_norm_mode: 'invalid-mode',
+    }),
+    /Unsupported linear_norm_mode/
+  );
+}
+
 console.log('core-extract-architecture.test: ok');

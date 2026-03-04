@@ -69,4 +69,50 @@ const baseManifest = {
   assert.equal(parsed.intermediateSize, 12288);
 }
 
+{
+  const linearNormFromArchitecture = {
+    ...baseManifest,
+    modelId: 'linear-norm-mode-arch-test',
+    architecture: {
+      ...baseManifest.architecture,
+      linearNumKeyHeads: 16,
+      linearNumValueHeads: 16,
+      linearKeyHeadDim: 128,
+      linearValueHeadDim: 128,
+      linearConvKernelDim: 4,
+      linearNormMode: 'per_head',
+    },
+  };
+  const parsed = parseModelConfig(linearNormFromArchitecture, {});
+  assert.equal(parsed.linearNormMode, 'per_head');
+}
+
+{
+  const linearNormFromConfig = {
+    ...baseManifest,
+    modelId: 'linear-norm-mode-config-test',
+    config: {
+      model_type: 'qwen2',
+      linear_norm_mode: 'shared',
+    },
+  };
+  const parsed = parseModelConfig(linearNormFromConfig, {});
+  assert.equal(parsed.linearNormMode, 'shared');
+}
+
+{
+  const invalidLinearNormMode = {
+    ...baseManifest,
+    modelId: 'linear-norm-mode-invalid-test',
+    config: {
+      model_type: 'qwen2',
+      linear_norm_mode: 'bad-mode',
+    },
+  };
+  assert.throws(
+    () => parseModelConfig(invalidLinearNormMode, {}),
+    /unsupported linear_norm_mode/i
+  );
+}
+
 console.log('config-lfm2-intermediate-runtime.test: ok');

@@ -1,0 +1,18 @@
+{
+  "output": {
+    "baseDir": "models/local",
+    "modelBaseId": "mixtral-template-wf16-ef16-hf16-f16"
+  },
+  "presets": {
+    "model": "mixtral"
+  },
+  "quantization": {
+    "weights": "f16",
+    "embeddings": "f16",
+    "lmHead": "f16",
+    "computePrecision": "f16"
+  },
+  "manifest": {
+    "hashAlgorithm": "blake3"
+  }
+}
