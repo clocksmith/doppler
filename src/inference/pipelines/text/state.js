@@ -10,6 +10,11 @@ export class PipelineState {
 
     this.kvCache = null;
 
+    this.linearAttentionRuntime = {
+      schemaVersion: 1,
+      layers: new Map(),
+    };
+
     this.moeRouter = null;
 
     this.speculativeDecoder = null;

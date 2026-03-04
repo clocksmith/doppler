@@ -203,11 +203,8 @@ function buildRefreshRawConfig(manifest) {
   const modelType = toSafeString(baseConfig.model_type).toLowerCase();
   const presetId = toSafeString(manifest?.inference?.presetId).toLowerCase();
   const isLfm2 = modelType === 'lfm2' || presetId === 'lfm2';
-  if (!isLfm2) {
-    return baseConfig;
-  }
 
-  if (!modelType) {
+  if (isLfm2 && !modelType) {
     baseConfig.model_type = 'lfm2';
   }
 

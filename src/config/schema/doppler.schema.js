@@ -2,6 +2,7 @@ import { DEFAULT_LOADING_CONFIG } from './loading.schema.js';
 import { DEFAULT_INFERENCE_DEFAULTS_CONFIG } from './inference-defaults.schema.js';
 import { DEFAULT_SHARED_RUNTIME_CONFIG } from './shared-runtime.schema.js';
 import { DEFAULT_EMULATION_CONFIG, createEmulationConfig } from './emulation.schema.js';
+import { mergeEcosystemConfig } from './ecosystem.schema.js';
 
 // =============================================================================
 // Runtime Config (all non-model-specific settings)
@@ -84,6 +85,9 @@ function mergeSharedRuntimeConfig(
     tooling: overrides.tooling
       ? { ...base.tooling, ...overrides.tooling }
       : { ...base.tooling },
+    ecosystem: overrides.ecosystem
+      ? mergeEcosystemConfig(base.ecosystem, overrides.ecosystem)
+      : mergeEcosystemConfig(base.ecosystem, {}),
     platform: overrides.platform ?? base.platform,
     kernelRegistry: { ...base.kernelRegistry, ...overrides.kernelRegistry },
     kernelThresholds: overrides.kernelThresholds

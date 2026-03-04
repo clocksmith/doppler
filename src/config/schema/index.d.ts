@@ -753,6 +753,39 @@ export {
 } from './tooling.schema.js';
 
 // =============================================================================
+// Ecosystem Schema
+// =============================================================================
+export {
+  // Types
+  type EcosystemStabilityMode,
+  type EcosystemRankingMode,
+  type EcosystemIncentiveMode,
+  type EcosystemAntiSybilCost,
+  type EcosystemEnforcementMode,
+  type EcosystemFailoverTier,
+  type EcosystemNotarizationAlgorithm,
+  type EcosystemConfigSchema,
+  type EcosystemConfigOverrides,
+
+  // Constants
+  ECOSYSTEM_STABILITY_MODES,
+  ECOSYSTEM_RANKING_MODES,
+  ECOSYSTEM_INCENTIVE_MODES,
+  ECOSYSTEM_ANTISYBIL_COST,
+  ECOSYSTEM_ENFORCEMENT_MODES,
+  ECOSYSTEM_FAILOVER_TIERS,
+  ECOSYSTEM_NOTARIZATION_ALGORITHMS,
+
+  // Defaults
+  DEFAULT_ECOSYSTEM_CONFIG,
+
+  // Factory and validation
+  mergeEcosystemConfig,
+  createEcosystemConfig,
+  validateEcosystemConfig,
+} from './ecosystem.schema.js';
+
+// =============================================================================
 // Harness Schema
 // =============================================================================
 export {

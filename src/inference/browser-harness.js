@@ -452,16 +452,6 @@ function normalizeSuite(value, context = {}) {
   return normalized;
 }
 
-/**
- * @typedef {Object} SuiteSummary
- * @property {string} suite
- * @property {number} passed
- * @property {number} failed
- * @property {number} skipped
- * @property {number} duration
- * @property {any[]} results
- */
-
 export function buildSuiteSummary(suiteName, results, startTimeMs) {
   let passed = 0;
   let failed = 0;

@@ -29,11 +29,13 @@ import type { LogitsDebugFlags } from './logits.js';
 import type { KernelPathSource } from '../../../config/kernel-path-loader.js';
 import type { EmulationContext } from '/proto/simulator/index.js';
 import type { PipelineStorageContext } from './init.js';
+import type { LinearAttentionRuntime } from './linear-attention.js';
 
 export class PipelineState {
   // Components
   tokenizer: Tokenizer | null;
   kvCache: KVCache | SlidingWindowKVCache | TieredKVCache | BasisDecomposedPagedCache | null;
+  linearAttentionRuntime: LinearAttentionRuntime | null;
   moeRouter: MoERouter | null;
   speculativeDecoder: SpeculativeDecoder | null;
   decodeBuffers: DecodeBufferManager | null;

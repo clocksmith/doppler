@@ -70,7 +70,8 @@
       "type": "every_n",
       "globalPattern": null,
       "period": 6,
-      "offset": 5
+      "offset": 5,
+      "layerTypes": null
     },
     "chatTemplate": {
       "type": null,
@@ -749,49 +750,49 @@
       "index": 0,
       "filename": "shard_00000.bin",
       "size": 67108864,
-      "hash": "8ef63284d30fdd9a5c4d8801cc55fa617f6816e005aa1a8bb9152fe7a0bdf8db",
+      "hash": "03a38d41351e9bd53d2ff268fc3e20f6953637b33c9531d4c6fc8c466dc45404",
       "offset": 0
     },
     {
       "index": 1,
       "filename": "shard_00001.bin",
       "size": 67108864,
-      "hash": "35bf4acc82785e6885825b13ba1f50634534377b984257f0bfb7898bf39bdf47",
+      "hash": "6a0bb093b34933e5f98248995304a21e0eec2bb6c0c325df929ea6e149c6885c",
       "offset": 67108864
     },
     {
       "index": 2,
       "filename": "shard_00002.bin",
       "size": 67108864,
-      "hash": "f14be0098fe1ca7a69bee2d7470b87179cfec43339250e3bc988df76bbe1c742",
+      "hash": "68c427bc6a5473b2c1edd7ac2d4c4f20077ceac02b822310dc8ec22e198cf8e4",
       "offset": 134217728
     },
     {
       "index": 3,
       "filename": "shard_00003.bin",
       "size": 67108864,
-      "hash": "c7624d5a1c060db21471d89731dc826c0ee3e11269e1dcd189c5fa25800f95fc",
+      "hash": "e85a33a81f6eef7ca90e6d49f9655185eeb884140d24f5fc762799ced115bb9b",
       "offset": 201326592
     },
     {
       "index": 4,
       "filename": "shard_00004.bin",
       "size": 67108864,
-      "hash": "7d6652c3cb37a944d21ca68d275fa4e0c30eac800544bb5dec5bcf9231e75ac6",
+      "hash": "99a4246d1dd57b1f58c8de46f533c9645a6ede849fdfafb5162ece1594290b05",
       "offset": 268435456
     },
     {
       "index": 5,
       "filename": "shard_00005.bin",
       "size": 67108864,
-      "hash": "66926b5073c008f26cf0985ada86d5bde45af963e2b9a72be06c52d551dd9a6f",
+      "hash": "0f6da278bbe0925e1a1627abc5a893fc1cf8a103f3e93cfb1d465b4985ce3421",
       "offset": 335544320
     },
     {
       "index": 6,
       "filename": "shard_00006.bin",
       "size": 58739712,
-      "hash": "89c9576fb839a43cba6dded765f2bc46aabc9670babb5f9fce0bd0e8e73b1a40",
+      "hash": "3640a18ba7c03edd492fe172d46fdc49f75ec098bf87cf10a0ec67da1fe8c4b3",
       "offset": 402653184
     }
   ],
@@ -4305,11 +4306,11 @@
     }
   },
   "totalSize": 461392896,
-  "hashAlgorithm": "blake3",
+  "hashAlgorithm": "sha256",
   "eos_token_id": 1,
   "metadata": {
     "source": "convert-core",
-    "convertedAt": "2026-02-26T22:42:49.563Z",
+    "convertedAt": "2026-03-04T14:57:07.954Z",
     "hasTokenizer": true
   },
   "tokenizer": {

@@ -96,6 +96,16 @@ Current config intent:
   - Preset: `gpt_oss`
   - Compute: `f16`
 
+- `tools/configs/conversion/qwen3/qwen-3-5-0-8b-wf16-ef16-hf16-f16.json`
+  - Output base: `models/local/qwen-3-5-0-8b-wf16-ef16-hf16-f16`
+  - Resolved modelId: `qwen-3-5-0-8b-wf16-ef16-hf16-f16`
+  - Preset: `qwen3`
+  - Output mode: `textOnly: true` (skip vision/projector tensors from Qwen3.5 multimodal checkpoints)
+  - Weights/embeddings/lmHead: `f16`
+  - Compute: `f16`
+  - Kernel path: `null` (runtime default; linear-attention GPU path in runtime)
+  - Session defaults: decode loop `batchSize=4`, `stopCheckMode=batch`, `readbackInterval=1`, `disableCommandBatching=true`
+
 - `tools/configs/conversion/embeddinggemma/embeddinggemma-300m-wbf16.json`
   - Output base: `models/curated/google-embeddinggemma-300m`
   - Resolved modelId: `google-embeddinggemma-300m`

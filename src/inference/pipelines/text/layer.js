@@ -22,6 +22,7 @@ import { getLayerPlanSteps, filterLayerPlanStepsByPhase } from './layer-plan.js'
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { recordCheckFiniteness } from '../../../gpu/kernels/check-finiteness.js';
 import { shouldRunFinitenessGuard } from './finiteness-policy.js';
+import { runLinearAttentionLayer } from './linear-attention.js';
 
 // ============================================================================
 // Architecture Detection
@@ -66,6 +67,26 @@ function normalizeLayerType(layerType) {
   return typeof layerType === 'string' ? layerType.trim().toLowerCase() : '';
 }
 
+const UNSUPPORTED_LAYER_RUNTIME_SET = new Set(['mamba', 'rwkv']);
+
+function assertSupportedLayerRuntime(layerIdx, config) {
+  const modelType = normalizeLayerType(config?.modelType);
+  if (UNSUPPORTED_LAYER_RUNTIME_SET.has(modelType)) {
+    throw new Error(
+      `Unsupported runtime family "${modelType}" for layer ${layerIdx}. ` +
+      'Mamba/RWKV execution is fail-closed until implemented.'
+    );
+  }
+
+  const layerType = normalizeLayerType(config?.layerTypes?.[layerIdx]);
+  if (UNSUPPORTED_LAYER_RUNTIME_SET.has(layerType)) {
+    throw new Error(
+      `Unsupported layer type "${layerType}" at layer ${layerIdx}. ` +
+      'Mamba/RWKV execution is fail-closed until implemented.'
+    );
+  }
+}
+
 function isSlidingLayerType(layerType) {
   const normalized = normalizeLayerType(layerType);
   return normalized === 'sliding_attention'
@@ -82,6 +103,14 @@ function isConvLayerType(layerType) {
     || normalized === 'liv_convolution';
 }
 
+function isLinearLayerType(layerType) {
+  const normalized = normalizeLayerType(layerType);
+  return normalized === 'linear_attention'
+    || normalized === 'linear'
+    || normalized === 'gated_delta'
+    || normalized === 'gated_delta_net';
+}
+
 // ============================================================================
 // Main Layer Processing
 // ============================================================================
@@ -90,6 +119,7 @@ function isConvLayerType(layerType) {
 export async function processLayer(layerIdx, hiddenStates, numTokens, isPrefill, context) {
   const { config, useGPU } = context;
   const { hiddenSize } = config;
+  assertSupportedLayerRuntime(layerIdx, config);
 
   // Debug routing (uses debug-utils)
   logLayer(layerIdx, 'enter', isPrefill, { numTokens });
@@ -121,6 +151,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
   if (!device) throw new Error('No GPU device available');
 
   const { config, weights, weightConfig, debugFlags, kvCache, ropeFreqsCos, ropeFreqsSin, recorder } = context;
+  assertSupportedLayerRuntime(layerIdx, config);
   const { hiddenSize, numHeads, numKVHeads, headDim, rmsNormEps } = config;
 
   // Determine activation dtype from context (defaults to f32)
@@ -151,11 +182,12 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
   // 1. Layer mixer (attention or conv)
   const layerType = config.layerTypes?.[layerIdx];
   const isConvLayer = isConvLayerType(layerType);
+  const isLinearLayer = isLinearLayerType(layerType);
   const isLocalLayer = isSlidingLayerType(layerType);
 
   // Debug: log RoPE selection for first few layers
   if (context.debug && layerIdx < 3) {
-    trace.attn(layerIdx, `Layer routing: layerType=${layerType}, isConv=${isConvLayer}, isLocal=${isLocalLayer}, hasLocalCos=${!!context.ropeLocalCos}, hasLocalSin=${!!context.ropeLocalSin}`);
+    trace.attn(layerIdx, `Layer routing: layerType=${layerType}, isConv=${isConvLayer}, isLinear=${isLinearLayer}, isLocal=${isLocalLayer}, hasLocalCos=${!!context.ropeLocalCos}, hasLocalSin=${!!context.ropeLocalSin}`);
   }
 
   let attnOutput;
@@ -184,14 +216,34 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
       },
       recorder
     );
+  } else if (isLinearLayer) {
+    attnOutput = await runLinearAttentionLayer(inputTensor, layerWeights ?? null, {
+      layerIdx,
+      numTokens,
+      hiddenSize,
+      config,
+      currentSeqLen: context.currentSeqLen,
+      activationDtype,
+      kernelPath: context.kernelPath ?? null,
+      linearRuntime: context.linearAttentionRuntime ?? null,
+      getWeightBuffer: (weight, label) => getWeightBuffer(weight, label),
+      getNormWeightBuffer: (weight, label) => getNormWeightBuffer(weight, label, weightConfig, debugFlags),
+      recorder: recorder ?? null,
+    });
   } else {
+    let attentionNumHeads = numHeads;
+    let attentionNumKVHeads = numKVHeads;
+    let attentionHeadDim = headDim;
+    let disableRoPE = false;
+    let queryKeyNorm = config.queryKeyNorm;
+
     const attnConfig = {
       layerIdx,
       numTokens,
       isPrefill,
-      numHeads,
-      numKVHeads,
-      headDim,
+      numHeads: attentionNumHeads,
+      numKVHeads: attentionNumKVHeads,
+      headDim: attentionHeadDim,
       hiddenSize,
       rmsNormEps,
       currentSeqLen: context.currentSeqLen,
@@ -203,11 +255,13 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
         : null,
       attnSoftcap: config.attnLogitSoftcapping === null ? 0 : config.attnLogitSoftcapping,
       queryPreAttnScalar: config.queryPreAttnScalar,
-      queryKeyNorm: config.queryKeyNorm,
+      queryKeyNorm,
+      attentionOutputGate: config.attentionOutputGate,
       causalAttention: config.causalAttention,
       rmsNormWeightOffset: config.rmsNormWeightOffset,
       tokenIds: context.currentTokenIds ?? null,
       kernelPath: context.kernelPath ?? null,
+      disableRoPE,
     };
 
     const attnState = {
@@ -219,6 +273,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
         : (ropeFreqsSin),
       kvCache: ((kvCache)),
       stats: context.stats,
+      linearRuntime: context.linearAttentionRuntime ?? null,
     };
 
     const attnResult = await doAttention(
@@ -432,6 +487,7 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
       ? (context.ropeLocalSin)
       : (ropeFreqsSin),
     kvCache: ((kvCache)),
+    linearRuntime: context.linearAttentionRuntime ?? null,
   };
 
   const allowResidualFuse = numTokens === 1 && !(sandwichNorm.useSandwichNorm && sandwichNorm.hasPostAttentionNorm);
@@ -589,13 +645,14 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
             attnSoftcap: config.attnLogitSoftcapping === null ? 0 : config.attnLogitSoftcapping,
             queryPreAttnScalar: config.queryPreAttnScalar,
             queryKeyNorm: config.queryKeyNorm,
+            attentionOutputGate: config.attentionOutputGate,
             causalAttention: config.causalAttention,
-    rmsNormWeightOffset: config.rmsNormWeightOffset,
-    tokenIds: context.currentTokenIds ?? null,
-    skipInputNorm: step.skipInputNorm === true,
-    activationDtype,
-    kernelPath: context.kernelPath ?? null,
-  };
+            rmsNormWeightOffset: config.rmsNormWeightOffset,
+            tokenIds: context.currentTokenIds ?? null,
+            skipInputNorm: step.skipInputNorm === true,
+            activationDtype,
+            kernelPath: context.kernelPath ?? null,
+          };
 
           const result = await doAttention(
             srcTensor,
@@ -838,6 +895,7 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
 
 export async function processLayerCPU(layerIdx, hiddenStates, numTokens, isPrefill, context) {
   const { config } = context;
+  assertSupportedLayerRuntime(layerIdx, config);
   const { hiddenSize } = config;
 
   log.warn('Layer', `L${layerIdx} CPU fallback - returning input unchanged`);

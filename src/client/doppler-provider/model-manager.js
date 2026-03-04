@@ -524,6 +524,114 @@ export async function loadLoRAAdapter(adapter) {
   log.info('DopplerProvider', `LoRA adapter loaded: ${lora.name}`);
 }
 
+export async function activateLoRAFromTrainingOutput(trainingOutput) {
+  if (!pipeline) {
+    return {
+      activated: false,
+      adapterName: null,
+      source: null,
+      reason: 'no_model_loaded',
+    };
+  }
+
+  const output = trainingOutput && typeof trainingOutput === 'object'
+    ? trainingOutput
+    : null;
+  if (!output && typeof trainingOutput !== 'string') {
+    return {
+      activated: false,
+      adapterName: getActiveLoRA(),
+      source: null,
+      reason: 'no_adapter_candidate',
+    };
+  }
+
+  if (typeof trainingOutput === 'string') {
+    await loadLoRAAdapter(trainingOutput);
+    return {
+      activated: true,
+      adapterName: getActiveLoRA(),
+      source: 'adapter-string',
+      reason: null,
+    };
+  }
+
+  if (output.adapterManifest && typeof output.adapterManifest === 'object') {
+    await loadLoRAAdapter(output.adapterManifest);
+    return {
+      activated: true,
+      adapterName: getActiveLoRA(),
+      source: 'adapterManifest',
+      reason: null,
+    };
+  }
+
+  if (typeof output.adapterManifestJson === 'string' && output.adapterManifestJson.trim()) {
+    const manifest = JSON.parse(output.adapterManifestJson);
+    await loadLoRAAdapter(manifest);
+    return {
+      activated: true,
+      adapterName: getActiveLoRA(),
+      source: 'adapterManifestJson',
+      reason: null,
+    };
+  }
+
+  if (typeof output.adapterManifestUrl === 'string' && output.adapterManifestUrl.trim()) {
+    await loadLoRAAdapter(output.adapterManifestUrl.trim());
+    return {
+      activated: true,
+      adapterName: getActiveLoRA(),
+      source: 'adapterManifestUrl',
+      reason: null,
+    };
+  }
+
+  if (typeof output.adapterManifestPath === 'string' && output.adapterManifestPath.trim()) {
+    const path = output.adapterManifestPath.trim();
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      await loadLoRAAdapter(path);
+      return {
+        activated: true,
+        adapterName: getActiveLoRA(),
+        source: 'adapterManifestPath:url',
+        reason: null,
+      };
+    }
+    const isNode = typeof process !== 'undefined' && !!process.versions?.node;
+    if (!isNode) {
+      throw new Error('adapterManifestPath local files require Node runtime.');
+    }
+    const { readFile } = await import('node:fs/promises');
+    const raw = await readFile(path, 'utf8');
+    const manifest = JSON.parse(raw);
+    await loadLoRAAdapter(manifest);
+    return {
+      activated: true,
+      adapterName: getActiveLoRA(),
+      source: 'adapterManifestPath:file',
+      reason: null,
+    };
+  }
+
+  if (output.adapter != null) {
+    await loadLoRAAdapter(output.adapter);
+    return {
+      activated: true,
+      adapterName: getActiveLoRA(),
+      source: 'adapter',
+      reason: null,
+    };
+  }
+
+  return {
+    activated: false,
+    adapterName: getActiveLoRA(),
+    source: null,
+    reason: 'no_adapter_candidate',
+  };
+}
+
 export async function unloadLoRAAdapter() {
   if (!pipeline) return;
   pipeline.setLoRAAdapter(null);

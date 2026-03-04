@@ -136,6 +136,7 @@ export const DEFAULT_PRESET_INFERENCE_CONFIG = {
     slidingWindow: null,
     attnLogitSoftcapping: null,
     queryKeyNorm: false,
+    attentionOutputGate: false,
     causal: true,
     ropeScalingType: null,
     ropeScalingFactor: 1.0,

@@ -20,6 +20,7 @@ import {
   runLayerAttentionGPU,
   recordLayerAttentionGPU,
 } from './attention.js';
+import { runLinearAttentionLayer } from './linear-attention.js';
 
 
 export function isDecodeBuffer(decodeBuffers, buffer) {
@@ -307,6 +308,30 @@ export async function doAttention(
   recorder,
   lora
 ) {
+  const normalizedLayerType = String(config?.layerType ?? '').trim().toLowerCase();
+  const isLinearLayer = normalizedLayerType === 'linear_attention'
+    || normalizedLayerType === 'linear'
+    || normalizedLayerType === 'gated_delta'
+    || normalizedLayerType === 'gated_delta_net';
+  if (isLinearLayer) {
+    return {
+      output: await runLinearAttentionLayer(inputTensor, layerWeights, {
+        layerIdx: config.layerIdx,
+        numTokens: config.numTokens,
+        hiddenSize: config.hiddenSize,
+        config,
+        currentSeqLen: config.currentSeqLen,
+        activationDtype: config.activationDtype,
+        kernelPath: config.kernelPath ?? null,
+        linearRuntime: state?.linearRuntime ?? null,
+        getWeightBuffer: getWeightBufferFn,
+        getNormWeightBuffer: getNormWeightBufferFn,
+        recorder: recorder ?? null,
+      }),
+      residualFused: false,
+    };
+  }
+
   const isBDPA = state?.kvCache?.layout === 'bdpa_paged';
   if (recorder && isBDPA) {
     throw new Error('BDPA attention does not support command recorder mode. Disable command batching for BDPA.');

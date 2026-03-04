@@ -22,6 +22,12 @@ export interface TrainingSuiteSummary {
     availableTests: string[];
     trainingStage: 'stage1_joint' | 'stage2_base' | 'stage_a' | 'stage_b' | null;
     trainingSchemaVersion: number;
+    adapterActivation?: {
+      activated: boolean;
+      adapterName: string | null;
+      source: string | null;
+      reason: string | null;
+    } | null;
   };
   deviceInfo: Record<string, unknown> | null;
 }
@@ -56,6 +62,18 @@ export interface TrainingBenchSuiteResult {
     };
     ulArtifacts: Record<string, unknown>[];
     distillArtifacts: Record<string, unknown>[];
+    adapterExports?: Array<{
+      runIndex: number;
+      id: string | null;
+      name: string | null;
+      hash: string;
+    }>;
+    adapterActivation?: {
+      activated: boolean;
+      adapterName: string | null;
+      source: string | null;
+      reason: string | null;
+    } | null;
     checkpointResumeTimeline: Array<Record<string, unknown>>;
     distillDataset?: {
       path: string;
@@ -114,6 +132,29 @@ export interface RunTrainingSuiteOptions {
   resumeFrom?: string;
   trainingBenchSteps?: number;
   benchRun?: Record<string, unknown> | null;
+  adapterActivation?: {
+    enabled?: boolean;
+    autoActivate?: boolean;
+    adapter?: unknown;
+    adapterManifest?: Record<string, unknown>;
+    adapterManifestJson?: string;
+    adapterManifestUrl?: string;
+    adapterManifestPath?: string;
+    export?: {
+      id: string;
+      name: string;
+      baseModel: string;
+      rank: number;
+      alpha: number;
+      targetModules: string[];
+      tensors: Array<{
+        name: string;
+        paramIndex: number;
+      }>;
+      format?: 'base64' | 'array';
+      pretty?: boolean;
+    };
+  };
   checkpointEvery?: number;
   timestamp?: string | Date;
 }

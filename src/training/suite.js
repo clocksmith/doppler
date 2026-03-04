@@ -21,6 +21,7 @@ import { TrainingRunner } from './runner.js';
 import { trainStep } from './trainer.js';
 import { crossEntropyLoss } from './loss.js';
 import { clipGradients } from './clip.js';
+import { exportLoRAAdapter } from './export.js';
 import { sha256Hex } from '../utils/sha256.js';
 import { computeSampleStats } from '../debug/stats.js';
 import { parseJsonl } from './datasets/jsonl.js';
@@ -1779,6 +1780,163 @@ function normalizeTrainingConfigOverride(value) {
   return value;
 }
 
+function normalizeAdapterActivationConfig(options = {}) {
+  const runtimeConfig = normalizeTrainingConfigOverride(options.trainingConfig);
+  const direct = options.adapterActivation;
+  const nested = runtimeConfig?.adapterActivation;
+  const config = direct && typeof direct === 'object' ? direct : (nested && typeof nested === 'object' ? nested : null);
+  if (!config) {
+    return {
+      enabled: false,
+      autoActivate: false,
+      adapterPayload: null,
+      exportConfig: null,
+    };
+  }
+  const exportConfig = config.export && typeof config.export === 'object'
+    ? config.export
+    : null;
+  const adapterPayload = (() => {
+    if (config.adapterManifest && typeof config.adapterManifest === 'object') {
+      return { adapterManifest: config.adapterManifest };
+    }
+    if (typeof config.adapterManifestJson === 'string' && config.adapterManifestJson.trim()) {
+      return { adapterManifestJson: config.adapterManifestJson };
+    }
+    if (typeof config.adapterManifestUrl === 'string' && config.adapterManifestUrl.trim()) {
+      return { adapterManifestUrl: config.adapterManifestUrl };
+    }
+    if (typeof config.adapterManifestPath === 'string' && config.adapterManifestPath.trim()) {
+      return { adapterManifestPath: config.adapterManifestPath };
+    }
+    if (config.adapter != null) {
+      return { adapter: config.adapter };
+    }
+    return null;
+  })();
+  return {
+    enabled: config.enabled !== false,
+    autoActivate: config.autoActivate === true,
+    adapterPayload,
+    exportConfig,
+  };
+}
+
+function normalizeLoRAExportConfig(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return null;
+  }
+  const tensors = Array.isArray(value.tensors) ? value.tensors : [];
+  if (tensors.length === 0) {
+    return null;
+  }
+  const normalizedTensors = tensors.map((entry, index) => {
+    const name = normalizeOptionalString(entry?.name);
+    const paramIndex = Number.isFinite(entry?.paramIndex)
+      ? Math.floor(entry.paramIndex)
+      : -1;
+    if (!name) {
+      throw new Error(`adapterActivation.export.tensors[${index}].name is required.`);
+    }
+    if (!Number.isInteger(paramIndex) || paramIndex < 0) {
+      throw new Error(`adapterActivation.export.tensors[${index}].paramIndex must be a non-negative integer.`);
+    }
+    return { name, paramIndex };
+  });
+  const targetModules = Array.isArray(value.targetModules)
+    ? value.targetModules.map((moduleName) => String(moduleName || '').trim()).filter(Boolean)
+    : [];
+  if (targetModules.length === 0) {
+    throw new Error('adapterActivation.export.targetModules must contain at least one module.');
+  }
+  const id = normalizeOptionalString(value.id);
+  const name = normalizeOptionalString(value.name);
+  const baseModel = normalizeOptionalString(value.baseModel);
+  const rank = Number(value.rank);
+  const alpha = Number(value.alpha);
+  if (!id || !name || !baseModel) {
+    throw new Error('adapterActivation.export requires id, name, and baseModel.');
+  }
+  if (!Number.isFinite(rank) || rank <= 0 || !Number.isInteger(rank)) {
+    throw new Error('adapterActivation.export.rank must be a positive integer.');
+  }
+  if (!Number.isFinite(alpha) || alpha <= 0) {
+    throw new Error('adapterActivation.export.alpha must be a positive number.');
+  }
+  return {
+    id,
+    name,
+    baseModel,
+    rank,
+    alpha,
+    targetModules,
+    tensors: normalizedTensors,
+    format: value.format === 'array' ? 'array' : 'base64',
+    pretty: value.pretty === true,
+  };
+}
+
+async function exportLoRAAdapterFromModel(model, exportConfig, runIndex = null) {
+  const normalizedConfig = normalizeLoRAExportConfig(exportConfig);
+  if (!normalizedConfig) return null;
+  if (!model || typeof model.loraParams !== 'function') {
+    throw new Error('adapterActivation.export requires model.loraParams() support.');
+  }
+  const params = model.loraParams();
+  if (!Array.isArray(params) || params.length === 0) {
+    throw new Error('adapterActivation.export requires non-empty model.loraParams().');
+  }
+  const tensors = normalizedConfig.tensors.map((entry) => {
+    const tensor = params[entry.paramIndex];
+    if (!tensor) {
+      throw new Error(`adapterActivation.export tensor paramIndex ${entry.paramIndex} is out of range.`);
+    }
+    return {
+      name: entry.name,
+      tensor,
+    };
+  });
+  const exported = await exportLoRAAdapter({
+    id: normalizedConfig.id,
+    name: normalizedConfig.name,
+    baseModel: normalizedConfig.baseModel,
+    rank: normalizedConfig.rank,
+    alpha: normalizedConfig.alpha,
+    targetModules: normalizedConfig.targetModules,
+    tensors,
+    format: normalizedConfig.format,
+    pretty: normalizedConfig.pretty,
+  });
+  return {
+    runIndex,
+    manifest: exported.manifest,
+    json: exported.json,
+    hash: sha256Hex(exported.json),
+  };
+}
+
+async function tryActivateAdapterPayload(payload) {
+  if (!payload) {
+    return {
+      activated: false,
+      adapterName: null,
+      source: null,
+      reason: 'no_adapter_payload',
+    };
+  }
+  const { activateLoRAFromTrainingOutput } = await import('../client/doppler-provider/model-manager.js');
+  try {
+    return await activateLoRAFromTrainingOutput(payload);
+  } catch (error) {
+    return {
+      activated: false,
+      adapterName: null,
+      source: null,
+      reason: String(error?.message || error),
+    };
+  }
+}
+
 function buildUlTrainingOverrides(options = {}) {
   const trainingConfig = normalizeTrainingConfigOverride(options.trainingConfig);
   const explicitStage = normalizeTrainingStage(options.trainingStage || trainingConfig?.ul?.stage);
@@ -2241,6 +2399,7 @@ export const trainingHarness = Object.freeze({
 
 export async function runTrainingSuite(options = {}) {
   const trainingSchemaVersion = assertTrainingSchemaVersion(options.trainingSchemaVersion);
+  const adapterActivation = normalizeAdapterActivationConfig(options);
   const startTime = performance.now();
   await trainingHarness.getGPU();
 
@@ -2302,6 +2461,12 @@ export async function runTrainingSuite(options = {}) {
   }
 
   const summary = buildSuiteSummary('training', results, startTime);
+  const adapterActivationResult = (
+    adapterActivation.enabled
+    && adapterActivation.autoActivate
+  )
+    ? await tryActivateAdapterPayload(adapterActivation.adapterPayload)
+    : null;
   return {
     ...summary,
     modelId: options.modelId || options.modelUrl || 'training',
@@ -2311,6 +2476,7 @@ export async function runTrainingSuite(options = {}) {
       availableTests,
       trainingStage: requestedStage || null,
       trainingSchemaVersion,
+      adapterActivation: adapterActivationResult,
     },
     deviceInfo: getKernelCapabilities(),
   };
@@ -2458,6 +2624,7 @@ export async function runTrainingBenchSuite(options = {}) {
   const benchSettings = resolveBenchRunSettings(options);
   const totalRuns = benchSettings.warmupRuns + benchSettings.timedRuns;
   const trainingOverrides = resolveTrainingOverrides(options);
+  const adapterActivation = normalizeAdapterActivationConfig(options);
   const distillEnabled = trainingOverrides?.distill?.enabled === true;
   const distillDatasetPath = resolveDistillDatasetPath(options, trainingOverrides);
   const distillDatasetReport = distillEnabled
@@ -2481,6 +2648,7 @@ export async function runTrainingBenchSuite(options = {}) {
   const timedStepDurationsMs = [];
   const timedRunUlArtifacts = [];
   const timedRunDistillArtifacts = [];
+  const timedRunAdapterExports = [];
   const trainingMetricsReport = [];
   const distillShardProgress = resolveDistillShardProgressContext(
     options,
@@ -2521,6 +2689,7 @@ export async function runTrainingBenchSuite(options = {}) {
     });
   }
   let completedTimedRuns = 0;
+  let latestExportedAdapter = null;
 
   try {
     for (let runIndex = 0; runIndex < totalRuns; runIndex += 1) {
@@ -2661,6 +2830,22 @@ export async function runTrainingBenchSuite(options = {}) {
               timedRunUlArtifacts.push(artifactEntry);
             }
           }
+          if (adapterActivation.enabled && adapterActivation.exportConfig) {
+            const exportedAdapter = await exportLoRAAdapterFromModel(
+              fixture.model,
+              adapterActivation.exportConfig,
+              completedTimedRuns
+            );
+            if (exportedAdapter) {
+              latestExportedAdapter = exportedAdapter;
+              timedRunAdapterExports.push({
+                runIndex: completedTimedRuns,
+                id: exportedAdapter.manifest?.id || null,
+                name: exportedAdapter.manifest?.name || null,
+                hash: exportedAdapter.hash,
+              });
+            }
+          }
         }
       } finally {
         fixture.cleanup();
@@ -2676,6 +2861,20 @@ export async function runTrainingBenchSuite(options = {}) {
   const stepMsStats = computeSampleStats(timedStepDurationsMs);
   const stepsPerSecStats = computeSampleStats(timedRunStepsPerSec);
   const progress = resolveBenchProgressSummary(trainingMetricsReport, distillShardProgress, startTime);
+  const activationPayload = adapterActivation.adapterPayload
+    ? adapterActivation.adapterPayload
+    : (latestExportedAdapter
+      ? {
+        adapterManifest: latestExportedAdapter.manifest,
+        adapterManifestJson: latestExportedAdapter.json,
+      }
+      : null);
+  const adapterActivationResult = (
+    adapterActivation.enabled
+    && adapterActivation.autoActivate
+  )
+    ? await tryActivateAdapterPayload(activationPayload)
+    : null;
   appendTimelineEvent(checkpointResumeTimeline, 'benchmark_completed', {
     completedTimedRuns,
     metricEntryCount: trainingMetricsReport.length,
@@ -2709,6 +2908,8 @@ export async function runTrainingBenchSuite(options = {}) {
       progress,
       ulArtifacts: timedRunUlArtifacts,
       distillArtifacts: timedRunDistillArtifacts,
+      adapterExports: timedRunAdapterExports,
+      adapterActivation: adapterActivationResult,
       checkpointResumeTimeline,
       distillDataset: distillDatasetReport
         ? {

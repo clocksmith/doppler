@@ -157,6 +157,14 @@ function normalizeCustomLayerType(value) {
     return 'sliding_attention';
   }
   if (
+    normalized === 'linear_attention'
+    || normalized === 'linear'
+    || normalized === 'gated_delta'
+    || normalized === 'gated_delta_net'
+  ) {
+    return 'linear_attention';
+  }
+  if (
     normalized === 'conv'
     || normalized === 'convolution'
     || normalized === 'liv_conv'
@@ -177,7 +185,7 @@ function normalizeLayerTypesForManifest(layerTypes, contextLabel) {
     if (!normalized) {
       throw new Error(
         `${contextLabel} has unsupported layerTypes[${index}]="${layerType}". ` +
-        'Supported: conv, full_attention, sliding_attention.'
+        'Supported: conv, full_attention, sliding_attention, linear_attention.'
       );
     }
     return normalized;
@@ -222,6 +230,42 @@ function normalizeEveryNOffset(value, period) {
   if (!Number.isFinite(value)) return null;
   const raw = Math.trunc(value);
   return ((raw % period) + period) % period;
+}
+
+function detectAttentionOutputGate(presetInference, modelConfig, defaults) {
+  if (typeof presetInference?.attention?.attentionOutputGate === 'boolean') {
+    return presetInference.attention.attentionOutputGate;
+  }
+  if (typeof modelConfig?.attn_output_gate === 'boolean') {
+    return modelConfig.attn_output_gate;
+  }
+
+  const modelType = normalizeLayerTypeName(modelConfig?.model_type);
+  const hasLinearAttentionLayers = Array.isArray(modelConfig?.layer_types)
+    && modelConfig.layer_types.some((entry) => normalizeCustomLayerType(entry) === 'linear_attention');
+  if (
+    hasLinearAttentionLayers
+    && (modelType === 'qwen2' || modelType === 'qwen3_5' || modelType === 'qwen3_5_text')
+  ) {
+    return true;
+  }
+
+  return defaults.attention.attentionOutputGate;
+}
+
+function resolveQueryPreAttnScalar(preset, modelConfig, headDim) {
+  const explicit = Number(modelConfig?.query_pre_attn_scalar);
+  if (Number.isFinite(explicit) && explicit > 0) {
+    return explicit;
+  }
+
+  const modelType = normalizeLayerTypeName(modelConfig?.model_type);
+  const presetId = normalizeLayerTypeName(preset?.id);
+  if (modelType.startsWith('qwen') || presetId === 'qwen3') {
+    return headDim;
+  }
+
+  return Math.sqrt(headDim);
 }
 
 // Build normalization config with auto-detection from tensor names.
@@ -307,12 +351,13 @@ export function buildManifestInference(preset, config, headDim = 64, quantizatio
     schema: defaults.schema ?? null,
     presetId: preset.id ?? null,
     attention: {
-      queryPreAttnScalar: modelConfig.query_pre_attn_scalar ?? Math.sqrt(headDim),
+      queryPreAttnScalar: resolveQueryPreAttnScalar(preset, modelConfig, headDim),
       attnLogitSoftcapping: presetInference.attention?.attnLogitSoftcapping ??
         modelConfig.attn_logit_softcapping ?? defaults.attention.attnLogitSoftcapping,
       slidingWindow: presetInference.attention?.slidingWindow ??
         modelConfig.sliding_window ?? defaults.attention.slidingWindow,
       queryKeyNorm: presetInference.attention?.queryKeyNorm ?? defaults.attention.queryKeyNorm,
+      attentionOutputGate: detectAttentionOutputGate(presetInference, modelConfig, defaults),
       causal: detectedCausalAttention ?? presetInference.attention?.causal ?? defaults.attention.causal,
       attentionBias: presetInference.attention?.attentionBias ??
         modelConfig.attention_bias ?? defaults.attention.attentionBias,
@@ -413,6 +458,28 @@ export function buildManifestInference(preset, config, headDim = 64, quantizatio
       period,
       offset,
       layerTypes: manifestType === 'custom' ? layerTypes : null,
+    };
+  }
+
+  // Preserve explicit per-layer metadata when the model config provides layer_types
+  // but the preset does not define a layer pattern.
+  const hasConfigLayerTypes = Array.isArray(modelConfig.layer_types) && modelConfig.layer_types.length > 0;
+  const presetPatternType = presetInference.layerPattern?.type ?? null;
+  const shouldPreferConfigLayerTypes = hasConfigLayerTypes && (
+    !presetInference.layerPattern
+    || presetPatternType === 'all_attention'
+    || presetPatternType === 'uniform'
+  );
+  if (shouldPreferConfigLayerTypes) {
+    inference.layerPattern = {
+      type: 'custom',
+      globalPattern: null,
+      period: null,
+      offset: null,
+      layerTypes: normalizeLayerTypesForManifest(
+        modelConfig.layer_types,
+        `Model "${preset.id ?? 'unknown'}" config.layer_types`
+      ),
     };
   }
 

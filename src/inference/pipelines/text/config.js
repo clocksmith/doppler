@@ -2,9 +2,24 @@ import { log } from '../../../debug/index.js';
 import { mergeConfig } from '../../../config/merge.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 
+const UNSUPPORTED_RUNTIME_MODEL_TYPES = new Set(['mamba', 'rwkv']);
+
 // =============================================================================
 // Model Detection Functions
 // =============================================================================
+
+function assertSupportedRuntimeModelType(manifest) {
+  const modelType = typeof manifest?.modelType === 'string'
+    ? manifest.modelType.trim().toLowerCase()
+    : '';
+  if (!modelType) return;
+  if (!UNSUPPORTED_RUNTIME_MODEL_TYPES.has(modelType)) return;
+
+  const modelId = manifest?.modelId ?? 'unknown';
+  throw new Error(
+    `Manifest "${modelId}" declares modelType "${modelType}", but that runtime family is not implemented yet.`
+  );
+}
 
 export function getStopTokenIds(manifest) {
   const eosTokenId = manifest?.eos_token_id;
@@ -271,6 +286,14 @@ function normalizeLayerTypeTag(value) {
     return 'sliding_attention';
   }
   if (
+    normalized === 'linear_attention'
+    || normalized === 'linear'
+    || normalized === 'gated_delta'
+    || normalized === 'gated_delta_net'
+  ) {
+    return 'linear_attention';
+  }
+  if (
     normalized === 'conv'
     || normalized === 'convolution'
     || normalized === 'liv_conv'
@@ -302,7 +325,7 @@ function parseCustomLayerTypes(layerTypes, numLayers, modelId) {
     if (!normalized) {
       throw new Error(
         `Manifest "${modelId}" has unknown layerPattern.layerTypes[${index}]="${layerType}". ` +
-        'Supported types: conv, full_attention, sliding_attention, moe, mamba, rwkv.'
+        'Supported types: conv, full_attention, sliding_attention, linear_attention, moe, mamba, rwkv.'
       );
     }
     return normalized;
@@ -389,6 +412,10 @@ export function toParsedConfigFromMerged(merged, manifest) {
     }
   }
 
+  if (!Array.isArray(layerTypes) && Array.isArray(config.layer_types) && config.layer_types.length > 0) {
+    layerTypes = parseCustomLayerTypes(config.layer_types, arch.numLayers, merged.modelId);
+  }
+
   // Compute queryPreAttnScalar from manifest inference (NOT from preset detection)
   // Manifest-first: queryPreAttnScalar is required in ManifestAttentionSchema
   const headDim = arch.headDim;
@@ -454,6 +481,17 @@ export function toParsedConfigFromMerged(merged, manifest) {
 
   const chatTemplateType = inf.chatTemplate.type;
   const chatTemplateEnabled = inf.chatTemplate.enabled;
+  const parsePositiveInt = (value) => {
+    const num = Number(value);
+    if (!Number.isFinite(num) || num <= 0) return null;
+    return Math.trunc(num);
+  };
+
+  const linearNumKeyHeads = parsePositiveInt(arch.linearNumKeyHeads ?? config.linear_num_key_heads);
+  const linearNumValueHeads = parsePositiveInt(arch.linearNumValueHeads ?? config.linear_num_value_heads);
+  const linearKeyHeadDim = parsePositiveInt(arch.linearKeyHeadDim ?? config.linear_key_head_dim);
+  const linearValueHeadDim = parsePositiveInt(arch.linearValueHeadDim ?? config.linear_value_head_dim);
+  const linearConvKernelDim = parsePositiveInt(arch.linearConvKernelDim ?? config.linear_conv_kernel_dim);
 
   return {
     numLayers: arch.numLayers,
@@ -492,11 +530,17 @@ export function toParsedConfigFromMerged(merged, manifest) {
     swigluLimit: inf.ffn.swigluLimit,
     stopTokenIds,
     layerTypes,
+    linearNumKeyHeads,
+    linearNumValueHeads,
+    linearKeyHeadDim,
+    linearValueHeadDim,
+    linearConvKernelDim,
     attentionBias: inf.attention.attentionBias,
     causalAttention,
     finalLogitSoftcapping: inf.output.finalLogitSoftcapping,
     attnLogitSoftcapping: inf.attention.attnLogitSoftcapping,
     queryKeyNorm: inf.attention.queryKeyNorm,
+    attentionOutputGate: inf.attention.attentionOutputGate === true,
     queryPreAttnScalar,
     layerPipeline: inf.pipeline ?? null,
     chatTemplateType,
@@ -507,6 +551,8 @@ export function toParsedConfigFromMerged(merged, manifest) {
 
 
 export function parseModelConfigFromManifest(manifest, runtimeOverrides) {
+  assertSupportedRuntimeModelType(manifest);
+
   // Merge manifest inference with runtime overrides
   const merged = mergeConfig(
     {

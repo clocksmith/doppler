@@ -40,6 +40,25 @@ export declare function downloadModel(
 ): Promise<boolean>;
 
 /**
+ * Persists non-store shard delivery payloads to storage.
+ */
+export declare function persistDownloadedShardIfNeeded(
+  result: {
+    source?: string;
+    wrote?: boolean;
+    buffer?: ArrayBuffer | null;
+  } | null | undefined,
+  shardIndex: number,
+  options?: {
+    writeShardFn?: (
+      shardIndex: number,
+      buffer: ArrayBuffer,
+      options?: { verify?: boolean }
+    ) => Promise<unknown>;
+  }
+): Promise<boolean>;
+
+/**
  * Pauses an active download
  */
 export declare function pauseDownload(modelId: string): boolean;

@@ -36,6 +36,16 @@ export interface LayerWeights {
   kProj: GPUBuffer | WeightBuffer | Float32Array | null;
   vProj: GPUBuffer | WeightBuffer | Float32Array | null;
   oProj: GPUBuffer | WeightBuffer | Float32Array | null;
+  qkvProj?: GPUBuffer | WeightBuffer | Float32Array | null;
+  qkvSizes?: [number, number, number] | null;
+  qkvDtype?: 'f16' | 'f32' | null;
+  linearInProjZ?: GPUBuffer | WeightBuffer | Float32Array | null;
+  linearInProjA?: GPUBuffer | WeightBuffer | Float32Array | null;
+  linearInProjB?: GPUBuffer | WeightBuffer | Float32Array | null;
+  linearConv1D?: GPUBuffer | Float32Array | null;
+  linearDtBias?: GPUBuffer | Float32Array | null;
+  linearALog?: GPUBuffer | Float32Array | null;
+  linearNorm?: GPUBuffer | Float32Array | null;
   qNorm: GPUBuffer | Float32Array | null;
   kNorm: GPUBuffer | Float32Array | null;
   postAttentionNorm: GPUBuffer | Float32Array | null;

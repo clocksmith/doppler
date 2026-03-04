@@ -130,14 +130,24 @@ function shouldExcludeTextOnlyTensor(name) {
   const lower = name.toLowerCase();
   return lower.startsWith('vision_tower.')
     || lower.startsWith('vision_model.')
+    || lower.startsWith('visual.')
+    || lower.startsWith('model.visual.')
+    || lower.startsWith('vision.')
+    || lower.startsWith('model.vision.')
     || lower.startsWith('vision_encoder.')
     || lower.startsWith('image_encoder.')
     || lower.startsWith('image_tower.')
+    || lower.startsWith('image.')
+    || lower.startsWith('model.image.')
     || lower.startsWith('audio_tower.')
     || lower.startsWith('audio_model.')
+    || lower.startsWith('audio.')
+    || lower.startsWith('model.audio.')
     || lower.startsWith('audio_encoder.')
     || lower.startsWith('multi_modal_projector.')
-    || lower.startsWith('mm_projector.');
+    || lower.startsWith('model.multi_modal_projector.')
+    || lower.startsWith('mm_projector.')
+    || lower.startsWith('model.mm_projector.');
 }
 
 function resolveConversionTensors(model, converterConfig) {
@@ -150,13 +160,15 @@ function resolveConversionTensors(model, converterConfig) {
     return source;
   }
 
-  const hasLanguageModelNamespace = source.some((tensor) => (
-    normalizeTensorName(tensor).toLowerCase().startsWith('language_model.')
-  ));
+  const hasLanguageModelNamespace = source.some((tensor) => {
+    const lower = normalizeTensorName(tensor).toLowerCase();
+    return lower.startsWith('language_model.') || lower.startsWith('model.language_model.');
+  });
   if (hasLanguageModelNamespace) {
-    return source.filter((tensor) => (
-      normalizeTensorName(tensor).toLowerCase().startsWith('language_model.')
-    ));
+    return source.filter((tensor) => {
+      const lower = normalizeTensorName(tensor).toLowerCase();
+      return lower.startsWith('language_model.') || lower.startsWith('model.language_model.');
+    });
   }
 
   return source.filter((tensor) => (
@@ -736,6 +748,11 @@ export function extractArchitecture(config, ggufConfig) {
       'max_position_embeddings'
     );
     const ropeTheta = fromConfig('rope_theta') ?? undefined;
+    const linearNumKeyHeads = fromConfig('linear_num_key_heads');
+    const linearNumValueHeads = fromConfig('linear_num_value_heads');
+    const linearKeyHeadDim = fromConfig('linear_key_head_dim');
+    const linearValueHeadDim = fromConfig('linear_value_head_dim');
+    const linearConvKernelDim = fromConfig('linear_conv_kernel_dim');
 
     return {
       numLayers,
@@ -747,6 +764,11 @@ export function extractArchitecture(config, ggufConfig) {
       vocabSize,
       maxSeqLen,
       ropeTheta,
+      linearNumKeyHeads: linearNumKeyHeads ?? undefined,
+      linearNumValueHeads: linearNumValueHeads ?? undefined,
+      linearKeyHeadDim: linearKeyHeadDim ?? undefined,
+      linearValueHeadDim: linearValueHeadDim ?? undefined,
+      linearConvKernelDim: linearConvKernelDim ?? undefined,
     };
   }
 

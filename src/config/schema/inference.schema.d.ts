@@ -57,6 +57,8 @@ export interface AttentionSchema {
   attnLogitSoftcapping?: number | null;
   /** Use query-key normalization */
   queryKeyNorm?: boolean;
+  /** Apply sigmoid gate from q_proj split to attention output */
+  attentionOutputGate?: boolean;
   /** @deprecated Use RoPEConfigSchema.ropeScalingType instead */
   ropeScalingType?: 'linear' | 'dynamic' | 'yarn' | null;
   /** @deprecated Use RoPEConfigSchema.ropeScalingFactor instead */
@@ -186,6 +188,7 @@ export type LayerType =
   | 'attention'
   | 'full_attention'
   | 'sliding_attention'
+  | 'linear_attention'
   | 'conv'
   | 'mamba'
   | 'rwkv';

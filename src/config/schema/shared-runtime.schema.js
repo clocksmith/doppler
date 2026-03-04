@@ -11,6 +11,7 @@ import { DEFAULT_BENCHMARK_CONFIG } from './benchmark.schema.js';
 import { DEFAULT_HARNESS_CONFIG } from './harness.schema.js';
 import { DEFAULT_INTENT_BUNDLE_CONFIG } from './intent-bundle.schema.js';
 import { DEFAULT_TOOLING_CONFIG } from './tooling.schema.js';
+import { DEFAULT_ECOSYSTEM_CONFIG } from './ecosystem.schema.js';
 
 // =============================================================================
 // Kernel Registry Config
@@ -29,6 +30,7 @@ export const DEFAULT_SHARED_RUNTIME_CONFIG = {
   benchmark: DEFAULT_BENCHMARK_CONFIG,
   harness: DEFAULT_HARNESS_CONFIG,
   tooling: DEFAULT_TOOLING_CONFIG,
+  ecosystem: DEFAULT_ECOSYSTEM_CONFIG,
   platform: null,
   kernelRegistry: DEFAULT_KERNEL_REGISTRY_CONFIG,
   kernelThresholds: DEFAULT_KERNEL_THRESHOLDS,

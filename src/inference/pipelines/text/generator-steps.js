@@ -19,6 +19,7 @@ import { isWeightBuffer, isCpuWeightBuffer, getWeightDtype } from '../../../gpu/
 import { decodeReadback } from './debug-utils.js';
 import { getFinalNormWeights, extractEmbeddingFromHidden } from './generator-runtime.js';
 import { parseFinitenessStatusWords } from './finiteness-guard-status.js';
+import { hasLinearAttentionLayers } from './linear-attention.js';
 
 const UNKNOWN_TOKEN_TEXT = '<unknown>';
 
@@ -760,6 +761,11 @@ export async function advanceWithTokenAndEmbedding(state, tokenId, opts, helpers
 export async function generateNTokensGPU(state, startToken, N, currentIds, opts, helpers) {
   const device = getDevice();
   const config = state.modelConfig;
+  if (hasLinearAttentionLayers(config.layerTypes)) {
+    throw new Error(
+      '[Pipeline] Batch decode path is disabled for linear_attention models; use single-token decode.'
+    );
+  }
   const samplingDefaults = state.runtimeConfig.inference.sampling;
   const executionPlan = opts.executionPlan;
   const batchSize = executionPlan?.batchSize ?? opts.batchSize ?? state.runtimeConfig.inference.batching.batchSize;

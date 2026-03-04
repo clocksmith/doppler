@@ -807,6 +807,14 @@ export class DopplerLoader {
 
   
   async #loadLayer(layerIdx, _onProgress) {
+    const textConfig = (
+      this.manifest?.config?.text_config
+      && typeof this.manifest.config.text_config === 'object'
+      && !Array.isArray(this.manifest.config.text_config)
+    )
+      ? this.manifest.config.text_config
+      : this.manifest?.config ?? null;
+
     
     const ctx = {
       tensorLocations: this.tensorLocations,
@@ -816,6 +824,14 @@ export class DopplerLoader {
       keepF32Weights: this.keepF32Weights,
       isMoE: this.isMoE,
       isExpertLayer: (idx) => this.#isExpertLayer(idx),
+      numHeads: this.manifest?.architecture?.numAttentionHeads ?? null,
+      numKVHeads: this.manifest?.architecture?.numKeyValueHeads ?? null,
+      headDim: this.manifest?.architecture?.headDim ?? null,
+      hiddenSize: this.manifest?.architecture?.hiddenSize ?? null,
+      linearNumKeyHeads: textConfig?.linear_num_key_heads ?? this.manifest?.architecture?.linearNumKeyHeads ?? null,
+      linearNumValueHeads: textConfig?.linear_num_value_heads ?? this.manifest?.architecture?.linearNumValueHeads ?? null,
+      linearKeyHeadDim: textConfig?.linear_key_head_dim ?? this.manifest?.architecture?.linearKeyHeadDim ?? null,
+      linearValueHeadDim: textConfig?.linear_value_head_dim ?? this.manifest?.architecture?.linearValueHeadDim ?? null,
     };
 
     const weights = await loadLayer(ctx, layerIdx);

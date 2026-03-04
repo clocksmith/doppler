@@ -4,6 +4,7 @@ import {
   loadModel,
   unloadModel,
   loadLoRAAdapter,
+  activateLoRAFromTrainingOutput,
   unloadLoRAAdapter,
   getActiveLoRA,
   getAvailableModels,
@@ -59,6 +60,10 @@ export const DopplerProvider = {
 
   async loadLoRAAdapter(adapter) {
     return loadLoRAAdapter(adapter);
+  },
+
+  async activateLoRAFromTrainingOutput(trainingOutput) {
+    return activateLoRAFromTrainingOutput(trainingOutput);
   },
 
   async unloadLoRAAdapter() {

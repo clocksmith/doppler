@@ -14,9 +14,6 @@ import {
   saveManifest,
   saveTokenizer,
   saveTokenizerModel,
-  createShardWriter,
-  createStreamingHasher,
-  computeHash,
 } from './shard-manager.js';
 
 import {
@@ -33,6 +30,7 @@ import {
   DB_NAME,
   DB_VERSION,
   STORE_NAME,
+  getDistributionConfig,
   getDefaultConcurrency,
   getMaxRetries,
   getInitialRetryDelayMs,
@@ -40,6 +38,8 @@ import {
   getProgressUpdateIntervalMs,
   getRequiredContentEncoding,
 } from './download-types.js';
+
+import { downloadShard as downloadShardFromDistribution } from '../distribution/shard-delivery.js';
 
 // ============================================================================
 // Module State
@@ -49,6 +49,49 @@ import {
 let db = null;
 
 const activeDownloads = new Map();
+
+function buildManifestVersionSet(manifest) {
+  if (!manifest || typeof manifest !== 'object') return 'manifest:invalid';
+  const shards = Array.isArray(manifest.shards)
+    ? manifest.shards.map((shard, index) => ({
+      index,
+      filename: shard?.filename ?? null,
+      size: shard?.size ?? null,
+      hash: shard?.hash ?? null,
+    }))
+    : [];
+  const payload = {
+    modelId: manifest.modelId ?? null,
+    version: manifest.version ?? null,
+    hashAlgorithm: manifest.hashAlgorithm ?? null,
+    tensorCount: manifest.tensorCount ?? null,
+    totalSize: manifest.totalSize ?? null,
+    shards,
+  };
+  return JSON.stringify(payload);
+}
+
+function createDefaultSourceStats() {
+  return {
+    cache: 0,
+    p2p: 0,
+    http: 0,
+    unknown: 0,
+  };
+}
+
+function normalizeSourceStats(value) {
+  const defaults = createDefaultSourceStats();
+  if (!value || typeof value !== 'object') {
+    return defaults;
+  }
+  return {
+    cache: Number.isFinite(value.cache) ? Math.max(0, Number(value.cache)) : defaults.cache,
+    p2p: Number.isFinite(value.p2p) ? Math.max(0, Number(value.p2p)) : defaults.p2p,
+    http: Number.isFinite(value.http) ? Math.max(0, Number(value.http)) : defaults.http,
+    unknown: Number.isFinite(value.unknown) ? Math.max(0, Number(value.unknown)) : defaults.unknown,
+  };
+}
 
 // ============================================================================
 // IndexedDB Operations
@@ -131,7 +174,13 @@ async function loadDownloadState(modelId) {
           
           const state = {
             ...result,
-            completedShards: new Set(result.completedShards)
+            completedShards: new Set(result.completedShards),
+            manifestVersionSet: typeof result.manifestVersionSet === 'string'
+              ? result.manifestVersionSet
+              : buildManifestVersionSet(result.manifest),
+            sourceStats: normalizeSourceStats(result.sourceStats),
+            lastSource: typeof result.lastSource === 'string' ? result.lastSource : null,
+            lastSourcePath: typeof result.lastSourcePath === 'string' ? result.lastSourcePath : null,
           };
           resolve(state);
         } else {
@@ -228,107 +277,41 @@ async function fetchWithRetry(url, options = {}) {
 }
 
 
-function buildShardUrl(baseUrl, shardInfo) {
-  const base = baseUrl.replace(/\/$/, '');
-  return `${base}/${shardInfo.filename}`;
-}
-
-function normalizeContentEncodings(value) {
-  if (!value) return [];
-  return value
-    .split(',')
-    .map((entry) => entry.trim().toLowerCase())
-    .filter(Boolean);
-}
-
-function assertRequiredContentEncoding(response, requiredEncoding, context) {
-  if (!requiredEncoding) return;
-  const required = requiredEncoding.trim().toLowerCase();
-  if (!required) return;
-  const encodings = normalizeContentEncodings(response.headers.get('content-encoding'));
-  if (!encodings.includes(required)) {
-    const found = encodings.length > 0 ? encodings.join(', ') : 'none';
-    throw new Error(`Missing required content-encoding "${required}" for ${context} (found: ${found})`);
-  }
-}
-
-function bytesToHex(bytes) {
-  return Array.from(bytes)
-    .map(b => b.toString(16).padStart(2, '0'))
-    .join('');
-}
-
 async function downloadShard(
   baseUrl,
   shardIndex,
   shardInfo,
   options = {}
 ) {
-  const { signal, onProgress, algorithm, requiredEncoding } = options;
-  if (!algorithm) {
-    throw new Error('Missing hash algorithm for shard download verification.');
+  return downloadShardFromDistribution(baseUrl, shardIndex, shardInfo, {
+    ...options,
+    distributionConfig: getDistributionConfig(),
+  });
+}
+
+export async function persistDownloadedShardIfNeeded(
+  result,
+  shardIndex,
+  options = {}
+) {
+  const writeShardFn = typeof options.writeShardFn === 'function'
+    ? options.writeShardFn
+    : writeShard;
+
+  if (!result || typeof result !== 'object') {
+    throw new Error(`Shard ${shardIndex}: download result is missing`);
   }
-  const startTime = performance.now();
-
-  const url = buildShardUrl(baseUrl, shardInfo);
-  const response = await fetchWithRetry(url, { signal });
-  assertRequiredContentEncoding(response, requiredEncoding, `shard ${shardIndex}`);
-
-  if (!response.body) {
-    const buffer = await response.arrayBuffer();
-    const percent = shardInfo.size > 0
-      ? Math.min(1, buffer.byteLength / shardInfo.size)
-      : 1;
-    onProgress?.({
-      shardIndex,
-      receivedBytes: buffer.byteLength,
-      totalBytes: shardInfo.size,
-      percent,
-    });
-    const hash = await computeHash(buffer, algorithm);
-    return { buffer, bytes: buffer.byteLength, hash, wrote: false };
+  if (result.wrote === true) {
+    return false;
   }
-
-  const reader = response.body.getReader();
-  const contentLength = shardInfo.size;
-  let receivedBytes = 0;
-  const hasher = await createStreamingHasher(algorithm);
-  const writer = await createShardWriter(shardIndex);
-
-  try {
-    while (true) {
-      const { done, value } = await reader.read();
-
-      if (done) break;
-
-      hasher.update(value);
-      await writer.write(value);
-      receivedBytes += value.length;
-
-      if (onProgress) {
-        onProgress({
-          shardIndex,
-          receivedBytes,
-          totalBytes: contentLength,
-          percent: (receivedBytes / contentLength) * 100
-        });
-      }
-    }
-
-    const hashBytes = await hasher.finalize();
-    const hash = bytesToHex(hashBytes);
-    await writer.close();
-
-    const elapsed = (performance.now() - startTime) / 1000;
-    const speed = elapsed > 0 ? receivedBytes / elapsed : 0;
-    const speedStr = formatBytes(speed) + '/s';
-    log.verbose('Downloader', `Shard ${shardIndex}: network (${formatBytes(receivedBytes)}, ${elapsed.toFixed(2)}s @ ${speedStr})`);
-
-    return { buffer: null, bytes: receivedBytes, hash, wrote: true };
-  } catch (error) {
-    await writer.abort();
-    throw error;
+  if (result.source === 'cache') {
+    return false;
   }
+  if (!(result.buffer instanceof ArrayBuffer)) {
+    throw new Error(`Shard ${shardIndex}: source "${result.source}" returned non-persisted data without buffer`);
+  }
+  await writeShardFn(shardIndex, result.buffer, { verify: false });
+  return true;
 }
 
 // ============================================================================
@@ -371,18 +354,39 @@ export async function downloadModel(
   await openModelStore(storageModelId);
 
   // Check for existing download state
+  const manifestVersionSet = buildManifestVersionSet(manifest);
   let state = await loadDownloadState(storageModelId);
   if (!state) {
     state = {
       modelId: storageModelId,
       baseUrl,
       manifest,
+      manifestVersionSet,
       completedShards: new Set(),
       startTime: Date.now(),
-      status: 'downloading'
+      status: 'downloading',
+      sourceStats: createDefaultSourceStats(),
+      lastSource: null,
+      lastSourcePath: null,
     };
   } else {
     state.status = 'downloading';
+    const savedVersionSet = typeof state.manifestVersionSet === 'string'
+      ? state.manifestVersionSet
+      : buildManifestVersionSet(state.manifest);
+    if (savedVersionSet !== manifestVersionSet) {
+      log.warn('Downloader', `Manifest version-set changed for ${storageModelId}, resetting cached shards`);
+      for (const idx of state.completedShards) {
+        await deleteShard(idx);
+      }
+      state.completedShards.clear();
+    }
+    state.manifest = manifest;
+    state.manifestVersionSet = manifestVersionSet;
+    state.baseUrl = baseUrl;
+    state.sourceStats = normalizeSourceStats(state.sourceStats);
+    state.lastSource = typeof state.lastSource === 'string' ? state.lastSource : null;
+    state.lastSourcePath = typeof state.lastSourcePath === 'string' ? state.lastSourcePath : null;
     // Check which shards actually exist (in case OPFS was cleared)
     for (const idx of state.completedShards) {
       if (!(await shardExists(idx))) {
@@ -465,7 +469,10 @@ export async function downloadModel(
         percent: (downloadedBytes / manifest.totalSize) * 100,
         status:  (state).status,
         currentShard,
-        speed: speedTracker.speed
+        speed: speedTracker.speed,
+        lastSource: state.lastSource ?? null,
+        lastSourcePath: state.lastSourcePath ?? null,
+        sourceStats: normalizeSourceStats(state.sourceStats),
       });
     }
   };
@@ -493,10 +500,19 @@ export async function downloadModel(
       if (!algorithm) {
         throw new Error('Manifest missing hashAlgorithm for download verification.');
       }
+      const expectedHash = shardInfo.hash;
+      if (!expectedHash) {
+        throw new Error(`Shard ${shardIndex} is missing hash in manifest`);
+      }
+      const expectedSize = Number.isFinite(shardInfo.size) ? Math.floor(shardInfo.size) : null;
       const result = await downloadShard(baseUrl, shardIndex, shardInfo, {
         signal: abortController.signal,
         algorithm,
         requiredEncoding,
+        expectedHash,
+        expectedSize,
+        expectedManifestVersionSet: manifestVersionSet,
+        writeToStore: true,
         onProgress: ( p) => {
           const prev = shardProgress.get(shardIndex) || 0;
           const delta = Math.max(0, p.receivedBytes - prev);
@@ -506,18 +522,28 @@ export async function downloadModel(
         }
       });
 
-      const expectedHash = shardInfo.hash;
-      if (!expectedHash) {
-        await deleteShard(shardIndex);
-        throw new Error(`Shard ${shardIndex} is missing hash in manifest`);
-      }
       if (result.hash !== expectedHash) {
         await deleteShard(shardIndex);
         throw new Error(`Hash mismatch for shard ${shardIndex}: expected ${expectedHash}, got ${result.hash}`);
       }
 
-      if (!result.wrote && result.buffer) {
-        await writeShard(shardIndex, result.buffer, { verify: false });
+      await persistDownloadedShardIfNeeded(result, shardIndex);
+
+      const source = typeof result.source === 'string' ? result.source : 'unknown';
+      const sourceStats = normalizeSourceStats(state.sourceStats);
+      if (source in sourceStats) {
+        sourceStats[source] += 1;
+      } else {
+        sourceStats.unknown += 1;
+      }
+      state.sourceStats = sourceStats;
+      state.lastSource = source;
+      state.lastSourcePath = typeof result.path === 'string' ? result.path : null;
+
+      const observedBytes = shardProgress.get(shardIndex) || 0;
+      const shardBytes = shardInfo.size ?? result.bytes ?? observedBytes;
+      if (shardBytes > observedBytes) {
+        downloadedBytes += shardBytes - observedBytes;
       }
 
       // Update state
@@ -685,7 +711,10 @@ export async function getDownloadProgress(modelId) {
       percent: manifest ? (downloadedBytes / manifest.totalSize) * 100 : 0,
       status: state.status,
       currentShard: null,
-      speed: 0
+      speed: 0,
+      lastSource: state.lastSource ?? null,
+      lastSourcePath: state.lastSourcePath ?? null,
+      sourceStats: normalizeSourceStats(state.sourceStats),
     };
   }
 
@@ -708,7 +737,10 @@ export async function getDownloadProgress(modelId) {
     percent: (downloadedBytes / state.manifest.totalSize) * 100,
     status: state.status,
     currentShard: null,
-    speed: 0
+    speed: 0,
+    lastSource: state.lastSource ?? null,
+    lastSourcePath: state.lastSourcePath ?? null,
+    sourceStats: normalizeSourceStats(state.sourceStats),
   };
 }
 

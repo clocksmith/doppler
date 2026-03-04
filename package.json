@@ -34,7 +34,15 @@
     "bench:vendors:validate": "node tools/vendor-bench.js validate",
     "bench:vendors:matrix": "node tools/vendor-bench.js matrix",
     "kernels:generate": "node tools/generate-wgsl.js",
-    "kernels:check": "node tools/generate-wgsl.js --check"
+    "kernels:check": "node tools/generate-wgsl.js --check",
+    "verify": "node tools/run-registry-verify.js",
+    "registry:sync:scripts": "node tools/sync-registry-scripts.js",
+    "registry:sync:scripts:check": "node tools/sync-registry-scripts.js --check",
+    "verify:gemma-3-270m-it-wq4k-ef16": "node tools/run-registry-verify.js gemma-3-270m-it-wq4k-ef16",
+    "verify:gemma-3-270m-it-wq4k-ef16-hf16-f32": "node tools/run-registry-verify.js gemma-3-270m-it-wq4k-ef16-hf16-f32",
+    "verify:google-embeddinggemma-300m": "node tools/run-registry-verify.js google-embeddinggemma-300m",
+    "verify:google-embeddinggemma-300m-wq4k-ef16": "node tools/run-registry-verify.js google-embeddinggemma-300m-wq4k-ef16",
+    "verify:google-gemma-3-270m-it": "node tools/run-registry-verify.js google-gemma-3-270m-it"
   },
   "exports": {
     ".": {

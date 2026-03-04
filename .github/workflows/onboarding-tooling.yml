@@ -25,9 +25,12 @@ on:
       - 'tools/policies/agent-parity-policy.json'
       - 'tools/verify-agent-parity.js'
       - 'tools/verify-agent-freshness.js'
+      - 'tools/run-registry-verify.js'
+      - 'tools/sync-registry-scripts.js'
       - 'benchmarks/vendors/benchmark-policy.json'
       - 'tools/onboarding-tooling.js'
       - 'tools/configs/conversion/**'
+      - 'package.json'
       - '.github/workflows/onboarding-tooling.yml'
       - 'docs/onboarding-tooling.md'
   push:
@@ -55,9 +58,12 @@ on:
       - 'tools/policies/agent-parity-policy.json'
       - 'tools/verify-agent-parity.js'
       - 'tools/verify-agent-freshness.js'
+      - 'tools/run-registry-verify.js'
+      - 'tools/sync-registry-scripts.js'
       - 'benchmarks/vendors/benchmark-policy.json'
       - 'tools/onboarding-tooling.js'
       - 'tools/configs/conversion/**'
+      - 'package.json'
       - '.github/workflows/onboarding-tooling.yml'
       - 'docs/onboarding-tooling.md'
   workflow_dispatch:
@@ -78,6 +84,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Run HF registry script sync check
+        run: npm run registry:sync:scripts:check
 
       - name: Run strict onboarding validator
         run: npm run onboarding:check:strict

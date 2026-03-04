@@ -34,6 +34,12 @@ import { applyPipelineDebugConfig } from './text/debug-utils.js';
 import { resolveLayerPipeline } from './text/layer-plan.js';
 import { compileExecutionPlanState, resolveActiveExecutionPlan } from './text/execution-plan.js';
 import { applyExecutionV0RuntimeConfig } from './text/execution-v0.js';
+import {
+  createLinearAttentionRuntime,
+  hasLinearAttentionLayers,
+  resetLinearAttentionRuntime,
+  restoreLinearAttentionRuntime,
+} from './text/linear-attention.js';
 import { getDopplerLoader } from '../../loader/doppler-loader.js';
 import { registerPipeline, getPipelineFactory } from './registry.js';
 import { selectRuleValue } from '../../rules/rule-registry.js';
@@ -60,6 +66,7 @@ export class InferencePipeline extends PipelineState {
     this.generator = new PipelineGenerator(this);
     this.decodeBuffers = new DecodeBufferManager();
     this.decodeRing = new DecodeRing();
+    this.linearAttentionRuntime = createLinearAttentionRuntime();
   }
 
   // ==========================================================================
@@ -88,6 +95,7 @@ export class InferencePipeline extends PipelineState {
   async loadModel(manifest) {
     this.manifest = manifest;
     this.decodeRing?.release();
+    this.linearAttentionRuntime = resetLinearAttentionRuntime(this.linearAttentionRuntime);
 
     const executionV0Runtime = applyExecutionV0RuntimeConfig({
       runtimeConfig: this.runtimeConfig,
@@ -380,6 +388,19 @@ export class InferencePipeline extends PipelineState {
         this.kvCache.setGPUContext({ device });
       }
     }
+    if (
+      hasLinearAttentionLayers(this.modelConfig?.layerTypes)
+      && snapshot.linearAttention == null
+    ) {
+      throw new Error(
+        'Snapshot is missing linear_attention recurrent state. ' +
+        'Regenerate the snapshot with the current runtime.'
+      );
+    }
+    this.linearAttentionRuntime = restoreLinearAttentionRuntime(
+      this.linearAttentionRuntime,
+      snapshot.linearAttention ?? null
+    );
     this.currentSeqLen = snapshot.seqLen;
   }
 
@@ -457,6 +478,7 @@ export class InferencePipeline extends PipelineState {
     this.kvCache?.clear();
     this.weights.clear();
     this.expertWeights.clear();
+    this.linearAttentionRuntime = resetLinearAttentionRuntime(this.linearAttentionRuntime);
     this.lora = null;
     if (this.finitenessBuffer) {
       this.finitenessBuffer.destroy();
@@ -480,6 +502,7 @@ export class InferencePipeline extends PipelineState {
 
   reset() {
     this.kvCache?.clear();
+    this.linearAttentionRuntime = resetLinearAttentionRuntime(this.linearAttentionRuntime);
     this.currentSeqLen = 0;
     this.decodeStepCount = 0;
     this.debugFlags = {};

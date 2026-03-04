@@ -56,6 +56,7 @@ export interface ExecutionV0DecodeLoopSchema {
   ringTokens: number | null;
   ringStop: number | null;
   ringStaging: number | null;
+  disableCommandBatching?: boolean;
 }
 
 export interface ExecutionV0SessionDefaultsSchema {
@@ -120,6 +121,7 @@ export interface ExecutionV0ModelSchema {
     causal?: boolean;
     slidingWindow?: number | null;
     queryKeyNorm?: boolean;
+    attentionOutputGate?: boolean;
     attnLogitSoftcapping?: number | null;
     queryPreAttnScalar?: number;
   };
