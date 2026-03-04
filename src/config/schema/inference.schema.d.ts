@@ -193,6 +193,11 @@ export type LayerType =
   | 'mamba'
   | 'rwkv';
 
+/** Linear-attention RMS norm vector layout */
+export type LinearNormMode =
+  | 'shared'      // one [head_v_dim] vector shared across all value heads
+  | 'per_head';   // one [num_v_heads * head_v_dim] vector
+
 /** Global layer pattern (computed at runtime from numLayers) */
 export type GlobalLayerPattern =
   | 'even'       // Layers 0, 2, 4, ... are global (Gemma 2)

@@ -4,6 +4,7 @@
   "models": [
     {
       "modelId": "gemma-3-270m-it-wq4k-ef16-hf16-f32",
+      "preset": "gemma3",
       "label": "Gemma 3 270M Instruct (Q4K/F32a)",
       "description": "Gemma 3 270M text model. Prefers Hugging Face-hosted prebuilt RDRR shards with local curated fallback.",
       "modes": [
@@ -27,6 +28,7 @@
     },
     {
       "modelId": "google-embeddinggemma-300m-wq4k-ef16",
+      "preset": "embeddinggemma",
       "label": "EmbeddingGemma 300M (Q4K)",
       "description": "EmbeddingGemma sentence embedding model. Prefers Hugging Face-hosted prebuilt RDRR shards with local curated fallback.",
       "modes": [

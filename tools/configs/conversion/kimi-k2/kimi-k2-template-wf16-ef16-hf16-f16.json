@@ -1,0 +1,18 @@
+{
+  "output": {
+    "baseDir": "models/local",
+    "modelBaseId": "kimi-k2-template-wf16-ef16-hf16-f16"
+  },
+  "presets": {
+    "model": "kimi_k2"
+  },
+  "quantization": {
+    "weights": "f16",
+    "embeddings": "f16",
+    "lmHead": "f16",
+    "computePrecision": "f16"
+  },
+  "manifest": {
+    "hashAlgorithm": "blake3"
+  }
+}

@@ -332,6 +332,24 @@ function parseCustomLayerTypes(layerTypes, numLayers, modelId) {
   });
 }
 
+function parseLinearNormMode(value, sharedFlag = null, modelId = 'unknown') {
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase();
+    if (normalized === 'shared') return 'shared';
+    if (normalized === 'per_head' || normalized === 'per-head' || normalized === 'perhead') {
+      return 'per_head';
+    }
+    throw new Error(
+      `Manifest "${modelId}" has unsupported linear_norm_mode="${value}". ` +
+      'Supported values: "shared", "per_head".'
+    );
+  }
+  if (typeof sharedFlag === 'boolean') {
+    return sharedFlag ? 'shared' : 'per_head';
+  }
+  return null;
+}
+
 
 export function toParsedConfigFromMerged(merged, manifest) {
   const rawConfig = manifest.config ?? {};
@@ -492,6 +510,11 @@ export function toParsedConfigFromMerged(merged, manifest) {
   const linearKeyHeadDim = parsePositiveInt(arch.linearKeyHeadDim ?? config.linear_key_head_dim);
   const linearValueHeadDim = parsePositiveInt(arch.linearValueHeadDim ?? config.linear_value_head_dim);
   const linearConvKernelDim = parsePositiveInt(arch.linearConvKernelDim ?? config.linear_conv_kernel_dim);
+  const linearNormMode = parseLinearNormMode(
+    arch.linearNormMode ?? config.linear_norm_mode,
+    config.linear_norm_shared,
+    merged.modelId
+  );
 
   return {
     numLayers: arch.numLayers,
@@ -535,6 +558,7 @@ export function toParsedConfigFromMerged(merged, manifest) {
     linearKeyHeadDim,
     linearValueHeadDim,
     linearConvKernelDim,
+    linearNormMode,
     attentionBias: inf.attention.attentionBias,
     causalAttention,
     finalLogitSoftcapping: inf.output.finalLogitSoftcapping,

@@ -153,6 +153,8 @@ export class BundledTokenizer extends BaseTokenizer {
   #addSpacePrefix = true;
   
   #spacePrefixChar = '▁';
+  
+  #byteDecoder = null;
 
   
   constructor(config = {}) {
@@ -178,6 +180,30 @@ export class BundledTokenizer extends BaseTokenizer {
     return this.specialTokens.unk;
   }
 
+  #initializeByteDecoder() {
+    // GPT2-style byte <-> unicode reversible mapping used by many BPE tokenizers
+    // (including Qwen-family tokenizers).
+    const base = [];
+    for (let i = 33; i <= 126; i++) base.push(i);
+    for (let i = 161; i <= 172; i++) base.push(i);
+    for (let i = 174; i <= 255; i++) base.push(i);
+
+    const chars = [...base];
+    let extra = 0;
+    for (let b = 0; b <= 255; b++) {
+      if (!base.includes(b)) {
+        base.push(b);
+        chars.push(256 + extra);
+        extra += 1;
+      }
+    }
+
+    this.#byteDecoder = new Map();
+    for (let i = 0; i < base.length; i++) {
+      this.#byteDecoder.set(String.fromCodePoint(chars[i]), base[i]);
+    }
+  }
+
   
   load(tokenizerJson) {
     // Detect format: HuggingFace has model.vocab, bundled has top-level vocab
@@ -201,6 +227,10 @@ export class BundledTokenizer extends BaseTokenizer {
       throw new Error(`[Tokenizer] Unsupported tokenizer type: ${model.type}`);
     }
     log.info('Tokenizer', `HuggingFace model.type="${model.type}", using type="${this.#type}"`);
+    this.#byteDecoder = null;
+    if (this.#type === 'bpe') {
+      this.#initializeByteDecoder();
+    }
     let maxId = -1;
 
     // Handle vocab based on type
@@ -400,6 +430,10 @@ export class BundledTokenizer extends BaseTokenizer {
     this.#type = tokenizerJson.type.toLowerCase();
     if (this.#type !== 'bpe' && this.#type !== 'unigram') {
       throw new Error(`[Tokenizer] Unsupported tokenizer type: ${tokenizerJson.type}`);
+    }
+    this.#byteDecoder = null;
+    if (this.#type === 'bpe') {
+      this.#initializeByteDecoder();
     }
 
     // Build vocab maps
@@ -800,11 +834,31 @@ export class BundledTokenizer extends BaseTokenizer {
       }
     }
 
-    // Join and convert ▁ back to spaces, handle GPT-style markers
-    let result = tokens.join('')
-      .replace(/▁/g, ' ')
-      .replace(/Ġ/g, ' ')
-      .replace(/Ċ/g, '\n');
+    let result;
+    if (this.#type === 'bpe' && this.#byteDecoder instanceof Map && this.#byteDecoder.size > 0) {
+      const merged = tokens.join('');
+      const bytes = [];
+      for (const ch of merged) {
+        const mapped = this.#byteDecoder.get(ch);
+        if (mapped != null) {
+          bytes.push(mapped);
+          continue;
+        }
+        const fallbackBytes = new TextEncoder().encode(ch);
+        for (const byte of fallbackBytes) {
+          bytes.push(byte);
+        }
+      }
+      result = new TextDecoder('utf-8', { fatal: false }).decode(Uint8Array.from(bytes));
+      // SentencePiece-style markers can still appear in some mixed vocabularies.
+      result = result.replace(/▁/g, ' ');
+    } else {
+      // Join and convert ▁ back to spaces, handle GPT-style markers
+      result = tokens.join('')
+        .replace(/▁/g, ' ')
+        .replace(/Ġ/g, ' ')
+        .replace(/Ċ/g, '\n');
+    }
 
     // Only trim when requested (not during streaming where spaces matter)
     return trim ? result.trim() : result;

@@ -8,7 +8,7 @@
  */
 
 import type { KernelPathRef } from './kernel-path.schema.js';
-import type { LayerPipelineSchema, LayerType } from './inference.schema.js';
+import type { LayerPipelineSchema, LayerType, LinearNormMode } from './inference.schema.js';
 import type { EnergyModelConfigSchema } from './energy.schema.js';
 import type {
   ExecutionV0ConfigSchema,
@@ -153,6 +153,7 @@ export interface ArchitectureSchema {
   linearKeyHeadDim?: number;
   linearValueHeadDim?: number;
   linearConvKernelDim?: number;
+  linearNormMode?: LinearNormMode;
 }
 
 /**

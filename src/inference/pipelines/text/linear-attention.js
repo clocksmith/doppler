@@ -18,6 +18,15 @@ function toPositiveInt(value) {
   return Math.trunc(num);
 }
 
+function normalizeLinearNormMode(value) {
+  const normalized = typeof value === 'string' ? value.trim().toLowerCase() : '';
+  if (normalized === 'shared') return 'shared';
+  if (normalized === 'per_head' || normalized === 'per-head' || normalized === 'perhead') {
+    return 'per_head';
+  }
+  return null;
+}
+
 function bytesFromDtype(dtype) {
   const normalized = String(dtype ?? '').toLowerCase();
   if (normalized === 'f16' || normalized === 'bf16') return 2;
@@ -41,6 +50,7 @@ function cloneLayerRuntimeState(layerState) {
     kSize: layerState.kSize,
     vSize: layerState.vSize,
     qRep: layerState.qRep,
+    normMode: layerState.normMode === 'per_head' ? 'per_head' : 'shared',
     rmsNormEps: layerState.rmsNormEps,
     convWeight: layerState.convWeight.slice(),
     dtBias: layerState.dtBias.slice(),
@@ -133,6 +143,51 @@ function releaseResolvedWeightBuffer(originalWeight, resolvedWeight, recorder) {
   releaseOrTrackBuffer(recorder, resolvedBuffer);
 }
 
+function inferLinearNormModeFromWeight(weight, projectionLayout) {
+  const sharedElements = projectionLayout.headVDim;
+  const perHeadElements = projectionLayout.valueDim;
+  const classify = (length) => {
+    if (!Number.isFinite(length) || length <= 0) return null;
+    const elements = Math.trunc(length);
+    if (elements === sharedElements) return 'shared';
+    if (elements === perHeadElements) return 'per_head';
+    return null;
+  };
+
+  if (isWeightBuffer(weight) && Array.isArray(weight.shape) && weight.shape.length > 0) {
+    const elements = weight.shape.reduce(
+      (total, dim) => total * Math.max(1, Math.trunc(Number(dim) || 0)),
+      1
+    );
+    return classify(elements);
+  }
+  if (weight instanceof Float32Array || weight instanceof Float64Array) {
+    return classify(weight.length);
+  }
+  if (weight instanceof Uint16Array || weight instanceof Int16Array) {
+    return classify(weight.length);
+  }
+  if (ArrayBuffer.isView(weight)) {
+    return classify(weight.length);
+  }
+  if (weight instanceof ArrayBuffer) {
+    return classify(Math.trunc(weight.byteLength / Float32Array.BYTES_PER_ELEMENT));
+  }
+  return null;
+}
+
+function resolveLinearNormMode(configNormMode, normWeight, projectionLayout, layerIdx) {
+  const configuredMode = normalizeLinearNormMode(configNormMode);
+  const inferredMode = inferLinearNormModeFromWeight(normWeight, projectionLayout);
+  if (configuredMode && inferredMode && configuredMode !== inferredMode) {
+    throw new Error(
+      `linear_attention layer ${layerIdx} declares linearNormMode="${configuredMode}" ` +
+      `but norm.weight shape implies "${inferredMode}".`
+    );
+  }
+  return configuredMode ?? inferredMode ?? 'shared';
+}
+
 async function readWeightAsF32(weight, expectedElements, label) {
   if (weight == null) {
     throw new Error(`Missing linear_attention weight: ${label}`);
@@ -148,7 +203,23 @@ async function readWeightAsF32(weight, expectedElements, label) {
   }
 
   if (ArrayBuffer.isView(weight)) {
-    const copied = Float32Array.from(weight);
+    let copied;
+    if (weight instanceof Uint16Array || weight instanceof Int16Array) {
+      const raw = new Uint16Array(weight.buffer, weight.byteOffset, weight.byteLength / 2);
+      const bytes = raw.buffer.slice(raw.byteOffset, raw.byteOffset + raw.byteLength);
+      copied = decodeReadback(bytes, 'f16');
+    } else if (
+      weight instanceof Float64Array
+      || weight instanceof Float32Array
+      || weight instanceof Int32Array
+      || weight instanceof Uint32Array
+    ) {
+      copied = Float32Array.from(weight);
+    } else {
+      throw new Error(
+        `Unsupported typed-array view for "${label}": ${weight.constructor?.name ?? 'Unknown'}.`
+      );
+    }
     if (expectedElements != null && copied.length !== expectedElements) {
       throw new Error(
         `Weight "${label}" has ${copied.length} elements, expected ${expectedElements}.`
@@ -158,7 +229,12 @@ async function readWeightAsF32(weight, expectedElements, label) {
   }
 
   if (weight instanceof ArrayBuffer) {
-    const copied = new Float32Array(weight.slice(0));
+    let copied;
+    if (expectedElements != null && weight.byteLength === expectedElements * 2) {
+      copied = decodeReadback(weight.slice(0), 'f16');
+    } else {
+      copied = new Float32Array(weight.slice(0));
+    }
     if (expectedElements != null && copied.length !== expectedElements) {
       throw new Error(
         `Weight "${label}" has ${copied.length} elements, expected ${expectedElements}.`
@@ -340,9 +416,13 @@ async function createLayerRuntimeState(
     projectionLayout.numVHeads,
     `L${layerIdx}.linear_attn.A_log`
   );
+  const normMode = resolveLinearNormMode(config.linearNormMode, normWeight, projectionLayout, layerIdx);
+  const expectedNormElements = normMode === 'per_head'
+    ? projectionLayout.valueDim
+    : projectionLayout.headVDim;
   const norm = await readWeightAsF32(
     normWeight,
-    projectionLayout.headVDim,
+    expectedNormElements,
     `L${layerIdx}.linear_attn.norm.weight`
   );
 
@@ -371,6 +451,7 @@ async function createLayerRuntimeState(
     kSize: projectionLayout.kSize,
     vSize: projectionLayout.vSize,
     qRep: projectionLayout.qRep,
+    normMode,
     rmsNormEps: Number(config.rmsNormEps) || 1e-6,
     convWeight,
     dtBias,
@@ -390,7 +471,7 @@ async function createLayerRuntimeState(
   return layerState;
 }
 
-function isLayerRuntimeCompatible(layerState, projectionLayout) {
+function isLayerRuntimeCompatible(layerState, projectionLayout, requestedNormMode = null) {
   return layerState
     && layerState.convDim === projectionLayout.convDim
     && Number.isFinite(layerState.convKernelSize)
@@ -404,12 +485,15 @@ function isLayerRuntimeCompatible(layerState, projectionLayout) {
     && layerState.qRep === projectionLayout.qRep
     && layerState.qSize === projectionLayout.qSize
     && layerState.kSize === projectionLayout.kSize
-    && layerState.vSize === projectionLayout.vSize;
+    && layerState.vSize === projectionLayout.vSize
+    && (layerState.normMode === 'shared' || layerState.normMode === 'per_head')
+    && (requestedNormMode == null || layerState.normMode === requestedNormMode);
 }
 
 async function getLayerRuntimeState(runtime, layerIdx, layerWeights, config, currentSeqLen, projectionLayout) {
+  const requestedNormMode = normalizeLinearNormMode(config.linearNormMode);
   let layerState = runtime.layers.get(layerIdx) ?? null;
-  if (!isLayerRuntimeCompatible(layerState, projectionLayout)) {
+  if (!isLayerRuntimeCompatible(layerState, projectionLayout, requestedNormMode)) {
     if (layerState) {
       releaseLayerRuntimeGpuBuffers(layerState);
     }
