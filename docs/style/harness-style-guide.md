@@ -29,6 +29,17 @@ Design rules for command execution across browser harnesses and the Node CLI.
 - For harnessed runs, apply `buildRuntimeContractPatch()` before execution.
 - Do not mutate command semantics per surface.
 - Do not add hidden model/mode/intent defaults in UI or CLI wrappers.
+- Keep force-resume audit controls explicit: `forceResumeReason`,
+  `forceResumeSource`, and `checkpointOperator` are valid only with
+  `forceResume=true`.
+- Diffusion verify uses `suite="diffusion"` with `command="verify"`.
+- Diffusion calibrate uses `suite="bench"` with `command="bench"` and
+  `workloadType="diffusion"`.
+- Diffusion runtime backend is GPU-only:
+  `runtime.inference.diffusion.backend.pipeline="gpu"`.
+- Diffusion verify/calibrate outputs must include
+  `metrics.performanceArtifact` with stage metrics:
+  `cpu.prefillMs`, `cpu.denoiseMs`, `cpu.vaeMs`, and `cpu.totalMs`.
 
 ---
 
@@ -70,6 +81,10 @@ For benchmarked commands, shared-contract values (prompt/workload/sampling/run
 policy) must be provided through
 `runtimeConfig`/`runtimePreset`/`runtimeConfigUrl` and materialized as
 `runtime.shared.benchmark.run`.
+
+For diffusion benchmarked commands, `runtime.shared.benchmark.run` must include
+deterministic `warmupRuns`/`timedRuns` for smoke lanes, and the run must emit
+timing diagnostics plus diffusion performance artifacts.
 
 ---
 

@@ -29,6 +29,13 @@ Objective-aware metrics schema includes explicit unions for:
 Each objective requires its own field set and rejects incompatible stage/objective
 mixes.
 
+Distill objective config fields are enforced as required payload fields:
+
+- KD (`objective="kd"`): `distill_temperature`, `distill_alpha_kd`,
+  `distill_alpha_ce`, `distill_loss_total`
+- Triplet (`objective="triplet"`): `distill_triplet_margin`,
+  `distill_triplet_active_count`
+
 Core replay context fields are now treated as part of the metrics contract:
 
 - `lr` / `effective_lr`
@@ -49,6 +56,8 @@ artifact fields suitable for stage-to-stage verification.
 
 - Checkpoints persist metadata hashes for config/dataset/optimizer lineage.
 - Build provenance fields (commit/build/timestamp) are persisted when available.
+- Runtime environment metadata includes runtime/surface context and GPU adapter
+  metadata when available.
 - Resume metadata mismatches fail closed by default.
 - Forced resume writes explicit `resumeAudits` records, including source,
   operator, reason, mismatch list, and prior checkpoint metadata hash.

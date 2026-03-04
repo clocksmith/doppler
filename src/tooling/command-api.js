@@ -266,6 +266,8 @@ function normalizeConvert(raw) {
     resumeFrom: null,
     forceResume: null,
     forceResumeReason: null,
+    forceResumeSource: null,
+    checkpointOperator: null,
     trainingSchemaVersion: null,
     trainingBenchSteps: null,
     workloadType: asOptionalString(raw.workloadType, 'workloadType'),
@@ -318,6 +320,8 @@ function normalizeSuiteCommand(raw, command) {
   const resumeFrom = asOptionalString(raw.resumeFrom, 'resumeFrom');
   const forceResume = asOptionalBoolean(raw.forceResume, 'forceResume');
   const forceResumeReason = asOptionalForceResumeReason(raw.forceResumeReason, 'forceResumeReason');
+  const forceResumeSource = asOptionalString(raw.forceResumeSource, 'forceResumeSource');
+  const checkpointOperator = asOptionalString(raw.checkpointOperator, 'checkpointOperator');
   const trainingSchemaVersionInput = asOptionalPositiveInteger(
     raw.trainingSchemaVersion,
     'trainingSchemaVersion'
@@ -346,6 +350,8 @@ function normalizeSuiteCommand(raw, command) {
     || resumeFrom
     || forceResume !== null
     || forceResumeReason
+    || forceResumeSource
+    || checkpointOperator
     || trainingSchemaVersionInput
     || trainingBenchSteps
   )) {
@@ -356,6 +362,16 @@ function normalizeSuiteCommand(raw, command) {
   if (forceResumeReason && forceResume !== true) {
     throw new Error(
       'tooling command: forceResumeReason requires forceResume=true.'
+    );
+  }
+  if (forceResumeSource && forceResume !== true) {
+    throw new Error(
+      'tooling command: forceResumeSource requires forceResume=true.'
+    );
+  }
+  if (checkpointOperator && forceResume !== true) {
+    throw new Error(
+      'tooling command: checkpointOperator requires forceResume=true.'
     );
   }
   const trainingSchemaVersion = allowsTrainingFields
@@ -419,6 +435,8 @@ function normalizeSuiteCommand(raw, command) {
       ? (forceResume == null ? null : forceResume === true)
       : null,
     forceResumeReason: allowsTrainingFields ? forceResumeReason : null,
+    forceResumeSource: allowsTrainingFields ? forceResumeSource : null,
+    checkpointOperator: allowsTrainingFields ? checkpointOperator : null,
     trainingSchemaVersion,
     trainingBenchSteps,
     workloadType,

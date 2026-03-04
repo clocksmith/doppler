@@ -1,11 +1,15 @@
 import { getDevice } from '../../../gpu/device.js';
 import { acquireBuffer, releaseBuffer, readBuffer, isBufferActive } from '../../../memory/buffer-pool.js';
 import { createTensor, dtypeBytes } from '../../../gpu/tensor.js';
+import { getBuffer, getWeightDtype } from '../../../gpu/weight-buffer.js';
 import { CommandRecorder } from '../../../gpu/command-recorder.js';
 import { runConv2D, recordConv2D } from '../../../gpu/kernels/conv2d.js';
 import { runGroupNorm, recordGroupNorm } from '../../../gpu/kernels/groupnorm.js';
 import { runSiLU, recordSiLU } from '../../../gpu/kernels/silu.js';
-import { runResidualAdd, recordResidualAdd } from '../../../gpu/kernels/residual.js';
+import { runMatmul, recordMatmul } from '../../../gpu/kernels/matmul.js';
+import { runAttention, recordAttention } from '../../../gpu/kernels/attention.js';
+import { runTranspose, recordTranspose } from '../../../gpu/kernels/transpose.js';
+import { runResidualAdd, runBiasAdd, recordResidualAdd, recordBiasAdd } from '../../../gpu/kernels/residual.js';
 import { runUpsample2D, recordUpsample2D } from '../../../gpu/kernels/upsample2d.js';
 import { castF32ToF16, recordCastF32ToF16 } from '../../../gpu/kernels/cast.js';
 import { f16ToF32 } from '../../../loader/dtype-utils.js';
@@ -31,6 +35,26 @@ function getWeight(weights, shapes, name) {
   return { value, shape };
 }
 
+function getWeightOptional(weights, shapes, name) {
+  const value = weights.get(name);
+  if (!value) return null;
+  const shape = shapes.get(name);
+  if (!shape) return null;
+  return { value, shape };
+}
+
+function getWeightByCandidates(weights, shapes, candidates, label) {
+  for (const name of candidates) {
+    const value = getWeightOptional(weights, shapes, name);
+    if (value) {
+      return { ...value, name };
+    }
+  }
+  throw new Error(
+    `Missing VAE weight: ${label}. Tried: ${candidates.join(', ')}`
+  );
+}
+
 function getConvShape(shape) {
   if (!Array.isArray(shape) || shape.length !== 4) {
     throw new Error(`Conv2D weight shape must be [out,in,h,w], got ${shape}`);
@@ -41,6 +65,72 @@ function getConvShape(shape) {
     kernelH: shape[2],
     kernelW: shape[3],
   };
+}
+
+function getLinearShape(shape, label) {
+  if (Array.isArray(shape) && shape.length === 2) {
+    return {
+      outFeatures: shape[0],
+      inFeatures: shape[1],
+    };
+  }
+  if (Array.isArray(shape) && shape.length === 4) {
+    if (shape[2] !== 1 || shape[3] !== 1) {
+      throw new Error(`Linear weight "${label}" with 4D shape must be 1x1, got ${shape}`);
+    }
+    return {
+      outFeatures: shape[0],
+      inFeatures: shape[1],
+    };
+  }
+  throw new Error(`Linear weight shape must be [out,in] or [out,in,1,1], got ${shape}`);
+}
+
+function readPositiveInteger(value) {
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed < 1) return null;
+  return parsed;
+}
+
+function resolveAttentionHeadShape(channels, config) {
+  const rawHeadDim = Array.isArray(config?.attention_head_dim)
+    ? config.attention_head_dim[0]
+    : config?.attention_head_dim;
+  const configuredHeadDim = readPositiveInteger(rawHeadDim);
+  if (configuredHeadDim && channels % configuredHeadDim === 0) {
+    return {
+      numHeads: channels / configuredHeadDim,
+      headDim: configuredHeadDim,
+    };
+  }
+
+  const configuredNumHeads = readPositiveInteger(config?.num_attention_heads);
+  if (configuredNumHeads && channels % configuredNumHeads === 0) {
+    return {
+      numHeads: configuredNumHeads,
+      headDim: channels / configuredNumHeads,
+    };
+  }
+
+  const fallbackHeadDims = [64, 40, 32, 24, 20, 16, 12, 10, 8, 6, 5, 4, 3, 2, 1];
+  const headDim = fallbackHeadDims.find((candidate) => candidate <= channels && channels % candidate === 0) || 1;
+  return {
+    numHeads: Math.max(1, channels / headDim),
+    headDim,
+  };
+}
+
+function createBiasTensor(weight, label, fallbackDtype = 'f16') {
+  if (!weight) return null;
+  const dtype = getWeightDtype(weight.value) || fallbackDtype;
+  const shape = Array.isArray(weight.shape) && weight.shape.length > 0
+    ? weight.shape
+    : [0];
+  const size = shape.reduce((acc, value) => acc * value, 1);
+  if (!Number.isInteger(size) || size < 1) {
+    throw new Error(`Bias "${label}" has invalid shape: ${shape}`);
+  }
+  return createTensor(getBuffer(weight.value), dtype, [size], label);
 }
 
 function buildIndexList(weights, prefix) {
@@ -62,7 +152,11 @@ function createKernelOps(recorder) {
       conv2d: runConv2D,
       groupNorm: runGroupNorm,
       silu: runSiLU,
+      matmul: runMatmul,
+      attention: runAttention,
+      transpose: runTranspose,
       residualAdd: runResidualAdd,
+      biasAdd: runBiasAdd,
       upsample2d: runUpsample2D,
       castF32ToF16,
     };
@@ -71,7 +165,11 @@ function createKernelOps(recorder) {
     conv2d: (...args) => recordConv2D(recorder, ...args),
     groupNorm: (...args) => recordGroupNorm(recorder, ...args),
     silu: (...args) => recordSiLU(recorder, ...args),
+    matmul: (...args) => recordMatmul(recorder, ...args),
+    attention: (...args) => recordAttention(recorder, ...args),
+    transpose: (...args) => recordTranspose(recorder, ...args),
     residualAdd: (...args) => recordResidualAdd(recorder, ...args),
+    biasAdd: (...args) => recordBiasAdd(recorder, ...args),
     upsample2d: (...args) => recordUpsample2D(recorder, ...args),
     castF32ToF16: (...args) => recordCastF32ToF16(recorder, ...args),
   };
@@ -219,6 +317,153 @@ async function runResnetBlock(state, weights, shapes, prefix, config, ops, relea
   };
 }
 
+async function runMidBlockAttention(state, weights, shapes, prefix, config, ops, release) {
+  const channels = state.channels;
+  const height = state.height;
+  const width = state.width;
+  const spatial = height * width;
+  if (!Number.isFinite(spatial) || spatial <= 0) {
+    throw new Error('VAE mid-block attention requires a positive spatial size.');
+  }
+
+  const normWeight = getWeightByCandidates(
+    weights,
+    shapes,
+    [`${prefix}.group_norm.weight`, `${prefix}.norm.weight`],
+    `${prefix}.group_norm.weight`
+  );
+  const normBias = getWeightByCandidates(
+    weights,
+    shapes,
+    [`${prefix}.group_norm.bias`, `${prefix}.norm.bias`],
+    `${prefix}.group_norm.bias`
+  );
+
+  const normed = await ops.groupNorm(state.tensor, normWeight.value, normBias.value, {
+    channels,
+    height,
+    width,
+    numGroups: config.numGroups,
+    eps: config.eps,
+  });
+  const normedChannelsSpatial = reshapeTensor(normed, [channels, spatial], 'vae_attn_norm_cs');
+  const normedTokens = await ops.transpose(normedChannelsSpatial, channels, spatial);
+  release(normed.buffer);
+
+  const residualChannelsSpatial = reshapeTensor(state.tensor, [channels, spatial], 'vae_attn_residual_cs');
+  const residualTokens = await ops.transpose(residualChannelsSpatial, channels, spatial);
+  release(state.tensor.buffer);
+
+  const qWeight = getWeightByCandidates(weights, shapes, [`${prefix}.to_q.weight`], `${prefix}.to_q.weight`);
+  const kWeight = getWeightByCandidates(weights, shapes, [`${prefix}.to_k.weight`], `${prefix}.to_k.weight`);
+  const vWeight = getWeightByCandidates(weights, shapes, [`${prefix}.to_v.weight`], `${prefix}.to_v.weight`);
+  const qBias = getWeightOptional(weights, shapes, `${prefix}.to_q.bias`);
+  const kBias = getWeightOptional(weights, shapes, `${prefix}.to_k.bias`);
+  const vBias = getWeightOptional(weights, shapes, `${prefix}.to_v.bias`);
+  const qShape = getLinearShape(qWeight.shape, qWeight.name);
+  const kShape = getLinearShape(kWeight.shape, kWeight.name);
+  const vShape = getLinearShape(vWeight.shape, vWeight.name);
+
+  if (qShape.inFeatures !== channels || kShape.inFeatures !== channels || vShape.inFeatures !== channels) {
+    throw new Error(
+      `VAE mid-block attention projection mismatch: expected inFeatures=${channels}, ` +
+      `got q=${qShape.inFeatures}, k=${kShape.inFeatures}, v=${vShape.inFeatures}.`
+    );
+  }
+  if (qShape.outFeatures !== kShape.outFeatures || qShape.outFeatures !== vShape.outFeatures) {
+    throw new Error(
+      `VAE mid-block attention projection mismatch: q/k/v outFeatures differ ` +
+      `(${qShape.outFeatures}, ${kShape.outFeatures}, ${vShape.outFeatures}).`
+    );
+  }
+
+  const hiddenSize = qShape.outFeatures;
+  const projectionDtype = normedTokens.dtype;
+  let q = await ops.matmul(normedTokens, qWeight.value, spatial, hiddenSize, channels, {
+    outputDtype: projectionDtype,
+    transposeB: 'auto',
+  });
+  let k = await ops.matmul(normedTokens, kWeight.value, spatial, hiddenSize, channels, {
+    outputDtype: projectionDtype,
+    transposeB: 'auto',
+  });
+  let v = await ops.matmul(normedTokens, vWeight.value, spatial, hiddenSize, channels, {
+    outputDtype: projectionDtype,
+    transposeB: 'auto',
+  });
+
+  const qBiasTensor = createBiasTensor(qBias, `${prefix}.to_q.bias`, projectionDtype);
+  const kBiasTensor = createBiasTensor(kBias, `${prefix}.to_k.bias`, projectionDtype);
+  const vBiasTensor = createBiasTensor(vBias, `${prefix}.to_v.bias`, projectionDtype);
+  if (qBiasTensor) q = await ops.biasAdd(q, qBiasTensor, spatial, hiddenSize);
+  if (kBiasTensor) k = await ops.biasAdd(k, kBiasTensor, spatial, hiddenSize);
+  if (vBiasTensor) v = await ops.biasAdd(v, vBiasTensor, spatial, hiddenSize);
+
+  const { numHeads, headDim } = resolveAttentionHeadShape(hiddenSize, config.modelConfig);
+  const attn = await ops.attention(
+    q,
+    k,
+    v,
+    null,
+    numHeads,
+    headDim,
+    {
+      seqLen: spatial,
+      kvLen: spatial,
+      numKVHeads: numHeads,
+      causal: false,
+    }
+  );
+  release(q.buffer);
+  release(k.buffer);
+  release(v.buffer);
+
+  const outWeight = getWeightByCandidates(
+    weights,
+    shapes,
+    [`${prefix}.to_out.0.weight`, `${prefix}.to_out.weight`],
+    `${prefix}.to_out.0.weight`
+  );
+  const outBias = getWeightOptional(weights, shapes, `${prefix}.to_out.0.bias`)
+    || getWeightOptional(weights, shapes, `${prefix}.to_out.bias`);
+  const outShape = getLinearShape(outWeight.shape, outWeight.name);
+  if (outShape.inFeatures !== hiddenSize) {
+    throw new Error(
+      `VAE mid-block attention output projection mismatch: expected inFeatures=${hiddenSize}, got ${outShape.inFeatures}.`
+    );
+  }
+  if (outShape.outFeatures !== channels) {
+    throw new Error(
+      `VAE mid-block attention output projection mismatch: expected outFeatures=${channels}, got ${outShape.outFeatures}.`
+    );
+  }
+
+  let projected = await ops.matmul(attn, outWeight.value, spatial, outShape.outFeatures, outShape.inFeatures, {
+    outputDtype: projectionDtype,
+    transposeB: 'auto',
+  });
+  release(attn.buffer);
+  const outBiasTensor = createBiasTensor(outBias, `${prefix}.to_out.0.bias`, projectionDtype);
+  if (outBiasTensor) {
+    projected = await ops.biasAdd(projected, outBiasTensor, spatial, outShape.outFeatures);
+  }
+
+  const combined = await ops.residualAdd(projected, residualTokens, spatial * outShape.outFeatures, { useVec4: true });
+  release(projected.buffer);
+  release(residualTokens.buffer);
+  release(normedTokens.buffer);
+
+  const combinedChannelsSpatial = await ops.transpose(combined, spatial, outShape.outFeatures);
+  release(combined.buffer);
+
+  return {
+    tensor: reshapeTensor(combinedChannelsSpatial, [outShape.outFeatures, height, width], 'vae_attn_out'),
+    channels: outShape.outFeatures,
+    height,
+    width,
+  };
+}
+
 async function decodeLatentsGPU(latents, options) {
   const device = getDevice();
   if (!device) {
@@ -300,9 +545,21 @@ async function decodeLatentsGPU(latents, options) {
     state = await runResnetBlock(state, weights, shapes, `${midResnetPrefix}${idx}`, { numGroups, eps }, ops, release);
   }
 
-  if (weights.has('vae.decoder.mid_block.attentions.0.to_q.weight')) {
-    throw new Error(
-      'VAE mid-block attention weights were detected, but GPU decode support for VAE mid-block attention is not implemented.'
+  const midAttentionPrefix = 'vae.decoder.mid_block.attentions.';
+  const midAttentionIds = buildIndexList(weights, midAttentionPrefix);
+  for (const idx of midAttentionIds) {
+    state = await runMidBlockAttention(
+      state,
+      weights,
+      shapes,
+      `${midAttentionPrefix}${idx}`,
+      {
+        numGroups,
+        eps,
+        modelConfig: config,
+      },
+      ops,
+      release
     );
   }
 
@@ -407,55 +664,12 @@ async function decodeLatentsGPU(latents, options) {
   return pixels;
 }
 
-function decodeLatentsCPU(latents, options) {
-  if (!options) {
-    throw new Error('decodeLatents requires options');
-  }
-  const width = options.width;
-  const height = options.height;
-  const scale = options.latentScale;
-  if (!Number.isFinite(width) || !Number.isFinite(height)) {
-    throw new Error('decodeLatents requires width/height');
-  }
-  if (!Number.isFinite(scale) || scale <= 0) {
-    throw new Error('decodeLatents requires latentScale');
-  }
-  const latentWidth = Number.isFinite(options.latentWidth)
-    ? options.latentWidth
-    : Math.max(1, Math.floor(width / scale));
-  const latentHeight = Number.isFinite(options.latentHeight)
-    ? options.latentHeight
-    : Math.max(1, Math.floor(height / scale));
-  const channels = Number.isFinite(options.latentChannels)
-    ? options.latentChannels
-    : 0;
-  if (!Number.isFinite(channels) || channels <= 0) {
-    throw new Error('decodeLatents requires latentChannels');
-  }
-  const output = new Uint8ClampedArray(width * height * 4);
-
-  for (let y = 0; y < height; y++) {
-    const ly = Math.min(latentHeight - 1, Math.floor(y / scale));
-    for (let x = 0; x < width; x++) {
-      const lx = Math.min(latentWidth - 1, Math.floor(x / scale));
-      const latentIndex = (ly * latentWidth + lx) * channels;
-      const r = latents[latentIndex] ?? 0;
-      const g = latents[latentIndex + 1] ?? r;
-      const b = latents[latentIndex + 2] ?? r;
-      const outIndex = (y * width + x) * 4;
-      output[outIndex] = clamp(Math.round((r * 0.5 + 0.5) * 255), 0, 255);
-      output[outIndex + 1] = clamp(Math.round((g * 0.5 + 0.5) * 255), 0, 255);
-      output[outIndex + 2] = clamp(Math.round((b * 0.5 + 0.5) * 255), 0, 255);
-      output[outIndex + 3] = 255;
-    }
-  }
-
-  return output;
-}
-
 export async function decodeLatents(latents, options) {
-  if (options?.weights && getDevice()) {
-    return decodeLatentsGPU(latents, options);
+  if (!options?.weights || !getDevice()) {
+    throw new Error(
+      'Diffusion decode requires GPU VAE weights and a WebGPU device. ' +
+      'CPU decode fallback is unsupported.'
+    );
   }
-  return decodeLatentsCPU(latents, options);
+  return decodeLatentsGPU(latents, options);
 }

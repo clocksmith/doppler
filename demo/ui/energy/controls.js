@@ -4,7 +4,6 @@ import {
   ENERGY_DEMOS,
   DEFAULT_ENERGY_DEMO_ID,
   ENERGY_METRIC_LABELS,
-  VLIW_DATASETS,
 } from '../constants.js';
 
 export function updateEnergyStatus(message) {
@@ -34,10 +33,10 @@ export function toggleEnergyProblemControls(problem) {
   const summary = $('energy-kernel-summary')?.parentElement || null;
   const bundle = $('energy-bundle-view')?.parentElement || null;
   if (summary) {
-    summary.hidden = problem !== 'vliw';
+    summary.hidden = true;
   }
   if (bundle) {
-    bundle.hidden = problem !== 'vliw';
+    bundle.hidden = true;
   }
 }
 
@@ -97,26 +96,6 @@ export function applyEnergyDemoDefaults(demo) {
   const energyStepSize = $('energy-step-size');
   const energyGradientScale = $('energy-gradient-scale');
   const energyConvergence = $('energy-convergence');
-  const energyVliwDataset = $('energy-vliw-dataset');
-  const energyVliwBundleLimit = $('energy-vliw-bundle-limit');
-  const energyVliwMode = $('energy-vliw-mode');
-  const energyVliwScoreMode = $('energy-vliw-score-mode');
-  const energyVliwRestarts = $('energy-vliw-restarts');
-  const energyVliwTempStart = $('energy-vliw-temp-start');
-  const energyVliwTempDecay = $('energy-vliw-temp-decay');
-  const energyVliwMutation = $('energy-vliw-mutation');
-  const energyVliwMlpHidden = $('energy-vliw-mlp-hidden');
-  const energyVliwMlpLr = $('energy-vliw-mlp-lr');
-  const energyVliwSpecSearch = $('energy-vliw-spec-search');
-  const energyVliwSpecRestarts = $('energy-vliw-spec-restarts');
-  const energyVliwSpecSteps = $('energy-vliw-spec-steps');
-  const energyVliwSpecTempStart = $('energy-vliw-spec-temp-start');
-  const energyVliwSpecTempDecay = $('energy-vliw-spec-temp-decay');
-  const energyVliwSpecMutation = $('energy-vliw-spec-mutation');
-  const energyVliwSpecSeed = $('energy-vliw-spec-seed');
-  const energyVliwSpecPenalty = $('energy-vliw-spec-penalty');
-  const energyVliwSpecLambda = $('energy-vliw-spec-lambda');
-  const energyVliwSpecInnerSteps = $('energy-vliw-spec-inner-steps');
 
   if (energyQuintelSize && Number.isFinite(defaults.quintel?.size)) {
     energyQuintelSize.value = String(defaults.quintel.size);
@@ -171,74 +150,5 @@ export function applyEnergyDemoDefaults(demo) {
   }
   if (energyConvergence && Number.isFinite(defaults.loop?.convergence)) {
     energyConvergence.value = String(defaults.loop.convergence);
-  }
-  if (energyVliwDataset) {
-    energyVliwDataset.innerHTML = '';
-    Object.entries(VLIW_DATASETS).forEach(([id, entry]) => {
-      const option = document.createElement('option');
-      option.value = id;
-      option.textContent = entry.label || id;
-      energyVliwDataset.appendChild(option);
-    });
-    if (defaults.vliw?.dataset && VLIW_DATASETS[defaults.vliw.dataset]) {
-      energyVliwDataset.value = defaults.vliw.dataset;
-    }
-  }
-  if (energyVliwBundleLimit && Number.isFinite(defaults.vliw?.bundleLimit)) {
-    energyVliwBundleLimit.value = String(defaults.vliw.bundleLimit);
-  }
-  if (energyVliwMode && defaults.vliw?.mode) {
-    energyVliwMode.value = defaults.vliw.mode;
-  }
-  if (energyVliwScoreMode && defaults.vliw?.scoreMode) {
-    energyVliwScoreMode.value = defaults.vliw.scoreMode;
-  }
-  if (energyVliwRestarts && Number.isFinite(defaults.vliw?.restarts)) {
-    energyVliwRestarts.value = String(defaults.vliw.restarts);
-  }
-  if (energyVliwTempStart && Number.isFinite(defaults.vliw?.temperatureStart)) {
-    energyVliwTempStart.value = String(defaults.vliw.temperatureStart);
-  }
-  if (energyVliwTempDecay && Number.isFinite(defaults.vliw?.temperatureDecay)) {
-    energyVliwTempDecay.value = String(defaults.vliw.temperatureDecay);
-  }
-  if (energyVliwMutation && Number.isFinite(defaults.vliw?.mutationCount)) {
-    energyVliwMutation.value = String(defaults.vliw.mutationCount);
-  }
-  if (energyVliwMlpHidden && Number.isFinite(defaults.vliw?.mlp?.hiddenSize)) {
-    energyVliwMlpHidden.value = String(defaults.vliw.mlp.hiddenSize);
-  }
-  if (energyVliwMlpLr && Number.isFinite(defaults.vliw?.mlp?.lr)) {
-    energyVliwMlpLr.value = String(defaults.vliw.mlp.lr);
-  }
-  if (energyVliwSpecSearch && typeof defaults.vliw?.specSearch?.enabled === 'boolean') {
-    energyVliwSpecSearch.checked = defaults.vliw.specSearch.enabled;
-  }
-  if (energyVliwSpecRestarts && Number.isFinite(defaults.vliw?.specSearch?.restarts)) {
-    energyVliwSpecRestarts.value = String(defaults.vliw.specSearch.restarts);
-  }
-  if (energyVliwSpecSteps && Number.isFinite(defaults.vliw?.specSearch?.steps)) {
-    energyVliwSpecSteps.value = String(defaults.vliw.specSearch.steps);
-  }
-  if (energyVliwSpecTempStart && Number.isFinite(defaults.vliw?.specSearch?.temperatureStart)) {
-    energyVliwSpecTempStart.value = String(defaults.vliw.specSearch.temperatureStart);
-  }
-  if (energyVliwSpecTempDecay && Number.isFinite(defaults.vliw?.specSearch?.temperatureDecay)) {
-    energyVliwSpecTempDecay.value = String(defaults.vliw.specSearch.temperatureDecay);
-  }
-  if (energyVliwSpecMutation && Number.isFinite(defaults.vliw?.specSearch?.mutationCount)) {
-    energyVliwSpecMutation.value = String(defaults.vliw.specSearch.mutationCount);
-  }
-  if (energyVliwSpecSeed && Number.isFinite(defaults.vliw?.specSearch?.seed)) {
-    energyVliwSpecSeed.value = String(defaults.vliw.specSearch.seed);
-  }
-  if (energyVliwSpecPenalty && Number.isFinite(defaults.vliw?.specSearch?.penaltyGate)) {
-    energyVliwSpecPenalty.value = String(defaults.vliw.specSearch.penaltyGate);
-  }
-  if (energyVliwSpecLambda && Number.isFinite(defaults.vliw?.specSearch?.cycleLambda)) {
-    energyVliwSpecLambda.value = String(defaults.vliw.specSearch.cycleLambda);
-  }
-  if (energyVliwSpecInnerSteps && Number.isFinite(defaults.vliw?.specSearch?.innerSteps)) {
-    energyVliwSpecInnerSteps.value = String(defaults.vliw.specSearch.innerSteps);
   }
 }

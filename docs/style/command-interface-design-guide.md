@@ -62,6 +62,15 @@ All surfaces must normalize via `normalizeToolingCommandRequest()`.
   must remain behaviorally distinct from verify-path `verify` with
   `request.suite="training"` in `--config`.
 - Training payloads are schema-pinned (`trainingSchemaVersion=1` for training flows).
+- Force-resume audit fields are explicit and fail-closed:
+  - `forceResumeReason`, `forceResumeSource`, and `checkpointOperator` require
+    `forceResume=true`.
+- Diffusion calibration runs through `bench` with `workloadType="diffusion"` and
+  must remain behaviorally distinct from verify-path `verify` with
+  `request.suite="diffusion"` in `--config`.
+- Diffusion verify/calibrate results must include
+  `metrics.performanceArtifact` with required stage lanes:
+  `cpu.prefillMs`, `cpu.denoiseMs`, `cpu.vaeMs`, and `cpu.totalMs`.
 
 ### Maintenance
 
@@ -80,6 +89,12 @@ For harnessed commands (`debug`, `bench`, `verify`), runners must apply:
 - `runtime.shared.tooling.intent`
 
 `verify` verify suites are: `kernels`, `inference`, `training`, `diffusion`, and `energy`.
+
+Diffusion command contracts:
+- Verify path: `command="verify"` and `suite="diffusion"`.
+- Calibrate path: `command="bench"`, `suite="bench"`, and `workloadType="diffusion"`.
+- Runtime backend contract: `runtime.inference.diffusion.backend.pipeline="gpu"` only.
+- Both paths must emit timing diagnostics and diffusion stage metrics as contract artifacts.
 
 Use `buildRuntimeContractPatch()` and merge into runtime config before execution.
 

@@ -462,6 +462,56 @@ try {
   const p2pResumedStoredBytes = await loadShard(0, { verify: false });
   assert.equal(toHex(new Uint8Array(p2pResumedStoredBytes)), '01020304');
 
+  const p2pResumeCorruptSeedWriter = await createShardWriter(0, {
+    append: false,
+    expectedOffset: 0,
+  });
+  await p2pResumeCorruptSeedWriter.write(httpData.slice(0, 2));
+  await p2pResumeCorruptSeedWriter.close();
+
+  const p2pResumeCorruptOffsets = [];
+  p2pCalls = 0;
+  fetchCalls = 0;
+  const p2pResumeCorruptRecovered = await downloadShard('https://example.com/models', 0, shardInfo, {
+    algorithm: 'sha256',
+    expectedHash: sha256Data.http,
+    expectedManifestVersionSet: manifestVersionSet,
+    distributionConfig: {
+      sourceOrder: ['p2p'],
+      p2p: {
+        enabled: true,
+        timeoutMs: 1000,
+        maxRetries: 0,
+        transport: async (context) => {
+          p2pCalls += 1;
+          p2pResumeCorruptOffsets.push(context.resumeOffset ?? null);
+          if ((context.resumeOffset ?? 0) > 0) {
+            return {
+              data: new Uint8Array([99, 100]),
+              manifestVersionSet,
+              rangeStart: context.resumeOffset,
+              totalSize: 4,
+            };
+          }
+          return {
+            data: httpData,
+            manifestVersionSet,
+            rangeStart: 0,
+            totalSize: 4,
+          };
+        },
+      },
+      requiredContentEncoding: null,
+    },
+    writeToStore: true,
+  });
+  assert.equal(p2pResumeCorruptRecovered.source, 'p2p');
+  assert.equal(p2pResumeCorruptRecovered.wrote, true);
+  assert.equal(p2pCalls, 2);
+  assert.deepEqual(p2pResumeCorruptOffsets, [2, 0]);
+  const p2pResumeCorruptRecoveredBytes = await loadShard(0, { verify: false });
+  assert.equal(toHex(new Uint8Array(p2pResumeCorruptRecoveredBytes)), '01020304');
+
   const p2pMismatchSeedWriter = await createShardWriter(0, {
     append: false,
     expectedOffset: 0,
@@ -540,6 +590,47 @@ try {
   assert.equal(p2pCalls, 1);
   assert.equal(fetchCalls, 1);
   assert.equal(toHex(new Uint8Array(p2pTotalSizeMismatchFallsBackToHttp.buffer)), '01020304');
+
+  p2pCalls = 0;
+  fetchCalls = 0;
+  const p2pBoundaryMismatchFallsBackToHttp = await downloadShard(
+    'https://example.com/models',
+    18,
+    { filename: 'shard_18.bin' },
+    {
+      algorithm: 'sha256',
+      expectedManifestVersionSet: manifestVersionSet,
+      distributionConfig: {
+        sourceOrder: ['p2p', 'http'],
+        antiRollback: {
+          enabled: true,
+          requireExpectedHash: false,
+          requireExpectedSize: false,
+          requireManifestVersionSet: true,
+        },
+        p2p: {
+          enabled: true,
+          timeoutMs: 1000,
+          maxRetries: 0,
+          transport: async () => {
+            p2pCalls += 1;
+            return {
+              data: httpData.slice(0, 2),
+              manifestVersionSet,
+              rangeStart: 0,
+              totalSize: 4,
+            };
+          },
+        },
+        requiredContentEncoding: null,
+      },
+      writeToStore: false,
+    }
+  );
+  assert.equal(p2pBoundaryMismatchFallsBackToHttp.source, 'http');
+  assert.equal(p2pCalls, 1);
+  assert.equal(fetchCalls, 1);
+  assert.equal(toHex(new Uint8Array(p2pBoundaryMismatchFallsBackToHttp.buffer)), '01020304');
 
   p2pCalls = 0;
   fetchCalls = 0;
@@ -662,6 +753,173 @@ try {
 
   p2pCalls = 0;
   fetchCalls = 0;
+  const p2pMissingSessionTokenFallsBackToHttp = await downloadShard('https://example.com/models', 21, shardInfo, {
+    algorithm: 'sha256',
+    expectedManifestVersionSet: manifestVersionSet,
+    distributionConfig: {
+      sourceOrder: ['p2p', 'http'],
+      p2p: {
+        enabled: true,
+        timeoutMs: 1000,
+        maxRetries: 0,
+        security: {
+          requireSessionToken: true,
+        },
+        transport: async () => {
+          p2pCalls += 1;
+          return p2pData;
+        },
+      },
+      requiredContentEncoding: null,
+    },
+    writeToStore: false,
+  });
+  assert.equal(p2pMissingSessionTokenFallsBackToHttp.source, 'http');
+  assert.equal(p2pCalls, 0);
+  assert.equal(fetchCalls, 1);
+
+  p2pCalls = 0;
+  fetchCalls = 0;
+  const p2pExpiredSessionFallsBackToHttp = await downloadShard('https://example.com/models', 22, shardInfo, {
+    algorithm: 'sha256',
+    expectedManifestVersionSet: manifestVersionSet,
+    distributionConfig: {
+      sourceOrder: ['p2p', 'http'],
+      p2p: {
+        enabled: true,
+        timeoutMs: 1000,
+        maxRetries: 0,
+        security: {
+          requireSessionToken: true,
+          sessionToken: 'token-123',
+          tokenExpiresAtMs: Date.now() - 1000,
+        },
+        transport: async () => {
+          p2pCalls += 1;
+          return p2pData;
+        },
+      },
+      requiredContentEncoding: null,
+    },
+    writeToStore: false,
+  });
+  assert.equal(p2pExpiredSessionFallsBackToHttp.source, 'http');
+  assert.equal(p2pCalls, 0);
+  assert.equal(fetchCalls, 1);
+
+  p2pCalls = 0;
+  fetchCalls = 0;
+  const rateLimitedTransport = async () => {
+    p2pCalls += 1;
+    return p2pData;
+  };
+  const p2pRateLimitFirst = await downloadShard('https://example.com/models', 23, shardInfo, {
+    algorithm: 'sha256',
+    expectedHash: sha256Data.p2p,
+    expectedManifestVersionSet: manifestVersionSet,
+    distributionConfig: {
+      sourceOrder: ['p2p', 'http'],
+      p2p: {
+        enabled: true,
+        timeoutMs: 1000,
+        maxRetries: 0,
+        security: {
+          requireSessionToken: true,
+          sessionToken: 'token-123',
+        },
+        abuse: {
+          rateLimitPerMinute: 1,
+        },
+        transport: rateLimitedTransport,
+      },
+      requiredContentEncoding: null,
+    },
+    writeToStore: false,
+  });
+  assert.equal(p2pRateLimitFirst.source, 'p2p');
+  assert.equal(p2pCalls, 1);
+  assert.equal(fetchCalls, 0);
+
+  const p2pRateLimitSecondFallsBackToHttp = await downloadShard('https://example.com/models', 24, shardInfo, {
+    algorithm: 'sha256',
+    expectedManifestVersionSet: manifestVersionSet,
+    distributionConfig: {
+      sourceOrder: ['p2p', 'http'],
+      p2p: {
+        enabled: true,
+        timeoutMs: 1000,
+        maxRetries: 0,
+        security: {
+          requireSessionToken: true,
+          sessionToken: 'token-123',
+        },
+        abuse: {
+          rateLimitPerMinute: 1,
+        },
+        transport: rateLimitedTransport,
+      },
+      requiredContentEncoding: null,
+    },
+    writeToStore: false,
+  });
+  assert.equal(p2pRateLimitSecondFallsBackToHttp.source, 'http');
+  assert.equal(p2pCalls, 1);
+  assert.equal(fetchCalls, 1);
+
+  p2pCalls = 0;
+  fetchCalls = 0;
+  const quarantineTransport = async () => {
+    p2pCalls += 1;
+    throw new Error('peer miss');
+  };
+  const p2pQuarantineFirst = await downloadShard('https://example.com/models', 25, shardInfo, {
+    algorithm: 'sha256',
+    expectedManifestVersionSet: manifestVersionSet,
+    distributionConfig: {
+      sourceOrder: ['p2p', 'http'],
+      p2p: {
+        enabled: true,
+        timeoutMs: 1000,
+        maxRetries: 0,
+        abuse: {
+          maxConsecutiveFailures: 1,
+          quarantineMs: 60000,
+        },
+        transport: quarantineTransport,
+      },
+      requiredContentEncoding: null,
+    },
+    writeToStore: false,
+  });
+  assert.equal(p2pQuarantineFirst.source, 'http');
+  assert.equal(p2pCalls, 1);
+  assert.equal(fetchCalls, 1);
+
+  const p2pQuarantineSecondFallsBackToHttp = await downloadShard('https://example.com/models', 26, shardInfo, {
+    algorithm: 'sha256',
+    expectedManifestVersionSet: manifestVersionSet,
+    distributionConfig: {
+      sourceOrder: ['p2p', 'http'],
+      p2p: {
+        enabled: true,
+        timeoutMs: 1000,
+        maxRetries: 0,
+        abuse: {
+          maxConsecutiveFailures: 1,
+          quarantineMs: 60000,
+        },
+        transport: quarantineTransport,
+      },
+      requiredContentEncoding: null,
+    },
+    writeToStore: false,
+  });
+  assert.equal(p2pQuarantineSecondFallsBackToHttp.source, 'http');
+  assert.equal(p2pCalls, 1);
+  assert.equal(fetchCalls, 2);
+
+  p2pCalls = 0;
+  fetchCalls = 0;
   const p2pMismatchFallsBackToHttp = await downloadShard('https://example.com/models', 3, shardInfo, {
     algorithm: 'sha256',
     expectedHash: sha256Data.http,
@@ -747,6 +1005,76 @@ try {
   assert.equal(withTrace.decisionTrace?.attempts?.some((attempt) => attempt.source === 'cache' && attempt.status === 'skipped'), true);
   assert.equal(withTrace.decisionTrace?.attempts?.some((attempt) => attempt.source === 'http' && attempt.status === 'success'), true);
   assert.equal(withTrace.decisionTrace?.attempts?.some((attempt) => attempt.source === 'http' && attempt.manifestVersionSet === manifestVersionSet), true);
+  assert.equal(withTrace.deliveryMetrics?.schemaVersion, 1);
+  assert.equal(withTrace.deliveryMetrics?.successSource, 'http');
+  assert.equal(withTrace.deliveryMetrics?.attemptCount, 1);
+  assert.equal(withTrace.deliveryMetrics?.sourceAttempts?.http, 1);
+  assert.equal(withTrace.deliveryMetrics?.sourceAttempts?.cache, 0);
+  assert.equal(withTrace.deliveryMetrics?.sourceAttempts?.p2p, 0);
+  assert.equal(withTrace.deliveryMetrics?.retries?.http, 0);
+  assert.equal(withTrace.deliveryMetrics?.httpRttMs?.count, 1);
+  assert.equal(withTrace.deliveryMetrics?.p2pRttMs?.count, 0);
+  assert.equal(withTrace.deliveryMetrics?.storageWriteMs, null);
+
+  const noTraceSample = await downloadShard('https://example.com/models', 19, shardInfo, {
+    algorithm: 'sha256',
+    expectedManifestVersionSet: manifestVersionSet,
+    distributionConfig: {
+      sourceOrder: ['http'],
+      sourceDecision: {
+        deterministic: true,
+        trace: {
+          enabled: true,
+          includeSkippedSources: true,
+          samplingRate: 0,
+        },
+      },
+      requiredContentEncoding: null,
+    },
+    writeToStore: false,
+  });
+  assert.equal(noTraceSample.source, 'http');
+  assert.equal(noTraceSample.decisionTrace, undefined);
+  assert.equal(noTraceSample.deliveryMetrics?.sourceAttempts?.http, 1);
+  assert.equal(noTraceSample.deliveryMetrics?.attemptCount, 1);
+
+  const sampledTraceA = await downloadShard('https://example.com/models', 20, shardInfo, {
+    algorithm: 'sha256',
+    expectedManifestVersionSet: manifestVersionSet,
+    distributionConfig: {
+      sourceOrder: ['http'],
+      sourceDecision: {
+        deterministic: true,
+        trace: {
+          enabled: true,
+          includeSkippedSources: true,
+          samplingRate: 0.5,
+        },
+      },
+      requiredContentEncoding: null,
+    },
+    writeToStore: false,
+  });
+  const sampledTraceB = await downloadShard('https://example.com/models', 20, shardInfo, {
+    algorithm: 'sha256',
+    expectedManifestVersionSet: manifestVersionSet,
+    distributionConfig: {
+      sourceOrder: ['http'],
+      sourceDecision: {
+        deterministic: true,
+        trace: {
+          enabled: true,
+          includeSkippedSources: true,
+          samplingRate: 0.5,
+        },
+      },
+      requiredContentEncoding: null,
+    },
+    writeToStore: false,
+  });
+  assert.equal(Boolean(sampledTraceA.decisionTrace), Boolean(sampledTraceB.decisionTrace));
+  assert.equal(sampledTraceA.deliveryMetrics?.attemptCount, 1);
+  assert.equal(sampledTraceB.deliveryMetrics?.attemptCount, 1);
 
   await assert.rejects(
     () => downloadShard('https://example.com/models', 6, shardInfo, {

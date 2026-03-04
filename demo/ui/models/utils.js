@@ -35,8 +35,7 @@ export function isModeModelSelectable(mode) {
     || mode === 'translate'
     || mode === 'embedding'
     || mode === 'diffusion'
-    || mode === 'energy'
-    || mode === 'kernels';
+    || mode === 'energy';
 }
 
 export function getModeModelLabel(mode) {
@@ -45,7 +44,7 @@ export function getModeModelLabel(mode) {
   if (mode === 'embedding') return 'embedding';
   if (mode === 'translate') return 'translation';
   if (mode === 'run') return 'text';
-  if (mode === 'kernels' || mode === 'diagnostics' || mode === 'models') return 'models';
+  if (mode === 'diagnostics' || mode === 'models') return 'models';
   return 'local';
 }
 

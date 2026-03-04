@@ -98,3 +98,38 @@ Retry behavior:
 - `loading.distribution.p2p.retryDelayMs`
 - `loading.distribution.p2p.contractVersion`
 - `loading.distribution.p2p.transport`
+- `loading.distribution.p2p.controlPlane.enabled`
+- `loading.distribution.p2p.controlPlane.contractVersion`
+- `loading.distribution.p2p.controlPlane.tokenRefreshSkewMs`
+- `loading.distribution.p2p.controlPlane.tokenProvider`
+- `loading.distribution.p2p.controlPlane.policyEvaluator`
+- `loading.distribution.p2p.webrtc.enabled`
+- `loading.distribution.p2p.webrtc.peerId`
+- `loading.distribution.p2p.webrtc.requestTimeoutMs`
+- `loading.distribution.p2p.webrtc.maxPayloadBytes`
+- `loading.distribution.p2p.webrtc.selectPeer`
+- `loading.distribution.p2p.webrtc.getDataChannel`
+- `loading.distribution.p2p.security.requireSessionToken`
+- `loading.distribution.p2p.security.sessionToken`
+- `loading.distribution.p2p.security.tokenExpiresAtMs`
+- `loading.distribution.p2p.abuse.rateLimitPerMinute`
+- `loading.distribution.p2p.abuse.maxConsecutiveFailures`
+- `loading.distribution.p2p.abuse.quarantineMs`
+
+## Delivery Diagnostics
+- `downloadShard()` always returns `deliveryMetrics` summarizing source attempts/retries, failure codes, source RTT aggregates, and storage write latency.
+- `downloadShard(..., { onDeliveryMetrics })` provides a production hook for exporting metrics snapshots to dashboards/SLO backends.
+- Decision traces are controlled by:
+  - `loading.distribution.sourceDecision.trace.enabled`
+  - `loading.distribution.sourceDecision.trace.includeSkippedSources`
+  - `loading.distribution.sourceDecision.trace.samplingRate` (0..1, deterministic when `sourceDecision.deterministic=true`)
+
+## Browser WebRTC Slice (feature-flagged)
+- `createBrowserWebRTCDataPlaneTransport()` implements an optional browser-only data-plane transport adapter.
+- The adapter is fail-closed: enabling WebRTC without runtime capabilities (`RTCPeerConnection`) or channel wiring throws `unconfigured`.
+- Wire through config with `loading.distribution.p2p.webrtc.enabled=true` and `getDataChannel` callback when no explicit `p2p.transport` callback is provided.
+
+## Control-Plane Boundary
+- `loading.distribution.p2p.controlPlane.tokenProvider` can issue/refresh session tokens (missing, expired, proactive refresh).
+- `loading.distribution.p2p.controlPlane.policyEvaluator` can allow/deny each shard attempt and attach session updates.
+- Policy denials are surfaced as canonical `policy_denied` transport errors and respect source-matrix transitions (`onFailure` by default).

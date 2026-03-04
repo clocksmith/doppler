@@ -490,6 +490,109 @@ function normalizeWorkloadType(value) {
   return normalized || null;
 }
 
+function safeStatsValue(value) {
+  return Number.isFinite(value) ? Number(value) : 0;
+}
+
+function calculateRatePerSecond(count, durationMs) {
+  const safeCount = safeStatsValue(count);
+  const safeDurationMs = safeStatsValue(durationMs);
+  if (safeCount <= 0 || safeDurationMs <= 0) return 0;
+  return Number(((safeCount * 1000) / safeDurationMs).toFixed(2));
+}
+
+function buildDiffusionPerformanceArtifact({
+  warmupRuns,
+  timedRuns,
+  width,
+  height,
+  steps,
+  guidanceScale,
+  avgPrefillTokens,
+  avgDecodeTokens,
+  cpuStats,
+  gpuStats,
+}) {
+  const cpuPrefillMs = safeStatsValue(cpuStats?.prefillMs?.median);
+  const cpuDenoiseMs = safeStatsValue(cpuStats?.denoiseMs?.median);
+  const cpuVaeMs = safeStatsValue(cpuStats?.vaeMs?.median);
+  const cpuTotalMs = safeStatsValue(cpuStats?.totalMs?.median);
+  const gpuPrefillMs = safeStatsValue(gpuStats?.prefillMs?.median);
+  const gpuDenoiseMs = safeStatsValue(gpuStats?.denoiseMs?.median);
+  const gpuVaeMs = safeStatsValue(gpuStats?.vaeMs?.median);
+  const gpuTotalMs = safeStatsValue(gpuStats?.totalMs?.median);
+  const decodeStepsPerSec = calculateRatePerSecond(steps, cpuDenoiseMs);
+  const decodeTokensPerSec = calculateRatePerSecond(avgDecodeTokens, cpuDenoiseMs);
+  const prefillTokensPerSec = calculateRatePerSecond(avgPrefillTokens, cpuPrefillMs);
+
+  return {
+    schemaVersion: 1,
+    warmupRuns,
+    timedRuns,
+    shape: {
+      width,
+      height,
+    },
+    scheduler: {
+      steps,
+      guidanceScale,
+    },
+    cpu: {
+      totalMs: cpuTotalMs,
+      prefillMs: cpuPrefillMs,
+      denoiseMs: cpuDenoiseMs,
+      vaeMs: cpuVaeMs,
+    },
+    gpu: {
+      available: gpuStats?.available === true,
+      totalMs: gpuStats?.available === true ? gpuTotalMs : null,
+      prefillMs: gpuStats?.available === true ? gpuPrefillMs : null,
+      denoiseMs: gpuStats?.available === true ? gpuDenoiseMs : null,
+      vaeMs: gpuStats?.available === true ? gpuVaeMs : null,
+    },
+    throughput: {
+      prefillTokensPerSec,
+      decodeTokensPerSec,
+      decodeStepsPerSec,
+    },
+    tokens: {
+      avgPrefillTokens: safeStatsValue(avgPrefillTokens),
+      avgDecodeTokens: safeStatsValue(avgDecodeTokens),
+    },
+  };
+}
+
+function assertDiffusionPerformanceArtifact(metrics, contextLabel = 'diffusion') {
+  const artifact = metrics?.performanceArtifact;
+  if (!artifact || typeof artifact !== 'object') {
+    throw new Error(`${contextLabel}: metrics.performanceArtifact is required.`);
+  }
+  if (artifact.schemaVersion !== 1) {
+    throw new Error(`${contextLabel}: metrics.performanceArtifact.schemaVersion must be 1.`);
+  }
+  if (!Number.isInteger(artifact.warmupRuns) || artifact.warmupRuns < 0) {
+    throw new Error(`${contextLabel}: metrics.performanceArtifact.warmupRuns must be a non-negative integer.`);
+  }
+  if (!Number.isInteger(artifact.timedRuns) || artifact.timedRuns < 1) {
+    throw new Error(`${contextLabel}: metrics.performanceArtifact.timedRuns must be a positive integer.`);
+  }
+  if (!Number.isFinite(artifact?.cpu?.prefillMs)) {
+    throw new Error(`${contextLabel}: metrics.performanceArtifact.cpu.prefillMs must be finite.`);
+  }
+  if (!Number.isFinite(artifact?.cpu?.denoiseMs)) {
+    throw new Error(`${contextLabel}: metrics.performanceArtifact.cpu.denoiseMs must be finite.`);
+  }
+  if (!Number.isFinite(artifact?.cpu?.vaeMs)) {
+    throw new Error(`${contextLabel}: metrics.performanceArtifact.cpu.vaeMs must be finite.`);
+  }
+  if (!Number.isFinite(artifact?.cpu?.totalMs)) {
+    throw new Error(`${contextLabel}: metrics.performanceArtifact.cpu.totalMs must be finite.`);
+  }
+  if (!Number.isFinite(artifact?.throughput?.decodeStepsPerSec)) {
+    throw new Error(`${contextLabel}: metrics.performanceArtifact.throughput.decodeStepsPerSec must be finite.`);
+  }
+}
+
 function toTimingNumber(value, fallback = 0) {
   return formatMetricNumber(value, fallback, 2);
 }
@@ -622,6 +725,14 @@ function buildTimingDiagnostics(timing = {}, options = {}) {
   };
 }
 
+function resolveDeviceInfo() {
+  try {
+    return getKernelCapabilities();
+  } catch {
+    return null;
+  }
+}
+
 async function resolveKernelPathForModel(options = {}) {
   const runtimeConfig = options.runtime?.runtimeConfig ?? getRuntimeConfig();
   let manifest = null;
@@ -738,7 +849,41 @@ async function initializeInferenceFromSourcePath(sourcePath, options = {}) {
   };
 }
 
+async function resolveHarnessOverride(options = {}) {
+  const input = typeof options.harnessOverride === 'function'
+    ? await options.harnessOverride(options)
+    : options.harnessOverride;
+
+  if (!input || typeof input !== 'object') {
+    throw new Error('harnessOverride must resolve to an object.');
+  }
+
+  if (!input.pipeline || typeof input.pipeline.generate !== 'function') {
+    throw new Error('harnessOverride.pipeline.generate(request) is required.');
+  }
+
+  const manifest = input.manifest && typeof input.manifest === 'object'
+    ? input.manifest
+    : {
+      modelId: options.modelId || 'diffusion-harness-override',
+      modelType: 'diffusion',
+    };
+
+  const modelLoadMs = Number.isFinite(input.modelLoadMs)
+    ? Math.max(0, input.modelLoadMs)
+    : 0;
+
+  return {
+    ...input,
+    manifest,
+    modelLoadMs,
+  };
+}
+
 async function initializeSuiteModel(options = {}) {
+  if (options.harnessOverride) {
+    return resolveHarnessOverride(options);
+  }
   const loadStart = performance.now();
   const runtime = resolveRuntime(options);
   const loadMode = normalizeLoadMode(options.loadMode, !options.modelUrl);
@@ -786,7 +931,7 @@ async function runKernelSuite(options = {}) {
   const summary = buildSuiteSummary('kernels', results, startTime);
   return {
     ...summary,
-    deviceInfo: getKernelCapabilities(),
+    deviceInfo: resolveDeviceInfo(),
   };
 }
 
@@ -1595,7 +1740,7 @@ async function runInferenceSuite(options = {}) {
     output,
     metrics,
     memoryStats,
-    deviceInfo: getKernelCapabilities(),
+    deviceInfo: resolveDeviceInfo(),
     pipeline: options.keepPipeline ? harness.pipeline : null,
   };
 }
@@ -1657,8 +1802,40 @@ async function runBenchSuite(options = {}) {
       timingDiagnostics,
       output: null,
       memoryStats: null,
-      deviceInfo: trainingBench.deviceInfo ?? getKernelCapabilities(),
+      deviceInfo: trainingBench.deviceInfo ?? resolveDeviceInfo(),
       pipeline: null,
+    };
+  }
+
+  if (workloadType === 'diffusion') {
+    const diffusionBench = await runDiffusionSuite({
+      ...options,
+      command: 'bench',
+      suite: 'diffusion',
+      captureOutput: options.captureOutput === true,
+      cacheMode,
+      loadMode,
+    });
+
+    const benchResults = [
+      {
+        name: 'benchmark-diffusion',
+        passed: diffusionBench.passed > 0 && diffusionBench.failed === 0,
+        duration: diffusionBench.duration,
+        error: diffusionBench.failed === 0 ? undefined : 'Diffusion benchmark run failed.',
+      },
+    ];
+    const summary = buildSuiteSummary('bench', benchResults, startTime);
+
+    return {
+      ...diffusionBench,
+      ...summary,
+      suite: 'bench',
+      results: benchResults,
+      metrics: {
+        ...(diffusionBench.metrics || {}),
+        workloadType: 'diffusion',
+      },
     };
   }
 
@@ -1956,7 +2133,7 @@ async function runBenchSuite(options = {}) {
     output,
     metrics,
     memoryStats,
-    deviceInfo: getKernelCapabilities(),
+    deviceInfo: resolveDeviceInfo(),
     pipeline: options.keepPipeline ? harness.pipeline : null,
   };
 }
@@ -1965,6 +2142,8 @@ async function runDiffusionSuite(options = {}) {
   const startTime = performance.now();
   const runtimeConfig = getRuntimeConfig();
   const captureOutput = options.captureOutput === true;
+  const cacheMode = normalizeCacheMode(options.cacheMode);
+  const loadMode = normalizeLoadMode(options.loadMode, !options.modelUrl);
   const benchConfig = runtimeConfig.shared?.benchmark?.run || {};
   const warmupRuns = Math.max(0, Math.floor(benchConfig.warmupRuns ?? 0));
   const timedRuns = Math.max(1, Math.floor(benchConfig.timedRuns ?? 1));
@@ -2082,10 +2261,54 @@ async function runDiffusionSuite(options = {}) {
   const avgDecodeTokens = decodeTokens.length
     ? Math.round(decodeTokens.reduce((a, b) => a + b, 0) / decodeTokens.length)
     : 0;
+  const prefillMsMedian = safeStatsValue(cpuStats.prefillMs?.median);
+  const denoiseMsMedian = safeStatsValue(cpuStats.denoiseMs?.median);
+  const totalMsMedian = safeStatsValue(cpuStats.totalMs?.median);
+  const diffusionPerformanceArtifact = buildDiffusionPerformanceArtifact({
+    warmupRuns,
+    timedRuns,
+    width,
+    height,
+    steps,
+    guidanceScale,
+    avgPrefillTokens,
+    avgDecodeTokens,
+    cpuStats,
+    gpuStats,
+  });
+  const timing = buildCanonicalTiming({
+    modelLoadMs: 0,
+    firstTokenMs: null,
+    firstResponseMs: null,
+    prefillMs: prefillMsMedian,
+    decodeMs: denoiseMsMedian,
+    totalRunMs: totalMsMedian,
+    prefillTokensPerSec: diffusionPerformanceArtifact.throughput.prefillTokensPerSec,
+    decodeTokensPerSec: diffusionPerformanceArtifact.throughput.decodeTokensPerSec,
+    cacheMode,
+    loadMode,
+  });
+  const timingDiagnostics = buildTimingDiagnostics(timing, {
+    source: 'doppler',
+    prefillSemantics: 'internal_prefill_phase',
+  });
 
   return {
     ...summary,
     modelId: options.modelId || harness.manifest?.modelId || 'unknown',
+    cacheMode,
+    loadMode,
+    env: {
+      library: 'doppler',
+      runtime: 'browser',
+      device: 'webgpu',
+      browserUserAgent: typeof navigator !== 'undefined' ? (navigator.userAgent || null) : null,
+      browserPlatform: typeof navigator !== 'undefined' ? (navigator.platform || null) : null,
+      browserLanguage: typeof navigator !== 'undefined' ? (navigator.language || null) : null,
+      browserVendor: typeof navigator !== 'undefined' ? (navigator.vendor || null) : null,
+    },
+    timing,
+    timingDiagnostics,
     output,
     metrics: {
       warmupRuns,
@@ -2097,11 +2320,23 @@ async function runDiffusionSuite(options = {}) {
       prompt,
       avgPrefillTokens,
       avgDecodeTokens,
+      latency: {
+        totalMs: cpuStats.totalMs,
+        prefillMs: cpuStats.prefillMs,
+        denoiseMs: cpuStats.denoiseMs,
+        vaeMs: cpuStats.vaeMs,
+      },
+      throughput: {
+        prefillTokensPerSec: diffusionPerformanceArtifact.throughput.prefillTokensPerSec,
+        decodeTokensPerSec: diffusionPerformanceArtifact.throughput.decodeTokensPerSec,
+        decodeStepsPerSec: diffusionPerformanceArtifact.throughput.decodeStepsPerSec,
+      },
       cpu: cpuStats,
       gpu: gpuStats,
+      performanceArtifact: diffusionPerformanceArtifact,
     },
     memoryStats,
-    deviceInfo: getKernelCapabilities(),
+    deviceInfo: resolveDeviceInfo(),
     pipeline: options.keepPipeline ? harness.pipeline : null,
   };
 }
@@ -2148,7 +2383,7 @@ async function runEnergySuite(options = {}) {
       readbackCount: stats.readbackCount ?? null,
     },
     memoryStats,
-    deviceInfo: getKernelCapabilities(),
+    deviceInfo: resolveDeviceInfo(),
     pipeline: options.keepPipeline ? harness.pipeline : null,
   };
 }
@@ -2236,6 +2471,12 @@ export async function runBrowserSuite(options = {}) {
       if (Array.isArray(trainingReport) && trainingReport.length > 0) {
         validateTrainingMetricsReport(trainingReport);
       }
+    }
+    if (suite === 'diffusion') {
+      assertDiffusionPerformanceArtifact(suiteResult?.metrics, 'diffusion verify');
+    }
+    if (suite === 'bench' && suiteResult?.metrics?.workloadType === 'diffusion') {
+      assertDiffusionPerformanceArtifact(suiteResult?.metrics, 'diffusion bench');
     }
 
     const modelId = suiteResult.modelId || options.modelId || options.modelUrl || suite;

@@ -30,9 +30,13 @@ import {
     trainingStage: 'stage_a',
     forceResume: true,
     forceResumeReason: 'intentional schema transition',
+    forceResumeSource: 'verify:node',
+    checkpointOperator: 'release-engineer',
   });
   assert.equal(request.forceResume, true);
   assert.equal(request.forceResumeReason, 'intentional schema transition');
+  assert.equal(request.forceResumeSource, 'verify:node');
+  assert.equal(request.checkpointOperator, 'release-engineer');
 }
 
 {
@@ -135,6 +139,32 @@ import {
       forceResumeReason: 'missing flag',
     }),
     /forceResumeReason requires forceResume=true/
+  );
+}
+
+{
+  assert.throws(
+    () => normalizeToolingCommandRequest({
+      command: 'verify',
+      suite: 'training',
+      modelId: null,
+      trainingStage: 'stage_a',
+      forceResumeSource: 'verify:node',
+    }),
+    /forceResumeSource requires forceResume=true/
+  );
+}
+
+{
+  assert.throws(
+    () => normalizeToolingCommandRequest({
+      command: 'verify',
+      suite: 'training',
+      modelId: null,
+      trainingStage: 'stage_a',
+      checkpointOperator: 'release-engineer',
+    }),
+    /checkpointOperator requires forceResume=true/
   );
 }
 

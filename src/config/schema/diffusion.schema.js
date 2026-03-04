@@ -27,13 +27,7 @@ export const DEFAULT_DIFFUSION_DECODE_CONFIG = {
 
 export const DEFAULT_DIFFUSION_BACKEND_CONFIG = {
   pipeline: 'gpu',
-  scaffold: {
-    tokens: 64,
-    hiddenSize: 128,
-    numHeads: 4,
-    seed: 1337,
-    layerNormEps: 1e-5,
-  },
+  layerNormEps: null,
 };
 
 export const DEFAULT_DIFFUSION_TILING_CONFIG = {

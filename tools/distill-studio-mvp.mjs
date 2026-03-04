@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { createHash } from 'node:crypto';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 
@@ -9,11 +10,12 @@ function parseArgs(argv) {
     teacher: null,
     student: null,
     holdout: null,
+    workloadPack: null,
     out: 'reports/distill-studio/mvp-output.json',
   };
   const rest = argv.slice(2);
   if (rest.length === 0) {
-    throw new Error('Usage: node tools/distill-studio-mvp.mjs <replay-teacher|branch-compare|mini-eval> [flags]');
+    throw new Error('Usage: node tools/distill-studio-mvp.mjs <replay-teacher|branch-compare|mini-eval> [--teacher <path>] [--student <path>] [--holdout <path>] [--workload-pack <path>] [--out <path>]');
   }
   parsed.mode = rest[0];
   for (let i = 1; i < rest.length; i += 1) {
@@ -33,6 +35,11 @@ function parseArgs(argv) {
       i += 1;
       continue;
     }
+    if (arg === '--workload-pack') {
+      parsed.workloadPack = rest[i + 1] || null;
+      i += 1;
+      continue;
+    }
     if (arg === '--out') {
       parsed.out = rest[i + 1] || parsed.out;
       i += 1;
@@ -47,7 +54,7 @@ async function readJson(pathValue, label) {
   const absolute = resolve(String(pathValue));
   const raw = await readFile(absolute, 'utf8');
   try {
-    return { absolute, value: JSON.parse(raw) };
+    return { absolute, raw, value: JSON.parse(raw) };
   } catch (error) {
     throw new Error(`${label} is not valid JSON: ${error.message}`);
   }
@@ -66,12 +73,41 @@ function resolveTrainingMetrics(report) {
   return fromResults;
 }
 
-function buildReplay(teacherReport) {
+function computeReportId(reportObj, rawJson) {
+  const explicit = String(reportObj?.reportId || reportObj?.id || reportObj?.report?.id || '').trim();
+  if (explicit) return explicit;
+  return createHash('sha256').update(rawJson).digest('hex');
+}
+
+function resolveWorkloadPackTraceability(workloadPack) {
+  if (!workloadPack) return null;
+  const id = String(workloadPack.value?.id || '').trim();
+  if (!id) {
+    throw new Error('--workload-pack must include a non-empty "id" field.');
+  }
+  return {
+    id,
+    path: workloadPack.absolute,
+    sha256: createHash('sha256').update(workloadPack.raw).digest('hex'),
+  };
+}
+
+function buildTraceability({ teacher, student, workloadPack }) {
+  const traceability = {
+    teacherReportId: computeReportId(teacher.value, teacher.raw),
+    studentReportId: student ? computeReportId(student.value, student.raw) : null,
+    workloadPack: resolveWorkloadPackTraceability(workloadPack),
+  };
+  return traceability;
+}
+
+function buildReplay(teacherReport, traceability) {
   const metrics = resolveTrainingMetrics(teacherReport);
   return {
     schemaVersion: 1,
     mode: 'replay-teacher',
     generatedAt: new Date().toISOString(),
+    traceability,
     timeline: metrics.map((entry) => ({
       step: entry.step ?? null,
       objective: entry.objective ?? null,
@@ -82,7 +118,7 @@ function buildReplay(teacherReport) {
   };
 }
 
-function buildBranchCompare(teacherReport, studentReport) {
+function buildBranchCompare(teacherReport, studentReport, traceability) {
   const teacher = resolveTrainingMetrics(teacherReport);
   const student = resolveTrainingMetrics(studentReport);
   const count = Math.min(teacher.length, student.length);
@@ -105,6 +141,7 @@ function buildBranchCompare(teacherReport, studentReport) {
     schemaVersion: 1,
     mode: 'branch-compare',
     generatedAt: new Date().toISOString(),
+    traceability,
     teacherSteps: teacher.length,
     studentSteps: student.length,
     comparedSteps: deltas.length,
@@ -113,7 +150,7 @@ function buildBranchCompare(teacherReport, studentReport) {
   };
 }
 
-function buildMiniEval(teacherReport, studentReport, holdoutRows) {
+function buildMiniEval(teacherReport, studentReport, holdoutRows, traceability) {
   const teacher = resolveTrainingMetrics(teacherReport);
   const student = resolveTrainingMetrics(studentReport);
   const pulseSize = Math.max(1, Math.floor(holdoutRows.length || 1));
@@ -124,6 +161,7 @@ function buildMiniEval(teacherReport, studentReport, holdoutRows) {
     schemaVersion: 1,
     mode: 'mini-eval',
     generatedAt: new Date().toISOString(),
+    traceability,
     holdoutSize: holdoutRows.length,
     teacherAvgLoss: avg(teacherLoss),
     studentAvgLoss: avg(studentLoss),
@@ -147,23 +185,25 @@ async function main() {
   if (!args.teacher) {
     throw new Error('--teacher is required.');
   }
-  const teacher = (await readJson(args.teacher, '--teacher')).value;
-  const student = args.student ? (await readJson(args.student, '--student')).value : null;
+  const teacher = await readJson(args.teacher, '--teacher');
+  const student = args.student ? await readJson(args.student, '--student') : null;
+  const workloadPack = args.workloadPack ? await readJson(args.workloadPack, '--workload-pack') : null;
   const holdout = await readHoldout(args.holdout);
+  const traceability = buildTraceability({ teacher, student, workloadPack });
 
   let output;
   if (args.mode === 'replay-teacher') {
-    output = buildReplay(teacher);
+    output = buildReplay(teacher.value, traceability);
   } else if (args.mode === 'branch-compare') {
     if (!student) {
       throw new Error('--student is required for branch-compare.');
     }
-    output = buildBranchCompare(teacher, student);
+    output = buildBranchCompare(teacher.value, student.value, traceability);
   } else if (args.mode === 'mini-eval') {
     if (!student) {
       throw new Error('--student is required for mini-eval.');
     }
-    output = buildMiniEval(teacher, student, holdout);
+    output = buildMiniEval(teacher.value, student.value, holdout, traceability);
   } else {
     throw new Error(`Unknown mode: ${args.mode}`);
   }

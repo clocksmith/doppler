@@ -65,6 +65,8 @@ export interface DistributionConfigSchema {
       enabled: boolean;
       /** Include skipped sources in the trace plan */
       includeSkippedSources: boolean;
+      /** Deterministic sampling ratio in [0, 1] for trace emission */
+      samplingRate: number;
     };
   };
 
@@ -94,6 +96,52 @@ export interface DistributionConfigSchema {
     contractVersion: number;
     /** Optional runtime-provided transport callback */
     transport: unknown;
+    /** Optional control-plane callbacks for session + policy decisions */
+    controlPlane: {
+      /** Enable control-plane hooks */
+      enabled: boolean;
+      /** Versioned control-plane callback contract */
+      contractVersion: number;
+      /** Proactive token refresh skew in milliseconds */
+      tokenRefreshSkewMs: number;
+      /** Optional callback to issue/refresh session token */
+      tokenProvider: unknown;
+      /** Optional callback to allow/deny a shard request */
+      policyEvaluator: unknown;
+    };
+    /** Feature-flagged browser WebRTC data-plane transport slice */
+    webrtc: {
+      /** Enable browser WebRTC data-plane transport */
+      enabled: boolean;
+      /** Optional static peer id */
+      peerId: string | null;
+      /** Data-channel request timeout in milliseconds */
+      requestTimeoutMs: number;
+      /** Max accepted payload size in bytes */
+      maxPayloadBytes: number;
+      /** Optional peer selector callback */
+      selectPeer: unknown;
+      /** Callback for obtaining open RTCDataChannel */
+      getDataChannel: unknown;
+    };
+    /** Session/auth policy for P2P attempts */
+    security: {
+      /** Require a non-empty session token for P2P attempts */
+      requireSessionToken: boolean;
+      /** Session token value passed through runtime config */
+      sessionToken: string | null;
+      /** Optional absolute expiration timestamp (epoch ms) */
+      tokenExpiresAtMs: number | null;
+    };
+    /** Runtime abuse controls for P2P attempts */
+    abuse: {
+      /** Max transport requests per minute (0 disables) */
+      rateLimitPerMinute: number;
+      /** Consecutive failures before temporary quarantine */
+      maxConsecutiveFailures: number;
+      /** Quarantine duration in milliseconds */
+      quarantineMs: number;
+    };
   };
 
   /** Minimum interval between progress callbacks in milliseconds */

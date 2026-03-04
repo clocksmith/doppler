@@ -15,12 +15,8 @@ function mergeDecodeConfig(base, override) {
 }
 
 function mergeBackendConfig(base, override) {
-  if (!override) return { ...base, scaffold: { ...base.scaffold } };
-  return {
-    ...base,
-    ...override,
-    scaffold: mergeSection(base.scaffold || {}, override.scaffold || {}),
-  };
+  if (!override) return { ...base };
+  return { ...base, ...override };
 }
 
 export function mergeDiffusionConfig(baseConfig, overrideConfig) {
@@ -105,19 +101,15 @@ export function initializeDiffusion(manifest, runtimeConfig) {
     ...runtimeBase,
     scheduler: mergeSchedulerConfig(modelConfig, runtimeBase.scheduler),
   };
-  if (
-    runtime.backend?.pipeline !== 'cpu'
-    && runtime.backend?.pipeline !== 'gpu_scaffold'
-    && runtime.backend?.pipeline !== 'gpu'
-  ) {
+  if (runtime.backend?.pipeline !== 'gpu') {
     throw new Error(
-      `Diffusion runtime backend.pipeline must be one of cpu|gpu_scaffold|gpu; got "${runtime.backend?.pipeline}".`
+      `Diffusion runtime backend.pipeline must be "gpu"; got "${runtime.backend?.pipeline}".`
     );
   }
-  if (modelConfig?.components?.transformer && runtime.backend?.pipeline === 'cpu') {
+  const transformerConfig = modelConfig?.components?.transformer?.config || null;
+  if (!transformerConfig) {
     throw new Error(
-      'Diffusion model includes transformer component, but runtime.inference.diffusion.backend.pipeline="cpu". ' +
-      'Set backend.pipeline to "gpu" or "gpu_scaffold".'
+      'Diffusion runtime requires manifest.config.diffusion.components.transformer.config for GPU execution.'
     );
   }
   const latentScale = resolveLatentScale(modelConfig, runtime);

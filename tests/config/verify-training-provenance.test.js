@@ -103,7 +103,47 @@ function runNodeScript(args) {
       checkpointPath,
     ]);
     assert.equal(result.code, 1);
-    assert.match(result.stderr, /checkpoint\.metadata\.lineage must be an object\./);
+    assert.match(result.stderr, /checkpoint\.metadata\.configHash must be a non-empty string\./);
+  } finally {
+    rmSync(tempDir, { recursive: true, force: true });
+  }
+}
+
+{
+  const tempDir = mkdtempSync(path.join(tmpdir(), 'doppler-provenance-invalid-checkpoint-metadata-test-'));
+  try {
+    const reportPath = path.join(tempDir, 'report.json');
+    const checkpointPath = path.join(tempDir, 'checkpoint.json');
+    writeFileSync(reportPath, JSON.stringify({
+      suite: 'training',
+      modelId: 'toy-model',
+      metrics: null,
+      lineage: {
+        training: {
+          checkpointResumeTimeline: [],
+        },
+      },
+    }, null, 2), 'utf8');
+    writeFileSync(checkpointPath, JSON.stringify({
+      metadata: {
+        lineage: {
+          checkpointKey: 'training.latest.checkpoint',
+          sequence: 1,
+          previousCheckpointHash: null,
+        },
+        checkpointHash: 'abc',
+        timestamp: Date.now(),
+      },
+    }, null, 2), 'utf8');
+    const result = runNodeScript([
+      'tools/verify-training-provenance.mjs',
+      '--report',
+      reportPath,
+      '--checkpoint',
+      checkpointPath,
+    ]);
+    assert.equal(result.code, 1);
+    assert.match(result.stderr, /checkpoint\.metadata\.configHash must be a non-empty string\./);
   } finally {
     rmSync(tempDir, { recursive: true, force: true });
   }

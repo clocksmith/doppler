@@ -16,14 +16,16 @@ Outputs:
 - replay timeline payload
 - branch-compare payload
 - mini-eval pulse payload
+- traceability envelope with teacher/student report ids and optional workload pack hash/id
 
 ## Operator commands
 
 ```bash
-node tools/distill-studio-mvp.mjs replay-teacher --teacher <teacher-report.json> --out reports/distill-studio/replay.json
-node tools/distill-studio-mvp.mjs branch-compare --teacher <teacher-report.json> --student <student-report.json> --out reports/distill-studio/compare.json
-node tools/distill-studio-mvp.mjs mini-eval --teacher <teacher-report.json> --student <student-report.json> --holdout <holdout.json> --out reports/distill-studio/mini-eval.json
+node tools/distill-studio-mvp.mjs replay-teacher --teacher <teacher-report.json> --workload-pack tools/configs/training-workloads/distill-translategemma-tiny.json --out reports/distill-studio/replay.json
+node tools/distill-studio-mvp.mjs branch-compare --teacher <teacher-report.json> --student <student-report.json> --workload-pack tools/configs/training-workloads/distill-translategemma-tiny.json --out reports/distill-studio/compare.json
+node tools/distill-studio-mvp.mjs mini-eval --teacher <teacher-report.json> --student <student-report.json> --holdout <holdout.json> --workload-pack tools/configs/training-workloads/distill-translategemma-tiny.json --out reports/distill-studio/mini-eval.json
 node tools/distill-studio-diagnostics.mjs --report <report.json>
+node tools/distill-studio-quality-gate.mjs --report <report.json> --out-dir <dir>
 ```
 
 ## Rollout stages
@@ -50,3 +52,9 @@ node tools/distill-studio-diagnostics.mjs --report <report.json>
 
 Distill Studio is deterministic, contract-validated operator tooling.
 It is not a full interactive UI runtime.
+
+## Claim traceability requirements
+
+- Distill Studio outputs must carry report-id traceability in payloads.
+- If `--workload-pack` is supplied, workload pack hash/id must be included.
+- Distill quality-gate outputs must be generated before a claim is marked publishable.

@@ -20,11 +20,19 @@ import {
   normalizeP2PTransportResult,
   isP2PTransportRetryable,
 } from './p2p-transport-contract.js';
+import {
+  normalizeP2PControlPlaneConfig,
+  resolveP2PSessionToken,
+  evaluateP2PPolicyDecision,
+} from './p2p-control-plane.js';
+import { createBrowserWebRTCDataPlaneTransport } from './p2p-webrtc-browser.js';
 
 const DISTRIBUTION_SOURCE_CACHE = 'cache';
 const DISTRIBUTION_SOURCE_P2P = 'p2p';
 const DISTRIBUTION_SOURCE_HTTP = 'http';
 const DISTRIBUTION_DECISION_TRACE_SCHEMA_VERSION = 1;
+const DISTRIBUTION_DELIVERY_METRICS_SCHEMA_VERSION = 1;
+const DISTRIBUTION_DELIVERY_METRICS_EVENT_SCHEMA_VERSION = 1;
 
 const DISTRIBUTION_SOURCES = Object.freeze(
   [...DEFAULT_DISTRIBUTION_CONFIG.sourceOrder]
@@ -38,8 +46,13 @@ const DEFAULT_SOURCE_MATRIX = Object.freeze({
 const DEFAULT_P2P_TIMEOUT_MS = DEFAULT_DISTRIBUTION_CONFIG.p2p.timeoutMs;
 const DEFAULT_P2P_MAX_RETRIES = DEFAULT_DISTRIBUTION_CONFIG.p2p.maxRetries;
 const DEFAULT_P2P_RETRY_DELAY_MS = DEFAULT_DISTRIBUTION_CONFIG.p2p.retryDelayMs;
+const DEFAULT_P2P_RATE_LIMIT_PER_MINUTE = DEFAULT_DISTRIBUTION_CONFIG.p2p.abuse.rateLimitPerMinute;
+const DEFAULT_P2P_MAX_CONSECUTIVE_FAILURES = DEFAULT_DISTRIBUTION_CONFIG.p2p.abuse.maxConsecutiveFailures;
+const DEFAULT_P2P_QUARANTINE_MS = DEFAULT_DISTRIBUTION_CONFIG.p2p.abuse.quarantineMs;
+const DEFAULT_P2P_CONTROL_PLANE_TOKEN_REFRESH_SKEW_MS = DEFAULT_DISTRIBUTION_CONFIG.p2p.controlPlane.tokenRefreshSkewMs;
 
 const inFlightDeliveries = new Map();
+const p2pTransportPolicyState = new WeakMap();
 
 function normalizeDistributionSourceOrder(rawSources = []) {
   if (!Array.isArray(rawSources)) {
@@ -80,6 +93,66 @@ function normalizeManifestVersionSet(value) {
   if (value === undefined || value === null) return null;
   const normalized = String(value).trim();
   return normalized || null;
+}
+
+function normalizeSamplingRate(value, fallback = 1) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) {
+    return fallback;
+  }
+  if (parsed <= 0) return 0;
+  if (parsed >= 1) return 1;
+  return parsed;
+}
+
+function normalizeOptionalToken(value) {
+  if (value === undefined || value === null) {
+    return null;
+  }
+  const normalized = String(value).trim();
+  return normalized || null;
+}
+
+function normalizeOptionalTimestamp(value) {
+  if (value === undefined || value === null) {
+    return null;
+  }
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return null;
+  }
+  return Math.floor(parsed);
+}
+
+function hashStringToUnitInterval(value) {
+  let hash = 2166136261;
+  for (let i = 0; i < value.length; i += 1) {
+    hash ^= value.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0) / 4294967295;
+}
+
+function shouldEmitDecisionTrace(config, shardIndex, expectedManifestVersionSet, sourceOrder) {
+  if (config.enabled !== true) {
+    return false;
+  }
+  const samplingRate = normalizeSamplingRate(config.samplingRate, 1);
+  if (samplingRate >= 1) {
+    return true;
+  }
+  if (samplingRate <= 0) {
+    return false;
+  }
+  if (config.deterministic !== false) {
+    const seed = [
+      String(shardIndex),
+      normalizeManifestVersionSet(expectedManifestVersionSet) ?? '',
+      Array.isArray(sourceOrder) ? sourceOrder.join(',') : '',
+    ].join('|');
+    return hashStringToUnitInterval(seed) < samplingRate;
+  }
+  return Math.random() < samplingRate;
 }
 
 function createShardSizeMismatchError(message, details = {}) {
@@ -300,6 +373,57 @@ function assertP2PTotalSize(shardIndex, totalSize, expectedSize) {
   }
 }
 
+function assertP2PPayloadBoundary(
+  shardIndex,
+  rangeStart,
+  payloadBytes,
+  totalSize,
+  writeToStore
+) {
+  if (totalSize == null) {
+    return;
+  }
+  if (!Number.isInteger(rangeStart) || rangeStart < 0) {
+    throw createShardSizeMismatchError(
+      `Shard ${shardIndex} p2p payload rangeStart must be a non-negative integer for boundary checks.`,
+      {
+        code: 'p2p_payload_range_start_invalid',
+        rangeStart,
+      }
+    );
+  }
+  if (!Number.isInteger(payloadBytes) || payloadBytes < 0) {
+    throw createShardSizeMismatchError(
+      `Shard ${shardIndex} p2p payload size must be a non-negative integer for boundary checks.`,
+      {
+        code: 'p2p_payload_size_invalid',
+        payloadBytes,
+      }
+    );
+  }
+  if (rangeStart + payloadBytes > totalSize) {
+    throw createShardSizeMismatchError(
+      `Shard ${shardIndex} p2p payload exceeds total size: start=${rangeStart}, bytes=${payloadBytes}, total=${totalSize}.`,
+      {
+        code: 'p2p_payload_exceeds_total',
+        rangeStart,
+        payloadBytes,
+        totalSize,
+      }
+    );
+  }
+  if (!writeToStore && rangeStart === 0 && payloadBytes !== totalSize) {
+    throw createShardSizeMismatchError(
+      `Shard ${shardIndex} p2p payload size mismatch: expected ${totalSize}, got ${payloadBytes}.`,
+      {
+        code: 'p2p_payload_size_mismatch',
+        payloadBytes,
+        totalSize,
+      }
+    );
+  }
+}
+
 function assertRequiredContentEncoding(response, requiredEncoding, context) {
   if (!requiredEncoding) return;
   const required = requiredEncoding.trim().toLowerCase();
@@ -328,8 +452,23 @@ function normalizeP2PConfig(config = {}) {
   const rawTimeoutMs = config?.timeoutMs;
   const rawMaxRetries = config?.maxRetries;
   const rawRetryDelayMs = config?.retryDelayMs;
+  const rawSecurity = config?.security && typeof config.security === 'object'
+    ? config.security
+    : {};
+  const rawAbuse = config?.abuse && typeof config.abuse === 'object'
+    ? config.abuse
+    : {};
+  const rawControlPlane = config?.controlPlane && typeof config.controlPlane === 'object'
+    ? config.controlPlane
+    : {};
+  const rawWebRTC = config?.webrtc && typeof config.webrtc === 'object'
+    ? config.webrtc
+    : {};
 
   let transport = config?.transport;
+  if (typeof transport !== 'function' && rawWebRTC.enabled === true) {
+    transport = createBrowserWebRTCDataPlaneTransport(rawWebRTC);
+  }
   if (typeof transport !== 'function') {
     transport = null;
   }
@@ -345,7 +484,241 @@ function normalizeP2PConfig(config = {}) {
     retryDelayMs: normalizeInteger(rawRetryDelayMs, DEFAULT_P2P_RETRY_DELAY_MS, true),
     transport,
     contractVersion,
+    controlPlane: normalizeP2PControlPlaneConfig({
+      ...DEFAULT_DISTRIBUTION_CONFIG.p2p.controlPlane,
+      ...rawControlPlane,
+      tokenRefreshSkewMs: normalizeInteger(
+        rawControlPlane.tokenRefreshSkewMs,
+        DEFAULT_P2P_CONTROL_PLANE_TOKEN_REFRESH_SKEW_MS,
+        true
+      ),
+    }),
+    security: {
+      requireSessionToken: rawSecurity.requireSessionToken === true,
+      sessionToken: normalizeOptionalToken(rawSecurity.sessionToken),
+      tokenExpiresAtMs: normalizeOptionalTimestamp(rawSecurity.tokenExpiresAtMs),
+    },
+    abuse: {
+      rateLimitPerMinute: normalizeInteger(
+        rawAbuse.rateLimitPerMinute,
+        DEFAULT_P2P_RATE_LIMIT_PER_MINUTE,
+        true
+      ),
+      maxConsecutiveFailures: normalizeInteger(
+        rawAbuse.maxConsecutiveFailures,
+        DEFAULT_P2P_MAX_CONSECUTIVE_FAILURES
+      ),
+      quarantineMs: normalizeInteger(
+        rawAbuse.quarantineMs,
+        DEFAULT_P2P_QUARANTINE_MS,
+        true
+      ),
+    },
   };
+}
+
+function getP2PTransportPolicyState(transport) {
+  if (typeof transport !== 'function') {
+    return null;
+  }
+  let state = p2pTransportPolicyState.get(transport);
+  if (!state) {
+    state = {
+      requestTimestamps: [],
+      consecutiveFailures: 0,
+      quarantinedUntilMs: 0,
+    };
+    p2pTransportPolicyState.set(transport, state);
+  }
+  return state;
+}
+
+function createP2PPolicyDeniedError(message, details = {}) {
+  return createP2PTransportError(
+    P2P_TRANSPORT_ERROR_CODES.policyDenied,
+    message,
+    details,
+    false
+  );
+}
+
+function isSessionTokenExpiredOrExpiring(tokenExpiresAtMs, nowMs = Date.now(), skewMs = 0) {
+  if (!Number.isFinite(tokenExpiresAtMs)) {
+    return false;
+  }
+  const threshold = nowMs + Math.max(0, Math.floor(skewMs));
+  return threshold >= tokenExpiresAtMs;
+}
+
+function applyControlPlaneSessionUpdate(p2pConfig, sessionUpdate) {
+  if (!sessionUpdate || !p2pConfig?.security) {
+    return;
+  }
+  if (sessionUpdate.hasSessionToken === true) {
+    p2pConfig.security.sessionToken = normalizeOptionalToken(sessionUpdate.sessionToken);
+  }
+  if (sessionUpdate.hasTokenExpiresAtMs === true) {
+    p2pConfig.security.tokenExpiresAtMs = normalizeOptionalTimestamp(sessionUpdate.tokenExpiresAtMs);
+  }
+}
+
+async function refreshP2PSessionTokenFromControlPlane(p2pConfig, context, nowMs = Date.now()) {
+  const controlPlane = p2pConfig?.controlPlane;
+  if (!controlPlane?.enabled || typeof controlPlane.tokenProvider !== 'function') {
+    return;
+  }
+
+  const requiresSessionToken = p2pConfig?.security?.requireSessionToken === true;
+  const token = p2pConfig?.security?.sessionToken ?? null;
+  const tokenExpiresAtMs = p2pConfig?.security?.tokenExpiresAtMs ?? null;
+  let reason = null;
+
+  if (requiresSessionToken && !token) {
+    reason = 'missing';
+  } else if (isSessionTokenExpiredOrExpiring(tokenExpiresAtMs, nowMs, 0)) {
+    reason = 'expired';
+  } else if (
+    isSessionTokenExpiredOrExpiring(tokenExpiresAtMs, nowMs, controlPlane.tokenRefreshSkewMs)
+  ) {
+    reason = 'refresh';
+  }
+
+  if (!reason) {
+    return;
+  }
+
+  const sessionUpdate = await resolveP2PSessionToken(controlPlane, {
+    ...context,
+    reason,
+    nowMs,
+    currentSessionToken: token,
+    currentTokenExpiresAtMs: tokenExpiresAtMs,
+  });
+  applyControlPlaneSessionUpdate(p2pConfig, sessionUpdate);
+
+  if (requiresSessionToken && !p2pConfig.security.sessionToken) {
+    throw createP2PPolicyDeniedError(
+      `P2P shard ${context?.shardIndex} requires a session token from control plane.`,
+      {
+        shardIndex: context?.shardIndex ?? null,
+        policyReason: 'session_token_missing_after_refresh',
+      }
+    );
+  }
+}
+
+async function enforceP2PControlPlanePolicy(p2pConfig, context, nowMs = Date.now()) {
+  const controlPlane = p2pConfig?.controlPlane;
+  if (!controlPlane?.enabled || typeof controlPlane.policyEvaluator !== 'function') {
+    return;
+  }
+  const decision = await evaluateP2PPolicyDecision(controlPlane, {
+    ...context,
+    nowMs,
+    currentSessionToken: p2pConfig?.security?.sessionToken ?? null,
+    currentTokenExpiresAtMs: p2pConfig?.security?.tokenExpiresAtMs ?? null,
+  });
+  applyControlPlaneSessionUpdate(p2pConfig, decision.sessionUpdate);
+  if (decision.allow !== false) {
+    return;
+  }
+  throw createP2PPolicyDeniedError(
+    `P2P shard ${context?.shardIndex} denied by control-plane policy.`,
+    {
+      shardIndex: context?.shardIndex ?? null,
+      policyReason: decision.reason ?? 'policy_denied_control_plane',
+      controlPlaneMetadata: decision.metadata ?? null,
+    }
+  );
+}
+
+function enforceP2PSecurityAndAbusePolicy(p2pConfig, state, shardIndex, nowMs = Date.now()) {
+  const security = p2pConfig?.security ?? {};
+  const abuse = p2pConfig?.abuse ?? {};
+
+  if (security.requireSessionToken === true && !security.sessionToken) {
+    throw createP2PPolicyDeniedError(
+      `P2P shard ${shardIndex} requires a session token.`,
+      {
+        shardIndex,
+        policyReason: 'session_token_missing',
+      }
+    );
+  }
+  if (
+    Number.isFinite(security.tokenExpiresAtMs)
+    && nowMs >= security.tokenExpiresAtMs
+  ) {
+    throw createP2PPolicyDeniedError(
+      `P2P shard ${shardIndex} session token expired.`,
+      {
+        shardIndex,
+        policyReason: 'session_token_expired',
+        tokenExpiresAtMs: security.tokenExpiresAtMs,
+      }
+    );
+  }
+
+  if (!state) {
+    return;
+  }
+
+  if (Number.isFinite(state.quarantinedUntilMs) && nowMs < state.quarantinedUntilMs) {
+    throw createP2PPolicyDeniedError(
+      `P2P shard ${shardIndex} transport is quarantined.`,
+      {
+        shardIndex,
+        policyReason: 'transport_quarantined',
+        quarantinedUntilMs: state.quarantinedUntilMs,
+      }
+    );
+  }
+
+  const limit = Number.isFinite(abuse.rateLimitPerMinute)
+    ? Math.max(0, Math.floor(abuse.rateLimitPerMinute))
+    : 0;
+  if (limit > 0) {
+    const cutoff = nowMs - 60000;
+    state.requestTimestamps = state.requestTimestamps.filter((stamp) => stamp >= cutoff);
+    if (state.requestTimestamps.length >= limit) {
+      throw createP2PPolicyDeniedError(
+        `P2P shard ${shardIndex} transport rate limit exceeded.`,
+        {
+          shardIndex,
+          policyReason: 'rate_limited',
+          rateLimitPerMinute: limit,
+        }
+      );
+    }
+    state.requestTimestamps.push(nowMs);
+  }
+}
+
+function markP2PTransportSuccess(state) {
+  if (!state) {
+    return;
+  }
+  state.consecutiveFailures = 0;
+  state.quarantinedUntilMs = 0;
+}
+
+function markP2PTransportFailure(p2pConfig, state, normalizedError, nowMs = Date.now()) {
+  if (!state) {
+    return;
+  }
+  if (!normalizedError || normalizedError.code === P2P_TRANSPORT_ERROR_CODES.aborted) {
+    return;
+  }
+  const maxFailures = Number.isFinite(p2pConfig?.abuse?.maxConsecutiveFailures)
+    ? Math.max(1, Math.floor(p2pConfig.abuse.maxConsecutiveFailures))
+    : DEFAULT_P2P_MAX_CONSECUTIVE_FAILURES;
+  const quarantineMs = Number.isFinite(p2pConfig?.abuse?.quarantineMs)
+    ? Math.max(0, Math.floor(p2pConfig.abuse.quarantineMs))
+    : DEFAULT_P2P_QUARANTINE_MS;
+  state.consecutiveFailures += 1;
+  if (quarantineMs > 0 && state.consecutiveFailures >= maxFailures) {
+    state.quarantinedUntilMs = nowMs + quarantineMs;
+  }
 }
 
 function normalizeAntiRollbackConfig(config = {}) {
@@ -371,6 +744,7 @@ function normalizeDecisionTraceConfig(config = {}) {
     deterministic: sourceDecision.deterministic !== false,
     enabled: trace.enabled === true,
     includeSkippedSources: trace.includeSkippedSources !== false,
+    samplingRate: normalizeSamplingRate(trace.samplingRate, 1),
   };
 }
 
@@ -431,6 +805,121 @@ function attachDecisionTrace(result, trace) {
     ...result,
     decisionTrace: trace,
   };
+}
+
+function createSourceCounter() {
+  return {
+    cache: 0,
+    p2p: 0,
+    http: 0,
+  };
+}
+
+function createLatencySummary(durations) {
+  const values = durations.filter((value) => Number.isFinite(value));
+  if (values.length === 0) {
+    return {
+      count: 0,
+      min: null,
+      max: null,
+      avg: null,
+    };
+  }
+  let sum = 0;
+  let min = Number.POSITIVE_INFINITY;
+  let max = Number.NEGATIVE_INFINITY;
+  for (const value of values) {
+    sum += value;
+    if (value < min) min = value;
+    if (value > max) max = value;
+  }
+  return {
+    count: values.length,
+    min,
+    max,
+    avg: sum / values.length,
+  };
+}
+
+function appendAttemptLogAttempt(logEntries, entry) {
+  if (!Array.isArray(logEntries)) return;
+  logEntries.push({
+    source: entry.source,
+    status: entry.status,
+    code: entry.code ?? null,
+    durationMs: Number.isFinite(entry.durationMs) ? entry.durationMs : null,
+    writeDurationMs: Number.isFinite(entry.writeDurationMs) ? entry.writeDurationMs : null,
+  });
+}
+
+function createDeliveryMetrics(order, result, attempts, totalDurationMs) {
+  const sourceAttempts = createSourceCounter();
+  const retries = createSourceCounter();
+  const failureCodes = {};
+  const p2pDurations = [];
+  const httpDurations = [];
+  let storageWriteMs = Number.isFinite(result?.writeDurationMs) ? result.writeDurationMs : null;
+  let attemptCount = 0;
+  const attemptsBySource = createSourceCounter();
+
+  for (const attempt of attempts) {
+    if (attempt?.status !== 'success' && attempt?.status !== 'failed') {
+      continue;
+    }
+    attemptCount += 1;
+    const source = attempt?.source;
+    if (source === DISTRIBUTION_SOURCE_CACHE || source === DISTRIBUTION_SOURCE_P2P || source === DISTRIBUTION_SOURCE_HTTP) {
+      sourceAttempts[source] += 1;
+      attemptsBySource[source] += 1;
+      if (source === DISTRIBUTION_SOURCE_P2P && Number.isFinite(attempt.durationMs)) {
+        p2pDurations.push(attempt.durationMs);
+      }
+      if (source === DISTRIBUTION_SOURCE_HTTP && Number.isFinite(attempt.durationMs)) {
+        httpDurations.push(attempt.durationMs);
+      }
+    }
+    if (attempt.status === 'failed') {
+      const code = typeof attempt.code === 'string' && attempt.code
+        ? attempt.code
+        : 'unknown';
+      failureCodes[code] = (failureCodes[code] ?? 0) + 1;
+    }
+    if (storageWriteMs == null && Number.isFinite(attempt.writeDurationMs)) {
+      storageWriteMs = attempt.writeDurationMs;
+    }
+  }
+
+  for (const source of [DISTRIBUTION_SOURCE_CACHE, DISTRIBUTION_SOURCE_P2P, DISTRIBUTION_SOURCE_HTTP]) {
+    retries[source] = Math.max(0, attemptsBySource[source] - 1);
+  }
+
+  return {
+    schemaVersion: DISTRIBUTION_DELIVERY_METRICS_SCHEMA_VERSION,
+    totalDurationMs: Number.isFinite(totalDurationMs) ? totalDurationMs : 0,
+    sourceOrder: Array.isArray(order) ? [...order] : [...DISTRIBUTION_SOURCES],
+    successSource: result?.source ?? null,
+    attemptCount,
+    sourceAttempts,
+    retries,
+    failureCodes,
+    p2pRttMs: createLatencySummary(p2pDurations),
+    httpRttMs: createLatencySummary(httpDurations),
+    storageWriteMs,
+  };
+}
+
+async function emitDeliveryMetricsHook(hook, payload) {
+  if (typeof hook !== 'function') {
+    return;
+  }
+  try {
+    await hook(payload);
+  } catch (error) {
+    log.warn(
+      'Distribution',
+      `delivery metrics hook failed: ${error?.message || String(error)}`
+    );
+  }
 }
 
 function assertExpectedHash(resultHash, expectedHash, shardIndex) {
@@ -502,6 +991,7 @@ function parseDownloadOptions(options = {}) {
   return {
     algorithm: options.algorithm,
     onProgress: options.onProgress ?? null,
+    onDeliveryMetrics: options.onDeliveryMetrics ?? null,
     signal: options.signal,
     requiredEncoding: options.requiredEncoding ?? null,
     writeToStore: options.writeToStore ?? false,
@@ -686,6 +1176,7 @@ async function createHttpTransferState(writeToStore, shardIndex, algorithm, resu
       : null,
     writerClosed: false,
     receivedBytes: normalizedResumeOffset,
+    writeDurationMs: 0,
   };
 }
 
@@ -696,13 +1187,16 @@ async function resetHttpTransferState(state, writeToStore, shardIndex, algorithm
   state.writer = writeToStore ? await createShardWriter(shardIndex) : null;
   state.writerClosed = false;
   state.receivedBytes = 0;
+  state.writeDurationMs = 0;
 }
 
 async function appendHttpTransferChunk(state, chunk) {
   const bytes = chunk instanceof Uint8Array ? chunk : new Uint8Array(chunk);
   state.hasher.update(bytes);
   if (state.writer) {
+    const writeStart = performance.now();
     await state.writer.write(bytes);
+    state.writeDurationMs += performance.now() - writeStart;
   } else if (state.chunks) {
     state.chunks.push(bytes.slice(0));
   }
@@ -713,8 +1207,10 @@ async function finalizeHttpTransferState(state, startTime, shardIndex) {
   const hashBytes = await state.hasher.finalize();
   const hash = bytesToHex(hashBytes);
   if (state.writer) {
+    const closeStart = performance.now();
     await state.writer.close();
     state.writerClosed = true;
+    state.writeDurationMs += performance.now() - closeStart;
     const elapsed = (performance.now() - startTime) / 1000;
     const speed = elapsed > 0 ? state.receivedBytes / elapsed : 0;
     const speedDisplay = `${(speed / (1024 * 1024)).toFixed(2)}MB/s`;
@@ -729,6 +1225,7 @@ async function finalizeHttpTransferState(state, startTime, shardIndex) {
       wrote: true,
       source: DISTRIBUTION_SOURCE_HTTP,
       path: 'http-stream-store',
+      writeDurationMs: state.writeDurationMs,
     };
   }
 
@@ -742,6 +1239,7 @@ async function finalizeHttpTransferState(state, startTime, shardIndex) {
     wrote: false,
     source: DISTRIBUTION_SOURCE_HTTP,
     path: 'http-stream-buffer',
+    writeDurationMs: null,
   };
 }
 
@@ -757,8 +1255,10 @@ async function persistHttpTransferState(state) {
     return;
   }
   if (state.receivedBytes > 0) {
+    const closeStart = performance.now();
     await state.writer.close();
     state.writerClosed = true;
+    state.writeDurationMs += performance.now() - closeStart;
     return;
   }
   await state.writer.abort?.();
@@ -1017,6 +1517,7 @@ async function downloadShardFromP2P(shardIndex, shardInfo, p2pConfig, options = 
       { shardIndex }
     );
   }
+  const transportState = getP2PTransportPolicyState(transport);
 
   const writeToStore = options.writeToStore === true;
   const algorithm = options.algorithm;
@@ -1027,21 +1528,24 @@ async function downloadShardFromP2P(shardIndex, shardInfo, p2pConfig, options = 
   const expectedSize = Number.isFinite(options.expectedSize)
     ? Math.floor(options.expectedSize)
     : null;
+  const disablePersistedResume = options.__disablePersistedResume === true;
   let seededResumeOffset = 0;
   let transferState = null;
   if (writeToStore) {
-    try {
-      seededResumeOffset = await resolvePersistedResumeOffset(
-        true,
-        shardIndex,
-        expectedSize
-      );
-    } catch (error) {
-      if (error?.code === 'resume_state_oversize') {
-        await clearPersistedShardState(shardIndex);
-        seededResumeOffset = 0;
-      } else {
-        throw error;
+    if (!disablePersistedResume) {
+      try {
+        seededResumeOffset = await resolvePersistedResumeOffset(
+          true,
+          shardIndex,
+          expectedSize
+        );
+      } catch (error) {
+        if (error?.code === 'resume_state_oversize') {
+          await clearPersistedShardState(shardIndex);
+          seededResumeOffset = 0;
+        } else {
+          throw error;
+        }
       }
     }
     try {
@@ -1061,6 +1565,7 @@ async function downloadShardFromP2P(shardIndex, shardInfo, p2pConfig, options = 
       }
     }
   }
+  const startedWithResume = writeToStore && seededResumeOffset > 0;
 
   const startTime = performance.now();
   let lastError = null;
@@ -1068,6 +1573,32 @@ async function downloadShardFromP2P(shardIndex, shardInfo, p2pConfig, options = 
   for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
     try {
       const requestResumeOffset = transferState?.receivedBytes ?? 0;
+      const nowMs = Date.now();
+      const attemptContext = {
+        shardIndex,
+        attempt,
+        maxRetries,
+        resumeOffset: requestResumeOffset,
+        expectedHash: options.expectedHash ?? null,
+        expectedSize: options.expectedSize ?? null,
+        expectedManifestVersionSet: options.expectedManifestVersionSet ?? null,
+      };
+      await refreshP2PSessionTokenFromControlPlane(
+        p2pConfig,
+        attemptContext,
+        nowMs
+      );
+      await enforceP2PControlPlanePolicy(
+        p2pConfig,
+        attemptContext,
+        nowMs
+      );
+      enforceP2PSecurityAndAbusePolicy(
+        p2pConfig,
+        transportState,
+        shardIndex,
+        nowMs
+      );
       const transportResult = await withTimeout(
         transport({
           shardIndex,
@@ -1103,61 +1634,113 @@ async function downloadShardFromP2P(shardIndex, shardInfo, p2pConfig, options = 
       assertP2PTotalSize(shardIndex, payloadTotalSize, expectedSize);
 
       const onProgress = options.onProgress ?? null;
-      return {
-        ...(await (async () => {
-          if (!writeToStore) {
-            assertP2PPayloadRangeStart(shardIndex, payloadRangeStart, 0);
-            onProgress?.({
-              shardIndex,
-              receivedBytes: payload.data.byteLength,
-              totalBytes: expectedSize ?? payloadTotalSize ?? payload.data.byteLength,
-              percent: 100,
-            });
-            return {
-              buffer: payload.data,
-              bytes: payload.data.byteLength,
-              source: DISTRIBUTION_SOURCE_P2P,
-              path: 'p2p-transport',
-              wrote: false,
-            };
-          }
-
-          let effectiveRangeStart = payloadRangeStart;
-          if (effectiveRangeStart == null) {
-            effectiveRangeStart = requestResumeOffset;
-          }
-          if (requestResumeOffset > 0 && effectiveRangeStart === 0) {
-            await resetHttpTransferState(transferState, true, shardIndex, algorithm);
-          } else {
-            assertP2PPayloadRangeStart(
-              shardIndex,
-              effectiveRangeStart,
-              transferState.receivedBytes
-            );
-          }
-          await appendHttpTransferChunk(transferState, new Uint8Array(payload.data));
+      const transferResult = await (async () => {
+        if (!writeToStore) {
+          assertP2PPayloadRangeStart(shardIndex, payloadRangeStart, 0);
+          assertP2PPayloadBoundary(
+            shardIndex,
+            0,
+            payload.data.byteLength,
+            payloadTotalSize,
+            false
+          );
           onProgress?.({
             shardIndex,
-            receivedBytes: transferState.receivedBytes,
-            totalBytes: expectedSize ?? payloadTotalSize ?? transferState.receivedBytes,
+            receivedBytes: payload.data.byteLength,
+            totalBytes: expectedSize ?? payloadTotalSize ?? payload.data.byteLength,
             percent: 100,
           });
-          const finalized = await finalizeHttpTransferState(transferState, startTime, shardIndex);
-          if (Number.isFinite(expectedSize)) {
-            assertExpectedSize(finalized.bytes, expectedSize, shardIndex);
-          } else if (Number.isInteger(payloadTotalSize)) {
-            assertExpectedSize(finalized.bytes, payloadTotalSize, shardIndex);
-          }
           return {
-            ...finalized,
+            buffer: payload.data,
+            bytes: payload.data.byteLength,
             source: DISTRIBUTION_SOURCE_P2P,
-            path: 'p2p-stream-store',
+            path: 'p2p-transport',
+            wrote: false,
+            writeDurationMs: null,
           };
-        })()),
+        }
+
+        let effectiveRangeStart = payloadRangeStart;
+        if (effectiveRangeStart == null) {
+          effectiveRangeStart = requestResumeOffset;
+        }
+        if (requestResumeOffset > 0 && effectiveRangeStart === 0) {
+          await resetHttpTransferState(transferState, true, shardIndex, algorithm);
+        } else {
+          assertP2PPayloadRangeStart(
+            shardIndex,
+            effectiveRangeStart,
+            transferState.receivedBytes
+          );
+        }
+        assertP2PPayloadBoundary(
+          shardIndex,
+          effectiveRangeStart,
+          payload.data.byteLength,
+          payloadTotalSize,
+          true
+        );
+        await appendHttpTransferChunk(transferState, new Uint8Array(payload.data));
+        onProgress?.({
+          shardIndex,
+          receivedBytes: transferState.receivedBytes,
+          totalBytes: expectedSize ?? payloadTotalSize ?? transferState.receivedBytes,
+          percent: 100,
+        });
+        const finalized = await finalizeHttpTransferState(transferState, startTime, shardIndex);
+        if (Number.isFinite(expectedSize)) {
+          assertExpectedSize(finalized.bytes, expectedSize, shardIndex);
+        } else if (Number.isInteger(payloadTotalSize)) {
+          assertExpectedSize(finalized.bytes, payloadTotalSize, shardIndex);
+        }
+        return {
+          ...finalized,
+          source: DISTRIBUTION_SOURCE_P2P,
+          path: 'p2p-stream-store',
+        };
+      })();
+      const result = {
+        ...transferResult,
         manifestVersionSet: normalizeManifestVersionSet(
           payload.manifestVersionSet ?? options.expectedManifestVersionSet
         ),
       };
+      if (!result.hash && result.buffer instanceof ArrayBuffer) {
+        result.hash = await computeHash(result.buffer, options.algorithm);
+      }
+      if (writeToStore) {
+        try {
+          assertExpectedManifestVersionSet(
+            result.manifestVersionSet,
+            options.expectedManifestVersionSet,
+            shardIndex,
+            DISTRIBUTION_SOURCE_P2P
+          );
+          if (Number.isFinite(expectedSize)) {
+            assertExpectedSize(result.bytes, expectedSize, shardIndex);
+          }
+          if (options.expectedHash) {
+            assertExpectedHash(result.hash, options.expectedHash, shardIndex);
+          }
+        } catch (verificationError) {
+          await clearPersistedShardState(shardIndex);
+          if (
+            startedWithResume
+            && options.__resumeRecoveryAttempted !== true
+            && options.expectedHash
+            && verificationError?.code === 'hash_mismatch'
+          ) {
+            return downloadShardFromP2P(shardIndex, shardInfo, p2pConfig, {
+              ...options,
+              __disablePersistedResume: true,
+              __resumeRecoveryAttempted: true,
+            });
+          }
+          throw verificationError;
+        }
+      }
+      markP2PTransportSuccess(transportState);
+      return result;
     } catch (error) {
       if (typeof error?.code === 'string' && error.code.startsWith('p2p_')) {
         if (writeToStore) {
@@ -1173,6 +1756,12 @@ async function downloadShardFromP2P(shardIndex, shardInfo, p2pConfig, options = 
         label: `P2P shard ${shardIndex}`,
       });
       lastError = normalized;
+      markP2PTransportFailure(
+        p2pConfig,
+        transportState,
+        normalized,
+        Date.now()
+      );
       if (normalized?.code === P2P_TRANSPORT_ERROR_CODES.aborted) {
         if (writeToStore) {
           await persistHttpTransferState(transferState);
@@ -1206,7 +1795,8 @@ async function executeDeliveryPlan(
   options,
   trace,
   decisionTraceConfig,
-  sourceMatrix
+  sourceMatrix,
+  attemptLog
 ) {
   let lastError = null;
   const enabledSources = plan.filter((entry) => entry.enabled);
@@ -1220,6 +1810,10 @@ async function executeDeliveryPlan(
           reason: step.reason,
         });
       }
+      appendAttemptLogAttempt(attemptLog, {
+        source: step.source,
+        status: 'skipped',
+      });
       continue;
     }
 
@@ -1241,6 +1835,7 @@ async function executeDeliveryPlan(
           source: DISTRIBUTION_SOURCE_CACHE,
           path: 'cache',
           manifestVersionSet: options.expectedManifestVersionSet ?? null,
+          writeDurationMs: null,
         };
       } else if (step.source === DISTRIBUTION_SOURCE_P2P) {
         result = await downloadShardFromP2P(shardIndex, shardInfo, p2p, options);
@@ -1272,6 +1867,12 @@ async function executeDeliveryPlan(
         path: result.path,
         manifestVersionSet: result.manifestVersionSet,
       });
+      appendAttemptLogAttempt(attemptLog, {
+        source: step.source,
+        status: 'success',
+        durationMs: performance.now() - attemptStart,
+        writeDurationMs: result.writeDurationMs,
+      });
       return result;
     } catch (error) {
       if (error?.name === 'AbortError') {
@@ -1284,6 +1885,12 @@ async function executeDeliveryPlan(
         reason: step.reason,
         code: error?.code || null,
         message: error?.message || String(error),
+        durationMs: performance.now() - attemptStart,
+      });
+      appendAttemptLogAttempt(attemptLog, {
+        source: step.source,
+        status: 'failed',
+        code: error?.code || null,
         durationMs: performance.now() - attemptStart,
       });
       const enabledIndex = enabledSources.findIndex((entry) => entry.source === step.source);
@@ -1326,6 +1933,7 @@ export async function downloadShard(
     algorithm,
     signal,
     onProgress = null,
+    onDeliveryMetrics = null,
     writeToStore = false,
     enableSourceCache = true,
     p2pTransport,
@@ -1356,6 +1964,7 @@ export async function downloadShard(
     ...options,
     algorithm,
     onProgress,
+    onDeliveryMetrics,
     signal,
     requiredEncoding: requiredEncoding ?? activeConfig.requiredContentEncoding ?? null,
     expectedHash: options.expectedHash ?? shardInfo?.hash ?? activeConfig.expectedHash ?? null,
@@ -1405,6 +2014,12 @@ export async function downloadShard(
   });
 
   const trace = decisionTraceConfig.enabled
+    && shouldEmitDecisionTrace(
+      decisionTraceConfig,
+      shardIndex,
+      downloadOptions.expectedManifestVersionSet,
+      order
+    )
     ? createDecisionTrace(
       order,
       planResult.plan,
@@ -1424,6 +2039,8 @@ export async function downloadShard(
   }
 
   const deliveryPromise = (async () => {
+    const deliveryStart = performance.now();
+    const attemptLog = [];
     const result = await executeDeliveryPlan(
       baseUrl,
       shardIndex,
@@ -1433,9 +2050,29 @@ export async function downloadShard(
       downloadOptions,
       trace,
       decisionTraceConfig,
-      sourceMatrix
+      sourceMatrix,
+      attemptLog
     );
-    return attachDecisionTrace(result, trace);
+    const metrics = createDeliveryMetrics(
+      order,
+      result,
+      attemptLog,
+      performance.now() - deliveryStart
+    );
+    const resultWithMetrics = {
+      ...result,
+      deliveryMetrics: metrics,
+    };
+    await emitDeliveryMetricsHook(downloadOptions.onDeliveryMetrics, {
+      schemaVersion: DISTRIBUTION_DELIVERY_METRICS_EVENT_SCHEMA_VERSION,
+      shardIndex,
+      source: result.source ?? null,
+      path: result.path ?? null,
+      expectedManifestVersionSet: downloadOptions.expectedManifestVersionSet ?? null,
+      deliveryMetrics: metrics,
+      decisionTrace: trace ?? null,
+    });
+    return attachDecisionTrace(resultWithMetrics, trace);
   })();
 
   inFlightDeliveries.set(dedupeKey, deliveryPromise);

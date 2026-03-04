@@ -71,6 +71,7 @@ export interface BrowserSuiteOptions extends InferenceHarnessOptions {
   surface?: string;
   modelUrl?: string;
   modelId?: string;
+  workloadType?: string;
   trainingTests?: string[];
   trainingStage?: 'stage1_joint' | 'stage2_base' | 'stage_a' | 'stage_b';
   trainingConfig?: Record<string, unknown>;
@@ -90,14 +91,21 @@ export interface BrowserSuiteOptions extends InferenceHarnessOptions {
   resumeFrom?: string;
   forceResume?: boolean;
   forceResumeReason?: string;
+  forceResumeSource?: string;
+  checkpointOperator?: string;
   trainingSchemaVersion?: number;
   trainingBenchSteps?: number;
   cacheMode?: 'cold' | 'warm' | null;
   loadMode?: 'opfs' | 'http' | 'memory' | null;
   runtimePreset?: string | null;
+  runtimeConfigUrl?: string | null;
+  runtimeConfig?: Record<string, unknown> | null;
   captureOutput?: boolean;
   keepPipeline?: boolean;
   report?: Record<string, unknown>;
+  harnessOverride?: Record<string, unknown> | (
+    (options: BrowserSuiteOptions) => Promise<Record<string, unknown>> | Record<string, unknown>
+  );
   timestamp?: string | Date;
   searchParams?: URLSearchParams;
 }

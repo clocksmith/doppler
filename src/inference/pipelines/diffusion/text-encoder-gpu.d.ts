@@ -77,4 +77,4 @@ export declare function projectContext(
   options?: { recorder?: CommandRecorder | null }
 ): Promise<Tensor>;
 
-export declare function logQuickGeluWarning(config: { hidden_act?: string }): void;
+export declare function assertClipHiddenActivationSupported(config: { hidden_act?: string }): void;
