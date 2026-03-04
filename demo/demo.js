@@ -67,7 +67,6 @@ import {
   recordRunLog,
 } from './ui/stats.js';
 import {
-  VLIW_DATASETS,
   ENERGY_DEMOS,
   DEFAULT_ENERGY_DEMO_ID,
   DEFAULT_RUNTIME_PRESET,
@@ -85,28 +84,12 @@ import {
 import {
   clearEnergyBoard,
   clearEnergyChart,
-  clearEnergyKernelSummary,
-  clearEnergyBundleView,
   renderEnergyBoard,
   renderEnergyVector,
   renderEnergyIntensityBoard,
-  renderVliwKernelSummary,
-  populateVliwBundleSelect,
-  renderVliwBundleView,
   drawEnergyChart,
   updateEnergyStats,
 } from './ui/energy/render.js';
-import {
-  loadVliwDataset,
-  applyWorkloadSpec,
-  buildVliwDatasetFromSpecInput,
-  sliceVliwDataset,
-} from './ui/energy/datasets.js';
-import {
-  resolveBaseSpec,
-  runVliwSpecSearch,
-  formatSpecSignature,
-} from './ui/energy/spec-search.js';
 import {
   storeDiagnosticsSelection,
   syncDiagnosticsModeUI,
@@ -145,6 +128,7 @@ import {
 import {
   createTranslateTextRequest,
 } from './ui/translate/request.js';
+import { runDistillReplay } from './ui/distill/replay.js';
 
 const controller = new DiagnosticsController({ log });
 
@@ -173,6 +157,9 @@ const QUICK_MODEL_CATALOG_HF_PATH = readGlobalString('__DOPPLER_HF_REGISTRY_CATA
 const QUICK_MODEL_CATALOG_URLS = buildQuickCatalogCandidateUrls();
 const QUICK_MODEL_HF_HOST = 'huggingface.co';
 const QUICK_MODEL_HF_COMMIT_PATTERN = /^[a-f0-9]{7,64}$/i;
+const DISTILL_WORKLOAD_REGISTRY_URL = typeof window === 'object' && window.location?.origin
+  ? new URL('/tools/configs/training-workloads/registry.json', window.location.origin).toString()
+  : new URL('../tools/configs/training-workloads/registry.json', import.meta.url).toString();
 const RUN_STARTER_PROMPTS = Object.freeze([
   'is potential energy real?',
   'compare zig to rust in elvish',
@@ -265,14 +252,14 @@ const DEEP_LINK_MODES = new Set([
   'embedding',
   'diffusion',
   'energy',
+  'distill',
   'models',
   'diagnostics',
-  'kernels',
 ]);
 const TASK_SET = new Set(['run', 'evaluate']);
 const TASK_MODE_ALLOWLIST = Object.freeze({
   run: Object.freeze(['run', 'translate', 'embedding', 'diffusion']),
-  evaluate: Object.freeze(['diagnostics', 'kernels', 'energy']),
+  evaluate: Object.freeze(['diagnostics', 'distill', 'energy']),
 });
 const MODE_TASK_MAP = Object.freeze({
   run: 'run',
@@ -280,25 +267,16 @@ const MODE_TASK_MAP = Object.freeze({
   embedding: 'run',
   diffusion: 'run',
   diagnostics: 'evaluate',
-  kernels: 'evaluate',
+  distill: 'evaluate',
   energy: 'evaluate',
 });
 const DEFAULT_TASK_MODE = Object.freeze({
   run: 'run',
   evaluate: 'diagnostics',
 });
-const SURFACE_SET = new Set(['demo', 'lab']);
+const SURFACE_SET = new Set(['demo']);
 const SURFACE_MODE_ALLOWLIST = Object.freeze({
   demo: new Set([...DEEP_LINK_MODES]),
-  lab: new Set([...DEEP_LINK_MODES]),
-});
-const SURFACE_META = Object.freeze({
-  demo: Object.freeze({
-    label: 'Demo',
-  }),
-  lab: Object.freeze({
-    label: 'Lab',
-  }),
 });
 const EMBEDDING_DEMO_DOCUMENT_CATALOG = Object.freeze([
   Object.freeze({
@@ -555,18 +533,6 @@ function resolveModeForTask(task, surface, preferredMode = null) {
   return allowedModes[0];
 }
 
-function getSurfaceMeta(surface) {
-  const normalizedSurface = normalizeSurface(surface, 'demo');
-  return SURFACE_META[normalizedSurface] || SURFACE_META.demo;
-}
-
-function parseAllowedSurfaces(rawSurfaces) {
-  return resolveText(rawSurfaces, '')
-    .split(/\s+/)
-    .map((value) => resolveText(value, '').toLowerCase())
-    .filter(Boolean);
-}
-
 function parseAllowedTasks(rawTasks) {
   return resolveText(rawTasks, '')
     .split(/\s+/)
@@ -603,29 +569,17 @@ function syncSurfaceUI(surface) {
   });
   document.querySelectorAll('.mode-subtab').forEach((button) => {
     const mode = normalizeDeepLinkMode(button.dataset.mode, null);
-    const explicitTasks = parseAllowedTasks(button.dataset.tasks);
-    const inferredTask = getTaskForMode(mode, null);
-    const allowedTasks = explicitTasks.length > 0
-      ? explicitTasks
-      : (inferredTask ? [inferredTask] : []);
     const modeAllowed = mode != null && isModeAllowedForSurface(mode, normalizedSurface);
-    const taskAllowed = allowedTasks.includes(normalizedTask);
-    const isVisible = taskAllowed;
-    const isUnavailable = isVisible && !modeAllowed;
-    button.hidden = !isVisible;
+    const isVisible = true;
+    const isUnavailable = !modeAllowed;
+    button.hidden = false;
     button.classList.toggle('is-unavailable', isUnavailable);
     button.setAttribute('aria-disabled', isUnavailable ? 'true' : 'false');
-    button.setAttribute('aria-hidden', isVisible ? 'false' : 'true');
+    button.setAttribute('aria-hidden', 'false');
   });
   if (typeof document !== 'undefined') {
     document.title = 'D4DA Studio';
   }
-}
-
-function requireLabSurface(actionLabel, hintMode = 'models') {
-  void actionLabel;
-  void hintMode;
-  return true;
 }
 
 function readDeepLinkValue(hashParams, queryParams, keys) {
@@ -741,9 +695,6 @@ function buildDeepLinkHash(modeOverride = null, taskOverride = null) {
     mode
   );
   const params = new URLSearchParams();
-  if (surface === 'lab') {
-    params.set('surface', 'lab');
-  }
 
   if (task !== 'run') {
     params.set('task', task);
@@ -1133,6 +1084,131 @@ function formatQuickModelBytes(bytes) {
   return formatBytes(bytes);
 }
 
+function setDistillStatus(message, isError = false) {
+  const statusEl = $('distill-status');
+  if (!statusEl) return;
+  statusEl.textContent = message;
+  statusEl.dataset.state = isError ? 'error' : 'ready';
+}
+
+function setDistillOutput(payload) {
+  const outputEl = $('distill-output');
+  if (!outputEl) return;
+  if (!payload || typeof payload !== 'object') {
+    outputEl.textContent = 'No distill output yet.';
+    return;
+  }
+  outputEl.textContent = JSON.stringify(payload, null, 2);
+}
+
+function getDistillWorkloads() {
+  return Array.isArray(state.distillWorkloads) ? state.distillWorkloads : [];
+}
+
+function populateDistillWorkloadSelect() {
+  const selectEl = $('distill-workload-select');
+  if (!(selectEl instanceof HTMLSelectElement)) return;
+  const previous = selectEl.value || '';
+  selectEl.innerHTML = '';
+
+  const noneOption = document.createElement('option');
+  noneOption.value = '';
+  noneOption.textContent = 'None';
+  selectEl.appendChild(noneOption);
+
+  for (const workload of getDistillWorkloads()) {
+    const option = document.createElement('option');
+    option.value = workload.id;
+    const suffix = workload.workloadKind ? ` (${workload.workloadKind})` : '';
+    option.textContent = `${workload.id}${suffix}`;
+    selectEl.appendChild(option);
+  }
+  selectEl.value = Array.from(selectEl.options).some((option) => option.value === previous)
+    ? previous
+    : '';
+}
+
+function findDistillWorkloadById(workloadId) {
+  if (!workloadId) return null;
+  return getDistillWorkloads().find((entry) => entry.id === workloadId) || null;
+}
+
+async function loadDistillWorkloadRegistry() {
+  state.distillWorkloadsLoading = true;
+  state.distillWorkloadsError = null;
+  try {
+    const response = await fetch(DISTILL_WORKLOAD_REGISTRY_URL, { cache: 'no-store' });
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    const payload = await response.json();
+    const workloads = Array.isArray(payload?.workloads) ? payload.workloads : [];
+    state.distillWorkloads = workloads
+      .filter((entry) => entry && typeof entry === 'object' && typeof entry.id === 'string' && entry.id.trim())
+      .map((entry) => ({
+        id: entry.id.trim(),
+        path: typeof entry.path === 'string' ? entry.path : null,
+        sha256: typeof entry.sha256 === 'string' ? entry.sha256 : null,
+        workloadKind: typeof entry.workloadKind === 'string' ? entry.workloadKind : null,
+      }));
+    populateDistillWorkloadSelect();
+    if (state.distillWorkloads.length > 0) {
+      setDistillStatus(`Loaded ${state.distillWorkloads.length} workload pack entries.`);
+    } else {
+      setDistillStatus('No workload packs found in registry.');
+    }
+  } catch (error) {
+    state.distillWorkloads = [];
+    state.distillWorkloadsError = error instanceof Error ? error.message : String(error);
+    populateDistillWorkloadSelect();
+    setDistillStatus(`Workload registry unavailable: ${state.distillWorkloadsError}`, true);
+  } finally {
+    state.distillWorkloadsLoading = false;
+  }
+}
+
+async function readFileAsText(file) {
+  if (!file) return '';
+  return file.text();
+}
+
+async function handleDistillReplay() {
+  const teacherJsonEl = $('distill-teacher-json');
+  const workloadSelect = $('distill-workload-select');
+  const teacherJsonText = teacherJsonEl?.value || '';
+  const selectedWorkloadId = workloadSelect?.value || '';
+  const workloadEntry = findDistillWorkloadById(selectedWorkloadId);
+
+  setDistillStatus('Running replay...');
+  const result = await runDistillReplay({
+    teacherJsonText,
+    workloadEntry,
+  });
+  state.distillLastReplay = result;
+  setDistillOutput(result);
+  const steps = Array.isArray(result.timeline) ? result.timeline.length : 0;
+  const reportId = result.traceability?.teacherReportId || 'unknown';
+  setDistillStatus(`Replay complete. Steps: ${steps}. teacherReportId: ${reportId}`);
+}
+
+function exportDistillReplay() {
+  if (!state.distillLastReplay) {
+    setDistillStatus('No replay result available to export.', true);
+    return;
+  }
+  const payload = state.distillLastReplay;
+  const timestamp = new Date().toISOString().replace(/[:]/g, '-');
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `distill-replay-${timestamp}.json`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
 
 function resolveDownloadProgressForModel(modelId) {
   const progress = state.downloadProgress;
@@ -1216,22 +1292,10 @@ function updateNavState(mode, task = null) {
 
   document.querySelectorAll('.mode-subtab').forEach((button) => {
     const buttonMode = normalizeDeepLinkMode(button.dataset.mode, null);
-    const explicitTasks = parseAllowedTasks(button.dataset.tasks);
-    const inferredTask = getTaskForMode(buttonMode, null);
-    const buttonTasks = explicitTasks.length > 0
-      ? explicitTasks
-      : (inferredTask ? [inferredTask] : []);
-    const isActive = buttonMode === normalizedMode && buttonTasks.includes(normalizedTask) && !button.hidden;
+    const isActive = buttonMode === normalizedMode && !button.hidden;
     button.classList.toggle('is-active', isActive);
     button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
   });
-
-  const openModelsButton = $('header-open-models');
-  if (openModelsButton) {
-    const isActive = normalizedMode === 'models';
-    openModelsButton.classList.toggle('is-active', isActive);
-    openModelsButton.setAttribute('aria-pressed', isActive ? 'true' : 'false');
-  }
 }
 
 
@@ -1244,7 +1308,7 @@ function cloneRuntimeConfig(config) {
 }
 
 function applyModeVisibility(mode) {
-  const panels = document.querySelectorAll('[data-modes], [data-surfaces]');
+  const panels = document.querySelectorAll('[data-modes]');
   panels.forEach((panel) => {
     const modes = panel.dataset.modes?.split(/\s+/).filter(Boolean) || [];
     const modeVisible = modes.length === 0 || modes.includes(mode);
@@ -1377,15 +1441,6 @@ async function setUiMode(mode, options = {}) {
   syncDeepLinkFromUI();
 }
 
-async function setSurface(surface, modeHint = null) {
-  const nextSurface = normalizeSurface(surface, state.surface || 'demo');
-  state.surface = nextSurface;
-  syncSurfaceUI(nextSurface);
-  const targetMode = modeHint || state.uiMode || 'run';
-  const targetTask = resolveTaskForSurface(getTaskForMode(targetMode, state.uiTask || 'run'), nextSurface, targetMode);
-  await setUiMode(targetMode, { task: targetTask });
-}
-
 function getModelAvailability() {
   const availability = state.modelAvailability;
   if (!availability || typeof availability !== 'object') {
@@ -1437,6 +1492,9 @@ function setEmptyNoticeAction(scope, quickModelEntry) {
 }
 
 function getMissingModelMessage(mode, availability, quickModelEntry) {
+  if (mode === 'energy') {
+    return '';
+  }
   const total = Number.isFinite(availability?.total) ? availability.total : 0;
   const hasQuickSuggestion = !!(quickModelEntry && typeof quickModelEntry.modelId === 'string' && quickModelEntry.modelId.length > 0);
   if (total <= 0) {
@@ -1454,9 +1512,6 @@ function getMissingModelMessage(mode, availability, quickModelEntry) {
   }
   if (mode === 'diffusion') {
     return 'No diffusion model available in OPFS for this mode.';
-  }
-  if (mode === 'energy') {
-    return 'No energy model available in OPFS for this mode.';
   }
   return 'No text model available in OPFS for this mode.';
 }
@@ -1576,7 +1631,6 @@ function renderQuickModelList(listEl, entries) {
 function renderQuickModelPanels() {
   const catalog = getQuickCatalogEntriesForSurface();
   const rawCatalog = getQuickCatalogEntries();
-  const isDemoSurface = normalizeSurface(state.surface, 'demo') === 'demo';
 
   if (state.quickModelActionModelId) {
     const modelId = state.quickModelActionModelId;
@@ -1588,8 +1642,8 @@ function renderQuickModelPanels() {
   } else if (state.quickModelCatalogError) {
     const message = `Quick model catalog unavailable: ${state.quickModelCatalogError}`;
     setQuickModelStatus(message);
-  } else if (isDemoSurface && rawCatalog.length > 0 && catalog.length === 0) {
-    setQuickModelStatus('No quick models are tagged for Demo surface. Switch to Lab for full intake catalog.');
+  } else if (rawCatalog.length > 0 && catalog.length === 0) {
+    setQuickModelStatus('No quick models are tagged for currently supported demo modes.');
   } else {
     setQuickModelStatus(
       catalog.length > 0
@@ -2170,10 +2224,6 @@ async function handleStorageTryModel(modelId) {
   if (!modelId) return;
   const modelType = await getModelTypeForId(modelId);
   const targetMode = getUiModeForModelType(modelType);
-  if (!isModeAllowedForSurface(targetMode, state.surface)) {
-    requireLabSurface('This model type');
-    return;
-  }
   await setUiMode(targetMode);
   selectDiagnosticsModel(modelId);
 }
@@ -2685,7 +2735,6 @@ function drawDiffusionCanvas(result) {
 }
 
 async function handleDiffusionRun() {
-  if (!requireLabSurface('Image generation')) return;
   if (state.diffusionGenerating || state.diffusionLoading) return;
   const promptEl = $('diffusion-prompt');
   const negativeEl = $('diffusion-negative');
@@ -2801,11 +2850,28 @@ async function ensureEnergyPipeline() {
   }
 }
 
+async function runStandaloneQuintelPipeline(request) {
+  const { EnergyPipeline } = await import('../src/energy/index.js');
+  const pipeline = new EnergyPipeline();
+  await pipeline.initialize({
+    runtimeConfig: state.runtimeConfig,
+  });
+  pipeline.manifest = {
+    modelId: 'quintel-standalone',
+    modelType: 'energy',
+    energy: {},
+  };
+  try {
+    return await pipeline.generate(request);
+  } finally {
+    await pipeline.unload();
+  }
+}
+
 async function handleEnergyRun() {
-  if (!requireLabSurface('Energy optimization')) return;
   if (state.energyGenerating || state.energyLoading) return;
   const demo = getEnergyDemoById(state.energyDemoId) || getEnergyDemoById(DEFAULT_ENERGY_DEMO_ID);
-  const problem = demo?.problem || 'quintel';
+  const problem = 'quintel';
   const size = readOptionalNumber($('energy-quintel-size'), { integer: true });
   const displayThreshold = readOptionalNumber($('energy-quintel-threshold'));
   const countTarget = readOptionalNumber($('energy-quintel-count-target'), { integer: true });
@@ -2834,194 +2900,26 @@ async function handleEnergyRun() {
     gradientScale,
     convergenceThreshold,
   };
-  let vliwRun = null;
-  let vliwBundleLimit = null;
+  const quintelRules = {
+    mirrorX,
+    mirrorY,
+    diagonal,
+    count: countRule,
+    center: false,
+  };
+  const quintel = {
+    rules: quintelRules,
+  };
+  if (size != null) quintel.size = size;
+  if (Number.isFinite(countTarget)) quintel.countTarget = countTarget;
+  const weights = {};
+  if (Number.isFinite(symmetryWeight)) weights.symmetry = symmetryWeight;
+  if (Number.isFinite(countWeight)) weights.count = countWeight;
+  if (Number.isFinite(binarizeWeight)) weights.binarize = binarizeWeight;
+  if (Object.keys(weights).length) quintel.weights = weights;
+  request.quintel = quintel;
 
-  if (problem !== 'vliw') {
-    state.energyVliw = null;
-    state.energyVliwTasks = null;
-    state.energyVliwCaps = null;
-    state.energyVliwOps = null;
-    state.energyVliwBundle = null;
-    state.energyVliwBundleLimit = null;
-    state.energyVliwMeta = null;
-    state.energyVliwDatasetId = null;
-    state.energyVliwSpecSearch = null;
-    state.lastEnergyResult = null;
-    clearEnergyKernelSummary();
-    clearEnergyBundleView();
-  }
-
-  if (problem === 'quintel') {
-    const quintelRules = {
-      mirrorX,
-      mirrorY,
-      diagonal,
-      count: countRule,
-      center: false,
-    };
-    const quintel = {
-      rules: quintelRules,
-    };
-    if (size != null) quintel.size = size;
-    if (Number.isFinite(countTarget)) quintel.countTarget = countTarget;
-    const weights = {};
-    if (Number.isFinite(symmetryWeight)) weights.symmetry = symmetryWeight;
-    if (Number.isFinite(countWeight)) weights.count = countWeight;
-    if (Number.isFinite(binarizeWeight)) weights.binarize = binarizeWeight;
-    if (Object.keys(weights).length) quintel.weights = weights;
-    request.quintel = quintel;
-  }
-
-  if (problem === 'vliw') {
-    let datasetId = $('energy-vliw-dataset')?.value || 'vliw-simd-frozen';
-    const selectedDatasetId = datasetId;
-    const specText = resolveText($('energy-vliw-spec')?.value, '');
-    const bundleLimit = readOptionalNumber($('energy-vliw-bundle-limit'), { integer: true });
-    const restarts = readOptionalNumber($('energy-vliw-restarts'), { integer: true });
-    const tempStart = readOptionalNumber($('energy-vliw-temp-start'));
-    const tempDecay = readOptionalNumber($('energy-vliw-temp-decay'));
-    const mutationCount = readOptionalNumber($('energy-vliw-mutation'), { integer: true });
-    const mlpHidden = readOptionalNumber($('energy-vliw-mlp-hidden'), { integer: true });
-    const mlpLr = readOptionalNumber($('energy-vliw-mlp-lr'));
-    const demoDefaults = demo?.defaults ?? {};
-    const policy = demoDefaults.vliw?.policy;
-    const jitter = demoDefaults.vliw?.jitter;
-    const mlpDefaults = demoDefaults.vliw?.mlp ?? null;
-    const vliwMode = $('energy-vliw-mode')?.value || demoDefaults.vliw?.mode || 'parity';
-    const scoreMode = $('energy-vliw-score-mode')?.value || demoDefaults.vliw?.scoreMode || 'auto';
-    const schedulerPolicies = Array.isArray(demoDefaults.vliw?.schedulerPolicies)
-      ? demoDefaults.vliw.schedulerPolicies
-      : null;
-    const schedulerRestarts = Number.isFinite(demoDefaults.vliw?.schedulerRestarts)
-      ? demoDefaults.vliw.schedulerRestarts
-      : null;
-    const capsSource = vliwMode === 'parity' ? 'slot_limits' : 'spec';
-    const mlpConfig = policy === 'mlp'
-      ? {
-        ...(Number.isFinite(mlpHidden) ? { hiddenSize: mlpHidden } : {}),
-        ...(Number.isFinite(mlpLr) ? { lr: mlpLr } : {}),
-        ...(!Number.isFinite(mlpHidden) && Number.isFinite(mlpDefaults?.hiddenSize) ? { hiddenSize: mlpDefaults.hiddenSize } : {}),
-        ...(!Number.isFinite(mlpLr) && Number.isFinite(mlpDefaults?.lr) ? { lr: mlpDefaults.lr } : {}),
-      }
-      : null;
-    const mlp = mlpConfig && Object.keys(mlpConfig).length ? mlpConfig : null;
-    const vliwSearch = {
-      restarts,
-      temperatureStart: tempStart,
-      temperatureDecay: tempDecay,
-      mutationCount,
-      ...(policy ? { policy } : {}),
-      ...(mlp ? { mlp } : {}),
-      ...(Number.isFinite(jitter) ? { jitter } : {}),
-      ...(vliwMode ? { mode: vliwMode } : {}),
-      ...(scoreMode ? { scoreMode } : {}),
-      ...(capsSource ? { capsSource } : {}),
-      ...(schedulerPolicies ? { schedulerPolicies } : {}),
-      ...(Number.isFinite(schedulerRestarts) ? { schedulerRestarts } : {}),
-    };
-    const constraintDefaults = demoDefaults.vliw?.specSearch?.constraints || {};
-    const specSearchDefaults = demoDefaults.vliw?.specSearch || {};
-    const frozenWorkloadSpec = VLIW_DATASETS[selectedDatasetId]?.spec || null;
-    const specSearch = {
-      enabled: $('energy-vliw-spec-search')?.checked ?? false,
-      restarts: readOptionalNumber($('energy-vliw-spec-restarts'), { integer: true }),
-      steps: readOptionalNumber($('energy-vliw-spec-steps'), { integer: true }),
-      temperatureStart: readOptionalNumber($('energy-vliw-spec-temp-start')),
-      temperatureDecay: readOptionalNumber($('energy-vliw-spec-temp-decay')),
-      mutationCount: readOptionalNumber($('energy-vliw-spec-mutation'), { integer: true }),
-      seed: readOptionalNumber($('energy-vliw-spec-seed'), { integer: true }),
-      penaltyGate: readOptionalNumber($('energy-vliw-spec-penalty')),
-      cycleLambda: readOptionalNumber($('energy-vliw-spec-lambda')),
-      innerSteps: readOptionalNumber($('energy-vliw-spec-inner-steps'), { integer: true }),
-      lbPenalty: specSearchDefaults.lbPenalty,
-      targetCycles: specSearchDefaults.targetCycles,
-      scoreMode: specSearchDefaults.scoreMode || scoreMode,
-      constraints: {
-        mode: vliwMode === 'relaxed' ? 'relaxed' : 'parity',
-        fallbackCycles: constraintDefaults.fallbackCycles ?? 10000,
-      },
-    };
-    if (specSearch.enabled) {
-      vliwBundleLimit = vliwMode === 'parity' ? 0 : bundleLimit;
-      let baseSpecInput = null;
-      let baseDataset = null;
-      if (specText) {
-        try {
-          baseSpecInput = JSON.parse(specText);
-        } catch (error) {
-          throw new Error(`Spec JSON parse error: ${error.message}`);
-        }
-      } else {
-        baseDataset = await loadVliwDataset(datasetId);
-        baseSpecInput = baseDataset?.spec ?? null;
-      }
-      if (frozenWorkloadSpec) {
-        baseSpecInput = applyWorkloadSpec(baseSpecInput, frozenWorkloadSpec);
-      }
-      const baseSpec = resolveBaseSpec(baseSpecInput);
-      vliwRun = {
-        mode: 'spec-search',
-        baseSpec,
-        baseDataset,
-        datasetId,
-        bundleLimit,
-        specSearch,
-        vliwSearch,
-      };
-    } else {
-      let dataset = null;
-      if (specText) {
-        let specInput = null;
-        try {
-          specInput = JSON.parse(specText);
-        } catch (error) {
-          throw new Error(`Spec JSON parse error: ${error.message}`);
-        }
-        dataset = await buildVliwDatasetFromSpecInput(specInput, specText, {
-          mode: vliwMode,
-          capsMode: capsSource,
-          workloadSpec: frozenWorkloadSpec,
-          includeOps: true,
-        });
-        datasetId = 'vliw-generated';
-      } else {
-        dataset = await loadVliwDataset(datasetId, { includeOps: true });
-      }
-      if (Number.isFinite(dataset?.spec?.sched_seed)) {
-        vliwSearch.schedulerSeed = dataset.spec.sched_seed;
-      }
-      if (Number.isFinite(dataset?.spec?.sched_jitter)) {
-        vliwSearch.schedulerJitter = dataset.spec.sched_jitter;
-      }
-      if (Number.isFinite(dataset?.spec?.sched_restarts)) {
-        vliwSearch.schedulerRestarts = dataset.spec.sched_restarts;
-      }
-      const effectiveBundleLimit = vliwSearch.mode === 'parity' ? 0 : bundleLimit;
-      vliwBundleLimit = effectiveBundleLimit;
-      const sliced = sliceVliwDataset(dataset, effectiveBundleLimit);
-      state.energyVliwMeta = {
-        label: dataset.label || VLIW_DATASETS[datasetId]?.label || datasetId,
-        bundleCount: sliced.bundleCount ?? dataset.bundleCount,
-        taskCount: sliced.taskCount ?? sliced.tasks?.length ?? dataset.taskCount,
-        baselineCycles: dataset.baselineCycles ?? dataset.bundleCount,
-        dagHash: dataset.dag?.hash ?? dataset.dagHash,
-        dependencyModel: dataset.dependencyModel ?? null,
-        spec: dataset.spec ?? null,
-      };
-      state.energyVliwTasks = sliced.tasks;
-      state.energyVliwCaps = sliced.caps;
-      state.energyVliwOps = dataset.ops ?? null;
-      state.energyVliwDatasetId = datasetId;
-      state.energyVliwBundleLimit = vliwBundleLimit;
-      request.vliw = {
-        tasks: sliced.tasks,
-        caps: sliced.caps,
-        dependencyModel: dataset.dependencyModel ?? null,
-        search: vliwSearch,
-      };
-    }
-  }
+  state.lastEnergyResult = null;
   state.lastEnergyRequest = {
     size,
     displayThreshold,
@@ -3031,108 +2929,25 @@ async function handleEnergyRun() {
   state.energyGenerating = true;
   updateStatusIndicator();
   try {
-    const pipeline = await ensureEnergyPipeline();
-    if (!pipeline.generate) {
-      throw new Error('Selected model does not support energy generation.');
-    }
-    if (!pipeline.manifest || pipeline.manifest.modelType !== 'energy') {
-      throw new Error('Selected model is not an energy model.');
-    }
-    updateEnergyStatus('Running...');
     let result = null;
-    let specSearchSummary = null;
-    if (problem === 'vliw' && vliwRun?.mode === 'spec-search') {
-      updateEnergyStatus('Spec search (Layer 0)...');
-      const specSearchResult = await runVliwSpecSearch({
-        pipeline,
-        baseSpec: vliwRun.baseSpec,
-        innerRequestBase: request,
-        vliwSearch: vliwRun.vliwSearch,
-        bundleLimit: vliwRun.bundleLimit,
-        specSearch: vliwRun.specSearch,
-      });
-      result = specSearchResult.result;
-      const dataset = specSearchResult.dataset;
-      const sliced = specSearchResult.sliced;
-      state.energyVliwMeta = {
-        label: dataset.label || 'Spec search (Layer 0)',
-        bundleCount: sliced.bundleCount ?? dataset.bundleCount,
-        taskCount: sliced.taskCount ?? sliced.tasks?.length ?? dataset.taskCount,
-        baselineCycles: dataset.baselineCycles ?? dataset.bundleCount,
-        dagHash: dataset.dag?.hash ?? dataset.dagHash,
-        dependencyModel: dataset.dependencyModel ?? null,
-        spec: dataset.spec ?? specSearchResult.bestSpec ?? null,
-      };
-      state.energyVliwTasks = sliced.tasks;
-      state.energyVliwCaps = sliced.caps;
-      state.energyVliwOps = dataset.ops ?? null;
-      state.energyVliwDatasetId = vliwRun.datasetId || datasetId || 'vliw-spec-search';
-      state.energyVliwBundleLimit = vliwBundleLimit;
-      specSearchSummary = {
-        restarts: specSearchResult.restarts,
-        steps: specSearchResult.steps,
-        cycleLambda: specSearchResult.cycleLambda,
-        penaltyGate: specSearchResult.penaltyGate,
-        fallbackCycles: specSearchResult.fallbackCycles,
-        lbPenalty: specSearchResult.lbPenalty,
-        targetCycles: specSearchResult.targetCycles,
-        scoreMode: specSearchResult.scoreMode,
-        constraintMode: specSearchResult.constraintMode,
-        scheduler: specSearchResult.scheduler,
-        bestCycles: specSearchResult.bestCycles,
-        bestPenalty: specSearchResult.bestPenalty,
-        bestEnergy: specSearchResult.bestEnergy,
-        bestSpecSignature: specSearchResult.bestSpec ? formatSpecSignature(specSearchResult.bestSpec) : null,
-        candidates: specSearchResult.candidates.map((candidate) => ({
-          cycles: candidate.cycles,
-          penalty: candidate.penalty,
-          signature: formatSpecSignature(candidate.spec),
-        })),
-      };
-      state.energyVliwSpecSearch = specSearchSummary;
+    let pipelineForStats = null;
+    const selectedModelId = getSelectedModelId();
+    const selectedModelType = normalizeModelType(await getModelTypeForId(selectedModelId));
+    const useStandaloneQuintel = selectedModelType !== 'energy';
+
+    if (useStandaloneQuintel) {
+      updateEnergyStatus('Running Quintel...');
+      result = await runStandaloneQuintelPipeline(request);
     } else {
-      result = await pipeline.generate(request);
-    }
-    if (problem === 'vliw') {
-      state.energyVliw = {
-        schedule: result?.schedule || null,
-        taskMeta: result?.taskMeta || null,
-      };
-      if (!vliwRun || vliwRun.mode !== 'spec-search') {
-        state.energyVliwSpecSearch = null;
+      pipelineForStats = await ensureEnergyPipeline();
+      if (!pipelineForStats.generate) {
+        throw new Error('Selected model does not support energy generation.');
       }
-      const candidates = Array.isArray(result?.candidates) ? result.candidates.slice() : [];
-      candidates.sort((a, b) => a.cycles - b.cycles);
-      const summary = {
-        bestCycles: result?.metrics?.cycles ?? null,
-        utilization: result?.metrics?.utilization ?? null,
-        candidates: candidates.slice(0, 6),
-        baseline: result?.baseline ?? null,
-        specSearch: specSearchSummary,
-        scheduler: result?.scheduler ?? null,
-        schedulerPolicy: result?.schedulerPolicy ?? null,
-        schedulerPolicies: result?.schedulerPolicies ?? null,
-        scoreMode: result?.scoreMode ?? null,
-        engineOrder: result?.engineOrder ?? null,
-        capsSource: result?.capsSource ?? null,
-        bundleLimit: vliwBundleLimit,
-        mode: result?.mode ?? null,
-        mlpStats: result?.mlpStats ?? null,
-      };
-      renderVliwKernelSummary(summary, state.energyVliwMeta);
-      const bundleCount = state.energyVliwMeta?.bundleCount;
-      populateVliwBundleSelect(bundleCount);
-      const bundleSelect = $('energy-vliw-bundle-select');
-      if (bundleSelect) {
-        const selected = Number.isFinite(state.energyVliwBundle)
-          ? state.energyVliwBundle
-          : null;
-        if (selected != null && selected >= 0) {
-          bundleSelect.value = String(selected);
-        }
-        state.energyVliwBundle = selected;
+      if (!pipelineForStats.manifest || pipelineForStats.manifest.modelType !== 'energy') {
+        throw new Error('Selected model is not an energy model.');
       }
-      renderVliwBundleView(state.energyVliw, state.energyVliwBundle);
+      updateEnergyStatus('Running...');
+      result = await pipelineForStats.generate(request);
     }
     state.lastEnergyResult = result;
     if (result?.shape) {
@@ -3145,8 +2960,8 @@ async function handleEnergyRun() {
     drawEnergyChart(result?.energyHistory || []);
     updateEnergyStats(result);
     renderEnergyBoard(result?.state, result?.shape ?? size, displayThreshold);
-    state.lastInferenceStats = pipeline.getStats?.() ?? null;
-    state.lastMemoryStats = pipeline.getMemoryStats?.() ?? state.lastMemoryStats;
+    state.lastInferenceStats = pipelineForStats?.getStats?.() ?? null;
+    state.lastMemoryStats = pipelineForStats?.getMemoryStats?.() ?? state.lastMemoryStats;
     if (state.lastInferenceStats) {
       state.runCounter += 1;
       recordRunLog(state.lastInferenceStats, `#${state.runCounter}`, 'energy');
@@ -3169,15 +2984,6 @@ function handleEnergyClear() {
   clearEnergyBoard();
   updateEnergyStats(null);
   updateEnergyStatus('Idle');
-  state.energyVliw = null;
-  state.energyVliwTasks = null;
-  state.energyVliwCaps = null;
-  state.energyVliwOps = null;
-  state.energyVliwBundle = null;
-  state.energyVliwBundleLimit = null;
-  state.energyVliwMeta = null;
-  state.energyVliwDatasetId = null;
-  state.energyVliwSpecSearch = null;
   state.lastEnergyResult = null;
 }
 
@@ -3451,7 +3257,6 @@ async function unloadActivePipeline() {
 }
 
 async function clearAllMemory() {
-  if (!requireLabSurface('Memory control', null)) return;
   await unloadActivePipeline();
   destroyBufferPool();
   const snapshot = captureMemorySnapshot();
@@ -3845,7 +3650,6 @@ async function regenerateManifest(modelId) {
 }
 
 async function handleRegenerateManifest() {
-  if (!requireLabSurface('Manifest regeneration')) return;
   if (state.convertActive) return;
   const modelId = getSelectedModelId();
   updateConvertStatus(`Regenerating manifest${modelId ? ` (${modelId})` : ''}...`, 0);
@@ -3868,7 +3672,6 @@ async function handleRegenerateManifest() {
 }
 
 async function handleConvertFiles() {
-  if (!requireLabSurface('Local model conversion')) return;
   if (state.convertActive) return;
   updateConvertStatus('Select a model folder or files...', 0);
   let files = null;
@@ -3936,7 +3739,6 @@ async function handleConvertFiles() {
 }
 
 async function handleConvertUrls() {
-  if (!requireLabSurface('URL model conversion')) return;
   const urlInput = $('convert-url-input');
   if (!urlInput) return;
   const urls = urlInput.value
@@ -3974,7 +3776,6 @@ async function handleConvertUrls() {
 }
 
 async function handleDiagnosticsRun(mode) {
-  if (!requireLabSurface('Diagnostics')) return;
   const profileSelect = $('diagnostics-profile');
   const modelSelect = $('diagnostics-model');
   const presetSelect = $('runtime-preset');
@@ -4175,43 +3976,25 @@ function serializeOps(ops) {
 }
 
 function exportEnergyRun() {
-  if (!requireLabSurface('Energy export', null)) return;
-  if (!state.lastEnergyResult || !state.energyVliwTasks || !state.energyVliwCaps) {
-    updateEnergyStatus('No VLIW run available to export.');
+  if (!state.lastEnergyResult) {
+    updateEnergyStatus('No energy run available to export.');
     return;
   }
   const payload = {
     timestamp: new Date().toISOString(),
-    problem: 'vliw',
-    mode: state.lastEnergyResult.mode ?? null,
-    scoreMode: state.lastEnergyResult.scoreMode ?? null,
-    scheduler: state.lastEnergyResult.scheduler ?? null,
-    schedulerPolicy: state.lastEnergyResult.schedulerPolicy ?? null,
-    schedulerPolicies: state.lastEnergyResult.schedulerPolicies ?? null,
-    engineOrder: state.lastEnergyResult.engineOrder ?? null,
-    capsSource: state.lastEnergyResult.capsSource ?? null,
-    bundleLimit: state.energyVliwBundleLimit ?? null,
-    dataset: {
-      id: state.energyVliwDatasetId ?? null,
-      label: state.energyVliwMeta?.label ?? null,
-      dagHash: state.energyVliwMeta?.dagHash ?? null,
-      bundleCount: state.energyVliwMeta?.bundleCount ?? null,
-      taskCount: state.energyVliwMeta?.taskCount ?? null,
-      baselineCycles: state.energyVliwMeta?.baselineCycles ?? null,
-      dependencyModel: state.energyVliwMeta?.dependencyModel ?? null,
-      spec: state.energyVliwMeta?.spec ?? null,
-    },
-    tasks: state.energyVliwTasks,
-    ops: serializeOps(state.energyVliwOps),
-    caps: state.energyVliwCaps,
+    problem: 'quintel',
     result: {
+      backend: state.lastEnergyResult.backend ?? null,
+      dtype: state.lastEnergyResult.dtype ?? null,
+      shape: state.lastEnergyResult.shape ?? null,
+      steps: state.lastEnergyResult.steps ?? null,
+      energy: state.lastEnergyResult.energy ?? null,
       metrics: state.lastEnergyResult.metrics ?? null,
       baseline: state.lastEnergyResult.baseline ?? null,
       candidates: state.lastEnergyResult.candidates ?? null,
       energyHistory: state.lastEnergyResult.energyHistory ?? null,
       schedule: serializeSchedule(state.lastEnergyResult.schedule),
     },
-    specSearch: state.energyVliwSpecSearch ?? null,
   };
   const filename = `doppler-energy-export-${payload.timestamp.replace(/[:]/g, '-')}.json`;
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
@@ -4246,7 +4029,11 @@ function bindUI() {
   const diagnosticsRun = $('diagnostics-run-btn');
   const diagnosticsVerify = $('diagnostics-verify-btn');
   const diagnosticsExport = $('diagnostics-export-btn');
-  const headerOpenModelsBtn = $('header-open-models');
+  const distillTeacherFile = $('distill-teacher-file');
+  const distillTeacherJson = $('distill-teacher-json');
+  const distillWorkloadSelect = $('distill-workload-select');
+  const distillReplayBtn = $('distill-replay-btn');
+  const distillExportBtn = $('distill-export-btn');
   const unloadModelBtn = $('unload-model-btn');
   const clearMemoryBtn = $('clear-memory-btn');
   const modelsQuickModelsList = $('models-quick-models-list');
@@ -4378,18 +4165,6 @@ function bindUI() {
     });
   });
 
-  headerOpenModelsBtn?.addEventListener('click', () => {
-    closeAdvancedNav();
-    setUiMode('models');
-  });
-
-  document.querySelectorAll('.diagnostics-mode-tab').forEach((button) => {
-    button.addEventListener('click', () => {
-      const mode = button.dataset.diagnosticsMode || 'diagnostics';
-      setUiMode(mode);
-    });
-  });
-
   [
     'run',
     'diffusion',
@@ -4428,27 +4203,22 @@ function bindUI() {
   });
 
   downloadStart?.addEventListener('click', () => {
-    if (!requireLabSurface('RDRR URL import')) return;
     startDownload();
   });
 
   downloadPause?.addEventListener('click', () => {
-    if (!requireLabSurface('RDRR URL import controls')) return;
     pauseActiveDownload();
   });
 
   downloadResume?.addEventListener('click', () => {
-    if (!requireLabSurface('RDRR URL import controls')) return;
     resumeActiveDownload();
   });
 
   downloadCancel?.addEventListener('click', () => {
-    if (!requireLabSurface('RDRR URL import controls')) return;
     cancelActiveDownload();
   });
 
   downloadRefresh?.addEventListener('click', () => {
-    if (!requireLabSurface('RDRR URL import controls')) return;
     refreshDownloads();
   });
 
@@ -4507,6 +4277,40 @@ function bindUI() {
   diagnosticsRun?.addEventListener('click', () => handleDiagnosticsRun('run'));
   diagnosticsVerify?.addEventListener('click', () => handleDiagnosticsRun('verify'));
   diagnosticsExport?.addEventListener('click', exportDiagnosticsReport);
+  distillTeacherFile?.addEventListener('change', async () => {
+    try {
+      const file = distillTeacherFile.files?.[0] || null;
+      if (!file || !(distillTeacherJson instanceof HTMLTextAreaElement)) return;
+      const text = await readFileAsText(file);
+      distillTeacherJson.value = text;
+      setDistillStatus(`Loaded teacher report file: ${file.name}`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      setDistillStatus(`Failed to read teacher report file: ${message}`, true);
+    }
+  });
+  distillWorkloadSelect?.addEventListener('change', () => {
+    if (!distillWorkloadSelect.value) {
+      setDistillStatus('Workload traceability disabled (None selected).');
+      return;
+    }
+    const workload = findDistillWorkloadById(distillWorkloadSelect.value);
+    if (!workload) {
+      setDistillStatus('Selected workload pack is unavailable.', true);
+      return;
+    }
+    const sha = workload.sha256 ? ` sha256:${workload.sha256.slice(0, 12)}...` : '';
+    setDistillStatus(`Selected workload pack: ${workload.id}.${sha}`);
+  });
+  distillReplayBtn?.addEventListener('click', () => {
+    handleDistillReplay().catch((error) => {
+      const message = error instanceof Error ? error.message : String(error);
+      setDistillStatus(`Distill replay failed: ${message}`, true);
+    });
+  });
+  distillExportBtn?.addEventListener('click', () => {
+    exportDistillReplay();
+  });
 
   unloadModelBtn?.addEventListener('click', () => {
     unloadActivePipeline().catch((error) => {
@@ -4632,14 +4436,11 @@ function bindUI() {
     exportEnergyRun();
   });
 
-  const energyBundleSelect = $('energy-vliw-bundle-select');
-  energyBundleSelect?.addEventListener('change', () => {
-    const value = energyBundleSelect.value;
-    const bundle = value === '' ? null : Number.parseInt(value, 10);
-    state.energyVliwBundle = Number.isFinite(bundle) ? bundle : null;
-    renderVliwBundleView(state.energyVliw, state.energyVliwBundle);
-  });
-
+  populateDistillWorkloadSelect();
+  setDistillOutput(state.distillLastReplay);
+  if (!state.distillWorkloadsLoading && !state.distillWorkloadsError) {
+    setDistillStatus('Ready.');
+  }
   updateRunAutoLabels();
   updateDiffusionCharCounters();
 }
@@ -4708,6 +4509,7 @@ async function init() {
 
     const startupTasks = Promise.all([
       loadQuickModelCatalog(),
+      loadDistillWorkloadRegistry(),
       refreshGpuInfo(),
       refreshDownloads(),
     ]);

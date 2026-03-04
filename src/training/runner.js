@@ -370,6 +370,51 @@ function normalizeOptionalString(value) {
   return trimmed || null;
 }
 
+function sanitizeGpuAdapterInfo(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return null;
+  }
+  const sources = [value];
+  if (value.adapter && typeof value.adapter === 'object' && !Array.isArray(value.adapter)) {
+    sources.push(value.adapter);
+  }
+  if (value.gpu && typeof value.gpu === 'object' && !Array.isArray(value.gpu)) {
+    sources.push(value.gpu);
+  }
+  const out = {};
+  const keyMap = [
+    ['name', ['name', 'adapterName']],
+    ['vendor', ['vendor']],
+    ['vendorId', ['vendorId']],
+    ['architecture', ['architecture']],
+    ['device', ['device']],
+    ['deviceId', ['deviceId']],
+    ['description', ['description']],
+    ['driver', ['driver']],
+    ['backend', ['backend']],
+    ['adapterType', ['adapterType']],
+    ['isFallbackAdapter', ['isFallbackAdapter']],
+  ];
+  for (const [targetKey, sourceKeys] of keyMap) {
+    for (const source of sources) {
+      for (const sourceKey of sourceKeys) {
+        if (!(sourceKey in source)) continue;
+        const candidate = source[sourceKey];
+        if (
+          typeof candidate === 'string'
+          || typeof candidate === 'number'
+          || typeof candidate === 'boolean'
+        ) {
+          out[targetKey] = candidate;
+          break;
+        }
+      }
+      if (targetKey in out) break;
+    }
+  }
+  return Object.keys(out).length > 0 ? out : null;
+}
+
 function stableSortObject(value) {
   if (Array.isArray(value)) {
     return value.map((entry) => stableSortObject(entry));
@@ -392,10 +437,18 @@ function hashStableJson(value) {
   return sha256Hex(stableJson(value));
 }
 
-function resolveRuntimeEnvironmentMetadata() {
+function resolveRuntimeEnvironmentMetadata(runOptions = {}) {
   const environment = {
     runtime: isNodeRuntime() ? 'node' : 'browser',
   };
+  const command = normalizeOptionalString(runOptions.command);
+  const surface = normalizeOptionalString(runOptions.surface);
+  if (command) {
+    environment.command = command;
+  }
+  if (surface) {
+    environment.surface = surface;
+  }
   if (typeof process !== 'undefined' && process.versions?.node) {
     environment.nodeVersion = process.versions.node;
     environment.platform = process.platform;
@@ -406,6 +459,10 @@ function resolveRuntimeEnvironmentMetadata() {
     environment.hardwareConcurrency = Number.isFinite(navigator.hardwareConcurrency)
       ? navigator.hardwareConcurrency
       : null;
+  }
+  const gpuAdapter = sanitizeGpuAdapterInfo(runOptions.gpuAdapterInfo);
+  if (gpuAdapter) {
+    environment.gpuAdapter = gpuAdapter;
   }
   return environment;
 }
@@ -535,7 +592,7 @@ function resolveCheckpointMetadataContext(config, runOptions = {}) {
     optimizerHash,
     runtimePresetId,
     kernelPathId,
-    environmentMetadata: resolveRuntimeEnvironmentMetadata(),
+    environmentMetadata: resolveRuntimeEnvironmentMetadata(runOptions),
     buildProvenance: resolveBuildProvenance(runOptions),
   };
 }

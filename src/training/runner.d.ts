@@ -139,6 +139,7 @@ export interface TrainingRunOptions {
   buildId?: string | null;
   buildCommitHash?: string | null;
   buildTimestamp?: string | number | Date | null;
+  gpuAdapterInfo?: Record<string, unknown> | null;
   command?: string | null;
   surface?: string | null;
   checkpointOperator?: string | null;

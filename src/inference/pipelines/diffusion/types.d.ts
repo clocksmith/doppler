@@ -1,5 +1,5 @@
 /**
- * Diffusion Pipeline Types (scaffold)
+ * Diffusion pipeline types.
  *
  * @module inference/pipelines/diffusion/types
  */
@@ -65,14 +65,8 @@ export interface DiffusionQuantizationConfig {
 }
 
 export interface DiffusionBackendConfig {
-  pipeline: string;
-  scaffold: {
-    tokens: number;
-    hiddenSize: number;
-    numHeads: number;
-    seed?: number;
-    layerNormEps: number;
-  };
+  pipeline: 'gpu';
+  layerNormEps: number | null;
 }
 
 export interface DiffusionRuntimeConfig {

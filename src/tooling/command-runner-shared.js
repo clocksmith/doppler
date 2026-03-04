@@ -123,6 +123,8 @@ export function buildSuiteOptions(request, surface = null) {
     resumeFrom: request.resumeFrom ?? undefined,
     forceResume: request.forceResume ?? undefined,
     forceResumeReason: request.forceResumeReason ?? undefined,
+    forceResumeSource: request.forceResumeSource ?? undefined,
+    checkpointOperator: request.checkpointOperator ?? undefined,
     trainingSchemaVersion: request.trainingSchemaVersion ?? undefined,
     trainingBenchSteps: request.trainingBenchSteps ?? undefined,
     workloadType: request.workloadType ?? undefined,

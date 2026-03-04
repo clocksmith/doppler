@@ -1,5 +1,5 @@
 /**
- * Diffusion Pipeline (scaffold)
+ * Diffusion pipeline.
  *
  * @module inference/pipelines/diffusion/pipeline
  */
@@ -13,7 +13,6 @@ export declare class DiffusionPipeline {
   diffusionState: Record<string, unknown> | null;
   tokenizers: Record<string, unknown> | null;
   stats: DiffusionStats;
-  gpuScaffold: Record<string, unknown> | null;
   weightLoader: DiffusionWeightLoader | null;
   vaeWeights: DiffusionWeightEntry | null;
   textEncoderWeights: Record<string, DiffusionWeightEntry> | null;

@@ -20,6 +20,11 @@ Distill run directories typically include:
 - `metrics.ndjson`
 - `distill_stage_a_manifest.json` or `distill_stage_b_manifest.json`
 
+Deterministic workload packs are published in:
+
+- `tools/configs/training-workloads/*.json`
+- `tools/configs/training-workloads/registry.json`
+
 ## Hashing policy
 
 - Hash function: SHA-256 hex for lineage/provenance linkage.
@@ -33,6 +38,8 @@ Distill run directories typically include:
 - Stage B distill artifacts must reference and validate stage A dependency hashes.
 - Reports should include explicit artifact references and matching manifest hashes
   when available.
+- Published workload packs include deterministic `baselineReportId` values derived
+  from workload content hashes. Claim publication artifacts must reference those ids.
 
 ## Deterministic timestamp behavior
 
@@ -46,4 +53,6 @@ Use provenance verification for manifests/reports:
 ```bash
 node tools/verify-training-provenance.mjs --manifest <manifest.json> [--stage1-manifest <manifest.json>]
 node tools/verify-training-provenance.mjs --report <report.json>
+node tools/verify-training-workload-packs.mjs --registry tools/configs/training-workloads/registry.json
+node tools/publish-training-report-ids.mjs --registry tools/configs/training-workloads/registry.json --out reports/training/report-ids/latest.json
 ```

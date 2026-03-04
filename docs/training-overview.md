@@ -27,7 +27,8 @@ verify/calibrate workflows, artifact lineage, and deterministic reporting.
 - Distill inputs: `request.teacherModelId`, `request.studentModelId`,
   `request.distillDatasetPath`, `request.distillLanguagePair`
 - Resume override controls: `request.forceResume=true` with
-  `request.forceResumeReason` for audited compatibility overrides.
+  `request.forceResumeReason`, optional `request.forceResumeSource`, and optional
+  `request.checkpointOperator` for audited compatibility overrides.
 
 ## Training metrics contract (core context fields)
 
@@ -42,6 +43,12 @@ auditable replay:
 - `environment_metadata`
 - `memory_stats`
 - `build_provenance`
+
+For training/distill objectives, objective-specific config fields are mandatory:
+
+- `kd`: `distill_temperature`, `distill_alpha_kd`, `distill_alpha_ce`,
+  `distill_loss_total`
+- `triplet`: `distill_triplet_margin`, `distill_triplet_active_count`
 
 ## Resume compatibility + audit behavior
 
@@ -65,6 +72,10 @@ auditable replay:
 - Artifacts must be hash-linked and replayable.
 - CI/release gate entrypoint: `npm run ci:training:contract`
 - Weekly contract delta artifact: `npm run training:contract:delta`
+- Deterministic workload packs must validate against registry:
+  `npm run training:workloads:verify`
+- Report-id publication artifact must be produced for claim traceability:
+  `npm run training:report-ids:publish -- --out <path>`
 - Distill quality gates + reproducibility bundle:
   `npm run distill:quality-gate -- --report <report.json> --out-dir <dir>`
 

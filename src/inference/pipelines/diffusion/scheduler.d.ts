@@ -1,5 +1,5 @@
 /**
- * Diffusion scheduler scaffold.
+ * Diffusion scheduler.
  *
  * @module inference/pipelines/diffusion/scheduler
  */

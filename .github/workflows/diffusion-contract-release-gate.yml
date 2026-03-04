@@ -1,0 +1,53 @@
+name: Diffusion Contract Release Gate
+
+on:
+  pull_request:
+    paths:
+      - 'src/config/**'
+      - 'src/diffusion/**'
+      - 'src/inference/**'
+      - 'src/tooling/**'
+      - 'tests/config/**'
+      - 'tests/fixtures/diffusion/**'
+      - 'tests/integration/**'
+      - 'docs/style/command-interface-design-guide.md'
+      - 'docs/style/harness-style-guide.md'
+      - 'tools/ci-diffusion-contract-gates.mjs'
+      - 'tools/run-node-tests.mjs'
+      - '.github/workflows/diffusion-contract-release-gate.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/config/**'
+      - 'src/diffusion/**'
+      - 'src/inference/**'
+      - 'src/tooling/**'
+      - 'tests/config/**'
+      - 'tests/fixtures/diffusion/**'
+      - 'tests/integration/**'
+      - 'docs/style/command-interface-design-guide.md'
+      - 'docs/style/harness-style-guide.md'
+      - 'tools/ci-diffusion-contract-gates.mjs'
+      - 'tools/run-node-tests.mjs'
+      - '.github/workflows/diffusion-contract-release-gate.yml'
+  workflow_dispatch:
+
+jobs:
+  diffusion-contract-release-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Enforce diffusion contract release gates
+        run: npm run ci:diffusion:contract

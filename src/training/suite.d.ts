@@ -135,6 +135,7 @@ export interface RunTrainingSuiteOptions {
   resumeFrom?: string;
   forceResume?: boolean;
   forceResumeReason?: string;
+  forceResumeSource?: string;
   checkpointOperator?: string | null;
   trainingBenchSteps?: number;
   benchRun?: Record<string, unknown> | null;

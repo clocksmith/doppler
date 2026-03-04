@@ -159,7 +159,6 @@ export {
   type DiffusionSwapperConfigSchema,
   type DiffusionQuantizationConfigSchema,
   type DiffusionBackendConfigSchema,
-  type DiffusionScaffoldConfigSchema,
   type DiffusionSchedulerType,
   type DiffusionDtype,
   type DiffusionQuantDtype,

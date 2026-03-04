@@ -15,6 +15,11 @@ Quick index for DOPPLER documentation.
 - [Training Overview](training-overview.md) - Verify/calibrate scope, stage support, and release expectations.
 - [Training Artifact Policy](training-artifact-policy.md) - Naming, hashing, lineage, and deterministic timestamp policy.
 - [Training Migrations](training-migrations.md) - Command/schema/metrics migration baseline and guidance.
+- [Training Claim Traceability](training-claim-traceability.md) - Deterministic workload hashes and report-id mapping policy.
+- [Training Operator Playbook](training-operator-playbook.md) - Operational command sequence for gates, distill MVP, and incidents.
+- [Training Rollout Readiness](training-rollout-readiness.md) - Release/rollout checklist for contract and traceability readiness.
+- [Training Benchmark Publication](training-benchmark-publication.md) - Required artifact/process for benchmark claim publication.
+- [Diffusion Expansion Lanes](diffusion-expansion-lanes.md) - Started backlog for larger targets, quantized diffusion, and platform rollout.
 - [Distill Studio Ops](distill-studio-ops.md) - Distill Studio contract surface, rollout, reliability, incident response.
 - [Release Matrix](release-matrix.md) - Generated model/platform support snapshot tied to vendor benchmark configs.
 - [Onboarding Tooling](onboarding-tooling.md) - Check and scaffold workflows for conversion, kernels, and behavior presets.
@@ -36,6 +41,6 @@ Quick index for DOPPLER documentation.
 - [Kernel Tests (Implemented)](../tests/kernels/README.md) - Kernel correctness and microbenchmarks.
 - [Kernel Benchmarks](../tests/kernels/benchmarks.md) - Baseline expectations and notes.
 
-*Last updated: 2026-03-02*
+*Last updated: 2026-03-04*
 
 Note: Internal postmortems, planning notes, and capability matrices live in the private wrapper repo.

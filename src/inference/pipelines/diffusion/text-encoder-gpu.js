@@ -12,6 +12,7 @@ import {
   runGeLU,
   runSiLU,
   runSiLURowSplit,
+  runScale,
   runResidualAdd,
   runBiasAdd,
   recordGather,
@@ -22,10 +23,10 @@ import {
   recordGeLU,
   recordSiLU,
   recordSiLURowSplit,
+  recordScale,
   recordResidualAdd,
   recordBiasAdd,
 } from '../../../gpu/kernels/index.js';
-import { log } from '../../../debug/index.js';
 import { createSD3WeightResolver } from './sd3-weights.js';
 import { f32ToF16Array } from '../../kv-cache/types.js';
 import {
@@ -39,6 +40,9 @@ import {
   inferDiffusionMatmulDtypeFromBuffer,
   sumDiffusionProfileTimings,
 } from './helpers.js';
+
+const QUICK_GELU_ALPHA = 1.702;
+const SUPPORTED_CLIP_HIDDEN_ACTIVATIONS = new Set(['gelu', 'quick_gelu']);
 
 function padTokens(tokens, maxLength, padTokenId) {
   if (!Number.isFinite(maxLength) || maxLength <= 0) {
@@ -108,6 +112,7 @@ function createKernelOps(recorder) {
       gelu: runGeLU,
       silu: runSiLU,
       siluRowSplit: runSiLURowSplit,
+      scale: runScale,
       residualAdd: runResidualAdd,
       biasAdd: runBiasAdd,
     };
@@ -121,9 +126,39 @@ function createKernelOps(recorder) {
     gelu: (...args) => recordGeLU(recorder, ...args),
     silu: (...args) => recordSiLU(recorder, ...args),
     siluRowSplit: (...args) => recordSiLURowSplit(recorder, ...args),
+    scale: (...args) => recordScale(recorder, ...args),
     residualAdd: (...args) => recordResidualAdd(recorder, ...args),
     biasAdd: (...args) => recordBiasAdd(recorder, ...args),
   };
+}
+
+function resolveClipHiddenActivation(config) {
+  const hiddenAct = config?.hidden_act ?? 'gelu';
+  if (!SUPPORTED_CLIP_HIDDEN_ACTIVATIONS.has(hiddenAct)) {
+    throw new Error(
+      `Unsupported CLIP hidden_act "${hiddenAct}". ` +
+      `Expected one of: ${Array.from(SUPPORTED_CLIP_HIDDEN_ACTIVATIONS).join(', ')}.`
+    );
+  }
+  return hiddenAct;
+}
+
+async function runClipMlpActivation(input, hiddenAct, count, ops, release) {
+  if (hiddenAct === 'gelu') {
+    return ops.gelu(input, { size: count });
+  }
+  if (hiddenAct === 'quick_gelu') {
+    const scaledInput = await ops.scale(input, QUICK_GELU_ALPHA, { count });
+    const siluScaled = await ops.silu(scaledInput, { size: count, swigluLimit: null });
+    release(scaledInput.buffer);
+    const output = await ops.scale(siluScaled, 1 / QUICK_GELU_ALPHA, { count });
+    release(siluScaled.buffer);
+    return output;
+  }
+  throw new Error(
+    `Unsupported CLIP hidden_act "${hiddenAct}". ` +
+    `Expected one of: ${Array.from(SUPPORTED_CLIP_HIDDEN_ACTIVATIONS).join(', ')}.`
+  );
 }
 
 function getWeight(weights, prefix, name) {
@@ -178,6 +213,7 @@ async function runClipTextEncoder(tokens, weightsEntry, config, runtime, options
   const numHeads = config.num_attention_heads;
   const headDim = Math.floor(hiddenSize / numHeads);
   const maxLength = config.max_position_embeddings;
+  const hiddenAct = resolveClipHiddenActivation(config);
   const padTokenId = config.pad_token_id ?? 0;
   const eosTokenId = config.eos_token_id ?? null;
   const activationDtype = resolveDiffusionActivationDtype(runtime);
@@ -362,16 +398,22 @@ async function runClipTextEncoder(tokens, weightsEntry, config, runtime, options
     let mlp = await matmul(norm2, fc1Weight, fc1Key, maxLength, intermediate, hiddenSize, { outputDtype: activationDtype, transposeB: 'auto' });
     if (fc1Bias) mlp = await ops.biasAdd(mlp, createBiasTensorWithDtype(fc1Bias, weightsEntry, fc1BiasKey, intermediate, `${prefix}_fc1_bias`), maxLength, intermediate);
 
-    const gelu = await ops.gelu(mlp, { size: maxLength * intermediate });
+    const activation = await runClipMlpActivation(
+      mlp,
+      hiddenAct,
+      maxLength * intermediate,
+      ops,
+      release
+    );
     release(mlp.buffer);
 
-    let mlpOut = await matmul(gelu, fc2Weight, fc2Key, maxLength, hiddenSize, intermediate, { outputDtype: activationDtype, transposeB: 'auto' });
+    let mlpOut = await matmul(activation, fc2Weight, fc2Key, maxLength, hiddenSize, intermediate, { outputDtype: activationDtype, transposeB: 'auto' });
     if (fc2Bias) mlpOut = await ops.biasAdd(mlpOut, createBiasTensorWithDtype(fc2Bias, weightsEntry, fc2BiasKey, hiddenSize, `${prefix}_fc2_bias`), maxLength, hiddenSize);
 
     const mlpResidual = await ops.residualAdd(hidden, mlpOut, maxLength * hiddenSize, { useVec4: true });
 
     release(norm2.buffer);
-    release(gelu.buffer);
+    release(activation.buffer);
     release(mlpOut.buffer);
     release(hidden.buffer);
 
@@ -888,8 +930,6 @@ export async function projectContext(context, weightsEntry, modelConfig, runtime
   return projected;
 }
 
-export function logQuickGeluWarning(config) {
-  if (config.hidden_act === 'quick_gelu') {
-    log.warn('Diffusion', 'CLIP quick_gelu is approximated with gelu.');
-  }
+export function assertClipHiddenActivationSupported(config) {
+  resolveClipHiddenActivation(config);
 }

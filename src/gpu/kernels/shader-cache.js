@@ -72,6 +72,21 @@ function getKernelBasePath() {
 
 const KERNEL_BASE_PATH = getKernelBasePath();
 
+function isFileUrl(value) {
+  return typeof value === 'string' && value.startsWith('file://');
+}
+
+async function loadShaderSourceFromFileUrl(url) {
+  try {
+    const fs = await import('node:fs/promises');
+    const source = await fs.readFile(new URL(url), 'utf8');
+    return source;
+  } catch (error) {
+    log.error('ShaderCache', `Failed to read shader via file URL ${url}: ${error}`);
+    throw error;
+  }
+}
+
 // ============================================================================
 // Shader Loading
 // ============================================================================
@@ -84,6 +99,13 @@ export async function loadShaderSource(filename) {
 
   const url = `${KERNEL_BASE_PATH}/${filename}`;
   try {
+    // Node's fetch may not support file:// URLs; use fs fallback for that path.
+    if (isFileUrl(url)) {
+      const source = await loadShaderSourceFromFileUrl(url);
+      shaderSourceCache.set(filename, source);
+      return source;
+    }
+
     const response = await fetch(url, { cache: 'no-cache' });
     if (!response.ok) {
       throw new Error(`Failed to load shader ${filename}: ${response.status}`);
