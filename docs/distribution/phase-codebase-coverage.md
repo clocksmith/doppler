@@ -12,8 +12,16 @@ This document tracks what is implemented directly in the Doppler repository for 
 
 ## Phase 2 (repo-scoped)
 - Runtime contracts for source attribution telemetry in downloader state/progress.
+- Per-shard delivery metrics emitted by shard delivery (`deliveryMetrics`): attempt counts, retries, failure-code tallies, source RTT summaries, and storage write latency.
+- Metrics export hook (`onDeliveryMetrics`) and observability transforms for dashboard snapshots, alert extraction, and SLO gate evaluation (`src/distribution/p2p-observability.js`).
+- Deterministic decision-trace sampling (`sourceDecision.trace.samplingRate`) to control trace volume while preserving reproducibility.
+- Runtime P2P abuse controls exist in delivery policy (`security` session-token gating, per-transport rate limiting, and temporary quarantine after repeated failures).
 - Control-vs-transport separation represented in distribution modules.
 - P2P transport interface remains pluggable and transport-agnostic.
+- Feature-flagged browser WebRTC data-plane slice (`src/distribution/p2p-webrtc-browser.js`) with fail-closed capability checks.
+- Minimal control-plane contract wiring for token issuance/refresh and policy gating (`src/distribution/p2p-control-plane.js`) integrated into shard delivery.
+- Staged resilience drill runner for origin outage / peer collapse / anti-rollback incident simulations (`tools/p2p-resilience-drill.mjs`).
+- Operations export CLI for dashboard/alerts/SLO artifacts (`tools/p2p-delivery-observability.mjs`).
 
 ## Phase 3 (repo-scoped)
 - Signed/provenance hooks and revocation policy represented in shared ecosystem config.

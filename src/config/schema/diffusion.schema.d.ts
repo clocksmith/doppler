@@ -14,7 +14,7 @@ export type DiffusionQuantDtype = 'none' | 'int8';
 
 export type DiffusionSwapperStrategy = 'sequential';
 
-export type DiffusionBackendPipeline = 'cpu' | 'gpu_scaffold' | 'gpu';
+export type DiffusionBackendPipeline = 'gpu';
 
 export interface DiffusionSchedulerConfigSchema {
   type: DiffusionSchedulerType;
@@ -62,17 +62,9 @@ export interface DiffusionQuantizationConfigSchema {
   dequantize: 'shader' | 'cpu';
 }
 
-export interface DiffusionScaffoldConfigSchema {
-  tokens: number;
-  hiddenSize: number;
-  numHeads: number;
-  seed?: number;
-  layerNormEps: number;
-}
-
 export interface DiffusionBackendConfigSchema {
   pipeline: DiffusionBackendPipeline;
-  scaffold: DiffusionScaffoldConfigSchema;
+  layerNormEps: number | null;
 }
 
 export interface DiffusionConfigSchema {

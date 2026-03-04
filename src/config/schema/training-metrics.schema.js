@@ -305,6 +305,10 @@ export function validateTrainingMetricsEntry(entry) {
       throw new Error('training metrics: kd objective must not set ul_stage.');
     }
     assertFiniteNumber(entry.loss_kd, 'loss_kd');
+    assertFiniteNumber(entry.distill_temperature, 'distill_temperature');
+    assertFiniteNumber(entry.distill_alpha_kd, 'distill_alpha_kd');
+    assertFiniteNumber(entry.distill_alpha_ce, 'distill_alpha_ce');
+    assertFiniteNumber(entry.distill_loss_total, 'distill_loss_total');
     if (entry.distill_stage !== 'stage_a') {
       throw new Error('training metrics: kd objective requires distill_stage="stage_a".');
     }
@@ -315,6 +319,8 @@ export function validateTrainingMetricsEntry(entry) {
       throw new Error('training metrics: triplet objective must not set ul_stage.');
     }
     assertFiniteNumber(entry.loss_triplet, 'loss_triplet');
+    assertFiniteNumber(entry.distill_triplet_margin, 'distill_triplet_margin');
+    assertIntegerGte(entry.distill_triplet_active_count, 0, 'distill_triplet_active_count');
     if (entry.distill_stage !== 'stage_b') {
       throw new Error('training metrics: triplet objective requires distill_stage="stage_b".');
     }

@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "training_workload_registry",
+  "generatedAt": "2026-03-04T00:00:00.000Z",
+  "workloads": [
+    {
+      "id": "distill-translategemma-medium",
+      "path": "tools/configs/training-workloads/distill-translategemma-medium.json",
+      "sha256": "f7e22a505004530c3c681ad2f4e531703835252af5fd8cedf017f47cc3f446a6",
+      "workloadKind": "distill",
+      "trainingSchemaVersion": 1,
+      "seed": 1337,
+      "trainingBenchSteps": 8,
+      "trainingTests": [
+        "distill-stage-a",
+        "distill-stage-b"
+      ],
+      "benchRun": {
+        "warmupRuns": 1,
+        "timedRuns": 3
+      },
+      "baselineReportId": "trn_distill-translategemma-medium_f7e22a505004",
+      "claimBoundary": "Practical distill workflow quality traceability."
+    },
+    {
+      "id": "distill-translategemma-tiny",
+      "path": "tools/configs/training-workloads/distill-translategemma-tiny.json",
+      "sha256": "8d3cfeba7d4abe901cae4718a4e7cde5ace1b377bb3c7e7538fcfe7c6f8e446c",
+      "workloadKind": "distill",
+      "trainingSchemaVersion": 1,
+      "seed": 1337,
+      "trainingBenchSteps": 2,
+      "trainingTests": [
+        "distill-stage-a",
+        "distill-stage-b"
+      ],
+      "benchRun": {
+        "warmupRuns": 0,
+        "timedRuns": 1
+      },
+      "baselineReportId": "trn_distill-translategemma-tiny_8d3cfeba7d4a",
+      "claimBoundary": "Practical distill workflow quality traceability."
+    },
+    {
+      "id": "ul-training-medium",
+      "path": "tools/configs/training-workloads/ul-training-medium.json",
+      "sha256": "0815b2b9a0d49aa551725b916de1f8b5d9aa219e852a91863f9113b54e594aa8",
+      "workloadKind": "ul",
+      "trainingSchemaVersion": 1,
+      "seed": 1337,
+      "trainingBenchSteps": 8,
+      "trainingTests": [
+        "ul-stage1",
+        "ul-stage2"
+      ],
+      "benchRun": {
+        "warmupRuns": 1,
+        "timedRuns": 3
+      },
+      "baselineReportId": "trn_ul-training-medium_0815b2b9a0d4",
+      "claimBoundary": "Practical UL workflow quality traceability."
+    },
+    {
+      "id": "ul-training-tiny",
+      "path": "tools/configs/training-workloads/ul-training-tiny.json",
+      "sha256": "b098930e0b4ec1229a1c3240308c723ba1f63eb163328b1a44bf681f675a4799",
+      "workloadKind": "ul",
+      "trainingSchemaVersion": 1,
+      "seed": 1337,
+      "trainingBenchSteps": 2,
+      "trainingTests": [
+        "ul-stage1",
+        "ul-stage2"
+      ],
+      "benchRun": {
+        "warmupRuns": 0,
+        "timedRuns": 1
+      },
+      "baselineReportId": "trn_ul-training-tiny_b098930e0b4e",
+      "claimBoundary": "Practical UL workflow quality traceability."
+    }
+  ]
+}

@@ -46,6 +46,8 @@ export interface ToolingCommandRequestInput {
   resumeFrom?: string;
   forceResume?: boolean;
   forceResumeReason?: string;
+  forceResumeSource?: string;
+  checkpointOperator?: string;
   trainingSchemaVersion?: number;
   trainingBenchSteps?: number;
   workloadType?: string;
@@ -89,6 +91,8 @@ export interface ToolingCommandRequest {
   resumeFrom: string | null;
   forceResume: boolean | null;
   forceResumeReason: string | null;
+  forceResumeSource: string | null;
+  checkpointOperator: string | null;
   trainingSchemaVersion: number | null;
   trainingBenchSteps: number | null;
   workloadType: string | null;

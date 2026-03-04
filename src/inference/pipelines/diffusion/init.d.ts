@@ -1,5 +1,5 @@
 /**
- * Diffusion init scaffold.
+ * Diffusion initialization utilities.
  *
  * @module inference/pipelines/diffusion/init
  */

@@ -30,8 +30,14 @@ function parseArgs() {
   const args = process.argv.slice(2);
   const directories = [];
   let suite = 'all';
+  let forceExit = false;
 
   for (let i = 0; i < args.length; i += 1) {
+    if (args[i] === '--force-exit') {
+      forceExit = true;
+      continue;
+    }
+
     if (args[i] === '--suite') {
       const value = args[i + 1];
       if (value) {
@@ -46,10 +52,13 @@ function parseArgs() {
       continue;
     }
 
+    if (args[i].startsWith('--')) {
+      throw new Error(`Unknown argument: ${args[i]}`);
+    }
     directories.push(args[i]);
   }
 
-  return { suite, directories };
+  return { suite, directories, forceExit };
 }
 
 function collectTestFiles(dir, files) {
@@ -88,7 +97,7 @@ function listRootsFromSuite(suiteName, explicitDirs) {
 }
 
 async function main() {
-  const { suite, directories } = parseArgs();
+  const { suite, directories, forceExit } = parseArgs();
   const resolvedSuite = Object.hasOwn(suites, suite) ? suite : 'all';
   const selectedRoots = listRootsFromSuite(resolvedSuite, directories.map((dir) => resolve(ROOT_DIR, dir)));
   const testFiles = [];
@@ -129,6 +138,9 @@ async function main() {
   }
 
   console.log(`[node-tests] ok: ${testFiles.length} files`);
+  if (forceExit) {
+    process.exit(0);
+  }
 }
 
 await main();

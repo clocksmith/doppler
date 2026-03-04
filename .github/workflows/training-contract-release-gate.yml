@@ -12,8 +12,11 @@ on:
       - 'tools/ci-training-contract-gates.mjs'
       - 'tools/emit-training-contract-delta.mjs'
       - 'tools/distill-studio-quality-gate.mjs'
+      - 'tools/verify-training-workload-packs.mjs'
+      - 'tools/publish-training-report-ids.mjs'
       - 'tools/run-node-tests.mjs'
       - 'tools/verify-training-provenance.mjs'
+      - 'tools/configs/training-workloads/**'
       - '.github/workflows/training-contract-release-gate.yml'
   push:
     branches: [main]
@@ -27,8 +30,11 @@ on:
       - 'tools/ci-training-contract-gates.mjs'
       - 'tools/emit-training-contract-delta.mjs'
       - 'tools/distill-studio-quality-gate.mjs'
+      - 'tools/verify-training-workload-packs.mjs'
+      - 'tools/publish-training-report-ids.mjs'
       - 'tools/run-node-tests.mjs'
       - 'tools/verify-training-provenance.mjs'
+      - 'tools/configs/training-workloads/**'
       - '.github/workflows/training-contract-release-gate.yml'
   workflow_dispatch:
 

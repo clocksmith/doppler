@@ -128,6 +128,21 @@ function createBiasTensorWithDtype(weight, size, label, resolver, name) {
   return createTensor(getBuffer(weight), dtype, [size], label);
 }
 
+function resolveTransformerLayerNormEps(config, runtime) {
+  const modelEps = Number(config?.norm_eps ?? config?.layer_norm_eps);
+  if (Number.isFinite(modelEps) && modelEps > 0) {
+    return modelEps;
+  }
+  const runtimeEps = Number(runtime?.backend?.layerNormEps);
+  if (Number.isFinite(runtimeEps) && runtimeEps > 0) {
+    return runtimeEps;
+  }
+  throw new Error(
+    'Diffusion transformer requires a positive layer norm epsilon from ' +
+    'transformer.config.norm_eps (or layer_norm_eps) or runtime.inference.diffusion.backend.layerNormEps.'
+  );
+}
+
 async function splitQKV(qkv, numTokens, hiddenSize, label, recorder) {
   const device = getDevice();
   const bytesPerElement = dtypeBytes(qkv.dtype);
@@ -424,10 +439,7 @@ export async function runSD3Transformer(latents, context, timeText, weightsEntry
   const numHeads = config.num_attention_heads;
   const headDim = config.attention_head_dim;
   const patchSize = config.patch_size;
-  const layerNormEps = runtime?.backend?.scaffold?.layerNormEps;
-  if (!Number.isFinite(layerNormEps)) {
-    throw new Error('Diffusion backend.layerNormEps is required.');
-  }
+  const layerNormEps = resolveTransformerLayerNormEps(config, runtime);
 
   const latentChannels = latents.shape[0];
   const latentHeight = latents.shape[1];

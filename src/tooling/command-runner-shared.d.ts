@@ -51,6 +51,8 @@ export declare function buildSuiteOptions(
   resumeFrom?: string;
   forceResume?: boolean;
   forceResumeReason?: string;
+  forceResumeSource?: string;
+  checkpointOperator?: string;
   trainingSchemaVersion?: number;
   trainingBenchSteps?: number;
   workloadType?: string;

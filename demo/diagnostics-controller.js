@@ -40,7 +40,7 @@ function mapSuiteToCommand(suite) {
   if (suite === 'bench') return { command: 'bench', suite: null };
   if (suite === 'debug') return { command: 'debug', suite: null };
   if (SUPPORTED_VERIFY_SUITES.has(suite)) {
-    return { command: 'test-model', suite };
+    return { command: 'verify', suite };
   }
   throw new Error(`Unsupported diagnostics suite "${suite}"`);
 }

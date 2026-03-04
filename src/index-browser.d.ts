@@ -44,4 +44,4 @@ export {
   createMemoryRegistry,
 } from './adapters/index.js';
 
-export * from './tooling-exports.js';
+export * from './tooling-exports.browser.js';

@@ -1,26 +1,3 @@
-import { VLIW_SPEC_PRESETS } from './energy/specs.js';
-
-export const VLIW_DATASETS = {
-  'vliw-simd-frozen': {
-    id: 'vliw-simd-frozen',
-    label: 'VLIW SIMD schedule (frozen workload)',
-    spec: VLIW_SPEC_PRESETS.frozen_ub_energy_1385,
-    mode: 'parity',
-    capsMode: 'slot_limits',
-    source: 'generator/ub_energy_bundle_1385.py',
-  },
-  'vliw-simd-real': {
-    id: 'vliw-simd-real',
-    label: 'VLIW SIMD schedule (real spec)',
-    path: 'data/vliw-simd-real.json',
-  },
-  'vliw-simd': {
-    id: 'vliw-simd',
-    label: 'VLIW SIMD schedule (full kernel)',
-    path: 'data/vliw-simd.json',
-  },
-};
-
 export const ENERGY_DEMOS = [
   {
     id: 'quintel-cross',
@@ -51,109 +28,6 @@ export const ENERGY_DEMOS = [
       },
     },
   },
-  {
-    id: 'vliw-simd',
-    problem: 'vliw',
-    label: 'VLIW SIMD: Spec → DAG → Schedule',
-    description: 'Layered energy: spec constraints → DAG build → schedule cycles under slot caps.',
-    defaults: {
-      displayThreshold: 0.5,
-      vliw: {
-        dataset: 'vliw-simd-frozen',
-        bundleLimit: 0,
-        mode: 'parity',
-        scoreMode: 'bundle',
-        restarts: 2,
-        temperatureStart: 3.0,
-        temperatureDecay: 0.99,
-        mutationCount: 8,
-        policy: 'weights',
-        schedulerPolicies: ['mix'],
-        specSearch: {
-          enabled: true,
-          restarts: 2,
-          steps: 32,
-          temperatureStart: 2.5,
-          temperatureDecay: 0.95,
-          mutationCount: 2,
-          seed: 1337,
-          penaltyGate: 2,
-          cycleLambda: 1.0,
-          lbPenalty: 100,
-          targetCycles: 0,
-          scoreMode: 'bundle',
-          innerSteps: 32,
-          constraints: {
-            mode: 'parity',
-            fallbackCycles: 10000,
-          },
-        },
-      },
-      init: {
-        mode: 'baseline',
-        seed: 1337,
-        scale: 0.35,
-      },
-      loop: {
-        steps: 32,
-        stepSize: 0.15,
-        gradientScale: 1.0,
-        convergence: 0,
-      },
-    },
-  },
-  {
-    id: 'vliw-simd-mlp',
-    problem: 'vliw',
-    label: 'VLIW SIMD: Learned Scheduler (MLP)',
-    description: 'MLP priority policy trained with GPU backward + Adam on accepted schedules (surrogate distillation loop).',
-    defaults: {
-      displayThreshold: 0.5,
-      vliw: {
-        dataset: 'vliw-simd-frozen',
-        bundleLimit: 120,
-        mode: 'relaxed',
-        scoreMode: 'graph',
-        restarts: 2,
-        temperatureStart: 1.5,
-        temperatureDecay: 0.99,
-        mutationCount: 8,
-        policy: 'mlp',
-        mlp: { hiddenSize: 16, lr: 0.001 },
-        schedulerPolicies: ['mix'],
-        specSearch: {
-          enabled: false,
-          restarts: 2,
-          steps: 32,
-          temperatureStart: 2.5,
-          temperatureDecay: 0.95,
-          mutationCount: 2,
-          seed: 1337,
-          penaltyGate: 2,
-          cycleLambda: 1.0,
-          lbPenalty: 100,
-          targetCycles: 0,
-          scoreMode: 'bundle',
-          innerSteps: 32,
-          constraints: {
-            mode: 'parity',
-            fallbackCycles: 10000,
-          },
-        },
-      },
-      init: {
-        mode: 'normal',
-        seed: 1337,
-        scale: 0.35,
-      },
-      loop: {
-        steps: 120,
-        stepSize: 0.05,
-        gradientScale: 1.0,
-        convergence: 0,
-      },
-    },
-  },
 ];
 
 export const DEFAULT_ENERGY_DEMO_ID = ENERGY_DEMOS[0]?.id || 'quintel-cross';
@@ -163,11 +37,6 @@ export const ENERGY_METRIC_LABELS = {
     symmetry: 'Symmetry',
     count: 'Count',
     binarize: 'Binarize',
-  },
-  vliw: {
-    symmetry: 'Cycles',
-    count: 'Utilization',
-    binarize: 'Violations',
   },
 };
 
@@ -252,5 +121,4 @@ export const DIAGNOSTICS_DEFAULTS = {
   diffusion: { suite: 'diffusion' },
   energy: { suite: 'energy' },
   diagnostics: { suite: 'inference' },
-  kernels: { suite: 'kernels' },
 };

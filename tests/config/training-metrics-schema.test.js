@@ -15,6 +15,14 @@ function makeBaseEntry(overrides = {}) {
     step_time_ms: 1.2,
     forward_ms: 0.6,
     backward_ms: 0.5,
+    lr: 0.0001,
+    seed: 1337,
+    model_id: 'training-test-model',
+    runtime_preset: null,
+    kernel_path: null,
+    environment_metadata: { runtime: 'node' },
+    memory_stats: null,
+    build_provenance: null,
     ...overrides,
   };
 }
@@ -101,8 +109,9 @@ function makeBaseEntry(overrides = {}) {
     () => validateTrainingMetricsEntry(makeBaseEntry({
       objective: 'kd',
       loss_kd: 0.12,
+      distill_stage: 'stage_a',
     })),
-    /kd objective requires distill_stage="stage_a"/
+    /distill_temperature must be a finite number/
   );
 }
 
@@ -111,8 +120,9 @@ function makeBaseEntry(overrides = {}) {
     () => validateTrainingMetricsEntry(makeBaseEntry({
       objective: 'triplet',
       loss_triplet: 0.21,
+      distill_stage: 'stage_b',
     })),
-    /triplet objective requires distill_stage="stage_b"/
+    /distill_triplet_margin must be a finite number/
   );
 }
 
@@ -121,6 +131,10 @@ function makeBaseEntry(overrides = {}) {
     objective: 'kd',
     loss_kd: 0.12,
     distill_stage: 'stage_a',
+    distill_temperature: 1,
+    distill_alpha_kd: 1,
+    distill_alpha_ce: 0,
+    distill_loss_total: 0.12,
   }));
   assert.equal(kd.distill_stage, 'stage_a');
 }
@@ -130,6 +144,8 @@ function makeBaseEntry(overrides = {}) {
     objective: 'triplet',
     loss_triplet: 0.21,
     distill_stage: 'stage_b',
+    distill_triplet_margin: 0.2,
+    distill_triplet_active_count: 1,
   }));
   assert.equal(triplet.distill_stage, 'stage_b');
 }

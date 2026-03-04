@@ -50,4 +50,4 @@ export {
 } from './adapters/index.js';
 
 // Tooling Surface — re-exported for browser tooling consumers.
-export * from './tooling-exports.js';
+export * from './tooling-exports.browser.js';

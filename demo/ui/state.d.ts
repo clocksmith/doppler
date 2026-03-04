@@ -67,15 +67,6 @@ export interface State {
   quickModelStorageIds: string[];
   downloadProgress: any;
   energyDemoId: string | null;
-  energyVliw: any;
-  energyVliwTasks: any;
-  energyVliwCaps: any;
-  energyVliwOps: any;
-  energyVliwBundle: any;
-  energyVliwBundleLimit: any;
-  energyVliwMeta: any;
-  energyVliwDatasetId: any;
-  energyVliwSpecSearch: any;
   lastEnergyResult: any;
 }
 

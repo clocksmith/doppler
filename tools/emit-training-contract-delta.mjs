@@ -101,6 +101,8 @@ function buildPayload(args) {
         'training_smoke',
         'rollout_governance',
       ],
+      deterministicWorkloadRegistry: 'tools/configs/training-workloads/registry.json',
+      reportIdPublication: 'tools/publish-training-report-ids.mjs',
     },
     governance: {
       demoClaimsMustReferenceReportId: true,

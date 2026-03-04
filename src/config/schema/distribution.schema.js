@@ -34,6 +34,7 @@ export const DEFAULT_DISTRIBUTION_CONFIG = {
     trace: {
       enabled: false,
       includeSkippedSources: true,
+      samplingRate: 1,
     },
   },
   antiRollback: {
@@ -49,6 +50,31 @@ export const DEFAULT_DISTRIBUTION_CONFIG = {
     retryDelayMs: 250,
     contractVersion: 1,
     transport: null,
+    controlPlane: {
+      enabled: false,
+      contractVersion: 1,
+      tokenRefreshSkewMs: 5000,
+      tokenProvider: null,
+      policyEvaluator: null,
+    },
+    webrtc: {
+      enabled: false,
+      peerId: null,
+      requestTimeoutMs: 2500,
+      maxPayloadBytes: 67108864,
+      selectPeer: null,
+      getDataChannel: null,
+    },
+    security: {
+      requireSessionToken: false,
+      sessionToken: null,
+      tokenExpiresAtMs: null,
+    },
+    abuse: {
+      rateLimitPerMinute: 0,
+      maxConsecutiveFailures: 3,
+      quarantineMs: 30000,
+    },
   },
   progressUpdateIntervalMs: 100,
   requiredContentEncoding: null,

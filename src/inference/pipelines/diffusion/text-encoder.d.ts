@@ -1,5 +1,5 @@
 /**
- * Diffusion text encoder scaffold.
+ * Diffusion text encoders.
  *
  * @module inference/pipelines/diffusion/text-encoder
  */

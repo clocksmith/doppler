@@ -12,12 +12,10 @@ import {
   buildTimestepEmbedding,
   combineTimeTextEmbeddings,
   projectContext,
-  logQuickGeluWarning,
+  assertClipHiddenActivationSupported,
 } from './text-encoder-gpu.js';
 import { buildScheduler } from './scheduler.js';
-import { runUnetStep } from './unet.js';
 import { decodeLatents } from './vae.js';
-import { initializeDiffusionGpuScaffold, runDiffusionGpuScaffold, logDiffusionGpuScaffold } from './gpu-ops.js';
 import { createDiffusionWeightLoader } from './weights.js';
 import { runSD3Transformer } from './sd3-transformer.js';
 import { createSD3WeightResolver } from './sd3-weights.js';
@@ -28,7 +26,7 @@ import { castF32ToF16 } from '../../../gpu/kernels/cast.js';
 import { runResidualAdd, runScale, recordResidualAdd, recordScale } from '../../../gpu/kernels/index.js';
 import { f16ToF32 } from '../../../loader/dtype-utils.js';
 
-const SUPPORTED_DIFFUSION_BACKEND_PIPELINES = new Set(['cpu', 'gpu_scaffold', 'gpu']);
+const SUPPORTED_DIFFUSION_BACKEND_PIPELINES = new Set(['gpu']);
 
 function createRandomSeed() {
   if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
@@ -165,7 +163,6 @@ export class DiffusionPipeline {
   baseUrl = null;
   
   _onProgress = null;
-  gpuScaffold = null;
   weightLoader = null;
   vaeWeights = null;
   textEncoderWeights = null;
@@ -194,17 +191,10 @@ export class DiffusionPipeline {
     if (!SUPPORTED_DIFFUSION_BACKEND_PIPELINES.has(pipelineMode)) {
       throw new Error(
         `Unsupported diffusion backend.pipeline "${pipelineMode}". ` +
-        'Expected one of: cpu, gpu_scaffold, gpu.'
+        'Expected: gpu.'
       );
     }
-    if (pipelineMode === 'gpu_scaffold') {
-      this.gpuScaffold = initializeDiffusionGpuScaffold(this.diffusionState.runtime);
-      logDiffusionGpuScaffold(this.gpuScaffold);
-    } else if (pipelineMode === 'gpu') {
-      log.info('Diffusion', 'GPU diffusion pipeline enabled.');
-    } else {
-      log.info('Diffusion', 'CPU diffusion pipeline enabled.');
-    }
+    log.info('Diffusion', 'GPU diffusion pipeline enabled.');
   }
 
   getStats() {
@@ -227,7 +217,6 @@ export class DiffusionPipeline {
     this.tokenizers = null;
     this.manifest = null;
     this.diffusionState = null;
-    this.gpuScaffold = null;
     this.weightLoader = null;
     this.vaeWeights = null;
     this.textEncoderWeights = null;
@@ -310,134 +299,17 @@ export class DiffusionPipeline {
     if (pipelineMode === 'gpu') {
       return this.generateGPU(request);
     }
-    if (pipelineMode === 'gpu_scaffold' || pipelineMode === 'cpu') {
-      return this.generateCPU(request);
-    }
     throw new Error(
       `Unsupported diffusion backend.pipeline "${pipelineMode}". ` +
-      'Expected one of: cpu, gpu_scaffold, gpu.'
+      'Expected: gpu.'
     );
   }
 
   async generateCPU(request = {}) {
-    const start = performance.now();
-    const runtime = this.diffusionState.runtime;
-    const clipMaxLength = runtime.textEncoder?.maxLength;
-    if (!Number.isFinite(clipMaxLength) || clipMaxLength <= 0) {
-      throw new Error('Diffusion runtime requires runtime.textEncoder.maxLength.');
-    }
-    const t5MaxLength = runtime.textEncoder?.t5MaxLength ?? clipMaxLength;
-    if (!Number.isFinite(t5MaxLength) || t5MaxLength <= 0) {
-      throw new Error('Diffusion runtime requires runtime.textEncoder.t5MaxLength (or runtime.textEncoder.maxLength).');
-    }
-
-    const defaultWidth = runtime.latent.width;
-    const defaultHeight = runtime.latent.height;
-    const width = Math.floor(Number.isFinite(request.width) && request.width > 0 ? request.width : defaultWidth);
-    const height = Math.floor(Number.isFinite(request.height) && request.height > 0 ? request.height : defaultHeight);
-    const steps = Math.floor(Number.isFinite(request.steps) && request.steps > 0 ? request.steps : runtime.scheduler.numSteps);
-    const guidanceScale = Number.isFinite(request.guidanceScale) && request.guidanceScale > 0
-      ? request.guidanceScale
-      : runtime.scheduler.guidanceScale;
-    const seed = Number.isFinite(request.seed) ? Math.floor(request.seed) : createRandomSeed();
-
-    if (!Number.isFinite(width) || width <= 0 || !Number.isFinite(height) || height <= 0) {
-      throw new Error(`Invalid diffusion dimensions: ${width}x${height}`);
-    }
-    if (!Number.isFinite(steps) || steps <= 0) {
-      throw new Error(`Invalid diffusion steps: ${steps}`);
-    }
-
-    const promptStart = performance.now();
-    const encoded = encodePrompt(
-      { prompt: request.prompt ?? '', negativePrompt: request.negativePrompt ?? '' },
-      this.tokenizers || {},
-      {
-        maxLengthByTokenizer: {
-          text_encoder: clipMaxLength,
-          text_encoder_2: clipMaxLength,
-          text_encoder_3: t5MaxLength,
-        },
-      }
+    throw new Error(
+      'Diffusion CPU pipeline is not supported. ' +
+      'Set runtime.inference.diffusion.backend.pipeline="gpu".'
     );
-    const promptEnd = performance.now();
-
-    const scheduler = buildScheduler(runtime.scheduler, steps);
-    const latentScale = this.diffusionState.latentScale;
-    const latentChannels = this.diffusionState.latentChannels;
-    const { latents, latentWidth, latentHeight } = generateLatents(width, height, latentChannels, latentScale, seed);
-
-    this._onProgress?.({
-      stage: 'diffusion',
-      message: `Denoising ${scheduler.steps} steps...`,
-      progress: 0,
-    });
-
-    const decodeStart = performance.now();
-    for (let i = 0; i < scheduler.steps; i++) {
-      if (this.gpuScaffold) {
-        await runDiffusionGpuScaffold(this.gpuScaffold, { stepIndex: i });
-      }
-      runUnetStep(latents, scheduler, i, guidanceScale);
-      if (i % 5 === 0 || i === scheduler.steps - 1) {
-        this._onProgress?.({
-          stage: 'diffusion',
-          message: `Denoising ${i + 1}/${scheduler.steps}`,
-          progress: (i + 1) / scheduler.steps,
-        });
-      }
-    }
-    const decodeEnd = performance.now();
-
-    const vaeStart = performance.now();
-    const pixels = await decodeLatents(latents, {
-      width,
-      height,
-      latentWidth,
-      latentHeight,
-      latentChannels,
-      latentScale,
-      weights: null,
-      modelConfig: this.diffusionState.modelConfig,
-      runtime: this.diffusionState.runtime,
-    });
-    const vaeEnd = performance.now();
-
-    const end = performance.now();
-    const cpuPrefillMs = promptEnd - promptStart;
-    const cpuDenoiseMs = decodeEnd - decodeStart;
-    const cpuVaeMs = vaeEnd - vaeStart;
-
-    this.stats = {
-      totalTimeMs: end - start,
-      prefillTimeMs: cpuPrefillMs,
-      prefillTokens: encoded.totalTokens,
-      decodeTimeMs: cpuDenoiseMs,
-      decodeTokens: scheduler.steps,
-      vaeTimeMs: cpuVaeMs,
-      gpu: { available: false },
-    };
-
-    log.info('Diffusion', `Prompt encode: ${(promptEnd - promptStart).toFixed(0)}ms (${encoded.totalTokens} tokens)`);
-    log.info('Diffusion', `Denoise: ${(decodeEnd - decodeStart).toFixed(0)}ms (${scheduler.steps} steps)`);
-    log.info('Diffusion', `VAE decode: ${(vaeEnd - vaeStart).toFixed(0)}ms (${width}x${height})`);
-    log.info('Diffusion', `Total: ${(end - start).toFixed(0)}ms`);
-    trace.perf('Diffusion summary', {
-      prefillMs: cpuPrefillMs,
-      prefillTokens: encoded.totalTokens,
-      denoiseMs: cpuDenoiseMs,
-      steps: scheduler.steps,
-      vaeMs: cpuVaeMs,
-      totalMs: end - start,
-      gpuPrefillMs: null,
-      gpuDenoiseMs: null,
-      gpuVaeMs: null,
-      gpuTotalMs: null,
-      width,
-      height,
-    });
-
-    return { width, height, pixels };
   }
 
   async generateGPU(request = {}) {
@@ -484,7 +356,7 @@ export class DiffusionPipeline {
     if (!this.tokenizers?.text_encoder || !this.tokenizers?.text_encoder_2 || !this.tokenizers?.text_encoder_3) {
       throw new Error('Diffusion GPU pipeline requires tokenizers for text_encoder, text_encoder_2, and text_encoder_3.');
     }
-    logQuickGeluWarning(modelConfig?.components?.text_encoder?.config || {});
+    assertClipHiddenActivationSupported(modelConfig?.components?.text_encoder?.config || {});
 
     const promptStart = performance.now();
     const encoded = encodePrompt(

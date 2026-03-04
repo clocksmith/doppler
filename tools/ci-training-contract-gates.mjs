@@ -70,6 +70,7 @@ const LANE_MAP = Object.freeze({
       cmd: 'node',
       args: [
         'tools/run-node-tests.mjs',
+        '--force-exit',
         'tests/integration/training-intent-split.test.js',
         'tests/integration/training-report-lineage.test.js',
         'tests/integration/training-force-resume-lineage.test.js',
@@ -78,11 +79,35 @@ const LANE_MAP = Object.freeze({
   ]),
   rollout_governance: Object.freeze([
     {
-      label: 'verify distill studio diagnostics contract',
+      label: 'verify distill studio rollout contracts',
       cmd: 'node',
       args: [
         'tools/run-node-tests.mjs',
         'tests/config/distill-studio-diagnostics.test.js',
+        'tests/config/distill-studio-mvp.test.js',
+        'tests/config/distill-studio-quality-gate.test.js',
+        'tests/config/training-workload-packs.test.js',
+        'tests/config/training-report-id-publication.test.js',
+      ],
+    },
+    {
+      label: 'verify deterministic training workload packs + report-id bindings',
+      cmd: 'node',
+      args: [
+        'tools/verify-training-workload-packs.mjs',
+        '--registry',
+        'tools/configs/training-workloads/registry.json',
+      ],
+    },
+    {
+      label: 'emit machine-readable training report-id traceability artifact',
+      cmd: 'node',
+      args: [
+        'tools/publish-training-report-ids.mjs',
+        '--registry',
+        'tools/configs/training-workloads/registry.json',
+        '--out',
+        '/tmp/doppler-training-report-ids.json',
       ],
     },
     {
@@ -133,6 +158,11 @@ function parseArgs(argv) {
 function resolveLanes(requestedLanes) {
   if (requestedLanes.length === 0) {
     return Object.keys(LANE_MAP);
+  }
+  if (process.env.DOPPLER_ALLOW_OPTIONAL_TRAINING_LANES !== '1') {
+    throw new Error(
+      'Optional lane selection is disabled by default. Run full gates or set DOPPLER_ALLOW_OPTIONAL_TRAINING_LANES=1 for ad-hoc local lane filtering.'
+    );
   }
   return requestedLanes.map((lane) => {
     if (!Object.hasOwn(LANE_MAP, lane)) {

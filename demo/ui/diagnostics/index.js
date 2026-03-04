@@ -252,48 +252,15 @@ function updateDiagnosticsProfileOptions(mode, modelId, modelType) {
   const previousValue = profileSelect.value || '';
 
   const order = getDiagnosticsSuiteOrder();
-  const isKernelsMode = mode === 'kernels';
   const normalizedModelType = normalizeModelType(modelType);
   const availableSuites = [];
-  if (isKernelsMode) {
-    availableSuites.push('kernels');
-  }
 
-  if (!isKernelsMode && !modelId) {
-    profileSelect.innerHTML = '';
-    const opt = document.createElement('option');
-    opt.value = '';
-    opt.textContent = 'Select an active model';
-    profileSelect.appendChild(opt);
-    profileSelect.disabled = true;
-    profileSelect.value = '';
-    return null;
-  }
-
-  if (!isKernelsMode && modelId && !modelType) {
-    profileSelect.innerHTML = '';
-    const opt = document.createElement('option');
-    opt.value = '';
-    opt.textContent = 'Loading model type...';
-    profileSelect.appendChild(opt);
-    profileSelect.disabled = true;
-    profileSelect.value = '';
-    return null;
-  }
-
-  if (!isKernelsMode) {
-    if (normalizedModelType === 'unknown') {
-      profileSelect.innerHTML = '';
-      const opt = document.createElement('option');
-      opt.value = '';
-      opt.textContent = 'Model type unavailable (manifest unreadable)';
-      profileSelect.appendChild(opt);
-      profileSelect.disabled = true;
-      profileSelect.value = '';
-      return null;
-    }
-    const compatibleSuites = order.filter((suite) => suite !== 'kernels' && isSuiteCompatibleModelType(modelType, suite));
+  if (modelId && normalizedModelType && normalizedModelType !== 'unknown') {
+    const compatibleSuites = order.filter((suite) => suite !== 'kernels' && isSuiteCompatibleModelType(normalizedModelType, suite));
     availableSuites.push(...compatibleSuites);
+  }
+  if (!availableSuites.includes('kernels')) {
+    availableSuites.push('kernels');
   }
 
   profileSelect.innerHTML = '';
@@ -323,8 +290,9 @@ function updateDiagnosticsProfileOptions(mode, modelId, modelType) {
     : null;
   const storedModelType = normalizeModelType(selection.modelType);
   const resetForModelTypeChange = (
-    !isKernelsMode
+    normalizedModelType
     && normalizedModelType
+    && storedModelType
     && storedModelType !== normalizedModelType
   );
 
@@ -352,7 +320,7 @@ function updateDiagnosticsProfileOptions(mode, modelId, modelType) {
     profile: chosen.id,
     suite: chosen.suite,
     preset: chosen.preset,
-    modelType: isKernelsMode ? null : (normalizedModelType || null),
+    modelType: normalizedModelType || null,
   });
   return chosen;
 }
@@ -378,22 +346,14 @@ function updateDiagnosticsSummary({ suite, modelId, modelType, runtimePreset, in
 }
 
 export function syncDiagnosticsModeUI(mode) {
+  void mode;
   const titleEl = $('diagnostics-title');
   const suiteField = $('diagnostics-suite-field');
-  const modeTabs = document.querySelectorAll('.diagnostics-mode-tab');
   if (titleEl) {
-    titleEl.textContent = mode === 'kernels' ? 'Kernel Diagnostics' : 'Inference Diagnostics';
+    titleEl.textContent = 'Diagnostics';
   }
   if (suiteField) {
     suiteField.hidden = false;
-  }
-  if (modeTabs.length) {
-    modeTabs.forEach((button) => {
-      const target = button.dataset.diagnosticsMode;
-      const isActive = target === mode;
-      button.classList.toggle('is-active', isActive);
-      button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
-    });
   }
 }
 
@@ -453,7 +413,6 @@ export async function syncDiagnosticsDefaultsForMode(mode) {
     && mode !== 'diffusion'
     && mode !== 'energy'
     && mode !== 'diagnostics'
-    && mode !== 'kernels'
   ) {
     return;
   }

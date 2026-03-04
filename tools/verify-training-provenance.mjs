@@ -61,6 +61,11 @@ function assertFiniteNumber(value, label) {
   assert(typeof value === 'number' && Number.isFinite(value), `${label} must be a finite number.`);
 }
 
+function assertNullableString(value, label) {
+  if (value === null || value === undefined) return;
+  assertNonEmptyString(value, label);
+}
+
 function assertArray(value, label) {
   assert(Array.isArray(value), `${label} must be an array.`);
 }
@@ -208,6 +213,36 @@ async function verifyManifestShape(manifest) {
 function verifyCheckpointShape(checkpoint) {
   assert(checkpoint && typeof checkpoint === 'object', 'checkpoint must be an object.');
   assert(checkpoint.metadata && typeof checkpoint.metadata === 'object', 'checkpoint.metadata must be an object.');
+  const metadata = checkpoint.metadata;
+  assertNonEmptyString(metadata.configHash, 'checkpoint.metadata.configHash');
+  assertNonEmptyString(metadata.datasetHash, 'checkpoint.metadata.datasetHash');
+  assertNullableString(metadata.tokenizerHash, 'checkpoint.metadata.tokenizerHash');
+  assertNonEmptyString(metadata.optimizerHash, 'checkpoint.metadata.optimizerHash');
+  assertNullableString(metadata.runtimePresetId, 'checkpoint.metadata.runtimePresetId');
+  assertNullableString(metadata.kernelPathId, 'checkpoint.metadata.kernelPathId');
+  assertFiniteNumber(metadata.timestamp, 'checkpoint.metadata.timestamp');
+  assert(
+    metadata.environmentMetadata && typeof metadata.environmentMetadata === 'object' && !Array.isArray(metadata.environmentMetadata),
+    'checkpoint.metadata.environmentMetadata must be an object.'
+  );
+  assertNonEmptyString(metadata.environmentMetadata.runtime, 'checkpoint.metadata.environmentMetadata.runtime');
+  assertNullableString(metadata.environmentMetadata.command, 'checkpoint.metadata.environmentMetadata.command');
+  assertNullableString(metadata.environmentMetadata.surface, 'checkpoint.metadata.environmentMetadata.surface');
+  if (metadata.environmentMetadata.gpuAdapter != null) {
+    assert(
+      metadata.environmentMetadata.gpuAdapter && typeof metadata.environmentMetadata.gpuAdapter === 'object' && !Array.isArray(metadata.environmentMetadata.gpuAdapter),
+      'checkpoint.metadata.environmentMetadata.gpuAdapter must be an object.'
+    );
+  }
+  if (metadata.buildProvenance != null) {
+    assert(
+      metadata.buildProvenance && typeof metadata.buildProvenance === 'object' && !Array.isArray(metadata.buildProvenance),
+      'checkpoint.metadata.buildProvenance must be an object.'
+    );
+    assertNullableString(metadata.buildProvenance.commitHash, 'checkpoint.metadata.buildProvenance.commitHash');
+    assertNullableString(metadata.buildProvenance.buildId, 'checkpoint.metadata.buildProvenance.buildId');
+    assertNullableString(metadata.buildProvenance.buildTimestamp, 'checkpoint.metadata.buildProvenance.buildTimestamp');
+  }
   const lineage = checkpoint.metadata.lineage;
   assert(lineage && typeof lineage === 'object', 'checkpoint.metadata.lineage must be an object.');
   assertNonEmptyString(lineage.checkpointKey, 'checkpoint.metadata.lineage.checkpointKey');
@@ -254,6 +289,51 @@ async function verifyReportShape(report, options = {}) {
         artifact.manifestHash === manifestRaw.parsed.manifestHash,
         'report artifact manifestHash must match linked manifest.manifestHash'
       );
+    }
+  }
+
+  const checkpointResumeTimeline = report.lineage?.training?.checkpointResumeTimeline;
+  if (checkpointResumeTimeline != null) {
+    assertArray(checkpointResumeTimeline, 'report.lineage.training.checkpointResumeTimeline');
+    for (let i = 0; i < checkpointResumeTimeline.length; i += 1) {
+      const event = checkpointResumeTimeline[i];
+      assert(event && typeof event === 'object', `report.lineage.training.checkpointResumeTimeline[${i}] must be an object.`);
+      assertNonEmptyString(event.type, `report.lineage.training.checkpointResumeTimeline[${i}].type`);
+      assertFiniteNumber(event.timestamp, `report.lineage.training.checkpointResumeTimeline[${i}].timestamp`);
+      if (event.type === 'resume_override_applied') {
+        assertArray(event.resumeAudits, `report.lineage.training.checkpointResumeTimeline[${i}].resumeAudits`);
+        for (let j = 0; j < event.resumeAudits.length; j += 1) {
+          const audit = event.resumeAudits[j];
+          assert(
+            audit && typeof audit === 'object' && !Array.isArray(audit),
+            `report.lineage.training.checkpointResumeTimeline[${i}].resumeAudits[${j}] must be an object.`
+          );
+          assertFiniteNumber(
+            audit.timestamp,
+            `report.lineage.training.checkpointResumeTimeline[${i}].resumeAudits[${j}].timestamp`
+          );
+          assertArray(
+            audit.mismatchedFields,
+            `report.lineage.training.checkpointResumeTimeline[${i}].resumeAudits[${j}].mismatchedFields`
+          );
+          assertNonEmptyString(
+            audit.source,
+            `report.lineage.training.checkpointResumeTimeline[${i}].resumeAudits[${j}].source`
+          );
+          assertNonEmptyString(
+            audit.reason,
+            `report.lineage.training.checkpointResumeTimeline[${i}].resumeAudits[${j}].reason`
+          );
+          assertNullableString(
+            audit.operator,
+            `report.lineage.training.checkpointResumeTimeline[${i}].resumeAudits[${j}].operator`
+          );
+          assertNullableString(
+            audit.priorCheckpointMetadataHash,
+            `report.lineage.training.checkpointResumeTimeline[${i}].resumeAudits[${j}].priorCheckpointMetadataHash`
+          );
+        }
+      }
     }
   }
 
@@ -334,6 +414,14 @@ async function runSelfTest() {
       step_time_ms: 1,
       forward_ms: 0.5,
       backward_ms: 0.5,
+      lr: 0.0001,
+      seed: 1337,
+      model_id: 'selftest-model',
+      runtime_preset: null,
+      kernel_path: null,
+      environment_metadata: { runtime: 'node' },
+      memory_stats: null,
+      build_provenance: null,
       ul_stage: 'stage1_joint',
       lambda: 5,
       loss_total: 0.1,
