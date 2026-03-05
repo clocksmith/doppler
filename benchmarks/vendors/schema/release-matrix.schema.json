@@ -250,6 +250,7 @@
           "dopplerModelBaseDir",
           "defaultTjsModelId",
           "defaultKernelPath",
+          "defaultDopplerSurface",
           "inCatalog",
           "catalogLabel",
           "catalogModes",
@@ -273,6 +274,12 @@
             ]
           },
           "defaultKernelPath": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "defaultDopplerSurface": {
             "type": [
               "string",
               "null"

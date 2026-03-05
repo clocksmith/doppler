@@ -99,9 +99,19 @@ import {
     trainingStage: 'stage1_joint',
     trainingSchemaVersion: 1,
     trainingBenchSteps: 5,
+    checkpointEvery: 25,
+    distillSourceLangs: ['en'],
+    distillTargetLangs: ['es'],
+    distillPairAllowlist: ['en-es', 'es-en'],
+    strictPairContract: true,
   });
   assert.equal(request.trainingSchemaVersion, 1);
   assert.equal(request.trainingBenchSteps, 5);
+  assert.equal(request.checkpointEvery, 25);
+  assert.deepEqual(request.distillSourceLangs, ['en']);
+  assert.deepEqual(request.distillTargetLangs, ['es']);
+  assert.deepEqual(request.distillPairAllowlist, ['en-es', 'es-en']);
+  assert.equal(request.strictPairContract, true);
 }
 
 {
@@ -114,6 +124,32 @@ import {
       trainingSchemaVersion: 2,
     }),
     /trainingSchemaVersion must be 1/
+  );
+}
+
+{
+  assert.throws(
+    () => normalizeToolingCommandRequest({
+      command: 'verify',
+      suite: 'training',
+      modelId: null,
+      trainingStage: 'stage_a',
+      checkpointEvery: 0,
+    }),
+    /checkpointEvery must be a positive integer/
+  );
+}
+
+{
+  assert.throws(
+    () => normalizeToolingCommandRequest({
+      command: 'verify',
+      suite: 'training',
+      modelId: null,
+      trainingStage: 'stage_a',
+      distillSourceLangs: 'en,es',
+    }),
+    /distillSourceLangs must be an array of strings/
   );
 }
 

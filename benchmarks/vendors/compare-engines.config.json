@@ -1,18 +1,48 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-02-23",
+  "updated": "2026-03-05",
   "modelProfiles": [
     {
       "dopplerModelId": "gemma-3-270m-it-wf16-ef16-hf16",
       "defaultTjsModelId": "onnx-community/gemma-3-270m-it-ONNX",
       "defaultKernelPath": null,
-      "modelBaseDir": "local"
+      "modelBaseDir": "local",
+      "defaultDopplerSurface": "auto"
+    },
+    {
+      "dopplerModelId": "gemma-3-270m-it-wq4k-ef16-hf16",
+      "defaultTjsModelId": "onnx-community/gemma-3-270m-it-ONNX",
+      "defaultKernelPath": "gemma3-q4k-dequant-f32a-online",
+      "modelBaseDir": "local",
+      "defaultDopplerSurface": "auto"
+    },
+    {
+      "dopplerModelId": "gemma-3-1b-it-wf16-ef16-hf16-f16",
+      "defaultTjsModelId": "onnx-community/gemma-3-1b-it-ONNX-GQA",
+      "defaultKernelPath": "gemma3-f16-fused-f16a-online",
+      "modelBaseDir": "local",
+      "defaultDopplerSurface": "auto"
     },
     {
       "dopplerModelId": "gemma-3-1b-it-wf16-ef16-hf16-f32",
       "defaultTjsModelId": "onnx-community/gemma-3-1b-it-ONNX-GQA",
       "defaultKernelPath": "gemma3-f16-fused-f32a-online",
-      "modelBaseDir": "local"
+      "modelBaseDir": "local",
+      "defaultDopplerSurface": "auto"
+    },
+    {
+      "dopplerModelId": "gemma-3-1b-it-wq4k-ef16-hf16",
+      "defaultTjsModelId": "onnx-community/gemma-3-1b-it-ONNX-GQA",
+      "defaultKernelPath": "gemma3-q4k-dequant-f16a-online",
+      "modelBaseDir": "local",
+      "defaultDopplerSurface": "auto"
+    },
+    {
+      "dopplerModelId": "gemma-3-1b-it-wq4k-ef16-hf16-f32",
+      "defaultTjsModelId": "onnx-community/gemma-3-1b-it-ONNX-GQA",
+      "defaultKernelPath": "gemma3-q4k-dequant-f32a-online",
+      "modelBaseDir": "local",
+      "defaultDopplerSurface": "auto"
     }
   ]
 }

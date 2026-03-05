@@ -33,6 +33,10 @@
           "modelBaseDir": {
             "type": ["string", "null"],
             "minLength": 1
+          },
+          "defaultDopplerSurface": {
+            "type": ["string", "null"],
+            "enum": ["auto", "node", "browser", null]
           }
         },
         "additionalProperties": false

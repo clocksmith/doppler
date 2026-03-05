@@ -370,6 +370,16 @@ function normalizeOptionalString(value) {
   return trimmed || null;
 }
 
+function normalizeOptionalStringArray(value) {
+  if (!Array.isArray(value)) return null;
+  const normalized = value
+    .map((entry) => normalizeOptionalString(entry))
+    .filter(Boolean);
+  if (normalized.length === 0) return null;
+  normalized.sort((left, right) => left.localeCompare(right));
+  return normalized;
+}
+
 function sanitizeGpuAdapterInfo(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     return null;
@@ -570,6 +580,10 @@ function resolveCheckpointMetadataContext(config, runOptions = {}) {
     distillDatasetId: normalizeOptionalString(runOptions.distillDatasetId),
     distillDatasetPath: normalizeOptionalString(runOptions.distillDatasetPath),
     distillLanguagePair: normalizeOptionalString(runOptions.distillLanguagePair),
+    distillSourceLangs: normalizeOptionalStringArray(runOptions.distillSourceLangs),
+    distillTargetLangs: normalizeOptionalStringArray(runOptions.distillTargetLangs),
+    distillPairAllowlist: normalizeOptionalStringArray(runOptions.distillPairAllowlist),
+    strictPairContract: runOptions.strictPairContract === true,
     distillShardIndex: Number.isInteger(runOptions.distillShardIndex) ? runOptions.distillShardIndex : null,
     distillShardCount: Number.isInteger(runOptions.distillShardCount) ? runOptions.distillShardCount : null,
     trainingStage: normalizeOptionalString(

@@ -81,6 +81,12 @@ export interface TrainingBenchSuiteResult {
       sampleCount: number;
       shardCount?: number;
       directionCounts: Record<string, number>;
+      dataScope?: {
+        sourceLangs: string[] | null;
+        targetLangs: string[] | null;
+        pairAllowlist: string[] | null;
+        strictPairContract: boolean;
+      } | null;
     } | null;
     latency: {
       runMs: Record<string, unknown>;
@@ -130,6 +136,10 @@ export interface RunTrainingSuiteOptions {
   distillDatasetId?: string;
   distillDatasetPath?: string;
   distillLanguagePair?: string;
+  distillSourceLangs?: string[];
+  distillTargetLangs?: string[];
+  distillPairAllowlist?: string[];
+  strictPairContract?: boolean;
   distillShardIndex?: number;
   distillShardCount?: number;
   resumeFrom?: string;

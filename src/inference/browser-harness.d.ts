@@ -86,6 +86,10 @@ export interface BrowserSuiteOptions extends InferenceHarnessOptions {
   distillDatasetId?: string;
   distillDatasetPath?: string;
   distillLanguagePair?: string;
+  distillSourceLangs?: string[];
+  distillTargetLangs?: string[];
+  distillPairAllowlist?: string[];
+  strictPairContract?: boolean;
   distillShardIndex?: number;
   distillShardCount?: number;
   resumeFrom?: string;
@@ -95,6 +99,7 @@ export interface BrowserSuiteOptions extends InferenceHarnessOptions {
   checkpointOperator?: string;
   trainingSchemaVersion?: number;
   trainingBenchSteps?: number;
+  checkpointEvery?: number;
   cacheMode?: 'cold' | 'warm' | null;
   loadMode?: 'opfs' | 'http' | 'memory' | null;
   runtimePreset?: string | null;
