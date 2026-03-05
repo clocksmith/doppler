@@ -12,7 +12,7 @@ import {
 const CHART_TYPES = Object.freeze(['bar', 'stacked', 'radar', 'phases']);
 const DEFAULT_CHART = 'bar';
 const DEFAULT_WIDTH = 960;
-const DEFAULT_HEIGHT = 560;
+const DEFAULT_HEIGHT = 720;
 const DEFAULT_SECTION = 'compute/parity';
 const CANVAS_PADDING = 14;
 const STATIC_CHART_TITLE = 'Phase-latency comparison on one workload across models';
@@ -1172,8 +1172,8 @@ function renderPhases(rows, width, height, title, subtitle, sectionLabel, sectio
   const left = 200;
   const right = 120;
   const barAreaMax = width - left - right;
-  const barHeight = 36;
-  const engineGap = 100;
+  const barHeight = 48;
+  const engineGap = 112;
   const baseY = 100;
   let body = '';
   body += renderChartHeaderBand(width, title, subtitle, sectionLabel);
@@ -1250,9 +1250,9 @@ function renderMultiPhases(entries, width, title, subtitle) {
   const left = 200;
   const right = 120;
   const barAreaMax = width - left - right;
-  const barHeight = 36;
-  const engineGap = 64;
-  const workloadGap = 44;
+  const barHeight = 48;
+  const engineGap = 76;
+  const workloadGap = 48;
   const workloadSubtitleGap = 20;
   const subtitleToBarsGap = 12;
   const baseY = 120;

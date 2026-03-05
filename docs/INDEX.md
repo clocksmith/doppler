@@ -6,6 +6,7 @@ Primary documentation index.
 
 - [Getting Started](getting-started.md) - canonical first-run workflow.
 - [Setup](setup-instructions.md) - environment setup and troubleshooting.
+- [CLI Quick Start](cli-quickstart.md) - command-shape reference.
 - [Performance and Sizing](performance-sizing.md) - hardware tiers and planning guidance.
 
 ## Core Runtime Docs

@@ -25,6 +25,10 @@ function isNodeRuntime() {
   return typeof process !== 'undefined' && !!process.versions?.node;
 }
 
+function nodeModule(specifier) {
+  return `node:${specifier}`;
+}
+
 async function saveReportToOpfs(modelId, filename, payload) {
   const runtime = getRuntimeConfig();
   const root = await navigator.storage.getDirectory();
@@ -51,8 +55,8 @@ async function saveReportToIdb(modelId, filename, payload) {
 
 async function saveReportToNodeFs(modelId, filename, payload) {
   const [{ mkdir, writeFile }, { dirname, join, relative, resolve, sep }] = await Promise.all([
-    import('node:fs/promises'),
-    import('node:path'),
+    import(nodeModule('fs/promises')),
+    import(nodeModule('path')),
   ]);
 
   const rootDir = process.env.DOPPLER_REPORTS_DIR

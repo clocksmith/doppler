@@ -17,6 +17,10 @@ let moduleCacheEpoch = -1;
 const deviceIds = new WeakMap();
 let nextDeviceId = 1;
 
+function nodeModule(specifier) {
+  return `node:${specifier}`;
+}
+
 function getDeviceId(device) {
   let id = deviceIds.get(device);
   if (id == null) {
@@ -78,7 +82,7 @@ function isFileUrl(value) {
 
 async function loadShaderSourceFromFileUrl(url) {
   try {
-    const fs = await import('node:fs/promises');
+    const fs = await import(nodeModule('fs/promises'));
     const source = await fs.readFile(new URL(url), 'utf8');
     return source;
   } catch (error) {

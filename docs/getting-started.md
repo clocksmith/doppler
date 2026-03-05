@@ -93,18 +93,31 @@ node tools/doppler-cli.js convert --config "{
 
 ### Verify converted model
 
+Conversion writes artifacts to a filesystem output directory, not into the
+browser shard-manager store. To verify, run via browser relay so the model
+loads through the full OPFS-to-VRAM pipeline:
+
 ```bash
 MODEL_ID=$(node -e "const fs=require('fs');const j=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));console.log(j.output.modelBaseId);" "${CONVERSION_CONFIG}")
+OUTPUT_DIR=$(node -e "const fs=require('fs');const j=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));console.log(j.output.outputDir || 'models/local');" "${CONVERSION_CONFIG}")
 
 node tools/doppler-cli.js verify --config "{
   \"request\": {
     \"suite\": \"inference\",
     \"modelId\": \"${MODEL_ID}\",
+    \"modelUrl\": \"file://${OUTPUT_DIR}\",
+    \"loadMode\": \"http\",
+    \"cacheMode\": \"warm\",
     \"runtimePreset\": \"modes/debug\"
   },
-  \"run\": { \"surface\": \"auto\" }
+  \"run\": { \"surface\": \"browser\" }
 }" --json
 ```
+
+Note: `surface: "browser"` is required here. The converted artifacts live on
+the filesystem, not in shard-manager storage. Using `surface: "auto"` or
+omitting `modelUrl`/`loadMode` will fail because the verify harness expects
+the model in OPFS, which the conversion step does not populate.
 
 ## Next docs
 

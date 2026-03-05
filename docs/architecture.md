@@ -4,11 +4,33 @@
 
 **DOPPLER** (Deterministic On-device Processing for Prefill, Learning, and Execution Runtime) is a standalone WebGPU-native ML runtime for forward inference, prefill, and backward/training paths in browser and Node environments.
 
-See also: `index.md`
+See also: [INDEX.md](INDEX.md)
 
 ## Overview
 
 ![Doppler architecture overview](architecture-overview.svg)
+
+## Verification Sources
+
+Use these code/doc locations to validate architecture claims in this file:
+
+- Execution-plane contract and fail-fast policy:
+  - `docs/style/general-style-guide.md`
+  - `docs/style/command-interface-design-guide.md`
+- Runtime config + kernel-path precedence:
+  - `docs/config.md`
+  - `src/inference/pipelines/text/model-load.js`
+  - `src/config/merge.js`
+- Manifest/build-time conversion behavior:
+  - `src/converter/manifest-inference.js`
+  - `src/converter/rope-config.js`
+- RDRR shard/manifest layout:
+  - `src/config/schema/manifest.schema.js`
+  - `src/formats/rdrr/manifest.js`
+  - `src/formats/rdrr/validation.js`
+- Benchmark/claim methodology:
+  - `docs/benchmark-methodology.md`
+  - `benchmarks/vendors/README.md`
 
 ## Optional Ouroboros/Reploid Integration
 
@@ -18,16 +40,16 @@ results. Integration notes are maintained in private wrapper docs.
 
 ## Design Philosophy
 
-DOPPLER makes deliberate architectural tradeoffs that diverge from pre-compiled approaches like WebLLM/TVM. These enable capabilities that are impossible with monolithic compiled models.
+DOPPLER makes deliberate architectural tradeoffs that diverge from pre-compiled approaches (for example ONNX/TVM-style packaged graphs). The focus is explicit runtime control and auditable policy resolution in config/manifest contracts.
 
 ### Key Principles
 
 | Principle | Implementation | Why |
 |-----------|----------------|-----|
 | **Code/Data Separation** | Generic WGSL kernels + weight shards | Enables shard verification and runtime adapter/component swaps |
-| **GPU Fusion** | All tensor ops stay on GPU | Makes JS vs WASM irrelevant (0.5ms vs 25ms GPU time) |
+| **GPU Fusion** | Most hot-path tensor ops stay on GPU | Keeps JS orchestration overhead secondary when GPU compute dominates (workload-dependent) |
 | **Progressive Fusion** | Swap atomic kernels for fused kernels via config | Get the best of both worlds: hackability default, performance peaks |
-| **Minimal Readback** | Only final logits read to CPU | Avoids 2-6ms GPU→CPU transfer per readback |
+| **Minimal Readback** | Logit readback is cadence-controlled | Avoids unnecessary GPU→CPU transfer overhead during decode |
 | **JavaScript Orchestration** | JS dispatches GPU work, handles sampling | Debugging, rapid iteration, browser integration |
 
 ## Execution Planes
@@ -55,23 +77,22 @@ This comparison is about architecture and control surfaces, not blanket speed cl
 | Auditability of claims | Compare command + normalized JSON + SVG map directly to config knobs | Same benchmark harness works, but knob-to-kernel mapping is less direct |
 
 For public claims, tie statements to benchmark artifacts in `benchmarks/vendors/results/` and the exact compare command used.
+Source anchors for this comparison:
+- Doppler command/runtime contract: `src/tooling/command-api.js`, `src/inference/pipelines/text/model-load.js`
+- Benchmark claim policy: `docs/benchmark-methodology.md`, `benchmarks/vendors/README.md`
 
 ### Progressive Fusion in Practice
 
-Doppler begins with discrete, atomic WGSL kernels (e.g. `gate_proj`, `up_proj`, `down_proj`) to guarantee maximum observability, stability, and ease of patching. However, the architecture is designed to progressively *fuse* these operations. 
+Doppler begins with discrete WGSL operations (for example `gate_proj`, `up_proj`, `down_proj`) to maximize observability and debuggability. The architecture also supports progressively fused execution plans.
 
-Through `runtimeConfig` overrides (e.g. `fused_ffn.wgsl`), the engine natively bundles multiple discrete passes into single, highly optimized kernels. This guarantees the engine never sacrifices observability for optimization, allowing users to start with a decoupled pipeline and iteratively swap in monolithic fused kernels (like ONNX models) as architectural confidence scales.
+Through kernel-path and execution-plan selection (`inference.defaultKernelPath`, `runtime.inference.kernelPath`, or execution-v0), the runtime can switch from decomposed paths to fused paths without changing command semantics. See `src/inference/pipelines/text/model-load.js` and `src/config/kernel-path-loader.js`.
 
 ### GPU Execution Footprint
 
-```
-Per-token decode step:
-├─ GPU compute:     25ms   ████████████████████████████ (96%)
-├─ JS orchestration: 0.5ms ██ (2%)
-└─ Logits readback:  0.5ms ██ (2%)
-
-WASM would make 0.5ms faster → irrelevant when GPU is 96% of time
-```
+Profiled decode runs are often GPU-dominant, but exact ratios vary by model, kernel path,
+runtime config, browser/driver, and hardware. Treat any percentage split as workload-specific.
+For claimable numbers, use `docs/benchmark-methodology.md` and artifacts in
+`benchmarks/vendors/results/`.
 
 ### Readback Minimization
 
@@ -82,19 +103,21 @@ WASM would make 0.5ms faster → irrelevant when GPU is 96% of time
 | MoE router decisions | GPU softmax+topk | No |
 | Expert FFN outputs | GPU matmul | No |
 | Intermediate hidden states | GPU buffers | No |
-| **Final logits** | **GPU → CPU** | **Yes (unavoidable)** |
+| **Final logits** | **GPU → CPU** | **Yes (required for CPU-side sampling in current default flow)** |
 
-Only ONE readback per generated token. This is the key performance insight.
+Readback cadence is runtime-configurable (`runtime.inference.batching.readbackInterval`).
+Default parity decode is typically per-token, but batched decode modes can amortize readbacks.
+See `src/inference/pipelines/text/generator-steps.js`.
 
 ### Capability vs Performance Tradeoff
 
-DOPPLER accepts ~20% kernel performance gap vs TVM auto-tuned kernels because it enables:
+DOPPLER may trade some kernel-level peak performance for runtime composability and explicit policy control:
 
-| Capability | Why Impossible with TVM |
-|------------|------------------------|
-| Shard distribution | Can't split compiled binary across peers |
-| LoRA hot-swap | Compiled model can't change weights at runtime |
-| Speculative decoding | Coordinating two compiled models is awkward |
+| Capability | Why this runtime favors explicit composition |
+|------------|----------------------------------------------|
+| Shard distribution | Artifact/shard transport is first-class in storage/distribution paths |
+| LoRA hot-swap | Adapters are loaded/activated at runtime via adapter and hotswap surfaces |
+| Multi-model orchestration | Runtime exposes explicit multi-model primitives and policy-layer hooks |
 
 Non-core aspiration and roadmap items are tracked in private wrapper docs.
 
@@ -139,7 +162,7 @@ Any unresolved behavior choice is a contract error at runtime boundary, not an i
 
 ### Multi-Model Primitives
 
-When multiple models are loaded, these GPU operations **must** stay in DOPPLER (cannot round-trip to CPU):
+When multiple models are loaded, these operations are exposed as DOPPLER primitives to avoid avoidable CPU round-trips:
 
 | Operation | DOPPLER Primitive | Orchestrator Decides |
 |-----------|-------------------|-----------------|
@@ -185,7 +208,7 @@ policy layer (for example Reploid) with
 | `adapters/` | LoRA adapter loading/management |
 | `hotswap/` | Runtime update and manifest-driven component remap |
 | `client/` | Public API (doppler-provider) |
-| `bridge/` | Native Bridge for local file access |
+| `bridge/` | Browser extension bridge client/protocol and relay integration |
 | `browser/` | Browser import, parsing, and conversion helpers |
 | `debug/` | Logging, trace categories, probes |
 | `errors/` | Error codes and helpers |
@@ -224,12 +247,12 @@ DOPPLER's structure can be understood through multiple lenses. Each view serves 
 │                   │                    │ └─ kv-cache                         │
 │                   │ loader/            │                                     │
 │ memory/           │ ├─ doppler-loader  │ debug/                              │
-│ ├─ buffer-pool    │ ├─ weight-loader   │ ├─ log                              │
-│ ├─ heap           │ └─ shard-manager   │ └─ trace                            │
+│ ├─ buffer-pool    │ ├─ final-weights-loader │ ├─ log                          │
+│ ├─ heap-manager   │ └─ shard-cache     │ └─ trace                            │
 │ └─ capability     │                    │                                     │
 │                   │                    │                                     │
 │                   │ storage/           │                                     │
-│                   │ ├─ opfs-manager    │                                     │
+│                   │ ├─ shard-manager   │                                     │
 │                   │ └─ quota           │                                     │
 ├───────────────────┴────────────────────┴────────────────────────────────────┤
 │                          SHARED SERVICES                                     │
@@ -365,11 +388,11 @@ Use this for understanding build order and what can be tested independently.
 │ Entry point for generation. Depends on everything below.                    │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │ LAYER 5: LOADER                                                             │
-│ loader/doppler-loader, loader/weight-loader, loader/shard-manager           │
+│ loader/doppler-loader, loader/final-weights-loader, loader/shard-cache      │
 │ Model loading and weight dequantization.                                    │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │ LAYER 4: GPU + STORAGE                                                      │
-│ gpu/device, memory/buffer-pool, gpu/kernels/* | storage/opfs-manager       │
+│ gpu/device, memory/buffer-pool, gpu/kernels/* | storage/shard-manager       │
 │ Orthogonal infrastructure: compute vs persistence.                          │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │ LAYER 3: FORMATS                                                            │
@@ -514,7 +537,7 @@ Defines expert profiles and routing hints used by multi-model orchestration.
 Evolution helpers for mutating and scoring expert network topologies.
 
 **Key Pipeline Features:**
-- GPU-native: No CPU readback until final logits sampling
+- GPU-native hot path: most tensor ops remain on GPU; logits readback cadence is controlled by runtime batching config
 - GQA support: Multiple Q heads share K,V heads
 - Sandwich norms: Gemma 3 pre/post FFN norms
 - YARN RoPE: Extended context via per-dimension scaling
@@ -599,7 +622,7 @@ Presets define layer patterns in one format; the converter transforms them for t
 | `type: "alternating", globalPattern: "odd"` | `type: "alternating"` | Odd layers use global attention |
 | `type: "alternating", globalPatternN: 6` | `type: "every_n", period: 6` | Every 6th layer uses global attention (Gemma 3) |
 
-The converter (`manifest-inference.js:136`) performs this mapping. Presets use `globalPatternN` for readability; manifests use `period` for runtime efficiency.
+The converter (`src/converter/manifest-inference.js`) performs this mapping. Presets use `globalPatternN` for readability; manifests use `period` for runtime efficiency.
 
 **RoPE Theta Sourcing:**
 
@@ -611,7 +634,11 @@ The converter (`manifest-inference.js:136`) performs this mapping. Presets use `
 
 This means Gemma 2 models don't hardcode `ropeTheta` in presets; the value comes from the HuggingFace config during conversion. Gemma 3 presets set `ropeTheta: 1000000` explicitly because it's a defining characteristic.
 
-`ropeLocalTheta` (for dual-RoPE models like Gemma 3) always comes from the preset. There is no HuggingFace config equivalent.
+`ropeLocalTheta` precedence is:
+1. `config.rope_parameters.sliding_attention.rope_theta` (when present)
+2. preset `inference.rope.ropeLocalTheta`
+3. `null`
+Source: `src/converter/rope-config.js`.
 
 **Source Tracking (`ConfigSource`):**
 - `'manifest'` - Value came from manifest (converter output)
@@ -620,11 +647,10 @@ This means Gemma 2 models don't hardcode `ropeTheta` in presets; the value comes
 **Nullable Required Fields:**
 - `null` = explicitly disabled (valid)
 - `undefined` = not specified (validation error)
-Runtime overrides only apply when values are non-null; runtime `null` does not
-unset a manifest value.
-Architecture fields are required; `manifest.architecture` must be present
-string; defaults like `DEFAULT_MAX_POSITION_EMBEDDINGS` and `DEFAULT_RMS_NORM_EPS`
-apply only in that path.
+Runtime overrides apply whenever a runtime value is present (`!== undefined`),
+including explicit `null` values. This behavior is implemented in `src/config/merge.js`.
+For text-style manifests, `manifest.architecture` is required and validated as an object
+in `src/formats/rdrr/validation.js`.
 
 **Benefits:**
 - Manifest is self-describing: no need for external preset files
@@ -752,12 +778,13 @@ model-directory/
 └── tokenizer.json         # Optional bundled tokenizer
 ```
 
-**manifest.json structure:**
+**manifest.json structure (illustrative subset):**
+Use `docs/rdrr-format.md` and `src/formats/rdrr/validation.js` as canonical contract sources.
 ```json
 {
   "modelId": "gemma-3-1b-q4",
   "version": "1.0",
-  "quantization": "Q4_K_M",
+  "quantization": "q4k",
   "totalSize": 1073741824,
   "hashAlgorithm": "blake3",
   "config": { /* HuggingFace config */ },
@@ -949,6 +976,13 @@ remain the primary interactive diagnostics surfaces.
 Public API for LLM client integration:
 
 ```javascript
+import {
+  initDoppler,
+  loadModel,
+  generate,
+  dopplerChat,
+} from '@simulatte/doppler/provider';
+
 // Initialize
 await initDoppler();
 
@@ -964,18 +998,15 @@ for await (const token of generate(prompt, options)) {
 const response = await dopplerChat(messages, options);
 ```
 
-**Capability Tiers:**
-| Tier | Memory | Max Model |
-|------|--------|-----------|
-| 1 | Unified (Apple Silicon) | 60GB |
-| 2 | Memory64 | 40GB MoE |
-| 3 | Basic | 8GB small MoE |
+For runtime capability classes and sizing guidance, use the canonical doc:
+`docs/performance-sizing.md`.
 
 ---
 
 ## Data Flow: Single Token Generation
 
 For detailed kernel-level execution trace including tensor shapes, kernel selection, and fusion analysis, see `../src/inference/README.md`.
+The walkthrough below is an illustrative text-model example (Gemma-like dimensions), not a universal shape for all model families.
 
 ```
 User prompt: "Hello"
@@ -1070,26 +1101,32 @@ User prompt: "Hello"
 ## Key Design Decisions
 
 ### 1. GPU-Native Pipeline
-All tensor operations stay on GPU until final sampling. This minimizes CPU↔GPU transfers which are the primary bottleneck in browser WebGPU.
+Hot-path tensor operations execute on GPU, with readback cadence controlled by runtime batching policy. This minimizes CPU↔GPU transfers during decode.  
+Source: `src/inference/pipelines/text/generator-steps.js`, `src/inference/pipelines/text/attention/run.js`
 
 ### 2. Q4_K Quantization
-4-bit quantization reduces model size 4x while maintaining quality. The llama.cpp Q4_K format is battle-tested and well-documented.
+4-bit quantization significantly reduces storage footprint relative to f16/f32 weights, with quality/perf tradeoffs depending on workload and model.  
+Source: `src/converter/quantizer.js`, `src/formats/rdrr/validation.js`
 
 ### 3. 64MB Shards
 Shard size balances:
 - Small enough for reliable streaming download
 - Large enough to minimize request overhead
 - Aligned with OPFS block allocation
+  
+Source: `src/config/schema/manifest.schema.js` (`SHARD_SIZE`)
 
 ### 4. Streaming Weight Load
 Large tensors (embeddings, LM head) are streamed directly to GPU buffers to avoid JS heap exhaustion.
+Source: `src/loader/doppler-loader.js`, `src/loader/tensors/tensor-loader.js`
 
 ### 5. Capability-Based Kernel Selection
 Different devices get different kernel implementations:
-- F16 hardware → F16 kernels for 2x throughput
+- F16 hardware → F16-capable kernel variants
 - Subgroup support → shuffle-based reductions
 - Large context → streaming attention
 
+Source: `src/rules/inference/kernel-path.rules.json`, `src/rules/kernels/*.rules.json`, `src/gpu/kernels/attention.js`  
 See `config.md` for kernel selection rules and runtime overrides.
 
 ---
@@ -1128,11 +1165,11 @@ See `config.md` for kernel selection rules and runtime overrides.
 
 - `src/formats/tokenizer/` owns tokenizer file parsing and metadata normalization.
 - `src/inference/tokenizer.js` owns tokenizer runtime setup and output shaping.
-- `src/inference/pipelines/text/tokenizer.js` owns prompt-format-specific behavior.
+- `src/inference/pipelines/text/chat-format.js` owns prompt-format-specific behavior.
 - Keep format parsing and runtime inference logic in separate layers; avoid importing
   tokenizer parser internals directly into inference execution paths.
 
-*Last updated: 2026-02-23*
+*Last reviewed for repo accuracy: 2026-03-05*
 
 ## Kernel Overrides & Compatibility
 See `operations.md#kernel-overrides--compatibility` (canonical section).

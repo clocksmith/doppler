@@ -61,7 +61,7 @@ const body = `  <defs>
 const svg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="1400" height="700" viewBox="0 0 1400 700" role="img" aria-labelledby="title desc">
   <title id="title">Doppler Architecture Overview</title>
-  <desc id="desc">Two-column architecture: Load Model path on the left and Inference path on the right, each with its own Config as Code node and a shared WebGPU lifecycle link.</desc>
+  <desc id="desc">Two-column architecture: internal load-model orchestration on the left and public inference calls on the right, each with its own Config as Code node and a shared WebGPU lifecycle link.</desc>
 
 ${body}
 
@@ -78,8 +78,8 @@ ${body}
   <text x="375" y="210" text-anchor="middle" class="node-text">weight/attention dtypes, kernels</text>
 
   <rect x="125" y="270" width="500" height="72" rx="12" class="node node-load" />
-  <text x="375" y="302" text-anchor="middle" class="node-title">API Call</text>
-  <text x="375" y="326" text-anchor="middle" class="code-text">&#96;Pipeline.loadModel()&#96;</text>
+  <text x="375" y="302" text-anchor="middle" class="node-title">Internal Call</text>
+  <text x="375" y="326" text-anchor="middle" class="code-text">&#96;createInitializedPipeline() -> pipeline.loadModel()&#96;</text>
 
   <rect x="125" y="380" width="500" height="82" rx="12" class="node node-load" />
   <text x="375" y="414" text-anchor="middle" class="node-title">Model Loader</text>
@@ -104,8 +104,8 @@ ${body}
   <text x="1025" y="210" text-anchor="middle" class="node-text">attention mechanism, batching, kernel overrides</text>
 
   <rect x="775" y="270" width="500" height="72" rx="12" class="node node-infer" />
-  <text x="1025" y="302" text-anchor="middle" class="node-title">API Call</text>
-  <text x="1025" y="326" text-anchor="middle" class="code-text">&#96;Pipeline.generate()&#96;</text>
+  <text x="1025" y="302" text-anchor="middle" class="node-title">Public API Call</text>
+  <text x="1025" y="326" text-anchor="middle" class="code-text">&#96;generate() / dopplerChat()&#96;</text>
 
   <rect x="775" y="380" width="500" height="104" rx="12" class="node node-infer" />
   <text x="1025" y="415" text-anchor="middle" class="node-title">Inference Pipeline</text>

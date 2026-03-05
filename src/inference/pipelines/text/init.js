@@ -912,12 +912,16 @@ export async function initEmulation(runtimeConfig) {
   }
 
   try {
+    const simulatorModuleRoot = '/proto/simulator';
+    const simulatorEnvSpecifier = `${simulatorModuleRoot}/env.js`;
+    const simulatorIndexSpecifier = `${simulatorModuleRoot}/index.js`;
+
     // Dynamically import to avoid loading emulation code when disabled
-    const { setSimulatorEnv } = await import('/proto/simulator/env.js');
+    const { setSimulatorEnv } = await import(simulatorEnvSpecifier);
     const { createEmulationConfig, formatBytes, formatBandwidth } = await import('../../../config/schema/emulation.schema.js');
     const { EmulatedVramStore, detectLocalResources } = await import('../../../storage/emulated-vram.js');
     const { getBufferPool } = await import('../../../memory/buffer-pool.js');
-    const { createEmulationContext, isEmulationSupported } = await import('/proto/simulator/index.js');
+    const { createEmulationContext, isEmulationSupported } = await import(simulatorIndexSpecifier);
 
     setSimulatorEnv({
       log,

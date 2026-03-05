@@ -1,8 +1,7 @@
---- src/gpu/kernels/silu.wgsl	2026-02-20 10:04:55.694977493 -0500
-+++ src/gpu/kernels/silu_f16.wgsl	2026-02-20 10:04:55.694977493 -0500
-@@ -1,11 +1,9 @@
+--- src/gpu/kernels/silu.wgsl
++++ src/gpu/kernels/silu_f16.wgsl
+@@ -1,11 +1,8 @@
 -// SiLU (Swish) Activation Kernel
-+// SiLU (Swish) Activation Kernel with F16 Input/Output
  //
 -// SiLU(x) = x * sigmoid(x)
 -// Variants:
@@ -17,7 +16,7 @@
  
  override WORKGROUP_SIZE: u32 = 256u;
  override HAS_GATE: bool = false;
-@@ -21,9 +19,9 @@
+@@ -22,9 +19,9 @@
  }
  
  @group(0) @binding(0) var<uniform> u: Uniforms;
@@ -30,7 +29,7 @@
  
  fn sigmoid(x: f32) -> f32 {
      let clamped = clamp(x, -15.0, 15.0);
-@@ -53,8 +51,8 @@
+@@ -54,8 +51,8 @@
  
          let remaining = min(4u, u.size - base_idx);
          for (var i: u32 = 0u; i < remaining; i = i + 1u) {
@@ -41,7 +40,7 @@
          }
          return;
      }
-@@ -72,26 +70,26 @@
+@@ -73,27 +70,27 @@
          let token_idx = idx / dim;
          let dim_idx = idx % dim;
          let row_base = token_idx * dim * 2u;
@@ -57,10 +56,11 @@
      if (HAS_GATE) {
 -        let up = input[idx];
 -        let g = gate[idx];
--        output[idx] = clamp_swiglu(silu(g) * up);
 +        let up = f32(input[idx]);
 +        let g = f32(gate[idx]);
-+        output[idx] = f16(clamp_swiglu(silu(g) * up));
+         let gateAct = select(silu(g), sigmoid(g), GATE_USE_SIGMOID);
+-        output[idx] = clamp_swiglu(gateAct * up);
++        output[idx] = f16(clamp_swiglu(gateAct * up));
          return;
      }
  

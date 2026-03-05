@@ -28,6 +28,10 @@ function toHex(bytes) {
   return out;
 }
 
+function nodeModule(specifier) {
+  return `node:${specifier}`;
+}
+
 async function sha256HexText(text) {
   const payload = String(text ?? '');
   const bytes = new TextEncoder().encode(payload);
@@ -35,7 +39,7 @@ async function sha256HexText(text) {
   let subtle = globalThis?.crypto?.subtle ?? null;
   if (!subtle) {
     try {
-      const nodeCrypto = await import('node:crypto');
+      const nodeCrypto = await import(nodeModule('crypto'));
       subtle = nodeCrypto?.webcrypto?.subtle ?? null;
     } catch {}
   }

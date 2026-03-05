@@ -1,56 +1,54 @@
 # DOPPLER Benchmark Style Guide
 
-This guide defines benchmark implementation conventions.
+Implementation conventions for benchmark harnesses and normalized outputs.
 
-Policy and claim methodology are canonicalized in [../benchmark-methodology.md](../benchmark-methodology.md).
-Vendor registry/toolchain details are canonicalized in [../../benchmarks/vendors/README.md](../../benchmarks/vendors/README.md).
+Claim policy is canonical in [../benchmark-methodology.md](../benchmark-methodology.md).
+Vendor registry/toolchain contract is canonical in
+[../../benchmarks/vendors/README.md](../../benchmarks/vendors/README.md).
 
 ## Scope
 
 Use this guide for:
-- schema-friendly benchmark output writing
-- harness implementation expectations
-- local benchmarking implementation hygiene
+- benchmark output schema discipline
+- shared-contract vs engine-overlay separation
+- implementation hygiene for local and vendor benchmark runners
 
-## Output schema
+## Output schema requirements
 
 Benchmark output must validate against:
 - `benchmarks/benchmark-schema.json`
-- vendor result schema(s) under `benchmarks/vendors/schema/`
+- `benchmarks/vendors/schema/*.json`
 
 ## Shared vs engine config
 
-Keep a strict split:
-- shared contract: workload, sampling, runs, cache/load policy
-- engine overlay: engine-specific knobs only
+Use two explicit objects:
+- shared contract: workload, sampling, run counts, cache/load policy
+- engine overlay: engine-specific execution knobs only
 
-Do not mix fairness axes and engine internals in one object.
+Do not mix fairness axes and engine-specific knobs in a single object.
 
 ## Required implementation rules
 
-- include canonical timing fields and units
-- include environment metadata (host, browser, gpu, backend)
-- keep warm/cold behavior explicit
-- include seed and run-count metadata
-- fail closed when required normalization fields are missing
+- Include canonical timing fields and units.
+- Include environment metadata (host, browser, gpu, backend).
+- Keep warm/cold behavior explicit.
+- Include seed and run-count metadata.
+- Fail closed when required normalization fields are missing.
 
 ## Profiling and stats
 
-- define whether runs are warmup or timed
-- report p50/p95/p99 where supported
-- keep submit/readback counters explicit when available
+- Label warmup vs timed runs explicitly.
+- Emit p50/p95/p99 where supported.
+- Keep submit/readback counters explicit when available.
 
-## Checklist
+## Maintainer checklist
 
 1. Validate registry/harness definitions.
 2. Run compare or vendor bench with explicit workload id.
 3. Save normalized artifact.
 4. Ensure claim text references exact artifact path and command.
 
-## Commands
+## See also
 
-```bash
-node tools/vendor-bench.js validate
-node tools/vendor-bench.js capabilities
-node tools/compare-engines.js --mode all
-```
+- [../benchmark-methodology.md](../benchmark-methodology.md)
+- [../../benchmarks/vendors/README.md](../../benchmarks/vendors/README.md)
