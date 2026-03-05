@@ -1,60 +1,19 @@
 # Distill Studio Ops
 
-Operational guide for Distill Studio MVP workflows, reliability checks, staged
-rollout, and incident handling.
-
-## Contract surface
-
-Inputs:
-
-- teacher report JSON
-- student report JSON
-- optional holdout fixture JSON
-
-Outputs:
-
-- replay timeline payload
-- branch-compare payload
-- mini-eval pulse payload
-- traceability envelope with teacher/student report ids and optional workload pack hash/id
-
-## Operator commands
-
-```bash
-node tools/distill-studio-mvp.mjs replay-teacher --teacher <teacher-report.json> --workload-pack tools/configs/training-workloads/distill-translategemma-tiny.json --out reports/distill-studio/replay.json
-node tools/distill-studio-mvp.mjs branch-compare --teacher <teacher-report.json> --student <student-report.json> --workload-pack tools/configs/training-workloads/distill-translategemma-tiny.json --out reports/distill-studio/compare.json
-node tools/distill-studio-mvp.mjs mini-eval --teacher <teacher-report.json> --student <student-report.json> --holdout <holdout.json> --workload-pack tools/configs/training-workloads/distill-translategemma-tiny.json --out reports/distill-studio/mini-eval.json
-node tools/distill-studio-diagnostics.mjs --report <report.json>
-node tools/distill-studio-quality-gate.mjs --report <report.json> --out-dir <dir>
-```
-
-## Rollout stages
-
-1. Internal: deterministic command outputs + provenance checks.
-2. Limited: replay/branch-compare only, diagnostics required per candidate.
-3. Wider: enable mini-eval and reliability dashboard ingestion.
-
-## Reliability signals
-
-- Contract/schema drift rate
-- Provenance check pass rate
-- Replay/compare/mini-eval success rates
-- Alert and fail-on-alert incident rates
-
-## Incident response (condensed)
-
-1. Capture failing command and report/artifact paths.
-2. Run diagnostics and provenance checks.
-3. Freeze claimable outputs for affected artifacts.
-4. Fix root cause, add regression test, regenerate artifacts, rerun release gates.
+Distill Studio operations are consolidated in [training-handbook.md](training-handbook.md#distill-studio-mvp).
 
 ## Scope
 
 Distill Studio is deterministic, contract-validated operator tooling.
-It is not a full interactive UI runtime.
 
-## Claim traceability requirements
+## Inputs/outputs
 
-- Distill Studio outputs must carry report-id traceability in payloads.
-- If `--workload-pack` is supplied, workload pack hash/id must be included.
-- Distill quality-gate outputs must be generated before a claim is marked publishable.
+Inputs and outputs remain unchanged; see the canonical contract surface in [training-handbook.md](training-handbook.md).
+
+## Commands
+
+Use the canonical Distill Studio command set in [training-handbook.md](training-handbook.md#distill-studio-mvp).
+
+## Reliability and incidents
+
+Use [training-handbook.md](training-handbook.md#incident-response) for incident sequence and release gating.

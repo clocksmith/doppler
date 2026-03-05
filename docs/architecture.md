@@ -1135,7 +1135,7 @@ See `config.md` for kernel selection rules and runtime overrides.
 *Last updated: 2026-02-23*
 
 ## Kernel Overrides & Compatibility
-See `operations.md#kernel-overrides--compatibility` (canonical section) and `style/wgsl-style-guide.md`.
+See `operations.md#kernel-overrides--compatibility` (canonical section).
 
 
 

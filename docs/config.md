@@ -1,5 +1,8 @@
 # DOPPLER Config
 
+This page is a runtime-facing config reference.
+For implementation-level config internals and migration structure, see [../src/config/README.md](../src/config/README.md).
+
 ## Kernel Paths
 
 Kernel paths are explicit, ordered specifications of which GPU kernels execute during inference.
