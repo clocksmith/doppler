@@ -1,1 +1,6 @@
-export declare function bootstrapNodeWebGPU(): Promise<boolean>;
+export interface BootstrapNodeWebGPUResult {
+  ok: boolean;
+  provider: string | null;
+}
+
+export declare function bootstrapNodeWebGPU(): Promise<BootstrapNodeWebGPUResult>;

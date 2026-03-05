@@ -1,4 +1,4 @@
-import { log, openModelStore, loadManifestFromStore } from '@doppler/core';
+import { log, openModelStore, loadManifestFromStore } from '@simulatte/doppler';
 import { state } from '../state.js';
 
 const modelTypeInflight = new Map();

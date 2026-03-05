@@ -1,12 +1,12 @@
 /**
- * In-browser PII redaction example for @doppler/core.
+ * In-browser PII redaction example for @simulatte/doppler.
  *
  * Loads a small instruction-tuned model and uses structured prompting
  * to detect and redact personally identifiable information from text.
  * All inference runs locally — no data leaves the browser.
  */
 
-import { DopplerProvider } from '@doppler/core';
+import { DopplerProvider } from '@simulatte/doppler';
 
 const MODEL_ID = 'gemma-3-270m-it-wq4k-ef16';
 const MODEL_URL =

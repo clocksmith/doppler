@@ -295,7 +295,7 @@ function installWebgpuFromModule(mod) {
 
 export async function bootstrapNodeWebGPU() {
   if (hasNavigatorGpu() && hasGpuEnums()) {
-    return true;
+    return { ok: true, provider: 'pre-installed' };
   }
 
   const { specifiers, explicit } = resolveWebgpuModuleSpecifiers();
@@ -305,17 +305,17 @@ export async function bootstrapNodeWebGPU() {
       mod = await importWithProviderOverride(specifier);
     } catch {
       if (explicit) {
-        return false;
+        return { ok: false, provider: null };
       }
       continue;
     }
     if (installWebgpuFromModule(mod)) {
-      return true;
+      return { ok: true, provider: specifier };
     }
     if (explicit) {
-      return false;
+      return { ok: false, provider: null };
     }
   }
 
-  return false;
+  return { ok: false, provider: null };
 }

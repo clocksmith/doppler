@@ -4,10 +4,10 @@
  * @module demo/diagnostics-controller
  */
 
-import type { BrowserSuite, BrowserSuiteResult } from '@doppler/core/inference/browser-harness.js';
-import type { RuntimeConfigSchema } from '@doppler/core/config/schema/index.js';
-import type { SavedReportInfo } from '@doppler/core/storage/reports.js';
-import type { log as debugLog } from '@doppler/core/debug/index.js';
+import type { BrowserSuite, BrowserSuiteResult } from '@simulatte/doppler/inference/browser-harness.js';
+import type { RuntimeConfigSchema } from '@simulatte/doppler/config/schema/index.js';
+import type { SavedReportInfo } from '@simulatte/doppler/storage/reports.js';
+import type { log as debugLog } from '@simulatte/doppler/debug/index.js';
 
 export interface DiagnosticsControllerOptions {
   log?: typeof debugLog;
