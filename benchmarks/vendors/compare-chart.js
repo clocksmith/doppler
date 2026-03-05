@@ -25,8 +25,8 @@ const README_PRESET_NAME = 'readme-evidence';
 const CHART_PRESETS = Object.freeze({
   [README_PRESET_NAME]: Object.freeze({
     inputs: Object.freeze([
-      path.join(__dirname, 'results', 'compare_20260303T175640.json'),
-      path.join(__dirname, 'results', 'compare_20260303T210150.json'),
+      path.join(__dirname, 'fixtures', 'g3-1b-p064-d064-t0-k1.compare.json'),
+      path.join(__dirname, 'fixtures', 'lfm2-5-1-2b-p064-d064-t0-k1.compare.json'),
     ]),
     chart: 'phases',
     section: 'warm',
