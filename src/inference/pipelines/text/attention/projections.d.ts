@@ -47,6 +47,11 @@ export function recordAttentionInputs(
 ): void;
 
 export function resolveAttentionProjectionOutputDtype(attentionInputDtype: string): 'f16' | 'f32' | string;
+export function resolveProjectionSliceOffsetBytes(
+  weightBuffer: WeightBuffer | Tensor | GPUBuffer | null | undefined,
+  outputRows: number,
+  inputCols: number
+): number;
 
 export interface ProjectAttentionQKVOptions {
   recorder?: CommandRecorder | null;
