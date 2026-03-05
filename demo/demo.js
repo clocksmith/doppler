@@ -578,7 +578,7 @@ function syncSurfaceUI(surface) {
     button.setAttribute('aria-hidden', 'false');
   });
   if (typeof document !== 'undefined') {
-    document.title = 'D4DA Studio';
+    document.title = 'Doppler';
   }
 }
 

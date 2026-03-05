@@ -1,7 +1,7 @@
 {
-  "name": "Doppler Demo",
-  "short_name": "D4DA",
-  "description": "Doppler Demo: Local WebGPU Inference Engine",
+  "name": "Doppler",
+  "short_name": "Doppler",
+  "description": "Browser-native inference engine for local AI workloads",
   "start_url": "/demo/index.html",
   "scope": "/demo/",
   "display": "standalone",

@@ -2,4 +2,11 @@ export { InferencePipeline, EmbeddingPipeline, createPipeline } from '../inferen
 export { parseModelConfig, parseModelConfigFromManifest } from '../inference/pipelines/text/config.js';
 export { loadWeights, initTokenizer, isStopToken } from '../inference/pipelines/text/init.js';
 export { initTokenizerFromManifestPreset } from '../inference/pipelines/text/model-load.js';
-export { StructuredJsonHeadPipeline, createStructuredJsonHeadPipeline, DreamStructuredPipeline } from '../inference/pipelines/structured/json-head-pipeline.js';
+export {
+  StructuredJsonHeadPipeline,
+  isStructuredJsonHeadModelType,
+  createStructuredJsonHeadPipeline,
+  DreamStructuredPipeline,
+  isDreamStructuredModelType,
+  createDreamStructuredPipeline,
+} from '../inference/pipelines/structured/json-head-pipeline.js';
