@@ -15,7 +15,7 @@ const DEFAULT_WIDTH = 960;
 const DEFAULT_HEIGHT = 720;
 const DEFAULT_SECTION = 'compute/parity';
 const CANVAS_PADDING = 14;
-const STATIC_CHART_TITLE = 'Phase-latency comparison on one workload across models';
+const STATIC_CHART_TITLE = 'Phase-latency comparison across models on MacBook Air M3';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const COMPARE_METRICS_PATH = path.join(__dirname, 'compare-metrics.json');
 const DOPPLER_HARNESS_PATH = path.join(__dirname, 'harnesses', 'doppler.json');
@@ -233,7 +233,7 @@ let svgIdCounter = 0;
 
 function renderChartCanvas(width, height) {
   return `<rect x="0" y="0" width="${width}" height="${height}" fill="#020617" />
-  <rect x="${CANVAS_PADDING}" y="${CANVAS_PADDING}" width="${Math.max(0, width - CANVAS_PADDING * 2)}" height="${height - CANVAS_PADDING * 2}" rx="0" fill="#020817" fill-opacity="0.50" stroke="${PALETTE.grid}" stroke-opacity="0.65" stroke-width="2" />`;
+  <rect x="${CANVAS_PADDING}" y="${CANVAS_PADDING}" width="${Math.max(0, width - CANVAS_PADDING * 2)}" height="${height - CANVAS_PADDING * 2}" rx="0" fill="#020817" fill-opacity="0.50" stroke="none" />`;
 }
 
 function renderChartHeaderBand(width, title, subtitle, sectionLabel) {
@@ -1353,6 +1353,7 @@ function renderMultiPhases(entries, width, title, subtitle) {
     body += `<rect x="${x}" y="${legendY}" width="16" height="16" fill="${PHASE_COLORS[item.id]}" />\n`;
     body += `<text x="${x + 22}" y="${legendY + 13}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="12">${item.label}</text>\n`;
   });
+  body += `<text x="${width - right - 10}" y="${legendY + 13}" fill="${PALETTE.muted}" font-family="${FONT_UI}" font-size="11" text-anchor="end" font-style="italic" stroke="none">Lower is better</text>\n`;
   return svgWrap(width, height, body, title, subtitle);
 }
 

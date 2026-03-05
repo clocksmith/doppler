@@ -1,6 +1,6 @@
 # @simulatte/doppler
 
-Browser-native inference engine for local AI workloads.
+Inference and training on raw WebGPU. Pure JS + WGSL.
 
 **[Live Demo](https://d4da.com)** · **[npm](https://www.npmjs.com/package/@simulatte/doppler)** · **[simulatte.world](https://simulatte.world)**
 
@@ -22,19 +22,25 @@ for await (const token of model.generate('Hello, world')) {
 }
 ```
 
-That's it. Streaming is the default. See [more examples](#more-examples) below or the full [API contract](docs/doppler-api-contract.md).
+Tokens stream from a native `AsyncGenerator`. See [more examples](#more-examples) below or the full [API contract](docs/doppler-api-contract.md).
 
-## Features
+## Why Doppler
 
-- WebGPU-accelerated inference in browser and Node — no WASM bridge
-- Native `for await` streaming — not callbacks
-- Sharded weight loading via OPFS
-- LoRA adapter hot-swap at runtime
-- Quantized model support (Q4K, Q8, F16)
-- Multi-model with independent instances
-- Kernel hot-swap (prefill/decode paths)
-- Reproducible benchmark tooling
-- Auditable kernel execution tracing
+**JS → WGSL → WebGPU.** One hop to the GPU. No ONNX runtime, no WASM blob, no bridge layer.
+
+**`for await` streaming.** Not callbacks. Not a `TextStreamer` class. A loop.
+
+**LoRA hot-swap.** Swap adapters at runtime without reloading the base model.
+
+**Independent model instances.** Run multiple models concurrently. Each owns its pipeline, buffers, and KV cache.
+
+## Under the Hood
+
+- Sharded weight loading via OPFS. Gigabytes into VRAM without blocking the main thread.
+- Quantized inference: Q4K, Q8, F16. Real models on consumer GPUs.
+- Kernel hot-swap between prefill and decode paths.
+- Config-driven runtime. Presets, kernel path selection, and sampling are policy, not code.
+- Reproducible benchmarks with deterministic knobs and auditable kernel traces.
 
 ## Browser Support
 
@@ -46,12 +52,11 @@ That's it. Streaming is the default. See [more examples](#more-examples) below o
 
 ## Evidence
 
-Lower is better, comparing per-phase latency by workload.
-
 ![Phase-latency comparison on one workload across models](benchmarks/vendors/results/compare_1b_multi-workload_favorable_phases.svg)
 
-Snapshot artifact:
-- [g3-p064-d064-t0-k1.apple-m3pro.compare.json](benchmarks/vendors/fixtures/g3-p064-d064-t0-k1.apple-m3pro.compare.json)
+Snapshot artifacts:
+- [g3-1b-p064-d064-t0-k1.compare.json](benchmarks/vendors/fixtures/g3-1b-p064-d064-t0-k1.compare.json)
+- [lfm2-5-1-2b-p064-d064-t0-k1.compare.json](benchmarks/vendors/fixtures/lfm2-5-1-2b-p064-d064-t0-k1.compare.json)
 
 ## More Examples
 
