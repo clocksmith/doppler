@@ -10,7 +10,7 @@ Inference and training on raw WebGPU. Pure JS + WGSL.
 npm install @simulatte/doppler
 ```
 
-## Quick Start
+## Quick start
 
 ```js
 import { doppler } from '@simulatte/doppler';
@@ -26,29 +26,13 @@ Tokens stream from a native `AsyncGenerator`. See [more examples](#more-examples
 
 ## Why Doppler
 
-**JS → WGSL → WebGPU.** One hop to the GPU. No ONNX runtime, no WASM blob, no bridge layer.
+**JS → WGSL → WebGPU.** Direct JavaScript orchestration into native WebGPU kernels, avoiding ONNX runtimes, WASM blobs, and bridge layers.
 
-**`for await` streaming.** Not callbacks. Not a `TextStreamer` class. A loop.
+**`for await` streaming.** Generation uses a native `AsyncGenerator` that fits normal app control flow.
 
 **LoRA hot-swap.** Swap adapters at runtime without reloading the base model.
 
 **Independent model instances.** Run multiple models concurrently. Each owns its pipeline, buffers, and KV cache.
-
-## Under the Hood
-
-- Sharded weight loading via OPFS. Gigabytes into VRAM without blocking the main thread.
-- Quantized inference: Q4K, Q8, F16. Real models on consumer GPUs.
-- Kernel hot-swap between prefill and decode paths.
-- Config-driven runtime. Presets, kernel path selection, and sampling are policy, not code.
-- Reproducible benchmarks with deterministic knobs and auditable kernel traces.
-
-## Browser Support
-
-- Chrome / Edge 113+ (WebGPU required)
-- Firefox (behind flag, WebGPU support varies)
-- Safari (WebGPU support in progress)
-
----
 
 ## Evidence
 
@@ -58,7 +42,15 @@ Snapshot artifacts:
 - [g3-1b-p064-d064-t0-k1.compare.json](benchmarks/vendors/fixtures/g3-1b-p064-d064-t0-k1.compare.json)
 - [lfm2-5-1-2b-p064-d064-t0-k1.compare.json](benchmarks/vendors/fixtures/lfm2-5-1-2b-p064-d064-t0-k1.compare.json)
 
-## More Examples
+## Under the hood
+
+- Sharded weight loading via OPFS moves multi-GB weights into VRAM without blocking the main thread.
+- Quantized inference paths (Q4K, Q8, F16) support practical model sizes on consumer GPUs.
+- Kernel hot-swap between prefill and decode paths.
+- Config-driven runtime keeps presets, kernel-path selection, and sampling explicit.
+- Reproducible benchmarks expose deterministic knobs and auditable kernel traces.
+
+## More examples
 
 ```js
 // Non-streaming
@@ -84,6 +76,13 @@ for await (const token of doppler('Hello', { model: 'gemma-3-1b' })) {
 - First-run workflow: [docs/getting-started.md](docs/getting-started.md)
 - Runtime config contract: [docs/config.md](docs/config.md)
 - Architecture: [docs/architecture.md](docs/architecture.md)
+
+## Environment requirements
+
+- WebGPU-capable browser runtime is required.
+- Chrome / Edge 113+ supported.
+- Firefox support varies (typically behind a flag).
+- Safari support is evolving.
 
 ## License
 
