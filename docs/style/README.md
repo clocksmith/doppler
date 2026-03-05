@@ -14,6 +14,10 @@ Coding conventions for the DOPPLER codebase.
 | [Harness Interface Style Guide](./harness-style-guide.md) | Browser + CLI execution rules and config-only controls |
 | [Command Interface Design Guide](./command-interface-design-guide.md) | Shared command schema, intent mapping, parity contract |
 
+Shared rule ownership:
+- Cross-language naming/logging/testing policy is canonical in [General Style Guide](./general-style-guide.md).
+- Benchmark claim policy is canonical in [../benchmark-methodology.md](../benchmark-methodology.md).
+
 ## Quick Reference
 
 ### Language Policy

@@ -2,6 +2,10 @@
 
 Purpose: End-to-end inference pipeline orchestration and helpers.
 
+Boundary note:
+- Contract boundaries are canonical in `docs/pipeline-contract.md`.
+- This file is implementation-level reference for inference internals.
+
 ## Scope
 
 - Pipeline orchestration, tokenization, KV cache, MoE routing, sampling.
@@ -586,4 +590,4 @@ WGSL kernels are in `gpu/kernels/`. The wrappers in `gpu/kernel-selector.js` com
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
-See `docs/style/wgsl-style-guide.md` for runtime kernel modes (4-bit/9-bit) and the OPFS purge helper.
+See `docs/operations.md#kernel-overrides--compatibility` (canonical section).

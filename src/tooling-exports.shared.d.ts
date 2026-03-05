@@ -60,9 +60,6 @@ export { destroyBufferPool } from './memory/buffer-pool.js';
 // Diagnostics harness
 export { loadRuntimePreset, applyRuntimePreset, runBrowserSuite } from './inference/browser-harness.js';
 
-// Energy utilities
-export { buildLayout, getDefaultSpec, buildVliwDatasetFromSpec } from './inference/pipelines/energy/vliw-generator.js';
-
 // Shared command contract (browser + CLI parity)
 export {
   TOOLING_COMMANDS,

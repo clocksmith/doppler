@@ -70,7 +70,7 @@ export interface EnergyQuintelConfigSchema {
 }
 
 export interface EnergyConfigSchema {
-  problem: 'l2' | 'quintel' | 'vliw';
+  problem: 'l2' | 'quintel';
   state: EnergyStateConfigSchema;
   init: EnergyInitConfigSchema;
   target: EnergyTargetConfigSchema;
@@ -80,7 +80,7 @@ export interface EnergyConfigSchema {
 }
 
 export interface EnergyModelConfigSchema {
-  problem?: 'l2' | 'quintel' | 'vliw';
+  problem?: 'l2' | 'quintel';
   state?: Partial<EnergyStateConfigSchema>;
   init?: Partial<EnergyInitConfigSchema>;
   target?: Partial<EnergyTargetConfigSchema>;

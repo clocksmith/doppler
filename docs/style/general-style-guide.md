@@ -2,6 +2,10 @@
 
 General coding conventions and patterns for the DOPPLER codebase.
 
+This file is the canonical source for shared cross-language rules such as naming,
+logging, testing, and anti-pattern policy. Language-specific guides should only
+document deltas.
+
 ## Core Principles
 
 1. **Config as Code** - Declarative maps over imperative logic

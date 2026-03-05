@@ -15,7 +15,5 @@ export {
   DreamEnergyHeadPipeline,
   createDreamEnergyHeadPipeline,
 } from './energy-head/row-head-pipeline.js';
-export { runVliwEnergyLoop } from './energy/vliw.js';
-export { buildVliwDatasetFromSpec, getDefaultSpec, buildLayout } from './energy/vliw-generator.js';
 export { registerPipeline, getPipelineFactory, listPipelines } from './registry.js';
 export { createInitializedPipeline } from './factory.js';

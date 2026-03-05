@@ -38,7 +38,7 @@ doppler/
 │   ├── loader/           # GGUF parsing, RDRR manifest
 │   ├── memory/           # Heap management, capability detection
 │   ├── rules/            # Validation rules (kernel path, etc.)
-│   ├── energy/           # Energy pipeline tools and VLIW scheduling
+│   ├── energy/           # Energy pipeline tools
 │   ├── storage/          # OPFS shard manager, model loading
 │   ├── tooling/          # Shared command contract + runners
 │   ├── training/         # Backward/training primitives

@@ -1,11 +1,7 @@
 # Doppler.js
 
-**D**eterministic **O**n-device **P**rocessing for **P**refill, **L**earning, and **E**xecution **R**untime
-
-**[Try it live](https://d4da.com)**
-
-Doppler is a local WebGPU runtime for browser-hosted and on-device AI workloads.
-It provides explicit control over load-path and kernel-path selection, reproducible phase-level benchmarking (see below for Transformers.js (v4)), and auditable kernel execution tracing.
+Doppler is a local inference engine for browser-hosted and on-device AI workloads.
+It provides explicit load-path and kernel-path control, reproducible benchmarking, and auditable kernel execution tracing.
 
 ## Evidence
 
@@ -13,195 +9,27 @@ Lower is better, comparing per-phase latency by workload.
 
 ![Phase-latency comparison on one workload across models](benchmarks/vendors/results/compare_1b_multi-workload_favorable_phases.svg)
 
-This chart uses the 1B warm-opfs workload (`64 prompt tokens, 64 decode tokens, greedy`; `warm-opfs` = `cacheMode=warm` + `loadMode=opfs`) with one panel for Gemma 3 ([compare_20260303T175640.json](benchmarks/vendors/results/compare_20260303T175640.json)) and one for LFM2.5 ([compare_20260303T210150.json](benchmarks/vendors/results/compare_20260303T210150.json)). In this snapshot, Doppler is lower on first-response and decode latency, while Transformers.js (v4) is lower on prefill latency. For user-perceived startup after model availability, treat `model load + prefill` as the visible first-response path (loading from local cache/storage, not downloading model artifacts). Definitions and reproducibility details are in the Performance section.
+Snapshot artifacts:
+- [compare_20260303T175640.json](benchmarks/vendors/results/compare_20260303T175640.json)
+- [compare_20260303T210150.json](benchmarks/vendors/results/compare_20260303T210150.json)
 
-## Local intent latency constraints
+## Start here
 
-Intent pipelines are front-loaded: the first response determines perceived speed.
-If load or time-to-first-token (TTFT) drifts, the whole workflow feels delayed even when later decode is fast.
-Browser-local inference keeps private prompt data local and makes control decisions resilient when connectivity is limited.
-Doppler targets this critical path directly by making load mode, prefill, decode cadence, and kernel path explicit and tunable.
+- Canonical first-run guide: [docs/getting-started.md](docs/getting-started.md)
+- Setup and troubleshooting: [docs/setup-instructions.md](docs/setup-instructions.md)
+- Sizing and performance expectations: [docs/performance-sizing.md](docs/performance-sizing.md)
 
-## Execution model: JavaScript + WGSL
+## Core docs
 
-Doppler keeps the runtime path thin and explicit.
-
-Positioning:
-- **vs WebLLM / TVM**: compiler-driven binaries can improve automation, but make shard-level composition, adapter hot-swap, and per-kernel inspection/tuning harder.
-- **vs Transformers.js (v4) / ONNX Runtime**: Transformers.js (v4) runs through an ONNX graph/runtime layer; Doppler maps model + kernel path directly in config and exposes kernel-path tracing.
-
-JS+WGSL advantages:
-- **Control**: manifest-first contracts plus explicit kernel-path config keep execution choices auditable and reproducible.
-- **Performance**: GPU compute dominates per-token latency, tensor ops stay on GPU, and readback is minimized to final logits.
-- **Velocity**: handwritten WGSL kernels (human and/or coding agent) enable progressive fusion from debuggable atomic kernels to fused kernels without full model recompiles.
-
-## Architecture comparison
-
-```
-Transformers.js                              Doppler
-─────────────                                ───────
-App (JS)                                     App (JS)
- └─ @huggingface/transformers (JS)            └─ Doppler runtime (JS)
-     └─ onnxruntime-web (C++ → WASM)              └─ WebGPU
-         └─ ONNX graph interpreter                     ├─ WGSL kernels (prewritten)
-             └─ WebGPU                                 └─ RDRR weight shards
-                 ├─ WGSL kernels (generated at
-                 │   runtime from generic op library)
-                 └─ ONNX weight shards
-```
-
-Transformers.js wraps a C++-to-WASM compiled ONNX runtime that interprets an exported graph and generates GPU shaders at runtime from a generic op library.
-Models must be manually exported from PyTorch to ONNX format before they can run (maintained per-model by `onnx-community`).
-Doppler is JS end-to-end with mostly prewritten WGSL kernels per operation (attention, RoPE, RMSNorm, FFN), with no graph interpreter and no WASM runtime layer in the inference path.
-Some specialized paths still compile WGSL generated from templates/config at runtime (for example kernel tuning and router-specialized variants).
-JSON manifests and runtime presets drive selection; JS orchestrates execution and WGSL remains deterministic math.
-The RDRR format maps weight shards directly to GPU buffers, and conversion runs directly from SafeTensors or GGUF sources without an intermediate export step.
-Architecture-specific patterns like sliding/full attention windows are runtime config in Doppler, as opposed to frozen in an exported graph.
-
-## Runtime architecture and boundaries
-
-![Doppler architecture overview](docs/architecture-overview.svg)
-
-See [`docs/architecture.md`](docs/architecture.md) for full subsystem and boundary details.
-
-## Capability domains
-
-### Artifact Domain
-
-- Model conversion from SafeTensors/GGUF to RDRR (`convert`, Node surface).
-- Manifest-first model contract with storage-backed and direct-source load paths.
-- Artifact loading paths (`opfs`/`http`/`memory`) and shard/range/stream ingest behavior.
-- `loadMode=memory` supports Node-only local filesystem source-runtime inputs (`.gguf` or SafeTensors directory), not remote URLs.
-
-### Runtime Domain
-
-- Local WebGPU runtime for browser and Node inference/compute.
-- Kernel execution with explicit kernel-path selection and traceable runtime behavior.
-- Runtime memory/buffer orchestration and GPU dispatch lifecycle.
-- Training execution mechanics (step/runtime behavior) live here.
-
-### Interface Domain
-
-- Unified command surface: `convert`, `debug`, `bench`, `verify`.
-- Supported suites: `kernels`, `inference`, `training`, `bench`, `debug`, `diffusion`, `energy`.
-- `--surface auto` behavior: `convert` is forced to Node; other commands try Node first and only fall back to browser when configured Node-WebGPU fallback signatures match.
-- Training flows block auto-downgrade and fail fast with explicit guidance.
-
-### Assurance Domain
-
-- Practical verify/calibrate workflows for inference, training, and distill stages.
-- Contract-driven schema/field validation and fail-closed command behavior.
-- Reproducible benchmark/reporting outputs via `--json`, `--capture-output`, and `bench --save --save-dir` (artifacts in `benchmarks/vendors/results/`).
-- Hash-linked artifact lineage and provenance checks for claimable outputs.
-
-### Quick start
-
-Run a hosted model verify from the HF registry:
-
-```bash
-npm run verify:google-gemma-3-270m-it
-```
-
-For full CLI usage and options, see [`docs/cli-quickstart.md`](docs/cli-quickstart.md).
-
-### Reference docs
-
-- Setup and day-1 workflows: [`docs/setup-instructions.md`](docs/setup-instructions.md)
-- Architecture and boundaries: [`docs/architecture.md`](docs/architecture.md)
-- RDRR and direct-source contract details: [`docs/formats.md`](docs/formats.md)
-- Command contract/parity rules: [`src/tooling/command-api.js`](src/tooling/command-api.js)
-- Benchmark policy and harness registry: [`benchmarks/vendors/README.md`](benchmarks/vendors/README.md)
-- Testing workflows: [`docs/testing.md`](docs/testing.md)
-- Training docs: [`docs/training-overview.md`](docs/training-overview.md), [`docs/training-artifact-policy.md`](docs/training-artifact-policy.md), [`docs/training-migrations.md`](docs/training-migrations.md)
-
-### Output and tooling directories
-
-- `tools/`: CLI entrypoints and engineering scripts.
-- `benchmarks/`: benchmark registry, harness contracts, and benchmark fixtures/results policy.
-- `reports/`: generated run outputs (gitignored); training artifacts are emitted to `reports/training/` by default.
-- `bench/`: legacy output location; no active command defaults write here.
-
-## Performance
-
-### Methodology and reproducibility
-
-The Evidence chart is generated from two compare artifacts captured on March 3, 2026 on Apple M3 (Metal, macOS 26.1) using:
-- mode `warm`
-- load mode `opfs`
-- decode profile `parity`
-- workload `g3-p064-d064-t0-k1`
-- warmup `1`, runs `3`, seed `0`
-
-### Reproduce
-
-Prerequisite: converted local model artifacts exist for Gemma 3 1B and LFM2.5 1.2B under `models/local/...` (see setup instructions).
-
-```bash
-# Gemma 3 1B
-node tools/compare-engines.js \
-  --mode warm \
-  --load-mode opfs \
-  --decode-profile parity \
-  --tjs-version 4 \
-  --model-id gemma-3-1b-it-wf16-ef16-hf16-f32 \
-  --tjs-model onnx-community/gemma-3-1b-it-ONNX-GQA \
-  --workload g3-p064-d064-t0-k1 \
-  --warmup 1 \
-  --runs 3 \
-  --seed 0 \
-  --save \
-  --save-dir benchmarks/vendors/results
-
-# LFM2.5 1.2B
-node tools/compare-engines.js \
-  --mode warm \
-  --load-mode opfs \
-  --decode-profile parity \
-  --tjs-version 4 \
-  --model-id lfm2-5-1-2b-instruct-wq4k-ef16-hf16-f32 \
-  --tjs-model LiquidAI/LFM2.5-1.2B-Instruct-ONNX \
-  --workload g3-p064-d064-t0-k1 \
-  --warmup 1 \
-  --runs 3 \
-  --seed 0 \
-  --save \
-  --save-dir benchmarks/vendors/results
-
-node benchmarks/vendors/compare-chart.js --preset readme-evidence
-```
-
-## Further docs
-
-For contribution workflow, see [`docs/contributing.md`](docs/contributing.md).
-For disclosure and community policies, see [`SECURITY.md`](SECURITY.md).
-
-## Glossary
-
-- **RDRR**: Recursive DOPPLER Runtime Registry format (`manifest.json` + `shard_*.bin` + tokenizer assets). This is the runtime contract Doppler loads and executes.
-- **Kernel path**: A named execution policy (kernels, dtypes, and per-op routing) for prefill/decode. Selected from manifest defaults or runtime config.
-- **Load mode**: Where runtime reads model artifacts from (`opfs`, `http`, `memory`).
-- **Cache mode**: Benchmark cache policy (`warm` reuses local cached artifacts, `cold` clears local cached artifacts before run).
-- **Warm-opfs**: `cacheMode=warm` + `loadMode=opfs`; intended to measure local-start latency without model download time in the timed window.
-- **Parity profile**: Cross-engine decode cadence alignment (`batchSize=1`, `readbackInterval=1`) for apples-to-apples comparison with Transformers.js.
-- **First response**: `modelLoadMs + firstTokenMs` (the perceived startup path after model availability).
-
-## Inspiration
-
-- [WebLLM](https://github.com/mlc-ai/web-llm) - High-performance in-browser LLM inference
-- [PyTorch](https://pytorch.org/) - Machine learning framework
-- [WebGPU](https://www.w3.org/TR/webgpu/) - W3C GPU API specification
-- [Mistral 7B](https://arxiv.org/abs/2310.06825) - Sliding window attention, grouped-query attention
-- [Mixtral of Experts](https://arxiv.org/abs/2401.04088) - Sparse Mixture of Experts architecture
-- [DeepSeekMoE](https://arxiv.org/abs/2401.06066) - Expert specialization in MoE
-- [DeepSeek-V3](https://arxiv.org/abs/2412.19437) - Multi-head Latent Attention, 671B MoE
-- [Kimi K2](https://arxiv.org/abs/2507.20534) - 1T parameter MoE, agentic intelligence
-- [Dr. Doppler](https://megaman.fandom.com/wiki/Dr._Doppler) - Mega Man X3
+- Architecture: [docs/architecture.md](docs/architecture.md)
+- Pipeline contract: [docs/pipeline-contract.md](docs/pipeline-contract.md)
+- Config: [docs/config.md](docs/config.md)
+- Formats index: [docs/formats.md](docs/formats.md)
+- Operations: [docs/operations.md](docs/operations.md)
+- Testing index: [docs/testing.md](docs/testing.md)
+- Training handbook: [docs/training-handbook.md](docs/training-handbook.md)
+- Benchmark methodology: [docs/benchmark-methodology.md](docs/benchmark-methodology.md)
 
 ## License
 
 Apache License 2.0 (`Apache-2.0`). See [LICENSE](LICENSE) and [NOTICE](NOTICE).
-
-## Trademarks
-
-Trademark usage for the names "Doppler" and "Doppler.js" is described in
-[BRANDING.md](BRANDING.md).

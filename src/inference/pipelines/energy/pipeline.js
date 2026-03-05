@@ -20,7 +20,7 @@ import { applyPipelineContexts } from '../context.js';
 import { createInitializedPipeline } from '../factory.js';
 import { createRng, sampleNormal } from '../rng.js';
 import { mergeQuintelConfig, runQuintelEnergyLoop } from './quintel.js';
-import { runVliwEnergyLoop } from './vliw.js';
+
 
 function generateRandomArray(count, mode, seed, scale) {
   const out = new Float32Array(count);
@@ -535,88 +535,6 @@ export class EnergyPipeline {
         if (moment1Buffer) releaseBuffer(moment1Buffer);
         if (moment2Buffer) releaseBuffer(moment2Buffer);
       }
-    }
-
-    if (problem === 'vliw') {
-      const vliwConfig = request.vliw ?? {};
-      const tasks = Array.isArray(vliwConfig.tasks) ? vliwConfig.tasks : [];
-      const caps = vliwConfig.caps ?? {};
-      if (!tasks.length) {
-        throw new Error('VLIW demo requires tasks in the request.');
-      }
-      const loop = {
-        maxSteps,
-        minSteps,
-        stepSize,
-        gradientScale,
-        convergenceThreshold,
-      };
-      const diagnosticsConfig = {
-        readbackEvery,
-        historyLimit,
-        traceEvery,
-      };
-      const result = await runVliwEnergyLoop({
-        tasks,
-        caps,
-        dependencyModel: vliwConfig.dependencyModel,
-        loop,
-        search: vliwConfig.search,
-        seed: request.seed ?? runtimeConfig.init.seed,
-        initMode: request.initMode ?? runtimeConfig.init.mode,
-        initScale: request.initScale ?? runtimeConfig.init.scale,
-        diagnostics: diagnosticsConfig,
-        onProgress: this._onProgress,
-        onTrace: (step, energy, metrics) => {
-          if (!Number.isFinite(energy)) return;
-          trace.energy(`step=${step} cycles=${energy}`, metrics);
-        },
-      });
-
-      const energyComponents = {
-        symmetry: result.metrics?.cycles ?? null,
-        count: result.metrics?.utilization ?? null,
-        binarize: result.metrics?.violations ?? null,
-      };
-
-      this.stats = {
-        backend: 'CPU',
-        totalTimeMs: result.totalTimeMs,
-        steps: result.steps,
-        stepTimesMs: null,
-        energyHistory: result.energyHistory,
-        readbackCount: result.energyHistory.length,
-        energy: result.energy,
-        energyComponents,
-        stateStats: computeArrayStats(result.state),
-      };
-
-      return {
-        backend: 'CPU',
-        shape: result.shape,
-        dtype: 'f32',
-        steps: result.steps,
-        energy: result.energy,
-        state: result.state,
-        energyHistory: result.energyHistory,
-        energyComponents,
-        stateStats: computeArrayStats(result.state),
-        totalTimeMs: result.totalTimeMs,
-        metrics: result.metrics,
-        baseline: result.baseline,
-        schedule: result.schedule,
-        candidates: result.candidates,
-        taskMeta: result.taskMeta,
-        scheduler: result.scheduler,
-        schedulerPolicy: result.schedulerPolicy,
-        schedulerPolicies: result.schedulerPolicies,
-        scoreMode: result.scoreMode,
-        engineOrder: result.engineOrder,
-        capsSource: result.capsSource,
-        mode: result.mode,
-        mlpStats: result.mlpStats ?? null,
-        problem,
-      };
     }
 
     const device = getDevice();
