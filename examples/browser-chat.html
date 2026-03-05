@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Doppler — Browser Chat</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; max-width: 640px; margin: 2rem auto; padding: 0 1rem; }
+    h1 { font-size: 1.2rem; margin-bottom: 0.5rem; }
+    #status { font-size: 0.85rem; color: #666; margin-bottom: 1rem; }
+    #messages { border: 1px solid #ccc; border-radius: 4px; padding: 1rem; min-height: 200px; max-height: 400px; overflow-y: auto; margin-bottom: 0.5rem; white-space: pre-wrap; font-size: 0.95rem; }
+    .user { color: #0066cc; }
+    .assistant { color: #333; }
+    form { display: flex; gap: 0.5rem; }
+    input { flex: 1; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; font-size: 0.95rem; }
+    button { padding: 0.5rem 1rem; border: 1px solid #333; background: #333; color: #fff; border-radius: 4px; cursor: pointer; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+  </style>
+  <script type="importmap">
+    { "imports": { "@doppler/core": "https://d4da.com/src/index-browser.js" } }
+  </script>
+</head>
+<body>
+  <h1>Doppler — Browser Chat</h1>
+  <div id="status">Loading...</div>
+  <div id="messages"></div>
+  <form id="chat-form">
+    <input id="input" type="text" placeholder="Type a message..." disabled />
+    <button id="send" type="submit" disabled>Send</button>
+  </form>
+
+  <script type="module">
+    import { DopplerProvider } from '@doppler/core';
+
+    const MODEL_ID = 'gemma-3-270m-it-wq4k-ef16';
+    const MODEL_URL = 'https://huggingface.co/Clocksmith/rdrr/resolve/HEAD/models/gemma-3-270m-it-wq4k-ef16';
+
+    const status = document.getElementById('status');
+    const messages = document.getElementById('messages');
+    const input = document.getElementById('input');
+    const send = document.getElementById('send');
+    const form = document.getElementById('chat-form');
+
+    function append(text, role) {
+      const span = document.createElement('span');
+      span.className = role;
+      span.textContent = text;
+      messages.appendChild(span);
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    status.textContent = 'Initializing WebGPU...';
+    await DopplerProvider.init();
+
+    status.textContent = 'Loading model (first run downloads to OPFS)...';
+    await DopplerProvider.loadModel(MODEL_ID, MODEL_URL, (p) => {
+      if (p.percent != null) status.textContent = `${p.stage}: ${Math.round(p.percent)}%`;
+    });
+
+    status.textContent = 'Ready.';
+    input.disabled = false;
+    send.disabled = false;
+    input.focus();
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const text = input.value.trim();
+      if (!text) return;
+
+      input.value = '';
+      input.disabled = true;
+      send.disabled = true;
+
+      append(`You: ${text}\n`, 'user');
+      append('Doppler: ', 'assistant');
+
+      const pipeline = DopplerProvider.getPipeline();
+      for await (const token of pipeline.generate(text, { maxTokens: 256, temperature: 0.7 })) {
+        append(token, 'assistant');
+      }
+      append('\n\n', 'assistant');
+
+      input.disabled = false;
+      send.disabled = false;
+      input.focus();
+    });
+  </script>
+</body>
+</html>

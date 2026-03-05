@@ -99,4 +99,4 @@ export type {
 // Prefer importing from 'doppler/tooling' for tooling-only consumers.
 // ============================================================================
 
-export * from './tooling-exports.js';
+export * from './tooling-exports.shared.js';
