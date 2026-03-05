@@ -1,0 +1,1463 @@
+{
+  "timestamp": "2026-03-03T21:00:53.179Z",
+  "benchmarkPolicy": {
+    "source": "/Users/xyz/deco/doppler/benchmarks/vendors/benchmark-policy.json",
+    "schemaVersion": 1,
+    "sourceSha256": "77c346a1eb3e60ed6aacd15a86914186b440eb797ec5b87b5acb906ef227e918",
+    "updated": "2026-02-25"
+  },
+  "compareConfig": {
+    "source": "/Users/xyz/deco/doppler/benchmarks/vendors/compare-engines.config.json",
+    "schemaVersion": 1,
+    "sourceSha256": "32c47ff290936d934693d46a4d61489ca224c04472664d6d486b04c1c6e4567f",
+    "profileSource": "fallback",
+    "updated": "2026-02-23"
+  },
+  "metricContract": {
+    "source": "/Users/xyz/deco/doppler/benchmarks/vendors/compare-metrics.json",
+    "schemaVersion": 1,
+    "sourceSha256": "316e2a656411649bc02af267a944ebc8f989c77189514f1f7ef59e0ae54c4db6",
+    "updated": "2026-02-23",
+    "metrics": [
+      {
+        "id": "decodeTokensPerSec",
+        "label": "decode tok/s",
+        "unit": "tok/s",
+        "higherBetter": true,
+        "required": true
+      },
+      {
+        "id": "prefillTokensPerSec",
+        "label": "prompt tok/s (prefill)",
+        "unit": "tok/s",
+        "higherBetter": true,
+        "required": true
+      },
+      {
+        "id": "firstTokenMs",
+        "label": "first token (TTFT)",
+        "unit": "ms",
+        "higherBetter": false,
+        "required": true
+      },
+      {
+        "id": "firstResponseMs",
+        "label": "first response (first token + load)",
+        "unit": "ms",
+        "higherBetter": false,
+        "required": true
+      },
+      {
+        "id": "prefillMs",
+        "label": "prefill ms",
+        "unit": "ms",
+        "higherBetter": false,
+        "required": true
+      },
+      {
+        "id": "decodeMs",
+        "label": "decode ms",
+        "unit": "ms",
+        "higherBetter": false,
+        "required": true
+      },
+      {
+        "id": "totalRunMs",
+        "label": "total run ms",
+        "unit": "ms",
+        "higherBetter": false,
+        "required": true
+      },
+      {
+        "id": "modelLoadMs",
+        "label": "model load",
+        "unit": "ms",
+        "higherBetter": false,
+        "required": true
+      },
+      {
+        "id": "decodeMsPerTokenP50",
+        "label": "decode p50 ms/token",
+        "unit": "ms",
+        "higherBetter": false,
+        "required": true
+      },
+      {
+        "id": "decodeMsPerTokenP95",
+        "label": "decode p95 ms/token",
+        "unit": "ms",
+        "higherBetter": false,
+        "required": true
+      },
+      {
+        "id": "decodeMsPerTokenP99",
+        "label": "decode p99 ms/token",
+        "unit": "ms",
+        "higherBetter": false,
+        "required": true
+      }
+    ]
+  },
+  "harnesses": {
+    "doppler": {
+      "source": "/Users/xyz/deco/doppler/benchmarks/vendors/harnesses/doppler.json",
+      "sourceSha256": "a5d19a9a1ca1fb7368a8a167cece83f537a5afda01e573bb8be33bb994de52cb",
+      "requiredMetrics": [
+        "decodeTokensPerSec",
+        "prefillTokensPerSec",
+        "firstTokenMs",
+        "firstResponseMs",
+        "prefillMs",
+        "decodeMs",
+        "totalRunMs",
+        "modelLoadMs",
+        "decodeMsPerTokenP50",
+        "decodeMsPerTokenP95",
+        "decodeMsPerTokenP99"
+      ]
+    },
+    "transformersjs": {
+      "source": "/Users/xyz/deco/doppler/benchmarks/vendors/harnesses/transformersjs.json",
+      "sourceSha256": "d7aa60754d98a15620e0af57ffe4bdf1a00e398a7c966c4803cfe2328fa29d5e",
+      "requiredMetrics": [
+        "decodeTokensPerSec",
+        "prefillTokensPerSec",
+        "firstTokenMs",
+        "firstResponseMs",
+        "prefillMs",
+        "decodeMs",
+        "totalRunMs",
+        "modelLoadMs",
+        "decodeMsPerTokenP50",
+        "decodeMsPerTokenP95",
+        "decodeMsPerTokenP99"
+      ]
+    }
+  },
+  "runtimeConfig": {
+    "overrideProvided": false,
+    "runtimeConfigSha256": null,
+    "compareProfileSchemaVersion": 1
+  },
+  "dopplerModelId": "lfm2-5-1-2b-instruct-wq4k-ef16-hf16-f32",
+  "dopplerDtype": "F32",
+  "dopplerKernelPath": "manifest-default",
+  "dopplerKernelPathSource": "manifest-default",
+  "decodeProfile": "parity",
+  "dopplerBatchSize": 1,
+  "dopplerReadbackInterval": 1,
+  "dopplerTokensPerReadback": 1,
+  "tjsModelId": "LiquidAI/LFM2.5-1.2B-Instruct-ONNX",
+  "transformersjsDtype": "fp16",
+  "mode": "warm",
+  "prompt": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 word30 word31 word32 word33 word34 word35 word36 word37 word38 word39 word40 word41 word42 word43 word44 word45 word46 word47 word48 word49 word50 word51 word52 word53 word54 word55 word56 word57 word58 word59 word60 word61 word62 word63",
+  "maxTokens": 64,
+  "warmupRuns": 1,
+  "runs": 3,
+  "seed": 0,
+  "workload": {
+    "id": "g3-p064-d064-t0-k1",
+    "prefillTokenTarget": 64,
+    "decodeTokenTarget": 64
+  },
+  "environment": {
+    "host": {
+      "platform": "darwin",
+      "arch": "arm64",
+      "nodeVersion": "v22.20.0"
+    },
+    "browser": {
+      "executable": null,
+      "baseUrl": null
+    }
+  },
+  "timeoutMs": 600000,
+  "dopplerTimeoutMs": 600000,
+  "tjsTimeoutMs": 600000,
+  "methodology": {
+    "prefillTokensPerSec": "prompt_tokens / prefill_ms",
+    "deterministicDecoding": {
+      "seed": 0,
+      "temperature": 0,
+      "topK": 1,
+      "topP": 1
+    },
+    "promptParity": {
+      "dopplerChatTemplateEnabled": false,
+      "transformersChatTemplateEquivalent": "raw-prompt"
+    },
+    "cacheSemantics": {
+      "warm": "Prime engine cache before timed run, then run from local persistent cache only (Doppler OPFS; TJS persistent browser cache).",
+      "cold": "Wipe engine-specific persistent cache state before run (Doppler OPFS/profile wipe; TJS profile wipe)."
+    },
+    "dopplerDecodeCadence": {
+      "batchSize": 1,
+      "readbackInterval": 1,
+      "tokensPerReadback": 1
+    },
+    "transformersjsDecodeCadence": {
+      "streamerCallbackGranularityTokens": 1,
+      "readbackControl": "runtime-internal"
+    }
+  },
+  "sections": {
+    "warm": {
+      "doppler": {
+        "ok": true,
+        "schemaVersion": 1,
+        "surface": "browser",
+        "request": {
+          "command": "bench",
+          "suite": "bench",
+          "intent": "calibrate",
+          "modelId": "lfm2-5-1-2b-instruct-wq4k-ef16-hf16-f32",
+          "trainingTests": null,
+          "trainingStage": null,
+          "trainingConfig": null,
+          "stage1Artifact": null,
+          "stage1ArtifactHash": null,
+          "ulArtifactDir": null,
+          "stageAArtifact": null,
+          "stageAArtifactHash": null,
+          "distillArtifactDir": null,
+          "teacherModelId": null,
+          "studentModelId": null,
+          "distillDatasetId": null,
+          "distillDatasetPath": null,
+          "distillLanguagePair": null,
+          "distillShardIndex": null,
+          "distillShardCount": null,
+          "resumeFrom": null,
+          "trainingSchemaVersion": null,
+          "trainingBenchSteps": null,
+          "workloadType": null,
+          "modelUrl": null,
+          "cacheMode": "warm",
+          "loadMode": "opfs",
+          "runtimePreset": null,
+          "runtimeConfigUrl": null,
+          "runtimeConfig": {
+            "shared": {
+              "benchmark": {
+                "run": {
+                  "customPrompt": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 word30 word31 word32 word33 word34 word35 word36 word37 word38 word39 word40 word41 word42 word43 word44 word45 word46 word47 word48 word49 word50 word51 word52 word53 word54 word55 word56 word57 word58 word59 word60 word61 word62 word63",
+                  "maxNewTokens": 64,
+                  "warmupRuns": 1,
+                  "timedRuns": 3,
+                  "useChatTemplate": false,
+                  "loadMode": "opfs",
+                  "sampling": {
+                    "temperature": 0,
+                    "topK": 1,
+                    "topP": 1
+                  }
+                }
+              }
+            },
+            "inference": {
+              "prompt": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 word30 word31 word32 word33 word34 word35 word36 word37 word38 word39 word40 word41 word42 word43 word44 word45 word46 word47 word48 word49 word50 word51 word52 word53 word54 word55 word56 word57 word58 word59 word60 word61 word62 word63",
+              "chatTemplate": {
+                "enabled": false
+              },
+              "batching": {
+                "maxTokens": 64,
+                "batchSize": 1,
+                "readbackInterval": 1,
+                "stopCheckMode": "per-token"
+              },
+              "sampling": {
+                "temperature": 0,
+                "topK": 1,
+                "topP": 1
+              }
+            }
+          },
+          "inputDir": null,
+          "outputDir": null,
+          "convertPayload": null,
+          "captureOutput": false,
+          "keepPipeline": false,
+          "report": null,
+          "timestamp": null,
+          "searchParams": null
+        },
+        "result": {
+          "suite": "bench",
+          "passed": 1,
+          "failed": 0,
+          "skipped": 0,
+          "duration": 10988.10000000894,
+          "results": [
+            {
+              "name": "benchmark",
+              "passed": true,
+              "duration": 7555.999999985099
+            }
+          ],
+          "modelId": "lfm2-5-1-2b-instruct-wq4k-ef16-hf16-f32",
+          "cacheMode": "warm",
+          "loadMode": "opfs",
+          "env": {
+            "library": "doppler",
+            "runtime": "browser",
+            "device": "webgpu",
+            "browserUserAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/145.0.0.0 Safari/537.36",
+            "browserPlatform": "MacIntel",
+            "browserLanguage": "en-US",
+            "browserVendor": "Google Inc.",
+            "webgpuBackend": "metal"
+          },
+          "timing": {
+            "modelLoadMs": 851.9,
+            "firstTokenMs": 344.4,
+            "firstResponseMs": 1196.3,
+            "prefillMs": 342.7,
+            "decodeMs": 2176.8,
+            "decodeMsPerTokenP50": 34.01,
+            "decodeMsPerTokenP95": 34.02,
+            "decodeMsPerTokenP99": 34.02,
+            "decodeTokensPerSec": 29.4,
+            "prefillTokensPerSec": 373.5,
+            "totalRunMs": 2521.3,
+            "cacheMode": "warm",
+            "loadMode": "opfs"
+          },
+          "timingDiagnostics": {
+            "schemaVersion": 1,
+            "source": "doppler",
+            "semantics": {
+              "modelLoadMs": "model initialization/load before generation",
+              "firstTokenMs": "ttft from generation start",
+              "firstResponseMs": "modelLoadMs + firstTokenMs",
+              "prefillMs": "internal_prefill_phase",
+              "decodeMs": "time after first token",
+              "totalRunMs": "prefillMs + decodeMs"
+            },
+            "componentsMs": {
+              "modelLoadMs": 851.9,
+              "firstTokenMs": 344.4,
+              "firstResponseMs": 1196.3,
+              "prefillMs": 342.7,
+              "decodeMs": 2176.8,
+              "totalRunMs": 2521.3
+            },
+            "sumsMs": {
+              "firstResponseFromLoadAndFirstTokenMs": 1196.3,
+              "runFromPrefillAndDecodeMs": 2519.5
+            },
+            "residualsMs": {
+              "firstResponseResidualMs": 0,
+              "runResidualMs": 1.8
+            },
+            "consistent": {
+              "firstResponse": true,
+              "totalRun": true
+            }
+          },
+          "output": null,
+          "metrics": {
+            "warmupRuns": 1,
+            "timedRuns": 3,
+            "prompt": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 word30 word31 word32 word33 word34 word35 word36 word37 word38 word39 word40 word41 word42 word43 word44 word45 word46 word47 word48 word49 word50 word51 word52 word53 word54 word55 word56 word57 word58 word59 word60 word61 word62 word63",
+            "maxTokens": 64,
+            "decodeTokensPerSec": 29.4,
+            "avgTokensGenerated": 64,
+            "avgPrefillTokens": 128,
+            "avgDecodeTokens": 64,
+            "medianPrefillTokensPerSec": 373.5,
+            "avgPrefillTokensPerSec": 373.43,
+            "medianPrefillTokensPerSecTtft": 371.66,
+            "avgPrefillTokensPerSecTtft": 371.45,
+            "avgDecodeTokensPerSec": 29.44,
+            "firstTokenMs": 344.4,
+            "firstResponseMs": 1196.3,
+            "prefillMs": 342.7,
+            "decodeMs": 2176.8,
+            "totalRunMs": 2521.3,
+            "decodeMsPerTokenP50": 34.01,
+            "decodeMsPerTokenP95": 34.02,
+            "decodeMsPerTokenP99": 34.02,
+            "avgPrefillMs": 342.77,
+            "modelLoadMs": 851.9,
+            "throughput": {
+              "tokensPerSec": {
+                "mean": 25.41034421098308,
+                "median": 25.383730615188853,
+                "min": 25.37567899772065,
+                "max": 25.47162302003973,
+                "p95": 25.462833779554643,
+                "p99": 25.46986517194271,
+                "stdDev": 0.05322148499914963,
+                "ci95": 0.09218231607279201,
+                "samples": 3,
+                "samplesAfterOutlierRemoval": 3,
+                "outliersRemoved": 0
+              },
+              "prefillTokensPerSec": {
+                "mean": 373.4320755726358,
+                "median": 373.50452290308397,
+                "min": 373.06907607759734,
+                "max": 373.7226277372263,
+                "p95": 373.70081725381203,
+                "p99": 373.71826564054345,
+                "stdDev": 0.33274450366268293,
+                "ci95": 0.5763303862830552,
+                "samples": 3,
+                "samplesAfterOutlierRemoval": 3,
+                "outliersRemoved": 0
+              },
+              "prefillTokensPerSecTtft": {
+                "mean": 371.44554974185877,
+                "median": 371.66085945930524,
+                "min": 370.9069834894546,
+                "max": 371.76880627681663,
+                "p95": 371.7580115950655,
+                "p99": 371.7666473404664,
+                "stdDev": 0.4695245840467317,
+                "ci95": 0.8132404349715829,
+                "samples": 3,
+                "samplesAfterOutlierRemoval": 3,
+                "outliersRemoved": 0
+              },
+              "decodeTokensPerSec": {
+                "mean": 29.439381212779722,
+                "median": 29.40095553109501,
+                "min": 29.398254478640332,
+                "max": 29.518933628603822,
+                "p95": 29.50713581885294,
+                "p99": 29.516574066653646,
+                "stdDev": 0.06890764884015875,
+                "ci95": 0.11935154882126958,
+                "samples": 3,
+                "samplesAfterOutlierRemoval": 3,
+                "outliersRemoved": 0
+              }
+            },
+            "latency": {
+              "totalMs": {
+                "mean": 2518.6666666616998,
+                "median": 2521.2999999970198,
+                "min": 2512.5999999940395,
+                "max": 2522.0999999940395,
+                "p95": 2522.0199999943375,
+                "p99": 2522.083999994099,
+                "stdDev": 5.269092269184634,
+                "ci95": 9.126335519996175,
+                "samples": 3,
+                "samplesAfterOutlierRemoval": 3,
+                "outliersRemoved": 0
+              },
+              "prefillMs": {
+                "mean": 342.76666666567326,
+                "median": 342.70000000298023,
+                "min": 342.5,
+                "max": 343.09999999403954,
+                "p95": 343.0599999949336,
+                "p99": 343.0919999942183,
+                "stdDev": 0.3055050427535194,
+                "ci95": 0.5291502560175977,
+                "samples": 3,
+                "samplesAfterOutlierRemoval": 3,
+                "outliersRemoved": 0
+              },
+              "decodeMs": {
+                "mean": 2173.9666666636863,
+                "median": 2176.7999999970198,
+                "min": 2168.0999999940395,
+                "max": 2177,
+                "p95": 2176.979999999702,
+                "p99": 2176.9959999999405,
+                "stdDev": 5.0816663959627855,
+                "ci95": 8.801704384922969,
+                "samples": 3,
+                "samplesAfterOutlierRemoval": 3,
+                "outliersRemoved": 0
+              },
+              "firstTokenMs": {
+                "mean": 344.59999999900657,
+                "median": 344.40000000596046,
+                "min": 344.29999999701977,
+                "max": 345.09999999403954,
+                "p95": 345.0299999952316,
+                "p99": 345.0859999942779,
+                "stdDev": 0.43588989059365046,
+                "ci95": 0.7549834370138419,
+                "samples": 3,
+                "samplesAfterOutlierRemoval": 3,
+                "outliersRemoved": 0
+              }
+            },
+            "tokens": {
+              "generated": {
+                "mean": 64,
+                "median": 64,
+                "min": 64,
+                "max": 64,
+                "p95": 64,
+                "p99": 64,
+                "stdDev": 0,
+                "ci95": 0,
+                "samples": 3,
+                "samplesAfterOutlierRemoval": 3,
+                "outliersRemoved": 0
+              },
+              "prefill": {
+                "mean": 128,
+                "median": 128,
+                "min": 128,
+                "max": 128,
+                "p95": 128,
+                "p99": 128,
+                "stdDev": 0,
+                "ci95": 0,
+                "samples": 3,
+                "samplesAfterOutlierRemoval": 3,
+                "outliersRemoved": 0
+              },
+              "decode": {
+                "mean": 64,
+                "median": 64,
+                "min": 64,
+                "max": 64,
+                "p95": 64,
+                "p99": 64,
+                "stdDev": 0,
+                "ci95": 0,
+                "samples": 3,
+                "samplesAfterOutlierRemoval": 3,
+                "outliersRemoved": 0
+              }
+            },
+            "gpu": {
+              "prefillMs": {
+                "mean": 0,
+                "median": 0,
+                "min": 0,
+                "max": 0,
+                "p95": 0,
+                "p99": 0,
+                "stdDev": 0,
+                "ci95": 0,
+                "samples": 0,
+                "samplesAfterOutlierRemoval": 0,
+                "outliersRemoved": 0
+              },
+              "decodeMs": {
+                "mean": 0,
+                "median": 0,
+                "min": 0,
+                "max": 0,
+                "p95": 0,
+                "p99": 0,
+                "stdDev": 0,
+                "ci95": 0,
+                "samples": 0,
+                "samplesAfterOutlierRemoval": 0,
+                "outliersRemoved": 0
+              },
+              "decodeRecordMs": {
+                "mean": 0,
+                "median": 0,
+                "min": 0,
+                "max": 0,
+                "p95": 0,
+                "p99": 0,
+                "stdDev": 0,
+                "ci95": 0,
+                "samples": 3,
+                "samplesAfterOutlierRemoval": 3,
+                "outliersRemoved": 0
+              },
+              "decodeSubmitWaitMs": {
+                "mean": 0,
+                "median": 0,
+                "min": 0,
+                "max": 0,
+                "p95": 0,
+                "p99": 0,
+                "stdDev": 0,
+                "ci95": 0,
+                "samples": 3,
+                "samplesAfterOutlierRemoval": 3,
+                "outliersRemoved": 0
+              },
+              "decodeReadbackWaitMs": {
+                "mean": 0,
+                "median": 0,
+                "min": 0,
+                "max": 0,
+                "p95": 0,
+                "p99": 0,
+                "stdDev": 0,
+                "ci95": 0,
+                "samples": 3,
+                "samplesAfterOutlierRemoval": 3,
+                "outliersRemoved": 0
+              }
+            },
+            "generatedText": "wordwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww"
+          },
+          "memoryStats": {
+            "used": 2662083584,
+            "pool": {
+              "allocations": 39552,
+              "reuses": 6905,
+              "totalBytesAllocated": 4267682048,
+              "peakBytesAllocated": 2821172224,
+              "currentBytesAllocated": 2527865856,
+              "totalBytesRequested": 4139071232,
+              "peakBytesRequested": 2724332032,
+              "currentBytesRequested": 2373582848,
+              "activeBuffers": 138,
+              "pooledBuffers": 64,
+              "budgetMaxBytes": 0,
+              "budgetUtilization": 0,
+              "hitRate": "14.9%"
+            },
+            "kvCache": {
+              "theoretical": 134217728,
+              "allocated": 134217728,
+              "used": 0,
+              "efficiency": 0,
+              "seqLen": 0,
+              "maxSeqLen": 4096,
+              "layout": "contiguous"
+            }
+          },
+          "deviceInfo": {
+            "hasSubgroups": true,
+            "hasSubgroupsF16": false,
+            "hasF16": true,
+            "hasTimestampQuery": true,
+            "maxBufferSize": 4294967292,
+            "maxWorkgroupSize": 1024,
+            "maxWorkgroupStorageSize": 32768,
+            "adapterInfo": {
+              "vendor": "unknown",
+              "architecture": "unknown",
+              "device": "unknown",
+              "description": ""
+            }
+          },
+          "pipeline": null,
+          "report": {
+            "suite": "bench",
+            "modelId": "lfm2-5-1-2b-instruct-wq4k-ef16-hf16-f32",
+            "runtimePreset": null,
+            "deviceInfo": {
+              "hasSubgroups": true,
+              "hasSubgroupsF16": false,
+              "hasF16": true,
+              "hasTimestampQuery": true,
+              "maxBufferSize": 4294967292,
+              "maxWorkgroupSize": 1024,
+              "maxWorkgroupStorageSize": 32768,
+              "adapterInfo": {
+                "vendor": "unknown",
+                "architecture": "unknown",
+                "device": "unknown",
+                "description": ""
+              }
+            },
+            "results": [
+              {
+                "name": "benchmark",
+                "passed": true,
+                "duration": 7555.999999985099
+              }
+            ],
+            "durationMs": 10988.10000000894,
+            "timestamp": "2026-03-03T21:00:54.389Z",
+            "metrics": {
+              "warmupRuns": 1,
+              "timedRuns": 3,
+              "prompt": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 word30 word31 word32 word33 word34 word35 word36 word37 word38 word39 word40 word41 word42 word43 word44 word45 word46 word47 word48 word49 word50 word51 word52 word53 word54 word55 word56 word57 word58 word59 word60 word61 word62 word63",
+              "maxTokens": 64,
+              "decodeTokensPerSec": 29.4,
+              "avgTokensGenerated": 64,
+              "avgPrefillTokens": 128,
+              "avgDecodeTokens": 64,
+              "medianPrefillTokensPerSec": 373.5,
+              "avgPrefillTokensPerSec": 373.43,
+              "medianPrefillTokensPerSecTtft": 371.66,
+              "avgPrefillTokensPerSecTtft": 371.45,
+              "avgDecodeTokensPerSec": 29.44,
+              "firstTokenMs": 344.4,
+              "firstResponseMs": 1196.3,
+              "prefillMs": 342.7,
+              "decodeMs": 2176.8,
+              "totalRunMs": 2521.3,
+              "decodeMsPerTokenP50": 34.01,
+              "decodeMsPerTokenP95": 34.02,
+              "decodeMsPerTokenP99": 34.02,
+              "avgPrefillMs": 342.77,
+              "modelLoadMs": 851.9,
+              "throughput": {
+                "tokensPerSec": {
+                  "mean": 25.41034421098308,
+                  "median": 25.383730615188853,
+                  "min": 25.37567899772065,
+                  "max": 25.47162302003973,
+                  "p95": 25.462833779554643,
+                  "p99": 25.46986517194271,
+                  "stdDev": 0.05322148499914963,
+                  "ci95": 0.09218231607279201,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                },
+                "prefillTokensPerSec": {
+                  "mean": 373.4320755726358,
+                  "median": 373.50452290308397,
+                  "min": 373.06907607759734,
+                  "max": 373.7226277372263,
+                  "p95": 373.70081725381203,
+                  "p99": 373.71826564054345,
+                  "stdDev": 0.33274450366268293,
+                  "ci95": 0.5763303862830552,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                },
+                "prefillTokensPerSecTtft": {
+                  "mean": 371.44554974185877,
+                  "median": 371.66085945930524,
+                  "min": 370.9069834894546,
+                  "max": 371.76880627681663,
+                  "p95": 371.7580115950655,
+                  "p99": 371.7666473404664,
+                  "stdDev": 0.4695245840467317,
+                  "ci95": 0.8132404349715829,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                },
+                "decodeTokensPerSec": {
+                  "mean": 29.439381212779722,
+                  "median": 29.40095553109501,
+                  "min": 29.398254478640332,
+                  "max": 29.518933628603822,
+                  "p95": 29.50713581885294,
+                  "p99": 29.516574066653646,
+                  "stdDev": 0.06890764884015875,
+                  "ci95": 0.11935154882126958,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                }
+              },
+              "latency": {
+                "totalMs": {
+                  "mean": 2518.6666666616998,
+                  "median": 2521.2999999970198,
+                  "min": 2512.5999999940395,
+                  "max": 2522.0999999940395,
+                  "p95": 2522.0199999943375,
+                  "p99": 2522.083999994099,
+                  "stdDev": 5.269092269184634,
+                  "ci95": 9.126335519996175,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                },
+                "prefillMs": {
+                  "mean": 342.76666666567326,
+                  "median": 342.70000000298023,
+                  "min": 342.5,
+                  "max": 343.09999999403954,
+                  "p95": 343.0599999949336,
+                  "p99": 343.0919999942183,
+                  "stdDev": 0.3055050427535194,
+                  "ci95": 0.5291502560175977,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                },
+                "decodeMs": {
+                  "mean": 2173.9666666636863,
+                  "median": 2176.7999999970198,
+                  "min": 2168.0999999940395,
+                  "max": 2177,
+                  "p95": 2176.979999999702,
+                  "p99": 2176.9959999999405,
+                  "stdDev": 5.0816663959627855,
+                  "ci95": 8.801704384922969,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                },
+                "firstTokenMs": {
+                  "mean": 344.59999999900657,
+                  "median": 344.40000000596046,
+                  "min": 344.29999999701977,
+                  "max": 345.09999999403954,
+                  "p95": 345.0299999952316,
+                  "p99": 345.0859999942779,
+                  "stdDev": 0.43588989059365046,
+                  "ci95": 0.7549834370138419,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                }
+              },
+              "tokens": {
+                "generated": {
+                  "mean": 64,
+                  "median": 64,
+                  "min": 64,
+                  "max": 64,
+                  "p95": 64,
+                  "p99": 64,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                },
+                "prefill": {
+                  "mean": 128,
+                  "median": 128,
+                  "min": 128,
+                  "max": 128,
+                  "p95": 128,
+                  "p99": 128,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                },
+                "decode": {
+                  "mean": 64,
+                  "median": 64,
+                  "min": 64,
+                  "max": 64,
+                  "p95": 64,
+                  "p99": 64,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                }
+              },
+              "gpu": {
+                "prefillMs": {
+                  "mean": 0,
+                  "median": 0,
+                  "min": 0,
+                  "max": 0,
+                  "p95": 0,
+                  "p99": 0,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 0,
+                  "samplesAfterOutlierRemoval": 0,
+                  "outliersRemoved": 0
+                },
+                "decodeMs": {
+                  "mean": 0,
+                  "median": 0,
+                  "min": 0,
+                  "max": 0,
+                  "p95": 0,
+                  "p99": 0,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 0,
+                  "samplesAfterOutlierRemoval": 0,
+                  "outliersRemoved": 0
+                },
+                "decodeRecordMs": {
+                  "mean": 0,
+                  "median": 0,
+                  "min": 0,
+                  "max": 0,
+                  "p95": 0,
+                  "p99": 0,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                },
+                "decodeSubmitWaitMs": {
+                  "mean": 0,
+                  "median": 0,
+                  "min": 0,
+                  "max": 0,
+                  "p95": 0,
+                  "p99": 0,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                },
+                "decodeReadbackWaitMs": {
+                  "mean": 0,
+                  "median": 0,
+                  "min": 0,
+                  "max": 0,
+                  "p95": 0,
+                  "p99": 0,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                }
+              },
+              "generatedText": "wordwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww"
+            },
+            "output": null,
+            "memory": {
+              "used": 2662083584,
+              "pool": {
+                "allocations": 39552,
+                "reuses": 6905,
+                "totalBytesAllocated": 4267682048,
+                "peakBytesAllocated": 2821172224,
+                "currentBytesAllocated": 2527865856,
+                "totalBytesRequested": 4139071232,
+                "peakBytesRequested": 2724332032,
+                "currentBytesRequested": 2373582848,
+                "activeBuffers": 138,
+                "pooledBuffers": 64,
+                "budgetMaxBytes": 0,
+                "budgetUtilization": 0,
+                "hitRate": "14.9%"
+              },
+              "kvCache": {
+                "theoretical": 134217728,
+                "allocated": 134217728,
+                "used": 0,
+                "efficiency": 0,
+                "seqLen": 0,
+                "maxSeqLen": 4096,
+                "layout": "contiguous"
+              }
+            }
+          },
+          "reportInfo": {
+            "backend": "opfs",
+            "path": "reports/lfm2-5-1-2b-instruct-wq4k-ef16-hf16-f32/2026-03-03T21-00-54.389Z.json"
+          },
+          "environment": {
+            "host": {
+              "platform": "darwin",
+              "arch": "arm64",
+              "nodeVersion": "v22.20.0",
+              "osRelease": "25.3.0",
+              "cpuModel": "Apple M3"
+            },
+            "browser": {
+              "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/145.0.0.0 Safari/537.36",
+              "platform": "MacIntel",
+              "language": "en-US",
+              "vendor": "Google Inc.",
+              "executable": null,
+              "channel": null
+            },
+            "gpu": {
+              "api": "webgpu",
+              "backend": "metal",
+              "vendor": null,
+              "architecture": null,
+              "device": null,
+              "description": null,
+              "hasF16": true,
+              "hasSubgroups": true,
+              "hasTimestampQuery": true
+            },
+            "runtime": {
+              "library": "doppler",
+              "version": null,
+              "surface": "browser",
+              "device": "webgpu",
+              "dtype": null,
+              "requestedDtype": null,
+              "executionProviderMode": null,
+              "cacheMode": "warm",
+              "loadMode": "opfs"
+            }
+          }
+        }
+      },
+      "transformersjs": {
+        "modelId": "LiquidAI/LFM2.5-1.2B-Instruct-ONNX",
+        "seed": 0,
+        "generatedText": " word63 word63 word63 word63 word63 word63 word63 word63 word63 word63 word63 word63 word63 word63 word63 word63 word63 word63 word63 word63 word63 word63 word63 word63 word63 word63 word63 word63 word63 word63 word63 word63",
+        "modelLoadMs": 2647.0399999916553,
+        "warmupRuns": 1,
+        "timedRuns": 3,
+        "prompt": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 word30 word31 word32 word33 word34 word35 word36 word37 word38 word39 word40 word41 word42 word43 word44 word45 word46 word47 word48 word49 word50 word51 word52 word53 word54 word55 word56 word57 word58 word59 word60 word61 word62 word63",
+        "promptRendered": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 word30 word31 word32 word33 word34 word35 word36 word37 word38 word39 word40 word41 word42 word43 word44 word45 word46 word47 word48 word49 word50 word51 word52 word53 word54 word55 word56 word57 word58 word59 word60 word61 word62 word63",
+        "useChatTemplate": false,
+        "maxNewTokens": 64,
+        "sampling": {
+          "temperature": 0,
+          "topK": 1,
+          "topP": 1,
+          "doSample": false
+        },
+        "cacheMode": "warm",
+        "loadMode": "opfs",
+        "timing": {
+          "modelLoadMs": 2647.0399999916553,
+          "firstTokenMs": 186.54500000178814,
+          "firstResponseMs": 2833.5849999934435,
+          "prefillMs": 186.54500000178814,
+          "decodeMs": 2289.689999997616,
+          "totalRunMs": 2476.234999999404,
+          "decodeTokensPerSec": 27.51464172008682,
+          "prefillTokensPerSec": 691.5221528251278,
+          "decodeMsPerTokenP50": 36.190000012516975,
+          "decodeMsPerTokenP95": 37.77099999785423,
+          "decodeMsPerTokenP99": 39.12940000832081,
+          "cacheMode": "warm",
+          "loadMode": "opfs"
+        },
+        "timingDiagnostics": {
+          "schemaVersion": 1,
+          "source": "transformers.js",
+          "semantics": {
+            "modelLoadMs": "model initialization/load before generation",
+            "firstTokenMs": "ttft from generation start",
+            "firstResponseMs": "modelLoadMs + firstTokenMs",
+            "prefillMs": "ttft_proxy",
+            "decodeMs": "time after first token",
+            "totalRunMs": "prefillMs + decodeMs"
+          },
+          "componentsMs": {
+            "modelLoadMs": 2647.04,
+            "firstTokenMs": 186.55,
+            "firstResponseMs": 2833.58,
+            "prefillMs": 186.55,
+            "decodeMs": 2289.69,
+            "totalRunMs": 2476.23
+          },
+          "sumsMs": {
+            "firstResponseFromLoadAndFirstTokenMs": 2833.59,
+            "runFromPrefillAndDecodeMs": 2476.24
+          },
+          "residualsMs": {
+            "firstResponseResidualMs": -0.01,
+            "runResidualMs": -0.01
+          },
+          "consistent": {
+            "firstResponse": true,
+            "totalRun": true
+          }
+        },
+        "deviceInfo": {
+          "vendor": "apple",
+          "architecture": "metal-3",
+          "device": "0x0000",
+          "description": "Apple M3",
+          "hasF16": true,
+          "hasSubgroups": true,
+          "hasTimestampQuery": true
+        },
+        "metrics": {
+          "decodeTokensPerSec": 27.51464172008682,
+          "prefillTokensPerSec": 691.5221528251278,
+          "firstTokenMs": 186.54500000178814,
+          "firstResponseMs": 2833.5849999934435,
+          "prefillMs": 186.54500000178814,
+          "decodeMs": 2289.689999997616,
+          "totalRunMs": 2476.234999999404,
+          "modelLoadMs": 2647.0399999916553,
+          "decodeMsPerTokenP50": 36.190000012516975,
+          "decodeMsPerTokenP95": 37.77099999785423,
+          "decodeMsPerTokenP99": 39.12940000832081,
+          "ort_profiled_total_ms": 0,
+          "ort_profiled_event_count": 0,
+          "ort_top_op_total_ms": null
+        },
+        "runs": [
+          {
+            "ttftMs": 186.54500000178814,
+            "totalMs": 2476.234999999404,
+            "decodeMs": 2289.689999997616,
+            "newTokens": 64,
+            "decodeTokens": 63,
+            "prefillTokens": 129,
+            "tokensPerSec": 25.845689120788375,
+            "decodeTokensPerSec": 27.51464172008682,
+            "prefillTokensPerSecTtft": 691.5221528251278,
+            "prefillTokensPerSec": 691.5221528251278,
+            "perTokenMs": [
+              38.810000002384186,
+              37.099999994039536,
+              36.980000004172325,
+              36.605000004172325,
+              36.75,
+              36.439999997615814,
+              36.59000000357628,
+              36.07500000298023,
+              36.42499999701977,
+              36.439999997615814,
+              36.40500000119209,
+              36.24500000476837,
+              38.019999995827675,
+              36.53499999642372,
+              36.625,
+              36.29500000178814,
+              38.34000000357628,
+              36.26500000059605,
+              36.03499999642372,
+              35.87000000476837,
+              35.88499999046326,
+              36.88000001013279,
+              36.0249999910593,
+              35.99500000476837,
+              35.75499999523163,
+              36.150000005960464,
+              36.17499999701977,
+              36.224999994039536,
+              35.70000000298023,
+              35.80500000715256,
+              35.70499999821186,
+              36.179999992251396,
+              36.520000010728836,
+              36.059999987483025,
+              35.84500001370907,
+              35.91999998688698,
+              36.25,
+              35.95500001311302,
+              36.10999999940395,
+              35.85999999940395,
+              36.04999999701977,
+              36,
+              38.439999997615814,
+              36.17000000178814,
+              35.66499999165535,
+              36.08000001311302,
+              35.96499998867512,
+              35.96000000834465,
+              35.87999999523163,
+              35.86499999463558,
+              36.2250000089407,
+              35.849999994039536,
+              36.17000000178814,
+              36.73999999463558,
+              36.42000000178814,
+              36.38000001013279,
+              36.21499998867512,
+              36.190000012516975,
+              36.42499999701977,
+              36.24499998986721,
+              36.070000007748604,
+              36.07999999821186,
+              36.32500000298023
+            ]
+          },
+          {
+            "ttftMs": 188.3999999910593,
+            "totalMs": 2496.589999988675,
+            "decodeMs": 2308.189999997616,
+            "newTokens": 64,
+            "decodeTokens": 63,
+            "prefillTokens": 129,
+            "tokensPerSec": 25.63496609386816,
+            "decodeTokensPerSec": 27.294113569535035,
+            "prefillTokensPerSecTtft": 684.713375828672,
+            "prefillTokensPerSec": 684.713375828672,
+            "perTokenMs": [
+              39.45000000298023,
+              37.064999997615814,
+              36.40999999642372,
+              36.32500000298023,
+              36.125,
+              36.59000000357628,
+              37.01000000536442,
+              36.58999998867512,
+              37.195000007748604,
+              36.5,
+              35.84499999880791,
+              35.94499999284744,
+              36.275000005960464,
+              36.00499999523163,
+              36.32500000298023,
+              36.51500000059605,
+              36.67499999701977,
+              36.23499999940395,
+              36.25,
+              36.62000000476837,
+              36.04999999701977,
+              36.33500000834465,
+              36.439999997615814,
+              35.61999998986721,
+              37.53500001132488,
+              38.16499999165535,
+              37.275000005960464,
+              39.23499999940395,
+              37.12000000476837,
+              36.75499999523163,
+              37.03999999165535,
+              36.46500000357628,
+              36.810000002384186,
+              36.71999999880791,
+              36.70000000298023,
+              36.935000002384186,
+              37.099999994039536,
+              36.93000000715256,
+              36.82499998807907,
+              36.395000010728836,
+              36.50499999523163,
+              37.51000000536442,
+              37.08499999344349,
+              36.730000004172325,
+              36.974999994039536,
+              36.40500000119209,
+              35.875,
+              36.025000005960464,
+              36.685000002384186,
+              36.56999999284744,
+              36.67499999701977,
+              36.04500000178814,
+              36.36500000953674,
+              36.58999998867512,
+              39.11500000953674,
+              36.429999992251396,
+              35.76500000059605,
+              35.45000000298023,
+              35.53999999165535,
+              35.86500000953674,
+              35.48999999463558,
+              35.80500000715256,
+              35.82999999821186
+            ]
+          },
+          {
+            "ttftMs": 184.95499999821186,
+            "totalMs": 2462.390000000596,
+            "decodeMs": 2277.435000002384,
+            "newTokens": 64,
+            "decodeTokens": 63,
+            "prefillTokens": 129,
+            "tokensPerSec": 25.991008735409302,
+            "decodeTokensPerSec": 27.66269948425929,
+            "prefillTokensPerSecTtft": 697.4669514273589,
+            "prefillTokensPerSec": 697.4669514273589,
+            "perTokenMs": [
+              37.11500000953674,
+              35.929999992251396,
+              35.80500000715256,
+              35.67000000178814,
+              35.65999999642372,
+              35.75499999523163,
+              36.03000000119209,
+              36.92499999701977,
+              36.12000000476837,
+              36.25,
+              36.275000005960464,
+              35.81999999284744,
+              36.564999997615814,
+              36.20499999821186,
+              36.04500000178814,
+              35.900000005960464,
+              36.12000000476837,
+              36.184999987483025,
+              36.75500001013279,
+              36.33499999344349,
+              35.91500000655651,
+              38.75499999523163,
+              36.04500000178814,
+              36.230000004172325,
+              35.87999999523163,
+              35.95499999821186,
+              35.875,
+              35.980000004172325,
+              35.95999999344349,
+              36.29000000655651,
+              35.95499999821186,
+              35.980000004172325,
+              36.07999999821186,
+              35.90500000119209,
+              35.92499999701977,
+              36.11499999463558,
+              37.84499999880791,
+              36,
+              36.41000001132488,
+              35.79499998688698,
+              35.83500000834465,
+              36.06999999284744,
+              36.21500000357628,
+              35.87000000476837,
+              36.144999995827675,
+              35.92499999701977,
+              35.79000000655651,
+              35.855000004172325,
+              35.73499999940395,
+              35.86499999463558,
+              36.025000005960464,
+              37.65999999642372,
+              36.224999994039536,
+              35.84000000357628,
+              36.230000004172325,
+              35.92499999701977,
+              35.81999999284744,
+              35.940000012516975,
+              36.00499999523163,
+              36.01000000536442,
+              35.87999999523163,
+              35.96500000357628,
+              35.69999998807907
+            ]
+          }
+        ],
+        "env": {
+          "library": "transformers.js",
+          "version": "4.x",
+          "device": "webgpu",
+          "browserUserAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/145.0.7632.6 Safari/537.36",
+          "browserPlatform": "MacIntel",
+          "browserLanguage": "en-US",
+          "browserVendor": "Google Inc.",
+          "dtype": "fp16",
+          "requestedDtype": "fp16",
+          "dtypeFallbackUsed": false,
+          "executionProviderMode": "default",
+          "executionProviderFallbackUsed": false,
+          "ortProxyMode": "off",
+          "ortProxyFallbackUsed": false,
+          "webgpuBackend": "metal",
+          "browserExecutable": null
+        },
+        "profiling": {
+          "enabled": false,
+          "topN": 20,
+          "ort": {
+            "sessionCount": 0,
+            "endedCount": 0,
+            "sessions": []
+          },
+          "ortConsole": {
+            "eventCount": 0,
+            "durationEventCount": 0,
+            "totalDurationMs": 0,
+            "topOperations": [],
+            "categories": [],
+            "parseErrorCount": 0,
+            "rawLogCount": 0,
+            "enabled": false,
+            "topN": 20
+          }
+        },
+        "generationConfig": {
+          "strictDeterministicGreedy": true,
+          "modelDefaults": null
+        },
+        "memoryInfo": {
+          "before": {
+            "usedJSHeapSize": 2470000000,
+            "totalJSHeapSize": 2470000000,
+            "jsHeapSizeLimit": 3760000000
+          },
+          "after": {
+            "usedJSHeapSize": 2470000000,
+            "totalJSHeapSize": 2470000000,
+            "jsHeapSizeLimit": 3760000000
+          }
+        },
+        "benchmarkPolicy": {
+          "source": "/Users/xyz/deco/doppler/benchmarks/vendors/benchmark-policy.json",
+          "schemaVersion": 1,
+          "updated": "2026-02-25"
+        },
+        "determinism": {
+          "seed": 0,
+          "decoding": {
+            "do_sample": false,
+            "temperature": 0,
+            "topK": 1,
+            "topP": 1
+          }
+        },
+        "cachePrime": {
+          "enabled": true,
+          "primed": true,
+          "primeMs": 30973.939999997616
+        },
+        "firstLoad": {
+          "schemaVersion": 1,
+          "semantics": {
+            "browserLaunchMs": "node launch request -> browser/context ready",
+            "pageReadyMs": "runner navigation + startup",
+            "cachePrimeMs": "untimed warm-opfs prefetch/load pass",
+            "modelLoadMs": "model initialization/load before generation",
+            "firstTokenMs": "ttft from generation start",
+            "firstResponseMs": "modelLoadMs + firstTokenMs",
+            "harnessWarmStartToFirstResponseMs": "pageReadyMs + cachePrimeMs + firstResponseMs",
+            "endToEndFirstResponseMs": "browserLaunchMs + pageReadyMs + cachePrimeMs + firstResponseMs"
+          },
+          "componentsMs": {
+            "browserLaunchMs": 387.01,
+            "pageReadyMs": 71.1,
+            "cachePrimeMs": 30973.94,
+            "modelLoadMs": 2647.04,
+            "firstTokenMs": 186.55,
+            "firstResponseMs": 2833.58
+          },
+          "sumsMs": {
+            "firstResponseFromLoadAndFirstTokenMs": 2833.59,
+            "harnessWarmStartToFirstResponseMs": 33878.62,
+            "endToEndFirstResponseMs": 34265.63
+          },
+          "residualsMs": {
+            "firstResponseResidualMs": -0.01
+          },
+          "consistent": {
+            "firstResponse": true
+          },
+          "mode": {
+            "cachePrimeEnabled": true,
+            "cachePrimePrimed": true,
+            "strictWarmOpfs": true
+          }
+        },
+        "environment": {
+          "host": {
+            "platform": "darwin",
+            "arch": "arm64",
+            "nodeVersion": "v22.20.0",
+            "osRelease": "25.3.0",
+            "cpuModel": "Apple M3"
+          },
+          "browser": {
+            "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/145.0.7632.6 Safari/537.36",
+            "platform": "MacIntel",
+            "language": "en-US",
+            "vendor": "Google Inc.",
+            "executable": null,
+            "channel": null
+          },
+          "gpu": {
+            "api": "webgpu",
+            "backend": "metal",
+            "vendor": "apple",
+            "architecture": "metal-3",
+            "device": "0x0000",
+            "description": "Apple M3",
+            "hasF16": true,
+            "hasSubgroups": true,
+            "hasTimestampQuery": true
+          },
+          "runtime": {
+            "library": "transformers.js",
+            "version": "4.x",
+            "surface": "browser",
+            "device": "webgpu",
+            "dtype": "fp16",
+            "requestedDtype": "fp16",
+            "executionProviderMode": "default",
+            "cacheMode": "warm",
+            "loadMode": "opfs"
+          }
+        }
+      }
+    }
+  }
+}
