@@ -2,11 +2,15 @@ const isNodeRuntime = typeof process !== 'undefined'
   && typeof process.versions === 'object'
   && typeof process.versions.node === 'string';
 
+function nodeModule(specifier) {
+  return `node:${specifier}`;
+}
+
 export async function loadJson(resourcePath, baseUrl = import.meta.url, errorPrefix = 'Failed to load JSON') {
   const resolved = new URL(resourcePath, baseUrl);
   if (isNodeRuntime && resolved.protocol === 'file:') {
-    const fs = await import('node:fs/promises');
-    const { fileURLToPath } = await import('node:url');
+    const fs = await import(nodeModule('fs/promises'));
+    const { fileURLToPath } = await import(nodeModule('url'));
     const raw = await fs.readFile(fileURLToPath(resolved), 'utf-8');
     return JSON.parse(raw);
   }

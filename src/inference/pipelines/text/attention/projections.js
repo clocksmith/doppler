@@ -1,5 +1,5 @@
 import { acquireBuffer } from '../../../../memory/buffer-pool.js';
-import { isWeightBuffer, getWeightDtype } from '../../../../gpu/weight-buffer.js';
+import { isWeightBuffer, getLayout, getWeightDtype } from '../../../../gpu/weight-buffer.js';
 import {
   runMatmul,
   recordMatmul,
@@ -10,6 +10,7 @@ import {
 } from '../../../../gpu/kernel-selector.js';
 import { createTensor } from '../../../../gpu/tensor.js';
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
+import { QK_K, Q4K_BLOCK_BYTES } from '../../../../config/schema/index.js';
 import { applyLoRA } from '../lora-apply.js';
 import { getLoRAModule } from '../lora.js';
 
@@ -120,12 +121,28 @@ function resolveProjectionOutputSize(layerWeight, hiddenSize) {
   return null;
 }
 
-function bytesPerWeightElement(weightBuffer) {
-  const dtype = String(getWeightDtype(weightBuffer) ?? '').toLowerCase();
-  if (dtype === 'f16' || dtype === 'bf16') {
-    return 2;
+export function resolveProjectionSliceOffsetBytes(weightBuffer, outputRows, inputCols) {
+  const safeRows = Number.isFinite(outputRows) ? Math.max(0, Math.floor(outputRows)) : 0;
+  const safeCols = Number.isFinite(inputCols) ? Math.max(0, Math.floor(inputCols)) : 0;
+  if (safeRows === 0 || safeCols === 0) {
+    return 0;
   }
-  return 4;
+
+  const dtype = String(getWeightDtype(weightBuffer) ?? '').toLowerCase();
+  if (dtype === 'q4k') {
+    const layout = String(getLayout(weightBuffer) ?? 'row').toLowerCase();
+    if (layout !== 'row') {
+      throw new Error(`resolveProjectionSliceOffsetBytes: unsupported q4k layout "${layout}" for projection slicing.`);
+    }
+    const blocksPerRow = Math.ceil(safeCols / QK_K);
+    const bytesPerRow = blocksPerRow * Q4K_BLOCK_BYTES;
+    return safeRows * bytesPerRow;
+  }
+
+  if (dtype === 'f16' || dtype === 'bf16') {
+    return safeRows * safeCols * 2;
+  }
+  return safeRows * safeCols * 4;
 }
 
 async function projectQueryWithOptionalGate({
@@ -175,7 +192,7 @@ async function projectQueryWithOptionalGate({
 
   const runMatmulForMode = getMatmulRunner(recorder);
   const qWeightBuffer = getWeightBuffer(qWeight, 'q_proj');
-  const gateOffset = qSize * hiddenSize * bytesPerWeightElement(qWeightBuffer);
+  const gateOffset = resolveProjectionSliceOffsetBytes(qWeightBuffer, qSize, hiddenSize);
   let qTensor = null;
   let qGateTensor = null;
   try {

@@ -3,7 +3,7 @@ import { $, setText, setHidden } from './dom.js';
 
 const STATUS_CLASSES = ['status-success', 'status-warning', 'status-error', 'status-info'];
 const STATUS_MARKERS = {
-  success: '●',
+  success: '★',
   warning: '▲',
   error: '☒',
   info: '○',

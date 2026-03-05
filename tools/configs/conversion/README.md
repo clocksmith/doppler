@@ -1,15 +1,7 @@
 # Conversion Configs
 
-Use these files with:
-
-```bash
-node tools/doppler-cli.js convert --config '{
-  "request": {
-    "inputDir": "/path/to/source",
-    "convertPayload": { "converterConfig": { ... } }
-  }
-}'
-```
+Run conversion with the CLI `convert` command.
+Canonical command-shape examples live in [../../../docs/cli-quickstart.md](../../../docs/cli-quickstart.md).
 
 Notes:
 

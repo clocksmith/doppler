@@ -1,105 +1,67 @@
 # DOPPLER Harness Interface Style Guide
 
-Design rules for command execution across browser harnesses and the Node CLI.
+Harness-specific rules for browser and Node execution surfaces.
 
----
+Command semantics, intent mapping, and envelope contracts are canonical in
+[command-interface-design-guide.md](./command-interface-design-guide.md).
 
-## Goals
+## Scope
 
-- **Shared contract**: one command schema for all execution surfaces.
-- **Config-first control**: tunables live in runtime config.
-- **Reproducibility**: same config + model + inputs -> same run behavior.
-- **Explicit capability gates**: unsupported environment features fail fast.
+Use this guide for:
+- harness URL/runtime-config boundaries
+- browser relay and node runner behavior
+- harness-only constraints that are not command-level semantics
 
----
+## Harness responsibilities
 
-## Vocabulary
+- Apply runtime config without changing command meaning.
+- Preserve surface parity: no hidden defaults that change outcomes.
+- Fail fast on unsupported environment capabilities.
+- Keep runtime tuning config-driven (`runtimePreset`, `runtimeConfig`, `configChain`).
 
-- **Command**: `convert`, `debug`, `bench`, `verify`
-- **Suite**: `kernels`, `inference`, `training`, `bench`, `debug`, `diffusion`, `energy`
-- **Runtime contract patch**: `{ shared.harness.mode, shared.harness.modelId, shared.tooling.intent }`
-- **Surface**: `browser` or `node`
-
----
-
-## Execution Rules
-
-- Normalize requests with `normalizeToolingCommandRequest()`.
-- Validate surface support with `ensureCommandSupportedOnSurface()`.
-- For harnessed runs, apply `buildRuntimeContractPatch()` before execution.
-- Do not mutate command semantics per surface.
-- Do not add hidden model/mode/intent defaults in UI or CLI wrappers.
-- Keep force-resume audit controls explicit: `forceResumeReason`,
-  `forceResumeSource`, and `checkpointOperator` are valid only with
-  `forceResume=true`.
-- Diffusion verify uses `suite="diffusion"` with `command="verify"`.
-- Diffusion calibrate uses `suite="bench"` with `command="bench"` and
-  `workloadType="diffusion"`.
-- Diffusion runtime backend is GPU-only:
-  `runtime.inference.diffusion.backend.pipeline="gpu"`.
-- Diffusion verify/calibrate outputs must include
-  `metrics.performanceArtifact` with stage metrics:
-  `cpu.prefillMs`, `cpu.denoiseMs`, `cpu.vaeMs`, and `cpu.totalMs`.
-
----
-
-## Browser Rules
-
-- Browser UI may compose runtime config for interactive workflows.
-- Browser runner entrypoint: `runBrowserCommand()`.
-- Browser conversion must use the `convert` command and explicit payload.
-- Benchmark suites may compose benchmark-level runtime fields from
-  `runtime.shared.benchmark.run` (for example `customPrompt`, `maxNewTokens`,
-  `sampling`, and run counts).
-
-## Node Rules
-
-- Node runner entrypoint: `runNodeCommand()`.
-- Node CLI entrypoint: `tools/doppler-cli.js`.
-- Node suite runs require WebGPU support. Provider resolution order is:
-  `DOPPLER_NODE_WEBGPU_MODULE` (explicit override) -> local sibling `../fawn/nursery/webgpu-core` when present
-  -> `@doe/webgpu-core` -> optional `webgpu`; if none resolve, fail explicitly.
-
----
-
-## URL + Preset Contract
+## Browser harness contract
 
 Browser harness URLs accept only:
-
 - `runtimePreset`
 - `runtimeConfig`
 - `runtimeConfigUrl`
 - `configChain`
 
-CLI equivalents:
+Per-field URL tuning is not allowed.
 
-- `--config` (canonical command payload)
-- `--runtime-config` (optional runtime override: JSON, URL, or file path)
+Browser runner entrypoint: `runBrowserCommand()`.
 
-No per-field tunable flags are allowed outside runtime config.
-For benchmarked commands, shared-contract values (prompt/workload/sampling/run
-policy) must be provided through
-`runtimeConfig`/`runtimePreset`/`runtimeConfigUrl` and materialized as
-`runtime.shared.benchmark.run`.
+## Node harness contract
 
-For diffusion benchmarked commands, `runtime.shared.benchmark.run` must include
-deterministic `warmupRuns`/`timedRuns` for smoke lanes, and the run must emit
-timing diagnostics plus diffusion performance artifacts.
+Node runner entrypoint: `runNodeCommand()`.
+CLI entrypoint: `tools/doppler-cli.js`.
 
----
+Node WebGPU provider resolution order:
+`DOPPLER_NODE_WEBGPU_MODULE` (explicit override) -> local sibling
+`../fawn/nursery/webgpu-core` (when present) -> `@doe/webgpu-core` -> `webgpu`.
+If none resolve, fail explicitly.
 
-## Logging and Outputs
+## Runtime patching
 
-- Runtime code uses debug module (`src/debug/*`).
-- Entrypoints may print status and progress to console.
-- Result envelopes must keep a stable schema:
-  - Success: `{ ok: true, schemaVersion: 1, surface, request, result }`
-  - Error: `{ ok: false, schemaVersion: 1, surface|null, request|null, error: { code, message, details, retryable } }`
+For harnessed runs, apply `buildRuntimeContractPatch()` before execution.
+The patch fields are:
+- `shared.harness.mode`
+- `shared.harness.modelId` (except kernel-only flows)
+- `shared.tooling.intent`
 
----
+## Diffusion Contract
 
-## See Also
+Diffusion verification must use `suite="diffusion"` via the `verify` command path.
+Diffusion calibration must use `workloadType="diffusion"` via the `bench` command path.
 
-- `docs/style/command-interface-design-guide.md`
-- `docs/style/config-style-guide.md`
-- `docs/style/benchmark-style-guide.md`
+## Logging
+
+- Runtime code uses `src/debug/*`.
+- Entrypoints may print status/progress.
+- Keep output deterministic for the same config + model + workload.
+
+## See also
+
+- [command-interface-design-guide.md](./command-interface-design-guide.md)
+- [config-style-guide.md](./config-style-guide.md)
+- [benchmark-style-guide.md](./benchmark-style-guide.md)

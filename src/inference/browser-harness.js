@@ -19,9 +19,27 @@ import { selectRuleValue } from '../rules/rule-registry.js';
 import { mergeRuntimeValues } from '../config/runtime-merge.js';
 import { isPlainObject } from '../utils/plain-object.js';
 import { validateTrainingMetricsReport } from '../config/schema/training-metrics.schema.js';
-import { runTrainingSuite, runTrainingBenchSuite } from '../training/suite.js';
 
-export { runTrainingSuite };
+const TRAINING_SUITE_MODULE_PATH = '../training/suite.js';
+const NODE_SOURCE_RUNTIME_MODULE_PATH = '../tooling/node-source-runtime.js';
+let trainingSuiteModulePromise = null;
+
+async function loadTrainingSuiteModule() {
+  if (!trainingSuiteModulePromise) {
+    trainingSuiteModulePromise = import(TRAINING_SUITE_MODULE_PATH);
+  }
+  return trainingSuiteModulePromise;
+}
+
+export async function runTrainingSuite(options = {}) {
+  const module = await loadTrainingSuiteModule();
+  return module.runTrainingSuite(options);
+}
+
+async function runTrainingBenchSuite(options = {}) {
+  const module = await loadTrainingSuiteModule();
+  return module.runTrainingBenchSuite(options);
+}
 
 function parseReportTimestamp(rawTimestamp, label = 'timestamp') {
   if (rawTimestamp == null) {
@@ -817,7 +835,7 @@ async function initializeInferenceFromSourcePath(sourcePath, options = {}) {
   }
 
   onProgress?.('source', 0.05, 'Preparing source runtime bundle...');
-  const { resolveNodeSourceRuntimeBundle } = await import('../tooling/node-source-runtime.js');
+  const { resolveNodeSourceRuntimeBundle } = await import(NODE_SOURCE_RUNTIME_MODULE_PATH);
   const sourceBundle = await resolveNodeSourceRuntimeBundle({
     inputPath: sourcePath,
     modelId: options.modelId || null,

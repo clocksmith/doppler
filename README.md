@@ -13,20 +13,26 @@ npm install @simulatte/doppler
 ## Quick Start
 
 ```js
-import { createDopplerLoader, createPipeline } from '@simulatte/doppler';
+import { doppler } from '@simulatte/doppler';
 
-const loader = await createDopplerLoader({ manifest: 'path/to/manifest.json' });
-const pipeline = await createPipeline(loader);
-const result = await pipeline.generate('Hello, world');
+const model = await doppler.load('gemma-3-1b');
+
+for await (const token of model.generate('Hello, world')) {
+  process.stdout.write(token);
+}
 ```
+
+That's it. Streaming is the default. See [more examples](#more-examples) below or the full [API contract](docs/doppler-api-contract.md).
 
 ## Features
 
-- WebGPU-accelerated inference in browser and Node
+- WebGPU-accelerated inference in browser and Node — no WASM bridge
+- Native `for await` streaming — not callbacks
 - Sharded weight loading via OPFS
-- Kernel hot-swap (prefill/decode paths)
-- LoRA adapter loading and swapping
+- LoRA adapter hot-swap at runtime
 - Quantized model support (Q4K, Q8, F16)
+- Multi-model with independent instances
+- Kernel hot-swap (prefill/decode paths)
 - Reproducible benchmark tooling
 - Auditable kernel execution tracing
 
@@ -44,26 +50,35 @@ Lower is better, comparing per-phase latency by workload.
 
 ![Phase-latency comparison on one workload across models](benchmarks/vendors/results/compare_1b_multi-workload_favorable_phases.svg)
 
-Snapshot artifacts:
-- [compare_20260303T175640.json](benchmarks/vendors/results/compare_20260303T175640.json)
-- [compare_20260303T210150.json](benchmarks/vendors/results/compare_20260303T210150.json)
+Snapshot artifact:
+- [g3-p064-d064-t0-k1.apple-m3pro.compare.json](benchmarks/vendors/fixtures/g3-p064-d064-t0-k1.apple-m3pro.compare.json)
 
-## Start here
+## More Examples
 
-- Canonical first-run guide: [docs/getting-started.md](docs/getting-started.md)
-- Setup and troubleshooting: [docs/setup-instructions.md](docs/setup-instructions.md)
-- Sizing and performance expectations: [docs/performance-sizing.md](docs/performance-sizing.md)
+```js
+// Non-streaming
+const text = await model.generateText('Explain WebGPU in one sentence');
 
-## Core docs
+// Chat
+const reply = await model.chatText([
+  { role: 'user', content: 'Write a dispatch that outruns its own light cone' },
+]);
 
+// LoRA hot-swap
+await model.loadLoRA('oneshift-twoshift-redshift-blueshift');
+
+// Convenience shorthand (caches model automatically)
+for await (const token of doppler('Hello', { model: 'gemma-3-1b' })) {
+  process.stdout.write(token);
+}
+```
+
+## Documentation
+
+- Docs index (canonical navigation): [docs/INDEX.md](docs/INDEX.md)
+- First-run workflow: [docs/getting-started.md](docs/getting-started.md)
+- Runtime config contract: [docs/config.md](docs/config.md)
 - Architecture: [docs/architecture.md](docs/architecture.md)
-- Pipeline contract: [docs/pipeline-contract.md](docs/pipeline-contract.md)
-- Config: [docs/config.md](docs/config.md)
-- Formats index: [docs/formats.md](docs/formats.md)
-- Operations: [docs/operations.md](docs/operations.md)
-- Testing index: [docs/testing.md](docs/testing.md)
-- Training handbook: [docs/training-handbook.md](docs/training-handbook.md)
-- Benchmark methodology: [docs/benchmark-methodology.md](docs/benchmark-methodology.md)
 
 ## License
 

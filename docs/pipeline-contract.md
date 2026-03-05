@@ -21,27 +21,33 @@ flowchart TD
 
   subgraph Conversion["3) Conversion Command"]
     CVT["doppler convert"]
-    G["src/converter/**/*.js"]
-    H["src/browser/browser-converter.js"]
-    I["RDRR artifacts"]
-    C -->|if convert| CVT --> G --> H --> I
+    G["src/tooling/node-command-runner.js\nconvert -> src/tooling/node-converter.js"]
+    H["src/tooling/browser-command-runner.js\nconvert requires options.convertHandler(request)"]
+    I["caller-provided handler (often src/browser/browser-converter.js)"]
+    RA["RDRR artifacts"]
+    C -->|if convert| CVT
+    CVT --> G --> RA
+    CVT --> H --> I --> RA
   end
 
   subgraph Runtime["4) Runtime Inference Path"]
-    J["doppler debug/bench/verify"]
-    K["artifact resolution"]
-    L["manifest preflight + schema validation"]
-    M["config assembly"]
-    N["loader init + tensor binding"]
-    O["token pipeline + prompt shaping"]
-    P["prefill"]
-    Q["decode loop + KV cache"]
-    R["sampling + stopping"]
-    S["result materialization"]
-    C -->|if debug/bench/verify| J
-    J --> K --> L --> M --> N --> O --> P --> Q --> R --> S
+    RT0["doppler debug/bench/verify"]
+    RT1["artifact resolution"]
+    RT2["manifest preflight + schema validation"]
+    RT3["config assembly"]
+    RT4["loader init + tensor binding"]
+    RT5["token pipeline + prompt shaping"]
+    RT6["prefill"]
+    RT7["decode loop + KV cache"]
+    RT8["sampling + stopping"]
+    RT9["result materialization"]
+    C -->|if debug/bench/verify| RT0
+    RT0 --> RT1 --> RT2 --> RT3 --> RT4 --> RT5 --> RT6 --> RT7 --> RT8 --> RT9
   end
 ```
+
+`tools/doppler-cli.js` executes `convert` through the Node path. The browser branch applies
+to direct `runBrowserCommand()` usage where `options.convertHandler` is injected by the caller.
 
 ## Boundary map
 
@@ -49,7 +55,7 @@ flowchart TD
 | --- | --- | --- | --- | --- |
 | 1 | Command normalization | raw CLI/web call | `tools/doppler-cli.js`, `src/tooling/command-api.js` | canonical request + intent |
 | 2 | Surface dispatch | request + mode | node/browser runners | surface-specific execution |
-| 3 | Conversion path | source path + conversion config | converter modules | RDRR artifacts |
+| 3 | Conversion path | source path + conversion config | Node: `src/tooling/node-converter.js`; Browser: injected `options.convertHandler` (typically wraps `src/browser/browser-converter.js`) | RDRR artifacts |
 | 4 | Artifact resolution | `modelId`/`modelUrl` | storage tooling | manifest URI + shard source |
 | 5 | Config merge | manifest + runtime override | `src/config/**` | resolved config |
 | 6 | Model loading | resolved manifest/config | `src/loader/**` | GPU-ready tensors + cache state |
