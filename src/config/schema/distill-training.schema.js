@@ -20,6 +20,10 @@ export const DEFAULT_DISTILL_TRAINING_CONFIG = Object.freeze({
   datasetId: null,
   datasetPath: null,
   languagePair: null,
+  sourceLangs: null,
+  targetLangs: null,
+  pairAllowlist: null,
+  strictPairContract: false,
   shardIndex: null,
   shardCount: null,
   resumeFrom: null,
@@ -59,6 +63,18 @@ function assertNullablePositiveInteger(value, label) {
   throw new Error(`Distill config: ${label} must be a positive integer or null.`);
 }
 
+function assertNullableStringArray(value, label) {
+  if (value === null) return;
+  if (!Array.isArray(value)) {
+    throw new Error(`Distill config: ${label} must be an array of strings or null.`);
+  }
+  for (let i = 0; i < value.length; i += 1) {
+    if (typeof value[i] !== 'string' || value[i].trim().length === 0) {
+      throw new Error(`Distill config: ${label}[${i}] must be a non-empty string.`);
+    }
+  }
+}
+
 export function validateDistillTrainingConfig(config) {
   if (!config || typeof config !== 'object' || Array.isArray(config)) {
     throw new Error('Distill config: expected an object.');
@@ -73,6 +89,10 @@ export function validateDistillTrainingConfig(config) {
   assertNullableString(config.datasetId, 'datasetId');
   assertNullableString(config.datasetPath, 'datasetPath');
   assertNullableString(config.languagePair, 'languagePair');
+  assertNullableStringArray(config.sourceLangs, 'sourceLangs');
+  assertNullableStringArray(config.targetLangs, 'targetLangs');
+  assertNullableStringArray(config.pairAllowlist, 'pairAllowlist');
+  assertBoolean(config.strictPairContract, 'strictPairContract');
   assertNullablePositiveInteger(config.shardIndex, 'shardIndex');
   assertNullablePositiveInteger(config.shardCount, 'shardCount');
   assertNullableString(config.resumeFrom, 'resumeFrom');

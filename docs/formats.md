@@ -356,6 +356,8 @@ In compact-form, `e` and `h` may be omitted when they match the preceding storag
 Model IDs are **not** expected to include runtime-activation suffixes like `-f16a` or `-f32a`.
 Runtime intent belongs in conversion manifest/runtime (`quantization.computePrecision`,
 `inference.defaultKernelPath`, `inference.execution`, `inference.sessionDefaults`).
+Canonical conversion-vs-runtime ownership lives in
+[Conversion Runtime Contract](conversion-runtime-contract.md).
 
 Canonical Gemma-1B model IDs:
 
@@ -490,7 +492,8 @@ fields above are present.
 
 `runtime.inference.kernelPathPolicy.mode` controls whether capability remap is applied
 (`locked` vs `capability-aware`), and `allowSources` controls which sources may remap.
-See `config.md` for full examples.
+See `config.md` for full examples and [Conversion Runtime Contract](conversion-runtime-contract.md) for
+the canonical ownership matrix.
 
 ---
 

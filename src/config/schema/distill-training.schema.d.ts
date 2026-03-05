@@ -18,6 +18,10 @@ export interface DistillTrainingConfigSchema {
   datasetId: string | null;
   datasetPath: string | null;
   languagePair: string | null;
+  sourceLangs: string[] | null;
+  targetLangs: string[] | null;
+  pairAllowlist: string[] | null;
+  strictPairContract: boolean;
   shardIndex: number | null;
   shardCount: number | null;
   resumeFrom: string | null;

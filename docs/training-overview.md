@@ -21,14 +21,26 @@ verify/calibrate workflows, artifact lineage, and deterministic reporting.
 
 - Stage and workload: `request.trainingStage`, `request.workloadType="training"`
 - Schema/versioning: `request.trainingSchemaVersion` (pinned to `1`)
-- Bench steps: `request.trainingBenchSteps`
+- Bench/verify max steps: `request.trainingBenchSteps`
+- Checkpoint cadence: `request.checkpointEvery` (positive integer)
 - Stage linkage: `request.stage1Artifact`, `request.stage1ArtifactHash`,
   `request.stageAArtifact`, `request.stageAArtifactHash`
 - Distill inputs: `request.teacherModelId`, `request.studentModelId`,
   `request.distillDatasetPath`, `request.distillLanguagePair`
+- Distill scope controls: `request.distillSourceLangs`,
+  `request.distillTargetLangs`, `request.distillPairAllowlist`
+- Distill row contract gate: `request.strictPairContract=true` (fail closed on
+  pair/src/tgt mismatch)
 - Resume override controls: `request.forceResume=true` with
   `request.forceResumeReason`, optional `request.forceResumeSource`, and optional
   `request.checkpointOperator` for audited compatibility overrides.
+
+## Operator helper script
+
+- `node tools/run-distill-bench.mjs --mode bench ...` runs deterministic
+  contract-gated benchmark lanes.
+- `node tools/run-distill-bench.mjs --mode train ...` runs longer stage A/B
+  verify flows with resumable checkpoint controls for operational distill runs.
 
 ## Training metrics contract (core context fields)
 

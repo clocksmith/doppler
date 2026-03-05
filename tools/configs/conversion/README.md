@@ -13,6 +13,8 @@ node tools/doppler-cli.js convert --config '{
 
 Notes:
 
+- Canonical conversion-vs-runtime ownership matrix:
+  [`docs/conversion-runtime-contract.md`](../../../docs/conversion-runtime-contract.md)
 - `output.modelBaseId` is now authoritative; converter does not append implicit variant suffixes.
 - All configs use `output.baseDir` (no implicit `--output-dir` requirement).
 - Gemma configs pin `presets.model = gemma3` for deterministic preset selection.

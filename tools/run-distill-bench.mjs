@@ -2,22 +2,80 @@
 
 import { spawn } from 'node:child_process';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import { resolve, join } from 'node:path';
+import { join, resolve } from 'node:path';
+
+function parsePositiveInteger(value, label) {
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed < 1) {
+    throw new Error(`${label} must be a positive integer`);
+  }
+  return parsed;
+}
+
+function parseOptionalPositiveInteger(value, label) {
+  if (value === undefined || value === null || value === '') return null;
+  return parsePositiveInteger(value, label);
+}
+
+function parseOptionalString(value) {
+  if (value === undefined || value === null) return null;
+  const normalized = String(value).trim();
+  return normalized || null;
+}
+
+function parseStringList(value) {
+  if (Array.isArray(value)) {
+    const normalized = value.map((entry) => parseOptionalString(entry)).filter(Boolean);
+    return normalized.length > 0 ? normalized : null;
+  }
+  const normalized = parseOptionalString(value);
+  if (!normalized) return null;
+  const list = normalized.split(',').map((entry) => entry.trim()).filter(Boolean);
+  return list.length > 0 ? list : null;
+}
 
 function parseArgs(argv) {
   const parsed = {
+    help: false,
+    mode: 'bench',
     surface: 'node',
     outDir: 'reports/training/distill',
     workload: 'tiny',
+    trainingBenchSteps: null,
+    stageASteps: null,
+    stageBSteps: null,
+    checkpointEvery: null,
     distillDatasetPath: null,
+    distillSourceLangs: null,
+    distillTargetLangs: null,
+    distillPairAllowlist: null,
+    strictPairContract: false,
     distillShardIndex: null,
     distillShardCount: null,
     resumeFrom: null,
+    forceResume: false,
+    forceResumeReason: null,
+    forceResumeSource: null,
+    checkpointOperator: null,
+    skipStageA: false,
+    stageAOnly: false,
+    stageAArtifact: null,
+    stageAArtifactHash: null,
   };
+
   for (let i = 2; i < argv.length; i += 1) {
     const arg = argv[i];
+    if (arg === '--help' || arg === '-h') {
+      parsed.help = true;
+      continue;
+    }
+    if (arg === '--mode') {
+      parsed.mode = String(argv[i + 1] || parsed.mode);
+      i += 1;
+      continue;
+    }
     if (arg === '--surface') {
-      parsed.surface = String(argv[i + 1] || 'node');
+      parsed.surface = String(argv[i + 1] || parsed.surface);
       i += 1;
       continue;
     }
@@ -31,37 +89,163 @@ function parseArgs(argv) {
       i += 1;
       continue;
     }
-    if (arg === '--distill-dataset-path') {
-      parsed.distillDatasetPath = String(argv[i + 1] || '').trim() || null;
+    if (arg === '--training-bench-steps') {
+      parsed.trainingBenchSteps = parsePositiveInteger(argv[i + 1], '--training-bench-steps');
       i += 1;
       continue;
     }
+    if (arg === '--stage-a-steps') {
+      parsed.stageASteps = parsePositiveInteger(argv[i + 1], '--stage-a-steps');
+      i += 1;
+      continue;
+    }
+    if (arg === '--stage-b-steps') {
+      parsed.stageBSteps = parsePositiveInteger(argv[i + 1], '--stage-b-steps');
+      i += 1;
+      continue;
+    }
+    if (arg === '--checkpoint-every') {
+      parsed.checkpointEvery = parsePositiveInteger(argv[i + 1], '--checkpoint-every');
+      i += 1;
+      continue;
+    }
+    if (arg === '--distill-dataset-path') {
+      parsed.distillDatasetPath = parseOptionalString(argv[i + 1]);
+      i += 1;
+      continue;
+    }
+    if (arg === '--distill-source-langs') {
+      parsed.distillSourceLangs = parseStringList(argv[i + 1]);
+      i += 1;
+      continue;
+    }
+    if (arg === '--distill-target-langs') {
+      parsed.distillTargetLangs = parseStringList(argv[i + 1]);
+      i += 1;
+      continue;
+    }
+    if (arg === '--distill-pair-allowlist') {
+      parsed.distillPairAllowlist = parseStringList(argv[i + 1]);
+      i += 1;
+      continue;
+    }
+    if (arg === '--strict-pair-contract') {
+      parsed.strictPairContract = true;
+      continue;
+    }
     if (arg === '--distill-shard-index') {
-      const parsedValue = Number(argv[i + 1]);
-      if (!Number.isInteger(parsedValue) || parsedValue < 1) {
-        throw new Error('--distill-shard-index must be a positive integer');
-      }
-      parsed.distillShardIndex = parsedValue;
+      parsed.distillShardIndex = parsePositiveInteger(argv[i + 1], '--distill-shard-index');
       i += 1;
       continue;
     }
     if (arg === '--distill-shard-count') {
-      const parsedValue = Number(argv[i + 1]);
-      if (!Number.isInteger(parsedValue) || parsedValue < 1) {
-        throw new Error('--distill-shard-count must be a positive integer');
-      }
-      parsed.distillShardCount = parsedValue;
+      parsed.distillShardCount = parsePositiveInteger(argv[i + 1], '--distill-shard-count');
       i += 1;
       continue;
     }
     if (arg === '--resume-from') {
-      parsed.resumeFrom = String(argv[i + 1] || '').trim() || null;
+      parsed.resumeFrom = parseOptionalString(argv[i + 1]);
+      i += 1;
+      continue;
+    }
+    if (arg === '--force-resume') {
+      parsed.forceResume = true;
+      continue;
+    }
+    if (arg === '--force-resume-reason') {
+      parsed.forceResumeReason = parseOptionalString(argv[i + 1]);
+      i += 1;
+      continue;
+    }
+    if (arg === '--force-resume-source') {
+      parsed.forceResumeSource = parseOptionalString(argv[i + 1]);
+      i += 1;
+      continue;
+    }
+    if (arg === '--checkpoint-operator') {
+      parsed.checkpointOperator = parseOptionalString(argv[i + 1]);
+      i += 1;
+      continue;
+    }
+    if (arg === '--skip-stage-a') {
+      parsed.skipStageA = true;
+      continue;
+    }
+    if (arg === '--stage-a-only') {
+      parsed.stageAOnly = true;
+      continue;
+    }
+    if (arg === '--stage-a-artifact') {
+      parsed.stageAArtifact = parseOptionalString(argv[i + 1]);
+      i += 1;
+      continue;
+    }
+    if (arg === '--stage-a-artifact-hash') {
+      parsed.stageAArtifactHash = parseOptionalString(argv[i + 1]);
       i += 1;
       continue;
     }
     throw new Error(`Unknown flag: ${arg}`);
   }
+
+  if (parsed.mode !== 'bench' && parsed.mode !== 'train') {
+    throw new Error('--mode must be "bench" or "train"');
+  }
+  if (parsed.forceResumeReason && !parsed.forceResume) {
+    throw new Error('--force-resume-reason requires --force-resume');
+  }
+  if (parsed.forceResumeSource && !parsed.forceResume) {
+    throw new Error('--force-resume-source requires --force-resume');
+  }
+  if (parsed.checkpointOperator && !parsed.forceResume) {
+    throw new Error('--checkpoint-operator requires --force-resume');
+  }
+  if (parsed.stageAOnly && parsed.skipStageA) {
+    throw new Error('--stage-a-only cannot be combined with --skip-stage-a');
+  }
+
   return parsed;
+}
+
+function usage() {
+  return [
+    'Usage:',
+    '  node tools/run-distill-bench.mjs [flags]',
+    '',
+    'Modes:',
+    '  --mode bench|train                Default: bench',
+    '',
+    'Common flags:',
+    '  --surface node|browser            Default: node',
+    '  --workload tiny|medium|<path>     Default: tiny',
+    '  --out-dir <dir>                   Default: reports/training/distill',
+    '  --distill-dataset-path <path>',
+    '  --distill-source-langs <csv>',
+    '  --distill-target-langs <csv>',
+    '  --distill-pair-allowlist <csv>',
+    '  --strict-pair-contract',
+    '  --distill-shard-index <int>',
+    '  --distill-shard-count <int>',
+    '  --resume-from <checkpoint-path>',
+    '  --checkpoint-every <int>',
+    '',
+    'Resume override flags:',
+    '  --force-resume',
+    '  --force-resume-reason <text>',
+    '  --force-resume-source <text>',
+    '  --checkpoint-operator <text>',
+    '',
+    'Bench-mode flags:',
+    '  --training-bench-steps <int>      Applies to stage_a + stage_b bench runs',
+    '',
+    'Train-mode flags:',
+    '  --stage-a-steps <int>             Default: trainingBenchSteps',
+    '  --stage-b-steps <int>             Default: trainingBenchSteps',
+    '  --stage-a-only',
+    '  --skip-stage-a                    Requires --stage-a-artifact',
+    '  --stage-a-artifact <path>',
+    '  --stage-a-artifact-hash <sha256>',
+  ].join('\n');
 }
 
 async function loadWorkloadConfig(workloadArg) {
@@ -73,7 +257,7 @@ async function loadWorkloadConfig(workloadArg) {
   const absolute = resolve(candidate);
   const raw = await readFile(absolute, 'utf8');
   const parsed = JSON.parse(raw);
-  if (!parsed || typeof parsed !== 'object') {
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
     throw new Error(`Invalid distill workload config at ${absolute}`);
   }
   return { path: absolute, config: parsed };
@@ -124,27 +308,162 @@ function extractStageAArtifact(trainingResult) {
   throw new Error('Unable to find stage_a artifact in training suite output.');
 }
 
+function resolveOptionalInteger(value, fallback, label) {
+  if (value === undefined || value === null || value === '') return fallback;
+  return parsePositiveInteger(value, label);
+}
+
+function resolveResumeOverrideFields(args, workloadConfig) {
+  const forceResume = args.forceResume || workloadConfig.forceResume === true;
+  const forceResumeReason = args.forceResumeReason
+    || parseOptionalString(workloadConfig.forceResumeReason)
+    || null;
+  const forceResumeSource = args.forceResumeSource
+    || parseOptionalString(workloadConfig.forceResumeSource)
+    || null;
+  const checkpointOperator = args.checkpointOperator
+    || parseOptionalString(workloadConfig.checkpointOperator)
+    || null;
+
+  if (!forceResume) {
+    if (forceResumeReason || forceResumeSource || checkpointOperator) {
+      throw new Error('force resume metadata requires forceResume=true.');
+    }
+    return {};
+  }
+
+  return {
+    forceResume: true,
+    forceResumeReason: forceResumeReason || 'operator_requested_resume_override',
+    forceResumeSource: forceResumeSource || 'tools/run-distill-bench.mjs',
+    checkpointOperator,
+  };
+}
+
+function createBaseTrainingRequest(params) {
+  const request = {
+    trainingSchemaVersion: params.trainingSchemaVersion,
+    teacherModelId: params.teacherModelId,
+    studentModelId: params.studentModelId,
+    distillDatasetId: params.distillDatasetId,
+    distillDatasetPath: params.distillDatasetPath,
+    distillLanguagePair: params.distillLanguagePair,
+    distillSourceLangs: params.distillSourceLangs,
+    distillTargetLangs: params.distillTargetLangs,
+    distillPairAllowlist: params.distillPairAllowlist,
+    strictPairContract: params.strictPairContract,
+    distillShardIndex: params.distillShardIndex,
+    distillShardCount: params.distillShardCount,
+    resumeFrom: params.resumeFrom,
+    distillArtifactDir: params.outDirAbs,
+    checkpointEvery: params.checkpointEvery,
+    ...params.resumeOverrides,
+  };
+  return request;
+}
+
+async function runVerifyStage(stage, options) {
+  return runCli([
+    'verify',
+    '--config',
+    JSON.stringify({
+      request: {
+        suite: 'training',
+        trainingStage: stage,
+        trainingTests: [stage === 'stage_b' ? 'distill-stage-b' : 'distill-stage-a'],
+        trainingBenchSteps: options.trainingBenchSteps,
+        ...options.request,
+        ...(stage === 'stage_b'
+          ? {
+            stageAArtifact: options.stageAArtifact,
+            stageAArtifactHash: options.stageAArtifactHash,
+          }
+          : {}),
+      },
+      run: {
+        surface: options.surface,
+      },
+    }),
+    '--json',
+  ]);
+}
+
+async function runBenchStage(stage, options) {
+  return runCli([
+    'bench',
+    '--config',
+    JSON.stringify({
+      request: {
+        workloadType: 'training',
+        trainingStage: stage,
+        trainingBenchSteps: options.trainingBenchSteps,
+        ...options.request,
+        ...(stage === 'stage_b'
+          ? {
+            stageAArtifact: options.stageAArtifact,
+            stageAArtifactHash: options.stageAArtifactHash,
+          }
+          : {}),
+      },
+      run: {
+        surface: options.surface,
+      },
+    }),
+    '--runtime-config',
+    options.runtimeConfigJson,
+    '--json',
+  ]);
+}
+
 async function main() {
   const args = parseArgs(process.argv);
+  if (args.help) {
+    process.stdout.write(`${usage()}\n`);
+    return;
+  }
   const outDirAbs = resolve(args.outDir);
   const workload = await loadWorkloadConfig(args.workload);
+
   const trainingSchemaVersion = Number(workload.config.trainingSchemaVersion || 1);
-  const trainingBenchSteps = Number(workload.config.trainingBenchSteps || 2);
+  const defaultBenchSteps = resolveOptionalInteger(
+    workload.config.trainingBenchSteps,
+    2,
+    'trainingBenchSteps'
+  );
+  const benchSteps = args.trainingBenchSteps ?? defaultBenchSteps;
+  const stageASteps = args.stageASteps ?? resolveOptionalInteger(
+    workload.config.stageASteps,
+    benchSteps,
+    'stageASteps'
+  );
+  const stageBSteps = args.stageBSteps ?? resolveOptionalInteger(
+    workload.config.stageBSteps,
+    benchSteps,
+    'stageBSteps'
+  );
+  const checkpointEvery = args.checkpointEvery ?? parseOptionalPositiveInteger(
+    workload.config.checkpointEvery,
+    'checkpointEvery'
+  );
   const teacherModelId = String(workload.config.teacherModelId || 'translategemma-4b-it-wq4k-ef16-hf16');
   const studentModelId = String(workload.config.studentModelId || 'gemma-3-1b-it-wq4k-ef16-hf16');
   const distillDatasetId = String(workload.config.distillDatasetId || 'en-es');
   const distillDatasetPath = args.distillDatasetPath || (
     workload.config.distillDatasetPath
-    ? String(workload.config.distillDatasetPath)
-    : null
+      ? String(workload.config.distillDatasetPath)
+      : null
   );
+  const distillSourceLangs = args.distillSourceLangs || parseStringList(workload.config.distillSourceLangs);
+  const distillTargetLangs = args.distillTargetLangs || parseStringList(workload.config.distillTargetLangs);
+  const distillPairAllowlist = args.distillPairAllowlist || parseStringList(workload.config.distillPairAllowlist);
+  const strictPairContract = args.strictPairContract || workload.config.strictPairContract === true;
   const distillShardIndex = args.distillShardIndex
-    ?? (Number.isInteger(workload.config.distillShardIndex) ? workload.config.distillShardIndex : null);
+    ?? parseOptionalPositiveInteger(workload.config.distillShardIndex, 'distillShardIndex');
   const distillShardCount = args.distillShardCount
-    ?? (Number.isInteger(workload.config.distillShardCount) ? workload.config.distillShardCount : null);
-  const resumeFrom = args.resumeFrom || (
-    workload.config.resumeFrom ? String(workload.config.resumeFrom) : null
-  );
+    ?? parseOptionalPositiveInteger(workload.config.distillShardCount, 'distillShardCount');
+  const resumeFrom = args.resumeFrom || parseOptionalString(workload.config.resumeFrom);
+  const stageAArtifactInput = args.stageAArtifact || parseOptionalString(workload.config.stageAArtifact);
+  const stageAArtifactHashInput = args.stageAArtifactHash || parseOptionalString(workload.config.stageAArtifactHash);
   if (
     Number.isInteger(distillShardIndex)
     && Number.isInteger(distillShardCount)
@@ -153,11 +472,6 @@ async function main() {
     throw new Error('distillShardIndex must be <= distillShardCount');
   }
   const distillLanguagePair = String(workload.config.distillLanguagePair || 'en-es');
-  const trainingTests = Array.isArray(workload.config.trainingTests)
-    ? workload.config.trainingTests.map((value) => String(value))
-    : [];
-  const stageATestId = trainingTests.includes('distill-stage-a') ? 'distill-stage-a' : 'distill-stage-a';
-
   const runtimeConfigJson = JSON.stringify({
     shared: {
       benchmark: {
@@ -165,111 +479,149 @@ async function main() {
       },
     },
   });
+  const resumeOverrides = resolveResumeOverrideFields(args, workload.config);
+  const baseRequest = createBaseTrainingRequest({
+    trainingSchemaVersion,
+    teacherModelId,
+    studentModelId,
+    distillDatasetId,
+    distillDatasetPath,
+    distillLanguagePair,
+    distillSourceLangs,
+    distillTargetLangs,
+    distillPairAllowlist,
+    strictPairContract,
+    distillShardIndex,
+    distillShardCount,
+    resumeFrom,
+    checkpointEvery,
+    outDirAbs,
+    resumeOverrides,
+  });
 
   await mkdir(outDirAbs, { recursive: true });
 
-  const stageAVerify = await runCli([
-    'verify',
-    '--config',
-    JSON.stringify({
-      request: {
-        suite: 'training',
-        trainingSchemaVersion,
-        trainingStage: 'stage_a',
-        trainingTests: [stageATestId],
-        teacherModelId,
-        studentModelId,
-        distillDatasetId,
-        distillDatasetPath,
-        distillLanguagePair,
-        distillShardIndex,
-        distillShardCount,
-        resumeFrom,
-        distillArtifactDir: outDirAbs,
-      },
-      run: {
-        surface: args.surface,
-      },
-    }),
-    '--json',
-  ]);
-  const stageAArtifact = extractStageAArtifact(stageAVerify);
+  if (args.mode === 'bench') {
+    const stageAVerify = await runVerifyStage('stage_a', {
+      surface: args.surface,
+      trainingBenchSteps: null,
+      request: baseRequest,
+    });
+    const stageAArtifact = extractStageAArtifact(stageAVerify);
+    const stageABench = await runBenchStage('stage_a', {
+      surface: args.surface,
+      trainingBenchSteps: benchSteps,
+      request: baseRequest,
+      runtimeConfigJson,
+    });
+    const stageBBench = await runBenchStage('stage_b', {
+      surface: args.surface,
+      trainingBenchSteps: benchSteps,
+      request: baseRequest,
+      runtimeConfigJson,
+      stageAArtifact: stageAArtifact.stageAArtifact,
+      stageAArtifactHash: String(stageAArtifact.stageAArtifactHash || ''),
+    });
 
-  const stageABench = await runCli([
-    'bench',
-    '--config',
-    JSON.stringify({
-      request: {
-        trainingSchemaVersion,
-        trainingBenchSteps,
-        workloadType: 'training',
-        trainingStage: 'stage_a',
-        teacherModelId,
-        studentModelId,
-        distillDatasetId,
+    const summary = {
+      schemaVersion: 1,
+      generatedAt: new Date().toISOString(),
+      mode: 'bench',
+      claimBoundary: 'TranslateGemma distill pipeline for operational benchmarking; not claim of paper-parity SOTA.',
+      workload: {
+        path: workload.path,
+        config: workload.config,
+      },
+      resolved: {
+        benchSteps,
+        checkpointEvery,
         distillDatasetPath,
-        distillLanguagePair,
+        distillSourceLangs,
+        distillTargetLangs,
+        distillPairAllowlist,
+        strictPairContract,
         distillShardIndex,
         distillShardCount,
         resumeFrom,
-        distillArtifactDir: outDirAbs,
+        ...resumeOverrides,
       },
-      run: {
-        surface: args.surface,
-      },
-    }),
-    '--runtime-config',
-    runtimeConfigJson,
-    '--json',
-  ]);
+      stageAArtifact,
+      stageAVerify,
+      stageABench,
+      stageBBench,
+    };
+    const outPath = join(outDirAbs, 'distill-bench-summary.json');
+    await writeFile(outPath, `${JSON.stringify(summary, null, 2)}\n`, 'utf8');
+    process.stdout.write(`${JSON.stringify({ ok: true, mode: 'bench', outPath }, null, 2)}\n`);
+    return;
+  }
 
-  const stageBBench = await runCli([
-    'bench',
-    '--config',
-    JSON.stringify({
-      request: {
-        trainingSchemaVersion,
-        trainingBenchSteps,
-        workloadType: 'training',
-        trainingStage: 'stage_b',
-        teacherModelId,
-        studentModelId,
-        distillDatasetId,
-        distillDatasetPath,
-        distillLanguagePair,
-        distillShardIndex,
-        distillShardCount,
-        resumeFrom,
-        distillArtifactDir: outDirAbs,
-        stageAArtifact: stageAArtifact.stageAArtifact,
-        stageAArtifactHash: String(stageAArtifact.stageAArtifactHash || ''),
-      },
-      run: {
-        surface: args.surface,
-      },
-    }),
-    '--runtime-config',
-    runtimeConfigJson,
-    '--json',
-  ]);
+  if (args.skipStageA && !stageAArtifactInput) {
+    throw new Error('--skip-stage-a requires --stage-a-artifact (or workload stageAArtifact).');
+  }
+
+  let stageAResult = null;
+  let stageAArtifact = stageAArtifactInput
+    ? {
+      stageAArtifact: stageAArtifactInput,
+      stageAArtifactHash: stageAArtifactHashInput || null,
+    }
+    : null;
+  if (!args.skipStageA) {
+    stageAResult = await runVerifyStage('stage_a', {
+      surface: args.surface,
+      trainingBenchSteps: stageASteps,
+      request: baseRequest,
+    });
+    stageAArtifact = extractStageAArtifact(stageAResult);
+  }
+
+  let stageBResult = null;
+  if (!args.stageAOnly) {
+    if (!stageAArtifact?.stageAArtifact) {
+      throw new Error('stage_b requires stage_a artifact.');
+    }
+    stageBResult = await runVerifyStage('stage_b', {
+      surface: args.surface,
+      trainingBenchSteps: stageBSteps,
+      request: baseRequest,
+      stageAArtifact: stageAArtifact.stageAArtifact,
+      stageAArtifactHash: String(stageAArtifact.stageAArtifactHash || ''),
+    });
+  }
 
   const summary = {
     schemaVersion: 1,
     generatedAt: new Date().toISOString(),
-    claimBoundary: 'TranslateGemma distill pipeline for operational benchmarking; not claim of paper-parity SOTA.',
+    mode: 'train',
+    claimBoundary: 'TranslateGemma distill pipeline for operational long-run validation and reproducible lineage.',
     workload: {
       path: workload.path,
       config: workload.config,
     },
+    resolved: {
+      stageASteps: args.skipStageA ? 0 : stageASteps,
+      stageBSteps: args.stageAOnly ? 0 : stageBSteps,
+      checkpointEvery,
+      skipStageA: args.skipStageA,
+      stageAOnly: args.stageAOnly,
+      distillDatasetPath,
+      distillSourceLangs,
+      distillTargetLangs,
+      distillPairAllowlist,
+      strictPairContract,
+      distillShardIndex,
+      distillShardCount,
+      resumeFrom,
+      ...resumeOverrides,
+    },
     stageAArtifact,
-    stageAVerify,
-    stageABench,
-    stageBBench,
+    stageAResult,
+    stageBResult,
   };
-  const outPath = join(outDirAbs, 'distill-bench-summary.json');
+  const outPath = join(outDirAbs, 'distill-train-summary.json');
   await writeFile(outPath, `${JSON.stringify(summary, null, 2)}\n`, 'utf8');
-
-  process.stdout.write(`${JSON.stringify({ ok: true, outPath }, null, 2)}\n`);
+  process.stdout.write(`${JSON.stringify({ ok: true, mode: 'train', outPath }, null, 2)}\n`);
 }
 
 await main();

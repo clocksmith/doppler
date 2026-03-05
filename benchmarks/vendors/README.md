@@ -110,6 +110,7 @@ When `--compare-result` is provided, matrix generation also captures host/browse
 - Path order is canonicalized in harness files and validated before comparison.
 - Metric paths are canonicalized through `benchmarks/vendors/harnesses/*.json` and validated as required before any comparison.
 - `tools/compare-engines.js` defaults to `--decode-profile parity` (Doppler `batchSize=1`, `readbackInterval=1`) for closer Transformers.js decode cadence matching; use `--decode-profile throughput` for Doppler-tuned runs.
+- Doppler surface is now explicit in compare runs: `--doppler-surface auto|node|browser` (default from `compare-engines.config.json` per model profile via `defaultDopplerSurface`, fallback `auto`).
 
 ## Visualization
 

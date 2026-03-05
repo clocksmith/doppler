@@ -10,6 +10,7 @@ Quick index for DOPPLER documentation.
 - [Pipeline Contract](pipeline-contract.md) - Boundary-by-boundary flow from command entry to output.
 - [Config](config.md) - Kernel paths and error codes.
 - [Formats](formats.md) - RDRR and LoRA formats, adapter manifest.
+- [Conversion Runtime Contract](conversion-runtime-contract.md) - Conversion-static vs runtime-overridable field contract.
 - [Operations](operations.md) - Troubleshooting, debug notes, perf investigations, results.
 - [Testing](testing.md) - Testing strategy, kernel testing, known-good matrix.
 - [Training Overview](training-overview.md) - Verify/calibrate scope, stage support, and release expectations.

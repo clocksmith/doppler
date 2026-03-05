@@ -598,6 +598,77 @@ export const GPUShaderStage = { COMPUTE: 10 };
 
 {
   const snapshot = snapshotState();
+  const tempDir = mkdtempSync(path.join(tmpdir(), 'doppler-webgpu-local-provider-env-'));
+  try {
+    clearRuntime();
+    const tempDopplerDir = path.join(tempDir, 'doppler');
+    const tempFawnProviderDir = path.join(tempDir, 'fawn', 'nursery', 'webgpu-core');
+    const tempWebgpuDir = path.join(tempDopplerDir, 'node_modules', 'webgpu');
+
+    mkdirSync(tempDopplerDir, { recursive: true });
+    mkdirSync(tempFawnProviderDir, { recursive: true });
+    mkdirSync(tempWebgpuDir, { recursive: true });
+
+    writeFileSync(path.join(tempFawnProviderDir, 'package.json'), JSON.stringify({
+      name: '@doe/webgpu-core',
+      version: '1.0.0',
+      type: 'module',
+      exports: './index.js',
+    }), 'utf8');
+    writeFileSync(path.join(tempFawnProviderDir, 'index.js'), `
+const providerModuleSpecifier = process.env.FAWN_WEBGPU_NODE_PROVIDER_MODULE || 'webgpu';
+let providerModule = null;
+try {
+  providerModule = await import(providerModuleSpecifier);
+} catch {
+  providerModule = null;
+}
+export const globals = {
+  GPUBufferUsage: { COPY_SRC: 1111 },
+  GPUShaderStage: { COMPUTE: 1111 },
+};
+export function create() {
+  if (providerModule?.gpu && typeof providerModule.gpu.requestAdapter === 'function') {
+    return providerModule.gpu;
+  }
+  if (typeof providerModule?.create === 'function') {
+    return providerModule.create([]);
+  }
+  return null;
+}
+`, 'utf8');
+
+    writeFileSync(path.join(tempWebgpuDir, 'package.json'), JSON.stringify({
+      name: 'webgpu',
+      version: '1.0.0',
+      type: 'module',
+      exports: './index.js',
+    }), 'utf8');
+    writeFileSync(path.join(tempWebgpuDir, 'index.js'), `
+export const gpu = { async requestAdapter() { return null; } };
+export const GPUBufferUsage = { COPY_SRC: 2222 };
+export const GPUShaderStage = { COMPUTE: 2222 };
+`, 'utf8');
+
+    process.chdir(tempDopplerDir);
+    delete process.env.DOPPLER_NODE_WEBGPU_MODULE;
+    delete process.env.FAWN_WEBGPU_NODE_PROVIDER_MODULE;
+
+    const ready = await bootstrapNodeWebGPU();
+    assert.equal(ready, true);
+    await globalThis.navigator.gpu.requestAdapter();
+    // Local @doe/webgpu-core must be selected, and it only works if provider override was inferred.
+    assert.equal(globalThis.GPUBufferUsage.COPY_SRC, 1111);
+    assert.equal(globalThis.GPUShaderStage.COMPUTE, 1111);
+    assert.equal(process.env.FAWN_WEBGPU_NODE_PROVIDER_MODULE, undefined);
+  } finally {
+    rmSync(tempDir, { recursive: true, force: true });
+    restoreState(snapshot);
+  }
+}
+
+{
+  const snapshot = snapshotState();
   try {
     clearRuntime();
     process.env.DOPPLER_NODE_WEBGPU_MODULE = '/dev/null';

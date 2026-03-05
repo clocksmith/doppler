@@ -46,6 +46,10 @@ export declare function buildSuiteOptions(
   distillDatasetId?: string;
   distillDatasetPath?: string;
   distillLanguagePair?: string;
+  distillSourceLangs?: string[];
+  distillTargetLangs?: string[];
+  distillPairAllowlist?: string[];
+  strictPairContract?: boolean;
   distillShardIndex?: number;
   distillShardCount?: number;
   resumeFrom?: string;
@@ -55,6 +59,7 @@ export declare function buildSuiteOptions(
   checkpointOperator?: string;
   trainingSchemaVersion?: number;
   trainingBenchSteps?: number;
+  checkpointEvery?: number;
   workloadType?: string;
   cacheMode: ToolingCommandRequest['cacheMode'];
   loadMode: 'opfs' | 'http' | 'memory' | null;
