@@ -18,7 +18,7 @@
     button:disabled { opacity: 0.5; cursor: not-allowed; }
   </style>
   <script type="importmap">
-    { "imports": { "@doppler/core": "https://d4da.com/src/index-browser.js" } }
+    { "imports": { "@simulatte/doppler": "https://d4da.com/src/index-browser.js" } }
   </script>
 </head>
 <body>
@@ -31,7 +31,7 @@
   </form>
 
   <script type="module">
-    import { DopplerProvider } from '@doppler/core';
+    import { DopplerProvider } from '@simulatte/doppler';
 
     const MODEL_ID = 'gemma-3-270m-it-wq4k-ef16';
     const MODEL_URL = 'https://huggingface.co/Clocksmith/rdrr/resolve/HEAD/models/gemma-3-270m-it-wq4k-ef16';

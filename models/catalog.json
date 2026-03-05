@@ -1,7 +1,7 @@
 {
   "version": 1,
   "lifecycleSchemaVersion": 1,
-  "updatedAt": "2026-03-04",
+  "updatedAt": "2026-03-05",
   "models": [
     {
       "modelId": "gemma-3-270m-it-wq4k-ef16-hf16",
@@ -88,6 +88,80 @@
           "lastVerifiedAt": "2026-03-04",
           "source": "registry-verify"
         }
+      }
+    },
+    {
+      "modelId": "qwen-3-5-0-8b-wq4k-ef16-hf16-f16",
+      "preset": "qwen3",
+      "label": "Qwen 3.5 0.8B (Q4K)",
+      "description": "Qwen 3.5 0.8B text model with hybrid linear attention. Q4K weights, F16 embeddings/head.",
+      "modes": [
+        "run"
+      ],
+      "aliases": [
+        "qwen3-0.8b",
+        "qwen-3-5-0-8b",
+        "Qwen/Qwen3.5-0.8B"
+      ],
+      "hf": {
+        "repoId": "Clocksmith/rdrr",
+        "revision": null,
+        "path": "models/qwen-3-5-0-8b-wq4k-ef16-hf16-f16"
+      },
+      "baseUrl": null,
+      "sizeBytes": 788833984,
+      "recommended": true,
+      "sortOrder": 20,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": true,
+          "hf": false
+        },
+        "status": {
+          "runtime": "pending",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "untested"
+        },
+        "tested": null
+      }
+    },
+    {
+      "modelId": "qwen-3-5-2b-wq4k-ef16-hf16-f16",
+      "preset": "qwen3",
+      "label": "Qwen 3.5 2B (Q4K)",
+      "description": "Qwen 3.5 2B text model with hybrid linear attention. Q4K weights, F16 embeddings/head.",
+      "modes": [
+        "run"
+      ],
+      "aliases": [
+        "qwen3-2b",
+        "qwen-3-5-2b",
+        "Qwen/Qwen3.5-2B"
+      ],
+      "hf": {
+        "repoId": "Clocksmith/rdrr",
+        "revision": null,
+        "path": "models/qwen-3-5-2b-wq4k-ef16-hf16-f16"
+      },
+      "baseUrl": null,
+      "sizeBytes": 1789738688,
+      "recommended": true,
+      "sortOrder": 21,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": true,
+          "hf": false
+        },
+        "status": {
+          "runtime": "pending",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "untested"
+        },
+        "tested": null
       }
     }
   ]

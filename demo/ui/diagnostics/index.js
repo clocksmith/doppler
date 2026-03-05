@@ -1,4 +1,4 @@
-import { getRuntimeConfig, setRuntimeConfig, loadRuntimePreset } from '@doppler/core';
+import { getRuntimeConfig, setRuntimeConfig, loadRuntimePreset } from '@simulatte/doppler';
 import { state } from '../state.js';
 import { $, setHidden, setText } from '../dom.js';
 import {

@@ -22,7 +22,10 @@ const DEFAULT_CLI_POLICY = {
     bench: {
       modelId: 'gemma-3-270m-it-wf16-ef16-hf16',
       surface: 'browser',
+      cacheMode: 'warm',
     },
+    cacheMode: null,
+    loadMode: null,
     benchmark: {
       saveDir: './benchmarks/vendors/results',
     },
@@ -613,6 +616,9 @@ function isTrainingCommandFlow(request) {
 
 async function runCommandOnSurface(request, surface, runConfig, jsonOutput) {
   if (surface === 'node') {
+    if (!jsonOutput) {
+      console.error('[surface] running on: node');
+    }
     return runNodeCommand(request, buildNodeRunOptions(jsonOutput));
   }
 
@@ -620,9 +626,10 @@ async function runCommandOnSurface(request, surface, runConfig, jsonOutput) {
   const browserRequest = await resolveBrowserModelUrl(request, browserOptions);
 
   if (!jsonOutput) {
-    console.error('[progress] browser launching WebGPU harness...');
+    const mode = browserOptions.headless === false ? 'headed' : 'headless';
+    console.error(`[surface] running on: browser (${mode})`);
     if (browserRequest.modelUrl && browserRequest.modelUrl !== request.modelUrl) {
-      console.error(`[progress] browser resolved modelUrl=${browserRequest.modelUrl}`);
+      console.error(`[surface] browser resolved modelUrl=${browserRequest.modelUrl}`);
     }
   }
 
@@ -655,6 +662,9 @@ async function runWithAutoSurface(request, runConfig, jsonOutput, policy = DEFAU
     }
     if (fallbackPolicy.to !== 'browser') {
       throw error;
+    }
+    if (!jsonOutput) {
+      console.error('[surface] node WebGPU unavailable, falling back to browser');
     }
     return runCommandOnSurface(request, 'browser', runConfig, jsonOutput);
   }
