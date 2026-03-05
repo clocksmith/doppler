@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-03-03T21:44:04.664Z",
+  "generatedAt": "2026-03-05T15:31:15.991Z",
   "release": {
     "channel": "main-snapshot",
     "version": null,
-    "commitSha": "e40750863b77f4f1d954b00b6445d9b0a18394d0",
-    "dirty": true
+    "commitSha": "44026e2deab2cb60e58619d4fddfcf82b35daefa",
+    "dirty": null
   },
   "sources": {
     "registry": {
@@ -16,8 +16,8 @@
     },
     "workloads": {
       "path": "benchmarks/vendors/workloads.json",
-      "sha256": "6257c24d5addd2d7c8f2406d73888c728c6b83bfa26a36e171ac80f2c04b444b",
-      "bytes": 389,
+      "sha256": "ca8994dac1610ea2b6409b99f233fbbd07781c62b65a6421cc2b23b69077aaec",
+      "bytes": 852,
       "updated": null
     },
     "capabilities": {
@@ -28,23 +28,23 @@
     },
     "compareConfig": {
       "path": "benchmarks/vendors/compare-engines.config.json",
-      "sha256": "5f24039e37de943cfe0043f8cf0430f7606eb35cfc851205cdf13f35162049f6",
-      "bytes": 410,
-      "updated": "2026-02-23"
+      "sha256": "bc13f3e7525db59c1b0013a634e54ada622e9d2796f7fa9c7bace866b932cf04",
+      "bytes": 1342,
+      "updated": "2026-03-05"
     },
     "modelCatalog": {
       "path": "models/catalog.json",
-      "sha256": "4a06f0c0375f75dd00a43a02beaadd13dfdcbd8ba7e472a1210a59b885784975",
-      "bytes": 804,
-      "updated": "2026-02-26"
+      "sha256": "f03c676daf1b0270ef87bc65fd15bba9b3ec5a53f81c2d5d71a4121ad245b13c",
+      "bytes": 1858,
+      "updated": "2026-03-04"
     }
   },
   "summary": {
     "targetCount": 8,
-    "modelCoverageCount": 4,
-    "compareProfileCount": 2,
+    "modelCoverageCount": 7,
+    "compareProfileCount": 6,
     "catalogModelCount": 2,
-    "workloadCount": 2,
+    "workloadCount": 5,
     "committedChartCount": 1,
     "hasLatestCompareResult": true
   },
@@ -490,10 +490,47 @@
   ],
   "modelCoverage": [
     {
+      "dopplerModelId": "gemma-3-1b-it-wf16-ef16-hf16-f16",
+      "dopplerModelBaseDir": "local",
+      "defaultTjsModelId": "onnx-community/gemma-3-1b-it-ONNX-GQA",
+      "defaultKernelPath": "gemma3-f16-fused-f16a-online",
+      "defaultDopplerSurface": "auto",
+      "inCatalog": false,
+      "catalogLabel": null,
+      "catalogModes": [],
+      "catalogBaseUrl": null,
+      "catalogSizeBytes": null
+    },
+    {
       "dopplerModelId": "gemma-3-1b-it-wf16-ef16-hf16-f32",
       "dopplerModelBaseDir": "local",
       "defaultTjsModelId": "onnx-community/gemma-3-1b-it-ONNX-GQA",
       "defaultKernelPath": "gemma3-f16-fused-f32a-online",
+      "defaultDopplerSurface": "auto",
+      "inCatalog": false,
+      "catalogLabel": null,
+      "catalogModes": [],
+      "catalogBaseUrl": null,
+      "catalogSizeBytes": null
+    },
+    {
+      "dopplerModelId": "gemma-3-1b-it-wq4k-ef16-hf16",
+      "dopplerModelBaseDir": "local",
+      "defaultTjsModelId": "onnx-community/gemma-3-1b-it-ONNX-GQA",
+      "defaultKernelPath": "gemma3-q4k-dequant-f16a-online",
+      "defaultDopplerSurface": "auto",
+      "inCatalog": false,
+      "catalogLabel": null,
+      "catalogModes": [],
+      "catalogBaseUrl": null,
+      "catalogSizeBytes": null
+    },
+    {
+      "dopplerModelId": "gemma-3-1b-it-wq4k-ef16-hf16-f32",
+      "dopplerModelBaseDir": "local",
+      "defaultTjsModelId": "onnx-community/gemma-3-1b-it-ONNX-GQA",
+      "defaultKernelPath": "gemma3-q4k-dequant-f32a-online",
+      "defaultDopplerSurface": "auto",
       "inCatalog": false,
       "catalogLabel": null,
       "catalogModes": [],
@@ -505,6 +542,7 @@
       "dopplerModelBaseDir": "local",
       "defaultTjsModelId": "onnx-community/gemma-3-270m-it-ONNX",
       "defaultKernelPath": null,
+      "defaultDopplerSurface": "auto",
       "inCatalog": false,
       "catalogLabel": null,
       "catalogModes": [],
@@ -513,9 +551,10 @@
     },
     {
       "dopplerModelId": "gemma-3-270m-it-wq4k-ef16-hf16",
-      "dopplerModelBaseDir": null,
-      "defaultTjsModelId": null,
-      "defaultKernelPath": null,
+      "dopplerModelBaseDir": "local",
+      "defaultTjsModelId": "onnx-community/gemma-3-270m-it-ONNX",
+      "defaultKernelPath": "gemma3-q4k-dequant-f32a-online",
+      "defaultDopplerSurface": "auto",
       "inCatalog": true,
       "catalogLabel": "Gemma 3 270M Instruct (Q4K/F32a)",
       "catalogModes": [
@@ -530,6 +569,7 @@
       "dopplerModelBaseDir": null,
       "defaultTjsModelId": null,
       "defaultKernelPath": null,
+      "defaultDopplerSurface": "auto",
       "inCatalog": true,
       "catalogLabel": "EmbeddingGemma 300M (Q4K)",
       "catalogModes": [
@@ -556,6 +596,39 @@
       "name": "Gemma3 Grid 64/64 t1 k32 (sampling)",
       "prefillTokens": 64,
       "decodeTokens": 64,
+      "sampling": {
+        "temperature": 1,
+        "topK": 32,
+        "topP": 1
+      }
+    },
+    {
+      "id": "g3-p256-d128-t0-k1",
+      "name": "Gemma3 Grid 256/128 Greedy",
+      "prefillTokens": 256,
+      "decodeTokens": 128,
+      "sampling": {
+        "temperature": 0,
+        "topK": 1,
+        "topP": 1
+      }
+    },
+    {
+      "id": "g3-p512-d128-t0-k1",
+      "name": "Gemma3 Grid 512/128 Greedy",
+      "prefillTokens": 512,
+      "decodeTokens": 128,
+      "sampling": {
+        "temperature": 0,
+        "topK": 1,
+        "topP": 1
+      }
+    },
+    {
+      "id": "g3-p256-d128-t1-k32",
+      "name": "Gemma3 Grid 256/128 t1 k32 (sampling)",
+      "prefillTokens": 256,
+      "decodeTokens": 128,
       "sampling": {
         "temperature": 1,
         "topK": 32,

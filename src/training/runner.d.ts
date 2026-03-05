@@ -124,6 +124,10 @@ export interface TrainingRunOptions {
   distillDatasetId?: string | null;
   distillDatasetPath?: string | null;
   distillLanguagePair?: string | null;
+  distillSourceLangs?: string[] | null;
+  distillTargetLangs?: string[] | null;
+  distillPairAllowlist?: string[] | null;
+  strictPairContract?: boolean;
   distillShardIndex?: number | null;
   distillShardCount?: number | null;
   resumeFrom?: string | null;

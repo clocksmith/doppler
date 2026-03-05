@@ -25,6 +25,39 @@
         "topK": 32,
         "topP": 1
       }
+    },
+    {
+      "id": "g3-p256-d128-t0-k1",
+      "name": "Gemma3 Grid 256/128 Greedy",
+      "prefillTokens": 256,
+      "decodeTokens": 128,
+      "sampling": {
+        "temperature": 0,
+        "topK": 1,
+        "topP": 1
+      }
+    },
+    {
+      "id": "g3-p512-d128-t0-k1",
+      "name": "Gemma3 Grid 512/128 Greedy",
+      "prefillTokens": 512,
+      "decodeTokens": 128,
+      "sampling": {
+        "temperature": 0,
+        "topK": 1,
+        "topP": 1
+      }
+    },
+    {
+      "id": "g3-p256-d128-t1-k32",
+      "name": "Gemma3 Grid 256/128 t1 k32 (sampling)",
+      "prefillTokens": 256,
+      "decodeTokens": 128,
+      "sampling": {
+        "temperature": 1,
+        "topK": 32,
+        "topP": 1
+      }
     }
   ]
 }

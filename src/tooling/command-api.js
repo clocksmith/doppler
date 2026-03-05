@@ -261,6 +261,10 @@ function normalizeConvert(raw) {
     distillDatasetId: null,
     distillDatasetPath: null,
     distillLanguagePair: null,
+    distillSourceLangs: null,
+    distillTargetLangs: null,
+    distillPairAllowlist: null,
+    strictPairContract: null,
     distillShardIndex: null,
     distillShardCount: null,
     resumeFrom: null,
@@ -270,6 +274,7 @@ function normalizeConvert(raw) {
     checkpointOperator: null,
     trainingSchemaVersion: null,
     trainingBenchSteps: null,
+    checkpointEvery: null,
     workloadType: asOptionalString(raw.workloadType, 'workloadType'),
     modelUrl: asOptionalString(raw.modelUrl, 'modelUrl'),
     cacheMode: asOptionalCacheMode(raw.cacheMode, 'cacheMode'),
@@ -315,6 +320,10 @@ function normalizeSuiteCommand(raw, command) {
   const distillDatasetId = asOptionalString(raw.distillDatasetId, 'distillDatasetId');
   const distillDatasetPath = asOptionalString(raw.distillDatasetPath, 'distillDatasetPath');
   const distillLanguagePair = asOptionalString(raw.distillLanguagePair, 'distillLanguagePair');
+  const distillSourceLangs = asOptionalStringArray(raw.distillSourceLangs, 'distillSourceLangs');
+  const distillTargetLangs = asOptionalStringArray(raw.distillTargetLangs, 'distillTargetLangs');
+  const distillPairAllowlist = asOptionalStringArray(raw.distillPairAllowlist, 'distillPairAllowlist');
+  const strictPairContract = asOptionalBoolean(raw.strictPairContract, 'strictPairContract');
   const distillShardIndex = asOptionalPositiveInteger(raw.distillShardIndex, 'distillShardIndex');
   const distillShardCount = asOptionalPositiveInteger(raw.distillShardCount, 'distillShardCount');
   const resumeFrom = asOptionalString(raw.resumeFrom, 'resumeFrom');
@@ -327,6 +336,7 @@ function normalizeSuiteCommand(raw, command) {
     'trainingSchemaVersion'
   );
   const trainingBenchSteps = asOptionalPositiveInteger(raw.trainingBenchSteps, 'trainingBenchSteps');
+  const checkpointEvery = asOptionalPositiveInteger(raw.checkpointEvery, 'checkpointEvery');
   const workloadType = asOptionalString(raw.workloadType, 'workloadType');
   const isTrainingBenchWorkload = command === 'bench' && suite === 'bench' && workloadType === 'training';
   const allowsTrainingFields = suite === 'training' || isTrainingBenchWorkload;
@@ -345,6 +355,10 @@ function normalizeSuiteCommand(raw, command) {
     || distillDatasetId
     || distillDatasetPath
     || distillLanguagePair
+    || distillSourceLangs
+    || distillTargetLangs
+    || distillPairAllowlist
+    || strictPairContract !== null
     || distillShardIndex
     || distillShardCount
     || resumeFrom
@@ -354,6 +368,7 @@ function normalizeSuiteCommand(raw, command) {
     || checkpointOperator
     || trainingSchemaVersionInput
     || trainingBenchSteps
+    || checkpointEvery
   )) {
     throw new Error(
       'tooling command: training-only fields require suite="training" or bench workloadType="training".'
@@ -428,6 +443,10 @@ function normalizeSuiteCommand(raw, command) {
     distillDatasetId,
     distillDatasetPath,
     distillLanguagePair,
+    distillSourceLangs,
+    distillTargetLangs,
+    distillPairAllowlist,
+    strictPairContract: allowsTrainingFields ? strictPairContract : null,
     distillShardIndex,
     distillShardCount,
     resumeFrom,
@@ -439,6 +458,7 @@ function normalizeSuiteCommand(raw, command) {
     checkpointOperator: allowsTrainingFields ? checkpointOperator : null,
     trainingSchemaVersion,
     trainingBenchSteps,
+    checkpointEvery: allowsTrainingFields ? checkpointEvery : null,
     workloadType,
     modelUrl,
     cacheMode: asOptionalCacheMode(raw.cacheMode, 'cacheMode'),

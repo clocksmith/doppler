@@ -121,6 +121,9 @@ batched matmul kernel for prefill while keeping `lm_head` on GEMV for decode.
 
 ### Conversion Profiles: explicit runtime intent
 
+Canonical reference for conversion-vs-runtime ownership:
+[Conversion Runtime Contract](conversion-runtime-contract.md)
+
 Model ID naming (and `quantizationInfo.variantTag`) is storage-only.  
 Your runtime contract must live in inference settings:
 

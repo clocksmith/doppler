@@ -2278,14 +2278,15 @@ function renderReleaseMatrixMarkdown(matrix, options = {}) {
   lines.push('');
   lines.push('## Model Coverage');
   lines.push('');
-  lines.push('| Doppler Model | In Catalog | Catalog Modes | TJS Mapping | Kernel Path | Base Dir |');
-  lines.push('|---|---|---|---|---|---|');
+  lines.push('| Doppler Model | In Catalog | Catalog Modes | TJS Mapping | Kernel Path | Surface | Base Dir |');
+  lines.push('|---|---|---|---|---|---|---|');
   for (const row of matrix.modelCoverage) {
     lines.push(
       `| \`${markdownTableCell(row.dopplerModelId)}\` | ${row.inCatalog ? 'yes' : 'no'} | `
       + `${markdownTableCell(row.catalogModes.join(', '))} | `
       + `${row.defaultTjsModelId ? `\`${markdownTableCell(row.defaultTjsModelId)}\`` : ''} | `
       + `${row.defaultKernelPath ? `\`${markdownTableCell(row.defaultKernelPath)}\`` : ''} | `
+      + `${markdownTableCell(row.defaultDopplerSurface || '')} | `
       + `${markdownTableCell(row.dopplerModelBaseDir || '')} |`
     );
   }
@@ -2415,6 +2416,7 @@ async function doMatrix(flags, timestamp = null) {
       dopplerModelBaseDir: profile.modelBaseDir || null,
       defaultTjsModelId: profile.defaultTjsModelId || null,
       defaultKernelPath: profile.defaultKernelPath || null,
+      defaultDopplerSurface: profile.defaultDopplerSurface || 'auto',
       inCatalog: Boolean(catalogEntry),
       catalogLabel: catalogEntry?.label || null,
       catalogModes: Array.isArray(catalogEntry?.modes) ? catalogEntry.modes : [],
@@ -2429,6 +2431,7 @@ async function doMatrix(flags, timestamp = null) {
       dopplerModelBaseDir: null,
       defaultTjsModelId: null,
       defaultKernelPath: null,
+      defaultDopplerSurface: 'auto',
       inCatalog: true,
       catalogLabel: catalogEntry.label,
       catalogModes: catalogEntry.modes,
@@ -2480,7 +2483,7 @@ async function doMatrix(flags, timestamp = null) {
       channel: 'main-snapshot',
       version: null,
       commitSha: releaseMetadata.commitSha,
-      dirty: releaseMetadata.dirty,
+      dirty: null,
     },
     sources: {
       ...sourceHashes,

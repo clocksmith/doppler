@@ -287,6 +287,7 @@ const DEFAULT_COMPARE_METRIC_CONTRACT_PATH = COMPARE_METRIC_CONTRACT_PATH;
 const schemaCache = new Map();
 const REQUIRED_COMPARE_TIMING_FIELDS = BENCHMARK_POLICY.requiredTimingFields;
 const DECODE_PROFILE_PRESETS = BENCHMARK_POLICY.decodeProfiles.presets;
+const DOPPLER_SURFACES = Object.freeze(['auto', 'node', 'browser']);
 const VALID_DECODE_PROFILES = Object.freeze([
   ...Object.keys(DECODE_PROFILE_PRESETS),
   'custom',
@@ -316,6 +317,7 @@ function usage() {
     '  --warmup <n>                  Warmup runs per engine',
     '  --runs <n>                    Timed runs per engine',
     '  --decode-profile <profile>     parity|throughput|custom (default: parity)',
+    '  --doppler-surface <surface>     auto|node|browser (default: from compare profile, fallback auto)',
     '  --compare-config <path>        Compare model profile config path',
     '  --compare-metric-contract <path> Compare metric contract path',
     '  --seed <n>                    Deterministic seed',
@@ -798,6 +800,15 @@ async function loadCompareEnginesConfig(rawPath) {
     if (row.modelBaseDir != null && (typeof row.modelBaseDir !== 'string' || row.modelBaseDir.trim() === '')) {
       throw new Error(`compare-engines.config.json modelBaseDir for ${row.dopplerModelId} must be a non-empty string or null`);
     }
+    if (row.defaultDopplerSurface != null) {
+      const normalizedSurface = String(row.defaultDopplerSurface).trim().toLowerCase();
+      if (!DOPPLER_SURFACES.includes(normalizedSurface)) {
+        throw new Error(
+          `compare-engines.config.json defaultDopplerSurface for ${row.dopplerModelId} must be one of: ${DOPPLER_SURFACES.join(', ')}`
+        );
+      }
+      row.defaultDopplerSurface = normalizedSurface;
+    }
   }
 
   const modelProfileById = new Map(rows.map((row) => [String(row.dopplerModelId).trim().toLowerCase(), row]));
@@ -819,6 +830,7 @@ function resolveCompareProfile(compareConfig, modelId) {
     modelBaseDir: profile?.modelBaseDir || 'local',
     defaultTjsModelId: profile?.defaultTjsModelId || null,
     defaultKernelPath: profile?.defaultKernelPath || null,
+    defaultDopplerSurface: profile?.defaultDopplerSurface || 'auto',
   };
 }
 
@@ -1111,6 +1123,12 @@ function buildDopplerRuntimeConfig(sharedContract, engineOverlay) {
 }
 
 async function runDoppler(modelId, modelUrl, sharedContract, cacheMode, options = {}) {
+  const resolvedSurface = parseChoice(
+    options.surface,
+    DOPPLER_SURFACES,
+    '--doppler-surface',
+    'auto'
+  );
   const resolvedKernelPath = options.kernelPath ?? DEFAULT_DOPPLER_KERNEL_PATH;
   const resolvedLoadMode = options.loadMode ?? null;
   const resolvedTimeoutMs = parsePositiveInt(options.timeoutMs, DEFAULT_DOPPLER_TIMEOUT_MS, '--doppler-timeout-ms');
@@ -1135,16 +1153,12 @@ async function runDoppler(modelId, modelUrl, sharedContract, cacheMode, options 
   });
   const stableBrowserArgs = appendBrowserArgs([], STABLE_BROWSER_ARGS);
 
-  const buildCliConfig = (forceNoOpfs = false) => ({
-    request: {
-      modelId,
-      modelUrl,
-      cacheMode,
-      ...(resolvedLoadMode != null ? { loadMode: String(resolvedLoadMode) } : {}),
-    },
-    run: {
-      surface: 'browser',
-      browser: {
+  const buildCliConfig = (forceNoOpfs = false) => {
+    const run = {
+      surface: resolvedSurface,
+    };
+    if (resolvedSurface !== 'node') {
+      run.browser = {
         ...(resolvedBrowserBaseUrl
           ? { baseUrl: String(resolvedBrowserBaseUrl) }
           : (options.browserPort != null ? { port: resolvedBrowserPort } : {})),
@@ -1152,9 +1166,18 @@ async function runDoppler(modelId, modelUrl, sharedContract, cacheMode, options 
         ...(options.browserUserData ? { userDataDir: String(options.browserUserData) } : {}),
         ...(options.noOpfsCache || forceNoOpfs ? { opfsCache: false } : {}),
         browserArgs: stableBrowserArgs,
+      };
+    }
+    return {
+      request: {
+        modelId,
+        modelUrl,
+        cacheMode,
+        ...(resolvedLoadMode != null ? { loadMode: String(resolvedLoadMode) } : {}),
       },
-    },
-  });
+      run,
+    };
+  };
 
   console.error(`[compare] running Doppler (${cacheMode})...`);
   const runOnce = async ({ forceNoOpfs = false } = {}) => {
@@ -1180,7 +1203,11 @@ async function runDoppler(modelId, modelUrl, sharedContract, cacheMode, options 
     return await runOnce();
   } catch (error) {
     const message = String(error?.message || '');
-    const shouldRetryNoOpfs = !options.noOpfsCache && message.includes('Invalid manifest');
+    const shouldRetryNoOpfs = (
+      resolvedSurface !== 'node'
+      && !options.noOpfsCache
+      && message.includes('Invalid manifest')
+    );
     if (shouldRetryNoOpfs) {
       console.error('[compare] Doppler failed with cached manifest mismatch; retrying with --no-opfs-cache...');
       try {
@@ -1589,6 +1616,7 @@ async function main() {
   const dopplerModelId = flags['model-id'] || defaultDopplerModelId;
   const compareProfile = resolveCompareProfile(compareProfileConfig, dopplerModelId);
   const dopplerModelBaseDir = compareProfile.modelBaseDir || 'local';
+  const compareProfileDefaultDopplerSurface = compareProfile.defaultDopplerSurface || 'auto';
   const compareMetricContractConfig = await loadCompareMetricContract(flags['compare-metric-contract']);
   assertCompareMetricContractCompleteness(compareMetricContractConfig.metrics);
   const [dopplerHarnessMetricPaths, tjsHarnessMetricPaths] = await Promise.all([
@@ -1674,6 +1702,12 @@ async function main() {
   const tjsBrowserConsole = flags['tjs-browser-console'] === true;
   const browserBaseUrl = flags['browser-base-url'] || null;
   const browserExecutable = flags['browser-executable'] || null;
+  const dopplerSurface = parseChoice(
+    flags['doppler-surface'],
+    DOPPLER_SURFACES,
+    '--doppler-surface',
+    compareProfileDefaultDopplerSurface
+  );
   const hasCustomDopplerBatchSize = flags['doppler-batch-size'] != null;
   const hasCustomDopplerReadbackInterval = flags['doppler-readback-interval'] != null;
   const hasCustomDopplerDecodeTuning = hasCustomDopplerBatchSize || hasCustomDopplerReadbackInterval;
@@ -1699,6 +1733,9 @@ async function main() {
   );
   const dopplerTokensPerReadback = dopplerBatchSize * dopplerReadbackInterval;
   const dopplerNoOpfsCache = flags['doppler-no-opfs-cache'] === true;
+  if (dopplerNoOpfsCache && dopplerSurface === 'node') {
+    throw new Error('--doppler-no-opfs-cache is browser-only; use --doppler-surface browser|auto or remove this flag.');
+  }
   const dopplerBrowserUserData = flags['doppler-browser-user-data'] || null;
     const dopplerBrowserPort = flags['doppler-browser-port'] != null
       ? parseNonNegativeInt(
@@ -1741,6 +1778,7 @@ async function main() {
   console.error(
     `[compare] mode: ${mode}, maxTokens: ${maxTokens}, warmupRuns: ${warmupRuns}, runs: ${runs}, `
     + `decodeProfile: ${decodeProfile}, workload=${workloadId ?? 'none'}, `
+    + `dopplerSurface: ${dopplerSurface}, `
     + `sampling=(temp=${sharedContract.sampling.temperature}, topK=${sharedContract.sampling.topK}, topP=${sharedContract.sampling.topP}), `
     + `useChatTemplate: ${sharedContract.useChatTemplate === true ? 'on' : 'off'}, `
     + `dopplerBatchSize: ${dopplerBatchSize}, `
@@ -1798,6 +1836,7 @@ async function main() {
     },
     dopplerModelId,
     dopplerDtype: parseDopplerDtype(dopplerModelId),
+    dopplerSurface,
     dopplerKernelPath: dopplerKernelPath ?? 'manifest-default',
     dopplerKernelPathSource: dopplerKernelResolution.source,
     decodeProfile,
@@ -1846,8 +1885,12 @@ async function main() {
           : 'raw-prompt',
       },
       cacheSemantics: {
-        warm: 'Prime engine cache before timed run, then run from local persistent cache only (Doppler OPFS; TJS persistent browser cache).',
-        cold: 'Wipe engine-specific persistent cache state before run (Doppler OPFS/profile wipe; TJS profile wipe).',
+        warm: dopplerSurface === 'node'
+          ? 'Prime engine cache before timed run, then run from local persistent cache only (Doppler node runtime cache; TJS persistent browser cache).'
+          : 'Prime engine cache before timed run, then run from local persistent cache only (Doppler OPFS; TJS persistent browser cache).',
+        cold: dopplerSurface === 'node'
+          ? 'Wipe engine-specific persistent cache state before run (Doppler node runtime cache/profile wipe; TJS profile wipe).'
+          : 'Wipe engine-specific persistent cache state before run (Doppler OPFS/profile wipe; TJS profile wipe).',
       },
       dopplerDecodeCadence: {
         batchSize: dopplerBatchSize,
@@ -1909,6 +1952,7 @@ async function main() {
         browserBaseUrl,
         timeoutMs: compareDopplerTimeoutMs,
         runtimeConfigJson: runtimeConfigOverride,
+        surface: dopplerSurface,
         loadMode: resolveRunLoadMode('warm', sharedContract.loadMode),
       }
     );
@@ -1943,6 +1987,7 @@ async function main() {
         browserBaseUrl,
         timeoutMs: compareDopplerTimeoutMs,
         runtimeConfigJson: runtimeConfigOverride,
+        surface: dopplerSurface,
         loadMode: resolveRunLoadMode('warm', sharedContract.loadMode),
       }
     );
@@ -1978,6 +2023,7 @@ async function main() {
         browserBaseUrl,
         timeoutMs: compareDopplerTimeoutMs,
         runtimeConfigJson: runtimeConfigOverride,
+        surface: dopplerSurface,
         loadMode: resolveRunLoadMode('warm', sharedContract.loadMode),
       }
     );
@@ -2033,6 +2079,7 @@ async function main() {
         browserBaseUrl,
         timeoutMs: compareDopplerTimeoutMs,
         runtimeConfigJson: runtimeConfigOverride,
+        surface: dopplerSurface,
         loadMode: resolveRunLoadMode('cold', sharedContract.loadMode),
       }
     );

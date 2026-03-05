@@ -150,10 +150,70 @@ function normalizeLangCode(value) {
 function normalizePairDirection(value) {
   const pair = normalizeOptionalString(value);
   if (!pair) return null;
-  const normalized = pair.toLowerCase().replace(/_/g, '-');
-  const parts = normalized.split('-').filter(Boolean);
+  const normalized = pair.toLowerCase().replace(/_/g, '-').replace(/\s+/g, '');
+  const parts = normalized.includes('->')
+    ? normalized.split('->').filter(Boolean)
+    : normalized.split('-').filter(Boolean);
   if (parts.length !== 2) return null;
   return `${normalizeLangCode(parts[0]) || parts[0]}->${normalizeLangCode(parts[1]) || parts[1]}`;
+}
+
+function normalizeOptionalStringArray(value) {
+  if (value === undefined || value === null) return null;
+  const list = Array.isArray(value)
+    ? value
+    : (typeof value === 'string' ? value.split(',') : null);
+  if (!Array.isArray(list)) return null;
+  const normalized = list
+    .map((entry) => normalizeOptionalString(entry))
+    .filter(Boolean);
+  return normalized.length > 0 ? normalized : null;
+}
+
+function normalizeDistillLanguageAllowlist(value) {
+  const list = normalizeOptionalStringArray(value);
+  if (!list) return null;
+  const normalized = list
+    .map((entry) => normalizeLangCode(entry))
+    .filter(Boolean);
+  if (normalized.length === 0) return null;
+  return [...new Set(normalized)];
+}
+
+function normalizeDistillPairAllowlist(value) {
+  const list = normalizeOptionalStringArray(value);
+  if (!list) return null;
+  const normalized = list
+    .map((entry) => normalizePairDirection(entry))
+    .filter(Boolean);
+  if (normalized.length === 0) return null;
+  return [...new Set(normalized)];
+}
+
+function resolveDistillDataScope(options = {}, trainingConfig = null) {
+  const distillConfig = trainingConfig?.distill || {};
+  const sourceLangs = normalizeDistillLanguageAllowlist(
+    options.distillSourceLangs ?? distillConfig.sourceLangs ?? null
+  );
+  const targetLangs = normalizeDistillLanguageAllowlist(
+    options.distillTargetLangs ?? distillConfig.targetLangs ?? null
+  );
+  const pairAllowlist = normalizeDistillPairAllowlist(
+    options.distillPairAllowlist ?? distillConfig.pairAllowlist ?? null
+  );
+  const strictPairContract = (
+    options.strictPairContract === true
+    || distillConfig.strictPairContract === true
+  );
+  return {
+    sourceLangs,
+    targetLangs,
+    pairAllowlist,
+    sourceLangSet: sourceLangs ? new Set(sourceLangs) : null,
+    targetLangSet: targetLangs ? new Set(targetLangs) : null,
+    pairAllowlistSet: pairAllowlist ? new Set(pairAllowlist) : null,
+    strictPairContract,
+  };
 }
 
 function resolveDistillDirection(record) {
@@ -175,17 +235,50 @@ function resolveStringCandidate(record, keys) {
   return null;
 }
 
-function encodeDistillRow(record, index) {
+function encodeDistillRow(record, index, scope = null) {
   if (!record || typeof record !== 'object') return null;
   const source = resolveStringCandidate(record, ['source', 'query']);
   const targetPos = resolveStringCandidate(record, ['target_pos', 'target', 'pos']);
   const targetNeg = resolveStringCandidate(record, ['target_neg', 'neg']);
   if (!source || !targetPos) return null;
-  const direction = resolveDistillDirection(record) || 'unknown';
+  const sourceLangRaw = normalizeLangCode(record?.src_lang);
+  const targetLangRaw = normalizeLangCode(record?.tgt_lang || record?.lang);
+  const pairDirection = normalizePairDirection(record?.pair);
+  const sourceTargetDirection = (
+    sourceLangRaw && targetLangRaw
+      ? `${sourceLangRaw}->${targetLangRaw}`
+      : null
+  );
+  if (scope?.strictPairContract === true) {
+    if (!sourceLangRaw || !targetLangRaw) {
+      throw new Error('strictPairContract requires src_lang and tgt_lang/lang on each row.');
+    }
+    if (!pairDirection) {
+      throw new Error('strictPairContract requires pair on each row.');
+    }
+    if (pairDirection !== sourceTargetDirection) {
+      throw new Error(`pair "${record?.pair}" does not match src/tgt "${sourceLangRaw}-${targetLangRaw}".`);
+    }
+  }
+  const direction = pairDirection || sourceTargetDirection || resolveDistillDirection(record) || 'unknown';
+  const [directionSourceLang, directionTargetLang] = String(direction).split('->');
+  const sourceLang = sourceLangRaw || normalizeLangCode(directionSourceLang);
+  const targetLang = targetLangRaw || normalizeLangCode(directionTargetLang);
+  if (scope?.sourceLangSet && (!sourceLang || !scope.sourceLangSet.has(sourceLang))) {
+    return null;
+  }
+  if (scope?.targetLangSet && (!targetLang || !scope.targetLangSet.has(targetLang))) {
+    return null;
+  }
+  if (scope?.pairAllowlistSet && !scope.pairAllowlistSet.has(direction)) {
+    return null;
+  }
 
   return {
     index,
     direction,
+    sourceLang: sourceLang || null,
+    targetLang: targetLang || null,
     source,
     targetPos,
     targetNeg: targetNeg || null,
@@ -512,12 +605,17 @@ function createDistillTensorDataset(samples, options = {}) {
   };
 }
 
-async function loadDistillDatasetFromJsonl(datasetPath) {
+async function loadDistillDatasetFromJsonl(datasetPath, scopeOptions = null) {
   const normalizedPath = normalizeDistillDatasetPath(datasetPath);
   if (!normalizedPath) return null;
   if (!isNodeRuntime()) {
     throw new Error('distillDatasetPath currently requires Node runtime.');
   }
+  const normalizedScope = (
+    scopeOptions && typeof scopeOptions === 'object'
+      ? scopeOptions
+      : resolveDistillDataScope()
+  );
 
   const [{ readFile }, { resolve, dirname, isAbsolute, join, sep }] = await Promise.all([
     import('node:fs/promises'),
@@ -552,10 +650,16 @@ async function loadDistillDatasetFromJsonl(datasetPath) {
     }
     return join(manifestDir, normalized);
   };
-  const loadEncodedRows = (rawRows) => {
+  const loadEncodedRows = (rawRows, contextLabel) => {
     const encodedRows = [];
     for (let i = 0; i < rawRows.length; i += 1) {
-      const encoded = encodeDistillRow(rawRows[i], i);
+      let encoded = null;
+      try {
+        encoded = encodeDistillRow(rawRows[i], i, normalizedScope);
+      } catch (error) {
+        const message = error?.message ? String(error.message) : String(error);
+        throw new Error(`${contextLabel}: row ${i + 1}: ${message}`);
+      }
       if (encoded) encodedRows.push(encoded);
     }
     return encodedRows;
@@ -590,7 +694,7 @@ async function loadDistillDatasetFromJsonl(datasetPath) {
     for (const shardPath of shardPaths) {
       const shardRaw = await readFile(shardPath, 'utf8');
       const shardRows = parseJsonl(shardRaw);
-      const encodedRows = loadEncodedRows(shardRows);
+      const encodedRows = loadEncodedRows(shardRows, `distill shard "${shardPath}"`);
       rowCount += shardRows.length;
       sampleCount += encodedRows.length;
       const shardDirections = summarizeDirectionCounts(encodedRows);
@@ -606,6 +710,12 @@ async function loadDistillDatasetFromJsonl(datasetPath) {
       rowCount,
       sampleCount,
       directionCounts,
+      dataScope: {
+        sourceLangs: normalizedScope.sourceLangs || null,
+        targetLangs: normalizedScope.targetLangs || null,
+        pairAllowlist: normalizedScope.pairAllowlist || null,
+        strictPairContract: normalizedScope.strictPairContract === true,
+      },
       shardCount: shardPaths.length,
       shardPaths,
       createDataset(runOptions = {}) {
@@ -616,7 +726,7 @@ async function loadDistillDatasetFromJsonl(datasetPath) {
               const shardPath = shardPaths[shardIndex];
               const shardRaw = await readFile(shardPath, 'utf8');
               const shardRows = parseJsonl(shardRaw);
-              const encodedRows = loadEncodedRows(shardRows);
+              const encodedRows = loadEncodedRows(shardRows, `distill shard "${shardPath}"`);
               if (encodedRows.length === 0) continue;
               const shardDataset = createDistillTensorDataset(encodedRows, {
                 ...runOptions,
@@ -638,7 +748,7 @@ async function loadDistillDatasetFromJsonl(datasetPath) {
   }
 
   const rows = parseJsonl(raw);
-  const encodedRows = loadEncodedRows(rows);
+  const encodedRows = loadEncodedRows(rows, `distill dataset "${absolutePath}"`);
   if (encodedRows.length === 0) {
     throw new Error(`Distill dataset "${absolutePath}" has no usable rows.`);
   }
@@ -648,6 +758,12 @@ async function loadDistillDatasetFromJsonl(datasetPath) {
     rowCount: rows.length,
     sampleCount: encodedRows.length,
     directionCounts: summarizeDirectionCounts(encodedRows),
+    dataScope: {
+      sourceLangs: normalizedScope.sourceLangs || null,
+      targetLangs: normalizedScope.targetLangs || null,
+      pairAllowlist: normalizedScope.pairAllowlist || null,
+      strictPairContract: normalizedScope.strictPairContract === true,
+    },
     createDataset(runOptions = {}) {
       return createDistillTensorDataset(encodedRows, runOptions);
     },
@@ -1986,6 +2102,25 @@ function buildDistillTrainingOverrides(options = {}) {
     datasetId: options.distillDatasetId ?? trainingConfig?.distill?.datasetId ?? null,
     datasetPath: options.distillDatasetPath ?? trainingConfig?.distill?.datasetPath ?? null,
     languagePair: options.distillLanguagePair ?? trainingConfig?.distill?.languagePair ?? null,
+    sourceLangs: (
+      options.distillSourceLangs
+      ?? trainingConfig?.distill?.sourceLangs
+      ?? null
+    ),
+    targetLangs: (
+      options.distillTargetLangs
+      ?? trainingConfig?.distill?.targetLangs
+      ?? null
+    ),
+    pairAllowlist: (
+      options.distillPairAllowlist
+      ?? trainingConfig?.distill?.pairAllowlist
+      ?? null
+    ),
+    strictPairContract: (
+      options.strictPairContract === true
+      || trainingConfig?.distill?.strictPairContract === true
+    ),
     shardIndex: options.distillShardIndex ?? trainingConfig?.distill?.shardIndex ?? null,
     shardCount: options.distillShardCount ?? trainingConfig?.distill?.shardCount ?? null,
     resumeFrom: options.resumeFrom ?? trainingConfig?.distill?.resumeFrom ?? null,
@@ -2079,6 +2214,7 @@ async function runUlStageTest(stage, options = {}) {
       forceResumeReason: options.forceResumeReason || null,
       forceResumeSource: options.forceResumeSource || null,
       checkpointOperator: options.checkpointOperator || null,
+      checkpointEvery: options.checkpointEvery ?? null,
       gpuAdapterInfo: getKernelCapabilities(),
       timestamp: options.timestamp || null,
       ulArtifactDir,
@@ -2210,7 +2346,8 @@ async function runDistillStageTest(stage, options = {}) {
     if (!distillDatasetPath) {
       throw new Error('Distill stage requires --distill-dataset-path (training.distill.datasetPath).');
     }
-    const distillDatasetReport = await loadDistillDatasetFromJsonl(distillDatasetPath);
+    const distillDataScope = resolveDistillDataScope(options, resolvedTrainingConfig);
+    const distillDatasetReport = await loadDistillDatasetFromJsonl(distillDatasetPath, distillDataScope);
     distillRuntime = await createDistillRuntimeContext({
       ...options,
       trainingStage: stage,
@@ -2253,6 +2390,7 @@ async function runDistillStageTest(stage, options = {}) {
       forceResumeReason: options.forceResumeReason || null,
       forceResumeSource: options.forceResumeSource || null,
       checkpointOperator: options.checkpointOperator || null,
+      checkpointEvery: options.checkpointEvery ?? null,
       gpuAdapterInfo: getKernelCapabilities(),
       timestamp: options.timestamp || null,
       distillArtifactDir,
@@ -2263,6 +2401,10 @@ async function runDistillStageTest(stage, options = {}) {
       distillDatasetId: options.distillDatasetId || null,
       distillDatasetPath: distillDatasetReport.absolutePath,
       distillLanguagePair: options.distillLanguagePair || null,
+      distillSourceLangs: distillDataScope.sourceLangs || null,
+      distillTargetLangs: distillDataScope.targetLangs || null,
+      distillPairAllowlist: distillDataScope.pairAllowlist || null,
+      strictPairContract: distillDataScope.strictPairContract === true,
       distillShardIndex: options.distillShardIndex ?? fixture.config.training?.distill?.shardIndex ?? null,
       distillShardCount: options.distillShardCount ?? fixture.config.training?.distill?.shardCount ?? null,
       resumeFrom: options.resumeFrom ?? fixture.config.training?.distill?.resumeFrom ?? null,
@@ -2316,6 +2458,10 @@ async function runDistillStageTest(stage, options = {}) {
           datasetId: fixture.config.training?.distill?.datasetId ?? null,
           datasetPath: fixture.config.training?.distill?.datasetPath ?? null,
           languagePair: fixture.config.training?.distill?.languagePair ?? null,
+          sourceLangs: fixture.config.training?.distill?.sourceLangs ?? null,
+          targetLangs: fixture.config.training?.distill?.targetLangs ?? null,
+          pairAllowlist: fixture.config.training?.distill?.pairAllowlist ?? null,
+          strictPairContract: fixture.config.training?.distill?.strictPairContract === true,
           shardIndex: fixture.config.training?.distill?.shardIndex ?? null,
           shardCount: fixture.config.training?.distill?.shardCount ?? null,
           resumeFrom: fixture.config.training?.distill?.resumeFrom ?? null,
@@ -2342,6 +2488,7 @@ async function runDistillStageTest(stage, options = {}) {
           sampleCount: distillDatasetReport.sampleCount,
           shardCount: distillDatasetReport.shardCount ?? 1,
           directionCounts: distillDatasetReport.directionCounts,
+          dataScope: distillDatasetReport.dataScope || null,
         },
         checkpoint: runner.lastCheckpoint || null,
         resumeAuditCount: Number.isInteger(runner.resumeState?.resumeAuditCount)
@@ -2661,8 +2808,9 @@ export async function runTrainingBenchSuite(options = {}) {
   const adapterActivation = normalizeAdapterActivationConfig(options);
   const distillEnabled = trainingOverrides?.distill?.enabled === true;
   const distillDatasetPath = resolveDistillDatasetPath(options, trainingOverrides);
+  const distillDataScope = resolveDistillDataScope(options, trainingOverrides);
   const distillDatasetReport = distillEnabled
-    ? await loadDistillDatasetFromJsonl(distillDatasetPath)
+    ? await loadDistillDatasetFromJsonl(distillDatasetPath, distillDataScope)
     : null;
   const resolvedResumeFrom = options.resumeFrom || trainingOverrides?.distill?.resumeFrom || null;
   const resolvedStage1Artifact = options.stage1Artifact || trainingOverrides?.ul?.stage1Artifact || null;
@@ -2788,6 +2936,7 @@ export async function runTrainingBenchSuite(options = {}) {
           forceResumeReason: options.forceResumeReason || null,
           forceResumeSource: options.forceResumeSource || null,
           checkpointOperator: options.checkpointOperator || null,
+          checkpointEvery: options.checkpointEvery ?? null,
           gpuAdapterInfo: getKernelCapabilities(),
           timestamp: options.timestamp || null,
           ulArtifactDir: options.ulArtifactDir || null,
@@ -2799,6 +2948,10 @@ export async function runTrainingBenchSuite(options = {}) {
           distillDatasetId: options.distillDatasetId || null,
           distillDatasetPath: distillDatasetReport?.absolutePath || null,
           distillLanguagePair: options.distillLanguagePair || null,
+          distillSourceLangs: distillDataScope.sourceLangs || null,
+          distillTargetLangs: distillDataScope.targetLangs || null,
+          distillPairAllowlist: distillDataScope.pairAllowlist || null,
+          strictPairContract: distillDataScope.strictPairContract === true,
           distillShardIndex: distillShardProgress.shardIndex,
           distillShardCount: distillShardProgress.shardCount,
           resumeFrom: resolvedResumeFrom,
@@ -2987,6 +3140,7 @@ export async function runTrainingBenchSuite(options = {}) {
           sampleCount: distillDatasetReport.sampleCount,
           shardCount: distillDatasetReport.shardCount ?? 1,
           directionCounts: distillDatasetReport.directionCounts,
+          dataScope: distillDatasetReport.dataScope || null,
         }
         : null,
       latency: {

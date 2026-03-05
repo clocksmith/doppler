@@ -2,6 +2,8 @@ import { existsSync, readFileSync, statSync } from 'node:fs';
 import { dirname, isAbsolute, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
+const DOPPLER_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
+
 const DEFAULT_LOCAL_DOE_PROVIDER_PATH = resolve(
   dirname(fileURLToPath(import.meta.url)),
   '..',
@@ -84,6 +86,63 @@ function resolveWebgpuModuleSpecifiers() {
     explicit: false,
     specifiers: resolveDefaultWebgpuModuleSpecifiers(),
   };
+}
+
+function resolveWorkspaceWebgpuProviderPath() {
+  const candidates = [
+    resolve(process.cwd(), 'node_modules', 'webgpu'),
+    resolve(DOPPLER_ROOT, 'node_modules', 'webgpu'),
+  ];
+  for (const candidate of candidates) {
+    const resolvedPath = resolveNodeModuleFilePath(candidate);
+    if (resolvedPath) {
+      return resolvedPath;
+    }
+  }
+  return null;
+}
+
+function isDoeWebgpuCoreSpecifier(specifier) {
+  if (specifier === '@doe/webgpu-core') {
+    return true;
+  }
+  if (typeof specifier !== 'string') {
+    return false;
+  }
+  if (specifier.includes('/webgpu-core/')) {
+    return true;
+  }
+  return specifier.includes('webgpu-core') && specifier.startsWith('file://');
+}
+
+function resolveDoeProviderOverride(specifier) {
+  const explicitProvider = process.env.FAWN_WEBGPU_NODE_PROVIDER_MODULE;
+  if (typeof explicitProvider === 'string' && explicitProvider.trim().length > 0) {
+    return null;
+  }
+  if (!isDoeWebgpuCoreSpecifier(specifier)) {
+    return null;
+  }
+  return resolveWorkspaceWebgpuProviderPath();
+}
+
+async function importWithProviderOverride(specifier) {
+  const providerOverride = resolveDoeProviderOverride(specifier);
+  if (!providerOverride) {
+    return import(specifier);
+  }
+  const hadProvider = Object.prototype.hasOwnProperty.call(process.env, 'FAWN_WEBGPU_NODE_PROVIDER_MODULE');
+  const previousProvider = process.env.FAWN_WEBGPU_NODE_PROVIDER_MODULE;
+  process.env.FAWN_WEBGPU_NODE_PROVIDER_MODULE = providerOverride;
+  try {
+    return await import(specifier);
+  } finally {
+    if (hadProvider) {
+      process.env.FAWN_WEBGPU_NODE_PROVIDER_MODULE = previousProvider;
+    } else {
+      delete process.env.FAWN_WEBGPU_NODE_PROVIDER_MODULE;
+    }
+  }
 }
 
 function resolveNodeModuleFilePath(candidatePath) {
@@ -243,7 +302,7 @@ export async function bootstrapNodeWebGPU() {
   for (const specifier of specifiers) {
     let mod;
     try {
-      mod = await import(specifier);
+      mod = await importWithProviderOverride(specifier);
     } catch {
       if (explicit) {
         return false;

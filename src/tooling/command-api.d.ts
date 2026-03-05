@@ -41,6 +41,10 @@ export interface ToolingCommandRequestInput {
   distillDatasetId?: string;
   distillDatasetPath?: string;
   distillLanguagePair?: string;
+  distillSourceLangs?: string[];
+  distillTargetLangs?: string[];
+  distillPairAllowlist?: string[];
+  strictPairContract?: boolean;
   distillShardIndex?: number;
   distillShardCount?: number;
   resumeFrom?: string;
@@ -50,6 +54,7 @@ export interface ToolingCommandRequestInput {
   checkpointOperator?: string;
   trainingSchemaVersion?: number;
   trainingBenchSteps?: number;
+  checkpointEvery?: number;
   workloadType?: string;
   modelUrl?: string;
   cacheMode?: 'cold' | 'warm';
@@ -86,6 +91,10 @@ export interface ToolingCommandRequest {
   distillDatasetId: string | null;
   distillDatasetPath: string | null;
   distillLanguagePair: string | null;
+  distillSourceLangs: string[] | null;
+  distillTargetLangs: string[] | null;
+  distillPairAllowlist: string[] | null;
+  strictPairContract: boolean | null;
   distillShardIndex: number | null;
   distillShardCount: number | null;
   resumeFrom: string | null;
@@ -95,6 +104,7 @@ export interface ToolingCommandRequest {
   checkpointOperator: string | null;
   trainingSchemaVersion: number | null;
   trainingBenchSteps: number | null;
+  checkpointEvery: number | null;
   workloadType: string | null;
   modelUrl: string | null;
   cacheMode: 'cold' | 'warm' | null;
