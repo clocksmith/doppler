@@ -1,11 +1,11 @@
 /**
- * Minimal chat example for @doppler/core.
+ * Minimal chat example for @simulatte/doppler.
  *
- * Run in browser with an importmap pointing "@doppler/core" to your
+ * Run in browser with an importmap pointing "@simulatte/doppler" to your
  * local or CDN build, or bundle with any ESM-aware toolchain.
  */
 
-import { DopplerProvider } from '@doppler/core';
+import { DopplerProvider } from '@simulatte/doppler';
 
 const MODEL_ID = 'gemma-3-270m-it-wq4k-ef16';
 const MODEL_URL =

@@ -1,4 +1,4 @@
-import { formatBytes } from '@doppler/core';
+import { formatBytes } from '@simulatte/doppler';
 import { state } from './state.js';
 import { $ , setText } from './dom.js';
 import { formatRate, formatMs, formatScalar } from './format.js';

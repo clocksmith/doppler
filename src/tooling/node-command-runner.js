@@ -51,7 +51,10 @@ export function hasNodeWebGPUSupport() {
 
 async function assertNodeWebGPUSupport() {
   if (!hasNodeWebGPUSupport()) {
-    await bootstrapNodeWebGPU();
+    const bootstrap = await bootstrapNodeWebGPU();
+    if (bootstrap.ok && bootstrap.provider) {
+      console.error(`[surface] node WebGPU provider: ${bootstrap.provider}`);
+    }
   }
 
   if (hasNodeWebGPUSupport()) return;

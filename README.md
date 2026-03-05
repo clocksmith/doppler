@@ -1,19 +1,19 @@
-# @doppler/core
+# @simulatte/doppler
 
 Browser-native inference engine for local AI workloads.
 
-**[Live Demo](https://d4da.com)** · **[npm](https://www.npmjs.com/package/@doppler/core)** · **[simulatte.world](https://simulatte.world)**
+**[Live Demo](https://d4da.com)** · **[npm](https://www.npmjs.com/package/@simulatte/doppler)** · **[simulatte.world](https://simulatte.world)**
 
 ## Install
 
 ```bash
-npm install @doppler/core
+npm install @simulatte/doppler
 ```
 
 ## Quick Start
 
 ```js
-import { createDopplerLoader, createPipeline } from '@doppler/core';
+import { createDopplerLoader, createPipeline } from '@simulatte/doppler';
 
 const loader = await createDopplerLoader({ manifest: 'path/to/manifest.json' });
 const pipeline = await createPipeline(loader);

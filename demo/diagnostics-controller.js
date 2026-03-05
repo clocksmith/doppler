@@ -5,7 +5,7 @@ import {
   TOOLING_VERIFY_SUITES,
   applyRuntimePreset,
   runBrowserCommand,
-} from '@doppler/core';
+} from '@simulatte/doppler';
 
 const ALLOWED_INTENTS = new Set(TOOLING_INTENTS);
 const SUPPORTED_VERIFY_SUITES = new Set(TOOLING_VERIFY_SUITES);
