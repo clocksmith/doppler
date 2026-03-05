@@ -86,7 +86,7 @@ export function drawEnergyChart(history = []) {
   const min = Math.min(...values);
   const max = Math.max(...values);
   const range = max - min || 1;
-  ctx.strokeStyle = '#4aa4ff';
+  ctx.strokeStyle = '#000';
   ctx.lineWidth = 2;
   ctx.beginPath();
   values.forEach((value, index) => {

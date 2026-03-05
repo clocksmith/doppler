@@ -54,6 +54,7 @@ export const state = {
   quickModelCatalogLoading: false,
   quickModelActionModelId: null,
   quickModelStorageIds: [],
+  storageEntriesData: [],
   downloadProgress: null,
   distillWorkloads: [],
   distillWorkloadsLoading: false,

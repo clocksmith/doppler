@@ -9,8 +9,7 @@
       "label": "Gemma 3 270M Instruct (Q4K/F32a)",
       "description": "Gemma 3 270M text model. Prefers Hugging Face-hosted prebuilt RDRR shards with local curated fallback.",
       "modes": [
-        "run",
-        "translate"
+        "run"
       ],
       "aliases": [
         "gemma3-270m",

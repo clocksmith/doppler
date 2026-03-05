@@ -30,17 +30,9 @@ export function setStatusIndicator(message, tone) {
   const textEl = indicator.querySelector('.status-text');
   const marker = STATUS_MARKERS[tone] || STATUS_MARKERS.default;
   const markerEl = indicator.querySelector('.status-marker');
-  const loaderEl = indicator.querySelector('.status-d4-loading');
-  const isInitializing = typeof message === 'string' && /initializ/i.test(message);
-  const showLoadingSpinner = isInitializing || state.appInitializing || state.modelAvailabilityLoading;
-
   if (markerEl) {
     setText(markerEl, marker);
   }
-  if (loaderEl) {
-    setHidden(loaderEl, !showLoadingSpinner);
-  }
-  indicator.classList.toggle('status-initializing', showLoadingSpinner);
   indicator.classList.remove(...STATUS_CLASSES);
   if (tone) {
     indicator.classList.add(`status-${tone}`);
@@ -78,11 +70,11 @@ function formatDownloadStatus(progress) {
 
 export function updateStatusIndicator() {
   if (state.appInitializing) {
-    setStatusIndicator('Initializing D4DA Studio...', 'info');
+    setStatusIndicator('Initializing', 'info');
     return;
   }
   if (state.modelAvailabilityLoading) {
-    setStatusIndicator('Loading model catalog...', 'info');
+    setStatusIndicator('Loading...', 'info');
     return;
   }
   if (state.runLoading || state.diffusionLoading || state.energyLoading) {

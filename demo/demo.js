@@ -115,7 +115,7 @@ import {
   getModeModelLabel,
   getModelTypeForId,
 } from './ui/models/utils.js';
-import { updateStorageInfo, refreshStorageInspector } from './ui/storage/inspector.js';
+import { updateStorageInfo, refreshStorageInspector, deleteStorageModel } from './ui/storage/inspector.js';
 import {
   configureDownloadCallbacks,
   refreshDownloads,
@@ -1335,7 +1335,6 @@ function ensurePrimaryModeControlStack() {
     '.run-controls-panel',
     '.diffusion-controls-panel',
     '.energy-controls-panel',
-    '.energy-solver-panel',
   ];
   for (const selector of controlSectionSelectors) {
     const section = panelGrid.querySelector(selector);
@@ -1477,7 +1476,7 @@ function setEmptyNoticeAction(scope, quickModelEntry) {
     if (isBusy) {
       const progress = resolveDownloadProgressForModel(quickModelEntry.modelId);
       const pct = progress?.percent;
-      button.textContent = Number.isFinite(pct) ? `Importing ${Math.round(pct)}%` : 'Importing...';
+      button.textContent = Number.isFinite(pct) ? `Fetching ${Math.round(pct)}%` : 'Fetching...';
     } else {
       button.textContent = `Download ${quickModelEntry.label}`;
     }
@@ -1543,16 +1542,95 @@ function createQuickModelActionButton({ label, action, modelId, disabled, title 
   return button;
 }
 
-function renderQuickModelList(listEl, entries) {
+function renderQuickModelList(listEl, catalogEntries) {
   if (!listEl) return;
   listEl.textContent = '';
+
   const busyId = state.quickModelActionModelId;
   const hasBusyAction = typeof busyId === 'string' && busyId.length > 0;
-  const storageIds = new Set(Array.isArray(state.quickModelStorageIds) ? state.quickModelStorageIds : []);
+  const storageEntries = Array.isArray(state.storageEntriesData) ? state.storageEntriesData : [];
+  const storageByModelId = new Map(storageEntries.map((e) => [e.modelId, e]));
+  const catalogIds = new Set(catalogEntries.map((e) => e.modelId));
 
-  for (const entry of entries) {
+  const storageDeleteCallbacks = {
+    onUnloadActiveModel: unloadActivePipeline,
+    onModelsUpdated: async () => {
+      await refreshModelList();
+      await refreshStorageInspector({
+        onTryModel: handleStorageTryModel,
+        onUnloadActiveModel: unloadActivePipeline,
+        onStorageInventoryRefreshed: renderQuickModelPanels,
+        onModelsUpdated: refreshModelList,
+      });
+    },
+  };
+
+  // OPFS-only orphans first (in storage but not in catalog)
+  const orphans = storageEntries.filter((e) => !e.missingStorage && !catalogIds.has(e.modelId));
+  // Catalog entries: OPFS models first, then not-in-OPFS
+  const catalogSorted = [
+    ...catalogEntries.filter((e) => storageByModelId.has(e.modelId)),
+    ...catalogEntries.filter((e) => !storageByModelId.has(e.modelId)),
+  ];
+
+  function appendCard(card) {
+    listEl.appendChild(card);
+  }
+
+  // Render orphan OPFS cards
+  for (const storageEntry of orphans) {
+    const card = document.createElement('article');
+    card.className = 'quick-model-card';
+
+    const row = document.createElement('div');
+    row.className = 'quick-model-row';
+
+    const main = document.createElement('div');
+    main.className = 'quick-model-main';
+
+    const title = document.createElement('div');
+    title.className = 'quick-model-title';
+    title.textContent = storageEntry.modelId;
+    main.appendChild(title);
+
+    const meta = document.createElement('div');
+    meta.className = 'quick-model-meta';
+    meta.appendChild(createQuickModelBadge(storageEntry.backend === 'indexeddb' ? 'idb' : (storageEntry.backend || 'opfs')));
+    if (Number.isFinite(storageEntry.totalBytes) && storageEntry.totalBytes > 0) {
+      meta.appendChild(createQuickModelBadge(formatQuickModelBytes(storageEntry.totalBytes)));
+    }
+    if (storageEntry.modelId === state.activeModelId) {
+      meta.appendChild(createQuickModelBadge('active'));
+    }
+    main.appendChild(meta);
+
+    row.appendChild(main);
+
+    const actions = document.createElement('div');
+    actions.className = 'quick-model-actions';
+    const tryBtn = document.createElement('button');
+    tryBtn.type = 'button';
+    tryBtn.className = 'btn btn-small btn-primary';
+    tryBtn.textContent = 'Try It';
+    tryBtn.addEventListener('click', () => handleStorageTryModel(storageEntry.modelId));
+    actions.appendChild(tryBtn);
+    const deleteBtn = document.createElement('button');
+    deleteBtn.type = 'button';
+    deleteBtn.className = 'btn btn-small';
+    deleteBtn.textContent = 'Delete';
+    deleteBtn.addEventListener('click', () => deleteStorageModel(storageEntry, storageDeleteCallbacks));
+    actions.appendChild(deleteBtn);
+    row.appendChild(actions);
+
+    card.appendChild(row);
+    appendCard(card);
+  }
+
+  // Render catalog cards (OPFS first, then available)
+  for (const entry of catalogSorted) {
     const isBusy = hasBusyAction && busyId === entry.modelId;
-    const isInOpfs = storageIds.has(entry.modelId);
+    const storageEntry = storageByModelId.get(entry.modelId);
+    const isInOpfs = !!storageEntry && !storageEntry.missingStorage;
 
     const card = document.createElement('article');
     card.className = entry.recommended ? 'quick-model-card is-recommended' : 'quick-model-card';
@@ -1580,8 +1658,8 @@ function renderQuickModelList(listEl, entries) {
     }
     meta.appendChild(createQuickModelBadge(formatQuickModelModeBadge(entry.modes)));
     meta.appendChild(createQuickModelBadge(formatQuickModelBytes(entry.sizeBytes)));
-    if (isInOpfs) {
-      meta.appendChild(createQuickModelBadge('in opfs'));
+    if (isInOpfs && storageEntry.modelId === state.activeModelId) {
+      meta.appendChild(createQuickModelBadge('active'));
     }
     main.appendChild(meta);
 
@@ -1597,33 +1675,41 @@ function renderQuickModelList(listEl, entries) {
       main.appendChild(bar);
     }
 
+    row.appendChild(main);
+
     const actions = document.createElement('div');
     actions.className = 'quick-model-actions';
     if (isInOpfs) {
-      const imported = document.createElement('span');
-      imported.className = 'quick-model-imported type-caption';
-      imported.textContent = 'Imported';
-      actions.appendChild(imported);
+      const tryBtn = document.createElement('button');
+      tryBtn.type = 'button';
+      tryBtn.className = 'btn btn-small btn-primary';
+      tryBtn.textContent = 'Try It';
+      tryBtn.addEventListener('click', () => handleStorageTryModel(entry.modelId));
+      actions.appendChild(tryBtn);
+      const deleteBtn = document.createElement('button');
+      deleteBtn.type = 'button';
+      deleteBtn.className = 'btn btn-small';
+      deleteBtn.textContent = 'Delete';
+      deleteBtn.addEventListener('click', () => deleteStorageModel(storageEntry, storageDeleteCallbacks));
+      actions.appendChild(deleteBtn);
     } else {
       actions.appendChild(createQuickModelActionButton({
-        label: isBusy ? 'Importing...' : 'Import',
+        label: isBusy ? 'Fetching...' : 'Fetch',
         action: 'download',
         modelId: entry.modelId,
         disabled: isBusy || hasBusyAction,
       }));
     }
 
-    row.appendChild(main);
     row.appendChild(actions);
     card.appendChild(row);
-
-    listEl.appendChild(card);
+    appendCard(card);
   }
 
-  if (entries.length === 0) {
+  if (orphans.length === 0 && catalogEntries.length === 0) {
     const empty = document.createElement('div');
     empty.className = 'type-caption';
-    empty.textContent = 'No quick models are configured yet.';
+    empty.textContent = 'No models configured yet.';
     listEl.appendChild(empty);
   }
 }
@@ -1636,7 +1722,7 @@ function renderQuickModelPanels() {
     const modelId = state.quickModelActionModelId;
     const progress = resolveDownloadProgressForModel(modelId);
     const pct = progress?.percent;
-    setQuickModelStatus(Number.isFinite(pct) ? `Importing ${modelId}: ${Math.round(pct)}%` : `Importing ${modelId}...`);
+    setQuickModelStatus(Number.isFinite(pct) ? `Fetching ${modelId}: ${Math.round(pct)}%` : `Fetching ${modelId}...`);
   } else if (state.quickModelCatalogLoading) {
     setQuickModelStatus('Loading quick models...');
   } else if (state.quickModelCatalogError) {
@@ -1652,7 +1738,7 @@ function renderQuickModelPanels() {
     );
   }
 
-  renderQuickModelList($('models-quick-models-list'), catalog);
+  renderQuickModelList($('models-list'), catalog);
 }
 
 async function loadQuickModelCatalog() {
@@ -1809,16 +1895,16 @@ async function runQuickModelAction(action, modelId) {
   state.activeDownloadId = modelId;
   state.downloadProgress = null;
   updateStatusIndicator();
-  setQuickModelStatus(`Importing ${modelId}...`);
+  setQuickModelStatus(`Fetching ${modelId}...`);
   updateModelEmptyStates();
   renderQuickModelPanels();
   try {
     await importQuickModelEntry(entry);
-    finalQuickStatus = `Imported ${modelId} to OPFS.`;
+    finalQuickStatus = `Fetched ${modelId} to OPFS.`;
     renderQuickModelPanels();
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    finalQuickStatus = `Import failed: ${message}`;
+    finalQuickStatus = `Fetch failed: ${message}`;
     updateConvertStatus(`Quick model action failed: ${message}`, 0);
     updateDiagnosticsStatus(`Quick model action failed: ${message}`, true);
   } finally {
@@ -3013,7 +3099,7 @@ async function handleRunGenerate() {
       translateSelection.targetCode
     )
     : null;
-  const generationInput = isTranslateMode ? translateRequest : prompt;
+  let generationInput = isTranslateMode ? translateRequest : prompt;
 
   updateRunStatus('Preparing...');
   let pipeline;
@@ -3026,6 +3112,15 @@ async function handleRunGenerate() {
     }
     if (!isEmbeddingMode && (modelType === 'diffusion' || modelType === 'energy' || modelType === 'embedding')) {
       throw new Error('Selected model is not a text model.');
+    }
+    if (isTranslateMode && translateSelection) {
+      const chatTemplateType = pipeline.manifest?.inference?.chatTemplate?.type;
+      if (chatTemplateType !== 'translategemma') {
+        // General chat model: build a plain instruction prompt instead of the structured
+        // translate request, which only translategemma knows how to interpret.
+        const { sourceCode, targetCode } = translateSelection;
+        generationInput = `Translate the following from ${sourceCode} to ${targetCode}. Output only the translation, no explanation.\n\n${prompt}`;
+      }
     }
     if (resetContextEachRun) {
       pipeline.reset?.();
@@ -4036,7 +4131,7 @@ function bindUI() {
   const distillExportBtn = $('distill-export-btn');
   const unloadModelBtn = $('unload-model-btn');
   const clearMemoryBtn = $('clear-memory-btn');
-  const modelsQuickModelsList = $('models-quick-models-list');
+  const modelsQuickModelsList = $('models-list');
   const runPrompt = $('run-prompt');
   const runPromptShuffle = $('run-prompt-shuffle');
   const runGenerate = $('run-generate-btn');
@@ -4045,7 +4140,6 @@ function bindUI() {
   const translateSourceLanguage = $('translate-source-language');
   const translateTargetLanguage = $('translate-target-language');
   const translateSwapBtn = $('translate-swap-btn');
-  const translateOpenTabBtn = $('translate-open-tab-btn');
   const pulseReset = $('pulse-reset-btn');
   const temperatureInput = $('temperature-input');
   const topPInput = $('top-p-input');
@@ -4138,11 +4232,6 @@ function bindUI() {
     swapTranslateLanguages();
     syncTranslateDirection();
   });
-  translateOpenTabBtn?.addEventListener('click', () => {
-    const url = buildTranslateDeepLinkUrl();
-    window.open(url, '_blank', 'noopener,noreferrer');
-  });
-
   document.querySelectorAll('.task-tab').forEach((button) => {
     button.addEventListener('click', () => {
       if (button.hidden) return;
@@ -4468,6 +4557,17 @@ function setAppBootstrapVisible(visible, message = null) {
   setHidden(overlay, !visible);
 }
 
+function syncMobileAdvanced() {
+  const isDesktop = window.matchMedia('(min-width: 778px)').matches;
+  document.querySelectorAll('details.mobile-advanced').forEach((el) => {
+    if (isDesktop) {
+      el.setAttribute('open', '');
+    } else {
+      el.removeAttribute('open');
+    }
+  });
+}
+
 async function init() {
   state.appInitializing = true;
   setStatusIndicator('Initializing...', 'info');
@@ -4476,6 +4576,8 @@ async function init() {
   setAppBootstrapVisible(true);
   try {
     ensurePrimaryModeControlStack();
+    syncMobileAdvanced();
+    window.matchMedia('(min-width: 778px)').addEventListener('change', syncMobileAdvanced);
     const deepLinkState = readDeepLinkStateFromLocation();
     state.surface = normalizeSurface(deepLinkState.surface, state.surface || 'demo');
     syncSurfaceUI(state.surface);
