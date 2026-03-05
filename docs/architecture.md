@@ -166,11 +166,11 @@ When multiple models are loaded, these operations are exposed as DOPPLER primiti
 
 | Operation | DOPPLER Primitive | Orchestrator Decides |
 |-----------|-------------------|-----------------|
-| Logit merging | `mergeLogits(buffers, weights)` | Which buffers, what weights |
-| KV cache sharing | `setSharedPrefix(cache)` | When to share, which prefix |
-| Sampling | `sampleFromMerged(logits, params)` | Temperature, top-k, top-p |
-| Expert execution | `executeExpert(id, prompt, opts)` | Which expert, what prompt |
-| Network execution | `executeGenome(genome, prompt)` | Genome structure |
+| Logit merging | `mergeMultipleLogits(logitBuffers, vocabSize, weights, temperature)` | Which buffers, what weights |
+| KV cache sharing | `setSharedPrefix(prompt, options)` / `setSharedPrefixSnapshot(snapshot)` | When to share, which prefix |
+| Sampling | `sample(logits, params)` (or GPU sample kernels when enabled) | Temperature, top-k, top-p |
+| Expert execution | `executeExpert(expertId, prompt, options, overrides)` | Which expert, what prompt |
+| Network execution | `executeGenome(genome, prompt, options, router)` | Genome structure |
 
 ### What Belongs Where
 
@@ -334,7 +334,7 @@ This shows actual import dependencies. Use for refactoring decisions.
 - `inference` depends directly on `gpu` (skips `loader`). Intentional for kernel dispatch.
 - `config/schema` is imported by almost everything. Source of truth for defaults.
 - `kernel-configs` mediates between inference and raw WGSL kernels (derived from `src/config/kernels/registry.json`)
-- `types`, `memory`, `debug` have no internal dependencies (true foundation)
+- `types` is compile-time only; `memory` can depend on `debug` for telemetry/logging.
 - `storage` and `gpu` are orthogonal. Neither imports the other.
 
 **Circular dependency risks:**
@@ -374,7 +374,7 @@ Use this view when debugging inference or optimizing performance.
    - RMSNorm → Attention (Q/K/V matmul, RoPE, softmax, output) → Residual
    - RMSNorm → FFN (gate, up, activation, down) → Residual
 4. **LM Head**: `src/gpu/kernels/matmul_*` → logits [vocab_size]
-5. **Sample**: CPU top-k/top-p → next token ID
+5. **Sample**: GPU or CPU sampling path (execution-plan/runtime dependent) → next token ID
 6. **Decode**: `src/inference/tokenizer.js` → output text
 
 ### Build Layers (Onboarding View)
@@ -412,7 +412,7 @@ Use this for understanding build order and what can be tested independently.
 **Caveats (why strict layering is approximate):**
 - `inference` imports `gpu` directly for kernel dispatch (skips `loader`)
 - `loader` imports `config` for manifest validation (skips `formats`)
-- `gpu/kernels` are WGSL files, not JS. They do not import anything.
+- `gpu/kernels` contains both JS orchestration modules and WGSL shader modules. WGSL files do not import; JS kernel modules do.
 
 **Testing implications:**
 - Layers 1-3 can be unit tested without WebGPU
@@ -573,8 +573,9 @@ DOPPLER uses a **manifest-first** architecture where all model-specific inferenc
 ```
 CONVERSION TIME:
 ┌─────────────────────────────────────────────────────────────────────┐
-│ HuggingFace/GGUF Model → browser-converter.js                       │
-│   - Detect model family (gemma2, llama3, etc.)                      │
+│ HuggingFace/GGUF Model → tooling convert surface                    │
+│   - Node CLI: node-command-runner.js → node-converter.js            │
+│   - Browser: browser-command-runner.js + convertHandler             │
 │   - Build ManifestInferenceSchema from preset + HF config           │
 │   - Write inference config to manifest.json                         │
 └─────────────────────────────────────────────────────────────────────┘
@@ -649,7 +650,8 @@ Source: `src/converter/rope-config.js`.
 - `undefined` = not specified (validation error)
 Runtime overrides apply whenever a runtime value is present (`!== undefined`),
 including explicit `null` values. This behavior is implemented in `src/config/merge.js`.
-For text-style manifests, `manifest.architecture` is required and validated as an object
+For text-style manifests, `manifest.architecture` presence is required.
+Field-level architecture checks run when `architecture` is present as an object
 in `src/formats/rdrr/validation.js`.
 
 **Benefits:**
@@ -767,7 +769,8 @@ Loads a base model plus adapters (LoRA) for multi-model and expert scenarios.
 
 Custom model format optimized for browser streaming:
 
-Note: RDRR helpers are exported from `src/formats/rdrr/index.js`; `src/storage` should remain storage-focused and no longer re-exports format internals.
+Note: RDRR helpers are canonically exported from `src/formats/rdrr/index.js`.
+`src/storage/shard-manager.js` keeps a limited compatibility re-export (`getManifest`) for existing callers.
 
 ```
 model-directory/
