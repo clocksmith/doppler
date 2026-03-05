@@ -1,7 +1,7 @@
 {
   "name": "@doppler/core",
   "version": "0.1.0",
-  "description": "Browser-native WebGPU runtime for local intent and inference loops",
+  "description": "Browser-native WebGPU inference engine for local intent and inference loops",
   "main": "src/index.js",
   "types": "src/index.d.ts",
   "type": "module",
@@ -28,6 +28,7 @@
     "distill:quality-gate": "node tools/distill-studio-quality-gate.mjs",
     "p2p:observability": "node tools/p2p-delivery-observability.mjs",
     "p2p:drill": "node tools/p2p-resilience-drill.mjs",
+    "test": "npm run test:unit",
     "test:unit": "node tools/run-node-tests.mjs --suite unit",
     "test:gpu": "node tools/run-node-tests.mjs --suite gpu",
     "test:coverage": "node tools/run-node-coverage.mjs",
