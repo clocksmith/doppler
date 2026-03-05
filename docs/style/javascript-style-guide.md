@@ -3,6 +3,7 @@
 JavaScript conventions for kernel wrappers and pipeline code.
 
 See [General Style Guide](./general-style-guide.md#language-policy-javascript-declaration-files) for the rationale behind JavaScript-first development.
+Shared naming/logging/testing policy is canonical in [General Style Guide](./general-style-guide.md).
 
 ## Core Principle: Config as Code
 

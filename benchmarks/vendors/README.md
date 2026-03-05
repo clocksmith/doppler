@@ -2,6 +2,7 @@
 
 This folder is the source of truth for cross-product benchmark comparisons.
 It is intentionally separate from style guides and from Doppler-only benchmark notes.
+Claim methodology and fairness policy are canonical in `docs/benchmark-methodology.md`.
 
 ## Purpose
 
