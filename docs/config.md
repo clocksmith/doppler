@@ -65,9 +65,13 @@ If a change requires different storage artifacts, reconvert the model.
 ## Command/runtime patch fields
 
 Harnessed command runs (`verify`, `debug`, `bench`) must preserve:
-- `runtime.shared.harness.mode`
-- `runtime.shared.harness.modelId` (except kernel-only flows)
-- `runtime.shared.tooling.intent`
+- `runtime.shared.harness.mode` — always required
+- `runtime.shared.harness.modelId` — required for inference and bench flows;
+  optional for training-bench and kernel-only flows. When absent, the command
+  contract patch sets `modelId: null` (see `buildRuntimeContractPatch()` at
+  `src/tooling/command-api.js`). The `requiresModel` gate at
+  `command-api.js:408` controls which suites enforce model ID presence.
+- `runtime.shared.tooling.intent` — always required
 
 ## Common usage
 
