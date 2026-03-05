@@ -53,6 +53,8 @@
     "registry:sync:scripts:check": "node tools/sync-registry-scripts.js --check",
     "support:matrix:sync": "node tools/sync-model-support-matrix.js",
     "support:matrix:check": "node tools/sync-model-support-matrix.js --check",
+    "external:rdrr:index": "node tools/sync-external-rdrr-index.js",
+    "external:rdrr:index:check": "node tools/sync-external-rdrr-index.js --check",
     "verify:gemma-3-270m-it-wq4k-ef16": "node tools/run-registry-verify.js gemma-3-270m-it-wq4k-ef16",
     "verify:gemma-3-270m-it-wq4k-ef16-hf16": "node tools/run-registry-verify.js gemma-3-270m-it-wq4k-ef16-hf16",
     "verify:google-embeddinggemma-300m": "node tools/run-registry-verify.js google-embeddinggemma-300m",
