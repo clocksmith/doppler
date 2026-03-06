@@ -1,6 +1,7 @@
 # Doppler Public API Contract
 
-Status: **DRAFT** — not yet implemented. This document defines the target public surface for `@simulatte/doppler`.
+Status: transitional design/contract note. The canonical public API guides now live under [docs/api/](api/index.md).
+This file captures contract intent and historical design notes for the root `doppler` surface.
 
 ## Design Goals
 

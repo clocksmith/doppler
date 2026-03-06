@@ -3,6 +3,8 @@
 Auto-generated from preset registry (`src/config/loader.js`), conversion configs (`tools/configs/conversion/**`), and catalog (`models/catalog.json`).
 `models/catalog.json` lifecycle metadata is the canonical source for hosted/demo/tested status.
 Run `npm run support:matrix:sync` after adding/changing presets, conversion configs, or catalog entries.
+Run `npm run ci:catalog:check` before release or demo deploy to catch hosted-registry and support-matrix drift.
+Registry publication and validation workflow: [registry-workflow.md](registry-workflow.md).
 
 Updated at: 2026-03-06
 
@@ -36,4 +38,3 @@ Updated at: 2026-03-06
 - Presets with verified catalog lifecycle: 3
 - Blocked runtime presets: 1
 - Catalog entries: 5
-
