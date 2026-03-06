@@ -22,6 +22,8 @@ const kernelMoeRules = await loadJson('./kernels/moe.rules.json', import.meta.ur
 const kernelMoeGptOssRules = await loadJson('./kernels/moe.rules.gptoss.json', import.meta.url, 'Failed to load rules');
 const modulateRules = await loadJson('./kernels/modulate.rules.json', import.meta.url, 'Failed to load rules');
 const pixelShuffleRules = await loadJson('./kernels/pixel_shuffle.rules.json', import.meta.url, 'Failed to load rules');
+const repeatChannelsRules = await loadJson('./kernels/repeat-channels.rules.json', import.meta.url, 'Failed to load rules');
+const reluRules = await loadJson('./kernels/relu.rules.json', import.meta.url, 'Failed to load rules');
 const residualRules = await loadJson('./kernels/residual.rules.json', import.meta.url, 'Failed to load rules');
 const rmsnormRules = await loadJson('./kernels/rmsnorm.rules.json', import.meta.url, 'Failed to load rules');
 const ropeRules = await loadJson('./kernels/rope.rules.json', import.meta.url, 'Failed to load rules');
@@ -94,6 +96,8 @@ const RULE_SETS = {
     moeGptoss: kernelMoeGptOssRules,
     modulate: modulateRules,
     pixel_shuffle: pixelShuffleRules,
+    repeatChannels: repeatChannelsRules,
+    relu: reluRules,
     residual: residualRules,
     rmsnorm: rmsnormRules,
     rope: ropeRules,

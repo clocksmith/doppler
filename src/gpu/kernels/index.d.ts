@@ -268,6 +268,18 @@ export {
   type SanaLinearAttentionOptions,
 } from './sana_linear_attention.js';
 
+export {
+  runRepeatChannels,
+  recordRepeatChannels,
+  type RepeatChannelsOptions,
+} from './repeat_channels.js';
+
+export {
+  runReLU,
+  recordReLU,
+  type ReLUOptions,
+} from './relu.js';
+
 // Fused FFN (Tier 2 P0)
 export {
   runFusedFFN,
