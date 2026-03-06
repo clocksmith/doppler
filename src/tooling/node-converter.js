@@ -7,6 +7,11 @@ import { bootstrapNodeWebGPU } from './node-webgpu.js';
 import { isPlainObject } from '../utils/plain-object.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
 import { log, trace } from '../debug/index.js';
+import { saveReport } from '../storage/reports.js';
+import {
+  CONVERSION_REPORT_SCHEMA_VERSION,
+  validateConversionReport,
+} from '../config/schema/conversion-report.schema.js';
 
 function asPositiveInteger(value, label) {
   if (!Number.isInteger(value) || value < 1) {
@@ -592,6 +597,41 @@ function normalizeTokenizerManifest(manifest) {
     tokenizer.sentencepieceModel = tokenizer.sentencepieceModel ?? 'tokenizer.model';
   }
   return manifest;
+}
+
+function buildConvertReport(result, context) {
+  const manifest = result?.manifest ?? null;
+  const inference = manifest?.inference && typeof manifest.inference === 'object'
+    ? manifest.inference
+    : null;
+  return validateConversionReport({
+    schemaVersion: CONVERSION_REPORT_SCHEMA_VERSION,
+    suite: 'convert',
+    command: 'convert',
+    modelId: manifest?.modelId ?? context.modelId ?? 'unknown',
+    timestamp: manifest?.metadata?.convertedAt ?? new Date().toISOString(),
+    source: 'doppler',
+    result: {
+      presetId: context.presetId ?? null,
+      modelType: context.modelType ?? null,
+      outputDir: context.outputDir ?? null,
+      shardCount: result?.shardCount ?? null,
+      tensorCount: result?.tensorCount ?? null,
+      totalSize: result?.totalSize ?? null,
+    },
+    manifest: manifest
+      ? {
+          quantization: manifest.quantization ?? null,
+          quantizationInfo: manifest.quantizationInfo ?? null,
+          inference: {
+            presetId: inference?.presetId ?? null,
+            schema: inference?.schema ?? null,
+            defaultKernelPath: inference?.defaultKernelPath ?? null,
+          },
+        }
+      : null,
+    executionContractArtifact: result?.executionContractArtifact ?? null,
+  });
 }
 
 function createNodeTensorTransformer(options) {
@@ -1212,10 +1252,23 @@ export async function convertSafetensorsDirectory(options) {
   normalizeTokenizerManifest(result.manifest);
   await io.writeManifest(result.manifest);
 
+  const report = buildConvertReport(result, {
+    presetId,
+    modelType: resolvedModelType,
+    outputDir,
+    modelId: result.manifest?.modelId ?? modelId,
+  });
+  const reportInfo = await saveReport(report.modelId, report, {
+    timestamp: report.timestamp,
+  });
+
   return {
     manifest: result.manifest,
     shardCount: result.shardCount,
     tensorCount: result.tensorCount,
+    executionContractArtifact: result.executionContractArtifact ?? null,
+    report,
+    reportInfo,
     presetId,
     modelType: resolvedModelType,
     outputDir,

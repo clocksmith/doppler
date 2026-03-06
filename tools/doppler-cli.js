@@ -713,7 +713,12 @@ function toSummary(result) {
   }
 
   if (result.manifest?.modelId) {
-    return `converted ${result.manifest.modelId} (${result.tensorCount} tensors, ${result.shardCount} shards)`;
+    const contractStatus = result.executionContractArtifact?.ok === true
+      ? ' contract=pass'
+      : result.executionContractArtifact
+        ? ' contract=fail'
+        : '';
+    return `converted ${result.manifest.modelId} (${result.tensorCount} tensors, ${result.shardCount} shards)${contractStatus}`;
   }
 
   const suite = result.suite || result.report?.suite || 'suite';
@@ -1014,6 +1019,64 @@ function printMemoryReport(result) {
   console.log(`[memory] ${parts.join(' ')}`);
 }
 
+function printExecutionContractSummary(result) {
+  const artifact = result?.metrics?.executionContractArtifact;
+  if (!artifact || typeof artifact !== 'object') return;
+  const checks = Array.isArray(artifact.checks) ? artifact.checks : [];
+  const passedChecks = checks.filter((entry) => entry?.ok === true).length;
+  const session = artifact.session && typeof artifact.session === 'object'
+    ? artifact.session
+    : null;
+  const attentionPhases = artifact.steps?.attentionPhases && typeof artifact.steps.attentionPhases === 'object'
+    ? artifact.steps.attentionPhases
+    : null;
+  const parts = [
+    `status=${artifact.ok === true ? 'pass' : 'fail'}`,
+    checks.length > 0 ? `checks=${passedChecks}/${checks.length}` : 'checks=n/a',
+  ];
+  if (session?.layout) {
+    parts.push(`layout=${session.layout}`);
+  }
+  if (attentionPhases) {
+    parts.push(
+      `attn(prefill=${attentionPhases.prefill ?? 'n/a'},decode=${attentionPhases.decode ?? 'n/a'},both=${attentionPhases.both ?? 'n/a'})`
+    );
+  }
+  console.log(`[contract] ${parts.join(' ')}`);
+  if (artifact.ok !== true && Array.isArray(artifact.errors)) {
+    for (const error of artifact.errors.slice(0, 3)) {
+      console.log(`[contract] error=${quoteOneLine(error)}`);
+    }
+  }
+}
+
+function printConvertContractSummary(result) {
+  const artifact = result?.executionContractArtifact;
+  if (!artifact || typeof artifact !== 'object') return;
+  const checks = Array.isArray(artifact.checks) ? artifact.checks : [];
+  const passedChecks = checks.filter((entry) => entry?.ok === true).length;
+  const session = artifact.session && typeof artifact.session === 'object'
+    ? artifact.session
+    : null;
+  console.log(
+    `[contract] status=${artifact.ok === true ? 'pass' : 'fail'} ` +
+    `checks=${checks.length > 0 ? `${passedChecks}/${checks.length}` : 'n/a'} ` +
+    `layout=${session?.layout ?? 'n/a'}`
+  );
+  if (artifact.ok !== true && Array.isArray(artifact.errors)) {
+    for (const error of artifact.errors.slice(0, 3)) {
+      console.log(`[contract] error=${quoteOneLine(error)}`);
+    }
+  }
+}
+
+function printConvertReportSummary(result) {
+  const reportInfo = result?.reportInfo;
+  if (!reportInfo || typeof reportInfo !== 'object') return;
+  if (typeof reportInfo.path !== 'string' || reportInfo.path.length === 0) return;
+  console.log(`[report] ${reportInfo.path}`);
+}
+
 function printMetricsSummary(result) {
   if (!result || typeof result !== 'object') return;
   const suite = String(result.suite || '');
@@ -1038,6 +1101,7 @@ function printMetricsSummary(result) {
       `prefill=${formatNumber(metrics.prefillTokensPerSec)} ` +
       `decode=${formatNumber(metrics.decodeTokensPerSec)}`
     );
+    printExecutionContractSummary(result);
     return;
   }
 
@@ -1073,6 +1137,7 @@ function printMetricsSummary(result) {
       `[metrics] latency first=${formatMs(metrics.firstTokenMs)} ` +
       `prefill=${formatMs(metrics.prefillMs)} decode=${formatMs(metrics.decodeMs)}`
     );
+    printExecutionContractSummary(result);
     printDeviceInfo(result);
     printGpuPhases(metrics);
     printMemoryReport(result);
@@ -1190,6 +1255,8 @@ async function main() {
     }
 
     console.log(`[ok] ${toSummary(response.result)}`);
+    printConvertContractSummary(response.result);
+    printConvertReportSummary(response.result);
     printMetricsSummary(response.result);
   } catch (error) {
     if (jsonOutputRequested) {

@@ -858,6 +858,18 @@ function normalizeQuickCatalogHfSpec(rawHf) {
   };
 }
 
+function isQuickCatalogHfSourceUrl(catalogSourceUrl) {
+  try {
+    return isHuggingFaceHost(new URL(catalogSourceUrl).hostname);
+  } catch {
+    return false;
+  }
+}
+
+function hasQuickCatalogExplicitBaseUrl(baseUrl) {
+  return typeof baseUrl === 'string' && baseUrl.trim().length > 0;
+}
+
 function extractHfRepoIdFromInput(value) {
   const raw = typeof value === 'string' ? value.trim() : '';
   if (!raw) return '';
@@ -982,9 +994,11 @@ function resolveQuickModelBaseUrl(baseUrl, modelId, catalogSourceUrl, hfSpec = n
     return isQuickModelAllowedUrl(resolvedHfUrl) ? resolvedHfUrl : null;
   }
 
-  const resolved = typeof baseUrl === 'string' && baseUrl.trim()
-    ? new URL(baseUrl.trim(), catalogSourceUrl || QUICK_MODEL_CATALOG_LOCAL_BASE_URL).toString()
-    : new URL(`./curated/${encodeURIComponent(modelId)}`, QUICK_MODEL_CATALOG_LOCAL_BASE_URL).toString();
+  if (!hasQuickCatalogExplicitBaseUrl(baseUrl)) {
+    return null;
+  }
+
+  const resolved = new URL(baseUrl.trim(), catalogSourceUrl || QUICK_MODEL_CATALOG_LOCAL_BASE_URL).toString();
   return isQuickModelAllowedUrl(resolved) ? resolved : null;
 }
 
@@ -1028,6 +1042,9 @@ function normalizeQuickCatalogEntry(raw, index, catalogSourceUrl) {
         path: raw.hfPath,
       }
   );
+  if (isQuickCatalogHfSourceUrl(catalogSourceUrl) && !hfSpec) {
+    return null;
+  }
   const resolvedBaseUrl = resolveQuickModelBaseUrl(raw.baseUrl, modelId, catalogSourceUrl, hfSpec);
   if (!resolvedBaseUrl) return null;
   const modes = normalizeQuickModes(raw.mode, raw.modes);
@@ -1255,6 +1272,26 @@ function getSmallestQuickModelForMode(modeToken) {
   const candidates = getQuickCatalogEntries().filter((entry) => entry.modes.includes(modeToken));
   if (candidates.length === 0) return null;
   candidates.sort((a, b) => {
+    const sizeDiff = getComparableQuickModelSize(a) - getComparableQuickModelSize(b);
+    if (sizeDiff !== 0) return sizeDiff;
+    if (a.sortOrder !== b.sortOrder) return a.sortOrder - b.sortOrder;
+    return a.label.localeCompare(b.label);
+  });
+  return candidates[0] || null;
+}
+
+function getPreferredQuickModelForMode(modeToken) {
+  if (!modeToken) return null;
+  if (modeToken !== 'run' && modeToken !== 'translate') {
+    return getSmallestQuickModelForMode(modeToken);
+  }
+  const candidates = getQuickCatalogEntries().filter((entry) => (
+    Array.isArray(entry?.modes) && entry.modes.includes(modeToken)
+  ));
+  if (candidates.length === 0) return null;
+  candidates.sort((a, b) => {
+    const scoreDiff = getModelSelectionScore(modeToken, b.modelId) - getModelSelectionScore(modeToken, a.modelId);
+    if (scoreDiff !== 0) return scoreDiff;
     const sizeDiff = getComparableQuickModelSize(a) - getComparableQuickModelSize(b);
     if (sizeDiff !== 0) return sizeDiff;
     if (a.sortOrder !== b.sortOrder) return a.sortOrder - b.sortOrder;
@@ -1942,10 +1979,10 @@ function updateModelEmptyStates() {
   const runTargetMode = state.uiMode === 'embedding'
     ? 'embedding'
     : (state.uiMode === 'translate' ? 'translate' : 'run');
-  const runQuickSuggestion = getSmallestQuickModelForMode(runTargetMode);
-  const diffusionQuickSuggestion = getSmallestQuickModelForMode('diffusion');
-  const energyQuickSuggestion = getSmallestQuickModelForMode('energy');
-  const diagnosticsQuickSuggestion = getSmallestQuickModelForMode(getDiagnosticsRequiredQuickMode());
+  const runQuickSuggestion = getPreferredQuickModelForMode(runTargetMode);
+  const diffusionQuickSuggestion = getPreferredQuickModelForMode('diffusion');
+  const energyQuickSuggestion = getPreferredQuickModelForMode('energy');
+  const diagnosticsQuickSuggestion = getPreferredQuickModelForMode(getDiagnosticsRequiredQuickMode());
   const runMessage = getMissingModelMessage(runTargetMode, availability, runQuickSuggestion);
   const diffusionMessage = getMissingModelMessage('diffusion', availability, diffusionQuickSuggestion);
   const energyMessage = getMissingModelMessage('energy', availability, energyQuickSuggestion);

@@ -105,7 +105,7 @@
       ],
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": null,
+        "revision": "f3bac04695d52b4bf075d23ce094a7b73c17a913",
         "path": "models/translategemma-4b-it-wq4k-ef16-hf16"
       },
       "baseUrl": null,
@@ -116,7 +116,7 @@
         "availability": {
           "curated": false,
           "local": true,
-          "hf": false
+          "hf": true
         },
         "status": {
           "runtime": "active",

@@ -4,7 +4,6 @@ import { getManifestUrl, parseManifest } from '../formats/rdrr/index.js';
 import { createPipeline } from '../generation/index.js';
 import { getKernelCapabilities } from '../gpu/device.js';
 import { formatChatMessages } from '../inference/pipelines/text/chat-format.js';
-import { bootstrapNodeWebGPU } from '../tooling/node-webgpu.js';
 import { buildQuickstartModelBaseUrl, listQuickstartModels, resolveQuickstartModel } from './doppler-registry.js';
 
 const convenienceModelCache = new Map();
@@ -21,6 +20,7 @@ async function ensureWebGPUAvailable() {
     return;
   }
   if (isNodeRuntime()) {
+    const { bootstrapNodeWebGPU } = await import('../tooling/node-webgpu.js');
     const result = await bootstrapNodeWebGPU();
     if (result.ok && globalThis.navigator?.gpu) {
       return;

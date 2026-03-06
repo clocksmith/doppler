@@ -1,4 +1,6 @@
 import type { ConverterConfigSchema } from '../config/schema/converter.schema.js';
+import type { ExecutionContractArtifact } from '../config/execution-contract-check.js';
+import type { SavedReportInfo } from '../storage/reports.js';
 
 export interface NodeConvertProgress {
   stage: string | null;
@@ -34,6 +36,9 @@ export interface ConvertSafetensorsDirectoryResult {
   manifest: Record<string, unknown>;
   shardCount: number;
   tensorCount: number;
+  executionContractArtifact: ExecutionContractArtifact | null;
+  report: Record<string, unknown>;
+  reportInfo: SavedReportInfo;
   presetId: string;
   modelType: string;
   outputDir: string;

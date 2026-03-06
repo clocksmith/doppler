@@ -157,6 +157,8 @@ const tensorLocations = {
   });
 
   assert.equal(converted.manifest.metadata.convertedAt, '2026-01-06T11:22:33.000Z');
+  assert.equal(converted.executionContractArtifact?.schemaVersion, 1);
+  assert.equal(converted.executionContractArtifact?.ok, true);
 }
 
 console.log('core-manifest-converted-at.test: ok');

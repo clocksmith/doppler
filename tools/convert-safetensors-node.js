@@ -126,6 +126,30 @@ function normalizeExecutionConfig(rawExecution) {
   };
 }
 
+function printConvertContractSummary(result) {
+  const artifact = result?.executionContractArtifact;
+  if (!artifact || typeof artifact !== 'object') return;
+  const checks = Array.isArray(artifact.checks) ? artifact.checks : [];
+  const passedChecks = checks.filter((entry) => entry?.ok === true).length;
+  const layout = artifact.session?.layout ?? 'n/a';
+  console.log(
+    `[contract] status=${artifact.ok === true ? 'pass' : 'fail'} ` +
+    `checks=${checks.length > 0 ? `${passedChecks}/${checks.length}` : 'n/a'} layout=${layout}`
+  );
+  if (artifact.ok !== true && Array.isArray(artifact.errors)) {
+    for (const error of artifact.errors.slice(0, 3)) {
+      console.log(`[contract] error=${String(error)}`);
+    }
+  }
+}
+
+function printConvertReportSummary(result) {
+  const reportInfo = result?.reportInfo;
+  if (!reportInfo || typeof reportInfo !== 'object') return;
+  if (typeof reportInfo.path !== 'string' || reportInfo.path.length === 0) return;
+  console.log(`[report] ${reportInfo.path}`);
+}
+
 async function readJsonFile(filePath) {
   if (!filePath) return null;
   const raw = await fs.readFile(filePath, 'utf8');
@@ -172,6 +196,8 @@ async function main() {
   console.log(
     `[done] modelId=${result.manifest?.modelId ?? 'unknown'} preset=${result.presetId} modelType=${result.modelType} shards=${result.shardCount} tensors=${result.tensorCount}`
   );
+  printConvertContractSummary(result);
+  printConvertReportSummary(result);
 }
 
 main().catch((err) => {

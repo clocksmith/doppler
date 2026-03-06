@@ -1,5 +1,5 @@
 export declare const DOPPLER_VERSION: string;
-export { doppler } from './client/doppler-api.js';
+export { doppler } from './client/doppler-api.browser.js';
 
 export {
   DopplerLoader,

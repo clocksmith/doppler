@@ -226,6 +226,18 @@ export {
 } from './conversion.schema.js';
 
 // =============================================================================
+// Conversion Report Schema
+// =============================================================================
+export {
+  type ConversionReportResultSchema,
+  type ConversionReportManifestSchema,
+  type ConversionReportSchema,
+  CONVERSION_REPORT_SCHEMA_VERSION,
+  DEFAULT_CONVERSION_REPORT,
+  validateConversionReport,
+} from './conversion-report.schema.js';
+
+// =============================================================================
 // Converter Schema
 // =============================================================================
 export {

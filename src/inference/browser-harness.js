@@ -19,6 +19,7 @@ import { selectRuleValue } from '../rules/rule-registry.js';
 import { mergeRuntimeValues } from '../config/runtime-merge.js';
 import { isPlainObject } from '../utils/plain-object.js';
 import { validateTrainingMetricsReport } from '../config/schema/training-metrics.schema.js';
+import { buildExecutionContractArtifact } from '../config/execution-contract-check.js';
 
 const TRAINING_SUITE_MODULE_PATH = '../training/suite.js';
 const NODE_SOURCE_RUNTIME_MODULE_PATH = '../tooling/node-source-runtime.js';
@@ -1824,6 +1825,7 @@ async function runInferenceSuite(options = {}) {
     source: 'doppler',
     prefillSemantics: 'internal_prefill_phase',
   });
+  const executionContractArtifact = buildExecutionContractArtifact(harness.manifest);
   return {
     ...summary,
     modelId: options.modelId || harness.manifest?.modelId || 'unknown',
@@ -1841,7 +1843,10 @@ async function runInferenceSuite(options = {}) {
     timing,
     timingDiagnostics,
     output,
-    metrics,
+    metrics: {
+      ...metrics,
+      ...(executionContractArtifact ? { executionContractArtifact } : {}),
+    },
     memoryStats,
     deviceInfo: resolveDeviceInfo(),
     pipeline: options.keepPipeline ? harness.pipeline : null,
@@ -2218,6 +2223,7 @@ async function runBenchSuite(options = {}) {
     source: 'doppler',
     prefillSemantics: 'internal_prefill_phase',
   });
+  const executionContractArtifact = buildExecutionContractArtifact(harness.manifest);
   return {
     ...summary,
     modelId: options.modelId || harness.manifest?.modelId || 'unknown',
@@ -2235,7 +2241,10 @@ async function runBenchSuite(options = {}) {
     timing,
     timingDiagnostics,
     output,
-    metrics,
+    metrics: {
+      ...metrics,
+      ...(executionContractArtifact ? { executionContractArtifact } : {}),
+    },
     memoryStats,
     deviceInfo: resolveDeviceInfo(),
     pipeline: options.keepPipeline ? harness.pipeline : null,
@@ -2396,6 +2405,7 @@ async function runDiffusionSuite(options = {}) {
     source: 'doppler',
     prefillSemantics: 'internal_prefill_phase',
   });
+  const executionContractArtifact = buildExecutionContractArtifact(harness.manifest);
 
   return {
     ...summary,
@@ -2438,6 +2448,7 @@ async function runDiffusionSuite(options = {}) {
       cpu: cpuStats,
       gpu: gpuStats,
       performanceArtifact: diffusionPerformanceArtifact,
+      ...(executionContractArtifact ? { executionContractArtifact } : {}),
     },
     memoryStats,
     deviceInfo: resolveDeviceInfo(),
