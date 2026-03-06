@@ -21,6 +21,28 @@ function assertSupportedRuntimeModelType(manifest) {
   );
 }
 
+function resolveRotaryDim(headDim, partialRotaryFactor, modelId) {
+  if (partialRotaryFactor == null) {
+    return headDim;
+  }
+  if (typeof partialRotaryFactor !== 'number' || Number.isNaN(partialRotaryFactor)) {
+    throw new Error(`Manifest "${modelId}" has invalid rope.partialRotaryFactor.`);
+  }
+  if (partialRotaryFactor <= 0 || partialRotaryFactor > 1) {
+    throw new Error(
+      `Manifest "${modelId}" requires 0 < rope.partialRotaryFactor <= 1; got ${partialRotaryFactor}.`
+    );
+  }
+  const rotaryDim = Math.trunc(headDim * partialRotaryFactor);
+  if (rotaryDim <= 0 || (rotaryDim % 2) !== 0) {
+    throw new Error(
+      `Manifest "${modelId}" resolves rope rotary dim ${rotaryDim} from headDim=${headDim} ` +
+      `and partialRotaryFactor=${partialRotaryFactor}, but rotary dim must be a positive even integer.`
+    );
+  }
+  return rotaryDim;
+}
+
 export function getStopTokenIds(manifest) {
   const eosTokenId = manifest?.eos_token_id;
   if (Array.isArray(eosTokenId)) return eosTokenId;
@@ -130,7 +152,14 @@ export function hasManifestInference(manifest) {
 
 
 export function validateRequiredInferenceFields(inf, modelId) {
-  
+  inf = inf ?? {};
+  inf.attention = inf.attention ?? {};
+  inf.normalization = inf.normalization ?? {};
+  inf.ffn = inf.ffn ?? {};
+  inf.rope = inf.rope ?? {};
+  inf.output = inf.output ?? {};
+  inf.layerPattern = inf.layerPattern ?? {};
+  inf.chatTemplate = inf.chatTemplate ?? {};
   const errors = [];
 
   // Attention fields - non-nullable required
@@ -200,6 +229,20 @@ export function validateRequiredInferenceFields(inf, modelId) {
   }
   if (inf.rope.ropeLocalTheta === undefined) {
     errors.push('rope.ropeLocalTheta must be explicitly set (null for no local theta, or number)');
+  }
+  if (inf.rope.mropeInterleaved == null) {
+    errors.push('rope.mropeInterleaved is required');
+  }
+  if (inf.rope.mropeSection === undefined) {
+    errors.push('rope.mropeSection must be explicitly set (null when unused, or an array of positive integers)');
+  }
+  if (inf.rope.partialRotaryFactor === undefined) {
+    errors.push('rope.partialRotaryFactor must be explicitly set (null when unused, or a number in (0, 1])');
+  } else {
+    const factor = inf.rope.partialRotaryFactor;
+    if (factor !== null && (typeof factor !== 'number' || Number.isNaN(factor) || factor <= 0 || factor > 1)) {
+      errors.push('rope.partialRotaryFactor must be a number in (0, 1] or null');
+    }
   }
 
   // Output fields - non-nullable required
@@ -458,6 +501,26 @@ export function toParsedConfigFromMerged(merged, manifest) {
   const ropeScalingType = inf.rope.ropeScalingType;
   const ropeLocalScale = inf.rope.ropeLocalScalingFactor ?? ropeScale;
   const ropeLocalScalingType = inf.rope.ropeLocalScalingType ?? ropeScalingType;
+  const partialRotaryFactor = inf.rope.partialRotaryFactor;
+  const ropeInterleaved = inf.rope.mropeInterleaved === true;
+  const mropeSection = Array.isArray(inf.rope.mropeSection)
+    ? inf.rope.mropeSection.map((entry) => Math.trunc(Number(entry)))
+    : null;
+  const ropeRotaryDim = resolveRotaryDim(arch.headDim, partialRotaryFactor, merged.modelId);
+  if (mropeSection && mropeSection.some((entry) => !Number.isFinite(entry) || entry <= 0)) {
+    throw new Error(
+      `Manifest "${merged.modelId}" has invalid rope.mropeSection; expected positive integers.`
+    );
+  }
+  if (ropeInterleaved && mropeSection) {
+    const doubledMropeDim = mropeSection.reduce((sum, entry) => sum + entry, 0) * 2;
+    if (doubledMropeDim !== ropeRotaryDim) {
+      throw new Error(
+        `Manifest "${merged.modelId}" declares rope.mropeSection=${JSON.stringify(mropeSection)}, ` +
+        `which expands to rotary dim ${doubledMropeDim}, but the resolved rotary dim is ${ropeRotaryDim}.`
+      );
+    }
+  }
 
   // Build ropeScaling object from manifest values if scaling is enabled
   // Include YARN params when present
@@ -532,6 +595,10 @@ export function toParsedConfigFromMerged(merged, manifest) {
     slidingWindow: inf.attention.slidingWindow,
     ropeTheta: inf.rope.ropeTheta,
     ropeLocalTheta: inf.rope.ropeLocalTheta,
+    ropeRotaryDim,
+    ropeInterleaved,
+    mropeSection,
+    partialRotaryFactor,
     ropeScale,
     ropeLocalScale,
     ropeScalingType,

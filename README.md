@@ -82,6 +82,10 @@ for await (const token of doppler('Hello', { model: 'gemma3-270m' })) {
 - Runtime config contract: [docs/config.md](docs/config.md)
 - Architecture: [docs/architecture.md](docs/architecture.md)
 
+## Current model support
+
+Verified/cataloged support currently includes Gemma 3, EmbeddingGemma, TranslateGemma, and Qwen 3.5. Broader preset coverage also exists, including diffusion work, but some entries are conversion-ready rather than cataloged/verified. See [docs/model-support-matrix.md](docs/model-support-matrix.md).
+
 ## Environment requirements
 
 - WebGPU is required.

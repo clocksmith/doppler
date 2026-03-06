@@ -58,6 +58,24 @@ function resolveNormWeightDtype(weight, hiddenSize) {
   return 'f32';
 }
 
+function assertRMSNormWeightBuffer(weight, weightBuffer, hiddenSize) {
+  const isGpuBuffer = weightBuffer && (
+    typeof GPUBuffer === 'undefined'
+      ? true
+      : weightBuffer instanceof GPUBuffer
+  );
+  if (isGpuBuffer) {
+    return;
+  }
+  const weightLabel = weight?.label ?? 'unknown';
+  const weightType = weight === null ? 'null' : weight === undefined ? 'undefined' : weight.constructor?.name || typeof weight;
+  const bufferType = weightBuffer === null ? 'null' : weightBuffer === undefined ? 'undefined' : weightBuffer.constructor?.name || typeof weightBuffer;
+  throw new Error(
+    `[rmsnorm] weight "${weightLabel}" requires a GPUBuffer ` +
+    `(weightType=${weightType}, bufferType=${bufferType}, hiddenSize=${hiddenSize ?? 'unknown'}).`
+  );
+}
+
 export function selectRMSNormKernel(options = {}, isF16 = false) {
   const { residual = null, hiddenSize = null } = options;
   const { smallThreshold } = getKernelThresholds().rmsnorm;
@@ -82,6 +100,7 @@ export async function runRMSNorm(
   const variant = selectRMSNormKernel(options, isF16);
   const inferredHiddenSize = inferHiddenSize(input, hiddenSize);
   const normWeightBuffer = getBuffer(weight);
+  assertRMSNormWeightBuffer(weight, normWeightBuffer, inferredHiddenSize);
   const normWeightDtype = resolveNormWeightDtype(weight, inferredHiddenSize);
 
   const bytesPerElement = isF16 ? 2 : 4;
@@ -90,7 +109,7 @@ export async function runRMSNorm(
   const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'rmsnorm_output');
 
   // Shader layout always includes the residual binding; when unused, bind a harmless placeholder.
-  const residualBuf = residual?.buffer || input.buffer;
+  const residualBuf = residual?.buffer || residual || input?.buffer || input || outputBuf;
 
   await unifiedKernelWrapper(
     'rmsnorm',
@@ -117,6 +136,7 @@ export async function recordRMSNorm(
   const variant = selectRMSNormKernel(options, isF16);
   const inferredHiddenSize = inferHiddenSize(input, hiddenSize);
   const normWeightBuffer = getBuffer(weight);
+  assertRMSNormWeightBuffer(weight, normWeightBuffer, inferredHiddenSize);
   const normWeightDtype = resolveNormWeightDtype(weight, inferredHiddenSize);
 
   const bytesPerElement = isF16 ? 2 : 4;
@@ -124,7 +144,7 @@ export async function recordRMSNorm(
   const outputSize = batchSize * paddedHiddenSize * bytesPerElement;
   const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'rmsnorm_output');
 
-  const residualBuf = residual?.buffer || input.buffer;
+  const residualBuf = residual?.buffer || residual || input?.buffer || input || outputBuf;
 
   await unifiedKernelWrapper(
     'rmsnorm',

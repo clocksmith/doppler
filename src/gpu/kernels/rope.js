@@ -13,18 +13,26 @@ async function _rope(target, input, freqsCos, freqsSin, seqLen, options = {}) {
   const {
     numHeads = 1,
     headDim = 64,
+    rotaryDim = headDim,
+    interleaved = false,
     ropeTheta = ropeDefaults.defaultTheta,
   } = options;
 
   if (headDim % 2 !== 0) {
     throw new Error(`RoPE headDim must be even, got ${headDim}`);
   }
+  if (rotaryDim % 2 !== 0) {
+    throw new Error(`RoPE rotaryDim must be even, got ${rotaryDim}`);
+  }
+  if (rotaryDim <= 0 || rotaryDim > headDim) {
+    throw new Error(`RoPE rotaryDim must be in (0, headDim]; got ${rotaryDim} for headDim ${headDim}`);
+  }
 
   const caps = getKernelCapabilities();
   const useF16 = input.dtype === 'f16' && caps.hasF16;
   const variant = selectRuleValue('rope', 'variant', { useF16 });
 
-  const halfDim = headDim / 2;
+  const halfDim = rotaryDim / 2;
   const workgroups = Math.ceil((seqLen * numHeads * halfDim) / WORKGROUP_SIZES.DEFAULT);
 
   await unifiedKernelWrapper(
@@ -34,9 +42,11 @@ async function _rope(target, input, freqsCos, freqsSin, seqLen, options = {}) {
       seq_len: seqLen,
       num_heads: numHeads,
       head_dim: headDim,
+      rotary_dim: rotaryDim,
       start_pos: options.startPos ?? ropeDefaults.defaultStartPos,
       rope_base: ropeTheta,
       rope_scale: 1.0,
+      interleaved: interleaved ? 1 : 0,
     },
     workgroups
   );

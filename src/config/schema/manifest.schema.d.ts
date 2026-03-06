@@ -217,6 +217,12 @@ export interface ManifestRoPESchema {
   ropeTheta: number;
   /** Local theta for sliding window layers (null = same as ropeTheta) */
   ropeLocalTheta: number | null;
+  /** Use adjacent-pair rotary layout instead of rotate-half layout. */
+  mropeInterleaved: boolean;
+  /** mRoPE section sizes before the Qwen doubling step. */
+  mropeSection: number[] | null;
+  /** Fraction of the head dimension that participates in rotary embedding. */
+  partialRotaryFactor: number | null;
   /** RoPE scaling type (null = no scaling, 'linear', 'dynamic', 'yarn') */
   ropeScalingType: string | null;
   /** RoPE scaling factor (1.0 if no scaling) */

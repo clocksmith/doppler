@@ -18,19 +18,32 @@ function resolveCount(input, countOverride) {
   return Math.floor(input.buffer.size / dtypeBytes(input.dtype));
 }
 
+function planReluDispatch(target, size) {
+  const device = target?.device;
+  const maxPerDim = Number.isFinite(device?.limits?.maxComputeWorkgroupsPerDimension)
+    ? device.limits.maxComputeWorkgroupsPerDimension
+    : 65535;
+  const dispatchStride = Math.min(size, maxPerDim * WORKGROUP_SIZES.DEFAULT);
+  return {
+    dispatchStride,
+    workgroups: [Math.ceil(dispatchStride / WORKGROUP_SIZES.DEFAULT), 1, 1],
+  };
+}
+
 async function _relu(target, input, options = {}) {
   const { count = null, outputBuffer = null } = options;
   const size = resolveCount(input, count);
   const variant = selectReluVariant(input.dtype);
   const output = outputBuffer || acquireBuffer(size * dtypeBytes(input.dtype), undefined, 'relu_output');
+  const dispatchPlan = planReluDispatch(target, size);
 
   await unifiedKernelWrapper(
     'relu',
     target,
     variant,
     [input, output],
-    { size, _pad0: 0, _pad1: 0, _pad2: 0 },
-    Math.ceil(size / WORKGROUP_SIZES.DEFAULT)
+    { size, _pad0: dispatchPlan.dispatchStride, _pad1: 0, _pad2: 0 },
+    dispatchPlan.workgroups
   );
 
   return createTensor(output, input.dtype, [...input.shape], 'relu_output');

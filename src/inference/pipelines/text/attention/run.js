@@ -299,10 +299,18 @@ export async function runLayerAttentionGPU(
 
   if (!disableRoPE && state.ropeFreqsCos && state.ropeFreqsSin) {
     await runRoPE(qTensor, state.ropeFreqsCos, state.ropeFreqsSin, numTokens, {
-      numHeads, headDim, startPos: currentSeqLen,
+      numHeads,
+      headDim,
+      rotaryDim: config.ropeRotaryDim,
+      interleaved: config.ropeInterleaved,
+      startPos: currentSeqLen,
     });
     await runRoPE(kTensor, state.ropeFreqsCos, state.ropeFreqsSin, numTokens, {
-      numHeads: numKVHeads, headDim, startPos: currentSeqLen,
+      numHeads: numKVHeads,
+      headDim,
+      rotaryDim: config.ropeRotaryDim,
+      interleaved: config.ropeInterleaved,
+      startPos: currentSeqLen,
     });
 
     // Trace RoPE outputs
@@ -690,6 +698,7 @@ export async function runLayerAttentionGPU(
       size: numTokens * numHeads * headDim,
       gate: qGateTensor,
       gateActivation: 'sigmoid',
+      inputActivation: 'identity',
       swigluLimit: null,
     });
     releaseBuffer(attnOutput.buffer);

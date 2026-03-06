@@ -28,6 +28,62 @@ function advanceDeviceEpoch() {
   deviceEpoch += 1;
 }
 
+function isValidGPUBuffer(value) {
+  if (!value) {
+    return false;
+  }
+  if (typeof GPUBuffer === 'undefined') {
+    return true;
+  }
+  return value instanceof GPUBuffer;
+}
+
+function describeBindGroupBufferValue(value) {
+  if (value === null) return 'null';
+  if (value === undefined) return 'undefined';
+  if (typeof GPUBuffer !== 'undefined' && value instanceof GPUBuffer) return 'GPUBuffer';
+  if (typeof value === 'object') {
+    return value.constructor?.name || 'object';
+  }
+  return typeof value;
+}
+
+function validateBindGroupDescriptor(descriptor) {
+  const label = descriptor?.label || 'unlabeled_bind_group';
+  const entries = Array.isArray(descriptor?.entries) ? descriptor.entries : [];
+  for (const entry of entries) {
+    const resource = entry?.resource;
+    if (!resource || typeof resource !== 'object' || !('buffer' in resource)) {
+      continue;
+    }
+    if (isValidGPUBuffer(resource.buffer)) {
+      continue;
+    }
+    throw new Error(
+      `[${label}] binding ${entry.binding} requires a GPUBuffer; ` +
+      `got ${describeBindGroupBufferValue(resource.buffer)}.`
+    );
+  }
+}
+
+function wrapDeviceCreateBindGroup(device) {
+  if (!device || device.__dopplerBindGroupValidationWrapped) {
+    return device;
+  }
+  const originalCreateBindGroup = device.createBindGroup.bind(device);
+  device.createBindGroup = (descriptor) => {
+    validateBindGroupDescriptor(descriptor);
+    return originalCreateBindGroup(descriptor);
+  };
+  Object.defineProperty(device, '__dopplerBindGroupValidationWrapped', {
+    value: true,
+    configurable: true,
+    enumerable: false,
+    writable: false,
+  });
+  return device;
+}
+
 
 export const FEATURES =  ({
   SHADER_F16: 'shader-f16',
@@ -201,6 +257,7 @@ export async function initDevice() {
   if (!gpuDevice) {
     throw createDopplerError(ERROR_CODES.GPU_DEVICE_FAILED, 'Failed to create WebGPU device');
   }
+  wrapDeviceCreateBindGroup(gpuDevice);
   advanceDeviceEpoch();
 
   // Set up device lost handler
@@ -253,6 +310,7 @@ export function setDevice(device, options = {}) {
   }
 
   gpuDevice = device;
+  wrapDeviceCreateBindGroup(gpuDevice);
   advanceDeviceEpoch();
   wrapQueueForTracking(gpuDevice.queue);
 

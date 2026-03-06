@@ -6,8 +6,24 @@ function asObject(value) {
 }
 
 function asFiniteNumber(value) {
+  if (value == null || value === '') {
+    return null;
+  }
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
+}
+
+function asBoolean(value) {
+  return typeof value === 'boolean' ? value : null;
+}
+
+function asNumberArray(value) {
+  if (!Array.isArray(value)) return null;
+  const normalized = value.map((entry) => asFiniteNumber(entry));
+  if (normalized.some((entry) => entry == null || entry <= 0)) {
+    return null;
+  }
+  return normalized.map((entry) => Math.trunc(entry));
 }
 
 function normalizeRoPEType(value) {
@@ -125,6 +141,13 @@ function failOnConflictingScaling(sourceLabel, canonicalScaling, candidateScalin
 export function buildRoPEConfig(presetInference, config) {
   const ropeScaling = asObject(config.rope_scaling);
   const ropeParameters = asObject(config.rope_parameters);
+  const flatRoPEParameters = (
+    ropeParameters
+      && !asObject(ropeParameters.full_attention)
+      && !asObject(ropeParameters.sliding_attention)
+  )
+    ? ropeParameters
+    : null;
   const fullAttentionRoPE = asObject(ropeParameters?.full_attention);
   const slidingAttentionRoPE = asObject(ropeParameters?.sliding_attention);
   const presetRoPE = presetInference.rope ?? {};
@@ -164,6 +187,11 @@ export function buildRoPEConfig(presetInference, config) {
       strictMissingTypeAndFactor: false,
       sourceLabel: 'HF config rope_parameters.full_attention',
     });
+  } else if (flatRoPEParameters) {
+    globalScaling = resolveScalingConfig(flatRoPEParameters, {
+      strictMissingTypeAndFactor: false,
+      sourceLabel: 'HF config rope_parameters',
+    });
   }
 
   const hasPresetLocalScaling = presetRoPE.ropeLocalScalingType !== undefined
@@ -192,6 +220,7 @@ export function buildRoPEConfig(presetInference, config) {
   // HF config is source of truth for ropeTheta when provided:
   // prefer rope_parameters.full_attention.rope_theta, then rope_theta.
   const ropeTheta = asFiniteNumber(fullAttentionRoPE?.rope_theta)
+    ?? asFiniteNumber(flatRoPEParameters?.rope_theta)
     ?? asFiniteNumber(config.rope_theta)
     ?? presetInference.rope?.ropeTheta
     ?? 10000;
@@ -201,9 +230,22 @@ export function buildRoPEConfig(presetInference, config) {
     ?? presetInference.rope?.ropeLocalTheta
     ?? null;
 
+  const mropeInterleaved = asBoolean(flatRoPEParameters?.mrope_interleaved)
+    ?? presetInference.rope?.mropeInterleaved
+    ?? false;
+  const mropeSection = asNumberArray(flatRoPEParameters?.mrope_section)
+    ?? presetInference.rope?.mropeSection
+    ?? null;
+  const partialRotaryFactor = asFiniteNumber(flatRoPEParameters?.partial_rotary_factor)
+    ?? asFiniteNumber(presetInference.rope?.partialRotaryFactor)
+    ?? null;
+
   return {
     ropeTheta,
     ropeLocalTheta,
+    mropeInterleaved,
+    mropeSection,
+    partialRotaryFactor,
     ropeScalingType: globalScaling.ropeScalingType,
     ropeScalingFactor: globalScaling.ropeScalingFactor,
     yarnBetaFast: globalScaling.yarnBetaFast,

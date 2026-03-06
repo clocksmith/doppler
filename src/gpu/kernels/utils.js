@@ -116,9 +116,24 @@ export async function unifiedKernelWrapper(opName, target, variant, bindings, un
       index = config.variantMetadata.outputBinding;
     }
 
+    const buffer = binding?.buffer || binding;
+    const isGpuBuffer = buffer && (
+      typeof GPUBuffer === 'undefined'
+        ? true
+        : buffer instanceof GPUBuffer
+    );
+    if (!isGpuBuffer) {
+      const bindingLabel = binding?.label ?? buffer?.label ?? 'unknown';
+      const bufferType = buffer === null ? 'null' : buffer === undefined ? 'undefined' : buffer.constructor?.name || typeof buffer;
+      throw new Error(
+        `Kernel "${opName}/${variant}" binding "${bindingConfig.name}" (index ${index}) requires a GPUBuffer ` +
+        `(label=${bindingLabel}, type=${bufferType}).`
+      );
+    }
+
     bindGroupEntries.push({
       binding: index,
-      resource: { buffer: binding?.buffer || binding }
+      resource: { buffer }
     });
   }
 

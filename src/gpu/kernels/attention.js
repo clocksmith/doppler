@@ -780,6 +780,23 @@ function resolveAttentionExecution(recorder) {
   };
 }
 
+function assertAttentionBindGroupBuffer(kernelName, variant, bindingIndex, bindingLabel, buffer, details = []) {
+  const isGpuBuffer = buffer && (
+    typeof GPUBuffer === 'undefined'
+      ? true
+      : buffer instanceof GPUBuffer
+  );
+  if (isGpuBuffer) {
+    return;
+  }
+  const detailText = details.filter(Boolean).join(', ');
+  throw new Error(
+    `[${kernelName}] variant="${variant}" binding ${bindingIndex} "${bindingLabel}" requires a GPUBuffer` +
+    (detailText ? ` (${detailText})` : '') +
+    '.'
+  );
+}
+
 function releaseAttentionUniform(execution, uniformBuffer) {
   if (!execution.recorder) {
     releaseUniformBuffer(uniformBuffer);
@@ -866,6 +883,26 @@ async function executeAttentionBDPA(
     attnSoftcap,
     slidingWindow,
   });
+
+  assertAttentionBindGroupBuffer('attention_bdpa', variant, 0, 'uniforms', uniformBuffer);
+  assertAttentionBindGroupBuffer('attention_bdpa', variant, 1, 'Q', Q?.buffer, [
+    `QLabel=${Q?.label ?? 'unknown'}`,
+    `QDtype=${Q?.dtype ?? 'unknown'}`,
+  ]);
+  assertAttentionBindGroupBuffer('attention_bdpa', variant, 2, 'basisK', basisK?.buffer, [
+    `basisKLabel=${basisK?.label ?? 'unknown'}`,
+    `basisKDtype=${basisK?.dtype ?? 'unknown'}`,
+  ]);
+  assertAttentionBindGroupBuffer('attention_bdpa', variant, 3, 'basisV', basisV?.buffer, [
+    `basisVLabel=${basisV?.label ?? 'unknown'}`,
+    `basisVDtype=${basisV?.dtype ?? 'unknown'}`,
+  ]);
+  assertAttentionBindGroupBuffer('attention_bdpa', variant, 4, 'pagedK', pagedK);
+  assertAttentionBindGroupBuffer('attention_bdpa', variant, 5, 'pagedV', pagedV);
+  assertAttentionBindGroupBuffer('attention_bdpa', variant, 6, 'index', index);
+  assertAttentionBindGroupBuffer('attention_bdpa', variant, 7, 'ropeCos', ropeCos);
+  assertAttentionBindGroupBuffer('attention_bdpa', variant, 8, 'ropeSin', ropeSin);
+  assertAttentionBindGroupBuffer('attention_bdpa', variant, 9, 'output', outputBuf);
 
   const bindGroup = execution.device.createBindGroup({
     label: 'attention_bdpa_bind_group',
@@ -982,6 +1019,24 @@ async function executeAttention(
 
   const kvLenBinding = kvLenBuffer || getKvLenFallbackBuffer(execution.device);
   const pageTableBinding = kvPageTable || getPageTableFallbackBuffer(execution.device);
+  assertAttentionBindGroupBuffer('attention', plan.variant, 0, 'uniforms', uniformBuffer);
+  assertAttentionBindGroupBuffer('attention', plan.variant, 1, 'Q', Q?.buffer, [
+    `QLabel=${Q?.label ?? 'unknown'}`,
+    `QDtype=${Q?.dtype ?? 'unknown'}`,
+  ]);
+  assertAttentionBindGroupBuffer('attention', plan.variant, 2, 'K', K?.buffer, [
+    `KLabel=${K?.label ?? 'unknown'}`,
+    `KDtype=${K?.dtype ?? 'unknown'}`,
+  ]);
+  assertAttentionBindGroupBuffer('attention', plan.variant, 3, 'V', V?.buffer, [
+    `VLabel=${V?.label ?? 'unknown'}`,
+    `VDtype=${V?.dtype ?? 'unknown'}`,
+  ]);
+  assertAttentionBindGroupBuffer('attention', plan.variant, 4, 'output', outputBuf);
+  assertAttentionBindGroupBuffer('attention', plan.variant, 5, 'kvLen', kvLenBinding);
+  assertAttentionBindGroupBuffer('attention', plan.variant, 6, 'pageTable', pageTableBinding, [
+    `kvLayout=${kvLayout}`,
+  ]);
   const bindGroup = execution.device.createBindGroup({
     label: 'attention_bind_group',
     layout: pipeline.getBindGroupLayout(0),
@@ -1099,6 +1154,31 @@ async function executeAttentionTiered(
   });
 
   const pageTableBinding = coldPageTable || getPageTableFallbackBuffer(execution.device);
+  assertAttentionBindGroupBuffer('attention_tiered', variant, 0, 'uniforms', uniformBuffer);
+  assertAttentionBindGroupBuffer('attention_tiered', variant, 1, 'Q', Q?.buffer, [
+    `QLabel=${Q?.label ?? 'unknown'}`,
+    `QDtype=${Q?.dtype ?? 'unknown'}`,
+  ]);
+  assertAttentionBindGroupBuffer('attention_tiered', variant, 2, 'hotK', hotK?.buffer, [
+    `hotKLabel=${hotK?.label ?? 'unknown'}`,
+    `hotKDtype=${hotK?.dtype ?? 'unknown'}`,
+  ]);
+  assertAttentionBindGroupBuffer('attention_tiered', variant, 3, 'hotV', hotV?.buffer, [
+    `hotVLabel=${hotV?.label ?? 'unknown'}`,
+    `hotVDtype=${hotV?.dtype ?? 'unknown'}`,
+  ]);
+  assertAttentionBindGroupBuffer('attention_tiered', variant, 4, 'coldK', coldK?.buffer, [
+    `coldKLabel=${coldK?.label ?? 'unknown'}`,
+    `coldKDtype=${coldK?.dtype ?? 'unknown'}`,
+  ]);
+  assertAttentionBindGroupBuffer('attention_tiered', variant, 5, 'coldV', coldV?.buffer, [
+    `coldVLabel=${coldV?.label ?? 'unknown'}`,
+    `coldVDtype=${coldV?.dtype ?? 'unknown'}`,
+  ]);
+  assertAttentionBindGroupBuffer('attention_tiered', variant, 6, 'output', outputBuf);
+  assertAttentionBindGroupBuffer('attention_tiered', variant, 7, 'pageTable', pageTableBinding, [
+    `coldLayout=${coldLayout}`,
+  ]);
   const bindGroup = execution.device.createBindGroup({
     label: 'attention_tiered_bind_group',
     layout: pipeline.getBindGroupLayout(0),
@@ -1200,6 +1280,24 @@ async function executeAttentionTieredQuant(
     packedStride,
   });
 
+  assertAttentionBindGroupBuffer('attention_tiered_quant', variant, 0, 'uniforms', uniformBuffer);
+  assertAttentionBindGroupBuffer('attention_tiered_quant', variant, 1, 'Q', Q?.buffer, [
+    `QLabel=${Q?.label ?? 'unknown'}`,
+    `QDtype=${Q?.dtype ?? 'unknown'}`,
+  ]);
+  assertAttentionBindGroupBuffer('attention_tiered_quant', variant, 2, 'hotK', hotK?.buffer, [
+    `hotKLabel=${hotK?.label ?? 'unknown'}`,
+    `hotKDtype=${hotK?.dtype ?? 'unknown'}`,
+  ]);
+  assertAttentionBindGroupBuffer('attention_tiered_quant', variant, 3, 'hotV', hotV?.buffer, [
+    `hotVLabel=${hotV?.label ?? 'unknown'}`,
+    `hotVDtype=${hotV?.dtype ?? 'unknown'}`,
+  ]);
+  assertAttentionBindGroupBuffer('attention_tiered_quant', variant, 4, 'coldPackedK', coldPackedK);
+  assertAttentionBindGroupBuffer('attention_tiered_quant', variant, 5, 'coldPackedV', coldPackedV);
+  assertAttentionBindGroupBuffer('attention_tiered_quant', variant, 6, 'coldScalesK', coldScalesK);
+  assertAttentionBindGroupBuffer('attention_tiered_quant', variant, 7, 'coldScalesV', coldScalesV);
+  assertAttentionBindGroupBuffer('attention_tiered_quant', variant, 8, 'output', outputBuf);
   const bindGroup = execution.device.createBindGroup({
     label: 'attention_tiered_quant_bind_group',
     layout: pipeline.getBindGroupLayout(0),

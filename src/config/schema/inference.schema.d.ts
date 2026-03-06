@@ -18,6 +18,15 @@ export interface RoPEConfigSchema {
   /** Local RoPE theta for sliding window layers (Gemma 3 uses 10000) */
   ropeLocalTheta?: number;
 
+  /** Apply adjacent-pair rotary layout instead of rotate-half layout. */
+  mropeInterleaved?: boolean;
+
+  /** mRoPE section sizes before the Qwen doubling step. */
+  mropeSection?: number[] | null;
+
+  /** Fraction of the head dimension that participates in rotary embedding. */
+  partialRotaryFactor?: number | null;
+
   /** RoPE scaling type */
   ropeScalingType?: 'linear' | 'dynamic' | 'yarn' | null;
 

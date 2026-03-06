@@ -299,9 +299,13 @@ export class InferencePipeline extends PipelineState {
     const maxSeqLen = config.maxSeqLen;
     const ropeBuffers = await initRoPEFrequencies({
       headDim: config.headDim,
+      rotaryDim: config.ropeRotaryDim,
       maxSeqLen,
       ropeTheta: config.ropeTheta,
       ropeLocalTheta: config.ropeLocalTheta,
+      mropeInterleaved: config.ropeInterleaved,
+      mropeSection: config.mropeSection,
+      partialRotaryFactor: config.partialRotaryFactor,
       ropeScale: config.ropeScale,
       ropeLocalScale: config.ropeLocalScale,
       ropeScalingType: config.ropeScalingType,

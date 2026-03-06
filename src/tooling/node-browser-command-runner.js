@@ -67,8 +67,61 @@ function resolveStaticPath(rootDir, requestPath) {
   return candidate;
 }
 
-async function resolveFileForRequest(rootDir, requestPath) {
-  const resolved = resolveStaticPath(rootDir, requestPath);
+function normalizeStaticMounts(mounts = []) {
+  if (!Array.isArray(mounts)) {
+    throw new Error('browser command: staticMounts must be an array.');
+  }
+
+  return mounts.map((mount, index) => {
+    if (!mount || typeof mount !== 'object' || Array.isArray(mount)) {
+      throw new Error(`browser command: staticMounts[${index}] must be an object.`);
+    }
+    const urlPrefix = String(mount.urlPrefix || '').trim();
+    const rootDir = String(mount.rootDir || '').trim();
+    if (!urlPrefix.startsWith('/')) {
+      throw new Error(`browser command: staticMounts[${index}].urlPrefix must start with "/".`);
+    }
+    if (!rootDir) {
+      throw new Error(`browser command: staticMounts[${index}].rootDir is required.`);
+    }
+    return {
+      urlPrefix: urlPrefix.replace(/\/+$/u, '') || '/',
+      rootDir: path.resolve(rootDir),
+    };
+  });
+}
+
+function findStaticRootForRequest(rootDir, mounts, requestPath) {
+  const normalizedPath = String(requestPath || '/');
+  let bestMount = null;
+
+  for (const mount of mounts) {
+    const prefix = mount.urlPrefix;
+    if (normalizedPath !== prefix && !normalizedPath.startsWith(`${prefix}/`)) {
+      continue;
+    }
+    if (!bestMount || prefix.length > bestMount.urlPrefix.length) {
+      bestMount = mount;
+    }
+  }
+
+  if (!bestMount) {
+    return {
+      effectiveRootDir: rootDir,
+      effectivePath: normalizedPath,
+    };
+  }
+
+  const relativePath = normalizedPath.slice(bestMount.urlPrefix.length) || '/';
+  return {
+    effectiveRootDir: bestMount.rootDir,
+    effectivePath: relativePath.startsWith('/') ? relativePath : `/${relativePath}`,
+  };
+}
+
+async function resolveFileForRequest(rootDir, mounts, requestPath) {
+  const { effectiveRootDir, effectivePath } = findStaticRootForRequest(rootDir, mounts, requestPath);
+  const resolved = resolveStaticPath(effectiveRootDir, effectivePath);
   if (!resolved) return null;
 
   let stats;
@@ -99,6 +152,7 @@ async function createStaticFileServer(options = {}) {
   const rootDir = path.resolve(
     options.rootDir || fileURLToPath(new URL('../../', import.meta.url))
   );
+  const staticMounts = normalizeStaticMounts(options.staticMounts || []);
   const host = String(options.host || DEFAULT_HOST);
   const port = Number.isFinite(options.port) ? Math.max(0, Math.floor(options.port)) : 0;
 
@@ -120,7 +174,7 @@ async function createStaticFileServer(options = {}) {
       return;
     }
 
-    const resolved = await resolveFileForRequest(rootDir, pathname);
+    const resolved = await resolveFileForRequest(rootDir, staticMounts, pathname);
     if (!resolved) {
       res.statusCode = 404;
       res.end('File not found');
@@ -545,6 +599,7 @@ export async function runBrowserCommandInNode(commandRequest, options = {}) {
     ? null
     : await createStaticFileServer({
       rootDir: options.staticRootDir,
+      staticMounts: options.staticMounts,
       host: options.host,
       port: serverPort,
     }).catch((error) => {

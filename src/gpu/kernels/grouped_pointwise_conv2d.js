@@ -42,6 +42,7 @@ async function _groupedPointwiseConv2D(target, input, weight, bias, options = {}
   const bytesPerElement = dtypeBytes(input.dtype);
   const outputSize = outChannels * height * width * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'grouped_pointwise_conv2d_output');
+  const spatial = height * width;
 
   const weightBuffer = getBuffer(weight);
   let biasBuffer = getBuffer(bias);
@@ -69,7 +70,7 @@ async function _groupedPointwiseConv2D(target, input, weight, bias, options = {}
       _pad1: 0,
       _pad2: 0,
     },
-    Math.ceil((outChannels * height * width) / WORKGROUP_SIZES.DEFAULT)
+    [Math.ceil(spatial / WORKGROUP_SIZES.DEFAULT), outChannels, 1]
   );
 
   if (tempBias) {

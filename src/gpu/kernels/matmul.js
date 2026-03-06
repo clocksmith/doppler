@@ -52,12 +52,37 @@ function buildProfileLabel(options = {}) {
   return `matmul${roleLabel}${layerLabel}`;
 }
 
+function assertBindGroupBuffer(kernelName, variant, bindingIndex, bindingLabel, buffer, details = []) {
+  const isGpuBuffer = buffer && (
+    typeof GPUBuffer === 'undefined'
+      ? true
+      : buffer instanceof GPUBuffer
+  );
+  if (isGpuBuffer) {
+    return;
+  }
+  const detailText = details.filter(Boolean).join(', ');
+  throw new Error(
+    `[${kernelName}] variant="${variant}" binding ${bindingIndex} "${bindingLabel}" requires a GPUBuffer` +
+    (detailText ? ` (${detailText})` : '') +
+    '.'
+  );
+}
+
 function createMatmulBindGroupEntries(variant, uniformBuffer, matmulInput, bBuffer, outputBuffer, offsets, bindingSizes) {
   const isQ4KF16 = variant === 'q4_fused_multicol_f16'
     || variant === 'q4_fused_f16a'
     || variant === 'q4_fused_batched_f16'
     || variant === 'q4_fused_multicol_f16a'
     || variant === 'q4_fused_batched_f16a';
+
+  assertBindGroupBuffer('matmul', variant, 0, 'uniforms', uniformBuffer);
+  assertBindGroupBuffer('matmul', variant, 1, 'input', matmulInput?.buffer, [
+    `inputLabel=${matmulInput?.label ?? 'unknown'}`,
+    `inputDtype=${matmulInput?.dtype ?? 'unknown'}`,
+  ]);
+  assertBindGroupBuffer('matmul', variant, 2, 'weights', bBuffer);
+  assertBindGroupBuffer('matmul', variant, isQ4KF16 ? 4 : 3, 'output', outputBuffer);
 
   const entries = [
     { binding: 0, resource: { buffer: uniformBuffer } },

@@ -337,39 +337,11 @@ function resolveStaticRootDir(browserOptions = {}) {
   return process.cwd();
 }
 
-async function resolveBrowserModelUrl(request, browserOptions = {}) {
-  if (request.modelUrl || !request.modelId) {
-    return request;
-  }
+function resolveRdrrRoot(options = {}) {
+  return path.resolve(asStringOrNull(options.rdrrRoot) || DEFAULT_EXTERNAL_RDRR_ROOT);
+}
 
-  const modelId = String(request.modelId);
-  const encodedModelId = encodeURIComponent(modelId);
-
-  if (asStringOrNull(browserOptions.baseUrl)) {
-    return {
-      ...request,
-      modelUrl: `/models/${encodedModelId}`,
-    };
-  }
-
-  const staticRootDir = resolveStaticRootDir(browserOptions);
-  const curatedCandidate = {
-    modelUrl: `/models/curated/${encodedModelId}`,
-    manifestPath: path.join(staticRootDir, 'models', 'curated', modelId, 'manifest.json'),
-  };
-  const localCandidate = {
-    modelUrl: `/models/local/${encodedModelId}`,
-    manifestPath: path.join(staticRootDir, 'models', 'local', modelId, 'manifest.json'),
-  };
-  const legacyCandidate = {
-    modelUrl: `/models/${encodedModelId}`,
-    manifestPath: path.join(staticRootDir, 'models', modelId, 'manifest.json'),
-  };
-  const candidates = [
-    curatedCandidate,
-    localCandidate,
-    legacyCandidate,
-  ];
+async function findResolvableModelCandidate(candidates) {
   const discoveredManifestCandidates = [];
 
   for (const candidate of candidates) {
@@ -385,17 +357,110 @@ async function resolveBrowserModelUrl(request, browserOptions = {}) {
         entry.isFile() && /^shard_\d+\.bin$/u.test(entry.name)
       );
       if (hasShards) {
-        return {
-          ...request,
-          modelUrl: candidate.modelUrl,
-        };
+        return { candidate, discoveredManifestCandidates };
       }
     } catch {
-      return {
-        ...request,
-        modelUrl: candidate.modelUrl,
-      };
+      return { candidate, discoveredManifestCandidates };
     }
+  }
+
+  return { candidate: null, discoveredManifestCandidates };
+}
+
+async function resolveExternalModelDirectory(rdrrRoot, modelId) {
+  const directModelDir = path.join(rdrrRoot, modelId);
+  const directManifestPath = path.join(directModelDir, 'manifest.json');
+  if (await pathExists(directManifestPath)) {
+    return {
+      modelDir: directModelDir,
+      manifestPath: directManifestPath,
+    };
+  }
+
+  let entries = [];
+  try {
+    entries = await fs.readdir(rdrrRoot, { withFileTypes: true });
+  } catch {
+    return null;
+  }
+
+  const matches = [];
+  for (const entry of entries) {
+    if (!entry.isDirectory()) {
+      continue;
+    }
+    const manifestPath = path.join(rdrrRoot, entry.name, 'manifest.json');
+    if (!await pathExists(manifestPath)) {
+      continue;
+    }
+    let manifest = null;
+    try {
+      manifest = JSON.parse(await fs.readFile(manifestPath, 'utf8'));
+    } catch {
+      continue;
+    }
+    if (manifest?.modelId !== modelId) {
+      continue;
+    }
+    matches.push({
+      modelDir: path.join(rdrrRoot, entry.name),
+      manifestPath,
+    });
+  }
+
+  if (matches.length > 1) {
+    const matchPaths = matches.map((match) => match.modelDir).join(', ');
+    throw new Error(
+      `Model "${modelId}" matched multiple external directories. ` +
+      `Disambiguate by setting request.modelUrl in --config. Matches: ${matchPaths}`
+    );
+  }
+
+  return matches[0] || null;
+}
+
+export async function resolveBrowserModelUrl(request, browserOptions = {}) {
+  if (request.modelUrl || !request.modelId) {
+    return request;
+  }
+
+  const modelId = String(request.modelId);
+  const encodedModelId = encodeURIComponent(modelId);
+
+  if (asStringOrNull(browserOptions.baseUrl)) {
+    return {
+      ...request,
+      modelUrl: `/models/${encodedModelId}`,
+    };
+  }
+
+  const staticRootDir = resolveStaticRootDir(browserOptions);
+  const externalModel = await resolveExternalModelDirectory(resolveRdrrRoot(browserOptions), modelId);
+  const candidates = [
+    {
+    modelUrl: `/models/curated/${encodedModelId}`,
+    manifestPath: path.join(staticRootDir, 'models', 'curated', modelId, 'manifest.json'),
+    },
+    {
+    modelUrl: `/models/local/${encodedModelId}`,
+    manifestPath: path.join(staticRootDir, 'models', 'local', modelId, 'manifest.json'),
+    },
+    {
+    modelUrl: `/models/${encodedModelId}`,
+    manifestPath: path.join(staticRootDir, 'models', modelId, 'manifest.json'),
+    },
+    {
+      modelUrl: `/models/external/${encodeURIComponent(path.basename(externalModel?.modelDir || modelId))}`,
+      manifestPath: externalModel?.manifestPath || path.join(resolveRdrrRoot(browserOptions), modelId, 'manifest.json'),
+    },
+  ];
+
+  const { candidate, discoveredManifestCandidates } = await findResolvableModelCandidate(candidates);
+  if (candidate) {
+    return {
+      ...request,
+      modelUrl: candidate.modelUrl,
+    };
   }
 
   if (discoveredManifestCandidates.length > 0) {
@@ -421,13 +486,13 @@ export async function resolveNodeModelUrl(request, options = {}) {
   }
 
   const modelId = String(request.modelId);
-  const rdrrRoot = path.resolve(asStringOrNull(options.rdrrRoot) || DEFAULT_EXTERNAL_RDRR_ROOT);
-  const manifestPath = path.join(rdrrRoot, modelId, 'manifest.json');
-  if (!await pathExists(manifestPath)) {
+  const rdrrRoot = resolveRdrrRoot(options);
+  const externalModel = await resolveExternalModelDirectory(rdrrRoot, modelId);
+  if (!externalModel) {
     return request;
   }
 
-  const modelDir = path.dirname(manifestPath);
+  const modelDir = externalModel.modelDir;
   try {
     const files = await fs.readdir(modelDir, { withFileTypes: true });
     const hasShards = files.some((entry) =>
@@ -593,10 +658,18 @@ function buildBrowserRunOptions(runConfig, jsonOutput, request = {}) {
     executablePath: asStringOrNull(browser.executablePath),
     runnerPath: asStringOrNull(browser.runnerPath),
     staticRootDir: asStringOrNull(browser.staticRootDir),
+    rdrrRoot: asStringOrNull(browser.rdrrRoot),
     baseUrl: asStringOrNull(browser.baseUrl),
     browserArgs: parseBrowserArgs(browser.browserArgs),
     headless: headed ? false : (explicitHeadless ?? true),
   };
+  const rdrrRoot = resolveRdrrRoot(options);
+  options.staticMounts = [
+    {
+      urlPrefix: '/models/external',
+      rootDir: rdrrRoot,
+    },
+  ];
 
   const port = parseNumberFlag(browser.port, 'run.browser.port');
   if (port !== null) {

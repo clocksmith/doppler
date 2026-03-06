@@ -10,13 +10,14 @@
 override WORKGROUP_SIZE: u32 = 256u;
 override HAS_GATE: bool = false;
 override GATE_USE_SIGMOID: bool = false;
+override INPUT_USE_IDENTITY: bool = false;
 override USE_SPLIT: bool = false;
 override USE_VEC4: bool = false;
 override USE_ROWSPLIT: bool = false;
 
 struct Uniforms {
     size: u32,          // Total output elements
-    rowsplit_dim: u32,  // Dim for rowsplit variants (0 when unused)
+    rowsplit_dim: u32,  // Row-split dim or dispatch stride for non-row-split variants
     clamp_max: f32,     // SwiGLU clamp (0 = disabled)
     _pad1: f32,
 }
@@ -35,6 +36,10 @@ fn silu(x: f32) -> f32 {
     return x * sigmoid(x);
 }
 
+fn apply_input_activation(x: f32) -> f32 {
+    return select(silu(x), x, INPUT_USE_IDENTITY);
+}
+
 fn clamp_swiglu(x: f32) -> f32 {
     if (u.clamp_max <= 0.0) {
         return x;
@@ -46,8 +51,9 @@ fn clamp_swiglu(x: f32) -> f32 {
 fn main(
     @builtin(global_invocation_id) global_id: vec3<u32>
 ) {
+    let dispatch_stride = max(u.rowsplit_dim, 1u);
     if (USE_VEC4) {
-        let base_idx = global_id.x * 4u;
+        let base_idx = global_id.y * dispatch_stride + global_id.x * 4u;
         if (base_idx >= u.size) {
             return;
         }
@@ -55,12 +61,12 @@ fn main(
         let remaining = min(4u, u.size - base_idx);
         for (var i: u32 = 0u; i < remaining; i = i + 1u) {
             let x = input[base_idx + i];
-            output[base_idx + i] = silu(x);
+            output[base_idx + i] = apply_input_activation(x);
         }
         return;
     }
 
-    let idx = global_id.x;
+    let idx = global_id.y * dispatch_stride + global_id.x;
     if (idx >= u.size) {
         return;
     }
@@ -70,12 +76,16 @@ fn main(
             return;
         }
         let dim = u.rowsplit_dim;
-        let token_idx = idx / dim;
-        let dim_idx = idx % dim;
+        let num_tokens = u.size / dim;
+        let token_idx = global_id.y;
+        let dim_idx = global_id.x;
+        if (token_idx >= num_tokens || dim_idx >= dim) {
+            return;
+        }
         let row_base = token_idx * dim * 2u;
         let g = input[row_base + dim_idx];
         let up = input[row_base + dim + dim_idx];
-        output[idx] = clamp_swiglu(silu(g) * up);
+        output[token_idx * dim + dim_idx] = clamp_swiglu(silu(g) * up);
         return;
     }
 
@@ -83,7 +93,7 @@ fn main(
         let up = input[idx];
         let g = gate[idx];
         let gateAct = select(silu(g), sigmoid(g), GATE_USE_SIGMOID);
-        output[idx] = clamp_swiglu(gateAct * up);
+        output[idx] = clamp_swiglu(gateAct * apply_input_activation(up));
         return;
     }
 
@@ -95,5 +105,5 @@ fn main(
     }
 
     let x = input[idx];
-    output[idx] = silu(x);
+    output[idx] = apply_input_activation(x);
 }
