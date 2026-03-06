@@ -83,6 +83,17 @@ function normalizeSection(value, label) {
   return normalized;
 }
 
+function normalizeKVLayout(value, label) {
+  if (value == null) {
+    return null;
+  }
+  const normalized = String(value).trim().toLowerCase();
+  if (!normalized) {
+    return null;
+  }
+  return normalized;
+}
+
 function assertKernelRef(kernelRef, label) {
   if (!kernelRef) return;
   if (typeof kernelRef.id !== 'string' || kernelRef.id.trim().length === 0) {
@@ -818,6 +829,25 @@ function validatePhaseBoundaryCompatibility(options) {
   }
 }
 
+function assertKVLayoutExecutionCompatibility(steps, sessionDefaults) {
+  const kvLayout = normalizeKVLayout(sessionDefaults?.kvcache?.layout, 'sessionDefaults.kvcache.layout');
+  if (kvLayout !== 'bdpa') {
+    return;
+  }
+  const incompatibleStep = steps.find((step) => (
+    step?.op === 'attention'
+    && isPhaseMatch(normalizePhase(step.phase, `${step.id}.phase`), 'prefill')
+  ));
+  if (!incompatibleStep) {
+    return;
+  }
+  throw new Error(
+    `[ExecutionV0] sessionDefaults.kvcache.layout="bdpa" is decode-only, ` +
+    `but step "${incompatibleStep.id}" declares prefill attention. ` +
+    'Use a non-BDPA KV layout for prefill-capable models or remove prefill attention from the execution contract.'
+  );
+}
+
 function toKernelPathStep(step) {
   if (step.op === 'cast') return null;
   if (!step.kernel) return null;
@@ -844,6 +874,65 @@ function buildLayerPhaseSteps(steps, phase, layerIdx) {
     .filter((step) => stepHasLayer(step, layerIdx))
     .map(toKernelPathStep)
     .filter((step) => step != null);
+}
+
+function getInlineKernelPathSteps(path) {
+  return [
+    ...(path?.preLayer ?? []),
+    ...(path?.decode?.steps ?? []),
+    ...(path?.prefill?.steps ?? []),
+    ...(path?.postLayer ?? []),
+    ...(path?.sampling ?? []),
+    ...(path?.layerOverrides?.flatMap((override) => override.steps ?? []) ?? []),
+  ];
+}
+
+function assertInlineKernelPathSessionCompatibility(path, sessionDefaults) {
+  if (!path) {
+    return;
+  }
+  const activationDtype = normalizeDtype(
+    path.activationDtype ?? sessionDefaults?.compute?.defaults?.activationDtype ?? 'f16',
+    'inlineKernelPath.activationDtype'
+  );
+  const kvDtype = normalizeDtype(
+    path.kvDtype ?? sessionDefaults?.kvcache?.kvDtype ?? activationDtype,
+    'inlineKernelPath.kvDtype'
+  );
+
+  for (const step of getInlineKernelPathSteps(path)) {
+    const kernel = String(step?.kernel ?? '').trim();
+    if (!kernel.startsWith('attention')) {
+      continue;
+    }
+    if (kernel.includes('_f16kv')) {
+      if (activationDtype !== 'f32' || kvDtype !== 'f16') {
+        throw new Error(
+          `[ExecutionV0] Inline kernelPath attention kernel "${kernel}" requires ` +
+          `activationDtype="f32" and kvcache.kvDtype="f16", but resolved ` +
+          `activationDtype="${activationDtype}" and kvcache.kvDtype="${kvDtype}".`
+        );
+      }
+      continue;
+    }
+    if (kernel.includes('_f16')) {
+      if (activationDtype !== 'f16' || kvDtype !== 'f16') {
+        throw new Error(
+          `[ExecutionV0] Inline kernelPath attention kernel "${kernel}" requires ` +
+          `activationDtype="f16" and kvcache.kvDtype="f16", but resolved ` +
+          `activationDtype="${activationDtype}" and kvcache.kvDtype="${kvDtype}".`
+        );
+      }
+      continue;
+    }
+    if (activationDtype !== 'f32' || kvDtype !== 'f32') {
+      throw new Error(
+        `[ExecutionV0] Inline kernelPath attention kernel "${kernel}" requires ` +
+        `activationDtype="f32" and kvcache.kvDtype="f32", but resolved ` +
+        `activationDtype="${activationDtype}" and kvcache.kvDtype="${kvDtype}".`
+      );
+    }
+  }
 }
 
 function buildInlineKernelPath(steps, sessionDefaults, modelId, numLayers) {
@@ -912,6 +1001,7 @@ function buildInlineKernelPath(steps, sessionDefaults, modelId, numLayers) {
     path.sampling = sampling;
   }
 
+  assertInlineKernelPathSessionCompatibility(path, sessionDefaults);
   return path;
 }
 
@@ -1031,6 +1121,7 @@ export function compileExecutionV0(options = {}) {
   const patchedSteps = applyExecutionPatchAtomic(baseSteps, runtimeInference.executionPatch ?? null);
   patchedSteps.forEach(validateStepShape);
   validateUniqueStepIds(patchedSteps);
+  assertKVLayoutExecutionCompatibility(patchedSteps, resolvedSession);
   const runtimePatchMeta = indexRuntimePatchMeta(runtimeInference.executionPatch ?? null);
 
   const manifestSessionDefaults = manifestInference.sessionDefaults ?? {};

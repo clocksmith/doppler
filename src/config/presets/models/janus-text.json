@@ -1,0 +1,25 @@
+{
+  "id": "janus_text",
+  "name": "Janus Text Core",
+  "extends": "transformer",
+  "modelType": "transformer",
+
+  "inference": {
+    "normalization": {
+      "rmsNormEps": 1e-6
+    },
+    "rope": {
+      "ropeTheta": 10000
+    }
+  },
+
+  "tokenizer": {
+    "addBosToken": true,
+    "addEosToken": false
+  },
+
+  "detection": {
+    "architecturePatterns": ["JanusTextForCausalLM"],
+    "modelTypePatterns": ["janus_text"]
+  }
+}

@@ -283,6 +283,86 @@ function sessionDefaultsFor(kernels, activationDtype = 'f16') {
 {
   assert.throws(
     () => compileExecutionV0({
+      modelId: 'explicit-kv-override-mismatch',
+      manifestInference: {
+        schema: 'doppler.execution/v0',
+        sessionDefaults: sessionDefaultsFor([
+          { kernel: 'attention_streaming_f16kv.wgsl', entry: 'main' },
+        ], 'f32'),
+        execution: {
+          steps: [
+            {
+              id: 'attn_prefill',
+              phase: 'prefill',
+              section: 'layer',
+              op: 'attention',
+              src: 'state',
+              dst: 'state',
+              layers: 'all',
+              kernel: 'attention_streaming_f16kv.wgsl',
+              entry: 'main',
+              kernelRef: kernelRef('attention_streaming_f16kv.wgsl', 'main'),
+            },
+          ],
+          policies: DEFAULT_POLICIES,
+        },
+      },
+      runtimeInference: {
+        session: {
+          kvcache: {
+            kvDtype: 'f32',
+          },
+        },
+      },
+    }),
+    /Inline kernelPath attention kernel "attention_streaming_f16kv\.wgsl" requires activationDtype="f32" and kvcache\.kvDtype="f16"/
+  );
+}
+
+{
+  assert.throws(
+    () => compileExecutionV0({
+      modelId: 'bdpa-prefill-contract-mismatch',
+      manifestInference: {
+        schema: 'doppler.execution/v0',
+        sessionDefaults: {
+          ...sessionDefaultsFor([
+            { kernel: 'attention_streaming_f16.wgsl', entry: 'main' },
+          ], 'f16'),
+          kvcache: {
+            layout: 'bdpa',
+            kvDtype: 'f16',
+            pageSize: 128,
+            windowSize: 1024,
+            bdpaVocabSize: 4096,
+          },
+        },
+        execution: {
+          steps: [
+            {
+              id: 'prefill_attn',
+              phase: 'prefill',
+              section: 'layer',
+              op: 'attention',
+              src: 'state',
+              dst: 'state',
+              layers: 'all',
+              kernel: 'attention_streaming_f16.wgsl',
+              entry: 'main',
+              kernelRef: kernelRef('attention_streaming_f16.wgsl', 'main'),
+            },
+          ],
+          policies: DEFAULT_POLICIES,
+        },
+      },
+    }),
+    /sessionDefaults\.kvcache\.layout="bdpa" is decode-only, but step "prefill_attn" declares prefill attention/
+  );
+}
+
+{
+  assert.throws(
+    () => compileExecutionV0({
       modelId: 'schema-mismatch',
       manifestInference: {
         schema: 'doppler.execution/v1',

@@ -1,4 +1,5 @@
 import { validateTensorConfigConsistency } from './tensor-config-validator.js';
+import { validateManifestExecutionContract } from '../../config/execution-contract-check.js';
 
 export function validateManifest(manifest) {
   const errors = [];
@@ -193,6 +194,18 @@ export function validateManifest(manifest) {
     }
     for (const warn of tensorConfigResult.warnings) {
       warnings.push(`[${warn.code}] ${warn.message}${warn.suggestion ? ` -> ${warn.suggestion}` : ''}`);
+    }
+  }
+
+  if (!isDiffusion && !isEnergy && errors.length === 0) {
+    try {
+      const executionContract = validateManifestExecutionContract(manifest);
+      for (const error of executionContract.errors) {
+        errors.push(error);
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      errors.push(`[ExecutionContract] ${message}`);
     }
   }
 

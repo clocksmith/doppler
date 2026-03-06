@@ -15,9 +15,7 @@ npm install @simulatte/doppler
 ```js
 import { doppler } from '@simulatte/doppler';
 
-const model = await doppler.load('gemma3-270m', {
-  onProgress: ({ message }) => console.log(`[doppler] ${message}`),
-});
+const model = await doppler.load('gemma3-270m');
 
 for await (const token of model.generate('Hello, world')) {
   process.stdout.write(token);
@@ -57,6 +55,11 @@ Snapshot artifacts:
 ```js
 // Non-streaming
 const text = await model.generateText('Explain WebGPU in one sentence');
+
+// Load with progress logging
+const modelWithProgress = await doppler.load('gemma3-270m', {
+  onProgress: ({ message }) => console.log(`[doppler] ${message}`),
+});
 
 // Chat
 const reply = await model.chatText([
