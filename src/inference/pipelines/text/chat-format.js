@@ -224,6 +224,29 @@ function formatChatML(messages) {
   return parts.join('');
 }
 
+function formatQwen(messages) {
+  // Qwen 3.5 chat format is ChatML-like, but the generation prelude includes
+  // an explicit empty thinking block before assistant output.
+  const parts = [];
+  for (const [index, message] of messages.entries()) {
+    const role = normalizeChatRole(message?.role);
+    assertSupportedChatRole(role, 'Qwen', index);
+    if (role === 'system' && index !== 0) {
+      throw new Error('Qwen template requires any system message to appear first.');
+    }
+    const content = normalizeChatMessageContent(message?.content);
+    if (role === 'system') {
+      parts.push(`<|im_start|>system\n${content}<|im_end|>\n`);
+    } else if (role === 'user') {
+      parts.push(`<|im_start|>user\n${content}<|im_end|>\n`);
+    } else if (role === 'assistant') {
+      parts.push(`<|im_start|>assistant\n${content}<|im_end|>\n`);
+    }
+  }
+  parts.push('<|im_start|>assistant\n<think>\n\n</think>\n\n');
+  return parts.join('');
+}
+
 function formatTranslateGemmaUserPrompt(content) {
   if (!Array.isArray(content) || content.length !== 1) {
     throw new Error(
@@ -345,7 +368,7 @@ const CHAT_FORMATTERS = {
   'llama3': formatHeaderBased,
   'gpt-oss': formatChannelBased,
   'chatml': formatChatML,
-  'qwen': formatChatML,
+  'qwen': formatQwen,
   'translategemma': formatTranslateGemma,
 };
 
@@ -363,4 +386,5 @@ export function formatChatMessages(messages, templateType) {
 export const formatGemmaChat = formatTurnBased;
 export const formatLlama3Chat = formatHeaderBased;
 export const formatGptOssChat = formatChannelBased;
+export const formatQwenChat = formatQwen;
 export const formatTranslateGemmaChat = formatTranslateGemma;

@@ -64,6 +64,68 @@ function resolveSpecialTokens(specialTokensRaw, fallbackTokens, vocab) {
   return resolved;
 }
 
+function resolveByteLevelPretokenizerConfig(preTokenizer) {
+  if (!preTokenizer || typeof preTokenizer !== 'object') {
+    return {
+      useByteLevel: false,
+      addPrefixSpace: null,
+    };
+  }
+
+  if (preTokenizer.type === 'ByteLevel') {
+    return {
+      useByteLevel: true,
+      addPrefixSpace: preTokenizer.add_prefix_space === true,
+    };
+  }
+
+  if (preTokenizer.type === 'Sequence' && Array.isArray(preTokenizer.pretokenizers)) {
+    for (const entry of preTokenizer.pretokenizers) {
+      const resolved = resolveByteLevelPretokenizerConfig(entry);
+      if (resolved.useByteLevel) {
+        return resolved;
+      }
+    }
+  }
+
+  return {
+    useByteLevel: false,
+    addPrefixSpace: null,
+  };
+}
+
+function registerAddedTokens(addedTokens, vocab, reverseVocab, patterns, specialTokenIds, derivedSpecialTokens = null) {
+  let maxId = -1;
+  for (const token of addedTokens) {
+    const content = token?.content;
+    const id = typeof token?.id === 'number' ? token.id : parseInt(token?.id, 10);
+    if (!Number.isFinite(id) || !content) continue;
+    if (!vocab.has(content)) {
+      vocab.set(content, id);
+      reverseVocab.set(id, content);
+    }
+    if (id > maxId) maxId = id;
+    if (content.length > 1) {
+      patterns.push({ content, id });
+    }
+    if (token.special) {
+      specialTokenIds.add(id);
+      if (derivedSpecialTokens) {
+        if (derivedSpecialTokens.bos == null && (content === '<bos>' || content === '<s>' || content.includes('bos'))) {
+          derivedSpecialTokens.bos = id;
+        } else if (derivedSpecialTokens.eos == null && (content === '<eos>' || content === '</s>' || content.includes('eos'))) {
+          derivedSpecialTokens.eos = id;
+        } else if (derivedSpecialTokens.pad == null && (content === '<pad>' || content.includes('pad'))) {
+          derivedSpecialTokens.pad = id;
+        } else if (derivedSpecialTokens.unk == null && (content === '<unk>' || content.includes('unk'))) {
+          derivedSpecialTokens.unk = id;
+        }
+      }
+    }
+  }
+  return maxId;
+}
+
 
 export class TransformersTokenizer extends BaseTokenizer {
 
@@ -156,6 +218,10 @@ export class BundledTokenizer extends BaseTokenizer {
   
   #byteDecoder = null;
 
+  #byteEncoder = null;
+
+  #useByteLevelEncoding = false;
+
   
   constructor(config = {}) {
     // BundledTokenizer gets vocabSize from load(), so defer validation
@@ -199,9 +265,20 @@ export class BundledTokenizer extends BaseTokenizer {
     }
 
     this.#byteDecoder = new Map();
+    this.#byteEncoder = new Map();
     for (let i = 0; i < base.length; i++) {
       this.#byteDecoder.set(String.fromCodePoint(chars[i]), base[i]);
+      this.#byteEncoder.set(base[i], String.fromCodePoint(chars[i]));
     }
+  }
+
+  #encodeByteLevelText(text) {
+    const bytes = new TextEncoder().encode(text);
+    let out = '';
+    for (const byte of bytes) {
+      out += this.#byteEncoder?.get(byte) ?? String.fromCharCode(byte);
+    }
+    return out;
   }
 
   
@@ -290,30 +367,16 @@ export class BundledTokenizer extends BaseTokenizer {
       eos: null,
       unk: null,
     };
-    for (const token of addedTokens) {
-      const content = token.content;
-      const id = typeof token.id === 'number' ? token.id : parseInt( (token.id), 10);
-      if (!Number.isFinite(id) || !content) continue;
-      if (!this.#vocab.has(content)) {
-        this.#vocab.set(content, id);
-        this.#reverseVocab.set(id, content);
-      }
-      if (id > maxId) maxId = id;
-      if (token.special) {
-        specialTokenIds.add(id);
-        if (content.length > 1) {
-          specialTokenPatterns.push({ content, id });
-        }
-        if (derivedSpecialTokens.bos == null && (content === '<bos>' || content === '<s>' || content.includes('bos'))) {
-          derivedSpecialTokens.bos = id;
-        } else if (derivedSpecialTokens.eos == null && (content === '<eos>' || content === '</s>' || content.includes('eos'))) {
-          derivedSpecialTokens.eos = id;
-        } else if (derivedSpecialTokens.pad == null && (content === '<pad>' || content.includes('pad'))) {
-          derivedSpecialTokens.pad = id;
-        } else if (derivedSpecialTokens.unk == null && (content === '<unk>' || content.includes('unk'))) {
-          derivedSpecialTokens.unk = id;
-        }
-      }
+    const addedMaxId = registerAddedTokens(
+      addedTokens,
+      this.#vocab,
+      this.#reverseVocab,
+      specialTokenPatterns,
+      specialTokenIds,
+      derivedSpecialTokens
+    );
+    if (addedMaxId > maxId) {
+      maxId = addedMaxId;
     }
 
     const specialTokensRaw = hf.special_tokens_map || hf.specialTokens || hf.special_tokens || null;
@@ -351,6 +414,7 @@ export class BundledTokenizer extends BaseTokenizer {
 
     // Handle behavior flags (use HF config if present, else runtime defaults)
     const runtimeDefaults = getRuntimeConfig().inference.tokenizer;
+    const byteLevelPretokenizer = resolveByteLevelPretokenizerConfig(hf.pre_tokenizer);
     const configuredAddBosToken = this.addBosToken;
     const configuredAddEosToken = this.addEosToken;
     this.addBosToken =
@@ -378,9 +442,16 @@ export class BundledTokenizer extends BaseTokenizer {
     // - runtime config addSpacePrefix (user override or null for auto-detect)
     const decoderPrepend = hf.decoder?.prepend_scheme === 'always' || hf.decoder?.add_prefix_space === true;
     const normalizerPrepend = hf.normalizer?.prepend_scheme === 'always' || hf.normalizer?.add_prefix_space === true;
+    this.#useByteLevelEncoding = byteLevelPretokenizer.useByteLevel;
     const runtimeSpacePrefix = runtimeDefaults.addSpacePrefix;
     // Use explicit runtime config if set (non-null), otherwise auto-detect from tokenizer.json
-    this.#addSpacePrefix = runtimeSpacePrefix ?? model.add_prefix_space ?? model.add_dummy_prefix ?? decoderPrepend ?? normalizerPrepend ?? false;
+    this.#addSpacePrefix = runtimeSpacePrefix
+      ?? byteLevelPretokenizer.addPrefixSpace
+      ?? model.add_prefix_space
+      ?? model.add_dummy_prefix
+      ?? decoderPrepend
+      ?? normalizerPrepend
+      ?? false;
     log.debug('Tokenizer', `addSpacePrefix=${this.#addSpacePrefix} (runtime=${runtimeSpacePrefix}, model=${model.add_prefix_space ?? model.add_dummy_prefix}, decoder=${decoderPrepend}, normalizer=${normalizerPrepend})`);
 
     // Detect space prefix style by checking which WORD tokens exist in vocab
@@ -469,11 +540,47 @@ export class BundledTokenizer extends BaseTokenizer {
       this.#tokenTypes = tokenizerJson.tokenTypes;
     }
 
+    let maxId = -1;
+    for (const id of this.#vocab.values()) {
+      if (Number.isFinite(id) && id > maxId) {
+        maxId = id;
+      }
+    }
+
+    const addedTokens = Array.isArray(tokenizerJson.added_tokens) ? tokenizerJson.added_tokens : [];
+    const tokenPatterns = [];
+    const specialTokenIds = new Set();
+    const derivedSpecialTokens = {
+      pad: null,
+      bos: null,
+      eos: null,
+      unk: null,
+    };
+    const addedMaxId = registerAddedTokens(
+      addedTokens,
+      this.#vocab,
+      this.#reverseVocab,
+      tokenPatterns,
+      specialTokenIds,
+      derivedSpecialTokens
+    );
+    if (addedMaxId > maxId) {
+      maxId = addedMaxId;
+    }
+
     // Set special tokens - support both camelCase and snake_case formats
     const specialTokensRaw =  (tokenizerJson.specialTokens ||  (tokenizerJson).special_tokens);
-    this.specialTokens = resolveSpecialTokens(specialTokensRaw, this.specialTokens, this.#vocab);
+    this.specialTokens = resolveSpecialTokens(
+      specialTokensRaw,
+      {
+        ...derivedSpecialTokens,
+        ...this.specialTokens,
+      },
+      this.#vocab
+    );
     log.debug('Tokenizer', `Special tokens: BOS=${this.specialTokens.bos}, EOS=${this.specialTokens.eos}`);
-    this.#specialTokenIds = new Set();
+    this.#specialTokenIds = specialTokenIds;
+    this.#specialTokenPatterns = tokenPatterns;
     const builtinSpecials = [
       this.specialTokens.pad,
       this.specialTokens.bos,
@@ -485,8 +592,13 @@ export class BundledTokenizer extends BaseTokenizer {
         this.#specialTokenIds.add(id);
       }
     }
+    this.#specialTokenPatterns.sort((a, b) => b.content.length - a.content.length);
+    if (maxId >= 0) {
+      this.vocabSize = Math.max(this.vocabSize, maxId + 1);
+    }
 
     const runtimeDefaults = getRuntimeConfig().inference.tokenizer;
+    const byteLevelPretokenizer = resolveByteLevelPretokenizerConfig(tokenizerJson.pre_tokenizer);
     const configuredAddBosToken = this.addBosToken;
     const configuredAddEosToken = this.addEosToken;
     this.addBosToken =
@@ -505,9 +617,11 @@ export class BundledTokenizer extends BaseTokenizer {
     if (this.addEosToken && this.specialTokens.eos == null) {
       throw new Error('[Tokenizer] addEosToken is enabled but eos token is missing.');
     }
+    this.#useByteLevelEncoding = byteLevelPretokenizer.useByteLevel;
     // NOTE: Default to FALSE - first word shouldn't get space prefix
     // Space prefixes are only for words that follow a space in original text
-    this.#addSpacePrefix = tokenizerJson.addSpacePrefix === true;
+    this.#addSpacePrefix = tokenizerJson.addSpacePrefix === true
+      || byteLevelPretokenizer.addPrefixSpace === true;
 
     // Detect space prefix style based on vocab tokens
     // GPT-style uses 'Ġ' (U+0120), SentencePiece uses '▁' (U+2581)
@@ -548,7 +662,8 @@ export class BundledTokenizer extends BaseTokenizer {
       ids.push(this.specialTokens.bos);
     }
 
-    // Split text around special tokens and tokenize each segment
+    // Split text around literal added tokens and special tokens, then tokenize
+    // the remaining plain-text segments normally.
     const segments = this.#splitOnSpecialTokens(text);
     for (const seg of segments) {
       if (seg.isSpecial && seg.id !== undefined) {
@@ -690,11 +805,19 @@ export class BundledTokenizer extends BaseTokenizer {
     if (text.length === 0) return [];
 
     let normalized = text;
-    if (this.#addSpacePrefix && !normalized.startsWith(' ')) {
-      normalized = ` ${normalized}`;
+    let prefixed;
+    if (this.#useByteLevelEncoding) {
+      if (this.#addSpacePrefix && !normalized.startsWith(' ')) {
+        normalized = ` ${normalized}`;
+      }
+      prefixed = this.#encodeByteLevelText(normalized);
+    } else {
+      if (this.#addSpacePrefix && !normalized.startsWith(' ')) {
+        normalized = ` ${normalized}`;
+      }
+      const sp = this.#spacePrefixChar;
+      prefixed = normalized.replace(/ /g, sp);
     }
-    const sp = this.#spacePrefixChar;
-    const prefixed = normalized.replace(/ /g, sp);
 
     if (this.#mergeRanks.size === 0) {
       return this.#encodeBPEGreedy(prefixed);

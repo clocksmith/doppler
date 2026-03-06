@@ -2,17 +2,6 @@ import { existsSync, readFileSync, statSync } from 'node:fs';
 import { dirname, isAbsolute, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
-const DOPPLER_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
-
-const DEFAULT_LOCAL_DOE_PROVIDER_PATH = resolve(
-  dirname(fileURLToPath(import.meta.url)),
-  '..',
-  '..',
-  '..',
-  'fawn',
-  'nursery',
-  'webgpu-doe',
-);
 const DEFAULT_DOE_PROVIDER_CREATE_ARGS = 'enable-dawn-features=allow_unsafe_apis';
 
 function hasNavigatorGpu() {
@@ -59,20 +48,7 @@ function resolveCandidateModuleSpecifier(candidate) {
 }
 
 function resolveDefaultWebgpuModuleSpecifiers() {
-  const specifiers = [];
-  const localCandidates = [
-    resolve(process.cwd(), '..', 'fawn', 'nursery', 'webgpu-doe'),
-    DEFAULT_LOCAL_DOE_PROVIDER_PATH,
-  ];
-  for (const localCandidate of localCandidates) {
-    const resolvedPath = resolveNodeModuleFilePath(localCandidate);
-    if (resolvedPath) {
-      specifiers.push(pathToFileURL(resolvedPath).href);
-    }
-  }
-  specifiers.push('@simulatte/webgpu-doe');
-  specifiers.push('webgpu');
-  return [...new Set(specifiers)];
+  return ['@simulatte/webgpu', 'webgpu'];
 }
 
 function resolveWebgpuModuleSpecifiers() {
@@ -89,80 +65,26 @@ function resolveWebgpuModuleSpecifiers() {
   };
 }
 
-function resolveWorkspaceWebgpuProviderPath() {
-  const candidates = [
-    resolve(process.cwd(), 'node_modules', 'webgpu'),
-    resolve(DOPPLER_ROOT, 'node_modules', 'webgpu'),
-  ];
-  for (const candidate of candidates) {
-    const resolvedPath = resolveNodeModuleFilePath(candidate);
-    if (resolvedPath) {
-      return resolvedPath;
-    }
-  }
-  return null;
-}
-
 function isDoeWebgpuSpecifier(specifier) {
-  if (specifier === '@simulatte/webgpu-doe') {
+  if (specifier === '@simulatte/webgpu') {
     return true;
   }
-  if (typeof specifier !== 'string') {
-    return false;
-  }
-  if (specifier.includes('/webgpu-doe/')) {
-    return true;
-  }
-  return specifier.includes('webgpu-doe') && specifier.startsWith('file://');
-}
-
-function resolveDoeProviderOverride(specifier) {
-  const explicitProvider = process.env.FAWN_WEBGPU_NODE_PROVIDER_MODULE;
-  if (typeof explicitProvider === 'string' && explicitProvider.trim().length > 0) {
-    return null;
-  }
-  if (!isDoeWebgpuSpecifier(specifier)) {
-    return null;
-  }
-  return resolveWorkspaceWebgpuProviderPath();
+  return typeof specifier === 'string'
+    && specifier.startsWith('file://')
+    && specifier.includes('@simulatte/webgpu');
 }
 
 async function importWithProviderOverride(specifier) {
-  const providerOverride = resolveDoeProviderOverride(specifier);
   const shouldApplyCreateArgsDefault = isDoeWebgpuSpecifier(specifier)
     && !(typeof process.env.FAWN_WEBGPU_CREATE_ARGS === 'string' && process.env.FAWN_WEBGPU_CREATE_ARGS.trim().length > 0);
-  if (!providerOverride) {
-    if (!shouldApplyCreateArgsDefault) {
-      return import(specifier);
-    }
-    process.env.FAWN_WEBGPU_CREATE_ARGS = DEFAULT_DOE_PROVIDER_CREATE_ARGS;
-    try {
-      return await import(specifier);
-    } finally {
-      delete process.env.FAWN_WEBGPU_CREATE_ARGS;
-    }
+  if (!shouldApplyCreateArgsDefault) {
+    return import(specifier);
   }
-  const hadProvider = Object.prototype.hasOwnProperty.call(process.env, 'FAWN_WEBGPU_NODE_PROVIDER_MODULE');
-  const previousProvider = process.env.FAWN_WEBGPU_NODE_PROVIDER_MODULE;
-  const hadCreateArgs = Object.prototype.hasOwnProperty.call(process.env, 'FAWN_WEBGPU_CREATE_ARGS');
-  const previousCreateArgs = process.env.FAWN_WEBGPU_CREATE_ARGS;
-  process.env.FAWN_WEBGPU_NODE_PROVIDER_MODULE = providerOverride;
-  if (!hadCreateArgs) {
-    process.env.FAWN_WEBGPU_CREATE_ARGS = DEFAULT_DOE_PROVIDER_CREATE_ARGS;
-  }
+  process.env.FAWN_WEBGPU_CREATE_ARGS = DEFAULT_DOE_PROVIDER_CREATE_ARGS;
   try {
     return await import(specifier);
   } finally {
-    if (hadProvider) {
-      process.env.FAWN_WEBGPU_NODE_PROVIDER_MODULE = previousProvider;
-    } else {
-      delete process.env.FAWN_WEBGPU_NODE_PROVIDER_MODULE;
-    }
-    if (hadCreateArgs) {
-      process.env.FAWN_WEBGPU_CREATE_ARGS = previousCreateArgs;
-    } else {
-      delete process.env.FAWN_WEBGPU_CREATE_ARGS;
-    }
+    delete process.env.FAWN_WEBGPU_CREATE_ARGS;
   }
 }
 
