@@ -988,6 +988,14 @@ async function runKernelSuite(options = {}) {
 
 const DEFAULT_HARNESS_PROMPT = 'Summarize this input in one sentence.';
 const DEFAULT_RUNTIME_PLACEHOLDER_PROMPT = 'Hello from Doppler.';
+const DEFAULT_QWEN_PROMPT = Object.freeze({
+  messages: Object.freeze([
+    Object.freeze({
+      role: 'user',
+      content: 'Answer in one short sentence: What color is the sky on a clear day?',
+    }),
+  ]),
+});
 const DEFAULT_TRANSLATEGEMMA_PROMPT = Object.freeze({
   messages: Object.freeze([
     Object.freeze({
@@ -1273,6 +1281,9 @@ function resolvePromptTemplateType(source) {
 }
 
 function buildDefaultGenerationPrompt(templateType) {
+  if (templateType === 'qwen') {
+    return clonePromptInput(DEFAULT_QWEN_PROMPT);
+  }
   if (templateType === 'translategemma') {
     return clonePromptInput(DEFAULT_TRANSLATEGEMMA_PROMPT);
   }
@@ -1280,7 +1291,7 @@ function buildDefaultGenerationPrompt(templateType) {
 }
 
 function shouldPreferModelDefaultPrompt(runtimePrompt, templateType) {
-  if (templateType !== 'translategemma') {
+  if (templateType !== 'translategemma' && templateType !== 'qwen') {
     return false;
   }
   if (typeof runtimePrompt !== 'string') {
@@ -1304,6 +1315,11 @@ function describePromptInput(promptInput) {
   const text = asText(firstContent?.text);
   if (sourceLang && targetLang) {
     return `${sourceLang} -> ${targetLang}: ${text || '[non-text request]'}`;
+  }
+  const stringContent = asText(firstMessage?.content);
+  if (stringContent) {
+    const role = asText(firstMessage?.role) || 'user';
+    return `${role}: ${stringContent}`;
   }
   try {
     return JSON.stringify(promptInput);

@@ -688,6 +688,10 @@ function applyChatMLTemplate(prompt) {
   return `<|im_start|>user\n${prompt}<|im_end|>\n<|im_start|>assistant\n`;
 }
 
+function applyQwenTemplate(prompt) {
+  return `<|im_start|>user\n${prompt}<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n`;
+}
+
 function applyTranslateGemmaTemplate() {
   throw new Error(
     'TranslateGemma template requires structured messages. ' +
@@ -702,7 +706,7 @@ const PROMPT_TEMPLATES = {
   'llama3': applyHeaderBasedTemplate,
   'gpt-oss': applyChannelBasedTemplate,
   'chatml': applyChatMLTemplate,
-  'qwen': applyChatMLTemplate,  // Qwen uses ChatML format
+  'qwen': applyQwenTemplate,
   'translategemma': applyTranslateGemmaTemplate,
 };
 
@@ -721,7 +725,7 @@ export function applyChatTemplate(prompt, templateType) {
 export const applyGemmaChatTemplate = applyTurnBasedTemplate;
 export const applyLlama3ChatTemplate = applyHeaderBasedTemplate;
 export const applyGptOssChatTemplate = applyChannelBasedTemplate;
-export const applyQwenChatTemplate = applyChatMLTemplate;
+export const applyQwenChatTemplate = applyQwenTemplate;
 
 
 export function isStopToken(token, stopTokenIds, eosTokenId) {
