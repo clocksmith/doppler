@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+import { pathToFileURL } from 'node:url';
+
 import { buildMergeContractArtifact } from '../src/config/merge-contract-check.js';
 import { getKernelPathContractArtifact } from '../src/config/kernel-path-loader.js';
 import { buildQuantizationContractArtifact } from '../src/config/quantization-contract-check.js';
@@ -9,12 +11,20 @@ import {
   getInferenceLayerPatternContractArtifact,
 } from '../src/rules/rule-registry.js';
 import { buildSummary, loadConversionReports } from './summarize-conversion-reports.js';
+import { runSweep as runLeanExecutionContractManifestSweep } from './lean-execution-contract-sweep.js';
+import { runSweep as runLeanExecutionContractConfigSweep } from './lean-execution-contract-config-sweep.js';
 
 function parseArgs(argv) {
   const args = {
     json: false,
     reportsRoot: '',
     failOnReportContracts: false,
+    withLean: false,
+    leanCheck: true,
+    leanManifestRoot: 'models',
+    leanConfigRoot: 'tools/configs/conversion',
+    leanFixtureMap: 'tools/configs/conversion/lean-execution-contract-fixtures.json',
+    leanRequireManifestMatch: false,
     help: false,
   };
   for (let index = 0; index < argv.length; index += 1) {
@@ -32,6 +42,33 @@ function parseArgs(argv) {
       args.failOnReportContracts = true;
       continue;
     }
+    if (arg === '--with-lean') {
+      args.withLean = true;
+      continue;
+    }
+    if (arg === '--lean-no-check') {
+      args.leanCheck = false;
+      continue;
+    }
+    if (arg === '--lean-manifest-root') {
+      args.leanManifestRoot = String(argv[index + 1] ?? '').trim() || args.leanManifestRoot;
+      index += 1;
+      continue;
+    }
+    if (arg === '--lean-config-root') {
+      args.leanConfigRoot = String(argv[index + 1] ?? '').trim() || args.leanConfigRoot;
+      index += 1;
+      continue;
+    }
+    if (arg === '--lean-fixture-map') {
+      args.leanFixtureMap = String(argv[index + 1] ?? '').trim() || args.leanFixtureMap;
+      index += 1;
+      continue;
+    }
+    if (arg === '--lean-require-manifest-match') {
+      args.leanRequireManifestMatch = true;
+      continue;
+    }
     if (arg === '--help' || arg === '-h') {
       args.help = true;
       continue;
@@ -44,7 +81,7 @@ function parseArgs(argv) {
 function usage() {
   return [
     'Usage:',
-    '  node tools/check-contract-artifacts.js [--json] [--reports-root <dir>] [--fail-on-report-contracts]',
+    '  node tools/check-contract-artifacts.js [--json] [--reports-root <dir>] [--fail-on-report-contracts] [--with-lean] [--lean-no-check] [--lean-manifest-root <dir>] [--lean-config-root <dir>] [--lean-fixture-map <json>] [--lean-require-manifest-match]',
   ].join('\n');
 }
 
@@ -62,6 +99,19 @@ function summarizeArtifact(id, artifact) {
   };
 }
 
+function summarizeLeanSweep(id, summary) {
+  const results = Array.isArray(summary?.results) ? summary.results : [];
+  const firstFailure = results.find((entry) => entry?.status === 'fail' || entry?.status === 'error') || null;
+  return {
+    id,
+    ok: summary?.ok === true,
+    checks: results.length,
+    passedChecks: results.filter((entry) => entry?.status === 'pass').length,
+    firstError: firstFailure?.reason ?? null,
+    stats: summary?.totals ?? null,
+  };
+}
+
 async function buildContractSummary(args) {
   const artifacts = [
     summarizeArtifact('kernelPath', getKernelPathContractArtifact()),
@@ -71,6 +121,25 @@ async function buildContractSummary(args) {
     summarizeArtifact('quantization', buildQuantizationContractArtifact()),
     summarizeArtifact('requiredInferenceFields', buildRequiredInferenceFieldsContractArtifact()),
   ];
+  let lean = null;
+  if (args.withLean) {
+    const manifestSweep = await runLeanExecutionContractManifestSweep(args.leanManifestRoot, {
+      check: args.leanCheck,
+    });
+    const configSweep = await runLeanExecutionContractConfigSweep({
+      configRoot: args.leanConfigRoot,
+      manifestRoot: args.leanManifestRoot,
+      fixtureMap: args.leanFixtureMap,
+      check: args.leanCheck,
+      requireManifestMatch: args.leanRequireManifestMatch,
+    });
+    lean = {
+      manifestSweep,
+      configSweep,
+    };
+    artifacts.push(summarizeLeanSweep('leanExecutionContractManifests', manifestSweep));
+    artifacts.push(summarizeLeanSweep('leanExecutionContractConfigs', configSweep));
+  }
   let reports = null;
   if (args.reportsRoot) {
     const entries = await loadConversionReports(args.reportsRoot);
@@ -92,6 +161,7 @@ async function buildContractSummary(args) {
     source: 'doppler',
     ok,
     artifacts,
+    lean,
     reports,
   };
 }
@@ -133,7 +203,13 @@ async function main() {
   }
 }
 
-main().catch((error) => {
-  console.error(error instanceof Error ? error.message : String(error));
-  process.exitCode = 1;
-});
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch((error) => {
+    console.error(error instanceof Error ? error.message : String(error));
+    process.exitCode = 1;
+  });
+}
+
+export {
+  buildContractSummary,
+};

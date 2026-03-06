@@ -100,6 +100,15 @@ Current config intent:
   - Kernel path: `null` (runtime default; linear-attention GPU path in runtime)
   - Session defaults: decode loop `batchSize=4`, `stopCheckMode=batch`, `readbackInterval=1`, `disableCommandBatching=true`
 
+- `tools/configs/conversion/sana/sana-sprint-0.6b-wf16-ef16-hf16-f16.json`
+  - Output base: `models/local/sana-sprint-0.6b-wf16-ef16-hf16-f16`
+  - Resolved modelId: `sana-sprint-0.6b-wf16-ef16-hf16-f16`
+  - Preset: `diffusion`
+  - Weights/embeddings/lmHead: `f16`
+  - Compute: `f16`
+  - Intended source: `Efficient-Large-Model/Sana_Sprint_0.6B_1024px_diffusers`
+  - Kept `f16` intentionally while Sana runtime work is still being validated; no reusable `q4k` diffusion config is checked in yet.
+
 - `tools/configs/conversion/embeddinggemma/embeddinggemma-300m-wbf16.json`
   - Output base: `models/curated/google-embeddinggemma-300m`
   - Resolved modelId: `google-embeddinggemma-300m`

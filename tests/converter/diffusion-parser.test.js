@@ -148,6 +148,9 @@ const {
       return null;
     },
     async readJson(suffix) {
+      if (suffix === 'tokenizer/config.json') {
+        throw new Error('unexpected tokenizer/config.json lookup');
+      }
       if (suffix === 'model_index.json') {
         return {
           _class_name: 'SanaSprintPipeline',

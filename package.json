@@ -19,9 +19,12 @@
     "lean:execution-contract:sweep": "node tools/lean-execution-contract-sweep.js",
     "lean:execution-contract:configs": "node tools/lean-execution-contract-config-sweep.js",
     "ci:lean:execution-contract": "node tools/lean-execution-contract-sweep.js --root models",
-    "ci:lean:execution-contract:configs": "node tools/lean-execution-contract-config-sweep.js --config-root tools/configs/conversion --manifest-root models",
+    "ci:lean:execution-contract:configs": "node tools/lean-execution-contract-config-sweep.js --config-root tools/configs/conversion --manifest-root models --require-manifest-match",
     "contracts:check": "node tools/check-contract-artifacts.js",
     "contracts:summary": "node tools/check-contract-artifacts.js --json",
+    "contracts:check:lean": "node tools/check-contract-artifacts.js --with-lean",
+    "contracts:summary:lean": "node tools/check-contract-artifacts.js --json --with-lean",
+    "ci:contracts:check": "node tools/check-contract-artifacts.js --with-lean --lean-require-manifest-match",
     "reports:convert:summary": "node tools/summarize-conversion-reports.js",
     "bench:chart": "node ./benchmarks/vendors/compare-chart.js",
     "bench:chart:readme": "node ./benchmarks/vendors/compare-chart.js --preset readme-evidence",
@@ -155,5 +158,8 @@
     "jest": "^30.2.0",
     "onnxruntime-web": "^1.24.1",
     "playwright": "^1.58.2"
+  },
+  "optionalDependencies": {
+    "@simulatte/webgpu-doe": "0.1.x"
   }
 }
