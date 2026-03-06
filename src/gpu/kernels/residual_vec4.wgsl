@@ -23,7 +23,8 @@ override WORKGROUP_SIZE_VEC4: u32 = 64u;
 // Vectorized version for better throughput
 @compute @workgroup_size(WORKGROUP_SIZE_VEC4, 1, 1)
 fn add_vec4(@builtin(global_invocation_id) gid: vec3<u32>) {
-    let idx = gid.x * 4u;
+    let dispatch_stride = max(u._pad1, 4u);
+    let idx = gid.y * dispatch_stride + gid.x * 4u;
     let size = u.size;
 
     if (idx >= size) {

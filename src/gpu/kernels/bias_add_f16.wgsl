@@ -28,17 +28,16 @@ override WORKGROUP_SIZE: u32 = 256u;
 
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
-    let idx = gid.x;
-    let total = u.num_tokens * u.dim;
-    if (idx >= total) {
+    let d = gid.x;
+    let token = gid.y;
+    if (token >= u.num_tokens || d >= u.dim) {
         return;
     }
 
     // Convert byte offsets to F16 indices
     let data_base = u.data_offset / 2u;
     let bias_base = u.bias_offset / 2u;
-
-    let d = idx % u.dim;
+    let idx = token * u.dim + d;
     let out = f32(data[data_base + idx]) + f32(bias[bias_base + d]);
     data[data_base + idx] = f16(out);
 }

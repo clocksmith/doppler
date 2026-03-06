@@ -9,6 +9,7 @@ enable f16;
 override WORKGROUP_SIZE: u32 = 256u;
 override HAS_GATE: bool = false;
 override GATE_USE_SIGMOID: bool = false;
+override INPUT_USE_IDENTITY: bool = false;
 override USE_SPLIT: bool = false;
 override USE_VEC4: bool = false;
 override USE_ROWSPLIT: bool = false;
@@ -34,6 +35,10 @@ fn silu(x: f32) -> f32 {
     return x * sigmoid(x);
 }
 
+fn apply_input_activation(x: f32) -> f32 {
+    return select(silu(x), x, INPUT_USE_IDENTITY);
+}
+
 fn clamp_swiglu(x: f32) -> f32 {
     if (u.clamp_max <= 0.0) {
         return x;
@@ -55,7 +60,7 @@ fn main(
         let remaining = min(4u, u.size - base_idx);
         for (var i: u32 = 0u; i < remaining; i = i + 1u) {
             let x = f32(input[base_idx + i]);
-            output[base_idx + i] = f16(silu(x));
+            output[base_idx + i] = f16(apply_input_activation(x));
         }
         return;
     }
@@ -87,7 +92,7 @@ fn main(
         let up = f32(input[idx]);
         let g = f32(gate[idx]);
         let gateAct = select(silu(g), sigmoid(g), GATE_USE_SIGMOID);
-        output[idx] = f16(clamp_swiglu(gateAct * up));
+        output[idx] = f16(clamp_swiglu(gateAct * apply_input_activation(up)));
         return;
     }
 
@@ -99,5 +104,5 @@ fn main(
     }
 
     let x = f32(input[idx]);
-    output[idx] = f16(silu(x));
+    output[idx] = f16(apply_input_activation(x));
 }

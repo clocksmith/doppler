@@ -13,7 +13,7 @@
       "queryKeyNorm": true
     },
     "output": {
-      "scaleEmbeddings": true
+      "scaleEmbeddings": false
     },
     "normalization": {
       "rmsNormWeightOffset": false,
