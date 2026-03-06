@@ -125,6 +125,14 @@ Batch manifest sweep:
 node tools/lean-execution-contract-sweep.js --root models
 ```
 
+Conversion-config-backed sweep:
+
+```bash
+node tools/lean-execution-contract-config-sweep.js \
+  --config-root tools/configs/conversion \
+  --manifest-root models
+```
+
 The manifest-backed checker:
 - extracts execution steps and session facts from `manifest.inference`
 - resolves missing decode-loop fields through Doppler runtime defaults
@@ -136,6 +144,13 @@ The sweep runner:
 - skips non-transformer manifests that are outside the current execution-contract scope
 - runs the same Lean-backed execution-contract check on every applicable manifest
 - returns a summary suitable for CI gating
+
+The conversion-config-backed sweep:
+- walks conversion config JSON files
+- matches them to existing converted manifest fixtures by `output.modelBaseId`
+- re-materializes resolved `manifest.inference` through Doppler's real conversion-plan code
+- runs the same Lean execution-contract check on that materialized manifest
+- keeps the contract centered on resolved manifests instead of creating a separate config-only proof model
 
 The same execution-contract class is now also enforced in JS manifest validation:
 - [src/formats/rdrr/validation.js](/home/x/deco/doppler/src/formats/rdrr/validation.js)
