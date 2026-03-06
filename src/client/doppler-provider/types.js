@@ -1,4 +1,4 @@
-export const DOPPLER_PROVIDER_VERSION = '0.1.0';
+export { DOPPLER_PROVIDER_VERSION } from '../../version.js';
 
 export const DopplerCapabilities = {
   available: false,

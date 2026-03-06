@@ -18,7 +18,20 @@ Primary documentation index.
 - [RDRR Format](rdrr-format.md) - runtime artifact spec.
 - [LoRA Format](lora-format.md) - adapter manifest spec.
 - [Conversion Runtime Contract](conversion-runtime-contract.md) - conversion-static vs runtime-overridable ownership.
+- [Registry Workflow](registry-workflow.md) - hosted catalog validation and Hugging Face publication workflow.
 - [Operations](operations.md) - troubleshooting and debug workflows.
+
+## Public API Docs
+
+- [API Docs Index](api/index.md) - canonical public API navigation.
+- [Root API](api/root.md) - app-facing `doppler` facade.
+- [Advanced Root Exports](api/advanced-root-exports.md) - root-level loaders, adapters, and advanced exports.
+- [Provider API](api/provider.md) - provider/singleton surface.
+- [Generation API](api/generation.md) - lower-level text pipeline surface.
+- [Diffusion API](api/diffusion.md) - diffusion/image pipeline surface.
+- [Energy API](api/energy.md) - energy pipeline surface.
+- [Tooling API](api/tooling.md) - command-runner and tooling surface.
+- [Generated Export Inventory](api/reference/exports.md) - machine-derived export inventory from package entrypoints.
 
 ## Testing and Benchmarks
 
@@ -28,6 +41,7 @@ Primary documentation index.
 - [Benchmark Methodology](benchmark-methodology.md) - fairness and claim publication policy.
 - [Vendor Registry](../benchmarks/vendors/README.md) - cross-product benchmark contracts and tooling.
 - [Release Matrix](release-matrix.md) - generated model/platform support snapshot.
+- [Release Notes](release-notes.md) - non-generated notes for tooling and workflow changes.
 
 ## Training and Distill
 

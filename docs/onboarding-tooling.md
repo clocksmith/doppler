@@ -58,3 +58,4 @@ Kinds:
 
 - Conversion config details: [../tools/configs/conversion/README.md](../tools/configs/conversion/README.md)
 - Support matrix generation: [model-support-matrix.md](model-support-matrix.md)
+- Hosted publish and registry checks: [registry-workflow.md](registry-workflow.md)
