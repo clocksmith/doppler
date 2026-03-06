@@ -30,9 +30,37 @@ LEAN_PATH="${BUILD_DIR}:${ROOT_DIR}/lean" \
 LEAN_PATH="${BUILD_DIR}:${ROOT_DIR}/lean" \
   "${LEAN_BIN}" "+${TOOLCHAIN_REF}" -o "${BUILD_DIR}/Doppler/ExecutionContractFixtures.olean" "${ROOT_DIR}/lean/Doppler/ExecutionContractFixtures.lean"
 LEAN_PATH="${BUILD_DIR}:${ROOT_DIR}/lean" \
+  "${LEAN_BIN}" "+${TOOLCHAIN_REF}" -o "${BUILD_DIR}/Doppler/ExecutionRules.olean" "${ROOT_DIR}/lean/Doppler/ExecutionRules.lean"
+LEAN_PATH="${BUILD_DIR}:${ROOT_DIR}/lean" \
+  "${LEAN_BIN}" "+${TOOLCHAIN_REF}" -o "${BUILD_DIR}/Doppler/ExecutionRulesFixtures.olean" "${ROOT_DIR}/lean/Doppler/ExecutionRulesFixtures.lean"
+LEAN_PATH="${BUILD_DIR}:${ROOT_DIR}/lean" \
+  "${LEAN_BIN}" "+${TOOLCHAIN_REF}" -o "${BUILD_DIR}/Doppler/ExecutionV0Contract.olean" "${ROOT_DIR}/lean/Doppler/ExecutionV0Contract.lean"
+LEAN_PATH="${BUILD_DIR}:${ROOT_DIR}/lean" \
+  "${LEAN_BIN}" "+${TOOLCHAIN_REF}" -o "${BUILD_DIR}/Doppler/ExecutionV0ContractFixtures.olean" "${ROOT_DIR}/lean/Doppler/ExecutionV0ContractFixtures.lean"
+LEAN_PATH="${BUILD_DIR}:${ROOT_DIR}/lean" \
+  "${LEAN_BIN}" "+${TOOLCHAIN_REF}" -o "${BUILD_DIR}/Doppler/ExecutionV0Graph.olean" "${ROOT_DIR}/lean/Doppler/ExecutionV0Graph.lean"
+LEAN_PATH="${BUILD_DIR}:${ROOT_DIR}/lean" \
+  "${LEAN_BIN}" "+${TOOLCHAIN_REF}" -o "${BUILD_DIR}/Doppler/ExecutionV0GraphFixtures.olean" "${ROOT_DIR}/lean/Doppler/ExecutionV0GraphFixtures.lean"
+LEAN_PATH="${BUILD_DIR}:${ROOT_DIR}/lean" \
   "${LEAN_BIN}" "+${TOOLCHAIN_REF}" -o "${BUILD_DIR}/Doppler/KernelPath.olean" "${ROOT_DIR}/lean/Doppler/KernelPath.lean"
 LEAN_PATH="${BUILD_DIR}:${ROOT_DIR}/lean" \
   "${LEAN_BIN}" "+${TOOLCHAIN_REF}" -o "${BUILD_DIR}/Doppler/KernelPathFixtures.olean" "${ROOT_DIR}/lean/Doppler/KernelPathFixtures.lean"
+LEAN_PATH="${BUILD_DIR}:${ROOT_DIR}/lean" \
+  "${LEAN_BIN}" "+${TOOLCHAIN_REF}" -o "${BUILD_DIR}/Doppler/LayerPattern.olean" "${ROOT_DIR}/lean/Doppler/LayerPattern.lean"
+LEAN_PATH="${BUILD_DIR}:${ROOT_DIR}/lean" \
+  "${LEAN_BIN}" "+${TOOLCHAIN_REF}" -o "${BUILD_DIR}/Doppler/LayerPatternFixtures.olean" "${ROOT_DIR}/lean/Doppler/LayerPatternFixtures.lean"
+LEAN_PATH="${BUILD_DIR}:${ROOT_DIR}/lean" \
+  "${LEAN_BIN}" "+${TOOLCHAIN_REF}" -o "${BUILD_DIR}/Doppler/MergeSemantics.olean" "${ROOT_DIR}/lean/Doppler/MergeSemantics.lean"
+LEAN_PATH="${BUILD_DIR}:${ROOT_DIR}/lean" \
+  "${LEAN_BIN}" "+${TOOLCHAIN_REF}" -o "${BUILD_DIR}/Doppler/MergeSemanticsFixtures.olean" "${ROOT_DIR}/lean/Doppler/MergeSemanticsFixtures.lean"
+LEAN_PATH="${BUILD_DIR}:${ROOT_DIR}/lean" \
+  "${LEAN_BIN}" "+${TOOLCHAIN_REF}" -o "${BUILD_DIR}/Doppler/Quantization.olean" "${ROOT_DIR}/lean/Doppler/Quantization.lean"
+LEAN_PATH="${BUILD_DIR}:${ROOT_DIR}/lean" \
+  "${LEAN_BIN}" "+${TOOLCHAIN_REF}" -o "${BUILD_DIR}/Doppler/QuantizationFixtures.olean" "${ROOT_DIR}/lean/Doppler/QuantizationFixtures.lean"
+LEAN_PATH="${BUILD_DIR}:${ROOT_DIR}/lean" \
+  "${LEAN_BIN}" "+${TOOLCHAIN_REF}" -o "${BUILD_DIR}/Doppler/RequiredInferenceFields.olean" "${ROOT_DIR}/lean/Doppler/RequiredInferenceFields.lean"
+LEAN_PATH="${BUILD_DIR}:${ROOT_DIR}/lean" \
+  "${LEAN_BIN}" "+${TOOLCHAIN_REF}" -o "${BUILD_DIR}/Doppler/RequiredInferenceFieldsFixtures.olean" "${ROOT_DIR}/lean/Doppler/RequiredInferenceFieldsFixtures.lean"
 LEAN_PATH="${BUILD_DIR}:${ROOT_DIR}/lean" \
   "${LEAN_BIN}" "+${TOOLCHAIN_REF}" -o "${BUILD_DIR}/Doppler/Check.olean" "${ROOT_DIR}/lean/Doppler/Check.lean"
 

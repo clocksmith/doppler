@@ -33,6 +33,8 @@ export function getKernelPathContractArtifact(): {
     aliasEntries: number;
     canonicalEntries: number;
     fallbackMappings: number;
+    fallbackRules: number;
+    autoSelectRules: number;
   };
 };
 

@@ -72,8 +72,8 @@ const castOnlyExecution = {
       op: 'cast',
       phase: 'both',
       section: 'layer',
-      src: 'attn_q',
-      dst: 'attn_q',
+      src: 'state',
+      dst: 'state',
       layers: 'all',
       toDtype: 'f16',
     },
@@ -124,8 +124,14 @@ const castOnlyExecution = {
     assert.equal(result.executionContractArtifact?.schemaVersion, 1);
     assert.equal(result.executionContractArtifact?.ok, true);
     assert.equal(result.executionContractArtifact?.session?.layout, 'contiguous');
+    assert.equal(result.executionV0GraphContractArtifact?.ok, true);
+    assert.equal(result.layerPatternContractArtifact?.ok, true);
+    assert.equal(result.requiredInferenceFieldsArtifact?.ok, true);
     assert.equal(result.report?.suite, 'convert');
     assert.equal(result.report?.executionContractArtifact?.ok, true);
+    assert.equal(result.report?.executionV0GraphContractArtifact?.ok, true);
+    assert.equal(result.report?.layerPatternContractArtifact?.ok, true);
+    assert.equal(result.report?.requiredInferenceFieldsArtifact?.ok, true);
     assert.ok(typeof result.reportInfo?.path === 'string' && result.reportInfo.path.length > 0);
 
     const reportPath = path.isAbsolute(result.reportInfo.path)
@@ -134,6 +140,9 @@ const castOnlyExecution = {
     const reportJson = JSON.parse(readFileSync(reportPath, 'utf8'));
     assert.equal(reportJson.suite, 'convert');
     assert.equal(reportJson.executionContractArtifact?.ok, true);
+    assert.equal(reportJson.executionV0GraphContractArtifact?.ok, true);
+    assert.equal(reportJson.layerPatternContractArtifact?.ok, true);
+    assert.equal(reportJson.requiredInferenceFieldsArtifact?.ok, true);
 
     const manifest = readManifest(outputDir);
     assert.equal(typeof manifest.modelId, 'string');
@@ -206,8 +215,14 @@ const castOnlyExecution = {
     assert.equal(result.executionContractArtifact?.schemaVersion, 1);
     assert.equal(result.executionContractArtifact?.ok, true);
     assert.equal(result.executionContractArtifact?.session?.layout, 'contiguous');
+    assert.equal(result.executionV0GraphContractArtifact?.ok, true);
+    assert.equal(result.layerPatternContractArtifact?.ok, true);
+    assert.equal(result.requiredInferenceFieldsArtifact?.ok, true);
     assert.equal(result.report?.suite, 'convert');
     assert.equal(result.report?.executionContractArtifact?.ok, true);
+    assert.equal(result.report?.executionV0GraphContractArtifact?.ok, true);
+    assert.equal(result.report?.layerPatternContractArtifact?.ok, true);
+    assert.equal(result.report?.requiredInferenceFieldsArtifact?.ok, true);
     assert.ok(typeof result.reportInfo?.path === 'string' && result.reportInfo.path.length > 0);
 
     const reportPath = path.isAbsolute(result.reportInfo.path)
@@ -216,6 +231,9 @@ const castOnlyExecution = {
     const reportJson = JSON.parse(readFileSync(reportPath, 'utf8'));
     assert.equal(reportJson.suite, 'convert');
     assert.equal(reportJson.executionContractArtifact?.ok, true);
+    assert.equal(reportJson.executionV0GraphContractArtifact?.ok, true);
+    assert.equal(reportJson.layerPatternContractArtifact?.ok, true);
+    assert.equal(reportJson.requiredInferenceFieldsArtifact?.ok, true);
 
     const manifest = readManifest(outputDir);
     assert.equal(typeof manifest.modelId, 'string');

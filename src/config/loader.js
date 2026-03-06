@@ -5,6 +5,7 @@ import {
 } from './schema/index.js';
 import { createDopplerError, ERROR_CODES } from '../errors/index.js';
 import { loadJson } from '../utils/load-json.js';
+import { chooseNullish, mergeLayeredShallowObjects } from './merge-helpers.js';
 
 // Static imports keep presets bundled for browser use.
 const transformerPreset = await loadJson('./presets/models/transformer.json', import.meta.url, 'Failed to load preset');
@@ -190,18 +191,21 @@ export function resolveConfig(
   // Note: Uses nullish coalesce (??) so null values fall through to next level.
   // This means explicit null in manifest = "use preset/default".
   const presetArch = preset.architecture || {};
-  const numLayers = manifestArch.numLayers ?? presetArch.numLayers;
-  const hiddenSize = manifestArch.hiddenSize ?? presetArch.hiddenSize;
-  const intermediateSize = manifestArch.intermediateSize ?? presetArch.intermediateSize;
-  const numAttentionHeads = manifestArch.numAttentionHeads ?? presetArch.numAttentionHeads;
-  const numKeyValueHeads = manifestArch.numKeyValueHeads ?? presetArch.numKeyValueHeads ?? numAttentionHeads;
-  const headDim = manifestArch.headDim ?? presetArch.headDim ?? (
-    hiddenSize && numAttentionHeads ? hiddenSize / numAttentionHeads : undefined
+  const numLayers = chooseNullish(manifestArch.numLayers, presetArch.numLayers);
+  const hiddenSize = chooseNullish(manifestArch.hiddenSize, presetArch.hiddenSize);
+  const intermediateSize = chooseNullish(manifestArch.intermediateSize, presetArch.intermediateSize);
+  const numAttentionHeads = chooseNullish(manifestArch.numAttentionHeads, presetArch.numAttentionHeads);
+  const numKeyValueHeads = chooseNullish(
+    manifestArch.numKeyValueHeads,
+    chooseNullish(presetArch.numKeyValueHeads, numAttentionHeads)
   );
-  const vocabSize = manifestArch.vocabSize ?? presetArch.vocabSize;
-  const maxSeqLen = manifestArch.maxSeqLen ?? presetArch.maxSeqLen;
-  const ropeTheta = manifestArch.ropeTheta ?? presetArch.ropeTheta;
-  const rmsNormEps = manifestArch.rmsNormEps ?? presetArch.rmsNormEps;
+  const headDim = chooseNullish(manifestArch.headDim, chooseNullish(presetArch.headDim, (
+    hiddenSize && numAttentionHeads ? hiddenSize / numAttentionHeads : undefined
+  )));
+  const vocabSize = chooseNullish(manifestArch.vocabSize, presetArch.vocabSize);
+  const maxSeqLen = chooseNullish(manifestArch.maxSeqLen, presetArch.maxSeqLen);
+  const ropeTheta = chooseNullish(manifestArch.ropeTheta, presetArch.ropeTheta);
+  const rmsNormEps = chooseNullish(manifestArch.rmsNormEps, presetArch.rmsNormEps);
 
   const architecture = {
     numLayers,
@@ -226,44 +230,44 @@ export function resolveConfig(
   const manifestInference = extractInferenceFromConfig(manifest.config || {});
 
   const inference = {
-    attention: {
-      ...baseInference.attention,
-      ...presetInference.attention,
-      ...manifestInference.attention,
-    },
-    normalization: {
-      ...baseInference.normalization,
-      ...presetInference.normalization,
-    },
-    ffn: {
-      ...baseInference.ffn,
-      ...presetInference.ffn,
-    },
-    moe: presetInference.moe ?? baseInference.moe ?? null,
-    output: {
-      ...baseInference.output,
-      ...presetInference.output,
-      ...manifestInference.output,
-    },
-    layerPattern: presetInference.layerPattern ?? baseInference.layerPattern,
-    rope: {
-      ...baseInference.rope,
-      ...presetInference.rope,
-      ...manifestInference.rope,
-    },
-    pipeline: manifestInference.pipeline ?? presetInference.pipeline ?? baseInference.pipeline,
-    chatTemplate: {
-      ...baseInference.chatTemplate,
-      ...presetInference.chatTemplate,
-    },
-    kernelPath: presetInference.kernelPath ?? baseInference.kernelPath,
+    attention: mergeLayeredShallowObjects(
+      baseInference.attention,
+      presetInference.attention,
+      manifestInference.attention
+    ),
+    normalization: mergeLayeredShallowObjects(
+      baseInference.normalization,
+      presetInference.normalization
+    ),
+    ffn: mergeLayeredShallowObjects(
+      baseInference.ffn,
+      presetInference.ffn
+    ),
+    moe: chooseNullish(presetInference.moe, chooseNullish(baseInference.moe, null)),
+    output: mergeLayeredShallowObjects(
+      baseInference.output,
+      presetInference.output,
+      manifestInference.output
+    ),
+    layerPattern: chooseNullish(presetInference.layerPattern, baseInference.layerPattern),
+    rope: mergeLayeredShallowObjects(
+      baseInference.rope,
+      presetInference.rope,
+      manifestInference.rope
+    ),
+    pipeline: chooseNullish(manifestInference.pipeline, chooseNullish(presetInference.pipeline, baseInference.pipeline)),
+    chatTemplate: mergeLayeredShallowObjects(
+      baseInference.chatTemplate,
+      presetInference.chatTemplate
+    ),
+    kernelPath: chooseNullish(presetInference.kernelPath, baseInference.kernelPath),
   };
 
   // Merge tokenizer config
-  const tokenizer = {
-    ...preset.tokenizer,
-    ...extractTokenizerFromManifest(manifest),
-  };
+  const tokenizer = mergeLayeredShallowObjects(
+    preset.tokenizer,
+    extractTokenizerFromManifest(manifest)
+  );
 
   // Sampling defaults
   const sampling = preset.sampling ?? {

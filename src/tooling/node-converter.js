@@ -631,6 +631,9 @@ function buildConvertReport(result, context) {
         }
       : null,
     executionContractArtifact: result?.executionContractArtifact ?? null,
+    executionV0GraphContractArtifact: result?.executionV0GraphContractArtifact ?? null,
+    layerPatternContractArtifact: result?.layerPatternContractArtifact ?? null,
+    requiredInferenceFieldsArtifact: result?.requiredInferenceFieldsArtifact ?? null,
   });
 }
 
@@ -1267,6 +1270,9 @@ export async function convertSafetensorsDirectory(options) {
     shardCount: result.shardCount,
     tensorCount: result.tensorCount,
     executionContractArtifact: result.executionContractArtifact ?? null,
+    executionV0GraphContractArtifact: result.executionV0GraphContractArtifact ?? null,
+    layerPatternContractArtifact: result.layerPatternContractArtifact ?? null,
+    requiredInferenceFieldsArtifact: result.requiredInferenceFieldsArtifact ?? null,
     report,
     reportInfo,
     presetId,

@@ -16,25 +16,27 @@ export interface DiffusionTextEncoderWeightsEntry {
 
 export interface DiffusionTextEncoderWeights {
   text_encoder: DiffusionTextEncoderWeightsEntry;
-  text_encoder_2: DiffusionTextEncoderWeightsEntry;
-  text_encoder_3: DiffusionTextEncoderWeightsEntry;
+  text_encoder_2?: DiffusionTextEncoderWeightsEntry | null;
+  text_encoder_3?: DiffusionTextEncoderWeightsEntry | null;
   transformer?: DiffusionTextEncoderWeightsEntry;
 }
 
 export interface DiffusionTextTokens {
   text_encoder: number[];
-  text_encoder_2: number[];
-  text_encoder_3: number[];
+  text_encoder_2?: number[];
+  text_encoder_3?: number[];
 }
 
 export interface DiffusionTextConditioning {
   pooled: Float32Array;
   context: Tensor;
+  attentionMask?: Uint32Array | null;
   profile?: {
     totalMs?: number | null;
     clipMs?: number | null;
     clip2Ms?: number | null;
     t5Ms?: number | null;
+    gemmaMs?: number | null;
   } | null;
 }
 

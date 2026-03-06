@@ -112,7 +112,13 @@ function createHarnessOverride() {
   assert.equal(prompts.length, 1);
   assert.deepEqual(prompts[0], EXPECTED_TRANSLATEGEMMA_PROMPT);
   assert.equal(result.metrics.prompt, 'en -> fr: Hello world.');
+  assert.equal(result.metrics.schemaVersion, 1);
+  assert.equal(result.metrics.source, 'doppler');
+  assert.equal(result.metrics.suite, 'inference');
   assert.equal(result.metrics.executionContractArtifact?.ok, true);
+  assert.equal(result.metrics.executionV0GraphContractArtifact, null);
+  assert.equal(result.metrics.layerPatternContractArtifact?.ok, true);
+  assert.equal(result.metrics.requiredInferenceFieldsArtifact, null);
   assert.equal(result.metrics.executionContractArtifact?.session?.layout, 'paged');
 }
 
@@ -128,7 +134,13 @@ function createHarnessOverride() {
   assert.equal(prompts.length, 1);
   assert.deepEqual(prompts[0], EXPECTED_TRANSLATEGEMMA_PROMPT);
   assert.equal(result.metrics.prompt, 'en -> fr: Hello world.');
+  assert.equal(result.metrics.schemaVersion, 1);
+  assert.equal(result.metrics.source, 'doppler');
+  assert.equal(result.metrics.suite, 'debug');
   assert.equal(result.metrics.executionContractArtifact?.ok, true);
+  assert.equal(result.metrics.executionV0GraphContractArtifact, null);
+  assert.equal(result.metrics.layerPatternContractArtifact?.ok, true);
+  assert.equal(result.metrics.requiredInferenceFieldsArtifact, null);
 }
 
 {
@@ -145,7 +157,13 @@ function createHarnessOverride() {
     assert.deepEqual(promptInput, EXPECTED_TRANSLATEGEMMA_PROMPT);
   }
   assert.equal(result.metrics.prompt, 'en -> fr: Hello world.');
+  assert.equal(result.metrics.schemaVersion, 1);
+  assert.equal(result.metrics.source, 'doppler');
+  assert.equal(result.metrics.suite, 'bench');
   assert.equal(result.metrics.executionContractArtifact?.ok, true);
+  assert.equal(result.metrics.executionV0GraphContractArtifact, null);
+  assert.equal(result.metrics.layerPatternContractArtifact?.ok, true);
+  assert.equal(result.metrics.requiredInferenceFieldsArtifact, null);
 }
 
 console.log('translategemma-harness-default-prompt.test: ok');

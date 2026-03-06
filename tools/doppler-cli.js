@@ -718,7 +718,12 @@ function toSummary(result) {
       : result.executionContractArtifact
         ? ' contract=fail'
         : '';
-    return `converted ${result.manifest.modelId} (${result.tensorCount} tensors, ${result.shardCount} shards)${contractStatus}`;
+    const graphStatus = result.executionV0GraphContractArtifact?.ok === true
+      ? ' graph=pass'
+      : result.executionV0GraphContractArtifact
+        ? ' graph=fail'
+        : '';
+    return `converted ${result.manifest.modelId} (${result.tensorCount} tensors, ${result.shardCount} shards)${contractStatus}${graphStatus}`;
   }
 
   const suite = result.suite || result.report?.suite || 'suite';
@@ -1050,6 +1055,41 @@ function printExecutionContractSummary(result) {
   }
 }
 
+function printExecutionV0GraphSummary(artifact) {
+  if (!artifact || typeof artifact !== 'object') return;
+  const checks = Array.isArray(artifact.checks) ? artifact.checks : [];
+  const passedChecks = checks.filter((entry) => entry?.ok === true).length;
+  const stats = artifact.stats && typeof artifact.stats === 'object' ? artifact.stats : null;
+  const parts = [
+    `status=${artifact.ok === true ? 'pass' : 'fail'}`,
+    checks.length > 0 ? `checks=${passedChecks}/${checks.length}` : 'checks=n/a',
+  ];
+  if (Number.isFinite(stats?.prefillSteps) || Number.isFinite(stats?.decodeSteps)) {
+    parts.push(`steps(prefill=${stats?.prefillSteps ?? 'n/a'},decode=${stats?.decodeSteps ?? 'n/a'})`);
+  }
+  console.log(`[graph] ${parts.join(' ')}`);
+  if (artifact.ok !== true && Array.isArray(artifact.errors)) {
+    for (const error of artifact.errors.slice(0, 3)) {
+      console.log(`[graph] error=${quoteOneLine(error)}`);
+    }
+  }
+}
+
+function printSimpleArtifactSummary(label, artifact) {
+  if (!artifact || typeof artifact !== 'object') return;
+  const checks = Array.isArray(artifact.checks) ? artifact.checks : [];
+  const passedChecks = checks.filter((entry) => entry?.ok === true).length;
+  console.log(
+    `[${label}] status=${artifact.ok === true ? 'pass' : 'fail'} ` +
+    `checks=${checks.length > 0 ? `${passedChecks}/${checks.length}` : 'n/a'}`
+  );
+  if (artifact.ok !== true && Array.isArray(artifact.errors)) {
+    for (const error of artifact.errors.slice(0, 2)) {
+      console.log(`[${label}] error=${quoteOneLine(error)}`);
+    }
+  }
+}
+
 function printConvertContractSummary(result) {
   const artifact = result?.executionContractArtifact;
   if (!artifact || typeof artifact !== 'object') return;
@@ -1068,6 +1108,9 @@ function printConvertContractSummary(result) {
       console.log(`[contract] error=${quoteOneLine(error)}`);
     }
   }
+  printExecutionV0GraphSummary(result?.executionV0GraphContractArtifact);
+  printSimpleArtifactSummary('layer-pattern', result?.layerPatternContractArtifact);
+  printSimpleArtifactSummary('required-inference', result?.requiredInferenceFieldsArtifact);
 }
 
 function printConvertReportSummary(result) {
@@ -1102,6 +1145,7 @@ function printMetricsSummary(result) {
       `decode=${formatNumber(metrics.decodeTokensPerSec)}`
     );
     printExecutionContractSummary(result);
+    printExecutionV0GraphSummary(metrics.executionV0GraphContractArtifact);
     return;
   }
 
@@ -1116,6 +1160,8 @@ function printMetricsSummary(result) {
         `median=${formatMs(metrics.medianEmbeddingMs)} avg=${formatMs(metrics.avgEmbeddingMs)} ` +
         `eps=${formatNumber(metrics.avgEmbeddingsPerSec)}`
       );
+      printExecutionContractSummary(result);
+      printExecutionV0GraphSummary(metrics.executionV0GraphContractArtifact);
       return;
     }
 
@@ -1138,6 +1184,7 @@ function printMetricsSummary(result) {
       `prefill=${formatMs(metrics.prefillMs)} decode=${formatMs(metrics.decodeMs)}`
     );
     printExecutionContractSummary(result);
+    printExecutionV0GraphSummary(metrics.executionV0GraphContractArtifact);
     printDeviceInfo(result);
     printGpuPhases(metrics);
     printMemoryReport(result);

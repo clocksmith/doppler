@@ -1,3 +1,5 @@
+import { chooseDefined, chooseDefinedWithSource } from './merge-helpers.js';
+
 // =============================================================================
 // Merge Implementation
 // =============================================================================
@@ -8,12 +10,7 @@ function overlay(
   runtimeValue,
   sources
 ) {
-  if (runtimeValue !== undefined) {
-    sources.set(path, 'runtime');
-    return runtimeValue;
-  }
-  sources.set(path, 'manifest');
-  return manifestValue;
+  return chooseDefinedWithSource(path, runtimeValue, manifestValue, sources);
 }
 
 function mergeAttention(

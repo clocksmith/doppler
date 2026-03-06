@@ -5537,6 +5537,228 @@
         }
       }
     },
+    "depthwise_conv2d": {
+      "description": "Depthwise Conv2D (NCHW)",
+      "baseBindings": [
+        {
+          "index": 0,
+          "name": "uniforms",
+          "type": "uniform"
+        },
+        {
+          "index": 1,
+          "name": "input",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 2,
+          "name": "weight",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 3,
+          "name": "bias",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 4,
+          "name": "output",
+          "type": "storage"
+        }
+      ],
+      "baseUniforms": {
+        "size": 48,
+        "fields": [
+          {
+            "name": "channels",
+            "type": "u32",
+            "offset": 0
+          },
+          {
+            "name": "height",
+            "type": "u32",
+            "offset": 4
+          },
+          {
+            "name": "width",
+            "type": "u32",
+            "offset": 8
+          },
+          {
+            "name": "out_height",
+            "type": "u32",
+            "offset": 12
+          },
+          {
+            "name": "out_width",
+            "type": "u32",
+            "offset": 16
+          },
+          {
+            "name": "kernel_h",
+            "type": "u32",
+            "offset": 20
+          },
+          {
+            "name": "kernel_w",
+            "type": "u32",
+            "offset": 24
+          },
+          {
+            "name": "stride",
+            "type": "u32",
+            "offset": 28
+          },
+          {
+            "name": "pad",
+            "type": "u32",
+            "offset": 32
+          },
+          {
+            "name": "_pad0",
+            "type": "u32",
+            "offset": 36
+          },
+          {
+            "name": "_pad1",
+            "type": "u32",
+            "offset": 40
+          },
+          {
+            "name": "_pad2",
+            "type": "u32",
+            "offset": 44
+          }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "depthwise_conv2d.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [],
+          "outputDtype": "f32"
+        },
+        "default_f16": {
+          "wgsl": "depthwise_conv2d_f16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "outputDtype": "f16"
+        }
+      }
+    },
+    "grouped_pointwise_conv2d": {
+      "description": "Grouped Pointwise Conv2D (NCHW)",
+      "baseBindings": [
+        {
+          "index": 0,
+          "name": "uniforms",
+          "type": "uniform"
+        },
+        {
+          "index": 1,
+          "name": "input",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 2,
+          "name": "weight",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 3,
+          "name": "bias",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 4,
+          "name": "output",
+          "type": "storage"
+        }
+      ],
+      "baseUniforms": {
+        "size": 32,
+        "fields": [
+          {
+            "name": "in_channels",
+            "type": "u32",
+            "offset": 0
+          },
+          {
+            "name": "out_channels",
+            "type": "u32",
+            "offset": 4
+          },
+          {
+            "name": "height",
+            "type": "u32",
+            "offset": 8
+          },
+          {
+            "name": "width",
+            "type": "u32",
+            "offset": 12
+          },
+          {
+            "name": "groups",
+            "type": "u32",
+            "offset": 16
+          },
+          {
+            "name": "_pad0",
+            "type": "u32",
+            "offset": 20
+          },
+          {
+            "name": "_pad1",
+            "type": "u32",
+            "offset": 24
+          },
+          {
+            "name": "_pad2",
+            "type": "u32",
+            "offset": 28
+          }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "grouped_pointwise_conv2d.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [],
+          "outputDtype": "f32"
+        },
+        "default_f16": {
+          "wgsl": "grouped_pointwise_conv2d_f16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "outputDtype": "f16"
+        }
+      }
+    },
     "groupnorm_stats": {
       "description": "GroupNorm stats (mean/var) for each group",
       "baseBindings": [
@@ -6421,6 +6643,193 @@
             1
           ],
           "requires": []
+        }
+      }
+    },
+    "sana_linear_attention_summary": {
+      "description": "Sana linear attention summary stage",
+      "baseBindings": [
+        {
+          "index": 0,
+          "name": "uniforms",
+          "type": "uniform"
+        },
+        {
+          "index": 1,
+          "name": "query",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 2,
+          "name": "key",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 3,
+          "name": "value",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 4,
+          "name": "summary",
+          "type": "storage"
+        }
+      ],
+      "baseUniforms": {
+        "size": 24,
+        "fields": [
+          {
+            "name": "num_heads",
+            "type": "u32",
+            "offset": 0
+          },
+          {
+            "name": "head_dim",
+            "type": "u32",
+            "offset": 4
+          },
+          {
+            "name": "num_tokens",
+            "type": "u32",
+            "offset": 8
+          },
+          {
+            "name": "hidden_size",
+            "type": "u32",
+            "offset": 12
+          },
+          {
+            "name": "_pad0",
+            "type": "u32",
+            "offset": 16
+          },
+          {
+            "name": "_pad1",
+            "type": "u32",
+            "offset": 20
+          }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "sana_linear_attention_summary.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [],
+          "outputDtype": "f32"
+        },
+        "default_f16": {
+          "wgsl": "sana_linear_attention_summary_f16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "outputDtype": "f32"
+        }
+      }
+    },
+    "sana_linear_attention_apply": {
+      "description": "Sana linear attention apply stage",
+      "baseBindings": [
+        {
+          "index": 0,
+          "name": "uniforms",
+          "type": "uniform"
+        },
+        {
+          "index": 1,
+          "name": "query",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 2,
+          "name": "summary",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 3,
+          "name": "output",
+          "type": "storage"
+        }
+      ],
+      "baseUniforms": {
+        "size": 32,
+        "fields": [
+          {
+            "name": "num_heads",
+            "type": "u32",
+            "offset": 0
+          },
+          {
+            "name": "head_dim",
+            "type": "u32",
+            "offset": 4
+          },
+          {
+            "name": "num_tokens",
+            "type": "u32",
+            "offset": 8
+          },
+          {
+            "name": "hidden_size",
+            "type": "u32",
+            "offset": 12
+          },
+          {
+            "name": "eps",
+            "type": "f32",
+            "offset": 16
+          },
+          {
+            "name": "_pad0",
+            "type": "u32",
+            "offset": 20
+          },
+          {
+            "name": "_pad1",
+            "type": "u32",
+            "offset": 24
+          },
+          {
+            "name": "_pad2",
+            "type": "u32",
+            "offset": 28
+          }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "sana_linear_attention_apply.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [],
+          "outputDtype": "f32"
+        },
+        "default_f16": {
+          "wgsl": "sana_linear_attention_apply_f16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "outputDtype": "f16"
         }
       }
     },

@@ -1,5 +1,7 @@
 import { DEFAULT_DIFFUSION_CONFIG } from '../../../config/schema/index.js';
 
+const SUPPORTED_DIFFUSION_RUNTIME_LAYOUTS = new Set(['sd3', 'flux', 'sana']);
+
 function mergeSection(base, override) {
   if (!override) return { ...base };
   return { ...base, ...override };
@@ -38,6 +40,9 @@ function resolveSchedulerType(modelScheduler, runtimeScheduler) {
   if (modelClass === 'FlowMatchEulerDiscreteScheduler') {
     return 'flowmatch_euler';
   }
+  if (modelClass === 'SCMScheduler') {
+    return 'scm';
+  }
   if (modelClass === 'EulerDiscreteScheduler') {
     return 'euler';
   }
@@ -58,6 +63,8 @@ function mergeSchedulerConfig(modelConfig, runtimeScheduler) {
     type,
     numTrainTimesteps: modelScheduler.num_train_timesteps ?? runtimeScheduler.numTrainTimesteps,
     shift: modelScheduler.shift ?? runtimeScheduler.shift,
+    predictionType: modelScheduler.prediction_type ?? runtimeScheduler.predictionType,
+    sigmaData: modelScheduler.sigma_data ?? runtimeScheduler.sigmaData,
   };
 }
 
@@ -94,6 +101,13 @@ export function initializeDiffusion(manifest, runtimeConfig) {
       );
     }
     throw new Error('Diffusion manifest missing config.diffusion model contract.');
+  }
+  const layout = modelConfig.layout;
+  if (layout && !SUPPORTED_DIFFUSION_RUNTIME_LAYOUTS.has(layout)) {
+    throw new Error(
+      `Diffusion layout "${layout}" is recognized in the manifest, but the GPU runtime is not implemented yet. ` +
+      'Supported runtime layouts: sd3, flux, sana.'
+    );
   }
 
   const runtimeBase = mergeDiffusionConfig(DEFAULT_DIFFUSION_CONFIG, runtimeConfig?.inference?.diffusion);

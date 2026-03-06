@@ -1,5 +1,7 @@
 import type { ConverterConfigSchema } from '../config/schema/converter.schema.js';
 import type { ExecutionContractArtifact } from '../config/execution-contract-check.js';
+import type { ExecutionV0GraphContractArtifact } from '../config/execution-v0-graph-contract-check.js';
+import type { ManifestRequiredInferenceFieldsArtifact } from '../config/required-inference-fields-contract-check.js';
 import type { SavedReportInfo } from '../storage/reports.js';
 
 export interface NodeConvertProgress {
@@ -37,6 +39,9 @@ export interface ConvertSafetensorsDirectoryResult {
   shardCount: number;
   tensorCount: number;
   executionContractArtifact: ExecutionContractArtifact | null;
+  executionV0GraphContractArtifact: ExecutionV0GraphContractArtifact | null;
+  layerPatternContractArtifact: Record<string, unknown> | null;
+  requiredInferenceFieldsArtifact: ManifestRequiredInferenceFieldsArtifact | null;
   report: Record<string, unknown>;
   reportInfo: SavedReportInfo;
   presetId: string;

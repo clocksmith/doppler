@@ -114,6 +114,30 @@ async function loadRegistry(registryUrl) {
   return payload;
 }
 
+function parseJsonPayload(stdout) {
+  const raw = String(stdout ?? '').trim();
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+function extractContractGateStatus(payload) {
+  const result = payload?.result;
+  const executionContractArtifact = result?.metrics?.executionContractArtifact ?? null;
+  const executionV0GraphContractArtifact = result?.metrics?.executionV0GraphContractArtifact ?? null;
+  const contractOk = executionContractArtifact?.ok !== false;
+  const graphOk = executionV0GraphContractArtifact?.ok !== false;
+  return {
+    contractOk,
+    graphOk,
+    executionContractArtifact,
+    executionV0GraphContractArtifact,
+  };
+}
+
 function runVerify(config, surface) {
   const args = [
     'tools/doppler-cli.js',
@@ -127,9 +151,29 @@ function runVerify(config, surface) {
   }
 
   return new Promise((resolve, reject) => {
-    const child = spawn('node', args, { stdio: 'inherit', env: process.env });
+    const child = spawn('node', args, {
+      stdio: ['ignore', 'pipe', 'pipe'],
+      env: process.env,
+    });
+    let stdout = '';
+    let stderr = '';
+    child.stdout.on('data', (chunk) => {
+      const text = String(chunk);
+      stdout += text;
+      process.stdout.write(text);
+    });
+    child.stderr.on('data', (chunk) => {
+      const text = String(chunk);
+      stderr += text;
+      process.stderr.write(text);
+    });
     child.on('exit', (code) => {
-      resolve(code ?? 1);
+      resolve({
+        exitCode: code ?? 1,
+        stdout,
+        stderr,
+        payload: parseJsonPayload(stdout),
+      });
     });
     child.on('error', (error) => {
       reject(error);
@@ -153,6 +197,7 @@ async function updateCatalogTestStatus(options) {
     suite,
     result,
     source = 'registry-verify',
+    contractArtifacts = null,
   } = options;
 
   if (!catalogFile) {
@@ -186,6 +231,9 @@ async function updateCatalogTestStatus(options) {
       result,
       lastVerifiedAt: toIsoDate(),
       source,
+      contracts: contractArtifacts && typeof contractArtifacts === 'object'
+        ? contractArtifacts
+        : tested.contracts ?? null,
     },
   };
 
@@ -231,12 +279,26 @@ async function main() {
   };
   const run = { surface: parsed.surface || 'auto' };
 
-  let exitCode = 1;
+  let verifyResult = {
+    exitCode: 1,
+    payload: null,
+  };
   try {
-    exitCode = await runVerify({ request, run }, parsed.surface);
+    verifyResult = await runVerify({ request, run }, parsed.surface);
   } catch (error) {
     console.error(`[registry-verify] ${error.message}`);
     process.exit(1);
+  }
+
+  const gateStatus = extractContractGateStatus(verifyResult.payload);
+  let exitCode = verifyResult.exitCode;
+  if (exitCode === 0 && gateStatus.contractOk === false) {
+    console.error('[registry-verify] execution contract gate failed.');
+    exitCode = 1;
+  }
+  if (exitCode === 0 && gateStatus.graphOk === false) {
+    console.error('[registry-verify] execution-v0 graph gate failed.');
+    exitCode = 1;
   }
 
   if (parsed.updateCatalog) {
@@ -248,6 +310,10 @@ async function main() {
       suite: request.suite,
       result,
       source: 'registry-verify',
+      contractArtifacts: {
+        executionContractOk: gateStatus.executionContractArtifact?.ok ?? null,
+        executionV0GraphOk: gateStatus.executionV0GraphContractArtifact?.ok ?? null,
+      },
     });
   }
 

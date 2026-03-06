@@ -147,6 +147,12 @@ const KERNEL_PATH_CONTRACT_ARTIFACT = buildKernelPathContractArtifact(
     registryId: 'builtin-kernel-paths',
     entries: KERNEL_PATH_REGISTRY_ENTRIES,
     fallbackMappings: KERNEL_PATH_FINITENESS_FALLBACK_MAPPINGS,
+    fallbackRules: Array.isArray(KERNEL_PATH_RULES?.finitenessFallback)
+      ? KERNEL_PATH_RULES.finitenessFallback
+      : [],
+    autoSelectRules: Array.isArray(KERNEL_PATH_RULES?.autoSelect)
+      ? KERNEL_PATH_RULES.autoSelect
+      : [],
   }
 );
 

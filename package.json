@@ -16,6 +16,8 @@
     "bench": "node tools/doppler-cli.js bench",
     "lean:check": "./lean/check.sh",
     "lean:execution-contract": "node tools/lean-execution-contract.js",
+    "lean:execution-contract:sweep": "node tools/lean-execution-contract-sweep.js",
+    "ci:lean:execution-contract": "node tools/lean-execution-contract-sweep.js --root models",
     "contracts:check": "node tools/check-contract-artifacts.js",
     "contracts:summary": "node tools/check-contract-artifacts.js --json",
     "reports:convert:summary": "node tools/summarize-conversion-reports.js",

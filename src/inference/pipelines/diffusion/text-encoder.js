@@ -1,5 +1,6 @@
 import { BPETokenizer } from '../../tokenizers/bpe.js';
 import { SentencePieceTokenizer } from '../../tokenizers/sentencepiece.js';
+import { BundledTokenizer } from '../../tokenizers/bundled.js';
 import { loadAuxText, loadAuxFile } from '../../../storage/shard-manager.js';
 
 function parseMerges(text) {
@@ -136,11 +137,27 @@ async function loadSentencePieceTokenizer(tokenizerConfig, options = {}) {
   return tokenizer;
 }
 
+async function loadBundledTokenizer(tokenizerConfig, options = {}) {
+  const { baseUrl } = options;
+  const tokenizerJsonText = await loadTextAsset(tokenizerConfig.tokenizerFile, baseUrl);
+  const tokenizerJson = JSON.parse(tokenizerJsonText);
+  const tokenizer = new BundledTokenizer({
+    vocabSize: 0,
+    deferSpecialTokens: true,
+  });
+  tokenizer.load(tokenizerJson);
+  return tokenizer;
+}
+
 export async function loadDiffusionTokenizers(diffusionConfig, options = {}) {
   const tokenizers = {};
   const config = diffusionConfig?.tokenizers || {};
   if (config.text_encoder) {
-    tokenizers.text_encoder = await loadBpeTokenizer(config.text_encoder, options);
+    if (config.text_encoder.type === 'bundled') {
+      tokenizers.text_encoder = await loadBundledTokenizer(config.text_encoder, options);
+    } else {
+      tokenizers.text_encoder = await loadBpeTokenizer(config.text_encoder, options);
+    }
   }
   if (config.text_encoder_2) {
     tokenizers.text_encoder_2 = await loadBpeTokenizer(config.text_encoder_2, options);

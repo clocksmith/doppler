@@ -129,7 +129,7 @@ export function hasManifestInference(manifest) {
 }
 
 
-function validateRequiredInferenceFields(inf, modelId) {
+export function validateRequiredInferenceFields(inf, modelId) {
   
   const errors = [];
 

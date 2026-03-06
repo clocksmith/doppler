@@ -174,6 +174,18 @@ export {
   type Conv2DOptions,
 } from './conv2d.js';
 
+export {
+  runDepthwiseConv2D,
+  recordDepthwiseConv2D,
+  type DepthwiseConv2DOptions,
+} from './depthwise_conv2d.js';
+
+export {
+  runGroupedPointwiseConv2D,
+  recordGroupedPointwiseConv2D,
+  type GroupedPointwiseConv2DOptions,
+} from './grouped_pointwise_conv2d.js';
+
 // Gather (Embedding Lookup)
 export {
   runGather,
@@ -249,6 +261,12 @@ export {
   type SampleOptions,
   type SampleResult,
 } from './sample.js';
+
+export {
+  runSanaLinearAttention,
+  recordSanaLinearAttention,
+  type SanaLinearAttentionOptions,
+} from './sana_linear_attention.js';
 
 // Fused FFN (Tier 2 P0)
 export {

@@ -13,9 +13,11 @@ import { getKernelPathContractArtifact } from '../../src/config/kernel-path-load
   assert.equal(artifact.schemaVersion, 1);
   assert.ok(artifact.stats.totalEntries > 0);
   assert.ok(artifact.stats.fallbackMappings > 0);
+  assert.ok(artifact.stats.fallbackRules > 0);
+  assert.ok(artifact.stats.autoSelectRules > 0);
   assert.deepEqual(
     artifact.checks.map((entry) => entry.ok),
-    [true, true, true, true]
+    [true, true, true, true, true, true, true, true, true, true]
   );
 }
 
@@ -52,7 +54,7 @@ import { getKernelPathContractArtifact } from '../../src/config/kernel-path-load
   );
   assert.deepEqual(
     result.checks.map((entry) => entry.ok),
-    [false, false, true, false]
+    [false, false, true, false, true, true, true, true, true, true]
   );
 }
 
@@ -76,6 +78,40 @@ import { getKernelPathContractArtifact } from '../../src/config/kernel-path-load
   assert.equal(artifact.ok, true);
   assert.equal(artifact.stats.aliasEntries, 0);
   assert.equal(artifact.stats.fallbackMappings, 1);
+  assert.equal(artifact.stats.fallbackRules, 0);
+  assert.equal(artifact.stats.autoSelectRules, 0);
+}
+
+{
+  const artifact = buildKernelPathContractArtifact({
+    registryId: 'broken-auto-select',
+    entries: [
+      { id: 'primary', file: 'primary.json' },
+      { id: 'fallback', file: 'fallback.json' },
+    ],
+    autoSelectRules: [
+      {
+        match: {
+          allowCapabilityAutoSelection: true,
+          hasSubgroups: true,
+          kernelPathRef: 'missing',
+        },
+        value: 'fallback',
+      },
+      { match: {}, value: { context: 'wrongContext' } },
+    ],
+  });
+
+  assert.equal(artifact.ok, false);
+  assert.equal(artifact.stats.autoSelectRules, 2);
+  assert.equal(
+    artifact.errors.some((message) => message.includes('unknown kernelPathRef "missing"')),
+    true
+  );
+  assert.equal(
+    artifact.errors.some((message) => message.includes('autoSelect rules must end with exactly one default')),
+    true
+  );
 }
 
 console.log('kernel-path-contract-check.test: ok');

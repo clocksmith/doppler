@@ -3,6 +3,13 @@ import { DEFAULT_INFERENCE_DEFAULTS_CONFIG } from './inference-defaults.schema.j
 import { DEFAULT_SHARED_RUNTIME_CONFIG } from './shared-runtime.schema.js';
 import { DEFAULT_EMULATION_CONFIG, createEmulationConfig } from './emulation.schema.js';
 import { mergeEcosystemConfig } from './ecosystem.schema.js';
+import {
+  chooseNullish,
+  mergeExecutionPatchLists,
+  mergeKernelPathPolicy,
+  mergeShallowObject,
+  replaceSubtree,
+} from '../merge-helpers.js';
 
 // =============================================================================
 // Runtime Config (all non-model-specific settings)
@@ -172,8 +179,6 @@ function mergeInferenceConfig(
   const overrideExecutionPatch = overrides.executionPatch ?? {};
   const baseKernelPathPolicy = base.kernelPathPolicy ?? {};
   const overrideKernelPathPolicy = overrides.kernelPathPolicy ?? {};
-  const baseKernelPathSourceScope = baseKernelPathPolicy.sourceScope ?? baseKernelPathPolicy.allowSources;
-  const overrideKernelPathSourceScope = overrideKernelPathPolicy.sourceScope ?? overrideKernelPathPolicy.allowSources;
   const hasRuntimeKernelProfiles = Object.prototype.hasOwnProperty.call(
     overrideSessionCompute,
     'kernelProfiles'
@@ -236,15 +241,8 @@ function mergeInferenceConfig(
     pipeline: overrides.pipeline ?? base.pipeline,
     kernelPath: overrides.kernelPath ?? base.kernelPath,
     kernelPathSource: overrides.kernelPathSource ?? base.kernelPathSource,
-    kernelPathPolicy: {
-      mode: overrideKernelPathPolicy.mode ?? baseKernelPathPolicy.mode,
-      sourceScope: overrideKernelPathSourceScope ?? baseKernelPathSourceScope,
-      allowSources: overrideKernelPathSourceScope ?? baseKernelPathSourceScope,
-      onIncompatible: overrideKernelPathPolicy.onIncompatible ?? baseKernelPathPolicy.onIncompatible,
-    },
-    chatTemplate: overrides.chatTemplate
-      ? { ...base.chatTemplate, ...overrides.chatTemplate }
-      : base.chatTemplate,
+    kernelPathPolicy: mergeKernelPathPolicy(baseKernelPathPolicy, overrideKernelPathPolicy),
+    chatTemplate: mergeShallowObject(base.chatTemplate, overrides.chatTemplate),
     session: {
       ...baseSession,
       ...overrideSession,
@@ -259,14 +257,10 @@ function mergeInferenceConfig(
           ? { kernelProfiles: overrideSessionCompute.kernelProfiles }
           : { kernelProfiles: baseSessionCompute.kernelProfiles }),
       },
-      kvcache: overrideSession.kvcache ?? baseSession.kvcache,
-      decodeLoop: overrideSession.decodeLoop ?? baseSession.decodeLoop,
+      kvcache: replaceSubtree(overrideSession.kvcache, baseSession.kvcache),
+      decodeLoop: replaceSubtree(overrideSession.decodeLoop, baseSession.decodeLoop),
     },
-    executionPatch: {
-      set: overrideExecutionPatch.set ?? baseExecutionPatch.set ?? [],
-      remove: overrideExecutionPatch.remove ?? baseExecutionPatch.remove ?? [],
-      add: overrideExecutionPatch.add ?? baseExecutionPatch.add ?? [],
-    },
+    executionPatch: mergeExecutionPatchLists(baseExecutionPatch, overrideExecutionPatch),
     // Model-specific inference overrides (merged with manifest.inference at load time)
     modelOverrides: overrides.modelOverrides ?? base.modelOverrides,
   };
