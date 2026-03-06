@@ -114,13 +114,31 @@ async function _biasAdd(target, data, bias, numTokens, dim, options = {}) {
 
   const { bias: biasAligned, temps } = await alignBiasTensor(data, bias, recorder);
   const variant = selectBiasAddVariant(data.dtype, biasAligned.dtype);
+  const device = target?.device;
+  const maxPerDim = Number.isFinite(device?.limits?.maxComputeWorkgroupsPerDimension)
+    ? device.limits.maxComputeWorkgroupsPerDimension
+    : 65535;
+  const tokenStride = Math.min(numTokens, maxPerDim);
 
-  const workgroups = [Math.ceil(dim / WORKGROUP_SIZES.DEFAULT), numTokens, 1];
+  const workgroups = [
+    Math.ceil(dim / WORKGROUP_SIZES.DEFAULT),
+    tokenStride,
+    Math.ceil(numTokens / tokenStride),
+  ];
 
   await unifiedKernelWrapper(
     'bias_add', target, variant,
     [data, biasAligned],
-    { num_tokens: numTokens, dim, data_offset: dataOffset, bias_offset: biasOffset },
+    {
+      num_tokens: numTokens,
+      dim,
+      data_offset: dataOffset,
+      bias_offset: biasOffset,
+      token_stride: tokenStride,
+      _pad0: 0,
+      _pad1: 0,
+      _pad2: 0,
+    },
     workgroups
   );
 
