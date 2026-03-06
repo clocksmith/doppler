@@ -269,10 +269,14 @@ function mergeLifecycleAggregate(left, right) {
   };
 }
 
-function resolveRowStatus(row) {
+export function resolveRowStatus(row) {
   if (row.conversionCount === 0) return 'missing-conversion';
   if (row.runtimeStatus === 'blocked') return 'blocked-runtime';
-  if (row.catalogCount > 0) return 'ready';
+  if (row.catalogCount > 0) {
+    if (row.lifecycleTested === 'verified') return 'verified';
+    if (row.lifecycleTested === 'failed') return 'verification-failed';
+    return 'verification-pending';
+  }
   return 'conversion-ready';
 }
 
@@ -324,9 +328,11 @@ function renderMatrix(rows, metadata) {
   lines.push(`- Presets tracked: ${metadata.presetCount}`);
   lines.push(`- Presets with conversion configs: ${metadata.presetsWithConversion}`);
   lines.push(`- Presets present in catalog: ${metadata.presetsInCatalog}`);
-  lines.push(`- Ready presets (active runtime + conversion + catalog): ${metadata.readyCount}`);
+  lines.push(`- Verified presets (active runtime + conversion + catalog + passing verification): ${metadata.verifiedReadyCount}`);
+  lines.push(`- Cataloged presets pending verification: ${metadata.verificationPendingCount}`);
   lines.push(`- Presets with HF-hosted catalog entries: ${metadata.hostedCount}`);
   lines.push(`- Presets with verified catalog lifecycle: ${metadata.verifiedCount}`);
+  lines.push(`- Presets with failed catalog verification: ${metadata.failedVerificationCount}`);
   lines.push(`- Blocked runtime presets: ${metadata.blockedCount}`);
   lines.push(`- Catalog entries: ${metadata.catalogCount}`);
   lines.push('');
@@ -434,9 +440,11 @@ async function main() {
     presetCount: rows.length,
     presetsWithConversion: rows.filter((row) => row.conversionCount > 0).length,
     presetsInCatalog: rows.filter((row) => row.catalogCount > 0).length,
-    readyCount: rows.filter((row) => row.status === 'ready').length,
+    verifiedReadyCount: rows.filter((row) => row.status === 'verified').length,
+    verificationPendingCount: rows.filter((row) => row.status === 'verification-pending').length,
     hostedCount: rows.filter((row) => row.lifecycleHosted).length,
     verifiedCount: rows.filter((row) => row.lifecycleTested === 'verified').length,
+    failedVerificationCount: rows.filter((row) => row.lifecycleTested === 'failed').length,
     blockedCount: rows.filter((row) => row.runtimeStatus === 'blocked').length,
     catalogCount: catalogModels.length,
   };

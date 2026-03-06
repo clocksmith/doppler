@@ -256,6 +256,9 @@ export async function parseDiffusionModel(adapter) {
   const tensors = [];
 
   for (const componentId of layout.requiredComponents) {
+    if (componentId === 'tokenizer') {
+      continue;
+    }
     const configSuffix = defaultConfigPath(componentId);
     const config = await readJson(configSuffix, `${componentId} config`);
     if (componentId === 'transformer' && config && !config.weight_format) {

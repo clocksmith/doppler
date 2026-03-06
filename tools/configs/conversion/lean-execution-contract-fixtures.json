@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 1,
+  "source": "doppler",
+  "mappings": [
+    {
+      "configPath": "tools/configs/conversion/gemma3/gemma-3-270m-it-wf16-ef16-hf16-f16.json",
+      "manifestPath": "models/local/gemma-3-270m-it-wf16-ef16-hf16/manifest.json"
+    },
+    {
+      "configPath": "tools/configs/conversion/gemma3/gemma-3-270m-it-wq4k-ef16-hf16-f16.json",
+      "manifestPath": "models/local/gemma-3-270m-it-wq4k-ef16-hf16/manifest.json"
+    },
+    {
+      "configPath": "tools/configs/conversion/gemma3/gemma-3-1b-it-wq4k-ef16-hf16-f32.json",
+      "manifestPath": "models/local/gemma-3-1b-it-wq4k-ef16-hf16/manifest.json"
+    },
+    {
+      "configPath": "tools/configs/conversion/gemma3/gemma-3-1b-it-wf16-ef16-hf16-f16.json",
+      "manifestPath": "models/local/gemma-3-1b-it-wq4k-ef16-hf16/manifest.json"
+    },
+    {
+      "configPath": "tools/configs/conversion/gemma3/gemma-3-1b-it-wf16-ef16-hf16-f32.json",
+      "manifestPath": "models/local/gemma-3-1b-it-wq4k-ef16-hf16/manifest.json"
+    },
+    {
+      "configPath": "tools/configs/conversion/embeddinggemma/embeddinggemma-300m-wbf16.json",
+      "manifestPath": "models/curated/google-embeddinggemma-300m-wq4k-ef16/manifest.json"
+    }
+  ],
+  "exclusions": [
+    {
+      "configPath": "tools/configs/conversion/deepseek/deepseek-template-wf16-ef16-hf16-f16.json",
+      "reason": "template config intentionally excluded from Lean execution-contract coverage until a canonical converted fixture manifest exists"
+    },
+    {
+      "configPath": "tools/configs/conversion/diffusion/diffusion-template-wf16-ef16-hf16-f16.json",
+      "reason": "diffusion config is outside the current Lean execution-contract scope"
+    },
+    {
+      "configPath": "tools/configs/conversion/functiongemma/functiongemma-template-wf16-ef16-hf16-f16.json",
+      "reason": "template config intentionally excluded from Lean execution-contract coverage until a canonical converted fixture manifest exists"
+    },
+    {
+      "configPath": "tools/configs/conversion/gemma2/gemma2-template-wf16-ef16-hf16-f16.json",
+      "reason": "template config intentionally excluded from Lean execution-contract coverage until a canonical converted fixture manifest exists"
+    },
+    {
+      "configPath": "tools/configs/conversion/gpt-oss-20b-wf16-ef16-hf16-xmxfp4.json",
+      "reason": "no committed converted fixture manifest exists yet for this preset family"
+    },
+    {
+      "configPath": "tools/configs/conversion/kimi-k2/kimi-k2-template-wf16-ef16-hf16-f16.json",
+      "reason": "template config intentionally excluded from Lean execution-contract coverage until a canonical converted fixture manifest exists"
+    },
+    {
+      "configPath": "tools/configs/conversion/lfm2/lfm2.5-1.2b-instruct-wq4k-ef16-hf16-f16.json",
+      "reason": "no committed converted fixture manifest exists yet for this preset family"
+    },
+    {
+      "configPath": "tools/configs/conversion/lfm2/lfm2.5-1.2b-instruct-wq4k-ef16-hf16-f32.json",
+      "reason": "no committed converted fixture manifest exists yet for this preset family"
+    },
+    {
+      "configPath": "tools/configs/conversion/llama3/llama3-template-wf16-ef16-hf16-f16.json",
+      "reason": "template config intentionally excluded from Lean execution-contract coverage until a canonical converted fixture manifest exists"
+    },
+    {
+      "configPath": "tools/configs/conversion/mamba/mamba-template-wf16-ef16-hf16-f16.json",
+      "reason": "template config intentionally excluded from Lean execution-contract coverage until a canonical converted fixture manifest exists"
+    },
+    {
+      "configPath": "tools/configs/conversion/mixtral/mixtral-template-wf16-ef16-hf16-f16.json",
+      "reason": "template config intentionally excluded from Lean execution-contract coverage until a canonical converted fixture manifest exists"
+    },
+    {
+      "configPath": "tools/configs/conversion/modernbert/modernbert-template-wf16-ef16-hf16-f16.json",
+      "reason": "template config intentionally excluded from Lean execution-contract coverage until a canonical converted fixture manifest exists"
+    },
+    {
+      "configPath": "tools/configs/conversion/sana/sana-sprint-0.6b-wf16-ef16-hf16-f16.json",
+      "reason": "diffusion config is outside the current Lean execution-contract scope"
+    },
+    {
+      "configPath": "tools/configs/conversion/transformer/transformer-template-wf16-ef16-hf16-f16.json",
+      "reason": "template config intentionally excluded from Lean execution-contract coverage until a canonical converted fixture manifest exists"
+    }
+  ]
+}

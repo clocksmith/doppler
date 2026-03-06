@@ -22,7 +22,7 @@ for await (const token of model.generate('Hello, world')) {
 }
 ```
 
-Registry IDs resolve to hosted RDRR artifacts from `Clocksmith/rdrr` by default. Tokens stream from a native `AsyncGenerator`. See [more examples](#more-examples) below or the full [API contract](docs/doppler-api-contract.md).
+Registry IDs resolve to hosted RDRR artifacts from `Clocksmith/rdrr` by default. Tokens stream from a native `AsyncGenerator`. See [more examples](#more-examples) below or the canonical [Root API guide](docs/api/root.md).
 
 ## Why Doppler
 
@@ -67,7 +67,7 @@ const reply = await model.chatText([
 ]);
 
 // LoRA hot-swap
-await model.loadLoRA('oneshift-twoshift-redshift-blueshift');
+await model.loadLoRA('https://example.com/adapters/oneshift-twoshift-redshift-blueshift/manifest.json');
 
 // Convenience shorthand (caches model automatically)
 for await (const token of doppler('Hello', { model: 'gemma3-270m' })) {
@@ -84,7 +84,8 @@ for await (const token of doppler('Hello', { model: 'gemma3-270m' })) {
 
 ## Environment requirements
 
-- WebGPU-capable browser runtime is required.
+- WebGPU is required.
+- Supported runtimes: WebGPU-capable browsers, or Node with a WebGPU provider.
 - Chrome / Edge 113+ supported.
 - Firefox support varies (typically behind a flag).
 - Safari support is evolving.
