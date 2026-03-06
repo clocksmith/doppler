@@ -153,7 +153,7 @@
       },
       "baseUrl": null,
       "sizeBytes": 788833984,
-      "recommended": true,
+      "recommended": false,
       "sortOrder": 20,
       "lifecycle": {
         "availability": {
@@ -165,18 +165,15 @@
           "runtime": "active",
           "conversion": "ready",
           "demo": "none",
-          "tested": "verified"
+          "tested": "failing"
         },
         "tested": {
           "suite": "inference",
           "surface": "browser",
-          "result": "pass",
+          "result": "fail",
           "lastVerifiedAt": "2026-03-06",
-          "source": "registry-verify",
-          "contracts": {
-            "executionContractOk": true,
-            "executionV0GraphOk": null
-          }
+          "source": "manual-review",
+          "notes": "Loads and runs but produces incoherent output. Linear attention kernel correctness not yet verified against HF reference."
         }
       }
     },
@@ -200,7 +197,7 @@
       },
       "baseUrl": null,
       "sizeBytes": 1789738688,
-      "recommended": true,
+      "recommended": false,
       "sortOrder": 21,
       "lifecycle": {
         "availability": {
@@ -212,18 +209,15 @@
           "runtime": "active",
           "conversion": "ready",
           "demo": "none",
-          "tested": "verified"
+          "tested": "failing"
         },
         "tested": {
           "suite": "inference",
           "surface": "browser",
-          "result": "pass",
+          "result": "fail",
           "lastVerifiedAt": "2026-03-06",
-          "source": "registry-verify",
-          "contracts": {
-            "executionContractOk": true,
-            "executionV0GraphOk": null
-          }
+          "source": "manual-review",
+          "notes": "Loads and runs but produces incoherent output. Same root cause as 0.8B variant — linear attention kernel correctness not yet verified."
         }
       }
     }

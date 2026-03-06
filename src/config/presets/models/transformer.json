@@ -21,6 +21,11 @@
       "activation": "silu",
       "gatedActivation": true
     },
+    "rope": {
+      "mropeInterleaved": false,
+      "mropeSection": null,
+      "partialRotaryFactor": null
+    },
     "output": {
       "finalLogitSoftcapping": null,
       "tieWordEmbeddings": false
