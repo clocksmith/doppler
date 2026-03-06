@@ -30,6 +30,10 @@ LEAN_PATH="${BUILD_DIR}:${ROOT_DIR}/lean" \
 LEAN_PATH="${BUILD_DIR}:${ROOT_DIR}/lean" \
   "${LEAN_BIN}" "+${TOOLCHAIN_REF}" -o "${BUILD_DIR}/Doppler/ExecutionContractFixtures.olean" "${ROOT_DIR}/lean/Doppler/ExecutionContractFixtures.lean"
 LEAN_PATH="${BUILD_DIR}:${ROOT_DIR}/lean" \
+  "${LEAN_BIN}" "+${TOOLCHAIN_REF}" -o "${BUILD_DIR}/Doppler/KernelPath.olean" "${ROOT_DIR}/lean/Doppler/KernelPath.lean"
+LEAN_PATH="${BUILD_DIR}:${ROOT_DIR}/lean" \
+  "${LEAN_BIN}" "+${TOOLCHAIN_REF}" -o "${BUILD_DIR}/Doppler/KernelPathFixtures.olean" "${ROOT_DIR}/lean/Doppler/KernelPathFixtures.lean"
+LEAN_PATH="${BUILD_DIR}:${ROOT_DIR}/lean" \
   "${LEAN_BIN}" "+${TOOLCHAIN_REF}" -o "${BUILD_DIR}/Doppler/Check.olean" "${ROOT_DIR}/lean/Doppler/Check.lean"
 
 echo "lean-check: ok (${TOOLCHAIN_REF})"

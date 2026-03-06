@@ -22,6 +22,20 @@ export function getKernelPath(id: string): KernelPathSchema | null;
  */
 export function listKernelPaths(): string[];
 
+export function getKernelPathContractArtifact(): {
+  schemaVersion: 1;
+  source: 'doppler';
+  ok: boolean;
+  checks: Array<{ id: string; ok: boolean }>;
+  errors: string[];
+  stats: {
+    totalEntries: number;
+    aliasEntries: number;
+    canonicalEntries: number;
+    fallbackMappings: number;
+  };
+};
+
 /**
  * Resolve a kernel path reference to a full schema.
  */
