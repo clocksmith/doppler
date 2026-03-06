@@ -162,7 +162,7 @@ function removeNavigator() {
   try {
     clearRuntime();
     const tempDopplerDir = path.join(tempDir, 'doppler');
-    const tempFawnProviderDir = path.join(tempDir, 'fawn', 'nursery', 'webgpu-core');
+    const tempFawnProviderDir = path.join(tempDir, 'fawn', 'nursery', 'webgpu-doe');
     const tempWebgpuDir = path.join(tempDopplerDir, 'node_modules', 'webgpu');
 
     mkdirSync(tempDopplerDir, { recursive: true });
@@ -170,7 +170,7 @@ function removeNavigator() {
     mkdirSync(tempWebgpuDir, { recursive: true });
 
     writeFileSync(path.join(tempFawnProviderDir, 'package.json'), JSON.stringify({
-      name: '@doe/webgpu-core',
+      name: '@simulatte/webgpu-doe',
       version: '1.0.0',
       type: 'module',
       exports: './index.js',
@@ -213,7 +213,7 @@ export const GPUShaderStage = { COMPUTE: 999 };
   try {
     clearRuntime();
     const tempDopplerDir = path.join(tempDir, 'doppler');
-    const tempFawnProviderDir = path.join(tempDir, 'fawn', 'nursery', 'webgpu-core');
+    const tempFawnProviderDir = path.join(tempDir, 'fawn', 'nursery', 'webgpu-doe');
     const tempWebgpuDir = path.join(tempDopplerDir, 'node_modules', 'webgpu');
 
     mkdirSync(tempDopplerDir, { recursive: true });
@@ -221,7 +221,7 @@ export const GPUShaderStage = { COMPUTE: 999 };
     mkdirSync(tempWebgpuDir, { recursive: true });
 
     writeFileSync(path.join(tempFawnProviderDir, 'package.json'), JSON.stringify({
-      name: '@doe/webgpu-core',
+      name: '@simulatte/webgpu-doe',
       version: '1.0.0',
       type: 'module',
       exports: './index.js',
@@ -602,7 +602,7 @@ export const GPUShaderStage = { COMPUTE: 10 };
   try {
     clearRuntime();
     const tempDopplerDir = path.join(tempDir, 'doppler');
-    const tempFawnProviderDir = path.join(tempDir, 'fawn', 'nursery', 'webgpu-core');
+    const tempFawnProviderDir = path.join(tempDir, 'fawn', 'nursery', 'webgpu-doe');
     const tempWebgpuDir = path.join(tempDopplerDir, 'node_modules', 'webgpu');
 
     mkdirSync(tempDopplerDir, { recursive: true });
@@ -610,7 +610,7 @@ export const GPUShaderStage = { COMPUTE: 10 };
     mkdirSync(tempWebgpuDir, { recursive: true });
 
     writeFileSync(path.join(tempFawnProviderDir, 'package.json'), JSON.stringify({
-      name: '@doe/webgpu-core',
+      name: '@simulatte/webgpu-doe',
       version: '1.0.0',
       type: 'module',
       exports: './index.js',
@@ -657,7 +657,7 @@ export const GPUShaderStage = { COMPUTE: 2222 };
     const ready = await bootstrapNodeWebGPU();
     assert.equal(ready.ok, true);
     await globalThis.navigator.gpu.requestAdapter();
-    // Local @doe/webgpu-core must be selected, and it only works if provider override was inferred.
+    // Local @simulatte/webgpu-doe must be selected, and it only works if provider override was inferred.
     assert.equal(globalThis.GPUBufferUsage.COPY_SRC, 1111);
     assert.equal(globalThis.GPUShaderStage.COMPUTE, 1111);
     assert.equal(process.env.FAWN_WEBGPU_NODE_PROVIDER_MODULE, undefined);

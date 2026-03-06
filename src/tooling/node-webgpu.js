@@ -11,7 +11,7 @@ const DEFAULT_LOCAL_DOE_PROVIDER_PATH = resolve(
   '..',
   'fawn',
   'nursery',
-  'webgpu-core',
+  'webgpu-doe',
 );
 const DEFAULT_DOE_PROVIDER_CREATE_ARGS = 'enable-dawn-features=allow_unsafe_apis';
 
@@ -61,7 +61,7 @@ function resolveCandidateModuleSpecifier(candidate) {
 function resolveDefaultWebgpuModuleSpecifiers() {
   const specifiers = [];
   const localCandidates = [
-    resolve(process.cwd(), '..', 'fawn', 'nursery', 'webgpu-core'),
+    resolve(process.cwd(), '..', 'fawn', 'nursery', 'webgpu-doe'),
     DEFAULT_LOCAL_DOE_PROVIDER_PATH,
   ];
   for (const localCandidate of localCandidates) {
@@ -70,7 +70,7 @@ function resolveDefaultWebgpuModuleSpecifiers() {
       specifiers.push(pathToFileURL(resolvedPath).href);
     }
   }
-  specifiers.push('@doe/webgpu-core');
+  specifiers.push('@simulatte/webgpu-doe');
   specifiers.push('webgpu');
   return [...new Set(specifiers)];
 }
@@ -103,17 +103,17 @@ function resolveWorkspaceWebgpuProviderPath() {
   return null;
 }
 
-function isDoeWebgpuCoreSpecifier(specifier) {
-  if (specifier === '@doe/webgpu-core') {
+function isDoeWebgpuSpecifier(specifier) {
+  if (specifier === '@simulatte/webgpu-doe') {
     return true;
   }
   if (typeof specifier !== 'string') {
     return false;
   }
-  if (specifier.includes('/webgpu-core/')) {
+  if (specifier.includes('/webgpu-doe/')) {
     return true;
   }
-  return specifier.includes('webgpu-core') && specifier.startsWith('file://');
+  return specifier.includes('webgpu-doe') && specifier.startsWith('file://');
 }
 
 function resolveDoeProviderOverride(specifier) {
@@ -121,7 +121,7 @@ function resolveDoeProviderOverride(specifier) {
   if (typeof explicitProvider === 'string' && explicitProvider.trim().length > 0) {
     return null;
   }
-  if (!isDoeWebgpuCoreSpecifier(specifier)) {
+  if (!isDoeWebgpuSpecifier(specifier)) {
     return null;
   }
   return resolveWorkspaceWebgpuProviderPath();
@@ -129,7 +129,7 @@ function resolveDoeProviderOverride(specifier) {
 
 async function importWithProviderOverride(specifier) {
   const providerOverride = resolveDoeProviderOverride(specifier);
-  const shouldApplyCreateArgsDefault = isDoeWebgpuCoreSpecifier(specifier)
+  const shouldApplyCreateArgsDefault = isDoeWebgpuSpecifier(specifier)
     && !(typeof process.env.FAWN_WEBGPU_CREATE_ARGS === 'string' && process.env.FAWN_WEBGPU_CREATE_ARGS.trim().length > 0);
   if (!providerOverride) {
     if (!shouldApplyCreateArgsDefault) {
