@@ -130,7 +130,14 @@ Conversion-config-backed sweep:
 ```bash
 node tools/lean-execution-contract-config-sweep.js \
   --config-root tools/configs/conversion \
+  --fixture-map tools/configs/conversion/lean-execution-contract-fixtures.json \
   --manifest-root models
+```
+
+Aggregate contract check with Lean sweeps:
+
+```bash
+node tools/check-contract-artifacts.js --with-lean
 ```
 
 The manifest-backed checker:
@@ -148,9 +155,22 @@ The sweep runner:
 The conversion-config-backed sweep:
 - walks conversion config JSON files
 - matches them to existing converted manifest fixtures by `output.modelBaseId`
+- applies explicit fixture overrides from `tools/configs/conversion/lean-execution-contract-fixtures.json`
+- honors explicit exclusions from the same fixture map so uncovered template/out-of-scope configs are intentional instead of accidental
 - re-materializes resolved `manifest.inference` through Doppler's real conversion-plan code
 - runs the same Lean execution-contract check on that materialized manifest
 - keeps the contract centered on resolved manifests instead of creating a separate config-only proof model
+
+The aggregate contract runner:
+- keeps the fast JS contract checks as the default lane
+- optionally folds in the manifest and config Lean sweeps with `--with-lean`
+- gives CI a single command surface for the current contract families
+
+Strict CI usage:
+- `npm run ci:lean:execution-contract:configs` now requires every conversion config to be either:
+  - matched to a committed fixture manifest, or
+  - explicitly excluded in `tools/configs/conversion/lean-execution-contract-fixtures.json`
+- `npm run ci:contracts:check` applies the same strict coverage rule when Lean sweeps are enabled
 
 The same execution-contract class is now also enforced in JS manifest validation:
 - [src/formats/rdrr/validation.js](/home/x/deco/doppler/src/formats/rdrr/validation.js)

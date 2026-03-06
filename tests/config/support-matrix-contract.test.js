@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-import { validateCatalogMatrixInputs } from '../../tools/sync-model-support-matrix.js';
+import { resolveRowStatus, validateCatalogMatrixInputs } from '../../tools/sync-model-support-matrix.js';
 
 {
   assert.deepEqual(validateCatalogMatrixInputs({
@@ -66,6 +66,29 @@ import { validateCatalogMatrixInputs } from '../../tools/sync-model-support-matr
     'duplicate catalog modelId: broken-model',
     'broken-model: lifecycle.status.demo=local requires a local baseUrl',
   ]);
+}
+
+{
+  assert.equal(resolveRowStatus({
+    conversionCount: 1,
+    runtimeStatus: 'active',
+    catalogCount: 1,
+    lifecycleTested: 'unknown',
+  }), 'verification-pending');
+
+  assert.equal(resolveRowStatus({
+    conversionCount: 1,
+    runtimeStatus: 'active',
+    catalogCount: 1,
+    lifecycleTested: 'verified',
+  }), 'verified');
+
+  assert.equal(resolveRowStatus({
+    conversionCount: 1,
+    runtimeStatus: 'active',
+    catalogCount: 1,
+    lifecycleTested: 'failed',
+  }), 'verification-failed');
 }
 
 console.log('support-matrix-contract.test: ok');

@@ -14,6 +14,7 @@ function parseArgs(argv) {
   const args = {
     configRoot: 'tools/configs/conversion',
     manifestRoot: 'models',
+    fixtureMap: 'tools/configs/conversion/lean-execution-contract-fixtures.json',
     json: false,
     check: true,
     requireManifestMatch: false,
@@ -28,6 +29,11 @@ function parseArgs(argv) {
     }
     if (arg === '--manifest-root') {
       args.manifestRoot = argv[index + 1] ?? args.manifestRoot;
+      index += 1;
+      continue;
+    }
+    if (arg === '--fixture-map') {
+      args.fixtureMap = argv[index + 1] ?? args.fixtureMap;
       index += 1;
       continue;
     }
@@ -55,7 +61,7 @@ function parseArgs(argv) {
 function usage() {
   return [
     'Usage:',
-    '  node tools/lean-execution-contract-config-sweep.js [--config-root <dir>] [--manifest-root <dir>] [--json] [--no-check] [--require-manifest-match]',
+    '  node tools/lean-execution-contract-config-sweep.js [--config-root <dir>] [--manifest-root <dir>] [--fixture-map <json>] [--json] [--no-check] [--require-manifest-match]',
   ].join('\n');
 }
 
@@ -103,10 +109,51 @@ async function buildManifestIndex(rootDir) {
   return byModelId;
 }
 
+async function loadFixtureMap(filePath) {
+  const resolvedPath = path.resolve(process.cwd(), filePath);
+  try {
+    const payload = JSON.parse(await fs.readFile(resolvedPath, 'utf8'));
+    const mappings = Array.isArray(payload?.mappings) ? payload.mappings : [];
+    const exclusions = Array.isArray(payload?.exclusions) ? payload.exclusions : [];
+    const byConfigPath = new Map();
+    const excludedByConfigPath = new Map();
+    for (const entry of mappings) {
+      const configPath = typeof entry?.configPath === 'string'
+        ? path.normalize(entry.configPath)
+        : '';
+      const manifestPath = typeof entry?.manifestPath === 'string'
+        ? path.normalize(entry.manifestPath)
+        : '';
+      if (!configPath || !manifestPath) continue;
+      byConfigPath.set(configPath, manifestPath);
+    }
+    for (const entry of exclusions) {
+      const configPath = typeof entry?.configPath === 'string'
+        ? path.normalize(entry.configPath)
+        : '';
+      const reason = typeof entry?.reason === 'string'
+        ? entry.reason.trim()
+        : '';
+      if (!configPath || !reason) continue;
+      excludedByConfigPath.set(configPath, reason);
+    }
+    return {
+      byConfigPath,
+      excludedByConfigPath,
+    };
+  } catch {
+    return {
+      byConfigPath: new Map(),
+      excludedByConfigPath: new Map(),
+    };
+  }
+}
+
 function isExecutionContractConfigCandidate(manifest) {
   return manifest
     && typeof manifest === 'object'
-    && manifest.modelType === 'transformer'
+    && manifest.modelType !== 'diffusion'
+    && manifest.modelType !== 'energy'
     && manifest.architecture
     && typeof manifest.architecture === 'object';
 }
@@ -114,16 +161,39 @@ function isExecutionContractConfigCandidate(manifest) {
 async function runSweep(options = {}) {
   const configRoot = path.resolve(process.cwd(), options.configRoot ?? 'tools/configs/conversion');
   const manifestRoot = path.resolve(process.cwd(), options.manifestRoot ?? 'models');
-  const configPaths = await collectFiles(configRoot, (name) => name.endsWith('.json'));
+  const fixtureMapPath = options.fixtureMap ?? 'tools/configs/conversion/lean-execution-contract-fixtures.json';
+  const resolvedFixtureMapPath = path.resolve(process.cwd(), fixtureMapPath);
+  const configPaths = (await collectFiles(configRoot, (name) => name.endsWith('.json')))
+    .filter((filePath) => path.resolve(filePath) !== resolvedFixtureMapPath);
   const manifestIndex = await buildManifestIndex(manifestRoot);
+  const fixtureMap = await loadFixtureMap(fixtureMapPath);
   const results = [];
 
   for (const configPath of configPaths) {
     const relativeConfigPath = path.relative(process.cwd(), configPath);
     try {
+      const excludedReason = fixtureMap.excludedByConfigPath.get(path.normalize(relativeConfigPath)) || null;
+      if (excludedReason) {
+        results.push({
+          configPath: relativeConfigPath,
+          modelId: inferConversionConfigModelId(configPath, JSON.parse(await fs.readFile(configPath, 'utf8'))),
+          status: 'skipped',
+          reason: excludedReason,
+        });
+        continue;
+      }
       const rawConfig = JSON.parse(await fs.readFile(configPath, 'utf8'));
       const modelId = inferConversionConfigModelId(configPath, rawConfig);
-      const matched = manifestIndex.get(modelId) || null;
+      const mappedManifestPath = fixtureMap.byConfigPath.get(path.normalize(relativeConfigPath)) || null;
+      let matched = manifestIndex.get(modelId) || null;
+      if (!matched && mappedManifestPath) {
+        const absoluteManifestPath = path.resolve(process.cwd(), mappedManifestPath);
+        const manifest = JSON.parse(await fs.readFile(absoluteManifestPath, 'utf8'));
+        matched = {
+          manifestPath: absoluteManifestPath,
+          manifest,
+        };
+      }
       if (!matched) {
         results.push({
           configPath: relativeConfigPath,
@@ -170,11 +240,13 @@ async function runSweep(options = {}) {
     source: 'doppler',
     configRoot,
     manifestRoot,
+    fixtureMapPath: resolvedFixtureMapPath,
     ok: results.every((entry) => entry.status === 'pass' || entry.status === 'skipped'),
     totals: {
       configs: results.length,
       passed: results.filter((entry) => entry.status === 'pass').length,
       skipped: results.filter((entry) => entry.status === 'skipped').length,
+      explicitSkips: results.filter((entry) => entry.status === 'skipped' && entry.reason !== 'no matching converted manifest fixture found').length,
       failed: results.filter((entry) => entry.status === 'fail').length,
       errors: results.filter((entry) => entry.status === 'error').length,
     },
