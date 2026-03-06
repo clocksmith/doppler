@@ -13,6 +13,8 @@ import { createToolingErrorEnvelope } from '../src/tooling/command-envelope.js';
 
 const NODE_WEBGPU_INCOMPLETE_MESSAGE = 'node command: WebGPU runtime is incomplete in Node';
 const CLI_POLICY_PATH = fileURLToPath(new URL('./configs/cli/doppler-cli-policy.json', import.meta.url));
+const DEFAULT_EXTERNAL_MODELS_ROOT = process.env.DOPPLER_EXTERNAL_MODELS_ROOT || '/media/x/models';
+const DEFAULT_EXTERNAL_RDRR_ROOT = path.join(DEFAULT_EXTERNAL_MODELS_ROOT, 'rdrr');
 const DEFAULT_CLI_POLICY = {
   defaults: {
     surface: {
@@ -413,6 +415,37 @@ async function resolveBrowserModelUrl(request, browserOptions = {}) {
   };
 }
 
+export async function resolveNodeModelUrl(request, options = {}) {
+  if (request.modelUrl || !request.modelId) {
+    return request;
+  }
+
+  const modelId = String(request.modelId);
+  const rdrrRoot = path.resolve(asStringOrNull(options.rdrrRoot) || DEFAULT_EXTERNAL_RDRR_ROOT);
+  const manifestPath = path.join(rdrrRoot, modelId, 'manifest.json');
+  if (!await pathExists(manifestPath)) {
+    return request;
+  }
+
+  const modelDir = path.dirname(manifestPath);
+  try {
+    const files = await fs.readdir(modelDir, { withFileTypes: true });
+    const hasShards = files.some((entry) =>
+      entry.isFile() && /^shard_\d+\.bin$/u.test(entry.name)
+    );
+    if (!hasShards) {
+      return request;
+    }
+  } catch {
+    return request;
+  }
+
+  return {
+    ...request,
+    modelUrl: pathToFileURL(modelDir).href.replace(/\/$/, ''),
+  };
+}
+
 function parseSurface(value, command, policy = DEFAULT_CLI_POLICY) {
   const normalizedInput = asStringOrNull(value);
   const normalizedSurface = policy.defaults && policy.defaults.surface && policy.defaults.surface.default
@@ -616,10 +649,14 @@ function isTrainingCommandFlow(request) {
 
 async function runCommandOnSurface(request, surface, runConfig, jsonOutput) {
   if (surface === 'node') {
+    const nodeRequest = await resolveNodeModelUrl(request);
     if (!jsonOutput) {
       console.error('[surface] running on: node');
+      if (nodeRequest.modelUrl && nodeRequest.modelUrl !== request.modelUrl) {
+        console.error(`[surface] node resolved modelUrl=${nodeRequest.modelUrl}`);
+      }
     }
-    return runNodeCommand(request, buildNodeRunOptions(jsonOutput));
+    return runNodeCommand(nodeRequest, buildNodeRunOptions(jsonOutput));
   }
 
   const browserOptions = buildBrowserRunOptions(runConfig, jsonOutput, request);
@@ -1164,7 +1201,17 @@ async function main() {
   }
 }
 
-main().catch((error) => {
-  console.error(`[error] ${error?.message || String(error)}`);
-  process.exit(1);
-});
+function isMainModule(metaUrl) {
+  const entryPath = process.argv[1];
+  if (!entryPath) {
+    return false;
+  }
+  return path.resolve(fileURLToPath(metaUrl)) === path.resolve(entryPath);
+}
+
+if (isMainModule(import.meta.url)) {
+  main().catch((error) => {
+    console.error(`[error] ${error?.message || String(error)}`);
+    process.exit(1);
+  });
+}

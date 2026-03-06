@@ -49,6 +49,35 @@ function isRDRRManifest(manifest) {
   return manifest !== null && typeof manifest === 'object' && Array.isArray( (manifest).shards);
 }
 
+function normalizeBaseUrl(baseUrl) {
+  if (typeof baseUrl !== 'string' || baseUrl.trim().length === 0) {
+    return null;
+  }
+  return baseUrl.replace(/\/$/, '');
+}
+
+function createRemoteStorageContext(baseUrl, manifest) {
+  const root = normalizeBaseUrl(baseUrl);
+  if (!root || !isRDRRManifest(manifest)) {
+    return null;
+  }
+
+  return {
+    async loadShard(index) {
+      const shard = manifest.shards[index];
+      const filename = shard?.filename;
+      if (!filename) {
+        throw new Error(`Manifest shard ${index} is missing filename.`);
+      }
+      const response = await fetch(`${root}/${filename.replace(/^\/+/, '')}`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch shard ${index} from ${root}: ${response.status}`);
+      }
+      return new Uint8Array(await response.arrayBuffer());
+    },
+  };
+}
+
 
 function resolveQ4KConfig(
   manifest,
@@ -505,10 +534,12 @@ export async function initTokenizer(manifest, options = {}) {
 
 
 export async function loadWeights(manifest, modelConfig, options = {}) {
-  const { storageContext, onProgress, loadingConfig, baseUrl } = options;
+  const { onProgress, loadingConfig, baseUrl } = options;
+  const runtimeStorageContext = options.storageContext
+    ?? createRemoteStorageContext(baseUrl, manifest);
   const verifyHashes = (
-    typeof storageContext?.verifyHashes === 'boolean'
-      ? storageContext.verifyHashes
+    typeof runtimeStorageContext?.verifyHashes === 'boolean'
+      ? runtimeStorageContext.verifyHashes
       : options.verifyHashes
   ) ?? loadingConfig?.shardCache?.verifyHashes;
   if (verifyHashes == null) {
@@ -536,31 +567,31 @@ export async function loadWeights(manifest, modelConfig, options = {}) {
   }
 
   // Configure custom shard loader if provided (Native Bridge or direct-source bundle)
-  const hasLoadShard = typeof storageContext?.loadShard === 'function';
-  const hasLoadShardRange = typeof storageContext?.loadShardRange === 'function';
-  const hasStreamShardRange = typeof storageContext?.streamShardRange === 'function';
+  const hasLoadShard = typeof runtimeStorageContext?.loadShard === 'function';
+  const hasLoadShardRange = typeof runtimeStorageContext?.loadShardRange === 'function';
+  const hasStreamShardRange = typeof runtimeStorageContext?.streamShardRange === 'function';
   if (hasLoadShard || hasLoadShardRange) {
     log.debug('Pipeline', 'Using custom shard loader (Native Bridge or external)');
 
     const loadShard = async (index) => {
       if (hasLoadShard) {
-        const data = await storageContext.loadShard(index);
+        const data = await runtimeStorageContext.loadShard(index);
         return toUint8Array(data, 'storageContext.loadShard');
       }
-      const rangeData = await storageContext.loadShardRange(index, 0, null);
+      const rangeData = await runtimeStorageContext.loadShardRange(index, 0, null);
       return toUint8Array(rangeData, 'storageContext.loadShardRange');
     };
 
     const loadShardRange = hasLoadShardRange
       ? async (index, offset, length = null) => {
-        const data = await storageContext.loadShardRange(index, offset, length);
+        const data = await runtimeStorageContext.loadShardRange(index, offset, length);
         return toArrayBuffer(data, 'storageContext.loadShardRange');
       }
       : null;
 
     const streamShardRange = hasStreamShardRange
       ? async function* (index, offset = 0, length = null, streamOptions = {}) {
-        for await (const chunk of storageContext.streamShardRange(index, offset, length, streamOptions)) {
+        for await (const chunk of runtimeStorageContext.streamShardRange(index, offset, length, streamOptions)) {
           yield toUint8Array(chunk, 'storageContext.streamShardRange');
         }
       }

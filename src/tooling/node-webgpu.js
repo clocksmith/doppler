@@ -13,6 +13,7 @@ const DEFAULT_LOCAL_DOE_PROVIDER_PATH = resolve(
   'nursery',
   'webgpu-core',
 );
+const DEFAULT_DOE_PROVIDER_CREATE_ARGS = 'enable-dawn-features=allow_unsafe_apis';
 
 function hasNavigatorGpu() {
   return typeof globalThis.navigator !== 'undefined' && !!globalThis.navigator?.gpu;
@@ -128,12 +129,27 @@ function resolveDoeProviderOverride(specifier) {
 
 async function importWithProviderOverride(specifier) {
   const providerOverride = resolveDoeProviderOverride(specifier);
+  const shouldApplyCreateArgsDefault = isDoeWebgpuCoreSpecifier(specifier)
+    && !(typeof process.env.FAWN_WEBGPU_CREATE_ARGS === 'string' && process.env.FAWN_WEBGPU_CREATE_ARGS.trim().length > 0);
   if (!providerOverride) {
-    return import(specifier);
+    if (!shouldApplyCreateArgsDefault) {
+      return import(specifier);
+    }
+    process.env.FAWN_WEBGPU_CREATE_ARGS = DEFAULT_DOE_PROVIDER_CREATE_ARGS;
+    try {
+      return await import(specifier);
+    } finally {
+      delete process.env.FAWN_WEBGPU_CREATE_ARGS;
+    }
   }
   const hadProvider = Object.prototype.hasOwnProperty.call(process.env, 'FAWN_WEBGPU_NODE_PROVIDER_MODULE');
   const previousProvider = process.env.FAWN_WEBGPU_NODE_PROVIDER_MODULE;
+  const hadCreateArgs = Object.prototype.hasOwnProperty.call(process.env, 'FAWN_WEBGPU_CREATE_ARGS');
+  const previousCreateArgs = process.env.FAWN_WEBGPU_CREATE_ARGS;
   process.env.FAWN_WEBGPU_NODE_PROVIDER_MODULE = providerOverride;
+  if (!hadCreateArgs) {
+    process.env.FAWN_WEBGPU_CREATE_ARGS = DEFAULT_DOE_PROVIDER_CREATE_ARGS;
+  }
   try {
     return await import(specifier);
   } finally {
@@ -141,6 +157,11 @@ async function importWithProviderOverride(specifier) {
       process.env.FAWN_WEBGPU_NODE_PROVIDER_MODULE = previousProvider;
     } else {
       delete process.env.FAWN_WEBGPU_NODE_PROVIDER_MODULE;
+    }
+    if (hadCreateArgs) {
+      process.env.FAWN_WEBGPU_CREATE_ARGS = previousCreateArgs;
+    } else {
+      delete process.env.FAWN_WEBGPU_CREATE_ARGS;
     }
   }
 }

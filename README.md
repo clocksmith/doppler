@@ -15,14 +15,16 @@ npm install @simulatte/doppler
 ```js
 import { doppler } from '@simulatte/doppler';
 
-const model = await doppler.load('gemma-3-1b');
+const model = await doppler.load('gemma3-270m', {
+  onProgress: ({ message }) => console.log(`[doppler] ${message}`),
+});
 
 for await (const token of model.generate('Hello, world')) {
   process.stdout.write(token);
 }
 ```
 
-Tokens stream from a native `AsyncGenerator`. See [more examples](#more-examples) below or the full [API contract](docs/doppler-api-contract.md).
+Registry IDs resolve to hosted RDRR artifacts from `Clocksmith/rdrr` by default. Tokens stream from a native `AsyncGenerator`. See [more examples](#more-examples) below or the full [API contract](docs/doppler-api-contract.md).
 
 ## Why Doppler
 
@@ -65,7 +67,7 @@ const reply = await model.chatText([
 await model.loadLoRA('oneshift-twoshift-redshift-blueshift');
 
 // Convenience shorthand (caches model automatically)
-for await (const token of doppler('Hello', { model: 'gemma-3-1b' })) {
+for await (const token of doppler('Hello', { model: 'gemma3-270m' })) {
   process.stdout.write(token);
 }
 ```

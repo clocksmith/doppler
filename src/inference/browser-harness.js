@@ -958,6 +958,21 @@ async function runKernelSuite(options = {}) {
 
 
 const DEFAULT_HARNESS_PROMPT = 'Summarize this input in one sentence.';
+const DEFAULT_TRANSLATEGEMMA_PROMPT = Object.freeze({
+  messages: Object.freeze([
+    Object.freeze({
+      role: 'user',
+      content: Object.freeze([
+        Object.freeze({
+          type: 'text',
+          source_lang_code: 'en',
+          target_lang_code: 'fr',
+          text: 'Hello world.',
+        }),
+      ]),
+    }),
+  ]),
+});
 const DEFAULT_HARNESS_MAX_TOKENS = 32;
 const EMBEDDING_PREVIEW_LENGTH = 16;
 const EMBEDDING_SEMANTIC_MIN_RETRIEVAL_TOP1 = 0.67;
@@ -1205,13 +1220,65 @@ function isStructuredPromptInput(value) {
   return Array.isArray(value) || (value != null && typeof value === 'object');
 }
 
-function resolveGenerationPromptInput(runtimeConfig, runOverrides = null) {
+function clonePromptInput(promptInput) {
+  if (!isStructuredPromptInput(promptInput)) {
+    return promptInput;
+  }
+  if (typeof structuredClone === 'function') {
+    return structuredClone(promptInput);
+  }
+  return JSON.parse(JSON.stringify(promptInput));
+}
+
+function resolvePromptTemplateType(source) {
+  const sourceTemplateType = asText(source?.chatTemplateType);
+  if (sourceTemplateType) {
+    return sourceTemplateType;
+  }
+  const modelConfigTemplateType = asText(source?.modelConfig?.chatTemplateType);
+  if (modelConfigTemplateType) {
+    return modelConfigTemplateType;
+  }
+  return asText(source?.manifest?.inference?.chatTemplate?.type);
+}
+
+function buildDefaultGenerationPrompt(templateType) {
+  if (templateType === 'translategemma') {
+    return clonePromptInput(DEFAULT_TRANSLATEGEMMA_PROMPT);
+  }
+  return DEFAULT_HARNESS_PROMPT;
+}
+
+function describePromptInput(promptInput) {
+  if (typeof promptInput === 'string') {
+    return promptInput.trim() || DEFAULT_HARNESS_PROMPT;
+  }
+  const firstMessage = Array.isArray(promptInput?.messages)
+    ? promptInput.messages[0]
+    : null;
+  const firstContent = Array.isArray(firstMessage?.content)
+    ? firstMessage.content[0]
+    : null;
+  const sourceLang = asText(firstContent?.source_lang_code);
+  const targetLang = asText(firstContent?.target_lang_code);
+  const text = asText(firstContent?.text);
+  if (sourceLang && targetLang) {
+    return `${sourceLang} -> ${targetLang}: ${text || '[non-text request]'}`;
+  }
+  try {
+    return JSON.stringify(promptInput);
+  } catch {
+    return '[structured prompt]';
+  }
+}
+
+function resolveGenerationPromptInput(runtimeConfig, runOverrides = null, source = null) {
   const overridePrompt = runOverrides?.prompt;
   if (typeof overridePrompt === 'string' && overridePrompt.trim()) {
     return overridePrompt.trim();
   }
   if (isStructuredPromptInput(overridePrompt)) {
-    return overridePrompt;
+    return clonePromptInput(overridePrompt);
   }
 
   const runtimePrompt = runtimeConfig?.inference?.prompt;
@@ -1219,10 +1286,10 @@ function resolveGenerationPromptInput(runtimeConfig, runOverrides = null) {
     return runtimePrompt.trim();
   }
   if (isStructuredPromptInput(runtimePrompt)) {
-    return runtimePrompt;
+    return clonePromptInput(runtimePrompt);
   }
 
-  return DEFAULT_HARNESS_PROMPT;
+  return buildDefaultGenerationPrompt(resolvePromptTemplateType(source));
 }
 
 function resolveMaxTokens(runtimeConfig) {
@@ -1233,7 +1300,7 @@ function resolveMaxTokens(runtimeConfig) {
   return DEFAULT_HARNESS_MAX_TOKENS;
 }
 
-function resolveBenchmarkRunSettings(runtimeConfig) {
+function resolveBenchmarkRunSettings(runtimeConfig, source = null) {
   const benchConfig = runtimeConfig?.shared?.benchmark?.run || {};
   const runtimeSampling = isPlainObject(runtimeConfig?.inference?.sampling)
     ? runtimeConfig.inference.sampling
@@ -1241,9 +1308,9 @@ function resolveBenchmarkRunSettings(runtimeConfig) {
   const benchSampling = isPlainObject(benchConfig?.sampling)
     ? benchConfig.sampling
     : {};
-  const prompt = typeof benchConfig.customPrompt === 'string' && benchConfig.customPrompt.trim()
+  const promptInput = typeof benchConfig.customPrompt === 'string' && benchConfig.customPrompt.trim()
     ? benchConfig.customPrompt.trim()
-    : resolvePrompt(runtimeConfig);
+    : resolveGenerationPromptInput(runtimeConfig, null, source);
   const maxTokens = Number.isFinite(benchConfig.maxNewTokens)
     ? Math.max(1, Math.floor(benchConfig.maxNewTokens))
     : resolveMaxTokens(runtimeConfig);
@@ -1251,7 +1318,8 @@ function resolveBenchmarkRunSettings(runtimeConfig) {
   return {
     warmupRuns: Math.max(0, Math.floor(benchConfig.warmupRuns ?? 0)),
     timedRuns: Math.max(1, Math.floor(benchConfig.timedRuns ?? 1)),
-    prompt,
+    prompt: promptInput,
+    promptLabel: describePromptInput(promptInput),
     maxTokens,
     sampling: {
       ...runtimeSampling,
@@ -1465,7 +1533,8 @@ function isCoherentOutput(tokens, output) {
 async function runGeneration(pipeline, runtimeConfig, runOverrides = null) {
   const tokens = [];
   const tokenIds = [];
-  const promptInput = resolveGenerationPromptInput(runtimeConfig, runOverrides);
+  const promptInput = resolveGenerationPromptInput(runtimeConfig, runOverrides, pipeline);
+  const promptLabel = describePromptInput(promptInput);
   const useChatTemplate = runOverrides?.useChatTemplate
     ?? runtimeConfig?.inference?.chatTemplate?.enabled
     ?? (isStructuredPromptInput(promptInput) ? true : undefined);
@@ -1532,7 +1601,8 @@ async function runGeneration(pipeline, runtimeConfig, runOverrides = null) {
     : null;
 
   return {
-    prompt: promptInput,
+    prompt: promptLabel,
+    promptInput,
     maxTokens,
     tokens,
     tokenIds,
@@ -1766,9 +1836,9 @@ async function runInferenceSuite(options = {}) {
 async function runBenchSuite(options = {}) {
   const startTime = performance.now();
   const runtimeConfig = getRuntimeConfig();
-  const benchRun = resolveBenchmarkRunSettings(runtimeConfig);
-  const warmupRuns = benchRun.warmupRuns;
-  const timedRuns = benchRun.timedRuns;
+  const defaultBenchRun = resolveBenchmarkRunSettings(runtimeConfig);
+  const warmupRuns = defaultBenchRun.warmupRuns;
+  const timedRuns = defaultBenchRun.timedRuns;
   const cacheMode = normalizeCacheMode(options.cacheMode);
   const loadMode = normalizeLoadMode(options.loadMode, !options.modelUrl);
   const workloadType = normalizeWorkloadType(options.workloadType);
@@ -1776,7 +1846,7 @@ async function runBenchSuite(options = {}) {
   if (workloadType === 'training') {
     const trainingBench = await runTrainingBenchSuite({
       ...options,
-      benchRun,
+      benchRun: defaultBenchRun,
       workloadType,
     });
     const trainingReport = trainingBench?.metrics?.trainingMetricsReport;
@@ -1858,6 +1928,7 @@ async function runBenchSuite(options = {}) {
   }
 
   const harness = await initializeSuiteModel(options);
+  const benchRun = resolveBenchmarkRunSettings(runtimeConfig, harness.pipeline ?? harness);
   const modelType = harness.manifest?.modelType || 'transformer';
   const safeModelLoadMs = toTimingNumber(harness.modelLoadMs, 0);
 
@@ -1927,7 +1998,7 @@ async function runBenchSuite(options = {}) {
       validRuns: durations.length,
       invalidRuns,
       invalidRatePct: Number((timedRuns > 0 ? (invalidRuns / timedRuns) * 100 : 0).toFixed(2)),
-      prompt: benchRun.prompt,
+      prompt: benchRun.promptLabel,
       embeddingDim: Math.round(embeddingDims.reduce((a, b) => a + b, 0) / (embeddingDims.length || 1)),
       nonFiniteValues: totalNonFiniteValues,
       firstTimedEmbeddingMs: Number((firstTimedEmbeddingMs ?? 0).toFixed(2)),
@@ -2058,7 +2129,7 @@ async function runBenchSuite(options = {}) {
     metrics = {
       warmupRuns,
       timedRuns,
-      prompt: benchRun.prompt,
+      prompt: benchRun.promptLabel,
       maxTokens: benchRun.maxTokens,
       decodeTokensPerSec: sampleTimingNumber(decodeTokensPerSecStats, 'median'),
       avgTokensGenerated: Math.round(tokensGeneratedStats.mean),
