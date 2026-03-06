@@ -84,7 +84,7 @@ for await (const token of doppler('Hello', { model: 'gemma3-270m' })) {
 
 ## Current model support
 
-Verified/cataloged support currently includes Gemma 3, EmbeddingGemma, TranslateGemma, and Qwen 3.5. Broader preset coverage also exists, including diffusion work, but some entries are conversion-ready rather than cataloged/verified. See [docs/model-support-matrix.md](docs/model-support-matrix.md).
+Verified/cataloged support currently includes Gemma 3, EmbeddingGemma, and TranslateGemma. Qwen 3.5 has preset and conversion support but is not yet coherence-verified. Broader preset coverage also exists, including diffusion work, but some entries are conversion-ready rather than cataloged/verified. See [docs/model-support-matrix.md](docs/model-support-matrix.md).
 
 ## Environment requirements
 

@@ -34,7 +34,7 @@
       "attentionBias": false
     },
     "normalization": {
-      "rmsNormEps": 0.000001,
+      "rmsNormEps": 1e-06,
       "rmsNormWeightOffset": true,
       "postAttentionNorm": true,
       "preFeedforwardNorm": true,
@@ -57,7 +57,10 @@
       "ropeLocalScalingFactor": 1,
       "ropeLocalYarnBetaFast": null,
       "ropeLocalYarnBetaSlow": null,
-      "ropeLocalYarnOriginalMaxPos": null
+      "ropeLocalYarnOriginalMaxPos": null,
+      "mropeInterleaved": false,
+      "mropeSection": null,
+      "partialRotaryFactor": null
     },
     "output": {
       "finalLogitSoftcapping": null,
