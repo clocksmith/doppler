@@ -16,6 +16,7 @@
     "bench": "node tools/doppler-cli.js bench",
     "lean:check": "./lean/check.sh",
     "lean:execution-contract": "node tools/lean-execution-contract.js",
+    "reports:convert:summary": "node tools/summarize-conversion-reports.js",
     "bench:chart": "node ./benchmarks/vendors/compare-chart.js",
     "bench:chart:readme": "node ./benchmarks/vendors/compare-chart.js --preset readme-evidence",
     "bench:architecture:chart": "node ./benchmarks/vendors/generate-architecture-overview-svg.js",

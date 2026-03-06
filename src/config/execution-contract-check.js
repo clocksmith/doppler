@@ -243,3 +243,48 @@ export function validateManifestExecutionContract(manifest) {
     facts,
   };
 }
+
+export function buildExecutionContractArtifact(manifest) {
+  if (!manifest || typeof manifest !== 'object') {
+    return null;
+  }
+  if (manifest.modelType === 'diffusion' || manifest.modelType === 'energy') {
+    return null;
+  }
+  if (!manifest.architecture || !manifest.inference || typeof manifest.inference !== 'object') {
+    return null;
+  }
+  try {
+    const evaluation = validateManifestExecutionContract(manifest);
+    const attentionPhaseCounts = { prefill: 0, decode: 0, both: 0 };
+    for (const step of evaluation.facts.steps) {
+      if (step.opClass !== 'attention') continue;
+      if (Object.prototype.hasOwnProperty.call(attentionPhaseCounts, step.phase)) {
+        attentionPhaseCounts[step.phase] += 1;
+      }
+    }
+    return {
+      schemaVersion: 1,
+      source: 'doppler',
+      ok: evaluation.ok,
+      checks: evaluation.checks,
+      errors: evaluation.errors,
+      session: evaluation.facts.session,
+      steps: {
+        total: evaluation.facts.steps.length,
+        attention: attentionPhaseCounts.prefill + attentionPhaseCounts.decode + attentionPhaseCounts.both,
+        attentionPhases: attentionPhaseCounts,
+      },
+    };
+  } catch (error) {
+    return {
+      schemaVersion: 1,
+      source: 'doppler',
+      ok: false,
+      checks: [],
+      errors: [error instanceof Error ? error.message : String(error)],
+      session: null,
+      steps: null,
+    };
+  }
+}

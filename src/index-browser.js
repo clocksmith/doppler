@@ -1,5 +1,5 @@
 export const DOPPLER_VERSION = '0.1.0';
-export { doppler } from './client/doppler-api.js';
+export { doppler } from './client/doppler-api.browser.js';
 
 // Core loaders
 export {

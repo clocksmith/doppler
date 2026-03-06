@@ -9,29 +9,16 @@ import { buildQuickstartModelBaseUrl, listQuickstartModels, resolveQuickstartMod
 const convenienceModelCache = new Map();
 const inFlightLoadCache = new Map();
 
-function isNodeRuntime() {
-  return typeof process !== 'undefined'
-    && typeof process.versions === 'object'
-    && typeof process.versions.node === 'string';
+function emitLoadProgress(callback, phase, percent, message) {
+  if (typeof callback !== 'function') return;
+  callback({ phase, percent, message });
 }
 
 async function ensureWebGPUAvailable() {
   if (typeof globalThis.navigator !== 'undefined' && globalThis.navigator?.gpu) {
     return;
   }
-  if (isNodeRuntime()) {
-    const { bootstrapNodeWebGPU } = await import('../tooling/node-webgpu.js');
-    const result = await bootstrapNodeWebGPU();
-    if (result.ok && globalThis.navigator?.gpu) {
-      return;
-    }
-  }
-  throw new Error('WebGPU is unavailable. Install a Node WebGPU provider or run in a WebGPU-capable browser.');
-}
-
-function emitLoadProgress(callback, phase, percent, message) {
-  if (typeof callback !== 'function') return;
-  callback({ phase, percent, message });
+  throw new Error('WebGPU is unavailable. Run in a WebGPU-capable browser.');
 }
 
 export function createDefaultNodeLoadProgressLogger() {
@@ -48,12 +35,6 @@ export function resolveLoadProgressHandlers(options = {}) {
     return {
       userProgress: onProgress,
       pipelineProgress: onProgress,
-    };
-  }
-  if (isNodeRuntime()) {
-    return {
-      userProgress: createDefaultNodeLoadProgressLogger(),
-      pipelineProgress: null,
     };
   }
   return {
@@ -258,18 +239,25 @@ export function doppler(prompt, options) {
 }
 
 doppler.load = load;
-doppler.text = async function text(prompt, options) {
-  return collectText(doppler(prompt, options));
+
+doppler.text = async function text(prompt, options = {}) {
+  if (!options || typeof options !== 'object' || options.model == null) {
+    throw new Error('doppler.text() requires options.model.');
+  }
+  const model = await getCachedModel(options.model, { onProgress: options.onProgress });
+  return model.generateText(prompt, options);
 };
+
 doppler.chat = function chat(messages, options = {}) {
   if (!options || typeof options !== 'object' || options.model == null) {
     throw new Error('doppler.chat() requires options.model.');
   }
-  return (async function* () {
+  return (async function* run() {
     const model = await getCachedModel(options.model, { onProgress: options.onProgress });
     yield* model.chat(messages, options);
   }());
 };
+
 doppler.chatText = async function chatText(messages, options = {}) {
   if (!options || typeof options !== 'object' || options.model == null) {
     throw new Error('doppler.chatText() requires options.model.');
@@ -277,22 +265,24 @@ doppler.chatText = async function chatText(messages, options = {}) {
   const model = await getCachedModel(options.model, { onProgress: options.onProgress });
   return model.chatText(messages, options);
 };
+
 doppler.evict = async function evict(model) {
   const resolved = await resolveModelSource(model);
-  const cached = convenienceModelCache.get(resolved.modelId);
-  if (!cached) {
-    return false;
-  }
-  convenienceModelCache.delete(resolved.modelId);
+  const cacheKey = resolved.modelId;
+  const cached = convenienceModelCache.get(cacheKey);
+  if (!cached) return false;
   await cached.unload();
+  convenienceModelCache.delete(cacheKey);
   return true;
 };
+
 doppler.evictAll = async function evictAll() {
-  const cached = [...convenienceModelCache.values()];
+  const cachedModels = Array.from(convenienceModelCache.values());
   convenienceModelCache.clear();
-  await Promise.all(cached.map((entry) => entry.unload()));
+  await Promise.allSettled(cachedModels.map((model) => model.unload()));
 };
+
 doppler.listModels = async function listModels() {
   const models = await listQuickstartModels();
-  return models.map((entry) => entry.modelId);
+  return models.map((entry) => entry.aliases[0] || entry.modelId);
 };

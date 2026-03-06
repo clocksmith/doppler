@@ -27,6 +27,7 @@ import type {
   MoEConfigSchema,
   ConversionInfoSchema,
 } from '../config/schema/index.js';
+import type { ExecutionContractArtifact } from '../config/execution-contract-check.js';
 
 export { generateShardFilename } from '../formats/rdrr/index.js';
 
@@ -144,6 +145,7 @@ export interface ConvertResult {
   shardCount: number;
   tensorCount: number;
   totalSize: number;
+  executionContractArtifact: ExecutionContractArtifact | null;
 }
 
 /** @deprecated Use ConversionIOSchema from config/schema */
