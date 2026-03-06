@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "suite": "convert",
+  "command": "convert",
+  "modelId": "gemma2-sharded-index",
+  "timestamp": "2026-03-06T02:56:20.212Z",
+  "source": "doppler",
+  "result": {
+    "presetId": "gemma2",
+    "modelType": "transformer",
+    "outputDir": "/tmp/doppler-converter-sharded-index-path-pwip5d/out",
+    "shardCount": 1,
+    "tensorCount": 1,
+    "totalSize": 2
+  },
+  "manifest": {
+    "quantization": "F16",
+    "quantizationInfo": {
+      "weights": "f16",
+      "embeddings": "f16",
+      "compute": "f16",
+      "variantTag": "wf16"
+    },
+    "inference": {
+      "presetId": "gemma2",
+      "schema": "doppler.execution/v0",
+      "defaultKernelPath": "gemma2-f16-f16a"
+    }
+  },
+  "executionContractArtifact": {
+    "schemaVersion": 1,
+    "source": "doppler",
+    "ok": true,
+    "checks": [
+      {
+        "id": "gemma2-sharded-index.steps",
+        "ok": true
+      },
+      {
+        "id": "gemma2-sharded-index.session",
+        "ok": true
+      }
+    ],
+    "errors": [],
+    "session": {
+      "layout": "contiguous",
+      "disableCommandBatching": false,
+      "decodeBatchSize": 4,
+      "headDim": 1,
+      "kvLen": 8,
+      "coldQuantMode": "none"
+    },
+    "steps": {
+      "total": 1,
+      "attention": 0,
+      "attentionPhases": {
+        "prefill": 0,
+        "decode": 0,
+        "both": 0
+      }
+    }
+  }
+}

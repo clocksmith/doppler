@@ -27,6 +27,10 @@ export interface DiffusionSchedulerConfig {
   eta: number;
   numTrainTimesteps: number;
   shift: number;
+  predictionType?: string;
+  sigmaData?: number;
+  maxTimesteps?: number;
+  intermediateTimesteps?: number;
 }
 
 export interface DiffusionLatentConfig {

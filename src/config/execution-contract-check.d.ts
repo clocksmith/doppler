@@ -1,3 +1,10 @@
+import type {
+  ExecutionV0ContractArtifact,
+} from './execution-v0-contract-check.js';
+import type {
+  ExecutionV0GraphContractArtifact,
+} from './execution-v0-graph-contract-check.js';
+
 export interface ExecutionContractStepFacts {
   id: string;
   phase: 'prefill' | 'decode' | 'both';
@@ -50,6 +57,10 @@ export interface ExecutionContractArtifact {
       both: number;
     };
   } | null;
+  executionV0?: {
+    kernelProfiles: ExecutionV0ContractArtifact | null;
+    graph: ExecutionV0GraphContractArtifact | null;
+  };
 }
 
 export declare function sanitizeLeanModuleName(value: unknown): string;

@@ -40,6 +40,8 @@ import {
   inferDiffusionMatmulDtypeFromBuffer,
   sumDiffusionProfileTimings,
 } from './helpers.js';
+import { initRoPEFrequencies } from '../text/init.js';
+import { processLayerGPU } from '../text/layer.js';
 
 const QUICK_GELU_ALPHA = 1.702;
 const SUPPORTED_CLIP_HIDDEN_ACTIVATIONS = new Set(['gelu', 'quick_gelu']);
@@ -54,6 +56,16 @@ function padTokens(tokens, maxLength, padTokenId) {
     out[i] = i < length ? (tokens[i] ?? padTokenId) : padTokenId;
   }
   return out;
+}
+
+function normalizeTokens(tokens, maxLength, fallbackTokenId) {
+  const source = Array.isArray(tokens) ? tokens : [];
+  const limit = Number.isFinite(maxLength) && maxLength > 0 ? Math.floor(maxLength) : source.length;
+  const trimmed = source.slice(0, limit);
+  if (trimmed.length > 0) {
+    return Uint32Array.from(trimmed);
+  }
+  return new Uint32Array([fallbackTokenId >>> 0]);
 }
 
 function findEosIndex(tokens, eosTokenId) {
@@ -702,7 +714,264 @@ async function runT5Encoder(tokens, weightsEntry, config, runtime, options = {})
   };
 }
 
+function buildGemma2LayerTypes(layerCount, slidingWindow) {
+  if (!Number.isFinite(slidingWindow) || slidingWindow <= 0) {
+    return Array.from({ length: layerCount }, () => 'full_attention');
+  }
+  return Array.from({ length: layerCount }, (_, index) => (
+    index % 2 === 1 ? 'full_attention' : 'sliding_attention'
+  ));
+}
+
+function getGemma2LayerWeight(weights, prefix, layerIdx, suffix, required = true) {
+  const key = `${prefix}.model.layers.${layerIdx}.${suffix}`;
+  const weight = weights.get(key) || null;
+  if (!weight && required) {
+    throw new Error(`Missing Gemma2 diffusion weight "${key}".`);
+  }
+  return weight;
+}
+
+function resolveGemma2TextConfig(config) {
+  const hiddenSize = config.hidden_size;
+  const numHeads = config.num_attention_heads;
+  const numKVHeads = config.num_key_value_heads ?? numHeads;
+  const headDim = config.head_dim ?? (
+    Number.isFinite(hiddenSize) && Number.isFinite(numHeads) && numHeads > 0
+      ? Math.floor(hiddenSize / numHeads)
+      : null
+  );
+  const numLayers = config.num_hidden_layers;
+  const intermediateSize = config.intermediate_size;
+  const maxPositionEmbeddings = config.max_position_embeddings;
+  const rmsNormEps = config.rms_norm_eps ?? 1e-6;
+
+  if (!Number.isFinite(hiddenSize) || hiddenSize <= 0) {
+    throw new Error('Gemma2 diffusion text encoder requires hidden_size.');
+  }
+  if (!Number.isFinite(numHeads) || numHeads <= 0) {
+    throw new Error('Gemma2 diffusion text encoder requires num_attention_heads.');
+  }
+  if (!Number.isFinite(numKVHeads) || numKVHeads <= 0) {
+    throw new Error('Gemma2 diffusion text encoder requires num_key_value_heads.');
+  }
+  if (!Number.isFinite(headDim) || headDim <= 0) {
+    throw new Error('Gemma2 diffusion text encoder requires head_dim or hidden_size/num_attention_heads.');
+  }
+  if (!Number.isFinite(numLayers) || numLayers <= 0) {
+    throw new Error('Gemma2 diffusion text encoder requires num_hidden_layers.');
+  }
+  if (!Number.isFinite(intermediateSize) || intermediateSize <= 0) {
+    throw new Error('Gemma2 diffusion text encoder requires intermediate_size.');
+  }
+  if (!Number.isFinite(maxPositionEmbeddings) || maxPositionEmbeddings <= 0) {
+    throw new Error('Gemma2 diffusion text encoder requires max_position_embeddings.');
+  }
+
+  return {
+    hiddenSize,
+    numHeads,
+    numKVHeads,
+    headDim,
+    numLayers,
+    intermediateSize,
+    maxPositionEmbeddings,
+    rmsNormEps,
+    ropeTheta: config.rope_theta ?? 10000,
+    slidingWindow: config.sliding_window ?? 4096,
+    scaleEmbeddings: config.scale_embeddings !== false,
+  };
+}
+
+async function runGemma2TextEncoder(tokens, weightsEntry, config, runtime, options = {}) {
+  const device = getDevice();
+  if (!device) throw new Error('Gemma2 diffusion text encoder requires a WebGPU device.');
+  if (!weightsEntry?.weights || !weightsEntry?.shapes) {
+    throw new Error('Gemma2 diffusion text encoder requires loaded weights.');
+  }
+
+  const prefix = options.prefix ?? 'text_encoder';
+  const localRecorder = options.recorder
+    ? null
+    : (options.profile ? new CommandRecorder(device, `${prefix}_gemma2_encoder`, { profile: true }) : null);
+  const recorder = options.recorder ?? localRecorder;
+  const ops = createKernelOps(recorder);
+  const release = createDiffusionBufferReleaser(recorder);
+  const destroy = createDiffusionBufferDestroyer(recorder);
+  const weights = weightsEntry.weights;
+  const activationDtype = resolveDiffusionActivationDtype(runtime);
+  const resolved = resolveGemma2TextConfig(config);
+  const padTokenId = config.pad_token_id ?? config.bos_token_id ?? 0;
+  const tokenIds = normalizeTokens(tokens, options.maxLength ?? resolved.maxPositionEmbeddings, padTokenId);
+  const numTokens = tokenIds.length;
+  const tokenBuffer = createDiffusionIndexBuffer(device, tokenIds, `${prefix}_tokens`);
+
+  const embedKey = `${prefix}.model.embed_tokens.weight`;
+  const embedWeight = expectDiffusionWeight(
+    weights.get(embedKey),
+    embedKey
+  );
+  const embedDtype = resolveEmbeddingDtype(embedWeight, weightsEntry, embedKey, runtime);
+  let hidden = await ops.gather(
+    tokenBuffer,
+    getBuffer(embedWeight),
+    numTokens,
+    resolved.hiddenSize,
+    config.vocab_size,
+    {
+      embeddingDtype: embedDtype,
+      outputDtype: activationDtype,
+      transpose: false,
+    }
+  );
+  destroy(tokenBuffer);
+
+  if (resolved.scaleEmbeddings) {
+    const scaled = await ops.scale(hidden, Math.sqrt(resolved.hiddenSize), {
+      count: numTokens * resolved.hiddenSize,
+    });
+    release(hidden.buffer);
+    hidden = createTensor(scaled.buffer, scaled.dtype, [numTokens, resolved.hiddenSize], 'gemma2_embed');
+  }
+
+  const layerWeights = new Map();
+  for (let layerIdx = 0; layerIdx < resolved.numLayers; layerIdx++) {
+    layerWeights.set(`layer_${layerIdx}`, {
+      inputNorm: getGemma2LayerWeight(weights, prefix, layerIdx, 'input_layernorm.weight'),
+      qProj: getGemma2LayerWeight(weights, prefix, layerIdx, 'self_attn.q_proj.weight'),
+      kProj: getGemma2LayerWeight(weights, prefix, layerIdx, 'self_attn.k_proj.weight'),
+      vProj: getGemma2LayerWeight(weights, prefix, layerIdx, 'self_attn.v_proj.weight'),
+      oProj: getGemma2LayerWeight(weights, prefix, layerIdx, 'self_attn.o_proj.weight'),
+      postAttentionNorm: getGemma2LayerWeight(weights, prefix, layerIdx, 'post_attention_layernorm.weight'),
+      preFeedforwardNorm: getGemma2LayerWeight(weights, prefix, layerIdx, 'pre_feedforward_layernorm.weight'),
+      gate: getGemma2LayerWeight(weights, prefix, layerIdx, 'mlp.gate_proj.weight'),
+      up: getGemma2LayerWeight(weights, prefix, layerIdx, 'mlp.up_proj.weight'),
+      down: getGemma2LayerWeight(weights, prefix, layerIdx, 'mlp.down_proj.weight'),
+    });
+  }
+
+  const ropeFreqs = await initRoPEFrequencies({
+    headDim: resolved.headDim,
+    maxSeqLen: resolved.maxPositionEmbeddings,
+    ropeTheta: resolved.ropeTheta,
+    ropeLocalTheta: null,
+    ropeScale: 1,
+    ropeLocalScale: null,
+    ropeScalingType: null,
+    ropeLocalScalingType: null,
+    ropeScaling: null,
+    ropeLocalScaling: null,
+  }, true);
+
+  const context = {
+    useGPU: true,
+    activationDtype,
+    recorder,
+    currentSeqLen: 0,
+    kvCache: null,
+    weightConfig: {
+      rmsNormWeightOffset: true,
+    },
+    debugFlags: {},
+    weights: layerWeights,
+    ropeFreqsCos: ropeFreqs.cos,
+    ropeFreqsSin: ropeFreqs.sin,
+    ropeLocalCos: ropeFreqs.localCos,
+    ropeLocalSin: ropeFreqs.localSin,
+    config: {
+      hiddenSize: resolved.hiddenSize,
+      intermediateSize: resolved.intermediateSize,
+      numHeads: resolved.numHeads,
+      numKVHeads: resolved.numKVHeads,
+      headDim: resolved.headDim,
+      rmsNormEps: resolved.rmsNormEps,
+      slidingWindow: resolved.slidingWindow,
+      attnLogitSoftcapping: 50.0,
+      queryPreAttnScalar: resolved.headDim,
+      queryKeyNorm: false,
+      attentionOutputGate: false,
+      causalAttention: true,
+      hiddenActivation: 'gelu',
+      swigluLimit: null,
+      useMoE: false,
+      layerTypes: buildGemma2LayerTypes(resolved.numLayers, resolved.slidingWindow),
+      preFeedforwardNorm: true,
+      postFeedforwardNorm: false,
+      postAttentionNorm: true,
+    },
+  };
+
+  for (let layerIdx = 0; layerIdx < resolved.numLayers; layerIdx++) {
+    const output = await processLayerGPU(
+      layerIdx,
+      hidden.buffer,
+      numTokens,
+      true,
+      numTokens * resolved.hiddenSize,
+      context
+    );
+    hidden = createTensor(output.buffer, output.dtype, [numTokens, resolved.hiddenSize], `gemma2_layer_${layerIdx}`);
+  }
+
+  const finalNormKey = `${prefix}.model.norm.weight`;
+  const finalNorm = expectDiffusionWeight(weights.get(finalNormKey), finalNormKey);
+  const final = await ops.rmsNorm(hidden, getBuffer(finalNorm), resolved.rmsNormEps, {
+    batchSize: numTokens,
+    hiddenSize: resolved.hiddenSize,
+    rmsNormWeightOffset: true,
+  });
+  release(hidden.buffer);
+
+  let profile = null;
+  if (localRecorder) {
+    localRecorder.submit();
+    const timings = await localRecorder.resolveProfileTimings();
+    profile = timings ? { totalMs: sumDiffusionProfileTimings(timings) ?? 0, timings } : { totalMs: null };
+  }
+
+  return {
+    hidden: final,
+    attentionMask: Uint32Array.from({ length: numTokens }, () => 1),
+    maxLength: numTokens,
+    hiddenSize: resolved.hiddenSize,
+    profile,
+  };
+}
+
 export async function runTextEncodersForPrompt(tokensByEncoder, weightsByComponent, modelConfig, runtime, options = {}) {
+  const layout = modelConfig?.layout ?? 'sd3';
+  if (layout === 'sana') {
+    const gemmaConfig = modelConfig?.components?.text_encoder?.config || {};
+    const gemmaMaxLength = runtime?.textEncoder?.maxLength;
+    if (!Number.isFinite(gemmaMaxLength) || gemmaMaxLength <= 0) {
+      throw new Error('Sana Gemma2 encoder requires runtime.textEncoder.maxLength.');
+    }
+    const profileEnabled = options.profile === true;
+    const gemma = await runGemma2TextEncoder(
+      tokensByEncoder.text_encoder,
+      weightsByComponent.text_encoder,
+      gemmaConfig,
+      runtime,
+      {
+        prefix: 'text_encoder',
+        maxLength: gemmaMaxLength,
+        profile: profileEnabled,
+      }
+    );
+
+    return {
+      pooled: new Float32Array(0),
+      context: gemma.hidden,
+      attentionMask: gemma.attentionMask,
+      profile: profileEnabled
+        ? {
+            totalMs: gemma.profile?.totalMs ?? null,
+            gemmaMs: gemma.profile?.totalMs ?? null,
+          }
+        : null,
+    };
+  }
+
   const clipConfig = modelConfig?.components?.text_encoder?.config || {};
   const clip2Config = modelConfig?.components?.text_encoder_2?.config || {};
   const t5Config = modelConfig?.components?.text_encoder_3?.config || {};
@@ -749,6 +1018,7 @@ export async function runTextEncodersForPrompt(tokensByEncoder, weightsByCompone
   return {
     pooled,
     context: t5.hidden,
+    attentionMask: null,
     profile,
   };
 }

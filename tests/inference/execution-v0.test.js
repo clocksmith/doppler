@@ -582,6 +582,48 @@ function sessionDefaultsFor(kernels, activationDtype = 'f16') {
 {
   assert.throws(
     () => compileExecutionV0({
+      modelId: 'duplicate-kernel-profile',
+      manifestInference: {
+        schema: 'doppler.execution/v0',
+        sessionDefaults: {
+          ...sessionDefaultsFor([
+            { kernel: 'attention_streaming_f16.wgsl', entry: 'main' },
+          ]),
+          compute: {
+            ...sessionDefaultsFor([
+              { kernel: 'attention_streaming_f16.wgsl', entry: 'main' },
+            ]).compute,
+            kernelProfiles: [
+              { kernelRef: kernelRef('attention_streaming_f16.wgsl', 'main') },
+              { kernelRef: kernelRef('attention_streaming_f16.wgsl', 'main') },
+            ],
+          },
+        },
+        execution: {
+          steps: [
+            {
+              id: 'attn',
+              phase: 'both',
+              section: 'layer',
+              op: 'attention',
+              src: 'state',
+              dst: 'state',
+              layers: 'all',
+              kernel: 'attention_streaming_f16.wgsl',
+              kernelRef: kernelRef('attention_streaming_f16.wgsl', 'main'),
+            },
+          ],
+          policies: DEFAULT_POLICIES,
+        },
+      },
+    }),
+    /duplicate kernel profile/
+  );
+}
+
+{
+  assert.throws(
+    () => compileExecutionV0({
       modelId: 'missing-kernelref',
       manifestInference: {
         schema: 'doppler.execution/v0',

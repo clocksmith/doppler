@@ -210,6 +210,11 @@ export interface ManifestWithInference {
  */
 export function hasManifestInference(manifest: Manifest): manifest is Manifest & { inference: ManifestInferenceSchema };
 
+export function validateRequiredInferenceFields(
+  inf: ManifestInferenceSchema,
+  modelId: string
+): void;
+
 /**
  * Convert MergedConfig to ParsedModelConfig.
  */

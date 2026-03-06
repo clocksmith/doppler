@@ -4,6 +4,13 @@ const SD3_LAYOUT = {
   id: 'sd3',
   requiredComponents: ['transformer', 'text_encoder', 'text_encoder_2', 'text_encoder_3', 'vae', 'scheduler'],
   weightedComponents: ['transformer', 'text_encoder', 'text_encoder_2', 'text_encoder_3', 'vae'],
+  matches(modelIndex, components) {
+    return (
+      components.has('text_encoder_2') &&
+      components.has('text_encoder_3') &&
+      getComponentClassName(modelIndex?.transformer) === 'SD3Transformer2DModel'
+    );
+  },
   tokenizerSpecs: [
     {
       modelIndexKey: 'tokenizer',
@@ -66,6 +73,10 @@ const FLUX_LAYOUT = {
   id: 'flux',
   requiredComponents: ['transformer', 'text_encoder', 'vae', 'scheduler'],
   weightedComponents: ['transformer', 'text_encoder', 'vae'],
+  matches(modelIndex) {
+    const transformerClass = getComponentClassName(modelIndex?.transformer);
+    return typeof transformerClass === 'string' && /^Flux/i.test(transformerClass);
+  },
   tokenizerSpecs: [
     {
       modelIndexKey: 'tokenizer',
@@ -91,7 +102,39 @@ const FLUX_LAYOUT = {
   ],
 };
 
-const LAYOUTS = [SD3_LAYOUT, FLUX_LAYOUT];
+const SANA_LAYOUT = {
+  id: 'sana',
+  requiredComponents: ['transformer', 'text_encoder', 'tokenizer', 'vae', 'scheduler'],
+  weightedComponents: ['transformer', 'text_encoder', 'vae'],
+  matches(modelIndex) {
+    return (
+      getComponentClassName(modelIndex?.transformer) === 'SanaTransformer2DModel' &&
+      getComponentClassName(modelIndex?.text_encoder) === 'Gemma2Model'
+    );
+  },
+  tokenizerSpecs: [
+    {
+      modelIndexKey: 'tokenizer',
+      componentId: 'text_encoder',
+      type: 'bundled',
+      assets: [
+        { suffix: 'tokenizer/tokenizer.json', targetName: 'tokenizer_tokenizer.json', kind: 'text', required: true },
+        { suffix: 'tokenizer/tokenizer_config.json', targetName: 'tokenizer_config.json', kind: 'text', required: false },
+        { suffix: 'tokenizer/special_tokens_map.json', targetName: 'tokenizer_special_tokens_map.json', kind: 'text', required: false },
+        { suffix: 'tokenizer/tokenizer.model', targetName: 'tokenizer_tokenizer.model', kind: 'binary', required: false },
+      ],
+      config: {
+        type: 'bundled',
+        tokenizerFile: 'tokenizer_tokenizer.json',
+        configFile: 'tokenizer_config.json',
+        specialTokensFile: 'tokenizer_special_tokens_map.json',
+        sentencePieceFile: 'tokenizer_tokenizer.model',
+      },
+    },
+  ],
+};
+
+const LAYOUTS = [SD3_LAYOUT, FLUX_LAYOUT, SANA_LAYOUT];
 
 function toAbortError(message = 'Cancelled') {
   if (typeof DOMException === 'function') {
@@ -112,12 +155,26 @@ function listModelComponents(modelIndex) {
   return Object.keys(modelIndex || {}).filter((key) => !key.startsWith('_'));
 }
 
+function getComponentClassName(componentEntry) {
+  if (Array.isArray(componentEntry) && componentEntry.length >= 2 && typeof componentEntry[1] === 'string') {
+    return componentEntry[1];
+  }
+  if (componentEntry && typeof componentEntry === 'object' && typeof componentEntry._class_name === 'string') {
+    return componentEntry._class_name;
+  }
+  return null;
+}
+
 export function detectDiffusionLayout(modelIndex) {
   const components = new Set(listModelComponents(modelIndex));
   for (const layout of LAYOUTS) {
-    if (layout.requiredComponents.every((component) => components.has(component))) {
-      return layout;
+    if (!layout.requiredComponents.every((component) => components.has(component))) {
+      continue;
     }
+    if (typeof layout.matches === 'function' && !layout.matches(modelIndex, components)) {
+      continue;
+    }
+    return layout;
   }
   const listed = [...components].sort().join(', ') || '(none)';
   const expected = LAYOUTS

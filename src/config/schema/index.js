@@ -56,6 +56,15 @@ export {
 } from './conversion.schema.js';
 
 // =============================================================================
+// Browser Suite Metrics Schema
+// =============================================================================
+export {
+  BROWSER_SUITE_METRICS_SCHEMA_VERSION,
+  DEFAULT_BROWSER_SUITE_METRICS,
+  validateBrowserSuiteMetrics,
+} from './browser-suite-metrics.schema.js';
+
+// =============================================================================
 // Conversion Report Schema
 // =============================================================================
 export {

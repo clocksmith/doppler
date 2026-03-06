@@ -1,0 +1,51 @@
+// Grouped Pointwise Conv2D Kernel (NCHW, f16)
+
+enable f16;
+
+override WORKGROUP_SIZE: u32 = 256u;
+
+struct Uniforms {
+    in_channels: u32,
+    out_channels: u32,
+    height: u32,
+    width: u32,
+    groups: u32,
+    _pad0: u32,
+    _pad1: u32,
+    _pad2: u32,
+}
+
+@group(0) @binding(0) var<uniform> u: Uniforms;
+@group(0) @binding(1) var<storage, read> input: array<f16>;
+@group(0) @binding(2) var<storage, read> weight: array<f16>;
+@group(0) @binding(3) var<storage, read> bias: array<f16>;
+@group(0) @binding(4) var<storage, read_write> output: array<f16>;
+
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
+fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
+    let idx = gid.x;
+    let spatial = u.height * u.width;
+    let out_size = u.out_channels * spatial;
+    if (idx >= out_size) {
+        return;
+    }
+
+    let out_channel = idx / spatial;
+    let rem = idx - out_channel * spatial;
+    let y = rem / u.width;
+    let x = rem - y * u.width;
+
+    let in_per_group = u.in_channels / u.groups;
+    let out_per_group = u.out_channels / u.groups;
+    let group_idx = out_channel / out_per_group;
+    let in_offset = group_idx * in_per_group;
+
+    var sum: f32 = f32(bias[out_channel]);
+    for (var i: u32 = 0u; i < in_per_group; i = i + 1u) {
+        let input_idx = ((in_offset + i) * u.height + y) * u.width + x;
+        let weight_idx = out_channel * in_per_group + i;
+        sum = sum + f32(input[input_idx]) * f32(weight[weight_idx]);
+    }
+
+    output[idx] = f16(sum);
+}

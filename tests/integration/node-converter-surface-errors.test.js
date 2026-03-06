@@ -193,10 +193,11 @@ await assert.rejects(
 {
   const fixtureDir = createTempDir('doppler-converter-diffusion-config-missing-');
   writeFileSync(path.join(fixtureDir, 'model_index.json'), JSON.stringify({
-    transformer: {},
-    text_encoder: {},
-    vae: {},
-    scheduler: {},
+    transformer: ['diffusers', 'Flux2Transformer2DModel'],
+    text_encoder: ['transformers', 'Qwen3ForCausalLM'],
+    tokenizer: ['transformers', 'Qwen2TokenizerFast'],
+    vae: ['diffusers', 'AutoencoderKLFlux2'],
+    scheduler: ['diffusers', 'FlowMatchEulerDiscreteScheduler'],
   }), 'utf8');
   try {
     await assert.rejects(

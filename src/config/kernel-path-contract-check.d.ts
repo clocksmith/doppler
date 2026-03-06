@@ -15,6 +15,19 @@ export interface KernelPathContractFacts {
   registryId: string;
   entries: KernelPathContractEntryFacts[];
   fallbackMappings: KernelPathFallbackMappingFacts[];
+  fallbackRules?: Array<{
+    matchKernelPathId: string | null;
+    value: string | null;
+    isDefault: boolean;
+  }>;
+  autoSelectRules?: Array<{
+    matchKernelPathRef: string | null;
+    allowCapabilityAutoSelection: boolean | null;
+    hasSubgroups: boolean | null;
+    valueKind: 'string' | 'context';
+    value: string;
+    isDefault: boolean;
+  }>;
 }
 
 export interface KernelPathContractCheckResult {
@@ -39,6 +52,8 @@ export interface KernelPathContractArtifact {
     aliasEntries: number;
     canonicalEntries: number;
     fallbackMappings: number;
+    fallbackRules: number;
+    autoSelectRules: number;
   };
 }
 
