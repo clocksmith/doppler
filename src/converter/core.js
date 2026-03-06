@@ -11,7 +11,10 @@ import {
 
 import { classifyTensor, classifyTensorRole, generateShardFilename } from '../formats/rdrr/index.js';
 import { log } from '../debug/index.js';
-import { selectRuleValue } from '../rules/rule-registry.js';
+import {
+  getInferenceLayerPatternContractArtifact,
+  selectRuleValue,
+} from '../rules/rule-registry.js';
 import {
   createConverterConfig,
   detectPreset,
@@ -19,6 +22,7 @@ import {
   resolvePreset,
 } from '../config/index.js';
 import { buildExecutionContractArtifact } from '../config/execution-contract-check.js';
+import { buildManifestRequiredInferenceFieldsArtifact } from '../config/required-inference-fields-contract-check.js';
 import { buildManifestInference, inferEmbeddingOutputConfig } from './manifest-inference.js';
 import { resolveEosTokenId } from './tokenizer-utils.js';
 import {
@@ -1332,12 +1336,27 @@ export async function convertModel(model, io, options = {}) {
     totalSize: formatBytes(totalSize),
   });
 
+  const executionContractArtifact = buildExecutionContractArtifact(manifest);
+  const layerPatternContractArtifact = getInferenceLayerPatternContractArtifact();
+  const requiredInferenceFieldsArtifact = manifest?.modelType === 'transformer'
+    && manifest?.inference
+    && typeof manifest.inference === 'object'
+    && manifest.inference.attention
+    && typeof manifest.inference.attention === 'object'
+    ? buildManifestRequiredInferenceFieldsArtifact(
+      manifest?.inference ?? null,
+      `${manifest?.modelId ?? modelId}.inference`
+    )
+    : null;
   return {
     manifest,
     shardCount: shards.length,
     tensorCount: tensors.length,
     totalSize,
-    executionContractArtifact: buildExecutionContractArtifact(manifest),
+    executionContractArtifact,
+    executionV0GraphContractArtifact: executionContractArtifact?.executionV0?.graph ?? null,
+    layerPatternContractArtifact,
+    requiredInferenceFieldsArtifact,
   };
 }
 

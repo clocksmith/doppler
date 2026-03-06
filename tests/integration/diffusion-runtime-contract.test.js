@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { initializeDiffusion } from '../../src/inference/pipelines/diffusion/init.js';
+import { buildScheduler, stepScmScheduler } from '../../src/inference/pipelines/diffusion/scheduler.js';
 import { assertClipHiddenActivationSupported } from '../../src/inference/pipelines/diffusion/text-encoder-gpu.js';
 
 function createManifest({ includeTransformer = true } = {}) {
@@ -30,6 +31,7 @@ function createManifest({ includeTransformer = true } = {}) {
   return {
     config: {
       diffusion: {
+        layout: 'sd3',
         components,
       },
     },
@@ -44,6 +46,72 @@ function createManifest({ includeTransformer = true } = {}) {
   assert.equal(state.runtime.backend.pipeline, 'gpu');
   assert.equal(state.latentScale, 8);
   assert.equal(state.latentChannels, 4);
+}
+
+{
+  const state = initializeDiffusion(
+    {
+      config: {
+        diffusion: {
+          layout: 'sd3',
+          components: {
+            transformer: { config: { sample_size: 8 } },
+            vae: { config: { sample_size: 64, latent_channels: 4 } },
+            scheduler: {
+              config: {
+                _class_name: 'SCMScheduler',
+                num_train_timesteps: 1000,
+                prediction_type: 'trigflow',
+                sigma_data: 0.5,
+              },
+            },
+          },
+        },
+      },
+    },
+    { inference: { diffusion: { backend: { pipeline: 'gpu' } } } }
+  );
+  assert.equal(state.runtime.scheduler.type, 'scm');
+  assert.equal(state.runtime.scheduler.predictionType, 'trigflow');
+  assert.equal(state.runtime.scheduler.sigmaData, 0.5);
+}
+
+{
+  const scheduler = buildScheduler({
+    type: 'scm',
+    numSteps: 1,
+    numTrainTimesteps: 1000,
+    predictionType: 'trigflow',
+    sigmaData: 0.5,
+  });
+  assert.equal(scheduler.type, 'scm');
+  assert.equal(scheduler.steps, 1);
+  assert.equal(scheduler.sigmas, null);
+  assert.equal(scheduler.timesteps.length, 2);
+  assert.equal(scheduler.predictionType, 'trigflow');
+  assert.equal(scheduler.sigmaData, 0.5);
+}
+
+{
+  const scheduler = buildScheduler({
+    type: 'scm',
+    numSteps: 2,
+    numTrainTimesteps: 1000,
+    predictionType: 'trigflow',
+    sigmaData: 0.5,
+  });
+  assert.equal(scheduler.timesteps.length, 3);
+
+  const modelOutput = new Float32Array([0.2, -0.4]);
+  const sample = new Float32Array([1.0, 0.5]);
+  const noise = new Float32Array([0.25, -0.75]);
+  const step = stepScmScheduler(scheduler, modelOutput, scheduler.timesteps[0], sample, 0, noise);
+  assert.equal(step.prevSample.length, 2);
+  assert.equal(step.predOriginalSample.length, 2);
+  assert.throws(
+    () => stepScmScheduler(scheduler, modelOutput, scheduler.timesteps[0], sample, 0),
+    /requires a Float32Array noise tensor/
+  );
 }
 
 {
@@ -74,6 +142,30 @@ function createManifest({ includeTransformer = true } = {}) {
     ),
     /requires manifest\.config\.diffusion\.components\.transformer\.config/
   );
+}
+
+{
+  const state = initializeDiffusion(
+    {
+      config: {
+        diffusion: {
+          layout: 'sana',
+          components: {
+            transformer: { config: { sample_size: 8 } },
+            vae: { config: { sample_size: 64, latent_channels: 4 } },
+            scheduler: {
+              config: {
+                _class_name: 'SCMScheduler',
+                num_train_timesteps: 1000,
+              },
+            },
+          },
+        },
+      },
+    },
+    { inference: { diffusion: { backend: { pipeline: 'gpu' } } } }
+  );
+  assert.equal(state.runtime.scheduler.type, 'scm');
 }
 
 {

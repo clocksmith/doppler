@@ -14,10 +14,11 @@ import {
   projectContext,
   assertClipHiddenActivationSupported,
 } from './text-encoder-gpu.js';
-import { buildScheduler } from './scheduler.js';
+import { buildScheduler, stepScmScheduler } from './scheduler.js';
 import { decodeLatents } from './vae.js';
 import { createDiffusionWeightLoader } from './weights.js';
 import { runSD3Transformer } from './sd3-transformer.js';
+import { runSanaTransformer, buildSanaTimestepConditioning, projectSanaContext } from './sana-transformer.js';
 import { createSD3WeightResolver } from './sd3-weights.js';
 import { createTensor, dtypeBytes } from '../../../gpu/tensor.js';
 import { acquireBuffer, releaseBuffer, readBuffer } from '../../../memory/buffer-pool.js';
@@ -27,6 +28,8 @@ import { runResidualAdd, runScale, recordResidualAdd, recordScale } from '../../
 import { f16ToF32 } from '../../../loader/dtype-utils.js';
 
 const SUPPORTED_DIFFUSION_BACKEND_PIPELINES = new Set(['gpu']);
+const SD3_TEXT_ENCODER_KEYS = ['text_encoder', 'text_encoder_2', 'text_encoder_3'];
+const SANA_TEXT_ENCODER_KEYS = ['text_encoder'];
 
 function createRandomSeed() {
   if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
@@ -56,6 +59,49 @@ function extractTokenSet(tokensByEncoder, key) {
     output[name] = Array.isArray(tokens) ? tokens : [];
   }
   return output;
+}
+
+function resolveDiffusionLayout(modelConfig) {
+  return modelConfig?.layout ?? 'sd3';
+}
+
+function getTextEncoderKeysForLayout(layout) {
+  if (layout === 'sana') {
+    return SANA_TEXT_ENCODER_KEYS;
+  }
+  return SD3_TEXT_ENCODER_KEYS;
+}
+
+function assertLayoutTextEncoderContract(layout, modelConfig, tokenizers) {
+  const requiredKeys = getTextEncoderKeysForLayout(layout);
+  for (const key of requiredKeys) {
+    if (!modelConfig?.components?.[key]) {
+      throw new Error(`Diffusion GPU pipeline requires component "${key}" for layout "${layout}".`);
+    }
+    if (!tokenizers?.[key]) {
+      throw new Error(`Diffusion GPU pipeline requires tokenizer "${key}" for layout "${layout}".`);
+    }
+  }
+}
+
+function buildTokenizerMaxLengths(layout, runtime) {
+  const maxLength = runtime?.textEncoder?.maxLength;
+  if (!Number.isFinite(maxLength) || maxLength <= 0) {
+    throw new Error('Diffusion runtime requires runtime.textEncoder.maxLength.');
+  }
+  if (layout === 'sana') {
+    return { text_encoder: maxLength };
+  }
+
+  const t5MaxLength = runtime?.textEncoder?.t5MaxLength ?? maxLength;
+  if (!Number.isFinite(t5MaxLength) || t5MaxLength <= 0) {
+    throw new Error('Diffusion runtime requires runtime.textEncoder.t5MaxLength (or runtime.textEncoder.maxLength).');
+  }
+  return {
+    text_encoder: maxLength,
+    text_encoder_2: maxLength,
+    text_encoder_3: t5MaxLength,
+  };
 }
 
 function getTensorSize(shape) {
@@ -118,6 +164,49 @@ async function readTensorToFloat32(tensor) {
   }
 
   return new Float32Array(data);
+}
+
+async function applySchedulerStep(latentsTensor, scheduler, stepIndex, timestep, predictionTensor, runtime, options = {}) {
+  if (scheduler.type === 'flowmatch_euler') {
+    const sigma = scheduler.sigmas[stepIndex];
+    const sigmaNext = stepIndex + 1 < scheduler.steps ? scheduler.sigmas[stepIndex + 1] : 0;
+    const delta = sigmaNext - sigma;
+    const latentSize = getTensorSize(latentsTensor.shape);
+    const scale = options.scale ?? runScale;
+    const residualAdd = options.residualAdd ?? runResidualAdd;
+    const release = options.release ?? releaseBuffer;
+
+    const scaled = await scale(predictionTensor, delta, { count: latentSize });
+    const updated = await residualAdd(latentsTensor, scaled, latentSize, { useVec4: true });
+
+    release(latentsTensor.buffer);
+    release(scaled.buffer);
+    release(predictionTensor.buffer);
+
+    return createTensor(updated.buffer, updated.dtype, [...latentsTensor.shape], 'diffusion_latents');
+  }
+
+  if (scheduler.type === 'scm') {
+    const sample = await readTensorToFloat32(latentsTensor);
+    const modelOutput = await readTensorToFloat32(predictionTensor);
+    releaseBuffer(predictionTensor.buffer);
+    releaseBuffer(latentsTensor.buffer);
+
+    const isFinalStep = stepIndex + 1 >= scheduler.timesteps.length - 1;
+    const noise = isFinalStep
+      ? null
+      : generateLatents(
+          runtime.latent.width,
+          runtime.latent.height,
+          runtime.latent.channels,
+          runtime.latent.scale,
+          (options.seedBase ?? createRandomSeed()) + stepIndex + 1
+        ).latents;
+    const step = stepScmScheduler(scheduler, modelOutput, timestep, sample, stepIndex, noise);
+    return createLatentTensor(step.prevSample, [...latentsTensor.shape], runtime);
+  }
+
+  throw new Error(`Unsupported diffusion scheduler.type "${scheduler.type}".`);
 }
 
 async function applyGuidance(uncond, cond, guidanceScale, size, options = {}) {
@@ -251,14 +340,17 @@ export class DiffusionPipeline {
       });
     }
 
-    const text_encoder = await this.weightLoader.loadComponentWeights('text_encoder');
-    const text_encoder_2 = await this.weightLoader.loadComponentWeights('text_encoder_2');
-    const text_encoder_3 = await this.weightLoader.loadComponentWeights('text_encoder_3');
+    const layout = resolveDiffusionLayout(this.diffusionState?.modelConfig);
+    const requiredKeys = getTextEncoderKeysForLayout(layout);
+    const weights = {};
+    for (const key of requiredKeys) {
+      weights[key] = await this.weightLoader.loadComponentWeights(key);
+    }
 
     this.textEncoderWeights = {
-      text_encoder,
-      text_encoder_2,
-      text_encoder_3,
+      text_encoder: weights.text_encoder ?? null,
+      text_encoder_2: weights.text_encoder_2 ?? null,
+      text_encoder_3: weights.text_encoder_3 ?? null,
     };
 
     return this.textEncoderWeights;
@@ -315,14 +407,9 @@ export class DiffusionPipeline {
   async generateGPU(request = {}) {
     const start = performance.now();
     const runtime = this.diffusionState.runtime;
-    const clipMaxLength = runtime.textEncoder?.maxLength;
-    if (!Number.isFinite(clipMaxLength) || clipMaxLength <= 0) {
-      throw new Error('Diffusion runtime requires runtime.textEncoder.maxLength.');
-    }
-    const t5MaxLength = runtime.textEncoder?.t5MaxLength ?? clipMaxLength;
-    if (!Number.isFinite(t5MaxLength) || t5MaxLength <= 0) {
-      throw new Error('Diffusion runtime requires runtime.textEncoder.t5MaxLength (or runtime.textEncoder.maxLength).');
-    }
+    const modelConfig = this.diffusionState.modelConfig;
+    const layout = resolveDiffusionLayout(modelConfig);
+    const tokenizerMaxLengths = buildTokenizerMaxLengths(layout, runtime);
 
     const defaultWidth = runtime.latent.width;
     const defaultHeight = runtime.latent.height;
@@ -346,28 +433,20 @@ export class DiffusionPipeline {
       throw new Error(`Invalid diffusion steps: ${steps}`);
     }
 
-    const modelConfig = this.diffusionState.modelConfig;
     if (!modelConfig?.components?.transformer) {
       throw new Error('Diffusion GPU pipeline requires transformer component config.');
     }
-    if (!modelConfig?.components?.text_encoder || !modelConfig?.components?.text_encoder_2 || !modelConfig?.components?.text_encoder_3) {
-      throw new Error('Diffusion GPU pipeline requires text encoder components (text_encoder, text_encoder_2, text_encoder_3).');
+    assertLayoutTextEncoderContract(layout, modelConfig, this.tokenizers);
+    if (layout === 'sd3') {
+      assertClipHiddenActivationSupported(modelConfig?.components?.text_encoder?.config || {});
     }
-    if (!this.tokenizers?.text_encoder || !this.tokenizers?.text_encoder_2 || !this.tokenizers?.text_encoder_3) {
-      throw new Error('Diffusion GPU pipeline requires tokenizers for text_encoder, text_encoder_2, and text_encoder_3.');
-    }
-    assertClipHiddenActivationSupported(modelConfig?.components?.text_encoder?.config || {});
 
     const promptStart = performance.now();
     const encoded = encodePrompt(
       { prompt: request.prompt ?? '', negativePrompt: request.negativePrompt ?? '' },
       this.tokenizers || {},
       {
-        maxLengthByTokenizer: {
-          text_encoder: clipMaxLength,
-          text_encoder_2: clipMaxLength,
-          text_encoder_3: t5MaxLength,
-        },
+        maxLengthByTokenizer: tokenizerMaxLengths,
       }
     );
 
@@ -410,13 +489,31 @@ export class DiffusionPipeline {
     const prefillRecorder = canProfileGpu
       ? new CommandRecorder(getDevice(), 'diffusion_prefill', { profile: true })
       : null;
-    const condContext = await projectContext(promptCondition.context, transformerWeights, modelConfig, runtime, {
-      recorder: prefillRecorder,
-    });
-    const uncondContext = shouldUseUncond && negativeCondition
-      ? await projectContext(negativeCondition.context, transformerWeights, modelConfig, runtime, {
+    const condContext = layout === 'sana'
+      ? await projectSanaContext(
+          promptCondition.context,
+          promptCondition.attentionMask,
+          transformerWeights,
+          transformerConfig,
+          runtime,
+          { recorder: prefillRecorder }
+        )
+      : await projectContext(promptCondition.context, transformerWeights, modelConfig, runtime, {
           recorder: prefillRecorder,
-        })
+        });
+    const uncondContext = shouldUseUncond && negativeCondition
+      ? layout === 'sana'
+        ? await projectSanaContext(
+            negativeCondition.context,
+            negativeCondition.attentionMask,
+            transformerWeights,
+            transformerConfig,
+            runtime,
+            { recorder: prefillRecorder }
+          )
+        : await projectContext(negativeCondition.context, transformerWeights, modelConfig, runtime, {
+            recorder: prefillRecorder,
+          })
       : null;
     if (prefillRecorder) {
       prefillRecorder.submit();
@@ -428,11 +525,6 @@ export class DiffusionPipeline {
     }
 
     const scheduler = buildScheduler(runtime.scheduler, steps);
-    if (scheduler.type !== 'flowmatch_euler') {
-      throw new Error(
-        `Diffusion GPU pipeline requires scheduler.type="flowmatch_euler"; got "${scheduler.type}".`
-      );
-    }
     const latentScale = this.diffusionState.latentScale;
     const latentChannels = this.diffusionState.latentChannels;
     const { latents, latentWidth, latentHeight } = generateLatents(width, height, latentChannels, latentScale, seed);
@@ -463,9 +555,6 @@ export class DiffusionPipeline {
     const latentSize = latentChannels * latentHeight * latentWidth;
     for (let i = 0; i < scheduler.steps; i++) {
       const timestep = scheduler.timesteps[i];
-      const sigma = scheduler.sigmas[i];
-      const sigmaNext = i + 1 < scheduler.steps ? scheduler.sigmas[i + 1] : 0;
-      const delta = sigmaNext - sigma;
       const stepRecorder = canProfileGpu
         ? new CommandRecorder(getDevice(), `diffusion_step_${i}`, { profile: true })
         : null;
@@ -477,37 +566,71 @@ export class DiffusionPipeline {
         ? (left, right, count, options) => recordResidualAdd(stepRecorder, left, right, count, options)
         : runResidualAdd;
 
-      const timeCond = await buildTimestepEmbedding(timestep, transformerWeights, modelConfig, runtime, {
-        dim: timeEmbedDim,
-        recorder: stepRecorder,
-      });
-      const textCond = await buildTimeTextEmbedding(promptCondition.pooled, transformerWeights, modelConfig, runtime, {
-        recorder: stepRecorder,
-      });
-      const timeTextCond = await combineTimeTextEmbeddings(timeCond, textCond, hiddenSize, {
-        recorder: stepRecorder,
-      });
-      const condPred = await runSD3Transformer(latentsTensor, condContext, timeTextCond, transformerWeights, modelConfig, runtime, {
-        recorder: stepRecorder,
-      });
-      releaseStep(timeTextCond.buffer);
+      const condPred = layout === 'sana'
+        ? await (async () => {
+            const timeState = await buildSanaTimestepConditioning(
+              timestep * (transformerConfig.timestep_scale ?? 1.0),
+              guidanceScale,
+              transformerWeights,
+              transformerConfig,
+              runtime,
+              { recorder: stepRecorder }
+            );
+            return runSanaTransformer(latentsTensor, condContext, timeState, transformerWeights, modelConfig, runtime, {
+              recorder: stepRecorder,
+            });
+          })()
+        : await (async () => {
+            const timeCond = await buildTimestepEmbedding(timestep, transformerWeights, modelConfig, runtime, {
+              dim: timeEmbedDim,
+              recorder: stepRecorder,
+            });
+            const textCond = await buildTimeTextEmbedding(promptCondition.pooled, transformerWeights, modelConfig, runtime, {
+              recorder: stepRecorder,
+            });
+            const timeTextCond = await combineTimeTextEmbeddings(timeCond, textCond, hiddenSize, {
+              recorder: stepRecorder,
+            });
+            const output = await runSD3Transformer(latentsTensor, condContext, timeTextCond, transformerWeights, modelConfig, runtime, {
+              recorder: stepRecorder,
+            });
+            releaseStep(timeTextCond.buffer);
+            return output;
+          })();
 
       let pred = condPred;
       if (shouldUseUncond && uncondContext && negativeCondition) {
-        const timeUncond = await buildTimestepEmbedding(timestep, transformerWeights, modelConfig, runtime, {
-          dim: timeEmbedDim,
-          recorder: stepRecorder,
-        });
-        const textUncond = await buildTimeTextEmbedding(negativeCondition.pooled, transformerWeights, modelConfig, runtime, {
-          recorder: stepRecorder,
-        });
-        const timeTextUncond = await combineTimeTextEmbeddings(timeUncond, textUncond, hiddenSize, {
-          recorder: stepRecorder,
-        });
-        const uncondPred = await runSD3Transformer(latentsTensor, uncondContext, timeTextUncond, transformerWeights, modelConfig, runtime, {
-          recorder: stepRecorder,
-        });
-        releaseStep(timeTextUncond.buffer);
+        const uncondPred = layout === 'sana'
+          ? await (async () => {
+              const timeState = await buildSanaTimestepConditioning(
+                timestep * (transformerConfig.timestep_scale ?? 1.0),
+                guidanceScale,
+                transformerWeights,
+                transformerConfig,
+                runtime,
+                { recorder: stepRecorder }
+              );
+              return runSanaTransformer(latentsTensor, uncondContext, timeState, transformerWeights, modelConfig, runtime, {
+                recorder: stepRecorder,
+              });
+            })()
+          : await (async () => {
+              const timeUncond = await buildTimestepEmbedding(timestep, transformerWeights, modelConfig, runtime, {
+                dim: timeEmbedDim,
+                recorder: stepRecorder,
+              });
+              const textUncond = await buildTimeTextEmbedding(negativeCondition.pooled, transformerWeights, modelConfig, runtime, {
+                recorder: stepRecorder,
+              });
+              const timeTextUncond = await combineTimeTextEmbeddings(timeUncond, textUncond, hiddenSize, {
+                recorder: stepRecorder,
+              });
+              const output = await runSD3Transformer(latentsTensor, uncondContext, timeTextUncond, transformerWeights, modelConfig, runtime, {
+                recorder: stepRecorder,
+              });
+              releaseStep(timeTextUncond.buffer);
+              return output;
+            })();
         pred = await applyGuidance(uncondPred, condPred, guidanceScale, latentSize, {
           recorder: stepRecorder,
           release: releaseStep,
@@ -516,14 +639,20 @@ export class DiffusionPipeline {
         releaseStep(condPred.buffer);
       }
 
-      const scaled = await scale(pred, delta, { count: latentSize });
-      const updated = await residualAdd(latentsTensor, scaled, latentSize, { useVec4: true });
-
-      releaseStep(latentsTensor.buffer);
-      releaseStep(scaled.buffer);
-      releaseStep(pred.buffer);
-
-      latentsTensor = createTensor(updated.buffer, updated.dtype, [latentChannels, latentHeight, latentWidth], 'sd3_latents');
+      latentsTensor = await applySchedulerStep(
+        latentsTensor,
+        scheduler,
+        i,
+        timestep,
+        pred,
+        runtime,
+        {
+          scale,
+          residualAdd,
+          release: releaseStep,
+          seedBase: seed,
+        }
+      );
 
       if (stepRecorder) {
         stepRecorder.submit();

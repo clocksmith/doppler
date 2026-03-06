@@ -1,5 +1,13 @@
 import { mergeRuntimeValues } from '../../../config/runtime-merge.js';
 import {
+  buildExecutionV0KernelProfileKey,
+  indexExecutionV0KernelProfiles,
+  normalizeExecutionV0Dtype,
+  resolveExecutionV0KernelProfile,
+  resolveExecutionV0KVIO,
+  resolveExecutionV0Precision,
+} from '../../../config/execution-v0-contract-check.js';
+import {
   EXECUTION_V0_SCHEMA_ID,
   DEFAULT_EXECUTION_V0_POLICIES,
   DEFAULT_EXECUTION_V0_SESSION_DEFAULTS,
@@ -59,13 +67,9 @@ function cloneJson(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
-function normalizeDtype(value, label) {
-  const normalized = String(value ?? '').trim().toLowerCase();
-  if (normalized !== 'f16' && normalized !== 'f32') {
-    throw new Error(`[ExecutionV0] ${label} must be "f16" or "f32"; got "${value}"`);
-  }
-  return normalized;
-}
+const normalizeDtype = normalizeExecutionV0Dtype;
+const resolvePrecision = resolveExecutionV0Precision;
+const resolveKVIO = resolveExecutionV0KVIO;
 
 function normalizePhase(value, label) {
   const normalized = String(value ?? '').trim().toLowerCase();
@@ -117,10 +121,7 @@ function stepHasLayer(step, layerIdx) {
   return step.layers.includes(layerIdx);
 }
 
-function buildKernelProfileKey(kernelRef) {
-  if (!kernelRef) return null;
-  return `${kernelRef.id}|${kernelRef.version}|${kernelRef.digest}`;
-}
+const buildKernelProfileKey = buildExecutionV0KernelProfileKey;
 
 function normalizeSlot(value, label) {
   if (typeof value !== 'string' || value.trim().length === 0) {
@@ -212,90 +213,10 @@ function hasDefinedPath(root, pathSegments) {
   return current !== undefined;
 }
 
-function indexKernelProfiles(sessionDefaults) {
-  const byKey = new Map();
-  const profiles = sessionDefaults?.compute?.kernelProfiles ?? [];
-  for (const profile of profiles) {
-    assertKernelRef(profile.kernelRef, 'sessionDefaults.compute.kernelProfiles[].kernelRef');
-    byKey.set(buildKernelProfileKey(profile.kernelRef), profile);
-  }
-  return byKey;
-}
+const indexKernelProfiles = indexExecutionV0KernelProfiles;
 
 function resolveProfile(profileIndex, step) {
-  const key = buildKernelProfileKey(step.kernelRef);
-  if (!key) return null;
-  return profileIndex.get(key) ?? null;
-}
-
-function resolvePrecision(step, profile, sessionDefaults) {
-  const defaults = sessionDefaults.compute.defaults;
-  const precision = {
-    inputDtype: step.precision?.inputDtype
-      ?? profile?.precision?.inputDtype
-      ?? null,
-    mathDtype: step.precision?.mathDtype
-      ?? profile?.precision?.mathDtype
-      ?? defaults.mathDtype,
-    accumDtype: step.precision?.accumDtype
-      ?? profile?.precision?.accumDtype
-      ?? defaults.accumDtype,
-    outputDtype: step.precision?.outputDtype
-      ?? profile?.precision?.outputDtype
-      ?? defaults.outputDtype,
-  };
-  const sources = {
-    inputDtype: step.precision?.inputDtype != null
-      ? 'manifest'
-      : profile?.precision?.inputDtype != null
-        ? 'kernelProfile'
-        : 'derived',
-    mathDtype: step.precision?.mathDtype != null
-      ? 'manifest'
-      : profile?.precision?.mathDtype != null
-        ? 'kernelProfile'
-        : 'sessionDefault',
-    accumDtype: step.precision?.accumDtype != null
-      ? 'manifest'
-      : profile?.precision?.accumDtype != null
-        ? 'kernelProfile'
-        : 'sessionDefault',
-    outputDtype: step.precision?.outputDtype != null
-      ? 'manifest'
-      : profile?.precision?.outputDtype != null
-        ? 'kernelProfile'
-        : 'sessionDefault',
-  };
-  return { precision, sources };
-}
-
-function resolveKVIO(step, profile, sessionDefaults) {
-  if (step.kvIO) {
-    return {
-      value: {
-        readDtype: normalizeDtype(step.kvIO.readDtype, `${step.id}.kvIO.readDtype`),
-        writeDtype: normalizeDtype(step.kvIO.writeDtype, `${step.id}.kvIO.writeDtype`),
-      },
-      source: 'manifest',
-    };
-  }
-  if (profile?.kvIO) {
-    return {
-      value: {
-        readDtype: normalizeDtype(profile.kvIO.readDtype, `${step.id}.profile.kvIO.readDtype`),
-        writeDtype: normalizeDtype(profile.kvIO.writeDtype, `${step.id}.profile.kvIO.writeDtype`),
-      },
-      source: 'kernelProfile',
-    };
-  }
-  const kvDtype = normalizeDtype(
-    sessionDefaults?.kvcache?.kvDtype ?? sessionDefaults.compute.defaults.activationDtype,
-    `${step.id}.sessionDefaults.kvcache.kvDtype`
-  );
-  return {
-    value: { readDtype: kvDtype, writeDtype: kvDtype },
-    source: 'sessionDefault',
-  };
+  return resolveExecutionV0KernelProfile(profileIndex, step);
 }
 
 function validateStepShape(step, index) {

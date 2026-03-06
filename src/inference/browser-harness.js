@@ -15,11 +15,16 @@ import {
   getActiveKernelPathSource,
   getActiveKernelPathPolicy,
 } from '../config/kernel-path-loader.js';
-import { selectRuleValue } from '../rules/rule-registry.js';
+import {
+  getInferenceLayerPatternContractArtifact,
+  selectRuleValue,
+} from '../rules/rule-registry.js';
 import { mergeRuntimeValues } from '../config/runtime-merge.js';
 import { isPlainObject } from '../utils/plain-object.js';
+import { validateBrowserSuiteMetrics } from '../config/schema/browser-suite-metrics.schema.js';
 import { validateTrainingMetricsReport } from '../config/schema/training-metrics.schema.js';
 import { buildExecutionContractArtifact } from '../config/execution-contract-check.js';
+import { buildManifestRequiredInferenceFieldsArtifact } from '../config/required-inference-fields-contract-check.js';
 
 const TRAINING_SUITE_MODULE_PATH = '../training/suite.js';
 const NODE_SOURCE_RUNTIME_MODULE_PATH = '../tooling/node-source-runtime.js';
@@ -40,6 +45,29 @@ export async function runTrainingSuite(options = {}) {
 async function runTrainingBenchSuite(options = {}) {
   const module = await loadTrainingSuiteModule();
   return module.runTrainingBenchSuite(options);
+}
+
+function buildSuiteContractMetrics(suite, baseMetrics, manifest) {
+  const executionContractArtifact = buildExecutionContractArtifact(manifest);
+  const executionV0GraphContractArtifact = executionContractArtifact?.executionV0?.graph ?? null;
+  const layerPatternContractArtifact = getInferenceLayerPatternContractArtifact();
+  const requiredInferenceFieldsArtifact = manifest?.modelType === 'transformer'
+    && isPlainObject(manifest?.inference?.attention)
+    ? buildManifestRequiredInferenceFieldsArtifact(
+      manifest?.inference ?? null,
+      `${manifest?.modelId ?? 'unknown'}.inference`
+    )
+    : null;
+  return validateBrowserSuiteMetrics({
+    ...baseMetrics,
+    schemaVersion: 1,
+    source: 'doppler',
+    suite,
+    ...(executionContractArtifact ? { executionContractArtifact } : {}),
+    executionV0GraphContractArtifact,
+    layerPatternContractArtifact,
+    requiredInferenceFieldsArtifact,
+  });
 }
 
 function parseReportTimestamp(rawTimestamp, label = 'timestamp') {
@@ -1825,7 +1853,11 @@ async function runInferenceSuite(options = {}) {
     source: 'doppler',
     prefillSemantics: 'internal_prefill_phase',
   });
-  const executionContractArtifact = buildExecutionContractArtifact(harness.manifest);
+  const metricsWithContracts = buildSuiteContractMetrics(
+    options.suiteName || 'inference',
+    metrics,
+    harness.manifest
+  );
   return {
     ...summary,
     modelId: options.modelId || harness.manifest?.modelId || 'unknown',
@@ -1843,10 +1875,7 @@ async function runInferenceSuite(options = {}) {
     timing,
     timingDiagnostics,
     output,
-    metrics: {
-      ...metrics,
-      ...(executionContractArtifact ? { executionContractArtifact } : {}),
-    },
+    metrics: metricsWithContracts,
     memoryStats,
     deviceInfo: resolveDeviceInfo(),
     pipeline: options.keepPipeline ? harness.pipeline : null,
@@ -2223,7 +2252,7 @@ async function runBenchSuite(options = {}) {
     source: 'doppler',
     prefillSemantics: 'internal_prefill_phase',
   });
-  const executionContractArtifact = buildExecutionContractArtifact(harness.manifest);
+  const metricsWithContracts = buildSuiteContractMetrics('bench', metrics, harness.manifest);
   return {
     ...summary,
     modelId: options.modelId || harness.manifest?.modelId || 'unknown',
@@ -2241,10 +2270,7 @@ async function runBenchSuite(options = {}) {
     timing,
     timingDiagnostics,
     output,
-    metrics: {
-      ...metrics,
-      ...(executionContractArtifact ? { executionContractArtifact } : {}),
-    },
+    metrics: metricsWithContracts,
     memoryStats,
     deviceInfo: resolveDeviceInfo(),
     pipeline: options.keepPipeline ? harness.pipeline : null,
@@ -2405,26 +2431,9 @@ async function runDiffusionSuite(options = {}) {
     source: 'doppler',
     prefillSemantics: 'internal_prefill_phase',
   });
-  const executionContractArtifact = buildExecutionContractArtifact(harness.manifest);
-
-  return {
-    ...summary,
-    modelId: options.modelId || harness.manifest?.modelId || 'unknown',
-    cacheMode,
-    loadMode,
-    env: {
-      library: 'doppler',
-      runtime: 'browser',
-      device: 'webgpu',
-      browserUserAgent: typeof navigator !== 'undefined' ? (navigator.userAgent || null) : null,
-      browserPlatform: typeof navigator !== 'undefined' ? (navigator.platform || null) : null,
-      browserLanguage: typeof navigator !== 'undefined' ? (navigator.language || null) : null,
-      browserVendor: typeof navigator !== 'undefined' ? (navigator.vendor || null) : null,
-    },
-    timing,
-    timingDiagnostics,
-    output,
-    metrics: {
+  const metricsWithContracts = buildSuiteContractMetrics(
+    'diffusion',
+    {
       warmupRuns,
       timedRuns,
       width,
@@ -2448,8 +2457,28 @@ async function runDiffusionSuite(options = {}) {
       cpu: cpuStats,
       gpu: gpuStats,
       performanceArtifact: diffusionPerformanceArtifact,
-      ...(executionContractArtifact ? { executionContractArtifact } : {}),
     },
+    harness.manifest
+  );
+
+  return {
+    ...summary,
+    modelId: options.modelId || harness.manifest?.modelId || 'unknown',
+    cacheMode,
+    loadMode,
+    env: {
+      library: 'doppler',
+      runtime: 'browser',
+      device: 'webgpu',
+      browserUserAgent: typeof navigator !== 'undefined' ? (navigator.userAgent || null) : null,
+      browserPlatform: typeof navigator !== 'undefined' ? (navigator.platform || null) : null,
+      browserLanguage: typeof navigator !== 'undefined' ? (navigator.language || null) : null,
+      browserVendor: typeof navigator !== 'undefined' ? (navigator.vendor || null) : null,
+    },
+    timing,
+    timingDiagnostics,
+    output,
+    metrics: metricsWithContracts,
     memoryStats,
     deviceInfo: resolveDeviceInfo(),
     pipeline: options.keepPipeline ? harness.pipeline : null,

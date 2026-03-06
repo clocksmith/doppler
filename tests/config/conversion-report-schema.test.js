@@ -29,6 +29,38 @@ import {
       session: null,
       steps: null,
     },
+    executionV0GraphContractArtifact: {
+      schemaVersion: 1,
+      source: 'doppler',
+      ok: true,
+      checks: [],
+      errors: [],
+      stats: {
+        prefillSteps: 0,
+        decodeSteps: 0,
+      },
+    },
+    layerPatternContractArtifact: {
+      schemaVersion: 1,
+      source: 'doppler',
+      ok: true,
+      checks: [],
+      errors: [],
+    },
+    requiredInferenceFieldsArtifact: {
+      schemaVersion: 1,
+      source: 'doppler',
+      scope: 'manifest',
+      label: 'gemma3-test.inference',
+      ok: true,
+      checks: [],
+      errors: [],
+      stats: {
+        fieldCases: 30,
+        nullableCases: 10,
+        nonNullableCases: 10,
+      },
+    },
   });
 
   assert.equal(report.schemaVersion, 1);
@@ -48,6 +80,9 @@ import {
       result: {},
       manifest: null,
       executionContractArtifact: null,
+      executionV0GraphContractArtifact: null,
+      layerPatternContractArtifact: null,
+      requiredInferenceFieldsArtifact: null,
     }),
     /schemaVersion must be 1/
   );

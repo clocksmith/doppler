@@ -1,8 +1,11 @@
 import { selectByRules } from '../gpu/kernels/rule-matcher.js';
+import { buildInferenceExecutionRulesContractArtifact } from './execution-rules-contract-check.js';
+import { buildLayerPatternContractArtifact } from './layer-pattern-contract-check.js';
 import { loadJson } from '../utils/load-json.js';
 
 const attentionRules = await loadJson('./kernels/attention.rules.json', import.meta.url, 'Failed to load rules');
 const conv2dRules = await loadJson('./kernels/conv2d.rules.json', import.meta.url, 'Failed to load rules');
+const depthwiseConv2dRules = await loadJson('./kernels/depthwise-conv2d.rules.json', import.meta.url, 'Failed to load rules');
 const dequantRules = await loadJson('./kernels/dequant.rules.json', import.meta.url, 'Failed to load rules');
 const energyRules = await loadJson('./kernels/energy.rules.json', import.meta.url, 'Failed to load rules');
 const fusedFfnRules = await loadJson('./kernels/fused-ffn.rules.json', import.meta.url, 'Failed to load rules');
@@ -10,6 +13,7 @@ const fusedMatmulResidualRules = await loadJson('./kernels/fused-matmul-residual
 const fusedMatmulRmsnormRules = await loadJson('./kernels/fused-matmul-rmsnorm.rules.json', import.meta.url, 'Failed to load rules');
 const gatherRules = await loadJson('./kernels/gather.rules.json', import.meta.url, 'Failed to load rules');
 const geluRules = await loadJson('./kernels/gelu.rules.json', import.meta.url, 'Failed to load rules');
+const groupedPointwiseConv2dRules = await loadJson('./kernels/grouped-pointwise-conv2d.rules.json', import.meta.url, 'Failed to load rules');
 const groupnormRules = await loadJson('./kernels/groupnorm.rules.json', import.meta.url, 'Failed to load rules');
 const kvQuantizeRules = await loadJson('./kernels/kv_quantize.rules.json', import.meta.url, 'Failed to load rules');
 const layernormRules = await loadJson('./kernels/layernorm.rules.json', import.meta.url, 'Failed to load rules');
@@ -21,6 +25,7 @@ const pixelShuffleRules = await loadJson('./kernels/pixel_shuffle.rules.json', i
 const residualRules = await loadJson('./kernels/residual.rules.json', import.meta.url, 'Failed to load rules');
 const rmsnormRules = await loadJson('./kernels/rmsnorm.rules.json', import.meta.url, 'Failed to load rules');
 const ropeRules = await loadJson('./kernels/rope.rules.json', import.meta.url, 'Failed to load rules');
+const sanaLinearAttentionRules = await loadJson('./kernels/sana-linear-attention.rules.json', import.meta.url, 'Failed to load rules');
 const sampleRules = await loadJson('./kernels/sample.rules.json', import.meta.url, 'Failed to load rules');
 const scaleRules = await loadJson('./kernels/scale.rules.json', import.meta.url, 'Failed to load rules');
 const siluRules = await loadJson('./kernels/silu.rules.json', import.meta.url, 'Failed to load rules');
@@ -46,6 +51,24 @@ const toolingCommandRuntimeRules = await loadJson(
   import.meta.url,
   'Failed to load rules'
 );
+const INFERENCE_EXECUTION_RULES_CONTRACT_ARTIFACT = buildInferenceExecutionRulesContractArtifact(
+  inferenceExecutionRules
+);
+if (!INFERENCE_EXECUTION_RULES_CONTRACT_ARTIFACT.ok) {
+  throw new Error(
+    `RuleRegistry: inference.execution rules contract failed: ` +
+    `${INFERENCE_EXECUTION_RULES_CONTRACT_ARTIFACT.errors.join(' | ')}`
+  );
+}
+const INFERENCE_LAYER_PATTERN_CONTRACT_ARTIFACT = buildLayerPatternContractArtifact(
+  layerPatternRules
+);
+if (!INFERENCE_LAYER_PATTERN_CONTRACT_ARTIFACT.ok) {
+  throw new Error(
+    `RuleRegistry: inference.layerPattern rules contract failed: ` +
+    `${INFERENCE_LAYER_PATTERN_CONTRACT_ARTIFACT.errors.join(' | ')}`
+  );
+}
 
 const RULE_SETS = {
   shared: {
@@ -54,6 +77,7 @@ const RULE_SETS = {
   kernels: {
     attention: attentionRules,
     conv2d: conv2dRules,
+    depthwiseConv2d: depthwiseConv2dRules,
     dequant: dequantRules,
     energy: energyRules,
     fusedFfn: fusedFfnRules,
@@ -61,6 +85,7 @@ const RULE_SETS = {
     fusedMatmulRmsnorm: fusedMatmulRmsnormRules,
     gather: gatherRules,
     gelu: geluRules,
+    groupedPointwiseConv2d: groupedPointwiseConv2dRules,
     groupnorm: groupnormRules,
     kv_quantize: kvQuantizeRules,
     layernorm: layernormRules,
@@ -72,6 +97,7 @@ const RULE_SETS = {
     residual: residualRules,
     rmsnorm: rmsnormRules,
     rope: ropeRules,
+    sanaLinearAttention: sanaLinearAttentionRules,
     sample: sampleRules,
     scale: scaleRules,
     silu: siluRules,
@@ -131,6 +157,14 @@ export function registerRuleGroup(domain, group, rules) {
     RULE_SETS[domain] = {};
   }
   RULE_SETS[domain][group] = rules;
+}
+
+export function getInferenceExecutionRulesContractArtifact() {
+  return INFERENCE_EXECUTION_RULES_CONTRACT_ARTIFACT;
+}
+
+export function getInferenceLayerPatternContractArtifact() {
+  return INFERENCE_LAYER_PATTERN_CONTRACT_ARTIFACT;
 }
 
 function resolveRuleValue(value, context) {

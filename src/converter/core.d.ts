@@ -28,6 +28,11 @@ import type {
   ConversionInfoSchema,
 } from '../config/schema/index.js';
 import type { ExecutionContractArtifact } from '../config/execution-contract-check.js';
+import type { ExecutionV0GraphContractArtifact } from '../config/execution-v0-graph-contract-check.js';
+import type {
+  ManifestRequiredInferenceFieldsArtifact,
+  RequiredInferenceFieldsContractArtifact,
+} from '../config/required-inference-fields-contract-check.js';
 
 export { generateShardFilename } from '../formats/rdrr/index.js';
 
@@ -146,6 +151,9 @@ export interface ConvertResult {
   tensorCount: number;
   totalSize: number;
   executionContractArtifact: ExecutionContractArtifact | null;
+  executionV0GraphContractArtifact: ExecutionV0GraphContractArtifact | null;
+  layerPatternContractArtifact: Record<string, unknown> | null;
+  requiredInferenceFieldsArtifact: ManifestRequiredInferenceFieldsArtifact | RequiredInferenceFieldsContractArtifact | null;
 }
 
 /** @deprecated Use ConversionIOSchema from config/schema */
