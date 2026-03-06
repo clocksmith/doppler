@@ -27,6 +27,33 @@ const { extractArchitecture } = await import('../../src/converter/core.js');
 
 {
   const architecture = extractArchitecture({
+    model_type: 'multi_modality',
+    language_config: {
+      model_type: 'janus_text',
+      num_hidden_layers: 24,
+      hidden_size: 2048,
+      intermediate_size: 5632,
+      num_attention_heads: 16,
+      num_key_value_heads: 16,
+      head_dim: 128,
+      vocab_size: 102400,
+      max_position_embeddings: 16384,
+      rope_theta: 10000,
+    },
+  });
+  assert.equal(architecture.numLayers, 24);
+  assert.equal(architecture.hiddenSize, 2048);
+  assert.equal(architecture.intermediateSize, 5632);
+  assert.equal(architecture.numAttentionHeads, 16);
+  assert.equal(architecture.numKeyValueHeads, 16);
+  assert.equal(architecture.headDim, 128);
+  assert.equal(architecture.vocabSize, 102400);
+  assert.equal(architecture.maxSeqLen, 16384);
+  assert.equal(architecture.ropeTheta, 10000);
+}
+
+{
+  const architecture = extractArchitecture({
     model_type: 'gemma3',
     text_config: {
       model_type: 'gemma3_text',

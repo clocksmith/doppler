@@ -1,4 +1,5 @@
 import { loadLoRAFromManifest, loadLoRAFromUrl } from '../adapters/lora-loader.js';
+import { log } from '../debug/index.js';
 import { getManifestUrl, parseManifest } from '../formats/rdrr/index.js';
 import { createPipeline } from '../generation/index.js';
 import { getKernelCapabilities } from '../gpu/device.js';
@@ -31,6 +32,34 @@ async function ensureWebGPUAvailable() {
 function emitLoadProgress(callback, phase, percent, message) {
   if (typeof callback !== 'function') return;
   callback({ phase, percent, message });
+}
+
+export function createDefaultNodeLoadProgressLogger() {
+  return (event) => {
+    const message = typeof event?.message === 'string' ? event.message.trim() : '';
+    if (!message) return;
+    log.info('doppler', message);
+  };
+}
+
+export function resolveLoadProgressHandlers(options = {}) {
+  const onProgress = typeof options?.onProgress === 'function' ? options.onProgress : null;
+  if (onProgress) {
+    return {
+      userProgress: onProgress,
+      pipelineProgress: onProgress,
+    };
+  }
+  if (isNodeRuntime()) {
+    return {
+      userProgress: createDefaultNodeLoadProgressLogger(),
+      pipelineProgress: null,
+    };
+  }
+  return {
+    userProgress: null,
+    pipelineProgress: null,
+  };
 }
 
 async function fetchManifestFromBaseUrl(baseUrl) {
@@ -163,26 +192,30 @@ function createModelHandle(pipeline, resolved) {
 }
 
 export async function load(model, options = {}) {
-  emitLoadProgress(options.onProgress, 'resolve', 5, 'Resolving model');
+  const { userProgress, pipelineProgress } = resolveLoadProgressHandlers(options);
+
+  emitLoadProgress(userProgress, 'resolve', 5, 'Resolving model');
   const resolved = await resolveModelSource(model);
   await ensureWebGPUAvailable();
 
-  emitLoadProgress(options.onProgress, 'manifest', 15, 'Fetching manifest');
+  emitLoadProgress(userProgress, 'manifest', 15, 'Fetching manifest');
   const manifest = resolved.manifest ?? await fetchManifestFromBaseUrl(resolved.baseUrl);
 
-  emitLoadProgress(options.onProgress, 'load', 25, 'Loading weights');
+  emitLoadProgress(userProgress, 'load', 25, 'Loading weights');
   const pipeline = await createPipeline(manifest, {
     baseUrl: resolved.baseUrl ?? undefined,
     runtimeConfig: options.runtimeConfig,
-    onProgress: (progress) => emitLoadProgress(
-      options.onProgress,
-      'load',
-      Math.max(25, Math.min(99, Math.round(progress.percent))),
-      progress.message || 'Loading weights'
-    ),
+    onProgress: pipelineProgress
+      ? (progress) => emitLoadProgress(
+        pipelineProgress,
+        'load',
+        Math.max(25, Math.min(99, Math.round(progress.percent))),
+        progress.message || 'Loading weights'
+      )
+      : undefined,
   });
 
-  emitLoadProgress(options.onProgress, 'ready', 100, 'Model ready');
+  emitLoadProgress(userProgress, 'ready', 100, 'Model ready');
   return createModelHandle(pipeline, resolved);
 }
 
