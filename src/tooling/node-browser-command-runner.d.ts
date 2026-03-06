@@ -7,6 +7,10 @@ import type { BrowserCommandRunResult } from './browser-command-runner.js';
 
 export interface NodeBrowserCommandRunOptions {
   staticRootDir?: string;
+  staticMounts?: Array<{
+    urlPrefix: string;
+    rootDir: string;
+  }>;
   baseUrl?: string;
   host?: string;
   port?: number;

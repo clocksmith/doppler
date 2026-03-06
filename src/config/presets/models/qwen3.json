@@ -4,7 +4,7 @@
   "extends": "transformer",
 
   "architecture": {
-    "ropeTheta": 1000000
+    "ropeTheta": 10000000
   },
 
   "inference": {
@@ -13,7 +13,7 @@
       "queryKeyNorm": true
     },
     "output": {
-      "scaleEmbeddings": true
+      "scaleEmbeddings": false
     },
     "normalization": {
       "rmsNormWeightOffset": false,
@@ -24,7 +24,10 @@
       "enabled": true
     },
     "rope": {
-      "ropeTheta": 1000000
+      "ropeTheta": 10000000,
+      "mropeInterleaved": true,
+      "mropeSection": [11, 11, 10],
+      "partialRotaryFactor": 0.25
     }
   },
 
@@ -37,6 +40,7 @@
 
   "detection": {
     "architecturePatterns": ["qwen3", "qwen3_5", "Qwen3ForCausalLM", "Qwen3_5ForCausalLM", "Qwen2ForCausalLM"],
+    "modelTypePatterns": ["qwen3_5", "qwen3_5_text", "qwen2"],
     "configPatterns": {
       "model_type": "qwen2"
     }

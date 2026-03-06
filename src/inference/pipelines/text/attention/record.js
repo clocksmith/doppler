@@ -182,10 +182,18 @@ export async function recordLayerAttentionGPU(
   // 3. RoPE (modifies tensor in-place)
   if (!disableRoPE && state.ropeFreqsCos && state.ropeFreqsSin) {
     await recordRoPE(recorder, qTensor, state.ropeFreqsCos, state.ropeFreqsSin, numTokens, {
-      numHeads, headDim, startPos: currentSeqLen,
+      numHeads,
+      headDim,
+      rotaryDim: config.ropeRotaryDim,
+      interleaved: config.ropeInterleaved,
+      startPos: currentSeqLen,
     });
     await recordRoPE(recorder, kTensor, state.ropeFreqsCos, state.ropeFreqsSin, numTokens, {
-      numHeads: numKVHeads, headDim, startPos: currentSeqLen,
+      numHeads: numKVHeads,
+      headDim,
+      rotaryDim: config.ropeRotaryDim,
+      interleaved: config.ropeInterleaved,
+      startPos: currentSeqLen,
     });
   }
 
@@ -502,6 +510,7 @@ export async function recordLayerAttentionGPU(
       size: numTokens * numHeads * headDim,
       gate: qGateTensor,
       gateActivation: 'sigmoid',
+      inputActivation: 'identity',
       swigluLimit: null,
     });
     recorder.trackTemporaryBuffer(attnOutput.buffer);

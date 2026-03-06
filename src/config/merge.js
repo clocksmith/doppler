@@ -152,6 +152,24 @@ function mergeRoPE(
       runtime?.ropeLocalTheta,
       sources
     ),
+    mropeInterleaved: overlay(
+      `${prefix}.mropeInterleaved`,
+      manifest.mropeInterleaved,
+      runtime?.mropeInterleaved,
+      sources
+    ),
+    mropeSection: overlay(
+      `${prefix}.mropeSection`,
+      manifest.mropeSection,
+      runtime?.mropeSection,
+      sources
+    ),
+    partialRotaryFactor: overlay(
+      `${prefix}.partialRotaryFactor`,
+      manifest.partialRotaryFactor,
+      runtime?.partialRotaryFactor,
+      sources
+    ),
     ropeScalingType: overlay(
       `${prefix}.ropeScalingType`,
       manifest.ropeScalingType,

@@ -63,6 +63,22 @@ function cleanupTemps(temps, recorder) {
   }
 }
 
+function planResidualDispatch(target, size, elementsPerWorkgroup) {
+  const device = target?.device;
+  const maxPerDim = Number.isFinite(device?.limits?.maxComputeWorkgroupsPerDimension)
+    ? device.limits.maxComputeWorkgroupsPerDimension
+    : 65535;
+  const dispatchStride = Math.min(size, maxPerDim * elementsPerWorkgroup);
+  return {
+    dispatchStride,
+    workgroups: [
+      Math.ceil(dispatchStride / elementsPerWorkgroup),
+      Math.ceil(size / dispatchStride),
+      1,
+    ],
+  };
+}
+
 async function _residualAdd(target, a, b, size, options = {}) {
   const recorder = target && typeof target.beginComputePass === 'function' ? target : null;
   const { useVec4 = true, outputBuffer = null } = options;
@@ -75,15 +91,17 @@ async function _residualAdd(target, a, b, size, options = {}) {
   const outputSize = size * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'residual_output');
 
-  const workgroups = useVec4
-    ? Math.ceil(size / VEC4_ELEMENTS_PER_WG)
-    : Math.ceil(size / WORKGROUP_SIZES.DEFAULT);
+  const dispatchPlan = planResidualDispatch(
+    target,
+    size,
+    useVec4 ? VEC4_ELEMENTS_PER_WG : WORKGROUP_SIZES.DEFAULT
+  );
 
   await unifiedKernelWrapper(
     'residual', target, variant,
     [aAligned, bAligned, output],
-    { size },
-    workgroups
+    { size, scale: 1, _pad1: dispatchPlan.dispatchStride, _pad2: 0 },
+    dispatchPlan.workgroups
   );
 
   cleanupTemps(temps, recorder);
@@ -97,7 +115,7 @@ async function _biasAdd(target, data, bias, numTokens, dim, options = {}) {
   const { bias: biasAligned, temps } = await alignBiasTensor(data, bias, recorder);
   const variant = selectBiasAddVariant(data.dtype, biasAligned.dtype);
 
-  const workgroups = Math.ceil((numTokens * dim) / WORKGROUP_SIZES.DEFAULT);
+  const workgroups = [Math.ceil(dim / WORKGROUP_SIZES.DEFAULT), numTokens, 1];
 
   await unifiedKernelWrapper(
     'bias_add', target, variant,

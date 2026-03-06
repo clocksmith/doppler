@@ -34,7 +34,7 @@ async function _pixelShuffle(target, input, options = {}) {
       grid_width: gridWidth, grid_height: gridHeight, patch_size: patchSize,
       patch_channels: inferredPatchChannels, _pad0: 0,
     },
-    Math.ceil((outChannels * outHeight * outWidth) / WORKGROUP_SIZES.DEFAULT)
+    [Math.ceil((outHeight * outWidth) / WORKGROUP_SIZES.DEFAULT), outChannels, 1]
   );
 
   return createTensor(output, input.dtype, [outChannels, outHeight, outWidth], 'pixel_shuffle_output');

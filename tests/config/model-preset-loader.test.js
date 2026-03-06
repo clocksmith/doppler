@@ -33,7 +33,11 @@ assert.ok(PRESET_DETECTION_ORDER.includes('lfm2'));
   assert.equal(resolved.extends, undefined);
   assert.equal(resolved.modelType, 'transformer');
   assert.ok(resolved.inference);
-  assert.equal(resolved.inference.output.scaleEmbeddings, true);
+  assert.equal(resolved.inference.rope.ropeTheta, 10000000);
+  assert.equal(resolved.inference.rope.mropeInterleaved, true);
+  assert.deepEqual(resolved.inference.rope.mropeSection, [11, 11, 10]);
+  assert.equal(resolved.inference.rope.partialRotaryFactor, 0.25);
+  assert.equal(resolved.inference.output.scaleEmbeddings, false);
 }
 
 {
@@ -156,6 +160,42 @@ assert.ok(PRESET_DETECTION_ORDER.includes('lfm2'));
   assert.equal(resolved.tokenizer.unknownField, undefined);
   assert.ok(resolved.sampling);
   assert.ok(resolved.loading);
+}
+
+{
+  const resolved = resolveConfig({
+    modelId: 'qwen-text-config-rope-parameters',
+    modelType: 'transformer',
+    config: {
+      model_type: 'qwen3_5',
+      text_config: {
+        model_type: 'qwen3_5_text',
+        num_hidden_layers: 2,
+        hidden_size: 256,
+        intermediate_size: 512,
+        num_attention_heads: 4,
+        num_key_value_heads: 2,
+        head_dim: 64,
+        vocab_size: 128,
+        max_position_embeddings: 64,
+        rms_norm_eps: 1e-6,
+        tie_word_embeddings: true,
+        rope_parameters: {
+          rope_theta: 10000000,
+          mrope_interleaved: true,
+          mrope_section: [11, 11, 10],
+          partial_rotary_factor: 0.25,
+        },
+      },
+    },
+  });
+
+  assert.equal(resolved.preset, 'qwen3');
+  assert.equal(resolved.architecture.ropeTheta, 10000000);
+  assert.equal(resolved.inference.rope.ropeTheta, 10000000);
+  assert.equal(resolved.inference.rope.mropeInterleaved, true);
+  assert.deepEqual(resolved.inference.rope.mropeSection, [11, 11, 10]);
+  assert.equal(resolved.inference.rope.partialRotaryFactor, 0.25);
 }
 
 {

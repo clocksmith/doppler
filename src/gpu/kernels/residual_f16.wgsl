@@ -27,7 +27,8 @@ override WORKGROUP_SIZE: u32 = 256u;
 
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
-    let idx = gid.x;
+    let dispatch_stride = max(u._pad1, 1u);
+    let idx = gid.y * dispatch_stride + gid.x;
     if (idx >= u.size) {
         return;
     }

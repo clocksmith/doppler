@@ -29,7 +29,6 @@ async function runSummary(target, query, key, value, summaryBuffer, uniforms, va
 }
 
 async function runApply(target, query, summaryBuffer, outputBuffer, uniforms, variant) {
-  const outputSize = uniforms.num_tokens * uniforms.hidden_size;
   await unifiedKernelWrapper(
     'sana_linear_attention_apply',
     target,
@@ -45,7 +44,7 @@ async function runApply(target, query, summaryBuffer, outputBuffer, uniforms, va
       _pad1: 0,
       _pad2: 0,
     },
-    Math.ceil(outputSize / WORKGROUP_SIZES.DEFAULT)
+    [Math.ceil(uniforms.hidden_size / WORKGROUP_SIZES.DEFAULT), uniforms.num_tokens, 1]
   );
 }
 

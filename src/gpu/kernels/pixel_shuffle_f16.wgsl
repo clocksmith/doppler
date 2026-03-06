@@ -22,17 +22,16 @@ struct Uniforms {
 
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
-    let idx = gid.x;
     let spatial_size = u.out_height * u.out_width;
-    let total = u.out_channels * spatial_size;
-    if (idx >= total) {
+    let spatial = gid.x;
+    let c = gid.y;
+    if (c >= u.out_channels || spatial >= spatial_size) {
         return;
     }
 
-    let c = idx / spatial_size;
-    let spatial = idx - c * spatial_size;
     let y = spatial / u.out_width;
     let x = spatial - y * u.out_width;
+    let idx = c * spatial_size + spatial;
 
     let grid_y = y / u.patch_size;
     let grid_x = x / u.patch_size;

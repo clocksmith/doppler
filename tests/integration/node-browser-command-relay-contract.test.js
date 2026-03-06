@@ -50,6 +50,15 @@ await assert.rejects(
 
 await assert.rejects(
   () => runBrowserCommandInNode(KERNELS_REQUEST, {
+    staticMounts: 'bad',
+    opfsCache: false,
+    timeoutMs: 1500,
+  }),
+  /browser command: staticMounts must be an array\./
+);
+
+await assert.rejects(
+  () => runBrowserCommandInNode(KERNELS_REQUEST, {
     baseUrl: 'http://127.0.0.1:1',
     browserArgs: '--disable-gpu',
   }),

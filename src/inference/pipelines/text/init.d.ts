@@ -71,9 +71,13 @@ export interface PipelineContexts {
  */
 export interface RoPEConfig {
   headDim: number;
+  rotaryDim?: number;
   maxSeqLen: number;
   ropeTheta: number;
   ropeLocalTheta?: number | null;
+  mropeInterleaved?: boolean;
+  mropeSection?: number[] | null;
+  partialRotaryFactor?: number | null;
   ropeScale: number;
   ropeLocalScale?: number;
   ropeScalingType?: string | null;

@@ -47,6 +47,18 @@ function createSiLUBindGroupEntries(uniformBuffer, input, output, gate) {
   ];
 }
 
+function planSiLUDispatch(device, size, useVec4) {
+  const maxPerDim = Number.isFinite(device?.limits?.maxComputeWorkgroupsPerDimension)
+    ? device.limits.maxComputeWorkgroupsPerDimension
+    : 65535;
+  const laneWidth = useVec4 ? 4 : 1;
+  const chunkSize = maxPerDim * WORKGROUP_SIZES.DEFAULT * laneWidth;
+  const dispatchStride = Math.min(size, chunkSize);
+  const x = Math.min(maxPerDim, Math.ceil(dispatchStride / (WORKGROUP_SIZES.DEFAULT * laneWidth)));
+  const y = Math.max(1, Math.ceil(size / chunkSize));
+  return { dispatchStride, workgroups: [x, y, 1] };
+}
+
 
 export async function runSiLU(
   input,
@@ -60,6 +72,7 @@ export async function runSiLU(
     useVec4 = false,
     swigluLimit,
     gateActivation = 'silu',
+    inputActivation = 'silu',
   } = options;
   const resolvedSwigluLimit = resolveSwigluLimit(swigluLimit, 'SiLU');
 
@@ -74,14 +87,17 @@ export async function runSiLU(
     useSplit: false,
     useRowsplit: false,
   });
-  const constants = gate && gateActivation === 'sigmoid'
-    ? { ...(overrides || {}), GATE_USE_SIGMOID: true }
-    : overrides;
+  const constants = {
+    ...(overrides || {}),
+    ...(gate && gateActivation === 'sigmoid' ? { GATE_USE_SIGMOID: true } : {}),
+    ...(inputActivation === 'identity' ? { INPUT_USE_IDENTITY: true } : {}),
+  };
   const pipeline = await getPipelineFast('silu', variant, null, constants);
 
   const inferredSize = size || (input.buffer.size / bytesPerElement);
   const outputSize = inferredSize * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'silu_output');
+  const dispatchPlan = planSiLUDispatch(device, inferredSize, useVec4);
 
   // Create uniform buffer
   const uniformBuffer = createUniformBufferWithView(
@@ -89,7 +105,7 @@ export async function runSiLU(
     16,
     (view) => {
       view.setUint32(0, inferredSize, true);
-      view.setUint32(4, 0, true);
+      view.setUint32(4, dispatchPlan.dispatchStride, true);
       view.setFloat32(8, gate ? resolvedSwigluLimit : 0, true);
       view.setFloat32(12, 0, true);
     },
@@ -106,8 +122,7 @@ export async function runSiLU(
     entries,
   });
 
-  const workgroups = Math.ceil(inferredSize / WORKGROUP_SIZES.DEFAULT);
-  dispatch(device, pipeline, bindGroup, workgroups, 'silu');
+  dispatch(device, pipeline, bindGroup, dispatchPlan.workgroups, 'silu');
 
   uniformBuffer.destroy();
 
@@ -215,7 +230,7 @@ export async function runSiLURowSplit(
     ],
   });
 
-  const workgroups = Math.ceil((numTokens * dim) / WORKGROUP_SIZES.DEFAULT);
+  const workgroups = [Math.ceil(dim / WORKGROUP_SIZES.DEFAULT), numTokens, 1];
   dispatch(device, pipeline, bindGroup, workgroups, 'silu_rowsplit');
 
   uniformBuffer.destroy();
@@ -269,7 +284,7 @@ export async function recordSiLURowSplit(
     ],
   });
 
-  const workgroups = Math.ceil((numTokens * dim) / WORKGROUP_SIZES.DEFAULT);
+  const workgroups = [Math.ceil(dim / WORKGROUP_SIZES.DEFAULT), numTokens, 1];
   recordDispatch(recorder, pipeline, bindGroup, workgroups, 'silu_rowsplit');
 
   return createTensor(output, input.dtype, [numTokens, dim], 'silu_rowsplit_output');
@@ -288,6 +303,7 @@ export async function recordSiLU(
     outputBuffer = null,
     swigluLimit,
     gateActivation = 'silu',
+    inputActivation = 'silu',
   } = options;
   const resolvedSwigluLimit = resolveSwigluLimit(swigluLimit, 'SiLU');
 
@@ -302,14 +318,17 @@ export async function recordSiLU(
     useSplit: false,
     useRowsplit: false,
   });
-  const constants = gate && gateActivation === 'sigmoid'
-    ? { ...(overrides || {}), GATE_USE_SIGMOID: true }
-    : overrides;
+  const constants = {
+    ...(overrides || {}),
+    ...(gate && gateActivation === 'sigmoid' ? { GATE_USE_SIGMOID: true } : {}),
+    ...(inputActivation === 'identity' ? { INPUT_USE_IDENTITY: true } : {}),
+  };
   const pipeline = await getPipelineFast('silu', variant, null, constants);
 
   const inferredSize = size || (input.buffer.size / bytesPerElement);
   const outputSize = inferredSize * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'silu_output');
+  const dispatchPlan = planSiLUDispatch(device, inferredSize, false);
 
   // Uniform buffer
   const uniformBuffer = createUniformBufferWithView(
@@ -317,7 +336,7 @@ export async function recordSiLU(
     16,
     (view) => {
       view.setUint32(0, inferredSize, true);
-      view.setUint32(4, 0, true);
+      view.setUint32(4, dispatchPlan.dispatchStride, true);
       view.setFloat32(8, gate ? resolvedSwigluLimit : 0, true);
       view.setFloat32(12, 0, true);
     },
@@ -333,8 +352,7 @@ export async function recordSiLU(
     entries,
   });
 
-  const workgroups = Math.ceil(inferredSize / WORKGROUP_SIZES.DEFAULT);
-  recordDispatch(recorder, pipeline, bindGroup, workgroups, 'silu');
+  recordDispatch(recorder, pipeline, bindGroup, dispatchPlan.workgroups, 'silu');
 
   return createTensor(output, input.dtype, [inferredSize], 'silu_output');
 }

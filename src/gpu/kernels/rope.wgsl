@@ -26,8 +26,8 @@ struct Uniforms {
     start_pos: u32,        // Starting position (for decode)
     rope_base: f32,        // Base frequency (default 10000)
     rope_scale: f32,       // Scaling factor for extended context
-    _pad0: u32,
-    _pad1: u32,
+    rotary_dim: u32,       // Rotary slice within head_dim
+    interleaved: u32,      // 1 = adjacent pairs, 0 = rotate-half
 }
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
@@ -46,7 +46,8 @@ fn main(
     let start_pos = u.start_pos;
 
     // Global thread index (one thread per complex pair)
-    let half_dim = head_dim / 2u;
+    let rotary_dim = u.rotary_dim;
+    let half_dim = rotary_dim / 2u;
     let total_pairs = seq_len * num_heads * half_dim;
     let idx = global_id.x;
 
@@ -68,16 +69,18 @@ fn main(
 
     // Apply "rotate-half" layout: pair (x[i], x[i + half_dim])
     let base_idx = pos * num_heads * head_dim + head_idx * head_dim;
-    let x0 = input[base_idx + pair_idx];
-    let x1 = input[base_idx + pair_idx + half_dim];
+    let first_idx = select(pair_idx, pair_idx * 2u, u.interleaved == 1u);
+    let second_idx = select(pair_idx + half_dim, pair_idx * 2u + 1u, u.interleaved == 1u);
+    let x0 = input[base_idx + first_idx];
+    let x1 = input[base_idx + second_idx];
 
     // Apply rotation
     let y0 = x0 * cos_val - x1 * sin_val;
     let y1 = x0 * sin_val + x1 * cos_val;
 
     // Write back
-    input[base_idx + pair_idx] = y0;
-    input[base_idx + pair_idx + half_dim] = y1;
+    input[base_idx + first_idx] = y0;
+    input[base_idx + second_idx] = y1;
 }
 
 // Compute frequencies on-the-fly (no precomputation needed)
@@ -91,9 +94,10 @@ fn rope_compute_freqs(
     let start_pos = u.start_pos;
     let rope_base = u.rope_base;
     let rope_scale = u.rope_scale;
+    let rotary_dim = u.rotary_dim;
 
     let idx = global_id.x;
-    let half_dim = head_dim / 2u;
+    let half_dim = rotary_dim / 2u;
     let total_pairs = seq_len * num_heads * half_dim;
 
     if (idx >= total_pairs) {
@@ -109,7 +113,7 @@ fn rope_compute_freqs(
     let actual_pos = f32(start_pos + pos) / rope_scale;
 
     // Compute frequency: 1 / (base^(2*pair_idx/head_dim))
-    let exponent = f32(pair_idx * 2u) / f32(head_dim);
+    let exponent = f32(pair_idx * 2u) / f32(rotary_dim);
     let freq = 1.0 / pow(rope_base, exponent);
     let theta = actual_pos * freq;
 
@@ -118,12 +122,14 @@ fn rope_compute_freqs(
 
     // Apply "rotate-half" layout: pair (x[i], x[i + half_dim])
     let base_idx = pos * num_heads * head_dim + head_idx * head_dim;
-    let x0 = input[base_idx + pair_idx];
-    let x1 = input[base_idx + pair_idx + half_dim];
+    let first_idx = select(pair_idx, pair_idx * 2u, u.interleaved == 1u);
+    let second_idx = select(pair_idx + half_dim, pair_idx * 2u + 1u, u.interleaved == 1u);
+    let x0 = input[base_idx + first_idx];
+    let x1 = input[base_idx + second_idx];
 
     // Apply rotation
-    input[base_idx + pair_idx] = x0 * cos_val - x1 * sin_val;
-    input[base_idx + pair_idx + half_dim] = x0 * sin_val + x1 * cos_val;
+    input[base_idx + first_idx] = x0 * cos_val - x1 * sin_val;
+    input[base_idx + second_idx] = x0 * sin_val + x1 * cos_val;
 }
 
 // Apply RoPE to both Q and K in one pass
@@ -138,10 +144,11 @@ fn rope_qk(
     let start_pos = u.start_pos;
     let rope_base = u.rope_base;
     let rope_scale = u.rope_scale;
+    let rotary_dim = u.rotary_dim;
 
     let idx = global_id.x;
     // Each thread handles one Q-K pair at one dimension pair
-    let half_dim = head_dim / 2u;
+    let half_dim = rotary_dim / 2u;
     let total_pairs = seq_len * num_heads * half_dim;
 
     if (idx >= total_pairs) {
@@ -156,7 +163,7 @@ fn rope_qk(
     let actual_pos = f32(start_pos + pos) / rope_scale;
 
     // Compute frequency
-    let exponent = f32(pair_idx * 2u) / f32(head_dim);
+    let exponent = f32(pair_idx * 2u) / f32(rotary_dim);
     let freq = 1.0 / pow(rope_base, exponent);
     let theta = actual_pos * freq;
 
@@ -168,16 +175,18 @@ fn rope_qk(
     let k_base_idx = q_base_idx + head_dim;  // K starts after Q
 
     // Process Q
-    let q0 = input[q_base_idx + pair_idx];
-    let q1 = input[q_base_idx + pair_idx + half_dim];
-    input[q_base_idx + pair_idx] = q0 * cos_val - q1 * sin_val;
-    input[q_base_idx + pair_idx + half_dim] = q0 * sin_val + q1 * cos_val;
+    let first_idx = select(pair_idx, pair_idx * 2u, u.interleaved == 1u);
+    let second_idx = select(pair_idx + half_dim, pair_idx * 2u + 1u, u.interleaved == 1u);
+    let q0 = input[q_base_idx + first_idx];
+    let q1 = input[q_base_idx + second_idx];
+    input[q_base_idx + first_idx] = q0 * cos_val - q1 * sin_val;
+    input[q_base_idx + second_idx] = q0 * sin_val + q1 * cos_val;
 
     // Process K
-    let k0 = input[k_base_idx + pair_idx];
-    let k1 = input[k_base_idx + pair_idx + half_dim];
-    input[k_base_idx + pair_idx] = k0 * cos_val - k1 * sin_val;
-    input[k_base_idx + pair_idx + half_dim] = k0 * sin_val + k1 * cos_val;
+    let k0 = input[k_base_idx + first_idx];
+    let k1 = input[k_base_idx + second_idx];
+    input[k_base_idx + first_idx] = k0 * cos_val - k1 * sin_val;
+    input[k_base_idx + second_idx] = k0 * sin_val + k1 * cos_val;
 }
 
 // Precompute frequency table (run once at init)
@@ -190,9 +199,10 @@ fn precompute_freqs(
     let seq_len = u.seq_len;  // maxSeqLen for precomputation
     let rope_base = u.rope_base;
     let rope_scale = u.rope_scale;
+    let rotary_dim = u.rotary_dim;
 
     let idx = global_id.x;
-    let half_dim = head_dim / 2u;
+    let half_dim = rotary_dim / 2u;
     let total_elements = seq_len * half_dim;
 
     if (idx >= total_elements) {
@@ -203,7 +213,7 @@ fn precompute_freqs(
     let dim_idx = idx % half_dim;
 
     let actual_pos = f32(pos) / rope_scale;
-    let exponent = f32(dim_idx * 2u) / f32(head_dim);
+    let exponent = f32(dim_idx * 2u) / f32(rotary_dim);
     let freq = 1.0 / pow(rope_base, exponent);
     let theta = actual_pos * freq;
 
@@ -218,6 +228,7 @@ fn rope_ntk_scaled(
     @builtin(global_invocation_id) global_id: vec3<u32>
 ) {
     let head_dim = u.head_dim;
+    let rotary_dim = u.rotary_dim;
     let num_heads = u.num_heads;
     let seq_len = u.seq_len;
     let start_pos = u.start_pos;
@@ -225,7 +236,7 @@ fn rope_ntk_scaled(
     let rope_scale = u.rope_scale;
 
     let idx = global_id.x;
-    let half_dim = head_dim / 2u;
+    let half_dim = rotary_dim / 2u;
     let total_pairs = seq_len * num_heads * half_dim;
 
     if (idx >= total_pairs) {
@@ -234,7 +245,7 @@ fn rope_ntk_scaled(
 
     // NTK scaling: increase base proportionally to scale factor
     // This preserves high-frequency components better than linear interpolation
-    rope_base = rope_base * pow(rope_scale, f32(head_dim) / (f32(head_dim) - 2.0));
+    rope_base = rope_base * pow(rope_scale, f32(rotary_dim) / (f32(rotary_dim) - 2.0));
 
     let pos = idx / (num_heads * half_dim);
     let remainder = idx % (num_heads * half_dim);
@@ -243,7 +254,7 @@ fn rope_ntk_scaled(
 
     let actual_pos = f32(start_pos + pos);
 
-    let exponent = f32(pair_idx * 2u) / f32(head_dim);
+    let exponent = f32(pair_idx * 2u) / f32(rotary_dim);
     let freq = 1.0 / pow(rope_base, exponent);
     let theta = actual_pos * freq;
 
@@ -251,11 +262,13 @@ fn rope_ntk_scaled(
     let sin_val = sin(theta);
 
     let base_idx = pos * num_heads * head_dim + head_idx * head_dim;
-    let x0 = input[base_idx + pair_idx];
-    let x1 = input[base_idx + pair_idx + half_dim];
+    let first_idx = select(pair_idx, pair_idx * 2u, u.interleaved == 1u);
+    let second_idx = select(pair_idx + half_dim, pair_idx * 2u + 1u, u.interleaved == 1u);
+    let x0 = input[base_idx + first_idx];
+    let x1 = input[base_idx + second_idx];
 
-    input[base_idx + pair_idx] = x0 * cos_val - x1 * sin_val;
-    input[base_idx + pair_idx + half_dim] = x0 * sin_val + x1 * cos_val;
+    input[base_idx + first_idx] = x0 * cos_val - x1 * sin_val;
+    input[base_idx + second_idx] = x0 * sin_val + x1 * cos_val;
 }
 
 // YaRN-style RoPE with attention scaling
@@ -265,6 +278,7 @@ fn rope_yarn(
     @builtin(global_invocation_id) global_id: vec3<u32>
 ) {
     let head_dim = u.head_dim;
+    let rotary_dim = u.rotary_dim;
     let num_heads = u.num_heads;
     let seq_len = u.seq_len;
     let start_pos = u.start_pos;
@@ -272,7 +286,7 @@ fn rope_yarn(
     let rope_scale = u.rope_scale;
 
     let idx = global_id.x;
-    let half_dim = head_dim / 2u;
+    let half_dim = rotary_dim / 2u;
     let total_pairs = seq_len * num_heads * half_dim;
 
     if (idx >= total_pairs) {
@@ -292,7 +306,7 @@ fn rope_yarn(
     let alpha: f32 = 1.0;
 
     // Compute original frequency
-    let exponent = f32(pair_idx * 2u) / f32(head_dim);
+    let exponent = f32(pair_idx * 2u) / f32(rotary_dim);
     let orig_freq = 1.0 / pow(rope_base, exponent);
 
     // Compute wavelength
@@ -300,8 +314,8 @@ fn rope_yarn(
 
     // Interpolation factor based on wavelength
     var ramp: f32;
-    let low_wavelength = f32(head_dim) / beta_fast;
-    let high_wavelength = f32(head_dim) / beta_slow;
+    let low_wavelength = f32(rotary_dim) / beta_fast;
+    let high_wavelength = f32(rotary_dim) / beta_slow;
 
     if (wavelength < low_wavelength) {
         ramp = 0.0;  // No interpolation for high frequencies
@@ -320,9 +334,11 @@ fn rope_yarn(
     let sin_val = sin(theta);
 
     let base_idx = pos * num_heads * head_dim + head_idx * head_dim;
-    let x0 = input[base_idx + pair_idx];
-    let x1 = input[base_idx + pair_idx + half_dim];
+    let first_idx = select(pair_idx, pair_idx * 2u, u.interleaved == 1u);
+    let second_idx = select(pair_idx + half_dim, pair_idx * 2u + 1u, u.interleaved == 1u);
+    let x0 = input[base_idx + first_idx];
+    let x1 = input[base_idx + second_idx];
 
-    input[base_idx + pair_idx] = x0 * cos_val - x1 * sin_val;
-    input[base_idx + pair_idx + half_dim] = x0 * sin_val + x1 * cos_val;
+    input[base_idx + first_idx] = x0 * cos_val - x1 * sin_val;
+    input[base_idx + second_idx] = x0 * sin_val + x1 * cos_val;
 }

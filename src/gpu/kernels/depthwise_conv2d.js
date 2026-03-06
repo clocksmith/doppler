@@ -45,6 +45,7 @@ async function _depthwiseConv2D(target, input, weight, bias, options = {}) {
   const bytesPerElement = dtypeBytes(input.dtype);
   const outputSize = channels * outHeight * outWidth * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'depthwise_conv2d_output');
+  const outSpatial = outHeight * outWidth;
 
   const weightBuffer = getBuffer(weight);
   let biasBuffer = getBuffer(bias);
@@ -75,7 +76,7 @@ async function _depthwiseConv2D(target, input, weight, bias, options = {}) {
       _pad0: 0,
       _pad1: 0,
     },
-    Math.ceil((channels * outHeight * outWidth) / WORKGROUP_SIZES.DEFAULT)
+    [Math.ceil(outSpatial / WORKGROUP_SIZES.DEFAULT), channels, 1]
   );
 
   if (tempBias) {

@@ -1826,7 +1826,7 @@
         }
       ],
       "baseUniforms": {
-        "size": 16,
+        "size": 32,
         "fields": [
           {
             "name": "hidden_size",
@@ -1847,6 +1847,26 @@
             "name": "has_residual",
             "type": "u32",
             "offset": 12
+          },
+          {
+            "name": "token_stride",
+            "type": "u32",
+            "offset": 16
+          },
+          {
+            "name": "_pad0",
+            "type": "u32",
+            "offset": 20
+          },
+          {
+            "name": "_pad1",
+            "type": "u32",
+            "offset": 24
+          },
+          {
+            "name": "_pad2",
+            "type": "u32",
+            "offset": 28
           }
         ]
       },

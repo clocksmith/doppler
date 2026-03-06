@@ -42,6 +42,7 @@ export async function processFFNStandard(
     hiddenSize,
     probes: context.debugProbes,
     recorder,
+    dtype: normedTensor.dtype,
   });
 
   // 2. FFN
@@ -58,6 +59,7 @@ export async function processFFNStandard(
     hiddenSize,
     probes: context.debugProbes,
     recorder,
+    dtype: ffnOutput.dtype,
   });
 
   // 3. Residual add
@@ -72,6 +74,7 @@ export async function processFFNStandard(
     hiddenSize,
     probes: context.debugProbes,
     recorder,
+    dtype: output.dtype,
   });
 
   if (normedTensor !== postAttn) {

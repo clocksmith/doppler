@@ -45,7 +45,7 @@ async function _repeatChannels(target, input, options = {}) {
       repeats,
       _pad0: 0,
     },
-    Math.ceil((outChannels * height * width) / WORKGROUP_SIZES.DEFAULT)
+    [Math.ceil((height * width) / WORKGROUP_SIZES.DEFAULT), outChannels, 1]
   );
 
   return createTensor(output, input.dtype, [outChannels, height, width], 'repeat_channels_output');

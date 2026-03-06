@@ -62,6 +62,9 @@ export const DEFAULT_MANIFEST_INFERENCE = {
   rope: {
     ropeTheta: 10000,
     ropeLocalTheta: null,  // Same as ropeTheta (null = use ropeTheta)
+    mropeInterleaved: false,
+    mropeSection: null,
+    partialRotaryFactor: null,
     ropeScalingType: null,  // No scaling (null = disabled)
     ropeScalingFactor: 1.0,
     ropeLocalScalingType: null,  // Local scaling policy (null = no scaling)

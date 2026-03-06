@@ -165,6 +165,9 @@ export const DEFAULT_PRESET_INFERENCE_CONFIG = {
   rope: {
     ropeTheta: 10000,
     ropeLocalTheta: null,
+    mropeInterleaved: false,
+    mropeSection: null,
+    partialRotaryFactor: null,
     ropeScalingType: null,
     ropeScalingFactor: 1.0,
     ropeLocalScalingType: null,

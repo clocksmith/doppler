@@ -19,17 +19,14 @@ struct Uniforms {
 
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
-    let idx = gid.x;
     let spatial = u.height * u.width;
-    let out_size = u.out_channels * spatial;
-    if (idx >= out_size) {
+    let spatial_idx = gid.x;
+    let out_channel = gid.y;
+    if (spatial_idx >= spatial || out_channel >= u.out_channels) {
         return;
     }
-
-    let out_channel = idx / spatial;
-    let rem = idx - out_channel * spatial;
-    let y = rem / u.width;
-    let x = rem - y * u.width;
+    let y = spatial_idx / u.width;
+    let x = spatial_idx - y * u.width;
 
     let in_per_group = u.in_channels / u.groups;
     let out_per_group = u.out_channels / u.groups;
@@ -43,5 +40,5 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
         sum = sum + input[input_idx] * weight[weight_idx];
     }
 
-    output[idx] = sum;
+    output[out_channel * spatial + spatial_idx] = sum;
 }

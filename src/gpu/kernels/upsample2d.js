@@ -31,6 +31,7 @@ async function _upsample2d(target, input, options = {}) {
 
   const outHeight = resolvedHeight * scale;
   const outWidth = resolvedWidth * scale;
+  const outSpatial = outHeight * outWidth;
   const bytesPerElement = dtypeBytes(input.dtype);
   const outputSize = channels * outHeight * outWidth * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'upsample2d_output');
@@ -43,7 +44,7 @@ async function _upsample2d(target, input, options = {}) {
       out_height: outHeight, out_width: outWidth, scale,
       _pad0: 0, _pad1: 0,
     },
-    Math.ceil((channels * outHeight * outWidth) / WORKGROUP_SIZES.DEFAULT)
+    [Math.ceil(outSpatial / WORKGROUP_SIZES.DEFAULT), channels, 1]
   );
 
   return createTensor(output, input.dtype, [channels, outHeight, outWidth], 'upsample2d_output');
