@@ -9,7 +9,7 @@ import {
   formatBytes,
 } from '../config/schema/index.js';
 
-import { classifyTensorRole, generateShardFilename } from '../formats/rdrr/index.js';
+import { classifyTensor, classifyTensorRole, generateShardFilename } from '../formats/rdrr/index.js';
 import { log } from '../debug/index.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
 import {
@@ -18,6 +18,7 @@ import {
   listPresets,
   resolvePreset,
 } from '../config/index.js';
+import { buildExecutionContractArtifact } from '../config/execution-contract-check.js';
 import { buildManifestInference, inferEmbeddingOutputConfig } from './manifest-inference.js';
 import { resolveEosTokenId } from './tokenizer-utils.js';
 import {
@@ -1128,6 +1129,7 @@ export async function convertModel(model, io, options = {}) {
   }
   const totalTensors = tensors.length;
   const targetQuant = String(options.quantization ?? model.quantization ?? '').trim().toLowerCase();
+  const tensorGroupModelType = String(options.modelType ?? model.modelType ?? 'transformer');
   const q4kLayout = normalizeQ4KLayout(options.quantizationInfo?.layout);
   const quantizeEmbeddings = resolveQuantizeEmbeddings(
     options.quantizationInfo ?? null,
@@ -1251,6 +1253,7 @@ export async function convertModel(model, io, options = {}) {
 
     // Record tensor location
     const role = classifyTensorRole(tensor.name);
+    const group = classifyTensor(tensor.name, tensorGroupModelType);
 
     if (tensorSpans.length === 1) {
       tensorLocations[tensor.name] = {
@@ -1260,6 +1263,7 @@ export async function convertModel(model, io, options = {}) {
         shape: tensor.shape,
         dtype: outDtype,
         role,
+        group,
         ...(outLayout ? { layout: outLayout } : {}),
       };
     } else {
@@ -1269,6 +1273,7 @@ export async function convertModel(model, io, options = {}) {
         shape: tensor.shape,
         dtype: outDtype,
         role,
+        group,
         ...(outLayout ? { layout: outLayout } : {}),
       };
     }
@@ -1332,6 +1337,7 @@ export async function convertModel(model, io, options = {}) {
     shardCount: shards.length,
     tensorCount: tensors.length,
     totalSize,
+    executionContractArtifact: buildExecutionContractArtifact(manifest),
   };
 }
 

@@ -1,0 +1,37 @@
+export interface ConversionReportResultSchema {
+  presetId: string | null;
+  modelType: string | null;
+  outputDir: string | null;
+  shardCount: number | null;
+  tensorCount: number | null;
+  totalSize: number | null;
+}
+
+export interface ConversionReportManifestSchema {
+  quantization: string | null;
+  quantizationInfo: Record<string, unknown> | null;
+  inference: {
+    presetId: string | null;
+    schema: string | null;
+    defaultKernelPath: string | null;
+  } | null;
+}
+
+export interface ConversionReportSchema {
+  schemaVersion: 1;
+  suite: 'convert';
+  command: 'convert';
+  modelId: string;
+  timestamp: string;
+  source: 'doppler';
+  result: ConversionReportResultSchema;
+  manifest: ConversionReportManifestSchema | null;
+  executionContractArtifact: Record<string, unknown> | null;
+}
+
+export declare const CONVERSION_REPORT_SCHEMA_VERSION: 1;
+export declare const DEFAULT_CONVERSION_REPORT: ConversionReportSchema;
+
+export declare function validateConversionReport(
+  report: Record<string, unknown>
+): ConversionReportSchema;

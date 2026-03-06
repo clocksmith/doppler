@@ -34,6 +34,24 @@ export interface ManifestExecutionContractValidationResult extends ExecutionCont
   facts: ExecutionContractFacts;
 }
 
+export interface ExecutionContractArtifact {
+  schemaVersion: 1;
+  source: 'doppler';
+  ok: boolean;
+  checks: ExecutionContractCheckResult[];
+  errors: string[];
+  session: ExecutionContractSessionFacts | null;
+  steps: {
+    total: number;
+    attention: number;
+    attentionPhases: {
+      prefill: number;
+      decode: number;
+      both: number;
+    };
+  } | null;
+}
+
 export declare function sanitizeLeanModuleName(value: unknown): string;
 
 export declare function extractExecutionContractFacts(
@@ -47,3 +65,7 @@ export declare function validateExecutionContractFacts(
 export declare function validateManifestExecutionContract(
   manifest: Record<string, unknown>
 ): ManifestExecutionContractValidationResult;
+
+export declare function buildExecutionContractArtifact(
+  manifest: Record<string, unknown>
+): ExecutionContractArtifact | null;

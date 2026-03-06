@@ -83,6 +83,9 @@ const castOnlyExecution = {
 {
   const fixtureDir = createTempDir('doppler-converter-success-single-');
   const outputDir = path.join(fixtureDir, 'out');
+  const reportsDir = createTempDir('doppler-converter-reports-single-');
+  const previousReportsDir = process.env.DOPPLER_REPORTS_DIR;
+  process.env.DOPPLER_REPORTS_DIR = reportsDir;
   writeGemma2Fixture(fixtureDir, [1]);
   writeFileSync(path.join(fixtureDir, 'tokenizer.json'), JSON.stringify({
     version: '1.0',
@@ -118,6 +121,19 @@ const castOnlyExecution = {
     assert.equal(result.modelType, 'transformer');
     assert.ok(result.shardCount >= 1);
     assert.ok(result.tensorCount >= 10);
+    assert.equal(result.executionContractArtifact?.schemaVersion, 1);
+    assert.equal(result.executionContractArtifact?.ok, true);
+    assert.equal(result.executionContractArtifact?.session?.layout, 'contiguous');
+    assert.equal(result.report?.suite, 'convert');
+    assert.equal(result.report?.executionContractArtifact?.ok, true);
+    assert.ok(typeof result.reportInfo?.path === 'string' && result.reportInfo.path.length > 0);
+
+    const reportPath = path.isAbsolute(result.reportInfo.path)
+      ? result.reportInfo.path
+      : path.resolve(process.cwd(), result.reportInfo.path);
+    const reportJson = JSON.parse(readFileSync(reportPath, 'utf8'));
+    assert.equal(reportJson.suite, 'convert');
+    assert.equal(reportJson.executionContractArtifact?.ok, true);
 
     const manifest = readManifest(outputDir);
     assert.equal(typeof manifest.modelId, 'string');
@@ -129,17 +145,29 @@ const castOnlyExecution = {
     assert.ok(Array.isArray(manifest.inference?.execution?.steps));
     assert.equal(manifest.inference.execution.steps.length, 1);
     assert.equal(manifest.inference.execution.steps[0].op, 'cast');
+    assert.equal(manifest.tensors?.['lm_head.weight']?.group, 'head');
+    assert.equal(manifest.tensors?.['model.norm.weight']?.group, 'head');
+    assert.equal(manifest.tensors?.['model.embed_tokens.weight']?.group, 'embed');
 
     assert.ok(existsSync(path.join(outputDir, 'tokenizer.json')));
     assert.ok(existsSync(path.join(outputDir, 'tokenizer.model')));
   } finally {
+    if (previousReportsDir === undefined) {
+      delete process.env.DOPPLER_REPORTS_DIR;
+    } else {
+      process.env.DOPPLER_REPORTS_DIR = previousReportsDir;
+    }
     rmSync(fixtureDir, { recursive: true, force: true });
+    rmSync(reportsDir, { recursive: true, force: true });
   }
 }
 
 {
   const fixtureDir = createTempDir('doppler-converter-success-worker-');
   const outputDir = path.join(fixtureDir, 'out');
+  const reportsDir = createTempDir('doppler-converter-reports-worker-');
+  const previousReportsDir = process.env.DOPPLER_REPORTS_DIR;
+  process.env.DOPPLER_REPORTS_DIR = reportsDir;
   writeGemma2Fixture(fixtureDir, [1, 1]);
   mkdirSync(outputDir, { recursive: true });
   writeFileSync(path.join(outputDir, 'shard_99999.bin'), 'stale-shard', 'utf8');
@@ -175,6 +203,19 @@ const castOnlyExecution = {
     assert.equal(result.modelType, 'transformer');
     assert.ok(result.shardCount >= 1);
     assert.ok(result.tensorCount >= 10);
+    assert.equal(result.executionContractArtifact?.schemaVersion, 1);
+    assert.equal(result.executionContractArtifact?.ok, true);
+    assert.equal(result.executionContractArtifact?.session?.layout, 'contiguous');
+    assert.equal(result.report?.suite, 'convert');
+    assert.equal(result.report?.executionContractArtifact?.ok, true);
+    assert.ok(typeof result.reportInfo?.path === 'string' && result.reportInfo.path.length > 0);
+
+    const reportPath = path.isAbsolute(result.reportInfo.path)
+      ? result.reportInfo.path
+      : path.resolve(process.cwd(), result.reportInfo.path);
+    const reportJson = JSON.parse(readFileSync(reportPath, 'utf8'));
+    assert.equal(reportJson.suite, 'convert');
+    assert.equal(reportJson.executionContractArtifact?.ok, true);
 
     const manifest = readManifest(outputDir);
     assert.equal(typeof manifest.modelId, 'string');
@@ -191,7 +232,13 @@ const castOnlyExecution = {
       'expected worker summary progress message'
     );
   } finally {
+    if (previousReportsDir === undefined) {
+      delete process.env.DOPPLER_REPORTS_DIR;
+    } else {
+      process.env.DOPPLER_REPORTS_DIR = previousReportsDir;
+    }
     rmSync(fixtureDir, { recursive: true, force: true });
+    rmSync(reportsDir, { recursive: true, force: true });
   }
 }
 
