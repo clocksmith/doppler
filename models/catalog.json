@@ -91,6 +91,43 @@
       }
     },
     {
+      "modelId": "translategemma-4b-it-wq4k-ef16-hf16",
+      "preset": "translategemma",
+      "label": "TranslateGemma 4B Instruct (Q4K)",
+      "description": "TranslateGemma 4B translation model. Q4K weights, F16 embeddings/head. Local RDRR shards.",
+      "modes": [
+        "run"
+      ],
+      "aliases": [
+        "translategemma-4b",
+        "translategemma",
+        "google/translategemma-4b-it"
+      ],
+      "hf": {
+        "repoId": "Clocksmith/rdrr",
+        "revision": null,
+        "path": "models/translategemma-4b-it-wq4k-ef16-hf16"
+      },
+      "baseUrl": "./curated/translategemma-4b-it-wq4k-ef16-hf16",
+      "sizeBytes": 3167327178,
+      "recommended": false,
+      "sortOrder": 15,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": true,
+          "hf": false
+        },
+        "status": {
+          "runtime": "pending",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "untested"
+        },
+        "tested": null
+      }
+    },
+    {
       "modelId": "qwen-3-5-0-8b-wq4k-ef16-hf16-f16",
       "preset": "qwen3",
       "label": "Qwen 3.5 0.8B (Q4K)",
