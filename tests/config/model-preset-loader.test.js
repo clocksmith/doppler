@@ -37,7 +37,7 @@ assert.ok(PRESET_DETECTION_ORDER.includes('lfm2'));
   assert.equal(resolved.inference.rope.mropeInterleaved, true);
   assert.deepEqual(resolved.inference.rope.mropeSection, [11, 11, 10]);
   assert.equal(resolved.inference.rope.partialRotaryFactor, 0.25);
-  assert.equal(resolved.inference.output.scaleEmbeddings, true);
+  assert.equal(resolved.inference.output.scaleEmbeddings, false);
 }
 
 {

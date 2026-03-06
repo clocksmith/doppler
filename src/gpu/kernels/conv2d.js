@@ -58,7 +58,7 @@ async function _conv2d(target, input, weight, bias, options = {}) {
       kernel_h: kernelH, kernel_w: kernelW,
       stride, pad, _pad0: 0, _pad1: 0,
     },
-    Math.ceil((outChannels * outHeight * outWidth) / WORKGROUP_SIZES.DEFAULT)
+    [Math.ceil((outHeight * outWidth) / WORKGROUP_SIZES.DEFAULT), outChannels, 1]
   );
 
   if (tempBias) {

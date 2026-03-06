@@ -18,14 +18,13 @@ struct Uniforms {
 
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
-    let idx = gid.x;
-    let total = u.num_tokens * u.hidden_size;
-    if (idx >= total) {
+    let hidden = gid.x;
+    let token = gid.y;
+    if (token >= u.num_tokens || hidden >= u.hidden_size) {
         return;
     }
 
-    let token = idx / u.hidden_size;
-    let hidden = idx - token * u.hidden_size;
+    let idx = token * u.hidden_size + hidden;
     let head = hidden / u.head_dim;
     let dim = hidden - head * u.head_dim;
     let rows_per_head = u.head_dim + 1u;

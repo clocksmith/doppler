@@ -29,19 +29,18 @@ struct Uniforms {
 
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
-    let idx = gid.x;
     let out_height = u.out_height;
     let out_width = u.out_width;
-    let out_size = u.out_channels * out_height * out_width;
-    if (idx >= out_size) {
+    let out_spatial = out_height * out_width;
+    let out_spatial_idx = gid.x;
+    let out_c = gid.y;
+    if (out_c >= u.out_channels || out_spatial_idx >= out_spatial) {
         return;
     }
 
-    let out_spatial = out_height * out_width;
-    let out_c = idx / out_spatial;
-    let rem = idx - out_c * out_spatial;
-    let out_y = rem / out_width;
-    let out_x = rem - out_y * out_width;
+    let out_y = out_spatial_idx / out_width;
+    let out_x = out_spatial_idx - out_y * out_width;
+    let idx = out_c * out_spatial + out_spatial_idx;
 
     var sum: f32 = f32(bias[out_c]);
 

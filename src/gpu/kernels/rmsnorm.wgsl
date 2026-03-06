@@ -39,6 +39,10 @@ struct Uniforms {
     num_tokens: u32,    // Number of tokens to process
     eps: f32,           // Epsilon for numerical stability (typically 1e-5 or 1e-6)
     has_residual: u32,  // Runtime flag: 1 = add residual after norm
+    token_stride: u32,  // Workgroup rows per dispatch row
+    _pad0: u32,
+    _pad1: u32,
+    _pad2: u32,
 }
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
@@ -82,6 +86,10 @@ fn should_add_residual() -> bool {
     return HAS_RESIDUAL || (u.has_residual != 0u);
 }
 
+fn token_index(wg_id: vec3<u32>) -> u32 {
+    return wg_id.y * max(u.token_stride, 1u) + wg_id.x;
+}
+
 // =============================================================================
 // Main Entry Point
 // =============================================================================
@@ -93,7 +101,7 @@ fn main(
     @builtin(local_invocation_id) local_id: vec3<u32>,
     @builtin(workgroup_id) wg_id: vec3<u32>
 ) {
-    let token_idx = wg_id.x;
+    let token_idx = token_index(wg_id);
     let thread_idx = local_id.x;
     let size = u.size;
 
@@ -163,7 +171,7 @@ fn main_small(
     @builtin(local_invocation_id) local_id: vec3<u32>,
     @builtin(workgroup_id) wg_id: vec3<u32>
 ) {
-    let token_idx = wg_id.x;
+    let token_idx = token_index(wg_id);
     let thread_idx = local_id.x;
     let size = u.size;
 
@@ -219,7 +227,7 @@ fn main_cached(
     @builtin(local_invocation_id) local_id: vec3<u32>,
     @builtin(workgroup_id) wg_id: vec3<u32>
 ) {
-    let token_idx = wg_id.x;
+    let token_idx = token_index(wg_id);
     let thread_idx = local_id.x;
     let size = u.size;
 
@@ -288,7 +296,7 @@ fn main_subgroup(
     @builtin(subgroup_invocation_id) sg_lane: u32,
     @builtin(subgroup_size) sg_size: u32,
 ) {
-    let token_idx = wg_id.x;
+    let token_idx = token_index(wg_id);
     let thread_idx = local_id.x;
     let size = u.size;
 
@@ -362,7 +370,7 @@ fn main_small_subgroup(
     @builtin(subgroup_invocation_id) sg_lane: u32,
     @builtin(subgroup_size) sg_size: u32,
 ) {
-    let token_idx = wg_id.x;
+    let token_idx = token_index(wg_id);
     let thread_idx = local_id.x;
     let size = u.size;
 

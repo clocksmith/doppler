@@ -76,6 +76,18 @@ function assertRMSNormWeightBuffer(weight, weightBuffer, hiddenSize) {
   );
 }
 
+function planRMSNormDispatch(target, numTokens) {
+  const device = target?.device;
+  const maxPerDim = Number.isFinite(device?.limits?.maxComputeWorkgroupsPerDimension)
+    ? device.limits.maxComputeWorkgroupsPerDimension
+    : 65535;
+  const tokenStride = Math.min(numTokens, maxPerDim);
+  return {
+    tokenStride,
+    workgroups: [tokenStride, Math.ceil(numTokens / tokenStride), 1],
+  };
+}
+
 export function selectRMSNormKernel(options = {}, isF16 = false) {
   const { residual = null, hiddenSize = null } = options;
   const { smallThreshold } = getKernelThresholds().rmsnorm;
@@ -107,6 +119,7 @@ export async function runRMSNorm(
   const paddedHiddenSize = padToQ4KBlock(inferredHiddenSize);
   const outputSize = batchSize * paddedHiddenSize * bytesPerElement;
   const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'rmsnorm_output');
+  const dispatchPlan = planRMSNormDispatch(null, batchSize);
 
   // Shader layout always includes the residual binding; when unused, bind a harmless placeholder.
   const residualBuf = residual?.buffer || residual || input?.buffer || input || outputBuf;
@@ -116,8 +129,17 @@ export async function runRMSNorm(
     null,
     variant,
     [input, normWeightBuffer, outputBuf, residualBuf],
-    { hidden_size: inferredHiddenSize, num_tokens: batchSize, eps, has_residual: residual ? 1 : 0 },
-    batchSize,
+    {
+      hidden_size: inferredHiddenSize,
+      num_tokens: batchSize,
+      eps,
+      has_residual: residual ? 1 : 0,
+      token_stride: dispatchPlan.tokenStride,
+      _pad0: 0,
+      _pad1: 0,
+      _pad2: 0,
+    },
+    dispatchPlan.workgroups,
     { RMS_NORM_OFFSET: rmsNormWeightOffset, WEIGHT_IS_F16: normWeightDtype === 'f16' }
   );
 
@@ -143,6 +165,7 @@ export async function recordRMSNorm(
   const paddedHiddenSize = padToQ4KBlock(inferredHiddenSize);
   const outputSize = batchSize * paddedHiddenSize * bytesPerElement;
   const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'rmsnorm_output');
+  const dispatchPlan = planRMSNormDispatch(recorder, batchSize);
 
   const residualBuf = residual?.buffer || residual || input?.buffer || input || outputBuf;
 
@@ -151,8 +174,17 @@ export async function recordRMSNorm(
     recorder,
     variant,
     [input, normWeightBuffer, outputBuf, residualBuf],
-    { hidden_size: inferredHiddenSize, num_tokens: batchSize, eps, has_residual: residual ? 1 : 0 },
-    batchSize,
+    {
+      hidden_size: inferredHiddenSize,
+      num_tokens: batchSize,
+      eps,
+      has_residual: residual ? 1 : 0,
+      token_stride: dispatchPlan.tokenStride,
+      _pad0: 0,
+      _pad1: 0,
+      _pad2: 0,
+    },
+    dispatchPlan.workgroups,
     { RMS_NORM_OFFSET: rmsNormWeightOffset, WEIGHT_IS_F16: normWeightDtype === 'f16' }
   );
 
