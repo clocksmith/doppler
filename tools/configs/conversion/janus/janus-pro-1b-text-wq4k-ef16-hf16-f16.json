@@ -1,0 +1,20 @@
+{
+  "output": {
+    "baseDir": "models/local",
+    "modelBaseId": "janus-pro-1b-text-wq4k-ef16-hf16-f16",
+    "textOnly": true
+  },
+  "presets": {
+    "model": "janus_text"
+  },
+  "quantization": {
+    "weights": "q4k",
+    "embeddings": "f16",
+    "lmHead": "f16",
+    "computePrecision": "f16",
+    "q4kLayout": "row"
+  },
+  "manifest": {
+    "hashAlgorithm": "blake3"
+  }
+}

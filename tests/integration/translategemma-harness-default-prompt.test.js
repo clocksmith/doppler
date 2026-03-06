@@ -64,6 +64,27 @@ function createHarnessOverride() {
 {
   const { prompts, harnessOverride } = createHarnessOverride();
   const result = await runBrowserSuite({
+    runtime: {
+      runtimeConfig: {
+        inference: {
+          prompt: 'Hello from Doppler.',
+        },
+      },
+    },
+    suite: 'inference',
+    command: 'verify',
+    surface: 'node',
+    harnessOverride,
+  });
+
+  assert.equal(prompts.length, 1);
+  assert.deepEqual(prompts[0], EXPECTED_TRANSLATEGEMMA_PROMPT);
+  assert.equal(result.metrics.prompt, 'en -> fr: Hello world.');
+}
+
+{
+  const { prompts, harnessOverride } = createHarnessOverride();
+  const result = await runBrowserSuite({
     suite: 'debug',
     command: 'debug',
     surface: 'node',

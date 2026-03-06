@@ -1,4 +1,5 @@
 export function resolveEosTokenId({ config, tokenizer, tokenizerJson }) {
+  const nestedTextConfig = getNestedTextConfig(config);
   const candidateSources = [
     tokenizer?.eosTokenId,
     tokenizer?.eos_token_id,
@@ -7,9 +8,9 @@ export function resolveEosTokenId({ config, tokenizer, tokenizerJson }) {
     tokenizerJson?.special_tokens?.eos,
     tokenizerJson?.special_tokens?.eos_token_id,
     config?.eos_token_id,
-    config?.text_config?.eos_token_id,
+    nestedTextConfig?.eos_token_id,
     config?.eos_token_ids,
-    config?.text_config?.eos_token_ids,
+    nestedTextConfig?.eos_token_ids,
   ];
 
   for (const candidate of candidateSources) {
@@ -23,7 +24,7 @@ export function resolveEosTokenId({ config, tokenizer, tokenizerJson }) {
     tokenizerJson?.specialTokens?.eos_token,
     tokenizerJson?.special_tokens?.eos_token,
     config?.eos_token,
-    config?.text_config?.eos_token,
+    nestedTextConfig?.eos_token,
   ];
 
   for (const candidate of eosTokenStringCandidates) {
@@ -46,6 +47,19 @@ export function resolveEosTokenId({ config, tokenizer, tokenizerJson }) {
   }
 
   throw new Error('Missing eos_token_id. Provide eos_token_id in config or tokenizer metadata.');
+}
+
+function getNestedTextConfig(config) {
+  if (!config || typeof config !== 'object' || Array.isArray(config)) {
+    return null;
+  }
+  if (config.text_config && typeof config.text_config === 'object' && !Array.isArray(config.text_config)) {
+    return config.text_config;
+  }
+  if (config.language_config && typeof config.language_config === 'object' && !Array.isArray(config.language_config)) {
+    return config.language_config;
+  }
+  return null;
 }
 
 function normalizeEosTokenId(value) {

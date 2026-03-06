@@ -13,6 +13,19 @@ const { resolveEosTokenId } = await import('../../src/converter/tokenizer-utils.
 
 {
   const resolved = resolveEosTokenId({
+    config: {
+      language_config: {
+        eos_token_id: 100001,
+      },
+    },
+    tokenizer: null,
+    tokenizerJson: null,
+  });
+  assert.equal(resolved, 100001);
+}
+
+{
+  const resolved = resolveEosTokenId({
     config: null,
     tokenizer: {
       eos_token: '<eos>',

@@ -1,0 +1,87 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+
+import {
+  extractExecutionContractFacts,
+  renderExecutionContractLeanModule,
+  sanitizeLeanModuleName,
+} from '../../src/tooling/lean-execution-contract.js';
+
+{
+  const manifest = {
+    modelId: 'bdpa-prefill-contract-mismatch',
+    architecture: {
+      headDim: 256,
+      maxSeqLen: 131072,
+    },
+    inference: {
+      sessionDefaults: {
+        kvcache: {
+          layout: 'bdpa',
+        },
+        decodeLoop: {
+          batchSize: 16,
+        },
+      },
+      execution: {
+        steps: [
+          {
+            id: 'prefill_attention',
+            phase: 'prefill',
+            op: 'attention',
+          },
+          {
+            id: 'decode_attention',
+            phase: 'decode',
+            op: 'attention',
+          },
+        ],
+      },
+    },
+  };
+
+  const facts = extractExecutionContractFacts(manifest);
+  assert.deepEqual(facts.session, {
+    layout: 'bdpa',
+    disableCommandBatching: false,
+    decodeBatchSize: 16,
+    headDim: 256,
+    kvLen: 131072,
+    coldQuantMode: 'none',
+  });
+  assert.deepEqual(facts.steps, [
+    { id: 'prefill_attention', phase: 'prefill', opClass: 'attention' },
+    { id: 'decode_attention', phase: 'decode', opClass: 'attention' },
+  ]);
+
+  const rendered = renderExecutionContractLeanModule(facts, {
+    moduleName: 'BDPAPrefillContractMismatch',
+  });
+  assert.match(rendered, /layout := \.bdpa/);
+  assert.match(rendered, /decodeBatchSize := 16/);
+  assert.match(rendered, /phase := \.prefill/);
+  assert.match(rendered, /executionContractOverall/);
+}
+
+{
+  const manifest = JSON.parse(
+    fs.readFileSync('models/local/translategemma-4b-it-wq4k-ef16-hf16/manifest.json', 'utf8')
+  );
+
+  const facts = extractExecutionContractFacts(manifest);
+  assert.equal(facts.modelId, 'translategemma-4b-it-wq4k-ef16-hf16');
+  assert.equal(facts.session.layout, 'paged');
+  assert.equal(facts.session.decodeBatchSize, 16);
+  assert.equal(
+    facts.steps.some((step) => step.phase === 'prefill' && step.opClass === 'attention'),
+    true
+  );
+
+  const rendered = renderExecutionContractLeanModule(facts, {
+    moduleName: sanitizeLeanModuleName(facts.modelId),
+  });
+  assert.match(rendered, /layout := \.paged/);
+  assert.match(rendered, /translategemma-4b-it-wq4k-ef16-hf16\.steps/);
+}
+
+console.log('lean-execution-contract.test: ok');

@@ -13,6 +13,7 @@ import {
 assert.ok(PRESET_DETECTION_ORDER.length > 0);
 assert.ok(PRESET_DETECTION_ORDER.includes('transformer'));
 assert.ok(PRESET_DETECTION_ORDER.includes('gemma2'));
+assert.ok(PRESET_DETECTION_ORDER.includes('janus_text'));
 assert.ok(PRESET_DETECTION_ORDER.includes('lfm2'));
 
 {
@@ -20,6 +21,7 @@ assert.ok(PRESET_DETECTION_ORDER.includes('lfm2'));
   assert.ok(Array.isArray(presets));
   assert.ok(presets.includes('transformer'));
   assert.ok(presets.includes('gemma2'));
+  assert.ok(presets.includes('janus_text'));
   assert.ok(presets.includes('lfm2'));
   assert.ok(getPreset('transformer'));
   assert.equal(getPreset('missing-preset'), null);
@@ -64,6 +66,19 @@ assert.ok(PRESET_DETECTION_ORDER.includes('lfm2'));
     detectPreset({ model_type: 'gemma2' }, 'irrelevant'),
     'gemma2'
   );
+}
+
+{
+  const detected = detectPreset(
+    {
+      model_type: 'multi_modality',
+      language_config: {
+        model_type: 'janus_text',
+      },
+    },
+    'JanusTextForCausalLM'
+  );
+  assert.equal(detected, 'janus_text');
 }
 
 {
@@ -140,6 +155,37 @@ assert.ok(PRESET_DETECTION_ORDER.includes('lfm2'));
   assert.equal(resolved.tokenizer.unknownField, undefined);
   assert.ok(resolved.sampling);
   assert.ok(resolved.loading);
+}
+
+{
+  const resolved = resolveConfig({
+    modelId: 'janus-language-config-manifest',
+    modelType: 'transformer',
+    config: {
+      model_type: 'multi_modality',
+      language_config: {
+        model_type: 'janus_text',
+        num_hidden_layers: 24,
+        hidden_size: 2048,
+        intermediate_size: 5632,
+        num_attention_heads: 16,
+        num_key_value_heads: 16,
+        head_dim: 128,
+        vocab_size: 102400,
+        max_position_embeddings: 16384,
+        rope_theta: 10000,
+        rms_norm_eps: 1e-6,
+        tie_word_embeddings: false,
+      },
+    },
+  });
+
+  assert.equal(resolved.preset, 'janus_text');
+  assert.equal(resolved.architecture.numLayers, 24);
+  assert.equal(resolved.architecture.hiddenSize, 2048);
+  assert.equal(resolved.architecture.headDim, 128);
+  assert.equal(resolved.architecture.vocabSize, 102400);
+  assert.equal(resolved.inference.output.tieWordEmbeddings, false);
 }
 
 {

@@ -958,6 +958,7 @@ async function runKernelSuite(options = {}) {
 
 
 const DEFAULT_HARNESS_PROMPT = 'Summarize this input in one sentence.';
+const DEFAULT_RUNTIME_PLACEHOLDER_PROMPT = 'Hello from Doppler.';
 const DEFAULT_TRANSLATEGEMMA_PROMPT = Object.freeze({
   messages: Object.freeze([
     Object.freeze({
@@ -1249,6 +1250,16 @@ function buildDefaultGenerationPrompt(templateType) {
   return DEFAULT_HARNESS_PROMPT;
 }
 
+function shouldPreferModelDefaultPrompt(runtimePrompt, templateType) {
+  if (templateType !== 'translategemma') {
+    return false;
+  }
+  if (typeof runtimePrompt !== 'string') {
+    return false;
+  }
+  return runtimePrompt.trim() === DEFAULT_RUNTIME_PLACEHOLDER_PROMPT;
+}
+
 function describePromptInput(promptInput) {
   if (typeof promptInput === 'string') {
     return promptInput.trim() || DEFAULT_HARNESS_PROMPT;
@@ -1273,6 +1284,7 @@ function describePromptInput(promptInput) {
 }
 
 function resolveGenerationPromptInput(runtimeConfig, runOverrides = null, source = null) {
+  const templateType = resolvePromptTemplateType(source);
   const overridePrompt = runOverrides?.prompt;
   if (typeof overridePrompt === 'string' && overridePrompt.trim()) {
     return overridePrompt.trim();
@@ -1282,6 +1294,9 @@ function resolveGenerationPromptInput(runtimeConfig, runOverrides = null, source
   }
 
   const runtimePrompt = runtimeConfig?.inference?.prompt;
+  if (shouldPreferModelDefaultPrompt(runtimePrompt, templateType)) {
+    return buildDefaultGenerationPrompt(templateType);
+  }
   if (typeof runtimePrompt === 'string' && runtimePrompt.trim()) {
     return runtimePrompt.trim();
   }
@@ -1289,7 +1304,7 @@ function resolveGenerationPromptInput(runtimeConfig, runOverrides = null, source
     return clonePromptInput(runtimePrompt);
   }
 
-  return buildDefaultGenerationPrompt(resolvePromptTemplateType(source));
+  return buildDefaultGenerationPrompt(templateType);
 }
 
 function resolveMaxTokens(runtimeConfig) {

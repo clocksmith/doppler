@@ -14,6 +14,7 @@ const gemma3Preset = await loadJson('./presets/models/gemma3.json', import.meta.
 const translateGemmaPreset = await loadJson('./presets/models/translategemma.json', import.meta.url, 'Failed to load preset');
 const embeddingGemmaPreset = await loadJson('./presets/models/embeddinggemma.json', import.meta.url, 'Failed to load preset');
 const functiongemmaPreset = await loadJson('./presets/models/functiongemma.json', import.meta.url, 'Failed to load preset');
+const janusTextPreset = await loadJson('./presets/models/janus-text.json', import.meta.url, 'Failed to load preset');
 const llama3Preset = await loadJson('./presets/models/llama3.json', import.meta.url, 'Failed to load preset');
 const mixtralPreset = await loadJson('./presets/models/mixtral.json', import.meta.url, 'Failed to load preset');
 const deepseekPreset = await loadJson('./presets/models/deepseek.json', import.meta.url, 'Failed to load preset');
@@ -36,6 +37,7 @@ export const PRESET_REGISTRY = {
   translategemma: translateGemmaPreset,
   embeddinggemma: embeddingGemmaPreset,
   functiongemma: functiongemmaPreset,
+  janus_text: janusTextPreset,
   llama3: llama3Preset,
   mixtral: mixtralPreset,
   deepseek: deepseekPreset,
@@ -85,6 +87,7 @@ export const PRESET_DETECTION_ORDER = [
   // Most specific first (model variants)
   'functiongemma',
   'embeddinggemma',
+  'janus_text',
   'modernbert',
   'diffusion',
   // Model families (check more specific patterns first)
@@ -107,8 +110,9 @@ export function detectPreset(
   config,
   architecture
 ) {
+  const nestedTextConfig = getNestedTextConfig(config);
   const archLower = (architecture || '').toLowerCase();
-  const modelType = (config.model_type || '').toLowerCase();
+  const modelType = String(nestedTextConfig?.model_type ?? config.model_type ?? '').toLowerCase();
   // Weak hint case: architecture fallback is often model_type copy (e.g. qwen2).
   const hintsAreWeak = !archLower || !modelType || archLower === modelType;
 
@@ -317,39 +321,54 @@ function assertArchitecture(manifest, architecture) {
 // =============================================================================
 
 function extractArchitectureFromConfig(config) {
+  const nestedTextConfig = getNestedTextConfig(config);
   return {
-    numLayers: config.num_hidden_layers ?? config.n_layer ?? config.blockCount,
-    hiddenSize: config.hidden_size ?? config.n_embd ?? config.embeddingLength,
-    intermediateSize: config.intermediate_size ?? config.n_inner ?? config.feedForwardLength,
-    numAttentionHeads: config.num_attention_heads ?? config.n_head ?? config.attentionHeadCount,
-    numKeyValueHeads: config.num_key_value_heads ?? config.attentionHeadCountKV,
-    headDim: config.head_dim,
-    vocabSize: config.vocab_size ?? config.vocabSize,
-    maxSeqLen: config.max_position_embeddings ?? config.n_positions ?? config.contextLength,
-    ropeTheta: config.rope_theta ?? config.ropeFreqBase,
-    rmsNormEps: config.rms_norm_eps ?? config.attentionLayerNormRMSEpsilon,
+    numLayers: config.num_hidden_layers ?? nestedTextConfig?.num_hidden_layers ?? config.n_layer ?? config.blockCount,
+    hiddenSize: config.hidden_size ?? nestedTextConfig?.hidden_size ?? config.n_embd ?? config.embeddingLength,
+    intermediateSize: config.intermediate_size ?? nestedTextConfig?.intermediate_size ?? config.n_inner ?? config.feedForwardLength,
+    numAttentionHeads: config.num_attention_heads ?? nestedTextConfig?.num_attention_heads ?? config.n_head ?? config.attentionHeadCount,
+    numKeyValueHeads: config.num_key_value_heads ?? nestedTextConfig?.num_key_value_heads ?? config.attentionHeadCountKV,
+    headDim: config.head_dim ?? nestedTextConfig?.head_dim,
+    vocabSize: config.vocab_size ?? nestedTextConfig?.vocab_size ?? config.vocabSize,
+    maxSeqLen: config.max_position_embeddings ?? nestedTextConfig?.max_position_embeddings ?? config.n_positions ?? config.contextLength,
+    ropeTheta: config.rope_theta ?? nestedTextConfig?.rope_theta ?? config.ropeFreqBase,
+    rmsNormEps: config.rms_norm_eps ?? nestedTextConfig?.rms_norm_eps ?? config.attentionLayerNormRMSEpsilon,
   };
 }
 
 function extractInferenceFromConfig(config) {
+  const nestedTextConfig = getNestedTextConfig(config);
   return {
     attention: {
-      slidingWindow: config.sliding_window,
-      attnLogitSoftcapping: config.attn_logit_softcapping,
-      attentionOutputGate: config.attn_output_gate,
+      slidingWindow: config.sliding_window ?? nestedTextConfig?.sliding_window,
+      attnLogitSoftcapping: config.attn_logit_softcapping ?? nestedTextConfig?.attn_logit_softcapping,
+      attentionOutputGate: config.attn_output_gate ?? nestedTextConfig?.attn_output_gate,
     },
     output: {
-      finalLogitSoftcapping: config.final_logit_softcapping,
-      tieWordEmbeddings: config.tie_word_embeddings,
-      scaleEmbeddings: config.scale_embeddings,
+      finalLogitSoftcapping: config.final_logit_softcapping ?? nestedTextConfig?.final_logit_softcapping,
+      tieWordEmbeddings: config.tie_word_embeddings ?? nestedTextConfig?.tie_word_embeddings,
+      scaleEmbeddings: config.scale_embeddings ?? nestedTextConfig?.scale_embeddings,
     },
-    pipeline: config.pipeline,
+    pipeline: config.pipeline ?? nestedTextConfig?.pipeline,
     rope: {
-      ropeTheta: config.rope_theta ?? config.ropeFreqBase,
-      ropeScalingType: config.rope_scaling_type,
-      ropeScalingFactor: config.rope_scaling_factor,
+      ropeTheta: config.rope_theta ?? nestedTextConfig?.rope_theta ?? config.ropeFreqBase,
+      ropeScalingType: config.rope_scaling_type ?? nestedTextConfig?.rope_scaling_type,
+      ropeScalingFactor: config.rope_scaling_factor ?? nestedTextConfig?.rope_scaling_factor,
     },
   };
+}
+
+function getNestedTextConfig(config) {
+  if (!config || typeof config !== 'object' || Array.isArray(config)) {
+    return null;
+  }
+  if (config.text_config && typeof config.text_config === 'object' && !Array.isArray(config.text_config)) {
+    return config.text_config;
+  }
+  if (config.language_config && typeof config.language_config === 'object' && !Array.isArray(config.language_config)) {
+    return config.language_config;
+  }
+  return null;
 }
 
 function extractTokenizerFromManifest(manifest) {

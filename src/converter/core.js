@@ -76,7 +76,8 @@ function resolveTokenizerField(tokenizerConfig, ...keys) {
 }
 
 function resolveTokenizerVocabSize(tokenizerConfig, rawConfig, architecture) {
-  const configVocab = rawConfig?.vocab_size ?? rawConfig?.text_config?.vocab_size;
+  const nestedTextConfig = getNestedTextConfig(rawConfig);
+  const configVocab = rawConfig?.vocab_size ?? nestedTextConfig?.vocab_size;
   const tokenizerVocab = tokenizerConfig?.vocab_size ?? tokenizerConfig?.vocabSize;
   const archVocab = architecture?.vocabSize;
   return tokenizerVocab ?? configVocab ?? archVocab ?? null;
@@ -223,21 +224,22 @@ function toFloat32ForQ4K(tensorData, sourceDtype, tensorName) {
 
 function resolveConfigTokenId(rawConfig, key) {
   const direct = rawConfig?.[key];
-  const nested = rawConfig?.text_config?.[key];
+  const nested = getNestedTextConfig(rawConfig)?.[key];
   return resolveTokenizerId(direct ?? nested);
 }
 
 function resolveConfigTokenIds(rawConfig, key) {
   const direct = rawConfig?.[key];
-  const nested = rawConfig?.text_config?.[key];
+  const nested = getNestedTextConfig(rawConfig)?.[key];
   return resolveTokenizerIds(direct ?? nested);
 }
 
 function resolveMoEConfigNumber(rawConfig, ...keys) {
+  const nestedTextConfig = getNestedTextConfig(rawConfig);
   for (const key of keys) {
     const direct = rawConfig?.[key];
     if (Number.isFinite(direct) && direct > 0) return Number(direct);
-    const nested = rawConfig?.text_config?.[key];
+    const nested = nestedTextConfig?.[key];
     if (Number.isFinite(nested) && nested > 0) return Number(nested);
   }
   return null;
@@ -317,7 +319,7 @@ function resolveIntermediateSizeFromTensors(architecture, model, tensorLocations
   if (typeof current !== 'number' || !Number.isFinite(current) || current <= 0) {
     return architecture;
   }
-  const modelType = String(rawConfig?.model_type ?? rawConfig?.text_config?.model_type ?? '').toLowerCase();
+  const modelType = String(rawConfig?.model_type ?? getNestedTextConfig(rawConfig)?.model_type ?? '').toLowerCase();
   if (modelType !== 'lfm2') {
     return architecture;
   }
@@ -359,7 +361,7 @@ function resolveMoEExpertFormat(rawConfig, resolvedModelType, quantizationInfo, 
   const modelType = String(
     resolvedModelType ??
     rawConfig?.model_type ??
-    rawConfig?.text_config?.model_type ??
+    getNestedTextConfig(rawConfig)?.model_type ??
     ''
   ).toLowerCase();
   if (modelType.includes('gpt_oss') || modelType.includes('gpt-oss') || modelType.includes('gptoss')) {
@@ -725,9 +727,7 @@ export function extractArchitecture(config, ggufConfig) {
 
   // Try HuggingFace config first
   if (config && Object.keys(config).length > 0) {
-    const textConfig = (
-      config.text_config && typeof config.text_config === 'object' && !Array.isArray(config.text_config)
-    ) ? config.text_config : null;
+    const textConfig = getNestedTextConfig(config);
     const fromConfig = (...keys) => {
       const values = [];
       for (const key of keys) {
@@ -858,6 +858,19 @@ export function extractArchitecture(config, ggufConfig) {
   }
 
   throw new Error('Missing model config: cannot extract architecture');
+}
+
+function getNestedTextConfig(config) {
+  if (!config || typeof config !== 'object' || Array.isArray(config)) {
+    return null;
+  }
+  if (config.text_config && typeof config.text_config === 'object' && !Array.isArray(config.text_config)) {
+    return config.text_config;
+  }
+  if (config.language_config && typeof config.language_config === 'object' && !Array.isArray(config.language_config)) {
+    return config.language_config;
+  }
+  return null;
 }
 
 

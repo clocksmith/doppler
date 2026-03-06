@@ -1,7 +1,7 @@
 {
   "version": 1,
   "lifecycleSchemaVersion": 1,
-  "updatedAt": "2026-03-05",
+  "updatedAt": "2026-03-06",
   "models": [
     {
       "modelId": "gemma-3-270m-it-wq4k-ef16-hf16",
@@ -108,7 +108,7 @@
         "revision": null,
         "path": "models/translategemma-4b-it-wq4k-ef16-hf16"
       },
-      "baseUrl": "./curated/translategemma-4b-it-wq4k-ef16-hf16",
+      "baseUrl": null,
       "sizeBytes": 3167327178,
       "recommended": false,
       "sortOrder": 15,
@@ -119,12 +119,18 @@
           "hf": false
         },
         "status": {
-          "runtime": "pending",
+          "runtime": "active",
           "conversion": "ready",
           "demo": "none",
-          "tested": "untested"
+          "tested": "verified"
         },
-        "tested": null
+        "tested": {
+          "suite": "inference",
+          "surface": "browser",
+          "result": "pass",
+          "lastVerifiedAt": "2026-03-06",
+          "source": "manual-review"
+        }
       }
     },
     {

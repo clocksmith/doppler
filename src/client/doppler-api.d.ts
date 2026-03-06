@@ -70,4 +70,11 @@ export declare function load(
   options?: DopplerLoadOptions
 ): Promise<DopplerModel>;
 
+export declare function createDefaultNodeLoadProgressLogger(): (event: DopplerLoadProgress) => void;
+
+export declare function resolveLoadProgressHandlers(options?: DopplerLoadOptions): {
+  userProgress: ((event: DopplerLoadProgress) => void) | null;
+  pipelineProgress: ((event: DopplerLoadProgress) => void) | null;
+};
+
 export declare const doppler: DopplerNamespace;

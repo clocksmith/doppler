@@ -105,7 +105,7 @@
         ]
       },
       "kvcache": {
-        "layout": "bdpa",
+        "layout": "paged",
         "kvDtype": "f16",
         "pageSize": 128,
         "windowSize": 1024,
