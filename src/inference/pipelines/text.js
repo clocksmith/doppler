@@ -1,5 +1,5 @@
 
-import { getDevice } from '../../gpu/device.js';
+import { getDevice, initDevice } from '../../gpu/device.js';
 import { getBufferPool as getGlobalBufferPool } from '../../memory/buffer-pool.js';
 import { log } from '../../debug/index.js';
 import { configurePerfGuards } from '../../gpu/perf-guards.js';
@@ -84,6 +84,12 @@ export class InferencePipeline extends PipelineState {
     this.runtimeConfig = runtimeConfig;
     applyPipelineDebugConfig(sharedDebug?.pipeline);
     configurePerfGuards(sharedDebug?.perfGuards);
+
+    if (!this.gpuContext?.device && typeof globalThis.navigator !== 'undefined' && globalThis.navigator?.gpu) {
+      const device = await initDevice();
+      this.gpuContext = { device };
+      this.useGPU = true;
+    }
 
     this.emulation = await initEmulation(this.runtimeConfig);
 
