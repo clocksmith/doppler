@@ -6833,6 +6833,153 @@
         }
       }
     },
+    "repeat_channels": {
+      "description": "Repeat channels along the NCHW channel axis",
+      "baseBindings": [
+        {
+          "index": 0,
+          "name": "uniforms",
+          "type": "uniform"
+        },
+        {
+          "index": 1,
+          "name": "input",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 2,
+          "name": "output",
+          "type": "storage"
+        }
+      ],
+      "baseUniforms": {
+        "size": 20,
+        "fields": [
+          {
+            "name": "in_channels",
+            "type": "u32",
+            "offset": 0
+          },
+          {
+            "name": "height",
+            "type": "u32",
+            "offset": 4
+          },
+          {
+            "name": "width",
+            "type": "u32",
+            "offset": 8
+          },
+          {
+            "name": "repeats",
+            "type": "u32",
+            "offset": 12
+          },
+          {
+            "name": "_pad0",
+            "type": "u32",
+            "offset": 16
+          }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "repeat_channels.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [],
+          "outputDtype": "f32"
+        },
+        "default_f16": {
+          "wgsl": "repeat_channels_f16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "outputDtype": "f16"
+        }
+      }
+    },
+    "relu": {
+      "description": "ReLU activation",
+      "baseBindings": [
+        {
+          "index": 0,
+          "name": "uniforms",
+          "type": "uniform"
+        },
+        {
+          "index": 1,
+          "name": "input",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 2,
+          "name": "output",
+          "type": "storage"
+        }
+      ],
+      "baseUniforms": {
+        "size": 16,
+        "fields": [
+          {
+            "name": "size",
+            "type": "u32",
+            "offset": 0
+          },
+          {
+            "name": "_pad0",
+            "type": "u32",
+            "offset": 4
+          },
+          {
+            "name": "_pad1",
+            "type": "u32",
+            "offset": 8
+          },
+          {
+            "name": "_pad2",
+            "type": "u32",
+            "offset": 12
+          }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "relu.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [],
+          "outputDtype": "f32"
+        },
+        "default_f16": {
+          "wgsl": "relu_f16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "outputDtype": "f16"
+        }
+      }
+    },
     "conv2d_backward_input": {
       "description": "Conv2D backward (input gradient)",
       "baseBindings": [

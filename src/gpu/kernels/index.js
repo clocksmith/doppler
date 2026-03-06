@@ -220,6 +220,16 @@ export {
   recordSanaLinearAttention,
 } from './sana_linear_attention.js';
 
+export {
+  runRepeatChannels,
+  recordRepeatChannels,
+} from './repeat_channels.js';
+
+export {
+  runReLU,
+  recordReLU,
+} from './relu.js';
+
 // Fused FFN (Tier 2 P0)
 export {
   runFusedFFN,
