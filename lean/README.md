@@ -6,24 +6,34 @@ Purpose:
 
 Current scope:
 - `Doppler/Model.lean`
-  - core execution-contract vocabulary (`KVLayout`, `Phase`, `Dtype`, `OpClass`)
+  - core execution-contract and kernel-path vocabulary (`KVLayout`, `Phase`, `Dtype`, `OpClass`)
 - `Doppler/ExecutionContract.lean`
   - compatibility predicates for KV layout vs attention phases
   - session-consistency predicates for BDPA and tiered layouts
   - proofs for the concrete bug class where a manifest declares a decode-only KV layout while also declaring prefill attention
 - `Doppler/ExecutionContractFixtures.lean`
   - `TranslateGemma`-style conflicting and fixed fixtures
+- `Doppler/KernelPath.lean`
+  - alias-resolution predicates for kernel-path registries
+  - fallback activation-dtype monotonicity predicates
+  - proofs that self-cycles and missing alias targets are rejected, and that valid fallback pairs never narrow precision
+- `Doppler/KernelPathFixtures.lean`
+  - registry and fallback-pair fixtures for pass/fail checks
 - `Doppler/Check.lean`
-  - simple checker entry point that renders fixture verdicts
+  - simple checker entry point that renders execution-contract and kernel-path fixture verdicts
 
 Initial target bug class:
 - execution-v0 manifest contains attention steps with `phase = prefill` or `phase = both`
 - session defaults choose `kvcache.layout = bdpa`
 - runtime later fails because BDPA attention is decode-only
 
+Current kernel-path target bug class:
+- alias registry entries introduce cycles or missing alias targets
+- finiteness fallback kernel-path mappings narrow activation dtype (`f32 -> f16`)
+- runtime would silently degrade precision or fail later when those policies are consumed
+
 This module is intentionally narrow. It does not yet model:
 - runtime merge algebra for JSON objects
-- kernel-path alias resolution
 - precision precedence and cast-step requirements
 - manifest extraction into JSON artifacts
 
@@ -56,7 +66,9 @@ Expected output:
 
 ```text
 ["translategemma_conflicting_steps: fail", "translategemma_conflicting_session: fail",
- "translategemma_fixed_steps: pass", "translategemma_fixed_session: pass"]
+ "translategemma_fixed_steps: pass", "translategemma_fixed_session: pass",
+ "kernelpath_valid_aliases: pass", "kernelpath_conflicting_aliases: fail",
+ "kernelpath_valid_fallback_pairs: pass", "kernelpath_conflicting_fallback_pairs: fail"]
 lean-check: ok (leanprover/lean4:v4.16.0)
 ```
 

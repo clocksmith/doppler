@@ -1,6 +1,8 @@
 import { DEFAULT_ENTRY } from './schema/kernel-path.schema.js';
 import { KERNEL_CONFIGS } from '../gpu/kernels/utils.js';
+import { selectByRules } from '../gpu/kernels/rule-matcher.js';
 import { loadJson } from '../utils/load-json.js';
+import { buildKernelPathContractArtifact } from './kernel-path-contract-check.js';
 
 // =============================================================================
 // Built-in Kernel Paths (imported at build time)
@@ -77,6 +79,11 @@ const KERNEL_PATH_REGISTRY_INDEX = new Map(
 );
 
 const KERNEL_PATH_REGISTRY = Object.create(null);
+const KERNEL_PATH_RULES = await loadJson(
+  '../rules/inference/kernel-path.rules.json',
+  import.meta.url,
+  'Failed to load kernel path rules'
+);
 
 const resolveKernelPathConfig = (id, chain = new Set()) => {
   if (KERNEL_PATH_REGISTRY[id] !== undefined) {
@@ -117,6 +124,36 @@ for (const entry of KERNEL_PATH_REGISTRY_ENTRIES) {
   resolveKernelPathConfig(entry.id);
 }
 
+const KERNEL_PATH_FINITENESS_FALLBACK_MAPPINGS = KERNEL_PATH_REGISTRY_ENTRIES
+  .map((entry) => {
+    const fallbackKernelPathId = selectByRules(
+      Array.isArray(KERNEL_PATH_RULES?.finitenessFallback) ? KERNEL_PATH_RULES.finitenessFallback : [],
+      { kernelPathId: entry.id }
+    );
+    if (typeof fallbackKernelPathId !== 'string' || fallbackKernelPathId.length === 0) {
+      return null;
+    }
+    return {
+      primaryKernelPathId: entry.id,
+      fallbackKernelPathId,
+      primaryActivationDtype: KERNEL_PATH_REGISTRY[entry.id]?.activationDtype ?? null,
+      fallbackActivationDtype: KERNEL_PATH_REGISTRY[fallbackKernelPathId]?.activationDtype ?? null,
+    };
+  })
+  .filter(Boolean);
+
+const KERNEL_PATH_CONTRACT_ARTIFACT = buildKernelPathContractArtifact(
+  {
+    registryId: 'builtin-kernel-paths',
+    entries: KERNEL_PATH_REGISTRY_ENTRIES,
+    fallbackMappings: KERNEL_PATH_FINITENESS_FALLBACK_MAPPINGS,
+  }
+);
+
+if (!KERNEL_PATH_CONTRACT_ARTIFACT.ok) {
+  throw new Error(KERNEL_PATH_CONTRACT_ARTIFACT.errors[0]);
+}
+
 // =============================================================================
 // Public API
 // =============================================================================
@@ -127,6 +164,17 @@ export function getKernelPath(id) {
 
 export function listKernelPaths() {
   return Object.keys(KERNEL_PATH_REGISTRY);
+}
+
+export function getKernelPathContractArtifact() {
+  return {
+    schemaVersion: KERNEL_PATH_CONTRACT_ARTIFACT.schemaVersion,
+    source: KERNEL_PATH_CONTRACT_ARTIFACT.source,
+    ok: KERNEL_PATH_CONTRACT_ARTIFACT.ok,
+    checks: KERNEL_PATH_CONTRACT_ARTIFACT.checks.map((entry) => ({ ...entry })),
+    errors: [...KERNEL_PATH_CONTRACT_ARTIFACT.errors],
+    stats: { ...KERNEL_PATH_CONTRACT_ARTIFACT.stats },
+  };
 }
 
 export function resolveKernelPath(ref) {
