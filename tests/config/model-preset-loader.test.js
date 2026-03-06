@@ -33,6 +33,7 @@ assert.ok(PRESET_DETECTION_ORDER.includes('lfm2'));
   assert.equal(resolved.extends, undefined);
   assert.equal(resolved.modelType, 'transformer');
   assert.ok(resolved.inference);
+  assert.equal(resolved.inference.output.scaleEmbeddings, true);
 }
 
 {

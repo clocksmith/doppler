@@ -12,6 +12,9 @@
       "slidingWindow": null,
       "queryKeyNorm": true
     },
+    "output": {
+      "scaleEmbeddings": true
+    },
     "normalization": {
       "rmsNormWeightOffset": false,
       "rmsNormEps": 1e-6

@@ -37,8 +37,7 @@ Node runner entrypoint: `runNodeCommand()`.
 CLI entrypoint: `tools/doppler-cli.js`.
 
 Node WebGPU provider resolution order:
-`DOPPLER_NODE_WEBGPU_MODULE` (explicit override) -> local sibling
-`../fawn/nursery/webgpu-core` (when present) -> `@doe/webgpu-core` -> `webgpu`.
+`DOPPLER_NODE_WEBGPU_MODULE` (explicit override) -> `@simulatte/webgpu` -> `webgpu`.
 If none resolve, fail explicitly.
 
 ## Runtime patching
