@@ -1,4 +1,4 @@
-import { DEFAULT_COMPUTE_DEFAULTS } from '../../config/schema/inference-defaults.schema.js';
+import { DEFAULT_COMPUTE_DEFAULTS } from '../../../config/schema/inference-defaults.schema.js';
 
 const {
   enabled: DEFAULT_FINITENESS_ENABLED,
