@@ -13,7 +13,7 @@ Updated at: 2026-03-05
 | modernbert | embedding | active | 1 (tools/configs/conversion/modernbert/modernbert-template-wf16-ef16-hf16-f16.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
 | diffusion | diffusion | active | 1 (tools/configs/conversion/diffusion/diffusion-template-wf16-ef16-hf16-f16.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
 | gemma2 | transformer | active | 1 (tools/configs/conversion/gemma2/gemma2-template-wf16-ef16-hf16-f16.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
-| translategemma | transformer | active | 1 (tools/configs/conversion/gemma3/translategemma-4b-it-wq4k-ef16-hf16.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
+| translategemma | transformer | active | 1 (tools/configs/conversion/gemma3/translategemma-4b-it-wq4k-ef16-hf16.json) | 1 (translategemma-4b-it-wq4k-ef16-hf16) | no | none | unknown | ready | not verified in catalog lifecycle |
 | gemma3 | transformer | active | 8 (tools/configs/conversion/gemma3/gemma-3-1b-it-wf16-ef16-hf16-f16.json, tools/configs/conversion/gemma3/gemma-3-1b-it-wf16-ef16-hf16-f32.json, tools/configs/conversion/gemma3/gemma-3-1b-it-wq4k-ef16-hf16-f32.json, +5 more) | 1 (gemma-3-270m-it-wq4k-ef16-hf16) | yes | curated | verified (2026-03-04) | ready | - |
 | llama3 | transformer | active | 1 (tools/configs/conversion/llama3/llama3-template-wf16-ef16-hf16-f16.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
 | lfm2 | transformer | active | 2 (tools/configs/conversion/lfm2/lfm2.5-1.2b-instruct-wq4k-ef16-hf16-f16.json, tools/configs/conversion/lfm2/lfm2.5-1.2b-instruct-wq4k-ef16-hf16-f32.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
@@ -29,10 +29,10 @@ Updated at: 2026-03-05
 
 - Presets tracked: 16
 - Presets with conversion configs: 16
-- Presets present in catalog: 3
-- Ready presets (active runtime + conversion + catalog): 3
+- Presets present in catalog: 4
+- Ready presets (active runtime + conversion + catalog): 4
 - Presets with HF-hosted catalog entries: 2
 - Presets with verified catalog lifecycle: 2
 - Blocked runtime presets: 1
-- Catalog entries: 4
+- Catalog entries: 5
 

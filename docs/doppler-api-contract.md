@@ -151,7 +151,7 @@ interface ChatResponse {
 ```js
 import { doppler } from '@simulatte/doppler';
 
-const model = await doppler.load('gemma-3-1b');
+const model = await doppler.load('gemma3-270m');
 
 for await (const token of model.generate('Hello, world')) {
   process.stdout.write(token);
@@ -163,7 +163,7 @@ for await (const token of model.generate('Hello, world')) {
 ```js
 const controller = new AbortController();
 
-const model = await doppler.load('gemma-3-1b', {
+const model = await doppler.load('gemma3-270m', {
   onProgress: ({ phase, percent }) => console.log(`${phase}: ${percent}%`),
   signal: controller.signal,
 });
@@ -184,8 +184,8 @@ for await (const token of model.generate('Hello with adapter')) {
 }
 
 // Multi-model
-const small = await doppler.load('gemma-3-1b');
-const large = await doppler.load('lfm-2.5-1.2b');
+const small = await doppler.load('gemma3-270m');
+const large = await doppler.load('google-embeddinggemma-300m-wq4k-ef16');
 
 // Cleanup
 await model.unload();
@@ -252,20 +252,20 @@ All follow the same cache-key, single-flight, and resolve rules as `doppler()`.
 import { doppler } from '@simulatte/doppler';
 
 // Streaming (caches model on first call)
-for await (const token of doppler('Hello', { model: 'gemma-3-1b' })) {
+for await (const token of doppler('Hello', { model: 'gemma3-270m' })) {
   process.stdout.write(token);
 }
 
 // Non-streaming
-const text = await doppler.text('Summarize WebGPU', { model: 'gemma-3-1b' });
+const text = await doppler.text('Summarize WebGPU', { model: 'gemma3-270m' });
 
 // Chat
 const reply = await doppler.chatText([
   { role: 'user', content: 'Explain OPFS' },
-], { model: 'gemma-3-1b' });
+], { model: 'gemma3-270m' });
 
 // Evict when done
-await doppler.evict('gemma-3-1b');
+await doppler.evict('gemma3-270m');
 ```
 
 ---

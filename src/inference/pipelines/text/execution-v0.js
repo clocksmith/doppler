@@ -704,12 +704,20 @@ function normalizeRuntimeSessionForExecutionV0(runtimeSession, manifestInference
   const manifestProfiles = manifestSessionDefaults?.compute?.kernelProfiles;
   const hasManifestProfiles = Array.isArray(manifestProfiles) && manifestProfiles.length > 0;
   const manifestComputeDefaults = manifestSessionDefaults?.compute?.defaults ?? null;
+  const hasManifestKVCache = manifestSessionDefaults?.kvcache != null;
+  const hasManifestDecodeLoop = manifestSessionDefaults?.decodeLoop != null;
 
-  if (!runtimeSession || !runtimeSession.compute) {
+  if (!runtimeSession || typeof runtimeSession !== 'object') {
     return runtimeSession;
   }
 
-  let compute = runtimeSession.compute;
+  let compute = runtimeSession.compute ?? null;
+  let kvcache = Object.prototype.hasOwnProperty.call(runtimeSession, 'kvcache')
+    ? runtimeSession.kvcache
+    : undefined;
+  let decodeLoop = Object.prototype.hasOwnProperty.call(runtimeSession, 'decodeLoop')
+    ? runtimeSession.decodeLoop
+    : undefined;
   let changed = false;
 
   // Strip preset compute dtype defaults when manifest provides model-specific values.
@@ -736,19 +744,39 @@ function normalizeRuntimeSessionForExecutionV0(runtimeSession, manifestInference
     }
   }
 
+  // Strip preset nulls so manifest session defaults can win.
+  if (kvcache === null && hasManifestKVCache) {
+    kvcache = undefined;
+    changed = true;
+  }
+
+  if (decodeLoop === null && hasManifestDecodeLoop) {
+    decodeLoop = undefined;
+    changed = true;
+  }
+
   if (!changed) {
     return runtimeSession;
   }
 
+  const nextRuntimeSession = { ...runtimeSession };
   if (!compute) {
-    const { compute: _removed, ...rest } = runtimeSession;
-    return Object.keys(rest).length === 0 ? {} : rest;
+    delete nextRuntimeSession.compute;
+  } else {
+    nextRuntimeSession.compute = compute;
+  }
+  if (kvcache === undefined) {
+    delete nextRuntimeSession.kvcache;
+  } else {
+    nextRuntimeSession.kvcache = kvcache;
+  }
+  if (decodeLoop === undefined) {
+    delete nextRuntimeSession.decodeLoop;
+  } else {
+    nextRuntimeSession.decodeLoop = decodeLoop;
   }
 
-  return {
-    ...runtimeSession,
-    compute,
-  };
+  return Object.keys(nextRuntimeSession).length === 0 ? {} : nextRuntimeSession;
 }
 
 function validatePhaseBoundaryCompatibility(options) {

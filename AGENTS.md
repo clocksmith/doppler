@@ -15,6 +15,17 @@ Repository: https://github.com/clocksmith/doppler
 
 These guides define performance and architecture invariants. Do not bypass them.
 
+### Agent Enforcement
+
+- Before the first non-trivial code edit in any turn, open the style-guide files above in that turn.
+- If work resumes from a summary, handoff, or context compaction, re-open the required guides before editing. Prior summaries do not count as having read them.
+- When changing config merge, manifest-first resolution, execution-v0, kernel-path selection, or runtime fallback behavior, explicitly re-check these sections before writing code:
+  - `docs/style/general-style-guide.md`: `Explicit over Implicit`, `No Runtime Defaults in Code`, `Nullable Required Fields`
+  - `docs/style/javascript-style-guide.md`: `Manifest-First Contract`, `Runtime Configuration (Performance Invariants)`
+- Any change that could silently rewrite manifest/runtime behavior must either:
+  - fail fast with an actionable error, or
+  - add a regression test proving the rewrite cannot occur silently.
+
 ### Directory Structure
 
 ```
@@ -114,6 +125,28 @@ When a freshly converted model regresses, separate conversion integrity from run
 
 Do not claim a conversion bug unless steps 1-4 fail.
 Do not claim a runtime bug unless steps 1-4 pass and runtime still diverges.
+
+### Conversion Promotion Gate (Required)
+
+When a conversion is intended for reuse, registry inclusion, or Hugging Face publication:
+
+1. Keep the conversion reproducible
+- If the model was converted with an ad hoc or temporary config and the local run succeeds, promote that config into `tools/configs/conversion/` before treating the workflow as reusable.
+
+2. Prove the model produces coherent output
+- Do not stop at manifest/shard validation or load success.
+- Run a real inference/debug pass with a deterministic prompt via runtime config (for example `runtime.inference.prompt` plus deterministic sampling) and inspect the emitted text in the command result/report.
+- Treat empty, collapsed, NaN-like, or obviously incoherent output as a failed candidate even if the command exits successfully.
+
+3. Put a human in the loop before publication
+- Summarize the exact prompt used and the observed output for the user.
+- Before adding or updating `models/catalog.json`, syncing support-matrix/catalog metadata, or uploading/publishing artifacts to Hugging Face, stop and ask the human to review the coherence result and confirm whether to proceed.
+
+4. Offer performance follow-up before publication
+- When a candidate looks correct, propose optional perf validation before registry/HF promotion:
+  - `npm run bench`
+  - vendor benchmark / compare-engine runs (`node tools/vendor-bench.js ...`, `node tools/compare-engines.js ...`)
+- If catalog entries change after approval, update derived docs with `npm run support:matrix:sync`.
 
 ### Logging
 

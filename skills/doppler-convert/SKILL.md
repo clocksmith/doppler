@@ -36,7 +36,7 @@ npm run convert -- --config '{
 }'
 
 # Same conversion through direct Node helper with converter-config JSON
-node tools/convert-safetensors-node.js INPUT_PATH models/local/OUTPUT_ID --model-id OUTPUT_ID --converter-config ./converter-config.json
+node tools/convert-safetensors-node.js INPUT_PATH --config ./converter-config.json --output-dir models/local/OUTPUT_ID
 ```
 
 Notes:
@@ -78,6 +78,34 @@ ls models/local/OUTPUT_ID/shard_*.bin | wc -l
 # 4) Sanity-run inference
 npm run debug -- --config '{"request":{"modelId":"OUTPUT_ID","runtimePreset":"modes/debug"},"run":{"surface":"auto"}}' --json
 ```
+
+For publication candidates, the verification bar is higher:
+
+1. Promote successful ad hoc configs
+- If the conversion used a temporary or inline config and the model runs successfully, copy/promote that config into `tools/configs/conversion/` so the conversion is reproducible.
+
+2. Run an actual coherence check
+- Use a deterministic prompt and deterministic sampling, not just a load-only run.
+- Recommended shape:
+
+```bash
+npm run debug -- \
+  --config '{"request":{"modelId":"OUTPUT_ID","runtimePreset":"modes/debug"},"run":{"surface":"auto"}}' \
+  --runtime-config '{"shared":{"tooling":{"intent":"verify"}},"inference":{"prompt":"Explain what this model is in one short sentence.","sampling":{"temperature":0,"topK":1}}}' \
+  --json
+```
+
+- Inspect `result.output` (and summary metrics) for non-empty, coherent text.
+
+3. Pause for HITL review before promotion
+- Summarize the prompt and observed output for the human.
+- Before adding `models/catalog.json` entries, syncing support-matrix metadata, or uploading/publishing to Hugging Face, stop and ask for confirmation.
+
+4. Offer optional perf validation
+- If the output looks correct, propose:
+  - `npm run bench -- --config ... --json`
+  - `node tools/vendor-bench.js ...`
+  - `node tools/compare-engines.js ...`
 
 ## Conversion Triage Contract
 

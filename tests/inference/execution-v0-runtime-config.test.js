@@ -100,6 +100,64 @@ function kernelRef(kernel, entry = 'main') {
 }
 
 {
+  const runtimeConfig = createDopplerConfig({}).runtime;
+  const manifest = {
+    modelId: 'execution-v0-kv-manifest',
+    architecture: { numLayers: 1 },
+    inference: {
+      schema: 'doppler.execution/v0',
+      sessionDefaults: {
+        compute: {
+          defaults: {
+            activationDtype: 'f32',
+            mathDtype: 'f32',
+            accumDtype: 'f32',
+            outputDtype: 'f32',
+          },
+          kernelProfiles: [
+            { kernelRef: kernelRef('attention_streaming_f16kv.wgsl', 'main') },
+          ],
+        },
+        kvcache: {
+          kvDtype: 'f16',
+        },
+      },
+      execution: {
+        steps: [
+          {
+            id: 'prefill-attn',
+            phase: 'prefill',
+            section: 'layer',
+            op: 'attention',
+            src: 'state',
+            dst: 'state',
+            layers: 'all',
+            kernel: 'attention_streaming_f16kv.wgsl',
+            entry: 'main',
+            kvIO: {
+              readDtype: 'f16',
+              writeDtype: 'f16',
+            },
+            kernelRef: kernelRef('attention_streaming_f16kv.wgsl', 'main'),
+          },
+        ],
+        policies: {
+          precisionPrecedence: 'step_then_kernel_profile_then_session_default',
+          unsupportedPrecision: 'error',
+          dtypeTransition: 'require_cast_step',
+          unresolvedKernel: 'error',
+        },
+      },
+    },
+  };
+
+  const resolved = applyExecutionV0RuntimeConfig({ runtimeConfig, manifest });
+  assert.ok(resolved.executionV0State);
+  assert.equal(resolved.runtimeConfig.inference.kvcache.kvDtype, 'f16');
+  assert.equal(resolved.runtimeConfig.inference.kernelPath.kvDtype, 'f16');
+}
+
+{
   assert.throws(
     () => applyExecutionV0RuntimeConfig({
       runtimeConfig: { inference: {} },
