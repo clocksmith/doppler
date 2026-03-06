@@ -16,6 +16,8 @@
     "bench": "node tools/doppler-cli.js bench",
     "lean:check": "./lean/check.sh",
     "lean:execution-contract": "node tools/lean-execution-contract.js",
+    "contracts:check": "node tools/check-contract-artifacts.js",
+    "contracts:summary": "node tools/check-contract-artifacts.js --json",
     "reports:convert:summary": "node tools/summarize-conversion-reports.js",
     "bench:chart": "node ./benchmarks/vendors/compare-chart.js",
     "bench:chart:readme": "node ./benchmarks/vendors/compare-chart.js --preset readme-evidence",
@@ -42,6 +44,8 @@
     "agents:freshness:strict": "node tools/verify-agent-freshness.js --strict",
     "conflicts:check": "node tools/check-merge-markers.js",
     "imports:check:browser": "node tools/check-browser-import-graph.js",
+    "api:docs:sync": "node tools/sync-api-docs.js",
+    "api:docs:check": "node tools/sync-api-docs.js --check",
     "verify:model": "node tools/doppler-cli.js verify",
     "onboarding:check": "node tools/onboarding-tooling.js check",
     "onboarding:check:strict": "node tools/onboarding-tooling.js check --strict",
@@ -54,8 +58,11 @@
     "verify": "node tools/run-registry-verify.js",
     "registry:sync:scripts": "node tools/sync-registry-scripts.js",
     "registry:sync:scripts:check": "node tools/sync-registry-scripts.js --check",
+    "registry:hf:check": "node tools/check-hf-registry.js",
+    "registry:publish:hf": "node tools/publish-hf-registry-model.js",
     "support:matrix:sync": "node tools/sync-model-support-matrix.js",
     "support:matrix:check": "node tools/sync-model-support-matrix.js --check",
+    "ci:catalog:check": "npm run registry:sync:scripts:check && npm run support:matrix:check && npm run registry:hf:check",
     "external:rdrr:index": "node tools/sync-external-rdrr-index.js",
     "external:rdrr:index:check": "node tools/sync-external-rdrr-index.js --check",
     "verify:embeddinggemma-300m": "node tools/run-registry-verify.js embeddinggemma-300m",
@@ -66,6 +73,7 @@
     "verify:google-embeddinggemma-300m": "node tools/run-registry-verify.js google-embeddinggemma-300m",
     "verify:google-embeddinggemma-300m-wq4k-ef16": "node tools/run-registry-verify.js google-embeddinggemma-300m-wq4k-ef16",
     "verify:google-gemma-3-270m-it": "node tools/run-registry-verify.js google-gemma-3-270m-it",
+    "verify:google-translategemma-4b-it": "node tools/run-registry-verify.js google-translategemma-4b-it",
     "verify:qwen-3-5-0-8b": "node tools/run-registry-verify.js qwen-3-5-0-8b",
     "verify:qwen-3-5-0-8b-wq4k-ef16-hf16-f16": "node tools/run-registry-verify.js qwen-3-5-0-8b-wq4k-ef16-hf16-f16",
     "verify:qwen-3-5-2b": "node tools/run-registry-verify.js qwen-3-5-2b",
@@ -73,7 +81,10 @@
     "verify:qwen-qwen3.5-0.8b": "node tools/run-registry-verify.js qwen-qwen3.5-0.8b",
     "verify:qwen-qwen3.5-2b": "node tools/run-registry-verify.js qwen-qwen3.5-2b",
     "verify:qwen3-0.8b": "node tools/run-registry-verify.js qwen3-0.8b",
-    "verify:qwen3-2b": "node tools/run-registry-verify.js qwen3-2b"
+    "verify:qwen3-2b": "node tools/run-registry-verify.js qwen3-2b",
+    "verify:translategemma": "node tools/run-registry-verify.js translategemma",
+    "verify:translategemma-4b": "node tools/run-registry-verify.js translategemma-4b",
+    "verify:translategemma-4b-it-wq4k-ef16-hf16": "node tools/run-registry-verify.js translategemma-4b-it-wq4k-ef16-hf16"
   },
   "exports": {
     ".": {
@@ -103,8 +114,7 @@
     "./energy": {
       "types": "./src/energy/index.d.ts",
       "import": "./src/energy/index.js"
-    },
-    "./*": "./src/*"
+    }
   },
   "repository": {
     "type": "git",

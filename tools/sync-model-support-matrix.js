@@ -3,7 +3,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import {
   PRESET_DETECTION_ORDER,
   getPreset,
@@ -19,7 +19,7 @@ const CONVERSION_CONFIG_DIR = path.join(REPO_ROOT, 'tools/configs/conversion');
 const CATALOG_PATH = path.join(REPO_ROOT, 'models/catalog.json');
 const RUNTIME_BLOCKED_MODEL_TYPES = new Set(['mamba', 'rwkv']);
 
-function parseArgs(argv) {
+export function parseArgs(argv) {
   const args = {
     check: false,
     outputPath: DEFAULT_OUTPUT_PATH,
@@ -58,6 +58,63 @@ function normalizeList(values) {
     out.push(normalized);
   }
   return out;
+}
+
+export function validateCatalogMatrixInputs(payload) {
+  const errors = [];
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+    return ['catalog payload must be a JSON object'];
+  }
+  if (!Array.isArray(payload.models)) {
+    return ['catalog payload must include a models array'];
+  }
+  const updatedAt = normalizeText(payload.updatedAt);
+  if (!updatedAt) {
+    errors.push('catalog updatedAt must be a non-empty string');
+  }
+
+  const seenModelIds = new Set();
+  for (const model of payload.models) {
+    const modelId = normalizeText(model?.modelId);
+    if (!modelId) {
+      errors.push('catalog entries must include modelId');
+      continue;
+    }
+    if (seenModelIds.has(modelId)) {
+      errors.push(`duplicate catalog modelId: ${modelId}`);
+    }
+    seenModelIds.add(modelId);
+
+    const lifecycle = model?.lifecycle && typeof model.lifecycle === 'object' ? model.lifecycle : {};
+    const availability = lifecycle?.availability && typeof lifecycle.availability === 'object'
+      ? lifecycle.availability
+      : {};
+    const status = lifecycle?.status && typeof lifecycle.status === 'object' ? lifecycle.status : {};
+    const demo = normalizeText(status.demo);
+    const baseUrl = normalizeText(model?.baseUrl);
+    const hf = model?.hf && typeof model.hf === 'object' ? model.hf : {};
+
+    if (availability.hf === true) {
+      if (!normalizeText(hf.repoId)) {
+        errors.push(`${modelId}: lifecycle.availability.hf=true requires hf.repoId`);
+      }
+      if (!normalizeText(hf.revision)) {
+        errors.push(`${modelId}: lifecycle.availability.hf=true requires hf.revision`);
+      }
+      if (!normalizeText(hf.path)) {
+        errors.push(`${modelId}: lifecycle.availability.hf=true requires hf.path`);
+      }
+    }
+
+    if (demo === 'curated' && !(baseUrl.startsWith('./curated/') || baseUrl.startsWith('curated/'))) {
+      errors.push(`${modelId}: lifecycle.status.demo=curated requires a curated baseUrl`);
+    }
+    if (demo === 'local' && !(baseUrl.startsWith('./local/') || baseUrl.startsWith('local/'))) {
+      errors.push(`${modelId}: lifecycle.status.demo=local requires a local baseUrl`);
+    }
+  }
+
+  return errors;
 }
 
 function relativePath(filePath) {
@@ -295,6 +352,10 @@ async function main() {
   }
 
   const catalogPayload = await readJson(CATALOG_PATH);
+  const catalogInputErrors = validateCatalogMatrixInputs(catalogPayload);
+  if (catalogInputErrors.length > 0) {
+    throw new Error(`Catalog lifecycle metadata is invalid:\n${catalogInputErrors.join('\n')}`);
+  }
   const catalogModels = Array.isArray(catalogPayload?.models) ? catalogPayload.models : [];
   const catalogByPreset = new Map(presetIds.map((presetId) => [presetId, []]));
   const lifecycleByPreset = new Map(
@@ -406,7 +467,9 @@ async function main() {
   console.log(`[support-matrix] wrote ${relativePath(args.outputPath)} (${rows.length} presets)`);
 }
 
-main().catch((error) => {
-  console.error(`[support-matrix] ${error.message}`);
-  process.exit(1);
-});
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch((error) => {
+    console.error(`[support-matrix] ${error.message}`);
+    process.exit(1);
+  });
+}
