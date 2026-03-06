@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict';
 import { initializeDiffusion } from '../../src/inference/pipelines/diffusion/init.js';
 import { buildScheduler, stepScmScheduler } from '../../src/inference/pipelines/diffusion/scheduler.js';
-import { assertClipHiddenActivationSupported } from '../../src/inference/pipelines/diffusion/text-encoder-gpu.js';
+import {
+  assertClipHiddenActivationSupported,
+  resolveGemma2WeightRoot,
+} from '../../src/inference/pipelines/diffusion/text-encoder-gpu.js';
 
 function createManifest({ includeTransformer = true } = {}) {
   const components = {
@@ -174,6 +177,21 @@ function createManifest({ includeTransformer = true } = {}) {
   assert.throws(
     () => assertClipHiddenActivationSupported({ hidden_act: 'relu' }),
     /Unsupported CLIP hidden_act/
+  );
+}
+
+{
+  assert.equal(
+    resolveGemma2WeightRoot(new Map([
+      ['text_encoder.embed_tokens.weight', {}],
+    ])),
+    'text_encoder'
+  );
+  assert.equal(
+    resolveGemma2WeightRoot(new Map([
+      ['text_encoder.model.embed_tokens.weight', {}],
+    ])),
+    'text_encoder.model'
   );
 }
 

@@ -7,6 +7,9 @@ const presetInference = {
   rope: {
     ropeTheta: 1000000,
     ropeLocalTheta: 10000,
+    mropeInterleaved: false,
+    mropeSection: null,
+    partialRotaryFactor: null,
     ropeScalingType: null,
     ropeScalingFactor: 1.0,
   },
@@ -102,9 +105,28 @@ const presetInference = {
 }
 
 {
+  const rope = buildRoPEConfig(presetInference, {
+    rope_parameters: {
+      rope_theta: 10000000,
+      mrope_interleaved: true,
+      mrope_section: [11, 11, 10],
+      partial_rotary_factor: 0.25,
+    },
+  });
+  assert.equal(rope.ropeTheta, 10000000);
+  assert.equal(rope.ropeLocalTheta, 10000);
+  assert.equal(rope.mropeInterleaved, true);
+  assert.deepEqual(rope.mropeSection, [11, 11, 10]);
+  assert.equal(rope.partialRotaryFactor, 0.25);
+}
+
+{
   const rope = buildRoPEConfig(presetInference, {});
   assert.equal(rope.ropeTheta, 1000000);
   assert.equal(rope.ropeLocalTheta, 10000);
+  assert.equal(rope.mropeInterleaved, false);
+  assert.equal(rope.mropeSection, null);
+  assert.equal(rope.partialRotaryFactor, null);
   assert.equal(rope.ropeScalingType, null);
   assert.equal(rope.ropeScalingFactor, 1.0);
   assert.equal(rope.ropeLocalScalingType, null);

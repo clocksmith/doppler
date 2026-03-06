@@ -326,6 +326,8 @@ function assertArchitecture(manifest, architecture) {
 
 function extractArchitectureFromConfig(config) {
   const nestedTextConfig = getNestedTextConfig(config);
+  const topLevelRoPEParameters = getFlatRoPEParameters(config);
+  const nestedRoPEParameters = getFlatRoPEParameters(nestedTextConfig);
   return {
     numLayers: config.num_hidden_layers ?? nestedTextConfig?.num_hidden_layers ?? config.n_layer ?? config.blockCount,
     hiddenSize: config.hidden_size ?? nestedTextConfig?.hidden_size ?? config.n_embd ?? config.embeddingLength,
@@ -335,13 +337,20 @@ function extractArchitectureFromConfig(config) {
     headDim: config.head_dim ?? nestedTextConfig?.head_dim,
     vocabSize: config.vocab_size ?? nestedTextConfig?.vocab_size ?? config.vocabSize,
     maxSeqLen: config.max_position_embeddings ?? nestedTextConfig?.max_position_embeddings ?? config.n_positions ?? config.contextLength,
-    ropeTheta: config.rope_theta ?? nestedTextConfig?.rope_theta ?? config.ropeFreqBase,
+    ropeTheta: topLevelRoPEParameters?.rope_theta
+      ?? nestedRoPEParameters?.rope_theta
+      ?? config.rope_theta
+      ?? nestedTextConfig?.rope_theta
+      ?? config.ropeFreqBase,
     rmsNormEps: config.rms_norm_eps ?? nestedTextConfig?.rms_norm_eps ?? config.attentionLayerNormRMSEpsilon,
   };
 }
 
 function extractInferenceFromConfig(config) {
   const nestedTextConfig = getNestedTextConfig(config);
+  const topLevelRoPEParameters = getFlatRoPEParameters(config);
+  const nestedRoPEParameters = getFlatRoPEParameters(nestedTextConfig);
+  const ropeParameters = nestedRoPEParameters ?? topLevelRoPEParameters;
   return {
     attention: {
       slidingWindow: config.sliding_window ?? nestedTextConfig?.sliding_window,
@@ -355,7 +364,13 @@ function extractInferenceFromConfig(config) {
     },
     pipeline: config.pipeline ?? nestedTextConfig?.pipeline,
     rope: {
-      ropeTheta: config.rope_theta ?? nestedTextConfig?.rope_theta ?? config.ropeFreqBase,
+      ropeTheta: ropeParameters?.rope_theta
+        ?? config.rope_theta
+        ?? nestedTextConfig?.rope_theta
+        ?? config.ropeFreqBase,
+      mropeInterleaved: ropeParameters?.mrope_interleaved,
+      mropeSection: Array.isArray(ropeParameters?.mrope_section) ? ropeParameters.mrope_section : undefined,
+      partialRotaryFactor: ropeParameters?.partial_rotary_factor,
       ropeScalingType: config.rope_scaling_type ?? nestedTextConfig?.rope_scaling_type,
       ropeScalingFactor: config.rope_scaling_factor ?? nestedTextConfig?.rope_scaling_factor,
     },
@@ -373,6 +388,20 @@ function getNestedTextConfig(config) {
     return config.language_config;
   }
   return null;
+}
+
+function getFlatRoPEParameters(config) {
+  if (!config || typeof config !== 'object' || Array.isArray(config)) {
+    return null;
+  }
+  const ropeParameters = config.rope_parameters;
+  if (!ropeParameters || typeof ropeParameters !== 'object' || Array.isArray(ropeParameters)) {
+    return null;
+  }
+  if (ropeParameters.full_attention || ropeParameters.sliding_attention) {
+    return null;
+  }
+  return ropeParameters;
 }
 
 function extractTokenizerFromManifest(manifest) {

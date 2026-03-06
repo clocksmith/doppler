@@ -206,13 +206,45 @@ function isSameRoPEScalingConfig(
       === (rightScaling?.original_max_position_embeddings ?? null);
 }
 
+function resolveRotaryDim(headDim, rotaryDim, partialRotaryFactor) {
+  if (rotaryDim != null) {
+    if (!Number.isFinite(rotaryDim) || rotaryDim <= 0 || (rotaryDim % 2) !== 0) {
+      throw new Error(`RoPE rotary dim must be a positive even integer; got "${rotaryDim}".`);
+    }
+    if (rotaryDim > headDim) {
+      throw new Error(`RoPE rotary dim ${rotaryDim} cannot exceed headDim ${headDim}.`);
+    }
+    return rotaryDim;
+  }
+  if (partialRotaryFactor == null) {
+    return headDim;
+  }
+  if (!Number.isFinite(partialRotaryFactor) || partialRotaryFactor <= 0 || partialRotaryFactor > 1) {
+    throw new Error(
+      `RoPE partialRotaryFactor must be a number in (0, 1]; got "${partialRotaryFactor}".`
+    );
+  }
+  const resolved = Math.trunc(headDim * partialRotaryFactor);
+  if (resolved <= 0 || (resolved % 2) !== 0) {
+    throw new Error(
+      `RoPE partialRotaryFactor=${partialRotaryFactor} with headDim=${headDim} resolves ` +
+      `to rotaryDim=${resolved}, but rotaryDim must be a positive even integer.`
+    );
+  }
+  return resolved;
+}
+
 
 export async function initRoPEFrequencies(config, useGPU) {
   const {
     headDim,
+    rotaryDim,
     maxSeqLen,
     ropeTheta,
     ropeLocalTheta,
+    mropeInterleaved,
+    mropeSection,
+    partialRotaryFactor,
     ropeScale,
     ropeLocalScale,
     ropeScalingType,
@@ -230,14 +262,23 @@ export async function initRoPEFrequencies(config, useGPU) {
   const resolvedLocalTheta = ropeLocalTheta ?? ropeTheta;
   const resolvedLocalScalingType = ropeLocalScalingType ?? ropeScalingType;
   const resolvedLocalScaling = ropeLocalScaling ?? ropeScaling;
+  const resolvedRotaryDim = resolveRotaryDim(headDim, rotaryDim, partialRotaryFactor);
+  const halfDim = resolvedRotaryDim / 2;
+  if (mropeInterleaved === true && Array.isArray(mropeSection)) {
+    const expandedDim = mropeSection.reduce((sum, entry) => sum + entry, 0) * 2;
+    if (expandedDim !== resolvedRotaryDim) {
+      throw new Error(
+        `RoPE mropeSection expands to ${expandedDim} dims, but rotaryDim is ${resolvedRotaryDim}.`
+      );
+    }
+  }
 
-  const halfDim = headDim / 2;
   const isYarn = ropeScalingType === 'yarn';
   const isLocalYarn = resolvedLocalScalingType === 'yarn';
 
   // Compute global (full_attention) frequencies
   const globalFreqs = computeRoPEFreqsForTheta(
-    ropeTheta, headDim, maxSeqLen, ropeScale, ropeScalingType, ropeScaling
+    ropeTheta, resolvedRotaryDim, maxSeqLen, ropeScale, ropeScalingType, ropeScaling
   );
 
   // Compute local (sliding_attention) frequencies if different from global.
@@ -256,7 +297,7 @@ export async function initRoPEFrequencies(config, useGPU) {
   if (hasDistinctLocalTheta || hasDistinctLocalScaling) {
     localFreqs = computeRoPEFreqsForTheta(
       resolvedLocalTheta,
-      headDim,
+      resolvedRotaryDim,
       maxSeqLen,
       resolvedLocalScale,
       resolvedLocalScalingType,
@@ -303,9 +344,10 @@ export async function initRoPEFrequencies(config, useGPU) {
 
     log.debug(
       'Pipeline',
-      `RoPE frequencies initialized (GPU): ${maxSeqLen} positions, dim=${halfDim}, headDim=${headDim}, ` +
+      `RoPE frequencies initialized (GPU): ${maxSeqLen} positions, dim=${halfDim}, headDim=${headDim}, rotaryDim=${resolvedRotaryDim}, ` +
       `theta=${ropeTheta}${hasDistinctLocalTheta ? `, localTheta=${resolvedLocalTheta}` : ''}, ` +
-      `scaling=${ropeScalingType ?? 'none'}:${ropeScale}${hasDistinctLocalScaling ? `, localScaling=${resolvedLocalScalingType ?? 'none'}:${resolvedLocalScale}` : ''}`
+      `scaling=${ropeScalingType ?? 'none'}:${ropeScale}${hasDistinctLocalScaling ? `, localScaling=${resolvedLocalScalingType ?? 'none'}:${resolvedLocalScale}` : ''}, ` +
+      `interleaved=${mropeInterleaved === true}`
     );
 
     return {
@@ -318,9 +360,10 @@ export async function initRoPEFrequencies(config, useGPU) {
 
   log.debug(
     'Pipeline',
-    `RoPE frequencies initialized (CPU): ${maxSeqLen} positions, dim=${halfDim}, headDim=${headDim}, ` +
+    `RoPE frequencies initialized (CPU): ${maxSeqLen} positions, dim=${halfDim}, headDim=${headDim}, rotaryDim=${resolvedRotaryDim}, ` +
     `theta=${ropeTheta}${hasDistinctLocalTheta ? `, localTheta=${resolvedLocalTheta}` : ''}, ` +
-    `scaling=${ropeScalingType ?? 'none'}:${ropeScale}${hasDistinctLocalScaling ? `, localScaling=${resolvedLocalScalingType ?? 'none'}:${resolvedLocalScale}` : ''}`
+    `scaling=${ropeScalingType ?? 'none'}:${ropeScale}${hasDistinctLocalScaling ? `, localScaling=${resolvedLocalScalingType ?? 'none'}:${resolvedLocalScale}` : ''}, ` +
+    `interleaved=${mropeInterleaved === true}`
   );
 
   return {

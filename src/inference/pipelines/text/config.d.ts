@@ -148,6 +148,10 @@ export interface ParsedModelConfig {
   slidingWindow: number | null;
   ropeTheta: number;
   ropeLocalTheta: number | null;
+  ropeRotaryDim: number;
+  ropeInterleaved: boolean;
+  mropeSection: number[] | null;
+  partialRotaryFactor: number | null;
   ropeScale: number;
   ropeLocalScale: number;
   ropeScalingType: string | null;

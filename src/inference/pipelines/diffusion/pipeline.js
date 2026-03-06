@@ -52,6 +52,18 @@ function generateLatents(width, height, channels, latentScale, seed) {
   return { latents, latentWidth, latentHeight };
 }
 
+function generateNoiseVector(size, seed) {
+  if (!Number.isFinite(size) || size <= 0) {
+    throw new Error(`generateNoiseVector requires a positive size, got ${size}.`);
+  }
+  const out = new Float32Array(size);
+  const rand = createRng(seed ?? createRandomSeed());
+  for (let i = 0; i < size; i++) {
+    out[i] = sampleNormal(rand);
+  }
+  return out;
+}
+
 function extractTokenSet(tokensByEncoder, key) {
   const output = {};
   for (const [name, entry] of Object.entries(tokensByEncoder || {})) {
@@ -195,13 +207,10 @@ async function applySchedulerStep(latentsTensor, scheduler, stepIndex, timestep,
     const isFinalStep = stepIndex + 1 >= scheduler.timesteps.length - 1;
     const noise = isFinalStep
       ? null
-      : generateLatents(
-          runtime.latent.width,
-          runtime.latent.height,
-          runtime.latent.channels,
-          runtime.latent.scale,
+      : generateNoiseVector(
+          sample.length,
           (options.seedBase ?? createRandomSeed()) + stepIndex + 1
-        ).latents;
+        );
     const step = stepScmScheduler(scheduler, modelOutput, timestep, sample, stepIndex, noise);
     return createLatentTensor(step.prevSample, [...latentsTensor.shape], runtime);
   }

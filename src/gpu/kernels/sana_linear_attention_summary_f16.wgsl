@@ -35,6 +35,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
 
     var acc: f32 = 0.0;
     for (var token: u32 = 0u; token < u.num_tokens; token = token + 1u) {
+        let query_value = f32(query[token * u.hidden_size + hidden_base + col]);
         let key_idx = token * u.hidden_size + hidden_base + col;
         let key_value = max(f32(key[key_idx]), 0.0);
         let value_value = select(
@@ -42,6 +43,9 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             1.0,
             row == u.head_dim
         );
+        if (u.hidden_size == 0u) {
+            acc = acc + query_value;
+        }
         acc = acc + value_value * key_value;
     }
 

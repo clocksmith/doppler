@@ -723,8 +723,19 @@ function buildGemma2LayerTypes(layerCount, slidingWindow) {
   ));
 }
 
-function getGemma2LayerWeight(weights, prefix, layerIdx, suffix, required = true) {
-  const key = `${prefix}.model.layers.${layerIdx}.${suffix}`;
+export function resolveGemma2WeightRoot(weights, prefix = 'text_encoder') {
+  const nestedRoot = `${prefix}.model`;
+  if (weights?.has(`${nestedRoot}.embed_tokens.weight`)) {
+    return nestedRoot;
+  }
+  if (weights?.has(`${prefix}.embed_tokens.weight`)) {
+    return prefix;
+  }
+  return nestedRoot;
+}
+
+function getGemma2LayerWeight(weights, weightRoot, layerIdx, suffix, required = true) {
+  const key = `${weightRoot}.layers.${layerIdx}.${suffix}`;
   const weight = weights.get(key) || null;
   if (!weight && required) {
     throw new Error(`Missing Gemma2 diffusion weight "${key}".`);
@@ -805,8 +816,9 @@ async function runGemma2TextEncoder(tokens, weightsEntry, config, runtime, optio
   const tokenIds = normalizeTokens(tokens, options.maxLength ?? resolved.maxPositionEmbeddings, padTokenId);
   const numTokens = tokenIds.length;
   const tokenBuffer = createDiffusionIndexBuffer(device, tokenIds, `${prefix}_tokens`);
+  const weightRoot = resolveGemma2WeightRoot(weights, prefix);
 
-  const embedKey = `${prefix}.model.embed_tokens.weight`;
+  const embedKey = `${weightRoot}.embed_tokens.weight`;
   const embedWeight = expectDiffusionWeight(
     weights.get(embedKey),
     embedKey
@@ -837,16 +849,16 @@ async function runGemma2TextEncoder(tokens, weightsEntry, config, runtime, optio
   const layerWeights = new Map();
   for (let layerIdx = 0; layerIdx < resolved.numLayers; layerIdx++) {
     layerWeights.set(`layer_${layerIdx}`, {
-      inputNorm: getGemma2LayerWeight(weights, prefix, layerIdx, 'input_layernorm.weight'),
-      qProj: getGemma2LayerWeight(weights, prefix, layerIdx, 'self_attn.q_proj.weight'),
-      kProj: getGemma2LayerWeight(weights, prefix, layerIdx, 'self_attn.k_proj.weight'),
-      vProj: getGemma2LayerWeight(weights, prefix, layerIdx, 'self_attn.v_proj.weight'),
-      oProj: getGemma2LayerWeight(weights, prefix, layerIdx, 'self_attn.o_proj.weight'),
-      postAttentionNorm: getGemma2LayerWeight(weights, prefix, layerIdx, 'post_attention_layernorm.weight'),
-      preFeedforwardNorm: getGemma2LayerWeight(weights, prefix, layerIdx, 'pre_feedforward_layernorm.weight'),
-      gate: getGemma2LayerWeight(weights, prefix, layerIdx, 'mlp.gate_proj.weight'),
-      up: getGemma2LayerWeight(weights, prefix, layerIdx, 'mlp.up_proj.weight'),
-      down: getGemma2LayerWeight(weights, prefix, layerIdx, 'mlp.down_proj.weight'),
+      inputNorm: getGemma2LayerWeight(weights, weightRoot, layerIdx, 'input_layernorm.weight'),
+      qProj: getGemma2LayerWeight(weights, weightRoot, layerIdx, 'self_attn.q_proj.weight'),
+      kProj: getGemma2LayerWeight(weights, weightRoot, layerIdx, 'self_attn.k_proj.weight'),
+      vProj: getGemma2LayerWeight(weights, weightRoot, layerIdx, 'self_attn.v_proj.weight'),
+      oProj: getGemma2LayerWeight(weights, weightRoot, layerIdx, 'self_attn.o_proj.weight'),
+      postAttentionNorm: getGemma2LayerWeight(weights, weightRoot, layerIdx, 'post_attention_layernorm.weight'),
+      preFeedforwardNorm: getGemma2LayerWeight(weights, weightRoot, layerIdx, 'pre_feedforward_layernorm.weight'),
+      gate: getGemma2LayerWeight(weights, weightRoot, layerIdx, 'mlp.gate_proj.weight'),
+      up: getGemma2LayerWeight(weights, weightRoot, layerIdx, 'mlp.up_proj.weight'),
+      down: getGemma2LayerWeight(weights, weightRoot, layerIdx, 'mlp.down_proj.weight'),
     });
   }
 
@@ -910,10 +922,10 @@ async function runGemma2TextEncoder(tokens, weightsEntry, config, runtime, optio
       numTokens * resolved.hiddenSize,
       context
     );
-    hidden = createTensor(output.buffer, output.dtype, [numTokens, resolved.hiddenSize], `gemma2_layer_${layerIdx}`);
+    hidden = createTensor(output, activationDtype, [numTokens, resolved.hiddenSize], `gemma2_layer_${layerIdx}`);
   }
 
-  const finalNormKey = `${prefix}.model.norm.weight`;
+  const finalNormKey = `${weightRoot}.norm.weight`;
   const finalNorm = expectDiffusionWeight(weights.get(finalNormKey), finalNormKey);
   const final = await ops.rmsNorm(hidden, getBuffer(finalNorm), resolved.rmsNormEps, {
     batchSize: numTokens,
