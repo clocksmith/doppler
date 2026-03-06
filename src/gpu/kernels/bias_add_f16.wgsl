@@ -18,6 +18,10 @@ struct Uniforms {
     dim: u32,
     data_offset: u32,  // byte offset into data buffer (divide by 2 for F16)
     bias_offset: u32,  // byte offset into bias buffer (divide by 2 for F16)
+    token_stride: u32,
+    _pad0: u32,
+    _pad1: u32,
+    _pad2: u32,
 }
 
 override WORKGROUP_SIZE: u32 = 256u;
@@ -29,7 +33,7 @@ override WORKGROUP_SIZE: u32 = 256u;
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     let d = gid.x;
-    let token = gid.y;
+    let token = gid.z * max(u.token_stride, 1u) + gid.y;
     if (token >= u.num_tokens || d >= u.dim) {
         return;
     }
