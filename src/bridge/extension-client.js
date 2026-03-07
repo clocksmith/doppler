@@ -64,6 +64,16 @@ export class ExtensionBridgeClient {
       throw new Error('Chrome extension API not available');
     }
 
+    if (this.#status === BridgeStatus.CONNECTING) {
+      throw new Error('Bridge client connection already in progress');
+    }
+    if (this.#status === BridgeStatus.CONNECTED) {
+      if ((extensionId ?? null) !== this.#extensionId) {
+        throw new Error('Bridge client already connected to a different extension target');
+      }
+      return;
+    }
+
     this.#extensionId = extensionId;
     this.#status = BridgeStatus.CONNECTING;
     this.#notifyStatusChange();
@@ -209,6 +219,11 @@ export class ExtensionBridgeClient {
 
   
   #handleMessage(message) {
+    if (message?.type === 'error') {
+      this.#handleExplicitError(message);
+      return;
+    }
+
     if (message.type !== 'binary' || !message.data) {
       log.warn('ExtensionBridge', `Unexpected message type: ${message.type}`);
       return;
@@ -308,6 +323,27 @@ export class ExtensionBridgeClient {
     }
   }
 
+  #handleExplicitError(message) {
+    const text = typeof message?.message === 'string' && message.message.length > 0
+      ? message.message
+      : 'Native bridge error';
+    const error = new Error(text);
+
+    this.#port = null;
+    this.#status = BridgeStatus.ERROR;
+    this.#notifyStatusChange();
+
+    for (const [, pending] of this.#pendingRequests) {
+      clearTimeout(pending.timeout);
+      pending.reject(error);
+    }
+    this.#pendingRequests.clear();
+
+    if (this.onError) {
+      this.onError(error);
+    }
+  }
+
   
   #handleDisconnect() {
     const error = chrome.runtime?.lastError;
@@ -338,6 +374,10 @@ export class ExtensionBridgeClient {
   
   getStatus() {
     return this.#status;
+  }
+
+  getExtensionId() {
+    return this.#extensionId;
   }
 
   

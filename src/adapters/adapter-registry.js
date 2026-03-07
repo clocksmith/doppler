@@ -9,6 +9,10 @@ import { DEFAULT_ADAPTER_REGISTRY_CONFIG } from '../config/schema/index.js';
 
 const { dbName: DB_NAME, dbVersion: DB_VERSION, storeName: STORE_NAME } = DEFAULT_ADAPTER_REGISTRY_CONFIG;
 
+function isNodeRuntime() {
+  return typeof process !== 'undefined' && !!process.versions?.node;
+}
+
 
 class IndexedDBStorage {
   #db = null;
@@ -163,8 +167,13 @@ export class AdapterRegistry {
       this.#storage = storage;
     } else if (typeof indexedDB !== 'undefined') {
       this.#storage = new IndexedDBStorage();
-    } else {
+    } else if (isNodeRuntime()) {
       this.#storage = new MemoryStorage();
+    } else {
+      throw new Error(
+        'AdapterRegistry requires IndexedDB in browser environments. ' +
+        'Pass explicit storage or use createMemoryRegistry() for tests.'
+      );
     }
   }
 

@@ -1,4 +1,4 @@
-import { acquireBuffer } from '../../memory/buffer-pool.js';
+import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor, dtypeBytes } from '../tensor.js';
 import { unifiedKernelWrapper } from './utils.js';
 import { selectRuleValue } from './rule-registry.js';
@@ -35,19 +35,27 @@ async function _upsample2d(target, input, options = {}) {
   const bytesPerElement = dtypeBytes(input.dtype);
   const outputSize = channels * outHeight * outWidth * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'upsample2d_output');
+  const ownedOutput = outputBuffer ? null : output;
 
-  await unifiedKernelWrapper(
-    'upsample2d', target, selectUpsample2DVariant(input.dtype === 'f16'),
-    [input, output],
-    {
-      channels, in_height: resolvedHeight, in_width: resolvedWidth,
-      out_height: outHeight, out_width: outWidth, scale,
-      _pad0: 0, _pad1: 0,
-    },
-    [Math.ceil(outSpatial / WORKGROUP_SIZES.DEFAULT), channels, 1]
-  );
+  try {
+    await unifiedKernelWrapper(
+      'upsample2d', target, selectUpsample2DVariant(input.dtype === 'f16'),
+      [input, output],
+      {
+        channels, in_height: resolvedHeight, in_width: resolvedWidth,
+        out_height: outHeight, out_width: outWidth, scale,
+        _pad0: 0, _pad1: 0,
+      },
+      [Math.ceil(outSpatial / WORKGROUP_SIZES.DEFAULT), channels, 1]
+    );
 
-  return createTensor(output, input.dtype, [channels, outHeight, outWidth], 'upsample2d_output');
+    return createTensor(output, input.dtype, [channels, outHeight, outWidth], 'upsample2d_output');
+  } catch (error) {
+    if (ownedOutput) {
+      releaseBuffer(ownedOutput);
+    }
+    throw error;
+  }
 }
 
 export async function runUpsample2D(input, options = {}) {

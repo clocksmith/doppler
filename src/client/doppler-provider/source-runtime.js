@@ -391,14 +391,7 @@ function createBridgeFileReaders(bridgeClient, fileMap, rootPath) {
       return null;
     }
     const direct = map.get(hint);
-    if (direct) {
-      return direct;
-    }
-    const basename = hint.split('/').pop();
-    if (basename && map.has(basename)) {
-      return map.get(basename);
-    }
-    return null;
+    return direct || null;
   };
 
   const readRange = async (relativePath, offset, length) => {

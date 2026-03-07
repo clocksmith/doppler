@@ -1,7 +1,7 @@
 
 
 import { getKernelCapabilities } from '../device.js';
-import { acquireBuffer, getBufferRequestedSize } from '../../memory/buffer-pool.js';
+import { acquireBuffer, getBufferRequestedSize, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor } from '../tensor.js';
 import { getKernelThresholds, padToQ4KBlock } from '../../config/schema/index.js';
 import { selectRuleValue } from './rule-registry.js';
@@ -119,31 +119,39 @@ export async function runRMSNorm(
   const paddedHiddenSize = padToQ4KBlock(inferredHiddenSize);
   const outputSize = batchSize * paddedHiddenSize * bytesPerElement;
   const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'rmsnorm_output');
+  const ownedOutput = outputBuffer ? null : outputBuf;
   const dispatchPlan = planRMSNormDispatch(null, batchSize);
 
   // Shader layout always includes the residual binding; when unused, bind a harmless placeholder.
   const residualBuf = residual?.buffer || residual || input?.buffer || input || outputBuf;
 
-  await unifiedKernelWrapper(
-    'rmsnorm',
-    null,
-    variant,
-    [input, normWeightBuffer, outputBuf, residualBuf],
-    {
-      hidden_size: inferredHiddenSize,
-      num_tokens: batchSize,
-      eps,
-      has_residual: residual ? 1 : 0,
-      token_stride: dispatchPlan.tokenStride,
-      _pad0: 0,
-      _pad1: 0,
-      _pad2: 0,
-    },
-    dispatchPlan.workgroups,
-    { RMS_NORM_OFFSET: rmsNormWeightOffset, WEIGHT_IS_F16: normWeightDtype === 'f16' }
-  );
+  try {
+    await unifiedKernelWrapper(
+      'rmsnorm',
+      null,
+      variant,
+      [input, normWeightBuffer, outputBuf, residualBuf],
+      {
+        hidden_size: inferredHiddenSize,
+        num_tokens: batchSize,
+        eps,
+        has_residual: residual ? 1 : 0,
+        token_stride: dispatchPlan.tokenStride,
+        _pad0: 0,
+        _pad1: 0,
+        _pad2: 0,
+      },
+      dispatchPlan.workgroups,
+      { RMS_NORM_OFFSET: rmsNormWeightOffset, WEIGHT_IS_F16: normWeightDtype === 'f16' }
+    );
 
-  return createTensor(outputBuf, input.dtype, [batchSize, inferredHiddenSize], 'rmsnorm_output');
+    return createTensor(outputBuf, input.dtype, [batchSize, inferredHiddenSize], 'rmsnorm_output');
+  } catch (error) {
+    if (ownedOutput) {
+      releaseBuffer(ownedOutput);
+    }
+    throw error;
+  }
 }
 
 export async function recordRMSNorm(
@@ -165,28 +173,36 @@ export async function recordRMSNorm(
   const paddedHiddenSize = padToQ4KBlock(inferredHiddenSize);
   const outputSize = batchSize * paddedHiddenSize * bytesPerElement;
   const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'rmsnorm_output');
+  const ownedOutput = outputBuffer ? null : outputBuf;
   const dispatchPlan = planRMSNormDispatch(recorder, batchSize);
 
   const residualBuf = residual?.buffer || residual || input?.buffer || input || outputBuf;
 
-  await unifiedKernelWrapper(
-    'rmsnorm',
-    recorder,
-    variant,
-    [input, normWeightBuffer, outputBuf, residualBuf],
-    {
-      hidden_size: inferredHiddenSize,
-      num_tokens: batchSize,
-      eps,
-      has_residual: residual ? 1 : 0,
-      token_stride: dispatchPlan.tokenStride,
-      _pad0: 0,
-      _pad1: 0,
-      _pad2: 0,
-    },
-    dispatchPlan.workgroups,
-    { RMS_NORM_OFFSET: rmsNormWeightOffset, WEIGHT_IS_F16: normWeightDtype === 'f16' }
-  );
+  try {
+    await unifiedKernelWrapper(
+      'rmsnorm',
+      recorder,
+      variant,
+      [input, normWeightBuffer, outputBuf, residualBuf],
+      {
+        hidden_size: inferredHiddenSize,
+        num_tokens: batchSize,
+        eps,
+        has_residual: residual ? 1 : 0,
+        token_stride: dispatchPlan.tokenStride,
+        _pad0: 0,
+        _pad1: 0,
+        _pad2: 0,
+      },
+      dispatchPlan.workgroups,
+      { RMS_NORM_OFFSET: rmsNormWeightOffset, WEIGHT_IS_F16: normWeightDtype === 'f16' }
+    );
 
-  return createTensor(outputBuf, input.dtype, [batchSize, inferredHiddenSize], 'rmsnorm_output');
+    return createTensor(outputBuf, input.dtype, [batchSize, inferredHiddenSize], 'rmsnorm_output');
+  } catch (error) {
+    if (ownedOutput) {
+      releaseBuffer(ownedOutput);
+    }
+    throw error;
+  }
 }

@@ -1,5 +1,5 @@
 
-import { acquireBuffer } from '../../memory/buffer-pool.js';
+import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor, dtypeBytes } from '../tensor.js';
 import { WORKGROUP_SIZES } from './constants.js';
 import { unifiedKernelWrapper } from './utils.js';
@@ -26,16 +26,24 @@ async function _gelu(target, input, options = {}) {
   const outputSize = inferredSize * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'gelu_output');
   const gateBuffer = gate ?? input;
+  const ownedOutput = outputBuffer ? null : output;
 
-  await unifiedKernelWrapper(
-    'gelu', target, variant,
-    [input, output, gateBuffer],
-    { size: inferredSize, rowsplit_dim: 0 },
-    Math.ceil(inferredSize / WORKGROUP_SIZES.DEFAULT),
-    overrides
-  );
+  try {
+    await unifiedKernelWrapper(
+      'gelu', target, variant,
+      [input, output, gateBuffer],
+      { size: inferredSize, rowsplit_dim: 0 },
+      Math.ceil(inferredSize / WORKGROUP_SIZES.DEFAULT),
+      overrides
+    );
 
-  return createTensor(output, input.dtype, [inferredSize], 'gelu_output');
+    return createTensor(output, input.dtype, [inferredSize], 'gelu_output');
+  } catch (error) {
+    if (ownedOutput) {
+      releaseBuffer(ownedOutput);
+    }
+    throw error;
+  }
 }
 
 export async function runGeLU(input, options = {}) {

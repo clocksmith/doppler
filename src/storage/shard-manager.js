@@ -731,8 +731,11 @@ export async function loadTokenizerModelFromStore() {
   requireModel();
   try {
     return await backend.readFile('tokenizer.model');
-  } catch (_error) {
-    return null;
+  } catch (error) {
+    if (error?.name === 'NotFoundError' || error?.message?.includes('not found')) {
+      return null;
+    }
+    throw error;
   }
 }
 

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-import { loadLoRAWeights } from '../../src/adapters/lora-loader.js';
+import { loadLoRAFromManifest, loadLoRAWeights } from '../../src/adapters/lora-loader.js';
 
 const originalFetch = globalThis.fetch;
 
@@ -73,5 +73,33 @@ try {
 } finally {
   globalThis.fetch = originalFetch;
 }
+
+await assert.rejects(
+  () => loadLoRAFromManifest(createManifest({
+    tensors: [
+      {
+        name: 'layers.0.q_proj.not_lora',
+        shape: [1, 1],
+        dtype: 'f32',
+        data: [1],
+      },
+    ],
+  })),
+  /Unrecognized LoRA tensor name/
+);
+
+await assert.rejects(
+  () => loadLoRAFromManifest(createManifest({
+    tensors: [
+      {
+        name: 'layers.0.q_proj.lora_a',
+        shape: [1, 1],
+        dtype: 'f32',
+        data: [1],
+      },
+    ],
+  })),
+  /is incomplete; both lora_a and lora_b tensors are required/
+);
 
 console.log('lora-loader-contract.test: ok');

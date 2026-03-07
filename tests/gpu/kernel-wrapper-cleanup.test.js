@@ -39,6 +39,11 @@ const {
   recordMatmulRMSNormFused,
 } = await import('../../src/gpu/kernels/fused_matmul_rmsnorm.js');
 const { runGroupNorm } = await import('../../src/gpu/kernels/groupnorm.js');
+const { runGeLU } = await import('../../src/gpu/kernels/gelu.js');
+const { runLayerNorm } = await import('../../src/gpu/kernels/layernorm.js');
+const { runRMSNorm } = await import('../../src/gpu/kernels/rmsnorm.js');
+const { runSiLU } = await import('../../src/gpu/kernels/silu.js');
+const { runUpsample2D } = await import('../../src/gpu/kernels/upsample2d.js');
 
 class FakeBuffer {
   constructor({ size, usage, initialBytes = null }) {
@@ -306,6 +311,64 @@ function assertPoolIsClean() {
     }),
     /channels to be divisible by numGroups/
   );
+  resetRuntimeState();
+}
+
+{
+  resetRuntimeState(createFakeDevice({ createBindGroupThrowAt: 1 }));
+  const input = createExternalTensor([1, 2, 3, 4], [4], 'gelu_input');
+  await assert.rejects(
+    () => runGeLU(input, { size: 4 }),
+    /createBindGroup failed at 1/
+  );
+  assertPoolIsClean();
+  resetRuntimeState();
+}
+
+{
+  resetRuntimeState(createFakeDevice({ createBindGroupThrowAt: 1 }));
+  const input = createExternalTensor([1, 2, 3, 4], [1, 4], 'layernorm_input');
+  const weight = new FakeBuffer({ size: 16, usage: GPUBufferUsage.STORAGE });
+  const bias = new FakeBuffer({ size: 16, usage: GPUBufferUsage.STORAGE });
+  await assert.rejects(
+    () => runLayerNorm(input, weight, bias, 1e-5, { batchSize: 1, hiddenSize: 4 }),
+    /createBindGroup failed at 1/
+  );
+  assertPoolIsClean();
+  resetRuntimeState();
+}
+
+{
+  resetRuntimeState(createFakeDevice({ createBindGroupThrowAt: 1 }));
+  const input = createExternalTensor([1, 2, 3, 4], [1, 4], 'rmsnorm_input');
+  const weight = new FakeBuffer({ size: 16, usage: GPUBufferUsage.STORAGE });
+  await assert.rejects(
+    () => runRMSNorm(input, weight, 1e-5, { batchSize: 1, hiddenSize: 4 }),
+    /createBindGroup failed at 1/
+  );
+  assertPoolIsClean();
+  resetRuntimeState();
+}
+
+{
+  resetRuntimeState(createFakeDevice({ createBindGroupThrowAt: 1 }));
+  const input = createExternalTensor([1, 2, 3, 4], [4], 'silu_input');
+  await assert.rejects(
+    () => runSiLU(input, { size: 4, swigluLimit: null }),
+    /createBindGroup failed at 1/
+  );
+  assertPoolIsClean();
+  resetRuntimeState();
+}
+
+{
+  resetRuntimeState(createFakeDevice({ createBindGroupThrowAt: 1 }));
+  const input = createExternalTensor([1, 2, 3, 4], [1, 2, 2], 'upsample_input');
+  await assert.rejects(
+    () => runUpsample2D(input, { channels: 1, height: 2, width: 2, scale: 2 }),
+    /createBindGroup failed at 1/
+  );
+  assertPoolIsClean();
   resetRuntimeState();
 }
 

@@ -93,6 +93,31 @@ function normalizeSourceStats(value) {
   };
 }
 
+function isTokenizerJsonRequired(tokenizer) {
+  return Boolean(
+    tokenizer
+    && (tokenizer.type === 'bundled' || tokenizer.type === 'huggingface')
+    && typeof tokenizer.file === 'string'
+    && tokenizer.file.length > 0
+  );
+}
+
+function getTokenizerModelPath(tokenizer) {
+  if (!tokenizer || typeof tokenizer !== 'object') {
+    return null;
+  }
+  const explicit = typeof tokenizer.sentencepieceModel === 'string'
+    ? tokenizer.sentencepieceModel
+    : null;
+  if (explicit && explicit.length > 0) {
+    return explicit;
+  }
+  if (tokenizer.type === 'sentencepiece') {
+    return 'tokenizer.model';
+  }
+  return null;
+}
+
 // ============================================================================
 // IndexedDB Operations
 // ============================================================================
@@ -608,34 +633,23 @@ export async function downloadModel(
 
       // Download tokenizer assets if specified
       const tokenizer =  (manifest.tokenizer);
-      const hasBundledTokenizer = (tokenizer?.type === 'bundled' || tokenizer?.type === 'huggingface') && tokenizer?.file;
-      if (hasBundledTokenizer) {
-        try {
-          const tokenizerUrl = `${baseUrl}/${ (tokenizer).file}`;
-          log.verbose('Downloader', `Fetching bundled tokenizer from ${tokenizerUrl}`);
-          const tokenizerResponse = await fetchWithRetry(tokenizerUrl);
-          const tokenizerJson = await tokenizerResponse.text();
-          await saveTokenizer(tokenizerJson);
-          log.verbose('Downloader', 'Saved bundled tokenizer.json');
-        } catch (err) {
-          log.warn('Downloader', `Failed to download tokenizer.json: ${ (err).message}`);
-          // Non-fatal - model will fall back to HuggingFace tokenizer
-        }
+      if (isTokenizerJsonRequired(tokenizer)) {
+        const tokenizerUrl = `${baseUrl}/${ (tokenizer).file}`;
+        log.verbose('Downloader', `Fetching bundled tokenizer from ${tokenizerUrl}`);
+        const tokenizerResponse = await fetchWithRetry(tokenizerUrl);
+        const tokenizerJson = await tokenizerResponse.text();
+        await saveTokenizer(tokenizerJson);
+        log.verbose('Downloader', 'Saved bundled tokenizer.json');
       }
 
-      const sentencepieceModel = tokenizer?.sentencepieceModel
-        ?? (tokenizer?.type === 'sentencepiece' ? 'tokenizer.model' : null);
+      const sentencepieceModel = getTokenizerModelPath(tokenizer);
       if (sentencepieceModel) {
-        try {
-          const modelUrl = `${baseUrl}/${sentencepieceModel}`;
-          log.verbose('Downloader', `Fetching sentencepiece model from ${modelUrl}`);
-          const modelResponse = await fetchWithRetry(modelUrl);
-          const modelBuffer = await modelResponse.arrayBuffer();
-          await saveTokenizerModel(modelBuffer);
-          log.verbose('Downloader', 'Saved tokenizer.model');
-        } catch (err) {
-          log.warn('Downloader', `Failed to download tokenizer.model: ${ (err).message}`);
-        }
+        const modelUrl = `${baseUrl}/${sentencepieceModel}`;
+        log.verbose('Downloader', `Fetching sentencepiece model from ${modelUrl}`);
+        const modelResponse = await fetchWithRetry(modelUrl);
+        const modelBuffer = await modelResponse.arrayBuffer();
+        await saveTokenizerModel(modelBuffer);
+        log.verbose('Downloader', 'Saved tokenizer.model');
       }
 
       // Clean up download state
@@ -684,7 +698,10 @@ export async function resumeDownload(
     throw new Error(`No download state found for model: ${modelId}`);
   }
 
-  return downloadModel(state.baseUrl, onProgress, options);
+  return downloadModel(state.baseUrl, onProgress, {
+    ...options,
+    modelId: options.modelId ?? state.modelId,
+  });
 }
 
 
