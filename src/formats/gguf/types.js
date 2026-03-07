@@ -94,6 +94,8 @@ export const GGML_TYPE_SIZE = {
 const GGUF_MAGIC = 0x46554747;
 const GGUF_VERSION_MIN = 2;
 const GGUF_VERSION_MAX = 3;
+const MAX_SAFE_BIGINT = BigInt(Number.MAX_SAFE_INTEGER);
+const MIN_SAFE_BIGINT = BigInt(Number.MIN_SAFE_INTEGER);
 
 const {
   contextLength: DEFAULT_GGUF_CONTEXT_LENGTH,
@@ -101,6 +103,13 @@ const {
   attentionLayerNormRMSEpsilon: DEFAULT_ATTENTION_LAYER_NORM_RMS_EPSILON,
   ropeFreqBase: DEFAULT_ROPE_FREQ_BASE,
 } = DEFAULT_GGUF_PARSER_DEFAULTS;
+
+function toSafeInteger(value, label) {
+  if (value > MAX_SAFE_BIGINT || value < MIN_SAFE_BIGINT) {
+    throw new Error(`GGUF ${label} exceeds JavaScript safe integer range: ${value.toString()}`);
+  }
+  return Number(value);
+}
 
 class GGUFReader {
   constructor(buffer) {
@@ -144,18 +153,26 @@ class GGUFReader {
     return value;
   }
 
-  readUint64() {
-    const low = this.view.getUint32(this.offset, true);
-    const high = this.view.getUint32(this.offset + 4, true);
+  readUint64BigInt() {
+    const low = BigInt(this.view.getUint32(this.offset, true));
+    const high = BigInt(this.view.getUint32(this.offset + 4, true));
     this.offset += 8;
-    return high * 0x100000000 + low;
+    return (high << 32n) | low;
   }
 
-  readInt64() {
-    const low = this.view.getUint32(this.offset, true);
-    const high = this.view.getInt32(this.offset + 4, true);
+  readUint64(label = 'u64 value') {
+    return toSafeInteger(this.readUint64BigInt(), label);
+  }
+
+  readInt64BigInt() {
+    const low = BigInt(this.view.getUint32(this.offset, true));
+    const high = BigInt(this.view.getInt32(this.offset + 4, true));
     this.offset += 8;
-    return high * 0x100000000 + low;
+    return (high << 32n) | low;
+  }
+
+  readInt64(label = 'i64 value') {
+    return toSafeInteger(this.readInt64BigInt(), label);
   }
 
   readFloat32() {
@@ -175,7 +192,7 @@ class GGUFReader {
   }
 
   readString() {
-    const length = this.readUint64();
+    const length = this.readUint64('string length');
     const bytes = new Uint8Array(this.view.buffer, this.offset, length);
     this.offset += length;
     return new TextDecoder().decode(bytes);
@@ -196,9 +213,9 @@ class GGUFReader {
       case GGUFValueType.INT32:
         return this.readInt32();
       case GGUFValueType.UINT64:
-        return this.readUint64();
+        return this.readUint64('metadata uint64');
       case GGUFValueType.INT64:
-        return this.readInt64();
+        return this.readInt64('metadata int64');
       case GGUFValueType.FLOAT32:
         return this.readFloat32();
       case GGUFValueType.FLOAT64:
@@ -216,7 +233,7 @@ class GGUFReader {
 
   readArray() {
     const elementType = this.readUint32();
-    const length = this.readUint64();
+    const length = this.readUint64('array length');
     if (length > 10000000) {
       throw new Error(`Array too long: ${length}`);
     }
@@ -331,8 +348,8 @@ export function parseGGUF(buffer) {
     throw new Error(`Unsupported GGUF version: ${version}`);
   }
 
-  const tensorCount = reader.readUint64();
-  const metadataKVCount = reader.readUint64();
+  const tensorCount = reader.readUint64('tensor count');
+  const metadataKVCount = reader.readUint64('metadata count');
 
   const metadata = {};
   for (let i = 0; i < metadataKVCount; i++) {
@@ -351,10 +368,10 @@ export function parseGGUF(buffer) {
     const nDims = reader.readUint32();
     const shape = [];
     for (let d = 0; d < nDims; d++) {
-      shape.push(reader.readUint64());
+      shape.push(reader.readUint64(`tensor "${name}" shape[${d}]`));
     }
     const type = reader.readUint32();
-    const offset = reader.readUint64();
+    const offset = reader.readUint64(`tensor "${name}" offset`);
 
     tensors.push({
       name,

@@ -130,14 +130,12 @@ export class Tokenizer {
       );
     }
 
-    let hfModel = tokenizerConfig.hfModel;
+    let hfModel = tokenizerConfig.hfModel ?? tokenizerConfig.modelId ?? null;
     const allowArchFallback = tokenizerConfig.allowArchFallback === true;
     if (allowArchFallback && !hfModel) {
-      const inferred = this._inferHuggingFaceModel(manifest);
-      if (inferred) {
-        hfModel = inferred;
-        log.warn('Tokenizer', `Using inferred HuggingFace model: ${inferred}`);
-      }
+      throw new Error(
+        `[Tokenizer] tokenizer.allowArchFallback requires explicit tokenizer.hfModel or tokenizer.modelId for model "${modelId}".`
+      );
     }
 
     if (hfModel) {
@@ -212,23 +210,6 @@ export class Tokenizer {
 
     this.config = tokenizerConfig;
   }
-
-  
-  _inferHuggingFaceModel(manifest) {
-    const tokenizer = manifest?.tokenizer ?? {};
-    if (typeof tokenizer.modelId === 'string' && tokenizer.modelId.length > 0) {
-      return tokenizer.modelId;
-    }
-    if (typeof tokenizer.hfModel === 'string' && tokenizer.hfModel.length > 0) {
-      return tokenizer.hfModel;
-    }
-    if (typeof manifest?.modelId === 'string' && manifest.modelId.length > 0) {
-      return manifest.modelId;
-    }
-    return null;
-  }
-
-  
   encode(text) {
     if (!this.backend) {
       throw new Error('Tokenizer not initialized');
