@@ -2,6 +2,7 @@ import { log } from '../debug/index.js';
 import { PARAM_CATEGORIES, CategoryRules } from './param-categories.js';
 import { TOOLING_INTENTS, TOOLING_DIAGNOSTICS } from './schema/tooling.schema.js';
 import { validateEcosystemConfig } from './schema/ecosystem.schema.js';
+import { isPlainObject } from '../utils/plain-object.js';
 
 export function validateCallTimeOptions(options) {
   if (!options) return;
@@ -33,7 +34,23 @@ export function validateCallTimeOptions(options) {
 }
 
 export function validateRuntimeOverrides(overrides) {
+  if (!isPlainObject(overrides)) {
+    throw new Error('DopplerConfigError: runtime overrides must be an object when provided.');
+  }
+
+  assertRequiredRuntimeOverrideNotNull(overrides, 'shared');
+  assertRequiredRuntimeOverrideNotNull(overrides, 'loading');
+  assertRequiredRuntimeOverrideNotNull(overrides, 'inference');
+  assertRequiredRuntimeOverrideNotNull(overrides, 'emulation');
+  assertRequiredRuntimeOverrideNotNull(overrides?.inference, 'batching', 'runtime.inference');
+  assertRequiredRuntimeOverrideNotNull(overrides?.inference, 'compute', 'runtime.inference');
+  assertRequiredRuntimeOverrideNotNull(overrides?.inference, 'generation', 'runtime.inference');
+  assertRequiredRuntimeOverrideNotNull(overrides?.inference, 'kernelPathPolicy', 'runtime.inference');
+
   const modelOverrides = overrides?.inference?.modelOverrides;
+  if (modelOverrides !== undefined && modelOverrides !== null && !isPlainObject(modelOverrides)) {
+    throw new Error('DopplerConfigError: runtime.inference.modelOverrides must be an object when provided.');
+  }
   if (!modelOverrides) return;
 
   const params = flattenObject(modelOverrides);
@@ -214,6 +231,15 @@ function validateKernelPathPolicy(label, value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     throw new Error(`DopplerConfigError: ${label} must be an object.`);
   }
+  if (
+    value.sourceScope !== undefined
+    && value.allowSources !== undefined
+    && !arraysEqual(value.sourceScope, value.allowSources)
+  ) {
+    throw new Error(
+      `DopplerConfigError: ${label}.sourceScope and ${label}.allowSources must match exactly when both are provided.`
+    );
+  }
   if (value.mode !== 'locked' && value.mode !== 'capability-aware') {
     throw new Error(`DopplerConfigError: ${label}.mode must be "locked" or "capability-aware".`);
   }
@@ -232,4 +258,23 @@ function validateKernelPathPolicy(label, value) {
       );
     }
   }
+}
+
+function assertRequiredRuntimeOverrideNotNull(container, key, prefix = 'runtime') {
+  if (!isPlainObject(container) || !Object.prototype.hasOwnProperty.call(container, key)) {
+    return;
+  }
+  if (container[key] === null) {
+    throw new Error(`DopplerConfigError: ${prefix}.${key} must not be null.`);
+  }
+}
+
+function arraysEqual(left, right) {
+  if (!Array.isArray(left) || !Array.isArray(right)) {
+    return false;
+  }
+  if (left.length !== right.length) {
+    return false;
+  }
+  return left.every((value, index) => value === right[index]);
 }

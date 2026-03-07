@@ -55,33 +55,43 @@ async function _groupedPointwiseConv2D(target, input, weight, bias, options = {}
     device.queue.writeBuffer(biasBuffer, 0, new Uint8Array(paddedSize));
   }
 
-  await unifiedKernelWrapper(
-    'grouped_pointwise_conv2d',
-    target,
-    variant,
-    [input, weightBuffer, biasBuffer, output],
-    {
-      in_channels: inChannels,
-      out_channels: outChannels,
-      height,
-      width,
-      groups,
-      _pad0: 0,
-      _pad1: 0,
-      _pad2: 0,
-    },
-    [Math.ceil(spatial / WORKGROUP_SIZES.DEFAULT), outChannels, 1]
-  );
+  try {
+    await unifiedKernelWrapper(
+      'grouped_pointwise_conv2d',
+      target,
+      variant,
+      [input, weightBuffer, biasBuffer, output],
+      {
+        in_channels: inChannels,
+        out_channels: outChannels,
+        height,
+        width,
+        groups,
+        _pad0: 0,
+        _pad1: 0,
+        _pad2: 0,
+      },
+      [Math.ceil(spatial / WORKGROUP_SIZES.DEFAULT), outChannels, 1]
+    );
 
-  if (tempBias) {
-    if (recorder) {
-      recorder.trackTemporaryBuffer(tempBias);
-    } else {
+    if (tempBias) {
+      if (recorder) {
+        recorder.trackTemporaryBuffer(tempBias);
+      } else {
+        releaseBuffer(tempBias);
+      }
+    }
+
+    return createTensor(output, input.dtype, [outChannels, height, width], 'grouped_pointwise_conv2d_output');
+  } catch (error) {
+    if (tempBias) {
       releaseBuffer(tempBias);
     }
+    if (!outputBuffer) {
+      releaseBuffer(output);
+    }
+    throw error;
   }
-
-  return createTensor(output, input.dtype, [outChannels, height, width], 'grouped_pointwise_conv2d_output');
 }
 
 export async function runGroupedPointwiseConv2D(input, weight, bias, options = {}) {
