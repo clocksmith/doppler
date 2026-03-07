@@ -25,6 +25,7 @@ import { validateBrowserSuiteMetrics } from '../config/schema/browser-suite-metr
 import { validateTrainingMetricsReport } from '../config/schema/training-metrics.schema.js';
 import { buildExecutionContractArtifact } from '../config/execution-contract-check.js';
 import { buildManifestRequiredInferenceFieldsArtifact } from '../config/required-inference-fields-contract-check.js';
+import { buildRuntimeContractPatch } from '../tooling/command-api.js';
 
 const TRAINING_SUITE_MODULE_PATH = '../training/suite.js';
 const NODE_SOURCE_RUNTIME_MODULE_PATH = '../tooling/node-source-runtime.js';
@@ -362,8 +363,9 @@ export async function loadRuntimeConfigFromUrl(url, options = {}) {
 
 export async function applyRuntimeConfigFromUrl(url, options = {}) {
   const { runtime } = await loadRuntimeConfigFromUrl(url, options);
-  setRuntimeConfig(runtime);
-  return runtime;
+  const mergedRuntime = mergeRuntimeValues(getRuntimeConfig(), runtime);
+  setRuntimeConfig(mergedRuntime);
+  return mergedRuntime;
 }
 
 export async function loadRuntimePreset(presetId, options = {}) {
@@ -378,8 +380,18 @@ export async function loadRuntimePreset(presetId, options = {}) {
 
 export async function applyRuntimePreset(presetId, options = {}) {
   const { runtime } = await loadRuntimePreset(presetId, options);
-  setRuntimeConfig(runtime);
-  return runtime;
+  const mergedRuntime = mergeRuntimeValues(getRuntimeConfig(), runtime);
+  setRuntimeConfig(mergedRuntime);
+  return mergedRuntime;
+}
+
+function normalizeRuntimeConfigChain(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value
+    .map((entry) => typeof entry === 'string' ? entry.trim() : '')
+    .filter(Boolean);
 }
 
 export async function initializeBrowserHarness(options = {}) {
@@ -2280,6 +2292,7 @@ async function runBenchSuite(options = {}) {
       totalRunMs: totalMsStats.median,
       decodeTokensPerSec: decodeTokensPerSecStats?.median,
       prefillTokensPerSec: prefillTokensPerSecStats?.median,
+      prefillTokensPerSecTtft: prefillTokensPerSecTtftStats?.median,
       cacheMode,
       loadMode,
     });
@@ -2731,6 +2744,7 @@ function mergeRunDefaults(defaults, run) {
   return {
     ...defaults,
     ...run,
+    configChain: run.configChain ?? defaults.configChain ?? null,
     runtimePreset: run.runtimePreset ?? defaults.runtimePreset ?? null,
     runtimeConfigUrl: run.runtimeConfigUrl ?? defaults.runtimeConfigUrl ?? null,
     runtimeConfig: run.runtimeConfig ?? defaults.runtimeConfig ?? null,
@@ -2738,21 +2752,42 @@ function mergeRunDefaults(defaults, run) {
   };
 }
 
-async function applyRuntimeForRun(run, options) {
+export async function applyRuntimeForRun(run, options = {}) {
+  const configChain = normalizeRuntimeConfigChain(
+    run.configChain
+    ?? run.runtime?.configChain
+    ?? options.runtime?.configChain
+  );
+  for (const ref of configChain) {
+    const { runtime } = await loadRuntimeConfigFromRef(ref, options);
+    const mergedRuntime = mergeRuntimeValues(getRuntimeConfig(), runtime);
+    setRuntimeConfig(mergedRuntime);
+  }
+
+  if (run.runtimePreset) {
+    await applyRuntimePreset(run.runtimePreset, options);
+  }
+  if (run.runtimeConfigUrl) {
+    await applyRuntimeConfigFromUrl(run.runtimeConfigUrl, options);
+  }
   if (run.runtimeConfig) {
     const runtime = resolveRuntimeFromConfig(run.runtimeConfig);
     if (!runtime) {
       throw new Error('runtimeConfig is missing runtime fields');
     }
-    setRuntimeConfig(runtime);
-    return;
+    const mergedRuntime = mergeRuntimeValues(getRuntimeConfig(), runtime);
+    setRuntimeConfig(mergedRuntime);
   }
-  if (run.runtimeConfigUrl) {
-    await applyRuntimeConfigFromUrl(run.runtimeConfigUrl, options);
-    return;
-  }
-  if (run.runtimePreset) {
-    await applyRuntimePreset(run.runtimePreset, options);
+
+  if (typeof run.command === 'string' && run.command.trim()) {
+    const runtimeContractPatch = buildRuntimeContractPatch({
+      ...run,
+      modelId: run.modelId ?? null,
+    });
+    if (runtimeContractPatch) {
+      const mergedRuntime = mergeRuntimeValues(getRuntimeConfig(), runtimeContractPatch);
+      setRuntimeConfig(mergedRuntime);
+    }
   }
 }
 

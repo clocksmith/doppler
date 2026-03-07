@@ -23,6 +23,34 @@ CLI entrypoint:
 node tools/doppler-cli.js
 ```
 
+## Setup
+
+### Browser requirements
+
+Supported:
+- Chrome/Edge (recommended)
+- Safari with WebGPU support
+- Firefox Nightly (experimental)
+
+Check WebGPU availability:
+
+```javascript
+const adapter = await navigator.gpu.requestAdapter();
+console.log(Boolean(adapter));
+```
+
+### Browser harness and demo
+
+Serve the repo root when you need the browser harness or demo:
+
+```bash
+python3 -m http.server 8080
+```
+
+Useful URLs:
+- `http://localhost:8080/tests/harness.html`
+- `http://localhost:8080/demo/`
+
 ## Path A: Run a prebuilt RDRR model
 
 Use this when a model is already in the hosted registry.
@@ -94,8 +122,8 @@ node tools/doppler-cli.js convert --config "{
 ### Verify converted model
 
 Conversion writes artifacts to a filesystem output directory, not into the
-browser shard-manager store. To verify, run via browser relay so the model
-loads through the full OPFS-to-VRAM pipeline:
+browser shard-manager store. To verify a local conversion, run on the Node
+surface so the command can load the `file://` artifact path directly:
 
 ```bash
 MODEL_ID=$(node -e "const fs=require('fs');const j=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));console.log(j.output.modelBaseId);" "${CONVERSION_CONFIG}")
@@ -110,18 +138,19 @@ node tools/doppler-cli.js verify --config "{
     \"cacheMode\": \"warm\",
     \"runtimePreset\": \"modes/debug\"
   },
-  \"run\": { \"surface\": \"browser\" }
+  \"run\": { \"surface\": \"node\" }
 }" --json
 ```
 
-Note: `surface: "browser"` is required here. The converted artifacts live on
-the filesystem, not in shard-manager storage. Using `surface: "auto"` or
-omitting `modelUrl`/`loadMode` will fail because the verify harness expects
-the model in OPFS, which the conversion step does not populate.
+Note: `surface: "node"` is the correct local-filesystem path here. The Node
+runner installs the `file://` fetch shim used by the verify/debug harnesses,
+while the browser relay does not share the same local filesystem contract.
+If you omit `modelUrl`/`loadMode`, the verify harness will look in persistent
+storage instead of the newly converted output directory.
 
 ## Next docs
 
-- CLI command reference patterns: [cli-quickstart.md](cli-quickstart.md)
-- Setup and environment troubleshooting: [setup-instructions.md](setup-instructions.md)
+- Command contract and tooling surface: [api/tooling.md](api/tooling.md)
 - Onboarding consistency checks and scaffolders: [onboarding-tooling.md](onboarding-tooling.md)
 - Benchmark policy and claims: [benchmark-methodology.md](benchmark-methodology.md)
+- Troubleshooting and validation workflows: [operations.md](operations.md)

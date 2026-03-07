@@ -303,26 +303,53 @@ function resolveKernelPathFromPreset(presetInference, quantizationInfo, q4kLayou
   }
 
   const weightKey = normalizeKernelDtype(quantizationInfo?.weights);
-  const computeKey = normalizeKernelDtype(quantizationInfo?.compute) ?? (quantizationInfo ? 'f16' : null);
-
-  const entry = (weightKey && kernelPaths[weightKey]) || kernelPaths.default;
+  const computeKey = normalizeKernelDtype(quantizationInfo?.compute);
+  const hasWeightEntry = weightKey != null && Object.prototype.hasOwnProperty.call(kernelPaths, weightKey);
+  const entry = hasWeightEntry ? kernelPaths[weightKey] : kernelPaths.default;
+  const weightLabel = weightKey ? `.${weightKey}` : '';
   let resolved = null;
-  if (typeof entry === 'string') {
-    resolved = entry;
-  } else if (entry && computeKey && entry[computeKey]) {
-    resolved = entry[computeKey];
-  } else if (entry && entry.default) {
-    resolved = entry.default;
-  } else {
-    resolved = presetInference?.kernelPath ?? null;
+  if (entry == null) {
+    if (weightKey) {
+      throw new Error(
+        `Preset kernelPaths${weightLabel} is missing. ` +
+        'Add an explicit quantization mapping or kernelPaths.default instead of relying on JS fallbacks.'
+      );
+    }
+    throw new Error(
+      'Preset kernelPaths requires quantizationInfo.weights to resolve defaultKernelPath. ' +
+      'Add kernelPaths.default or provide explicit quantizationInfo.weights.'
+    );
   }
 
-  // When q4kLayout is 'col' (column-wise), fused Q4K kernels cannot be used.
-  // Try to find a corresponding dequant kernel path.
+  if (typeof entry === 'string') {
+    resolved = entry;
+  } else if (entry && computeKey && Object.prototype.hasOwnProperty.call(entry, computeKey)) {
+    resolved = entry[computeKey];
+  } else if (entry && typeof entry === 'object' && !Array.isArray(entry) && Object.prototype.hasOwnProperty.call(entry, 'default')) {
+    resolved = entry.default;
+  } else if (entry && typeof entry === 'object' && !Array.isArray(entry) && !computeKey) {
+    throw new Error(
+      `Preset kernelPaths${weightLabel} requires quantizationInfo.compute ` +
+      'to resolve a compute-specific defaultKernelPath.'
+    );
+  } else if (entry && typeof entry === 'object' && !Array.isArray(entry)) {
+    throw new Error(
+      `Preset kernelPaths${weightLabel} is missing compute "${computeKey}". ` +
+      'Add an explicit compute-specific mapping or default instead of relying on JS fallbacks.'
+    );
+  } else {
+    throw new Error(
+      `Preset kernelPaths${weightLabel} must resolve to a string or object.`
+    );
+  }
+
+  // Column-wise Q4K must be mapped explicitly in preset JSON; JS must not
+  // rewrite kernel-path ids to infer policy.
   if (resolved && q4kLayout === 'col' && resolved.includes('-fused-')) {
-    const dequantPath = resolved.replace('-fused-', '-dequant-');
-    // Return dequant variant (caller should verify it exists)
-    return dequantPath;
+    throw new Error(
+      `Preset kernelPaths${weightKey ? `.${weightKey}` : ''} resolved fused kernel path "${resolved}" ` +
+      'for q4k layout "col". Add an explicit dequant kernel path mapping to the preset instead of relying on JS rewrites.'
+    );
   }
 
   return resolved;

@@ -104,7 +104,10 @@ function buildKernelProfiles(steps) {
 }
 
 function buildSessionDefaults(kernelPath) {
-  const activationDtype = normalizeKernelDtype(getKernelPathActivationDtype(kernelPath)) ?? 'f16';
+  const activationDtype = normalizeKernelDtype(getKernelPathActivationDtype(kernelPath));
+  if (!activationDtype) {
+    throw new Error('execution-v0 manifest: kernel path is missing activationDtype.');
+  }
   const outputDtype = normalizeKernelDtype(getKernelPathOutputDtype(kernelPath)) ?? activationDtype;
   const kvDtype = normalizeKernelDtype(getKernelPathKVDtype(kernelPath)) ?? activationDtype;
   return {

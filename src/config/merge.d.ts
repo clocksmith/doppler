@@ -54,6 +54,7 @@ export interface MergedInferenceConfig {
   ffn: ManifestFFNSchema;
   rope: ManifestRoPESchema;
   output: ManifestOutputSchema;
+  pipeline: ManifestInferenceSchema['pipeline'];
   layerPattern: ManifestLayerPatternSchema | null;
   chatTemplate: ManifestChatTemplateSchema;
   defaultKernelPath: string | null;

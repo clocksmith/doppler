@@ -1,4 +1,3 @@
-import { log } from '../../../debug/index.js';
 import { resolveKernelPath } from '../../../config/kernel-path-loader.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 import {
@@ -9,19 +8,36 @@ import {
 export const PRIMARY_EXECUTION_PLAN_ID = 'primary';
 export const FINITENESS_FALLBACK_EXECUTION_PLAN_ID = 'finiteness_fallback';
 
-function normalizePositiveInt(value, fallback, label) {
-  if (!Number.isFinite(value)) return fallback;
-  const normalized = Math.floor(value);
-  if (normalized >= 1) return normalized;
-  log.warn('Pipeline', `[ExecutionPlan] ${label}=${value} is invalid; using ${fallback}.`);
-  return fallback;
+function assertOptionalBoolean(value, label) {
+  if (value === undefined) {
+    return undefined;
+  }
+  if (typeof value !== 'boolean') {
+    throw new Error(`[ExecutionPlan] ${label} must be boolean when provided; got ${JSON.stringify(value)}.`);
+  }
+  return value;
 }
 
-function normalizeStopCheckMode(value, fallback) {
-  if (value === 'batch' || value === 'per-token') {
-    return value;
+function assertOptionalPositiveInt(value, label) {
+  if (value === undefined) {
+    return undefined;
   }
-  return fallback;
+  if (!Number.isInteger(value) || value < 1) {
+    throw new Error(`[ExecutionPlan] ${label} must be a positive integer when provided; got ${JSON.stringify(value)}.`);
+  }
+  return value;
+}
+
+function assertOptionalStopCheckMode(value) {
+  if (value === undefined) {
+    return undefined;
+  }
+  if (value !== 'batch' && value !== 'per-token') {
+    throw new Error(
+      `[ExecutionPlan] stopCheckMode must be "batch" or "per-token" when provided; got ${JSON.stringify(value)}.`
+    );
+  }
+  return value;
 }
 
 function resolveFallbackActivationDtype(primaryActivationDtype) {
@@ -244,11 +260,17 @@ export function activateFallbackExecutionPlan(container) {
 
 function resolveExecutionOverrides(options = {}) {
   return {
-    disableCommandBatching: options.disableCommandBatching,
-    disableMultiTokenDecode: options.disableMultiTokenDecode,
-    batchSize: options.batchSize,
-    stopCheckMode: options.stopCheckMode,
-    maxTokens: options.maxTokens,
+    disableCommandBatching: assertOptionalBoolean(
+      options.disableCommandBatching,
+      'disableCommandBatching'
+    ),
+    disableMultiTokenDecode: assertOptionalBoolean(
+      options.disableMultiTokenDecode,
+      'disableMultiTokenDecode'
+    ),
+    batchSize: assertOptionalPositiveInt(options.batchSize, 'batchSize'),
+    stopCheckMode: assertOptionalStopCheckMode(options.stopCheckMode),
+    maxTokens: assertOptionalPositiveInt(options.maxTokens, 'maxTokens'),
   };
 }
 
@@ -268,9 +290,9 @@ export function resolveExecutionSessionPlan(container, options = {}) {
     deferredRoundingWindowTokens: activePlan.deferredRoundingWindowTokens,
     disableCommandBatching: overrides.disableCommandBatching ?? activePlan.defaultDisableCommandBatching,
     disableMultiTokenDecode: overrides.disableMultiTokenDecode ?? activePlan.defaultDisableMultiTokenDecode,
-    batchSize: normalizePositiveInt(overrides.batchSize, activePlan.defaultBatchSize, 'batchSize'),
-    stopCheckMode: normalizeStopCheckMode(overrides.stopCheckMode, activePlan.defaultStopCheckMode),
-    maxTokens: normalizePositiveInt(overrides.maxTokens, activePlan.defaultMaxTokens, 'maxTokens'),
+    batchSize: overrides.batchSize ?? activePlan.defaultBatchSize,
+    stopCheckMode: overrides.stopCheckMode ?? activePlan.defaultStopCheckMode,
+    maxTokens: overrides.maxTokens ?? activePlan.defaultMaxTokens,
     readbackInterval: activePlan.readbackInterval,
     ringTokens: activePlan.ringTokens,
     ringStop: activePlan.ringStop,

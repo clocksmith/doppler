@@ -20,6 +20,7 @@ import { log } from '../../debug/index.js';
 import { DopplerCapabilities } from './types.js';
 import { GB, HEADER_READ_SIZE } from '../../config/schema/index.js';
 import { resolveBridgeSourceRuntimeBundle } from './source-runtime.js';
+import { getRuntimeConfig } from '../../config/runtime.js';
 
 let pipeline = null;
 let currentModelId = null;
@@ -61,12 +62,48 @@ async function tryFetchRemoteManifest(modelUrl) {
   return manifest;
 }
 
+export async function verifyExplicitModelUrlMatch(
+  localManifest,
+  modelUrl,
+  fetchRemoteManifest = tryFetchRemoteManifest
+) {
+  if (!localManifest || !modelUrl) {
+    return;
+  }
+  let remoteManifest = null;
+  try {
+    remoteManifest = await fetchRemoteManifest(modelUrl);
+  } catch (error) {
+    throw new Error(
+      `Could not compare cached manifest with explicit modelUrl "${modelUrl}": ${error.message}`
+    );
+  }
+  if (remoteManifest && manifestsDiffer(localManifest, remoteManifest)) {
+    throw new Error(
+      `Explicit modelUrl "${modelUrl}" does not match the cached manifest for "${localManifest.modelId ?? 'unknown'}". ` +
+      'Clear the cache or load the matching source explicitly.'
+    );
+  }
+}
+
+export function shouldAutoTuneKernels(runtimeConfig = getRuntimeConfig()) {
+  return runtimeConfig?.shared?.kernelWarmup?.autoTune === true;
+}
+
 export function getPipeline() {
   return pipeline;
 }
 
 export function getCurrentModelId() {
   return currentModelId;
+}
+
+function requireManifestQuantization(manifest) {
+  const quantization = String(manifest?.quantization ?? '').trim();
+  if (!quantization) {
+    throw new Error('Manifest is missing quantization; re-convert the model.');
+  }
+  return quantization.toUpperCase();
 }
 
 export function extractTextModelConfig(manifest) {
@@ -86,12 +123,12 @@ export function extractTextModelConfig(manifest) {
     headDim: arch.headDim,
     vocabSize: arch.vocabSize,
     maxSeqLen: arch.maxSeqLen,
-    quantization: (manifest?.quantization || 'f16').toUpperCase(),
+    quantization: requireManifestQuantization(manifest),
   };
 }
 
 function estimateDequantizedWeightsBytes(manifest) {
-  const q = (manifest?.quantization || '').toUpperCase();
+  const q = requireManifestQuantization(manifest);
   const total = manifest?.totalSize || 0;
   if (q.startsWith('Q4')) {
     return total * 8;
@@ -293,18 +330,7 @@ export async function loadModel(modelId, modelUrl = null, onProgress = null, loc
       }
 
       if (integrity.valid && manifest && modelUrl) {
-        try {
-          const remoteManifest = await tryFetchRemoteManifest(modelUrl);
-          if (remoteManifest && manifestsDiffer(manifest, remoteManifest)) {
-            log.info('DopplerProvider', 'Cached model differs from source URL manifest; refreshing cache');
-            integrity = { valid: false, missingShards: [] };
-          }
-        } catch (error) {
-          log.warn(
-            'DopplerProvider',
-            `Could not compare cached manifest with source URL (${error.message}); using cached model`
-          );
-        }
+        await verifyExplicitModelUrlMatch(manifest, modelUrl);
       }
 
       if (!integrity.valid && modelUrl) {
@@ -365,7 +391,11 @@ export async function loadModel(modelId, modelUrl = null, onProgress = null, loc
       DopplerCapabilities.kernelsWarmed = true;
     }
 
-    if (!DopplerCapabilities.kernelsTuned && typeof setTimeout !== 'undefined') {
+    if (
+      !DopplerCapabilities.kernelsTuned
+      && shouldAutoTuneKernels()
+      && typeof setTimeout !== 'undefined'
+    ) {
       DopplerCapabilities.kernelsTuned = true;
       const tuneConfig = extractTextModelConfig(manifest);
       setTimeout(() => {

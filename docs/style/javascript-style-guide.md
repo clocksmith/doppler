@@ -100,6 +100,16 @@ Runtime code must respect dtype and performance invariants from config and devic
 
 If you need to switch dtype or kernel variants, put the decision in rule maps or schema-driven config, not in ad-hoc conditionals.
 
+## Runtime Failure-Path Invariants
+
+Runtime resource ownership must stay deterministic on both success and failure paths.
+
+- Any acquired runtime resource must have one clear owner and one deterministic cleanup path.
+- Any `createBuffer()`, pooled-buffer acquire, `mapAsync()`, staging readback allocation, or temporary recorder allocation must release, destroy, or unmap on every throw path.
+- Prefer `try/finally` or a shared helper that owns the cleanup boundary. Do not duplicate cleanup sequences inline across multiple call sites.
+- GPU readback must use shared helpers rather than ad hoc `createBuffer() + copyBufferToBuffer() + mapAsync()` sequences unless a documented exception is required.
+- If an exception is required, document why the shared helper is insufficient and keep the cleanup path local, explicit, and test-covered.
+
 ---
 
 ## Types: .d.ts Files

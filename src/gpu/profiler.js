@@ -179,6 +179,8 @@ export class GPUProfiler {
 
     if (!this.#device || !this.#querySet || !this.#queryBuffer || !this.#readbackBuffer) {
       log.warn('GPUProfiler', 'Missing required resources for resolve');
+      this.#pendingResolves = [];
+      this.#nextQueryIndex = 0;
       return;
     }
 
@@ -199,34 +201,35 @@ export class GPUProfiler {
 
     this.#device.queue.submit([encoder.finish()]);
 
-    if (!allowReadback('GPUProfiler.resolve')) {
-      return;
-    }
+    let mapped = false;
 
-    // Read back timestamps
-    await this.#readbackBuffer.mapAsync(GPUMapMode.READ);
-    const timestamps = new BigUint64Array(this.#readbackBuffer.getMappedRange());
-
-    // Process pending resolves
-    for (const pending of this.#pendingResolves) {
-      const startNs = timestamps[pending.startIndex];
-      const endNs = timestamps[pending.endIndex];
-
-      // Convert nanoseconds to milliseconds
-      const durationMs = Number(endNs - startNs) / 1_000_000;
-
-      // Sanity check - use CPU timing if GPU timing seems wrong
-      if (durationMs < 0 || durationMs > this.#maxDurationMs) {
-        // Fallback to CPU timing
-        this.#recordResult(pending.label, pending.cpuEndTime - pending.cpuStartTime);
-      } else {
-        this.#recordResult(pending.label, durationMs);
+    try {
+      if (!allowReadback('GPUProfiler.resolve')) {
+        return;
       }
-    }
 
-    this.#readbackBuffer.unmap();
-    this.#pendingResolves = [];
-    this.#nextQueryIndex = 0;
+      await this.#readbackBuffer.mapAsync(GPUMapMode.READ);
+      mapped = true;
+      const timestamps = new BigUint64Array(this.#readbackBuffer.getMappedRange());
+
+      for (const pending of this.#pendingResolves) {
+        const startNs = timestamps[pending.startIndex];
+        const endNs = timestamps[pending.endIndex];
+        const durationMs = Number(endNs - startNs) / 1_000_000;
+
+        if (durationMs < 0 || durationMs > this.#maxDurationMs) {
+          this.#recordResult(pending.label, pending.cpuEndTime - pending.cpuStartTime);
+        } else {
+          this.#recordResult(pending.label, durationMs);
+        }
+      }
+    } finally {
+      if (mapped) {
+        this.#readbackBuffer.unmap();
+      }
+      this.#pendingResolves = [];
+      this.#nextQueryIndex = 0;
+    }
   }
 
   
@@ -350,6 +353,8 @@ export class GPUProfiler {
     }
     this.#results.clear();
     this.#activeLabels.clear();
+    this.#pendingResolves = [];
+    this.#nextQueryIndex = 0;
   }
 }
 

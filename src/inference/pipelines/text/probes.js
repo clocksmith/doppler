@@ -4,6 +4,7 @@ import { trace } from '../../../debug/index.js';
 import { getDevice } from '../../../gpu/device.js';
 import { allowReadback } from '../../../gpu/perf-guards.js';
 import { f16ToF32 } from '../../../loader/dtype-utils.js';
+import { readBufferSlice } from '../../../memory/buffer-pool.js';
 
 
 const STAGE_DEFAULT_CATEGORY = {
@@ -139,22 +140,16 @@ export async function runProbes(stage, buffer, options) {
         const alignedOffset = Math.floor(byteOffset / 4) * 4;
         const offsetWithinRead = byteOffset - alignedOffset;
         const readSize = 4; // Always read 4 bytes (aligned)
-        const staging =  (device).createBuffer({ size: readSize, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
-        const enc =  (device).createCommandEncoder();
-        enc.copyBufferToBuffer( (buffer), alignedOffset, staging, 0, readSize);
-         (device).queue.submit([enc.finish()]);
-        await staging.mapAsync(GPUMapMode.READ);
+        const readback = await readBufferSlice(buffer, alignedOffset, readSize);
         let value;
         if (dtype === 'f16') {
           // offsetWithinRead is 0 or 2 for F16 - extract correct u16
-          const u16Array = new Uint16Array(staging.getMappedRange().slice(0));
+          const u16Array = new Uint16Array(readback);
           const u16Index = offsetWithinRead / 2;
           value = f16ToF32(u16Array[u16Index]);
         } else {
-          value = new Float32Array(staging.getMappedRange().slice(0))[0];
+          value = new Float32Array(readback)[0];
         }
-        staging.unmap();
-        staging.destroy();
         values.push(`${dimIdx}=${value.toFixed(4)}`);
       }
 

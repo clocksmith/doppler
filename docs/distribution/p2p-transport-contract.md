@@ -116,6 +116,10 @@ Retry behavior:
 - `loading.distribution.p2p.abuse.maxConsecutiveFailures`
 - `loading.distribution.p2p.abuse.quarantineMs`
 
+Validation rules:
+- Invalid `loading.distribution.sourceOrder` entries fail before delivery planning; Doppler does not silently drop unknown sources or rewrite an empty list.
+- Numeric P2P policy knobs (`timeoutMs`, `maxRetries`, `retryDelayMs`, control-plane `tokenRefreshSkewMs`, abuse thresholds) must be valid integers in-range for their field or the run fails before transport execution.
+
 ## Delivery Diagnostics
 - `downloadShard()` always returns `deliveryMetrics` summarizing source attempts/retries, failure codes, source RTT aggregates, and storage write latency.
 - `downloadShard(..., { onDeliveryMetrics })` provides a production hook for exporting metrics snapshots to dashboards/SLO backends.

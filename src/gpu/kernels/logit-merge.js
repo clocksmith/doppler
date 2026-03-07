@@ -266,9 +266,11 @@ export class LogitMergeKernel {
     pass.end();
 
     this.#device.queue.submit([encoder.finish()]);
-
-    // Cleanup temporary buffer
-    paramsBuffer.destroy();
+    this.#device.queue.onSubmittedWorkDone()
+      .catch(() => {})
+      .finally(() => {
+        paramsBuffer.destroy();
+      });
 
     return mergedBuffer;
   }

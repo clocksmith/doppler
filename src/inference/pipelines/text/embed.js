@@ -319,14 +319,8 @@ export async function embed(tokenIds, embedBuffer, config) {
     const firstTokenId = tokenIdArray[0];
     const bytesPerElement = useF16 ? 2 : 4;
     const sampleSize = Math.min(32 * bytesPerElement, hiddenSize * bytesPerElement);
-    const staging = device.createBuffer({ size: sampleSize, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
-    const enc = device.createCommandEncoder();
-    enc.copyBufferToBuffer(gatherOutput.buffer, 0, staging, 0, sampleSize);
-    device.queue.submit([enc.finish()]);
-    await staging.mapAsync(GPUMapMode.READ);
-    const data = decodeReadback(staging.getMappedRange().slice(0), gatherOptions.outputDtype);
-    staging.unmap();
-    staging.destroy();
+    const readback = await readBuffer(gatherOutput.buffer, sampleSize);
+    const data = decodeReadback(readback, gatherOptions.outputDtype);
 
     // Compute statistics
     let sum = 0, sumSq = 0;

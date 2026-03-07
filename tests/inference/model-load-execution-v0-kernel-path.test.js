@@ -29,12 +29,23 @@ const NO_SUBGROUP_CAPABILITIES = Object.freeze({
   hasSubgroups: false,
   hasF16: false,
 });
+const FULL_CAPABILITIES = Object.freeze({
+  hasSubgroups: true,
+  hasF16: true,
+});
 
 function createRuntimeConfig(kernelPath) {
   return {
     inference: {
       compute: { activationDtype: 'f32' },
       kvcache: { kvDtype: 'f32' },
+      session: {
+        compute: {
+          defaults: {
+            outputDtype: 'f32',
+          },
+        },
+      },
       kernelPath,
       kernelPathSource: 'execution-v0',
       kernelPathPolicy: {
@@ -52,9 +63,16 @@ const manifest = { modelId: 'model-load-execution-v0-test', inference: {} };
 {
   const runtimeConfig = {
     inference: {
-      compute: { activationDtype: 'f32' },
-      kvcache: { kvDtype: 'f32' },
-      kernelPath: 'gemma3-f16-fused-f32a-online',
+      compute: { activationDtype: 'f16' },
+      kvcache: { kvDtype: 'f16' },
+      session: {
+        compute: {
+          defaults: {
+            outputDtype: 'f16',
+          },
+        },
+      },
+      kernelPath: 'gemma2-q4k-dequant-f32a',
       kernelPathPolicy: {
         mode: 'capability-aware',
         sourceScope: ['config'],
@@ -67,9 +85,9 @@ const manifest = { modelId: 'model-load-execution-v0-test', inference: {} };
       manifest,
       runtimeConfig,
       modelConfig,
-      kernelCapabilities: NO_SUBGROUP_CAPABILITIES,
+      kernelCapabilities: FULL_CAPABILITIES,
     }),
-    /no explicit auto-select remap matched/
+    /requires explicit matching runtime dtypes/
   );
 }
 
@@ -126,6 +144,77 @@ const manifest = { modelId: 'model-load-execution-v0-test', inference: {} };
   });
   assert.equal(resolved.kernelPathSource, 'execution-v0');
   assert.equal(resolved.resolvedKernelPath?.id, 'inline-execution-v0-portable');
+}
+
+{
+  const runtimeConfig = {
+    inference: {
+      compute: { activationDtype: 'f32' },
+      kvcache: { kvDtype: 'f32' },
+    },
+  };
+  const lfm2Manifest = {
+    modelId: 'lfm2-kernelpath-dtype-mismatch-test',
+    quantizationInfo: {
+      compute: 'f32',
+    },
+    inference: {
+      presetId: 'lfm2',
+    },
+  };
+  const lfm2ModelConfig = {
+    kernelPath: 'gemma3-q4k-dequant-f16a-online',
+  };
+
+  assert.throws(
+    () => resolveKernelPathState({
+      manifest: lfm2Manifest,
+      runtimeConfig,
+      modelConfig: lfm2ModelConfig,
+      kernelCapabilities: FULL_CAPABILITIES,
+    }),
+    /Manifest kernel path dtype mismatch/
+  );
+}
+
+{
+  const runtimeConfig = {
+    inference: {
+      compute: { activationDtype: 'f16' },
+      kvcache: { kvDtype: 'f16' },
+      session: {
+        compute: {
+          defaults: {
+            outputDtype: 'f16',
+          },
+        },
+      },
+    },
+  };
+  const manifestKernelPath = {
+    modelId: 'manifest-kernelpath-runtime-defaults-test',
+    quantizationInfo: {
+      compute: 'f32',
+    },
+    inference: {},
+  };
+  const manifestModelConfig = {
+    kernelPath: 'gemma2-q4k-dequant-f32a',
+  };
+
+  const resolved = resolveKernelPathState({
+    manifest: manifestKernelPath,
+    runtimeConfig,
+    modelConfig: manifestModelConfig,
+    kernelCapabilities: FULL_CAPABILITIES,
+  });
+  assert.equal(resolved.resolvedKernelPath?.id, 'gemma2-q4k-dequant-f32a');
+  assert.equal(resolved.runtimeConfig.inference.compute.activationDtype, 'f32');
+  assert.equal(resolved.runtimeConfig.inference.kvcache.kvDtype, 'f32');
+  assert.equal(
+    resolved.runtimeConfig.inference.session.compute.defaults.outputDtype,
+    'f32'
+  );
 }
 
 console.log('model-load-execution-v0-kernel-path.test: ok');

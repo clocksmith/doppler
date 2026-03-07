@@ -77,6 +77,7 @@ function buildWitnessMergeManifest() {
         embeddingTranspose: false,
         embeddingVocabSize: 1024,
       },
+      pipeline: 'decode-only',
       layerPattern: null,
       chatTemplate: {
         type: 'gemma',
@@ -114,6 +115,13 @@ export function buildMergeContractArtifact() {
       && mergedUndefined._sources.get('inference.defaultKernelPath') === 'manifest',
     `value=${mergedUndefined.inference.defaultKernelPath}, source=${mergedUndefined._sources.get('inference.defaultKernelPath')}`
   );
+  recordCheck(
+    checks,
+    'runtime.mergeConfig.pipeline_preserves_manifest_value',
+    mergedUndefined.inference.pipeline === 'decode-only'
+      && mergedUndefined._sources.get('inference.pipeline') === 'manifest',
+    `value=${String(mergedUndefined.inference.pipeline)}, source=${mergedUndefined._sources.get('inference.pipeline')}`
+  );
 
   const mergedNull = mergeConfig(buildWitnessMergeManifest(), {
     defaultKernelPath: null,
@@ -150,6 +158,35 @@ export function buildMergeContractArtifact() {
     'runtime.schema.chatTemplate.spread_preserves_null',
     runtimeConfig.runtime.inference.chatTemplate.enabled === null,
     `value=${String(runtimeConfig.runtime.inference.chatTemplate.enabled)}`
+  );
+
+  const isolatedConfigA = createDopplerConfig();
+  isolatedConfigA.runtime.inference.compute.activationDtype = 'f32';
+  const isolatedConfigB = createDopplerConfig();
+  recordCheck(
+    checks,
+    'runtime.schema.defaults_are_isolated_per_instance',
+    isolatedConfigB.runtime.inference.compute.activationDtype !== 'f32'
+      && isolatedConfigA.runtime.inference.compute !== isolatedConfigB.runtime.inference.compute,
+    `configA=${isolatedConfigA.runtime.inference.compute.activationDtype}, configB=${isolatedConfigB.runtime.inference.compute.activationDtype}`,
+    'actual'
+  );
+
+  const calibrateConfig = createDopplerConfig({
+    runtime: {
+      shared: {
+        tooling: {
+          intent: 'calibrate',
+        },
+      },
+    },
+  });
+  recordCheck(
+    checks,
+    'runtime.schema.calibrate_does_not_mutate_kernel_warmup_defaults',
+    calibrateConfig.runtime.shared.kernelWarmup.prewarm === false,
+    `prewarm=${String(calibrateConfig.runtime.shared.kernelWarmup.prewarm)}`,
+    'actual'
   );
 
   const overlaySources = new Map();
@@ -252,6 +289,24 @@ export function buildMergeContractArtifact() {
     'actual'
   );
 
+  let invalidShallowOverrideError = null;
+  try {
+    mergeShallowObject(
+      { type: 'base', enabled: true },
+      null
+    );
+  } catch (error) {
+    invalidShallowOverrideError = error;
+  }
+  recordCheck(
+    checks,
+    'runtime.mergeShallowObject.invalid_explicit_override_fails_closed',
+    invalidShallowOverrideError instanceof Error
+      && /shallow object overrides must be plain objects/.test(invalidShallowOverrideError.message),
+    `error=${invalidShallowOverrideError?.message ?? 'none'}`,
+    'actual'
+  );
+
   const layeredAttention = mergeLayeredShallowObjects(
     { slidingWindow: 4096, attentionBias: false },
     { slidingWindow: 2048 },
@@ -273,7 +328,7 @@ export function buildMergeContractArtifact() {
       onIncompatible: 'error',
     },
     {
-      allowSources: ['runtime', 'execution-v0'],
+      allowSources: ['config', 'execution-v0'],
       onIncompatible: 'remap',
     }
   );
@@ -283,7 +338,7 @@ export function buildMergeContractArtifact() {
     Array.isArray(mergedKernelPathPolicy.sourceScope)
       && Array.isArray(mergedKernelPathPolicy.allowSources)
       && mergedKernelPathPolicy.sourceScope.length === 2
-      && mergedKernelPathPolicy.sourceScope[0] === 'runtime'
+      && mergedKernelPathPolicy.sourceScope[0] === 'config'
       && mergedKernelPathPolicy.allowSources[1] === 'execution-v0'
       && mergedKernelPathPolicy.onIncompatible === 'remap',
     `sourceScope=${JSON.stringify(mergedKernelPathPolicy.sourceScope)}, allowSources=${JSON.stringify(mergedKernelPathPolicy.allowSources)}`,
@@ -294,7 +349,7 @@ export function buildMergeContractArtifact() {
     runtime: {
       inference: {
         kernelPathPolicy: {
-          allowSources: ['runtime', 'execution-v0'],
+          allowSources: ['config', 'execution-v0'],
         },
       },
     },
@@ -303,7 +358,7 @@ export function buildMergeContractArtifact() {
     checks,
     'runtime.schema.kernelPathPolicy.helper_is_used',
     Array.isArray(runtimeConfigWithKernelPathPolicy.runtime.inference.kernelPathPolicy.sourceScope)
-      && runtimeConfigWithKernelPathPolicy.runtime.inference.kernelPathPolicy.sourceScope[0] === 'runtime'
+      && runtimeConfigWithKernelPathPolicy.runtime.inference.kernelPathPolicy.sourceScope[0] === 'config'
       && runtimeConfigWithKernelPathPolicy.runtime.inference.kernelPathPolicy.allowSources[1] === 'execution-v0',
     `policy=${JSON.stringify(runtimeConfigWithKernelPathPolicy.runtime.inference.kernelPathPolicy)}`,
     'actual'

@@ -23,6 +23,7 @@ export class ShardCache {
   #inFlightLoads = 0;
   #highPriorityQueue = [];
   #lowPriorityQueue = [];
+  #epoch = 0;
 
   lastSource = null;
 
@@ -123,6 +124,7 @@ export class ShardCache {
     const shardInfo = this.#manifest?.shards?.[shardIndex];
     const sizeStr = shardInfo ? formatBytes(shardInfo.size) : '';
     const priority = options.priority === 'low' ? 'low' : 'high';
+    const epoch = this.#epoch;
 
     // 1. Check cache first
     if (this.#cache.has(shardIndex)) {
@@ -136,24 +138,29 @@ export class ShardCache {
     }
 
     // 2. Check if fetch is already in-flight - deduplicate concurrent requests
-    if (this.#fetchPromises.has(shardIndex)) {
+    const inFlight = this.#fetchPromises.get(shardIndex);
+    if (inFlight && inFlight.epoch === epoch) {
       log.verbose('ShardCache', `Shard ${shardIndex}: waiting for in-flight fetch`);
-      return this.#fetchPromises.get(shardIndex);
+      return inFlight.promise;
     }
 
     // 3. Start the actual fetch and store the promise for deduplication
     const fetchPromise = this.#scheduleLoad(
       priority,
-      () => this.#doLoad(shardIndex, sizeStr)
+      epoch,
+      () => this.#doLoad(shardIndex, sizeStr, epoch)
     );
-    this.#fetchPromises.set(shardIndex, fetchPromise);
+    const fetchEntry = { epoch, promise: fetchPromise };
+    this.#fetchPromises.set(shardIndex, fetchEntry);
 
     try {
       const result = await fetchPromise;
       return result;
     } finally {
       // Remove from in-flight map when done (success or error)
-      this.#fetchPromises.delete(shardIndex);
+      if (this.#fetchPromises.get(shardIndex) === fetchEntry) {
+        this.#fetchPromises.delete(shardIndex);
+      }
     }
   }
 
@@ -193,6 +200,13 @@ export class ShardCache {
       return data;
     }
     throw new Error('Custom shard loader must return ArrayBuffer or Uint8Array.');
+  }
+
+  #throwShortStreamRead(shardIndex, start, want, produced, path) {
+    throw new Error(
+      `Shard ${shardIndex} short stream read via ${path}: ` +
+      `offset=${start}, expected=${want}, got=${produced}.`
+    );
   }
 
   async loadRange(shardIndex, offset = 0, length = null, options = {}) {
@@ -276,9 +290,15 @@ export class ShardCache {
       this.#setLastSource('RAM', 0, 'stream', 'cache');
       const view = new Uint8Array(cached);
       const end = want == null ? view.length : Math.min(view.length, start + want);
+      let produced = 0;
       for (let cursor = start; cursor < end; cursor += chunkBytes) {
         const sliceEnd = Math.min(end, cursor + chunkBytes);
-        yield view.slice(cursor, sliceEnd);
+        const chunk = view.slice(cursor, sliceEnd);
+        produced += chunk.byteLength;
+        yield chunk;
+      }
+      if (want != null && produced < want) {
+        this.#throwShortStreamRead(shardIndex, start, want, produced, 'cache');
       }
       return;
     }
@@ -323,6 +343,15 @@ export class ShardCache {
           resumed += bytes.byteLength;
           yield bytes;
         }
+        if (want != null && produced + resumed < want) {
+          this.#throwShortStreamRead(
+            shardIndex,
+            start,
+            want,
+            produced + resumed,
+            'custom-range-fallback'
+          );
+        }
         const elapsed = (performance.now() - streamStart) / 1000;
         this.#setLastSource(
           'custom',
@@ -358,6 +387,15 @@ export class ShardCache {
           resumed += bytes.byteLength;
           yield bytes;
         }
+        if (produced + resumed < want) {
+          this.#throwShortStreamRead(
+            shardIndex,
+            start,
+            want,
+            produced + resumed,
+            'custom-range-fallback'
+          );
+        }
         const elapsed = (performance.now() - streamStart) / 1000;
         this.#setLastSource(
           'custom',
@@ -369,6 +407,9 @@ export class ShardCache {
         return;
       }
 
+      if (want != null && produced < want) {
+        this.#throwShortStreamRead(shardIndex, start, want, produced, 'custom-stream');
+      }
       const elapsed = (performance.now() - streamStart) / 1000;
       this.#setLastSource('custom', elapsed, 'stream', 'custom-stream');
       return;
@@ -403,6 +444,9 @@ export class ShardCache {
           }
         }
       }
+      if (want != null && produced < want) {
+        this.#throwShortStreamRead(shardIndex, start, want, produced, 'custom-range');
+      }
       this.#setLastSource(
         'custom',
         (performance.now() - rangeStart) / 1000,
@@ -414,8 +458,14 @@ export class ShardCache {
     }
 
     const streamStart = performance.now();
+    let produced = 0;
     for await (const chunk of streamShardRangeFromStore(shardIndex, start, want, { chunkBytes })) {
-      yield chunk instanceof Uint8Array ? chunk : new Uint8Array(chunk);
+      const bytes = chunk instanceof Uint8Array ? chunk : new Uint8Array(chunk);
+      produced += bytes.byteLength;
+      yield bytes;
+    }
+    if (want != null && produced < want) {
+      this.#throwShortStreamRead(shardIndex, start, want, produced, 'backend-stream');
     }
     const elapsed = (performance.now() - streamStart) / 1000;
     const backend = getStorageBackendType() ?? 'storage';
@@ -426,7 +476,7 @@ export class ShardCache {
     return this.load(shardIndex, { priority: 'low' });
   }
 
-  async #doLoad(shardIndex, sizeStr) {
+  async #doLoad(shardIndex, sizeStr, epoch) {
     if (this.#customLoader) {
       const startTime = performance.now();
       let data = await this.#customLoader(shardIndex);
@@ -453,7 +503,9 @@ export class ShardCache {
       // Normalize to ArrayBuffer for downstream slicing
       const arrayBuffer = this.#toArrayBuffer(data);
 
-      this.#add(shardIndex, arrayBuffer);
+      if (epoch === this.#epoch) {
+        this.#add(shardIndex, arrayBuffer);
+      }
 
       const elapsed = (performance.now() - startTime) / 1000;
       this.#setLastSource('custom', elapsed, 'full', 'custom-loader');
@@ -463,7 +515,9 @@ export class ShardCache {
 
     const storageStart = performance.now();
     const data = await loadShardFromStore(shardIndex);
-    this.#add(shardIndex, data);
+    if (epoch === this.#epoch) {
+      this.#add(shardIndex, data);
+    }
     const elapsed = (performance.now() - storageStart) / 1000;
     const backend = getStorageBackendType() ?? 'storage';
     this.#setLastSource(backend, elapsed, 'full', 'backend-full');
@@ -471,12 +525,15 @@ export class ShardCache {
     return data;
   }
 
-  async #scheduleLoad(priority, task) {
+  async #scheduleLoad(priority, epoch, task) {
     const limit = this.#maxConcurrentLoads > 0
       ? this.#maxConcurrentLoads
       : Number.POSITIVE_INFINITY;
 
     if (this.#inFlightLoads < limit) {
+      if (epoch !== this.#epoch) {
+        throw new Error('Shard load invalidated by cache clear().');
+      }
       this.#inFlightLoads++;
       try {
         return await task();
@@ -487,7 +544,7 @@ export class ShardCache {
     }
 
     return new Promise((resolve, reject) => {
-      const entry = { task, resolve, reject };
+      const entry = { task, resolve, reject, epoch };
       if (priority === 'low') {
         this.#lowPriorityQueue.push(entry);
       } else {
@@ -504,6 +561,10 @@ export class ShardCache {
     while (this.#inFlightLoads < limit) {
       const entry = this.#highPriorityQueue.shift() ?? this.#lowPriorityQueue.shift();
       if (!entry) return;
+      if (entry.epoch !== this.#epoch) {
+        entry.reject(new Error('Shard load invalidated by cache clear().'));
+        continue;
+      }
 
       this.#inFlightLoads++;
       Promise.resolve()
@@ -529,6 +590,14 @@ export class ShardCache {
   clear() {
     const count = this.#cache.size;
     const bytes = this.totalBytes;
+    this.#epoch++;
+    const queued = [...this.#highPriorityQueue, ...this.#lowPriorityQueue];
+    this.#highPriorityQueue = [];
+    this.#lowPriorityQueue = [];
+    this.#fetchPromises.clear();
+    for (const entry of queued) {
+      entry.reject(new Error('Shard load invalidated by cache clear().'));
+    }
     this.#cache.clear();
     debugTrace.loader(`Cleared shard cache: ${count} shards, ${formatBytes(bytes)} freed`);
   }

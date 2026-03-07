@@ -682,7 +682,9 @@ window.__runBench = async (config) => {
     decodeMs: medianDecodeMs,
     totalRunMs: medianTotalRunMs,
     decodeTokensPerSec,
+    promptTokensPerSecToFirstToken: prefillTokensPerSec,
     prefillTokensPerSec,
+    prefillTokensPerSecTtft: prefillTokensPerSec,
     decodeMsPerTokenP50: percentile(allDecodeLatencies, 50),
     decodeMsPerTokenP95: percentile(allDecodeLatencies, 95),
     decodeMsPerTokenP99: percentile(allDecodeLatencies, 99),
@@ -733,6 +735,7 @@ window.__runBench = async (config) => {
     deviceInfo,
     metrics: {
       decodeTokensPerSec,
+      promptTokensPerSecToFirstToken: prefillTokensPerSec,
       prefillTokensPerSec,
       firstTokenMs: medianTtftMs,
       firstResponseMs,

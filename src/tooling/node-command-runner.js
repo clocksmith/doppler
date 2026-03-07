@@ -51,16 +51,19 @@ export function hasNodeWebGPUSupport() {
 }
 
 async function assertNodeWebGPUSupport() {
+  let bootstrapProvider = null;
   if (!hasNodeWebGPUSupport()) {
     const bootstrap = await bootstrapNodeWebGPU();
     if (bootstrap.ok && bootstrap.provider) {
-      console.error(`[surface] node WebGPU provider: ${bootstrap.provider}`);
+      bootstrapProvider = bootstrap.provider;
     }
   }
 
   if (hasNodeWebGPUSupport()) return;
   throw new Error(
-    'node command: WebGPU runtime is incomplete in Node. Run in browser relay, or run under a WebGPU-enabled Node build.'
+    'node command: WebGPU runtime is incomplete in Node.' +
+    (bootstrapProvider ? ` Bootstrap attempted provider "${bootstrapProvider}".` : '') +
+    ' Run in browser relay, or run under a WebGPU-enabled Node build.'
   );
 }
 

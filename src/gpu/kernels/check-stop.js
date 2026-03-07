@@ -1,7 +1,7 @@
 
 
 import { getDevice, getDeviceEpoch } from '../device.js';
-import { acquireBuffer } from '../../memory/buffer-pool.js';
+import { acquireBuffer, readBufferSlice } from '../../memory/buffer-pool.js';
 import { recordDispatch } from './dispatch.js';
 import { createUniformBufferFromData, getOrCreateBindGroupLayout, getOrCreatePipelineLayout } from './utils.js';
 import { allowReadback } from '../perf-guards.js';
@@ -133,49 +133,38 @@ export async function checkStop(params) {
     usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
   });
   const ownsStopBuffer = !params.shouldStopBuffer;
-  if (shouldStopBuffer.size < requiredBytes) {
-    throw new Error('[CheckStop] shouldStopBuffer too small for tokenIndex.');
+
+  try {
+    if (shouldStopBuffer.size < requiredBytes) {
+      throw new Error('[CheckStop] shouldStopBuffer too small for tokenIndex.');
+    }
+
+    const bindGroup = device.createBindGroup({
+      layout: getCheckStopBindGroupLayout(device),
+      entries: [
+        { binding: 0, resource: { buffer: uniformBuffer } },
+        { binding: 1, resource: { buffer: params.sampledTokenBuffer } },
+        { binding: 2, resource: { buffer: shouldStopBuffer } },
+      ],
+    });
+
+    const encoder = device.createCommandEncoder();
+    const pass = encoder.beginComputePass();
+    pass.setPipeline(pipeline);
+    pass.setBindGroup(0, bindGroup);
+    pass.dispatchWorkgroups(1, 1, 1);
+    pass.end();
+
+    device.queue.submit([encoder.finish()]);
+
+    const result = new Uint32Array(
+      await readBufferSlice(shouldStopBuffer, tokenIndex * U32_BYTES, U32_BYTES)
+    )[0];
+    return result === 1;
+  } finally {
+    uniformBuffer.destroy();
+    if (ownsStopBuffer) {
+      shouldStopBuffer.destroy();
+    }
   }
-
-  const bindGroup = device.createBindGroup({
-    layout: getCheckStopBindGroupLayout(device),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: params.sampledTokenBuffer } },
-      { binding: 2, resource: { buffer: shouldStopBuffer } },
-    ],
-  });
-
-  const encoder = device.createCommandEncoder();
-  const pass = encoder.beginComputePass();
-  pass.setPipeline(pipeline);
-  pass.setBindGroup(0, bindGroup);
-  pass.dispatchWorkgroups(1, 1, 1);
-  pass.end();
-
-  // Readback result
-  const stagingBuffer = device.createBuffer({
-    size: U32_BYTES,
-    usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
-  });
-  encoder.copyBufferToBuffer(
-    shouldStopBuffer,
-    tokenIndex * U32_BYTES,
-    stagingBuffer,
-    0,
-    U32_BYTES
-  );
-  device.queue.submit([encoder.finish()]);
-
-  await stagingBuffer.mapAsync(GPUMapMode.READ);
-  const result = new Uint32Array(stagingBuffer.getMappedRange())[0];
-  stagingBuffer.unmap();
-
-  uniformBuffer.destroy();
-  if (ownsStopBuffer) {
-    shouldStopBuffer.destroy();
-  }
-  stagingBuffer.destroy();
-
-  return result === 1;
 }

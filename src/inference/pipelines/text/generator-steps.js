@@ -113,6 +113,116 @@ export function resolveBatchStop(tokens, stopFlags, stopTokenIds, eosTokenId) {
   return actualCount;
 }
 
+export async function readSampledTokenFromStagingBuffer(stagingBuffer, options = {}) {
+  const ownsStagingBuffer = options.ownsStagingBuffer === true;
+  const hasFinitenessBuffer = options.hasFinitenessBuffer === true;
+  const ring = options.ring ?? null;
+  let mapped = false;
+
+  try {
+    await stagingBuffer.mapAsync(GPUMapMode.READ);
+    mapped = true;
+    const mappedWords = new Uint32Array(stagingBuffer.getMappedRange());
+    return {
+      nextToken: mappedWords[0],
+      finitenessStatus: hasFinitenessBuffer
+        ? parseFinitenessStatusWords(mappedWords, 1)
+        : parseFinitenessStatusWords(mappedWords, 0),
+    };
+  } finally {
+    if (mapped) {
+      stagingBuffer.unmap();
+    }
+    if (ownsStagingBuffer) {
+      stagingBuffer.destroy();
+    }
+    ring?.advance();
+  }
+}
+
+export async function readMappedBufferCopy(stagingBuffer, options = {}) {
+  const ownsStagingBuffer = options.ownsStagingBuffer !== false;
+  let mapped = false;
+
+  try {
+    await stagingBuffer.mapAsync(GPUMapMode.READ);
+    mapped = true;
+    return stagingBuffer.getMappedRange().slice(0);
+  } finally {
+    if (mapped) {
+      stagingBuffer.unmap();
+    }
+    if (ownsStagingBuffer) {
+      stagingBuffer.destroy();
+    }
+  }
+}
+
+export async function readBatchTokensFromStagingBuffers(options) {
+  const {
+    tokensStagingBuffer,
+    stopStagingBuffer = null,
+    finitenessStagingBuffer = null,
+    tokenCount,
+    ownsTokensStaging = false,
+    ownsStopStaging = false,
+    ring = null,
+  } = options;
+  let tokensMapped = false;
+  let stopMapped = false;
+  let finitenessMapped = false;
+
+  try {
+    const mapPromises = [tokensStagingBuffer.mapAsync(GPUMapMode.READ)];
+    if (stopStagingBuffer) {
+      mapPromises.push(stopStagingBuffer.mapAsync(GPUMapMode.READ));
+    }
+    if (finitenessStagingBuffer) {
+      mapPromises.push(finitenessStagingBuffer.mapAsync(GPUMapMode.READ));
+    }
+    await Promise.all(mapPromises);
+    tokensMapped = true;
+    stopMapped = Boolean(stopStagingBuffer);
+    finitenessMapped = Boolean(finitenessStagingBuffer);
+
+    const tokens = Array.from(
+      new Uint32Array(tokensStagingBuffer.getMappedRange()).subarray(0, tokenCount)
+    );
+    const stopFlags = stopStagingBuffer
+      ? new Uint32Array(stopStagingBuffer.getMappedRange().slice(0, tokenCount * 4))
+      : null;
+    const finitenessStatus = finitenessStagingBuffer
+      ? parseFinitenessStatusWords(new Uint32Array(finitenessStagingBuffer.getMappedRange()), 0)
+      : { triggered: false, metadata: '' };
+
+    return {
+      tokens,
+      stopFlags,
+      finitenessStatus,
+    };
+  } finally {
+    if (finitenessMapped) {
+      finitenessStagingBuffer.unmap();
+    }
+    if (tokensMapped) {
+      tokensStagingBuffer.unmap();
+    }
+    if (stopMapped) {
+      stopStagingBuffer.unmap();
+    }
+    if (finitenessStagingBuffer) {
+      finitenessStagingBuffer.destroy();
+    }
+    if (ownsTokensStaging) {
+      tokensStagingBuffer.destroy();
+    }
+    if (ownsStopStaging) {
+      stopStagingBuffer?.destroy();
+    }
+    ring?.advance();
+  }
+}
+
 async function runDecodeLayers(state, tokenId, opts, helpers) {
   const config = state.modelConfig;
   const debugCheckBuffer = state.debug ? helpers.debugCheckBuffer : undefined;
@@ -352,17 +462,11 @@ export async function decodeStep(state, currentIds, opts, helpers) {
       throw new Error('[Pipeline] GPU readback disabled for sampling');
     }
 
-    await stagingBuffer.mapAsync(GPUMapMode.READ);
-    const mapped = new Uint32Array(stagingBuffer.getMappedRange());
-    const nextToken = mapped[0];
-    const finitenessStatus = state.finitenessBuffer
-      ? parseFinitenessStatusWords(mapped, 1)
-      : parseFinitenessStatusWords(mapped, 0);
-    stagingBuffer.unmap();
-    if (ownsStagingBuffer) {
-      stagingBuffer.destroy();
-    }
-    ring?.advance();
+    const { nextToken, finitenessStatus } = await readSampledTokenFromStagingBuffer(stagingBuffer, {
+      ownsStagingBuffer,
+      hasFinitenessBuffer: Boolean(state.finitenessBuffer),
+      ring,
+    });
 
     if (finitenessStatus.triggered) {
       releaseBuffer(logitsBuffer);
@@ -499,10 +603,7 @@ export async function decodeStep(state, currentIds, opts, helpers) {
         const enc = debugDevice.createCommandEncoder();
         enc.copyBufferToBuffer(hiddenStates, 0, staging, 0, sampleSize);
         debugDevice.queue.submit([enc.finish()]);
-        await staging.mapAsync(GPUMapMode.READ);
-        const data = new Float32Array(staging.getMappedRange().slice(0));
-        staging.unmap();
-        staging.destroy();
+        const data = new Float32Array(await readMappedBufferCopy(staging));
         const nanCount = Array.from(data).filter(x => !Number.isFinite(x)).length;
         const nonZero = Array.from(data).filter(x => Number.isFinite(x) && x !== 0).slice(0, 5);
         log.debug('Decode', `[1] HIDDEN_AFTER_LAYERS: nan=${nanCount}/${data.length}, nonZero=${nonZero.length}, sample=[${nonZero.map(x => x.toFixed(4)).join(', ')}]`);
@@ -854,225 +955,215 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
     })
     : null;
   const ownsStopStaging = useGpuStopFlags && !ringSlot?.stagingStop;
+  let finitenessStagingBuffer = null;
+  let readbackCleanupDelegated = false;
+  try {
+    if (state.finitenessBuffer) {
+      device.queue.writeBuffer(state.finitenessBuffer, 0, new Uint32Array([0, 0, 0, 0]));
+    }
 
-  if (state.finitenessBuffer) {
-    device.queue.writeBuffer(state.finitenessBuffer, 0, new Uint32Array([0, 0, 0, 0]));
-  }
+    device.queue.writeBuffer(tokensBuffer, 0, new Uint32Array([startToken]));
+    if (stopBuffer) {
+      const stopElements = stopBuffer.size / 4;
+      const zeroStopData = ringSlot?.zeroStopData;
+      const clearData = zeroStopData && zeroStopData.length <= stopElements
+        ? zeroStopData
+        : new Uint32Array(stopElements);
+      device.queue.writeBuffer(stopBuffer, 0, clearData);
+    }
 
-  device.queue.writeBuffer(tokensBuffer, 0, new Uint32Array([startToken]));
-  if (stopBuffer) {
-    const stopElements = stopBuffer.size / 4;
-    const zeroStopData = ringSlot?.zeroStopData;
-    const clearData = zeroStopData && zeroStopData.length <= stopElements
-      ? zeroStopData
-      : new Uint32Array(stopElements);
-    device.queue.writeBuffer(stopBuffer, 0, clearData);
-  }
+    const context = helpers.buildLayerContext(recorder, true, opts.debugLayers, executionPlan);
+    const embedBufferRaw = state.weights.get('embed');
+    if (isCpuWeightBuffer(embedBufferRaw)) {
+      throw new Error('[Pipeline] GPU-only decode not supported with CPU-resident embeddings.');
+    }
+    if (!(embedBufferRaw instanceof GPUBuffer) && !isWeightBuffer(embedBufferRaw)) {
+      throw new Error('Embed buffer not found or not a GPUBuffer/WeightBuffer');
+    }
+    const embedBuffer = isWeightBuffer(embedBufferRaw) ? embedBufferRaw.buffer : embedBufferRaw;
+    const embedDtype = isWeightBuffer(embedBufferRaw) ? getWeightDtype(embedBufferRaw) : null;
+    const activationDtype = getEffectiveActivationDtype(state, opts);
 
-  const context = helpers.buildLayerContext(recorder, true, opts.debugLayers, executionPlan);
-  const embedBufferRaw = state.weights.get('embed');
-  if (isCpuWeightBuffer(embedBufferRaw)) {
-    throw new Error('[Pipeline] GPU-only decode not supported with CPU-resident embeddings.');
-  }
-  if (!(embedBufferRaw instanceof GPUBuffer) && !isWeightBuffer(embedBufferRaw)) {
-    throw new Error('Embed buffer not found or not a GPUBuffer/WeightBuffer');
-  }
-  const embedBuffer = isWeightBuffer(embedBufferRaw) ? embedBufferRaw.buffer : embedBufferRaw;
-  const embedDtype = isWeightBuffer(embedBufferRaw) ? getWeightDtype(embedBufferRaw) : null;
-  const activationDtype = getEffectiveActivationDtype(state, opts);
+    for (let i = 0; i < N; i++) {
+      const currentPos = state.currentSeqLen + i;
+      context.currentSeqLen = currentPos;
+      context.currentTokenIds = [startToken];
+      context.decodeBuffers?.resetPingPong();
 
-  for (let i = 0; i < N; i++) {
-    const currentPos = state.currentSeqLen + i;
-    context.currentSeqLen = currentPos;
-    context.currentTokenIds = [startToken];
-    context.decodeBuffers?.resetPingPong();
+      const hiddenTensor = await embed(tokensBuffer, embedBuffer, {
+        hiddenSize: config.hiddenSize,
+        vocabSize: config.vocabSize,
+        scaleEmbeddings: config.scaleEmbeddings,
+        recorder,
+        transpose: state.embeddingTranspose,
+        debugProbes: state.runtimeConfig.shared.debug.probes,
+        activationDtype,
+        embeddingDtype: selectRuleValue('inference', 'dtype', 'f16OrF32FromDtype', { dtype: embedDtype }),
+        numTokens: 1,
+        indexOffset: i,
+      });
 
-    const hiddenTensor = await embed(tokensBuffer, embedBuffer, {
-      hiddenSize: config.hiddenSize,
-      vocabSize: config.vocabSize,
-      scaleEmbeddings: config.scaleEmbeddings,
-      recorder,
-      transpose: state.embeddingTranspose,
-      debugProbes: state.runtimeConfig.shared.debug.probes,
-      activationDtype,
-      embeddingDtype: selectRuleValue('inference', 'dtype', 'f16OrF32FromDtype', { dtype: embedDtype }),
-      numTokens: 1,
-      indexOffset: i,
+      let hiddenStatesBuffer = hiddenTensor.buffer;
+      for (let l = 0; l < config.numLayers; l++) {
+        const prevStates = hiddenStatesBuffer;
+        hiddenStatesBuffer = (await processLayer(l, hiddenStatesBuffer, 1, false, context));
+        context.decodeBuffers?.swapPingPong();
+        if (prevStates instanceof GPUBuffer && prevStates !== hiddenStatesBuffer) {
+          const ownsBuffer = context.decodeBuffers?.ownsBuffer(prevStates);
+          if (!ownsBuffer) {
+            recorder.trackTemporaryBuffer(prevStates);
+          }
+        }
+      }
+
+      const logits = await recordLogitsGPU(
+        recorder,
+        hiddenStatesBuffer,
+        1,
+        helpers.getLogitsWeights(),
+        helpers.getLogitsConfig()
+      );
+      const { logitsBuffer, vocabSize, logitsDtype } = logits;
+
+      const outputIndex = i + 1;
+      if (opts.temperature < samplingDefaults.greedyThreshold) {
+        await recordArgmax(recorder, logitsBuffer, vocabSize, {
+          padTokenId,
+          logitSoftcap,
+          logitsDtype,
+          outputBuffer: tokensBuffer,
+          outputIndex,
+        });
+      } else {
+        await recordGPUSample(recorder, logitsBuffer, vocabSize, {
+          temperature: opts.temperature,
+          topK: opts.topK,
+          padTokenId,
+          logitSoftcap,
+          logitsDtype,
+          outputBuffer: tokensBuffer,
+          outputIndex,
+          greedyThreshold: samplingDefaults.greedyThreshold,
+        });
+      }
+
+      const stopCheck = useGpuStopFlags
+        ? recordCheckStop(recorder, {
+          sampledTokenBuffer: tokensBuffer,
+          shouldStopBuffer: stopBuffer,
+          tokenIndex: outputIndex,
+          eosTokenId,
+          maxTokens: maxSeqLen,
+          currentPos,
+        })
+        : null;
+
+      if (hiddenStatesBuffer instanceof GPUBuffer && !context.decodeBuffers?.ownsBuffer(hiddenStatesBuffer)) {
+        recorder.trackTemporaryBuffer(hiddenStatesBuffer);
+      }
+      if (logitsBuffer instanceof GPUBuffer) {
+        recorder.trackTemporaryBuffer(logitsBuffer);
+      }
+      if (stopCheck instanceof GPUBuffer && stopCheck !== stopBuffer) {
+        recorder.trackTemporaryBuffer(stopCheck);
+      }
+    }
+
+    const recordMs = performance.now() - recordStart;
+    state.stats.decodeRecordMs = (state.stats.decodeRecordMs ?? 0) + recordMs;
+
+    const encoder = recorder.getEncoder();
+    encoder.copyBufferToBuffer(tokensBuffer, 4, tokensStagingBuffer, 0, N * 4);
+    if (useGpuStopFlags && stopBuffer && stopStagingBuffer) {
+      encoder.copyBufferToBuffer(stopBuffer, 4, stopStagingBuffer, 0, N * 4);
+    }
+
+    if (state.finitenessBuffer) {
+      finitenessStagingBuffer = device.createBuffer({
+        size: 16,
+        usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ
+      });
+      encoder.copyBufferToBuffer(state.finitenessBuffer, 0, finitenessStagingBuffer, 0, 16);
+    }
+
+    recorder.submit();
+
+    if (!allowReadback('pipeline.decode.sample')) {
+      throw new Error('[Pipeline] GPU readback disabled for sampling');
+    }
+
+    const readbackStart = performance.now();
+    readbackCleanupDelegated = true;
+    const readback = await readBatchTokensFromStagingBuffers({
+      tokensStagingBuffer,
+      stopStagingBuffer,
+      finitenessStagingBuffer,
+      tokenCount: N,
+      ownsTokensStaging,
+      ownsStopStaging,
+      ring,
     });
+    const readbackWaitMs = performance.now() - readbackStart;
+    state.stats.decodeReadbackWaitMs = (state.stats.decodeReadbackWaitMs ?? 0) + readbackWaitMs;
 
-    let hiddenStatesBuffer = hiddenTensor.buffer;
-    for (let l = 0; l < config.numLayers; l++) {
-      const prevStates = hiddenStatesBuffer;
-      hiddenStatesBuffer = (await processLayer(l, hiddenStatesBuffer, 1, false, context));
-      context.decodeBuffers?.swapPingPong();
-      if (prevStates instanceof GPUBuffer && prevStates !== hiddenStatesBuffer) {
-        const ownsBuffer = context.decodeBuffers?.ownsBuffer(prevStates);
-        if (!ownsBuffer) {
-          recorder.trackTemporaryBuffer(prevStates);
+    const isInfinite = readback.finitenessStatus.triggered;
+    const metadata = readback.finitenessStatus.metadata;
+
+    const submitWaitMs = recorder.getSubmitLatencyMs();
+    if (submitWaitMs != null) {
+      state.stats.decodeSubmitWaitMs = (state.stats.decodeSubmitWaitMs ?? 0) + submitWaitMs;
+    }
+
+    getUniformCache().flushPendingDestruction();
+
+    const tokens = readback.tokens;
+    const stopFlags = readback.stopFlags;
+
+    if (stopFlags) {
+      log.debug('Pipeline', `[STOP] N=${N} flags=[${Array.from(stopFlags).join(',')}] tokens=[${tokens.join(',')}] eos=${eosTokenId}`);
+    }
+
+    const actualCount = resolveBatchStop(tokens, stopFlags, stopTokenIds, eosToken);
+    const generatedTokens = tokens.slice(0, actualCount);
+
+    if (isInfinite) {
+      throw new FinitenessError(`F16 bounds exceeded during batch generation${metadata}`);
+    }
+
+    if (opts.profile && recorder.isProfilingEnabled()) {
+      const timings = await recorder.resolveProfileTimings();
+      const total = sumProfileTimings(timings);
+      if (total !== null) {
+        state.stats.gpuTimeDecodeMs = (state.stats.gpuTimeDecodeMs ?? 0) + total;
+      }
+      if (timings) {
+        recordDecodeProfileStep(state, {
+          batch: true,
+          stepStart: state.decodeStepCount + 1,
+          stepCount: actualCount,
+          timings,
+          totalMs: total ?? undefined,
+        });
+        const stepStart = state.decodeStepCount + 1;
+        if (shouldLogProfileStep(state, stepStart)) {
+          log.warn('Profile', `Batch decode (N=${N}):`);
+          log.warn('Profile', CommandRecorder.formatProfileReport(timings));
         }
       }
     }
 
-    const logits = await recordLogitsGPU(
-      recorder,
-      hiddenStatesBuffer,
-      1,
-      helpers.getLogitsWeights(),
-      helpers.getLogitsConfig()
-    );
-    const { logitsBuffer, vocabSize, logitsDtype } = logits;
-
-    const outputIndex = i + 1;
-    if (opts.temperature < samplingDefaults.greedyThreshold) {
-      await recordArgmax(recorder, logitsBuffer, vocabSize, {
-        padTokenId,
-        logitSoftcap,
-        logitsDtype,
-        outputBuffer: tokensBuffer,
-        outputIndex,
-      });
-    } else {
-      await recordGPUSample(recorder, logitsBuffer, vocabSize, {
-        temperature: opts.temperature,
-        topK: opts.topK,
-        padTokenId,
-        logitSoftcap,
-        logitsDtype,
-        outputBuffer: tokensBuffer,
-        outputIndex,
-        greedyThreshold: samplingDefaults.greedyThreshold,
-      });
-    }
-
-    const stopCheck = useGpuStopFlags
-      ? recordCheckStop(recorder, {
-        sampledTokenBuffer: tokensBuffer,
-        shouldStopBuffer: stopBuffer,
-        tokenIndex: outputIndex,
-        eosTokenId,
-        maxTokens: maxSeqLen,
-        currentPos,
-      })
-      : null;
-
-    if (hiddenStatesBuffer instanceof GPUBuffer && !context.decodeBuffers?.ownsBuffer(hiddenStatesBuffer)) {
-      recorder.trackTemporaryBuffer(hiddenStatesBuffer);
-    }
-    if (logitsBuffer instanceof GPUBuffer) {
-      recorder.trackTemporaryBuffer(logitsBuffer);
-    }
-    if (stopCheck instanceof GPUBuffer && stopCheck !== stopBuffer) {
-      recorder.trackTemporaryBuffer(stopCheck);
-    }
-  }
-
-  const recordMs = performance.now() - recordStart;
-  state.stats.decodeRecordMs = (state.stats.decodeRecordMs ?? 0) + recordMs;
-
-  const encoder = recorder.getEncoder();
-  encoder.copyBufferToBuffer(tokensBuffer, 4, tokensStagingBuffer, 0, N * 4);
-  if (useGpuStopFlags && stopBuffer && stopStagingBuffer) {
-    encoder.copyBufferToBuffer(stopBuffer, 4, stopStagingBuffer, 0, N * 4);
-  }
-
-  let finitenessStagingBuffer = null;
-  if (state.finitenessBuffer) {
-    finitenessStagingBuffer = device.createBuffer({
-      size: 16,
-      usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ
-    });
-    encoder.copyBufferToBuffer(state.finitenessBuffer, 0, finitenessStagingBuffer, 0, 16);
-  }
-
-  recorder.submit();
-
-  if (!allowReadback('pipeline.decode.sample')) {
-    throw new Error('[Pipeline] GPU readback disabled for sampling');
-  }
-
-  const readbackStart = performance.now();
-  const mapPromises = [tokensStagingBuffer.mapAsync(GPUMapMode.READ)];
-  if (stopStagingBuffer) {
-    mapPromises.push(stopStagingBuffer.mapAsync(GPUMapMode.READ));
-  }
-  if (finitenessStagingBuffer) {
-    mapPromises.push(finitenessStagingBuffer.mapAsync(GPUMapMode.READ));
-  }
-  await Promise.all(mapPromises);
-  const readbackWaitMs = performance.now() - readbackStart;
-  state.stats.decodeReadbackWaitMs = (state.stats.decodeReadbackWaitMs ?? 0) + readbackWaitMs;
-
-  let isInfinite = false;
-  let metadata = '';
-  if (finitenessStagingBuffer) {
-    const finitenessData = new Uint32Array(finitenessStagingBuffer.getMappedRange());
-    const finitenessStatus = parseFinitenessStatusWords(finitenessData, 0);
-    isInfinite = finitenessStatus.triggered;
-    metadata = finitenessStatus.metadata;
-    finitenessStagingBuffer.unmap();
-    finitenessStagingBuffer.destroy();
-  }
-
-  const submitWaitMs = recorder.getSubmitLatencyMs();
-  if (submitWaitMs != null) {
-    state.stats.decodeSubmitWaitMs = (state.stats.decodeSubmitWaitMs ?? 0) + submitWaitMs;
-  }
-
-  getUniformCache().flushPendingDestruction();
-
-  const tokensView = new Uint32Array(tokensStagingBuffer.getMappedRange());
-  const tokens = Array.from(tokensView.subarray(0, N));
-
-  const stopFlags = stopStagingBuffer
-    ? new Uint32Array(stopStagingBuffer.getMappedRange().slice(0, N * 4))
-    : null;
-
-  if (stopFlags) {
-    log.debug('Pipeline', `[STOP] N=${N} flags=[${Array.from(stopFlags).join(',')}] tokens=[${tokens.join(',')}] eos=${eosTokenId}`);
-  }
-
-  const actualCount = resolveBatchStop(tokens, stopFlags, stopTokenIds, eosToken);
-
-  tokensStagingBuffer.unmap();
-  if (stopStagingBuffer) {
-    stopStagingBuffer.unmap();
-  }
-
-  const generatedTokens = tokens.slice(0, actualCount);
-
-  if (ownsTokensBuffer) tokensBuffer.destroy();
-  if (ownsStopBuffer) stopBuffer?.destroy();
-  if (ownsTokensStaging) tokensStagingBuffer.destroy();
-  if (ownsStopStaging) stopStagingBuffer?.destroy();
-
-  if (isInfinite) {
-    throw new FinitenessError(`F16 bounds exceeded during batch generation${metadata}`);
-  }
-
-  if (opts.profile && recorder.isProfilingEnabled()) {
-    const timings = await recorder.resolveProfileTimings();
-    const total = sumProfileTimings(timings);
-    if (total !== null) {
-      state.stats.gpuTimeDecodeMs = (state.stats.gpuTimeDecodeMs ?? 0) + total;
-    }
-    if (timings) {
-      recordDecodeProfileStep(state, {
-        batch: true,
-        stepStart: state.decodeStepCount + 1,
-        stepCount: actualCount,
-        timings,
-        totalMs: total ?? undefined,
-      });
-      const stepStart = state.decodeStepCount + 1;
-      if (shouldLogProfileStep(state, stepStart)) {
-        log.warn('Profile', `Batch decode (N=${N}):`);
-        log.warn('Profile', CommandRecorder.formatProfileReport(timings));
+    state.currentSeqLen += actualCount;
+    return { tokens: generatedTokens, actualCount };
+  } finally {
+    if (!readbackCleanupDelegated) {
+      if (finitenessStagingBuffer) {
+        finitenessStagingBuffer.destroy();
       }
+      if (ownsTokensStaging) tokensStagingBuffer.destroy();
+      if (ownsStopStaging) stopStagingBuffer?.destroy();
+      ring?.advance();
     }
+    if (ownsTokensBuffer) tokensBuffer.destroy();
+    if (ownsStopBuffer) stopBuffer?.destroy();
   }
-
-  state.currentSeqLen += actualCount;
-  ring?.advance();
-
-  return { tokens: generatedTokens, actualCount };
 }

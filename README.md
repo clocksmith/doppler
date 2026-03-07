@@ -22,7 +22,7 @@ for await (const token of model.generate('Hello, world')) {
 }
 ```
 
-Registry IDs resolve to hosted RDRR artifacts from `Clocksmith/rdrr` by default. Tokens stream from a native `AsyncGenerator`. See [more examples](#more-examples) below or the canonical [Root API guide](docs/api/root.md).
+Registry IDs resolve to hosted RDRR artifacts from `Clocksmith/rdrr` by default. Tokens stream from a native `AsyncGenerator`. See [more examples](#more-examples) below or the canonical [Root API guide](https://github.com/clocksmith/doppler/blob/main/docs/api/root.md).
 
 ## Why Doppler
 
@@ -36,11 +36,11 @@ Registry IDs resolve to hosted RDRR artifacts from `Clocksmith/rdrr` by default.
 
 ## Evidence
 
-![Phase-latency comparison on one workload across models](benchmarks/vendors/results/compare_1b_multi-workload_favorable_phases.svg)
+![Phase-latency comparison on one workload across models](https://raw.githubusercontent.com/clocksmith/doppler/main/benchmarks/vendors/results/compare_1b_multi-workload_favorable_phases.svg)
 
 Snapshot artifacts:
-- [g3-1b-p064-d064-t0-k1.compare.json](benchmarks/vendors/fixtures/g3-1b-p064-d064-t0-k1.compare.json)
-- [lfm2-5-1-2b-p064-d064-t0-k1.compare.json](benchmarks/vendors/fixtures/lfm2-5-1-2b-p064-d064-t0-k1.compare.json)
+- [g3-1b-p064-d064-t0-k1.compare.json](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/fixtures/g3-1b-p064-d064-t0-k1.compare.json)
+- [lfm2-5-1-2b-p064-d064-t0-k1.compare.json](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/fixtures/lfm2-5-1-2b-p064-d064-t0-k1.compare.json)
 
 ## Under the hood
 
@@ -77,11 +77,11 @@ for await (const token of doppler('Hello', { model: 'gemma3-270m' })) {
 
 ## Documentation
 
-- Docs index (canonical navigation): [docs/INDEX.md](docs/INDEX.md)
-- First-run workflow: [docs/getting-started.md](docs/getting-started.md)
-- Runtime config contract: [docs/config.md](docs/config.md)
-- Architecture: [docs/architecture.md](docs/architecture.md)
-- Generated model support table: [docs/model-support-matrix.md](docs/model-support-matrix.md)
+- Docs index (canonical navigation): [docs/INDEX.md](https://github.com/clocksmith/doppler/blob/main/docs/INDEX.md)
+- First-run workflow: [docs/getting-started.md](https://github.com/clocksmith/doppler/blob/main/docs/getting-started.md)
+- Runtime config contract: [docs/config.md](https://github.com/clocksmith/doppler/blob/main/docs/config.md)
+- Architecture: [docs/architecture.md](https://github.com/clocksmith/doppler/blob/main/docs/architecture.md)
+- Generated model support table: [docs/model-support-matrix.md](https://github.com/clocksmith/doppler/blob/main/docs/model-support-matrix.md)
 
 ## Current model support
 
@@ -95,7 +95,7 @@ Known failing right now:
 - `qwen-3-5-0-8b-wq4k-ef16-hf16-f16`
 - `qwen-3-5-2b-wq4k-ef16-hf16-f16`
 
-For the generated status table, including `loads but unverified` and `everything else`, see [docs/model-support-matrix.md](docs/model-support-matrix.md).
+For the generated status table, including `loads but unverified` and `everything else`, see [docs/model-support-matrix.md](https://github.com/clocksmith/doppler/blob/main/docs/model-support-matrix.md).
 
 ## Environment requirements
 

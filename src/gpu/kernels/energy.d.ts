@@ -16,6 +16,7 @@ export interface EnergyUpdateOptions {
 export interface EnergyQuintelUpdateOptions {
   count?: number;
   size?: number;
+  flags?: number;
   stepSize?: number;
   gradientScale?: number;
   countDiff?: number;
@@ -26,48 +27,29 @@ export interface EnergyQuintelUpdateOptions {
   centerTarget?: number;
   clampMin?: number;
   clampMax?: number;
-  rules?: {
-    mirrorX?: boolean;
-    mirrorY?: boolean;
-    diagonal?: boolean;
-    count?: boolean;
-    center?: boolean;
-  };
 }
 
 export interface EnergyQuintelReduceOptions {
   count?: number;
   size?: number;
+  flags?: number;
   symmetryWeight?: number;
   centerWeight?: number;
   binarizeWeight?: number;
   centerTarget?: number;
-  rules?: {
-    mirrorX?: boolean;
-    mirrorY?: boolean;
-    diagonal?: boolean;
-    count?: boolean;
-    center?: boolean;
-  };
   outputBuffer?: GPUBuffer | null;
 }
 
 export interface EnergyQuintelGradOptions {
   count?: number;
   size?: number;
+  flags?: number;
   countDiff?: number;
   symmetryWeight?: number;
   countWeight?: number;
   centerWeight?: number;
   binarizeWeight?: number;
   centerTarget?: number;
-  rules?: {
-    mirrorX?: boolean;
-    mirrorY?: boolean;
-    diagonal?: boolean;
-    count?: boolean;
-    center?: boolean;
-  };
   outputBuffer?: GPUBuffer | null;
 }
 

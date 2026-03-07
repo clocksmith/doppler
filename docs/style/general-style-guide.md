@@ -152,7 +152,8 @@ inference). Document the merge chain per domain:
 - Loader/runtime slices (loading/storage/etc):
   `loadingConfig = merge(runtimeDefaultConfig.loading, runtimePresetConfig.loading, runtimeOverrideConfig.loading)`
 - Kernel path resolution:
-  `kernelPath = runtimeConfig.inference.kernelPath ?? manifestInference.defaultKernelPath ?? 'auto'`
+  `kernelPath = runtimeConfig.inference.kernelPath ?? manifestInference.defaultKernelPath ?? executionV0InlineKernelPath`
+  `null` remains a valid "no explicit kernel path" result; do not invent `'auto'` or any implicit string in JS.
 
 ### No Runtime Defaults in Code
 
@@ -248,6 +249,12 @@ const useSoftcapping = config.attnLogitSoftcapping !== null;
 - Harnesses must not accept per-field URL overrides; only `runtimePreset`, `runtimeConfig`, `runtimeConfigUrl`, and `configChain` are allowed.
 - If a developer needs to tweak a tunable, they should create a preset or pass `--config` with a runtime config file.
 See `config-style-guide.md` for merge order and category rules.
+
+### Failure-Path Regression Requirement
+
+- Any fix for buffer lifecycle, readback cleanup, deferred destruction, recorder teardown, or other failure-path-only behavior must include a regression test that exercises the failing path.
+- Happy-path coverage alone is not sufficient for cleanup bugs.
+- Any fix for command/harness parity drift must include a regression that proves unsupported or mismatched contract inputs fail closed rather than being ignored or rewritten.
 
 ### Manifest-First Change Checklist
 
@@ -909,4 +916,4 @@ function runKernel(spec) {
 
 - [WGSL Style Guide](./wgsl-style-guide.md) - Shader conventions
 - [JavaScript Style Guide](./javascript-style-guide.md) - Kernel wrapper conventions
-- [Kernel Compatibility](./wgsl-style-guide.md) - Runtime modes and flags
+- [Config Style Guide](./config-style-guide.md) - Merge order and config category rules

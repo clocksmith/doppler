@@ -103,6 +103,18 @@ const DEFAULT_BENCHMARK_POLICY = Object.freeze({
     'totalRunMs',
     'modelLoadMs',
   ]),
+  requiredCompareMetricIds: Object.freeze([
+    'decodeTokensPerSec',
+    'promptTokensPerSecToFirstToken',
+    'firstTokenMs',
+    'firstResponseMs',
+    'decodeMs',
+    'decodeMsPerTokenP50',
+    'decodeMsPerTokenP95',
+    'decodeMsPerTokenP99',
+    'totalRunMs',
+    'modelLoadMs',
+  ]),
   decodeProfiles: Object.freeze({
     default: 'parity',
     presets: Object.freeze({
@@ -152,6 +164,14 @@ function normalizePositiveInteger(value, label) {
   return parsed;
 }
 
+function normalizeStopCheckMode(value, label) {
+  const normalized = typeof value === 'string' ? value.trim() : '';
+  if (normalized === 'batch' || normalized === 'per-token') {
+    return normalized;
+  }
+  throw new Error(`${label} must be "batch" or "per-token"`);
+}
+
 function normalizeDecodeProfiles(raw) {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
     throw new Error('decodeProfiles must be an object');
@@ -177,6 +197,10 @@ function normalizeDecodeProfiles(raw) {
       readbackInterval: normalizePositiveInteger(
         profileValue.readbackInterval,
         `decodeProfiles.presets.${profileId}.readbackInterval`
+      ),
+      stopCheckMode: normalizeStopCheckMode(
+        profileValue.stopCheckMode ?? 'per-token',
+        `decodeProfiles.presets.${profileId}.stopCheckMode`
       ),
       label: typeof profileValue.label === 'string' && profileValue.label.trim()
         ? profileValue.label.trim()
@@ -241,6 +265,12 @@ function loadBenchmarkPolicy() {
       'requiredTimingFields'
     )
   );
+  const requiredCompareMetricIds = Object.freeze(
+    normalizeStringArray(
+      parsed.requiredCompareMetricIds ?? DEFAULT_BENCHMARK_POLICY.requiredCompareMetricIds,
+      'requiredCompareMetricIds'
+    )
+  );
   const decodeProfiles = normalizeDecodeProfiles(
     parsed.decodeProfiles ?? DEFAULT_BENCHMARK_POLICY.decodeProfiles
   );
@@ -262,6 +292,7 @@ function loadBenchmarkPolicy() {
     updated: parsed.updated || null,
     timeoutsMs,
     requiredTimingFields,
+    requiredCompareMetricIds,
     decodeProfiles,
     browser: Object.freeze({ stableArgs }),
     kernelPathPolicy: Object.freeze({ knownBadByModel }),
@@ -285,7 +316,8 @@ const DEFAULT_COMPARE_PROFILE_SOURCE = 'fallback';
 const DEFAULT_COMPARE_CONFIG_PATH = COMPARE_ENGINES_CONFIG_PATH;
 const DEFAULT_COMPARE_METRIC_CONTRACT_PATH = COMPARE_METRIC_CONTRACT_PATH;
 const schemaCache = new Map();
-const REQUIRED_COMPARE_TIMING_FIELDS = BENCHMARK_POLICY.requiredTimingFields;
+const REQUIRED_CANONICAL_TIMING_FIELDS = BENCHMARK_POLICY.requiredTimingFields;
+const REQUIRED_COMPARE_METRIC_IDS = BENCHMARK_POLICY.requiredCompareMetricIds;
 const DECODE_PROFILE_PRESETS = BENCHMARK_POLICY.decodeProfiles.presets;
 const DOPPLER_SURFACES = Object.freeze(['auto', 'node', 'browser']);
 const VALID_DECODE_PROFILES = Object.freeze([
@@ -294,6 +326,53 @@ const VALID_DECODE_PROFILES = Object.freeze([
 ]);
 const DEFAULT_DOPPLER_BATCH_SIZE = DECODE_PROFILE_PRESETS[DEFAULT_DECODE_PROFILE].batchSize;
 const DEFAULT_DOPPLER_READBACK_INTERVAL = DECODE_PROFILE_PRESETS[DEFAULT_DECODE_PROFILE].readbackInterval;
+const DEFAULT_DOPPLER_STOP_CHECK_MODE = DECODE_PROFILE_PRESETS[DEFAULT_DECODE_PROFILE].stopCheckMode;
+const PROTECTED_RUNTIME_CONFIG_PREFIXES = Object.freeze([
+  {
+    prefix: 'shared.benchmark',
+    reason: 'shared benchmark fairness inputs are owned by compare-engines flags/workloads',
+  },
+  {
+    prefix: 'shared.harness',
+    reason: 'harness command contract is owned by compare-engines',
+  },
+  {
+    prefix: 'shared.tooling',
+    reason: 'tooling intent/command contract is owned by compare-engines',
+  },
+  {
+    prefix: 'inference.prompt',
+    reason: 'prompt parity is a shared fairness axis; use --prompt or --workload',
+  },
+  {
+    prefix: 'inference.chatTemplate',
+    reason: 'chat-template parity is a shared fairness axis; use --use-chat-template',
+  },
+  {
+    prefix: 'inference.sampling',
+    reason: 'sampling parity is a shared fairness axis; use --temperature/--top-k/--top-p/--seed',
+  },
+  {
+    prefix: 'inference.batching.maxTokens',
+    reason: 'decode token budget is a shared fairness axis; use --max-tokens or --workload',
+  },
+  {
+    prefix: 'inference.batching.stopCheckMode',
+    reason: 'decode stop-check cadence is compare-managed for consistent semantics',
+  },
+  {
+    prefix: 'inference.batching.batchSize',
+    reason: 'decode cadence is compare-managed; use --decode-profile or --doppler-batch-size',
+  },
+  {
+    prefix: 'inference.batching.readbackInterval',
+    reason: 'decode cadence is compare-managed; use --decode-profile or --doppler-readback-interval',
+  },
+  {
+    prefix: 'inference.kernelPath',
+    reason: 'kernel-path selection is compare-managed; use --doppler-kernel-path',
+  },
+]);
 
 function usage() {
   return [
@@ -332,7 +411,7 @@ function usage() {
   '  --doppler-browser-port <n>      Doppler browser relay static port (0 = random)',
   '  --browser-base-url <url>         Base URL for both benchmark runners (skips local server startup)',
   '  --browser-executable <path>      Browser executable for both benchmark runners',
-  '  --runtime-config-json <json>      JSON overlay merged into Doppler runtime config',
+  '  --runtime-config-json <json>      Engine-only JSON overlay merged into Doppler runtime config (fairness axes protected)',
   '  --timestamp <iso|ms>               Report timestamp override (ISO-8601 or epoch milliseconds)',
     '  --tjs-profile-ops <on|off>       TJS ORT op profiling',
   '  --timeout-ms <ms>                 Shared benchmark timeout',
@@ -697,13 +776,13 @@ function assertCompareMetricContractCompleteness(metricRows) {
     }
   }
 
-  for (const field of REQUIRED_COMPARE_TIMING_FIELDS) {
-    const row = rowsById.get(field);
+  for (const metricId of REQUIRED_COMPARE_METRIC_IDS) {
+    const row = rowsById.get(metricId);
     if (!row) {
-      throw new Error(`compare metric contract is missing required timing metric "${field}"`);
+      throw new Error(`compare metric contract is missing required compare metric "${metricId}"`);
     }
     if (row.required !== true) {
-      throw new Error(`compare metric contract must mark "${field}" as required for apples-to-apples mode`);
+      throw new Error(`compare metric contract must mark "${metricId}" as required for apples-to-apples mode`);
     }
   }
 }
@@ -714,6 +793,18 @@ function resolveCompareEnginesConfigPath(rawPath) {
     : String(rawPath).trim();
   if (path.isAbsolute(resolvedPath)) return resolvedPath;
   return path.join(process.cwd(), resolvedPath);
+}
+
+function toRepoRelativeSourcePath(sourcePath) {
+  if (typeof sourcePath !== 'string' || sourcePath.trim() === '') return sourcePath;
+  const absolutePath = path.isAbsolute(sourcePath)
+    ? sourcePath
+    : path.resolve(process.cwd(), sourcePath);
+  const relativePath = path.relative(DOPPLER_ROOT, absolutePath);
+  if (relativePath && !relativePath.startsWith('..') && !path.isAbsolute(relativePath)) {
+    return relativePath.split(path.sep).join('/');
+  }
+  return sourcePath;
 }
 
 function buildSyntheticPrompt(prefillTokens) {
@@ -924,6 +1015,63 @@ function parseRuntimeConfigJson(raw) {
   return parsed;
 }
 
+function matchProtectedRuntimeConfigPrefix(dottedPath) {
+  for (const entry of PROTECTED_RUNTIME_CONFIG_PREFIXES) {
+    if (dottedPath === entry.prefix || dottedPath.startsWith(`${entry.prefix}.`)) {
+      return entry;
+    }
+  }
+  return null;
+}
+
+function collectProtectedRuntimeConfigMutations(value, currentPath = '', out = []) {
+  if (currentPath) {
+    const match = matchProtectedRuntimeConfigPrefix(currentPath);
+    if (match) {
+      out.push({
+        path: currentPath,
+        reason: match.reason,
+      });
+      return out;
+    }
+  }
+
+  if (value == null || typeof value !== 'object' || Array.isArray(value)) {
+    return out;
+  }
+
+  for (const [key, child] of Object.entries(value)) {
+    if (typeof key !== 'string' || key.trim() === '') continue;
+    const nextPath = currentPath ? `${currentPath}.${key}` : key;
+    collectProtectedRuntimeConfigMutations(child, nextPath, out);
+  }
+  return out;
+}
+
+function assertAllowedRuntimeConfigOverride(override) {
+  if (override == null) return;
+  const violations = collectProtectedRuntimeConfigMutations(override);
+  if (violations.length === 0) return;
+
+  const seen = new Set();
+  const lines = [];
+  for (const violation of violations) {
+    const key = `${violation.path}::${violation.reason}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    lines.push(`- ${violation.path}: ${violation.reason}`);
+  }
+
+  throw new Error(
+    '--runtime-config-json must not override compare-managed fairness or cadence fields:\n'
+    + lines.join('\n')
+  );
+}
+
+function assertAllowedCompareRuntimeConfigOverride(runtimeConfigOverride) {
+  assertAllowedRuntimeConfigOverride(runtimeConfigOverride);
+}
+
 function toFailurePayload(library, error) {
   return {
     failed: true,
@@ -1103,7 +1251,7 @@ function buildDopplerRuntimeConfig(sharedContract, engineOverlay) {
         maxTokens: sharedContract.maxTokens,
         batchSize: engineOverlay.batchSize,
         readbackInterval: engineOverlay.readbackInterval,
-        stopCheckMode: 'per-token',
+        stopCheckMode: engineOverlay.stopCheckMode,
       },
       sampling,
     },
@@ -1116,6 +1264,7 @@ function buildDopplerRuntimeConfig(sharedContract, engineOverlay) {
     if (typeof engineOverlay.runtimeConfigJson !== 'object' || engineOverlay.runtimeConfigJson == null) {
       throw new Error('--runtime-config-json override is expected to be a parsed JSON object');
     }
+    assertAllowedRuntimeConfigOverride(engineOverlay.runtimeConfigJson);
     return mergeRuntimeValues(runtimeConfig, engineOverlay.runtimeConfigJson);
   }
 
@@ -1138,6 +1287,10 @@ async function runDoppler(modelId, modelUrl, sharedContract, cacheMode, options 
     DEFAULT_DOPPLER_READBACK_INTERVAL,
     '--doppler-readback-interval'
   );
+  const resolvedStopCheckMode = normalizeStopCheckMode(
+    options.stopCheckMode ?? DEFAULT_DOPPLER_STOP_CHECK_MODE,
+    '--doppler-stop-check-mode'
+  );
   const resolvedBrowserPort = parseNonNegativeInt(
     options.browserPort,
     DEFAULT_DOPPLER_BROWSER_PORT,
@@ -1149,11 +1302,12 @@ async function runDoppler(modelId, modelUrl, sharedContract, cacheMode, options 
     kernelPath: resolvedKernelPath,
     batchSize: resolvedBatchSize,
     readbackInterval: resolvedReadbackInterval,
+    stopCheckMode: resolvedStopCheckMode,
     runtimeConfigJson: options.runtimeConfigJson,
   });
   const stableBrowserArgs = appendBrowserArgs([], STABLE_BROWSER_ARGS);
 
-  const buildCliConfig = (forceNoOpfs = false) => {
+  const buildCliConfig = () => {
     const run = {
       surface: resolvedSurface,
     };
@@ -1164,7 +1318,7 @@ async function runDoppler(modelId, modelUrl, sharedContract, cacheMode, options 
           : (options.browserPort != null ? { port: resolvedBrowserPort } : {})),
         ...(resolvedBrowserExecutable ? { executablePath: String(resolvedBrowserExecutable) } : {}),
         ...(options.browserUserData ? { userDataDir: String(options.browserUserData) } : {}),
-        ...(options.noOpfsCache || forceNoOpfs ? { opfsCache: false } : {}),
+        ...(options.noOpfsCache ? { opfsCache: false } : {}),
         browserArgs: stableBrowserArgs,
       };
     }
@@ -1180,8 +1334,8 @@ async function runDoppler(modelId, modelUrl, sharedContract, cacheMode, options 
   };
 
   console.error(`[compare] running Doppler (${cacheMode})...`);
-  const runOnce = async ({ forceNoOpfs = false } = {}) => {
-    const cliConfig = buildCliConfig(forceNoOpfs);
+  const runOnce = async () => {
+    const cliConfig = buildCliConfig();
     const args = [
       path.join(DOPPLER_ROOT, 'tools', 'doppler-cli.js'),
       'bench',
@@ -1202,21 +1356,6 @@ async function runDoppler(modelId, modelUrl, sharedContract, cacheMode, options 
   try {
     return await runOnce();
   } catch (error) {
-    const message = String(error?.message || '');
-    const shouldRetryNoOpfs = (
-      resolvedSurface !== 'node'
-      && !options.noOpfsCache
-      && message.includes('Invalid manifest')
-    );
-    if (shouldRetryNoOpfs) {
-      console.error('[compare] Doppler failed with cached manifest mismatch; retrying with --no-opfs-cache...');
-      try {
-        return await runOnce({ forceNoOpfs: true });
-      } catch (retryError) {
-        console.error(`[compare] Doppler (${cacheMode}) retry failed: ${retryError.message}`);
-        return toFailurePayload('doppler', retryError);
-      }
-    }
     console.error(`[compare] Doppler (${cacheMode}) failed: ${error.message}`);
     return toFailurePayload('doppler', error);
   }
@@ -1355,7 +1494,7 @@ function assertCanonicalRunContract(result, phaseLabel, engineLabel) {
     throw new Error(`${engineLabel} result missing timing object during ${phaseLabel}`);
   }
 
-  for (const field of REQUIRED_COMPARE_TIMING_FIELDS) {
+  for (const field of REQUIRED_CANONICAL_TIMING_FIELDS) {
     const value = timing[field];
     if (!Number.isFinite(value)) {
       throw new Error(`${engineLabel} result missing timing.${field} during ${phaseLabel}`);
@@ -1745,6 +1884,7 @@ async function main() {
       )
       : null;
   const runtimeConfigOverride = parseRuntimeConfigJson(flags['runtime-config-json']);
+  assertAllowedCompareRuntimeConfigOverride(runtimeConfigOverride);
   const runtimeConfigOverrideHash = runtimeConfigOverride == null
     ? null
     : hashJsonPayload(runtimeConfigOverride);
@@ -1798,14 +1938,14 @@ async function main() {
       updated: BENCHMARK_POLICY.updated,
     },
     compareConfig: {
-      source: compareProfileConfig.source || 'benchmarks/vendors/compare-engines.config.json',
+      source: toRepoRelativeSourcePath(compareProfileConfig.source || 'benchmarks/vendors/compare-engines.config.json'),
       schemaVersion: compareProfileConfig.schemaVersion,
       sourceSha256: compareProfileConfig.sourceSha256,
       profileSource: compareProfile.source,
       updated: compareProfileConfig.updated,
     },
     metricContract: {
-      source: compareMetricContractConfig.source || 'benchmarks/vendors/compare-metrics.json',
+      source: toRepoRelativeSourcePath(compareMetricContractConfig.source || 'benchmarks/vendors/compare-metrics.json'),
       schemaVersion: compareMetricContractConfig.schemaVersion ?? DEFAULT_COMPARE_METRIC_CONTRACT_SCHEMA_VERSION,
       sourceSha256: compareMetricContractConfig.sourceSha256,
       updated: compareMetricContractConfig.updated,
@@ -1819,12 +1959,12 @@ async function main() {
     },
     harnesses: {
       doppler: {
-        source: dopplerHarnessMetricPaths.source,
+        source: toRepoRelativeSourcePath(dopplerHarnessMetricPaths.source),
         sourceSha256: dopplerHarnessMetricPaths.sourceSha256,
         requiredMetrics: requiredMetricIds,
       },
       transformersjs: {
-        source: tjsHarnessMetricPaths.source,
+        source: toRepoRelativeSourcePath(tjsHarnessMetricPaths.source),
         sourceSha256: tjsHarnessMetricPaths.sourceSha256,
         requiredMetrics: requiredMetricIds,
       },
@@ -1871,7 +2011,11 @@ async function main() {
     dopplerTimeoutMs: compareDopplerTimeoutMs,
     tjsTimeoutMs: compareTjsTimeoutMs,
     methodology: {
-      prefillTokensPerSec: 'prompt_tokens / prefill_ms',
+      promptTokensPerSecToFirstToken: 'prompt_tokens / firstTokenMs',
+      prefillPhaseMs: {
+        doppler: 'available inside Doppler payload timing.prefillMs as internal_prefill_phase',
+        transformersjs: 'excluded from compare contract because runner prefillMs is a ttft_proxy',
+      },
       deterministicDecoding: {
         seed,
         temperature: sharedContract.sampling.temperature,
@@ -1895,6 +2039,7 @@ async function main() {
       dopplerDecodeCadence: {
         batchSize: dopplerBatchSize,
         readbackInterval: dopplerReadbackInterval,
+        stopCheckMode: DECODE_PROFILE_PRESETS[decodeProfile]?.stopCheckMode ?? DEFAULT_DOPPLER_STOP_CHECK_MODE,
         tokensPerReadback: dopplerTokensPerReadback,
       },
       transformersjsDecodeCadence: {
@@ -2123,7 +2268,7 @@ async function main() {
   } else {
     const decodeProfileLabel = decodeProfilePreset?.label || 'custom decode cadence';
     console.log(
-      `[method] prefill=prompt_tokens / prefill_ms, decodeProfile=${decodeProfile} ` +
+      `[method] prompt tok/s uses prompt_tokens / firstTokenMs, decodeProfile=${decodeProfile} ` +
       `(${decodeProfileLabel}), Doppler tokens/readback=${dopplerTokensPerReadback}`
     );
     const computeRows = compareMetricContract;

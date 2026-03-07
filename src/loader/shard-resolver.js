@@ -2,6 +2,28 @@ import { loadTensorsFromStore } from '../storage/shard-manager.js';
 import { parseTensorMap } from '../formats/rdrr/index.js';
 import { log, trace as debugTrace } from '../debug/index.js';
 
+function normalizeLocationSpans(spans, name, sourceLabel) {
+  if (spans === undefined) {
+    return undefined;
+  }
+  if (!Array.isArray(spans)) {
+    throw new Error(`Tensor "${name}" has invalid spans in ${sourceLabel}`);
+  }
+  return spans.map((span, spanIndex) => {
+    const shardIndex = typeof span?.shardIndex === 'number'
+      ? span.shardIndex
+      : span?.shard;
+    if (typeof shardIndex !== 'number') {
+      throw new Error(`Tensor "${name}" span[${spanIndex}] missing shard index in ${sourceLabel}`);
+    }
+    return {
+      shardIndex,
+      offset: span.offset,
+      size: span.size,
+    };
+  });
+}
+
 export async function buildTensorLocations(manifest, options = {}) {
   const locations = new Map();
 
@@ -37,14 +59,14 @@ export async function buildTensorLocations(manifest, options = {}) {
           throw new Error(`Tensor "${name}" missing role in tensors.json`);
         }
         locations.set(name, {
-          shardIndex: info.shard,
+          shardIndex: info.shardIndex ?? info.shard,
           offset: info.offset,
           size: info.size,
           shape: info.shape,
           dtype: info.dtype,
           role: info.role,
           group: info.group,
-          spans: info.spans,
+          spans: normalizeLocationSpans(info.spans, name, 'tensors.json'),
           layout: info.layout,
           originalShape: info.originalShape,
         });
@@ -73,7 +95,7 @@ export async function buildTensorLocations(manifest, options = {}) {
       dtype: tensorInfo.dtype,
       role: tensorInfo.role,
       group: tensorInfo.group,
-      spans: tensorInfo.spans,
+      spans: normalizeLocationSpans(tensorInfo.spans, name, 'manifest.tensors'),
       layout: tensorInfo.layout,
       originalShape: tensorInfo.originalShape,
     });

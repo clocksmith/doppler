@@ -19,8 +19,7 @@ export function getTensorsForGroup(groupId) {
   return getManifest()?.groups?.[groupId]?.tensors ?? [];
 }
 
-export function getShardsForExpert(layerIdx, expertIdx) {
-  const manifest = getManifest();
+export function getShardsForExpert(layerIdx, expertIdx, manifest = getManifest()) {
   const groupId = `layer.${layerIdx}.expert.${expertIdx}`;
   const group = manifest?.groups?.[groupId];
   if (group) {
@@ -29,8 +28,7 @@ export function getShardsForExpert(layerIdx, expertIdx) {
   throw new Error(`Missing expert group mapping: ${groupId}`);
 }
 
-export function getTensorsForExpert(layerIdx, expertIdx) {
-  const manifest = getManifest();
+export function getTensorsForExpert(layerIdx, expertIdx, manifest = getManifest()) {
   const groupId = `layer.${layerIdx}.expert.${expertIdx}`;
   const group = manifest?.groups?.[groupId];
   if (group) {
@@ -39,8 +37,7 @@ export function getTensorsForExpert(layerIdx, expertIdx) {
   throw new Error(`Missing expert group mapping: ${groupId}`);
 }
 
-export function getExpertBytes() {
-  const manifest = getManifest();
+export function getExpertBytes(manifest = getManifest()) {
   const expertGroups = Object.entries(manifest?.groups || {})
     .filter(([id]) => id.includes('.expert.'));
 

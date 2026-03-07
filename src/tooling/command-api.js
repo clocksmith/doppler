@@ -104,17 +104,6 @@ function assertCommand(value) {
   return command;
 }
 
-function assertSuite(value, command) {
-  const suite = asOptionalString(value, 'suite');
-  if (!suite) {
-    throw new Error(`tooling command: suite is required for "${command}".`);
-  }
-  if (!TOOLING_SUITE_SET.includes(suite)) {
-    throw new Error(`tooling command: unsupported suite "${suite}".`);
-  }
-  return suite;
-}
-
 function resolveCommandRuntimeContract(command) {
   const runtimeContract = selectRuleValue('tooling', 'commandRuntime', 'runtimeContract', { command });
   if (!isPlainObject(runtimeContract)) {
@@ -167,6 +156,45 @@ function assertModelId(value, command, suite) {
     );
   }
   return modelId;
+}
+
+function assertForbiddenStringField(raw, fieldName, command) {
+  const value = asOptionalString(raw[fieldName], fieldName);
+  if (value) {
+    throw new Error(
+      `tooling command: ${command} does not accept ${fieldName}.`
+    );
+  }
+}
+
+function assertForbiddenObjectField(raw, fieldName, command) {
+  const value = asOptionalObject(raw[fieldName], fieldName);
+  if (value) {
+    throw new Error(
+      `tooling command: ${command} does not accept ${fieldName}.`
+    );
+  }
+}
+
+function resolveSuiteForCommand(raw, command, runtimeContract) {
+  const inputSuite = asOptionalString(raw.suite, 'suite');
+  if (runtimeContract.suite) {
+    if (inputSuite && inputSuite !== runtimeContract.suite) {
+      throw new Error(
+        `tooling command: "${command}" requires suite "${runtimeContract.suite}" and does not accept "${inputSuite}".`
+      );
+    }
+    return runtimeContract.suite;
+  }
+
+  const suite = inputSuite;
+  if (!suite) {
+    throw new Error(`tooling command: suite is required for "${command}".`);
+  }
+  if (!TOOLING_SUITE_SET.includes(suite)) {
+    throw new Error(`tooling command: unsupported suite "${suite}".`);
+  }
+  return suite;
 }
 
 function normalizeConvertExecution(value) {
@@ -252,6 +280,9 @@ function normalizeConvert(raw) {
       'tooling command: convert does not accept modelId. Set convertPayload.converterConfig.output.modelBaseId.'
     );
   }
+  assertForbiddenStringField(raw, 'runtimePreset', 'convert');
+  assertForbiddenStringField(raw, 'runtimeConfigUrl', 'convert');
+  assertForbiddenObjectField(raw, 'runtimeConfig', 'convert');
 
   return {
     command: 'convert',
@@ -414,14 +445,11 @@ function normalizeTrainingOperatorCommand(raw, command) {
 
 function normalizeSuiteCommand(raw, command) {
   const runtimeContract = resolveCommandRuntimeContract(command);
-  let suite = runtimeContract.suite;
-  if (!suite) {
-    suite = assertSuite(raw.suite, command);
-    if (!VERIFY_SUITES.includes(suite)) {
-      throw new Error(
-        `tooling command: "${command}" suite must be one of ${VERIFY_SUITES.join(', ')}.`
-      );
-    }
+  const suite = resolveSuiteForCommand(raw, command, runtimeContract);
+  if (!runtimeContract.suite && !VERIFY_SUITES.includes(suite)) {
+    throw new Error(
+      `tooling command: "${command}" suite must be one of ${VERIFY_SUITES.join(', ')}.`
+    );
   }
 
   const modelUrl = asOptionalString(raw.modelUrl, 'modelUrl');

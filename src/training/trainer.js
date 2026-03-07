@@ -1,17 +1,15 @@
 import { AutogradTape } from './autograd.js';
 import { loadBackwardRegistry } from '../config/backward-registry-loader.js';
 import { runScale } from '../gpu/kernels/index.js';
-import { acquireBuffer, uploadData, releaseBuffer } from '../memory/buffer-pool.js';
-import { createTensor } from '../gpu/tensor.js';
+import { releaseBuffer } from '../memory/buffer-pool.js';
 import { createCrossEntropyObjective } from './objectives/cross_entropy.js';
+import { createUploadedTensor } from './tensor-factory.js';
 
 function createLossGradient(loss, lossScale) {
   const lossElements = loss.shape.reduce((acc, value) => acc * value, 1);
   const gradData = new Float32Array(lossElements);
   gradData.fill(lossScale);
-  const gradBuf = acquireBuffer(gradData.byteLength, undefined, 'loss_grad_output');
-  uploadData(gradBuf, gradData);
-  return createTensor(gradBuf, 'f32', [...loss.shape], 'loss_grad_output');
+  return createUploadedTensor(gradData, 'f32', loss.shape, 'loss_grad_output');
 }
 
 function normalizeLossResult(value) {

@@ -1,7 +1,4 @@
 
-
-import { getDevice } from '../gpu/device.js';
-import { isTraceEnabled, log, trace as debugTrace } from '../debug/index.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
 import { tagBufferDtype } from '../gpu/weight-buffer.js';
 
@@ -26,46 +23,8 @@ export function f16ToF32(h) {
 
 
 export async function convertBF16ToF32GPU(srcBuffer, numElements, name) {
-  debugTrace.loader(`[BF16->F32] Importing cast.js...`);
-  const castModule = await import('../gpu/kernels/cast.js');
-  debugTrace.loader(`[BF16->F32] castModule keys:`, Object.keys(castModule));
-  const { runBF16ToF32 } = castModule;
-  debugTrace.loader(`[BF16->F32] runBF16ToF32 type: ${typeof runBF16ToF32}`);
+  const { runBF16ToF32 } = await import('../gpu/kernels/cast.js');
   const resultTensor = await runBF16ToF32(srcBuffer, [numElements], name);
-  debugTrace.loader(`[BF16->F32] runBF16ToF32 returned, result.size=${resultTensor.buffer?.size}`);
-
-  // Debug: Verify conversion produced non-zero values
-  const shouldCheckEmbed = isTraceEnabled('loader') &&
-    name.includes('embed') &&
-    name.includes('embed_tokens');
-  if (shouldCheckEmbed) {
-    try {
-      debugTrace.loader(`[BF16->F32] Checking embed buffer for non-zeros...`);
-      const device = getDevice();
-      const sampleSize = Math.min(1024, resultTensor.buffer.size);
-      debugTrace.loader(`[BF16->F32] Creating staging buffer size=${sampleSize}`);
-      const stagingBuffer = device.createBuffer({
-        size: sampleSize,
-        usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
-      });
-      debugTrace.loader(`[BF16->F32] Copying to staging buffer...`);
-      const encoder = device.createCommandEncoder();
-      encoder.copyBufferToBuffer(resultTensor.buffer, 0, stagingBuffer, 0, sampleSize);
-      device.queue.submit([encoder.finish()]);
-      debugTrace.loader(`[BF16->F32] Mapping staging buffer...`);
-      await stagingBuffer.mapAsync(GPUMapMode.READ);
-      debugTrace.loader(`[BF16->F32] Reading data...`);
-      const data = new Float32Array(stagingBuffer.getMappedRange().slice(0));
-      stagingBuffer.unmap();
-      stagingBuffer.destroy();
-      const nonZero = Array.from(data).filter(x => x !== 0);
-      const nanCount = data.filter(x => !Number.isFinite(x)).length;
-      debugTrace.loader(`[BF16->F32] nonZero=${nonZero.length}/${data.length}, nan=${nanCount}, sample=[${nonZero.slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
-    } catch (err) {
-      log.error('Loader', 'BF16->F32 embed buffer check error:',  (err).message);
-    }
-  }
-
   return resultTensor.buffer;
 }
 
@@ -84,11 +43,11 @@ function normalizeBufferDtype(locationDtype, outputDtype) {
   if (explicit) {
     return explicit;
   }
-  const location = typeof locationDtype === 'string' ? locationDtype.toLowerCase() : null;
+  const location = typeof locationDtype === 'string' ? locationDtype.toUpperCase() : null;
   if (!location) {
     return null;
   }
-  return selectRuleValue('loader', 'weights', 'floatLocationDtype', { locationDtype: locationDtype });
+  return selectRuleValue('loader', 'weights', 'floatLocationDtype', { locationDtype: location });
 }
 
 export function applyBufferLayout(buffer, location, outputDtype = null) {

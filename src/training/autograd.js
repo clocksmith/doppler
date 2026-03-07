@@ -6,6 +6,7 @@ import { acquireBuffer, readBuffer, releaseBuffer, uploadData } from '../memory/
 import { createTensor } from '../gpu/tensor.js';
 import { attentionBackwardCpu } from './attention-backward.js';
 import { f16ToF32Array, f32ToF16Array } from '../inference/kv-cache/types.js';
+import { createUploadedTensor } from './tensor-factory.js';
 
 export const OpType = {
   EMBED: 'embed',
@@ -245,9 +246,7 @@ export class AutogradTape {
     expanded.set(gradRow.subarray(0, copyCount), rowOffset);
     const dtype = gradOut.dtype === 'f16' ? 'f16' : 'f32';
     const payload = dtype === 'f16' ? f32ToF16Array(expanded) : expanded;
-    const outBuffer = acquireBuffer(payload.byteLength, undefined, 'row_slice_backward_output');
-    uploadData(outBuffer, payload);
-    return createTensor(outBuffer, dtype, [rows, cols], 'row_slice_backward_output');
+    return createUploadedTensor(payload, dtype, [rows, cols], 'row_slice_backward_output');
   }
 
   resolveSiluRowsplitGate(gateValue, activation) {
@@ -305,9 +304,7 @@ export class AutogradTape {
 
     const dtype = gradOut.dtype === 'f16' ? 'f16' : 'f32';
     const payload = dtype === 'f16' ? f32ToF16Array(output) : output;
-    const outBuffer = acquireBuffer(payload.byteLength, undefined, 'silu_rowsplit_backward_output');
-    uploadData(outBuffer, payload);
-    return createTensor(outBuffer, dtype, [numTokens, dim * 2], 'silu_rowsplit_backward_output');
+    return createUploadedTensor(payload, dtype, [numTokens, dim * 2], 'silu_rowsplit_backward_output');
   }
 
   async accumulateLargeGradF32(existing, grad, size, shape) {
@@ -317,35 +314,49 @@ export class AutogradTape {
     }
     const bytesPerElement = 4;
     const outputBuffer = acquireBuffer(size * bytesPerElement, undefined, 'grad_accum_large_output');
+    try {
+      for (let offset = 0; offset < size; offset += MAX_RESIDUAL_ELEMENTS_PER_DISPATCH) {
+        const chunkElements = Math.min(MAX_RESIDUAL_ELEMENTS_PER_DISPATCH, size - offset);
+        const chunkBytes = chunkElements * bytesPerElement;
+        const chunkOffsetBytes = offset * bytesPerElement;
 
-    for (let offset = 0; offset < size; offset += MAX_RESIDUAL_ELEMENTS_PER_DISPATCH) {
-      const chunkElements = Math.min(MAX_RESIDUAL_ELEMENTS_PER_DISPATCH, size - offset);
-      const chunkBytes = chunkElements * bytesPerElement;
-      const chunkOffsetBytes = offset * bytesPerElement;
+        let aChunkBuffer = null;
+        let bChunkBuffer = null;
+        let summedChunkBuffer = null;
+        try {
+          aChunkBuffer = acquireBuffer(chunkBytes, undefined, 'grad_accum_large_a_chunk');
+          bChunkBuffer = acquireBuffer(chunkBytes, undefined, 'grad_accum_large_b_chunk');
+          const copyIn = device.createCommandEncoder();
+          copyIn.copyBufferToBuffer(existing.buffer, chunkOffsetBytes, aChunkBuffer, 0, chunkBytes);
+          copyIn.copyBufferToBuffer(grad.buffer, chunkOffsetBytes, bChunkBuffer, 0, chunkBytes);
+          device.queue.submit([copyIn.finish()]);
 
-      const aChunkBuffer = acquireBuffer(chunkBytes, undefined, 'grad_accum_large_a_chunk');
-      const bChunkBuffer = acquireBuffer(chunkBytes, undefined, 'grad_accum_large_b_chunk');
-      const copyIn = device.createCommandEncoder();
-      copyIn.copyBufferToBuffer(existing.buffer, chunkOffsetBytes, aChunkBuffer, 0, chunkBytes);
-      copyIn.copyBufferToBuffer(grad.buffer, chunkOffsetBytes, bChunkBuffer, 0, chunkBytes);
-      device.queue.submit([copyIn.finish()]);
+          const aChunk = createTensor(aChunkBuffer, 'f32', [chunkElements], 'grad_accum_large_a_tensor');
+          const bChunk = createTensor(bChunkBuffer, 'f32', [chunkElements], 'grad_accum_large_b_tensor');
+          const summedChunk = await runResidualAdd(aChunk, bChunk, chunkElements);
+          summedChunkBuffer = summedChunk?.buffer ?? null;
 
-      const aChunk = createTensor(aChunkBuffer, 'f32', [chunkElements], 'grad_accum_large_a_tensor');
-      const bChunk = createTensor(bChunkBuffer, 'f32', [chunkElements], 'grad_accum_large_b_tensor');
-      const summedChunk = await runResidualAdd(aChunk, bChunk, chunkElements);
-
-      const copyOut = device.createCommandEncoder();
-      copyOut.copyBufferToBuffer(summedChunk.buffer, 0, outputBuffer, chunkOffsetBytes, chunkBytes);
-      device.queue.submit([copyOut.finish()]);
-
-      releaseBuffer(aChunkBuffer);
-      releaseBuffer(bChunkBuffer);
-      if (summedChunk?.buffer && summedChunk.buffer !== outputBuffer) {
-        releaseBuffer(summedChunk.buffer);
+          const copyOut = device.createCommandEncoder();
+          copyOut.copyBufferToBuffer(summedChunk.buffer, 0, outputBuffer, chunkOffsetBytes, chunkBytes);
+          device.queue.submit([copyOut.finish()]);
+        } finally {
+          if (aChunkBuffer) {
+            releaseBuffer(aChunkBuffer);
+          }
+          if (bChunkBuffer) {
+            releaseBuffer(bChunkBuffer);
+          }
+          if (summedChunkBuffer && summedChunkBuffer !== outputBuffer) {
+            releaseBuffer(summedChunkBuffer);
+          }
+        }
       }
-    }
 
-    return createTensor(outputBuffer, 'f32', [...shape], 'grad_accum_large_output');
+      return createTensor(outputBuffer, 'f32', [...shape], 'grad_accum_large_output');
+    } catch (error) {
+      releaseBuffer(outputBuffer);
+      throw error;
+    }
   }
 
 

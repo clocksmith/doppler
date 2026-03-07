@@ -1,4 +1,5 @@
 import { MB } from './units.schema.js';
+import { validateRequiredInferenceFields } from '../../inference/pipelines/text/config.js';
 
 // =============================================================================
 // Hash & Versioning
@@ -70,9 +71,9 @@ export const DEFAULT_MANIFEST_INFERENCE = {
     ropeLocalScalingType: null,  // Local scaling policy (null = no scaling)
     ropeLocalScalingFactor: 1.0,
     // YARN parameters - only relevant when ropeScalingType='yarn'
-    yarnBetaFast: 32,
-    yarnBetaSlow: 1,
-    yarnOriginalMaxPos: 4096,
+    yarnBetaFast: null,
+    yarnBetaSlow: null,
+    yarnOriginalMaxPos: null,
     // Local YARN parameters - only relevant when ropeLocalScalingType='yarn'
     ropeLocalYarnBetaFast: null,
     ropeLocalYarnBetaSlow: null,
@@ -124,6 +125,18 @@ export function validateManifestInference(
       `Please re-convert the model using the latest converter.`
     );
   }
+
+  if (manifest.modelType === 'diffusion' || manifest.modelType === 'energy') {
+    return;
+  }
+
+  const inference = typeof structuredClone === 'function'
+    ? structuredClone(manifest.inference)
+    : JSON.parse(JSON.stringify(manifest.inference));
+  validateRequiredInferenceFields(
+    inference,
+    manifest.modelId ?? 'unknown'
+  );
 }
 
 export function hasInferenceConfig(

@@ -6,7 +6,7 @@ import { configurePerfGuards } from '../../gpu/perf-guards.js';
 import { MoERouter } from '../moe-router.js';
 import { DecodeBufferManager } from '../decode-buffers.js';
 import { DecodeRing } from '../decode-ring.js';
-import { applyPipelineContexts } from './context.js';
+import { applyPipelineContexts, restorePipelineContexts } from './context.js';
 import { createInitializedPipeline } from './factory.js';
 
 // Pipeline sub-modules
@@ -44,6 +44,11 @@ import { getDopplerLoader } from '../../loader/doppler-loader.js';
 import { registerPipeline, getPipelineFactory } from './registry.js';
 import { selectRuleValue } from '../../rules/rule-registry.js';
 
+function destroyMoERouter(router) {
+  if (router && typeof router.destroy === 'function') {
+    router.destroy();
+  }
+}
 
 
 // ============================================================================
@@ -102,6 +107,8 @@ export class InferencePipeline extends PipelineState {
     this.manifest = manifest;
     this.decodeRing?.release();
     this.linearAttentionRuntime = resetLinearAttentionRuntime(this.linearAttentionRuntime);
+    destroyMoERouter(this.moeRouter);
+    this.moeRouter = null;
 
     const executionV0Runtime = applyExecutionV0RuntimeConfig({
       runtimeConfig: this.runtimeConfig,
@@ -490,12 +497,15 @@ export class InferencePipeline extends PipelineState {
     this.expertWeights.clear();
     this.linearAttentionRuntime = resetLinearAttentionRuntime(this.linearAttentionRuntime);
     this.lora = null;
+    destroyMoERouter(this.moeRouter);
+    this.moeRouter = null;
     if (this.finitenessBuffer) {
       this.finitenessBuffer.destroy();
       this.finitenessBuffer = null;
     }
     this.isLoaded = false;
     this.currentSeqLen = 0;
+    restorePipelineContexts(this);
     log.info('Pipeline', 'Unloaded');
   }
 
@@ -533,6 +543,8 @@ export class InferencePipeline extends PipelineState {
   releaseGPUResources() {
     this.decodeBuffers?.release();
     this.decodeRing?.release();
+    destroyMoERouter(this.moeRouter);
+    this.moeRouter = null;
     if (this.finitenessBuffer) {
       this.finitenessBuffer.destroy();
       this.finitenessBuffer = null;

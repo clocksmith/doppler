@@ -89,8 +89,11 @@ InferenceConfigSchema (runtime.inference)
 | --- | --- | --- | --- | --- |
 | Generation | call → runtime → default | ✓ | ✓ | n/a |
 | Model | runtime (experimental) → manifest → default | ✗ (throw) | ✓ (warn) | ✓ |
-| Session | runtime → default | ✗ (throw) | ✓ | n/a |
+| Session | runtime → default² | ✗ (throw) | ✓ | n/a¹ |
 | Hybrid | call → runtime → manifest → default | ✓ | ✓ | ✓ |
+
+¹ Exception: in execution-v0 manifests (`manifest.inference.schema == "doppler.execution/v0"`), `manifest.inference.sessionDefaults` is the base layer for session resolution — `resolvedSession = merge(manifest.inference.sessionDefaults, runtime.inference.session)`. The `n/a` applies only to non-execution-v0 manifests for `runtime.inference.session`.
+² Separate from `runtime.inference.session`, non-execution-v0 manifests may still provide `manifest.inference.sessionDefaults.decodeLoop` as manifest batching defaults. Loader applies those defaults only while runtime batching/generation are still at global defaults; otherwise it fails closed on conflict.
 
 ### Examples
 
@@ -121,6 +124,9 @@ Runtime tunables are config-only when using the browser harness:
 - Harness URLs accept only `runtimePreset`, `runtimeConfig`, `runtimeConfigUrl`, or `configChain`. No per-field URL overrides.
 - Kernel selection overrides are config-only via `runtime.inference.kernelPath`.
 - Capability remap policy is config-only via `runtime.inference.kernelPathPolicy`.
+- Runtime-input precedence is normative, not surface-local:
+  `configChain -> runtimePreset -> runtimeConfigUrl -> runtimeConfig -> runtime contract patch`.
+- If a harness or runtime surface cannot support one of those inputs, it must fail closed instead of silently skipping it.
 
 When you need a change, create a preset or pass a runtime config file via `runtimeConfigUrl`.
 
@@ -165,8 +171,11 @@ runtimeInference = merge(runtime.inference, compiledExecutionRuntimePatch)
 Conversion bridge rule:
 
 ```
-if inference.defaultKernelPath is present and inference.execution is absent,
+if inference.defaultKernelPath is present, inference.execution is absent,
+and layerPattern does not require custom conv scheduling,
 converter derives execution-v0 steps/session defaults from the kernel path.
+If converterConfig.inference.sessionDefaults is also provided, it overlays the
+generated execution-v0 session defaults before validation.
 ```
 
 ---

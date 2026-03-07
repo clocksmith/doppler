@@ -114,7 +114,7 @@ function checkUnifiedIndicators(
 
 export async function detectUnifiedMemory() {
   // Need WebGPU for detection
-  if (!navigator.gpu) {
+  if (typeof navigator === 'undefined' || !navigator.gpu) {
     return {
       isUnified: false,
       reason: 'WebGPU not available',

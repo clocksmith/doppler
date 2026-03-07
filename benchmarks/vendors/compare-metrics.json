@@ -10,8 +10,8 @@
       "required": true
     },
     {
-      "id": "prefillTokensPerSec",
-      "label": "prompt tok/s (prefill)",
+      "id": "promptTokensPerSecToFirstToken",
+      "label": "prompt tok/s to first token",
       "unit": "tok/s",
       "higherBetter": true,
       "required": true
@@ -26,13 +26,6 @@
     {
       "id": "firstResponseMs",
       "label": "first response (first token + load)",
-      "unit": "ms",
-      "higherBetter": false,
-      "required": true
-    },
-    {
-      "id": "prefillMs",
-      "label": "prefill ms",
       "unit": "ms",
       "higherBetter": false,
       "required": true

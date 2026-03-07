@@ -55,6 +55,36 @@ async function readProcessedManifest(manifestPath) {
   }
 }
 
+function createWatchResult(processed, manifestPath, aborted = false) {
+  return {
+    ok: true,
+    processedCount: processed.size,
+    manifestPath,
+    aborted,
+  };
+}
+
+async function waitForPollInterval(pollIntervalMs, signal) {
+  if (!signal) {
+    await new Promise((resolvePromise) => setTimeout(resolvePromise, pollIntervalMs));
+    return true;
+  }
+  if (signal.aborted) {
+    return false;
+  }
+  return new Promise((resolvePromise) => {
+    const onAbort = () => {
+      clearTimeout(timer);
+      resolvePromise(false);
+    };
+    const timer = setTimeout(() => {
+      signal.removeEventListener('abort', onAbort);
+      resolvePromise(true);
+    }, pollIntervalMs);
+    signal.addEventListener('abort', onAbort, { once: true });
+  });
+}
+
 export async function watchFinalizedCheckpoints(options) {
   const checkpointsDir = resolve(String(options.checkpointsDir));
   const manifestPath = resolve(String(options.manifestPath));
@@ -65,6 +95,7 @@ export async function watchFinalizedCheckpoints(options) {
   const onCheckpoint = typeof options.onCheckpoint === 'function'
     ? options.onCheckpoint
     : null;
+  const signal = options.signal ?? null;
   if (!onCheckpoint) {
     throw new Error('watchFinalizedCheckpoints requires onCheckpoint(markerPath).');
   }
@@ -72,6 +103,9 @@ export async function watchFinalizedCheckpoints(options) {
   const processed = await readProcessedManifest(manifestPath);
   let idlePolls = 0;
   for (;;) {
+    if (signal?.aborted) {
+      return createWatchResult(processed, manifestPath, true);
+    }
     const checkpointsExist = await ensureDirectoryExists(checkpointsDir);
     const markers = checkpointsExist
       ? await listCheckpointMarkers(checkpointsDir)
@@ -92,15 +126,14 @@ export async function watchFinalizedCheckpoints(options) {
     if (!sawNewMarker) {
       idlePolls += 1;
       if (stopWhenIdle && idlePolls > 0) {
-        return {
-          ok: true,
-          processedCount: processed.size,
-          manifestPath,
-        };
+        return createWatchResult(processed, manifestPath);
       }
     } else {
       idlePolls = 0;
     }
-    await new Promise((resolvePromise) => setTimeout(resolvePromise, pollIntervalMs));
+    const shouldContinue = await waitForPollInterval(pollIntervalMs, signal);
+    if (!shouldContinue) {
+      return createWatchResult(processed, manifestPath, true);
+    }
   }
 }
