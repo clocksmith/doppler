@@ -14,13 +14,23 @@ export async function fetchHotSwapManifest(url) {
   return response.json();
 }
 
-export async function verifyHotSwapManifest(manifest, policy) {
+function isExplicitLocalSource(source) {
+  if (!source || typeof source !== 'object') {
+    return false;
+  }
+  if (source.isLocal === true) {
+    return true;
+  }
+  return source.kind === 'local';
+}
+
+export async function verifyHotSwapManifest(manifest, policy, context = {}) {
   if (!policy.enabled) {
     return { ok: false, reason: 'Hot-swap disabled' };
   }
 
   if (!manifest.signature) {
-    if (policy.localOnly && policy.allowUnsignedLocal) {
+    if (policy.localOnly && policy.allowUnsignedLocal && isExplicitLocalSource(context.source)) {
       return { ok: true, reason: 'Local-only unsigned manifest accepted' };
     }
     return { ok: false, reason: 'Signature required' };

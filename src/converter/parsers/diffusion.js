@@ -261,9 +261,6 @@ export async function parseDiffusionModel(adapter) {
     }
     const configSuffix = defaultConfigPath(componentId);
     const config = await readJson(configSuffix, `${componentId} config`);
-    if (componentId === 'transformer' && config && !config.weight_format) {
-      config.weight_format = 'diffusers';
-    }
     diffusionConfig.components[componentId] = {
       ...(diffusionConfig.components[componentId] || {}),
       config,
