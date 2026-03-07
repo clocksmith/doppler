@@ -106,6 +106,12 @@ export interface KernelPathSchema {
   kvDtype?: string;
 
   /**
+   * Explicit widening target used by the finiteness fallback execution plan.
+   * Required for inline/generated kernel paths that do not have a stable registry id.
+   */
+  finitenessFallbackKernelPathId?: string;
+
+  /**
    * Prefill phase kernel sequence (M > 1).
    * If not specified, uses decode with batched variants.
    */

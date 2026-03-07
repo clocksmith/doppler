@@ -7,6 +7,7 @@ import {
   resolveExecutionV0KVIO,
   resolveExecutionV0Precision,
 } from '../../../config/execution-v0-contract-check.js';
+import { selectRuleValue } from '../../../rules/rule-registry.js';
 import {
   EXECUTION_V0_SCHEMA_ID,
   DEFAULT_EXECUTION_V0_POLICIES,
@@ -856,7 +857,7 @@ function assertInlineKernelPathSessionCompatibility(path, sessionDefaults) {
   }
 }
 
-function buildInlineKernelPath(steps, sessionDefaults, modelId, numLayers) {
+function buildInlineKernelPath(steps, sessionDefaults, modelId, numLayers, finitenessFallbackKernelPathId = null) {
   const activationDtype = normalizeDtype(
     sessionDefaults?.compute?.defaults?.activationDtype ?? 'f16',
     'sessionDefaults.compute.defaults.activationDtype'
@@ -877,6 +878,9 @@ function buildInlineKernelPath(steps, sessionDefaults, modelId, numLayers) {
     description: 'Generated from manifest.inference.execution.steps',
     activationDtype,
     kvDtype,
+    ...(typeof finitenessFallbackKernelPathId === 'string' && finitenessFallbackKernelPathId.length > 0
+      ? { finitenessFallbackKernelPathId }
+      : {}),
     decode: {
       steps: decodeSteps.length > 0 ? decodeSteps : prefillSteps,
     },
@@ -1107,7 +1111,26 @@ export function compileExecutionV0(options = {}) {
     ...resolvedDecodeSteps.filter((step) => step.phase === 'decode'),
   ];
 
-  const kernelPath = buildInlineKernelPath(patchedSteps, resolvedSession, modelId, numLayers);
+  const defaultKernelPathId = typeof manifestInference.defaultKernelPath === 'string'
+    && manifestInference.defaultKernelPath.trim().length > 0
+    ? manifestInference.defaultKernelPath.trim()
+    : null;
+  const finitenessFallbackKernelPathId = defaultKernelPathId
+    ? selectRuleValue(
+      'inference',
+      'kernelPath',
+      'finitenessFallback',
+      { kernelPathId: defaultKernelPathId }
+    )
+    : null;
+
+  const kernelPath = buildInlineKernelPath(
+    patchedSteps,
+    resolvedSession,
+    modelId,
+    numLayers,
+    finitenessFallbackKernelPathId
+  );
   const layerPipeline = buildLayerPipelineFromExecution(resolvedSteps);
   const sessionPatch = buildSessionRuntimePatch(resolvedSession);
   const modelOverrides = buildModelRuntimeOverrides(manifestInference);
@@ -1162,6 +1185,10 @@ export function applyExecutionV0RuntimeConfig(options = {}) {
   }
 
   const runtimeInferencePatch = { ...executionV0State.runtimeInferencePatch };
+  if (runtimeInference.kernelPath !== undefined) {
+    delete runtimeInferencePatch.kernelPath;
+    delete runtimeInferencePatch.kernelPathSource;
+  }
   if (runtimeInferencePatch.modelOverrides) {
     runtimeInferencePatch.modelOverrides = mergeRuntimeValues(
       runtimeInferencePatch.modelOverrides,
