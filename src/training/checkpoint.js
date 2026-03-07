@@ -184,12 +184,22 @@ export async function saveCheckpoint(key, payload, options = {}) {
 
   if (useNodeStore) {
     await writeNodeCheckpointRecord(nodePath, data);
-    return;
+    return {
+      key,
+      path: nodePath,
+      metadata: data.metadata,
+      data,
+    };
   }
 
   return new Promise((resolve, reject) => {
     const tx = browserStore.db.transaction(browserStore.storeName, 'readwrite');
-    tx.oncomplete = () => resolve();
+    tx.oncomplete = () => resolve({
+      key,
+      path: null,
+      metadata: data.metadata,
+      data,
+    });
     tx.onerror = () => reject(tx.error);
     const store = tx.objectStore(browserStore.storeName);
     store.put(data, key);

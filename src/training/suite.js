@@ -190,7 +190,7 @@ function normalizeDistillPairAllowlist(value) {
   return [...new Set(normalized)];
 }
 
-function resolveDistillDataScope(options = {}, trainingConfig = null) {
+export function resolveDistillDataScope(options = {}, trainingConfig = null) {
   const distillConfig = trainingConfig?.distill || {};
   const sourceLangs = normalizeDistillLanguageAllowlist(
     options.distillSourceLangs ?? distillConfig.sourceLangs ?? null
@@ -301,7 +301,7 @@ function resolveLanguageName(langCode) {
   return normalized || 'target';
 }
 
-function buildDistillPrompt(sample) {
+export function buildDistillPrompt(sample) {
   const direction = String(sample?.direction || '').trim();
   const [srcCodeRaw, tgtCodeRaw] = direction.split('->');
   const srcCode = normalizeLangCode(srcCodeRaw) || srcCodeRaw || 'source';
@@ -328,7 +328,7 @@ function clampDistillTopK(value) {
   return Math.max(2, Math.min(256, parsed));
 }
 
-function normalizeDistillStudentGraphMode(value) {
+export function normalizeDistillStudentGraphMode(value) {
   const normalized = normalizeOptionalString(value);
   if (!normalized) return DISTILL_STUDENT_GRAPH_FULL;
   const compact = normalized.toLowerCase().replace(/[-\s]/g, '_');
@@ -605,7 +605,7 @@ function createDistillTensorDataset(samples, options = {}) {
   };
 }
 
-async function loadDistillDatasetFromJsonl(datasetPath, scopeOptions = null) {
+export async function loadDistillDatasetFromJsonl(datasetPath, scopeOptions = null) {
   const normalizedPath = normalizeDistillDatasetPath(datasetPath);
   if (!normalizedPath) return null;
   if (!isNodeRuntime()) {
@@ -820,7 +820,7 @@ async function initializeInferenceFromStore(modelId) {
   return { pipeline, manifest };
 }
 
-async function loadDistillModelHandle(modelRef, role, loadOptions = {}) {
+export async function loadDistillModelHandle(modelRef, role, loadOptions = {}) {
   const normalizedRef = normalizeOptionalString(modelRef);
   if (!normalizedRef) {
     throw new Error(`Distill ${role} model reference is required.`);
@@ -876,7 +876,7 @@ function resolveDistillModelRefs(options = {}, trainingConfig = null) {
   };
 }
 
-async function createDistillRuntimeContext(options = {}, trainingConfig = null) {
+export async function createDistillRuntimeContext(options = {}, trainingConfig = null) {
   const { teacherModelRef, studentModelRef } = resolveDistillModelRefs(options, trainingConfig);
   if (!teacherModelRef || !studentModelRef) {
     throw new Error('Distill stage requires teacherModelId and studentModelId.');
@@ -967,7 +967,7 @@ async function ensureTrainingGpuRuntime() {
   await initDevice();
 }
 
-function createToyModelFixture(overrides = {}) {
+export function createToyModelFixture(overrides = {}) {
   const config = createTrainingConfig({
     ...overrides,
     training: {
@@ -1790,7 +1790,7 @@ async function createDistillStudentTransformerModelFixture(overrides = {}, optio
   };
 }
 
-async function createDistillStudentRuntimeModelFixture(overrides = {}, options = {}) {
+export async function createDistillStudentRuntimeModelFixture(overrides = {}, options = {}) {
   const distillRuntime = options.distillRuntime && typeof options.distillRuntime === 'object'
     ? options.distillRuntime
     : null;
@@ -2085,7 +2085,7 @@ function buildUlTrainingOverrides(options = {}) {
   };
 }
 
-function buildDistillTrainingOverrides(options = {}) {
+export function buildDistillTrainingOverrides(options = {}) {
   const trainingConfig = normalizeTrainingConfigOverride(options.trainingConfig);
   const explicitStage = normalizeTrainingStage(options.trainingStage || trainingConfig?.distill?.stage);
   const distillEnabled = isDistillStage(explicitStage) || trainingConfig?.distill?.enabled === true;
