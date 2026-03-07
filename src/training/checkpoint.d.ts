@@ -23,7 +23,12 @@ export declare function saveCheckpoint(
   key: string,
   data: unknown,
   options?: CheckpointStoreOptions
-): Promise<void>;
+): Promise<{
+  key: string;
+  path: string | null;
+  metadata: Record<string, unknown>;
+  data: unknown;
+}>;
 
 export declare function loadCheckpoint(
   key: string,

@@ -90,6 +90,16 @@ export interface TrainingStepMetricsEntry {
 export interface TrainingRunnerCallbacks {
   onStep?: (entry: TrainingStepMetricsEntry) => Promise<void> | void;
   onEpoch?: (entry: { epoch: number; steps: number; loss: number }) => Promise<void> | void;
+  onCheckpoint?: (entry: {
+    key: string;
+    defaultCheckpointKey: string | null;
+    path: string | null;
+    metadata: Record<string, unknown> | null;
+    payload: unknown;
+    step: number;
+    epoch: number;
+    batch: number;
+  }) => Promise<void> | void;
 }
 
 export interface TrainingRunnerOptions extends TrainingRunnerCallbacks {
@@ -106,6 +116,12 @@ export interface TrainingRunnerOptions extends TrainingRunnerCallbacks {
   ) => Promise<ClipMetrics>;
   lossScaler?: DynamicLossScaler;
   trainingObjective?: TrainingObjective;
+  resolveCheckpointKey?: (entry: {
+    defaultCheckpointKey: string | null;
+    step: number;
+    epoch: number;
+    batch: number;
+  }) => Promise<string> | string;
 }
 
 export interface TrainingRunOptions {
@@ -159,6 +175,9 @@ export declare class TrainingRunner {
   lastArtifact: UlArtifactFinalizeResult | DistillArtifactFinalizeResult | null;
   lastCheckpoint: {
     key: string;
+    defaultKey?: string | null;
+    path?: string | null;
+    metadata?: Record<string, unknown> | null;
     step: number;
     epoch: number;
     batch: number;
@@ -194,3 +213,36 @@ export declare function runTraining(
   config: TrainingConfigSchema,
   options?: TrainingRunOptions & TrainingRunnerOptions
 ): Promise<TrainingStepMetricsEntry[]>;
+
+export declare function createTrainingCheckpointPayload(
+  model: {
+    loraParams?: () => Tensor[];
+    paramGroups?: () => Record<string, Tensor[]>;
+  },
+  optimizer: unknown,
+  context: {
+    step: number;
+    epoch: number;
+    batch: number;
+    config: TrainingConfigSchema;
+  }
+): Promise<unknown>;
+
+export declare function restoreTrainingCheckpointState(
+  model: {
+    loraParams?: () => Tensor[];
+    paramGroups?: () => Record<string, Tensor[]>;
+  },
+  optimizer: unknown,
+  checkpointRecord: unknown,
+  config: TrainingConfigSchema
+): Promise<{
+  step: number;
+  epoch: number;
+  batch: number;
+  checkpointHash: string | null;
+  previousCheckpointHash: string | null;
+  checkpointKey: string | null;
+  resumeAudits: Array<Record<string, unknown>>;
+  resumeAuditCount: number;
+} | null>;

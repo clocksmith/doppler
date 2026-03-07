@@ -713,7 +713,7 @@ function looksLikeTrainingCheckpointRecord(value) {
   return Number.isInteger(progress.step) && progress.step >= 0;
 }
 
-async function createTrainingCheckpointPayload(model, optimizer, context) {
+export async function createTrainingCheckpointPayload(model, optimizer, context) {
   const freezeMap = context.config?.training?.ul?.freeze
     ?? context.config?.training?.distill?.freeze
     ?? {};
@@ -747,7 +747,7 @@ async function createTrainingCheckpointPayload(model, optimizer, context) {
   };
 }
 
-async function restoreTrainingCheckpointState(model, optimizer, checkpointRecord, config) {
+export async function restoreTrainingCheckpointState(model, optimizer, checkpointRecord, config) {
   if (!looksLikeTrainingCheckpointRecord(checkpointRecord)) {
     return null;
   }
@@ -837,6 +837,8 @@ export class TrainingRunner {
     this.lossScaler = options.lossScaler || new DynamicLossScaler(config.training.lossScaling);
     this.onStep = options.onStep || null;
     this.onEpoch = options.onEpoch || null;
+    this.onCheckpoint = options.onCheckpoint || null;
+    this.resolveCheckpointKey = options.resolveCheckpointKey || null;
     this.lastArtifact = null;
     this.lastCheckpoint = null;
     this.resumeState = null;
@@ -911,16 +913,39 @@ export class TrainingRunner {
         batch: checkpointContext.batch,
         config: this.config,
       });
-      await saveCheckpoint(checkpointKey, payload, {
+      const resolvedCheckpointKey = this.resolveCheckpointKey
+        ? await this.resolveCheckpointKey({
+          defaultCheckpointKey: checkpointKey,
+          step: checkpointContext.step,
+          epoch: checkpointContext.epoch,
+          batch: checkpointContext.batch,
+        })
+        : checkpointKey;
+      const saveResult = await saveCheckpoint(resolvedCheckpointKey, payload, {
         ...checkpointMetadata,
         optimizerHash: hashStableJson(payload?.trainingState?.optimizerSlots || {}),
       });
       this.lastCheckpoint = {
-        key: checkpointKey,
+        key: resolvedCheckpointKey,
+        defaultKey: checkpointKey,
+        path: saveResult?.path || null,
+        metadata: saveResult?.metadata || null,
         step: checkpointContext.step,
         epoch: checkpointContext.epoch,
         batch: checkpointContext.batch,
       };
+      if (this.onCheckpoint) {
+        await this.onCheckpoint({
+          key: resolvedCheckpointKey,
+          defaultCheckpointKey: checkpointKey,
+          path: saveResult?.path || null,
+          metadata: saveResult?.metadata || null,
+          payload,
+          step: checkpointContext.step,
+          epoch: checkpointContext.epoch,
+          batch: checkpointContext.batch,
+        });
+      }
     };
 
     const artifactSession = distillContract.enabled
