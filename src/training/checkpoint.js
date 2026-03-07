@@ -31,6 +31,13 @@ function openCheckpointDB(options = {}) {
   });
 }
 
+function closeCheckpointDB(db) {
+  if (!db || typeof db.close !== 'function') {
+    return;
+  }
+  db.close();
+}
+
 async function resolveNodeCheckpointPath(key, options = {}) {
   const [{ resolve, join, dirname }, { mkdir }] = await Promise.all([
     import('node:path'),
@@ -140,9 +147,15 @@ export async function saveCheckpoint(key, payload, options = {}) {
   const useNodeStore = isNodeRuntime() && typeof indexedDB === 'undefined';
   const nodePath = useNodeStore ? await resolveNodeCheckpointPath(key, options) : null;
   const browserStore = useNodeStore ? null : await openCheckpointDB(options);
-  const previousData = useNodeStore
-    ? await readNodeCheckpointRecord(nodePath)
-    : await readCheckpointRecord(browserStore.db, browserStore.storeName, key);
+  let previousData;
+  try {
+    previousData = useNodeStore
+      ? await readNodeCheckpointRecord(nodePath)
+      : await readCheckpointRecord(browserStore.db, browserStore.storeName, key);
+  } catch (error) {
+    closeCheckpointDB(browserStore?.db);
+    throw error;
+  }
   const previousMetadata = previousData?.metadata || {};
   const previousLineage = previousMetadata.lineage || {};
   const previousCheckpointHash = options.priorCheckpointHash
@@ -194,13 +207,25 @@ export async function saveCheckpoint(key, payload, options = {}) {
 
   return new Promise((resolve, reject) => {
     const tx = browserStore.db.transaction(browserStore.storeName, 'readwrite');
-    tx.oncomplete = () => resolve({
-      key,
-      path: null,
-      metadata: data.metadata,
-      data,
-    });
-    tx.onerror = () => reject(tx.error);
+    tx.oncomplete = () => {
+      closeCheckpointDB(browserStore.db);
+      resolve({
+        key,
+        path: null,
+        metadata: data.metadata,
+        data,
+      });
+    };
+    tx.onerror = () => {
+      const error = tx.error;
+      closeCheckpointDB(browserStore.db);
+      reject(error);
+    };
+    tx.onabort = () => {
+      const error = tx.error ?? new Error('Checkpoint transaction aborted');
+      closeCheckpointDB(browserStore.db);
+      reject(error);
+    };
     const store = tx.objectStore(browserStore.storeName);
     store.put(data, key);
   });
@@ -213,7 +238,11 @@ export async function loadCheckpoint(key, options = {}) {
     ? await readNodeCheckpointRecord(nodePath)
     : await (async () => {
       const { db, storeName } = await openCheckpointDB(options);
-      return readCheckpointRecord(db, storeName, key);
+      try {
+        return await readCheckpointRecord(db, storeName, key);
+      } finally {
+        closeCheckpointDB(db);
+      }
     })();
 
   if (!data || !data.metadata || !options.expectedMetadata) {

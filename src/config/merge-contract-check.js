@@ -310,7 +310,7 @@ export function buildMergeContractArtifact() {
       onIncompatible: 'error',
     },
     {
-      allowSources: ['runtime', 'execution-v0'],
+      allowSources: ['config', 'execution-v0'],
       onIncompatible: 'remap',
     }
   );
@@ -320,7 +320,7 @@ export function buildMergeContractArtifact() {
     Array.isArray(mergedKernelPathPolicy.sourceScope)
       && Array.isArray(mergedKernelPathPolicy.allowSources)
       && mergedKernelPathPolicy.sourceScope.length === 2
-      && mergedKernelPathPolicy.sourceScope[0] === 'runtime'
+      && mergedKernelPathPolicy.sourceScope[0] === 'config'
       && mergedKernelPathPolicy.allowSources[1] === 'execution-v0'
       && mergedKernelPathPolicy.onIncompatible === 'remap',
     `sourceScope=${JSON.stringify(mergedKernelPathPolicy.sourceScope)}, allowSources=${JSON.stringify(mergedKernelPathPolicy.allowSources)}`,
@@ -331,7 +331,7 @@ export function buildMergeContractArtifact() {
     runtime: {
       inference: {
         kernelPathPolicy: {
-          allowSources: ['runtime', 'execution-v0'],
+          allowSources: ['config', 'execution-v0'],
         },
       },
     },
@@ -340,7 +340,7 @@ export function buildMergeContractArtifact() {
     checks,
     'runtime.schema.kernelPathPolicy.helper_is_used',
     Array.isArray(runtimeConfigWithKernelPathPolicy.runtime.inference.kernelPathPolicy.sourceScope)
-      && runtimeConfigWithKernelPathPolicy.runtime.inference.kernelPathPolicy.sourceScope[0] === 'runtime'
+      && runtimeConfigWithKernelPathPolicy.runtime.inference.kernelPathPolicy.sourceScope[0] === 'config'
       && runtimeConfigWithKernelPathPolicy.runtime.inference.kernelPathPolicy.allowSources[1] === 'execution-v0',
     `policy=${JSON.stringify(runtimeConfigWithKernelPathPolicy.runtime.inference.kernelPathPolicy)}`,
     'actual'

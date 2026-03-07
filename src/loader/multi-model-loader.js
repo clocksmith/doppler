@@ -17,36 +17,67 @@ export class MultiModelLoader {
   
   adapters = new Map();
 
-  
-  async loadBase(manifest, options = {}) {
-    // Get runtime model overrides to merge with manifest inference config
-    const runtimeConfig = getRuntimeConfig();
+  #pipelines = new Set();
+
+  async _loadBaseWeights(manifest, options, runtimeConfig) {
     const modelOverrides =  (runtimeConfig.inference.modelOverrides);
     const config = parseModelConfig(manifest, modelOverrides);
-    this.baseManifest = manifest;
-    this.baseWeights = await loadWeights(manifest, config, {
+    return loadWeights(manifest, config, {
       storageContext: options.storageContext,
       keepF32Weights: runtimeConfig.inference.compute.keepF32Weights === true,
     });
-    return this.baseWeights;
   }
 
-  
-  async loadAdapter(name, source) {
-    
-    let adapter;
-
+  async _resolveAdapterSource(source) {
     if (typeof source === 'string') {
-      adapter = await loadLoRAFromUrl(source);
-    } else if (this.#isRDRRManifest(source)) {
+      return loadLoRAFromUrl(source);
+    }
+    if (this.#isRDRRManifest(source)) {
       const loader = getDopplerLoader();
       await loader.init();
-      adapter = await loader.loadLoRAWeights(source);
-    } else if (this.#isLoRAManifest(source)) {
-      adapter = await loadLoRAFromManifest(source);
-    } else {
-      adapter = source;
+      return loader.loadLoRAWeights(source);
     }
+    if (this.#isLoRAManifest(source)) {
+      return loadLoRAFromManifest(source);
+    }
+    return source;
+  }
+
+  _createPipeline() {
+    return new InferencePipeline();
+  }
+
+  _getBaseLoader() {
+    return getDopplerLoader();
+  }
+
+  async unload() {
+    const pipelines = Array.from(this.#pipelines);
+    this.#pipelines.clear();
+    await Promise.all(pipelines.map(async (pipeline) => pipeline.unload()));
+
+    if (this.baseWeights) {
+      const loader = this._getBaseLoader();
+      await loader.unload();
+    }
+
+    this.baseManifest = null;
+    this.baseWeights = null;
+    this.adapters.clear();
+  }
+
+  async loadBase(manifest, options = {}) {
+    await this.unload();
+
+    const runtimeConfig = getRuntimeConfig();
+    const weights = await this._loadBaseWeights(manifest, options, runtimeConfig);
+    this.baseManifest = manifest;
+    this.baseWeights = weights;
+    return weights;
+  }
+
+  async loadAdapter(name, source) {
+    const adapter = await this._resolveAdapterSource(source);
 
     const adapterName = name || adapter.name;
     this.adapters.set(adapterName, adapter);
@@ -68,11 +99,26 @@ export class MultiModelLoader {
     if (!this.baseManifest || !this.baseWeights) {
       throw new Error('Base model not loaded');
     }
-    const pipeline = new InferencePipeline();
-    await pipeline.initialize(contexts);
-    pipeline.setPreloadedWeights(this.baseWeights);
-    await pipeline.loadModel(this.baseManifest);
-    return pipeline;
+    const pipeline = this._createPipeline();
+    const unloadPipeline = pipeline.unload.bind(pipeline);
+    pipeline.unload = async () => {
+      try {
+        await unloadPipeline();
+      } finally {
+        this.#pipelines.delete(pipeline);
+      }
+    };
+
+    try {
+      await pipeline.initialize(contexts);
+      pipeline.setPreloadedWeights(this.baseWeights);
+      await pipeline.loadModel(this.baseManifest);
+      this.#pipelines.add(pipeline);
+      return pipeline;
+    } catch (error) {
+      await pipeline.unload().catch(() => {});
+      throw error;
+    }
   }
 
   

@@ -65,10 +65,17 @@ function createFakeDevice(options = {}) {
   const createdQuerySets = [];
   const rejectSubmitted = options.rejectSubmitted === true;
   const rejectMapRead = options.rejectMapRead === true;
+  const submitThrows = options.submitThrows === true;
+  const throwCreateBufferAt = options.throwCreateBufferAt ?? null;
   const features = new Set(options.features ?? []);
+  let createBufferCount = 0;
 
   const queue = {
-    submit() {},
+    submit() {
+      if (submitThrows) {
+        throw new Error('submit failed');
+      }
+    },
     writeBuffer() {},
     onSubmittedWorkDone() {
       if (rejectSubmitted) {
@@ -105,6 +112,10 @@ function createFakeDevice(options = {}) {
       return querySet;
     },
     createBuffer({ size, usage }) {
+      createBufferCount += 1;
+      if (throwCreateBufferAt === createBufferCount) {
+        throw new Error(`createBuffer failed at ${createBufferCount}`);
+      }
       const mapReject = rejectMapRead && (usage & GPUBufferUsage.MAP_READ) !== 0;
       const buffer = new FakeBuffer({ size, usage, mapReject });
       createdBuffers.push(buffer);
@@ -151,6 +162,19 @@ configurePerfGuards({
 }
 
 {
+  const device = createFakeDevice({ submitThrows: true });
+  const recorder = new CommandRecorder(device, 'submit_throw_cleanup');
+  const temp = recorder.createTempBuffer(64, GPUBufferUsage.STORAGE, 'temp');
+
+  assert.throws(
+    () => recorder.submit(),
+    /submit failed/
+  );
+
+  assert.equal(temp.destroyed, true);
+}
+
+{
   setRuntimeConfig({
     shared: {
       debug: {
@@ -182,6 +206,30 @@ configurePerfGuards({
   assert.equal(device.createdQuerySets[0].destroyed, true);
   assert.equal(device.createdBuffers[0].destroyed, true);
   assert.equal(device.createdBuffers[1].destroyed, true);
+}
+
+{
+  setRuntimeConfig({
+    shared: {
+      debug: {
+        profiler: {
+          maxQueries: 8,
+          defaultQueryLimit: 8,
+        },
+      },
+    },
+  });
+
+  const device = createFakeDevice({
+    throwCreateBufferAt: 2,
+    features: [FEATURES.TIMESTAMP_QUERY],
+  });
+  setDevice(device, { platformConfig: null });
+
+  const recorder = new CommandRecorder(device, 'profile_init_cleanup', { profile: true });
+  assert.equal(recorder.isProfilingEnabled(), false);
+  assert.equal(device.createdQuerySets[0].destroyed, true);
+  assert.equal(device.createdBuffers[0].destroyed, true);
 }
 
 resetUniformCache();

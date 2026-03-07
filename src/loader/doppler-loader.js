@@ -9,7 +9,7 @@ import {
   verifyIntegrity,
   loadManifestFromStore,
 } from '../storage/shard-manager.js';
-import { parseManifest } from '../formats/rdrr/index.js';
+import { clearManifest, parseManifest, setManifest as setCurrentManifest } from '../formats/rdrr/index.js';
 import { initDevice, getDevice, getKernelCapabilities } from '../gpu/device.js';
 import { acquireBuffer, releaseBuffer, forceBufferPoolReclaim } from '../memory/buffer-pool.js';
 import { getExpertCache } from './experts/expert-cache.js';
@@ -48,6 +48,10 @@ import { assembleShardData } from './tensors/tensor-reader.js';
 function hasExpertGroups(manifest) {
   if (!manifest?.groups) return false;
   return Object.keys(manifest.groups).some((groupId) => groupId.includes('.expert.'));
+}
+
+function isGpuBufferInstance(value) {
+  return typeof GPUBuffer !== 'undefined' && value instanceof GPUBuffer;
 }
 
 // Re-export types for backward compatibility
@@ -252,6 +256,7 @@ export class DopplerLoader {
   
   setManifest(manifest) {
     this.manifest = manifest;
+    setCurrentManifest(manifest);
     const moeConfig = manifest.moeConfig;
     this.isMoE = moeConfig != null && (moeConfig.numExperts ?? 0) > 1;
     if (!this.isMoE && hasExpertGroups(manifest)) {
@@ -259,6 +264,7 @@ export class DopplerLoader {
         `Manifest "${manifest.modelId ?? 'unknown'}" missing moeConfig for MoE model. Re-convert with moeConfig.`
       );
     }
+    this.shardCache.setManifest(this.manifest);
     this.shardCache.configureForModel(this.manifest, this.shardCache.hasCustomLoader);
     debugTrace.loader('Manifest set externally');
   }
@@ -679,7 +685,7 @@ export class DopplerLoader {
       const device = getDevice();
       if (!device) {
         log.warn('Loader', 'GPU device not available; falling back to CPU');
-        if (shardData instanceof GPUBuffer) {
+        if (isGpuBufferInstance(shardData)) {
           releaseBuffer(shardData);
           shardData = await this.#assembleShardData(location, name);
         }
@@ -708,7 +714,7 @@ export class DopplerLoader {
       return result.data;
     }
 
-    if (shardData instanceof GPUBuffer) {
+    if (isGpuBufferInstance(shardData)) {
       // Shouldn't happen (streaming is only used for toGPU), but keep this leak-proof.
       releaseBuffer(shardData);
       shardData = await this.#assembleShardData(location, name);
@@ -751,31 +757,40 @@ export class DopplerLoader {
     // queue.writeBuffer requires 4-byte aligned sizes; we pad the buffer.
     const alignedSize = Math.ceil(location.size / 4) * 4;
     const raw = acquireBuffer(alignedSize, undefined, `raw_${name}`);
+    let complete = false;
 
-    let dstOffset = 0;
-    const uploadChunk = (bytes) => {
-      device.queue.writeBuffer(raw, dstOffset, bytes, bytes.byteOffset, bytes.byteLength);
-      dstOffset += bytes.byteLength;
-    };
-    const streamRange = (idx, offset, length) => this.shardCache.streamRange(idx, offset, length, { chunkBytes });
+    try {
+      let dstOffset = 0;
+      const uploadChunk = (bytes) => {
+        device.queue.writeBuffer(raw, dstOffset, bytes, bytes.byteOffset, bytes.byteLength);
+        dstOffset += bytes.byteLength;
+      };
+      const streamRange = (idx, offset, length) => this.shardCache.streamRange(idx, offset, length, { chunkBytes });
 
-    if (location.spans) {
-      for (const span of location.spans) {
-        for await (const chunk of streamRange(span.shardIndex, span.offset, span.size)) {
+      if (location.spans) {
+        for (const span of location.spans) {
+          for await (const chunk of streamRange(span.shardIndex, span.offset, span.size)) {
+            uploadChunk(chunk);
+          }
+        }
+      } else {
+        for await (const chunk of streamRange(location.shardIndex, location.offset, location.size)) {
           uploadChunk(chunk);
         }
       }
-    } else {
-      for await (const chunk of streamRange(location.shardIndex, location.offset, location.size)) {
-        uploadChunk(chunk);
+
+      if (dstOffset !== location.size) {
+        throw new Error(
+          `Stream upload short read for "${name}": got=${dstOffset}, expected=${location.size}.`
+        );
+      }
+      complete = true;
+      return raw;
+    } finally {
+      if (!complete) {
+        releaseBuffer(raw);
       }
     }
-
-    if (dstOffset < location.size) {
-      log.warn('Loader', `Stream upload short read for "${name}": got=${dstOffset}, expected=${location.size}`);
-    }
-
-    return raw;
   }
 
   
@@ -950,7 +965,7 @@ export class DopplerLoader {
       if (!value) return;
       const gpuBuffer = isWeightBuffer(value)
         ? value.buffer
-        : (value instanceof GPUBuffer ? value : null);
+        : (isGpuBufferInstance(value) ? value : null);
       if (!gpuBuffer) return;
       try {
         releaseBuffer(gpuBuffer);
@@ -990,6 +1005,7 @@ export class DopplerLoader {
     this.lmHead = null;
     this.finalNorm = null;
     this.manifest = null;
+    clearManifest();
     this.modelId = null;
     this.loadedShards.clear();
     this.isLoaded = false;

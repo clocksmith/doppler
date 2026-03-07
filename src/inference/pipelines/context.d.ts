@@ -8,6 +8,8 @@ export type PipelineContextOptions = {
   assignProgress?: boolean;
 };
 
+export declare function restorePipelineContexts(target: Record<string, unknown>): boolean;
+
 export declare function applyPipelineContexts(
   target: Record<string, unknown>,
   contexts?: Record<string, unknown>,
@@ -15,4 +17,5 @@ export declare function applyPipelineContexts(
 ): {
   runtimeConfig: Record<string, unknown>;
   sharedDebug: Record<string, unknown> | null | undefined;
+  restore: () => void;
 };

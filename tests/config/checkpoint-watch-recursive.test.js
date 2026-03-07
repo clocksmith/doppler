@@ -30,6 +30,22 @@ try {
   assert.equal(result.ok, true);
   assert.equal(seen.length, 1);
   assert.equal(seen[0].endsWith(path.join('stage_a', 'checkpoint-000001', 'checkpoint.complete.json')), true);
+
+  const controller = new AbortController();
+  const abortedSeen = [];
+  const aborted = await watchFinalizedCheckpoints({
+    checkpointsDir,
+    manifestPath: path.join(tempDir, 'watch-manifest-abort.json'),
+    pollIntervalMs: 5000,
+    signal: controller.signal,
+    async onCheckpoint(markerPath) {
+      abortedSeen.push(markerPath);
+      controller.abort();
+    },
+  });
+  assert.equal(aborted.ok, true);
+  assert.equal(aborted.aborted, true);
+  assert.equal(abortedSeen.length, 1);
 } finally {
   rmSync(tempDir, { recursive: true, force: true });
 }

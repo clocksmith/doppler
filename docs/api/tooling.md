@@ -61,6 +61,7 @@ Important surface rules:
 - `lora` and `distill` normalize through the same command API as the harnessed commands
 - browser surfaces currently reject `lora` and `distill`
 - `runBrowserCommand(...)` is appropriate for browser-safe commands such as `verify`, `debug`, and `bench`
+- `runBrowserCommand(...)` also supports `convert` when the caller injects `options.convertHandler(request)`; CLI browser relay still rejects `convert`
 - `runNodeCommand(...)` is the canonical operator execution path for `lora` and `distill`
 - browser-conditioned imports of `@simulatte/doppler/tooling` resolve the browser-safe shared tooling entry and do not expose `runNodeCommand(...)` or `runBrowserCommandInNode(...)`
 
@@ -68,10 +69,10 @@ Important surface rules:
 
 | Command | Required request fields | Notes |
 | --- | --- | --- |
-| `convert` | `request.inputDir`, `request.convertPayload.converterConfig` | Node surface only |
+| `convert` | `request.inputDir`, `request.convertPayload.converterConfig` | CLI/browser relay: Node-only. Direct `runBrowserCommand(...)`: supported with injected `convertHandler` |
 | `verify` | `request.suite` plus `request.modelId` except `kernels` | `request.modelUrl` is optional when `request.modelId` is present |
 | `debug` | `request.modelId` | `request.modelUrl` is optional when `request.modelId` is present |
-| `bench` | `request.modelId` | `request.modelUrl` is optional when `request.modelId` is present |
+| `bench` | `request.modelId` | `request.modelUrl` is optional when `request.modelId` is present; `bench + workloadType="training"` intentionally allows `modelId: null` |
 | `distill` | `request.action` plus `request.workloadPath` or `request.runRoot` | Node-only today; browser fails closed |
 | `lora` | `request.action` plus `request.workloadPath` or `request.runRoot` | Node-only today; browser fails closed |
 

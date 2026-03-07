@@ -165,7 +165,8 @@ export declare class BufferPool {
 }
 
 /**
- * Get the global buffer pool
+ * Get the global buffer pool for the current device epoch.
+ * If the active device has changed or was lost, a fresh global pool is created.
  */
 export function getBufferPool(): BufferPool;
 

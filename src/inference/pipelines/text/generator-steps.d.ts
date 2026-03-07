@@ -19,6 +19,52 @@ export declare function resolveBatchStop(
   eosTokenId: number | undefined | null
 ): number;
 
+export interface SampledTokenStagingBuffer {
+  mapAsync(mode: number): Promise<void>;
+  getMappedRange(): ArrayBufferLike;
+  unmap(): void;
+  destroy(): void;
+}
+
+export declare function readSampledTokenFromStagingBuffer(
+  stagingBuffer: SampledTokenStagingBuffer,
+  options?: {
+    ownsStagingBuffer?: boolean;
+    hasFinitenessBuffer?: boolean;
+    ring?: { advance(): void } | null;
+  }
+): Promise<{
+  nextToken: number;
+  finitenessStatus: {
+    triggered: boolean;
+    metadata: string;
+  };
+}>;
+
+export declare function readMappedBufferCopy(
+  stagingBuffer: SampledTokenStagingBuffer,
+  options?: {
+    ownsStagingBuffer?: boolean;
+  }
+): Promise<ArrayBuffer>;
+
+export declare function readBatchTokensFromStagingBuffers(options: {
+  tokensStagingBuffer: SampledTokenStagingBuffer;
+  stopStagingBuffer?: SampledTokenStagingBuffer | null;
+  finitenessStagingBuffer?: SampledTokenStagingBuffer | null;
+  tokenCount: number;
+  ownsTokensStaging?: boolean;
+  ownsStopStaging?: boolean;
+  ring?: { advance(): void } | null;
+}): Promise<{
+  tokens: number[];
+  stopFlags: Uint32Array | null;
+  finitenessStatus: {
+    triggered: boolean;
+    metadata: string;
+  };
+}>;
+
 export declare function decodeStep(
   state: unknown,
   currentIds: number[],

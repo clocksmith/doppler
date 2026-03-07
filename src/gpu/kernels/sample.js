@@ -1,7 +1,7 @@
 
 
 import { getDevice, getKernelCapabilities } from '../device.js';
-import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
+import { acquireBuffer, readBufferSlice, releaseBuffer } from '../../memory/buffer-pool.js';
 import { WORKGROUP_SIZES } from './constants.js';
 import { createPipeline, createUniformBufferWithView, getOrCreateBindGroupLayout } from './utils.js';
 import { allowReadback } from '../perf-guards.js';
@@ -156,18 +156,19 @@ function ensureOutputBufferSize(outputBuffer, minBytes, label) {
   }
 }
 
-function readTokenFromOutput(device, outputBuffer, outputIndex, label) {
-  const stagingBuffer = device.createBuffer({
-    label,
-    size: 4,
-    usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
-  });
+async function readTokenFromOutput(outputBuffer, outputIndex) {
+  return new Uint32Array(await readBufferSlice(outputBuffer, outputIndex * 4, 4))[0];
+}
 
-  const copyEncoder = device.createCommandEncoder({ label: `${label}_copy` });
-  copyEncoder.copyBufferToBuffer(outputBuffer, outputIndex * 4, stagingBuffer, 0, 4);
-  device.queue.submit([copyEncoder.finish()]);
-
-  return stagingBuffer;
+function cleanupRunResources(uniformBuffer, ownedBuffers) {
+  if (uniformBuffer) {
+    uniformBuffer.destroy();
+  }
+  for (const buffer of ownedBuffers) {
+    if (buffer) {
+      releaseBuffer(buffer);
+    }
+  }
 }
 
 async function executeArgmaxRun(logits, vocabSize, options) {
@@ -238,20 +239,14 @@ async function executeArgmaxRun(logits, vocabSize, options) {
 
   device.queue.submit([encoder.finish()]);
 
-  const stagingBuffer = readTokenFromOutput(device, outputBuffer, outputIndex, 'argmax_staging');
-  await stagingBuffer.mapAsync(GPUMapMode.READ);
-  const tokenId = new Uint32Array(stagingBuffer.getMappedRange())[0];
-  stagingBuffer.unmap();
-
-  stagingBuffer.destroy();
-  uniformBuffer.destroy();
-  releaseBuffer(tempLogits);
-  releaseBuffer(tempIndices);
-  if (ownsOutputBuffer) {
-    releaseBuffer(outputBuffer);
+  try {
+    return await readTokenFromOutput(outputBuffer, outputIndex);
+  } finally {
+    cleanupRunResources(
+      uniformBuffer,
+      [tempLogits, tempIndices, ownsOutputBuffer ? outputBuffer : null]
+    );
   }
-
-  return tokenId;
 }
 
 async function executeArgmaxRecord(recorder, logits, vocabSize, options) {
@@ -428,20 +423,14 @@ export async function runGPUSample(
 
   device.queue.submit([encoder.finish()]);
 
-  const stagingBuffer = readTokenFromOutput(device, outputBuffer, outputIndex, 'sample_staging');
-  await stagingBuffer.mapAsync(GPUMapMode.READ);
-  const tokenId = new Uint32Array(stagingBuffer.getMappedRange())[0];
-  stagingBuffer.unmap();
-
-  stagingBuffer.destroy();
-  uniformBuffer.destroy();
-  releaseBuffer(topkLogits);
-  releaseBuffer(topkIndices);
-  if (ownsOutputBuffer) {
-    releaseBuffer(outputBuffer);
+  try {
+    return await readTokenFromOutput(outputBuffer, outputIndex);
+  } finally {
+    cleanupRunResources(
+      uniformBuffer,
+      [topkLogits, topkIndices, ownsOutputBuffer ? outputBuffer : null]
+    );
   }
-
-  return tokenId;
 }
 
 

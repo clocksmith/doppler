@@ -5,7 +5,7 @@ import { runEnergyEval, runEnergyUpdate } from '../../../gpu/kernels/index.js';
 import { log } from '../../../debug/index.js';
 import { f16ToF32Array, f32ToF16Array } from '../../kv-cache/types.js';
 import { registerPipeline } from '../registry.js';
-import { applyPipelineContexts } from '../context.js';
+import { applyPipelineContexts, restorePipelineContexts } from '../context.js';
 import { createInitializedPipeline } from '../factory.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 
@@ -165,19 +165,22 @@ async function createFeatureTensor(device, values, dtype, label) {
   const byteLength = payload.byteLength;
   const alignedSize = Math.ceil(byteLength / 4) * 4;
   const buffer = acquireBuffer(alignedSize, undefined, label);
-
-  if (alignedSize === byteLength) {
-    device.queue.writeBuffer(buffer, 0, payload);
-  } else {
-    const bytes = payload instanceof Uint16Array
-      ? new Uint8Array(payload.buffer, payload.byteOffset, payload.byteLength)
-      : new Uint8Array(payload.buffer, payload.byteOffset, payload.byteLength);
-    const padded = new Uint8Array(alignedSize);
-    padded.set(bytes);
-    device.queue.writeBuffer(buffer, 0, padded);
+  try {
+    if (alignedSize === byteLength) {
+      device.queue.writeBuffer(buffer, 0, payload);
+    } else {
+      const bytes = payload instanceof Uint16Array
+        ? new Uint8Array(payload.buffer, payload.byteOffset, payload.byteLength)
+        : new Uint8Array(payload.buffer, payload.byteOffset, payload.byteLength);
+      const padded = new Uint8Array(alignedSize);
+      padded.set(bytes);
+      device.queue.writeBuffer(buffer, 0, padded);
+    }
+    return createTensor(buffer, dtype, [values.length], label);
+  } catch (error) {
+    releaseBuffer(buffer);
+    throw error;
   }
-
-  return createTensor(buffer, dtype, [values.length], label);
 }
 
 async function readTensorF32(tensor) {
@@ -307,6 +310,7 @@ export class EnergyRowHeadPipeline {
     this.manifest = null;
     this.model = null;
     this.stats = {};
+    restorePipelineContexts(this);
   }
 
   async scoreRows(request = {}) {

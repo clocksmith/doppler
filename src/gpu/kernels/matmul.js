@@ -228,6 +228,7 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
     N,
     outputBuffer
   );
+  const ownsOutput = outputBuffer == null;
 
   if (!Number.isFinite(outputSize) || outputSize <= 0) {
     throw new Error(`[${opLabel}] Invalid output size: ${outputSize} (M=${M}, N=${N})`);
@@ -239,50 +240,60 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
   }
 
   const dispatchPlan = calculateMatmulDispatch(variant, useQ4KFused, useGemv, M, N, config);
-  const uniformBuffer = createMatmulUniformBuffer(
-    'matmul_uniforms',
-    M,
-    N,
-    K,
-    alpha,
-    useQ4KFused,
-    transposeB,
-    dispatchPlan.uniformWorkgroupsX,
-    recorder || null,
-    device
-  );
+  let uniformBuffer = null;
+  let completed = false;
+  try {
+    uniformBuffer = createMatmulUniformBuffer(
+      'matmul_uniforms',
+      M,
+      N,
+      K,
+      alpha,
+      useQ4KFused,
+      transposeB,
+      dispatchPlan.uniformWorkgroupsX,
+      recorder || null,
+      device
+    );
 
-  const entries = createMatmulBindGroupEntries(
-    variant,
-    uniformBuffer,
-    matmulInput,
-    bBuffer,
-    C,
-    { aOffset, bOffset, cOffset },
-    {
-      aBindingSize: bindingSizes.aBindingSize,
-      bBindingSize: bindingSizes.bBindingSize,
-      cBindingSize,
+    const entries = createMatmulBindGroupEntries(
+      variant,
+      uniformBuffer,
+      matmulInput,
+      bBuffer,
+      C,
+      { aOffset, bOffset, cOffset },
+      {
+        aBindingSize: bindingSizes.aBindingSize,
+        bBindingSize: bindingSizes.bBindingSize,
+        cBindingSize,
+      }
+    );
+
+    const bindGroup = device.createBindGroup({
+      label: 'matmul_bind_group',
+      layout: pipeline.getBindGroupLayout(0),
+      entries,
+    });
+
+    if (isRecord) {
+      kernel.record(recorder, pipeline, bindGroup, dispatchPlan.workgroups, buildProfileLabel(options));
+    } else {
+      kernel.dispatch(pipeline, bindGroup, dispatchPlan.workgroups);
     }
-  );
-
-  const bindGroup = device.createBindGroup({
-    label: 'matmul_bind_group',
-    layout: pipeline.getBindGroupLayout(0),
-    entries,
-  });
-
-  if (isRecord) {
-    kernel.record(recorder, pipeline, bindGroup, dispatchPlan.workgroups, buildProfileLabel(options));
-  } else {
-    kernel.dispatch(pipeline, bindGroup, dispatchPlan.workgroups);
-    releaseUniformBuffer(uniformBuffer);
-    if (castedInput) {
+    completed = true;
+    return createTensor(C, actualOutputDtype, [M, N], 'matmul_output');
+  } finally {
+    if (!isRecord && uniformBuffer) {
+      releaseUniformBuffer(uniformBuffer);
+    }
+    if (!isRecord && castedInput) {
       releaseBuffer(castedInput.buffer);
     }
+    if (!completed && ownsOutput) {
+      releaseBuffer(C);
+    }
   }
-
-  return createTensor(C, actualOutputDtype, [M, N], 'matmul_output');
 }
 
 

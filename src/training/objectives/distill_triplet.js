@@ -1,8 +1,8 @@
 import { crossEntropyLoss as defaultCrossEntropyLoss } from '../loss.js';
 import { createTrainingObjective } from './base.js';
-import { acquireBuffer, readBuffer, uploadData } from '../../memory/buffer-pool.js';
-import { createTensor } from '../../gpu/tensor.js';
+import { readBuffer } from '../../memory/buffer-pool.js';
 import { f16ToF32Array, f32ToF16Array } from '../../inference/kv-cache/types.js';
+import { createUploadedTensor } from '../tensor-factory.js';
 
 function toFinite(value, fallback) {
   const parsed = Number(value);
@@ -29,9 +29,7 @@ function createLossGradient(loss, lossScale) {
   const lossElements = loss.shape.reduce((acc, value) => acc * value, 1);
   const gradData = new Float32Array(lossElements);
   gradData.fill(lossScale);
-  const gradBuf = acquireBuffer(gradData.byteLength, undefined, 'distill_triplet_loss_grad_output');
-  uploadData(gradBuf, gradData);
-  return createTensor(gradBuf, 'f32', [...loss.shape], 'distill_triplet_loss_grad_output');
+  return createUploadedTensor(gradData, 'f32', loss.shape, 'distill_triplet_loss_grad_output');
 }
 
 function createGradientTensor(values, shape, dtype, label) {
@@ -40,9 +38,7 @@ function createGradientTensor(values, shape, dtype, label) {
   const payload = tensorDtype === 'f16'
     ? f32ToF16Array(floatValues)
     : floatValues;
-  const gradBuf = acquireBuffer(payload.byteLength, undefined, label);
-  uploadData(gradBuf, payload);
-  return createTensor(gradBuf, tensorDtype, [...shape], label);
+  return createUploadedTensor(payload, tensorDtype, shape, label);
 }
 
 async function readLogitsRows(logitsTensor) {

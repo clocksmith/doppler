@@ -1,5 +1,6 @@
 
 
+import { readBuffer } from '../../../../memory/buffer-pool.js';
 import { runProbes } from '../probes.js';
 import { applySoftcapping } from './cpu.js';
 
@@ -17,6 +18,14 @@ export function extractLastPositionLogits(
   }
 
   return lastPosLogits;
+}
+
+export async function readBufferWithCleanup(buffer, byteLength, cleanup, reader = readBuffer) {
+  try {
+    return await reader(buffer, byteLength);
+  } finally {
+    cleanup?.();
+  }
 }
 
 

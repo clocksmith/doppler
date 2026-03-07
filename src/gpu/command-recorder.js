@@ -93,6 +93,9 @@ export class CommandRecorder {
 
   
   #initProfiling() {
+    let querySet = null;
+    let queryBuffer = null;
+    let readbackBuffer = null;
     try {
       const runtimeProfiler = getRuntimeConfig().shared?.debug?.profiler;
       if (!runtimeProfiler) {
@@ -119,25 +122,31 @@ export class CommandRecorder {
         didLogQueryFallback = true;
       }
 
-      this.#querySet = this.device.createQuerySet({
+      querySet = this.device.createQuerySet({
         type: 'timestamp',
         count: this.#queryCapacity,
       });
 
       // Buffer to hold query results (8 bytes per timestamp = BigUint64)
-      this.#queryBuffer = this.device.createBuffer({
+      queryBuffer = this.device.createBuffer({
         label: `${this.label}_query_buffer`,
         size: this.#queryCapacity * 8,
         usage: GPUBufferUsage.QUERY_RESOLVE | GPUBufferUsage.COPY_SRC,
       });
 
       // Readback buffer
-      this.#readbackBuffer = this.device.createBuffer({
+      readbackBuffer = this.device.createBuffer({
         label: `${this.label}_readback_buffer`,
         size: this.#queryCapacity * 8,
         usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
       });
+      this.#querySet = querySet;
+      this.#queryBuffer = queryBuffer;
+      this.#readbackBuffer = readbackBuffer;
     } catch (e) {
+      readbackBuffer?.destroy();
+      queryBuffer?.destroy();
+      querySet?.destroy();
       log.warn('CommandRecorder', `Failed to initialize profiling: ${e}`);
       this.#profilingEnabled = false;
     }
@@ -291,24 +300,36 @@ export class CommandRecorder {
     getUniformCache().flushPendingDestruction();
   }
 
-  
-  submit() {
-    if (this.#submitted) {
-      throw new Error('[CommandRecorder] Already submitted');
-    }
-
-    // Submit commands
-    const submitStart = performance.now();
-    this.device.queue.submit([this.#encoder.finish()]);
-    this.#submitted = true;
-    this.#submitStartMs = submitStart;
-
+  #takeTrackedBuffers() {
     const buffersToDestroy = this.#tempBuffers;
     const buffersToRelease = this.#pooledBuffers;
     this.#tempBuffers = [];
     this.#pooledBuffers = [];
     this.#tempBufferSet.clear();
     this.#pooledBufferSet.clear();
+    return { buffersToDestroy, buffersToRelease };
+  }
+
+  
+  submit() {
+    if (this.#submitted) {
+      throw new Error('[CommandRecorder] Already submitted');
+    }
+
+    const submitStart = performance.now();
+    const { buffersToDestroy, buffersToRelease } = this.#takeTrackedBuffers();
+    try {
+      this.device.queue.submit([this.#encoder.finish()]);
+    } catch (error) {
+      this.#submitted = true;
+      this.#submitStartMs = submitStart;
+      this.#finalizeTrackedBuffers(buffersToDestroy, buffersToRelease, false);
+      this.#destroyProfilingResources();
+      throw error;
+    }
+
+    this.#submitted = true;
+    this.#submitStartMs = submitStart;
 
     this.#cleanupPromise = this.device.queue.onSubmittedWorkDone().then(() => {
       this.#submitLatencyMs = performance.now() - submitStart;

@@ -29,17 +29,111 @@ export function replaceSubtree(overrideValue, fallbackValue) {
   return chooseNullish(overrideValue, fallbackValue);
 }
 
+const DEFAULT_KERNEL_PATH_POLICY = Object.freeze({
+  mode: 'locked',
+  sourceScope: Object.freeze(['model', 'manifest']),
+  onIncompatible: 'error',
+});
+
+const VALID_KERNEL_PATH_POLICY_SOURCES = new Set([
+  'model',
+  'manifest',
+  'config',
+  'execution-v0',
+]);
+
+function normalizeKernelPathPolicyMode(value) {
+  if (value === undefined) {
+    return DEFAULT_KERNEL_PATH_POLICY.mode;
+  }
+  const normalized = String(value).trim().toLowerCase();
+  if (normalized === 'locked' || normalized === 'capability-aware') {
+    return normalized;
+  }
+  throw new Error(
+    `DopplerConfigError: runtime.inference.kernelPathPolicy.mode must be "locked" or "capability-aware"; got ${JSON.stringify(value)}.`
+  );
+}
+
+function normalizeKernelPathPolicySource(source) {
+  const normalized = String(source ?? '').trim().toLowerCase();
+  if (!normalized) {
+    throw new Error(
+      'DopplerConfigError: runtime.inference.kernelPathPolicy.sourceScope entries must be non-empty strings.'
+    );
+  }
+  if (normalized === 'runtime') {
+    throw new Error(
+      'DopplerConfigError: runtime.inference.kernelPathPolicy.sourceScope does not accept legacy "runtime". Use "config".'
+    );
+  }
+  if (normalized === 'execution_v0') {
+    throw new Error(
+      'DopplerConfigError: runtime.inference.kernelPathPolicy.sourceScope does not accept legacy "execution_v0". Use "execution-v0".'
+    );
+  }
+  if (!VALID_KERNEL_PATH_POLICY_SOURCES.has(normalized)) {
+    throw new Error(
+      `DopplerConfigError: runtime.inference.kernelPathPolicy.sourceScope entries must be model|manifest|config|execution-v0; got ${JSON.stringify(source)}.`
+    );
+  }
+  return normalized;
+}
+
+function normalizeKernelPathPolicySourceScope(value) {
+  if (value === undefined) {
+    return [...DEFAULT_KERNEL_PATH_POLICY.sourceScope];
+  }
+  if (!Array.isArray(value) || value.length === 0) {
+    throw new Error(
+      'DopplerConfigError: runtime.inference.kernelPathPolicy.sourceScope must be a non-empty array.'
+    );
+  }
+  return [...new Set(value.map((source) => normalizeKernelPathPolicySource(source)))];
+}
+
+function normalizeKernelPathPolicyOnIncompatible(value) {
+  if (value === undefined) {
+    return DEFAULT_KERNEL_PATH_POLICY.onIncompatible;
+  }
+  const normalized = String(value).trim().toLowerCase();
+  if (normalized === 'error' || normalized === 'remap') {
+    return normalized;
+  }
+  throw new Error(
+    `DopplerConfigError: runtime.inference.kernelPathPolicy.onIncompatible must be "error" or "remap"; got ${JSON.stringify(value)}.`
+  );
+}
+
+function assertKernelPathPolicyObject(value) {
+  if (value == null) {
+    return;
+  }
+  if (typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error(
+      'DopplerConfigError: runtime.inference.kernelPathPolicy must be an object.'
+    );
+  }
+}
+
 export function mergeKernelPathPolicy(basePolicy, overridePolicy) {
+  assertKernelPathPolicyObject(basePolicy);
+  assertKernelPathPolicyObject(overridePolicy);
   const base = basePolicy ?? {};
   const override = overridePolicy ?? {};
-  const baseSourceScope = base.sourceScope ?? base.allowSources;
-  const overrideSourceScope = override.sourceScope ?? override.allowSources;
-  const sourceScope = overrideSourceScope ?? baseSourceScope;
+  const sourceScope = normalizeKernelPathPolicySourceScope(
+    override.sourceScope
+    ?? override.allowSources
+    ?? base.sourceScope
+    ?? base.allowSources
+  );
   return {
-    mode: override.mode ?? base.mode,
+    mode: normalizeKernelPathPolicyMode(override.mode ?? base.mode),
     sourceScope,
-    allowSources: sourceScope,
-    onIncompatible: override.onIncompatible ?? base.onIncompatible,
+    allowSources: [...sourceScope],
+    onIncompatible: normalizeKernelPathPolicyOnIncompatible(
+      override.onIncompatible ?? base.onIncompatible
+    ),
   };
 }
 

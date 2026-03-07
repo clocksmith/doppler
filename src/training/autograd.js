@@ -6,6 +6,7 @@ import { acquireBuffer, readBuffer, releaseBuffer, uploadData } from '../memory/
 import { createTensor } from '../gpu/tensor.js';
 import { attentionBackwardCpu } from './attention-backward.js';
 import { f16ToF32Array, f32ToF16Array } from '../inference/kv-cache/types.js';
+import { createUploadedTensor } from './tensor-factory.js';
 
 export const OpType = {
   EMBED: 'embed',
@@ -245,9 +246,7 @@ export class AutogradTape {
     expanded.set(gradRow.subarray(0, copyCount), rowOffset);
     const dtype = gradOut.dtype === 'f16' ? 'f16' : 'f32';
     const payload = dtype === 'f16' ? f32ToF16Array(expanded) : expanded;
-    const outBuffer = acquireBuffer(payload.byteLength, undefined, 'row_slice_backward_output');
-    uploadData(outBuffer, payload);
-    return createTensor(outBuffer, dtype, [rows, cols], 'row_slice_backward_output');
+    return createUploadedTensor(payload, dtype, [rows, cols], 'row_slice_backward_output');
   }
 
   resolveSiluRowsplitGate(gateValue, activation) {
@@ -305,9 +304,7 @@ export class AutogradTape {
 
     const dtype = gradOut.dtype === 'f16' ? 'f16' : 'f32';
     const payload = dtype === 'f16' ? f32ToF16Array(output) : output;
-    const outBuffer = acquireBuffer(payload.byteLength, undefined, 'silu_rowsplit_backward_output');
-    uploadData(outBuffer, payload);
-    return createTensor(outBuffer, dtype, [numTokens, dim * 2], 'silu_rowsplit_backward_output');
+    return createUploadedTensor(payload, dtype, [numTokens, dim * 2], 'silu_rowsplit_backward_output');
   }
 
   async accumulateLargeGradF32(existing, grad, size, shape) {

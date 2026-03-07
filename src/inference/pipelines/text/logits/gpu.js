@@ -1,7 +1,7 @@
 
 
 import { getDevice, getKernelCapabilities } from '../../../../gpu/device.js';
-import { acquireBuffer, releaseBuffer, readBuffer } from '../../../../memory/buffer-pool.js';
+import { acquireBuffer, releaseBuffer } from '../../../../memory/buffer-pool.js';
 import { runMatmul, runRMSNorm } from '../../../../gpu/kernel-selector.js';
 import { recordMatmul } from '../../../../gpu/kernels/matmul.js';
 import { recordRMSNorm } from '../../../../gpu/kernels/rmsnorm.js';
@@ -13,6 +13,7 @@ import { getRuntimeConfig } from '../../../../config/runtime.js';
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
 import { runProbes } from '../probes.js';
 import { f16BufferToF32 } from './cpu.js';
+import { readBufferWithCleanup } from './utils.js';
 
 function shouldForceStableF32Logits(config, inputDtype) {
   // Small Gemma-family checkpoints can overflow in pure F16 logits path after RMSNorm offset.
@@ -187,14 +188,18 @@ export async function computeChunkedLogitsGPU(
     }
 
     const logitsBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: logitsTensor.dtype });
-    const chunkLogitsData = await readBuffer(logitsTensor.buffer, numTokens * rowCount * logitsBytes);
+    const chunkLogitsData = await readBufferWithCleanup(
+      logitsTensor.buffer,
+      numTokens * rowCount * logitsBytes,
+      () => {
+        releaseBuffer(logitsTensor.buffer);
+        releaseBuffer(weightBuffer.buffer);
+      }
+    );
     const chunkLogits = logitsTensor.dtype === 'f16'
       ? f16BufferToF32(chunkLogitsData)
       : new Float32Array(chunkLogitsData);
     writeChunkLogits(logits, chunkLogits, numTokens, vocabSize, rowOffset, rowCount);
-
-    releaseBuffer(logitsTensor.buffer);
-    releaseBuffer(weightBuffer.buffer);
   }
 
   return logits;

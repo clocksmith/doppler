@@ -322,12 +322,13 @@ function resolveKernelPathFromPreset(presetInference, quantizationInfo, q4kLayou
     resolved = presetInference?.kernelPath ?? null;
   }
 
-  // When q4kLayout is 'col' (column-wise), fused Q4K kernels cannot be used.
-  // Try to find a corresponding dequant kernel path.
+  // Column-wise Q4K must be mapped explicitly in preset JSON; JS must not
+  // rewrite kernel-path ids to infer policy.
   if (resolved && q4kLayout === 'col' && resolved.includes('-fused-')) {
-    const dequantPath = resolved.replace('-fused-', '-dequant-');
-    // Return dequant variant (caller should verify it exists)
-    return dequantPath;
+    throw new Error(
+      `Preset kernelPaths${weightKey ? `.${weightKey}` : ''} resolved fused kernel path "${resolved}" ` +
+      'for q4k layout "col". Add an explicit dequant kernel path mapping to the preset instead of relying on JS rewrites.'
+    );
   }
 
   return resolved;

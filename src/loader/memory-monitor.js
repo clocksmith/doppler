@@ -105,6 +105,10 @@ export class MemoryMonitor {
 
 
   start(getState) {
+    if (this.#interval) {
+      clearInterval(this.#interval);
+      this.#interval = null;
+    }
     this.#startTime = performance.now();
     this.#snapshots = [];
     this.#log('start', getState());
@@ -209,6 +213,10 @@ export class MemoryTimeSeries {
 
 
   start() {
+    if (this.#interval) {
+      clearInterval(this.#interval);
+      this.#interval = null;
+    }
     this.#startTime = performance.now();
     this.#samples = [];
     this.#capture('start');

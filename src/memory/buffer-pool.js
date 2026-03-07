@@ -1,6 +1,6 @@
 
 
-import { getDevice, getDeviceLimits } from '../gpu/device.js';
+import { getDevice, getDeviceEpoch, getDeviceLimits } from '../gpu/device.js';
 import { allowReadback, trackAllocation } from '../gpu/perf-guards.js';
 import { log, trace, isTraceEnabled } from '../debug/index.js';
 import { getRuntimeConfig } from '../config/runtime.js';
@@ -137,6 +137,12 @@ export class BufferPool {
   
   #debugMode;
 
+  // Device-scoped ownership for pooled buffers
+
+  #device;
+
+  #deviceEpoch;
+
   
   constructor(debugMode = false, schemaConfig) {
     if (!schemaConfig) {
@@ -153,6 +159,8 @@ export class BufferPool {
     this.#schemaConfig = schemaConfig;
     this.#pendingDestruction = new Set();
     this.#destructionScheduled = false;
+    this.#device = getDevice();
+    this.#deviceEpoch = getDeviceEpoch();
 
     this.#stats = {
       allocations: 0,
@@ -174,9 +182,32 @@ export class BufferPool {
     };
   }
 
+  #isEmpty() {
+    return this.#activeBuffers.size === 0
+      && this.#getTotalPooledCount() === 0
+      && this.#pendingDestruction.size === 0;
+  }
+
+  #getBoundDevice() {
+    const currentEpoch = getDeviceEpoch();
+    if (this.#deviceEpoch !== currentEpoch) {
+      if (!this.#isEmpty()) {
+        throw new Error(
+          `BufferPool belongs to stale device epoch ${this.#deviceEpoch}; ` +
+          `current epoch is ${currentEpoch}. Create a new pool.`
+        );
+      }
+      this.#deviceEpoch = currentEpoch;
+      this.#device = getDevice();
+    } else if (!this.#device) {
+      this.#device = getDevice();
+    }
+    return this.#device;
+  }
+
   
   acquire(size, usage = BufferUsage.STORAGE, label = 'pooled_buffer') {
-    const device = getDevice();
+    const device = this.#getBoundDevice();
     if (!device) {
       throw new Error('Device not initialized');
     }
@@ -357,7 +388,7 @@ export class BufferPool {
     if (this.#destructionScheduled) {
       return;
     }
-    const device = getDevice();
+    const device = this.#device;
     if (!device) {
       // No device context; destroy immediately as a fallback.
       this.#destructionScheduled = false;
@@ -551,7 +582,7 @@ export class BufferPool {
 
   
   uploadData(buffer, data, offset = 0) {
-    const device = getDevice();
+    const device = this.#getBoundDevice();
     if (!device) {
       throw new Error('Device not initialized');
     }
@@ -569,7 +600,7 @@ export class BufferPool {
       return new ArrayBuffer(0);
     }
 
-    const device = getDevice();
+    const device = this.#getBoundDevice();
     if (!device) {
       throw new Error('Device not initialized');
     }
@@ -709,11 +740,17 @@ export class BufferPool {
 // Global buffer pool instance
 
 let globalPool = null;
+let globalPoolEpoch = -1;
 
 
 export function getBufferPool() {
-  if (!globalPool) {
+  const epoch = getDeviceEpoch();
+  if (!globalPool || globalPoolEpoch !== epoch) {
+    if (globalPool) {
+      globalPool.destroy();
+    }
     globalPool = new BufferPool(false, getRuntimeConfig().shared.bufferPool);
+    globalPoolEpoch = epoch;
   }
   return globalPool;
 }
@@ -732,6 +769,7 @@ export function destroyBufferPool() {
     globalPool.destroy();
     globalPool = null;
   }
+  globalPoolEpoch = -1;
 }
 
 // Convenience exports for common operations

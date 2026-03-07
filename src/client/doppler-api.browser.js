@@ -244,6 +244,9 @@ doppler.text = async function text(prompt, options = {}) {
   if (!options || typeof options !== 'object' || options.model == null) {
     throw new Error('doppler.text() requires options.model.');
   }
+  if (options.runtimeConfig !== undefined || options.runtimePreset !== undefined) {
+    throw new Error('doppler.text() does not accept load-affecting options. Use doppler.load(model, options) instead.');
+  }
   const model = await getCachedModel(options.model, { onProgress: options.onProgress });
   return model.generateText(prompt, options);
 };
@@ -284,5 +287,5 @@ doppler.evictAll = async function evictAll() {
 
 doppler.listModels = async function listModels() {
   const models = await listQuickstartModels();
-  return models.map((entry) => entry.aliases[0] || entry.modelId);
+  return models.map((entry) => entry.modelId);
 };

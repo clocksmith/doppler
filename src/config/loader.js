@@ -161,8 +161,7 @@ export function detectPreset(
     }
   }
 
-  // Default to transformer
-  return 'transformer';
+  return null;
 }
 
 // =============================================================================
@@ -178,6 +177,17 @@ export function resolveConfig(
     (manifest.config || {}),
     manifest.modelType
   );
+  if (!id) {
+    const modelId = String(manifest?.modelId ?? 'unknown').trim() || 'unknown';
+    const modelType = String(manifest?.config?.model_type ?? 'unknown').trim() || 'unknown';
+    const architecture = String(manifest?.modelType ?? 'unknown').trim() || 'unknown';
+    throw createDopplerError(
+      ERROR_CODES.CONFIG_PRESET_UNKNOWN,
+      `Could not detect a preset for manifest "${modelId}" ` +
+      `(architecture="${architecture}", model_type="${modelType}"). ` +
+      'Provide an explicit presetId instead of relying on the generic transformer fallback.'
+    );
+  }
 
   // Get resolved preset
   const preset = resolvePreset(id);

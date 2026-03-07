@@ -482,7 +482,7 @@ export function resolveConversionPlan(options) {
   if (!presetOverride && isLikelyEmbeddingGemma(rawConfig, architectureHint)) {
     presetId = 'embeddinggemma';
   }
-  if (presetId === 'transformer') {
+  if (!presetId) {
     throw buildUnknownFamilyError(architectureHint, rawConfig, options?.includePresetOverrideHint === true);
   }
   const preset = resolvePreset(presetId);

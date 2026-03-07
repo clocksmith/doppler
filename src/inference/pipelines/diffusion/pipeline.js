@@ -1,7 +1,7 @@
 import { getDevice, getKernelCapabilities } from '../../../gpu/device.js';
 import { log, trace } from '../../../debug/index.js';
 import { registerPipeline } from '../registry.js';
-import { applyPipelineContexts } from '../context.js';
+import { applyPipelineContexts, restorePipelineContexts } from '../context.js';
 import { createInitializedPipeline } from '../factory.js';
 import { createRng, sampleNormal } from '../rng.js';
 import { initializeDiffusion } from './init.js';
@@ -319,6 +319,7 @@ export class DiffusionPipeline {
     this.vaeWeights = null;
     this.textEncoderWeights = null;
     this.transformerWeights = null;
+    restorePipelineContexts(this);
   }
 
   async ensureVaeWeights() {

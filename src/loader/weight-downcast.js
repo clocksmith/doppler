@@ -47,7 +47,7 @@ export async function maybeDowncastToF16(buf, options) {
   }
 
   // Handle raw GPUBuffer
-  if (buf instanceof GPUBuffer) {
+  if (typeof GPUBuffer !== 'undefined' && buf instanceof GPUBuffer) {
     return downcastGPUBuffer(buf, options);
   }
 

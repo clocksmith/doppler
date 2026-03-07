@@ -30,6 +30,9 @@ function runInline(args, source) {
     if (typeof mod.normalizeToolingCommandRequest !== 'function') {
       throw new Error('expected normalizeToolingCommandRequest on browser tooling import');
     }
+    if (typeof mod.runBrowserCommand !== 'function') {
+      throw new Error('expected runBrowserCommand on browser tooling import');
+    }
     if ('runNodeCommand' in mod) {
       throw new Error('browser tooling import unexpectedly exposed runNodeCommand');
     }
