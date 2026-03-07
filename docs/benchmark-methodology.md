@@ -26,6 +26,12 @@ Required metrics:
 - `decodeMsPerTokenP95`
 - `decodeMsPerTokenP99`
 
+Compare-artifact note:
+- Cross-engine compare artifacts use apples-to-apples prompt metrics only:
+  `firstTokenMs` and `promptTokensPerSecToFirstToken`.
+- Raw engine payloads may still include `prefillMs` and `prefillTokensPerSec`, but those stay engine-local unless the semantics are proven identical.
+- Capability matrices and release-matrix compare summaries must be updated when the compare metric contract changes.
+
 ## Fair comparison rules
 
 - same model identity and quantization class, or explicit equivalence map

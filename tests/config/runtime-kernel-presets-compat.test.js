@@ -54,6 +54,12 @@ const compatibilityPresetPaths = [
   'src/config/presets/runtime/kernels/dequant-f32-q4k.json',
 ];
 
+const dtypeContractPresetPaths = [
+  ...compatibilityPresetPaths,
+  'src/config/presets/runtime/kernels/fused-q4k.json',
+  'src/config/presets/runtime/kernels/dequant-f16-q4k.json',
+];
+
 for (const presetPath of compatibilityPresetPaths) {
   const preset = await readJson(presetPath);
   const policy = preset?.runtime?.inference?.kernelPathPolicy;
@@ -75,7 +81,38 @@ for (const presetPath of compatibilityPresetPaths) {
     'gemma2-q4k-dequant-f32a',
     `${presetPath} must target subgroup-free gemma2-q4k-dequant-f32a`
   );
+}
 
+for (const presetPath of dtypeContractPresetPaths) {
+  const preset = await readJson(presetPath);
+  const kernelPathId = preset?.runtime?.inference?.kernelPath;
+
+  const kernelPath = JSON.parse(
+    await fs.readFile(path.join(kernelPathDir, `${kernelPathId}.json`), 'utf8')
+  );
+  const expectedActivationDtype = kernelPath.activationDtype;
+  const expectedKvDtype = kernelPath.kvDtype ?? expectedActivationDtype;
+  const expectedOutputDtype = kernelPath.outputDtype ?? expectedActivationDtype;
+  assert.equal(
+    preset?.runtime?.inference?.compute?.activationDtype,
+    expectedActivationDtype,
+    `${presetPath} must set runtime.inference.compute.activationDtype=${expectedActivationDtype}`
+  );
+  assert.equal(
+    preset?.runtime?.inference?.kvcache?.kvDtype,
+    expectedKvDtype,
+    `${presetPath} must set runtime.inference.kvcache.kvDtype=${expectedKvDtype}`
+  );
+  assert.equal(
+    preset?.runtime?.inference?.session?.compute?.defaults?.outputDtype,
+    expectedOutputDtype,
+    `${presetPath} must set runtime.inference.session.compute.defaults.outputDtype=${expectedOutputDtype}`
+  );
+}
+
+for (const presetPath of compatibilityPresetPaths) {
+  const preset = await readJson(presetPath);
+  const kernelPathId = preset?.runtime?.inference?.kernelPath;
   const kernelPath = JSON.parse(
     await fs.readFile(path.join(kernelPathDir, `${kernelPathId}.json`), 'utf8')
   );

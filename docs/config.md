@@ -49,10 +49,22 @@ Path definitions:
 Runtime precedence (low -> high):
 1. `manifest.inference.defaultKernelPath`
 2. `runtime.inference.kernelPath`
-3. explicit per-run internal context override (runner-owned)
+3. execution-v0 inline kernel-path patch or explicit per-run internal context override (runner-owned)
+
+`null` is a valid "no explicit kernel path" result. Runtime may proceed with
+registry/default pipeline behavior, but JS must not invent `'auto'` or silently
+rewrite kernel selection semantics.
 
 `kernelPath` is the only supported kernel-selection override surface.
 Do not use legacy `kernelPlan`.
+
+Kernel-path dtype contract:
+- config-selected and execution-v0-selected kernel paths must already match the
+  resolved runtime `activationDtype`, `kvcache.kvDtype`, and, for execution-v0,
+  `session.compute.defaults.outputDtype`
+- manifest/model-selected kernel paths may seed those runtime dtypes only while
+  the runtime values are still at global defaults; conflicting runtime overrides
+  fail closed
 
 ## Runtime boundaries
 
@@ -103,6 +115,6 @@ When adding new runtime-visible behavior:
 ## Related
 
 - [conversion-runtime-contract.md](conversion-runtime-contract.md)
-- [formats.md](formats.md)
+- [rdrr-format.md](rdrr-format.md)
 - [operations.md](operations.md)
 - [testing.md](testing.md)

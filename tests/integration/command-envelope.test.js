@@ -81,4 +81,25 @@ import {
   assert.equal(isToolingErrorEnvelope(errorEnvelope), true);
 }
 
+{
+  const errorEnvelope = createToolingErrorEnvelope(
+    new ToolingCommandError('node failed', {
+      details: {
+        surface: 'node',
+        command: 'verify',
+        suite: 'inference',
+      },
+    }),
+    {
+      surface: null,
+      request: {
+        command: 'verify',
+        suite: 'inference',
+      },
+    }
+  );
+  assert.equal(errorEnvelope.surface, 'node');
+  assert.equal(errorEnvelope.error.details?.surface, 'node');
+}
+
 console.log('command-envelope.test: ok');

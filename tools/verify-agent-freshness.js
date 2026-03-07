@@ -183,7 +183,7 @@ function main() {
 
   const knownPaths = [
     'docs/architecture.md',
-    'docs/formats.md',
+    'docs/rdrr-format.md',
     'docs/config.md',
     'src/inference/pipelines/text.js',
     'src/tooling/command-api.js',

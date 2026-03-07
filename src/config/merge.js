@@ -333,12 +333,22 @@ export function mergeConfig(
     sources
   );
 
+  let pipeline = manifestInf.pipeline;
+  const runtimePipeline = runtimeOverrides?.pipeline;
+  if (runtimePipeline !== undefined) {
+    pipeline = runtimePipeline;
+    sources.set('inference.pipeline', 'runtime');
+  } else {
+    sources.set('inference.pipeline', 'manifest');
+  }
+
   const inference = {
     attention: mergeAttention(manifestInf.attention, runtimeOverrides?.attention, sources),
     normalization: mergeNormalization(manifestInf.normalization, runtimeOverrides?.normalization, sources),
     ffn: mergeFFN(manifestInf.ffn, runtimeOverrides?.ffn, sources),
     rope: mergeRoPE(manifestInf.rope, runtimeOverrides?.rope, sources),
     output: mergeOutput(manifestInf.output, runtimeOverrides?.output, sources),
+    pipeline,
     layerPattern,
     chatTemplate,
     defaultKernelPath,

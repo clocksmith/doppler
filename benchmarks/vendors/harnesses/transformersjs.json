@@ -13,7 +13,12 @@
   "normalization": {
     "metricPaths": {
       "decodeTokensPerSec": ["timing.decodeTokensPerSec"],
-      "prefillTokensPerSec": ["timing.prefillTokensPerSec"],
+      "promptTokensPerSecToFirstToken": [
+        "timing.promptTokensPerSecToFirstToken",
+        "metrics.promptTokensPerSecToFirstToken",
+        "timing.prefillTokensPerSecTtft",
+        "timing.prefillTokensPerSec"
+      ],
       "firstTokenMs": ["timing.firstTokenMs"],
       "firstResponseMs": ["timing.firstResponseMs"],
       "prefillMs": ["timing.prefillMs"],
@@ -35,10 +40,9 @@
     },
     "requiredMetrics": [
       "decodeTokensPerSec",
-      "prefillTokensPerSec",
+      "promptTokensPerSecToFirstToken",
       "firstTokenMs",
       "firstResponseMs",
-      "prefillMs",
       "decodeMs",
       "decodeMsPerTokenP50",
       "decodeMsPerTokenP95",

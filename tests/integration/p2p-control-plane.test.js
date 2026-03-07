@@ -3,6 +3,9 @@ import assert from 'node:assert/strict';
 const {
   downloadShard,
 } = await import('../../src/distribution/shard-delivery.js');
+const {
+  normalizeP2PControlPlaneConfig,
+} = await import('../../src/distribution/p2p-control-plane.js');
 
 const originalFetch = globalThis.fetch;
 
@@ -11,6 +14,15 @@ const p2pData = new Uint8Array([9, 10, 11, 12]);
 const hashHttp = '9f64a747e1b97f131fabb6b447296c9b6f0201e79fb3c5356e6c77e89b6a806a';
 const hashP2P = 'e1e853684a206f162ee800a54b695c9cc1a8d1d554a47fcb13fe51229c17773f';
 const manifestVersionSet = 'manifest:v1:sha256:control-plane';
+
+assert.throws(
+  () => normalizeP2PControlPlaneConfig({
+    enabled: true,
+    tokenProvider: async () => ({ sessionToken: 'token' }),
+    tokenRefreshSkewMs: -1,
+  }),
+  /p2p\.controlPlane\.tokenRefreshSkewMs must be a non-negative integer/
+);
 
 try {
   globalThis.fetch = async () => new Response(httpData, { status: 200 });

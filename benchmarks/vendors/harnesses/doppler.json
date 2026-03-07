@@ -7,13 +7,18 @@
     "stdoutFormat": "json",
     "defaultCommand": null,
     "examples": [
-      "node tools/doppler-cli.js bench --model-id gemma-3-1b-it-wf16-ef16-hf16 --json"
+      "node tools/doppler-cli.js bench --config '{\"request\":{\"modelId\":\"gemma-3-1b-it-wf16-ef16-hf16\"}}' --json"
     ]
   },
   "normalization": {
     "metricPaths": {
       "decodeTokensPerSec": ["result.timing.decodeTokensPerSec"],
-      "prefillTokensPerSec": ["result.timing.prefillTokensPerSec"],
+      "promptTokensPerSecToFirstToken": [
+        "result.timing.promptTokensPerSecToFirstToken",
+        "result.metrics.medianPrefillTokensPerSecTtft",
+        "result.timing.prefillTokensPerSecTtft",
+        "result.timing.prefillTokensPerSec"
+      ],
       "firstTokenMs": ["result.timing.firstTokenMs"],
       "firstResponseMs": ["result.timing.firstResponseMs"],
       "prefillMs": ["result.timing.prefillMs"],
@@ -23,7 +28,7 @@
       "decodeMsPerTokenP50": ["result.timing.decodeMsPerTokenP50"],
       "decodeMsPerTokenP95": ["result.timing.decodeMsPerTokenP95"],
       "decodeMsPerTokenP99": ["result.timing.decodeMsPerTokenP99"],
-      "peak_memory_mb": ["result.memoryStats.used"]
+      "peak_memory_bytes": ["result.memoryStats.used", "result.memoryStats.peakBytes", "result.memoryStats.peakMemoryBytes"]
     },
     "metadataPaths": {
       "version": ["result.env.version"],
@@ -32,10 +37,9 @@
     },
     "requiredMetrics": [
       "decodeTokensPerSec",
-      "prefillTokensPerSec",
+      "promptTokensPerSecToFirstToken",
       "firstTokenMs",
       "firstResponseMs",
-      "prefillMs",
       "decodeMs",
       "decodeMsPerTokenP50",
       "decodeMsPerTokenP95",

@@ -28,18 +28,81 @@
   },
   "metricContract": {
     "metrics": [
-      { "id": "decodeTokensPerSec", "label": "decode tok/s", "unit": "tok/s", "higherBetter": true, "required": true },
-      { "id": "prefillTokensPerSec", "label": "prompt tok/s (prefill)", "unit": "tok/s", "higherBetter": true, "required": true },
-      { "id": "firstTokenMs", "label": "first token (TTFT)", "unit": "ms", "higherBetter": false, "required": true },
-      { "id": "firstResponseMs", "label": "first response (first token + load)", "unit": "ms", "higherBetter": false, "required": true },
-      { "id": "prefillMs", "label": "prefill ms", "unit": "ms", "higherBetter": false, "required": true },
-      { "id": "decodeMs", "label": "decode ms", "unit": "ms", "higherBetter": false, "required": true },
-      { "id": "totalRunMs", "label": "total run ms", "unit": "ms", "higherBetter": false, "required": true },
-      { "id": "modelLoadMs", "label": "model load", "unit": "ms", "higherBetter": false, "required": true },
-      { "id": "decodeMsPerTokenP50", "label": "decode p50 ms/token", "unit": "ms", "higherBetter": false, "required": true },
-      { "id": "decodeMsPerTokenP95", "label": "decode p95 ms/token", "unit": "ms", "higherBetter": false, "required": true },
-      { "id": "decodeMsPerTokenP99", "label": "decode p99 ms/token", "unit": "ms", "higherBetter": false, "required": true }
-    ]
+      {
+        "id": "decodeTokensPerSec",
+        "label": "decode tok/s",
+        "unit": "tok/s",
+        "higherBetter": true,
+        "required": true
+      },
+      {
+        "id": "promptTokensPerSecToFirstToken",
+        "label": "prompt tok/s to first token",
+        "unit": "tok/s",
+        "higherBetter": true,
+        "required": true
+      },
+      {
+        "id": "firstTokenMs",
+        "label": "first token (TTFT)",
+        "unit": "ms",
+        "higherBetter": false,
+        "required": true
+      },
+      {
+        "id": "firstResponseMs",
+        "label": "first response (first token + load)",
+        "unit": "ms",
+        "higherBetter": false,
+        "required": true
+      },
+      {
+        "id": "decodeMs",
+        "label": "decode ms",
+        "unit": "ms",
+        "higherBetter": false,
+        "required": true
+      },
+      {
+        "id": "totalRunMs",
+        "label": "total run ms",
+        "unit": "ms",
+        "higherBetter": false,
+        "required": true
+      },
+      {
+        "id": "modelLoadMs",
+        "label": "model load",
+        "unit": "ms",
+        "higherBetter": false,
+        "required": true
+      },
+      {
+        "id": "decodeMsPerTokenP50",
+        "label": "decode p50 ms/token",
+        "unit": "ms",
+        "higherBetter": false,
+        "required": true
+      },
+      {
+        "id": "decodeMsPerTokenP95",
+        "label": "decode p95 ms/token",
+        "unit": "ms",
+        "higherBetter": false,
+        "required": true
+      },
+      {
+        "id": "decodeMsPerTokenP99",
+        "label": "decode p99 ms/token",
+        "unit": "ms",
+        "higherBetter": false,
+        "required": true
+      }
+    ],
+    "source": "benchmarks/vendors/compare-metrics.json",
+    "sourceSha256": "872666196ffdbbcfd44d7e67fedcd16eef85907b8231e3d54e9cdeecfbe77d44",
+    "schemaVersion": 1,
+    "updated": "2026-02-23"
   },
   "sections": {
     "compute": {
@@ -120,6 +183,51 @@
           }
         }
       }
+    }
+  },
+  "compareConfig": {
+    "source": "benchmarks/vendors/compare-engines.config.json",
+    "sourceSha256": "a9d3d41d4398a1ff344b1d1827f16618f7b42ec069c7cd46dd1e6de7812e2696"
+  },
+  "harnesses": {
+    "doppler": {
+      "source": "benchmarks/vendors/harnesses/doppler.json",
+      "sourceSha256": "34c0c146a1db1b7974c4ae291fe5794a8682e8e36beb327e3a6e669f21bc2029",
+      "requiredMetrics": [
+        "decodeTokensPerSec",
+        "promptTokensPerSecToFirstToken",
+        "firstTokenMs",
+        "firstResponseMs",
+        "decodeMs",
+        "totalRunMs",
+        "modelLoadMs",
+        "decodeMsPerTokenP50",
+        "decodeMsPerTokenP95",
+        "decodeMsPerTokenP99"
+      ]
+    },
+    "transformersjs": {
+      "source": "benchmarks/vendors/harnesses/transformersjs.json",
+      "sourceSha256": "68ccd5d670484eb7dee741a42caff8c4c13c20ddb09dce1a71291f2ab8c86058",
+      "requiredMetrics": [
+        "decodeTokensPerSec",
+        "promptTokensPerSecToFirstToken",
+        "firstTokenMs",
+        "firstResponseMs",
+        "decodeMs",
+        "totalRunMs",
+        "modelLoadMs",
+        "decodeMsPerTokenP50",
+        "decodeMsPerTokenP95",
+        "decodeMsPerTokenP99"
+      ]
+    }
+  },
+  "methodology": {
+    "promptTokensPerSecToFirstToken": "prompt_tokens / firstTokenMs",
+    "prefillPhaseMs": {
+      "doppler": "available inside Doppler payload timing.prefillMs as internal_prefill_phase",
+      "transformersjs": "excluded from compare contract because runner prefillMs is a ttft_proxy"
     }
   }
 }

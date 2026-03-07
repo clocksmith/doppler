@@ -146,7 +146,10 @@ export function createToolingSuccessEnvelope({
 
 export function createToolingErrorEnvelope(error, context = {}) {
   const normalized = normalizeToToolingCommandError(error, context);
-  const surface = asNonEmptyString(context?.surface);
+  const surface = asNonEmptyString(context?.surface)
+    || asNonEmptyString(normalized?.details?.surface)
+    || asNonEmptyString(error?.surface)
+    || null;
   const request = isPlainObject(context?.request) ? context.request : null;
   return {
     ok: false,

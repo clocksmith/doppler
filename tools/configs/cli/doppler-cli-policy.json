@@ -9,8 +9,6 @@
       ]
     },
     "bench": {
-      "modelId": "gemma-3-270m-it-wf16-ef16-hf16",
-      "surface": "browser",
       "cacheMode": "warm"
     },
     "cacheMode": null,

@@ -15,10 +15,14 @@ import { KERNEL_CONFIGS } from '../../../gpu/kernels/kernel-configs.js';
 import { resolveCapabilityKernelPathRef, resolveKernelPathPolicy } from './kernel-path-auto-select.js';
 import { initTokenizer } from './init.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
+import { mergeRuntimeValues } from '../../../config/runtime-merge.js';
 import {
   DEFAULT_BATCHING_DEFAULTS,
+  DEFAULT_COMPUTE_DEFAULTS,
   DEFAULT_GENERATION_CONFIG,
 } from '../../../config/schema/inference-defaults.schema.js';
+import { DEFAULT_KVCACHE_CONFIG } from '../../../config/schema/kvcache.schema.js';
+import { DEFAULT_EXECUTION_V0_SESSION_DEFAULTS } from '../../../config/schema/execution-v0.schema.js';
 
 function validateKernelWarmupMode(mode) {
   if (mode !== 'parallel' && mode !== 'sequential') {
@@ -48,14 +52,85 @@ function normalizeBoolean(value) {
   return typeof value === 'boolean' ? value : null;
 }
 
+function parseManifestDecodeLoopOptionalPositiveInt(value, label, modelId) {
+  if (value === undefined) {
+    return undefined;
+  }
+  if (value === null) {
+    return null;
+  }
+  const normalized = normalizePositiveInt(value);
+  if (normalized == null) {
+    throw new Error(
+      `Manifest "${modelId}" inference.sessionDefaults.decodeLoop.${label} must be a positive integer or null.`
+    );
+  }
+  return normalized;
+}
+
+function parseManifestDecodeLoopOptionalBoolean(value, label, modelId) {
+  if (value === undefined) {
+    return undefined;
+  }
+  if (typeof value !== 'boolean') {
+    throw new Error(
+      `Manifest "${modelId}" inference.sessionDefaults.decodeLoop.${label} must be a boolean when provided.`
+    );
+  }
+  return value;
+}
+
+function requireGlobalBatchingDefault(value, label) {
+  const normalized = normalizePositiveInt(value);
+  if (normalized == null) {
+    throw new Error(`${label} must be a positive integer.`);
+  }
+  return normalized;
+}
+
+function requireGlobalStopCheckMode(value, label) {
+  const normalized = normalizeStopCheckMode(value);
+  if (normalized == null) {
+    throw new Error(`${label} must be "batch" or "per-token".`);
+  }
+  return normalized;
+}
+
 const GLOBAL_DEFAULT_BATCHING = Object.freeze({
-  batchSize: normalizePositiveInt(DEFAULT_BATCHING_DEFAULTS.batchSize) ?? 4,
-  stopCheckMode: normalizeStopCheckMode(DEFAULT_BATCHING_DEFAULTS.stopCheckMode) ?? 'batch',
-  readbackInterval: normalizeReadbackInterval(DEFAULT_BATCHING_DEFAULTS.readbackInterval) ?? 1,
+  batchSize: requireGlobalBatchingDefault(
+    DEFAULT_BATCHING_DEFAULTS.batchSize,
+    'DEFAULT_BATCHING_DEFAULTS.batchSize'
+  ),
+  stopCheckMode: requireGlobalStopCheckMode(
+    DEFAULT_BATCHING_DEFAULTS.stopCheckMode,
+    'DEFAULT_BATCHING_DEFAULTS.stopCheckMode'
+  ),
+  readbackInterval: requireGlobalBatchingDefault(
+    DEFAULT_BATCHING_DEFAULTS.readbackInterval,
+    'DEFAULT_BATCHING_DEFAULTS.readbackInterval'
+  ),
+  ringTokens: requireGlobalBatchingDefault(
+    DEFAULT_BATCHING_DEFAULTS.ringTokens,
+    'DEFAULT_BATCHING_DEFAULTS.ringTokens'
+  ),
+  ringStop: requireGlobalBatchingDefault(
+    DEFAULT_BATCHING_DEFAULTS.ringStop,
+    'DEFAULT_BATCHING_DEFAULTS.ringStop'
+  ),
+  ringStaging: requireGlobalBatchingDefault(
+    DEFAULT_BATCHING_DEFAULTS.ringStaging,
+    'DEFAULT_BATCHING_DEFAULTS.ringStaging'
+  ),
 });
 
 const GLOBAL_DEFAULT_GENERATION = Object.freeze({
   disableCommandBatching: DEFAULT_GENERATION_CONFIG.disableCommandBatching === true,
+});
+
+const GLOBAL_DEFAULT_KERNEL_PATH_DTYPES = Object.freeze({
+  activationDtype: DEFAULT_COMPUTE_DEFAULTS.activationDtype,
+  kvDtype: DEFAULT_KVCACHE_CONFIG.kvDtype,
+  outputDtype: DEFAULT_EXECUTION_V0_SESSION_DEFAULTS.compute.defaults.outputDtype,
 });
 
 function isRuntimeBatchingAtGlobalDefaults(batching) {
@@ -64,7 +139,10 @@ function isRuntimeBatchingAtGlobalDefaults(batching) {
   }
   return normalizePositiveInt(batching.batchSize) === GLOBAL_DEFAULT_BATCHING.batchSize
     && normalizeStopCheckMode(batching.stopCheckMode) === GLOBAL_DEFAULT_BATCHING.stopCheckMode
-    && normalizeReadbackInterval(batching.readbackInterval) === GLOBAL_DEFAULT_BATCHING.readbackInterval;
+    && normalizeReadbackInterval(batching.readbackInterval) === GLOBAL_DEFAULT_BATCHING.readbackInterval
+    && normalizeReadbackInterval(batching.ringTokens) === GLOBAL_DEFAULT_BATCHING.ringTokens
+    && normalizeReadbackInterval(batching.ringStop) === GLOBAL_DEFAULT_BATCHING.ringStop
+    && normalizeReadbackInterval(batching.ringStaging) === GLOBAL_DEFAULT_BATCHING.ringStaging;
 }
 
 function isRuntimeGenerationAtGlobalDefaults(generation) {
@@ -74,98 +152,127 @@ function isRuntimeGenerationAtGlobalDefaults(generation) {
   return (generation.disableCommandBatching === true) === GLOBAL_DEFAULT_GENERATION.disableCommandBatching;
 }
 
-function resolveModelBatchingDefaults(manifest, modelConfig) {
-  const presetId = String(manifest?.inference?.presetId ?? '').trim().toLowerCase();
-  const modelType = String(manifest?.modelType ?? '').trim().toLowerCase();
-  return selectRuleValue('inference', 'execution', 'modelBatchingDefaults', {
-    modelId: manifest?.modelId ?? null,
-    presetId: presetId || null,
-    modelType: modelType || null,
-    numLayers: Number(modelConfig?.numLayers ?? 0),
-    hiddenSize: Number(modelConfig?.hiddenSize ?? 0),
-  });
+function requireManifestDecodeLoopPositiveInt(value, label, modelId) {
+  const normalized = normalizePositiveInt(value);
+  if (normalized == null) {
+    throw new Error(`Manifest "${modelId}" inference.sessionDefaults.decodeLoop.${label} must be a positive integer.`);
+  }
+  return normalized;
 }
 
-function resolveManifestDecodeLoopDefaults(manifest) {
+function requireManifestDecodeLoopStopCheckMode(value, modelId) {
+  const normalized = normalizeStopCheckMode(value);
+  if (normalized == null) {
+    throw new Error(
+      `Manifest "${modelId}" inference.sessionDefaults.decodeLoop.stopCheckMode must be "batch" or "per-token".`
+    );
+  }
+  return normalized;
+}
+
+function buildManifestDecodeLoopRuntimePatch(manifest) {
   const decodeLoop = manifest?.inference?.sessionDefaults?.decodeLoop;
-  if (!decodeLoop || typeof decodeLoop !== 'object') {
+  if (decodeLoop == null) {
     return null;
   }
-  const batchSize = normalizePositiveInt(decodeLoop.batchSize);
-  const stopCheckMode = normalizeStopCheckMode(decodeLoop.stopCheckMode);
-  const readbackInterval = normalizeReadbackInterval(decodeLoop.readbackInterval);
-  const disableCommandBatching = normalizeBoolean(decodeLoop.disableCommandBatching);
-  if (batchSize == null || stopCheckMode == null || readbackInterval == null) {
-    return null;
+  const modelId = String(manifest?.modelId ?? 'unknown').trim() || 'unknown';
+  if (typeof decodeLoop !== 'object') {
+    throw new Error(
+      `Manifest "${modelId}" inference.sessionDefaults.decodeLoop must be an object when provided.`
+    );
   }
-  return {
+  const batchSize = requireManifestDecodeLoopPositiveInt(decodeLoop.batchSize, 'batchSize', modelId);
+  const stopCheckMode = requireManifestDecodeLoopStopCheckMode(decodeLoop.stopCheckMode, modelId);
+  const readbackInterval = requireManifestDecodeLoopPositiveInt(
+    decodeLoop.readbackInterval,
+    'readbackInterval',
+    modelId
+  );
+  const disableCommandBatching = parseManifestDecodeLoopOptionalBoolean(
+    decodeLoop.disableCommandBatching,
+    'disableCommandBatching',
+    modelId
+  );
+
+  const batchingPatch = {
     batchSize,
     stopCheckMode,
     readbackInterval,
-    ...(disableCommandBatching == null ? {} : { disableCommandBatching }),
+  };
+  const ringTokens = parseManifestDecodeLoopOptionalPositiveInt(
+    decodeLoop.ringTokens,
+    'ringTokens',
+    modelId
+  );
+  if (ringTokens !== undefined) {
+    batchingPatch.ringTokens = ringTokens;
+  }
+  const ringStop = parseManifestDecodeLoopOptionalPositiveInt(
+    decodeLoop.ringStop,
+    'ringStop',
+    modelId
+  );
+  if (ringStop !== undefined) {
+    batchingPatch.ringStop = ringStop;
+  }
+  const ringStaging = parseManifestDecodeLoopOptionalPositiveInt(
+    decodeLoop.ringStaging,
+    'ringStaging',
+    modelId
+  );
+  if (ringStaging !== undefined) {
+    batchingPatch.ringStaging = ringStaging;
+  }
+
+  return {
+    batching: batchingPatch,
+    generation: disableCommandBatching == null
+      ? null
+      : { disableCommandBatching: disableCommandBatching === true },
   };
 }
 
 export function applyModelBatchingRuntimeDefaults(runtimeConfig, manifest, modelConfig) {
+  void modelConfig;
   const batching = runtimeConfig?.inference?.batching;
   const generation = runtimeConfig?.inference?.generation;
   const runtimeBatchingAtDefaults = isRuntimeBatchingAtGlobalDefaults(batching);
   const runtimeGenerationAtDefaults = isRuntimeGenerationAtGlobalDefaults(generation);
 
-  const defaults = resolveManifestDecodeLoopDefaults(manifest)
-    ?? resolveModelBatchingDefaults(manifest, modelConfig);
-  if (!defaults || typeof defaults !== 'object') {
+  const patch = buildManifestDecodeLoopRuntimePatch(manifest);
+  if (!patch) {
     return runtimeConfig;
   }
 
-  let nextBatching = batching;
-  let appliedBatching = false;
-  if (runtimeBatchingAtDefaults) {
-    const nextBatchSize = normalizePositiveInt(defaults.batchSize);
-    const nextStopCheckMode = normalizeStopCheckMode(defaults.stopCheckMode);
-    const nextReadbackInterval = normalizeReadbackInterval(defaults.readbackInterval);
-    if (nextBatchSize != null && nextStopCheckMode != null && nextReadbackInterval != null) {
-      nextBatching = {
-        ...batching,
-        batchSize: nextBatchSize,
-        stopCheckMode: nextStopCheckMode,
-        readbackInterval: nextReadbackInterval,
-      };
-      appliedBatching = true;
-    }
+  const runtimeDisableCommandBatching = generation?.disableCommandBatching === true;
+  const manifestDisableCommandBatching = patch.generation?.disableCommandBatching === true;
+  if (!runtimeBatchingAtDefaults) {
+    throw new Error(
+      'Manifest decodeLoop defaults cannot be merged after runtime batching overrides were already resolved. ' +
+      'Set runtime.inference.batching explicitly to the desired final values, or remove manifest.inference.sessionDefaults.decodeLoop.'
+    );
   }
-
-  const shouldApplyDisableCommandBatching = runtimeGenerationAtDefaults
-    && normalizeBoolean(defaults.disableCommandBatching) != null;
-  const nextGeneration = shouldApplyDisableCommandBatching
-    ? {
-        ...generation,
-        disableCommandBatching: defaults.disableCommandBatching === true,
-      }
-    : generation;
-
-  if (!appliedBatching && !shouldApplyDisableCommandBatching) {
-    return runtimeConfig;
-  }
-
-  if (appliedBatching || shouldApplyDisableCommandBatching) {
-    log.info(
-      'Pipeline',
-      `Model defaults applied (${manifest?.inference?.presetId ?? 'unknown'}): ` +
-      `batchSize=${nextBatching.batchSize}, stopCheckMode=${nextBatching.stopCheckMode}, ` +
-      `readbackInterval=${nextBatching.readbackInterval}, ` +
-      `disableCommandBatching=${nextGeneration.disableCommandBatching === true}`
+  if (patch.generation && !runtimeGenerationAtDefaults && runtimeDisableCommandBatching !== manifestDisableCommandBatching) {
+    throw new Error(
+      'Manifest decodeLoop.disableCommandBatching conflicts with runtime.inference.generation.disableCommandBatching. ' +
+      'Choose one explicit source of truth.'
     );
   }
 
-  return {
-    ...runtimeConfig,
+  const nextRuntimeConfig = mergeRuntimeValues(runtimeConfig, {
     inference: {
-      ...runtimeConfig.inference,
-      ...(appliedBatching ? { batching: nextBatching } : {}),
-      ...(shouldApplyDisableCommandBatching ? { generation: nextGeneration } : {}),
+      batching: patch.batching,
+      ...(patch.generation ? { generation: patch.generation } : {}),
     },
-  };
+  });
+  log.info(
+    'Pipeline',
+    `Manifest decodeLoop applied (${manifest?.modelId ?? 'unknown'}): ` +
+    `batchSize=${patch.batching.batchSize}, stopCheckMode=${patch.batching.stopCheckMode}, ` +
+    `readbackInterval=${patch.batching.readbackInterval}, ` +
+    `disableCommandBatching=${patch.generation?.disableCommandBatching === true}`
+  );
+  return nextRuntimeConfig;
 }
 
 export async function runKernelWarmup(options) {
@@ -366,6 +473,55 @@ function normalizeKernelDtype(value) {
   });
 }
 
+function buildKernelPathDtypeContract(resolvedKernelPath) {
+  if (!resolvedKernelPath) {
+    return null;
+  }
+  const activationDtype = normalizeKernelDtype(getKernelPathActivationDtype(resolvedKernelPath));
+  const outputDtype = normalizeKernelDtype(
+    getKernelPathOutputDtype(resolvedKernelPath) ?? activationDtype
+  );
+  const kvDtype = normalizeKernelDtype(getKernelPathKVDtype(resolvedKernelPath) ?? activationDtype);
+  if (!activationDtype && !outputDtype && !kvDtype) {
+    return null;
+  }
+  return {
+    activationDtype,
+    outputDtype,
+    kvDtype,
+  };
+}
+
+function isGlobalKernelPathDtypeDefault(currentValue, key) {
+  if (currentValue == null) {
+    return true;
+  }
+  return currentValue === GLOBAL_DEFAULT_KERNEL_PATH_DTYPES[key];
+}
+
+function describeKernelPathDtypeMismatch(contract, current) {
+  const mismatches = [];
+  if (contract.activationDtype && current.activationDtype !== contract.activationDtype) {
+    mismatches.push(
+      `runtime.inference.compute.activationDtype=${current.activationDtype ?? 'unset'} ` +
+      `(expected ${contract.activationDtype})`
+    );
+  }
+  if (contract.kvDtype && current.kvDtype !== contract.kvDtype) {
+    mismatches.push(
+      `runtime.inference.kvcache.kvDtype=${current.kvDtype ?? 'unset'} ` +
+      `(expected ${contract.kvDtype})`
+    );
+  }
+  if (contract.outputDtype && current.outputDtype !== contract.outputDtype) {
+    mismatches.push(
+      `runtime.inference.session.compute.defaults.outputDtype=${current.outputDtype ?? 'unset'} ` +
+      `(expected ${contract.outputDtype})`
+    );
+  }
+  return mismatches;
+}
+
 function assertManifestKernelPathDtypeCompatibility(manifest, resolvedKernelPath, kernelPathSource) {
   if (!resolvedKernelPath) return;
   if (kernelPathSource === 'config') return;
@@ -375,16 +531,6 @@ function assertManifestKernelPathDtypeCompatibility(manifest, resolvedKernelPath
   const kernelActivation = normalizeKernelDtype(getKernelPathActivationDtype(resolvedKernelPath));
   if (!manifestCompute || !kernelActivation) return;
   if (manifestCompute === kernelActivation) return;
-
-  const presetId = String(manifest?.inference?.presetId ?? '').trim().toLowerCase();
-  if (presetId === 'lfm2' && manifestCompute === 'f32' && kernelActivation === 'f16') {
-    log.warn(
-      'Pipeline',
-      `Manifest "${manifest?.modelId ?? 'unknown'}" uses quantizationInfo.compute=f32 ` +
-      `with kernelPath activationDtype=f16 (${resolvedKernelPath.id}); continuing for LFM2 mixed-precision compatibility.`
-    );
-    return;
-  }
 
   throw new Error(
     `Manifest kernel path dtype mismatch for "${manifest?.modelId ?? 'unknown'}": ` +
@@ -402,17 +548,45 @@ function getKernelCapabilitiesSafe() {
   }
 }
 
-function applyKernelPathRuntimeDtypeOverrides(resolvedKernelPath, runtimeConfig) {
-  const kernelPathActivationDtype = getKernelPathActivationDtype(resolvedKernelPath);
-  const kernelPathOutputDtype = getKernelPathOutputDtype(resolvedKernelPath) ?? kernelPathActivationDtype;
-  const kernelPathKVDtype = getKernelPathKVDtype(resolvedKernelPath);
-  if (!kernelPathActivationDtype && !kernelPathOutputDtype && !kernelPathKVDtype) {
+function applyKernelPathRuntimeDtypeContract(resolvedKernelPath, runtimeConfig, kernelPathSource, modelId) {
+  const contract = buildKernelPathDtypeContract(resolvedKernelPath);
+  if (!contract) {
     return runtimeConfig;
   }
 
-  const currentActivation = runtimeConfig.inference.compute.activationDtype;
-  const currentKV = runtimeConfig.inference.kvcache.kvDtype;
-  const currentOutput = runtimeConfig.inference?.session?.compute?.defaults?.outputDtype;
+  const current = {
+    activationDtype: normalizeKernelDtype(runtimeConfig.inference?.compute?.activationDtype),
+    kvDtype: normalizeKernelDtype(runtimeConfig.inference?.kvcache?.kvDtype),
+    outputDtype: normalizeKernelDtype(runtimeConfig.inference?.session?.compute?.defaults?.outputDtype),
+  };
+  const mismatches = describeKernelPathDtypeMismatch(contract, current);
+  if (mismatches.length === 0) {
+    return runtimeConfig;
+  }
+
+  if (kernelPathSource === 'config' || kernelPathSource === 'execution-v0') {
+    throw new Error(
+      `KernelPath "${resolvedKernelPath?.id ?? 'unknown'}" selected from ${kernelPathSource} ` +
+      `requires explicit matching runtime dtypes for "${modelId}". ` +
+      `Mismatches: ${mismatches.join('; ')}. ` +
+      'Set runtime.inference.compute.activationDtype, runtime.inference.kvcache.kvDtype, ' +
+      'and runtime.inference.session.compute.defaults.outputDtype to match the kernel path.'
+    );
+  }
+
+  const canApplyManifestDefaults = (
+    (contract.activationDtype == null || isGlobalKernelPathDtypeDefault(current.activationDtype, 'activationDtype'))
+    && (contract.kvDtype == null || isGlobalKernelPathDtypeDefault(current.kvDtype, 'kvDtype'))
+    && (contract.outputDtype == null || isGlobalKernelPathDtypeDefault(current.outputDtype, 'outputDtype'))
+  );
+  if (!canApplyManifestDefaults) {
+    throw new Error(
+      `Manifest/model kernelPath "${resolvedKernelPath?.id ?? 'unknown'}" for "${modelId}" ` +
+      `conflicts with runtime dtype overrides. Mismatches: ${mismatches.join('; ')}. ` +
+      'Either remove the runtime dtype override or set it to match the kernel path.'
+    );
+  }
+
   const nextInference = {
     ...runtimeConfig.inference,
     compute: { ...runtimeConfig.inference.compute },
@@ -420,37 +594,33 @@ function applyKernelPathRuntimeDtypeOverrides(resolvedKernelPath, runtimeConfig)
   };
   const dtypeChanges = [];
 
-  if (kernelPathActivationDtype && currentActivation !== kernelPathActivationDtype) {
-    nextInference.compute.activationDtype = kernelPathActivationDtype;
-    dtypeChanges.push(`activation=${currentActivation}->${kernelPathActivationDtype}`);
+  if (contract.activationDtype && current.activationDtype !== contract.activationDtype) {
+    nextInference.compute.activationDtype = contract.activationDtype;
+    dtypeChanges.push(`activation=${current.activationDtype ?? 'unset'}->${contract.activationDtype}`);
   }
 
-  if (kernelPathKVDtype && currentKV !== kernelPathKVDtype) {
-    nextInference.kvcache.kvDtype = kernelPathKVDtype;
-    dtypeChanges.push(`kv=${currentKV}->${kernelPathKVDtype}`);
+  if (contract.kvDtype && current.kvDtype !== contract.kvDtype) {
+    nextInference.kvcache.kvDtype = contract.kvDtype;
+    dtypeChanges.push(`kv=${current.kvDtype ?? 'unset'}->${contract.kvDtype}`);
   }
 
-  if (kernelPathOutputDtype && currentOutput !== kernelPathOutputDtype) {
+  if (contract.outputDtype && current.outputDtype !== contract.outputDtype) {
     nextInference.session = {
       ...(nextInference.session ?? {}),
       compute: {
         ...(nextInference.session?.compute ?? {}),
         defaults: {
           ...(nextInference.session?.compute?.defaults ?? {}),
-          outputDtype: kernelPathOutputDtype,
+          outputDtype: contract.outputDtype,
         },
       },
     };
-    dtypeChanges.push(`session.outputDtype=${currentOutput ?? 'undefined'}->${kernelPathOutputDtype}`);
-  }
-
-  if (dtypeChanges.length === 0) {
-    return runtimeConfig;
+    dtypeChanges.push(`session.outputDtype=${current.outputDtype ?? 'unset'}->${contract.outputDtype}`);
   }
 
   log.info(
     'Pipeline',
-    `KernelPath ${resolvedKernelPath?.id ?? 'unknown'} runtime dtype overrides: ${dtypeChanges.join(', ')}`
+    `KernelPath ${resolvedKernelPath?.id ?? 'unknown'} applied manifest/model runtime dtype defaults: ${dtypeChanges.join(', ')}`
   );
   return { ...runtimeConfig, inference: nextInference };
 }
@@ -521,7 +691,12 @@ export function resolveKernelPathState(options) {
     log.info('Pipeline', 'KernelPath: none (no kernel path configured)');
   }
 
-  const nextRuntimeConfig = applyKernelPathRuntimeDtypeOverrides(resolvedKernelPath, runtimeConfig);
+  const nextRuntimeConfig = applyKernelPathRuntimeDtypeContract(
+    resolvedKernelPath,
+    runtimeConfig,
+    kernelPathSource,
+    String(manifest?.modelId ?? 'unknown').trim() || 'unknown'
+  );
   return {
     resolvedKernelPath,
     kernelPathSource,

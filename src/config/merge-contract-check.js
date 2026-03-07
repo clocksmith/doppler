@@ -77,6 +77,7 @@ function buildWitnessMergeManifest() {
         embeddingTranspose: false,
         embeddingVocabSize: 1024,
       },
+      pipeline: 'decode-only',
       layerPattern: null,
       chatTemplate: {
         type: 'gemma',
@@ -114,6 +115,13 @@ export function buildMergeContractArtifact() {
       && mergedUndefined._sources.get('inference.defaultKernelPath') === 'manifest',
     `value=${mergedUndefined.inference.defaultKernelPath}, source=${mergedUndefined._sources.get('inference.defaultKernelPath')}`
   );
+  recordCheck(
+    checks,
+    'runtime.mergeConfig.pipeline_preserves_manifest_value',
+    mergedUndefined.inference.pipeline === 'decode-only'
+      && mergedUndefined._sources.get('inference.pipeline') === 'manifest',
+    `value=${String(mergedUndefined.inference.pipeline)}, source=${mergedUndefined._sources.get('inference.pipeline')}`
+  );
 
   const mergedNull = mergeConfig(buildWitnessMergeManifest(), {
     defaultKernelPath: null,
@@ -150,6 +158,35 @@ export function buildMergeContractArtifact() {
     'runtime.schema.chatTemplate.spread_preserves_null',
     runtimeConfig.runtime.inference.chatTemplate.enabled === null,
     `value=${String(runtimeConfig.runtime.inference.chatTemplate.enabled)}`
+  );
+
+  const isolatedConfigA = createDopplerConfig();
+  isolatedConfigA.runtime.inference.compute.activationDtype = 'f32';
+  const isolatedConfigB = createDopplerConfig();
+  recordCheck(
+    checks,
+    'runtime.schema.defaults_are_isolated_per_instance',
+    isolatedConfigB.runtime.inference.compute.activationDtype !== 'f32'
+      && isolatedConfigA.runtime.inference.compute !== isolatedConfigB.runtime.inference.compute,
+    `configA=${isolatedConfigA.runtime.inference.compute.activationDtype}, configB=${isolatedConfigB.runtime.inference.compute.activationDtype}`,
+    'actual'
+  );
+
+  const calibrateConfig = createDopplerConfig({
+    runtime: {
+      shared: {
+        tooling: {
+          intent: 'calibrate',
+        },
+      },
+    },
+  });
+  recordCheck(
+    checks,
+    'runtime.schema.calibrate_does_not_mutate_kernel_warmup_defaults',
+    calibrateConfig.runtime.shared.kernelWarmup.prewarm === false,
+    `prewarm=${String(calibrateConfig.runtime.shared.kernelWarmup.prewarm)}`,
+    'actual'
   );
 
   const overlaySources = new Map();

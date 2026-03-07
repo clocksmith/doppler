@@ -5,8 +5,7 @@ Primary documentation index.
 ## Start Here
 
 - [Getting Started](getting-started.md) - canonical first-run workflow.
-- [Setup](setup-instructions.md) - environment setup and troubleshooting.
-- [CLI Quick Start](cli-quickstart.md) - command-shape reference.
+- [Developer Guides](developer-guides/README.md) - task-oriented extension playbooks for adding models, kernels, commands, and pipeline features.
 - [Performance and Sizing](performance-sizing.md) - hardware tiers and planning guidance.
 
 ## Core Runtime Docs
@@ -14,7 +13,6 @@ Primary documentation index.
 - [Architecture](architecture.md) - system model and boundaries.
 - [Pipeline Contract](pipeline-contract.md) - command-to-output runtime contract boundaries.
 - [Config](config.md) - kernel paths, config behavior, and runtime contract notes.
-- [Formats](formats.md) - format spec index (RDRR + LoRA).
 - [RDRR Format](rdrr-format.md) - runtime artifact spec.
 - [LoRA Format](lora-format.md) - adapter manifest spec.
 - [Conversion Runtime Contract](conversion-runtime-contract.md) - conversion-static vs runtime-overridable ownership.
@@ -40,23 +38,16 @@ Primary documentation index.
 - [Testing](testing.md) - testing index.
 - [Testing Runbook](testing-runbook.md) - operational test execution.
 - [Kernel Testing Design](kernel-testing-design.md) - kernel correctness design guidance.
+- [Kernel Benchmark Baselines](../tests/kernels/benchmarks.md) - expected kernel perf ranges and reference baselines.
 - [Benchmark Methodology](benchmark-methodology.md) - fairness and claim publication policy.
 - [Vendor Registry](../benchmarks/vendors/README.md) - cross-product benchmark contracts and tooling.
 - [Release Matrix](release-matrix.md) - generated model/platform support snapshot.
-- [Release Notes](release-notes.md) - non-generated notes for tooling and workflow changes.
 
 ## Training and Distillation
 
 - [Training Handbook](training-handbook.md) - canonical operator workflow, gates, and artifact contract.
-- [Training Overview](training-overview.md) - concise map of operator vs legacy harness flows.
-- [Training Operator Playbook](training-operator-playbook.md) - day-to-day sequence for `lora` and `distill`.
 - [Training Artifact Policy](training-artifact-policy.md)
-- [Training Governance](training-governance.md)
 - [Training Migrations](training-migrations.md)
-- [Training Rollout Readiness](training-rollout-readiness.md)
-- [Training Benchmark Publication](training-benchmark-publication.md)
-- [Distill Studio Ops](distill-studio-ops.md) - legacy compatibility helpers, not the primary operator path.
-- [Diffusion Expansion Lanes](diffusion-expansion-lanes.md)
 
 ## Style Guides
 

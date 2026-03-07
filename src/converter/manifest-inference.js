@@ -303,7 +303,7 @@ function resolveKernelPathFromPreset(presetInference, quantizationInfo, q4kLayou
   }
 
   const weightKey = normalizeKernelDtype(quantizationInfo?.weights);
-  const computeKey = normalizeKernelDtype(quantizationInfo?.compute) ?? (quantizationInfo ? 'f16' : null);
+  const computeKey = normalizeKernelDtype(quantizationInfo?.compute);
 
   const entry = (weightKey && kernelPaths[weightKey]) || kernelPaths.default;
   let resolved = null;
@@ -311,6 +311,11 @@ function resolveKernelPathFromPreset(presetInference, quantizationInfo, q4kLayou
     resolved = entry;
   } else if (entry && computeKey && entry[computeKey]) {
     resolved = entry[computeKey];
+  } else if (entry && typeof entry === 'object' && !Array.isArray(entry) && !computeKey && !entry.default) {
+    throw new Error(
+      `Preset kernelPaths${weightKey ? `.${weightKey}` : ''} requires quantizationInfo.compute ` +
+      'to resolve a compute-specific defaultKernelPath.'
+    );
   } else if (entry && entry.default) {
     resolved = entry.default;
   } else {

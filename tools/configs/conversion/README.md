@@ -1,7 +1,8 @@
 # Conversion Configs
 
 Run conversion with the CLI `convert` command.
-Canonical command-shape examples live in [../../../docs/cli-quickstart.md](../../../docs/cli-quickstart.md).
+Canonical first-run examples live in [../../../docs/getting-started.md](../../../docs/getting-started.md).
+Command contract details live in [../../../docs/api/tooling.md](../../../docs/api/tooling.md).
 
 Notes:
 
@@ -14,10 +15,15 @@ Notes:
   (`workers`, `workerCountPolicy`, `rowChunkRows`, `rowChunkMinTensorBytes`,
   `maxInFlightJobs`, `useGpuCast`, `gpuCastMinTensorBytes`).
 - To pin deterministic manifest timestamps, set `manifest.conversion.convertedAt` in converter config.
-- Execution-v0 fields are now supported under `inference.sessionDefaults` and `inference.execution`.
-  Use this to emit explicit runtime session defaults and execution policy/steps into manifest inference.
+- Execution-v0 fields are supported under `inference.sessionDefaults` and `inference.execution`.
+  `inference.execution` requires explicit `inference.sessionDefaults` and emits
+  `manifest.inference.schema = "doppler.execution/v0"`.
+- `inference.sessionDefaults` without `inference.execution` does not by itself
+  emit execution-v0 schema; it persists manifest batching/session defaults only.
 - If `inference.defaultKernelPath` is set and no explicit `inference.execution` is provided,
   converter auto-generates execution-v0 steps/session defaults from that kernel path.
+  If `inference.sessionDefaults` is also provided, it overlays the generated
+  execution-v0 session defaults before validation.
   Hybrid custom-layer models with explicit `layerPattern.layerTypes` containing `conv`
   skip this auto-generation and keep layer scheduling in manifest inference.
 
@@ -97,8 +103,9 @@ Current config intent:
   - Output mode: `textOnly: true` (skip vision/projector tensors from Qwen3.5 multimodal checkpoints)
   - Weights/embeddings/lmHead: `f16`
   - Compute: `f16`
-  - Kernel path: `null` (runtime default; linear-attention GPU path in runtime)
-  - Session defaults: decode loop `batchSize=4`, `stopCheckMode=batch`, `readbackInterval=1`, `disableCommandBatching=true`
+  - Kernel path: `null` (no explicit manifest kernel-path contract)
+  - Session defaults only: decode loop `batchSize=4`, `stopCheckMode=batch`, `readbackInterval=1`, `disableCommandBatching=true`
+  - Does not emit execution-v0 schema because no execution graph is authored/generated
 
 - `tools/configs/conversion/sana/sana-sprint-0.6b-wf16-ef16-hf16-f16.json`
   - Output base: `models/local/sana-sprint-0.6b-wf16-ef16-hf16-f16`
@@ -124,7 +131,8 @@ Current config intent:
   - Weights: `q4k` (row layout), embeddings/lmHead: `f16`
   - Compute: `f32`
   - Kernel path: `lfm2-q4k-dequant-f32a-online` (explicit; LFM2 fast-prefill F32A path)
-  - Session defaults: decode loop `batchSize=8`, `stopCheckMode=batch`, `readbackInterval=8`
+  - Session defaults only: decode loop `batchSize=8`, `stopCheckMode=batch`, `readbackInterval=8`
+  - Does not emit execution-v0 schema because custom conv layer scheduling skips kernel-path auto-generation
 
 - `tools/configs/conversion/lfm2/lfm2.5-1.2b-instruct-wq4k-ef16-hf16-f16.json`
   - Output base: `models/local/lfm2.5-1.2b-instruct-wq4k-ef16-hf16-f16`

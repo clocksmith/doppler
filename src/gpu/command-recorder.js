@@ -3,7 +3,7 @@
 import { getDevice, hasFeature, FEATURES } from './device.js';
 import { allowReadback, trackAllocation } from './perf-guards.js';
 import { getUniformCache } from './uniform-cache.js';
-import { isBufferActive, releaseBuffer } from '../memory/buffer-pool.js';
+import { isBufferActive, releaseBuffer, discardBuffer } from '../memory/buffer-pool.js';
 import { log } from '../debug/index.js';
 import { getRuntimeConfig } from '../config/runtime.js';
 
@@ -277,6 +277,20 @@ export class CommandRecorder {
     }
   }
 
+  #finalizeTrackedBuffers(buffersToDestroy, buffersToRelease, discardPooled) {
+    for (const buffer of buffersToDestroy) {
+      buffer.destroy();
+    }
+    for (const buffer of buffersToRelease) {
+      if (discardPooled) {
+        discardBuffer(buffer);
+      } else {
+        releaseBuffer(buffer);
+      }
+    }
+    getUniformCache().flushPendingDestruction();
+  }
+
   
   submit() {
     if (this.#submitted) {
@@ -298,18 +312,10 @@ export class CommandRecorder {
 
     this.#cleanupPromise = this.device.queue.onSubmittedWorkDone().then(() => {
       this.#submitLatencyMs = performance.now() - submitStart;
-      // Destroy buffers created directly by the recorder
-      for (const buffer of buffersToDestroy) {
-        buffer.destroy();
-      }
-      // Release pooled buffers back to the pool
-      for (const buffer of buffersToRelease) {
-        releaseBuffer(buffer);
-      }
-      // Safe to destroy evicted uniform buffers now that GPU work is complete
-      getUniformCache().flushPendingDestruction();
+      this.#finalizeTrackedBuffers(buffersToDestroy, buffersToRelease, false);
     }).catch((err) => {
       log.warn('CommandRecorder', `Deferred cleanup failed: ${ (err).message}`);
+      this.#finalizeTrackedBuffers(buffersToDestroy, buffersToRelease, true);
     });
   }
 
@@ -370,55 +376,53 @@ export class CommandRecorder {
     }
 
     if (this.#profileEntries.length === 0) {
+      this.#destroyProfilingResources();
       return {};
     }
 
-    // Wait for GPU work to complete
-    await this.device.queue.onSubmittedWorkDone();
+    let mapped = false;
 
-    // Resolve queries to buffer
-    const maxIndex = Math.max(...this.#profileEntries.map(e => e.endQueryIndex)) + 1;
-    const resolveEncoder = this.device.createCommandEncoder({ label: 'profile_resolve' });
-    resolveEncoder.resolveQuerySet(this.#querySet, 0, maxIndex, this.#queryBuffer, 0);
-    resolveEncoder.copyBufferToBuffer(this.#queryBuffer, 0, this.#readbackBuffer, 0, maxIndex * 8);
-    this.device.queue.submit([resolveEncoder.finish()]);
+    try {
+      await this.device.queue.onSubmittedWorkDone();
 
-    if (!allowReadback('CommandRecorder.resolveProfileTimings')) {
-      return null;
-    }
+      const maxIndex = Math.max(...this.#profileEntries.map(e => e.endQueryIndex)) + 1;
+      const resolveEncoder = this.device.createCommandEncoder({ label: 'profile_resolve' });
+      resolveEncoder.resolveQuerySet(this.#querySet, 0, maxIndex, this.#queryBuffer, 0);
+      resolveEncoder.copyBufferToBuffer(this.#queryBuffer, 0, this.#readbackBuffer, 0, maxIndex * 8);
+      this.device.queue.submit([resolveEncoder.finish()]);
 
-    // Read back timestamps
-    await this.#readbackBuffer.mapAsync(GPUMapMode.READ);
-    const timestamps = new BigUint64Array(this.#readbackBuffer.getMappedRange());
-
-    // Aggregate timings by label
-    
-    const timings = {};
-
-    for (const entry of this.#profileEntries) {
-      const startNs = timestamps[entry.startQueryIndex];
-      const endNs = timestamps[entry.endQueryIndex];
-      const durationMs = Number(endNs - startNs) / 1_000_000;
-
-      // Skip invalid timings
-      if (durationMs < 0 || durationMs > 60000) {
-        continue;
+      if (!allowReadback('CommandRecorder.resolveProfileTimings')) {
+        return null;
       }
 
-      // Aggregate by label
-      if (timings[entry.label] !== undefined) {
-        timings[entry.label] += durationMs;
-      } else {
-        timings[entry.label] = durationMs;
+      await this.#readbackBuffer.mapAsync(GPUMapMode.READ);
+      mapped = true;
+      const timestamps = new BigUint64Array(this.#readbackBuffer.getMappedRange());
+      const timings = {};
+
+      for (const entry of this.#profileEntries) {
+        const startNs = timestamps[entry.startQueryIndex];
+        const endNs = timestamps[entry.endQueryIndex];
+        const durationMs = Number(endNs - startNs) / 1_000_000;
+
+        if (durationMs < 0 || durationMs > 60000) {
+          continue;
+        }
+
+        if (timings[entry.label] !== undefined) {
+          timings[entry.label] += durationMs;
+        } else {
+          timings[entry.label] = durationMs;
+        }
       }
+
+      return timings;
+    } finally {
+      if (mapped && this.#readbackBuffer) {
+        this.#readbackBuffer.unmap();
+      }
+      this.#destroyProfilingResources();
     }
-
-    this.#readbackBuffer.unmap();
-
-    // Clean up profiling resources after use
-    this.#destroyProfilingResources();
-
-    return timings;
   }
 
   

@@ -45,49 +45,6 @@ function mapSuiteToCommand(suite) {
   throw new Error(`Unsupported diagnostics suite "${suite}"`);
 }
 
-function createBenchCompatibleRuntime(runtimeConfig) {
-  if (!runtimeConfig || typeof runtimeConfig !== 'object') {
-    return runtimeConfig;
-  }
-
-  const shared = runtimeConfig.shared ?? {};
-  const debug = shared.debug ?? {};
-  const benchmark = shared.benchmark ?? {};
-  const benchRun = benchmark.run ?? {};
-
-  return {
-    ...runtimeConfig,
-    shared: {
-      ...shared,
-      debug: {
-        ...debug,
-        trace: {
-          ...(debug.trace ?? {}),
-          enabled: false,
-        },
-        pipeline: {
-          ...(debug.pipeline ?? {}),
-          enabled: false,
-        },
-        probes: [],
-        profiler: {
-          ...(debug.profiler ?? {}),
-          enabled: false,
-        },
-      },
-      benchmark: {
-        ...benchmark,
-        run: {
-          ...benchRun,
-          debug: false,
-          profile: false,
-          captureMemoryTimeSeries: false,
-        },
-      },
-    },
-  };
-}
-
 export class DiagnosticsController {
   constructor(options = {}) {
     this.log = options.log || log;
@@ -119,14 +76,11 @@ export class DiagnosticsController {
     const suite = normalizeSuite(options.suite || 'inference');
     const { modelId, modelUrl } = resolveModelRef(model, options);
     const mapped = mapSuiteToCommand(suite);
-    const baseRuntimeConfig = resolveRuntimeConfig(options);
-    this.requireIntent(baseRuntimeConfig);
-    const effectiveRuntimeConfig = mapped.command === 'bench'
-      ? createBenchCompatibleRuntime(baseRuntimeConfig)
-      : baseRuntimeConfig;
+    const runtimeConfig = resolveRuntimeConfig(options);
+    this.requireIntent(runtimeConfig);
 
-    if (suite !== 'kernels' && !modelId && !modelUrl) {
-      throw new Error('modelId or modelUrl is required for this suite');
+    if (suite !== 'kernels' && !modelId) {
+      throw new Error('modelId is required for this suite. modelUrl is optional when you need an explicit source.');
     }
 
     const response = await runBrowserCommand({
@@ -136,7 +90,7 @@ export class DiagnosticsController {
       modelUrl,
       runtimePreset: options.runtimePreset ?? null,
       runtimeConfigUrl: options.runtimeConfigUrl ?? null,
-      runtimeConfig: effectiveRuntimeConfig ?? null,
+      runtimeConfig: runtimeConfig ?? null,
       captureOutput: options.captureOutput === true,
       keepPipeline: options.keepPipeline === true,
       report: options.report ?? null,

@@ -22,8 +22,6 @@ const DEFAULT_CLI_POLICY = {
       allowed: ['auto', 'node', 'browser'],
     },
     bench: {
-      modelId: 'gemma-3-270m-it-wf16-ef16-hf16',
-      surface: 'browser',
       cacheMode: 'warm',
     },
     cacheMode: null,
@@ -528,6 +526,9 @@ function parseSurface(value, command, policy = DEFAULT_CLI_POLICY) {
   if (command === 'convert' && normalized === 'browser') {
     throw new Error('convert is not supported on browser relay. Use --surface node or --surface auto.');
   }
+  if ((command === 'lora' || command === 'distill') && normalized === 'browser') {
+    throw new Error(`${command} is not supported on browser relay. Use --surface node or --surface auto.`);
+  }
   return normalized;
 }
 
@@ -587,13 +588,10 @@ function resolveBenchRunOptions(runConfig, policy = DEFAULT_CLI_POLICY) {
 function resolveSurfaceForCommand(command, parsed, runConfig, policy = DEFAULT_CLI_POLICY) {
   const fromCli = asStringOrNull(parsed.flags.surface);
   const fromRun = asStringOrNull(runConfig?.surface);
-  const fromPolicy = command === 'bench'
-    ? asStringOrNull(policy?.defaults?.bench?.surface)
-    : null;
-  return parseSurface(fromCli ?? fromRun ?? fromPolicy, command, policy);
+  return parseSurface(fromCli ?? fromRun ?? null, command, policy);
 }
 
-async function buildRequest(parsed, policy = DEFAULT_CLI_POLICY) {
+export async function buildRequest(parsed, policy = DEFAULT_CLI_POLICY) {
   const command = parsed.command;
   if (!command || !TOOLING_COMMANDS.includes(command)) {
     throw new Error(`Unsupported command "${command || ''}"`);
@@ -612,21 +610,15 @@ async function buildRequest(parsed, policy = DEFAULT_CLI_POLICY) {
   }
   requestInput.command = command;
 
-  if (command === 'bench' && !asStringOrNull(requestInput.modelId) && !asStringOrNull(requestInput.modelUrl)) {
-    const benchDefaultModelId = asStringOrNull(policy?.defaults?.bench?.modelId);
-    if (benchDefaultModelId) {
-      requestInput.modelId = benchDefaultModelId;
-    }
-  }
-
   applyRuntimeFlagOverride(requestInput, runtimeOverride);
 
   const surfaceFromCli = asStringOrNull(parsed.flags.surface) !== null;
+  const surface = resolveSurfaceForCommand(command, parsed, envelope.run, policy);
 
   return {
     request: normalizeToolingCommandRequest(requestInput),
     runConfig: envelope.run,
-    surface: resolveSurfaceForCommand(command, parsed, envelope.run, policy),
+    surface,
     surfaceFromCli,
     benchRunOptions: resolveBenchRunOptions(envelope.run, policy),
   };
@@ -723,6 +715,32 @@ function isTrainingCommandFlow(request) {
   return request.command === 'bench' && request.workloadType === 'training';
 }
 
+function resolveErrorSurface(error, fallbackSurface = null) {
+  return (
+    asStringOrNull(fallbackSurface)
+    || asStringOrNull(error?.surface)
+    || asStringOrNull(error?.details?.surface)
+    || null
+  );
+}
+
+export function createCliToolingErrorEnvelope(error, context = {}) {
+  return createToolingErrorEnvelope(error, {
+    surface: resolveErrorSurface(error, context.surface),
+    request: context.request ?? null,
+  });
+}
+
+export function finalizeCliCommandResponse(response, request) {
+  if (!isPlainObject(response) || !Object.prototype.hasOwnProperty.call(response, 'request')) {
+    return response;
+  }
+  return {
+    ...response,
+    request,
+  };
+}
+
 async function runCommandOnSurface(request, surface, runConfig, jsonOutput) {
   if (surface === 'node') {
     const nodeRequest = await resolveNodeModelUrl(request);
@@ -732,7 +750,8 @@ async function runCommandOnSurface(request, surface, runConfig, jsonOutput) {
         console.error(`[surface] node resolved modelUrl=${nodeRequest.modelUrl}`);
       }
     }
-    return runNodeCommand(nodeRequest, buildNodeRunOptions(jsonOutput));
+    const response = await runNodeCommand(nodeRequest, buildNodeRunOptions(jsonOutput));
+    return finalizeCliCommandResponse(response, request);
   }
 
   const browserOptions = buildBrowserRunOptions(runConfig, jsonOutput, request);
@@ -746,7 +765,8 @@ async function runCommandOnSurface(request, surface, runConfig, jsonOutput) {
     }
   }
 
-  return runBrowserCommandInNode(browserRequest, browserOptions);
+  const response = await runBrowserCommandInNode(browserRequest, browserOptions);
+  return finalizeCliCommandResponse(response, request);
 }
 
 async function runWithAutoSurface(request, runConfig, jsonOutput, policy = DEFAULT_CLI_POLICY) {
@@ -763,9 +783,12 @@ async function runWithAutoSurface(request, runConfig, jsonOutput, policy = DEFAU
     }
     if (isTrainingCommandFlow(request)) {
       const downgradeError = new Error(
-        'Training command auto-surface downgrade is blocked. Re-run with --surface node after fixing Node WebGPU support, or explicitly choose --surface browser.'
+        (request.command === 'lora' || request.command === 'distill')
+          ? 'Training command auto-surface downgrade is blocked. Re-run with --surface node after fixing Node WebGPU support.'
+          : 'Training command auto-surface downgrade is blocked. Re-run with --surface node after fixing Node WebGPU support, or explicitly choose --surface browser.'
       );
       downgradeError.code = 'training_surface_downgrade_blocked';
+      downgradeError.surface = 'node';
       downgradeError.command = request.command;
       downgradeError.suite = request.suite;
       downgradeError.workloadType = request.workloadType || null;
@@ -1021,7 +1044,7 @@ async function runManifestSweep(manifest, commandContext, jsonOutput, policy = D
       results.push({
         label,
         response: null,
-        error: createToolingErrorEnvelope(error, {
+        error: createCliToolingErrorEnvelope(error, {
           surface: surface === 'auto' ? null : surface,
           request,
         }),
@@ -1404,7 +1427,7 @@ async function main() {
     printMetricsSummary(response.result);
   } catch (error) {
     if (jsonOutputRequested) {
-      console.log(JSON.stringify(createToolingErrorEnvelope(error, errorContext), null, 2));
+      console.log(JSON.stringify(createCliToolingErrorEnvelope(error, errorContext), null, 2));
       process.exitCode = 1;
       return;
     }

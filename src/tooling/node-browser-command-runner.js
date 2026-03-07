@@ -9,7 +9,10 @@ import {
   ensureCommandSupportedOnSurface,
   normalizeToolingCommandRequest,
 } from './command-api.js';
-import { normalizeToToolingCommandError } from './command-envelope.js';
+import {
+  isToolingSuccessEnvelope,
+  normalizeToToolingCommandError,
+} from './command-envelope.js';
 
 const DEFAULT_HOST = '127.0.0.1';
 const DEFAULT_RUNNER_PATH = '/src/tooling/command-runner.html';
@@ -359,6 +362,26 @@ function asNonEmptyString(value) {
   return normalized === '' ? null : normalized;
 }
 
+function createPersistentContextRequiredError(requestedLoadMode, cause = null) {
+  const baseMessage = requestedLoadMode === 'opfs'
+    ? 'browser command: loadMode=opfs requires persistent browser context; persistent launch failed.'
+    : 'browser command: persistent browser context is required when OPFS cache is enabled; persistent launch failed.';
+  const causeMessage = asNonEmptyString(cause?.message || cause);
+  return new Error(
+    `${baseMessage} Re-run with run.browser.opfsCache=false to use a non-persistent browser session.${causeMessage ? ` (${causeMessage})` : ''}`
+  );
+}
+
+export function finalizeBrowserRelayResponse(response, request) {
+  if (!isToolingSuccessEnvelope(response)) {
+    throw new Error('browser command: runner returned an invalid success envelope.');
+  }
+  return {
+    ...response,
+    request,
+  };
+}
+
 function normalizeWebgpuBackend(value) {
   const raw = asNonEmptyString(value);
   if (!raw) return null;
@@ -570,8 +593,10 @@ async function launchPersistentBrowser(chromium, userDataDir, launchOptions, opt
 
 export async function runBrowserCommandInNode(commandRequest, options = {}) {
   let request = null;
+  let sourceRequest = null;
   try {
     ({ request } = ensureCommandSupportedOnSurface(commandRequest, 'browser'));
+    sourceRequest = request;
 
     if (request.keepPipeline) {
       throw new Error(
@@ -583,321 +608,186 @@ export async function runBrowserCommandInNode(commandRequest, options = {}) {
       throw new Error('browser command relay does not support convert. Use --surface node for convert commands.');
     }
 
-  let useOpfsCache = options.opfsCache !== false;
-  const userDataDir = options.userDataDir || DEFAULT_OPFS_CACHE_DIR;
+    let useOpfsCache = options.opfsCache !== false;
+    let relayRequest = request;
+    const userDataDir = options.userDataDir || DEFAULT_OPFS_CACHE_DIR;
 
-  if (options.wipeCacheBeforeLaunch && useOpfsCache) {
-    await fs.rm(userDataDir, { recursive: true, force: true }).catch(() => {});
-  }
+    if (options.wipeCacheBeforeLaunch && useOpfsCache) {
+      await fs.rm(userDataDir, { recursive: true, force: true }).catch(() => {});
+    }
 
-  const { chromium } = await import('playwright');
-  const baseUrl = normalizeBaseUrl(options.baseUrl);
-  // When OPFS caching is enabled, use a fixed port so the browser origin stays the same
-  // across runs (OPFS is origin-scoped). Without this, random ports create new origins.
-  const serverPort = options.port ?? (useOpfsCache ? DEFAULT_OPFS_CACHE_PORT : 0);
-  const server = baseUrl
-    ? null
-    : await createStaticFileServer({
-      rootDir: options.staticRootDir,
-      staticMounts: options.staticMounts,
-      host: options.host,
-      port: serverPort,
-    }).catch((error) => {
-      const message = error?.message || String(error);
-      throw new Error(
-        `browser command: failed to start static server (${message}). Pass --browser-base-url to reuse an existing server.`
-      );
-    });
+    const { chromium } = await import('playwright');
+    const baseUrl = normalizeBaseUrl(options.baseUrl);
+    // When OPFS caching is enabled, use a fixed port so the browser origin stays the same
+    // across runs (OPFS is origin-scoped). Without this, random ports create new origins.
+    const serverPort = options.port ?? (useOpfsCache ? DEFAULT_OPFS_CACHE_PORT : 0);
+    const server = baseUrl
+      ? null
+      : await createStaticFileServer({
+        rootDir: options.staticRootDir,
+        staticMounts: options.staticMounts,
+        host: options.host,
+        port: serverPort,
+      }).catch((error) => {
+        const message = error?.message || String(error);
+        throw new Error(
+          `browser command: failed to start static server (${message}). Pass --browser-base-url to reuse an existing server.`
+        );
+      });
 
-  const launchOptions = {
-    headless: normalizeHeadless(options.headless),
-    args: browserLaunchArgs(normalizeBrowserArgs(options.browserArgs)),
-  };
-
-  if (options.channel) {
-    launchOptions.channel = String(options.channel);
-  }
-  if (options.executablePath) {
-    launchOptions.executablePath = String(options.executablePath);
-  }
-
-  const timeoutMs = normalizeTimeoutMs(options.timeoutMs);
-  const runnerPath = normalizeRunnerPath(options.runnerPath);
-  const resolvedBaseUrl = baseUrl || server.baseUrl;
-  const requestedLoadMode = request.loadMode;
-  const requireOpfsLoad = requestedLoadMode === 'opfs';
-  if (requireOpfsLoad && useOpfsCache === false) {
-    throw new Error('browser command: loadMode=opfs requires OPFS cache support (remove --no-opfs-cache).');
-  }
-  if (!requestedLoadMode && request.modelUrl && useOpfsCache === false) {
-    request = {
-      ...request,
-      loadMode: 'http',
+    const launchOptions = {
+      headless: normalizeHeadless(options.headless),
+      args: browserLaunchArgs(normalizeBrowserArgs(options.browserArgs)),
     };
-  }
+
+    if (options.channel) {
+      launchOptions.channel = String(options.channel);
+    }
+    if (options.executablePath) {
+      launchOptions.executablePath = String(options.executablePath);
+    }
+
+    const timeoutMs = normalizeTimeoutMs(options.timeoutMs);
+    const runnerPath = normalizeRunnerPath(options.runnerPath);
+    const resolvedBaseUrl = baseUrl || server.baseUrl;
+    const requestedLoadMode = sourceRequest.loadMode;
+    const requireOpfsLoad = requestedLoadMode === 'opfs';
+    if (requireOpfsLoad && useOpfsCache === false) {
+      throw new Error('browser command: loadMode=opfs requires OPFS cache support (remove --no-opfs-cache).');
+    }
+    if (requireOpfsLoad && sourceRequest.modelUrl && !sourceRequest.modelId) {
+      throw new Error(
+        'browser command: loadMode=opfs requires modelId when modelUrl is provided so the relay can verify and load the cached OPFS artifact.'
+      );
+    }
 
     let browser = null;
     let context = null;
     try {
-    if (useOpfsCache) {
-      // Persistent context: OPFS data survives between runs.
-      // launchPersistentContext returns a BrowserContext directly (no separate Browser).
-      try {
-        context = await launchPersistentBrowser(chromium, userDataDir, launchOptions, {
-          explicitChannel: Boolean(options.channel),
-          explicitExecutablePath: Boolean(options.executablePath),
-        });
-      } catch (error) {
-        if (!isRecoverablePersistentLaunchError(error)) {
-          throw error;
-        }
-        if (typeof options.onConsole === 'function') {
-          options.onConsole({
-            type: 'warning',
-            text: '[browser] Persistent browser launch failed; retrying with a clean OPFS profile.',
-          });
-        }
-        await fs.rm(userDataDir, { recursive: true, force: true }).catch(() => {});
+      if (useOpfsCache) {
+        // Persistent context: OPFS data survives between runs.
+        // launchPersistentContext returns a BrowserContext directly (no separate Browser).
         try {
           context = await launchPersistentBrowser(chromium, userDataDir, launchOptions, {
             explicitChannel: Boolean(options.channel),
             explicitExecutablePath: Boolean(options.executablePath),
           });
-        } catch (retryError) {
-          if (!isRecoverablePersistentLaunchError(retryError)) {
-            throw retryError;
+        } catch (error) {
+          if (!isRecoverablePersistentLaunchError(error)) {
+            throw error;
           }
           if (typeof options.onConsole === 'function') {
             options.onConsole({
               type: 'warning',
-              text: '[browser] Persistent launch still failing; falling back to non-persistent mode.',
+              text: '[browser] Persistent browser launch failed; retrying with a clean OPFS profile.',
             });
           }
-          if (requireOpfsLoad) {
-            throw new Error(
-              'browser command: loadMode=opfs requires persistent browser context; persistent launch failed.'
-            );
+          await fs.rm(userDataDir, { recursive: true, force: true }).catch(() => {});
+          try {
+            context = await launchPersistentBrowser(chromium, userDataDir, launchOptions, {
+              explicitChannel: Boolean(options.channel),
+              explicitExecutablePath: Boolean(options.executablePath),
+            });
+          } catch (retryError) {
+            if (!isRecoverablePersistentLaunchError(retryError)) {
+              throw retryError;
+            }
+            throw createPersistentContextRequiredError(requestedLoadMode, retryError);
           }
-          useOpfsCache = false;
-          if (request.loadMode === 'opfs') {
-            request = {
-              ...request,
-              loadMode: 'http',
-            };
-          }
-          browser = await launchBrowser(chromium, launchOptions, {
-            explicitChannel: Boolean(options.channel),
-            explicitExecutablePath: Boolean(options.executablePath),
-          });
-          context = await browser.newContext();
         }
+      } else {
+        browser = await launchBrowser(chromium, launchOptions, {
+          explicitChannel: Boolean(options.channel),
+          explicitExecutablePath: Boolean(options.executablePath),
+        });
+        context = await browser.newContext();
       }
-    } else {
-      browser = await launchBrowser(chromium, launchOptions, {
-        explicitChannel: Boolean(options.channel),
-        explicitExecutablePath: Boolean(options.executablePath),
-      });
-      context = await browser.newContext();
-    }
 
-    const page = await context.newPage();
-    page.setDefaultTimeout(timeoutMs);
-    const pageDiagnostics = [];
+      const page = await context.newPage();
+      page.setDefaultTimeout(timeoutMs);
+      const pageDiagnostics = [];
 
-    if (typeof options.onConsole === 'function') {
-      page.on('console', (message) => {
-        options.onConsole({
-          type: message.type(),
-          text: message.text(),
+      if (typeof options.onConsole === 'function') {
+        page.on('console', (message) => {
+          options.onConsole({
+            type: message.type(),
+            text: message.text(),
+          });
         });
+      }
+
+      page.on('pageerror', (error) => {
+        pageDiagnostics.push(`pageerror: ${error?.message || String(error)}`);
       });
-    }
-
-    page.on('pageerror', (error) => {
-      pageDiagnostics.push(`pageerror: ${error?.message || String(error)}`);
-    });
-    page.on('requestfailed', (request) => {
-      const failure = request.failure();
-      pageDiagnostics.push(
-        `requestfailed: ${request.url()} (${failure?.errorText || 'unknown error'})`
-      );
-    });
-
-    const runnerUrl = new URL(runnerPath, resolvedBaseUrl);
-    runnerUrl.searchParams.set('_dopplerRunner', String(Date.now()));
-    await page.goto(runnerUrl.toString(), { waitUntil: 'load' });
-    try {
-      await page.waitForFunction(() => globalThis.__dopplerRunnerReady === true, null, {
-        timeout: timeoutMs,
+      page.on('requestfailed', (request) => {
+        const failure = request.failure();
+        pageDiagnostics.push(
+          `requestfailed: ${request.url()} (${failure?.errorText || 'unknown error'})`
+        );
       });
-    } catch (error) {
-      const diagnostics = pageDiagnostics.length
-        ? pageDiagnostics.slice(0, 10).join(' | ')
-        : 'no page diagnostics captured';
-      throw new Error(
-        `browser command: runner did not become ready within ${timeoutMs}ms (${diagnostics}).`
-      );
-    }
 
-    // OPFS cache: ensure model is cached before running the command.
-    // On cache hit, strip modelUrl so the harness takes the fast OPFS path.
-    if (useOpfsCache && request.modelId && request.modelUrl) {
+      const runnerUrl = new URL(runnerPath, resolvedBaseUrl);
+      runnerUrl.searchParams.set('_dopplerRunner', String(Date.now()));
+      await page.goto(runnerUrl.toString(), { waitUntil: 'load' });
       try {
-        const cacheResult = await page.evaluate(async (payload) => {
-          if (typeof globalThis.__dopplerEnsureCached !== 'function') {
-            return { cached: false, error: '__dopplerEnsureCached not available' };
-          }
-          return globalThis.__dopplerEnsureCached(payload.modelId, payload.modelBaseUrl);
-        }, {
-          modelId: request.modelId,
-          modelBaseUrl: request.modelUrl,
+        await page.waitForFunction(() => globalThis.__dopplerRunnerReady === true, null, {
+          timeout: timeoutMs,
         });
+      } catch (error) {
+        const diagnostics = pageDiagnostics.length
+          ? pageDiagnostics.slice(0, 10).join(' | ')
+          : 'no page diagnostics captured';
+        throw new Error(
+          `browser command: runner did not become ready within ${timeoutMs}ms (${diagnostics}).`
+        );
+      }
 
-        if (cacheResult.cached) {
-          // Remove modelUrl so the harness loads from OPFS instead of HTTP.
-          request = { ...request };
-          delete request.modelUrl;
-          request.loadMode = 'opfs';
-        } else {
-          if (requireOpfsLoad) {
+      // Explicit loadMode=opfs must be satisfied without rewriting the shared request contract.
+      if (useOpfsCache && requireOpfsLoad && relayRequest.modelId && relayRequest.modelUrl) {
+        try {
+          const cacheResult = await page.evaluate(async (payload) => {
+            if (typeof globalThis.__dopplerEnsureCached !== 'function') {
+              return { cached: false, error: '__dopplerEnsureCached not available' };
+            }
+            return globalThis.__dopplerEnsureCached(payload.modelId, payload.modelBaseUrl);
+          }, {
+            modelId: relayRequest.modelId,
+            modelBaseUrl: relayRequest.modelUrl,
+          });
+
+          if (cacheResult.cached) {
+            relayRequest = { ...relayRequest };
+            delete relayRequest.modelUrl;
+          } else {
             const cacheError = cacheResult?.error || 'model not cached';
             throw new Error(
-              `[opfs-cache] loadMode=opfs requested but cache is unavailable for "${request.modelId || 'unknown-model'}": ${cacheError}`
+              `[opfs-cache] model cache is unavailable for "${relayRequest.modelId || 'unknown-model'}": ${cacheError}.`
             );
           }
-          if (!requestedLoadMode) {
-            request = { ...request, loadMode: 'http' };
-          }
-          if (cacheResult.error) {
-            if (typeof options.onConsole === 'function') {
-              options.onConsole({
-                type: 'warning',
-                text: `[opfs-cache] Cache check failed (${cacheResult.error}), falling back to HTTP`,
-              });
-            }
-          }
-        }
-      } catch (error) {
-        if (requireOpfsLoad) {
+        } catch (error) {
           throw new Error(
-            `[opfs-cache] loadMode=opfs requested but cache priming failed: ${error?.message || error}`
+            `[opfs-cache] cache priming failed: ${error?.message || error}.`
           );
         }
-        if (!requestedLoadMode && request.modelUrl) {
-          request = { ...request, loadMode: 'http' };
-        }
-
-        // OPFS cache is best-effort; fall back to HTTP on any error.
-        if (typeof options.onConsole === 'function') {
-          options.onConsole({
-            type: 'warning',
-            text: `[opfs-cache] Error (${error?.message || error}), falling back to HTTP`,
-          });
-        }
       }
-    }
 
-    const response = await page.evaluate(async (payload) => {
-      if (typeof globalThis.__dopplerRunBrowserCommand !== 'function') {
-        throw new Error('browser command runner is missing globalThis.__dopplerRunBrowserCommand');
-      }
-      return globalThis.__dopplerRunBrowserCommand(payload.request, payload.options || {});
-    }, {
-      request,
-      options: {
-        runtimeLoadOptions: options.runtimeLoadOptions || {},
-      },
-    });
+      const response = await page.evaluate(async (payload) => {
+        if (typeof globalThis.__dopplerRunBrowserCommand !== 'function') {
+          throw new Error('browser command runner is missing globalThis.__dopplerRunBrowserCommand');
+        }
+        return globalThis.__dopplerRunBrowserCommand(payload.request, payload.options || {});
+      }, {
+        request: relayRequest,
+        options: {
+          runtimeLoadOptions: options.runtimeLoadOptions || {},
+        },
+      });
 
-    const result = response?.result;
-    if (result && typeof result === 'object' && !Array.isArray(result)) {
-      const cpuInfo = typeof os.cpus === 'function' ? os.cpus() : null;
-      const hostEnvironment = {
-        platform: process.platform,
-        arch: process.arch,
-        nodeVersion: process.version,
-        osRelease: typeof os.release === 'function' ? os.release() : null,
-        cpuModel: Array.isArray(cpuInfo) && cpuInfo.length > 0 ? asNonEmptyString(cpuInfo[0]?.model) : null,
-      };
-      const webgpuBackend = inferWebgpuBackendFromArgs(launchOptions.args, hostEnvironment.platform);
-      const env = result.env && typeof result.env === 'object' ? result.env : {};
-      const deviceInfo = result.deviceInfo && typeof result.deviceInfo === 'object'
-        ? result.deviceInfo
-        : {};
-      result.env = {
-        ...env,
-        webgpuBackend: normalizeWebgpuBackend(env.webgpuBackend)
-          || normalizeWebgpuBackend(env.gpuBackend)
-          || normalizeWebgpuBackend(env.graphicsBackend)
-          || webgpuBackend,
-      };
-      const existingEnvironment = result.environment && typeof result.environment === 'object'
-        ? result.environment
-        : {};
-      result.environment = {
-        ...existingEnvironment,
-        host: {
-          ...(existingEnvironment.host && typeof existingEnvironment.host === 'object' ? existingEnvironment.host : {}),
-          platform: asNonEmptyString(existingEnvironment?.host?.platform) || hostEnvironment.platform,
-          arch: asNonEmptyString(existingEnvironment?.host?.arch) || hostEnvironment.arch,
-          nodeVersion: asNonEmptyString(existingEnvironment?.host?.nodeVersion) || hostEnvironment.nodeVersion,
-          osRelease: asNonEmptyString(existingEnvironment?.host?.osRelease) || hostEnvironment.osRelease,
-          cpuModel: asNonEmptyString(existingEnvironment?.host?.cpuModel) || hostEnvironment.cpuModel,
-        },
-        browser: {
-          ...(existingEnvironment.browser && typeof existingEnvironment.browser === 'object' ? existingEnvironment.browser : {}),
-          userAgent: asNonEmptyString(existingEnvironment?.browser?.userAgent) || asNonEmptyString(env.browserUserAgent),
-          platform: asNonEmptyString(existingEnvironment?.browser?.platform) || asNonEmptyString(env.browserPlatform),
-          language: asNonEmptyString(existingEnvironment?.browser?.language) || asNonEmptyString(env.browserLanguage),
-          vendor: asNonEmptyString(existingEnvironment?.browser?.vendor) || asNonEmptyString(env.browserVendor),
-          executable: asNonEmptyString(existingEnvironment?.browser?.executable) || asNonEmptyString(options.executablePath),
-          channel: asNonEmptyString(existingEnvironment?.browser?.channel) || asNonEmptyString(options.channel),
-        },
-        gpu: {
-          ...(existingEnvironment.gpu && typeof existingEnvironment.gpu === 'object' ? existingEnvironment.gpu : {}),
-          api: asNonEmptyString(existingEnvironment?.gpu?.api) || 'webgpu',
-          backend: normalizeWebgpuBackend(existingEnvironment?.gpu?.backend)
-            || normalizeWebgpuBackend(env.webgpuBackend)
-            || webgpuBackend,
-          vendor: asNonEmptyString(existingEnvironment?.gpu?.vendor) || asNonEmptyString(deviceInfo.vendor),
-          architecture: asNonEmptyString(existingEnvironment?.gpu?.architecture) || asNonEmptyString(deviceInfo.architecture),
-          device: asNonEmptyString(existingEnvironment?.gpu?.device) || asNonEmptyString(deviceInfo.device),
-          description: asNonEmptyString(existingEnvironment?.gpu?.description) || asNonEmptyString(deviceInfo.description),
-          hasF16: typeof existingEnvironment?.gpu?.hasF16 === 'boolean'
-            ? existingEnvironment.gpu.hasF16
-            : (typeof deviceInfo.hasF16 === 'boolean' ? deviceInfo.hasF16 : null),
-          hasSubgroups: typeof existingEnvironment?.gpu?.hasSubgroups === 'boolean'
-            ? existingEnvironment.gpu.hasSubgroups
-            : (typeof deviceInfo.hasSubgroups === 'boolean' ? deviceInfo.hasSubgroups : null),
-          hasTimestampQuery: typeof existingEnvironment?.gpu?.hasTimestampQuery === 'boolean'
-            ? existingEnvironment.gpu.hasTimestampQuery
-            : (typeof deviceInfo.hasTimestampQuery === 'boolean' ? deviceInfo.hasTimestampQuery : null),
-        },
-        runtime: {
-          ...(existingEnvironment.runtime && typeof existingEnvironment.runtime === 'object' ? existingEnvironment.runtime : {}),
-          library: asNonEmptyString(existingEnvironment?.runtime?.library) || asNonEmptyString(env.library) || 'doppler',
-          version: asNonEmptyString(existingEnvironment?.runtime?.version) || asNonEmptyString(env.version),
-          surface: asNonEmptyString(existingEnvironment?.runtime?.surface) || asNonEmptyString(env.runtime) || 'browser',
-          device: asNonEmptyString(existingEnvironment?.runtime?.device) || asNonEmptyString(env.device),
-          dtype: asNonEmptyString(existingEnvironment?.runtime?.dtype) || asNonEmptyString(env.dtype),
-          requestedDtype: asNonEmptyString(existingEnvironment?.runtime?.requestedDtype) || asNonEmptyString(env.requestedDtype),
-          executionProviderMode: asNonEmptyString(existingEnvironment?.runtime?.executionProviderMode)
-            || asNonEmptyString(env.executionProviderMode),
-          cacheMode: asNonEmptyString(existingEnvironment?.runtime?.cacheMode)
-            || asNonEmptyString(result.cacheMode)
-            || asNonEmptyString(result?.timing?.cacheMode),
-          loadMode: asNonEmptyString(existingEnvironment?.runtime?.loadMode)
-            || asNonEmptyString(result.loadMode)
-            || asNonEmptyString(result?.timing?.loadMode),
-        },
-      };
-    }
-
-      return response;
+      return finalizeBrowserRelayResponse(response, sourceRequest);
     } catch (error) {
       throw normalizeToToolingCommandError(error, {
         surface: 'browser',
-        request,
+        request: sourceRequest,
       });
     } finally {
       if (context) {
@@ -913,7 +803,7 @@ export async function runBrowserCommandInNode(commandRequest, options = {}) {
   } catch (error) {
     throw normalizeToToolingCommandError(error, {
       surface: 'browser',
-      request,
+      request: sourceRequest,
     });
   }
 }

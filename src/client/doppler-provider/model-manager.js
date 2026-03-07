@@ -69,6 +69,14 @@ export function getCurrentModelId() {
   return currentModelId;
 }
 
+function requireManifestQuantization(manifest) {
+  const quantization = String(manifest?.quantization ?? '').trim();
+  if (!quantization) {
+    throw new Error('Manifest is missing quantization; re-convert the model.');
+  }
+  return quantization.toUpperCase();
+}
+
 export function extractTextModelConfig(manifest) {
   const arch = (manifest.architecture && typeof manifest.architecture === 'object')
     ? manifest.architecture
@@ -86,12 +94,12 @@ export function extractTextModelConfig(manifest) {
     headDim: arch.headDim,
     vocabSize: arch.vocabSize,
     maxSeqLen: arch.maxSeqLen,
-    quantization: (manifest?.quantization || 'f16').toUpperCase(),
+    quantization: requireManifestQuantization(manifest),
   };
 }
 
 function estimateDequantizedWeightsBytes(manifest) {
-  const q = (manifest?.quantization || '').toUpperCase();
+  const q = requireManifestQuantization(manifest);
   const total = manifest?.totalSize || 0;
   if (q.startsWith('Q4')) {
     return total * 8;

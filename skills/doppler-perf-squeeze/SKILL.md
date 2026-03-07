@@ -7,6 +7,31 @@ description: Diagnose and improve Doppler decode/prefill performance with parity
 
 Use this skill when Doppler is slower than expected on decode, prefill, TTFT, or model-load-sensitive warm UX.
 
+## Mandatory Style Guides
+
+Read these before non-trivial performance, profiling, or methodology changes:
+- `docs/style/general-style-guide.md`
+- `docs/style/javascript-style-guide.md`
+- `docs/style/config-style-guide.md`
+- `docs/style/harness-style-guide.md`
+- `docs/style/benchmark-style-guide.md`
+
+Also read:
+- `docs/style/wgsl-style-guide.md` for shader changes
+- `docs/style/command-interface-design-guide.md` when changing `bench` or `debug` command behavior
+
+## Developer Guide Routing
+
+When performance work requires additive implementation changes, also open:
+- `docs/developer-guides/README.md`
+
+Common routes:
+- execution-plan or kernel-path tuning: `docs/developer-guides/06-kernel-path-preset.md`
+- new or revised kernel implementations: `docs/developer-guides/11-wgsl-kernel.md`
+- attention hot-path redesign: `docs/developer-guides/13-attention-variant.md`
+- cache/layout redesign: `docs/developer-guides/15-kvcache-layout.md`
+- benchmark or command contract additions: `docs/developer-guides/12-command-surface.md`
+
 ## Execution Plane Contract
 
 - The benchmarking and tuning contract is JSON-first (`runtime` presets + workload contracts).

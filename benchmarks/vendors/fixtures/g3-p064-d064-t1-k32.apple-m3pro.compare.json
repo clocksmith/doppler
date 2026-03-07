@@ -7,16 +7,16 @@
     "updated": "2026-02-23"
   },
   "compareConfig": {
-    "source": "/Users/xyz/deco/doppler/benchmarks/vendors/compare-engines.config.json",
+    "source": "benchmarks/vendors/compare-engines.config.json",
     "schemaVersion": 1,
-    "sourceSha256": "3f05fc2b1f83071b83cf67d097e0ab79d95b69b8ed76754e6a4e7e6803ec4aa6",
+    "sourceSha256": "a9d3d41d4398a1ff344b1d1827f16618f7b42ec069c7cd46dd1e6de7812e2696",
     "profileSource": "config",
     "updated": "2026-02-23"
   },
   "metricContract": {
-    "source": "/Users/xyz/deco/doppler/benchmarks/vendors/compare-metrics.json",
+    "source": "benchmarks/vendors/compare-metrics.json",
     "schemaVersion": 1,
-    "sourceSha256": "316e2a656411649bc02af267a944ebc8f989c77189514f1f7ef59e0ae54c4db6",
+    "sourceSha256": "872666196ffdbbcfd44d7e67fedcd16eef85907b8231e3d54e9cdeecfbe77d44",
     "updated": "2026-02-23",
     "metrics": [
       {
@@ -27,8 +27,8 @@
         "required": true
       },
       {
-        "id": "prefillTokensPerSec",
-        "label": "prompt tok/s (prefill)",
+        "id": "promptTokensPerSecToFirstToken",
+        "label": "prompt tok/s to first token",
         "unit": "tok/s",
         "higherBetter": true,
         "required": true
@@ -43,13 +43,6 @@
       {
         "id": "firstResponseMs",
         "label": "first response (first token + load)",
-        "unit": "ms",
-        "higherBetter": false,
-        "required": true
-      },
-      {
-        "id": "prefillMs",
-        "label": "prefill ms",
         "unit": "ms",
         "higherBetter": false,
         "required": true
@@ -100,14 +93,13 @@
   },
   "harnesses": {
     "doppler": {
-      "source": "/Users/xyz/deco/doppler/benchmarks/vendors/harnesses/doppler.json",
-      "sourceSha256": "a53d577d93aa9f4cb85310f46885fa9464ce2c1cd40de5aab69db86629a005b9",
+      "source": "benchmarks/vendors/harnesses/doppler.json",
+      "sourceSha256": "34c0c146a1db1b7974c4ae291fe5794a8682e8e36beb327e3a6e669f21bc2029",
       "requiredMetrics": [
         "decodeTokensPerSec",
-        "prefillTokensPerSec",
+        "promptTokensPerSecToFirstToken",
         "firstTokenMs",
         "firstResponseMs",
-        "prefillMs",
         "decodeMs",
         "totalRunMs",
         "modelLoadMs",
@@ -117,14 +109,13 @@
       ]
     },
     "transformersjs": {
-      "source": "/Users/xyz/deco/doppler/benchmarks/vendors/harnesses/transformersjs.json",
-      "sourceSha256": "e6b96ad52c3d1f80a3856c9d582bee6184576edaebf11039fecb26f92274493f",
+      "source": "benchmarks/vendors/harnesses/transformersjs.json",
+      "sourceSha256": "68ccd5d670484eb7dee741a42caff8c4c13c20ddb09dce1a71291f2ab8c86058",
       "requiredMetrics": [
         "decodeTokensPerSec",
-        "prefillTokensPerSec",
+        "promptTokensPerSecToFirstToken",
         "firstTokenMs",
         "firstResponseMs",
-        "prefillMs",
         "decodeMs",
         "totalRunMs",
         "modelLoadMs",
@@ -163,7 +154,6 @@
   "dopplerTimeoutMs": 600000,
   "tjsTimeoutMs": 600000,
   "methodology": {
-    "prefillTokensPerSec": "prompt_tokens / prefill_ms",
     "deterministicDecoding": {
       "seed": 0,
       "temperature": 1,
@@ -186,6 +176,11 @@
     "transformersjsDecodeCadence": {
       "streamerCallbackGranularityTokens": 1,
       "readbackControl": "runtime-internal"
+    },
+    "promptTokensPerSecToFirstToken": "prompt_tokens / firstTokenMs",
+    "prefillPhaseMs": {
+      "doppler": "available inside Doppler payload timing.prefillMs as internal_prefill_phase",
+      "transformersjs": "excluded from compare contract because runner prefillMs is a ttft_proxy"
     }
   },
   "sections": {

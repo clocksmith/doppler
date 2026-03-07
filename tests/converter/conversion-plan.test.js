@@ -8,7 +8,10 @@ const {
   inferSourceWeightQuantization,
   resolveConversionPlan,
   resolveConvertedModelId,
+  validateDefaultKernelPath,
 } = await import('../../src/converter/conversion-plan.js');
+const { buildManifestInference } = await import('../../src/converter/manifest-inference.js');
+const { resolvePreset } = await import('../../src/config/loader.js');
 const { resolveEffectiveQuantizationInfo } = await import('../../src/converter/quantization-info.js');
 const { buildKernelRefFromKernelEntry } = await import('../../src/config/kernels/kernel-ref.js');
 
@@ -116,6 +119,39 @@ const embeddingComputeF32Config = createConverterConfig({
 }
 
 {
+  assert.throws(
+    () => validateDefaultKernelPath(
+      { defaultKernelPath: 'gemma3-q4k-dequant-f16a-online' },
+      {
+        presetId: 'lfm2',
+        quantizationInfo: {
+          weights: 'q4k',
+          compute: 'f32',
+          layout: 'row',
+        },
+      }
+    ),
+    /kernel activation dtype "f16" is incompatible with compute "f32"/
+  );
+}
+
+{
+  const preset = resolvePreset('lfm2');
+  assert.throws(
+    () => buildManifestInference(
+      preset,
+      {
+        model_type: 'lfm2',
+        layer_types: ['conv', 'conv', 'full_attention', 'conv'],
+      },
+      64,
+      { weights: 'q4k', layout: 'row' }
+    ),
+    /requires quantizationInfo\.compute to resolve a compute-specific defaultKernelPath/
+  );
+}
+
+{
   const attentionKernelRef = buildKernelRefFromKernelEntry('attention_streaming_f16.wgsl', 'main');
   const executionOverrideConfig = createConverterConfig({
     inference: {
@@ -194,6 +230,135 @@ const embeddingComputeF32Config = createConverterConfig({
   assert.equal(plan.manifestInference?.execution?.steps?.length, 1);
   assert.equal(plan.manifestInference?.execution?.steps?.[0]?.id, 'attn_prefill');
   assert.equal(plan.manifestInference?.schema, 'doppler.execution/v0');
+}
+
+{
+  const generatedExecutionConfig = createConverterConfig({
+    inference: {
+      defaultKernelPath: 'gemma3-f16-fused-f16a-online',
+      sessionDefaults: {
+        decodeLoop: {
+          batchSize: 8,
+          stopCheckMode: 'batch',
+          readbackInterval: 2,
+        },
+      },
+    },
+  });
+  const plan = resolveConversionPlan({
+    rawConfig: {
+      model_type: 'gemma3_text',
+      architectures: ['Gemma3ForCausalLM'],
+      hidden_size: 640,
+      num_attention_heads: 4,
+      num_hidden_layers: 18,
+    },
+    tensors: [
+      { name: 'model.embed_tokens.weight', dtype: 'F16' },
+      { name: 'model.layers.0.self_attn.q_proj.weight', dtype: 'F16' },
+    ],
+    converterConfig: generatedExecutionConfig,
+    modelKind: 'transformer',
+    architectureHint: 'Gemma3ForCausalLM',
+    architectureConfig: { headDim: 256 },
+  });
+  assert.equal(plan.manifestInference?.schema, 'doppler.execution/v0');
+  assert.ok(Array.isArray(plan.manifestInference?.execution?.steps));
+  assert.equal(plan.manifestInference?.sessionDefaults?.compute?.defaults?.activationDtype, 'f16');
+  assert.equal(plan.manifestInference?.sessionDefaults?.kvcache?.kvDtype, 'f16');
+  assert.equal(plan.manifestInference?.sessionDefaults?.decodeLoop?.batchSize, 8);
+  assert.equal(plan.manifestInference?.sessionDefaults?.decodeLoop?.readbackInterval, 2);
+}
+
+{
+  const invalidExecutionOnlyConfig = createConverterConfig({
+    inference: {
+      execution: {
+        steps: [
+          {
+            id: 'attn_prefill',
+            phase: 'prefill',
+            section: 'layer',
+            op: 'attention',
+            src: 'state',
+            dst: 'state',
+            layers: 'all',
+            kernel: 'attention_streaming_f16.wgsl',
+            entry: 'main',
+            kernelRef: buildKernelRefFromKernelEntry('attention_streaming_f16.wgsl', 'main'),
+          },
+        ],
+      },
+    },
+  });
+  assert.throws(
+    () => resolveConversionPlan({
+      rawConfig: {
+        model_type: 'gemma3_text',
+        architectures: ['Gemma3ForCausalLM'],
+        hidden_size: 640,
+        num_attention_heads: 4,
+        num_hidden_layers: 18,
+      },
+      tensors: [
+        { name: 'model.embed_tokens.weight', dtype: 'F16' },
+        { name: 'model.layers.0.self_attn.q_proj.weight', dtype: 'F16' },
+      ],
+      converterConfig: invalidExecutionOnlyConfig,
+      modelKind: 'transformer',
+      architectureHint: 'Gemma3ForCausalLM',
+      architectureConfig: { headDim: 256 },
+    }),
+    /converterConfig\.inference\.execution requires converterConfig\.inference\.sessionDefaults/
+  );
+}
+
+{
+  const sessionDefaultsOnlyConfig = createConverterConfig({
+    quantization: {
+      weights: 'q4k',
+      embeddings: 'f16',
+      lmHead: 'f16',
+      computePrecision: 'f32',
+      q4kLayout: 'row',
+    },
+    inference: {
+      defaultKernelPath: 'lfm2-q4k-dequant-f32a-online',
+      sessionDefaults: {
+        decodeLoop: {
+          batchSize: 8,
+          stopCheckMode: 'batch',
+          readbackInterval: 8,
+        },
+      },
+    },
+  });
+  const plan = resolveConversionPlan({
+    rawConfig: {
+      model_type: 'lfm2',
+      architectures: ['Lfm2ForCausalLM'],
+      hidden_size: 256,
+      intermediate_size: 512,
+      num_hidden_layers: 4,
+      num_attention_heads: 4,
+      num_key_value_heads: 4,
+      layer_types: ['conv', 'conv', 'full_attention', 'conv'],
+    },
+    tensors: [
+      { name: 'model.embed_tokens.weight', dtype: 'BF16' },
+      { name: 'model.layers.0.conv.in_proj.weight', dtype: 'BF16' },
+      { name: 'model.layers.2.self_attn.q_proj.weight', dtype: 'BF16' },
+    ],
+    converterConfig: sessionDefaultsOnlyConfig,
+    modelKind: 'transformer',
+    architectureHint: 'Lfm2ForCausalLM',
+    architectureConfig: { headDim: 64 },
+  });
+  assert.equal(plan.manifestInference?.schema, null);
+  assert.equal(plan.manifestInference?.execution, null);
+  assert.equal(plan.manifestInference?.defaultKernelPath, 'lfm2-q4k-dequant-f32a-online');
+  assert.equal(plan.manifestInference?.sessionDefaults?.decodeLoop?.batchSize, 8);
+  assert.equal(plan.manifestInference?.sessionDefaults?.compute, undefined);
 }
 
 {

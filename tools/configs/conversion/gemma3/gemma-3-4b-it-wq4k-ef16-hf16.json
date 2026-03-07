@@ -37,7 +37,7 @@
             "kernelRef": {
               "id": "rmsnorm.f16.main",
               "version": "1.0.0",
-              "digest": "sha256:21d6d702cfcb8d653d8e105bbbc522e85704fa5628b865a7d36cde338ca5c779"
+              "digest": "sha256:7ae20c01b0453306504f777c4a8de37364a8b45bef3c569b0572c7863740a6bd"
             }
           },
           {
@@ -65,7 +65,7 @@
             "kernelRef": {
               "id": "residual.f16.main",
               "version": "1.0.0",
-              "digest": "sha256:d392433f3065d1caf68b033219f4ffacf022dc1f90fc3cf3fd620e4ba49f3219"
+              "digest": "sha256:3ca5c562fb5baf495e31e662f85fb26863f8f6d4ad29bb119c484e2ffdee7791"
             }
           },
           {

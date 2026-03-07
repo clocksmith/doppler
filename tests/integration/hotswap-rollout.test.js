@@ -52,4 +52,59 @@ const { evaluateHotSwapRollout } = await import('../../src/hotswap/runtime.js');
   assert.equal(decision.reason, 'opt_in_required');
 }
 
+assert.throws(
+  () => evaluateHotSwapRollout(
+    {
+      enabled: true,
+      rollout: {
+        mode: 'gradual',
+      },
+    },
+    { subjectId: 'user-1' }
+  ),
+  /hotswap\.rollout\.mode must be one of/
+);
+
+assert.throws(
+  () => evaluateHotSwapRollout(
+    {
+      enabled: true,
+      rollout: {
+        mode: 'canary',
+        canaryPercent: 150,
+      },
+    },
+    { subjectId: 'user-1' }
+  ),
+  /hotswap\.rollout\.canaryPercent must be a number between 0 and 100/
+);
+
+assert.throws(
+  () => evaluateHotSwapRollout(
+    {
+      enabled: true,
+      rollout: {
+        mode: 'opt-in',
+        optInAllowlist: ['good-user', '   '],
+      },
+    },
+    { subjectId: 'user-1' }
+  ),
+  /hotswap\.rollout\.optInAllowlist\[1\] must not be empty/
+);
+
+assert.throws(
+  () => evaluateHotSwapRollout(
+    {
+      enabled: true,
+      rollout: {
+        mode: 'shadow',
+        cohortSalt: 123,
+      },
+    },
+    { subjectId: 'user-1' }
+  ),
+  /hotswap\.rollout\.cohortSalt must be a string/
+);
+
 console.log('hotswap-rollout.test: ok');

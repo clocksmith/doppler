@@ -6,18 +6,40 @@ function normalizeRolloutPolicy(policy) {
     ? policy.rollout
     : {};
   const rawMode = String(rollout.mode || 'shadow').trim().toLowerCase().replace(/_/g, '-');
-  const mode = rawMode === 'default' || rawMode === 'canary' || rawMode === 'opt-in' || rawMode === 'shadow'
-    ? rawMode
-    : 'shadow';
-  const canaryPercent = Number.isFinite(rollout.canaryPercent)
-    ? Math.min(100, Math.max(0, Number(rollout.canaryPercent)))
-    : 0;
+  if (rawMode !== 'default' && rawMode !== 'canary' && rawMode !== 'opt-in' && rawMode !== 'shadow') {
+    throw new Error(
+      `hotswap.rollout.mode must be one of default, canary, opt-in, shadow (received "${rollout.mode}")`
+    );
+  }
+  let canaryPercent = 0;
+  if (rollout.canaryPercent !== undefined && rollout.canaryPercent !== null) {
+    const parsedCanaryPercent = Number(rollout.canaryPercent);
+    if (!Number.isFinite(parsedCanaryPercent) || parsedCanaryPercent < 0 || parsedCanaryPercent > 100) {
+      throw new Error('hotswap.rollout.canaryPercent must be a number between 0 and 100 when provided.');
+    }
+    canaryPercent = parsedCanaryPercent;
+  }
+  if (rollout.cohortSalt !== undefined && rollout.cohortSalt !== null && typeof rollout.cohortSalt !== 'string') {
+    throw new Error('hotswap.rollout.cohortSalt must be a string when provided.');
+  }
   const cohortSalt = String(rollout.cohortSalt || 'doppler-hotswap-v1').trim() || 'doppler-hotswap-v1';
+  if (rollout.optInAllowlist !== undefined && rollout.optInAllowlist !== null && !Array.isArray(rollout.optInAllowlist)) {
+    throw new Error('hotswap.rollout.optInAllowlist must be an array of strings when provided.');
+  }
   const optInAllowlist = Array.isArray(rollout.optInAllowlist)
-    ? rollout.optInAllowlist.map((entry) => String(entry || '').trim()).filter(Boolean)
+    ? rollout.optInAllowlist.map((entry, index) => {
+      if (typeof entry !== 'string') {
+        throw new Error(`hotswap.rollout.optInAllowlist[${index}] must be a string.`);
+      }
+      const normalized = entry.trim();
+      if (!normalized) {
+        throw new Error(`hotswap.rollout.optInAllowlist[${index}] must not be empty.`);
+      }
+      return normalized;
+    })
     : [];
   return {
-    mode,
+    mode: rawMode,
     canaryPercent,
     cohortSalt,
     optInAllowlist,

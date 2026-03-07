@@ -9,6 +9,19 @@
   "extends": "default",
   "runtime": {
     "inference": {
+      "compute": {
+        "activationDtype": "f32"
+      },
+      "kvcache": {
+        "kvDtype": "f32"
+      },
+      "session": {
+        "compute": {
+          "defaults": {
+            "outputDtype": "f32"
+          }
+        }
+      },
       "kernelPath": "gemma2-q4k-dequant-f32a",
       "kernelPathPolicy": {
         "mode": "capability-aware",
