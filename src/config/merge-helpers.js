@@ -110,20 +110,42 @@ function normalizeKernelPathPolicyOnIncompatible(value) {
   );
 }
 
-function assertKernelPathPolicyObject(value) {
-  if (value == null) {
+function assertKernelPathPolicyObject(value, label) {
+  if (value === undefined) {
     return;
+  }
+  if (value === null) {
+    throw new Error(`DopplerConfigError: ${label} must not be null.`);
   }
   if (typeof value !== 'object' || Array.isArray(value)) {
     throw new Error(
-      'DopplerConfigError: runtime.inference.kernelPathPolicy must be an object.'
+      `DopplerConfigError: ${label} must be an object.`
+    );
+  }
+}
+
+function assertKernelPathPolicySourceAliasesCompatible(policy, label) {
+  if (!policy || policy.sourceScope === undefined || policy.allowSources === undefined) {
+    return;
+  }
+
+  const sourceScope = normalizeKernelPathPolicySourceScope(policy.sourceScope);
+  const allowSources = normalizeKernelPathPolicySourceScope(policy.allowSources);
+  const aliasesMatch = sourceScope.length === allowSources.length
+    && sourceScope.every((value, index) => value === allowSources[index]);
+
+  if (!aliasesMatch) {
+    throw new Error(
+      `DopplerConfigError: ${label}.sourceScope and ${label}.allowSources must match exactly when both are provided.`
     );
   }
 }
 
 export function mergeKernelPathPolicy(basePolicy, overridePolicy) {
-  assertKernelPathPolicyObject(basePolicy);
-  assertKernelPathPolicyObject(overridePolicy);
+  assertKernelPathPolicyObject(basePolicy, 'runtime.inference.kernelPathPolicy');
+  assertKernelPathPolicyObject(overridePolicy, 'runtime.inference.kernelPathPolicy');
+  assertKernelPathPolicySourceAliasesCompatible(basePolicy, 'runtime.inference.kernelPathPolicy');
+  assertKernelPathPolicySourceAliasesCompatible(overridePolicy, 'runtime.inference.kernelPathPolicy');
   const base = basePolicy ?? {};
   const override = overridePolicy ?? {};
   const sourceScope = normalizeKernelPathPolicySourceScope(

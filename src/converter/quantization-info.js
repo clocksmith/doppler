@@ -167,9 +167,16 @@ const Q4K_LAYOUT_ALIASES = {
 };
 
 export function normalizeQ4KLayout(value) {
-  if (!value) return null;
-  const lower = String(value).toLowerCase().replace(/_/g, '');
-  return Q4K_LAYOUT_ALIASES[lower] ?? null;
+  if (value == null) return null;
+  const lower = String(value).trim().toLowerCase().replace(/_/g, '');
+  if (!lower) return null;
+  const normalized = Q4K_LAYOUT_ALIASES[lower];
+  if (!normalized) {
+    throw new Error(
+      `converter.quantization.q4kLayout must be "row" or "col"; got ${JSON.stringify(value)}.`
+    );
+  }
+  return normalized;
 }
 
 export function buildQuantizationInfo(

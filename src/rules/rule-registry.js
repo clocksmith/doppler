@@ -3,6 +3,24 @@ import { buildInferenceExecutionRulesContractArtifact } from './execution-rules-
 import { buildLayerPatternContractArtifact } from './layer-pattern-contract-check.js';
 import { loadJson } from '../utils/load-json.js';
 
+function cloneRuleValue(value) {
+  if (typeof structuredClone === 'function') {
+    return structuredClone(value);
+  }
+  return JSON.parse(JSON.stringify(value));
+}
+
+function deepFreeze(value, seen = new WeakSet()) {
+  if (!value || typeof value !== 'object' || seen.has(value)) {
+    return value;
+  }
+  seen.add(value);
+  for (const entry of Object.values(value)) {
+    deepFreeze(entry, seen);
+  }
+  return Object.freeze(value);
+}
+
 const attentionRules = await loadJson('./kernels/attention.rules.json', import.meta.url, 'Failed to load rules');
 const conv2dRules = await loadJson('./kernels/conv2d.rules.json', import.meta.url, 'Failed to load rules');
 const depthwiseConv2dRules = await loadJson('./kernels/depthwise-conv2d.rules.json', import.meta.url, 'Failed to load rules');
@@ -160,7 +178,7 @@ export function registerRuleGroup(domain, group, rules) {
   if (!RULE_SETS[domain]) {
     RULE_SETS[domain] = {};
   }
-  RULE_SETS[domain][group] = rules;
+  RULE_SETS[domain][group] = deepFreeze(cloneRuleValue(rules));
 }
 
 export function getInferenceExecutionRulesContractArtifact() {
@@ -212,4 +230,10 @@ function applyTemplate(template, context) {
     }
     return String(context[key]);
   });
+}
+
+for (const domainRules of Object.values(RULE_SETS)) {
+  for (const rules of Object.values(domainRules)) {
+    deepFreeze(rules);
+  }
 }

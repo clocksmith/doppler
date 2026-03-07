@@ -1,4 +1,4 @@
-import { acquireBuffer } from '../../memory/buffer-pool.js';
+import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor, dtypeBytes } from '../tensor.js';
 import { unifiedKernelWrapper } from './utils.js';
 import { selectRuleValue } from './rule-registry.js';
@@ -32,23 +32,31 @@ async function _repeatChannels(target, input, options = {}) {
   const bytesPerElement = dtypeBytes(input.dtype);
   const outputSize = outChannels * height * width * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'repeat_channels_output');
+  const ownedOutput = outputBuffer ? null : output;
 
-  await unifiedKernelWrapper(
-    'repeat_channels',
-    target,
-    variant,
-    [input, output],
-    {
-      in_channels: inChannels,
-      height,
-      width,
-      repeats,
-      _pad0: 0,
-    },
-    [Math.ceil((height * width) / WORKGROUP_SIZES.DEFAULT), outChannels, 1]
-  );
+  try {
+    await unifiedKernelWrapper(
+      'repeat_channels',
+      target,
+      variant,
+      [input, output],
+      {
+        in_channels: inChannels,
+        height,
+        width,
+        repeats,
+        _pad0: 0,
+      },
+      [Math.ceil((height * width) / WORKGROUP_SIZES.DEFAULT), outChannels, 1]
+    );
 
-  return createTensor(output, input.dtype, [outChannels, height, width], 'repeat_channels_output');
+    return createTensor(output, input.dtype, [outChannels, height, width], 'repeat_channels_output');
+  } catch (error) {
+    if (ownedOutput) {
+      releaseBuffer(ownedOutput);
+    }
+    throw error;
+  }
 }
 
 export async function runRepeatChannels(input, options = {}) {

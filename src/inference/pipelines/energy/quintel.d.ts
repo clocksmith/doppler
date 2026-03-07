@@ -84,4 +84,9 @@ export function mergeQuintelConfig(
   override?: Partial<QuintelEnergyConfig> | null
 ): QuintelEnergyConfig;
 
+export function buildQuintelKernelFlags(
+  rules: Partial<QuintelRuleConfig> | null | undefined,
+  binarizeWeight?: number
+): number;
+
 export function runQuintelEnergyLoop(options: QuintelEnergyLoopOptions): QuintelEnergyLoopResult;

@@ -97,4 +97,40 @@ assert.throws(
   );
 }
 
+{
+  const builtInRules = getRuleSet('inference', 'execution', 'decodeRecorderEnabled');
+  assert.equal(Object.isFrozen(builtInRules), true);
+  assert.equal(Object.isFrozen(builtInRules[0]), true);
+  assert.throws(
+    () => {
+      builtInRules[0].value = false;
+    },
+    /read only|Cannot assign to read only property/i
+  );
+}
+
+{
+  const domain = 'unit_test_rules_immutable_registration';
+  const rules = {
+    directive: [
+      {
+        match: { kind: 'before' },
+        value: 'first',
+      },
+      {
+        match: {},
+        value: 'fallback',
+      },
+    ],
+  };
+
+  registerRuleGroup(domain, 'templates', rules);
+  rules.directive[0].value = 'mutated-after-register';
+
+  assert.equal(
+    selectRuleValue(domain, 'templates', 'directive', { kind: 'before' }),
+    'first'
+  );
+}
+
 console.log('rule-registry.test: ok');

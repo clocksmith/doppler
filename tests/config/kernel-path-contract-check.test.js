@@ -114,4 +114,15 @@ import { getKernelPathContractArtifact } from '../../src/config/kernel-path-load
   );
 }
 
+assert.throws(
+  () => extractKernelPathContractFacts({
+    registryId: 'ambiguous-alias-entry',
+    entries: [
+      { id: 'ambiguous', file: 'ambiguous.json', aliasOf: 'primary' },
+      { id: 'primary', file: 'primary.json' },
+    ],
+  }),
+  /must not include both file and aliasOf/
+);
+
 console.log('kernel-path-contract-check.test: ok');

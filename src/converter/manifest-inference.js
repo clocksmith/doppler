@@ -309,16 +309,7 @@ function resolveKernelPathFromPreset(presetInference, quantizationInfo, q4kLayou
   const weightLabel = weightKey ? `.${weightKey}` : '';
   let resolved = null;
   if (entry == null) {
-    if (weightKey) {
-      throw new Error(
-        `Preset kernelPaths${weightLabel} is missing. ` +
-        'Add an explicit quantization mapping or kernelPaths.default instead of relying on JS fallbacks.'
-      );
-    }
-    throw new Error(
-      'Preset kernelPaths requires quantizationInfo.weights to resolve defaultKernelPath. ' +
-      'Add kernelPaths.default or provide explicit quantizationInfo.weights.'
-    );
+    return presetInference?.kernelPath ?? null;
   }
 
   if (typeof entry === 'string') {

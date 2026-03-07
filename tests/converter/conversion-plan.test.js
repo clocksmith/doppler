@@ -198,6 +198,34 @@ const embeddingComputeF32Config = createConverterConfig({
 }
 
 {
+  assert.throws(
+    () => resolveConversionPlan({
+      rawConfig: {
+        model_type: 'gemma3_text',
+        architectures: ['Gemma3ForCausalLM'],
+        hidden_size: 640,
+        num_attention_heads: 4,
+        num_hidden_layers: 18,
+      },
+      tensors: [
+        { name: 'model.embed_tokens.weight', dtype: 'F16' },
+        { name: 'model.layers.0.self_attn.q_proj.weight', dtype: 'F16' },
+      ],
+      converterConfig: createConverterConfig({
+        quantization: {
+          weights: 'q4k',
+          q4kLayout: 'diagonal',
+        },
+      }),
+      modelKind: 'transformer',
+      architectureHint: 'Gemma3ForCausalLM',
+      architectureConfig: { headDim: 256 },
+    }),
+    /converter\.quantization\.q4kLayout must be "row" or "col"/
+  );
+}
+
+{
   const attentionKernelRef = buildKernelRefFromKernelEntry('attention_streaming_f16.wgsl', 'main');
   const executionOverrideConfig = createConverterConfig({
     inference: {
@@ -409,6 +437,13 @@ const embeddingComputeF32Config = createConverterConfig({
 
 {
   const invalidNonExecutionSessionDefaultsConfig = createConverterConfig({
+    quantization: {
+      weights: 'q4k',
+      embeddings: 'f16',
+      lmHead: 'f16',
+      computePrecision: 'f32',
+      q4kLayout: 'row',
+    },
     inference: {
       sessionDefaults: {
         compute: {

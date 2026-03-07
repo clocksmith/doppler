@@ -4,6 +4,17 @@ let cachedRegistry = null;
 
 let registryUrl = null;
 
+function deepFreeze(value, seen = new WeakSet()) {
+  if (!value || typeof value !== 'object' || seen.has(value)) {
+    return value;
+  }
+  seen.add(value);
+  for (const entry of Object.values(value)) {
+    deepFreeze(entry, seen);
+  }
+  return Object.freeze(value);
+}
+
 export function setRegistryUrl(url) {
   registryUrl = url;
   cachedRegistry = null;
@@ -15,7 +26,9 @@ export async function getRegistry() {
   }
 
   const source = registryUrl || './registry.json';
-  cachedRegistry = await loadJson(source, import.meta.url, 'Failed to load kernel registry');
+  cachedRegistry = deepFreeze(
+    await loadJson(source, import.meta.url, 'Failed to load kernel registry')
+  );
   return cachedRegistry;
 }
 
