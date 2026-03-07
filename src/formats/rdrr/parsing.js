@@ -44,9 +44,13 @@ export function parseManifest(jsonString) {
 export function parseTensorMap(jsonString) {
   try {
     const tensorMap = JSON.parse(jsonString);
+    const normalizedTensorMap = {};
 
     for (const [name, loc] of Object.entries(tensorMap)) {
-      if (typeof loc.shard !== 'number') {
+      const shardIndex = typeof loc.shardIndex === 'number'
+        ? loc.shardIndex
+        : loc.shard;
+      if (typeof shardIndex !== 'number') {
         throw new Error(`Tensor '${name}' missing shard index`);
       }
       if (typeof loc.offset !== 'number') {
@@ -61,9 +65,42 @@ export function parseTensorMap(jsonString) {
       if (typeof loc.role !== 'string') {
         throw new Error(`Tensor '${name}' missing role`);
       }
+
+      let spans = undefined;
+      if (loc.spans !== undefined) {
+        if (!Array.isArray(loc.spans)) {
+          throw new Error(`Tensor '${name}' has invalid spans array`);
+        }
+        spans = loc.spans.map((span, spanIndex) => {
+          const spanShardIndex = typeof span?.shardIndex === 'number'
+            ? span.shardIndex
+            : span?.shard;
+          if (typeof spanShardIndex !== 'number') {
+            throw new Error(`Tensor '${name}' span[${spanIndex}] missing shard index`);
+          }
+          if (typeof span?.offset !== 'number') {
+            throw new Error(`Tensor '${name}' span[${spanIndex}] missing offset`);
+          }
+          if (typeof span?.size !== 'number') {
+            throw new Error(`Tensor '${name}' span[${spanIndex}] missing size`);
+          }
+          return {
+            shardIndex: spanShardIndex,
+            offset: span.offset,
+            size: span.size,
+          };
+        });
+      }
+
+      normalizedTensorMap[name] = {
+        ...loc,
+        shard: shardIndex,
+        shardIndex,
+        spans,
+      };
     }
 
-    return tensorMap;
+    return normalizedTensorMap;
   } catch (e) {
     if (e instanceof Error && e.message.includes('Tensor')) {
       throw e;

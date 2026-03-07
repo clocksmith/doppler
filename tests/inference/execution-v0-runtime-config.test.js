@@ -94,6 +94,76 @@ function kernelRef(kernel, entry = 'main') {
 {
   const runtimeConfig = {
     inference: {
+      session: {
+        compute: {
+          defaults: {
+            mathDtype: 'f32',
+          },
+        },
+      },
+    },
+  };
+  const manifest = {
+    modelId: 'runtime-session-override-model',
+    architecture: { numLayers: 2 },
+    inference: {
+      schema: 'doppler.execution/v0',
+      sessionDefaults: {
+        compute: {
+          defaults: {
+            activationDtype: 'f16',
+            mathDtype: 'f16',
+            accumDtype: 'f32',
+            outputDtype: 'f16',
+          },
+          kernelProfiles: [
+            { kernelRef: kernelRef('attention_streaming_f16.wgsl', 'main') },
+          ],
+        },
+        kvcache: {
+          kvDtype: 'f16',
+        },
+        decodeLoop: null,
+      },
+      execution: {
+        steps: [
+          {
+            id: 'attn',
+            phase: 'both',
+            section: 'layer',
+            op: 'attention',
+            src: 'state',
+            dst: 'state',
+            layers: 'all',
+            kernel: 'attention_streaming_f16.wgsl',
+            kernelRef: kernelRef('attention_streaming_f16.wgsl', 'main'),
+          },
+        ],
+        policies: {
+          precisionPrecedence: 'step_then_kernel_profile_then_session_default',
+          unsupportedPrecision: 'error',
+          dtypeTransition: 'require_cast_step',
+          unresolvedKernel: 'error',
+        },
+      },
+    },
+  };
+
+  const resolved = applyExecutionV0RuntimeConfig({ runtimeConfig, manifest });
+  assert.ok(resolved.executionV0State);
+  assert.equal(
+    resolved.executionV0State.sessionDefaults.compute.defaults.mathDtype,
+    'f32'
+  );
+  assert.equal(
+    resolved.executionV0State.resolvedSources.session['sessionDefaults.compute.defaults.mathDtype'].source,
+    'runtime.session'
+  );
+}
+
+{
+  const runtimeConfig = {
+    inference: {
       kernelPath: 'gemma3-f16-fused-f32a-online',
       kernelPathSource: 'config',
     },
@@ -186,6 +256,7 @@ function kernelRef(kernel, entry = 'main') {
         kvcache: {
           kvDtype: 'f16',
         },
+        decodeLoop: null,
       },
       execution: {
         steps: [
@@ -220,6 +291,64 @@ function kernelRef(kernel, entry = 'main') {
   assert.ok(resolved.executionV0State);
   assert.equal(resolved.runtimeConfig.inference.kvcache.kvDtype, 'f16');
   assert.equal(resolved.runtimeConfig.inference.kernelPath.kvDtype, 'f16');
+}
+
+{
+  const runtimeConfig = createDopplerConfig().runtime;
+  const manifest = {
+    modelId: 'execution-v0-disable-command-batching-manifest',
+    architecture: { numLayers: 1 },
+    inference: {
+      schema: 'doppler.execution/v0',
+      sessionDefaults: {
+        compute: {
+          defaults: {
+            activationDtype: 'f16',
+            mathDtype: 'f16',
+            accumDtype: 'f32',
+            outputDtype: 'f16',
+          },
+          kernelProfiles: [
+            { kernelRef: kernelRef('attention_streaming_f16.wgsl', 'main') },
+          ],
+        },
+        kvcache: {
+          kvDtype: 'f16',
+        },
+        decodeLoop: {
+          batchSize: 4,
+          stopCheckMode: 'batch',
+          readbackInterval: 1,
+          disableCommandBatching: true,
+        },
+      },
+      execution: {
+        steps: [
+          {
+            id: 'attn',
+            phase: 'both',
+            section: 'layer',
+            op: 'attention',
+            src: 'state',
+            dst: 'state',
+            layers: 'all',
+            kernel: 'attention_streaming_f16.wgsl',
+            kernelRef: kernelRef('attention_streaming_f16.wgsl', 'main'),
+          },
+        ],
+        policies: {
+          precisionPrecedence: 'step_then_kernel_profile_then_session_default',
+          unsupportedPrecision: 'error',
+          dtypeTransition: 'require_cast_step',
+          unresolvedKernel: 'error',
+        },
+      },
+    },
+  };
+
+  const resolved = applyExecutionV0RuntimeConfig({ runtimeConfig, manifest });
+  assert.ok(resolved.executionV0State);
+  assert.equal(resolved.runtimeConfig.inference.generation.disableCommandBatching, true);
 }
 
 {

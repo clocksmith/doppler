@@ -7,6 +7,25 @@ description: Convert GGUF or SafeTensors assets into Doppler RDRR manifests/shar
 
 Use this skill to add or re-convert models for Doppler runtime.
 
+## Mandatory Style Guides
+
+Read these before non-trivial conversion or manifest-contract changes:
+- `docs/style/general-style-guide.md`
+- `docs/style/javascript-style-guide.md`
+- `docs/style/config-style-guide.md`
+- `docs/style/command-interface-design-guide.md`
+
+## Developer Guide Routing
+
+For additive or extension-oriented conversion work, also open:
+- `docs/developer-guides/README.md`
+
+Then route to the matching playbook:
+- new checked-in conversion recipe: `docs/developer-guides/04-conversion-config.md`
+- model-preset or family onboarding needed before conversion works: `docs/developer-guides/03-model-preset.md` or `docs/developer-guides/composite-model-family.md`
+- publication or curated metadata work: `docs/developer-guides/05-promote-model-artifact.md`
+- new quantization/runtime artifact format: `docs/developer-guides/14-quantization-format.md`
+
 ## Execution Plane Contract
 
 - JSON is the conversion contract (presets, manifests, converter config).
@@ -124,7 +143,8 @@ When conversion quality is in question, follow `AGENTS.md` triage protocol:
 - `src/tooling/node-converter.js`
 - `src/converter/core.js`
 - `src/converter/conversion-plan.js`
-- `docs/formats.md`
+- `docs/rdrr-format.md`
+- `docs/developer-guides/README.md`
 - `AGENTS.md`
 
 ## Related Skills

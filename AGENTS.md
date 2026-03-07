@@ -10,10 +10,31 @@ Repository: https://github.com/clocksmith/doppler
 
 1. **[General Style Guide](docs/style/general-style-guide.md)**
 2. **[JavaScript Guide](docs/style/javascript-style-guide.md)**
-3. **[WGSL Guide](docs/style/wgsl-style-guide.md)**
-4. **[Command Interface Design Guide](docs/style/command-interface-design-guide.md)**
+3. **[Config Style Guide](docs/style/config-style-guide.md)**
 
 These guides define performance and architecture invariants. Do not bypass them.
+
+### Skill-Specific Style Guide Reads
+
+Baseline for all coding tasks:
+- `docs/style/general-style-guide.md`
+- `docs/style/javascript-style-guide.md`
+- `docs/style/config-style-guide.md`
+
+Add by task/skill:
+- `doppler-kernel-reviewer`
+  - mandatory: `docs/style/general-style-guide.md`, `docs/style/javascript-style-guide.md`, `docs/style/wgsl-style-guide.md`
+  - also read `docs/style/config-style-guide.md` when review touches rule selection, dtype policy, or kernel-path metadata
+- `doppler-debug`
+  - mandatory: `docs/style/general-style-guide.md`, `docs/style/javascript-style-guide.md`, `docs/style/config-style-guide.md`, `docs/style/command-interface-design-guide.md`, `docs/style/harness-style-guide.md`
+- `doppler-bench`
+  - mandatory: `docs/style/general-style-guide.md`, `docs/style/javascript-style-guide.md`, `docs/style/config-style-guide.md`, `docs/style/command-interface-design-guide.md`, `docs/style/harness-style-guide.md`, `docs/style/benchmark-style-guide.md`
+- `doppler-perf-squeeze`
+  - mandatory: `docs/style/general-style-guide.md`, `docs/style/javascript-style-guide.md`, `docs/style/config-style-guide.md`, `docs/style/harness-style-guide.md`, `docs/style/benchmark-style-guide.md`
+  - also read `docs/style/wgsl-style-guide.md` for shader changes
+  - also read `docs/style/command-interface-design-guide.md` when changing `bench`/`debug` command behavior
+- `doppler-convert`
+  - mandatory: `docs/style/general-style-guide.md`, `docs/style/javascript-style-guide.md`, `docs/style/config-style-guide.md`, `docs/style/command-interface-design-guide.md`
 
 ### Agent Enforcement
 
@@ -25,6 +46,24 @@ These guides define performance and architecture invariants. Do not bypass them.
 - Any change that could silently rewrite manifest/runtime behavior must either:
   - fail fast with an actionable error, or
   - add a regression test proving the rewrite cannot occur silently.
+
+### Developer Guides (Required For Extension Work)
+
+- `docs/developer-guides/` is the canonical task-oriented playbook layer for extension work.
+- These guides are operational checklists, not the normative contract layer.
+- Normative rules still live in `AGENTS.md`, `docs/style/*.md`, `docs/config.md`, `docs/conversion-runtime-contract.md`, and other core contract docs.
+
+When the task is additive or extension-oriented, open `docs/developer-guides/README.md` and the matching guide before editing. This applies to work such as:
+- adding or changing runtime presets, model presets, conversion configs, or kernel-path presets
+- adding manifest/runtime fields, chat template formatters, sampling knobs, activations, or kernels
+- adding commands, attention variants, quantization formats, or KV-cache layouts
+- onboarding a new model family or pipeline family
+
+Use the developer guides to decide:
+- what to touch
+- in what order to touch it
+- how to verify it
+- what the common misses are
 
 ### Directory Structure
 
@@ -67,9 +106,10 @@ doppler/
 ### Before Starting
 
 - Read `docs/architecture.md` for system overview.
-- Read `docs/formats.md` for RDRR format constraints.
+- Read `docs/rdrr-format.md` for RDRR format constraints.
 - Review `src/inference/pipelines/text.js` for inference flow.
 - Review `src/tooling/command-api.js` for command parity contract.
+- For extension work, read `docs/developer-guides/README.md` and the matching guide in `docs/developer-guides/`.
 
 ### Command Surfaces (1:1 Contract)
 

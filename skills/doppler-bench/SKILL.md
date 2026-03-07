@@ -7,6 +7,28 @@ description: Run Doppler and vendor benchmark workflows, capture reproducible JS
 
 Use this skill for repeatable performance measurement and cross-product comparisons.
 
+## Mandatory Style Guides
+
+Read these before non-trivial edits or benchmark-methodology changes:
+- `docs/style/general-style-guide.md`
+- `docs/style/javascript-style-guide.md`
+- `docs/style/config-style-guide.md`
+- `docs/style/command-interface-design-guide.md`
+- `docs/style/harness-style-guide.md`
+- `docs/style/benchmark-style-guide.md`
+
+## Developer Guide Routing
+
+When benchmark work becomes extension work, also open:
+- `docs/developer-guides/README.md`
+
+Common routes:
+- tuning or adding execution identities: `docs/developer-guides/06-kernel-path-preset.md`
+- kernel-level perf changes: `docs/developer-guides/11-wgsl-kernel.md`
+- attention-path throughput work: `docs/developer-guides/13-attention-variant.md`
+- cache/layout throughput work: `docs/developer-guides/15-kvcache-layout.md`
+- command-surface or harness-contract additions: `docs/developer-guides/12-command-surface.md`
+
 ## Execution Plane Contract
 
 - JSON governs benchmark policy and engine selection (`runtimeConfig`, presets, rule assets).
@@ -47,7 +69,7 @@ npm run bench -- --config '{"request":{"modelId":"MODEL_ID","runtimePreset":"exp
 ```
 
 Notes:
-- `bench` defaults to browser surface and persistent Chromium profile.
+- `bench` defaults to `--surface auto`; set `run.surface="browser"` when you explicitly want the browser relay.
 - Saved artifacts go to `benchmarks/vendors/results/` when `--save` is used.
 - For instrumentation-heavy investigation, run `debug` with `request.runtimePreset="experiments/gemma3-profile"`.
 
@@ -109,6 +131,7 @@ node tools/vendor-bench.js gap --base doppler --target transformersjs
 - `benchmarks/vendors/registry.json`
 - `benchmarks/vendors/capabilities.json`
 - `benchmarks/vendors/results/`
+- `docs/developer-guides/README.md`
 
 ## Related Skills
 

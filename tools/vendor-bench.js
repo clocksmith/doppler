@@ -16,6 +16,8 @@ const REGISTRY_PATH = path.join(REGISTRY_DIR, 'registry.json');
 const WORKLOADS_PATH = path.join(REGISTRY_DIR, 'workloads.json');
 const CAPABILITIES_PATH = path.join(REGISTRY_DIR, 'capabilities.json');
 const COMPARE_CONFIG_PATH = path.join(REGISTRY_DIR, 'compare-engines.config.json');
+const COMPARE_METRIC_CONTRACT_PATH = path.join(REGISTRY_DIR, 'compare-metrics.json');
+const BENCHMARK_POLICY_PATH = path.join(REGISTRY_DIR, 'benchmark-policy.json');
 const MODEL_CATALOG_PATH = path.join(ROOT_DIR, 'models', 'catalog.json');
 const RESULTS_DIR = path.join(REGISTRY_DIR, 'results');
 const FIXTURES_DIR = path.join(REGISTRY_DIR, 'fixtures');
@@ -24,6 +26,7 @@ const REGISTRY_SCHEMA_PATH = path.join(SCHEMA_DIR, 'registry.schema.json');
 const WORKLOADS_SCHEMA_PATH = path.join(SCHEMA_DIR, 'workloads.schema.json');
 const CAPABILITIES_SCHEMA_PATH = path.join(SCHEMA_DIR, 'capabilities.schema.json');
 const COMPARE_CONFIG_SCHEMA_PATH = path.join(SCHEMA_DIR, 'compare-engines-config.schema.json');
+const COMPARE_METRIC_CONTRACT_SCHEMA_PATH = path.join(SCHEMA_DIR, 'metric-contract.schema.json');
 const HARNESS_SCHEMA_PATH = path.join(SCHEMA_DIR, 'harness.schema.json');
 const RESULT_SCHEMA_PATH = path.join(SCHEMA_DIR, 'result.schema.json');
 const RELEASE_MATRIX_SCHEMA_PATH = path.join(SCHEMA_DIR, 'release-matrix.schema.json');
@@ -1255,6 +1258,12 @@ async function hashJsonBytes(value) {
   return { bytes: bytes.length, sha256: digest };
 }
 
+function hashTextBytes(text) {
+  const bytes = Buffer.from(String(text), 'utf8');
+  const digest = crypto.createHash('sha256').update(bytes).digest('hex');
+  return { bytes: bytes.length, sha256: digest };
+}
+
 function resolveGitReleaseMetadata() {
   const commit = spawnSync('git', ['rev-parse', 'HEAD'], {
     cwd: ROOT_DIR,
@@ -1403,6 +1412,24 @@ async function loadCompareConfigBundle() {
     throw new Error('compare-engines.config.json modelProfiles must be an array');
   }
   return compareConfig;
+}
+
+async function loadCompareMetricBundle() {
+  const raw = await fs.readFile(COMPARE_METRIC_CONTRACT_PATH, 'utf8');
+  const compareMetricContract = JSON.parse(raw);
+  await assertMatchesSchema(
+    compareMetricContract,
+    COMPARE_METRIC_CONTRACT_SCHEMA_PATH,
+    'compare-metrics.json'
+  );
+  const metrics = Array.isArray(compareMetricContract?.metrics) ? compareMetricContract.metrics : [];
+  return {
+    path: toPosixRelative(COMPARE_METRIC_CONTRACT_PATH),
+    sourceSha256: hashTextBytes(raw).sha256,
+    metricIds: metrics
+      .map((entry) => (typeof entry?.id === 'string' ? entry.id.trim() : ''))
+      .filter(Boolean),
+  };
 }
 
 async function loadModelCatalogBundle() {
@@ -1732,7 +1759,7 @@ function summarizeCompareEngineEnvironment(payload, engineId) {
   };
 }
 
-async function maybeLoadCompareResultSummary(compareResultPath) {
+async function maybeLoadCompareResultSummary(compareResultPath, compareMetricIds = null) {
   if (!compareResultPath) return null;
   const resolved = path.resolve(compareResultPath);
   const repoPath = toPosixRelative(resolved);
@@ -1741,6 +1768,7 @@ async function maybeLoadCompareResultSummary(compareResultPath) {
     throw new Error(`compare result not found: ${compareResultPath}`);
   }
   const report = await readJson(resolved);
+  await assertCompareArtifactContracts(report, resolved);
   const runtimeFallback = inferRuntimeFallbackFromArtifactPath(repoPath);
   const section = resolveCompareSection(report);
   const dopplerPayload = resolveCompareEnginePayload(section?.payload, 'doppler');
@@ -1825,7 +1853,9 @@ async function maybeLoadCompareResultSummary(compareResultPath) {
   ) {
     gpuEnvironment.description = runtimeFallback.gpu.description;
   }
-  const metricIds = ['decodeTokensPerSec', 'firstTokenMs', 'firstResponseMs', 'modelLoadMs'];
+  const metricIds = Array.isArray(compareMetricIds) && compareMetricIds.length > 0
+    ? compareMetricIds
+    : ['decodeTokensPerSec', 'firstTokenMs', 'firstResponseMs', 'modelLoadMs'];
   const metrics = {};
   for (const metricId of metricIds) {
     metrics[metricId] = {
@@ -1996,6 +2026,7 @@ function selectLatestCompareResult(compareResults) {
 
 async function loadCompareResultSummaries(options = {}) {
   const compareResultFlag = options.compareResultFlag ?? null;
+  const compareMetricIds = Array.isArray(options.compareMetricIds) ? options.compareMetricIds : null;
   const includeLocalResults = options.includeLocalResults === true;
   const strictCompareArtifacts = options.strictCompareArtifacts === true;
   const candidateEntries = await listCompareResultCandidateEntries({ includeLocalResults });
@@ -2018,7 +2049,7 @@ async function loadCompareResultSummaries(options = {}) {
   for (const candidateEntry of [...candidateMap.values()].sort((left, right) => left.absolutePath.localeCompare(right.absolutePath))) {
     const candidatePath = candidateEntry.absolutePath;
     try {
-      const summary = await maybeLoadCompareResultSummary(candidatePath);
+      const summary = await maybeLoadCompareResultSummary(candidatePath, compareMetricIds);
       if (!summary) continue;
       summary.origin = candidateEntry.origin || resolveCompareArtifactOrigin(candidatePath);
       summaries.push(summary);
@@ -2055,6 +2086,64 @@ async function loadCompareResultSummaries(options = {}) {
     latestCompareResult: preferredSummary || selectLatestCompareResult(summaries),
     droppedCompareArtifacts,
   };
+}
+
+async function hashCompareArtifactSource(sourcePath) {
+  if (typeof sourcePath !== 'string' || sourcePath.trim() === '') {
+    throw new Error('compare artifact source path is required');
+  }
+  const absolutePath = path.isAbsolute(sourcePath)
+    ? sourcePath
+    : path.resolve(ROOT_DIR, sourcePath);
+  if (!(await fileExists(absolutePath))) {
+    throw new Error(`compare artifact source is missing: ${sourcePath}`);
+  }
+  const raw = await fs.readFile(absolutePath, 'utf8');
+  const hashInfo = hashTextBytes(raw);
+  return {
+    absolutePath,
+    sha256: hashInfo.sha256,
+  };
+}
+
+async function assertCompareArtifactContracts(report, compareResultPath) {
+  const checks = [
+    {
+      label: 'compareConfig',
+      source: report?.compareConfig?.source,
+      sourceSha256: report?.compareConfig?.sourceSha256,
+    },
+    {
+      label: 'metricContract',
+      source: report?.metricContract?.source,
+      sourceSha256: report?.metricContract?.sourceSha256,
+    },
+    {
+      label: 'dopplerHarness',
+      source: report?.harnesses?.doppler?.source,
+      sourceSha256: report?.harnesses?.doppler?.sourceSha256,
+    },
+    {
+      label: 'transformersjsHarness',
+      source: report?.harnesses?.transformersjs?.source,
+      sourceSha256: report?.harnesses?.transformersjs?.sourceSha256,
+    },
+  ];
+  for (const check of checks) {
+    if (typeof check.source !== 'string' || check.source.trim() === '') {
+      throw new Error(`compare artifact ${compareResultPath} is missing ${check.label}.source`);
+    }
+    if (typeof check.sourceSha256 !== 'string' || check.sourceSha256.trim() === '') {
+      throw new Error(`compare artifact ${compareResultPath} is missing ${check.label}.sourceSha256`);
+    }
+    const current = await hashCompareArtifactSource(check.source);
+    if (current.sha256 !== check.sourceSha256) {
+      throw new Error(
+        `compare artifact ${compareResultPath} has stale ${check.label} hash `
+        + `(expected ${check.sourceSha256}, current ${current.sha256})`
+      );
+    }
+  }
 }
 
 function toMarkdownLinkHref(repoPath, markdownPath) {
@@ -2339,6 +2428,7 @@ async function doMatrix(flags, timestamp = null) {
   const { registry, workloads } = await loadRegistryBundle();
   const capabilities = await loadCapabilitiesBundle(registry);
   const compareConfig = await loadCompareConfigBundle();
+  const compareMetricBundle = await loadCompareMetricBundle();
   const catalog = await loadModelCatalogBundle();
 
   const compareResultFlag = flags['compare-result'] ?? null;
@@ -2358,6 +2448,7 @@ async function doMatrix(flags, timestamp = null) {
     droppedCompareArtifacts,
   } = await loadCompareResultSummaries({
     compareResultFlag,
+    compareMetricIds: compareMetricBundle.metricIds,
     includeLocalResults,
     strictCompareArtifacts,
   });
@@ -2461,8 +2552,13 @@ async function doMatrix(flags, timestamp = null) {
     ['workloads', WORKLOADS_PATH],
     ['capabilities', CAPABILITIES_PATH],
     ['compareConfig', COMPARE_CONFIG_PATH],
+    ['compareMetricContract', COMPARE_METRIC_CONTRACT_PATH],
+    ['benchmarkPolicy', BENCHMARK_POLICY_PATH],
     ['modelCatalog', MODEL_CATALOG_PATH],
   ];
+  for (const product of registry.products) {
+    sourceFiles.push([`harness:${product.id}`, path.join(REGISTRY_DIR, product.harness)]);
+  }
   for (const [key, filePath] of sourceFiles) {
     const payload = await readJson(filePath);
     const hashInfo = await hashJsonBytes(payload);

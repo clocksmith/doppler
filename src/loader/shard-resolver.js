@@ -37,7 +37,7 @@ export async function buildTensorLocations(manifest, options = {}) {
           throw new Error(`Tensor "${name}" missing role in tensors.json`);
         }
         locations.set(name, {
-          shardIndex: info.shard,
+          shardIndex: info.shardIndex ?? info.shard,
           offset: info.offset,
           size: info.size,
           shape: info.shape,

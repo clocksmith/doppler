@@ -38,10 +38,17 @@ function asOptionalTimestamp(value, label) {
   return Math.floor(parsed);
 }
 
-function asNonNegativeInteger(value, fallback) {
+function asOptionalNonNegativeInteger(value, label) {
+  if (value === undefined || value === null) {
+    return null;
+  }
   const parsed = Number(value);
   if (!Number.isInteger(parsed) || parsed < 0) {
-    return fallback;
+    throw createP2PTransportError(
+      P2P_TRANSPORT_ERROR_CODES.payloadInvalid,
+      `${label} must be a non-negative integer when provided.`,
+      { label }
+    );
   }
   return parsed;
 }
@@ -180,7 +187,10 @@ export function normalizeP2PControlPlaneConfig(config = {}) {
     contractVersion: assertSupportedP2PControlPlaneContract(
       raw.contractVersion ?? P2P_CONTROL_PLANE_CONTRACT_VERSION
     ),
-    tokenRefreshSkewMs: asNonNegativeInteger(raw.tokenRefreshSkewMs, DEFAULT_TOKEN_REFRESH_SKEW_MS),
+    tokenRefreshSkewMs: asOptionalNonNegativeInteger(
+      raw.tokenRefreshSkewMs,
+      'p2p.controlPlane.tokenRefreshSkewMs'
+    ) ?? DEFAULT_TOKEN_REFRESH_SKEW_MS,
     tokenProvider,
     policyEvaluator,
   };

@@ -860,3 +860,119 @@ function sessionDefaultsFor(kernels, activationDtype = 'f16') {
 
   assert.equal(compiled.resolvedSources.steps.attn['precision.outputDtype'].source, 'runtime.patch');
 }
+
+{
+  assert.throws(
+    () => compileExecutionV0({
+      modelId: 'missing-activation-dtype',
+      manifestInference: {
+        schema: 'doppler.execution/v0',
+        sessionDefaults: {
+          compute: {
+            defaults: {
+              activationDtype: null,
+              mathDtype: 'f16',
+              accumDtype: 'f32',
+              outputDtype: 'f16',
+            },
+            kernelProfiles: [
+              { kernelRef: kernelRef('attention_streaming_f16.wgsl', 'main') },
+            ],
+          },
+          kvcache: {
+            kvDtype: 'f16',
+          },
+          decodeLoop: null,
+        },
+        execution: {
+          steps: [
+            {
+              id: 'attn',
+              phase: 'both',
+              section: 'layer',
+              op: 'attention',
+              src: 'state',
+              dst: 'state',
+              layers: 'all',
+              kernel: 'attention_streaming_f16.wgsl',
+              kernelRef: kernelRef('attention_streaming_f16.wgsl', 'main'),
+            },
+          ],
+          policies: DEFAULT_POLICIES,
+        },
+      },
+    }),
+    /\[ExecutionV0\] sessionDefaults\.compute\.defaults\.activationDtype is required/
+  );
+}
+
+{
+  const sessionDefaults = sessionDefaultsFor([
+    { kernel: 'attention_streaming_f16.wgsl', entry: 'main' },
+  ]);
+  delete sessionDefaults.compute.defaults.activationDtype;
+
+  assert.throws(
+    () => compileExecutionV0({
+      modelId: 'missing-activation-dtype-key',
+      manifestInference: {
+        schema: 'doppler.execution/v0',
+        sessionDefaults,
+        execution: {
+          steps: [
+            {
+              id: 'attn',
+              phase: 'both',
+              section: 'layer',
+              op: 'attention',
+              src: 'state',
+              dst: 'state',
+              layers: 'all',
+              kernel: 'attention_streaming_f16.wgsl',
+              kernelRef: kernelRef('attention_streaming_f16.wgsl', 'main'),
+            },
+          ],
+          policies: DEFAULT_POLICIES,
+        },
+      },
+    }),
+    /\[ExecutionV0\] sessionDefaults\.compute\.defaults\.activationDtype is required/
+  );
+}
+
+{
+  const sessionDefaults = sessionDefaultsFor([
+    { kernel: 'attention_streaming_f16.wgsl', entry: 'main' },
+  ]);
+  sessionDefaults.decodeLoop = {
+    batchSize: 4,
+    stopCheckMode: 'batch',
+  };
+
+  assert.throws(
+    () => compileExecutionV0({
+      modelId: 'missing-decode-loop-readback-interval',
+      manifestInference: {
+        schema: 'doppler.execution/v0',
+        sessionDefaults,
+        execution: {
+          steps: [
+            {
+              id: 'attn',
+              phase: 'both',
+              section: 'layer',
+              op: 'attention',
+              src: 'state',
+              dst: 'state',
+              layers: 'all',
+              kernel: 'attention_streaming_f16.wgsl',
+              kernelRef: kernelRef('attention_streaming_f16.wgsl', 'main'),
+            },
+          ],
+          policies: DEFAULT_POLICIES,
+        },
+      },
+    }),
+    /\[ExecutionV0\] sessionDefaults\.decodeLoop\.readbackInterval must be a positive integer/
+  );
+}

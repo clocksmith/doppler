@@ -7,7 +7,10 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = path.resolve(__dirname, '..');
-const DEFAULT_ENTRY = 'src/index-browser.js';
+const DEFAULT_ENTRIES = Object.freeze([
+  'src/index-browser.js',
+  'src/tooling-exports.browser.js',
+]);
 const LOCAL_EXTENSIONS = Object.freeze(['.js', '.mjs', '.cjs']);
 const IMPORT_EXPORT_REGEX = /\b(?:import|export)\s+(?:[^'"]*?\sfrom\s*)?['"]([^'"]+)['"]/g;
 const DYNAMIC_IMPORT_REGEX = /\bimport\s*\(\s*['"]([^'"]+)['"]\s*\)/g;
@@ -120,18 +123,27 @@ async function scanImportGraph(entryFile) {
 }
 
 async function main() {
-  const entryFile = process.argv[2] || DEFAULT_ENTRY;
-  const issues = await scanImportGraph(entryFile);
-  if (issues.length > 0) {
-    console.error(`browser import graph check failed (${entryFile}):`);
-    for (const issue of issues) {
-      console.error(`- ${issue}`);
+  const entryFiles = process.argv.length > 2
+    ? process.argv.slice(2)
+    : DEFAULT_ENTRIES;
+  let failed = false;
+
+  for (const entryFile of entryFiles) {
+    const issues = await scanImportGraph(entryFile);
+    if (issues.length > 0) {
+      console.error(`browser import graph check failed (${entryFile}):`);
+      for (const issue of issues) {
+        console.error(`- ${issue}`);
+      }
+      failed = true;
+      continue;
     }
-    process.exitCode = 1;
-    return;
+    console.log(`browser import graph check passed (${entryFile})`);
   }
 
-  console.log(`browser import graph check passed (${entryFile})`);
+  if (failed) {
+    process.exitCode = 1;
+  }
 }
 
 await main();

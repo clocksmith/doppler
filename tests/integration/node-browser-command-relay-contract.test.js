@@ -2,12 +2,32 @@ import assert from 'node:assert/strict';
 import path from 'node:path';
 import { tmpdir } from 'node:os';
 
-import { runBrowserCommandInNode } from '../../src/tooling/node-browser-command-runner.js';
+import {
+  finalizeBrowserRelayResponse,
+  runBrowserCommandInNode,
+} from '../../src/tooling/node-browser-command-runner.js';
 
 const KERNELS_REQUEST = {
   command: 'verify',
   suite: 'kernels',
 };
+
+{
+  const response = finalizeBrowserRelayResponse({
+    ok: true,
+    schemaVersion: 1,
+    surface: 'browser',
+    request: {
+      ...KERNELS_REQUEST,
+      loadMode: 'http',
+    },
+    result: {
+      passed: 1,
+      failed: 0,
+    },
+  }, KERNELS_REQUEST);
+  assert.deepEqual(response.request, KERNELS_REQUEST);
+}
 
 await assert.rejects(
   () => runBrowserCommandInNode({ ...KERNELS_REQUEST, keepPipeline: true }),
@@ -85,6 +105,20 @@ await assert.rejects(
   () => runBrowserCommandInNode({
     ...KERNELS_REQUEST,
     loadMode: 'opfs',
+    modelUrl: 'https://example.com/model',
+  }, {
+    baseUrl: 'http://127.0.0.1:1',
+    opfsCache: true,
+  }),
+  /browser command: loadMode=opfs requires modelId when modelUrl is provided/
+);
+
+await assert.rejects(
+  () => runBrowserCommandInNode({
+    ...KERNELS_REQUEST,
+    loadMode: 'opfs',
+    modelId: 'toy-model',
+    modelUrl: 'https://example.com/model',
   }, {
     baseUrl: 'http://127.0.0.1:1',
     opfsCache: false,
@@ -153,6 +187,10 @@ await assert.rejects(
       warnings.some((message) => message?.text?.includes('Persistent browser launch failed')),
       'expected persistent-launch warning to be emitted'
     );
+    assert.ok(
+      warnings.every((message) => !message?.text?.includes('falling back to non-persistent mode')),
+      'unexpected silent fallback-to-non-persistent warning'
+    );
   }
 }
 
@@ -162,6 +200,7 @@ await assert.rejects(
   await assert.rejects(
     () => runBrowserCommandInNode({
       ...KERNELS_REQUEST,
+      modelId: 'toy-model',
       modelUrl: 'https://example.com/model/',
     }, {
       baseUrl: 'http://127.0.0.1:1',
@@ -174,14 +213,18 @@ await assert.rejects(
     (error) => {
       const message = String(error?.message || error);
       failedWithUnsafePort = message.includes('ERR_UNSAFE_PORT');
-      return /browser command: failed to launch browser|ERR_UNSAFE_PORT/.test(message);
+      return /browser command: persistent browser context is required when OPFS cache is enabled; persistent launch failed\.|ERR_UNSAFE_PORT/.test(message);
     }
   );
 
   if (!failedWithUnsafePort) {
     assert.ok(
-      warnings.some((message) => message?.text?.includes('Persistent launch still failing; falling back to non-persistent mode.')),
-      'expected fallback-to-non-persistent warning to be emitted'
+      warnings.some((message) => message?.text?.includes('Persistent browser launch failed')),
+      'expected persistent-launch retry warning to be emitted'
+    );
+    assert.ok(
+      warnings.every((message) => !message?.text?.includes('falling back to non-persistent mode')),
+      'unexpected silent fallback-to-non-persistent warning'
     );
   }
 }

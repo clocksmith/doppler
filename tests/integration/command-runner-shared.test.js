@@ -416,6 +416,37 @@ function createRuntimeBridge(initialRuntime = {}) {
 }
 
 {
+  const runtime = createRuntimeBridge({
+    shared: {
+      debug: {
+        profiler: {
+          enabled: true,
+        },
+      },
+    },
+  });
+
+  await assert.rejects(
+    () => applyRuntimeInputs({
+      command: 'bench',
+      suite: 'bench',
+      intent: 'calibrate',
+      modelId: 'gemma-3-270m-it-wf16-ef16-hf16',
+      runtimeConfig: {
+        shared: {
+          benchmark: {
+            run: {
+              profile: true,
+            },
+          },
+        },
+      },
+    }, runtime.bridge),
+    /tooling command: calibrate intent forbids investigation instrumentation/
+  );
+}
+
+{
   await assert.rejects(
     () => applyRuntimeInputs({
       command: 'convert',

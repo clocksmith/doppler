@@ -17,6 +17,8 @@ import { sanitizeModelId } from './core.js';
 import { classifyTensorRole } from '../formats/rdrr/index.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
 import { buildKernelRefFromKernelEntry, isKernelRefBoundToKernel } from '../config/kernels/kernel-ref.js';
+import { mergeLayeredShallowObjects } from '../config/merge-helpers.js';
+import { buildExecutionV0ContractArtifact } from '../config/execution-v0-contract-check.js';
 
 const KNOWN_MODEL_PRESETS = new Set(listPresets());
 const CONVERSION_SUPPORTED_PRESETS = [...KNOWN_MODEL_PRESETS]
@@ -179,9 +181,6 @@ export function validateDefaultKernelPath(inference, context = {}) {
     && expectedComputeDtype !== kernelActivationDtype
   ) {
     const presetId = context?.presetId ?? 'unknown';
-    if (presetId === 'lfm2' && expectedComputeDtype === 'f32' && kernelActivationDtype === 'f16') {
-      return;
-    }
     throw new Error(
       `Invalid defaultKernelPath "${inference.defaultKernelPath}" for preset "${presetId}" ` +
       `(weights=${quantizationInfo?.weights ?? 'unknown'}, compute=${expectedComputeDtype}, ` +
@@ -206,6 +205,61 @@ function cloneJson(value) {
     return structuredClone(value);
   }
   return JSON.parse(JSON.stringify(value));
+}
+
+function mergeExecutionV0SessionDefaults(baseSessionDefaults, overrideSessionDefaults) {
+  if (!overrideSessionDefaults) {
+    return cloneJson(baseSessionDefaults);
+  }
+  const base = cloneJson(baseSessionDefaults ?? {});
+  const override = cloneJson(overrideSessionDefaults);
+  const baseCompute = base.compute ?? {};
+  const overrideCompute = override.compute ?? {};
+
+  return {
+    ...base,
+    ...override,
+    compute: {
+      ...baseCompute,
+      ...overrideCompute,
+      defaults: mergeLayeredShallowObjects(
+        baseCompute.defaults ?? {},
+        overrideCompute.defaults ?? {}
+      ),
+      kernelProfiles: Object.prototype.hasOwnProperty.call(overrideCompute, 'kernelProfiles')
+        ? overrideCompute.kernelProfiles
+        : baseCompute.kernelProfiles,
+    },
+    kvcache: Object.prototype.hasOwnProperty.call(override, 'kvcache')
+      ? (
+          override.kvcache === null
+            ? null
+            : mergeLayeredShallowObjects(base.kvcache ?? {}, override.kvcache ?? {})
+        )
+      : base.kvcache,
+    decodeLoop: Object.prototype.hasOwnProperty.call(override, 'decodeLoop')
+      ? (
+          override.decodeLoop === null
+            ? null
+            : mergeLayeredShallowObjects(base.decodeLoop ?? {}, override.decodeLoop ?? {})
+        )
+      : base.decodeLoop,
+  };
+}
+
+function assertExecutionV0ConversionContract(manifestInference, modelId) {
+  if (!manifestInference?.execution) {
+    return;
+  }
+  const artifact = buildExecutionV0ContractArtifact(manifestInference, {
+    modelId: modelId ?? 'converted-model',
+  });
+  if (!artifact?.ok) {
+    const detail = artifact?.errors?.join(' ') ?? 'unknown execution-v0 contract error';
+    throw new Error(
+      `converterConfig.inference produced an invalid execution-v0 contract: ${detail}`
+    );
+  }
 }
 
 function readConverterSessionDefaultsOverride(converterConfig) {
@@ -331,10 +385,10 @@ function applyConverterInferenceOverrides(manifestInference, converterConfig, co
     manifestInference.defaultKernelPath = overrideKernelPath;
   }
   const sessionDefaults = readConverterSessionDefaultsOverride(converterConfig);
+  const execution = readConverterExecutionOverride(converterConfig);
   if (sessionDefaults) {
     manifestInference.sessionDefaults = sessionDefaults;
   }
-  const execution = readConverterExecutionOverride(converterConfig);
   if (execution) {
     manifestInference.execution = execution;
   }
@@ -351,17 +405,27 @@ function applyConverterInferenceOverrides(manifestInference, converterConfig, co
     const generatedExecution = buildExecutionV0FromKernelPath(manifestInference.defaultKernelPath);
     if (generatedExecution) {
       manifestInference.execution = generatedExecution.execution;
-      if (!manifestInference.sessionDefaults) {
-        manifestInference.sessionDefaults = generatedExecution.sessionDefaults;
-      }
+      manifestInference.sessionDefaults = mergeExecutionV0SessionDefaults(
+        generatedExecution.sessionDefaults,
+        manifestInference.sessionDefaults
+      );
       manifestInference.schema = generatedExecution.schema;
     }
   }
 
-  if (manifestInference.execution || sessionDefaults || execution) {
+  if (execution && !sessionDefaults) {
+    throw new Error(
+      'converterConfig.inference.execution requires converterConfig.inference.sessionDefaults.'
+    );
+  }
+
+  if (manifestInference.execution) {
     manifestInference.schema = EXECUTION_V0_SCHEMA_ID;
+  } else {
+    manifestInference.schema = null;
   }
   validateDefaultKernelPath(manifestInference, context);
+  assertExecutionV0ConversionContract(manifestInference, context?.modelId ?? context?.presetId);
 }
 
 export function resolveConversionPlan(options) {

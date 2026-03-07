@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 
 const {
   downloadShard,
+  getSourceOrder,
   resolveShardDeliveryPlan,
   getInFlightShardDeliveryCount,
 } = await import('../../src/distribution/shard-delivery.js');
@@ -74,6 +75,11 @@ function toHex(value) {
 }
 
 try {
+  assert.throws(
+    () => getSourceOrder({ sourceOrder: ['cache', 'bogus'] }),
+    /distribution\.sourceOrder contains unsupported source/
+  );
+
   const deterministicPlanA = resolveShardDeliveryPlan({
     sourceOrder: ['cache', 'p2p', 'http'],
     enableSourceCache: false,
@@ -95,6 +101,38 @@ try {
     size: 4,
     hash: sha256Data.http,
   };
+
+  await assert.rejects(
+    () => downloadShard('https://example.com/models', 0, shardInfo, {
+      algorithm: 'sha256',
+      expectedManifestVersionSet: manifestVersionSet,
+      distributionConfig: {
+        sourceOrder: ['http'],
+        p2p: {
+          timeoutMs: 'fast',
+        },
+      },
+      writeToStore: false,
+    }),
+    /distribution\.p2p\.timeoutMs must be a positive integer/
+  );
+
+  await assert.rejects(
+    () => downloadShard('https://example.com/models', 0, shardInfo, {
+      algorithm: 'sha256',
+      expectedManifestVersionSet: manifestVersionSet,
+      distributionConfig: {
+        sourceOrder: ['http'],
+        sourceDecision: {
+          trace: {
+            samplingRate: 2,
+          },
+        },
+      },
+      writeToStore: false,
+    }),
+    /distribution\.sourceDecision\.trace\.samplingRate must be between 0 and 1/
+  );
 
   globalThis.fetch = async () => createResponse(httpData);
 

@@ -274,25 +274,57 @@ export class BufferPool {
       log.warn('BufferPool', 'Releasing buffer not tracked as active');
       return;
     }
+    this.#releaseTrackedBuffer(buffer, true);
+  }
 
+  
+  discard(buffer) {
+    if (!this.#activeBuffers.has(buffer)) {
+      log.warn('BufferPool', 'Discarding buffer not tracked as active');
+      return;
+    }
+    this.#releaseTrackedBuffer(buffer, false);
+  }
+
+  
+  isActiveBuffer(buffer) {
+    return this.#activeBuffers.has(buffer);
+  }
+
+  
+  getRequestedSize(buffer) {
+    return this.#requestedSizes.get(buffer) ?? buffer.size;
+  }
+
+  #destroyPendingBuffers() {
+    const pending = Array.from(this.#pendingDestruction);
+    this.#pendingDestruction.clear();
+    for (const buffer of pending) {
+      try {
+        buffer.destroy();
+      } catch (error) {
+        log.warn('BufferPool', `Pending buffer destroy failed: ${error?.message ?? error}`);
+      }
+    }
+  }
+
+  #releaseTrackedBuffer(buffer, allowPooling) {
     this.#activeBuffers.delete(buffer);
     const requestedSize = this.#requestedSizes.get(buffer) ?? 0;
     this.#stats.currentBytesRequested -= requestedSize;
     this.#requestedSizes.delete(buffer);
 
-    // Remove metadata in debug mode
     if (this.#debugMode) {
       this.#bufferMetadata.delete(buffer);
     }
 
-    if (!this.#config.enablePooling) {
+    if (!allowPooling || !this.#config.enablePooling) {
       this.#deferDestroy(buffer);
       this.#stats.currentBytesAllocated -= buffer.size;
       this.#traceRelease(buffer, requestedSize, false);
       return;
     }
 
-    // Return to pool if there's room
     const bucket = buffer.size;
     const usage = buffer.usage;
 
@@ -312,22 +344,11 @@ export class BufferPool {
       bucketPool.push(buffer);
       pooled = true;
     } else {
-      // Pool is full; defer destruction until GPU work completes.
       this.#deferDestroy(buffer);
       this.#stats.currentBytesAllocated -= buffer.size;
     }
 
     this.#traceRelease(buffer, requestedSize, pooled);
-  }
-
-  
-  isActiveBuffer(buffer) {
-    return this.#activeBuffers.has(buffer);
-  }
-
-  
-  getRequestedSize(buffer) {
-    return this.#requestedSizes.get(buffer) ?? buffer.size;
   }
 
   
@@ -339,27 +360,21 @@ export class BufferPool {
     const device = getDevice();
     if (!device) {
       // No device context; destroy immediately as a fallback.
-      for (const pending of this.#pendingDestruction) {
-        pending.destroy();
-      }
-      this.#pendingDestruction.clear();
       this.#destructionScheduled = false;
+      this.#destroyPendingBuffers();
       return;
     }
 
     this.#destructionScheduled = true;
     device.queue.onSubmittedWorkDone()
       .then(() => {
-        for (const pending of this.#pendingDestruction) {
-          pending.destroy();
-        }
-        this.#pendingDestruction.clear();
         this.#destructionScheduled = false;
+        this.#destroyPendingBuffers();
       })
       .catch((err) => {
         log.warn('BufferPool', `Deferred destruction failed: ${ (err).message}`);
-        this.#pendingDestruction.clear();
         this.#destructionScheduled = false;
+        this.#destroyPendingBuffers();
       });
   }
 
@@ -583,21 +598,31 @@ export class BufferPool {
     const alignedSize = Math.ceil(size / 4) * 4;
     // Create staging buffer
     const staging = this.createStagingBuffer(alignedSize);
+    let mapped = false;
 
-    // Copy to staging
-    const encoder = device.createCommandEncoder({ label: 'readback_encoder' });
-    encoder.copyBufferToBuffer(buffer, offset, staging, 0, alignedSize);
-    device.queue.submit([encoder.finish()]);
+    try {
+      // Copy to staging
+      const encoder = device.createCommandEncoder({ label: 'readback_encoder' });
+      encoder.copyBufferToBuffer(buffer, offset, staging, 0, alignedSize);
+      device.queue.submit([encoder.finish()]);
 
-    // Map and read
-    await staging.mapAsync(RESOLVED_GPU_MAP_MODE.READ);
-    const data = staging.getMappedRange(0, alignedSize).slice(0, size);
-    staging.unmap();
-
-    // Release staging buffer
-    this.release(staging);
-
-    return data;
+      // Map and read
+      await staging.mapAsync(RESOLVED_GPU_MAP_MODE.READ);
+      mapped = true;
+      return staging.getMappedRange(0, alignedSize).slice(0, size);
+    } catch (error) {
+      if (this.#activeBuffers.has(staging)) {
+        this.#releaseTrackedBuffer(staging, false);
+      }
+      throw error;
+    } finally {
+      if (mapped) {
+        staging.unmap();
+        if (this.#activeBuffers.has(staging)) {
+          this.#releaseTrackedBuffer(staging, true);
+        }
+      }
+    }
   }
 
   
@@ -721,6 +746,8 @@ export const acquireBuffer = (size, usage, label) =>
   getBufferPool().acquire(size, usage, label);
 
 export const releaseBuffer = (buffer) => getBufferPool().release(buffer);
+
+export const discardBuffer = (buffer) => getBufferPool().discard(buffer);
 
 export const isBufferActive = (buffer) =>
   getBufferPool().isActiveBuffer(buffer);

@@ -1160,7 +1160,7 @@ See `config.md` for kernel selection rules and runtime overrides.
 
 ## Related Documentation
 
-- `formats.md` - RDRR format specification
+- `rdrr-format.md` - RDRR format specification
 
 ---
 

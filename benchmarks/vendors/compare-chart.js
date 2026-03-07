@@ -46,8 +46,8 @@ const DEFAULT_METRICS = Object.freeze([
     higherBetter: true,
   },
   {
-    id: 'prefillTokensPerSec',
-    label: 'prompt tok/s (prefill)',
+    id: 'promptTokensPerSecToFirstToken',
+    label: 'prompt tok/s to first token',
     unit: 'tok/s',
     higherBetter: true,
   },
@@ -60,12 +60,6 @@ const DEFAULT_METRICS = Object.freeze([
   {
     id: 'firstResponseMs',
     label: 'first response (first token + load)',
-    unit: 'ms',
-    higherBetter: false,
-  },
-  {
-    id: 'prefillMs',
-    label: 'prefill ms',
     unit: 'ms',
     higherBetter: false,
   },
@@ -119,7 +113,9 @@ const METRIC_PATH_HINTS = Object.freeze({
   decodeTokensPerSec: [
     'result.timing.decodeTokensPerSec',
   ],
-  prefillTokensPerSec: [
+  promptTokensPerSecToFirstToken: [
+    'result.timing.promptTokensPerSecToFirstToken',
+    'result.timing.prefillTokensPerSecTtft',
     'result.timing.prefillTokensPerSec',
   ],
   firstTokenMs: [
@@ -127,9 +123,6 @@ const METRIC_PATH_HINTS = Object.freeze({
   ],
   firstResponseMs: [
     'result.timing.firstResponseMs',
-  ],
-  prefillMs: [
-    'result.timing.prefillMs',
   ],
   decodeMs: [
     'result.timing.decodeMs',

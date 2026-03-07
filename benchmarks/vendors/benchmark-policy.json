@@ -19,17 +19,31 @@
     "totalRunMs",
     "modelLoadMs"
   ],
+  "requiredCompareMetricIds": [
+    "decodeTokensPerSec",
+    "promptTokensPerSecToFirstToken",
+    "firstTokenMs",
+    "firstResponseMs",
+    "decodeMs",
+    "decodeMsPerTokenP50",
+    "decodeMsPerTokenP95",
+    "decodeMsPerTokenP99",
+    "totalRunMs",
+    "modelLoadMs"
+  ],
   "decodeProfiles": {
     "default": "parity",
     "presets": {
       "parity": {
         "batchSize": 1,
         "readbackInterval": 1,
+        "stopCheckMode": "per-token",
         "label": "TJS-like per-token cadence"
       },
       "throughput": {
         "batchSize": 4,
         "readbackInterval": 4,
+        "stopCheckMode": "per-token",
         "label": "Doppler throughput-tuned cadence"
       }
     }

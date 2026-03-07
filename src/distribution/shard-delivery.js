@@ -55,8 +55,11 @@ const inFlightDeliveries = new Map();
 const p2pTransportPolicyState = new WeakMap();
 
 function normalizeDistributionSourceOrder(rawSources = []) {
-  if (!Array.isArray(rawSources)) {
+  if (rawSources === undefined || rawSources === null) {
     return [...DISTRIBUTION_SOURCES];
+  }
+  if (!Array.isArray(rawSources)) {
+    throw new Error('distribution.sourceOrder must be an array when provided.');
   }
 
   const normalized = [];
@@ -64,13 +67,18 @@ function normalizeDistributionSourceOrder(rawSources = []) {
 
   for (const value of rawSources) {
     const source = String(value || '').trim().toLowerCase();
-    if (!DISTRIBUTION_SOURCES.includes(source)) continue;
+    if (!DISTRIBUTION_SOURCES.includes(source)) {
+      throw new Error(`distribution.sourceOrder contains unsupported source "${source || value}".`);
+    }
     if (seen.has(source)) continue;
     seen.add(source);
     normalized.push(source);
   }
 
-  return normalized.length > 0 ? normalized : [...DISTRIBUTION_SOURCES];
+  if (normalized.length === 0) {
+    throw new Error('distribution.sourceOrder must include at least one supported source.');
+  }
+  return normalized;
 }
 
 function normalizeInteger(value, fallback, allowZero = false) {
@@ -79,6 +87,23 @@ function normalizeInteger(value, fallback, allowZero = false) {
   return Number.isFinite(parsed) && parsed >= min && Number.isInteger(parsed)
     ? parsed
     : fallback;
+}
+
+function normalizeRequiredInteger(value, label, { allowZero = false, fallback = null } = {}) {
+  if (value === undefined || value === null) {
+    if (fallback !== null) {
+      return fallback;
+    }
+    throw new Error(`${label} is required.`);
+  }
+  const parsed = Number(value);
+  const min = allowZero ? 0 : 1;
+  if (!Number.isInteger(parsed) || parsed < min) {
+    throw new Error(
+      `${label} must be a ${allowZero ? 'non-negative' : 'positive'} integer when provided.`
+    );
+  }
+  return parsed;
 }
 
 function normalizeContentEncodings(value) {
@@ -95,13 +120,17 @@ function normalizeManifestVersionSet(value) {
   return normalized || null;
 }
 
-function normalizeSamplingRate(value, fallback = 1) {
-  const parsed = Number(value);
-  if (!Number.isFinite(parsed)) {
+function normalizeSamplingRate(value, fallback = 1, label = 'distribution.sourceDecision.trace.samplingRate') {
+  if (value === undefined || value === null) {
     return fallback;
   }
-  if (parsed <= 0) return 0;
-  if (parsed >= 1) return 1;
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) {
+    throw new Error(`${label} must be a finite number between 0 and 1 when provided.`);
+  }
+  if (parsed < 0 || parsed > 1) {
+    throw new Error(`${label} must be between 0 and 1 when provided.`);
+  }
   return parsed;
 }
 
@@ -479,19 +508,28 @@ function normalizeP2PConfig(config = {}) {
 
   return {
     enabled,
-    timeoutMs: normalizeInteger(rawTimeoutMs, DEFAULT_P2P_TIMEOUT_MS),
-    maxRetries: normalizeInteger(rawMaxRetries, DEFAULT_P2P_MAX_RETRIES, true),
-    retryDelayMs: normalizeInteger(rawRetryDelayMs, DEFAULT_P2P_RETRY_DELAY_MS, true),
+    timeoutMs: normalizeRequiredInteger(
+      rawTimeoutMs,
+      'distribution.p2p.timeoutMs',
+      { fallback: DEFAULT_P2P_TIMEOUT_MS }
+    ),
+    maxRetries: normalizeRequiredInteger(
+      rawMaxRetries,
+      'distribution.p2p.maxRetries',
+      { allowZero: true, fallback: DEFAULT_P2P_MAX_RETRIES }
+    ),
+    retryDelayMs: normalizeRequiredInteger(
+      rawRetryDelayMs,
+      'distribution.p2p.retryDelayMs',
+      { allowZero: true, fallback: DEFAULT_P2P_RETRY_DELAY_MS }
+    ),
     transport,
     contractVersion,
     controlPlane: normalizeP2PControlPlaneConfig({
       ...DEFAULT_DISTRIBUTION_CONFIG.p2p.controlPlane,
       ...rawControlPlane,
-      tokenRefreshSkewMs: normalizeInteger(
-        rawControlPlane.tokenRefreshSkewMs,
-        DEFAULT_P2P_CONTROL_PLANE_TOKEN_REFRESH_SKEW_MS,
-        true
-      ),
+      tokenRefreshSkewMs: rawControlPlane.tokenRefreshSkewMs
+        ?? DEFAULT_P2P_CONTROL_PLANE_TOKEN_REFRESH_SKEW_MS,
     }),
     security: {
       requireSessionToken: rawSecurity.requireSessionToken === true,
@@ -499,19 +537,20 @@ function normalizeP2PConfig(config = {}) {
       tokenExpiresAtMs: normalizeOptionalTimestamp(rawSecurity.tokenExpiresAtMs),
     },
     abuse: {
-      rateLimitPerMinute: normalizeInteger(
+      rateLimitPerMinute: normalizeRequiredInteger(
         rawAbuse.rateLimitPerMinute,
-        DEFAULT_P2P_RATE_LIMIT_PER_MINUTE,
-        true
+        'distribution.p2p.abuse.rateLimitPerMinute',
+        { allowZero: true, fallback: DEFAULT_P2P_RATE_LIMIT_PER_MINUTE }
       ),
-      maxConsecutiveFailures: normalizeInteger(
+      maxConsecutiveFailures: normalizeRequiredInteger(
         rawAbuse.maxConsecutiveFailures,
-        DEFAULT_P2P_MAX_CONSECUTIVE_FAILURES
+        'distribution.p2p.abuse.maxConsecutiveFailures',
+        { fallback: DEFAULT_P2P_MAX_CONSECUTIVE_FAILURES }
       ),
-      quarantineMs: normalizeInteger(
+      quarantineMs: normalizeRequiredInteger(
         rawAbuse.quarantineMs,
-        DEFAULT_P2P_QUARANTINE_MS,
-        true
+        'distribution.p2p.abuse.quarantineMs',
+        { allowZero: true, fallback: DEFAULT_P2P_QUARANTINE_MS }
       ),
     },
   };
@@ -1293,9 +1332,21 @@ async function downloadShardFromHttp(baseUrl, shardInfo, shardIndex, options = {
   const startTime = performance.now();
   const url = buildShardUrl(baseUrl, shardInfo);
   let lastError;
-  const maxRetries = normalizeInteger(options.maxRetries, 3, true);
-  const initialRetryDelayMs = normalizeInteger(options.initialRetryDelayMs, 1000);
-  const maxRetryDelayMs = normalizeInteger(options.maxRetryDelayMs, 30000);
+  const maxRetries = normalizeRequiredInteger(
+    options.maxRetries,
+    'download.maxRetries',
+    { allowZero: true, fallback: 3 }
+  );
+  const initialRetryDelayMs = normalizeRequiredInteger(
+    options.initialRetryDelayMs,
+    'download.initialRetryDelayMs',
+    { allowZero: true, fallback: 1000 }
+  );
+  const maxRetryDelayMs = normalizeRequiredInteger(
+    options.maxRetryDelayMs,
+    'download.maxRetryDelayMs',
+    { allowZero: true, fallback: 30000 }
+  );
   const progressTotalBytes = Number.isFinite(options.expectedSize)
     ? Math.floor(options.expectedSize)
     : (Number.isFinite(shardInfo?.size) ? Math.floor(shardInfo.size) : 0);

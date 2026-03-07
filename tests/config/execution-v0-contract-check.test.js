@@ -37,6 +37,7 @@ function kernelRef(kernel, entry = 'main') {
       kvcache: {
         kvDtype: 'f16',
       },
+      decodeLoop: null,
     },
     execution: {
       steps: [
@@ -61,6 +62,85 @@ function kernelRef(kernel, entry = 'main') {
   assert.equal(artifact.perStep.attn.precisionSources.inputDtype, 'kernelProfile');
   assert.equal(artifact.perStep.attn.precisionSources.outputDtype, 'manifest');
   assert.equal(artifact.perStep.attn.kvIOSource, 'kernelProfile');
+}
+
+{
+  const artifact = buildExecutionV0ContractArtifact({
+    sessionDefaults: {
+      compute: {
+        defaults: {
+          activationDtype: 'f16',
+          mathDtype: 'f32',
+          accumDtype: 'f32',
+          outputDtype: 'f32',
+        },
+        kernelProfiles: [
+          {
+            kernelRef: kernelRef('attention_streaming_f16kv.wgsl', 'main'),
+          },
+        ],
+      },
+      kvcache: {
+        kvDtype: 'f16',
+      },
+    },
+    execution: {
+      steps: [
+        {
+          id: 'attn',
+          op: 'attention',
+          kernel: 'attention_streaming_f16kv.wgsl',
+          kernelRef: kernelRef('attention_streaming_f16kv.wgsl', 'main'),
+        },
+      ],
+    },
+  }, { modelId: 'execution-v0-contract-missing-decode-loop' });
+
+  assert.equal(artifact.ok, false);
+  assert.ok(
+    artifact.errors.some((message) =>
+      message.includes('sessionDefaults.decodeLoop is required')
+    )
+  );
+}
+
+{
+  const artifact = buildExecutionV0ContractArtifact({
+    sessionDefaults: {
+      compute: {
+        defaults: {
+          activationDtype: 'f16',
+          mathDtype: 'f32',
+          accumDtype: 'f32',
+          outputDtype: 'f32',
+        },
+        kernelProfiles: [
+          {
+            kernelRef: kernelRef('attention_streaming_f16kv.wgsl', 'main'),
+          },
+        ],
+      },
+      kvcache: {},
+      decodeLoop: null,
+    },
+    execution: {
+      steps: [
+        {
+          id: 'attn',
+          op: 'attention',
+          kernel: 'attention_streaming_f16kv.wgsl',
+          kernelRef: kernelRef('attention_streaming_f16kv.wgsl', 'main'),
+        },
+      ],
+    },
+  }, { modelId: 'execution-v0-contract-missing-kv-dtype' });
+
+  assert.equal(artifact.ok, false);
+  assert.ok(
+    artifact.errors.some((message) =>
+      message.includes('sessionDefaults.kvcache.kvDtype is required')
+    )
+  );
 }
 
 {

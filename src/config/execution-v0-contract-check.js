@@ -1,8 +1,4 @@
-import {
-  DEFAULT_EXECUTION_V0_COMPUTE_DEFAULTS,
-  isExecutionV0Digest,
-  isExecutionV0Semver,
-} from './schema/execution-v0.schema.js';
+import { isExecutionV0Digest, isExecutionV0Semver } from './schema/execution-v0.schema.js';
 
 function normalizeDtype(value, label) {
   const normalized = String(value ?? '').trim().toLowerCase();
@@ -30,6 +26,107 @@ function assertExecutionV0KernelRef(kernelRef, label) {
   if (!isExecutionV0Digest(kernelRef.digest)) {
     throw new Error(`[ExecutionV0Contract] ${label}.digest must match sha256:<64-hex>.`);
   }
+}
+
+function requirePlainObject(value, label) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error(`[ExecutionV0Contract] ${label} must be an object.`);
+  }
+  return value;
+}
+
+function requireOwnProperty(root, key, label) {
+  if (!Object.prototype.hasOwnProperty.call(root, key)) {
+    throw new Error(`[ExecutionV0Contract] ${label} is required.`);
+  }
+  return root[key];
+}
+
+function requireNullableObject(root, key, label) {
+  const value = requireOwnProperty(root, key, label);
+  if (value === null) {
+    return null;
+  }
+  return requirePlainObject(value, label);
+}
+
+function requireArrayProperty(root, key, label) {
+  const value = requireOwnProperty(root, key, label);
+  if (!Array.isArray(value)) {
+    throw new Error(`[ExecutionV0Contract] ${label} must be an array.`);
+  }
+  return value;
+}
+
+function requireDtypeProperty(root, key, label) {
+  const value = requireOwnProperty(root, key, label);
+  if (value == null) {
+    throw new Error(`[ExecutionV0Contract] ${label} is required.`);
+  }
+  return normalizeDtype(value, label);
+}
+
+function validateExecutionV0SessionDefaults(sessionDefaults = {}) {
+  const normalizedSessionDefaults = requirePlainObject(
+    sessionDefaults,
+    'manifest.inference.sessionDefaults'
+  );
+  const compute = requirePlainObject(
+    requireOwnProperty(normalizedSessionDefaults, 'compute', 'sessionDefaults.compute'),
+    'sessionDefaults.compute'
+  );
+  const computeDefaults = requirePlainObject(
+    requireOwnProperty(compute, 'defaults', 'sessionDefaults.compute.defaults'),
+    'sessionDefaults.compute.defaults'
+  );
+
+  requireDtypeProperty(
+    computeDefaults,
+    'activationDtype',
+    'sessionDefaults.compute.defaults.activationDtype'
+  );
+  requireDtypeProperty(
+    computeDefaults,
+    'mathDtype',
+    'sessionDefaults.compute.defaults.mathDtype'
+  );
+  requireDtypeProperty(
+    computeDefaults,
+    'accumDtype',
+    'sessionDefaults.compute.defaults.accumDtype'
+  );
+  requireDtypeProperty(
+    computeDefaults,
+    'outputDtype',
+    'sessionDefaults.compute.defaults.outputDtype'
+  );
+
+  requireArrayProperty(
+    compute,
+    'kernelProfiles',
+    'sessionDefaults.compute.kernelProfiles'
+  );
+
+  const kvcache = requireNullableObject(
+    normalizedSessionDefaults,
+    'kvcache',
+    'sessionDefaults.kvcache'
+  );
+  if (kvcache !== null) {
+    requireDtypeProperty(
+      kvcache,
+      'kvDtype',
+      'sessionDefaults.kvcache.kvDtype'
+    );
+  }
+
+  requireNullableObject(
+    normalizedSessionDefaults,
+    'decodeLoop',
+    'sessionDefaults.decodeLoop'
+  );
+
+  return normalizedSessionDefaults;
 }
 
 function createPrecisionSources(step, profile) {
@@ -89,10 +186,10 @@ export function resolveExecutionV0KernelProfile(profileIndex, step) {
 }
 
 export function resolveExecutionV0Precision(step, profile, sessionDefaults = {}) {
-  const defaults = {
-    ...DEFAULT_EXECUTION_V0_COMPUTE_DEFAULTS,
-    ...(sessionDefaults?.compute?.defaults ?? {}),
-  };
+  const defaults = requirePlainObject(
+    sessionDefaults?.compute?.defaults,
+    'sessionDefaults.compute.defaults'
+  );
   const precision = {
     inputDtype: step.precision?.inputDtype
       ?? profile?.precision?.inputDtype
@@ -132,12 +229,12 @@ export function resolveExecutionV0KVIO(step, profile, sessionDefaults = {}) {
       source: 'kernelProfile',
     };
   }
-  const defaults = {
-    ...DEFAULT_EXECUTION_V0_COMPUTE_DEFAULTS,
-    ...(sessionDefaults?.compute?.defaults ?? {}),
-  };
   const kvDtype = normalizeDtype(
-    sessionDefaults?.kvcache?.kvDtype ?? defaults.activationDtype,
+    requireOwnProperty(
+      requireNullableObject(sessionDefaults, 'kvcache', 'sessionDefaults.kvcache') ?? {},
+      'kvDtype',
+      'sessionDefaults.kvcache.kvDtype'
+    ),
     `${step.id}.sessionDefaults.kvcache.kvDtype`
   );
   return {
@@ -155,10 +252,11 @@ export function buildExecutionV0ContractArtifact(manifestInference, options = {}
   const checks = [];
   const errors = [];
   const perStep = {};
-  const sessionDefaults = manifestInference.sessionDefaults ?? {};
+  let sessionDefaults = manifestInference.sessionDefaults ?? {};
   let profileIndex;
 
   try {
+    sessionDefaults = validateExecutionV0SessionDefaults(sessionDefaults);
     profileIndex = indexExecutionV0KernelProfiles(sessionDefaults);
   } catch (error) {
     errors.push(error instanceof Error ? error.message : String(error));

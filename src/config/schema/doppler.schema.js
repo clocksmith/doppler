@@ -31,6 +31,13 @@ export const DEFAULT_DOPPLER_CONFIG = {
   runtime: DEFAULT_RUNTIME_CONFIG,
 };
 
+function cloneConfigTree(value) {
+  if (typeof structuredClone === 'function') {
+    return structuredClone(value);
+  }
+  return JSON.parse(JSON.stringify(value));
+}
+
 // =============================================================================
 // Factory Function
 // =============================================================================
@@ -39,19 +46,21 @@ export function createDopplerConfig(
   overrides
 ) {
   if (!overrides) {
-    return { ...DEFAULT_DOPPLER_CONFIG };
+    return {
+      model: DEFAULT_DOPPLER_CONFIG.model,
+      runtime: cloneConfigTree(DEFAULT_RUNTIME_CONFIG),
+    };
   }
 
   const runtimeOverrides = overrides.runtime ?? {};
+  const runtimeBase = cloneConfigTree(DEFAULT_RUNTIME_CONFIG);
   const runtime = overrides.runtime
-    ? mergeRuntimeConfig(DEFAULT_RUNTIME_CONFIG, runtimeOverrides)
-    : { ...DEFAULT_RUNTIME_CONFIG };
+    ? mergeRuntimeConfig(runtimeBase, runtimeOverrides)
+    : runtimeBase;
   const config = {
     model: overrides.model ?? DEFAULT_DOPPLER_CONFIG.model,
     runtime,
   };
-
-  applyCalibrateDefaults(config.runtime, runtimeOverrides);
   return config;
 }
 
@@ -300,21 +309,6 @@ function mergeDebugConfig(
     profiler: { ...base.profiler, ...overrides.profiler },
     perfGuards: { ...base.perfGuards, ...overrides.perfGuards },
   };
-}
-
-function applyCalibrateDefaults(runtime, runtimeOverrides) {
-  const intent = runtime?.shared?.tooling?.intent;
-  if (intent !== 'calibrate') return;
-
-  const warmupOverrides = runtimeOverrides?.shared?.kernelWarmup;
-  const hasPrewarmOverride = warmupOverrides
-    && Object.prototype.hasOwnProperty.call(warmupOverrides, 'prewarm');
-  if (!hasPrewarmOverride) {
-    runtime.shared.kernelWarmup = {
-      ...runtime.shared.kernelWarmup,
-      prewarm: true,
-    };
-  }
 }
 
 function mergeBenchmarkConfig(

@@ -25,6 +25,19 @@ function runCompareEngines(args) {
 }
 
 {
+  const result = runCompareEngines([
+    '--runtime-config-json',
+    '{"inference":{"prompt":"override"}}',
+    '--json',
+  ]);
+  assert.notEqual(result.status, 0);
+  assert.match(
+    result.stderr,
+    /--runtime-config-json must not override compare-managed fairness or cadence fields/
+  );
+}
+
+{
   const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'doppler-compare-config-'));
   const badConfigPath = path.join(tempDir, 'bad-compare-config.json');
   const badConfig = {

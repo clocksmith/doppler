@@ -3,6 +3,7 @@
 import { getDevice } from '../../gpu/device.js';
 import { allowReadback } from '../../gpu/perf-guards.js';
 import { log } from '../../debug/index.js';
+import { readBuffer } from '../../memory/buffer-pool.js';
 import {
   isContiguousLayer,
   isPagedLayer,
@@ -962,44 +963,24 @@ export class KVCache {
         layer.values = new Float32Array(sizePerLayer);
       }
 
-      // Create staging buffers for readback
-      const keysStaging = device.createBuffer({
-        size: usedSize,
-        usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
-      });
-      const valuesStaging = device.createBuffer({
-        size: usedSize,
-        usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
-      });
-
-      // Copy from GPU cache to staging
-      const encoder = device.createCommandEncoder({ label: 'kv_cache_sync' });
-      encoder.copyBufferToBuffer(layer.keysGPU, 0, keysStaging, 0, usedSize);
-      encoder.copyBufferToBuffer(layer.valuesGPU, 0, valuesStaging, 0, usedSize);
-      device.queue.submit([encoder.finish()]);
-
-      // Map and copy to CPU arrays
-      await keysStaging.mapAsync(GPUMapMode.READ);
-      await valuesStaging.mapAsync(GPUMapMode.READ);
+      const [keysBytes, valuesBytes] = await Promise.all([
+        readBuffer(layer.keysGPU, usedSize),
+        readBuffer(layer.valuesGPU, usedSize),
+      ]);
 
       if (this.kvDtype === 'f16') {
-        const keysRaw = new Uint16Array(keysStaging.getMappedRange().slice(0));
-        const valuesRaw = new Uint16Array(valuesStaging.getMappedRange().slice(0));
+        const keysRaw = new Uint16Array(keysBytes);
+        const valuesRaw = new Uint16Array(valuesBytes);
         const keysData = f16ToF32Array(keysRaw);
         const valuesData = f16ToF32Array(valuesRaw);
         layer.keys.set(keysData);
         layer.values.set(valuesData);
       } else {
-        const keysData = new Float32Array(keysStaging.getMappedRange().slice(0));
-        const valuesData = new Float32Array(valuesStaging.getMappedRange().slice(0));
+        const keysData = new Float32Array(keysBytes);
+        const valuesData = new Float32Array(valuesBytes);
         layer.keys.set(keysData);
         layer.values.set(valuesData);
       }
-
-      keysStaging.unmap();
-      valuesStaging.unmap();
-      keysStaging.destroy();
-      valuesStaging.destroy();
     }
   }
 

@@ -95,6 +95,13 @@ Action requirements:
 - Distillation workloads that declare `sft` fail closed today; use `objective="kd"` with `trainingStage="stage_a"` or `objective="triplet"` with `trainingStage="stage_b"` until a plain-SFT runner exists.
 - Distillation translation eval is currently implemented for `studentGraphMode="transformer_full"` only.
 
+Legacy Distill Studio helpers are compatibility tooling only:
+- `tools/distill-studio-mvp.mjs`
+- `tools/distill-studio-diagnostics.mjs`
+- `tools/distill-studio-quality-gate.mjs`
+
+New operator behavior must be documented under the `distill` surface, not under Distill Studio naming.
+
 ## Workload Packs
 
 Canonical workload packs live under:
@@ -182,6 +189,38 @@ A publishable claim must include:
 
 Mapping is deterministic from workload-pack bytes and derived artifact payloads.
 
+## Governance Rules
+
+- workload packs are the source of truth for behavior-changing operator policy
+- run-root artifacts must preserve workload, dataset, and surface traceability
+- browser surfaces must fail closed for unsupported training operator commands
+- claim publication requires deterministic traceability fields and reproducible artifacts
+
+## Release Cycle Requirements
+
+Required artifacts per release cycle:
+- contract-gate pass
+- workload-registry verification
+- report-id publication artifact
+- compare and quality-gate artifacts for claimable LoRA or distill outputs
+
+## Publication Bundle
+
+Each claim publication must include:
+1. workload-pack ID, path, and hash
+2. report ID
+3. claim-boundary statement
+4. surface and runtime metadata
+5. compare report and quality-gate report when the claim is about a trained output rather than a raw harness lane
+
+## Rejection Conditions
+
+- missing report ID or workload hash
+- workload pack not present in the workload registry
+- claimable LoRA or distill output without a corresponding quality-gate artifact
+- claimable checkpoint or export without matching eval artifacts
+- contract-gate failures in the release window
+
 ## Operating Rhythm
 
 1. Validate contract gates.
@@ -192,6 +231,28 @@ Mapping is deterministic from workload-pack bytes and derived artifact payloads.
 6. Generate compare and quality-gate artifacts before claim publication.
 7. Publish only claimable artifacts with deterministic traceability fields.
 
+## Rollout Readiness
+
+Gate readiness:
+- `npm run ci:training:contract` passes all lanes
+- no lane filtering is used for release checks
+- contract-delta artifact is generated for each release cycle
+
+Operator surface readiness:
+- `lora` and `distill` are present in `src/tooling/command-api.js`
+- CLI and API docs describe the operator commands
+- browser surfaces fail closed for unsupported operator actions
+- workload packs are validated through the training-workload registry
+- run roots write `run_contract.json` and `workload.lock.json`
+- finalized checkpoints write `checkpoint.complete.json`
+- eval, compare, scoreboard, and quality-gate artifacts are emitted for candidate runs
+
+Traceability readiness:
+- workload registry hashes match workload-pack files
+- baseline report IDs are present for all workload packs
+- report-id publication artifacts are generated and stored
+- claimable artifacts carry workload and dataset traceability fields
+
 ## Incident Response
 
 1. Freeze publication for affected workload IDs and report IDs.
@@ -201,10 +262,5 @@ Mapping is deterministic from workload-pack bytes and derived artifact payloads.
 
 ## Related Policy Docs
 
-- [training-overview.md](training-overview.md)
-- [training-governance.md](training-governance.md)
-- [training-claim-traceability.md](training-claim-traceability.md)
-- [training-operator-playbook.md](training-operator-playbook.md)
 - [training-artifact-policy.md](training-artifact-policy.md)
 - [training-migrations.md](training-migrations.md)
-- [distill-studio-ops.md](distill-studio-ops.md) for legacy compatibility helpers only

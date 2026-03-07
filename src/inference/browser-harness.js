@@ -2280,6 +2280,7 @@ async function runBenchSuite(options = {}) {
       totalRunMs: totalMsStats.median,
       decodeTokensPerSec: decodeTokensPerSecStats?.median,
       prefillTokensPerSec: prefillTokensPerSecStats?.median,
+      prefillTokensPerSecTtft: prefillTokensPerSecTtftStats?.median,
       cacheMode,
       loadMode,
     });

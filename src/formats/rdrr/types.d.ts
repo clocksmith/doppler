@@ -75,6 +75,7 @@ export interface ComponentGroup extends ComponentGroupSchema {}
 
 export interface TensorLocation {
   shard: number;
+  shardIndex?: number;
   offset: number;
   size: number;
   shape: number[];

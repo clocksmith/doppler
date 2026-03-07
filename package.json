@@ -1,12 +1,12 @@
 {
   "name": "@simulatte/doppler",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Browser-native WebGPU inference engine for local intent and inference loops",
   "main": "src/index.js",
   "types": "src/index.d.ts",
   "type": "module",
   "bin": {
-    "doppler": "./tools/doppler-cli.js"
+    "doppler": "tools/doppler-cli.js"
   },
   "scripts": {
     "cli": "node tools/doppler-cli.js",
@@ -104,6 +104,7 @@
     },
     "./tooling": {
       "types": "./src/tooling-exports.d.ts",
+      "browser": "./src/tooling-exports.browser.js",
       "import": "./src/tooling-exports.js"
     },
     "./internal": {
@@ -125,7 +126,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/clocksmith/doppler.git"
+    "url": "git+https://github.com/clocksmith/doppler.git"
   },
   "homepage": "https://github.com/clocksmith/doppler",
   "keywords": [
@@ -142,6 +143,9 @@
     "url": "https://github.com/clocksmith/doppler/issues"
   },
   "license": "Apache-2.0",
+  "publishConfig": {
+    "access": "public"
+  },
   "files": [
     "src",
     "src/gpu/kernels/*.wgsl",

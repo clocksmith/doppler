@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-03-05T15:31:15.991Z",
+  "generatedAt": "2026-03-07T20:43:56.088Z",
   "release": {
     "channel": "main-snapshot",
     "version": null,
-    "commitSha": "44026e2deab2cb60e58619d4fddfcf82b35daefa",
+    "commitSha": "63a1903a8d0fa960d87ce103420cbc3bbe21881b",
     "dirty": null
   },
   "sources": {
@@ -16,14 +16,14 @@
     },
     "workloads": {
       "path": "benchmarks/vendors/workloads.json",
-      "sha256": "ca8994dac1610ea2b6409b99f233fbbd07781c62b65a6421cc2b23b69077aaec",
-      "bytes": 852,
-      "updated": null
+      "sha256": "c29dbb5b806095c3e0114abd5d4fcf08c450f7490ce61d8e5c216d9a0293b115",
+      "bytes": 875,
+      "updated": "2026-03-05"
     },
     "capabilities": {
       "path": "benchmarks/vendors/capabilities.json",
-      "sha256": "ae24bfe829ebb815adfa5d142e6070c9b81dc383cb3369c031cdfe4977f4d015",
-      "bytes": 10742,
+      "sha256": "68ac025693186a51c2875f0a49631a54ce02d75ed8ba7cadf21d33b79b4e4fed",
+      "bytes": 11223,
       "updated": "2026-02-25"
     },
     "compareConfig": {
@@ -32,18 +32,78 @@
       "bytes": 1342,
       "updated": "2026-03-05"
     },
+    "compareMetricContract": {
+      "path": "benchmarks/vendors/compare-metrics.json",
+      "sha256": "3689cdd3d139f236fcd40a63d9b42043cc48647010fefb595fd77f13f83b8767",
+      "bytes": 1099,
+      "updated": "2026-02-23"
+    },
+    "benchmarkPolicy": {
+      "path": "benchmarks/vendors/benchmark-policy.json",
+      "sha256": "93e4a9d516e206ba17c72577f42d44c761e3eab5a9a94916d05c9e132716b87a",
+      "bytes": 1321,
+      "updated": "2026-02-25"
+    },
     "modelCatalog": {
       "path": "models/catalog.json",
-      "sha256": "f03c676daf1b0270ef87bc65fd15bba9b3ec5a53f81c2d5d71a4121ad245b13c",
-      "bytes": 1858,
-      "updated": "2026-03-04"
+      "sha256": "c90b340b6a3b4e0044bb25d5a39700c5291666aeb3d82db492515bcf18778b4d",
+      "bytes": 4456,
+      "updated": "2026-03-07"
+    },
+    "harness:doppler": {
+      "path": "benchmarks/vendors/harnesses/doppler.json",
+      "sha256": "002cdfe6d20644ecb135ef0031faf0224539f11089bb649a2fa6c3c82971d532",
+      "bytes": 1473,
+      "updated": null
+    },
+    "harness:webllm": {
+      "path": "benchmarks/vendors/harnesses/webllm.json",
+      "sha256": "55463342e66d5983effb2818ba86a48c113a6ca1b634102cc5860664437f4964",
+      "bytes": 860,
+      "updated": null
+    },
+    "harness:transformersjs": {
+      "path": "benchmarks/vendors/harnesses/transformersjs.json",
+      "sha256": "0aab2db7440c501220817c4425230e004cd7fb3bfb2bd6c0aae7c0db81a37064",
+      "bytes": 1459,
+      "updated": null
+    },
+    "harness:ratchet": {
+      "path": "benchmarks/vendors/harnesses/ratchet.json",
+      "sha256": "02cee32bb5aafc4d15f6640812b9b445f4f8c67e22972e9530523bb10857292c",
+      "bytes": 663,
+      "updated": null
+    },
+    "harness:candle": {
+      "path": "benchmarks/vendors/harnesses/candle.json",
+      "sha256": "869c1df237a66812e9d5f93f57b99a150fdcf3f22c84f3c47e8d563594b8ad74",
+      "bytes": 659,
+      "updated": null
+    },
+    "harness:burn": {
+      "path": "benchmarks/vendors/harnesses/burn.json",
+      "sha256": "c7c313d5900f90a774781d23bfbcc373e2c854ebcf3258758e2048d5854bf76b",
+      "bytes": 651,
+      "updated": null
+    },
+    "harness:mediapipe-llm": {
+      "path": "benchmarks/vendors/harnesses/mediapipe-llm.json",
+      "sha256": "1bacff7b37a559534d4de9dd32061a9811683ad6fb3f910b02f7acd36f01c10f",
+      "bytes": 719,
+      "updated": null
+    },
+    "harness:wllama": {
+      "path": "benchmarks/vendors/harnesses/wllama.json",
+      "sha256": "7b579214a6414136df29f1e5ddab50353841c6e6c8b5e3c68d45bbb2546548db",
+      "bytes": 691,
+      "updated": null
     }
   },
   "summary": {
     "targetCount": 8,
-    "modelCoverageCount": 7,
+    "modelCoverageCount": 10,
     "compareProfileCount": 6,
-    "catalogModelCount": 2,
+    "catalogModelCount": 5,
     "workloadCount": 5,
     "committedChartCount": 1,
     "hasLatestCompareResult": true
@@ -62,8 +122,8 @@
         "cacheModeControl": "supported"
       },
       "bench": {
-        "enabledFeatures": 18,
-        "totalFeatures": 18,
+        "enabledFeatures": 19,
+        "totalFeatures": 19,
         "features": {
           "browser_webgpu": "supported",
           "node_webgpu": "supported",
@@ -72,6 +132,7 @@
           "cache_mode_control": "supported",
           "decodeTokensPerSec": "supported",
           "prefillTokensPerSec": "supported",
+          "promptTokensPerSecToFirstToken": "supported",
           "firstTokenMs": "supported",
           "firstResponseMs": "supported",
           "modelLoadMs": "supported",
@@ -120,7 +181,7 @@
       },
       "bench": {
         "enabledFeatures": 5,
-        "totalFeatures": 18,
+        "totalFeatures": 19,
         "features": {
           "browser_webgpu": "supported",
           "node_webgpu": "unsupported",
@@ -129,6 +190,7 @@
           "cache_mode_control": "unsupported",
           "decodeTokensPerSec": "supported",
           "prefillTokensPerSec": "supported",
+          "promptTokensPerSecToFirstToken": "unsupported",
           "firstTokenMs": "supported",
           "modelLoadMs": "unsupported",
           "decodeMsPerTokenP50": "unsupported",
@@ -173,8 +235,8 @@
         "cacheModeControl": "supported"
       },
       "bench": {
-        "enabledFeatures": 16,
-        "totalFeatures": 18,
+        "enabledFeatures": 17,
+        "totalFeatures": 19,
         "features": {
           "browser_webgpu": "supported",
           "node_webgpu": "unsupported",
@@ -183,6 +245,7 @@
           "cache_mode_control": "supported",
           "decodeTokensPerSec": "supported",
           "prefillTokensPerSec": "supported",
+          "promptTokensPerSecToFirstToken": "supported",
           "firstTokenMs": "supported",
           "firstResponseMs": "supported",
           "modelLoadMs": "supported",
@@ -231,7 +294,7 @@
       },
       "bench": {
         "enabledFeatures": 5,
-        "totalFeatures": 18,
+        "totalFeatures": 19,
         "features": {
           "browser_webgpu": "supported",
           "node_webgpu": "unsupported",
@@ -240,6 +303,7 @@
           "cache_mode_control": "unsupported",
           "decodeTokensPerSec": "supported",
           "prefillTokensPerSec": "supported",
+          "promptTokensPerSecToFirstToken": "unsupported",
           "firstTokenMs": "supported",
           "modelLoadMs": "unsupported",
           "decodeMsPerTokenP50": "unsupported",
@@ -285,7 +349,7 @@
       },
       "bench": {
         "enabledFeatures": 4,
-        "totalFeatures": 18,
+        "totalFeatures": 19,
         "features": {
           "browser_webgpu": "unsupported",
           "node_webgpu": "unsupported",
@@ -294,6 +358,7 @@
           "cache_mode_control": "unsupported",
           "decodeTokensPerSec": "supported",
           "prefillTokensPerSec": "supported",
+          "promptTokensPerSecToFirstToken": "unsupported",
           "firstTokenMs": "supported",
           "modelLoadMs": "unsupported",
           "decodeMsPerTokenP50": "unsupported",
@@ -339,7 +404,7 @@
       },
       "bench": {
         "enabledFeatures": 4,
-        "totalFeatures": 18,
+        "totalFeatures": 19,
         "features": {
           "browser_webgpu": "unsupported",
           "node_webgpu": "unsupported",
@@ -348,6 +413,7 @@
           "cache_mode_control": "unsupported",
           "decodeTokensPerSec": "supported",
           "prefillTokensPerSec": "supported",
+          "promptTokensPerSecToFirstToken": "unsupported",
           "firstTokenMs": "supported",
           "modelLoadMs": "unsupported",
           "decodeMsPerTokenP50": "unsupported",
@@ -393,7 +459,7 @@
       },
       "bench": {
         "enabledFeatures": 5,
-        "totalFeatures": 18,
+        "totalFeatures": 19,
         "features": {
           "browser_webgpu": "supported",
           "node_webgpu": "unsupported",
@@ -402,6 +468,7 @@
           "cache_mode_control": "unsupported",
           "decodeTokensPerSec": "supported",
           "prefillTokensPerSec": "supported",
+          "promptTokensPerSecToFirstToken": "unsupported",
           "firstTokenMs": "supported",
           "modelLoadMs": "unsupported",
           "decodeMsPerTokenP50": "unsupported",
@@ -447,7 +514,7 @@
       },
       "bench": {
         "enabledFeatures": 4,
-        "totalFeatures": 18,
+        "totalFeatures": 19,
         "features": {
           "browser_webgpu": "unsupported",
           "node_webgpu": "unsupported",
@@ -456,6 +523,7 @@
           "cache_mode_control": "unsupported",
           "decodeTokensPerSec": "supported",
           "prefillTokensPerSec": "supported",
+          "promptTokensPerSecToFirstToken": "unsupported",
           "firstTokenMs": "supported",
           "modelLoadMs": "unsupported",
           "decodeMsPerTokenP50": "unsupported",
@@ -577,6 +645,51 @@
       ],
       "catalogBaseUrl": "./curated/google-embeddinggemma-300m-wq4k-ef16",
       "catalogSizeBytes": 480562497
+    },
+    {
+      "dopplerModelId": "qwen-3-5-0-8b-wq4k-ef16-hf16-f16",
+      "dopplerModelBaseDir": null,
+      "defaultTjsModelId": null,
+      "defaultKernelPath": null,
+      "defaultDopplerSurface": "auto",
+      "inCatalog": true,
+      "catalogLabel": "Qwen 3.5 0.8B (Q4K)",
+      "catalogModes": [
+        "run",
+        "translate"
+      ],
+      "catalogBaseUrl": null,
+      "catalogSizeBytes": 788833984
+    },
+    {
+      "dopplerModelId": "qwen-3-5-2b-wq4k-ef16-hf16-f16",
+      "dopplerModelBaseDir": null,
+      "defaultTjsModelId": null,
+      "defaultKernelPath": null,
+      "defaultDopplerSurface": "auto",
+      "inCatalog": true,
+      "catalogLabel": "Qwen 3.5 2B (Q4K)",
+      "catalogModes": [
+        "run",
+        "translate"
+      ],
+      "catalogBaseUrl": null,
+      "catalogSizeBytes": 1789738688
+    },
+    {
+      "dopplerModelId": "translategemma-4b-it-wq4k-ef16-hf16",
+      "dopplerModelBaseDir": null,
+      "defaultTjsModelId": null,
+      "defaultKernelPath": null,
+      "defaultDopplerSurface": "auto",
+      "inCatalog": true,
+      "catalogLabel": "TranslateGemma 4B Instruct (Q4K)",
+      "catalogModes": [
+        "run",
+        "translate"
+      ],
+      "catalogBaseUrl": null,
+      "catalogSizeBytes": 3167327178
     }
   ],
   "workloads": [
@@ -641,38 +754,38 @@
       "benchmarks/vendors/results/compare_1b_multi-workload_favorable_phases.svg"
     ],
     "latestCompareResult": {
-      "path": "benchmarks/vendors/fixtures/g3-p064-d064-t1-k32.compare.json",
-      "timestamp": "2026-02-25T17:58:54.492Z",
-      "mode": "compute",
-      "section": "compute/parity",
-      "decodeProfile": null,
-      "dopplerModelId": "gemma-3-1b-it-wf16-ef16-hf16",
-      "tjsModelId": "onnx-community/gemma-3-1b-it-ONNX-GQA",
-      "dopplerKernelPath": "gemma3-f16-fused-f32a-online",
-      "workloadId": "g3-p064-d064-t1-k32",
+      "path": "benchmarks/vendors/fixtures/lfm2-5-1-2b-p064-d064-t0-k1.compare.json",
+      "timestamp": "2026-03-03T21:00:53.179Z",
+      "mode": "warm",
+      "section": "warm",
+      "decodeProfile": "parity",
+      "dopplerModelId": "lfm2-5-1-2b-instruct-wq4k-ef16-hf16-f32",
+      "tjsModelId": "LiquidAI/LFM2.5-1.2B-Instruct-ONNX",
+      "dopplerKernelPath": "manifest-default",
+      "workloadId": "g3-p064-d064-t0-k1",
       "workload": {
         "prefillTokenTarget": 64,
         "decodeTokenTarget": 64
       },
       "environment": {
         "host": {
-          "platform": "linux",
-          "arch": "x64",
-          "nodeVersion": "v20.18.1"
+          "platform": "darwin",
+          "arch": "arm64",
+          "nodeVersion": "v22.20.0"
         },
         "browser": {
-          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/145.0.0.0 Safari/537.36",
-          "platform": "Linux x86_64",
+          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/145.0.7632.6 Safari/537.36",
+          "platform": "MacIntel",
           "language": "en-US",
           "vendor": "Google Inc.",
           "executable": null
         },
         "gpu": {
-          "backend": "vulkan",
-          "vendor": null,
-          "architecture": null,
+          "backend": "metal",
+          "vendor": "apple",
+          "architecture": "metal-3",
           "device": null,
-          "description": "AMD RYZEN AI MAX+ 395 w/ Radeon 8060S",
+          "description": "Apple M3",
           "hasF16": true,
           "hasSubgroups": true,
           "hasTimestampQuery": true
@@ -681,7 +794,7 @@
           "doppler": {
             "library": "doppler",
             "version": null,
-            "surface": null,
+            "surface": "browser",
             "runtime": {
               "device": "webgpu",
               "dtype": null,
@@ -689,14 +802,14 @@
               "executionProviderMode": null
             },
             "browser": {
-              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/145.0.0.0 Safari/537.36",
-              "platform": "Linux x86_64",
+              "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/145.0.0.0 Safari/537.36",
+              "platform": "MacIntel",
               "language": "en-US",
               "vendor": "Google Inc.",
               "executable": null
             },
             "gpu": {
-              "backend": "vulkan",
+              "backend": "metal",
               "vendor": "unknown",
               "architecture": "unknown",
               "device": "unknown",
@@ -708,50 +821,74 @@
           },
           "transformersjs": {
             "library": "transformers.js",
-            "version": null,
+            "version": "4.x",
             "surface": null,
             "runtime": {
-              "device": null,
-              "dtype": null,
-              "requestedDtype": null,
-              "executionProviderMode": null
+              "device": "webgpu",
+              "dtype": "fp16",
+              "requestedDtype": "fp16",
+              "executionProviderMode": "default"
             },
             "browser": {
-              "userAgent": null,
-              "platform": null,
-              "language": null,
-              "vendor": null,
+              "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/145.0.7632.6 Safari/537.36",
+              "platform": "MacIntel",
+              "language": "en-US",
+              "vendor": "Google Inc.",
               "executable": null
             },
             "gpu": {
-              "backend": null,
-              "vendor": null,
-              "architecture": null,
-              "device": null,
-              "description": null,
-              "hasF16": null,
-              "hasSubgroups": null,
-              "hasTimestampQuery": null
+              "backend": "metal",
+              "vendor": "apple",
+              "architecture": "metal-3",
+              "device": "0x0000",
+              "description": "Apple M3",
+              "hasF16": true,
+              "hasSubgroups": true,
+              "hasTimestampQuery": true
             }
           }
         }
       },
       "metrics": {
         "decodeTokensPerSec": {
-          "doppler": 28.62,
+          "doppler": 29.4,
+          "transformersjs": 27.51464172008682
+        },
+        "promptTokensPerSecToFirstToken": {
+          "doppler": null,
           "transformersjs": null
         },
         "firstTokenMs": {
-          "doppler": 754.5,
-          "transformersjs": null
+          "doppler": 344.4,
+          "transformersjs": 186.54500000178814
         },
         "firstResponseMs": {
-          "doppler": 5291.8,
-          "transformersjs": null
+          "doppler": 1196.3,
+          "transformersjs": 2833.5849999934435
+        },
+        "decodeMs": {
+          "doppler": 2176.8,
+          "transformersjs": 2289.689999997616
+        },
+        "totalRunMs": {
+          "doppler": 2521.3,
+          "transformersjs": 2476.234999999404
         },
         "modelLoadMs": {
-          "doppler": 4537.3,
-          "transformersjs": null
+          "doppler": 851.9,
+          "transformersjs": 2647.0399999916553
+        },
+        "decodeMsPerTokenP50": {
+          "doppler": 34.01,
+          "transformersjs": 36.190000012516975
+        },
+        "decodeMsPerTokenP95": {
+          "doppler": 34.02,
+          "transformersjs": 37.77099999785423
+        },
+        "decodeMsPerTokenP99": {
+          "doppler": 34.02,
+          "transformersjs": 39.12940000832081
         }
       },
       "origin": "fixture"

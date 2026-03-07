@@ -7,6 +7,26 @@ description: Review kernels against DOPPLER style guide and propose style guide 
 
 This skill helps you review DOPPLER kernels (WGSL, JS wrappers, .d.ts) against the official style guides. It also supports proposing changes to the style guides themselves.
 
+## Mandatory Style Guides
+
+Read these before non-trivial kernel review or kernel-wrapper edits:
+- `docs/style/general-style-guide.md`
+- `docs/style/javascript-style-guide.md`
+- `docs/style/wgsl-style-guide.md`
+
+Also read `docs/style/config-style-guide.md` when the review touches rule selection, dtype policy, or kernel-path metadata.
+
+## Developer Guide Routing
+
+When the review turns into implementation guidance, also open:
+- `docs/developer-guides/README.md`
+
+Common routes:
+- activation-specific implementation work: `docs/developer-guides/10-activation-implementation.md`
+- new kernel or kernel-variant work: `docs/developer-guides/11-wgsl-kernel.md`
+- attention-kernel changes: `docs/developer-guides/13-attention-variant.md`
+- cache/layout changes that require kernel compatibility work: `docs/developer-guides/15-kvcache-layout.md`
+
 ## Plane Contract (Review Invariant)
 
 - JSON rules + presets own kernel selection and feature toggles.
@@ -50,3 +70,4 @@ This skill helps you review DOPPLER kernels (WGSL, JS wrappers, .d.ts) against t
 ## Resources
 - `rules/checklist.md`: Condensed style rules.
 - `scripts/lint-kernel.js`: Automated regex checks.
+- `docs/developer-guides/README.md`: extension playbook routing.

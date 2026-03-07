@@ -152,7 +152,8 @@ inference). Document the merge chain per domain:
 - Loader/runtime slices (loading/storage/etc):
   `loadingConfig = merge(runtimeDefaultConfig.loading, runtimePresetConfig.loading, runtimeOverrideConfig.loading)`
 - Kernel path resolution:
-  `kernelPath = runtimeConfig.inference.kernelPath ?? manifestInference.defaultKernelPath ?? 'auto'`
+  `kernelPath = runtimeConfig.inference.kernelPath ?? manifestInference.defaultKernelPath ?? executionV0InlineKernelPath`
+  `null` remains a valid "no explicit kernel path" result; do not invent `'auto'` or any implicit string in JS.
 
 ### No Runtime Defaults in Code
 
@@ -909,4 +910,4 @@ function runKernel(spec) {
 
 - [WGSL Style Guide](./wgsl-style-guide.md) - Shader conventions
 - [JavaScript Style Guide](./javascript-style-guide.md) - Kernel wrapper conventions
-- [Kernel Compatibility](./wgsl-style-guide.md) - Runtime modes and flags
+- [Config Style Guide](./config-style-guide.md) - Merge order and config category rules

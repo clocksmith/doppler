@@ -8,6 +8,28 @@ description: Diagnose inference regressions with Doppler's shared browser/Node c
 Use this skill when generation fails, outputs drift, or Node/browser parity breaks.
 Use this skill with `doppler-bench` when investigating performance regressions.
 
+## Mandatory Style Guides
+
+Read these before non-trivial debug-flow, parity, or harness-contract changes:
+- `docs/style/general-style-guide.md`
+- `docs/style/javascript-style-guide.md`
+- `docs/style/config-style-guide.md`
+- `docs/style/command-interface-design-guide.md`
+- `docs/style/harness-style-guide.md`
+
+## Developer Guide Routing
+
+When debugging turns into extension work, also open:
+- `docs/developer-guides/README.md`
+
+Common routes:
+- new manifest/runtime knob or missing contract field: `docs/developer-guides/07-manifest-runtime-field.md`
+- command-surface parity fix that becomes a new command or contract surface: `docs/developer-guides/12-command-surface.md`
+- missing kernel or runtime path: `docs/developer-guides/11-wgsl-kernel.md`
+- attention-path bug that requires a new implementation: `docs/developer-guides/13-attention-variant.md`
+- cache/layout bug that requires a new layout strategy: `docs/developer-guides/15-kvcache-layout.md`
+- family-level onboarding gap: `docs/developer-guides/composite-model-family.md` or `docs/developer-guides/composite-pipeline-family.md`
+
 ## Execution Plane Contract
 
 - Contract and tunables are declared in JSON (`runtime` + harness contract); do not substitute behavior in-place.
@@ -72,7 +94,7 @@ npm run debug -- --config '{"request":{"modelId":"MODEL_ID","cacheMode":"warm"},
 
 ## What to Inspect in Results
 
-- `result.metrics.modelLoadMs`, `result.metrics.ttftMs`
+- `result.metrics.modelLoadMs`, `result.metrics.firstTokenMs`
 - `result.metrics.prefillTokensPerSecTtft` (preferred) and `result.metrics.prefillTokensPerSec`
 - `result.metrics.decodeTokensPerSec`
 - `result.metrics.gpu` (if available)
@@ -88,6 +110,7 @@ npm run debug -- --config '{"request":{"modelId":"MODEL_ID","cacheMode":"warm"},
 - `src/tooling/node-browser-command-runner.js`
 - `src/inference/browser-harness.js`
 - `src/config/presets/runtime/modes/debug.json`
+- `docs/developer-guides/README.md`
 
 ## Related Skills
 

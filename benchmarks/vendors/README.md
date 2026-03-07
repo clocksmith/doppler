@@ -44,6 +44,9 @@ Claim format to keep reports auditable:
 - `results/`: local/generated normalized outputs (`*.json`, gitignored) and committed chart snapshots (`*.svg`).
 - `fixtures/`: committed sample compare payloads for clean-checkout chart/matrix smoke checks.
 - `compare-metrics.json`: shared compare metric contract for CLI and harness-driven extraction.
+- Compare artifacts intentionally use apples-to-apples prompt metrics:
+  `firstTokenMs` and `promptTokensPerSecToFirstToken`.
+  Raw engine payloads may still carry engine-defined `prefillMs` / `prefillTokensPerSec`, but those are not compare-contract claims when semantics differ.
 - `release-matrix.json`: generated release/support matrix from registry + workloads + capabilities + model catalog (+ optional latest compare JSON).
 
 ## Closed Workstream Snapshot (2026-02-22 UTC)
@@ -95,6 +98,7 @@ When `--compare-result` is provided, matrix generation also captures host/browse
 - Canonical timing contract includes:
   - `decodeTokensPerSec`
   - `prefillTokensPerSec`
+  - `promptTokensPerSecToFirstToken` (compare artifacts only)
   - `firstTokenMs`
   - `firstResponseMs`
   - `prefillMs`
@@ -104,6 +108,8 @@ When `--compare-result` is provided, matrix generation also captures host/browse
   - `decodeMsPerTokenP50`
   - `decodeMsPerTokenP95`
   - `decodeMsPerTokenP99`
+- Compare artifacts rename prompt throughput to `promptTokensPerSecToFirstToken` and exclude raw `prefillMs` from the compare contract when engines expose different prefill semantics.
+- Capability matrices expose `promptTokensPerSecToFirstToken` separately from raw `prefillTokensPerSec` so compare-contract coverage stays explicit.
 - `cacheMode` and `loadMode` are required under each run's `timing` object (`cacheMode`: `cold|warm`, `loadMode`: `opfs|http|memory`).
 - Normalized result records now require a canonical `environment` block (`host`, `browser`, `gpu`, `runtime`) so platform/hardware context is always captured in benchmark JSON.
 - For `vendor-bench run`, missing core environment capture fields fail normalization (`host`, browser identity, GPU identity, backend, runtime device/library).
@@ -111,6 +117,7 @@ When `--compare-result` is provided, matrix generation also captures host/browse
 - Path order is canonicalized in harness files and validated before comparison.
 - Metric paths are canonicalized through `benchmarks/vendors/harnesses/*.json` and validated as required before any comparison.
 - `tools/compare-engines.js` defaults to `--decode-profile parity` (Doppler `batchSize=1`, `readbackInterval=1`) for closer Transformers.js decode cadence matching; use `--decode-profile throughput` for Doppler-tuned runs.
+- Compare artifacts pin harness + metric-contract hashes; stale compare JSON is dropped from `vendor-bench matrix` unless you refresh it.
 - Doppler surface is now explicit in compare runs: `--doppler-surface auto|node|browser` (default from `compare-engines.config.json` per model profile via `defaultDopplerSurface`, fallback `auto`).
 
 ## Visualization

@@ -9,6 +9,13 @@ UI or `tests/harness.html` for interactive/browser suites, and use the Node CLI
 for scripted runs. Runtime behavior is controlled via `runtime.*` and
 `runtime.shared.tooling.intent`.
 
+## Quick Troubleshooting
+
+- WebGPU unavailable: verify browser/runtime support, confirm adapter/device creation succeeds, and update GPU drivers if capability detection fails.
+- Model loading failed: confirm `modelId`, `modelUrl`, manifest reachability, and shard availability before changing runtime config.
+- Out of memory: use a smaller model or quantization, reduce workload size, and re-check [performance-sizing.md](performance-sizing.md) before treating it as a runtime bug.
+- Slow performance: validate warm vs cold conditions, keep benchmark profile knobs consistent, and compare against [benchmark-methodology.md](benchmark-methodology.md) before publishing numbers.
+
 ---
 
 ## Quick Start: Systematic Debug Workflow
@@ -740,7 +747,7 @@ top-5 logits (e.g. `/top-5/`). For specific kernel checks, call
 `window.testHarness.runMatmul(...)` or related helpers from the console.
 
 **Manual browser testing:** Use the onboarding commands and canonical URLs in
-`setup-instructions.md`, then use the test-mode templates in `testing.md`.
+`getting-started.md`, then use the test-mode templates in `testing.md`.
 
 ---
 

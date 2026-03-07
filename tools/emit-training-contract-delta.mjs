@@ -108,7 +108,7 @@ function buildPayload(args) {
       demoClaimsMustReferenceReportId: true,
       publishWeeklyContractDelta: true,
       redTeamReviewRequiredBeforeLaunch: true,
-      policyDoc: 'docs/training-governance.md',
+      policyDoc: 'docs/training-handbook.md',
     },
     notes: args.notes,
     operator: {

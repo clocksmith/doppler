@@ -6,6 +6,11 @@ Canonical specification for Doppler runtime model artifacts.
 
 RDRR is the runtime contract consumed by Doppler loading and inference paths.
 
+Related specs and contracts:
+- [lora-format.md](lora-format.md) for adapter manifests
+- [conversion-runtime-contract.md](conversion-runtime-contract.md) for conversion-vs-runtime ownership
+- [getting-started.md](getting-started.md) for first-run convert/verify flow
+
 ## Core structure
 
 An RDRR artifact set contains:
@@ -21,8 +26,6 @@ An RDRR artifact set contains:
 
 ## Required manifest fields (v1)
 
-See [formats.md](formats.md) for compatibility and index links while migration is in progress.
-
 At minimum, manifests must include:
 - model identity
 - architecture/modelType
@@ -35,11 +38,13 @@ At minimum, manifests must include:
 - Manifest is validated before runtime dispatch.
 - Unresolved execution choices fail closed.
 - Runtime behavior is derived from manifest + runtime config merge.
-
-## Conversion contract
-
-Conversion-runtime ownership is defined in:
-- [conversion-runtime-contract.md](conversion-runtime-contract.md)
+- If `manifest.inference.schema == "doppler.execution/v0"`, the manifest must
+  include explicit `sessionDefaults` and `execution.steps`:
+  - `sessionDefaults.compute.defaults.{activationDtype,mathDtype,accumDtype,outputDtype}`
+  - `sessionDefaults.compute.kernelProfiles`
+  - `sessionDefaults.kvcache` (nullable, but explicit)
+  - `sessionDefaults.decodeLoop` (nullable, but explicit)
+  - pinned `kernelRef` for each non-cast execution step
 
 ## Related implementation
 

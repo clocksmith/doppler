@@ -9,6 +9,46 @@ function cloneRuntimeConfig(runtimeConfig) {
   return JSON.parse(JSON.stringify(runtimeConfig));
 }
 
+function assertCalibrateRuntimeCompatibility(request, runtimeConfig) {
+  if (request?.intent !== 'calibrate') {
+    return;
+  }
+
+  const shared = runtimeConfig?.shared ?? {};
+  const debug = shared.debug ?? {};
+  const benchmarkRun = shared.benchmark?.run ?? {};
+  const violations = [];
+
+  if (debug.trace?.enabled === true) {
+    violations.push('runtime.shared.debug.trace.enabled');
+  }
+  if (debug.pipeline?.enabled === true) {
+    violations.push('runtime.shared.debug.pipeline.enabled');
+  }
+  if (Array.isArray(debug.probes) && debug.probes.length > 0) {
+    violations.push('runtime.shared.debug.probes');
+  }
+  if (debug.profiler?.enabled === true) {
+    violations.push('runtime.shared.debug.profiler.enabled');
+  }
+  if (benchmarkRun.debug === true) {
+    violations.push('runtime.shared.benchmark.run.debug');
+  }
+  if (benchmarkRun.profile === true) {
+    violations.push('runtime.shared.benchmark.run.profile');
+  }
+  if (benchmarkRun.captureMemoryTimeSeries === true) {
+    violations.push('runtime.shared.benchmark.run.captureMemoryTimeSeries');
+  }
+
+  if (violations.length > 0) {
+    throw new Error(
+      `tooling command: calibrate intent forbids investigation instrumentation (${violations.join(', ')}). ` +
+      'Disable those runtime config fields or use the debug command instead.'
+    );
+  }
+}
+
 function resetRuntimeState(runtimeBridge) {
   if (!runtimeBridge?.setRuntimeConfig) {
     throw new Error('runtime bridge must provide setRuntimeConfig().');
@@ -84,6 +124,7 @@ export async function applyRuntimeInputs(request, runtimeBridge, options = {}) {
 
   mergeRuntimePatch(runtimeBridge, request.runtimeConfig);
   mergeRuntimePatch(runtimeBridge, buildRuntimeContractPatch(request));
+  assertCalibrateRuntimeCompatibility(request, runtimeBridge.getRuntimeConfig());
 }
 
 export async function runWithRuntimeIsolation(runtimeBridge, run) {

@@ -10,6 +10,7 @@ import {
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 import {
   EXECUTION_V0_SCHEMA_ID,
+  DEFAULT_EXECUTION_V0_COMPUTE_DEFAULTS,
   DEFAULT_EXECUTION_V0_POLICIES,
   DEFAULT_EXECUTION_V0_SESSION_DEFAULTS,
   isExecutionV0Digest,
@@ -88,6 +89,14 @@ function normalizeSection(value, label) {
   return normalized;
 }
 
+function normalizeStopCheckMode(value, label) {
+  const normalized = String(value ?? '').trim().toLowerCase();
+  if (normalized !== 'batch' && normalized !== 'per-token') {
+    throw new Error(`[ExecutionV0] ${label} must be "batch" or "per-token".`);
+  }
+  return normalized;
+}
+
 function normalizeKVLayout(value, label) {
   if (value == null) {
     return null;
@@ -97,6 +106,151 @@ function normalizeKVLayout(value, label) {
     return null;
   }
   return normalized;
+}
+
+function requirePlainObject(value, label) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error(`[ExecutionV0] ${label} must be an object.`);
+  }
+  return value;
+}
+
+function requireOwnProperty(root, key, label) {
+  if (!Object.prototype.hasOwnProperty.call(root, key)) {
+    throw new Error(`[ExecutionV0] ${label} is required.`);
+  }
+  return root[key];
+}
+
+function requireNullableObject(root, key, label) {
+  const value = requireOwnProperty(root, key, label);
+  if (value === null) {
+    return null;
+  }
+  return requirePlainObject(value, label);
+}
+
+function requireArrayProperty(root, key, label) {
+  const value = requireOwnProperty(root, key, label);
+  if (!Array.isArray(value)) {
+    throw new Error(`[ExecutionV0] ${label} must be an array.`);
+  }
+  return value;
+}
+
+function requirePositiveInteger(value, label) {
+  if (!Number.isInteger(value) || value < 1) {
+    throw new Error(`[ExecutionV0] ${label} must be a positive integer.`);
+  }
+  return value;
+}
+
+function requireOptionalBoolean(value, label) {
+  if (value === undefined) {
+    return undefined;
+  }
+  if (typeof value !== 'boolean') {
+    throw new Error(`[ExecutionV0] ${label} must be a boolean when provided.`);
+  }
+  return value;
+}
+
+function requireDtypeProperty(root, key, label) {
+  const value = requireOwnProperty(root, key, label);
+  if (value == null) {
+    throw new Error(`[ExecutionV0] ${label} is required.`);
+  }
+  return normalizeDtype(value, label);
+}
+
+function validateDecodeLoopContract(sessionDefaults) {
+  const decodeLoop = requireNullableObject(sessionDefaults, 'decodeLoop', 'sessionDefaults.decodeLoop');
+  if (decodeLoop === null) {
+    return;
+  }
+  requirePositiveInteger(
+    decodeLoop.batchSize,
+    'sessionDefaults.decodeLoop.batchSize'
+  );
+  requirePositiveInteger(
+    decodeLoop.readbackInterval,
+    'sessionDefaults.decodeLoop.readbackInterval'
+  );
+  normalizeStopCheckMode(
+    decodeLoop.stopCheckMode,
+    'sessionDefaults.decodeLoop.stopCheckMode'
+  );
+  if (decodeLoop.ringTokens !== undefined) {
+    requirePositiveInteger(
+      decodeLoop.ringTokens,
+      'sessionDefaults.decodeLoop.ringTokens'
+    );
+  }
+  if (decodeLoop.ringStop !== undefined) {
+    requirePositiveInteger(
+      decodeLoop.ringStop,
+      'sessionDefaults.decodeLoop.ringStop'
+    );
+  }
+  if (decodeLoop.ringStaging !== undefined) {
+    requirePositiveInteger(
+      decodeLoop.ringStaging,
+      'sessionDefaults.decodeLoop.ringStaging'
+    );
+  }
+  requireOptionalBoolean(
+    decodeLoop.disableCommandBatching,
+    'sessionDefaults.decodeLoop.disableCommandBatching'
+  );
+}
+
+function validateManifestSessionDefaultsContract(manifestInference) {
+  const sessionDefaults = requirePlainObject(
+    manifestInference?.sessionDefaults,
+    'manifest.inference.sessionDefaults'
+  );
+  const compute = requirePlainObject(
+    requireOwnProperty(sessionDefaults, 'compute', 'sessionDefaults.compute'),
+    'sessionDefaults.compute'
+  );
+  const computeDefaults = requirePlainObject(
+    requireOwnProperty(compute, 'defaults', 'sessionDefaults.compute.defaults'),
+    'sessionDefaults.compute.defaults'
+  );
+  requireDtypeProperty(
+    computeDefaults,
+    'activationDtype',
+    'sessionDefaults.compute.defaults.activationDtype'
+  );
+  requireDtypeProperty(
+    computeDefaults,
+    'mathDtype',
+    'sessionDefaults.compute.defaults.mathDtype'
+  );
+  requireDtypeProperty(
+    computeDefaults,
+    'accumDtype',
+    'sessionDefaults.compute.defaults.accumDtype'
+  );
+  requireDtypeProperty(
+    computeDefaults,
+    'outputDtype',
+    'sessionDefaults.compute.defaults.outputDtype'
+  );
+  requireArrayProperty(
+    compute,
+    'kernelProfiles',
+    'sessionDefaults.compute.kernelProfiles'
+  );
+  const kvcache = requireNullableObject(sessionDefaults, 'kvcache', 'sessionDefaults.kvcache');
+  if (kvcache !== null) {
+    requireDtypeProperty(
+      kvcache,
+      'kvDtype',
+      'sessionDefaults.kvcache.kvDtype'
+    );
+  }
+  validateDecodeLoopContract(sessionDefaults);
 }
 
 function assertKernelRef(kernelRef, label) {
@@ -431,8 +585,8 @@ function indexRuntimePatchMeta(patch) {
 }
 
 function createInitialSlotDtypes(sessionDefaults) {
-  const activationDefault = normalizeDtype(
-    sessionDefaults?.compute?.defaults?.activationDtype ?? 'f16',
+  const activationDefault = requireSessionActivationDtype(
+    sessionDefaults,
     'sessionDefaults.compute.defaults.activationDtype'
   );
   return new Map([['state', activationDefault]]);
@@ -607,7 +761,7 @@ function resolvePhaseSteps(phase, steps, sessionDefaults, profileIndex, policies
   };
 }
 
-function stripPresetComputeDefaults(compute, manifestComputeDefaults) {
+function stripSchemaDefaultComputeDefaults(compute, manifestComputeDefaults) {
   if (!compute?.defaults || !manifestComputeDefaults) {
     return compute;
   }
@@ -619,10 +773,19 @@ function stripPresetComputeDefaults(compute, manifestComputeDefaults) {
     return compute;
   }
   const nextDefaults = { ...compute.defaults };
+  let changed = false;
   for (const key of dtypeKeys) {
-    if (manifestComputeDefaults[key] !== undefined && manifestComputeDefaults[key] !== null) {
+    if (
+      manifestComputeDefaults[key] !== undefined
+      && manifestComputeDefaults[key] !== null
+      && nextDefaults[key] === DEFAULT_EXECUTION_V0_COMPUTE_DEFAULTS[key]
+    ) {
       delete nextDefaults[key];
+      changed = true;
     }
+  }
+  if (!changed) {
+    return compute;
   }
   if (Object.keys(nextDefaults).length === 0) {
     const nextCompute = { ...compute };
@@ -659,7 +822,7 @@ function normalizeRuntimeSessionForExecutionV0(runtimeSession, manifestInference
   // variants), the manifest must win. Only explicit user overrides (via --runtime-config-json
   // or CLI flags) should take precedence, not baked-in preset values.
   if (manifestComputeDefaults) {
-    const stripped = stripPresetComputeDefaults(compute, manifestComputeDefaults);
+    const stripped = stripSchemaDefaultComputeDefaults(compute, manifestComputeDefaults);
     if (stripped !== compute) {
       compute = stripped;
       changed = true;
@@ -809,12 +972,20 @@ function getInlineKernelPathSteps(path) {
   ];
 }
 
+function requireSessionActivationDtype(sessionDefaults, label = 'sessionDefaults.compute.defaults.activationDtype') {
+  const activationDtype = sessionDefaults?.compute?.defaults?.activationDtype;
+  if (activationDtype == null) {
+    throw new Error(`[ExecutionV0] ${label} is required.`);
+  }
+  return normalizeDtype(activationDtype, label);
+}
+
 function assertInlineKernelPathSessionCompatibility(path, sessionDefaults) {
   if (!path) {
     return;
   }
   const activationDtype = normalizeDtype(
-    path.activationDtype ?? sessionDefaults?.compute?.defaults?.activationDtype ?? 'f16',
+    path.activationDtype ?? requireSessionActivationDtype(sessionDefaults),
     'inlineKernelPath.activationDtype'
   );
   const kvDtype = normalizeDtype(
@@ -858,10 +1029,7 @@ function assertInlineKernelPathSessionCompatibility(path, sessionDefaults) {
 }
 
 function buildInlineKernelPath(steps, sessionDefaults, modelId, numLayers, finitenessFallbackKernelPathId = null) {
-  const activationDtype = normalizeDtype(
-    sessionDefaults?.compute?.defaults?.activationDtype ?? 'f16',
-    'sessionDefaults.compute.defaults.activationDtype'
-  );
+  const activationDtype = requireSessionActivationDtype(sessionDefaults);
   const kvDtype = normalizeDtype(
     sessionDefaults?.kvcache?.kvDtype ?? activationDtype,
     'sessionDefaults.kvcache.kvDtype'
@@ -995,6 +1163,11 @@ function buildSessionRuntimePatch(sessionDefaults) {
       ringStop: sessionDefaults.decodeLoop.ringStop,
       ringStaging: sessionDefaults.decodeLoop.ringStaging,
     };
+    if (sessionDefaults.decodeLoop.disableCommandBatching !== undefined) {
+      patch.generation = {
+        disableCommandBatching: sessionDefaults.decodeLoop.disableCommandBatching === true,
+      };
+    }
   }
   return patch;
 }
@@ -1017,6 +1190,7 @@ export function compileExecutionV0(options = {}) {
     return null;
   }
   assertExecutionV0Schema(manifestInference);
+  validateManifestSessionDefaultsContract(manifestInference);
 
   const modelId = options.modelId ?? 'model';
   const numLayers = Number.isInteger(options.numLayers) ? options.numLayers : 0;

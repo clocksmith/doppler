@@ -4,23 +4,35 @@
   "mappings": [
     {
       "configPath": "tools/configs/conversion/gemma3/gemma-3-270m-it-wf16-ef16-hf16-f16.json",
-      "manifestPath": "models/local/gemma-3-270m-it-wf16-ef16-hf16/manifest.json"
+      "manifestPath": "models/local/gemma-3-270m-it-wf16-ef16-hf16-f16/manifest.json"
     },
     {
       "configPath": "tools/configs/conversion/gemma3/gemma-3-270m-it-wq4k-ef16-hf16-f16.json",
-      "manifestPath": "models/local/gemma-3-270m-it-wq4k-ef16-hf16/manifest.json"
+      "manifestPath": "models/local/gemma-3-270m-it-wq4k-ef16-hf16-f16/manifest.json"
     },
     {
       "configPath": "tools/configs/conversion/gemma3/gemma-3-1b-it-wq4k-ef16-hf16-f32.json",
-      "manifestPath": "models/local/gemma-3-1b-it-wq4k-ef16-hf16/manifest.json"
+      "manifestPath": "models/local/gemma-3-1b-it-wq4k-ef16-hf16-f32/manifest.json"
     },
     {
       "configPath": "tools/configs/conversion/gemma3/gemma-3-1b-it-wf16-ef16-hf16-f16.json",
-      "manifestPath": "models/local/gemma-3-1b-it-wq4k-ef16-hf16/manifest.json"
+      "manifestPath": "models/local/gemma-3-1b-it-wf16-ef16-hf16-f32/manifest.json"
     },
     {
       "configPath": "tools/configs/conversion/gemma3/gemma-3-1b-it-wf16-ef16-hf16-f32.json",
-      "manifestPath": "models/local/gemma-3-1b-it-wq4k-ef16-hf16/manifest.json"
+      "manifestPath": "models/local/gemma-3-1b-it-wf16-ef16-hf16-f32/manifest.json"
+    },
+    {
+      "configPath": "tools/configs/conversion/gemma3/gemma-3-1b-it-wq4k-ef16-hf16.json",
+      "manifestPath": "models/local/gemma-3-1b-it-wq4k-ef16-hf16-f32/manifest.json"
+    },
+    {
+      "configPath": "tools/configs/conversion/gemma3/gemma-3-270m-it-wf16-ef16-hf16.json",
+      "manifestPath": "models/local/gemma-3-270m-it-wf16-ef16-hf16-f32/manifest.json"
+    },
+    {
+      "configPath": "tools/configs/conversion/gemma3/gemma-3-270m-it-wq4k-ef16-hf16.json",
+      "manifestPath": "models/curated/gemma-3-270m-it-wq4k-ef16-hf16/manifest.json"
     },
     {
       "configPath": "tools/configs/conversion/embeddinggemma/embeddinggemma-300m-wbf16.json",
@@ -46,6 +58,18 @@
     },
     {
       "configPath": "tools/configs/conversion/gpt-oss-20b-wf16-ef16-hf16-xmxfp4.json",
+      "reason": "no committed converted fixture manifest exists yet for this preset family"
+    },
+    {
+      "configPath": "tools/configs/conversion/gemma3/gemma-3-4b-it-wq4k-ef16-hf16.json",
+      "reason": "no committed converted fixture manifest exists yet for this preset family"
+    },
+    {
+      "configPath": "tools/configs/conversion/gemma3/translategemma-4b-it-wq4k-ef16-hf16.json",
+      "reason": "no committed converted fixture manifest exists yet for this preset family"
+    },
+    {
+      "configPath": "tools/configs/conversion/janus/janus-pro-1b-text-wq4k-ef16-hf16-f16.json",
       "reason": "no committed converted fixture manifest exists yet for this preset family"
     },
     {
@@ -75,6 +99,14 @@
     {
       "configPath": "tools/configs/conversion/modernbert/modernbert-template-wf16-ef16-hf16-f16.json",
       "reason": "template config intentionally excluded from Lean execution-contract coverage until a canonical converted fixture manifest exists"
+    },
+    {
+      "configPath": "tools/configs/conversion/qwen3/qwen-3-5-0-8b-wq4k-ef16-hf16-f16.json",
+      "reason": "no committed converted fixture manifest exists yet for this preset family"
+    },
+    {
+      "configPath": "tools/configs/conversion/qwen3/qwen-3-5-2b-wq4k-ef16-hf16-f16.json",
+      "reason": "no committed converted fixture manifest exists yet for this preset family"
     },
     {
       "configPath": "tools/configs/conversion/sana/sana-sprint-0.6b-wf16-ef16-hf16-f16.json",

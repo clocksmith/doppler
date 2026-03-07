@@ -5,9 +5,37 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+const {
+  buildRequest,
+  createCliToolingErrorEnvelope,
+  finalizeCliCommandResponse,
+} = await import('../../tools/doppler-cli.js');
+
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = path.resolve(HERE, '..', '..');
 const CLI_PATH = path.join(ROOT_DIR, 'tools', 'doppler-cli.js');
+const TEST_CLI_POLICY = {
+  defaults: {
+    surface: {
+      default: 'auto',
+      allowed: ['auto', 'node', 'browser'],
+    },
+    bench: {
+      modelId: 'policy-default-model',
+      surface: 'browser',
+      cacheMode: 'warm',
+    },
+    benchmark: {
+      saveDir: './benchmarks/vendors/results',
+    },
+  },
+  surfaceFallback: {
+    enabled: true,
+    from: 'auto',
+    to: 'browser',
+    errorFragments: ['node command: WebGPU runtime is incomplete in Node'],
+  },
+};
 
 function runCli(args) {
   const logDir = mkdtempSync(path.join(tmpdir(), 'doppler-cli-test-'));
@@ -45,6 +73,75 @@ function writeJsonFixture(content) {
   const filePath = path.join(fixtureDir, 'config.json');
   writeFileSync(filePath, JSON.stringify(content), 'utf8');
   return { fixtureDir, filePath };
+}
+
+await assert.rejects(
+  () => buildRequest({
+    command: 'bench',
+    flags: {
+      config: JSON.stringify({ request: {} }),
+    },
+  }, TEST_CLI_POLICY),
+  /modelId is required for command "bench"/
+);
+
+{
+  const result = await buildRequest({
+    command: 'bench',
+    flags: {
+      config: JSON.stringify({
+        request: {
+          modelId: 'toy-model',
+        },
+      }),
+    },
+  }, TEST_CLI_POLICY);
+  assert.equal(result.surface, 'auto');
+  assert.equal(result.request.modelId, 'toy-model');
+}
+
+{
+  const envelope = createCliToolingErrorEnvelope(
+    {
+      message: 'browser relay failed',
+      code: 'relay_failed',
+      details: {
+        surface: 'browser',
+      },
+    },
+    {
+      surface: null,
+      request: {
+        command: 'bench',
+        suite: 'bench',
+        modelId: 'toy-model',
+      },
+    }
+  );
+  assert.equal(envelope.surface, 'browser');
+  assert.equal(envelope.request?.modelId, 'toy-model');
+}
+
+{
+  const request = {
+    command: 'verify',
+    suite: 'inference',
+    modelId: 'toy-model',
+  };
+  const response = finalizeCliCommandResponse({
+    ok: true,
+    schemaVersion: 1,
+    surface: 'browser',
+    request: {
+      ...request,
+      modelUrl: '/transport-only',
+    },
+    result: {
+      passed: 1,
+      failed: 0,
+    },
+  }, request);
+  assert.deepEqual(response.request, request);
 }
 
 {
@@ -117,6 +214,21 @@ function writeJsonFixture(content) {
 }
 
 {
+  const result = runCli([
+    'bench',
+    '--config',
+    JSON.stringify({
+      request: {},
+    }),
+  ]);
+  assert.equal(result.code, 1);
+  assert.match(
+    result.stderr,
+    /\[error\] tooling command: modelId is required for command "bench" \(suite "bench"\)\./
+  );
+}
+
+{
   const convertConfig = JSON.stringify({
     request: {
       inputDir: '/tmp/input',
@@ -132,6 +244,23 @@ function writeJsonFixture(content) {
   const result = runCli(['convert', '--surface', 'browser', '--config', convertConfig]);
   assert.equal(result.code, 1);
   assert.match(result.stderr, /\[error\] convert is not supported on browser relay/);
+}
+
+{
+  const result = runCli([
+    'lora',
+    '--surface',
+    'browser',
+    '--config',
+    JSON.stringify({
+      request: {
+        action: 'run',
+        workloadPath: '/tmp/workload.json',
+      },
+    }),
+  ]);
+  assert.equal(result.code, 1);
+  assert.match(result.stderr, /\[error\] lora is not supported on browser relay/);
 }
 
 {

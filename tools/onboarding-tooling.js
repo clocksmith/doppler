@@ -22,10 +22,9 @@ const WARN = 'warning';
 const ERROR = 'error';
 const REQUIRED_COMPARE_TIMING_METRICS = Object.freeze([
   'decodeTokensPerSec',
-  'prefillTokensPerSec',
+  'promptTokensPerSecToFirstToken',
   'firstTokenMs',
   'firstResponseMs',
-  'prefillMs',
   'decodeMs',
   'decodeMsPerTokenP50',
   'decodeMsPerTokenP95',
@@ -451,17 +450,19 @@ function validateSinglePathValue(fieldPath, paths, key, issues, code = 'HARNESS_
     issues.push(toIssue(ERROR, code, fieldPath, `"${key}" must be an array of canonical paths`));
     return;
   }
-  if (candidates.length !== 1) {
+  if (candidates.length < 1) {
     issues.push(toIssue(
       ERROR,
       code,
       fieldPath,
-      `"${key}" must map to exactly one canonical path`
+      `"${key}" must map to at least one canonical path`
     ));
     return;
   }
-  if (!assertString(candidates[0])) {
-    issues.push(toIssue(ERROR, code, fieldPath, `"${key}" canonical path must be a non-empty string`));
+  for (const [index, candidate] of candidates.entries()) {
+    if (!assertString(candidate)) {
+      issues.push(toIssue(ERROR, code, fieldPath, `"${key}" canonical path #${index + 1} must be a non-empty string`));
+    }
   }
 }
 

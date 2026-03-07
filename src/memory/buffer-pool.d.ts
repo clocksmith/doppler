@@ -81,6 +81,12 @@ export declare class BufferPool {
   release(buffer: GPUBuffer): void;
 
   /**
+   * Force-dispose an active buffer instead of returning it to the pool.
+   * Use for error paths where the buffer contents or device state may be invalid.
+   */
+  discard(buffer: GPUBuffer): void;
+
+  /**
    * Check if a buffer is currently tracked as active by the pool
    */
   isActiveBuffer(buffer: GPUBuffer): boolean;
@@ -179,6 +185,7 @@ export declare const createUploadBuffer: (size: number) => GPUBuffer;
 export declare const createUniformBuffer: (size: number) => GPUBuffer;
 export declare const acquireBuffer: (size: number, usage?: GPUBufferUsageFlags, label?: string) => GPUBuffer;
 export declare const releaseBuffer: (buffer: GPUBuffer) => void;
+export declare const discardBuffer: (buffer: GPUBuffer) => void;
 export declare const isBufferActive: (buffer: GPUBuffer) => boolean;
 export declare const getBufferRequestedSize: (buffer: GPUBuffer) => number;
 export declare const uploadData: (buffer: GPUBuffer, data: ArrayBuffer | ArrayBufferView, offset?: number) => void;

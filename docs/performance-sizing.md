@@ -86,5 +86,5 @@ console.log('Max storage buffer:', device.limits.maxStorageBufferBindingSize);
 
 ## Related
 
-- Setup workflow: [setup-instructions.md](setup-instructions.md)
+- Setup workflow: [getting-started.md](getting-started.md)
 - Operations troubleshooting: [operations.md](operations.md)

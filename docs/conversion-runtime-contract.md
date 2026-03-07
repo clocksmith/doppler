@@ -16,7 +16,7 @@ re-conversion or can be changed per-run.
 - Converter schema defaults: `src/config/schema/converter.schema.js`
 - Conversion behavior: `src/converter/core.js`, `src/converter/quantization-info.js`
 - Kernel-path and execution-v0 runtime behavior:
-  - `docs/formats.md` (precedence and execution-v0 contract)
+  - `docs/rdrr-format.md` (artifact contract)
   - `docs/style/config-style-guide.md` (runtime overlay rules)
   - `src/inference/pipelines/text/execution-v0.js` (strict runtime compile)
 
@@ -32,7 +32,7 @@ re-conversion or can be changed per-run.
 | `manifest.hashAlgorithm` | Conversion | Yes (`hashAlgorithm`, shard hashes) | No | Yes |
 | `quantization.computePrecision` | Conversion-authored runtime default | Yes (`quantizationInfo.compute`) | Yes (through runtime/session policy) | No (for runtime behavior) |
 | `inference.defaultKernelPath` | Conversion-authored runtime default | Yes | Yes (`runtime.inference.kernelPath`) | No (for runtime behavior) |
-| `inference.sessionDefaults.decodeLoop.*` | Conversion-authored runtime default | Yes | Yes (`runtime.inference.session` / runtime batching policy) | No (for runtime behavior) |
+| `inference.sessionDefaults.decodeLoop.*` | Conversion-authored batching default | Yes | Partially: execution-v0 via `runtime.inference.session`; non-execution-v0 via runtime batching/generation only while runtime remains at global defaults | No (for runtime behavior) |
 | `output.fast` | Reserved converter config flag | No active effect in current converter path | n/a | n/a |
 
 Notes:
@@ -48,7 +48,11 @@ Kernel-path resolution (low to high):
 
 1. `manifest.inference.defaultKernelPath`
 2. `runtime.inference.kernelPath`
-3. Per-run pipeline context override (internal runner context)
+3. execution-v0 inline kernel-path patch
+4. Per-run pipeline context override (internal runner context)
+
+`null` is a valid "no explicit kernel path" result. Runtime must not invent an
+implicit `'auto'` kernel path.
 
 Execution-v0 compile order:
 
@@ -56,6 +60,13 @@ Execution-v0 compile order:
 2. Merge runtime `runtime.inference.session`
 3. Apply runtime `runtime.inference.executionPatch`
 4. Validate strict execution contract (`src`, `dst`, `kernelRef` pinning)
+
+Execution-v0 dtype ownership:
+
+- config-selected and execution-v0-selected kernel paths must already match
+  runtime `activationDtype`, `kvDtype`, and execution-v0 `outputDtype`
+- manifest/model-selected kernel paths may seed those runtime dtypes only when
+  runtime is still at global defaults; conflicting runtime overrides fail closed
 
 ## Why this file exists
 

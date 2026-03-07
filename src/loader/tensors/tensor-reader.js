@@ -2,30 +2,66 @@
 
 import { trace } from '../../debug/index.js';
 
+function resolveSpanShardIndex(span, name, spanIndex) {
+  const shardIndex = typeof span?.shardIndex === 'number'
+    ? span.shardIndex
+    : span?.shard;
+  if (!Number.isInteger(shardIndex) || shardIndex < 0) {
+    throw new Error(
+      `[DopplerLoader] Tensor "${name}" span[${spanIndex}] has invalid shard index.`
+    );
+  }
+  return shardIndex;
+}
+
+function validateSpanField(value, field, name, spanIndex) {
+  if (!Number.isInteger(value) || value < 0) {
+    throw new Error(
+      `[DopplerLoader] Tensor "${name}" span[${spanIndex}] has invalid ${field}.`
+    );
+  }
+  return value;
+}
+
+function getLocationSpans(location) {
+  if (!Array.isArray(location?.spans) || location.spans.length === 0) {
+    return null;
+  }
+  return location.spans;
+}
 
 export async function assembleShardData(location, name, loadShard, loadShardRange = null) {
-  if (location.spans) {
-    trace.loader(`Assembling tensor "${name}" from ${location.spans.length} spans`);
+  const spans = getLocationSpans(location);
+  if (spans) {
+    trace.loader(`Assembling tensor "${name}" from ${spans.length} spans`);
 
-    const chunks = await Promise.all(location.spans.map(async (span) => {
+    const chunks = await Promise.all(spans.map(async (span, spanIndex) => {
+      const shardIndex = resolveSpanShardIndex(span, name, spanIndex);
+      const offset = validateSpanField(span.offset, 'offset', name, spanIndex);
+      const size = validateSpanField(span.size, 'size', name, spanIndex);
       if (loadShardRange) {
-        const data = await loadShardRange(span.shardIndex, span.offset, span.size);
-        if (span.size > data.byteLength) {
+        const data = await loadShardRange(shardIndex, offset, size);
+        if (size > data.byteLength) {
           throw new Error(
-            `[DopplerLoader] Shard ${span.shardIndex} too small for tensor "${name}" span.`
+            `[DopplerLoader] Shard ${shardIndex} too small for tensor "${name}" span.`
           );
         }
-        return new Uint8Array(data, 0, span.size);
+        return new Uint8Array(data, 0, size);
       }
-      const data = await loadShard(span.shardIndex);
-      if (span.offset + span.size > data.byteLength) {
+      const data = await loadShard(shardIndex);
+      if (offset + size > data.byteLength) {
         throw new Error(
-          `[DopplerLoader] Shard ${span.shardIndex} too small for tensor "${name}" span.`
+          `[DopplerLoader] Shard ${shardIndex} too small for tensor "${name}" span.`
         );
       }
-      return new Uint8Array(data, span.offset, span.size);
+      return new Uint8Array(data, offset, size);
     }));
     const totalSize = chunks.reduce((s, c) => s + c.length, 0);
+    if (Number.isInteger(location?.size) && totalSize !== location.size) {
+      throw new Error(
+        `[DopplerLoader] Tensor "${name}" spans total ${totalSize} bytes, expected ${location.size}.`
+      );
+    }
     const combined = new Uint8Array(totalSize);
     let offset = 0;
     for (const chunk of chunks) {
