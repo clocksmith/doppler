@@ -19,6 +19,7 @@ Primary documentation index.
 - [LoRA Format](lora-format.md) - adapter manifest spec.
 - [Conversion Runtime Contract](conversion-runtime-contract.md) - conversion-static vs runtime-overridable ownership.
 - [Model Promotion Playbook](model-promotion-playbook.md) - canonical sync workflow for repo metadata, external-volume RDRR artifacts, and Hugging Face hosting.
+- [Model Support Matrix](model-support-matrix.md) - generated model status table from catalog, conversion coverage, and quickstart metadata.
 - [Registry Workflow](registry-workflow.md) - hosted catalog validation and Hugging Face publication workflow.
 - [Operations](operations.md) - troubleshooting and debug workflows.
 

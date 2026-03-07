@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict';
 
-import { resolveRowStatus, validateCatalogMatrixInputs } from '../../tools/sync-model-support-matrix.js';
+import {
+  buildCurrentInferenceStatusBuckets,
+  resolveRowStatus,
+  validateCatalogMatrixInputs,
+} from '../../tools/sync-model-support-matrix.js';
 
 {
   assert.deepEqual(validateCatalogMatrixInputs({
@@ -89,6 +93,84 @@ import { resolveRowStatus, validateCatalogMatrixInputs } from '../../tools/sync-
     catalogCount: 1,
     lifecycleTested: 'failed',
   }), 'verification-failed');
+}
+
+{
+  const buckets = buildCurrentInferenceStatusBuckets({
+    catalogModels: [
+      {
+        modelId: 'verified-model',
+        preset: 'gemma3',
+        modes: ['run'],
+        sortOrder: 1,
+        lifecycle: {
+          status: {
+            runtime: 'active',
+            tested: 'verified',
+          },
+          tested: {
+            result: 'pass',
+            lastVerifiedAt: '2026-03-06',
+            surface: 'auto',
+          },
+        },
+      },
+      {
+        modelId: 'unknown-model',
+        preset: 'gemma3',
+        modes: ['run'],
+        sortOrder: 2,
+        lifecycle: {
+          status: {
+            runtime: 'active',
+            tested: 'unknown',
+          },
+        },
+      },
+      {
+        modelId: 'failing-model',
+        preset: 'qwen3',
+        modes: ['run'],
+        sortOrder: 3,
+        lifecycle: {
+          status: {
+            runtime: 'active',
+            tested: 'failing',
+          },
+          tested: {
+            result: 'fail',
+            lastVerifiedAt: '2026-03-06',
+            notes: 'Loads but produces incoherent output.',
+          },
+        },
+      },
+    ],
+    quickStartModelIds: ['quickstart-only-model', 'verified-model'],
+    rows: [
+      {
+        presetId: 'mamba',
+        catalogCount: 0,
+        runtimeStatus: 'blocked',
+        status: 'blocked-runtime',
+      },
+      {
+        presetId: 'functiongemma',
+        catalogCount: 0,
+        runtimeStatus: 'active',
+        status: 'conversion-ready',
+      },
+    ],
+  });
+
+  assert.equal(buckets.verified.length, 1);
+  assert.equal(buckets.verified[0].modelId, 'verified-model');
+  assert.equal(buckets.loadsButUnverified.length, 1);
+  assert.equal(buckets.loadsButUnverified[0].modelId, 'unknown-model');
+  assert.equal(buckets.knownFailing.length, 1);
+  assert.equal(buckets.knownFailing[0].modelId, 'failing-model');
+  assert.equal(buckets.quickstartOnly.length, 1);
+  assert.equal(buckets.quickstartOnly[0].modelId, 'quickstart-only-model');
+  assert.equal(buckets.everythingElse.length, 2);
 }
 
 console.log('support-matrix-contract.test: ok');

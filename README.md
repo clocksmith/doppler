@@ -81,10 +81,21 @@ for await (const token of doppler('Hello', { model: 'gemma3-270m' })) {
 - First-run workflow: [docs/getting-started.md](docs/getting-started.md)
 - Runtime config contract: [docs/config.md](docs/config.md)
 - Architecture: [docs/architecture.md](docs/architecture.md)
+- Generated model support table: [docs/model-support-matrix.md](docs/model-support-matrix.md)
 
 ## Current model support
 
-Verified/cataloged support currently includes Gemma 3, EmbeddingGemma, and TranslateGemma. Qwen 3.5 has preset and conversion support but is not yet coherence-verified. Broader preset coverage also exists, including diffusion work, but some entries are conversion-ready rather than cataloged/verified. See [docs/model-support-matrix.md](docs/model-support-matrix.md).
+Verified right now:
+- `gemma-3-270m-it-wq4k-ef16-hf16`
+- `gemma-3-1b-it-wq4k-ef16-hf16`
+- `google-embeddinggemma-300m-wq4k-ef16`
+- `translategemma-4b-it-wq4k-ef16-hf16`
+
+Known failing right now:
+- `qwen-3-5-0-8b-wq4k-ef16-hf16-f16`
+- `qwen-3-5-2b-wq4k-ef16-hf16-f16`
+
+For the generated status table, including `loads but unverified` and `everything else`, see [docs/model-support-matrix.md](docs/model-support-matrix.md).
 
 ## Environment requirements
 
