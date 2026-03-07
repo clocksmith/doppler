@@ -1,6 +1,6 @@
 
 
-import { getDevice, getKernelCapabilities, getDeviceLimits } from '../device.js';
+import { getDevice, getKernelCapabilities, getDeviceLimits, getDeviceEpoch } from '../device.js';
 import { getKernelThresholds } from '../../config/schema/index.js';
 import { GPUProfiler } from '../profiler.js';
 import {
@@ -36,21 +36,33 @@ export class KernelTuner {
   
   #cache;
 
+  #deviceEpoch;
+
   constructor() {
     this.#device = null;
     this.#profiler = null;
     this.#limits = null;
     this.#capabilities = null;
     this.#cache = new Map();
+    this.#deviceEpoch = -1;
   }
 
   
   async init() {
-    this.#device = getDevice();
-    if (!this.#device) {
+    const device = getDevice();
+    if (!device) {
       throw new Error('GPU device not initialized');
     }
 
+    const deviceEpoch = getDeviceEpoch();
+    if (this.#device === device && this.#deviceEpoch === deviceEpoch && this.#profiler) {
+      return;
+    }
+
+    this.destroy();
+
+    this.#device = device;
+    this.#deviceEpoch = deviceEpoch;
     this.#profiler = new GPUProfiler(this.#device);
     this.#limits = getDeviceLimits();
     this.#capabilities = getKernelCapabilities();
@@ -203,6 +215,12 @@ export class KernelTuner {
     if (this.#profiler) {
       this.#profiler.destroy();
     }
+    this.#profiler = null;
+    this.#device = null;
+    this.#limits = null;
+    this.#capabilities = null;
+    this.#cache = new Map();
+    this.#deviceEpoch = -1;
   }
 }
 
@@ -214,8 +232,8 @@ let globalTuner = null;
 export async function getKernelTuner() {
   if (!globalTuner) {
     globalTuner = new KernelTuner();
-    await globalTuner.init();
   }
+  await globalTuner.init();
   return globalTuner;
 }
 

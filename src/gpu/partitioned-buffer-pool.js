@@ -11,10 +11,13 @@ export class PartitionedBufferPool {
   
   #expertPools;
 
+  #bufferOwners;
+
   
   constructor(partitions, schemaConfig = getRuntimeConfig().shared.bufferPool) {
     this.#sharedPool = new BufferPool(false, schemaConfig);
     this.#expertPools = new Map();
+    this.#bufferOwners = new WeakMap();
     for (const partition of partitions) {
       this.#expertPools.set(partition.id, new BufferPool(false, schemaConfig));
     }
@@ -28,12 +31,17 @@ export class PartitionedBufferPool {
     label
   ) {
     const pool = this.#expertPools.get(partitionId) || this.#sharedPool;
-    return pool.acquire(size, usage, label);
+    const buffer = pool.acquire(size, usage, label);
+    this.#bufferOwners.set(buffer, pool);
+    return buffer;
   }
 
   
   release(partitionId, buffer) {
-    const pool = this.#expertPools.get(partitionId) || this.#sharedPool;
+    const pool = this.#bufferOwners.get(buffer)
+      || this.#expertPools.get(partitionId)
+      || this.#sharedPool;
+    this.#bufferOwners.delete(buffer);
     pool.release(buffer);
   }
 

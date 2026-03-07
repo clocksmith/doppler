@@ -10,22 +10,6 @@ function createRng(seed) {
   };
 }
 
-function createUnseededRng() {
-  let fallbackState = ((Date.now() >>> 0) ^ 0xa341316c) >>> 0;
-  return () => {
-    const cryptoApi = typeof globalThis !== 'undefined' ? globalThis.crypto : null;
-    if (cryptoApi && typeof cryptoApi.getRandomValues === 'function') {
-      const random = new Uint32Array(1);
-      cryptoApi.getRandomValues(random);
-      return random[0] / 4294967296;
-    }
-    fallbackState = (fallbackState + 0x6d2b79f5) | 0;
-    let t = Math.imul(fallbackState ^ (fallbackState >>> 15), 1 | fallbackState);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
 function coerceLogitsVector(value, label) {
   if (value instanceof Float32Array) {
     if (value.length === 0) {
@@ -110,6 +94,9 @@ export class SpeculativeDecoder {
     if (config.temperature == null) {
       throw new Error('SpeculativeDecoder requires temperature.');
     }
+    if (!Number.isFinite(config.randomSeed)) {
+      throw new Error('SpeculativeDecoder requires randomSeed.');
+    }
 
     assertTemperature(config.temperature, 'temperature');
     this.numDraftTokens = config.numDraftTokens;
@@ -117,8 +104,7 @@ export class SpeculativeDecoder {
     this.enableTreeDraft = config.enableTreeDraft;
     this.temperature = config.temperature;
 
-    const seed = Number.isFinite(config.randomSeed) ? Math.floor(config.randomSeed) : null;
-    this.random = seed === null ? createUnseededRng() : createRng(seed);
+    this.random = createRng(Math.floor(config.randomSeed));
   }
 
   setDraftModel(model) {

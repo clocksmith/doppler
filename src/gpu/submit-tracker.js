@@ -21,6 +21,8 @@ let submitSources = new Map();
 
 let currentPhase = 'other';
 
+const WRAPPED_QUEUE_SENTINEL = Symbol.for('doppler.submitTrackerWrapped');
+
 
 const phaseStats = {
   prefill: { count: 0, times: [], totalMs: 0, maxMs: 0, minMs: Infinity, sources: new Map() },
@@ -194,6 +196,10 @@ function extractSourceFromStack() {
 
 
 export function wrapQueueForTracking(queue) {
+  if (!queue || queue[WRAPPED_QUEUE_SENTINEL] === true) {
+    return queue;
+  }
+
   const originalSubmit = queue.submit.bind(queue);
 
    (queue).submit = function( commandBuffers) {
@@ -209,6 +215,13 @@ export function wrapQueueForTracking(queue) {
     recordSubmit(duration, extractSourceFromStack());
     return result;
   };
+
+  Object.defineProperty(queue, WRAPPED_QUEUE_SENTINEL, {
+    value: true,
+    configurable: true,
+    enumerable: false,
+    writable: false,
+  });
 
   return queue;
 }

@@ -84,20 +84,35 @@ function parseStructuredJSONObject(rawText) {
 function resolveStructuredRuntime(manifest, runtimeConfig) {
   const modelCfg = isObj(manifest?.inference?.structuredJsonHead)
     ? manifest.inference.structuredJsonHead
-    : (isObj(manifest?.inference?.dream) ? manifest.inference.dream : {});
+    : null;
+  if (!modelCfg) {
+    throw new Error('StructuredJsonHeadPipeline: manifest.inference.structuredJsonHead is required.');
+  }
   const runtimeCfg = isObj(runtimeConfig?.inference?.structuredJsonHead)
     ? runtimeConfig.inference.structuredJsonHead
-    : (isObj(runtimeConfig?.inference?.dream) ? runtimeConfig.inference.dream : {});
+    : {};
+  const resolvedMaxTokens = Number.isFinite(runtimeCfg.maxTokens)
+    ? Math.max(1, Math.floor(runtimeCfg.maxTokens))
+    : (Number.isFinite(modelCfg.maxTokens) ? Math.max(1, Math.floor(modelCfg.maxTokens)) : null);
+  const resolvedTemperature = Number.isFinite(runtimeCfg.temperature)
+    ? Number(runtimeCfg.temperature)
+    : (Number.isFinite(modelCfg.temperature) ? Number(modelCfg.temperature) : null);
+  const resolvedMaxOutputChars = Number.isFinite(runtimeCfg.maxOutputChars)
+    ? Math.max(4096, Math.floor(runtimeCfg.maxOutputChars))
+    : (Number.isFinite(modelCfg.maxOutputChars) ? Math.max(4096, Math.floor(modelCfg.maxOutputChars)) : null);
+  if (!Number.isFinite(resolvedMaxTokens)) {
+    throw new Error('StructuredJsonHeadPipeline: structuredJsonHead.maxTokens is required.');
+  }
+  if (!Number.isFinite(resolvedTemperature)) {
+    throw new Error('StructuredJsonHeadPipeline: structuredJsonHead.temperature is required.');
+  }
+  if (!Number.isFinite(resolvedMaxOutputChars)) {
+    throw new Error('StructuredJsonHeadPipeline: structuredJsonHead.maxOutputChars is required.');
+  }
   return {
-    maxTokens: Number.isFinite(runtimeCfg.maxTokens)
-      ? Math.max(1, Math.floor(runtimeCfg.maxTokens))
-      : (Number.isFinite(modelCfg.maxTokens) ? Math.max(1, Math.floor(modelCfg.maxTokens)) : 768),
-    temperature: Number.isFinite(runtimeCfg.temperature)
-      ? Number(runtimeCfg.temperature)
-      : (Number.isFinite(modelCfg.temperature) ? Number(modelCfg.temperature) : 0),
-    maxOutputChars: Number.isFinite(runtimeCfg.maxOutputChars)
-      ? Math.max(4096, Math.floor(runtimeCfg.maxOutputChars))
-      : (Number.isFinite(modelCfg.maxOutputChars) ? Math.max(4096, Math.floor(modelCfg.maxOutputChars)) : 262144),
+    maxTokens: resolvedMaxTokens,
+    temperature: resolvedTemperature,
+    maxOutputChars: resolvedMaxOutputChars,
   };
 }
 
