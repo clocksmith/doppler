@@ -4,7 +4,56 @@ Auto-generated from preset registry (`src/config/loader.js`), conversion configs
 `models/catalog.json` lifecycle metadata is the canonical source for hosted/demo/tested status.
 Run `npm run support:matrix:sync` after adding/changing presets, conversion configs, or catalog entries.
 
-Updated at: 2026-03-06
+Updated at: 2026-03-07
+
+## Current Inference Status
+
+This section answers "which models work now?" from `models/catalog.json` lifecycle metadata plus the quickstart registry.
+
+### 1. Verified
+
+| Model ID | Preset | Modes | Last verified | Surface | Notes |
+| --- | --- | --- | --- | --- | --- |
+| gemma-3-270m-it-wq4k-ef16-hf16 | gemma3 | run | 2026-03-04 | auto | - |
+| google-embeddinggemma-300m-wq4k-ef16 | embeddinggemma | embedding | 2026-03-04 | auto | - |
+| translategemma-4b-it-wq4k-ef16-hf16 | translategemma | run | 2026-03-06 | browser | - |
+
+### 2. Loads But Unverified
+
+None right now.
+
+### 3. Known Failing
+
+| Model ID | Preset | Modes | Last checked | Surface | Notes |
+| --- | --- | --- | --- | --- | --- |
+| qwen-3-5-0-8b-wq4k-ef16-hf16-f16 | qwen3 | run | 2026-03-06 | browser | Loads and runs but produces incoherent output. Linear attention kernel correctness not yet verified against HF reference. |
+| qwen-3-5-2b-wq4k-ef16-hf16-f16 | qwen3 | run | 2026-03-06 | browser | Loads and runs but produces incoherent output. Same root cause as 0.8B variant — linear attention kernel correctness not yet verified. |
+
+### 4. Quickstart-Supported Only
+
+| Model ID | Source | Notes |
+| --- | --- | --- |
+| gemma-3-1b-it-wq4k-ef16-hf16 | quickstart registry | Downloadable through the quickstart path, but not yet represented in models/catalog.json. |
+
+### 5. Everything Else
+
+| Entry | Type | Status | Notes |
+| --- | --- | --- | --- |
+| deepseek | preset family | conversion-ready | conversion configs exist, but there is no cataloged model entry yet |
+| diffusion | preset family | conversion-ready | conversion configs exist, but there is no cataloged model entry yet |
+| functiongemma | preset family | conversion-ready | conversion configs exist, but there is no cataloged model entry yet |
+| gemma2 | preset family | conversion-ready | conversion configs exist, but there is no cataloged model entry yet |
+| gpt_oss | preset family | conversion-ready | conversion configs exist, but there is no cataloged model entry yet |
+| janus_text | preset family | conversion-ready | conversion configs exist, but there is no cataloged model entry yet |
+| kimi_k2 | preset family | conversion-ready | conversion configs exist, but there is no cataloged model entry yet |
+| lfm2 | preset family | conversion-ready | conversion configs exist, but there is no cataloged model entry yet |
+| llama3 | preset family | conversion-ready | conversion configs exist, but there is no cataloged model entry yet |
+| mamba | preset family | blocked-runtime | runtime path is fail-closed |
+| mixtral | preset family | conversion-ready | conversion configs exist, but there is no cataloged model entry yet |
+| modernbert | preset family | conversion-ready | conversion configs exist, but there is no cataloged model entry yet |
+| transformer | preset family | conversion-ready | conversion configs exist, but there is no cataloged model entry yet |
+
+## Preset Coverage Matrix
 
 | Preset | Runtime modelType | Runtime | Conversion configs | Catalog models | Hosted (HF) | Demo | Tested | Status | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -15,7 +64,7 @@ Updated at: 2026-03-06
 | diffusion | diffusion | active | 2 (tools/configs/conversion/diffusion/diffusion-template-wf16-ef16-hf16-f16.json, tools/configs/conversion/sana/sana-sprint-0.6b-wf16-ef16-hf16-f16.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
 | gemma2 | transformer | active | 1 (tools/configs/conversion/gemma2/gemma2-template-wf16-ef16-hf16-f16.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
 | translategemma | transformer | active | 1 (tools/configs/conversion/gemma3/translategemma-4b-it-wq4k-ef16-hf16.json) | 1 (translategemma-4b-it-wq4k-ef16-hf16) | yes | none | verified (2026-03-06) | verified | - |
-| gemma3 | transformer | active | 8 (tools/configs/conversion/gemma3/gemma-3-1b-it-wf16-ef16-hf16-f16.json, tools/configs/conversion/gemma3/gemma-3-1b-it-wf16-ef16-hf16-f32.json, tools/configs/conversion/gemma3/gemma-3-1b-it-wq4k-ef16-hf16-f32.json, +5 more) | 1 (gemma-3-270m-it-wq4k-ef16-hf16) | yes | curated | verified (2026-03-04) | verified | - |
+| gemma3 | transformer | active | 9 (tools/configs/conversion/gemma3/gemma-3-1b-it-wf16-ef16-hf16-f16.json, tools/configs/conversion/gemma3/gemma-3-1b-it-wf16-ef16-hf16-f32.json, tools/configs/conversion/gemma3/gemma-3-1b-it-wq4k-ef16-hf16-f32.json, +6 more) | 1 (gemma-3-270m-it-wq4k-ef16-hf16) | yes | curated | verified (2026-03-04) | verified | - |
 | llama3 | transformer | active | 1 (tools/configs/conversion/llama3/llama3-template-wf16-ef16-hf16-f16.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
 | lfm2 | transformer | active | 2 (tools/configs/conversion/lfm2/lfm2.5-1.2b-instruct-wq4k-ef16-hf16-f16.json, tools/configs/conversion/lfm2/lfm2.5-1.2b-instruct-wq4k-ef16-hf16-f32.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
 | qwen3 | transformer | active | 3 (tools/configs/conversion/qwen3/qwen-3-5-0-8b-wf16-ef16-hf16-f16.json, tools/configs/conversion/qwen3/qwen-3-5-0-8b-wq4k-ef16-hf16-f16.json, tools/configs/conversion/qwen3/qwen-3-5-2b-wq4k-ef16-hf16-f16.json) | 2 (qwen-3-5-0-8b-wq4k-ef16-hf16-f16, qwen-3-5-2b-wq4k-ef16-hf16-f16) | yes | none | failed | verification-failed | - |

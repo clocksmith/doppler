@@ -204,6 +204,17 @@ function resolveRuntimeStatus(modelType) {
   return RUNTIME_BLOCKED_MODEL_TYPES.has(modelType) ? 'blocked' : 'active';
 }
 
+function normalizeModelId(value) {
+  return typeof value === 'string' && value.trim() ? value.trim() : 'unknown-model';
+}
+
+function summarizeModes(model) {
+  const modes = Array.isArray(model?.modes)
+    ? model.modes.filter((entry) => typeof entry === 'string' && entry.trim())
+    : [];
+  return modes.length > 0 ? modes.join(', ') : 'run';
+}
+
 function createEmptyLifecycleAggregate() {
   return {
     hosted: false,
@@ -280,6 +291,109 @@ export function resolveRowStatus(row) {
   return 'conversion-ready';
 }
 
+function compareCatalogModels(left, right) {
+  const leftOrder = Number.isFinite(left?.sortOrder) ? left.sortOrder : Number.POSITIVE_INFINITY;
+  const rightOrder = Number.isFinite(right?.sortOrder) ? right.sortOrder : Number.POSITIVE_INFINITY;
+  if (leftOrder !== rightOrder) {
+    return leftOrder - rightOrder;
+  }
+  return normalizeModelId(left?.modelId).localeCompare(normalizeModelId(right?.modelId));
+}
+
+function buildCatalogModelStatusEntry(model) {
+  const lifecycle = resolveCatalogLifecycle(model);
+  const status = model?.lifecycle && typeof model.lifecycle === 'object' && model.lifecycle.status && typeof model.lifecycle.status === 'object'
+    ? model.lifecycle.status
+    : {};
+  const tested = model?.lifecycle && typeof model.lifecycle === 'object' && model.lifecycle.tested && typeof model.lifecycle.tested === 'object'
+    ? model.lifecycle.tested
+    : {};
+  return {
+    modelId: normalizeModelId(model?.modelId),
+    preset: normalizeText(model?.preset) || 'unknown',
+    modes: summarizeModes(model),
+    runtimeStatus: normalizeText(status.runtime) || 'unknown',
+    tested: lifecycle.tested,
+    testedAt: lifecycle.testedAt,
+    surface: typeof tested.surface === 'string' && tested.surface.trim() ? tested.surface.trim() : null,
+    notes: typeof tested.notes === 'string' && tested.notes.trim() ? tested.notes.trim() : null,
+  };
+}
+
+function buildPresetCoverageEntry(row) {
+  const notes = [];
+  if (row.runtimeStatus === 'blocked') {
+    notes.push('runtime path is fail-closed');
+  } else {
+    notes.push('conversion configs exist, but there is no cataloged model entry yet');
+  }
+  return {
+    entry: row.presetId,
+    type: 'preset family',
+    status: row.status,
+    notes: notes.join('; '),
+  };
+}
+
+export function buildCurrentInferenceStatusBuckets({ catalogModels, quickStartModelIds, rows }) {
+  const verified = [];
+  const loadsButUnverified = [];
+  const knownFailing = [];
+  const everythingElseCatalog = [];
+  const sortedCatalogModels = Array.isArray(catalogModels)
+    ? catalogModels.slice().sort(compareCatalogModels)
+    : [];
+  const catalogModelIds = new Set();
+  for (const model of sortedCatalogModels) {
+    const entry = buildCatalogModelStatusEntry(model);
+    catalogModelIds.add(entry.modelId);
+    if (entry.tested === 'verified') {
+      verified.push(entry);
+      continue;
+    }
+    if (entry.tested === 'failed') {
+      knownFailing.push(entry);
+      continue;
+    }
+    if (entry.runtimeStatus === 'active') {
+      loadsButUnverified.push(entry);
+      continue;
+    }
+    everythingElseCatalog.push({
+      entry: entry.modelId,
+      type: 'catalog model',
+      status: entry.runtimeStatus || 'unknown',
+      notes: entry.notes || 'Cataloged model without a verified or failing inference lifecycle result.',
+    });
+  }
+
+  const quickstartOnly = Array.isArray(quickStartModelIds)
+    ? quickStartModelIds
+      .filter((modelId) => typeof modelId === 'string' && modelId.trim() && !catalogModelIds.has(modelId.trim()))
+      .sort((left, right) => left.localeCompare(right))
+      .map((modelId) => ({
+        modelId: modelId.trim(),
+        source: 'quickstart registry',
+        notes: 'Downloadable through the quickstart path, but not yet represented in models/catalog.json.',
+      }))
+    : [];
+
+  const everythingElsePresets = Array.isArray(rows)
+    ? rows
+      .filter((row) => row.catalogCount === 0)
+      .sort((left, right) => left.presetId.localeCompare(right.presetId))
+      .map((row) => buildPresetCoverageEntry(row))
+    : [];
+
+  return {
+    verified,
+    loadsButUnverified,
+    knownFailing,
+    quickstartOnly,
+    everythingElse: [...everythingElseCatalog, ...everythingElsePresets],
+  };
+}
+
 function summarizeList(values, maxItems = 3) {
   if (values.length === 0) return '0';
   if (values.length <= maxItems) {
@@ -289,7 +403,112 @@ function summarizeList(values, maxItems = 3) {
   return `${values.length} (${visible}, +${values.length - maxItems} more)`;
 }
 
-function renderMatrix(rows, metadata) {
+function formatCell(value) {
+  if (value === null || value === undefined || value === '') return '-';
+  return String(value).replace(/\|/g, '\\|');
+}
+
+function pushTable(lines, headers, rows) {
+  lines.push(`| ${headers.join(' | ')} |`);
+  lines.push(`| ${headers.map(() => '---').join(' | ')} |`);
+  for (const row of rows) {
+    lines.push(`| ${row.map((value) => formatCell(value)).join(' | ')} |`);
+  }
+  lines.push('');
+}
+
+function renderCurrentInferenceStatus(lines, buckets) {
+  lines.push('## Current Inference Status');
+  lines.push('');
+  lines.push('This section answers "which models work now?" from `models/catalog.json` lifecycle metadata plus the quickstart registry.');
+  lines.push('');
+
+  lines.push('### 1. Verified');
+  lines.push('');
+  if (buckets.verified.length === 0) {
+    lines.push('None.');
+    lines.push('');
+  } else {
+    pushTable(lines,
+      ['Model ID', 'Preset', 'Modes', 'Last verified', 'Surface', 'Notes'],
+      buckets.verified.map((entry) => [
+        entry.modelId,
+        entry.preset,
+        entry.modes,
+        entry.testedAt || null,
+        entry.surface || null,
+        entry.notes || null,
+      ]));
+  }
+
+  lines.push('### 2. Loads But Unverified');
+  lines.push('');
+  if (buckets.loadsButUnverified.length === 0) {
+    lines.push('None right now.');
+    lines.push('');
+  } else {
+    pushTable(lines,
+      ['Model ID', 'Preset', 'Modes', 'Runtime', 'Notes'],
+      buckets.loadsButUnverified.map((entry) => [
+        entry.modelId,
+        entry.preset,
+        entry.modes,
+        entry.runtimeStatus,
+        entry.notes || 'Cataloged model without a passing or failing verification result yet.',
+      ]));
+  }
+
+  lines.push('### 3. Known Failing');
+  lines.push('');
+  if (buckets.knownFailing.length === 0) {
+    lines.push('None right now.');
+    lines.push('');
+  } else {
+    pushTable(lines,
+      ['Model ID', 'Preset', 'Modes', 'Last checked', 'Surface', 'Notes'],
+      buckets.knownFailing.map((entry) => [
+        entry.modelId,
+        entry.preset,
+        entry.modes,
+        entry.testedAt || null,
+        entry.surface || null,
+        entry.notes || null,
+      ]));
+  }
+
+  lines.push('### 4. Quickstart-Supported Only');
+  lines.push('');
+  if (buckets.quickstartOnly.length === 0) {
+    lines.push('None right now.');
+    lines.push('');
+  } else {
+    pushTable(lines,
+      ['Model ID', 'Source', 'Notes'],
+      buckets.quickstartOnly.map((entry) => [
+        entry.modelId,
+        entry.source,
+        entry.notes,
+      ]));
+  }
+
+  lines.push('### 5. Everything Else');
+  lines.push('');
+  if (buckets.everythingElse.length === 0) {
+    lines.push('None.');
+    lines.push('');
+  } else {
+    pushTable(lines,
+      ['Entry', 'Type', 'Status', 'Notes'],
+      buckets.everythingElse.map((entry) => [
+        entry.entry,
+        entry.type,
+        entry.status,
+        entry.notes,
+      ]));
+  }
+}
+
+function renderMatrix(rows, metadata, buckets) {
   const lines = [];
   lines.push('# Model Support Matrix');
   lines.push('');
@@ -298,6 +517,9 @@ function renderMatrix(rows, metadata) {
   lines.push('Run `npm run support:matrix:sync` after adding/changing presets, conversion configs, or catalog entries.');
   lines.push('');
   lines.push(`Updated at: ${metadata.generatedAt}`);
+  lines.push('');
+  renderCurrentInferenceStatus(lines, buckets);
+  lines.push('## Preset Coverage Matrix');
   lines.push('');
   lines.push('| Preset | Runtime modelType | Runtime | Conversion configs | Catalog models | Hosted (HF) | Demo | Tested | Status | Notes |');
   lines.push('| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |');
@@ -433,6 +655,20 @@ async function main() {
     );
   }
 
+  const quickStartModule = await import('../src/storage/quickstart-downloader.js');
+  if (typeof quickStartModule.listQuickStartModels !== 'function') {
+    throw new Error('Quickstart registry export listQuickStartModels() is unavailable.');
+  }
+  const quickStartModelIds = quickStartModule.listQuickStartModels()
+    .map((entry) => normalizeText(entry?.modelId) ? String(entry.modelId).trim() : null)
+    .filter((entry) => typeof entry === 'string' && entry.length > 0);
+
+  const buckets = buildCurrentInferenceStatusBuckets({
+    catalogModels,
+    quickStartModelIds,
+    rows,
+  });
+
   const metadata = {
     generatedAt: typeof catalogPayload?.updatedAt === 'string' && catalogPayload.updatedAt.trim()
       ? catalogPayload.updatedAt.trim()
@@ -448,7 +684,7 @@ async function main() {
     blockedCount: rows.filter((row) => row.runtimeStatus === 'blocked').length,
     catalogCount: catalogModels.length,
   };
-  const nextContent = renderMatrix(rows, metadata);
+  const nextContent = renderMatrix(rows, metadata, buckets);
 
   if (args.check) {
     let currentContent;
