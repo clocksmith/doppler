@@ -2160,22 +2160,6 @@ async function computeNodeFileHash(filePath) {
   };
 }
 
-async function resolveIsolatedArtifactDir(explicitDir, prefix) {
-  const normalized = normalizeOptionalString(explicitDir);
-  if (normalized) {
-    return normalized;
-  }
-  if (!(typeof process !== 'undefined' && process.versions?.node)) {
-    return null;
-  }
-  const [{ mkdtemp }, { tmpdir }, { join }] = await Promise.all([
-    import('node:fs/promises'),
-    import('node:os'),
-    import('node:path'),
-  ]);
-  return mkdtemp(join(tmpdir(), `doppler-${prefix}-`));
-}
-
 async function runUlStageTest(stage, options = {}) {
   const ulTraining = buildUlTrainingOverrides({
     ...options,
@@ -2198,7 +2182,9 @@ async function runUlStageTest(stage, options = {}) {
         }
       },
     };
-    const ulArtifactDir = await resolveIsolatedArtifactDir(options.ulArtifactDir, 'ul');
+    const ulArtifactDir = normalizeOptionalString(options.ulArtifactDir)
+      || normalizeOptionalString(fixture.config.training?.ul?.artifactDir)
+      || 'reports/training/ul';
     const metrics = await runner.run(fixture.model, dataset, {
       epochs: 1,
       batchSize: 1,
@@ -2374,7 +2360,9 @@ async function runDistillStageTest(stage, options = {}) {
       distillRuntime,
     });
     const distillRunStartMs = performance.now();
-    const distillArtifactDir = await resolveIsolatedArtifactDir(options.distillArtifactDir, 'distill');
+    const distillArtifactDir = normalizeOptionalString(options.distillArtifactDir)
+      || normalizeOptionalString(fixture.config.training?.distill?.artifactDir)
+      || 'reports/training/distill';
     const metrics = await runner.run(fixture.model, dataset, {
       epochs: 1,
       batchSize: 1,

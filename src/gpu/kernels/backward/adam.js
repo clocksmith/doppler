@@ -25,60 +25,62 @@ async function runAdamChunked(device, pipeline, params, grads, moment1, moment2,
     const gradsChunkBuffer = acquireBuffer(chunkBytes, undefined, 'adam_grads_chunk');
     const mChunkBuffer = acquireBuffer(chunkBytes, undefined, 'adam_m_chunk');
     const vChunkBuffer = acquireBuffer(chunkBytes, undefined, 'adam_v_chunk');
+    let uniformBuffer = null;
+    try {
+      const copyIn = device.createCommandEncoder();
+      copyIn.copyBufferToBuffer(params.buffer, chunkOffsetBytes, paramsChunkBuffer, 0, chunkBytes);
+      copyIn.copyBufferToBuffer(grads.buffer, chunkOffsetBytes, gradsChunkBuffer, 0, chunkBytes);
+      copyIn.copyBufferToBuffer(moment1.buffer, chunkOffsetBytes, mChunkBuffer, 0, chunkBytes);
+      copyIn.copyBufferToBuffer(moment2.buffer, chunkOffsetBytes, vChunkBuffer, 0, chunkBytes);
+      device.queue.submit([copyIn.finish()]);
 
-    const copyIn = device.createCommandEncoder();
-    copyIn.copyBufferToBuffer(params.buffer, chunkOffsetBytes, paramsChunkBuffer, 0, chunkBytes);
-    copyIn.copyBufferToBuffer(grads.buffer, chunkOffsetBytes, gradsChunkBuffer, 0, chunkBytes);
-    copyIn.copyBufferToBuffer(moment1.buffer, chunkOffsetBytes, mChunkBuffer, 0, chunkBytes);
-    copyIn.copyBufferToBuffer(moment2.buffer, chunkOffsetBytes, vChunkBuffer, 0, chunkBytes);
-    device.queue.submit([copyIn.finish()]);
+      const paramsChunk = createTensor(paramsChunkBuffer, params.dtype, [chunkCount], 'adam_params_chunk');
+      const gradsChunk = createTensor(gradsChunkBuffer, grads.dtype, [chunkCount], 'adam_grads_chunk');
+      const mChunk = createTensor(mChunkBuffer, moment1.dtype, [chunkCount], 'adam_m_chunk');
+      const vChunk = createTensor(vChunkBuffer, moment2.dtype, [chunkCount], 'adam_v_chunk');
 
-    const paramsChunk = createTensor(paramsChunkBuffer, params.dtype, [chunkCount], 'adam_params_chunk');
-    const gradsChunk = createTensor(gradsChunkBuffer, grads.dtype, [chunkCount], 'adam_grads_chunk');
-    const mChunk = createTensor(mChunkBuffer, moment1.dtype, [chunkCount], 'adam_m_chunk');
-    const vChunk = createTensor(vChunkBuffer, moment2.dtype, [chunkCount], 'adam_v_chunk');
+      uniformBuffer = createUniformBufferWithView(
+        'adam_uniforms_chunk',
+        32,
+        (view) => {
+          view.setUint32(0, chunkCount, true);
+          view.setUint32(4, options.step, true);
+          view.setFloat32(8, options.lr, true);
+          view.setFloat32(12, options.beta1, true);
+          view.setFloat32(16, options.beta2, true);
+          view.setFloat32(20, options.eps, true);
+        },
+        null,
+        device
+      );
 
-    const uniformBuffer = createUniformBufferWithView(
-      'adam_uniforms_chunk',
-      32,
-      (view) => {
-        view.setUint32(0, chunkCount, true);
-        view.setUint32(4, options.step, true);
-        view.setFloat32(8, options.lr, true);
-        view.setFloat32(12, options.beta1, true);
-        view.setFloat32(16, options.beta2, true);
-        view.setFloat32(20, options.eps, true);
-      },
-      null,
-      device
-    );
+      const bindGroup = device.createBindGroup({
+        label: 'adam_bind_group_chunk',
+        layout: pipeline.getBindGroupLayout(0),
+        entries: [
+          { binding: 0, resource: { buffer: uniformBuffer } },
+          { binding: 1, resource: { buffer: paramsChunk.buffer } },
+          { binding: 2, resource: { buffer: gradsChunk.buffer } },
+          { binding: 3, resource: { buffer: mChunk.buffer } },
+          { binding: 4, resource: { buffer: vChunk.buffer } },
+        ],
+      });
 
-    const bindGroup = device.createBindGroup({
-      label: 'adam_bind_group_chunk',
-      layout: pipeline.getBindGroupLayout(0),
-      entries: [
-        { binding: 0, resource: { buffer: uniformBuffer } },
-        { binding: 1, resource: { buffer: paramsChunk.buffer } },
-        { binding: 2, resource: { buffer: gradsChunk.buffer } },
-        { binding: 3, resource: { buffer: mChunk.buffer } },
-        { binding: 4, resource: { buffer: vChunk.buffer } },
-      ],
-    });
+      const workgroups = Math.ceil(chunkCount / WORKGROUP_SIZES.DEFAULT);
+      dispatch(device, pipeline, bindGroup, workgroups, 'adam_chunk');
 
-    const workgroups = Math.ceil(chunkCount / WORKGROUP_SIZES.DEFAULT);
-    dispatch(device, pipeline, bindGroup, workgroups, 'adam_chunk');
-    uniformBuffer.destroy();
-
-    const copyOut = device.createCommandEncoder();
-    copyOut.copyBufferToBuffer(paramsChunk.buffer, 0, params.buffer, chunkOffsetBytes, chunkBytes);
-    copyOut.copyBufferToBuffer(mChunk.buffer, 0, moment1.buffer, chunkOffsetBytes, chunkBytes);
-    copyOut.copyBufferToBuffer(vChunk.buffer, 0, moment2.buffer, chunkOffsetBytes, chunkBytes);
-    device.queue.submit([copyOut.finish()]);
-
-    releaseBuffer(paramsChunkBuffer);
-    releaseBuffer(gradsChunkBuffer);
-    releaseBuffer(mChunkBuffer);
-    releaseBuffer(vChunkBuffer);
+      const copyOut = device.createCommandEncoder();
+      copyOut.copyBufferToBuffer(paramsChunk.buffer, 0, params.buffer, chunkOffsetBytes, chunkBytes);
+      copyOut.copyBufferToBuffer(mChunk.buffer, 0, moment1.buffer, chunkOffsetBytes, chunkBytes);
+      copyOut.copyBufferToBuffer(vChunk.buffer, 0, moment2.buffer, chunkOffsetBytes, chunkBytes);
+      device.queue.submit([copyOut.finish()]);
+    } finally {
+      uniformBuffer?.destroy();
+      releaseBuffer(paramsChunkBuffer);
+      releaseBuffer(gradsChunkBuffer);
+      releaseBuffer(mChunkBuffer);
+      releaseBuffer(vChunkBuffer);
+    }
   }
 }
 
@@ -143,10 +145,12 @@ export async function runAdam(
     ],
   });
 
-  const workgroups = Math.ceil(inferredCount / WORKGROUP_SIZES.DEFAULT);
-  dispatch(device, pipeline, bindGroup, workgroups, 'adam');
-
-  uniformBuffer.destroy();
+  try {
+    const workgroups = Math.ceil(inferredCount / WORKGROUP_SIZES.DEFAULT);
+    dispatch(device, pipeline, bindGroup, workgroups, 'adam');
+  } finally {
+    uniformBuffer.destroy();
+  }
 
   return createTensor(params.buffer, params.dtype, [...params.shape], 'adam_params');
 }

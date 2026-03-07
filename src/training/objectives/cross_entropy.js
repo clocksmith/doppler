@@ -1,15 +1,12 @@
 import { crossEntropyLoss as defaultCrossEntropyLoss } from '../loss.js';
-import { acquireBuffer, uploadData } from '../../memory/buffer-pool.js';
-import { createTensor } from '../../gpu/tensor.js';
 import { createTrainingObjective } from './base.js';
+import { createUploadedTensor } from '../tensor-factory.js';
 
 function createLossGradient(loss, lossScale) {
   const lossElements = loss.shape.reduce((acc, value) => acc * value, 1);
   const gradData = new Float32Array(lossElements);
   gradData.fill(lossScale);
-  const gradBuf = acquireBuffer(gradData.byteLength, undefined, 'loss_grad_output');
-  uploadData(gradBuf, gradData);
-  return createTensor(gradBuf, 'f32', [...loss.shape], 'loss_grad_output');
+  return createUploadedTensor(gradData, 'f32', loss.shape, 'loss_grad_output');
 }
 
 export function createCrossEntropyObjective(options = {}) {

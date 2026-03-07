@@ -1,4 +1,5 @@
 import { MB } from './units.schema.js';
+import { validateRequiredInferenceFields } from '../../inference/pipelines/text/config.js';
 
 // =============================================================================
 // Hash & Versioning
@@ -124,6 +125,18 @@ export function validateManifestInference(
       `Please re-convert the model using the latest converter.`
     );
   }
+
+  if (manifest.modelType === 'diffusion') {
+    return;
+  }
+
+  const inference = typeof structuredClone === 'function'
+    ? structuredClone(manifest.inference)
+    : JSON.parse(JSON.stringify(manifest.inference));
+  validateRequiredInferenceFields(
+    inference,
+    manifest.modelId ?? 'unknown'
+  );
 }
 
 export function hasInferenceConfig(

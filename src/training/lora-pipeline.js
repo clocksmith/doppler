@@ -3,7 +3,6 @@ import { join, resolve } from 'node:path';
 
 import { loadBackwardRegistry } from '../config/backward-registry-loader.js';
 import { acquireBuffer, readBuffer, releaseBuffer, uploadData } from '../memory/buffer-pool.js';
-import { createTensor } from '../gpu/tensor.js';
 import { runMatmul } from '../gpu/kernels/index.js';
 import { runResidualAdd } from '../gpu/kernels/residual.js';
 import { parseJsonl } from './datasets/jsonl.js';
@@ -27,6 +26,7 @@ import {
 } from './operator-artifacts.js';
 import { watchFinalizedCheckpoints } from './checkpoint-watch.js';
 import { loadLoRAFromManifest } from '../adapters/lora-loader.js';
+import { createUploadedTensor } from './tensor-factory.js';
 
 function stableSortObject(value) {
   if (Array.isArray(value)) {
@@ -48,16 +48,12 @@ function stableJson(value) {
 
 function makeTensorFromFloat32(values, shape, label) {
   const data = values instanceof Float32Array ? values : new Float32Array(values);
-  const buffer = acquireBuffer(data.byteLength, undefined, label);
-  uploadData(buffer, data);
-  return createTensor(buffer, 'f32', [...shape], label);
+  return createUploadedTensor(data, 'f32', shape, label);
 }
 
 function makeTensorFromUint32(values, shape, label) {
   const data = values instanceof Uint32Array ? values : new Uint32Array(values);
-  const buffer = acquireBuffer(data.byteLength, undefined, label);
-  uploadData(buffer, data);
-  return createTensor(buffer, 'u32', [...shape], label);
+  return createUploadedTensor(data, 'u32', shape, label);
 }
 
 function releaseTensor(tensor) {
@@ -709,6 +705,7 @@ export async function watchLoraCheckpoints(options) {
     manifestPath: join(options.runRoot, 'scoreboard', 'watch-manifest.json'),
     pollIntervalMs: options.pollIntervalMs || 2000,
     stopWhenIdle: options.stopWhenIdle === true,
+    signal: options.signal ?? null,
     onCheckpoint: async (markerPath) => {
       const raw = await readFile(markerPath, 'utf8');
       const marker = JSON.parse(raw);

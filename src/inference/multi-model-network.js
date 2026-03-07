@@ -4,9 +4,10 @@ import { ExpertRouter } from './expert-router.js';
 import { MultiModelRecorder } from '../gpu/multi-model-recorder.js';
 import { applyRepetitionPenalty, sample, getTopK } from './pipelines/text/sampling.js';
 import { finalizeLogits, extractLastPositionLogits } from './pipelines/text/logits/index.js';
+import { readBufferWithCleanup } from './pipelines/text/logits/utils.js';
 import { isStopToken } from './pipelines/text/init.js';
 import { mergeMultipleLogits } from '../gpu/kernels/logit-merge.js';
-import { releaseBuffer, readBuffer } from '../memory/buffer-pool.js';
+import { releaseBuffer } from '../memory/buffer-pool.js';
 
 const MIN_AGREEMENT_WEIGHT = 1e-4;
 
@@ -478,8 +479,9 @@ export class MultiModelNetwork {
       if (canMergeOnGpu) {
         const buffers = voterResults.map((result) => result.logitsBuffer);
         const mergedBuffer = await mergeMultipleLogits(buffers, rawVocabSize, normalizedWeights, 1.0);
-        const mergedData = await readBuffer(mergedBuffer, rawVocabSize * 4);
-        releaseBuffer(mergedBuffer);
+        const mergedData = await readBufferWithCleanup(mergedBuffer, rawVocabSize * 4, () => {
+          releaseBuffer(mergedBuffer);
+        });
         const rawMerged = new Float32Array(mergedData);
         const finalized = await finalizeLogits(
           rawMerged,

@@ -316,6 +316,7 @@ async function runDistillCommand(request) {
         layout: runArtifacts.layout,
         pollIntervalMs: request.pollIntervalMs || null,
         stopWhenIdle: request.stopWhenIdle === true,
+        signal: request.signal ?? null,
       })),
     };
   }
@@ -378,6 +379,7 @@ async function runLoraCommand(request) {
         runRoot: resolve(String(request.runRoot)),
         pollIntervalMs: request.pollIntervalMs || null,
         stopWhenIdle: request.stopWhenIdle === true,
+        signal: request.signal ?? null,
       })),
     };
   }

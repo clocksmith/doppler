@@ -14,6 +14,7 @@ export async function watchDistillationCheckpoints(options) {
     manifestPath,
     pollIntervalMs: options.pollIntervalMs || 2000,
     stopWhenIdle: options.stopWhenIdle === true,
+    signal: options.signal ?? null,
     onCheckpoint: async (markerPath) => {
       const { marker } = await readDistillCheckpointMarker(markerPath);
       const reports = await evaluateDistillationCheckpoint({

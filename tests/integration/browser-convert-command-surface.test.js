@@ -67,7 +67,6 @@ await assert.rejects(
 {
   const normalized = normalizeBrowserCommand({
     command: 'bench',
-    suite: 'inference',
     modelId: 'gemma-3-270m-it-wf16-ef16-hf16',
     cacheMode: 'cold',
   });

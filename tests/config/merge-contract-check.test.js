@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 
 import { buildMergeContractArtifact } from '../../src/config/merge-contract-check.js';
+import { createDopplerConfig } from '../../src/config/schema/doppler.schema.js';
 
 const artifact = buildMergeContractArtifact();
 
@@ -46,6 +47,30 @@ assert.equal(
 assert.equal(
   artifact.checks.some((entry) => entry.id === 'runtime.mergeHelpers.chooseDefinedWithSource.manifest_marks_source' && entry.ok && entry.mode === 'actual'),
   true
+);
+
+assert.throws(
+  () => createDopplerConfig({
+    runtime: {
+      inference: {
+        kernelPathPolicy: {
+          sourceScope: ['runtime'],
+        },
+      },
+    },
+  }),
+  /does not accept legacy "runtime". Use "config"/
+);
+
+assert.throws(
+  () => createDopplerConfig({
+    runtime: {
+      inference: {
+        kernelPathPolicy: ['invalid'],
+      },
+    },
+  }),
+  /kernelPathPolicy must be an object/
 );
 
 console.log('merge-contract-check.test: ok');

@@ -54,8 +54,13 @@ export function createDiffusionIndexBuffer(device, indices, label) {
     size: indices.byteLength,
     usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
   });
-  device.queue.writeBuffer(buffer, 0, indices);
-  return buffer;
+  try {
+    device.queue.writeBuffer(buffer, 0, indices);
+    return buffer;
+  } catch (error) {
+    buffer.destroy();
+    throw error;
+  }
 }
 
 export function expectDiffusionWeight(weight, label) {

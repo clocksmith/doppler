@@ -3,6 +3,7 @@ import { KERNEL_CONFIGS } from '../gpu/kernels/utils.js';
 import { selectByRules } from '../gpu/kernels/rule-matcher.js';
 import { loadJson } from '../utils/load-json.js';
 import { buildKernelPathContractArtifact } from './kernel-path-contract-check.js';
+import { mergeKernelPathPolicy } from './merge-helpers.js';
 
 // =============================================================================
 // Built-in Kernel Paths (imported at build time)
@@ -454,49 +455,17 @@ export function getKernelPathAttentionVariant(
 
 let activeKernelPath = null;
 let activeKernelPathSource = 'none';
-let activeKernelPathPolicy = {
+const DEFAULT_ACTIVE_KERNEL_PATH_POLICY = {
   mode: 'locked',
   sourceScope: ['model', 'manifest'],
   onIncompatible: 'error',
 };
-
-function normalizeKernelPathSource(source) {
-  const normalized = String(source ?? '').trim().toLowerCase();
-  if (normalized === 'runtime') return 'config';
-  if (normalized === 'execution_v0') return 'execution-v0';
-  return normalized;
-}
-
-function normalizeKernelPathPolicy(policy) {
-  if (!policy || typeof policy !== 'object' || Array.isArray(policy)) {
-    return {
-      mode: 'locked',
-      sourceScope: ['model', 'manifest'],
-      onIncompatible: 'error',
-    };
-  }
-  const mode = String(policy.mode ?? '').trim().toLowerCase() === 'capability-aware'
-    ? 'capability-aware'
-    : 'locked';
-  const sourceScope = Array.isArray(policy.sourceScope ?? policy.allowSources)
-    ? (policy.sourceScope ?? policy.allowSources)
-      .map((source) => normalizeKernelPathSource(source))
-      .filter((source) => source.length > 0)
-    : ['model', 'manifest'];
-  const onIncompatible = String(policy.onIncompatible ?? '').trim().toLowerCase() === 'remap'
-    ? 'remap'
-    : 'error';
-  return {
-    mode,
-    sourceScope: sourceScope.length > 0 ? [...new Set(sourceScope)] : ['model', 'manifest'],
-    onIncompatible,
-  };
-}
+let activeKernelPathPolicy = DEFAULT_ACTIVE_KERNEL_PATH_POLICY;
 
 export function setActiveKernelPath(path, source = 'none', policy = null) {
   activeKernelPath = path;
   activeKernelPathSource = path ? source : 'none';
-  activeKernelPathPolicy = normalizeKernelPathPolicy(policy);
+  activeKernelPathPolicy = mergeKernelPathPolicy(DEFAULT_ACTIVE_KERNEL_PATH_POLICY, policy);
 }
 
 export function getActiveKernelPath() {

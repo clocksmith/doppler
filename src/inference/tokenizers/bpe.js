@@ -21,8 +21,17 @@ export class BPETokenizer extends BaseTokenizer {
     });
   }
 
+  #resetState() {
+    this.#vocab.clear();
+    this.#reverseVocab.clear();
+    this.#merges = [];
+    this.#mergeRanks.clear();
+    this.vocabSize = 0;
+  }
+
   
   load(vocab, merges) {
+    this.#resetState();
     // Build vocab maps
     for (const [token, id] of Object.entries(vocab)) {
       this.#vocab.set(token, id);

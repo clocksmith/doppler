@@ -31,8 +31,18 @@ export class SentencePieceTokenizer extends BaseTokenizer {
     });
   }
 
+  #resetState() {
+    this.#modelData = null;
+    this.#pieces.clear();
+    this.#reverseVocab.clear();
+    this.#algorithm = 'unigram';
+    this.#byteTokens.clear();
+    this.vocabSize = 0;
+  }
+
   
   async load(modelData) {
+    this.#resetState();
     this.#modelData = modelData;
 
     try {
@@ -42,6 +52,8 @@ export class SentencePieceTokenizer extends BaseTokenizer {
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       log.warn('Tokenizer', `Failed to parse model, using byte fallback: ${message}`);
+      this.#resetState();
+      this.#modelData = modelData;
       this.#initByteFallback();
     }
   }

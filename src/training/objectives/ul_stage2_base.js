@@ -1,7 +1,7 @@
 import { crossEntropyLoss as defaultCrossEntropyLoss } from '../loss.js';
 import { createTrainingObjective } from './base.js';
-import { acquireBuffer, uploadData, releaseBuffer } from '../../memory/buffer-pool.js';
-import { createTensor } from '../../gpu/tensor.js';
+import { releaseBuffer } from '../../memory/buffer-pool.js';
+import { createUploadedTensor } from '../tensor-factory.js';
 
 function sigmoid(value) {
   return 1 / (1 + Math.exp(-value));
@@ -9,17 +9,13 @@ function sigmoid(value) {
 
 function createF32Tensor(values, shape, label) {
   const data = values instanceof Float32Array ? values : new Float32Array(values);
-  const buffer = acquireBuffer(data.byteLength, undefined, label);
-  uploadData(buffer, data);
-  return createTensor(buffer, 'f32', [...shape], label);
+  return createUploadedTensor(data, 'f32', shape, label);
 }
 
 function createU32TokenTensor(values, shape, label) {
   const data = values instanceof Uint32Array ? values : new Uint32Array(values);
-  const buffer = acquireBuffer(data.byteLength, undefined, label);
-  uploadData(buffer, data);
   // Token targets are consumed as raw u32 bytes by loss kernels.
-  return createTensor(buffer, 'f32', [...shape], label);
+  return createUploadedTensor(data, 'f32', shape, label);
 }
 
 function releaseTensor(tensor) {

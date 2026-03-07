@@ -1,6 +1,6 @@
-import { acquireBuffer, uploadData, readBuffer, releaseBuffer } from '../memory/buffer-pool.js';
-import { createTensor } from '../gpu/tensor.js';
+import { readBuffer, releaseBuffer } from '../memory/buffer-pool.js';
 import { resolveUlScheduledLambda } from './ul_schedule.js';
+import { createUploadedTensor } from './tensor-factory.js';
 
 function xorshift32(value) {
   let x = value >>> 0;
@@ -79,9 +79,7 @@ export async function buildNoisyLatentsFromInputTensor(inputTensor, ulConfig, op
     noisy[i] = alpha * inputData[i] + sigma * n;
   }
 
-  const noisyBuffer = acquireBuffer(noisy.byteLength, undefined, 'ul_noisy_latents');
-  uploadData(noisyBuffer, noisy);
-  const noisyTensor = createTensor(noisyBuffer, 'f32', [...inputTensor.shape], 'ul_noisy_latents');
+  const noisyTensor = createUploadedTensor(noisy, 'f32', inputTensor.shape, 'ul_noisy_latents');
   const cleanStats = summarizeArray(inputData);
   const noiseStats = summarizeArray(noise);
   const noisyStats = summarizeArray(noisy);

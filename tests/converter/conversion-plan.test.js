@@ -152,6 +152,29 @@ const embeddingComputeF32Config = createConverterConfig({
 }
 
 {
+  assert.throws(
+    () => buildManifestInference(
+      {
+        id: 'unit-q4k-layout',
+        inference: {
+          kernelPaths: {
+            q4k: {
+              f16: 'unit-q4k-fused-f16a',
+            },
+          },
+        },
+      },
+      {
+        model_type: 'unit_q4k_layout',
+      },
+      64,
+      { weights: 'q4k', compute: 'f16', layout: 'col' }
+    ),
+    /Add an explicit dequant kernel path mapping to the preset instead of relying on JS rewrites/
+  );
+}
+
+{
   const attentionKernelRef = buildKernelRefFromKernelEntry('attention_streaming_f16.wgsl', 'main');
   const executionOverrideConfig = createConverterConfig({
     inference: {

@@ -39,22 +39,27 @@ export async function readGPUBuffer(device, buffer, size) {
     size,
     usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
   });
+  let mapped = false;
 
-  // Copy from GPU buffer to staging
-  const encoder = device.createCommandEncoder();
-  encoder.copyBufferToBuffer(buffer, 0, stagingBuffer, 0, size);
-  device.queue.submit([encoder.finish()]);
+  try {
+    // Copy from GPU buffer to staging
+    const encoder = device.createCommandEncoder();
+    encoder.copyBufferToBuffer(buffer, 0, stagingBuffer, 0, size);
+    device.queue.submit([encoder.finish()]);
 
-  // Wait for GPU work to complete
-  await device.queue.onSubmittedWorkDone();
+    // Wait for GPU work to complete
+    await device.queue.onSubmittedWorkDone();
 
-  // Map and read
-  await stagingBuffer.mapAsync(GPUMapMode.READ);
-  const copyArrayBuffer = stagingBuffer.getMappedRange().slice(0);
-  stagingBuffer.unmap();
-  stagingBuffer.destroy();
-
-  return copyArrayBuffer;
+    // Map and read
+    await stagingBuffer.mapAsync(GPUMapMode.READ);
+    mapped = true;
+    return stagingBuffer.getMappedRange().slice(0);
+  } finally {
+    if (mapped) {
+      stagingBuffer.unmap();
+    }
+    stagingBuffer.destroy();
+  }
 }
 
 

@@ -230,6 +230,25 @@ export class BundledTokenizer extends BaseTokenizer {
     });
   }
 
+  #resetState() {
+    this.#vocab.clear();
+    this.#reverseVocab.clear();
+    this.#merges = [];
+    this.#mergeRanks.clear();
+    this.#scores = [];
+    this.#tokenTypes = [];
+    this.#type = null;
+    this.#byteTokens.clear();
+    this.#specialTokenPatterns = [];
+    this.#specialTokenIds = new Set();
+    this.#addSpacePrefix = true;
+    this.#spacePrefixChar = '▁';
+    this.#byteDecoder = null;
+    this.#byteEncoder = null;
+    this.#useByteLevelEncoding = false;
+    this.vocabSize = 0;
+  }
+
   
   isSpecialToken(tokenId) {
     if (this.#specialTokenIds.size > 0) {
@@ -283,6 +302,7 @@ export class BundledTokenizer extends BaseTokenizer {
 
   
   load(tokenizerJson) {
+    this.#resetState();
     // Detect format: HuggingFace has model.vocab, bundled has top-level vocab
     const isHuggingFace = 'model' in tokenizerJson && tokenizerJson.model?.vocab !== undefined;
 

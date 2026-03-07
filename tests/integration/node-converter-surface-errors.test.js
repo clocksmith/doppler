@@ -332,6 +332,19 @@ await assert.rejects(
             dir: path.join(fixtureDir, 'out'),
           },
           inference: {
+            sessionDefaults: {
+              compute: {
+                defaults: {
+                  activationDtype: 'f16',
+                  mathDtype: 'f16',
+                  accumDtype: 'f32',
+                  outputDtype: 'f16',
+                },
+                kernelProfiles: [],
+              },
+              kvcache: null,
+              decodeLoop: null,
+            },
             execution: {
               steps: [
                 {
@@ -383,6 +396,19 @@ await assert.rejects(
             modelBaseId: 'gemma2-missing-output-dir',
           },
           inference: {
+            sessionDefaults: {
+              compute: {
+                defaults: {
+                  activationDtype: 'f16',
+                  mathDtype: 'f16',
+                  accumDtype: 'f32',
+                  outputDtype: 'f16',
+                },
+                kernelProfiles: [],
+              },
+              kvcache: null,
+              decodeLoop: null,
+            },
             execution: {
               steps: [
                 {
@@ -478,6 +504,19 @@ await assert.rejects(
             dir: path.join(fixtureDir, 'out'),
           },
           inference: {
+            sessionDefaults: {
+              compute: {
+                defaults: {
+                  activationDtype: 'f16',
+                  mathDtype: 'f16',
+                  accumDtype: 'f32',
+                  outputDtype: 'f16',
+                },
+                kernelProfiles: [],
+              },
+              kvcache: null,
+              decodeLoop: null,
+            },
             execution: {
               steps: [
                 {
@@ -533,11 +572,24 @@ await assert.rejects(
         output: {
           modelBaseId: 'gemma2-sharded-index',
           dir: path.join(fixtureDir, 'out'),
-        },
-        inference: {
-          execution: {
-            steps: [
-              {
+          },
+          inference: {
+            sessionDefaults: {
+              compute: {
+                defaults: {
+                  activationDtype: 'f16',
+                  mathDtype: 'f16',
+                  accumDtype: 'f32',
+                  outputDtype: 'f16',
+                },
+                kernelProfiles: [],
+              },
+              kvcache: null,
+              decodeLoop: null,
+            },
+            execution: {
+              steps: [
+                {
                 id: 'cast.identity',
                 op: 'cast',
                 phase: 'both',

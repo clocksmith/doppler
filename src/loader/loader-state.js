@@ -122,14 +122,14 @@ export class LoaderState {
 
   static getGPUBuffer(weight) {
     if (!weight) return null;
-    if (weight instanceof GPUBuffer) return weight;
+    if (typeof GPUBuffer !== 'undefined' && weight instanceof GPUBuffer) return weight;
     if (isWeightBuffer(weight)) return weight.buffer;
     return null;
   }
 
   static isGPUBacked(weight) {
     if (!weight) return false;
-    if (weight instanceof GPUBuffer) return true;
+    if (typeof GPUBuffer !== 'undefined' && weight instanceof GPUBuffer) return true;
     if (isWeightBuffer(weight)) return true;
     if (isCpuWeightBuffer(weight)) return false;
     if (weight instanceof Float32Array) return false;

@@ -224,7 +224,8 @@ function createTryLoad(ctx, prefixes) {
     for (const prefix of prefixes) {
       for (const suffix of suffixes) {
         const tensor = await ctx.loadTensor(`${prefix}.${suffix}`, true, true);
-        if (tensor && (tensor instanceof GPUBuffer || tensor instanceof Float32Array || isWeightBuffer(tensor))) {
+        const isGpuBuffer = typeof GPUBuffer !== 'undefined' && tensor instanceof GPUBuffer;
+        if (tensor && (isGpuBuffer || tensor instanceof Float32Array || isWeightBuffer(tensor))) {
           return tensor;
         }
       }

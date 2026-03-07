@@ -133,7 +133,7 @@ try {
 
   setActiveKernelPath(fusedPath, 'runtime', {
     mode: 'capability-aware',
-    sourceScope: ['runtime', 'execution_v0', 'config', ''],
+    sourceScope: ['config', 'execution-v0'],
     onIncompatible: 'remap',
   });
   assert.equal(getActiveKernelPath(), fusedPath);
@@ -150,17 +150,25 @@ try {
     }
   );
 
-  setActiveKernelPath(null, 'runtime', ['not-a-policy']);
-  assert.equal(getActiveKernelPath(), null);
-  assert.equal(getActiveKernelPathSource(), 'none');
-  assert.deepEqual(
-    getActiveKernelPathPolicy(),
-    {
-      mode: 'locked',
-      sourceScope: ['model', 'manifest'],
-      allowSources: ['model', 'manifest'],
-      onIncompatible: 'error',
-    }
+  assert.throws(
+    () => setActiveKernelPath(fusedPath, 'runtime', {
+      mode: 'capability-aware',
+      sourceScope: ['runtime'],
+      onIncompatible: 'remap',
+    }),
+    /does not accept legacy "runtime". Use "config"/
+  );
+  assert.throws(
+    () => setActiveKernelPath(fusedPath, 'runtime', {
+      mode: 'capability-aware',
+      sourceScope: ['execution_v0'],
+      onIncompatible: 'remap',
+    }),
+    /does not accept legacy "execution_v0". Use "execution-v0"/
+  );
+  assert.throws(
+    () => setActiveKernelPath(null, 'runtime', ['not-a-policy']),
+    /kernelPathPolicy must be an object/
   );
 
   assert.equal(getKernelPathStrict(), true);

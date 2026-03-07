@@ -45,7 +45,7 @@ If none resolve, fail explicitly.
 For harnessed runs, apply `buildRuntimeContractPatch()` before execution.
 The patch fields are:
 - `shared.harness.mode`
-- `shared.harness.modelId` (except kernel-only flows)
+- `shared.harness.modelId` (except kernel-only flows and training calibration via `bench + workloadType="training"`)
 - `shared.tooling.intent`
 
 ## Diffusion Contract

@@ -28,6 +28,13 @@ function advanceDeviceEpoch() {
   deviceEpoch += 1;
 }
 
+function clearActiveDeviceState() {
+  gpuDevice = null;
+  kernelCapabilities = null;
+  resolvedPlatformConfig = null;
+  platformInitialized = false;
+}
+
 function isValidGPUBuffer(value) {
   if (!value) {
     return false;
@@ -76,6 +83,39 @@ function wrapDeviceCreateBindGroup(device) {
     return originalCreateBindGroup(descriptor);
   };
   Object.defineProperty(device, '__dopplerBindGroupValidationWrapped', {
+    value: true,
+    configurable: true,
+    enumerable: false,
+    writable: false,
+  });
+  return device;
+}
+
+function registerDeviceLostHandler(device) {
+  if (!device || device.__dopplerLossHandlerRegistered) {
+    return device;
+  }
+
+  if (device.lost && typeof device.lost.then === 'function') {
+    const trackedDevice = device;
+    device.lost.then((info) => {
+      if (gpuDevice !== trackedDevice) {
+        return;
+      }
+      log.error('GPU', 'Device lost: ' + info.message + ', Reason: ' + info.reason);
+      clearActiveDeviceState();
+      advanceDeviceEpoch();
+    }).catch((error) => {
+      if (gpuDevice !== trackedDevice) {
+        return;
+      }
+      log.warn('GPU', 'Device lost handler failed: ' + (error?.message ?? error));
+      clearActiveDeviceState();
+      advanceDeviceEpoch();
+    });
+  }
+
+  Object.defineProperty(device, '__dopplerLossHandlerRegistered', {
     value: true,
     configurable: true,
     enumerable: false,
@@ -258,17 +298,8 @@ export async function initDevice() {
     throw createDopplerError(ERROR_CODES.GPU_DEVICE_FAILED, 'Failed to create WebGPU device');
   }
   wrapDeviceCreateBindGroup(gpuDevice);
+  registerDeviceLostHandler(gpuDevice);
   advanceDeviceEpoch();
-
-  // Set up device lost handler
-  gpuDevice.lost.then((info) => {
-    log.error('GPU', 'Device lost: ' + info.message + ', Reason: ' + info.reason);
-    gpuDevice = null;
-    kernelCapabilities = null;
-    resolvedPlatformConfig = null;
-    platformInitialized = false;
-    advanceDeviceEpoch();
-  });
 
   // Wrap queue for submit tracking (when enabled)
   wrapQueueForTracking(gpuDevice.queue);
@@ -301,16 +332,14 @@ export async function initDevice() {
 
 export function setDevice(device, options = {}) {
   if (!device) {
-    gpuDevice = null;
-    kernelCapabilities = null;
-    resolvedPlatformConfig = null;
-    platformInitialized = false;
+    clearActiveDeviceState();
     advanceDeviceEpoch();
     return;
   }
 
   gpuDevice = device;
   wrapDeviceCreateBindGroup(gpuDevice);
+  registerDeviceLostHandler(gpuDevice);
   advanceDeviceEpoch();
   wrapQueueForTracking(gpuDevice.queue);
 
@@ -372,10 +401,7 @@ export function isPlatformInitialized() {
 export function destroyDevice() {
   if (gpuDevice) {
     gpuDevice.destroy();
-    gpuDevice = null;
-    kernelCapabilities = null;
-    resolvedPlatformConfig = null;
-    platformInitialized = false;
+    clearActiveDeviceState();
     advanceDeviceEpoch();
   }
 }

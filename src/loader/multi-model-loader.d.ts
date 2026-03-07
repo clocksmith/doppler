@@ -22,6 +22,20 @@ export declare class MultiModelLoader {
   baseWeights: WeightLoadResult | null;
   adapters: Map<string, LoRAAdapter>;
 
+  _loadBaseWeights(
+    manifest: Manifest,
+    options: { storageContext?: { loadShard?: (index: number) => Promise<ArrayBuffer | Uint8Array> } },
+    runtimeConfig: unknown
+  ): Promise<WeightLoadResult>;
+
+  _resolveAdapterSource(source: AdapterSource): Promise<LoRAAdapter>;
+
+  _createPipeline(): InferencePipeline;
+
+  _getBaseLoader(): { unload(): Promise<void> };
+
+  unload(): Promise<void>;
+
   loadBase(
     manifest: Manifest,
     options?: { storageContext?: { loadShard?: (index: number) => Promise<ArrayBuffer | Uint8Array> } }

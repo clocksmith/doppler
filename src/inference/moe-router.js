@@ -8,6 +8,9 @@ import { createTensor } from '../gpu/tensor.js';
 import { f16ToF32Array } from './kv-cache/types.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
 
+function isGpuBufferInstance(value) {
+  return typeof GPUBuffer !== 'undefined' && value instanceof GPUBuffer;
+}
 
 
 
@@ -84,11 +87,31 @@ export class MoERouter {
 
   
   loadWeights(weights, bias = null) {
+    if (this._gateBiasGPU) {
+      this._gateBiasGPU.destroy();
+    }
+    if (this._gateWeightGPU) {
+      this._gateWeightGPU.destroy();
+    }
     this.gateWeight = weights;
     this.gateBias = bias;
     // Clear cached GPU uploads when swapping router parameters (e.g., per-layer routers).
     this._gateBiasGPU = null;
     this._gateWeightGPU = null;
+  }
+
+  destroy() {
+    if (isGpuBufferInstance(this._gateBiasGPU)) {
+      this._gateBiasGPU.destroy();
+    }
+    if (isGpuBufferInstance(this._gateWeightGPU)) {
+      this._gateWeightGPU.destroy();
+    }
+    this._gateBiasGPU = null;
+    this._gateWeightGPU = null;
+    this.gateWeight = null;
+    this.gateBias = null;
+    this._biasAddPipelines.clear();
   }
 
   
@@ -97,7 +120,7 @@ export class MoERouter {
       throw new Error('Router gate weights not loaded');
     }
 
-    if (this.gateWeight instanceof GPUBuffer || isWeightBuffer(this.gateWeight)) {
+    if (isGpuBufferInstance(this.gateWeight) || isWeightBuffer(this.gateWeight)) {
       throw new Error('Gate weights are on GPU, use computeRouterLogitsGPU instead');
     }
 
@@ -140,13 +163,18 @@ export class MoERouter {
     if (!gateWeightBuffer) {
       throw new Error('Router gate weights not loaded');
     }
-    if (!isWeightBuffer(gateWeightBuffer) && !(gateWeightBuffer instanceof GPUBuffer)) {
+    if (!isWeightBuffer(gateWeightBuffer) && !isGpuBufferInstance(gateWeightBuffer)) {
       const uploaded = device.createBuffer({
         label: 'moe_gate_weight',
         size: gateWeightBuffer.byteLength,
         usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
       });
-      device.queue.writeBuffer(uploaded, 0,  (gateWeightBuffer));
+      try {
+        device.queue.writeBuffer(uploaded, 0, gateWeightBuffer);
+      } catch (error) {
+        uploaded.destroy();
+        throw error;
+      }
       this._gateWeightGPU = uploaded;
       this.gateWeight = uploaded;
       gateWeightBuffer = uploaded;
@@ -186,7 +214,7 @@ export class MoERouter {
 
   
   async _getGateBiasBuffer(device) {
-    if (this.gateBias instanceof GPUBuffer) return this.gateBias;
+    if (isGpuBufferInstance(this.gateBias)) return this.gateBias;
     if (this._gateBiasGPU) return this._gateBiasGPU;
 
     if (!(this.gateBias instanceof Float32Array)) {
@@ -198,7 +226,12 @@ export class MoERouter {
       size: this.gateBias.byteLength,
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
     });
-    device.queue.writeBuffer(buf, 0,  (this.gateBias));
+    try {
+      device.queue.writeBuffer(buf, 0, this.gateBias);
+    } catch (error) {
+      buf.destroy();
+      throw error;
+    }
     this._gateBiasGPU = buf;
     return buf;
   }
@@ -206,7 +239,7 @@ export class MoERouter {
   
   _inferBiasDtype(bias) {
     if (bias instanceof Float32Array) return 'f32';
-    if (bias instanceof GPUBuffer) {
+    if (isGpuBufferInstance(bias)) {
       const bytesPerElement = Math.round(bias.size / this.numExperts);
       return selectRuleValue('inference', 'dtype', 'f16OrF32FromBytes', { bytesPerElement });
     }
@@ -276,65 +309,64 @@ export class MoERouter {
       size: 16,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     });
-    device.queue.writeBuffer(uniformBuffer, 0, uniformData);
+    try {
+      device.queue.writeBuffer(uniformBuffer, 0, uniformData);
 
-    const bindGroup = device.createBindGroup({
-      layout: pipeline.getBindGroupLayout(0),
-      entries: [
-        { binding: 0, resource: { buffer: uniformBuffer } },
-        { binding: 1, resource: { buffer: logits } },
-        { binding: 2, resource: { buffer: bias } },
-      ],
-    });
+      const bindGroup = device.createBindGroup({
+        layout: pipeline.getBindGroupLayout(0),
+        entries: [
+          { binding: 0, resource: { buffer: uniformBuffer } },
+          { binding: 1, resource: { buffer: logits } },
+          { binding: 2, resource: { buffer: bias } },
+        ],
+      });
 
-    const encoder = device.createCommandEncoder({ label: 'moe_router_bias_add_encoder' });
-    const pass = encoder.beginComputePass({ label: 'moe_router_bias_add_pass' });
-    pass.setPipeline(pipeline);
-    pass.setBindGroup(0, bindGroup);
-    const total = numTokens * this.numExperts;
-    pass.dispatchWorkgroups(Math.ceil(total / 256));
-    pass.end();
-    device.queue.submit([encoder.finish()]);
-
-    uniformBuffer.destroy();
+      const encoder = device.createCommandEncoder({ label: 'moe_router_bias_add_encoder' });
+      const pass = encoder.beginComputePass({ label: 'moe_router_bias_add_pass' });
+      pass.setPipeline(pipeline);
+      pass.setBindGroup(0, bindGroup);
+      const total = numTokens * this.numExperts;
+      pass.dispatchWorkgroups(Math.ceil(total / 256));
+      pass.end();
+      device.queue.submit([encoder.finish()]);
+    } finally {
+      uniformBuffer.destroy();
+    }
   }
 
   
   async routeGPU(hiddenStates, numTokens) {
     // Compute router logits on GPU
     const logitsBuffer = await this.computeRouterLogitsGPU(hiddenStates, numTokens);
+    try {
+      const logitsData = await readBuffer(logitsBuffer);
+      const logits = this.lastLogitsDtype === 'f16'
+        ? f16ToF32Array(new Uint16Array(logitsData))
+        : new Float32Array(logitsData);
 
-    // Read back logits to CPU for top-k selection
-    // (GPU top-k is complex and not always faster for small numExperts)
-    const logitsData = await readBuffer(logitsBuffer);
-    const logits = this.lastLogitsDtype === 'f16'
-      ? f16ToF32Array(new Uint16Array(logitsData))
-      : new Float32Array(logitsData);
+      const selections = [];
+      this.activeExperts.clear();
 
-    
-    const selections = [];
-    this.activeExperts.clear();
+      for (let t = 0; t < numTokens; t++) {
+        const tokenLogits = logits.subarray(
+          t * this.numExperts,
+          (t + 1) * this.numExperts
+        );
 
-    for (let t = 0; t < numTokens; t++) {
-      const tokenLogits = logits.subarray(
-        t * this.numExperts,
-        (t + 1) * this.numExperts
-      );
+        const selection = this.selectExpertsForToken(tokenLogits);
+        selections.push(selection);
 
-      const selection = this.selectExpertsForToken(tokenLogits);
-      selections.push(selection);
-
-      for (const idx of selection.indices) {
-        this.activeExperts.add(idx);
-        this.loadBalanceStats.expertCounts[idx]++;
+        for (const idx of selection.indices) {
+          this.activeExperts.add(idx);
+          this.loadBalanceStats.expertCounts[idx]++;
+        }
+        this.loadBalanceStats.totalTokens++;
       }
-      this.loadBalanceStats.totalTokens++;
+
+      return selections;
+    } finally {
+      releaseBuffer(logitsBuffer);
     }
-
-    // Clean up logits buffer
-    releaseBuffer(logitsBuffer);
-
-    return selections;
   }
 
   

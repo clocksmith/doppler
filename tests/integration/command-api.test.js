@@ -117,6 +117,17 @@ import {
 {
   assert.throws(
     () => normalizeToolingCommandRequest({
+      command: 'bench',
+      suite: 'training',
+      modelId: 'gemma-3-1b-it-wf16-ef16-hf16',
+    }),
+    /requires suite "bench" and does not accept "training"/
+  );
+}
+
+{
+  assert.throws(
+    () => normalizeToolingCommandRequest({
       command: 'verify',
       suite: 'training',
       modelId: null,
@@ -370,6 +381,58 @@ import {
     () => normalizeToolingCommandRequest({
       command: 'convert',
       inputDir: '/tmp/model',
+      runtimePreset: 'debug',
+      convertPayload: {
+        converterConfig: {
+          output: { modelBaseId: 'gemma-3-1b-it-wf16-ef16-hf16' },
+        },
+      },
+    }),
+    /convert does not accept runtimePreset/
+  );
+}
+
+{
+  assert.throws(
+    () => normalizeToolingCommandRequest({
+      command: 'convert',
+      inputDir: '/tmp/model',
+      runtimeConfigUrl: '/tmp/runtime.json',
+      convertPayload: {
+        converterConfig: {
+          output: { modelBaseId: 'gemma-3-1b-it-wf16-ef16-hf16' },
+        },
+      },
+    }),
+    /convert does not accept runtimeConfigUrl/
+  );
+}
+
+{
+  assert.throws(
+    () => normalizeToolingCommandRequest({
+      command: 'convert',
+      inputDir: '/tmp/model',
+      runtimeConfig: {
+        inference: {
+          prompt: 'hello',
+        },
+      },
+      convertPayload: {
+        converterConfig: {
+          output: { modelBaseId: 'gemma-3-1b-it-wf16-ef16-hf16' },
+        },
+      },
+    }),
+    /convert does not accept runtimeConfig/
+  );
+}
+
+{
+  assert.throws(
+    () => normalizeToolingCommandRequest({
+      command: 'convert',
+      inputDir: '/tmp/model',
       convertPayload: {
         converterConfig: {
           output: { modelBaseId: 'gemma-3-1b-it-wf16-ef16-hf16' },
@@ -476,8 +539,8 @@ import {
   assert.throws(
     () => normalizeToolingCommandRequest({
       command: 'bench',
-      suite: 'inference',
-      modelId: 'gemma-3-1b-it-wf16-ef16-hf16',
+      workloadType: 'training',
+      trainingStage: 'stage1_joint',
       trainingTests: 'runner-smoke',
     }),
     /trainingTests must be an array of strings/
@@ -488,7 +551,7 @@ import {
   assert.throws(
     () => normalizeToolingCommandRequest({
       command: 'bench',
-      suite: 'training',
+      workloadType: 'training',
       modelId: null,
       trainingTests: ['runner-smoke', 7],
       trainingStage: 'stage1_joint',
@@ -501,7 +564,7 @@ import {
   assert.throws(
     () => normalizeToolingCommandRequest({
       command: 'bench',
-      suite: 'training',
+      workloadType: 'training',
       modelId: null,
       trainingTests: ['runner-smoke', ''],
       trainingStage: 'stage1_joint',
@@ -513,7 +576,7 @@ import {
 {
   assert.throws(
     () => normalizeToolingCommandRequest({
-      command: 'bench',
+      command: 'verify',
       suite: 'inference',
       modelId: 'gemma-3-1b-it-wf16-ef16-hf16',
       captureOutput: 'true',
@@ -525,12 +588,23 @@ import {
 {
   assert.throws(
     () => normalizeToolingCommandRequest({
-      command: 'bench',
+      command: 'verify',
       suite: 'inference',
       modelId: 'gemma-3-1b-it-wf16-ef16-hf16',
       runtimePreset: 7,
     }),
     /runtimePreset must be a string/
+  );
+}
+
+{
+  assert.throws(
+    () => normalizeToolingCommandRequest({
+      command: 'debug',
+      suite: 'inference',
+      modelId: 'gemma-3-1b-it-wf16-ef16-hf16',
+    }),
+    /requires suite "debug" and does not accept "inference"/
   );
 }
 
@@ -580,7 +654,7 @@ import {
 {
   assert.throws(
     () => ensureCommandSupportedOnSurface({
-      command: 'bench',
+      command: 'verify',
       suite: 'inference',
       modelId: 'gemma-3-1b-it-wf16-ef16-hf16',
     }, 'desktop'),

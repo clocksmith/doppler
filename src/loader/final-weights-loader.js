@@ -20,6 +20,10 @@ const HEAD_GROUP = 'head';
 const FINAL_NORM_ROLE = 'norm';
 const LM_HEAD_ROLE = 'lm_head';
 
+function isGpuBufferInstance(value) {
+  return typeof GPUBuffer !== 'undefined' && value instanceof GPUBuffer;
+}
+
 function isLikelyFinalNormName(name) {
   const lower = String(name || '').toLowerCase();
   if (!lower) return false;
@@ -148,7 +152,7 @@ async function loadLmHead(ctx) {
       );
     }
 
-    if (tensor && (tensor instanceof GPUBuffer || isWeightBuffer(tensor) || tensor instanceof Float32Array)) {
+    if (tensor && (isGpuBufferInstance(tensor) || isWeightBuffer(tensor) || tensor instanceof Float32Array)) {
       lmHeadName = name;
       lmHeadLoc = loc;
       lmHead = processLmHeadTensor(ctx, tensor, name, loc, shouldStream);
@@ -189,7 +193,7 @@ function processLmHeadTensor(ctx, tensor, name, loc, shouldStream) {
   }
 
   // Raw GPUBuffer - wrap with dtype/layout metadata
-  if (tensor instanceof GPUBuffer && loc.shape && loc.shape.length === 2) {
+  if (isGpuBufferInstance(tensor) && loc.shape && loc.shape.length === 2) {
     const layout = ctx.resolveWeightLayout(loc);
     
     const dtype = selectRuleValue('loader', 'weights', 'floatLocationDtype', {
@@ -209,7 +213,7 @@ async function maybeDowncastLmHead(ctx, lmHead, lmHeadName, lmHeadLoc) {
   const tiedToEmbeddings =
     lmHead === ctx.embeddings ||
     (isWeightBuffer(lmHead) && isWeightBuffer(ctx.embeddings) && lmHead.buffer === ctx.embeddings.buffer) ||
-    (lmHead instanceof GPUBuffer && isWeightBuffer(ctx.embeddings) && lmHead === ctx.embeddings.buffer);
+    (isGpuBufferInstance(lmHead) && isWeightBuffer(ctx.embeddings) && lmHead === ctx.embeddings.buffer);
 
   if (tiedToEmbeddings) {
     return lmHead;
@@ -234,7 +238,7 @@ async function maybeDowncastLmHead(ctx, lmHead, lmHeadName, lmHeadLoc) {
 
   // Get buffer for downcast
   const buffer = isWeightBuffer(lmHead) ? lmHead.buffer : lmHead;
-  if (!(buffer instanceof GPUBuffer)) {
+  if (!isGpuBufferInstance(buffer)) {
     return lmHead;
   }
 

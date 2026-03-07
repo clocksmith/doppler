@@ -25,6 +25,13 @@ export function extractLastPositionLogits(
   vocabSize: number
 ): Float32Array;
 
+export function readBufferWithCleanup(
+  buffer: GPUBuffer,
+  byteLength: number,
+  cleanup?: (() => void) | null,
+  reader?: ((buffer: GPUBuffer, byteLength: number) => Promise<ArrayBuffer>) | null
+): Promise<ArrayBuffer>;
+
 /**
  * Finalize logits by applying padding and softcapping.
  *

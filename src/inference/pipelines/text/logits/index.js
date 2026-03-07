@@ -7,7 +7,7 @@ export { rmsNormCPU, matmulCPU, applySoftcapping, f16ToF32, f16BufferToF32 } fro
 export { computeLogitsGPU, recordLogitsGPU, computeChunkedLogitsGPU, resolveCpuWeightDims, resolveLmHeadChunkRows, extractLmHeadChunk, writeChunkLogits } from './gpu.js';
 
 // Re-export utilities
-export { extractLastPositionLogits, finalizeLogits } from './utils.js';
+export { extractLastPositionLogits, finalizeLogits, readBufferWithCleanup } from './utils.js';
 
 // Imports for computeLogits orchestrator
 import { getDevice } from '../../../../gpu/device.js';
@@ -20,7 +20,7 @@ import { log, trace, isTraceEnabled } from '../../../../debug/index.js';
 import { runProbes } from '../probes.js';
 import { rmsNormCPU, matmulCPU, f16BufferToF32 } from './cpu.js';
 import { resolveCpuWeightDims, computeChunkedLogitsGPU } from './gpu.js';
-import { finalizeLogits } from './utils.js';
+import { finalizeLogits, readBufferWithCleanup } from './utils.js';
 import { getRuntimeConfig } from '../../../../config/runtime.js';
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
 
@@ -288,15 +288,14 @@ export async function computeLogits(
   // 4. Read back logits
   const logitsBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: logitsTensor.dtype });
   const logitsReadSize = matmulRows * matmulVocabSize * logitsBytes;
-  const logitsData = await readBuffer(logitsTensor.buffer, logitsReadSize);
-
-  // Cleanup
-  if (inputBufferOwned) releaseBuffer(inputBuffer);
-  releaseBuffer(normedTensor.buffer);
-  if (matmulInputOwned) releaseBuffer(matmulInputTensor.buffer);
-  releaseBuffer(logitsTensor.buffer);
-  if (!getNormWeightBuffer && !(finalNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuffer);
-  if (lmHeadBufferOwned) releaseBuffer(lmHeadGPU);
+  const logitsData = await readBufferWithCleanup(logitsTensor.buffer, logitsReadSize, () => {
+    if (inputBufferOwned) releaseBuffer(inputBuffer);
+    releaseBuffer(normedTensor.buffer);
+    if (matmulInputOwned) releaseBuffer(matmulInputTensor.buffer);
+    releaseBuffer(logitsTensor.buffer);
+    if (!getNormWeightBuffer && !(finalNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuffer);
+    if (lmHeadBufferOwned) releaseBuffer(lmHeadGPU);
+  });
 
   const rawLogits = logitsTensor.dtype === 'f16'
     ? f16BufferToF32(logitsData)

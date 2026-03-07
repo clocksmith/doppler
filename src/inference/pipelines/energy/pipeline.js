@@ -16,7 +16,7 @@ import { log, trace } from '../../../debug/index.js';
 import { DEFAULT_ENERGY_CONFIG } from '../../../config/schema/energy.schema.js';
 import { f32ToF16Array, f16ToF32Array } from '../../kv-cache/types.js';
 import { registerPipeline } from '../registry.js';
-import { applyPipelineContexts } from '../context.js';
+import { applyPipelineContexts, restorePipelineContexts } from '../context.js';
 import { createInitializedPipeline } from '../factory.js';
 import { createRng, sampleNormal } from '../rng.js';
 import { mergeQuintelConfig, runQuintelEnergyLoop } from './quintel.js';
@@ -140,24 +140,28 @@ async function createEnergyTensor(device, data, dtype, shape, label) {
   const byteLength = data.byteLength;
   const alignedSize = Math.ceil(byteLength / 4) * 4;
   const buffer = acquireBuffer(alignedSize, undefined, label);
+  try {
+    let payload = data;
+    if (alignedSize !== byteLength) {
+      const padded = new Uint8Array(alignedSize);
+      const view = data instanceof ArrayBuffer
+        ? new Uint8Array(data)
+        : new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
+      padded.set(view);
+      payload = padded;
+    }
 
-  let payload = data;
-  if (alignedSize !== byteLength) {
-    const padded = new Uint8Array(alignedSize);
-    const view = data instanceof ArrayBuffer
-      ? new Uint8Array(data)
-      : new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
-    padded.set(view);
-    payload = padded;
+    device.queue.writeBuffer(buffer, 0, payload);
+    const tensor = createTensor(buffer, dtype, shape, label);
+    const expectedBytes = tensorBytes(shape, dtype);
+    if (expectedBytes !== byteLength) {
+      log.warn('Energy', `${label} byte length mismatch: expected ${expectedBytes}, got ${byteLength}`);
+    }
+    return tensor;
+  } catch (error) {
+    releaseBuffer(buffer);
+    throw error;
   }
-
-  device.queue.writeBuffer(buffer, 0, payload);
-  const tensor = createTensor(buffer, dtype, shape, label);
-  const expectedBytes = tensorBytes(shape, dtype);
-  if (expectedBytes !== byteLength) {
-    log.warn('Energy', `${label} byte length mismatch: expected ${expectedBytes}, got ${byteLength}`);
-  }
-  return tensor;
 }
 
 async function readTensorToFloat32(tensor) {
@@ -202,6 +206,7 @@ export class EnergyPipeline {
 
   async unload() {
     this.manifest = null;
+    restorePipelineContexts(this);
   }
 
   async generate(request = {}) {

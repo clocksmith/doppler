@@ -845,6 +845,8 @@ export class TrainingRunner {
   }
 
   async run(model, dataset, options = {}) {
+    this.lastCheckpoint = null;
+    this.lastArtifact = null;
     const {
       epochs = 1,
       batchSize = 1,

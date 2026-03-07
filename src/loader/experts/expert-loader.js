@@ -18,7 +18,7 @@ import { releaseBuffer } from '../../memory/buffer-pool.js';
 
 export async function preloadShardsForExpert(ctx, layerIdx, expertIdx, options) {
   // Get required shards from manifest mapping
-  const shardIndices = getShardsForExpert(layerIdx, expertIdx);
+  const shardIndices = getShardsForExpert(layerIdx, expertIdx, ctx.manifest);
   if (shardIndices.length === 0) {
     // No mapping available, fall back to loading all shards on demand
     return;
@@ -69,6 +69,10 @@ export function predictNextLayerExperts(currentExperts) {
   return currentExperts;
 }
 
+function isGpuBufferInstance(value) {
+  return typeof GPUBuffer !== 'undefined' && value instanceof GPUBuffer;
+}
+
 // ============================================================================
 // Expert Loading
 // ============================================================================
@@ -95,7 +99,7 @@ export async function loadExpert(ctx, layerIdx, expertIdx) {
   await preloadShardsForExpert(ctx, layerIdx, expertIdx);
 
   // Get tensor names from manifest if available (for logging/debugging)
-  const tensorNames = getTensorsForExpert(layerIdx, expertIdx);
+  const tensorNames = getTensorsForExpert(layerIdx, expertIdx, ctx.manifest);
   if (tensorNames.length > 0) {
     debugTrace.loader(`Expert ${layerIdx}_${expertIdx} tensors: ${tensorNames.length}`);
   }
@@ -260,7 +264,7 @@ function getGpuBuffer(value) {
   if (isWeightBuffer(value)) {
     return value.buffer;
   }
-  if (value instanceof GPUBuffer) {
+  if (isGpuBufferInstance(value)) {
     return value;
   }
   return null;
@@ -342,7 +346,7 @@ async function downcastExpertWeights(ctx, weights) {
     if (!buf) continue;
 
     // Only downcast GPUBuffer or WeightBuffer (not Float32Array)
-    if (!(buf instanceof GPUBuffer) && !isWeightBuffer(buf)) {
+    if (!isGpuBufferInstance(buf) && !isWeightBuffer(buf)) {
       continue;
     }
 
@@ -369,13 +373,13 @@ function calculateExpertSize(weights) {
     const buf = weights[k];
     if (isWeightBuffer(buf)) {
       sizeBytes += buf.buffer.size;
-    } else if (buf instanceof GPUBuffer) {
+    } else if (isGpuBufferInstance(buf)) {
       sizeBytes += buf.size;
     }
   }
 
   // Use manifest-provided expert size if available, otherwise use calculated
-  const manifestBytes = getExpertBytes();
+  const manifestBytes = getExpertBytes(ctx.manifest);
   if (manifestBytes > 0) {
     sizeBytes = manifestBytes;
   }

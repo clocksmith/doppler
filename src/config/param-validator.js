@@ -224,11 +224,11 @@ function validateKernelPathPolicy(label, value) {
   if (value.onIncompatible !== 'error' && value.onIncompatible !== 'remap') {
     throw new Error(`DopplerConfigError: ${label}.onIncompatible must be "error" or "remap".`);
   }
-  const validSources = new Set(['model', 'manifest', 'config', 'runtime', 'execution-v0']);
+  const validSources = new Set(['model', 'manifest', 'config', 'execution-v0']);
   for (const source of sourceScope) {
     if (!validSources.has(source)) {
       throw new Error(
-        `DopplerConfigError: ${label}.sourceScope entries must be model|manifest|config|runtime|execution-v0.`
+        `DopplerConfigError: ${label}.sourceScope entries must be model|manifest|config|execution-v0.`
       );
     }
   }

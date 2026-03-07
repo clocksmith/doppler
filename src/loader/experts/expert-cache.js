@@ -3,6 +3,11 @@
 import { releaseBuffer } from '../../memory/buffer-pool.js';
 import { log, trace } from '../../debug/index.js';
 import { getRuntimeConfig } from '../../config/runtime.js';
+import { isWeightBuffer } from '../../gpu/weight-buffer.js';
+
+function isGpuBufferInstance(value) {
+  return typeof GPUBuffer !== 'undefined' && value instanceof GPUBuffer;
+}
 
 
 
@@ -256,12 +261,14 @@ export class ExpertCache {
     ];
 
     for (const buf of buffers) {
-      if (buf instanceof GPUBuffer) {
-        try {
-          releaseBuffer(buf);
-        } catch (e) {
-          // Buffer may already be released
-        }
+      const gpuBuffer = isWeightBuffer(buf)
+        ? buf.buffer
+        : (isGpuBufferInstance(buf) ? buf : null);
+      if (!gpuBuffer) continue;
+      try {
+        releaseBuffer(gpuBuffer);
+      } catch (e) {
+        // Buffer may already be released
       }
     }
   }

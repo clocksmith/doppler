@@ -102,7 +102,7 @@ All surfaces must normalize via `normalizeToolingCommandRequest()`.
 For harnessed commands (`debug`, `bench`, `verify`), runners must apply:
 
 - `runtime.shared.harness.mode`
-- `runtime.shared.harness.modelId` (required except `kernels` suite)
+- `runtime.shared.harness.modelId` (required except `kernels` and training-calibration flows where `bench + workloadType="training"` intentionally patches `modelId: null`)
 - `runtime.shared.tooling.intent`
 
 `verify` verify suites are: `kernels`, `inference`, `training`, `diffusion`, and `energy`.
@@ -138,9 +138,10 @@ Commands are rejected when:
 
 - Every command must run through `ensureCommandSupportedOnSurface()`.
 - Surface capability limits are explicit failures, not alternate behavior.
-- Output envelope shape is stable across surfaces:
+- CLI and browser-relay envelope shape is stable across surfaces:
   - Success: `{ ok: true, schemaVersion: 1, surface, request, result }`
   - Error: `{ ok: false, schemaVersion: 1, surface|null, request|null, error: { code, message, details, retryable } }`
+- Direct runner APIs (`runNodeCommand(...)`, `runBrowserCommand(...)`) throw normalized `ToolingCommandError` values on failure; they do not return error envelopes.
 - New command capability is valid only when:
   1. Added to `src/tooling/command-api.js`
   2. Implemented in both browser and Node runners

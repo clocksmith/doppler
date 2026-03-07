@@ -43,7 +43,7 @@ export function resolvePreset(id: string): PresetSchema;
 export function detectPreset(
   config: RawModelConfigSchema,
   architecture?: string
-): string;
+): string | null;
 
 /**
  * Build a fully resolved config by merging:

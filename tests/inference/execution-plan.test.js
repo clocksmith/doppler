@@ -190,4 +190,31 @@ const container = { executionPlanState: planState };
   assert.equal(fallback.activationDtype, 'f32');
 }
 
+{
+  assert.throws(
+    () => resolveExecutionSessionPlan(container, { batchSize: 0 }),
+    /batchSize must be a positive integer/
+  );
+  assert.throws(
+    () => resolveExecutionSessionPlan(container, { batchSize: 2.5 }),
+    /batchSize must be a positive integer/
+  );
+  assert.throws(
+    () => resolveExecutionSessionPlan(container, { maxTokens: '16' }),
+    /maxTokens must be a positive integer/
+  );
+  assert.throws(
+    () => resolveExecutionSessionPlan(container, { stopCheckMode: 'frame' }),
+    /stopCheckMode must be "batch" or "per-token"/
+  );
+  assert.throws(
+    () => resolveExecutionSessionPlan(container, { disableCommandBatching: 'true' }),
+    /disableCommandBatching must be boolean/
+  );
+  assert.throws(
+    () => resolveExecutionSessionPlan(container, { disableMultiTokenDecode: 1 }),
+    /disableMultiTokenDecode must be boolean/
+  );
+}
+
 console.log('execution-plan.test: ok');

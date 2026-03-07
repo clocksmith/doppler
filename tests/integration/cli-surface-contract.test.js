@@ -37,7 +37,7 @@ const TEST_CLI_POLICY = {
   },
 };
 
-function runCli(args) {
+function runCli(args, options = {}) {
   const logDir = mkdtempSync(path.join(tmpdir(), 'doppler-cli-test-'));
   const stdoutPath = path.join(logDir, 'stdout.log');
   const stderrPath = path.join(logDir, 'stderr.log');
@@ -49,6 +49,10 @@ function runCli(args) {
     [CLI_PATH, ...args],
     {
       cwd: ROOT_DIR,
+      env: {
+        ...process.env,
+        ...(options.env || {}),
+      },
       stdio: ['ignore', stdoutFd, stderrFd],
     }
   );
@@ -261,6 +265,35 @@ await assert.rejects(
   ]);
   assert.equal(result.code, 1);
   assert.match(result.stderr, /\[error\] lora is not supported on browser relay/);
+}
+
+{
+  const result = runCli([
+    'bench',
+    '--json',
+    '--config',
+    JSON.stringify({
+      request: {
+        workloadType: 'training',
+        trainingStage: 'stage1_joint',
+      },
+    }),
+  ], {
+    env: {
+      DOPPLER_NODE_WEBGPU_MODULE: '/definitely/missing-node-webgpu-provider.js',
+    },
+  });
+  assert.equal(result.code, 1);
+  const payload = JSON.parse(result.stdout);
+  assert.equal(payload.ok, false);
+  assert.equal(payload.error.code, 'training_surface_downgrade_blocked');
+  assert.equal(payload.error.details?.surface, 'node');
+  assert.equal(payload.error.details?.command, 'bench');
+  assert.equal(payload.error.details?.workloadType, 'training');
+  assert.match(
+    payload.error.message,
+    /Training command auto-surface downgrade is blocked/
+  );
 }
 
 {

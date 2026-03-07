@@ -82,6 +82,7 @@ export function initDevice(): Promise<GPUDevice>;
 
 /**
  * Register an externally created GPU device for pipeline use.
+ * The active device epoch advances and loss handling is attached to the device.
  */
 export function setDevice(
   device: GPUDevice | null,

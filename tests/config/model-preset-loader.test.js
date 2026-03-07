@@ -106,7 +106,7 @@ assert.ok(PRESET_DETECTION_ORDER.includes('lfm2'));
     },
     'custom_architecture'
   );
-  assert.equal(detected, 'transformer');
+  assert.equal(detected, null);
 }
 
 {
@@ -140,7 +140,7 @@ assert.ok(PRESET_DETECTION_ORDER.includes('lfm2'));
       eosTokenId: 2,
       unknownField: 'ignored',
     },
-  });
+  }, 'transformer');
 
   assert.equal(resolved.preset, 'transformer');
   assert.equal(resolved.modelType, 'transformer');
@@ -255,10 +255,28 @@ assert.ok(PRESET_DETECTION_ORDER.includes('lfm2'));
 {
   assert.throws(
     () => resolveConfig({
+      modelId: 'unknown-family',
+      modelType: 'transformer',
+      config: {
+        model_type: 'custom_model',
+        hidden_size: 16,
+      },
+    }),
+    (error) => {
+      assert.equal(error?.code, ERROR_CODES.CONFIG_PRESET_UNKNOWN);
+      assert.match(String(error?.message), /Could not detect a preset/);
+      return true;
+    }
+  );
+}
+
+{
+  assert.throws(
+    () => resolveConfig({
       modelId: 'bad-manifest',
       modelType: 'transformer',
       config: {},
-    }),
+    }, 'transformer'),
     /Missing or invalid architecture/
   );
 }

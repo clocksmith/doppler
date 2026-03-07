@@ -23,6 +23,10 @@ import { releaseBuffer } from '../memory/buffer-pool.js';
 const EMBEDDING_ROLE = 'embedding';
 const EMBEDDING_GROUP = 'embed';
 
+function isGpuBufferInstance(value) {
+  return typeof GPUBuffer !== 'undefined' && value instanceof GPUBuffer;
+}
+
 // ============================================================================
 // Main Function
 // ============================================================================
@@ -59,7 +63,7 @@ export async function loadEmbeddings(ctx) {
     }
 
     // Handle valid tensor types
-    if (tensor instanceof GPUBuffer || isWeightBuffer(tensor) || tensor instanceof Float32Array) {
+    if (isGpuBufferInstance(tensor) || isWeightBuffer(tensor) || tensor instanceof Float32Array) {
       const result = await processEmbeddingTensor(ctx, tensor, name, loc, shouldStream);
       if (result) {
         return result;
@@ -107,7 +111,7 @@ async function processEmbeddingTensor(ctx, tensor, name, loc, shouldStream) {
   }
 
   // Raw GPUBuffer - wrap with dtype/layout metadata
-  if (promoted instanceof GPUBuffer && loc?.shape && loc.shape.length === 2) {
+  if (isGpuBufferInstance(promoted) && loc?.shape && loc.shape.length === 2) {
     const layout = ctx.resolveWeightLayout(loc);
     
     const dtype = selectRuleValue('loader', 'weights', 'floatLocationDtype', {
@@ -140,7 +144,7 @@ async function maybePromoteEmbeddingsToF32(ctx, current, name, loc) {
     return wrapped;
   }
 
-  if (!(current instanceof GPUBuffer)) return current;
+  if (!isGpuBufferInstance(current)) return current;
 
   const sourceDtype = selectRuleValue('loader', 'weights', 'floatLocationDtype', {
     locationDtype: loc?.dtype,

@@ -1,6 +1,7 @@
 import { acquireBuffer, uploadData, readBuffer, releaseBuffer } from '../memory/buffer-pool.js';
 import { createTensor, tensorBytes } from '../gpu/tensor.js';
 import { f16ToF32Array } from '../inference/kv-cache/types.js';
+import { createUploadedTensor } from './tensor-factory.js';
 
 function toFloat32(buffer, dtype) {
   if (dtype === 'f16') {
@@ -67,14 +68,7 @@ export async function buildAttentionSoftmaxCache(q, k, options) {
   const kData = toFloat32(kBuf, k.dtype);
   const sData = computeSoftmax(qData, kData, options);
   const { seqLen, numHeads } = options;
-  const outBuf = acquireBuffer(tensorBytes([numHeads, seqLen, seqLen], 'f32'), undefined, 'attn_softmax_cache');
-  try {
-    uploadData(outBuf, sData);
-    return createTensor(outBuf, 'f32', [numHeads, seqLen, seqLen], 'attn_softmax_cache');
-  } catch (error) {
-    releaseBuffer(outBuf);
-    throw error;
-  }
+  return createUploadedTensor(sData, 'f32', [numHeads, seqLen, seqLen], 'attn_softmax_cache');
 }
 
 export async function attentionBackwardCpu(

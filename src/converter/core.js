@@ -988,7 +988,7 @@ export function createManifest(
       inference = { ...DEFAULT_MANIFEST_INFERENCE, presetId: 'diffusion' };
     } else {
       const presetId = detectPreset(rawConfig, model.architecture);
-      if (presetId === 'transformer') {
+      if (!presetId) {
         const modelType = rawConfig.model_type ?? 'unknown';
         throw new Error(
           `Unknown model family: architecture="${model.architecture || 'unknown'}", model_type="${modelType}"\n\n` +
