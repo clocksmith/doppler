@@ -227,9 +227,7 @@ async function* dopplerGenerate(prompt, options = {}) {
   if (!options || typeof options !== 'object' || options.model == null) {
     throw new Error('doppler() requires options.model.');
   }
-  if (options.runtimeConfig !== undefined || options.runtimePreset !== undefined) {
-    throw new Error('doppler() does not accept load-affecting options. Use doppler.load(model, options) instead.');
-  }
+  assertNoLoadAffectingOptions('doppler()', options);
   const model = await getCachedModel(options.model, { onProgress: options.onProgress });
   yield* model.generate(prompt, options);
 }
@@ -240,13 +238,26 @@ export function doppler(prompt, options) {
 
 doppler.load = load;
 
+function assertNoLoadAffectingOptions(apiName, options) {
+  if (!options || typeof options !== 'object') {
+    return;
+  }
+  if (
+    options.runtimeConfig !== undefined
+    || options.runtimePreset !== undefined
+    || options.runtimeConfigUrl !== undefined
+  ) {
+    throw new Error(
+      `${apiName} does not accept load-affecting options. Use doppler.load(model, options) instead.`
+    );
+  }
+}
+
 doppler.text = async function text(prompt, options = {}) {
   if (!options || typeof options !== 'object' || options.model == null) {
     throw new Error('doppler.text() requires options.model.');
   }
-  if (options.runtimeConfig !== undefined || options.runtimePreset !== undefined) {
-    throw new Error('doppler.text() does not accept load-affecting options. Use doppler.load(model, options) instead.');
-  }
+  assertNoLoadAffectingOptions('doppler.text()', options);
   const model = await getCachedModel(options.model, { onProgress: options.onProgress });
   return model.generateText(prompt, options);
 };
@@ -255,6 +266,7 @@ doppler.chat = function chat(messages, options = {}) {
   if (!options || typeof options !== 'object' || options.model == null) {
     throw new Error('doppler.chat() requires options.model.');
   }
+  assertNoLoadAffectingOptions('doppler.chat()', options);
   return (async function* run() {
     const model = await getCachedModel(options.model, { onProgress: options.onProgress });
     yield* model.chat(messages, options);
@@ -265,6 +277,7 @@ doppler.chatText = async function chatText(messages, options = {}) {
   if (!options || typeof options !== 'object' || options.model == null) {
     throw new Error('doppler.chatText() requires options.model.');
   }
+  assertNoLoadAffectingOptions('doppler.chatText()', options);
   const model = await getCachedModel(options.model, { onProgress: options.onProgress });
   return model.chatText(messages, options);
 };

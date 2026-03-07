@@ -1,7 +1,7 @@
 
 
 import { getDevice } from '../device.js';
-import { acquireBuffer, getBufferRequestedSize } from '../../memory/buffer-pool.js';
+import { acquireBuffer, getBufferRequestedSize, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor } from '../tensor.js';
 import { getBuffer } from '../weight-buffer.js';
 import { dispatch, recordDispatch } from './dispatch.js';
@@ -91,7 +91,8 @@ export async function runMatmulRMSNormFused(
   // Output buffer: [1, N] - size depends on dtype
   const bytesPerElement = dtype === 'f16' ? 2 : 4;
   const outputSize = N * bytesPerElement;
-  const output = outputBuffer || acquireBuffer(outputSize, undefined, 'matmul_rmsnorm_fused_output');
+  const ownedOutput = outputBuffer ? null : acquireBuffer(outputSize, undefined, 'matmul_rmsnorm_fused_output');
+  const output = outputBuffer || ownedOutput;
 
   // Create uniform buffer (8 u32/f32 = 32 bytes, padded for alignment)
   const uniformBuffer = createUniformBufferWithView(
@@ -110,36 +111,44 @@ export async function runMatmulRMSNormFused(
   );
 
   // Create placeholder for residual if not provided
+  const ownsResidualBuffer = !residual;
   const residualBuffer = residual || device.createBuffer({
     label: 'matmul_rmsnorm_residual_placeholder',
     size: 4,
     usage: GPUBufferUsage.STORAGE,
   });
 
-  // Create bind group
-  const bindGroup = device.createBindGroup({
-    label: 'matmul_rmsnorm_fused_bind_group',
-    layout: pipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input.buffer } },
-      { binding: 2, resource: { buffer: weightBuffer } },
-      { binding: 3, resource: { buffer: normWeightBuffer } },
-      { binding: 4, resource: { buffer: output } },
-      { binding: 5, resource: { buffer: residualBuffer } },
-    ],
-  });
+  try {
+    const bindGroup = device.createBindGroup({
+      label: 'matmul_rmsnorm_fused_bind_group',
+      layout: pipeline.getBindGroupLayout(0),
+      entries: [
+        { binding: 0, resource: { buffer: uniformBuffer } },
+        { binding: 1, resource: { buffer: input.buffer } },
+        { binding: 2, resource: { buffer: weightBuffer } },
+        { binding: 3, resource: { buffer: normWeightBuffer } },
+        { binding: 4, resource: { buffer: output } },
+        { binding: 5, resource: { buffer: residualBuffer } },
+      ],
+    });
 
-  // Calculate workgroups
-  
-  const workgroups = 1;
-
-  const dispatchLabel = label ? `matmul_rmsnorm_fused:${label}` : 'matmul_rmsnorm_fused';
-  dispatch(device, pipeline, bindGroup, workgroups, dispatchLabel);
+    const workgroups = 1;
+    const dispatchLabel = label ? `matmul_rmsnorm_fused:${label}` : 'matmul_rmsnorm_fused';
+    dispatch(device, pipeline, bindGroup, workgroups, dispatchLabel);
+  } catch (error) {
+    uniformBuffer.destroy();
+    if (ownsResidualBuffer) {
+      residualBuffer.destroy();
+    }
+    if (ownedOutput) {
+      releaseBuffer(ownedOutput);
+    }
+    throw error;
+  }
 
   // Cleanup
   uniformBuffer.destroy();
-  if (!residual) residualBuffer.destroy();
+  if (ownsResidualBuffer) residualBuffer.destroy();
 
   // Output dtype matches input dtype
   return createTensor(output, input.dtype, [1, N], 'matmul_rmsnorm_fused_output');
@@ -199,7 +208,8 @@ export async function recordMatmulRMSNormFused(
   // Output buffer - size depends on dtype
   const bytesPerElement = dtype === 'f16' ? 2 : 4;
   const outputSize = N * bytesPerElement;
-  const output = outputBuffer || acquireBuffer(outputSize, undefined, 'matmul_rmsnorm_fused_output');
+  const ownedOutput = outputBuffer ? null : acquireBuffer(outputSize, undefined, 'matmul_rmsnorm_fused_output');
+  const output = outputBuffer || ownedOutput;
 
   // Uniform buffer via recorder (8 u32/f32 = 32 bytes, padded for alignment)
   const uniformBuffer = createUniformBufferWithView(
@@ -217,35 +227,42 @@ export async function recordMatmulRMSNormFused(
   );
 
   // Placeholder for residual
+  const ownsResidualBuffer = !residual;
   const residualBuffer = residual || device.createBuffer({
     label: 'matmul_rmsnorm_residual_placeholder',
     size: 4,
     usage: GPUBufferUsage.STORAGE,
   });
 
-  // Bind group
-  const bindGroup = device.createBindGroup({
-    label: 'matmul_rmsnorm_fused_bind_group',
-    layout: pipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input.buffer } },
-      { binding: 2, resource: { buffer: weightBuffer } },
-      { binding: 3, resource: { buffer: normWeightBuffer } },
-      { binding: 4, resource: { buffer: output } },
-      { binding: 5, resource: { buffer: residualBuffer } },
-    ],
-  });
+  try {
+    const bindGroup = device.createBindGroup({
+      label: 'matmul_rmsnorm_fused_bind_group',
+      layout: pipeline.getBindGroupLayout(0),
+      entries: [
+        { binding: 0, resource: { buffer: uniformBuffer } },
+        { binding: 1, resource: { buffer: input.buffer } },
+        { binding: 2, resource: { buffer: weightBuffer } },
+        { binding: 3, resource: { buffer: normWeightBuffer } },
+        { binding: 4, resource: { buffer: output } },
+        { binding: 5, resource: { buffer: residualBuffer } },
+      ],
+    });
 
-  // Calculate workgroups
-  
-  const workgroups = 1;
-
-  const dispatchLabel = label ? `matmul_rmsnorm_fused:${label}` : 'matmul_rmsnorm_fused';
-  recordDispatch(recorder, pipeline, bindGroup, workgroups, dispatchLabel);
+    const workgroups = 1;
+    const dispatchLabel = label ? `matmul_rmsnorm_fused:${label}` : 'matmul_rmsnorm_fused';
+    recordDispatch(recorder, pipeline, bindGroup, workgroups, dispatchLabel);
+  } catch (error) {
+    if (ownsResidualBuffer) {
+      residualBuffer.destroy();
+    }
+    if (ownedOutput) {
+      releaseBuffer(ownedOutput);
+    }
+    throw error;
+  }
 
   // Track placeholder for cleanup
-  if (!residual) {
+  if (ownsResidualBuffer) {
     recorder.trackTemporaryBuffer(residualBuffer);
   }
 

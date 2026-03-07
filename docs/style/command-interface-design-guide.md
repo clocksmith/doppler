@@ -115,6 +115,20 @@ Diffusion command contracts:
 
 Use `buildRuntimeContractPatch()` and merge into runtime config before execution.
 
+Runtime inputs must compose identically across Node, browser, CLI, and harnessed manifest flows:
+
+- `configChain` (when supported by the surface)
+- `runtimePreset`
+- `runtimeConfigUrl`
+- `runtimeConfig`
+- runtime contract patch
+
+Rules:
+
+- Preserve that order exactly.
+- `configChain` support must not exist on one harness surface and silently disappear on another.
+- If a surface cannot support one of these fields, it must reject the request explicitly instead of dropping or rewriting it.
+
 For cross-engine benchmarks, maintain a two-layer contract:
 
 1. Shared benchmark contract (prompt/workload/sampling/run policy)

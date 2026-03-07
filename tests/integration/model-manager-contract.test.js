@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict';
 
-const { extractTextModelConfig } = await import('../../src/client/doppler-provider/model-manager.js');
+const {
+  extractTextModelConfig,
+  shouldAutoTuneKernels,
+  verifyExplicitModelUrlMatch,
+} = await import('../../src/client/doppler-provider/model-manager.js');
 
 {
   const config = extractTextModelConfig({
@@ -35,6 +39,65 @@ const { extractTextModelConfig } = await import('../../src/client/doppler-provid
       },
     }),
     /Manifest is missing quantization; re-convert the model\./
+  );
+}
+
+{
+  assert.equal(shouldAutoTuneKernels(null), false);
+  assert.equal(shouldAutoTuneKernels({ shared: {} }), false);
+  assert.equal(shouldAutoTuneKernels({
+    shared: {
+      kernelWarmup: {
+        autoTune: true,
+      },
+    },
+  }), true);
+}
+
+{
+  const manifest = {
+    modelId: 'explicit-source',
+    quantization: 'Q4_K_M',
+    hashAlgorithm: 'sha256',
+    totalSize: 12,
+    shards: [
+      {
+        filename: 'model-00000.bin',
+        size: 12,
+        hash: 'abc',
+      },
+    ],
+  };
+
+  await verifyExplicitModelUrlMatch(
+    manifest,
+    'https://example.test/model',
+    async () => ({
+      ...manifest,
+    })
+  );
+
+  await assert.rejects(
+    () => verifyExplicitModelUrlMatch(
+      manifest,
+      'https://example.test/model',
+      async () => ({
+        ...manifest,
+        totalSize: 99,
+      })
+    ),
+    /does not match the cached manifest/
+  );
+
+  await assert.rejects(
+    () => verifyExplicitModelUrlMatch(
+      manifest,
+      'https://example.test/model',
+      async () => {
+        throw new Error('fetch failed');
+      }
+    ),
+    /Could not compare cached manifest with explicit modelUrl/
   );
 }
 

@@ -1,5 +1,5 @@
 import { getDevice } from '../device.js';
-import { acquireBuffer } from '../../memory/buffer-pool.js';
+import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor, dtypeBytes } from '../tensor.js';
 import { WORKGROUP_SIZES } from './constants.js';
 import { dispatch, recordDispatch } from './dispatch.js';
@@ -61,15 +61,14 @@ function resolveQuintelSize(state, sizeOverride) {
   return null;
 }
 
-function buildQuintelFlags(rules, binarizeWeight) {
-  let flags = 0;
-  if (rules?.mirrorX) flags |= 1;
-  if (rules?.mirrorY) flags |= 2;
-  if (rules?.diagonal) flags |= 4;
-  if (rules?.count) flags |= 8;
-  if (rules?.center) flags |= 16;
-  if (Number.isFinite(binarizeWeight) && binarizeWeight !== 0) flags |= 32;
-  return flags >>> 0;
+function resolveQuintelFlags(options, op) {
+  if (options.rules !== undefined) {
+    throw new Error(`${op}: quintel kernel flags must be resolved before dispatch.`);
+  }
+  if (!Number.isFinite(options.flags)) {
+    throw new Error(`${op}: flags is required for quintel kernels.`);
+  }
+  return options.flags >>> 0;
 }
 
 function resolveExecution(recorder) {
@@ -100,6 +99,12 @@ function dispatchEnergy(execution, pipeline, bindGroup, workgroups, label) {
 function releaseUniformBuffer(execution, uniformBuffer) {
   if (!execution.recorder) {
     uniformBuffer.destroy();
+  }
+}
+
+function releaseOwnedBuffer(ownedBuffer) {
+  if (ownedBuffer) {
+    releaseBuffer(ownedBuffer);
   }
 }
 
@@ -149,6 +154,7 @@ async function executeEnergyEval(recorder, state, target, options = {}, op) {
 
   const outputSize = elementCount * 4;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'energy_eval_output');
+  const ownedOutput = outputBuffer ? null : output;
 
   const variant = selectEnergyEvalVariant(state.dtype);
   const pipeline = await getPipelineFast('energy_eval', variant);
@@ -157,23 +163,27 @@ async function executeEnergyEval(recorder, state, target, options = {}, op) {
     view.setUint32(0, elementCount, true);
     view.setFloat32(4, scale, true);
   });
+  try {
+    const bindGroup = execution.device.createBindGroup({
+      label: 'energy_eval_bind_group',
+      layout: pipeline.getBindGroupLayout(0),
+      entries: [
+        { binding: 0, resource: { buffer: uniformBuffer } },
+        { binding: 1, resource: { buffer: state.buffer } },
+        { binding: 2, resource: { buffer: target.buffer } },
+        { binding: 3, resource: { buffer: output } },
+      ],
+    });
 
-  const bindGroup = execution.device.createBindGroup({
-    label: 'energy_eval_bind_group',
-    layout: pipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: state.buffer } },
-      { binding: 2, resource: { buffer: target.buffer } },
-      { binding: 3, resource: { buffer: output } },
-    ],
-  });
-
-  const workgroups = Math.ceil(elementCount / WORKGROUP_SIZES.DEFAULT);
-  dispatchEnergy(execution, pipeline, bindGroup, workgroups, 'energy_eval');
-  releaseUniformBuffer(execution, uniformBuffer);
-
-  return createTensor(output, 'f32', [elementCount], 'energy_eval_output');
+    const workgroups = Math.ceil(elementCount / WORKGROUP_SIZES.DEFAULT);
+    dispatchEnergy(execution, pipeline, bindGroup, workgroups, 'energy_eval');
+    return createTensor(output, 'f32', [elementCount], 'energy_eval_output');
+  } catch (error) {
+    releaseOwnedBuffer(ownedOutput);
+    throw error;
+  } finally {
+    releaseUniformBuffer(execution, uniformBuffer);
+  }
 }
 
 async function executeEnergyUpdate(recorder, state, target, options = {}, op) {
@@ -191,21 +201,23 @@ async function executeEnergyUpdate(recorder, state, target, options = {}, op) {
     view.setFloat32(8, gradientScale, true);
   });
 
-  const bindGroup = execution.device.createBindGroup({
-    label: 'energy_update_bind_group',
-    layout: pipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: state.buffer } },
-      { binding: 2, resource: { buffer: target.buffer } },
-    ],
-  });
+  try {
+    const bindGroup = execution.device.createBindGroup({
+      label: 'energy_update_bind_group',
+      layout: pipeline.getBindGroupLayout(0),
+      entries: [
+        { binding: 0, resource: { buffer: uniformBuffer } },
+        { binding: 1, resource: { buffer: state.buffer } },
+        { binding: 2, resource: { buffer: target.buffer } },
+      ],
+    });
 
-  const workgroups = Math.ceil(elementCount / WORKGROUP_SIZES.DEFAULT);
-  dispatchEnergy(execution, pipeline, bindGroup, workgroups, 'energy_update');
-  releaseUniformBuffer(execution, uniformBuffer);
-
-  return state;
+    const workgroups = Math.ceil(elementCount / WORKGROUP_SIZES.DEFAULT);
+    dispatchEnergy(execution, pipeline, bindGroup, workgroups, 'energy_update');
+    return state;
+  } finally {
+    releaseUniformBuffer(execution, uniformBuffer);
+  }
 }
 
 async function executeEnergyQuintelUpdate(recorder, state, options = {}, op) {
@@ -224,7 +236,6 @@ async function executeEnergyQuintelUpdate(recorder, state, options = {}, op) {
     centerTarget = 1.0,
     clampMin = 0.0,
     clampMax = 1.0,
-    rules = {},
   } = options;
   const elementCount = inferCount(state, count);
   const boardSize = resolveQuintelSize(state, size);
@@ -234,7 +245,7 @@ async function executeEnergyQuintelUpdate(recorder, state, options = {}, op) {
 
   const variant = selectEnergyQuintelUpdateVariant(state.dtype);
   const pipeline = await getPipelineFast('energy_quintel_update', variant);
-  const flags = buildQuintelFlags(rules, binarizeWeight);
+  const flags = resolveQuintelFlags(options, op);
 
   const uniformBuffer = createUniformBuffer(execution, 'energy_quintel_uniforms', 64, (view) => {
     writeQuintelUpdateUniform(view, {
@@ -254,20 +265,22 @@ async function executeEnergyQuintelUpdate(recorder, state, options = {}, op) {
     });
   });
 
-  const bindGroup = execution.device.createBindGroup({
-    label: 'energy_quintel_update_bind_group',
-    layout: pipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: state.buffer } },
-    ],
-  });
+  try {
+    const bindGroup = execution.device.createBindGroup({
+      label: 'energy_quintel_update_bind_group',
+      layout: pipeline.getBindGroupLayout(0),
+      entries: [
+        { binding: 0, resource: { buffer: uniformBuffer } },
+        { binding: 1, resource: { buffer: state.buffer } },
+      ],
+    });
 
-  const workgroups = Math.ceil(elementCount / WORKGROUP_SIZES.DEFAULT);
-  dispatchEnergy(execution, pipeline, bindGroup, workgroups, 'energy_quintel_update');
-  releaseUniformBuffer(execution, uniformBuffer);
-
-  return state;
+    const workgroups = Math.ceil(elementCount / WORKGROUP_SIZES.DEFAULT);
+    dispatchEnergy(execution, pipeline, bindGroup, workgroups, 'energy_quintel_update');
+    return state;
+  } finally {
+    releaseUniformBuffer(execution, uniformBuffer);
+  }
 }
 
 async function executeEnergyQuintelReduce(recorder, state, options = {}, op) {
@@ -280,7 +293,6 @@ async function executeEnergyQuintelReduce(recorder, state, options = {}, op) {
     centerWeight = 1.0,
     binarizeWeight = 0.0,
     centerTarget = 1.0,
-    rules = {},
     outputBuffer = null,
   } = options;
   const elementCount = inferCount(state, count);
@@ -291,7 +303,7 @@ async function executeEnergyQuintelReduce(recorder, state, options = {}, op) {
 
   const variant = selectEnergyQuintelReduceVariant(state.dtype);
   const pipeline = await getPipelineFast('energy_quintel_reduce', variant);
-  const flags = buildQuintelFlags(rules, binarizeWeight);
+  const flags = resolveQuintelFlags(options, op);
 
   const uniformBuffer = createUniformBuffer(execution, 'energy_quintel_reduce_uniforms', 48, (view) => {
     writeQuintelReduceUniform(view, {
@@ -308,21 +320,27 @@ async function executeEnergyQuintelReduce(recorder, state, options = {}, op) {
   const workgroups = Math.ceil(elementCount / WORKGROUP_SIZES.DEFAULT);
   const outputSize = workgroups * 16;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'energy_quintel_reduce_output');
+  const ownedOutput = outputBuffer ? null : output;
 
-  const bindGroup = execution.device.createBindGroup({
-    label: 'energy_quintel_reduce_bind_group',
-    layout: pipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: state.buffer } },
-      { binding: 2, resource: { buffer: output } },
-    ],
-  });
+  try {
+    const bindGroup = execution.device.createBindGroup({
+      label: 'energy_quintel_reduce_bind_group',
+      layout: pipeline.getBindGroupLayout(0),
+      entries: [
+        { binding: 0, resource: { buffer: uniformBuffer } },
+        { binding: 1, resource: { buffer: state.buffer } },
+        { binding: 2, resource: { buffer: output } },
+      ],
+    });
 
-  dispatchEnergy(execution, pipeline, bindGroup, workgroups, 'energy_quintel_reduce');
-  releaseUniformBuffer(execution, uniformBuffer);
-
-  return createTensor(output, 'f32', [workgroups, 4], 'energy_quintel_reduce_output');
+    dispatchEnergy(execution, pipeline, bindGroup, workgroups, 'energy_quintel_reduce');
+    return createTensor(output, 'f32', [workgroups, 4], 'energy_quintel_reduce_output');
+  } catch (error) {
+    releaseOwnedBuffer(ownedOutput);
+    throw error;
+  } finally {
+    releaseUniformBuffer(execution, uniformBuffer);
+  }
 }
 
 async function executeEnergyQuintelGrad(recorder, state, options = {}, op) {
@@ -337,7 +355,6 @@ async function executeEnergyQuintelGrad(recorder, state, options = {}, op) {
     centerWeight = 1.0,
     binarizeWeight = 0.0,
     centerTarget = 1.0,
-    rules = {},
     outputBuffer = null,
   } = options;
   const elementCount = inferCount(state, count);
@@ -348,7 +365,7 @@ async function executeEnergyQuintelGrad(recorder, state, options = {}, op) {
 
   const variant = selectEnergyQuintelGradVariant(state.dtype);
   const pipeline = await getPipelineFast('energy_quintel_grad', variant);
-  const flags = buildQuintelFlags(rules, binarizeWeight);
+  const flags = resolveQuintelFlags(options, op);
 
   const uniformBuffer = createUniformBuffer(execution, 'energy_quintel_grad_uniforms', 64, (view) => {
     writeQuintelGradUniform(view, {
@@ -366,22 +383,28 @@ async function executeEnergyQuintelGrad(recorder, state, options = {}, op) {
 
   const outputSize = elementCount * 4;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'energy_quintel_grad_output');
+  const ownedOutput = outputBuffer ? null : output;
 
-  const bindGroup = execution.device.createBindGroup({
-    label: 'energy_quintel_grad_bind_group',
-    layout: pipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: state.buffer } },
-      { binding: 2, resource: { buffer: output } },
-    ],
-  });
+  try {
+    const bindGroup = execution.device.createBindGroup({
+      label: 'energy_quintel_grad_bind_group',
+      layout: pipeline.getBindGroupLayout(0),
+      entries: [
+        { binding: 0, resource: { buffer: uniformBuffer } },
+        { binding: 1, resource: { buffer: state.buffer } },
+        { binding: 2, resource: { buffer: output } },
+      ],
+    });
 
-  const workgroups = Math.ceil(elementCount / WORKGROUP_SIZES.DEFAULT);
-  dispatchEnergy(execution, pipeline, bindGroup, workgroups, 'energy_quintel_grad');
-  releaseUniformBuffer(execution, uniformBuffer);
-
-  return createTensor(output, 'f32', [elementCount], 'energy_quintel_grad_output');
+    const workgroups = Math.ceil(elementCount / WORKGROUP_SIZES.DEFAULT);
+    dispatchEnergy(execution, pipeline, bindGroup, workgroups, 'energy_quintel_grad');
+    return createTensor(output, 'f32', [elementCount], 'energy_quintel_grad_output');
+  } catch (error) {
+    releaseOwnedBuffer(ownedOutput);
+    throw error;
+  } finally {
+    releaseUniformBuffer(execution, uniformBuffer);
+  }
 }
 
 export async function runEnergyEval(state, target, options = {}) {

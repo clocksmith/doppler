@@ -26,7 +26,6 @@ async function _gather(
   options = {}
 ) {
   const {
-    useVec4 = true,
     outputBuffer = null,
     embeddingDtype,
     outputDtype,
@@ -43,9 +42,22 @@ async function _gather(
   if (outputDtype == null) {
     throw new Error('[Gather] outputDtype is required.');
   }
+  if (embeddingDtype === 'f16' && !caps.hasF16) {
+    throw new Error('[Gather] embeddingDtype=f16 requires shader-f16 support.');
+  }
+  if (outputDtype === 'f16' && !caps.hasF16) {
+    throw new Error('[Gather] outputDtype=f16 requires shader-f16 support.');
+  }
 
-  const useF16Input = embeddingDtype === 'f16' && caps.hasF16;
-  const useF16Output = outputDtype === 'f16' && caps.hasF16;
+  const requestedVec4 = options.useVec4;
+  const wantsVec4 = requestedVec4 ?? true;
+  if (requestedVec4 === true && hiddenSize % 4 !== 0) {
+    throw new Error('[Gather] useVec4=true requires hiddenSize to be divisible by 4.');
+  }
+
+  const useF16Input = embeddingDtype === 'f16';
+  const useF16Output = outputDtype === 'f16';
+  const useVec4 = wantsVec4 && hiddenSize % 4 === 0;
 
   trace.embed(
     `Gather: numTokens=${numTokens}, hiddenSize=${hiddenSize}, vocabSize=${vocabSize}, ` +
@@ -116,4 +128,3 @@ export async function recordGather(
 ) {
   return _gather(recorder, indices, embeddings, numTokens, hiddenSize, vocabSize, options);
 }
-

@@ -48,6 +48,27 @@ The patch fields are:
 - `shared.harness.modelId` (except kernel-only flows and training calibration via `bench + workloadType="training"`)
 - `shared.tooling.intent`
 
+Harness runtime-input composition must preserve shared command semantics:
+
+- apply `configChain` first when supported
+- then `runtimePreset`
+- then `runtimeConfigUrl`
+- then `runtimeConfig`
+- then the runtime contract patch
+
+Do not short-circuit after the first provided input. Do not silently ignore a supported field on one surface.
+
+## Explicit Source Selection
+
+- When a caller provides an explicit `modelUrl` or source URL, manifest/source comparison failures must fail closed.
+- Harness/provider code must not silently reuse cached artifacts when explicit source verification fails.
+- If explicit source selection cannot be honored, surface an actionable error at the load boundary.
+
+## Background Side Effects
+
+- Background auto-tuning, prewarming, or other behavior-changing work must require explicit config opt-in.
+- Harness/provider code must not start those side effects only because a model was loaded successfully.
+
 ## Diffusion Contract
 
 Diffusion verification must use `suite="diffusion"` via the `verify` command path.

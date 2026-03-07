@@ -2,9 +2,17 @@ import { createDopplerConfig, DEFAULT_TRAINING_SETTINGS } from './schema/index.j
 import { validateDistillTrainingConfig } from './schema/distill-training.schema.js';
 import { validateUlTrainingConfig } from './schema/ul-training.schema.js';
 
+function cloneConfigTree(value) {
+  if (typeof structuredClone === 'function') {
+    return structuredClone(value);
+  }
+  return JSON.parse(JSON.stringify(value));
+}
+
 function mergeTrainingSettings(base, overrides) {
+  const baseConfig = cloneConfigTree(base);
   if (!overrides) {
-    const merged = { ...base };
+    const merged = baseConfig;
     validateDistillTrainingConfig(merged.distill);
     validateUlTrainingConfig(merged.ul);
     if (merged.distill.enabled === true && merged.ul.enabled === true) {
@@ -14,42 +22,42 @@ function mergeTrainingSettings(base, overrides) {
   }
 
   const merged = {
-    enabled: overrides.enabled ?? base.enabled,
-    lora: { ...base.lora, ...overrides.lora },
+    enabled: overrides.enabled ?? baseConfig.enabled,
+    lora: { ...baseConfig.lora, ...overrides.lora },
     optimizer: {
-      ...base.optimizer,
+      ...baseConfig.optimizer,
       ...overrides.optimizer,
-      scheduler: { ...base.optimizer.scheduler, ...overrides.optimizer?.scheduler },
+      scheduler: { ...baseConfig.optimizer.scheduler, ...overrides.optimizer?.scheduler },
     },
-    gradient: { ...base.gradient, ...overrides.gradient },
-    precision: { ...base.precision, ...overrides.precision },
-    attention: { ...base.attention, ...overrides.attention },
+    gradient: { ...baseConfig.gradient, ...overrides.gradient },
+    precision: { ...baseConfig.precision, ...overrides.precision },
+    attention: { ...baseConfig.attention, ...overrides.attention },
     telemetry: {
-      ...base.telemetry,
+      ...baseConfig.telemetry,
       ...overrides.telemetry,
       alerts: {
-        ...base.telemetry.alerts,
+        ...baseConfig.telemetry.alerts,
         ...overrides.telemetry?.alerts,
         thresholds: {
-          ...base.telemetry.alerts.thresholds,
+          ...baseConfig.telemetry.alerts.thresholds,
           ...overrides.telemetry?.alerts?.thresholds,
         },
       },
     },
-    lossScaling: { ...base.lossScaling, ...overrides.lossScaling },
+    lossScaling: { ...baseConfig.lossScaling, ...overrides.lossScaling },
     distill: {
-      ...base.distill,
+      ...baseConfig.distill,
       ...overrides.distill,
-      freeze: { ...base.distill.freeze, ...overrides.distill?.freeze },
+      freeze: { ...baseConfig.distill.freeze, ...overrides.distill?.freeze },
     },
     ul: {
-      ...base.ul,
+      ...baseConfig.ul,
       ...overrides.ul,
-      noiseSchedule: { ...base.ul.noiseSchedule, ...overrides.ul?.noiseSchedule },
-      priorAlignment: { ...base.ul.priorAlignment, ...overrides.ul?.priorAlignment },
-      decoderSigmoidWeight: { ...base.ul.decoderSigmoidWeight, ...overrides.ul?.decoderSigmoidWeight },
-      lossWeights: { ...base.ul.lossWeights, ...overrides.ul?.lossWeights },
-      freeze: { ...base.ul.freeze, ...overrides.ul?.freeze },
+      noiseSchedule: { ...baseConfig.ul.noiseSchedule, ...overrides.ul?.noiseSchedule },
+      priorAlignment: { ...baseConfig.ul.priorAlignment, ...overrides.ul?.priorAlignment },
+      decoderSigmoidWeight: { ...baseConfig.ul.decoderSigmoidWeight, ...overrides.ul?.decoderSigmoidWeight },
+      lossWeights: { ...baseConfig.ul.lossWeights, ...overrides.ul?.lossWeights },
+      freeze: { ...baseConfig.ul.freeze, ...overrides.ul?.freeze },
     },
   };
   validateDistillTrainingConfig(merged.distill);
@@ -74,7 +82,7 @@ export function createTrainingConfig(overrides = {}) {
 
 export const DEFAULT_TRAINING_CONFIG = createTrainingConfig();
 
-let trainingConfig = DEFAULT_TRAINING_CONFIG;
+let trainingConfig = createTrainingConfig();
 
 export function getTrainingConfig() {
   return trainingConfig;
@@ -86,6 +94,6 @@ export function setTrainingConfig(overrides) {
 }
 
 export function resetTrainingConfig() {
-  trainingConfig = DEFAULT_TRAINING_CONFIG;
+  trainingConfig = createTrainingConfig();
   return trainingConfig;
 }

@@ -35,6 +35,7 @@ const {
 } = await import('../../src/training/attention-backward.js');
 const { AdamOptimizer } = await import('../../src/training/optimizer.js');
 const { runAdam } = await import('../../src/gpu/kernels/backward/adam.js');
+const { runAttentionBackward } = await import('../../src/gpu/kernels/backward/attention_backward.js');
 const { runMatmul } = await import('../../src/gpu/kernels/matmul.js');
 const { LoraAdapter } = await import('../../src/training/lora.js');
 const { createTokenBatchTensors } = await import('../../src/training/datasets/token-batch.js');
@@ -173,6 +174,14 @@ function createFakeDevice(options = {}) {
     createCommandEncoder() {
       const ops = [];
       return {
+        beginComputePass() {
+          return {
+            setPipeline() {},
+            setBindGroup() {},
+            dispatchWorkgroups() {},
+            end() {},
+          };
+        },
         copyBufferToBuffer(source, sourceOffset, target, targetOffset, size) {
           ops.push({ source, sourceOffset, target, targetOffset, size });
         },
@@ -258,6 +267,28 @@ configurePerfGuards({
     /createBindGroup failed at 1/
   );
 
+  assertPoolIsClean();
+  resetRuntimeState();
+}
+
+{
+  const device = createFakeDevice({ createBindGroupThrowAt: 1 });
+  setDevice(device, { platformConfig: null });
+
+  const q = createExternalTensor([1], [1, 1, 1], 'attn_q');
+  const k = createExternalTensor([1], [1, 1, 1], 'attn_k');
+  const v = createExternalTensor([1], [1, 1, 1], 'attn_v');
+  const softmax = createExternalTensor([1], [1, 1, 1], 'attn_softmax');
+  const gradOutput = createExternalTensor([1], [1, 1, 1], 'attn_grad_output');
+
+  await assert.rejects(
+    () => runAttentionBackward(q, k, v, softmax, gradOutput, {
+      seqLen: 1,
+      numHeads: 1,
+      headDim: 1,
+    }),
+    /createBindGroup failed at 1/
+  );
   assertPoolIsClean();
   resetRuntimeState();
 }

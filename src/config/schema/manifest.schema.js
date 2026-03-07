@@ -71,9 +71,9 @@ export const DEFAULT_MANIFEST_INFERENCE = {
     ropeLocalScalingType: null,  // Local scaling policy (null = no scaling)
     ropeLocalScalingFactor: 1.0,
     // YARN parameters - only relevant when ropeScalingType='yarn'
-    yarnBetaFast: 32,
-    yarnBetaSlow: 1,
-    yarnOriginalMaxPos: 4096,
+    yarnBetaFast: null,
+    yarnBetaSlow: null,
+    yarnOriginalMaxPos: null,
     // Local YARN parameters - only relevant when ropeLocalScalingType='yarn'
     ropeLocalYarnBetaFast: null,
     ropeLocalYarnBetaSlow: null,
@@ -126,7 +126,7 @@ export function validateManifestInference(
     );
   }
 
-  if (manifest.modelType === 'diffusion') {
+  if (manifest.modelType === 'diffusion' || manifest.modelType === 'energy') {
     return;
   }
 

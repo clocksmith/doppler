@@ -17,6 +17,9 @@ function validateOptions(options) {
   if (!Number.isFinite(numGroups) || numGroups <= 0) {
     throw new Error('GroupNorm requires numGroups > 0.');
   }
+  if (channels % numGroups !== 0) {
+    throw new Error('GroupNorm requires channels to be divisible by numGroups.');
+  }
   if (!Number.isFinite(eps)) {
     throw new Error('GroupNorm requires eps.');
   }
@@ -44,34 +47,42 @@ async function _groupNorm(target, input, weight, bias, options = {}) {
 
   const statsSize = numGroups * 2 * 4;
   const statsBuffer = acquireBuffer(statsSize, undefined, 'groupnorm_stats');
-
-  await unifiedKernelWrapper(
-    'groupnorm_stats',
-    target,
-    statsVariant,
-    [input, statsBuffer],
-    uniforms,
-    numGroups
-  );
-
   const bytesPerElement = dtypeBytes(input.dtype);
   const outputSize = channels * height * width * bytesPerElement;
-  const output = outputBuffer || acquireBuffer(outputSize, undefined, 'groupnorm_output');
+  const ownedOutput = outputBuffer ? null : acquireBuffer(outputSize, undefined, 'groupnorm_output');
+  const output = outputBuffer || ownedOutput;
 
-  const weightBuffer = getBuffer(weight);
-  const biasBuffer = getBuffer(bias);
+  try {
+    await unifiedKernelWrapper(
+      'groupnorm_stats',
+      target,
+      statsVariant,
+      [input, statsBuffer],
+      uniforms,
+      numGroups
+    );
 
-  const total = channels * height * width;
-  const workgroups = Math.ceil(total / WORKGROUP_SIZES.DEFAULT);
+    const weightBuffer = getBuffer(weight);
+    const biasBuffer = getBuffer(bias);
 
-  await unifiedKernelWrapper(
-    'groupnorm_apply',
-    target,
-    applyVariant,
-    [input, statsBuffer, weightBuffer, biasBuffer, output],
-    uniforms,
-    workgroups
-  );
+    const total = channels * height * width;
+    const workgroups = Math.ceil(total / WORKGROUP_SIZES.DEFAULT);
+
+    await unifiedKernelWrapper(
+      'groupnorm_apply',
+      target,
+      applyVariant,
+      [input, statsBuffer, weightBuffer, biasBuffer, output],
+      uniforms,
+      workgroups
+    );
+  } catch (error) {
+    releaseBuffer(statsBuffer);
+    if (ownedOutput) {
+      releaseBuffer(ownedOutput);
+    }
+    throw error;
+  }
 
   if (recorder) {
     recorder.trackTemporaryBuffer(statsBuffer);

@@ -22,6 +22,17 @@ export function mergeQuintelConfig(base, override) {
   };
 }
 
+export function buildQuintelKernelFlags(rules, binarizeWeight) {
+  let flags = 0;
+  if (rules?.mirrorX) flags |= 1;
+  if (rules?.mirrorY) flags |= 2;
+  if (rules?.diagonal) flags |= 4;
+  if (rules?.count) flags |= 8;
+  if (rules?.center) flags |= 16;
+  if (Number.isFinite(binarizeWeight) && binarizeWeight !== 0) flags |= 32;
+  return flags >>> 0;
+}
+
 function applyPairEnergy(state, gradients, indexA, indexB, weight) {
   const diff = state[indexA] - state[indexB];
   const energy = weight * diff * diff;
