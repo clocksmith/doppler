@@ -2,7 +2,7 @@
 
 import { log, trace } from '../../../debug/index.js';
 import { getDevice } from '../../../gpu/device.js';
-import { releaseBuffer } from '../../../memory/buffer-pool.js';
+import { releaseBuffer, readBuffer } from '../../../memory/buffer-pool.js';
 import { allowReadback } from '../../../gpu/perf-guards.js';
 import { createTensor } from '../../../gpu/tensor.js';
 import {
@@ -314,14 +314,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
       if (allowReadback(`layer.attn-out.${layerIdx}`)) {
         try {
           const sampleSize = Math.min(128, attnOutput.buffer.size);
-          const staging = device.createBuffer({ size: sampleSize, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
-          const enc = device.createCommandEncoder();
-          enc.copyBufferToBuffer(attnOutput.buffer, 0, staging, 0, sampleSize);
-          device.queue.submit([enc.finish()]);
-          await staging.mapAsync(GPUMapMode.READ);
-          const data = new Float32Array(staging.getMappedRange().slice(0));
-          staging.unmap();
-          staging.destroy();
+          const data = new Float32Array(await readBuffer(attnOutput.buffer, sampleSize));
           let maxAbs = 0;
           for (let i = 0; i < data.length; i++) {
             const abs = Math.abs(data[i]);

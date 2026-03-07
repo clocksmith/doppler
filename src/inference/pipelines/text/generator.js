@@ -1043,18 +1043,9 @@ export class PipelineGenerator {
           if (allowReadback(`pipeline.prefill.layer-${l}`)) {
             try {
               const sampleSize = config.hiddenSize * activationBytes;
-              const staging = device.createBuffer({
-                size: sampleSize,
-                usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
-              });
-              const enc = device.createCommandEncoder();
               const lastTokenOffset = (numTokens - 1) * config.hiddenSize * activationBytes;
-              enc.copyBufferToBuffer(currentHiddenBuffer, lastTokenOffset, staging, 0, sampleSize);
-              device.queue.submit([enc.finish()]);
-              await staging.mapAsync(GPUMapMode.READ);
-              const data = decodeReadback(staging.getMappedRange().slice(0), activationDtype);
-              staging.unmap();
-              staging.destroy();
+              const readback = await readBufferSlice(currentHiddenBuffer, lastTokenOffset, sampleSize);
+              const data = decodeReadback(readback, activationDtype);
               let min = Infinity;
               let max = -Infinity;
               let maxAbs = 0;
@@ -1112,20 +1103,12 @@ export class PipelineGenerator {
     if (opts.debug) {
       log.debug('Pipeline', `LAYER_LOOP_DONE, currentHiddenBuffer type=${currentHiddenBuffer?.constructor?.name}`);
       if (currentHiddenBuffer && allowReadback('pipeline.prefill.final-hidden')) {
-        const device = getDevice();
         const lastTokenOffset = (numTokens - 1) * config.hiddenSize * activationBytes;
         const sampleSize = config.hiddenSize * activationBytes;
-        const staging = device.createBuffer({
-          size: sampleSize,
-          usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
-        });
-        const enc = device.createCommandEncoder();
-        enc.copyBufferToBuffer(currentHiddenBuffer, lastTokenOffset, staging, 0, sampleSize);
-        device.queue.submit([enc.finish()]);
-        await staging.mapAsync(GPUMapMode.READ);
-        const data = decodeReadback(staging.getMappedRange().slice(0), activationDtype);
-        staging.unmap();
-        staging.destroy();
+        const data = decodeReadback(
+          await readBufferSlice(currentHiddenBuffer, lastTokenOffset, sampleSize),
+          activationDtype
+        );
         const nanCount = Array.from(data).filter(x => !Number.isFinite(x)).length;
         const nonZero = Array.from(data).filter(x => Number.isFinite(x) && x !== 0).slice(0, 5);
         log.debug('Pipeline', `FINAL_HIDDEN[pos=${numTokens - 1}]: nan=${nanCount}/${data.length}, sample=[${nonZero.map(x => x.toFixed(4)).join(', ')}]`);

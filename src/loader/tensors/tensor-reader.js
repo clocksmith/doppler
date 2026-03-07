@@ -30,6 +30,24 @@ function getLocationSpans(location) {
   return location.spans;
 }
 
+function resolveLocationShardIndex(location, name) {
+  const shardIndex = typeof location?.shardIndex === 'number'
+    ? location.shardIndex
+    : location?.shard;
+  if (!Number.isInteger(shardIndex) || shardIndex < 0) {
+    throw new Error(`[DopplerLoader] Tensor "${name}" has invalid shard index.`);
+  }
+  return shardIndex;
+}
+
+function validateLocationField(location, field, name) {
+  const value = location?.[field];
+  if (!Number.isInteger(value) || value < 0) {
+    throw new Error(`[DopplerLoader] Tensor "${name}" has invalid ${field}.`);
+  }
+  return value;
+}
+
 export async function assembleShardData(location, name, loadShard, loadShardRange = null) {
   const spans = getLocationSpans(location);
   if (spans) {
@@ -72,21 +90,24 @@ export async function assembleShardData(location, name, loadShard, loadShardRang
   }
 
   // Single shard - use view to avoid copying
+  const shardIndex = resolveLocationShardIndex(location, name);
+  const offset = validateLocationField(location, 'offset', name);
+  const size = validateLocationField(location, 'size', name);
   if (loadShardRange) {
-    const slice = await loadShardRange(location.shardIndex, location.offset, location.size);
-    if (location.size > slice.byteLength) {
+    const slice = await loadShardRange(shardIndex, offset, size);
+    if (size > slice.byteLength) {
       throw new Error(
-        `[DopplerLoader] Shard ${location.shardIndex} too small for tensor "${name}" (offset=${location.offset}, size=${location.size}, shard=${slice.byteLength})`
+        `[DopplerLoader] Shard ${shardIndex} too small for tensor "${name}" (offset=${offset}, size=${size}, shard=${slice.byteLength})`
       );
     }
-    return new Uint8Array(slice, 0, location.size);
+    return new Uint8Array(slice, 0, size);
   }
 
-  const fullShard = await loadShard(location.shardIndex);
-  if (location.offset + location.size > fullShard.byteLength) {
+  const fullShard = await loadShard(shardIndex);
+  if (offset + size > fullShard.byteLength) {
     throw new Error(
-      `[DopplerLoader] Shard ${location.shardIndex} too small for tensor "${name}" (offset=${location.offset}, size=${location.size}, shard=${fullShard.byteLength})`
+      `[DopplerLoader] Shard ${shardIndex} too small for tensor "${name}" (offset=${offset}, size=${size}, shard=${fullShard.byteLength})`
     );
   }
-  return new Uint8Array(fullShard, location.offset, location.size);
+  return new Uint8Array(fullShard, offset, size);
 }

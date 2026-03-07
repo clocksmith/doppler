@@ -82,7 +82,7 @@ export interface TensorLocation {
   dtype: string;
   role: TensorRole;
   group?: string;
-  spans?: Array<{ shardIndex: number; offset: number; size: number }>;
+  spans?: Array<{ shard?: number; shardIndex?: number; offset: number; size: number }>;
   layout?: WeightLayout;
   originalShape?: number[];
 }
