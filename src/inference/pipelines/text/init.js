@@ -2,7 +2,7 @@
 
 import { parseModelConfig } from './config.js';
 import { getDevice, getDeviceLimits, getKernelCapabilities } from '../../../gpu/device.js';
-import { acquireBuffer } from '../../../memory/buffer-pool.js';
+import { acquireBuffer, releaseBuffer } from '../../../memory/buffer-pool.js';
 import { KVCache, SlidingWindowKVCache, TieredKVCache, BasisDecomposedPagedCache } from '../../kv-cache.js';
 import { Tokenizer } from '../../tokenizer.js';
 import { MoERouter } from '../../moe-router.js';
@@ -326,20 +326,29 @@ export async function initRoPEFrequencies(config, useGPU) {
   // Upload to GPU if available
   const device = getDevice();
   if (device && useGPU) {
-    const cosBuffer = acquireBuffer(globalFreqs.cos.byteLength, undefined, 'rope_cos');
-    const sinBuffer = acquireBuffer(globalFreqs.sin.byteLength, undefined, 'rope_sin');
-    device.queue.writeBuffer(cosBuffer, 0, globalFreqs.cos.buffer, globalFreqs.cos.byteOffset, globalFreqs.cos.byteLength);
-    device.queue.writeBuffer(sinBuffer, 0, globalFreqs.sin.buffer, globalFreqs.sin.byteOffset, globalFreqs.sin.byteLength);
+    let cosBuffer = null;
+    let sinBuffer = null;
+    let localCosBuffer = null;
+    let localSinBuffer = null;
+    try {
+      cosBuffer = acquireBuffer(globalFreqs.cos.byteLength, undefined, 'rope_cos');
+      sinBuffer = acquireBuffer(globalFreqs.sin.byteLength, undefined, 'rope_sin');
+      device.queue.writeBuffer(cosBuffer, 0, globalFreqs.cos.buffer, globalFreqs.cos.byteOffset, globalFreqs.cos.byteLength);
+      device.queue.writeBuffer(sinBuffer, 0, globalFreqs.sin.buffer, globalFreqs.sin.byteOffset, globalFreqs.sin.byteLength);
 
-    
-    let localCosBuffer;
-    
-    let localSinBuffer;
-    if (localFreqs) {
-      localCosBuffer = acquireBuffer(localFreqs.cos.byteLength, undefined, 'rope_local_cos');
-      localSinBuffer = acquireBuffer(localFreqs.sin.byteLength, undefined, 'rope_local_sin');
-      device.queue.writeBuffer(localCosBuffer, 0, localFreqs.cos.buffer, localFreqs.cos.byteOffset, localFreqs.cos.byteLength);
-      device.queue.writeBuffer(localSinBuffer, 0, localFreqs.sin.buffer, localFreqs.sin.byteOffset, localFreqs.sin.byteLength);
+      if (localFreqs) {
+        localCosBuffer = acquireBuffer(localFreqs.cos.byteLength, undefined, 'rope_local_cos');
+        localSinBuffer = acquireBuffer(localFreqs.sin.byteLength, undefined, 'rope_local_sin');
+        device.queue.writeBuffer(localCosBuffer, 0, localFreqs.cos.buffer, localFreqs.cos.byteOffset, localFreqs.cos.byteLength);
+        device.queue.writeBuffer(localSinBuffer, 0, localFreqs.sin.buffer, localFreqs.sin.byteOffset, localFreqs.sin.byteLength);
+      }
+    } catch (error) {
+      for (const buffer of [cosBuffer, sinBuffer, localCosBuffer, localSinBuffer]) {
+        if (buffer) {
+          releaseBuffer(buffer);
+        }
+      }
+      throw error;
     }
 
     log.debug(

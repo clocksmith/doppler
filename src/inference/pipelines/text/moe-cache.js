@@ -1,5 +1,6 @@
 import { getRuntimeConfig } from '../../../config/runtime.js';
 import { QK_K } from '../../../config/schema/index.js';
+import { releaseBuffer } from '../../../memory/buffer-pool.js';
 
 const dequantCache = new Map();
 let dequantCacheMaxEntriesOverride = null;
@@ -73,8 +74,8 @@ export function setCachedDequant(layerIdx, expertIdx, outputDtype, gateUp, down)
     if (oldestKey) {
       const evicted = dequantCache.get(oldestKey);
       if (evicted) {
-        evicted.gateUp.destroy();
-        evicted.down.destroy();
+        releaseBuffer(evicted.gateUp);
+        releaseBuffer(evicted.down);
       }
       dequantCache.delete(oldestKey);
     }
@@ -85,8 +86,8 @@ export function setCachedDequant(layerIdx, expertIdx, outputDtype, gateUp, down)
 
 export function clearDequantCache() {
   for (const cached of dequantCache.values()) {
-    cached.gateUp.destroy();
-    cached.down.destroy();
+    releaseBuffer(cached.gateUp);
+    releaseBuffer(cached.down);
   }
   dequantCache.clear();
   dequantCacheHits = 0;

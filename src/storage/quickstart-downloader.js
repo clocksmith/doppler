@@ -53,8 +53,8 @@ export function getCDNBaseUrl() {
 
 
 export const QUICKSTART_MODELS = {
-  'gemma-3-1b-it-wq4k-ef16-hf16': {
-    modelId: 'gemma-3-1b-it-wq4k-ef16-hf16',
+  'gemma-3-1b-it-q4k-ehf16-af32': {
+    modelId: 'gemma-3-1b-it-q4k-ehf16-af32',
     displayName: 'Gemma 3 1B IT (Q4_K_M)',
     baseUrl: null,
     requirements: GEMMA_1B_REQUIREMENTS,

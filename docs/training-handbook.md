@@ -42,9 +42,9 @@ The canonical request contract lives in `src/tooling/command-api.js`.
 ### Legacy harness lanes
 
 ```bash
-node tools/doppler-cli.js verify --config '{"request":{"suite":"training","modelId":"gemma-3-270m-it-wq4k-ef16-hf16"}}' --json
+node tools/doppler-cli.js verify --config '{"request":{"suite":"training","modelId":"gemma-3-270m-it-q4k-ehf16-af32"}}' --json
 
-node tools/doppler-cli.js bench --config '{"request":{"suite":"bench","modelId":"gemma-3-270m-it-wq4k-ef16-hf16","workloadType":"training","trainingSchemaVersion":1}}' --json
+node tools/doppler-cli.js bench --config '{"request":{"suite":"bench","modelId":"gemma-3-270m-it-q4k-ehf16-af32","workloadType":"training","trainingSchemaVersion":1}}' --json
 ```
 
 Use these lanes for contract verification, calibration, and legacy training harness coverage.

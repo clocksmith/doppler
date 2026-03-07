@@ -1,5 +1,5 @@
 
-import { acquireBuffer } from '../../memory/buffer-pool.js';
+import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor, dtypeBytes } from '../tensor.js';
 import { WORKGROUP_SIZES } from './constants.js';
 import { unifiedKernelWrapper } from './utils.js';
@@ -7,6 +7,9 @@ import { selectRuleValue } from './rule-registry.js';
 
 async function _splitQKV(target, qkvTensor, options) {
   const { numTokens, qSize, kSize, vSize, qTensor = null, kTensor = null, vTensor = null } = options;
+  const ownsQ = qTensor == null;
+  const ownsK = kTensor == null;
+  const ownsV = vTensor == null;
 
   const outputDtype = qkvTensor.dtype;
   const pipelineVariant = selectRuleValue('splitQkv', 'variant', { outputDtype });
@@ -18,18 +21,25 @@ async function _splitQKV(target, qkvTensor, options) {
 
   const totalElements = numTokens * (qSize + kSize + vSize);
 
-  await unifiedKernelWrapper(
-    'split_qkv', target, pipelineVariant,
-    [qkvTensor, qBuffer, kBuffer, vBuffer],
-    { num_tokens: numTokens, q_size: qSize, k_size: kSize, v_size: vSize },
-    Math.ceil(totalElements / WORKGROUP_SIZES.DEFAULT)
-  );
+  try {
+    await unifiedKernelWrapper(
+      'split_qkv', target, pipelineVariant,
+      [qkvTensor, qBuffer, kBuffer, vBuffer],
+      { num_tokens: numTokens, q_size: qSize, k_size: kSize, v_size: vSize },
+      Math.ceil(totalElements / WORKGROUP_SIZES.DEFAULT)
+    );
 
-  const Q = qTensor || createTensor(qBuffer, outputDtype, [numTokens, qSize], 'Q');
-  const K = kTensor || createTensor(kBuffer, outputDtype, [numTokens, kSize], 'K');
-  const V = vTensor || createTensor(vBuffer, outputDtype, [numTokens, vSize], 'V');
+    const Q = qTensor || createTensor(qBuffer, outputDtype, [numTokens, qSize], 'Q');
+    const K = kTensor || createTensor(kBuffer, outputDtype, [numTokens, kSize], 'K');
+    const V = vTensor || createTensor(vBuffer, outputDtype, [numTokens, vSize], 'V');
 
-  return { Q, K, V };
+    return { Q, K, V };
+  } catch (error) {
+    if (ownsQ) releaseBuffer(qBuffer);
+    if (ownsK) releaseBuffer(kBuffer);
+    if (ownsV) releaseBuffer(vBuffer);
+    throw error;
+  }
 }
 
 export async function runSplitQKV(qkvTensor, options) {

@@ -3,18 +3,19 @@
 Use `catalog.json` to define hosted models that the demo can import directly into OPFS.
 `catalog.json` is the canonical model registry for runtime/demo/hosted/tested lifecycle tracking.
 
-Model storage under this directory is split into two buckets:
+Model artifacts live under a single physical root:
 
-- `models/curated/**`: deployable, user-facing quick-download models
-- `models/local/**`: local development/testing models only (never deployed)
+- `models/local/**`: on-disk RDRR artifacts used for local testing and optional repo-hosted demo downloads
+
+Lifecycle labels such as `curated`, `recommended`, and `demo` are metadata in `catalog.json`, not path semantics.
 
 Each entry supports:
 
 - `modelId` (string, required)
 - `label` (string, optional)
 - `description` (string, optional)
-- `mode` or `modes` (`text`, `embedding`, `both`; optional, defaults to `text`)
-- `baseUrl` (string, optional). If omitted, defaults to `./curated/<modelId>` relative to `catalog.json`.
+- `mode` or `modes` (`run`, `embedding`, or other explicit surface labels used by tooling)
+- `baseUrl` (string, optional). Keep this explicit for downloadable demo entries; `null` is valid for non-demo/local-only catalog entries.
 - `sizeBytes` (number, optional)
 - `recommended` (boolean, optional)
 - `sortOrder` (number, optional)
@@ -31,13 +32,6 @@ Each entry supports:
 Recommended layout for deployable assets:
 
 - `models/catalog.json`
-- `models/curated/<model-id>/manifest.json`
-- `models/curated/<model-id>/shard_*.bin`
-- `models/curated/<model-id>/tokenizer.json` (if bundled)
-- `models/curated/<model-id>/tokenizer.model` (if sentencepiece)
-
-Recommended layout for local-only testing assets:
-
 - `models/local/<model-id>/manifest.json`
 - `models/local/<model-id>/shard_*.bin`
 - `models/local/<model-id>/tokenizer.json` (if bundled)
@@ -46,8 +40,9 @@ Recommended layout for local-only testing assets:
 Notes:
 
 - `models/local/**` is allowed by the layout validator for local testing.
-- `models/local/**` is ignored by Firebase hosting for the Doppler deploy target.
-- Keep `catalog.json` entries pointed at curated paths when you want models downloadable in production.
+- `models/local/**` may be served in demo/dev deployments when hosting config allows it.
+- `lifecycle.availability.curated` and `lifecycle.status.demo` describe artifact status, not a separate directory tree.
+- Do not rely on implicit `baseUrl` or mode defaults in docs or tooling. Catalog behavior should stay explicit and fail closed.
 
 Example `catalog.json` entry:
 
@@ -56,7 +51,7 @@ Example `catalog.json` entry:
   "modelId": "example-embedding-model",
   "label": "Example Embedding",
   "mode": "embedding",
-  "baseUrl": "./curated/example-embedding-model",
+  "baseUrl": "./local/example-embedding-model",
   "sizeBytes": 123456789,
   "recommended": true,
   "sortOrder": 10,

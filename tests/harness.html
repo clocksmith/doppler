@@ -206,22 +206,27 @@
 
     async function loadRuntimeConfig() {
       const { parseRuntimeOverridesFromURL } = await import('../src/inference/test-harness.js');
-      const { getRuntimeConfig, setRuntimeConfig } = await import('../src/config/index.js');
-      const { applyRuntimePreset, applyRuntimeConfigFromUrl } = await import('../src/inference/browser-harness.js');
+      const { getRuntimeConfig } = await import('../src/config/index.js');
+      const { applyRuntimeForRun } = await import('../src/inference/browser-harness.js');
       const runtimeOverrides = parseRuntimeOverridesFromURL(params);
-      const runtimePreset = params.get('runtimePreset');
-      const runtimeConfigUrl = params.get('runtimeConfigUrl');
-      if (runtimeOverrides.runtimeConfig) {
-        setRuntimeConfig(runtimeOverrides.runtimeConfig);
-      } else if (runtimeConfigUrl) {
-        await applyRuntimeConfigFromUrl(runtimeConfigUrl);
-      } else if (runtimePreset) {
-        await applyRuntimePreset(runtimePreset);
-      }
+      const runtimePreset = params.get('runtimePreset') || null;
+      const runtimeConfigUrl = params.get('runtimeConfigUrl') || null;
+      await applyRuntimeForRun({
+        command: 'verify',
+        suite: 'kernels',
+        modelId: null,
+        configChain: Array.isArray(runtimeOverrides.configChain) ? runtimeOverrides.configChain : null,
+        runtimePreset,
+        runtimeConfigUrl,
+        runtimeConfig: runtimeOverrides.runtimeConfig || null,
+      });
       const resolved = getRuntimeConfig();
       const harness = resolved.shared?.harness;
       if (!harness) {
         throw new Error('runtime.shared.harness is required for the harness.');
+      }
+      if (!resolved.shared?.tooling?.intent) {
+        throw new Error('runtime.shared.tooling.intent is required for the harness.');
       }
       runtimeConfig = resolved;
       harnessConfig = harness;

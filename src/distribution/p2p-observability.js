@@ -12,6 +12,14 @@ function asFiniteNumber(value, fallback = 0) {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
+function assertFiniteNumber(value, label) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) {
+    throw new Error(`P2P observability ${label} must be a finite number.`);
+  }
+  return parsed;
+}
+
 function asNonNegativeInteger(value, fallback = 0) {
   const parsed = Number(value);
   if (!Number.isInteger(parsed) || parsed < 0) {
@@ -69,15 +77,43 @@ function percentile(values, ratio) {
 }
 
 function resolveSLOTargets(options = {}) {
-  const targets = options.targets && typeof options.targets === 'object'
-    ? options.targets
-    : {};
+  const hasExplicitTargets = Object.hasOwn(options, 'targets');
+  if (hasExplicitTargets && (options.targets == null || typeof options.targets !== 'object' || Array.isArray(options.targets))) {
+    throw new Error('P2P observability targets must be an object when provided.');
+  }
+  const targets = hasExplicitTargets ? options.targets : {};
+
+  const minAvailability = Object.hasOwn(targets, 'minAvailability')
+    ? assertFiniteNumber(targets.minAvailability, 'targets.minAvailability')
+    : DEFAULT_SLO_TARGETS.minAvailability;
+  const minP2PHitRate = Object.hasOwn(targets, 'minP2PHitRate')
+    ? assertFiniteNumber(targets.minP2PHitRate, 'targets.minP2PHitRate')
+    : DEFAULT_SLO_TARGETS.minP2PHitRate;
+  const maxHttpFallbackRate = Object.hasOwn(targets, 'maxHttpFallbackRate')
+    ? assertFiniteNumber(targets.maxHttpFallbackRate, 'targets.maxHttpFallbackRate')
+    : DEFAULT_SLO_TARGETS.maxHttpFallbackRate;
+  const maxP95LatencyMs = Object.hasOwn(targets, 'maxP95LatencyMs')
+    ? assertFiniteNumber(targets.maxP95LatencyMs, 'targets.maxP95LatencyMs')
+    : DEFAULT_SLO_TARGETS.maxP95LatencyMs;
+
+  if (minAvailability < 0 || minAvailability > 1) {
+    throw new Error('P2P observability targets.minAvailability must be between 0 and 1.');
+  }
+  if (minP2PHitRate < 0 || minP2PHitRate > 1) {
+    throw new Error('P2P observability targets.minP2PHitRate must be between 0 and 1.');
+  }
+  if (maxHttpFallbackRate < 0 || maxHttpFallbackRate > 1) {
+    throw new Error('P2P observability targets.maxHttpFallbackRate must be between 0 and 1.');
+  }
+  if (maxP95LatencyMs < 0) {
+    throw new Error('P2P observability targets.maxP95LatencyMs must be >= 0.');
+  }
 
   return {
-    minAvailability: asFiniteNumber(targets.minAvailability, DEFAULT_SLO_TARGETS.minAvailability),
-    minP2PHitRate: asFiniteNumber(targets.minP2PHitRate, DEFAULT_SLO_TARGETS.minP2PHitRate),
-    maxHttpFallbackRate: asFiniteNumber(targets.maxHttpFallbackRate, DEFAULT_SLO_TARGETS.maxHttpFallbackRate),
-    maxP95LatencyMs: asFiniteNumber(targets.maxP95LatencyMs, DEFAULT_SLO_TARGETS.maxP95LatencyMs),
+    minAvailability,
+    minP2PHitRate,
+    maxHttpFallbackRate,
+    maxP95LatencyMs,
   };
 }
 

@@ -3,8 +3,17 @@
 import { spawn } from 'node:child_process';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 
-function parseArgs(argv) {
+function requireFlagValue(argv, index, flag) {
+  const value = argv[index + 1];
+  if (value == null || String(value).startsWith('--')) {
+    throw new Error(`Missing value for ${flag}`);
+  }
+  return String(value);
+}
+
+export function parseArgs(argv) {
   const parsed = {
     surface: 'node',
     outDir: 'reports/training/ul',
@@ -13,17 +22,17 @@ function parseArgs(argv) {
   for (let i = 2; i < argv.length; i += 1) {
     const arg = argv[i];
     if (arg === '--surface') {
-      parsed.surface = String(argv[i + 1] || 'node');
+      parsed.surface = requireFlagValue(argv, i, '--surface');
       i += 1;
       continue;
     }
     if (arg === '--out-dir') {
-      parsed.outDir = String(argv[i + 1] || parsed.outDir);
+      parsed.outDir = requireFlagValue(argv, i, '--out-dir');
       i += 1;
       continue;
     }
     if (arg === '--workload') {
-      parsed.workload = String(argv[i + 1] || parsed.workload);
+      parsed.workload = requireFlagValue(argv, i, '--workload');
       i += 1;
       continue;
     }
@@ -32,7 +41,23 @@ function parseArgs(argv) {
   return parsed;
 }
 
-async function loadWorkloadConfig(workloadArg) {
+function buildRuntimeConfigJson(benchRun) {
+  if (benchRun == null) {
+    return null;
+  }
+  if (!benchRun || typeof benchRun !== 'object' || Array.isArray(benchRun)) {
+    throw new Error('Workload field "benchRun" must be an object when provided.');
+  }
+  return JSON.stringify({
+    shared: {
+      benchmark: {
+        run: benchRun,
+      },
+    },
+  });
+}
+
+export async function loadWorkloadConfig(workloadArg) {
   const presets = {
     tiny: 'tools/configs/training-workloads/ul-training-tiny.json',
     medium: 'tools/configs/training-workloads/ul-training-medium.json',
@@ -96,20 +121,27 @@ async function main() {
   const args = parseArgs(process.argv);
   const outDirAbs = resolve(args.outDir);
   const workload = await loadWorkloadConfig(args.workload);
-  const trainingSchemaVersion = Number(workload.config.trainingSchemaVersion || 1);
-  const trainingBenchSteps = Number(workload.config.trainingBenchSteps || 2);
-  const seed = Number(workload.config.seed || 1337);
-  const trainingTests = Array.isArray(workload.config.trainingTests)
-    ? workload.config.trainingTests.map((value) => String(value))
-    : [];
-  const stage1TestId = trainingTests.includes('ul-stage1') ? 'ul-stage1' : 'ul-stage1';
-  const runtimeConfigJson = JSON.stringify({
-    shared: {
-      benchmark: {
-        run: workload.config.benchRun || {},
-      },
-    },
-  });
+  if (!workload.config.trainingSchemaVersion) {
+    throw new Error(`Workload config at ${workload.path} is missing required field: trainingSchemaVersion`);
+  }
+  if (!workload.config.trainingBenchSteps) {
+    throw new Error(`Workload config at ${workload.path} is missing required field: trainingBenchSteps`);
+  }
+  if (workload.config.seed == null) {
+    throw new Error(`Workload config at ${workload.path} is missing required field: seed`);
+  }
+  if (!Array.isArray(workload.config.trainingTests) || workload.config.trainingTests.length === 0) {
+    throw new Error(`Workload config at ${workload.path} is missing required field: trainingTests (non-empty array)`);
+  }
+  const trainingSchemaVersion = Number(workload.config.trainingSchemaVersion);
+  const trainingBenchSteps = Number(workload.config.trainingBenchSteps);
+  const seed = Number(workload.config.seed);
+  const trainingTests = workload.config.trainingTests.map((value) => String(value));
+  if (!trainingTests.includes('ul-stage1') || !trainingTests.includes('ul-stage2')) {
+    throw new Error(`Workload config at ${workload.path} must include trainingTests: ["ul-stage1", "ul-stage2"]`);
+  }
+  const stage1TestId = 'ul-stage1';
+  const runtimeConfigJson = buildRuntimeConfigJson(workload.config.benchRun);
   const trainingConfig = {
     ul: {
       seed,
@@ -136,7 +168,7 @@ async function main() {
   ]);
   const stage1Artifact = extractStage1Artifact(stage1Verify);
 
-  const stage1Bench = await runCli([
+  const stage1BenchArgs = [
     'bench',
     '--config',
     JSON.stringify({
@@ -151,12 +183,14 @@ async function main() {
         surface: args.surface,
       },
     }),
-    '--runtime-config',
-    runtimeConfigJson,
     '--json',
-  ]);
+  ];
+  if (runtimeConfigJson !== null) {
+    stage1BenchArgs.splice(stage1BenchArgs.length - 1, 0, '--runtime-config', runtimeConfigJson);
+  }
+  const stage1Bench = await runCli(stage1BenchArgs);
 
-  const stage2Bench = await runCli([
+  const stage2BenchArgs = [
     'bench',
     '--config',
     JSON.stringify({
@@ -173,10 +207,12 @@ async function main() {
         surface: args.surface,
       },
     }),
-    '--runtime-config',
-    runtimeConfigJson,
     '--json',
-  ]);
+  ];
+  if (runtimeConfigJson !== null) {
+    stage2BenchArgs.splice(stage2BenchArgs.length - 1, 0, '--runtime-config', runtimeConfigJson);
+  }
+  const stage2Bench = await runCli(stage2BenchArgs);
 
   const summary = {
     schemaVersion: 1,
@@ -197,4 +233,6 @@ async function main() {
   process.stdout.write(`${JSON.stringify({ ok: true, outPath }, null, 2)}\n`);
 }
 
-await main();
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  await main();
+}

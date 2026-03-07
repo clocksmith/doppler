@@ -36,6 +36,7 @@ export class AutogradTape {
   constructor(registry) {
     this.registry = registry;
     this.records = [];
+    this.retainedBuffers = new Set();
   }
 
   watch(tensor) {
@@ -44,6 +45,13 @@ export class AutogradTape {
 
   async record(op, fn, inputs, options = {}) {
     const output = await fn(...inputs);
+    if (Array.isArray(options.retainBuffers)) {
+      for (const buffer of options.retainBuffers) {
+        if (buffer) {
+          this.retainedBuffers.add(buffer);
+        }
+      }
+    }
     this.records.push({ op, inputs, output, options });
     return output;
   }
@@ -51,31 +59,40 @@ export class AutogradTape {
   async backward(gradOutput) {
     const grads = new Map();
     const seeds = this.normalizeBackwardSeeds(gradOutput);
-    for (const seed of seeds) {
-      await this.accumulateGrad(grads, seed.tensor, seed.grad);
-    }
-
-    for (let i = this.records.length - 1; i >= 0; i -= 1) {
-      const record = this.records[i];
-      const entry = this.registry.ops[record.op];
-      if (!entry) {
-        continue;
+    try {
+      for (const seed of seeds) {
+        await this.accumulateGrad(grads, seed.tensor, seed.grad);
       }
 
-      const gradOut = grads.get(record.output);
-      if (!gradOut) {
-        continue;
-      }
+      for (let i = this.records.length - 1; i >= 0; i -= 1) {
+        const record = this.records[i];
+        const entry = this.registry.ops[record.op];
+        if (!entry) {
+          continue;
+        }
 
-      const gradsOut = await this.runBackward(entry.backward, record, gradOut);
-      for (const { input, grad } of gradsOut) {
-        if (input && grad) {
-          await this.accumulateGrad(grads, input, grad);
+        const gradOut = grads.get(record.output);
+        if (!gradOut) {
+          continue;
+        }
+
+        const gradsOut = await this.runBackward(entry.backward, record, gradOut);
+        for (const { input, grad } of gradsOut) {
+          if (input && grad) {
+            await this.accumulateGrad(grads, input, grad);
+          }
         }
       }
-    }
 
-    return grads;
+      return grads;
+    } finally {
+      for (const buffer of this.retainedBuffers) {
+        try {
+          releaseBuffer(buffer);
+        } catch {}
+      }
+      this.retainedBuffers.clear();
+    }
   }
 
   isTensorLike(value) {

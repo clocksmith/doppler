@@ -6,7 +6,7 @@
  * All inference runs locally — no data leaves the browser.
  */
 
-import { DopplerProvider } from '@simulatte/doppler';
+import { DopplerProvider } from '@simulatte/doppler/provider';
 
 const MODEL_ID = 'gemma-3-270m-it-wq4k-ef16';
 const MODEL_URL =

@@ -19,8 +19,8 @@ function buildDistillConfig(overrides = {}) {
       distill: {
         enabled: true,
         stage: 'stage_a',
-        teacherModelId: 'translategemma-4b-it-wq4k-ef16-hf16',
-        studentModelId: 'translategemma-270m-it-wf16-ef16-hf16',
+        teacherModelId: 'translategemma-4b-it-q4k-ehf16-af32',
+        studentModelId: 'translategemma-270m-it-f16-af32',
         datasetId: 'en-es',
         languagePair: 'en-es',
         ...overrides,

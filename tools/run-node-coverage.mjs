@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { spawnSync } from 'node:child_process';
-import { closeSync, existsSync, mkdtempSync, openSync, readFileSync, readdirSync, rmSync } from 'node:fs';
+import { closeSync, existsSync, mkdtempSync, openSync, readFileSync, readdirSync, rmSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
@@ -39,10 +39,11 @@ function parseArgs() {
     const arg = args[i];
     if (arg === '--suite') {
       const value = args[i + 1];
-      if (value) {
-        suite = value;
-        i += 1;
+      if (!value || value.startsWith('--')) {
+        throw new Error('Missing value for --suite');
       }
+      suite = value;
+      i += 1;
       continue;
     }
     if (arg.startsWith('--suite=')) {
@@ -51,10 +52,11 @@ function parseArgs() {
     }
     if (arg === '--policy') {
       const value = args[i + 1];
-      if (value) {
-        policyPath = resolve(ROOT_DIR, value);
-        i += 1;
+      if (!value || value.startsWith('--')) {
+        throw new Error('Missing value for --policy');
       }
+      policyPath = resolve(ROOT_DIR, value);
+      i += 1;
       continue;
     }
     if (arg.startsWith('--policy=')) {
@@ -86,20 +88,36 @@ function collectTestFiles(dir, files) {
   }
 }
 
+function collectFilesFromRoot(pathValue, files) {
+  if (!existsSync(pathValue)) {
+    throw new Error(`Test path not found: ${pathValue}`);
+  }
+  const stats = statSync(pathValue);
+  if (stats.isFile()) {
+    if (!String(pathValue).endsWith('.test.js')) {
+      throw new Error(`Test file must end with .test.js: ${pathValue}`);
+    }
+    files.push(pathValue);
+    return;
+  }
+  collectTestFiles(pathValue, files);
+}
+
 function listRootsFromSuite(suiteName, explicitDirs) {
   if (explicitDirs.length > 0) {
     return explicitDirs.map((dir) => resolve(ROOT_DIR, dir));
   }
-  const selectedSuite = Object.hasOwn(suites, suiteName) ? suiteName : 'all';
-  return suites[selectedSuite].map((dir) => resolve(ROOT_DIR, dir));
+  if (!Object.hasOwn(suites, suiteName)) {
+    throw new Error(`Unknown --suite "${suiteName}". Valid suites: ${Object.keys(suites).join(', ')}`);
+  }
+  return suites[suiteName].map((dir) => resolve(ROOT_DIR, dir));
 }
 
 function resolveTestFiles(suiteName, directories) {
   const roots = listRootsFromSuite(suiteName, directories);
   const files = [];
   for (const root of roots) {
-    if (!existsSync(root)) continue;
-    collectTestFiles(root, files);
+    collectFilesFromRoot(root, files);
   }
   return files.sort();
 }

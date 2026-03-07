@@ -355,36 +355,44 @@ function toRuntimePresetId(runtimePresetRoot, filePath) {
   return relativePath.replace(/\\/g, '/').replace(/\.json$/i, '');
 }
 
+const KNOWN_BOOLEAN_FLAGS = new Set(['strict', 'json', 'force']);
+const KNOWN_VALUE_FLAGS = new Set([
+  'root', 'kind', 'id', 'output', 'preset', 'family',
+  'base-dir', 'default-kernel-path', 'status', 'status-reason', 'scope',
+]);
+
 function parseCommandLine(argv) {
   if (!argv.length) {
     return { mode: 'help' };
   }
   const mode = argv[0];
   const flags = {};
-  const positional = [];
 
   for (let i = 1; i < argv.length; i += 1) {
     const token = argv[i];
     if (!token.startsWith('--')) {
-      positional.push(token);
-      continue;
+      throw new Error(`Unexpected positional argument: ${JSON.stringify(token)}`);
     }
     const key = token.slice(2);
     if (key === 'help' || key === 'h') {
       return { mode: 'help' };
     }
-    if (key === 'strict' || key === 'json' || key === 'force') {
+    if (KNOWN_BOOLEAN_FLAGS.has(key)) {
       flags[key] = true;
       continue;
     }
-    const value = argv[i + 1];
-    if (value == null || value.startsWith('--')) {
-      throw new Error(`Missing value for --${key}`);
+    if (KNOWN_VALUE_FLAGS.has(key)) {
+      const value = argv[i + 1];
+      if (value == null || value.startsWith('--')) {
+        throw new Error(`Missing value for --${key}`);
+      }
+      flags[key] = value;
+      i += 1;
+      continue;
     }
-    flags[key] = value;
-    i += 1;
+    throw new Error(`Unknown flag: --${key}`);
   }
-  return { mode, flags, positional };
+  return { mode, flags, positional: [] };
 }
 
 async function detectLoaderPresetIds() {

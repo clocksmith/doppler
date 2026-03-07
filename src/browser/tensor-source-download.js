@@ -229,9 +229,15 @@ export async function createRemoteTensorSource(url, options = {}) {
   try {
     const source = await createHttpTensorSource(url, options);
     return { source, size: source.size, supportsRange: true };
-  } catch (_error) {
+  } catch (error) {
     if (options.allowDownloadFallback === false) {
-      throw _error;
+      throw error;
+    }
+    if (options.allowDownloadFallback !== true) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(
+        `HTTP tensor source failed for "${url}" and download fallback is not explicitly enabled: ${message}`
+      );
     }
     const downloaded = await createDownloadTensorSource(url, options);
     return { ...downloaded, supportsRange: false };

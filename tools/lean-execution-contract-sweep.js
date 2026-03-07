@@ -46,17 +46,20 @@ function usage() {
 
 async function collectManifestPaths(rootDir) {
   const output = [];
-  async function walk(currentDir) {
+  async function walk(currentDir, isRoot) {
     let entries;
     try {
       entries = await fs.readdir(currentDir, { withFileTypes: true });
-    } catch {
+    } catch (error) {
+      if (isRoot) {
+        throw new Error(`Cannot read manifest root "${currentDir}": ${error.message}`);
+      }
       return;
     }
     for (const entry of entries) {
       const absolute = path.join(currentDir, entry.name);
       if (entry.isDirectory()) {
-        await walk(absolute);
+        await walk(absolute, false);
         continue;
       }
       if (entry.isFile() && entry.name === 'manifest.json') {
@@ -64,7 +67,7 @@ async function collectManifestPaths(rootDir) {
       }
     }
   }
-  await walk(rootDir);
+  await walk(rootDir, true);
   output.sort((left, right) => left.localeCompare(right));
   return output;
 }

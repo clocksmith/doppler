@@ -160,6 +160,18 @@ function normalizePath(path) {
   return String(path || '').replace(/\\/g, '/');
 }
 
+function attachRelativePath(file, relativePath) {
+  if (!file || !relativePath) return;
+  try {
+    Object.defineProperty(file, 'relativePath', {
+      value: relativePath,
+      configurable: true,
+    });
+  } catch {
+    // Ignore if File is non-extensible in this environment.
+  }
+}
+
 function getBaseName(path) {
   const normalized = normalizePath(path);
   if (!normalized) return '';
@@ -924,8 +936,16 @@ export async function pickModelFiles() {
 
 async function collectFilesFromDirectory(
   dirHandle,
-  files = []
+  files = [],
+  basePath = '',
+  depth = 0
 ) {
+  if (depth > 4) {
+    throw new Error(
+      `Model directory exceeds supported depth (4) near "${basePath || dirHandle?.name || '.'}". ` +
+      'Choose a shallower directory root or flatten the model files.'
+    );
+  }
   const entries = dirHandle.values();
   for await (const entry of entries) {
     if (entry.kind === 'file') {
@@ -937,8 +957,13 @@ async function collectFilesFromDirectory(
         file.name.endsWith('.json') ||
         file.name === 'tokenizer.model'
       ) {
+        const relativePath = basePath ? `${basePath}/${entry.name}` : entry.name;
+        attachRelativePath(file, relativePath);
         files.push(file);
       }
+    } else if (entry.kind === 'directory') {
+      const nextBasePath = basePath ? `${basePath}/${entry.name}` : entry.name;
+      await collectFilesFromDirectory(entry, files, nextBasePath, depth + 1);
     }
   }
   return files;

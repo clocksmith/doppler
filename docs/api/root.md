@@ -53,14 +53,16 @@ A bare string is treated as a bundled/known registry ID, not a path heuristic.
 ### Convenience calls
 
 - `doppler(prompt, { model })` reuses a convenience cache
-- `doppler.text(...)` is the non-streaming wrapper
-- `doppler.chat(...)` and `doppler.chatText(...)` format chat-style input
+- `doppler.text(...)` requires `options.model` and returns the final string
+- `doppler.chat(...)` requires `options.model` and returns an `AsyncGenerator<string>`
+- `doppler.chatText(...)` requires `options.model` and returns `{ content, usage }`
 - `doppler.evict(model)` and `doppler.evictAll()` clear the convenience cache
 
 ### Fail-fast rules
 
-- `doppler()` requires `options.model`
+- `doppler()`, `doppler.text()`, `doppler.chat()`, and `doppler.chatText()` all require `options.model`
 - load-affecting options belong on `doppler.load()`, not the convenience call
+- `runtimeConfig`, `runtimePreset`, and `runtimeConfigUrl` are rejected on the convenience-call surface
 - unsupported resolution inputs fail fast rather than silently falling back
 
 ## Primary Symbol Notes
@@ -87,9 +89,17 @@ Returns an `AsyncGenerator<string>` and caches the loaded model by resolved mode
 
 Convenience wrapper that consumes the stream and returns a final string.
 
+### `doppler.chat(messages, options)`
+
+Formats chat input and returns an `AsyncGenerator<string>`.
+
+### `doppler.chatText(messages, options)`
+
+Formats chat input and returns a final `{ content, usage }` object.
+
 ### `doppler.listModels()`
 
-Returns bundled registry IDs known to the quick-start facade.
+Returns canonical quick-start `modelId` values known to the root facade.
 
 ## Minimal Example
 

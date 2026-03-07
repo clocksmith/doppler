@@ -9,6 +9,20 @@ export {
 export { MultiModelLoader } from './loader/multi-model-loader.js';
 
 export { InferencePipeline, EmbeddingPipeline, createPipeline } from './generation/index.js';
+export {
+  StructuredJsonHeadPipeline,
+  isStructuredJsonHeadModelType,
+  createStructuredJsonHeadPipeline,
+  DreamStructuredPipeline,
+  isDreamStructuredModelType,
+  createDreamStructuredPipeline,
+} from './generation/index.js';
+export {
+  EnergyRowHeadPipeline,
+  createEnergyRowHeadPipeline,
+  DreamEnergyHeadPipeline,
+  createDreamEnergyHeadPipeline,
+} from './inference/pipelines/energy-head/row-head-pipeline.js';
 export { KVCache } from './inference/kv-cache.js';
 export { Tokenizer } from './inference/tokenizer.js';
 export { SpeculativeDecoder } from './inference/speculative.js';
@@ -24,6 +38,22 @@ export {
   mergeLogits,
   mergeMultipleLogits,
 } from './gpu/kernels/logit-merge.js';
+
+export type { RDRRManifest, ShardInfo } from './formats/rdrr/index.js';
+export type { TensorLocation, LoadProgress, LoadOptions, LoaderStats } from './loader/doppler-loader.js';
+export type { AdapterSource } from './loader/multi-model-loader.js';
+export type { ParsedModelConfig } from './generation/index.js';
+export type { SamplingOptions } from './generation/index.js';
+export type {
+  GenerateOptions,
+  GenerationResult,
+  KVCacheSnapshot,
+  LayerWeights,
+  ExpertWeights,
+  RouterWeights,
+} from './generation/index.js';
+export type { LoRAAdapter, LoRAModuleName } from './generation/index.js';
+export type { ExpertNode, ExpertTask } from './inference/multi-model-network.js';
 
 export {
   ADAPTER_MANIFEST_SCHEMA,
@@ -43,6 +73,20 @@ export {
   getAdapterRegistry,
   resetAdapterRegistry,
   createMemoryRegistry,
+} from './adapters/index.js';
+
+export type {
+  AdapterManifest,
+  AdapterMetadata,
+  AdapterTensorSpec,
+  LoRALoadOptions,
+  LoRAWeightsResult,
+  AdapterState,
+  EnableAdapterOptions,
+  AdapterStackOptions,
+  AdapterManagerEvents,
+  AdapterRegistryEntry,
+  AdapterQueryOptions,
 } from './adapters/index.js';
 
 export * from './tooling-exports.browser.js';

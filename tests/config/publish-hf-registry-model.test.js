@@ -8,31 +8,48 @@ import {
 
 {
   const args = parseArgs([
-    '--model-id', 'translategemma-4b-it-wq4k-ef16-hf16',
+    '--model-id', 'translategemma-4b-it-q4k-ehf16-af32',
     '--dry-run',
   ]);
-  assert.equal(args.modelId, 'translategemma-4b-it-wq4k-ef16-hf16');
+  assert.equal(args.modelId, 'translategemma-4b-it-q4k-ehf16-af32');
   assert.equal(args.dryRun, true);
+  assert.throws(
+    () => parseArgs(['--model-id', 'translategemma-4b-it-q4k-ehf16-af32', '--repo-id']),
+    /Missing value for --repo-id/
+  );
 }
 
 {
   const plan = buildArtifactUploadPlan({
-    modelId: 'translategemma-4b-it-wq4k-ef16-hf16',
+    modelId: 'translategemma-4b-it-q4k-ehf16-af32',
     hf: {
       repoId: 'Clocksmith/rdrr',
-      path: 'models/translategemma-4b-it-wq4k-ef16-hf16',
+      path: 'models/translategemma-4b-it-q4k-ehf16-af32',
     },
   }, {
     localDir: '/tmp/translategemma',
   });
   assert.equal(plan.repoId, 'Clocksmith/rdrr');
-  assert.equal(plan.targetPath, 'models/translategemma-4b-it-wq4k-ef16-hf16');
+  assert.equal(plan.targetPath, 'models/translategemma-4b-it-q4k-ehf16-af32');
   assert.equal(plan.localDir, '/tmp/translategemma');
 }
 
 {
+  assert.throws(
+    () => buildArtifactUploadPlan({
+      modelId: 'translategemma-4b-it-q4k-ehf16-af32',
+      hf: {
+        repoId: 'Clocksmith/rdrr',
+        path: '',
+      },
+    }),
+    /hf\.path is required to publish/
+  );
+}
+
+{
   assert.doesNotThrow(() => assertPromotionReady({
-    modelId: 'translategemma-4b-it-wq4k-ef16-hf16',
+    modelId: 'translategemma-4b-it-q4k-ehf16-af32',
     lifecycle: {
       status: {
         tested: 'verified',
@@ -50,7 +67,7 @@ import {
 {
   assert.throws(
     () => assertPromotionReady({
-      modelId: 'translategemma-4b-it-wq4k-ef16-hf16',
+      modelId: 'translategemma-4b-it-q4k-ehf16-af32',
       lifecycle: {
         status: {
           tested: 'verified',
@@ -63,7 +80,21 @@ import {
         },
       },
     }),
-    /execution-v0 graph gate failed/
+    /execution-v0 graph gate must be explicitly true/
+  );
+  assert.throws(
+    () => assertPromotionReady({
+      modelId: 'translategemma-4b-it-q4k-ehf16-af32',
+      lifecycle: {
+        status: {
+          tested: 'verified',
+        },
+        tested: {
+          contracts: {},
+        },
+      },
+    }),
+    /execution contract gate must be explicitly true/
   );
 }
 

@@ -127,6 +127,10 @@ Validation rules:
   - `loading.distribution.sourceDecision.trace.enabled`
   - `loading.distribution.sourceDecision.trace.includeSkippedSources`
   - `loading.distribution.sourceDecision.trace.samplingRate` (0..1, deterministic when `sourceDecision.deterministic=true`)
+- Higher-level observability helpers fail closed on invalid explicit SLO targets:
+  - `minAvailability`, `minP2PHitRate`, and `maxHttpFallbackRate` must be finite numbers in `[0, 1]`
+  - `maxP95LatencyMs` must be a finite non-negative number
+  - invalid target payloads fail before summary or alert generation
 
 ## Browser WebRTC Slice (feature-flagged)
 - `createBrowserWebRTCDataPlaneTransport()` implements an optional browser-only data-plane transport adapter.

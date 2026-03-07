@@ -25,7 +25,7 @@ import {
 
 
 export async function discoverModels(
-  fallbackModels = ['gemma3-1b-q4', 'mistral-7b-q4', 'llama3-8b-q4']
+  fallbackModels
 ) {
   try {
     const resp = await fetch('/models/catalog.json');
@@ -40,10 +40,13 @@ export async function discoverModels(
         }));
       }
     }
-  } catch (e) {
-    // Catalog not available, use fallback
+  } catch (e) {}
+
+  if (Array.isArray(fallbackModels) && fallbackModels.length > 0) {
+    return fallbackModels.map((id) => ({ id, name: id }));
   }
-  return fallbackModels.map((id) => ({ id, name: id }));
+
+  throw new Error('discoverModels: failed to fetch /models/catalog.json and no explicit fallback model list was provided.');
 }
 
 // ============================================================================
@@ -238,7 +241,13 @@ export async function initializeInference(modelUrl, options = {}) {
       onProgress('hotswap', 0.05, 'Loading hot-swap manifest...');
       log(`Hot-swap: loading manifest ${hotSwapConfig.manifestUrl}`);
       const hotSwapManifest = await fetchHotSwapManifest(hotSwapConfig.manifestUrl);
-      const verification = await verifyHotSwapManifest(hotSwapManifest, hotSwapConfig);
+      const verification = await verifyHotSwapManifest(hotSwapManifest, hotSwapConfig, {
+        source: {
+          kind: 'remote',
+          isLocal: false,
+          url: hotSwapConfig.manifestUrl,
+        },
+      });
       if (!verification.ok) {
         throw new Error(`Hot-swap manifest rejected: ${verification.reason}`);
       }

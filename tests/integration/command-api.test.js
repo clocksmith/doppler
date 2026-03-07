@@ -9,14 +9,14 @@ import {
   const request = normalizeToolingCommandRequest({
     command: 'verify',
     suite: 'training',
-    modelId: 'gemma-3-1b-it-wf16-ef16-hf16',
+    modelId: 'gemma-3-1b-it-f16-af32',
     trainingTests: ['runner-smoke', 'train-step-metrics'],
     trainingStage: 'stage1_joint',
   });
   assert.equal(request.command, 'verify');
   assert.equal(request.suite, 'training');
   assert.equal(request.intent, 'verify');
-  assert.equal(request.modelId, 'gemma-3-1b-it-wf16-ef16-hf16');
+  assert.equal(request.modelId, 'gemma-3-1b-it-f16-af32');
   assert.deepEqual(request.trainingTests, ['runner-smoke', 'train-step-metrics']);
   assert.equal(request.trainingStage, 'stage1_joint');
   assert.equal(request.trainingSchemaVersion, 1);
@@ -56,7 +56,7 @@ import {
     () => normalizeToolingCommandRequest({
       command: 'verify',
       suite: 'bench',
-      modelId: 'gemma-3-1b-it-wf16-ef16-hf16',
+      modelId: 'gemma-3-1b-it-f16-af32',
     }),
     /suite must be one of kernels, inference, training, diffusion, energy/
   );
@@ -66,7 +66,7 @@ import {
   assert.throws(
     () => normalizeToolingCommandRequest({
       command: 'debug',
-      modelId: 'gemma-3-1b-it-wf16-ef16-hf16',
+      modelId: 'gemma-3-1b-it-f16-af32',
       trainingTests: ['runner-smoke'],
     }),
     /training-only fields require suite="training" or bench workloadType="training"/
@@ -119,7 +119,7 @@ import {
     () => normalizeToolingCommandRequest({
       command: 'bench',
       suite: 'training',
-      modelId: 'gemma-3-1b-it-wf16-ef16-hf16',
+      modelId: 'gemma-3-1b-it-f16-af32',
     }),
     /requires suite "bench" and does not accept "training"/
   );
@@ -233,8 +233,8 @@ import {
     suite: 'training',
     modelId: null,
     trainingStage: 'stage_a',
-    teacherModelId: 'translategemma-4b-it-wq4k-ef16-hf16',
-    studentModelId: 'translategemma-270m-it-wf16-ef16-hf16',
+    teacherModelId: 'translategemma-4b-it-q4k-ehf16-af32',
+    studentModelId: 'translategemma-270m-it-f16-af32',
     distillDatasetId: 'en-es',
     distillDatasetPath: '/tmp/en-es.jsonl',
     distillLanguagePair: 'en-es',
@@ -243,8 +243,8 @@ import {
     resumeFrom: '/tmp/checkpoint-latest.json',
   });
   assert.equal(request.trainingStage, 'stage_a');
-  assert.equal(request.teacherModelId, 'translategemma-4b-it-wq4k-ef16-hf16');
-  assert.equal(request.studentModelId, 'translategemma-270m-it-wf16-ef16-hf16');
+  assert.equal(request.teacherModelId, 'translategemma-4b-it-q4k-ehf16-af32');
+  assert.equal(request.studentModelId, 'translategemma-270m-it-f16-af32');
   assert.equal(request.distillDatasetId, 'en-es');
   assert.equal(request.distillDatasetPath, '/tmp/en-es.jsonl');
   assert.equal(request.distillLanguagePair, 'en-es');
@@ -270,13 +270,13 @@ import {
   const patch = buildRuntimeContractPatch({
     command: 'verify',
     suite: 'training',
-    modelId: 'gemma-3-1b-it-wf16-ef16-hf16',
+    modelId: 'gemma-3-1b-it-f16-af32',
   });
   assert.deepEqual(patch, {
     shared: {
       harness: {
         mode: 'training',
-        modelId: 'gemma-3-1b-it-wf16-ef16-hf16',
+        modelId: 'gemma-3-1b-it-f16-af32',
       },
       tooling: {
         intent: 'verify',
@@ -289,14 +289,14 @@ import {
   const normalized = normalizeToolingCommandRequest({
     command: 'verify',
     suite: 'inference',
-    modelId: 'gemma-3-270m-it-wq4k-ef16-hf16',
+    modelId: 'gemma-3-270m-it-q4k-ehf16-af32',
   });
   const patch = buildRuntimeContractPatch(normalized);
   assert.deepEqual(patch, {
     shared: {
       harness: {
         mode: 'inference',
-        modelId: 'gemma-3-270m-it-wq4k-ef16-hf16',
+        modelId: 'gemma-3-270m-it-q4k-ehf16-af32',
       },
       tooling: {
         intent: 'verify',
@@ -339,7 +339,7 @@ import {
     outputDir: '/tmp/out',
     convertPayload: {
       converterConfig: {
-        output: { modelBaseId: 'gemma-3-1b-it-wf16-ef16-hf16' },
+        output: { modelBaseId: 'gemma-3-1b-it-f16-af32' },
       },
     },
   });
@@ -348,7 +348,7 @@ import {
   assert.equal(request.outputDir, '/tmp/out');
   assert.equal(
     request.convertPayload?.converterConfig?.output?.modelBaseId,
-    'gemma-3-1b-it-wf16-ef16-hf16'
+    'gemma-3-1b-it-f16-af32'
   );
 }
 
@@ -358,7 +358,7 @@ import {
     inputDir: '/tmp/model',
     convertPayload: {
       converterConfig: {
-        output: { modelBaseId: 'gemma-3-1b-it-wf16-ef16-hf16' },
+        output: { modelBaseId: 'gemma-3-1b-it-f16-af32' },
       },
       execution: {
         workers: 8,
@@ -384,7 +384,7 @@ import {
       runtimePreset: 'debug',
       convertPayload: {
         converterConfig: {
-          output: { modelBaseId: 'gemma-3-1b-it-wf16-ef16-hf16' },
+          output: { modelBaseId: 'gemma-3-1b-it-f16-af32' },
         },
       },
     }),
@@ -400,7 +400,7 @@ import {
       runtimeConfigUrl: '/tmp/runtime.json',
       convertPayload: {
         converterConfig: {
-          output: { modelBaseId: 'gemma-3-1b-it-wf16-ef16-hf16' },
+          output: { modelBaseId: 'gemma-3-1b-it-f16-af32' },
         },
       },
     }),
@@ -420,7 +420,7 @@ import {
       },
       convertPayload: {
         converterConfig: {
-          output: { modelBaseId: 'gemma-3-1b-it-wf16-ef16-hf16' },
+          output: { modelBaseId: 'gemma-3-1b-it-f16-af32' },
         },
       },
     }),
@@ -431,11 +431,33 @@ import {
 {
   assert.throws(
     () => normalizeToolingCommandRequest({
+      command: 'verify',
+      suite: 'inference',
+      modelId: 'gemma-3-270m-it-q4k-ehf16-af32',
+      configChain: ['modes/debug'],
+    }),
+    /verify does not accept configChain/
+  );
+
+  assert.throws(
+    () => normalizeToolingCommandRequest({
+      command: 'lora',
+      action: 'run',
+      workloadPath: '/tmp/workload.json',
+      configChain: ['modes/debug'],
+    }),
+    /lora does not accept configChain/
+  );
+}
+
+{
+  assert.throws(
+    () => normalizeToolingCommandRequest({
       command: 'convert',
       inputDir: '/tmp/model',
       convertPayload: {
         converterConfig: {
-          output: { modelBaseId: 'gemma-3-1b-it-wf16-ef16-hf16' },
+          output: { modelBaseId: 'gemma-3-1b-it-f16-af32' },
         },
         execution: {
           workers: 0,
@@ -453,7 +475,7 @@ import {
       inputDir: '/tmp/model',
       convertPayload: {
         converterConfig: {
-          output: { modelBaseId: 'gemma-3-1b-it-wf16-ef16-hf16' },
+          output: { modelBaseId: 'gemma-3-1b-it-f16-af32' },
         },
         execution: {
           workerCountPolicy: 'auto',
@@ -471,7 +493,7 @@ import {
       inputDir: '/tmp/model',
       convertPayload: {
         converterConfig: {
-          output: { modelBaseId: 'gemma-3-1b-it-wf16-ef16-hf16' },
+          output: { modelBaseId: 'gemma-3-1b-it-f16-af32' },
         },
         execution: {
           rowChunkRows: 0,
@@ -507,7 +529,7 @@ import {
   assert.throws(
     () => normalizeToolingCommandRequest({
       command: 'verify',
-      modelId: 'gemma-3-1b-it-wf16-ef16-hf16',
+      modelId: 'gemma-3-1b-it-f16-af32',
     }),
     /suite is required/
   );
@@ -518,7 +540,7 @@ import {
     () => normalizeToolingCommandRequest({
       command: 'verify',
       suite: 'unknown',
-      modelId: 'gemma-3-1b-it-wf16-ef16-hf16',
+      modelId: 'gemma-3-1b-it-f16-af32',
     }),
     /unsupported suite/
   );
@@ -578,7 +600,7 @@ import {
     () => normalizeToolingCommandRequest({
       command: 'verify',
       suite: 'inference',
-      modelId: 'gemma-3-1b-it-wf16-ef16-hf16',
+      modelId: 'gemma-3-1b-it-f16-af32',
       captureOutput: 'true',
     }),
     /captureOutput must be a boolean/
@@ -590,7 +612,7 @@ import {
     () => normalizeToolingCommandRequest({
       command: 'verify',
       suite: 'inference',
-      modelId: 'gemma-3-1b-it-wf16-ef16-hf16',
+      modelId: 'gemma-3-1b-it-f16-af32',
       runtimePreset: 7,
     }),
     /runtimePreset must be a string/
@@ -602,7 +624,7 @@ import {
     () => normalizeToolingCommandRequest({
       command: 'debug',
       suite: 'inference',
-      modelId: 'gemma-3-1b-it-wf16-ef16-hf16',
+      modelId: 'gemma-3-1b-it-f16-af32',
     }),
     /requires suite "debug" and does not accept "inference"/
   );
@@ -616,7 +638,7 @@ import {
       cacheMode: 'hot',
       convertPayload: {
         converterConfig: {
-          output: { modelBaseId: 'gemma-3-1b-it-wf16-ef16-hf16' },
+          output: { modelBaseId: 'gemma-3-1b-it-f16-af32' },
         },
       },
     }),
@@ -632,7 +654,7 @@ import {
       loadMode: 'disk',
       convertPayload: {
         converterConfig: {
-          output: { modelBaseId: 'gemma-3-1b-it-wf16-ef16-hf16' },
+          output: { modelBaseId: 'gemma-3-1b-it-f16-af32' },
         },
       },
     }),
@@ -656,7 +678,7 @@ import {
     () => ensureCommandSupportedOnSurface({
       command: 'verify',
       suite: 'inference',
-      modelId: 'gemma-3-1b-it-wf16-ef16-hf16',
+      modelId: 'gemma-3-1b-it-f16-af32',
     }, 'desktop'),
     /unsupported surface/
   );

@@ -58,36 +58,46 @@ async function _depthwiseConv2D(target, input, weight, bias, options = {}) {
     device.queue.writeBuffer(biasBuffer, 0, new Uint8Array(paddedSize));
   }
 
-  await unifiedKernelWrapper(
-    'depthwise_conv2d',
-    target,
-    variant,
-    [input, weightBuffer, biasBuffer, output],
-    {
-      channels,
-      height,
-      width,
-      out_height: outHeight,
-      out_width: outWidth,
-      kernel_h: kernelH,
-      kernel_w: kernelW,
-      stride,
-      pad,
-      _pad0: 0,
-      _pad1: 0,
-    },
-    [Math.ceil(outSpatial / WORKGROUP_SIZES.DEFAULT), channels, 1]
-  );
+  try {
+    await unifiedKernelWrapper(
+      'depthwise_conv2d',
+      target,
+      variant,
+      [input, weightBuffer, biasBuffer, output],
+      {
+        channels,
+        height,
+        width,
+        out_height: outHeight,
+        out_width: outWidth,
+        kernel_h: kernelH,
+        kernel_w: kernelW,
+        stride,
+        pad,
+        _pad0: 0,
+        _pad1: 0,
+      },
+      [Math.ceil(outSpatial / WORKGROUP_SIZES.DEFAULT), channels, 1]
+    );
 
-  if (tempBias) {
-    if (recorder) {
-      recorder.trackTemporaryBuffer(tempBias);
-    } else {
+    if (tempBias) {
+      if (recorder) {
+        recorder.trackTemporaryBuffer(tempBias);
+      } else {
+        releaseBuffer(tempBias);
+      }
+    }
+
+    return createTensor(output, input.dtype, [channels, outHeight, outWidth], 'depthwise_conv2d_output');
+  } catch (error) {
+    if (tempBias) {
       releaseBuffer(tempBias);
     }
+    if (!outputBuffer) {
+      releaseBuffer(output);
+    }
+    throw error;
   }
-
-  return createTensor(output, input.dtype, [channels, outHeight, outWidth], 'depthwise_conv2d_output');
 }
 
 export async function runDepthwiseConv2D(input, weight, bias, options = {}) {

@@ -126,7 +126,7 @@ export declare class ShardPacker {
  */
 export declare function sortTensorsByGroup(
   tensors: TensorInfoSchema[],
-  modelType?: ModelType
+  modelType: ModelType
 ): TensorInfoSchema[];
 
 /**

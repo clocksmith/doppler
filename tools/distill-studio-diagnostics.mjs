@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 
 import { execFile } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+
+const PROVENANCE_SCRIPT = fileURLToPath(new URL('./verify-training-provenance.mjs', import.meta.url));
 
 function parseArgs(argv) {
   const parsed = {
@@ -43,7 +46,7 @@ async function main() {
   const args = parseArgs(process.argv);
   const checks = [];
 
-  const provenanceArgs = ['tools/verify-training-provenance.mjs', '--report', args.report];
+  const provenanceArgs = [PROVENANCE_SCRIPT, '--report', args.report];
   if (args.checkpoint) {
     provenanceArgs.push('--checkpoint', args.checkpoint);
   }

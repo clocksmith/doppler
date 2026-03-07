@@ -433,7 +433,7 @@ function applyConverterInferenceOverrides(manifestInference, converterConfig, co
     }
   }
 
-  if (execution && !sessionDefaults) {
+  if (execution && !manifestInference.sessionDefaults) {
     throw new Error(
       'converterConfig.inference.execution requires converterConfig.inference.sessionDefaults.'
     );

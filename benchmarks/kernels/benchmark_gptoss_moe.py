@@ -34,7 +34,7 @@ def main() -> int:
     parser.add_argument(
         "--model",
         required=True,
-        help="Model ID (e.g. gpt-oss-20b-wf16-ef16-hf16-xmxfp4)",
+        help="Model ID (e.g. gpt-oss-20b-f16-xmxfp4)",
     )
     parser.add_argument("--runtime-preset", default="bench")
     parser.add_argument("--prompt", default="short")

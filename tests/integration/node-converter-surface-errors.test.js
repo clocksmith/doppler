@@ -568,6 +568,9 @@ await assert.rejects(
   try {
     const result = await convertSafetensorsDirectory({
       inputDir: fixtureDir,
+      execution: {
+        workers: 1,
+      },
       converterConfig: {
         output: {
           modelBaseId: 'gemma2-sharded-index',
@@ -608,6 +611,110 @@ await assert.rejects(
     assert.ok(result.tensorCount >= 1);
     assert.ok(result.shardCount >= 1);
   } finally {
+    rmSync(fixtureDir, { recursive: true, force: true });
+  }
+}
+
+{
+  const fixtureDir = createTempDir('doppler-converter-gpu-cast-explicit-');
+  const originalNodeWebgpuModule = process.env.DOPPLER_NODE_WEBGPU_MODULE;
+  const originalNavigator = globalThis.navigator;
+  const originalGPUBufferUsage = globalThis.GPUBufferUsage;
+  const originalGPUShaderStage = globalThis.GPUShaderStage;
+  const originalGPUMapMode = globalThis.GPUMapMode;
+  writeFileSync(path.join(fixtureDir, 'config.json'), JSON.stringify({
+    architectures: ['Gemma2ForCausalLM'],
+    model_type: 'gemma2',
+    num_hidden_layers: 1,
+    hidden_size: 1,
+    num_attention_heads: 1,
+    num_key_value_heads: 1,
+    head_dim: 1,
+    intermediate_size: 1,
+    vocab_size: 10,
+    max_position_embeddings: 8,
+    bos_token_id: 1,
+    eos_token_id: 2,
+    rms_norm_eps: 1e-6,
+  }), 'utf8');
+  writeMinimalGemma2Safetensors(path.join(fixtureDir, 'model.safetensors'));
+  process.env.DOPPLER_NODE_WEBGPU_MODULE = path.join(fixtureDir, 'missing-webgpu-provider.mjs');
+  try {
+    delete globalThis.navigator;
+    delete globalThis.GPUBufferUsage;
+    delete globalThis.GPUShaderStage;
+    delete globalThis.GPUMapMode;
+    await assert.rejects(
+      () => convertSafetensorsDirectory({
+        inputDir: fixtureDir,
+        execution: {
+          useGpuCast: true,
+          gpuCastMinTensorBytes: 1,
+        },
+        converterConfig: {
+          output: {
+            modelBaseId: 'gemma2-gpu-cast',
+            dir: path.join(fixtureDir, 'out'),
+          },
+          inference: {
+            sessionDefaults: {
+              compute: {
+                defaults: {
+                  activationDtype: 'f16',
+                  mathDtype: 'f16',
+                  accumDtype: 'f32',
+                  outputDtype: 'f16',
+                },
+                kernelProfiles: [],
+              },
+              kvcache: null,
+              decodeLoop: null,
+            },
+            execution: {
+              steps: [
+                {
+                  id: 'cast.identity',
+                  op: 'cast',
+                  phase: 'both',
+                  section: 'layer',
+                  src: 'attn_q',
+                  dst: 'attn_q',
+                  layers: 'all',
+                  toDtype: 'f16',
+                },
+              ],
+            },
+          },
+        },
+      }),
+      /execution\.useGpuCast requires a WebGPU-capable Node runtime/
+    );
+  } finally {
+    if (originalNavigator === undefined) {
+      delete globalThis.navigator;
+    } else {
+      globalThis.navigator = originalNavigator;
+    }
+    if (originalGPUBufferUsage === undefined) {
+      delete globalThis.GPUBufferUsage;
+    } else {
+      globalThis.GPUBufferUsage = originalGPUBufferUsage;
+    }
+    if (originalGPUShaderStage === undefined) {
+      delete globalThis.GPUShaderStage;
+    } else {
+      globalThis.GPUShaderStage = originalGPUShaderStage;
+    }
+    if (originalGPUMapMode === undefined) {
+      delete globalThis.GPUMapMode;
+    } else {
+      globalThis.GPUMapMode = originalGPUMapMode;
+    }
+    if (originalNodeWebgpuModule === undefined) {
+      delete process.env.DOPPLER_NODE_WEBGPU_MODULE;
+    } else {
+      process.env.DOPPLER_NODE_WEBGPU_MODULE = originalNodeWebgpuModule;
+    }
     rmSync(fixtureDir, { recursive: true, force: true });
   }
 }

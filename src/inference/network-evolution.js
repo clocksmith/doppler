@@ -1,33 +1,29 @@
-let fallbackRandomState = (Date.now() >>> 0) || 0x6d2b79f5;
-
-function unseededRandom() {
-  if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
-    const values = new Uint32Array(1);
-    crypto.getRandomValues(values);
-    return values[0] / 4294967296;
+function requireRandomSource(random) {
+  if (typeof random !== 'function') {
+    throw new Error('network evolution requires an explicit random() source.');
   }
-  fallbackRandomState = (fallbackRandomState + 0x6d2b79f5) >>> 0;
-  return fallbackRandomState / 4294967296;
+  return random;
 }
 
-export const mutateGenome = (genome, mutationRate = 0.1) => {
+export const mutateGenome = (genome, mutationRate = 0.1, random = null) => {
+  const sample = requireRandomSource(random);
   
   const mutated = JSON.parse(JSON.stringify(genome));
-  if (unseededRandom() < mutationRate) {
+  if (sample() < mutationRate) {
     
     const types = ['chain', 'tree', 'mesh', 'dag'];
-    mutated.topology.type = types[Math.floor(unseededRandom() * types.length)];
+    mutated.topology.type = types[Math.floor(sample() * types.length)];
   }
 
   for (const node of mutated.nodes) {
-    if (unseededRandom() < mutationRate && typeof node.temperature === 'number') {
-      node.temperature = Math.min(1, Math.max(0, node.temperature + (unseededRandom() - 0.5) * 0.2));
+    if (sample() < mutationRate && typeof node.temperature === 'number') {
+      node.temperature = Math.min(1, Math.max(0, node.temperature + (sample() - 0.5) * 0.2));
     }
   }
 
   for (const edge of mutated.edges) {
-    if (unseededRandom() < mutationRate) {
-      edge.weight = Math.min(1, Math.max(0, edge.weight + (unseededRandom() - 0.5) * 0.4));
+    if (sample() < mutationRate) {
+      edge.weight = Math.min(1, Math.max(0, edge.weight + (sample() - 0.5) * 0.4));
     }
   }
 
@@ -35,8 +31,9 @@ export const mutateGenome = (genome, mutationRate = 0.1) => {
 };
 
 
-export const crossoverGenome = (a, b) => {
-  return unseededRandom() < 0.5 ? JSON.parse(JSON.stringify(a)) : JSON.parse(JSON.stringify(b));
+export const crossoverGenome = (a, b, random = null) => {
+  const sample = requireRandomSource(random);
+  return sample() < 0.5 ? JSON.parse(JSON.stringify(a)) : JSON.parse(JSON.stringify(b));
 };
 
 
@@ -48,7 +45,9 @@ export async function evolveNetwork(config) {
     mutationRate = 0.1,
     evaluate,
     randomGenome,
+    random,
   } = config;
+  const sample = requireRandomSource(random);
 
   let population = Array.from({ length: populationSize }, () => randomGenome());
 
@@ -63,9 +62,9 @@ export async function evolveNetwork(config) {
     const offspring = [];
 
     while (offspring.length < populationSize - eliteCount) {
-      const parentA = scored[Math.floor(unseededRandom() * scored.length)].genome;
-      const parentB = scored[Math.floor(unseededRandom() * scored.length)].genome;
-      const child = mutateGenome(crossoverGenome(parentA, parentB), mutationRate);
+      const parentA = scored[Math.floor(sample() * scored.length)].genome;
+      const parentB = scored[Math.floor(sample() * scored.length)].genome;
+      const child = mutateGenome(crossoverGenome(parentA, parentB, sample), mutationRate, sample);
       offspring.push(child);
     }
 

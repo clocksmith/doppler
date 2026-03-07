@@ -26,6 +26,7 @@ import { buildManifestRequiredInferenceFieldsArtifact } from '../config/required
 import { buildManifestInference, inferEmbeddingOutputConfig } from './manifest-inference.js';
 import { resolveEosTokenId } from './tokenizer-utils.js';
 import {
+  normalizeQ4KLayout,
   resolveManifestQuantization,
   resolveEffectiveQuantizationInfo,
 } from './quantization-info.js';
@@ -120,11 +121,6 @@ function bf16ToFloat32(value) {
   const view = new DataView(new ArrayBuffer(4));
   view.setUint32(0, (value & 0xffff) << 16, true);
   return view.getFloat32(0, true);
-}
-
-function normalizeQ4KLayout(value) {
-  const normalized = String(value || '').trim().toLowerCase();
-  return normalized === 'col' ? 'col' : 'row';
 }
 
 function normalizeTensorName(tensor) {

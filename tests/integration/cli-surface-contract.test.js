@@ -269,6 +269,79 @@ await assert.rejects(
 
 {
   const result = runCli([
+    'distill',
+    '--surface',
+    'browser',
+    '--config',
+    JSON.stringify({
+      request: {
+        action: 'run',
+        workloadPath: '/tmp/workload.json',
+      },
+    }),
+  ]);
+  assert.equal(result.code, 1);
+  assert.match(result.stderr, /\[error\] distill is not supported on browser relay/);
+}
+
+{
+  const result = runCli([
+    'lora',
+    '--json',
+    '--config',
+    JSON.stringify({
+      request: {
+        action: 'run',
+        workloadPath: '/tmp/workload.json',
+      },
+    }),
+  ], {
+    env: {
+      DOPPLER_NODE_WEBGPU_MODULE: '/definitely/missing-node-webgpu-provider.js',
+    },
+  });
+  assert.equal(result.code, 1);
+  const payload = JSON.parse(result.stdout);
+  assert.equal(payload.ok, false);
+  assert.equal(payload.error.code, 'training_surface_downgrade_blocked');
+  assert.equal(payload.error.details?.surface, 'node');
+  assert.equal(payload.error.details?.command, 'lora');
+  assert.match(
+    payload.error.message,
+    /Training command auto-surface downgrade is blocked/
+  );
+}
+
+{
+  const result = runCli([
+    'distill',
+    '--json',
+    '--config',
+    JSON.stringify({
+      request: {
+        action: 'run',
+        workloadPath: '/tmp/workload.json',
+      },
+    }),
+  ], {
+    env: {
+      DOPPLER_NODE_WEBGPU_MODULE: '/definitely/missing-node-webgpu-provider.js',
+    },
+  });
+  assert.equal(result.code, 1);
+  const payload = JSON.parse(result.stdout);
+  assert.equal(payload.ok, false);
+  assert.equal(payload.error.code, 'training_surface_downgrade_blocked');
+  assert.equal(payload.error.details?.surface, 'node');
+  assert.equal(payload.error.details?.command, 'distill');
+  assert.match(
+    payload.error.message,
+    /Training command auto-surface downgrade is blocked/
+  );
+}
+
+{
+  const result = runCli([
     'bench',
     '--json',
     '--config',

@@ -8,11 +8,67 @@ export function getTunerConfig() {
   return getRuntimeConfig().shared.tuner;
 }
 
+function normalizeSignaturePart(value) {
+  return String(value ?? '')
+    .trim()
+    .replace(/[^a-zA-Z0-9]/g, '_');
+}
+
+function hasAdapterIdentity(info) {
+  if (!info || typeof info !== 'object') {
+    return false;
+  }
+  return ['vendor', 'architecture', 'device'].some((key) => {
+    const value = String(info[key] ?? '').trim().toLowerCase();
+    return value.length > 0 && value !== 'unknown';
+  });
+}
+
+function getFallbackSignature(capabilities) {
+  return [
+    capabilities?.hasF16 ? 'f16' : 'nof16',
+    capabilities?.hasSubgroups ? 'subgroups' : 'nosubgroups',
+    capabilities?.hasSubgroupsF16 ? 'subgroupsf16' : 'nosubgroupsf16',
+    capabilities?.hasTimestampQuery ? 'timestamp' : 'notimestamp',
+    `buf${Number.isFinite(capabilities?.maxBufferSize) ? capabilities.maxBufferSize : 'na'}`,
+    `wg${Number.isFinite(capabilities?.maxWorkgroupSize) ? capabilities.maxWorkgroupSize : 'na'}`,
+    `wgs${Number.isFinite(capabilities?.maxWorkgroupStorageSize) ? capabilities.maxWorkgroupStorageSize : 'na'}`,
+  ].join('_');
+}
+
+function isValidDeviceInfo(value) {
+  if (value == null) {
+    return true;
+  }
+  return typeof value === 'object';
+}
+
+function isValidTuneRecord(value) {
+  return !!value
+    && typeof value === 'object'
+    && Array.isArray(value.optimalWorkgroupSize)
+    && value.optimalWorkgroupSize.length === 3
+    && value.optimalWorkgroupSize.every((entry) => Number.isFinite(entry) && entry >= 0)
+    && Number.isFinite(value.optimalTileSize)
+    && value.optimalTileSize >= 0
+    && Number.isFinite(value.throughput)
+    && value.throughput >= 0
+    && Number.isFinite(value.timeMs)
+    && value.timeMs >= 0
+    && isValidDeviceInfo(value.deviceInfo);
+}
+
 
 export function getDeviceSignature(capabilities) {
-  
-  const info = capabilities?.adapterInfo || { vendor: '', architecture: '', device: '' };
-  return `${info.vendor}_${info.architecture}_${info.device}`.replace(/[^a-zA-Z0-9]/g, '_');
+  const info = capabilities?.adapterInfo;
+  if (hasAdapterIdentity(info)) {
+    return [
+      normalizeSignaturePart(info.vendor),
+      normalizeSignaturePart(info.architecture),
+      normalizeSignaturePart(info.device),
+    ].join('_');
+  }
+  return getFallbackSignature(capabilities);
 }
 
 
@@ -33,10 +89,21 @@ export function loadCache(capabilities) {
     const cached = localStorage.getItem(cacheKey);
     if (cached) {
       const data = JSON.parse(cached);
-      return new Map(Object.entries(data));
+      if (!data || typeof data !== 'object' || Array.isArray(data)) {
+        throw new Error('Kernel tuner cache payload must be an object.');
+      }
+      const records = [];
+      for (const [key, value] of Object.entries(data)) {
+        if (!isValidTuneRecord(value)) {
+          throw new Error(`Kernel tuner cache record "${key}" is malformed.`);
+        }
+        records.push([key, value]);
+      }
+      return new Map(records);
     }
   } catch (e) {
     log.warn('KernelTuner', `Failed to load cache: ${e}`);
+    localStorage.removeItem(cacheKey);
   }
 
   return new Map();

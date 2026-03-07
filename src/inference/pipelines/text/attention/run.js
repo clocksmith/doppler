@@ -97,9 +97,20 @@ export async function runLayerAttentionGPU(
   const allowF16Attention = wantsF16Output && kvCacheDtype === 'f16';
   let attentionInput = input;
   let attentionInputTemp = false;
+  let normed = attentionInput;
+  let qTensor = null;
+  let qGateTensor = null;
+  let kTensor = null;
+  let vTensor = null;
+  let attnOutput = null;
+  let attnForProjection = null;
+  let output = null;
+  let finalOutput = null;
+  let oProjInputTemp = null;
   if (wantsF16Output && !allowF16Attention) {
     attentionInput = await castF16ToF32(input);
     attentionInputTemp = true;
+    normed = attentionInput;
   }
 
   // Debug: attention input for configured layers
@@ -123,7 +134,7 @@ export async function runLayerAttentionGPU(
 
   // 1. Input norm
   
-  let normed = attentionInput;
+  try {
   if (!skipInputNorm && layerWeights.inputNorm && getNormWeightBuffer) {
     const normWeightBuf = getNormWeightBuffer(layerWeights.inputNorm, 'input_norm');
 
@@ -183,7 +194,8 @@ export async function runLayerAttentionGPU(
 
   // 2. Q/K/V projections
   const matmulOutputDtype = resolveAttentionProjectionOutputDtype(desiredOutputDtype);
-  let { qTensor, qGateTensor, kTensor, vTensor, usedFusedQKV } = await projectAttentionQKV({
+  let usedFusedQKV = false;
+  ({ qTensor, qGateTensor, kTensor, vTensor, usedFusedQKV } = await projectAttentionQKV({
     recorder: null,
     normed,
     layerWeights,
@@ -204,7 +216,7 @@ export async function runLayerAttentionGPU(
         trace.attn(layerIdx, `Using fused QKV path: ${qSizeFused}+${kSizeFused}+${vSizeFused}=${totalSize}`);
       }
       : null,
-  });
+  }));
 
   // Trace Q/K/V projections
   if (kernelTrace.enabled) {
@@ -669,7 +681,7 @@ export async function runLayerAttentionGPU(
     throw new Error(`Unsupported attention kernel variant "${attentionKernelVariant}" at layer ${layerIdx}`);
   }
 
-  const attnOutput = await runAttentionKernel();
+  attnOutput = await runAttentionKernel();
 
   // Trace attention output
   if (kernelTrace.enabled) {
@@ -692,7 +704,7 @@ export async function runLayerAttentionGPU(
     await debugCheckBuffer(attnOutput.buffer, `L${layerIdx} attention output (before o_proj, GPU)`, numTokens, numHeads * headDim);
   }
 
-  let attnForProjection = attnOutput;
+  attnForProjection = attnOutput;
   if (qGateTensor) {
     attnForProjection = await runSiLU(attnOutput, {
       size: numTokens * numHeads * headDim,
@@ -706,10 +718,10 @@ export async function runLayerAttentionGPU(
 
   // 6. Output projection (with optional fused residual for decode)
   
-  let output;
+  output = null;
   let residualFused = false;
   let oProjInput = attnForProjection;
-  let oProjInputTemp = null;
+  oProjInputTemp = null;
   if (layerWeights.oProj && getWeightBuffer) {
     const oProjBuf = getWeightBuffer(layerWeights.oProj, 'o_proj');
     const loraO = getLoRAModule(lora, layerIdx, 'o_proj');
@@ -807,7 +819,7 @@ export async function runLayerAttentionGPU(
     await debugCheckBuffer(output.buffer, `L${layerIdx} attention output (after o_proj, GPU)`, numTokens, hiddenSize);
   }
 
-  let finalOutput = output;
+  finalOutput = output;
   
   const buffersToRelease = [];
   if (output.buffer !== attnForProjection.buffer) {
@@ -832,4 +844,46 @@ export async function runLayerAttentionGPU(
   }
 
   return { output: finalOutput, residualFused };
+  } catch (error) {
+    const released = new Set();
+    const releaseOnce = (buffer) => {
+      if (!buffer || released.has(buffer)) return;
+      released.add(buffer);
+      releaseBuffer(buffer);
+    };
+    if (finalOutput?.buffer && finalOutput.buffer !== output?.buffer) {
+      releaseOnce(finalOutput.buffer);
+    }
+    if (output?.buffer && output.buffer !== attnForProjection?.buffer) {
+      releaseOnce(output.buffer);
+    }
+    if (oProjInputTemp?.buffer) {
+      releaseOnce(oProjInputTemp.buffer);
+    }
+    if (attnForProjection?.buffer && attnForProjection.buffer !== attnOutput?.buffer) {
+      releaseOnce(attnForProjection.buffer);
+    }
+    if (attnOutput?.buffer) {
+      releaseOnce(attnOutput.buffer);
+    }
+    if (qGateTensor?.buffer) {
+      releaseOnce(qGateTensor.buffer);
+    }
+    if (qTensor?.buffer) {
+      releaseOnce(qTensor.buffer);
+    }
+    if (kTensor?.buffer) {
+      releaseOnce(kTensor.buffer);
+    }
+    if (vTensor?.buffer) {
+      releaseOnce(vTensor.buffer);
+    }
+    if (normed?.buffer && normed.buffer !== attentionInput?.buffer) {
+      releaseOnce(normed.buffer);
+    }
+    if (attentionInputTemp && attentionInput?.buffer) {
+      releaseOnce(attentionInput.buffer);
+    }
+    throw error;
+  }
 }

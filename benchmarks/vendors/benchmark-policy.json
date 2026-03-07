@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-02-25",
+  "updated": "2026-03-08",
   "timeoutsMs": {
     "compare": 600000,
     "doppler": 600000,
@@ -74,7 +74,7 @@
   },
   "kernelPathPolicy": {
     "knownBadByModel": {
-      "gemma-3-270m-it-wf16-ef16-hf16": [
+      "gemma-3-270m-it-f16": [
         "gemma3-f16-fused-f16a-online"
       ]
     }

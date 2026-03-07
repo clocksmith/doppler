@@ -617,7 +617,6 @@ function buildExpectedCheckpointMetadata(metadata) {
     'configHash',
     'datasetHash',
     'tokenizerHash',
-    'optimizerHash',
     'runtimePresetId',
     'kernelPathId',
   ]) {

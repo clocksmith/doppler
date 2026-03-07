@@ -452,7 +452,7 @@ export function createSourceStorageContext(options = {}) {
       if (raw && typeof raw === 'object') {
         return raw;
       }
-      return null;
+      throw new Error(`readText(${tokenizerJsonPath}) did not return tokenizer JSON data.`);
     }
     : null;
 

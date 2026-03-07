@@ -29,60 +29,60 @@ Notes:
 
 Current config intent:
 
-- `tools/configs/conversion/gemma3/gemma-3-270m-it-wf16-ef16-hf16.json`
-  - Output base: `models/local/gemma-3-270m-it-wf16-ef16-hf16`
-  - Resolved modelId: `gemma-3-270m-it-wf16-ef16-hf16`
+- `tools/configs/conversion/gemma3/gemma-3-270m-it-f16-af32.json`
+  - Output base: `models/local/gemma-3-270m-it-f16-af32`
+  - Resolved modelId: `gemma-3-270m-it-f16-af32`
   - Compute: `f32`
   - Kernel path: `gemma3-f16-fused-f32a-online`
 
-- `tools/configs/conversion/gemma3/gemma-3-270m-it-wf16-ef16-hf16-f16.json`
-  - Output base: `models/local/gemma-3-270m-it-wf16-ef16-hf16-f16`
-  - Resolved modelId: `gemma-3-270m-it-wf16-ef16-hf16-f16`
+- `tools/configs/conversion/gemma3/gemma-3-270m-it-f16.json`
+  - Output base: `models/local/gemma-3-270m-it-f16`
+  - Resolved modelId: `gemma-3-270m-it-f16`
   - Compute: `f16`
   - Kernel path: `gemma3-f16-fused-f16a-online`
 
-- `tools/configs/conversion/gemma3/gemma-3-270m-it-wq4k-ef16-hf16-f16.json`
-  - Output base: `models/local/gemma-3-270m-it-wq4k-ef16-hf16-f16`
-  - Resolved modelId: `gemma-3-270m-it-wq4k-ef16-hf16-f16`
+- `tools/configs/conversion/gemma3/gemma-3-270m-it-q4k-ehaf16.json`
+  - Output base: `models/local/gemma-3-270m-it-q4k-ehaf16`
+  - Resolved modelId: `gemma-3-270m-it-q4k-ehaf16`
   - Weights: `q4k` (row layout), embeddings/lmHead: `f16`
   - Compute: `f16`
   - Kernel path: `gemma3-q4k-dequant-f16a-online`
 
-- `tools/configs/conversion/gemma3/gemma-3-270m-it-wq4k-ef16-hf16.json`
-  - Output base: `models/local/gemma-3-270m-it-wq4k-ef16-hf16`
-  - Resolved modelId: `gemma-3-270m-it-wq4k-ef16-hf16`
+- `tools/configs/conversion/gemma3/gemma-3-270m-it-q4k-ehf16-af32.json`
+  - Output base: `models/local/gemma-3-270m-it-q4k-ehf16-af32`
+  - Resolved modelId: `gemma-3-270m-it-q4k-ehf16-af32`
   - Weights: `q4k` (row layout), embeddings/lmHead: `f16`
   - Compute: `f32`
   - Kernel path: `gemma3-q4k-dequant-f32a-online`
 
-- `tools/configs/conversion/gemma3/gemma-3-1b-it-wf16-ef16-hf16-f32.json`
-  - Output base: `models/local/gemma-3-1b-it-wf16-ef16-hf16-f32`
-  - Resolved modelId: `gemma-3-1b-it-wf16-ef16-hf16-f32`
+- `tools/configs/conversion/gemma3/gemma-3-1b-it-f16-af32.json`
+  - Output base: `models/local/gemma-3-1b-it-f16-af32`
+  - Resolved modelId: `gemma-3-1b-it-f16-af32`
   - Compute: `f32`
   - Kernel path: `gemma3-f16-fused-f32a-online`
 
-- `tools/configs/conversion/gemma3/gemma-3-1b-it-wf16-ef16-hf16-f16.json`
-  - Output base: `models/local/gemma-3-1b-it-wf16-ef16-hf16-f16`
-  - Resolved modelId: `gemma-3-1b-it-wf16-ef16-hf16-f16`
+- `tools/configs/conversion/gemma3/gemma-3-1b-it-f16.json`
+  - Output base: `models/local/gemma-3-1b-it-f16`
+  - Resolved modelId: `gemma-3-1b-it-f16`
   - Compute: `f16`
   - Kernel path: `gemma3-f16-fused-f16a-online`
 
-- `tools/configs/conversion/gemma3/gemma-3-1b-it-wq4k-ef16-hf16.json`
-  - Output base: `models/local/gemma-3-1b-it-wq4k-ef16-hf16`
-  - Resolved modelId: `gemma-3-1b-it-wq4k-ef16-hf16`
+- `tools/configs/conversion/gemma3/gemma-3-1b-it-q4k-ehf16-af32.json`
+  - Output base: `models/local/gemma-3-1b-it-q4k-ehf16-af32`
+  - Resolved modelId: `gemma-3-1b-it-q4k-ehf16-af32`
   - Compute: `f16`
   - Kernel path: `gemma3-q4k-dequant-f16a-online`
 
-- `tools/configs/conversion/gemma3/gemma-3-1b-it-wq4k-ef16-hf16-f32.json`
-  - Output base: `models/local/gemma-3-1b-it-wq4k-ef16-hf16-f32`
-  - Resolved modelId: `gemma-3-1b-it-wq4k-ef16-hf16-f32`
+- `tools/configs/conversion/gemma3/gemma-3-1b-it-q4k-ehf16-af32.json`
+  - Output base: `models/local/gemma-3-1b-it-q4k-ehf16-af32`
+  - Resolved modelId: `gemma-3-1b-it-q4k-ehf16-af32`
   - Weights: `q4k` (row layout), embeddings/lmHead: `f16`
   - Compute: `f32`
   - Kernel path: `gemma3-q4k-dequant-f32a-online`
 
-- `tools/configs/conversion/gemma3/translategemma-4b-it-wq4k-ef16-hf16.json`
-  - Output base: `models/local/translategemma-4b-it-wq4k-ef16-hf16`
-  - Resolved modelId: `translategemma-4b-it-wq4k-ef16-hf16`
+- `tools/configs/conversion/gemma3/translategemma-4b-it-q4k-ehf16-af32.json`
+  - Output base: `models/local/translategemma-4b-it-q4k-ehf16-af32`
+  - Resolved modelId: `translategemma-4b-it-q4k-ehf16-af32`
   - Preset: `translategemma`
   - Output mode: `textOnly: true` (skip vision/projector tensors)
   - Weights: `q4k` (row layout), embeddings/lmHead: `f16`
@@ -90,15 +90,15 @@ Current config intent:
   - Kernel path: `gemma3-q4k-dequant-f16a-online`
   - Execution-v0: explicit `sessionDefaults` + full `execution.steps` mirrored from `gemma3-q4k-dequant-f16a-online`
 
-- `tools/configs/conversion/gpt-oss-20b-wf16-ef16-hf16-xmxfp4.json`
-  - Output base: `models/local/gpt-oss-20b-wf16-ef16-hf16-xmxfp4`
-  - Resolved modelId: `gpt-oss-20b-wf16-ef16-hf16-xmxfp4`
+- `tools/configs/conversion/gpt-oss-20b-f16-xmxfp4.json`
+  - Output base: `models/local/gpt-oss-20b-f16-xmxfp4`
+  - Resolved modelId: `gpt-oss-20b-f16-xmxfp4`
   - Preset: `gpt_oss`
   - Compute: `f16`
 
-- `tools/configs/conversion/qwen3/qwen-3-5-0-8b-wf16-ef16-hf16-f16.json`
-  - Output base: `models/local/qwen-3-5-0-8b-wf16-ef16-hf16-f16`
-  - Resolved modelId: `qwen-3-5-0-8b-wf16-ef16-hf16-f16`
+- `tools/configs/conversion/qwen3/qwen-3-5-0-8b-f16.json`
+  - Output base: `models/local/qwen-3-5-0-8b-f16`
+  - Resolved modelId: `qwen-3-5-0-8b-f16`
   - Preset: `qwen3`
   - Output mode: `textOnly: true` (skip vision/projector tensors from Qwen3.5 multimodal checkpoints)
   - Weights/embeddings/lmHead: `f16`
@@ -107,26 +107,26 @@ Current config intent:
   - Session defaults only: decode loop `batchSize=4`, `stopCheckMode=batch`, `readbackInterval=1`, `disableCommandBatching=true`
   - Does not emit execution-v0 schema because no execution graph is authored/generated
 
-- `tools/configs/conversion/sana/sana-sprint-0.6b-wf16-ef16-hf16-f16.json`
-  - Output base: `models/local/sana-sprint-0.6b-wf16-ef16-hf16-f16`
-  - Resolved modelId: `sana-sprint-0.6b-wf16-ef16-hf16-f16`
+- `tools/configs/conversion/sana/sana-sprint-0.6b-f16.json`
+  - Output base: `models/local/sana-sprint-0.6b-f16`
+  - Resolved modelId: `sana-sprint-0.6b-f16`
   - Preset: `diffusion`
   - Weights/embeddings/lmHead: `f16`
   - Compute: `f16`
   - Intended source: `Efficient-Large-Model/Sana_Sprint_0.6B_1024px_diffusers`
   - Kept `f16` intentionally while Sana runtime work is still being validated; no reusable `q4k` diffusion config is checked in yet.
 
-- `tools/configs/conversion/embeddinggemma/embeddinggemma-300m-wbf16.json`
-  - Output base: `models/curated/google-embeddinggemma-300m`
+- `tools/configs/conversion/embeddinggemma/google-embeddinggemma-300m-bf16-af32.json`
+  - Output base: `models/local/google-embeddinggemma-300m`
   - Resolved modelId: `google-embeddinggemma-300m`
   - Preset: `embeddinggemma`
   - Weights/Embeddings/lmHead: `bf16`
   - Compute: `f32`
   - Kernel path: `embeddinggemma-f16-f32a`
 
-- `tools/configs/conversion/lfm2/lfm2.5-1.2b-instruct-wq4k-ef16-hf16-f32.json`
-  - Output base: `models/local/lfm2.5-1.2b-instruct-wq4k-ef16-hf16-f32`
-  - Resolved modelId: `lfm2.5-1.2b-instruct-wq4k-ef16-hf16-f32`
+- `tools/configs/conversion/lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32.json`
+  - Output base: `models/local/lfm2.5-1.2b-instruct-q4k-ehf16-af32`
+  - Resolved modelId: `lfm2.5-1.2b-instruct-q4k-ehf16-af32`
   - Preset: `lfm2`
   - Weights: `q4k` (row layout), embeddings/lmHead: `f16`
   - Compute: `f32`
@@ -134,9 +134,9 @@ Current config intent:
   - Session defaults only: decode loop `batchSize=8`, `stopCheckMode=batch`, `readbackInterval=8`
   - Does not emit execution-v0 schema because custom conv layer scheduling skips kernel-path auto-generation
 
-- `tools/configs/conversion/lfm2/lfm2.5-1.2b-instruct-wq4k-ef16-hf16-f16.json`
-  - Output base: `models/local/lfm2.5-1.2b-instruct-wq4k-ef16-hf16-f16`
-  - Resolved modelId: `lfm2.5-1.2b-instruct-wq4k-ef16-hf16-f16`
+- `tools/configs/conversion/lfm2/lfm2.5-1.2b-instruct-q4k-ehaf16.json`
+  - Output base: `models/local/lfm2.5-1.2b-instruct-q4k-ehaf16`
+  - Resolved modelId: `lfm2.5-1.2b-instruct-q4k-ehaf16`
   - Preset: `lfm2`
   - Weights: `q4k` (row layout), embeddings/lmHead: `f16`
   - Compute: `f16`

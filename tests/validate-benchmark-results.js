@@ -12,7 +12,13 @@ const SCHEMA_PATH = path.join(__dirname, '..', 'benchmarks', 'benchmark-schema.j
 const REQUIRED_TYPE_MAP = {
   schemaVersion: 'number',
   timestamp: 'string',
-  suite: 'string'
+  suite: 'string',
+  runType: 'string',
+  env: 'object',
+  model: 'object',
+  config: 'object',
+  workload: 'object',
+  metrics: 'object',
 };
 
 async function loadSchema() {

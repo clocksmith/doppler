@@ -140,6 +140,12 @@ async function collectModelFilesFromDirectory(
       const nextBasePath = basePath ? `${basePath}/${entry.name}` : entry.name;
       const subFiles = await collectModelFilesFromDirectory(subDirHandle, nextBasePath, maxDepth - 1);
       files.push(...subFiles);
+    } else if (entry.kind === 'directory') {
+      const nextBasePath = basePath ? `${basePath}/${entry.name}` : entry.name;
+      throw new Error(
+        `Model directory exceeds supported depth (${MODEL_DIRECTORY_MAX_DEPTH}) near "${nextBasePath}". ` +
+        'Choose a shallower directory root or flatten the model files.'
+      );
     }
   }
 

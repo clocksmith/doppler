@@ -1,13 +1,13 @@
 {
   "version": 1,
   "lifecycleSchemaVersion": 1,
-  "updatedAt": "2026-03-07",
+  "updatedAt": "2026-03-08",
   "models": [
     {
-      "modelId": "gemma-3-270m-it-wq4k-ef16-hf16",
+      "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
       "preset": "gemma3",
       "label": "Gemma 3 270M Instruct (Q4K/F32a)",
-      "description": "Gemma 3 270M text model. Prefers Hugging Face-hosted prebuilt RDRR shards with local curated fallback.",
+      "description": "Gemma 3 270M text model. Prefers Hugging Face-hosted prebuilt RDRR shards with an optional repo-local fallback.",
       "modes": [
         "run"
       ],
@@ -15,14 +15,15 @@
         "gemma3-270m",
         "google/gemma-3-270m-it",
         "gemma-3-270m-it-wq4k-ef16",
+        "gemma-3-270m-it-wq4k-ef16-hf16",
         "gemma-3-270m-it-wq4k-ef16-hf16-f32"
       ],
       "hf": {
         "repoId": "Clocksmith/rdrr",
         "revision": "5a6c9dc7f1607dd328de081dfa9ffb58c68a9121",
-        "path": "models/gemma-3-270m-it-wq4k-ef16"
+        "path": "models/gemma-3-270m-it-q4k-ehf16-af32"
       },
-      "baseUrl": "./curated/gemma-3-270m-it-wq4k-ef16-hf16",
+      "baseUrl": "./local/gemma-3-270m-it-q4k-ehf16-af32",
       "sizeBytes": 418512553,
       "recommended": false,
       "sortOrder": 10,
@@ -48,10 +49,10 @@
       }
     },
     {
-      "modelId": "google-embeddinggemma-300m-wq4k-ef16",
+      "modelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
       "preset": "embeddinggemma",
       "label": "EmbeddingGemma 300M (Q4K)",
-      "description": "EmbeddingGemma sentence embedding model. Prefers Hugging Face-hosted prebuilt RDRR shards with local curated fallback.",
+      "description": "EmbeddingGemma sentence embedding model. Prefers Hugging Face-hosted prebuilt RDRR shards with an optional repo-local fallback.",
       "modes": [
         "embedding"
       ],
@@ -63,9 +64,9 @@
       "hf": {
         "repoId": "Clocksmith/rdrr",
         "revision": "4efe64a914892e98be50842aeb16c3b648cc68a5",
-        "path": "models/google-embeddinggemma-300m-wq4k-ef16"
+        "path": "models/google-embeddinggemma-300m-q4k-ehf16-af32"
       },
-      "baseUrl": "./curated/google-embeddinggemma-300m-wq4k-ef16",
+      "baseUrl": "./local/google-embeddinggemma-300m-q4k-ehf16-af32",
       "sizeBytes": 480562497,
       "recommended": false,
       "sortOrder": 11,
@@ -91,7 +92,7 @@
       }
     },
     {
-      "modelId": "translategemma-4b-it-wq4k-ef16-hf16",
+      "modelId": "translategemma-4b-it-q4k-ehf16-af32",
       "preset": "translategemma",
       "label": "TranslateGemma 4B Instruct (Q4K)",
       "description": "TranslateGemma 4B translation model. Q4K weights, F16 embeddings/head. Local RDRR shards.",
@@ -101,12 +102,13 @@
       "aliases": [
         "translategemma-4b",
         "translategemma",
-        "google/translategemma-4b-it"
+        "google/translategemma-4b-it",
+        "translategemma-4b-it-wq4k-ef16-hf16"
       ],
       "hf": {
         "repoId": "Clocksmith/rdrr",
         "revision": "f3bac04695d52b4bf075d23ce094a7b73c17a913",
-        "path": "models/translategemma-4b-it-wq4k-ef16-hf16"
+        "path": "models/translategemma-4b-it-q4k-ehf16-af32"
       },
       "baseUrl": null,
       "sizeBytes": 3167327178,
@@ -115,7 +117,7 @@
       "lifecycle": {
         "availability": {
           "curated": false,
-          "local": true,
+          "local": false,
           "hf": true
         },
         "status": {
@@ -134,7 +136,7 @@
       }
     },
     {
-      "modelId": "qwen-3-5-0-8b-wq4k-ef16-hf16-f16",
+      "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "preset": "qwen3",
       "label": "Qwen 3.5 0.8B (Q4K)",
       "description": "Qwen 3.5 0.8B text model with hybrid linear attention. Q4K weights, F16 embeddings/head.",
@@ -144,12 +146,13 @@
       "aliases": [
         "qwen3-0.8b",
         "qwen-3-5-0-8b",
-        "Qwen/Qwen3.5-0.8B"
+        "Qwen/Qwen3.5-0.8B",
+        "qwen-3-5-0-8b-wq4k-ef16-hf16-f16"
       ],
       "hf": {
         "repoId": "Clocksmith/rdrr",
         "revision": "aeb7b3a304b5aad4b46c903a8a67f17070bce865",
-        "path": "models/qwen-3-5-0-8b-wq4k-ef16-hf16-f16"
+        "path": "models/qwen-3-5-0-8b-q4k-ehaf16"
       },
       "baseUrl": null,
       "sizeBytes": 788833984,
@@ -158,7 +161,7 @@
       "lifecycle": {
         "availability": {
           "curated": false,
-          "local": true,
+          "local": false,
           "hf": true
         },
         "status": {
@@ -178,7 +181,7 @@
       }
     },
     {
-      "modelId": "qwen-3-5-2b-wq4k-ef16-hf16-f16",
+      "modelId": "qwen-3-5-2b-q4k-ehaf16",
       "preset": "qwen3",
       "label": "Qwen 3.5 2B (Q4K)",
       "description": "Qwen 3.5 2B text model with hybrid linear attention. Q4K weights, F16 embeddings/head.",
@@ -188,12 +191,13 @@
       "aliases": [
         "qwen3-2b",
         "qwen-3-5-2b",
-        "Qwen/Qwen3.5-2B"
+        "Qwen/Qwen3.5-2B",
+        "qwen-3-5-2b-wq4k-ef16-hf16-f16"
       ],
       "hf": {
         "repoId": "Clocksmith/rdrr",
         "revision": "cbafef7751177996aba31a7459a9ccb3c9ebccbb",
-        "path": "models/qwen-3-5-2b-wq4k-ef16-hf16-f16"
+        "path": "models/qwen-3-5-2b-q4k-ehaf16"
       },
       "baseUrl": null,
       "sizeBytes": 1789738688,
@@ -202,7 +206,7 @@
       "lifecycle": {
         "availability": {
           "curated": false,
-          "local": true,
+          "local": false,
           "hf": true
         },
         "status": {

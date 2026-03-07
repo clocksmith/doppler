@@ -37,6 +37,7 @@ The generated export inventory is the authoritative symbol list for this surface
 
 - shared browser/Node command contract
 - explicit fail-closed surface support via `ensureCommandSupportedOnSurface(...)`
+- `runBrowserCommand(...)` and `runNodeCommand(...)` return success envelopes on success and throw normalized command errors on failure
 - browser-conditioned shared exports for browser bundles, with Node-only helpers available on the default Node import path for the same subpath
 - intended for harnesses, diagnostics, demos, registry/storage workflows, and command runners
 
@@ -63,6 +64,8 @@ Important surface rules:
 - `runBrowserCommand(...)` is appropriate for browser-safe commands such as `verify`, `debug`, and `bench`
 - `runBrowserCommand(...)` also supports `convert` when the caller injects `options.convertHandler(request)`; CLI browser relay still rejects `convert`
 - `runNodeCommand(...)` is the canonical operator execution path for `lora` and `distill`
+- current Node operator surfaces reject `runtimePreset`, `runtimeConfigUrl`, and `runtimeConfig` because those runtime inputs are not consumed by `lora`/`distill`
+- `configChain` is a harness/browser-URL runtime input, not part of the normalized tooling command request contract
 - browser-conditioned imports of `@simulatte/doppler/tooling` resolve the browser-safe shared tooling entry and do not expose `runNodeCommand(...)` or `runBrowserCommandInNode(...)`
 
 ## Command Contract Summary
@@ -91,9 +94,12 @@ Supported surfaces:
 CLI notes:
 - operator runs are workload-first; prefer `workloadPath` over ad hoc request fields
 - `--surface auto` for `lora` and `distill` does not downgrade to browser
+- `lora` and `distill` reject `runtimePreset`, `runtimeConfigUrl`, and `runtimeConfig` on the current Node operator surface
 - run-root artifacts live under `reports/training/<kind>/<workload-id>/<timestamp>/`
 - `run_contract.json` and `workload.lock.json` are written for every operator run
 - `convert` does not take `modelId`; set `output.modelBaseId` in the converter config
+- `convert` rejects `runtimePreset`, `runtimeConfigUrl`, `runtimeConfig`, and `configChain` because the convert runner does not consume runtime config
+- explicit `convertPayload.execution.useGpuCast=true` is fail-closed; if Node WebGPU is unavailable or GPU casting fails, conversion errors instead of silently falling back to CPU
 - `loadMode="memory"` is Node-only and requires local filesystem model data
 - prefer immutable Hugging Face revisions for reproducible hosted runs
 
@@ -142,7 +148,7 @@ import { normalizeToolingCommandRequest, runBrowserCommand } from '@simulatte/do
 const request = normalizeToolingCommandRequest({
   command: 'verify',
   suite: 'inference',
-  modelId: 'gemma-3-270m-it-wq4k-ef16-hf16',
+  modelId: 'gemma-3-270m-it-q4k-ehf16-af32',
 });
 
 const result = await runBrowserCommand(request);

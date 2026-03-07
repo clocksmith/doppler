@@ -10,6 +10,7 @@ const P2P_BYTES = new Uint8Array([9, 10, 11, 12]);
 const HTTP_HASH_SHA256 = '9f64a747e1b97f131fabb6b447296c9b6f0201e79fb3c5356e6c77e89b6a806a';
 const P2P_HASH_SHA256 = 'e1e853684a206f162ee800a54b695c9cc1a8d1d554a47fcb13fe51229c17773f';
 const MANIFEST_VERSION_SET = 'manifest:v1:sha256:drill';
+const VALID_STAGES = new Set(['canary', 'regional', 'global']);
 
 function parseArgs(argv) {
   const args = {
@@ -21,13 +22,20 @@ function parseArgs(argv) {
 
   for (let i = 0; i < argv.length; i += 1) {
     const token = String(argv[i] ?? '');
+    const nextValue = () => {
+      const value = argv[i + 1];
+      if (value == null || String(value).startsWith('--')) {
+        throw new Error(`Missing value for ${token}`);
+      }
+      i += 1;
+      return String(value);
+    };
     if (token === '--help' || token === '-h') {
       args.help = true;
       continue;
     }
     if (token === '--stage') {
-      args.stage = String(argv[i + 1] ?? args.stage);
-      i += 1;
+      args.stage = nextValue();
       continue;
     }
     if (token.startsWith('--stage=')) {
@@ -35,8 +43,7 @@ function parseArgs(argv) {
       continue;
     }
     if (token === '--out') {
-      args.out = argv[i + 1] ? resolve(process.cwd(), argv[i + 1]) : null;
-      i += 1;
+      args.out = resolve(process.cwd(), nextValue());
       continue;
     }
     if (token.startsWith('--out=')) {
@@ -52,6 +59,10 @@ function parseArgs(argv) {
       continue;
     }
     throw new Error(`Unknown argument: ${token}`);
+  }
+
+  if (!VALID_STAGES.has(args.stage)) {
+    throw new Error(`--stage must be one of: ${[...VALID_STAGES].join(', ')}, got "${args.stage}"`);
   }
 
   return args;
@@ -235,6 +246,10 @@ export async function runP2PResilienceDrillCli(argv = process.argv.slice(2)) {
   if (args.help) {
     console.log(usage());
     return null;
+  }
+
+  if (!VALID_STAGES.has(args.stage)) {
+    throw new Error(`--stage must be one of: ${[...VALID_STAGES].join(', ')}, got "${args.stage}"`);
   }
 
   const report = await runDrills(args.stage);

@@ -64,6 +64,8 @@ async function _sanaLinearAttention(target, query, key, value, options = {}) {
     outputBuffer = null,
     summaryBuffer = null,
   } = options;
+  const ownsSummary = summaryBuffer == null;
+  const ownsOutput = outputBuffer == null;
 
   if (
     !Number.isFinite(numHeads) ||
@@ -98,18 +100,24 @@ async function _sanaLinearAttention(target, query, key, value, options = {}) {
     eps,
   };
 
-  await runSummary(target, query, key, value, temporarySummary, uniforms, variant);
-  await runApply(target, query, temporarySummary, output, uniforms, variant);
-
-  if (!summaryBuffer) {
-    if (recorder) {
-      recorder.trackTemporaryBuffer(temporarySummary);
-    } else {
-      releaseBuffer(temporarySummary);
+  try {
+    await runSummary(target, query, key, value, temporarySummary, uniforms, variant);
+    await runApply(target, query, temporarySummary, output, uniforms, variant);
+    return createTensor(output, query.dtype, [numTokens, hiddenSize], 'sana_linear_attention_output');
+  } catch (error) {
+    if (ownsOutput) {
+      releaseBuffer(output);
+    }
+    throw error;
+  } finally {
+    if (ownsSummary) {
+      if (recorder) {
+        recorder.trackTemporaryBuffer(temporarySummary);
+      } else {
+        releaseBuffer(temporarySummary);
+      }
     }
   }
-
-  return createTensor(output, query.dtype, [numTokens, hiddenSize], 'sana_linear_attention_output');
 }
 
 export async function runSanaLinearAttention(query, key, value, options = {}) {

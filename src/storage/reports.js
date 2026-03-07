@@ -48,7 +48,7 @@ async function saveReportToIdb(modelId, filename, payload) {
   const store = createIdbStore(idbConfig);
   const reportModelId = `${REPORT_MODEL_PREFIX}${modelId}`;
   await store.openModel(reportModelId, { create: true });
-  await store.writeFile(filename, payload);
+  await store.writeFile(filename, new TextEncoder().encode(payload));
   await store.cleanup();
   return `reports/${modelId}/${filename}`;
 }

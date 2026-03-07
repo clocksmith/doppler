@@ -8,6 +8,7 @@
 
 interface UniformCacheEntry {
   buffer: GPUBuffer;
+  bytes: Uint8Array;
   lastUsed: number;
   refCount: number;
 }

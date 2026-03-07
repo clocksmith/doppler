@@ -14,7 +14,7 @@ await assert.rejects(
     convertPayload: {
       converterConfig: {
         output: {
-          modelBaseId: 'gemma-3-270m-it-wf16-ef16-hf16',
+          modelBaseId: 'gemma-3-270m-it-f16-af32',
         },
       },
     },
@@ -30,7 +30,7 @@ await assert.rejects(
     convertPayload: {
       converterConfig: {
         output: {
-          modelBaseId: 'gemma-3-270m-it-wf16-ef16-hf16',
+          modelBaseId: 'gemma-3-270m-it-f16-af32',
         },
       },
       execution: {
@@ -67,13 +67,13 @@ await assert.rejects(
 {
   const normalized = normalizeBrowserCommand({
     command: 'bench',
-    modelId: 'gemma-3-270m-it-wf16-ef16-hf16',
+    modelId: 'gemma-3-270m-it-f16-af32',
     cacheMode: 'cold',
   });
   assert.equal(normalized.command, 'bench');
   assert.equal(normalized.suite, 'bench');
   assert.equal(normalized.intent, 'calibrate');
-  assert.equal(normalized.modelId, 'gemma-3-270m-it-wf16-ef16-hf16');
+  assert.equal(normalized.modelId, 'gemma-3-270m-it-f16-af32');
   assert.equal(normalized.cacheMode, 'cold');
 }
 

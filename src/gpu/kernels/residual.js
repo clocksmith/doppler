@@ -82,6 +82,7 @@ function planResidualDispatch(target, size, elementsPerWorkgroup) {
 async function _residualAdd(target, a, b, size, options = {}) {
   const recorder = target && typeof target.beginComputePass === 'function' ? target : null;
   const { useVec4 = true, outputBuffer = null } = options;
+  const ownsOutput = outputBuffer == null;
 
   const { a: aAligned, b: bAligned, temps } = await alignResidualInputs(a, b, recorder);
   const outputDtype = inferOutputDtype(aAligned, bAligned);
@@ -97,15 +98,22 @@ async function _residualAdd(target, a, b, size, options = {}) {
     useVec4 ? VEC4_ELEMENTS_PER_WG : WORKGROUP_SIZES.DEFAULT
   );
 
-  await unifiedKernelWrapper(
-    'residual', target, variant,
-    [aAligned, bAligned, output],
-    { size, scale: 1, _pad1: dispatchPlan.dispatchStride, _pad2: 0 },
-    dispatchPlan.workgroups
-  );
-
-  cleanupTemps(temps, recorder);
-  return createTensor(output, outputDtype, [size], 'residual_output');
+  try {
+    await unifiedKernelWrapper(
+      'residual', target, variant,
+      [aAligned, bAligned, output],
+      { size, scale: 1, _pad1: dispatchPlan.dispatchStride, _pad2: 0 },
+      dispatchPlan.workgroups
+    );
+    return createTensor(output, outputDtype, [size], 'residual_output');
+  } catch (error) {
+    if (ownsOutput) {
+      releaseBuffer(output);
+    }
+    throw error;
+  } finally {
+    cleanupTemps(temps, recorder);
+  }
 }
 
 async function _biasAdd(target, data, bias, numTokens, dim, options = {}) {
@@ -126,24 +134,26 @@ async function _biasAdd(target, data, bias, numTokens, dim, options = {}) {
     Math.ceil(numTokens / tokenStride),
   ];
 
-  await unifiedKernelWrapper(
-    'bias_add', target, variant,
-    [data, biasAligned],
-    {
-      num_tokens: numTokens,
-      dim,
-      data_offset: dataOffset,
-      bias_offset: biasOffset,
-      token_stride: tokenStride,
-      _pad0: 0,
-      _pad1: 0,
-      _pad2: 0,
-    },
-    workgroups
-  );
-
-  cleanupTemps(temps, recorder);
-  return createTensor(data.buffer, data.dtype, [numTokens, dim], 'bias_add_output');
+  try {
+    await unifiedKernelWrapper(
+      'bias_add', target, variant,
+      [data, biasAligned],
+      {
+        num_tokens: numTokens,
+        dim,
+        data_offset: dataOffset,
+        bias_offset: biasOffset,
+        token_stride: tokenStride,
+        _pad0: 0,
+        _pad1: 0,
+        _pad2: 0,
+      },
+      workgroups
+    );
+    return createTensor(data.buffer, data.dtype, [numTokens, dim], 'bias_add_output');
+  } finally {
+    cleanupTemps(temps, recorder);
+  }
 }
 
 export async function runResidualAdd(a, b, size, options = {}) {

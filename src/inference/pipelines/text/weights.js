@@ -1,7 +1,7 @@
 
 
 import { getDevice } from '../../../gpu/device.js';
-import { acquireBuffer } from '../../../memory/buffer-pool.js';
+import { acquireBuffer, releaseBuffer } from '../../../memory/buffer-pool.js';
 import { log } from '../../../debug/index.js';
 import { isWeightBuffer, isCpuWeightBuffer, tagBufferDtype } from '../../../gpu/weight-buffer.js';
 
@@ -53,9 +53,14 @@ export function getWeightBuffer(weight, label) {
   }
 
   const buf = acquireBuffer(data.byteLength, undefined, label);
-  device.queue.writeBuffer(buf, 0,  ( (data)));
-  tagBufferDtype(buf, bufferDtype);
-  return buf;
+  try {
+    device.queue.writeBuffer(buf, 0,  ( (data)));
+    tagBufferDtype(buf, bufferDtype);
+    return buf;
+  } catch (error) {
+    releaseBuffer(buf);
+    throw error;
+  }
 }
 
 
@@ -92,9 +97,14 @@ export function getNormWeightBuffer(weight, label, config, debugFlags) {
   }
 
   const buf = acquireBuffer(data.byteLength, undefined, label);
-  device.queue.writeBuffer(buf, 0,  ( (data)));
-  tagBufferDtype(buf, 'f32');
-  return buf;
+  try {
+    device.queue.writeBuffer(buf, 0,  ( (data)));
+    tagBufferDtype(buf, 'f32');
+    return buf;
+  } catch (error) {
+    releaseBuffer(buf);
+    throw error;
+  }
 }
 
 

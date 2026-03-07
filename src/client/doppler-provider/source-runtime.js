@@ -2,6 +2,7 @@ import {
   createConverterConfig,
   HEADER_READ_SIZE,
 } from '../../config/schema/index.js';
+import { DEFAULT_EXECUTION_V0_SESSION_DEFAULTS } from '../../config/schema/execution-v0.schema.js';
 import { extractArchitecture } from '../../converter/core.js';
 import {
   inferSourceWeightQuantization,
@@ -40,6 +41,15 @@ const SOURCE_RUNTIME_EXECUTION_OVERRIDE = {
       toDtype: 'f16',
     },
   ],
+};
+
+const SOURCE_RUNTIME_SESSION_DEFAULTS = {
+  compute: {
+    defaults: { ...DEFAULT_EXECUTION_V0_SESSION_DEFAULTS.compute.defaults },
+    kernelProfiles: [],
+  },
+  kvcache: null,
+  decodeLoop: null,
 };
 
 function normalizeRelativePath(value) {
@@ -391,14 +401,7 @@ function createBridgeFileReaders(bridgeClient, fileMap, rootPath) {
       return null;
     }
     const direct = map.get(hint);
-    if (direct) {
-      return direct;
-    }
-    const basename = hint.split('/').pop();
-    if (basename && map.has(basename)) {
-      return map.get(basename);
-    }
-    return null;
+    return direct || null;
   };
 
   const readRange = async (relativePath, offset, length) => {
@@ -461,6 +464,7 @@ export async function resolveBridgeSourceRuntimeBundle(options = {}) {
       modelBaseId: requestedModelId || null,
     },
     inference: {
+      sessionDefaults: SOURCE_RUNTIME_SESSION_DEFAULTS,
       execution: SOURCE_RUNTIME_EXECUTION_OVERRIDE,
     },
   });

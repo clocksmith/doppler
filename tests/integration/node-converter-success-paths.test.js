@@ -80,6 +80,20 @@ const castOnlyExecution = {
   ],
 };
 
+const executionSessionDefaults = {
+  compute: {
+    defaults: {
+      activationDtype: 'f16',
+      mathDtype: 'f16',
+      accumDtype: 'f32',
+      outputDtype: 'f16',
+    },
+    kernelProfiles: [],
+  },
+  kvcache: null,
+  decodeLoop: null,
+};
+
 {
   const fixtureDir = createTempDir('doppler-converter-success-single-');
   const outputDir = path.join(fixtureDir, 'out');
@@ -109,6 +123,7 @@ const castOnlyExecution = {
           weights: 'f16',
         },
         inference: {
+          sessionDefaults: executionSessionDefaults,
           execution: castOnlyExecution,
         },
       },
@@ -194,6 +209,7 @@ const castOnlyExecution = {
           weights: 'f16',
         },
         inference: {
+          sessionDefaults: executionSessionDefaults,
           execution: castOnlyExecution,
         },
       },

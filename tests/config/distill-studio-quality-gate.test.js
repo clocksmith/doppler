@@ -58,6 +58,9 @@ try {
   assert.equal(esGate.pass, true);
   assert.equal(enGate.reportId, 'rep_test_001');
   assert.equal(bundle.reportId, 'rep_test_001');
+  // success output must go to stdout, not stderr
+  assert.match(result.stdout, /\[distill-quality-gate\] wrote/);
+  assert.doesNotMatch(result.stderr, /\[distill-quality-gate\] wrote/);
 } finally {
   rmSync(tempDir, { recursive: true, force: true });
 }

@@ -5,7 +5,7 @@ import {
   runWithRuntimeIsolation,
 } from '../../src/tooling/command-runner-shared.js';
 
-function createRuntimeBridge(initialRuntime = {}) {
+function createRuntimeBridge(initialRuntime = {}, overlays = {}) {
   let runtime = initialRuntime;
   const calls = [];
   return {
@@ -13,9 +13,11 @@ function createRuntimeBridge(initialRuntime = {}) {
     bridge: {
       async applyRuntimePreset(runtimePreset, options) {
         calls.push({ type: 'preset', runtimePreset, options: options || {} });
+        runtime = mergeRuntime(runtime, overlays.presets?.[runtimePreset] ?? null);
       },
       async applyRuntimeConfigFromUrl(runtimeConfigUrl, options) {
         calls.push({ type: 'config-url', runtimeConfigUrl, options: options || {} });
+        runtime = mergeRuntime(runtime, overlays.urls?.[runtimeConfigUrl] ?? null);
       },
       getRuntimeConfig() {
         return runtime;
@@ -30,6 +32,33 @@ function createRuntimeBridge(initialRuntime = {}) {
   };
 }
 
+function clone(value) {
+  if (typeof structuredClone === 'function') {
+    return structuredClone(value);
+  }
+  return JSON.parse(JSON.stringify(value));
+}
+
+function mergeRuntime(base, patch) {
+  if (!patch) return clone(base);
+  const out = clone(base) ?? {};
+  for (const [key, value] of Object.entries(patch)) {
+    if (
+      value &&
+      typeof value === 'object' &&
+      !Array.isArray(value) &&
+      out[key] &&
+      typeof out[key] === 'object' &&
+      !Array.isArray(out[key])
+    ) {
+      out[key] = mergeRuntime(out[key], value);
+    } else {
+      out[key] = clone(value);
+    }
+  }
+  return out;
+}
+
 {
   const runtime = createRuntimeBridge({
     shared: {
@@ -38,7 +67,24 @@ function createRuntimeBridge(initialRuntime = {}) {
     },
     inference: {
       prompt: 'initial',
-      batching: { maxTokens: 16 },
+      batching: { maxTokens: 16, batchSize: 1 },
+    },
+  }, {
+    presets: {
+      'modes/debug': {
+        inference: {
+          prompt: 'preset',
+          batching: { maxTokens: 14, batchSize: 2 },
+        },
+      },
+    },
+    urls: {
+      '/runtime/custom.json': {
+        inference: {
+          prompt: 'url',
+          batching: { batchSize: 6, readbackInterval: 3 },
+        },
+      },
     },
   });
 
@@ -46,7 +92,7 @@ function createRuntimeBridge(initialRuntime = {}) {
     command: 'verify',
     suite: 'inference',
     intent: 'verify',
-    modelId: 'gemma-3-270m-it-wf16-ef16-hf16',
+    modelId: 'gemma-3-270m-it-f16-af32',
     runtimePreset: 'modes/debug',
     runtimeConfigUrl: '/runtime/custom.json',
     runtimeConfig: {
@@ -72,8 +118,10 @@ function createRuntimeBridge(initialRuntime = {}) {
 
   assert.equal(runtime.getRuntime().inference.prompt, 'The sky is');
   assert.equal(runtime.getRuntime().inference.batching.maxTokens, 8);
+  assert.equal(runtime.getRuntime().inference.batching.batchSize, 6);
+  assert.equal(runtime.getRuntime().inference.batching.readbackInterval, 3);
   assert.equal(runtime.getRuntime().shared.harness.mode, 'inference');
-  assert.equal(runtime.getRuntime().shared.harness.modelId, 'gemma-3-270m-it-wf16-ef16-hf16');
+  assert.equal(runtime.getRuntime().shared.harness.modelId, 'gemma-3-270m-it-f16-af32');
   assert.equal(runtime.getRuntime().shared.tooling.intent, 'verify');
 }
 
@@ -92,7 +140,7 @@ function createRuntimeBridge(initialRuntime = {}) {
     convertPayload: {
       converterConfig: {
         output: {
-          modelId: 'gemma-3-270m-it-wf16-ef16-hf16',
+          modelId: 'gemma-3-270m-it-f16-af32',
         },
       },
     },
@@ -106,7 +154,7 @@ function createRuntimeBridge(initialRuntime = {}) {
   const suiteOptions = buildSuiteOptions({
     command: 'verify',
     suite: 'inference',
-    modelId: 'gemma-3-270m-it-wf16-ef16-hf16',
+    modelId: 'gemma-3-270m-it-f16-af32',
     workloadType: null,
     trainingTests: null,
     trainingStage: null,
@@ -142,7 +190,7 @@ function createRuntimeBridge(initialRuntime = {}) {
     suite: 'inference',
     command: 'verify',
     surface: 'node',
-    modelId: 'gemma-3-270m-it-wf16-ef16-hf16',
+    modelId: 'gemma-3-270m-it-f16-af32',
     workloadType: undefined,
     trainingTests: undefined,
     trainingStage: undefined,
@@ -431,7 +479,7 @@ function createRuntimeBridge(initialRuntime = {}) {
       command: 'bench',
       suite: 'bench',
       intent: 'calibrate',
-      modelId: 'gemma-3-270m-it-wf16-ef16-hf16',
+      modelId: 'gemma-3-270m-it-f16-af32',
       runtimeConfig: {
         shared: {
           benchmark: {

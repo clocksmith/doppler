@@ -39,6 +39,14 @@ Public, but advanced and legacy-leaning compared with the root facade.
 - explicit `init()` / `loadModel()` lifecycle
 - model management and generation helpers share one provider state
 - capability state is exposed through `DopplerCapabilities` and `getCapabilities()`
+- `generate(...)` and `generateWithPrefixKV(...)` are streaming surfaces
+- `dopplerChat(...)` is the non-streaming chat helper and returns `{ content, usage }`
+
+## Fail-fast rules
+
+- `generate(...)` does not support `stopTokens` on this provider surface; use `stopSequences` instead
+- explicit `modelUrl` loads fail closed if the cached manifest cannot be verified against that source
+- background kernel auto-tuning requires explicit runtime opt-in via `runtime.shared.kernelWarmup.autoTune=true`
 
 ## Symbol Notes
 
@@ -82,10 +90,11 @@ Public, but advanced and legacy-leaning compared with the root facade.
 import { initDoppler, loadModel, generate } from '@simulatte/doppler/provider';
 
 await initDoppler();
-await loadModel('gemma-3-270m-it-wq4k-ef16-hf16');
+await loadModel('gemma-3-270m-it-q4k-ehf16-af32');
 
-const reply = await generate('Hello');
-console.log(reply);
+for await (const token of generate('Hello')) {
+  process.stdout.write(token);
+}
 ```
 
 ## Advanced Example
@@ -100,7 +109,7 @@ import {
 } from '@simulatte/doppler/provider';
 
 await initDoppler();
-await loadModel('gemma-3-270m-it-wq4k-ef16-hf16');
+await loadModel('gemma-3-270m-it-q4k-ehf16-af32');
 await loadLoRAAdapter('oneshift-twoshift-redshift-blueshift');
 
 const reply = await dopplerChat([

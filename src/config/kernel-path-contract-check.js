@@ -36,6 +36,11 @@ function normalizeRegistryEntry(entry, index) {
     ? entry.aliasOf.trim()
     : null;
   const hasFile = typeof entry.file === 'string' && entry.file.trim() !== '';
+  if (aliasOf && hasFile) {
+    throw new Error(
+      `kernel-path contract: entries[${index}] must not include both file and aliasOf.`
+    );
+  }
   if (!aliasOf && !hasFile) {
     throw new Error(
       `kernel-path contract: entries[${index}] must include file or aliasOf.`

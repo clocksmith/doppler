@@ -1,5 +1,5 @@
 import { getKernelCapabilities } from '../device.js';
-import { acquireBuffer } from '../../memory/buffer-pool.js';
+import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { WORKGROUP_SIZES, VEC4_ELEMENTS_PER_WG } from './constants.js';
 import { unifiedKernelWrapper } from './utils.js';
 import { trace } from '../../debug/index.js';
@@ -76,6 +76,7 @@ async function _gather(
   const paddedHiddenSize = padToQ4KBlock(hiddenSize);
   const outputSize = numTokens * paddedHiddenSize * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'gather_output');
+  const ownedOutput = outputBuffer ? null : output;
 
   const uniforms = {
     num_tokens: numTokens,
@@ -94,16 +95,22 @@ async function _gather(
       ? Math.ceil((numTokens * hiddenSize) / VEC4_ELEMENTS_PER_WG)
       : Math.ceil((numTokens * hiddenSize) / WORKGROUP_SIZES.DEFAULT));
 
-  await unifiedKernelWrapper(
-    'gather',
-    target,
-    variant,
-    [indices, embeddings, output],
-    uniforms,
-    workgroups
-  );
-
-  return createTensor(output, actualDtype, [numTokens, hiddenSize], 'gather_output');
+  try {
+    await unifiedKernelWrapper(
+      'gather',
+      target,
+      variant,
+      [indices, embeddings, output],
+      uniforms,
+      workgroups
+    );
+    return createTensor(output, actualDtype, [numTokens, hiddenSize], 'gather_output');
+  } catch (error) {
+    if (ownedOutput) {
+      releaseBuffer(ownedOutput);
+    }
+    throw error;
+  }
 }
 
 export async function runGather(

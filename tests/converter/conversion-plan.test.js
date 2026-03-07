@@ -28,7 +28,7 @@ const embeddingComputeF32Config = createConverterConfig({
       weights: 'f16',
       embeddings: 'f32',
       compute: 'f16',
-      variantTag: 'wf16-ef32',
+      variantTag: 'f16-ehf32',
     },
     [
       { name: 'embed_tokens.weight', role: 'embedding', dtype: 'F16' },
@@ -37,7 +37,7 @@ const embeddingComputeF32Config = createConverterConfig({
   );
   assert.equal(reconciled.weights, 'f16');
   assert.equal(reconciled.embeddings, 'f16');
-  assert.equal(reconciled.variantTag, 'wf16');
+  assert.equal(reconciled.variantTag, 'f16');
 }
 
 {
@@ -194,6 +194,34 @@ const embeddingComputeF32Config = createConverterConfig({
       { weights: 'q4k', compute: 'f16', layout: 'col' }
     ),
     /Add an explicit dequant kernel path mapping to the preset instead of relying on JS rewrites/
+  );
+}
+
+{
+  assert.throws(
+    () => resolveConversionPlan({
+      rawConfig: {
+        model_type: 'gemma3_text',
+        architectures: ['Gemma3ForCausalLM'],
+        hidden_size: 640,
+        num_attention_heads: 4,
+        num_hidden_layers: 18,
+      },
+      tensors: [
+        { name: 'model.embed_tokens.weight', dtype: 'F16' },
+        { name: 'model.layers.0.self_attn.q_proj.weight', dtype: 'F16' },
+      ],
+      converterConfig: createConverterConfig({
+        quantization: {
+          weights: 'q4k',
+          q4kLayout: 'diagonal',
+        },
+      }),
+      modelKind: 'transformer',
+      architectureHint: 'Gemma3ForCausalLM',
+      architectureConfig: { headDim: 256 },
+    }),
+    /converter\.quantization\.q4kLayout must be "row" or "col"/
   );
 }
 
@@ -409,6 +437,13 @@ const embeddingComputeF32Config = createConverterConfig({
 
 {
   const invalidNonExecutionSessionDefaultsConfig = createConverterConfig({
+    quantization: {
+      weights: 'q4k',
+      embeddings: 'f16',
+      lmHead: 'f16',
+      computePrecision: 'f32',
+      q4kLayout: 'row',
+    },
     inference: {
       sessionDefaults: {
         compute: {
@@ -693,7 +728,7 @@ const embeddingComputeF32Config = createConverterConfig({
   assert.equal(plan.quantizationInfo.weights, 'f16');
   assert.equal(plan.quantizationInfo.embeddings, 'f16');
   assert.equal(plan.quantizationInfo.compute, 'f16');
-  assert.equal(plan.quantizationInfo.variantTag, 'wf16');
+  assert.equal(plan.quantizationInfo.variantTag, 'f16');
   assert.equal(plan.manifestInference?.defaultKernelPath, 'gemma3-f16-fused-f16a-online');
   assert.equal(plan.manifestInference?.output?.tieWordEmbeddings, true);
   assert.equal(plan.manifestInference?.output?.scaleEmbeddings, true);
@@ -969,7 +1004,7 @@ const embeddingComputeF32Config = createConverterConfig({
   });
   assert.equal(plan.quantizationInfo.weights, 'q4k');
   assert.equal(plan.quantizationInfo.layout, 'row');
-  assert.equal(plan.quantizationInfo.variantTag, 'wq4k-ef16');
+  assert.equal(plan.quantizationInfo.variantTag, 'q4k-ehaf16');
   assert.equal(plan.manifestInference?.defaultKernelPath, 'gemma3-q4k-dequant-f16a-online');
 }
 
@@ -1144,7 +1179,7 @@ const embeddingComputeF32Config = createConverterConfig({
     presetOverride: 'llama3',
   });
   assert.equal(plan.quantizationInfo.embeddings, 'f16');
-  assert.equal(plan.quantizationInfo.variantTag, 'wq4k-ef16');
+  assert.equal(plan.quantizationInfo.variantTag, 'q4k-ehaf16');
 }
 
 {
@@ -1152,7 +1187,7 @@ const embeddingComputeF32Config = createConverterConfig({
     explicitModelId: null,
     converterConfig,
     detectedModelId: 'Flux.2-Klein-4B',
-    quantizationInfo: { variantTag: 'wf16' },
+    quantizationInfo: { variantTag: 'f16' },
   });
   assert.equal(typeof modelId, 'string');
   assert.ok(modelId.includes('flux-2-klein-4b'));

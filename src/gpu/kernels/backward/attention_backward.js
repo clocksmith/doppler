@@ -14,23 +14,15 @@ async function ensureF32(tensor, recorder = null) {
   if (!recorder) {
     return castF16ToF32(tensor);
   }
-  const casted = await recordCastF16ToF32(recorder, tensor);
-  recorder.trackTemporaryBuffer(casted.buffer);
-  return casted;
+  return recordCastF16ToF32(recorder, tensor);
 }
 
-function createHeadSliceBuffers(recorder, headBytes, softmaxBytes) {
+function createHeadSliceBuffers(headBytes, softmaxBytes) {
   const qHeadBuf = acquireBuffer(headBytes, undefined, 'attn_q_head');
   const kHeadBuf = acquireBuffer(headBytes, undefined, 'attn_k_head');
   const vHeadBuf = acquireBuffer(headBytes, undefined, 'attn_v_head');
   const sHeadBuf = acquireBuffer(softmaxBytes, undefined, 'attn_s_head');
   const dHeadBuf = acquireBuffer(headBytes, undefined, 'attn_d_head');
-
-  recorder.trackTemporaryBuffer(qHeadBuf);
-  recorder.trackTemporaryBuffer(kHeadBuf);
-  recorder.trackTemporaryBuffer(vHeadBuf);
-  recorder.trackTemporaryBuffer(sHeadBuf);
-  recorder.trackTemporaryBuffer(dHeadBuf);
 
   return { qHeadBuf, kHeadBuf, vHeadBuf, sHeadBuf, dHeadBuf };
 }
@@ -76,21 +68,22 @@ async function runAttentionBackwardCore(
   }
 
   const ownedInputTensors = [];
+  const ownedRecorderInputTensors = [];
   const qTensor = !recorder
     ? maybeTrackOwnedTensor(ownedInputTensors, q, await ensureF32(q))
-    : await ensureF32(q, recorder);
+    : maybeTrackOwnedTensor(ownedRecorderInputTensors, q, await ensureF32(q, recorder));
   const kTensor = !recorder
     ? maybeTrackOwnedTensor(ownedInputTensors, k, await ensureF32(k))
-    : await ensureF32(k, recorder);
+    : maybeTrackOwnedTensor(ownedRecorderInputTensors, k, await ensureF32(k, recorder));
   const vTensor = !recorder
     ? maybeTrackOwnedTensor(ownedInputTensors, v, await ensureF32(v))
-    : await ensureF32(v, recorder);
+    : maybeTrackOwnedTensor(ownedRecorderInputTensors, v, await ensureF32(v, recorder));
   const sTensor = !recorder
     ? maybeTrackOwnedTensor(ownedInputTensors, softmax, await ensureF32(softmax))
-    : await ensureF32(softmax, recorder);
+    : maybeTrackOwnedTensor(ownedRecorderInputTensors, softmax, await ensureF32(softmax, recorder));
   const dTensor = !recorder
     ? maybeTrackOwnedTensor(ownedInputTensors, gradOutput, await ensureF32(gradOutput))
-    : await ensureF32(gradOutput, recorder);
+    : maybeTrackOwnedTensor(ownedRecorderInputTensors, gradOutput, await ensureF32(gradOutput, recorder));
 
   const headElements = seqLen * headDim;
   const headBytes = headElements * dtypeBytes(qTensor.dtype);
@@ -212,69 +205,97 @@ async function runAttentionBackwardCore(
         const sOffset = h * softmaxBytes;
 
         const { qHeadBuf, kHeadBuf, vHeadBuf, sHeadBuf, dHeadBuf } = createHeadSliceBuffers(
-          recorder,
           headBytes,
           softmaxBytes
         );
+        const headBuffers = [qHeadBuf, kHeadBuf, vHeadBuf, sHeadBuf, dHeadBuf];
+        let sTransposed = null;
+        let dV = null;
+        let vTransposed = null;
+        let dS = null;
+        let dQK = null;
+        let dQ = null;
+        let dQKTransposed = null;
+        let dK = null;
 
-        encoder.copyBufferToBuffer(qTensor.buffer, qOffset, qHeadBuf, 0, headBytes);
-        encoder.copyBufferToBuffer(kTensor.buffer, kOffset, kHeadBuf, 0, headBytes);
-        encoder.copyBufferToBuffer(vTensor.buffer, vOffset, vHeadBuf, 0, headBytes);
-        encoder.copyBufferToBuffer(sTensor.buffer, sOffset, sHeadBuf, 0, softmaxBytes);
-        encoder.copyBufferToBuffer(dTensor.buffer, dOffset, dHeadBuf, 0, headBytes);
+        try {
+          encoder.copyBufferToBuffer(qTensor.buffer, qOffset, qHeadBuf, 0, headBytes);
+          encoder.copyBufferToBuffer(kTensor.buffer, kOffset, kHeadBuf, 0, headBytes);
+          encoder.copyBufferToBuffer(vTensor.buffer, vOffset, vHeadBuf, 0, headBytes);
+          encoder.copyBufferToBuffer(sTensor.buffer, sOffset, sHeadBuf, 0, softmaxBytes);
+          encoder.copyBufferToBuffer(dTensor.buffer, dOffset, dHeadBuf, 0, headBytes);
 
-        const { qHead, kHead, vHead, sHead, dHead } = createHeadTensors(
-          qHeadBuf,
-          kHeadBuf,
-          vHeadBuf,
-          sHeadBuf,
-          dHeadBuf,
-          seqLen,
-          headDim
-        );
+          const { qHead, kHead, vHead, sHead, dHead } = createHeadTensors(
+            qHeadBuf,
+            kHeadBuf,
+            vHeadBuf,
+            sHeadBuf,
+            dHeadBuf,
+            seqLen,
+            headDim
+          );
 
-        const sTransposed = await recordTranspose(recorder, sHead, seqLen, seqLen);
-        const dV = await recordMatmul(recorder, sTransposed, dHead.buffer, seqLen, headDim, seqLen, {
-          transposeB: false,
-          bDtype: 'f32',
-        });
+          sTransposed = await recordTranspose(recorder, sHead, seqLen, seqLen);
+          dV = await recordMatmul(recorder, sTransposed, dHead.buffer, seqLen, headDim, seqLen, {
+            transposeB: false,
+            bDtype: 'f32',
+          });
 
-        const vTransposed = await recordTranspose(recorder, vHead, seqLen, headDim);
-        const dS = await recordMatmul(recorder, dHead, vTransposed.buffer, seqLen, seqLen, headDim, {
-          transposeB: false,
-          bDtype: 'f32',
-        });
-        const dQK = causal
-          ? await recordBackwardKernel(
-            recorder,
-            'attention_backward',
-            sHead,
-            dS,
-            16,
-            (view) => {
-              view.setUint32(0, seqLen, true);
-              view.setUint32(4, seqLen, true);
-              view.setUint32(8, 1, true);
-            }
-          )
-          : await recordSoftmaxBackward(recorder, sHead, dS, { rows: seqLen, cols: seqLen });
+          vTransposed = await recordTranspose(recorder, vHead, seqLen, headDim);
+          dS = await recordMatmul(recorder, dHead, vTransposed.buffer, seqLen, seqLen, headDim, {
+            transposeB: false,
+            bDtype: 'f32',
+          });
+          dQK = causal
+            ? await recordBackwardKernel(
+              recorder,
+              'attention_backward',
+              sHead,
+              dS,
+              16,
+              (view) => {
+                view.setUint32(0, seqLen, true);
+                view.setUint32(4, seqLen, true);
+                view.setUint32(8, 1, true);
+              }
+            )
+            : await recordSoftmaxBackward(recorder, sHead, dS, { rows: seqLen, cols: seqLen });
 
-        const dQ = await recordMatmul(recorder, dQK, kHead.buffer, seqLen, headDim, seqLen, {
-          transposeB: false,
-          alpha: scale,
-          bDtype: 'f32',
-        });
-        const dQKTransposed = await recordTranspose(recorder, dQK, seqLen, seqLen);
-        const dK = await recordMatmul(recorder, dQKTransposed, qHead.buffer, seqLen, headDim, seqLen, {
-          transposeB: false,
-          alpha: scale,
-          bDtype: 'f32',
-        });
+          dQ = await recordMatmul(recorder, dQK, kHead.buffer, seqLen, headDim, seqLen, {
+            transposeB: false,
+            alpha: scale,
+            bDtype: 'f32',
+          });
+          dQKTransposed = await recordTranspose(recorder, dQK, seqLen, seqLen);
+          dK = await recordMatmul(recorder, dQKTransposed, qHead.buffer, seqLen, headDim, seqLen, {
+            transposeB: false,
+            alpha: scale,
+            bDtype: 'f32',
+          });
 
-        encoder.copyBufferToBuffer(dQ.buffer, 0, gradQBuf, qOffset, headBytes);
-        encoder.copyBufferToBuffer(dK.buffer, 0, gradKBuf, kOffset, headBytes);
-        encoder.copyBufferToBuffer(dV.buffer, 0, gradVBuf, vOffset, headBytes);
+          encoder.copyBufferToBuffer(dQ.buffer, 0, gradQBuf, qOffset, headBytes);
+          encoder.copyBufferToBuffer(dK.buffer, 0, gradKBuf, kOffset, headBytes);
+          encoder.copyBufferToBuffer(dV.buffer, 0, gradVBuf, vOffset, headBytes);
+        } catch (error) {
+          releaseTensorBuffer(sTransposed);
+          releaseTensorBuffer(dV);
+          releaseTensorBuffer(vTransposed);
+          releaseTensorBuffer(dS);
+          releaseTensorBuffer(dQK);
+          releaseTensorBuffer(dQ);
+          releaseTensorBuffer(dQKTransposed);
+          releaseTensorBuffer(dK);
+          releaseBuffer(qHeadBuf);
+          releaseBuffer(kHeadBuf);
+          releaseBuffer(vHeadBuf);
+          releaseBuffer(sHeadBuf);
+          releaseBuffer(dHeadBuf);
+          throw error;
+        }
 
+        for (const buffer of headBuffers) {
+          recorder.trackTemporaryBuffer(buffer);
+        }
         trackTensorBuffer(recorder, sTransposed);
         trackTensorBuffer(recorder, dV);
         trackTensorBuffer(recorder, vTransposed);
@@ -283,6 +304,11 @@ async function runAttentionBackwardCore(
         trackTensorBuffer(recorder, dQ);
         trackTensorBuffer(recorder, dQKTransposed);
         trackTensorBuffer(recorder, dK);
+      }
+    }
+    if (recorder) {
+      for (const tensor of ownedRecorderInputTensors) {
+        trackTensorBuffer(recorder, tensor);
       }
     }
     completed = true;
@@ -299,6 +325,10 @@ async function runAttentionBackwardCore(
     }
     if (!recorder) {
       for (const tensor of ownedInputTensors) {
+        releaseTensorBuffer(tensor);
+      }
+    } else {
+      for (const tensor of ownedRecorderInputTensors) {
         releaseTensorBuffer(tensor);
       }
     }

@@ -33,6 +33,9 @@ class FakeBuffer {
   }
 }
 
+const ORIGINAL_GPU_BUFFER = globalThis.GPUBuffer;
+globalThis.GPUBuffer = FakeBuffer;
+
 function createDeferred() {
   let resolve;
   let reject;
@@ -156,3 +159,8 @@ async function flushMicrotasks() {
 
 setDevice(null);
 console.log('logit-merge-cleanup.test: ok');
+if (ORIGINAL_GPU_BUFFER === undefined) {
+  delete globalThis.GPUBuffer;
+} else {
+  globalThis.GPUBuffer = ORIGINAL_GPU_BUFFER;
+}

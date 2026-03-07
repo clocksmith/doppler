@@ -2,6 +2,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 const root = process.cwd();
 const agentsPath = path.join(root, 'AGENTS.md');
@@ -13,6 +14,12 @@ const maxAgeDays = Number.parseInt(
   10
 );
 const effectiveMaxAge = Number.isFinite(maxAgeDays) && maxAgeDays > 0 ? maxAgeDays : 0;
+
+export const REQUIRED_SKILL_SYMLINKS = Object.freeze([
+  ['.claude/skills', '../skills'],
+  ['.gemini/skills', '../skills'],
+  ['.codex/skills', '../skills'],
+]);
 
 function rel(p) {
   return path.relative(root, p);
@@ -212,8 +219,9 @@ function main() {
 
   checkSymlink('CLAUDE.md', 'AGENTS.md', issues);
   checkSymlink('GEMINI.md', 'AGENTS.md', issues);
-  checkSymlink('.claude/skills', '../skills', issues);
-  checkSymlink('.gemini/skills', '../skills', issues);
+  for (const [linkPath, target] of REQUIRED_SKILL_SYMLINKS) {
+    checkSymlink(linkPath, target, issues);
+  }
 
   ensureSkillFiles(issues);
   ensureScripts(issues);
@@ -254,4 +262,6 @@ function main() {
   else process.exitCode = 0;
 }
 
-main();
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main();
+}

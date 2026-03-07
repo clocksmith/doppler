@@ -19,6 +19,18 @@ function fillRandom(data, rng) {
   for (let i = 0; i < data.length; i++) data[i] = rng();
 }
 
+function destroyBuffer(buffer) {
+  if (buffer && typeof buffer.destroy === 'function') {
+    buffer.destroy();
+  }
+}
+
+function destroyBuffers(...buffers) {
+  for (const buffer of buffers) {
+    destroyBuffer(buffer);
+  }
+}
+
 
 export async function benchmarkPipeline(
   device,
@@ -98,7 +110,6 @@ export async function tuneMatmul(
     deviceInfo: capabilities?.adapterInfo,
   };
 
-  // Create test buffers
   const bufferA = device.createBuffer({
     size: M * K * 4,
     usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
@@ -112,92 +123,85 @@ export async function tuneMatmul(
     usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
   });
 
-  // Initialize with random data
-  const dataA = new Float32Array(M * K);
-  const dataB = new Float32Array(K * N);
-  const matmulRng = createRng(0x13579bdf);
-  fillRandom(dataA, matmulRng);
-  fillRandom(dataB, matmulRng);
-  device.queue.writeBuffer(bufferA, 0, dataA);
-  device.queue.writeBuffer(bufferB, 0, dataB);
+  try {
+    const dataA = new Float32Array(M * K);
+    const dataB = new Float32Array(K * N);
+    const matmulRng = createRng(0x13579bdf);
+    fillRandom(dataA, matmulRng);
+    fillRandom(dataB, matmulRng);
+    device.queue.writeBuffer(bufferA, 0, dataA);
+    device.queue.writeBuffer(bufferB, 0, dataB);
 
-  for (const [wgX, wgY] of matmulCandidates) {
-    try {
-      // Create shader with this workgroup size
-      const shader = createMatmulShader(wgX, wgY);
-      const pipeline = await createComputePipeline(device, shader, 'main');
+    for (const [wgX, wgY] of matmulCandidates) {
+      let uniformBuffer = null;
+      try {
+        const shader = createMatmulShader(wgX, wgY);
+        const pipeline = await createComputePipeline(device, shader, 'main');
 
-      // Create bind group
-      const uniformBuffer = device.createBuffer({
-        size: 16,
-        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-      });
-      const uniformData = new Uint32Array([M, N, K, 0]);
-      device.queue.writeBuffer(uniformBuffer, 0, uniformData);
+        uniformBuffer = device.createBuffer({
+          size: 16,
+          usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+        });
+        const uniformData = new Uint32Array([M, N, K, 0]);
+        device.queue.writeBuffer(uniformBuffer, 0, uniformData);
 
-      const bindGroup = device.createBindGroup({
-        layout: pipeline.getBindGroupLayout(0),
-        entries: [
-          { binding: 0, resource: { buffer: uniformBuffer } },
-          { binding: 1, resource: { buffer: bufferA } },
-          { binding: 2, resource: { buffer: bufferB } },
-          { binding: 3, resource: { buffer: bufferC } },
-        ],
-      });
+        const bindGroup = device.createBindGroup({
+          layout: pipeline.getBindGroupLayout(0),
+          entries: [
+            { binding: 0, resource: { buffer: uniformBuffer } },
+            { binding: 1, resource: { buffer: bufferA } },
+            { binding: 2, resource: { buffer: bufferB } },
+            { binding: 3, resource: { buffer: bufferC } },
+          ],
+        });
 
-      // Warmup
-      for (let i = 0; i < warmup; i++) {
-        const encoder = device.createCommandEncoder();
-        const pass = encoder.beginComputePass();
-        pass.setPipeline(pipeline);
-        pass.setBindGroup(0, bindGroup);
-        pass.dispatchWorkgroups(Math.ceil(M / wgX), Math.ceil(N / wgY));
-        pass.end();
-        device.queue.submit([encoder.finish()]);
-      }
-      await device.queue.onSubmittedWorkDone();
-
-      // Benchmark
-      
-      const times = [];
-      for (let i = 0; i < iterations; i++) {
-        const start = performance.now();
-        const encoder = device.createCommandEncoder();
-        const pass = encoder.beginComputePass();
-        pass.setPipeline(pipeline);
-        pass.setBindGroup(0, bindGroup);
-        pass.dispatchWorkgroups(Math.ceil(M / wgX), Math.ceil(N / wgY));
-        pass.end();
-        device.queue.submit([encoder.finish()]);
+        for (let i = 0; i < warmup; i++) {
+          const encoder = device.createCommandEncoder();
+          const pass = encoder.beginComputePass();
+          pass.setPipeline(pipeline);
+          pass.setBindGroup(0, bindGroup);
+          pass.dispatchWorkgroups(Math.ceil(M / wgX), Math.ceil(N / wgY));
+          pass.end();
+          device.queue.submit([encoder.finish()]);
+        }
         await device.queue.onSubmittedWorkDone();
-        times.push(performance.now() - start);
+
+        const times = [];
+        for (let i = 0; i < iterations; i++) {
+          const start = performance.now();
+          const encoder = device.createCommandEncoder();
+          const pass = encoder.beginComputePass();
+          pass.setPipeline(pipeline);
+          pass.setBindGroup(0, bindGroup);
+          pass.dispatchWorkgroups(Math.ceil(M / wgX), Math.ceil(N / wgY));
+          pass.end();
+          device.queue.submit([encoder.finish()]);
+          await device.queue.onSubmittedWorkDone();
+          times.push(performance.now() - start);
+        }
+
+        const avgTime = times.reduce((a, b) => a + b, 0) / times.length;
+        const flops = 2 * M * N * K;
+        const gflops = (flops / avgTime) / 1e6;
+
+        if (avgTime < best.timeMs) {
+          best = {
+            optimalWorkgroupSize: [wgX, wgY, 1],
+            optimalTileSize: wgX,
+            throughput: gflops,
+            timeMs: avgTime,
+            deviceInfo: capabilities?.adapterInfo,
+          };
+        }
+      } catch (e) {
+        continue;
+      } finally {
+        destroyBuffer(uniformBuffer);
       }
-
-      const avgTime = times.reduce((a, b) => a + b, 0) / times.length;
-      const flops = 2 * M * N * K; // multiply-add = 2 ops
-      const gflops = (flops / avgTime) / 1e6; // GFLOPS
-
-      if (avgTime < best.timeMs) {
-        best = {
-          optimalWorkgroupSize: [wgX, wgY, 1],
-          optimalTileSize: wgX,
-          throughput: gflops,
-          timeMs: avgTime,
-          deviceInfo: capabilities?.adapterInfo,
-        };
-      }
-
-      uniformBuffer.destroy();
-    } catch (e) {
-      // Skip invalid configurations
-      continue;
     }
+  } finally {
+    destroyBuffers(bufferA, bufferB, bufferC);
   }
-
-  // Cleanup
-  bufferA.destroy();
-  bufferB.destroy();
-  bufferC.destroy();
 
   return best;
 }
@@ -277,67 +281,68 @@ export async function tuneAttention(
     usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
   });
 
-  const dataQ = new Float32Array(totalElements);
-  const dataK = new Float32Array(totalElements);
-  const attentionRng = createRng(0x2468ace1);
-  fillRandom(dataQ, attentionRng);
-  fillRandom(dataK, attentionRng);
-  device.queue.writeBuffer(bufferQ, 0, dataQ);
-  device.queue.writeBuffer(bufferK, 0, dataK);
+  try {
+    const dataQ = new Float32Array(totalElements);
+    const dataK = new Float32Array(totalElements);
+    const attentionRng = createRng(0x2468ace1);
+    fillRandom(dataQ, attentionRng);
+    fillRandom(dataK, attentionRng);
+    device.queue.writeBuffer(bufferQ, 0, dataQ);
+    device.queue.writeBuffer(bufferK, 0, dataK);
 
-  for (const [wgX] of attentionCandidates) {
-    try {
-      const shader = createAttentionShader(wgX);
-      const pipeline = await createComputePipeline(device, shader, 'main');
+    for (const [wgX] of attentionCandidates) {
+      let uniformBuffer = null;
+      try {
+        const shader = createAttentionShader(wgX);
+        const pipeline = await createComputePipeline(device, shader, 'main');
 
-      const uniformBuffer = device.createBuffer({
-        size: 16,
-        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-      });
-      const uniformData = new Uint32Array([headDim, numHeads, benchSeqLen, 0]);
-      device.queue.writeBuffer(uniformBuffer, 0, uniformData);
+        uniformBuffer = device.createBuffer({
+          size: 16,
+          usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+        });
+        const uniformData = new Uint32Array([headDim, numHeads, benchSeqLen, 0]);
+        device.queue.writeBuffer(uniformBuffer, 0, uniformData);
 
-      const bindGroup = device.createBindGroup({
-        layout: pipeline.getBindGroupLayout(0),
-        entries: [
-          { binding: 0, resource: { buffer: uniformBuffer } },
-          { binding: 1, resource: { buffer: bufferQ } },
-          { binding: 2, resource: { buffer: bufferK } },
-          { binding: 3, resource: { buffer: bufferOut } },
-        ],
-      });
+        const bindGroup = device.createBindGroup({
+          layout: pipeline.getBindGroupLayout(0),
+          entries: [
+            { binding: 0, resource: { buffer: uniformBuffer } },
+            { binding: 1, resource: { buffer: bufferQ } },
+            { binding: 2, resource: { buffer: bufferK } },
+            { binding: 3, resource: { buffer: bufferOut } },
+          ],
+        });
 
-      const avgTime = await benchmarkPipeline(
-        device,
-        pipeline,
-        bindGroup,
-        [totalHeads, 1, 1],
-        warmup,
-        iterations
-      );
+        const avgTime = await benchmarkPipeline(
+          device,
+          pipeline,
+          bindGroup,
+          [totalHeads, 1, 1],
+          warmup,
+          iterations
+        );
 
-      const flops = 2 * totalHeads * headDim;
-      const gflops = avgTime > 0 ? (flops / avgTime) / 1e6 : 0;
+        const flops = 2 * totalHeads * headDim;
+        const gflops = avgTime > 0 ? (flops / avgTime) / 1e6 : 0;
 
-      if (avgTime < best.timeMs) {
-        best = {
-          optimalWorkgroupSize: [wgX, 1, 1],
-          optimalTileSize: wgX,
-          throughput: gflops,
-          timeMs: avgTime,
-          deviceInfo: capabilities?.adapterInfo,
-        };
+        if (avgTime < best.timeMs) {
+          best = {
+            optimalWorkgroupSize: [wgX, 1, 1],
+            optimalTileSize: wgX,
+            throughput: gflops,
+            timeMs: avgTime,
+            deviceInfo: capabilities?.adapterInfo,
+          };
+        }
+      } catch (e) {
+        continue;
+      } finally {
+        destroyBuffer(uniformBuffer);
       }
-
-      uniformBuffer.destroy();
-    } catch (e) {
-      continue;
     }
+  } finally {
+    destroyBuffers(bufferQ, bufferK, bufferOut);
   }
-
-  bufferQ.destroy();
-  bufferK.destroy();
-  bufferOut.destroy();
 
   return best;
 }
@@ -437,62 +442,64 @@ export async function tuneSoftmax(
     usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
   });
 
-  const dataIn = new Float32Array(totalElements);
-  const softmaxRng = createRng(0x31415926);
-  fillRandom(dataIn, softmaxRng);
-  device.queue.writeBuffer(bufferIn, 0, dataIn);
+  try {
+    const dataIn = new Float32Array(totalElements);
+    const softmaxRng = createRng(0x31415926);
+    fillRandom(dataIn, softmaxRng);
+    device.queue.writeBuffer(bufferIn, 0, dataIn);
 
-  for (const [wgX] of softmaxCandidates) {
-    try {
-      const shader = createSoftmaxShader(wgX);
-      const pipeline = await createComputePipeline(device, shader, 'main');
+    for (const [wgX] of softmaxCandidates) {
+      let uniformBuffer = null;
+      try {
+        const shader = createSoftmaxShader(wgX);
+        const pipeline = await createComputePipeline(device, shader, 'main');
 
-      const uniformBuffer = device.createBuffer({
-        size: 16,
-        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-      });
-      const uniformData = new Uint32Array([innerSize, outerSize, 0, 0]);
-      device.queue.writeBuffer(uniformBuffer, 0, uniformData);
+        uniformBuffer = device.createBuffer({
+          size: 16,
+          usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+        });
+        const uniformData = new Uint32Array([innerSize, outerSize, 0, 0]);
+        device.queue.writeBuffer(uniformBuffer, 0, uniformData);
 
-      const bindGroup = device.createBindGroup({
-        layout: pipeline.getBindGroupLayout(0),
-        entries: [
-          { binding: 0, resource: { buffer: uniformBuffer } },
-          { binding: 1, resource: { buffer: bufferIn } },
-          { binding: 2, resource: { buffer: bufferOut } },
-        ],
-      });
+        const bindGroup = device.createBindGroup({
+          layout: pipeline.getBindGroupLayout(0),
+          entries: [
+            { binding: 0, resource: { buffer: uniformBuffer } },
+            { binding: 1, resource: { buffer: bufferIn } },
+            { binding: 2, resource: { buffer: bufferOut } },
+          ],
+        });
 
-      const avgTime = await benchmarkPipeline(
-        device,
-        pipeline,
-        bindGroup,
-        [outerSize, 1, 1],
-        warmup,
-        iterations
-      );
+        const avgTime = await benchmarkPipeline(
+          device,
+          pipeline,
+          bindGroup,
+          [outerSize, 1, 1],
+          warmup,
+          iterations
+        );
 
-      const ops = 2 * totalElements;
-      const gops = avgTime > 0 ? (ops / avgTime) / 1e6 : 0;
+        const ops = 2 * totalElements;
+        const gops = avgTime > 0 ? (ops / avgTime) / 1e6 : 0;
 
-      if (avgTime < best.timeMs) {
-        best = {
-          optimalWorkgroupSize: [wgX, 1, 1],
-          optimalTileSize: wgX,
-          throughput: gops,
-          timeMs: avgTime,
-          deviceInfo: capabilities?.adapterInfo,
-        };
+        if (avgTime < best.timeMs) {
+          best = {
+            optimalWorkgroupSize: [wgX, 1, 1],
+            optimalTileSize: wgX,
+            throughput: gops,
+            timeMs: avgTime,
+            deviceInfo: capabilities?.adapterInfo,
+          };
+        }
+      } catch (e) {
+        continue;
+      } finally {
+        destroyBuffer(uniformBuffer);
       }
-
-      uniformBuffer.destroy();
-    } catch (e) {
-      continue;
     }
+  } finally {
+    destroyBuffers(bufferIn, bufferOut);
   }
-
-  bufferIn.destroy();
-  bufferOut.destroy();
 
   return best;
 }
@@ -620,72 +627,73 @@ export async function tuneRMSNorm(
     usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
   });
 
-  const dataIn = new Float32Array(totalElements);
-  const dataWeight = new Float32Array(hiddenSize);
-  const rmsRng = createRng(0x27182818);
-  fillRandom(dataIn, rmsRng);
-  fillRandom(dataWeight, rmsRng);
-  device.queue.writeBuffer(bufferIn, 0, dataIn);
-  device.queue.writeBuffer(bufferWeight, 0, dataWeight);
+  try {
+    const dataIn = new Float32Array(totalElements);
+    const dataWeight = new Float32Array(hiddenSize);
+    const rmsRng = createRng(0x27182818);
+    fillRandom(dataIn, rmsRng);
+    fillRandom(dataWeight, rmsRng);
+    device.queue.writeBuffer(bufferIn, 0, dataIn);
+    device.queue.writeBuffer(bufferWeight, 0, dataWeight);
 
-  for (const [wgX] of rmsCandidates) {
-    try {
-      const shader = createRMSNormShader(wgX);
-      const pipeline = await createComputePipeline(device, shader, 'main');
+    for (const [wgX] of rmsCandidates) {
+      let uniformBuffer = null;
+      try {
+        const shader = createRMSNormShader(wgX);
+        const pipeline = await createComputePipeline(device, shader, 'main');
 
-      const uniformBuffer = device.createBuffer({
-        size: 16,
-        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-      });
-      const uniformData = new ArrayBuffer(16);
-      const uniformView = new DataView(uniformData);
-      uniformView.setUint32(0, hiddenSize, true);
-      uniformView.setUint32(4, numTokens, true);
-      uniformView.setFloat32(8, DEFAULT_RMS_NORM_EPS, true);
-      uniformView.setUint32(12, 0, true);
-      device.queue.writeBuffer(uniformBuffer, 0, uniformData);
+        uniformBuffer = device.createBuffer({
+          size: 16,
+          usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+        });
+        const uniformData = new ArrayBuffer(16);
+        const uniformView = new DataView(uniformData);
+        uniformView.setUint32(0, hiddenSize, true);
+        uniformView.setUint32(4, numTokens, true);
+        uniformView.setFloat32(8, DEFAULT_RMS_NORM_EPS, true);
+        uniformView.setUint32(12, 0, true);
+        device.queue.writeBuffer(uniformBuffer, 0, uniformData);
 
-      const bindGroup = device.createBindGroup({
-        layout: pipeline.getBindGroupLayout(0),
-        entries: [
-          { binding: 0, resource: { buffer: uniformBuffer } },
-          { binding: 1, resource: { buffer: bufferIn } },
-          { binding: 2, resource: { buffer: bufferWeight } },
-          { binding: 3, resource: { buffer: bufferOut } },
-        ],
-      });
+        const bindGroup = device.createBindGroup({
+          layout: pipeline.getBindGroupLayout(0),
+          entries: [
+            { binding: 0, resource: { buffer: uniformBuffer } },
+            { binding: 1, resource: { buffer: bufferIn } },
+            { binding: 2, resource: { buffer: bufferWeight } },
+            { binding: 3, resource: { buffer: bufferOut } },
+          ],
+        });
 
-      const avgTime = await benchmarkPipeline(
-        device,
-        pipeline,
-        bindGroup,
-        [numTokens, 1, 1],
-        warmup,
-        iterations
-      );
+        const avgTime = await benchmarkPipeline(
+          device,
+          pipeline,
+          bindGroup,
+          [numTokens, 1, 1],
+          warmup,
+          iterations
+        );
 
-      const ops = 2 * totalElements;
-      const gops = avgTime > 0 ? (ops / avgTime) / 1e6 : 0;
+        const ops = 2 * totalElements;
+        const gops = avgTime > 0 ? (ops / avgTime) / 1e6 : 0;
 
-      if (avgTime < best.timeMs) {
-        best = {
-          optimalWorkgroupSize: [wgX, 1, 1],
-          optimalTileSize: wgX,
-          throughput: gops,
-          timeMs: avgTime,
-          deviceInfo: capabilities?.adapterInfo,
-        };
+        if (avgTime < best.timeMs) {
+          best = {
+            optimalWorkgroupSize: [wgX, 1, 1],
+            optimalTileSize: wgX,
+            throughput: gops,
+            timeMs: avgTime,
+            deviceInfo: capabilities?.adapterInfo,
+          };
+        }
+      } catch (e) {
+        continue;
+      } finally {
+        destroyBuffer(uniformBuffer);
       }
-
-      uniformBuffer.destroy();
-    } catch (e) {
-      continue;
     }
+  } finally {
+    destroyBuffers(bufferIn, bufferWeight, bufferOut);
   }
-
-  bufferIn.destroy();
-  bufferWeight.destroy();
-  bufferOut.destroy();
 
   return best;
 }
@@ -789,69 +797,71 @@ export async function tuneDequant(
     usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
   });
 
-  const dataIn = new Uint32Array(numElements);
-  for (let i = 0; i < numElements; i++) {
-    dataIn[i] = i & 0xffff;
-  }
-  device.queue.writeBuffer(bufferIn, 0, dataIn);
-
-  for (const [wgX] of dequantCandidates) {
-    try {
-      const shader = createDequantShader(wgX);
-      const pipeline = await createComputePipeline(device, shader, 'main');
-
-      const uniformBuffer = device.createBuffer({
-        size: 16,
-        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-      });
-      const uniformData = new ArrayBuffer(16);
-      const uniformView = new DataView(uniformData);
-      uniformView.setUint32(0, numElements, true);
-      uniformView.setFloat32(4, 0.01, true);
-      uniformView.setUint32(8, 0, true);
-      uniformView.setUint32(12, 0, true);
-      device.queue.writeBuffer(uniformBuffer, 0, uniformData);
-
-      const bindGroup = device.createBindGroup({
-        layout: pipeline.getBindGroupLayout(0),
-        entries: [
-          { binding: 0, resource: { buffer: uniformBuffer } },
-          { binding: 1, resource: { buffer: bufferIn } },
-          { binding: 2, resource: { buffer: bufferOut } },
-        ],
-      });
-
-      const workgroups = Math.ceil(numElements / wgX);
-      const avgTime = await benchmarkPipeline(
-        device,
-        pipeline,
-        bindGroup,
-        [workgroups, 1, 1],
-        warmup,
-        iterations
-      );
-
-      const ops = numElements;
-      const gops = avgTime > 0 ? (ops / avgTime) / 1e6 : 0;
-
-      if (avgTime < best.timeMs) {
-        best = {
-          optimalWorkgroupSize: [wgX, 1, 1],
-          optimalTileSize: wgX,
-          throughput: gops,
-          timeMs: avgTime,
-          deviceInfo: capabilities?.adapterInfo,
-        };
-      }
-
-      uniformBuffer.destroy();
-    } catch (e) {
-      continue;
+  try {
+    const dataIn = new Uint32Array(numElements);
+    for (let i = 0; i < numElements; i++) {
+      dataIn[i] = i & 0xffff;
     }
-  }
+    device.queue.writeBuffer(bufferIn, 0, dataIn);
 
-  bufferIn.destroy();
-  bufferOut.destroy();
+    for (const [wgX] of dequantCandidates) {
+      let uniformBuffer = null;
+      try {
+        const shader = createDequantShader(wgX);
+        const pipeline = await createComputePipeline(device, shader, 'main');
+
+        uniformBuffer = device.createBuffer({
+          size: 16,
+          usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+        });
+        const uniformData = new ArrayBuffer(16);
+        const uniformView = new DataView(uniformData);
+        uniformView.setUint32(0, numElements, true);
+        uniformView.setFloat32(4, 0.01, true);
+        uniformView.setUint32(8, 0, true);
+        uniformView.setUint32(12, 0, true);
+        device.queue.writeBuffer(uniformBuffer, 0, uniformData);
+
+        const bindGroup = device.createBindGroup({
+          layout: pipeline.getBindGroupLayout(0),
+          entries: [
+            { binding: 0, resource: { buffer: uniformBuffer } },
+            { binding: 1, resource: { buffer: bufferIn } },
+            { binding: 2, resource: { buffer: bufferOut } },
+          ],
+        });
+
+        const workgroups = Math.ceil(numElements / wgX);
+        const avgTime = await benchmarkPipeline(
+          device,
+          pipeline,
+          bindGroup,
+          [workgroups, 1, 1],
+          warmup,
+          iterations
+        );
+
+        const ops = numElements;
+        const gops = avgTime > 0 ? (ops / avgTime) / 1e6 : 0;
+
+        if (avgTime < best.timeMs) {
+          best = {
+            optimalWorkgroupSize: [wgX, 1, 1],
+            optimalTileSize: wgX,
+            throughput: gops,
+            timeMs: avgTime,
+            deviceInfo: capabilities?.adapterInfo,
+          };
+        }
+      } catch (e) {
+        continue;
+      } finally {
+        destroyBuffer(uniformBuffer);
+      }
+    }
+  } finally {
+    destroyBuffers(bufferIn, bufferOut);
+  }
 
   return best;
 }
