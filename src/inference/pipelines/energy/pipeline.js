@@ -19,7 +19,7 @@ import { registerPipeline } from '../registry.js';
 import { applyPipelineContexts, restorePipelineContexts } from '../context.js';
 import { createInitializedPipeline } from '../factory.js';
 import { createRng, sampleNormal } from '../rng.js';
-import { mergeQuintelConfig, runQuintelEnergyLoop } from './quintel.js';
+import { buildQuintelKernelFlags, mergeQuintelConfig, runQuintelEnergyLoop } from './quintel.js';
 
 
 function generateRandomArray(count, mode, seed, scale) {
@@ -341,6 +341,7 @@ export class EnergyPipeline {
         const centerWeight = Number.isFinite(weights.center) ? weights.center : 1.0;
         const binarizeWeight = Number.isFinite(weights.binarize) ? weights.binarize : 0.0;
         const centerTarget = Number.isFinite(quintelConfig.centerTarget) ? quintelConfig.centerTarget : 1.0;
+        const flags = buildQuintelKernelFlags(rules, binarizeWeight);
         const energyHistory = [];
         const stepTimesMs = [];
         let lastEnergy = null;
@@ -392,11 +393,11 @@ export class EnergyPipeline {
             await runEnergyQuintelReduce(stateTensor, {
               count: elementCount,
               size,
+              flags,
               symmetryWeight,
               centerWeight,
               binarizeWeight,
               centerTarget,
-              rules,
               outputBuffer: reduceBuffer,
             });
 
@@ -452,13 +453,13 @@ export class EnergyPipeline {
             await runEnergyQuintelGrad(stateTensor, {
               count: elementCount,
               size,
+              flags,
               countDiff: safeCountDiff,
               symmetryWeight,
               countWeight,
               centerWeight,
               binarizeWeight,
               centerTarget,
-              rules,
               outputBuffer: gradBuffer,
             });
 
@@ -476,6 +477,7 @@ export class EnergyPipeline {
             await runEnergyQuintelUpdate(stateTensor, {
               count: elementCount,
               size,
+              flags,
               stepSize,
               gradientScale,
               countDiff: safeCountDiff,
@@ -486,7 +488,6 @@ export class EnergyPipeline {
               centerTarget,
               clampMin,
               clampMax,
-              rules,
             });
           }
 

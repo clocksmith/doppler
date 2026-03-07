@@ -124,6 +124,9 @@ Runtime tunables are config-only when using the browser harness:
 - Harness URLs accept only `runtimePreset`, `runtimeConfig`, `runtimeConfigUrl`, or `configChain`. No per-field URL overrides.
 - Kernel selection overrides are config-only via `runtime.inference.kernelPath`.
 - Capability remap policy is config-only via `runtime.inference.kernelPathPolicy`.
+- Runtime-input precedence is normative, not surface-local:
+  `configChain -> runtimePreset -> runtimeConfigUrl -> runtimeConfig -> runtime contract patch`.
+- If a harness or runtime surface cannot support one of those inputs, it must fail closed instead of silently skipping it.
 
 When you need a change, create a preset or pass a runtime config file via `runtimeConfigUrl`.
 

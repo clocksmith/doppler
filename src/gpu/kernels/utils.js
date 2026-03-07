@@ -137,21 +137,28 @@ export async function unifiedKernelWrapper(opName, target, variant, bindings, un
     });
   }
 
-  const bindGroup = device.createBindGroup({
-    label: `${opName}_bind_group`,
-    layout: pipeline.getBindGroupLayout(0),
-    entries: bindGroupEntries,
-  });
+  try {
+    const bindGroup = device.createBindGroup({
+      label: `${opName}_bind_group`,
+      layout: pipeline.getBindGroupLayout(0),
+      entries: bindGroupEntries,
+    });
 
-  if (workgroups && typeof workgroups === 'object' && workgroups.indirectBuffer) {
-    const indirectOffset = workgroups.indirectOffset ?? 0;
-    if (recorder) {
-      recordDispatchIndirect(recorder, pipeline, bindGroup, workgroups.indirectBuffer, indirectOffset, opName);
+    if (workgroups && typeof workgroups === 'object' && workgroups.indirectBuffer) {
+      const indirectOffset = workgroups.indirectOffset ?? 0;
+      if (recorder) {
+        recordDispatchIndirect(recorder, pipeline, bindGroup, workgroups.indirectBuffer, indirectOffset, opName);
+      } else {
+        dispatchIndirect(device, pipeline, bindGroup, workgroups.indirectBuffer, indirectOffset, opName);
+      }
     } else {
-      dispatchIndirect(device, pipeline, bindGroup, workgroups.indirectBuffer, indirectOffset, opName);
+      dispatchKernel(target, pipeline, bindGroup, workgroups, opName);
     }
-  } else {
-    dispatchKernel(target, pipeline, bindGroup, workgroups, opName);
+  } catch (error) {
+    if (!recorder) {
+      uniformBuffer.destroy();
+    }
+    throw error;
   }
 
   if (!recorder) {

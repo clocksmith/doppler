@@ -1,7 +1,7 @@
 
 
 import { getDevice } from '../device.js';
-import { acquireBuffer } from '../../memory/buffer-pool.js';
+import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor, dtypeBytes } from '../tensor.js';
 import { getBuffer } from '../weight-buffer.js';
 import { dispatch, recordDispatch } from './dispatch.js';
@@ -47,7 +47,12 @@ export async function runMatmulResidualFused(
   const pipelineVariant = resolveFusedResidualVariant(input, residual);
   const pipeline = await getPipelineFast('fused_matmul_residual', pipelineVariant);
 
-  const output = outputBuffer || acquireBuffer(N * dtypeBytes(outputDtype), undefined, 'matmul_residual_output');
+  const ownedOutput = outputBuffer ? null : acquireBuffer(
+    N * dtypeBytes(outputDtype),
+    undefined,
+    'matmul_residual_output'
+  );
+  const output = outputBuffer || ownedOutput;
 
   // Create uniform buffer (same layout as matmul_gemv)
   const uniformBuffer = createUniformBufferWithView(
@@ -68,21 +73,28 @@ export async function runMatmulResidualFused(
   );
 
   // Create bind group
-  const bindGroup = device.createBindGroup({
-    label: 'matmul_residual_bind_group',
-    layout: pipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input.buffer } },
-      { binding: 2, resource: { buffer: weightBuffer } },
-      { binding: 3, resource: { buffer: output } },
-      { binding: 4, resource: { buffer: residual.buffer } },
-    ],
-  });
+  try {
+    const bindGroup = device.createBindGroup({
+      label: 'matmul_residual_bind_group',
+      layout: pipeline.getBindGroupLayout(0),
+      entries: [
+        { binding: 0, resource: { buffer: uniformBuffer } },
+        { binding: 1, resource: { buffer: input.buffer } },
+        { binding: 2, resource: { buffer: weightBuffer } },
+        { binding: 3, resource: { buffer: output } },
+        { binding: 4, resource: { buffer: residual.buffer } },
+      ],
+    });
 
-  // One workgroup per output element
-  const workgroups = N;
-  dispatch(device, pipeline, bindGroup, workgroups, 'matmul_residual_fused');
+    const workgroups = N;
+    dispatch(device, pipeline, bindGroup, workgroups, 'matmul_residual_fused');
+  } catch (error) {
+    uniformBuffer.destroy();
+    if (ownedOutput) {
+      releaseBuffer(ownedOutput);
+    }
+    throw error;
+  }
 
   uniformBuffer.destroy();
 
@@ -112,7 +124,12 @@ export async function recordMatmulResidualFused(
   const pipelineVariant = resolveFusedResidualVariant(input, residual);
   const pipeline = await getPipelineFast('fused_matmul_residual', pipelineVariant);
 
-  const output = outputBuffer || acquireBuffer(N * dtypeBytes(outputDtype), undefined, 'matmul_residual_output');
+  const ownedOutput = outputBuffer ? null : acquireBuffer(
+    N * dtypeBytes(outputDtype),
+    undefined,
+    'matmul_residual_output'
+  );
+  const output = outputBuffer || ownedOutput;
 
   // Create uniform buffer
   const uniformBuffer = createUniformBufferWithView(
@@ -132,21 +149,27 @@ export async function recordMatmulResidualFused(
   );
 
   // Create bind group
-  const bindGroup = device.createBindGroup({
-    label: 'matmul_residual_bind_group',
-    layout: pipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input.buffer } },
-      { binding: 2, resource: { buffer: weightBuffer } },
-      { binding: 3, resource: { buffer: output } },
-      { binding: 4, resource: { buffer: residual.buffer } },
-    ],
-  });
+  try {
+    const bindGroup = device.createBindGroup({
+      label: 'matmul_residual_bind_group',
+      layout: pipeline.getBindGroupLayout(0),
+      entries: [
+        { binding: 0, resource: { buffer: uniformBuffer } },
+        { binding: 1, resource: { buffer: input.buffer } },
+        { binding: 2, resource: { buffer: weightBuffer } },
+        { binding: 3, resource: { buffer: output } },
+        { binding: 4, resource: { buffer: residual.buffer } },
+      ],
+    });
 
-  // One workgroup per output element
-  const workgroups = N;
-  recordDispatch(recorder, pipeline, bindGroup, workgroups, 'matmul_residual_fused');
+    const workgroups = N;
+    recordDispatch(recorder, pipeline, bindGroup, workgroups, 'matmul_residual_fused');
+  } catch (error) {
+    if (ownedOutput) {
+      releaseBuffer(ownedOutput);
+    }
+    throw error;
+  }
 
   return createTensor(output, outputDtype, [1, N], 'matmul_residual_output');
 }

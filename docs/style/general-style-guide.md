@@ -250,6 +250,12 @@ const useSoftcapping = config.attnLogitSoftcapping !== null;
 - If a developer needs to tweak a tunable, they should create a preset or pass `--config` with a runtime config file.
 See `config-style-guide.md` for merge order and category rules.
 
+### Failure-Path Regression Requirement
+
+- Any fix for buffer lifecycle, readback cleanup, deferred destruction, recorder teardown, or other failure-path-only behavior must include a regression test that exercises the failing path.
+- Happy-path coverage alone is not sufficient for cleanup bugs.
+- Any fix for command/harness parity drift must include a regression that proves unsupported or mismatched contract inputs fail closed rather than being ignored or rewritten.
+
 ### Manifest-First Change Checklist
 
 When adding a new inference knob or model behavior:

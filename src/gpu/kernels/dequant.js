@@ -1,7 +1,7 @@
 
 
 import { getDevice, getKernelCapabilities } from '../device.js';
-import { acquireBuffer } from '../../memory/buffer-pool.js';
+import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor } from '../tensor.js';
 import { GPU_LIMITS, TILE_SIZES, WORKGROUP_SIZES } from './constants.js';
 import { Q6K_BLOCK_BYTES, Q8_0_BLOCK_BYTES, Q8_0_BLOCK_SIZE } from '../../loader/quantization-constants.js';
@@ -69,6 +69,17 @@ export function createDequantBindGroupLayout() {
   ]);
 }
 
+function cleanupDequantResources(uniformBuffer, ownedBuffers) {
+  if (uniformBuffer) {
+    releaseUniformBuffer(uniformBuffer);
+  }
+  for (const buffer of ownedBuffers) {
+    if (buffer) {
+      releaseBuffer(buffer);
+    }
+  }
+}
+
 
 export async function dequantize(
   quantized,
@@ -92,7 +103,8 @@ export async function dequantize(
   const outputSize = numBlocks * QK_K * bytesPerElem;
 
   // Create output buffer if not provided
-  const output = outputBuffer || acquireBuffer(outputSize, undefined, 'dequant_output');
+  const ownedOutput = outputBuffer ? null : acquireBuffer(outputSize, undefined, 'dequant_output');
+  const output = outputBuffer || ownedOutput;
 
   // Create uniform buffer
   const uniformBuffer = createUniformBufferWithView(
@@ -108,21 +120,24 @@ export async function dequantize(
     device
   );
 
-  // Create bind group
-  const bindGroup = device.createBindGroup({
-    label: 'dequant_bind_group',
-    layout: pipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: quantized } },
-      { binding: 2, resource: { buffer: output } },
-    ],
-  });
+  try {
+    const bindGroup = device.createBindGroup({
+      label: 'dequant_bind_group',
+      layout: pipeline.getBindGroupLayout(0),
+      entries: [
+        { binding: 0, resource: { buffer: uniformBuffer } },
+        { binding: 1, resource: { buffer: quantized } },
+        { binding: 2, resource: { buffer: output } },
+      ],
+    });
 
-  const workgroups = calculateDequantWorkgroups(variant, numBlocks);
-  dispatch(device, pipeline, bindGroup, workgroups, 'dequant');
+    const workgroups = calculateDequantWorkgroups(variant, numBlocks);
+    dispatch(device, pipeline, bindGroup, workgroups, 'dequant');
+  } catch (error) {
+    cleanupDequantResources(uniformBuffer, [ownedOutput]);
+    throw error;
+  }
 
-  // Release uniform buffer back to cache (or destroy if not cached)
   releaseUniformBuffer(uniformBuffer);
 
   
@@ -157,7 +172,8 @@ export async function dequantizeRowwise(
   const bytesPerElem = finalOutputDtype === 'f16' ? 2 : 4;
   const outputSize = rows * K * bytesPerElem;
 
-  const output = outputBuffer || acquireBuffer(outputSize, undefined, 'dequant_rowwise_output');
+  const ownedOutput = outputBuffer ? null : acquireBuffer(outputSize, undefined, 'dequant_rowwise_output');
+  const output = outputBuffer || ownedOutput;
 
   const uniformBuffer = createUniformBufferWithView(
     'dequant_rowwise_uniforms',
@@ -172,18 +188,23 @@ export async function dequantizeRowwise(
     device
   );
 
-  const bindGroup = device.createBindGroup({
-    label: 'dequant_rowwise_bind_group',
-    layout: pipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: quantized } },
-      { binding: 2, resource: { buffer: output } },
-    ],
-  });
+  try {
+    const bindGroup = device.createBindGroup({
+      label: 'dequant_rowwise_bind_group',
+      layout: pipeline.getBindGroupLayout(0),
+      entries: [
+        { binding: 0, resource: { buffer: uniformBuffer } },
+        { binding: 1, resource: { buffer: quantized } },
+        { binding: 2, resource: { buffer: output } },
+      ],
+    });
 
-  const workgroups = [numBlocks, 1, 1];
-  dispatch(device, pipeline, bindGroup, workgroups, 'dequant_rowwise');
+    const workgroups = [numBlocks, 1, 1];
+    dispatch(device, pipeline, bindGroup, workgroups, 'dequant_rowwise');
+  } catch (error) {
+    cleanupDequantResources(uniformBuffer, [ownedOutput]);
+    throw error;
+  }
 
   releaseUniformBuffer(uniformBuffer);
 
@@ -208,7 +229,8 @@ export async function dequantizeMXFP4(
   const pipeline = await getPipelineFast('dequant', 'mxfp4');
 
   const outputSize = totalElements * 4; // F32 output
-  const output = outputBuffer || acquireBuffer(outputSize, undefined, 'mxfp4_dequant_output');
+  const ownedOutput = outputBuffer ? null : acquireBuffer(outputSize, undefined, 'mxfp4_dequant_output');
+  const output = outputBuffer || ownedOutput;
 
   // Create uniform buffer
   const uniformBuffer = createUniformBufferWithView(
@@ -224,26 +246,29 @@ export async function dequantizeMXFP4(
     device
   );
 
-  // Create bind group
-  const bindGroup = device.createBindGroup({
-    label: 'mxfp4_dequant_bind_group',
-    layout: pipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: blocks } },
-      { binding: 2, resource: { buffer: scales } },
-      { binding: 3, resource: { buffer: output } },
-    ],
-  });
+  try {
+    const bindGroup = device.createBindGroup({
+      label: 'mxfp4_dequant_bind_group',
+      layout: pipeline.getBindGroupLayout(0),
+      entries: [
+        { binding: 0, resource: { buffer: uniformBuffer } },
+        { binding: 1, resource: { buffer: blocks } },
+        { binding: 2, resource: { buffer: scales } },
+        { binding: 3, resource: { buffer: output } },
+      ],
+    });
 
-  const workgroups = Math.ceil(totalElements / WORKGROUP_SIZES.DEFAULT);
-  
-  const dispatchSize = [
-    Math.min(workgroups, GPU_LIMITS.MAX_WORKGROUPS),
-    Math.max(1, Math.ceil(workgroups / GPU_LIMITS.MAX_WORKGROUPS)),
-    1,
-  ];
-  dispatch(device, pipeline, bindGroup, dispatchSize, 'mxfp4_dequant');
+    const workgroups = Math.ceil(totalElements / WORKGROUP_SIZES.DEFAULT);
+    const dispatchSize = [
+      Math.min(workgroups, GPU_LIMITS.MAX_WORKGROUPS),
+      Math.max(1, Math.ceil(workgroups / GPU_LIMITS.MAX_WORKGROUPS)),
+      1,
+    ];
+    dispatch(device, pipeline, bindGroup, dispatchSize, 'mxfp4_dequant');
+  } catch (error) {
+    cleanupDequantResources(uniformBuffer, [ownedOutput]);
+    throw error;
+  }
 
   releaseUniformBuffer(uniformBuffer);
 
@@ -284,7 +309,8 @@ export async function dequantizeMXFP4Expert(
   const totalOutput = outDim * numGroups * 32;
   const bytesPerElement = outputDtype === 'f16' ? 2 : 4;
   const outputSize = totalOutput * bytesPerElement;
-  const output = outputBuffer || acquireBuffer(outputSize, undefined, 'mxfp4_expert_output');
+  const ownedOutput = outputBuffer ? null : acquireBuffer(outputSize, undefined, 'mxfp4_expert_output');
+  const output = outputBuffer || ownedOutput;
 
   // Create uniform buffer
   const uniformBuffer = createUniformBufferWithView(
@@ -301,26 +327,29 @@ export async function dequantizeMXFP4Expert(
     device
   );
 
-  // Create bind group
-  const bindGroup = device.createBindGroup({
-    label: 'mxfp4_expert_bind_group',
-    layout: pipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: blocks } },
-      { binding: 2, resource: { buffer: scales } },
-      { binding: 3, resource: { buffer: output } },
-    ],
-  });
+  try {
+    const bindGroup = device.createBindGroup({
+      label: 'mxfp4_expert_bind_group',
+      layout: pipeline.getBindGroupLayout(0),
+      entries: [
+        { binding: 0, resource: { buffer: uniformBuffer } },
+        { binding: 1, resource: { buffer: blocks } },
+        { binding: 2, resource: { buffer: scales } },
+        { binding: 3, resource: { buffer: output } },
+      ],
+    });
 
-  const workgroups = Math.ceil(totalOutput / WORKGROUP_SIZES.DEFAULT);
-  
-  const dispatchSize = [
-    Math.min(workgroups, GPU_LIMITS.MAX_WORKGROUPS),
-    Math.max(1, Math.ceil(workgroups / GPU_LIMITS.MAX_WORKGROUPS)),
-    1,
-  ];
-  dispatch(device, pipeline, bindGroup, dispatchSize, 'mxfp4_expert');
+    const workgroups = Math.ceil(totalOutput / WORKGROUP_SIZES.DEFAULT);
+    const dispatchSize = [
+      Math.min(workgroups, GPU_LIMITS.MAX_WORKGROUPS),
+      Math.max(1, Math.ceil(workgroups / GPU_LIMITS.MAX_WORKGROUPS)),
+      1,
+    ];
+    dispatch(device, pipeline, bindGroup, dispatchSize, 'mxfp4_expert');
+  } catch (error) {
+    cleanupDequantResources(uniformBuffer, [ownedOutput]);
+    throw error;
+  }
 
   releaseUniformBuffer(uniformBuffer);
 
@@ -350,7 +379,8 @@ export async function dequantizeQ6K(
   const outputSize = numBlocks * QK_K * bytesPerElem;
 
   // Create output buffer if not provided
-  const output = outputBuffer || acquireBuffer(outputSize, undefined, 'q6k_dequant_output');
+  const ownedOutput = outputBuffer ? null : acquireBuffer(outputSize, undefined, 'q6k_dequant_output');
+  const output = outputBuffer || ownedOutput;
 
   // Calculate workgroups for 2D dispatch
   const maxWorkgroups = GPU_LIMITS.MAX_WORKGROUPS;
@@ -370,26 +400,28 @@ export async function dequantizeQ6K(
     device
   );
 
-  // Create bind group
-  const bindGroup = device.createBindGroup({
-    label: 'q6k_dequant_bind_group',
-    layout: pipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: quantized } },
-      { binding: 2, resource: { buffer: output } },
-    ],
-  });
+  try {
+    const bindGroup = device.createBindGroup({
+      label: 'q6k_dequant_bind_group',
+      layout: pipeline.getBindGroupLayout(0),
+      entries: [
+        { binding: 0, resource: { buffer: uniformBuffer } },
+        { binding: 1, resource: { buffer: quantized } },
+        { binding: 2, resource: { buffer: output } },
+      ],
+    });
 
-  // One workgroup per block, handle 2D dispatch for large counts
-  
-  const workgroups = [
-    workgroupsX,
-    numBlocks > maxWorkgroups ? Math.ceil(numBlocks / maxWorkgroups) : 1,
-    1
-  ];
+    const workgroups = [
+      workgroupsX,
+      numBlocks > maxWorkgroups ? Math.ceil(numBlocks / maxWorkgroups) : 1,
+      1
+    ];
 
-  dispatch(device, pipeline, bindGroup, workgroups, 'q6k_dequant');
+    dispatch(device, pipeline, bindGroup, workgroups, 'q6k_dequant');
+  } catch (error) {
+    cleanupDequantResources(uniformBuffer, [ownedOutput]);
+    throw error;
+  }
 
   releaseUniformBuffer(uniformBuffer);
 
@@ -419,7 +451,8 @@ export async function dequantizeQ8_0(
   const outputSize = numBlocks * Q8_0_BLOCK_SIZE * bytesPerElem;
 
   // Create output buffer if not provided
-  const output = outputBuffer || acquireBuffer(outputSize, undefined, 'q8_0_dequant_output');
+  const ownedOutput = outputBuffer ? null : acquireBuffer(outputSize, undefined, 'q8_0_dequant_output');
+  const output = outputBuffer || ownedOutput;
 
   // Calculate workgroups for 2D dispatch
   const maxWorkgroups = GPU_LIMITS.MAX_WORKGROUPS;
@@ -439,26 +472,28 @@ export async function dequantizeQ8_0(
     device
   );
 
-  // Create bind group
-  const bindGroup = device.createBindGroup({
-    label: 'q8_0_dequant_bind_group',
-    layout: pipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: quantized } },
-      { binding: 2, resource: { buffer: output } },
-    ],
-  });
+  try {
+    const bindGroup = device.createBindGroup({
+      label: 'q8_0_dequant_bind_group',
+      layout: pipeline.getBindGroupLayout(0),
+      entries: [
+        { binding: 0, resource: { buffer: uniformBuffer } },
+        { binding: 1, resource: { buffer: quantized } },
+        { binding: 2, resource: { buffer: output } },
+      ],
+    });
 
-  // One workgroup per block, handle 2D dispatch for large counts
-  
-  const workgroups = [
-    workgroupsX,
-    numBlocks > maxWorkgroups ? Math.ceil(numBlocks / maxWorkgroups) : 1,
-    1
-  ];
+    const workgroups = [
+      workgroupsX,
+      numBlocks > maxWorkgroups ? Math.ceil(numBlocks / maxWorkgroups) : 1,
+      1
+    ];
 
-  dispatch(device, pipeline, bindGroup, workgroups, 'q8_0_dequant');
+    dispatch(device, pipeline, bindGroup, workgroups, 'q8_0_dequant');
+  } catch (error) {
+    cleanupDequantResources(uniformBuffer, [ownedOutput]);
+    throw error;
+  }
 
   releaseUniformBuffer(uniformBuffer);
 
@@ -491,7 +526,8 @@ export async function recordDequantize(
   const outputSize = numBlocks * QK_K * bytesPerElem;
 
   // Output buffer
-  const output = outputBuffer || acquireBuffer(outputSize, undefined, 'dequant_output');
+  const ownedOutput = outputBuffer ? null : acquireBuffer(outputSize, undefined, 'dequant_output');
+  const output = outputBuffer || ownedOutput;
 
   // Uniform buffer
   const uniformBuffer = createUniformBufferWithView(
@@ -505,18 +541,25 @@ export async function recordDequantize(
   );
 
   // Bind group
-  const bindGroup = device.createBindGroup({
-    label: 'dequant_bind_group',
-    layout: pipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: quantized } },
-      { binding: 2, resource: { buffer: output } },
-    ],
-  });
+  try {
+    const bindGroup = device.createBindGroup({
+      label: 'dequant_bind_group',
+      layout: pipeline.getBindGroupLayout(0),
+      entries: [
+        { binding: 0, resource: { buffer: uniformBuffer } },
+        { binding: 1, resource: { buffer: quantized } },
+        { binding: 2, resource: { buffer: output } },
+      ],
+    });
 
-  const workgroups = calculateDequantWorkgroups(variant, numBlocks);
-  recordDispatch(recorder, pipeline, bindGroup, workgroups, 'dequant');
+    const workgroups = calculateDequantWorkgroups(variant, numBlocks);
+    recordDispatch(recorder, pipeline, bindGroup, workgroups, 'dequant');
+  } catch (error) {
+    if (ownedOutput) {
+      releaseBuffer(ownedOutput);
+    }
+    throw error;
+  }
 
   
   const dtype = selectSharedRuleValue('shared', 'dtype', 'f16OrF32FromDtype', { dtype: outputDtype });

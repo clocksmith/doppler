@@ -10,6 +10,16 @@ export declare function getPipeline(): InferencePipeline | null;
 
 export declare function getCurrentModelId(): string | null;
 
+export declare function verifyExplicitModelUrlMatch(
+  localManifest: RDRRManifest | Record<string, unknown> | null | undefined,
+  modelUrl: string | null | undefined,
+  fetchRemoteManifest?: (modelUrl: string) => Promise<RDRRManifest | Record<string, unknown> | null>
+): Promise<void>;
+
+export declare function shouldAutoTuneKernels(
+  runtimeConfig?: Record<string, unknown> | null
+): boolean;
+
 export declare function extractTextModelConfig(manifest: RDRRManifest): TextModelConfig;
 
 export declare function readOPFSFile(path: string): Promise<ArrayBuffer>;

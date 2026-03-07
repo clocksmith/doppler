@@ -1,7 +1,7 @@
 
 
 import { getDevice, getKernelCapabilities } from '../device.js';
-import { acquireBuffer } from '../../memory/buffer-pool.js';
+import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor } from '../tensor.js';
 import { KernelBase } from './kernel-base.js';
 import { createUniformBufferWithView } from './utils.js';
@@ -77,6 +77,17 @@ function resolveSwigluLimit(value, context) {
   return value;
 }
 
+function releaseRunResources(uniformBuffer, ownedBuffers) {
+  if (uniformBuffer) {
+    uniformBuffer.destroy();
+  }
+  for (const buffer of ownedBuffers) {
+    if (buffer) {
+      releaseBuffer(buffer);
+    }
+  }
+}
+
 
 export async function runFusedFFN(
   input,
@@ -132,7 +143,8 @@ export async function runFusedFFN(
   const outputBytesPerElement = isF16Native ? 2 : 4;
   const outputDtype = isF16Native ? 'f16' : 'f32';
   const outputSize = batchSize * intermediateSize * outputBytesPerElement;
-  const output = outputBuffer || acquireBuffer(outputSize, undefined, 'fused_ffn_output');
+  const ownedOutput = outputBuffer ? null : acquireBuffer(outputSize, undefined, 'fused_ffn_output');
+  const output = outputBuffer || ownedOutput;
 
   // Create uniform buffer
   const uniformBuffer = createFFNUniformBuffer(device, null, {
@@ -145,40 +157,41 @@ export async function runFusedFFN(
     swigluLimit: activation === 'silu' ? swigluLimit : null,
   });
 
-  // Create bind group
-  const bindGroup = device.createBindGroup({
-    label: 'fused_ffn_bind_group',
-    layout: pipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input.buffer } },
-      { binding: 2, resource: { buffer: getBuffer(W_gate) } },
-      { binding: 3, resource: { buffer: getBuffer(W_up) } },
-      { binding: 4, resource: { buffer: output } },
-    ],
-  });
+  try {
+    const bindGroup = device.createBindGroup({
+      label: 'fused_ffn_bind_group',
+      layout: pipeline.getBindGroupLayout(0),
+      entries: [
+        { binding: 0, resource: { buffer: uniformBuffer } },
+        { binding: 1, resource: { buffer: input.buffer } },
+        { binding: 2, resource: { buffer: getBuffer(W_gate) } },
+        { binding: 3, resource: { buffer: getBuffer(W_up) } },
+        { binding: 4, resource: { buffer: output } },
+      ],
+    });
 
-  // Calculate workgroups
+    let workgroupsX;
+    let workgroupsY = 1;
 
-  let workgroupsX;
-  let workgroupsY = 1;
+    if (variant === 'multi') {
+      const outputsPerWg = 4;
+      workgroupsX = Math.ceil(intermediateSize / outputsPerWg);
+    } else if (variant === 'q4k' || variant === 'q4k_batched') {
+      const colsPerWg = 32;
+      workgroupsX = Math.ceil(intermediateSize / colsPerWg);
+      workgroupsY = variant === 'q4k_batched' ? batchSize : 1;
+    } else if (variant === 'batched' || variant === 'f16_native_batched') {
+      workgroupsX = intermediateSize;
+      workgroupsY = batchSize;
+    } else {
+      workgroupsX = intermediateSize;
+    }
 
-  if (variant === 'multi') {
-    const outputsPerWg = 4;
-    workgroupsX = Math.ceil(intermediateSize / outputsPerWg);
-  } else if (variant === 'q4k' || variant === 'q4k_batched') {
-    // Q4K uses multi-column: 32 columns per workgroup
-    const colsPerWg = 32;
-    workgroupsX = Math.ceil(intermediateSize / colsPerWg);
-    workgroupsY = variant === 'q4k_batched' ? batchSize : 1;
-  } else if (variant === 'batched' || variant === 'f16_native_batched') {
-    workgroupsX = intermediateSize;
-    workgroupsY = batchSize;
-  } else {
-    workgroupsX = intermediateSize;
+    kernel.dispatch(pipeline, bindGroup, workgroupsX, workgroupsY);
+  } catch (error) {
+    releaseRunResources(uniformBuffer, [ownedOutput]);
+    throw error;
   }
-
-  kernel.dispatch(pipeline, bindGroup, workgroupsX, workgroupsY);
 
   uniformBuffer.destroy();
 
@@ -240,7 +253,8 @@ export async function recordFusedFFN(
   const outputBytesPerElement = isF16Native ? 2 : 4;
   const outputDtype = isF16Native ? 'f16' : 'f32';
   const outputSize = batchSize * intermediateSize * outputBytesPerElement;
-  const output = outputBuffer || acquireBuffer(outputSize, undefined, 'fused_ffn_output');
+  const ownedOutput = outputBuffer ? null : acquireBuffer(outputSize, undefined, 'fused_ffn_output');
+  const output = outputBuffer || ownedOutput;
 
   const uniformBuffer = createFFNUniformBuffer(device, recorder, {
     M: batchSize,
@@ -252,38 +266,43 @@ export async function recordFusedFFN(
     swigluLimit: activation === 'silu' ? swigluLimit : null,
   });
 
-  const bindGroup = device.createBindGroup({
-    label: 'fused_ffn_bind_group',
-    layout: pipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input.buffer } },
-      { binding: 2, resource: { buffer: getBuffer(W_gate) } },
-      { binding: 3, resource: { buffer: getBuffer(W_up) } },
-      { binding: 4, resource: { buffer: output } },
-    ],
-  });
+  try {
+    const bindGroup = device.createBindGroup({
+      label: 'fused_ffn_bind_group',
+      layout: pipeline.getBindGroupLayout(0),
+      entries: [
+        { binding: 0, resource: { buffer: uniformBuffer } },
+        { binding: 1, resource: { buffer: input.buffer } },
+        { binding: 2, resource: { buffer: getBuffer(W_gate) } },
+        { binding: 3, resource: { buffer: getBuffer(W_up) } },
+        { binding: 4, resource: { buffer: output } },
+      ],
+    });
 
+    let workgroupsX;
+    let workgroupsY = 1;
 
-  let workgroupsX;
-  let workgroupsY = 1;
+    if (variant === 'multi') {
+      const outputsPerWg = 4;
+      workgroupsX = Math.ceil(intermediateSize / outputsPerWg);
+    } else if (variant === 'q4k' || variant === 'q4k_batched') {
+      const colsPerWg = 32;
+      workgroupsX = Math.ceil(intermediateSize / colsPerWg);
+      workgroupsY = variant === 'q4k_batched' ? batchSize : 1;
+    } else if (variant === 'batched' || variant === 'f16_native_batched') {
+      workgroupsX = intermediateSize;
+      workgroupsY = batchSize;
+    } else {
+      workgroupsX = intermediateSize;
+    }
 
-  if (variant === 'multi') {
-    const outputsPerWg = 4;
-    workgroupsX = Math.ceil(intermediateSize / outputsPerWg);
-  } else if (variant === 'q4k' || variant === 'q4k_batched') {
-    // Q4K uses multi-column: 32 columns per workgroup
-    const colsPerWg = 32;
-    workgroupsX = Math.ceil(intermediateSize / colsPerWg);
-    workgroupsY = variant === 'q4k_batched' ? batchSize : 1;
-  } else if (variant === 'batched' || variant === 'f16_native_batched') {
-    workgroupsX = intermediateSize;
-    workgroupsY = batchSize;
-  } else {
-    workgroupsX = intermediateSize;
+    kernel.record(recorder, pipeline, bindGroup, workgroupsX, workgroupsY);
+  } catch (error) {
+    if (ownedOutput) {
+      releaseBuffer(ownedOutput);
+    }
+    throw error;
   }
-
-  kernel.record(recorder, pipeline, bindGroup, workgroupsX, workgroupsY);
 
   return createTensor(output, outputDtype, [batchSize, intermediateSize], 'fused_ffn_output');
 }

@@ -102,6 +102,7 @@ export interface BrowserSuiteOptions extends InferenceHarnessOptions {
   checkpointEvery?: number;
   cacheMode?: 'cold' | 'warm' | null;
   loadMode?: 'opfs' | 'http' | 'memory' | null;
+  configChain?: string[] | null;
   runtimePreset?: string | null;
   runtimeConfigUrl?: string | null;
   runtimeConfig?: Record<string, unknown> | null;
@@ -196,6 +197,11 @@ export declare function applyRuntimePreset(
   presetId: string,
   options?: RuntimeConfigLoadOptions
 ): Promise<Record<string, unknown>>;
+
+export declare function applyRuntimeForRun(
+  run: BrowserManifestRun,
+  options?: RuntimeConfigLoadOptions & { runtime?: RuntimeOverrides }
+): Promise<void>;
 
 export declare function saveBrowserReport(
   modelId: string,
