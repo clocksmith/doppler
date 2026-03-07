@@ -26,15 +26,15 @@
     "schema": "doppler.execution/v0",
     "presetId": "gemma3",
     "attention": {
-      "queryPreAttnScalar": 16,
+      "queryPreAttnScalar": 256,
       "attnLogitSoftcapping": null,
-      "slidingWindow": null,
+      "slidingWindow": 512,
       "queryKeyNorm": true,
       "causal": true,
       "attentionBias": false
     },
     "normalization": {
-      "rmsNormEps": 1e-06,
+      "rmsNormEps": 0.000001,
       "rmsNormWeightOffset": true,
       "postAttentionNorm": true,
       "preFeedforwardNorm": true,
@@ -67,7 +67,7 @@
       "tieWordEmbeddings": true,
       "scaleEmbeddings": true,
       "embeddingTranspose": false,
-      "embeddingVocabSize": null
+      "embeddingVocabSize": 262144
     },
     "layerPattern": {
       "type": "every_n",
