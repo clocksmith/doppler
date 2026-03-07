@@ -45,6 +45,8 @@ export async function readFileNative(path, offset = 0, length = 0, extensionId =
 
   if (!client.isConnected()) {
     await client.connect(extensionId);
+  } else if ((extensionId ?? null) !== (client.getExtensionId?.() ?? null)) {
+    throw new Error('Bridge client already connected to a different extension target');
   }
 
   return client.read(path, offset, length);
