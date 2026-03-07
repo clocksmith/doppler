@@ -1,0 +1,186 @@
+{
+  "suite": "debug",
+  "modelId": "lfm2-5-1-2b-instruct-wq4k-ef16-hf16-f32",
+  "runtimePreset": null,
+  "deviceInfo": {
+    "hasSubgroups": true,
+    "hasSubgroupsF16": false,
+    "hasF16": true,
+    "hasTimestampQuery": true,
+    "maxBufferSize": 14302248960,
+    "maxWorkgroupSize": 1024,
+    "maxWorkgroupStorageSize": 32768,
+    "adapterInfo": {
+      "vendor": "unknown",
+      "architecture": "unknown",
+      "device": "unknown",
+      "description": ""
+    }
+  },
+  "results": [
+    {
+      "name": "generation",
+      "passed": true,
+      "duration": 10023.358292
+    }
+  ],
+  "durationMs": 12689.712500000001,
+  "timestamp": "2026-03-07T00:15:31.759Z",
+  "metrics": {
+    "prompt": "What is the capital of France? Answer in one word.",
+    "maxTokens": 256,
+    "tokensGenerated": 256,
+    "tokensPerSec": 25.54,
+    "totalRunMs": 10022.55,
+    "firstTokenMs": 375.23,
+    "firstResponseMs": 3040.67,
+    "prefillMs": 372.77,
+    "decodeMs": 9646.97,
+    "prefillTokens": 12,
+    "decodeTokens": 256,
+    "prefillTokensPerSec": 32.19,
+    "prefillTokensPerSecTtft": 31.98,
+    "decodeTokensPerSec": 26.54,
+    "modelLoadMs": 2665.44,
+    "gpu": {
+      "decodeRecordMs": 1252.8157910000004,
+      "decodeSubmitWaitMs": 8363.470125,
+      "decodeReadbackWaitMs": 7863.691041
+    },
+    "decodeProfileSteps": [],
+    "schemaVersion": 1,
+    "source": "doppler",
+    "suite": "debug",
+    "executionContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "lfm2-5-1-2b-instruct-wq4k-ef16-hf16-f32.steps",
+          "ok": true
+        },
+        {
+          "id": "lfm2-5-1-2b-instruct-wq4k-ef16-hf16-f32.session",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "session": {
+        "layout": "contiguous",
+        "disableCommandBatching": false,
+        "decodeBatchSize": 8,
+        "headDim": 64,
+        "kvLen": 128000,
+        "coldQuantMode": "none"
+      },
+      "steps": {
+        "total": 0,
+        "attention": 0,
+        "attentionPhases": {
+          "prefill": 0,
+          "decode": 0,
+          "both": 0
+        }
+      },
+      "executionV0": {
+        "kernelProfiles": null,
+        "graph": null
+      }
+    },
+    "executionV0GraphContractArtifact": null,
+    "layerPatternContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "inference.layerPattern.patternKind.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.patternKind.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.even",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.odd",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_offset",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_negative_offset",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "patternKindRules": 4,
+        "layerTypeRules": 6,
+        "patternKindContexts": 16,
+        "layerTypeContexts": 12
+      }
+    },
+    "requiredInferenceFieldsArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "scope": "manifest",
+      "label": "lfm2-5-1-2b-instruct-wq4k-ef16-hf16-f32.inference",
+      "ok": true,
+      "checks": [
+        {
+          "id": "lfm2-5-1-2b-instruct-wq4k-ef16-hf16-f32.inference.requiredInferenceFields",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "fieldCases": 35,
+        "nullableCases": 16,
+        "nonNullableCases": 19
+      }
+    }
+  },
+  "output": "?",
+  "memory": {
+    "used": 2634160640,
+    "pool": {
+      "allocations": 45860,
+      "reuses": 261,
+      "totalBytesAllocated": 3263062528,
+      "peakBytesAllocated": 2682311168,
+      "currentBytesAllocated": 2499942912,
+      "totalBytesRequested": 3125764096,
+      "peakBytesRequested": 2554855424,
+      "currentBytesRequested": 2373582848,
+      "activeBuffers": 138,
+      "pooledBuffers": 64,
+      "budgetMaxBytes": 0,
+      "budgetUtilization": 0,
+      "hitRate": "0.6%"
+    },
+    "kvCache": {
+      "theoretical": 134217728,
+      "allocated": 134217728,
+      "used": 0,
+      "efficiency": 0,
+      "seqLen": 0,
+      "maxSeqLen": 4096,
+      "layout": "contiguous"
+    }
+  }
+}
