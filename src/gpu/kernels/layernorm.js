@@ -1,6 +1,6 @@
 
 import { getKernelCapabilities } from '../device.js';
-import { acquireBuffer } from '../../memory/buffer-pool.js';
+import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor } from '../tensor.js';
 import { padToQ4KBlock } from '../../config/schema/index.js';
 import { selectRuleValue } from './rule-registry.js';
@@ -36,17 +36,25 @@ export async function runLayerNorm(
   const paddedHiddenSize = padToQ4KBlock(inferredHiddenSize);
   const outputSize = batchSize * paddedHiddenSize * bytesPerElement;
   const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'layernorm_output');
+  const ownedOutput = outputBuffer ? null : outputBuf;
 
-  await unifiedKernelWrapper(
-    'layernorm',
-    null,
-    variant,
-    [input, weight, bias, outputBuf],
-    { hidden_size: inferredHiddenSize, num_tokens: batchSize, eps },
-    batchSize
-  );
+  try {
+    await unifiedKernelWrapper(
+      'layernorm',
+      null,
+      variant,
+      [input, weight, bias, outputBuf],
+      { hidden_size: inferredHiddenSize, num_tokens: batchSize, eps },
+      batchSize
+    );
 
-  return createTensor(outputBuf, input.dtype, [batchSize, inferredHiddenSize], 'layernorm_output');
+    return createTensor(outputBuf, input.dtype, [batchSize, inferredHiddenSize], 'layernorm_output');
+  } catch (error) {
+    if (ownedOutput) {
+      releaseBuffer(ownedOutput);
+    }
+    throw error;
+  }
 }
 
 export async function recordLayerNorm(
@@ -66,15 +74,23 @@ export async function recordLayerNorm(
   const paddedHiddenSize = padToQ4KBlock(inferredHiddenSize);
   const outputSize = batchSize * paddedHiddenSize * bytesPerElement;
   const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'layernorm_output');
+  const ownedOutput = outputBuffer ? null : outputBuf;
 
-  await unifiedKernelWrapper(
-    'layernorm',
-    recorder,
-    variant,
-    [input, weight, bias, outputBuf],
-    { hidden_size: inferredHiddenSize, num_tokens: batchSize, eps },
-    batchSize
-  );
+  try {
+    await unifiedKernelWrapper(
+      'layernorm',
+      recorder,
+      variant,
+      [input, weight, bias, outputBuf],
+      { hidden_size: inferredHiddenSize, num_tokens: batchSize, eps },
+      batchSize
+    );
 
-  return createTensor(outputBuf, input.dtype, [batchSize, inferredHiddenSize], 'layernorm_output');
+    return createTensor(outputBuf, input.dtype, [batchSize, inferredHiddenSize], 'layernorm_output');
+  } catch (error) {
+    if (ownedOutput) {
+      releaseBuffer(ownedOutput);
+    }
+    throw error;
+  }
 }

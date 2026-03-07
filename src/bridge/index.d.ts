@@ -64,5 +64,6 @@ export declare function createBridgeClient(
 export declare function readFileNative(
   path: string,
   offset?: number,
-  length?: number
+  length?: number,
+  extensionId?: string | null
 ): Promise<Uint8Array>;

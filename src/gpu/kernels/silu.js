@@ -1,7 +1,7 @@
 
 
 import { getDevice } from '../device.js';
-import { acquireBuffer } from '../../memory/buffer-pool.js';
+import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor, dtypeBytes } from '../tensor.js';
 import { WORKGROUP_SIZES } from './constants.js';
 import { dispatch, recordDispatch } from './dispatch.js';
@@ -45,6 +45,15 @@ function createSiLUBindGroupEntries(uniformBuffer, input, output, gate) {
     { binding: 2, resource: { buffer: output } },
     { binding: 3, resource: { buffer: gateBuffer } },
   ];
+}
+
+function cleanupRunResources(uniformBuffer, ownedOutput) {
+  if (uniformBuffer) {
+    uniformBuffer.destroy();
+  }
+  if (ownedOutput) {
+    releaseBuffer(ownedOutput);
+  }
 }
 
 function planSiLUDispatch(device, size, useVec4) {
@@ -97,6 +106,7 @@ export async function runSiLU(
   const inferredSize = size || (input.buffer.size / bytesPerElement);
   const outputSize = inferredSize * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'silu_output');
+  const ownedOutput = outputBuffer ? null : output;
   const dispatchPlan = planSiLUDispatch(device, inferredSize, useVec4);
 
   // Create uniform buffer
@@ -116,17 +126,21 @@ export async function runSiLU(
   // Create bind group using helper
   const entries = createSiLUBindGroupEntries(uniformBuffer, input, output, gate);
 
-  const bindGroup = device.createBindGroup({
-    label: 'silu_bind_group',
-    layout: pipeline.getBindGroupLayout(0),
-    entries,
-  });
+  try {
+    const bindGroup = device.createBindGroup({
+      label: 'silu_bind_group',
+      layout: pipeline.getBindGroupLayout(0),
+      entries,
+    });
 
-  dispatch(device, pipeline, bindGroup, dispatchPlan.workgroups, 'silu');
+    dispatch(device, pipeline, bindGroup, dispatchPlan.workgroups, 'silu');
+    return createTensor(output, input.dtype, [inferredSize], 'silu_output');
+  } catch (error) {
+    cleanupRunResources(uniformBuffer, ownedOutput);
+    throw error;
+  }
 
   uniformBuffer.destroy();
-
-  return createTensor(output, input.dtype, [inferredSize], 'silu_output');
 }
 
 
@@ -148,6 +162,7 @@ export async function runSwiGLURowsplitBias(
   const bytesPerElement = dtypeBytes(input.dtype);
   const outputSize = numTokens * dim * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'swiglu_output');
+  const ownedOutput = outputBuffer ? null : output;
 
   // Create uniform buffer
   const uniformBuffer = createUniformBufferWithView(
@@ -164,23 +179,27 @@ export async function runSwiGLURowsplitBias(
   );
 
   // Create bind group
-  const bindGroup = device.createBindGroup({
-    label: 'swiglu_bind_group',
-    layout: pipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input.buffer } },
-      { binding: 2, resource: { buffer: bias.buffer } },
-      { binding: 3, resource: { buffer: output } },
-    ],
-  });
+  try {
+    const bindGroup = device.createBindGroup({
+      label: 'swiglu_bind_group',
+      layout: pipeline.getBindGroupLayout(0),
+      entries: [
+        { binding: 0, resource: { buffer: uniformBuffer } },
+        { binding: 1, resource: { buffer: input.buffer } },
+        { binding: 2, resource: { buffer: bias.buffer } },
+        { binding: 3, resource: { buffer: output } },
+      ],
+    });
 
-  const workgroups = Math.ceil((numTokens * dim) / WORKGROUP_SIZES.DEFAULT);
-  dispatch(device, pipeline, bindGroup, workgroups, 'swiglu');
+    const workgroups = Math.ceil((numTokens * dim) / WORKGROUP_SIZES.DEFAULT);
+    dispatch(device, pipeline, bindGroup, workgroups, 'swiglu');
+    return createTensor(output, input.dtype, [numTokens, dim], 'swiglu_output');
+  } catch (error) {
+    cleanupRunResources(uniformBuffer, ownedOutput);
+    throw error;
+  }
 
   uniformBuffer.destroy();
-
-  return createTensor(output, input.dtype, [numTokens, dim], 'swiglu_output');
 }
 
 
@@ -202,6 +221,7 @@ export async function runSiLURowSplit(
 
   const outputSize = numTokens * dim * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'silu_rowsplit_output');
+  const ownedOutput = outputBuffer ? null : output;
 
   // Create uniform buffer
   const uniformBuffer = createUniformBufferWithView(
@@ -218,24 +238,28 @@ export async function runSiLURowSplit(
   );
 
   // Bind group: provide a dummy gate buffer to satisfy the fixed layout
-  const gateBuffer = input.buffer;
-  const bindGroup = device.createBindGroup({
-    label: 'silu_rowsplit_bind_group',
-    layout: pipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input.buffer } },
-      { binding: 2, resource: { buffer: output } },
-      { binding: 3, resource: { buffer: gateBuffer } },
-    ],
-  });
+  try {
+    const gateBuffer = input.buffer;
+    const bindGroup = device.createBindGroup({
+      label: 'silu_rowsplit_bind_group',
+      layout: pipeline.getBindGroupLayout(0),
+      entries: [
+        { binding: 0, resource: { buffer: uniformBuffer } },
+        { binding: 1, resource: { buffer: input.buffer } },
+        { binding: 2, resource: { buffer: output } },
+        { binding: 3, resource: { buffer: gateBuffer } },
+      ],
+    });
 
-  const workgroups = [Math.ceil(dim / WORKGROUP_SIZES.DEFAULT), numTokens, 1];
-  dispatch(device, pipeline, bindGroup, workgroups, 'silu_rowsplit');
+    const workgroups = [Math.ceil(dim / WORKGROUP_SIZES.DEFAULT), numTokens, 1];
+    dispatch(device, pipeline, bindGroup, workgroups, 'silu_rowsplit');
+    return createTensor(output, input.dtype, [numTokens, dim], 'silu_rowsplit_output');
+  } catch (error) {
+    cleanupRunResources(uniformBuffer, ownedOutput);
+    throw error;
+  }
 
   uniformBuffer.destroy();
-
-  return createTensor(output, input.dtype, [numTokens, dim], 'silu_rowsplit_output');
 }
 
 
@@ -258,6 +282,7 @@ export async function recordSiLURowSplit(
 
   const outputSize = numTokens * dim * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'silu_rowsplit_output');
+  const ownedOutput = outputBuffer ? null : output;
 
   // Uniform buffer
   const uniformBuffer = createUniformBufferWithView(
@@ -272,22 +297,28 @@ export async function recordSiLURowSplit(
     recorder
   );
 
-  const gateBuffer = input.buffer;
-  const bindGroup = device.createBindGroup({
-    label: 'silu_rowsplit_bind_group',
-    layout: pipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input.buffer } },
-      { binding: 2, resource: { buffer: output } },
-      { binding: 3, resource: { buffer: gateBuffer } },
-    ],
-  });
+  try {
+    const gateBuffer = input.buffer;
+    const bindGroup = device.createBindGroup({
+      label: 'silu_rowsplit_bind_group',
+      layout: pipeline.getBindGroupLayout(0),
+      entries: [
+        { binding: 0, resource: { buffer: uniformBuffer } },
+        { binding: 1, resource: { buffer: input.buffer } },
+        { binding: 2, resource: { buffer: output } },
+        { binding: 3, resource: { buffer: gateBuffer } },
+      ],
+    });
 
-  const workgroups = [Math.ceil(dim / WORKGROUP_SIZES.DEFAULT), numTokens, 1];
-  recordDispatch(recorder, pipeline, bindGroup, workgroups, 'silu_rowsplit');
-
-  return createTensor(output, input.dtype, [numTokens, dim], 'silu_rowsplit_output');
+    const workgroups = [Math.ceil(dim / WORKGROUP_SIZES.DEFAULT), numTokens, 1];
+    recordDispatch(recorder, pipeline, bindGroup, workgroups, 'silu_rowsplit');
+    return createTensor(output, input.dtype, [numTokens, dim], 'silu_rowsplit_output');
+  } catch (error) {
+    if (ownedOutput) {
+      releaseBuffer(ownedOutput);
+    }
+    throw error;
+  }
 }
 
 
@@ -328,6 +359,7 @@ export async function recordSiLU(
   const inferredSize = size || (input.buffer.size / bytesPerElement);
   const outputSize = inferredSize * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'silu_output');
+  const ownedOutput = outputBuffer ? null : output;
   const dispatchPlan = planSiLUDispatch(device, inferredSize, false);
 
   // Uniform buffer
@@ -346,13 +378,19 @@ export async function recordSiLU(
   // Create bind group using helper
   const entries = createSiLUBindGroupEntries(uniformBuffer, input, output, gate);
 
-  const bindGroup = device.createBindGroup({
-    label: 'silu_bind_group',
-    layout: pipeline.getBindGroupLayout(0),
-    entries,
-  });
+  try {
+    const bindGroup = device.createBindGroup({
+      label: 'silu_bind_group',
+      layout: pipeline.getBindGroupLayout(0),
+      entries,
+    });
 
-  recordDispatch(recorder, pipeline, bindGroup, dispatchPlan.workgroups, 'silu');
-
-  return createTensor(output, input.dtype, [inferredSize], 'silu_output');
+    recordDispatch(recorder, pipeline, bindGroup, dispatchPlan.workgroups, 'silu');
+    return createTensor(output, input.dtype, [inferredSize], 'silu_output');
+  } catch (error) {
+    if (ownedOutput) {
+      releaseBuffer(ownedOutput);
+    }
+    throw error;
+  }
 }

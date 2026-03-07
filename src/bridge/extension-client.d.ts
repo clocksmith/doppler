@@ -91,6 +91,11 @@ export declare class ExtensionBridgeClient {
   getStatus(): BridgeStatusType;
 
   /**
+   * Get the connected extension target, if any.
+   */
+  getExtensionId(): string | null;
+
+  /**
    * Check if connected
    */
   isConnected(): boolean;

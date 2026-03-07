@@ -27,24 +27,24 @@ export {
 
 
 export async function createBridgeClient(extensionId = null) {
-  const { ExtensionBridgeClient, isBridgeAvailable } = await import('./extension-client.js');
+  const { getBridgeClient, isBridgeAvailable } = await import('./extension-client.js');
 
   if (!isBridgeAvailable()) {
     throw new Error('Native bridge not available - Chrome extension API required');
   }
 
-  const client = new ExtensionBridgeClient();
+  const client = getBridgeClient();
   await client.connect(extensionId);
   return client;
 }
 
 
-export async function readFileNative(path, offset = 0, length = 0) {
+export async function readFileNative(path, offset = 0, length = 0, extensionId = null) {
   const { getBridgeClient } = await import('./extension-client.js');
   const client = getBridgeClient();
 
   if (!client.isConnected()) {
-    await client.connect();
+    await client.connect(extensionId);
   }
 
   return client.read(path, offset, length);

@@ -82,6 +82,20 @@ async function computeSHA256(data) {
   return Array.from(hashArray).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
+function assertCompleteAdapterLayers(adapter) {
+  for (const [layerIndex, layer] of adapter.layers.entries()) {
+    for (const [moduleName, weights] of Object.entries(layer)) {
+      const hasA = weights?.a instanceof Float32Array && weights.a.length > 0;
+      const hasB = weights?.b instanceof Float32Array && weights.b.length > 0;
+      if (!hasA || !hasB) {
+        throw new Error(
+          `LoRA adapter layer ${layerIndex} module ${moduleName} is incomplete; both lora_a and lora_b tensors are required.`
+        );
+      }
+    }
+  }
+}
+
 // ============================================================================
 // Core Loading Functions
 // ============================================================================
@@ -223,8 +237,7 @@ export async function loadLoRAFromManifest(manifest, options = {}) {
   for (const tensor of tensors) {
     const parsed = parseTensorName(tensor.name);
     if (!parsed) {
-      log.warn('LoRA', `Skipping unrecognized tensor: ${tensor.name}`);
-      continue;
+      throw new Error(`Unrecognized LoRA tensor name: ${tensor.name}`);
     }
 
     const data = await toFloat32Array(tensor, options);
@@ -257,6 +270,7 @@ export async function loadLoRAFromManifest(manifest, options = {}) {
     }
   }
 
+  assertCompleteAdapterLayers(adapter);
   return adapter;
 }
 
@@ -312,7 +326,9 @@ export async function loadLoRAFromSafetensors(data, manifest) {
     if (tensorName === '__metadata__') continue;
 
     const parsed = parseTensorName(tensorName);
-    if (!parsed) continue;
+    if (!parsed) {
+      throw new Error(`Unrecognized LoRA safetensors tensor name: ${tensorName}`);
+    }
 
     const [start, end] = tensorInfo.data_offsets;
     const tensorData = new Uint8Array(data, dataOffset + start, end - start);
@@ -359,6 +375,7 @@ export async function loadLoRAFromSafetensors(data, manifest) {
     adapter.layers.set(parsed.layer, layer);
   }
 
+  assertCompleteAdapterLayers(adapter);
   return adapter;
 }
 
