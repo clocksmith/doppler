@@ -15,8 +15,13 @@ export function chooseDefinedWithSource(path, overrideValue, fallbackValue, sour
 }
 
 export function mergeShallowObject(base, override) {
-  if (!override || typeof override !== 'object' || Array.isArray(override)) {
+  if (override === undefined) {
     return base;
+  }
+  if (override === null || typeof override !== 'object' || Array.isArray(override)) {
+    throw new Error(
+      'DopplerConfigError: shallow object overrides must be plain objects when provided explicitly.'
+    );
   }
   return { ...base, ...override };
 }

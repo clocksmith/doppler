@@ -155,6 +155,29 @@ const embeddingComputeF32Config = createConverterConfig({
   assert.throws(
     () => buildManifestInference(
       {
+        id: 'unit-missing-compute-map',
+        inference: {
+          kernelPaths: {
+            q4k: {
+              f16: 'unit-q4k-f16a',
+            },
+          },
+        },
+      },
+      {
+        model_type: 'unit_missing_compute_map',
+      },
+      64,
+      { weights: 'q4k', compute: 'f32', layout: 'row' }
+    ),
+    /is missing compute "f32". Add an explicit compute-specific mapping or default/
+  );
+}
+
+{
+  assert.throws(
+    () => buildManifestInference(
+      {
         id: 'unit-q4k-layout',
         inference: {
           kernelPaths: {
@@ -382,6 +405,44 @@ const embeddingComputeF32Config = createConverterConfig({
   assert.equal(plan.manifestInference?.defaultKernelPath, 'lfm2-q4k-dequant-f32a-online');
   assert.equal(plan.manifestInference?.sessionDefaults?.decodeLoop?.batchSize, 8);
   assert.equal(plan.manifestInference?.sessionDefaults?.compute, undefined);
+}
+
+{
+  const invalidNonExecutionSessionDefaultsConfig = createConverterConfig({
+    inference: {
+      sessionDefaults: {
+        compute: {
+          defaults: {
+            activationDtype: 'f16',
+          },
+        },
+      },
+    },
+  });
+  assert.throws(
+    () => resolveConversionPlan({
+      rawConfig: {
+        model_type: 'lfm2',
+        architectures: ['Lfm2ForCausalLM'],
+        hidden_size: 256,
+        intermediate_size: 512,
+        num_hidden_layers: 4,
+        num_attention_heads: 4,
+        num_key_value_heads: 4,
+        layer_types: ['conv', 'conv', 'full_attention', 'conv'],
+      },
+      tensors: [
+        { name: 'model.embed_tokens.weight', dtype: 'BF16' },
+        { name: 'model.layers.0.conv.in_proj.weight', dtype: 'BF16' },
+        { name: 'model.layers.2.self_attn.q_proj.weight', dtype: 'BF16' },
+      ],
+      converterConfig: invalidNonExecutionSessionDefaultsConfig,
+      modelKind: 'transformer',
+      architectureHint: 'Lfm2ForCausalLM',
+      architectureConfig: { headDim: 64 },
+    }),
+    /sessionDefaults may only set decodeLoop unless converterConfig\.inference\.execution is present/
+  );
 }
 
 {
