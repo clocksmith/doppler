@@ -92,6 +92,71 @@ function kernelRef(kernel, entry = 'main') {
 }
 
 {
+  const runtimeConfig = {
+    inference: {
+      kernelPath: 'gemma3-f16-fused-f32a-online',
+      kernelPathSource: 'config',
+    },
+  };
+  const manifest = {
+    modelId: 'runtime-kernelpath-override-model',
+    architecture: { numLayers: 2 },
+    inference: {
+      schema: 'doppler.execution/v0',
+      sessionDefaults: {
+        compute: {
+          defaults: {
+            activationDtype: 'f16',
+            mathDtype: 'f16',
+            accumDtype: 'f32',
+            outputDtype: 'f16',
+          },
+          kernelProfiles: [
+            { kernelRef: kernelRef('attention_streaming_f16.wgsl', 'main') },
+          ],
+        },
+        kvcache: {
+          kvDtype: 'f16',
+        },
+        decodeLoop: null,
+      },
+      execution: {
+        steps: [
+          {
+            id: 'attn',
+            phase: 'both',
+            section: 'layer',
+            op: 'attention',
+            src: 'state',
+            dst: 'state',
+            layers: 'all',
+            kernel: 'attention_streaming_f16.wgsl',
+            kernelRef: kernelRef('attention_streaming_f16.wgsl', 'main'),
+          },
+        ],
+        policies: {
+          precisionPrecedence: 'step_then_kernel_profile_then_session_default',
+          unsupportedPrecision: 'error',
+          dtypeTransition: 'require_cast_step',
+          unresolvedKernel: 'error',
+        },
+      },
+    },
+  };
+
+  const resolved = applyExecutionV0RuntimeConfig({ runtimeConfig, manifest });
+  assert.ok(resolved.executionV0State);
+  assert.equal(
+    resolved.runtimeConfig.inference.kernelPath,
+    'gemma3-f16-fused-f32a-online'
+  );
+  assert.equal(
+    resolved.runtimeConfig.inference.kernelPathSource,
+    'config'
+  );
+}
+
+{
   const runtimeConfig = { inference: { compute: { activationDtype: 'f16' } } };
   const manifest = { inference: { attention: { causal: true } } };
   const resolved = applyExecutionV0RuntimeConfig({ runtimeConfig, manifest });

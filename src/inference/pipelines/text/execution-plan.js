@@ -42,56 +42,48 @@ function resolveFallbackActivationDtype(primaryActivationDtype) {
 function resolveFallbackKernelPath(primaryKernelPath) {
   const primaryKernelPathId = primaryKernelPath?.id ?? null;
   if (!primaryKernelPathId) {
-    return {
-      kernelPath: null,
-      kernelPathId: null,
-      kernelPathSource: 'none',
-    };
+    throw new Error(
+      '[ExecutionPlan] F16 finiteness fallback requires a primary kernel path with a stable id. ' +
+      'Add a registered kernelPath id and a finiteness fallback rule.'
+    );
   }
 
-  const primaryKernelPathIsObject = typeof primaryKernelPath === 'object' && primaryKernelPath !== null;
+  const explicitFallbackKernelPathId = typeof primaryKernelPath?.finitenessFallbackKernelPathId === 'string'
+    && primaryKernelPath.finitenessFallbackKernelPathId.length > 0
+    ? primaryKernelPath.finitenessFallbackKernelPathId
+    : null;
 
-  const fallbackKernelPathId = selectRuleValue(
+  const fallbackKernelPathId = explicitFallbackKernelPathId ?? selectRuleValue(
     'inference',
     'kernelPath',
     'finitenessFallback',
     { kernelPathId: primaryKernelPathId }
   );
 
-  const resolvedKernelPathId = typeof fallbackKernelPathId === 'string' && fallbackKernelPathId.length > 0
-    ? fallbackKernelPathId
-    : primaryKernelPathId;
-  const kernelPathSource = resolvedKernelPathId === primaryKernelPathId ? 'self' : 'rule';
+  if (typeof fallbackKernelPathId !== 'string' || fallbackKernelPathId.length === 0) {
+    throw new Error(
+      `[ExecutionPlan] Missing finiteness fallback kernel path mapping for "${primaryKernelPathId}". ` +
+      'Add an explicit rule in src/rules/inference/kernel-path.rules.json.'
+    );
+  }
 
-  if (kernelPathSource === 'self') {
-    log.warn(
-      'Pipeline',
-      `[ExecutionPlan] No finiteness fallback kernel path mapping for "${primaryKernelPathId}"; using primary kernel path.`
+  if (fallbackKernelPathId === primaryKernelPathId) {
+    throw new Error(
+      `[ExecutionPlan] Invalid finiteness fallback mapping for "${primaryKernelPathId}": ` +
+      `fallback kernel path resolves to itself. Add an explicit widening path.`
     );
   }
 
   try {
-    const kernelPath = resolveKernelPath(resolvedKernelPathId);
+    const kernelPath = resolveKernelPath(fallbackKernelPathId);
     return {
       kernelPath,
-      kernelPathId: resolvedKernelPathId,
-      kernelPathSource,
+      kernelPathId: fallbackKernelPathId,
+      kernelPathSource: 'rule',
     };
   } catch (error) {
-    if (primaryKernelPathIsObject) {
-      log.warn(
-        'Pipeline',
-        `[ExecutionPlan] Failed to resolve finiteness fallback kernel path "${resolvedKernelPathId}" ` +
-        `for "${primaryKernelPathId}", using inline kernel path as fallback. ${error?.message || error}`
-      );
-      return {
-        kernelPath: primaryKernelPath,
-        kernelPathId: primaryKernelPathId,
-        kernelPathSource,
-      };
-    }
     throw new Error(
-      `[ExecutionPlan] Failed to resolve finiteness fallback kernel path "${resolvedKernelPathId}" ` +
+      `[ExecutionPlan] Failed to resolve finiteness fallback kernel path "${fallbackKernelPathId}" ` +
       `(from "${primaryKernelPathId}"): ${error?.message || error}`
     );
   }
