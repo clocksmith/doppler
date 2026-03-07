@@ -1,4 +1,4 @@
-import { acquireBuffer, uploadData, readBuffer } from '../memory/buffer-pool.js';
+import { acquireBuffer, uploadData, readBuffer, releaseBuffer } from '../memory/buffer-pool.js';
 import { createTensor, tensorBytes } from '../gpu/tensor.js';
 import { f16ToF32Array } from '../inference/kv-cache/types.js';
 
@@ -68,8 +68,13 @@ export async function buildAttentionSoftmaxCache(q, k, options) {
   const sData = computeSoftmax(qData, kData, options);
   const { seqLen, numHeads } = options;
   const outBuf = acquireBuffer(tensorBytes([numHeads, seqLen, seqLen], 'f32'), undefined, 'attn_softmax_cache');
-  uploadData(outBuf, sData);
-  return createTensor(outBuf, 'f32', [numHeads, seqLen, seqLen], 'attn_softmax_cache');
+  try {
+    uploadData(outBuf, sData);
+    return createTensor(outBuf, 'f32', [numHeads, seqLen, seqLen], 'attn_softmax_cache');
+  } catch (error) {
+    releaseBuffer(outBuf);
+    throw error;
+  }
 }
 
 export async function attentionBackwardCpu(
@@ -201,17 +206,33 @@ export async function attentionBackwardCpu(
     }
   }
 
-  const qBufOut = acquireBuffer(tensorBytes([seqLen, numHeads, headDim], 'f32'), undefined, 'attn_backward_q');
-  const kBufOut = acquireBuffer(tensorBytes([seqLen, numHeads, headDim], 'f32'), undefined, 'attn_backward_k');
-  const vBufOut = acquireBuffer(tensorBytes([seqLen, numHeads, headDim], 'f32'), undefined, 'attn_backward_v');
+  let qBufOut = null;
+  let kBufOut = null;
+  let vBufOut = null;
+  try {
+    qBufOut = acquireBuffer(tensorBytes([seqLen, numHeads, headDim], 'f32'), undefined, 'attn_backward_q');
+    kBufOut = acquireBuffer(tensorBytes([seqLen, numHeads, headDim], 'f32'), undefined, 'attn_backward_k');
+    vBufOut = acquireBuffer(tensorBytes([seqLen, numHeads, headDim], 'f32'), undefined, 'attn_backward_v');
 
-  uploadData(qBufOut, dQ);
-  uploadData(kBufOut, dK);
-  uploadData(vBufOut, dV);
+    uploadData(qBufOut, dQ);
+    uploadData(kBufOut, dK);
+    uploadData(vBufOut, dV);
 
-  return {
-    gradQ: createTensor(qBufOut, 'f32', [seqLen, numHeads, headDim], 'attn_grad_q'),
-    gradK: createTensor(kBufOut, 'f32', [seqLen, numHeads, headDim], 'attn_grad_k'),
-    gradV: createTensor(vBufOut, 'f32', [seqLen, numHeads, headDim], 'attn_grad_v'),
-  };
+    return {
+      gradQ: createTensor(qBufOut, 'f32', [seqLen, numHeads, headDim], 'attn_grad_q'),
+      gradK: createTensor(kBufOut, 'f32', [seqLen, numHeads, headDim], 'attn_grad_k'),
+      gradV: createTensor(vBufOut, 'f32', [seqLen, numHeads, headDim], 'attn_grad_v'),
+    };
+  } catch (error) {
+    if (qBufOut) {
+      releaseBuffer(qBufOut);
+    }
+    if (kBufOut) {
+      releaseBuffer(kBufOut);
+    }
+    if (vBufOut) {
+      releaseBuffer(vBufOut);
+    }
+    throw error;
+  }
 }

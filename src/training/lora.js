@@ -12,18 +12,32 @@ export class LoraAdapter {
     const aBytes = tensorBytes([inDim, rank], dtype);
     const bBytes = tensorBytes([rank, outDim], dtype);
 
-    this.A = createTensor(
-      acquireBuffer(aBytes, BufferUsage.STORAGE, 'lora_A'),
-      dtype,
-      [inDim, rank],
-      'lora_A'
-    );
-    this.B = createTensor(
-      acquireBuffer(bBytes, BufferUsage.STORAGE, 'lora_B'),
-      dtype,
-      [rank, outDim],
-      'lora_B'
-    );
+    let aBuffer = null;
+    let bBuffer = null;
+    try {
+      aBuffer = acquireBuffer(aBytes, BufferUsage.STORAGE, 'lora_A');
+      bBuffer = acquireBuffer(bBytes, BufferUsage.STORAGE, 'lora_B');
+      this.A = createTensor(
+        aBuffer,
+        dtype,
+        [inDim, rank],
+        'lora_A'
+      );
+      this.B = createTensor(
+        bBuffer,
+        dtype,
+        [rank, outDim],
+        'lora_B'
+      );
+    } catch (error) {
+      if (aBuffer) {
+        releaseBuffer(aBuffer);
+      }
+      if (bBuffer) {
+        releaseBuffer(bBuffer);
+      }
+      throw error;
+    }
     this.alpha = alpha;
     this.rank = rank;
   }

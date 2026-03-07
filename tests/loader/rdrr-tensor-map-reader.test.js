@@ -50,6 +50,36 @@ const { assembleShardData } = await import('../../src/loader/tensors/tensor-read
 }
 
 {
+  const locations = await buildTensorLocations({
+    tensors: {
+      'layers.1.weight': {
+        shard: 2,
+        offset: 8,
+        size: 8,
+        shape: [2, 2],
+        dtype: 'F16',
+        role: 'matmul',
+        spans: [
+          { shard: 2, offset: 8, size: 4 },
+          { shardIndex: 3, offset: 0, size: 4 },
+        ],
+      },
+    },
+  });
+
+  const location = locations.get('layers.1.weight');
+  assert.ok(location);
+  assert.equal(location.shardIndex, 2);
+  assert.deepEqual(
+    location.spans,
+    [
+      { shardIndex: 2, offset: 8, size: 4 },
+      { shardIndex: 3, offset: 0, size: 4 },
+    ]
+  );
+}
+
+{
   const data = await assembleShardData(
     {
       shardIndex: 0,
@@ -62,6 +92,20 @@ const { assembleShardData } = await import('../../src/loader/tensors/tensor-read
   );
 
   assert.deepEqual(Array.from(data), [1, 2, 3]);
+}
+
+{
+  const data = await assembleShardData(
+    {
+      shard: 0,
+      offset: 2,
+      size: 2,
+    },
+    'legacy-shard-alias',
+    async () => new Uint8Array([0, 1, 2, 3, 4]).buffer
+  );
+
+  assert.deepEqual(Array.from(data), [2, 3]);
 }
 
 {

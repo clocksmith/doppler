@@ -1,5 +1,5 @@
 
-import { acquireBuffer, uploadData } from '../../memory/buffer-pool.js';
+import { acquireBuffer, uploadData, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor } from '../../gpu/tensor.js';
 
 function flattenTokenBatch(samples, key) {
@@ -27,14 +27,26 @@ export function buildTokenBatch(samples) {
 }
 
 export function createTokenBatchTensors(batch) {
-  const inputBuf = acquireBuffer(batch.inputFlat.byteLength, undefined, 'train_input_tokens');
-  uploadData(inputBuf, batch.inputFlat);
+  let inputBuf = null;
+  let targetBuf = null;
+  try {
+    inputBuf = acquireBuffer(batch.inputFlat.byteLength, undefined, 'train_input_tokens');
+    uploadData(inputBuf, batch.inputFlat);
 
-  const targetBuf = acquireBuffer(batch.targetFlat.byteLength, undefined, 'train_target_tokens');
-  uploadData(targetBuf, batch.targetFlat);
+    targetBuf = acquireBuffer(batch.targetFlat.byteLength, undefined, 'train_target_tokens');
+    uploadData(targetBuf, batch.targetFlat);
 
-  const input = createTensor(inputBuf, 'f32', [batch.inputFlat.length], 'train_input_tokens');
-  const targets = createTensor(targetBuf, 'f32', [batch.targetFlat.length], 'train_target_tokens');
+    const input = createTensor(inputBuf, 'f32', [batch.inputFlat.length], 'train_input_tokens');
+    const targets = createTensor(targetBuf, 'f32', [batch.targetFlat.length], 'train_target_tokens');
 
-  return { input, targets, offsets: batch.offsets };
+    return { input, targets, offsets: batch.offsets };
+  } catch (error) {
+    if (inputBuf) {
+      releaseBuffer(inputBuf);
+    }
+    if (targetBuf) {
+      releaseBuffer(targetBuf);
+    }
+    throw error;
+  }
 }
