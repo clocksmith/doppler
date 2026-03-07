@@ -10,6 +10,15 @@ export { exportLoRAAdapter } from './export.js';
 export { DynamicLossScaler, detectOverflow } from './loss-scaling.js';
 export { TrainingRunner, runTraining } from './runner.js';
 export { runTrainingSuite, runTrainingBenchSuite, trainingHarness } from './suite.js';
+export { runTrainingOperatorCommand } from './operator-command.js';
+export {
+  runLoraPipeline,
+  evaluateLoraCheckpoint,
+  exportLoraCheckpoint,
+  watchLoraCheckpoints,
+  compareLoraRun,
+  qualityGateLoraRun,
+} from './lora-pipeline.js';
 export type {
   TrainingObjective,
   TrainingObjectiveContext,
@@ -31,6 +40,7 @@ export type {
   DistillArtifactSession,
   DistillArtifactFinalizeResult,
 } from './artifacts.js';
+export * as distillation from './distillation/index.js';
 export {
   createDistillArtifactSession,
   resolveDistillTrainingContract,

@@ -44,13 +44,17 @@ Primary documentation index.
 - [Release Matrix](release-matrix.md) - generated model/platform support snapshot.
 - [Release Notes](release-notes.md) - non-generated notes for tooling and workflow changes.
 
-## Training and Distill
+## Training and Distillation
 
-- [Training Handbook](training-handbook.md) - canonical operations and gates.
+- [Training Handbook](training-handbook.md) - canonical operator workflow, gates, and artifact contract.
+- [Training Overview](training-overview.md) - concise map of operator vs legacy harness flows.
+- [Training Operator Playbook](training-operator-playbook.md) - day-to-day sequence for `lora` and `distill`.
 - [Training Artifact Policy](training-artifact-policy.md)
+- [Training Governance](training-governance.md)
 - [Training Migrations](training-migrations.md)
 - [Training Rollout Readiness](training-rollout-readiness.md)
 - [Training Benchmark Publication](training-benchmark-publication.md)
+- [Distill Studio Ops](distill-studio-ops.md) - legacy compatibility helpers, not the primary operator path.
 - [Diffusion Expansion Lanes](diffusion-expansion-lanes.md)
 
 ## Style Guides

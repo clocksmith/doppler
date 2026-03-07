@@ -1,22 +1,42 @@
 # Training Migrations
 
-Migration summary for training command schema, UL schema, and metrics schema.
+Migration summary for the training command surface, workload-pack schema, and artifact/report contracts.
 
-## Current schema baseline
+## Current Schema Baseline
 
-- Training command schema version is pinned to `1`.
-- `trainingSchemaVersion` must be `1` for training flows.
-- `trainingBenchSteps` is supported for training bench workloads.
+- training command schema version is pinned to `1`
+- workload-pack schema version is pinned to `1`
+- `trainingSchemaVersion` must be `1` for training flows
 
-## Command contract migration highlights
+## Command Contract Migration Highlights
 
-- Training-only fields are valid only for:
+- first-class operator commands are now `lora` and `distill`
+- operator commands require `action`
+- operator commands require `workloadPath` or `runRoot`
+- `watch`, `compare`, and `quality-gate` are run-root-driven and fail closed without `runRoot`
+- `eval` and `export` operate from explicit `checkpointPath` or finalized checkpoints already present in the run root
+- legacy training-only fields remain valid only for:
   - `verify --config '{"request":{"suite":"training",...}}'`
   - `bench --config '{"request":{"workloadType":"training",...}}'`
-- Invalid field/suite combinations are fail-closed.
-- `forceResumeReason` requires `forceResume=true`.
+- invalid field and surface combinations remain fail closed
+- `forceResumeReason`, `forceResumeSource`, and `checkpointOperator` still require `forceResume=true` on legacy harness flows
 
-## Metrics schema migration highlights
+## Workload-Pack Migration Highlights
+
+- workload packs under `tools/configs/training-workloads/` are now the canonical source of truth for operator runs
+- shared workload fields include model IDs, dataset IDs and paths, eval datasets, checkpoint cadence, selection policy, surface support, and training policy
+- LoRA workload fields now carry adapter, freeze, export, and activation policy
+- distill workload fields now carry stage plan, KD and triplet parameters, pair-policy filters, and subset policy
+
+## Artifact Migration Highlights
+
+- run roots are deterministic under `reports/training/<kind>/<workload-id>/<timestamp>/`
+- every run writes `run_contract.json` and `workload.lock.json`
+- finalized checkpoints require `checkpoint.complete.json`
+- compare and quality-gate artifacts are normal pipeline outputs, not ad hoc summary files
+- scoreboards are append-only `scoreboard.ndjson` plus a derived `latest.json`
+
+## Metrics Schema Migration Highlights
 
 Objective-aware metrics schema includes explicit unions for:
 
@@ -26,17 +46,14 @@ Objective-aware metrics schema includes explicit unions for:
 - `kd`
 - `triplet`
 
-Each objective requires its own field set and rejects incompatible stage/objective
-mixes.
+Each objective requires its own field set and rejects incompatible stage and objective mixes.
 
 Distill objective config fields are enforced as required payload fields:
 
-- KD (`objective="kd"`): `distill_temperature`, `distill_alpha_kd`,
-  `distill_alpha_ce`, `distill_loss_total`
-- Triplet (`objective="triplet"`): `distill_triplet_margin`,
-  `distill_triplet_active_count`
+- KD (`objective="kd"`): `distill_temperature`, `distill_alpha_kd`, `distill_alpha_ce`, `distill_loss_total`
+- triplet (`objective="triplet"`): `distill_triplet_margin`, `distill_triplet_active_count`
 
-Core replay context fields are now treated as part of the metrics contract:
+Core replay context fields remain part of the metrics contract:
 
 - `lr` / `effective_lr`
 - `seed`
@@ -47,29 +64,21 @@ Core replay context fields are now treated as part of the metrics contract:
 - `memory_stats`
 - `build_provenance`
 
-## UL schema migration highlights
+## Current Compatibility Notes
 
-UL config includes explicit stage/version controls, dependency linkage, and
-artifact fields suitable for stage-to-stage verification.
+- browser surfaces still fail closed for `lora` and `distill`
+- `lora run` currently supports the toy training backend only
+- distill stage entries still resolve to the internal `stage_a` / `stage_b` contract
+- plain `sft` distill workloads are rejected by the current JS distill runner
 
-## Checkpoint provenance + resume migration highlights
+## Migration Guidance
 
-- Checkpoints persist metadata hashes for config/dataset/optimizer lineage.
-- Build provenance fields (commit/build/timestamp) are persisted when available.
-- Runtime environment metadata includes runtime/surface context and GPU adapter
-  metadata when available.
-- Resume metadata mismatches fail closed by default.
-- Forced resume writes explicit `resumeAudits` records, including source,
-  operator, reason, mismatch list, and prior checkpoint metadata hash.
+- producers: emit required workload, checkpoint, eval, and artifact fields explicitly
+- consumers: treat missing required fields as invalid payloads
+- preserve deterministic content-hash semantics when introducing new fields
+- prefer workload-pack updates over new runtime-only flags
 
-## Migration guidance
+## Historical Notes
 
-- Producers: emit required objective/stage fields explicitly.
-- Consumers: treat missing required fields as invalid payloads.
-- Preserve deterministic content-hash semantics when introducing new fields.
-
-## Historical notes
-
-Older migration details were removed from the public docs tree during
-documentation consolidation. Use git history for prior training migration
-iterations and changelog context.
+Older migration details were removed from the public docs tree during documentation consolidation.
+Use git history for prior training-migration iterations and changelog context.

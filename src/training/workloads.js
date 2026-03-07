@@ -65,6 +65,18 @@ function asPositiveInteger(value, label, options = {}) {
   return parsed;
 }
 
+function asNonNegativeInteger(value, label, options = {}) {
+  if (value === undefined || value === null || value === '') {
+    if (options.optional === true) return null;
+    throw new Error(`${label} is required.`);
+  }
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed < 0) {
+    throw new Error(`${label} must be a non-negative integer.`);
+  }
+  return parsed;
+}
+
 function asFiniteNumber(value, label, options = {}) {
   if (value === undefined || value === null || value === '') {
     if (options.optional === true) return null;
@@ -145,7 +157,11 @@ function normalizeScheduler(value, label) {
   return {
     enabled: scheduler.enabled === true,
     type: asNonEmptyString(scheduler.type ?? 'constant', `${label}.type`),
-    warmupSteps: asPositiveInteger(scheduler.warmupSteps ?? 0, `${label}.warmupSteps`, { optional: true }) ?? 0,
+    warmupSteps: asNonNegativeInteger(
+      scheduler.warmupSteps ?? 0,
+      `${label}.warmupSteps`,
+      { optional: true }
+    ) ?? 0,
     stepSize: asPositiveInteger(scheduler.stepSize ?? 1, `${label}.stepSize`, { optional: true }) ?? 1,
     gamma: asFiniteNumber(scheduler.gamma ?? 1, `${label}.gamma`, { optional: true }) ?? 1,
     totalSteps: asPositiveInteger(scheduler.totalSteps ?? 1, `${label}.totalSteps`, { optional: true }) ?? 1,
@@ -190,6 +206,11 @@ function normalizeEvalDatasets(value, label) {
   const entries = Array.isArray(value) ? value : [];
   return entries.map((entry, index) => {
     const dataset = asObject(entry, `${label}[${index}]`);
+    const decodePolicy = asObject(
+      dataset.decodePolicy,
+      `${label}[${index}].decodePolicy`,
+      { optional: true }
+    );
     return {
       id: asNonEmptyString(dataset.id, `${label}[${index}].id`),
       datasetPath: asNonEmptyString(dataset.datasetPath ?? dataset.path, `${label}[${index}].datasetPath`),
@@ -202,6 +223,25 @@ function normalizeEvalDatasets(value, label) {
         optional: true,
         allowEmpty: true,
       }) ?? [],
+      decodePolicy: decodePolicy
+        ? {
+          maxTokens: asPositiveInteger(
+            decodePolicy.maxTokens,
+            `${label}[${index}].decodePolicy.maxTokens`,
+            { optional: true }
+          ),
+          stopOnEos: asBoolean(
+            decodePolicy.stopOnEos ?? true,
+            `${label}[${index}].decodePolicy.stopOnEos`,
+            { optional: true }
+          ) ?? true,
+        }
+        : null,
+      scoreboardColumns: asStringArray(
+        dataset.scoreboardColumns ?? [],
+        `${label}[${index}].scoreboardColumns`,
+        { optional: true, allowEmpty: true }
+      ) ?? [],
       sourceLangs: asStringArray(dataset.sourceLangs, `${label}[${index}].sourceLangs`, { optional: true, allowEmpty: true }),
       targetLangs: asStringArray(dataset.targetLangs, `${label}[${index}].targetLangs`, { optional: true, allowEmpty: true }),
       pairAllowlist: asStringArray(dataset.pairAllowlist, `${label}[${index}].pairAllowlist`, { optional: true, allowEmpty: true }),

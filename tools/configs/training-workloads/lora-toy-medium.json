@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "kind": "lora",
+  "id": "lora-toy-medium",
+  "description": "Deterministic medium LoRA toy workload for adapter checkpoint, export, and compare coverage.",
+  "claimBoundary": "Practical deterministic LoRA traceability for toy adapter training, export, and eval artifacts.",
+  "seed": 1337,
+  "baseModelId": "training-toy",
+  "studentModelId": null,
+  "teacherModelId": null,
+  "datasetId": "lora-toy-medium",
+  "datasetPath": "tests/fixtures/training/lora-toy-medium.jsonl",
+  "evalDatasets": [
+    {
+      "id": "lora-toy-medium-eval",
+      "datasetPath": "tests/fixtures/training/lora-toy-medium.jsonl",
+      "evalKind": "classification",
+      "metrics": ["accuracy"],
+      "decodePolicy": null,
+      "scoreboardColumns": ["accuracy"],
+      "sourceLangs": null,
+      "targetLangs": null,
+      "pairAllowlist": null
+    }
+  ],
+  "trainingSchemaVersion": 1,
+  "checkpointEvery": 2,
+  "selectionMetric": "accuracy",
+  "selectionGoal": "max",
+  "surfaceSupport": "node",
+  "training": {
+    "optimizer": {
+      "type": "adam",
+      "lr": 0.00035,
+      "beta1": 0.9,
+      "beta2": 0.999,
+      "eps": 1e-8,
+      "weightDecay": 0,
+      "scheduler": {
+        "enabled": false,
+        "type": "constant",
+        "warmupSteps": 0,
+        "stepSize": 1,
+        "gamma": 1,
+        "totalSteps": 4,
+        "minLr": 0
+      }
+    },
+    "batchSize": 2,
+    "accumSteps": 1,
+    "steps": 4,
+    "precision": {
+      "activations": "f32",
+      "gradients": "f32",
+      "loraParams": "f32"
+    },
+    "gradientClipping": {
+      "maxNorm": 1
+    }
+  },
+  "lora": {
+    "datasetFormat": "toy_linear_classification_jsonl",
+    "taskType": "classification",
+    "adapter": {
+      "rank": 2,
+      "alpha": 8,
+      "dropout": 0,
+      "targetModules": ["q_proj"]
+    },
+    "freeze": {
+      "encoder": false,
+      "prior": false,
+      "decoder": false,
+      "base": true,
+      "lora": false
+    },
+    "export": {
+      "enabled": true,
+      "atCheckpoints": false,
+      "select": "best",
+      "id": "toy-lora-medium",
+      "name": "Toy LoRA Medium",
+      "format": "manifest_json"
+    },
+    "activation": {
+      "enabled": false,
+      "autoActivate": false,
+      "smokePrompt": null
+    }
+  }
+}

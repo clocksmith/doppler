@@ -28,6 +28,24 @@
       }
     },
     {
+      "match": {
+        "command": "lora"
+      },
+      "value": {
+        "suite": null,
+        "intent": null
+      }
+    },
+    {
+      "match": {
+        "command": "distill"
+      },
+      "value": {
+        "suite": null,
+        "intent": null
+      }
+    },
+    {
       "match": {},
       "value": {
         "suite": null,

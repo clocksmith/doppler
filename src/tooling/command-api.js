@@ -1,12 +1,14 @@
 import { isPlainObject } from '../utils/plain-object.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
 
-const TOOLING_COMMAND_SET = ['convert', 'debug', 'bench', 'verify'];
+const TOOLING_COMMAND_SET = ['convert', 'debug', 'bench', 'verify', 'lora', 'distill'];
 const TOOLING_SURFACE_SET = ['browser', 'node'];
 const TOOLING_SUITE_SET = ['kernels', 'inference', 'training', 'bench', 'debug', 'diffusion', 'energy'];
 const TOOLING_INTENT_SET = ['verify', 'investigate', 'calibrate'];
 const VERIFY_SUITES = ['kernels', 'inference', 'training', 'diffusion', 'energy'];
 const TRAINING_STAGE_SET = ['stage1_joint', 'stage2_base', 'stage_a', 'stage_b'];
+const DISTILL_ACTION_SET = ['run', 'stage-a', 'stage-b', 'eval', 'watch', 'compare', 'quality-gate', 'subsets'];
+const LORA_ACTION_SET = ['run', 'eval', 'watch', 'export', 'compare', 'quality-gate', 'activate'];
 const TRAINING_COMMAND_SCHEMA_VERSION = 1;
 
 export const TOOLING_COMMANDS = Object.freeze([...TOOLING_COMMAND_SET]);
@@ -80,6 +82,15 @@ function asOptionalForceResumeReason(value, label) {
   const reason = asOptionalString(value, label);
   if (!reason) return null;
   return reason;
+}
+
+function asOptionalAction(value, label, allowed) {
+  const action = asOptionalString(value, label);
+  if (!action) return null;
+  if (!allowed.includes(action)) {
+    throw new Error(`tooling command: ${label} must be one of ${allowed.join(', ')}.`);
+  }
+  return action;
 }
 
 function assertCommand(value) {
@@ -246,6 +257,7 @@ function normalizeConvert(raw) {
     command: 'convert',
     suite: null,
     intent: null,
+    action: null,
     modelId: null,
     trainingTests: null,
     trainingStage: null,
@@ -285,6 +297,113 @@ function normalizeConvert(raw) {
     inputDir,
     outputDir,
     convertPayload: payload,
+    workloadPath: null,
+    runRoot: null,
+    checkpointPath: null,
+    checkpointId: null,
+    checkpointStep: null,
+    stageId: null,
+    stageArtifact: null,
+    subsetManifest: null,
+    evalDatasetId: null,
+    pollIntervalMs: null,
+    stopWhenIdle: null,
+    captureOutput: false,
+    keepPipeline: false,
+    report: asOptionalObject(raw.report, 'report'),
+    timestamp: raw.timestamp ?? null,
+    searchParams: raw.searchParams ?? null,
+  };
+}
+
+function normalizeTrainingOperatorCommand(raw, command) {
+  const allowedActions = command === 'distill' ? DISTILL_ACTION_SET : LORA_ACTION_SET;
+  const action = asOptionalAction(raw.action, 'action', allowedActions);
+  if (!action) {
+    throw new Error(`tooling command: ${command} requires action.`);
+  }
+  const workloadPath = asOptionalString(raw.workloadPath, 'workloadPath');
+  const runRoot = asOptionalString(raw.runRoot, 'runRoot');
+  const checkpointPath = asOptionalString(raw.checkpointPath, 'checkpointPath');
+  const checkpointId = asOptionalString(raw.checkpointId, 'checkpointId');
+  const checkpointStep = asOptionalPositiveInteger(raw.checkpointStep, 'checkpointStep');
+  const stageId = asOptionalString(raw.stageId, 'stageId');
+  const stageArtifact = asOptionalString(raw.stageArtifact, 'stageArtifact');
+  const subsetManifest = asOptionalString(raw.subsetManifest, 'subsetManifest');
+  const evalDatasetId = asOptionalString(raw.evalDatasetId, 'evalDatasetId');
+  const pollIntervalMs = asOptionalPositiveInteger(raw.pollIntervalMs, 'pollIntervalMs');
+  const stopWhenIdle = asOptionalBoolean(raw.stopWhenIdle, 'stopWhenIdle');
+  if (!workloadPath && !runRoot) {
+    throw new Error(`tooling command: ${command} requires workloadPath or runRoot.`);
+  }
+  if ((action === 'eval' || action === 'export') && !checkpointPath && !runRoot) {
+    throw new Error(`tooling command: ${command} ${action} requires checkpointPath or runRoot.`);
+  }
+  if (action === 'watch' && !runRoot) {
+    throw new Error(`tooling command: ${command} watch requires runRoot.`);
+  }
+  if ((action === 'compare' || action === 'quality-gate') && !runRoot) {
+    throw new Error(`tooling command: ${command} ${action} requires runRoot.`);
+  }
+  if (command === 'distill' && action === 'stage-b' && !stageArtifact && !runRoot) {
+    throw new Error('tooling command: distill stage-b requires stageArtifact or runRoot.');
+  }
+
+  return {
+    command,
+    suite: null,
+    intent: null,
+    action,
+    modelId: null,
+    trainingTests: null,
+    trainingStage: null,
+    trainingConfig: null,
+    stage1Artifact: null,
+    stage1ArtifactHash: null,
+    ulArtifactDir: null,
+    stageAArtifact: null,
+    stageAArtifactHash: null,
+    distillArtifactDir: null,
+    teacherModelId: null,
+    studentModelId: null,
+    distillDatasetId: null,
+    distillDatasetPath: null,
+    distillLanguagePair: null,
+    distillSourceLangs: null,
+    distillTargetLangs: null,
+    distillPairAllowlist: null,
+    strictPairContract: null,
+    distillShardIndex: null,
+    distillShardCount: null,
+    resumeFrom: null,
+    forceResume: null,
+    forceResumeReason: null,
+    forceResumeSource: null,
+    checkpointOperator: null,
+    trainingSchemaVersion: null,
+    trainingBenchSteps: null,
+    checkpointEvery: null,
+    workloadType: 'training',
+    modelUrl: null,
+    cacheMode: asOptionalCacheMode(raw.cacheMode, 'cacheMode'),
+    loadMode: asOptionalLoadMode(raw.loadMode, 'loadMode'),
+    runtimePreset: asOptionalString(raw.runtimePreset, 'runtimePreset'),
+    runtimeConfigUrl: asOptionalString(raw.runtimeConfigUrl, 'runtimeConfigUrl'),
+    runtimeConfig: asOptionalObject(raw.runtimeConfig, 'runtimeConfig'),
+    inputDir: null,
+    outputDir: null,
+    convertPayload: null,
+    workloadPath,
+    runRoot,
+    checkpointPath,
+    checkpointId,
+    checkpointStep,
+    stageId,
+    stageArtifact,
+    subsetManifest,
+    evalDatasetId,
+    pollIntervalMs,
+    stopWhenIdle,
     captureOutput: false,
     keepPipeline: false,
     report: asOptionalObject(raw.report, 'report'),
@@ -428,6 +547,7 @@ function normalizeSuiteCommand(raw, command) {
     command,
     suite,
     intent: runtimeContract.intent,
+    action: null,
     modelId,
     trainingTests,
     trainingStage,
@@ -469,6 +589,17 @@ function normalizeSuiteCommand(raw, command) {
     inputDir: null,
     outputDir: null,
     convertPayload: null,
+    workloadPath: null,
+    runRoot: null,
+    checkpointPath: null,
+    checkpointId: null,
+    checkpointStep: null,
+    stageId: null,
+    stageArtifact: null,
+    subsetManifest: null,
+    evalDatasetId: null,
+    pollIntervalMs: null,
+    stopWhenIdle: null,
     captureOutput: asOptionalBoolean(raw.captureOutput, 'captureOutput') ?? false,
     keepPipeline: asOptionalBoolean(raw.keepPipeline, 'keepPipeline') ?? false,
     report: asOptionalObject(raw.report, 'report'),
@@ -484,6 +615,9 @@ export function normalizeToolingCommandRequest(input) {
   const command = assertCommand(input.command);
   if (command === 'convert') {
     return normalizeConvert(input);
+  }
+  if (command === 'lora' || command === 'distill') {
+    return normalizeTrainingOperatorCommand(input, command);
   }
   return normalizeSuiteCommand(input, command);
 }
@@ -514,8 +648,13 @@ export function ensureCommandSupportedOnSurface(commandRequest, surface) {
     throw new Error(`tooling command: unsupported surface "${surface}".`);
   }
 
-  // All commands are contractually available on both surfaces.
-  // Surface-specific capability checks happen in the runners.
+  if (
+    normalizedSurface === 'browser'
+    && (request.command === 'lora' || request.command === 'distill')
+  ) {
+    throw new Error(`tooling command: ${request.command} is currently Node-only and must fail closed on browser.`);
+  }
+
   return {
     request,
     surface: normalizedSurface,
