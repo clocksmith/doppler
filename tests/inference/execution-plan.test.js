@@ -136,4 +136,58 @@ const container = { executionPlanState: planState };
   assert.equal(resolveActiveExecutionPlan(noFallbackPlanState).id, 'primary');
 }
 
+{
+  const runtimeConfigMissingRule = createDopplerConfig().runtime;
+  runtimeConfigMissingRule.inference.compute.activationDtype = 'f16';
+  assert.throws(
+    () => compileExecutionPlanState({
+      runtimeConfig: runtimeConfigMissingRule,
+      resolvedKernelPath: {
+        id: 'missing-fallback-path',
+        activationDtype: 'f16',
+        decode: { steps: [] },
+      },
+      kernelPathSource: 'model',
+    }),
+    /Missing finiteness fallback kernel path mapping for "missing-fallback-path"/
+  );
+}
+
+{
+  const runtimeConfigMissingId = createDopplerConfig().runtime;
+  runtimeConfigMissingId.inference.compute.activationDtype = 'f16';
+  assert.throws(
+    () => compileExecutionPlanState({
+      runtimeConfig: runtimeConfigMissingId,
+      resolvedKernelPath: {
+        activationDtype: 'f16',
+        decode: { steps: [] },
+      },
+      kernelPathSource: 'model',
+    }),
+    /F16 finiteness fallback requires a primary kernel path with a stable id/
+  );
+}
+
+{
+  const runtimeConfigInlineFallback = createDopplerConfig().runtime;
+  runtimeConfigInlineFallback.inference.compute.activationDtype = 'f16';
+  const inlinePlanState = compileExecutionPlanState({
+    runtimeConfig: runtimeConfigInlineFallback,
+    resolvedKernelPath: {
+      id: 'gemma-inline-execution-v0',
+      activationDtype: 'f16',
+      finitenessFallbackKernelPathId: 'gemma3-q4k-dequant-f32a',
+      decode: { steps: [] },
+    },
+    kernelPathSource: 'execution-v0',
+  });
+
+  const fallback = activateFallbackExecutionPlan(inlinePlanState);
+  assert.ok(fallback);
+  assert.equal(fallback.kernelPathId, 'gemma3-q4k-dequant-f32a');
+  assert.equal(fallback.kernelPathSource, 'rule');
+  assert.equal(fallback.activationDtype, 'f32');
+}
+
 console.log('execution-plan.test: ok');

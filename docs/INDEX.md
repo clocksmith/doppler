@@ -18,6 +18,7 @@ Primary documentation index.
 - [RDRR Format](rdrr-format.md) - runtime artifact spec.
 - [LoRA Format](lora-format.md) - adapter manifest spec.
 - [Conversion Runtime Contract](conversion-runtime-contract.md) - conversion-static vs runtime-overridable ownership.
+- [Model Promotion Playbook](model-promotion-playbook.md) - canonical sync workflow for repo metadata, external-volume RDRR artifacts, and Hugging Face hosting.
 - [Registry Workflow](registry-workflow.md) - hosted catalog validation and Hugging Face publication workflow.
 - [Operations](operations.md) - troubleshooting and debug workflows.
 

@@ -1,7 +1,7 @@
 {
   "version": 1,
   "lifecycleSchemaVersion": 1,
-  "updatedAt": "2026-03-06",
+  "updatedAt": "2026-03-07",
   "models": [
     {
       "modelId": "gemma-3-270m-it-wq4k-ef16-hf16",
@@ -19,7 +19,7 @@
       ],
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "4efe64a914892e98be50842aeb16c3b648cc68a5",
+        "revision": "5a6c9dc7f1607dd328de081dfa9ffb58c68a9121",
         "path": "models/gemma-3-270m-it-wq4k-ef16"
       },
       "baseUrl": "./curated/gemma-3-270m-it-wq4k-ef16-hf16",

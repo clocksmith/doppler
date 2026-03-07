@@ -2,6 +2,8 @@
 
 This page covers Hugging Face registry validation, publication, and derived catalog checks.
 
+For the end-to-end promotion workflow across repo metadata, external-volume RDRR storage, and Hugging Face hosting, use [model-promotion-playbook.md](model-promotion-playbook.md).
+
 ## Scope
 
 Use this workflow when you:
@@ -61,6 +63,12 @@ Dry run:
 ```bash
 npm run registry:publish:hf -- --model-id translategemma-4b-it-wq4k-ef16-hf16 --dry-run
 ```
+
+Preferred publication source:
+
+- publish from the canonical external-volume RDRR directory, not a scratch rebuild directory
+- ensure the external-volume artifact matches the curated manifest before publication
+- update external-volume trackers after publication
 
 ## After publishing
 

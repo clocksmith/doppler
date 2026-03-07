@@ -120,11 +120,30 @@ function sessionDefaultsFor(kernels, activationDtype = 'f16') {
   assert.equal(compiled.resolvedSteps.prefill.length, 2);
   assert.equal(compiled.resolvedSteps.decode.length, 2);
   assert.equal(compiled.runtimeInferencePatch.kernelPath.id, 'unit-test-execution-v0');
+  assert.equal(compiled.runtimeInferencePatch.kernelPath.finitenessFallbackKernelPathId, undefined);
   assert.equal(compiled.runtimeInferencePatch.pipeline.steps.length, 2);
   assert.equal(compiled.resolvedSources.steps.attn_main['precision.inputDtype'].source, 'derived');
   assert.equal(
     compiled.resolvedSources.session['sessionDefaults.compute.defaults.activationDtype'].source,
     'manifest'
+  );
+}
+
+{
+  const generated = buildExecutionV0FromKernelPath('gemma3-q4k-dequant-f16a-online');
+  const compiled = compileExecutionV0({
+    modelId: 'gemma-inline',
+    numLayers: 2,
+    manifestInference: {
+      ...generated,
+      defaultKernelPath: 'gemma3-q4k-dequant-f16a-online',
+    },
+  });
+
+  assert.ok(compiled);
+  assert.equal(
+    compiled.runtimeInferencePatch.kernelPath.finitenessFallbackKernelPathId,
+    'gemma3-q4k-dequant-f32a'
   );
 }
 
