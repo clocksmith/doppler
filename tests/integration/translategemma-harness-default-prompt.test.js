@@ -143,6 +143,23 @@ function createHarnessOverride() {
   assert.equal(result.metrics.requiredInferenceFieldsArtifact, null);
 }
 
+await assert.rejects(
+  () => runBrowserSuite({
+    runtime: {
+      runtimeConfig: {
+        inference: {
+          prompt: 'Translate from English to French: Hello world.',
+        },
+      },
+    },
+    suite: 'debug',
+    command: 'debug',
+    surface: 'node',
+    harnessOverride: createHarnessOverride().harnessOverride,
+  }),
+  /TranslateGemma harness prompt contract violation/
+);
+
 {
   const { prompts, harnessOverride } = createHarnessOverride();
   const result = await runBrowserSuite({

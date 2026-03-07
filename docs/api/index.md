@@ -18,7 +18,7 @@ The generated export inventory lives under [reference/exports.md](reference/expo
 - [Generation API](generation.md) - `@simulatte/doppler/generation`
 - [Diffusion API](diffusion.md) - `@simulatte/doppler/diffusion`
 - [Energy API](energy.md) - `@simulatte/doppler/energy`
-- [Tooling API](tooling.md) - `@simulatte/doppler/tooling`
+- [Tooling API](tooling.md) - `@simulatte/doppler/tooling`, including the shared `convert|debug|bench|verify|lora|distill` command contract
 
 ### Exposed but not primary doc targets
 

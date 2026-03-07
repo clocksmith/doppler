@@ -1,21 +1,24 @@
 # Training Contract Governance
 
-Governance policy now references the canonical runbook in [training-handbook.md](training-handbook.md).
+Governance policy references the canonical runbook in [training-handbook.md](training-handbook.md).
 
-## Required artifacts per release cycle
+## Required Artifacts Per Release Cycle
 
-- Contract gate pass
-- Workload registry verification
-- Report-id publication artifact
-- Distill quality-gate bundle for claimable distill outputs
+- contract-gate pass
+- workload-registry verification
+- report-id publication artifact
+- compare and quality-gate artifacts for claimable lora or distill outputs
+
+## Governance Rules
+
+- workload packs are the source of truth for behavior-changing operator policy
+- run-root artifacts must preserve workload, dataset, and surface traceability
+- browser surfaces must fail closed for unsupported training operator commands
+- claim publication requires deterministic traceability fields and reproducible artifacts
 
 ## Commands
 
 Use the canonical command list in [training-handbook.md](training-handbook.md#primary-commands).
-
-## Demo claim policy
-
-Claim publication requires deterministic traceability fields and reproducible artifacts.
 
 ## References
 

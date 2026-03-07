@@ -1,0 +1,114 @@
+{
+  "output": {
+    "baseDir": "models/local",
+    "modelBaseId": "gemma-3-4b-it-wq4k-ef16-hf16",
+    "textOnly": true
+  },
+  "presets": {
+    "model": "gemma3"
+  },
+  "quantization": {
+    "weights": "q4k",
+    "embeddings": "f16",
+    "lmHead": "f16",
+    "computePrecision": "f16",
+    "q4kLayout": "row"
+  },
+  "inference": {
+    "defaultKernelPath": "gemma3-q4k-dequant-f16a-online",
+    "schema": "doppler.execution/v0",
+    "sessionDefaults": {
+      "compute": {
+        "defaults": {
+          "activationDtype": "f16",
+          "mathDtype": "f16",
+          "accumDtype": "f32",
+          "outputDtype": "f16"
+        },
+        "kernelProfiles": [
+          {
+            "kernelRef": {
+              "id": "gather.f16.main",
+              "version": "1.0.0",
+              "digest": "sha256:a4829f4067091c98ad6ebbc9b0744cdd5bbcd4fbf6092b2f7cc7f1098695860f"
+            }
+          },
+          {
+            "kernelRef": {
+              "id": "rmsnorm.f16.main",
+              "version": "1.0.0",
+              "digest": "sha256:21d6d702cfcb8d653d8e105bbbc522e85704fa5628b865a7d36cde338ca5c779"
+            }
+          },
+          {
+            "kernelRef": {
+              "id": "matmul.gemv.subgroup.f16a.main.vec4",
+              "version": "1.0.0",
+              "digest": "sha256:f227a403cdf9717dd68224c9ea55708ffe14c618d8146f5d48b42af0f253df29"
+            }
+          },
+          {
+            "kernelRef": {
+              "id": "rope.f16.main",
+              "version": "1.0.0",
+              "digest": "sha256:a87f2964b77e851a2fbcc88305adeecaf8eba372291d83a71b817c8ef3da5c58"
+            }
+          },
+          {
+            "kernelRef": {
+              "id": "attention.decode.online.f16.main",
+              "version": "1.0.0",
+              "digest": "sha256:953acecd07bd1e50829f26a7e6abb6c653331504d23914b77538da99ee1474dc"
+            }
+          },
+          {
+            "kernelRef": {
+              "id": "residual.f16.main",
+              "version": "1.0.0",
+              "digest": "sha256:d392433f3065d1caf68b033219f4ffacf022dc1f90fc3cf3fd620e4ba49f3219"
+            }
+          },
+          {
+            "kernelRef": {
+              "id": "gelu.f16.main",
+              "version": "1.0.0",
+              "digest": "sha256:34b2f981e8b96bd624748b84bad0512940a01ada1721e0ffb8e149259b82b22a"
+            }
+          },
+          {
+            "kernelRef": {
+              "id": "matmul.f16.main",
+              "version": "1.0.0",
+              "digest": "sha256:b2a7e4a4db27d008da957225b361ef688f299ece792c844e2d2542b21d3fdfbe"
+            }
+          },
+          {
+            "kernelRef": {
+              "id": "attention.streaming.f16.main",
+              "version": "1.0.0",
+              "digest": "sha256:2a1591412e581fb855bc54003c616819008c9ee21b56adee81afbe672eba32c9"
+            }
+          },
+          {
+            "kernelRef": {
+              "id": "matmul.gemv.subgroup.f16a.main.multicol",
+              "version": "1.0.0",
+              "digest": "sha256:c8e86ecbbefa27a3b7366af676d89a992c2e951329cdf19abb57b9c90144379e"
+            }
+          },
+          {
+            "kernelRef": {
+              "id": "sample.f16.sample.single.pass",
+              "version": "1.0.0",
+              "digest": "sha256:f3551288786f0a47f5222e07ab7f54a646e422c2493a62b8074202601eb06ddb"
+            }
+          }
+        ]
+      },
+      "kvcache": {
+        "kvDtype": "f16"
+      },
+      "decodeLoop": null
+    }
+  }
+}

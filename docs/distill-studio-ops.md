@@ -1,19 +1,35 @@
 # Distill Studio Ops
 
-Distill Studio operations are consolidated in [training-handbook.md](training-handbook.md#distill-studio-mvp).
+This page now covers legacy Distill Studio compatibility helpers only.
+Operational distillation runs use the first-class `distill` command family documented in [training-handbook.md](training-handbook.md).
 
-## Scope
+## Status
 
-Distill Studio is deterministic, contract-validated operator tooling.
+- `distill` is the canonical training/eval/watch/compare/quality-gate operator surface.
+- `distill-studio-*` scripts are retained for report analysis, diagnostics, or compatibility workflows.
+- New operator behavior must be documented under the `distill` surface, not under Distill Studio naming.
 
-## Inputs/outputs
+## Legacy Helper Scripts
 
-Inputs and outputs remain unchanged; see the canonical contract surface in [training-handbook.md](training-handbook.md).
+- `tools/distill-studio-mvp.mjs`
+- `tools/distill-studio-diagnostics.mjs`
+- `tools/distill-studio-quality-gate.mjs`
 
-## Commands
+These helpers are suitable for post-hoc analysis and historical report workflows.
+They are not the canonical run-contract or workload-pack execution path.
 
-Use the canonical Distill Studio command set in [training-handbook.md](training-handbook.md#distill-studio-mvp).
+## Operator Replacement
 
-## Reliability and incidents
+Use these commands for active workflows instead:
+
+```bash
+node tools/doppler-cli.js distill --config '{"request":{"action":"run","workloadPath":"tools/configs/training-workloads/distill-translategemma-tiny.json"}}'
+
+node tools/doppler-cli.js distill --config '{"request":{"action":"eval","runRoot":"reports/training/distill/distill-translategemma-tiny/2026-03-07T00-00-00.000Z"}}'
+
+node tools/doppler-cli.js distill --config '{"request":{"action":"quality-gate","runRoot":"reports/training/distill/distill-translategemma-tiny/2026-03-07T00-00-00.000Z"}}'
+```
+
+## Reliability and Incidents
 
 Use [training-handbook.md](training-handbook.md#incident-response) for incident sequence and release gating.

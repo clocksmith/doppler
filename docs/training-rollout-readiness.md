@@ -1,28 +1,37 @@
 # Training Rollout Readiness
 
-Rollout checklist for training/distillation contract and Distill Studio MVP.
+Rollout checklist for the first-class `lora` and `distill` operator surface.
 
-## Gate readiness
+## Gate Readiness
 
-- `npm run ci:training:contract` passes all lanes.
-- No lane filtering is used for release checks.
-- Contract delta artifact is generated for each release cycle.
+- `npm run ci:training:contract` passes all lanes
+- no lane filtering is used for release checks
+- contract-delta artifact is generated for each release cycle
 
-## Distill Studio MVP readiness
+## Operator Surface Readiness
 
-- Replay teacher mode produces traceable payload.
-- Branch compare mode produces traceable payload.
-- Mini-eval mode produces traceable payload.
-- Distill diagnostics and quality-gate outputs are generated for candidate claims.
+- `lora` and `distill` are present in `src/tooling/command-api.js`
+- CLI help and API docs describe the operator commands
+- browser surfaces fail closed for unsupported operator actions
+- workload packs are validated through the training-workload registry
+- run roots write `run_contract.json` and `workload.lock.json`
+- finalized checkpoints write `checkpoint.complete.json`
+- eval, compare, scoreboard, and quality-gate artifacts are emitted for candidate runs
 
-## Traceability readiness
+## Traceability Readiness
 
-- Workload registry hashes match workload pack files.
-- Baseline report ids are present for all workload packs.
-- Report-id publication artifact is generated and stored.
+- workload registry hashes match workload-pack files
+- baseline report IDs are present for all workload packs
+- report-id publication artifact is generated and stored
+- claimable artifacts carry workload and dataset traceability fields
 
-## External readiness tracks (process owned)
+## Legacy Helper Readiness
 
-- Operator playbook is published and current.
-- Rollout doc set is published and current.
-- Benchmark publication process is documented and followed.
+- Distill Studio helper scripts are documented as compatibility tooling only
+- operator documentation does not depend on Distill Studio naming
+
+## External Readiness Tracks
+
+- operator playbook is published and current
+- rollout doc set is published and current
+- benchmark publication process is documented and followed

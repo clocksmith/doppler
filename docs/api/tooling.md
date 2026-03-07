@@ -2,20 +2,22 @@
 
 ## Purpose
 
-Browser-safe and Node tooling surface for command runners, diagnostics, registry helpers, storage access, and shared command contracts.
+Browser-safe and Node tooling surface for command runners, diagnostics, registry helpers, storage access, and the shared command contract used by the CLI and browser relay surfaces.
 
 ## Import Path
 
 ```js
 import {
+  normalizeToolingCommandRequest,
+  ensureCommandSupportedOnSurface,
   runBrowserCommand,
-  normalizeBrowserCommand,
+  runNodeCommand,
 } from '@simulatte/doppler/tooling';
 ```
 
 ## Audience
 
-Tool builders, demo/harness code, and consumers that need CLI/browser command parity or browser-safe storage/diagnostic helpers.
+Tool builders, harness code, demos, and consumers that need browser/CLI command parity or direct access to the normalized command contract.
 
 ## Stability
 
@@ -27,26 +29,55 @@ Public, but tooling-oriented rather than app-facing.
 - browser command runner helpers
 - Node command runner helpers
 - storage registry and shard-manager helpers
-- runtime/config inspection helpers
+- runtime and config inspection helpers
 
 The generated export inventory is the authoritative symbol list for this surface because the tooling subpath is broad.
 
 ## Core Behaviors
 
 - shared browser/Node command contract
+- explicit fail-closed surface support via `ensureCommandSupportedOnSurface(...)`
 - browser-safe exports and Node-only exports gathered under one subpath
 - intended for harnesses, diagnostics, demos, registry/storage workflows, and command runners
+
+## Command Families
+
+Canonical tooling commands:
+
+- `convert`
+- `debug`
+- `bench`
+- `verify`
+- `lora`
+- `distill`
+
+Operator command families:
+
+- `lora.action`: `run|eval|watch|export|compare|quality-gate|activate`
+- `distill.action`: `run|stage-a|stage-b|eval|watch|compare|quality-gate|subsets`
+
+Important surface rules:
+
+- `lora` and `distill` normalize through the same command API as the harnessed commands
+- browser surfaces currently reject `lora` and `distill`
+- `runBrowserCommand(...)` is appropriate for browser-safe commands such as `verify`, `debug`, and `bench`
+- `runNodeCommand(...)` is the canonical operator execution path for `lora` and `distill`
 
 ## Symbol Groups
 
 ### Command contract and runners
 
+- `normalizeToolingCommandRequest(...)`
+- `ensureCommandSupportedOnSurface(...)`
 - `normalizeBrowserCommand(...)`
 - `runBrowserCommand(...)`
 - `normalizeNodeCommand(...)`
 - `runNodeCommand(...)`
 - `normalizeNodeBrowserCommand(...)`
 - `runBrowserCommandInNode(...)`
+- `TOOLING_COMMANDS`
+- `TOOLING_SURFACES`
+- `TOOLING_SUITES`
 
 ### Config and preset helpers
 
@@ -59,7 +90,7 @@ The generated export inventory is the authoritative symbol list for this surface
 ### Storage and manifest helpers
 
 - shard-manager exports
-- storage registry exports
+- storage-registry exports
 - manifest parsing helpers
 
 ### Device and diagnostics helpers
@@ -72,47 +103,50 @@ The generated export inventory is the authoritative symbol list for this surface
 ## Minimal Example
 
 ```js
-import { normalizeBrowserCommand, runBrowserCommand } from '@simulatte/doppler/tooling';
+import { normalizeToolingCommandRequest, runBrowserCommand } from '@simulatte/doppler/tooling';
 
-const command = normalizeBrowserCommand({
+const request = normalizeToolingCommandRequest({
   command: 'verify',
-  request: { suite: 'inference' },
+  suite: 'inference',
+  modelId: 'gemma-3-270m-it-wq4k-ef16-hf16',
 });
 
-const result = await runBrowserCommand(command);
+const result = await runBrowserCommand(request);
 console.log(result.ok);
 ```
 
 ## Advanced Example
 
 ```js
-import {
-  listRegisteredModels,
-  loadRuntimePreset,
-  normalizeBrowserCommand,
-  runBrowserCommand,
-} from '@simulatte/doppler/tooling';
+import { normalizeToolingCommandRequest, runNodeCommand } from '@simulatte/doppler/tooling';
 
-const preset = await loadRuntimePreset('modes/debug');
-console.log(await listRegisteredModels());
+const request = normalizeToolingCommandRequest({
+  command: 'distill',
+  action: 'subsets',
+  workloadPath: 'tools/configs/training-workloads/distill-translategemma-tiny.json',
+});
 
-const result = await runBrowserCommand(normalizeBrowserCommand({
-  command: 'verify',
-  request: {
-    suite: 'inference',
-    runtimeConfig: preset,
-  },
-}));
-
-console.log(result.ok);
+const result = await runNodeCommand(request);
+console.log(result.result?.subset?.subsetManifestPath);
 ```
+
+## Contract Notes
+
+- operator commands are workload-first; use `workloadPath` or `runRoot`
+- `watch`, `compare`, and `quality-gate` are run-root-driven actions
+- `eval` and `export` can operate from an explicit checkpoint path or from finalized checkpoints already present in the run root
+- behavior-changing training/eval policy belongs in workload JSON, not in ad hoc command flags
 
 ## Code Pointers
 
 - tooling export surface: [src/tooling-exports.d.ts](../../src/tooling-exports.d.ts)
 - shared tooling exports: [src/tooling-exports.shared.d.ts](../../src/tooling-exports.shared.d.ts)
 - command contract: [src/tooling/command-api.js](../../src/tooling/command-api.js)
+- command contract types: [src/tooling/command-api.d.ts](../../src/tooling/command-api.d.ts)
+- Node runner: [src/tooling/node-command-runner.js](../../src/tooling/node-command-runner.js)
+- browser runner: [src/tooling/browser-command-runner.js](../../src/tooling/browser-command-runner.js)
 
 ## Related Surfaces
 
+- [API Docs Index](index.md)
 - [Generated export inventory](reference/exports.md)

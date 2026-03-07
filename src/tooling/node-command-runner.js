@@ -18,6 +18,7 @@ import {
   getActiveKernelPathSource,
   setActiveKernelPath,
 } from '../config/kernel-path-loader.js';
+import { runTrainingOperatorCommand } from '../training/operator-command.js';
 
 function asOptionalPlainObject(value, label) {
   if (value == null) return null;
@@ -83,6 +84,20 @@ export async function runNodeCommand(commandRequest, options = {}) {
         execution,
         onProgress: options.onProgress,
       });
+      return createToolingSuccessEnvelope({
+        surface: 'node',
+        request,
+        result,
+      });
+    }
+
+    if (request.command === 'lora' || request.command === 'distill') {
+      const gpuOptionalActions = new Set(['compare', 'quality-gate', 'subsets']);
+      installNodeFileFetchShim();
+      if (!gpuOptionalActions.has(request.action)) {
+        await assertNodeWebGPUSupport();
+      }
+      const result = await runTrainingOperatorCommand(request);
       return createToolingSuccessEnvelope({
         surface: 'node',
         request,

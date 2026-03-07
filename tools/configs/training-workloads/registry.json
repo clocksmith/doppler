@@ -1,45 +1,68 @@
 {
   "schemaVersion": 1,
   "artifactType": "training_workload_registry",
-  "generatedAt": "2026-03-04T00:00:00.000Z",
+  "generatedAt": "2026-03-07T02:50:35.629Z",
+  "registryHash": "e48a8c105ec7317c2b675ea3c64b4c8eb0fe21711c7bd56f9f0f36808b27549d",
   "workloads": [
     {
       "id": "distill-translategemma-medium",
       "path": "tools/configs/training-workloads/distill-translategemma-medium.json",
-      "sha256": "f7e22a505004530c3c681ad2f4e531703835252af5fd8cedf017f47cc3f446a6",
+      "sha256": "ef743214d236ee3df6c3bcd1e21413108598d84b888fa55e9e147e8a731c1c6f",
       "workloadKind": "distill",
       "trainingSchemaVersion": 1,
       "seed": 1337,
-      "trainingBenchSteps": 8,
-      "trainingTests": [
-        "distill-stage-a",
-        "distill-stage-b"
-      ],
-      "benchRun": {
-        "warmupRuns": 1,
-        "timedRuns": 3
-      },
-      "baselineReportId": "trn_distill-translategemma-medium_f7e22a505004",
-      "claimBoundary": "Practical distill workflow quality traceability."
+      "checkpointEvery": 2,
+      "selectionMetric": "bleu",
+      "selectionGoal": "max",
+      "surfaceSupport": "node",
+      "baselineReportId": "trn_distill-translategemma-medium_ef743214d236",
+      "claimBoundary": "Practical deterministic distillation traceability for translation checkpoints and eval artifacts.",
+      "configHash": "b191978e6106daf7c784f557e4df86042445360ddd4b4c54f7552d427d5eaee4"
     },
     {
       "id": "distill-translategemma-tiny",
       "path": "tools/configs/training-workloads/distill-translategemma-tiny.json",
-      "sha256": "8d3cfeba7d4abe901cae4718a4e7cde5ace1b377bb3c7e7538fcfe7c6f8e446c",
+      "sha256": "87fbe49b6dc102389734fb13199111fd74bf1922466938fcb843543d4c3af669",
       "workloadKind": "distill",
       "trainingSchemaVersion": 1,
       "seed": 1337,
-      "trainingBenchSteps": 2,
-      "trainingTests": [
-        "distill-stage-a",
-        "distill-stage-b"
-      ],
-      "benchRun": {
-        "warmupRuns": 0,
-        "timedRuns": 1
-      },
-      "baselineReportId": "trn_distill-translategemma-tiny_8d3cfeba7d4a",
-      "claimBoundary": "Practical distill workflow quality traceability."
+      "checkpointEvery": 1,
+      "selectionMetric": "bleu",
+      "selectionGoal": "max",
+      "surfaceSupport": "node",
+      "baselineReportId": "trn_distill-translategemma-tiny_87fbe49b6dc1",
+      "claimBoundary": "Practical deterministic distillation traceability for translation checkpoints and eval artifacts.",
+      "configHash": "dd362198074ad99cda240c2ca9f0b311a851c916f33d254010b2be6822c204a1"
+    },
+    {
+      "id": "lora-toy-medium",
+      "path": "tools/configs/training-workloads/lora-toy-medium.json",
+      "sha256": "622511a5529462fe7bdeaa97b134d8e25f6cf1d097f60e59b6988b321d62345e",
+      "workloadKind": "lora",
+      "trainingSchemaVersion": 1,
+      "seed": 1337,
+      "checkpointEvery": 2,
+      "selectionMetric": "accuracy",
+      "selectionGoal": "max",
+      "surfaceSupport": "node",
+      "baselineReportId": "trn_lora-toy-medium_622511a55294",
+      "claimBoundary": "Practical deterministic LoRA traceability for toy adapter training, export, and eval artifacts.",
+      "configHash": "53b77d049c7936a7912b4baa70017493972bd231aa6d7c81fab7eefe8362c996"
+    },
+    {
+      "id": "lora-toy-tiny",
+      "path": "tools/configs/training-workloads/lora-toy-tiny.json",
+      "sha256": "99a3663403a33b244891f1d76eb40f593645d97846b3d335c981c37972188e62",
+      "workloadKind": "lora",
+      "trainingSchemaVersion": 1,
+      "seed": 1337,
+      "checkpointEvery": 1,
+      "selectionMetric": "accuracy",
+      "selectionGoal": "max",
+      "surfaceSupport": "node",
+      "baselineReportId": "trn_lora-toy-tiny_99a3663403a3",
+      "claimBoundary": "Practical deterministic LoRA traceability for toy adapter training, export, and eval artifacts.",
+      "configHash": "162dc6a112089ee4006ae519c1f2f5067a8449dfbc618d190ec5dce27c0ead63"
     },
     {
       "id": "ul-training-medium",
@@ -48,17 +71,13 @@
       "workloadKind": "ul",
       "trainingSchemaVersion": 1,
       "seed": 1337,
-      "trainingBenchSteps": 8,
-      "trainingTests": [
-        "ul-stage1",
-        "ul-stage2"
-      ],
-      "benchRun": {
-        "warmupRuns": 1,
-        "timedRuns": 3
-      },
+      "checkpointEvery": 1,
+      "selectionMetric": "total_loss",
+      "selectionGoal": "min",
+      "surfaceSupport": "node",
       "baselineReportId": "trn_ul-training-medium_0815b2b9a0d4",
-      "claimBoundary": "Practical UL workflow quality traceability."
+      "claimBoundary": "Practical UL workflow quality traceability.",
+      "configHash": "c448103ffb9acf9d85ed7d650b2e4f15abe37213b911fec979c2c8a23fcda0c4"
     },
     {
       "id": "ul-training-tiny",
@@ -67,17 +86,13 @@
       "workloadKind": "ul",
       "trainingSchemaVersion": 1,
       "seed": 1337,
-      "trainingBenchSteps": 2,
-      "trainingTests": [
-        "ul-stage1",
-        "ul-stage2"
-      ],
-      "benchRun": {
-        "warmupRuns": 0,
-        "timedRuns": 1
-      },
+      "checkpointEvery": 1,
+      "selectionMetric": "total_loss",
+      "selectionGoal": "min",
+      "surfaceSupport": "node",
       "baselineReportId": "trn_ul-training-tiny_b098930e0b4e",
-      "claimBoundary": "Practical UL workflow quality traceability."
+      "claimBoundary": "Practical UL workflow quality traceability.",
+      "configHash": "78cef5e96d05ad52ce86cc340086314e9d3891e0c95b4daf8c8e9182616a8752"
     }
   ]
 }

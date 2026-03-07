@@ -929,6 +929,9 @@ async function resolveHarnessOverride(options = {}) {
 
 async function initializeSuiteModel(options = {}) {
   if (options.harnessOverride) {
+    if (options.runtime?.runtimeConfig) {
+      setRuntimeConfig(options.runtime.runtimeConfig);
+    }
     return resolveHarnessOverride(options);
   }
   const loadStart = performance.now();
@@ -1300,6 +1303,31 @@ function shouldPreferModelDefaultPrompt(runtimePrompt, templateType) {
   return runtimePrompt.trim() === DEFAULT_RUNTIME_PLACEHOLDER_PROMPT;
 }
 
+function assertPromptContract(runtimePrompt, templateType, source = 'runtime.inference.prompt') {
+  if (templateType !== 'translategemma') {
+    return;
+  }
+  if (runtimePrompt === undefined || runtimePrompt === null) {
+    return;
+  }
+  if (typeof runtimePrompt === 'string') {
+    const trimmed = runtimePrompt.trim();
+    if (!trimmed || trimmed === DEFAULT_RUNTIME_PLACEHOLDER_PROMPT) {
+      return;
+    }
+    throw new Error(
+      `TranslateGemma harness prompt contract violation: ${source} must be ` +
+      '{ messages: [...] } with source_lang_code/target_lang_code blocks, not a plain string.'
+    );
+  }
+  if (!isStructuredPromptInput(runtimePrompt)) {
+    throw new Error(
+      `TranslateGemma harness prompt contract violation: ${source} must be ` +
+      '{ messages: [...] } with source_lang_code/target_lang_code blocks.'
+    );
+  }
+}
+
 function describePromptInput(promptInput) {
   if (typeof promptInput === 'string') {
     return promptInput.trim() || DEFAULT_HARNESS_PROMPT;
@@ -1331,6 +1359,7 @@ function describePromptInput(promptInput) {
 function resolveGenerationPromptInput(runtimeConfig, runOverrides = null, source = null) {
   const templateType = resolvePromptTemplateType(source);
   const overridePrompt = runOverrides?.prompt;
+  assertPromptContract(overridePrompt, templateType, 'runOverrides.prompt');
   if (typeof overridePrompt === 'string' && overridePrompt.trim()) {
     return overridePrompt.trim();
   }
@@ -1339,6 +1368,7 @@ function resolveGenerationPromptInput(runtimeConfig, runOverrides = null, source
   }
 
   const runtimePrompt = runtimeConfig?.inference?.prompt;
+  assertPromptContract(runtimePrompt, templateType, 'runtimeConfig.inference.prompt');
   if (shouldPreferModelDefaultPrompt(runtimePrompt, templateType)) {
     return buildDefaultGenerationPrompt(templateType);
   }

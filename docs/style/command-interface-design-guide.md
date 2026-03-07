@@ -21,6 +21,8 @@ This applies to browser clients and the Node CLI equally.
   - `debug` → investigate intent
   - `bench` → calibrate intent
   - `verify` → verify intent
+  - `lora` → operator lifecycle (no harness intent)
+  - `distill` → operator lifecycle (no harness intent)
 - Mapping lives in JSON-first runtime command metadata and `normalizeToolingCommandRequest()`.
 - Any unknown command, unsupported surface combination, or missing required contract value must fail fast.
 - No command surface may substitute behavior when capabilities differ; failures must surface at surface boundary.
@@ -33,6 +35,8 @@ This applies to browser clients and the Node CLI equally.
 - `debug`
 - `bench`
 - `verify`
+- `lora`
+- `distill`
 
 Defined in `src/tooling/command-api.js`.
 All surfaces must normalize via `normalizeToolingCommandRequest()`.
@@ -78,6 +82,19 @@ All surfaces must normalize via `normalizeToolingCommandRequest()`.
 - **Exit**: materialized artifact + hashes
 - **Command**: `convert`
 
+### Training Operator Lifecycle
+
+- **Intent**: none (operator lifecycle is workload-driven, not harness-driven)
+- **Exit**: workload-locked run root plus checkpoint/eval/scoreboard/compare/quality-gate artifacts
+- **Commands**: `lora`, `distill`
+- These commands normalize through the same command API but do not inject `runtime.shared.harness.*`.
+- `lora.action` is:
+  `run|eval|watch|export|compare|quality-gate|activate`
+- `distill.action` is:
+  `run|stage-a|stage-b|eval|watch|compare|quality-gate|subsets`
+- Operator commands are workload-first:
+  `workloadPath` or `runRoot` is required, and behavior-changing eval/subset/checkpoint policy must come from workload JSON or explicit artifact references.
+
 ---
 
 ## Runtime Contract
@@ -112,6 +129,8 @@ Commands are rejected when:
 - suite/intent contract is violated
 - `calibrate` enables investigation instrumentation
 - benchmark shared-contract fields drift across compared engines
+- operator command action is unknown
+- operator command is missing `workloadPath`/`runRoot` or required checkpoint/subset references
 
 ---
 
@@ -132,11 +151,13 @@ Commands are rejected when:
 - CLI supports `--surface auto|node|browser`.
 - `--surface auto` is explicit transport resolution for harnessed commands: try Node first, then browser relay only when Node WebGPU is unavailable. Command intent and contract stay unchanged.
 - Exception: training flows (`suite="training"` or `bench + workloadType="training"`) must not auto-downgrade from node to browser; this is a fail-closed transport rule that preserves command semantics.
+- `lora` and `distill` are also training flows for auto-surface purposes and must not silently downgrade.
 - Node runner may bootstrap WebGPU from available runtime support before failing.
 - Browser relay executes `runBrowserCommand()` in a browser via `src/tooling/command-runner.html`
   (default headless, configured via `run.browser` fields in CLI `--config`).
 - Browser relay can attach to an existing server with `run.browser.baseUrl`.
 - `convert` is Node-only in CLI (`--surface browser` is rejected).
+- `lora` and `distill` are currently Node-only and must fail closed on browser surfaces until equivalent runtime semantics exist there.
 - `keepPipeline=true` is rejected on browser relay because pipeline objects are not serializable across process boundaries.
 - `convert` execution tuning belongs in `request.convertPayload.execution` and must not change command semantics.
 

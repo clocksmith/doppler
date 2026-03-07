@@ -1,0 +1,6 @@
+{"row_id":"en-es-001","src_lang":"en","tgt_lang":"es","pair":"en->es","source":"hello world","target_pos":"hola mundo","target_neg":"mundo hola"}
+{"row_id":"en-es-002","src_lang":"en","tgt_lang":"es","pair":"en->es","source":"good morning","target_pos":"buenos dias","target_neg":"dias buenos"}
+{"row_id":"en-es-003","src_lang":"en","tgt_lang":"es","pair":"en->es","source":"thank you","target_pos":"gracias","target_neg":"de nada"}
+{"row_id":"en-es-004","src_lang":"en","tgt_lang":"es","pair":"en->es","source":"see you later","target_pos":"hasta luego","target_neg":"luego hasta"}
+{"row_id":"en-es-005","src_lang":"en","tgt_lang":"es","pair":"en->es","source":"where is the station","target_pos":"donde esta la estacion","target_neg":"la estacion donde"}
+{"row_id":"en-es-006","src_lang":"en","tgt_lang":"es","pair":"en->es","source":"this is a test","target_pos":"esto es una prueba","target_neg":"una prueba esto"}

@@ -1,10 +1,12 @@
 import type { ConverterConfigSchema } from '../config/schema/converter.schema.js';
 
-export type ToolingCommand = 'convert' | 'debug' | 'bench' | 'verify';
+export type ToolingCommand = 'convert' | 'debug' | 'bench' | 'verify' | 'lora' | 'distill';
 export type ToolingSurface = 'browser' | 'node';
 export type ToolingSuite = 'kernels' | 'inference' | 'training' | 'bench' | 'debug' | 'diffusion' | 'energy';
 export type ToolingIntent = 'verify' | 'investigate' | 'calibrate' | null;
 export type ToolingTrainingStage = 'stage1_joint' | 'stage2_base' | 'stage_a' | 'stage_b';
+export type ToolingDistillAction = 'run' | 'stage-a' | 'stage-b' | 'eval' | 'watch' | 'compare' | 'quality-gate' | 'subsets';
+export type ToolingLoraAction = 'run' | 'eval' | 'watch' | 'export' | 'compare' | 'quality-gate' | 'activate';
 
 export interface ToolingConvertExecutionPayload {
   workers?: number | null;
@@ -25,6 +27,7 @@ export interface ToolingConvertPayload {
 
 export interface ToolingCommandRequestInput {
   command: ToolingCommand;
+  action?: ToolingDistillAction | ToolingLoraAction;
   suite?: ToolingSuite;
   modelId?: string;
   trainingTests?: string[];
@@ -65,6 +68,17 @@ export interface ToolingCommandRequestInput {
   inputDir?: string;
   outputDir?: string;
   convertPayload?: ToolingConvertPayload;
+  workloadPath?: string;
+  runRoot?: string;
+  checkpointPath?: string;
+  checkpointId?: string;
+  checkpointStep?: number;
+  stageId?: string;
+  stageArtifact?: string;
+  subsetManifest?: string;
+  evalDatasetId?: string;
+  pollIntervalMs?: number;
+  stopWhenIdle?: boolean;
   captureOutput?: boolean;
   keepPipeline?: boolean;
   report?: Record<string, unknown> | null;
@@ -76,6 +90,7 @@ export interface ToolingCommandRequest {
   command: ToolingCommand;
   suite: ToolingSuite | null;
   intent: ToolingIntent;
+  action: ToolingDistillAction | ToolingLoraAction | null;
   modelId: string | null;
   trainingTests: string[] | null;
   trainingStage: ToolingTrainingStage | null;
@@ -115,6 +130,17 @@ export interface ToolingCommandRequest {
   inputDir: string | null;
   outputDir: string | null;
   convertPayload: ToolingConvertPayload | null;
+  workloadPath: string | null;
+  runRoot: string | null;
+  checkpointPath: string | null;
+  checkpointId: string | null;
+  checkpointStep: number | null;
+  stageId: string | null;
+  stageArtifact: string | null;
+  subsetManifest: string | null;
+  evalDatasetId: string | null;
+  pollIntervalMs: number | null;
+  stopWhenIdle: boolean | null;
   captureOutput: boolean;
   keepPipeline: boolean;
   report: Record<string, unknown> | null;
