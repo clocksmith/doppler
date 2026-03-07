@@ -156,14 +156,14 @@ export async function loadLoRAWeights(path, options = {}) {
   if (manifest.checksum && !options.skipVerify) {
     const algorithm = manifest.checksumAlgorithm;
     if (algorithm !== 'sha256') {
-      log.warn('LoRA', `Unsupported checksum algorithm: ${algorithm}, skipping verification`);
+      throw new Error(`Unsupported LoRA checksum algorithm: ${algorithm}`);
     } else if (manifest.weightsPath) {
       // Compute checksum of the weights file
       const weightsData = await fetchWithBase(manifest.weightsPath);
       const computedHash = await computeSHA256(weightsData);
       checksumValid = computedHash.toLowerCase() === manifest.checksum.toLowerCase();
       if (!checksumValid) {
-        log.warn('LoRA', `Checksum mismatch: expected ${manifest.checksum}, got ${computedHash}`);
+        throw new Error(`LoRA checksum mismatch: expected ${manifest.checksum}, got ${computedHash}`);
       }
     } else if (manifest.tensors && manifest.tensors.length > 0) {
       // For inline tensors, compute checksum over concatenated tensor data
@@ -187,7 +187,7 @@ export async function loadLoRAWeights(path, options = {}) {
         const computedHash = await computeSHA256(combined.buffer);
         checksumValid = computedHash.toLowerCase() === manifest.checksum.toLowerCase();
         if (!checksumValid) {
-          log.warn('LoRA', `Checksum mismatch: expected ${manifest.checksum}, got ${computedHash}`);
+          throw new Error(`LoRA checksum mismatch: expected ${manifest.checksum}, got ${computedHash}`);
         }
       }
     }

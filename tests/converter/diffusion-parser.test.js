@@ -121,6 +121,13 @@ const {
   assert.ok(parsed.tensors.some((tensor) => tensor.name.startsWith('text_encoder.')));
   assert.ok(parsed.auxFiles.some((asset) => asset.name === 'tokenizer_vocab.json'));
   assert.ok(parsed.config?.diffusion?.tokenizers?.text_encoder);
+  assert.equal(
+    Object.prototype.hasOwnProperty.call(
+      parsed.config?.diffusion?.components?.transformer?.config ?? {},
+      'weight_format'
+    ),
+    false
+  );
 }
 
 {

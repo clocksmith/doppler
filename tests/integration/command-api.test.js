@@ -431,6 +431,28 @@ import {
 {
   assert.throws(
     () => normalizeToolingCommandRequest({
+      command: 'verify',
+      suite: 'inference',
+      modelId: 'gemma-3-270m-it-wq4k-ef16-hf16',
+      configChain: ['modes/debug'],
+    }),
+    /verify does not accept configChain/
+  );
+
+  assert.throws(
+    () => normalizeToolingCommandRequest({
+      command: 'lora',
+      action: 'run',
+      workloadPath: '/tmp/workload.json',
+      configChain: ['modes/debug'],
+    }),
+    /lora does not accept configChain/
+  );
+}
+
+{
+  assert.throws(
+    () => normalizeToolingCommandRequest({
       command: 'convert',
       inputDir: '/tmp/model',
       convertPayload: {

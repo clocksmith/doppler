@@ -238,7 +238,13 @@ export async function initializeInference(modelUrl, options = {}) {
       onProgress('hotswap', 0.05, 'Loading hot-swap manifest...');
       log(`Hot-swap: loading manifest ${hotSwapConfig.manifestUrl}`);
       const hotSwapManifest = await fetchHotSwapManifest(hotSwapConfig.manifestUrl);
-      const verification = await verifyHotSwapManifest(hotSwapManifest, hotSwapConfig);
+      const verification = await verifyHotSwapManifest(hotSwapManifest, hotSwapConfig, {
+        source: {
+          kind: 'remote',
+          isLocal: false,
+          url: hotSwapConfig.manifestUrl,
+        },
+      });
       if (!verification.ok) {
         throw new Error(`Hot-swap manifest rejected: ${verification.reason}`);
       }

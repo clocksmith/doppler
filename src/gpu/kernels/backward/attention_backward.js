@@ -347,10 +347,7 @@ export async function runAttentionBackward(
   if (!device) {
     throw new Error('runAttentionBackward requires a GPU device');
   }
-  const recorder = new CommandRecorder(device, 'attention_backward');
-  const result = await runAttentionBackwardCore(q, k, v, softmax, gradOutput, options, recorder);
-  recorder.submit();
-  return result;
+  return runAttentionBackwardCore(q, k, v, softmax, gradOutput, options);
 }
 
 export async function recordAttentionBackward(

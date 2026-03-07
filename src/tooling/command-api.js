@@ -176,6 +176,15 @@ function assertForbiddenObjectField(raw, fieldName, command) {
   }
 }
 
+function assertForbiddenStringArrayField(raw, fieldName, command) {
+  const value = asOptionalStringArray(raw[fieldName], fieldName);
+  if (value) {
+    throw new Error(
+      `tooling command: ${command} does not accept ${fieldName}.`
+    );
+  }
+}
+
 function resolveSuiteForCommand(raw, command, runtimeContract) {
   const inputSuite = asOptionalString(raw.suite, 'suite');
   if (runtimeContract.suite) {
@@ -283,6 +292,7 @@ function normalizeConvert(raw) {
   assertForbiddenStringField(raw, 'runtimePreset', 'convert');
   assertForbiddenStringField(raw, 'runtimeConfigUrl', 'convert');
   assertForbiddenObjectField(raw, 'runtimeConfig', 'convert');
+  assertForbiddenStringArrayField(raw, 'configChain', 'convert');
 
   return {
     command: 'convert',
@@ -348,6 +358,7 @@ function normalizeConvert(raw) {
 }
 
 function normalizeTrainingOperatorCommand(raw, command) {
+  assertForbiddenStringArrayField(raw, 'configChain', command);
   const allowedActions = command === 'distill' ? DISTILL_ACTION_SET : LORA_ACTION_SET;
   const action = asOptionalAction(raw.action, 'action', allowedActions);
   if (!action) {
@@ -444,6 +455,7 @@ function normalizeTrainingOperatorCommand(raw, command) {
 }
 
 function normalizeSuiteCommand(raw, command) {
+  assertForbiddenStringArrayField(raw, 'configChain', command);
   const runtimeContract = resolveCommandRuntimeContract(command);
   const suite = resolveSuiteForCommand(raw, command, runtimeContract);
   if (!runtimeContract.suite && !VERIFY_SUITES.includes(suite)) {

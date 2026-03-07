@@ -23,11 +23,20 @@ export interface HotSwapVerificationResult {
   signerId?: string;
 }
 
+export interface HotSwapVerificationContext {
+  source?: {
+    kind?: 'local' | 'remote' | string | null;
+    isLocal?: boolean | null;
+    url?: string | null;
+  } | null;
+}
+
 export declare function fetchHotSwapManifest(url: string): Promise<HotSwapManifest>;
 
 export declare function verifyHotSwapManifest(
   manifest: HotSwapManifest,
-  policy: HotSwapConfigSchema
+  policy: HotSwapConfigSchema,
+  context?: HotSwapVerificationContext
 ): Promise<HotSwapVerificationResult>;
 
 export declare function serializeHotSwapManifest(manifest: HotSwapManifest): string;

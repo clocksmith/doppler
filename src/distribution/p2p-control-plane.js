@@ -111,12 +111,11 @@ export function normalizeControlPlaneSessionUpdate(value, label = 'p2p control-p
 
 export function normalizeP2PPolicyDecision(value, label = 'p2p control-plane policy decision') {
   if (value === undefined || value === null) {
-    return {
-      allow: true,
-      reason: null,
-      sessionUpdate: null,
-      metadata: null,
-    };
+    throw createP2PTransportError(
+      P2P_TRANSPORT_ERROR_CODES.payloadInvalid,
+      `${label} must return an explicit boolean or object decision.`,
+      { label }
+    );
   }
 
   if (typeof value === 'boolean') {
@@ -136,9 +135,40 @@ export function normalizeP2PPolicyDecision(value, label = 'p2p control-plane pol
     );
   }
 
-  const allow = value.allow === false || value.deny === true
-    ? false
-    : true;
+  const hasAllow = Object.prototype.hasOwnProperty.call(value, 'allow');
+  const hasDeny = Object.prototype.hasOwnProperty.call(value, 'deny');
+  if (!hasAllow && !hasDeny) {
+    throw createP2PTransportError(
+      P2P_TRANSPORT_ERROR_CODES.payloadInvalid,
+      `${label} must include allow or deny.`,
+      { label }
+    );
+  }
+  if (hasAllow && typeof value.allow !== 'boolean') {
+    throw createP2PTransportError(
+      P2P_TRANSPORT_ERROR_CODES.payloadInvalid,
+      `${label}.allow must be a boolean when provided.`,
+      { label }
+    );
+  }
+  if (hasDeny && typeof value.deny !== 'boolean') {
+    throw createP2PTransportError(
+      P2P_TRANSPORT_ERROR_CODES.payloadInvalid,
+      `${label}.deny must be a boolean when provided.`,
+      { label }
+    );
+  }
+  if (hasAllow && hasDeny && value.allow === value.deny) {
+    throw createP2PTransportError(
+      P2P_TRANSPORT_ERROR_CODES.payloadInvalid,
+      `${label} has conflicting allow/deny values.`,
+      { label }
+    );
+  }
+
+  const allow = hasAllow
+    ? value.allow
+    : value.deny !== true;
   const reason = asOptionalString(value.reason, `${label}.reason`);
   const sessionUpdate = normalizeControlPlaneSessionUpdate(
     {

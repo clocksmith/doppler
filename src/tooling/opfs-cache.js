@@ -138,8 +138,8 @@ export async function ensureModelCached(modelId, modelBaseUrl) {
         }
       } catch (error) {
         const message = toErrorMessage(error);
-        log.warn(MODULE, `Cache validation unavailable (${message}); using cached model "${modelId}"`);
-        return { cached: true, fromCache: true, modelId, error: null };
+        log.warn(MODULE, `Cache validation failed (${message}); refusing cached model "${modelId}"`);
+        return { cached: false, fromCache: false, modelId, error: message };
       }
     }
   } catch (error) {

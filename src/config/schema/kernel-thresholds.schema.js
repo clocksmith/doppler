@@ -155,18 +155,25 @@ export const DEFAULT_KERNEL_THRESHOLDS = {
   tuner: DEFAULT_TUNER_LIMITS,
 };
 
+function cloneThresholdTree(value) {
+  if (typeof structuredClone === 'function') {
+    return structuredClone(value);
+  }
+  return JSON.parse(JSON.stringify(value));
+}
+
 // =============================================================================
 // Runtime Access
 // =============================================================================
 
-let currentThresholds = { ...DEFAULT_KERNEL_THRESHOLDS };
+let currentThresholds = cloneThresholdTree(DEFAULT_KERNEL_THRESHOLDS);
 
 export function getKernelThresholds() {
-  return currentThresholds;
+  return cloneThresholdTree(currentThresholds);
 }
 
 export function setKernelThresholds(overrides) {
-  currentThresholds = {
+  const nextThresholds = {
     ...currentThresholds,
     ...overrides,
     matmul: { ...currentThresholds.matmul, ...overrides.matmul },
@@ -180,8 +187,9 @@ export function setKernelThresholds(overrides) {
     cast: { ...currentThresholds.cast, ...overrides.cast },
     tuner: { ...currentThresholds.tuner, ...overrides.tuner },
   };
+  currentThresholds = cloneThresholdTree(nextThresholds);
 }
 
 export function resetKernelThresholds() {
-  currentThresholds = { ...DEFAULT_KERNEL_THRESHOLDS };
+  currentThresholds = cloneThresholdTree(DEFAULT_KERNEL_THRESHOLDS);
 }

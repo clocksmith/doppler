@@ -399,7 +399,10 @@ function bytesToHex(bytes) {
 }
 
 
-export function sortTensorsByGroup(tensors, modelType = 'transformer') {
+export function sortTensorsByGroup(tensors, modelType) {
+  if (typeof modelType !== 'string' || modelType.trim().length === 0) {
+    throw new Error('sortTensorsByGroup requires an explicit modelType.');
+  }
   return [...tensors].sort((a, b) => {
     const groupA = classifyTensor(a.name, modelType);
     const groupB = classifyTensor(b.name, modelType);
