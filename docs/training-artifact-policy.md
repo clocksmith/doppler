@@ -1,54 +1,133 @@
 # Training Artifact Policy
 
-Canonical policy for training artifact naming, hashing, lineage, and
-deterministic behavior.
+Canonical policy for training artifact naming, hashing, lineage, and deterministic behavior.
 
-## Artifact conventions
+## Run-Root Layout
 
-UL run directories typically follow:
+Deterministic run roots for the first-class operator pipelines:
 
-- `reports/training/ul/<stage>_<timestamp>/`
+- `reports/training/lora/<workload-id>/<timestamp>/`
+- `reports/training/distill/<workload-id>/<timestamp>/`
 
-Common outputs:
+Shared contents:
 
-- `metrics.ndjson`
-- `ul_stage1_manifest.json` or `ul_stage2_manifest.json`
-- stage-specific payloads (for example latents in stage1)
+- `run_contract.json`
+- `workload.lock.json`
+- `logs/`
+- `checkpoints/`
+- `eval/`
+- `scoreboard/`
+- `exports/`
+- `compare/`
+- `quality-gate/`
 
-Distill run directories typically include:
+## Artifact Classes
 
-- `metrics.ndjson`
-- `distill_stage_a_manifest.json` or `distill_stage_b_manifest.json`
+Shared artifact classes:
 
-Deterministic workload packs are published in:
+- `training_run_contract`
+- `training_checkpoint`
+- `training_eval_report`
+- `training_scoreboard`
+- `training_compare_report`
+- `training_quality_gate`
 
-- `tools/configs/training-workloads/*.json`
-- `tools/configs/training-workloads/registry.json`
+Pipeline-specific classes:
 
-## Hashing policy
+- `lora_adapter_manifest`
+- `distill_stage_manifest`
+- `subset_manifest`
 
-- Hash function: SHA-256 hex for lineage/provenance linkage.
-- `manifestContentHash`/`manifestHash`: deterministic normalized content hash.
-- `manifestFileHash`: exact serialized file bytes hash.
-- Content hash and file hash are intentionally distinct and both can be useful.
+Legacy UL manifests remain part of the broader training lineage story, but UL has not yet been migrated onto the same first-class operator surface as `lora` and `distill`.
 
-## Lineage requirements
+## File Conventions
 
-- Stage2 UL artifacts must reference and validate stage1 dependency hashes.
-- Stage B distill artifacts must reference and validate stage A dependency hashes.
-- Reports should include explicit artifact references and matching manifest hashes
-  when available.
-- Published workload packs include deterministic `baselineReportId` values derived
-  from workload content hashes. Claim publication artifacts must reference those ids.
+Distill run roots typically include:
 
-## Deterministic timestamp behavior
+- `run_contract.json`
+- `workload.lock.json`
+- `checkpoints/<stage>/distill_stage_manifest.json`
+- `checkpoints/<stage>/<checkpoint-id>/checkpoint.json`
+- `checkpoints/<stage>/<checkpoint-id>/checkpoint.complete.json`
+- `eval/<stage>/<checkpoint-id>__<eval-dataset-id>.json`
+- `scoreboard/<stage>/scoreboard.ndjson`
+- `scoreboard/<stage>/latest.json`
+- `compare/compare.json`
+- `quality-gate/quality-gate.json`
+- `exports/subset/subset_manifest.json` when subset building is used
 
-- Timestamps are allowed for auditability and run tracking.
-- Deterministic content hashes must exclude volatile timestamp/run-id fields.
+LoRA run roots typically include:
 
-## Validation tools
+- `run_contract.json`
+- `workload.lock.json`
+- `checkpoints/<checkpoint-id>/state.json`
+- `checkpoints/<checkpoint-id>/checkpoint.json`
+- `checkpoints/<checkpoint-id>/checkpoint.complete.json`
+- `eval/<checkpoint-id>__<eval-dataset-id>.json`
+- `scoreboard/scoreboard.ndjson`
+- `scoreboard/latest.json`
+- `exports/<checkpoint-id>.adapter.manifest.json`
+- `exports/<checkpoint-id>.export.json`
+- `compare/compare.json`
+- `quality-gate/quality-gate.json`
 
-Use provenance verification for manifests/reports:
+## Checkpoint Finalization Contract
+
+- checkpoint metadata must be separate from raw tensor state
+- finalized checkpoints must write `checkpoint.complete.json`
+- watchers evaluate only finalized checkpoints
+- checkpoint lineage must preserve config, dataset, and parent-artifact linkage
+
+## Hashing Policy
+
+- Hash function: SHA-256 hex for lineage and provenance linkage
+- `workloadSha256`: exact workload pack bytes
+- `configHash`: deterministic normalized workload or config hash
+- `datasetHash`: deterministic dataset content hash
+- `artifactHash`: deterministic normalized artifact payload hash
+- file-level hashes and content-level hashes are intentionally distinct and both may be published
+
+## Required Traceability Fields
+
+Each claimable artifact should carry:
+
+- `artifactType`
+- `schemaVersion`
+- `reportId`
+- `workloadId`
+- `workloadPath`
+- `workloadSha256`
+- `configHash`
+- `datasetPath`
+- `datasetHash`
+- `baseModelId`
+- `teacherModelId` when applicable
+- `studentModelId` when applicable
+- `stage`
+- `checkpointStep`
+- `parentArtifacts`
+- `generatedAt`
+- `runtime`
+- `surface`
+- `claimBoundary`
+
+## Lineage Requirements
+
+- Stage2 UL artifacts must reference and validate Stage1 dependency hashes
+- Stage B distill artifacts must reference and validate Stage A dependency hashes
+- exported LoRA adapter artifacts must preserve the originating checkpoint linkage
+- compare and quality-gate reports must point back to the run root and workload lock
+- published workload packs include deterministic report-id bindings derived from workload content hashes
+
+## Deterministic Timestamp Behavior
+
+- timestamps are allowed for auditability and run tracking
+- deterministic content hashes must exclude volatile timestamp and run-root path fields
+- run-root timestamps do not change workload hashes or config hashes
+
+## Validation Tools
+
+Use provenance and workload verification for manifests and reports:
 
 ```bash
 node tools/verify-training-provenance.mjs --manifest <manifest.json> [--stage1-manifest <manifest.json>]

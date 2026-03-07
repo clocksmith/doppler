@@ -66,6 +66,8 @@ function usage() {
     '  doppler debug --config <path.json|json> [--runtime-config <path|url|json>] [--surface auto|node|browser]',
     '  doppler bench --config <path.json|json> [--runtime-config <path|url|json>] [--surface auto|node|browser]',
     '  doppler verify --config <path.json|json> [--runtime-config <path|url|json>] [--surface auto|node|browser]',
+    '  doppler lora --config <path.json|json> [--surface auto|node]',
+    '  doppler distill --config <path.json|json> [--surface auto|node]',
     '',
     'Flags:',
     '  --config <path|json>            Required command config payload (file path or JSON object string).',
@@ -717,6 +719,7 @@ function isNodeWebGPUFallbackCandidate(error, fallbackPolicy = DEFAULT_CLI_POLIC
 function isTrainingCommandFlow(request) {
   if (!request || typeof request !== 'object') return false;
   if (request.suite === 'training') return true;
+  if (request.command === 'lora' || request.command === 'distill') return true;
   return request.command === 'bench' && request.workloadType === 'training';
 }
 
@@ -797,6 +800,13 @@ function toSummary(result) {
         ? ' graph=fail'
         : '';
     return `converted ${result.manifest.modelId} (${result.tensorCount} tensors, ${result.shardCount} shards)${contractStatus}${graphStatus}`;
+  }
+
+  if (result.kind === 'lora' || result.kind === 'distill') {
+    const workloadId = result.workloadId || 'unknown';
+    const action = result.action || 'run';
+    const runRoot = result.runRoot || 'n/a';
+    return `${result.kind} ${action} workload=${workloadId} runRoot=${runRoot}`;
   }
 
   const suite = result.suite || result.report?.suite || 'suite';
@@ -1195,6 +1205,20 @@ function printConvertReportSummary(result) {
 
 function printMetricsSummary(result) {
   if (!result || typeof result !== 'object') return;
+  if (result.kind === 'distill') {
+    const stageCount = Array.isArray(result.stageResults) ? result.stageResults.length : 0;
+    console.log(
+      `[metrics] kind=distill action=${result.action || 'run'} stages=${stageCount} runRoot=${quoteOneLine(result.runRoot)}`
+    );
+    return;
+  }
+  if (result.kind === 'lora') {
+    const exportCount = Array.isArray(result.exports) ? result.exports.length : 0;
+    console.log(
+      `[metrics] kind=lora action=${result.action || 'run'} exports=${exportCount} runRoot=${quoteOneLine(result.runRoot)}`
+    );
+    return;
+  }
   const suite = String(result.suite || '');
   const metrics = result.metrics;
   if (!metrics || typeof metrics !== 'object') return;

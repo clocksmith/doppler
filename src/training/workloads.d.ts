@@ -13,6 +13,11 @@ export interface TrainingEvalDataset {
   datasetPath: string;
   evalKind: TrainingEvalKind;
   metrics: string[];
+  decodePolicy: {
+    maxTokens: number | null;
+    stopOnEos: boolean;
+  } | null;
+  scoreboardColumns: string[];
   sourceLangs: string[] | null;
   targetLangs: string[] | null;
   pairAllowlist: string[] | null;
