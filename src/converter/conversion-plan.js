@@ -273,6 +273,26 @@ function readConverterSessionDefaultsOverride(converterConfig) {
   return cloneJson(raw);
 }
 
+function assertNonExecutionSessionDefaults(manifestInference) {
+  const sessionDefaults = manifestInference?.sessionDefaults;
+  if (sessionDefaults == null) {
+    return;
+  }
+  if (typeof sessionDefaults !== 'object' || Array.isArray(sessionDefaults)) {
+    throw new Error(
+      'converterConfig.inference.sessionDefaults must resolve to an object for non-execution manifests.'
+    );
+  }
+  const keys = Object.keys(sessionDefaults);
+  const invalidKeys = keys.filter((key) => key !== 'decodeLoop');
+  if (invalidKeys.length > 0) {
+    throw new Error(
+      'converterConfig.inference.sessionDefaults may only set decodeLoop unless ' +
+      'converterConfig.inference.execution is present.'
+    );
+  }
+}
+
 function readConverterExecutionOverride(converterConfig) {
   const raw = converterConfig?.inference?.execution;
   if (raw == null) return null;
@@ -422,6 +442,7 @@ function applyConverterInferenceOverrides(manifestInference, converterConfig, co
   if (manifestInference.execution) {
     manifestInference.schema = EXECUTION_V0_SCHEMA_ID;
   } else {
+    assertNonExecutionSessionDefaults(manifestInference);
     manifestInference.schema = null;
   }
   validateDefaultKernelPath(manifestInference, context);

@@ -1,5 +1,6 @@
 import { createDopplerConfig, setKernelThresholds } from './schema/index.js';
 import { validateRuntimeConfig, validateRuntimeOverrides } from './param-validator.js';
+import { isPlainObject } from '../utils/plain-object.js';
 
 let runtimeConfig = createDopplerConfig().runtime;
 setKernelThresholds(runtimeConfig.shared.kernelThresholds);
@@ -9,10 +10,14 @@ export function getRuntimeConfig() {
 }
 
 export function setRuntimeConfig(overrides) {
-  if (!overrides) {
+  if (overrides === undefined || overrides === null) {
     runtimeConfig = createDopplerConfig().runtime;
     setKernelThresholds(runtimeConfig.shared.kernelThresholds);
     return runtimeConfig;
+  }
+
+  if (!isPlainObject(overrides)) {
+    throw new Error('DopplerConfigError: runtime overrides must be an object when provided.');
   }
 
   assertNoDeprecatedRuntimeKeys(overrides);

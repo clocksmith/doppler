@@ -289,6 +289,24 @@ export function buildMergeContractArtifact() {
     'actual'
   );
 
+  let invalidShallowOverrideError = null;
+  try {
+    mergeShallowObject(
+      { type: 'base', enabled: true },
+      null
+    );
+  } catch (error) {
+    invalidShallowOverrideError = error;
+  }
+  recordCheck(
+    checks,
+    'runtime.mergeShallowObject.invalid_explicit_override_fails_closed',
+    invalidShallowOverrideError instanceof Error
+      && /shallow object overrides must be plain objects/.test(invalidShallowOverrideError.message),
+    `error=${invalidShallowOverrideError?.message ?? 'none'}`,
+    'actual'
+  );
+
   const layeredAttention = mergeLayeredShallowObjects(
     { slidingWindow: 4096, attentionBias: false },
     { slidingWindow: 2048 },

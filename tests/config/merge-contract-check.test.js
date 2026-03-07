@@ -48,6 +48,10 @@ assert.equal(
   artifact.checks.some((entry) => entry.id === 'runtime.mergeHelpers.chooseDefinedWithSource.manifest_marks_source' && entry.ok && entry.mode === 'actual'),
   true
 );
+assert.equal(
+  artifact.checks.some((entry) => entry.id === 'runtime.mergeShallowObject.invalid_explicit_override_fails_closed' && entry.ok && entry.mode === 'actual'),
+  true
+);
 
 assert.throws(
   () => createDopplerConfig({
@@ -71,6 +75,17 @@ assert.throws(
     },
   }),
   /kernelPathPolicy must be an object/
+);
+
+assert.throws(
+  () => createDopplerConfig({
+    runtime: {
+      inference: {
+        chatTemplate: null,
+      },
+    },
+  }),
+  /shallow object overrides must be plain objects/
 );
 
 console.log('merge-contract-check.test: ok');
