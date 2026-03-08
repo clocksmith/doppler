@@ -48,9 +48,6 @@ function createSiLUBindGroupEntries(uniformBuffer, input, output, gate) {
 }
 
 function cleanupRunResources(uniformBuffer, ownedOutput) {
-  if (uniformBuffer) {
-    uniformBuffer.destroy();
-  }
   if (ownedOutput) {
     releaseBuffer(ownedOutput);
   }
@@ -136,11 +133,11 @@ export async function runSiLU(
     dispatch(device, pipeline, bindGroup, dispatchPlan.workgroups, 'silu');
     return createTensor(output, input.dtype, [inferredSize], 'silu_output');
   } catch (error) {
-    cleanupRunResources(uniformBuffer, ownedOutput);
+    cleanupRunResources(null, ownedOutput);
     throw error;
+  } finally {
+    uniformBuffer.destroy();
   }
-
-  uniformBuffer.destroy();
 }
 
 
@@ -195,11 +192,11 @@ export async function runSwiGLURowsplitBias(
     dispatch(device, pipeline, bindGroup, workgroups, 'swiglu');
     return createTensor(output, input.dtype, [numTokens, dim], 'swiglu_output');
   } catch (error) {
-    cleanupRunResources(uniformBuffer, ownedOutput);
+    cleanupRunResources(null, ownedOutput);
     throw error;
+  } finally {
+    uniformBuffer.destroy();
   }
-
-  uniformBuffer.destroy();
 }
 
 
@@ -255,11 +252,11 @@ export async function runSiLURowSplit(
     dispatch(device, pipeline, bindGroup, workgroups, 'silu_rowsplit');
     return createTensor(output, input.dtype, [numTokens, dim], 'silu_rowsplit_output');
   } catch (error) {
-    cleanupRunResources(uniformBuffer, ownedOutput);
+    cleanupRunResources(null, ownedOutput);
     throw error;
+  } finally {
+    uniformBuffer.destroy();
   }
-
-  uniformBuffer.destroy();
 }
 
 

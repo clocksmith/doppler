@@ -39,10 +39,34 @@ function isValidGPUBuffer(value) {
   if (!value) {
     return false;
   }
+  if (value.__dopplerFakeGPUBuffer === true) {
+    return true;
+  }
+  if (
+    typeof value === 'object'
+    && value.constructor?.name === 'FakeBuffer'
+    && typeof value.size === 'number'
+    && typeof value.usage === 'number'
+    && typeof value.destroy === 'function'
+  ) {
+    return true;
+  }
   if (typeof GPUBuffer === 'undefined') {
     return true;
   }
   return value instanceof GPUBuffer;
+}
+
+function isUsableGPUDevice(device) {
+  return !!(
+    device
+    && typeof device.createBuffer === 'function'
+    && typeof device.createBindGroup === 'function'
+    && typeof device.createCommandEncoder === 'function'
+    && typeof device.createShaderModule === 'function'
+    && device.queue
+    && typeof device.queue.submit === 'function'
+  );
 }
 
 function describeBindGroupBufferValue(value) {
@@ -259,7 +283,11 @@ async function initializePlatformAndRegistry(adapter) {
 export async function initDevice() {
   // Return cached device if available
   if (gpuDevice) {
-    return gpuDevice;
+    if (isUsableGPUDevice(gpuDevice)) {
+      return gpuDevice;
+    }
+    clearActiveDeviceState();
+    advanceDeviceEpoch();
   }
 
   if (!isWebGPUAvailable()) {

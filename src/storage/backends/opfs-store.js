@@ -34,10 +34,13 @@ export function createOpfsStore(config) {
   let modelsDir = null;
   let currentModelDir = null;
   let currentModelId = null;
-  // SyncAccessHandle is typically only available in dedicated workers, but we
-  // allow an optimistic attempt anywhere and fall back gracefully if the
-  // browser rejects it (NotAllowedError / InvalidStateError).
-  const syncAccessEnabled = !!useSyncAccessHandle
+  const syncAccessRequested = useSyncAccessHandle === true;
+  if (syncAccessRequested && typeof FileSystemSyncAccessHandle === 'undefined') {
+    throw new Error(
+      'OPFS sync access handles were explicitly requested but are unavailable in this runtime.'
+    );
+  }
+  const syncAccessEnabled = syncAccessRequested
     && typeof FileSystemSyncAccessHandle !== 'undefined';
   const handleLimiter = syncAccessEnabled ? createLimiter(maxConcurrentHandles) : null;
 
@@ -84,7 +87,9 @@ export function createOpfsStore(config) {
     } catch (error) {
       handleLimiter.release();
       if (error?.name === 'InvalidStateError' || error?.name === 'NotAllowedError') {
-        return null;
+        throw new Error(
+          `OPFS sync access handles were explicitly requested but could not be opened: ${error.name}.`
+        );
       }
       throw error;
     }

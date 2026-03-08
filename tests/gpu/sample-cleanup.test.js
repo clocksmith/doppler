@@ -58,6 +58,9 @@ class FakeBuffer {
   }
 }
 
+const ORIGINAL_GPU_BUFFER = globalThis.GPUBuffer;
+globalThis.GPUBuffer = FakeBuffer;
+
 function createFakePipeline() {
   return {
     getBindGroupLayout() {
@@ -214,3 +217,8 @@ function resetRuntimeState(device) {
 destroyBufferPool();
 setDevice(null);
 console.log('sample-cleanup.test: ok');
+if (ORIGINAL_GPU_BUFFER === undefined) {
+  delete globalThis.GPUBuffer;
+} else {
+  globalThis.GPUBuffer = ORIGINAL_GPU_BUFFER;
+}

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 
 import { acquireBuffer, uploadData, releaseBuffer } from '../../src/memory/buffer-pool.js';
 import { createTensor } from '../../src/gpu/tensor.js';
+import { initDevice, setDevice } from '../../src/gpu/device.js';
 import { applyUlStage1Batch, cleanupUlPreparedBatch } from '../../src/training/ul_dataset.js';
 import { bootstrapNodeWebGPU } from '../../src/tooling/node-webgpu.js';
 
@@ -28,6 +29,9 @@ let webgpuReady = false;
 try {
   await bootstrapNodeWebGPU();
   webgpuReady = typeof globalThis.navigator !== 'undefined' && !!globalThis.navigator.gpu;
+  if (webgpuReady) {
+    await initDevice();
+  }
 } catch {
   webgpuReady = false;
 }
@@ -60,6 +64,7 @@ if (!webgpuReady) {
   cleanupUlPreparedBatch(preparedB);
   cleanupUlPreparedBatch(preparedC);
   releaseBuffer(input.buffer);
+  setDevice(null);
 }
 
 console.log('ul-stage1-determinism.test: ok');

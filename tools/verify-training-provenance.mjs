@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 
+import { existsSync } from 'node:fs';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join, resolve } from 'node:path';
+import { dirname, isAbsolute, join, resolve } from 'node:path';
 
 import { createTrainingConfig } from '../src/config/training-defaults.js';
 import { createUlArtifactSession } from '../src/training/artifacts.js';
@@ -76,6 +77,21 @@ async function readManifest(pathValue) {
   return { absolute, raw, parsed: JSON.parse(raw) };
 }
 
+function resolvePathMaybeRelative(pathValue, baseDir = process.cwd()) {
+  const normalized = String(pathValue ?? '').trim();
+  if (!normalized) {
+    throw new Error('pathValue is required.');
+  }
+  if (isAbsolute(normalized)) {
+    return normalized;
+  }
+  const cwdResolved = resolve(normalized);
+  if (existsSync(cwdResolved)) {
+    return cwdResolved;
+  }
+  return resolve(baseDir, normalized);
+}
+
 function verifyBuildProvenance(manifest) {
   const provenance = manifest.buildProvenance;
   assert(provenance && typeof provenance === 'object' && !Array.isArray(provenance), 'buildProvenance must be an object.');
@@ -112,8 +128,8 @@ async function readNdjson(pathValue) {
   };
 }
 
-async function verifyManifestMetricsPayload(manifest) {
-  const stepMetricsPath = resolve(process.cwd(), String(manifest.metrics.stepMetricsPath));
+async function verifyManifestMetricsPayload(manifest, baseDir) {
+  const stepMetricsPath = resolvePathMaybeRelative(manifest.metrics.stepMetricsPath, baseDir);
   const metrics = await readNdjson(stepMetricsPath);
   assertArray(metrics.entries, 'metrics entries');
   assert(
@@ -155,7 +171,7 @@ function verifyDistillRuntimeDump(manifest) {
   }
 }
 
-async function verifyUlManifestShape(manifest) {
+async function verifyUlManifestShape(manifest, baseDir) {
   assertFiniteNumber(manifest.schemaVersion, 'schemaVersion');
   assertNonEmptyString(manifest.stage, 'stage');
   assertNonEmptyString(manifest.configHash, 'configHash');
@@ -168,7 +184,7 @@ async function verifyUlManifestShape(manifest) {
   verifyBuildProvenance(manifest);
   verifyUlRuntimeDump(manifest);
   verifyMetricsBlock(manifest);
-  await verifyManifestMetricsPayload(manifest);
+  await verifyManifestMetricsPayload(manifest, baseDir);
   if (manifest.stage === 'stage1_joint') {
     assert(manifest.latentDataset && typeof manifest.latentDataset === 'object', 'stage1 latentDataset must exist.');
     assertNonEmptyString(manifest.latentDataset.path, 'latentDataset.path');
@@ -179,7 +195,7 @@ async function verifyUlManifestShape(manifest) {
   }
 }
 
-async function verifyDistillManifestShape(manifest) {
+async function verifyDistillManifestShape(manifest, baseDir) {
   assertFiniteNumber(manifest.schemaVersion, 'schemaVersion');
   assertNonEmptyString(manifest.stage, 'stage');
   assertNonEmptyString(manifest.configHash, 'configHash');
@@ -192,7 +208,7 @@ async function verifyDistillManifestShape(manifest) {
   verifyBuildProvenance(manifest);
   verifyDistillRuntimeDump(manifest);
   verifyMetricsBlock(manifest);
-  await verifyManifestMetricsPayload(manifest);
+  await verifyManifestMetricsPayload(manifest, baseDir);
 
   if (manifest.stage === 'stage_b') {
     assert(manifest.stageADependency && typeof manifest.stageADependency === 'object', 'stage_b stageADependency must exist.');
@@ -202,12 +218,12 @@ async function verifyDistillManifestShape(manifest) {
   }
 }
 
-async function verifyManifestShape(manifest) {
+async function verifyManifestShape(manifest, baseDir) {
   if (isDistillManifest(manifest)) {
-    await verifyDistillManifestShape(manifest);
+    await verifyDistillManifestShape(manifest, baseDir);
     return;
   }
-  await verifyUlManifestShape(manifest);
+  await verifyUlManifestShape(manifest, baseDir);
 }
 
 function verifyCheckpointShape(checkpoint) {
@@ -283,7 +299,7 @@ async function verifyReportShape(report, options = {}) {
     if (!artifact || typeof artifact !== 'object') continue;
     if (!artifact.manifestPath) continue;
     const manifestRaw = await readManifest(artifact.manifestPath);
-    await verifyManifestShape(manifestRaw.parsed);
+    await verifyManifestShape(manifestRaw.parsed, dirname(manifestRaw.absolute));
     if (typeof artifact.manifestHash === 'string' && artifact.manifestHash.trim()) {
       assert(
         artifact.manifestHash === manifestRaw.parsed.manifestHash,
@@ -448,9 +464,10 @@ async function runSelfTest() {
     await stage1Session.appendStep(stage1Entry);
     const stage1Result = await stage1Session.finalize([stage1Entry]);
 
-    const stage1Path = resolve(process.cwd(), stage1Result.manifestPath);
-    const stage1Manifest = (await readManifest(stage1Path)).parsed;
-    await verifyManifestShape(stage1Manifest);
+    const stage1Path = resolvePathMaybeRelative(stage1Result.manifestPath);
+    const stage1ManifestData = await readManifest(stage1Path);
+    const stage1Manifest = stage1ManifestData.parsed;
+    await verifyManifestShape(stage1Manifest, dirname(stage1ManifestData.absolute));
 
     const stage2Config = createTrainingConfig({
       training: {
@@ -491,9 +508,10 @@ async function runSelfTest() {
       step: 1,
       stage1_latent_count: 1,
     }]);
-    const stage2Path = resolve(process.cwd(), stage2Result.manifestPath);
-    const stage2Manifest = (await readManifest(stage2Path)).parsed;
-    await verifyManifestShape(stage2Manifest);
+    const stage2Path = resolvePathMaybeRelative(stage2Result.manifestPath);
+    const stage2ManifestData = await readManifest(stage2Path);
+    const stage2Manifest = stage2ManifestData.parsed;
+    await verifyManifestShape(stage2Manifest, dirname(stage2ManifestData.absolute));
     verifyStage2Dependency(stage2Manifest, stage1Manifest);
   } finally {
     await rm(tempDir, { recursive: true, force: true });
@@ -527,14 +545,16 @@ async function main() {
     );
   }
 
-  const manifest = (await readManifest(args.manifest)).parsed;
-  await verifyManifestShape(manifest);
+  const manifestData = await readManifest(args.manifest);
+  const manifest = manifestData.parsed;
+  await verifyManifestShape(manifest, dirname(manifestData.absolute));
   if (manifest.stage === 'stage2_base') {
     if (!args.stage1Manifest) {
       throw new Error('stage2 verification requires --stage1-manifest <path>.');
     }
-    const stage1 = (await readManifest(args.stage1Manifest)).parsed;
-    await verifyManifestShape(stage1);
+    const stage1Data = await readManifest(args.stage1Manifest);
+    const stage1 = stage1Data.parsed;
+    await verifyManifestShape(stage1, dirname(stage1Data.absolute));
     verifyStage2Dependency(manifest, stage1);
   }
 

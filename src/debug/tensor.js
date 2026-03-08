@@ -202,7 +202,13 @@ export const tensor = {
 
 export async function snapshotTensor(buffer, shape, dtype = 'f32') {
   try {
-    if (!gpuDevice) {
+    if (
+      !gpuDevice
+      || typeof gpuDevice.createBuffer !== 'function'
+      || typeof gpuDevice.createCommandEncoder !== 'function'
+      || !gpuDevice.queue
+      || typeof gpuDevice.queue.submit !== 'function'
+    ) {
       throw new Error('GPU device not initialized');
     }
     const elementSize = dtype === 'f16' ? 2 : 4;
@@ -224,8 +230,11 @@ export async function snapshotTensor(buffer, shape, dtype = 'f32') {
     staging.destroy();
     const arr = new Float32Array(data);
     return snapshotFromArray(arr, shape ?? [arr.length], dtype);
-  } catch {
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
     return {
+      ok: false,
+      error: message,
       shape: shape ?? [0],
       dtype,
       stats: { min: 0, max: 0, maxAbs: 0, mean: 0, std: 0 },
@@ -241,6 +250,8 @@ export function snapshotFromArray(arr, shape, dtype = 'f32') {
   const stats = computeArrayStats(arr, Math.min(arr.length, numElements));
 
   return {
+    ok: true,
+    error: null,
     shape,
     dtype,
     stats: {

@@ -13,6 +13,7 @@ export interface HttpRangeProbe {
   size: number | null;
   acceptRanges: string | null;
   contentEncoding: string | null;
+  error?: string | null;
 }
 
 export interface HttpTensorSourceOptions {

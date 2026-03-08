@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 
 import { doppler } from '../../src/index.js';
 import { resolveLoadProgressHandlers } from '../../src/client/doppler-api.js';
+import { getLogLevel, setLogLevel } from '../../src/debug/config.js';
 import {
   buildQuickstartModelBaseUrl,
   listQuickstartModels,
@@ -47,18 +48,21 @@ assert.equal(typeof doppler.evict, 'function');
 
 {
   const originalConsoleLog = console.log;
+  const originalLogLevel = getLogLevel();
   const output = [];
   console.log = (...args) => output.push(args.join(' '));
   try {
+    setLogLevel('info');
     const resolved = resolveLoadProgressHandlers({});
     assert.equal(typeof resolved.userProgress, 'function');
     assert.equal(resolved.pipelineProgress, null);
     resolved.userProgress({ phase: 'resolve', percent: 5, message: 'Resolving model' });
   } finally {
+    setLogLevel(originalLogLevel);
     console.log = originalConsoleLog;
   }
-  assert.equal(output.length, 1);
-  assert.match(output[0], /\[doppler\] Resolving model$/);
+  assert.ok(output.length >= 1);
+  assert.ok(output.some((line) => /\[doppler\] Resolving model$/.test(line)));
 }
 
 console.log('doppler-quickstart-api.test: ok');

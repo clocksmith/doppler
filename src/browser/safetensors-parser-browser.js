@@ -53,6 +53,78 @@ async function readTextFromSource(source) {
   return new TextDecoder().decode(buffer);
 }
 
+function resolveIndexedShardLayout(indexJson, fileMap) {
+  const weightMap = indexJson?.weight_map;
+  if (!weightMap || typeof weightMap !== 'object') {
+    throw new Error('Safetensors index JSON must include a weight_map object for sharded parsing.');
+  }
+
+  const referencedShards = new Set();
+  for (const [tensorName, shardNameRaw] of Object.entries(weightMap)) {
+    if (typeof tensorName !== 'string' || !tensorName.trim()) {
+      throw new Error('Safetensors index JSON weight_map contains an invalid tensor name.');
+    }
+    if (typeof shardNameRaw !== 'string' || !shardNameRaw.trim()) {
+      throw new Error(`Safetensors index JSON weight_map entry for "${tensorName}" must reference a shard filename.`);
+    }
+    referencedShards.add(shardNameRaw);
+  }
+
+  if (referencedShards.size === 0) {
+    throw new Error('Safetensors index JSON weight_map must reference at least one shard.');
+  }
+
+  const missingShards = [...referencedShards].filter((shardName) => !fileMap.has(shardName));
+  if (missingShards.length > 0) {
+    throw new Error(
+      `Safetensors sharded parse is missing indexed shard files: ${missingShards.join(', ')}`
+    );
+  }
+
+  const extraShards = [...fileMap.keys()].filter((shardName) => !referencedShards.has(shardName));
+  if (extraShards.length > 0) {
+    throw new Error(
+      `Safetensors sharded parse received shard files not referenced by index JSON: ${extraShards.join(', ')}`
+    );
+  }
+
+  return {
+    weightMap,
+    referencedShards,
+  };
+}
+
+function validateParsedShardsAgainstIndex(parsedShards, weightMap) {
+  const seenTensorNames = new Set();
+  for (const parsedShard of parsedShards) {
+    for (const tensor of parsedShard.parsed.tensors) {
+      seenTensorNames.add(tensor.name);
+      const mappedShard = weightMap[tensor.name];
+      if (typeof mappedShard !== 'string' || !mappedShard.trim()) {
+        throw new Error(
+          `Safetensors index JSON is missing a weight_map entry for tensor "${tensor.name}".`
+        );
+      }
+      if (mappedShard !== parsedShard.source.name) {
+        throw new Error(
+          `Safetensors index JSON routes tensor "${tensor.name}" to "${mappedShard}", ` +
+          `but it was found in "${parsedShard.source.name}".`
+        );
+      }
+    }
+  }
+
+  const missingTensorMappings = Object.entries(weightMap)
+    .filter(([tensorName]) => !seenTensorNames.has(tensorName))
+    .map(([tensorName]) => tensorName);
+  if (missingTensorMappings.length > 0) {
+    throw new Error(
+      `Safetensors index JSON references tensors not found in provided shard files: ` +
+      `${missingTensorMappings.join(', ')}`
+    );
+  }
+}
+
 export async function parseSafetensorsFile(file) {
   const source = normalizeTensorSource(file);
   const headerSizeBuffer = await source.readRange(0, 8);
@@ -108,8 +180,15 @@ export async function parseSafetensorsSharded(
     metadata = indexJson.metadata || {};
   }
 
-  const safetensorsSources = sources
+  let safetensorsSources = sources
     .filter((source) => source.name.endsWith('.safetensors'));
+  let weightMap = null;
+  if (indexJson) {
+    const indexedLayout = resolveIndexedShardLayout(indexJson, fileMap);
+    weightMap = indexedLayout.weightMap;
+    safetensorsSources = safetensorsSources
+      .filter((source) => indexedLayout.referencedShards.has(source.name));
+  }
   const parsedShards = await Promise.all(
     safetensorsSources.map(async (source) => {
       const parsed = await parseSafetensorsFile(source);
@@ -133,6 +212,10 @@ export async function parseSafetensorsSharded(
       tensor.shardFile = parsedShard.source.name;
       allTensors.push(tensor);
     }
+  }
+
+  if (weightMap) {
+    validateParsedShardsAgainstIndex(parsedShards, weightMap);
   }
 
   return {

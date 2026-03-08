@@ -299,26 +299,26 @@ function resolveModulationSegments(weight, hiddenSize, fallbackSegments, resolve
     if (Number.isInteger(segments) && segments > 0) {
       return segments;
     }
-    log.warn(
-      'Diffusion',
-      `Modulation segments mismatch for ${name || 'unknown'}: rows=${rows}, hidden=${hiddenSize}, fallback=${fallbackSegments}`
+    throw new Error(
+      `Modulation segments mismatch for ${name || 'unknown'}: rows=${rows}, hidden=${hiddenSize}, ` +
+      `expected an integer multiple instead of falling back to ${fallbackSegments}.`
     );
   }
-  return fallbackSegments;
+  throw new Error(
+    `Modulation tensor "${name || 'unknown'}" is missing shape metadata. ` +
+    `Runtime cannot fall back to ${fallbackSegments} segments.`
+  );
 }
 
 function resolveModulationOffsets(segments, hiddenSize) {
-  if (segments >= 9) {
+  if (segments === 9) {
     return {
       attn: { scale: 0, shift: hiddenSize, gate: hiddenSize * 2 },
       attn2: { scale: hiddenSize * 3, shift: hiddenSize * 4, gate: hiddenSize * 5 },
       ff: { scale: hiddenSize * 6, shift: hiddenSize * 7, gate: hiddenSize * 8 },
     };
   }
-  if (segments >= 6) {
-    if (segments !== 6) {
-      log.warn('Diffusion', `Unexpected modulation segment count=${segments}; using 6-segment layout.`);
-    }
+  if (segments === 6) {
     const attn = { scale: 0, shift: hiddenSize, gate: hiddenSize * 2 };
     return {
       attn,
@@ -326,7 +326,7 @@ function resolveModulationOffsets(segments, hiddenSize) {
       ff: { scale: hiddenSize * 3, shift: hiddenSize * 4, gate: hiddenSize * 5 },
     };
   }
-  throw new Error(`Unsupported modulation segments=${segments} (expected >= 6).`);
+  throw new Error(`Unsupported modulation segments=${segments} (expected 6 or 9).`);
 }
 
 async function buildModulation(timeText, weight, bias, hiddenSize, segments, runtime, matmul, weightName, ops) {

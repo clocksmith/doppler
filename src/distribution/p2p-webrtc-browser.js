@@ -200,6 +200,16 @@ function assertOpenDataChannel(channel, peerId) {
 }
 
 function toRequestMessage(requestId, context) {
+  if (context?.contractVersion !== P2P_WEBRTC_DATA_PLANE_CONTRACT_VERSION) {
+    throw createP2PTransportError(
+      P2P_TRANSPORT_ERROR_CODES.payloadInvalid,
+      `Unexpected WebRTC data-plane contractVersion "${context?.contractVersion}".`,
+      {
+        expectedContractVersion: P2P_WEBRTC_DATA_PLANE_CONTRACT_VERSION,
+        actualContractVersion: context?.contractVersion ?? null,
+      }
+    );
+  }
   return {
     schemaVersion: P2P_WEBRTC_MESSAGE_SCHEMA_VERSION,
     contractVersion: P2P_WEBRTC_DATA_PLANE_CONTRACT_VERSION,
@@ -377,6 +387,16 @@ export function createBrowserWebRTCDataPlaneTransport(config = {}) {
   const maxPayloadBytes = Math.max(1, asNonNegativeInteger(config.maxPayloadBytes, DEFAULT_MAX_PAYLOAD_BYTES));
 
   return async function webRtcDataPlaneTransport(context) {
+    if (context?.contractVersion !== P2P_WEBRTC_DATA_PLANE_CONTRACT_VERSION) {
+      throw createP2PTransportError(
+        P2P_TRANSPORT_ERROR_CODES.contractUnsupported,
+        `Unsupported p2p.webrtc contractVersion "${context?.contractVersion}". Supported: ${P2P_WEBRTC_DATA_PLANE_CONTRACT_VERSION}.`,
+        {
+          contractVersion: context?.contractVersion ?? null,
+        }
+      );
+    }
+
     const selection = normalizePeerSelectionResult(
       selectPeer ? await selectPeer(context) : { peerId: staticPeerId }
     );

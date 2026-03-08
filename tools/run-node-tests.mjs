@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
+import { spawnSync } from 'node:child_process';
 import { existsSync, readdirSync, statSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import './node-test-runtime-setup.mjs';
 
 const ROOT_DIR = process.cwd();
 
@@ -40,10 +40,11 @@ function parseArgs() {
 
     if (args[i] === '--suite') {
       const value = args[i + 1];
-      if (value) {
-        suite = value;
-        i += 1;
+      if (!value || value.startsWith('--')) {
+        throw new Error('Missing value for --suite');
       }
+      suite = value;
+      i += 1;
       continue;
     }
 
@@ -96,10 +97,28 @@ function listRootsFromSuite(suiteName, explicitDirs) {
   return suites[suiteName] ? suites[suiteName].map((dir) => resolve(ROOT_DIR, dir)) : suites.all.map((dir) => resolve(ROOT_DIR, dir));
 }
 
+const TEST_FILE_RUNNER = resolve(ROOT_DIR, 'tools/run-node-test-file.mjs');
+
+function runTestFile(file) {
+  return spawnSync(
+    process.execPath,
+    [
+      TEST_FILE_RUNNER,
+      file,
+    ],
+    {
+      cwd: ROOT_DIR,
+      encoding: 'utf8',
+    }
+  );
+}
+
 async function main() {
   const { suite, directories, forceExit } = parseArgs();
-  const resolvedSuite = Object.hasOwn(suites, suite) ? suite : 'all';
-  const selectedRoots = listRootsFromSuite(resolvedSuite, directories.map((dir) => resolve(ROOT_DIR, dir)));
+  if (!Object.hasOwn(suites, suite)) {
+    throw new Error(`Unknown --suite "${suite}". Valid suites: ${Object.keys(suites).join(', ')}`);
+  }
+  const selectedRoots = listRootsFromSuite(suite, directories.map((dir) => resolve(ROOT_DIR, dir)));
   const testFiles = [];
 
   for (const root of selectedRoots) {
@@ -121,14 +140,24 @@ async function main() {
   const failures = [];
   for (const file of testFiles.sort()) {
     const rel = relative(ROOT_DIR, file);
-    try {
-      // eslint-disable-next-line no-await-in-loop
-      await import(pathToFileURL(file).href);
+    const result = runTestFile(file);
+    if (result.stdout) {
+      process.stdout.write(result.stdout);
+    }
+    if (result.stderr) {
+      process.stderr.write(result.stderr);
+    }
+    if (result.status === 0) {
       console.log(`[node-tests] ok: ${rel}`);
-    } catch (error) {
-      failures.push({ file, error });
+    } else {
+      failures.push({
+        file,
+        error: result.stderr || result.stdout || `exit code ${result.status ?? 1}`,
+      });
       console.error(`[node-tests] fail: ${rel}`);
-      console.error(error?.stack || String(error));
+      if (!result.stderr && !result.stdout) {
+        console.error(`exit code ${result.status ?? 1}`);
+      }
     }
   }
 

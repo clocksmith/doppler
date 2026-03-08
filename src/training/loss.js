@@ -1,6 +1,5 @@
 
 import { runSoftmax, runCrossEntropyLoss, castF16ToF32 } from '../gpu/kernels/index.js';
-import { releaseBuffer } from '../memory/buffer-pool.js';
 import { OpType } from './autograd.js';
 
 export async function crossEntropyLoss(logits, targets, config, tape) {
@@ -25,12 +24,12 @@ export async function crossEntropyLoss(logits, targets, config, tape) {
     OpType.SOFTMAX,
     (input) => runSoftmax(input, -1, { batchSize: numTokens, size: vocabSize }),
     [logitsF32],
-    { rows: numTokens, cols: vocabSize }
+    {
+      rows: numTokens,
+      cols: vocabSize,
+      retainBuffers: logitsF32 !== logits ? [logitsF32.buffer] : [],
+    }
   );
-
-  if (logitsF32 !== logits) {
-    releaseBuffer(logitsF32.buffer);
-  }
 
   return tape.record(
     OpType.CROSS_ENTROPY,

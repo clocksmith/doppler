@@ -52,4 +52,40 @@ await assertRejectsOnBothSurfaces({
   forceResumeReason: 'missing flag',
 }, /forceResumeReason requires forceResume=true/);
 
+await assert.rejects(
+  () => runNodeCommand({
+    command: 'lora',
+    action: 'compare',
+    runRoot: 'reports/training/lora/lora-toy/2026-03-07T00-00-00.000Z',
+    runtimePreset: 'modes/debug',
+  }),
+  /lora does not support runtime input fields on the node operator surface: runtimePreset/
+);
+
+await assert.rejects(
+  () => runNodeCommand({
+    command: 'distill',
+    action: 'compare',
+    runRoot: 'reports/training/distill/demo/2026-03-07T00-00-00.000Z',
+    runtimeConfigUrl: 'https://example.test/runtime.json',
+  }),
+  /distill does not support runtime input fields on the node operator surface: runtimeConfigUrl/
+);
+
+await assert.rejects(
+  () => runNodeCommand({
+    command: 'lora',
+    action: 'compare',
+    runRoot: 'reports/training/lora/lora-toy/2026-03-07T00-00-00.000Z',
+    runtimeConfig: {
+      shared: {
+        tooling: {
+          intent: 'verify',
+        },
+      },
+    },
+  }),
+  /lora does not support runtime input fields on the node operator surface: runtimeConfig/
+);
+
 console.log('training-command-malformed-surface.test: ok');

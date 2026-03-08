@@ -226,7 +226,7 @@ async function readExistingTarget(rootDir, variant) {
 export async function generateWgslVariants(options = {}) {
   const rootDir = path.resolve(options.rootDir ?? DEFAULT_ROOT);
   const checkOnly = options.checkOnly === true;
-  const results = [];
+  const pending = [];
   const errors = [];
 
   for (const variant of WGSL_GENERATED_VARIANTS) {
@@ -243,15 +243,22 @@ export async function generateWgslVariants(options = {}) {
       const existing = await readExistingTarget(rootDir, variant);
       const changed = existing !== generated;
       const targetPath = path.join(rootDir, target);
-      if (changed && !checkOnly) {
-        await fs.writeFile(targetPath, generated, 'utf8');
-      }
-      results.push({ id, source, target, changed });
+      pending.push({ id, source, target, generated, changed, targetPath });
     } catch (error) {
       errors.push(`variant "${id}" failed: ${error.message}`);
     }
   }
 
+  if (errors.length === 0 && !checkOnly) {
+    for (const item of pending) {
+      if (item.changed) {
+        // eslint-disable-next-line no-await-in-loop
+        await fs.writeFile(item.targetPath, item.generated, 'utf8');
+      }
+    }
+  }
+
+  const results = pending.map(({ id, source, target, changed }) => ({ id, source, target, changed }));
   return {
     rootDir,
     checkOnly,

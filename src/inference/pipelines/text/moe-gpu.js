@@ -81,17 +81,27 @@ export async function moeFeedForwardGPU(
   };
 
   const inputTensor = createTensor(inputBuffer, activationDtype, [numTokens, hiddenSize], 'moe_input');
+  let logitsBuffer = null;
+  let indicesBuffer = null;
+  let weightsBuffer = null;
+  let gathered = null;
+  let tokenCounts = null;
+  let tokenMap = null;
+  let expertOutputs = null;
+  let tokenOffsets = null;
+  let outputTensor = null;
 
   const layerRouter = layerRouterWeights?.get(layerIdx) || null;
   if (layerRouter) {
     moeRouter.loadWeights(layerRouter.weight, layerRouter.bias || null);
   }
 
-  let stepStart = perfMark();
-  const logitsBuffer = await moeRouter.computeRouterLogitsGPU(inputTensor.buffer, numTokens, null, {
-    inputDtype: activationDtype,
-    outputDtype: activationDtype,
-  });
+  try {
+    let stepStart = perfMark();
+    logitsBuffer = await moeRouter.computeRouterLogitsGPU(inputTensor.buffer, numTokens, null, {
+      inputDtype: activationDtype,
+      outputDtype: activationDtype,
+    });
   const logitsDtype = moeRouter.lastLogitsDtype ?? activationDtype;
   perfLog(`MoE L${layerIdx} router`, stepStart, { numTokens, logitsDtype });
 
@@ -134,18 +144,18 @@ export async function moeFeedForwardGPU(
   }
 
   stepStart = perfMark();
-  const { indices: indicesBuffer, weights: weightsBuffer } = await runSoftmaxTopK(
-    logitsBuffer,
-    numTokens,
-    numExperts,
-    topK,
-    {
-      normalize: moeRouter.normalizeWeights,
-      inputDtype: logitsDtype,
-      weightsDtype: activationDtype,
-      modelType,
-    }
-  );
+    ({ indices: indicesBuffer, weights: weightsBuffer } = await runSoftmaxTopK(
+      logitsBuffer,
+      numTokens,
+      numExperts,
+      topK,
+      {
+        normalize: moeRouter.normalizeWeights,
+        inputDtype: logitsDtype,
+        weightsDtype: activationDtype,
+        modelType,
+      }
+    ));
   perfLog(`MoE L${layerIdx} topk`, stepStart, {
     topK,
     modelType,
@@ -195,7 +205,8 @@ export async function moeFeedForwardGPU(
     trace.buffers(`MoE L${layerIdx} topk_weights`, { minW, maxW, nanW, dtype: activationDtype });
   }
 
-  releaseBuffer(logitsBuffer);
+    releaseBuffer(logitsBuffer);
+    logitsBuffer = null;
 
   const bytesPerElement = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: activationDtype });
   const bytesPerToken = hiddenSize * bytesPerElement;
@@ -207,47 +218,44 @@ export async function moeFeedForwardGPU(
     );
   }
 
-  let gathered;
-  let tokenCounts;
-  let tokenMap;
-
-  stepStart = perfMark();
-  ({ gathered, tokenCounts, tokenMap } = await runMoEGather(
-    inputTensor,
-    indicesBuffer,
-    numTokens,
-    hiddenSize,
-    numExperts,
-    topK,
-    { maxTokensPerExpert }
-  ));
+    stepStart = perfMark();
+    ({ gathered, tokenCounts, tokenMap } = await runMoEGather(
+      inputTensor,
+      indicesBuffer,
+      numTokens,
+      hiddenSize,
+      numExperts,
+      topK,
+      { maxTokensPerExpert }
+    ));
   perfLog(`MoE L${layerIdx} gather`, stepStart, { maxTokensPerExpert });
 
-  const expertOutputs = acquireBuffer(
-    numExperts * maxTokensPerExpert * hiddenSize * bytesPerElement,
-    undefined,
-    'moe_expert_outputs_gathered'
-  );
+    expertOutputs = acquireBuffer(
+      numExperts * maxTokensPerExpert * hiddenSize * bytesPerElement,
+      undefined,
+      'moe_expert_outputs_gathered'
+    );
 
   const zeroEncoder = device.createCommandEncoder({ label: 'zero_moe_expert_outputs' });
   zeroEncoder.clearBuffer(expertOutputs, 0, numExperts * maxTokensPerExpert * hiddenSize * bytesPerElement);
   device.queue.submit([zeroEncoder.finish()]);
 
-  stepStart = perfMark();
-  const tokenOffsets = await runMoEBuildTokenOffsets(
-    tokenCounts,
-    tokenMap,
-    numTokens,
-    numExperts,
-    topK,
-    maxTokensPerExpert
-  );
+    stepStart = perfMark();
+    tokenOffsets = await runMoEBuildTokenOffsets(
+      tokenCounts,
+      tokenMap,
+      numTokens,
+      numExperts,
+      topK,
+      maxTokensPerExpert
+    );
   perfLog(`MoE L${layerIdx} offsets_kernel`, stepStart, {
     totalSlots: numExperts * maxTokensPerExpert,
     routingSlots: numTokens * topK,
   });
 
-  releaseBuffer(tokenCounts);
+    releaseBuffer(tokenCounts);
+    tokenCounts = null;
 
   const expertStrideBytes = maxTokensPerExpert * bytesPerToken;
   const rowsPerExpert = maxTokensPerExpert;
@@ -322,49 +330,65 @@ export async function moeFeedForwardGPU(
     perfLog(`MoE L${layerIdx} expert_exec`, stepStart, { expertIdx, count });
   }
 
-  const expertOutputsTensor = createTensor(
-    expertOutputs,
-    activationDtype,
-    [numExperts, maxTokensPerExpert, hiddenSize],
-    'moe_expert_outputs'
-  );
-  stepStart = perfMark();
-  const outputTensor = await runScatterAddDynamic(
-    expertOutputsTensor,
-    indicesBuffer,
-    weightsBuffer,
-    tokenOffsets,
-    numTokens,
-    hiddenSize,
-    topK,
-    { weightsDtype: activationDtype }
-  );
+    const expertOutputsTensor = createTensor(
+      expertOutputs,
+      activationDtype,
+      [numExperts, maxTokensPerExpert, hiddenSize],
+      'moe_expert_outputs'
+    );
+    stepStart = perfMark();
+    outputTensor = await runScatterAddDynamic(
+      expertOutputsTensor,
+      indicesBuffer,
+      weightsBuffer,
+      tokenOffsets,
+      numTokens,
+      hiddenSize,
+      topK,
+      { weightsDtype: activationDtype }
+    );
   perfLog(`MoE L${layerIdx} scatter`, stepStart, { numTokens, hiddenSize });
 
-  releaseBuffer(gathered.buffer);
-  releaseBuffer(tokenMap);
-  releaseBuffer(expertOutputs);
-  releaseBuffer(tokenOffsets);
-  releaseBuffer(indicesBuffer);
-  releaseBuffer(weightsBuffer);
+    releaseBuffer(gathered.buffer);
+    gathered = null;
+    releaseBuffer(tokenMap);
+    tokenMap = null;
+    releaseBuffer(expertOutputs);
+    expertOutputs = null;
+    releaseBuffer(tokenOffsets);
+    tokenOffsets = null;
+    releaseBuffer(indicesBuffer);
+    indicesBuffer = null;
+    releaseBuffer(weightsBuffer);
+    weightsBuffer = null;
 
-  if (perfEnabled) {
-    const cacheStats = getDequantCacheStats();
-    trace.perf(`MoE L${layerIdx} done`, {
-      numTokens,
-      topK,
-      executedExperts: numExperts,
-      rowsPerExpert,
-      maxTokensPerExpert,
-      dequantCacheHits: cacheStats.hits,
-      dequantCacheMisses: cacheStats.misses,
-      expertCache: typeof expertLoader?.getExpertCacheStats === 'function'
-        ? expertLoader.getExpertCacheStats()
-        : null,
-    });
+    if (perfEnabled) {
+      const cacheStats = getDequantCacheStats();
+      trace.perf(`MoE L${layerIdx} done`, {
+        numTokens,
+        topK,
+        executedExperts: numExperts,
+        rowsPerExpert,
+        maxTokensPerExpert,
+        dequantCacheHits: cacheStats.hits,
+        dequantCacheMisses: cacheStats.misses,
+        expertCache: typeof expertLoader?.getExpertCacheStats === 'function'
+          ? expertLoader.getExpertCacheStats()
+          : null,
+      });
+    }
+
+    return outputTensor.buffer;
+  } finally {
+    if (logitsBuffer) releaseBuffer(logitsBuffer);
+    if (tokenCounts) releaseBuffer(tokenCounts);
+    if (gathered?.buffer) releaseBuffer(gathered.buffer);
+    if (tokenMap) releaseBuffer(tokenMap);
+    if (expertOutputs) releaseBuffer(expertOutputs);
+    if (tokenOffsets) releaseBuffer(tokenOffsets);
+    if (indicesBuffer) releaseBuffer(indicesBuffer);
+    if (weightsBuffer) releaseBuffer(weightsBuffer);
   }
-
-  return outputTensor.buffer;
 }
 
 function inferBufferDtype(buffer, expectedElements) {

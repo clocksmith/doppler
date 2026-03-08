@@ -18,31 +18,37 @@ function resolveDimensions(softmax, options) {
 async function _crossEntropyLoss(target, softmax, targets, options = {}) {
   const recorder = target && typeof target.beginComputePass === 'function' ? target : null;
   const { outputBuffer = null } = options;
+  const ownsOutput = outputBuffer == null;
   const { numTokens, vocabSize } = resolveDimensions(softmax, options);
 
   const inputTensor = softmax.dtype === 'f16'
     ? (recorder ? await recordCastF16ToF32(recorder, softmax) : await castF16ToF32(softmax))
     : softmax;
-
   const outputSize = numTokens * 4;
   const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'cross_entropy_loss_output');
 
-  await unifiedKernelWrapper(
-    'cross_entropy_loss', target, 'default',
-    [inputTensor, targets, outputBuf],
-    { num_tokens: numTokens, vocab_size: vocabSize },
-    Math.ceil(numTokens / WORKGROUP_SIZES.DEFAULT)
-  );
-
-  if (inputTensor !== softmax) {
-    if (recorder) {
-      recorder.trackTemporaryBuffer(inputTensor.buffer);
-    } else {
-      releaseBuffer(inputTensor.buffer);
+  try {
+    await unifiedKernelWrapper(
+      'cross_entropy_loss', target, 'default',
+      [inputTensor, targets, outputBuf],
+      { num_tokens: numTokens, vocab_size: vocabSize },
+      Math.ceil(numTokens / WORKGROUP_SIZES.DEFAULT)
+    );
+    return createTensor(outputBuf, 'f32', [numTokens], 'cross_entropy_loss_output');
+  } catch (error) {
+    if (ownsOutput) {
+      releaseBuffer(outputBuf);
+    }
+    throw error;
+  } finally {
+    if (inputTensor !== softmax) {
+      if (recorder) {
+        recorder.trackTemporaryBuffer(inputTensor.buffer);
+      } else {
+        releaseBuffer(inputTensor.buffer);
+      }
     }
   }
-
-  return createTensor(outputBuf, 'f32', [numTokens], 'cross_entropy_loss_output');
 }
 
 export async function runCrossEntropyLoss(softmax, targets, options = {}) {

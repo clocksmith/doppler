@@ -4,6 +4,8 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 
+import { loadConversionReports } from '../../tools/summarize-conversion-reports.js';
+
 const root = mkdtempSync(path.join(tmpdir(), 'doppler-convert-report-summary-'));
 
 try {
@@ -122,6 +124,19 @@ try {
   assert.equal(summary.recent[0].layerPatternOk, false);
   assert.equal(summary.recent[0].requiredInferenceOk, false);
   assert.equal(summary.recent[0].graphFirstError, 'bad graph');
+
+  writeFileSync(path.join(modelADir, 'invalid-convert.json'), JSON.stringify({
+    schemaVersion: 1,
+    suite: 'convert',
+    command: 'convert',
+    modelId: 'gemma3-invalid',
+    timestamp: '2026-03-06T14:00:00.000Z',
+  }, null, 2), 'utf8');
+
+  await assert.rejects(
+    () => loadConversionReports(root),
+    /Invalid conversion report .*invalid-convert\.json/
+  );
 }
 finally {
   rmSync(root, { recursive: true, force: true });

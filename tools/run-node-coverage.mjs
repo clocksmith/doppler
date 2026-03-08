@@ -39,10 +39,11 @@ function parseArgs() {
     const arg = args[i];
     if (arg === '--suite') {
       const value = args[i + 1];
-      if (value) {
-        suite = value;
-        i += 1;
+      if (!value || value.startsWith('--')) {
+        throw new Error('Missing value for --suite');
       }
+      suite = value;
+      i += 1;
       continue;
     }
     if (arg.startsWith('--suite=')) {
@@ -51,10 +52,11 @@ function parseArgs() {
     }
     if (arg === '--policy') {
       const value = args[i + 1];
-      if (value) {
-        policyPath = resolve(ROOT_DIR, value);
-        i += 1;
+      if (!value || value.startsWith('--')) {
+        throw new Error('Missing value for --policy');
       }
+      policyPath = resolve(ROOT_DIR, value);
+      i += 1;
       continue;
     }
     if (arg.startsWith('--policy=')) {
@@ -90,8 +92,10 @@ function listRootsFromSuite(suiteName, explicitDirs) {
   if (explicitDirs.length > 0) {
     return explicitDirs.map((dir) => resolve(ROOT_DIR, dir));
   }
-  const selectedSuite = Object.hasOwn(suites, suiteName) ? suiteName : 'all';
-  return suites[selectedSuite].map((dir) => resolve(ROOT_DIR, dir));
+  if (!Object.hasOwn(suites, suiteName)) {
+    throw new Error(`Unknown --suite "${suiteName}". Valid suites: ${Object.keys(suites).join(', ')}`);
+  }
+  return suites[suiteName].map((dir) => resolve(ROOT_DIR, dir));
 }
 
 function resolveTestFiles(suiteName, directories) {

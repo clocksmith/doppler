@@ -52,8 +52,10 @@ const baseManifest = {
 };
 
 {
-  const parsed = parseModelConfig(baseManifest, {});
-  assert.equal(parsed.intermediateSize, 8192);
+  assert.throws(
+    () => parseModelConfig(baseManifest, {}),
+    /FFN tensors imply 8192/
+  );
 }
 
 {
@@ -73,6 +75,10 @@ const baseManifest = {
   const linearNormFromArchitecture = {
     ...baseManifest,
     modelId: 'linear-norm-mode-arch-test',
+    inference: {
+      ...baseManifest.inference,
+      presetId: 'gemma3',
+    },
     architecture: {
       ...baseManifest.architecture,
       linearNumKeyHeads: 16,
@@ -91,6 +97,10 @@ const baseManifest = {
   const linearNormFromConfig = {
     ...baseManifest,
     modelId: 'linear-norm-mode-config-test',
+    inference: {
+      ...baseManifest.inference,
+      presetId: 'gemma3',
+    },
     config: {
       model_type: 'qwen2',
       linear_norm_mode: 'shared',
@@ -104,6 +114,10 @@ const baseManifest = {
   const invalidLinearNormMode = {
     ...baseManifest,
     modelId: 'linear-norm-mode-invalid-test',
+    inference: {
+      ...baseManifest.inference,
+      presetId: 'gemma3',
+    },
     config: {
       model_type: 'qwen2',
       linear_norm_mode: 'bad-mode',

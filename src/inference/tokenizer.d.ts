@@ -47,11 +47,6 @@ export declare class Tokenizer {
   initialize(manifest: ModelManifest, options?: TokenizerInitOptions): Promise<void>;
 
   /**
-   * Infer HuggingFace model ID from manifest architecture
-   */
-  private _inferHuggingFaceModel(manifest: ModelManifest): string | null;
-
-  /**
    * Encode text to token IDs
    */
   encode(text: string): number[];

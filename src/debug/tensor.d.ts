@@ -63,6 +63,8 @@ export interface TensorInspectOptions {
 }
 
 export interface TensorSnapshot {
+  ok: boolean;
+  error: string | null;
   shape: number[];
   dtype: string;
   stats: {

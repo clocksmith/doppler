@@ -462,7 +462,7 @@ const DEFAULT_ACTIVE_KERNEL_PATH_POLICY = {
 };
 let activeKernelPathPolicy = DEFAULT_ACTIVE_KERNEL_PATH_POLICY;
 
-export function setActiveKernelPath(path, source = 'none', policy = null) {
+export function setActiveKernelPath(path, source = 'none', policy = undefined) {
   activeKernelPath = path;
   activeKernelPathSource = path ? source : 'none';
   activeKernelPathPolicy = mergeKernelPathPolicy(DEFAULT_ACTIVE_KERNEL_PATH_POLICY, policy);

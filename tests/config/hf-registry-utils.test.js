@@ -44,6 +44,29 @@ import {
 }
 
 {
+  assert.throws(
+    () => buildPublishedRegistryEntry({
+      modelId: 'missing-hf-fields',
+      hf: {
+        revision: null,
+      },
+    }, 'f3bac04695d52b4bf075d23ce094a7b73c17a913'),
+    /requires explicit hf\.repoId/
+  );
+  assert.throws(
+    () => buildPublishedRegistryEntry({
+      modelId: 'missing-hf-path',
+      hf: {
+        repoId: 'Clocksmith/rdrr',
+        revision: null,
+        path: '',
+      },
+    }, 'f3bac04695d52b4bf075d23ce094a7b73c17a913'),
+    /requires explicit hf\.path/
+  );
+}
+
+{
   const bad = {
     modelId: 'bad-model',
     hf: {

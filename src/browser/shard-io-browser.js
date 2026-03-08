@@ -1,7 +1,7 @@
 
 
 import { generateShardFilename } from '../formats/rdrr/index.js';
-import { createStreamingHasher } from '../storage/shard-manager.js';
+import { createStreamingHasher, getOpfsPathConfig } from '../storage/shard-manager.js';
 
 
 export class BrowserShardIO {
@@ -13,7 +13,7 @@ export class BrowserShardIO {
   
   static async create(modelId, options = {}) {
     const opfsRoot = await navigator.storage.getDirectory();
-    const modelsDir = await opfsRoot.getDirectoryHandle('models', { create: true });
+    const modelsDir = await opfsRoot.getDirectoryHandle(getOpfsPathConfig().opfsRootDir, { create: true });
     const modelDir = await modelsDir.getDirectoryHandle(modelId, { create: true });
     return new BrowserShardIO(modelDir, options);
   }

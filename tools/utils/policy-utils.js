@@ -7,8 +7,12 @@ function normalizeTrimmedText(value) {
 }
 
 function resolveText(value, fallback) {
-  const normalized = normalizeTrimmedText(value);
-  return normalized === '' ? fallback : normalized;
+  if (value === null || value === undefined) return fallback;
+  const normalized = String(value).trim();
+  if (normalized === '') {
+    throw new Error(`Expected non-empty text value, got ${JSON.stringify(value)}`);
+  }
+  return normalized;
 }
 
 function resolvePolicyText(value, fallback) {
@@ -16,7 +20,11 @@ function resolvePolicyText(value, fallback) {
 }
 
 function resolveTextArray(value, fallback) {
-  return Array.isArray(value) ? value : fallback;
+  if (value === null || value === undefined) return fallback;
+  if (!Array.isArray(value)) {
+    throw new Error(`Expected array value, got ${typeof value}`);
+  }
+  return value;
 }
 
 export {

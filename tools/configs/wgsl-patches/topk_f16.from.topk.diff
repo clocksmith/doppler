@@ -3,7 +3,10 @@
 @@ -1,164 +1,34 @@
 -// topk.wgsl
 +// topk_f16.wgsl
- 
++// Entry-point contract: this variant only exports softmax_topk.
++// The main and topk_2_small entry points from topk.wgsl are not present in this variant.
++// Kernel dispatch must target softmax_topk, not main.
+
  /**
 - * Top-K Selection Kernel for MoE Routing
 + * Top-K Selection Kernel for MoE Routing (f16 logits)

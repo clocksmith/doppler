@@ -18,6 +18,8 @@ const { destroyBufferPool, getBufferPool } = await import('../../src/memory/buff
 const { EnergyRowHeadPipeline } = await import('../../src/inference/pipelines/energy-head/row-head-pipeline.js');
 const { EnergyPipeline } = await import('../../src/inference/pipelines/energy/pipeline.js');
 const { createDiffusionIndexBuffer } = await import('../../src/inference/pipelines/diffusion/helpers.js');
+const { getWeightBuffer, getNormWeightBuffer } = await import('../../src/inference/pipelines/text/weights.js');
+const { initRoPEFrequencies } = await import('../../src/inference/pipelines/text/init.js');
 
 class FakeBuffer {
   constructor({ size, usage }) {
@@ -30,6 +32,8 @@ class FakeBuffer {
     this.destroyed = true;
   }
 }
+
+globalThis.GPUBuffer = FakeBuffer;
 
 function createFakeDevice({ writeBufferThrowAt = null } = {}) {
   let writeBufferCount = 0;
@@ -148,6 +152,60 @@ function assertPoolIsClean() {
   );
   assert.equal(device.createdBuffers.length, 1);
   assert.equal(device.createdBuffers[0].destroyed, true);
+  resetRuntimeState();
+}
+
+{
+  const device = createFakeDevice({ writeBufferThrowAt: 1 });
+  resetRuntimeState(device);
+
+  assert.throws(
+    () => getWeightBuffer(new Float32Array([1, 2, 3, 4]), 'weight_upload'),
+    /writeBuffer failed at 1/
+  );
+  assertPoolIsClean();
+  resetRuntimeState();
+}
+
+{
+  const device = createFakeDevice({ writeBufferThrowAt: 1 });
+  resetRuntimeState(device);
+
+  assert.throws(
+    () => getNormWeightBuffer(new Float32Array([1, 2, 3, 4]), 'norm_upload'),
+    /writeBuffer failed at 1/
+  );
+  assertPoolIsClean();
+  resetRuntimeState();
+}
+
+{
+  const device = createFakeDevice({ writeBufferThrowAt: 2 });
+  resetRuntimeState(device);
+
+  await assert.rejects(
+    () => initRoPEFrequencies({
+      headDim: 256,
+      rotaryDim: 64,
+      maxSeqLen: 8,
+      ropeTheta: 10000000,
+      ropeLocalTheta: null,
+      mropeInterleaved: true,
+      mropeSection: [11, 11, 10],
+      partialRotaryFactor: 0.25,
+      ropeScale: 1,
+      ropeLocalScale: 1,
+      ropeScalingType: null,
+      ropeLocalScalingType: null,
+      ropeScaling: null,
+      ropeLocalScaling: null,
+    }, true),
+    /writeBuffer failed at 2/
+  );
+  assertPoolIsClean();
+  for (const buffer of device.createdBuffers) {
+    assert.equal(buffer.destroyed, true);
+  }
   resetRuntimeState();
 }
 

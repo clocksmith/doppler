@@ -118,13 +118,9 @@ function resolveAttentionHeadShape(channels, config) {
       headDim: channels / configuredNumHeads,
     };
   }
-
-  const fallbackHeadDims = [64, 40, 32, 24, 20, 16, 12, 10, 8, 6, 5, 4, 3, 2, 1];
-  const headDim = fallbackHeadDims.find((candidate) => candidate <= channels && channels % candidate === 0) || 1;
-  return {
-    numHeads: Math.max(1, channels / headDim),
-    headDim,
-  };
+  throw new Error(
+    `VAE attention requires explicit compatible attention_head_dim or num_attention_heads for channels=${channels}.`
+  );
 }
 
 function createBiasTensor(weight, label, fallbackDtype = 'f16') {

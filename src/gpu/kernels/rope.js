@@ -27,6 +27,9 @@ async function _rope(target, input, freqsCos, freqsSin, seqLen, options = {}) {
   if (rotaryDim <= 0 || rotaryDim > headDim) {
     throw new Error(`RoPE rotaryDim must be in (0, headDim]; got ${rotaryDim} for headDim ${headDim}`);
   }
+  if (input.dtype === 'f16' && (rotaryDim !== headDim || interleaved)) {
+    throw new Error('RoPE f16 kernel requires rotaryDim === headDim and interleaved === false.');
+  }
 
   const caps = getKernelCapabilities();
   const useF16 = input.dtype === 'f16' && caps.hasF16;

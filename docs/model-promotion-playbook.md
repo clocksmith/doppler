@@ -102,10 +102,13 @@ test -f /tmp/<model-id>-rebuild/manifest.json
 
 ```bash
 node tools/doppler-cli.js debug \
-  --config '{"request":{"modelId":"<model-id>","modelUrl":"/models/local/<temp-copy>","captureOutput":true},"run":{"surface":"browser","browser":{"headless":true,"channel":"chromium","opfsCache":false}}}' \
+  --config '{"request":{"modelId":"<model-id>","modelUrl":"file:///tmp/<model-id>-rebuild","loadMode":"http","captureOutput":true},"run":{"surface":"node"}}' \
   --runtime-config '{"shared":{"tooling":{"intent":"investigate"}},"inference":{"prompt":"What color is the sky on a clear day? Answer in one word.","batching":{"maxTokens":4},"sampling":{"temperature":0,"topP":1,"topK":1,"repetitionPenalty":1,"greedyThreshold":0}}}' \
   --json
 ```
+
+Use the Node surface for this local rebuild verification path. Browser relay
+does not share the same local-filesystem contract for `file://` artifact roots.
 
 Required review points:
 
@@ -229,4 +232,3 @@ npm run support:matrix:sync
 - Re-pin `models/catalog.json` to the new HF revision.
 - Regenerate external-volume RDRR index.
 - Run hosted/catalog validation.
-

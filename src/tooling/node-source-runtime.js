@@ -3,6 +3,7 @@ import path from 'node:path';
 import {
   HEADER_READ_SIZE,
   createConverterConfig,
+  DEFAULT_EXECUTION_V0_SESSION_DEFAULTS,
 } from '../config/schema/index.js';
 import { extractArchitecture } from '../converter/core.js';
 import {
@@ -32,6 +33,13 @@ const SUPPORTED_SOURCE_DTYPES = new Set([
 const SOURCE_RUNTIME_EXECUTION_OVERRIDE = {
   steps: [],
 };
+
+function cloneExecutionV0SessionDefaults() {
+  if (typeof structuredClone === 'function') {
+    return structuredClone(DEFAULT_EXECUTION_V0_SESSION_DEFAULTS);
+  }
+  return JSON.parse(JSON.stringify(DEFAULT_EXECUTION_V0_SESSION_DEFAULTS));
+}
 
 function toArrayBuffer(value, label) {
   if (value instanceof ArrayBuffer) {
@@ -405,6 +413,7 @@ export async function resolveNodeSourceRuntimeBundle(options = {}) {
       modelBaseId: options.modelId || null,
     },
     inference: {
+      sessionDefaults: cloneExecutionV0SessionDefaults(),
       execution: SOURCE_RUNTIME_EXECUTION_OVERRIDE,
     },
   });

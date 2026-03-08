@@ -44,13 +44,16 @@ async function readRegistryFromIdb() {
   const store = createIdbStore(runtime.loading.storage.backend.indexeddb);
   await store.openModel(REGISTRY_MODEL_ID, { create: true });
   try {
-    const text = await store.readFile(REGISTRY_FILENAME);
+    const text = await store.readText(REGISTRY_FILENAME);
     await store.cleanup();
     if (!text) return { models: [] };
     return normalizeRegistry(JSON.parse(text));
-  } catch {
+  } catch (error) {
     await store.cleanup();
-    return { models: [] };
+    if (error?.message?.includes('not found')) {
+      return { models: [] };
+    }
+    throw error;
   }
 }
 
@@ -58,7 +61,10 @@ async function writeRegistryToIdb(registry) {
   const runtime = getRuntimeConfig();
   const store = createIdbStore(runtime.loading.storage.backend.indexeddb);
   await store.openModel(REGISTRY_MODEL_ID, { create: true });
-  await store.writeFile(REGISTRY_FILENAME, JSON.stringify(registry, null, 2));
+  await store.writeFile(
+    REGISTRY_FILENAME,
+    new TextEncoder().encode(JSON.stringify(registry, null, 2))
+  );
   await store.cleanup();
   return { backend: 'indexeddb', path: REGISTRY_FILENAME };
 }

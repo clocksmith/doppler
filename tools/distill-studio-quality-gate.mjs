@@ -28,24 +28,28 @@ function parseArgs(argv) {
   };
   for (let i = 0; i < argv.length; i += 1) {
     const token = String(argv[i] || '');
-    if (token === '--report') {
-      parsed.report = String(argv[i + 1] || '').trim();
+    const nextValue = () => {
+      const value = argv[i + 1];
+      if (value == null || String(value).startsWith('--')) {
+        throw new Error(`Missing value for ${token}`);
+      }
       i += 1;
+      return value;
+    };
+    if (token === '--report') {
+      parsed.report = String(nextValue()).trim();
       continue;
     }
     if (token === '--out-dir') {
-      parsed.outDir = String(argv[i + 1] || '').trim();
-      i += 1;
+      parsed.outDir = String(nextValue()).trim();
       continue;
     }
     if (token === '--min-steps') {
-      parsed.minSteps = parseNumber(argv[i + 1], 1);
-      i += 1;
+      parsed.minSteps = parseNumber(nextValue());
       continue;
     }
     if (token === '--max-total-loss') {
-      parsed.maxTotalLoss = parseNumber(argv[i + 1], null);
-      i += 1;
+      parsed.maxTotalLoss = parseNumber(nextValue(), null);
       continue;
     }
     throw new Error(`Unknown argument: ${token}`);
@@ -60,7 +64,7 @@ function parseArgs(argv) {
   return {
     reportPath: resolvedReport,
     outDir: resolvedOutDir,
-    minSteps: Math.max(1, Math.floor(parsed.minSteps || 1)),
+    minSteps: Math.max(1, Math.floor(parsed.minSteps ?? 1)),
     maxTotalLoss: parsed.maxTotalLoss,
   };
 }
@@ -247,9 +251,9 @@ async function main() {
   await writeFile(esPath, `${JSON.stringify(esGate, null, 2)}\n`, 'utf8');
   await writeFile(bundlePath, `${JSON.stringify(reproducibilityBundle, null, 2)}\n`, 'utf8');
 
-  console.error(`[distill-quality-gate] wrote ${enPath}`);
-  console.error(`[distill-quality-gate] wrote ${esPath}`);
-  console.error(`[distill-quality-gate] wrote ${bundlePath}`);
+  console.log(`[distill-quality-gate] wrote ${enPath}`);
+  console.log(`[distill-quality-gate] wrote ${esPath}`);
+  console.log(`[distill-quality-gate] wrote ${bundlePath}`);
 }
 
 await main();

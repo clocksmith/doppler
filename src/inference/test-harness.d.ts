@@ -74,7 +74,7 @@ export interface InitializeResult {
 /**
  * Discover available models from the catalog.json endpoint.
  *
- * @param fallbackModels - Models to return if catalog fails
+ * @param fallbackModels - Explicit fallback models to use when catalog fetch is unavailable
  * @returns Array of model info objects
  */
 export declare function discoverModels(

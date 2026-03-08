@@ -13,6 +13,10 @@ import {
   ]);
   assert.equal(args.modelId, 'translategemma-4b-it-wq4k-ef16-hf16');
   assert.equal(args.dryRun, true);
+  assert.throws(
+    () => parseArgs(['--model-id', 'translategemma-4b-it-wq4k-ef16-hf16', '--repo-id']),
+    /Missing value for --repo-id/
+  );
 }
 
 {
@@ -28,6 +32,19 @@ import {
   assert.equal(plan.repoId, 'Clocksmith/rdrr');
   assert.equal(plan.targetPath, 'models/translategemma-4b-it-wq4k-ef16-hf16');
   assert.equal(plan.localDir, '/tmp/translategemma');
+}
+
+{
+  assert.throws(
+    () => buildArtifactUploadPlan({
+      modelId: 'translategemma-4b-it-wq4k-ef16-hf16',
+      hf: {
+        repoId: 'Clocksmith/rdrr',
+        path: '',
+      },
+    }),
+    /hf\.path is required to publish/
+  );
 }
 
 {
@@ -63,7 +80,21 @@ import {
         },
       },
     }),
-    /execution-v0 graph gate failed/
+    /execution-v0 graph gate must be explicitly true/
+  );
+  assert.throws(
+    () => assertPromotionReady({
+      modelId: 'translategemma-4b-it-wq4k-ef16-hf16',
+      lifecycle: {
+        status: {
+          tested: 'verified',
+        },
+        tested: {
+          contracts: {},
+        },
+      },
+    }),
+    /execution contract gate must be explicitly true/
   );
 }
 
