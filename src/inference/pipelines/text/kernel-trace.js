@@ -283,6 +283,9 @@ export async function traceStep(name, label, layer, outputBuffer, outputShape, o
   if (layer >= 0 && !kernelTrace.shouldTraceLayer(layer)) return;
 
   const output = await snapshotTensor(outputBuffer, outputShape);
+  if (!output.ok) {
+    throw new Error(`[TRACE] Failed to snapshot output for ${label}: ${output.error}`);
+  }
 
   // Snapshot inputs if provided (expensive - only do if tracing)
   
@@ -290,6 +293,9 @@ export async function traceStep(name, label, layer, outputBuffer, outputShape, o
   if (options?.inputs && options?.inputShapes) {
     for (let i = 0; i < options.inputs.length; i++) {
       const snap = await snapshotTensor(options.inputs[i], options.inputShapes[i]);
+      if (!snap.ok) {
+        throw new Error(`[TRACE] Failed to snapshot input ${i} for ${label}: ${snap.error}`);
+      }
       inputs.push(snap);
     }
   }

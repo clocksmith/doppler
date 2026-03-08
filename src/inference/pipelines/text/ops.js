@@ -175,103 +175,103 @@ export async function doConv(
   }
 
   // Use the first 2x hidden projection channels as a gated conv-state projection.
-  const inProj = await doMatmul(
-    inputTensor,
-    convInProj,
-    numTokens,
-    hiddenSize * 2,
-    hiddenSize,
-    {
-      transposeB: 'auto',
-      label: `${label}.in_proj`,
-      layerIdx,
-      kernelPath,
-      role: 'conv_in_proj',
-    },
-    recorder
-  );
-  const activated = await doSiLURowSplit(inProj, {
-    numTokens,
-    dim: hiddenSize,
-    activation: 'silu',
-    swigluLimit: options.swigluLimit ?? null,
-    label: `${label}.activation`,
-    layerIdx,
-  }, recorder);
-
-  if (recorder) {
-    recorder.trackTemporaryBuffer(inProj.buffer);
-  } else {
-    releaseBuffer(inProj.buffer);
-  }
-
-  // Optional generic conv2d stage when explicit shape metadata is provided.
-  // LFM2 depthwise conv kernels use model-specific packing, so this path is best-effort only.
-  let convInput = activated;
-  if (convKernel && options.conv2d && options.conv2d.enabled === true) {
-    const convTensorInput = createTensor(activated.buffer, activated.dtype, [
-      options.conv2d.inChannels,
-      options.conv2d.height,
-      options.conv2d.width,
-    ], `${label}.conv_input`);
-    const convOptions = {
-      inChannels: options.conv2d.inChannels,
-      outChannels: options.conv2d.outChannels,
-      height: options.conv2d.height,
-      width: options.conv2d.width,
-      kernelH: options.conv2d.kernelH,
-      kernelW: options.conv2d.kernelW,
-      stride: options.conv2d.stride ?? 1,
-      pad: options.conv2d.pad ?? 0,
-    };
-    const convResult = recorder
-      ? await recordConv2D(recorder, convTensorInput, convKernel, null, convOptions)
-      : await runConv2D(convTensorInput, convKernel, null, convOptions);
-    convInput = createTensor(
-      convResult.buffer,
-      convResult.dtype,
-      [numTokens, hiddenSize],
-      `${label}.conv_output`
+  let inProj = null;
+  let activated = null;
+  let convInput = null;
+  let outProj = null;
+  try {
+    inProj = await doMatmul(
+      inputTensor,
+      convInProj,
+      numTokens,
+      hiddenSize * 2,
+      hiddenSize,
+      {
+        transposeB: 'auto',
+        label: `${label}.in_proj`,
+        layerIdx,
+        kernelPath,
+        role: 'conv_in_proj',
+      },
+      recorder
     );
-    if (recorder) {
-      recorder.trackTemporaryBuffer(activated.buffer);
-    } else {
-      releaseBuffer(activated.buffer);
-    }
-  }
-
-  const outProj = await doMatmul(
-    convInput,
-    convOutProj,
-    numTokens,
-    hiddenSize,
-    hiddenSize,
-    {
-      transposeB: 'auto',
-      label: `${label}.out_proj`,
+    activated = await doSiLURowSplit(inProj, {
+      numTokens,
+      dim: hiddenSize,
+      activation: 'silu',
+      swigluLimit: options.swigluLimit ?? null,
+      label: `${label}.activation`,
       layerIdx,
-      kernelPath,
-      role: 'conv_out_proj',
-    },
-    recorder
-  );
+    }, recorder);
 
-  if (convInput.buffer !== activated.buffer) {
-    if (recorder) {
-      recorder.trackTemporaryBuffer(convInput.buffer);
-    } else {
-      releaseBuffer(convInput.buffer);
+    releaseOrTrack(recorder, inProj.buffer);
+    inProj = null;
+
+    convInput = activated;
+    if (convKernel && options.conv2d && options.conv2d.enabled === true) {
+      const convTensorInput = createTensor(activated.buffer, activated.dtype, [
+        options.conv2d.inChannels,
+        options.conv2d.height,
+        options.conv2d.width,
+      ], `${label}.conv_input`);
+      const convOptions = {
+        inChannels: options.conv2d.inChannels,
+        outChannels: options.conv2d.outChannels,
+        height: options.conv2d.height,
+        width: options.conv2d.width,
+        kernelH: options.conv2d.kernelH,
+        kernelW: options.conv2d.kernelW,
+        stride: options.conv2d.stride ?? 1,
+        pad: options.conv2d.pad ?? 0,
+      };
+      const convResult = recorder
+        ? await recordConv2D(recorder, convTensorInput, convKernel, null, convOptions)
+        : await runConv2D(convTensorInput, convKernel, null, convOptions);
+      convInput = createTensor(
+        convResult.buffer,
+        convResult.dtype,
+        [numTokens, hiddenSize],
+        `${label}.conv_output`
+      );
+      releaseOrTrack(recorder, activated.buffer);
+      activated = null;
     }
-  } else if (recorder) {
-    recorder.trackTemporaryBuffer(activated.buffer);
-  } else {
-    releaseBuffer(activated.buffer);
-  }
 
-  if (kernelTrace.enabled && !recorder) {
-    await traceStep('conv', label, layerIdx, outProj.buffer, [numTokens, hiddenSize]);
+    outProj = await doMatmul(
+      convInput,
+      convOutProj,
+      numTokens,
+      hiddenSize,
+      hiddenSize,
+      {
+        transposeB: 'auto',
+        label: `${label}.out_proj`,
+        layerIdx,
+        kernelPath,
+        role: 'conv_out_proj',
+      },
+      recorder
+    );
+
+    if (convInput && (!activated || convInput.buffer !== activated.buffer)) {
+      releaseOrTrack(recorder, convInput.buffer);
+      convInput = null;
+    } else if (activated) {
+      releaseOrTrack(recorder, activated.buffer);
+      activated = null;
+    }
+
+    if (kernelTrace.enabled && !recorder) {
+      await traceStep('conv', label, layerIdx, outProj.buffer, [numTokens, hiddenSize]);
+    }
+    return outProj;
+  } catch (error) {
+    if (outProj) releaseOrTrack(recorder, outProj.buffer);
+    if (convInput && (!activated || convInput.buffer !== activated.buffer)) releaseOrTrack(recorder, convInput.buffer);
+    if (activated) releaseOrTrack(recorder, activated.buffer);
+    if (inProj) releaseOrTrack(recorder, inProj.buffer);
+    throw error;
   }
-  return outProj;
 }
 
 export async function doCast(input, toDtype, recorder) {

@@ -13,6 +13,10 @@ globalThis.GPUBufferUsage = {
   QUERY_RESOLVE: 0x0200,
 };
 
+globalThis.GPUShaderStage = {
+  COMPUTE: 0x2,
+};
+
 const { setDevice } = await import('../../src/gpu/device.js');
 const { CommandRecorder } = await import('../../src/gpu/command-recorder.js');
 const { createTensor } = await import('../../src/gpu/tensor.js');
@@ -44,6 +48,19 @@ const { runLayerNorm } = await import('../../src/gpu/kernels/layernorm.js');
 const { runRMSNorm } = await import('../../src/gpu/kernels/rmsnorm.js');
 const { runSiLU } = await import('../../src/gpu/kernels/silu.js');
 const { runUpsample2D } = await import('../../src/gpu/kernels/upsample2d.js');
+const { castF16ToF32 } = await import('../../src/gpu/kernels/cast.js');
+const { runCrossEntropyLoss } = await import('../../src/gpu/kernels/cross_entropy_loss.js');
+const { runKVQuantize } = await import('../../src/gpu/kernels/kv-quantize.js');
+const {
+  runTopK,
+  runMoEGather,
+  runMoEBuildTokenOffsets,
+  runScatterAddDynamic,
+} = await import('../../src/gpu/kernels/moe.js');
+const { runResidualAdd } = await import('../../src/gpu/kernels/residual.js');
+const { runSanaLinearAttention } = await import('../../src/gpu/kernels/sana_linear_attention.js');
+const { runScale } = await import('../../src/gpu/kernels/scale.js');
+const { runSplitQKV } = await import('../../src/gpu/kernels/split_qkv.js');
 
 class FakeBuffer {
   constructor({ size, usage, initialBytes = null }) {
@@ -69,6 +86,9 @@ class FakeBuffer {
   }
 }
 
+const ORIGINAL_GPU_BUFFER = globalThis.GPUBuffer;
+globalThis.GPUBuffer = FakeBuffer;
+
 function createFakeDevice({ createBindGroupThrowAt = null } = {}) {
   let createBindGroupCount = 0;
 
@@ -80,7 +100,7 @@ function createFakeDevice({ createBindGroupThrowAt = null } = {}) {
         return Promise.resolve();
       },
     },
-    features: new Set(['subgroups']),
+    features: new Set(['shader-f16', 'subgroups']),
     limits: {
       maxStorageBufferBindingSize: 1 << 20,
       maxBufferSize: 1 << 20,
@@ -168,6 +188,12 @@ function resetRuntimeState(device = null) {
 function assertPoolIsClean() {
   const stats = getBufferPool().getStats();
   assert.equal(stats.activeBuffers, 0);
+}
+
+function assertDeviceBuffersDestroyed(device) {
+  for (const buffer of device?.createdBuffers ?? []) {
+    assert.equal(buffer.destroyed, true);
+  }
 }
 
 {
@@ -372,4 +398,173 @@ function assertPoolIsClean() {
   resetRuntimeState();
 }
 
+{
+  const device = createFakeDevice({ createBindGroupThrowAt: 1 });
+  resetRuntimeState(device);
+  const input = createExternalTensor(new Uint16Array([1, 2]), [2], 'cast_input', 'f16');
+  await assert.rejects(
+    () => castF16ToF32(input),
+    /createBindGroup failed at 1/
+  );
+  assertPoolIsClean();
+  assertDeviceBuffersDestroyed(device);
+  resetRuntimeState();
+}
+
+{
+  resetRuntimeState(createFakeDevice({ createBindGroupThrowAt: 1 }));
+  const softmax = createExternalTensor(new Uint16Array([1, 2]), [1, 2], 'softmax', 'f16');
+  const targets = new FakeBuffer({ size: 4, usage: GPUBufferUsage.STORAGE });
+  await assert.rejects(
+    () => runCrossEntropyLoss(softmax, targets, { numTokens: 1, vocabSize: 2 }),
+    /createBindGroup failed at 1/
+  );
+  assertPoolIsClean();
+  resetRuntimeState();
+}
+
+{
+  const device = createFakeDevice({ createBindGroupThrowAt: 1 });
+  resetRuntimeState(device);
+  await assert.rejects(
+    () => runKVQuantize(
+      new FakeBuffer({ size: 16, usage: GPUBufferUsage.STORAGE }),
+      new FakeBuffer({ size: 16, usage: GPUBufferUsage.STORAGE }),
+      new FakeBuffer({ size: 16, usage: GPUBufferUsage.STORAGE }),
+      new FakeBuffer({ size: 16, usage: GPUBufferUsage.STORAGE }),
+      new FakeBuffer({ size: 16, usage: GPUBufferUsage.STORAGE }),
+      new FakeBuffer({ size: 16, usage: GPUBufferUsage.STORAGE }),
+      { numKVHeads: 1, headDim: 8, startPos: 0, numTokens: 1, packedStride: 4, mode: 'int8' }
+    ),
+    /createBindGroup failed at 1/
+  );
+  assertPoolIsClean();
+  assertDeviceBuffersDestroyed(device);
+  resetRuntimeState();
+}
+
+{
+  const device = createFakeDevice({ createBindGroupThrowAt: 1 });
+  resetRuntimeState(device);
+  await assert.rejects(
+    () => runTopK(new FakeBuffer({ size: 16, usage: GPUBufferUsage.STORAGE }), 1, 4, 2),
+    /createBindGroup failed at 1/
+  );
+  assertPoolIsClean();
+  assertDeviceBuffersDestroyed(device);
+  resetRuntimeState();
+}
+
+{
+  const device = createFakeDevice({ createBindGroupThrowAt: 1 });
+  resetRuntimeState(device);
+  const hidden = createExternalTensor([1, 2, 3, 4], [1, 4], 'moe_hidden');
+  await assert.rejects(
+    () => runMoEGather(
+      hidden,
+      new FakeBuffer({ size: 8, usage: GPUBufferUsage.STORAGE }),
+      1,
+      4,
+      2,
+      1
+    ),
+    /createBindGroup failed at 1/
+  );
+  assertPoolIsClean();
+  assertDeviceBuffersDestroyed(device);
+  resetRuntimeState();
+}
+
+{
+  const device = createFakeDevice({ createBindGroupThrowAt: 1 });
+  resetRuntimeState(device);
+  await assert.rejects(
+    () => runMoEBuildTokenOffsets(
+      new FakeBuffer({ size: 8, usage: GPUBufferUsage.STORAGE }),
+      new FakeBuffer({ size: 16, usage: GPUBufferUsage.STORAGE }),
+      1,
+      2,
+      1,
+      2
+    ),
+    /createBindGroup failed at 1/
+  );
+  assertPoolIsClean();
+  assertDeviceBuffersDestroyed(device);
+  resetRuntimeState();
+}
+
+{
+  const device = createFakeDevice({ createBindGroupThrowAt: 1 });
+  resetRuntimeState(device);
+  const expertOutputs = createExternalTensor([1, 2, 3, 4], [1, 1, 4], 'expert_outputs');
+  await assert.rejects(
+    () => runScatterAddDynamic(
+      expertOutputs,
+      new FakeBuffer({ size: 4, usage: GPUBufferUsage.STORAGE }),
+      new FakeBuffer({ size: 4, usage: GPUBufferUsage.STORAGE }),
+      new FakeBuffer({ size: 4, usage: GPUBufferUsage.STORAGE }),
+      1,
+      4,
+      1
+    ),
+    /createBindGroup failed at 1/
+  );
+  assertPoolIsClean();
+  assertDeviceBuffersDestroyed(device);
+  resetRuntimeState();
+}
+
+{
+  resetRuntimeState(createFakeDevice({ createBindGroupThrowAt: 1 }));
+  const a = createExternalTensor([1], [1], 'residual_a');
+  const b = createExternalTensor(new Uint16Array([1]), [1], 'residual_b', 'f16');
+  await assert.rejects(
+    () => runResidualAdd(a, b, 1),
+    /createBindGroup failed at 1/
+  );
+  assertPoolIsClean();
+  resetRuntimeState();
+}
+
+{
+  resetRuntimeState(createFakeDevice({ createBindGroupThrowAt: 1 }));
+  const query = createExternalTensor([1, 2, 3, 4], [1, 4], 'sana_q');
+  const key = createExternalTensor([1, 2, 3, 4], [1, 4], 'sana_k');
+  const value = createExternalTensor([1, 2, 3, 4], [1, 4], 'sana_v');
+  await assert.rejects(
+    () => runSanaLinearAttention(query, key, value, { numHeads: 1, headDim: 4, numTokens: 1, hiddenSize: 4 }),
+    /createBindGroup failed at 1/
+  );
+  assertPoolIsClean();
+  resetRuntimeState();
+}
+
+{
+  resetRuntimeState(createFakeDevice({ createBindGroupThrowAt: 1 }));
+  const input = createExternalTensor([1, 2], [2], 'scale_input');
+  await assert.rejects(
+    () => runScale(input, 0.5),
+    /createBindGroup failed at 1/
+  );
+  assertPoolIsClean();
+  resetRuntimeState();
+}
+
+{
+  resetRuntimeState(createFakeDevice({ createBindGroupThrowAt: 1 }));
+  const qkv = createExternalTensor([1, 2, 3, 4, 5, 6], [1, 6], 'split_qkv');
+  await assert.rejects(
+    () => runSplitQKV(qkv, { numTokens: 1, qSize: 2, kSize: 2, vSize: 2 }),
+    /createBindGroup failed at 1/
+  );
+  assertPoolIsClean();
+  resetRuntimeState();
+}
+
 console.log('kernel-wrapper-cleanup.test: ok');
+if (ORIGINAL_GPU_BUFFER === undefined) {
+  delete globalThis.GPUBuffer;
+} else {
+  globalThis.GPUBuffer = ORIGINAL_GPU_BUFFER;
+}

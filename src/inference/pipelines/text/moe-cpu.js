@@ -75,42 +75,46 @@ async function runExpertCPU(layerIdx, expertIdx, input, config, expertWeights) {
   const inputBuffer = acquireBuffer(input.byteLength, undefined, 'expert_input');
   device.queue.writeBuffer(inputBuffer, 0, input);
   const inputTensor = createTensor(inputBuffer, 'f32', [numTokens, hiddenSize], 'expert_input');
+  let gateOutput = null;
+  let upOutput = null;
+  let activatedOutput = null;
+  let output = null;
+  try {
+    gateOutput = await runMatmul(inputTensor, weights.gate, numTokens, intermediateSize, hiddenSize, {
+      transposeB: 'auto',
+      role: 'moe_gate',
+      kernelPath,
+    });
 
-  const gateOutput = await runMatmul(inputTensor, weights.gate, numTokens, intermediateSize, hiddenSize, {
-    transposeB: 'auto',
-    role: 'moe_gate',
-    kernelPath,
-  });
+    upOutput = await runMatmul(inputTensor, weights.up, numTokens, intermediateSize, hiddenSize, {
+      transposeB: 'auto',
+      role: 'moe_up',
+      kernelPath,
+    });
 
-  const upOutput = await runMatmul(inputTensor, weights.up, numTokens, intermediateSize, hiddenSize, {
-    transposeB: 'auto',
-    role: 'moe_up',
-    kernelPath,
-  });
+    const activationFn = {
+      gelu: runGeLU,
+      silu: runSiLU,
+    }[selectRuleValue('inference', 'ffn', 'activationOp', { hiddenActivation })];
+    activatedOutput = await activationFn(upOutput, {
+      size: numTokens * intermediateSize,
+      gate: gateOutput,
+      swigluLimit,
+    });
 
-  const activationFn = {
-    gelu: runGeLU,
-    silu: runSiLU,
-  }[selectRuleValue('inference', 'ffn', 'activationOp', { hiddenActivation })];
-  const activatedOutput = await activationFn(upOutput, {
-    size: numTokens * intermediateSize,
-    gate: gateOutput,
-    swigluLimit,
-  });
+    output = await runMatmul(activatedOutput, weights.down, numTokens, hiddenSize, intermediateSize, {
+      transposeB: 'auto',
+      role: 'moe_down',
+      kernelPath,
+    });
 
-  const output = await runMatmul(activatedOutput, weights.down, numTokens, hiddenSize, intermediateSize, {
-    transposeB: 'auto',
-    role: 'moe_down',
-    kernelPath,
-  });
-
-  const outputData = await readBuffer(output.buffer, input.byteLength);
-
-  releaseBuffer(inputBuffer);
-  releaseBuffer(gateOutput.buffer);
-  releaseBuffer(upOutput.buffer);
-  releaseBuffer(activatedOutput.buffer);
-  releaseBuffer(output.buffer);
-
-  return new Float32Array(outputData);
+    const outputData = await readBuffer(output.buffer, input.byteLength);
+    return new Float32Array(outputData);
+  } finally {
+    releaseBuffer(inputBuffer);
+    if (gateOutput) releaseBuffer(gateOutput.buffer);
+    if (upOutput) releaseBuffer(upOutput.buffer);
+    if (activatedOutput) releaseBuffer(activatedOutput.buffer);
+    if (output) releaseBuffer(output.buffer);
+  }
 }

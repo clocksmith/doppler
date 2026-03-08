@@ -78,8 +78,11 @@ export async function runKVQuantize(
   });
 
   const workgroups = [numKVHeads, numTokens, 1];
-  dispatch(device, pipeline, bindGroup, workgroups, 'kv_quantize');
-  uniformBuffer.destroy();
+  try {
+    dispatch(device, pipeline, bindGroup, workgroups, 'kv_quantize');
+  } finally {
+    uniformBuffer.destroy();
+  }
 }
 
 

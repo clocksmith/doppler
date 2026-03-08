@@ -66,8 +66,8 @@ export interface SpeculativeConfig {
   enableTreeDraft: boolean;
   /** Temperature for draft sampling */
   temperature: number;
-  /** Optional deterministic seed for speculative sampling */
-  randomSeed?: number | null;
+  /** Deterministic seed for speculative sampling */
+  randomSeed: number;
 }
 
 /**

@@ -3,19 +3,31 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { isObject } from './utils/policy-utils.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = path.resolve(__dirname, '..');
 const POLICY_PATH = path.join(ROOT_DIR, 'tools', 'policies', 'agent-parity-policy.json');
 
+export const REQUIRED_INSTRUCTION_ALIASES = Object.freeze([
+  { path: 'CLAUDE.md', target: 'AGENTS.md' },
+  { path: 'GEMINI.md', target: 'AGENTS.md' },
+]);
+
+export const REQUIRED_SKILL_ALIASES = Object.freeze([
+  { path: '.claude/skills', target: '../skills' },
+  { path: '.gemini/skills', target: '../skills' },
+  { path: '.codex/skills', target: '../skills' },
+]);
+
 async function pathExists(filePath) {
   try {
     await fs.access(filePath);
     return true;
-  } catch {
-    return false;
+  } catch (error) {
+    if (error.code === 'ENOENT') return false;
+    throw error;
   }
 }
 
@@ -68,13 +80,30 @@ async function loadPolicy() {
   if (!instructionCanonicalPath) {
     throw new Error('agent parity policy must define instructionCanonicalPath');
   }
-  return {
+  const policy = {
     instructionCanonicalPath,
     instructionAliases: normalizeRuleArray(parsed.instructionAliases, 'instructionAliases'),
     skillAliases: normalizeRuleArray(parsed.skillAliases, 'skillAliases'),
     requiredSkills: normalizeStringArray(parsed.requiredSkills, 'requiredSkills'),
     requiredAgentsMarkers: normalizeStringArray(parsed.requiredAgentsMarkers, 'requiredAgentsMarkers'),
   };
+  assertRequiredAliases(policy);
+  return policy;
+}
+
+function assertRequiredAliases(policy) {
+  for (const alias of REQUIRED_INSTRUCTION_ALIASES) {
+    const matched = policy.instructionAliases.some((entry) => entry.path === alias.path && entry.target === alias.target);
+    if (!matched) {
+      throw new Error(`agent parity policy missing required instruction alias ${alias.path} -> ${alias.target}`);
+    }
+  }
+  for (const alias of REQUIRED_SKILL_ALIASES) {
+    const matched = policy.skillAliases.some((entry) => entry.path === alias.path && entry.target === alias.target);
+    if (!matched) {
+      throw new Error(`agent parity policy missing required skill alias ${alias.path} -> ${alias.target}`);
+    }
+  }
 }
 
 async function verifySymlink(relativePath, expectedTarget, issues) {
@@ -157,4 +186,6 @@ async function main() {
   console.log(`- AGENTS markers verified: ${policy.requiredAgentsMarkers.length}`);
 }
 
-await main();
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  await main();
+}

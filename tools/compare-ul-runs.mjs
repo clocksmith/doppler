@@ -58,12 +58,18 @@ function mainCompare(left, right) {
     latentDatasetCount: {
       left: left?.latentDataset?.count ?? null,
       right: right?.latentDataset?.count ?? null,
-      delta: (left?.latentDataset?.count ?? 0) - (right?.latentDataset?.count ?? 0),
+      delta: (left?.latentDataset?.count != null && right?.latentDataset?.count != null)
+        ? left.latentDataset.count - right.latentDataset.count
+        : null,
+      incomplete: left?.latentDataset?.count == null || right?.latentDataset?.count == null,
     },
     metricCount: {
       left: left?.metrics?.count ?? null,
       right: right?.metrics?.count ?? null,
-      delta: (left?.metrics?.count ?? 0) - (right?.metrics?.count ?? 0),
+      delta: (left?.metrics?.count != null && right?.metrics?.count != null)
+        ? left.metrics.count - right.metrics.count
+        : null,
+      incomplete: left?.metrics?.count == null || right?.metrics?.count == null,
     },
     stage1Dependency: {
       left: left?.stage1Dependency ?? null,

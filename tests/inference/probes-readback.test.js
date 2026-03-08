@@ -147,7 +147,7 @@ try {
 } finally {
   trace.embed = originalEmbed;
   destroyBufferPool();
-  setTrace([]);
+  setTrace(false);
   setDevice(null);
 }
 

@@ -46,11 +46,18 @@ function createMockPipeline(chunks, manifest = {}) {
   pipeline.manifest = {
     modelId: 'dream-test-model',
     modelHash: { alg: 'sha256', hex: 'a'.repeat(64) },
+    inference: {
+      structuredJsonHead: {
+        maxTokens: 32,
+        temperature: 0,
+        maxOutputChars: 4096,
+      },
+    },
     ...manifest,
   };
   pipeline.runtimeConfig = {
     inference: {
-      structuredJsonHead: { maxTokens: 32, temperature: 0 },
+      structuredJsonHead: { maxTokens: 32, temperature: 0, maxOutputChars: 4096 },
       dream: { maxTokens: 32, temperature: 0 },
     },
   };

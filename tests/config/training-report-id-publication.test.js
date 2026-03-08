@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
@@ -26,6 +26,33 @@ try {
   assert.equal(publication.claims.length >= 4, true);
   assert.equal(typeof publication.claims[0].reportId, 'string');
   assert.equal(publication.claims[0].reportId.length > 0, true);
+  assert.equal(typeof publication.claims[0].claimBoundary, 'string');
+  assert.equal(publication.claims[0].claimBoundary.length > 0, true);
+
+  const badRegistryPath = path.join(tempDir, 'bad-registry.json');
+  writeFileSync(badRegistryPath, JSON.stringify({
+    schemaVersion: 1,
+    workloads: [
+      {
+        id: 'toy-workload',
+        path: 'tools/configs/training-workloads/lora-toy-tiny.json',
+        sha256: 'abc123',
+        baselineReportId: 'trn_toy_abc123',
+      },
+    ],
+  }, null, 2), 'utf8');
+  const badResult = spawnSync(process.execPath, [
+    'tools/publish-training-report-ids.mjs',
+    '--registry',
+    badRegistryPath,
+    '--out',
+    outPath,
+  ], {
+    cwd: process.cwd(),
+    encoding: 'utf8',
+  });
+  assert.notEqual(badResult.status, 0);
+  assert.match(badResult.stderr, /must include id, path, sha256, baselineReportId, claimBoundary/);
 } finally {
   rmSync(tempDir, { recursive: true, force: true });
 }

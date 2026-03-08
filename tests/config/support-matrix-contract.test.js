@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 
 import {
   buildCurrentInferenceStatusBuckets,
+  parseArgs,
   resolveRowStatus,
   validateCatalogMatrixInputs,
 } from '../../tools/sync-model-support-matrix.js';
@@ -70,6 +71,13 @@ import {
     'duplicate catalog modelId: broken-model',
     'broken-model: lifecycle.status.demo=local requires a local baseUrl',
   ]);
+}
+
+{
+  assert.throws(
+    () => parseArgs(['--output', '--check']),
+    /Missing value for --output/
+  );
 }
 
 {

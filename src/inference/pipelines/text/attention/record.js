@@ -90,9 +90,20 @@ export async function recordLayerAttentionGPU(
   const allowF16Attention = wantsF16Output && kvCacheDtype === 'f16';
   let attentionInput = input;
   let attentionInputTemp = false;
+  let normed = attentionInput;
+  let qTensor = null;
+  let qGateTensor = null;
+  let kTensor = null;
+  let vTensor = null;
+  let attnOutput = null;
+  let attnForProjection = null;
+  let output = null;
+  let finalOutput = null;
+  let oProjInputTemp = null;
   if (wantsF16Output && !allowF16Attention) {
     attentionInput = await recordCastF16ToF32(recorder, input);
     attentionInputTemp = true;
+    normed = attentionInput;
   }
 
   if (!layerWeights) {
@@ -108,7 +119,7 @@ export async function recordLayerAttentionGPU(
 
   // 1. Input norm
 
-  let normed = attentionInput;
+  try {
   if (!skipInputNorm && layerWeights.inputNorm && getNormWeightBuffer) {
     const normWeightBuf = getNormWeightBuffer(layerWeights.inputNorm, 'input_norm');
     normed = await recordRMSNorm(recorder, attentionInput, normWeightBuf, rmsNormEps, {
@@ -132,7 +143,8 @@ export async function recordLayerAttentionGPU(
 
   // 2. Q/K/V projections
   const matmulOutputDtype = resolveAttentionProjectionOutputDtype(desiredOutputDtype);
-  let { qTensor, qGateTensor, kTensor, vTensor, usedFusedQKV } = await projectAttentionQKV({
+  let usedFusedQKV = false;
+  ({ qTensor, qGateTensor, kTensor, vTensor, usedFusedQKV } = await projectAttentionQKV({
     recorder,
     normed,
     layerWeights,
@@ -153,7 +165,7 @@ export async function recordLayerAttentionGPU(
         trace.attn(layerIdx, `Using fused QKV path: ${qSizeFused}+${kSizeFused}+${vSizeFused}=${totalSize}`);
       }
       : null,
-  });
+  }));
 
   // Optional per-head Q/K normalization.
   // Some models use RMSNorm with (1+weight) offset formula, controlled by rmsNormWeightOffset.
@@ -502,9 +514,9 @@ export async function recordLayerAttentionGPU(
     throw new Error(`Unsupported attention kernel variant "${attentionKernelVariant}" at layer ${layerIdx}`);
   }
 
-  const attnOutput = await runAttentionKernel();
+  attnOutput = await runAttentionKernel();
 
-  let attnForProjection = attnOutput;
+  attnForProjection = attnOutput;
   if (qGateTensor) {
     attnForProjection = await recordSiLU(recorder, attnOutput, {
       size: numTokens * numHeads * headDim,
@@ -518,10 +530,10 @@ export async function recordLayerAttentionGPU(
 
   // 6. Output projection (with optional fused residual for decode)
 
-  let output;
+  output = null;
   let residualFused = false;
   let oProjInput = attnForProjection;
-  let oProjInputTemp = null;
+  oProjInputTemp = null;
   if (layerWeights.oProj && getWeightBuffer) {
     const oProjBuf = getWeightBuffer(layerWeights.oProj, 'o_proj');
     const loraO = getLoRAModule(lora, layerIdx, 'o_proj');
@@ -589,7 +601,7 @@ export async function recordLayerAttentionGPU(
     }
   }
 
-  let finalOutput = output;
+  finalOutput = output;
 
   const buffersToTrack = [];
   if (output.buffer !== attnForProjection.buffer) {
@@ -619,4 +631,46 @@ export async function recordLayerAttentionGPU(
   }
 
   return { output: finalOutput, residualFused };
+  } catch (error) {
+    const tracked = new Set();
+    const trackOnce = (buffer) => {
+      if (!buffer || tracked.has(buffer)) return;
+      tracked.add(buffer);
+      recorder.trackTemporaryBuffer(buffer);
+    };
+    if (finalOutput?.buffer && finalOutput.buffer !== output?.buffer) {
+      trackOnce(finalOutput.buffer);
+    }
+    if (output?.buffer && output.buffer !== attnForProjection?.buffer) {
+      trackOnce(output.buffer);
+    }
+    if (oProjInputTemp?.buffer) {
+      trackOnce(oProjInputTemp.buffer);
+    }
+    if (attnForProjection?.buffer && attnForProjection.buffer !== attnOutput?.buffer) {
+      trackOnce(attnForProjection.buffer);
+    }
+    if (attnOutput?.buffer) {
+      trackOnce(attnOutput.buffer);
+    }
+    if (qGateTensor?.buffer) {
+      trackOnce(qGateTensor.buffer);
+    }
+    if (qTensor?.buffer) {
+      trackOnce(qTensor.buffer);
+    }
+    if (kTensor?.buffer) {
+      trackOnce(kTensor.buffer);
+    }
+    if (vTensor?.buffer) {
+      trackOnce(vTensor.buffer);
+    }
+    if (normed?.buffer && normed.buffer !== attentionInput?.buffer) {
+      trackOnce(normed.buffer);
+    }
+    if (attentionInputTemp && attentionInput?.buffer) {
+      trackOnce(attentionInput.buffer);
+    }
+    throw error;
+  }
 }

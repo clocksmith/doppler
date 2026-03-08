@@ -61,6 +61,8 @@ function findRegistryEntry(registry, token) {
   return null;
 }
 
+const VALID_SURFACES = new Set(['auto', 'node', 'browser']);
+
 function parseArgs(argv) {
   const out = {
     model: '',
@@ -73,14 +75,20 @@ function parseArgs(argv) {
   const positional = [];
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
-    if (arg === '--registry-url') {
-      out.registryUrl = argv[i + 1] ? String(argv[i + 1]).trim() : '';
+    const nextValue = () => {
+      const value = argv[i + 1];
+      if (value == null || String(value).startsWith('--')) {
+        throw new Error(`Missing value for ${arg}`);
+      }
       i += 1;
+      return String(value).trim();
+    };
+    if (arg === '--registry-url') {
+      out.registryUrl = nextValue();
       continue;
     }
     if (arg === '--surface') {
-      out.surface = argv[i + 1] ? String(argv[i + 1]).trim() : '';
-      i += 1;
+      out.surface = nextValue();
       continue;
     }
     if (arg === '--update-catalog') {
@@ -88,14 +96,24 @@ function parseArgs(argv) {
       continue;
     }
     if (arg === '--catalog-file') {
-      out.catalogFile = argv[i + 1] ? String(argv[i + 1]).trim() : '';
-      i += 1;
+      out.catalogFile = nextValue();
       continue;
+    }
+    if (arg.startsWith('--')) {
+      throw new Error(`Unknown flag: ${arg}`);
     }
     positional.push(arg);
   }
 
+  if (positional.length > 1) {
+    throw new Error(`Unexpected positional arguments: ${positional.slice(1).join(', ')}`);
+  }
   out.model = positional[0] ? String(positional[0]).trim() : '';
+
+  if (out.surface && !VALID_SURFACES.has(out.surface)) {
+    throw new Error(`--surface must be one of: ${[...VALID_SURFACES].join(', ')}, got "${out.surface}"`);
+  }
+
   return out;
 }
 
@@ -239,7 +257,7 @@ async function updateCatalogTestStatus(options) {
 
   payload.updatedAt = toIsoDate();
   await fs.writeFile(catalogFile, `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
-  console.error(
+  console.log(
     `[registry-verify] updated catalog lifecycle for ${modelId} ` +
     `(tested=${model.lifecycle.status.tested}, result=${result})`
   );
@@ -277,7 +295,7 @@ async function main() {
     cacheMode: 'warm',
     runtimePreset: 'modes/debug',
   };
-  const run = { surface: parsed.surface || 'auto' };
+  const run = { surface: parsed.surface };
 
   let verifyResult = {
     exitCode: 1,
@@ -306,7 +324,7 @@ async function main() {
     await updateCatalogTestStatus({
       catalogFile: parsed.catalogFile,
       modelId: entry.modelId,
-      surface: parsed.surface || 'auto',
+      surface: parsed.surface,
       suite: request.suite,
       result,
       source: 'registry-verify',

@@ -1,4 +1,4 @@
-import { acquireBuffer } from '../../../../memory/buffer-pool.js';
+import { releaseBuffer } from '../../../../memory/buffer-pool.js';
 import { isWeightBuffer, getLayout, getWeightDtype } from '../../../../gpu/weight-buffer.js';
 import {
   runMatmul,
@@ -36,7 +36,7 @@ function getRmsNormRunner(recorder) {
 }
 
 function releaseOwnedWeightBuffer(layerWeight, resolvedWeightBuffer, releaseTemporary) {
-  if (layerWeight instanceof GPUBuffer || isWeightBuffer(layerWeight)) {
+  if ((typeof GPUBuffer !== 'undefined' && layerWeight instanceof GPUBuffer) || isWeightBuffer(layerWeight)) {
     return;
   }
   if (!resolvedWeightBuffer) {
@@ -66,10 +66,16 @@ async function projectSingleQkvTensor({
 }) {
   const runMatmulForMode = getMatmulRunner(recorder);
   const layerWeight = layerWeights?.[weightKey];
-  let projected;
+  if (!layerWeight) {
+    throw new Error(`Attention projection requires ${weightKey}.`);
+  }
+  if (!getWeightBuffer) {
+    throw new Error(`Attention projection requires getWeightBuffer for ${role}.`);
+  }
 
-  if (layerWeight && getWeightBuffer) {
-    const projBuffer = getWeightBuffer(layerWeight, role);
+  let projected;
+  const projBuffer = getWeightBuffer(layerWeight, role);
+  try {
     projected = await runMatmulForMode(normed, projBuffer, numTokens, outputSize, hiddenSize, {
       transposeB: 'auto',
       role,
@@ -77,26 +83,31 @@ async function projectSingleQkvTensor({
       kernelPath,
       outputDtype: matmulOutputDtype,
     });
+  } finally {
     releaseOwnedWeightBuffer(layerWeight, projBuffer, releaseTemporary);
-  } else {
-    const fallback = acquireBuffer(numTokens * outputSize * 4, undefined, outputLabel);
-    projected = createTensor(fallback, normed.dtype, [numTokens, outputSize], outputLabel);
   }
 
   const loraModule = getLoRAModule(lora, layerIdx, loraKey);
   if (loraModule && getWeightBuffer) {
-    const combined = await applyLoRA(
-      normed,
-      projected,
-      loraModule,
-      { M: numTokens, N: outputSize, K: hiddenSize },
-      getWeightBuffer,
-      recorder ?? undefined,
-      { kernelPath }
-    );
-    if (combined.buffer !== projected.buffer) {
-      releaseTemporary(projected.buffer);
-      projected = combined;
+    try {
+      const combined = await applyLoRA(
+        normed,
+        projected,
+        loraModule,
+        { M: numTokens, N: outputSize, K: hiddenSize },
+        getWeightBuffer,
+        recorder ?? undefined,
+        { kernelPath }
+      );
+      if (combined.buffer !== projected.buffer) {
+        releaseTemporary(projected.buffer);
+        projected = combined;
+      }
+    } catch (error) {
+      if (projected?.buffer) {
+        releaseTemporary(projected.buffer);
+      }
+      throw error;
     }
   }
 
@@ -212,24 +223,42 @@ async function projectQueryWithOptionalGate({
       bOffset: gateOffset,
       outputDtype: matmulOutputDtype,
     });
+  } catch (error) {
+    if (qTensor) {
+      releaseTemporary(qTensor.buffer);
+    }
+    if (qGateTensor) {
+      releaseTemporary(qGateTensor.buffer);
+    }
+    throw error;
   } finally {
     releaseOwnedWeightBuffer(qWeight, qWeightBuffer, releaseTemporary);
   }
 
   const loraModule = getLoRAModule(lora, layerIdx, 'q_proj');
   if (loraModule && getWeightBuffer) {
-    const combined = await applyLoRA(
-      normed,
-      qTensor,
-      loraModule,
-      { M: numTokens, N: qSize, K: hiddenSize },
-      getWeightBuffer,
-      recorder ?? undefined,
-      { kernelPath }
-    );
-    if (combined.buffer !== qTensor.buffer) {
-      releaseTemporary(qTensor.buffer);
-      qTensor = combined;
+    try {
+      const combined = await applyLoRA(
+        normed,
+        qTensor,
+        loraModule,
+        { M: numTokens, N: qSize, K: hiddenSize },
+        getWeightBuffer,
+        recorder ?? undefined,
+        { kernelPath }
+      );
+      if (combined.buffer !== qTensor.buffer) {
+        releaseTemporary(qTensor.buffer);
+        qTensor = combined;
+      }
+    } catch (error) {
+      if (qTensor?.buffer) {
+        releaseTemporary(qTensor.buffer);
+      }
+      if (qGateTensor?.buffer) {
+        releaseTemporary(qGateTensor.buffer);
+      }
+      throw error;
     }
   }
 
@@ -289,82 +318,103 @@ export async function projectAttentionQKV({
   if (useFusedQKV && layerWeights.qkvProj && layerWeights.qkvSizes) {
     const [qSizeFused, kSizeFused, vSizeFused] = layerWeights.qkvSizes;
     const qkvSizeTotal = qSizeFused + kSizeFused + vSizeFused;
-    const qkvTensor = await runMatmulForMode(normed, layerWeights.qkvProj, numTokens, qkvSizeTotal, hiddenSize, {
-      transposeB: 'auto',
-      role: 'qkv_proj',
-      layerIdx,
-      kernelPath,
-      outputDtype: matmulOutputDtype,
-    });
-    const split = await runSplitForMode(qkvTensor, {
-      numTokens,
-      qSize: qSizeFused,
-      kSize: kSizeFused,
-      vSize: vSizeFused,
-    });
-    releaseTemporary(qkvTensor.buffer);
-    if (onFusedQKV) {
-      onFusedQKV({ qSize: qSizeFused, kSize: kSizeFused, vSize: vSizeFused, totalSize: qkvSizeTotal });
+    let qkvTensor = null;
+    try {
+      qkvTensor = await runMatmulForMode(normed, layerWeights.qkvProj, numTokens, qkvSizeTotal, hiddenSize, {
+        transposeB: 'auto',
+        role: 'qkv_proj',
+        layerIdx,
+        kernelPath,
+        outputDtype: matmulOutputDtype,
+      });
+      const split = await runSplitForMode(qkvTensor, {
+        numTokens,
+        qSize: qSizeFused,
+        kSize: kSizeFused,
+        vSize: vSizeFused,
+      });
+      releaseTemporary(qkvTensor.buffer);
+      if (onFusedQKV) {
+        onFusedQKV({ qSize: qSizeFused, kSize: kSizeFused, vSize: vSizeFused, totalSize: qkvSizeTotal });
+      }
+      return { qTensor: split.Q, qGateTensor: null, kTensor: split.K, vTensor: split.V, usedFusedQKV: true };
+    } catch (error) {
+      if (qkvTensor) {
+        releaseTemporary(qkvTensor.buffer);
+      }
+      throw error;
     }
-    return { qTensor: split.Q, qGateTensor: null, kTensor: split.K, vTensor: split.V, usedFusedQKV: true };
   }
 
-  const { qTensor, qGateTensor } = await projectQueryWithOptionalGate({
-    recorder,
-    normed,
-    layerWeights,
-    numTokens,
-    numHeads,
-    headDim,
-    hiddenSize,
-    layerIdx,
-    kernelPath,
-    matmulOutputDtype,
-    getWeightBuffer,
-    lora,
-    releaseTemporary,
-    attentionOutputGate,
-  });
+  let qTensor = null;
+  let qGateTensor = null;
+  let kTensor = null;
+  let vTensor = null;
+  try {
+    ({ qTensor, qGateTensor } = await projectQueryWithOptionalGate({
+      recorder,
+      normed,
+      layerWeights,
+      numTokens,
+      numHeads,
+      headDim,
+      hiddenSize,
+      layerIdx,
+      kernelPath,
+      matmulOutputDtype,
+      getWeightBuffer,
+      lora,
+      releaseTemporary,
+      attentionOutputGate,
+    }));
 
-  const kTensor = await projectSingleQkvTensor({
-    recorder,
-    normed,
-    layerWeights,
-    weightKey: 'kProj',
-    role: 'k_proj',
-    outputSize: numKVHeads * headDim,
-    outputLabel: 'K',
-    loraKey: 'k_proj',
-    numTokens,
-    hiddenSize,
-    layerIdx,
-    kernelPath,
-    matmulOutputDtype,
-    getWeightBuffer,
-    lora,
-    releaseTemporary,
-  });
+    kTensor = await projectSingleQkvTensor({
+      recorder,
+      normed,
+      layerWeights,
+      weightKey: 'kProj',
+      role: 'k_proj',
+      outputSize: numKVHeads * headDim,
+      outputLabel: 'K',
+      loraKey: 'k_proj',
+      numTokens,
+      hiddenSize,
+      layerIdx,
+      kernelPath,
+      matmulOutputDtype,
+      getWeightBuffer,
+      lora,
+      releaseTemporary,
+    });
 
-  const vTensor = await projectSingleQkvTensor({
-    recorder,
-    normed,
-    layerWeights,
-    weightKey: 'vProj',
-    role: 'v_proj',
-    outputSize: numKVHeads * headDim,
-    outputLabel: 'V',
-    loraKey: 'v_proj',
-    numTokens,
-    hiddenSize,
-    layerIdx,
-    kernelPath,
-    matmulOutputDtype,
-    getWeightBuffer,
-    lora,
-    releaseTemporary,
-  });
+    vTensor = await projectSingleQkvTensor({
+      recorder,
+      normed,
+      layerWeights,
+      weightKey: 'vProj',
+      role: 'v_proj',
+      outputSize: numKVHeads * headDim,
+      outputLabel: 'V',
+      loraKey: 'v_proj',
+      numTokens,
+      hiddenSize,
+      layerIdx,
+      kernelPath,
+      matmulOutputDtype,
+      getWeightBuffer,
+      lora,
+      releaseTemporary,
+    });
 
-  return { qTensor, qGateTensor, kTensor, vTensor, usedFusedQKV: false };
+    return { qTensor, qGateTensor, kTensor, vTensor, usedFusedQKV: false };
+  } catch (error) {
+    for (const tensor of [qTensor, qGateTensor, kTensor, vTensor]) {
+      if (tensor?.buffer) {
+        releaseTemporary(tensor.buffer);
+      }
+    }
+    throw error;
+  }
 }
 
 export async function applyAttentionQKNorm({

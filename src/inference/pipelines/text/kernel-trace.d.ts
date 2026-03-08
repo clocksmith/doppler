@@ -12,6 +12,8 @@
  * Snapshot of a tensor's statistics (no full data, just stats).
  */
 export interface TensorSnapshot {
+  ok: boolean;
+  error: string | null;
   shape: number[];
   dtype: string;
   stats: {

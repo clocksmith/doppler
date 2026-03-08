@@ -52,6 +52,7 @@ function normalizeExecutionConfig(value, defaults) {
   const useGpuCast = value.useGpuCast == null
     ? defaults.useGpuCast === true
     : value.useGpuCast === true;
+  const gpuCastRequestedExplicitly = value.useGpuCast === true;
   if (value.useGpuCast != null && typeof value.useGpuCast !== 'boolean') {
     throw new Error('node convert: execution.useGpuCast must be a boolean when provided.');
   }
@@ -69,6 +70,7 @@ function normalizeExecutionConfig(value, defaults) {
     rowChunkMinTensorBytes,
     maxInFlightJobs,
     useGpuCast,
+    gpuCastRequestedExplicitly,
     gpuCastMinTensorBytes,
   };
 }
@@ -222,6 +224,7 @@ function createNodeGpuTensorTransformer(options) {
   const {
     runtime,
     gpuCastMinTensorBytes,
+    requireGpuCast,
     resolveTensorTargetQuant,
   } = options;
   const {
@@ -276,6 +279,11 @@ function createNodeGpuTensorTransformer(options) {
     try {
       const device = getDevice();
       if (!device) {
+        if (requireGpuCast) {
+          throw new Error(
+            `node convert: execution.useGpuCast failed for tensor "${tensor.name}": GPU device is unavailable.`
+          );
+        }
         return null;
       }
       inputBuffer = acquireBuffer(tensorData.byteLength, undefined, `convert_gpu_cast_in_${tensor.name}`);
@@ -292,6 +300,11 @@ function createNodeGpuTensorTransformer(options) {
 
       const readback = await getBufferPool().readBuffer(outputBuffer, outputBytes);
       if (!(readback instanceof ArrayBuffer) || readback.byteLength !== outputBytes) {
+        if (requireGpuCast) {
+          throw new Error(
+            `node convert: execution.useGpuCast failed for tensor "${tensor.name}": invalid GPU readback.`
+          );
+        }
         return null;
       }
       reportProgress?.(tensorData.byteLength, tensorData.byteLength);
@@ -301,6 +314,10 @@ function createNodeGpuTensorTransformer(options) {
         outLayout: null,
       };
     } catch (error) {
+      if (requireGpuCast) {
+        const message = error instanceof Error ? error.message : String(error);
+        throw new Error(`node convert: execution.useGpuCast failed for tensor "${tensor.name}": ${message}`);
+      }
       if (!warnedFallback) {
         warnedFallback = true;
         const message = error instanceof Error ? error.message : String(error);
@@ -1168,10 +1185,19 @@ export async function convertSafetensorsDirectory(options) {
   let result = null;
   try {
     if (executionPlan.useGpuCast) {
-      const gpuRuntime = await loadNodeGpuCastRuntime();
+      let gpuRuntime;
+      try {
+        gpuRuntime = await loadNodeGpuCastRuntime();
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        throw new Error(
+          `node convert: execution.useGpuCast requires a WebGPU-capable Node runtime. ${message}`
+        );
+      }
       gpuTensorTransformer = createNodeGpuTensorTransformer({
         runtime: gpuRuntime,
         gpuCastMinTensorBytes: executionPlan.gpuCastMinTensorBytes,
+        requireGpuCast: executionPlan.gpuCastRequestedExplicitly === true,
         resolveTensorTargetQuant,
       });
     }

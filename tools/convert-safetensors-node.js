@@ -14,42 +14,43 @@ function parseArgs(argv) {
   const positional = [];
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
-    if (arg === '--output-dir') {
-      out.outputDir = argv[i + 1] ?? null;
+    const nextValue = () => {
+      const value = argv[i + 1];
+      if (value == null || String(value).startsWith('--')) {
+        throw new Error(`Missing value for ${arg}.`);
+      }
       i += 1;
+      return value;
+    };
+    if (arg === '--output-dir') {
+      out.outputDir = nextValue();
       continue;
     }
     if (arg === '--config') {
-      out.configPath = argv[i + 1] ?? null;
-      i += 1;
+      out.configPath = nextValue();
       continue;
     }
     if (arg === '--converter-config') {
       throw new Error('--converter-config has been removed. Use --config <path.json>.');
     }
     if (arg === '--workers') {
-      execution.workers = argv[i + 1] ?? null;
-      i += 1;
+      execution.workers = nextValue();
       continue;
     }
     if (arg === '--worker-policy') {
-      execution.workerCountPolicy = argv[i + 1] ?? null;
-      i += 1;
+      execution.workerCountPolicy = nextValue();
       continue;
     }
     if (arg === '--row-chunk-rows') {
-      execution.rowChunkRows = argv[i + 1] ?? null;
-      i += 1;
+      execution.rowChunkRows = nextValue();
       continue;
     }
     if (arg === '--row-chunk-min-tensor-bytes') {
-      execution.rowChunkMinTensorBytes = argv[i + 1] ?? null;
-      i += 1;
+      execution.rowChunkMinTensorBytes = nextValue();
       continue;
     }
     if (arg === '--max-in-flight-jobs') {
-      execution.maxInFlightJobs = argv[i + 1] ?? null;
-      i += 1;
+      execution.maxInFlightJobs = nextValue();
       continue;
     }
     if (arg === '--use-gpu-cast') {
@@ -57,11 +58,16 @@ function parseArgs(argv) {
       continue;
     }
     if (arg === '--gpu-cast-min-tensor-bytes') {
-      execution.gpuCastMinTensorBytes = argv[i + 1] ?? null;
-      i += 1;
+      execution.gpuCastMinTensorBytes = nextValue();
       continue;
     }
+    if (arg.startsWith('--')) {
+      throw new Error(`Unknown flag: ${arg}`);
+    }
     positional.push(arg);
+  }
+  if (positional.length > 1) {
+    throw new Error(`Unexpected positional arguments: ${positional.slice(1).join(', ')}`);
   }
   out.inputDir = positional[0] ?? null;
   out.execution = Object.keys(execution).length > 0 ? execution : null;

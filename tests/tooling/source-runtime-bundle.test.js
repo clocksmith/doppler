@@ -144,6 +144,18 @@ const tokenizerModel = await storageContext.loadTokenizerModel();
 assert.deepEqual(Array.from(new Uint8Array(tokenizerModel)), [1, 2, 3, 4]);
 assert.equal(storageContext.verifyHashes, false);
 
+const missingTokenizerContext = createSourceStorageContext({
+  manifest: bundle.manifest,
+  shardSources: bundle.shardSources,
+  readRange: async () => new Uint8Array([0, 1, 2, 3]),
+  readText: async () => null,
+  tokenizerJsonPath: 'tokenizer.json',
+});
+await assert.rejects(
+  () => missingTokenizerContext.loadTokenizerJson(),
+  /did not return tokenizer JSON data/
+);
+
 assert.throws(
   () => createSourceStorageContext({
     manifest: bundle.manifest,

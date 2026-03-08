@@ -1,7 +1,7 @@
 
 
 import { getDevice, getDeviceEpoch } from '../device.js';
-import { acquireBuffer } from '../../memory/buffer-pool.js';
+import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor } from '../tensor.js';
 import { WORKGROUP_SIZES, GPU_LIMITS } from './constants.js';
 import { dispatch, recordDispatch } from './dispatch.js';
@@ -61,6 +61,15 @@ function releaseUniformBuffer(execution, uniformBuffer) {
   }
 }
 
+function releaseTemporaryBuffer(execution, buffer) {
+  if (!buffer) return;
+  if (execution.recorder) {
+    execution.recorder.trackTemporaryBuffer(buffer);
+  } else {
+    releaseBuffer(buffer);
+  }
+}
+
 async function executeTopK(recorder, probs, numTokens, numExperts, topK, options = {}) {
   const execution = resolveExecution(recorder);
   const { normalize = true } = options;
@@ -79,21 +88,26 @@ async function executeTopK(recorder, probs, numTokens, numExperts, topK, options
     view.setUint32(12, normalize ? 1 : 0, true);
   });
 
-  const bindGroup = execution.device.createBindGroup({
-    label: 'topk_bind_group',
-    layout: pipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: probs } },
-      { binding: 2, resource: { buffer: indices } },
-      { binding: 3, resource: { buffer: weights } },
-    ],
-  });
-
-  dispatchTopK(execution, pipeline, bindGroup, numTokens);
-  releaseUniformBuffer(execution, uniformBuffer);
-
-  return { indices, weights };
+  try {
+    const bindGroup = execution.device.createBindGroup({
+      label: 'topk_bind_group',
+      layout: pipeline.getBindGroupLayout(0),
+      entries: [
+        { binding: 0, resource: { buffer: uniformBuffer } },
+        { binding: 1, resource: { buffer: probs } },
+        { binding: 2, resource: { buffer: indices } },
+        { binding: 3, resource: { buffer: weights } },
+      ],
+    });
+    dispatchTopK(execution, pipeline, bindGroup, numTokens);
+    return { indices, weights };
+  } catch (error) {
+    releaseTemporaryBuffer(execution, indices);
+    releaseTemporaryBuffer(execution, weights);
+    throw error;
+  } finally {
+    releaseUniformBuffer(execution, uniformBuffer);
+  }
 }
 
 export async function runTopK(probs, numTokens, numExperts, topK, options = {}) {
@@ -225,65 +239,72 @@ async function executeMoEGather(recorder, hiddenStates, expertIndices, numTokens
     view.setUint32(28, 0, true);
   });
 
-  const bindGroup = await createBindGroupWithValidation(execution.device, {
-    label: 'moe_gather_bind_group',
-    layout: explicitLayout,
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: hiddenStates.buffer } },
-      { binding: 2, resource: { buffer: expertIndices } },
-      { binding: 3, resource: { buffer: gatheredBuffer } },
-      { binding: 4, resource: { buffer: tokenCounts } },
-      { binding: 5, resource: { buffer: tokenMap } },
-    ],
-  }, `moe_gather:${dtypeLabel}`);
+  try {
+    const bindGroup = await createBindGroupWithValidation(execution.device, {
+      label: 'moe_gather_bind_group',
+      layout: explicitLayout,
+      entries: [
+        { binding: 0, resource: { buffer: uniformBuffer } },
+        { binding: 1, resource: { buffer: hiddenStates.buffer } },
+        { binding: 2, resource: { buffer: expertIndices } },
+        { binding: 3, resource: { buffer: gatheredBuffer } },
+        { binding: 4, resource: { buffer: tokenCounts } },
+        { binding: 5, resource: { buffer: tokenMap } },
+      ],
+    }, `moe_gather:${dtypeLabel}`);
 
-  const countWorkgroups = Math.ceil((numTokens * topK) / WORKGROUP_SIZES.DEFAULT);
+    const countWorkgroups = Math.ceil((numTokens * topK) / WORKGROUP_SIZES.DEFAULT);
 
-  if (execution.recorder) {
-    const encoder = execution.recorder.getEncoder();
-    encoder.clearBuffer(tokenCounts);
+    if (execution.recorder) {
+      const encoder = execution.recorder.getEncoder();
+      encoder.clearBuffer(tokenCounts);
 
-    const countPass = execution.recorder.beginComputePass('moe_gather_count');
-    countPass.setPipeline(countPipeline);
-    countPass.setBindGroup(0, bindGroup);
-    countPass.dispatchWorkgroups(countWorkgroups);
-    countPass.end();
+      const countPass = execution.recorder.beginComputePass('moe_gather_count');
+      countPass.setPipeline(countPipeline);
+      countPass.setBindGroup(0, bindGroup);
+      countPass.dispatchWorkgroups(countWorkgroups);
+      countPass.end();
 
-    const gatherPass = execution.recorder.beginComputePass('moe_gather_gather');
-    gatherPass.setPipeline(gatherPipeline);
-    gatherPass.setBindGroup(0, bindGroup);
-    gatherPass.dispatchWorkgroups(gatherDispatch.x, gatherDispatch.y, 1);
-    gatherPass.end();
-  } else {
-    const encoder = execution.device.createCommandEncoder({ label: 'moe_gather_encoder' });
-    encoder.clearBuffer(tokenCounts);
+      const gatherPass = execution.recorder.beginComputePass('moe_gather_gather');
+      gatherPass.setPipeline(gatherPipeline);
+      gatherPass.setBindGroup(0, bindGroup);
+      gatherPass.dispatchWorkgroups(gatherDispatch.x, gatherDispatch.y, 1);
+      gatherPass.end();
+    } else {
+      const encoder = execution.device.createCommandEncoder({ label: 'moe_gather_encoder' });
+      encoder.clearBuffer(tokenCounts);
 
-    const countPass = encoder.beginComputePass({ label: 'moe_gather_count_pass' });
-    countPass.setPipeline(countPipeline);
-    countPass.setBindGroup(0, bindGroup);
-    countPass.dispatchWorkgroups(countWorkgroups);
-    countPass.end();
+      const countPass = encoder.beginComputePass({ label: 'moe_gather_count_pass' });
+      countPass.setPipeline(countPipeline);
+      countPass.setBindGroup(0, bindGroup);
+      countPass.dispatchWorkgroups(countWorkgroups);
+      countPass.end();
 
-    const gatherPass = encoder.beginComputePass({ label: 'moe_gather_gather_pass' });
-    gatherPass.setPipeline(gatherPipeline);
-    gatherPass.setBindGroup(0, bindGroup);
-    gatherPass.dispatchWorkgroups(gatherDispatch.x, gatherDispatch.y, 1);
-    gatherPass.end();
+      const gatherPass = encoder.beginComputePass({ label: 'moe_gather_gather_pass' });
+      gatherPass.setPipeline(gatherPipeline);
+      gatherPass.setBindGroup(0, bindGroup);
+      gatherPass.dispatchWorkgroups(gatherDispatch.x, gatherDispatch.y, 1);
+      gatherPass.end();
 
-    execution.device.queue.submit([encoder.finish()]);
+      execution.device.queue.submit([encoder.finish()]);
+    }
+
+    const gathered = createTensor(
+      gatheredBuffer,
+      hiddenStates.dtype,
+      [numExperts, maxTokensPerExpert, hiddenSize],
+      'moe_gathered'
+    );
+
+    return { gathered, tokenCounts, tokenMap, maxTokensPerExpert };
+  } catch (error) {
+    releaseTemporaryBuffer(execution, gatheredBuffer);
+    releaseTemporaryBuffer(execution, tokenCounts);
+    releaseTemporaryBuffer(execution, tokenMap);
+    throw error;
+  } finally {
+    releaseUniformBuffer(execution, uniformBuffer);
   }
-
-  releaseUniformBuffer(execution, uniformBuffer);
-
-  const gathered = createTensor(
-    gatheredBuffer,
-    hiddenStates.dtype,
-    [numExperts, maxTokensPerExpert, hiddenSize],
-    'moe_gathered'
-  );
-
-  return { gathered, tokenCounts, tokenMap, maxTokensPerExpert };
 }
 
 export async function runMoEGather(hiddenStates, expertIndices, numTokens, hiddenSize, numExperts, topK, options = {}) {
@@ -298,6 +319,7 @@ export async function recordMoEGather(recorder, hiddenStates, expertIndices, num
 async function executeScatterAdd(recorder, expertOutputs, indices, weights, numTokens, hiddenSize, numExperts, topK, options = {}) {
   const execution = resolveExecution(recorder);
   const { outputBuffer = null } = options;
+  const ownsOutput = outputBuffer == null;
 
   const pipeline = await createPipeline('scatter_add', 'default');
 
@@ -312,42 +334,49 @@ async function executeScatterAdd(recorder, expertOutputs, indices, weights, numT
     view.setUint32(12, numExperts, true);
   });
 
-  const bindGroup = execution.device.createBindGroup({
-    label: 'scatter_add_bind_group',
-    layout: pipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: expertOutputs.buffer } },
-      { binding: 2, resource: { buffer: indices } },
-      { binding: 3, resource: { buffer: weights } },
-      { binding: 4, resource: { buffer: outputBuf } },
-    ],
-  });
+  try {
+    const bindGroup = execution.device.createBindGroup({
+      label: 'scatter_add_bind_group',
+      layout: pipeline.getBindGroupLayout(0),
+      entries: [
+        { binding: 0, resource: { buffer: uniformBuffer } },
+        { binding: 1, resource: { buffer: expertOutputs.buffer } },
+        { binding: 2, resource: { buffer: indices } },
+        { binding: 3, resource: { buffer: weights } },
+        { binding: 4, resource: { buffer: outputBuf } },
+      ],
+    });
 
-  const workgroups = Math.ceil((numTokens * hiddenSize) / WORKGROUP_SIZES.DEFAULT);
+    const workgroups = Math.ceil((numTokens * hiddenSize) / WORKGROUP_SIZES.DEFAULT);
 
-  if (execution.recorder) {
-    execution.recorder.getEncoder().clearBuffer(outputBuf);
+    if (execution.recorder) {
+      execution.recorder.getEncoder().clearBuffer(outputBuf);
 
-    const pass = execution.recorder.beginComputePass('scatter_add');
-    pass.setPipeline(pipeline);
-    pass.setBindGroup(0, bindGroup);
-    pass.dispatchWorkgroups(workgroups);
-    pass.end();
-  } else {
-    const encoder = execution.device.createCommandEncoder({ label: 'scatter_add_encoder' });
-    encoder.clearBuffer(outputBuf);
-    const pass = encoder.beginComputePass({ label: 'scatter_add_pass' });
-    pass.setPipeline(pipeline);
-    pass.setBindGroup(0, bindGroup);
-    pass.dispatchWorkgroups(workgroups);
-    pass.end();
-    execution.device.queue.submit([encoder.finish()]);
+      const pass = execution.recorder.beginComputePass('scatter_add');
+      pass.setPipeline(pipeline);
+      pass.setBindGroup(0, bindGroup);
+      pass.dispatchWorkgroups(workgroups);
+      pass.end();
+    } else {
+      const encoder = execution.device.createCommandEncoder({ label: 'scatter_add_encoder' });
+      encoder.clearBuffer(outputBuf);
+      const pass = encoder.beginComputePass({ label: 'scatter_add_pass' });
+      pass.setPipeline(pipeline);
+      pass.setBindGroup(0, bindGroup);
+      pass.dispatchWorkgroups(workgroups);
+      pass.end();
+      execution.device.queue.submit([encoder.finish()]);
+    }
+
+    return createTensor(outputBuf, expertOutputs.dtype, [numTokens, hiddenSize], 'scatter_add_output');
+  } catch (error) {
+    if (ownsOutput) {
+      releaseTemporaryBuffer(execution, outputBuf);
+    }
+    throw error;
+  } finally {
+    releaseUniformBuffer(execution, uniformBuffer);
   }
-
-  releaseUniformBuffer(execution, uniformBuffer);
-
-  return createTensor(outputBuf, expertOutputs.dtype, [numTokens, hiddenSize], 'scatter_add_output');
 }
 
 export async function runScatterAdd(expertOutputs, indices, weights, numTokens, hiddenSize, numExperts, topK, options = {}) {
@@ -362,6 +391,7 @@ export async function recordScatterAdd(recorder, expertOutputs, indices, weights
 async function executeMoEBuildTokenOffsets(recorder, tokenCounts, tokenMap, numTokens, numExperts, topK, maxTokensPerExpert, options = {}) {
   const execution = resolveExecution(recorder);
   const { outputBuffer = null } = options;
+  const ownsOutput = outputBuffer == null;
 
   const explicitLayout = getMoEOffsetsBindGroupLayout(execution.device);
   const pipeline = await createPipeline('moe_offsets', 'default', explicitLayout);
@@ -380,38 +410,46 @@ async function executeMoEBuildTokenOffsets(recorder, tokenCounts, tokenMap, numT
     view.setUint32(28, 0, true);
   });
 
-  const bindGroup = await createBindGroupWithValidation(execution.device, {
-    label: 'moe_offsets_bind_group',
-    layout: explicitLayout,
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: tokenCounts } },
-      { binding: 2, resource: { buffer: tokenMap } },
-      { binding: 3, resource: { buffer: tokenOffsets } },
-    ],
-  }, 'moe_offsets');
+  try {
+    const bindGroup = await createBindGroupWithValidation(execution.device, {
+      label: 'moe_offsets_bind_group',
+      layout: explicitLayout,
+      entries: [
+        { binding: 0, resource: { buffer: uniformBuffer } },
+        { binding: 1, resource: { buffer: tokenCounts } },
+        { binding: 2, resource: { buffer: tokenMap } },
+        { binding: 3, resource: { buffer: tokenOffsets } },
+      ],
+    }, 'moe_offsets');
 
-  const totalSlots = numExperts * maxTokensPerExpert;
-  const workgroups = Math.ceil(totalSlots / WORKGROUP_SIZES.DEFAULT);
+    const totalSlots = numExperts * maxTokensPerExpert;
+    const workgroups = Math.ceil(totalSlots / WORKGROUP_SIZES.DEFAULT);
 
-  if (execution.recorder) {
-    const pass = execution.recorder.beginComputePass('moe_offsets');
-    pass.setPipeline(pipeline);
-    pass.setBindGroup(0, bindGroup);
-    pass.dispatchWorkgroups(workgroups);
-    pass.end();
-  } else {
-    const encoder = execution.device.createCommandEncoder({ label: 'moe_offsets_encoder' });
-    const pass = encoder.beginComputePass({ label: 'moe_offsets_pass' });
-    pass.setPipeline(pipeline);
-    pass.setBindGroup(0, bindGroup);
-    pass.dispatchWorkgroups(workgroups);
-    pass.end();
-    execution.device.queue.submit([encoder.finish()]);
+    if (execution.recorder) {
+      const pass = execution.recorder.beginComputePass('moe_offsets');
+      pass.setPipeline(pipeline);
+      pass.setBindGroup(0, bindGroup);
+      pass.dispatchWorkgroups(workgroups);
+      pass.end();
+    } else {
+      const encoder = execution.device.createCommandEncoder({ label: 'moe_offsets_encoder' });
+      const pass = encoder.beginComputePass({ label: 'moe_offsets_pass' });
+      pass.setPipeline(pipeline);
+      pass.setBindGroup(0, bindGroup);
+      pass.dispatchWorkgroups(workgroups);
+      pass.end();
+      execution.device.queue.submit([encoder.finish()]);
+    }
+
+    return tokenOffsets;
+  } catch (error) {
+    if (ownsOutput) {
+      releaseTemporaryBuffer(execution, tokenOffsets);
+    }
+    throw error;
+  } finally {
+    releaseUniformBuffer(execution, uniformBuffer);
   }
-
-  releaseUniformBuffer(execution, uniformBuffer);
-  return tokenOffsets;
 }
 
 export async function runMoEBuildTokenOffsets(tokenCounts, tokenMap, numTokens, numExperts, topK, maxTokensPerExpert, options = {}) {
@@ -425,6 +463,7 @@ export async function recordMoEBuildTokenOffsets(recorder, tokenCounts, tokenMap
 async function executeScatterAddDynamic(recorder, expertOutputs, indices, weights, tokenOffsets, numTokens, hiddenSize, topK, options = {}) {
   const execution = resolveExecution(recorder);
   const { outputBuffer = null, weightsDtype = 'f32' } = options;
+  const ownsOutput = outputBuffer == null;
 
   if (weightsDtype === 'f16' && expertOutputs.dtype !== 'f16') {
     throw new Error('ScatterAddDynamic f16 weights require f16 expert outputs');
@@ -447,43 +486,50 @@ async function executeScatterAddDynamic(recorder, expertOutputs, indices, weight
     view.setUint32(8, topK, true);
   });
 
-  const bindGroup = await createBindGroupWithValidation(execution.device, {
-    label: 'scatter_add_dynamic_bind_group',
-    layout: pipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: expertOutputs.buffer } },
-      { binding: 2, resource: { buffer: indices } },
-      { binding: 3, resource: { buffer: weights } },
-      { binding: 4, resource: { buffer: tokenOffsets } },
-      { binding: 5, resource: { buffer: outputBuf } },
-    ],
-  }, `scatter_add_dynamic:${variant}`);
+  try {
+    const bindGroup = await createBindGroupWithValidation(execution.device, {
+      label: 'scatter_add_dynamic_bind_group',
+      layout: pipeline.getBindGroupLayout(0),
+      entries: [
+        { binding: 0, resource: { buffer: uniformBuffer } },
+        { binding: 1, resource: { buffer: expertOutputs.buffer } },
+        { binding: 2, resource: { buffer: indices } },
+        { binding: 3, resource: { buffer: weights } },
+        { binding: 4, resource: { buffer: tokenOffsets } },
+        { binding: 5, resource: { buffer: outputBuf } },
+      ],
+    }, `scatter_add_dynamic:${variant}`);
 
-  const workgroups = Math.ceil((numTokens * topK * hiddenSize) / WORKGROUP_SIZES.DEFAULT);
+    const workgroups = Math.ceil((numTokens * topK * hiddenSize) / WORKGROUP_SIZES.DEFAULT);
 
-  if (execution.recorder) {
-    execution.recorder.getEncoder().clearBuffer(outputBuf);
+    if (execution.recorder) {
+      execution.recorder.getEncoder().clearBuffer(outputBuf);
 
-    const pass = execution.recorder.beginComputePass('scatter_add_dynamic');
-    pass.setPipeline(pipeline);
-    pass.setBindGroup(0, bindGroup);
-    pass.dispatchWorkgroups(workgroups);
-    pass.end();
-  } else {
-    const encoder = execution.device.createCommandEncoder({ label: 'scatter_add_dynamic_encoder' });
-    encoder.clearBuffer(outputBuf);
-    const pass = encoder.beginComputePass({ label: 'scatter_add_dynamic_pass' });
-    pass.setPipeline(pipeline);
-    pass.setBindGroup(0, bindGroup);
-    pass.dispatchWorkgroups(workgroups);
-    pass.end();
-    execution.device.queue.submit([encoder.finish()]);
+      const pass = execution.recorder.beginComputePass('scatter_add_dynamic');
+      pass.setPipeline(pipeline);
+      pass.setBindGroup(0, bindGroup);
+      pass.dispatchWorkgroups(workgroups);
+      pass.end();
+    } else {
+      const encoder = execution.device.createCommandEncoder({ label: 'scatter_add_dynamic_encoder' });
+      encoder.clearBuffer(outputBuf);
+      const pass = encoder.beginComputePass({ label: 'scatter_add_dynamic_pass' });
+      pass.setPipeline(pipeline);
+      pass.setBindGroup(0, bindGroup);
+      pass.dispatchWorkgroups(workgroups);
+      pass.end();
+      execution.device.queue.submit([encoder.finish()]);
+    }
+
+    return createTensor(outputBuf, expertOutputs.dtype, [numTokens, hiddenSize], 'scatter_add_dynamic_output');
+  } catch (error) {
+    if (ownsOutput) {
+      releaseTemporaryBuffer(execution, outputBuf);
+    }
+    throw error;
+  } finally {
+    releaseUniformBuffer(execution, uniformBuffer);
   }
-
-  releaseUniformBuffer(execution, uniformBuffer);
-
-  return createTensor(outputBuf, expertOutputs.dtype, [numTokens, hiddenSize], 'scatter_add_dynamic_output');
 }
 
 export async function runScatterAddDynamic(expertOutputs, indices, weights, tokenOffsets, numTokens, hiddenSize, topK, options = {}) {

@@ -17,6 +17,18 @@ function hashArrayBuffer(data) {
   return (hash >>> 0).toString(16).padStart(8, '0');
 }
 
+function copyUniformBytes(data) {
+  return new Uint8Array(data.slice(0));
+}
+
+function equalUniformBytes(a, b) {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
+}
+
 
 export class UniformBufferCache {
   
@@ -50,14 +62,22 @@ export class UniformBufferCache {
 
   
   getOrCreate(data, label) {
-    const hash = hashArrayBuffer(data);
-    const existing = this.#cache.get(hash);
+    const baseKey = `${data.byteLength}:${hashArrayBuffer(data)}`;
+    const dataBytes = copyUniformBytes(data);
+    let key = baseKey;
+    let suffix = 0;
+    let existing = this.#cache.get(key);
 
-    if (existing) {
-      existing.lastUsed = performance.now();
-      existing.refCount++;
-      this.#stats.hits++;
-      return existing.buffer;
+    while (existing) {
+      if (equalUniformBytes(existing.bytes, dataBytes)) {
+        existing.lastUsed = performance.now();
+        existing.refCount++;
+        this.#stats.hits++;
+        return existing.buffer;
+      }
+      suffix += 1;
+      key = `${baseKey}#${suffix}`;
+      existing = this.#cache.get(key);
     }
 
     // Cache miss - create new buffer
@@ -80,8 +100,9 @@ export class UniformBufferCache {
       this.#evictLRU();
     }
 
-    this.#cache.set(hash, {
+    this.#cache.set(key, {
       buffer,
+      bytes: dataBytes,
       lastUsed: performance.now(),
       refCount: 1,
     });

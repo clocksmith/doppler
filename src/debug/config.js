@@ -50,6 +50,108 @@ const originalConsoleInfo = console.info;
 const originalConsoleWarn = console.warn;
 let warnedBenchmarkMode = false;
 
+function requirePlainObject(value, label) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error(`${label} must be an object when provided.`);
+  }
+  return value;
+}
+
+function requireNonNegativeIntegerArray(value, label) {
+  if (!Array.isArray(value)) {
+    throw new Error(`${label} must be an array of non-negative integers when provided.`);
+  }
+  return value.map((entry, index) => {
+    const parsed = Number(entry);
+    if (!Number.isInteger(parsed) || parsed < 0) {
+      throw new Error(`${label}[${index}] must be a non-negative integer.`);
+    }
+    return parsed;
+  });
+}
+
+function requireNonNegativeInteger(value, label) {
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed < 0) {
+    throw new Error(`${label} must be a non-negative integer when provided.`);
+  }
+  return parsed;
+}
+
+function requireBoolean(value, label) {
+  if (typeof value !== 'boolean') {
+    throw new Error(`${label} must be a boolean when provided.`);
+  }
+  return value;
+}
+
+function normalizeLogLevel(level) {
+  if (typeof level !== 'string' || !level.trim()) {
+    throw new Error('setLogLevel(level) requires a non-empty log level string.');
+  }
+  return level.trim().toLowerCase();
+}
+
+function normalizeTraceCategories(categories) {
+  if (typeof categories === 'string') {
+    const values = categories
+      .split(',')
+      .map((value) => value.trim())
+      .filter(Boolean);
+    if (values.length === 0) {
+      throw new Error('setTrace(categories) requires at least one trace category.');
+    }
+    return values;
+  }
+  if (Array.isArray(categories) && categories.length > 0) {
+    return categories.map((value, index) => {
+      if (typeof value !== 'string' || !value.trim()) {
+        throw new Error(`setTrace(categories)[${index}] must be a non-empty string.`);
+      }
+      return value.trim();
+    });
+  }
+  throw new Error(
+    'setTrace(categories) requires false, a comma-delimited string, or a non-empty string array.'
+  );
+}
+
+function validateTraceCategoryToken(token) {
+  if (token === 'all') {
+    return;
+  }
+  const value = token.startsWith('-') ? token.slice(1) : token;
+  if (!TRACE_CATEGORIES.includes(value)) {
+    throw new Error(
+      `Unknown trace category "${token}". Allowed categories: all, ${TRACE_CATEGORIES.join(', ')}.`
+    );
+  }
+}
+
+function normalizeTraceOptions(options) {
+  if (options == null) {
+    return {};
+  }
+  const normalized = requirePlainObject(options, 'setTrace(options)');
+  return {
+    ...(normalized.layers === undefined ? {} : {
+      layers: requireNonNegativeIntegerArray(normalized.layers, 'setTrace(options).layers'),
+    }),
+    ...(normalized.maxDecodeSteps === undefined ? {} : {
+      maxDecodeSteps: requireNonNegativeInteger(
+        normalized.maxDecodeSteps,
+        'setTrace(options).maxDecodeSteps'
+      ),
+    }),
+    ...(normalized.breakOnAnomaly === undefined ? {} : {
+      breakOnAnomaly: requireBoolean(
+        normalized.breakOnAnomaly,
+        'setTrace(options).breakOnAnomaly'
+      ),
+    }),
+  };
+}
+
 export function setLogLevel(level) {
   const levelMap = {
     debug: LOG_LEVELS.DEBUG,
@@ -59,8 +161,14 @@ export function setLogLevel(level) {
     error: LOG_LEVELS.ERROR,
     silent: LOG_LEVELS.SILENT,
   };
-  currentLogLevel = levelMap[level.toLowerCase()] ?? LOG_LEVELS.INFO;
-  console.log(`[Doppler] Log level set to: ${level.toUpperCase()}`);
+  const normalizedLevel = normalizeLogLevel(level);
+  if (!Object.prototype.hasOwnProperty.call(levelMap, normalizedLevel)) {
+    throw new Error(
+      `Unknown log level "${level}". Allowed levels: ${Object.keys(levelMap).join(', ')}.`
+    );
+  }
+  currentLogLevel = levelMap[normalizedLevel];
+  console.log(`[Doppler] Log level set to: ${normalizedLevel.toUpperCase()}`);
 }
 
 export function getLogLevel() {
@@ -77,9 +185,11 @@ export function setTrace(categories, options) {
     return;
   }
 
-  const catArray = typeof categories === 'string'
-    ? categories.split(',').map(s => s.trim())
-    : categories;
+  const catArray = normalizeTraceCategories(categories);
+  const traceOptions = normalizeTraceOptions(options);
+  for (const cat of catArray) {
+    validateTraceCategoryToken(cat);
+  }
 
   enabledTraceCategories.clear();
 
@@ -101,14 +211,14 @@ export function setTrace(categories, options) {
     }
   }
 
-  if (options?.layers) {
-    traceLayerFilter = options.layers;
+  if (traceOptions.layers !== undefined) {
+    traceLayerFilter = traceOptions.layers;
   }
-  if (options?.maxDecodeSteps !== undefined) {
-    traceMaxDecodeSteps = options.maxDecodeSteps;
+  if (traceOptions.maxDecodeSteps !== undefined) {
+    traceMaxDecodeSteps = traceOptions.maxDecodeSteps;
   }
-  if (options?.breakOnAnomaly !== undefined) {
-    traceBreakOnAnomaly = options.breakOnAnomaly;
+  if (traceOptions.breakOnAnomaly !== undefined) {
+    traceBreakOnAnomaly = traceOptions.breakOnAnomaly;
   }
 
   const enabled = [...enabledTraceCategories].join(',') || 'none';
@@ -184,11 +294,13 @@ export function setSilentMode(enabled) {
     console.log = noop;
     console.debug = noop;
     console.info = noop;
+    console.warn = noop;
     originalConsoleLog('[Doppler] Silent mode enabled - logging silenced');
   } else {
     console.log = originalConsoleLog;
     console.debug = originalConsoleDebug;
     console.info = originalConsoleInfo;
+    console.warn = originalConsoleWarn;
     console.log('[Doppler] Silent mode disabled - logging restored');
   }
 }

@@ -4,6 +4,11 @@ import { resolve } from 'node:path';
 import { isPlainObject } from '../utils/plain-object.js';
 import { sha256Hex } from '../utils/sha256.js';
 import { VALID_LORA_TARGET_MODULES } from '../config/schema/adapter.schema.js';
+import {
+  DEFAULT_TRAINING_GRADIENT_CONFIG,
+  DEFAULT_TRAINING_OPTIMIZER_CONFIG,
+  DEFAULT_TRAINING_PRECISION_CONFIG,
+} from '../config/schema/training.schema.js';
 
 export const TRAINING_WORKLOAD_SCHEMA_VERSION = 1;
 export const TRAINING_WORKLOAD_KINDS = Object.freeze(['lora', 'distill', 'ul']);
@@ -140,64 +145,57 @@ function inferLegacyKind(payload, contextLabel) {
   if (explicitKind) return explicitKind;
   const workloadKind = typeof payload?.workloadKind === 'string' ? payload.workloadKind.trim() : '';
   if (workloadKind) return workloadKind;
-  const id = String(payload?.id || '').trim();
-  if (id.startsWith('distill-')) return 'distill';
-  if (id.startsWith('lora-')) return 'lora';
-  if (id.startsWith('ul-') || id.startsWith('ul_training') || id.startsWith('ul-training')) {
+  const trainingTests = Array.isArray(payload?.trainingTests)
+    ? payload.trainingTests.map((entry) => String(entry))
+    : null;
+  const hasLegacyUlShape = trainingTests
+    && trainingTests.length > 0
+    && trainingTests.every((entry) => entry === 'ul-stage1' || entry === 'ul-stage2')
+    && Number.isInteger(Number(payload?.trainingBenchSteps));
+  if (hasLegacyUlShape) {
     return 'ul';
-  }
-  if (Array.isArray(payload?.trainingTests) && payload.trainingTests.every((entry) => LEGACY_DISTILL_TEST_IDS.includes(String(entry)))) {
-    return 'distill';
   }
   throw new Error(`${contextLabel}.kind is required.`);
 }
 
 function normalizeScheduler(value, label) {
-  const scheduler = asObject(value, label, { optional: true }) || {};
+  const scheduler = asObject(value, label);
   return {
-    enabled: scheduler.enabled === true,
-    type: asNonEmptyString(scheduler.type ?? 'constant', `${label}.type`),
-    warmupSteps: asNonNegativeInteger(
-      scheduler.warmupSteps ?? 0,
-      `${label}.warmupSteps`,
-      { optional: true }
-    ) ?? 0,
-    stepSize: asPositiveInteger(scheduler.stepSize ?? 1, `${label}.stepSize`, { optional: true }) ?? 1,
-    gamma: asFiniteNumber(scheduler.gamma ?? 1, `${label}.gamma`, { optional: true }) ?? 1,
-    totalSteps: asPositiveInteger(scheduler.totalSteps ?? 1, `${label}.totalSteps`, { optional: true }) ?? 1,
-    minLr: asFiniteNumber(scheduler.minLr ?? 0, `${label}.minLr`, { optional: true }) ?? 0,
+    enabled: asBoolean(scheduler.enabled, `${label}.enabled`),
+    type: asNonEmptyString(scheduler.type, `${label}.type`),
+    warmupSteps: asNonNegativeInteger(scheduler.warmupSteps, `${label}.warmupSteps`),
+    stepSize: asPositiveInteger(scheduler.stepSize, `${label}.stepSize`),
+    gamma: asFiniteNumber(scheduler.gamma, `${label}.gamma`),
+    totalSteps: asPositiveInteger(scheduler.totalSteps, `${label}.totalSteps`),
+    minLr: asFiniteNumber(scheduler.minLr, `${label}.minLr`),
   };
 }
 
 function normalizeTrainingConfig(value, label) {
   const training = asObject(value, label);
   const optimizer = asObject(training.optimizer, `${label}.optimizer`);
-  const precision = isPlainObject(training.precision)
-    ? training.precision
-    : { activations: training.precision ?? 'f16' };
-  const gradientClipping = isPlainObject(training.gradientClipping)
-    ? training.gradientClipping
-    : { maxNorm: training.gradientClipping ?? 1 };
+  const precision = asObject(training.precision, `${label}.precision`);
+  const gradientClipping = asObject(training.gradientClipping, `${label}.gradientClipping`);
   return {
     optimizer: {
-      type: asNonEmptyString(optimizer.type ?? 'adam', `${label}.optimizer.type`),
+      type: asNonEmptyString(optimizer.type, `${label}.optimizer.type`),
       lr: asFiniteNumber(optimizer.lr, `${label}.optimizer.lr`),
-      beta1: asFiniteNumber(optimizer.beta1 ?? 0.9, `${label}.optimizer.beta1`, { optional: true }) ?? 0.9,
-      beta2: asFiniteNumber(optimizer.beta2 ?? 0.999, `${label}.optimizer.beta2`, { optional: true }) ?? 0.999,
-      eps: asFiniteNumber(optimizer.eps ?? 1e-8, `${label}.optimizer.eps`, { optional: true }) ?? 1e-8,
-      weightDecay: asFiniteNumber(optimizer.weightDecay ?? 0, `${label}.optimizer.weightDecay`, { optional: true }) ?? 0,
+      beta1: asFiniteNumber(optimizer.beta1, `${label}.optimizer.beta1`),
+      beta2: asFiniteNumber(optimizer.beta2, `${label}.optimizer.beta2`),
+      eps: asFiniteNumber(optimizer.eps, `${label}.optimizer.eps`),
+      weightDecay: asFiniteNumber(optimizer.weightDecay, `${label}.optimizer.weightDecay`),
       scheduler: normalizeScheduler(optimizer.scheduler, `${label}.optimizer.scheduler`),
     },
     batchSize: asPositiveInteger(training.batchSize, `${label}.batchSize`),
-    accumSteps: asPositiveInteger(training.accumSteps ?? 1, `${label}.accumSteps`, { optional: true }) ?? 1,
+    accumSteps: asPositiveInteger(training.accumSteps, `${label}.accumSteps`),
     steps: asPositiveInteger(training.steps, `${label}.steps`),
     precision: {
-      activations: asNonEmptyString(precision.activations ?? 'f16', `${label}.precision.activations`),
-      gradients: asNonEmptyString(precision.gradients ?? 'f32', `${label}.precision.gradients`),
-      loraParams: asNonEmptyString(precision.loraParams ?? 'f32', `${label}.precision.loraParams`),
+      activations: asNonEmptyString(precision.activations, `${label}.precision.activations`),
+      gradients: asNonEmptyString(precision.gradients, `${label}.precision.gradients`),
+      loraParams: asNonEmptyString(precision.loraParams, `${label}.precision.loraParams`),
     },
     gradientClipping: {
-      maxNorm: asFiniteNumber(gradientClipping.maxNorm ?? 1, `${label}.gradientClipping.maxNorm`, { optional: true }) ?? 1,
+      maxNorm: asFiniteNumber(gradientClipping.maxNorm, `${label}.gradientClipping.maxNorm`),
     },
   };
 }
@@ -215,7 +213,7 @@ function normalizeEvalDatasets(value, label) {
       id: asNonEmptyString(dataset.id, `${label}[${index}].id`),
       datasetPath: asNonEmptyString(dataset.datasetPath ?? dataset.path, `${label}[${index}].datasetPath`),
       evalKind: asEnum(
-        dataset.evalKind ?? dataset.kind ?? 'text_generation',
+        dataset.evalKind ?? dataset.kind,
         `${label}[${index}].evalKind`,
         TRAINING_EVAL_KINDS
       ),
@@ -230,11 +228,7 @@ function normalizeEvalDatasets(value, label) {
             `${label}[${index}].decodePolicy.maxTokens`,
             { optional: true }
           ),
-          stopOnEos: asBoolean(
-            decodePolicy.stopOnEos ?? true,
-            `${label}[${index}].decodePolicy.stopOnEos`,
-            { optional: true }
-          ) ?? true,
+          stopOnEos: asBoolean(decodePolicy.stopOnEos, `${label}[${index}].decodePolicy.stopOnEos`),
         }
         : null,
       scoreboardColumns: asStringArray(
@@ -267,11 +261,11 @@ function normalizeStagePlan(value, label) {
   return value.map((entry, index) => {
     const stage = asObject(entry, `${label}[${index}]`);
     const selectionMetric = asNonEmptyString(
-      stage.selectionMetric ?? stage.metric ?? 'bleu',
+      stage.selectionMetric ?? stage.metric,
       `${label}[${index}].selectionMetric`
     );
     const selectionGoal = asEnum(
-      stage.selectionGoal ?? stage.goal ?? 'max',
+      stage.selectionGoal ?? stage.goal,
       `${label}[${index}].selectionGoal`,
       TRAINING_SELECTION_GOALS
     );
@@ -281,15 +275,12 @@ function normalizeStagePlan(value, label) {
       objective: asNonEmptyString(stage.objective, `${label}[${index}].objective`),
       steps: asPositiveInteger(stage.steps, `${label}[${index}].steps`),
       checkpointEvery: asPositiveInteger(
-        stage.checkpointEvery ?? stage.steps,
+        stage.checkpointEvery,
         `${label}[${index}].checkpointEvery`
       ),
       selectionMetric,
       selectionGoal,
-      evalSchedule: asNonEmptyString(
-        stage.evalSchedule ?? 'on_checkpoint',
-        `${label}[${index}].evalSchedule`
-      ),
+      evalSchedule: asNonEmptyString(stage.evalSchedule, `${label}[${index}].evalSchedule`),
     };
   });
 }
@@ -306,29 +297,29 @@ function normalizeLoraConfig(value, label) {
     }
   }
   return {
-    datasetFormat: asNonEmptyString(lora.datasetFormat ?? 'prompt_completion_jsonl', `${label}.datasetFormat`),
-    taskType: asNonEmptyString(lora.taskType ?? 'text_generation', `${label}.taskType`),
+    datasetFormat: asNonEmptyString(lora.datasetFormat, `${label}.datasetFormat`),
+    taskType: asNonEmptyString(lora.taskType, `${label}.taskType`),
     adapter: {
       rank: asPositiveInteger(adapter.rank, `${label}.adapter.rank`),
       alpha: asFiniteNumber(adapter.alpha, `${label}.adapter.alpha`),
-      dropout: asFiniteNumber(adapter.dropout ?? 0, `${label}.adapter.dropout`, { optional: true }) ?? 0,
+      dropout: asFiniteNumber(adapter.dropout, `${label}.adapter.dropout`),
       targetModules,
     },
     freeze: normalizeFreezeConfig(lora.freeze, `${label}.freeze`),
     export: exportConfig
       ? {
-        enabled: exportConfig.enabled !== false,
-        atCheckpoints: exportConfig.atCheckpoints === true,
-        select: asNonEmptyString(exportConfig.select ?? 'best', `${label}.export.select`),
+        enabled: asBoolean(exportConfig.enabled, `${label}.export.enabled`),
+        atCheckpoints: asBoolean(exportConfig.atCheckpoints, `${label}.export.atCheckpoints`),
+        select: asNonEmptyString(exportConfig.select, `${label}.export.select`),
         id: asNonEmptyString(exportConfig.id, `${label}.export.id`, { optional: true }),
         name: asNonEmptyString(exportConfig.name, `${label}.export.name`, { optional: true }),
-        format: asNonEmptyString(exportConfig.format ?? 'manifest_json', `${label}.export.format`),
+        format: asNonEmptyString(exportConfig.format, `${label}.export.format`),
       }
       : null,
     activation: activation
       ? {
-        enabled: activation.enabled === true,
-        autoActivate: activation.autoActivate === true,
+        enabled: asBoolean(activation.enabled, `${label}.activation.enabled`),
+        autoActivate: asBoolean(activation.autoActivate, `${label}.activation.autoActivate`),
         smokePrompt: asNonEmptyString(activation.smokePrompt, `${label}.activation.smokePrompt`, { optional: true }),
       }
       : null,
@@ -339,27 +330,21 @@ function normalizeDistillConfig(value, label) {
   const distill = asObject(value, label);
   return {
     stagePlan: normalizeStagePlan(distill.stagePlan, `${label}.stagePlan`),
-    studentGraphMode: asNonEmptyString(
-      distill.studentGraphMode ?? 'transformer_full',
-      `${label}.studentGraphMode`
-    ),
-    temperature: asFiniteNumber(distill.temperature ?? 1, `${label}.temperature`, { optional: true }) ?? 1,
-    alphaKd: asFiniteNumber(distill.alphaKd ?? 1, `${label}.alphaKd`, { optional: true }) ?? 1,
-    alphaCe: asFiniteNumber(distill.alphaCe ?? 0, `${label}.alphaCe`, { optional: true }) ?? 0,
-    tripletMargin: asFiniteNumber(distill.tripletMargin ?? 0.2, `${label}.tripletMargin`, { optional: true }) ?? 0.2,
+    studentGraphMode: asNonEmptyString(distill.studentGraphMode, `${label}.studentGraphMode`),
+    temperature: asFiniteNumber(distill.temperature, `${label}.temperature`),
+    alphaKd: asFiniteNumber(distill.alphaKd, `${label}.alphaKd`),
+    alphaCe: asFiniteNumber(distill.alphaCe, `${label}.alphaCe`),
+    tripletMargin: asFiniteNumber(distill.tripletMargin, `${label}.tripletMargin`),
     sourceLangs: asStringArray(distill.sourceLangs, `${label}.sourceLangs`, { optional: true, allowEmpty: true }),
     targetLangs: asStringArray(distill.targetLangs, `${label}.targetLangs`, { optional: true, allowEmpty: true }),
     pairAllowlist: asStringArray(distill.pairAllowlist, `${label}.pairAllowlist`, { optional: true, allowEmpty: true }),
-    strictPairContract: asBoolean(
-      distill.strictPairContract ?? false,
-      `${label}.strictPairContract`,
-      { optional: true }
-    ) ?? false,
+    strictPairContract: asBoolean(distill.strictPairContract, `${label}.strictPairContract`),
     subsetSpec: asObject(distill.subsetSpec, `${label}.subsetSpec`, { optional: true }),
   };
 }
 
 function normalizeLegacyUlPayload(payload, contextLabel) {
+  const optimizerOverrides = isPlainObject(payload.training?.optimizer) ? payload.training.optimizer : {};
   return {
     schemaVersion: asPositiveInteger(payload.schemaVersion, `${contextLabel}.schemaVersion`),
     kind: 'ul',
@@ -393,19 +378,25 @@ function normalizeLegacyUlPayload(payload, contextLabel) {
       TRAINING_WORKLOAD_SURFACE_SUPPORT
     ),
     training: normalizeTrainingConfig({
-      optimizer: payload.training?.optimizer ?? {
-        type: 'adam',
-        lr: 2e-4,
+      optimizer: {
+        ...DEFAULT_TRAINING_OPTIMIZER_CONFIG,
+        ...optimizerOverrides,
+        scheduler: {
+          ...DEFAULT_TRAINING_OPTIMIZER_CONFIG.scheduler,
+          ...(isPlainObject(optimizerOverrides.scheduler) ? optimizerOverrides.scheduler : {}),
+        },
       },
       batchSize: payload.training?.batchSize ?? 1,
-      accumSteps: payload.training?.accumSteps ?? 1,
+      accumSteps: payload.training?.accumSteps ?? DEFAULT_TRAINING_GRADIENT_CONFIG.accumSteps,
       steps: payload.training?.steps ?? payload.trainingBenchSteps ?? 1,
-      precision: payload.training?.precision ?? {
-        activations: 'f16',
-        gradients: 'f32',
-        loraParams: 'f32',
+      precision: {
+        ...DEFAULT_TRAINING_PRECISION_CONFIG,
+        ...(payload.training?.precision ?? {}),
       },
-      gradientClipping: payload.training?.gradientClipping ?? { maxNorm: 1 },
+      gradientClipping: {
+        maxNorm: payload.training?.gradientClipping?.maxNorm
+          ?? DEFAULT_TRAINING_GRADIENT_CONFIG.maxNorm,
+      },
     }, `${contextLabel}.training`),
     pipeline: {
       legacyWorkloadType: 'ul',

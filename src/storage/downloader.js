@@ -255,6 +255,12 @@ function isDatabaseClosingError(error) {
     ||  (error)?.name === 'InvalidStateError';
 }
 
+function createAbortError(message = 'Download aborted') {
+  const error = new Error(message);
+  error.name = 'AbortError';
+  return error;
+}
+
 // ============================================================================
 // Fetch Operations
 // ============================================================================
@@ -352,8 +358,13 @@ export async function downloadModel(
   const {
     concurrency = getDefaultConcurrency(),
     requestPersist = true,
-    modelId: overrideModelId = undefined
+    modelId: overrideModelId = undefined,
+    signal: externalSignal = null,
   } = options;
+
+  if (externalSignal?.aborted) {
+    throw createAbortError();
+  }
 
   // Request persistent storage if needed
   if (requestPersist) {
@@ -432,6 +443,12 @@ export async function downloadModel(
 
   // Create abort controller
   const abortController = new AbortController();
+  const abortFromExternalSignal = () => {
+    abortController.abort();
+  };
+  if (externalSignal && typeof externalSignal.addEventListener === 'function') {
+    externalSignal.addEventListener('abort', abortFromExternalSignal, { once: true });
+  }
   activeDownloads.set(storageModelId, {
     state,
     abortController
@@ -624,6 +641,10 @@ export async function downloadModel(
     // Wait for any remaining downloads to complete
     await Promise.all([...downloadPromises]);
 
+    if (abortController.signal.aborted) {
+      throw createAbortError();
+    }
+
     // Verify all shards completed
     if (state.completedShards.size === totalShards) {
       state.status = 'completed';
@@ -674,6 +695,9 @@ export async function downloadModel(
     throw error;
 
   } finally {
+    if (externalSignal && typeof externalSignal.removeEventListener === 'function') {
+      externalSignal.removeEventListener('abort', abortFromExternalSignal);
+    }
     activeDownloads.delete(storageModelId);
   }
 }

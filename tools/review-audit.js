@@ -1,103 +1,53 @@
 #!/usr/bin/env node
 // tools/review-audit.js
-// Append-only event log + materialized latest-state tracker for the src/ review.
+// Append-only event log + materialized latest-state tracker for repo review scopes.
 //
 // Subcommands:
-//   seed    Walk src/ and write initial latest.jsonl rows (status: unreviewed)
+//   seed    Walk the selected scope and write initial latest.jsonl rows
 //   event   Append one event to events.jsonl, then regen latest.jsonl
 //   regen   Regenerate latest.jsonl from events.jsonl
 //
 // Files:
-//   reports/review/src-audit/events.jsonl  -- append-only, one line per action
-//   reports/review/src-audit/latest.jsonl  -- one row per file, rewritten on regen
+//   reports/review/<scope>-audit/events.jsonl  -- append-only, one line per action
+//   reports/review/<scope>-audit/latest.jsonl  -- one row per file, rewritten on regen
 
-import { readFileSync, writeFileSync, appendFileSync, existsSync, mkdirSync } from 'fs';
-import { readdir } from 'fs/promises';
-import { join, relative } from 'path';
+import { appendFileSync, existsSync, mkdirSync } from 'fs';
 
-const ROOT = new URL('..', import.meta.url).pathname;
-const AUDIT_DIR = join(ROOT, 'reports/review/src-audit');
-const EVENTS_FILE = join(AUDIT_DIR, 'events.jsonl');
-const LATEST_FILE = join(AUDIT_DIR, 'latest.jsonl');
-
-// Ownership rules — first match wins.
-// Owner A: config/manifest/policy plane
-// Owner B: runtime/kernel/inference plane
-// Owner C: command/harness/surface plane
-const OWNER_RULES = [
-  // Exact files in src/inference/ that belong to A (manifest-first enforcement)
-  { owner: 'A', agent: 'config-owner', test: f => f === 'src/inference/pipelines/text/execution-v0.js' },
-  { owner: 'A', agent: 'config-owner', test: f => f === 'src/inference/pipelines/text/model-load.js' },
-  // Exact file in src/inference/ that belongs to C (harness surface)
-  { owner: 'C', agent: 'surface-owner', test: f => f === 'src/inference/browser-harness.js' },
-  // A: config, rules, converter
-  { owner: 'A', agent: 'config-owner', test: f =>
-    f.startsWith('src/config/') || f.startsWith('src/rules/') || f.startsWith('src/converter/') },
-  // B: inference (remainder), gpu, loader, memory, formats, training, generation, diffusion, energy
-  { owner: 'B', agent: 'runtime-owner', test: f =>
-    f.startsWith('src/inference/') || f.startsWith('src/gpu/') || f.startsWith('src/loader/') ||
-    f.startsWith('src/memory/') || f.startsWith('src/formats/') || f.startsWith('src/training/') ||
-    f.startsWith('src/generation/') || f.startsWith('src/diffusion/') || f.startsWith('src/energy/') },
-  // C: everything else under src/
-  { owner: 'C', agent: 'surface-owner', test: f => f.startsWith('src/') },
-];
-
-function assignOwner(relPath) {
-  for (const rule of OWNER_RULES) {
-    if (rule.test(relPath)) return { owner: rule.owner, agent: rule.agent };
-  }
-  return { owner: 'C', agent: 'surface-owner' };
-}
-
-async function walkSrc(dir) {
-  const files = [];
-  const entries = await readdir(dir, { withFileTypes: true });
-  for (const entry of entries) {
-    const full = join(dir, entry.name);
-    if (entry.isDirectory()) {
-      files.push(...await walkSrc(full));
-    } else if (entry.isFile() && /\.(js|wgsl)$/.test(entry.name) && !entry.name.endsWith('.d.js')) {
-      files.push(full);
-    }
-  }
-  return files;
-}
-
-function readJsonl(file) {
-  if (!existsSync(file)) return [];
-  return readFileSync(file, 'utf8')
-    .split('\n')
-    .filter(l => l.trim())
-    .map(l => JSON.parse(l));
-}
-
-function writeJsonl(file, rows) {
-  const content = rows.map(r => JSON.stringify(r)).join('\n');
-  writeFileSync(file, content ? content + '\n' : '');
-}
+import {
+  assignOwner,
+  getAuditPaths,
+  getScopeConfig,
+  readJsonl,
+  toRelativePath,
+  validateEventSequence,
+  walkScope,
+  writeJsonl,
+} from './review-audit-lib.js';
 
 function ensureDir(dir) {
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
 }
 
-function nextSeq() {
-  return readJsonl(EVENTS_FILE).length + 1;
+function nextSeq(eventsFile) {
+  const events = readJsonl(eventsFile);
+  validateEventSequence(events, eventsFile);
+  return events.length === 0 ? 1 : events[events.length - 1].seq + 1;
 }
 
 // ── seed ──────────────────────────────────────────────────────────────────────
 
-async function seed() {
-  ensureDir(AUDIT_DIR);
-  const srcDir = join(ROOT, 'src');
-  const allFiles = (await walkSrc(srcDir)).sort();
+async function seed(scopeName) {
+  const { auditDir, latestFile } = getAuditPaths(scopeName);
+  ensureDir(auditDir);
+  const allFiles = (await walkScope(scopeName)).sort();
 
-  const existing = new Set(readJsonl(LATEST_FILE).map(r => r.path));
+  const existing = new Set(readJsonl(latestFile).map(r => r.path));
   const newRows = [];
 
   for (const abs of allFiles) {
-    const rel = relative(ROOT, abs);
+    const rel = toRelativePath(abs);
     if (existing.has(rel)) continue;
-    const { owner, agent } = assignOwner(rel);
+    const { owner, agent } = assignOwner(scopeName, rel);
     newRows.push({
       path: rel,
       owner,
@@ -112,24 +62,26 @@ async function seed() {
   }
 
   if (newRows.length === 0) {
-    console.log('All src/ files already present in latest.jsonl.');
+    console.log(`All ${getScopeConfig(scopeName).name}/ files already present in latest.jsonl.`);
     return;
   }
 
-  const all = [...readJsonl(LATEST_FILE), ...newRows]
+  const all = [...readJsonl(latestFile), ...newRows]
     .sort((a, b) => a.path.localeCompare(b.path));
-  writeJsonl(LATEST_FILE, all);
-  console.log(`Seeded ${newRows.length} file(s) → ${LATEST_FILE}`);
+  writeJsonl(latestFile, all);
+  console.log(`Seeded ${newRows.length} file(s) → ${latestFile}`);
 }
 
 // ── regen ─────────────────────────────────────────────────────────────────────
 
-function regenLatest() {
-  ensureDir(AUDIT_DIR);
-  const events = readJsonl(EVENTS_FILE);
+function regenLatest(scopeName) {
+  const { auditDir, eventsFile, latestFile } = getAuditPaths(scopeName);
+  ensureDir(auditDir);
+  const events = readJsonl(eventsFile);
+  validateEventSequence(events, eventsFile);
 
   // Start from whatever is already in latest (preserves seeded rows with no events yet)
-  const byPath = new Map(readJsonl(LATEST_FILE).map(r => [r.path, { ...r }]));
+  const byPath = new Map(readJsonl(latestFile).map(r => [r.path, { ...r }]));
 
   for (const ev of events) {
     const row = byPath.get(ev.path) ?? {
@@ -164,7 +116,7 @@ function regenLatest() {
       if (ev.finding_id && !row.open_findings.includes(ev.finding_id)) {
         row.open_findings = [...row.open_findings, ev.finding_id];
       }
-      row.review_status = row.review_status === 'unreviewed' ? 'in_progress' : row.review_status;
+      row.review_status = 'needs_followup';
     } else if (ev.action === 'fix_applied') {
       if (ev.finding_id) {
         row.open_findings = row.open_findings.filter(f => f !== ev.finding_id);
@@ -187,8 +139,8 @@ function regenLatest() {
   }
 
   const rows = [...byPath.values()].sort((a, b) => a.path.localeCompare(b.path));
-  writeJsonl(LATEST_FILE, rows);
-  console.log(`Regenerated latest.jsonl (${rows.size ?? rows.length} files)`);
+  writeJsonl(latestFile, rows);
+  console.log(`Regenerated latest.jsonl (${rows.length} files)`);
 }
 
 // ── event ─────────────────────────────────────────────────────────────────────
@@ -200,8 +152,9 @@ const VALID_STATUSES = new Set([
   'unreviewed', 'in_progress', 'reviewed_clean', 'needs_followup', 'fixed_pending_recheck', 'closed',
 ]);
 
-function appendEvent(args) {
-  ensureDir(AUDIT_DIR);
+async function appendEvent(scopeName, args) {
+  const { auditDir, eventsFile, latestFile } = getAuditPaths(scopeName);
+  ensureDir(auditDir);
 
   for (const f of ['path', 'owner', 'agent', 'action']) {
     if (!args[f]) throw new Error(`Missing required event field: --${f}`);
@@ -212,8 +165,28 @@ function appendEvent(args) {
   if (args.status && !VALID_STATUSES.has(args.status)) {
     throw new Error(`Unknown status "${args.status}". Valid: ${[...VALID_STATUSES].join(', ')}`);
   }
+  if (args.at && Number.isNaN(Date.parse(args.at))) {
+    throw new Error(`--at must be a valid ISO 8601 timestamp; got "${args.at}"`);
+  }
 
-  const seq = nextSeq();
+  const existingRows = new Map(readJsonl(latestFile).map(row => [row.path, row]));
+  const knownPath = existingRows.get(args.path);
+  if (!knownPath) {
+    const scopePaths = new Set((await walkScope(scopeName)).map(toRelativePath));
+    if (!scopePaths.has(args.path)) {
+      throw new Error(
+        `Path "${args.path}" is not tracked by scope "${scopeName}". Seed the scope first or use a valid path.`
+      );
+    }
+  }
+  const canonicalOwner = knownPath?.owner || assignOwner(scopeName, args.path).owner;
+  if (args.owner !== canonicalOwner) {
+    throw new Error(
+      `Owner mismatch for "${args.path}": got "${args.owner}", expected "${canonicalOwner}".`
+    );
+  }
+
+  const seq = nextSeq(eventsFile);
   const event = {
     seq,
     path: args.path,
@@ -229,15 +202,16 @@ function appendEvent(args) {
     at: args.at || new Date().toISOString(),
   };
 
-  appendFileSync(EVENTS_FILE, JSON.stringify(event) + '\n');
+  appendFileSync(eventsFile, JSON.stringify(event) + '\n');
   console.log(`Appended seq=${seq} action=${event.action} path=${event.path}`);
-  regenLatest();
+  regenLatest(scopeName);
 }
 
 // ── summary ───────────────────────────────────────────────────────────────────
 
-function summary() {
-  const rows = readJsonl(LATEST_FILE);
+function summary(scopeName) {
+  const { latestFile } = getAuditPaths(scopeName);
+  const rows = readJsonl(latestFile);
   const counts = {};
   for (const r of rows) {
     counts[r.review_status] = (counts[r.review_status] ?? 0) + 1;
@@ -270,35 +244,41 @@ function summary() {
 function parseArgs(arr) {
   const args = {};
   for (let i = 0; i < arr.length; i++) {
-    if (arr[i].startsWith('--')) {
-      const raw = arr[i].slice(2);
-      const key = raw.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
-      const next = arr[i + 1];
-      args[key] = (!next || next.startsWith('--')) ? true : arr[++i];
+    if (!arr[i].startsWith('--')) {
+      throw new Error(`Unexpected positional argument: ${arr[i]}`);
     }
+    const raw = arr[i].slice(2);
+    const key = raw.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
+    const next = arr[i + 1];
+    args[key] = (!next || next.startsWith('--')) ? true : arr[++i];
   }
   return args;
 }
 
 const [,, cmd, ...rest] = process.argv;
+const args = parseArgs(rest);
+const scopeName = args.scope || 'src';
 
 if (cmd === 'seed') {
-  await seed();
+  await seed(scopeName);
 } else if (cmd === 'event') {
-  appendEvent(parseArgs(rest));
+  await appendEvent(scopeName, args);
 } else if (cmd === 'regen') {
-  regenLatest();
+  regenLatest(scopeName);
 } else if (cmd === 'summary') {
-  summary();
+  summary(scopeName);
 } else {
   console.error([
     'Usage: node tools/review-audit.js <command> [options]',
     '',
     'Commands:',
-    '  seed                    Populate latest.jsonl from src/ (skips existing entries)',
+    '  seed                    Populate latest.jsonl from the selected scope (skips existing entries)',
     '  event                   Append one event and regen latest.jsonl',
     '  regen                   Regenerate latest.jsonl from events.jsonl',
     '  summary                 Print status counts and owner breakdown',
+    '',
+    'General options:',
+    '  --scope <src|tools>     Audit scope (default: src)',
     '',
     'Event options (--path and --owner and --agent and --action are required):',
     '  --path <file>           Relative file path (e.g. src/config/merge.js)',

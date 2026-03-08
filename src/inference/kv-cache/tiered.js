@@ -60,7 +60,7 @@ export class TieredKVCache {
       : (tiering.mode === 'int4' ? 'int4' : 'none');
     this.compression = tiering.compression ?? { mode: defaultCompressionMode, blockSize: 1 };
     
-    this.gating = tiering.gating ?? { mode: 'auto', minAluBwRatio: 0.0 };
+    this.gating = tiering.gating ?? { mode: 'force_off', minAluBwRatio: 0.0 };
     
     this.currentSeqLen = 0;
     
@@ -145,8 +145,10 @@ export class TieredKVCache {
     if (gating?.mode === 'force_off') return 'none';
     if (gating?.mode === 'force_on') return requested;
     if (gating?.mode === 'auto' && gating.minAluBwRatio > 0) {
-      const ratio = 1.0;
-      if (ratio < gating.minAluBwRatio) return 'none';
+      throw new Error(
+        'TieredKVCache auto compression gating requires an explicit measured ALU/BW ratio. ' +
+        'Use gating.mode="force_on"/"force_off" or set minAluBwRatio to 0.'
+      );
     }
     return requested;
   }

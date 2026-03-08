@@ -2,6 +2,7 @@
 
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 import { parseManifest, parseTensorMap } from '../src/formats/rdrr/parsing.js';
 import { createConverterConfig } from '../src/config/schema/index.js';
@@ -121,7 +122,7 @@ function extractSourceQuantization(manifest) {
   if (explicitWeights) return explicitWeights;
   const explicitQuant = toSafeString(manifest?.quantization);
   if (explicitQuant) return explicitQuant;
-  return 'f16';
+  return '';
 }
 
 async function loadTensorEntries(manifest, modelDir) {
@@ -200,13 +201,6 @@ function buildRefreshRawConfig(manifest) {
   const baseConfig = (manifest?.config && typeof manifest.config === 'object')
     ? { ...manifest.config }
     : {};
-  const modelType = toSafeString(baseConfig.model_type).toLowerCase();
-  const presetId = toSafeString(manifest?.inference?.presetId).toLowerCase();
-  const isLfm2 = modelType === 'lfm2' || presetId === 'lfm2';
-
-  if (isLfm2 && !modelType) {
-    baseConfig.model_type = 'lfm2';
-  }
 
   if (Array.isArray(baseConfig.layer_types) && baseConfig.layer_types.length > 0) {
     return baseConfig;
@@ -221,6 +215,26 @@ function buildRefreshRawConfig(manifest) {
   }
 
   return baseConfig;
+}
+
+function assertRefreshManifestContract(manifest, rawConfig) {
+  const sourceQuantization = extractSourceQuantization(manifest);
+  if (!sourceQuantization) {
+    fail(
+      'Manifest refresh requires explicit quantization metadata. ' +
+      'Set manifest.quantizationInfo.weights or manifest.quantization before refresh.'
+    );
+  }
+  if (manifest.modelType !== 'diffusion') {
+    const modelType = toSafeString(rawConfig?.model_type) || toSafeString(rawConfig?.text_config?.model_type);
+    if (!modelType) {
+      fail(
+        'Manifest refresh requires explicit config.model_type for non-diffusion models. ' +
+        'The refresh tool will not infer model_type from presetId.'
+      );
+    }
+  }
+  return sourceQuantization;
 }
 
 async function main() {
@@ -242,12 +256,14 @@ async function main() {
   const architecture = manifest.architecture && typeof manifest.architecture === 'object'
     ? manifest.architecture
     : null;
+  const refreshRawConfig = buildRefreshRawConfig(manifest);
+  const sourceQuantization = assertRefreshManifestContract(manifest, refreshRawConfig);
 
   const plan = resolveConversionPlan({
-    rawConfig: buildRefreshRawConfig(manifest),
+    rawConfig: refreshRawConfig,
     tensors: tensorEntries,
     converterConfig,
-    sourceQuantization: normalizeQuantizationTag(extractSourceQuantization(manifest)),
+    sourceQuantization: normalizeQuantizationTag(sourceQuantization),
     modelKind: manifest.modelType === 'diffusion' ? 'diffusion' : 'transformer',
     architectureHint: resolveArchitectureHint(manifest.architecture),
     architectureConfig: architecture,
@@ -290,6 +306,13 @@ async function main() {
   console.log(`[refresh-manifest] modelId=${validated.modelId} preset=${validated.inference?.presetId ?? 'unknown'} quantization=${validated.quantization}`);
 }
 
-main().catch((error) => {
-  fail(error?.message || String(error));
-});
+export {
+  buildRefreshRawConfig,
+  extractSourceQuantization,
+};
+
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch((error) => {
+    fail(error?.message || String(error));
+  });
+}

@@ -134,11 +134,10 @@ function resolveIntermediateSizeForRuntime(manifest, inf, arch, modelId) {
   if (inferred == null || inferred === fromArch) {
     return fromArch;
   }
-  log.warn(
-    'Config',
-    `Manifest "${modelId}" has intermediateSize=${fromArch}, inferred ${inferred} from FFN tensor shapes; using inferred value.`
+  throw new Error(
+    `Manifest "${modelId}" has intermediateSize=${fromArch}, but FFN tensors imply ${inferred}. ` +
+    'Re-convert the model so manifest architecture matches the weights.'
   );
-  return inferred;
 }
 
 // =============================================================================

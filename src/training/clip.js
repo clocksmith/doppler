@@ -12,7 +12,8 @@ async function readGradData(grad) {
 }
 
 export async function clipGradients(grads, config) {
-  const maxNorm = config?.training?.gradient?.maxNorm;
+  const maxNorm = config?.training?.gradientClipping?.maxNorm
+    ?? config?.training?.gradient?.maxNorm;
   let sumSq = 0;
   let totalParamCount = 0;
 

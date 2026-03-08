@@ -9,6 +9,22 @@ import {
   buildP2PDashboardSnapshot,
 } from '../src/distribution/p2p-observability.js';
 
+function parseRatio(rawValue, flag) {
+  const parsed = Number(rawValue);
+  if (!Number.isFinite(parsed) || parsed < 0 || parsed > 1) {
+    throw new Error(`${flag} must be a finite number in [0, 1], got ${JSON.stringify(rawValue)}`);
+  }
+  return parsed;
+}
+
+function parsePositiveMs(rawValue, flag) {
+  const parsed = Number(rawValue);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    throw new Error(`${flag} must be a positive finite number, got ${JSON.stringify(rawValue)}`);
+  }
+  return parsed;
+}
+
 function parseArgs(argv) {
   const args = {
     input: null,
@@ -19,13 +35,20 @@ function parseArgs(argv) {
 
   for (let i = 0; i < argv.length; i += 1) {
     const token = String(argv[i] ?? '');
+    const nextValue = () => {
+      const value = argv[i + 1];
+      if (value == null || String(value).startsWith('--')) {
+        throw new Error(`Missing value for ${token}`);
+      }
+      i += 1;
+      return value;
+    };
     if (token === '--help' || token === '-h') {
       args.help = true;
       continue;
     }
     if (token === '--input') {
-      args.input = argv[i + 1] ? resolve(process.cwd(), argv[i + 1]) : null;
-      i += 1;
+      args.input = resolve(process.cwd(), nextValue());
       continue;
     }
     if (token.startsWith('--input=')) {
@@ -33,8 +56,7 @@ function parseArgs(argv) {
       continue;
     }
     if (token === '--out-dir') {
-      args.outDir = argv[i + 1] ? resolve(process.cwd(), argv[i + 1]) : args.outDir;
-      i += 1;
+      args.outDir = resolve(process.cwd(), nextValue());
       continue;
     }
     if (token.startsWith('--out-dir=')) {
@@ -46,39 +68,35 @@ function parseArgs(argv) {
       continue;
     }
     if (token === '--min-availability') {
-      args.targets.minAvailability = Number(argv[i + 1]);
-      i += 1;
+      args.targets.minAvailability = parseRatio(nextValue(), '--min-availability');
       continue;
     }
     if (token.startsWith('--min-availability=')) {
-      args.targets.minAvailability = Number(token.split('=', 2)[1]);
+      args.targets.minAvailability = parseRatio(token.split('=', 2)[1], '--min-availability');
       continue;
     }
     if (token === '--min-p2p-hit-rate') {
-      args.targets.minP2PHitRate = Number(argv[i + 1]);
-      i += 1;
+      args.targets.minP2PHitRate = parseRatio(nextValue(), '--min-p2p-hit-rate');
       continue;
     }
     if (token.startsWith('--min-p2p-hit-rate=')) {
-      args.targets.minP2PHitRate = Number(token.split('=', 2)[1]);
+      args.targets.minP2PHitRate = parseRatio(token.split('=', 2)[1], '--min-p2p-hit-rate');
       continue;
     }
     if (token === '--max-http-fallback-rate') {
-      args.targets.maxHttpFallbackRate = Number(argv[i + 1]);
-      i += 1;
+      args.targets.maxHttpFallbackRate = parseRatio(nextValue(), '--max-http-fallback-rate');
       continue;
     }
     if (token.startsWith('--max-http-fallback-rate=')) {
-      args.targets.maxHttpFallbackRate = Number(token.split('=', 2)[1]);
+      args.targets.maxHttpFallbackRate = parseRatio(token.split('=', 2)[1], '--max-http-fallback-rate');
       continue;
     }
     if (token === '--max-p95-latency-ms') {
-      args.targets.maxP95LatencyMs = Number(argv[i + 1]);
-      i += 1;
+      args.targets.maxP95LatencyMs = parsePositiveMs(nextValue(), '--max-p95-latency-ms');
       continue;
     }
     if (token.startsWith('--max-p95-latency-ms=')) {
-      args.targets.maxP95LatencyMs = Number(token.split('=', 2)[1]);
+      args.targets.maxP95LatencyMs = parsePositiveMs(token.split('=', 2)[1], '--max-p95-latency-ms');
       continue;
     }
     throw new Error(`Unknown argument: ${token}`);
@@ -112,21 +130,22 @@ function parseNdjson(text, sourcePath) {
 
 function loadInputRecords(inputPath) {
   const text = readFileSync(inputPath, 'utf8');
+  let parsed;
   try {
-    const parsed = JSON.parse(text);
-    if (Array.isArray(parsed)) {
-      return parsed;
-    }
-    if (parsed && typeof parsed === 'object') {
-      if (Array.isArray(parsed.records)) {
-        return parsed.records;
-      }
-      return [parsed];
-    }
+    parsed = JSON.parse(text);
   } catch {
     return parseNdjson(text, inputPath);
   }
-  return [];
+  if (Array.isArray(parsed)) {
+    return parsed;
+  }
+  if (parsed && typeof parsed === 'object') {
+    if (Array.isArray(parsed.records)) {
+      return parsed.records;
+    }
+    return [parsed];
+  }
+  throw new Error(`Input JSON at ${inputPath} must be an object, an array, or an object with records[].`);
 }
 
 export function runP2PDeliveryObservabilityCli(argv = process.argv.slice(2)) {

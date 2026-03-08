@@ -33,6 +33,9 @@ class FakeBuffer {
   }
 }
 
+const ORIGINAL_GPU_BUFFER = globalThis.GPUBuffer;
+globalThis.GPUBuffer = FakeBuffer;
+
 function createFakeDevice({ createBindGroupThrowAt = null } = {}) {
   let createBindGroupCount = 0;
 
@@ -145,3 +148,8 @@ function assertPoolIsClean() {
 }
 
 console.log('energy-cleanup.test: ok');
+if (ORIGINAL_GPU_BUFFER === undefined) {
+  delete globalThis.GPUBuffer;
+} else {
+  globalThis.GPUBuffer = ORIGINAL_GPU_BUFFER;
+}

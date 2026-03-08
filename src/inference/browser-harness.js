@@ -2782,6 +2782,7 @@ export async function applyRuntimeForRun(run, options = {}) {
   if (typeof run.command === 'string' && run.command.trim()) {
     const runtimeContractPatch = buildRuntimeContractPatch({
       ...run,
+      configChain: undefined,
       modelId: run.modelId ?? null,
     });
     if (runtimeContractPatch) {

@@ -47,6 +47,23 @@ function usage() {
   ].join('\n');
 }
 
+function isObject(value) {
+  return value != null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function looksLikeConversionReport(payload) {
+  if (!isObject(payload)) return false;
+  if (payload.command === 'convert' || payload.suite === 'convert') {
+    return true;
+  }
+  return (
+    Object.prototype.hasOwnProperty.call(payload, 'executionContractArtifact') ||
+    Object.prototype.hasOwnProperty.call(payload, 'executionV0GraphContractArtifact') ||
+    Object.prototype.hasOwnProperty.call(payload, 'layerPatternContractArtifact') ||
+    Object.prototype.hasOwnProperty.call(payload, 'requiredInferenceFieldsArtifact')
+  );
+}
+
 export async function collectJsonFiles(rootDir) {
   const out = [];
   async function walk(currentDir) {
@@ -75,13 +92,25 @@ export async function loadConversionReports(rootDir) {
   const files = await collectJsonFiles(rootDir);
   const reports = [];
   for (const filePath of files) {
+    const raw = await fs.readFile(filePath, 'utf8');
+    let parsed;
     try {
-      const parsed = JSON.parse(await fs.readFile(filePath, 'utf8'));
-      validateConversionReport(parsed);
-      reports.push({ path: filePath, report: parsed });
-    } catch {
+      parsed = JSON.parse(raw);
+    } catch (error) {
+      throw new Error(`Invalid JSON in conversion report candidate ${path.relative(process.cwd(), filePath)}: ${error.message}`);
+    }
+    if (!looksLikeConversionReport(parsed)) {
       continue;
     }
+    try {
+      validateConversionReport(parsed);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(
+        `Invalid conversion report ${path.relative(process.cwd(), filePath)}: ${message}`
+      );
+    }
+    reports.push({ path: filePath, report: parsed });
   }
   reports.sort((left, right) => String(right.report.timestamp).localeCompare(String(left.report.timestamp)));
   return reports;

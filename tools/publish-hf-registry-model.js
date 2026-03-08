@@ -11,6 +11,7 @@ import {
   DEFAULT_HF_REGISTRY_URL,
   buildManifestUrl,
   buildPublishedRegistryEntry,
+  ensureCatalogPayload,
   extractCommitShaFromUrl,
   fetchJson,
   findCatalogEntry,
@@ -43,27 +44,37 @@ export function parseArgs(argv) {
       continue;
     }
     if (arg === '--catalog-file') {
-      out.catalogFile = path.resolve(REPO_ROOT, normalizeText(argv[i + 1]));
+      const value = normalizeText(argv[i + 1]);
+      if (!value) throw new Error('Missing value for --catalog-file');
+      out.catalogFile = path.resolve(REPO_ROOT, value);
       i += 1;
       continue;
     }
     if (arg === '--local-dir') {
-      out.localDir = path.resolve(REPO_ROOT, normalizeText(argv[i + 1]));
+      const value = normalizeText(argv[i + 1]);
+      if (!value) throw new Error('Missing value for --local-dir');
+      out.localDir = path.resolve(REPO_ROOT, value);
       i += 1;
       continue;
     }
     if (arg === '--registry-url') {
-      out.registryUrl = normalizeText(argv[i + 1]);
+      const value = normalizeText(argv[i + 1]);
+      if (!value) throw new Error('Missing value for --registry-url');
+      out.registryUrl = value;
       i += 1;
       continue;
     }
     if (arg === '--registry-path') {
-      out.registryPath = normalizeText(argv[i + 1]);
+      const value = normalizeText(argv[i + 1]);
+      if (!value) throw new Error('Missing value for --registry-path');
+      out.registryPath = value;
       i += 1;
       continue;
     }
     if (arg === '--repo-id') {
-      out.repoId = normalizeText(argv[i + 1]);
+      const value = normalizeText(argv[i + 1]);
+      if (!value) throw new Error('Missing value for --repo-id');
+      out.repoId = value;
       i += 1;
       continue;
     }
@@ -115,7 +126,7 @@ export function buildArtifactUploadPlan(entry, options = {}) {
   if (!modelId) throw new Error('Catalog entry is missing modelId.');
   const hfSpec = getEntryHfSpec(entry);
   const repoId = normalizeText(options.repoId) || hfSpec.repoId;
-  const targetPath = hfSpec.path || `models/${modelId}`;
+  const targetPath = hfSpec.path;
   const localDir = options.localDir || path.join(REPO_ROOT, 'models', 'local', modelId);
   if (!repoId) {
     throw new Error(`${modelId}: hf.repoId is required to publish`);
@@ -148,11 +159,11 @@ export function assertPromotionReady(entry) {
   if (status.tested !== 'verified') {
     throw new Error(`${modelId}: lifecycle.status.tested must be "verified" before publication.`);
   }
-  if (contracts.executionContractOk === false) {
-    throw new Error(`${modelId}: execution contract gate failed in lifecycle.tested.contracts.`);
+  if (contracts.executionContractOk !== true) {
+    throw new Error(`${modelId}: execution contract gate must be explicitly true in lifecycle.tested.contracts.`);
   }
-  if (contracts.executionV0GraphOk === false) {
-    throw new Error(`${modelId}: execution-v0 graph gate failed in lifecycle.tested.contracts.`);
+  if (contracts.executionV0GraphOk !== true) {
+    throw new Error(`${modelId}: execution-v0 graph gate must be explicitly true in lifecycle.tested.contracts.`);
   }
 }
 
@@ -182,6 +193,13 @@ export async function main(argv = process.argv.slice(2)) {
     return;
   }
 
+  // Pre-validate remote registry before uploading any artifact.
+  // This fails fast on registry access issues before making irreversible changes.
+  const remoteRegistry = ensureCatalogPayload(
+    await fetchJson(args.registryUrl),
+    `remote registry ${args.registryUrl}`
+  );
+
   const uploadResult = await spawnCommand('hf', [
     'upload',
     uploadPlan.repoId,
@@ -195,10 +213,9 @@ export async function main(argv = process.argv.slice(2)) {
     throw new Error(`Could not extract artifact commit SHA from hf upload output for ${uploadPlan.modelId}`);
   }
 
-  const remoteRegistry = await fetchJson(args.registryUrl);
   const nextEntry = buildPublishedRegistryEntry(localEntry, artifactRevision);
   const nextRegistry = structuredClone(remoteRegistry);
-  nextRegistry.models = (Array.isArray(nextRegistry.models) ? nextRegistry.models : [])
+  nextRegistry.models = nextRegistry.models
     .filter((entry) => normalizeText(entry?.modelId) !== uploadPlan.modelId);
   nextRegistry.models.push(nextEntry);
   nextRegistry.models.sort((left, right) => {

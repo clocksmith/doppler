@@ -126,6 +126,19 @@ try {
   });
   assert.equal(missResult.miss, true);
 
+  await assert.rejects(
+    () => transport({
+      shardIndex: 4,
+      shardInfo: { filename: 'shard_4.bin' },
+      source: 'p2p',
+      timeoutMs: 1500,
+      contractVersion: 99,
+      attempt: 0,
+      maxRetries: 0,
+    }),
+    /Unsupported p2p\.webrtc contractVersion "99"/
+  );
+
   console.log('p2p-webrtc-browser.test: ok');
 } finally {
   globalThis.RTCPeerConnection = originalRTCPeerConnection;

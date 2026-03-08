@@ -55,6 +55,9 @@ class FakeBuffer {
   }
 }
 
+const ORIGINAL_GPU_BUFFER = globalThis.GPUBuffer;
+globalThis.GPUBuffer = FakeBuffer;
+
 function createFakeDevice({ mapReject = false } = {}) {
   const createdBuffers = [];
 
@@ -167,4 +170,9 @@ configurePerfGuards({
 }
 
 setDevice(null);
+if (ORIGINAL_GPU_BUFFER === undefined) {
+  delete globalThis.GPUBuffer;
+} else {
+  globalThis.GPUBuffer = ORIGINAL_GPU_BUFFER;
+}
 console.log('check-stop-cleanup.test: ok');

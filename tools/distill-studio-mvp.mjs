@@ -4,6 +4,8 @@ import { createHash } from 'node:crypto';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 
+const STUDENT_LOSS_TOLERANCE = 1.25;
+
 function parseArgs(argv) {
   const parsed = {
     mode: null,
@@ -70,6 +72,9 @@ function resolveTrainingMetrics(report) {
       ? entry.metrics.trainingMetricsReport
       : []))
     : [];
+  if (fromResults.length > 0) {
+    console.warn('[distill-studio] resolveTrainingMetrics: using fallback results[] path; report.metrics.trainingMetricsReport was absent.');
+  }
   return fromResults;
 }
 
@@ -166,7 +171,7 @@ function buildMiniEval(teacherReport, studentReport, holdoutRows, traceability) 
     teacherAvgLoss: avg(teacherLoss),
     studentAvgLoss: avg(studentLoss),
     pulsePass: Number.isFinite(avg(studentLoss))
-      ? avg(studentLoss) <= (Number.isFinite(avg(teacherLoss)) ? avg(teacherLoss) * 1.25 : avg(studentLoss))
+      ? avg(studentLoss) <= (Number.isFinite(avg(teacherLoss)) ? avg(teacherLoss) * STUDENT_LOSS_TOLERANCE : avg(studentLoss))
       : false,
   };
 }

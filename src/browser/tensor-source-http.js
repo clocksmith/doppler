@@ -61,7 +61,7 @@ export async function probeHttpRange(url, options = {}) {
       acceptRanges,
       contentEncoding,
     };
-  } catch (_error) {
+  } catch (error) {
     return {
       ok: false,
       status: 0,
@@ -69,6 +69,7 @@ export async function probeHttpRange(url, options = {}) {
       size: null,
       acceptRanges: null,
       contentEncoding: null,
+      error: error instanceof Error ? error.message : String(error),
     };
   }
 }
@@ -76,6 +77,9 @@ export async function probeHttpRange(url, options = {}) {
 export async function createHttpTensorSource(url, options = {}) {
   const { headers, signal, name: overrideName } = options;
   const probe = await probeHttpRange(url, { headers, signal });
+  if (!probe.ok && probe.status === 0 && probe.error) {
+    throw new Error(`HTTP tensor source probe failed for "${url}": ${probe.error}`);
+  }
   if (!probe.supportsRange || probe.size == null) {
     throw new Error('HTTP range requests not supported for tensor source');
   }

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import path from 'node:path';
 
 import {
   extractExecutionContractFacts,
@@ -64,24 +65,27 @@ import {
 }
 
 {
-  const manifest = JSON.parse(
-    fs.readFileSync('models/local/translategemma-4b-it-wq4k-ef16-hf16/manifest.json', 'utf8')
-  );
+  const manifestPath = path.join('models/local/translategemma-4b-it-wq4k-ef16-hf16', 'manifest.json');
+  if (!fs.existsSync(manifestPath)) {
+    console.log('lean-execution-contract.test: skipped (local model fixture missing)');
+  } else {
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
 
-  const facts = extractExecutionContractFacts(manifest);
-  assert.equal(facts.modelId, 'translategemma-4b-it-wq4k-ef16-hf16');
-  assert.equal(facts.session.layout, 'paged');
-  assert.equal(facts.session.decodeBatchSize, 16);
-  assert.equal(
-    facts.steps.some((step) => step.phase === 'prefill' && step.opClass === 'attention'),
-    true
-  );
+    const facts = extractExecutionContractFacts(manifest);
+    assert.equal(facts.modelId, 'translategemma-4b-it-wq4k-ef16-hf16');
+    assert.equal(facts.session.layout, 'paged');
+    assert.equal(facts.session.decodeBatchSize, 16);
+    assert.equal(
+      facts.steps.some((step) => step.phase === 'prefill' && step.opClass === 'attention'),
+      true
+    );
 
-  const rendered = renderExecutionContractLeanModule(facts, {
-    moduleName: sanitizeLeanModuleName(facts.modelId),
-  });
-  assert.match(rendered, /layout := \.paged/);
-  assert.match(rendered, /translategemma-4b-it-wq4k-ef16-hf16\.steps/);
+    const rendered = renderExecutionContractLeanModule(facts, {
+      moduleName: sanitizeLeanModuleName(facts.modelId),
+    });
+    assert.match(rendered, /layout := \.paged/);
+    assert.match(rendered, /translategemma-4b-it-wq4k-ef16-hf16\.steps/);
+  }
 }
 
 console.log('lean-execution-contract.test: ok');

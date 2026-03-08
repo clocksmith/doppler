@@ -26,17 +26,24 @@ export function parseArgs(argv) {
   };
   for (let i = 0; i < argv.length; i += 1) {
     const entry = argv[i];
+    const nextValue = () => {
+      const candidate = argv[i + 1];
+      if (candidate == null || String(candidate).startsWith('--')) {
+        throw new Error(`Missing value for ${entry}`);
+      }
+      i += 1;
+      return String(candidate).trim();
+    };
     if (entry === '--check') {
       args.check = true;
       continue;
     }
     if (entry === '--output') {
-      const candidate = String(argv[i + 1] || '').trim();
+      const candidate = nextValue();
       if (!candidate) {
         throw new Error('Missing value for --output');
       }
       args.outputPath = path.resolve(REPO_ROOT, candidate);
-      i += 1;
       continue;
     }
     throw new Error(`Unknown argument: ${entry}`);
@@ -160,44 +167,26 @@ function buildPresetOrder(presetIds) {
 
 function inferPresetFromCatalogModel(model, presetOrder, presetSet) {
   const explicitPreset = normalizeText(model?.preset);
-  if (explicitPreset && presetSet.has(explicitPreset)) {
-    return explicitPreset;
-  }
-
-  const tokens = normalizeList([
-    model?.modelId,
-    ...(Array.isArray(model?.aliases) ? model.aliases : []),
-    model?.label,
-    model?.description,
-  ]);
-  if (tokens.length === 0) {
+  if (!explicitPreset) {
     return null;
   }
-
-  for (const presetId of presetOrder) {
-    const detection = getPreset(presetId)?.detection;
-    if (!detection || typeof detection !== 'object') continue;
-    const patterns = normalizeList([
-      ...(Array.isArray(detection.architecturePatterns) ? detection.architecturePatterns : []),
-      ...(Array.isArray(detection.modelTypePatterns) ? detection.modelTypePatterns : []),
-    ]);
-    if (patterns.length === 0) continue;
-    for (const pattern of patterns) {
-      if (tokens.some((token) => token.includes(pattern))) {
-        return presetId;
-      }
-    }
+  if (!presetSet.has(explicitPreset)) {
+    const modelId = normalizeText(model?.modelId) || 'unknown-model';
+    throw new Error(
+      `Catalog model "${modelId}" has preset "${explicitPreset}" which is not in the preset registry. ` +
+      `Valid presets: ${[...presetSet].sort().join(', ')}`
+    );
   }
-  return null;
+  return explicitPreset;
 }
 
 function resolveRuntimeModelType(presetId) {
-  try {
-    const preset = resolvePreset(presetId);
-    return normalizeText(preset?.modelType) || 'unknown';
-  } catch {
-    return 'unknown';
+  const preset = resolvePreset(presetId);
+  const modelType = normalizeText(preset?.modelType);
+  if (!modelType) {
+    throw new Error(`Preset "${presetId}" resolved without a modelType field`);
   }
+  return modelType;
 }
 
 function resolveRuntimeStatus(modelType) {

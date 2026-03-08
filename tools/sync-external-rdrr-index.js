@@ -3,6 +3,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
+import { pathToFileURL } from 'node:url';
 
 const DEFAULT_VOLUME_ROOT = process.env.DOPPLER_EXTERNAL_MODELS_ROOT || '/media/x/models';
 const DEFAULT_RDRR_ROOT = path.join(DEFAULT_VOLUME_ROOT, 'rdrr');
@@ -67,20 +68,6 @@ function escapeCell(value) {
 function formatGiB(bytes) {
   if (!Number.isFinite(bytes) || bytes <= 0) return '0.00';
   return (bytes / (1024 ** 3)).toFixed(2);
-}
-
-function inferVariantFromModelId(modelId) {
-  if (typeof modelId !== 'string' || !modelId) return '';
-  const idx = modelId.indexOf('-w');
-  if (idx < 0 || idx + 1 >= modelId.length) return '';
-  return modelId.slice(idx + 1);
-}
-
-function inferSourceKeyFromModelId(modelId) {
-  if (typeof modelId !== 'string' || !modelId) return 'unknown';
-  const trimmed = modelId.trim();
-  const withoutVariant = trimmed.replace(/-w(?:f16|f32|q[0-9a-z]+)(?:-[a-z0-9]+)*$/i, '');
-  return withoutVariant || trimmed;
 }
 
 async function readJsonIfExists(filePath) {
@@ -192,8 +179,20 @@ async function buildIndex(args, generatedAt = new Date().toISOString()) {
     const sourceRepo = normalizeToken(origin?.sourceRepo || origin?.sourceModel || manifest?.metadata?.sourceRepo);
     const sourceFormat = normalizeToken(origin?.sourceFormat || manifest?.metadata?.sourceFormat || 'unknown');
     const sourceRevision = normalizeToken(origin?.sourceRevision || manifest?.metadata?.sourceRevision);
-    const sourceModel = sourceRepo || inferSourceKeyFromModelId(modelId);
-    const variantName = normalizeToken(origin?.variant) || inferVariantFromModelId(modelId);
+    const sourceModel = sourceRepo || normalizeToken(manifest?.metadata?.sourceModel);
+    const variantName = normalizeToken(origin?.variant || manifest?.metadata?.variant);
+    if (!sourceModel) {
+      throw new Error(
+        `Missing explicit sourceModel/sourceRepo metadata for ${toPosix(path.relative(args.volumeRoot, manifestPath))}. ` +
+        'Add origin.json or manifest.metadata.sourceModel/sourceRepo.'
+      );
+    }
+    if (!variantName) {
+      throw new Error(
+        `Missing explicit variant metadata for ${toPosix(path.relative(args.volumeRoot, manifestPath))}. ` +
+        'Add origin.json.variant or manifest.metadata.variant.'
+      );
+    }
     const shardCount = Array.isArray(manifest.shards) ? manifest.shards.length : 0;
     const totalSizeBytes = Number.isFinite(manifest.totalSize) ? manifest.totalSize : 0;
 
@@ -335,7 +334,13 @@ async function main() {
   );
 }
 
-main().catch((error) => {
-  console.error(`[external-rdrr-index] ${error.message}`);
-  process.exit(1);
-});
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch((error) => {
+    console.error(`[external-rdrr-index] ${error.message}`);
+    process.exit(1);
+  });
+}
+
+export {
+  buildIndex,
+};

@@ -20,6 +20,10 @@
     {
       "path": ".gemini/skills",
       "target": "../skills"
+    },
+    {
+      "path": ".codex/skills",
+      "target": "../skills"
     }
   ],
   "requiredSkills": [

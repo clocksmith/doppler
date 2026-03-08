@@ -18,11 +18,17 @@ function parseArgs(argv) {
     const token = String(argv[i] || '');
     if (token === '--registry') {
       parsed.registry = String(argv[i + 1] || '').trim();
+      if (!parsed.registry) {
+        throw new Error('Missing value for --registry');
+      }
       i += 1;
       continue;
     }
     if (token === '--out') {
       parsed.out = String(argv[i + 1] || '').trim();
+      if (!parsed.out) {
+        throw new Error('Missing value for --out');
+      }
       i += 1;
       continue;
     }
@@ -59,15 +65,17 @@ function assertRegistryPayload(registry, registryPath) {
     const sha256 = normalizeString(entry?.sha256);
     const baselineReportId = normalizeString(entry?.baselineReportId);
     const claimBoundary = normalizeString(entry?.claimBoundary);
-    if (!id || !path || !sha256 || !baselineReportId) {
-      throw new Error(`${registryPath}.workloads[${index}] must include id, path, sha256, baselineReportId.`);
+    if (!id || !path || !sha256 || !baselineReportId || !claimBoundary) {
+      throw new Error(
+        `${registryPath}.workloads[${index}] must include id, path, sha256, baselineReportId, claimBoundary.`
+      );
     }
     return {
       id,
       path,
       sha256,
       baselineReportId,
-      claimBoundary: claimBoundary || 'Practical deterministic training claim traceability.',
+      claimBoundary,
     };
   });
 }
@@ -97,7 +105,7 @@ async function main() {
   const publication = buildPublication(args.registryPath, workloads);
   await mkdir(dirname(args.outPath), { recursive: true });
   await writeFile(args.outPath, `${JSON.stringify(publication, null, 2)}\n`, 'utf8');
-  console.error(`[training-report-ids] wrote ${args.outPath}`);
+  console.log(`[training-report-ids] wrote ${args.outPath}`);
 }
 
 await main();

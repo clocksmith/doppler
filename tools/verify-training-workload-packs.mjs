@@ -111,6 +111,16 @@ function validateRegistryPayload(registry, workloads, registryPath) {
   if (!Array.isArray(registry.workloads)) {
     throw new Error(`${registryPath}.workloads must be an array.`);
   }
+  if (registry.workloads.length !== workloads.length) {
+    const registryIds = new Set(registry.workloads.map((entry) => entry.id));
+    const scannedIds = new Set(workloads.map((workload) => workload.id));
+    const stale = [...registryIds].filter((id) => !scannedIds.has(id));
+    const missing = [...scannedIds].filter((id) => !registryIds.has(id));
+    const parts = [];
+    if (stale.length > 0) parts.push(`stale registry entries: ${stale.join(', ')}`);
+    if (missing.length > 0) parts.push(`missing from registry: ${missing.join(', ')}`);
+    throw new Error(`registry out of sync (${parts.join('; ')}). Run --write-registry to update.`);
+  }
   const byId = new Map(registry.workloads.map((entry) => [entry.id, entry]));
   for (const workload of workloads) {
     const entry = byId.get(workload.id);
@@ -125,6 +135,12 @@ function validateRegistryPayload(registry, workloads, registryPath) {
     }
     if (entry.baselineReportId !== workload.baselineReportId) {
       throw new Error(`registry baselineReportId mismatch for "${workload.id}".`);
+    }
+    const contractFields = ['workloadKind', 'trainingSchemaVersion', 'seed'];
+    for (const field of contractFields) {
+      if (entry[field] !== workload[field]) {
+        throw new Error(`registry ${field} mismatch for "${workload.id}".`);
+      }
     }
   }
 }

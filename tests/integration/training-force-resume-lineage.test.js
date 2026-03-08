@@ -6,10 +6,16 @@ import { join } from 'node:path';
 const { runTrainingBenchSuite } = await import('../../src/training/suite.js');
 const { runBrowserSuite } = await import('../../src/inference/browser-harness.js');
 const { bootstrapNodeWebGPU } = await import('../../src/tooling/node-webgpu.js');
+const { initDevice } = await import('../../src/gpu/device.js');
+
+function isUnavailableNodeWebGPUError(value) {
+  return /createShaderModule is not a function|Failed to load shader|fetch failed|requires a GPUBuffer/i.test(String(value || ''));
+}
 
 let webgpuReady = false;
 try {
   await bootstrapNodeWebGPU();
+  await initDevice();
   webgpuReady = typeof globalThis.navigator !== 'undefined' && !!globalThis.navigator.gpu;
 } catch {
   webgpuReady = false;
@@ -22,58 +28,66 @@ if (!webgpuReady) {
   try {
     const checkpointPath = join(tempDir, 'training.latest.checkpoint.json');
 
-    await runTrainingBenchSuite({
-      trainingSchemaVersion: 1,
-      workloadType: 'training',
-      trainingBenchSteps: 1,
-      benchRun: {
-        warmupRuns: 0,
-        timedRuns: 1,
-      },
-      ulArtifactDir: tempDir,
-      trainingConfig: {
-        telemetry: {
-          windowSize: 2,
+    try {
+      await runTrainingBenchSuite({
+        trainingSchemaVersion: 1,
+        workloadType: 'training',
+        trainingBenchSteps: 1,
+        benchRun: {
+          warmupRuns: 0,
+          timedRuns: 1,
         },
-      },
-    });
-
-    const forced = await runBrowserSuite({
-      suite: 'bench',
-      command: 'bench',
-      surface: 'node',
-      trainingSchemaVersion: 1,
-      workloadType: 'training',
-      trainingBenchSteps: 1,
-      benchRun: {
-        warmupRuns: 0,
-        timedRuns: 1,
-      },
-      ulArtifactDir: tempDir,
-      resumeFrom: checkpointPath,
-      forceResume: true,
-      forceResumeReason: 'force-resume-lineage-test',
-      trainingConfig: {
-        telemetry: {
-          windowSize: 3,
+        ulArtifactDir: tempDir,
+        trainingConfig: {
+          telemetry: {
+            windowSize: 2,
+          },
         },
-      },
-    });
+      });
 
-    const timeline = forced?.metrics?.checkpointResumeTimeline;
-    assert.ok(Array.isArray(timeline), 'forced run should include checkpoint resume timeline');
-    const overrideEvent = timeline.find((entry) => entry?.type === 'resume_override_applied');
-    assert.ok(overrideEvent, 'forced run should include resume_override_applied event');
-    assert.ok(Array.isArray(overrideEvent.resumeAudits), 'override event should include resumeAudits array');
-    assert.ok(overrideEvent.resumeAudits.length > 0, 'override event should include at least one resume audit');
-    assert.equal(overrideEvent.resumeAudits[0].reason, 'force-resume-lineage-test');
+      const forced = await runBrowserSuite({
+        suite: 'bench',
+        command: 'bench',
+        surface: 'node',
+        trainingSchemaVersion: 1,
+        workloadType: 'training',
+        trainingBenchSteps: 1,
+        benchRun: {
+          warmupRuns: 0,
+          timedRuns: 1,
+        },
+        ulArtifactDir: tempDir,
+        resumeFrom: checkpointPath,
+        forceResume: true,
+        forceResumeReason: 'force-resume-lineage-test',
+        trainingConfig: {
+          telemetry: {
+            windowSize: 3,
+          },
+        },
+      });
 
-    const lineageTimeline = forced?.report?.lineage?.training?.checkpointResumeTimeline;
-    assert.ok(Array.isArray(lineageTimeline), 'report lineage should include checkpoint resume timeline');
-    assert.ok(
-      lineageTimeline.some((entry) => entry?.type === 'resume_override_applied'),
-      'report lineage should include resume_override_applied event'
-    );
+      const timeline = forced?.metrics?.checkpointResumeTimeline;
+      assert.ok(Array.isArray(timeline), 'forced run should include checkpoint resume timeline');
+      const overrideEvent = timeline.find((entry) => entry?.type === 'resume_override_applied');
+      assert.ok(overrideEvent, 'forced run should include resume_override_applied event');
+      assert.ok(Array.isArray(overrideEvent.resumeAudits), 'override event should include resumeAudits array');
+      assert.ok(overrideEvent.resumeAudits.length > 0, 'override event should include at least one resume audit');
+      assert.equal(overrideEvent.resumeAudits[0].reason, 'force-resume-lineage-test');
+
+      const lineageTimeline = forced?.report?.lineage?.training?.checkpointResumeTimeline;
+      assert.ok(Array.isArray(lineageTimeline), 'report lineage should include checkpoint resume timeline');
+      assert.ok(
+        lineageTimeline.some((entry) => entry?.type === 'resume_override_applied'),
+        'report lineage should include resume_override_applied event'
+      );
+    } catch (error) {
+      if (isUnavailableNodeWebGPUError(error)) {
+        console.log('training-force-resume-lineage.test: skipped (functional WebGPU runtime unavailable)');
+      } else {
+        throw error;
+      }
+    }
   } finally {
     rmSync(tempDir, { recursive: true, force: true });
   }

@@ -2439,7 +2439,7 @@ async function doMatrix(flags, timestamp = null) {
   );
   const strictCompareArtifacts = parseBooleanFlag(
     flags['strict-compare-artifacts'],
-    false,
+    true,
     '--strict-compare-artifacts'
   );
   const {

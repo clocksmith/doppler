@@ -1,7 +1,7 @@
 
 
 import { getDevice } from '../device.js';
-import { acquireBuffer } from '../../memory/buffer-pool.js';
+import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor } from '../tensor.js';
 import { dispatch, recordDispatch } from './dispatch.js';
 import { createPipeline, createUniformBufferWithView } from './utils.js';
@@ -44,6 +44,7 @@ export async function castF32ToF16(
 ) {
   const device = getDevice();
   const { outputBuffer = null } = options;
+  const ownsOutput = outputBuffer == null;
   const numElements = input.shape.reduce((a, b) => a * b, 1);
 
   const pipeline = await createPipeline('cast', 'f32_to_f16');
@@ -51,35 +52,41 @@ export async function castF32ToF16(
   const outputSize = numElements * DTYPE_SIZES.f16;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'cast_f32_to_f16_output');
 
-  const uniformBuffer = createUniformBufferWithView(
-    'cast_f32_to_f16_uniforms',
-    16,
-    (view) => {
-      view.setUint32(0, numElements, true);
-    },
-    null,
-    device
-  );
+  let uniformBuffer = null;
+  try {
+    uniformBuffer = createUniformBufferWithView(
+      'cast_f32_to_f16_uniforms',
+      16,
+      (view) => {
+        view.setUint32(0, numElements, true);
+      },
+      null,
+      device
+    );
 
-  const bindGroup = device.createBindGroup({
-    label: 'cast_f32_to_f16_bind_group',
-    layout: pipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input.buffer } },
-      { binding: 2, resource: { buffer: output } },
-    ],
-  });
+    const bindGroup = device.createBindGroup({
+      label: 'cast_f32_to_f16_bind_group',
+      layout: pipeline.getBindGroupLayout(0),
+      entries: [
+        { binding: 0, resource: { buffer: uniformBuffer } },
+        { binding: 1, resource: { buffer: input.buffer } },
+        { binding: 2, resource: { buffer: output } },
+      ],
+    });
 
-  // Use 2D dispatch for large tensors (like embeddings with 300M+ elements)
-  const workgroups = Math.ceil(numElements / WORKGROUP_SIZES.DEFAULT);
-  const dispatchSize = calculate2DDispatch(workgroups);
+    const workgroups = Math.ceil(numElements / WORKGROUP_SIZES.DEFAULT);
+    const dispatchSize = calculate2DDispatch(workgroups);
 
-  dispatch(device, pipeline, bindGroup, dispatchSize, 'cast_f32_to_f16');
-
-  uniformBuffer.destroy();
-
-  return createTensor(output, 'f16', [...input.shape], input.label ? `${input.label}_f16` : 'cast_f32_to_f16_output');
+    dispatch(device, pipeline, bindGroup, dispatchSize, 'cast_f32_to_f16');
+    return createTensor(output, 'f16', [...input.shape], input.label ? `${input.label}_f16` : 'cast_f32_to_f16_output');
+  } catch (error) {
+    if (ownsOutput) {
+      releaseBuffer(output);
+    }
+    throw error;
+  } finally {
+    uniformBuffer?.destroy();
+  }
 }
 
 
@@ -89,6 +96,7 @@ export async function castF16ToF32(
 ) {
   const device = getDevice();
   const { outputBuffer = null } = options;
+  const ownsOutput = outputBuffer == null;
   const numElements = input.shape.reduce((a, b) => a * b, 1);
 
   const pipeline = await createPipeline('cast', 'f16_to_f32');
@@ -96,34 +104,41 @@ export async function castF16ToF32(
   const outputSize = numElements * DTYPE_SIZES.f32;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'cast_f16_to_f32_output');
 
-  const uniformBuffer = createUniformBufferWithView(
-    'cast_f16_to_f32_uniforms',
-    16,
-    (view) => {
-      view.setUint32(0, numElements, true);
-    },
-    null,
-    device
-  );
+  let uniformBuffer = null;
+  try {
+    uniformBuffer = createUniformBufferWithView(
+      'cast_f16_to_f32_uniforms',
+      16,
+      (view) => {
+        view.setUint32(0, numElements, true);
+      },
+      null,
+      device
+    );
 
-  const bindGroup = device.createBindGroup({
-    label: 'cast_f16_to_f32_bind_group',
-    layout: pipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input.buffer } },
-      { binding: 2, resource: { buffer: output } },
-    ],
-  });
+    const bindGroup = device.createBindGroup({
+      label: 'cast_f16_to_f32_bind_group',
+      layout: pipeline.getBindGroupLayout(0),
+      entries: [
+        { binding: 0, resource: { buffer: uniformBuffer } },
+        { binding: 1, resource: { buffer: input.buffer } },
+        { binding: 2, resource: { buffer: output } },
+      ],
+    });
 
-  const workgroups = Math.ceil(numElements / WORKGROUP_SIZES.DEFAULT);
-  const dispatchSize = calculate2DDispatch(workgroups);
+    const workgroups = Math.ceil(numElements / WORKGROUP_SIZES.DEFAULT);
+    const dispatchSize = calculate2DDispatch(workgroups);
 
-  dispatch(device, pipeline, bindGroup, dispatchSize, 'cast_f16_to_f32');
-
-  uniformBuffer.destroy();
-
-  return createTensor(output, 'f32', [...input.shape], input.label ? `${input.label}_f32` : 'cast_f16_to_f32_output');
+    dispatch(device, pipeline, bindGroup, dispatchSize, 'cast_f16_to_f32');
+    return createTensor(output, 'f32', [...input.shape], input.label ? `${input.label}_f32` : 'cast_f16_to_f32_output');
+  } catch (error) {
+    if (ownsOutput) {
+      releaseBuffer(output);
+    }
+    throw error;
+  } finally {
+    uniformBuffer?.destroy();
+  }
 }
 
 
@@ -134,6 +149,7 @@ export async function recordCastF32ToF16(
 ) {
   const device = recorder.device;
   const { outputBuffer = null } = options;
+  const ownsOutput = outputBuffer == null;
   const numElements = input.shape.reduce((a, b) => a * b, 1);
 
   const pipeline = await createPipeline('cast', 'f32_to_f16');
@@ -141,32 +157,37 @@ export async function recordCastF32ToF16(
   const outputSize = numElements * DTYPE_SIZES.f16;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'cast_f32_to_f16_output');
 
-  const uniformBuffer = createUniformBufferWithView(
-    'cast_f32_to_f16_uniforms',
-    16,
-    (view) => {
-      view.setUint32(0, numElements, true);
-    },
-    recorder
-  );
+  try {
+    const uniformBuffer = createUniformBufferWithView(
+      'cast_f32_to_f16_uniforms',
+      16,
+      (view) => {
+        view.setUint32(0, numElements, true);
+      },
+      recorder
+    );
 
-  const bindGroup = device.createBindGroup({
-    label: 'cast_f32_to_f16_bind_group',
-    layout: pipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input.buffer } },
-      { binding: 2, resource: { buffer: output } },
-    ],
-  });
+    const bindGroup = device.createBindGroup({
+      label: 'cast_f32_to_f16_bind_group',
+      layout: pipeline.getBindGroupLayout(0),
+      entries: [
+        { binding: 0, resource: { buffer: uniformBuffer } },
+        { binding: 1, resource: { buffer: input.buffer } },
+        { binding: 2, resource: { buffer: output } },
+      ],
+    });
 
-  // Use 2D dispatch for large tensors
-  const workgroups = Math.ceil(numElements / WORKGROUP_SIZES.DEFAULT);
-  const dispatchSize = calculate2DDispatch(workgroups);
+    const workgroups = Math.ceil(numElements / WORKGROUP_SIZES.DEFAULT);
+    const dispatchSize = calculate2DDispatch(workgroups);
 
-  recordDispatch(recorder, pipeline, bindGroup, dispatchSize, 'cast_f32_to_f16');
-
-  return createTensor(output, 'f16', [...input.shape], input.label ? `${input.label}_f16` : 'cast_f32_to_f16_output');
+    recordDispatch(recorder, pipeline, bindGroup, dispatchSize, 'cast_f32_to_f16');
+    return createTensor(output, 'f16', [...input.shape], input.label ? `${input.label}_f16` : 'cast_f32_to_f16_output');
+  } catch (error) {
+    if (ownsOutput) {
+      releaseBuffer(output);
+    }
+    throw error;
+  }
 }
 
 
@@ -177,6 +198,7 @@ export async function recordCastF16ToF32(
 ) {
   const device = recorder.device;
   const { outputBuffer = null } = options;
+  const ownsOutput = outputBuffer == null;
   const numElements = input.shape.reduce((a, b) => a * b, 1);
 
   const pipeline = await createPipeline('cast', 'f16_to_f32');
@@ -184,31 +206,37 @@ export async function recordCastF16ToF32(
   const outputSize = numElements * DTYPE_SIZES.f32;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'cast_f16_to_f32_output');
 
-  const uniformBuffer = createUniformBufferWithView(
-    'cast_f16_to_f32_uniforms',
-    16,
-    (view) => {
-      view.setUint32(0, numElements, true);
-    },
-    recorder
-  );
+  try {
+    const uniformBuffer = createUniformBufferWithView(
+      'cast_f16_to_f32_uniforms',
+      16,
+      (view) => {
+        view.setUint32(0, numElements, true);
+      },
+      recorder
+    );
 
-  const bindGroup = device.createBindGroup({
-    label: 'cast_f16_to_f32_bind_group',
-    layout: pipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input.buffer } },
-      { binding: 2, resource: { buffer: output } },
-    ],
-  });
+    const bindGroup = device.createBindGroup({
+      label: 'cast_f16_to_f32_bind_group',
+      layout: pipeline.getBindGroupLayout(0),
+      entries: [
+        { binding: 0, resource: { buffer: uniformBuffer } },
+        { binding: 1, resource: { buffer: input.buffer } },
+        { binding: 2, resource: { buffer: output } },
+      ],
+    });
 
-  const workgroups = Math.ceil(numElements / WORKGROUP_SIZES.DEFAULT);
-  const dispatchSize = calculate2DDispatch(workgroups);
+    const workgroups = Math.ceil(numElements / WORKGROUP_SIZES.DEFAULT);
+    const dispatchSize = calculate2DDispatch(workgroups);
 
-  recordDispatch(recorder, pipeline, bindGroup, dispatchSize, 'cast_f16_to_f32');
-
-  return createTensor(output, 'f32', [...input.shape], input.label ? `${input.label}_f32` : 'cast_f16_to_f32_output');
+    recordDispatch(recorder, pipeline, bindGroup, dispatchSize, 'cast_f16_to_f32');
+    return createTensor(output, 'f32', [...input.shape], input.label ? `${input.label}_f32` : 'cast_f16_to_f32_output');
+  } catch (error) {
+    if (ownsOutput) {
+      releaseBuffer(output);
+    }
+    throw error;
+  }
 }
 
 
@@ -276,11 +304,15 @@ export async function runBF16ToF32(
   const dispatchSize = calculate2DDispatch(workgroups);
 
   trace.kernels(`BF16ToF32: Dispatching ${dispatchSize[0]}x${dispatchSize[1]} workgroups for ${numPairs} pairs (${numElements} elements)`);
-  dispatch(device, pipeline, bindGroup, dispatchSize, 'bf16_to_f32');
-
-  uniformBuffer.destroy();
-
-  return createTensor(output, 'f32', [...shape], name);
+  try {
+    dispatch(device, pipeline, bindGroup, dispatchSize, 'bf16_to_f32');
+    return createTensor(output, 'f32', [...shape], name);
+  } catch (error) {
+    releaseBuffer(output);
+    throw error;
+  } finally {
+    uniformBuffer.destroy();
+  }
 }
 
 
@@ -337,11 +369,15 @@ export async function runBF16ToF16(
   const workgroups = Math.ceil(numPairs / WORKGROUP_SIZES.DEFAULT);
   const dispatchSize = calculate2DDispatch(workgroups);
 
-  dispatch(device, pipeline, bindGroup, dispatchSize, 'bf16_to_f16');
-
-  uniformBuffer.destroy();
-
-  return createTensor(output, 'f16', [...shape], name);
+  try {
+    dispatch(device, pipeline, bindGroup, dispatchSize, 'bf16_to_f16');
+    return createTensor(output, 'f16', [...shape], name);
+  } catch (error) {
+    releaseBuffer(output);
+    throw error;
+  } finally {
+    uniformBuffer.destroy();
+  }
 }
 
 
@@ -375,48 +411,54 @@ async function runBF16ToF32Chunked(
 
   trace.kernels(`BF16ToF32: Chunking ${numElements} elements in ${numChunks} chunks`);
 
-  for (let chunkIdx = 0; chunkIdx < numChunks; chunkIdx++) {
-    const chunkStart = chunkIdx * maxElementsPerChunk;
-    const chunkEnd = Math.min((chunkIdx + 1) * maxElementsPerChunk, numElements);
-    const chunkSize = chunkEnd - chunkStart;
+  try {
+    for (let chunkIdx = 0; chunkIdx < numChunks; chunkIdx++) {
+      const chunkStart = chunkIdx * maxElementsPerChunk;
+      const chunkEnd = Math.min((chunkIdx + 1) * maxElementsPerChunk, numElements);
+      const chunkSize = chunkEnd - chunkStart;
 
-    const uniformBuffer = createUniformBufferWithView(
-      `bf16_to_f32_chunk${chunkIdx}_uniforms`,
-      16,
-      (view) => {
-        view.setUint32(0, chunkSize, true);
-        view.setUint32(4, 0, true);
-        view.setUint32(8, 0, true);
-      },
-      null,
-      device
-    );
+      const uniformBuffer = createUniformBufferWithView(
+        `bf16_to_f32_chunk${chunkIdx}_uniforms`,
+        16,
+        (view) => {
+          view.setUint32(0, chunkSize, true);
+          view.setUint32(4, 0, true);
+          view.setUint32(8, 0, true);
+        },
+        null,
+        device
+      );
 
-    const inputOffsetBytes = chunkStart * DTYPE_SIZES.bf16;
-    const outputOffsetBytes = chunkStart * DTYPE_SIZES.f32;
-    const inputPairs = Math.ceil(chunkSize / 2);
-    const inputSizeBytes = inputPairs * DTYPE_SIZES.f32; // Pairs read as u32
-    const outputSizeBytes = chunkSize * DTYPE_SIZES.f32;
+      try {
+        const inputOffsetBytes = chunkStart * DTYPE_SIZES.bf16;
+        const outputOffsetBytes = chunkStart * DTYPE_SIZES.f32;
+        const inputPairs = Math.ceil(chunkSize / 2);
+        const inputSizeBytes = inputPairs * DTYPE_SIZES.f32;
+        const outputSizeBytes = chunkSize * DTYPE_SIZES.f32;
 
-    const bindGroup = device.createBindGroup({
-      label: `bf16_to_f32_chunk${chunkIdx}_bind_group`,
-      layout: pipeline.getBindGroupLayout(0),
-      entries: [
-        { binding: 0, resource: { buffer: uniformBuffer } },
-        { binding: 1, resource: { buffer: input, offset: inputOffsetBytes, size: inputSizeBytes } },
-        { binding: 2, resource: { buffer: output, offset: outputOffsetBytes, size: outputSizeBytes } },
-      ],
-    });
+        const bindGroup = device.createBindGroup({
+          label: `bf16_to_f32_chunk${chunkIdx}_bind_group`,
+          layout: pipeline.getBindGroupLayout(0),
+          entries: [
+            { binding: 0, resource: { buffer: uniformBuffer } },
+            { binding: 1, resource: { buffer: input, offset: inputOffsetBytes, size: inputSizeBytes } },
+            { binding: 2, resource: { buffer: output, offset: outputOffsetBytes, size: outputSizeBytes } },
+          ],
+        });
 
-    // Each thread processes 2 BF16 values
-    const numPairs = Math.ceil(chunkSize / 2);
-    const workgroups = Math.ceil(numPairs / WORKGROUP_SIZES.DEFAULT);
-    const dispatchSize = calculate2DDispatch(workgroups);
+        const numPairs = Math.ceil(chunkSize / 2);
+        const workgroups = Math.ceil(numPairs / WORKGROUP_SIZES.DEFAULT);
+        const dispatchSize = calculate2DDispatch(workgroups);
 
-    dispatch(device, pipeline, bindGroup, dispatchSize, `bf16_to_f32_chunk${chunkIdx}`);
+        dispatch(device, pipeline, bindGroup, dispatchSize, `bf16_to_f32_chunk${chunkIdx}`);
+      } finally {
+        uniformBuffer.destroy();
+      }
+    }
 
-    uniformBuffer.destroy();
+    return createTensor(output, 'f32', [...shape], name);
+  } catch (error) {
+    releaseBuffer(output);
+    throw error;
   }
-
-  return createTensor(output, 'f32', [...shape], name);
 }

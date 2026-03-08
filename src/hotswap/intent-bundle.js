@@ -42,6 +42,9 @@ export async function verifyIntentBundle(bundle, context) {
     reasons.push('Missing payload.expectedOutputHash');
   }
 
+  if (baseModelHash && !context?.manifest) {
+    reasons.push('Missing verification context manifest');
+  }
   if (context?.manifest && baseModelHash) {
     const manifestHash = await computeManifestHash(context.manifest);
     if (manifestHash !== baseModelHash.replace('sha256:', '')) {
@@ -49,6 +52,9 @@ export async function verifyIntentBundle(bundle, context) {
     }
   }
 
+  if (kernelRegistryVersion && context?.kernelRegistryVersion == null) {
+    reasons.push('Missing verification context kernelRegistryVersion');
+  }
   if (context?.kernelRegistryVersion && kernelRegistryVersion) {
     if (context.kernelRegistryVersion !== kernelRegistryVersion) {
       reasons.push('Kernel registry version mismatch');

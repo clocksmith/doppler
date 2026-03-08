@@ -69,4 +69,29 @@ const snapshot = buildP2PDashboardSnapshot(records);
 assert.equal(snapshot.summary.totals.records, 2);
 assert.ok(Array.isArray(snapshot.alerts));
 
+assert.throws(
+  () => aggregateP2PDeliveryObservability(records, {
+    targets: {
+      minAvailability: 'not-a-number',
+    },
+  }),
+  /targets\.minAvailability must be a finite number/
+);
+
+assert.throws(
+  () => buildP2PDashboardSnapshot(records, {
+    targets: {
+      maxHttpFallbackRate: 2,
+    },
+  }),
+  /targets\.maxHttpFallbackRate must be between 0 and 1/
+);
+
+assert.throws(
+  () => aggregateP2PDeliveryObservability(records, {
+    targets: 'invalid',
+  }),
+  /targets must be an object when provided/
+);
+
 console.log('p2p-observability.test: ok');

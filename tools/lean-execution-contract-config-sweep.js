@@ -67,17 +67,20 @@ function usage() {
 
 async function collectFiles(rootDir, predicate) {
   const output = [];
-  async function walk(currentDir) {
+  async function walk(currentDir, isRoot) {
     let entries;
     try {
       entries = await fs.readdir(currentDir, { withFileTypes: true });
-    } catch {
+    } catch (error) {
+      if (isRoot) {
+        throw new Error(`Cannot read config root "${currentDir}": ${error.message}`);
+      }
       return;
     }
     for (const entry of entries) {
       const absolute = path.join(currentDir, entry.name);
       if (entry.isDirectory()) {
-        await walk(absolute);
+        await walk(absolute, false);
         continue;
       }
       if (entry.isFile() && predicate(entry.name)) {
@@ -85,7 +88,7 @@ async function collectFiles(rootDir, predicate) {
       }
     }
   }
-  await walk(rootDir);
+  await walk(rootDir, true);
   output.sort((left, right) => left.localeCompare(right));
   return output;
 }
@@ -111,42 +114,33 @@ async function buildManifestIndex(rootDir) {
 
 async function loadFixtureMap(filePath) {
   const resolvedPath = path.resolve(process.cwd(), filePath);
-  try {
-    const payload = JSON.parse(await fs.readFile(resolvedPath, 'utf8'));
-    const mappings = Array.isArray(payload?.mappings) ? payload.mappings : [];
-    const exclusions = Array.isArray(payload?.exclusions) ? payload.exclusions : [];
-    const byConfigPath = new Map();
-    const excludedByConfigPath = new Map();
-    for (const entry of mappings) {
-      const configPath = typeof entry?.configPath === 'string'
-        ? path.normalize(entry.configPath)
-        : '';
-      const manifestPath = typeof entry?.manifestPath === 'string'
-        ? path.normalize(entry.manifestPath)
-        : '';
-      if (!configPath || !manifestPath) continue;
-      byConfigPath.set(configPath, manifestPath);
-    }
-    for (const entry of exclusions) {
-      const configPath = typeof entry?.configPath === 'string'
-        ? path.normalize(entry.configPath)
-        : '';
-      const reason = typeof entry?.reason === 'string'
-        ? entry.reason.trim()
-        : '';
-      if (!configPath || !reason) continue;
-      excludedByConfigPath.set(configPath, reason);
-    }
-    return {
-      byConfigPath,
-      excludedByConfigPath,
-    };
-  } catch {
-    return {
-      byConfigPath: new Map(),
-      excludedByConfigPath: new Map(),
-    };
+  const raw = await fs.readFile(resolvedPath, 'utf8');
+  const payload = JSON.parse(raw);
+  const mappings = Array.isArray(payload?.mappings) ? payload.mappings : [];
+  const exclusions = Array.isArray(payload?.exclusions) ? payload.exclusions : [];
+  const byConfigPath = new Map();
+  const excludedByConfigPath = new Map();
+  for (const entry of mappings) {
+    const configPath = typeof entry?.configPath === 'string'
+      ? path.normalize(entry.configPath)
+      : '';
+    const manifestPath = typeof entry?.manifestPath === 'string'
+      ? path.normalize(entry.manifestPath)
+      : '';
+    if (!configPath || !manifestPath) continue;
+    byConfigPath.set(configPath, manifestPath);
   }
+  for (const entry of exclusions) {
+    const configPath = typeof entry?.configPath === 'string'
+      ? path.normalize(entry.configPath)
+      : '';
+    const reason = typeof entry?.reason === 'string'
+      ? entry.reason.trim()
+      : '';
+    if (!configPath || !reason) continue;
+    excludedByConfigPath.set(configPath, reason);
+  }
+  return { byConfigPath, excludedByConfigPath };
 }
 
 function isExecutionContractConfigCandidate(manifest) {

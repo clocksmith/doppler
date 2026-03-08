@@ -11,6 +11,15 @@ import { getPipeline } from './model-manager.js';
 
 export { formatGemmaChat, formatLlama3Chat, formatGptOssChat };
 
+function assertSupportedGenerateOptions(options = {}) {
+  if (Array.isArray(options?.stopTokens) && options.stopTokens.length > 0) {
+    throw new Error(
+      'Doppler provider generate options do not support stopTokens on this surface. ' +
+      'Use stopSequences instead.'
+    );
+  }
+}
+
 function resolveChatTemplate(pipeline, options) {
   const override = options?.useChatTemplate;
   const runtimeEnabled = pipeline?.runtimeConfig?.inference?.chatTemplate?.enabled;
@@ -21,6 +30,7 @@ function resolveChatTemplate(pipeline, options) {
 }
 
 export async function* generate(prompt, options = {}) {
+  assertSupportedGenerateOptions(options);
   const pipeline = getPipeline();
   if (!pipeline) {
     throw new Error('No model loaded. Call loadModel() first.');
@@ -52,6 +62,7 @@ export async function* generate(prompt, options = {}) {
 }
 
 export async function prefillKV(prompt, options = {}) {
+  assertSupportedGenerateOptions(options);
   const pipeline = getPipeline();
   if (!pipeline) {
     throw new Error('No model loaded. Call loadModel() first.');
@@ -61,6 +72,7 @@ export async function prefillKV(prompt, options = {}) {
 }
 
 export async function* generateWithPrefixKV(prefix, prompt, options = {}) {
+  assertSupportedGenerateOptions(options);
   const pipeline = getPipeline();
   if (!pipeline) {
     throw new Error('No model loaded. Call loadModel() first.');

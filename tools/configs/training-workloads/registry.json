@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "artifactType": "training_workload_registry",
-  "generatedAt": "2026-03-07T02:50:35.629Z",
-  "registryHash": "e48a8c105ec7317c2b675ea3c64b4c8eb0fe21711c7bd56f9f0f36808b27549d",
+  "generatedAt": "2026-03-08T16:17:42.429Z",
+  "registryHash": "6431483bba170e2a8a7b92376c3c0de786219fe69830675c5f4718008317fe57",
   "workloads": [
     {
       "id": "distill-translategemma-medium",
@@ -67,7 +67,7 @@
     {
       "id": "ul-training-medium",
       "path": "tools/configs/training-workloads/ul-training-medium.json",
-      "sha256": "0815b2b9a0d49aa551725b916de1f8b5d9aa219e852a91863f9113b54e594aa8",
+      "sha256": "dc743a0ee5819e5d2ceeb8edc5f64a50a1edc45f5ff5912441f8b72f2f07779c",
       "workloadKind": "ul",
       "trainingSchemaVersion": 1,
       "seed": 1337,
@@ -75,14 +75,14 @@
       "selectionMetric": "total_loss",
       "selectionGoal": "min",
       "surfaceSupport": "node",
-      "baselineReportId": "trn_ul-training-medium_0815b2b9a0d4",
+      "baselineReportId": "trn_ul-training-medium_dc743a0ee581",
       "claimBoundary": "Practical UL workflow quality traceability.",
-      "configHash": "c448103ffb9acf9d85ed7d650b2e4f15abe37213b911fec979c2c8a23fcda0c4"
+      "configHash": "f23c9754cf9ddeb897e661350d5313f88e69078861c778bfe0cc71c91dad58a2"
     },
     {
       "id": "ul-training-tiny",
       "path": "tools/configs/training-workloads/ul-training-tiny.json",
-      "sha256": "b098930e0b4ec1229a1c3240308c723ba1f63eb163328b1a44bf681f675a4799",
+      "sha256": "1a7edb6548a21cdc532a9424baa4eb54d2618536fca3d71033155f03bd2e3fdb",
       "workloadKind": "ul",
       "trainingSchemaVersion": 1,
       "seed": 1337,
@@ -90,9 +90,9 @@
       "selectionMetric": "total_loss",
       "selectionGoal": "min",
       "surfaceSupport": "node",
-      "baselineReportId": "trn_ul-training-tiny_b098930e0b4e",
+      "baselineReportId": "trn_ul-training-tiny_1a7edb6548a2",
       "claimBoundary": "Practical UL workflow quality traceability.",
-      "configHash": "78cef5e96d05ad52ce86cc340086314e9d3891e0c95b4daf8c8e9182616a8752"
+      "configHash": "23a04cc92743a2e0470985137208f97833478e092aa7de61de62f2fbe3eba40e"
     }
   ]
 }

@@ -28,6 +28,28 @@ function asOptionalPlainObject(value, label) {
   return value;
 }
 
+function assertNoUnsupportedRuntimeInputs(request) {
+  const runtimeFields = [];
+  if (Array.isArray(request?.configChain) && request.configChain.length > 0) {
+    runtimeFields.push('configChain');
+  }
+  if (typeof request?.runtimePreset === 'string' && request.runtimePreset.trim()) {
+    runtimeFields.push('runtimePreset');
+  }
+  if (typeof request?.runtimeConfigUrl === 'string' && request.runtimeConfigUrl.trim()) {
+    runtimeFields.push('runtimeConfigUrl');
+  }
+  if (request?.runtimeConfig != null) {
+    runtimeFields.push('runtimeConfig');
+  }
+  if (runtimeFields.length > 0) {
+    throw new Error(
+      `${request.command} does not support runtime input fields on the node operator surface: ` +
+      `${runtimeFields.join(', ')}. Put those settings into the workload/config asset instead.`
+    );
+  }
+}
+
 let runtimeModulesPromise = null;
 
 async function loadRuntimeModules() {
@@ -97,6 +119,7 @@ export async function runNodeCommand(commandRequest, options = {}) {
     if (request.command === 'lora' || request.command === 'distill') {
       const gpuOptionalActions = new Set(['compare', 'quality-gate', 'subsets']);
       installNodeFileFetchShim();
+      assertNoUnsupportedRuntimeInputs(request);
       if (!gpuOptionalActions.has(request.action)) {
         await assertNodeWebGPUSupport();
       }

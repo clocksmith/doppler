@@ -185,7 +185,15 @@ function resolveLinearNormMode(configNormMode, normWeight, projectionLayout, lay
       `but norm.weight shape implies "${inferredMode}".`
     );
   }
-  return configuredMode ?? inferredMode ?? 'shared';
+  if (configuredMode) {
+    return configuredMode;
+  }
+  if (inferredMode) {
+    return inferredMode;
+  }
+  throw new Error(
+    `linear_attention layer ${layerIdx} requires explicit linearNormMode or a norm.weight shape that resolves it.`
+  );
 }
 
 async function readWeightAsF32(weight, expectedElements, label) {
@@ -395,10 +403,17 @@ async function createLayerRuntimeState(
 
   let convKernelSize = toPositiveInt(config.linearConvKernelDim) ?? null;
   if (isWeightBuffer(convKernel) && Array.isArray(convKernel.shape) && convKernel.shape.length >= 3) {
-    convKernelSize = toPositiveInt(convKernel.shape[2]) ?? convKernelSize;
+    const shapeKernelSize = toPositiveInt(convKernel.shape[2]) ?? null;
+    if (convKernelSize != null && shapeKernelSize != null && convKernelSize !== shapeKernelSize) {
+      throw new Error(
+        `linear_attention layer ${layerIdx} declares linearConvKernelDim=${convKernelSize}, ` +
+        `but conv1d weight shape implies ${shapeKernelSize}.`
+      );
+    }
+    convKernelSize = shapeKernelSize ?? convKernelSize;
   }
   if (!convKernelSize) {
-    convKernelSize = 4;
+    throw new Error(`linear_attention layer ${layerIdx} requires linearConvKernelDim.`);
   }
 
   const convWeight = await readWeightAsF32(
@@ -435,6 +450,11 @@ async function createLayerRuntimeState(
   const recurrentState = new Float32Array(
     projectionLayout.numVHeads * projectionLayout.headKDim * projectionLayout.headVDim
   );
+  const rmsNormEps = Number(config.rmsNormEps);
+  if (!Number.isFinite(rmsNormEps) || rmsNormEps <= 0) {
+    throw new Error(`linear_attention layer ${layerIdx} requires a positive rmsNormEps.`);
+  }
+
   const layerState = {
     layerIdx,
     seqLen: currentSeqLen,
@@ -452,7 +472,7 @@ async function createLayerRuntimeState(
     vSize: projectionLayout.vSize,
     qRep: projectionLayout.qRep,
     normMode,
-    rmsNormEps: Number(config.rmsNormEps) || 1e-6,
+    rmsNormEps,
     convWeight,
     dtBias,
     aNegExp,
@@ -681,13 +701,13 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
     const normWeightBuffer = getNormWeightBuffer(layerWeights.inputNorm, `L${layerIdx}.linear_input_norm`);
     try {
       if (recorder) {
-        normedTensor = await recordRMSNorm(recorder, inputTensor, normWeightBuffer, Number(config.rmsNormEps) || 1e-6, {
+        normedTensor = await recordRMSNorm(recorder, inputTensor, normWeightBuffer, layerState.rmsNormEps, {
           batchSize: numTokens,
           hiddenSize,
           rmsNormWeightOffset: config.rmsNormWeightOffset,
         });
       } else {
-        normedTensor = await runRMSNorm(inputTensor, normWeightBuffer, Number(config.rmsNormEps) || 1e-6, {
+        normedTensor = await runRMSNorm(inputTensor, normWeightBuffer, layerState.rmsNormEps, {
           batchSize: numTokens,
           hiddenSize,
           rmsNormWeightOffset: config.rmsNormWeightOffset,

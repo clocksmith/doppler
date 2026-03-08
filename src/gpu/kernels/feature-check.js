@@ -16,7 +16,7 @@ export function hasRequiredFeatures(
   for (const feature of required) {
     if (feature === 'shader-f16' && !capabilities.hasF16) return false;
     if (feature === 'subgroups' && !capabilities.hasSubgroups) return false;
-    if (feature === 'subgroups-f16' && !capabilities.hasSubgroups) return false;
+    if (feature === 'subgroups-f16' && !capabilities.hasSubgroupsF16) return false;
   }
   return true;
 }

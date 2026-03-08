@@ -11,6 +11,10 @@
 -// Based on Flash Attention principles adapted for WebGPU.
 +// Same algorithm as attention.wgsl but Q/K/V are f16 and output is f16.
 +// Computation is performed in f32 for stability.
++//
++// Change categories in this variant relative to attention.wgsl:
++//   dtype changes: Q, K, V, output bindings changed f32 → f16; f32 intermediates retained.
++//   performance overrides: BLOCK_SIZE and WORKGROUP_SIZE increased 32 → 64 for f16 throughput.
 +
 +enable f16;
  

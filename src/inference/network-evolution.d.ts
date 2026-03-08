@@ -35,12 +35,21 @@ export interface EvolutionConfig {
   generations?: number;
   eliteCount?: number;
   mutationRate?: number;
+  random: () => number;
   evaluate: (genome: NetworkGenome) => Promise<number>;
   randomGenome: () => NetworkGenome;
 }
 
-export declare const mutateGenome: (genome: NetworkGenome, mutationRate?: number) => NetworkGenome;
+export declare const mutateGenome: (
+  genome: NetworkGenome,
+  mutationRate?: number,
+  random?: (() => number) | null
+) => NetworkGenome;
 
-export declare const crossoverGenome: (a: NetworkGenome, b: NetworkGenome) => NetworkGenome;
+export declare const crossoverGenome: (
+  a: NetworkGenome,
+  b: NetworkGenome,
+  random?: (() => number) | null
+) => NetworkGenome;
 
 export declare function evolveNetwork(config: EvolutionConfig): Promise<NetworkGenome>;

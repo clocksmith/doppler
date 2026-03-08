@@ -135,13 +135,25 @@ export function buildPublishedRegistryEntry(localEntry, revision) {
   }
   const next = structuredClone(localEntry);
   const hf = isPlainObject(next.hf) ? next.hf : {};
+  const repoId = normalizeText(hf.repoId);
+  const repoPath = normalizeRepoPath(hf.path);
+  if (!repoId) {
+    throw new Error(
+      `Published registry entry for "${modelId}" requires explicit hf.repoId.`
+    );
+  }
+  if (!repoPath) {
+    throw new Error(
+      `Published registry entry for "${modelId}" requires explicit hf.path.`
+    );
+  }
   const lifecycle = isPlainObject(next.lifecycle) ? next.lifecycle : {};
   const availability = isPlainObject(lifecycle.availability) ? lifecycle.availability : {};
   next.hf = {
     ...hf,
-    repoId: normalizeText(hf.repoId) || DEFAULT_HF_REPO_ID,
+    repoId,
     revision: normalizeText(revision),
-    path: normalizeRepoPath(hf.path) || `models/${modelId}`,
+    path: repoPath,
   };
   next.lifecycle = {
     ...lifecycle,

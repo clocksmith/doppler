@@ -96,12 +96,22 @@ async function main() {
   const args = parseArgs(process.argv);
   const outDirAbs = resolve(args.outDir);
   const workload = await loadWorkloadConfig(args.workload);
-  const trainingSchemaVersion = Number(workload.config.trainingSchemaVersion || 1);
-  const trainingBenchSteps = Number(workload.config.trainingBenchSteps || 2);
-  const seed = Number(workload.config.seed || 1337);
-  const trainingTests = Array.isArray(workload.config.trainingTests)
-    ? workload.config.trainingTests.map((value) => String(value))
-    : [];
+  if (!workload.config.trainingSchemaVersion) {
+    throw new Error(`Workload config at ${workload.path} is missing required field: trainingSchemaVersion`);
+  }
+  if (!workload.config.trainingBenchSteps) {
+    throw new Error(`Workload config at ${workload.path} is missing required field: trainingBenchSteps`);
+  }
+  if (workload.config.seed == null) {
+    throw new Error(`Workload config at ${workload.path} is missing required field: seed`);
+  }
+  if (!Array.isArray(workload.config.trainingTests) || workload.config.trainingTests.length === 0) {
+    throw new Error(`Workload config at ${workload.path} is missing required field: trainingTests (non-empty array)`);
+  }
+  const trainingSchemaVersion = Number(workload.config.trainingSchemaVersion);
+  const trainingBenchSteps = Number(workload.config.trainingBenchSteps);
+  const seed = Number(workload.config.seed);
+  const trainingTests = workload.config.trainingTests.map((value) => String(value));
   const stage1TestId = trainingTests.includes('ul-stage1') ? 'ul-stage1' : 'ul-stage1';
   const runtimeConfigJson = JSON.stringify({
     shared: {

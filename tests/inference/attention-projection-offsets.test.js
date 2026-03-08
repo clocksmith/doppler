@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
 
-import { resolveProjectionSliceOffsetBytes } from '../../src/inference/pipelines/text/attention/projections.js';
+import {
+  projectAttentionQKV,
+  resolveProjectionSliceOffsetBytes,
+} from '../../src/inference/pipelines/text/attention/projections.js';
 
 function makeWeight(dtype, layout = 'row', shape = [2048, 1024]) {
   return {
@@ -42,6 +45,28 @@ function makeWeight(dtype, layout = 'row', shape = [2048, 1024]) {
 {
   const offset = resolveProjectionSliceOffsetBytes(makeWeight('q4k'), 0, 1024);
   assert.equal(offset, 0);
+}
+
+{
+  await assert.rejects(
+    () => projectAttentionQKV({
+      recorder: null,
+      normed: { buffer: { size: 16 }, dtype: 'f32', shape: [1, 4] },
+      layerWeights: { kProj: {}, vProj: {} },
+      numTokens: 1,
+      numHeads: 1,
+      numKVHeads: 1,
+      headDim: 4,
+      hiddenSize: 4,
+      layerIdx: 0,
+      kernelPath: null,
+      matmulOutputDtype: 'f32',
+      getWeightBuffer: null,
+      lora: null,
+      releaseTemporary() {},
+    }),
+    /Attention projection requires qProj/
+  );
 }
 
 console.log('attention-projection-offsets.test: ok');

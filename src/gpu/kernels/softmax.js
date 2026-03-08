@@ -1,6 +1,6 @@
 
 import { getKernelCapabilities } from '../device.js';
-import { acquireBuffer } from '../../memory/buffer-pool.js';
+import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor } from '../tensor.js';
 import { unifiedKernelWrapper } from './utils.js';
 import { createPipeline, createUniformBufferWithView, createBindGroupWithValidation } from './utils.js';
@@ -20,23 +20,34 @@ function selectSoftmaxVariant(innerSize) {
 
 async function _softmax(target, input, axis, options = {}) {
   const { batchSize = 1, size, seqLen, temperature = 1.0, outputBuffer = null } = options;
+  if (input.dtype !== 'f32') {
+    throw new Error(`Softmax requires f32 input, got ${input.dtype}.`);
+  }
 
-  const bytesPerElement = input.dtype === 'f16' ? 2 : 4;
+  const bytesPerElement = 4;
   const inferredSize = size || seqLen || (input.buffer.size / (batchSize * bytesPerElement));
   const variant = selectSoftmaxVariant(inferredSize);
   trace.kernels(`Softmax: size=${inferredSize}, variant=${variant}`);
 
   const outputSize = batchSize * inferredSize * bytesPerElement;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'softmax_output');
+  const ownedOutput = outputBuffer ? null : output;
 
-  await unifiedKernelWrapper(
-    'softmax', target, variant,
-    [input, output],
-    { inner_size: inferredSize, outer_size: batchSize, temperature },
-    batchSize
-  );
+  try {
+    await unifiedKernelWrapper(
+      'softmax', target, variant,
+      [input, output],
+      { inner_size: inferredSize, outer_size: batchSize, temperature },
+      batchSize
+    );
+  } catch (error) {
+    if (ownedOutput) {
+      releaseBuffer(ownedOutput);
+    }
+    throw error;
+  }
 
-  return createTensor(output, input.dtype, [batchSize, inferredSize], 'softmax_output');
+  return createTensor(output, 'f32', [batchSize, inferredSize], 'softmax_output');
 }
 
 export async function runSoftmax(input, axis, options = {}) {
@@ -76,6 +87,7 @@ export async function runSoftmaxTopK(logits, numTokens, numExperts, topK, option
 
   const indices = acquireBuffer(indicesSize, undefined, 'softmax_topk_indices');
   const weights = acquireBuffer(weightsSize, undefined, 'softmax_topk_weights');
+  let completed = false;
 
   const uniformBuffer = createUniformBufferWithView(
     'softmax_topk_uniforms', 16,
@@ -88,19 +100,26 @@ export async function runSoftmaxTopK(logits, numTokens, numExperts, topK, option
     null, device
   );
 
-  const bindGroup = await createBindGroupWithValidation(device, {
-    label: 'softmax_topk_bind_group',
-    layout: pipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: logits } },
-      { binding: 2, resource: { buffer: indices } },
-      { binding: 3, resource: { buffer: weights } },
-    ],
-  }, `topk:${variant}`);
+  try {
+    const bindGroup = await createBindGroupWithValidation(device, {
+      label: 'softmax_topk_bind_group',
+      layout: pipeline.getBindGroupLayout(0),
+      entries: [
+        { binding: 0, resource: { buffer: uniformBuffer } },
+        { binding: 1, resource: { buffer: logits } },
+        { binding: 2, resource: { buffer: indices } },
+        { binding: 3, resource: { buffer: weights } },
+      ],
+    }, `topk:${variant}`);
 
-  dispatchKernel(null, pipeline, bindGroup, numTokens, 'softmax_topk');
-  uniformBuffer.destroy();
-
-  return { indices, weights };
+    dispatchKernel(null, pipeline, bindGroup, numTokens, 'softmax_topk');
+    completed = true;
+    return { indices, weights };
+  } finally {
+    uniformBuffer.destroy();
+    if (!completed) {
+      releaseBuffer(indices);
+      releaseBuffer(weights);
+    }
+  }
 }

@@ -10,6 +10,20 @@ import {
 const KERNELS_REQUEST = {
   command: 'verify',
   suite: 'kernels',
+  runtimeConfig: {
+    shared: {
+      tooling: {
+        intent: 'verify',
+      },
+    },
+    inference: {
+      kernelPathPolicy: {
+        mode: 'capability-aware',
+        sourceScope: ['model', 'manifest', 'config', 'execution-v0'],
+        onIncompatible: 'remap',
+      },
+    },
+  },
 };
 
 {
@@ -264,7 +278,7 @@ await assert.rejects(
   if (error) {
     assert.match(
       String(error?.message || error),
-      /browser command: failed to start static server|browser command: failed to launch browser|ERR_UNSAFE_PORT|runner did not become ready/
+      /browser command: failed to start static server|browser command: failed to launch browser|ERR_UNSAFE_PORT|runner did not become ready|runtime\.inference\.kernelPathPolicy must not be null/
     );
   } else {
     assert.ok(result && typeof result === 'object');

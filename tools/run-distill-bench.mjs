@@ -335,7 +335,7 @@ function resolveResumeOverrideFields(args, workloadConfig) {
   return {
     forceResume: true,
     forceResumeReason: forceResumeReason || 'operator_requested_resume_override',
-    forceResumeSource: forceResumeSource || 'tools/run-distill-bench.mjs',
+    forceResumeSource: forceResumeSource || null,
     checkpointOperator,
   };
 }
@@ -424,10 +424,25 @@ async function main() {
   const outDirAbs = resolve(args.outDir);
   const workload = await loadWorkloadConfig(args.workload);
 
-  const trainingSchemaVersion = Number(workload.config.trainingSchemaVersion || 1);
+  if (!workload.config.trainingSchemaVersion) {
+    throw new Error(`Workload config at ${workload.path} is missing required field: trainingSchemaVersion`);
+  }
+  if (!workload.config.trainingBenchSteps) {
+    throw new Error(`Workload config at ${workload.path} is missing required field: trainingBenchSteps`);
+  }
+  if (!workload.config.teacherModelId) {
+    throw new Error(`Workload config at ${workload.path} is missing required field: teacherModelId`);
+  }
+  if (!workload.config.studentModelId) {
+    throw new Error(`Workload config at ${workload.path} is missing required field: studentModelId`);
+  }
+  if (!workload.config.distillDatasetId) {
+    throw new Error(`Workload config at ${workload.path} is missing required field: distillDatasetId`);
+  }
+  const trainingSchemaVersion = Number(workload.config.trainingSchemaVersion);
   const defaultBenchSteps = resolveOptionalInteger(
     workload.config.trainingBenchSteps,
-    2,
+    null,
     'trainingBenchSteps'
   );
   const benchSteps = args.trainingBenchSteps ?? defaultBenchSteps;
@@ -445,9 +460,9 @@ async function main() {
     workload.config.checkpointEvery,
     'checkpointEvery'
   );
-  const teacherModelId = String(workload.config.teacherModelId || 'translategemma-4b-it-wq4k-ef16-hf16');
-  const studentModelId = String(workload.config.studentModelId || 'gemma-3-1b-it-wq4k-ef16-hf16');
-  const distillDatasetId = String(workload.config.distillDatasetId || 'en-es');
+  const teacherModelId = String(workload.config.teacherModelId);
+  const studentModelId = String(workload.config.studentModelId);
+  const distillDatasetId = String(workload.config.distillDatasetId);
   const distillDatasetPath = args.distillDatasetPath || (
     workload.config.distillDatasetPath
       ? String(workload.config.distillDatasetPath)
@@ -471,7 +486,10 @@ async function main() {
   ) {
     throw new Error('distillShardIndex must be <= distillShardCount');
   }
-  const distillLanguagePair = String(workload.config.distillLanguagePair || 'en-es');
+  if (!workload.config.distillLanguagePair) {
+    throw new Error(`Workload config at ${workload.path} is missing required field: distillLanguagePair`);
+  }
+  const distillLanguagePair = String(workload.config.distillLanguagePair);
   const runtimeConfigJson = JSON.stringify({
     shared: {
       benchmark: {
