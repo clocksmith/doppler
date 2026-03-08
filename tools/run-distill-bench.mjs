@@ -3,6 +3,8 @@
 import { spawn } from 'node:child_process';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { loadTrainingWorkloadPack } from '../src/training/workloads.js';
 
 function parsePositiveInteger(value, label) {
   const parsed = Number(value);
@@ -34,7 +36,15 @@ function parseStringList(value) {
   return list.length > 0 ? list : null;
 }
 
-function parseArgs(argv) {
+function requireFlagValue(argv, index, flag) {
+  const value = argv[index + 1];
+  if (value == null || String(value).startsWith('--')) {
+    throw new Error(`Missing value for ${flag}`);
+  }
+  return value;
+}
+
+export function parseArgs(argv) {
   const parsed = {
     help: false,
     mode: 'bench',
@@ -70,62 +80,62 @@ function parseArgs(argv) {
       continue;
     }
     if (arg === '--mode') {
-      parsed.mode = String(argv[i + 1] || parsed.mode);
+      parsed.mode = String(requireFlagValue(argv, i, '--mode'));
       i += 1;
       continue;
     }
     if (arg === '--surface') {
-      parsed.surface = String(argv[i + 1] || parsed.surface);
+      parsed.surface = String(requireFlagValue(argv, i, '--surface'));
       i += 1;
       continue;
     }
     if (arg === '--out-dir') {
-      parsed.outDir = String(argv[i + 1] || parsed.outDir);
+      parsed.outDir = String(requireFlagValue(argv, i, '--out-dir'));
       i += 1;
       continue;
     }
     if (arg === '--workload') {
-      parsed.workload = String(argv[i + 1] || parsed.workload);
+      parsed.workload = String(requireFlagValue(argv, i, '--workload'));
       i += 1;
       continue;
     }
     if (arg === '--training-bench-steps') {
-      parsed.trainingBenchSteps = parsePositiveInteger(argv[i + 1], '--training-bench-steps');
+      parsed.trainingBenchSteps = parsePositiveInteger(requireFlagValue(argv, i, '--training-bench-steps'), '--training-bench-steps');
       i += 1;
       continue;
     }
     if (arg === '--stage-a-steps') {
-      parsed.stageASteps = parsePositiveInteger(argv[i + 1], '--stage-a-steps');
+      parsed.stageASteps = parsePositiveInteger(requireFlagValue(argv, i, '--stage-a-steps'), '--stage-a-steps');
       i += 1;
       continue;
     }
     if (arg === '--stage-b-steps') {
-      parsed.stageBSteps = parsePositiveInteger(argv[i + 1], '--stage-b-steps');
+      parsed.stageBSteps = parsePositiveInteger(requireFlagValue(argv, i, '--stage-b-steps'), '--stage-b-steps');
       i += 1;
       continue;
     }
     if (arg === '--checkpoint-every') {
-      parsed.checkpointEvery = parsePositiveInteger(argv[i + 1], '--checkpoint-every');
+      parsed.checkpointEvery = parsePositiveInteger(requireFlagValue(argv, i, '--checkpoint-every'), '--checkpoint-every');
       i += 1;
       continue;
     }
     if (arg === '--distill-dataset-path') {
-      parsed.distillDatasetPath = parseOptionalString(argv[i + 1]);
+      parsed.distillDatasetPath = parseOptionalString(requireFlagValue(argv, i, '--distill-dataset-path'));
       i += 1;
       continue;
     }
     if (arg === '--distill-source-langs') {
-      parsed.distillSourceLangs = parseStringList(argv[i + 1]);
+      parsed.distillSourceLangs = parseStringList(requireFlagValue(argv, i, '--distill-source-langs'));
       i += 1;
       continue;
     }
     if (arg === '--distill-target-langs') {
-      parsed.distillTargetLangs = parseStringList(argv[i + 1]);
+      parsed.distillTargetLangs = parseStringList(requireFlagValue(argv, i, '--distill-target-langs'));
       i += 1;
       continue;
     }
     if (arg === '--distill-pair-allowlist') {
-      parsed.distillPairAllowlist = parseStringList(argv[i + 1]);
+      parsed.distillPairAllowlist = parseStringList(requireFlagValue(argv, i, '--distill-pair-allowlist'));
       i += 1;
       continue;
     }
@@ -134,17 +144,17 @@ function parseArgs(argv) {
       continue;
     }
     if (arg === '--distill-shard-index') {
-      parsed.distillShardIndex = parsePositiveInteger(argv[i + 1], '--distill-shard-index');
+      parsed.distillShardIndex = parsePositiveInteger(requireFlagValue(argv, i, '--distill-shard-index'), '--distill-shard-index');
       i += 1;
       continue;
     }
     if (arg === '--distill-shard-count') {
-      parsed.distillShardCount = parsePositiveInteger(argv[i + 1], '--distill-shard-count');
+      parsed.distillShardCount = parsePositiveInteger(requireFlagValue(argv, i, '--distill-shard-count'), '--distill-shard-count');
       i += 1;
       continue;
     }
     if (arg === '--resume-from') {
-      parsed.resumeFrom = parseOptionalString(argv[i + 1]);
+      parsed.resumeFrom = parseOptionalString(requireFlagValue(argv, i, '--resume-from'));
       i += 1;
       continue;
     }
@@ -153,17 +163,17 @@ function parseArgs(argv) {
       continue;
     }
     if (arg === '--force-resume-reason') {
-      parsed.forceResumeReason = parseOptionalString(argv[i + 1]);
+      parsed.forceResumeReason = parseOptionalString(requireFlagValue(argv, i, '--force-resume-reason'));
       i += 1;
       continue;
     }
     if (arg === '--force-resume-source') {
-      parsed.forceResumeSource = parseOptionalString(argv[i + 1]);
+      parsed.forceResumeSource = parseOptionalString(requireFlagValue(argv, i, '--force-resume-source'));
       i += 1;
       continue;
     }
     if (arg === '--checkpoint-operator') {
-      parsed.checkpointOperator = parseOptionalString(argv[i + 1]);
+      parsed.checkpointOperator = parseOptionalString(requireFlagValue(argv, i, '--checkpoint-operator'));
       i += 1;
       continue;
     }
@@ -176,12 +186,12 @@ function parseArgs(argv) {
       continue;
     }
     if (arg === '--stage-a-artifact') {
-      parsed.stageAArtifact = parseOptionalString(argv[i + 1]);
+      parsed.stageAArtifact = parseOptionalString(requireFlagValue(argv, i, '--stage-a-artifact'));
       i += 1;
       continue;
     }
     if (arg === '--stage-a-artifact-hash') {
-      parsed.stageAArtifactHash = parseOptionalString(argv[i + 1]);
+      parsed.stageAArtifactHash = parseOptionalString(requireFlagValue(argv, i, '--stage-a-artifact-hash'));
       i += 1;
       continue;
     }
@@ -250,17 +260,20 @@ function usage() {
 
 async function loadWorkloadConfig(workloadArg) {
   const presets = {
-    tiny: 'tools/configs/training-workloads/distill-translategemma-tiny.json',
-    medium: 'tools/configs/training-workloads/distill-translategemma-medium.json',
+    tiny: 'distill-translategemma-tiny',
+    medium: 'distill-translategemma-medium',
   };
   const candidate = presets[workloadArg] || workloadArg;
-  const absolute = resolve(candidate);
-  const raw = await readFile(absolute, 'utf8');
-  const parsed = JSON.parse(raw);
-  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
-    throw new Error(`Invalid distill workload config at ${absolute}`);
+  const loaded = await loadTrainingWorkloadPack(candidate, {
+    registryPath: 'tools/configs/training-workloads/registry.json',
+  });
+  if (loaded.workload.kind !== 'distill') {
+    throw new Error(`Expected distill workload, got "${loaded.workload.kind}" from ${loaded.path}`);
   }
-  return { path: absolute, config: parsed };
+  return {
+    ...loaded,
+    config: JSON.parse(loaded.raw),
+  };
 }
 
 async function runCli(args) {
@@ -332,11 +345,95 @@ function resolveResumeOverrideFields(args, workloadConfig) {
     return {};
   }
 
+  if (!forceResumeReason || !forceResumeSource) {
+    throw new Error('forceResume=true requires explicit forceResumeReason and forceResumeSource.');
+  }
   return {
     forceResume: true,
-    forceResumeReason: forceResumeReason || 'operator_requested_resume_override',
-    forceResumeSource: forceResumeSource || null,
+    forceResumeReason,
+    forceResumeSource,
     checkpointOperator,
+  };
+}
+
+function findStagePlanEntry(workload, stageId) {
+  const entries = Array.isArray(workload?.pipeline?.stagePlan) ? workload.pipeline.stagePlan : [];
+  return entries.find((entry) => entry?.id === stageId || entry?.trainingStage === stageId) || null;
+}
+
+function deriveLanguagePair(workload) {
+  const sourceLangs = Array.isArray(workload?.pipeline?.sourceLangs) ? workload.pipeline.sourceLangs : [];
+  const targetLangs = Array.isArray(workload?.pipeline?.targetLangs) ? workload.pipeline.targetLangs : [];
+  if (sourceLangs.length === 1 && targetLangs.length === 1) {
+    return `${sourceLangs[0]}-${targetLangs[0]}`;
+  }
+  const pairAllowlist = Array.isArray(workload?.pipeline?.pairAllowlist) ? workload.pipeline.pairAllowlist : [];
+  if (pairAllowlist.length === 1) {
+    const match = /^([^-\s>]+)\s*->\s*([^-\s>]+)$/u.exec(String(pairAllowlist[0]));
+    if (match) {
+      return `${match[1]}-${match[2]}`;
+    }
+  }
+  return null;
+}
+
+function buildRuntimeConfigJson(benchRun) {
+  if (benchRun == null) {
+    return null;
+  }
+  if (!benchRun || typeof benchRun !== 'object' || Array.isArray(benchRun)) {
+    throw new Error('Workload field "benchRun" must be an object when provided.');
+  }
+  return JSON.stringify({
+    shared: {
+      benchmark: {
+        run: benchRun,
+      },
+    },
+  });
+}
+
+export function resolveDistillWorkloadOptions(args, loadedWorkload) {
+  const workload = loadedWorkload.workload;
+  const stageAPlan = findStagePlanEntry(workload, 'stage_a');
+  const stageBPlan = findStagePlanEntry(workload, 'stage_b');
+  if (!stageAPlan || !stageBPlan) {
+    throw new Error(`Distill workload ${loadedWorkload.path} must define both stage_a and stage_b stagePlan entries.`);
+  }
+  const inferredBenchSteps = stageAPlan.steps === stageBPlan.steps ? stageAPlan.steps : null;
+  const benchSteps = args.trainingBenchSteps
+    ?? inferredBenchSteps;
+  if (args.mode === 'bench' && benchSteps == null) {
+    throw new Error(
+      `Distill workload ${loadedWorkload.path} has divergent stage_a/stage_b steps; pass --training-bench-steps explicitly.`
+    );
+  }
+  const distillDatasetPath = args.distillDatasetPath || workload.datasetPath;
+  const distillLanguagePair = deriveLanguagePair(workload);
+  if (!distillDatasetPath) {
+    throw new Error(`Distill workload ${loadedWorkload.path} is missing datasetPath.`);
+  }
+  if (!distillLanguagePair) {
+    throw new Error(
+      `Distill workload ${loadedWorkload.path} must resolve a language pair from pipeline.sourceLangs/targetLangs or pairAllowlist.`
+    );
+  }
+  return {
+    trainingSchemaVersion: workload.trainingSchemaVersion,
+    benchSteps,
+    stageASteps: args.stageASteps ?? stageAPlan.steps,
+    stageBSteps: args.stageBSteps ?? stageBPlan.steps,
+    checkpointEvery: args.checkpointEvery ?? workload.checkpointEvery,
+    teacherModelId: workload.teacherModelId,
+    studentModelId: workload.studentModelId,
+    distillDatasetId: workload.datasetId,
+    distillDatasetPath,
+    distillLanguagePair,
+    distillSourceLangs: args.distillSourceLangs || workload.pipeline.sourceLangs || null,
+    distillTargetLangs: args.distillTargetLangs || workload.pipeline.targetLangs || null,
+    distillPairAllowlist: args.distillPairAllowlist || workload.pipeline.pairAllowlist || null,
+    strictPairContract: args.strictPairContract || workload.pipeline.strictPairContract === true,
+    runtimeConfigJson: buildRuntimeConfigJson(loadedWorkload.config.benchRun),
   };
 }
 
@@ -389,7 +486,7 @@ async function runVerifyStage(stage, options) {
 }
 
 async function runBenchStage(stage, options) {
-  return runCli([
+  const args = [
     'bench',
     '--config',
     JSON.stringify({
@@ -409,10 +506,12 @@ async function runBenchStage(stage, options) {
         surface: options.surface,
       },
     }),
-    '--runtime-config',
-    options.runtimeConfigJson,
     '--json',
-  ]);
+  ];
+  if (options.runtimeConfigJson !== null) {
+    args.splice(args.length - 1, 0, '--runtime-config', options.runtimeConfigJson);
+  }
+  return runCli(args);
 }
 
 async function main() {
@@ -423,55 +522,23 @@ async function main() {
   }
   const outDirAbs = resolve(args.outDir);
   const workload = await loadWorkloadConfig(args.workload);
-
-  if (!workload.config.trainingSchemaVersion) {
-    throw new Error(`Workload config at ${workload.path} is missing required field: trainingSchemaVersion`);
-  }
-  if (!workload.config.trainingBenchSteps) {
-    throw new Error(`Workload config at ${workload.path} is missing required field: trainingBenchSteps`);
-  }
-  if (!workload.config.teacherModelId) {
-    throw new Error(`Workload config at ${workload.path} is missing required field: teacherModelId`);
-  }
-  if (!workload.config.studentModelId) {
-    throw new Error(`Workload config at ${workload.path} is missing required field: studentModelId`);
-  }
-  if (!workload.config.distillDatasetId) {
-    throw new Error(`Workload config at ${workload.path} is missing required field: distillDatasetId`);
-  }
-  const trainingSchemaVersion = Number(workload.config.trainingSchemaVersion);
-  const defaultBenchSteps = resolveOptionalInteger(
-    workload.config.trainingBenchSteps,
-    null,
-    'trainingBenchSteps'
-  );
-  const benchSteps = args.trainingBenchSteps ?? defaultBenchSteps;
-  const stageASteps = args.stageASteps ?? resolveOptionalInteger(
-    workload.config.stageASteps,
-    benchSteps,
-    'stageASteps'
-  );
-  const stageBSteps = args.stageBSteps ?? resolveOptionalInteger(
-    workload.config.stageBSteps,
-    benchSteps,
-    'stageBSteps'
-  );
-  const checkpointEvery = args.checkpointEvery ?? parseOptionalPositiveInteger(
-    workload.config.checkpointEvery,
+  const resolvedWorkload = resolveDistillWorkloadOptions(args, workload);
+  const trainingSchemaVersion = Number(resolvedWorkload.trainingSchemaVersion);
+  const benchSteps = resolvedWorkload.benchSteps;
+  const stageASteps = resolvedWorkload.stageASteps;
+  const stageBSteps = resolvedWorkload.stageBSteps;
+  const checkpointEvery = parseOptionalPositiveInteger(
+    resolvedWorkload.checkpointEvery,
     'checkpointEvery'
   );
-  const teacherModelId = String(workload.config.teacherModelId);
-  const studentModelId = String(workload.config.studentModelId);
-  const distillDatasetId = String(workload.config.distillDatasetId);
-  const distillDatasetPath = args.distillDatasetPath || (
-    workload.config.distillDatasetPath
-      ? String(workload.config.distillDatasetPath)
-      : null
-  );
-  const distillSourceLangs = args.distillSourceLangs || parseStringList(workload.config.distillSourceLangs);
-  const distillTargetLangs = args.distillTargetLangs || parseStringList(workload.config.distillTargetLangs);
-  const distillPairAllowlist = args.distillPairAllowlist || parseStringList(workload.config.distillPairAllowlist);
-  const strictPairContract = args.strictPairContract || workload.config.strictPairContract === true;
+  const teacherModelId = String(resolvedWorkload.teacherModelId);
+  const studentModelId = String(resolvedWorkload.studentModelId);
+  const distillDatasetId = String(resolvedWorkload.distillDatasetId);
+  const distillDatasetPath = resolvedWorkload.distillDatasetPath;
+  const distillSourceLangs = resolvedWorkload.distillSourceLangs;
+  const distillTargetLangs = resolvedWorkload.distillTargetLangs;
+  const distillPairAllowlist = resolvedWorkload.distillPairAllowlist;
+  const strictPairContract = resolvedWorkload.strictPairContract;
   const distillShardIndex = args.distillShardIndex
     ?? parseOptionalPositiveInteger(workload.config.distillShardIndex, 'distillShardIndex');
   const distillShardCount = args.distillShardCount
@@ -486,17 +553,8 @@ async function main() {
   ) {
     throw new Error('distillShardIndex must be <= distillShardCount');
   }
-  if (!workload.config.distillLanguagePair) {
-    throw new Error(`Workload config at ${workload.path} is missing required field: distillLanguagePair`);
-  }
-  const distillLanguagePair = String(workload.config.distillLanguagePair);
-  const runtimeConfigJson = JSON.stringify({
-    shared: {
-      benchmark: {
-        run: workload.config.benchRun || {},
-      },
-    },
-  });
+  const distillLanguagePair = String(resolvedWorkload.distillLanguagePair);
+  const runtimeConfigJson = resolvedWorkload.runtimeConfigJson;
   const resumeOverrides = resolveResumeOverrideFields(args, workload.config);
   const baseRequest = createBaseTrainingRequest({
     trainingSchemaVersion,
@@ -642,4 +700,6 @@ async function main() {
   process.stdout.write(`${JSON.stringify({ ok: true, mode: 'train', outPath }, null, 2)}\n`);
 }
 
-await main();
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  await main();
+}

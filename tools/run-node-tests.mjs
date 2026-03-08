@@ -77,19 +77,20 @@ function collectTestFiles(dir, files) {
   }
 }
 
-function addTestFileIfValid(pathValue, files) {
+function collectFilesFromRoot(pathValue, files) {
   if (!existsSync(pathValue)) {
-    return false;
+    throw new Error(`Test path not found: ${pathValue}`);
   }
   const stats = statSync(pathValue);
-  if (!stats.isFile()) {
-    return false;
-  }
-  const normalized = String(pathValue);
-  if (normalized.endsWith('.test.js')) {
+  if (stats.isFile()) {
+    const normalized = String(pathValue);
+    if (!normalized.endsWith('.test.js')) {
+      throw new Error(`Test file must end with .test.js: ${pathValue}`);
+    }
     files.push(pathValue);
+    return;
   }
-  return true;
+  collectTestFiles(pathValue, files);
 }
 
 function listRootsFromSuite(suiteName, explicitDirs) {
@@ -122,14 +123,7 @@ async function main() {
   const testFiles = [];
 
   for (const root of selectedRoots) {
-    if (!existsSync(root)) {
-      // keep behavior permissive: skip missing directories
-      continue;
-    }
-    if (addTestFileIfValid(root, testFiles)) {
-      continue;
-    }
-    collectTestFiles(root, testFiles);
+    collectFilesFromRoot(root, testFiles);
   }
 
   if (testFiles.length === 0) {
