@@ -5,6 +5,7 @@ import { DEFAULT_EMULATION_CONFIG, createEmulationConfig } from './emulation.sch
 import { mergeEcosystemConfig } from './ecosystem.schema.js';
 import {
   chooseNullish,
+  chooseDefined,
   mergeExecutionPatchLists,
   mergeKernelPathPolicy,
   mergeShallowObject,
@@ -248,7 +249,7 @@ function mergeInferenceConfig(
     speculative: { ...base.speculative, ...overrides.speculative },
     generation: { ...base.generation, ...overrides.generation },
     pipeline: overrides.pipeline ?? base.pipeline,
-    kernelPath: overrides.kernelPath ?? base.kernelPath,
+    kernelPath: chooseDefined(overrides.kernelPath, base.kernelPath),
     kernelPathSource: overrides.kernelPathSource ?? base.kernelPathSource,
     kernelPathPolicy: mergeKernelPathPolicy(baseKernelPathPolicy, overrideKernelPathPolicy),
     chatTemplate: mergeShallowObject(base.chatTemplate, overrides.chatTemplate),

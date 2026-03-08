@@ -13,6 +13,7 @@ import {
   buildPublishedRegistryEntry,
   ensureCatalogPayload,
   extractCommitShaFromUrl,
+  fetchRepoHeadSha,
   fetchJson,
   findCatalogEntry,
   getEntryHfSpec,
@@ -208,7 +209,9 @@ export async function main(argv = process.argv.slice(2)) {
     '--commit-message',
     `Publish ${uploadPlan.modelId} RDRR artifact`,
   ]);
-  const artifactRevision = extractCommitShaFromUrl(uploadResult.stdout) || extractCommitShaFromUrl(uploadResult.stderr);
+  const artifactRevision = extractCommitShaFromUrl(uploadResult.stdout)
+    || extractCommitShaFromUrl(uploadResult.stderr)
+    || await fetchRepoHeadSha(uploadPlan.repoId);
   if (!artifactRevision) {
     throw new Error(`Could not extract artifact commit SHA from hf upload output for ${uploadPlan.modelId}`);
   }
@@ -237,7 +240,9 @@ export async function main(argv = process.argv.slice(2)) {
       '--commit-message',
       `Publish ${uploadPlan.modelId} registry metadata`,
     ]);
-    const registryCommit = extractCommitShaFromUrl(registryResult.stdout) || extractCommitShaFromUrl(registryResult.stderr);
+    const registryCommit = extractCommitShaFromUrl(registryResult.stdout)
+      || extractCommitShaFromUrl(registryResult.stderr)
+      || await fetchRepoHeadSha(uploadPlan.repoId);
 
     const manifestUrl = buildManifestUrl(`https://huggingface.co/${uploadPlan.repoId}/resolve/${artifactRevision}/${uploadPlan.targetPath}`);
     const manifestProbe = await probeUrl(manifestUrl);

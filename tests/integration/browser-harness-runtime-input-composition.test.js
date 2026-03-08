@@ -55,6 +55,13 @@ try {
         },
       },
     }],
+    ['https://example.test/runtime/kernel-path-base.json', {
+      runtime: {
+        inference: {
+          kernelPath: 'gemma2-q4k-fused-f32a',
+        },
+      },
+    }],
   ]);
 
   globalThis.fetch = async (url) => {
@@ -139,6 +146,29 @@ try {
   const restoredRuntime = getRuntimeConfig();
   assert.equal(restoredRuntime.shared.tooling.baseline, 'manifest');
   assert.equal(restoredRuntime.inference.prompt, 'baseline');
+
+  setRuntimeConfig({
+    inference: {
+      kernelPath: 'baseline-kernel-path',
+    },
+  });
+
+  await applyRuntimeForRun({
+    command: 'verify',
+    suite: 'inference',
+    modelId: 'gemma3-270m',
+    configChain: ['https://example.test/runtime/kernel-path-base.json'],
+    runtimeConfig: {
+      inference: {
+        kernelPath: null,
+      },
+    },
+  });
+
+  assert.equal(getRuntimeConfig().shared.tooling.intent, 'verify');
+  assert.equal(getRuntimeConfig().shared.harness.mode, 'inference');
+  assert.equal(getRuntimeConfig().shared.harness.modelId, 'gemma3-270m');
+  assert.equal(getRuntimeConfig().inference.kernelPath, null);
 } finally {
   globalThis.fetch = originalFetch;
   setRuntimeConfig(null);

@@ -155,17 +155,11 @@ modelInference = merge(manifestInference, runtimeInferenceOverride)
 Execution-v0 runtime compile order (when `manifest.inference.execution` exists):
 
 ```
-require manifest.inference.schema == "doppler.execution/v0"
-require runtime execution overlay keys == {session, executionPatch}
-resolvedSession = merge(manifest.inference.sessionDefaults, runtime.inference.session)
-resolvedSteps = applyPatch(manifest.inference.execution.steps, runtime.inference.executionPatch)
-validate step contract: src,dst required; non-cast steps require kernel + kernelRef
-validate kernelRef pinning: each step.kernelRef must resolve exactly in session.compute.kernelProfiles
-resolvedPrecision = step.precision -> kernelProfile.precision -> session.compute.defaults
-resolvedKVIO = step.kvIO -> kernelProfile.kvIO -> session.kvcache.kvDtype
-validate precision capability: if kernel variant declares output dtype metadata, resolved outputDtype must be supported by kernel shader+entry
-validate graph: no dangling slots, prefill->decode boundary compatibility, KV dtype compatibility
-runtimeInference = merge(runtime.inference, compiledExecutionRuntimePatch)
+See `../conversion-runtime-contract.md` for the canonical step-by-step contract.
+In short: merge `manifest.inference.sessionDefaults` with
+`runtime.inference.session`, apply `runtime.inference.executionPatch`, validate
+the pinned execution contract, then merge the compiled runtime patch back into
+`runtime.inference`.
 ```
 
 Conversion bridge rule:
