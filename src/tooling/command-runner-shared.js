@@ -1,5 +1,5 @@
 import { buildRuntimeContractPatch } from './command-api.js';
-import { mergeRuntimeValues } from '../config/runtime-merge.js';
+import { applyOrderedRuntimeInputs } from './runtime-input-composition.js';
 
 function cloneRuntimeConfig(runtimeConfig) {
   if (runtimeConfig == null) return runtimeConfig;
@@ -62,12 +62,6 @@ function resetRuntimeState(runtimeBridge) {
   runtimeBridge.setRuntimeConfig(null);
 }
 
-function mergeRuntimePatch(runtimeBridge, patch) {
-  if (!patch) return;
-  const mergedRuntime = mergeRuntimeValues(runtimeBridge.getRuntimeConfig(), patch);
-  runtimeBridge.setRuntimeConfig(mergedRuntime);
-}
-
 function snapshotRuntimeState(runtimeBridge) {
   return {
     runtimeConfig: cloneRuntimeConfig(runtimeBridge.getRuntimeConfig()),
@@ -113,17 +107,16 @@ function restoreRuntimeState(runtimeBridge, snapshot) {
 
 export async function applyRuntimeInputs(request, runtimeBridge, options = {}) {
   resetRuntimeState(runtimeBridge);
-
-  if (request.runtimePreset) {
-    await runtimeBridge.applyRuntimePreset(request.runtimePreset, options);
-  }
-
-  if (request.runtimeConfigUrl) {
-    await runtimeBridge.applyRuntimeConfigFromUrl(request.runtimeConfigUrl, options);
-  }
-
-  mergeRuntimePatch(runtimeBridge, request.runtimeConfig);
-  mergeRuntimePatch(runtimeBridge, buildRuntimeContractPatch(request));
+  await applyOrderedRuntimeInputs(runtimeBridge, {
+    configChain: request.configChain ?? null,
+    runtimePreset: request.runtimePreset ?? null,
+    runtimeConfigUrl: request.runtimeConfigUrl ?? null,
+    runtimeConfig: request.runtimeConfig ?? null,
+    runtimeContractPatch: buildRuntimeContractPatch(request),
+  }, {
+    applyRuntimePreset: runtimeBridge.applyRuntimePreset?.bind(runtimeBridge),
+    applyRuntimeConfigFromUrl: runtimeBridge.applyRuntimeConfigFromUrl?.bind(runtimeBridge),
+  }, options);
   assertCalibrateRuntimeCompatibility(request, runtimeBridge.getRuntimeConfig());
 }
 

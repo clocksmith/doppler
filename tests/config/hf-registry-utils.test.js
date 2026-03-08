@@ -7,6 +7,7 @@ import {
   buildShardUrl,
   collectDuplicateModelIds,
   extractCommitShaFromUrl,
+  fetchRepoHeadSha,
   resolveDemoRegistryEntryBaseUrl,
   shouldDemoSurfaceRemoteRegistryEntry,
   validateLocalHfEntryShape,
@@ -124,6 +125,22 @@ import {
     ]),
     ['a']
   );
+}
+
+{
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => ({
+    ok: true,
+    json: async () => ({ sha: 'f3bac04695d52b4bf075d23ce094a7b73c17a913' }),
+  });
+  try {
+    assert.equal(
+      await fetchRepoHeadSha('Clocksmith/rdrr'),
+      'f3bac04695d52b4bf075d23ce094a7b73c17a913'
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 }
 
 console.log('hf-registry-utils.test: ok');

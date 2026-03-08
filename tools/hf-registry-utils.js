@@ -243,3 +243,19 @@ export async function fetchJson(url, options = {}) {
   }
   return response.json();
 }
+
+export async function fetchRepoHeadSha(repoId, options = {}) {
+  const normalizedRepoId = normalizeText(repoId);
+  if (!normalizedRepoId) {
+    throw new Error('repoId is required to fetch Hugging Face repo head SHA.');
+  }
+  const payload = await fetchJson(
+    `https://huggingface.co/api/models/${normalizedRepoId}`,
+    options
+  );
+  const sha = normalizeText(payload?.sha).toLowerCase();
+  if (!/^[a-f0-9]{40}$/.test(sha)) {
+    throw new Error(`Could not resolve HEAD commit SHA for Hugging Face repo "${normalizedRepoId}".`);
+  }
+  return sha;
+}

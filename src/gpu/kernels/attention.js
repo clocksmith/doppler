@@ -18,48 +18,29 @@ import { logKernelSelectionOnce } from '../kernel-selection-log.js';
 // Track if we've logged the attention tier selection (avoid spam)
 let loggedAttentionTier = false;
 
-
-let _chunkedMaxKVLen = null;
-
+function getRequiredVariantMaxKVLen(operation, variant, errorLabel) {
+  const config = getKernelConfig(operation, variant);
+  const maxKVLen = config.variantMetadata?.maxKVLen;
+  if (!Number.isFinite(maxKVLen)) {
+    throw new Error(`Kernel config missing ${errorLabel} maxKVLen`);
+  }
+  return maxKVLen;
+}
 
 function getChunkedMaxKVLen() {
-  if (_chunkedMaxKVLen === null) {
-    const config = getKernelConfig('attention', 'decode_chunked_f16kv');
-    const maxKVLen = config.variantMetadata?.maxKVLen;
-    if (!Number.isFinite(maxKVLen)) {
-      throw new Error('Kernel config missing attention.decode_chunked_f16kv maxKVLen');
-    }
-    _chunkedMaxKVLen = maxKVLen;
-  }
-  return _chunkedMaxKVLen;
+  return getRequiredVariantMaxKVLen('attention', 'decode_chunked_f16kv', 'attention.decode_chunked_f16kv');
 }
-
-let _tieredMaxKVLen = null;
 
 function getTieredMaxKVLen() {
-  if (_tieredMaxKVLen === null) {
-    const config = getKernelConfig('attention_tiered', 'decode_tiered_f16');
-    const maxKVLen = config.variantMetadata?.maxKVLen;
-    if (!Number.isFinite(maxKVLen)) {
-      throw new Error('Kernel config missing attention_tiered.decode_tiered_f16 maxKVLen');
-    }
-    _tieredMaxKVLen = maxKVLen;
-  }
-  return _tieredMaxKVLen;
+  return getRequiredVariantMaxKVLen('attention_tiered', 'decode_tiered_f16', 'attention_tiered.decode_tiered_f16');
 }
 
-let _tieredQuantMaxKVLen = null;
-
 function getTieredQuantMaxKVLen() {
-  if (_tieredQuantMaxKVLen === null) {
-    const config = getKernelConfig('attention_tiered_quant', 'decode_tiered_int8_f16kv');
-    const maxKVLen = config.variantMetadata?.maxKVLen;
-    if (!Number.isFinite(maxKVLen)) {
-      throw new Error('Kernel config missing attention_tiered_quant.decode_tiered_int8_f16kv maxKVLen');
-    }
-    _tieredQuantMaxKVLen = maxKVLen;
-  }
-  return _tieredQuantMaxKVLen;
+  return getRequiredVariantMaxKVLen(
+    'attention_tiered_quant',
+    'decode_tiered_int8_f16kv',
+    'attention_tiered_quant.decode_tiered_int8_f16kv'
+  );
 }
 
 

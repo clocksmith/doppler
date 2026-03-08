@@ -46,15 +46,12 @@ Canonical ID registry:
 Path definitions:
 - `src/config/presets/kernel-paths/*.json`
 
-Runtime precedence (low -> high):
-1. `manifest.inference.defaultKernelPath`
-2. execution-v0 inline kernel-path patch
-3. `runtime.inference.kernelPath`
-4. explicit per-run internal context override (runner-owned)
-
-`null` is a valid "no explicit kernel path" result. Runtime may proceed with
-registry/default pipeline behavior, but JS must not invent `'auto'` or silently
-rewrite kernel selection semantics.
+Kernel-path resolution precedence is canonical in
+[`conversion-runtime-contract.md`](conversion-runtime-contract.md).
+This file only relies on that contract:
+- `kernelPath` remains the only supported kernel-selection override surface
+- internal runner-owned per-run context may still apply the highest-precedence
+  override after manifest, execution-v0, and runtime config resolution
 
 `kernelPath` is the only supported kernel-selection override surface.
 Do not use legacy `kernelPlan`.
@@ -82,8 +79,8 @@ Harnessed command runs (`verify`, `debug`, `bench`) must preserve:
 - `runtime.shared.harness.modelId` — required for inference and bench flows;
   optional for training-bench and kernel-only flows. When absent, the command
   contract patch sets `modelId: null` (see `buildRuntimeContractPatch()` at
-  `src/tooling/command-api.js`). The `requiresModel` gate at
-  `command-api.js:408` controls which suites enforce model ID presence.
+  `src/tooling/command-api.js`). Suite-specific model ID enforcement lives in
+  `src/tooling/command-api-family-normalizers.js`.
 - `runtime.shared.tooling.intent` — always required
 
 ## Common usage
