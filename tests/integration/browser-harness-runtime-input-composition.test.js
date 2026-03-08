@@ -26,7 +26,8 @@ try {
           prompt: 'chain',
           batching: {
             maxTokens: 16,
-            stopCheckMode: 'per-token',
+            batchSize: 2,
+            stopCheckMode: 'per-batch',
           },
         },
       },
@@ -36,7 +37,9 @@ try {
         inference: {
           prompt: 'preset',
           batching: {
+            maxTokens: 12,
             batchSize: 4,
+            stopCheckMode: 'per-token',
           },
         },
       },
@@ -46,6 +49,7 @@ try {
         inference: {
           prompt: 'url',
           batching: {
+            batchSize: 6,
             readbackInterval: 3,
           },
         },
@@ -101,7 +105,7 @@ try {
   assert.equal(runtimeConfig.shared.harness.modelId, 'gemma3-270m');
   assert.equal(runtimeConfig.inference.prompt, 'inline');
   assert.equal(runtimeConfig.inference.batching.maxTokens, 8);
-  assert.equal(runtimeConfig.inference.batching.batchSize, 4);
+  assert.equal(runtimeConfig.inference.batching.batchSize, 6);
   assert.equal(runtimeConfig.inference.batching.readbackInterval, 3);
   assert.equal(runtimeConfig.inference.batching.stopCheckMode, 'per-token');
 

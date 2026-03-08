@@ -138,7 +138,7 @@ const tensorLocations = {
       weights: 'f16',
       embeddings: 'f16',
       compute: 'f16',
-      variantTag: 'wf16',
+      variantTag: 'f16',
     },
     eosTokenId: 1,
     architecture: model.architecture,

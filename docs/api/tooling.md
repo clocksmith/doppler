@@ -148,7 +148,7 @@ import { normalizeToolingCommandRequest, runBrowserCommand } from '@simulatte/do
 const request = normalizeToolingCommandRequest({
   command: 'verify',
   suite: 'inference',
-  modelId: 'gemma-3-270m-it-wq4k-ef16-hf16',
+  modelId: 'gemma-3-270m-it-q4k-ehf16-af32',
 });
 
 const result = await runBrowserCommand(request);

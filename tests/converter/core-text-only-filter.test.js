@@ -85,7 +85,7 @@ await convertModel(model, io, {
     weights: 'f16',
     embeddings: 'f16',
     compute: 'f16',
-    variantTag: 'wf16',
+    variantTag: 'f16',
   },
   architecture: {
     numLayers: 1,

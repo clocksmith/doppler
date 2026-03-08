@@ -81,7 +81,7 @@ await convertModel(model, io, {
     weights: 'f16',
     embeddings: 'f16',
     compute: 'f16',
-    variantTag: 'wf16',
+    variantTag: 'f16',
   },
   architecture: {
     numLayers: 1,
@@ -107,7 +107,7 @@ assert.ok(capturedShard, 'converted shard should be written');
 
 const loc = capturedManifest.tensors?.['model.layers.0.self_attn.q_proj.weight'];
 assert.ok(loc, 'tensor location missing');
-assert.equal(loc.dtype, 'F16', 'BF16 source should be converted to F16 for wf16 output');
+assert.equal(loc.dtype, 'F16', 'BF16 source should be converted to F16 for f16 output');
 assert.equal(loc.size, 8, 'tensor should remain 2 bytes/element after conversion');
 
 const outF16 = new Uint16Array(

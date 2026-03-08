@@ -113,8 +113,19 @@ export function validateCatalogMatrixInputs(payload) {
       }
     }
 
-    if (demo === 'curated' && !(baseUrl.startsWith('./curated/') || baseUrl.startsWith('curated/'))) {
-      errors.push(`${modelId}: lifecycle.status.demo=curated requires a curated baseUrl`);
+    if (availability.curated === true && !(baseUrl.startsWith('./local/') || baseUrl.startsWith('local/'))) {
+      errors.push(`${modelId}: lifecycle.availability.curated=true requires a repo-local baseUrl`);
+    }
+    if (
+      availability.local === true
+      && !(baseUrl.startsWith('./local/')
+        || baseUrl.startsWith('local/'))
+    ) {
+      errors.push(`${modelId}: lifecycle.availability.local=true requires a repo-local baseUrl`);
+    }
+
+    if (demo === 'curated' && !(baseUrl.startsWith('./local/') || baseUrl.startsWith('local/'))) {
+      errors.push(`${modelId}: lifecycle.status.demo=curated requires a repo-local baseUrl`);
     }
     if (demo === 'local' && !(baseUrl.startsWith('./local/') || baseUrl.startsWith('local/'))) {
       errors.push(`${modelId}: lifecycle.status.demo=local requires a local baseUrl`);
@@ -229,9 +240,9 @@ function resolveCatalogLifecycle(model) {
   const tested = lifecycle?.tested && typeof lifecycle.tested === 'object' ? lifecycle.tested : {};
 
   const baseUrl = typeof model?.baseUrl === 'string' ? model.baseUrl.trim() : '';
-  const fallbackDemo = baseUrl.startsWith('./curated/') || baseUrl.startsWith('curated/')
-    ? 'curated'
-    : (baseUrl.startsWith('./local/') || baseUrl.startsWith('local/') ? 'local' : 'none');
+  const fallbackDemo = baseUrl.startsWith('./local/') || baseUrl.startsWith('local/')
+    ? 'local'
+    : 'none';
   const demo = normalizeText(status.demo) || fallbackDemo;
 
   const hosted = typeof availability.hf === 'boolean'

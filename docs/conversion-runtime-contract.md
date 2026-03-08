@@ -47,9 +47,9 @@ Notes:
 Kernel-path resolution (low to high):
 
 1. `manifest.inference.defaultKernelPath`
-2. `runtime.inference.kernelPath`
-3. execution-v0 inline kernel-path patch
-4. Per-run pipeline context override (internal runner context)
+2. execution-v0 inline kernel-path patch
+3. `runtime.inference.kernelPath`
+4. per-run pipeline context override (internal runner context)
 
 `null` is a valid "no explicit kernel path" result. Runtime must not invent an
 implicit `'auto'` kernel path.

@@ -48,7 +48,7 @@ function createHarnessOverride() {
     harnessOverride: {
       modelLoadMs: 1,
       manifest: {
-        modelId: 'translategemma-4b-it-wq4k-ef16-hf16',
+        modelId: 'translategemma-4b-it-q4k-ehf16-af32',
         modelType: 'transformer',
         architecture: {
           numLayers: 34,

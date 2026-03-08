@@ -11,7 +11,7 @@ import { buildKernelRefFromKernelEntry } from '../../src/config/kernels/kernel-r
 import { validateManifest } from '../../src/formats/rdrr/validation.js';
 
 const translateGemmaManifest = JSON.parse(
-  fs.readFileSync('models/curated/gemma-3-270m-it-wq4k-ef16-hf16/manifest.json', 'utf8')
+  fs.readFileSync('models/local/gemma-3-270m-it-q4k-ehf16-af32/manifest.json', 'utf8')
 );
 
 function kernelRef(kernel, entry = 'main') {

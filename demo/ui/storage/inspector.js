@@ -403,21 +403,23 @@ export async function refreshStorageInspector(callbacks = {}) {
           const actions = document.createElement('div');
           actions.className = 'storage-entry-actions';
 
-          const tryBtn = document.createElement('button');
-          tryBtn.className = 'btn btn-small btn-primary';
-          tryBtn.type = 'button';
-          tryBtn.textContent = 'Try It';
-          tryBtn.addEventListener('click', async (event) => {
-            event.stopPropagation();
-            if (callbacks?.onTryModel) {
-              await callbacks.onTryModel(entry.modelId);
-              return;
-            }
-            if (callbacks?.onSelectModel) {
-              callbacks.onSelectModel(entry.modelId);
-            }
-          });
-          actions.appendChild(tryBtn);
+          if (entry.hasManifest) {
+            const tryBtn = document.createElement('button');
+            tryBtn.className = 'btn btn-small btn-primary';
+            tryBtn.type = 'button';
+            tryBtn.textContent = 'Try It';
+            tryBtn.addEventListener('click', async (event) => {
+              event.stopPropagation();
+              if (callbacks?.onTryModel) {
+                await callbacks.onTryModel(entry.modelId);
+                return;
+              }
+              if (callbacks?.onSelectModel) {
+                callbacks.onSelectModel(entry.modelId);
+              }
+            });
+            actions.appendChild(tryBtn);
+          }
 
           const exportBtn = document.createElement('button');
           exportBtn.className = 'btn btn-small';

@@ -77,7 +77,7 @@ await convertModel(model, io, {
     weights: 'f16',
     embeddings: 'f32',
     compute: 'f16',
-    variantTag: 'wf16-ef32',
+    variantTag: 'f16-ehf32',
   },
   architecture: {
     numLayers: 1,

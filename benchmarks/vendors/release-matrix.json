@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-03-07T20:43:56.088Z",
+  "generatedAt": "2026-03-08T19:24:28.259Z",
   "release": {
     "channel": "main-snapshot",
     "version": null,
-    "commitSha": "63a1903a8d0fa960d87ce103420cbc3bbe21881b",
+    "commitSha": "fdd721a1c411c9da84f3ba9d456f18a3b987d8e6",
     "dirty": null
   },
   "sources": {
@@ -28,9 +28,9 @@
     },
     "compareConfig": {
       "path": "benchmarks/vendors/compare-engines.config.json",
-      "sha256": "bc13f3e7525db59c1b0013a634e54ada622e9d2796f7fa9c7bace866b932cf04",
-      "bytes": 1342,
-      "updated": "2026-03-05"
+      "sha256": "5a03d80805e1b0e176e01efa63986c0233819837e1f63487becfe39ef159cc7f",
+      "bytes": 882,
+      "updated": "2026-03-08"
     },
     "compareMetricContract": {
       "path": "benchmarks/vendors/compare-metrics.json",
@@ -40,20 +40,20 @@
     },
     "benchmarkPolicy": {
       "path": "benchmarks/vendors/benchmark-policy.json",
-      "sha256": "93e4a9d516e206ba17c72577f42d44c761e3eab5a9a94916d05c9e132716b87a",
-      "bytes": 1321,
-      "updated": "2026-02-25"
+      "sha256": "1232b85d3ed7a558252568a29e21ba81afdb504a04ab4d8e6f8b33fb66099f76",
+      "bytes": 1310,
+      "updated": "2026-03-08"
     },
     "modelCatalog": {
       "path": "models/catalog.json",
-      "sha256": "c90b340b6a3b4e0044bb25d5a39700c5291666aeb3d82db492515bcf18778b4d",
-      "bytes": 4456,
-      "updated": "2026-03-07"
+      "sha256": "2be55501bacff759e973116015bc37d13011c191d899de1744a3168dca865d24",
+      "bytes": 4600,
+      "updated": "2026-03-08"
     },
     "harness:doppler": {
       "path": "benchmarks/vendors/harnesses/doppler.json",
-      "sha256": "002cdfe6d20644ecb135ef0031faf0224539f11089bb649a2fa6c3c82971d532",
-      "bytes": 1473,
+      "sha256": "52a63a9924d6480ecf01163612098c61cb86ba8484e33ba43674b87e27abb5f7",
+      "bytes": 1467,
       "updated": null
     },
     "harness:webllm": {
@@ -101,8 +101,8 @@
   },
   "summary": {
     "targetCount": 8,
-    "modelCoverageCount": 10,
-    "compareProfileCount": 6,
+    "modelCoverageCount": 9,
+    "compareProfileCount": 4,
     "catalogModelCount": 5,
     "workloadCount": 5,
     "committedChartCount": 1,
@@ -558,19 +558,7 @@
   ],
   "modelCoverage": [
     {
-      "dopplerModelId": "gemma-3-1b-it-wf16-ef16-hf16-f16",
-      "dopplerModelBaseDir": "local",
-      "defaultTjsModelId": "onnx-community/gemma-3-1b-it-ONNX-GQA",
-      "defaultKernelPath": "gemma3-f16-fused-f16a-online",
-      "defaultDopplerSurface": "auto",
-      "inCatalog": false,
-      "catalogLabel": null,
-      "catalogModes": [],
-      "catalogBaseUrl": null,
-      "catalogSizeBytes": null
-    },
-    {
-      "dopplerModelId": "gemma-3-1b-it-wf16-ef16-hf16-f32",
+      "dopplerModelId": "gemma-3-1b-it-f16-af32",
       "dopplerModelBaseDir": "local",
       "defaultTjsModelId": "onnx-community/gemma-3-1b-it-ONNX-GQA",
       "defaultKernelPath": "gemma3-f16-fused-f32a-online",
@@ -582,9 +570,33 @@
       "catalogSizeBytes": null
     },
     {
-      "dopplerModelId": "gemma-3-1b-it-wq4k-ef16-hf16",
+      "dopplerModelId": "gemma-3-1b-it-q4k-ehf16-af32",
       "dopplerModelBaseDir": "local",
       "defaultTjsModelId": "onnx-community/gemma-3-1b-it-ONNX-GQA",
+      "defaultKernelPath": "gemma3-q4k-dequant-f32a-online",
+      "defaultDopplerSurface": "auto",
+      "inCatalog": false,
+      "catalogLabel": null,
+      "catalogModes": [],
+      "catalogBaseUrl": null,
+      "catalogSizeBytes": null
+    },
+    {
+      "dopplerModelId": "gemma-3-270m-it-f16-af32",
+      "dopplerModelBaseDir": "local",
+      "defaultTjsModelId": "onnx-community/gemma-3-270m-it-ONNX",
+      "defaultKernelPath": null,
+      "defaultDopplerSurface": "auto",
+      "inCatalog": false,
+      "catalogLabel": null,
+      "catalogModes": [],
+      "catalogBaseUrl": null,
+      "catalogSizeBytes": null
+    },
+    {
+      "dopplerModelId": "gemma-3-270m-it-q4k-ehaf16",
+      "dopplerModelBaseDir": "local",
+      "defaultTjsModelId": "onnx-community/gemma-3-270m-it-ONNX",
       "defaultKernelPath": "gemma3-q4k-dequant-f16a-online",
       "defaultDopplerSurface": "auto",
       "inCatalog": false,
@@ -594,34 +606,10 @@
       "catalogSizeBytes": null
     },
     {
-      "dopplerModelId": "gemma-3-1b-it-wq4k-ef16-hf16-f32",
-      "dopplerModelBaseDir": "local",
-      "defaultTjsModelId": "onnx-community/gemma-3-1b-it-ONNX-GQA",
-      "defaultKernelPath": "gemma3-q4k-dequant-f32a-online",
-      "defaultDopplerSurface": "auto",
-      "inCatalog": false,
-      "catalogLabel": null,
-      "catalogModes": [],
-      "catalogBaseUrl": null,
-      "catalogSizeBytes": null
-    },
-    {
-      "dopplerModelId": "gemma-3-270m-it-wf16-ef16-hf16",
-      "dopplerModelBaseDir": "local",
-      "defaultTjsModelId": "onnx-community/gemma-3-270m-it-ONNX",
+      "dopplerModelId": "gemma-3-270m-it-q4k-ehf16-af32",
+      "dopplerModelBaseDir": null,
+      "defaultTjsModelId": null,
       "defaultKernelPath": null,
-      "defaultDopplerSurface": "auto",
-      "inCatalog": false,
-      "catalogLabel": null,
-      "catalogModes": [],
-      "catalogBaseUrl": null,
-      "catalogSizeBytes": null
-    },
-    {
-      "dopplerModelId": "gemma-3-270m-it-wq4k-ef16-hf16",
-      "dopplerModelBaseDir": "local",
-      "defaultTjsModelId": "onnx-community/gemma-3-270m-it-ONNX",
-      "defaultKernelPath": "gemma3-q4k-dequant-f32a-online",
       "defaultDopplerSurface": "auto",
       "inCatalog": true,
       "catalogLabel": "Gemma 3 270M Instruct (Q4K/F32a)",
@@ -629,11 +617,11 @@
         "run",
         "translate"
       ],
-      "catalogBaseUrl": "./curated/gemma-3-270m-it-wq4k-ef16-hf16",
+      "catalogBaseUrl": "./local/gemma-3-270m-it-q4k-ehf16-af32",
       "catalogSizeBytes": 418512553
     },
     {
-      "dopplerModelId": "google-embeddinggemma-300m-wq4k-ef16",
+      "dopplerModelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
       "dopplerModelBaseDir": null,
       "defaultTjsModelId": null,
       "defaultKernelPath": null,
@@ -643,11 +631,11 @@
       "catalogModes": [
         "embedding"
       ],
-      "catalogBaseUrl": "./curated/google-embeddinggemma-300m-wq4k-ef16",
+      "catalogBaseUrl": "./local/google-embeddinggemma-300m-q4k-ehf16-af32",
       "catalogSizeBytes": 480562497
     },
     {
-      "dopplerModelId": "qwen-3-5-0-8b-wq4k-ef16-hf16-f16",
+      "dopplerModelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "dopplerModelBaseDir": null,
       "defaultTjsModelId": null,
       "defaultKernelPath": null,
@@ -662,7 +650,7 @@
       "catalogSizeBytes": 788833984
     },
     {
-      "dopplerModelId": "qwen-3-5-2b-wq4k-ef16-hf16-f16",
+      "dopplerModelId": "qwen-3-5-2b-q4k-ehaf16",
       "dopplerModelBaseDir": null,
       "defaultTjsModelId": null,
       "defaultKernelPath": null,
@@ -677,7 +665,7 @@
       "catalogSizeBytes": 1789738688
     },
     {
-      "dopplerModelId": "translategemma-4b-it-wq4k-ef16-hf16",
+      "dopplerModelId": "translategemma-4b-it-q4k-ehf16-af32",
       "dopplerModelBaseDir": null,
       "defaultTjsModelId": null,
       "defaultKernelPath": null,
@@ -759,7 +747,7 @@
       "mode": "warm",
       "section": "warm",
       "decodeProfile": "parity",
-      "dopplerModelId": "lfm2-5-1-2b-instruct-wq4k-ef16-hf16-f32",
+      "dopplerModelId": "lfm2-5-1-2b-instruct-q4k-ehf16-af32",
       "tjsModelId": "LiquidAI/LFM2.5-1.2B-Instruct-ONNX",
       "dopplerKernelPath": "manifest-default",
       "workloadId": "g3-p064-d064-t0-k1",

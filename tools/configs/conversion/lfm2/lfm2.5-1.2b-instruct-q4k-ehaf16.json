@@ -1,0 +1,16 @@
+{
+  "output": {
+    "baseDir": "models/local",
+    "modelBaseId": "lfm2.5-1.2b-instruct-q4k-ehaf16"
+  },
+  "presets": {
+    "model": "lfm2"
+  },
+  "quantization": {
+    "weights": "q4k",
+    "embeddings": "f16",
+    "lmHead": "f16",
+    "computePrecision": "f16",
+    "q4kLayout": "row"
+  }
+}

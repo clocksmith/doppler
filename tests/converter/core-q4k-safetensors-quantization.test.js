@@ -92,7 +92,7 @@ await convertModel(model, io, {
     embeddings: 'f16',
     compute: 'f16',
     layout: 'row',
-    variantTag: 'wq4k-ef16',
+    variantTag: 'q4k-ehaf16',
   },
   architecture: {
     numLayers: 1,

@@ -3,6 +3,7 @@ inductive KVLayout where
   | paged
   | tiered
   | bdpa
+  | bdpa_paged
   deriving Repr, DecidableEq
 
 inductive Phase where

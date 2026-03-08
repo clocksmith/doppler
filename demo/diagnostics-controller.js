@@ -1,6 +1,5 @@
 import {
   log,
-  getRuntimeConfig,
   TOOLING_INTENTS,
   TOOLING_VERIFY_SUITES,
   applyRuntimePreset,
@@ -33,7 +32,7 @@ function resolveRuntimeConfig(options = {}) {
   if (options.runtimeConfig && typeof options.runtimeConfig === 'object') {
     return options.runtimeConfig;
   }
-  return getRuntimeConfig();
+  return null;
 }
 
 function mapSuiteToCommand(suite) {
@@ -48,6 +47,7 @@ function mapSuiteToCommand(suite) {
 export class DiagnosticsController {
   constructor(options = {}) {
     this.log = options.log || log;
+    this.runCommand = options.runCommand || runBrowserCommand;
     this.lastReport = null;
     this.lastReportInfo = null;
   }
@@ -65,11 +65,7 @@ export class DiagnosticsController {
   }
 
   async verifySuite(model, options = {}) {
-    const suite = normalizeSuite(options.suite || 'inference');
-    const runtimeConfig = resolveRuntimeConfig(options);
-    this.requireIntent(runtimeConfig);
-    mapSuiteToCommand(suite);
-    return { ok: true, suite };
+    return this.runSuite(model, options);
   }
 
   async runSuite(model, options = {}) {
@@ -77,13 +73,16 @@ export class DiagnosticsController {
     const { modelId, modelUrl } = resolveModelRef(model, options);
     const mapped = mapSuiteToCommand(suite);
     const runtimeConfig = resolveRuntimeConfig(options);
-    this.requireIntent(runtimeConfig);
-
-    if (suite !== 'kernels' && !modelId) {
-      throw new Error('modelId is required for this suite. modelUrl is optional when you need an explicit source.');
+    if (options.configChain != null) {
+      throw new Error(
+        'Diagnostics controller does not accept configChain. Use runtimePreset, runtimeConfigUrl, or runtimeConfig.',
+      );
+    }
+    if (runtimeConfig) {
+      this.requireIntent(runtimeConfig);
     }
 
-    const response = await runBrowserCommand({
+    const response = await this.runCommand({
       command: mapped.command,
       suite: mapped.suite ?? undefined,
       modelId,

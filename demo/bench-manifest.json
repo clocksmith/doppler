@@ -7,8 +7,8 @@
   },
   "runs": [
     {
-      "label": "gemma3-1b-it-wq4k (bench)",
-      "modelId": "gemma-3-1b-it-wq4k"
+      "label": "gemma3-1b-it-q4k-ehf16-af32 (bench)",
+      "modelId": "gemma-3-1b-it-q4k-ehf16-af32"
     }
   ],
   "reportModelId": "doppler-bench-default"

@@ -88,7 +88,8 @@ export interface QuantizationInfoSchema {
   tts?: QuantizationValue;         // TTS decoder
   projector?: QuantizationValue;   // Cross-modal projection layers
 
-  // Runtime hints (NOT included in variantTag - these are runtime, not storage)
+  // Runtime hints. `compute` may be included in variantTag when artifact naming
+  // treats activation dtype as part of the published variant identity.
   kvCache?: QuantizationValue;
   compute?: QuantizationValue;
 

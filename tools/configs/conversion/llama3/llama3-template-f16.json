@@ -1,0 +1,18 @@
+{
+  "output": {
+    "baseDir": "models/local",
+    "modelBaseId": "llama3-template-f16"
+  },
+  "presets": {
+    "model": "llama3"
+  },
+  "quantization": {
+    "weights": "f16",
+    "embeddings": "f16",
+    "lmHead": "f16",
+    "computePrecision": "f16"
+  },
+  "manifest": {
+    "hashAlgorithm": "blake3"
+  }
+}

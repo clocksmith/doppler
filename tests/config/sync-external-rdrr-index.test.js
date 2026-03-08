@@ -13,7 +13,7 @@ try {
   mkdirSync(modelDir, { recursive: true });
 
   writeFileSync(path.join(modelDir, 'manifest.json'), JSON.stringify({
-    modelId: 'demo-model-wq4k-ef16-hf16',
+    modelId: 'demo-model-q4k-ehf16-af32',
     quantization: 'Q4_K',
     totalSize: 1024,
     shards: [{ filename: 'shard_00000.bin' }],
@@ -35,7 +35,7 @@ try {
   writeFileSync(path.join(modelDir, 'origin.json'), JSON.stringify({
     sourceRepo: 'google/demo-model',
     sourceFormat: 'safetensors',
-    variant: 'wq4k-ef16-hf16',
+    variant: 'q4k-ehf16-af32',
   }, null, 2), 'utf8');
 
   const outputs = await buildIndex({
@@ -48,7 +48,7 @@ try {
   assert.equal(payload.summary.sourceModelCount, 1);
   assert.equal(payload.summary.variantCount, 1);
   assert.equal(payload.sourceModels[0].sourceModel, 'google/demo-model');
-  assert.equal(payload.sourceModels[0].variants[0].variant, 'wq4k-ef16-hf16');
+  assert.equal(payload.sourceModels[0].variants[0].variant, 'q4k-ehf16-af32');
 }
 finally {
   rmSync(root, { recursive: true, force: true });

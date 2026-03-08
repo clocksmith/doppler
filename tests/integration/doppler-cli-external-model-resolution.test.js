@@ -13,7 +13,7 @@ const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'doppler-cli-external-'
 
 try {
   const rdrrRoot = path.join(tempRoot, 'rdrr');
-  const modelId = 'translategemma-4b-it-wq4k-ef16-hf16';
+  const modelId = 'translategemma-4b-it-q4k-ehf16-af32';
   const modelDir = path.join(rdrrRoot, modelId);
   await fs.mkdir(modelDir, { recursive: true });
   await fs.writeFile(path.join(modelDir, 'manifest.json'), '{}', 'utf8');
@@ -49,8 +49,8 @@ try {
   );
   assert.equal(browserUnchanged.modelUrl, '/models/missing-model');
 
-  const normalizedModelId = 'sana-sprint-0-6b-wf16-ef16-hf16-f16';
-  const aliasedDir = path.join(rdrrRoot, 'sana-sprint-0.6b-wf16-ef16-hf16-f16');
+  const normalizedModelId = 'sana-sprint-0-6b-f16';
+  const aliasedDir = path.join(rdrrRoot, 'sana-sprint-0.6b-f16');
   await fs.mkdir(aliasedDir, { recursive: true });
   await fs.writeFile(path.join(aliasedDir, 'manifest.json'), JSON.stringify({ modelId: normalizedModelId }), 'utf8');
   await fs.writeFile(path.join(aliasedDir, 'shard_0.bin'), '');

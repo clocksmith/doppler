@@ -51,8 +51,8 @@ assert.throws(
   assert.equal(resolved.benchSteps, 2);
   assert.equal(resolved.stageASteps, 2);
   assert.equal(resolved.stageBSteps, 2);
-  assert.equal(resolved.teacherModelId, 'translategemma-4b-it-wq4k-ef16-hf16');
-  assert.equal(resolved.studentModelId, 'gemma-3-1b-it-wq4k-ef16-hf16');
+  assert.equal(resolved.teacherModelId, 'translategemma-4b-it-q4k-ehf16-af32');
+  assert.equal(resolved.studentModelId, 'gemma-3-1b-it-q4k-ehf16-af32');
   assert.equal(resolved.distillDatasetId, 'distill-en-es-toy');
   assert.match(resolved.distillDatasetPath, /distill-en-es-toy\.jsonl$/);
   assert.equal(resolved.distillLanguagePair, 'en-es');

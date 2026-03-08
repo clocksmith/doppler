@@ -6,6 +6,12 @@ structure KernelPathRegistryEntry where
   hasFile : Bool
   deriving Repr, DecidableEq
 
+def registryEntryShapeValid (entry : KernelPathRegistryEntry) : Bool :=
+  match entry.aliasOf, entry.hasFile with
+  | some _, true => false
+  | none, false => false
+  | _, _ => true
+
 def findRegistryEntry? : List KernelPathRegistryEntry → String → Option KernelPathRegistryEntry
   | [], _ => none
   | entry :: rest, id =>
@@ -25,9 +31,12 @@ def resolveAliasRootWithFuel?
       match findRegistryEntry? entries id with
       | none => none
       | some entry =>
-        match entry.aliasOf with
-        | some target => resolveAliasRootWithFuel? entries fuel target (id :: chain)
-        | none => if entry.hasFile then some entry.id else none
+        if !registryEntryShapeValid entry then
+          none
+        else
+          match entry.aliasOf with
+          | some target => resolveAliasRootWithFuel? entries fuel target (id :: chain)
+          | none => if entry.hasFile then some entry.id else none
 
 def resolveAliasRoot?
     (entries : List KernelPathRegistryEntry)
@@ -36,7 +45,7 @@ def resolveAliasRoot?
   resolveAliasRootWithFuel? entries (entries.length + chain.length + 1) id chain
 
 def registryAliasAcyclic (entries : List KernelPathRegistryEntry) : Bool :=
-  entries.all (fun entry => (resolveAliasRoot? entries entry.id).isSome)
+  entries.all (fun entry => registryEntryShapeValid entry && (resolveAliasRoot? entries entry.id).isSome)
 
 def fallbackPairValid : Dtype → Dtype → Bool
   | .f16, .f32 => true
@@ -80,4 +89,13 @@ theorem direct_alias_to_file_resolves
   have hne' : target ≠ source := by
     intro heq
     exact hne heq.symm
-  simp [registryAliasAcyclic, resolveAliasRoot?, resolveAliasRootWithFuel?, findRegistryEntry?, hne, hne']
+  simp [registryAliasAcyclic, registryEntryShapeValid, resolveAliasRoot?, resolveAliasRootWithFuel?, findRegistryEntry?, hne, hne']
+
+theorem alias_and_file_conflict_rejected
+    (id target : String)
+    (hne : target ≠ id) :
+    registryAliasAcyclic [{ id := id, aliasOf := some target, hasFile := true }] = false := by
+  have hne' : id ≠ target := by
+    intro heq
+    exact hne heq.symm
+  simp [registryAliasAcyclic, registryEntryShapeValid, resolveAliasRoot?, resolveAliasRootWithFuel?, findRegistryEntry?, hne, hne']

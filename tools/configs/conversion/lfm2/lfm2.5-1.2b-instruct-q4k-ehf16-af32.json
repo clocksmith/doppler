@@ -1,0 +1,29 @@
+{
+  "output": {
+    "baseDir": "models/local",
+    "modelBaseId": "lfm2.5-1.2b-instruct-q4k-ehf16-af32"
+  },
+  "presets": {
+    "model": "lfm2"
+  },
+  "quantization": {
+    "weights": "q4k",
+    "embeddings": "f16",
+    "lmHead": "f16",
+    "computePrecision": "f32",
+    "q4kLayout": "row"
+  },
+  "inference": {
+    "defaultKernelPath": "lfm2-q4k-dequant-f32a-online",
+    "sessionDefaults": {
+      "decodeLoop": {
+        "batchSize": 8,
+        "stopCheckMode": "batch",
+        "readbackInterval": 8,
+        "ringTokens": 1,
+        "ringStop": 1,
+        "ringStaging": 1
+      }
+    }
+  }
+}

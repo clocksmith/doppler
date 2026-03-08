@@ -43,9 +43,7 @@
       "firebase-debug.log",
       ".tjs-bench-profile/**",
       "tmp/**",
-      "models/converted/**",
-      "models/local/**",
-      "models/curated/**"
+      "models/converted/**"
     ]
   }
 }

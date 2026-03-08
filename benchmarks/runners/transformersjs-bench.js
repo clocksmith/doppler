@@ -41,6 +41,15 @@ import path from 'node:path';
 import http from 'node:http';
 import os from 'node:os';
 import { fileURLToPath } from 'node:url';
+import {
+  DEFAULT_CACHE_MODE,
+  DEFAULT_TJS_VERSION,
+  EMPTY_STRING,
+  HF_CACHE_TOKEN_FILE,
+  UNKNOWN_LABEL,
+  requiresPersistentBrowserContext,
+  persistentContextFailureMessage,
+} from './transformersjs-contract.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
@@ -340,7 +349,7 @@ function parseArgs(argv) {
 }
 
 function isRecoverablePersistentLaunchError(error) {
-  const message = error?.message || String(error || '');
+  const message = error?.message || String(error || EMPTY_STRING);
   return PERSISTENT_LAUNCH_ERROR_HINTS.some((hint) => message.includes(hint));
 }
 
@@ -444,7 +453,7 @@ function compactTimestamp(timestamp = null) {
 
 async function saveResult(result, saveDir, timestamp = null) {
   await fs.mkdir(saveDir, { recursive: true });
-  const modelSlug = String(result?.modelId || 'unknown').replace(/[^a-zA-Z0-9_-]/g, '_');
+  const modelSlug = String(result?.modelId || UNKNOWN_LABEL).replace(/[^a-zA-Z0-9_-]/g, '_');
   const ts = compactTimestamp(timestamp);
   const filename = `tjs_${modelSlug}_${ts}.json`;
   const filePath = path.join(saveDir, filename);
@@ -471,7 +480,7 @@ async function createStaticServer(root, preferredPort) {
   const serveRequest = async (req, res) => {
     const url = new URL(req.url, `http://${req.headers.host}`);
     const urlPath = decodeURIComponent(url.pathname);
-    const safePath = urlPath.replace(/^\/+/, '') || '';
+    const safePath = urlPath.replace(/^\/+/, '') || EMPTY_STRING;
     const filePath = path.resolve(root, safePath);
     const rootPath = path.resolve(root);
     const normalizedRoot = rootPath.endsWith(path.sep) ? rootPath : `${rootPath}${path.sep}`;
@@ -675,8 +684,8 @@ function summarizeOrtProfiling(events, topN) {
     if (!Number.isFinite(durUs) || durUs < 0) continue;
 
     const totalMs = durUs / 1000;
-    const name = String(event.name || 'unknown');
-    const category = String(event.cat || 'unknown');
+    const name = String(event.name || UNKNOWN_LABEL);
+    const category = String(event.cat || UNKNOWN_LABEL);
 
     durationEventCount++;
     totalDurationMs += totalMs;
@@ -733,20 +742,21 @@ function closeBaseServer(baseServer) {
 async function main() {
   const flags = parseArgs(process.argv.slice(2));
   const showConsole = flags['browser-console'] === true;
-  const cacheMode = flags['cache-mode'] || 'warm';
+  const cacheMode = flags['cache-mode'] || DEFAULT_CACHE_MODE;
   const loadMode = parseLoadMode(flags['load-mode'], '--load-mode', 'http');
-  const strictWarmOpfs = cacheMode === 'warm' && loadMode === 'opfs';
-  const tjsVersion = flags['tjs-version'] || '4';
+  const strictWarmOpfs = cacheMode === DEFAULT_CACHE_MODE && loadMode === 'opfs';
+  const tjsVersion = flags['tjs-version'] || DEFAULT_TJS_VERSION;
   const timestamp = parseTimestampValue(flags.timestamp, '--timestamp');
   const profileOps = parseBooleanFlag(flags['profile-ops'], true, '--profile-ops');
   const profileTopN = parsePositiveInteger(flags['profile-top'], DEFAULT_PROFILE_TOP_N, '--profile-top');
   const useChatTemplate = flags['use-chat-template'] === true;
   const tjsDtype = parseTjsDtype(flags.dtype, '--dtype', 'fp16');
+  const persistentContextRequired = requiresPersistentBrowserContext(cacheMode, loadMode);
 
-  if (cacheMode !== 'cold' && cacheMode !== 'warm') {
+  if (cacheMode !== 'cold' && cacheMode !== DEFAULT_CACHE_MODE) {
     throw new Error('--cache-mode must be cold or warm');
   }
-  if (tjsVersion !== '3' && tjsVersion !== '4') {
+  if (tjsVersion !== '3' && tjsVersion !== DEFAULT_TJS_VERSION) {
     throw new Error('--tjs-version must be 3 or 4');
   }
 
@@ -767,7 +777,7 @@ async function main() {
   // Auto-read HF token from flags or the cached credential file (for gated models).
   let hfToken = flags['hf-token'] || null;
   if (!hfToken) {
-    const tokenPath = path.join(process.env.HOME || process.env.USERPROFILE || '', '.cache', 'huggingface', 'token');
+    const tokenPath = path.join(process.env.HOME || process.env.USERPROFILE || EMPTY_STRING, HF_CACHE_TOKEN_FILE);
     try {
       hfToken = (await fs.readFile(tokenPath, 'utf-8')).trim() || null;
     } catch { /* no cached token */ }
@@ -849,6 +859,8 @@ async function main() {
 
   let context;
   let browser = null;
+  let persistentContextUsed = false;
+  let crashRecoveryArgsUsed = false;
   try {
     await fs.mkdir(userDataDir, { recursive: true });
     const launchArgs = uniqueArgs([...allArgs]);
@@ -861,6 +873,7 @@ async function main() {
     }
     try {
       context = await playwright.chromium.launchPersistentContext(userDataDir, launchOptions);
+      persistentContextUsed = true;
     } catch (error) {
       if (!isRecoverablePersistentLaunchError(error)) {
         throw error;
@@ -869,20 +882,21 @@ async function main() {
         ...launchOptions,
         args: hasCrashRecoveryArgs(launchOptions.args) ? launchOptions.args : withCrashRecoveryArgs(launchOptions.args),
       };
-      if (strictWarmOpfs) {
-        console.error('[tjs-bench] strict warm-opfs: persistent launch failed; retrying with crash-recovery args (no profile wipe).');
+      if (persistentContextRequired) {
+        console.error('[tjs-bench] persistent browser context required; retrying with crash-recovery args.');
         try {
           context = await playwright.chromium.launchPersistentContext(userDataDir, recoveryLaunchOptions);
+          persistentContextUsed = true;
+          crashRecoveryArgsUsed = true;
         } catch (retryError) {
-          throw new Error(
-            `strict warm-opfs requires persistent profile reuse; launch failed without wipe (${retryError.message})`
-          );
+          throw new Error(`${persistentContextFailureMessage(cacheMode, loadMode)} (${retryError.message})`);
         }
       } else {
         console.error('[tjs-bench] persistent launch failed; retrying with a clean profile.');
         await fs.rm(userDataDir, { recursive: true, force: true }).catch(() => {});
         try {
           context = await playwright.chromium.launchPersistentContext(userDataDir, launchOptions);
+          persistentContextUsed = true;
         } catch (retryError) {
           if (!isRecoverablePersistentLaunchError(retryError)) {
             throw retryError;
@@ -890,6 +904,8 @@ async function main() {
           console.error('[tjs-bench] persistent launch still failing; retrying with crash-recovery args.');
           try {
             context = await playwright.chromium.launchPersistentContext(userDataDir, recoveryLaunchOptions);
+            persistentContextUsed = true;
+            crashRecoveryArgsUsed = true;
           } catch (recoveryError) {
             if (!isRecoverablePersistentLaunchError(recoveryError)) {
               throw recoveryError;
@@ -897,6 +913,7 @@ async function main() {
             console.error('[tjs-bench] persistent launch with recovery args failed; falling back to non-persistent browser.');
             browser = await playwright.chromium.launch(recoveryLaunchOptions);
             context = await browser.newContext();
+            crashRecoveryArgsUsed = true;
           }
         }
       }
@@ -1084,6 +1101,9 @@ async function main() {
         executionProviderMode: asNonEmptyString(result?.env?.executionProviderMode),
         cacheMode: asNonEmptyString(result?.cacheMode),
         loadMode: asNonEmptyString(result?.loadMode),
+        persistentContextRequired,
+        persistentContextUsed,
+        crashRecoveryArgsUsed,
       },
     };
 
@@ -1113,7 +1133,19 @@ async function main() {
   }
 }
 
-main().catch((error) => {
-  console.error(`[tjs-bench] ${error.message}`);
-  process.exit(1);
-});
+const isDirectRun = process.argv[1]
+  && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+
+if (isDirectRun) {
+  main().catch((error) => {
+    console.error(`[tjs-bench] ${error.message}`);
+    process.exit(1);
+  });
+}
+
+export {
+  extractOrtProfilingEvents,
+  summarizeOrtProfiling,
+  parseArgs,
+  main,
+};

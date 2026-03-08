@@ -8,9 +8,13 @@ import type { BrowserSuite, BrowserSuiteResult } from '../src/inference/browser-
 import type { RuntimeConfigSchema } from '../src/config/schema/index.js';
 import type { SavedReportInfo } from '../src/storage/reports.js';
 import type { log as debugLog } from '../src/debug/index.js';
+import type { ToolingErrorEnvelope, ToolingSuccessEnvelope } from '../src/tooling/command-envelope.js';
 
 export interface DiagnosticsControllerOptions {
   log?: typeof debugLog;
+  runCommand?: (
+    request: Record<string, unknown>
+  ) => Promise<ToolingSuccessEnvelope<BrowserSuiteResult> | ToolingErrorEnvelope>;
 }
 
 export interface DiagnosticsSuiteOptions {
@@ -29,11 +33,14 @@ export declare class DiagnosticsController {
   constructor(options?: DiagnosticsControllerOptions);
 
   log: typeof debugLog;
+  runCommand: (
+    request: Record<string, unknown>
+  ) => Promise<ToolingSuccessEnvelope<BrowserSuiteResult> | ToolingErrorEnvelope>;
   lastReport: Record<string, unknown> | null;
   lastReportInfo: SavedReportInfo | null;
 
   requireIntent(runtimeConfig: Partial<RuntimeConfigSchema>): string | null;
   applyRuntimePreset(presetId: string): Promise<Record<string, unknown>>;
-  verifySuite(model: Record<string, unknown> | null, options?: DiagnosticsSuiteOptions): Promise<{ ok: true; suite: string }>;
+  verifySuite(model: Record<string, unknown> | null, options?: DiagnosticsSuiteOptions): Promise<BrowserSuiteResult>;
   runSuite(model: Record<string, unknown> | null, options?: DiagnosticsSuiteOptions): Promise<BrowserSuiteResult>;
 }

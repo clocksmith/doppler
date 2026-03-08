@@ -26,8 +26,8 @@ Treat these locations as separate roles, not interchangeable copies:
    Example: `/media/x/models/huggingface_cache/hub/.../snapshots/<revision>`
 2. Temporary rebuild / repair directory
    Example: `/tmp/<model-id>-rebuild`
-3. Repo metadata / curated fallback
-   Example: `models/curated/<model-id>/manifest.json`
+3. Repo metadata / repo-local fallback
+   Example: `models/local/<model-id>/manifest.json`
 4. External-volume canonical RDRR artifact
    Example: `/media/x/models/rdrr/<model-id>`
 5. Hugging Face hosted artifact
@@ -36,7 +36,7 @@ Treat these locations as separate roles, not interchangeable copies:
 Rules:
 
 - Do not publish from a scratch rebuild directory.
-- Do not treat stale repo or curated manifests as authoritative over a fresh verified rebuild.
+- Do not treat stale repo-local manifests as authoritative over a fresh verified rebuild.
 - Publish to Hugging Face from the external-volume canonical RDRR directory.
 - If repo metadata and external-volume artifact disagree, fix the artifact and metadata before publication.
 
@@ -133,12 +133,12 @@ Do not silently upgrade a model to hosted/demo-visible status based only on succ
 
 Update repo-visible model metadata to match the verified artifact:
 
-- `models/curated/<model-id>/manifest.json`
+- `models/local/<model-id>/manifest.json`
 - `models/catalog.json`
 
 Rules:
 
-- curated manifest must match the actual promoted artifact
+- repo-local manifest must match the actual promoted artifact
 - `models/catalog.json` must point to the current HF revision after publication, not the previous one
 - if a model is not correctness-clean, reflect that in human-facing status notes rather than implying full health
 
@@ -154,7 +154,7 @@ cp -a /tmp/<model-id>-rebuild/. /media/x/models/rdrr/<model-id>/
 
 After copy:
 
-- compare canonical external manifest against repo curated manifest
+- compare canonical external manifest against the repo-local manifest
 - verify the external-volume directory is the exact artifact to be hosted
 
 ### 7. Publish to Hugging Face from the external-volume canonical path
@@ -226,7 +226,7 @@ npm run support:matrix:sync
 - Rebuild from external source checkpoint.
 - Verify deterministic output on browser/WebGPU or the intended production surface.
 - Human-review the observed output.
-- Sync curated manifest and repo metadata.
+- Sync the repo-local manifest and repo metadata.
 - Sync canonical external-volume artifact.
 - Publish from the external-volume artifact.
 - Re-pin `models/catalog.json` to the new HF revision.

@@ -11,6 +11,10 @@ def conflictingAliasRegistry : List KernelPathRegistryEntry := [
   { id := "cycle-b", aliasOf := some "cycle-a", hasFile := false }
 ]
 
+def ambiguousAliasRegistry : List KernelPathRegistryEntry := [
+  { id := "ambiguous", aliasOf := some "gemma3-f16-fused-f16a-online", hasFile := true }
+]
+
 def validFallbackPairs : List (Dtype × Dtype) := [
   (.f16, .f32),
   (.f32, .f32)
@@ -24,6 +28,7 @@ def conflictingFallbackPairs : List (Dtype × Dtype) := [
 def kernelPathChecks : List (String × Bool) := [
   ("kernelpath_valid_aliases", registryAliasAcyclic validAliasRegistry),
   ("kernelpath_conflicting_aliases", registryAliasAcyclic conflictingAliasRegistry),
+  ("kernelpath_ambiguous_alias_entry", registryAliasAcyclic ambiguousAliasRegistry),
   ("kernelpath_valid_fallback_pairs", validFallbackPairs.all (fun pair => fallbackPairValid pair.1 pair.2)),
   ("kernelpath_conflicting_fallback_pairs", conflictingFallbackPairs.all (fun pair => fallbackPairValid pair.1 pair.2))
 ]

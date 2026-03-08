@@ -12,6 +12,11 @@
 }
 </script>
 <script type="module">
+import {
+  buildStrictWebgpuExecution,
+  normalizePreferredDtype,
+} from './transformersjs-contract.js';
+
 // ORT's WebGPU bundle can create a self-referencing Worker via import.meta.url.
 // If it resolves to a bare /dist directory, rewrite it to the bundled filename.
 const _OrigWorker = globalThis.Worker;
@@ -222,9 +227,6 @@ function buildTimingDiagnostics(timing = {}, options = {}) {
   };
 }
 
-const SUPPORTED_TJS_DTYPES = Object.freeze(['fp16', 'q4', 'q4f16']);
-const EXECUTION_PROVIDER_MODES = Object.freeze(['default', 'webgpu-only', 'webgpu+wasm', 'webgpu+wasm-safe']);
-
 function buildPipelineOptions(enableOrtProfiling, dtype = 'fp16', providerMode = 'default') {
   const hybridProviderMode = providerMode === 'webgpu+wasm' || providerMode === 'webgpu+wasm-safe';
   const forceWebgpuOnly = providerMode === 'webgpu-only';
@@ -243,33 +245,6 @@ function buildPipelineOptions(enableOrtProfiling, dtype = 'fp16', providerMode =
     dtype,
     session_options: sessionOptions,
   };
-}
-
-function normalizePreferredDtype(dtype) {
-  const normalized = String(dtype || 'fp16').trim().toLowerCase();
-  return SUPPORTED_TJS_DTYPES.includes(normalized) ? normalized : 'fp16';
-}
-
-function buildDtypeAttemptOrder(preferredDtype = 'fp16') {
-  const preferred = normalizePreferredDtype(preferredDtype);
-  const order = [];
-  const push = (dtype) => {
-    if (SUPPORTED_TJS_DTYPES.includes(dtype) && !order.includes(dtype)) {
-      order.push(dtype);
-    }
-  };
-  push(preferred);
-  if (preferred === 'fp16') {
-    push('q4f16');
-    push('q4');
-  } else if (preferred === 'q4') {
-    push('q4f16');
-    push('fp16');
-  } else {
-    push('q4');
-    push('fp16');
-  }
-  return order;
 }
 
 function isOrtBadAlloc(error) {
@@ -301,65 +276,42 @@ function isInt64CastKernelGap(error) {
 }
 
 async function loadGenerator(modelId, enableOrtProfiling, preferredDtype = 'fp16') {
-  const requestedDtype = normalizePreferredDtype(preferredDtype);
-  const dtypeAttempts = buildDtypeAttemptOrder(requestedDtype);
-  const ortProxyAttempts = globalThis.__tjsOrtWebgpu ? [false, true] : [false];
-  let lastError = null;
-  for (let dtypeIndex = 0; dtypeIndex < dtypeAttempts.length; dtypeIndex++) {
-    const dtype = dtypeAttempts[dtypeIndex];
-    for (let providerIndex = 0; providerIndex < EXECUTION_PROVIDER_MODES.length; providerIndex++) {
-      const providerMode = EXECUTION_PROVIDER_MODES[providerIndex];
-      for (let proxyIndex = 0; proxyIndex < ortProxyAttempts.length; proxyIndex++) {
-        const useOrtProxy = ortProxyAttempts[proxyIndex];
-        setOrtProxyMode(useOrtProxy);
-        try {
-          const generator = await pipeline(
-            'text-generation',
-            modelId,
-            buildPipelineOptions(enableOrtProfiling, dtype, providerMode)
-          );
-          return {
-            generator,
-            requestedDtype,
-            effectiveDtype: dtype,
-            fallbackUsed:
-              dtype !== requestedDtype || useOrtProxy === true || providerMode !== 'webgpu-only',
-            effectiveOrtProxy: useOrtProxy,
-            ortProxyFallbackUsed: useOrtProxy === true,
-            executionProviderMode: providerMode,
-            executionProviderFallbackUsed: providerMode !== 'default',
-          };
-        } catch (error) {
-          lastError = error;
-          if (isInt64CastKernelGap(error) || isWebGpuKernelSupportError(error)) {
-            throw new Error(
-              `Model "${modelId}" cannot run on Transformers.js WebGPU in this environment: ` +
-              `unsupported WebGPU kernel in ONNX graph (${error?.message || String(error)}). ` +
-              `Use a WebGPU-compatible non-GQA ONNX export or a different benchmark baseline.`
-            );
-          }
-          const hasMoreAttempts =
-            dtypeIndex < dtypeAttempts.length - 1
-            || providerIndex < EXECUTION_PROVIDER_MODES.length - 1
-            || proxyIndex < ortProxyAttempts.length - 1;
-          const shouldRetry = hasMoreAttempts && (
-            isOrtBadAlloc(error)
-            || isModelAssetError(error)
-          );
-          if (!shouldRetry) {
-            throw error;
-          }
-          const message = error?.message || String(error);
-          console.warn(
-            `[tjs-bench] model load failed (dtype=${dtype}, providers=${providerMode}, ` +
-            `ortProxy=${useOrtProxy ? 'on' : 'off'}): ${message}`
-          );
-        }
-      }
+  const execution = buildStrictWebgpuExecution(preferredDtype);
+  setOrtProxyMode(execution.effectiveOrtProxy);
+  try {
+    const generator = await pipeline(
+      'text-generation',
+      modelId,
+      buildPipelineOptions(enableOrtProfiling, execution.effectiveDtype, execution.executionProviderMode)
+    );
+    return {
+      generator,
+      ...execution,
+    };
+  } catch (error) {
+    if (isInt64CastKernelGap(error) || isWebGpuKernelSupportError(error)) {
+      throw new Error(
+        `Model "${modelId}" cannot run on Transformers.js WebGPU in this environment: ` +
+        `unsupported WebGPU kernel in ONNX graph (${error?.message || String(error)}). ` +
+        `Use a WebGPU-compatible non-GQA ONNX export or a different benchmark baseline.`
+      );
     }
+    if (isOrtBadAlloc(error)) {
+      throw new Error(
+        `Model "${modelId}" failed to load under the benchmark WebGPU contract ` +
+        `(dtype=${execution.effectiveDtype}, providers=${execution.executionProviderMode}, ortProxy=off): ` +
+        `${error?.message || String(error)}`
+      );
+    }
+    if (isModelAssetError(error)) {
+      throw new Error(
+        `Model "${modelId}" failed to load benchmark assets without runtime fallback ` +
+        `(dtype=${execution.effectiveDtype}, providers=${execution.executionProviderMode}, ortProxy=off): ` +
+        `${error?.message || String(error)}`
+      );
+    }
+    throw error;
   }
-
-  throw lastError ?? new Error('Failed to create generator session');
 }
 
 async function releaseGenerator(generator) {

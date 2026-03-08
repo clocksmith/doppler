@@ -48,7 +48,7 @@ Validation guarantees:
 Publish a local artifact directory and patch the remote `Clocksmith/rdrr` registry in one workflow:
 
 ```bash
-npm run registry:publish:hf -- --model-id translategemma-4b-it-wq4k-ef16-hf16
+npm run registry:publish:hf -- --model-id translategemma-4b-it-q4k-ehf16-af32
 ```
 
 The publish workflow:
@@ -61,7 +61,7 @@ The publish workflow:
 Dry run:
 
 ```bash
-npm run registry:publish:hf -- --model-id translategemma-4b-it-wq4k-ef16-hf16 --dry-run
+npm run registry:publish:hf -- --model-id translategemma-4b-it-q4k-ehf16-af32 --dry-run
 ```
 
 Preferred publication source:

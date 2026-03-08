@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
+import process from 'node:process';
 import { spawnSync } from 'node:child_process';
 
 function runCompareEngines(args) {
@@ -9,6 +10,52 @@ function runCompareEngines(args) {
     cwd: process.cwd(),
     encoding: 'utf8',
   });
+}
+
+{
+  const repoRoot = process.cwd();
+  const compareConfigPath = path.join(repoRoot, 'benchmarks', 'vendors', 'compare-engines.config.json');
+  const benchmarkPolicyPath = path.join(repoRoot, 'benchmarks', 'vendors', 'benchmark-policy.json');
+  const catalogPath = path.join(repoRoot, 'models', 'catalog.json');
+  const compareConfig = JSON.parse(await fs.readFile(compareConfigPath, 'utf8'));
+  const benchmarkPolicy = JSON.parse(await fs.readFile(benchmarkPolicyPath, 'utf8'));
+  const catalog = JSON.parse(await fs.readFile(catalogPath, 'utf8'));
+  const catalogIds = new Set((Array.isArray(catalog.models) ? catalog.models : []).map((entry) => entry?.modelId).filter(Boolean));
+
+  for (const profile of compareConfig.modelProfiles) {
+    if (profile?.modelBaseDir !== 'local') {
+      continue;
+    }
+    const manifestPath = path.join(repoRoot, 'models', 'local', profile.dopplerModelId, 'manifest.json');
+    await assert.doesNotReject(
+      fs.access(manifestPath),
+      `${profile.dopplerModelId}: local compare profile must resolve to models/local/<modelId>/manifest.json`
+    );
+    const manifest = JSON.parse(await fs.readFile(manifestPath, 'utf8'));
+    assert.equal(manifest.modelId, profile.dopplerModelId);
+    if (profile.defaultKernelPath != null) {
+      assert.equal(
+        manifest?.inference?.defaultKernelPath ?? null,
+        profile.defaultKernelPath,
+        `${profile.dopplerModelId}: compare profile defaultKernelPath must match the local manifest defaultKernelPath`
+      );
+    }
+  }
+
+  const knownBadByModel = benchmarkPolicy?.kernelPathPolicy?.knownBadByModel ?? {};
+  for (const modelId of Object.keys(knownBadByModel)) {
+    const localManifestPath = path.join(repoRoot, 'models', 'local', modelId, 'manifest.json');
+    let localExists = true;
+    try {
+      await fs.access(localManifestPath);
+    } catch {
+      localExists = false;
+    }
+    assert.ok(
+      localExists || catalogIds.has(modelId),
+      `benchmark-policy knownBadByModel.${modelId} must resolve to a local manifest or a catalog model`
+    );
+  }
 }
 
 {
@@ -45,7 +92,7 @@ function runCompareEngines(args) {
     updated: '2026-03-05',
     modelProfiles: [
       {
-        dopplerModelId: 'gemma-3-270m-it-wf16-ef16-hf16',
+        dopplerModelId: 'gemma-3-270m-it-f16-af32',
         defaultTjsModelId: 'onnx-community/gemma-3-270m-it-ONNX',
         defaultKernelPath: null,
         modelBaseDir: 'local',

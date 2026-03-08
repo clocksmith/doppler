@@ -14,6 +14,9 @@ const DEFAULT_CHART = 'bar';
 const DEFAULT_WIDTH = 960;
 const DEFAULT_HEIGHT = 720;
 const DEFAULT_SECTION = 'compute/parity';
+const EMPTY_STRING = '';
+const DEFAULT_UNIT = EMPTY_STRING;
+const DEFAULT_SAFE_TITLE = EMPTY_STRING;
 const CANVAS_PADDING = 14;
 const STATIC_CHART_TITLE = 'Phase-latency comparison across models on MacBook Air M3';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -99,14 +102,6 @@ const DEFAULT_METRICS = Object.freeze([
     unit: 'ms',
     higherBetter: false,
   },
-]);
-
-const FALLBACK_SECTIONS = Object.freeze([
-  'compute/parity',
-  'compute/throughput',
-  'compute',
-  'warm',
-  'cold',
 ]);
 
 const METRIC_PATH_HINTS = Object.freeze({
@@ -198,20 +193,18 @@ function buildMetricPathHintsFromHarnesses(...harnesses) {
 }
 
 function loadChartMetricContract() {
-  try {
-    const contract = readJsonFile(COMPARE_METRICS_PATH);
-    const dopplerHarness = readJsonFile(DOPPLER_HARNESS_PATH);
-    const transformersHarness = readJsonFile(TRANSFORMERSJS_HARNESS_PATH);
-    return Object.freeze({
-      metrics: normalizeMetricRows(contract),
-      metricPathHints: buildMetricPathHintsFromHarnesses(dopplerHarness, transformersHarness),
-    });
-  } catch {
-    return Object.freeze({
-      metrics: DEFAULT_METRICS,
-      metricPathHints: METRIC_PATH_HINTS,
-    });
+  const contract = readJsonFile(COMPARE_METRICS_PATH);
+  const dopplerHarness = readJsonFile(DOPPLER_HARNESS_PATH);
+  const transformersHarness = readJsonFile(TRANSFORMERSJS_HARNESS_PATH);
+  const metrics = normalizeMetricRows(contract);
+  if (metrics.length === 0) {
+    throw new Error(`compare-chart: metric contract at ${COMPARE_METRICS_PATH} must define metrics.`);
   }
+  const metricPathHints = buildMetricPathHintsFromHarnesses(dopplerHarness, transformersHarness);
+  return Object.freeze({
+    metrics,
+    metricPathHints: Object.keys(metricPathHints).length > 0 ? metricPathHints : METRIC_PATH_HINTS,
+  });
 }
 
 const CHART_METRIC_CONTRACT = loadChartMetricContract();
@@ -230,7 +223,7 @@ function renderChartCanvas(width, height) {
 }
 
 function renderChartHeaderBand(width, title, subtitle, sectionLabel) {
-  const safeTitle = escapeXml(title || subtitle || '');
+  const safeTitle = escapeXml(title || subtitle || DEFAULT_SAFE_TITLE);
   const textY = CANVAS_PADDING + 34;
   return `<text x="${CANVAS_PADDING + 16}" y="${textY}" fill="#dbeafe" font-family="${FONT_UI}" font-size="14" font-weight="bold" stroke="none">${safeTitle}</text>`;
 }
@@ -304,14 +297,14 @@ function usage() {
 }
 
 function splitCommaList(raw) {
-  return String(raw || '')
+  return String(raw || EMPTY_STRING)
     .split(',')
     .map((item) => item.trim())
     .filter((item) => item.length > 0);
 }
 
 function splitWorkloadFilterList(raw) {
-  const rawText = String(raw || '').trim();
+  const rawText = String(raw || EMPTY_STRING).trim();
   if (rawText.length === 0) return [];
   const parts = rawText.split(',').map((item) => item.trim()).filter((item) => item.length > 0);
   if (parts.length === 0) return [];
@@ -324,7 +317,7 @@ function splitWorkloadFilterList(raw) {
 }
 
 function normalizeWorkloadFilterToken(raw) {
-  return String(raw || '')
+  return String(raw || EMPTY_STRING)
     .trim()
     .toLowerCase()
     .replace(/\s+/g, ' ');
@@ -332,7 +325,7 @@ function normalizeWorkloadFilterToken(raw) {
 
 function workloadFilterTokens(entry) {
   const workload = entry?.report?.workload || {};
-  const inputBase = path.basename(entry.inputPath || '', '.json');
+  const inputBase = path.basename(entry.inputPath || EMPTY_STRING, '.json');
   const sampling = workload.sampling || {};
   const prefill = workload.prefillTokenTarget ?? workload.prefillTokens;
   const decode = workload.decodeTokenTarget ?? workload.decodeTokens;
@@ -467,7 +460,7 @@ function parseArgs(argv) {
     }
 
     if (arg === '--metrics') {
-      parsed.metricIds = String(argv[i + 1] || '')
+      parsed.metricIds = String(argv[i + 1] || EMPTY_STRING)
         .split(',')
         .map((item) => item.trim())
         .filter((item) => item.length > 0);
@@ -532,7 +525,7 @@ function parseArgs(argv) {
     }
 
     if (arg === '--preset') {
-      parsed.preset = (argv[i + 1] || '').trim();
+      parsed.preset = (argv[i + 1] || EMPTY_STRING).trim();
       i += 1;
       continue;
     }
@@ -756,31 +749,21 @@ function resolveSection(report, requestedSection) {
       : null;
   }
 
-  const candidates = [
-    requestedSection,
-    ...FALLBACK_SECTIONS,
-  ];
-  const seen = new Set();
-
-  for (const candidate of candidates) {
-    if (!candidate) continue;
-    if (seen.has(candidate)) continue;
-    seen.add(candidate);
-    let cursor = report.sections;
-    const segments = candidate.split('/').map((segment) => segment.trim()).filter((segment) => segment.length > 0);
-    for (const segment of segments) {
-      if (!cursor || typeof cursor !== 'object') {
-        cursor = null;
-        break;
-      }
-      cursor = cursor[segment];
+  let cursor = report.sections;
+  const segments = String(requestedSection || EMPTY_STRING)
+    .split('/')
+    .map((segment) => segment.trim())
+    .filter((segment) => segment.length > 0);
+  for (const segment of segments) {
+    if (!cursor || typeof cursor !== 'object') {
+      cursor = null;
+      break;
     }
-    if (sectionHasComparable(cursor)) {
-      return { section: candidate, payload: cursor };
-    }
+    cursor = cursor[segment];
   }
-
-  return null;
+  return sectionHasComparable(cursor)
+    ? { section: requestedSection, payload: cursor }
+    : null;
 }
 
 function enginePayload(sectionPayload, engineId) {
@@ -853,7 +836,7 @@ function collectRows(report, sectionPayload, metricIds) {
     return {
       id: metricDef.id,
       label: metricDef.label || metricDef.id,
-      unit: metricDef.unit || '',
+      unit: metricDef.unit || DEFAULT_UNIT,
       higherBetter: metricDef.higherBetter,
       doppler,
       transformersjs,
@@ -1203,9 +1186,9 @@ function renderPhases(rows, width, height, title, subtitle, sectionLabel, sectio
       body += `<rect x="${ttftX}" y="${y}" width="${ttftW}" height="${barHeight}" fill="${PHASE_COLORS.prefill}" />\n`;
 
       if (ttftW > 80) {
-        body += `<text x="${ttftX + 6}" y="${y + barHeight / 2 + 4}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="11" font-weight="bold">Prefill ${resolved.ttft.toFixed(1)} ms</text>\n`;
+        body += `<text x="${ttftX + 6}" y="${y + barHeight / 2 + 4}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="11" font-weight="bold">Prompt → First Token ${resolved.ttft.toFixed(1)} ms</text>\n`;
       } else if (ttftW > 40) {
-        body += `<text x="${ttftX + 4}" y="${y + barHeight / 2 + 4}" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="10">Prefill ${resolved.ttft.toFixed(0)} ms</text>\n`;
+        body += `<text x="${ttftX + 4}" y="${y + barHeight / 2 + 4}" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="10">TTFT ${resolved.ttft.toFixed(0)} ms</text>\n`;
       }
 
       cursor += ttftW;
@@ -1227,7 +1210,7 @@ function renderPhases(rows, width, height, title, subtitle, sectionLabel, sectio
   const legendY = baseY + engines.length * engineGap + 24;
   const legendItems = [
     { id: 'warmLoad', label: 'Model Load (Warm)' },
-    { id: 'prefill', label: 'Prefill' },
+    { id: 'prefill', label: 'Prompt → First Token' },
     { id: 'decode', label: 'Decode' },
   ];
   legendItems.forEach((item, i) => {
@@ -1312,10 +1295,10 @@ function renderMultiPhases(entries, width, title, subtitle) {
         const ttftX = cursor;
         body += `<rect x="${ttftX}" y="${y}" width="${ttftW}" height="${barHeight}" fill="${PHASE_COLORS.prefill}" />\n`;
         if (ttftW > 80) {
-          body += `<text x="${ttftX + 6}" y="${y + barHeight / 2 + 4}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="11" font-weight="bold">Prefill</text>\n`;
+          body += `<text x="${ttftX + 6}" y="${y + barHeight / 2 + 4}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="11" font-weight="bold">Prompt → First Token</text>\n`;
           body += `<text x="${ttftX + 6}" y="${y + barHeight / 2 + 16}" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="10">${resolved.ttft.toFixed(1)} ms</text>\n`;
         } else if (ttftW > 40) {
-          body += `<text x="${ttftX + 4}" y="${y + barHeight / 2 + 4}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="10" font-weight="bold">Prefill</text>\n`;
+          body += `<text x="${ttftX + 4}" y="${y + barHeight / 2 + 4}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="10" font-weight="bold">TTFT</text>\n`;
           body += `<text x="${ttftX + 4}" y="${y + barHeight / 2 + 15}" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="10">${resolved.ttft.toFixed(0)} ms</text>\n`;
         }
         cursor += ttftW;
@@ -1338,7 +1321,7 @@ function renderMultiPhases(entries, width, title, subtitle) {
   const legendY = baseY + workloads.length * workloadBlockHeight;
   const legendItems = [
     { id: 'warmLoad', label: 'Model Load (Warm)' },
-    { id: 'prefill', label: 'Prefill' },
+    { id: 'prefill', label: 'Prompt → First Token' },
     { id: 'decode', label: 'Decode' },
   ];
   legendItems.forEach((item, i) => {
@@ -1513,7 +1496,7 @@ function prettifyWorkload(workload) {
     const kMatch = workload.id.match(/k(\d+)/);
     if (kMatch && Number(kMatch[1]) > 1) parts.push(`top-k ${kMatch[1]}`);
   }
-  return parts.length > 0 ? parts.join(', ') : workload.id || '';
+  return parts.length > 0 ? parts.join(', ') : workload.id || EMPTY_STRING;
 }
 
 function formatDtypeSuffix(dtype) {
@@ -1536,14 +1519,14 @@ function buildTitle() {
 
 function buildModelLabel(report) {
   const hasDtypeFields = report.dopplerDtype != null || report.transformersjsDtype != null;
-  const dopplerModelId = report.dopplerModelId || report.modelId || '';
+  const dopplerModelId = report.dopplerModelId || report.modelId || EMPTY_STRING;
   const dopplerName = prettifyModelId(dopplerModelId, { stripDtype: hasDtypeFields });
   return dopplerName;
 }
 
 function buildWorkloadPanelLabel(report, fallbackWorkload) {
   const model = buildModelLabel(report);
-  const workload = prettifyWorkload(report.workload) || fallbackWorkload || '';
+  const workload = prettifyWorkload(report.workload) || fallbackWorkload || EMPTY_STRING;
   return workload.length > 0 ? `${model} • ${workload}` : model;
 }
 
@@ -1653,4 +1636,21 @@ function main() {
   console.log(`wrote ${outputPath}`);
 }
 
-main();
+const isDirectRun = process.argv[1]
+  && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+
+if (isDirectRun) {
+  try {
+    main();
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : String(error));
+    process.exit(1);
+  }
+}
+
+export {
+  loadChartMetricContract,
+  resolveSection,
+  parseArgs,
+  main,
+};

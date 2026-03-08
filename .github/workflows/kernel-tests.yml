@@ -12,6 +12,12 @@ on:
       - 'tests/converter/**'
       - 'tests/config/**'
       - 'tests/integration/**'
+      - 'tools/run-node-tests.mjs'
+      - 'tools/run-node-test-file.mjs'
+      - 'tools/run-node-coverage.mjs'
+      - 'tools/node-test-runtime-setup.mjs'
+      - 'tools/doppler-cli.js'
+      - 'package.json'
       - '.github/workflows/kernel-tests.yml'
   push:
     branches: [main]
@@ -25,6 +31,12 @@ on:
       - 'tests/converter/**'
       - 'tests/config/**'
       - 'tests/integration/**'
+      - 'tools/run-node-tests.mjs'
+      - 'tools/run-node-test-file.mjs'
+      - 'tools/run-node-coverage.mjs'
+      - 'tools/node-test-runtime-setup.mjs'
+      - 'tools/doppler-cli.js'
+      - 'package.json'
       - '.github/workflows/kernel-tests.yml'
   workflow_dispatch:
 

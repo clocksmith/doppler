@@ -65,14 +65,60 @@ import {
 }
 
 {
-  const manifestPath = path.join('models/local/translategemma-4b-it-wq4k-ef16-hf16', 'manifest.json');
+  const manifest = {
+    modelId: 'bdpa-paged-runtime-contract',
+    architecture: {
+      headDim: 128,
+      maxSeqLen: 4096,
+    },
+    inference: {
+      sessionDefaults: {
+        kvcache: {
+          layout: 'bdpa_paged',
+        },
+        decodeLoop: {
+          batchSize: 1,
+          disableCommandBatching: true,
+        },
+      },
+      execution: {
+        steps: [
+          {
+            id: 'decode_attention',
+            phase: 'decode',
+            op: 'attention',
+          },
+        ],
+      },
+    },
+  };
+
+  const facts = extractExecutionContractFacts(manifest);
+  assert.deepEqual(facts.session, {
+    layout: 'bdpa_paged',
+    disableCommandBatching: true,
+    decodeBatchSize: 1,
+    headDim: 128,
+    kvLen: 4096,
+    coldQuantMode: 'none',
+  });
+
+  const rendered = renderExecutionContractLeanModule(facts, {
+    moduleName: 'BDPAPagedRuntimeContract',
+  });
+  assert.match(rendered, /layout := \.bdpa_paged/);
+  assert.match(rendered, /disableCommandBatching := true/);
+}
+
+{
+  const manifestPath = path.join('models/local/translategemma-4b-it-q4k-ehf16-af32', 'manifest.json');
   if (!fs.existsSync(manifestPath)) {
     console.log('lean-execution-contract.test: skipped (local model fixture missing)');
   } else {
     const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
 
     const facts = extractExecutionContractFacts(manifest);
-    assert.equal(facts.modelId, 'translategemma-4b-it-wq4k-ef16-hf16');
+    assert.equal(facts.modelId, 'translategemma-4b-it-q4k-ehf16-af32');
     assert.equal(facts.session.layout, 'paged');
     assert.equal(facts.session.decodeBatchSize, 16);
     assert.equal(
@@ -84,7 +130,7 @@ import {
       moduleName: sanitizeLeanModuleName(facts.modelId),
     });
     assert.match(rendered, /layout := \.paged/);
-    assert.match(rendered, /translategemma-4b-it-wq4k-ef16-hf16\.steps/);
+    assert.match(rendered, /translategemma-4b-it-q4k-ehf16-af32\.steps/);
   }
 }
 

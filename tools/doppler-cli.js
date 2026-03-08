@@ -80,7 +80,7 @@ function usage() {
     '    - run: CLI-only run controls (surface, browser options, and bench save/compare/manifest settings).',
     '',
     'Example:',
-    '  doppler verify --config \'{"request":{"suite":"inference","modelId":"gemma-3-270m-it-wf16-ef16-hf16"}}\' --json',
+    '  doppler verify --config \'{"request":{"suite":"inference","modelId":"gemma-3-270m-it-f16-af32"}}\' --json',
   ].join('\n');
 }
 
@@ -437,10 +437,6 @@ export async function resolveBrowserModelUrl(request, browserOptions = {}) {
   const staticRootDir = resolveStaticRootDir(browserOptions);
   const externalModel = await resolveExternalModelDirectory(resolveRdrrRoot(browserOptions), modelId);
   const candidates = [
-    {
-    modelUrl: `/models/curated/${encodedModelId}`,
-    manifestPath: path.join(staticRootDir, 'models', 'curated', modelId, 'manifest.json'),
-    },
     {
     modelUrl: `/models/local/${encodedModelId}`,
     manifestPath: path.join(staticRootDir, 'models', 'local', modelId, 'manifest.json'),

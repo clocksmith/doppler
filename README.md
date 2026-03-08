@@ -83,19 +83,8 @@ for await (const token of doppler('Hello', { model: 'gemma3-270m' })) {
 - Architecture: [docs/architecture.md](https://github.com/clocksmith/doppler/blob/main/docs/architecture.md)
 - Generated model support table: [docs/model-support-matrix.md](https://github.com/clocksmith/doppler/blob/main/docs/model-support-matrix.md)
 
-## Current model support
-
-Verified right now:
-- `gemma-3-270m-it-wq4k-ef16-hf16`
-- `gemma-3-1b-it-wq4k-ef16-hf16`
-- `google-embeddinggemma-300m-wq4k-ef16`
-- `translategemma-4b-it-wq4k-ef16-hf16`
-
-Known failing right now:
-- `qwen-3-5-0-8b-wq4k-ef16-hf16-f16`
-- `qwen-3-5-2b-wq4k-ef16-hf16-f16`
-
-For the generated status table, including `loads but unverified` and `everything else`, see [docs/model-support-matrix.md](https://github.com/clocksmith/doppler/blob/main/docs/model-support-matrix.md).
+Current model support is generated from the catalog and conversion registry.
+See [docs/model-support-matrix.md](https://github.com/clocksmith/doppler/blob/main/docs/model-support-matrix.md) for the canonical verified, failing, and unverified status table.
 
 ## Environment requirements
 

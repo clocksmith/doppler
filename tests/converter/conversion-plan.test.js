@@ -28,7 +28,7 @@ const embeddingComputeF32Config = createConverterConfig({
       weights: 'f16',
       embeddings: 'f32',
       compute: 'f16',
-      variantTag: 'wf16-ef32',
+      variantTag: 'f16-ehf32',
     },
     [
       { name: 'embed_tokens.weight', role: 'embedding', dtype: 'F16' },
@@ -37,7 +37,7 @@ const embeddingComputeF32Config = createConverterConfig({
   );
   assert.equal(reconciled.weights, 'f16');
   assert.equal(reconciled.embeddings, 'f16');
-  assert.equal(reconciled.variantTag, 'wf16');
+  assert.equal(reconciled.variantTag, 'f16');
 }
 
 {
@@ -728,7 +728,7 @@ const embeddingComputeF32Config = createConverterConfig({
   assert.equal(plan.quantizationInfo.weights, 'f16');
   assert.equal(plan.quantizationInfo.embeddings, 'f16');
   assert.equal(plan.quantizationInfo.compute, 'f16');
-  assert.equal(plan.quantizationInfo.variantTag, 'wf16');
+  assert.equal(plan.quantizationInfo.variantTag, 'f16');
   assert.equal(plan.manifestInference?.defaultKernelPath, 'gemma3-f16-fused-f16a-online');
   assert.equal(plan.manifestInference?.output?.tieWordEmbeddings, true);
   assert.equal(plan.manifestInference?.output?.scaleEmbeddings, true);
@@ -1004,7 +1004,7 @@ const embeddingComputeF32Config = createConverterConfig({
   });
   assert.equal(plan.quantizationInfo.weights, 'q4k');
   assert.equal(plan.quantizationInfo.layout, 'row');
-  assert.equal(plan.quantizationInfo.variantTag, 'wq4k-ef16');
+  assert.equal(plan.quantizationInfo.variantTag, 'q4k-ehaf16');
   assert.equal(plan.manifestInference?.defaultKernelPath, 'gemma3-q4k-dequant-f16a-online');
 }
 
@@ -1179,7 +1179,7 @@ const embeddingComputeF32Config = createConverterConfig({
     presetOverride: 'llama3',
   });
   assert.equal(plan.quantizationInfo.embeddings, 'f16');
-  assert.equal(plan.quantizationInfo.variantTag, 'wq4k-ef16');
+  assert.equal(plan.quantizationInfo.variantTag, 'q4k-ehaf16');
 }
 
 {
@@ -1187,7 +1187,7 @@ const embeddingComputeF32Config = createConverterConfig({
     explicitModelId: null,
     converterConfig,
     detectedModelId: 'Flux.2-Klein-4B',
-    quantizationInfo: { variantTag: 'wf16' },
+    quantizationInfo: { variantTag: 'f16' },
   });
   assert.equal(typeof modelId, 'string');
   assert.ok(modelId.includes('flux-2-klein-4b'));

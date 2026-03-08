@@ -2,7 +2,7 @@
 
 ## Goal
 
-Move a locally verified RDRR artifact into curated metadata, external storage, and hosted publication workflows.
+Move a locally verified RDRR artifact into catalog metadata, repo-local storage, and hosted publication workflows.
 
 ## When To Use This Guide
 
@@ -15,7 +15,7 @@ Move a locally verified RDRR artifact into curated metadata, external storage, a
 
 ## Required Touch Points
 
-- `models/curated/<model-id>/manifest.json`
+- `models/local/<model-id>/manifest.json`
 - `models/catalog.json`
 - External-volume RDRR directory
 - `docs/model-support-matrix.md` via sync tooling
@@ -25,7 +25,7 @@ Move a locally verified RDRR artifact into curated metadata, external storage, a
 
 1. Finish local convert, verify, and debug work first.
 2. Get human review on deterministic output quality before touching catalog or hosted state.
-3. Sync the verified manifest into `models/curated/<model-id>/manifest.json`.
+3. Sync the verified manifest into `models/local/<model-id>/manifest.json`.
 4. Update `models/catalog.json`.
 5. Run support-matrix and external-index sync if catalog or external storage changed.
 6. Run catalog validation before any Hugging Face publication.
@@ -36,7 +36,7 @@ Move a locally verified RDRR artifact into curated metadata, external storage, a
 - `npm run ci:catalog:check`
 - `npm run support:matrix:sync` if catalog changed
 - `npm run external:rdrr:index` if external-volume tracking changed
-- Re-run a verify or debug pass against the curated or hosted artifact if publication changed the delivery path
+- Re-run a verify or debug pass against the repo-local or hosted artifact if publication changed the delivery path
 
 ## Common Misses
 

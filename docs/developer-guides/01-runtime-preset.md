@@ -33,7 +33,7 @@ Add a named runtime preset that changes behavior through JSON only.
 ```bash
 node tools/doppler-cli.js debug --config '{
   "request": {
-    "modelId": "gemma-3-270m-it-wq4k-ef16-hf16",
+    "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
     "runtimePreset": "modes/your-preset"
   },
   "run": { "surface": "auto" }

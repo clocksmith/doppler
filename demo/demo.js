@@ -1002,13 +1002,13 @@ function resolveQuickModelBaseUrl(baseUrl, modelId, catalogSourceUrl, hfSpec = n
   return isQuickModelAllowedUrl(resolved) ? resolved : null;
 }
 
-function isQuickModelCuratedUrl(resolvedUrl) {
+function isQuickModelLocalUrl(resolvedUrl) {
   try {
     const resolved = new URL(resolvedUrl);
     const catalogUrl = new URL(QUICK_MODEL_CATALOG_LOCAL_BASE_URL);
     if (resolved.origin !== catalogUrl.origin) return false;
     const normalizedPath = normalizeUrlPathname(resolved.pathname);
-    return normalizedPath.startsWith('/models/curated/');
+    return normalizedPath.startsWith('/models/local/');
   } catch {
     return false;
   }
@@ -1026,7 +1026,7 @@ function isQuickModelHfResolveUrl(resolvedUrl) {
 }
 
 function isQuickModelAllowedUrl(resolvedUrl) {
-  return isQuickModelCuratedUrl(resolvedUrl) || isQuickModelHfResolveUrl(resolvedUrl);
+  return isQuickModelLocalUrl(resolvedUrl) || isQuickModelHfResolveUrl(resolvedUrl);
 }
 
 function normalizeQuickCatalogEntry(raw, index, catalogSourceUrl) {
@@ -1645,12 +1645,14 @@ function renderQuickModelList(listEl, catalogEntries) {
 
     const actions = document.createElement('div');
     actions.className = 'quick-model-actions';
-    const tryBtn = document.createElement('button');
-    tryBtn.type = 'button';
-    tryBtn.className = 'btn btn-small btn-primary';
-    tryBtn.textContent = 'Try It';
-    tryBtn.addEventListener('click', () => handleStorageTryModel(storageEntry.modelId));
-    actions.appendChild(tryBtn);
+    if (isRunnableStorageEntry(storageEntry)) {
+      const tryBtn = document.createElement('button');
+      tryBtn.type = 'button';
+      tryBtn.className = 'btn btn-small btn-primary';
+      tryBtn.textContent = 'Try It';
+      tryBtn.addEventListener('click', () => handleStorageTryModel(storageEntry.modelId));
+      actions.appendChild(tryBtn);
+    }
     const deleteBtn = document.createElement('button');
     deleteBtn.type = 'button';
     deleteBtn.className = 'btn btn-small';
@@ -1667,7 +1669,7 @@ function renderQuickModelList(listEl, catalogEntries) {
   for (const entry of catalogSorted) {
     const isBusy = hasBusyAction && busyId === entry.modelId;
     const storageEntry = storageByModelId.get(entry.modelId);
-    const isInOpfs = !!storageEntry && !storageEntry.missingStorage;
+    const isInOpfs = isRunnableStorageEntry(storageEntry);
 
     const card = document.createElement('article');
     card.className = entry.recommended ? 'quick-model-card is-recommended' : 'quick-model-card';
@@ -1917,6 +1919,24 @@ async function importQuickModelEntry(entry) {
   await applyImportedModelToCurrentMode(entry.modelId);
 }
 
+function isRunnableStorageEntry(entry) {
+  return Boolean(entry && !entry.missingStorage && entry.hasManifest);
+}
+
+function describeImportedStorage(modelId) {
+  const entry = state.storageEntriesData.find((candidate) => candidate.modelId === modelId);
+  if (!entry?.backend) {
+    return 'local storage';
+  }
+  if (entry.backend === 'indexeddb') {
+    return 'IndexedDB';
+  }
+  if (entry.backend === 'opfs') {
+    return 'OPFS';
+  }
+  return entry.backend;
+}
+
 async function runQuickModelAction(action, modelId) {
   if (action !== 'download') return;
   const entry = findQuickModelEntry(modelId);
@@ -1937,7 +1957,7 @@ async function runQuickModelAction(action, modelId) {
   renderQuickModelPanels();
   try {
     await importQuickModelEntry(entry);
-    finalQuickStatus = `Fetched ${modelId} to OPFS.`;
+    finalQuickStatus = `Fetched ${modelId} to ${describeImportedStorage(modelId)}.`;
     renderQuickModelPanels();
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
@@ -2977,7 +2997,7 @@ async function runStandaloneQuintelPipeline(request) {
   const { EnergyPipeline } = await import('../src/energy/index.js');
   const pipeline = new EnergyPipeline();
   await pipeline.initialize({
-    runtimeConfig: state.runtimeConfig,
+    runtimeConfig: getRuntimeConfig(),
   });
   pipeline.manifest = {
     modelId: 'quintel-standalone',
@@ -3942,28 +3962,22 @@ async function handleDiagnosticsRun(mode) {
       runtimeConfig = await refreshDiagnosticsRuntimeConfig(runtimePreset);
     }
     if (mode === 'verify') {
-      await controller.verifySuite(null, {
-        suite,
-        runtimeConfig,
-      });
-      const timestamp = new Date().toISOString();
-      const report = {
-        suite,
-        modelId,
-        runtimePreset,
-        timestamp,
-        results: [{ name: 'verify-config', passed: true }],
-        durationMs: 0,
-        metrics: { verified: true, mode: 'verify' },
-        output: { verified: true, message: 'Configuration verified.' },
-      };
-      state.lastReport = report;
-      state.lastReportInfo = null;
-      state.lastMetrics = report.metrics;
-      state.lastDiagnosticsSuite = suite;
+      const result = await controller.verifySuite(
+        modelId ? { sources: { browser: { id: modelId } } } : null,
+        {
+          suite,
+          runtimePreset,
+          modelId,
+          runtimeConfig,
+        }
+      );
+      state.lastReport = result.report;
+      state.lastReportInfo = result.reportInfo ?? null;
+      state.lastMetrics = result.metrics ?? null;
+      state.lastDiagnosticsSuite = result.suite ?? suite;
       updateDiagnosticsStatus('Verified');
-      updateDiagnosticsReport(timestamp);
-      renderDiagnosticsOutput({ suite, modelId, report }, suite, false);
+      updateDiagnosticsReport(result.report?.timestamp || new Date().toISOString());
+      renderDiagnosticsOutput({ suite, modelId, report: result.report }, suite, false);
       return;
     }
 

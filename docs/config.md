@@ -48,8 +48,9 @@ Path definitions:
 
 Runtime precedence (low -> high):
 1. `manifest.inference.defaultKernelPath`
-2. `runtime.inference.kernelPath`
-3. execution-v0 inline kernel-path patch or explicit per-run internal context override (runner-owned)
+2. execution-v0 inline kernel-path patch
+3. `runtime.inference.kernelPath`
+4. explicit per-run internal context override (runner-owned)
 
 `null` is a valid "no explicit kernel path" result. Runtime may proceed with
 registry/default pipeline behavior, but JS must not invent `'auto'` or silently
@@ -90,14 +91,14 @@ Harnessed command runs (`verify`, `debug`, `bench`) must preserve:
 Set runtime preset only:
 
 ```bash
-node tools/doppler-cli.js verify --config '{"request":{"suite":"inference","modelId":"gemma-3-270m-it-wq4k-ef16-hf16","runtimePreset":"modes/debug"},"run":{"surface":"auto"}}' --json
+node tools/doppler-cli.js verify --config '{"request":{"suite":"inference","modelId":"gemma-3-270m-it-q4k-ehf16-af32","runtimePreset":"modes/debug"},"run":{"surface":"auto"}}' --json
 ```
 
 Override kernel path explicitly:
 
 ```bash
 node tools/doppler-cli.js debug \
-  --config '{"request":{"modelId":"gemma-3-270m-it-wq4k-ef16-hf16"},"run":{"surface":"auto"}}' \
+  --config '{"request":{"modelId":"gemma-3-270m-it-q4k-ehf16-af32"},"run":{"surface":"auto"}}' \
   --runtime-config '{"inference":{"kernelPath":"gemma3-q4k-dequant-f32a-online"}}' \
   --json
 ```

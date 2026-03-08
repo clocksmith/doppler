@@ -5,7 +5,6 @@ on:
     paths:
       - 'src/config/**'
       - 'src/gpu/kernels/check-finiteness.js'
-      - 'src/gpu/kernels/check_finiteness.wgsl'
       - 'src/inference/pipelines/text/**'
       - 'src/rules/inference/**'
       - 'tests/inference/**'
@@ -15,7 +14,6 @@ on:
     paths:
       - 'src/config/**'
       - 'src/gpu/kernels/check-finiteness.js'
-      - 'src/gpu/kernels/check_finiteness.wgsl'
       - 'src/inference/pipelines/text/**'
       - 'src/rules/inference/**'
       - 'tests/inference/**'
