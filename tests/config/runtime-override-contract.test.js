@@ -87,6 +87,13 @@ try {
   });
   assert.equal(updatedRuntime.inference.batching.batchSize, 7);
 
+  const nullKernelPathRuntime = setRuntimeConfig({
+    inference: {
+      kernelPath: null,
+    },
+  });
+  assert.equal(nullKernelPathRuntime.inference.kernelPath, null);
+
   const resetRuntime = setRuntimeConfig(null);
   assert.deepEqual(resetRuntime, createDopplerConfig().runtime);
 } finally {

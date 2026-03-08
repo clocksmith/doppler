@@ -20,7 +20,7 @@
       ],
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "5a6c9dc7f1607dd328de081dfa9ffb58c68a9121",
+        "revision": "cd6c12be0e83e92d6dbd92598a0aa94391ec7e94",
         "path": "models/gemma-3-270m-it-q4k-ehf16-af32"
       },
       "baseUrl": "./local/gemma-3-270m-it-q4k-ehf16-af32",
@@ -44,7 +44,11 @@
           "surface": "auto",
           "result": "pass",
           "lastVerifiedAt": "2026-03-04",
-          "source": "registry-verify"
+          "source": "registry-verify",
+          "contracts": {
+            "executionContractOk": true,
+            "executionV0GraphOk": true
+          }
         }
       }
     },
@@ -63,7 +67,7 @@
       ],
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "4efe64a914892e98be50842aeb16c3b648cc68a5",
+        "revision": "b23aca921ea11729d6f34b9484555968a5ab0e42",
         "path": "models/google-embeddinggemma-300m-q4k-ehf16-af32"
       },
       "baseUrl": "./local/google-embeddinggemma-300m-q4k-ehf16-af32",
@@ -87,7 +91,11 @@
           "surface": "auto",
           "result": "pass",
           "lastVerifiedAt": "2026-03-04",
-          "source": "registry-verify"
+          "source": "registry-verify",
+          "contracts": {
+            "executionContractOk": true,
+            "executionV0GraphOk": true
+          }
         }
       }
     },
@@ -131,7 +139,11 @@
           "surface": "browser",
           "result": "pass",
           "lastVerifiedAt": "2026-03-06",
-          "source": "manual-review"
+          "source": "manual-review",
+          "contracts": {
+            "executionContractOk": true,
+            "executionV0GraphOk": true
+          }
         }
       }
     },

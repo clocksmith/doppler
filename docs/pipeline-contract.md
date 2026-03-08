@@ -70,6 +70,9 @@ to direct `runBrowserCommand()` usage where `options.convertHandler` is injected
 - JS plane: orchestration and validation
 - WGSL plane: deterministic arithmetic only
 
+This is a pipeline-local summary. The normative execution-plane contract lives
+in [`style/general-style-guide.md`](style/general-style-guide.md).
+
 Any unresolved selection path is a contract error before dispatch.
 
 ## Related

@@ -22,7 +22,9 @@ for scripted runs. Runtime behavior is controlled via `runtime.*` and
 
 ### 1. Run Kernel Tests First
 Open `tests/harness.html` in `kernels` mode (runtime config sets `runtime.shared.tooling.intent = "verify"`).
-If any kernel fails, **fix it first**. Expected: all PASS except scatter-add.
+If any kernel fails, **fix it first**. Expected: all listed kernel checks PASS.
+If `scatter_add` is the only failure, treat it as a targeted MoE kernel issue
+before debugging broader inference behavior.
 
 ### 2. Run Inference Debug
 Use the demo diagnostics UI with the `debug` runtime preset and run the inference suite.

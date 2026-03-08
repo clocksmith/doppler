@@ -7,12 +7,52 @@ const { SpeculativeDecoder } = await import('../../src/inference/speculative.js'
 const { Tokenizer } = await import('../../src/inference/tokenizer.js');
 const { discoverModels } = await import('../../src/inference/test-harness.js');
 const { TieredKVCache } = await import('../../src/inference/kv-cache/tiered.js');
+const { createKVCache } = await import('../../src/inference/pipelines/text/init.js');
 const { evolveNetwork } = await import('../../src/inference/network-evolution.js');
 const { parseModelConfigFromManifest } = await import('../../src/inference/pipelines/text/config.js');
+const { setDevice } = await import('../../src/gpu/device.js');
+const {
+  DEFAULT_KVCACHE_CONFIG,
+  PAGED_LAYOUT_SEQ_LEN_THRESHOLD,
+} = await import('../../src/config/schema/index.js');
 const {
   createLinearAttentionRuntime,
   runLinearAttentionLayer,
 } = await import('../../src/inference/pipelines/text/linear-attention.js');
+
+function createKernelCapsOnlyDevice() {
+  return {
+    queue: {
+      submit() {},
+      writeBuffer() {},
+      onSubmittedWorkDone() {
+        return Promise.resolve();
+      },
+    },
+    features: new Set(),
+    limits: {
+      maxStorageBufferBindingSize: 1 << 20,
+      maxBufferSize: 1 << 20,
+      maxComputeWorkgroupSizeX: 256,
+      maxComputeWorkgroupSizeY: 1,
+      maxComputeWorkgroupSizeZ: 1,
+      maxComputeInvocationsPerWorkgroup: 256,
+      maxComputeWorkgroupStorageSize: 16384,
+      maxStorageBuffersPerShaderStage: 8,
+      maxUniformBufferBindingSize: 65536,
+      maxComputeWorkgroupsPerDimension: 65535,
+    },
+    createBindGroup() {
+      return {};
+    },
+    createBuffer() {
+      throw new Error('createBuffer should not be called in this regression test.');
+    },
+    createCommandEncoder() {
+      throw new Error('createCommandEncoder should not be called in this regression test.');
+    },
+  };
+}
 
 function createStructuredPipeline(manifest, runtimeConfig = {}) {
   const pipeline = new StructuredJsonHeadPipeline();
@@ -189,6 +229,40 @@ try {
       }),
       /FFN tensors imply 12/
     );
+  }
+
+  {
+    setDevice(createKernelCapsOnlyDevice(), { platformConfig: null });
+    try {
+      const runtimeKV = {
+        ...DEFAULT_KVCACHE_CONFIG,
+        maxSeqLen: PAGED_LAYOUT_SEQ_LEN_THRESHOLD,
+      };
+
+      const slidingOnlyCache = createKVCache({
+        numLayers: 1,
+        numKVHeads: 1,
+        headDim: 8,
+        maxSeqLen: PAGED_LAYOUT_SEQ_LEN_THRESHOLD,
+        slidingWindow: 1024,
+        attnLogitSoftcapping: null,
+        layerTypes: ['sliding_attention'],
+      }, false, false, runtimeKV);
+      assert.equal(slidingOnlyCache.layout, 'paged');
+
+      const fullAttentionCache = createKVCache({
+        numLayers: 1,
+        numKVHeads: 1,
+        headDim: 8,
+        maxSeqLen: PAGED_LAYOUT_SEQ_LEN_THRESHOLD,
+        slidingWindow: 1024,
+        attnLogitSoftcapping: null,
+        layerTypes: ['sliding_attention', 'full_attention'],
+      }, false, false, runtimeKV);
+      assert.equal(fullAttentionCache.layout, 'contiguous');
+    } finally {
+      setDevice(null);
+    }
   }
 
   {

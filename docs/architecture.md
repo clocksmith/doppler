@@ -58,6 +58,9 @@ DOPPLER makes deliberate architectural tradeoffs that diverge from pre-compiled 
 - **JS plane** (`src/**/*.js` orchestration): merge/validate config, allocate buffers, build pipelines, dispatch work, collect artifacts.
 - **WGSL plane** (`src/gpu/kernels/*.wgsl`): deterministic arithmetic execution only.
 
+This section is a system overview. The normative execution-plane contract lives
+in [`style/general-style-guide.md`](style/general-style-guide.md).
+
 Behavior-changing choices must be fully represented before dispatch:
 
 - No implicit runtime detection from model names at execution time.

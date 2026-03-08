@@ -629,12 +629,10 @@ Use runtime config to force kernel path selection:
 }
 ```
 
-Priority (low to high):
-1. manifest `inference.defaultKernelPath`
-2. execution-v0 inline kernel-path patch
-3. runtime config `runtime.inference.kernelPath`
-
-Kernel paths are explicit dispatch sequences. See `../config.md`.
+Kernel-path precedence and `null` semantics are defined in
+[`../conversion-runtime-contract.md`](../conversion-runtime-contract.md).
+Kernel paths remain explicit dispatch sequences; WGSL must not add its own
+selection behavior.
 
 ### RDRR Layout vs Runtime Kernels
 

@@ -453,6 +453,50 @@ import {
 {
   assert.throws(
     () => normalizeToolingCommandRequest({
+      command: 'debug',
+      modelId: 'gemma-3-270m-it-q4k-ehf16-af32',
+      configChain: ['modes/debug'],
+    }),
+    /debug does not accept configChain/
+  );
+
+  assert.throws(
+    () => normalizeToolingCommandRequest({
+      command: 'bench',
+      modelId: 'gemma-3-270m-it-q4k-ehf16-af32',
+      configChain: ['modes/debug'],
+    }),
+    /bench does not accept configChain/
+  );
+
+  assert.throws(
+    () => normalizeToolingCommandRequest({
+      command: 'distill',
+      action: 'run',
+      workloadPath: '/tmp/workload.json',
+      configChain: ['modes/debug'],
+    }),
+    /distill does not accept configChain/
+  );
+
+  assert.throws(
+    () => normalizeToolingCommandRequest({
+      command: 'convert',
+      inputDir: '/tmp/model',
+      configChain: ['modes/debug'],
+      convertPayload: {
+        converterConfig: {
+          output: { modelBaseId: 'gemma-3-1b-it-f16-af32' },
+        },
+      },
+    }),
+    /convert does not accept configChain/
+  );
+}
+
+{
+  assert.throws(
+    () => normalizeToolingCommandRequest({
       command: 'convert',
       inputDir: '/tmp/model',
       convertPayload: {

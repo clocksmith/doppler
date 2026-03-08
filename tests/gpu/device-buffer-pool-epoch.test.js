@@ -100,6 +100,40 @@ async function flushMicrotasks() {
 
   const oldLost = createDeferred();
   const currentLost = createDeferred();
+  const oldDevice = createFakeDevice('old-null-hop', { lostDeferred: oldLost });
+  const currentDevice = createFakeDevice('current-null-hop', { lostDeferred: currentLost });
+
+  setDevice(oldDevice, { platformConfig: null });
+  const oldEpoch = getDeviceEpoch();
+
+  setDevice(null);
+  const clearedEpoch = getDeviceEpoch();
+  assert.equal(getDevice(), null);
+  assert.ok(clearedEpoch > oldEpoch);
+
+  setDevice(currentDevice, { platformConfig: null });
+  const currentEpoch = getDeviceEpoch();
+  assert.ok(currentEpoch > clearedEpoch);
+
+  oldLost.resolve({ message: 'stale device lost after null reset', reason: 'destroyed' });
+  await flushMicrotasks();
+
+  assert.equal(getDevice(), currentDevice);
+  assert.equal(getDeviceEpoch(), currentEpoch);
+
+  currentLost.resolve({ message: 'current device lost', reason: 'destroyed' });
+  await flushMicrotasks();
+
+  assert.equal(getDevice(), null);
+  assert.ok(getDeviceEpoch() > currentEpoch);
+}
+
+{
+  destroyBufferPool();
+  setDevice(null);
+
+  const oldLost = createDeferred();
+  const currentLost = createDeferred();
   const oldDevice = createFakeDevice('old', { lostDeferred: oldLost });
   const currentDevice = createFakeDevice('current', { lostDeferred: currentLost });
 
