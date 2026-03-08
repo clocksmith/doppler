@@ -258,7 +258,7 @@ function usage() {
   ].join('\n');
 }
 
-async function loadWorkloadConfig(workloadArg) {
+export async function loadWorkloadConfig(workloadArg) {
   const presets = {
     tiny: 'distill-translategemma-tiny',
     medium: 'distill-translategemma-medium',
@@ -326,7 +326,7 @@ function resolveOptionalInteger(value, fallback, label) {
   return parsePositiveInteger(value, label);
 }
 
-function resolveResumeOverrideFields(args, workloadConfig) {
+export function resolveResumeOverrideFields(args, workloadConfig) {
   const forceResume = args.forceResume || workloadConfig.forceResume === true;
   const forceResumeReason = args.forceResumeReason
     || parseOptionalString(workloadConfig.forceResumeReason)

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { spawnSync } from 'node:child_process';
-import { closeSync, existsSync, mkdtempSync, openSync, readFileSync, readdirSync, rmSync } from 'node:fs';
+import { closeSync, existsSync, mkdtempSync, openSync, readFileSync, readdirSync, rmSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
@@ -92,7 +92,15 @@ function collectFilesFromRoot(pathValue, files) {
   if (!existsSync(pathValue)) {
     throw new Error(`Test path not found: ${pathValue}`);
   }
-  const stats = readFileSync ? null : null;
+  const stats = statSync(pathValue);
+  if (stats.isFile()) {
+    if (!String(pathValue).endsWith('.test.js')) {
+      throw new Error(`Test file must end with .test.js: ${pathValue}`);
+    }
+    files.push(pathValue);
+    return;
+  }
+  collectTestFiles(pathValue, files);
 }
 
 function listRootsFromSuite(suiteName, explicitDirs) {
@@ -109,10 +117,7 @@ function resolveTestFiles(suiteName, directories) {
   const roots = listRootsFromSuite(suiteName, directories);
   const files = [];
   for (const root of roots) {
-    if (!existsSync(root)) {
-      throw new Error(`Test path not found: ${root}`);
-    }
-    const stats = readFileSync ? null : null;
+    collectFilesFromRoot(root, files);
   }
   return files.sort();
 }
