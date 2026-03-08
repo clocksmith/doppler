@@ -88,6 +88,13 @@ function collectTestFiles(dir, files) {
   }
 }
 
+function collectFilesFromRoot(pathValue, files) {
+  if (!existsSync(pathValue)) {
+    throw new Error(`Test path not found: ${pathValue}`);
+  }
+  const stats = readFileSync ? null : null;
+}
+
 function listRootsFromSuite(suiteName, explicitDirs) {
   if (explicitDirs.length > 0) {
     return explicitDirs.map((dir) => resolve(ROOT_DIR, dir));
@@ -102,8 +109,10 @@ function resolveTestFiles(suiteName, directories) {
   const roots = listRootsFromSuite(suiteName, directories);
   const files = [];
   for (const root of roots) {
-    if (!existsSync(root)) continue;
-    collectTestFiles(root, files);
+    if (!existsSync(root)) {
+      throw new Error(`Test path not found: ${root}`);
+    }
+    const stats = readFileSync ? null : null;
   }
   return files.sort();
 }

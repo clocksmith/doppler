@@ -2,18 +2,27 @@
 
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 
-function parseArgs(argv) {
+function requireFlagValue(argv, index, flag) {
+  const value = argv[index + 1];
+  if (value == null || String(value).startsWith('--')) {
+    throw new Error(`Missing value for ${flag}`);
+  }
+  return String(value);
+}
+
+export function parseArgs(argv) {
   const parsed = { left: null, right: null };
   for (let i = 2; i < argv.length; i += 1) {
     const arg = argv[i];
     if (arg === '--left') {
-      parsed.left = argv[i + 1] || null;
+      parsed.left = requireFlagValue(argv, i, '--left');
       i += 1;
       continue;
     }
     if (arg === '--right') {
-      parsed.right = argv[i + 1] || null;
+      parsed.right = requireFlagValue(argv, i, '--right');
       i += 1;
       continue;
     }
@@ -40,7 +49,7 @@ function compareScalar(left, right, key) {
   };
 }
 
-function mainCompare(left, right) {
+export function mainCompare(left, right) {
   return {
     schemaVersion: 1,
     stage: compareScalar(left, right, 'stage'),
@@ -86,4 +95,6 @@ async function main() {
   process.stdout.write(`${JSON.stringify(comparison, null, 2)}\n`);
 }
 
-await main();
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  await main();
+}

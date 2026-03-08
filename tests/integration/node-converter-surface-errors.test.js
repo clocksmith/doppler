@@ -568,6 +568,9 @@ await assert.rejects(
   try {
     const result = await convertSafetensorsDirectory({
       inputDir: fixtureDir,
+      execution: {
+        workers: 1,
+      },
       converterConfig: {
         output: {
           modelBaseId: 'gemma2-sharded-index',
