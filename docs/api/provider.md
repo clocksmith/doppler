@@ -90,7 +90,7 @@ Public, but advanced and legacy-leaning compared with the root facade.
 import { initDoppler, loadModel, generate } from '@simulatte/doppler/provider';
 
 await initDoppler();
-await loadModel('gemma-3-270m-it-wq4k-ef16-hf16');
+await loadModel('gemma-3-270m-it-q4k-ehf16-af32');
 
 for await (const token of generate('Hello')) {
   process.stdout.write(token);
@@ -109,7 +109,7 @@ import {
 } from '@simulatte/doppler/provider';
 
 await initDoppler();
-await loadModel('gemma-3-270m-it-wq4k-ef16-hf16');
+await loadModel('gemma-3-270m-it-q4k-ehf16-af32');
 await loadLoRAAdapter('oneshift-twoshift-redshift-blueshift');
 
 const reply = await dopplerChat([

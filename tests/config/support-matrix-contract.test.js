@@ -1,4 +1,7 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import process from 'node:process';
 
 import {
   buildCurrentInferenceStatusBuckets,
@@ -12,15 +15,17 @@ import {
     updatedAt: '2026-03-06',
     models: [
       {
-        modelId: 'gemma-3-270m-it-wq4k-ef16-hf16',
-        baseUrl: './curated/gemma-3-270m-it-wq4k-ef16-hf16',
+        modelId: 'gemma-3-270m-it-q4k-ehf16-af32',
+        baseUrl: './local/gemma-3-270m-it-q4k-ehf16-af32',
         hf: {
           repoId: 'Clocksmith/rdrr',
           revision: '4efe64a914892e98be50842aeb16c3b648cc68a5',
-          path: 'models/gemma-3-270m-it-wq4k-ef16',
+          path: 'models/gemma-3-270m-it-q4k-ehf16-af32',
         },
         lifecycle: {
           availability: {
+            curated: true,
+            local: true,
             hf: true,
           },
           status: {
@@ -46,6 +51,8 @@ import {
         },
         lifecycle: {
           availability: {
+            curated: true,
+            local: true,
             hf: true,
           },
           status: {
@@ -67,10 +74,39 @@ import {
     'catalog updatedAt must be a non-empty string',
     'broken-model: lifecycle.availability.hf=true requires hf.revision',
     'broken-model: lifecycle.availability.hf=true requires hf.path',
-    'broken-model: lifecycle.status.demo=curated requires a curated baseUrl',
+    'broken-model: lifecycle.availability.curated=true requires a repo-local baseUrl',
+    'broken-model: lifecycle.availability.local=true requires a repo-local baseUrl',
+    'broken-model: lifecycle.status.demo=curated requires a repo-local baseUrl',
     'duplicate catalog modelId: broken-model',
     'broken-model: lifecycle.status.demo=local requires a local baseUrl',
   ]);
+}
+
+{
+  const repoRoot = process.cwd();
+  const catalogPath = path.join(repoRoot, 'models', 'catalog.json');
+  const catalog = JSON.parse(await fs.readFile(catalogPath, 'utf8'));
+  assert.deepEqual(validateCatalogMatrixInputs(catalog), []);
+
+  for (const entry of catalog.models) {
+    const baseUrl = typeof entry?.baseUrl === 'string' ? entry.baseUrl.trim() : '';
+    if (!baseUrl.startsWith('./local/')) {
+      continue;
+    }
+    const artifactDir = path.join(repoRoot, 'models', baseUrl.slice(2));
+    const manifestPath = path.join(artifactDir, 'manifest.json');
+    await assert.doesNotReject(fs.access(manifestPath), `${entry.modelId}: missing manifest.json for ${baseUrl}`);
+    const manifest = JSON.parse(await fs.readFile(manifestPath, 'utf8'));
+    const shards = Array.isArray(manifest?.shards) ? manifest.shards : [];
+    for (const shard of shards) {
+      const shardFile = typeof shard?.filename === 'string' ? shard.filename.trim() : '';
+      assert.ok(shardFile, `${entry.modelId}: shard filename must be explicit`);
+      await assert.doesNotReject(
+        fs.access(path.join(artifactDir, shardFile)),
+        `${entry.modelId}: missing shard ${shardFile} under ${baseUrl}`
+      );
+    }
+  }
 }
 
 {

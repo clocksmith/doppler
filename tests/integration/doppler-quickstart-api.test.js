@@ -18,16 +18,16 @@ assert.equal(typeof doppler.evict, 'function');
 
 {
   const models = await listQuickstartModels();
-  assert.ok(models.some((entry) => entry.modelId === 'gemma-3-270m-it-wq4k-ef16-hf16'));
+  assert.ok(models.some((entry) => entry.modelId === 'gemma-3-270m-it-q4k-ehf16-af32'));
 }
 
 {
   const resolved = await resolveQuickstartModel('gemma3-270m');
-  assert.equal(resolved.modelId, 'gemma-3-270m-it-wq4k-ef16-hf16');
+  assert.equal(resolved.modelId, 'gemma-3-270m-it-q4k-ehf16-af32');
   assert.ok(resolved.aliases.includes('google/gemma-3-270m-it'));
   assert.match(
     buildQuickstartModelBaseUrl(resolved),
-    /^https:\/\/huggingface\.co\/Clocksmith\/rdrr\/resolve\/4efe64a914892e98be50842aeb16c3b648cc68a5\/models\/gemma-3-270m-it-wq4k-ef16$/
+    /^https:\/\/huggingface\.co\/Clocksmith\/rdrr\/resolve\/4efe64a914892e98be50842aeb16c3b648cc68a5\/models\/gemma-3-270m-it-q4k-ehf16-af32$/
   );
 }
 

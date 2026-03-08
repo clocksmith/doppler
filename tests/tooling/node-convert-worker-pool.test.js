@@ -31,7 +31,7 @@ const transformContext = {
     lmHead: 'f16',
     compute: 'f16',
     layout: 'row',
-    variantTag: 'wq4k-ef16',
+    variantTag: 'q4k-ehaf16',
   },
   quantizeEmbeddings: false,
 };

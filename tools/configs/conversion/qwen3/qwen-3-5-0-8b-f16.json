@@ -1,0 +1,34 @@
+{
+  "presets": {
+    "model": "qwen3"
+  },
+  "quantization": {
+    "weights": "f16",
+    "embeddings": "f16",
+    "lmHead": "f16",
+    "computePrecision": "f16"
+  },
+  "output": {
+    "baseDir": "models/local",
+    "modelBaseId": "qwen-3-5-0-8b-f16",
+    "textOnly": true,
+    "fast": false
+  },
+  "inference": {
+    "defaultKernelPath": null,
+    "sessionDefaults": {
+      "decodeLoop": {
+        "batchSize": 4,
+        "stopCheckMode": "batch",
+        "readbackInterval": 1,
+        "ringTokens": 1,
+        "ringStop": 1,
+        "ringStaging": 1,
+        "disableCommandBatching": true
+      }
+    }
+  },
+  "manifest": {
+    "hashAlgorithm": "blake3"
+  }
+}

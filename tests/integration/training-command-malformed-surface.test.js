@@ -24,7 +24,7 @@ await assertRejectsOnBothSurfaces({
 await assertRejectsOnBothSurfaces({
   command: 'verify',
   suite: 'inference',
-  modelId: 'gemma-3-270m-it-wf16-ef16-hf16',
+  modelId: 'gemma-3-270m-it-f16-af32',
   trainingTests: ['ul-stage1'],
 }, /training-only fields require suite="training" or bench workloadType="training"/);
 

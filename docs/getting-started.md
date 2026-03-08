@@ -57,8 +57,8 @@ Use this when a model is already in the hosted registry.
 
 ```bash
 HF_REVISION=4efe64a914892e98be50842aeb16c3b648cc68a5
-MODEL_ID=gemma-3-270m-it-wq4k-ef16-hf16
-MODEL_URL="https://huggingface.co/Clocksmith/rdrr/resolve/${HF_REVISION}/models/gemma-3-270m-it-wq4k-ef16"
+MODEL_ID=gemma-3-270m-it-q4k-ehf16-af32
+MODEL_URL="https://huggingface.co/Clocksmith/rdrr/resolve/${HF_REVISION}/models/gemma-3-270m-it-q4k-ehf16-af32"
 ```
 
 ### Verify
@@ -103,7 +103,7 @@ Use this when no prebuilt RDRR artifact exists.
 
 ```bash
 INPUT_PATH=/path/to/source/model
-CONVERSION_CONFIG=tools/configs/conversion/embeddinggemma/embeddinggemma-300m-wq4k-ef16.json
+CONVERSION_CONFIG=tools/configs/conversion/embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32.json
 ```
 
 ### Convert

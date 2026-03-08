@@ -19,9 +19,16 @@ def BDPA_MAX_HEAD_DIM : Nat := 256
 def BDPA_MAX_KV_LEN : Nat := 2048
 def TIERED_MAX_QUANT_HEAD_DIM : Nat := 256
 
+def layoutUsesBDPA : KVLayout → Bool
+  | .bdpa => true
+  | .bdpa_paged => true
+  | _ => false
+
 def layoutAdmitsAttentionPhase : KVLayout → Phase → Bool
   | .bdpa, .prefill => false
   | .bdpa, .both => false
+  | .bdpa_paged, .prefill => false
+  | .bdpa_paged, .both => false
   | _, _ => true
 
 def layoutAdmitsStep (layout : KVLayout) (step : ExecutionStep) : Bool :=
@@ -53,6 +60,11 @@ def sessionConsistent (session : SessionConfig) : Bool :=
       && decide (session.decodeBatchSize ≤ 1)
       && bdpaHeadDimValid session.headDim
       && bdpaKVLenValid session.kvLen
+  | .bdpa_paged =>
+    session.disableCommandBatching
+      && decide (session.decodeBatchSize ≤ 1)
+      && bdpaHeadDimValid session.headDim
+      && bdpaKVLenValid session.kvLen
   | .tiered =>
     tieredQuantValid session.headDim session.coldQuantMode
   | _ => true
@@ -72,6 +84,26 @@ theorem bdpa_rejects_both_attention
     (session : SessionConfig) :
     step.opClass = .attention →
     session.layout = .bdpa →
+    step.phase = .both →
+    stepCompatible step session = false := by
+  intro hop hlayout hphase
+  simp [stepCompatible, layoutAdmitsStep, layoutAdmitsAttentionPhase, hop, hlayout, hphase]
+
+theorem bdpa_paged_rejects_prefill_attention
+    (step : ExecutionStep)
+    (session : SessionConfig) :
+    step.opClass = .attention →
+    session.layout = .bdpa_paged →
+    step.phase = .prefill →
+    stepCompatible step session = false := by
+  intro hop hlayout hphase
+  simp [stepCompatible, layoutAdmitsStep, layoutAdmitsAttentionPhase, hop, hlayout, hphase]
+
+theorem bdpa_paged_rejects_both_attention
+    (step : ExecutionStep)
+    (session : SessionConfig) :
+    step.opClass = .attention →
+    session.layout = .bdpa_paged →
     step.phase = .both →
     stepCompatible step session = false := by
   intro hop hlayout hphase
@@ -105,6 +137,34 @@ theorem both_attention_excludes_bdpa
     bdpa_rejects_both_attention step session hop hbdpa hphase
   simp [hreject] at hcomp
 
+theorem prefill_attention_excludes_bdpa_paged
+    (steps : List ExecutionStep)
+    (session : SessionConfig) :
+    (∃ step, step ∈ steps ∧ step.opClass = .attention ∧ step.phase = .prefill) →
+    allStepsCompatible steps session = true →
+    session.layout ≠ .bdpa_paged := by
+  intro hex hall hbdpa
+  rcases hex with ⟨step, hmem, hop, hphase⟩
+  have hcomp : stepCompatible step session = true := by
+    exact (List.all_eq_true.mp hall) step hmem
+  have hreject : stepCompatible step session = false :=
+    bdpa_paged_rejects_prefill_attention step session hop hbdpa hphase
+  simp [hreject] at hcomp
+
+theorem both_attention_excludes_bdpa_paged
+    (steps : List ExecutionStep)
+    (session : SessionConfig) :
+    (∃ step, step ∈ steps ∧ step.opClass = .attention ∧ step.phase = .both) →
+    allStepsCompatible steps session = true →
+    session.layout ≠ .bdpa_paged := by
+  intro hex hall hbdpa
+  rcases hex with ⟨step, hmem, hop, hphase⟩
+  have hcomp : stepCompatible step session = true := by
+    exact (List.all_eq_true.mp hall) step hmem
+  have hreject : stepCompatible step session = false :=
+    bdpa_paged_rejects_both_attention step session hop hbdpa hphase
+  simp [hreject] at hcomp
+
 theorem bdpa_requires_no_recorder
     (session : SessionConfig) :
     session.layout = .bdpa →
@@ -135,6 +195,42 @@ theorem bdpa_head_dim_bound
 theorem bdpa_kv_len_bound
     (session : SessionConfig) :
     session.layout = .bdpa →
+    sessionConsistent session = true →
+    session.kvLen ≤ BDPA_MAX_KV_LEN := by
+  intro hlayout hconsistent
+  simp [sessionConsistent, hlayout, bdpaKVLenValid] at hconsistent
+  exact hconsistent.2
+
+theorem bdpa_paged_requires_no_recorder
+    (session : SessionConfig) :
+    session.layout = .bdpa_paged →
+    sessionConsistent session = true →
+    session.disableCommandBatching = true := by
+  intro hlayout hconsistent
+  simp [sessionConsistent, hlayout] at hconsistent
+  exact hconsistent.1.1.1
+
+theorem bdpa_paged_requires_single_token_decode
+    (session : SessionConfig) :
+    session.layout = .bdpa_paged →
+    sessionConsistent session = true →
+    session.decodeBatchSize ≤ 1 := by
+  intro hlayout hconsistent
+  simp [sessionConsistent, hlayout] at hconsistent
+  simpa using hconsistent.1.1.2
+
+theorem bdpa_paged_head_dim_bound
+    (session : SessionConfig) :
+    session.layout = .bdpa_paged →
+    sessionConsistent session = true →
+    session.headDim ≤ BDPA_MAX_HEAD_DIM := by
+  intro hlayout hconsistent
+  simp [sessionConsistent, hlayout, bdpaHeadDimValid] at hconsistent
+  exact hconsistent.1.2
+
+theorem bdpa_paged_kv_len_bound
+    (session : SessionConfig) :
+    session.layout = .bdpa_paged →
     sessionConsistent session = true →
     session.kvLen ≤ BDPA_MAX_KV_LEN := by
   intro hlayout hconsistent

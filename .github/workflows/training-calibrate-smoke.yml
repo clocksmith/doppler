@@ -9,7 +9,11 @@ on:
       - 'src/training/**'
       - 'tests/config/**'
       - 'tests/integration/**'
+      - 'tools/run-node-tests.mjs'
+      - 'tools/run-node-test-file.mjs'
+      - 'tools/node-test-runtime-setup.mjs'
       - 'tools/verify-training-provenance.mjs'
+      - 'package.json'
       - '.github/workflows/training-calibrate-smoke.yml'
   push:
     branches: [main]
@@ -20,7 +24,11 @@ on:
       - 'src/training/**'
       - 'tests/config/**'
       - 'tests/integration/**'
+      - 'tools/run-node-tests.mjs'
+      - 'tools/run-node-test-file.mjs'
+      - 'tools/node-test-runtime-setup.mjs'
       - 'tools/verify-training-provenance.mjs'
+      - 'package.json'
       - '.github/workflows/training-calibrate-smoke.yml'
   workflow_dispatch:
 

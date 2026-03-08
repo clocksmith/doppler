@@ -1,17 +1,17 @@
 {
   "timestamp": "2026-02-24T18:23:18.041Z",
   "benchmarkPolicy": {
-    "source": "/Users/xyz/deco/doppler/benchmarks/vendors/benchmark-policy.json",
+    "source": "benchmarks/vendors/benchmark-policy.json",
     "schemaVersion": 1,
-    "sourceSha256": "eb2a27c32bb5955088dfeee89737f986d386a45cf43a8db85d86fccc61fcfb41",
-    "updated": "2026-02-23"
+    "sourceSha256": "58b366a7960f796b282dd344c2d8059e8d4e9096a991deab78937674c96754c0",
+    "updated": "2026-03-08"
   },
   "compareConfig": {
     "source": "benchmarks/vendors/compare-engines.config.json",
     "schemaVersion": 1,
-    "sourceSha256": "a9d3d41d4398a1ff344b1d1827f16618f7b42ec069c7cd46dd1e6de7812e2696",
+    "sourceSha256": "6e65d992dc4f555cf035700b50db2c8fe44b0f2726dbd5326999ed65cd69aa96",
     "profileSource": "config",
-    "updated": "2026-02-23"
+    "updated": "2026-03-08"
   },
   "metricContract": {
     "source": "benchmarks/vendors/compare-metrics.json",
@@ -94,7 +94,7 @@
   "harnesses": {
     "doppler": {
       "source": "benchmarks/vendors/harnesses/doppler.json",
-      "sourceSha256": "34c0c146a1db1b7974c4ae291fe5794a8682e8e36beb327e3a6e669f21bc2029",
+      "sourceSha256": "6f47adbca0e141903bc0931a0e58e2e549651601404457647dbc668f0d977c31",
       "requiredMetrics": [
         "decodeTokensPerSec",
         "promptTokensPerSecToFirstToken",
@@ -130,7 +130,7 @@
     "runtimeConfigSha256": null,
     "compareProfileSchemaVersion": 1
   },
-  "dopplerModelId": "gemma-3-1b-it-wf16-ef16-hf16",
+  "dopplerModelId": "gemma-3-1b-it-f16-af32",
   "dopplerKernelPath": "gemma3-f16-fused-f32a-online",
   "dopplerKernelPathSource": "cli",
   "decodeProfile": "parity",
@@ -193,7 +193,7 @@
             "command": "bench",
             "suite": "bench",
             "intent": "calibrate",
-            "modelId": "gemma-3-1b-it-wf16-ef16-hf16",
+            "modelId": "gemma-3-1b-it-f16-af32",
             "modelUrl": null,
             "cacheMode": "warm",
             "loadMode": "opfs",
@@ -258,7 +258,7 @@
                 "duration": 3389.199999988079
               }
             ],
-            "modelId": "gemma-3-1b-it-wf16-ef16-hf16",
+            "modelId": "gemma-3-1b-it-f16-af32",
             "cacheMode": "warm",
             "loadMode": "opfs",
             "timing": {
@@ -564,7 +564,7 @@
             "pipeline": null,
             "report": {
               "suite": "bench",
-              "modelId": "gemma-3-1b-it-wf16-ef16-hf16",
+              "modelId": "gemma-3-1b-it-f16-af32",
               "runtimePreset": null,
               "deviceInfo": {
                 "hasSubgroups": true,
@@ -863,7 +863,7 @@
             },
             "reportInfo": {
               "backend": "opfs",
-              "path": "reports/gemma-3-1b-it-wf16-ef16-hf16/2026-02-24T18-24-34.663Z.json"
+              "path": "reports/gemma-3-1b-it-f16-af32/2026-02-24T18-24-34.663Z.json"
             }
           }
         },
@@ -1058,7 +1058,7 @@
             }
           },
           "benchmarkPolicy": {
-            "source": "/Users/xyz/deco/doppler/benchmarks/vendors/benchmark-policy.json",
+            "source": "benchmarks/vendors/benchmark-policy.json",
             "schemaVersion": 1,
             "updated": "2026-02-23"
           },
@@ -1086,7 +1086,7 @@
             "command": "bench",
             "suite": "bench",
             "intent": "calibrate",
-            "modelId": "gemma-3-1b-it-wf16-ef16-hf16",
+            "modelId": "gemma-3-1b-it-f16-af32",
             "modelUrl": null,
             "cacheMode": "warm",
             "loadMode": "opfs",
@@ -1151,7 +1151,7 @@
                 "duration": 3241
               }
             ],
-            "modelId": "gemma-3-1b-it-wf16-ef16-hf16",
+            "modelId": "gemma-3-1b-it-f16-af32",
             "cacheMode": "warm",
             "loadMode": "opfs",
             "timing": {
@@ -1457,7 +1457,7 @@
             "pipeline": null,
             "report": {
               "suite": "bench",
-              "modelId": "gemma-3-1b-it-wf16-ef16-hf16",
+              "modelId": "gemma-3-1b-it-f16-af32",
               "runtimePreset": null,
               "deviceInfo": {
                 "hasSubgroups": true,
@@ -1756,7 +1756,7 @@
             },
             "reportInfo": {
               "backend": "opfs",
-              "path": "reports/gemma-3-1b-it-wf16-ef16-hf16/2026-02-24T18-24-44.993Z.json"
+              "path": "reports/gemma-3-1b-it-f16-af32/2026-02-24T18-24-44.993Z.json"
             }
           }
         },
@@ -1951,7 +1951,7 @@
             }
           },
           "benchmarkPolicy": {
-            "source": "/Users/xyz/deco/doppler/benchmarks/vendors/benchmark-policy.json",
+            "source": "benchmarks/vendors/benchmark-policy.json",
             "schemaVersion": 1,
             "updated": "2026-02-23"
           },

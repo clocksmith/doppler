@@ -41,7 +41,7 @@ function createHarnessOverride() {
     harnessOverride: {
       modelLoadMs: 1,
       manifest: {
-        modelId: 'qwen-3-5-0-8b-wq4k-ef16-hf16-f16',
+        modelId: 'qwen-3-5-0-8b-q4k-ehaf16',
         modelType: 'transformer',
         architecture: {
           numLayers: 24,

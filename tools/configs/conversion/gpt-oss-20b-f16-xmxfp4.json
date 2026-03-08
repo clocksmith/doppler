@@ -1,0 +1,23 @@
+{
+  "presets": {
+    "model": "gpt_oss"
+  },
+  "quantization": {
+    "weights": "f16",
+    "embeddings": "f16",
+    "lmHead": "f16",
+    "computePrecision": "f16"
+  },
+  "output": {
+    "baseDir": "models/local",
+    "modelBaseId": "gpt-oss-20b-f16-xmxfp4",
+    "textOnly": true,
+    "fast": false
+  },
+  "inference": {
+    "defaultKernelPath": null
+  },
+  "manifest": {
+    "hashAlgorithm": "blake3"
+  }
+}

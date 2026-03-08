@@ -3,11 +3,12 @@
   "source": "Clocksmith/rdrr",
   "models": [
     {
-      "modelId": "gemma-3-270m-it-wq4k-ef16-hf16",
+      "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
       "aliases": [
         "gemma3-270m",
         "google/gemma-3-270m-it",
         "gemma-3-270m-it-wq4k-ef16",
+        "gemma-3-270m-it-wq4k-ef16-hf16",
         "gemma-3-270m-it-wq4k-ef16-hf16-f32"
       ],
       "modes": [
@@ -16,11 +17,11 @@
       "hf": {
         "repoId": "Clocksmith/rdrr",
         "revision": "4efe64a914892e98be50842aeb16c3b648cc68a5",
-        "path": "models/gemma-3-270m-it-wq4k-ef16"
+        "path": "models/gemma-3-270m-it-q4k-ehf16-af32"
       }
     },
     {
-      "modelId": "google-embeddinggemma-300m-wq4k-ef16",
+      "modelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
       "aliases": [
         "embeddinggemma-300m",
         "google/embeddinggemma-300m",
@@ -32,7 +33,7 @@
       "hf": {
         "repoId": "Clocksmith/rdrr",
         "revision": "4efe64a914892e98be50842aeb16c3b648cc68a5",
-        "path": "models/google-embeddinggemma-300m-wq4k-ef16"
+        "path": "models/google-embeddinggemma-300m-q4k-ehf16-af32"
       }
     }
   ]

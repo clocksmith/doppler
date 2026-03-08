@@ -2109,6 +2109,11 @@ async function hashCompareArtifactSource(sourcePath) {
 async function assertCompareArtifactContracts(report, compareResultPath) {
   const checks = [
     {
+      label: 'benchmarkPolicy',
+      source: report?.benchmarkPolicy?.source,
+      sourceSha256: report?.benchmarkPolicy?.sourceSha256,
+    },
+    {
       label: 'compareConfig',
       source: report?.compareConfig?.source,
       sourceSha256: report?.compareConfig?.sourceSha256,

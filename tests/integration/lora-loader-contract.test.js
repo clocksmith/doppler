@@ -8,7 +8,7 @@ function createManifest(overrides = {}) {
   return {
     id: 'test_adapter',
     name: 'Test Adapter',
-    baseModel: 'gemma-3-1b-it-wq4k-ef16-hf16',
+    baseModel: 'gemma-3-1b-it-q4k-ehf16-af32',
     rank: 1,
     alpha: 1,
     targetModules: ['q_proj'],

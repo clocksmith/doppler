@@ -6,6 +6,64 @@ const { doppler: browserDoppler } = await import('../../src/client/doppler-api.b
 {
   await assert.rejects(
     async () => {
+      for await (const _token of nodeDoppler('hello')) {
+        break;
+      }
+    },
+    /requires options\.model/
+  );
+
+  await assert.rejects(
+    async () => {
+      for await (const _token of browserDoppler('hello')) {
+        break;
+      }
+    },
+    /requires options\.model/
+  );
+
+  await assert.rejects(
+    () => nodeDoppler.text('hello'),
+    /requires options\.model/
+  );
+
+  await assert.rejects(
+    () => browserDoppler.text('hello'),
+    /requires options\.model/
+  );
+
+  await assert.rejects(
+    async () => {
+      for await (const _token of nodeDoppler.chat([{ role: 'user', content: 'hello' }])) {
+        break;
+      }
+    },
+    /requires options\.model/
+  );
+
+  await assert.rejects(
+    async () => {
+      for await (const _token of browserDoppler.chat([{ role: 'user', content: 'hello' }])) {
+        break;
+      }
+    },
+    /requires options\.model/
+  );
+
+  await assert.rejects(
+    () => nodeDoppler.chatText([{ role: 'user', content: 'hello' }]),
+    /requires options\.model/
+  );
+
+  await assert.rejects(
+    () => browserDoppler.chatText([{ role: 'user', content: 'hello' }]),
+    /requires options\.model/
+  );
+}
+
+{
+  await assert.rejects(
+    async () => {
       for await (const _token of nodeDoppler('hello', {
         model: 'gemma3-270m',
         runtimePreset: 'modes/debug',
@@ -125,6 +183,62 @@ const { doppler: browserDoppler } = await import('../../src/client/doppler-api.b
   await assert.rejects(
     async () => {
       for await (const _token of browserDoppler.chat([{ role: 'user', content: 'hello' }], {
+        model: 'gemma3-270m',
+        runtimeConfigUrl: '/runtime/debug.json',
+      })) {
+        break;
+      }
+    },
+    /does not accept load-affecting options/
+  );
+
+  await assert.rejects(
+    async () => {
+      for await (const _token of nodeDoppler('hello', {
+        model: 'gemma3-270m',
+        runtimeConfig: {
+          inference: {
+            prompt: 'bad',
+          },
+        },
+      })) {
+        break;
+      }
+    },
+    /does not accept load-affecting options/
+  );
+
+  await assert.rejects(
+    async () => {
+      for await (const _token of browserDoppler('hello', {
+        model: 'gemma3-270m',
+        runtimeConfig: {
+          inference: {
+            prompt: 'bad',
+          },
+        },
+      })) {
+        break;
+      }
+    },
+    /does not accept load-affecting options/
+  );
+
+  await assert.rejects(
+    async () => {
+      for await (const _token of nodeDoppler('hello', {
+        model: 'gemma3-270m',
+        runtimeConfigUrl: '/runtime/debug.json',
+      })) {
+        break;
+      }
+    },
+    /does not accept load-affecting options/
+  );
+
+  await assert.rejects(
+    async () => {
+      for await (const _token of browserDoppler('hello', {
         model: 'gemma3-270m',
         runtimeConfigUrl: '/runtime/debug.json',
       })) {

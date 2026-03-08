@@ -26,11 +26,11 @@ import {
 
 {
   const entry = {
-    modelId: 'translategemma-4b-it-wq4k-ef16-hf16',
+    modelId: 'translategemma-4b-it-q4k-ehf16-af32',
     hf: {
       repoId: 'Clocksmith/rdrr',
       revision: null,
-      path: 'models/translategemma-4b-it-wq4k-ef16-hf16',
+      path: 'models/translategemma-4b-it-q4k-ehf16-af32',
     },
     lifecycle: {
       availability: {
@@ -83,28 +83,28 @@ import {
 
 {
   const remoteHfEntry = {
-    modelId: 'gemma-3-270m-it-wq4k-ef16-hf16',
+    modelId: 'gemma-3-270m-it-q4k-ehf16-af32',
     hf: {
       repoId: 'Clocksmith/rdrr',
       revision: '4efe64a914892e98be50842aeb16c3b648cc68a5',
-      path: 'models/gemma-3-270m-it-wq4k-ef16',
+      path: 'models/gemma-3-270m-it-q4k-ehf16-af32',
     },
-    baseUrl: './curated/gemma-3-270m-it-wq4k-ef16-hf16',
+    baseUrl: './local/gemma-3-270m-it-q4k-ehf16-af32',
   };
   assert.equal(shouldDemoSurfaceRemoteRegistryEntry(remoteHfEntry, 'https://huggingface.co/Clocksmith/rdrr/resolve/main/registry/catalog.json'), true);
   assert.equal(
     resolveDemoRegistryEntryBaseUrl(remoteHfEntry, 'https://huggingface.co/Clocksmith/rdrr/resolve/main/registry/catalog.json'),
-    'https://huggingface.co/Clocksmith/rdrr/resolve/4efe64a914892e98be50842aeb16c3b648cc68a5/models/gemma-3-270m-it-wq4k-ef16'
+    'https://huggingface.co/Clocksmith/rdrr/resolve/4efe64a914892e98be50842aeb16c3b648cc68a5/models/gemma-3-270m-it-q4k-ehf16-af32'
   );
 }
 
 {
   const nonFetchableRemoteEntry = {
-    modelId: 'qwen-3-5-0-8b-wq4k-ef16-hf16-f16',
+    modelId: 'qwen-3-5-0-8b-q4k-ehaf16',
     hf: {
       repoId: 'Clocksmith/rdrr',
       revision: null,
-      path: 'models/qwen-3-5-0-8b-wq4k-ef16-hf16-f16',
+      path: 'models/qwen-3-5-0-8b-q4k-ehaf16',
     },
     baseUrl: null,
   };

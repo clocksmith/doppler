@@ -43,9 +43,19 @@ function runVendorBench(args) {
 
 {
   const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'doppler-vendor-bench-compare-'));
-  const fixturePath = path.join(process.cwd(), 'benchmarks', 'vendors', 'fixtures', 'g3-1b-p064-d064-t0-k1.compare.json');
+  const fixturePaths = [
+    path.join(process.cwd(), 'benchmarks', 'vendors', 'fixtures', 'g3-1b-p064-d064-t0-k1.compare.json'),
+    path.join(process.cwd(), 'benchmarks', 'vendors', 'fixtures', 'g3-p064-d064-t0-k1.apple-m3pro.compare.json'),
+    path.join(process.cwd(), 'benchmarks', 'vendors', 'fixtures', 'g3-p064-d064-t0-k1.compare.json'),
+    path.join(process.cwd(), 'benchmarks', 'vendors', 'fixtures', 'g3-p064-d064-t1-k32.compare.json'),
+  ];
+  for (const fixturePath of fixturePaths) {
+    const fixturePayload = JSON.parse(await fs.readFile(fixturePath, 'utf8'));
+    assert.equal(fixturePayload.benchmarkPolicy?.source, 'benchmarks/vendors/benchmark-policy.json');
+  }
+
   const copiedFixturePath = path.join(tempDir, 'stale.compare.json');
-  const fixturePayload = JSON.parse(await fs.readFile(fixturePath, 'utf8'));
+  const fixturePayload = JSON.parse(await fs.readFile(fixturePaths[0], 'utf8'));
   fixturePayload.metricContract.sourceSha256 = 'stale-hash';
   await fs.writeFile(copiedFixturePath, `${JSON.stringify(fixturePayload, null, 2)}\n`, 'utf8');
 
@@ -58,7 +68,7 @@ function runVendorBench(args) {
     '--markdown-output', markdownPath,
   ]);
   assert.notEqual(result.status, 0);
-  assert.match(result.stderr, /stale (compareConfig|metricContract|dopplerHarness|transformersjsHarness) hash/);
+  assert.match(result.stderr, /stale (benchmarkPolicy|compareConfig|metricContract|dopplerHarness|transformersjsHarness) hash/);
 }
 
 console.log('vendor-bench-cli-contract.test: ok');

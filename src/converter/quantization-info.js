@@ -91,6 +91,7 @@ export function buildVariantTag(info) {
   const weights = info.weights;
   const embeddings = info.embeddings ?? weights;
   const lmHead = info.lmHead ?? embeddings;
+  const compute = info.compute ? normalizeQuantTag(info.compute) : null;
   const experts = info.experts ?? null;
   const layout = info.layout ?? null;
 
@@ -100,30 +101,42 @@ export function buildVariantTag(info) {
     ? `${weights}${layout === 'row' ? '' : '-col'}`
     : weights;
 
-  const parts = [`w${weightTag}`];
+  const parts = [weightTag];
+  const groupedRolesByDtype = new Map();
+  const GROUPED_ROLE_ORDER = ['e', 'h', 'a'];
 
-  if (embeddings !== weights) {
-    parts.push(`e${embeddings}`);
-  }
+  const addGroupedRole = (role, dtype) => {
+    if (!dtype || dtype === weights) return;
+    const existing = groupedRolesByDtype.get(dtype) ?? [];
+    if (!existing.includes(role)) {
+      existing.push(role);
+      groupedRolesByDtype.set(dtype, existing);
+    }
+  };
 
-  if (lmHead !== embeddings) {
-    parts.push(`h${lmHead}`);
+  addGroupedRole('e', embeddings);
+  addGroupedRole('h', lmHead);
+  addGroupedRole('a', compute);
+
+  for (const [dtype, roles] of groupedRolesByDtype.entries()) {
+    const orderedRoles = GROUPED_ROLE_ORDER.filter((role) => roles.includes(role));
+    parts.push(`${orderedRoles.join('')}${dtype}`);
   }
 
   if (experts && experts !== weights) {
     parts.push(`x${experts}`);
   }
 
-  if (info.vision) {
+  if (info.vision && info.vision !== weights) {
     parts.push(`v${info.vision}`);
   }
-  if (info.audio) {
-    parts.push(`a${info.audio}`);
+  if (info.audio && info.audio !== weights) {
+    parts.push(`audio${info.audio}`);
   }
-  if (info.tts) {
-    parts.push(`t${info.tts}`);
+  if (info.tts && info.tts !== weights) {
+    parts.push(`tts${info.tts}`);
   }
-  if (info.projector) {
+  if (info.projector && info.projector !== weights) {
     parts.push(`p${info.projector}`);
   }
 

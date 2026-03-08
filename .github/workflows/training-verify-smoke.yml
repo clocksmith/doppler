@@ -9,6 +9,9 @@ on:
       - 'tests/config/**'
       - 'tests/integration/**'
       - 'tools/run-node-tests.mjs'
+      - 'tools/run-node-test-file.mjs'
+      - 'tools/node-test-runtime-setup.mjs'
+      - 'package.json'
       - '.github/workflows/training-verify-smoke.yml'
   push:
     branches: [main]
@@ -19,6 +22,9 @@ on:
       - 'tests/config/**'
       - 'tests/integration/**'
       - 'tools/run-node-tests.mjs'
+      - 'tools/run-node-test-file.mjs'
+      - 'tools/node-test-runtime-setup.mjs'
+      - 'package.json'
       - '.github/workflows/training-verify-smoke.yml'
   workflow_dispatch:
 
