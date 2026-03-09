@@ -441,7 +441,7 @@ function assertKernelPathFeatureCompatibility(
 
   if (kernelPathSource === 'execution-v0' && typeof effectiveKernelPathRef !== 'string') {
     const remediation = policyAllowsSource
-      ? 'Execution-v0 inline kernel paths are not auto-remapped yet. Use subgroup/f16-compatible execution steps, or set runtime.inference.kernelPath to a compatible string preset (for example "gemma2-q4k-dequant-f32a").'
+      ? 'Execution-v0 inline kernel paths are not auto-remapped yet. Use subgroup/f16-compatible execution steps, or set runtime.inference.kernelPath to a compatible string preset (for example "gemma2-q4k-dequant-f32a-nosubgroups").'
       : 'Enable runtime.inference.kernelPathPolicy.sourceScope to include "execution-v0", then use compatible execution steps or a compatible preset id.';
     throw new Error(
       `[ExecutionV0] Inline kernelPath requires unsupported GPU features. ` +

@@ -151,13 +151,16 @@ export interface KernelPathSchema {
 export type BuiltinKernelPathId =
   | 'gemma2-q4k-fused-f32a'   // Gemma 2 Q4K weights, fused matmul, F32 activations
   | 'gemma2-q4k-dequant-f16a' // Gemma 2 Q4K -> F16 dequant, F16 activations
+  | 'gemma2-q4k-dequant-f32a-nosubgroups' // Gemma 2 Q4K -> F32 dequant path with no subgroup requirement
+  | 'gemma2-q4k-dequant-f32a' // Legacy alias for gemma2-q4k-dequant-f32a-nosubgroups
   | 'gemma2-f16-f16a'         // Gemma 2 F16 weights, F16 activations
   | 'gemma2-f16-f32a'         // Gemma 2 F16 weights, F32 activations
   | 'gemma3-f16-fused-f16a-online' // Gemma 3 F16 fused FFN online path
   | 'gemma3-f16-fused-f32a-online' // Gemma 3 F16 fused FFN online path with F32 activations
   | 'gemma3-q4k-dequant-f16a-online' // Gemma 3 Q4K dequant online path (F16 activations)
   | 'gemma3-q4k-dequant-f32a-online' // Gemma 3 Q4K dequant online path with F32 activations
-  | 'gemma3-q4k-dequant-f32a' // Gemma 3 Q4K dequant path with F32 activations
+  | 'gemma3-q4k-dequant-f32a-nosubgroups' // Gemma 3 Q4K dequant path with no subgroup requirement
+  | 'gemma3-q4k-dequant-f32a' // Legacy alias for gemma3-q4k-dequant-f32a-nosubgroups
   | 'lfm2-q4k-dequant-f32a-online' // LFM2 Q4K path with F32 activations and fast prefill
   | 'embeddinggemma-f16-f32a' // EmbeddingGemma F16 weights, F32 activations
   | 'embeddinggemma-f32-f32a' // EmbeddingGemma F32 weights, F32 activations

@@ -34,6 +34,7 @@ try {
   const all = listKernelPaths();
   assert.ok(Array.isArray(all));
   assert.ok(all.length > 0);
+  assert.ok(all.includes('gemma2-q4k-dequant-f32a-nosubgroups'));
   assert.ok(all.includes('gemma2-q4k-dequant-f32a'));
 
   assert.equal(getKernelPath('missing-kernel-path-id'), null);
@@ -45,10 +46,14 @@ try {
 
   const fusedPath = resolveKernelPath('gemma2-q4k-fused-f32a');
   const dequantPath = resolveKernelPath('gemma2-q4k-dequant-f32a');
+  const canonicalDequantPath = resolveKernelPath('gemma2-q4k-dequant-f32a-nosubgroups');
   const gemma3Path = resolveKernelPath('gemma3-f16-fused-f16a-online');
   assert.ok(fusedPath);
   assert.ok(dequantPath);
+  assert.ok(canonicalDequantPath);
   assert.ok(gemma3Path);
+  assert.equal(dequantPath.id, 'gemma2-q4k-dequant-f32a-nosubgroups');
+  assert.equal(canonicalDequantPath.id, 'gemma2-q4k-dequant-f32a-nosubgroups');
 
   assert.equal(getKernelPathActivationDtype({ activationDtype: 'f16' }), 'f16');
   assert.equal(getKernelPathActivationDtype({}), null);

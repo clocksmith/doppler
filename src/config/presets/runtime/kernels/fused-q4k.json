@@ -1,33 +1,13 @@
 {
   "id": "kernels/fused-q4k",
   "name": "fused-q4k",
-  "description": "Runtime alias preset for Gemma 2 fused Q4K kernel path.",
+  "description": "Deprecated alias for kernels/gemma2-q4k-fused-f32a.",
   "intent": "investigate",
-  "stability": "canonical",
+  "stability": "deprecated",
   "owner": "doppler-core",
   "createdAtUtc": "2026-02-25T00:00:00Z",
-  "extends": "default",
-  "runtime": {
-    "inference": {
-      "compute": {
-        "activationDtype": "f32"
-      },
-      "kvcache": {
-        "kvDtype": "f32"
-      },
-      "session": {
-        "compute": {
-          "defaults": {
-            "outputDtype": "f32"
-          }
-        }
-      },
-      "kernelPath": "gemma2-q4k-fused-f32a",
-      "kernelPathPolicy": {
-        "mode": "capability-aware",
-        "sourceScope": ["config", "model", "manifest", "execution-v0"],
-        "onIncompatible": "remap"
-      }
-    }
-  }
+  "deprecatedAtUtc": "2026-03-08T00:00:00Z",
+  "replacementId": "kernels/gemma2-q4k-fused-f32a",
+  "extends": "kernels/gemma2-q4k-fused-f32a",
+  "runtime": {}
 }

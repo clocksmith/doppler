@@ -1,0 +1,33 @@
+{
+  "id": "kernels/gemma2-q4k-dequant-f16a",
+  "name": "gemma2-q4k-dequant-f16a",
+  "description": "Explicit runtime override preset for the Gemma 2 Q4K dequant-to-F16 kernel path.",
+  "intent": "investigate",
+  "stability": "canonical",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-03-08T00:00:00Z",
+  "extends": "default",
+  "runtime": {
+    "inference": {
+      "compute": {
+        "activationDtype": "f16"
+      },
+      "kvcache": {
+        "kvDtype": "f16"
+      },
+      "session": {
+        "compute": {
+          "defaults": {
+            "outputDtype": "f16"
+          }
+        }
+      },
+      "kernelPath": "gemma2-q4k-dequant-f16a",
+      "kernelPathPolicy": {
+        "mode": "capability-aware",
+        "sourceScope": ["config", "model", "manifest", "execution-v0"],
+        "onIncompatible": "remap"
+      }
+    }
+  }
+}

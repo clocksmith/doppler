@@ -143,7 +143,7 @@ function sessionDefaultsFor(kernels, activationDtype = 'f16') {
   assert.ok(compiled);
   assert.equal(
     compiled.runtimeInferencePatch.kernelPath.finitenessFallbackKernelPathId,
-    'gemma3-q4k-dequant-f32a'
+    'gemma3-q4k-dequant-f32a-nosubgroups'
   );
 }
 

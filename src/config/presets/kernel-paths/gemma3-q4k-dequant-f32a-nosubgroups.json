@@ -1,7 +1,7 @@
 {
-  "id": "gemma3-q4k-dequant-f32a",
-  "name": "Gemma 3 Q4K Dequant (F32 activations)",
-  "description": "Q4K weights dequantized to F16 with F32 activations for improved stability on small Gemma 3 checkpoints.",
+  "id": "gemma3-q4k-dequant-f32a-nosubgroups",
+  "name": "Gemma 3 Q4K Dequant (F32 activations, no subgroups)",
+  "description": "Q4K weights dequantized to F16 with F32 activations. Subgroup-free non-online path for Gemma 3 that still requires shader-f16 kernels.",
   "activationDtype": "f32",
   "kvDtype": "f16",
 
