@@ -1,5 +1,5 @@
---- src/gpu/kernels/attention_small.wgsl	2026-02-20 10:04:55.691091915 -0500
-+++ src/gpu/kernels/attention_small_f16kv.wgsl	2026-02-24 18:25:35.990743788 -0500
+--- src/gpu/kernels/attention_small.wgsl
++++ src/gpu/kernels/attention_small_f16kv.wgsl
 @@ -1,36 +1,24 @@
 -// Fused Multi-Head Attention Kernel (small tiles)
 +// Fused Multi-Head Attention Kernel (small tiles, f16 KV)
@@ -20,18 +20,19 @@
 -//   query_block_idx = linear / num_heads
 -//
 -// workgroup_size = BLOCK_SIZE (one thread per query position in the block).
-+// Same algorithm as attention_small.wgsl but K/V are stored as f16.
-+// Shared tiles also use f16 to minimize workgroup storage.
- 
+-
 -const BLOCK_SIZE: u32 = 32u;   // Sequence tile size
 -const HEAD_TILE: u32 = 32u;    // Head dimension tile
--const MAX_HEAD_DIM: u32 = 256u;
++// Same algorithm as attention_small.wgsl but K/V are stored as f16.
++// Shared tiles also use f16 to minimize workgroup storage.
++
 +enable f16;
 +
 +const BLOCK_SIZE: u32 = 32u;
- const WORKGROUP_SIZE: u32 = BLOCK_SIZE;
++const WORKGROUP_SIZE: u32 = BLOCK_SIZE;
 +const HEAD_TILE_STRIDE: u32 = 32u;
-+const MAX_HEAD_DIM: u32 = 256u;
+ const MAX_HEAD_DIM: u32 = 256u;
+-const WORKGROUP_SIZE: u32 = BLOCK_SIZE;
  
  struct Uniforms {
 -    num_heads: u32,       // Number of query heads
@@ -53,7 +54,7 @@
      attn_softcap: f32,    // Gemma 2: 50.0, 0 = disabled
      sliding_window: u32,  // Sliding window size (0 = disabled, >0 = window size)
      kv_len_source: u32,   // 0 = use uniform seq_len, 1 = use buffer
-@@ -41,34 +29,21 @@
+@@ -41,32 +29,19 @@
  }
  
  @group(0) @binding(0) var<uniform> u: Uniforms;
@@ -77,8 +78,8 @@
  fn get_kv_head_idx(query_head_idx: u32) -> u32 {
      let heads_per_kv = u.num_heads / u.num_kv_heads;
      return query_head_idx / heads_per_kv;
- }
- 
+-}
+-
 -fn is_masked(query_pos: u32, key_pos: u32) -> bool {
 -    let abs_query = query_pos + u.start_pos;
 -    let abs_key = u.kv_start + key_pos;
@@ -89,11 +90,9 @@
 -        if (abs_key < abs_query - u.sliding_window + 1u) { return true; }
 -    }
 -    return false;
--}
--
+ }
+ 
  fn get_kv_pos(key_pos: u32) -> u32 {
-     let abs_key = u.kv_start + key_pos;
-     if (u.kv_layout == 1u && u.sliding_window > 0u) {
 @@ -112,6 +87,7 @@
  
      let query_pos = query_block_idx * BLOCK_SIZE + thread_idx;
@@ -138,6 +137,9 @@
 +        var probs: array<f32, BLOCK_SIZE>;
          for (var k_init: u32 = 0u; k_init < BLOCK_SIZE; k_init = k_init + 1u) {
              scores[k_init] = 0.0;
+-        }
+-
+-        // Compute dot products for this KV block by tiling head_dim.
 +            key_active[k_init] = 0u;
 +            probs[k_init] = 0.0;
 +        }
@@ -149,16 +151,16 @@
 +                    key_active[k_mask] = 1u;
 +                }
 +            }
-         }
- 
--        // Compute dot products for this KV block by tiling head_dim.
++        }
++
          for (var ht: u32 = 0u; ht < num_head_tiles; ht = ht + 1u) {
 -            let d0 = ht * HEAD_TILE;
 -            let tile_len = min(HEAD_TILE, head_dim - d0);
+-
+-            // Load K slice for this block into shared memory.
 +            let d0 = ht * head_tile;
 +            let tile_len = min(head_tile, head_dim - d0);
- 
--            // Load K slice for this block into shared memory.
++
              let key_pos_load = kv_block_start + thread_idx;
              if (key_pos_load < seq_len) {
                  let k_idx = get_kv_pos(key_pos_load);

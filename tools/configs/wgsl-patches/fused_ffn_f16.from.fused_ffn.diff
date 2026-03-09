@@ -1,5 +1,5 @@
---- src/gpu/kernels/fused_ffn.wgsl	2026-02-20 21:39:53.000836350 -0500
-+++ src/gpu/kernels/fused_ffn_f16.wgsl	2026-02-20 21:39:53.000836350 -0500
+--- src/gpu/kernels/fused_ffn.wgsl
++++ src/gpu/kernels/fused_ffn_f16.wgsl
 @@ -1,7 +1,8 @@
 -// Fused FFN Kernel (Tier 2 P0)
 +// Fused FFN Kernel - Native F16 I/O
@@ -28,17 +28,18 @@
 -// - Dequantizes gate and up weights on-the-fly
 -// - Uses subgroup operations for reduction
 -// - Achieves 2-3x speedup over separate kernel approach
+-
 +// This kernel fuses steps 1-3 into a single dispatch.
 +// Input is widened f16→f32 on shared memory load; output is narrowed f32→f16 on write.
- 
++
 +enable f16;
  enable subgroups;
- 
+-
 -// Q4_K constants
 -const QK_K: u32 = 256u;           // Elements per super-block
 -const BLOCK_SIZE: u32 = 144u;     // Bytes per Q4_K block
 -const SUBBLOCK_SIZE: u32 = 32u;   // Elements per sub-block
--
+ 
  override WORKGROUP_SIZE: u32 = 256u;
  override SHARED_INPUT_SIZE: u32 = 256u;
 -const MAX_SUBGROUPS: u32 = 256u;  // Supports subgroup_size >= 1
@@ -68,12 +69,13 @@
 -@group(0) @binding(2) var<storage, read> W_gate: array<f32>;  // [intermediate_size, hidden_size]
 -@group(0) @binding(3) var<storage, read> W_up: array<f32>;    // [intermediate_size, hidden_size]
 -@group(0) @binding(4) var<storage, read_write> output: array<f32>;
+-
+-// Shared memory for input vector (reused for gate and up)
 +@group(0) @binding(1) var<storage, read> input: array<f16>;
 +@group(0) @binding(2) var<storage, read> W_gate: array<f16>;
 +@group(0) @binding(3) var<storage, read> W_up: array<f16>;
 +@group(0) @binding(4) var<storage, read_write> output: array<f16>;
- 
--// Shared memory for input vector (reused for gate and up)
++
  var<workgroup> shared_input: array<f32, SHARED_INPUT_SIZE>;
 -
 -// For subgroup reduction
@@ -106,13 +108,14 @@
      let tid = lid.x;
      let hidden_size = u.hidden_size;
 -    let intermediate_size = u.intermediate_size;
- 
+-
 -    if (out_idx >= intermediate_size) {
++
 +    if (out_idx >= u.intermediate_size) {
          return;
      }
  
-@@ -99,216 +78,31 @@
+@@ -99,35 +78,31 @@
      var gate_sum: f32 = 0.0;
      var up_sum: f32 = 0.0;
  
@@ -148,32 +151,36 @@
 -    }
 -
 -    // Phase 3: Reduce across threads using subgroups
--    let sg_gate = subgroupAdd(gate_sum);
--    let sg_up = subgroupAdd(up_sum);
--
--    if (sg_id == 0u && subgroup_id < num_subgroups) {
--        sg_sums[subgroup_id] = sg_gate;
--        sg_sums[subgroup_id + MAX_SUBGROUPS] = sg_up;
--    }
--    workgroupBarrier();
--
++            gate_sum += x * f32(W_gate[weight_base + k]);
++            up_sum += x * f32(W_up[weight_base + k]);
++        }
++
++        workgroupBarrier();
++    }
++
+     let sg_gate = subgroupAdd(gate_sum);
+     let sg_up = subgroupAdd(up_sum);
+ 
+@@ -137,7 +112,6 @@
+     }
+     workgroupBarrier();
+ 
 -    // Thread 0 does final reduction
--    if (tid == 0u) {
--        var final_gate: f32 = 0.0;
--        var final_up: f32 = 0.0;
--        for (var s = 0u; s < num_subgroups; s++) {
--            final_gate += sg_sums[s];
--            final_up += sg_sums[s + MAX_SUBGROUPS];
--        }
--
+     if (tid == 0u) {
+         var final_gate: f32 = 0.0;
+         var final_up: f32 = 0.0;
+@@ -146,7 +120,6 @@
+             final_up += sg_sums[s + MAX_SUBGROUPS];
+         }
+ 
 -        // Apply activation and multiply
--        var activated: f32;
--        if (u.activation == 0u) {
--            activated = silu(final_gate);
--        } else {
--            activated = gelu(final_gate);
--        }
--
+         var activated: f32;
+         if (u.activation == 0u) {
+             activated = silu(final_gate);
+@@ -154,191 +127,11 @@
+             activated = gelu(final_gate);
+         }
+ 
 -        output[out_idx] = clamp_swiglu(activated * final_up * u.alpha);
 -    }
 -}
@@ -323,21 +330,36 @@
 -
 -            gate_sum += x * g;
 -            up_sum += x * u;
-+            gate_sum += x * f32(W_gate[weight_base + k]);
-+            up_sum += x * f32(W_up[weight_base + k]);
-         }
- 
-         workgroupBarrier();
-     }
- 
+-        }
+-
+-        workgroupBarrier();
+-    }
+-
 -    // Reduce
-     let sg_gate = subgroupAdd(gate_sum);
-     let sg_up = subgroupAdd(up_sum);
- 
-@@ -333,12 +127,11 @@
-             activated = gelu(final_gate);
-         }
- 
+-    let sg_gate = subgroupAdd(gate_sum);
+-    let sg_up = subgroupAdd(up_sum);
+-
+-    if (sg_id == 0u && subgroup_id < num_subgroups) {
+-        sg_sums[subgroup_id] = sg_gate;
+-        sg_sums[subgroup_id + MAX_SUBGROUPS] = sg_up;
+-    }
+-    workgroupBarrier();
+-
+-    if (tid == 0u) {
+-        var final_gate: f32 = 0.0;
+-        var final_up: f32 = 0.0;
+-        for (var s = 0u; s < num_subgroups; s++) {
+-            final_gate += sg_sums[s];
+-            final_up += sg_sums[s + MAX_SUBGROUPS];
+-        }
+-
+-        var activated: f32;
+-        if (u.activation == 0u) {
+-            activated = silu(final_gate);
+-        } else {
+-            activated = gelu(final_gate);
+-        }
+-
 -        output[out_idx] = clamp_swiglu(activated * final_up * u.alpha);
 +        output[out_idx] = f16(clamp_swiglu(activated * final_up * u.alpha));
      }
@@ -353,8 +375,9 @@
      let hidden_size = u.hidden_size;
      let intermediate_size = u.intermediate_size;
 -    let M = u.M;
- 
+-
 -    if (out_idx >= intermediate_size || batch_idx >= M) {
++
 +    if (out_idx >= intermediate_size || batch_idx >= u.M) {
          return;
      }
@@ -398,6 +421,8 @@
  
          let out_offset = batch_idx * intermediate_size + out_idx;
 -        output[out_offset] = clamp_swiglu(activated * final_up * u.alpha);
+-    }
+-}
 +        output[out_offset] = f16(clamp_swiglu(activated * final_up * u.alpha));
-     }
- }
++    }
++}

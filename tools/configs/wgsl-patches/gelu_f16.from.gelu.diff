@@ -1,5 +1,5 @@
---- src/gpu/kernels/gelu.wgsl	2026-02-20 10:04:55.692844357 -0500
-+++ src/gpu/kernels/gelu_f16.wgsl	2026-02-20 10:04:55.692844357 -0500
+--- src/gpu/kernels/gelu.wgsl
++++ src/gpu/kernels/gelu_f16.wgsl
 @@ -1,9 +1,9 @@
 -// GeLU Activation Kernel
 +// GeLU Activation Kernel with F16 Input/Output

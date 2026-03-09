@@ -1,5 +1,5 @@
---- src/gpu/kernels/sample.wgsl	2026-02-20 10:04:55.694977493 -0500
-+++ src/gpu/kernels/sample_f16.wgsl	2026-02-20 10:04:55.694977493 -0500
+--- src/gpu/kernels/sample.wgsl
++++ src/gpu/kernels/sample_f16.wgsl
 @@ -1,38 +1,30 @@
 -// sample.wgsl
 +// sample_f16.wgsl
@@ -21,9 +21,9 @@
 + * Same as sample.wgsl but logits are f16.
 + * Computation is performed in f32 for stability.
   */
- 
-+enable f16;
 +
++enable f16;
+ 
  // Configuration
  override WORKGROUP_SIZE: u32 = 256u;
  const MAX_WORKGROUP_SIZE: u32 = 256u;
@@ -57,12 +57,13 @@
 -@group(0) @binding(2) var<storage, read_write> output: array<u32>;         // [N] - selected tokens
 -@group(0) @binding(3) var<storage, read_write> topk_indices: array<u32>;    // [topK] - intermediate
 -@group(0) @binding(4) var<storage, read_write> topk_logits: array<f32>;     // [topK] - intermediate
+-
+-// Shared memory for workgroup-level reduction
 +@group(0) @binding(1) var<storage, read> logits: array<f16>;
 +@group(0) @binding(2) var<storage, read_write> output: array<u32>;
 +@group(0) @binding(3) var<storage, read_write> topk_indices: array<u32>;
 +@group(0) @binding(4) var<storage, read_write> topk_logits: array<f32>;
- 
--// Shared memory for workgroup-level reduction
++
  var<workgroup> shared_values: array<f32, MAX_WORKGROUP_SIZE>;
  var<workgroup> shared_indices: array<u32, MAX_WORKGROUP_SIZE>;
  
@@ -171,8 +172,9 @@
      workgroupBarrier();
  
 -    // Thread 0 does softmax and sampling
-     if (thread_idx == 0u) {
+-    if (thread_idx == 0u) {
 -        // Find max for numerical stability
++    if (thread_idx == 0u) {
          var max_val: f32 = shared_values[0];
          for (var i: u32 = 1u; i < top_k; i = i + 1u) {
              max_val = max(max_val, shared_values[i]);
@@ -303,3 +305,9 @@
      var stride = WORKGROUP_SIZE / 2u;
      while (stride > 0u) {
          if (thread_idx < stride) {
+@@ -374,4 +326,4 @@
+     if (thread_idx == 0u) {
+         output[u.output_index] = shared_indices[0];
+     }
+-}
++}

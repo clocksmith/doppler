@@ -1,5 +1,5 @@
---- src/gpu/kernels/attention_streaming.wgsl	2026-02-20 10:04:55.691091915 -0500
-+++ src/gpu/kernels/attention_streaming_f16kv.wgsl	2026-02-20 10:04:55.691091915 -0500
+--- src/gpu/kernels/attention_streaming.wgsl
++++ src/gpu/kernels/attention_streaming_f16kv.wgsl
 @@ -1,8 +1,8 @@
 -// Streaming Multi-Head Attention Kernel (no workgroup storage)
 +// Streaming Multi-Head Attention Kernel (f16 KV, no workgroup storage)
