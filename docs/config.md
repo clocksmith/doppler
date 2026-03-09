@@ -1,4 +1,4 @@
-# DOPPLER Config
+# Doppler Config
 
 Runtime-facing config contract for inference and command execution.
 
@@ -82,6 +82,11 @@ Harnessed command runs (`verify`, `debug`, `bench`) must preserve:
   `src/tooling/command-api.js`). Suite-specific model ID enforcement lives in
   `src/tooling/command-api-family-normalizers.js`.
 - `runtime.shared.tooling.intent` — always required
+
+Authoring note:
+- input payloads passed to CLI/browser surfaces use top-level `shared.*`
+- the normalized internal runtime contract refers to the same fields as
+  `runtime.shared.*`
 
 ## Common usage
 

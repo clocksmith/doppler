@@ -1,8 +1,8 @@
-# DOPPLER Operations
+# Doppler Operations
 
 ## Troubleshooting
 
-Comprehensive debugging strategies for DOPPLER WebGPU inference issues. Written for future developers and Claude agents.
+Comprehensive debugging strategies for Doppler WebGPU inference issues. Written for future developers and coding agents.
 
 **Note:** Doppler supports browser and Node workflows. Use the demo diagnostics
 UI or `tests/harness.html` for interactive/browser suites, and use the Node CLI
@@ -719,8 +719,10 @@ console.log('[Pool]', getPoolStats());
 
 ## 11. Test Runs (Browser)
 
-All test flows run via `tests/harness.html` or the demo UI. Set
-`runtime.shared.tooling.intent` to match the workload (verify/investigate/calibrate).
+All test flows run via `tests/harness.html` or the demo UI. Input payloads use
+top-level `shared.tooling.intent`; after normalization the same field is tracked
+internally as `runtime.shared.tooling.intent`. Set that intent to match the
+workload (verify/investigate/calibrate).
 
 Example configs:
 
@@ -738,7 +740,7 @@ Example configs:
   "shared": {
     "tooling": { "intent": "verify" },
     "debug": { "logLevel": { "defaultLogLevel": "verbose" } },
-    "harness": { "mode": "inference", "autorun": true, "modelId": "gemma3-1b-q4" }
+    "harness": { "mode": "inference", "autorun": true, "modelId": "gemma-3-270m-it-q4k-ehf16-af32" }
   },
   "inference": { "prompt": "Hello from Doppler." }
 }
@@ -818,7 +820,7 @@ await recorder.submitAndWait();
 
 ---
 
-## For Claude Agents
+## For Debugging Agents
 
 When debugging DOPPLER issues:
 

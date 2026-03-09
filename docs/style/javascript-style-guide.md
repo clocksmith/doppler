@@ -1,4 +1,4 @@
-# DOPPLER JavaScript Style Guide
+# Doppler JavaScript Style Guide
 
 JavaScript conventions for kernel wrappers and pipeline code.
 

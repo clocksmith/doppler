@@ -41,7 +41,7 @@
   </marker>
 </defs>
 
-  <text x="700" y="52" text-anchor="middle" class="title">DOPPLER Architecture Overview</text>
+  <text x="700" y="52" text-anchor="middle" class="title">Doppler Architecture Overview</text>
 
   <rect x="70" y="70" width="610" height="560" rx="0" class="column-left" />
   <rect x="720" y="70" width="610" height="560" rx="0" class="column-right" />

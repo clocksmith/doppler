@@ -2,12 +2,12 @@
   "schemaVersion": 1,
   "updated": "2026-03-05",
   "defaults": {
-    "compareEngines": "g3-p064-d064-t0-k1"
+    "compareEngines": "p064-d064-t0-k1"
   },
   "workloads": [
     {
-      "id": "g3-p064-d064-t0-k1",
-      "name": "Gemma3 Grid 64/64 Greedy",
+      "id": "p064-d064-t0-k1",
+      "name": "Prompt 64 / Decode 64 Greedy",
       "prefillTokens": 64,
       "decodeTokens": 64,
       "sampling": {
@@ -17,8 +17,8 @@
       }
     },
     {
-      "id": "g3-p064-d064-t1-k32",
-      "name": "Gemma3 Grid 64/64 t1 k32 (sampling)",
+      "id": "p064-d064-t1-k32",
+      "name": "Prompt 64 / Decode 64 t1 k32",
       "prefillTokens": 64,
       "decodeTokens": 64,
       "sampling": {
@@ -28,8 +28,8 @@
       }
     },
     {
-      "id": "g3-p256-d128-t0-k1",
-      "name": "Gemma3 Grid 256/128 Greedy",
+      "id": "p256-d128-t0-k1",
+      "name": "Prompt 256 / Decode 128 Greedy",
       "prefillTokens": 256,
       "decodeTokens": 128,
       "sampling": {
@@ -39,8 +39,8 @@
       }
     },
     {
-      "id": "g3-p512-d128-t0-k1",
-      "name": "Gemma3 Grid 512/128 Greedy",
+      "id": "p512-d128-t0-k1",
+      "name": "Prompt 512 / Decode 128 Greedy",
       "prefillTokens": 512,
       "decodeTokens": 128,
       "sampling": {
@@ -50,8 +50,8 @@
       }
     },
     {
-      "id": "g3-p256-d128-t1-k32",
-      "name": "Gemma3 Grid 256/128 t1 k32 (sampling)",
+      "id": "p256-d128-t1-k32",
+      "name": "Prompt 256 / Decode 128 t1 k32",
       "prefillTokens": 256,
       "decodeTokens": 128,
       "sampling": {

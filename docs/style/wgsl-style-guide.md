@@ -1,4 +1,4 @@
-# DOPPLER WGSL Style Guide
+# Doppler WGSL Style Guide
 
 WebGPU Shading Language conventions for DOPPLER kernels.
 Shared naming/logging/testing policy is canonical in [General Style Guide](./general-style-guide.md).
