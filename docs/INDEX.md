@@ -1,4 +1,4 @@
-# DOPPLER Docs Index
+# Doppler Docs Index
 
 Primary documentation index.
 

@@ -1,4 +1,4 @@
-# DOPPLER Kernel Tests
+# Doppler Kernel Tests
 
 GPU kernel correctness validation and benchmarks for the DOPPLER WebGPU inference engine.
 

@@ -1,4 +1,4 @@
-# DOPPLER Style Guides
+# Doppler Style Guides
 
 Coding conventions for the DOPPLER codebase.
 

@@ -147,7 +147,7 @@
   "runs": 3,
   "seed": 0,
   "workload": {
-    "id": "g3-p064-d064-t0-k1",
+    "id": "p064-d064-t0-k1",
     "prefillTokenTarget": 64,
     "decodeTokenTarget": 64
   },

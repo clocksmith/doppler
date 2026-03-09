@@ -1,4 +1,4 @@
-# DOPPLER Developer Guides
+# Doppler Developer Guides
 
 Task-oriented guide map for extending Doppler.
 
