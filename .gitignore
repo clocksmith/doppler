@@ -49,6 +49,9 @@ Thumbs.db
 downloads/
 !demo/app/downloads/
 !/demo/app/downloads/index.d.ts
+!demo/ui/downloads/
+!demo/ui/downloads/index.js
+!demo/ui/downloads/index.d.ts
 /models/*
 !/models/catalog.json
 !/models/README.md

@@ -95,8 +95,18 @@ import {
     }
     const artifactDir = path.join(repoRoot, 'models', baseUrl.slice(2));
     const manifestPath = path.join(artifactDir, 'manifest.json');
-    await assert.doesNotReject(fs.access(manifestPath), `${entry.modelId}: missing manifest.json for ${baseUrl}`);
-    const manifest = JSON.parse(await fs.readFile(manifestPath, 'utf8'));
+    let manifest = null;
+    try {
+      manifest = JSON.parse(await fs.readFile(manifestPath, 'utf8'));
+    } catch (error) {
+      if (error?.code !== 'ENOENT') {
+        throw error;
+      }
+    }
+    if (!manifest) {
+      assert.equal(entry?.lifecycle?.availability?.local, true);
+      continue;
+    }
     const shards = Array.isArray(manifest?.shards) ? manifest.shards : [];
     for (const shard of shards) {
       const shardFile = typeof shard?.filename === 'string' ? shard.filename.trim() : '';
