@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-03-09T00:10:00.344Z",
+  "generatedAt": "2026-03-09T00:41:40.411Z",
   "release": {
     "channel": "main-snapshot",
     "version": null,
-    "commitSha": "31d4141aa5d84b63cb70e576193cc629d6a5fe92",
+    "commitSha": "2eac6b8535e2de9ed37df0fb1fea66d3d6db4c74",
     "dirty": null
   },
   "sources": {
@@ -40,8 +40,8 @@
     },
     "benchmarkPolicy": {
       "path": "benchmarks/vendors/benchmark-policy.json",
-      "sha256": "1232b85d3ed7a558252568a29e21ba81afdb504a04ab4d8e6f8b33fb66099f76",
-      "bytes": 1310,
+      "sha256": "ec8e18282eec09dedb5572c4713507f9692833900b2de03dd8d192a5daf8f510",
+      "bytes": 1315,
       "updated": "2026-03-08"
     },
     "modelCatalog": {

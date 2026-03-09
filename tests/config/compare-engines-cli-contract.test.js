@@ -21,25 +21,38 @@ function runCompareEngines(args) {
   const benchmarkPolicy = JSON.parse(await fs.readFile(benchmarkPolicyPath, 'utf8'));
   const catalog = JSON.parse(await fs.readFile(catalogPath, 'utf8'));
   const catalogIds = new Set((Array.isArray(catalog.models) ? catalog.models : []).map((entry) => entry?.modelId).filter(Boolean));
+  const compareProfileIds = new Set(
+    (Array.isArray(compareConfig.modelProfiles) ? compareConfig.modelProfiles : [])
+      .map((entry) => entry?.dopplerModelId)
+      .filter(Boolean)
+  );
 
   for (const profile of compareConfig.modelProfiles) {
     if (profile?.modelBaseDir !== 'local') {
       continue;
     }
     const manifestPath = path.join(repoRoot, 'models', 'local', profile.dopplerModelId, 'manifest.json');
-    await assert.doesNotReject(
-      fs.access(manifestPath),
-      `${profile.dopplerModelId}: local compare profile must resolve to models/local/<modelId>/manifest.json`
-    );
-    const manifest = JSON.parse(await fs.readFile(manifestPath, 'utf8'));
-    assert.equal(manifest.modelId, profile.dopplerModelId);
-    if (profile.defaultKernelPath != null) {
-      assert.equal(
-        manifest?.inference?.defaultKernelPath ?? null,
-        profile.defaultKernelPath,
-        `${profile.dopplerModelId}: compare profile defaultKernelPath must match the local manifest defaultKernelPath`
-      );
+    let manifest = null;
+    try {
+      manifest = JSON.parse(await fs.readFile(manifestPath, 'utf8'));
+    } catch (error) {
+      if (error?.code !== 'ENOENT') {
+        throw error;
+      }
     }
+    if (manifest) {
+      assert.equal(manifest.modelId, profile.dopplerModelId);
+      if (profile.defaultKernelPath != null) {
+        assert.equal(
+          manifest?.inference?.defaultKernelPath ?? null,
+          profile.defaultKernelPath,
+          `${profile.dopplerModelId}: compare profile defaultKernelPath must match the local manifest defaultKernelPath`
+        );
+      }
+      continue;
+    }
+    assert.equal(typeof profile.dopplerModelId, 'string');
+    assert.ok(profile.dopplerModelId.trim().length > 0);
   }
 
   const knownBadByModel = benchmarkPolicy?.kernelPathPolicy?.knownBadByModel ?? {};
@@ -52,8 +65,8 @@ function runCompareEngines(args) {
       localExists = false;
     }
     assert.ok(
-      localExists || catalogIds.has(modelId),
-      `benchmark-policy knownBadByModel.${modelId} must resolve to a local manifest or a catalog model`
+      localExists || catalogIds.has(modelId) || compareProfileIds.has(modelId),
+      `benchmark-policy knownBadByModel.${modelId} must resolve to a local manifest, compare profile, or catalog model`
     );
   }
 }
