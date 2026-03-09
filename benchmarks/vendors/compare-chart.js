@@ -289,7 +289,7 @@ function usage() {
     '  node benchmarks/vendors/compare-chart.js --input ... --chart stacked --width 1200',
     '  node benchmarks/vendors/compare-chart.js --input ... --chart radar --metrics decodeTokensPerSec,firstTokenMs',
     '  node benchmarks/vendors/compare-chart.js --input ... --chart phases --include-workload "64 prompt tokens, 64 decode tokens, greedy"',
-    '  node benchmarks/vendors/compare-chart.js --input ... --chart phases --exclude-workload g3-p064-d064-t0-k1',
+    '  node benchmarks/vendors/compare-chart.js --input ... --chart phases --exclude-workload p064-d064-t0-k1',
     '  node benchmarks/vendors/compare-chart.js --chart phases --input workload1.json --input workload2.json',
     `  node benchmarks/vendors/compare-chart.js --preset ${README_PRESET_NAME}`,
     '  node benchmarks/vendors/compare-chart.js --chart radar --input workload1.json --input workload2.json',

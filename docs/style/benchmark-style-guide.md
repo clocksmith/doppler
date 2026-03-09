@@ -1,4 +1,4 @@
-# DOPPLER Benchmark Style Guide
+# Doppler Benchmark Style Guide
 
 Implementation conventions for benchmark harnesses and normalized outputs.
 

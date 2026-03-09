@@ -1,4 +1,4 @@
-# DOPPLER Config Style Guide
+# Doppler Config Style Guide
 
 Rules and conventions for configuration ownership, merge order, and overrides.
 

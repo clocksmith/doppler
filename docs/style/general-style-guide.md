@@ -1,4 +1,4 @@
-# DOPPLER General Style Guide
+# Doppler General Style Guide
 
 General coding conventions and patterns for the DOPPLER codebase.
 
@@ -810,7 +810,7 @@ if (variant !== 'q4_fused') throw new Error(`expected q4_fused, got ${variant}`)
 
 ```javascript
 // In browser console (demo diagnostics or harness)
-await runBrowserSuite({ suite: 'inference', modelId: 'gemma3-1b-q4' });
+await runBrowserSuite({ suite: 'inference', modelId: 'gemma-3-270m-it-q4k-ehf16-af32' });
 ```
 
 ---

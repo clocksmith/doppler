@@ -9,8 +9,9 @@ The same command contract is available through Node CLI and browser relay.
 
 **URL:** `http://localhost:8080/tests/harness.html` (serve repo root with a static server)
 
-Modes are configured in `runtime.shared.harness` and passed through runtime config.
-Harnessed runs also require `runtime.shared.tooling.intent`.
+Runtime config payloads use top-level `shared.harness` and `shared.tooling.intent`.
+After normalization, these resolve into `runtime.shared.harness` and
+`runtime.shared.tooling.intent` inside the command/runtime contract.
 The harness does not accept per-field query overrides.
 
 | Mode | Purpose |

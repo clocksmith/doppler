@@ -1,4 +1,4 @@
-# DOPPLER Testing
+# Doppler Testing
 
 This page is now a testing index.
 

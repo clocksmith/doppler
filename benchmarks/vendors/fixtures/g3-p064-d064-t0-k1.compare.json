@@ -11,7 +11,7 @@
   "tjsModelId": "onnx-community/gemma-3-1b-it-ONNX-GQA",
   "dopplerKernelPath": "gemma3-f16-fused-f32a-online",
   "workload": {
-    "id": "g3-p064-d064-t0-k1",
+    "id": "p064-d064-t0-k1",
     "prefillTokenTarget": 64,
     "decodeTokenTarget": 64,
     "sampling": {

@@ -7,7 +7,7 @@
     "stdoutFormat": "json",
     "defaultCommand": null,
     "examples": [
-      "node benchmarks/runners/transformersjs-bench.js --workload g3-p064-d064-t0-k1 --json"
+      "node benchmarks/runners/transformersjs-bench.js --workload p064-d064-t0-k1 --json"
     ]
   },
   "normalization": {

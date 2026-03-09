@@ -43,7 +43,7 @@ Canonical guide for running Doppler tests.
       "mode": "inference",
       "autorun": true,
       "skipLoad": false,
-      "modelId": "gemma3-1b-q4"
+      "modelId": "gemma-3-270m-it-q4k-ehf16-af32"
     }
   },
   "inference": {

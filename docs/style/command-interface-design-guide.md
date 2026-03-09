@@ -1,4 +1,4 @@
-# DOPPLER Command Interface Design Guide
+# Doppler Command Interface Design Guide
 
 Design rules for the command interface, independent of surface.
 This applies to browser clients and the Node CLI equally.

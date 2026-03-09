@@ -1,4 +1,4 @@
-# DOPPLER Harness Interface Style Guide
+# Doppler Harness Interface Style Guide
 
 Harness-specific rules for browser and Node execution surfaces.
 

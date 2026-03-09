@@ -1,4 +1,4 @@
-# DOPPLER Getting Started
+# Doppler Getting Started
 
 This is the canonical day-1 workflow for Doppler.
 
