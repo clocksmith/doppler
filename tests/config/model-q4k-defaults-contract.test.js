@@ -15,8 +15,8 @@ async function readPreset(relativePath) {
   const gemma2 = await readPreset('src/config/presets/models/gemma2.json');
   const q4k = gemma2?.inference?.kernelPaths?.q4k;
   assert.ok(q4k, 'gemma2 q4k kernelPaths must exist');
-  assert.equal(q4k.f16, 'gemma2-q4k-dequant-f32a');
-  assert.equal(q4k.f32, 'gemma2-q4k-dequant-f32a');
+  assert.equal(q4k.f16, 'gemma2-q4k-dequant-f32a-nosubgroups');
+  assert.equal(q4k.f32, 'gemma2-q4k-dequant-f32a-nosubgroups');
 }
 
 {
@@ -29,4 +29,4 @@ async function readPreset(relativePath) {
   assert.equal(q4k.f32, 'gemma3-q4k-dequant-f32a-online');
 }
 
-console.log('model-q4k-defaults-portable.test: ok');
+console.log('model-q4k-defaults-contract.test: ok');

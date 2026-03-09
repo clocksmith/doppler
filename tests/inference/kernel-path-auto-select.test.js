@@ -9,16 +9,16 @@ const { setActiveKernelPath, getKernelPathStrict } = await import('../../src/con
 
 {
   const selected = resolveCapabilityKernelPathRef(
-    'gemma3-q4k-dequant-f32a',
+    'gemma3-q4k-dequant-f32a-nosubgroups',
     'model',
     { hasSubgroups: true }
   );
-  assert.equal(selected, 'gemma3-q4k-dequant-f32a');
+  assert.equal(selected, 'gemma3-q4k-dequant-f32a-nosubgroups');
 }
 
 {
   const selected = resolveCapabilityKernelPathRef(
-    'gemma3-q4k-dequant-f32a',
+    'gemma3-q4k-dequant-f32a-nosubgroups',
     'model',
     { hasSubgroups: true },
     {
@@ -31,7 +31,7 @@ const { setActiveKernelPath, getKernelPathStrict } = await import('../../src/con
 
 {
   const selected = resolveCapabilityKernelPathRef(
-    'gemma3-q4k-dequant-f32a',
+    'gemma3-q4k-dequant-f32a-nosubgroups',
     'model',
     { hasSubgroups: false },
     {
@@ -39,12 +39,12 @@ const { setActiveKernelPath, getKernelPathStrict } = await import('../../src/con
       sourceScope: ['model', 'manifest'],
     }
   );
-  assert.equal(selected, 'gemma3-q4k-dequant-f32a');
+  assert.equal(selected, 'gemma3-q4k-dequant-f32a-nosubgroups');
 }
 
 {
   const selected = resolveCapabilityKernelPathRef(
-    'gemma3-q4k-dequant-f32a',
+    'gemma3-q4k-dequant-f32a-nosubgroups',
     'runtime',
     { hasSubgroups: true },
     {
@@ -57,7 +57,7 @@ const { setActiveKernelPath, getKernelPathStrict } = await import('../../src/con
 
 {
   const selected = resolveCapabilityKernelPathRef(
-    'gemma3-q4k-dequant-f32a',
+    'gemma3-q4k-dequant-f32a-nosubgroups',
     'config',
     { hasSubgroups: true },
     {
@@ -70,7 +70,7 @@ const { setActiveKernelPath, getKernelPathStrict } = await import('../../src/con
 
 {
   const selected = resolveCapabilityKernelPathRef(
-    'gemma3-q4k-dequant-f32a',
+    'gemma3-q4k-dequant-f32a-nosubgroups',
     'execution-v0',
     { hasSubgroups: true },
     {
@@ -83,7 +83,7 @@ const { setActiveKernelPath, getKernelPathStrict } = await import('../../src/con
 
 {
   const selected = resolveCapabilityKernelPathRef(
-    'gemma3-q4k-dequant-f32a',
+    'gemma3-q4k-dequant-f32a-nosubgroups',
     'execution-v0',
     { hasSubgroups: true },
     {
@@ -91,7 +91,7 @@ const { setActiveKernelPath, getKernelPathStrict } = await import('../../src/con
       sourceScope: ['config'],
     }
   );
-  assert.equal(selected, 'gemma3-q4k-dequant-f32a');
+  assert.equal(selected, 'gemma3-q4k-dequant-f32a-nosubgroups');
 }
 
 {
@@ -104,7 +104,7 @@ const { setActiveKernelPath, getKernelPathStrict } = await import('../../src/con
       sourceScope: ['config'],
     }
   );
-  assert.equal(selected, 'gemma2-q4k-dequant-f32a');
+  assert.equal(selected, 'gemma2-q4k-dequant-f32a-nosubgroups');
 }
 
 {
@@ -117,7 +117,7 @@ const { setActiveKernelPath, getKernelPathStrict } = await import('../../src/con
       sourceScope: ['config'],
     }
   );
-  assert.equal(selected, 'gemma3-q4k-dequant-f32a');
+  assert.equal(selected, 'gemma3-q4k-dequant-f32a-nosubgroups');
 }
 
 {
@@ -130,7 +130,33 @@ const { setActiveKernelPath, getKernelPathStrict } = await import('../../src/con
       sourceScope: ['config'],
     }
   );
-  assert.equal(selected, 'gemma3-q4k-dequant-f32a');
+  assert.equal(selected, 'gemma3-q4k-dequant-f32a-nosubgroups');
+}
+
+{
+  const selected = resolveCapabilityKernelPathRef(
+    'gemma3-q4k-dequant-f32a',
+    'config',
+    { hasSubgroups: false },
+    {
+      mode: 'capability-aware',
+      sourceScope: ['config'],
+    }
+  );
+  assert.equal(selected, 'gemma3-q4k-dequant-f32a-nosubgroups');
+}
+
+{
+  const selected = resolveCapabilityKernelPathRef(
+    'gemma3-q4k-dequant-f32a',
+    'config',
+    { hasSubgroups: true },
+    {
+      mode: 'capability-aware',
+      sourceScope: ['config'],
+    }
+  );
+  assert.equal(selected, 'gemma3-q4k-dequant-f32a-online');
 }
 
 {
@@ -168,7 +194,7 @@ const { setActiveKernelPath, getKernelPathStrict } = await import('../../src/con
     'finitenessFallback',
     { kernelPathId: 'gemma3-q4k-dequant-f16a-online' }
   );
-  assert.equal(selected, 'gemma3-q4k-dequant-f32a');
+  assert.equal(selected, 'gemma3-q4k-dequant-f32a-nosubgroups');
 }
 
 {
@@ -178,7 +204,7 @@ const { setActiveKernelPath, getKernelPathStrict } = await import('../../src/con
     'finitenessFallback',
     { kernelPathId: 'lfm2-q4k-dequant-f32a-online' }
   );
-  assert.equal(selected, 'gemma3-q4k-dequant-f32a');
+  assert.equal(selected, 'gemma3-q4k-dequant-f32a-nosubgroups');
 }
 
 {
@@ -188,7 +214,7 @@ const { setActiveKernelPath, getKernelPathStrict } = await import('../../src/con
     'finitenessFallback',
     { kernelPathId: 'gemma2-q4k-dequant-f16a' }
   );
-  assert.equal(selected, 'gemma2-q4k-dequant-f32a');
+  assert.equal(selected, 'gemma2-q4k-dequant-f32a-nosubgroups');
 }
 
 {

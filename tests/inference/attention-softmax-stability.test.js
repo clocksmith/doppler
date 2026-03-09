@@ -35,7 +35,7 @@ function hasMaxSubtractedSoftmax(source) {
 const kernelPathFiles = [
   'gemma3-f16-fused-f16a-online.json',
   'gemma3-f16-fused-f32a-online.json',
-  'gemma3-q4k-dequant-f32a.json',
+  'gemma3-q4k-dequant-f32a-nosubgroups.json',
   'gemma3-q4k-dequant-f16a-online.json',
   'gemma3-q4k-dequant-f32a-online.json',
 ];

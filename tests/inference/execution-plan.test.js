@@ -177,7 +177,7 @@ const container = { executionPlanState: planState };
     resolvedKernelPath: {
       id: 'gemma-inline-execution-v0',
       activationDtype: 'f16',
-      finitenessFallbackKernelPathId: 'gemma3-q4k-dequant-f32a',
+      finitenessFallbackKernelPathId: 'gemma3-q4k-dequant-f32a-nosubgroups',
       decode: { steps: [] },
     },
     kernelPathSource: 'execution-v0',
@@ -185,7 +185,7 @@ const container = { executionPlanState: planState };
 
   const fallback = activateFallbackExecutionPlan(inlinePlanState);
   assert.ok(fallback);
-  assert.equal(fallback.kernelPathId, 'gemma3-q4k-dequant-f32a');
+  assert.equal(fallback.kernelPathId, 'gemma3-q4k-dequant-f32a-nosubgroups');
   assert.equal(fallback.kernelPathSource, 'rule');
   assert.equal(fallback.activationDtype, 'f32');
 }
