@@ -1,5 +1,5 @@
---- src/gpu/kernels/attention_small.wgsl	2026-02-20 10:04:55.691091915 -0500
-+++ src/gpu/kernels/attention_small_f16.wgsl	2026-02-20 10:04:55.691091915 -0500
+--- src/gpu/kernels/attention_small.wgsl
++++ src/gpu/kernels/attention_small_f16.wgsl
 @@ -1,39 +1,27 @@
 -// Fused Multi-Head Attention Kernel (small tiles)
 +// Fused Multi-Head Attention Kernel (small tiles, f16 QKV + f16 output)
@@ -20,18 +20,19 @@
 -//   query_block_idx = linear / num_heads
 -//
 -// workgroup_size = BLOCK_SIZE (one thread per query position in the block).
-+// Same algorithm as attention_small.wgsl but Q/K/V are f16 and output is f16.
-+// Shared tiles use f16 to reduce workgroup storage; math uses f32.
- 
+-
 -const BLOCK_SIZE: u32 = 32u;   // Sequence tile size
 -const HEAD_TILE: u32 = 32u;    // Head dimension tile
--const MAX_HEAD_DIM: u32 = 256u;
++// Same algorithm as attention_small.wgsl but Q/K/V are f16 and output is f16.
++// Shared tiles use f16 to reduce workgroup storage; math uses f32.
++
 +enable f16;
 +
 +const BLOCK_SIZE: u32 = 32u;
- const WORKGROUP_SIZE: u32 = BLOCK_SIZE;
++const WORKGROUP_SIZE: u32 = BLOCK_SIZE;
 +const HEAD_TILE: u32 = 32u;
-+const MAX_HEAD_DIM: u32 = 256u;
+ const MAX_HEAD_DIM: u32 = 256u;
+-const WORKGROUP_SIZE: u32 = BLOCK_SIZE;
  
  struct Uniforms {
 -    num_heads: u32,       // Number of query heads
@@ -183,7 +184,10 @@
          let inv_l_i = select(0.0, 1.0 / l_i, l_i > 0.0);
          for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
 -            output[out_offset + d] = acc[d] * inv_l_i;
+-        }
+-    }
+-}
 +            output[out_offset + d] = f16(acc[d] * inv_l_i);
-         }
-     }
- }
++        }
++    }
++}

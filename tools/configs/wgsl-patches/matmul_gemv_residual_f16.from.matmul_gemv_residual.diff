@@ -1,5 +1,5 @@
---- src/gpu/kernels/matmul_gemv_residual.wgsl	2026-02-20 10:04:55.693844318 -0500
-+++ src/gpu/kernels/matmul_gemv_residual_f16.wgsl	2026-02-20 10:04:55.693844318 -0500
+--- src/gpu/kernels/matmul_gemv_residual.wgsl
++++ src/gpu/kernels/matmul_gemv_residual_f16.wgsl
 @@ -1,10 +1,7 @@
  // Fused GEMV + Residual Kernel - Single dispatch for output projection + residual add
  // For M=1 decode: C[N] = A[K] * B^T[K,N] + residual[N]
@@ -40,8 +40,10 @@
      // Thread 0 writes the final result with residual addition
      if (local_id == 0u) {
 -        C[col] = shared_sum[0] * u.alpha + residual[col];
--    }
--}
++        let result = shared_sum[0] * u.alpha + f32(residual[col]);
++        C[col] = f16(result);
+     }
+ }
 -
 -// F32 weights variant
 -@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
@@ -81,8 +83,5 @@
 -
 -    if (local_id == 0u) {
 -        C[col] = shared_sum[0] * u.alpha + residual[col];
-+        let result = shared_sum[0] * u.alpha + f32(residual[col]);
-+        C[col] = f16(result);
-     }
- }
-\ No newline at end of file
+-    }
+-}

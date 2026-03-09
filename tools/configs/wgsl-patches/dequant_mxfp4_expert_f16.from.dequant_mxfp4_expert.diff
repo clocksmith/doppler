@@ -1,14 +1,14 @@
---- src/gpu/kernels/dequant_mxfp4_expert.wgsl	2026-02-20 10:04:55.691844396 -0500
-+++ src/gpu/kernels/dequant_mxfp4_expert_f16.wgsl	2026-02-20 10:04:55.691844396 -0500
+--- src/gpu/kernels/dequant_mxfp4_expert.wgsl
++++ src/gpu/kernels/dequant_mxfp4_expert_f16.wgsl
 @@ -1,15 +1,10 @@
 -// MXFP4 Dequantization Kernel (expert slice)
 -//
 -// Expert-aware version: dequantizes a single expert's slice from packed tensor.
 +// MXFP4 Dequantization Kernel (expert slice, f16 output)
-+
-+enable f16;
  
 -// Tunable workgroup size
++enable f16;
++
  override WORKGROUP_SIZE_EXPERT: u32 = 256u;
  
 -// Extract 4-bit nibble from packed bytes and decode as E2M1 FP4

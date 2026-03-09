@@ -1,12 +1,9 @@
---- src/gpu/kernels/topk.wgsl	2026-02-20 10:04:55.694977493 -0500
-+++ src/gpu/kernels/topk_f16.wgsl	2026-02-20 10:04:55.694977493 -0500
+--- src/gpu/kernels/topk.wgsl
++++ src/gpu/kernels/topk_f16.wgsl
 @@ -1,164 +1,34 @@
 -// topk.wgsl
 +// topk_f16.wgsl
-+// Entry-point contract: this variant only exports softmax_topk.
-+// The main and topk_2_small entry points from topk.wgsl are not present in this variant.
-+// Kernel dispatch must target softmax_topk, not main.
-
+ 
  /**
 - * Top-K Selection Kernel for MoE Routing
 + * Top-K Selection Kernel for MoE Routing (f16 logits)
@@ -226,3 +223,9 @@
          var weight_sum: f32 = 0.0;
          for (var k: u32 = 0u; k < top_k; k = k + 1u) {
              weight_sum = weight_sum + shared_probs[k];
+@@ -240,4 +103,4 @@
+             out_weights[out_base + k] = shared_probs[k] * inv_sum;
+         }
+     }
+-}
++}

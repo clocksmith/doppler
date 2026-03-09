@@ -1,5 +1,5 @@
---- src/gpu/kernels/moe_gather.wgsl	2026-02-20 10:04:55.694977493 -0500
-+++ src/gpu/kernels/moe_gather_f16.wgsl	2026-02-20 10:04:55.694977493 -0500
+--- src/gpu/kernels/moe_gather.wgsl
++++ src/gpu/kernels/moe_gather_f16.wgsl
 @@ -1,47 +1,31 @@
 -// moe_gather.wgsl
 +// moe_gather_f16.wgsl

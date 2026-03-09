@@ -1,5 +1,5 @@
---- src/gpu/kernels/attention_decode.wgsl	2026-02-20 10:04:55.691091915 -0500
-+++ src/gpu/kernels/attention_decode_f16.wgsl	2026-02-20 10:04:55.691091915 -0500
+--- src/gpu/kernels/attention_decode.wgsl
++++ src/gpu/kernels/attention_decode_f16.wgsl
 @@ -1,28 +1,26 @@
 -// Fused Multi-Head Attention Kernel
 +// Fused Multi-Head Attention Kernel (decode, f16 QKV + f16 output)
@@ -90,9 +90,10 @@
 -        if (abs_key < abs_query - u.sliding_window + 1u) {
 -            return true;  // Key is too far in the past
 -        }
-+        if (abs_key < abs_query - u.sliding_window + 1u) { return true; }
-     }
+-    }
 -
++        if (abs_key < abs_query - u.sliding_window + 1u) { return true; }
++    }
      return false;
  }
  
@@ -121,10 +122,12 @@
      let q_offset = head_idx * head_dim;
      for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
 -        q_local[d] = Q[q_offset + d];
-+        q_local[d] = f32(Q[q_offset + d]);
-     }
- 
+-    }
+-
 -    // Pass 1: local max
++        q_local[d] = f32(Q[q_offset + d]);
++    }
++
      var local_max: f32 = -3.402823e+38;
      let query_pos = 0u;
  
@@ -194,12 +197,17 @@
      let out_offset = head_idx * head_dim;
      for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
          row_sum[thread_idx] = local_out[d];
-@@ -226,7 +193,7 @@
+@@ -226,8 +193,8 @@
              for (var t: u32 = 0u; t < DECODE_WORKGROUP_SIZE; t = t + 1u) {
                  sum = sum + row_sum[t];
              }
 -            output[out_offset + d] = sum * inv_sum;
+-        }
+-        workgroupBarrier();
+-    }
+-}
 +            output[out_offset + d] = f16(sum * inv_sum);
-         }
-         workgroupBarrier();
-     }
++        }
++        workgroupBarrier();
++    }
++}

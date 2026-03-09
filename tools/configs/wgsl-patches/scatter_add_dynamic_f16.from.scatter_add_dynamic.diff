@@ -1,5 +1,5 @@
---- src/gpu/kernels/scatter_add_dynamic.wgsl	2026-02-20 10:04:55.694977493 -0500
-+++ src/gpu/kernels/scatter_add_dynamic_f16.wgsl	2026-02-20 10:04:55.694977493 -0500
+--- src/gpu/kernels/scatter_add_dynamic.wgsl
++++ src/gpu/kernels/scatter_add_dynamic_f16.wgsl
 @@ -1,31 +1,27 @@
 -// scatter_add_dynamic.wgsl
 +// scatter_add_dynamic_f16.wgsl
@@ -10,9 +10,9 @@
 - * Alternative layout: expert outputs stored per-expert with token batching.
 + * Scatter-Add Kernel (dynamic layout, f16 outputs)
   */
- 
-+enable f16;
 +
++enable f16;
+ 
  override WORKGROUP_SIZE: u32 = 256u;
  
 -// Alternative layout: expert outputs stored per-expert with token batching

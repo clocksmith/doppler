@@ -1,5 +1,5 @@
---- src/gpu/kernels/attention_decode.wgsl	2026-02-20 10:04:55.691091915 -0500
-+++ src/gpu/kernels/attention_decode_f16kv.wgsl	2026-02-20 10:04:55.691091915 -0500
+--- src/gpu/kernels/attention_decode.wgsl
++++ src/gpu/kernels/attention_decode_f16kv.wgsl
 @@ -1,10 +1,9 @@
 -// Fused Multi-Head Attention Kernel
 +// Fused Multi-Head Attention Kernel (f16 KV)
@@ -49,9 +49,10 @@
 -        if (abs_key < abs_query - u.sliding_window + 1u) {
 -            return true;  // Key is too far in the past
 -        }
-+        if (abs_key < abs_query - u.sliding_window + 1u) { return true; }
-     }
+-    }
 -
++        if (abs_key < abs_query - u.sliding_window + 1u) { return true; }
++    }
      return false;
  }
  

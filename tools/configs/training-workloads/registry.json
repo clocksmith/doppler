@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
   "artifactType": "training_workload_registry",
-  "generatedAt": "2026-03-08T16:17:42.429Z",
-  "registryHash": "6431483bba170e2a8a7b92376c3c0de786219fe69830675c5f4718008317fe57",
+  "generatedAt": "2026-03-08T23:58:09.970Z",
+  "registryHash": "994c918333e59bc19016412d47f6ace5298a282170df187f2c95e2a9a7ecac2f",
   "workloads": [
     {
       "id": "distill-translategemma-medium",
       "path": "tools/configs/training-workloads/distill-translategemma-medium.json",
-      "sha256": "ef743214d236ee3df6c3bcd1e21413108598d84b888fa55e9e147e8a731c1c6f",
+      "sha256": "af12934081cfe12e34e7253d575b27e50f4a0305e2199d1c557cc5e961c8e690",
       "workloadKind": "distill",
       "trainingSchemaVersion": 1,
       "seed": 1337,
@@ -15,14 +15,14 @@
       "selectionMetric": "bleu",
       "selectionGoal": "max",
       "surfaceSupport": "node",
-      "baselineReportId": "trn_distill-translategemma-medium_ef743214d236",
+      "baselineReportId": "trn_distill-translategemma-medium_af12934081cf",
       "claimBoundary": "Practical deterministic distillation traceability for translation checkpoints and eval artifacts.",
-      "configHash": "b191978e6106daf7c784f557e4df86042445360ddd4b4c54f7552d427d5eaee4"
+      "configHash": "f43e1bc01f5628928e2e5af4e3e77dd0c69be8bfb63f542a217b58ab7372f4d9"
     },
     {
       "id": "distill-translategemma-tiny",
       "path": "tools/configs/training-workloads/distill-translategemma-tiny.json",
-      "sha256": "87fbe49b6dc102389734fb13199111fd74bf1922466938fcb843543d4c3af669",
+      "sha256": "7a50fb0fd7c0c49d88ddede79dd92357be3dee9ac8b5e67de6d37ac36fb890ff",
       "workloadKind": "distill",
       "trainingSchemaVersion": 1,
       "seed": 1337,
@@ -30,9 +30,9 @@
       "selectionMetric": "bleu",
       "selectionGoal": "max",
       "surfaceSupport": "node",
-      "baselineReportId": "trn_distill-translategemma-tiny_87fbe49b6dc1",
+      "baselineReportId": "trn_distill-translategemma-tiny_7a50fb0fd7c0",
       "claimBoundary": "Practical deterministic distillation traceability for translation checkpoints and eval artifacts.",
-      "configHash": "dd362198074ad99cda240c2ca9f0b311a851c916f33d254010b2be6822c204a1"
+      "configHash": "83bb1bcc77006e68e471a62ada790749b41ce616fa54ff807b9167954f045d1f"
     },
     {
       "id": "lora-toy-medium",

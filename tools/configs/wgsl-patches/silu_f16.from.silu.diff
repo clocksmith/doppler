@@ -16,7 +16,7 @@
  
  override WORKGROUP_SIZE: u32 = 256u;
  override HAS_GATE: bool = false;
-@@ -22,9 +19,9 @@
+@@ -23,9 +20,9 @@
  }
  
  @group(0) @binding(0) var<uniform> u: Uniforms;
@@ -29,27 +29,27 @@
  
  fn sigmoid(x: f32) -> f32 {
      let clamped = clamp(x, -15.0, 15.0);
-@@ -54,8 +51,8 @@
+@@ -60,8 +57,8 @@
  
          let remaining = min(4u, u.size - base_idx);
          for (var i: u32 = 0u; i < remaining; i = i + 1u) {
 -            let x = input[base_idx + i];
--            output[base_idx + i] = silu(x);
+-            output[base_idx + i] = apply_input_activation(x);
 +            let x = f32(input[base_idx + i]);
-+            output[base_idx + i] = f16(silu(x));
++            output[base_idx + i] = f16(apply_input_activation(x));
          }
          return;
      }
-@@ -73,27 +70,27 @@
-         let token_idx = idx / dim;
-         let dim_idx = idx % dim;
+@@ -83,27 +80,27 @@
+             return;
+         }
          let row_base = token_idx * dim * 2u;
 -        let g = input[row_base + dim_idx];
 -        let up = input[row_base + dim + dim_idx];
--        output[idx] = clamp_swiglu(silu(g) * up);
+-        output[token_idx * dim + dim_idx] = clamp_swiglu(silu(g) * up);
 +        let g = f32(input[row_base + dim_idx]);
 +        let up = f32(input[row_base + dim + dim_idx]);
-+        output[idx] = f16(clamp_swiglu(silu(g) * up));
++        output[token_idx * dim + dim_idx] = f16(clamp_swiglu(silu(g) * up));
          return;
      }
  
@@ -59,8 +59,8 @@
 +        let up = f32(input[idx]);
 +        let g = f32(gate[idx]);
          let gateAct = select(silu(g), sigmoid(g), GATE_USE_SIGMOID);
--        output[idx] = clamp_swiglu(gateAct * up);
-+        output[idx] = f16(clamp_swiglu(gateAct * up));
+-        output[idx] = clamp_swiglu(gateAct * apply_input_activation(up));
++        output[idx] = f16(clamp_swiglu(gateAct * apply_input_activation(up)));
          return;
      }
  
@@ -75,7 +75,7 @@
      }
  
 -    let x = input[idx];
--    output[idx] = silu(x);
+-    output[idx] = apply_input_activation(x);
 +    let x = f32(input[idx]);
-+    output[idx] = f16(silu(x));
++    output[idx] = f16(apply_input_activation(x));
  }

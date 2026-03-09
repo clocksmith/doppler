@@ -1,6 +1,6 @@
---- src/gpu/kernels/residual.wgsl	2026-02-20 10:04:55.694977493 -0500
-+++ src/gpu/kernels/residual_f16.wgsl	2026-02-20 10:04:55.694977493 -0500
-@@ -1,12 +1,14 @@
+--- src/gpu/kernels/residual.wgsl
++++ src/gpu/kernels/residual_f16.wgsl
+@@ -1,11 +1,13 @@
 -// residual.wgsl
 +// residual_f16.wgsl
  
@@ -11,12 +11,11 @@
   * Performs element-wise addition for residual connections.
   * output = a + b
   */
- 
-+enable f16;
 +
++enable f16;
+ 
  struct Uniforms {
      size: u32,     // Total number of elements
-     scale: f32,    // Scale factor for add_scaled
 @@ -17,9 +19,9 @@
  override WORKGROUP_SIZE: u32 = 256u;
  
@@ -30,19 +29,21 @@
  
  @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
  fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
-@@ -27,27 +29,5 @@
+@@ -28,29 +30,5 @@
      if (idx >= u.size) {
          return;
      }
 -    output[idx] = a[idx] + b[idx];
--}
++    output[idx] = f16(f32(a[idx]) + f32(b[idx]));
+ }
 -
 -// In-place version: output = output + b
 -// Note: Caller should copy 'a' to 'output' first, then call this kernel
 -// This avoids requiring a different bind group layout with read_write on 'a'
 -@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 -fn add_inplace(@builtin(global_invocation_id) gid: vec3<u32>) {
--    let idx = gid.x;
+-    let dispatch_stride = max(u._pad1, 1u);
+-    let idx = gid.y * dispatch_stride + gid.x;
 -    if (idx >= u.size) {
 -        return;
 -    }
@@ -52,10 +53,10 @@
 -// Fused residual + scale: output = a + scale * b
 -@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 -fn add_scaled(@builtin(global_invocation_id) gid: vec3<u32>) {
--    let idx = gid.x;
+-    let dispatch_stride = max(u._pad1, 1u);
+-    let idx = gid.y * dispatch_stride + gid.x;
 -    if (idx >= u.size) {
 -        return;
 -    }
 -    output[idx] = a[idx] + u.scale * b[idx];
-+    output[idx] = f16(f32(a[idx]) + f32(b[idx]));
- }
+-}

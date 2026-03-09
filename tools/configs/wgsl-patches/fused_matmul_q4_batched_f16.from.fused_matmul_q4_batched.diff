@@ -1,6 +1,6 @@
---- src/gpu/kernels/fused_matmul_q4_batched.wgsl	2026-02-20 10:04:55.692844357 -0500
-+++ src/gpu/kernels/fused_matmul_q4_batched_f16.wgsl	2026-02-20 10:04:55.692844357 -0500
-@@ -1,16 +1,8 @@
+--- src/gpu/kernels/fused_matmul_q4_batched.wgsl
++++ src/gpu/kernels/fused_matmul_q4_batched_f16.wgsl
+@@ -1,25 +1,14 @@
 -// Fused Q4_K Matmul Kernel - W4A16
 -// Directly computes C = A * dequant(B_q4k) without separate dequant pass
 +// Fused Q4_K Matmul Kernel - W4A16 (F16 output, batched)
@@ -20,16 +20,15 @@
  enable subgroups;
  
  // Q4_K constants
-@@ -18,9 +10,6 @@
+ const QK_K: u32 = 256u;           // Elements per super-block
  const BLOCK_SIZE: u32 = 144u;     // Bytes per Q4_K block
  const SUBBLOCK_SIZE: u32 = 32u;   // Elements per sub-block
- 
+-
 -override WORKGROUP_SIZE: u32 = 256u;
 -const MAX_SUBGROUPS: u32 = 256u;  // Supports subgroup_size >= 1
--
+ 
  struct Uniforms {
      M: u32,                   // Always 1 for GEMV
-     N: u32,                   // Output dimension
 @@ -43,10 +32,7 @@
  @group(0) @binding(0) var<uniform> u: Uniforms;
  @group(0) @binding(1) var<storage, read> A: array<f32>;
