@@ -6,6 +6,6 @@
   "stability": "canonical",
   "owner": "doppler-core",
   "createdAtUtc": "2026-02-25T00:00:00Z",
-  "extends": "kernels/dequant-f16-q4k",
+  "extends": "kernels/gemma2-q4k-dequant-f16a",
   "runtime": {}
 }

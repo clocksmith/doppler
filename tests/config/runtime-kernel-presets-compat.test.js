@@ -49,18 +49,46 @@ async function readJson(relativePath) {
   return JSON.parse(await fs.readFile(absolutePath, 'utf8'));
 }
 
-const compatibilityPresetPaths = [
-  'src/config/presets/runtime/kernels/safe-q4k.json',
-  'src/config/presets/runtime/kernels/dequant-f32-q4k.json',
+const canonicalPresetPaths = [
+  'src/config/presets/runtime/kernels/gemma2-q4k-dequant-f16a.json',
+  'src/config/presets/runtime/kernels/gemma2-q4k-dequant-f32a-nosubgroups.json',
+  'src/config/presets/runtime/kernels/gemma2-q4k-fused-f32a.json',
 ];
 
-const dtypeContractPresetPaths = [
-  ...compatibilityPresetPaths,
+const deprecatedAliasPresetPaths = [
+  'src/config/presets/runtime/kernels/safe-q4k.json',
+  'src/config/presets/runtime/kernels/dequant-f32-q4k.json',
   'src/config/presets/runtime/kernels/fused-q4k.json',
   'src/config/presets/runtime/kernels/dequant-f16-q4k.json',
 ];
 
-for (const presetPath of compatibilityPresetPaths) {
+const subgroupFreePresetPaths = [
+  'src/config/presets/runtime/kernels/gemma2-q4k-dequant-f32a-nosubgroups.json',
+];
+
+for (const presetPath of canonicalPresetPaths) {
+  const preset = await readJson(presetPath);
+  const kernelPathId = preset?.runtime?.inference?.kernelPath;
+  const expectedPresetId = `kernels/${kernelPathId}`;
+  const expectedName = kernelPathId;
+  assert.equal(preset?.stability, 'canonical', `${presetPath} must be canonical`);
+  assert.equal(preset?.id, expectedPresetId, `${presetPath} must use id ${expectedPresetId}`);
+  assert.equal(preset?.name, expectedName, `${presetPath} must use name ${expectedName}`);
+  assert.ok(
+    !String(preset?.description ?? '').toLowerCase().includes('safe'),
+    `${presetPath} must not advertise semantic "safe" behavior`
+  );
+}
+
+for (const presetPath of deprecatedAliasPresetPaths) {
+  const preset = await readJson(presetPath);
+  assert.equal(preset?.stability, 'deprecated', `${presetPath} must be deprecated`);
+  assert.ok(typeof preset?.replacementId === 'string' && preset.replacementId.length > 0, `${presetPath} must declare replacementId`);
+  assert.equal(preset?.extends, preset?.replacementId, `${presetPath} must extend its replacement preset`);
+  assert.deepEqual(preset?.runtime ?? null, {}, `${presetPath} must delegate runtime config to its replacement`);
+}
+
+for (const presetPath of subgroupFreePresetPaths) {
   const preset = await readJson(presetPath);
   const policy = preset?.runtime?.inference?.kernelPathPolicy;
   const sourceScope = policy?.sourceScope ?? policy?.allowSources;
@@ -78,12 +106,12 @@ for (const presetPath of compatibilityPresetPaths) {
   const kernelPathId = preset?.runtime?.inference?.kernelPath;
   assert.equal(
     kernelPathId,
-    'gemma2-q4k-dequant-f32a',
-    `${presetPath} must target subgroup-free gemma2-q4k-dequant-f32a`
+    'gemma2-q4k-dequant-f32a-nosubgroups',
+    `${presetPath} must target subgroup-free gemma2-q4k-dequant-f32a-nosubgroups`
   );
 }
 
-for (const presetPath of dtypeContractPresetPaths) {
+for (const presetPath of canonicalPresetPaths) {
   const preset = await readJson(presetPath);
   const kernelPathId = preset?.runtime?.inference?.kernelPath;
 
@@ -110,7 +138,7 @@ for (const presetPath of dtypeContractPresetPaths) {
   );
 }
 
-for (const presetPath of compatibilityPresetPaths) {
+for (const presetPath of subgroupFreePresetPaths) {
   const preset = await readJson(presetPath);
   const kernelPathId = preset?.runtime?.inference?.kernelPath;
   const kernelPath = JSON.parse(

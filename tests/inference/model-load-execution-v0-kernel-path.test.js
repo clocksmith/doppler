@@ -208,7 +208,7 @@ const manifest = { modelId: 'model-load-execution-v0-test', inference: {} };
     modelConfig: manifestModelConfig,
     kernelCapabilities: FULL_CAPABILITIES,
   });
-  assert.equal(resolved.resolvedKernelPath?.id, 'gemma2-q4k-dequant-f32a');
+  assert.equal(resolved.resolvedKernelPath?.id, 'gemma2-q4k-dequant-f32a-nosubgroups');
   assert.equal(resolved.runtimeConfig.inference.compute.activationDtype, 'f32');
   assert.equal(resolved.runtimeConfig.inference.kvcache.kvDtype, 'f32');
   assert.equal(

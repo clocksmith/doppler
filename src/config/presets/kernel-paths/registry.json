@@ -16,11 +16,18 @@
       "notes": "Default Gemma 2 Q4K dequant path for baseline F16 activation workflows."
     },
     {
-      "id": "gemma2-q4k-dequant-f32a",
-      "file": "gemma2-q4k-dequant-f32a.json",
+      "id": "gemma2-q4k-dequant-f32a-nosubgroups",
+      "file": "gemma2-q4k-dequant-f32a-nosubgroups.json",
       "status": "canonical",
-      "statusReason": "compatibility",
-      "notes": "Subgroup-free Gemma 2 Q4K dequant path with F32 activations."
+      "statusReason": "subgroup-free",
+      "notes": "Subgroup-free Gemma 2 Q4K dequant path with F32 activations. Still requires shader-f16 kernels."
+    },
+    {
+      "id": "gemma2-q4k-dequant-f32a",
+      "aliasOf": "gemma2-q4k-dequant-f32a-nosubgroups",
+      "status": "legacy",
+      "statusReason": "compatibility-alias",
+      "notes": "Legacy alias for gemma2-q4k-dequant-f32a-nosubgroups."
     },
     {
       "id": "gemma2-f16-f16a",
@@ -58,11 +65,18 @@
       "notes": "Experimental Gemma 3 Q4K path using online decode attention on subgroup-capable GPUs."
     },
     {
-      "id": "gemma3-q4k-dequant-f32a",
-      "file": "gemma3-q4k-dequant-f32a.json",
+      "id": "gemma3-q4k-dequant-f32a-nosubgroups",
+      "file": "gemma3-q4k-dequant-f32a-nosubgroups.json",
       "status": "canonical",
-      "statusReason": "accuracy-first",
-      "notes": "Gemma 3 Q4K dequant path with F32 activation for quality-first runs."
+      "statusReason": "subgroup-free",
+      "notes": "Subgroup-free Gemma 3 Q4K dequant path with F32 activations. Still requires shader-f16 kernels."
+    },
+    {
+      "id": "gemma3-q4k-dequant-f32a",
+      "aliasOf": "gemma3-q4k-dequant-f32a-nosubgroups",
+      "status": "legacy",
+      "statusReason": "compatibility-alias",
+      "notes": "Legacy alias for gemma3-q4k-dequant-f32a-nosubgroups."
     },
     {
       "id": "gemma3-q4k-dequant-f32a-online",

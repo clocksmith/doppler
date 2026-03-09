@@ -1,7 +1,7 @@
 {
-  "id": "gemma2-q4k-dequant-f32a",
-  "name": "Gemma 2 Q4K Dequant (F32 activations)",
-  "description": "Q4K weights dequantized to F16 with F32 activations. Non-fused compatibility path with no subgroup requirement.",
+  "id": "gemma2-q4k-dequant-f32a-nosubgroups",
+  "name": "Gemma 2 Q4K Dequant (F32 activations, no subgroups)",
+  "description": "Q4K weights dequantized to F16 with F32 activations. Non-fused path with no subgroup requirement that still requires shader-f16 kernels.",
   "activationDtype": "f32",
 
   "decode": {
