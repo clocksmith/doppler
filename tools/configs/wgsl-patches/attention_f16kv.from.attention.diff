@@ -1,5 +1,5 @@
---- src/gpu/kernels/attention.wgsl	2026-02-20 10:04:55.691091915 -0500
-+++ src/gpu/kernels/attention_f16kv.wgsl	2026-02-20 10:04:55.691091915 -0500
+--- src/gpu/kernels/attention.wgsl
++++ src/gpu/kernels/attention_f16kv.wgsl
 @@ -1,19 +1,18 @@
 -// Fused Multi-Head Attention Kernel
 +// Fused Multi-Head Attention Kernel (f16 KV)
@@ -11,10 +11,6 @@
 -// Based on Flash Attention principles adapted for WebGPU.
 +// Same as attention.wgsl but K/V are stored as f16 for KV-cache compression.
 +// Q and output remain f32; K/V are cast to f32 on load.
-+//
-+// Change categories in this variant relative to attention.wgsl:
-+//   dtype changes: K and V bindings changed f32 → f16; Q and output remain f32.
-+//   performance overrides: BLOCK_SIZE and WORKGROUP_SIZE increased 32 → 64 for f16 KV throughput.
 +
 +enable f16;
  
@@ -65,9 +61,10 @@
 -        if (abs_key < abs_query - u.sliding_window + 1u) {
 -            return true;  // Key is too far in the past
 -        }
-+        if (abs_key < abs_query - u.sliding_window + 1u) { return true; }
-     }
+-    }
 -
++        if (abs_key < abs_query - u.sliding_window + 1u) { return true; }
++    }
      return false;
  }
  

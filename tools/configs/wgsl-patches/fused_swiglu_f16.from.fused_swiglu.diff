@@ -1,5 +1,5 @@
---- src/gpu/kernels/fused_swiglu.wgsl	2026-02-20 10:04:55.692844357 -0500
-+++ src/gpu/kernels/fused_swiglu_f16.wgsl	2026-02-20 10:04:55.692844357 -0500
+--- src/gpu/kernels/fused_swiglu.wgsl
++++ src/gpu/kernels/fused_swiglu_f16.wgsl
 @@ -1,30 +1,24 @@
 -// fused_swiglu.wgsl
 +// fused_swiglu_f16.wgsl
@@ -16,9 +16,9 @@
 - * output layout: [num_tokens, dim]
 + * SwiGLU Activation Kernel (Row-Split Fused Gate/Up, f16 IO)
   */
- 
-+enable f16;
 +
++enable f16;
+ 
  override WORKGROUP_SIZE: u32 = 256u;
  
  struct Uniforms {

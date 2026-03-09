@@ -1,6 +1,6 @@
---- src/gpu/kernels/layernorm.wgsl	2026-02-20 10:04:55.692844357 -0500
-+++ src/gpu/kernels/layernorm_f16.wgsl	2026-02-20 10:04:55.692844357 -0500
-@@ -1,21 +1,13 @@
+--- src/gpu/kernels/layernorm.wgsl
++++ src/gpu/kernels/layernorm_f16.wgsl
+@@ -1,20 +1,12 @@
 -// LayerNorm Kernel
 +// LayerNorm Kernel (F16 Input/Output)
  //
@@ -16,15 +16,14 @@
  override WORKGROUP_SIZE: u32 = 256u;
  const MAX_WORKGROUP_SIZE: u32 = 256u;
  override PARAMS_IS_F16: bool = false; // Weight/bias packed as f16 pairs
- 
+-
 -// =============================================================================
 -// Uniforms
 -// =============================================================================
--
+ 
  struct Uniforms {
      size: u32,
-     num_tokens: u32,
-@@ -24,22 +16,14 @@
+@@ -24,21 +16,13 @@
  }
  
  @group(0) @binding(0) var<uniform> u: Uniforms;
@@ -41,25 +40,24 @@
  
  var<workgroup> shared_sum: array<f32, MAX_WORKGROUP_SIZE>;
  var<workgroup> shared_sum_sq: array<f32, MAX_WORKGROUP_SIZE>;
- 
+-
 -// =============================================================================
 -// Helpers
 -// =============================================================================
--
+ 
  fn load_weight(idx: u32) -> f32 {
      if (PARAMS_IS_F16) {
-         let packed = weight[idx >> 1u];
-@@ -58,10 +42,6 @@
+@@ -57,10 +41,6 @@
+     }
      return bitcast<f32>(bias[idx]);
  }
- 
+-
 -// =============================================================================
 -// Entry Point
 -// =============================================================================
--
+ 
  @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
  fn main(
-     @builtin(local_invocation_id) local_id: vec3<u32>,
 @@ -84,7 +64,7 @@
      for (var i: u32 = 0u; i < elements_per_thread; i = i + 1u) {
          let idx = thread_idx * elements_per_thread + i;

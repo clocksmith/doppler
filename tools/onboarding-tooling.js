@@ -1084,6 +1084,10 @@ async function validateConversionConfigs(root, issues, context, policy = getActi
       continue;
     }
 
+    if (isLeanExecutionFixtureMap(config)) {
+      continue;
+    }
+
     const presetId = resolveText(config.presets?.model);
     const resolved = resolveConversionConfigModelId(config, policy);
     if (!resolved.modelId) {
@@ -1127,6 +1131,15 @@ async function validateConversionConfigs(root, issues, context, policy = getActi
   }
 
   context.conversionModelIds = modelIds;
+}
+
+function isLeanExecutionFixtureMap(config) {
+  return config?.schemaVersion === 1
+    && config?.source === 'doppler'
+    && Array.isArray(config?.mappings)
+    && Array.isArray(config?.exclusions)
+    && config?.presets === undefined
+    && config?.output === undefined;
 }
 
 async function validateRuntimePresets(root, issues, context) {
