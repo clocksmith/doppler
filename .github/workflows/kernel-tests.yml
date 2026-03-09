@@ -60,6 +60,7 @@ jobs:
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
 
+      # Keep unit tests first so contract failures stop the lane before GPU/browser-only stages.
       - name: Run unit tests
         run: npm run test:unit
 
