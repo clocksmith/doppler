@@ -10,13 +10,98 @@ import {
 import { buildKernelRefFromKernelEntry } from '../../src/config/kernels/kernel-ref.js';
 import { validateManifest } from '../../src/formats/rdrr/validation.js';
 
-const translateGemmaManifest = JSON.parse(
-  fs.readFileSync('models/local/gemma-3-270m-it-q4k-ehf16-af32/manifest.json', 'utf8')
-);
-
 function kernelRef(kernel, entry = 'main') {
   return buildKernelRefFromKernelEntry(kernel, entry);
 }
+
+function buildExecutionContractFixtureManifest() {
+  return {
+    version: 1,
+    modelId: 'execution-contract-fixture',
+    modelType: 'transformer',
+    quantization: 'Q4_K_M',
+    quantizationInfo: {
+      weights: 'q4k',
+    },
+    hashAlgorithm: 'sha256',
+    eos_token_id: 1,
+    totalSize: 1,
+    shards: [
+      {
+        index: 0,
+        size: 1,
+        hash: '0'.repeat(64),
+        filename: 'shard_00000.bin',
+        offset: 0,
+      },
+    ],
+    architecture: {
+      numLayers: 2,
+      hiddenSize: 256,
+      intermediateSize: 512,
+      numAttentionHeads: 4,
+      numKeyValueHeads: 4,
+      headDim: 128,
+      vocabSize: 1024,
+      maxSeqLen: 4096,
+      ropeTheta: 1000000,
+    },
+    tensors: {},
+    inference: {
+      schema: 'doppler.execution/v0',
+      presetId: 'gemma3',
+      defaultKernelPath: 'gemma3-q4k-dequant-f32a-online',
+      layerPattern: {
+        type: 'every_n',
+        period: 6,
+        offset: 0,
+      },
+      sessionDefaults: {
+        compute: {
+          defaults: {
+            activationDtype: 'f32',
+            mathDtype: 'f32',
+            accumDtype: 'f32',
+            outputDtype: 'f32',
+          },
+          kernelProfiles: [
+            {
+              kernelRef: kernelRef('attention_streaming_f16kv.wgsl', 'main'),
+            },
+          ],
+        },
+        kvcache: {
+          layout: 'paged',
+          kvDtype: 'f16',
+        },
+        decodeLoop: {
+          batchSize: 1,
+          stopCheckMode: 'batch',
+          readbackInterval: 1,
+          disableCommandBatching: true,
+        },
+      },
+      execution: {
+        steps: [
+          {
+            id: 'attn',
+            phase: 'both',
+            section: 'layer',
+            op: 'attention',
+            src: 'state',
+            dst: 'state',
+            layers: 'all',
+            kernel: 'attention_streaming_f16kv.wgsl',
+            entry: 'main',
+            kernelRef: kernelRef('attention_streaming_f16kv.wgsl', 'main'),
+          },
+        ],
+      },
+    },
+  };
+}
+
+const translateGemmaManifest = buildExecutionContractFixtureManifest();
 
 {
   const result = validateManifestExecutionContract(translateGemmaManifest);
@@ -44,7 +129,7 @@ function kernelRef(kernel, entry = 'main') {
   assert.equal(executionContract.ok, false);
   assert.ok(
     executionContract.errors.some((message) =>
-      message.includes('decode-only') && message.includes('prefill attention')
+      message.includes('decode-only') && message.includes('both attention')
     )
   );
   assert.ok(
@@ -67,7 +152,7 @@ function kernelRef(kernel, entry = 'main') {
   assert.equal(validation.valid, false);
   assert.ok(
     validation.errors.some((message) =>
-      message.includes('decode-only') && message.includes('prefill attention')
+      message.includes('decode-only') && message.includes('both attention')
     )
   );
 }
