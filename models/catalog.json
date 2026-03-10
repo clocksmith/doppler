@@ -151,6 +151,53 @@
       }
     },
     {
+      "modelId": "gemma-3-1b-it-f16-af32",
+      "preset": "gemma3",
+      "label": "Gemma 3 1B Instruct (F16/F32a)",
+      "description": "Gemma 3 1B text model. F16 weights/embeddings/head with F32 accumulation. Local RDRR shards.",
+      "modes": [
+        "run"
+      ],
+      "aliases": [
+        "gemma3-1b-f16",
+        "gemma-3-1b-it-f16"
+      ],
+      "hf": {
+        "repoId": "Clocksmith/rdrr",
+        "path": "models/gemma-3-1b-it-f16-af32"
+      },
+      "baseUrl": "./local/gemma-3-1b-it-f16-af32",
+      "quickstart": false,
+      "sizeBytes": 2018964126,
+      "recommended": false,
+      "sortOrder": 13,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": true,
+          "hf": false
+        },
+        "status": {
+          "runtime": "active",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "verified"
+        },
+        "tested": {
+          "suite": "inference",
+          "surface": "browser",
+          "result": "pass",
+          "lastVerifiedAt": "2026-03-10",
+          "source": "manual-review",
+          "notes": "Prompt: 'The color of the sky is' → ' a constant, but its appearance changes with the seasons.\\n\\nThe sky is blue during the summer, when the sun is high in the sky.\\nThe sky is red during the autumn, when the leaves change color.\\nThe sky is gray during the winter, when the sun is low in the sky.\\nThe' (64 tokens, temperature=0, topK=1). Fluent and stable; factual quality mixed but coherent. All contracts pass.",
+          "contracts": {
+            "executionContractOk": true,
+            "executionV0GraphOk": true
+          }
+        }
+      }
+    },
+    {
       "modelId": "translategemma-4b-it-q4k-ehf16-af32",
       "preset": "translategemma",
       "label": "TranslateGemma 4B Instruct (Q4K)",
