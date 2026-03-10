@@ -220,7 +220,7 @@ export const KERNEL_REF_CONTENT_DIGESTS = Object.freeze({
   "topk.wgsl#main": "a18763303cd18e8a020e647f8a52f65403526849faf835d9f9394f634c3c97eb",
   "topk.wgsl#softmax_topk": "95ff3517da909e4bd4d0ff8d85b619bd250522943aeb9276375edc59f67e9604",
   "topk.wgsl#topk_2_small": "289eaa5c4f005e0aaf37dfe5343aeda30d9ab3929979dbf0cc3553f23e136807",
-  "transpose.wgsl#main": "002bce09c48b63ab5017d83f42233340011ac6fc20dae9cd08e3095ae5bf72b2",
+  "transpose.wgsl#main": "8caf8664dfc579b4e92edce50783263c535764006290cc7902108f26586113a2",
   "upsample2d_f16.wgsl#main": "43cee5f2503cb4b6caea45e9842f8961ce313b02eb8ed23a97d6967113ce521c",
   "upsample2d.wgsl#main": "6de9172ad3d6940dd3c94470a105755a33760e66a84d6e9e96ec4d6a07dc4a25"
 });
