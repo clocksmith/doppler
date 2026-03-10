@@ -1,0 +1,86 @@
+name: Browser OPFS Embedding Registry Smoke
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/browser-opfs-embedding-registry-smoke.yml'
+      - 'tools/ci-browser-opfs-registry-smoke.mjs'
+      - 'models/catalog.json'
+      - 'src/config/**'
+      - 'src/inference/**'
+      - 'src/tooling/**'
+      - 'src/rules/inference/**'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/browser-opfs-embedding-registry-smoke.yml'
+      - 'tools/ci-browser-opfs-registry-smoke.mjs'
+      - 'models/catalog.json'
+      - 'src/config/**'
+      - 'src/inference/**'
+      - 'src/tooling/**'
+      - 'src/rules/inference/**'
+  workflow_dispatch:
+
+jobs:
+  browser-opfs-embedding-registry-smoke:
+    # Informational lane on hosted SwiftShader until a pinned embedding registry
+    # model/path is available without shader-f16 browser feature requirements.
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      DOPPLER_SMOKE_MODEL_ID: google-embeddinggemma-300m-q4k-ehf16-af32
+      DOPPLER_SMOKE_RUNTIME_PRESET: kernels/embeddinggemma-q4k-dequant-f32a
+      DOPPLER_SMOKE_EXPECT_MODE: embedding
+      DOPPLER_SMOKE_EXPECTED_EMBEDDING_DIM: '768'
+      DOPPLER_SMOKE_EXPECTED_SEMANTIC_STYLE: embeddinggemma
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Resolve smoke model metadata
+        id: model
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const modelId = process.env.DOPPLER_SMOKE_MODEL_ID;
+          const payload = JSON.parse(fs.readFileSync('models/catalog.json', 'utf8'));
+          const entry = (payload.models || []).find((model) => model && model.modelId === modelId);
+          if (!entry || !entry.hf || !entry.hf.revision) {
+            throw new Error(`Missing pinned hf.revision for ${modelId}`);
+          }
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `revision=${entry.hf.revision}\n`);
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `cache_root=${process.env.HOME}/.cache/doppler/ci-rdrr\n`);
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `profile_dir=${process.env.HOME}/.cache/doppler/ci-opfs/${modelId}\n`);
+          NODE
+
+      - name: Restore pinned model cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.model.outputs.cache_root }}/${{ env.DOPPLER_SMOKE_MODEL_ID }}/${{ steps.model.outputs.revision }}
+          key: browser-opfs-rdrr-${{ runner.os }}-${{ env.DOPPLER_SMOKE_MODEL_ID }}-${{ steps.model.outputs.revision }}-v1
+
+      - name: Run browser OPFS embedding registry smoke
+        run: >
+          node tools/ci-browser-opfs-registry-smoke.mjs
+          --model-id "${DOPPLER_SMOKE_MODEL_ID}"
+          --cache-root "${{ steps.model.outputs.cache_root }}"
+          --profile-dir "${{ steps.model.outputs.profile_dir }}"
+          --expect-mode "${DOPPLER_SMOKE_EXPECT_MODE}"
+          --runtime-preset "${DOPPLER_SMOKE_RUNTIME_PRESET}"
+          --expected-embedding-dim "${DOPPLER_SMOKE_EXPECTED_EMBEDDING_DIM}"
+          --expected-semantic-style "${DOPPLER_SMOKE_EXPECTED_SEMANTIC_STYLE}"
+          --timeout-ms 300000

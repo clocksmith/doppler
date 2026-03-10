@@ -1,7 +1,7 @@
 # Release Matrix
 
-Generated: 2026-03-09T00:41:40.411Z
-Release: channel=main-snapshot, version=n/a, commit=2eac6b8535e2de9ed37df0fb1fea66d3d6db4c74, dirty=n/a
+Generated: 2026-03-10T12:46:17.596Z
+Release: channel=main-snapshot, version=0.1.7, commit=a957da82959f9e4f6b6c40f477048f383accb94c, dirty=yes
 
 ## Engine Matrix
 
@@ -20,26 +20,16 @@ Release: channel=main-snapshot, version=n/a, commit=2eac6b8535e2de9ed37df0fb1fea
 
 | Doppler Model | In Catalog | Catalog Modes | TJS Mapping | Kernel Path | Surface | Base Dir |
 |---|---|---|---|---|---|---|
-| `gemma-3-1b-it-f16-af32` | no |  | `onnx-community/gemma-3-1b-it-ONNX-GQA` | `gemma3-f16-fused-f32a-online` | auto | local |
-| `gemma-3-1b-it-q4k-ehf16-af32` | no |  | `onnx-community/gemma-3-1b-it-ONNX-GQA` | `gemma3-q4k-dequant-f32a-online` | auto | local |
-| `gemma-3-270m-it-f16-af32` | no |  | `onnx-community/gemma-3-270m-it-ONNX` |  | auto | local |
-| `gemma-3-270m-it-q4k-ehaf16` | no |  | `onnx-community/gemma-3-270m-it-ONNX` | `gemma3-q4k-dequant-f16a-online` | auto | local |
 | `gemma-3-270m-it-q4k-ehf16-af32` | yes | run, translate |  |  | auto |  |
 | `google-embeddinggemma-300m-q4k-ehf16-af32` | yes | embedding |  |  | auto |  |
-| `qwen-3-5-0-8b-q4k-ehaf16` | yes | run, translate |  |  | auto |  |
-| `qwen-3-5-2b-q4k-ehaf16` | yes | run, translate |  |  | auto |  |
 | `translategemma-4b-it-q4k-ehf16-af32` | yes | run, translate |  |  | auto |  |
 
 ## Workloads
 
 | Workload ID | Model | Prefill | Decode | Sampling | Runtime (GPU/Backend/OS/Browser) | Date |
 |---|---|---:|---:|---|---|---|
-| [`p064-d064-t0-k1`](../benchmarks/vendors/fixtures/g3-1b-p064-d064-t0-k1.compare.json) | gemma-3-1b-it-f16-af32 | 64 | 64 | greedy (t=0) | Apple M3; metal; darwin; chromium | 2026-03-03 |
-| [`p064-d064-t0-k1`](../benchmarks/vendors/fixtures/g3-p064-d064-t0-k1.compare.json) | gemma-3-1b-it-f16-af32 | 64 | 64 | greedy (t=0) | AMD RYZEN AI MAX+ 395 w/ Radeon 8060S; vulkan; linux; chromium | 2026-02-25 |
-| [`p064-d064-t0-k1`](../benchmarks/vendors/fixtures/g3-p064-d064-t0-k1.apple-m3pro.compare.json) | gemma-3-1b-it-f16-af32 | 64 | 64 | greedy (t=0) | Apple M3; metal; darwin; chromium | 2026-02-25 |
-| [`p064-d064-t0-k1`](../benchmarks/vendors/fixtures/lfm2-5-1-2b-p064-d064-t0-k1.compare.json) | lfm2-5-1-2b-instruct-q4k-ehf16-af32 | 64 | 64 | greedy (t=0) | Apple M3; metal; darwin; chromium | 2026-03-03 |
-| [`p064-d064-t1-k32`](../benchmarks/vendors/fixtures/g3-p064-d064-t1-k32.compare.json) | gemma-3-1b-it-f16-af32 | 64 | 64 | t=1, k=32, p=1 | AMD RYZEN AI MAX+ 395 w/ Radeon 8060S; vulkan; linux; chromium | 2026-02-25 |
-| [`p064-d064-t1-k32`](../benchmarks/vendors/fixtures/g3-p064-d064-t1-k32.apple-m3pro.compare.json) | gemma-3-1b-it-f16-af32 | 64 | 64 | t=1, k=32, p=1 | Apple M3; metal; darwin; chromium | 2026-02-24 |
+| `p064-d064-t0-k1` | not captured | 64 | 64 | greedy (t=0) | not captured | not captured |
+| `p064-d064-t1-k32` | not captured | 64 | 64 | t=1, k=32, p=1 | not captured | not captured |
 | `p256-d128-t0-k1` | not captured | 256 | 128 | greedy (t=0) | not captured | not captured |
 | `p512-d128-t0-k1` | not captured | 512 | 128 | greedy (t=0) | not captured | not captured |
 | `p256-d128-t1-k32` | not captured | 256 | 128 | t=1, k=32, p=1 | not captured | not captured |
@@ -47,3 +37,4 @@ Release: channel=main-snapshot, version=n/a, commit=2eac6b8535e2de9ed37df0fb1fea
 ## Charts
 
 - [compare_1b_multi-workload_favorable_phases.svg](../benchmarks/vendors/results/compare_1b_multi-workload_favorable_phases.svg)
+

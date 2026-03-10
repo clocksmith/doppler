@@ -1,4 +1,5 @@
 import { mergeRuntimeValues } from '../../../config/runtime-merge.js';
+import { buildExecutionV0FromKernelPath } from '../../../converter/execution-v0-manifest.js';
 import {
   DEFAULT_EXECUTION_V0_COMPUTE_DEFAULTS,
   DEFAULT_EXECUTION_V0_POLICIES,
@@ -187,13 +188,23 @@ export function applyExecutionV0RuntimeConfig(options = {}) {
   }
 
   const runtimeInference = runtimeConfig.inference ?? {};
+  const kernelPathExecution = runtimeInference.kernelPath !== undefined
+    ? buildExecutionV0FromKernelPath(runtimeInference.kernelPath)
+    : null;
+  const manifestInference = kernelPathExecution
+    ? {
+      ...manifest.inference,
+      ...kernelPathExecution,
+      defaultKernelPath: runtimeInference.kernelPath,
+    }
+    : manifest.inference;
   const runtimeExecutionOverlay = {
     ...(runtimeInference.session ? { session: runtimeInference.session } : {}),
     ...(runtimeInference.executionPatch ? { executionPatch: runtimeInference.executionPatch } : {}),
   };
 
   const executionV0State = compileExecutionV0({
-    manifestInference: manifest.inference,
+    manifestInference,
     runtimeInference: runtimeExecutionOverlay,
     modelId: options.modelId ?? manifest.modelId ?? 'model',
     numLayers: Number.isInteger(options.numLayers)
@@ -204,7 +215,13 @@ export function applyExecutionV0RuntimeConfig(options = {}) {
     return { runtimeConfig, executionV0State: null };
   }
 
+  const compiledKernelPathSource = runtimeInference.kernelPath !== undefined
+    ? 'config'
+    : 'manifest';
   const runtimeInferencePatch = { ...executionV0State.runtimeInferencePatch };
+  if (runtimeInferencePatch.kernelPathSource) {
+    runtimeInferencePatch.kernelPathSource = compiledKernelPathSource;
+  }
   if (runtimeInference.kernelPath !== undefined) {
     delete runtimeInferencePatch.kernelPath;
     delete runtimeInferencePatch.kernelPathSource;
@@ -213,6 +230,18 @@ export function applyExecutionV0RuntimeConfig(options = {}) {
     runtimeInferencePatch.modelOverrides = mergeRuntimeValues(
       runtimeInferencePatch.modelOverrides,
       runtimeInference.modelOverrides ?? {}
+    );
+  }
+  if (runtimeInference.kernelPath !== undefined && runtimeInference.compute) {
+    runtimeInferencePatch.compute = mergeRuntimeValues(
+      runtimeInferencePatch.compute ?? {},
+      runtimeInference.compute
+    );
+  }
+  if (runtimeInference.kernelPath !== undefined && runtimeInference.kvcache) {
+    runtimeInferencePatch.kvcache = mergeRuntimeValues(
+      runtimeInferencePatch.kvcache ?? {},
+      runtimeInference.kvcache
     );
   }
 

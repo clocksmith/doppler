@@ -1,0 +1,37 @@
+{
+  "id": "kernels/embeddinggemma-q4k-dequant-f32a",
+  "name": "embeddinggemma-q4k-dequant-f32a",
+  "description": "Explicit runtime override preset for the EmbeddingGemma Q4K dequant-to-F32 kernel path.",
+  "intent": "investigate",
+  "stability": "canonical",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-03-09T00:00:00Z",
+  "extends": "default",
+  "runtime": {
+    "inference": {
+      "compute": {
+        "activationDtype": "f32"
+      },
+      "kvcache": {
+        "kvDtype": "f32"
+      },
+      "session": {
+        "compute": {
+          "defaults": {
+            "activationDtype": "f32",
+            "outputDtype": "f32"
+          }
+        },
+        "kvcache": {
+          "kvDtype": "f32"
+        }
+      },
+      "kernelPath": "embeddinggemma-q4k-dequant-f32a",
+      "kernelPathPolicy": {
+        "mode": "capability-aware",
+        "sourceScope": ["config", "model", "manifest", "execution-v0"],
+        "onIncompatible": "remap"
+      }
+    }
+  }
+}

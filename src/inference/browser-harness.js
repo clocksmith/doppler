@@ -363,6 +363,7 @@ async function runInferenceSuite(options = {}) {
       modelLoadMs: safeModelLoadMs,
       gpu: run.phase.gpu,
       decodeProfileSteps: run.phase.decodeProfileSteps,
+      generationDiagnostics: run.tokenDiagnostics,
     };
   }
 

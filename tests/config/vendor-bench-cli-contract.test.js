@@ -37,6 +37,16 @@ function runVendorBench(args) {
   assert.ok(matrixPayload.sources?.benchmarkPolicy);
   assert.ok(matrixPayload.sources?.['harness:doppler']);
   assert.ok(matrixPayload.sources?.['harness:transformersjs']);
+  assert.deepEqual(
+    matrixPayload.modelCoverage.map((entry) => entry.dopplerModelId).sort(),
+    [
+      'gemma-3-270m-it-q4k-ehf16-af32',
+      'google-embeddinggemma-300m-q4k-ehf16-af32',
+      'translategemma-4b-it-q4k-ehf16-af32',
+    ]
+  );
+  assert.ok(!markdownPayload.includes('gemma-3-1b-it-f16-af32'));
+  assert.ok(!markdownPayload.includes('qwen-3-5-0-8b-q4k-ehaf16'));
   assert.match(markdownPayload, /^# Release Matrix/m);
   assert.match(markdownPayload, /Generated: 2026-03-05T00:00:00.000Z/);
 }

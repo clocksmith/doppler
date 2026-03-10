@@ -83,7 +83,7 @@ function kernelRef(kernel, entry = 'main') {
   );
   assert.equal(
     resolved.runtimeConfig.inference.kernelPathSource,
-    'execution-v0'
+    'manifest'
   );
   assert.equal(
     resolved.executionV0State.resolvedSources.steps.attn['precision.inputDtype'].source,
@@ -158,6 +158,172 @@ function kernelRef(kernel, entry = 'main') {
   assert.equal(
     resolved.executionV0State.resolvedSources.session['sessionDefaults.compute.defaults.mathDtype'].source,
     'runtime.session'
+  );
+}
+
+{
+  const runtimeConfig = {
+    inference: {
+      compute: {
+        activationDtype: 'f16',
+      },
+      kvcache: {
+        kvDtype: 'f16',
+      },
+      session: {
+        compute: {
+          defaults: {
+            outputDtype: 'f16',
+          },
+        },
+      },
+      kernelPath: 'gemma3-q4k-dequant-f16a-online',
+      kernelPathSource: 'config',
+    },
+  };
+  const manifest = {
+    modelId: 'runtime-compute-override-model',
+    architecture: { numLayers: 2 },
+    inference: {
+      schema: 'doppler.execution/v0',
+      sessionDefaults: {
+        compute: {
+          defaults: {
+            activationDtype: 'f32',
+            mathDtype: 'f32',
+            accumDtype: 'f32',
+            outputDtype: 'f32',
+          },
+          kernelProfiles: [
+            { kernelRef: kernelRef('attention_decode_online_f16kv.wgsl', 'main') },
+          ],
+        },
+        kvcache: {
+          kvDtype: 'f16',
+        },
+        decodeLoop: null,
+      },
+      execution: {
+        steps: [
+          {
+            id: 'attn',
+            phase: 'both',
+            section: 'layer',
+            op: 'attention',
+            src: 'state',
+            dst: 'state',
+            layers: 'all',
+            kernel: 'attention_decode_online_f16kv.wgsl',
+            kernelRef: kernelRef('attention_decode_online_f16kv.wgsl', 'main'),
+          },
+        ],
+        policies: {
+          precisionPrecedence: 'step_then_kernel_profile_then_session_default',
+          unsupportedPrecision: 'error',
+          dtypeTransition: 'require_cast_step',
+          unresolvedKernel: 'error',
+        },
+      },
+    },
+  };
+
+  const resolved = applyExecutionV0RuntimeConfig({ runtimeConfig, manifest });
+  assert.ok(resolved.executionV0State);
+  assert.equal(resolved.runtimeConfig.inference.compute.activationDtype, 'f16');
+  assert.equal(resolved.runtimeConfig.inference.kvcache.kvDtype, 'f16');
+  assert.equal(
+    resolved.executionV0State.sessionDefaults.compute.defaults.activationDtype,
+    'f16'
+  );
+  assert.equal(
+    resolved.executionV0State.sessionDefaults.kvcache.kvDtype,
+    'f16'
+  );
+  assert.equal(
+    resolved.runtimeConfig.inference.session.compute.defaults.outputDtype,
+    'f16'
+  );
+  assert.equal(
+    resolved.runtimeConfig.inference.kernelPath,
+    'gemma3-q4k-dequant-f16a-online'
+  );
+  assert.equal(
+    resolved.runtimeConfig.inference.kernelPathSource,
+    'config'
+  );
+}
+
+{
+  const runtimeConfig = createDopplerConfig({
+    runtime: {
+      shared: {
+        tooling: {
+          intent: 'investigate',
+        },
+      },
+    },
+  }).runtime;
+  const manifest = {
+    modelId: 'manifest-execution-v0-session-defaults-model',
+    architecture: { numLayers: 2 },
+    inference: {
+      schema: 'doppler.execution/v0',
+      sessionDefaults: {
+        compute: {
+          defaults: {
+            activationDtype: 'f32',
+            mathDtype: 'f32',
+            accumDtype: 'f32',
+            outputDtype: 'f32',
+          },
+          kernelProfiles: [
+            { kernelRef: kernelRef('attention_decode_online_f16kv.wgsl', 'main') },
+          ],
+        },
+        kvcache: {
+          kvDtype: 'f16',
+        },
+        decodeLoop: null,
+      },
+      execution: {
+        steps: [
+          {
+            id: 'attn',
+            phase: 'both',
+            section: 'layer',
+            op: 'attention',
+            src: 'state',
+            dst: 'state',
+            layers: 'all',
+            kernel: 'attention_decode_online_f16kv.wgsl',
+            kernelRef: kernelRef('attention_decode_online_f16kv.wgsl', 'main'),
+          },
+        ],
+        policies: {
+          precisionPrecedence: 'step_then_kernel_profile_then_session_default',
+          unsupportedPrecision: 'error',
+          dtypeTransition: 'require_cast_step',
+          unresolvedKernel: 'error',
+        },
+      },
+    },
+  };
+
+  const resolved = applyExecutionV0RuntimeConfig({ runtimeConfig, manifest });
+  assert.equal(resolved.runtimeConfig.inference.kernelPathSource, 'manifest');
+  assert.equal(resolved.runtimeConfig.inference.compute.activationDtype, 'f32');
+  assert.equal(resolved.runtimeConfig.inference.kvcache.kvDtype, 'f16');
+  assert.equal(
+    resolved.runtimeConfig.inference.session.compute.defaults.mathDtype,
+    'f32'
+  );
+  assert.equal(
+    resolved.runtimeConfig.inference.session.compute.defaults.accumDtype,
+    'f32'
+  );
+  assert.equal(
+    resolved.runtimeConfig.inference.session.compute.defaults.outputDtype,
+    'f32'
   );
 }
 
@@ -289,6 +455,7 @@ function kernelRef(kernel, entry = 'main') {
 
   const resolved = applyExecutionV0RuntimeConfig({ runtimeConfig, manifest });
   assert.ok(resolved.executionV0State);
+  assert.equal(resolved.runtimeConfig.inference.compute.activationDtype, 'f32');
   assert.equal(resolved.runtimeConfig.inference.kvcache.kvDtype, 'f16');
   assert.equal(resolved.runtimeConfig.inference.kernelPath.kvDtype, 'f16');
 }

@@ -12,6 +12,22 @@ document deltas.
 2. **Layered Configuration** - Each layer transforms the previous
 3. **Pure Functions** - Config transformations should be pure
 4. **Explicit over Implicit** - No magic, document everything
+5. **Single Source of Truth** - One canonical contract file, derived artifacts generated + check-synced
+
+When the same runtime-visible metadata appears in more than one file, exactly one file must be canonical.
+Any mirrors or convenience registries must be generated from that source and covered by a sync check in CI.
+
+Release-facing model claims follow the same rule:
+
+- `models/catalog.json` is the canonical lifecycle source.
+- Any additional release-claim registry/policy must be derived from, or checked directly against, the catalog.
+- A model must not be surfaced as verified/release-ready unless its claim is backed by explicit smoke evidence (for example a registry verify record or committed manual-review report artifact).
+
+Gitignored local artifacts are never a canonical CI source:
+
+- `models/local/**` is developer-local state, not a release/CI contract surface.
+- GitHub workflows must not depend on `models/local/**` being present.
+- Local-only model smokes must self-skip when the artifact is absent and fail fast on manifest/shard integrity drift when it is present.
 
 ## Execution Plane Contract
 

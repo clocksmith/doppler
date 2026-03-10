@@ -28,6 +28,7 @@ const DEFAULT_TRANSLATEGEMMA_PROMPT = Object.freeze({
 });
 const DEFAULT_HARNESS_MAX_TOKENS = 32;
 const EMBEDDING_PREVIEW_LENGTH = 16;
+const GENERATION_TOKEN_DIAGNOSTIC_LIMIT = 32;
 const EMBEDDING_SEMANTIC_MIN_RETRIEVAL_TOP1 = 0.67;
 const EMBEDDING_SEMANTIC_MIN_PAIR_ACC = 0.67;
 const EMBEDDING_SEMANTIC_PAIR_MARGIN = 0.01;
@@ -619,6 +620,43 @@ export async function runEmbeddingSemanticChecks(pipeline, options = null) {
 const SPECIAL_TOKEN_RE = /^(<pad>|<unused\d*>|<eos>|<bos>|<s>|<\/s>|\[PAD\]|\[UNK\]|\[SEP\]|\[CLS\]|<[^>]{1,32}>)$/i;
 const PAD_DOMINANCE_THRESHOLD = 0.5;
 
+function isSpecialLikeTokenText(value) {
+  if (typeof value !== 'string') return false;
+  return SPECIAL_TOKEN_RE.test(value.trim());
+}
+
+function summarizeGenerationTokens(tokenRecords) {
+  const records = Array.isArray(tokenRecords) ? tokenRecords : [];
+  const preview = records.slice(0, GENERATION_TOKEN_DIAGNOSTIC_LIMIT).map((record) => ({
+    id: record.id,
+    text: record.text,
+    fallbackText: record.fallbackText,
+  }));
+  let emptyTextCount = 0;
+  let specialLikeTextCount = 0;
+  let specialLikeFallbackCount = 0;
+  for (const record of records) {
+    if (!record || typeof record !== 'object') continue;
+    if (typeof record.text === 'string' && record.text.length === 0) {
+      emptyTextCount += 1;
+    }
+    if (isSpecialLikeTokenText(record.text)) {
+      specialLikeTextCount += 1;
+    }
+    if (isSpecialLikeTokenText(record.fallbackText)) {
+      specialLikeFallbackCount += 1;
+    }
+  }
+  return {
+    preview,
+    total: records.length,
+    omitted: Math.max(0, records.length - preview.length),
+    emptyTextCount,
+    specialLikeTextCount,
+    specialLikeFallbackCount,
+  };
+}
+
 export function isCoherentOutput(tokens, output) {
   if (tokens.length === 0) return false;
   const specialTokenCount = tokens.filter((t) => SPECIAL_TOKEN_RE.test(String(t).trim())).length;
@@ -633,6 +671,7 @@ export function isCoherentOutput(tokens, output) {
 export async function runGeneration(pipeline, runtimeConfig, runOverrides = null) {
   const tokens = [];
   const tokenIds = [];
+  const tokenRecords = [];
   const promptInput = resolveGenerationPromptInput(runtimeConfig, runOverrides, pipeline);
   const promptLabel = describePromptInput(promptInput);
   const useChatTemplate = runOverrides?.useChatTemplate
@@ -659,8 +698,13 @@ export async function runGeneration(pipeline, runtimeConfig, runOverrides = null
     useChatTemplate,
     profile,
     disableCommandBatching,
-    onToken: (tokenId) => {
+    onToken: (tokenId, tokenText) => {
       tokenIds.push(tokenId);
+      tokenRecords.push({
+        id: tokenId,
+        text: typeof tokenText === 'string' ? tokenText : '',
+        fallbackText: pipeline?.tokenizer?.decode?.([tokenId], false, false) ?? '',
+      });
     },
   })) {
     if (typeof tokenText === 'string') {
@@ -706,6 +750,7 @@ export async function runGeneration(pipeline, runtimeConfig, runOverrides = null
     maxTokens,
     tokens,
     tokenIds,
+    tokenDiagnostics: summarizeGenerationTokens(tokenRecords),
     output: tokens.join(''),
     durationMs,
     tokensPerSec,
