@@ -210,6 +210,7 @@ function loadChartMetricContract() {
 const CHART_METRIC_CONTRACT = loadChartMetricContract();
 const PALETTE = SVG_THEME.palette;
 const PHASE_COLORS = PALETTE.phase;
+const ARCHITECTURE_COLORS = PALETTE.architecture;
 const FONT_UI = SVG_FONTS.uiCss.replaceAll('"', "'");
 const FONT_MONO = SVG_FONTS.monoCss.replaceAll('"', "'");
 const SVG_STYLE = makeSvgTextStyle();
@@ -230,6 +231,62 @@ function renderChartHeaderBand(width, title, subtitle, sectionLabel) {
 
 function renderPhaseTrackPanel(x, y, width, height, tint = PALETTE.grid) {
   return `<rect x="${x}" y="${y}" width="${width}" height="${height}" rx="0" fill="${PALETTE.grid}" fill-opacity="${PHASE_PANEL_OPACITY}" stroke="none" />`;
+}
+
+function renderPhaseSceneDefs() {
+  return `<defs>
+  <linearGradient id="phase-canvas-glow" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0%" stop-color="#7c3aed18" />
+    <stop offset="45%" stop-color="#ef444410" />
+    <stop offset="100%" stop-color="#2563eb12" />
+  </linearGradient>
+  <linearGradient id="phase-workload-panel" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0%" stop-color="#081121" />
+    <stop offset="55%" stop-color="#0b1325" />
+    <stop offset="100%" stop-color="#0c1630" />
+  </linearGradient>
+  <linearGradient id="phase-workload-stroke" x1="0%" y1="0%" x2="100%" y2="0%">
+    <stop offset="0%" stop-color="${ARCHITECTURE_COLORS.loadBorder}" />
+    <stop offset="48%" stop-color="${ARCHITECTURE_COLORS.edge}" />
+    <stop offset="100%" stop-color="${ARCHITECTURE_COLORS.inferBorder}" />
+  </linearGradient>
+  <linearGradient id="phase-track-fill" x1="0%" y1="0%" x2="100%" y2="0%">
+    <stop offset="0%" stop-color="#0c1528" />
+    <stop offset="100%" stop-color="#111b31" />
+  </linearGradient>
+  <linearGradient id="phase-track-stroke" x1="0%" y1="0%" x2="100%" y2="0%">
+    <stop offset="0%" stop-color="#ffffff1d" />
+    <stop offset="100%" stop-color="#ffffff08" />
+  </linearGradient>
+  <linearGradient id="phase-load-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+    <stop offset="0%" stop-color="#f87171" />
+    <stop offset="100%" stop-color="${PHASE_COLORS.warmLoad}" />
+  </linearGradient>
+  <linearGradient id="phase-prefill-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+    <stop offset="0%" stop-color="#a855f7" />
+    <stop offset="100%" stop-color="${ARCHITECTURE_COLORS.edge}" />
+  </linearGradient>
+  <linearGradient id="phase-decode-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+    <stop offset="0%" stop-color="#60a5fa" />
+    <stop offset="100%" stop-color="${PHASE_COLORS.decode}" />
+  </linearGradient>
+  <linearGradient id="phase-doppler-chip" x1="0%" y1="0%" x2="100%" y2="0%">
+    <stop offset="0%" stop-color="#7c3aed33" />
+    <stop offset="100%" stop-color="#ef444422" />
+  </linearGradient>
+  <linearGradient id="phase-transformers-chip" x1="0%" y1="0%" x2="100%" y2="0%">
+    <stop offset="0%" stop-color="#1d4ed833" />
+    <stop offset="100%" stop-color="#ffbd4522" />
+  </linearGradient>
+  <linearGradient id="phase-total-pill" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0%" stop-color="#0f172a" />
+    <stop offset="100%" stop-color="#172554" />
+  </linearGradient>
+  <linearGradient id="phase-winner-pill" x1="0%" y1="0%" x2="100%" y2="0%">
+    <stop offset="0%" stop-color="#7c3aed33" />
+    <stop offset="100%" stop-color="#2563eb33" />
+  </linearGradient>
+  </defs>`;
 }
 
 function svgWrap(width, height, body, title = 'Benchmark Comparison', desc = '') {
@@ -1130,206 +1187,208 @@ function resolvePhaseValues(sectionPayload, engineId) {
   return { modelLoadMs, ttft, prefillMs, decodeMs, endToEnd };
 }
 
-function renderPhases(rows, width, height, title, subtitle, sectionLabel, sectionPayload) {
-  const engines = [ENGINE_META.doppler, ENGINE_META.transformersjs];
-  const phaseData = new Map();
-  let globalMax = 0;
+function formatDurationCompact(value) {
+  if (!isFiniteNumber(value)) return 'n/a';
+  if (value >= 1000) {
+    return `${(value / 1000).toFixed(value >= 10000 ? 1 : 2)} s`;
+  }
+  return `${value.toFixed(value >= 100 ? 0 : 1)} ms`;
+}
 
-  for (const engine of engines) {
-    const resolved = resolvePhaseValues(sectionPayload, engine.key);
-    phaseData.set(engine.key, resolved);
-    if (resolved && resolved.endToEnd > globalMax) {
-      globalMax = resolved.endToEnd;
+function computePhaseRaceSummary(dopplerPhases, transformersPhases) {
+  if (!dopplerPhases || !transformersPhases) return null;
+  if (!isFiniteNumber(dopplerPhases.endToEnd) || !isFiniteNumber(transformersPhases.endToEnd)) return null;
+  if (dopplerPhases.endToEnd === transformersPhases.endToEnd) {
+    return { winner: null, deltaPct: 0 };
+  }
+  const winner = dopplerPhases.endToEnd < transformersPhases.endToEnd
+    ? ENGINE_META.doppler
+    : ENGINE_META.transformersjs;
+  const faster = winner.key === ENGINE_META.doppler.key ? dopplerPhases : transformersPhases;
+  const slower = winner.key === ENGINE_META.doppler.key ? transformersPhases : dopplerPhases;
+  const deltaPct = slower.endToEnd > 0 ? ((slower.endToEnd - faster.endToEnd) / slower.endToEnd) * 100 : 0;
+  return { winner, deltaPct };
+}
+
+function renderPhaseSegmentLabel(x, y, width, title, valueLabel) {
+  if (width < 52) return '';
+  if (width < 92) {
+    return `<text x="${x + 8}" y="${y + 30}" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="10">${escapeXml(valueLabel)}</text>\n`;
+  }
+  return `<text x="${x + 10}" y="${y + 24}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="11" font-weight="bold">${escapeXml(title)}</text>\n`
+    + `<text x="${x + 10}" y="${y + 38}" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="10">${escapeXml(valueLabel)}</text>\n`;
+}
+
+function renderEngineChip(x, y, engine) {
+  const chipId = engine.key === ENGINE_META.doppler.key ? 'phase-doppler-chip' : 'phase-transformers-chip';
+  const chipWidth = engine.key === ENGINE_META.doppler.key ? 128 : 188;
+  return `<rect x="${x}" y="${y}" width="${chipWidth}" height="28" rx="14" fill="url(#${chipId})" stroke="${engine.color}" stroke-width="1.5" />\n`
+    + `<text x="${x + 14}" y="${y + 19}" fill="${engine.color}" font-family="${FONT_UI}" font-size="14" font-weight="bold" stroke="none">${escapeXml(engine.label)}</text>\n`;
+}
+
+function renderPhaseLane({ x, y, width, engine, resolved, globalMax }) {
+  const labelWidth = 184;
+  const totalWidth = 118;
+  const gap = 18;
+  const barHeight = 56;
+  const barX = x + labelWidth + gap;
+  const barWidth = width - labelWidth - totalWidth - gap * 2;
+
+  let body = '';
+  body += renderEngineChip(x, y + 12, engine);
+  body += `<text x="${x + 14}" y="${y + 54}" fill="${PALETTE.muted}" font-family="${FONT_UI}" font-size="12" stroke="none">${escapeXml(LOAD_LABEL[engine.key] || 'Model load')}</text>\n`;
+  body += `<rect x="${barX}" y="${y}" width="${barWidth}" height="${barHeight}" rx="18" fill="url(#phase-track-fill)" stroke="url(#phase-track-stroke)" stroke-width="1.2" />\n`;
+
+  if (!resolved) {
+    body += `<rect x="${barX + 4}" y="${y + 4}" width="${Math.max(0, barWidth - 8)}" height="${barHeight - 8}" rx="14" fill="${PALETTE.failFill}" />\n`;
+    body += `<text x="${barX + 18}" y="${y + 34}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="13" font-weight="bold">No data</text>\n`;
+  } else {
+    const pxPerMs = Math.max(0, (barWidth - 8) / globalMax);
+    let cursor = barX + 4;
+    const segments = [
+      { title: 'Warm load', fill: 'url(#phase-load-grad)', value: resolved.modelLoadMs },
+      { title: 'First token', fill: 'url(#phase-prefill-grad)', value: resolved.ttft },
+      { title: 'Decode', fill: 'url(#phase-decode-grad)', value: resolved.decodeMs },
+    ];
+
+    for (const segment of segments) {
+      if (!isFiniteNumber(segment.value) || segment.value <= 0) continue;
+      const segmentWidth = Math.max(2, segment.value * pxPerMs);
+      body += `<rect x="${cursor}" y="${y + 4}" width="${segmentWidth}" height="${barHeight - 8}" fill="${segment.fill}" />\n`;
+      body += renderPhaseSegmentLabel(cursor, y + 4, segmentWidth, segment.title, formatDurationCompact(segment.value));
+      cursor += segmentWidth;
     }
   }
 
-  if (globalMax <= 0) globalMax = 1;
+  const totalX = x + width - totalWidth;
+  body += `<rect x="${totalX}" y="${y + 9}" width="${totalWidth}" height="38" rx="19" fill="url(#phase-total-pill)" stroke="#ffffff1f" stroke-width="1.1" />\n`;
+  body += `<text x="${totalX + totalWidth / 2}" y="${y + 25}" text-anchor="middle" fill="${PALETTE.muted}" font-family="${FONT_UI}" font-size="10" font-weight="bold" stroke="none">TOTAL</text>\n`;
+  body += `<text x="${totalX + totalWidth / 2}" y="${y + 39}" text-anchor="middle" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="13">${escapeXml(formatDurationCompact(resolved?.endToEnd ?? null))}</text>\n`;
+  return body;
+}
 
-  const left = 200;
-  const right = 120;
-  const barAreaMax = width - left - right;
-  const barHeight = 48;
-  const engineGap = 112;
-  const baseY = 100;
+function renderPhaseWorkloadPanel({ x, y, width, workloadLabel, dopplerPhases, transformersPhases, globalMax }) {
+  const headerHeight = 70;
+  const laneGap = 18;
+  const laneHeight = 56;
+  const laneX = x + 24;
+  const laneWidth = width - 48;
+  const race = computePhaseRaceSummary(dopplerPhases, transformersPhases);
+  const panelHeight = 212;
+
   let body = '';
-  body += renderChartHeaderBand(width, title, subtitle, sectionLabel);
+  body += `<rect x="${x}" y="${y}" width="${width}" height="${panelHeight}" rx="26" fill="url(#phase-workload-panel)" stroke="url(#phase-workload-stroke)" stroke-width="1.4" />\n`;
+  body += `<line x1="${x + 24}" y1="${y + 58}" x2="${x + width - 24}" y2="${y + 58}" stroke="#ffffff14" stroke-width="1" />\n`;
+  body += `<text x="${x + 26}" y="${y + 32}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="20" font-weight="bold" stroke="none">${escapeXml(workloadLabel)}</text>\n`;
+  body += `<text x="${x + 26}" y="${y + 51}" fill="${PALETTE.muted}" font-family="${FONT_UI}" font-size="12" stroke="none">Phase breakdown with warm load, first-token latency, and decode time.</text>\n`;
 
-  engines.forEach((engine, engineIndex) => {
-    const y = baseY + engineIndex * engineGap;
-    const resolved = phaseData.get(engine.key);
-    body += renderPhaseTrackPanel(left - 4, y - 4, barAreaMax + 8, barHeight + 8, engine.color);
+  if (race?.winner) {
+    const pillWidth = 242;
+    const pillX = x + width - pillWidth - 24;
+    body += `<rect x="${pillX}" y="${y + 18}" width="${pillWidth}" height="28" rx="14" fill="url(#phase-winner-pill)" stroke="${race.winner.color}" stroke-width="1.2" />\n`;
+    body += `<text x="${pillX + 14}" y="${y + 37}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="12" font-weight="bold" stroke="none">${escapeXml(`${race.winner.label} leads by ${race.deltaPct.toFixed(1)}%`)}</text>\n`;
+  }
 
-    body += `<text x="32" y="${y + barHeight / 2 + 5}" fill="${engine.color}" stroke="#ffffff" stroke-width="2" font-family="${FONT_UI}" font-size="16" font-weight="bold">${engine.label}</text>\n`;
-
-    if (!resolved) {
-      body += `<rect x="${left}" y="${y}" width="${barAreaMax}" height="${barHeight}" fill="${PALETTE.failFill}" />\n`;
-      body += `<text x="${left + 12}" y="${y + barHeight / 2 + 4}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="12">No data</text>\n`;
-      return;
-    }
-
-    const pxPerMs = barAreaMax / globalMax;
-    let cursor = left;
-
-    if (isFiniteNumber(resolved.modelLoadMs) && resolved.modelLoadMs > 0) {
-      const w = resolved.modelLoadMs * pxPerMs;
-      body += `<rect x="${cursor}" y="${y}" width="${w}" height="${barHeight}" fill="${PHASE_COLORS.warmLoad}" />\n`;
-      if (w > 80) {
-        body += `<text x="${cursor + 6}" y="${y + barHeight / 2 + 4}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="11" font-weight="bold">${LOAD_LABEL[engine.key] || 'Model Load'}</text>\n`;
-        body += `<text x="${cursor + 6}" y="${y + barHeight / 2 + 16}" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="10">${resolved.modelLoadMs.toFixed(1)} ms</text>\n`;
-      }
-      cursor += w;
-    }
-
-    if (isFiniteNumber(resolved.ttft) && resolved.ttft > 0) {
-      const ttftW = resolved.ttft * pxPerMs;
-      const ttftX = cursor;
-      body += `<rect x="${ttftX}" y="${y}" width="${ttftW}" height="${barHeight}" fill="${PHASE_COLORS.prefill}" />\n`;
-
-      if (ttftW > 80) {
-        body += `<text x="${ttftX + 6}" y="${y + barHeight / 2 + 4}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="11" font-weight="bold">Prompt → First Token ${resolved.ttft.toFixed(1)} ms</text>\n`;
-      } else if (ttftW > 40) {
-        body += `<text x="${ttftX + 4}" y="${y + barHeight / 2 + 4}" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="10">TTFT ${resolved.ttft.toFixed(0)} ms</text>\n`;
-      }
-
-      cursor += ttftW;
-    }
-
-    if (isFiniteNumber(resolved.decodeMs) && resolved.decodeMs > 0) {
-      const w = resolved.decodeMs * pxPerMs;
-      body += `<rect x="${cursor}" y="${y}" width="${w}" height="${barHeight}" fill="${PHASE_COLORS.decode}" />\n`;
-      if (w > 50) {
-        body += `<text x="${cursor + 6}" y="${y + barHeight / 2 + 4}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="11" font-weight="bold">Decode</text>\n`;
-        body += `<text x="${cursor + 6}" y="${y + barHeight / 2 + 16}" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="10">${resolved.decodeMs.toFixed(1)} ms</text>\n`;
-      }
-      cursor += w;
-    }
-
-    body += `<text x="${cursor + 8}" y="${y + barHeight / 2 + 5}" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="12">${resolved.endToEnd.toFixed(1)} ms</text>\n`;
+  body += renderPhaseLane({
+    x: laneX,
+    y: y + headerHeight,
+    width: laneWidth,
+    engine: ENGINE_META.doppler,
+    resolved: dopplerPhases,
+    globalMax,
   });
-
-  const legendY = baseY + engines.length * engineGap + 24;
-  const legendItems = [
-    { id: 'warmLoad', label: 'Model Load (Warm)' },
-    { id: 'prefill', label: 'Prompt → First Token' },
-    { id: 'decode', label: 'Decode' },
-  ];
-  legendItems.forEach((item, i) => {
-    const x = left + i * 210;
-    body += `<rect x="${x}" y="${legendY}" width="16" height="16" fill="${PHASE_COLORS[item.id]}" />\n`;
-    body += `<text x="${x + 22}" y="${legendY + 13}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="12">${item.label}</text>\n`;
+  body += renderPhaseLane({
+    x: laneX,
+    y: y + headerHeight + laneHeight + laneGap,
+    width: laneWidth,
+    engine: ENGINE_META.transformersjs,
+    resolved: transformersPhases,
+    globalMax,
   });
+  return { body, panelHeight };
+}
+
+function renderPhases(rows, width, height, title, subtitle, sectionLabel, sectionPayload) {
+  const dopplerPhases = resolvePhaseValues(sectionPayload, ENGINE_META.doppler.key);
+  const transformersPhases = resolvePhaseValues(sectionPayload, ENGINE_META.transformersjs.key);
+  const globalMax = Math.max(1, dopplerPhases?.endToEnd || 0, transformersPhases?.endToEnd || 0);
+
+  let body = '';
+  body += renderPhaseSceneDefs();
+  body += `<rect x="${CANVAS_PADDING}" y="${CANVAS_PADDING}" width="${width - CANVAS_PADDING * 2}" height="${height - CANVAS_PADDING * 2}" fill="url(#phase-canvas-glow)" stroke="none" />\n`;
+  body += `<text x="36" y="54" fill="${ARCHITECTURE_COLORS.edge}" font-family="${FONT_UI}" font-size="12" font-weight="bold" letter-spacing="1.2" stroke="none">BENCHMARK EVIDENCE</text>\n`;
+  body += `<text x="36" y="92" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="30" font-weight="bold" stroke="none">${escapeXml(title)}</text>\n`;
+  body += `<text x="36" y="116" fill="${PALETTE.muted}" font-family="${FONT_UI}" font-size="14" stroke="none">${escapeXml(subtitle)}</text>\n`;
+  body += `<text x="36" y="136" fill="${PALETTE.muted}" font-family="${FONT_UI}" font-size="12" stroke="none">${escapeXml(`Section: ${sectionLabel} • lower is better`)}</text>\n`;
+  body += renderPhaseWorkloadPanel({
+    x: 28,
+    y: 164,
+    width: width - 56,
+    workloadLabel: subtitle,
+    dopplerPhases,
+    transformersPhases,
+    globalMax,
+  }).body;
   return svgWrap(width, height, body, title, `${subtitle} • Section: ${sectionLabel}`);
 }
 
 function renderMultiPhases(entries, width, title, subtitle) {
-  const engines = [ENGINE_META.doppler, ENGINE_META.transformersjs];
-  const left = 200;
-  const right = 120;
-  const barAreaMax = width - left - right;
-  const barHeight = 48;
-  const engineGap = 76;
-  const workloadGap = 48;
-  const workloadSubtitleGap = 20;
-  const subtitleToBarsGap = 12;
-  const baseY = 120;
-  const workloadBlockHeight = engines.length * engineGap + workloadGap;
-
   let globalMax = 0;
   const workloads = entries.map((entry) => {
-    const phaseData = new Map();
-    for (const engine of engines) {
-      const resolved = resolvePhaseValues(entry.sectionPayload, engine.key);
-      phaseData.set(engine.key, resolved);
-      if (resolved && resolved.endToEnd > globalMax) {
-        globalMax = resolved.endToEnd;
-      }
-    }
+    const dopplerPhases = resolvePhaseValues(entry.sectionPayload, ENGINE_META.doppler.key);
+    const transformersPhases = resolvePhaseValues(entry.sectionPayload, ENGINE_META.transformersjs.key);
+    globalMax = Math.max(globalMax, dopplerPhases?.endToEnd || 0, transformersPhases?.endToEnd || 0);
     const fallbackWorkload = entry.report.workload?.id || path.basename(entry.inputPath, '.json');
-    const workloadLabel = buildWorkloadPanelLabel(entry.report, fallbackWorkload);
-    return { phaseData, workloadLabel, sectionLabel: entry.resolvedSection };
+    return {
+      workloadLabel: buildWorkloadPanelLabel(entry.report, fallbackWorkload),
+      dopplerPhases,
+      transformersPhases,
+    };
   });
 
   if (globalMax <= 0) globalMax = 1;
 
-  const legendHeight = 50;
-  const height = baseY + workloads.length * workloadBlockHeight + legendHeight + 40;
+  const panelGap = 28;
+  const panelHeight = 212;
+  const headerTop = 160;
+  const legendHeight = 74;
+  const footerHeight = 24;
+  const height = headerTop + workloads.length * panelHeight + Math.max(0, workloads.length - 1) * panelGap + legendHeight + footerHeight;
+
   let body = '';
-  body += renderChartHeaderBand(width, title, subtitle);
+  body += renderPhaseSceneDefs();
+  body += `<rect x="${CANVAS_PADDING}" y="${CANVAS_PADDING}" width="${width - CANVAS_PADDING * 2}" height="${height - CANVAS_PADDING * 2}" fill="url(#phase-canvas-glow)" stroke="none" />\n`;
+  body += `<text x="36" y="50" fill="${ARCHITECTURE_COLORS.edge}" font-family="${FONT_UI}" font-size="12" font-weight="bold" letter-spacing="1.2" stroke="none">README BENCHMARK HERO</text>\n`;
+  body += `<text x="36" y="92" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="32" font-weight="bold" stroke="none">${escapeXml(title)}</text>\n`;
+  body += `<text x="36" y="117" fill="${PALETTE.muted}" font-family="${FONT_UI}" font-size="14" stroke="none">${escapeXml(subtitle)}</text>\n`;
+  body += `<text x="36" y="138" fill="${PALETTE.muted}" font-family="${FONT_UI}" font-size="12" stroke="none">Warm-cache phase evidence across curated workloads. Lower total latency wins.</text>\n`;
+  body += `<rect x="${width - 266}" y="38" width="230" height="34" rx="17" fill="url(#phase-winner-pill)" stroke="#ffffff24" stroke-width="1.1" />\n`;
+  body += `<text x="${width - 151}" y="59" text-anchor="middle" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="12" font-weight="bold" stroke="none">${escapeXml(`${workloads.length} workloads • warm cache`)}</text>\n`;
 
-  workloads.forEach((workload, wIndex) => {
-    const workloadY = baseY + wIndex * workloadBlockHeight;
-    const panelY = workloadY - 26;
-    const panelHeight = engines.length * engineGap + 16 + subtitleToBarsGap;
-    body += `<rect x="${CANVAS_PADDING}" y="${panelY}" width="${width - CANVAS_PADDING * 2}" height="${panelHeight}" rx="0" fill="${PALETTE.grid}" fill-opacity="0.12" stroke="none" />`;
-
-    body += `<text x="32" y="${workloadY - workloadSubtitleGap}" fill="${PALETTE.muted}" font-family="${FONT_UI}" font-size="12" font-weight="bold">${escapeXml(workload.workloadLabel)}</text>\n`;
-
-    engines.forEach((engine, engineIndex) => {
-      const y = workloadY + subtitleToBarsGap + engineIndex * engineGap;
-      const resolved = workload.phaseData.get(engine.key);
-      body += renderPhaseTrackPanel(left - 4, y - 4, barAreaMax + 8, barHeight + 8, engine.color);
-
-    body += `<text x="32" y="${y + barHeight / 2 + 5}" fill="${engine.color}" stroke="#ffffff" stroke-width="2" font-family="${FONT_UI}" font-size="16" font-weight="bold">${engine.label}</text>\n`;
-
-      if (!resolved) {
-        body += `<rect x="${left}" y="${y}" width="${barAreaMax}" height="${barHeight}" fill="${PALETTE.failFill}" />\n`;
-        body += `<text x="${left + 12}" y="${y + barHeight / 2 + 4}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="12">No data</text>\n`;
-        return;
-      }
-
-      const pxPerMs = barAreaMax / globalMax;
-      let cursor = left;
-
-      if (isFiniteNumber(resolved.modelLoadMs) && resolved.modelLoadMs > 0) {
-        const w = resolved.modelLoadMs * pxPerMs;
-        body += `<rect x="${cursor}" y="${y}" width="${w}" height="${barHeight}" fill="${PHASE_COLORS.warmLoad}" />\n`;
-        if (w > 80) {
-          body += `<text x="${cursor + 6}" y="${y + barHeight / 2 + 4}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="11" font-weight="bold">${LOAD_LABEL[engine.key] || 'Model Load'}</text>\n`;
-          body += `<text x="${cursor + 6}" y="${y + barHeight / 2 + 16}" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="10">${resolved.modelLoadMs.toFixed(1)} ms</text>\n`;
-        }
-        cursor += w;
-      }
-
-      if (isFiniteNumber(resolved.ttft) && resolved.ttft > 0) {
-        const ttftW = resolved.ttft * pxPerMs;
-        const ttftX = cursor;
-        body += `<rect x="${ttftX}" y="${y}" width="${ttftW}" height="${barHeight}" fill="${PHASE_COLORS.prefill}" />\n`;
-        if (ttftW > 80) {
-          body += `<text x="${ttftX + 6}" y="${y + barHeight / 2 + 4}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="11" font-weight="bold">Prompt → First Token</text>\n`;
-          body += `<text x="${ttftX + 6}" y="${y + barHeight / 2 + 16}" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="10">${resolved.ttft.toFixed(1)} ms</text>\n`;
-        } else if (ttftW > 40) {
-          body += `<text x="${ttftX + 4}" y="${y + barHeight / 2 + 4}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="10" font-weight="bold">TTFT</text>\n`;
-          body += `<text x="${ttftX + 4}" y="${y + barHeight / 2 + 15}" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="10">${resolved.ttft.toFixed(0)} ms</text>\n`;
-        }
-        cursor += ttftW;
-      }
-
-      if (isFiniteNumber(resolved.decodeMs) && resolved.decodeMs > 0) {
-        const w = resolved.decodeMs * pxPerMs;
-        body += `<rect x="${cursor}" y="${y}" width="${w}" height="${barHeight}" fill="${PHASE_COLORS.decode}" />\n`;
-        if (w > 50) {
-          body += `<text x="${cursor + 6}" y="${y + barHeight / 2 + 4}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="11" font-weight="bold">Decode</text>\n`;
-          body += `<text x="${cursor + 6}" y="${y + barHeight / 2 + 16}" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="10">${resolved.decodeMs.toFixed(1)} ms</text>\n`;
-        }
-        cursor += w;
-      }
-
-      body += `<text x="${cursor + 8}" y="${y + barHeight / 2 + 5}" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="12">${resolved.endToEnd.toFixed(1)} ms</text>\n`;
-    });
+  workloads.forEach((workload, index) => {
+    body += renderPhaseWorkloadPanel({
+      x: 24,
+      y: headerTop + index * (panelHeight + panelGap),
+      width: width - 48,
+      workloadLabel: workload.workloadLabel,
+      dopplerPhases: workload.dopplerPhases,
+      transformersPhases: workload.transformersPhases,
+      globalMax,
+    }).body;
   });
 
-  const legendY = baseY + workloads.length * workloadBlockHeight;
+  const legendY = headerTop + workloads.length * panelHeight + Math.max(0, workloads.length - 1) * panelGap + 26;
   const legendItems = [
-    { id: 'warmLoad', label: 'Model Load (Warm)' },
-    { id: 'prefill', label: 'Prompt → First Token' },
-    { id: 'decode', label: 'Decode' },
+    { fill: 'url(#phase-load-grad)', label: 'Warm load' },
+    { fill: 'url(#phase-prefill-grad)', label: 'First token' },
+    { fill: 'url(#phase-decode-grad)', label: 'Decode' },
   ];
-  legendItems.forEach((item, i) => {
-    const x = left + i * 210;
-    body += `<rect x="${x}" y="${legendY}" width="16" height="16" fill="${PHASE_COLORS[item.id]}" />\n`;
-    body += `<text x="${x + 22}" y="${legendY + 13}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="12">${item.label}</text>\n`;
+  legendItems.forEach((item, index) => {
+    const x = 36 + index * 184;
+    body += `<rect x="${x}" y="${legendY}" width="18" height="18" rx="6" fill="${item.fill}" />\n`;
+    body += `<text x="${x + 28}" y="${legendY + 13}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="13" stroke="none">${item.label}</text>\n`;
   });
-  body += `<text x="${width - right - 10}" y="${legendY + 13}" fill="${PALETTE.muted}" font-family="${FONT_UI}" font-size="11" text-anchor="end" font-style="italic" stroke="none">Lower is better</text>\n`;
+  body += `<text x="${width - 36}" y="${legendY + 13}" fill="${PALETTE.muted}" font-family="${FONT_UI}" font-size="12" text-anchor="end" font-style="italic" stroke="none">Architecture palette: red load, purple first-token bridge, blue decode.</text>\n`;
   return svgWrap(width, height, body, title, subtitle);
 }
 
@@ -1541,6 +1600,13 @@ function buildSubtitle(report, inputPath) {
   return buildHeaderLabel(report);
 }
 
+function buildMultiPhaseSubtitle(entries) {
+  const workload = prettifyWorkload(entries[0]?.report?.workload);
+  const models = [...new Set(entries.map((entry) => buildModelLabel(entry.report)).filter((value) => value.length > 0))];
+  if (models.length === 0) return workload || 'Multi-workload phase comparison';
+  return workload ? `${models.join(' + ')} • ${workload}` : models.join(' + ');
+}
+
 function defaultOutputPath(inputPath, sectionLabel, chartType, width, height) {
   const parsed = path.parse(inputPath);
   const safeSection = (sectionLabel || DEFAULT_SECTION).replaceAll('/', '-');
@@ -1596,7 +1662,9 @@ function main() {
 
   let svg;
   if ((options.chart === 'phases' || options.chart === 'radar') && isMulti) {
-    const subtitle = headerLabel;
+    const subtitle = options.chart === 'phases'
+      ? buildMultiPhaseSubtitle(entries)
+      : headerLabel;
 
     if (options.chart === 'phases') {
       svg = renderMultiPhases(entries, options.width, title, subtitle);
