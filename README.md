@@ -2,13 +2,7 @@
 
 Inference and training on raw WebGPU. Pure JS + WGSL.
 
-**[Live Demo](https://d4da.com)** · **[npm](https://www.npmjs.com/package/@simulatte/doppler)** · **[simulatte.world](https://simulatte.world)**
-
-## Install
-
-```bash
-npm install @simulatte/doppler
-```
+![Phase-latency comparison on one workload across models](https://raw.githubusercontent.com/clocksmith/doppler/main/benchmarks/vendors/results/compare_1b_multi-workload_favorable_phases.svg)
 
 ## Quick start
 
@@ -22,7 +16,19 @@ for await (const token of model.generate('Describe WebGPU briefly')) {
 }
 ```
 
+Browser-first WebGPU inference and training with explicit manifest-driven
+runtime behavior. Built for local models, streamed generation, adapter
+hot-swap, and direct JS → WGSL → WebGPU execution.
+
 Registry IDs resolve to hosted RDRR artifacts from `Clocksmith/rdrr` by default. Tokens stream from a native `AsyncGenerator`. See [more examples](#more-examples) below or the canonical [Root API guide](https://github.com/clocksmith/doppler/blob/main/docs/api/root.md).
+
+## Install
+
+```bash
+npm install @simulatte/doppler
+```
+
+**[Live Demo](https://d4da.com)** · **[npm](https://www.npmjs.com/package/@simulatte/doppler)** · **[docs](https://github.com/clocksmith/doppler/blob/main/docs/INDEX.md)** · **[Project site](https://simulatte.world)**
 
 ## Why Doppler
 
@@ -35,8 +41,6 @@ Registry IDs resolve to hosted RDRR artifacts from `Clocksmith/rdrr` by default.
 **Independent model instances.** Run multiple models concurrently. Each owns its pipeline, buffers, and KV cache.
 
 ## Evidence
-
-![Phase-latency comparison on one workload across models](https://raw.githubusercontent.com/clocksmith/doppler/main/benchmarks/vendors/results/compare_1b_multi-workload_favorable_phases.svg)
 
 Snapshot artifacts:
 - [g3-1b-p064-d064-t0-k1.compare.json](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/fixtures/g3-1b-p064-d064-t0-k1.compare.json)
