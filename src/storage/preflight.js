@@ -21,8 +21,30 @@ export const GEMMA_1B_REQUIREMENTS = {
   architecture: 'Gemma3ForCausalLM',
 };
 
+const GEMMA_270M_REQUIREMENTS = {
+  modelId: 'gemma-3-270m-it-q4k-ehf16-af32',
+  displayName: 'Gemma 3 270M IT (Q4K)',
+  downloadSize: 418512553,
+  vramRequired: 1.0 * GB,
+  paramCount: '270M',
+  quantization: 'Q4K',
+  architecture: 'Gemma3ForCausalLM',
+};
+
+const EMBEDDINGGEMMA_300M_REQUIREMENTS = {
+  modelId: 'google-embeddinggemma-300m-q4k-ehf16-af32',
+  displayName: 'EmbeddingGemma 300M (Q4K)',
+  downloadSize: 480562497,
+  vramRequired: 1.0 * GB,
+  paramCount: '300M',
+  quantization: 'Q4K',
+  architecture: 'EmbeddingGemmaForEmbedding',
+};
+
 
 export const MODEL_REQUIREMENTS = {
+  'gemma-3-270m-it-q4k-ehf16-af32': GEMMA_270M_REQUIREMENTS,
+  'google-embeddinggemma-300m-q4k-ehf16-af32': EMBEDDINGGEMMA_300M_REQUIREMENTS,
   'gemma-3-1b-it-q4k-ehf16-af32': GEMMA_1B_REQUIREMENTS,
 };
 

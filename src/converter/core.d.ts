@@ -169,6 +169,13 @@ export declare const RDRR_VERSION: number;
 export declare function sanitizeModelId(name: string): string | null;
 
 /**
+ * Resolve bundled tokenizer vocab size from Hugging Face tokenizer.json payloads.
+ */
+export declare function resolveBundledTokenizerVocabSize(
+  tokenizerJson: Record<string, unknown> | null | undefined
+): number;
+
+/**
  * Format bytes for human-readable display
  */
 export declare function formatBytes(bytes: number): string;

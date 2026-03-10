@@ -17,6 +17,7 @@ const REPO_ROOT = path.resolve(__dirname, '..');
 const DEFAULT_OUTPUT_PATH = path.join(REPO_ROOT, 'docs/model-support-matrix.md');
 const CONVERSION_CONFIG_DIR = path.join(REPO_ROOT, 'tools/configs/conversion');
 const CATALOG_PATH = path.join(REPO_ROOT, 'models/catalog.json');
+const QUICKSTART_REGISTRY_PATH = path.join(REPO_ROOT, 'src', 'client', 'doppler-registry.json');
 const RUNTIME_BLOCKED_MODEL_TYPES = new Set(['mamba', 'rwkv']);
 
 export function parseArgs(argv) {
@@ -655,13 +656,12 @@ async function main() {
     );
   }
 
-  const quickStartModule = await import('../src/storage/quickstart-downloader.js');
-  if (typeof quickStartModule.listQuickStartModels !== 'function') {
-    throw new Error('Quickstart registry export listQuickStartModels() is unavailable.');
-  }
-  const quickStartModelIds = quickStartModule.listQuickStartModels()
-    .map((entry) => normalizeText(entry?.modelId) ? String(entry.modelId).trim() : null)
-    .filter((entry) => typeof entry === 'string' && entry.length > 0);
+  const quickstartRegistry = await readJson(QUICKSTART_REGISTRY_PATH);
+  const quickStartModelIds = Array.isArray(quickstartRegistry?.models)
+    ? quickstartRegistry.models
+      .map((entry) => normalizeText(entry?.modelId) ? String(entry.modelId).trim() : null)
+      .filter((entry) => typeof entry === 'string' && entry.length > 0)
+    : [];
 
   const buckets = buildCurrentInferenceStatusBuckets({
     catalogModels,

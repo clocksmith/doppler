@@ -15,7 +15,7 @@ import {
 
 const DEFAULT_MODEL_ID = 'gemma-3-270m-it-q4k-ehf16-af32';
 const DEFAULT_CATALOG_FILE = path.join(process.cwd(), 'models', 'catalog.json');
-const DEFAULT_PROMPT = Object.freeze({
+const DEFAULT_GENERATION_PROMPT = Object.freeze({
   messages: Object.freeze([
     Object.freeze({
       role: 'user',
@@ -23,7 +23,9 @@ const DEFAULT_PROMPT = Object.freeze({
     }),
   ]),
 });
+const DEFAULT_EMBEDDING_PROMPT = 'Search query: local-first AI with WebGPU inference.';
 const DEFAULT_EXPECTED_FIRST_TOKEN = '4';
+const DEFAULT_EXPECT_MODE = 'generation';
 const DEFAULT_MAX_TOKENS = 8;
 const DEFAULT_TIMEOUT_MS = 300_000;
 const DEFAULT_BROWSER_ARGS = Object.freeze([
@@ -41,7 +43,9 @@ function usage() {
   console.error(
     'Usage: node tools/ci-browser-opfs-registry-smoke.mjs '
     + '[--model-id <id>] [--catalog-file <path>] [--cache-root <dir>] [--profile-dir <dir>] '
-    + '[--channel <name>] [--timeout-ms <ms>] [--prompt <json>] [--expected-first-token <token>] '
+    + '[--channel <name>] [--timeout-ms <ms>] [--prompt <json>] [--expect-mode <generation|embedding>] '
+    + '[--runtime-preset <id>] '
+    + '[--expected-first-token <token>] [--expected-embedding-dim <n>] [--expected-semantic-style <id>] '
     + '[--kernel-path <id>] [--activation-dtype <f16|f32>] [--kv-dtype <f16|f32>] '
     + '[--output-dtype <f16|f32>] '
     + '[--keep-opfs-profile] [--json]'
@@ -61,6 +65,15 @@ function parsePositiveInt(value, label, defaultValue) {
   return numeric;
 }
 
+function normalizeExpectMode(value) {
+  const normalized = normalizeText(value).toLowerCase();
+  if (!normalized) return DEFAULT_EXPECT_MODE;
+  if (normalized !== 'generation' && normalized !== 'embedding') {
+    throw new Error('--expect-mode must be "generation" or "embedding".');
+  }
+  return normalized;
+}
+
 function parseArgs(argv) {
   const out = {
     modelId: DEFAULT_MODEL_ID,
@@ -69,8 +82,13 @@ function parseArgs(argv) {
     profileDir: path.join(os.homedir(), '.cache', 'doppler', 'ci-opfs', DEFAULT_MODEL_ID),
     channel: 'chromium',
     timeoutMs: DEFAULT_TIMEOUT_MS,
-    prompt: DEFAULT_PROMPT,
+    prompt: null,
+    promptProvided: false,
+    expectMode: DEFAULT_EXPECT_MODE,
+    runtimePreset: null,
     expectedFirstToken: DEFAULT_EXPECTED_FIRST_TOKEN,
+    expectedEmbeddingDim: null,
+    expectedSemanticStyle: null,
     kernelPath: null,
     activationDtype: null,
     kvDtype: null,
@@ -116,10 +134,27 @@ function parseArgs(argv) {
     }
     if (arg === '--prompt') {
       out.prompt = JSON.parse(readValue());
+      out.promptProvided = true;
+      continue;
+    }
+    if (arg === '--expect-mode') {
+      out.expectMode = normalizeExpectMode(readValue());
+      continue;
+    }
+    if (arg === '--runtime-preset') {
+      out.runtimePreset = normalizeText(readValue()) || null;
       continue;
     }
     if (arg === '--expected-first-token') {
       out.expectedFirstToken = normalizeText(readValue()).toLowerCase();
+      continue;
+    }
+    if (arg === '--expected-embedding-dim') {
+      out.expectedEmbeddingDim = parsePositiveInt(readValue(), '--expected-embedding-dim', null);
+      continue;
+    }
+    if (arg === '--expected-semantic-style') {
+      out.expectedSemanticStyle = normalizeText(readValue()) || null;
       continue;
     }
     if (arg === '--kernel-path') {
@@ -186,7 +221,7 @@ function normalizeFirstToken(output) {
   return firstToken.replace(/^[^a-z0-9-]+|[^a-z0-9-]+$/gu, '');
 }
 
-function assertSmokeResult(label, response, expectedFirstToken) {
+function assertGenerationSmokeResult(label, response, expectedFirstToken) {
   if (!response?.ok || !response.result) {
     throw new Error(`${label}: browser smoke did not return a successful result envelope.`);
   }
@@ -213,6 +248,82 @@ function assertSmokeResult(label, response, expectedFirstToken) {
   if (!Number.isFinite(metrics.tokensGenerated) || metrics.tokensGenerated <= 0) {
     throw new Error(`${label}: tokensGenerated must be > 0.`);
   }
+}
+
+function assertEmbeddingSmokeResult(label, response, expectedEmbeddingDim, expectedSemanticStyle) {
+  if (!response?.ok || !response.result) {
+    throw new Error(`${label}: browser smoke did not return a successful result envelope.`);
+  }
+
+  const output = response.result.output ?? {};
+  const metrics = response.result.metrics ?? {};
+  if (output.mode !== 'embedding') {
+    throw new Error(`${label}: expected embedding output mode but received ${JSON.stringify(output.mode)}.`);
+  }
+
+  const embeddingDim = Number(output.embeddingDim ?? metrics.embeddingDim);
+  if (!Number.isFinite(embeddingDim) || embeddingDim <= 0) {
+    throw new Error(`${label}: embeddingDim must be > 0.`);
+  }
+  if (Number.isFinite(expectedEmbeddingDim) && embeddingDim !== expectedEmbeddingDim) {
+    throw new Error(`${label}: expected embeddingDim ${expectedEmbeddingDim} but received ${embeddingDim}.`);
+  }
+
+  const nonFiniteValues = Number(output.nonFiniteValues ?? metrics.nonFiniteValues ?? NaN);
+  if (!Number.isFinite(nonFiniteValues) || nonFiniteValues !== 0) {
+    throw new Error(`${label}: embedding contains non-finite values (${nonFiniteValues}).`);
+  }
+
+  const finiteRatio = Number(output.finiteRatio ?? metrics.finiteRatio ?? NaN);
+  if (!Number.isFinite(finiteRatio) || finiteRatio < 0.999999) {
+    throw new Error(`${label}: finiteRatio must be ~1.0; received ${finiteRatio}.`);
+  }
+
+  const semantic = output.semantic ?? {};
+  const semanticPassed = semantic.passed ?? metrics.semanticPassed;
+  if (semanticPassed !== true) {
+    throw new Error(`${label}: embedding semantic checks did not pass.`);
+  }
+
+  const semanticStyle = normalizeText(semantic.style ?? metrics.semanticStyle);
+  if (expectedSemanticStyle && semanticStyle !== expectedSemanticStyle) {
+    throw new Error(
+      `${label}: expected semantic style "${expectedSemanticStyle}" but received "${semanticStyle}".`
+    );
+  }
+
+  if (!Number.isFinite(metrics.modelLoadMs) || metrics.modelLoadMs < 0) {
+    throw new Error(`${label}: modelLoadMs must be finite.`);
+  }
+  if (!Number.isFinite(metrics.embeddingMs) || metrics.embeddingMs <= 0) {
+    throw new Error(`${label}: embeddingMs must be > 0.`);
+  }
+  if (!Number.isFinite(metrics.semanticDurationMs) || metrics.semanticDurationMs <= 0) {
+    throw new Error(`${label}: semanticDurationMs must be > 0.`);
+  }
+  if (!Number.isFinite(metrics.semanticRetrievalTotal) || metrics.semanticRetrievalTotal <= 0) {
+    throw new Error(`${label}: semanticRetrievalTotal must be > 0.`);
+  }
+  if (!Number.isFinite(metrics.semanticPairTotal) || metrics.semanticPairTotal <= 0) {
+    throw new Error(`${label}: semanticPairTotal must be > 0.`);
+  }
+  if (!Array.isArray(output.preview) || output.preview.length === 0) {
+    throw new Error(`${label}: embedding preview is missing.`);
+  }
+}
+
+function assertSmokeResult(label, response, options = {}) {
+  const expectMode = normalizeExpectMode(options.expectMode);
+  if (expectMode === 'embedding') {
+    assertEmbeddingSmokeResult(
+      label,
+      response,
+      options.expectedEmbeddingDim,
+      options.expectedSemanticStyle
+    );
+    return;
+  }
+  assertGenerationSmokeResult(label, response, options.expectedFirstToken);
 }
 
 function collectTokenizerPaths(tokenizer) {
@@ -384,7 +495,15 @@ async function ensureModelCache(modelId, catalogFile, cacheRoot) {
   };
 }
 
-function createSamplingProfiles() {
+function createSmokeProfiles(expectMode) {
+  if (normalizeExpectMode(expectMode) === 'embedding') {
+    return [
+      {
+        label: 'embedding-opfs',
+        sampling: null,
+      },
+    ];
+  }
   return [
     {
       label: 'greedy-opfs',
@@ -425,6 +544,8 @@ async function runSmokeRequest({
   activationDtype,
   kvDtype,
   outputDtype,
+  expectMode,
+  runtimePreset,
 }) {
   const explicitInferenceOverride = {};
   if (activationDtype) {
@@ -451,6 +572,22 @@ async function runSmokeRequest({
     };
   }
 
+  const normalizedExpectMode = normalizeExpectMode(expectMode);
+  const inferenceConfig = {
+    prompt,
+    batching: {
+      maxTokens: normalizedExpectMode === 'embedding' ? 1 : DEFAULT_MAX_TOKENS,
+    },
+    ...explicitInferenceOverride,
+  };
+  if (normalizedExpectMode === 'embedding') {
+    inferenceConfig.generation = {
+      embeddingMode: 'mean',
+    };
+  } else if (sampling) {
+    inferenceConfig.sampling = sampling;
+  }
+
   const response = await runBrowserCommandInNode({
     command: 'verify',
     suite: 'inference',
@@ -458,15 +595,9 @@ async function runSmokeRequest({
     modelUrl,
     loadMode,
     captureOutput: true,
+    runtimePreset,
     runtimeConfig: {
-      inference: {
-        prompt,
-        batching: {
-          maxTokens: DEFAULT_MAX_TOKENS,
-        },
-        sampling,
-        ...explicitInferenceOverride,
-      },
+      inference: inferenceConfig,
     },
   }, {
     channel,
@@ -496,7 +627,12 @@ async function runSmokeRequest({
 
 async function main() {
   const args = parseArgs(process.argv.slice(2));
-  const prompt = normalizePrompt(args.prompt);
+  const expectMode = normalizeExpectMode(args.expectMode);
+  const prompt = normalizePrompt(
+    args.promptProvided
+      ? args.prompt
+      : (expectMode === 'embedding' ? DEFAULT_EMBEDDING_PROMPT : DEFAULT_GENERATION_PROMPT)
+  );
   const activationDtype = normalizeOptionalDtype(args.activationDtype, '--activation-dtype');
   const kvDtype = normalizeOptionalDtype(args.kvDtype, '--kv-dtype');
   const outputDtype = normalizeOptionalDtype(args.outputDtype, '--output-dtype');
@@ -529,11 +665,18 @@ async function main() {
     activationDtype,
     kvDtype,
     outputDtype,
+    expectMode,
+    runtimePreset: args.runtimePreset,
   });
-  assertSmokeResult(primeRun.label, primeRun.response, args.expectedFirstToken);
+  assertSmokeResult(primeRun.label, primeRun.response, {
+    expectMode,
+    expectedFirstToken: args.expectedFirstToken,
+    expectedEmbeddingDim: args.expectedEmbeddingDim,
+    expectedSemanticStyle: args.expectedSemanticStyle,
+  });
 
   const checks = [];
-  for (const profile of createSamplingProfiles()) {
+  for (const profile of createSmokeProfiles(expectMode)) {
     const run = await runSmokeRequest({
       label: profile.label,
       modelId: modelCache.modelId,
@@ -550,8 +693,15 @@ async function main() {
       activationDtype,
       kvDtype,
       outputDtype,
+      expectMode,
+      runtimePreset: args.runtimePreset,
     });
-    assertSmokeResult(run.label, run.response, args.expectedFirstToken);
+    assertSmokeResult(run.label, run.response, {
+      expectMode,
+      expectedFirstToken: args.expectedFirstToken,
+      expectedEmbeddingDim: args.expectedEmbeddingDim,
+      expectedSemanticStyle: args.expectedSemanticStyle,
+    });
     if (run.response?.result?.loadMode !== 'opfs' && run.response?.result?.timing?.loadMode !== 'opfs') {
       throw new Error(`${run.label}: browser smoke did not report loadMode=opfs.`);
     }
@@ -565,8 +715,12 @@ async function main() {
     remoteBaseUrl: modelCache.remoteBaseUrl,
     rdrrRoot: modelCache.rdrrRoot,
     profileDir: args.profileDir,
+    expectMode,
     prompt,
-    expectedFirstToken: args.expectedFirstToken,
+    expectedFirstToken: expectMode === 'generation' ? args.expectedFirstToken : null,
+    expectedEmbeddingDim: expectMode === 'embedding' ? args.expectedEmbeddingDim : null,
+    expectedSemanticStyle: expectMode === 'embedding' ? args.expectedSemanticStyle : null,
+    runtimePreset: args.runtimePreset,
     kernelPath: args.kernelPath,
     activationDtype,
     kvDtype,
@@ -590,7 +744,7 @@ async function main() {
   }
 
   console.log(
-    `[opfs-smoke] model=${summary.modelId} revision=${summary.revision} `
+    `[opfs-smoke] mode=${summary.expectMode} model=${summary.modelId} revision=${summary.revision} `
     + `prime=${JSON.stringify(summary.prime.output)}`
   );
   for (const run of summary.checks) {

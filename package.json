@@ -1,6 +1,6 @@
 {
   "name": "@simulatte/doppler",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Browser-native WebGPU inference engine for local intent and inference loops",
   "main": "src/index.js",
   "types": "src/index.d.ts",
@@ -54,6 +54,8 @@
     "api:docs:sync": "node tools/sync-api-docs.js",
     "api:docs:check": "node tools/sync-api-docs.js --check",
     "verify:model": "node tools/doppler-cli.js verify",
+    "quickstart:sync": "node tools/sync-quickstart-registry.js",
+    "quickstart:check": "node tools/sync-quickstart-registry.js --check",
     "onboarding:check": "node tools/onboarding-tooling.js check",
     "onboarding:check:strict": "node tools/onboarding-tooling.js check --strict",
     "onboarding:scaffold": "node tools/onboarding-tooling.js scaffold",

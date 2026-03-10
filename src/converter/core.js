@@ -491,6 +491,17 @@ function buildSentencepieceTokenizer(tokenizerConfig, rawConfig, architecture, m
   return tokenizer;
 }
 
+export function resolveBundledTokenizerVocabSize(tokenizerJson) {
+  const vocab = tokenizerJson?.model?.vocab;
+  if (Array.isArray(vocab)) {
+    return vocab.length;
+  }
+  if (vocab && typeof vocab === 'object') {
+    return Object.keys(vocab).length;
+  }
+  return 0;
+}
+
 
 export function sanitizeModelId(name) {
   const sanitized = name
@@ -1066,9 +1077,7 @@ export function createManifest(
   // Include tokenizer if available
   if (model.tokenizerJson) {
     const tokenizer = model.tokenizerJson;
-    const vocabSize =
-      tokenizer.model?.vocab?.length ||
-      Object.keys(tokenizer.model?.vocab || {}).length;
+    const vocabSize = resolveBundledTokenizerVocabSize(tokenizer);
     if (!vocabSize) {
       throw new Error('Tokenizer vocab is missing or empty');
     }

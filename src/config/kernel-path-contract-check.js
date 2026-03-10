@@ -116,12 +116,16 @@ function normalizeAutoSelectRule(rule, index) {
   const hasSubgroups = typeof match.hasSubgroups === 'boolean'
     ? match.hasSubgroups
     : null;
+  const hasF16 = typeof match.hasF16 === 'boolean'
+    ? match.hasF16
+    : null;
   const value = rule.value;
   if (typeof value === 'string' && value.trim() !== '') {
     return {
       matchKernelPathRef,
       allowCapabilityAutoSelection,
       hasSubgroups,
+      hasF16,
       valueKind: 'string',
       value: value.trim(),
       isDefault: Object.keys(match).length === 0,
@@ -132,6 +136,7 @@ function normalizeAutoSelectRule(rule, index) {
       matchKernelPathRef,
       allowCapabilityAutoSelection,
       hasSubgroups,
+      hasF16,
       valueKind: 'context',
       value: value.context.trim(),
       isDefault: Object.keys(match).length === 0,
@@ -385,9 +390,9 @@ export function validateKernelPathContractFacts(facts) {
         autoSelectShapeErrors += 1;
         errors.push('[KernelPathContract] non-default autoSelect rules must match on kernelPathRef.');
       }
-      if (rule.hasSubgroups == null) {
+      if (rule.hasSubgroups == null && rule.hasF16 == null) {
         autoSelectShapeErrors += 1;
-        errors.push('[KernelPathContract] non-default autoSelect rules must match on hasSubgroups.');
+        errors.push('[KernelPathContract] non-default autoSelect rules must match on hasSubgroups and/or hasF16.');
       }
       if (rule.valueKind === 'context') {
         autoSelectShapeErrors += 1;
@@ -406,36 +411,54 @@ export function validateKernelPathContractFacts(facts) {
         );
       }
     }
-    const resolvedAutoSelectRules = autoSelectRules.map((rule) => ({
-      match: rule.isDefault
-        ? {}
-        : {
-            allowCapabilityAutoSelection: rule.allowCapabilityAutoSelection,
-            hasSubgroups: rule.hasSubgroups,
-            kernelPathRef: rule.matchKernelPathRef,
-          },
-      value: rule.valueKind === 'context'
-        ? { context: rule.value }
-        : rule.value,
-    }));
+    const resolvedAutoSelectRules = autoSelectRules.map((rule) => {
+      if (rule.isDefault) {
+        return {
+          match: {},
+          value: rule.valueKind === 'context'
+            ? { context: rule.value }
+            : rule.value,
+        };
+      }
+      const match = {
+        allowCapabilityAutoSelection: rule.allowCapabilityAutoSelection,
+        kernelPathRef: rule.matchKernelPathRef,
+      };
+      if (rule.hasSubgroups != null) {
+        match.hasSubgroups = rule.hasSubgroups;
+      }
+      if (rule.hasF16 != null) {
+        match.hasF16 = rule.hasF16;
+      }
+      return {
+        match,
+        value: rule.valueKind === 'context'
+          ? { context: rule.value }
+          : rule.value,
+      };
+    });
     for (const entry of entries) {
       for (const allowCapabilityAutoSelection of [true, false]) {
         for (const hasSubgroups of [true, false]) {
-          const selected = selectByRules(resolvedAutoSelectRules, {
-            kernelPathRef: entry.id,
-            allowCapabilityAutoSelection,
-            hasSubgroups,
-          });
-          const resolved = isPlainObject(selected) && selected.context === 'kernelPathRef'
-            ? entry.id
-            : selected;
-          if (typeof resolved !== 'string' || !resolved.length || !entriesById.has(resolved)) {
-            autoSelectCoverageErrors += 1;
-            errors.push(
-              `[KernelPathContract] autoSelect rules did not yield a valid kernel path for ` +
-              `"${entry.id}" (allowCapabilityAutoSelection=${allowCapabilityAutoSelection}, hasSubgroups=${hasSubgroups}).`
-            );
-            break;
+          for (const hasF16 of [true, false]) {
+            const selected = selectByRules(resolvedAutoSelectRules, {
+              kernelPathRef: entry.id,
+              allowCapabilityAutoSelection,
+              hasSubgroups,
+              hasF16,
+            });
+            const resolved = isPlainObject(selected) && selected.context === 'kernelPathRef'
+              ? entry.id
+              : selected;
+            if (typeof resolved !== 'string' || !resolved.length || !entriesById.has(resolved)) {
+              autoSelectCoverageErrors += 1;
+              errors.push(
+                `[KernelPathContract] autoSelect rules did not yield a valid kernel path for ` +
+                `"${entry.id}" (allowCapabilityAutoSelection=${allowCapabilityAutoSelection}, ` +
+                `hasSubgroups=${hasSubgroups}, hasF16=${hasF16}).`
+              );
+              break;
+            }
           }
         }
       }

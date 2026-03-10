@@ -6,7 +6,6 @@
     "tests/config/training-freeze-enforcement.test.js",
     "tests/config/training-telemetry-alerts.test.js",
     "tests/config/ul-stage1-determinism.test.js",
-    "tests/inference/gemma3-nan-regression.test.js",
     "tests/integration/training-intent-split.test.js",
     "tests/integration/training-report-lineage.test.js",
     "tests/integration/ul-stage-workflow-regression.test.js"

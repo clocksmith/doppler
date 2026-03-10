@@ -225,19 +225,29 @@ export function buildSessionRuntimePatch(sessionDefaults) {
   const patch = {};
   const computeDefaults = sessionDefaults?.compute?.defaults ?? null;
   const computePatch = {};
+  const sessionComputeDefaultsPatch = {};
   const activationDtype = computeDefaults?.activationDtype;
   if (activationDtype) {
     computePatch.activationDtype = activationDtype;
   }
-  if (computeDefaults && (computeDefaults.mathDtype || computeDefaults.accumDtype || computeDefaults.outputDtype)) {
-    computePatch.defaults = {
-      ...(computeDefaults.mathDtype ? { mathDtype: computeDefaults.mathDtype } : {}),
-      ...(computeDefaults.accumDtype ? { accumDtype: computeDefaults.accumDtype } : {}),
-      ...(computeDefaults.outputDtype ? { outputDtype: computeDefaults.outputDtype } : {}),
-    };
+  if (computeDefaults?.mathDtype) {
+    sessionComputeDefaultsPatch.mathDtype = computeDefaults.mathDtype;
+  }
+  if (computeDefaults?.accumDtype) {
+    sessionComputeDefaultsPatch.accumDtype = computeDefaults.accumDtype;
+  }
+  if (computeDefaults?.outputDtype) {
+    sessionComputeDefaultsPatch.outputDtype = computeDefaults.outputDtype;
   }
   if (Object.keys(computePatch).length > 0) {
     patch.compute = computePatch;
+  }
+  if (Object.keys(sessionComputeDefaultsPatch).length > 0) {
+    patch.session = {
+      compute: {
+        defaults: sessionComputeDefaultsPatch,
+      },
+    };
   }
   if (sessionDefaults?.kvcache) {
     patch.kvcache = sessionDefaults.kvcache;

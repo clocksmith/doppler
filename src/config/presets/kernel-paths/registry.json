@@ -58,6 +58,13 @@
       "notes": "Experimental fused F32 pipeline variant for fast decode."
     },
     {
+      "id": "gemma3-f16-fused-f32a-online-streamingprefill",
+      "file": "gemma3-f16-fused-f32a-online-streamingprefill.json",
+      "status": "experimental",
+      "statusReason": "stability-probe",
+      "notes": "Gemma 3 F16/F32 online path with streaming prefill attention instead of the small-tile prefill kernel."
+    },
+    {
       "id": "gemma3-q4k-dequant-f16a-online",
       "file": "gemma3-q4k-dequant-f16a-online.json",
       "status": "experimental",

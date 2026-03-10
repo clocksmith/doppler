@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-03-09T00:41:40.411Z",
+  "generatedAt": "2026-03-10T12:46:17.596Z",
   "release": {
     "channel": "main-snapshot",
-    "version": null,
-    "commitSha": "2eac6b8535e2de9ed37df0fb1fea66d3d6db4c74",
-    "dirty": null
+    "version": "0.1.7",
+    "commitSha": "a957da82959f9e4f6b6c40f477048f383accb94c",
+    "dirty": true
   },
   "sources": {
     "registry": {
@@ -16,8 +16,8 @@
     },
     "workloads": {
       "path": "benchmarks/vendors/workloads.json",
-      "sha256": "c29dbb5b806095c3e0114abd5d4fcf08c450f7490ce61d8e5c216d9a0293b115",
-      "bytes": 875,
+      "sha256": "72d4bc79395ede63b73c5856457412c0b9f71dd557d4a8d3d26f670255de1814",
+      "bytes": 855,
       "updated": "2026-03-05"
     },
     "capabilities": {
@@ -46,26 +46,26 @@
     },
     "modelCatalog": {
       "path": "models/catalog.json",
-      "sha256": "405f45c6872fc2a9f7bcaa67389afab55a0766a93de8e327fcbe8b8f8306667a",
-      "bytes": 4801,
+      "sha256": "365f3f80e9df3ce16fa09a10719d63152d4c41bcc0814b68a58d530e22da9940",
+      "bytes": 4837,
       "updated": "2026-03-08"
     },
     "harness:doppler": {
       "path": "benchmarks/vendors/harnesses/doppler.json",
-      "sha256": "52a63a9924d6480ecf01163612098c61cb86ba8484e33ba43674b87e27abb5f7",
-      "bytes": 1467,
+      "sha256": "62245da92a37b508611f26008df7eff288f65f38c11ddb6dea2d2bd9a302c39f",
+      "bytes": 1475,
       "updated": null
     },
     "harness:webllm": {
       "path": "benchmarks/vendors/harnesses/webllm.json",
-      "sha256": "55463342e66d5983effb2818ba86a48c113a6ca1b634102cc5860664437f4964",
-      "bytes": 860,
+      "sha256": "4e79575bf0bcb4094cdae897756dd48b8fc16416d511d25348117d01450bb99d",
+      "bytes": 857,
       "updated": null
     },
     "harness:transformersjs": {
       "path": "benchmarks/vendors/harnesses/transformersjs.json",
-      "sha256": "0aab2db7440c501220817c4425230e004cd7fb3bfb2bd6c0aae7c0db81a37064",
-      "bytes": 1459,
+      "sha256": "9c093cec04980c297599652968e718f38197255217bfb80d6301e21099ae03c0",
+      "bytes": 1456,
       "updated": null
     },
     "harness:ratchet": {
@@ -101,12 +101,12 @@
   },
   "summary": {
     "targetCount": 8,
-    "modelCoverageCount": 9,
+    "modelCoverageCount": 3,
     "compareProfileCount": 4,
     "catalogModelCount": 5,
     "workloadCount": 5,
     "committedChartCount": 1,
-    "hasLatestCompareResult": true
+    "hasLatestCompareResult": false
   },
   "targets": [
     {
@@ -558,54 +558,6 @@
   ],
   "modelCoverage": [
     {
-      "dopplerModelId": "gemma-3-1b-it-f16-af32",
-      "dopplerModelBaseDir": "local",
-      "defaultTjsModelId": "onnx-community/gemma-3-1b-it-ONNX-GQA",
-      "defaultKernelPath": "gemma3-f16-fused-f32a-online",
-      "defaultDopplerSurface": "auto",
-      "inCatalog": false,
-      "catalogLabel": null,
-      "catalogModes": [],
-      "catalogBaseUrl": null,
-      "catalogSizeBytes": null
-    },
-    {
-      "dopplerModelId": "gemma-3-1b-it-q4k-ehf16-af32",
-      "dopplerModelBaseDir": "local",
-      "defaultTjsModelId": "onnx-community/gemma-3-1b-it-ONNX-GQA",
-      "defaultKernelPath": "gemma3-q4k-dequant-f32a-online",
-      "defaultDopplerSurface": "auto",
-      "inCatalog": false,
-      "catalogLabel": null,
-      "catalogModes": [],
-      "catalogBaseUrl": null,
-      "catalogSizeBytes": null
-    },
-    {
-      "dopplerModelId": "gemma-3-270m-it-f16-af32",
-      "dopplerModelBaseDir": "local",
-      "defaultTjsModelId": "onnx-community/gemma-3-270m-it-ONNX",
-      "defaultKernelPath": null,
-      "defaultDopplerSurface": "auto",
-      "inCatalog": false,
-      "catalogLabel": null,
-      "catalogModes": [],
-      "catalogBaseUrl": null,
-      "catalogSizeBytes": null
-    },
-    {
-      "dopplerModelId": "gemma-3-270m-it-q4k-ehaf16",
-      "dopplerModelBaseDir": "local",
-      "defaultTjsModelId": "onnx-community/gemma-3-270m-it-ONNX",
-      "defaultKernelPath": "gemma3-q4k-dequant-f16a-online",
-      "defaultDopplerSurface": "auto",
-      "inCatalog": false,
-      "catalogLabel": null,
-      "catalogModes": [],
-      "catalogBaseUrl": null,
-      "catalogSizeBytes": null
-    },
-    {
       "dopplerModelId": "gemma-3-270m-it-q4k-ehf16-af32",
       "dopplerModelBaseDir": null,
       "defaultTjsModelId": null,
@@ -633,36 +585,6 @@
       ],
       "catalogBaseUrl": "./local/google-embeddinggemma-300m-q4k-ehf16-af32",
       "catalogSizeBytes": 480562497
-    },
-    {
-      "dopplerModelId": "qwen-3-5-0-8b-q4k-ehaf16",
-      "dopplerModelBaseDir": null,
-      "defaultTjsModelId": null,
-      "defaultKernelPath": null,
-      "defaultDopplerSurface": "auto",
-      "inCatalog": true,
-      "catalogLabel": "Qwen 3.5 0.8B (Q4K)",
-      "catalogModes": [
-        "run",
-        "translate"
-      ],
-      "catalogBaseUrl": null,
-      "catalogSizeBytes": 788833984
-    },
-    {
-      "dopplerModelId": "qwen-3-5-2b-q4k-ehaf16",
-      "dopplerModelBaseDir": null,
-      "defaultTjsModelId": null,
-      "defaultKernelPath": null,
-      "defaultDopplerSurface": "auto",
-      "inCatalog": true,
-      "catalogLabel": "Qwen 3.5 2B (Q4K)",
-      "catalogModes": [
-        "run",
-        "translate"
-      ],
-      "catalogBaseUrl": null,
-      "catalogSizeBytes": 1789738688
     },
     {
       "dopplerModelId": "translategemma-4b-it-q4k-ehf16-af32",
@@ -741,145 +663,6 @@
     "committedCharts": [
       "benchmarks/vendors/results/compare_1b_multi-workload_favorable_phases.svg"
     ],
-    "latestCompareResult": {
-      "path": "benchmarks/vendors/fixtures/lfm2-5-1-2b-p064-d064-t0-k1.compare.json",
-      "timestamp": "2026-03-03T21:00:53.179Z",
-      "mode": "warm",
-      "section": "warm",
-      "decodeProfile": "parity",
-      "dopplerModelId": "lfm2-5-1-2b-instruct-q4k-ehf16-af32",
-      "tjsModelId": "LiquidAI/LFM2.5-1.2B-Instruct-ONNX",
-      "dopplerKernelPath": "manifest-default",
-      "workloadId": "p064-d064-t0-k1",
-      "workload": {
-        "prefillTokenTarget": 64,
-        "decodeTokenTarget": 64
-      },
-      "environment": {
-        "host": {
-          "platform": "darwin",
-          "arch": "arm64",
-          "nodeVersion": "v22.20.0"
-        },
-        "browser": {
-          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/145.0.7632.6 Safari/537.36",
-          "platform": "MacIntel",
-          "language": "en-US",
-          "vendor": "Google Inc.",
-          "executable": null
-        },
-        "gpu": {
-          "backend": "metal",
-          "vendor": "apple",
-          "architecture": "metal-3",
-          "device": null,
-          "description": "Apple M3",
-          "hasF16": true,
-          "hasSubgroups": true,
-          "hasTimestampQuery": true
-        },
-        "engines": {
-          "doppler": {
-            "library": "doppler",
-            "version": null,
-            "surface": "browser",
-            "runtime": {
-              "device": "webgpu",
-              "dtype": null,
-              "requestedDtype": null,
-              "executionProviderMode": null
-            },
-            "browser": {
-              "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/145.0.0.0 Safari/537.36",
-              "platform": "MacIntel",
-              "language": "en-US",
-              "vendor": "Google Inc.",
-              "executable": null
-            },
-            "gpu": {
-              "backend": "metal",
-              "vendor": "unknown",
-              "architecture": "unknown",
-              "device": "unknown",
-              "description": null,
-              "hasF16": true,
-              "hasSubgroups": true,
-              "hasTimestampQuery": true
-            }
-          },
-          "transformersjs": {
-            "library": "transformers.js",
-            "version": "4.x",
-            "surface": null,
-            "runtime": {
-              "device": "webgpu",
-              "dtype": "fp16",
-              "requestedDtype": "fp16",
-              "executionProviderMode": "default"
-            },
-            "browser": {
-              "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/145.0.7632.6 Safari/537.36",
-              "platform": "MacIntel",
-              "language": "en-US",
-              "vendor": "Google Inc.",
-              "executable": null
-            },
-            "gpu": {
-              "backend": "metal",
-              "vendor": "apple",
-              "architecture": "metal-3",
-              "device": "0x0000",
-              "description": "Apple M3",
-              "hasF16": true,
-              "hasSubgroups": true,
-              "hasTimestampQuery": true
-            }
-          }
-        }
-      },
-      "metrics": {
-        "decodeTokensPerSec": {
-          "doppler": 29.4,
-          "transformersjs": 27.51464172008682
-        },
-        "promptTokensPerSecToFirstToken": {
-          "doppler": null,
-          "transformersjs": null
-        },
-        "firstTokenMs": {
-          "doppler": 344.4,
-          "transformersjs": 186.54500000178814
-        },
-        "firstResponseMs": {
-          "doppler": 1196.3,
-          "transformersjs": 2833.5849999934435
-        },
-        "decodeMs": {
-          "doppler": 2176.8,
-          "transformersjs": 2289.689999997616
-        },
-        "totalRunMs": {
-          "doppler": 2521.3,
-          "transformersjs": 2476.234999999404
-        },
-        "modelLoadMs": {
-          "doppler": 851.9,
-          "transformersjs": 2647.0399999916553
-        },
-        "decodeMsPerTokenP50": {
-          "doppler": 34.01,
-          "transformersjs": 36.190000012516975
-        },
-        "decodeMsPerTokenP95": {
-          "doppler": 34.02,
-          "transformersjs": 37.77099999785423
-        },
-        "decodeMsPerTokenP99": {
-          "doppler": 34.02,
-          "transformersjs": 39.12940000832081
-        }
-      },
-      "origin": "fixture"
-    }
+    "latestCompareResult": null
   }
 }
