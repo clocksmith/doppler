@@ -341,6 +341,19 @@ export async function createConversionShardWriter(shardIndex) {
   return backend.createWriteStream(filename);
 }
 
+export async function createFileWriter(filename, options = {}) {
+  await ensureBackend();
+  requireModel();
+  if (!filename || typeof filename !== 'string') {
+    throw new Error('createFileWriter requires a filename');
+  }
+  if (!backend.createWriteStream) {
+    throw new Error('Storage backend does not support streaming writes');
+  }
+  const writerOptions = normalizeShardWriterOptions(options);
+  return backend.createWriteStream(filename, writerOptions);
+}
+
 export async function loadShard(shardIndex, options = { verify: false }) {
   await ensureBackend();
   requireModel();
@@ -581,6 +594,25 @@ export async function loadFileFromStore(filename) {
   return backend.readFile(filename);
 }
 
+export async function loadFileRangeFromStore(filename, offset = 0, length = null) {
+  await ensureBackend();
+  requireModel();
+  if (!filename || typeof filename !== 'string') {
+    throw new Error('loadFileRangeFromStore requires a filename');
+  }
+  const start = Number.isFinite(Number(offset)) ? Math.max(0, Math.floor(Number(offset))) : 0;
+  const want = length == null
+    ? null
+    : (Number.isFinite(Number(length)) ? Math.max(0, Math.floor(Number(length))) : 0);
+  if (backend && typeof backend.readFileRange === 'function') {
+    return backend.readFileRange(filename, start, want);
+  }
+  const buffer = await backend.readFile(filename);
+  const bytes = new Uint8Array(buffer);
+  const end = want == null ? bytes.byteLength : Math.min(bytes.byteLength, start + want);
+  return bytes.slice(start, end).buffer;
+}
+
 export function streamFileFromStore(filename, options = {}) {
   if (!backend || !filename || typeof filename !== 'string') {
     return null;
@@ -589,8 +621,12 @@ export function streamFileFromStore(filename, options = {}) {
   const runtimeDefault = runtime?.loading?.storage?.backend?.streaming?.readChunkBytes ?? (4 * 1024 * 1024);
   const raw = options.chunkBytes ?? runtimeDefault;
   const chunkBytes = Number.isFinite(raw) && raw > 0 ? Math.floor(raw) : (4 * 1024 * 1024);
+  const offset = Number.isFinite(Number(options.offset)) ? Math.max(0, Math.floor(Number(options.offset))) : 0;
+  const length = options.length == null
+    ? null
+    : (Number.isFinite(Number(options.length)) ? Math.max(0, Math.floor(Number(options.length))) : 0);
   if (typeof backend.readFileRangeStream === 'function') {
-    return backend.readFileRangeStream(filename, 0, null, { chunkBytes });
+    return backend.readFileRangeStream(filename, offset, length, { chunkBytes });
   }
   return null;
 }
@@ -772,6 +808,15 @@ export async function loadAuxFile(filename) {
     }
     return null;
   }
+}
+
+export async function deleteFileFromStore(filename) {
+  await ensureBackend();
+  requireModel();
+  if (!filename || typeof filename !== 'string') {
+    throw new Error('deleteFileFromStore requires a filename');
+  }
+  return backend.deleteFile(filename);
 }
 
 export async function loadAuxText(filename) {

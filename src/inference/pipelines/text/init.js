@@ -14,6 +14,10 @@ import { PAGED_LAYOUT_SEQ_LEN_THRESHOLD } from '../../../config/schema/index.js'
 import { isKernelPathFusedQ4K } from '../../../config/kernel-path-loader.js';
 import { createWeightBuffer, getWeightDtype, isWeightBuffer } from '../../../gpu/weight-buffer.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
+import {
+  createSourceStorageContext,
+  getSourceRuntimeMetadata,
+} from '../../../tooling/source-runtime-bundle.js';
 
 function resolveErrorMessage(error) {
   if (error && typeof error === 'object' && typeof error.message === 'string') {
@@ -56,10 +60,59 @@ function normalizeBaseUrl(baseUrl) {
   return baseUrl.replace(/\/$/, '');
 }
 
+async function fetchBytes(url, offset = null, length = null) {
+  const headers = {};
+  if (Number.isFinite(offset) && Number.isFinite(length) && length > 0) {
+    const start = Math.max(0, Math.floor(offset));
+    const end = start + Math.max(0, Math.floor(length)) - 1;
+    headers.Range = `bytes=${start}-${end}`;
+  }
+  const response = await fetch(url, { headers });
+  if (!response.ok) {
+    throw new Error(`Failed to fetch ${url}: ${response.status}`);
+  }
+  return new Uint8Array(await response.arrayBuffer());
+}
+
 function createRemoteStorageContext(baseUrl, manifest) {
   const root = normalizeBaseUrl(baseUrl);
   if (!root || !isRDRRManifest(manifest)) {
     return null;
+  }
+
+  const sourceRuntime = getSourceRuntimeMetadata(manifest);
+  if (sourceRuntime) {
+    const readRange = async (relativePath, offset, length) => {
+      const filename = String(relativePath || '').replace(/^\/+/, '');
+      if (!filename) {
+        throw new Error('Direct-source artifact path is required.');
+      }
+      const url = `${root}/${filename}`;
+      return fetchBytes(url, offset, length);
+    };
+    const readText = async (relativePath) => {
+      const filename = String(relativePath || '').replace(/^\/+/, '');
+      if (!filename) return null;
+      const response = await fetch(`${root}/${filename}`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch ${filename} from ${root}: ${response.status}`);
+      }
+      return response.text();
+    };
+    const readBinary = async (relativePath) => {
+      const filename = String(relativePath || '').replace(/^\/+/, '');
+      if (!filename) {
+        throw new Error('Direct-source binary asset path is required.');
+      }
+      return fetchBytes(`${root}/${filename}`);
+    };
+    return createSourceStorageContext({
+      manifest,
+      readRange,
+      readText,
+      readBinary,
+      verifyHashes: true,
+    });
   }
 
   return {
@@ -69,11 +122,7 @@ function createRemoteStorageContext(baseUrl, manifest) {
       if (!filename) {
         throw new Error(`Manifest shard ${index} is missing filename.`);
       }
-      const response = await fetch(`${root}/${filename.replace(/^\/+/, '')}`);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch shard ${index} from ${root}: ${response.status}`);
-      }
-      return new Uint8Array(await response.arrayBuffer());
+      return fetchBytes(`${root}/${filename.replace(/^\/+/, '')}`);
     },
   };
 }

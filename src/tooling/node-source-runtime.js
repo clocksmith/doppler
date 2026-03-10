@@ -16,6 +16,7 @@ import { parseTransformerModel } from '../converter/parsers/transformer.js';
 import { parseGGUFHeader } from '../formats/gguf/types.js';
 import { parseSafetensorsHeader } from '../formats/safetensors/types.js';
 import { log } from '../debug/index.js';
+import { computeHash } from '../storage/shard-manager.js';
 import {
   buildSourceRuntimeBundle,
   createSourceStorageContext,
@@ -110,6 +111,16 @@ async function readJson(filePath, label) {
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     throw new Error(`Invalid JSON in ${label}: ${message}`);
+  }
+}
+
+async function readFileBytes(filePath, label) {
+  try {
+    const bytes = await fs.readFile(filePath);
+    return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to read ${label} "${filePath}": ${message}`);
   }
 }
 
@@ -214,6 +225,37 @@ async function parseSafetensorsInput(inputDir) {
     const stats = await getPathStats(sourcePath, `source shard (${sourcePath})`);
     sourceFiles.push({ path: sourcePath, size: Number(stats.size) });
   }
+  const auxiliaryFiles = [
+    { path: configPath, size: Number((await getPathStats(configPath, 'config.json')).size), kind: 'config' },
+    ...(hasIndex
+      ? [{
+        path: path.join(inputDir, 'model.safetensors.index.json'),
+        size: Number((await getPathStats(path.join(inputDir, 'model.safetensors.index.json'), 'model.safetensors.index.json')).size),
+        kind: 'safetensors_index',
+      }]
+      : []),
+    ...(tokenizerJson
+      ? [{
+        path: tokenizerJsonPath,
+        size: Number((await getPathStats(tokenizerJsonPath, 'tokenizer.json')).size),
+        kind: 'tokenizer_json',
+      }]
+      : []),
+    ...(tokenizerConfig
+      ? [{
+        path: tokenizerConfigPath,
+        size: Number((await getPathStats(tokenizerConfigPath, 'tokenizer_config.json')).size),
+        kind: 'tokenizer_config',
+      }]
+      : []),
+    ...(hasTokenizerModel
+      ? [{
+        path: tokenizerModelPath,
+        size: Number((await getPathStats(tokenizerModelPath, 'tokenizer.model')).size),
+        kind: 'tokenizer_model',
+      }]
+      : []),
+  ];
 
   return {
     sourceKind: 'safetensors',
@@ -228,8 +270,10 @@ async function parseSafetensorsInput(inputDir) {
     tokenizerConfig,
     tokenizerModelName: hasTokenizerModel ? 'tokenizer.model' : null,
     tokenizerJsonPath: tokenizerJsonPath,
+    tokenizerConfigPath: tokenizerConfigPath,
     tokenizerModelPath: hasTokenizerModel ? tokenizerModelPath : null,
     sourceFiles,
+    auxiliaryFiles,
   };
 }
 
@@ -291,8 +335,10 @@ async function parseGgufInput(ggufPath) {
     tokenizerConfig: null,
     tokenizerModelName: null,
     tokenizerJsonPath: null,
+    tokenizerConfigPath: null,
     tokenizerModelPath: null,
     sourceFiles: [{ path: ggufPath, size: fileSize }],
+    auxiliaryFiles: [],
   };
 }
 
@@ -365,11 +411,29 @@ function buildNodeFileReaders() {
   };
 }
 
+async function addHashesToFileEntries(entries, hashAlgorithm) {
+  const normalized = [];
+  for (const entry of Array.isArray(entries) ? entries : []) {
+    const filePath = normalizePath(entry?.path);
+    if (!filePath) continue;
+    const bytes = await readFileBytes(filePath, `source asset (${filePath})`);
+    normalized.push({
+      ...entry,
+      path: filePath,
+      size: Number.isFinite(entry?.size) ? Math.max(0, Math.floor(Number(entry.size))) : bytes.byteLength,
+      hash: await computeHash(new Uint8Array(bytes), hashAlgorithm),
+      hashAlgorithm,
+    });
+  }
+  return normalized;
+}
+
 export async function resolveNodeSourceRuntimeBundle(options = {}) {
   const inputPath = normalizePath(options.inputPath);
   if (!inputPath) {
     throw new Error('node source runtime: inputPath is required.');
   }
+  const verifyHashes = options.verifyHashes === true;
   const resolvedInputPath = path.resolve(inputPath);
   const stats = await getPathStats(resolvedInputPath, 'inputPath');
 
@@ -434,22 +498,30 @@ export async function resolveNodeSourceRuntimeBundle(options = {}) {
     parsed.sourceKind,
     parsed.sourcePathForModelId
   );
+  const hashAlgorithm = converterConfig.manifest.hashAlgorithm;
+  const sourceFiles = await addHashesToFileEntries(parsed.sourceFiles, hashAlgorithm);
+  const auxiliaryFiles = await addHashesToFileEntries(parsed.auxiliaryFiles, hashAlgorithm);
   const { manifest, shardSources } = await buildSourceRuntimeBundle({
     modelId,
     modelName: modelId,
     modelType: plan.modelType,
+    sourceKind: parsed.sourceKind,
     architecture: parsed.architecture,
     architectureHint: parsed.architectureHint,
     rawConfig: parsed.config,
     inference: plan.manifestInference,
     tensors: parsed.tensors,
-    sourceFiles: parsed.sourceFiles,
+    sourceFiles,
+    auxiliaryFiles,
     sourceQuantization: parsed.sourceQuantization,
     quantizationInfo: plan.quantizationInfo,
-    hashAlgorithm: converterConfig.manifest.hashAlgorithm,
+    hashAlgorithm,
     tokenizerJson: parsed.tokenizerJson,
     tokenizerConfig: parsed.tokenizerConfig,
     tokenizerModelName: parsed.tokenizerModelName,
+    tokenizerJsonPath: parsed.tokenizerJsonPath,
+    tokenizerConfigPath: parsed.tokenizerConfigPath,
+    tokenizerModelPath: parsed.tokenizerModelPath,
   });
 
   const readers = buildNodeFileReaders();
@@ -461,7 +533,7 @@ export async function resolveNodeSourceRuntimeBundle(options = {}) {
     readBinary: readers.readBinary,
     tokenizerJsonPath: parsed.tokenizerJsonPath,
     tokenizerModelPath: parsed.tokenizerModelPath,
-    verifyHashes: false,
+    verifyHashes,
   });
 
   log.info(

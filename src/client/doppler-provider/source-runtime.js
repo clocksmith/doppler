@@ -14,9 +14,11 @@ import { parseTransformerModel } from '../../converter/parsers/transformer.js';
 import { parseGGUFHeader } from '../../formats/gguf/types.js';
 import { parseSafetensorsHeader } from '../../formats/safetensors/types.js';
 import { log } from '../../debug/index.js';
+import { computeHash } from '../../storage/shard-manager.js';
 import {
   buildSourceRuntimeBundle,
   createSourceStorageContext,
+  getSourceRuntimeMetadata,
 } from '../../tooling/source-runtime-bundle.js';
 
 const SUPPORTED_SOURCE_DTYPES = new Set([
@@ -176,6 +178,14 @@ async function readBridgeRange(bridgeClient, fileEntry, offset, length) {
   return bridgeClient.read(fileEntry.absolutePath, offset, length);
 }
 
+async function readBridgeAllBytes(bridgeClient, fileEntry, label) {
+  const size = Number(fileEntry?.size) || 0;
+  if (size < 0) {
+    throw new Error(`Invalid bridge file size for ${label}.`);
+  }
+  return readBridgeRange(bridgeClient, fileEntry, 0, size);
+}
+
 async function readBridgeTextFile(bridgeClient, fileEntry, label) {
   const size = Number(fileEntry?.size) || 0;
   if (size <= 0) {
@@ -284,7 +294,39 @@ async function parseBridgeSafetensorsModel(bridgeClient, fileIndex) {
         }
         return { path, size: entry.size };
       }),
+    auxiliaryFiles: [
+      { path: 'config.json', size: Number(fileIndex.get('config.json')?.size || 0), kind: 'config' },
+      ...(fileIndex.has('model.safetensors.index.json')
+        ? [{
+          path: 'model.safetensors.index.json',
+          size: Number(fileIndex.get('model.safetensors.index.json')?.size || 0),
+          kind: 'safetensors_index',
+        }]
+        : []),
+      ...(fileIndex.has('tokenizer.json')
+        ? [{
+          path: 'tokenizer.json',
+          size: Number(fileIndex.get('tokenizer.json')?.size || 0),
+          kind: 'tokenizer_json',
+        }]
+        : []),
+      ...(fileIndex.has('tokenizer_config.json')
+        ? [{
+          path: 'tokenizer_config.json',
+          size: Number(fileIndex.get('tokenizer_config.json')?.size || 0),
+          kind: 'tokenizer_config',
+        }]
+        : []),
+      ...(fileIndex.has('tokenizer.model')
+        ? [{
+          path: 'tokenizer.model',
+          size: Number(fileIndex.get('tokenizer.model')?.size || 0),
+          kind: 'tokenizer_model',
+        }]
+        : []),
+    ],
     tokenizerJsonPath: fileIndex.has('tokenizer.json') ? 'tokenizer.json' : null,
+    tokenizerConfigPath: fileIndex.has('tokenizer_config.json') ? 'tokenizer_config.json' : null,
     tokenizerModelPath: fileIndex.has('tokenizer.model') ? 'tokenizer.model' : null,
   };
 }
@@ -349,7 +391,9 @@ async function parseBridgeGGUFModel(bridgeClient, fileIndex, ggufRelativePath) {
     tokenizerConfig: null,
     tokenizerModelName: null,
     sourceFiles: [{ path: ggufRelativePath, size: ggufEntry.size }],
+    auxiliaryFiles: [],
     tokenizerJsonPath: null,
+    tokenizerConfigPath: null,
     tokenizerModelPath: null,
   };
 }
@@ -435,16 +479,74 @@ function createBridgeFileReaders(bridgeClient, fileMap, rootPath) {
   };
 }
 
+async function addHashesToBridgeFiles(bridgeClient, fileIndex, entries, hashAlgorithm) {
+  const hashedEntries = [];
+  for (const entry of Array.isArray(entries) ? entries : []) {
+    const relativePath = normalizeRelativePath(entry?.path);
+    if (!relativePath) continue;
+    const fileEntry = fileIndex.get(relativePath);
+    if (!fileEntry) {
+      throw new Error(`Missing bridge file entry for "${relativePath}"`);
+    }
+    const bytes = await readBridgeAllBytes(bridgeClient, fileEntry, `bridge source asset (${relativePath})`);
+    hashedEntries.push({
+      ...entry,
+      path: relativePath,
+      size: Number.isFinite(entry?.size) ? Math.max(0, Math.floor(Number(entry.size))) : fileEntry.size,
+      hash: await computeHash(toUint8Array(bytes), hashAlgorithm),
+      hashAlgorithm,
+    });
+  }
+  return hashedEntries;
+}
+
+async function resolveBridgeStorageContext(options = {}) {
+  const bridgeClient = options.bridgeClient;
+  const localPath = options.localPath;
+  const manifest = options.manifest;
+  const sourceRuntime = getSourceRuntimeMetadata(manifest);
+  if (!sourceRuntime) {
+    return null;
+  }
+  const files = await listBridgeFilesRecursive(bridgeClient, localPath);
+  const fileMap = indexBridgeFiles(files);
+  const readers = createBridgeFileReaders(bridgeClient, fileMap, localPath);
+  return createSourceStorageContext({
+    manifest,
+    readRange: readers.readRange,
+    readText: readers.readText,
+    readBinary: readers.readBinary,
+    verifyHashes: options.verifyHashes !== false,
+  });
+}
+
 export async function resolveBridgeSourceRuntimeBundle(options = {}) {
   const bridgeClient = options.bridgeClient;
   const localPath = options.localPath;
   const requestedModelId = options.modelId || null;
+  const verifyHashes = options.verifyHashes !== false;
+  const existingManifest = options.manifest ?? null;
 
   if (!bridgeClient || typeof bridgeClient.read !== 'function' || typeof bridgeClient.list !== 'function') {
     throw new Error('Bridge source runtime requires a connected bridge client with read/list support.');
   }
   if (!localPath || typeof localPath !== 'string') {
     throw new Error('Bridge source runtime requires localPath.');
+  }
+
+  if (existingManifest && getSourceRuntimeMetadata(existingManifest)) {
+    const storageContext = await resolveBridgeStorageContext({
+      bridgeClient,
+      localPath,
+      manifest: existingManifest,
+      verifyHashes,
+    });
+    return {
+      manifest: existingManifest,
+      storageContext,
+      sourceKind: getSourceRuntimeMetadata(existingManifest)?.sourceKind ?? 'safetensors',
+      sourceRoot: localPath,
+    };
   }
 
   options.onProgress?.({
@@ -480,26 +582,39 @@ export async function resolveBridgeSourceRuntimeBundle(options = {}) {
   });
 
   const modelId = resolveModelIdHint(requestedModelId, plan, parsed.sourceKind);
+  const hashAlgorithm = converterConfig.manifest.hashAlgorithm;
+  const files = await listBridgeFilesRecursive(bridgeClient, localPath);
+  const fileMap = indexBridgeFiles(files);
+  const sourceFiles = await addHashesToBridgeFiles(bridgeClient, fileMap, parsed.sourceFiles, hashAlgorithm);
+  const auxiliaryFiles = await addHashesToBridgeFiles(
+    bridgeClient,
+    fileMap,
+    parsed.auxiliaryFiles,
+    hashAlgorithm
+  );
   const { manifest, shardSources } = await buildSourceRuntimeBundle({
     modelId,
     modelName: modelId,
     modelType: plan.modelType,
+    sourceKind: parsed.sourceKind,
     architecture: parsed.architecture,
     architectureHint: parsed.architectureHint,
     rawConfig: parsed.config,
     inference: plan.manifestInference,
     tensors: parsed.tensors,
-    sourceFiles: parsed.sourceFiles,
+    sourceFiles,
+    auxiliaryFiles,
     sourceQuantization: parsed.sourceQuantization,
     quantizationInfo: plan.quantizationInfo,
-    hashAlgorithm: converterConfig.manifest.hashAlgorithm,
+    hashAlgorithm,
     tokenizerJson: parsed.tokenizerJson,
     tokenizerConfig: parsed.tokenizerConfig,
     tokenizerModelName: parsed.tokenizerModelName,
+    tokenizerJsonPath: parsed.tokenizerJsonPath,
+    tokenizerConfigPath: parsed.tokenizerConfigPath,
+    tokenizerModelPath: parsed.tokenizerModelPath,
   });
 
-  const files = await listBridgeFilesRecursive(bridgeClient, localPath);
-  const fileMap = indexBridgeFiles(files);
   const readers = createBridgeFileReaders(bridgeClient, fileMap, localPath);
   const storageContext = createSourceStorageContext({
     manifest,
@@ -509,7 +624,7 @@ export async function resolveBridgeSourceRuntimeBundle(options = {}) {
     readBinary: readers.readBinary,
     tokenizerJsonPath: parsed.tokenizerJsonPath,
     tokenizerModelPath: parsed.tokenizerModelPath,
-    verifyHashes: false,
+    verifyHashes,
   });
 
   log.info(

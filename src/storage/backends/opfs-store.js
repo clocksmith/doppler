@@ -101,6 +101,44 @@ export function createOpfsStore(config) {
     }
   }
 
+  function normalizePathSegments(filename) {
+    const normalized = String(filename || '').replace(/\\/g, '/').trim();
+    if (!normalized) {
+      throw new Error('Filename is required');
+    }
+    const parts = normalized.split('/').filter(Boolean);
+    if (parts.length === 0) {
+      throw new Error('Filename is required');
+    }
+    for (const part of parts) {
+      if (part === '.' || part === '..') {
+        throw new Error(`Invalid relative storage path: ${filename}`);
+      }
+    }
+    return parts;
+  }
+
+  async function resolveDirectoryForPath(filename, options = {}) {
+    await ensureModelDir();
+    const parts = normalizePathSegments(filename);
+    const leafName = parts.pop();
+    let dir = currentModelDir;
+    for (const part of parts) {
+      dir = await dir.getDirectoryHandle(part, { create: options.createDirs === true });
+    }
+    return {
+      dir,
+      leafName,
+    };
+  }
+
+  async function getFileHandle(filename, options = {}) {
+    const { dir, leafName } = await resolveDirectoryForPath(filename, {
+      createDirs: options.create === true,
+    });
+    return dir.getFileHandle(leafName, { create: options.create === true });
+  }
+
   function normalizeWriteStreamOptions(options = {}) {
     const append = options?.append === true;
     const expectedOffsetRaw = options?.expectedOffset;
@@ -117,8 +155,7 @@ export function createOpfsStore(config) {
   }
 
   async function getFileSize(filename) {
-    await ensureModelDir();
-    const fileHandle = await currentModelDir.getFileHandle(filename);
+    const fileHandle = await getFileHandle(filename, { create: false });
     const access = await openSyncAccessHandle(fileHandle);
     if (access) {
       try {
@@ -132,8 +169,7 @@ export function createOpfsStore(config) {
   }
 
   async function readFile(filename) {
-    await ensureModelDir();
-    const fileHandle = await currentModelDir.getFileHandle(filename);
+    const fileHandle = await getFileHandle(filename, { create: false });
     const access = await openSyncAccessHandle(fileHandle);
     if (access) {
       try {
@@ -159,8 +195,7 @@ export function createOpfsStore(config) {
   }
 
   async function readFileRange(filename, offset = 0, length = null) {
-    await ensureModelDir();
-    const fileHandle = await currentModelDir.getFileHandle(filename);
+    const fileHandle = await getFileHandle(filename, { create: false });
     const access = await openSyncAccessHandle(fileHandle);
 
     const startRaw = Number(offset);
@@ -202,8 +237,7 @@ export function createOpfsStore(config) {
     const startRaw = Number(offset);
     const start = Number.isFinite(startRaw) ? Math.max(0, Math.floor(startRaw)) : 0;
 
-    await ensureModelDir();
-    const fileHandle = await currentModelDir.getFileHandle(filename);
+    const fileHandle = await getFileHandle(filename, { create: false });
     const access = await openSyncAccessHandle(fileHandle);
 
     if (access) {
@@ -241,9 +275,8 @@ export function createOpfsStore(config) {
   }
 
   async function readText(filename) {
-    await ensureModelDir();
     try {
-      const fileHandle = await currentModelDir.getFileHandle(filename);
+      const fileHandle = await getFileHandle(filename, { create: false });
       const file = await fileHandle.getFile();
       return await file.text();
     } catch (error) {
@@ -255,8 +288,7 @@ export function createOpfsStore(config) {
   }
 
   async function writeFile(filename, data) {
-    await ensureModelDir();
-    const fileHandle = await currentModelDir.getFileHandle(filename, { create: true });
+    const fileHandle = await getFileHandle(filename, { create: true });
     const bytes = data instanceof ArrayBuffer ? new Uint8Array(data) : data;
     const access = await openSyncAccessHandle(fileHandle);
     if (access) {
@@ -276,9 +308,8 @@ export function createOpfsStore(config) {
   }
 
   async function createWriteStream(filename, options = {}) {
-    await ensureModelDir();
     const { append, expectedOffset } = normalizeWriteStreamOptions(options);
-    const fileHandle = await currentModelDir.getFileHandle(filename, { create: true });
+    const fileHandle = await getFileHandle(filename, { create: true });
     const existingSize = await getFileSize(filename).catch((error) => {
       if (error?.name === 'NotFoundError') {
         return 0;
@@ -352,9 +383,9 @@ export function createOpfsStore(config) {
   }
 
   async function deleteFile(filename) {
-    await ensureModelDir();
+    const { dir, leafName } = await resolveDirectoryForPath(filename, { createDirs: false });
     try {
-      await currentModelDir.removeEntry(filename);
+      await dir.removeEntry(leafName);
       return true;
     } catch (error) {
       if (error.name === 'NotFoundError') {
@@ -367,11 +398,19 @@ export function createOpfsStore(config) {
   async function listFiles() {
     await ensureModelDir();
     const files = [];
-    for await (const [name, handle] of currentModelDir.entries()) {
-      if (handle.kind === 'file') {
-        files.push(name);
+    async function walk(dir, prefix = '') {
+      for await (const [name, handle] of dir.entries()) {
+        const relativePath = prefix ? `${prefix}/${name}` : name;
+        if (handle.kind === 'file') {
+          files.push(relativePath);
+          continue;
+        }
+        if (handle.kind === 'directory') {
+          await walk(handle, relativePath);
+        }
       }
     }
+    await walk(currentModelDir);
     return files;
   }
 

@@ -1,8 +1,8 @@
-# Promote a Verified Model Artifact
+# Promote a Verified Runtime Artifact
 
 ## Goal
 
-Move a locally verified RDRR artifact into catalog metadata, repo-local storage, and hosted publication workflows.
+Move a locally verified runtime artifact into catalog metadata, repo-local storage, and hosted publication workflows.
 
 ## When To Use This Guide
 
@@ -15,9 +15,9 @@ Move a locally verified RDRR artifact into catalog metadata, repo-local storage,
 
 ## Required Touch Points
 
-- `models/local/<model-id>/manifest.json`
+- `models/local/<model-id>/manifest.json` or a materialized direct-source manifest
 - `models/catalog.json`
-- External-volume RDRR directory
+- External-volume artifact directory
 - `docs/model-support-matrix.md` via sync tooling
 - External RDRR index via sync tooling
 
@@ -25,11 +25,12 @@ Move a locally verified RDRR artifact into catalog metadata, repo-local storage,
 
 1. Finish local convert, verify, and debug work first.
 2. Get human review on deterministic output quality before touching catalog or hosted state.
-3. Sync the verified manifest into `models/local/<model-id>/manifest.json`.
-4. Update `models/catalog.json`.
-5. Run support-matrix and external-index sync if catalog or external storage changed.
-6. Run catalog validation before any Hugging Face publication.
-7. Publish with `npm run registry:publish:hf` only after the metadata state is clean.
+3. For raw SafeTensors/GGUF release candidates, materialize the persisted direct-source manifest with `node tools/materialize-source-manifest.js <source-path>`.
+4. Sync the verified manifest into `models/local/<model-id>/manifest.json`.
+5. Update `models/catalog.json`, including `artifact.format` (`rdrr` or `direct-source`) and `artifact.sourceRuntimeSchema` for direct-source artifacts.
+6. Run support-matrix and external-index sync if catalog or external storage changed.
+7. Run catalog validation before any Hugging Face publication.
+8. Publish with `npm run registry:publish:hf` only after the metadata state is clean.
 
 ## Verification
 
@@ -42,6 +43,7 @@ Move a locally verified RDRR artifact into catalog metadata, repo-local storage,
 
 - Updating `models/catalog.json` before the output has been coherence-reviewed by a human.
 - Publishing a different artifact than the one that was actually tested.
+- Publishing a direct-source manifest with absolute source paths instead of artifact-relative paths.
 - Forgetting to sync derived docs and indexes after catalog changes.
 - Treating load success as a publication gate without checking actual model output.
 

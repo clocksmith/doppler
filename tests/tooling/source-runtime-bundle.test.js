@@ -54,9 +54,10 @@ const bundle = await buildSourceRuntimeBundle({
     maxSeqLen: 8,
     ropeTheta: 10000,
   },
-  architectureHint: 'gemma',
+  architectureHint: 'gemma3',
   rawConfig: {
-    model_type: 'gemma2',
+    model_type: 'gemma3_text',
+    architectures: ['Gemma3ForCausalLM'],
     eos_token_id: 2,
   },
   inference,
@@ -97,6 +98,7 @@ assert.ok(bundle.manifest.groups?.head);
 assert.equal(bundle.manifest.metadata?.sourceRuntime?.mode, 'direct-source');
 assert.equal(bundle.manifest.metadata?.sourceRuntime?.schema, 'direct-source/v1');
 assert.equal(bundle.manifest.metadata?.sourceRuntime?.schemaVersion, 1);
+assert.equal(bundle.manifest.metadata?.sourceRuntime?.pathSemantics, 'runtime-local');
 
 const shardData = new Map([
   ['weights_a.safetensors', new Uint8Array([0, 1, 2, 3, 4, 5, 6, 7])],
@@ -156,15 +158,15 @@ await assert.rejects(
   /did not return tokenizer JSON data/
 );
 
-assert.throws(
-  () => createSourceStorageContext({
-    manifest: bundle.manifest,
-    shardSources: bundle.shardSources,
-    readRange: async () => new Uint8Array([1]),
-    verifyHashes: true,
-  }),
-  /verifyHashes=true is not supported/
-);
+const verifyContext = createSourceStorageContext({
+  manifest: bundle.manifest,
+  shardSources: bundle.shardSources,
+  readRange: async () => new Uint8Array([1, 2, 3, 4]),
+  verifyHashes: true,
+});
+assert.equal(verifyContext.verifyHashes, true);
+assert.equal(verifyContext.loadShardRange, null);
+assert.equal(verifyContext.streamShardRange, null);
 
 const malformedRangeContext = createSourceStorageContext({
   manifest: bundle.manifest,

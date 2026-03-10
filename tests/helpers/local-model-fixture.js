@@ -12,6 +12,10 @@ function normalizeHash(value) {
   return typeof value === 'string' ? value.trim().replace(/^sha256:/i, '') : '';
 }
 
+function normalizeRelativeArtifactPath(value) {
+  return typeof value === 'string' ? value.trim().replace(/\\/g, '/') : '';
+}
+
 function computeFileSha256(filePath) {
   return crypto.createHash('sha256').update(fs.readFileSync(filePath)).digest('hex');
 }
@@ -40,8 +44,80 @@ export function assertManifestArtifactIntegrity(manifestPath) {
   const manifestDir = path.dirname(manifestPath);
   const modelId = String(manifest?.modelId ?? path.basename(manifestDir));
   const shards = Array.isArray(manifest?.shards) ? manifest.shards : [];
+  const sourceRuntime = (
+    manifest?.metadata?.sourceRuntime
+    && typeof manifest.metadata.sourceRuntime === 'object'
+    && manifest.metadata.sourceRuntime.mode === 'direct-source'
+  ) ? manifest.metadata.sourceRuntime : null;
 
   assert.ok(shards.length > 0, `${modelId}: manifest must define at least one shard`);
+
+  if (sourceRuntime) {
+    assert.equal(
+      sourceRuntime.pathSemantics,
+      'artifact-relative',
+      `${modelId}: persisted direct-source manifest must use artifact-relative paths`
+    );
+
+    const sourceFiles = Array.isArray(sourceRuntime.sourceFiles) ? sourceRuntime.sourceFiles : [];
+    assert.ok(sourceFiles.length > 0, `${modelId}: direct-source manifest must define sourceFiles`);
+    assert.equal(
+      sourceFiles.length,
+      shards.length,
+      `${modelId}: direct-source manifest sourceFiles must match shard count`
+    );
+
+    for (const entry of sourceFiles) {
+      const relativePath = normalizeRelativeArtifactPath(entry?.path);
+      assert.ok(relativePath, `${modelId}: direct-source source file path must be explicit`);
+      assert.equal(path.isAbsolute(relativePath), false, `${modelId}: direct-source source file paths must be relative`);
+      assert.ok(!relativePath.startsWith('../'), `${modelId}: direct-source source file path must stay inside artifact root`);
+      const absolutePath = path.join(manifestDir, relativePath);
+      assert.equal(fs.existsSync(absolutePath), true, `${modelId}: missing direct-source file ${relativePath}`);
+      const expectedHash = normalizeHash(entry?.hash);
+      assert.ok(expectedHash, `${modelId}: direct-source file ${relativePath} must declare a hash`);
+      assert.equal(
+        computeFileSha256(absolutePath),
+        expectedHash,
+        `${modelId}: direct-source hash mismatch for ${relativePath}`
+      );
+      const shard = shards[Number(entry?.index)];
+      assert.ok(shard, `${modelId}: missing shard for direct-source file index ${entry?.index}`);
+      assert.equal(normalizeHash(shard?.hash), expectedHash, `${modelId}: shard hash must mirror source file hash for ${relativePath}`);
+    }
+
+    const auxiliaryFiles = Array.isArray(sourceRuntime.auxiliaryFiles) ? sourceRuntime.auxiliaryFiles : [];
+    for (const entry of auxiliaryFiles) {
+      const relativePath = normalizeRelativeArtifactPath(entry?.path);
+      assert.ok(relativePath, `${modelId}: auxiliary asset path must be explicit`);
+      assert.equal(path.isAbsolute(relativePath), false, `${modelId}: auxiliary asset paths must be relative`);
+      assert.ok(!relativePath.startsWith('../'), `${modelId}: auxiliary asset path must stay inside artifact root`);
+      const absolutePath = path.join(manifestDir, relativePath);
+      assert.equal(fs.existsSync(absolutePath), true, `${modelId}: missing auxiliary asset ${relativePath}`);
+      const expectedHash = normalizeHash(entry?.hash);
+      assert.ok(expectedHash, `${modelId}: auxiliary asset ${relativePath} must declare a hash`);
+      assert.equal(
+        computeFileSha256(absolutePath),
+        expectedHash,
+        `${modelId}: auxiliary asset hash mismatch for ${relativePath}`
+      );
+    }
+
+    const tokenizerJsonPath = normalizeRelativeArtifactPath(sourceRuntime?.tokenizer?.jsonPath);
+    if (tokenizerJsonPath) {
+      assert.equal(
+        fs.existsSync(path.join(manifestDir, tokenizerJsonPath)),
+        true,
+        `${modelId}: tokenizer json path from sourceRuntime metadata must exist`
+      );
+    }
+
+    return {
+      modelId,
+      manifestPath,
+      shardCount: shards.length,
+    };
+  }
 
   for (const shard of shards) {
     const shardFile = typeof shard?.filename === 'string' ? shard.filename.trim() : '';

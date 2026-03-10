@@ -4,6 +4,7 @@ import type { PipelineStorageContext } from '../inference/pipelines/text/init.js
 export interface ResolveNodeSourceRuntimeBundleOptions {
   inputPath: string;
   modelId?: string | null;
+  verifyHashes?: boolean;
 }
 
 export interface NodeSourceRuntimeBundle {
@@ -16,4 +17,3 @@ export interface NodeSourceRuntimeBundle {
 export declare function resolveNodeSourceRuntimeBundle(
   options: ResolveNodeSourceRuntimeBundleOptions
 ): Promise<NodeSourceRuntimeBundle | null>;
-

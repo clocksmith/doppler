@@ -100,7 +100,9 @@ CLI notes:
 - `convert` does not take `modelId`; set `output.modelBaseId` in the converter config
 - `convert` rejects `runtimePreset`, `runtimeConfigUrl`, `runtimeConfig`, and `configChain` because the convert runner does not consume runtime config
 - explicit `convertPayload.execution.useGpuCast=true` is fail-closed; if Node WebGPU is unavailable or GPU casting fails, conversion errors instead of silently falling back to CPU
-- `loadMode="memory"` is Node-only and requires local filesystem model data
+- `loadMode="memory"` is Node-only and requires local filesystem model data; direct-source loads now default to hash verification when `runtime.loading.shardCache.verifyHashes` is not overridden
+- a persisted direct-source manifest can be written with `node tools/materialize-source-manifest.js <source-dir-or-gguf>` and then loaded through `loadMode="http"` from a `file://` or hosted manifest root
+- in browser runs, a persisted direct-source artifact can now be cache-primed into OPFS and later reopened with `loadMode="opfs"` when the request includes `modelId` plus the explicit hosted `modelUrl`
 - prefer immutable Hugging Face revisions for reproducible hosted runs
 
 ## Symbol Groups

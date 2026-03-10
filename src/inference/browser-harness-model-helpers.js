@@ -8,11 +8,20 @@ import { openModelStore, loadManifestFromStore } from '../storage/shard-manager.
 import { parseManifest } from '../formats/rdrr/index.js';
 import { resolveRuntime } from './browser-harness-runtime-helpers.js';
 import { normalizeLoadMode } from './browser-harness-suite-helpers.js';
+import { buildSourceArtifactFingerprint, createStoredSourceArtifactContext } from '../storage/source-artifact-store.js';
 
 const NODE_SOURCE_RUNTIME_MODULE_PATH = '../tooling/node-source-runtime.js';
 
 function isNodeRuntime() {
   return typeof process !== 'undefined' && !!process.versions?.node;
+}
+
+function resolveSourceVerifyHashes(options = {}) {
+  const explicit = options?.runtime?.runtimeConfig?.loading?.shardCache?.verifyHashes;
+  if (explicit == null) {
+    return true;
+  }
+  return explicit === true;
 }
 
 export function resolveDeviceInfo() {
@@ -79,9 +88,13 @@ export async function initializeInferenceFromStorage(modelId, options = {}) {
   const capabilities = getKernelCapabilities();
 
   onProgress?.('pipeline', 0.3, 'Creating pipeline...');
+  const storage = buildSourceArtifactFingerprint(manifest)
+    ? createStoredSourceArtifactContext(manifest, { verifyHashes: true })
+    : null;
   const pipeline = await createPipeline(manifest, {
     gpu: { device },
     runtime: options.runtime,
+    ...(storage ? { storage } : {}),
     onProgress,
   });
 
@@ -111,6 +124,7 @@ export async function initializeInferenceFromSourcePath(sourcePath, options = {}
   const sourceBundle = await resolveNodeSourceRuntimeBundle({
     inputPath: sourcePath,
     modelId: options.modelId || null,
+    verifyHashes: resolveSourceVerifyHashes(options),
   });
   if (!sourceBundle) {
     throw new Error(

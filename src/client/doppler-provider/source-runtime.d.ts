@@ -6,7 +6,9 @@ export interface ResolveBridgeSourceRuntimeBundleOptions {
   bridgeClient: ExtensionBridgeClient;
   localPath: string;
   modelId?: string | null;
+  manifest?: RDRRManifest | null;
   onProgress?: (info: { stage: string; message: string }) => void;
+  verifyHashes?: boolean;
 }
 
 export interface BridgeSourceRuntimeBundle {
@@ -19,4 +21,3 @@ export interface BridgeSourceRuntimeBundle {
 export declare function resolveBridgeSourceRuntimeBundle(
   options: ResolveBridgeSourceRuntimeBundleOptions
 ): Promise<BridgeSourceRuntimeBundle | null>;
-

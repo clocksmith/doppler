@@ -7,6 +7,7 @@ import { promises as fs } from 'node:fs';
 
 import { runBrowserCommandInNode } from '../src/tooling/node-browser-command-runner.js';
 import { parseManifest } from '../src/formats/rdrr/index.js';
+import { getSourceRuntimeMetadata } from '../src/tooling/source-runtime-bundle.js';
 import {
   buildEntryRemoteBaseUrl,
   findCatalogEntry,
@@ -433,6 +434,7 @@ async function ensureModelCache(modelId, catalogFile, cacheRoot) {
   const manifestUrl = `${remoteBaseUrl}/manifest.json`;
   const manifestText = await (await fetchWithRetry(manifestUrl)).text();
   const manifest = parseManifest(manifestText);
+  const sourceRuntime = getSourceRuntimeMetadata(manifest);
   await fs.writeFile(path.join(modelDir, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`, 'utf8');
 
   const requiredPaths = [];
@@ -446,6 +448,24 @@ async function ensureModelCache(modelId, catalogFile, cacheRoot) {
       relativePath,
       expectedBytes: Number.isFinite(shard?.size) ? Number(shard.size) : null,
     });
+  }
+  if (sourceRuntime) {
+    for (const entry of Array.isArray(sourceRuntime.sourceFiles) ? sourceRuntime.sourceFiles : []) {
+      const relativePath = normalizeText(entry?.path);
+      if (!relativePath) continue;
+      requiredPaths.push({
+        relativePath,
+        expectedBytes: Number.isFinite(entry?.size) ? Number(entry.size) : null,
+      });
+    }
+    for (const entry of Array.isArray(sourceRuntime.auxiliaryFiles) ? sourceRuntime.auxiliaryFiles : []) {
+      const relativePath = normalizeText(entry?.path);
+      if (!relativePath) continue;
+      requiredPaths.push({
+        relativePath,
+        expectedBytes: Number.isFinite(entry?.size) ? Number(entry.size) : null,
+      });
+    }
   }
   for (const tokenizerPath of collectTokenizerPaths(manifest.tokenizer)) {
     requiredPaths.push({ relativePath: tokenizerPath, expectedBytes: null });

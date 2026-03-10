@@ -34,8 +34,8 @@ function buildSafetensorsFixture() {
 }
 
 const configBytes = encodeJson({
-  architectures: ['Gemma2ForCausalLM'],
-  model_type: 'gemma2',
+  architectures: ['Gemma3ForCausalLM'],
+  model_type: 'gemma3_text',
   num_hidden_layers: 1,
   hidden_size: 2,
   num_attention_heads: 1,
@@ -96,6 +96,7 @@ const bundle = await resolveBridgeSourceRuntimeBundle({
   bridgeClient,
   localPath: rootPath,
   modelId: 'bridge-source-test',
+  verifyHashes: true,
   onProgress() {},
 });
 
@@ -103,13 +104,13 @@ assert.ok(bundle);
 assert.equal(bundle.sourceKind, 'safetensors');
 assert.equal(bundle.manifest.modelId, 'bridge-source-test');
 assert.ok(bundle.storageContext);
-assert.equal(bundle.storageContext.verifyHashes, false);
+assert.equal(bundle.storageContext.verifyHashes, true);
 
-const range = await bundle.storageContext.loadShardRange(0, 0, 4);
-assert.equal(new Uint8Array(range).byteLength, 4);
+const shard = await bundle.storageContext.loadShard(0);
+assert.ok(new Uint8Array(shard).byteLength > 0);
+assert.equal(bundle.storageContext.loadShardRange, null);
 
 const tokenizer = await bundle.storageContext.loadTokenizerJson();
 assert.equal(typeof tokenizer, 'object');
 
 console.log('bridge-source-runtime.test: ok');
-
