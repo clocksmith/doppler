@@ -8,6 +8,10 @@ import { downloadModel } from '../storage/downloader.js';
 import { isOPFSAvailable } from '../storage/quota.js';
 import { parseManifest, getManifestUrl } from '../formats/rdrr/index.js';
 import { log } from '../debug/index.js';
+import {
+  resolveSourceArtifact,
+  verifyStoredSourceArtifact,
+} from '../storage/source-artifact-store.js';
 
 const MODULE = 'OPFSCache';
 
@@ -43,6 +47,7 @@ function hasSameShardSet(aManifest, bManifest) {
 }
 
 function buildManifestFingerprint(manifest) {
+  const sourceArtifactFingerprint = resolveSourceArtifact(manifest)?.fingerprint ?? null;
   const inference = manifest?.inference ?? {};
   const layerPattern = inference?.layerPattern ?? {};
   const quantizationInfo = manifest?.quantizationInfo ?? {};
@@ -75,6 +80,7 @@ function buildManifestFingerprint(manifest) {
       },
     },
     shards,
+    sourceArtifactFingerprint,
   });
 }
 
@@ -119,16 +125,27 @@ export async function ensureModelCached(modelId, modelBaseUrl) {
         if (!cachedManifestText || !cachedManifest) {
           log.warn(MODULE, `Cache miss: "${modelId}" has no readable manifest in OPFS; re-importing`);
         } else {
+          const cachedSourceArtifact = resolveSourceArtifact(cachedManifest);
+          const sourceIntegrity = cachedSourceArtifact
+            ? await verifyStoredSourceArtifact(cachedManifest, { checkHashes: false })
+            : null;
+          const sourceIntegrityValid = !sourceIntegrity || sourceIntegrity.valid;
+          if (sourceIntegrity && !sourceIntegrity.valid) {
+            log.warn(
+              MODULE,
+              `Cache stale: "${modelId}" direct-source assets are incomplete (${sourceIntegrity.missingFiles.join(', ')})`
+            );
+          }
           const cachedFingerprint = buildManifestFingerprint(cachedManifest);
           const remoteFingerprint = buildManifestFingerprint(remoteManifest);
-          if (cachedFingerprint === remoteFingerprint) {
+          if (sourceIntegrityValid && cachedFingerprint === remoteFingerprint) {
             log.info(MODULE, `Cache hit: "${modelId}"`);
             return { cached: true, fromCache: true, modelId, error: null };
           }
 
           const sameShards = hasSameShardSet(cachedManifest, remoteManifest);
           const sameHashAlgorithm = (cachedManifest?.hashAlgorithm ?? null) === (remoteManifest?.hashAlgorithm ?? null);
-          if (sameShards && sameHashAlgorithm) {
+          if (sourceIntegrityValid && sameShards && sameHashAlgorithm) {
             await openModelStore(modelId);
             await saveManifest(remoteManifestText);
             log.info(MODULE, `Cache manifest refreshed: "${modelId}" (shards unchanged)`);

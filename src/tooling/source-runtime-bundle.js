@@ -14,11 +14,13 @@ import {
   parseGroupLayerIndex,
   sortGroupIds,
 } from '../formats/rdrr/index.js';
+import { computeHash } from '../storage/shard-manager.js';
 
-const PLACEHOLDER_HASH = '0'.repeat(64);
 export const DIRECT_SOURCE_RUNTIME_MODE = 'direct-source';
 export const DIRECT_SOURCE_RUNTIME_SCHEMA_VERSION = 1;
 export const DIRECT_SOURCE_RUNTIME_SCHEMA = `direct-source/v${DIRECT_SOURCE_RUNTIME_SCHEMA_VERSION}`;
+export const DIRECT_SOURCE_PATH_RUNTIME_LOCAL = 'runtime-local';
+export const DIRECT_SOURCE_PATH_ARTIFACT_RELATIVE = 'artifact-relative';
 
 function toPathKey(value) {
   return String(value || '').trim().replace(/\\/g, '/');
@@ -36,6 +38,31 @@ function toArrayBuffer(value, label) {
 
 function toUint8Chunk(value, label) {
   return value instanceof Uint8Array ? value : new Uint8Array(toArrayBuffer(value, label));
+}
+
+function encodeUtf8(value) {
+  return new TextEncoder().encode(String(value ?? ''));
+}
+
+function normalizeHashAlgorithm(value) {
+  const normalized = String(value || '').trim().toLowerCase();
+  return normalized === 'blake3' ? 'blake3' : 'sha256';
+}
+
+function normalizeHashString(value, label) {
+  if (value == null) return null;
+  const normalized = String(value).trim().toLowerCase();
+  if (!normalized) return null;
+  if (!/^[a-f0-9]{64}$/.test(normalized)) {
+    throw new Error(`${label} must be a 64-character lowercase hex digest.`);
+  }
+  return normalized;
+}
+
+function normalizeAssetKind(value) {
+  const normalized = String(value || '').trim().toLowerCase();
+  if (!normalized) return 'unknown';
+  return normalized;
 }
 
 function normalizePositiveInteger(value, label) {
@@ -66,7 +93,12 @@ async function resolveSourceFiles(tensors, sourceFiles, resolveSourceSize) {
     const path = toPathKey(entry?.path);
     if (!path) continue;
     const size = normalizePositiveInteger(entry?.size, `source file size (${path})`);
-    fileMap.set(path, { path, size });
+    fileMap.set(path, {
+      path,
+      size,
+      hash: normalizeHashString(entry?.hash, `source file hash (${path})`),
+      hashAlgorithm: normalizeHashAlgorithm(entry?.hashAlgorithm),
+    });
   }
 
   for (const tensor of tensors) {
@@ -106,7 +138,7 @@ function buildSourceShards(sourceFiles, hashAlgorithm) {
       index,
       filename,
       size: file.size,
-      hash: PLACEHOLDER_HASH,
+      hash: file.hash ?? '',
       hashAlgorithm,
       offset,
     });
@@ -115,6 +147,8 @@ function buildSourceShards(sourceFiles, hashAlgorithm) {
       path: file.path,
       filename,
       size: file.size,
+      hash: file.hash ?? '',
+      hashAlgorithm,
     });
     offset += file.size;
   }
@@ -203,13 +237,177 @@ function buildSourceGroups(tensorLocations, modelType) {
       version: '1.0.0',
       shards: Array.from(entry.shards).sort((left, right) => left - right),
       tensors: [...entry.tensors].sort((left, right) => left.localeCompare(right)),
-      hash: PLACEHOLDER_HASH,
+      hash: '',
       ...(Number.isInteger(layerIndex) ? { layerIndex } : {}),
       ...(Number.isInteger(expertIndex) ? { expertIndex } : {}),
     };
   }
 
   return groups;
+}
+
+async function assignGroupHashes(groups, tensorLocations, hashAlgorithm) {
+  const groupIds = sortGroupIds(Object.keys(groups ?? {}));
+  for (const groupId of groupIds) {
+    const group = groups[groupId];
+    if (!group) continue;
+    const tensors = Array.isArray(group.tensors) ? group.tensors : [];
+    const payload = {
+      groupId,
+      type: group.type ?? null,
+      version: group.version ?? null,
+      layerIndex: Number.isInteger(group.layerIndex) ? group.layerIndex : null,
+      expertIndex: Number.isInteger(group.expertIndex) ? group.expertIndex : null,
+      tensors: tensors.map((tensorName) => {
+        const location = tensorLocations?.[tensorName] ?? null;
+        return {
+          name: tensorName,
+          shard: location?.shard ?? null,
+          offset: location?.offset ?? null,
+          size: location?.size ?? null,
+          dtype: location?.dtype ?? null,
+          shape: Array.isArray(location?.shape) ? location.shape : null,
+          layout: location?.layout ?? null,
+        };
+      }),
+    };
+    group.hash = await computeHash(encodeUtf8(JSON.stringify(payload)), hashAlgorithm);
+  }
+}
+
+function normalizeAuxiliaryFileEntry(entry, defaultHashAlgorithm) {
+  const path = toPathKey(entry?.path);
+  if (!path) return null;
+  return {
+    path,
+    size: normalizePositiveInteger(entry?.size, `source auxiliary file size (${path})`),
+    hash: normalizeHashString(entry?.hash, `source auxiliary file hash (${path})`),
+    hashAlgorithm: normalizeHashAlgorithm(entry?.hashAlgorithm ?? defaultHashAlgorithm),
+    kind: normalizeAssetKind(entry?.kind),
+  };
+}
+
+function normalizeAuxiliaryFiles(auxiliaryFiles, defaultHashAlgorithm) {
+  const normalized = [];
+  for (const entry of Array.isArray(auxiliaryFiles) ? auxiliaryFiles : []) {
+    const resolved = normalizeAuxiliaryFileEntry(entry, defaultHashAlgorithm);
+    if (resolved) normalized.push(resolved);
+  }
+  normalized.sort((left, right) => left.path.localeCompare(right.path));
+  return normalized;
+}
+
+function buildSourceRuntimeMetadata(options, manifest, shardSources, auxiliaryFiles, hashAlgorithm) {
+  const tokenizerJsonPath = typeof options.tokenizerJsonPath === 'string' && options.tokenizerJsonPath.trim()
+    ? toPathKey(options.tokenizerJsonPath)
+    : null;
+  const tokenizerConfigPath = typeof options.tokenizerConfigPath === 'string' && options.tokenizerConfigPath.trim()
+    ? toPathKey(options.tokenizerConfigPath)
+    : null;
+  const tokenizerModelPath = typeof options.tokenizerModelPath === 'string' && options.tokenizerModelPath.trim()
+    ? toPathKey(options.tokenizerModelPath)
+    : null;
+  const hasFullSourceDigests = shardSources.every((entry) => typeof entry.hash === 'string' && entry.hash.length > 0);
+  const hasFullAuxDigests = auxiliaryFiles.every((entry) => typeof entry.hash === 'string' && entry.hash.length > 0);
+
+  return {
+    mode: DIRECT_SOURCE_RUNTIME_MODE,
+    schema: DIRECT_SOURCE_RUNTIME_SCHEMA,
+    schemaVersion: DIRECT_SOURCE_RUNTIME_SCHEMA_VERSION,
+    sourceKind: typeof options.sourceKind === 'string' && options.sourceKind.trim()
+      ? String(options.sourceKind).trim().toLowerCase()
+      : null,
+    hashAlgorithm,
+    pathSemantics: DIRECT_SOURCE_PATH_RUNTIME_LOCAL,
+    sourceFileCount: shardSources.length,
+    auxiliaryFileCount: auxiliaryFiles.length,
+    sourceFiles: shardSources.map((entry) => ({
+      index: entry.index,
+      path: entry.path,
+      filename: entry.filename,
+      size: entry.size,
+      hash: entry.hash,
+      hashAlgorithm: entry.hashAlgorithm,
+    })),
+    auxiliaryFiles,
+    tokenizer: {
+      jsonPath: tokenizerJsonPath,
+      configPath: tokenizerConfigPath,
+      modelPath: tokenizerModelPath,
+    },
+    invariants: {
+      tensorIdentity: 'tensor.name',
+      shardIdentity: 'sourceFiles[index].path',
+      byteOffsets: 'shard-relative bytes',
+      hashSemantics: hasFullSourceDigests && hasFullAuxDigests
+        ? 'sourceFiles[*].hash digests raw source files; auxiliaryFiles[*].hash digests config/index/tokenizer assets'
+        : 'source digests are incomplete; persist a materialized direct-source manifest before release claims',
+      cacheKeying: hasFullSourceDigests ? 'path:size:hash' : 'path:size',
+      tokenizerAssetsCovered: tokenizerJsonPath != null || tokenizerModelPath != null,
+      manifestFamily: manifest?.modelType ?? null,
+    },
+  };
+}
+
+export function getSourceRuntimeMetadata(manifest) {
+  const metadata = manifest?.metadata?.sourceRuntime;
+  if (!metadata || typeof metadata !== 'object') {
+    return null;
+  }
+  if (metadata.mode !== DIRECT_SOURCE_RUNTIME_MODE) {
+    return null;
+  }
+
+  const hashAlgorithm = normalizeHashAlgorithm(metadata.hashAlgorithm);
+  const sourceFiles = Array.isArray(metadata.sourceFiles)
+    ? metadata.sourceFiles
+      .map((entry) => {
+        const path = toPathKey(entry?.path);
+        if (!path) return null;
+        return {
+          index: normalizePositiveInteger(entry?.index ?? 0, `source runtime sourceFiles index (${path})`),
+          path,
+          filename: typeof entry?.filename === 'string' && entry.filename.trim()
+            ? entry.filename.trim()
+            : null,
+          size: normalizePositiveInteger(entry?.size, `source runtime sourceFiles size (${path})`),
+          hash: normalizeHashString(entry?.hash, `source runtime sourceFiles hash (${path})`),
+          hashAlgorithm: normalizeHashAlgorithm(entry?.hashAlgorithm ?? hashAlgorithm),
+        };
+      })
+      .filter(Boolean)
+      .sort((left, right) => left.index - right.index)
+    : [];
+  const auxiliaryFiles = normalizeAuxiliaryFiles(metadata.auxiliaryFiles, hashAlgorithm);
+  const tokenizer = metadata.tokenizer && typeof metadata.tokenizer === 'object'
+    ? {
+      jsonPath: typeof metadata.tokenizer.jsonPath === 'string' && metadata.tokenizer.jsonPath.trim()
+        ? toPathKey(metadata.tokenizer.jsonPath)
+        : null,
+      configPath: typeof metadata.tokenizer.configPath === 'string' && metadata.tokenizer.configPath.trim()
+        ? toPathKey(metadata.tokenizer.configPath)
+        : null,
+      modelPath: typeof metadata.tokenizer.modelPath === 'string' && metadata.tokenizer.modelPath.trim()
+        ? toPathKey(metadata.tokenizer.modelPath)
+        : null,
+    }
+    : { jsonPath: null, configPath: null, modelPath: null };
+
+  return {
+    mode: DIRECT_SOURCE_RUNTIME_MODE,
+    schema: DIRECT_SOURCE_RUNTIME_SCHEMA,
+    schemaVersion: DIRECT_SOURCE_RUNTIME_SCHEMA_VERSION,
+    sourceKind: typeof metadata.sourceKind === 'string' && metadata.sourceKind.trim()
+      ? String(metadata.sourceKind).trim().toLowerCase()
+      : null,
+    hashAlgorithm,
+    pathSemantics: metadata.pathSemantics === DIRECT_SOURCE_PATH_ARTIFACT_RELATIVE
+      ? DIRECT_SOURCE_PATH_ARTIFACT_RELATIVE
+      : DIRECT_SOURCE_PATH_RUNTIME_LOCAL,
+    sourceFiles,
+    auxiliaryFiles,
+    tokenizer,
+  };
 }
 
 function resolveModelQuantization(options, tensorLocations) {
@@ -270,14 +468,15 @@ export async function buildSourceRuntimeBundle(options = {}) {
     throw new Error('source runtime bundle: tensors[] is required.');
   }
 
-  const hashAlgorithmRaw = String(options.hashAlgorithm || '').trim().toLowerCase();
-  const hashAlgorithm = hashAlgorithmRaw === 'blake3' ? 'blake3' : 'sha256';
+  const hashAlgorithm = normalizeHashAlgorithm(options.hashAlgorithm);
   const sourceFiles = await resolveSourceFiles(tensors, options.sourceFiles, options.resolveSourceSize);
   const { shards, shardSources } = buildSourceShards(sourceFiles, hashAlgorithm);
   const shardIndexByPath = new Map(shardSources.map((entry) => [entry.path, entry.index]));
   const tensorLocations = buildSourceTensorLocations(tensors, shardIndexByPath, modelType);
   const groups = buildSourceGroups(tensorLocations, modelType);
+  await assignGroupHashes(groups, tensorLocations, hashAlgorithm);
   const { quantizationInfo, manifestQuantization } = resolveModelQuantization(options, tensorLocations);
+  const auxiliaryFiles = normalizeAuxiliaryFiles(options.auxiliaryFiles, hashAlgorithm);
 
   const model = {
     name: options.modelName || modelId,
@@ -316,19 +515,13 @@ export async function buildSourceRuntimeBundle(options = {}) {
   if (!manifest.metadata || typeof manifest.metadata !== 'object') {
     manifest.metadata = {};
   }
-  manifest.metadata.sourceRuntime = {
-    mode: DIRECT_SOURCE_RUNTIME_MODE,
-    schema: DIRECT_SOURCE_RUNTIME_SCHEMA,
-    schemaVersion: DIRECT_SOURCE_RUNTIME_SCHEMA_VERSION,
-    sourceFileCount: shardSources.length,
-    invariants: {
-      tensorIdentity: 'tensor.name',
-      shardIdentity: 'sourcePath -> shard index',
-      byteOffsets: 'shard-relative bytes',
-      hashSemantics: 'placeholder shard/group hashes; verifyHashes must be false',
-      cacheKeying: 'sourcePath:size',
-    },
-  };
+  manifest.metadata.sourceRuntime = buildSourceRuntimeMetadata(
+    options,
+    manifest,
+    shardSources,
+    auxiliaryFiles,
+    hashAlgorithm
+  );
 
   return {
     manifest,
@@ -357,7 +550,10 @@ export function createSourceStorageContext(options = {}) {
     throw new Error('source storage context: manifest is required.');
   }
 
-  const shardSources = Array.isArray(options.shardSources) ? options.shardSources : null;
+  const sourceRuntime = getSourceRuntimeMetadata(manifest);
+  const shardSources = Array.isArray(options.shardSources) && options.shardSources.length > 0
+    ? options.shardSources
+    : (sourceRuntime?.sourceFiles ?? null);
   if (!shardSources || shardSources.length === 0) {
     throw new Error('source storage context: shardSources[] is required.');
   }
@@ -376,17 +572,15 @@ export function createSourceStorageContext(options = {}) {
   const readBinary = typeof options.readBinary === 'function'
     ? options.readBinary
     : null;
-  const tokenizerJsonPath = options.tokenizerJsonPath ?? null;
-  const tokenizerModelPath = options.tokenizerModelPath ?? null;
+  const auxiliaryFileMap = new Map(
+    (sourceRuntime?.auxiliaryFiles ?? []).map((entry) => [entry.path, entry])
+  );
+  const tokenizerJsonPath = options.tokenizerJsonPath ?? sourceRuntime?.tokenizer?.jsonPath ?? null;
+  const tokenizerModelPath = options.tokenizerModelPath ?? sourceRuntime?.tokenizer?.modelPath ?? null;
   const verifyHashes = options.verifyHashes === true;
-  if (verifyHashes) {
-    throw new Error(
-      'source storage context: verifyHashes=true is not supported for direct-source manifests. ' +
-      'Convert to persisted RDRR shards first when hash verification is required.'
-    );
-  }
+  const allowRangeFastPath = verifyHashes !== true;
 
-  const loadShardRange = async (index, offset = 0, length = null) => {
+  const loadShardRange = allowRangeFastPath ? async (index, offset = 0, length = null) => {
     const { sourcePath, shardSize } = resolveSourceEntry(index, manifest, shardSources);
     const start = normalizePositiveInteger(offset, `shard offset (${index})`);
     const maxLength = Math.max(0, shardSize - start);
@@ -398,14 +592,19 @@ export function createSourceStorageContext(options = {}) {
     }
     const payload = await readRange(sourcePath, start, requested);
     return toArrayBuffer(payload, `readRange(${sourcePath})`);
-  };
+  } : null;
 
   const loadShard = async (index) => {
     const { shardSize } = resolveSourceEntry(index, manifest, shardSources);
-    return loadShardRange(index, 0, shardSize);
+    if (loadShardRange) {
+      return loadShardRange(index, 0, shardSize);
+    }
+    const { sourcePath } = resolveSourceEntry(index, manifest, shardSources);
+    const payload = await readRange(sourcePath, 0, shardSize);
+    return toArrayBuffer(payload, `readRange(${sourcePath})`);
   };
 
-  const streamShardRange = async function* (index, offset = 0, length = null, streamOptions = {}) {
+  const streamShardRange = allowRangeFastPath ? async function* (index, offset = 0, length = null, streamOptions = {}) {
     const { sourcePath, shardSize } = resolveSourceEntry(index, manifest, shardSources);
     const start = normalizePositiveInteger(offset, `shard stream offset (${index})`);
     const maxLength = Math.max(0, shardSize - start);
@@ -441,13 +640,30 @@ export function createSourceStorageContext(options = {}) {
         break;
       }
     }
-  };
+  } : null;
 
   const loadTokenizerJson = readText && tokenizerJsonPath
     ? async () => {
       const raw = await readText(tokenizerJsonPath);
       if (typeof raw === 'string') {
+        if (verifyHashes) {
+          const descriptor = auxiliaryFileMap.get(tokenizerJsonPath);
+          if (descriptor?.hash) {
+            const computedHash = await computeHash(encodeUtf8(raw), descriptor.hashAlgorithm);
+            if (computedHash !== descriptor.hash) {
+              throw new Error(
+                `Tokenizer asset hash mismatch for ${tokenizerJsonPath}. ` +
+                `Expected ${descriptor.hash}, got ${computedHash}.`
+              );
+            }
+          }
+        }
         return JSON.parse(raw);
+      }
+      if (verifyHashes && raw && typeof raw === 'object') {
+        throw new Error(
+          `readText(${tokenizerJsonPath}) must return the original JSON string when verifyHashes=true.`
+        );
       }
       if (raw && typeof raw === 'object') {
         return raw;
@@ -466,6 +682,17 @@ export function createSourceStorageContext(options = {}) {
       }
       const raw = await readBinary(targetPath);
       const buffer = toArrayBuffer(raw, `readBinary(${targetPath})`);
+      if (verifyHashes) {
+        const descriptor = auxiliaryFileMap.get(targetPath);
+        if (descriptor?.hash) {
+          const computedHash = await computeHash(new Uint8Array(buffer), descriptor.hashAlgorithm);
+          if (computedHash !== descriptor.hash) {
+            throw new Error(
+              `Binary asset hash mismatch for ${targetPath}. Expected ${descriptor.hash}, got ${computedHash}.`
+            );
+          }
+        }
+      }
       if (buffer.byteLength <= 0) {
         throw new Error(`readBinary(${targetPath}) returned an empty tokenizer model payload.`);
       }

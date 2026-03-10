@@ -46,6 +46,7 @@ Public, but advanced and legacy-leaning compared with the root facade.
 
 - `generate(...)` does not support `stopTokens` on this provider surface; use `stopSequences` instead
 - explicit `modelUrl` loads fail closed if the cached manifest cannot be verified against that source
+- browser cache-backed loads can reopen persisted direct-source artifacts from OPFS when the cached manifest is materialized and the source URL still matches
 - background kernel auto-tuning requires explicit runtime opt-in via `runtime.shared.kernelWarmup.autoTune=true`
 
 ## Symbol Notes

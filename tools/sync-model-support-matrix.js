@@ -98,9 +98,20 @@ export function validateCatalogMatrixInputs(payload) {
       ? lifecycle.availability
       : {};
     const status = lifecycle?.status && typeof lifecycle.status === 'object' ? lifecycle.status : {};
+    const artifact = model?.artifact && typeof model.artifact === 'object' ? model.artifact : {};
     const demo = normalizeText(status.demo);
     const baseUrl = normalizeText(model?.baseUrl);
     const hf = model?.hf && typeof model.hf === 'object' ? model.hf : {};
+    const artifactFormat = normalizeText(artifact.format);
+
+    if (!artifactFormat) {
+      errors.push(`${modelId}: artifact.format is required`);
+    } else if (artifactFormat !== 'rdrr' && artifactFormat !== 'direct-source') {
+      errors.push(`${modelId}: artifact.format must be "rdrr" or "direct-source"`);
+    }
+    if (artifactFormat === 'direct-source' && normalizeText(artifact.sourceRuntimeSchema) !== 'direct-source/v1') {
+      errors.push(`${modelId}: direct-source artifacts require artifact.sourceRuntimeSchema="direct-source/v1"`);
+    }
 
     if (availability.hf === true) {
       if (!normalizeText(hf.repoId)) {

@@ -21,6 +21,8 @@ const verifiedCatalogModels = (Array.isArray(catalog.models) ? catalog.models : 
     surface: entry?.lifecycle?.tested?.surface ?? null,
     source: entry?.lifecycle?.tested?.source ?? null,
     lastVerifiedAt: entry?.lifecycle?.tested?.lastVerifiedAt ?? null,
+    artifactFormat: entry?.artifact?.format ?? null,
+    artifactSchema: entry?.artifact?.sourceRuntimeSchema ?? null,
   }))
   .sort((left, right) => left.modelId.localeCompare(right.modelId));
 
@@ -31,6 +33,8 @@ const claimEntries = claimPolicy.claims
     surface: entry.surface,
     source: entry.verificationSource,
     lastVerifiedAt: entry.lastVerifiedAt,
+    artifactFormat: entry.artifactFormat,
+    artifactSchema: entry.artifactSchema ?? null,
     evidence: entry.evidence,
   }))
   .sort((left, right) => left.modelId.localeCompare(right.modelId));
@@ -49,6 +53,16 @@ for (const claim of claimEntries) {
   assert.equal(claim.surface, catalogEntry.surface, `${claim.modelId}: claim surface must match models/catalog.json`);
   assert.equal(claim.source, catalogEntry.source, `${claim.modelId}: claim verificationSource must match models/catalog.json`);
   assert.equal(claim.lastVerifiedAt, catalogEntry.lastVerifiedAt, `${claim.modelId}: claim lastVerifiedAt must match models/catalog.json`);
+  assert.equal(
+    claim.artifactFormat,
+    catalogEntry.artifactFormat,
+    `${claim.modelId}: claim artifactFormat must match models/catalog.json`
+  );
+  assert.equal(
+    claim.artifactSchema,
+    catalogEntry.artifactSchema,
+    `${claim.modelId}: claim artifactSchema must match models/catalog.json`
+  );
   assert.ok(claim.evidence && typeof claim.evidence === 'object', `${claim.modelId}: claim evidence must be an object`);
   assert.equal(typeof claim.evidence.kind, 'string', `${claim.modelId}: claim evidence.kind must be a string`);
 

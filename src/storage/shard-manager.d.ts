@@ -84,6 +84,11 @@ export function createConversionShardWriter(
   shardIndex: number
 ): Promise<ShardWriteStream>;
 
+export function createFileWriter(
+  filename: string,
+  options?: ShardWriterOptions
+): Promise<ShardWriteStream>;
+
 export function loadShard(
   shardIndex: number,
   options?: ShardReadOptions
@@ -117,7 +122,15 @@ export function deleteModel(modelId: string): Promise<boolean>;
 export function listModels(): Promise<string[]>;
 export function listFilesInStore(): Promise<string[]>;
 export function loadFileFromStore(filename: string): Promise<ArrayBuffer>;
-export function streamFileFromStore(filename: string, options?: { chunkBytes?: number }): AsyncIterable<Uint8Array> | null;
+export function loadFileRangeFromStore(
+  filename: string,
+  offset?: number,
+  length?: number | null
+): Promise<ArrayBuffer>;
+export function streamFileFromStore(
+  filename: string,
+  options?: { chunkBytes?: number; offset?: number; length?: number | null }
+): AsyncIterable<Uint8Array> | null;
 export function getModelInfo(modelId: string): Promise<ModelInfo>;
 export function modelExists(modelId: string): Promise<boolean>;
 
@@ -133,5 +146,6 @@ export function loadTokenizerModelFromStore(): Promise<ArrayBuffer | null>;
 export function saveAuxFile(filename: string, data: string | ArrayBuffer | Uint8Array): Promise<void>;
 export function loadAuxFile(filename: string): Promise<ArrayBuffer | null>;
 export function loadAuxText(filename: string): Promise<string | null>;
+export function deleteFileFromStore(filename: string): Promise<boolean>;
 
 export function cleanup(): Promise<void>;
