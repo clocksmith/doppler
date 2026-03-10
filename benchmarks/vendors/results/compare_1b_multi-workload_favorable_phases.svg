@@ -59,7 +59,7 @@
     <stop offset="100%" stop-color="#2563eb33" />
   </linearGradient>
   </defs><rect x="14" y="14" width="1172" height="682" fill="url(#phase-canvas-glow)" stroke="none" />
-<text x="36" y="50" fill="#7c3aed" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="bold" letter-spacing="1.2" stroke="none">README BENCHMARK HERO</text>
+<text x="36" y="50" fill="#7c3aed" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="bold" letter-spacing="1.2" stroke="none">PHASE EVIDENCE</text>
 <text x="36" y="92" fill="#ffffff" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="32" font-weight="bold" stroke="none">Phase-latency comparison across models on MacBook Air M3</text>
 <text x="36" y="117" fill="#cbd5e1" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="14" stroke="none">Gemma 3 1b + LFM 2.5 1.2b • 64 prompt tokens, 64 decode tokens, greedy</text>
 <text x="36" y="138" fill="#cbd5e1" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="12" stroke="none">Warm-cache phase evidence across curated workloads. Lower total latency wins.</text>

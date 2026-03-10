@@ -1316,7 +1316,7 @@ function renderPhases(rows, width, height, title, subtitle, sectionLabel, sectio
   let body = '';
   body += renderPhaseSceneDefs();
   body += `<rect x="${CANVAS_PADDING}" y="${CANVAS_PADDING}" width="${width - CANVAS_PADDING * 2}" height="${height - CANVAS_PADDING * 2}" fill="url(#phase-canvas-glow)" stroke="none" />\n`;
-  body += `<text x="36" y="54" fill="${ARCHITECTURE_COLORS.edge}" font-family="${FONT_UI}" font-size="12" font-weight="bold" letter-spacing="1.2" stroke="none">BENCHMARK EVIDENCE</text>\n`;
+  body += `<text x="36" y="54" fill="${ARCHITECTURE_COLORS.edge}" font-family="${FONT_UI}" font-size="12" font-weight="bold" letter-spacing="1.2" stroke="none">PHASE EVIDENCE</text>\n`;
   body += `<text x="36" y="92" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="30" font-weight="bold" stroke="none">${escapeXml(title)}</text>\n`;
   body += `<text x="36" y="116" fill="${PALETTE.muted}" font-family="${FONT_UI}" font-size="14" stroke="none">${escapeXml(subtitle)}</text>\n`;
   body += `<text x="36" y="136" fill="${PALETTE.muted}" font-family="${FONT_UI}" font-size="12" stroke="none">${escapeXml(`Section: ${sectionLabel} • lower is better`)}</text>\n`;
@@ -1358,7 +1358,7 @@ function renderMultiPhases(entries, width, title, subtitle) {
   let body = '';
   body += renderPhaseSceneDefs();
   body += `<rect x="${CANVAS_PADDING}" y="${CANVAS_PADDING}" width="${width - CANVAS_PADDING * 2}" height="${height - CANVAS_PADDING * 2}" fill="url(#phase-canvas-glow)" stroke="none" />\n`;
-  body += `<text x="36" y="50" fill="${ARCHITECTURE_COLORS.edge}" font-family="${FONT_UI}" font-size="12" font-weight="bold" letter-spacing="1.2" stroke="none">README BENCHMARK HERO</text>\n`;
+  body += `<text x="36" y="50" fill="${ARCHITECTURE_COLORS.edge}" font-family="${FONT_UI}" font-size="12" font-weight="bold" letter-spacing="1.2" stroke="none">PHASE EVIDENCE</text>\n`;
   body += `<text x="36" y="92" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="32" font-weight="bold" stroke="none">${escapeXml(title)}</text>\n`;
   body += `<text x="36" y="117" fill="${PALETTE.muted}" font-family="${FONT_UI}" font-size="14" stroke="none">${escapeXml(subtitle)}</text>\n`;
   body += `<text x="36" y="138" fill="${PALETTE.muted}" font-family="${FONT_UI}" font-size="12" stroke="none">Warm-cache phase evidence across curated workloads. Lower total latency wins.</text>\n`;
