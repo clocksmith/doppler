@@ -179,6 +179,7 @@ async function runAttentionBackwardCore(
           copyEncoder.copyBufferToBuffer(dK.buffer, 0, gradKBuf, kOffset, headBytes);
           copyEncoder.copyBufferToBuffer(dV.buffer, 0, gradVBuf, vOffset, headBytes);
           getDevice().queue.submit([copyEncoder.finish()]);
+          await getDevice().queue.onSubmittedWorkDone();
         } finally {
           releaseTensorBuffer(sTransposed);
           releaseTensorBuffer(dV);

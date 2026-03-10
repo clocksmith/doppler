@@ -568,7 +568,12 @@ const testHarness = {
     const gateTensor = createTensor(gateBuf, 'f32', [gate.length], 'silu_gate');
     const upTensor = createTensor(upBuf, 'f32', [up.length], 'silu_up');
 
-    const resultTensor = await runSiLU(upTensor, { size: up.length, gate: gateTensor, swigluLimit: null });
+    const resultTensor = await runSiLU(upTensor, {
+      size: up.length,
+      gate: gateTensor,
+      swigluLimit: null,
+      inputActivation: 'identity',
+    });
     const result = new Float32Array(await readBufferData(resultTensor.buffer, up.length * 4));
 
     gateBuf.destroy();
@@ -1720,7 +1725,12 @@ const testHarness = {
     const upTensor = createTensor(upBuf, 'f32', [size], 'swiglu_up');
 
     // runSiLU with gate option: output = silu(gate) * up
-    const resultTensor = await runSiLU(upTensor, { size, gate: gateTensor, swigluLimit: null });
+    const resultTensor = await runSiLU(upTensor, {
+      size,
+      gate: gateTensor,
+      swigluLimit: null,
+      inputActivation: 'identity',
+    });
 
     const result = new Float32Array(await readBufferData(resultTensor.buffer, size * 4));
 

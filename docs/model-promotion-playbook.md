@@ -40,6 +40,19 @@ Rules:
 - Publish to Hugging Face from the external-volume canonical RDRR directory.
 - If repo metadata and external-volume artifact disagree, fix the artifact and metadata before publication.
 
+## Canonical ID Discipline
+
+Before converting or promoting, settle the canonical model ID. The ID must agree across four places:
+
+1. `output.modelBaseId` in the conversion config (`tools/configs/conversion/<family>/<model>.json`)
+2. Local artifact directory: `models/local/<canonical-id>/`
+3. `models/catalog.json` entry `modelId`
+4. HF path: `models/<canonical-id>` under `Clocksmith/rdrr`
+
+The publish tool (`tools/publish-hf-registry-model.js`) derives `localDir` as `models/local/{modelId}` by default. If the artifact directory name does not match the catalog `modelId`, the publish step will try to upload from a non-existent path.
+
+Naming schemes differ between old artifacts (e.g. `wq4k-ef16-hf16` suffix) and canonical conversion configs (e.g. `q4k-ehf16-af32` suffix). Do not promote a non-canonical artifact by renaming it. Re-convert with the canonical config so the artifact and the ID agree from the start.
+
 ## Promotion Gate
 
 A model is promotion-ready only if all of the following are true:
@@ -157,7 +170,23 @@ After copy:
 - compare canonical external manifest against the repo-local manifest
 - verify the external-volume directory is the exact artifact to be hosted
 
-### 7. Publish to Hugging Face from the external-volume canonical path
+### 7. Verify the publish tool gate before publishing
+
+`tools/publish-hf-registry-model.js` calls `assertPromotionReady()` which checks exactly three catalog fields before uploading anything:
+
+- `lifecycle.status.tested === "verified"`
+- `lifecycle.tested.contracts.executionContractOk === true`
+- `lifecycle.tested.contracts.executionV0GraphOk === true`
+
+The tool also requires `hf.repoId` and `hf.path` in the catalog entry. `hf.revision` is not required before publish — it is written to the remote registry by the publish step and must be recorded in the local catalog afterward (step 9).
+
+Run a dry run to confirm the upload plan before uploading:
+
+```bash
+node tools/publish-hf-registry-model.js --model-id <model-id> --dry-run
+```
+
+### 7a. Publish to Hugging Face from the external-volume canonical path
 
 Dry run first:
 
@@ -178,9 +207,30 @@ node tools/publish-hf-registry-model.js \
 
 This guarantees the uploaded artifact is the same one stored as the external-volume source of truth.
 
+### 7b. Verify the remote artifact identity after publishing
+
+After the upload succeeds, fetch the remote manifest and confirm identity against the local artifact. Checking shard count or file sizes alone is not sufficient — verify the manifest `modelId` and at least the first shard hash against the local manifest.
+
+If they differ, do not proceed with catalog or support-matrix updates.
+
 ### 8. Update external trackers
 
-After syncing external artifacts, regenerate the external RDRR tracker files:
+Each model directory on the external volume must have an `origin.json` file. `tools/sync-external-rdrr-index.js` throws if `origin.json` (or equivalent `manifest.metadata.sourceModel`/`variant`) is missing — the index cannot be regenerated until all models have provenance metadata.
+
+Required fields in `origin.json`:
+
+```json
+{
+  "sourceModel": "<base-model-name>",
+  "sourceRepo": "<hf-org>/<repo>",
+  "sourceFormat": "safetensors",
+  "sourceRevision": "<snapshot-sha>",
+  "variant": "<artifact-variant-suffix>",
+  "convertedAt": "<iso-timestamp>"
+}
+```
+
+After all `origin.json` files are present, regenerate the external RDRR tracker files:
 
 ```bash
 node tools/sync-external-rdrr-index.js
@@ -212,6 +262,22 @@ If catalog-derived docs changed:
 ```bash
 npm run support:matrix:sync
 ```
+
+## Ghost Model Discipline
+
+A ghost model is a model ID referenced in presets, tests, or fixtures that has no corresponding local artifact. Ghost models produce misleading failures — debug runs complete with `ok: true` but emit garbage tokens because the manifest contract validation fails silently.
+
+Before promoting a new model ID, search for in-tree references to the old or non-canonical ID:
+
+- `src/config/presets/runtime/` — verify presets
+- `tests/` — regression and contract tests
+- `benchmarks/vendors/fixtures/` — compare-engine fixtures
+
+If references exist for a non-canonical or non-converted variant, either:
+1. Convert that variant to make it real, or
+2. Update the references to the canonical ID before promotion.
+
+Do not leave ghost model IDs in place and route around them.
 
 ## Do Not Do This
 

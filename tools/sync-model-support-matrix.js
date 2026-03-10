@@ -222,6 +222,9 @@ function createEmptyLifecycleAggregate() {
     demo: 'none',
     tested: 'unknown',
     testedAt: null,
+    catalogCount: 0,
+    verifiedCount: 0,
+    failedCount: 0,
   };
 }
 
@@ -260,6 +263,9 @@ function resolveCatalogLifecycle(model) {
     demo,
     tested: testedState,
     testedAt,
+    catalogCount: 1,
+    verifiedCount: testedState === 'verified' ? 1 : 0,
+    failedCount: testedState === 'failed' ? 1 : 0,
   };
 }
 
@@ -278,6 +284,9 @@ function mergeLifecycleAggregate(left, right) {
     demo,
     tested,
     testedAt,
+    catalogCount: left.catalogCount + right.catalogCount,
+    verifiedCount: left.verifiedCount + right.verifiedCount,
+    failedCount: left.failedCount + right.failedCount,
   };
 }
 
@@ -535,10 +544,40 @@ function renderMatrix(rows, metadata, buckets) {
     if (row.lifecycleTested === 'unknown') {
       notes.push('not verified in catalog lifecycle');
     }
+    if (row.catalogCount > 0 && row.conversionCount > row.catalogCount) {
+      notes.push(`catalog verification applies only to cataloged models (${row.catalogCount}/${row.conversionCount} conversion configs cataloged)`);
+    }
+    if (
+      row.catalogCount > 0
+      && row.lifecycleVerifiedCount > 0
+      && row.lifecycleVerifiedCount < row.catalogCount
+    ) {
+      notes.push(`partial verification (${row.lifecycleVerifiedCount}/${row.catalogCount} catalog models verified)`);
+    }
+    if (
+      row.catalogCount > 0
+      && row.lifecycleFailedCount > 0
+      && row.lifecycleFailedCount < row.catalogCount
+    ) {
+      notes.push(`mixed verification state (${row.lifecycleFailedCount}/${row.catalogCount} catalog models failing)`);
+    }
     const noteText = notes.length > 0 ? notes.join('; ') : '-';
-    const testedLabel = row.lifecycleTested === 'verified' && row.lifecycleTestedAt
-      ? `verified (${row.lifecycleTestedAt})`
-      : row.lifecycleTested;
+    let testedLabel = row.lifecycleTested;
+    if (
+      row.lifecycleTested === 'verified'
+      && row.lifecycleVerifiedCount > 0
+      && row.lifecycleVerifiedCount < row.catalogCount
+    ) {
+      testedLabel = `partially verified (${row.lifecycleVerifiedCount}/${row.catalogCount})`;
+    } else if (row.lifecycleTested === 'verified' && row.lifecycleTestedAt) {
+      testedLabel = `verified (${row.lifecycleTestedAt})`;
+    } else if (
+      row.lifecycleTested === 'failed'
+      && row.lifecycleFailedCount > 0
+      && row.lifecycleFailedCount < row.catalogCount
+    ) {
+      testedLabel = `partially failing (${row.lifecycleFailedCount}/${row.catalogCount})`;
+    }
     lines.push(
       `| ${row.presetId} | ${row.runtimeModelType} | ${row.runtimeStatus} | ` +
       `${summarizeList(row.conversionFiles)} | ${summarizeList(row.catalogModels)} | ` +
@@ -634,6 +673,9 @@ async function main() {
       lifecycleDemo: lifecycleForPreset.demo,
       lifecycleTested: lifecycleForPreset.tested,
       lifecycleTestedAt: lifecycleForPreset.testedAt,
+      lifecycleCatalogCount: lifecycleForPreset.catalogCount,
+      lifecycleVerifiedCount: lifecycleForPreset.verifiedCount,
+      lifecycleFailedCount: lifecycleForPreset.failedCount,
     };
     return {
       ...row,

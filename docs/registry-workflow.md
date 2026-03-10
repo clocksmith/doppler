@@ -45,7 +45,7 @@ Validation guarantees:
 
 ## Publish a hosted model to Hugging Face
 
-Publish a local artifact directory and patch the remote `Clocksmith/rdrr` registry in one workflow:
+Publish a catalog-backed artifact directory and patch the remote `Clocksmith/rdrr` registry in one workflow:
 
 ```bash
 npm run registry:publish:hf -- --model-id translategemma-4b-it-q4k-ehf16-af32
@@ -53,7 +53,7 @@ npm run registry:publish:hf -- --model-id translategemma-4b-it-q4k-ehf16-af32
 
 The publish workflow:
 1. reads the canonical local entry from `models/catalog.json`
-2. uploads the local artifact directory to Hugging Face
+2. uploads the artifact directory selected by the publish plan
 3. captures the artifact commit SHA
 4. patches `registry/catalog.json` with the pinned HF revision
 5. verifies the published manifest resolve URL
@@ -66,6 +66,8 @@ npm run registry:publish:hf -- --model-id translategemma-4b-it-q4k-ehf16-af32 --
 
 Preferred publication source:
 
+- by default the publisher uploads from `models/local/<modelId>`
+- when the canonical artifact lives on the external volume, pass `--local-dir <external-artifact-dir>` explicitly
 - publish from the canonical external-volume RDRR directory, not a scratch rebuild directory
 - ensure the external-volume artifact matches the curated manifest before publication
 - update external-volume trackers after publication

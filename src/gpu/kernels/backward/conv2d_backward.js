@@ -4,6 +4,19 @@ import { createPipeline, createUniformBufferWithView } from '../utils.js';
 import { dispatch, recordDispatch } from '../dispatch.js';
 import { getDevice } from '../../device.js';
 
+function destroyAfterSubmit(device, buffer) {
+  if (!buffer) {
+    return;
+  }
+  device.queue.onSubmittedWorkDone()
+    .then(() => {
+      buffer.destroy();
+    })
+    .catch(() => {
+      buffer.destroy();
+    });
+}
+
 export async function runConv2DBackward(input, weight, gradOutput, options = {}) {
   const { inChannels, outChannels, height, width, outHeight, outWidth, kernelH, kernelW, stride, pad, computeGradInput = true, computeGradWeight = true } = options;
 
@@ -67,7 +80,7 @@ export async function runConv2DBackward(input, weight, gradOutput, options = {})
     gradWeight = createTensor(outputBuf, 'f32', [outChannels, inChannels, kernelH, kernelW], 'conv2d_grad_weight');
   }
 
-  uniformBuffer.destroy();
+  destroyAfterSubmit(device, uniformBuffer);
   return { gradInput, gradWeight };
 }
 

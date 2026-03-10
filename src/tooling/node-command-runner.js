@@ -76,7 +76,7 @@ async function assertNodeWebGPUSupport() {
   let bootstrapProvider = null;
   if (!hasNodeWebGPUSupport()) {
     const bootstrap = await bootstrapNodeWebGPU();
-    if (bootstrap.ok && bootstrap.provider) {
+    if (bootstrap.provider) {
       bootstrapProvider = bootstrap.provider;
     }
   }
@@ -84,7 +84,7 @@ async function assertNodeWebGPUSupport() {
   if (hasNodeWebGPUSupport()) return;
   throw new Error(
     'node command: WebGPU runtime is incomplete in Node.' +
-    (bootstrapProvider ? ` Bootstrap attempted provider "${bootstrapProvider}".` : '') +
+    (bootstrapProvider ? ` Provider resolution stopped at "${bootstrapProvider}".` : '') +
     ' Run in browser relay, or run under a WebGPU-enabled Node build.'
   );
 }

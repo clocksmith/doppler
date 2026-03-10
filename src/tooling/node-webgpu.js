@@ -3,9 +3,12 @@ import { dirname, isAbsolute, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const DEFAULT_DOE_PROVIDER_CREATE_ARGS = 'enable-dawn-features=allow_unsafe_apis';
+const DOE_PROVIDER_CREATE_ARGS_ENV = 'FAWN_WEBGPU_CREATE_ARGS';
 
 function hasNavigatorGpu() {
-  return typeof globalThis.navigator !== 'undefined' && !!globalThis.navigator?.gpu;
+  return typeof globalThis.navigator !== 'undefined'
+    && !!globalThis.navigator?.gpu
+    && typeof globalThis.navigator.gpu.requestAdapter === 'function';
 }
 
 function hasGpuEnums() {
@@ -51,18 +54,12 @@ function resolveDefaultWebgpuModuleSpecifiers() {
   return ['@simulatte/webgpu', 'webgpu'];
 }
 
-function resolveWebgpuModuleSpecifiers() {
+function resolveExplicitWebgpuModuleSpecifier() {
   const fromEnv = process.env.DOPPLER_NODE_WEBGPU_MODULE;
   if (typeof fromEnv === 'string' && fromEnv.trim().length > 0) {
-    return {
-      explicit: true,
-      specifiers: [resolveCandidateModuleSpecifier(fromEnv.trim())],
-    };
+    return resolveCandidateModuleSpecifier(fromEnv.trim());
   }
-  return {
-    explicit: false,
-    specifiers: resolveDefaultWebgpuModuleSpecifiers(),
-  };
+  return null;
 }
 
 function isDoeWebgpuSpecifier(specifier) {
@@ -76,15 +73,15 @@ function isDoeWebgpuSpecifier(specifier) {
 
 async function importWithProviderOverride(specifier) {
   const shouldApplyCreateArgsDefault = isDoeWebgpuSpecifier(specifier)
-    && !(typeof process.env.FAWN_WEBGPU_CREATE_ARGS === 'string' && process.env.FAWN_WEBGPU_CREATE_ARGS.trim().length > 0);
+    && !(typeof process.env[DOE_PROVIDER_CREATE_ARGS_ENV] === 'string' && process.env[DOE_PROVIDER_CREATE_ARGS_ENV].trim().length > 0);
   if (!shouldApplyCreateArgsDefault) {
     return import(specifier);
   }
-  process.env.FAWN_WEBGPU_CREATE_ARGS = DEFAULT_DOE_PROVIDER_CREATE_ARGS;
+  process.env[DOE_PROVIDER_CREATE_ARGS_ENV] = DEFAULT_DOE_PROVIDER_CREATE_ARGS;
   try {
     return await import(specifier);
   } finally {
-    delete process.env.FAWN_WEBGPU_CREATE_ARGS;
+    delete process.env[DOE_PROVIDER_CREATE_ARGS_ENV];
   }
 }
 
@@ -237,26 +234,32 @@ function installWebgpuFromModule(mod) {
 }
 
 export async function bootstrapNodeWebGPU() {
+  const explicitSpecifier = resolveExplicitWebgpuModuleSpecifier();
+  if (explicitSpecifier) {
+    try {
+      const mod = await importWithProviderOverride(explicitSpecifier);
+      if (installWebgpuFromModule(mod)) {
+        return { ok: true, provider: explicitSpecifier };
+      }
+      return { ok: false, provider: explicitSpecifier };
+    } catch {
+      return { ok: false, provider: explicitSpecifier };
+    }
+  }
+
   if (hasNavigatorGpu() && hasGpuEnums()) {
     return { ok: true, provider: 'pre-installed' };
   }
 
-  const { specifiers, explicit } = resolveWebgpuModuleSpecifiers();
-  for (const specifier of specifiers) {
+  for (const specifier of resolveDefaultWebgpuModuleSpecifiers()) {
     let mod;
     try {
       mod = await importWithProviderOverride(specifier);
     } catch {
-      if (explicit) {
-        return { ok: false, provider: null };
-      }
       continue;
     }
     if (installWebgpuFromModule(mod)) {
       return { ok: true, provider: specifier };
-    }
-    if (explicit) {
-      return { ok: false, provider: null };
     }
   }
 

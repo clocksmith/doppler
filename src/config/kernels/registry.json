@@ -2174,7 +2174,7 @@
         }
       ],
       "baseUniforms": {
-        "size": 16,
+        "size": 32,
         "fields": [
           {
             "name": "M",
@@ -2202,7 +2202,9 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [
+            "shader-f16"
+          ]
         },
         "f16": {
           "wgsl": "matmul_gemv_residual_f16.wgsl",
@@ -2377,12 +2379,12 @@
             "offset": 20
           },
           {
-            "name": "_pad0",
+            "name": "rotary_dim",
             "type": "u32",
             "offset": 24
           },
           {
-            "name": "_pad1",
+            "name": "interleaved",
             "type": "u32",
             "offset": 28
           }
@@ -4116,7 +4118,7 @@
         }
       ],
       "baseUniforms": {
-        "size": 16,
+        "size": 32,
         "fields": [
           {
             "name": "num_tokens",

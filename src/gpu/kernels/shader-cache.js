@@ -138,8 +138,10 @@ export async function compileShader(
     code: source,
   });
 
-  // Check for compilation errors
-  const compilationInfo = await module.getCompilationInfo();
+  // Check for compilation errors (getCompilationInfo not available in all WebGPU providers)
+  const compilationInfo = typeof module.getCompilationInfo === 'function'
+    ? await module.getCompilationInfo()
+    : { messages: [] };
   if (compilationInfo.messages.length > 0) {
     for (const msg of compilationInfo.messages) {
       if (msg.type === 'error') {
