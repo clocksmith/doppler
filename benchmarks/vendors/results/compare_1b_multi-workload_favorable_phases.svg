@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="710" viewBox="0 0 1200 710" role="img" aria-labelledby="chart-title-1 chart-desc-1">
   <title id="chart-title-1">Phase-latency comparison across models on MacBook Air M3</title>
-  <desc id="chart-desc-1">Gemma 3 1b af32 + LFM 2.5 1.2b ehf16 af32 • 64 prompt tokens, 64 decode tokens, greedy</desc>
+  <desc id="chart-desc-1">Gemma 3 1b + LFM 2.5 1.2b • 64 prompt tokens, 64 decode tokens, greedy</desc>
   <defs><style>
   text { paint-order: stroke fill; stroke: #000000; stroke-width: 2px; stroke-linejoin: round; }
 </style></defs>
@@ -61,13 +61,13 @@
   </defs><rect x="14" y="14" width="1172" height="682" fill="url(#phase-canvas-glow)" stroke="none" />
 <text x="36" y="50" fill="#7c3aed" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="bold" letter-spacing="1.2" stroke="none">README BENCHMARK HERO</text>
 <text x="36" y="92" fill="#ffffff" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="32" font-weight="bold" stroke="none">Phase-latency comparison across models on MacBook Air M3</text>
-<text x="36" y="117" fill="#cbd5e1" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="14" stroke="none">Gemma 3 1b af32 + LFM 2.5 1.2b ehf16 af32 • 64 prompt tokens, 64 decode tokens, greedy</text>
+<text x="36" y="117" fill="#cbd5e1" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="14" stroke="none">Gemma 3 1b + LFM 2.5 1.2b • 64 prompt tokens, 64 decode tokens, greedy</text>
 <text x="36" y="138" fill="#cbd5e1" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="12" stroke="none">Warm-cache phase evidence across curated workloads. Lower total latency wins.</text>
 <rect x="934" y="38" width="230" height="34" rx="17" fill="url(#phase-winner-pill)" stroke="#ffffff24" stroke-width="1.1" />
 <text x="1049" y="59" text-anchor="middle" fill="#ffffff" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="bold" stroke="none">2 workloads • warm cache</text>
 <rect x="24" y="160" width="1152" height="212" rx="26" fill="url(#phase-workload-panel)" stroke="url(#phase-workload-stroke)" stroke-width="1.4" />
 <line x1="48" y1="218" x2="1152" y2="218" stroke="#ffffff14" stroke-width="1" />
-<text x="50" y="192" fill="#ffffff" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="20" font-weight="bold" stroke="none">Gemma 3 1b af32 • 64 prompt tokens, 64 decode tokens, greedy</text>
+<text x="50" y="192" fill="#ffffff" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="20" font-weight="bold" stroke="none">Gemma 3 1b • 64 prompt tokens, 64 decode tokens, greedy</text>
 <text x="50" y="211" fill="#cbd5e1" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="12" stroke="none">Phase breakdown with warm load, first-token latency, and decode time.</text>
 <rect x="910" y="178" width="242" height="28" rx="14" fill="url(#phase-winner-pill)" stroke="#9d4edd" stroke-width="1.2" />
 <text x="924" y="197" fill="#ffffff" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="bold" stroke="none">Doppler.js leads by 15.7%</text>
@@ -102,7 +102,7 @@
 <text x="1093" y="343" text-anchor="middle" fill="#ffffff" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="13">7.38 s</text>
 <rect x="24" y="400" width="1152" height="212" rx="26" fill="url(#phase-workload-panel)" stroke="url(#phase-workload-stroke)" stroke-width="1.4" />
 <line x1="48" y1="458" x2="1152" y2="458" stroke="#ffffff14" stroke-width="1" />
-<text x="50" y="432" fill="#ffffff" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="20" font-weight="bold" stroke="none">LFM 2.5 1.2b ehf16 af32 • 64 prompt tokens, 64 decode tokens, greedy</text>
+<text x="50" y="432" fill="#ffffff" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="20" font-weight="bold" stroke="none">LFM 2.5 1.2b • 64 prompt tokens, 64 decode tokens, greedy</text>
 <text x="50" y="451" fill="#cbd5e1" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="12" stroke="none">Phase breakdown with warm load, first-token latency, and decode time.</text>
 <rect x="910" y="418" width="242" height="28" rx="14" fill="url(#phase-winner-pill)" stroke="#9d4edd" stroke-width="1.2" />
 <text x="924" y="437" fill="#ffffff" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="bold" stroke="none">Doppler.js leads by 34.2%</text>
