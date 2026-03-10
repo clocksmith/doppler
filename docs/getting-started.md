@@ -56,7 +56,7 @@ Useful URLs:
 Use this when a model is already in the hosted registry.
 
 ```bash
-HF_REVISION=4efe64a914892e98be50842aeb16c3b648cc68a5
+HF_REVISION=cd6c12be0e83e92d6dbd92598a0aa94391ec7e94
 MODEL_ID=gemma-3-270m-it-q4k-ehf16-af32
 MODEL_URL="https://huggingface.co/Clocksmith/rdrr/resolve/${HF_REVISION}/models/gemma-3-270m-it-q4k-ehf16-af32"
 ```
