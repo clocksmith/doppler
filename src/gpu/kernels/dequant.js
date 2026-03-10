@@ -87,11 +87,16 @@ export async function dequantize(
   options = {}
 ) {
   const device = getDevice();
+  const capabilities = getKernelCapabilities();
   const {
     outputOffset = 0,
     outputBuffer = null,
     outputDtype = 'f32',
   } = options;
+
+  if (outputDtype === 'f16' && capabilities?.hasF16 !== true) {
+    throw new Error('[dequantize] f16 output requires shader-f16 support.');
+  }
 
   // Select kernel
   const variant = selectDequantKernel({ ...options, outputDtype });
@@ -155,7 +160,11 @@ export async function dequantizeRowwise(
   options = {}
 ) {
   const device = getDevice();
+  const capabilities = getKernelCapabilities();
   const { outputBuffer = null, outputDtype = 'f16' } = options;
+  if (outputDtype === 'f16' && capabilities?.hasF16 !== true) {
+    throw new Error('[dequantizeRowwise] f16 output requires shader-f16 support.');
+  }
   const finalOutputDtype = selectSharedRuleValue('shared', 'dtype', 'f16OrF32FromDtype', { dtype: outputDtype });
   const pipelineVariant = selectKernelRuleValue(
     'dequant',

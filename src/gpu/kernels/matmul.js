@@ -1,4 +1,4 @@
-import { getDevice } from '../device.js';
+import { getDevice, getKernelCapabilities } from '../device.js';
 import { createTensor } from '../tensor.js';
 import { getBuffer, getLayout, getWeightDtype } from '../weight-buffer.js';
 import { log, trace, isTraceEnabled } from '../../debug/index.js';
@@ -110,6 +110,7 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
   const mode = isRecord ? 'record' : 'run';
   const opLabel = isRecord ? 'recordMatmul' : 'runMatmul';
   const device = recorder?.device || getDevice();
+  const capabilities = getKernelCapabilities();
 
   const {
     alpha = 1.0,
@@ -138,6 +139,13 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
   const aDtype = toMatmulDtype(A.dtype);
   const bDtype = toMatmulDtype(weightDtype ?? options.bDtype);
   const requestedOutputDtype = options.outputDtype || A.dtype;
+
+  if (bDtype === 'f16' && capabilities?.hasF16 !== true) {
+    throw new Error(`[${opLabel}] f16 weights require shader-f16 support.`);
+  }
+  if (requestedOutputDtype === 'f16' && capabilities?.hasF16 !== true) {
+    throw new Error(`[${opLabel}] f16 output requires shader-f16 support.`);
+  }
 
   if (!isRecord && isTraceEnabled('kernels') && !weightDtype && !options.bDtype && M <= 2) {
     log.warn('Matmul', `runMatmul: B buffer dtype unknown! size=${bBuffer.size}, M=${M}, N=${N}, K=${K}. Assuming f32.`);

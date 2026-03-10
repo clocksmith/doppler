@@ -20,9 +20,12 @@ globalThis.GPUShaderStage = {
 const { createTensor } = await import('../../src/gpu/tensor.js');
 const { setDevice } = await import('../../src/gpu/device.js');
 const { hasRequiredFeatures } = await import('../../src/gpu/kernels/feature-check.js');
+const { getKernelConfig } = await import('../../src/gpu/kernels/kernel-configs.js');
+const { dequantize } = await import('../../src/gpu/kernels/dequant.js');
 const { runSoftmax, runSoftmaxTopK } = await import('../../src/gpu/kernels/softmax.js');
 const { runRoPE } = await import('../../src/gpu/kernels/rope.js');
 const { runSiLU } = await import('../../src/gpu/kernels/silu.js');
+const { runMatmul } = await import('../../src/gpu/kernels/matmul.js');
 const { destroyBufferPool, getBufferPool, releaseBuffer } = await import('../../src/memory/buffer-pool.js');
 
 class FakeBuffer {
@@ -136,6 +139,25 @@ function createExternalTensor(elementCount, dtype, label) {
 }
 
 try {
+  {
+    const biasAddConfig = getKernelConfig('bias_add', 'default');
+    assert.equal(biasAddConfig.uniforms.size, 32);
+  }
+
+  {
+    const fusedResidualConfig = getKernelConfig('fused_matmul_residual', 'default');
+    assert.equal(fusedResidualConfig.uniforms.size, 32);
+    assert.deepEqual(fusedResidualConfig.requires, ['shader-f16']);
+  }
+
+  {
+    const ropeConfig = getKernelConfig('rope', 'default');
+    assert.deepEqual(
+      ropeConfig.uniforms.fields.map((field) => field.name),
+      ['seq_len', 'num_heads', 'head_dim', 'start_pos', 'rope_base', 'rope_scale', 'rotary_dim', 'interleaved']
+    );
+  }
+
   assert.equal(hasRequiredFeatures(['subgroups-f16'], {
     hasF16: true,
     hasSubgroups: true,
@@ -162,6 +184,39 @@ try {
       }),
       /RoPE f16 kernel requires rotaryDim === headDim and interleaved === false/
     );
+  }
+
+  {
+    const device = createFakeDevice();
+    resetRuntime(device);
+    const quantized = new FakeBuffer({
+      size: 144,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
+    });
+    await assert.rejects(
+      () => dequantize(quantized, 1, { outputDtype: 'f16' }),
+      /f16 output requires shader-f16 support/
+    );
+    resetRuntime();
+  }
+
+  {
+    const device = createFakeDevice();
+    resetRuntime(device);
+    const input = createExternalTensor(8, 'f32', 'matmul_input');
+    const weights = new FakeBuffer({
+      size: 16,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
+    });
+    await assert.rejects(
+      () => runMatmul(input, weights, 1, 2, 8, {
+        bDtype: 'f16',
+        preferF16: true,
+        transposeB: true,
+      }),
+      /f16 weights require shader-f16 support/
+    );
+    resetRuntime();
   }
 
   {
