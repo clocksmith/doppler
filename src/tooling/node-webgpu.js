@@ -3,7 +3,6 @@ import { dirname, isAbsolute, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const DEFAULT_DOE_PROVIDER_CREATE_ARGS = 'enable-dawn-features=allow_unsafe_apis';
-const DOPPLER_NODE_WEBGPU_CREATE_ARGS_ENV = 'DOPPLER_NODE_WEBGPU_CREATE_ARGS';
 const DOE_PROVIDER_CREATE_ARGS_ENV = 'FAWN_WEBGPU_CREATE_ARGS';
 
 function hasNavigatorGpu() {
@@ -78,12 +77,7 @@ async function importWithProviderOverride(specifier) {
   if (!shouldApplyCreateArgsDefault) {
     return import(specifier);
   }
-  const dopplerCreateArgs = process.env[DOPPLER_NODE_WEBGPU_CREATE_ARGS_ENV];
-  process.env[DOE_PROVIDER_CREATE_ARGS_ENV] = (
-    typeof dopplerCreateArgs === 'string' && dopplerCreateArgs.trim().length > 0
-      ? dopplerCreateArgs.trim()
-      : DEFAULT_DOE_PROVIDER_CREATE_ARGS
-  );
+  process.env[DOE_PROVIDER_CREATE_ARGS_ENV] = DEFAULT_DOE_PROVIDER_CREATE_ARGS;
   try {
     return await import(specifier);
   } finally {

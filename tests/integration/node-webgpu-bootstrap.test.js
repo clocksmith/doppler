@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -9,7 +9,6 @@ import { bootstrapNodeWebGPU } from '../../src/tooling/node-webgpu.js';
 function snapshotState() {
   return {
     moduleEnv: process.env.DOPPLER_NODE_WEBGPU_MODULE,
-    dopplerCreateArgsEnv: process.env.DOPPLER_NODE_WEBGPU_CREATE_ARGS,
     fawnCreateArgsEnv: process.env.FAWN_WEBGPU_CREATE_ARGS,
     hadNavigator: typeof globalThis.navigator !== 'undefined',
     navigatorGpuDescriptor: typeof globalThis.navigator !== 'undefined'
@@ -30,11 +29,6 @@ function restoreState(snapshot) {
     delete process.env.DOPPLER_NODE_WEBGPU_MODULE;
   } else {
     process.env.DOPPLER_NODE_WEBGPU_MODULE = snapshot.moduleEnv;
-  }
-  if (snapshot.dopplerCreateArgsEnv === undefined) {
-    delete process.env.DOPPLER_NODE_WEBGPU_CREATE_ARGS;
-  } else {
-    process.env.DOPPLER_NODE_WEBGPU_CREATE_ARGS = snapshot.dopplerCreateArgsEnv;
   }
   if (snapshot.fawnCreateArgsEnv === undefined) {
     delete process.env.FAWN_WEBGPU_CREATE_ARGS;
@@ -220,38 +214,6 @@ export const GPUShaderStage = { COMPUTE: 2 };
     await globalThis.navigator.gpu.requestAdapter();
     assert.equal(globalThis.GPUBufferUsage.COPY_SRC, 2);
     assert.equal(globalThis.GPUShaderStage.COMPUTE, 2);
-  } finally {
-    rmSync(tempDir, { recursive: true, force: true });
-    restoreState(snapshot);
-  }
-}
-
-{
-  const snapshot = snapshotState();
-  const tempDir = mkdtempSync(path.join(tmpdir(), 'doppler-webgpu-doe-create-args-'));
-  try {
-    clearRuntime();
-    delete process.env.FAWN_WEBGPU_CREATE_ARGS;
-    process.env.DOPPLER_NODE_WEBGPU_CREATE_ARGS = 'enable-dawn-features=test_override';
-
-    const providerDir = path.join(tempDir, '@simulatte', 'webgpu');
-    mkdirSync(providerDir, { recursive: true });
-    const modulePath = path.join(providerDir, 'index.mjs');
-    writeFileSync(modulePath, `
-export const gpu = { async requestAdapter() { return null; } };
-export const globals = {
-  __dopplerNodeWebgpuMarkerA: process.env.FAWN_WEBGPU_CREATE_ARGS || null,
-};
-export const GPUBufferUsage = { COPY_SRC: 11 };
-export const GPUShaderStage = { COMPUTE: 11 };
-`, 'utf8');
-    process.env.DOPPLER_NODE_WEBGPU_MODULE = modulePath;
-
-    const ready = await bootstrapNodeWebGPU();
-    assert.equal(ready.ok, true);
-    assert.equal(ready.provider?.includes('@simulatte/webgpu'), true);
-    assert.equal(globalThis.__dopplerNodeWebgpuMarkerA, 'enable-dawn-features=test_override');
-    assert.equal(process.env.FAWN_WEBGPU_CREATE_ARGS, undefined);
   } finally {
     rmSync(tempDir, { recursive: true, force: true });
     restoreState(snapshot);
