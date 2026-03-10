@@ -1486,7 +1486,7 @@ function renderMultiRadar(entries, perRadarHeight, title, subtitle, metricIds) {
   return svgWrap(totalWidth, height, body, title, subtitle);
 }
 
-const DTYPE_SEGMENT = /^(?:[weh]?(?:f\d+a?|q\d+[a-z]*)|bf16|fp16|fp32|int[48])$/i;
+const DTYPE_SEGMENT = /^(?:[a-z]*f\d+a?|[a-z]*q\d+[a-z]*|bf16|fp16|fp32|int[48])$/i;
 
 function prettifyModelId(raw, { stripDtype = false } = {}) {
   if (!raw) return 'unknown';
@@ -1577,9 +1577,8 @@ function buildTitle() {
 }
 
 function buildModelLabel(report) {
-  const hasDtypeFields = report.dopplerDtype != null || report.transformersjsDtype != null;
   const dopplerModelId = report.dopplerModelId || report.modelId || EMPTY_STRING;
-  const dopplerName = prettifyModelId(dopplerModelId, { stripDtype: hasDtypeFields });
+  const dopplerName = prettifyModelId(dopplerModelId, { stripDtype: true });
   return dopplerName;
 }
 
