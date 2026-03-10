@@ -20,11 +20,13 @@ struct Uniforms {
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     let dispatch_stride = max(u._pad0, 1u);
-    let row = gid.y;
-    let col = gid.x + row * dispatch_stride;
-    if (row >= u.rows || col >= u.cols) {
+    let linear_idx = gid.y * dispatch_stride + gid.x;
+    let total = u.rows * u.cols;
+    if (linear_idx >= total) {
         return;
     }
+    let row = linear_idx / u.cols;
+    let col = linear_idx % u.cols;
     let idx = row * u.cols + col;
     let out_idx = col * u.rows + row;
     output[out_idx] = input[idx];

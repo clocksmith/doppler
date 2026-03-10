@@ -37,8 +37,13 @@ Node runner entrypoint: `runNodeCommand()`.
 CLI entrypoint: `tools/doppler-cli.js`.
 
 Node WebGPU provider resolution order:
-`DOPPLER_NODE_WEBGPU_MODULE` (explicit override) -> `@simulatte/webgpu` -> `webgpu`.
-If none resolve, fail explicitly.
+- `DOPPLER_NODE_WEBGPU_MODULE` if set
+- otherwise pre-installed WebGPU when `navigator.gpu.requestAdapter` and the core GPU enums are present
+- otherwise `@simulatte/webgpu`
+- otherwise `webgpu`
+- otherwise fail explicitly
+
+`DOPPLER_NODE_WEBGPU_MODULE` is fail-closed: when it is set, Doppler does not continue to later providers.
 
 ## Runtime patching
 

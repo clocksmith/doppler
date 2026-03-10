@@ -129,6 +129,16 @@ function isFiniteArray(arr) {
   return true;
 }
 
+function isUnsupportedCapabilityError(error) {
+  const message = error?.message || String(error || '');
+  return (
+    message.includes('requires features: shader-f16')
+    || message.includes('shader-f16 support')
+    || message.includes('requires unsupported GPU features')
+    || message.includes('extension \'f16\' is not allowed in the current environment')
+  );
+}
+
 function transposeRef(input, rows, cols) {
   const output = new Float32Array(rows * cols);
   for (let r = 0; r < rows; r++) {
@@ -351,9 +361,26 @@ export async function runKernelSuite(harness) {
       
       const expected = conv2dBackwardRef(input, weight, gradOutput, options);
       const actual = await h.runConv2DBackward(null, input, weight, gradOutput, options);
+      const conv2dBackwardTolerance = { rtol: 1e-5, atol: 1e-6 };
       
-      const inPass = h.compareArrays(expected.gradInput, actual.gradInput, h.KERNEL_TOLERANCES.residual).passed;
-      const wPass = h.compareArrays(expected.gradWeight, actual.gradWeight, h.KERNEL_TOLERANCES.residual).passed;
+      const inputResult = h.compareArrays(expected.gradInput, actual.gradInput, conv2dBackwardTolerance);
+      const weightResult = h.compareArrays(expected.gradWeight, actual.gradWeight, conv2dBackwardTolerance);
+      const inPass = inputResult.passed;
+      const wPass = weightResult.passed;
+      if (!inPass || !wPass) {
+        console.error('[KernelTests] conv2d_backward mismatch', JSON.stringify({
+          inPass,
+          wPass,
+          inputResult: {
+            ...inputResult,
+            firstMismatches: inputResult.firstMismatches,
+          },
+          weightResult: {
+            ...weightResult,
+            firstMismatches: weightResult.firstMismatches,
+          },
+        }));
+      }
       return inPass && wPass;
     },
   ]);
@@ -1384,6 +1411,11 @@ export async function runKernelSuite(harness) {
       const passed = await fn();
       results.push({ name, passed, duration: Math.round(performance.now() - start) });
     } catch (error) {
+      if (isUnsupportedCapabilityError(error)) {
+        console.warn(`[KernelTests] ${name} skipped: ${error.message || String(error)}`);
+        results.push({ name, passed: false, skipped: true, duration: Math.round(performance.now() - start) });
+        continue;
+      }
       console.error(`[KernelTests] ${name} failed:`, error);
       results.push({ name, passed: false, duration: Math.round(performance.now() - start) });
     }

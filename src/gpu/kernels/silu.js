@@ -8,6 +8,19 @@ import { dispatch, recordDispatch } from './dispatch.js';
 import { getPipelineFast, createUniformBufferWithView } from './utils.js';
 import { selectRuleValue } from './rule-registry.js';
 
+function destroyAfterSubmit(device, buffer) {
+  if (!buffer) {
+    return;
+  }
+  device.queue.onSubmittedWorkDone()
+    .then(() => {
+      buffer.destroy();
+    })
+    .catch(() => {
+      buffer.destroy();
+    });
+}
+
 function canUseF16(input) {
   return input.dtype === 'f16';
 }
@@ -136,7 +149,7 @@ export async function runSiLU(
     cleanupRunResources(null, ownedOutput);
     throw error;
   } finally {
-    uniformBuffer.destroy();
+    destroyAfterSubmit(device, uniformBuffer);
   }
 }
 
@@ -195,7 +208,7 @@ export async function runSwiGLURowsplitBias(
     cleanupRunResources(null, ownedOutput);
     throw error;
   } finally {
-    uniformBuffer.destroy();
+    destroyAfterSubmit(device, uniformBuffer);
   }
 }
 
