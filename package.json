@@ -154,6 +154,7 @@
     "src",
     "src/gpu/kernels/*.wgsl",
     "README.md",
+    "CHANGELOG.md",
     "LICENSE",
     "NOTICE",
     "BRANDING.md",
