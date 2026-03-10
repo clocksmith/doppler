@@ -21,6 +21,11 @@ import { DopplerCapabilities } from './types.js';
 import { GB, HEADER_READ_SIZE } from '../../config/schema/index.js';
 import { resolveBridgeSourceRuntimeBundle } from './source-runtime.js';
 import { getRuntimeConfig } from '../../config/runtime.js';
+import {
+  buildSourceArtifactFingerprint,
+  createStoredSourceArtifactContext,
+  verifyStoredSourceArtifact,
+} from '../../storage/source-artifact-store.js';
 
 let pipeline = null;
 let currentModelId = null;
@@ -35,6 +40,9 @@ function manifestsDiffer(localManifest, remoteManifest) {
   const localShards = Array.isArray(localManifest.shards) ? localManifest.shards : [];
   const remoteShards = Array.isArray(remoteManifest.shards) ? remoteManifest.shards : [];
   if (localShards.length !== remoteShards.length) return true;
+  if (buildSourceArtifactFingerprint(localManifest) !== buildSourceArtifactFingerprint(remoteManifest)) {
+    return true;
+  }
 
   for (let i = 0; i < localShards.length; i++) {
     const local = localShards[i];
@@ -280,6 +288,24 @@ export async function loadModel(modelId, modelUrl = null, onProgress = null, loc
           manifest = parseManifest(manifestJson);
           log.info('DopplerProvider', `Loaded manifest via bridge: ${manifest.modelId}`);
           if (onProgress) onProgress({ stage: 'manifest', message: 'Manifest loaded via bridge' });
+          const persistedSourceBundle = await resolveBridgeSourceRuntimeBundle({
+            bridgeClient,
+            localPath,
+            modelId,
+            manifest,
+            verifyHashes: true,
+            onProgress: (progress) => onProgress?.(progress),
+          });
+          if (persistedSourceBundle) {
+            bridgeStorageContext = persistedSourceBundle.storageContext;
+            bridgeSourceMode = true;
+            if (onProgress) {
+              onProgress({
+                stage: 'manifest',
+                message: `Direct-source manifest ready (${persistedSourceBundle.sourceKind} artifact mode)`,
+              });
+            }
+          }
         } catch (manifestError) {
           log.warn(
             'DopplerProvider',
@@ -289,6 +315,7 @@ export async function loadModel(modelId, modelUrl = null, onProgress = null, loc
             bridgeClient,
             localPath,
             modelId,
+            verifyHashes: true,
             onProgress: (progress) => onProgress?.(progress),
           });
           if (!sourceBundle) {
@@ -323,10 +350,22 @@ export async function loadModel(modelId, modelUrl = null, onProgress = null, loc
 
       let integrity = { valid: false, missingShards: [] };
       if (manifest) {
-        integrity = await verifyIntegrity({ checkHashes: false }).catch(() => ({
-          valid: false,
-          missingShards: [],
-        }));
+        const sourceArtifactFingerprint = buildSourceArtifactFingerprint(manifest);
+        if (sourceArtifactFingerprint) {
+          const sourceIntegrity = await verifyStoredSourceArtifact(manifest, { checkHashes: false }).catch(() => ({
+            valid: false,
+            missingFiles: [],
+          }));
+          integrity = {
+            valid: sourceIntegrity.valid,
+            missingShards: Array.isArray(sourceIntegrity.missingFiles) ? sourceIntegrity.missingFiles : [],
+          };
+        } else {
+          integrity = await verifyIntegrity({ checkHashes: false }).catch(() => ({
+            valid: false,
+            missingShards: [],
+          }));
+        }
       }
 
       if (integrity.valid && manifest && modelUrl) {
@@ -419,6 +458,9 @@ export async function loadModel(modelId, modelUrl = null, onProgress = null, loc
     const memCaps = await getMemoryCapabilities();
 
     let storageContext = bridgeStorageContext;
+    if (!storageContext && buildSourceArtifactFingerprint(manifest)) {
+      storageContext = createStoredSourceArtifactContext(manifest, { verifyHashes: true });
+    }
     if (!storageContext && useBridge && DopplerCapabilities.bridgeClient && DopplerCapabilities.localPath) {
       const bridgeClient = DopplerCapabilities.bridgeClient;
       const basePath = DopplerCapabilities.localPath.endsWith('/')

@@ -20,6 +20,7 @@ export {
   writeShard,
   createShardWriter,
   createConversionShardWriter,
+  createFileWriter,
   loadShard,
   loadShardRange,
   streamShardRange,
@@ -32,6 +33,7 @@ export {
   listModels,
   listFilesInStore,
   loadFileFromStore,
+  loadFileRangeFromStore,
   streamFileFromStore,
   getModelInfo,
   modelExists,
@@ -46,6 +48,7 @@ export {
   saveAuxFile,
   loadAuxFile,
   loadAuxText,
+  deleteFileFromStore,
   cleanup,
 } from './shard-manager.js';
 export type {

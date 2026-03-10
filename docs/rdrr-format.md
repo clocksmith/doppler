@@ -11,6 +11,9 @@ Related specs and contracts:
 - [conversion-runtime-contract.md](conversion-runtime-contract.md) for conversion-vs-runtime ownership
 - [getting-started.md](getting-started.md) for first-run convert/verify flow
 
+Non-RDRR note:
+- Materialized direct-source artifacts use `manifest.json` plus raw SafeTensors/GGUF assets and declare `metadata.sourceRuntime.mode="direct-source"`. They are not RDRR shards and use their own digest/path contract.
+
 ## Core structure
 
 An RDRR artifact set contains:

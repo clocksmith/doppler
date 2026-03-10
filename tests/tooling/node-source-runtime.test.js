@@ -39,8 +39,8 @@ function buildSafetensorsBytes() {
 const fixtureDir = mkdtempSync(path.join(tmpdir(), 'doppler-node-source-runtime-'));
 try {
   writeFileSync(path.join(fixtureDir, 'config.json'), JSON.stringify({
-    architectures: ['Gemma2ForCausalLM'],
-    model_type: 'gemma2',
+    architectures: ['Gemma3ForCausalLM'],
+    model_type: 'gemma3_text',
     num_hidden_layers: 1,
     hidden_size: 2,
     num_attention_heads: 1,
@@ -71,14 +71,16 @@ try {
   const bundle = await resolveNodeSourceRuntimeBundle({
     inputPath: fixtureDir,
     modelId: 'node-source-runtime-test',
+    verifyHashes: true,
   });
   assert.ok(bundle);
   assert.equal(bundle.sourceKind, 'safetensors');
   assert.equal(bundle.manifest.modelId, 'node-source-runtime-test');
-  assert.equal(bundle.storageContext.verifyHashes, false);
+  assert.equal(bundle.storageContext.verifyHashes, true);
+  assert.equal(bundle.storageContext.loadShardRange, null);
 
-  const range = await bundle.storageContext.loadShardRange(0, 0, 8);
-  assert.equal(new Uint8Array(range).byteLength, 8);
+  const shard = await bundle.storageContext.loadShard(0);
+  assert.ok(new Uint8Array(shard).byteLength > 0);
 
   const tokenizer = await bundle.storageContext.loadTokenizerJson();
   assert.equal(typeof tokenizer, 'object');
@@ -87,4 +89,3 @@ try {
 }
 
 console.log('node-source-runtime.test: ok');
-

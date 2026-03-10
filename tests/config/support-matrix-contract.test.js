@@ -17,6 +17,9 @@ import { assertManifestArtifactIntegrity } from '../helpers/local-model-fixture.
     models: [
       {
         modelId: 'gemma-3-270m-it-q4k-ehf16-af32',
+        artifact: {
+          format: 'rdrr',
+        },
         baseUrl: './local/gemma-3-270m-it-q4k-ehf16-af32',
         hf: {
           repoId: 'Clocksmith/rdrr',
@@ -44,6 +47,9 @@ import { assertManifestArtifactIntegrity } from '../helpers/local-model-fixture.
     models: [
       {
         modelId: 'broken-model',
+        artifact: {
+          format: 'zip',
+        },
         baseUrl: null,
         hf: {
           repoId: 'Clocksmith/rdrr',
@@ -63,6 +69,7 @@ import { assertManifestArtifactIntegrity } from '../helpers/local-model-fixture.
       },
       {
         modelId: 'broken-model',
+        artifact: {},
         baseUrl: null,
         lifecycle: {
           status: {
@@ -73,12 +80,14 @@ import { assertManifestArtifactIntegrity } from '../helpers/local-model-fixture.
     ],
   }), [
     'catalog updatedAt must be a non-empty string',
+    'broken-model: artifact.format must be "rdrr" or "direct-source"',
     'broken-model: lifecycle.availability.hf=true requires hf.revision',
     'broken-model: lifecycle.availability.hf=true requires hf.path',
     'broken-model: lifecycle.availability.curated=true requires a repo-local baseUrl',
     'broken-model: lifecycle.availability.local=true requires a repo-local baseUrl',
     'broken-model: lifecycle.status.demo=curated requires a repo-local baseUrl',
     'duplicate catalog modelId: broken-model',
+    'broken-model: artifact.format is required',
     'broken-model: lifecycle.status.demo=local requires a local baseUrl',
   ]);
 }
