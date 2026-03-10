@@ -198,7 +198,7 @@
   "harnesses": {
     "doppler": {
       "source": "benchmarks/vendors/harnesses/doppler.json",
-      "sourceSha256": "6f47adbca0e141903bc0931a0e58e2e549651601404457647dbc668f0d977c31",
+      "sourceSha256": "defcf19e1fda695b4af6b9e92790eea24b39544f611fe257b87097b50a6fce34",
       "requiredMetrics": [
         "decodeTokensPerSec",
         "promptTokensPerSecToFirstToken",
@@ -214,7 +214,7 @@
     },
     "transformersjs": {
       "source": "benchmarks/vendors/harnesses/transformersjs.json",
-      "sourceSha256": "68ccd5d670484eb7dee741a42caff8c4c13c20ddb09dce1a71291f2ab8c86058",
+      "sourceSha256": "d4b4a4065403ade86bfd3636618bd9fd7e390a382e622b78b545c310a5f0ac52",
       "requiredMetrics": [
         "decodeTokensPerSec",
         "promptTokensPerSecToFirstToken",

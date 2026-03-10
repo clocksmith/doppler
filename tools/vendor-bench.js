@@ -19,6 +19,7 @@ const COMPARE_CONFIG_PATH = path.join(REGISTRY_DIR, 'compare-engines.config.json
 const COMPARE_METRIC_CONTRACT_PATH = path.join(REGISTRY_DIR, 'compare-metrics.json');
 const BENCHMARK_POLICY_PATH = path.join(REGISTRY_DIR, 'benchmark-policy.json');
 const MODEL_CATALOG_PATH = path.join(ROOT_DIR, 'models', 'catalog.json');
+const PACKAGE_JSON_PATH = path.join(ROOT_DIR, 'package.json');
 const RESULTS_DIR = path.join(REGISTRY_DIR, 'results');
 const FIXTURES_DIR = path.join(REGISTRY_DIR, 'fixtures');
 const SCHEMA_DIR = path.join(REGISTRY_DIR, 'schema');
@@ -1405,6 +1406,23 @@ function normalizeCatalogModes(rawMode, rawModes) {
   return [...tokens].sort();
 }
 
+function normalizeCatalogTestedState(value) {
+  const normalized = asNonEmptyString(value)?.toLowerCase() || null;
+  if (normalized === 'verified' || normalized === 'pass' || normalized === 'passed') return 'verified';
+  if (normalized === 'failed' || normalized === 'fail' || normalized === 'failing') return 'failed';
+  return 'unknown';
+}
+
+function isCatalogEntryReleaseClaimable(entry) {
+  if (!entry || typeof entry !== 'object' || Array.isArray(entry)) return false;
+  const lifecycle = entry.lifecycle && typeof entry.lifecycle === 'object' ? entry.lifecycle : {};
+  const status = lifecycle.status && typeof lifecycle.status === 'object' ? lifecycle.status : {};
+  const tested = lifecycle.tested && typeof lifecycle.tested === 'object' ? lifecycle.tested : {};
+  const runtimeStatus = asNonEmptyString(status.runtime)?.toLowerCase() || 'unknown';
+  const testedStatus = normalizeCatalogTestedState(tested.result ?? status.tested);
+  return runtimeStatus === 'active' && testedStatus === 'verified';
+}
+
 async function loadCompareConfigBundle() {
   const compareConfig = await readJson(COMPARE_CONFIG_PATH);
   await assertMatchesSchema(compareConfig, COMPARE_CONFIG_SCHEMA_PATH, 'compare-engines.config.json');
@@ -1449,6 +1467,7 @@ async function loadModelCatalogBundle() {
       recommended: entry.recommended === true,
       sortOrder: Number.isFinite(Number(entry.sortOrder)) ? Number(entry.sortOrder) : null,
       modes: normalizeCatalogModes(entry.mode, entry.modes),
+      releaseClaimable: isCatalogEntryReleaseClaimable(entry),
     });
   }
   return {
@@ -2467,6 +2486,13 @@ async function doMatrix(flags, timestamp = null) {
   }
   const committedCharts = await listCommittedCharts();
   const releaseMetadata = resolveGitReleaseMetadata();
+  const packageJson = await readJson(PACKAGE_JSON_PATH);
+  const releaseVersion = asNonEmptyStringValue(packageJson?.version);
+  const releaseClaimableModelIds = new Set(
+    [...catalog.byModelId.values()]
+      .filter((entry) => entry.releaseClaimable === true)
+      .map((entry) => entry.modelId)
+  );
 
   const benchFeatureIds = capabilities.featureCatalog.bench.map((entry) => entry.id);
   const profileFeatureIds = capabilities.featureCatalog.profile.map((entry) => entry.id);
@@ -2505,6 +2531,7 @@ async function doMatrix(flags, timestamp = null) {
   const modelCoverage = [];
   for (const profile of compareConfig.modelProfiles) {
     const dopplerModelId = profile.dopplerModelId;
+    if (!releaseClaimableModelIds.has(dopplerModelId)) continue;
     coveredModelIds.add(dopplerModelId);
     const catalogEntry = catalog.byModelId.get(dopplerModelId) || null;
     modelCoverage.push({
@@ -2521,7 +2548,7 @@ async function doMatrix(flags, timestamp = null) {
     });
   }
   for (const catalogEntry of catalog.byModelId.values()) {
-    if (coveredModelIds.has(catalogEntry.modelId)) continue;
+    if (!catalogEntry.releaseClaimable || coveredModelIds.has(catalogEntry.modelId)) continue;
     modelCoverage.push({
       dopplerModelId: catalogEntry.modelId,
       dopplerModelBaseDir: null,
@@ -2536,6 +2563,12 @@ async function doMatrix(flags, timestamp = null) {
     });
   }
   modelCoverage.sort((a, b) => a.dopplerModelId.localeCompare(b.dopplerModelId));
+  const coveredModelIdSet = new Set(modelCoverage.map((entry) => entry.dopplerModelId));
+  const releaseCompareResults = compareResults.filter((entry) => {
+    const modelId = asNonEmptyString(entry?.dopplerModelId);
+    return modelId != null && coveredModelIdSet.has(modelId);
+  });
+  const latestReleaseCompareResult = selectLatestCompareResult(releaseCompareResults);
 
   const normalizedWorkloads = workloads.workloads.map((workload) => ({
     id: workload.id,
@@ -2582,9 +2615,9 @@ async function doMatrix(flags, timestamp = null) {
     generatedAt: toIsoTimestamp(timestamp),
     release: {
       channel: 'main-snapshot',
-      version: null,
+      version: releaseVersion,
       commitSha: releaseMetadata.commitSha,
-      dirty: null,
+      dirty: releaseMetadata.dirty,
     },
     sources: {
       ...sourceHashes,
@@ -2596,14 +2629,14 @@ async function doMatrix(flags, timestamp = null) {
       catalogModelCount: catalog.byModelId.size,
       workloadCount: normalizedWorkloads.length,
       committedChartCount: committedCharts.length,
-      hasLatestCompareResult: latestCompareResult != null,
+      hasLatestCompareResult: latestReleaseCompareResult != null,
     },
     targets,
     modelCoverage,
     workloads: normalizedWorkloads,
     evidence: {
       committedCharts,
-      latestCompareResult,
+      latestCompareResult: latestReleaseCompareResult,
     },
   };
 
@@ -2619,7 +2652,7 @@ async function doMatrix(flags, timestamp = null) {
   await fs.mkdir(path.dirname(markdownPath), { recursive: true });
   await fs.writeFile(markdownPath, renderReleaseMatrixMarkdown(matrix, {
     markdownPath,
-    compareResults,
+    compareResults: releaseCompareResults,
   }), 'utf8');
   console.log(outputPath);
   console.log(markdownPath);

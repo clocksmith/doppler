@@ -28,6 +28,7 @@ export {
   RDRR_VERSION,
   ConvertStage,
   sanitizeModelId,
+  resolveBundledTokenizerVocabSize,
   formatBytes,
   shouldQuantize,
   normalizeStorageQuant,

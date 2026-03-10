@@ -84,6 +84,30 @@ import { getKernelPathContractArtifact } from '../../src/config/kernel-path-load
 
 {
   const artifact = buildKernelPathContractArtifact({
+    registryId: 'f16-aware-auto-select',
+    entries: [
+      { id: 'primary', file: 'primary.json' },
+      { id: 'fallback', file: 'fallback.json' },
+    ],
+    autoSelectRules: [
+      {
+        match: {
+          allowCapabilityAutoSelection: true,
+          hasF16: false,
+          kernelPathRef: 'primary',
+        },
+        value: 'fallback',
+      },
+      { match: {}, value: { context: 'kernelPathRef' } },
+    ],
+  });
+
+  assert.equal(artifact.ok, true);
+  assert.equal(artifact.stats.autoSelectRules, 2);
+}
+
+{
+  const artifact = buildKernelPathContractArtifact({
     registryId: 'broken-auto-select',
     entries: [
       { id: 'primary', file: 'primary.json' },

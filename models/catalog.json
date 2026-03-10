@@ -24,6 +24,7 @@
         "path": "models/gemma-3-270m-it-q4k-ehf16-af32"
       },
       "baseUrl": "./local/gemma-3-270m-it-q4k-ehf16-af32",
+      "quickstart": true,
       "sizeBytes": 418512553,
       "recommended": false,
       "sortOrder": 10,
@@ -71,6 +72,7 @@
         "path": "models/google-embeddinggemma-300m-q4k-ehf16-af32"
       },
       "baseUrl": "./local/google-embeddinggemma-300m-q4k-ehf16-af32",
+      "quickstart": true,
       "sizeBytes": 480562497,
       "recommended": false,
       "sortOrder": 11,

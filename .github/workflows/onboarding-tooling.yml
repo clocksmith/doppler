@@ -21,7 +21,10 @@ on:
       - 'src/tooling/command-api.js'
       - 'src/tooling/browser-command-runner.js'
       - 'src/tooling/node-command-runner.js'
+      - 'src/client/doppler-registry.js'
+      - 'src/client/doppler-registry.json'
       - 'tools/doppler-cli.js'
+      - 'tools/sync-quickstart-registry.js'
       - 'tools/policies/agent-parity-policy.json'
       - 'tools/verify-agent-parity.js'
       - 'tools/verify-agent-freshness.js'
@@ -57,7 +60,10 @@ on:
       - 'src/tooling/command-api.js'
       - 'src/tooling/browser-command-runner.js'
       - 'src/tooling/node-command-runner.js'
+      - 'src/client/doppler-registry.js'
+      - 'src/client/doppler-registry.json'
       - 'tools/doppler-cli.js'
+      - 'tools/sync-quickstart-registry.js'
       - 'tools/policies/agent-parity-policy.json'
       - 'tools/verify-agent-parity.js'
       - 'tools/verify-agent-freshness.js'
@@ -96,6 +102,9 @@ jobs:
 
       - name: Run model support matrix check
         run: npm run support:matrix:check
+
+      - name: Run quickstart registry sync check
+        run: npm run quickstart:check
 
       - name: Run strict onboarding validator
         run: npm run onboarding:check:strict

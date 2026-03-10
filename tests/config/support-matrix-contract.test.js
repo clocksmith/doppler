@@ -9,6 +9,7 @@ import {
   resolveRowStatus,
   validateCatalogMatrixInputs,
 } from '../../tools/sync-model-support-matrix.js';
+import { assertManifestArtifactIntegrity } from '../helpers/local-model-fixture.js';
 
 {
   assert.deepEqual(validateCatalogMatrixInputs({
@@ -108,14 +109,8 @@ import {
       continue;
     }
     const shards = Array.isArray(manifest?.shards) ? manifest.shards : [];
-    for (const shard of shards) {
-      const shardFile = typeof shard?.filename === 'string' ? shard.filename.trim() : '';
-      assert.ok(shardFile, `${entry.modelId}: shard filename must be explicit`);
-      await assert.doesNotReject(
-        fs.access(path.join(artifactDir, shardFile)),
-        `${entry.modelId}: missing shard ${shardFile} under ${baseUrl}`
-      );
-    }
+    assert.ok(shards.length > 0, `${entry.modelId}: local artifact must define at least one shard`);
+    assertManifestArtifactIntegrity(manifestPath);
   }
 }
 

@@ -53,6 +53,7 @@ const canonicalPresetPaths = [
   'src/config/presets/runtime/kernels/gemma2-q4k-dequant-f16a.json',
   'src/config/presets/runtime/kernels/gemma2-q4k-dequant-f32a-nosubgroups.json',
   'src/config/presets/runtime/kernels/gemma2-q4k-fused-f32a.json',
+  'src/config/presets/runtime/kernels/embeddinggemma-q4k-dequant-f32a.json',
 ];
 
 const deprecatedAliasPresetPaths = [

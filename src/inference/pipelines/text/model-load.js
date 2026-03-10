@@ -313,7 +313,7 @@ function normalizeKernelPathSourceHint(value) {
 function resolveKernelPathSource(runtimeConfigKernelPath, runtimeKernelPathSourceHint, modelKernelPath) {
   if (runtimeConfigKernelPath) {
     const sourceHint = normalizeKernelPathSourceHint(runtimeKernelPathSourceHint);
-    if (sourceHint === 'execution-v0') return 'execution-v0';
+    if (sourceHint !== 'none') return sourceHint;
     return 'config';
   }
   if (modelKernelPath) return 'model';

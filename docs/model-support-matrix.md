@@ -31,9 +31,7 @@ None right now.
 
 ### 4. Quickstart-Supported Only
 
-| Model ID | Source | Notes |
-| --- | --- | --- |
-| gemma-3-1b-it-q4k-ehf16-af32 | quickstart registry | Downloadable through the quickstart path, but not yet represented in models/catalog.json. |
+None right now.
 
 ### 5. Everything Else
 

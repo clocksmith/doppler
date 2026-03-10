@@ -17,7 +17,7 @@ import { doppler } from '@simulatte/doppler';
 
 const model = await doppler.load('gemma3-270m');
 
-for await (const token of model.generate('Hello, world')) {
+for await (const token of model.generate('Describe WebGPU briefly')) {
   process.stdout.write(token);
 }
 ```

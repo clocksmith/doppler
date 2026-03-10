@@ -157,6 +157,7 @@ export type BuiltinKernelPathId =
   | 'gemma2-f16-f32a'         // Gemma 2 F16 weights, F32 activations
   | 'gemma3-f16-fused-f16a-online' // Gemma 3 F16 fused FFN online path
   | 'gemma3-f16-fused-f32a-online' // Gemma 3 F16 fused FFN online path with F32 activations
+  | 'gemma3-f16-fused-f32a-online-streamingprefill' // Gemma 3 F16 fused FFN online path with streaming prefill attention
   | 'gemma3-q4k-dequant-f16a-online' // Gemma 3 Q4K dequant online path (F16 activations)
   | 'gemma3-q4k-dequant-f32a-online' // Gemma 3 Q4K dequant online path with F32 activations
   | 'gemma3-q4k-dequant-f32a-nosubgroups' // Gemma 3 Q4K dequant path with no subgroup requirement

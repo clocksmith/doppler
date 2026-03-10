@@ -389,6 +389,7 @@ export async function loadFloat(shardData, location, name, config) {
     const isMatmulWeight = shouldDequantizeToF16(location);
 
     if (isMatmulWeight) {
+      ownsBuffer = false;
       return {
         data: createWeightBuffer(buffer, dtype, layout, location.shape, name),
         allocatedBuffers: [buffer],
@@ -397,6 +398,7 @@ export async function loadFloat(shardData, location, name, config) {
 
     if (dtype === 'f16') {
       if (config.allowF32UpcastNonMatmul === false) {
+        ownsBuffer = false;
         return {
           data: applyBufferLayout(buffer, location, 'f16'),
           allocatedBuffers: [buffer],
@@ -417,6 +419,7 @@ export async function loadFloat(shardData, location, name, config) {
       };
     }
 
+    ownsBuffer = false;
     return {
       data: applyBufferLayout(buffer, location, dtype),
       allocatedBuffers: [buffer],

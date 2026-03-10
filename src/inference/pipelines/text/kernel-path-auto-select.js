@@ -78,6 +78,7 @@ export function resolveCapabilityKernelPathRef(configuredKernelPathRef, kernelPa
 
   const normalizedPolicy = resolveKernelPathPolicy(kernelPathPolicy);
   const hasSubgroups = capabilities?.hasSubgroups === true;
+  const hasF16 = capabilities?.hasF16 === true;
   const normalizedSource = normalizeKernelPathSource(kernelPathSource);
   const allowCapabilityAutoSelection = normalizedPolicy.mode === 'capability-aware'
     && normalizedPolicy.sourceScope.includes(normalizedSource);
@@ -85,6 +86,7 @@ export function resolveCapabilityKernelPathRef(configuredKernelPathRef, kernelPa
   return selectRuleValue('inference', 'kernelPath', 'autoSelect', {
     kernelPathRef: configuredKernelPathRef,
     hasSubgroups,
+    hasF16,
     allowCapabilityAutoSelection,
   });
 }

@@ -3,7 +3,7 @@
 import { downloadModel } from './downloader.js';
 import {
   runPreflightChecks,
-  GEMMA_1B_REQUIREMENTS,
+  MODEL_REQUIREMENTS,
 } from './preflight.js';
 import { formatBytes } from './quota.js';
 import { getCdnBasePath } from './download-types.js';
@@ -53,11 +53,17 @@ export function getCDNBaseUrl() {
 
 
 export const QUICKSTART_MODELS = {
-  'gemma-3-1b-it-q4k-ehf16-af32': {
-    modelId: 'gemma-3-1b-it-q4k-ehf16-af32',
-    displayName: 'Gemma 3 1B IT (Q4_K_M)',
+  'gemma-3-270m-it-q4k-ehf16-af32': {
+    modelId: 'gemma-3-270m-it-q4k-ehf16-af32',
+    displayName: 'Gemma 3 270M IT (Q4K)',
     baseUrl: null,
-    requirements: GEMMA_1B_REQUIREMENTS,
+    requirements: MODEL_REQUIREMENTS['gemma-3-270m-it-q4k-ehf16-af32'],
+  },
+  'google-embeddinggemma-300m-q4k-ehf16-af32': {
+    modelId: 'google-embeddinggemma-300m-q4k-ehf16-af32',
+    displayName: 'EmbeddingGemma 300M (Q4K)',
+    baseUrl: null,
+    requirements: MODEL_REQUIREMENTS['google-embeddinggemma-300m-q4k-ehf16-af32'],
   },
 };
 
