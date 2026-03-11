@@ -129,6 +129,7 @@ import {
   createTranslateTextRequest,
 } from './ui/translate/request.js';
 import { runDistillReplay } from './ui/distill/replay.js';
+import { formatChatMessages } from '../src/inference/pipelines/text/chat-format.js';
 
 const controller = new DiagnosticsController({ log });
 
@@ -246,6 +247,90 @@ const DEFAULT_TRANSLATE_TEMPERATURE = 1.0;
 const DEFAULT_TRANSLATE_TOP_P = 0.95;
 const DEFAULT_TRANSLATE_TOP_K = 64;
 const DEFAULT_TRANSLATE_MAX_TOKENS = 1024;
+const TRANSLATE_COMPARE_HISTORY_STORAGE_KEY = 'doppler.translate.compare.history.v1';
+const TRANSLATE_COMPARE_CONFIG_VERSION = 1;
+const TRANSLATE_COMPARE_DEFAULT_BASELINE_MODEL_ID = 'translategemma-4b-it-q4k-ehf16-af32';
+const TRANSLATE_COMPARE_DEFAULT_TJS_DTYPE = 'fp16';
+const TRANSLATE_COMPARE_MAX_HISTORY = 12;
+const TRANSLATE_COMPARE_ENGINES_CONFIG_URL = typeof window === 'object' && window.location?.origin
+  ? new URL('/benchmarks/vendors/compare-engines.config.json', window.location.origin).toString()
+  : new URL('../benchmarks/vendors/compare-engines.config.json', import.meta.url).toString();
+const TRANSLATE_COMPARE_ENGINE_OPTIONS = Object.freeze([
+  Object.freeze({ id: 'doppler', label: 'Doppler.js' }),
+  Object.freeze({ id: 'transformersjs', label: 'Transformers.js v4' }),
+]);
+const TRANSLATE_COMPARE_PRESETS = Object.freeze([
+  Object.freeze({
+    id: 'proof',
+    label: 'Proof preset',
+    description: 'Baseline teacher versus student slot on the same proof console.',
+    lanes: Object.freeze({
+      left: Object.freeze({ engine: 'doppler', role: 'baseline' }),
+      right: Object.freeze({ engine: 'doppler', role: 'student' }),
+    }),
+  }),
+  Object.freeze({
+    id: 'engine-parity',
+    label: 'Engine parity',
+    description: 'Requires a real TranslateGemma-to-Transformers.js mapping. Baseline parity is currently unsupported in public TJS ONNX exports.',
+    lanes: Object.freeze({
+      left: Object.freeze({ engine: 'transformersjs', role: 'mapped-baseline' }),
+      right: Object.freeze({ engine: 'doppler', role: 'mapped-baseline' }),
+    }),
+  }),
+  Object.freeze({
+    id: 'student-parity',
+    label: 'Student parity',
+    description: 'Same student slot across engines once the student mapping is configured.',
+    lanes: Object.freeze({
+      left: Object.freeze({ engine: 'transformersjs', role: 'student-mapped' }),
+      right: Object.freeze({ engine: 'doppler', role: 'student' }),
+    }),
+  }),
+  Object.freeze({
+    id: 'model-parity',
+    label: 'Model parity',
+    description: 'Doppler baseline versus Doppler student slot.',
+    lanes: Object.freeze({
+      left: Object.freeze({ engine: 'doppler', role: 'baseline' }),
+      right: Object.freeze({ engine: 'doppler', role: 'student' }),
+    }),
+  }),
+  Object.freeze({
+    id: 'custom',
+    label: 'Custom compare',
+    description: 'Edit each lane directly.',
+    lanes: Object.freeze({
+      left: Object.freeze({ engine: 'doppler', role: 'baseline' }),
+      right: Object.freeze({ engine: 'doppler', role: 'baseline' }),
+    }),
+  }),
+]);
+const TRANSLATE_COMPARE_EVIDENCE_FALLBACK = Object.freeze({
+  updatedAt: null,
+  summary: 'Awaiting frozen Gamma evidence bundle.',
+  caution: 'Student metrics and receipts are intentionally blank until the selected checkpoint is frozen.',
+  teacher: Object.freeze({
+    label: 'Teacher',
+    modelId: TRANSLATE_COMPARE_DEFAULT_BASELINE_MODEL_ID,
+    bleu: null,
+    chrf: null,
+    sizeBytes: 3167327178,
+  }),
+  student: Object.freeze({
+    label: 'Student',
+    modelId: null,
+    bleu: null,
+    chrf: null,
+    sizeBytes: null,
+  }),
+  receipts: Object.freeze([]),
+});
+const TRANSFORMERSJS_IMPORT_CANDIDATES = Object.freeze([
+  '/node_modules/@huggingface/transformers/dist/transformers.web.min.js',
+  'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1',
+  'https://cdn.jsdelivr.net/npm/@huggingface/transformers',
+]);
 const DEEP_LINK_MODES = new Set([
   'run',
   'translate',
@@ -366,6 +451,15 @@ function resolveText(value, defaultValue = '') {
   return String(value).trim();
 }
 
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
+
 function normalizeTranslateLanguageCode(code, defaultLanguageCode = DEFAULT_TRANSLATE_SOURCE) {
   const requested = resolveText(code, '');
   if (TRANSLATE_LANGUAGE_OPTIONS.some((entry) => entry.code === requested)) {
@@ -423,6 +517,968 @@ function getTranslateLanguageSelection() {
     }
   }
   return { sourceCode, targetCode };
+}
+
+function getTranslateLanguageName(code) {
+  const normalized = normalizeTranslateLanguageCode(code, DEFAULT_TRANSLATE_SOURCE);
+  const match = TRANSLATE_LANGUAGE_OPTIONS.find((entry) => entry.code === normalized);
+  return match?.name || normalized;
+}
+
+function getCompareLaneIds() {
+  return ['left', 'right'];
+}
+
+function getCompareLane(laneId) {
+  if (!laneId || !state.compareLanes || typeof state.compareLanes !== 'object') {
+    return null;
+  }
+  return state.compareLanes[laneId] || null;
+}
+
+function createCompareRuntimeLane(label) {
+  return {
+    engine: 'doppler',
+    modelId: null,
+    tjsModelId: '',
+    tjsDtype: TRANSLATE_COMPARE_DEFAULT_TJS_DTYPE,
+    label,
+    status: 'Idle',
+    statusTone: 'info',
+    output: '',
+    metrics: null,
+    error: null,
+    pipeline: null,
+    pipelineModelId: null,
+    tjsGenerator: null,
+    tjsGeneratorKey: null,
+  };
+}
+
+function ensureTranslateCompareRuntimeState() {
+  if (!state.compareLanes || typeof state.compareLanes !== 'object') {
+    state.compareLanes = {
+      left: createCompareRuntimeLane('Left Lane'),
+      right: createCompareRuntimeLane('Right Lane'),
+    };
+  }
+  if (!state.compareLanes.left) {
+    state.compareLanes.left = createCompareRuntimeLane('Left Lane');
+  }
+  if (!state.compareLanes.right) {
+    state.compareLanes.right = createCompareRuntimeLane('Right Lane');
+  }
+  if (!Array.isArray(state.compareHistory)) {
+    state.compareHistory = [];
+  }
+  if (!Array.isArray(state.compareProfiles)) {
+    state.compareProfiles = [];
+  }
+  if (!state.compareEvidence || typeof state.compareEvidence !== 'object') {
+    state.compareEvidence = cloneRuntimeConfig(TRANSLATE_COMPARE_EVIDENCE_FALLBACK);
+  }
+}
+
+function setCompareLaneStatus(laneId, message, tone = 'info') {
+  const lane = getCompareLane(laneId);
+  if (!lane) return;
+  lane.status = resolveText(message, 'Idle');
+  lane.statusTone = tone || 'info';
+}
+
+function clearCompareLaneResult(laneId) {
+  const lane = getCompareLane(laneId);
+  if (!lane) return;
+  lane.output = '';
+  lane.metrics = null;
+  lane.error = null;
+  setCompareLaneStatus(laneId, 'Idle', 'info');
+}
+
+function isTranslateCompareEnabled() {
+  return state.uiMode === 'translate' && state.compareEnabled === true;
+}
+
+function getTranslateCompareStudentModelId() {
+  const explicit = readGlobalString('__DOPPLER_TRANSLATE_COMPARE_STUDENT_MODEL_ID');
+  if (explicit) {
+    return explicit;
+  }
+  const evidenceModelId = resolveText(state.compareEvidence?.student?.modelId, '');
+  if (evidenceModelId) {
+    return evidenceModelId;
+  }
+  const activeTranslateModelId = resolveText(state.modeModelId?.translate, '');
+  if (activeTranslateModelId && activeTranslateModelId !== TRANSLATE_COMPARE_DEFAULT_BASELINE_MODEL_ID) {
+    return activeTranslateModelId;
+  }
+  for (const modelId of state.registeredModelIds || []) {
+    if (!modelId || modelId === TRANSLATE_COMPARE_DEFAULT_BASELINE_MODEL_ID) continue;
+    const normalizedType = normalizeModelType(state.modelTypeCache?.[modelId]);
+    if (isCompatibleModelType(normalizedType, 'translate')) {
+      return modelId;
+    }
+  }
+  return null;
+}
+
+function getMappedCompareBaselineProfile() {
+  const profiles = Array.isArray(state.compareProfiles) ? state.compareProfiles : [];
+  return profiles.find((entry) => (
+    entry?.dopplerModelId === TRANSLATE_COMPARE_DEFAULT_BASELINE_MODEL_ID
+    && resolveText(entry?.defaultTjsModelId, '')
+  )) || null;
+}
+
+function findCompareProfileByDopplerModelId(modelId) {
+  const normalizedModelId = resolveText(modelId, '');
+  if (!normalizedModelId) return null;
+  return (state.compareProfiles || []).find((entry) => entry?.dopplerModelId === normalizedModelId) || null;
+}
+
+function resolveTranslateCompareRole(role) {
+  const mappedBaseline = getMappedCompareBaselineProfile();
+  const studentModelId = getTranslateCompareStudentModelId();
+  if (role === 'baseline') {
+    return {
+      modelId: TRANSLATE_COMPARE_DEFAULT_BASELINE_MODEL_ID,
+      tjsModelId: resolveText(findCompareProfileByDopplerModelId(TRANSLATE_COMPARE_DEFAULT_BASELINE_MODEL_ID)?.defaultTjsModelId, ''),
+    };
+  }
+  if (role === 'student') {
+    return {
+      modelId: studentModelId,
+      tjsModelId: resolveText(findCompareProfileByDopplerModelId(studentModelId)?.defaultTjsModelId, ''),
+    };
+  }
+  if (role === 'mapped-baseline') {
+    return {
+      modelId: mappedBaseline?.dopplerModelId || TRANSLATE_COMPARE_DEFAULT_BASELINE_MODEL_ID,
+      tjsModelId: resolveText(mappedBaseline?.defaultTjsModelId, ''),
+    };
+  }
+  if (role === 'student-mapped') {
+    return {
+      modelId: studentModelId,
+      tjsModelId: resolveText(findCompareProfileByDopplerModelId(studentModelId)?.defaultTjsModelId, ''),
+    };
+  }
+  return {
+    modelId: null,
+    tjsModelId: '',
+  };
+}
+
+function serializeTranslateCompareHistoryEntry(entry) {
+  const lanes = {};
+  for (const laneId of getCompareLaneIds()) {
+    const lane = entry?.lanes?.[laneId] || {};
+    lanes[laneId] = {
+      engine: resolveText(lane.engine, ''),
+      modelId: resolveText(lane.modelId, ''),
+      tjsModelId: resolveText(lane.tjsModelId, ''),
+      label: resolveText(lane.label, laneId),
+      status: resolveText(lane.status, ''),
+      output: String(lane.output || ''),
+      metrics: lane.metrics || null,
+      error: lane.error || null,
+    };
+  }
+  return {
+    id: resolveText(entry?.id, ''),
+    createdAt: resolveText(entry?.createdAt, ''),
+    sourceCode: resolveText(entry?.sourceCode, DEFAULT_TRANSLATE_SOURCE),
+    targetCode: resolveText(entry?.targetCode, DEFAULT_TRANSLATE_TARGET),
+    prompt: String(entry?.prompt || ''),
+    presetId: resolveText(entry?.presetId, 'custom'),
+    lanes,
+  };
+}
+
+function persistTranslateCompareHistory() {
+  if (typeof localStorage === 'undefined') return;
+  try {
+    const payload = {
+      schemaVersion: TRANSLATE_COMPARE_CONFIG_VERSION,
+      history: (state.compareHistory || []).slice(0, TRANSLATE_COMPARE_MAX_HISTORY).map(serializeTranslateCompareHistoryEntry),
+    };
+    localStorage.setItem(TRANSLATE_COMPARE_HISTORY_STORAGE_KEY, JSON.stringify(payload));
+  } catch (error) {
+    log.warn('DopplerDemo', `Compare history persistence skipped: ${error.message}`);
+  }
+}
+
+function hydrateTranslateCompareHistory() {
+  if (typeof localStorage === 'undefined') return;
+  try {
+    const raw = localStorage.getItem(TRANSLATE_COMPARE_HISTORY_STORAGE_KEY);
+    if (!raw) return;
+    const parsed = JSON.parse(raw);
+    const rows = Array.isArray(parsed?.history) ? parsed.history : [];
+    state.compareHistory = rows.map(serializeTranslateCompareHistoryEntry).slice(0, TRANSLATE_COMPARE_MAX_HISTORY);
+  } catch (error) {
+    log.warn('DopplerDemo', `Compare history restore skipped: ${error.message}`);
+  }
+}
+
+async function loadTranslateCompareProfiles() {
+  try {
+    const response = await fetch(TRANSLATE_COMPARE_ENGINES_CONFIG_URL, { cache: 'no-store' });
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    const payload = await response.json();
+    const rows = Array.isArray(payload?.modelProfiles) ? payload.modelProfiles : [];
+    state.compareProfiles = rows.map((entry) => ({
+      dopplerModelId: resolveText(entry?.dopplerModelId, ''),
+      defaultTjsModelId: resolveText(entry?.defaultTjsModelId, ''),
+      defaultKernelPath: resolveText(entry?.defaultKernelPath, ''),
+      modelBaseDir: resolveText(entry?.modelBaseDir, ''),
+      defaultDopplerSurface: resolveText(entry?.defaultDopplerSurface, 'auto'),
+    }));
+  } catch (error) {
+    state.compareProfiles = [];
+    log.warn('DopplerDemo', `Compare profiles unavailable: ${error.message}`);
+  }
+}
+
+function normalizeTranslateCompareEvidence(payload) {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+    return cloneRuntimeConfig(TRANSLATE_COMPARE_EVIDENCE_FALLBACK);
+  }
+  return {
+    ...cloneRuntimeConfig(TRANSLATE_COMPARE_EVIDENCE_FALLBACK),
+    ...payload,
+    teacher: {
+      ...cloneRuntimeConfig(TRANSLATE_COMPARE_EVIDENCE_FALLBACK.teacher),
+      ...(payload.teacher && typeof payload.teacher === 'object' ? payload.teacher : {}),
+    },
+    student: {
+      ...cloneRuntimeConfig(TRANSLATE_COMPARE_EVIDENCE_FALLBACK.student),
+      ...(payload.student && typeof payload.student === 'object' ? payload.student : {}),
+    },
+    receipts: Array.isArray(payload.receipts) ? payload.receipts : cloneRuntimeConfig(TRANSLATE_COMPARE_EVIDENCE_FALLBACK.receipts),
+  };
+}
+
+async function loadTranslateCompareEvidence() {
+  const embedded = globalThis?.__DOPPLER_TRANSLATE_COMPARE_EVIDENCE__;
+  if (embedded && typeof embedded === 'object' && !Array.isArray(embedded)) {
+    state.compareEvidence = normalizeTranslateCompareEvidence(embedded);
+    return;
+  }
+
+  const evidenceUrl = readGlobalString('__DOPPLER_TRANSLATE_COMPARE_EVIDENCE_URL');
+  if (!evidenceUrl) {
+    state.compareEvidence = cloneRuntimeConfig(TRANSLATE_COMPARE_EVIDENCE_FALLBACK);
+    return;
+  }
+
+  try {
+    const response = await fetch(evidenceUrl, { cache: 'no-store' });
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    const payload = await response.json();
+    state.compareEvidence = normalizeTranslateCompareEvidence(payload);
+  } catch (error) {
+    state.compareEvidence = cloneRuntimeConfig(TRANSLATE_COMPARE_EVIDENCE_FALLBACK);
+    log.warn('DopplerDemo', `Compare evidence unavailable: ${error.message}`);
+  }
+}
+
+function buildTranslateInstructionPrompt(prompt, sourceCode, targetCode) {
+  return `Translate the following from ${sourceCode} to ${targetCode}. Output only the translation, no explanation.\n\n${prompt}`;
+}
+
+function buildTransformersTranslatePrompt(prompt, sourceCode, targetCode, modelHint = '') {
+  const normalizedHint = resolveText(modelHint, '').toLowerCase();
+  if (normalizedHint.includes('translategemma')) {
+    return formatChatMessages(
+      createTranslateTextRequest(prompt, sourceCode, targetCode).messages,
+      'translategemma'
+    );
+  }
+  return buildTranslateInstructionPrompt(prompt, sourceCode, targetCode);
+}
+
+function getTranslateCompatibleRegisteredModelIds() {
+  const ids = [];
+  for (const modelId of state.registeredModelIds || []) {
+    const normalizedType = normalizeModelType(state.modelTypeCache?.[modelId]);
+    if (isCompatibleModelType(normalizedType, 'translate')) {
+      ids.push(modelId);
+    }
+  }
+  return ids;
+}
+
+function getTranslateComparePreset(presetId) {
+  const normalizedId = resolveText(presetId, 'proof');
+  return TRANSLATE_COMPARE_PRESETS.find((entry) => entry.id === normalizedId)
+    || TRANSLATE_COMPARE_PRESETS[0];
+}
+
+function getTranslateComparePresetNote(presetId) {
+  const preset = getTranslateComparePreset(presetId);
+  if (preset.id === 'engine-parity' && !getMappedCompareBaselineProfile()) {
+    return `${preset.description} The UI will fail closed until a baseline mapping is configured.`;
+  }
+  if (preset.id === 'student-parity' && !resolveText(getTranslateCompareStudentModelId(), '')) {
+    return `${preset.description} Waiting for the student artifact and any TJS mapping.`;
+  }
+  return preset.description;
+}
+
+function getTranslateCompareModelLabel(modelId) {
+  const normalizedModelId = resolveText(modelId, '');
+  if (!normalizedModelId) return 'Select model';
+  const quickEntry = (state.quickModelCatalog || []).find((entry) => entry?.modelId === normalizedModelId);
+  return resolveText(quickEntry?.label, formatModelIdLabel(normalizedModelId));
+}
+
+function resolveCompareModelSizeBytes(modelId) {
+  const normalizedModelId = resolveText(modelId, '');
+  if (!normalizedModelId) return null;
+  const quickEntry = (state.quickModelCatalog || []).find((entry) => entry?.modelId === normalizedModelId);
+  if (Number.isFinite(quickEntry?.sizeBytes)) {
+    return quickEntry.sizeBytes;
+  }
+  const evidenceTeacherModelId = resolveText(state.compareEvidence?.teacher?.modelId, '');
+  if (normalizedModelId === evidenceTeacherModelId && Number.isFinite(state.compareEvidence?.teacher?.sizeBytes)) {
+    return state.compareEvidence.teacher.sizeBytes;
+  }
+  const evidenceStudentModelId = resolveText(state.compareEvidence?.student?.modelId, '');
+  if (normalizedModelId === evidenceStudentModelId && Number.isFinite(state.compareEvidence?.student?.sizeBytes)) {
+    return state.compareEvidence.student.sizeBytes;
+  }
+  return null;
+}
+
+function resolveTransformersModelIdForLane(lane) {
+  if (!lane) return '';
+  const explicit = resolveText(lane.tjsModelId, '');
+  if (explicit) return explicit;
+  return resolveText(findCompareProfileByDopplerModelId(lane.modelId)?.defaultTjsModelId, '');
+}
+
+function formatCompareMetricMs(value) {
+  return Number.isFinite(value) ? `${Math.round(value)} ms` : '--';
+}
+
+function formatCompareMetricRate(value) {
+  return Number.isFinite(value) ? `${value.toFixed(1)} tok/s` : '--';
+}
+
+function formatCompareMetricBytes(value) {
+  return Number.isFinite(value) ? formatBytes(value) : '--';
+}
+
+function formatCompareTimestamp(isoString) {
+  if (!isoString) return '--';
+  const timestamp = Date.parse(isoString);
+  if (!Number.isFinite(timestamp)) return '--';
+  try {
+    return new Intl.DateTimeFormat(undefined, {
+      hour: 'numeric',
+      minute: '2-digit',
+      month: 'short',
+      day: 'numeric',
+    }).format(new Date(timestamp));
+  } catch {
+    return new Date(timestamp).toISOString();
+  }
+}
+
+let compareAdapterLabelPromise = null;
+
+async function resolveWebGpuDeviceLabel(prefix = 'WebGPU') {
+  if (compareAdapterLabelPromise) {
+    const resolved = await compareAdapterLabelPromise;
+    return resolved || prefix;
+  }
+  compareAdapterLabelPromise = (async () => {
+    try {
+      const adapter = await globalThis?.navigator?.gpu?.requestAdapter?.();
+      if (!adapter) {
+        return prefix;
+      }
+      const info = adapter.info || (await adapter.requestAdapterInfo?.()) || {};
+      const deviceName = resolveText(info.description || info.device, '');
+      const vendorName = resolveText(info.vendor, '');
+      const suffix = [vendorName, deviceName].filter(Boolean).join(' ');
+      return suffix ? `${prefix} · ${suffix}` : prefix;
+    } catch {
+      return prefix;
+    }
+  })();
+  const resolved = await compareAdapterLabelPromise;
+  return resolved || prefix;
+}
+
+function getCompareLaneSelectId(laneId) {
+  return laneId === 'left' ? 'translate-left-model' : 'translate-right-model';
+}
+
+function getCompareLaneEngineSelectId(laneId) {
+  return laneId === 'left' ? 'translate-left-engine' : 'translate-right-engine';
+}
+
+function populateCompareLaneModelSelect(laneId) {
+  const lane = getCompareLane(laneId);
+  const select = $(getCompareLaneSelectId(laneId));
+  if (!(select instanceof HTMLSelectElement) || !lane) return;
+  const previousValue = resolveText(lane.modelId, '');
+  select.innerHTML = '';
+  const options = [];
+
+  if (lane.engine === 'transformersjs') {
+    for (const profile of state.compareProfiles || []) {
+      const dopplerModelId = resolveText(profile?.dopplerModelId, '');
+      const tjsModelId = resolveText(profile?.defaultTjsModelId, '');
+      if (!dopplerModelId || !tjsModelId) continue;
+      options.push({
+        value: dopplerModelId,
+        label: `${getTranslateCompareModelLabel(dopplerModelId)} · ${tjsModelId}`,
+      });
+    }
+  } else {
+    for (const modelId of getTranslateCompatibleRegisteredModelIds()) {
+      options.push({
+        value: modelId,
+        label: getTranslateCompareModelLabel(modelId),
+      });
+    }
+  }
+
+  if (options.length === 0) {
+    const emptyOption = document.createElement('option');
+    emptyOption.value = '';
+    emptyOption.textContent = lane.engine === 'transformersjs'
+      ? 'No mapped Transformers.js profiles'
+      : 'No translate models imported';
+    select.appendChild(emptyOption);
+    lane.modelId = '';
+    return;
+  }
+
+  for (const optionInfo of options) {
+    const option = document.createElement('option');
+    option.value = optionInfo.value;
+    option.textContent = optionInfo.label;
+    option.title = optionInfo.label;
+    select.appendChild(option);
+  }
+  const nextValue = options.some((entry) => entry.value === previousValue)
+    ? previousValue
+    : options[0].value;
+  select.value = nextValue;
+  lane.modelId = nextValue;
+  if (lane.engine === 'transformersjs') {
+    lane.tjsModelId = resolveTransformersModelIdForLane(lane);
+  }
+}
+
+function renderTranslateCompareSelectors() {
+  for (const laneId of getCompareLaneIds()) {
+    const lane = getCompareLane(laneId);
+    const engineSelect = $(getCompareLaneEngineSelectId(laneId));
+    if (engineSelect instanceof HTMLSelectElement && lane) {
+      engineSelect.value = lane.engine;
+    }
+    populateCompareLaneModelSelect(laneId);
+  }
+}
+
+function renderTranslateCompareEvidence() {
+  const evidence = state.compareEvidence || TRANSLATE_COMPARE_EVIDENCE_FALLBACK;
+  setText($('translate-proof-bundle'), evidence.updatedAt ? `Frozen ${evidence.updatedAt}` : 'Awaiting frozen scoreboard');
+  setText(
+    $('translate-proof-delta'),
+    Number.isFinite(evidence?.teacher?.bleu) && Number.isFinite(evidence?.student?.bleu)
+      ? `${(evidence.student.bleu - evidence.teacher.bleu).toFixed(2)} BLEU`
+      : 'Delta pending'
+  );
+  setText($('translate-proof-claim'), evidence.summary || TRANSLATE_COMPARE_EVIDENCE_FALLBACK.summary);
+  setText($('translate-proof-source'), evidence.updatedAt ? `Updated ${evidence.updatedAt}` : 'No receipt loaded');
+  setText($('translate-evidence-teacher-bleu'), Number.isFinite(evidence?.teacher?.bleu) ? evidence.teacher.bleu.toFixed(2) : '--');
+  setText($('translate-evidence-student-bleu'), Number.isFinite(evidence?.student?.bleu) ? evidence.student.bleu.toFixed(2) : '--');
+  setText($('translate-evidence-teacher-chrf'), Number.isFinite(evidence?.teacher?.chrf) ? evidence.teacher.chrf.toFixed(2) : '--');
+  setText($('translate-evidence-student-chrf'), Number.isFinite(evidence?.student?.chrf) ? evidence.student.chrf.toFixed(2) : '--');
+  setText(
+    $('translate-evidence-size-delta'),
+    Number.isFinite(evidence?.teacher?.sizeBytes) && Number.isFinite(evidence?.student?.sizeBytes)
+      ? `${formatBytes(evidence.teacher.sizeBytes - evidence.student.sizeBytes)} saved`
+      : '--'
+  );
+  setText(
+    $('translate-evidence-artifact'),
+    Array.isArray(evidence?.receipts) && evidence.receipts.length > 0
+      ? String(evidence.receipts[0].label || evidence.receipts[0].href || 'Open receipt')
+      : 'Pending'
+  );
+}
+
+function renderTranslateCompareLane(laneId) {
+  const lane = getCompareLane(laneId);
+  if (!lane) return;
+  const prefix = laneId === 'left' ? 'translate-left' : 'translate-right';
+  const metrics = lane.metrics || {};
+  const sizeBytes = Number.isFinite(metrics.sizeBytes)
+    ? metrics.sizeBytes
+    : resolveCompareModelSizeBytes(lane.modelId);
+  setText($(`${prefix}-status`), lane.status || 'Idle');
+  setText($(`${prefix}-size`), formatCompareMetricBytes(sizeBytes));
+  setText($(`${prefix}-load-ms`), formatCompareMetricMs(metrics.modelLoadMs));
+  setText($(`${prefix}-ttft`), formatCompareMetricMs(metrics.ttftMs));
+  setText($(`${prefix}-decode-rate`), formatCompareMetricRate(metrics.decodeTokensPerSec));
+  setText($(`${prefix}-total-ms`), formatCompareMetricMs(metrics.totalMs));
+  setText(
+    $(`${prefix}-device`),
+    resolveText(metrics.deviceLabel, state.compareDeviceLabel || (lane.engine === 'transformersjs' ? 'WebGPU / ORT' : 'WebGPU'))
+  );
+  setText($(`${prefix}-meta`), resolveText(metrics.metaLabel, lane.error ? 'Run failed' : 'No run yet'));
+  setText($(`${prefix}-output`), lane.output || (lane.error ? String(lane.error) : 'Awaiting compare run.'));
+  setText($(`${prefix}-badge`), laneId === 'left' ? 'baseline' : 'student');
+}
+
+function renderTranslateCompareHistory() {
+  const list = $('translate-history-list');
+  if (!list) return;
+  const rows = Array.isArray(state.compareHistory) ? state.compareHistory : [];
+  list.innerHTML = '';
+
+  if (rows.length === 0) {
+    list.innerHTML = `
+      <article class="translate-history-card is-placeholder">
+        <div class="translate-history-card-top">
+          <span class="translate-history-time type-caption">Pending</span>
+          <span class="translate-history-badge type-caption">sample</span>
+        </div>
+        <p class="translate-history-snippet">Compare receipts will stack here with engine/model labels, timing, and expandable outputs.</p>
+        <div class="translate-history-meta">
+          <span class="type-caption">en -> es</span>
+          <span class="type-caption">No run captured</span>
+        </div>
+      </article>
+    `;
+    return;
+  }
+
+  for (const entry of rows) {
+    const card = document.createElement('details');
+    card.className = 'translate-history-card';
+    const left = entry?.lanes?.left || {};
+    const right = entry?.lanes?.right || {};
+    const summary = document.createElement('summary');
+    summary.innerHTML = `
+      <div class="translate-history-card-top">
+        <span class="translate-history-time type-caption">${formatCompareTimestamp(entry.createdAt)}</span>
+        <span class="translate-history-badge type-caption">${entry.presetId || 'custom'}</span>
+      </div>
+      <p class="translate-history-snippet">${escapeHtml(String(entry.prompt || '').slice(0, 180) || 'No prompt captured.')}</p>
+      <div class="translate-history-meta">
+        <span class="type-caption">${escapeHtml(getTranslateLanguageName(entry.sourceCode))} -> ${escapeHtml(getTranslateLanguageName(entry.targetCode))}</span>
+        <span class="type-caption">${escapeHtml(left.engine || 'left')} vs ${escapeHtml(right.engine || 'right')}</span>
+      </div>
+    `;
+    card.appendChild(summary);
+
+    const body = document.createElement('div');
+    body.className = 'translate-history-body';
+    body.innerHTML = `
+      <div class="translate-history-meta">
+        <span class="type-caption">${escapeHtml(getTranslateCompareModelLabel(left.modelId))} · ${escapeHtml(left.status || 'idle')}</span>
+        <span class="type-caption">${formatCompareMetricMs(left.metrics?.ttftMs)} / ${formatCompareMetricRate(left.metrics?.decodeTokensPerSec)}</span>
+      </div>
+      <pre class="playground-output-box translate-lane-output-box">${escapeHtml(String(left.output || ''))}</pre>
+      <div class="translate-history-meta">
+        <span class="type-caption">${escapeHtml(getTranslateCompareModelLabel(right.modelId))} · ${escapeHtml(right.status || 'idle')}</span>
+        <span class="type-caption">${formatCompareMetricMs(right.metrics?.ttftMs)} / ${formatCompareMetricRate(right.metrics?.decodeTokensPerSec)}</span>
+      </div>
+      <pre class="playground-output-box translate-lane-output-box">${escapeHtml(String(right.output || ''))}</pre>
+    `;
+    card.appendChild(body);
+    list.appendChild(card);
+  }
+}
+
+function syncTranslateCompareToggleButtons() {
+  const enabled = isTranslateCompareEnabled();
+  document.querySelectorAll('[data-translate-view], [data-translate-layout]').forEach((button) => {
+    const target = button?.dataset?.translateView || button?.dataset?.translateLayout;
+    const isCompareTarget = target === 'compare';
+    button.classList.toggle('is-active', enabled === isCompareTarget);
+  });
+}
+
+function syncTranslateCompareUI() {
+  const compareShell = $('translate-compare-shell');
+  const singleOutputBox = $('run-output')?.closest('.playground-output');
+  const presetSelect = $('translate-compare-preset');
+  const presetNote = $('translate-compare-preset-note');
+  const runButton = $('translate-compare-run-btn');
+  const shareButton = $('translate-compare-share-btn');
+  const enabled = isTranslateCompareEnabled();
+  setHidden(compareShell, !enabled);
+  setHidden(singleOutputBox, enabled);
+  if (presetSelect instanceof HTMLSelectElement) {
+    presetSelect.value = state.comparePresetId || 'proof';
+  }
+  setText(presetNote, getTranslateComparePresetNote(state.comparePresetId || 'proof'));
+  if (runButton instanceof HTMLButtonElement) {
+    runButton.disabled = state.compareGenerating || state.compareLoading;
+  }
+  if (shareButton instanceof HTMLButtonElement) {
+    shareButton.disabled = state.compareGenerating || state.compareLoading;
+  }
+  syncTranslateCompareToggleButtons();
+  renderTranslateCompareEvidence();
+  renderTranslateCompareSelectors();
+  renderTranslateCompareHistory();
+  for (const laneId of getCompareLaneIds()) {
+    renderTranslateCompareLane(laneId);
+  }
+}
+
+async function applyTranslateComparePreset(presetId, options = {}) {
+  ensureTranslateCompareRuntimeState();
+  const preset = getTranslateComparePreset(presetId);
+  state.comparePresetId = preset.id;
+  const { preserveExisting = false } = options;
+
+  for (const laneId of getCompareLaneIds()) {
+    const lane = getCompareLane(laneId);
+    const lanePreset = preset.lanes?.[laneId] || {};
+    const resolved = resolveTranslateCompareRole(lanePreset.role);
+    if (!preserveExisting || !resolveText(lane.modelId, '')) {
+      lane.engine = resolveText(lanePreset.engine, lane.engine || 'doppler');
+      lane.modelId = resolveText(resolved.modelId, lane.modelId || '');
+      lane.tjsModelId = resolveText(resolved.tjsModelId, lane.tjsModelId || '');
+    }
+    clearCompareLaneResult(laneId);
+  }
+  syncTranslateCompareUI();
+}
+
+let transformersRuntimePromise = null;
+
+async function loadTransformersJsRuntime() {
+  if (transformersRuntimePromise) {
+    return transformersRuntimePromise;
+  }
+  transformersRuntimePromise = (async () => {
+    let lastError = null;
+    for (const candidate of TRANSFORMERSJS_IMPORT_CANDIDATES) {
+      try {
+        const runtime = await import(candidate);
+        if (!runtime?.pipeline) {
+          throw new Error('module did not expose pipeline()');
+        }
+        if (runtime.env && typeof runtime.env === 'object') {
+          runtime.env.allowLocalModels = false;
+          runtime.env.allowRemoteModels = true;
+        }
+        return runtime;
+      } catch (error) {
+        lastError = error;
+      }
+    }
+    throw new Error(`Transformers.js runtime unavailable: ${lastError?.message || 'unknown import failure'}`);
+  })();
+  return transformersRuntimePromise;
+}
+
+async function unloadCompareLaneRuntime(laneId) {
+  const lane = getCompareLane(laneId);
+  if (!lane) return;
+  if (lane.pipeline) {
+    try {
+      await lane.pipeline.unload?.();
+    } catch (error) {
+      log.warn('DopplerDemo', `Compare lane unload failed (${laneId}): ${error.message}`);
+    }
+  }
+  lane.pipeline = null;
+  lane.pipelineModelId = null;
+  lane.tjsGenerator = null;
+  lane.tjsGeneratorKey = null;
+}
+
+async function unloadAllCompareLaneRuntimes() {
+  for (const laneId of getCompareLaneIds()) {
+    await unloadCompareLaneRuntime(laneId);
+  }
+}
+
+async function ensureCompareDopplerPipeline(laneId) {
+  const lane = getCompareLane(laneId);
+  if (!lane) {
+    throw new Error(`Unknown compare lane "${laneId}".`);
+  }
+  const modelId = resolveText(lane.modelId, '');
+  if (!modelId) {
+    throw new Error(`Compare ${laneId}: select a Doppler model first.`);
+  }
+  if (lane.pipeline && lane.pipelineModelId === modelId) {
+    return {
+      pipeline: lane.pipeline,
+      modelLoadMs: 0,
+    };
+  }
+
+  await unloadCompareLaneRuntime(laneId);
+  setCompareLaneStatus(laneId, 'Loading', 'info');
+  renderTranslateCompareLane(laneId);
+  const startedAt = performance.now();
+  await openModelStore(modelId);
+  const manifestText = await loadManifestFromStore();
+  if (!manifestText) {
+    throw new Error(`Compare ${laneId}: manifest missing for "${modelId}".`);
+  }
+  const manifest = parseManifest(manifestText);
+  await initDevice();
+  const device = getDevice();
+  const pipeline = await createPipeline(manifest, {
+    gpu: { device },
+    runtimeConfig: cloneRuntimeConfig(getRuntimeConfig()),
+  });
+  lane.pipeline = pipeline;
+  lane.pipelineModelId = modelId;
+  return {
+    pipeline,
+    modelLoadMs: Math.max(0, performance.now() - startedAt),
+  };
+}
+
+async function ensureTransformersGeneratorForLane(laneId) {
+  const lane = getCompareLane(laneId);
+  if (!lane) {
+    throw new Error(`Unknown compare lane "${laneId}".`);
+  }
+  const modelId = resolveTransformersModelIdForLane(lane);
+  if (!modelId) {
+    throw new Error(`Compare ${laneId}: no Transformers.js profile is configured for "${lane.modelId || 'this lane'}".`);
+  }
+  const generatorKey = `${modelId}::${lane.tjsDtype || TRANSLATE_COMPARE_DEFAULT_TJS_DTYPE}`;
+  if (lane.tjsGenerator && lane.tjsGeneratorKey === generatorKey) {
+    return {
+      generator: lane.tjsGenerator,
+      runtime: await loadTransformersJsRuntime(),
+      modelLoadMs: 0,
+    };
+  }
+  const runtime = await loadTransformersJsRuntime();
+  setCompareLaneStatus(laneId, 'Loading', 'info');
+  renderTranslateCompareLane(laneId);
+  const startedAt = performance.now();
+  const generator = await runtime.pipeline('text-generation', modelId, {
+    device: 'webgpu',
+    dtype: lane.tjsDtype || TRANSLATE_COMPARE_DEFAULT_TJS_DTYPE,
+  });
+  lane.tjsGenerator = generator;
+  lane.tjsGeneratorKey = generatorKey;
+  lane.tjsModelId = modelId;
+  return {
+    generator,
+    runtime,
+    modelLoadMs: Math.max(0, performance.now() - startedAt),
+  };
+}
+
+function buildTranslateCompareOptions() {
+  const temperature = readOptionalNumber($('temperature-input'));
+  const topP = readOptionalNumber($('top-p-input'));
+  const topK = readOptionalNumber($('top-k-input'), { integer: true });
+  const maxTokens = readOptionalNumber($('max-tokens-input'), { integer: true });
+  return {
+    temperature: temperature != null ? Math.max(0, temperature) : 0,
+    topP: topP != null ? Math.max(0, Math.min(1, topP)) : 1,
+    topK: topK != null ? Math.max(1, topK) : 1,
+    maxTokens: maxTokens != null && maxTokens > 0 ? maxTokens : Math.min(DEFAULT_TRANSLATE_MAX_TOKENS, 192),
+  };
+}
+
+async function runDopplerCompareLane(laneId, context) {
+  const lane = getCompareLane(laneId);
+  const { prompt, sourceCode, targetCode, options } = context;
+  const { pipeline, modelLoadMs } = await ensureCompareDopplerPipeline(laneId);
+  const manifestModelId = resolveText(pipeline?.manifest?.modelId, lane.modelId);
+  const modelType = normalizeModelType(pipeline?.manifest?.modelType);
+  const translateRequest = createTranslateTextRequest(prompt, sourceCode, targetCode);
+  let generationInput = translateRequest;
+  if (pipeline?.manifest?.inference?.chatTemplate?.type !== 'translategemma') {
+    generationInput = buildTranslateInstructionPrompt(prompt, sourceCode, targetCode);
+  }
+  if (modelType !== 'transformer' && modelType !== null) {
+    throw new Error(`Compare ${laneId}: selected model "${manifestModelId}" is not a text model.`);
+  }
+
+  lane.output = '';
+  lane.error = null;
+  setCompareLaneStatus(laneId, modelLoadMs > 0 ? 'Warm' : 'Warm', 'info');
+  renderTranslateCompareLane(laneId);
+  pipeline.reset?.();
+  setCompareLaneStatus(laneId, 'Translating', 'info');
+  renderTranslateCompareLane(laneId);
+
+  for await (const token of pipeline.generate(generationInput, {
+    ...options,
+    useChatTemplate: true,
+  })) {
+    lane.output += token;
+    renderTranslateCompareLane(laneId);
+  }
+
+  const stats = pipeline.getStats?.() || {};
+  const totalMs = Number.isFinite(stats.totalTimeMs) ? stats.totalTimeMs : null;
+  const decodeTokens = Number.isFinite(stats.decodeTokens) ? stats.decodeTokens : null;
+  const decodeMs = Number.isFinite(stats.decodeTimeMs) ? stats.decodeTimeMs : null;
+  lane.metrics = {
+    modelLoadMs,
+    ttftMs: Number.isFinite(stats.ttftMs) ? stats.ttftMs : stats.prefillTimeMs,
+    totalMs,
+    decodeTokensPerSec: (decodeTokens != null && decodeMs && decodeMs > 0) ? decodeTokens / (decodeMs / 1000) : null,
+    sizeBytes: resolveCompareModelSizeBytes(lane.modelId),
+    deviceLabel: state.compareDeviceLabel || 'WebGPU',
+    metaLabel: `${getTranslateCompareModelLabel(lane.modelId)} · ${lane.output.length} chars`,
+  };
+  setCompareLaneStatus(laneId, 'Complete', 'success');
+  renderTranslateCompareLane(laneId);
+}
+
+async function runTransformersCompareLane(laneId, context) {
+  const lane = getCompareLane(laneId);
+  const { prompt, sourceCode, targetCode, options } = context;
+  const { generator, runtime, modelLoadMs } = await ensureTransformersGeneratorForLane(laneId);
+  const modelRef = resolveTransformersModelIdForLane(lane);
+  const generationPrompt = buildTransformersTranslatePrompt(prompt, sourceCode, targetCode, modelRef);
+  const doSample = Number(options.temperature) > 0 && Number(options.topK) > 1;
+
+  lane.output = '';
+  lane.error = null;
+  setCompareLaneStatus(laneId, 'Warm', 'info');
+  renderTranslateCompareLane(laneId);
+
+  let firstTokenAt = null;
+  let decodeTokens = 0;
+  const tokenTimestamps = [];
+  const chunks = [];
+  const startedAt = performance.now();
+  const TextStreamer = runtime.TextStreamer;
+  const streamer = typeof TextStreamer === 'function'
+    ? new TextStreamer(generator.tokenizer, {
+      skip_prompt: true,
+      callback_function: (text) => {
+        chunks.push(text);
+        lane.output = chunks.join('');
+        renderTranslateCompareLane(laneId);
+      },
+      token_callback_function: (tokens) => {
+        const now = performance.now();
+        const count = Array.isArray(tokens) ? tokens.length : 1;
+        decodeTokens += count;
+        if (firstTokenAt === null) {
+          firstTokenAt = now;
+        }
+        for (let index = 0; index < count; index += 1) {
+          tokenTimestamps.push(now);
+        }
+      },
+    })
+    : null;
+
+  setCompareLaneStatus(laneId, 'Translating', 'info');
+  renderTranslateCompareLane(laneId);
+  await generator(generationPrompt, {
+    max_new_tokens: options.maxTokens,
+    do_sample: doSample,
+    temperature: doSample ? options.temperature : 1,
+    top_k: doSample ? options.topK : 1,
+    top_p: doSample ? options.topP : 1,
+    num_beams: 1,
+    num_beam_groups: 1,
+    ...(streamer ? { streamer } : {}),
+  });
+  const endedAt = performance.now();
+  const totalMs = Math.max(1, endedAt - startedAt);
+  const ttftMs = firstTokenAt != null ? Math.max(1, firstTokenAt - startedAt) : totalMs;
+  const decodeMs = Math.max(totalMs - ttftMs, 1);
+  const effectiveDecodeTokens = Math.max(decodeTokens - 1, 0);
+  lane.metrics = {
+    modelLoadMs,
+    ttftMs,
+    totalMs,
+    decodeTokensPerSec: effectiveDecodeTokens > 0 ? effectiveDecodeTokens / (decodeMs / 1000) : null,
+    sizeBytes: resolveCompareModelSizeBytes(lane.modelId),
+    deviceLabel: await resolveWebGpuDeviceLabel('WebGPU / ORT'),
+    metaLabel: `${resolveText(modelRef, lane.modelId)} · ${lane.output.length} chars`,
+  };
+  setCompareLaneStatus(laneId, 'Complete', 'success');
+  renderTranslateCompareLane(laneId);
+}
+
+function captureTranslateCompareHistoryEntry(prompt, sourceCode, targetCode) {
+  return {
+    id: crypto?.randomUUID?.() || `${Date.now()}`,
+    createdAt: new Date().toISOString(),
+    sourceCode,
+    targetCode,
+    prompt,
+    presetId: state.comparePresetId,
+    lanes: {
+      left: serializeTranslateCompareHistoryEntry({ lanes: { left: state.compareLanes.left } }).lanes.left,
+      right: serializeTranslateCompareHistoryEntry({ lanes: { right: state.compareLanes.right } }).lanes.right,
+    },
+  };
+}
+
+async function handleTranslateCompareRun() {
+  if (state.compareGenerating || state.compareLoading) return;
+  ensureTranslateCompareRuntimeState();
+  const prompt = $('run-prompt')?.value?.trim() || '';
+  if (!prompt) {
+    updateRunStatus('Enter text to translate.');
+    return;
+  }
+  const { sourceCode, targetCode } = getTranslateLanguageSelection();
+  const options = buildTranslateCompareOptions();
+
+  state.compareGenerating = true;
+  updateStatusIndicator();
+  updateRunStatus('Running compare...');
+  syncRunControls();
+  syncTranslateCompareUI();
+  for (const laneId of getCompareLaneIds()) {
+    clearCompareLaneResult(laneId);
+    renderTranslateCompareLane(laneId);
+  }
+
+  try {
+    for (const laneId of getCompareLaneIds()) {
+      const lane = getCompareLane(laneId);
+      if (!lane) continue;
+      if (lane.engine === 'transformersjs') {
+        await runTransformersCompareLane(laneId, { prompt, sourceCode, targetCode, options });
+      } else {
+        await runDopplerCompareLane(laneId, { prompt, sourceCode, targetCode, options });
+      }
+    }
+    const entry = captureTranslateCompareHistoryEntry(prompt, sourceCode, targetCode);
+    state.compareHistory.unshift(entry);
+    state.compareHistory = state.compareHistory.slice(0, TRANSLATE_COMPARE_MAX_HISTORY);
+    persistTranslateCompareHistory();
+    renderTranslateCompareHistory();
+    updateRunStatus('Compare complete');
+  } catch (error) {
+    log.error('DopplerDemo', `Translate compare failed: ${error.message}`);
+    updateRunStatus(`Compare error: ${error.message}`);
+  } finally {
+    state.compareGenerating = false;
+    updateStatusIndicator();
+    syncRunControls();
+    syncTranslateCompareUI();
+  }
 }
 
 function normalizeDeepLinkMode(mode, defaultMode = null) {
@@ -611,6 +1667,9 @@ function readDeepLinkStateFromLocation() {
       sourceCode: DEFAULT_TRANSLATE_SOURCE,
       targetCode: DEFAULT_TRANSLATE_TARGET,
       text: null,
+      compareEnabled: false,
+      comparePresetId: 'proof',
+      lanes: null,
     };
   }
 
@@ -624,6 +1683,12 @@ function readDeepLinkStateFromLocation() {
   const taskRaw = readDeepLinkValue(hashParams, queryParams, ['task', 't']);
   const modeRaw = readDeepLinkValue(hashParams, queryParams, ['mode', 'm']);
   const surfaceRaw = readDeepLinkValue(hashParams, queryParams, ['surface', 's']);
+  const compareRaw = readDeepLinkValue(hashParams, queryParams, ['compare', 'cv']);
+  const comparePresetRaw = readDeepLinkValue(hashParams, queryParams, ['compare_preset', 'cp']);
+  const leftEngineRaw = readDeepLinkValue(hashParams, queryParams, ['left_engine', 'le']);
+  const rightEngineRaw = readDeepLinkValue(hashParams, queryParams, ['right_engine', 're']);
+  const leftModelRaw = readDeepLinkValue(hashParams, queryParams, ['left_model', 'lm']);
+  const rightModelRaw = readDeepLinkValue(hashParams, queryParams, ['right_model', 'rm']);
   const surface = normalizeSurface(surfaceRaw, 'demo');
 
   let task = normalizeTask(taskRaw, null);
@@ -658,6 +1723,18 @@ function readDeepLinkStateFromLocation() {
     sourceCode,
     targetCode,
     text: textRaw == null ? null : decodeDeepLinkText(textRaw),
+    compareEnabled: compareRaw === '1' || compareRaw === 'true' || compareRaw === 'compare',
+    comparePresetId: resolveText(comparePresetRaw, 'proof'),
+    lanes: {
+      left: {
+        engine: resolveText(leftEngineRaw, ''),
+        modelId: resolveText(leftModelRaw, ''),
+      },
+      right: {
+        engine: resolveText(rightEngineRaw, ''),
+        modelId: resolveText(rightModelRaw, ''),
+      },
+    },
   };
 }
 
@@ -681,6 +1758,20 @@ function applyDeepLinkStateToUI(deepLinkState) {
     if (promptEl instanceof HTMLTextAreaElement) {
       promptEl.value = deepLinkState.text;
       setStarterExampleInput(promptEl, false);
+    }
+  }
+  ensureTranslateCompareRuntimeState();
+  state.compareEnabled = deepLinkState?.compareEnabled === true;
+  state.comparePresetId = resolveText(deepLinkState?.comparePresetId, state.comparePresetId || 'proof');
+  for (const laneId of getCompareLaneIds()) {
+    const laneState = deepLinkState?.lanes?.[laneId] || {};
+    const lane = getCompareLane(laneId);
+    if (!lane) continue;
+    if (laneState.engine === 'doppler' || laneState.engine === 'transformersjs') {
+      lane.engine = laneState.engine;
+    }
+    if (laneState.modelId) {
+      lane.modelId = laneState.modelId;
     }
   }
 }
@@ -714,6 +1805,20 @@ function buildDeepLinkHash(modeOverride = null, taskOverride = null) {
     if (shouldIncludePrompt) {
       params.set('text', prompt);
     }
+    if (state.compareEnabled) {
+      params.set('compare', '1');
+      params.set('compare_preset', state.comparePresetId || 'proof');
+      for (const laneId of getCompareLaneIds()) {
+        const lane = getCompareLane(laneId);
+        if (!lane) continue;
+        const engineKey = laneId === 'left' ? 'le' : 're';
+        const modelKey = laneId === 'left' ? 'lm' : 'rm';
+        params.set(engineKey, resolveText(lane.engine, 'doppler'));
+        if (lane.modelId) {
+          params.set(modelKey, lane.modelId);
+        }
+      }
+    }
   }
 
   return params.toString();
@@ -733,8 +1838,24 @@ function syncDeepLinkFromUI() {
 
 function buildTranslateDeepLinkUrl() {
   const next = new URL(window.location.href);
-  next.hash = buildDeepLinkHash('translate', 'run');
+  next.hash = buildDeepLinkHash('translate');
   return next.toString();
+}
+
+function setTranslateCompareEnabled(enabled) {
+  state.compareEnabled = enabled === true;
+  syncTranslateCompareUI();
+  syncDeepLinkFromUI();
+}
+
+async function copyTranslateCompareShareLink() {
+  const url = buildTranslateDeepLinkUrl();
+  if (navigator?.clipboard?.writeText) {
+    await navigator.clipboard.writeText(url);
+    updateRunStatus('Compare link copied');
+    return;
+  }
+  updateRunStatus(url);
 }
 
 function getRunStarterPromptPool() {
@@ -1412,6 +2533,7 @@ function syncRunModeUI(mode) {
   }
   renderEmbeddingDocumentSet();
   updateRunAutoLabels();
+  syncTranslateCompareUI();
 }
 
 async function setUiTask(task, modeHint = null) {
@@ -2451,6 +3573,8 @@ async function refreshModelList() {
     state.modelAvailability = await computeModelAvailability(models);
     await updateStorageInfo();
     await syncModelForMode(state.uiMode);
+    renderTranslateCompareSelectors();
+    syncTranslateCompareUI();
     if (state.uiMode === 'energy') {
       await preloadEnergyPipelineIfNeeded();
     }
@@ -2681,7 +3805,7 @@ function syncRunControls() {
     ? 'embedding'
     : (state.uiMode === 'translate' ? 'translate' : 'run');
   const hasCompatibleModel = Number.isFinite(availability[modeKey]) && availability[modeKey] > 0;
-  const disabled = state.runGenerating || state.runLoading;
+  const disabled = state.runGenerating || state.runLoading || state.compareGenerating || state.compareLoading;
   if (runPrompt) runPrompt.disabled = disabled;
   if (runGenerate) runGenerate.disabled = disabled || !hasCompatibleModel;
   if (runClear) runClear.disabled = disabled;
@@ -3132,6 +4256,10 @@ function handleEnergyClear() {
 
 async function handleRunGenerate() {
   if (state.runGenerating || state.runLoading) return;
+  if (isTranslateCompareEnabled()) {
+    await handleTranslateCompareRun();
+    return;
+  }
   const promptEl = $('run-prompt');
   const outputEl = $('run-output');
   const prompt = promptEl?.value?.trim() || '';
@@ -3341,6 +4469,10 @@ function handleRunClear() {
     setStarterExampleInput(promptEl, false);
   }
   if (outputEl) outputEl.textContent = '';
+  for (const laneId of getCompareLaneIds()) {
+    clearCompareLaneResult(laneId);
+    renderTranslateCompareLane(laneId);
+  }
   updateRunStatus('Idle');
   syncDeepLinkFromUI();
 }
@@ -3353,11 +4485,15 @@ function handleInferencePulseReset() {
   state.lastEnergyRequest = null;
   state.runLog = [];
   state.runCounter = 0;
+  for (const laneId of getCompareLaneIds()) {
+    clearCompareLaneResult(laneId);
+  }
 
   const snapshot = captureMemorySnapshot();
   updatePerformancePanel(snapshot);
   updateMemoryPanel(snapshot);
   renderRunLog();
+  syncTranslateCompareUI();
 }
 
 function summarizeEmbeddingVector(values) {
@@ -3409,6 +4545,7 @@ async function unloadActivePipeline() {
 }
 
 async function clearAllMemory() {
+  await unloadAllCompareLaneRuntimes();
   await unloadActivePipeline();
   destroyBufferPool();
   const snapshot = captureMemorySnapshot();
@@ -4191,6 +5328,18 @@ function bindUI() {
   const translateSourceLanguage = $('translate-source-language');
   const translateTargetLanguage = $('translate-target-language');
   const translateSwapBtn = $('translate-swap-btn');
+  const translateComparePreset = $('translate-compare-preset');
+  const translateCompareRun = $('translate-compare-run-btn');
+  const translateCompareShare = $('translate-compare-share-btn');
+  const translateHistoryClear = $('translate-history-clear-btn');
+  const translateViewSingleBtn = $('translate-view-single-btn');
+  const translateViewCompareBtn = $('translate-view-compare-btn');
+  const translateLayoutSingleBtn = $('translate-layout-single-btn');
+  const translateLayoutCompareBtn = $('translate-layout-compare-btn');
+  const translateLeftEngine = $('translate-left-engine');
+  const translateRightEngine = $('translate-right-engine');
+  const translateLeftModel = $('translate-left-model');
+  const translateRightModel = $('translate-right-model');
   const pulseReset = $('pulse-reset-btn');
   const temperatureInput = $('temperature-input');
   const topPInput = $('top-p-input');
@@ -4283,6 +5432,62 @@ function bindUI() {
     swapTranslateLanguages();
     syncTranslateDirection();
   });
+  translateViewSingleBtn?.addEventListener('click', () => setTranslateCompareEnabled(false));
+  translateViewCompareBtn?.addEventListener('click', () => setTranslateCompareEnabled(true));
+  translateLayoutSingleBtn?.addEventListener('click', () => setTranslateCompareEnabled(false));
+  translateLayoutCompareBtn?.addEventListener('click', () => setTranslateCompareEnabled(true));
+  translateComparePreset?.addEventListener('change', () => {
+    applyTranslateComparePreset(translateComparePreset.value || 'proof').catch((error) => {
+      updateRunStatus(`Compare preset error: ${error.message}`);
+    });
+    syncDeepLinkFromUI();
+  });
+  translateCompareRun?.addEventListener('click', () => {
+    setTranslateCompareEnabled(true);
+    handleTranslateCompareRun().catch((error) => {
+      updateRunStatus(`Compare error: ${error.message}`);
+    });
+  });
+  translateCompareShare?.addEventListener('click', () => {
+    setTranslateCompareEnabled(true);
+    copyTranslateCompareShareLink().catch((error) => {
+      updateRunStatus(`Share error: ${error.message}`);
+    });
+  });
+  translateHistoryClear?.addEventListener('click', () => {
+    if (typeof globalThis.confirm === 'function' && !globalThis.confirm('Clear saved compare history?')) {
+      return;
+    }
+    state.compareHistory = [];
+    persistTranslateCompareHistory();
+    renderTranslateCompareHistory();
+  });
+
+  const bindCompareLaneControls = (laneId, engineSelect, modelSelect) => {
+    engineSelect?.addEventListener('change', () => {
+      const lane = getCompareLane(laneId);
+      if (!lane) return;
+      lane.engine = resolveText(engineSelect.value, 'doppler');
+      clearCompareLaneResult(laneId);
+      populateCompareLaneModelSelect(laneId);
+      renderTranslateCompareLane(laneId);
+      syncDeepLinkFromUI();
+    });
+    modelSelect?.addEventListener('change', () => {
+      const lane = getCompareLane(laneId);
+      if (!lane) return;
+      lane.modelId = resolveText(modelSelect.value, '');
+      lane.tjsModelId = lane.engine === 'transformersjs'
+        ? resolveTransformersModelIdForLane(lane)
+        : '';
+      clearCompareLaneResult(laneId);
+      renderTranslateCompareLane(laneId);
+      syncDeepLinkFromUI();
+    });
+  };
+
+  bindCompareLaneControls('left', translateLeftEngine, translateLeftModel);
+  bindCompareLaneControls('right', translateRightEngine, translateRightModel);
   document.querySelectorAll('.task-tab').forEach((button) => {
     button.addEventListener('click', () => {
       if (button.hidden) return;
@@ -4621,6 +5826,8 @@ function syncMobileAdvanced() {
 
 async function init() {
   state.appInitializing = true;
+  ensureTranslateCompareRuntimeState();
+  hydrateTranslateCompareHistory();
   setStatusIndicator('Initializing...', 'info');
   setAppBootstrapMessage('Loading...');
   console.log('[Bootstrap] Loading... evaluating demo module graph and preparing bootstrap overlay.');
@@ -4661,16 +5868,21 @@ async function init() {
     console.log('[Bootstrap] Initializing... running startup tasks: quick model catalog fetch, WebGPU capability init, and download-state refresh.');
 
     const startupTasks = Promise.all([
+      loadTranslateCompareProfiles(),
+      loadTranslateCompareEvidence(),
       loadQuickModelCatalog(),
       loadDistillWorkloadRegistry(),
       refreshGpuInfo(),
       refreshDownloads(),
     ]);
     await startupTasks;
+    state.compareDeviceLabel = await resolveWebGpuDeviceLabel('WebGPU');
 
     await setUiMode(state.uiMode, { task: state.uiTask });
     bindUI();
     applyDeepLinkStateToUI(deepLinkState);
+    await applyTranslateComparePreset(state.comparePresetId || 'proof', { preserveExisting: true });
+    syncTranslateCompareUI();
     updateMemoryControls();
     startTelemetryLoop();
     setRunLoading(false);

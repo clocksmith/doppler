@@ -234,6 +234,9 @@ function buildManifestDecodeLoopRuntimePatch(manifest) {
 
 export function applyModelBatchingRuntimeDefaults(runtimeConfig, manifest, modelConfig) {
   void modelConfig;
+  if (manifest?.inference?.schema === 'doppler.execution/v0') {
+    return runtimeConfig;
+  }
   const batching = runtimeConfig?.inference?.batching;
   const generation = runtimeConfig?.inference?.generation;
   const runtimeBatchingAtDefaults = isRuntimeBatchingAtGlobalDefaults(batching);

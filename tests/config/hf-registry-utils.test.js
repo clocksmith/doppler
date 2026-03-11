@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 
 import {
+  buildHostedRegistryPayload,
   buildHfResolveUrl,
   buildManifestUrl,
   buildPublishedRegistryEntry,
@@ -8,6 +9,7 @@ import {
   collectDuplicateModelIds,
   extractCommitShaFromUrl,
   fetchRepoHeadSha,
+  isHostedRegistryApprovedEntry,
   resolveDemoRegistryEntryBaseUrl,
   shouldDemoSurfaceRemoteRegistryEntry,
   validateLocalHfEntryShape,
@@ -83,6 +85,31 @@ import {
 }
 
 {
+  assert.equal(isHostedRegistryApprovedEntry({
+    lifecycle: {
+      availability: {
+        hf: true,
+      },
+      status: {
+        runtime: 'active',
+        tested: 'verified',
+      },
+    },
+  }), true);
+  assert.equal(isHostedRegistryApprovedEntry({
+    lifecycle: {
+      availability: {
+        hf: true,
+      },
+      status: {
+        runtime: 'active',
+        tested: 'failing',
+      },
+    },
+  }), false);
+}
+
+{
   const remoteHfEntry = {
     modelId: 'gemma-3-270m-it-q4k-ehf16-af32',
     hf: {
@@ -110,6 +137,60 @@ import {
     baseUrl: null,
   };
   assert.equal(shouldDemoSurfaceRemoteRegistryEntry(nonFetchableRemoteEntry, 'https://huggingface.co/Clocksmith/rdrr/resolve/main/registry/catalog.json'), false);
+}
+
+{
+  const payload = buildHostedRegistryPayload({
+    version: 1,
+    lifecycleSchemaVersion: 1,
+    updatedAt: '2026-03-11',
+    models: [
+      {
+        modelId: 'failing-qwen',
+        sortOrder: 2,
+        hf: {
+          repoId: 'Clocksmith/rdrr',
+          revision: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+          path: 'models/failing-qwen',
+        },
+        external: {
+          pathRelativeToVolume: 'rdrr/failing-qwen',
+        },
+        lifecycle: {
+          availability: {
+            hf: true,
+          },
+          status: {
+            runtime: 'active',
+            tested: 'failing',
+          },
+        },
+      },
+      {
+        modelId: 'verified-gemma',
+        sortOrder: 1,
+        hf: {
+          repoId: 'Clocksmith/rdrr',
+          revision: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+          path: 'models/verified-gemma',
+        },
+        external: {
+          pathRelativeToVolume: 'rdrr/verified-gemma',
+        },
+        lifecycle: {
+          availability: {
+            hf: true,
+          },
+          status: {
+            runtime: 'active',
+            tested: 'verified',
+          },
+        },
+      },
+    ],
+  });
+  assert.deepEqual(payload.models.map((entry) => entry.modelId), ['verified-gemma']);
+  assert.equal('external' in payload.models[0], false);
 }
 
 {

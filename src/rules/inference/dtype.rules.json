@@ -59,6 +59,11 @@
     { "match": { "useF16": true }, "value": "f16" },
     { "match": {}, "value": { "context": "fallback" } }
   ],
+  "attentionProjectionOutputDtype": [
+    { "match": { "forceF32": true }, "value": "f32" },
+    { "match": { "useF16": true }, "value": "f16" },
+    { "match": {}, "value": { "context": "fallback" } }
+  ],
   "bytesPerElement": [
     { "match": { "dtype": "f16" }, "value": 2 },
     { "match": {}, "value": 4 }

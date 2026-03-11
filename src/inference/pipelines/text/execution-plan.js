@@ -58,10 +58,11 @@ function resolveFallbackActivationDtype(primaryActivationDtype) {
 function resolveFallbackKernelPath(primaryKernelPath) {
   const primaryKernelPathId = primaryKernelPath?.id ?? null;
   if (!primaryKernelPathId) {
-    throw new Error(
-      '[ExecutionPlan] F16 finiteness fallback requires a primary kernel path with a stable id. ' +
-      'Add a registered kernelPath id and a finiteness fallback rule.'
-    );
+    return {
+      kernelPath: null,
+      kernelPathId: null,
+      kernelPathSource: 'none',
+    };
   }
 
   const explicitFallbackKernelPathId = typeof primaryKernelPath?.finitenessFallbackKernelPathId === 'string'

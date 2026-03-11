@@ -7,19 +7,21 @@ import process from 'node:process';
 import { spawn } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import {
+  buildHostedRegistryPayload,
   DEFAULT_HF_REGISTRY_PATH,
   DEFAULT_HF_REGISTRY_URL,
+  DEFAULT_EXTERNAL_SUPPORT_REGISTRY_PATH,
   buildManifestUrl,
-  buildPublishedRegistryEntry,
-  ensureCatalogPayload,
   extractCommitShaFromUrl,
   fetchRepoHeadSha,
   fetchJson,
   findCatalogEntry,
   getEntryHfSpec,
+  isHostedRegistryApprovedEntry,
   loadJsonFile,
   normalizeText,
   probeUrl,
+  resolvePreferredSupportRegistryFile,
   writeJsonFile,
 } from './hf-registry-utils.js';
 
@@ -29,7 +31,10 @@ const DEFAULT_CATALOG_FILE = path.join(REPO_ROOT, 'models', 'catalog.json');
 export function parseArgs(argv) {
   const out = {
     modelId: '',
-    catalogFile: DEFAULT_CATALOG_FILE,
+    supportFile: resolvePreferredSupportRegistryFile({
+      externalSupportFile: DEFAULT_EXTERNAL_SUPPORT_REGISTRY_PATH,
+      fallbackFile: DEFAULT_CATALOG_FILE,
+    }),
     localDir: '',
     registryUrl: DEFAULT_HF_REGISTRY_URL,
     registryPath: DEFAULT_HF_REGISTRY_PATH,
@@ -44,10 +49,17 @@ export function parseArgs(argv) {
       i += 1;
       continue;
     }
+    if (arg === '--support-file') {
+      const value = normalizeText(argv[i + 1]);
+      if (!value) throw new Error('Missing value for --support-file');
+      out.supportFile = path.resolve(REPO_ROOT, value);
+      i += 1;
+      continue;
+    }
     if (arg === '--catalog-file') {
       const value = normalizeText(argv[i + 1]);
       if (!value) throw new Error('Missing value for --catalog-file');
-      out.catalogFile = path.resolve(REPO_ROOT, value);
+      out.supportFile = path.resolve(REPO_ROOT, value);
       i += 1;
       continue;
     }
@@ -128,7 +140,11 @@ export function buildArtifactUploadPlan(entry, options = {}) {
   const hfSpec = getEntryHfSpec(entry);
   const repoId = normalizeText(options.repoId) || hfSpec.repoId;
   const targetPath = hfSpec.path;
-  const localDir = options.localDir || path.join(REPO_ROOT, 'models', 'local', modelId);
+  const externalPath = normalizeText(entry?.external?.pathRelativeToVolume);
+  const volumeRoot = normalizeText(options.volumeRoot);
+  const localDir = options.localDir
+    || (externalPath && volumeRoot ? path.resolve(volumeRoot, externalPath) : '')
+    || path.join(REPO_ROOT, 'models', 'local', modelId);
   if (!repoId) {
     throw new Error(`${modelId}: hf.repoId is required to publish`);
   }
@@ -157,6 +173,12 @@ export function assertPromotionReady(entry) {
   const contracts = tested.contracts && typeof tested.contracts === 'object'
     ? tested.contracts
     : {};
+  if (lifecycle?.availability?.hf !== true) {
+    throw new Error(`${modelId}: lifecycle.availability.hf must be true before publication.`);
+  }
+  if (status.runtime !== 'active') {
+    throw new Error(`${modelId}: lifecycle.status.runtime must be "active" before publication.`);
+  }
   if (status.tested !== 'verified') {
     throw new Error(`${modelId}: lifecycle.status.tested must be "verified" before publication.`);
   }
@@ -166,25 +188,45 @@ export function assertPromotionReady(entry) {
   if (contracts.executionV0GraphOk !== true) {
     throw new Error(`${modelId}: execution-v0 graph gate must be explicitly true in lifecycle.tested.contracts.`);
   }
+  const external = entry?.external && typeof entry.external === 'object'
+    ? entry.external
+    : null;
+  if (external && external.hostedPathMatchesRdrr === false) {
+    throw new Error(
+      `${modelId}: external hosted path must match the canonical RDRR artifact basename before publication.`
+    );
+  }
+  if (external && external.manifestModelIdMatchesCatalogModelId === false) {
+    throw new Error(
+      `${modelId}: external manifest modelId must match the approved support entry modelId before publication.`
+    );
+  }
 }
 
 export async function main(argv = process.argv.slice(2)) {
   const args = parseArgs(argv);
-  const localCatalog = await loadJsonFile(args.catalogFile, args.catalogFile);
-  const localEntry = findCatalogEntry(localCatalog, args.modelId);
+  const canonicalSupport = await loadJsonFile(args.supportFile, args.supportFile);
+  const localEntry = findCatalogEntry(canonicalSupport, args.modelId);
   if (!localEntry) {
-    throw new Error(`Model "${args.modelId}" not found in ${args.catalogFile}`);
+    throw new Error(`Model "${args.modelId}" not found in ${args.supportFile}`);
   }
   assertPromotionReady(localEntry);
+  if (!isHostedRegistryApprovedEntry(localEntry)) {
+    throw new Error(
+      `${args.modelId}: model is not eligible for the hosted registry; requires hf approval plus active verified runtime status.`
+    );
+  }
 
   const uploadPlan = buildArtifactUploadPlan(localEntry, {
     repoId: args.repoId,
     localDir: args.localDir,
+    volumeRoot: canonicalSupport.volumeRoot,
   });
 
   if (args.dryRun) {
     console.log(JSON.stringify({
       modelId: uploadPlan.modelId,
+      supportFile: args.supportFile,
       repoId: uploadPlan.repoId,
       localDir: uploadPlan.localDir,
       targetPath: uploadPlan.targetPath,
@@ -196,10 +238,7 @@ export async function main(argv = process.argv.slice(2)) {
 
   // Pre-validate remote registry before uploading any artifact.
   // This fails fast on registry access issues before making irreversible changes.
-  const remoteRegistry = ensureCatalogPayload(
-    await fetchJson(args.registryUrl),
-    `remote registry ${args.registryUrl}`
-  );
+  await fetchJson(args.registryUrl);
 
   const uploadResult = await spawnCommand('hf', [
     'upload',
@@ -216,17 +255,10 @@ export async function main(argv = process.argv.slice(2)) {
     throw new Error(`Could not extract artifact commit SHA from hf upload output for ${uploadPlan.modelId}`);
   }
 
-  const nextEntry = buildPublishedRegistryEntry(localEntry, artifactRevision);
-  const nextRegistry = structuredClone(remoteRegistry);
-  nextRegistry.models = nextRegistry.models
-    .filter((entry) => normalizeText(entry?.modelId) !== uploadPlan.modelId);
-  nextRegistry.models.push(nextEntry);
-  nextRegistry.models.sort((left, right) => {
-    const leftSort = Number.isFinite(Number(left?.sortOrder)) ? Number(left.sortOrder) : Number.MAX_SAFE_INTEGER;
-    const rightSort = Number.isFinite(Number(right?.sortOrder)) ? Number(right.sortOrder) : Number.MAX_SAFE_INTEGER;
-    if (leftSort !== rightSort) return leftSort - rightSort;
-    return normalizeText(left?.label || left?.modelId).localeCompare(normalizeText(right?.label || right?.modelId));
-  });
+  const nextRegistry = buildHostedRegistryPayload(
+    canonicalSupport,
+    new Map([[uploadPlan.modelId, artifactRevision]])
+  );
 
   const tempDir = await mkdtemp(path.join(os.tmpdir(), 'doppler-hf-registry-'));
   try {

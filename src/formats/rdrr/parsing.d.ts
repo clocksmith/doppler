@@ -7,6 +7,10 @@
 import type { RDRRManifest, ShardInfo, TensorMap } from './types.js';
 
 export declare function parseManifest(jsonString: string): RDRRManifest;
+export declare function getExpectedShardHash(
+  shard: Partial<ShardInfo> | Record<string, unknown> | null | undefined,
+  manifestHashAlgorithm?: string | null
+): string;
 
 export declare function parseTensorMap(jsonString: string): TensorMap;
 

@@ -156,17 +156,22 @@ const container = { executionPlanState: planState };
 {
   const runtimeConfigMissingId = createDopplerConfig().runtime;
   runtimeConfigMissingId.inference.compute.activationDtype = 'f16';
-  assert.throws(
-    () => compileExecutionPlanState({
-      runtimeConfig: runtimeConfigMissingId,
-      resolvedKernelPath: {
-        activationDtype: 'f16',
-        decode: { steps: [] },
-      },
-      kernelPathSource: 'model',
-    }),
-    /F16 finiteness fallback requires a primary kernel path with a stable id/
-  );
+  const noKernelPathPlanState = compileExecutionPlanState({
+    runtimeConfig: runtimeConfigMissingId,
+    resolvedKernelPath: {
+      activationDtype: 'f16',
+      decode: { steps: [] },
+    },
+    kernelPathSource: 'model',
+  });
+
+  assert.equal(noKernelPathPlanState.primaryPlan.kernelPathId, null);
+  assert.equal(hasFallbackExecutionPlan(noKernelPathPlanState), true);
+  const fallback = activateFallbackExecutionPlan(noKernelPathPlanState);
+  assert.ok(fallback);
+  assert.equal(fallback.kernelPathId, null);
+  assert.equal(fallback.kernelPathSource, 'none');
+  assert.equal(fallback.activationDtype, 'f32');
 }
 
 {

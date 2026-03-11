@@ -1,3 +1,85 @@
+export interface TranslateCompareMetrics {
+  modelLoadMs: number | null;
+  ttftMs: number | null;
+  totalMs: number | null;
+  decodeTokensPerSec: number | null;
+  sizeBytes: number | null;
+  deviceLabel: string | null;
+  metaLabel: string | null;
+}
+
+export interface TranslateCompareLaneState {
+  engine: 'doppler' | 'transformersjs';
+  modelId: string | null;
+  tjsModelId: string;
+  tjsDtype: string;
+  label: string;
+  status: string;
+  statusTone: string;
+  output: string;
+  metrics: TranslateCompareMetrics | null;
+  error: unknown;
+  pipeline: any;
+  pipelineModelId: string | null;
+  tjsGenerator: any;
+  tjsGeneratorKey: string | null;
+}
+
+export interface TranslateCompareProfile {
+  dopplerModelId: string;
+  defaultTjsModelId: string;
+  defaultKernelPath: string;
+  modelBaseDir: string;
+  defaultDopplerSurface: string;
+}
+
+export interface TranslateCompareEvidenceModel {
+  label: string;
+  modelId: string | null;
+  bleu: number | null;
+  chrf: number | null;
+  sizeBytes: number | null;
+}
+
+export interface TranslateCompareEvidenceReceipt {
+  label?: string;
+  href?: string;
+  [key: string]: unknown;
+}
+
+export interface TranslateCompareEvidence {
+  updatedAt: string | null;
+  summary: string;
+  caution: string;
+  teacher: TranslateCompareEvidenceModel;
+  student: TranslateCompareEvidenceModel;
+  receipts: TranslateCompareEvidenceReceipt[];
+}
+
+export interface TranslateCompareHistoryLane {
+  engine: string;
+  modelId: string;
+  tjsModelId: string;
+  label: string;
+  status: string;
+  output: string;
+  metrics: TranslateCompareMetrics | null;
+  error: unknown;
+}
+
+export interface TranslateCompareHistoryEntry {
+  id: string;
+  createdAt: string;
+  sourceCode: string;
+  targetCode: string;
+  prompt: string;
+  presetId: string;
+  lanes: {
+    left: TranslateCompareHistoryLane;
+    right: TranslateCompareHistoryLane;
+  };
+}
+
 export interface State {
   runtimeOverride: any;
   runtimeOverrideBase: any;
@@ -37,6 +119,18 @@ export interface State {
   runGenerating: boolean;
   runPrefilling: boolean;
   runLoading: boolean;
+  compareEnabled: boolean;
+  comparePresetId: string;
+  compareLoading: boolean;
+  compareGenerating: boolean;
+  compareHistory: TranslateCompareHistoryEntry[];
+  compareProfiles: TranslateCompareProfile[];
+  compareEvidence: TranslateCompareEvidence | null;
+  compareDeviceLabel: string | null;
+  compareLanes: {
+    left: TranslateCompareLaneState;
+    right: TranslateCompareLaneState;
+  };
   diffusionGenerating: boolean;
   diffusionLoading: boolean;
   energyGenerating: boolean;

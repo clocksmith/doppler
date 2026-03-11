@@ -5,6 +5,7 @@ import {
   computeHash,
   getStorageBackendType,
 } from '../storage/shard-manager.js';
+import { getExpectedShardHash } from '../formats/rdrr/index.js';
 import { formatBytes } from '../storage/quota.js';
 import { log, trace as debugTrace } from '../debug/index.js';
 import { getRuntimeConfig } from '../config/runtime.js';
@@ -484,11 +485,11 @@ export class ShardCache {
       // Verify hash if enabled
       if (this.#verifyHashes && this.#manifest) {
         const shardInfo = this.#manifest.shards?.[shardIndex];
-        const expectedHash = shardInfo?.hash;
+        const algorithm = shardInfo?.hashAlgorithm ?? this.#manifest.hashAlgorithm;
+        const expectedHash = getExpectedShardHash(shardInfo, algorithm);
         if (!expectedHash) {
           throw new Error(`Shard ${shardIndex} missing hash in manifest.`);
         }
-        const algorithm = shardInfo?.hashAlgorithm ?? this.#manifest.hashAlgorithm;
         if (!algorithm) {
           throw new Error(`Manifest missing hashAlgorithm for shard ${shardIndex}.`);
         }

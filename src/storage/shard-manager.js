@@ -1,5 +1,6 @@
 import {
   getManifest,
+  getExpectedShardHash,
   getShardInfo,
   getShardCount,
   generateShardFilename,
@@ -280,7 +281,7 @@ export async function writeShard(shardIndex, data, options = { verify: true }) {
       const manifest = getManifest();
       const algorithm = requireManifestHashAlgorithm(manifest, 'shard write');
       const hash = await computeHash(bytes, algorithm);
-      const expectedHash = shardInfo.hash;
+      const expectedHash = getExpectedShardHash(shardInfo, algorithm);
       if (!expectedHash) {
         await backend.deleteFile(shardInfo.filename);
         throw new Error(`Shard ${shardIndex} is missing hash in manifest`);
@@ -369,7 +370,7 @@ export async function loadShard(shardIndex, options = { verify: false }) {
       const manifest = getManifest();
       const algorithm = requireManifestHashAlgorithm(manifest, 'shard load');
       const hash = await computeHash(buffer, algorithm);
-      const expectedHash = shardInfo.hash;
+      const expectedHash = getExpectedShardHash(shardInfo, algorithm);
       if (!expectedHash) {
         throw new Error(`Shard ${shardIndex} is missing hash in manifest`);
       }
@@ -531,7 +532,7 @@ export async function verifyIntegrity(options = {}) {
         const buffer = await loadShard(i, { verify: false });
         const hash = await computeHash(buffer, algorithm);
         const shardInfo = getShardInfo(i);
-        const expectedHash = shardInfo?.hash;
+        const expectedHash = getExpectedShardHash(shardInfo, algorithm);
         if (!expectedHash) {
           corruptShards.push(i);
           continue;

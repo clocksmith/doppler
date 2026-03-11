@@ -1,0 +1,311 @@
+{
+  "suite": "debug",
+  "modelId": "qwen-linear-attention-regression",
+  "runtimePreset": null,
+  "deviceInfo": {
+    "hasSubgroups": true,
+    "hasSubgroupsF16": false,
+    "hasF16": true,
+    "hasTimestampQuery": true,
+    "maxBufferSize": 14302248960,
+    "maxWorkgroupSize": 1024,
+    "maxWorkgroupStorageSize": 32768,
+    "adapterInfo": {
+      "vendor": "apple",
+      "architecture": "metal-3",
+      "device": "apple-m3",
+      "description": "Metal driver on macOS Version 26.3 (Build 25D125)"
+    }
+  },
+  "results": [
+    {
+      "name": "generation",
+      "passed": true,
+      "duration": 6047.345459000004
+    }
+  ],
+  "durationMs": 96993.061792,
+  "timestamp": "2026-03-11T13:30:38.533Z",
+  "metrics": {
+    "prompt": "The capital of France is",
+    "maxTokens": 24,
+    "tokensGenerated": 24,
+    "tokensPerSec": 3.97,
+    "totalRunMs": 6046.82,
+    "firstTokenMs": 1070.03,
+    "firstResponseMs": 92012.24,
+    "prefillMs": 1060.18,
+    "decodeMs": 4976.23,
+    "prefillTokens": 5,
+    "decodeTokens": 24,
+    "prefillTokensPerSec": 4.72,
+    "prefillTokensPerSecTtft": 4.67,
+    "decodeTokensPerSec": 4.82,
+    "modelLoadMs": 90942.21,
+    "gpu": {
+      "decodeRecordMs": 0,
+      "decodeSubmitWaitMs": 0,
+      "decodeReadbackWaitMs": 0
+    },
+    "decodeProfileSteps": [],
+    "generationDiagnostics": {
+      "preview": [
+        {
+          "id": 2026,
+          "text": "ailable",
+          "fallbackText": "ailable"
+        },
+        {
+          "id": 91410,
+          "text": "yah",
+          "fallbackText": "yah"
+        },
+        {
+          "id": 91410,
+          "text": "yah",
+          "fallbackText": "yah"
+        },
+        {
+          "id": 234334,
+          "text": "із",
+          "fallbackText": "із"
+        },
+        {
+          "id": 150981,
+          "text": "нали",
+          "fallbackText": "нали"
+        },
+        {
+          "id": 234334,
+          "text": "із",
+          "fallbackText": "із"
+        },
+        {
+          "id": 220806,
+          "text": " achar",
+          "fallbackText": " achar"
+        },
+        {
+          "id": 234334,
+          "text": "із",
+          "fallbackText": "із"
+        },
+        {
+          "id": 234334,
+          "text": "із",
+          "fallbackText": "із"
+        },
+        {
+          "id": 234334,
+          "text": "із",
+          "fallbackText": "із"
+        },
+        {
+          "id": 234334,
+          "text": "із",
+          "fallbackText": "із"
+        },
+        {
+          "id": 234334,
+          "text": "із",
+          "fallbackText": "із"
+        },
+        {
+          "id": 3795,
+          "text": "rest",
+          "fallbackText": "rest"
+        },
+        {
+          "id": 16004,
+          "text": "ificial",
+          "fallbackText": "ificial"
+        },
+        {
+          "id": 16004,
+          "text": "ificial",
+          "fallbackText": "ificial"
+        },
+        {
+          "id": 86812,
+          "text": "ophysical",
+          "fallbackText": "ophysical"
+        },
+        {
+          "id": 234334,
+          "text": "із",
+          "fallbackText": "із"
+        },
+        {
+          "id": 234334,
+          "text": "із",
+          "fallbackText": "із"
+        },
+        {
+          "id": 78443,
+          "text": "perse",
+          "fallbackText": "perse"
+        },
+        {
+          "id": 78443,
+          "text": "perse",
+          "fallbackText": "perse"
+        },
+        {
+          "id": 244405,
+          "text": "igente",
+          "fallbackText": "igente"
+        },
+        {
+          "id": 244405,
+          "text": "igente",
+          "fallbackText": "igente"
+        },
+        {
+          "id": 246184,
+          "text": " neoliber",
+          "fallbackText": " neoliber"
+        },
+        {
+          "id": 129273,
+          "text": "比较低",
+          "fallbackText": "比较低"
+        }
+      ],
+      "total": 24,
+      "omitted": 0,
+      "emptyTextCount": 0,
+      "specialLikeTextCount": 0,
+      "specialLikeFallbackCount": 0
+    },
+    "schemaVersion": 1,
+    "source": "doppler",
+    "suite": "debug",
+    "executionContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "qwen-3-5-0-8b-f16.steps",
+          "ok": true
+        },
+        {
+          "id": "qwen-3-5-0-8b-f16.session",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "session": {
+        "layout": "contiguous",
+        "disableCommandBatching": true,
+        "decodeBatchSize": 4,
+        "headDim": 256,
+        "kvLen": 262144,
+        "coldQuantMode": "none"
+      },
+      "steps": {
+        "total": 0,
+        "attention": 0,
+        "attentionPhases": {
+          "prefill": 0,
+          "decode": 0,
+          "both": 0
+        }
+      }
+    },
+    "executionV0GraphContractArtifact": null,
+    "layerPatternContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "inference.layerPattern.patternKind.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.patternKind.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.even",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.odd",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_offset",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_negative_offset",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "patternKindRules": 4,
+        "layerTypeRules": 6,
+        "patternKindContexts": 16,
+        "layerTypeContexts": 12
+      }
+    },
+    "requiredInferenceFieldsArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "scope": "manifest",
+      "label": "qwen-3-5-0-8b-f16.inference",
+      "ok": true,
+      "checks": [
+        {
+          "id": "qwen-3-5-0-8b-f16.inference.requiredInferenceFields",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "fieldCases": 35,
+        "nullableCases": 16,
+        "nonNullableCases": 19
+      }
+    }
+  },
+  "output": "ailableyahyahізналиіз acharізізізізізrestificialificialophysicalізізperseperseigenteigente neoliber比较低",
+  "memory": {
+    "used": 1962219008,
+    "pool": {
+      "allocations": 10823,
+      "reuses": 913,
+      "totalBytesAllocated": 1868029952,
+      "peakBytesAllocated": 1782425600,
+      "currentBytesAllocated": 1760892416,
+      "totalBytesRequested": 1686759424,
+      "peakBytesRequested": 1610368768,
+      "currentBytesRequested": 1594334720,
+      "activeBuffers": 430,
+      "pooledBuffers": 64,
+      "budgetMaxBytes": 0,
+      "budgetUtilization": 0,
+      "hitRate": "7.8%"
+    },
+    "kvCache": {
+      "theoretical": 201326592,
+      "allocated": 201326592,
+      "used": 1376256,
+      "efficiency": 0.0068359375,
+      "seqLen": 28,
+      "maxSeqLen": 4096,
+      "layout": "contiguous"
+    }
+  }
+}

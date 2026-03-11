@@ -277,9 +277,22 @@ export function recordAttentionInputs(state, info) {
   state.stats.attentionInputs.push(info);
 }
 
-export function resolveAttentionProjectionOutputDtype(attentionInputDtype) {
+export function shouldForceF32AttentionProjectionForRoPE({
+  attentionInputDtype,
+  headDim,
+  rotaryDim = headDim,
+  interleaved = false,
+}) {
+  return attentionInputDtype === 'f16'
+    && Number.isFinite(headDim)
+    && Number.isFinite(rotaryDim)
+    && (rotaryDim !== headDim || interleaved === true);
+}
+
+export function resolveAttentionProjectionOutputDtype(attentionInputDtype, options = {}) {
   const useF16Activations = attentionInputDtype === 'f16';
-  return selectRuleValue('shared', 'dtype', 'f16OrFallbackByFlag', {
+  return selectRuleValue('inference', 'dtype', 'attentionProjectionOutputDtype', {
+    forceF32: options.forceF32 === true,
     useF16: useF16Activations,
     fallback: attentionInputDtype,
   });

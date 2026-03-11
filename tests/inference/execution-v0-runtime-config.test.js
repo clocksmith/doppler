@@ -515,6 +515,9 @@ function kernelRef(kernel, entry = 'main') {
 
   const resolved = applyExecutionV0RuntimeConfig({ runtimeConfig, manifest });
   assert.ok(resolved.executionV0State);
+  assert.equal(resolved.runtimeConfig.inference.batching.batchSize, 4);
+  assert.equal(resolved.runtimeConfig.inference.batching.stopCheckMode, 'batch');
+  assert.equal(resolved.runtimeConfig.inference.batching.readbackInterval, 1);
   assert.equal(resolved.runtimeConfig.inference.generation.disableCommandBatching, true);
 }
 

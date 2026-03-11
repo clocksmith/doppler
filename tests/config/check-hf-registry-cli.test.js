@@ -5,6 +5,8 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
 
+import { validateRemoteRegistry } from '../../tools/check-hf-registry.js';
+
 const tempDir = await mkdtemp(path.join(os.tmpdir(), 'doppler-hf-registry-check-'));
 
 const manifest = {
@@ -42,6 +44,28 @@ const localCatalog = {
       lifecycle: {
         availability: {
           hf: true,
+        },
+        status: {
+          runtime: 'active',
+          tested: 'verified',
+        },
+      },
+    },
+    {
+      modelId: 'failing-qwen',
+      preset: 'qwen3',
+      hf: {
+        repoId: 'Clocksmith/rdrr',
+        revision: 'def456',
+        path: 'models/failing-qwen',
+      },
+      lifecycle: {
+        availability: {
+          hf: true,
+        },
+        status: {
+          runtime: 'active',
+          tested: 'failing',
         },
       },
     },
@@ -83,9 +107,78 @@ const address = server.address();
 const baseUrl = `http://127.0.0.1:${address.port}`;
 
 try {
+  const remoteValidation = await validateRemoteRegistry({
+    models: [
+      {
+        modelId: 'toy-model',
+        baseUrl: `${baseUrl}/models/toy-model`,
+      },
+    ],
+  }, `${baseUrl}/registry/catalog.json`, {
+    models: [
+      {
+        modelId: 'toy-model',
+        baseUrl: `${baseUrl}/models/toy-model`,
+        lifecycle: {
+          availability: {
+            hf: true,
+          },
+          status: {
+            runtime: 'active',
+            tested: 'verified',
+          },
+        },
+      },
+      {
+        modelId: 'failing-qwen',
+        baseUrl: `${baseUrl}/models/failing-qwen`,
+        lifecycle: {
+          availability: {
+            hf: true,
+          },
+          status: {
+            runtime: 'active',
+            tested: 'failing',
+          },
+        },
+      },
+    ],
+  });
+  assert.deepEqual(remoteValidation.errors, []);
+
+  const mismatchedManifestValidation = await validateRemoteRegistry({
+    models: [
+      {
+        modelId: 'approved-toy-model',
+        baseUrl: `${baseUrl}/models/toy-model`,
+      },
+    ],
+  }, `${baseUrl}/registry/catalog.json`, {
+    models: [
+      {
+        modelId: 'approved-toy-model',
+        baseUrl: `${baseUrl}/models/toy-model`,
+        lifecycle: {
+          availability: {
+            hf: true,
+          },
+          status: {
+            runtime: 'active',
+            tested: 'verified',
+          },
+        },
+      },
+    ],
+  });
+  assert.deepEqual(mismatchedManifestValidation.errors, [
+    'approved-toy-model: demo-visible registry entry is not fetchable (approved-toy-model: manifest modelId "toy-model" does not match the approved support entry modelId)',
+  ]);
+
   const result = await new Promise((resolve, reject) => {
     const child = spawn(process.execPath, [
       'tools/check-hf-registry.js',
+      '--support-file',
+      catalogFile,
       '--remote-only',
       '--registry-url',
       `${baseUrl}/registry/catalog.json`,

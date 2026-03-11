@@ -154,6 +154,9 @@ Rules:
 - repo-local manifest must match the actual promoted artifact
 - `models/catalog.json` must point to the current HF revision after publication, not the previous one
 - if a model is not correctness-clean, reflect that in human-facing status notes rather than implying full health
+- preferred ownership is external-first:
+  - canonical support/lifecycle registry: `/media/x/models/DOPPLER_SUPPORT_REGISTRY.json`
+  - repo mirror for tooling/CI: `models/catalog.json`
 
 ### 6. Sync the external-volume canonical artifact
 
@@ -172,13 +175,15 @@ After copy:
 
 ### 7. Verify the publish tool gate before publishing
 
-`tools/publish-hf-registry-model.js` calls `assertPromotionReady()` which checks exactly three catalog fields before uploading anything:
+`tools/publish-hf-registry-model.js` reads the canonical support entry first, then calls `assertPromotionReady()` before uploading anything. Publication requires:
 
+- `lifecycle.availability.hf === true`
+- `lifecycle.status.runtime === "active"`
 - `lifecycle.status.tested === "verified"`
 - `lifecycle.tested.contracts.executionContractOk === true`
 - `lifecycle.tested.contracts.executionV0GraphOk === true`
 
-The tool also requires `hf.repoId` and `hf.path` in the catalog entry. `hf.revision` is not required before publish — it is written to the remote registry by the publish step and must be recorded in the local catalog afterward (step 9).
+The tool also requires `hf.repoId` and `hf.path` in the support entry. `hf.revision` is not required before publish. The remote registry rebuild pins the newly uploaded revision for the selected model, and the repo mirror gets that revision when it is re-synced from the canonical external registry afterward.
 
 Run a dry run to confirm the upload plan before uploading:
 
@@ -241,15 +246,31 @@ This updates:
 - `/media/x/models/RDRR_INDEX.json`
 - `/media/x/models/RDRR_INDEX.md`
 
+Then regenerate the external canonical support registry:
+
+```bash
+node tools/sync-external-support-registry.js
+```
+
+This updates:
+
+- `/media/x/models/DOPPLER_SUPPORT_REGISTRY.json`
+- `/media/x/models/DOPPLER_SUPPORT_REGISTRY.md`
+
 If there are other external-volume status docs, update them in the same promotion change.
 
 ### 9. Re-pin repo metadata to the published HF revision
 
-After publication, update:
+After publication, update the external canonical support registry and then re-sync the repo mirror:
 
-- `models/catalog.json`
+```bash
+node tools/sync-external-support-registry.js
+node tools/sync-catalog-from-external-support.js
+```
 
-with the new hosted revision returned by the publish step.
+The repo mirror `models/catalog.json` should reflect the external canonical registry, not diverge from it.
+
+The remote Hugging Face registry should also reflect exactly the approved hosted subset from the canonical external support registry. Extra remote entries are drift and should be removed by the next publish or registry sync.
 
 Then run the catalog validation flow:
 
