@@ -268,6 +268,19 @@ function resolveQueryPreAttnScalar(preset, modelConfig, headDim) {
   return Math.sqrt(headDim);
 }
 
+function detectRmsNormWeightOffset(presetInference, modelConfig, defaults) {
+  const modelType = normalizeLayerTypeName(modelConfig?.model_type);
+  if (modelType === 'qwen3_5' || modelType === 'qwen3_5_text') {
+    return true;
+  }
+
+  if (typeof presetInference?.normalization?.rmsNormWeightOffset === 'boolean') {
+    return presetInference.normalization.rmsNormWeightOffset;
+  }
+
+  return defaults.normalization.rmsNormWeightOffset;
+}
+
 // Build normalization config with auto-detection from tensor names.
 // Priority: auto-detected > preset > default
 function buildNormalizationConfig(presetInference, modelConfig, defaults, tensorNames) {
@@ -278,7 +291,7 @@ function buildNormalizationConfig(presetInference, modelConfig, defaults, tensor
       modelConfig.rms_norm_eps ??
       modelConfig.attentionLayerNormRMSEpsilon ??
       defaults.normalization.rmsNormEps,
-    rmsNormWeightOffset: presetInference.normalization?.rmsNormWeightOffset ?? defaults.normalization.rmsNormWeightOffset,
+    rmsNormWeightOffset: detectRmsNormWeightOffset(presetInference, modelConfig, defaults),
     // For norm flags: auto-detected > preset > default
     postAttentionNorm: detected.postAttentionNorm ?? presetInference.normalization?.postAttentionNorm ?? defaults.normalization.postAttentionNorm,
     preFeedforwardNorm: detected.preFeedforwardNorm ?? presetInference.normalization?.preFeedforwardNorm ?? defaults.normalization.preFeedforwardNorm,
