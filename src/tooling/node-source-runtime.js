@@ -411,6 +411,28 @@ function buildNodeFileReaders() {
   };
 }
 
+function resolveSourceRuntimeComputePrecision(tensors, sourceQuantization) {
+  const dtypes = new Set();
+  for (const tensor of Array.isArray(tensors) ? tensors : []) {
+    const dtype = String(tensor?.dtype || '').trim().toUpperCase();
+    if (dtype) {
+      dtypes.add(dtype);
+    }
+  }
+  if (dtypes.has('BF16') || dtypes.has('F32')) {
+    return 'f32';
+  }
+
+  const normalized = String(sourceQuantization || '').trim().toUpperCase();
+  if (normalized === 'F16') {
+    return 'f16';
+  }
+  if (normalized === 'Q4_K' || normalized === 'Q4_K_M' || normalized === 'Q6_K') {
+    return 'f32';
+  }
+  return 'f16';
+}
+
 async function addHashesToFileEntries(entries, hashAlgorithm) {
   const normalized = [];
   for (const entry of Array.isArray(entries) ? entries : []) {
@@ -473,6 +495,9 @@ export async function resolveNodeSourceRuntimeBundle(options = {}) {
   assertSupportedSourceDtypes(parsed.tensors, parsed.sourceKind);
 
   const converterConfig = createConverterConfig({
+    quantization: {
+      computePrecision: resolveSourceRuntimeComputePrecision(parsed.tensors, parsed.sourceQuantization),
+    },
     output: {
       modelBaseId: options.modelId || null,
     },

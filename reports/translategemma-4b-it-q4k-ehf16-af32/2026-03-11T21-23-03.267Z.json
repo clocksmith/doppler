@@ -1,0 +1,1108 @@
+{
+  "suite": "debug",
+  "modelId": "translategemma-4b-it-q4k-ehf16-af32",
+  "runtimePreset": null,
+  "deviceInfo": {
+    "hasSubgroups": true,
+    "hasSubgroupsF16": false,
+    "hasF16": true,
+    "hasTimestampQuery": true,
+    "maxBufferSize": 14302248960,
+    "maxWorkgroupSize": 1024,
+    "maxWorkgroupStorageSize": 32768,
+    "adapterInfo": {
+      "vendor": "apple",
+      "architecture": "metal-3",
+      "device": "apple-m3",
+      "description": "Metal driver on macOS Version 26.3 (Build 25D125)"
+    }
+  },
+  "results": [
+    {
+      "name": "generation",
+      "passed": true,
+      "duration": 14230.385083000001
+    }
+  ],
+  "durationMs": 261978.53975000003,
+  "timestamp": "2026-03-11T21:23:03.267Z",
+  "metrics": {
+    "prompt": "en -> fr: Hello world.",
+    "maxTokens": 24,
+    "tokensGenerated": 24,
+    "tokensPerSec": 1.69,
+    "totalRunMs": 14229.12,
+    "firstTokenMs": 2582.96,
+    "firstResponseMs": 250324.73,
+    "prefillMs": 2546.74,
+    "decodeMs": 11645.25,
+    "prefillTokens": 9,
+    "decodeTokens": 24,
+    "prefillTokensPerSec": 3.53,
+    "prefillTokensPerSecTtft": 3.48,
+    "decodeTokensPerSec": 2.06,
+    "modelLoadMs": 247741.77,
+    "gpu": {
+      "decodeRecordMs": 1827.5426239999651,
+      "decodeSubmitWaitMs": 9787.071041999996,
+      "decodeReadbackWaitMs": 9609.034125000035
+    },
+    "decodeProfileSteps": [],
+    "generationDiagnostics": {
+      "preview": [
+        {
+          "id": 3532,
+          "text": "Index",
+          "fallbackText": "Index"
+        },
+        {
+          "id": 74314,
+          "text": "Assistant",
+          "fallbackText": "Assistant"
+        },
+        {
+          "id": 236769,
+          "text": "(",
+          "fallbackText": "("
+        },
+        {
+          "id": 2003,
+          "text": "by",
+          "fallbackText": "by"
+        },
+        {
+          "id": 982,
+          "text": "ob",
+          "fallbackText": "ob"
+        },
+        {
+          "id": 547,
+          "text": "id",
+          "fallbackText": "id"
+        },
+        {
+          "id": 199527,
+          "text": "স্থানীয়",
+          "fallbackText": "স্থানীয়"
+        },
+        {
+          "id": 107,
+          "text": "\n",
+          "fallbackText": "\n"
+        },
+        {
+          "id": 1457,
+          "text": "br",
+          "fallbackText": "br"
+        },
+        {
+          "id": 583,
+          "text": "ir",
+          "fallbackText": "ir"
+        },
+        {
+          "id": 107,
+          "text": "\n",
+          "fallbackText": "\n"
+        },
+        {
+          "id": 1457,
+          "text": "br",
+          "fallbackText": "br"
+        },
+        {
+          "id": 4671,
+          "text": "sm",
+          "fallbackText": "sm"
+        },
+        {
+          "id": 619,
+          "text": "res",
+          "fallbackText": "res"
+        },
+        {
+          "id": 2061,
+          "text": "ves",
+          "fallbackText": "ves"
+        },
+        {
+          "id": 1205,
+          "text": "ix",
+          "fallbackText": "ix"
+        },
+        {
+          "id": 516,
+          "text": "ar",
+          "fallbackText": "ar"
+        },
+        {
+          "id": 4625,
+          "text": " prec",
+          "fallbackText": " prec"
+        },
+        {
+          "id": 662,
+          "text": "ain",
+          "fallbackText": "ain"
+        },
+        {
+          "id": 529,
+          "text": " of",
+          "fallbackText": " of"
+        },
+        {
+          "id": 236750,
+          "text": "r",
+          "fallbackText": "r"
+        },
+        {
+          "id": 199510,
+          "text": " исполнения",
+          "fallbackText": " исполнения"
+        },
+        {
+          "id": 2855,
+          "text": "http",
+          "fallbackText": "http"
+        },
+        {
+          "id": 107,
+          "text": "\n",
+          "fallbackText": "\n"
+        }
+      ],
+      "total": 24,
+      "omitted": 0,
+      "emptyTextCount": 0,
+      "specialLikeTextCount": 0,
+      "specialLikeFallbackCount": 0
+    },
+    "schemaVersion": 1,
+    "source": "doppler",
+    "suite": "debug",
+    "executionContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "translategemma-4b-it-q4k-ehf16-af32.steps",
+          "ok": true
+        },
+        {
+          "id": "translategemma-4b-it-q4k-ehf16-af32.session",
+          "ok": true
+        },
+        {
+          "id": "translategemma-4b-it-q4k-ehf16-af32.kernelProfilePinning",
+          "ok": true
+        },
+        {
+          "id": "translategemma-4b-it-q4k-ehf16-af32.precisionPrecedence",
+          "ok": true
+        },
+        {
+          "id": "translategemma-4b-it-q4k-ehf16-af32.kvIOPrecedence",
+          "ok": true
+        },
+        {
+          "id": "translategemma-4b-it-q4k-ehf16-af32.slotGraph",
+          "ok": true
+        },
+        {
+          "id": "translategemma-4b-it-q4k-ehf16-af32.phaseBoundary",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "session": {
+        "layout": "paged",
+        "disableCommandBatching": false,
+        "decodeBatchSize": 16,
+        "headDim": 256,
+        "kvLen": 131072,
+        "coldQuantMode": "none"
+      },
+      "steps": {
+        "total": 35,
+        "attention": 2,
+        "attentionPhases": {
+          "prefill": 1,
+          "decode": 1,
+          "both": 0
+        }
+      },
+      "executionV0": {
+        "kernelProfiles": {
+          "schemaVersion": 1,
+          "source": "doppler",
+          "ok": true,
+          "checks": [
+            {
+              "id": "translategemma-4b-it-q4k-ehf16-af32.kernelProfilePinning",
+              "ok": true
+            },
+            {
+              "id": "translategemma-4b-it-q4k-ehf16-af32.precisionPrecedence",
+              "ok": true
+            },
+            {
+              "id": "translategemma-4b-it-q4k-ehf16-af32.kvIOPrecedence",
+              "ok": true
+            }
+          ],
+          "errors": [],
+          "stats": {
+            "kernelProfiles": 11,
+            "pinnedSteps": 35
+          },
+          "perStep": {
+            "embed_tokens": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              }
+            },
+            "decode_input_norm": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              }
+            },
+            "decode_q_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              }
+            },
+            "decode_k_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              }
+            },
+            "decode_v_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              }
+            },
+            "decode_rope_q": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              }
+            },
+            "decode_rope_k": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              }
+            },
+            "decode_attention": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              },
+              "kvIO": {
+                "readDtype": "f16",
+                "writeDtype": "f16"
+              },
+              "kvIOSource": "sessionDefault"
+            },
+            "decode_o_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              }
+            },
+            "decode_attn_residual": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              }
+            },
+            "decode_post_attn_norm": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              }
+            },
+            "decode_gate_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              }
+            },
+            "decode_up_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              }
+            },
+            "decode_activation": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              }
+            },
+            "decode_down_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              }
+            },
+            "decode_ffn_residual": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              }
+            },
+            "prefill_input_norm": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              }
+            },
+            "prefill_q_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              }
+            },
+            "prefill_k_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              }
+            },
+            "prefill_v_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              }
+            },
+            "prefill_rope_q": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              }
+            },
+            "prefill_rope_k": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              }
+            },
+            "prefill_attention": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              },
+              "kvIO": {
+                "readDtype": "f16",
+                "writeDtype": "f16"
+              },
+              "kvIOSource": "sessionDefault"
+            },
+            "prefill_o_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              }
+            },
+            "prefill_attn_residual": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              }
+            },
+            "prefill_post_attn_norm": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              }
+            },
+            "prefill_gate_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              }
+            },
+            "prefill_up_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              }
+            },
+            "prefill_activation": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              }
+            },
+            "prefill_down_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              }
+            },
+            "prefill_ffn_residual": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              }
+            },
+            "final_norm": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              }
+            },
+            "decode_lm_head": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              }
+            },
+            "prefill_lm_head": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              }
+            },
+            "decode_sample": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f16",
+                "accumDtype": "f32",
+                "outputDtype": "f16"
+              }
+            }
+          }
+        },
+        "graph": {
+          "schemaVersion": 1,
+          "source": "doppler",
+          "ok": true,
+          "checks": [
+            {
+              "id": "translategemma-4b-it-q4k-ehf16-af32.slotGraph",
+              "ok": true
+            },
+            {
+              "id": "translategemma-4b-it-q4k-ehf16-af32.phaseBoundary",
+              "ok": true
+            }
+          ],
+          "errors": [],
+          "stats": {
+            "prefillSteps": 18,
+            "decodeSteps": 19
+          }
+        }
+      }
+    },
+    "executionV0GraphContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "translategemma-4b-it-q4k-ehf16-af32.slotGraph",
+          "ok": true
+        },
+        {
+          "id": "translategemma-4b-it-q4k-ehf16-af32.phaseBoundary",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "prefillSteps": 18,
+        "decodeSteps": 19
+      }
+    },
+    "layerPatternContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "inference.layerPattern.patternKind.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.patternKind.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.even",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.odd",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_offset",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_negative_offset",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "patternKindRules": 4,
+        "layerTypeRules": 6,
+        "patternKindContexts": 16,
+        "layerTypeContexts": 12
+      }
+    },
+    "requiredInferenceFieldsArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "scope": "manifest",
+      "label": "translategemma-4b-it-q4k-ehf16-af32.inference",
+      "ok": true,
+      "checks": [
+        {
+          "id": "translategemma-4b-it-q4k-ehf16-af32.inference.requiredInferenceFields",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "fieldCases": 35,
+        "nullableCases": 16,
+        "nonNullableCases": 19
+      }
+    }
+  },
+  "output": "IndexAssistant(byobidস্থানীয়\nbrir\nbrsmresvesixar precain ofr исполненияhttp\n",
+  "memory": {
+    "used": 10808538624,
+    "pool": {
+      "allocations": 14380,
+      "reuses": 563,
+      "totalBytesAllocated": 10651414016,
+      "peakBytesAllocated": 10343929088,
+      "currentBytesAllocated": 10238113280,
+      "totalBytesRequested": 8626441216,
+      "peakBytesRequested": 8103831808,
+      "currentBytesRequested": 8029698048,
+      "activeBuffers": 448,
+      "pooledBuffers": 64,
+      "budgetMaxBytes": 0,
+      "budgetUtilization": 0,
+      "hitRate": "3.8%"
+    },
+    "kvCache": {
+      "theoretical": 570425344,
+      "allocated": 570425344,
+      "used": 4456448,
+      "efficiency": 0.0078125,
+      "seqLen": 32,
+      "maxSeqLen": 4096,
+      "layout": "contiguous"
+    }
+  }
+}
