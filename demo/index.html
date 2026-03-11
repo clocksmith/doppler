@@ -136,9 +136,36 @@
                         </div>
                         <div class="translate-compare-toolbar-actions">
                           <button id="translate-compare-run-btn" class="btn btn-primary" type="button">Run compare</button>
+                          <button id="translate-compare-export-btn" class="btn" type="button">Export compare JSON</button>
                           <button id="translate-compare-share-btn" class="btn" type="button">Copy share link</button>
                         </div>
                       </div>
+
+                      <details class="translate-compare-receipts" id="translate-compare-receipts">
+                        <summary class="type-caption">Show benchmark receipts</summary>
+                        <div class="translate-compare-receipts-body">
+                          <div class="translate-receipts-grid">
+                            <div class="translate-receipt-card">
+                              <span class="translate-proof-label type-caption">Artifact id</span>
+                              <strong id="translate-compare-artifact-id" class="translate-proof-value">Pending</strong>
+                            </div>
+                            <div class="translate-receipt-card">
+                              <span class="translate-proof-label type-caption">Browser / device</span>
+                              <strong id="translate-compare-artifact-env" class="translate-proof-value">Awaiting run</strong>
+                            </div>
+                            <div class="translate-receipt-card">
+                              <span class="translate-proof-label type-caption">Saved receipts</span>
+                              <strong id="translate-compare-receipt-count" class="translate-proof-value">0</strong>
+                            </div>
+                          </div>
+                          <div class="translate-compare-receipt-actions">
+                            <button id="translate-compare-export-latest-btn" class="btn btn-small" type="button">Export latest JSON</button>
+                          </div>
+                          <div id="translate-compare-receipts-links" class="translate-compare-receipts-links">
+                            <span class="type-caption">No benchmark receipts linked yet.</span>
+                          </div>
+                        </div>
+                      </details>
 
                       <div class="translate-evidence-summary" id="translate-evidence-summary">
                         <div class="translate-evidence-summary-header">
@@ -172,6 +199,17 @@
                           </div>
                         </div>
                       </div>
+
+                      <section class="translate-smoke-panel" id="translate-smoke-panel" aria-label="Deterministic translation smoke panel">
+                        <div class="translate-smoke-header">
+                          <div>
+                            <div class="translate-compare-kicker type-caption">Sample panel</div>
+                            <h4 class="type-label">Deterministic smoke panel</h4>
+                          </div>
+                          <span class="type-caption">3 easy · 3 nuanced · 2 domain · 2 edge cases</span>
+                        </div>
+                        <div id="translate-smoke-grid" class="translate-smoke-grid"></div>
+                      </section>
 
                       <div class="translate-lane-grid">
                         <article class="translate-lane" id="translate-compare-left-lane" data-lane="left">
@@ -276,7 +314,15 @@
                           <div class="translate-compare-kicker type-caption">Stacked history</div>
                           <h4 class="type-label">Live proof log</h4>
                         </div>
-                        <button id="translate-history-clear-btn" class="btn btn-small" type="button">Clear</button>
+                        <div class="translate-history-tools">
+                          <div class="segmented-control translate-history-filters" id="translate-history-filters" role="tablist" aria-label="History filter">
+                            <button class="btn segmented-btn is-active" type="button" data-compare-history-filter="all">All</button>
+                            <button class="btn segmented-btn" type="button" data-compare-history-filter="same-model">Same model</button>
+                            <button class="btn segmented-btn" type="button" data-compare-history-filter="same-engine">Same engine</button>
+                            <button class="btn segmented-btn" type="button" data-compare-history-filter="proof">Proof preset</button>
+                          </div>
+                          <button id="translate-history-clear-btn" class="btn btn-small" type="button">Clear</button>
+                        </div>
                       </div>
                       <div class="translate-history-list" id="translate-history-list">
                         <article class="translate-history-card is-placeholder">

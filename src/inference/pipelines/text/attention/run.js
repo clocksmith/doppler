@@ -33,6 +33,7 @@ import {
   projectAttentionQKV,
   applyAttentionQKNorm,
 } from './projections.js';
+import { prepareAttentionProjectionInput } from './output-projection.js';
 
 import {
   shouldDebugLayer,
@@ -766,13 +767,13 @@ export async function runLayerAttentionGPU(
   let oProjInput = attnForProjection;
   oProjInputTemp = null;
   if (layerWeights.oProj && getWeightBuffer) {
+    ({ oProjInput, oProjInputTemp } = await prepareAttentionProjectionInput(
+      attnForProjection,
+      matmulOutputDtype,
+      castF32ToF16
+    ));
     const oProjBuf = getWeightBuffer(layerWeights.oProj, 'o_proj');
     const loraO = getLoRAModule(lora, layerIdx, 'o_proj');
-
-    if (matmulOutputDtype === 'f16' && attnOutput.dtype !== 'f16') {
-      oProjInput = await castF32ToF16(attnOutput);
-      oProjInputTemp = oProjInput;
-    }
 
     // Use fused o_proj + residual for decode when possible
     // Note: dtype from WeightBuffer metadata (buffer-dtypes WeakMap removed)
