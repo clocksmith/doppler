@@ -14,7 +14,6 @@ This section answers "which models work now?" from `models/catalog.json` lifecyc
 
 | Model ID | Preset | Modes | Last verified | Surface | Notes |
 | --- | --- | --- | --- | --- | --- |
-| gemma-3-270m-it-q4k-ehf16-af32 | gemma3 | run | 2026-03-04 | auto | - |
 | google-embeddinggemma-300m-q4k-ehf16-af32 | embeddinggemma | embedding | 2026-03-04 | auto | - |
 | gemma-3-1b-it-q4k-ehf16-af32 | gemma3 | run | 2026-03-10 | auto | Prompt: 'The color of the sky is' → ' often described as blue. However, the sky is not blue because of the way light interacts with the atmosphere.\n\nHere\'s a breakdown of why the sky' (32 tokens, temperature=0, topK=1). All contracts pass. |
 | gemma-3-1b-it-f16-af32 | gemma3 | run | 2026-03-10 | browser | Prompt: 'The color of the sky is' → ' a constant, but its appearance changes with the seasons.\n\nThe sky is blue during the summer, when the sun is high in the sky.\nThe sky is red during the autumn, when the leaves change color.\nThe sky is gray during the winter, when the sun is low in the sky.\nThe' (64 tokens, temperature=0, topK=1). Fluent and stable; factual quality mixed but coherent. All contracts pass. |
@@ -28,6 +27,7 @@ None right now.
 
 | Model ID | Preset | Modes | Last checked | Surface | Notes |
 | --- | --- | --- | --- | --- | --- |
+| gemma-3-270m-it-q4k-ehf16-af32 | gemma3 | run | 2026-03-11 | node | Fresh canonical RDRR checks on 2026-03-11 produced incoherent output for simple deterministic prompts. Local F16 and direct-source runtime checks were also incoherent, so this model should not be treated as verified until a coherent Node/browser run exists. |
 | qwen-3-5-0-8b-q4k-ehaf16 | qwen3 | run | 2026-03-06 | browser | Loads and runs but produces incoherent output. Linear attention kernel correctness not yet verified against HF reference. |
 | qwen-3-5-2b-q4k-ehaf16 | qwen3 | run | 2026-03-06 | browser | Loads and runs but produces incoherent output. Same root cause as 0.8B variant — linear attention kernel correctness not yet verified. |
 
@@ -64,7 +64,7 @@ None right now.
 | diffusion | diffusion | active | 2 (tools/configs/conversion/diffusion/diffusion-template-f16.json, tools/configs/conversion/sana/sana-sprint-0.6b-f16.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
 | gemma2 | transformer | active | 1 (tools/configs/conversion/gemma2/gemma2-template-f16.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
 | translategemma | transformer | active | 1 (tools/configs/conversion/gemma3/translategemma-4b-it-q4k-ehf16-af32.json) | 1 (translategemma-4b-it-q4k-ehf16-af32) | yes | none | verified (2026-03-06) | verified | - |
-| gemma3 | transformer | active | 9 (tools/configs/conversion/gemma3/gemma-3-1b-it-f16-af32.json, tools/configs/conversion/gemma3/gemma-3-1b-it-f16.json, tools/configs/conversion/gemma3/gemma-3-1b-it-q4k-ehaf16.json, +6 more) | 3 (gemma-3-1b-it-f16-af32, gemma-3-1b-it-q4k-ehf16-af32, gemma-3-270m-it-q4k-ehf16-af32) | yes | curated | verified (2026-03-10) | verified | catalog verification applies only to cataloged models (3/9 conversion configs cataloged) |
+| gemma3 | transformer | active | 9 (tools/configs/conversion/gemma3/gemma-3-1b-it-f16-af32.json, tools/configs/conversion/gemma3/gemma-3-1b-it-f16.json, tools/configs/conversion/gemma3/gemma-3-1b-it-q4k-ehaf16.json, +6 more) | 3 (gemma-3-1b-it-f16-af32, gemma-3-1b-it-q4k-ehf16-af32, gemma-3-270m-it-q4k-ehf16-af32) | yes | curated | partially failing (1/3) | verification-failed | catalog verification applies only to cataloged models (3/9 conversion configs cataloged); partial verification (2/3 catalog models verified); mixed verification state (1/3 catalog models failing) |
 | llama3 | transformer | active | 1 (tools/configs/conversion/llama3/llama3-template-f16.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
 | lfm2 | transformer | active | 2 (tools/configs/conversion/lfm2/lfm2.5-1.2b-instruct-q4k-ehaf16.json, tools/configs/conversion/lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
 | qwen3 | transformer | active | 4 (tools/configs/conversion/qwen3/qwen-3-5-0-8b-f16.json, tools/configs/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16-af32.json, tools/configs/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json, +1 more) | 2 (qwen-3-5-0-8b-q4k-ehaf16, qwen-3-5-2b-q4k-ehaf16) | no | none | failed | verification-failed | catalog verification applies only to cataloged models (2/4 conversion configs cataloged) |
@@ -80,11 +80,11 @@ None right now.
 - Presets tracked: 17
 - Presets with conversion configs: 17
 - Presets present in catalog: 4
-- Verified presets (active runtime + conversion + catalog + passing verification): 3
+- Verified presets (active runtime + conversion + catalog + passing verification): 2
 - Cataloged presets pending verification: 0
 - Presets with HF-hosted catalog entries: 3
-- Presets with verified catalog lifecycle: 3
-- Presets with failed catalog verification: 1
+- Presets with verified catalog lifecycle: 2
+- Presets with failed catalog verification: 2
 - Blocked runtime presets: 1
 - Catalog entries: 7
 

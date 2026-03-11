@@ -6,6 +6,9 @@ compare console.
 Schema file:
 - `demo/translate-compare-evidence.schema.json`
 
+Sample payload:
+- `demo/fixtures/translate-compare-evidence.sample.json`
+
 ## Purpose
 
 This payload fills the proof strip and evidence snapshot in the existing
@@ -30,6 +33,10 @@ The demo loads evidence from one of these sources:
 
 If no evidence is provided, the demo shows placeholder text and leaves the
 numeric fields blank.
+
+For local preview, point `__DOPPLER_TRANSLATE_COMPARE_EVIDENCE_URL` at the
+sample fixture or inject the same JSON object through
+`__DOPPLER_TRANSLATE_COMPARE_EVIDENCE__`.
 
 ## Required shape
 

@@ -41,14 +41,15 @@
           "runtime": "active",
           "conversion": "ready",
           "demo": "curated",
-          "tested": "verified"
+          "tested": "failing"
         },
         "tested": {
           "suite": "inference",
-          "surface": "auto",
-          "result": "pass",
-          "lastVerifiedAt": "2026-03-04",
-          "source": "registry-verify",
+          "surface": "node",
+          "result": "fail",
+          "lastVerifiedAt": "2026-03-11",
+          "source": "manual-review",
+          "notes": "Fresh canonical RDRR checks on 2026-03-11 produced incoherent output for simple deterministic prompts. Local F16 and direct-source runtime checks were also incoherent, so this model should not be treated as verified until a coherent Node/browser run exists.",
           "contracts": {
             "executionContractOk": true,
             "executionV0GraphOk": true

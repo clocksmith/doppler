@@ -58,6 +58,30 @@ export function softmax(logits) {
   return exps;
 }
 
+function countFiniteCandidates(logits, padTokenId) {
+  let finiteCandidateCount = 0;
+  for (let i = 0; i < logits.length; i++) {
+    if (padTokenId != null && i === padTokenId) {
+      continue;
+    }
+    if (Number.isFinite(logits[i])) {
+      finiteCandidateCount += 1;
+    }
+  }
+  return finiteCandidateCount;
+}
+
+function assertFiniteSamplingCandidates(logits, padTokenId, label) {
+  const finiteCandidateCount = countFiniteCandidates(logits, padTokenId);
+  if (finiteCandidateCount > 0) {
+    return;
+  }
+  throw new Error(
+    `[Sampling] ${label} has no finite candidate logits after masking the pad token. ` +
+    'Upstream decode likely produced NaN/Inf or an all-masked distribution.'
+  );
+}
+
 
 export function sample(logits, opts) {
   const { temperature, topP, topK, decode, debug = false, padTokenId, seed } = opts;
@@ -66,15 +90,27 @@ export function sample(logits, opts) {
     logits[padTokenId] = -Infinity;
   }
 
+  assertFiniteSamplingCandidates(logits, padTokenId, 'Logits');
+
   // Greedy (argmax) when temperature = 0
   if (temperature === 0) {
-    let maxIdx = 0;
-    let maxVal = logits[0];
-    for (let i = 1; i < logits.length; i++) {
-      if (logits[i] > maxVal) {
-        maxVal = logits[i];
+    let maxIdx = -1;
+    let maxVal = -Infinity;
+    for (let i = 0; i < logits.length; i++) {
+      const value = logits[i];
+      if (!Number.isFinite(value)) {
+        continue;
+      }
+      if (value > maxVal) {
+        maxVal = value;
         maxIdx = i;
       }
+    }
+    if (maxIdx < 0) {
+      throw new Error(
+        '[Sampling] Greedy sampling could not find a finite candidate logit. ' +
+        'Upstream decode likely produced NaN/Inf.'
+      );
     }
     if (debug) {
       const text = decode?.([maxIdx]) ?? '?';
@@ -96,7 +132,17 @@ export function sample(logits, opts) {
 
   let candidates = [];
   for (let i = 0; i < probs.length; i++) {
-    candidates.push({ token: i, prob: probs[i] });
+    const probability = probs[i];
+    if (!Number.isFinite(probability) || probability <= 0) {
+      continue;
+    }
+    candidates.push({ token: i, prob: probability });
+  }
+  if (candidates.length === 0) {
+    throw new Error(
+      '[Sampling] Softmax produced no finite candidate probabilities. ' +
+      'Upstream decode likely produced NaN/Inf logits.'
+    );
   }
   candidates.sort((a, b) => b.prob - a.prob);
 
