@@ -24,9 +24,6 @@ on:
 
 jobs:
   browser-opfs-embedding-registry-smoke:
-    # Informational lane on hosted SwiftShader until a pinned embedding registry
-    # model/path is available without shader-f16 browser feature requirements.
-    continue-on-error: true
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
@@ -83,4 +80,5 @@ jobs:
           --runtime-preset "${DOPPLER_SMOKE_RUNTIME_PRESET}"
           --expected-embedding-dim "${DOPPLER_SMOKE_EXPECTED_EMBEDDING_DIM}"
           --expected-semantic-style "${DOPPLER_SMOKE_EXPECTED_SEMANTIC_STYLE}"
+          --allow-capability-skip
           --timeout-ms 300000

@@ -152,6 +152,27 @@ const embeddingComputeF32Config = createConverterConfig({
 }
 
 {
+  const preset = resolvePreset('qwen3');
+  const manifestInference = buildManifestInference(
+    preset,
+    {
+      model_type: 'qwen3_5',
+      rms_norm_eps: 1e-6,
+      attn_output_gate: true,
+      layer_types: [
+        'linear_attention',
+        'linear_attention',
+        'linear_attention',
+        'full_attention',
+      ],
+    },
+    256
+  );
+  assert.equal(manifestInference.normalization.rmsNormWeightOffset, true);
+  assert.equal(manifestInference.attention.attentionOutputGate, true);
+}
+
+{
   assert.throws(
     () => buildManifestInference(
       {

@@ -1,0 +1,252 @@
+{
+  "suite": "debug",
+  "modelId": "qwen-3-5-0-8b-f16-manifest-test",
+  "runtimePreset": null,
+  "deviceInfo": {
+    "hasSubgroups": true,
+    "hasSubgroupsF16": false,
+    "hasF16": true,
+    "hasTimestampQuery": true,
+    "maxBufferSize": 14302248960,
+    "maxWorkgroupSize": 1024,
+    "maxWorkgroupStorageSize": 32768,
+    "adapterInfo": {
+      "vendor": "apple",
+      "architecture": "metal-3",
+      "device": "apple-m3",
+      "description": "Metal driver on macOS Version 26.3 (Build 25D125)"
+    }
+  },
+  "results": [
+    {
+      "name": "generation",
+      "passed": false,
+      "duration": 3166.5629580000095,
+      "error": "Output dominated by padding or special tokens"
+    }
+  ],
+  "durationMs": 82662.708125,
+  "timestamp": "2026-03-11T00:03:05.381Z",
+  "metrics": {
+    "prompt": "The capital of France is",
+    "maxTokens": 12,
+    "tokensGenerated": 12,
+    "tokensPerSec": 3.79,
+    "totalRunMs": 3165.92,
+    "firstTokenMs": 1054.53,
+    "firstResponseMs": 80548.07,
+    "prefillMs": 1050.69,
+    "decodeMs": 2110.82,
+    "prefillTokens": 5,
+    "decodeTokens": 12,
+    "prefillTokensPerSec": 4.76,
+    "prefillTokensPerSecTtft": 4.74,
+    "decodeTokensPerSec": 5.68,
+    "modelLoadMs": 79493.54,
+    "gpu": {
+      "decodeRecordMs": 0,
+      "decodeSubmitWaitMs": 0,
+      "decodeReadbackWaitMs": 0
+    },
+    "decodeProfileSteps": [],
+    "generationDiagnostics": {
+      "preview": [
+        {
+          "id": 271,
+          "text": "\n\n",
+          "fallbackText": "\n\n"
+        },
+        {
+          "id": 271,
+          "text": "\n\n",
+          "fallbackText": "\n\n"
+        },
+        {
+          "id": 271,
+          "text": "\n\n",
+          "fallbackText": "\n\n"
+        },
+        {
+          "id": 271,
+          "text": "\n\n",
+          "fallbackText": "\n\n"
+        },
+        {
+          "id": 271,
+          "text": "\n\n",
+          "fallbackText": "\n\n"
+        },
+        {
+          "id": 271,
+          "text": "\n\n",
+          "fallbackText": "\n\n"
+        },
+        {
+          "id": 271,
+          "text": "\n\n",
+          "fallbackText": "\n\n"
+        },
+        {
+          "id": 271,
+          "text": "\n\n",
+          "fallbackText": "\n\n"
+        },
+        {
+          "id": 271,
+          "text": "\n\n",
+          "fallbackText": "\n\n"
+        },
+        {
+          "id": 271,
+          "text": "\n\n",
+          "fallbackText": "\n\n"
+        },
+        {
+          "id": 271,
+          "text": "\n\n",
+          "fallbackText": "\n\n"
+        },
+        {
+          "id": 271,
+          "text": "\n\n",
+          "fallbackText": "\n\n"
+        }
+      ],
+      "total": 12,
+      "omitted": 0,
+      "emptyTextCount": 0,
+      "specialLikeTextCount": 0,
+      "specialLikeFallbackCount": 0
+    },
+    "schemaVersion": 1,
+    "source": "doppler",
+    "suite": "debug",
+    "executionContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "qwen-3-5-0-8b-f16.steps",
+          "ok": true
+        },
+        {
+          "id": "qwen-3-5-0-8b-f16.session",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "session": {
+        "layout": "contiguous",
+        "disableCommandBatching": true,
+        "decodeBatchSize": 4,
+        "headDim": 256,
+        "kvLen": 262144,
+        "coldQuantMode": "none"
+      },
+      "steps": {
+        "total": 0,
+        "attention": 0,
+        "attentionPhases": {
+          "prefill": 0,
+          "decode": 0,
+          "both": 0
+        }
+      }
+    },
+    "executionV0GraphContractArtifact": null,
+    "layerPatternContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "inference.layerPattern.patternKind.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.patternKind.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.even",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.odd",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_offset",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_negative_offset",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "patternKindRules": 4,
+        "layerTypeRules": 6,
+        "patternKindContexts": 16,
+        "layerTypeContexts": 12
+      }
+    },
+    "requiredInferenceFieldsArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "scope": "manifest",
+      "label": "qwen-3-5-0-8b-f16.inference",
+      "ok": true,
+      "checks": [
+        {
+          "id": "qwen-3-5-0-8b-f16.inference.requiredInferenceFields",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "fieldCases": 35,
+        "nullableCases": 16,
+        "nonNullableCases": 19
+      }
+    }
+  },
+  "output": "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+  "memory": {
+    "used": 1962778112,
+    "pool": {
+      "allocations": 4301,
+      "reuses": 469,
+      "totalBytesAllocated": 1827311616,
+      "peakBytesAllocated": 1781655552,
+      "currentBytesAllocated": 1761451520,
+      "totalBytesRequested": 1650376704,
+      "peakBytesRequested": 1609733888,
+      "currentBytesRequested": 1594334720,
+      "activeBuffers": 430,
+      "pooledBuffers": 64,
+      "budgetMaxBytes": 0,
+      "budgetUtilization": 0,
+      "hitRate": "9.8%"
+    },
+    "kvCache": {
+      "theoretical": 201326592,
+      "allocated": 201326592,
+      "used": 786432,
+      "efficiency": 0.00390625,
+      "seqLen": 16,
+      "maxSeqLen": 4096,
+      "layout": "contiguous"
+    }
+  }
+}

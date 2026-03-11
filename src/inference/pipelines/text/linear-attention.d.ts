@@ -3,6 +3,7 @@ import type { Tensor } from '../../../gpu/tensor.js';
 import type { WeightBuffer } from '../../../gpu/weight-buffer.js';
 import type { CommandRecorder } from '../../../gpu/command-recorder.js';
 import type { LinearNormMode } from '../../../config/schema/index.js';
+import type { ProbeConfigSchema } from '../../../config/schema/index.js';
 
 export interface LinearLayerRuntimeState {
   layerIdx: number;
@@ -67,12 +68,21 @@ export interface RunLinearAttentionLayerOptions {
     weight: GPUBuffer | Float32Array | ArrayBuffer,
     label: string
   ) => GPUBuffer;
+  debugProbes?: ProbeConfigSchema[] | null;
   recorder?: CommandRecorder | null;
 }
 
 export declare function hasLinearAttentionLayers(layerTypes: unknown): boolean;
 
 export declare function createLinearAttentionRuntime(): LinearAttentionRuntime;
+
+export declare function inferLinearNormMode(
+  weight: { size?: number; dtype?: string } | GPUBuffer | WeightBuffer | ArrayBufferView | ArrayBuffer | null | undefined,
+  projectionLayout: {
+    headVDim: number;
+    valueDim: number;
+  }
+): LinearNormMode | null;
 
 export declare function resetLinearAttentionRuntime(
   runtime: LinearAttentionRuntime | null | undefined

@@ -228,6 +228,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
       linearRuntime: context.linearAttentionRuntime ?? null,
       getWeightBuffer: (weight, label) => getWeightBuffer(weight, label),
       getNormWeightBuffer: (weight, label) => getNormWeightBuffer(weight, label, weightConfig, debugFlags),
+      debugProbes: context.debugProbes,
       recorder: recorder ?? null,
     });
   } else {

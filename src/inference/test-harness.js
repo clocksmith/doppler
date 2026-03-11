@@ -318,6 +318,7 @@ export async function initializeInference(modelUrl, options = {}) {
   const pipeline = await createPipeline( ( (manifest)), {
     storage: { loadShard },
     gpu: { device },
+    runtime,
     baseUrl: modelUrl,
     onProgress: ( progress) => {
       const pct = 0.2 + progress.percent * 0.8;

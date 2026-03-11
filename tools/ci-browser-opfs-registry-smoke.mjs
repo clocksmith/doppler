@@ -33,6 +33,15 @@ const DEFAULT_BROWSER_ARGS = Object.freeze([
   '--use-angle=swiftshader',
   '--disable-vulkan-surface',
 ]);
+const HOSTED_CAPABILITY_SKIP_PATTERNS = Object.freeze([
+  'requires unsupported gpu features',
+  'shader-f16',
+  'shader f16',
+  'no suitable gpu adapter',
+  'failed to request adapter',
+  'webgpu not supported',
+  'adapter not found',
+]);
 const OPTIONAL_AUX_FILES = Object.freeze([
   'config.json',
   'generation_config.json',
@@ -94,6 +103,7 @@ function parseArgs(argv) {
     activationDtype: null,
     kvDtype: null,
     outputDtype: null,
+    allowCapabilitySkip: false,
     keepOpfsProfile: false,
     json: false,
   };
@@ -174,6 +184,10 @@ function parseArgs(argv) {
       out.outputDtype = normalizeText(readValue()) || null;
       continue;
     }
+    if (arg === '--allow-capability-skip') {
+      out.allowCapabilitySkip = true;
+      continue;
+    }
     if (arg === '--keep-opfs-profile') {
       out.keepOpfsProfile = true;
       continue;
@@ -190,6 +204,20 @@ function parseArgs(argv) {
   }
 
   return out;
+}
+
+export function classifyHostedCapabilitySkip(error) {
+  const message = String(error?.message || error || '').trim().toLowerCase();
+  if (!message) return null;
+  for (const pattern of HOSTED_CAPABILITY_SKIP_PATTERNS) {
+    if (message.includes(pattern)) {
+      return {
+        code: 'HOSTED_BROWSER_CAPABILITY_SKIP',
+        reason: String(error?.message || error).trim(),
+      };
+    }
+  }
+  return null;
 }
 
 function normalizePrompt(prompt) {
@@ -773,6 +801,24 @@ async function main() {
 }
 
 main().catch((error) => {
+  const args = parseArgs(process.argv.slice(2));
+  if (args.allowCapabilitySkip) {
+    const skip = classifyHostedCapabilitySkip(error);
+    if (skip) {
+      const summary = {
+        ok: true,
+        skipped: true,
+        skip: skip.code,
+        reason: skip.reason,
+      };
+      if (args.json) {
+        console.log(JSON.stringify(summary, null, 2));
+      } else {
+        console.log(`[opfs-smoke] skipped: ${skip.reason}`);
+      }
+      process.exit(0);
+    }
+  }
   console.error(`[opfs-smoke] ${error?.message || error}`);
   process.exit(1);
 });

@@ -24,9 +24,6 @@ on:
 
 jobs:
   browser-opfs-registry-smoke:
-    # Informational lane on hosted SwiftShader until a pinned registry model/path
-    # is fully compatible with browser WebGPU feature exposure on ubuntu-latest.
-    continue-on-error: true
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
@@ -83,4 +80,5 @@ jobs:
           --activation-dtype "${DOPPLER_SMOKE_ACTIVATION_DTYPE}"
           --kv-dtype "${DOPPLER_SMOKE_KV_DTYPE}"
           --output-dtype "${DOPPLER_SMOKE_OUTPUT_DTYPE}"
+          --allow-capability-skip
           --timeout-ms 300000

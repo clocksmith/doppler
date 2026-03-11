@@ -60,8 +60,16 @@ export function resolveReportTimestamp(rawTimestamp, label, fallbackTimestamp = 
 export function resolveRuntime(options) {
   if (options.runtime) return options.runtime;
   if (options.searchParams) return parseRuntimeOverridesFromURL(options.searchParams);
-  if (typeof globalThis.location === 'undefined') return parseRuntimeOverridesFromURL(new URLSearchParams());
-  return parseRuntimeOverridesFromURL();
+  const runtimeConfig = cloneRuntimeConfig(getRuntimeConfig());
+  const runtime = typeof globalThis.location === 'undefined'
+    ? parseRuntimeOverridesFromURL(new URLSearchParams())
+    : parseRuntimeOverridesFromURL();
+  if (runtimeConfig) {
+    runtime.runtimeConfig = runtime.runtimeConfig
+      ? mergeRuntimeValues(runtimeConfig, runtime.runtimeConfig)
+      : runtimeConfig;
+  }
+  return runtime;
 }
 
 function normalizePresetPath(value) {

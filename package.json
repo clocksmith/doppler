@@ -102,6 +102,7 @@
     "verify:qwen3-2b": "node tools/run-registry-verify.js qwen3-2b",
     "verify:translategemma": "node tools/run-registry-verify.js translategemma",
     "verify:translategemma-4b": "node tools/run-registry-verify.js translategemma-4b",
+    "verify:translategemma-4b-it-q4k-ehf16-af32": "node tools/run-registry-verify.js translategemma-4b-it-q4k-ehf16-af32",
     "verify:translategemma-4b-it-wq4k-ef16-hf16": "node tools/run-registry-verify.js translategemma-4b-it-wq4k-ef16-hf16"
   },
   "exports": {

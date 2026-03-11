@@ -4,6 +4,7 @@ import { readBuffer, releaseBuffer, uploadData, acquireBuffer } from '../../../m
 import { log } from '../../../debug/index.js';
 import { decodeReadback } from './debug-utils/index.js';
 import { runLinearAttentionCoreGPU } from '../../../gpu/kernels/linear-attention-core.js';
+import { runProbes } from './probes.js';
 
 const LINEAR_RUNTIME_SCHEMA_VERSION = 1;
 const QK_L2NORM_EPS = 1e-6;
@@ -173,7 +174,20 @@ function inferLinearNormModeFromWeight(weight, projectionLayout) {
   if (weight instanceof ArrayBuffer) {
     return classify(Math.trunc(weight.byteLength / Float32Array.BYTES_PER_ELEMENT));
   }
+  const explicitDtype = typeof weight?.dtype === 'string' ? weight.dtype.toLowerCase() : null;
+  const trackedDtype = isGpuBuffer(weight) ? String(getBufferDtype(weight) ?? '').toLowerCase() : '';
+  const bytesPerElement = bytesFromDtype(explicitDtype || trackedDtype || null);
+  const sizedElements = Number.isFinite(weight?.size)
+    ? Math.trunc(Number(weight.size) / bytesPerElement)
+    : null;
+  if (sizedElements && Number(weight.size) % bytesPerElement === 0) {
+    return classify(sizedElements);
+  }
   return null;
+}
+
+export function inferLinearNormMode(weight, projectionLayout) {
+  return inferLinearNormModeFromWeight(weight, projectionLayout);
 }
 
 function resolveLinearNormMode(configNormMode, normWeight, projectionLayout, layerIdx) {
@@ -775,6 +789,38 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
   });
 
   try {
+    await runProbes('linear_qkv_proj', qkvTensor.buffer, {
+      layerIdx,
+      numTokens,
+      hiddenSize: projectionLayout.convDim,
+      probes: options.debugProbes,
+      recorder,
+      dtype: qkvTensor.dtype,
+    });
+    await runProbes('linear_z_proj', zTensor.buffer, {
+      layerIdx,
+      numTokens,
+      hiddenSize: projectionLayout.valueDim,
+      probes: options.debugProbes,
+      recorder,
+      dtype: zTensor.dtype,
+    });
+    await runProbes('linear_a_proj', aTensor.buffer, {
+      layerIdx,
+      numTokens,
+      hiddenSize: projectionLayout.numVHeads,
+      probes: options.debugProbes,
+      recorder,
+      dtype: aTensor.dtype,
+    });
+    await runProbes('linear_b_proj', bTensor.buffer, {
+      layerIdx,
+      numTokens,
+      hiddenSize: projectionLayout.numVHeads,
+      probes: options.debugProbes,
+      recorder,
+      dtype: bTensor.dtype,
+    });
     const coreTensor = await runLinearAttentionCoreGPU(
       qkvTensor,
       zTensor,
@@ -788,6 +834,14 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
         recorder,
       }
     );
+    await runProbes('linear_core_out', coreTensor.buffer, {
+      layerIdx,
+      numTokens,
+      hiddenSize: projectionLayout.valueDim,
+      probes: options.debugProbes,
+      recorder,
+      dtype: coreTensor.dtype,
+    });
     layerState.seqLen = currentSeqLen + numTokens;
     const outProjWeight = getWeightBuffer(layerWeights.oProj, `L${layerIdx}.linear_out_proj`);
     try {

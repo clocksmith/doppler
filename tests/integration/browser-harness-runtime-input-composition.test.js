@@ -4,6 +4,7 @@ import {
   applyRuntimeForRun,
   runBrowserManifest,
 } from '../../src/inference/browser-harness.js';
+import { resolveRuntime } from '../../src/inference/browser-harness-runtime-helpers.js';
 import {
   getRuntimeConfig,
   setRuntimeConfig,
@@ -169,6 +170,25 @@ try {
   assert.equal(getRuntimeConfig().shared.harness.mode, 'inference');
   assert.equal(getRuntimeConfig().shared.harness.modelId, 'gemma3-270m');
   assert.equal(getRuntimeConfig().inference.kernelPath, null);
+
+  setRuntimeConfig({
+    shared: {
+      tooling: {
+        carried: true,
+      },
+    },
+    inference: {
+      kernelPath: 'gemma3-q4k-dequant-f16a-online',
+      batching: {
+        maxTokens: 5,
+      },
+    },
+  });
+
+  const resolvedRuntime = resolveRuntime({});
+  assert.equal(resolvedRuntime.runtimeConfig.shared.tooling.carried, true);
+  assert.equal(resolvedRuntime.runtimeConfig.inference.kernelPath, 'gemma3-q4k-dequant-f16a-online');
+  assert.equal(resolvedRuntime.runtimeConfig.inference.batching.maxTokens, 5);
 } finally {
   globalThis.fetch = originalFetch;
   setRuntimeConfig(null);
