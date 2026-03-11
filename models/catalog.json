@@ -23,7 +23,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "cd6c12be0e83e92d6dbd92598a0aa94391ec7e94",
+        "revision": "ca6f0dbdf3882d3893a65cf48f2bb6f1520df162",
         "path": "models/gemma-3-270m-it-q4k-ehf16-af32"
       },
       "baseUrl": "./local/gemma-3-270m-it-q4k-ehf16-af32",
@@ -125,7 +125,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "ddffff9cba8579159d576321059ec22300699c32",
+        "revision": "ca6f0dbdf3882d3893a65cf48f2bb6f1520df162",
         "path": "models/gemma-3-1b-it-q4k-ehf16-af32"
       },
       "baseUrl": "./local/gemma-3-1b-it-q4k-ehf16-af32",
@@ -280,7 +280,7 @@
       "hf": {
         "repoId": "Clocksmith/rdrr",
         "revision": "aeb7b3a304b5aad4b46c903a8a67f17070bce865",
-        "path": "models/qwen-3-5-0-8b-q4k-ehaf16"
+        "path": "models/qwen-3-5-0-8b-wq4k-ef16-hf16-f16"
       },
       "baseUrl": null,
       "sizeBytes": 788833984,
@@ -290,7 +290,7 @@
         "availability": {
           "curated": false,
           "local": false,
-          "hf": true
+          "hf": false
         },
         "status": {
           "runtime": "active",
@@ -328,7 +328,7 @@
       "hf": {
         "repoId": "Clocksmith/rdrr",
         "revision": "cbafef7751177996aba31a7459a9ccb3c9ebccbb",
-        "path": "models/qwen-3-5-2b-q4k-ehaf16"
+        "path": "models/qwen-3-5-2b-wq4k-ef16-hf16-f16"
       },
       "baseUrl": null,
       "sizeBytes": 1789738688,
@@ -338,7 +338,7 @@
         "availability": {
           "curated": false,
           "local": false,
-          "hf": true
+          "hf": false
         },
         "status": {
           "runtime": "active",

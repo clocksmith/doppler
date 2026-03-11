@@ -2,6 +2,7 @@
 
 import {
   parseManifest,
+  getExpectedShardHash,
   getManifestUrl,
 } from '../formats/rdrr/index.js';
 
@@ -726,7 +727,7 @@ export async function downloadModel(
         if (!algorithm) {
           throw new Error('Manifest missing hashAlgorithm for download verification.');
         }
-        const expectedHash = shardInfo.hash;
+        const expectedHash = getExpectedShardHash(shardInfo, algorithm);
         if (!expectedHash) {
           throw new Error(`Shard ${shardIndex} is missing hash in manifest`);
         }

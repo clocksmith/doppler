@@ -5,6 +5,8 @@ import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import {
   DEFAULT_HF_REGISTRY_URL,
+  DEFAULT_EXTERNAL_SUPPORT_REGISTRY_PATH,
+  buildHostedRegistryPayload,
   buildManifestUrl,
   buildShardUrl,
   buildEntryRemoteBaseUrl,
@@ -16,6 +18,7 @@ import {
   loadJsonFile,
   normalizeText,
   probeUrl,
+  resolvePreferredSupportRegistryFile,
   resolveDemoRegistryEntryBaseUrl,
   shouldDemoSurfaceRemoteRegistryEntry,
   validateLocalHfEntryShape,
@@ -26,7 +29,10 @@ const DEFAULT_CATALOG_FILE = path.join(REPO_ROOT, 'models', 'catalog.json');
 
 export function parseArgs(argv) {
   const out = {
-    catalogFile: DEFAULT_CATALOG_FILE,
+    supportFile: resolvePreferredSupportRegistryFile({
+      externalSupportFile: DEFAULT_EXTERNAL_SUPPORT_REGISTRY_PATH,
+      fallbackFile: DEFAULT_CATALOG_FILE,
+    }),
     registryUrl: DEFAULT_HF_REGISTRY_URL,
     checkLocalCatalog: true,
     checkDemoRegistry: true,
@@ -34,10 +40,17 @@ export function parseArgs(argv) {
 
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
+    if (arg === '--support-file') {
+      const value = normalizeText(argv[i + 1]);
+      if (!value) throw new Error('Missing value for --support-file');
+      out.supportFile = path.resolve(REPO_ROOT, value);
+      i += 1;
+      continue;
+    }
     if (arg === '--catalog-file') {
       const value = normalizeText(argv[i + 1]);
       if (!value) throw new Error('Missing value for --catalog-file');
-      out.catalogFile = path.resolve(REPO_ROOT, value);
+      out.supportFile = path.resolve(REPO_ROOT, value);
       i += 1;
       continue;
     }
@@ -72,6 +85,15 @@ async function verifyManifestAndShards(modelId, baseUrl) {
     throw new Error(`${modelId}: manifest missing at ${manifestUrl}`);
   }
   const manifest = await fetchJson(manifestUrl);
+  const manifestModelId = normalizeText(manifest?.modelId);
+  if (!manifestModelId) {
+    throw new Error(`${modelId}: manifest at ${manifestUrl} is missing modelId`);
+  }
+  if (manifestModelId !== normalizeText(modelId)) {
+    throw new Error(
+      `${modelId}: manifest modelId "${manifestModelId}" does not match the approved support entry modelId`
+    );
+  }
   const shards = Array.isArray(manifest?.shards) ? manifest.shards : [];
   if (shards.length === 0) {
     throw new Error(`${modelId}: manifest at ${manifestUrl} does not declare shards`);
@@ -85,21 +107,22 @@ async function verifyManifestAndShards(modelId, baseUrl) {
   }
   return {
     manifestUrl,
+    manifestModelId,
     shardCount: shards.length,
   };
 }
 
 export async function validateLocalHfCatalog(payload) {
-  const catalog = ensureCatalogPayload(payload, 'local catalog');
+  const catalog = ensureCatalogPayload(payload, 'support registry');
+  const approvedRegistry = buildHostedRegistryPayload(catalog);
   const errors = [];
   const duplicates = collectDuplicateModelIds(catalog.models);
   if (duplicates.length > 0) {
-    errors.push(`Duplicate local catalog modelIds: ${duplicates.join(', ')}`);
+    errors.push(`Duplicate support registry modelIds: ${duplicates.join(', ')}`);
   }
 
   const summaries = [];
-  for (const entry of catalog.models) {
-    if (entry?.lifecycle?.availability?.hf !== true) continue;
+  for (const entry of approvedRegistry.models) {
     const shapeErrors = validateLocalHfEntryShape(entry);
     if (shapeErrors.length > 0) {
       errors.push(...shapeErrors);
@@ -108,7 +131,11 @@ export async function validateLocalHfCatalog(payload) {
     const baseUrl = buildEntryRemoteBaseUrl(entry);
     try {
       const verified = await verifyManifestAndShards(entry.modelId, baseUrl);
-      summaries.push({ modelId: entry.modelId, shardCount: verified.shardCount });
+      summaries.push({
+        modelId: entry.modelId,
+        manifestModelId: verified.manifestModelId,
+        shardCount: verified.shardCount,
+      });
     } catch (error) {
       errors.push(error.message);
     }
@@ -130,18 +157,24 @@ export async function validateRemoteRegistry(payload, registryUrl, localCatalog 
     const baseUrl = resolveDemoRegistryEntryBaseUrl(entry, registryUrl);
     try {
       const verified = await verifyManifestAndShards(entry.modelId, baseUrl);
-      summaries.push({ modelId: entry.modelId, shardCount: verified.shardCount });
+      summaries.push({
+        modelId: entry.modelId,
+        manifestModelId: verified.manifestModelId,
+        shardCount: verified.shardCount,
+      });
     } catch (error) {
       errors.push(`${entry.modelId}: demo-visible registry entry is not fetchable (${error.message})`);
     }
   }
 
   if (localCatalog) {
-    for (const localEntry of localCatalog.models) {
-      if (localEntry?.lifecycle?.availability?.hf !== true) continue;
+    const expectedRegistry = buildHostedRegistryPayload(localCatalog);
+    const expectedModels = Array.isArray(expectedRegistry.models) ? expectedRegistry.models : [];
+    const expectedModelIds = new Set(expectedModels.map((entry) => normalizeText(entry?.modelId)));
+    for (const localEntry of expectedModels) {
       const remoteEntry = findCatalogEntry(registry, localEntry.modelId);
       if (!remoteEntry) {
-        errors.push(`${localEntry.modelId}: availability.hf=true locally but entry is missing from remote registry`);
+        errors.push(`${localEntry.modelId}: approved hosted entry is missing from remote registry`);
         continue;
       }
       const localHf = getEntryHfSpec(localEntry);
@@ -152,6 +185,11 @@ export async function validateRemoteRegistry(payload, registryUrl, localCatalog 
           `(${remoteHf.repoId}@${remoteHf.revision}:${remoteHf.path})`
         );
       }
+    }
+    for (const remoteEntry of registry.models) {
+      const modelId = normalizeText(remoteEntry?.modelId);
+      if (!modelId || expectedModelIds.has(modelId)) continue;
+      errors.push(`${modelId}: remote registry contains a model that is not approved in the canonical support registry`);
     }
   }
 
@@ -165,9 +203,10 @@ export async function main(argv = process.argv.slice(2)) {
   let localCatalog = null;
 
   if (args.checkLocalCatalog) {
-    localCatalog = await loadJsonFile(args.catalogFile, args.catalogFile);
+    localCatalog = await loadJsonFile(args.supportFile, args.supportFile);
     const localResult = await validateLocalHfCatalog(localCatalog);
-    checks.push(`[hf-registry-check] local HF entries verified: ${localResult.summaries.length}`);
+    checks.push(`[hf-registry-check] canonical support source: ${args.supportFile}`);
+    checks.push(`[hf-registry-check] approved HF entries verified: ${localResult.summaries.length}`);
     failures.push(...localResult.errors);
   }
 

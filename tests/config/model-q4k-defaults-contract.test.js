@@ -15,7 +15,7 @@ async function readPreset(relativePath) {
   const gemma2 = await readPreset('src/config/presets/models/gemma2.json');
   const q4k = gemma2?.inference?.kernelPaths?.q4k;
   assert.ok(q4k, 'gemma2 q4k kernelPaths must exist');
-  assert.equal(q4k.f16, 'gemma2-q4k-dequant-f32a-nosubgroups');
+  assert.equal(q4k.f16, 'gemma2-q4k-dequant-f16a');
   assert.equal(q4k.f32, 'gemma2-q4k-dequant-f32a-nosubgroups');
 }
 
@@ -27,6 +27,26 @@ async function readPreset(relativePath) {
   assert.equal(q4k.f16, 'gemma3-q4k-dequant-f16a-online');
   assert.equal(q4k.f16a, 'gemma3-q4k-dequant-f16a-online');
   assert.equal(q4k.f32, 'gemma3-q4k-dequant-f32a-online');
+}
+
+{
+  const embeddingGemma = await readPreset('src/config/presets/models/embeddinggemma.json');
+  const kernelPaths = embeddingGemma?.inference?.kernelPaths;
+  assert.ok(kernelPaths, 'embeddinggemma kernelPaths must exist');
+  assert.equal(kernelPaths.f16?.f16, 'embeddinggemma-f16-f32a');
+  assert.equal(kernelPaths.f16?.f32, 'embeddinggemma-f16-f32a');
+  assert.equal(kernelPaths.f32?.f16, 'embeddinggemma-f32-f32a');
+  assert.equal(kernelPaths.f32?.f32, 'embeddinggemma-f32-f32a');
+  assert.equal(kernelPaths.q4k?.f16, 'embeddinggemma-q4k-dequant-f32a');
+  assert.equal(kernelPaths.q4k?.f32, 'embeddinggemma-q4k-dequant-f32a');
+}
+
+{
+  const lfm2 = await readPreset('src/config/presets/models/lfm2.json');
+  const q4k = lfm2?.inference?.kernelPaths?.q4k;
+  assert.ok(q4k, 'lfm2 q4k kernelPaths must exist');
+  assert.equal(q4k.f16, 'gemma3-q4k-dequant-f16a-online');
+  assert.equal(q4k.f32, 'lfm2-q4k-dequant-f32a-online');
 }
 
 console.log('model-q4k-defaults-contract.test: ok');

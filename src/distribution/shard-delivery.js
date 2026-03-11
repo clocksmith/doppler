@@ -1,4 +1,5 @@
 import { log } from '../debug/index.js';
+import { getExpectedShardHash } from '../formats/rdrr/index.js';
 import {
   computeHash,
   createStreamingHasher,
@@ -2018,7 +2019,11 @@ export async function downloadShard(
     onDeliveryMetrics,
     signal,
     requiredEncoding: requiredEncoding ?? activeConfig.requiredContentEncoding ?? null,
-    expectedHash: options.expectedHash ?? shardInfo?.hash ?? activeConfig.expectedHash ?? null,
+    expectedHash:
+      options.expectedHash
+      ?? getExpectedShardHash(shardInfo, algorithm)
+      ?? activeConfig.expectedHash
+      ?? null,
     expectedSize: expectedSize ?? shardInfo?.size ?? null,
     expectedManifestVersionSet: options.expectedManifestVersionSet ?? null,
     writeToStore,

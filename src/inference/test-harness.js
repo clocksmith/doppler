@@ -1,7 +1,7 @@
 
 
 import { initDevice, getDevice, getKernelCapabilities } from '../gpu/device.js';
-import { parseManifest } from '../formats/rdrr/index.js';
+import { parseManifest, getExpectedShardHash } from '../formats/rdrr/index.js';
 import { createPipeline } from './pipelines/text.js';
 import { log as debugLog } from '../debug/index.js';
 import { getRuntimeConfig, setRuntimeConfig } from '../config/runtime.js';
@@ -168,7 +168,7 @@ export function createHttpShardLoader(baseUrl, manifest, log) {
           distributionConfig,
           algorithm,
           requiredEncoding,
-          expectedHash: shard.hash ?? null,
+          expectedHash: getExpectedShardHash(shard, algorithm) || null,
           expectedSize: Number.isFinite(shard.size) ? Math.floor(shard.size) : null,
           expectedManifestVersionSet: manifestVersionSet,
           writeToStore: false,

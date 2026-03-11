@@ -161,6 +161,29 @@ function createRuntimeConfig() {
 
 {
   const runtimeConfig = createRuntimeConfig();
+  runtimeConfig.inference.batching.batchSize = 16;
+  const manifest = {
+    modelId: 'execution-v0-manifest-batching-defaults-test',
+    modelType: 'transformer',
+    inference: {
+      schema: 'doppler.execution/v0',
+      sessionDefaults: {
+        decodeLoop: {
+          batchSize: 8,
+          stopCheckMode: 'batch',
+          readbackInterval: 8,
+        },
+      },
+    },
+  };
+
+  const nextRuntime = applyModelBatchingRuntimeDefaults(runtimeConfig, manifest, null);
+  assert.strictEqual(nextRuntime, runtimeConfig);
+  assert.equal(nextRuntime.inference.batching.batchSize, 16);
+}
+
+{
+  const runtimeConfig = createRuntimeConfig();
   runtimeConfig.inference.generation.disableCommandBatching = true;
   const manifest = {
     modelId: 'lfm2-conflicting-disable-command-batching-test',

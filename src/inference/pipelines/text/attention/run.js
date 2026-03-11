@@ -28,6 +28,7 @@ import { runProbes } from '../probes.js';
 import { SlidingWindowKVCache } from '../../../kv-cache.js';
 import {
   recordAttentionInputs,
+  shouldForceF32AttentionProjectionForRoPE,
   resolveAttentionProjectionOutputDtype,
   projectAttentionQKV,
   applyAttentionQKNorm,
@@ -193,7 +194,14 @@ export async function runLayerAttentionGPU(
   }
 
   // 2. Q/K/V projections
-  const matmulOutputDtype = resolveAttentionProjectionOutputDtype(desiredOutputDtype);
+  const matmulOutputDtype = resolveAttentionProjectionOutputDtype(desiredOutputDtype, {
+    forceF32: shouldForceF32AttentionProjectionForRoPE({
+      attentionInputDtype: desiredOutputDtype,
+      headDim,
+      rotaryDim: config.ropeRotaryDim,
+      interleaved: config.ropeInterleaved,
+    }),
+  });
   let usedFusedQKV = false;
   ({ qTensor, qGateTensor, kTensor, vTensor, usedFusedQKV } = await projectAttentionQKV({
     recorder: null,

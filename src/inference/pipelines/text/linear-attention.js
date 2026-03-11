@@ -34,6 +34,20 @@ function bytesFromDtype(dtype) {
   return 4;
 }
 
+export function applyLinearNormWeightOffset(values, rmsNormWeightOffset) {
+  if (!(values instanceof Float32Array)) {
+    throw new Error('applyLinearNormWeightOffset requires Float32Array input.');
+  }
+  if (rmsNormWeightOffset !== true) {
+    return values;
+  }
+  const adjusted = values.slice();
+  for (let i = 0; i < adjusted.length; i++) {
+    adjusted[i] += 1;
+  }
+  return adjusted;
+}
+
 function cloneLayerRuntimeState(layerState) {
   return {
     layerIdx: layerState.layerIdx,
@@ -454,6 +468,7 @@ async function createLayerRuntimeState(
     expectedNormElements,
     `L${layerIdx}.linear_attn.norm.weight`
   );
+  const runtimeNorm = applyLinearNormWeightOffset(norm, config.rmsNormWeightOffset === true);
 
   const aNegExp = new Float32Array(aLog.length);
   for (let i = 0; i < aLog.length; i++) {
@@ -490,7 +505,7 @@ async function createLayerRuntimeState(
     convWeight,
     dtBias,
     aNegExp,
-    normWeight: norm,
+    normWeight: runtimeNorm,
     convState,
     recurrentState,
     convWeightGPU: null,

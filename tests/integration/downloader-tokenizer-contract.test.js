@@ -17,14 +17,15 @@ const originalFetch = globalThis.fetch;
 
 const shardBytes = new Uint8Array([1, 2, 3, 4]);
 const shardHash = await computeHash(shardBytes, 'sha256');
+const shardBlake3 = await computeHash(shardBytes, 'blake3');
 
-function createManifest() {
+function createManifest(hashAlgorithm = 'sha256') {
   return {
     version: 1,
     modelId: 'manifest-model-id',
     modelType: 'transformer',
     quantization: 'Q4_K_M',
-    hashAlgorithm: 'sha256',
+    hashAlgorithm,
     totalSize: shardBytes.byteLength,
     architecture: {
       numLayers: 1,
@@ -51,6 +52,7 @@ function createManifest() {
         filename: 'model-00001-of-00001.bin',
         size: shardBytes.byteLength,
         hash: shardHash,
+        blake3: shardBlake3,
         offset: 0,
       },
     ],
@@ -98,7 +100,7 @@ try {
 
   globalThis.fetch = async (url) => {
     if (String(url).endsWith('/manifest.json')) {
-      return new Response(JSON.stringify(createManifest()), {
+      return new Response(JSON.stringify(createManifest(globalThis.__testManifestHashAlgorithm || 'sha256')), {
         status: 200,
         headers: { 'content-type': 'application/json' },
       });
@@ -118,15 +120,20 @@ try {
     throw new Error(`Unexpected fetch url: ${url}`);
   };
 
-  await assert.rejects(
-    () => downloadModel('https://example.test/model', null, {
-      requestPersist: false,
-      concurrency: 1,
-    }),
-    /HTTP 404: Not Found/
-  );
+  for (const hashAlgorithm of ['sha256', 'blake3']) {
+    globalThis.__testManifestHashAlgorithm = hashAlgorithm;
+    await assert.rejects(
+      () => downloadModel('https://example.test/model', null, {
+        requestPersist: false,
+        concurrency: 1,
+      }),
+      /HTTP 404: Not Found/
+    );
+    await cleanup();
+  }
 } finally {
   globalThis.fetch = originalFetch;
+  delete globalThis.__testManifestHashAlgorithm;
   if (originalNavigator === undefined) {
     delete globalThis.navigator;
   } else {
@@ -136,7 +143,6 @@ try {
     });
   }
   resetRuntimeConfig();
-  await cleanup();
 }
 
 console.log('downloader-tokenizer-contract.test: ok');

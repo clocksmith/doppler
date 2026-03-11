@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 
 import fs from 'node:fs/promises';
+import { existsSync } from 'node:fs';
+import path from 'node:path';
 
 export const DEFAULT_HF_REPO_ID = 'Clocksmith/rdrr';
 export const DEFAULT_HF_REGISTRY_PATH = 'registry/catalog.json';
@@ -17,6 +19,29 @@ export function normalizeToken(value) {
 export function normalizeRepoPath(value) {
   return normalizeText(value).replace(/^\/+/, '');
 }
+
+export function detectDefaultExternalModelsRoot() {
+  const envRoot = normalizeText(process.env.DOPPLER_EXTERNAL_MODELS_ROOT);
+  if (envRoot) {
+    return envRoot;
+  }
+  for (const candidate of ['/Volumes/models', '/media/x/models']) {
+    if (existsSync(candidate)) {
+      return candidate;
+    }
+  }
+  return '/media/x/models';
+}
+
+export const DEFAULT_EXTERNAL_MODELS_ROOT = detectDefaultExternalModelsRoot();
+export const DEFAULT_EXTERNAL_SUPPORT_REGISTRY_PATH = path.join(
+  DEFAULT_EXTERNAL_MODELS_ROOT,
+  'DOPPLER_SUPPORT_REGISTRY.json'
+);
+export const DEFAULT_EXTERNAL_RDRR_INDEX_PATH = path.join(
+  DEFAULT_EXTERNAL_MODELS_ROOT,
+  'RDRR_INDEX.json'
+);
 
 export function isPlainObject(value) {
   return value != null && typeof value === 'object' && !Array.isArray(value);
@@ -122,10 +147,36 @@ export function collectDuplicateModelIds(models) {
   return [...duplicates].sort((a, b) => a.localeCompare(b));
 }
 
+export function sortCatalogEntries(models) {
+  models.sort((left, right) => {
+    const leftSort = Number.isFinite(Number(left?.sortOrder)) ? Number(left.sortOrder) : Number.MAX_SAFE_INTEGER;
+    const rightSort = Number.isFinite(Number(right?.sortOrder)) ? Number(right.sortOrder) : Number.MAX_SAFE_INTEGER;
+    if (leftSort !== rightSort) {
+      return leftSort - rightSort;
+    }
+    return normalizeText(left?.label || left?.modelId).localeCompare(
+      normalizeText(right?.label || right?.modelId)
+    );
+  });
+  return models;
+}
+
 export function findCatalogEntry(payload, modelId) {
   const models = Array.isArray(payload?.models) ? payload.models : [];
   const needle = normalizeText(modelId);
   return models.find((entry) => normalizeText(entry?.modelId) === needle) || null;
+}
+
+export function isHostedRegistryApprovedEntry(entry) {
+  return entry?.lifecycle?.availability?.hf === true
+    && normalizeText(entry?.lifecycle?.status?.runtime) === 'active'
+    && normalizeText(entry?.lifecycle?.status?.tested) === 'verified';
+}
+
+export function stripExternalSupportFields(entry) {
+  const next = structuredClone(entry);
+  delete next.external;
+  return next;
 }
 
 export function buildPublishedRegistryEntry(localEntry, revision) {
@@ -163,6 +214,45 @@ export function buildPublishedRegistryEntry(localEntry, revision) {
     },
   };
   return next;
+}
+
+export function buildHostedRegistryPayload(payload, revisionOverrides = new Map()) {
+  const source = ensureCatalogPayload(payload, 'support registry');
+  const normalizedOverrides = revisionOverrides instanceof Map ? revisionOverrides : new Map();
+  const models = Array.isArray(source.models)
+    ? source.models
+      .filter((entry) => isHostedRegistryApprovedEntry(entry))
+      .map((entry) => {
+        const modelId = normalizeText(entry?.modelId);
+        const revisionOverride = normalizeText(normalizedOverrides.get(modelId));
+        if (revisionOverride) {
+          return buildPublishedRegistryEntry(stripExternalSupportFields(entry), revisionOverride);
+        }
+        return stripExternalSupportFields(entry);
+      })
+    : [];
+  sortCatalogEntries(models);
+  return {
+    version: Number.isFinite(Number(source.version)) ? Number(source.version) : 1,
+    lifecycleSchemaVersion: Number.isFinite(Number(source.lifecycleSchemaVersion))
+      ? Number(source.lifecycleSchemaVersion)
+      : 1,
+    updatedAt: normalizeText(source.updatedAt) || new Date().toISOString().slice(0, 10),
+    models,
+  };
+}
+
+export function resolvePreferredSupportRegistryFile(options = {}) {
+  const explicit = normalizeText(options.supportFile);
+  if (explicit) {
+    return explicit;
+  }
+  const externalSupportFile = normalizeText(options.externalSupportFile)
+    || DEFAULT_EXTERNAL_SUPPORT_REGISTRY_PATH;
+  if (externalSupportFile && existsSync(externalSupportFile)) {
+    return externalSupportFile;
+  }
+  return normalizeText(options.fallbackFile) || externalSupportFile;
 }
 
 export function extractCommitShaFromUrl(value) {

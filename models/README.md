@@ -1,13 +1,13 @@
 # Quick Model Catalog
 
-Use `catalog.json` to define hosted models that the demo can import directly into OPFS.
-`catalog.json` is the canonical model registry for runtime/demo/hosted/tested lifecycle tracking.
+Use `catalog.json` to define the repo-visible mirror of hosted models that the demo can import directly into OPFS.
+The canonical runtime/demo/hosted/tested lifecycle registry lives on the external models volume and is mirrored into `catalog.json` for repo tooling.
 
 Model artifacts live under a single physical root:
 
 - `models/local/**`: on-disk RDRR artifacts used for local testing and optional repo-hosted demo downloads
 
-Lifecycle labels such as `curated`, `recommended`, and `demo` are metadata in `catalog.json`, not path semantics.
+Lifecycle labels such as `curated`, `recommended`, and `demo` are metadata mirrored from the external support registry, not path semantics.
 
 Each entry supports:
 
@@ -43,6 +43,9 @@ Notes:
 - `models/local/**` may be served in demo/dev deployments when hosting config allows it.
 - `lifecycle.availability.curated` and `lifecycle.status.demo` describe artifact status, not a separate directory tree.
 - Do not rely on implicit `baseUrl` or mode defaults in docs or tooling. Catalog behavior should stay explicit and fail closed.
+- Preferred ownership:
+  - external canonical registry: `/media/x/models/DOPPLER_SUPPORT_REGISTRY.json`
+  - repo mirror: `models/catalog.json`
 
 Example `catalog.json` entry:
 

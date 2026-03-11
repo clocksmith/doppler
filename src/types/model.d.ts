@@ -9,7 +9,11 @@ export type ModelArchitecture =
   | 'gemma'
   | 'gemma2'
   | 'gemma3'
+  | 'embeddinggemma'
   | 'functiongemma'
+  | 'janus_text'
+  | 'lfm2'
+  | 'modernbert'
   | 'qwen2'
   | 'qwen3'
   | 'phi3'
@@ -19,6 +23,7 @@ export type ModelArchitecture =
   | 'deepseek'
   | 'mamba'
   | 'kimi_k2'
+  | 'translategemma'
   | 'transformer';
 
 /** Attention type variants */
