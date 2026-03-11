@@ -18,6 +18,21 @@ import {
   transposeF32,
 } from '../../src/converter/quantizer.js';
 
+function dequantizeQ4KMRowWise(quantized, shape) {
+  const [rows, cols] = shape;
+  const blocksPerRow = Math.ceil(cols / QK_K);
+  const result = new Float32Array(rows * cols);
+
+  for (let row = 0; row < rows; row++) {
+    const rowOffset = row * blocksPerRow * QK4_K_BLOCK_SIZE;
+    const rowBytes = quantized.slice(rowOffset, rowOffset + blocksPerRow * QK4_K_BLOCK_SIZE);
+    const rowDequantized = dequantizeQ4KM(rowBytes, blocksPerRow, [1, cols]);
+    result.set(rowDequantized, row * cols);
+  }
+
+  return result;
+}
+
 {
   const input = [0, 1, -1, 0.5, -0.25, 12.25, -24.5];
   for (const value of input) {
@@ -72,6 +87,27 @@ import {
   assert.ok(Number.isFinite(err.mse));
   assert.ok(Number.isFinite(err.maxError));
   assert.ok(Number.isFinite(err.snr));
+}
+
+{
+  const shape = [1, 300];
+  const data = new Float32Array(shape[0] * shape[1]);
+  for (let i = 0; i < 256; i += 1) {
+    data[i] = ((i % 17) - 8) / 4;
+  }
+  for (let i = 256; i < data.length; i += 1) {
+    data[i] = -10 + (i - 256) * 0.01;
+  }
+
+  const row = quantizeToQ4KMRowWise(data, shape);
+  const dequantized = dequantizeQ4KMRowWise(row.quantized, shape);
+  const err = calculateQuantizationError(data, dequantized);
+
+  assert.ok(err.maxError < 0.25, `row-wise partial-block quantization drift too high: ${err.maxError}`);
+  assert.ok(
+    Math.max(...dequantized.slice(256)) < -9.5,
+    'row-wise tail block should not be pulled toward zero by padded zeros'
+  );
 }
 
 {

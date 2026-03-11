@@ -111,14 +111,7 @@
         "windowSize": 1024,
         "bdpaVocabSize": 4096
       },
-      "decodeLoop": {
-        "batchSize": 16,
-        "stopCheckMode": "batch",
-        "readbackInterval": 8,
-        "ringTokens": 8,
-        "ringStop": 8,
-        "ringStaging": 8
-      }
+      "decodeLoop": null
     },
     "execution": {
       "steps": [

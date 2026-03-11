@@ -889,6 +889,68 @@
       gap: var(--space-xs);
     }
 
+    .translate-compare-receipts {
+      border: var(--border-sm) dashed color-mix(in srgb, var(--doppler-signal) 42%, var(--fg));
+      background: color-mix(in srgb, var(--bg-contrast) 76%, var(--bg) 24%);
+      padding: var(--space-sm);
+    }
+
+    .translate-compare-receipts > summary {
+      cursor: pointer;
+      list-style: none;
+    }
+
+    .translate-compare-receipts > summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .translate-compare-receipts-body {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+      margin-top: var(--space-sm);
+    }
+
+    .translate-receipts-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-sm);
+    }
+
+    .translate-receipt-card {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
+      padding: var(--space-xs);
+      border: var(--border-sm) dotted color-mix(in srgb, var(--fg) 42%, transparent);
+      background: color-mix(in srgb, var(--bg) 90%, transparent);
+    }
+
+    .translate-compare-receipt-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: var(--space-xs);
+    }
+
+    .translate-compare-receipts-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-xs);
+    }
+
+    .translate-compare-receipts-links a {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 22px;
+      padding: 2px 9px;
+      border: var(--border-sm) solid color-mix(in srgb, var(--doppler-aqua) 48%, var(--fg));
+      color: color-mix(in srgb, var(--fg) 84%, var(--doppler-aqua));
+      text-decoration: none;
+      background: color-mix(in srgb, var(--doppler-aqua) 8%, transparent);
+    }
+
     .translate-evidence-summary {
       display: flex;
       flex-direction: column;
@@ -922,6 +984,83 @@
       padding: var(--space-xs);
       border: var(--border-sm) dotted color-mix(in srgb, var(--fg) 40%, transparent);
       background: color-mix(in srgb, var(--bg) 88%, transparent);
+    }
+
+    .translate-smoke-panel {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+      padding: var(--space-sm);
+      border: var(--border-sm) solid color-mix(in srgb, var(--doppler-signal) 38%, var(--fg));
+      background:
+        linear-gradient(160deg, color-mix(in srgb, var(--doppler-signal) 7%, var(--bg-contrast)), var(--bg));
+    }
+
+    .translate-smoke-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-sm);
+    }
+
+    .translate-smoke-header .type-label {
+      margin: 0;
+    }
+
+    .translate-smoke-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-sm);
+    }
+
+    .translate-smoke-card {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+      min-width: 0;
+      padding: var(--space-sm);
+      border: var(--border-sm) dashed color-mix(in srgb, var(--doppler-signal) 36%, var(--fg));
+      background: color-mix(in srgb, var(--bg) 90%, transparent);
+      transition: border-color 120ms ease, background 120ms ease, transform 120ms ease;
+    }
+
+    .translate-smoke-card.is-active {
+      border-color: color-mix(in srgb, var(--doppler-aqua) 54%, var(--fg));
+      background: color-mix(in srgb, var(--doppler-aqua) 10%, var(--bg-contrast));
+      transform: translateY(-1px);
+    }
+
+    .translate-smoke-card-top,
+    .translate-smoke-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-xs);
+      flex-wrap: wrap;
+    }
+
+    .translate-smoke-card-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: var(--space-xs);
+    }
+
+    .translate-smoke-chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 22px;
+      padding: 2px 9px;
+      border: var(--border-sm) solid color-mix(in srgb, var(--doppler-signal) 42%, var(--fg));
+      font-family: var(--demo-label-family);
+      font-size: var(--demo-label-size);
+      font-weight: 700;
+      letter-spacing: var(--demo-label-tracking);
+      text-transform: uppercase;
+      line-height: var(--demo-label-line-height);
+      color: color-mix(in srgb, var(--fg) 84%, var(--doppler-signal));
+      background: color-mix(in srgb, var(--doppler-signal) 8%, transparent);
+      white-space: nowrap;
     }
 
     .translate-lane-grid {
@@ -1036,8 +1175,20 @@
       color: color-mix(in srgb, var(--doppler-signal) 60%, var(--fg));
     }
 
+    .translate-lane-status[data-tone="success"] {
+      color: color-mix(in srgb, #4fe286 72%, var(--fg));
+    }
+
+    .translate-lane-status[data-tone="error"] {
+      color: color-mix(in srgb, #ff7272 72%, var(--fg));
+    }
+
     .translate-lane-right .translate-lane-status {
       color: color-mix(in srgb, var(--doppler-aqua) 72%, var(--fg));
+    }
+
+    .translate-lane-right .translate-lane-status[data-tone="error"] {
+      color: color-mix(in srgb, #ff7b90 76%, var(--fg));
     }
 
     .translate-lane-metrics {
@@ -1091,6 +1242,27 @@
       top: var(--space-md);
     }
 
+    .translate-history-tools {
+      display: flex;
+      align-items: center;
+      gap: var(--space-xs);
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .translate-history-filters {
+      flex: 0 1 auto;
+      border: var(--border-sm) solid color-mix(in srgb, var(--doppler-aqua) 40%, var(--fg));
+      padding: 2px;
+      background: color-mix(in srgb, var(--doppler-aqua) 8%, var(--bg));
+    }
+
+    .translate-history-filters .segmented-btn.is-active {
+      background: linear-gradient(135deg, var(--doppler-aqua), color-mix(in srgb, var(--doppler-aqua) 65%, white));
+      color: var(--doppler-ink);
+      border-color: var(--doppler-aqua);
+    }
+
     .translate-history-list {
       display: flex;
       flex-direction: column;
@@ -1116,6 +1288,62 @@
       font-family: var(--demo-value-family);
       font-size: var(--demo-value-size);
       line-height: 1.5;
+    }
+
+    .translate-history-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .translate-history-badge {
+      white-space: nowrap;
+    }
+
+    .translate-history-badge.is-success {
+      color: color-mix(in srgb, #4fe286 78%, var(--fg));
+      background: color-mix(in srgb, #4fe286 10%, transparent);
+    }
+
+    .translate-history-badge.is-warning {
+      color: color-mix(in srgb, #ffbe57 78%, var(--fg));
+      background: color-mix(in srgb, #ffbe57 12%, transparent);
+    }
+
+    .translate-history-badge.is-neutral {
+      color: color-mix(in srgb, var(--fg) 84%, var(--doppler-aqua));
+      background: color-mix(in srgb, var(--doppler-aqua) 10%, transparent);
+    }
+
+    .translate-history-body {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+      padding-top: var(--space-xs);
+    }
+
+    .translate-history-lane-block {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+    }
+
+    .translate-history-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: var(--space-xs);
+    }
+
+    .translate-history-raw {
+      margin: 0;
+      max-height: 240px;
+      overflow: auto;
+    }
+
+    .translate-history-empty {
+      padding: var(--space-xs) 0;
+      color: color-mix(in srgb, var(--fg) 78%, transparent);
     }
 
     #app[data-mode="translate"] #run-output {
@@ -2150,7 +2378,9 @@
 
     @media (max-width: 1024px) {
       .translate-proof-strip,
+      .translate-receipts-grid,
       .translate-evidence-summary-grid,
+      .translate-smoke-grid,
       .translate-lane-grid,
       .translate-lane-controls,
       .translate-lane-metrics {
@@ -2349,6 +2579,7 @@
 
       .translate-control-banner,
       .translate-compare-heading,
+      .translate-smoke-header,
       .translate-compare-toolbar,
       .translate-history-header,
       .translate-evidence-summary-header,
@@ -2363,6 +2594,8 @@
 
       .translate-proof-strip,
       .translate-compare-layout,
+      .translate-receipts-grid,
+      .translate-smoke-grid,
       .translate-lane-grid,
       .translate-evidence-summary-grid,
       .translate-lane-controls,

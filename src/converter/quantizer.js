@@ -74,9 +74,10 @@ function findMinMax(data, offset, length) {
   return { min, max };
 }
 
-export function quantizeQ4KBlock(data, offset) {
+function quantizeQ4KBlockWithValidLength(data, offset, validLength = QK_K) {
   const block = new Uint8Array(QK4_K_BLOCK_SIZE);
   const blockView = new DataView(block.buffer);
+  const clampedValidLength = Math.max(0, Math.min(QK_K, Math.trunc(validLength)));
 
   const scales = new Float32Array(8);
   const minOffsets = new Float32Array(8);
@@ -84,14 +85,22 @@ export function quantizeQ4KBlock(data, offset) {
 
   for (let sb = 0; sb < 8; sb++) {
     const sbOffset = offset + sb * 32;
-    const { min, max } = findMinMax(data, sbOffset, 32);
+    const subblockStart = sb * 32;
+    const validInSubblock = Math.max(0, Math.min(32, clampedValidLength - subblockStart));
+    if (validInSubblock === 0) {
+      scales[sb] = 0;
+      minOffsets[sb] = 0;
+      continue;
+    }
+
+    const { min, max } = findMinMax(data, sbOffset, validInSubblock);
 
     minOffsets[sb] = -min;
     const range = max - min;
     scales[sb] = range > 0 ? range / 15 : 0;
 
     const invScale = scales[sb] > 0 ? 1 / scales[sb] : 0;
-    for (let i = 0; i < 32; i++) {
+    for (let i = 0; i < validInSubblock; i++) {
       const val = data[sbOffset + i];
       let q = Math.round((val - min) * invScale);
       q = Math.max(0, Math.min(15, q));
@@ -153,6 +162,10 @@ export function quantizeQ4KBlock(data, offset) {
   }
 
   return block;
+}
+
+export function quantizeQ4KBlock(data, offset) {
+  return quantizeQ4KBlockWithValidLength(data, offset, QK_K);
 }
 
 function dequantizeQ4KBlock(block) {
@@ -245,22 +258,16 @@ export function quantizeToQ4KMRowWise(data, shape) {
   }
 
   const blocksPerRow = Math.ceil(cols / QK_K);
-  const paddedColsPerRow = blocksPerRow * QK_K;
   const totalBlocks = rows * blocksPerRow;
 
   const quantized = new Uint8Array(totalBlocks * QK4_K_BLOCK_SIZE);
 
   for (let row = 0; row < rows; row++) {
-    // Extract and pad this row
-    const rowData = new Float32Array(paddedColsPerRow);
-    const srcOffset = row * cols;
-    for (let c = 0; c < cols; c++) {
-      rowData[c] = data[srcOffset + c];
-    }
-
     // Quantize each block in this row
     for (let b = 0; b < blocksPerRow; b++) {
-      const block = quantizeQ4KBlock(rowData, b * QK_K);
+      const validLength = Math.max(0, Math.min(QK_K, cols - b * QK_K));
+      const srcOffset = row * cols + b * QK_K;
+      const block = quantizeQ4KBlockWithValidLength(data, srcOffset, validLength);
       const dstOffset = (row * blocksPerRow + b) * QK4_K_BLOCK_SIZE;
       quantized.set(block, dstOffset);
     }
