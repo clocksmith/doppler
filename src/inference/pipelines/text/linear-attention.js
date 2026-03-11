@@ -34,6 +34,15 @@ function bytesFromDtype(dtype) {
   return 4;
 }
 
+export function applyLinearNormWeightOffset(values, rmsNormWeightOffset) {
+  if (!(values instanceof Float32Array)) {
+    throw new Error('applyLinearNormWeightOffset requires Float32Array input.');
+  }
+  // Qwen linear-attention output norm uses direct weights even when surrounding
+  // transformer RMSNorm sites use the Gemma-style (1 + weight) formula.
+  return values;
+}
+
 function cloneLayerRuntimeState(layerState) {
   return {
     layerIdx: layerState.layerIdx,
@@ -454,6 +463,7 @@ async function createLayerRuntimeState(
     expectedNormElements,
     `L${layerIdx}.linear_attn.norm.weight`
   );
+  const runtimeNorm = applyLinearNormWeightOffset(norm, config.rmsNormWeightOffset === true);
 
   const aNegExp = new Float32Array(aLog.length);
   for (let i = 0; i < aLog.length; i++) {
@@ -490,7 +500,7 @@ async function createLayerRuntimeState(
     convWeight,
     dtBias,
     aNegExp,
-    normWeight: norm,
+    normWeight: runtimeNorm,
     convState,
     recurrentState,
     convWeightGPU: null,

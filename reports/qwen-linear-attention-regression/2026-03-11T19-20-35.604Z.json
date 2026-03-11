@@ -1,0 +1,311 @@
+{
+  "suite": "debug",
+  "modelId": "qwen-linear-attention-regression",
+  "runtimePreset": null,
+  "deviceInfo": {
+    "hasSubgroups": true,
+    "hasSubgroupsF16": false,
+    "hasF16": true,
+    "hasTimestampQuery": true,
+    "maxBufferSize": 14302248960,
+    "maxWorkgroupSize": 1024,
+    "maxWorkgroupStorageSize": 32768,
+    "adapterInfo": {
+      "vendor": "apple",
+      "architecture": "metal-3",
+      "device": "apple-m3",
+      "description": "Metal driver on macOS Version 26.3 (Build 25D125)"
+    }
+  },
+  "results": [
+    {
+      "name": "generation",
+      "passed": true,
+      "duration": 6804.698999999993
+    }
+  ],
+  "durationMs": 125461.25025000001,
+  "timestamp": "2026-03-11T19:20:35.604Z",
+  "metrics": {
+    "prompt": "What color is the sky?",
+    "maxTokens": 24,
+    "tokensGenerated": 24,
+    "tokensPerSec": 3.53,
+    "totalRunMs": 6804.04,
+    "firstTokenMs": 1180.75,
+    "firstResponseMs": 119833.25,
+    "prefillMs": 1162.85,
+    "decodeMs": 5622.56,
+    "prefillTokens": 6,
+    "decodeTokens": 24,
+    "prefillTokensPerSec": 5.16,
+    "prefillTokensPerSecTtft": 5.08,
+    "decodeTokensPerSec": 4.27,
+    "modelLoadMs": 118652.5,
+    "gpu": {
+      "decodeRecordMs": 0,
+      "decodeSubmitWaitMs": 0,
+      "decodeReadbackWaitMs": 0
+    },
+    "decodeProfileSteps": [],
+    "generationDiagnostics": {
+      "preview": [
+        {
+          "id": 133838,
+          "text": "义的",
+          "fallbackText": "义的"
+        },
+        {
+          "id": 66305,
+          "text": "erdings",
+          "fallbackText": "erdings"
+        },
+        {
+          "id": 66305,
+          "text": "erdings",
+          "fallbackText": "erdings"
+        },
+        {
+          "id": 66305,
+          "text": "erdings",
+          "fallbackText": "erdings"
+        },
+        {
+          "id": 74410,
+          "text": "ervo",
+          "fallbackText": "ervo"
+        },
+        {
+          "id": 196259,
+          "text": "ină",
+          "fallbackText": "ină"
+        },
+        {
+          "id": 196259,
+          "text": "ină",
+          "fallbackText": "ină"
+        },
+        {
+          "id": 196259,
+          "text": "ină",
+          "fallbackText": "ină"
+        },
+        {
+          "id": 196259,
+          "text": "ină",
+          "fallbackText": "ină"
+        },
+        {
+          "id": 196259,
+          "text": "ină",
+          "fallbackText": "ină"
+        },
+        {
+          "id": 196259,
+          "text": "ină",
+          "fallbackText": "ină"
+        },
+        {
+          "id": 84073,
+          "text": " Euras",
+          "fallbackText": " Euras"
+        },
+        {
+          "id": 84073,
+          "text": " Euras",
+          "fallbackText": " Euras"
+        },
+        {
+          "id": 84073,
+          "text": " Euras",
+          "fallbackText": " Euras"
+        },
+        {
+          "id": 234334,
+          "text": "із",
+          "fallbackText": "із"
+        },
+        {
+          "id": 234334,
+          "text": "із",
+          "fallbackText": "із"
+        },
+        {
+          "id": 234334,
+          "text": "із",
+          "fallbackText": "із"
+        },
+        {
+          "id": 234334,
+          "text": "із",
+          "fallbackText": "із"
+        },
+        {
+          "id": 21150,
+          "text": "kee",
+          "fallbackText": "kee"
+        },
+        {
+          "id": 234334,
+          "text": "із",
+          "fallbackText": "із"
+        },
+        {
+          "id": 234334,
+          "text": "із",
+          "fallbackText": "із"
+        },
+        {
+          "id": 234334,
+          "text": "із",
+          "fallbackText": "із"
+        },
+        {
+          "id": 234334,
+          "text": "із",
+          "fallbackText": "із"
+        },
+        {
+          "id": 234334,
+          "text": "із",
+          "fallbackText": "із"
+        }
+      ],
+      "total": 24,
+      "omitted": 0,
+      "emptyTextCount": 0,
+      "specialLikeTextCount": 0,
+      "specialLikeFallbackCount": 0
+    },
+    "schemaVersion": 1,
+    "source": "doppler",
+    "suite": "debug",
+    "executionContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "qwen-3-5-0-8b-f16.steps",
+          "ok": true
+        },
+        {
+          "id": "qwen-3-5-0-8b-f16.session",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "session": {
+        "layout": "contiguous",
+        "disableCommandBatching": true,
+        "decodeBatchSize": 4,
+        "headDim": 256,
+        "kvLen": 262144,
+        "coldQuantMode": "none"
+      },
+      "steps": {
+        "total": 0,
+        "attention": 0,
+        "attentionPhases": {
+          "prefill": 0,
+          "decode": 0,
+          "both": 0
+        }
+      }
+    },
+    "executionV0GraphContractArtifact": null,
+    "layerPatternContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "inference.layerPattern.patternKind.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.patternKind.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.even",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.odd",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_offset",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_negative_offset",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "patternKindRules": 4,
+        "layerTypeRules": 6,
+        "patternKindContexts": 16,
+        "layerTypeContexts": 12
+      }
+    },
+    "requiredInferenceFieldsArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "scope": "manifest",
+      "label": "qwen-3-5-0-8b-f16.inference",
+      "ok": true,
+      "checks": [
+        {
+          "id": "qwen-3-5-0-8b-f16.inference.requiredInferenceFields",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "fieldCases": 35,
+        "nullableCases": 16,
+        "nonNullableCases": 19
+      }
+    }
+  },
+  "output": "义的erdingserdingserdingservoinăinăinăinăinăină Euras Euras Eurasізізізізkeeізізізізіз",
+  "memory": {
+    "used": 1964229632,
+    "pool": {
+      "allocations": 10999,
+      "reuses": 737,
+      "totalBytesAllocated": 1875045376,
+      "peakBytesAllocated": 1787537408,
+      "currentBytesAllocated": 1762903040,
+      "totalBytesRequested": 1691505664,
+      "peakBytesRequested": 1613571840,
+      "currentBytesRequested": 1594334720,
+      "activeBuffers": 430,
+      "pooledBuffers": 64,
+      "budgetMaxBytes": 0,
+      "budgetUtilization": 0,
+      "hitRate": "6.3%"
+    },
+    "kvCache": {
+      "theoretical": 201326592,
+      "allocated": 201326592,
+      "used": 1425408,
+      "efficiency": 0.007080078125,
+      "seqLen": 29,
+      "maxSeqLen": 4096,
+      "layout": "contiguous"
+    }
+  }
+}

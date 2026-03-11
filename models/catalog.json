@@ -1,7 +1,7 @@
 {
   "version": 1,
   "lifecycleSchemaVersion": 1,
-  "updatedAt": "2026-03-10",
+  "updatedAt": "2026-03-11",
   "models": [
     {
       "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
@@ -23,7 +23,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "cd6c12be0e83e92d6dbd92598a0aa94391ec7e94",
+        "revision": "ca6f0dbdf3882d3893a65cf48f2bb6f1520df162",
         "path": "models/gemma-3-270m-it-q4k-ehf16-af32"
       },
       "baseUrl": "./local/gemma-3-270m-it-q4k-ehf16-af32",
@@ -41,14 +41,15 @@
           "runtime": "active",
           "conversion": "ready",
           "demo": "curated",
-          "tested": "verified"
+          "tested": "failing"
         },
         "tested": {
           "suite": "inference",
-          "surface": "auto",
-          "result": "pass",
-          "lastVerifiedAt": "2026-03-04",
-          "source": "registry-verify",
+          "surface": "node",
+          "result": "fail",
+          "lastVerifiedAt": "2026-03-11",
+          "source": "manual-review",
+          "notes": "Fresh canonical RDRR checks on 2026-03-11 produced incoherent output for simple deterministic prompts. A patched direct-source Node runtime now resolves to gemma3-f16-fused-f32a-online with F32 compute and produced 'A) Blue' on the same smoke prompt, so the remaining failure is isolated to the Q4K artifact/runtime path rather than direct-source Gemma 3 execution.",
           "contracts": {
             "executionContractOk": true,
             "executionV0GraphOk": true
@@ -125,7 +126,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "ddffff9cba8579159d576321059ec22300699c32",
+        "revision": "ca6f0dbdf3882d3893a65cf48f2bb6f1520df162",
         "path": "models/gemma-3-1b-it-q4k-ehf16-af32"
       },
       "baseUrl": "./local/gemma-3-1b-it-q4k-ehf16-af32",
@@ -143,15 +144,15 @@
           "runtime": "active",
           "conversion": "ready",
           "demo": "none",
-          "tested": "verified"
+          "tested": "failing"
         },
         "tested": {
           "suite": "inference",
-          "surface": "auto",
-          "result": "pass",
-          "lastVerifiedAt": "2026-03-10",
+          "surface": "node",
+          "result": "fail",
+          "lastVerifiedAt": "2026-03-11",
           "source": "manual-review",
-          "notes": "Prompt: 'The color of the sky is' → ' often described as blue. However, the sky is not blue because of the way light interacts with the atmosphere.\\n\\nHere\\'s a breakdown of why the sky' (32 tokens, temperature=0, topK=1). All contracts pass.",
+          "notes": "Prompt: 'What color is the sky on a clear day? Answer in one word.' produced incoherent first-token logits on 2026-03-11. Top candidates were newline/punctuation plus Just, A, You, and I instead of Blue, so this artifact should not be treated as verified.",
           "contracts": {
             "executionContractOk": true,
             "executionV0GraphOk": true
@@ -280,7 +281,7 @@
       "hf": {
         "repoId": "Clocksmith/rdrr",
         "revision": "aeb7b3a304b5aad4b46c903a8a67f17070bce865",
-        "path": "models/qwen-3-5-0-8b-q4k-ehaf16"
+        "path": "models/qwen-3-5-0-8b-wq4k-ef16-hf16-f16"
       },
       "baseUrl": null,
       "sizeBytes": 788833984,
@@ -290,7 +291,7 @@
         "availability": {
           "curated": false,
           "local": false,
-          "hf": true
+          "hf": false
         },
         "status": {
           "runtime": "active",
@@ -328,7 +329,7 @@
       "hf": {
         "repoId": "Clocksmith/rdrr",
         "revision": "cbafef7751177996aba31a7459a9ccb3c9ebccbb",
-        "path": "models/qwen-3-5-2b-q4k-ehaf16"
+        "path": "models/qwen-3-5-2b-wq4k-ef16-hf16-f16"
       },
       "baseUrl": null,
       "sizeBytes": 1789738688,
@@ -338,7 +339,7 @@
         "availability": {
           "curated": false,
           "local": false,
-          "hf": true
+          "hf": false
         },
         "status": {
           "runtime": "active",

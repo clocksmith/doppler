@@ -19,6 +19,12 @@ export declare function resolveBatchStop(
   eosTokenId: number | undefined | null
 ): number;
 
+export declare function findInvalidGeneratedToken(
+  tokens: number[],
+  vocabSize: number,
+  padTokenId?: number | null
+): { index: number; tokenId: number } | null;
+
 export interface SampledTokenStagingBuffer {
   mapAsync(mode: number): Promise<void>;
   getMappedRange(): ArrayBufferLike;

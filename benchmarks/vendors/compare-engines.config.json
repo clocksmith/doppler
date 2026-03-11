@@ -3,6 +3,13 @@
   "updated": "2026-03-08",
   "modelProfiles": [
     {
+      "dopplerModelId": "translategemma-4b-it-q4k-ehf16-af32",
+      "defaultTjsModelId": "onnx-community/translategemma-text-4b-it-ONNX",
+      "defaultKernelPath": "gemma3-q4k-dequant-f16a-online",
+      "modelBaseDir": "local",
+      "defaultDopplerSurface": "auto"
+    },
+    {
       "dopplerModelId": "gemma-3-270m-it-f16-af32",
       "defaultTjsModelId": "onnx-community/gemma-3-270m-it-ONNX",
       "defaultKernelPath": null,

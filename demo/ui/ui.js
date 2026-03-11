@@ -77,7 +77,7 @@ export function updateStatusIndicator() {
     setStatusIndicator('Loading...', 'info');
     return;
   }
-  if (state.runLoading || state.diffusionLoading || state.energyLoading) {
+  if (state.runLoading || state.compareLoading || state.diffusionLoading || state.energyLoading) {
     setStatusIndicator('Loading...', 'info');
     return;
   }
@@ -87,6 +87,10 @@ export function updateStatusIndicator() {
   }
   if (state.runGenerating && state.runPrefilling) {
     setStatusIndicator('Prefilling...', 'info');
+    return;
+  }
+  if (state.compareGenerating) {
+    setStatusIndicator('Comparing...', 'info');
     return;
   }
   if (state.runGenerating || state.diffusionGenerating || state.energyGenerating) {

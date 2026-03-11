@@ -276,6 +276,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
         : (ropeFreqsSin),
       kvCache: ((kvCache)),
       stats: context.stats,
+      debugProbes: context.debugProbes,
       linearRuntime: context.linearAttentionRuntime ?? null,
     };
 

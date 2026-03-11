@@ -113,6 +113,20 @@ export function resolveBatchStop(tokens, stopFlags, stopTokenIds, eosTokenId) {
   return actualCount;
 }
 
+export function findInvalidGeneratedToken(tokens, vocabSize, padTokenId = null) {
+  for (let i = 0; i < tokens.length; i++) {
+    const tokenId = tokens[i];
+    const isInvalid = !Number.isFinite(tokenId)
+      || tokenId < 0
+      || tokenId >= vocabSize
+      || (padTokenId != null ? tokenId === padTokenId : tokenId === 0);
+    if (isInvalid) {
+      return { index: i, tokenId };
+    }
+  }
+  return null;
+}
+
 export async function readSampledTokenFromStagingBuffer(stagingBuffer, options = {}) {
   const ownsStagingBuffer = options.ownsStagingBuffer === true;
   const hasFinitenessBuffer = options.hasFinitenessBuffer === true;
@@ -636,11 +650,21 @@ export async function decodeStep(state, currentIds, opts, helpers) {
         });
 
       releaseBuffer(logitsBuffer);
-      if (!context.decodeBuffers?.ownsBuffer(hiddenStates)) {
-        releaseBuffer(hiddenStates);
+      const invalidGpuToken = nextToken >= config.vocabSize
+        || (padTokenId != null && nextToken === padTokenId)
+        || (padTokenId == null && nextToken === 0);
+      if (!invalidGpuToken) {
+        if (!context.decodeBuffers?.ownsBuffer(hiddenStates)) {
+          releaseBuffer(hiddenStates);
+        }
+        state.currentSeqLen++;
+        return nextToken;
       }
-      state.currentSeqLen++;
-      return nextToken;
+      state.disableFusedDecode = true;
+      log.warn(
+        'Decode',
+        `GPU sampling produced invalid token ${nextToken} (vocabSize=${config.vocabSize}, step=${state.decodeStepCount}); falling back to CPU sampling.`
+      );
     }
   }
 
@@ -1125,9 +1149,17 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
 
     const actualCount = resolveBatchStop(tokens, stopFlags, stopTokenIds, eosToken);
     const generatedTokens = tokens.slice(0, actualCount);
+    const invalidToken = findInvalidGeneratedToken(generatedTokens, config.vocabSize, padTokenId);
 
     if (isInfinite) {
       throw new FinitenessError(`F16 bounds exceeded during batch generation${metadata}`);
+    }
+    if (invalidToken) {
+      state.disableFusedDecode = true;
+      throw new Error(
+        `[Pipeline] Batch decode produced invalid token ${invalidToken.tokenId} ` +
+        `at batch index ${invalidToken.index} (vocabSize=${config.vocabSize}, padTokenId=${padTokenId ?? 'none'}).`
+      );
     }
 
     if (opts.profile && recorder.isProfilingEnabled()) {

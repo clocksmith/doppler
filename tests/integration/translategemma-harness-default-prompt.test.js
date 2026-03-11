@@ -65,9 +65,7 @@ function createHarnessOverride() {
             kvcache: {
               layout: 'paged',
             },
-            decodeLoop: {
-              batchSize: 16,
-            },
+            decodeLoop: null,
           },
           execution: {
             steps: [

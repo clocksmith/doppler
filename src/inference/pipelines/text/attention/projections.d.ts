@@ -46,7 +46,16 @@ export function recordAttentionInputs(
   info: AttentionInputInfo | null | undefined
 ): void;
 
-export function resolveAttentionProjectionOutputDtype(attentionInputDtype: string): 'f16' | 'f32' | string;
+export function shouldForceF32AttentionProjectionForRoPE(options: {
+  attentionInputDtype: string;
+  headDim: number;
+  rotaryDim?: number;
+  interleaved?: boolean;
+}): boolean;
+export function resolveAttentionProjectionOutputDtype(
+  attentionInputDtype: string,
+  options?: { forceF32?: boolean }
+): 'f16' | 'f32' | string;
 export function resolveProjectionSliceOffsetBytes(
   weightBuffer: WeightBuffer | Tensor | GPUBuffer | null | undefined,
   outputRows: number,

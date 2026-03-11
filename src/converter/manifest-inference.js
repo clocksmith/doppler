@@ -240,17 +240,19 @@ function detectAttentionOutputGate(presetInference, modelConfig, defaults) {
     return modelConfig.attn_output_gate;
   }
 
-  const modelType = normalizeLayerTypeName(modelConfig?.model_type);
-  const hasLinearAttentionLayers = Array.isArray(modelConfig?.layer_types)
-    && modelConfig.layer_types.some((entry) => normalizeCustomLayerType(entry) === 'linear_attention');
-  if (
-    hasLinearAttentionLayers
-    && (modelType === 'qwen2' || modelType === 'qwen3_5' || modelType === 'qwen3_5_text')
-  ) {
+  if (isQwen35LinearAttentionConfig(modelConfig)) {
     return true;
   }
 
   return defaults.attention.attentionOutputGate;
+}
+
+function isQwen35LinearAttentionConfig(modelConfig) {
+  const modelType = normalizeLayerTypeName(modelConfig?.model_type);
+  const hasLinearAttentionLayers = Array.isArray(modelConfig?.layer_types)
+    && modelConfig.layer_types.some((entry) => normalizeCustomLayerType(entry) === 'linear_attention');
+  return hasLinearAttentionLayers
+    && (modelType === 'qwen2' || modelType === 'qwen3_5' || modelType === 'qwen3_5_text');
 }
 
 function resolveQueryPreAttnScalar(preset, modelConfig, headDim) {
@@ -269,8 +271,7 @@ function resolveQueryPreAttnScalar(preset, modelConfig, headDim) {
 }
 
 function detectRmsNormWeightOffset(presetInference, modelConfig, defaults) {
-  const modelType = normalizeLayerTypeName(modelConfig?.model_type);
-  if (modelType === 'qwen3_5' || modelType === 'qwen3_5_text') {
+  if (isQwen35LinearAttentionConfig(modelConfig)) {
     return true;
   }
 

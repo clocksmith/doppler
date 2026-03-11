@@ -4,6 +4,19 @@ import { validateManifest } from './validation.js';
 
 let currentManifest = null;
 
+export function getExpectedShardHash(shard, manifestHashAlgorithm = null) {
+  if (!shard || typeof shard !== 'object' || Array.isArray(shard)) {
+    return '';
+  }
+  const algorithm = typeof manifestHashAlgorithm === 'string'
+    ? manifestHashAlgorithm.trim().toLowerCase()
+    : '';
+  if (algorithm === 'blake3') {
+    return shard.blake3 || shard.hash || '';
+  }
+  return shard.hash || shard.blake3 || '';
+}
+
 export function parseManifest(jsonString) {
   let manifest;
 
@@ -21,7 +34,7 @@ export function parseManifest(jsonString) {
         index: shard.index ?? i,
         filename: shard.filename || shard.fileName || '',
         size: shard.size,
-        hash: shard.hash || shard.blake3 || '',
+        hash: getExpectedShardHash(shard, manifest.hashAlgorithm),
         blake3: shard.blake3 || shard.hash,
         offset: shard.offset ?? offset,
         hashAlgorithm: shard.hashAlgorithm,

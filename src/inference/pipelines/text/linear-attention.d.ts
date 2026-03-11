@@ -84,6 +84,11 @@ export declare function inferLinearNormMode(
   }
 ): LinearNormMode | null;
 
+export declare function applyLinearNormWeightOffset(
+  values: Float32Array,
+  rmsNormWeightOffset: boolean
+): Float32Array;
+
 export declare function resetLinearAttentionRuntime(
   runtime: LinearAttentionRuntime | null | undefined
 ): LinearAttentionRuntime;

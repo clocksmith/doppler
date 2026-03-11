@@ -1,14 +1,9 @@
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
-import path from 'node:path';
 
 import { resolveAttentionPlanForTest } from '../../src/gpu/kernels/attention.js';
+import { resolveKernelPath } from '../../src/config/kernel-path-loader.js';
 
-const kernelPathPath = path.join(
-  process.cwd(),
-  'src/config/presets/kernel-paths/gemma3-f16-fused-f32a-online-streamingprefill.json'
-);
-const kernelPath = JSON.parse(fs.readFileSync(kernelPathPath, 'utf8'));
+const kernelPath = resolveKernelPath('gemma3-f16-fused-f32a-online-streamingprefill');
 
 const plan = resolveAttentionPlanForTest(
   15,

@@ -36,6 +36,8 @@ function isLikelyFinalNormName(name) {
   return (
     lower === 'norm.weight' ||
     lower.includes('model.norm.weight') ||
+    lower.includes('language_model.norm.weight') ||
+    lower.includes('model.language_model.norm.weight') ||
     lower.includes('embedding_norm.weight') ||
     lower.includes('model.embedding_norm.weight') ||
     lower.includes('final_layernorm.weight') ||

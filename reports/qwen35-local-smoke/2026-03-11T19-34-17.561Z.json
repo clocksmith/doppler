@@ -1,0 +1,271 @@
+{
+  "suite": "debug",
+  "modelId": "qwen35-local-smoke",
+  "runtimePreset": null,
+  "deviceInfo": {
+    "hasSubgroups": true,
+    "hasSubgroupsF16": false,
+    "hasF16": true,
+    "hasTimestampQuery": true,
+    "maxBufferSize": 14302248960,
+    "maxWorkgroupSize": 1024,
+    "maxWorkgroupStorageSize": 32768,
+    "adapterInfo": {
+      "vendor": "apple",
+      "architecture": "metal-3",
+      "device": "apple-m3",
+      "description": "Metal driver on macOS Version 26.3 (Build 25D125)"
+    }
+  },
+  "results": [
+    {
+      "name": "generation",
+      "passed": true,
+      "duration": 18761.714083000028
+    }
+  ],
+  "durationMs": 515016.35524999996,
+  "timestamp": "2026-03-11T19:34:17.561Z",
+  "metrics": {
+    "prompt": "What color is the sky on a clear day? Answer in one word.",
+    "maxTokens": 16,
+    "tokensGenerated": 16,
+    "tokensPerSec": 0.85,
+    "totalRunMs": 18759.5,
+    "firstTokenMs": 9536.09,
+    "firstResponseMs": 505636.35,
+    "prefillMs": 9506.35,
+    "decodeMs": 9135.18,
+    "prefillTokens": 15,
+    "decodeTokens": 16,
+    "prefillTokensPerSec": 1.58,
+    "prefillTokensPerSecTtft": 1.57,
+    "decodeTokensPerSec": 1.75,
+    "modelLoadMs": 496100.26,
+    "gpu": {
+      "decodeRecordMs": 0,
+      "decodeSubmitWaitMs": 0,
+      "decodeReadbackWaitMs": 0
+    },
+    "decodeProfileSteps": [],
+    "generationDiagnostics": {
+      "preview": [
+        {
+          "id": 220,
+          "text": " ",
+          "fallbackText": " "
+        },
+        {
+          "id": 220,
+          "text": " ",
+          "fallbackText": " "
+        },
+        {
+          "id": 496,
+          "text": " O",
+          "fallbackText": " O"
+        },
+        {
+          "id": 2055,
+          "text": "ado",
+          "fallbackText": "ado"
+        },
+        {
+          "id": 2055,
+          "text": "ado",
+          "fallbackText": "ado"
+        },
+        {
+          "id": 2055,
+          "text": "ado",
+          "fallbackText": "ado"
+        },
+        {
+          "id": 2055,
+          "text": "ado",
+          "fallbackText": "ado"
+        },
+        {
+          "id": 2055,
+          "text": "ado",
+          "fallbackText": "ado"
+        },
+        {
+          "id": 2055,
+          "text": "ado",
+          "fallbackText": "ado"
+        },
+        {
+          "id": 2055,
+          "text": "ado",
+          "fallbackText": "ado"
+        },
+        {
+          "id": 49559,
+          "text": "igar",
+          "fallbackText": "igar"
+        },
+        {
+          "id": 234334,
+          "text": "із",
+          "fallbackText": "із"
+        },
+        {
+          "id": 234334,
+          "text": "із",
+          "fallbackText": "із"
+        },
+        {
+          "id": 234334,
+          "text": "із",
+          "fallbackText": "із"
+        },
+        {
+          "id": 234334,
+          "text": "із",
+          "fallbackText": "із"
+        },
+        {
+          "id": 234334,
+          "text": "із",
+          "fallbackText": "із"
+        }
+      ],
+      "total": 16,
+      "omitted": 0,
+      "emptyTextCount": 0,
+      "specialLikeTextCount": 0,
+      "specialLikeFallbackCount": 0
+    },
+    "schemaVersion": 1,
+    "source": "doppler",
+    "suite": "debug",
+    "executionContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "qwen-3-5-0-8b-f16.steps",
+          "ok": true
+        },
+        {
+          "id": "qwen-3-5-0-8b-f16.session",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "session": {
+        "layout": "contiguous",
+        "disableCommandBatching": true,
+        "decodeBatchSize": 4,
+        "headDim": 256,
+        "kvLen": 262144,
+        "coldQuantMode": "none"
+      },
+      "steps": {
+        "total": 0,
+        "attention": 0,
+        "attentionPhases": {
+          "prefill": 0,
+          "decode": 0,
+          "both": 0
+        }
+      }
+    },
+    "executionV0GraphContractArtifact": null,
+    "layerPatternContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "inference.layerPattern.patternKind.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.patternKind.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.even",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.odd",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_offset",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_negative_offset",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "patternKindRules": 4,
+        "layerTypeRules": 6,
+        "patternKindContexts": 16,
+        "layerTypeContexts": 12
+      }
+    },
+    "requiredInferenceFieldsArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "scope": "manifest",
+      "label": "qwen-3-5-0-8b-f16.inference",
+      "ok": true,
+      "checks": [
+        {
+          "id": "qwen-3-5-0-8b-f16.inference.requiredInferenceFields",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "fieldCases": 35,
+        "nullableCases": 16,
+        "nonNullableCases": 19
+      }
+    }
+  },
+  "output": "   Oadoadoadoadoadoadoadoigarізізізізіз",
+  "memory": {
+    "used": 1964312064,
+    "pool": {
+      "allocations": 7403,
+      "reuses": 597,
+      "totalBytesAllocated": 1868750080,
+      "peakBytesAllocated": 1816670208,
+      "currentBytesAllocated": 1762985472,
+      "totalBytesRequested": 1688683776,
+      "peakBytesRequested": 1642417920,
+      "currentBytesRequested": 1594334720,
+      "activeBuffers": 430,
+      "pooledBuffers": 64,
+      "budgetMaxBytes": 0,
+      "budgetUtilization": 0,
+      "hitRate": "7.5%"
+    },
+    "kvCache": {
+      "theoretical": 201326592,
+      "allocated": 201326592,
+      "used": 1474560,
+      "efficiency": 0.00732421875,
+      "seqLen": 30,
+      "maxSeqLen": 4096,
+      "layout": "contiguous"
+    }
+  }
+}

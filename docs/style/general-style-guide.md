@@ -19,8 +19,9 @@ Any mirrors or convenience registries must be generated from that source and cov
 
 Release-facing model claims follow the same rule:
 
-- `models/catalog.json` is the canonical lifecycle source.
-- Any additional release-claim registry/policy must be derived from, or checked directly against, the catalog.
+- The external support registry on the external models volume is the canonical lifecycle source.
+- `models/catalog.json` is the repo-visible mirror used by repo tooling and CI checks.
+- Any additional release-claim registry/policy must be derived from, or checked directly against, the external canonical registry.
 - A model must not be surfaced as verified/release-ready unless its claim is backed by explicit smoke evidence (for example a registry verify record or committed manual-review report artifact).
 
 Gitignored local artifacts are never a canonical CI source:

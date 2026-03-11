@@ -17,7 +17,7 @@ function buildSafetensorsBytes() {
       data_offsets: [0, 8],
     },
     'model.layers.0.self_attn.q_proj.weight': {
-      dtype: 'F16',
+      dtype: 'BF16',
       shape: [2, 2],
       data_offsets: [8, 16],
     },
@@ -78,6 +78,8 @@ try {
   assert.equal(bundle.manifest.modelId, 'node-source-runtime-test');
   assert.equal(bundle.storageContext.verifyHashes, true);
   assert.equal(bundle.storageContext.loadShardRange, null);
+  assert.equal(bundle.manifest.quantizationInfo.compute, 'f32');
+  assert.equal(bundle.manifest.inference.defaultKernelPath, 'gemma3-f16-fused-f32a-online');
 
   const shard = await bundle.storageContext.loadShard(0);
   assert.ok(new Uint8Array(shard).byteLength > 0);

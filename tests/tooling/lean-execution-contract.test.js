@@ -120,7 +120,7 @@ import {
     const facts = extractExecutionContractFacts(manifest);
     assert.equal(facts.modelId, 'translategemma-4b-it-q4k-ehf16-af32');
     assert.equal(facts.session.layout, 'paged');
-    assert.equal(facts.session.decodeBatchSize, 16);
+    assert.equal(facts.session.decodeBatchSize, 1);
     assert.equal(
       facts.steps.some((step) => step.phase === 'prefill' && step.opClass === 'attention'),
       true

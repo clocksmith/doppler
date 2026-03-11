@@ -28,10 +28,12 @@ import { runProbes } from '../probes.js';
 import { SlidingWindowKVCache } from '../../../kv-cache.js';
 import {
   recordAttentionInputs,
+  shouldForceF32AttentionProjectionForRoPE,
   resolveAttentionProjectionOutputDtype,
   projectAttentionQKV,
   applyAttentionQKNorm,
 } from './projections.js';
+import { prepareAttentionProjectionInput } from './output-projection.js';
 
 import {
   shouldDebugLayer,
@@ -193,7 +195,14 @@ export async function runLayerAttentionGPU(
   }
 
   // 2. Q/K/V projections
-  const matmulOutputDtype = resolveAttentionProjectionOutputDtype(desiredOutputDtype);
+  const matmulOutputDtype = resolveAttentionProjectionOutputDtype(desiredOutputDtype, {
+    forceF32: shouldForceF32AttentionProjectionForRoPE({
+      attentionInputDtype: desiredOutputDtype,
+      headDim,
+      rotaryDim: config.ropeRotaryDim,
+      interleaved: config.ropeInterleaved,
+    }),
+  });
   let usedFusedQKV = false;
   ({ qTensor, qGateTensor, kTensor, vTensor, usedFusedQKV } = await projectAttentionQKV({
     recorder: null,
@@ -224,6 +233,27 @@ export async function runLayerAttentionGPU(
     await traceStep('matmul', `L${layerIdx}.k_proj`, layerIdx, kTensor.buffer, [numTokens, numKVHeads * headDim]);
     await traceStep('matmul', `L${layerIdx}.v_proj`, layerIdx, vTensor.buffer, [numTokens, numKVHeads * headDim]);
   }
+  await runProbes('q_proj', qTensor.buffer, {
+    layerIdx,
+    numTokens,
+    hiddenSize: numHeads * headDim,
+    probes: state.debugProbes,
+    dtype: qTensor.dtype,
+  });
+  await runProbes('k_proj', kTensor.buffer, {
+    layerIdx,
+    numTokens,
+    hiddenSize: numKVHeads * headDim,
+    probes: state.debugProbes,
+    dtype: kTensor.dtype,
+  });
+  await runProbes('v_proj', vTensor.buffer, {
+    layerIdx,
+    numTokens,
+    hiddenSize: numKVHeads * headDim,
+    probes: state.debugProbes,
+    dtype: vTensor.dtype,
+  });
 
   // Kernel step debug: Q/K/V projections
   if (isKernelDebugEnabled(layerIdx)) {
@@ -331,6 +361,20 @@ export async function runLayerAttentionGPU(
       await traceStep('rope', `L${layerIdx}.k_rope`, layerIdx, kTensor.buffer, [numTokens, numKVHeads * headDim]);
     }
   }
+  await runProbes('q_rope', qTensor.buffer, {
+    layerIdx,
+    numTokens,
+    hiddenSize: numHeads * headDim,
+    probes: state.debugProbes,
+    dtype: qTensor.dtype,
+  });
+  await runProbes('k_rope', kTensor.buffer, {
+    layerIdx,
+    numTokens,
+    hiddenSize: numKVHeads * headDim,
+    probes: state.debugProbes,
+    dtype: kTensor.dtype,
+  });
   if (isKernelDebugEnabled(layerIdx)) {
     logKernelStep('rope', { layerIdx, label: `startPos=${currentSeqLen}` });
     await dumpTokenVector(qTensor.buffer, 'Q_rope', {
@@ -723,13 +767,13 @@ export async function runLayerAttentionGPU(
   let oProjInput = attnForProjection;
   oProjInputTemp = null;
   if (layerWeights.oProj && getWeightBuffer) {
+    ({ oProjInput, oProjInputTemp } = await prepareAttentionProjectionInput(
+      attnForProjection,
+      matmulOutputDtype,
+      castF32ToF16
+    ));
     const oProjBuf = getWeightBuffer(layerWeights.oProj, 'o_proj');
     const loraO = getLoRAModule(lora, layerIdx, 'o_proj');
-
-    if (matmulOutputDtype === 'f16' && attnOutput.dtype !== 'f16') {
-      oProjInput = await castF32ToF16(attnOutput);
-      oProjInputTemp = oProjInput;
-    }
 
     // Use fused o_proj + residual for decode when possible
     // Note: dtype from WeightBuffer metadata (buffer-dtypes WeakMap removed)

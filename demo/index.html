@@ -87,6 +87,270 @@
                   <pre id="run-output" class="playground-output-box border-dotted"></pre>
                   <div id="run-output-status" class="type-caption">Idle</div>
                 </div>
+                <section class="translate-compare-shell" id="translate-compare-shell" data-modes="translate" aria-label="Translation compare console">
+                  <div class="translate-compare-heading">
+                    <div class="translate-compare-heading-copy">
+                      <div class="translate-compare-kicker type-caption">Proof Console</div>
+                      <h3 class="type-label">Side-by-side translation compare</h3>
+                      <p class="type-caption">
+                        Hold one source sentence constant, then compare engine, model, size, and latency receipts without leaving the page.
+                      </p>
+                    </div>
+                    <div class="segmented-control translate-compare-view-toggle" role="tablist" aria-label="Translate view">
+                      <button id="translate-view-single-btn" class="btn segmented-btn is-active" type="button" data-translate-view="single">Single</button>
+                      <button id="translate-view-compare-btn" class="btn segmented-btn" type="button" data-translate-view="compare">Compare</button>
+                    </div>
+                  </div>
+
+                  <div class="translate-proof-strip" id="translate-proof-strip">
+                    <article class="translate-proof-card">
+                      <span class="translate-proof-label type-caption">Evidence bundle</span>
+                      <strong id="translate-proof-bundle" class="translate-proof-value">Awaiting frozen scoreboard</strong>
+                      <span class="translate-proof-detail type-caption">Gamma artifacts and eval rows attach here.</span>
+                    </article>
+                    <article class="translate-proof-card">
+                      <span class="translate-proof-label type-caption">Teacher vs student</span>
+                      <strong id="translate-proof-delta" class="translate-proof-value">Delta pending</strong>
+                      <span class="translate-proof-detail type-caption">BLEU / chrF / size deltas render once evidence arrives.</span>
+                    </article>
+                    <article class="translate-proof-card">
+                      <span class="translate-proof-label type-caption">Public claim</span>
+                      <strong id="translate-proof-claim" class="translate-proof-value">Practical EN/ES parity test</strong>
+                      <span class="translate-proof-detail type-caption">Narrow proof scope, explicit caveats, no hidden boosts.</span>
+                    </article>
+                  </div>
+
+                  <div class="translate-compare-layout">
+                    <div class="translate-compare-main">
+                      <div class="translate-compare-toolbar">
+                        <div class="playground-field">
+                          <label class="type-caption" for="translate-compare-preset">Curated preset</label>
+                          <select id="translate-compare-preset" class="w-full">
+                            <option value="proof">Proof preset</option>
+                            <option value="engine-parity">Engine parity</option>
+                            <option value="student-parity">Student parity</option>
+                            <option value="model-parity">Model parity</option>
+                            <option value="custom">Custom compare</option>
+                          </select>
+                          <div id="translate-compare-preset-note" class="type-caption">Baseline teacher versus student slot on the same proof console.</div>
+                        </div>
+                        <div class="translate-compare-toolbar-actions">
+                          <button id="translate-compare-run-btn" class="btn btn-primary" type="button">Run compare</button>
+                          <button id="translate-compare-export-btn" class="btn" type="button">Export compare JSON</button>
+                          <button id="translate-compare-share-btn" class="btn" type="button">Copy share link</button>
+                        </div>
+                      </div>
+
+                      <details class="translate-compare-receipts" id="translate-compare-receipts">
+                        <summary class="type-caption">Show benchmark receipts</summary>
+                        <div class="translate-compare-receipts-body">
+                          <div class="translate-receipts-grid">
+                            <div class="translate-receipt-card">
+                              <span class="translate-proof-label type-caption">Artifact id</span>
+                              <strong id="translate-compare-artifact-id" class="translate-proof-value">Pending</strong>
+                            </div>
+                            <div class="translate-receipt-card">
+                              <span class="translate-proof-label type-caption">Browser / device</span>
+                              <strong id="translate-compare-artifact-env" class="translate-proof-value">Awaiting run</strong>
+                            </div>
+                            <div class="translate-receipt-card">
+                              <span class="translate-proof-label type-caption">Saved receipts</span>
+                              <strong id="translate-compare-receipt-count" class="translate-proof-value">0</strong>
+                            </div>
+                          </div>
+                          <div class="translate-compare-receipt-actions">
+                            <button id="translate-compare-export-latest-btn" class="btn btn-small" type="button">Export latest JSON</button>
+                          </div>
+                          <div id="translate-compare-receipts-links" class="translate-compare-receipts-links">
+                            <span class="type-caption">No benchmark receipts linked yet.</span>
+                          </div>
+                        </div>
+                      </details>
+
+                      <div class="translate-evidence-summary" id="translate-evidence-summary">
+                        <div class="translate-evidence-summary-header">
+                          <span class="type-caption">Evidence snapshot</span>
+                          <span id="translate-proof-source" class="type-caption">No receipt loaded</span>
+                        </div>
+                        <div class="translate-evidence-summary-grid">
+                          <div class="translate-evidence-metric">
+                            <span class="translate-evidence-label type-caption">Teacher BLEU</span>
+                            <span id="translate-evidence-teacher-bleu" class="translate-evidence-value">--</span>
+                          </div>
+                          <div class="translate-evidence-metric">
+                            <span class="translate-evidence-label type-caption">Student BLEU</span>
+                            <span id="translate-evidence-student-bleu" class="translate-evidence-value">--</span>
+                          </div>
+                          <div class="translate-evidence-metric">
+                            <span class="translate-evidence-label type-caption">Teacher chrF</span>
+                            <span id="translate-evidence-teacher-chrf" class="translate-evidence-value">--</span>
+                          </div>
+                          <div class="translate-evidence-metric">
+                            <span class="translate-evidence-label type-caption">Student chrF</span>
+                            <span id="translate-evidence-student-chrf" class="translate-evidence-value">--</span>
+                          </div>
+                          <div class="translate-evidence-metric">
+                            <span class="translate-evidence-label type-caption">Size delta</span>
+                            <span id="translate-evidence-size-delta" class="translate-evidence-value">--</span>
+                          </div>
+                          <div class="translate-evidence-metric">
+                            <span class="translate-evidence-label type-caption">Artifact link</span>
+                            <span id="translate-evidence-artifact" class="translate-evidence-value">Pending</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <section class="translate-smoke-panel" id="translate-smoke-panel" aria-label="Deterministic translation smoke panel">
+                        <div class="translate-smoke-header">
+                          <div>
+                            <div class="translate-compare-kicker type-caption">Sample panel</div>
+                            <h4 class="type-label">Deterministic smoke panel</h4>
+                          </div>
+                          <span class="type-caption">3 easy · 3 nuanced · 2 domain · 2 edge cases</span>
+                        </div>
+                        <div id="translate-smoke-grid" class="translate-smoke-grid"></div>
+                      </section>
+
+                      <div class="translate-lane-grid">
+                        <article class="translate-lane" id="translate-compare-left-lane" data-lane="left">
+                          <div class="translate-lane-header">
+                            <div class="translate-lane-title-group">
+                              <span class="translate-lane-chip">Left</span>
+                              <div>
+                                <h4 class="type-label">Reference lane</h4>
+                                <div class="type-caption">Pin the baseline you want the audience to trust first.</div>
+                              </div>
+                            </div>
+                            <span id="translate-left-badge" class="translate-lane-badge type-caption">baseline</span>
+                          </div>
+                          <div class="translate-lane-controls">
+                            <div class="playground-field">
+                              <label class="type-caption" for="translate-left-engine">Engine</label>
+                              <select id="translate-left-engine" class="w-full">
+                                <option value="doppler">Doppler.js</option>
+                                <option value="transformersjs">Transformers.js v4</option>
+                              </select>
+                            </div>
+                            <div class="playground-field">
+                              <label class="type-caption" for="translate-left-model">Model</label>
+                              <select id="translate-left-model" class="w-full">
+                                <option value="">Select model</option>
+                              </select>
+                            </div>
+                          </div>
+                          <div class="translate-lane-status-row">
+                            <span class="type-caption">Status</span>
+                            <span id="translate-left-status" class="translate-lane-status">Idle</span>
+                          </div>
+                          <div class="translate-lane-metrics">
+                            <div class="translate-lane-metric"><span class="type-caption">Model size</span><strong id="translate-left-size">--</strong></div>
+                            <div class="translate-lane-metric"><span class="type-caption">Load</span><strong id="translate-left-load-ms">--</strong></div>
+                            <div class="translate-lane-metric"><span class="type-caption">First token</span><strong id="translate-left-ttft">--</strong></div>
+                            <div class="translate-lane-metric"><span class="type-caption">Decode</span><strong id="translate-left-decode-rate">--</strong></div>
+                            <div class="translate-lane-metric"><span class="type-caption">Total</span><strong id="translate-left-total-ms">--</strong></div>
+                            <div class="translate-lane-metric"><span class="type-caption">Device</span><strong id="translate-left-device">WebGPU</strong></div>
+                          </div>
+                          <div class="translate-lane-output">
+                            <div class="translate-lane-output-header">
+                              <span class="type-caption">Output</span>
+                              <span id="translate-left-meta" class="type-caption">No run yet</span>
+                            </div>
+                            <pre id="translate-left-output" class="playground-output-box translate-lane-output-box">Awaiting compare run.</pre>
+                          </div>
+                        </article>
+
+                        <article class="translate-lane translate-lane-right" id="translate-compare-right-lane" data-lane="right">
+                          <div class="translate-lane-header">
+                            <div class="translate-lane-title-group">
+                              <span class="translate-lane-chip">Right</span>
+                              <div>
+                                <h4 class="type-label">Challenger lane</h4>
+                                <div class="type-caption">Swap student, engine, or both without changing the source request.</div>
+                              </div>
+                            </div>
+                            <span id="translate-right-badge" class="translate-lane-badge type-caption">student</span>
+                          </div>
+                          <div class="translate-lane-controls">
+                            <div class="playground-field">
+                              <label class="type-caption" for="translate-right-engine">Engine</label>
+                              <select id="translate-right-engine" class="w-full">
+                                <option value="doppler">Doppler.js</option>
+                                <option value="transformersjs">Transformers.js v4</option>
+                              </select>
+                            </div>
+                            <div class="playground-field">
+                              <label class="type-caption" for="translate-right-model">Model</label>
+                              <select id="translate-right-model" class="w-full">
+                                <option value="">Select model</option>
+                              </select>
+                            </div>
+                          </div>
+                          <div class="translate-lane-status-row">
+                            <span class="type-caption">Status</span>
+                            <span id="translate-right-status" class="translate-lane-status">Idle</span>
+                          </div>
+                          <div class="translate-lane-metrics">
+                            <div class="translate-lane-metric"><span class="type-caption">Model size</span><strong id="translate-right-size">--</strong></div>
+                            <div class="translate-lane-metric"><span class="type-caption">Load</span><strong id="translate-right-load-ms">--</strong></div>
+                            <div class="translate-lane-metric"><span class="type-caption">First token</span><strong id="translate-right-ttft">--</strong></div>
+                            <div class="translate-lane-metric"><span class="type-caption">Decode</span><strong id="translate-right-decode-rate">--</strong></div>
+                            <div class="translate-lane-metric"><span class="type-caption">Total</span><strong id="translate-right-total-ms">--</strong></div>
+                            <div class="translate-lane-metric"><span class="type-caption">Device</span><strong id="translate-right-device">WebGPU</strong></div>
+                          </div>
+                          <div class="translate-lane-output">
+                            <div class="translate-lane-output-header">
+                              <span class="type-caption">Output</span>
+                              <span id="translate-right-meta" class="type-caption">No run yet</span>
+                            </div>
+                            <pre id="translate-right-output" class="playground-output-box translate-lane-output-box">Awaiting compare run.</pre>
+                          </div>
+                        </article>
+                      </div>
+                    </div>
+
+                    <aside class="translate-history-panel" id="translate-history-panel" aria-label="Compare history">
+                      <div class="translate-history-header">
+                        <div>
+                          <div class="translate-compare-kicker type-caption">Stacked history</div>
+                          <h4 class="type-label">Live proof log</h4>
+                        </div>
+                        <div class="translate-history-tools">
+                          <div class="segmented-control translate-history-filters" id="translate-history-filters" role="tablist" aria-label="History filter">
+                            <button class="btn segmented-btn is-active" type="button" data-compare-history-filter="all">All</button>
+                            <button class="btn segmented-btn" type="button" data-compare-history-filter="same-model">Same model</button>
+                            <button class="btn segmented-btn" type="button" data-compare-history-filter="same-engine">Same engine</button>
+                            <button class="btn segmented-btn" type="button" data-compare-history-filter="proof">Proof preset</button>
+                          </div>
+                          <button id="translate-history-clear-btn" class="btn btn-small" type="button">Clear</button>
+                        </div>
+                      </div>
+                      <div class="translate-history-list" id="translate-history-list">
+                        <article class="translate-history-card is-placeholder">
+                          <div class="translate-history-card-top">
+                            <span class="translate-history-time type-caption">Pending</span>
+                            <span class="translate-history-badge type-caption">sample</span>
+                          </div>
+                          <p class="translate-history-snippet">Compare receipts will stack here with engine/model labels, timing, and expandable outputs.</p>
+                          <div class="translate-history-meta">
+                            <span class="type-caption">en -> es</span>
+                            <span class="type-caption">No run captured</span>
+                          </div>
+                        </article>
+                        <article class="translate-history-card is-placeholder">
+                          <div class="translate-history-card-top">
+                            <span class="translate-history-time type-caption">Awaiting</span>
+                            <span class="translate-history-badge type-caption">artifact</span>
+                          </div>
+                          <p class="translate-history-snippet">Share links, receipt ids, and lane winners can render as badges instead of replacing raw numbers.</p>
+                          <div class="translate-history-meta">
+                            <span class="type-caption">TTFT / decode / total</span>
+                            <span class="type-caption">Transparent first</span>
+                          </div>
+                        </article>
+                      </div>
+                    </aside>
+                  </div>
+                </section>
               </div>
             </section>
 
@@ -545,6 +809,16 @@
                 <button class="btn btn-small" id="run-prompt-shuffle" type="button">Shuffle</button>
               </div>
               <div class="panel-subsection" id="translate-controls" hidden>
+                <div class="translate-control-banner">
+                  <div class="translate-control-banner-copy">
+                    <span class="translate-compare-kicker type-caption">Compare setup</span>
+                    <div class="type-caption">Shared prompt and language direction drive both lanes when compare mode is active.</div>
+                  </div>
+                  <div class="segmented-control translate-control-layout-toggle" role="tablist" aria-label="Translate layout">
+                    <button id="translate-layout-single-btn" class="btn segmented-btn is-active" type="button" data-translate-layout="single">Single</button>
+                    <button id="translate-layout-compare-btn" class="btn segmented-btn" type="button" data-translate-layout="compare">Compare</button>
+                  </div>
+                </div>
                 <div class="playground-row translate-lang-row">
                   <div class="playground-field">
                     <label class="type-caption" for="translate-source-language">Source language</label>
