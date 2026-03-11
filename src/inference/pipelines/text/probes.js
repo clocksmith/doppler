@@ -12,6 +12,11 @@ const STAGE_DEFAULT_CATEGORY = {
   // Attention stages (per-layer)
   attn_input: 'attn',
   attn_normed: 'attn',
+  linear_qkv_proj: 'attn',
+  linear_z_proj: 'attn',
+  linear_a_proj: 'attn',
+  linear_b_proj: 'attn',
+  linear_core_out: 'attn',
   q_proj: 'attn',
   k_proj: 'attn',
   v_proj: 'attn',

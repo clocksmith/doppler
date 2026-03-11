@@ -181,6 +181,11 @@ export type ProbeStage =
   // Attention stages (per-layer)
   | 'attn_input'      // Input to attention (after residual from previous layer)
   | 'attn_normed'     // After input RMSNorm
+  | 'linear_qkv_proj' // Linear-attention fused QKV projection output
+  | 'linear_z_proj'   // Linear-attention z projection output
+  | 'linear_a_proj'   // Linear-attention a projection output
+  | 'linear_b_proj'   // Linear-attention b projection output
+  | 'linear_core_out' // Linear-attention recurrent core output (before o_proj)
   | 'q_proj'          // Q projection output
   | 'k_proj'          // K projection output
   | 'v_proj'          // V projection output

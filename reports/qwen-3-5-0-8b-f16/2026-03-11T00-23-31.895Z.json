@@ -1,0 +1,197 @@
+{
+  "suite": "debug",
+  "modelId": "qwen-3-5-0-8b-f16",
+  "runtimePreset": null,
+  "deviceInfo": {
+    "hasSubgroups": true,
+    "hasSubgroupsF16": false,
+    "hasF16": true,
+    "hasTimestampQuery": true,
+    "maxBufferSize": 14302248960,
+    "maxWorkgroupSize": 1024,
+    "maxWorkgroupStorageSize": 32768,
+    "adapterInfo": {
+      "vendor": "apple",
+      "architecture": "metal-3",
+      "device": "apple-m3",
+      "description": "Metal driver on macOS Version 26.3 (Build 25D125)"
+    }
+  },
+  "results": [
+    {
+      "name": "generation",
+      "passed": false,
+      "duration": 1232.7699589999975,
+      "error": "Output dominated by padding or special tokens"
+    }
+  ],
+  "durationMs": 106253.173791,
+  "timestamp": "2026-03-11T00:23:31.895Z",
+  "metrics": {
+    "prompt": "The capital of France is",
+    "maxTokens": 1,
+    "tokensGenerated": 1,
+    "tokensPerSec": 0.81,
+    "totalRunMs": 1232.01,
+    "firstTokenMs": 1231.28,
+    "firstResponseMs": 106248.35,
+    "prefillMs": 1225.3,
+    "decodeMs": 0.09,
+    "prefillTokens": 5,
+    "decodeTokens": 1,
+    "prefillTokensPerSec": 4.08,
+    "prefillTokensPerSecTtft": 4.06,
+    "decodeTokensPerSec": 10544.85,
+    "modelLoadMs": 105017.07,
+    "gpu": {
+      "decodeRecordMs": 0,
+      "decodeSubmitWaitMs": 0,
+      "decodeReadbackWaitMs": 0
+    },
+    "decodeProfileSteps": [],
+    "generationDiagnostics": {
+      "preview": [
+        {
+          "id": 271,
+          "text": "\n\n",
+          "fallbackText": "\n\n"
+        }
+      ],
+      "total": 1,
+      "omitted": 0,
+      "emptyTextCount": 0,
+      "specialLikeTextCount": 0,
+      "specialLikeFallbackCount": 0
+    },
+    "schemaVersion": 1,
+    "source": "doppler",
+    "suite": "debug",
+    "executionContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "qwen-3-5-0-8b-f16.steps",
+          "ok": true
+        },
+        {
+          "id": "qwen-3-5-0-8b-f16.session",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "session": {
+        "layout": "contiguous",
+        "disableCommandBatching": true,
+        "decodeBatchSize": 4,
+        "headDim": 256,
+        "kvLen": 262144,
+        "coldQuantMode": "none"
+      },
+      "steps": {
+        "total": 0,
+        "attention": 0,
+        "attentionPhases": {
+          "prefill": 0,
+          "decode": 0,
+          "both": 0
+        }
+      }
+    },
+    "executionV0GraphContractArtifact": null,
+    "layerPatternContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "inference.layerPattern.patternKind.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.patternKind.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.even",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.odd",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_offset",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_negative_offset",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "patternKindRules": 4,
+        "layerTypeRules": 6,
+        "patternKindContexts": 16,
+        "layerTypeContexts": 12
+      }
+    },
+    "requiredInferenceFieldsArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "scope": "manifest",
+      "label": "qwen-3-5-0-8b-f16.inference",
+      "ok": true,
+      "checks": [
+        {
+          "id": "qwen-3-5-0-8b-f16.inference.requiredInferenceFields",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "fieldCases": 35,
+        "nullableCases": 16,
+        "nonNullableCases": 19
+      }
+    }
+  },
+  "output": "\n\n",
+  "memory": {
+    "used": 1962586880,
+    "pool": {
+      "allocations": 452,
+      "reuses": 455,
+      "totalBytesAllocated": 1761260288,
+      "peakBytesAllocated": 1761260288,
+      "currentBytesAllocated": 1761260288,
+      "totalBytesRequested": 1596883712,
+      "peakBytesRequested": 1596366336,
+      "currentBytesRequested": 1594334720,
+      "activeBuffers": 430,
+      "pooledBuffers": 22,
+      "budgetMaxBytes": 0,
+      "budgetUtilization": 0,
+      "hitRate": "50.2%"
+    },
+    "kvCache": {
+      "theoretical": 201326592,
+      "allocated": 201326592,
+      "used": 245760,
+      "efficiency": 0.001220703125,
+      "seqLen": 5,
+      "maxSeqLen": 4096,
+      "layout": "contiguous"
+    }
+  }
+}
