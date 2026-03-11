@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-03-10T12:52:59.866Z",
+  "generatedAt": "2026-03-11T00:56:39.606Z",
   "release": {
     "channel": "main-snapshot",
     "version": "0.1.7",
-    "commitSha": "065404704b57a7eafb16b5ef3144766c03173c3b",
+    "commitSha": "5282ff41541dc107fc5f275488b93e52dac90dac",
     "dirty": false
   },
   "sources": {
@@ -46,9 +46,9 @@
     },
     "modelCatalog": {
       "path": "models/catalog.json",
-      "sha256": "365f3f80e9df3ce16fa09a10719d63152d4c41bcc0814b68a58d530e22da9940",
-      "bytes": 4837,
-      "updated": "2026-03-08"
+      "sha256": "d054879417e43ac4d55fc1aba113678e33f18609b2ebdea9ce9b85e9c8843166",
+      "bytes": 7444,
+      "updated": "2026-03-10"
     },
     "harness:doppler": {
       "path": "benchmarks/vendors/harnesses/doppler.json",
@@ -101,12 +101,12 @@
   },
   "summary": {
     "targetCount": 8,
-    "modelCoverageCount": 3,
+    "modelCoverageCount": 5,
     "compareProfileCount": 4,
-    "catalogModelCount": 5,
+    "catalogModelCount": 7,
     "workloadCount": 5,
     "committedChartCount": 1,
-    "hasLatestCompareResult": false
+    "hasLatestCompareResult": true
   },
   "targets": [
     {
@@ -558,6 +558,36 @@
   ],
   "modelCoverage": [
     {
+      "dopplerModelId": "gemma-3-1b-it-f16-af32",
+      "dopplerModelBaseDir": "local",
+      "defaultTjsModelId": "onnx-community/gemma-3-1b-it-ONNX-GQA",
+      "defaultKernelPath": "gemma3-f16-fused-f32a-online",
+      "defaultDopplerSurface": "auto",
+      "inCatalog": true,
+      "catalogLabel": "Gemma 3 1B Instruct (F16/F32a)",
+      "catalogModes": [
+        "run",
+        "translate"
+      ],
+      "catalogBaseUrl": "./local/gemma-3-1b-it-f16-af32",
+      "catalogSizeBytes": 2018964126
+    },
+    {
+      "dopplerModelId": "gemma-3-1b-it-q4k-ehf16-af32",
+      "dopplerModelBaseDir": "local",
+      "defaultTjsModelId": "onnx-community/gemma-3-1b-it-ONNX-GQA",
+      "defaultKernelPath": "gemma3-q4k-dequant-f32a-online",
+      "defaultDopplerSurface": "auto",
+      "inCatalog": true,
+      "catalogLabel": "Gemma 3 1B Instruct (Q4K/F32a)",
+      "catalogModes": [
+        "run",
+        "translate"
+      ],
+      "catalogBaseUrl": "./local/gemma-3-1b-it-q4k-ehf16-af32",
+      "catalogSizeBytes": 1025493248
+    },
+    {
       "dopplerModelId": "gemma-3-270m-it-q4k-ehf16-af32",
       "dopplerModelBaseDir": null,
       "defaultTjsModelId": null,
@@ -663,6 +693,145 @@
     "committedCharts": [
       "benchmarks/vendors/results/compare_1b_multi-workload_favorable_phases.svg"
     ],
-    "latestCompareResult": null
+    "latestCompareResult": {
+      "path": "benchmarks/vendors/fixtures/g3-1b-p064-d064-t0-k1.compare.json",
+      "timestamp": "2026-03-03T17:55:33.415Z",
+      "mode": "warm",
+      "section": "warm",
+      "decodeProfile": "parity",
+      "dopplerModelId": "gemma-3-1b-it-f16-af32",
+      "tjsModelId": "onnx-community/gemma-3-1b-it-ONNX-GQA",
+      "dopplerKernelPath": "manifest-default",
+      "workloadId": "p064-d064-t0-k1",
+      "workload": {
+        "prefillTokenTarget": 64,
+        "decodeTokenTarget": 64
+      },
+      "environment": {
+        "host": {
+          "platform": "darwin",
+          "arch": "arm64",
+          "nodeVersion": "v22.20.0"
+        },
+        "browser": {
+          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/145.0.7632.6 Safari/537.36",
+          "platform": "MacIntel",
+          "language": "en-US",
+          "vendor": "Google Inc.",
+          "executable": null
+        },
+        "gpu": {
+          "backend": "metal",
+          "vendor": "apple",
+          "architecture": "metal-3",
+          "device": null,
+          "description": "Apple M3",
+          "hasF16": true,
+          "hasSubgroups": true,
+          "hasTimestampQuery": true
+        },
+        "engines": {
+          "doppler": {
+            "library": "doppler",
+            "version": null,
+            "surface": "browser",
+            "runtime": {
+              "device": "webgpu",
+              "dtype": null,
+              "requestedDtype": null,
+              "executionProviderMode": null
+            },
+            "browser": {
+              "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/145.0.0.0 Safari/537.36",
+              "platform": "MacIntel",
+              "language": "en-US",
+              "vendor": "Google Inc.",
+              "executable": null
+            },
+            "gpu": {
+              "backend": "metal",
+              "vendor": "unknown",
+              "architecture": "unknown",
+              "device": "unknown",
+              "description": null,
+              "hasF16": true,
+              "hasSubgroups": true,
+              "hasTimestampQuery": true
+            }
+          },
+          "transformersjs": {
+            "library": "transformers.js",
+            "version": "4.x",
+            "surface": null,
+            "runtime": {
+              "device": "webgpu",
+              "dtype": "fp16",
+              "requestedDtype": "fp16",
+              "executionProviderMode": "default"
+            },
+            "browser": {
+              "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/145.0.7632.6 Safari/537.36",
+              "platform": "MacIntel",
+              "language": "en-US",
+              "vendor": "Google Inc.",
+              "executable": null
+            },
+            "gpu": {
+              "backend": "metal",
+              "vendor": "apple",
+              "architecture": "metal-3",
+              "device": "0x0000",
+              "description": "Apple M3",
+              "hasF16": true,
+              "hasSubgroups": true,
+              "hasTimestampQuery": true
+            }
+          }
+        }
+      },
+      "metrics": {
+        "decodeTokensPerSec": {
+          "doppler": 23.37,
+          "transformersjs": 21.326220079825298
+        },
+        "promptTokensPerSecToFirstToken": {
+          "doppler": null,
+          "transformersjs": null
+        },
+        "firstTokenMs": {
+          "doppler": 565.8,
+          "transformersjs": 297.6550000011921
+        },
+        "firstResponseMs": {
+          "doppler": 3484.8,
+          "transformersjs": 4429.875
+        },
+        "decodeMs": {
+          "doppler": 2738.6,
+          "transformersjs": 2954.109999999404
+        },
+        "totalRunMs": {
+          "doppler": 3304.6,
+          "transformersjs": 3253.375
+        },
+        "modelLoadMs": {
+          "doppler": 2919,
+          "transformersjs": 4132.219999998808
+        },
+        "decodeMsPerTokenP50": {
+          "doppler": 42.79,
+          "transformersjs": 46.53499999642372
+        },
+        "decodeMsPerTokenP95": {
+          "doppler": 42.87,
+          "transformersjs": 48.460000002384184
+        },
+        "decodeMsPerTokenP99": {
+          "doppler": 42.88,
+          "transformersjs": 48.990199989676476
+        }
+      },
+      "origin": "fixture"
+    }
   }
 }
