@@ -5,6 +5,7 @@ globalThis.GPUMapMode = {
 };
 
 const {
+  findInvalidGeneratedToken,
   readSampledTokenFromStagingBuffer,
   readMappedBufferCopy,
   readBatchTokensFromStagingBuffers,
@@ -206,6 +207,25 @@ function createStagingBuffer(words, options = {}) {
   assert.equal(tokensStagingBuffer.destroyCount, 1);
   assert.equal(stopStagingBuffer.destroyCount, 1);
   assert.equal(ring.advanceCount, 1);
+}
+
+{
+  assert.equal(
+    findInvalidGeneratedToken([11, 12, 13], 32, null),
+    null
+  );
+  assert.deepEqual(
+    findInvalidGeneratedToken([11, 0, 13], 32, null),
+    { index: 1, tokenId: 0 }
+  );
+  assert.deepEqual(
+    findInvalidGeneratedToken([11, 7, 13], 32, 7),
+    { index: 1, tokenId: 7 }
+  );
+  assert.deepEqual(
+    findInvalidGeneratedToken([11, 99], 32, null),
+    { index: 1, tokenId: 99 }
+  );
 }
 
 console.log('generator-steps-cleanup.test: ok');

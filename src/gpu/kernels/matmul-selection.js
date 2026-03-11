@@ -244,6 +244,30 @@ export function requiresF32Input(variant) {
   return !supportsF16Input(variant);
 }
 
+function resolveRequiredWeightDtype(config) {
+  const shaderFile = String(config?.shaderFile ?? config?.wgsl ?? '');
+  if (!shaderFile) {
+    return null;
+  }
+  if (shaderFile.startsWith('fused_matmul_q4')) {
+    return 'q4k';
+  }
+  if (
+    shaderFile === 'matmul_f16.wgsl'
+    || shaderFile === 'matmul_f16_tiled.wgsl'
+    || shaderFile === 'matmul_f16w_f32a.wgsl'
+    || shaderFile === 'matmul_f16w_f32a_tiled.wgsl'
+    || shaderFile === 'matmul_gemv_subgroup.wgsl'
+    || shaderFile === 'matmul_gemv_subgroup_f16a.wgsl'
+  ) {
+    return 'f16';
+  }
+  if (shaderFile === 'matmul_f32.wgsl') {
+    return 'f32';
+  }
+  return null;
+}
+
 
 function resolveMatmulOverride(
   variantOverride,
@@ -284,6 +308,13 @@ function resolveMatmulOverride(
   if (requestedOutputDtype && outputDtype !== requestedOutputDtype) {
     return failOrWarn(
       `Matmul kernel "${variantOverride}" outputs ${outputDtype} but ${requestedOutputDtype} was requested.`
+    );
+  }
+
+  const requiredWeightDtype = resolveRequiredWeightDtype(config);
+  if (requiredWeightDtype && bDtype !== requiredWeightDtype) {
+    return failOrWarn(
+      `Matmul kernel "${variantOverride}" requires ${requiredWeightDtype} weights but B dtype is ${bDtype}.`
     );
   }
 

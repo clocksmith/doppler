@@ -232,6 +232,27 @@ export async function runLayerAttentionGPU(
     await traceStep('matmul', `L${layerIdx}.k_proj`, layerIdx, kTensor.buffer, [numTokens, numKVHeads * headDim]);
     await traceStep('matmul', `L${layerIdx}.v_proj`, layerIdx, vTensor.buffer, [numTokens, numKVHeads * headDim]);
   }
+  await runProbes('q_proj', qTensor.buffer, {
+    layerIdx,
+    numTokens,
+    hiddenSize: numHeads * headDim,
+    probes: state.debugProbes,
+    dtype: qTensor.dtype,
+  });
+  await runProbes('k_proj', kTensor.buffer, {
+    layerIdx,
+    numTokens,
+    hiddenSize: numKVHeads * headDim,
+    probes: state.debugProbes,
+    dtype: kTensor.dtype,
+  });
+  await runProbes('v_proj', vTensor.buffer, {
+    layerIdx,
+    numTokens,
+    hiddenSize: numKVHeads * headDim,
+    probes: state.debugProbes,
+    dtype: vTensor.dtype,
+  });
 
   // Kernel step debug: Q/K/V projections
   if (isKernelDebugEnabled(layerIdx)) {
@@ -339,6 +360,20 @@ export async function runLayerAttentionGPU(
       await traceStep('rope', `L${layerIdx}.k_rope`, layerIdx, kTensor.buffer, [numTokens, numKVHeads * headDim]);
     }
   }
+  await runProbes('q_rope', qTensor.buffer, {
+    layerIdx,
+    numTokens,
+    hiddenSize: numHeads * headDim,
+    probes: state.debugProbes,
+    dtype: qTensor.dtype,
+  });
+  await runProbes('k_rope', kTensor.buffer, {
+    layerIdx,
+    numTokens,
+    hiddenSize: numKVHeads * headDim,
+    probes: state.debugProbes,
+    dtype: kTensor.dtype,
+  });
   if (isKernelDebugEnabled(layerIdx)) {
     logKernelStep('rope', { layerIdx, label: `startPos=${currentSeqLen}` });
     await dumpTokenVector(qTensor.buffer, 'Q_rope', {

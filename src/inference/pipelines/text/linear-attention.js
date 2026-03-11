@@ -38,14 +38,9 @@ export function applyLinearNormWeightOffset(values, rmsNormWeightOffset) {
   if (!(values instanceof Float32Array)) {
     throw new Error('applyLinearNormWeightOffset requires Float32Array input.');
   }
-  if (rmsNormWeightOffset !== true) {
-    return values;
-  }
-  const adjusted = values.slice();
-  for (let i = 0; i < adjusted.length; i++) {
-    adjusted[i] += 1;
-  }
-  return adjusted;
+  // Qwen linear-attention output norm uses direct weights even when surrounding
+  // transformer RMSNorm sites use the Gemma-style (1 + weight) formula.
+  return values;
 }
 
 function cloneLayerRuntimeState(layerState) {

@@ -201,6 +201,11 @@ function buildRefreshRawConfig(manifest) {
   const baseConfig = (manifest?.config && typeof manifest.config === 'object')
     ? { ...manifest.config }
     : {};
+  const manifestModelType = toSafeString(manifest?.modelType);
+
+  if (manifestModelType && !toSafeString(baseConfig.model_type)) {
+    baseConfig.model_type = manifestModelType;
+  }
 
   if (Array.isArray(baseConfig.layer_types) && baseConfig.layer_types.length > 0) {
     return baseConfig;

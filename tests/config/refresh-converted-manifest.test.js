@@ -26,6 +26,7 @@ import {
 {
   const rawConfig = buildRefreshRawConfig({
     config: {},
+    modelType: 'transformer',
     inference: {
       presetId: 'lfm2',
       layerPattern: {
@@ -33,7 +34,7 @@ import {
       },
     },
   });
-  assert.equal(rawConfig.model_type, undefined);
+  assert.equal(rawConfig.model_type, 'transformer');
   assert.deepEqual(rawConfig.layer_types, ['attention', 'ffn']);
 }
 
