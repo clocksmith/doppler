@@ -190,6 +190,12 @@ export interface WeightLoadResult {
   layerRouterWeights: Map<number, RouterWeights>;
 }
 
+export interface ResolvedQ4KConfig {
+  useFusedQ4K: boolean;
+  q4kLayout: 'row' | 'col' | null;
+  keepF32Weights: boolean;
+}
+
 /** Options for loadWeights */
 export interface LoadWeightsOptions {
   storageContext?: PipelineStorageContext;
@@ -210,6 +216,13 @@ export function loadWeights(
   modelConfig: ParsedModelConfig,
   options?: LoadWeightsOptions
 ): Promise<WeightLoadResult>;
+
+export function resolveQ4KConfig(
+  manifest: Manifest,
+  kernelPath?: KernelPathSchema | null,
+  kernelPathSource?: KernelPathSource,
+  keepF32Weights?: boolean
+): ResolvedQ4KConfig;
 
 /**
  * Apply Gemma chat template to a prompt.

@@ -25,6 +25,10 @@ export { computeLogitsGPU, recordLogitsGPU, computeChunkedLogitsGPU, resolveCpuW
 // Re-export utilities
 export { extractLastPositionLogits, finalizeLogits } from './utils.js';
 
+export interface ComputeLogitsOptions {
+  lastPositionOnly?: boolean;
+}
+
 /**
  * Compute logits from hidden states.
  *
@@ -53,5 +57,6 @@ export function computeLogits(
   debugFlags?: LogitsDebugFlags,
   getNormWeightBuffer?: (weight: GPUBuffer | Float32Array | ArrayBuffer, label: string) => GPUBuffer,
   debugCheckBuffer?: (buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number) => Promise<void>,
-  debugProbes?: ProbeConfigSchema[] | null
+  debugProbes?: ProbeConfigSchema[] | null,
+  options?: ComputeLogitsOptions
 ): Promise<Float32Array>;

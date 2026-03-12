@@ -135,6 +135,11 @@ export function getKernelPathStrict(): boolean;
 export function isKernelPathFusedQ4K(path?: KernelPathSchema | null): boolean;
 
 /**
+ * Check if a kernel path requires matmul weights to stay in F32.
+ */
+export function kernelPathRequiresF32MatmulWeights(path?: KernelPathSchema | null): boolean;
+
+/**
  * Check if the active kernel path uses fused Q4K matmul.
  */
 export function isActiveKernelPathFusedQ4K(): boolean;
