@@ -1,0 +1,283 @@
+{
+  "suite": "debug",
+  "modelId": "google-gemma-3-270m-it",
+  "runtimePreset": null,
+  "deviceInfo": {
+    "hasSubgroups": true,
+    "hasSubgroupsF16": false,
+    "hasF16": true,
+    "hasTimestampQuery": true,
+    "maxBufferSize": 14302248960,
+    "maxWorkgroupSize": 1024,
+    "maxWorkgroupStorageSize": 32768,
+    "adapterInfo": {
+      "vendor": "apple",
+      "architecture": "metal-3",
+      "device": "apple-m3",
+      "description": "Metal driver on macOS Version 26.3 (Build 25D125)"
+    }
+  },
+  "results": [
+    {
+      "name": "generation",
+      "passed": false,
+      "duration": 157.56879200000003,
+      "error": "Output dominated by padding or special tokens"
+    }
+  ],
+  "durationMs": 6217.652667,
+  "timestamp": "2026-03-12T18:53:01.582Z",
+  "metrics": {
+    "prompt": "What color is the sky? A) Blue B) Red C) Green D) Yellow",
+    "maxTokens": 1,
+    "tokensGenerated": 1,
+    "tokensPerSec": 6.35,
+    "totalRunMs": 157,
+    "firstTokenMs": 156.09,
+    "firstResponseMs": 6211.88,
+    "prefillMs": 137.73,
+    "decodeMs": 0.09,
+    "prefillTokens": 19,
+    "decodeTokens": 1,
+    "prefillTokensPerSec": 137.95,
+    "prefillTokensPerSecTtft": 121.72,
+    "decodeTokensPerSec": 10805.9,
+    "modelLoadMs": 6055.79,
+    "gpu": {
+      "decodeRecordMs": 0,
+      "decodeSubmitWaitMs": 0,
+      "decodeReadbackWaitMs": 0
+    },
+    "decodeProfileSteps": [],
+    "generationDiagnostics": {
+      "preview": [
+        {
+          "id": 107,
+          "text": "\n",
+          "fallbackText": "\n"
+        }
+      ],
+      "total": 1,
+      "omitted": 0,
+      "emptyTextCount": 0,
+      "specialLikeTextCount": 0,
+      "specialLikeFallbackCount": 0
+    },
+    "schemaVersion": 1,
+    "source": "doppler",
+    "suite": "debug",
+    "executionContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "google-gemma-3-270m-it.steps",
+          "ok": true
+        },
+        {
+          "id": "google-gemma-3-270m-it.session",
+          "ok": true
+        },
+        {
+          "id": "google-gemma-3-270m-it.kernelProfilePinning",
+          "ok": true
+        },
+        {
+          "id": "google-gemma-3-270m-it.precisionPrecedence",
+          "ok": true
+        },
+        {
+          "id": "google-gemma-3-270m-it.kvIOPrecedence",
+          "ok": true
+        },
+        {
+          "id": "google-gemma-3-270m-it.slotGraph",
+          "ok": true
+        },
+        {
+          "id": "google-gemma-3-270m-it.phaseBoundary",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "session": {
+        "layout": "contiguous",
+        "disableCommandBatching": false,
+        "decodeBatchSize": 4,
+        "headDim": 256,
+        "kvLen": 32768,
+        "coldQuantMode": "none"
+      },
+      "steps": {
+        "total": 0,
+        "attention": 0,
+        "attentionPhases": {
+          "prefill": 0,
+          "decode": 0,
+          "both": 0
+        }
+      },
+      "executionV0": {
+        "kernelProfiles": {
+          "schemaVersion": 1,
+          "source": "doppler",
+          "ok": true,
+          "checks": [
+            {
+              "id": "google-gemma-3-270m-it.kernelProfilePinning",
+              "ok": true
+            },
+            {
+              "id": "google-gemma-3-270m-it.precisionPrecedence",
+              "ok": true
+            },
+            {
+              "id": "google-gemma-3-270m-it.kvIOPrecedence",
+              "ok": true
+            }
+          ],
+          "errors": [],
+          "stats": {
+            "kernelProfiles": 0,
+            "pinnedSteps": 0
+          },
+          "perStep": {}
+        },
+        "graph": {
+          "schemaVersion": 1,
+          "source": "doppler",
+          "ok": true,
+          "checks": [
+            {
+              "id": "google-gemma-3-270m-it.slotGraph",
+              "ok": true
+            },
+            {
+              "id": "google-gemma-3-270m-it.phaseBoundary",
+              "ok": true
+            }
+          ],
+          "errors": [],
+          "stats": {
+            "prefillSteps": 0,
+            "decodeSteps": 0
+          }
+        }
+      }
+    },
+    "executionV0GraphContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "google-gemma-3-270m-it.slotGraph",
+          "ok": true
+        },
+        {
+          "id": "google-gemma-3-270m-it.phaseBoundary",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "prefillSteps": 0,
+        "decodeSteps": 0
+      }
+    },
+    "layerPatternContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "inference.layerPattern.patternKind.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.patternKind.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.even",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.odd",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_offset",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_negative_offset",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "patternKindRules": 4,
+        "layerTypeRules": 6,
+        "patternKindContexts": 16,
+        "layerTypeContexts": 12
+      }
+    },
+    "requiredInferenceFieldsArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "scope": "manifest",
+      "label": "google-gemma-3-270m-it.inference",
+      "ok": true,
+      "checks": [
+        {
+          "id": "google-gemma-3-270m-it.inference.requiredInferenceFields",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "fieldCases": 35,
+        "nullableCases": 16,
+        "nonNullableCases": 19
+      }
+    }
+  },
+  "output": "\n",
+  "memory": {
+    "used": 1154176512,
+    "pool": {
+      "allocations": 272,
+      "reuses": 590,
+      "totalBytesAllocated": 1078679040,
+      "peakBytesAllocated": 1078679040,
+      "currentBytesAllocated": 1078679040,
+      "totalBytesRequested": 951851520,
+      "peakBytesRequested": 671088640,
+      "currentBytesRequested": 603417088,
+      "activeBuffers": 240,
+      "pooledBuffers": 32,
+      "budgetMaxBytes": 0,
+      "budgetUtilization": 0,
+      "hitRate": "68.4%"
+    },
+    "kvCache": {
+      "theoretical": 75497472,
+      "allocated": 75497472,
+      "used": 350208,
+      "efficiency": 0.004638671875,
+      "seqLen": 19,
+      "maxSeqLen": 4096,
+      "layout": "contiguous"
+    }
+  }
+}

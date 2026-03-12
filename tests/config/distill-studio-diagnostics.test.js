@@ -31,7 +31,7 @@ function runNodeScript(args) {
 {
   const result = runNodeScript(['tools/distill-studio-diagnostics.js']);
   assert.equal(result.code, 1);
-  assert.match(result.stderr, /Usage: node tools\/distill-studio-diagnostics\.mjs --report/);
+  assert.match(result.stderr, /Usage: node tools\/distill-studio-diagnostics\.js --report/);
 }
 
 {

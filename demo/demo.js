@@ -997,10 +997,19 @@ function getTranslateComparePreset(presetId) {
     || TRANSLATE_COMPARE_PRESETS[0];
 }
 
+const TRANSLATE_COMPARE_TJS_BASELINE_NOTE = 'Baseline parity is currently unsupported in public TJS ONNX exports.';
+
 function getTranslateComparePresetNote(presetId) {
   const preset = getTranslateComparePreset(presetId);
   if (preset.id === 'engine-parity' && !getMappedCompareBaselineProfile()) {
     return `${preset.description} The UI will fail closed until a baseline mapping is configured.`;
+  }
+  const usesTjsMappedBaseline = ['left', 'right'].some((laneId) => {
+    const lane = preset?.lanes?.[laneId];
+    return lane?.engine === 'transformersjs' && lane?.role === 'mapped-baseline';
+  });
+  if (usesTjsMappedBaseline) {
+    return `${preset.description} ${TRANSLATE_COMPARE_TJS_BASELINE_NOTE}`;
   }
   const usesStudentRole = ['left', 'right'].some((laneId) => {
     const role = resolveText(preset?.lanes?.[laneId]?.role, '');

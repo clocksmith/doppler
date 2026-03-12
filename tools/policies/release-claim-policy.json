@@ -14,18 +14,6 @@
       }
     },
     {
-      "modelId": "gemma-3-1b-it-q4k-ehf16-af32",
-      "mode": "run",
-      "surface": "auto",
-      "verificationSource": "manual-review",
-      "lastVerifiedAt": "2026-03-10",
-      "artifactFormat": "rdrr",
-      "evidence": {
-        "kind": "manual-report",
-        "reportPath": "reports/gemma-3-1b-it-q4k-ehf16-af32/2026-03-10T16-05-39.717Z.json"
-      }
-    },
-    {
       "modelId": "gemma-3-1b-it-f16-af32",
       "mode": "run",
       "surface": "browser",
