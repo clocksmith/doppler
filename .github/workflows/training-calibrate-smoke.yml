@@ -9,10 +9,10 @@ on:
       - 'src/training/**'
       - 'tests/config/**'
       - 'tests/integration/**'
-      - 'tools/run-node-tests.mjs'
-      - 'tools/run-node-test-file.mjs'
-      - 'tools/node-test-runtime-setup.mjs'
-      - 'tools/verify-training-provenance.mjs'
+      - 'tools/run-node-tests.js'
+      - 'tools/run-node-test-file.js'
+      - 'tools/node-test-runtime-setup.js'
+      - 'tools/verify-training-provenance.js'
       - 'package.json'
       - '.github/workflows/training-calibrate-smoke.yml'
   push:
@@ -24,10 +24,10 @@ on:
       - 'src/training/**'
       - 'tests/config/**'
       - 'tests/integration/**'
-      - 'tools/run-node-tests.mjs'
-      - 'tools/run-node-test-file.mjs'
-      - 'tools/node-test-runtime-setup.mjs'
-      - 'tools/verify-training-provenance.mjs'
+      - 'tools/run-node-tests.js'
+      - 'tools/run-node-test-file.js'
+      - 'tools/node-test-runtime-setup.js'
+      - 'tools/verify-training-provenance.js'
       - 'package.json'
       - '.github/workflows/training-calibrate-smoke.yml'
   workflow_dispatch:
@@ -50,10 +50,10 @@ jobs:
         run: npm ci
 
       - name: Run calibrate-path contract tests
-        run: node tools/run-node-tests.mjs tests/integration/command-api.test.js tests/integration/command-runner-shared.test.js tests/integration/training-intent-split.test.js tests/integration/training-report-lineage.test.js tests/integration/training-force-resume-lineage.test.js tests/integration/ul-stage-workflow-regression.test.js
+        run: node tools/run-node-tests.js tests/integration/command-api.test.js tests/integration/command-runner-shared.test.js tests/integration/training-intent-split.test.js tests/integration/training-report-lineage.test.js tests/integration/training-force-resume-lineage.test.js tests/integration/ul-stage-workflow-regression.test.js
 
       - name: Run UL artifact contract tests
-        run: node tools/run-node-tests.mjs tests/config/ul-artifacts-contract.test.js tests/config/ul-stage1-determinism.test.js tests/config/training-telemetry-alerts.test.js
+        run: node tools/run-node-tests.js tests/config/ul-artifacts-contract.test.js tests/config/ul-stage1-determinism.test.js tests/config/training-telemetry-alerts.test.js
 
       - name: Run provenance coherence self-test gate
-        run: node tools/verify-training-provenance.mjs --self-test
+        run: node tools/verify-training-provenance.js --self-test

@@ -29,19 +29,19 @@ function runNodeScript(args) {
 }
 
 {
-  const result = runNodeScript(['tools/verify-training-provenance.mjs']);
+  const result = runNodeScript(['tools/verify-training-provenance.js']);
   assert.equal(result.code, 1);
   assert.match(result.stderr, /Usage: node tools\/verify-training-provenance\.mjs --manifest/);
 }
 
 {
-  const result = runNodeScript(['tools/verify-training-provenance.mjs', '--nope']);
+  const result = runNodeScript(['tools/verify-training-provenance.js', '--nope']);
   assert.equal(result.code, 1);
   assert.match(result.stderr, /Unknown flag: --nope/);
 }
 
 {
-  const result = runNodeScript(['tools/verify-training-provenance.mjs', '--self-test']);
+  const result = runNodeScript(['tools/verify-training-provenance.js', '--self-test']);
   assert.equal(result.code, 0);
   assert.match(result.stdout, /self-test ok/);
 }
@@ -56,7 +56,7 @@ function runNodeScript(args) {
       metrics: null,
     }, null, 2), 'utf8');
     const result = runNodeScript([
-      'tools/verify-training-provenance.mjs',
+      'tools/verify-training-provenance.js',
       '--report',
       reportPath,
     ]);
@@ -73,7 +73,7 @@ function runNodeScript(args) {
     const reportPath = path.join(tempDir, 'invalid-report.json');
     writeFileSync(reportPath, JSON.stringify({ modelId: 'toy-model' }, null, 2), 'utf8');
     const result = runNodeScript([
-      'tools/verify-training-provenance.mjs',
+      'tools/verify-training-provenance.js',
       '--report',
       reportPath,
     ]);
@@ -96,7 +96,7 @@ function runNodeScript(args) {
     }, null, 2), 'utf8');
     writeFileSync(checkpointPath, JSON.stringify({ metadata: {} }, null, 2), 'utf8');
     const result = runNodeScript([
-      'tools/verify-training-provenance.mjs',
+      'tools/verify-training-provenance.js',
       '--report',
       reportPath,
       '--checkpoint',
@@ -136,7 +136,7 @@ function runNodeScript(args) {
       },
     }, null, 2), 'utf8');
     const result = runNodeScript([
-      'tools/verify-training-provenance.mjs',
+      'tools/verify-training-provenance.js',
       '--report',
       reportPath,
       '--checkpoint',

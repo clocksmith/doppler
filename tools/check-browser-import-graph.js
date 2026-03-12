@@ -11,7 +11,7 @@ const DEFAULT_ENTRIES = Object.freeze([
   'src/index-browser.js',
   'src/tooling-exports.browser.js',
 ]);
-const LOCAL_EXTENSIONS = Object.freeze(['.js', '.mjs', '.cjs']);
+const LOCAL_EXTENSIONS = Object.freeze(['.js', '.cjs']);
 const IMPORT_EXPORT_REGEX = /\b(?:import|export)\s+(?:[^'"]*?\sfrom\s*)?['"]([^'"]+)['"]/g;
 const DYNAMIC_IMPORT_REGEX = /\bimport\s*\(\s*['"]([^'"]+)['"]\s*\)/g;
 

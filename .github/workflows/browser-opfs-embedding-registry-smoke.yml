@@ -4,7 +4,7 @@ on:
   pull_request:
     paths:
       - '.github/workflows/browser-opfs-embedding-registry-smoke.yml'
-      - 'tools/ci-browser-opfs-registry-smoke.mjs'
+      - 'tools/ci-browser-opfs-registry-smoke.js'
       - 'models/catalog.json'
       - 'src/config/**'
       - 'src/inference/**'
@@ -14,7 +14,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/browser-opfs-embedding-registry-smoke.yml'
-      - 'tools/ci-browser-opfs-registry-smoke.mjs'
+      - 'tools/ci-browser-opfs-registry-smoke.js'
       - 'models/catalog.json'
       - 'src/config/**'
       - 'src/inference/**'
@@ -72,7 +72,7 @@ jobs:
 
       - name: Run browser OPFS embedding registry smoke
         run: >
-          node tools/ci-browser-opfs-registry-smoke.mjs
+          node tools/ci-browser-opfs-registry-smoke.js
           --model-id "${DOPPLER_SMOKE_MODEL_ID}"
           --cache-root "${{ steps.model.outputs.cache_root }}"
           --profile-dir "${{ steps.model.outputs.profile_dir }}"

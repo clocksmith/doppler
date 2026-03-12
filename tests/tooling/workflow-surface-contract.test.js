@@ -7,10 +7,10 @@ const onboardingTooling = readFileSync(new URL('../../.github/workflows/onboardi
 const inferenceGuard = readFileSync(new URL('../../.github/workflows/inference-guard.yml', import.meta.url), 'utf8');
 
 for (const requiredPath of [
-  "'tools/run-node-tests.mjs'",
-  "'tools/run-node-test-file.mjs'",
-  "'tools/run-node-coverage.mjs'",
-  "'tools/node-test-runtime-setup.mjs'",
+  "'tools/run-node-tests.js'",
+  "'tools/run-node-test-file.js'",
+  "'tools/run-node-coverage.js'",
+  "'tools/node-test-runtime-setup.js'",
   "'tools/doppler-cli.js'",
   "'package.json'",
 ]) {
@@ -18,18 +18,18 @@ for (const requiredPath of [
 }
 
 for (const requiredPath of [
-  "'tools/run-node-tests.mjs'",
-  "'tools/run-node-test-file.mjs'",
-  "'tools/node-test-runtime-setup.mjs'",
+  "'tools/run-node-tests.js'",
+  "'tools/run-node-test-file.js'",
+  "'tools/node-test-runtime-setup.js'",
   "'package.json'",
 ]) {
   assert.match(trainingCalibrateSmoke, new RegExp(requiredPath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
 }
 
 for (const requiredPath of [
-  "'tools/run-node-tests.mjs'",
-  "'tools/run-node-test-file.mjs'",
-  "'tools/node-test-runtime-setup.mjs'",
+  "'tools/run-node-tests.js'",
+  "'tools/run-node-test-file.js'",
+  "'tools/node-test-runtime-setup.js'",
   "'package.json'",
 ]) {
   assert.match(readFileSync(new URL('../../.github/workflows/training-verify-smoke.yml', import.meta.url), 'utf8'), new RegExp(requiredPath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));

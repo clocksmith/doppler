@@ -60,7 +60,7 @@ try {
 
   {
     const result = runNodeScript([
-      'tools/distill-studio-mvp.mjs',
+      'tools/distill-studio-mvp.js',
       'replay-teacher',
       '--teacher',
       teacherPath,
@@ -76,7 +76,7 @@ try {
 
   {
     const result = runNodeScript([
-      'tools/distill-studio-mvp.mjs',
+      'tools/distill-studio-mvp.js',
       'branch-compare',
       '--teacher',
       teacherPath,
@@ -93,7 +93,7 @@ try {
 
   {
     const result = runNodeScript([
-      'tools/distill-studio-mvp.mjs',
+      'tools/distill-studio-mvp.js',
       'mini-eval',
       '--teacher',
       teacherPath,
@@ -112,7 +112,7 @@ try {
 
   {
     const result = runNodeScript([
-      'tools/distill-studio-mvp.mjs',
+      'tools/distill-studio-mvp.js',
       'replay-teacher',
     ]);
     assert.equal(result.code, 1);
@@ -121,7 +121,7 @@ try {
 
   {
     const result = runNodeScript([
-      'tools/distill-studio-mvp.mjs',
+      'tools/distill-studio-mvp.js',
       'branch-compare',
       '--teacher',
       teacherPath,
@@ -132,7 +132,7 @@ try {
 
   {
     const result = runNodeScript([
-      'tools/distill-studio-mvp.mjs',
+      'tools/distill-studio-mvp.js',
       'mini-eval',
       '--teacher',
       teacherPath,
@@ -147,7 +147,7 @@ try {
 
   {
     const result = runNodeScript([
-      'tools/distill-studio-mvp.mjs',
+      'tools/distill-studio-mvp.js',
       'not-a-mode',
       '--teacher',
       teacherPath,
@@ -158,7 +158,7 @@ try {
 
   {
     const result = runNodeScript([
-      'tools/distill-studio-mvp.mjs',
+      'tools/distill-studio-mvp.js',
       'replay-teacher',
       '--teacher',
       teacherPath,
@@ -181,7 +181,7 @@ try {
       metrics: { trainingMetricsReport: [{ total_loss: 1.2 }] },
     }, null, 2), 'utf8');
     const result = runNodeScript([
-      'tools/distill-studio-mvp.mjs', 'mini-eval',
+      'tools/distill-studio-mvp.js', 'mini-eval',
       '--teacher', teacherPassPath, '--student', studentPassPath,
       '--out', outPassPath,
     ]);
@@ -202,7 +202,7 @@ try {
       metrics: { trainingMetricsReport: [{ total_loss: 1.3 }] },
     }, null, 2), 'utf8');
     const result = runNodeScript([
-      'tools/distill-studio-mvp.mjs', 'mini-eval',
+      'tools/distill-studio-mvp.js', 'mini-eval',
       '--teacher', teacherFailPath, '--student', studentFailPath,
       '--out', outFailPath,
     ]);
@@ -223,7 +223,7 @@ try {
       results: [{ metrics: { trainingMetricsReport: [{ step: 1, total_loss: 0.9 }] } }],
     }, null, 2), 'utf8');
     const result = runNodeScript([
-      'tools/distill-studio-mvp.mjs', 'branch-compare',
+      'tools/distill-studio-mvp.js', 'branch-compare',
       '--teacher', fallbackTeacherPath, '--student', fallbackStudentPath,
       '--out', fallbackOutPath,
     ]);

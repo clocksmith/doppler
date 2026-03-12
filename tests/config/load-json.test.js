@@ -12,7 +12,7 @@ import { loadJson } from '../../src/utils/load-json.js';
     writeFileSync(path.join(fixtureDir, 'ok.json'), JSON.stringify({ ok: true, n: 7 }), 'utf8');
     writeFileSync(path.join(fixtureDir, 'bad.json'), '{bad-json', 'utf8');
 
-    const baseUrl = pathToFileURL(path.join(fixtureDir, 'base.mjs')).toString();
+    const baseUrl = pathToFileURL(path.join(fixtureDir, 'base.js')).toString();
     const parsed = await loadJson('./ok.json', baseUrl, 'unused-prefix');
     assert.deepEqual(parsed, { ok: true, n: 7 });
 

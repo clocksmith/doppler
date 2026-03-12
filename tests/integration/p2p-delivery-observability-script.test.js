@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 const {
   runP2PDeliveryObservabilityCli,
-} = await import('../../tools/p2p-delivery-observability.mjs');
+} = await import('../../tools/p2p-delivery-observability.js');
 
 const tempDir = mkdtempSync(join(tmpdir(), 'doppler-p2p-obsv-'));
 const inputPath = join(tempDir, 'metrics.json');

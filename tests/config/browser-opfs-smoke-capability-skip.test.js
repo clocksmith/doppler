@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-import { classifyHostedCapabilitySkip } from '../../tools/ci-browser-opfs-registry-smoke.mjs';
+import { classifyHostedCapabilitySkip } from '../../tools/ci-browser-opfs-registry-smoke.js';
 
 const shaderF16Skip = classifyHostedCapabilitySkip(
   new Error('KernelPath "gemma3-q4k-dequant-f16a-online" requires unsupported GPU features (shader-f16).')

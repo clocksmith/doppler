@@ -9,13 +9,13 @@ on:
       - 'src/training/**'
       - 'tests/config/**'
       - 'tests/integration/**'
-      - 'tools/ci-training-contract-gates.mjs'
-      - 'tools/emit-training-contract-delta.mjs'
-      - 'tools/distill-studio-quality-gate.mjs'
-      - 'tools/verify-training-workload-packs.mjs'
-      - 'tools/publish-training-report-ids.mjs'
-      - 'tools/run-node-tests.mjs'
-      - 'tools/verify-training-provenance.mjs'
+      - 'tools/ci-training-contract-gates.js'
+      - 'tools/emit-training-contract-delta.js'
+      - 'tools/distill-studio-quality-gate.js'
+      - 'tools/verify-training-workload-packs.js'
+      - 'tools/publish-training-report-ids.js'
+      - 'tools/run-node-tests.js'
+      - 'tools/verify-training-provenance.js'
       - 'tools/configs/training-workloads/**'
       - '.github/workflows/training-contract-release-gate.yml'
   push:
@@ -27,13 +27,13 @@ on:
       - 'src/training/**'
       - 'tests/config/**'
       - 'tests/integration/**'
-      - 'tools/ci-training-contract-gates.mjs'
-      - 'tools/emit-training-contract-delta.mjs'
-      - 'tools/distill-studio-quality-gate.mjs'
-      - 'tools/verify-training-workload-packs.mjs'
-      - 'tools/publish-training-report-ids.mjs'
-      - 'tools/run-node-tests.mjs'
-      - 'tools/verify-training-provenance.mjs'
+      - 'tools/ci-training-contract-gates.js'
+      - 'tools/emit-training-contract-delta.js'
+      - 'tools/distill-studio-quality-gate.js'
+      - 'tools/verify-training-workload-packs.js'
+      - 'tools/publish-training-report-ids.js'
+      - 'tools/run-node-tests.js'
+      - 'tools/verify-training-provenance.js'
       - 'tools/configs/training-workloads/**'
       - '.github/workflows/training-contract-release-gate.yml'
   workflow_dispatch:
@@ -59,4 +59,4 @@ jobs:
         run: npm run ci:training:contract
 
       - name: Emit machine-readable contract delta artifact
-        run: node tools/emit-training-contract-delta.mjs --out /tmp/training-contract-delta.json --note github-actions
+        run: node tools/emit-training-contract-delta.js --out /tmp/training-contract-delta.json --note github-actions

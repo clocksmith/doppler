@@ -8,7 +8,7 @@ const tempDir = mkdtempSync(path.join(tmpdir(), 'doppler-training-report-id-pub-
 try {
   const outPath = path.join(tempDir, 'report-ids.json');
   const result = spawnSync(process.execPath, [
-    'tools/publish-training-report-ids.mjs',
+    'tools/publish-training-report-ids.js',
     '--registry',
     'tools/configs/training-workloads/registry.json',
     '--out',
@@ -42,7 +42,7 @@ try {
     ],
   }, null, 2), 'utf8');
   const badResult = spawnSync(process.execPath, [
-    'tools/publish-training-report-ids.mjs',
+    'tools/publish-training-report-ids.js',
     '--registry',
     badRegistryPath,
     '--out',

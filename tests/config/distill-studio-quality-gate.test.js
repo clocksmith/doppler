@@ -38,7 +38,7 @@ try {
   }, null, 2), 'utf8');
 
   const result = runNodeScript([
-    'tools/distill-studio-quality-gate.mjs',
+    'tools/distill-studio-quality-gate.js',
     '--report',
     reportPath,
     '--out-dir',

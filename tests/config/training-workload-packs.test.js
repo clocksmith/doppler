@@ -8,7 +8,7 @@ const tempDir = mkdtempSync(path.join(tmpdir(), 'doppler-training-workload-packs
 try {
   const outPath = path.join(tempDir, 'verify-output.json');
   const result = spawnSync(process.execPath, [
-    'tools/verify-training-workload-packs.mjs',
+    'tools/verify-training-workload-packs.js',
     '--registry',
     'tools/configs/training-workloads/registry.json',
     '--out',
@@ -41,7 +41,7 @@ try {
     // Generate a correct single-entry registry for that root
     const generatedRegistryPath = path.join(staleDir, 'registry.json');
     const writeResult = spawnSync(process.execPath, [
-      'tools/verify-training-workload-packs.mjs',
+      'tools/verify-training-workload-packs.js',
       '--root', rootDir,
       '--registry', generatedRegistryPath,
       '--write-registry',
@@ -70,7 +70,7 @@ try {
     writeFileSync(staleRegistryPath, JSON.stringify(staleRegistry, null, 2), 'utf8');
 
     const staleResult = spawnSync(process.execPath, [
-      'tools/verify-training-workload-packs.mjs',
+      'tools/verify-training-workload-packs.js',
       '--root', rootDir,
       '--registry', staleRegistryPath,
     ], {
