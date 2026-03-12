@@ -312,7 +312,10 @@ function resolveMatmulOverride(
   }
 
   const requiredWeightDtype = resolveRequiredWeightDtype(config);
-  if (requiredWeightDtype && bDtype !== requiredWeightDtype) {
+  const weightDtypeOk = !requiredWeightDtype
+    || bDtype === requiredWeightDtype
+    || (requiredWeightDtype === 'f16' && bDtype === 'q4k');
+  if (!weightDtypeOk) {
     return failOrWarn(
       `Matmul kernel "${variantOverride}" requires ${requiredWeightDtype} weights but B dtype is ${bDtype}.`
     );

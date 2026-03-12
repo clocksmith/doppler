@@ -210,8 +210,11 @@ function buildExternalBlock(entry, variant) {
   };
 }
 
-async function loadVariantManifestIdentity(variant) {
-  const manifestPath = normalizeText(variant?.manifestPath);
+async function loadVariantManifestIdentity(variant, volumeRoot) {
+  const relPath = normalizeText(variant?.pathRelativeToVolume);
+  const manifestPath = relPath
+    ? path.join(volumeRoot, relPath, 'manifest.json')
+    : normalizeText(variant?.manifestPath);
   if (!manifestPath) {
     return {
       manifestModelId: null,
@@ -230,7 +233,7 @@ async function loadVariantManifestIdentity(variant) {
   }
 }
 
-async function buildCatalogBackedEntries(catalog, variantsById) {
+async function buildCatalogBackedEntries(catalog, variantsById, volumeRoot) {
   const models = Array.isArray(catalog?.models) ? catalog.models : [];
   const entries = [];
   const matchedVariantIds = new Set();
@@ -255,7 +258,7 @@ async function buildCatalogBackedEntries(catalog, variantsById) {
       continue;
     }
     if (variant) {
-      const manifestIdentity = await loadVariantManifestIdentity(variant);
+      const manifestIdentity = await loadVariantManifestIdentity(variant, volumeRoot);
       matchedVariantIds.add(variant.rdrrModelId);
       entry.external = buildExternalBlock(entry, {
         ...variant,
@@ -335,7 +338,7 @@ export async function buildExternalSupportRegistry(args, generatedAt = new Date(
   );
   const flattenedVariants = flattenRdrrVariants(rdrrIndex);
   const variantsById = new Map(flattenedVariants.map((variant) => [variant.rdrrModelId, variant]));
-  const { entries, matchedVariantIds, errors } = await buildCatalogBackedEntries(sourceSupportRegistry, variantsById);
+  const { entries, matchedVariantIds, errors } = await buildCatalogBackedEntries(sourceSupportRegistry, variantsById, args.volumeRoot);
   if (errors.length > 0) {
     throw new Error(errors.join('\n'));
   }
