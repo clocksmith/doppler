@@ -202,7 +202,7 @@
           "result": "pass",
           "lastVerifiedAt": "2026-03-10",
           "source": "manual-review",
-          "notes": "Prompt: 'The color of the sky is' → ' a constant, but its appearance changes with the seasons.\\n\\nThe sky is blue during the summer, when the sun is high in the sky.\\nThe sky is red during the autumn, when the leaves change color.\\nThe sky is gray during the winter, when the sun is low in the sky.\\nThe' (64 tokens, temperature=0, topK=1). Fluent and stable; factual quality mixed but coherent. All contracts pass.",
+          "notes": "Prompt: 'The color of the sky is' \u2192 ' a constant, but its appearance changes with the seasons.\\n\\nThe sky is blue during the summer, when the sun is high in the sky.\\nThe sky is red during the autumn, when the leaves change color.\\nThe sky is gray during the winter, when the sun is low in the sky.\\nThe' (64 tokens, temperature=0, topK=1). Fluent and stable; factual quality mixed but coherent. All contracts pass.",
           "contracts": {
             "executionContractOk": true,
             "executionV0GraphOk": true
@@ -253,6 +253,55 @@
           "surface": "browser",
           "result": "pass",
           "lastVerifiedAt": "2026-03-06",
+          "source": "manual-review",
+          "contracts": {
+            "executionContractOk": true,
+            "executionV0GraphOk": true
+          }
+        }
+      }
+    },
+    {
+      "modelId": "translategemma-4b-1b-enes-q4k-ehf16-af32",
+      "preset": "translategemma",
+      "label": "TranslateGemma 4B→1B EN/ES Student (Q4K)",
+      "description": "Compact EN/ES translation student distilled from TranslateGemma 4B. Q4K weights, F16 embeddings/head. Local RDRR shards.",
+      "modes": [
+        "run"
+      ],
+      "aliases": [
+        "translategemma-4b-1b-enes",
+        "translategemma-student"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": {
+        "repoId": "Clocksmith/rdrr",
+        "revision": "f402801f40894982c131b53e5bfe738bfb00c431",
+        "path": "models/translategemma-4b-1b-enes-q4k-ehf16-af32"
+      },
+      "baseUrl": "./local/translategemma-4b-1b-enes-q4k-ehf16-af32",
+      "sizeBytes": 1025493248,
+      "recommended": false,
+      "sortOrder": 16,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": true,
+          "hf": true
+        },
+        "status": {
+          "runtime": "active",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "verified"
+        },
+        "tested": {
+          "suite": "debug",
+          "surface": "browser",
+          "result": "pass",
+          "lastVerifiedAt": "2026-03-12",
           "source": "manual-review",
           "contracts": {
             "executionContractOk": true,
@@ -353,7 +402,7 @@
           "result": "fail",
           "lastVerifiedAt": "2026-03-06",
           "source": "manual-review",
-          "notes": "Loads and runs but produces incoherent output. Same root cause as 0.8B variant — linear attention kernel correctness not yet verified."
+          "notes": "Loads and runs but produces incoherent output. Same root cause as 0.8B variant \u2014 linear attention kernel correctness not yet verified."
         }
       }
     }

@@ -1,34 +1,34 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-03-11",
+  "updatedAt": "2026-03-12",
   "summary": "Compact EN/ES student remains close enough to the teacher to matter in-browser.",
   "caution": "Result is specific to EN/ES translation and should not be generalized to all language pairs.",
   "teacher": {
-    "label": "Teacher",
+    "label": "Teacher (TranslateGemma 4B)",
     "modelId": "translategemma-4b-it-q4k-ehf16-af32",
     "bleu": 34.0474,
-    "chrf": 62.18,
+    "chrf": 61.0088,
     "sizeBytes": 3167327178
   },
   "student": {
-    "label": "Student",
-    "modelId": "translategemma-en-es-student-q4k-ehf16-af32",
-    "bleu": 32.4485,
-    "chrf": 60.71,
-    "sizeBytes": 892341221
+    "label": "Student (1B EN/ES, checkpoint-002000)",
+    "modelId": "translategemma-4b-1b-enes-q4k-ehf16-af32",
+    "bleu": 33.378,
+    "chrf": 58.8324,
+    "sizeBytes": 1025493248
   },
   "receipts": [
     {
-      "label": "scoreboard.md",
-      "href": "https://example.invalid/scoreboard.md"
-    },
-    {
       "label": "leaderboard.md",
-      "href": "https://example.invalid/leaderboard.md"
+      "href": "https://github.com/clocksmith/gamma/blob/main/projects/distillation/translation/runs/results_bundle/leaderboard.md"
     },
     {
-      "label": "scoreboard_eval_rows.csv",
-      "href": "https://example.invalid/scoreboard_eval_rows.csv"
+      "label": "leaderboard_all_compare_rows.csv",
+      "href": "https://github.com/clocksmith/gamma/blob/main/projects/distillation/translation/runs/results_bundle/leaderboard_all_compare_rows.csv"
+    },
+    {
+      "label": "pack_effect_analysis.md",
+      "href": "https://github.com/clocksmith/gamma/blob/main/projects/distillation/translation/runs/results_bundle/pack_effect_analysis.md"
     }
   ]
 }
