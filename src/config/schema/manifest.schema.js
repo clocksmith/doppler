@@ -40,7 +40,7 @@ export const DEFAULT_MANIFEST_INFERENCE = {
   schema: null,
   presetId: null,
   attention: {
-    queryPreAttnScalar: 8,  // sqrt(64) for standard 64-dim heads
+    queryPreAttnScalar: 64, // headDim for standard 64-dim heads; attnScale = 1/sqrt(scalar)
     attnLogitSoftcapping: null,  // No softcapping (null = disabled)
     slidingWindow: null,  // Full attention (null = no sliding window)
     queryKeyNorm: false,

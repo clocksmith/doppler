@@ -482,6 +482,20 @@ export function toParsedConfigFromMerged(merged, manifest) {
   const queryPreAttnScalar = inf.attention.queryPreAttnScalar;
   const causalAttention = inf.attention.causal;
 
+  // Cross-field sanity: queryPreAttnScalar should typically equal headDim.
+  // A value of sqrt(headDim) indicates a known converter bug that produces
+  // attnScale = 1/sqrt(sqrt(headDim)) instead of the correct 1/sqrt(headDim).
+  if (queryPreAttnScalar != null && headDim != null
+      && queryPreAttnScalar !== headDim
+      && Math.abs(queryPreAttnScalar - Math.sqrt(headDim)) < 0.01) {
+    throw new Error(
+      `Model "${merged.modelId}": queryPreAttnScalar (${queryPreAttnScalar}) ` +
+      `equals sqrt(headDim) instead of headDim (${headDim}). ` +
+      `This is a known converter bug — the manifest must be regenerated ` +
+      `with the corrected converter.`
+    );
+  }
+
   // Get stop token IDs (cast to Manifest for compatibility)
   const stopTokenIds = getStopTokenIds(manifest);
 
