@@ -1011,6 +1011,9 @@ const embeddingComputeF32Config = createConverterConfig({
       num_hidden_layers: 34,
       num_attention_heads: 8,
       num_key_value_heads: 4,
+      text_config: {
+        sliding_window: 1024,
+      },
       rope_parameters: {
         full_attention: {
           rope_type: 'linear',
@@ -1036,6 +1039,7 @@ const embeddingComputeF32Config = createConverterConfig({
   assert.equal(plan.modelType, 'transformer');
   assert.equal(plan.manifestInference?.chatTemplate?.type, 'translategemma');
   assert.equal(plan.manifestInference?.chatTemplate?.enabled, true);
+  assert.equal(plan.manifestInference?.attention?.slidingWindow, 1024);
 }
 
 {

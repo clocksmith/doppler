@@ -126,25 +126,40 @@ try {
     );
   }
 
-  // === Explicit paged + forceContiguousKVCache (TranslateGemma gap) ===
+  // === Explicit paged + forceContiguousKVCache must fail fast ===
   // When runtime config requests layout: 'paged' explicitly,
-  // but model has full-attention layers, forceContiguousKVCache blocks the threshold
-  // auto-upgrade but does NOT override an already-paged explicit config.
-  // The createKVCache function uses the explicit paged layout from runtime config.
+  // but model has full-attention layers, the runtime must reject the request
+  // with an actionable error instead of silently proceeding.
 
   {
-    const cache = createKVCache(
-      baseModelConfig({
-        layerTypes: ['full_attention'],
-      }),
-      false,
-      false,
-      baseRuntimeKV({ layout: 'paged' })
+    assert.throws(
+      () => createKVCache(
+        baseModelConfig({
+          layerTypes: ['full_attention'],
+        }),
+        false,
+        false,
+        baseRuntimeKV({ layout: 'paged' })
+      ),
+      /Paged KV cache layout is not supported for models with full-attention layers/,
+      'Explicit paged layout with full-attention layers must throw'
     );
-    assert.equal(
-      cache.layout,
-      'paged',
-      'Explicit paged layout from runtime config should be respected even with full-attention layers'
+  }
+
+  // Mixed attention (full + sliding) must also reject explicit paged
+  {
+    assert.throws(
+      () => createKVCache(
+        baseModelConfig({
+          layerTypes: ['sliding_attention', 'full_attention'],
+          slidingWindow: 1024,
+        }),
+        false,
+        false,
+        baseRuntimeKV({ layout: 'paged' })
+      ),
+      /Paged KV cache layout is not supported for models with full-attention layers/,
+      'Explicit paged layout with mixed attention must throw'
     );
   }
 

@@ -1,18 +1,7 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-03-10",
+  "updatedAt": "2026-03-12",
   "claims": [
-    {
-      "modelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
-      "mode": "embedding",
-      "surface": "auto",
-      "verificationSource": "registry-verify",
-      "lastVerifiedAt": "2026-03-04",
-      "artifactFormat": "rdrr",
-      "evidence": {
-        "kind": "registry-verify"
-      }
-    },
     {
       "modelId": "gemma-3-1b-it-f16-af32",
       "mode": "run",
@@ -26,15 +15,38 @@
       }
     },
     {
-      "modelId": "translategemma-4b-it-q4k-ehf16-af32",
+      "modelId": "gemma-3-1b-it-q4k-ehf16-af32",
       "mode": "run",
       "surface": "browser",
       "verificationSource": "manual-review",
-      "lastVerifiedAt": "2026-03-06",
+      "lastVerifiedAt": "2026-03-12",
       "artifactFormat": "rdrr",
       "evidence": {
         "kind": "manual-report",
-        "reportPath": "reports/translategemma-4b-it-q4k-ehf16-af32/2026-03-09T00-42-54.145Z.json"
+        "reportPath": "reports/gemma-3-1b-it-q4k-ehf16-af32/2026-03-12T19-47-39.080Z.json"
+      }
+    },
+    {
+      "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
+      "mode": "run",
+      "surface": "browser",
+      "verificationSource": "manual-review",
+      "lastVerifiedAt": "2026-03-12",
+      "artifactFormat": "rdrr",
+      "evidence": {
+        "kind": "manual-report",
+        "reportPath": "reports/gemma-3-270m-it-q4k-ehf16-af32/2026-03-12T19-47-22.710Z.json"
+      }
+    },
+    {
+      "modelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
+      "mode": "embedding",
+      "surface": "auto",
+      "verificationSource": "registry-verify",
+      "lastVerifiedAt": "2026-03-04",
+      "artifactFormat": "rdrr",
+      "evidence": {
+        "kind": "registry-verify"
       }
     }
   ]

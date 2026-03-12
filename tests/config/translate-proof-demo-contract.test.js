@@ -14,9 +14,9 @@ assert.match(
   demoSource,
   /id: 'proof'[\s\S]*left: Object\.freeze\(\{ engine: 'transformersjs', role: 'mapped-baseline' \}\),[\s\S]*right: Object\.freeze\(\{ engine: 'doppler', role: 'student' \}\),/
 );
-assert.doesNotMatch(
+assert.match(
   demoSource,
-  /Baseline parity is currently unsupported in public TJS ONNX exports\./
+  /TRANSLATE_COMPARE_TJS_BASELINE_NOTE = 'Baseline parity is currently unsupported in public TJS ONNX exports\.'/
 );
 
 const translategemmaProfile = (Array.isArray(compareConfig.modelProfiles) ? compareConfig.modelProfiles : [])
@@ -24,7 +24,7 @@ const translategemmaProfile = (Array.isArray(compareConfig.modelProfiles) ? comp
 
 assert.ok(translategemmaProfile, 'compare profiles must include the TranslateGemma baseline mapping');
 assert.equal(translategemmaProfile.defaultTjsModelId, 'onnx-community/translategemma-text-4b-it-ONNX');
-assert.equal(translategemmaProfile.defaultKernelPath, 'gemma3-q4k-dequant-f16a-online');
+assert.equal(translategemmaProfile.defaultKernelPath, 'gemma3-q4k-dequant-f32a-online');
 assert.equal(translategemmaProfile.defaultDopplerSurface, 'auto');
 
 console.log('translate-proof-demo-contract.test: ok');

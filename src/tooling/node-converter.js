@@ -875,6 +875,7 @@ export async function convertSafetensorsDirectory(options) {
   let sourceQuantization = null;
   let tokenizerJson = null;
   let tokenizerConfig = null;
+  let generationConfig = null;
   let hasTokenizerModel = false;
   let tokenizerModelPath = null;
   let diffusionAuxFiles = [];
@@ -1101,6 +1102,7 @@ export async function convertSafetensorsDirectory(options) {
       },
     });
     config = parsedTransformer.config;
+    generationConfig = parsedTransformer.generationConfig ?? null;
     tensors = parsedTransformer.tensors;
     architectureHint = parsedTransformer.architectureHint;
     architecture = extractArchitecture(config, null);
@@ -1169,6 +1171,7 @@ export async function convertSafetensorsDirectory(options) {
     quantization: targetQuantization,
     tokenizerJson,
     tokenizerConfig,
+    generationConfig,
     tokenizerModel: hasTokenizerModel ? 'tokenizer.model' : null,
   };
 

@@ -32,6 +32,7 @@ export interface ParsedModelSchema {
   config: RawModelConfigSchema;
   architecture?: string;
   quantization?: string;
+  generationConfig?: unknown;
   tokenizerJson?: unknown;
   tokenizerConfig?: unknown;
   tokenizerModel?: unknown;

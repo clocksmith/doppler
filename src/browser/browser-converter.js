@@ -408,6 +408,7 @@ export async function convertModel(files, options = {}) {
     // Parse based on format
     let modelInfo;
     let config = null;
+    let generationConfig = null;
     let tokenizerJson = null;
     let tokenizerConfig = null;
     let tokenizerModel = null;
@@ -454,6 +455,10 @@ export async function convertModel(files, options = {}) {
       if (auxiliary.tokenizerConfig) {
         tokenizerConfig = await parseTokenizerConfigJson(auxiliary.tokenizerConfig);
         modelInfo.tokenizerConfig = tokenizerConfig;
+      }
+      if (auxiliary.generationConfig) {
+        generationConfig = await parseConfigJson(auxiliary.generationConfig);
+        modelInfo.generationConfig = generationConfig;
       }
       if (auxiliary.tokenizerModel) {
         const source = normalizeTensorSource(auxiliary.tokenizerModel);

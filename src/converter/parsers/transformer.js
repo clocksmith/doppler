@@ -7,6 +7,9 @@ export async function parseTransformerModel(adapter) {
   } = adapter;
 
   const config = await readJson('config.json', 'config.json');
+  const generationConfig = await fileExists('generation_config.json')
+    ? await readJson('generation_config.json', 'generation_config.json')
+    : null;
   const architectureHint = config.architectures?.[0] ?? config.model_type ?? '';
 
   let tensors = null;
@@ -19,6 +22,7 @@ export async function parseTransformerModel(adapter) {
 
   return {
     config,
+    generationConfig,
     tensors,
     architectureHint,
   };
