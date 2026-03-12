@@ -254,11 +254,9 @@ async function runDecodeLayers(state, tokenId, opts, helpers) {
     throw new Error('Embed buffer not found or not a supported buffer type');
   }
   const embedBuffer = isWeightBuffer(embedBufferRaw) ? embedBufferRaw.buffer : embedBufferRaw;
-  const embedDtype = isWeightBuffer(embedBufferRaw)
-    ? getWeightDtype(embedBufferRaw)
-    : isCpuWeightBuffer(embedBufferRaw)
-      ? embedBufferRaw.dtype
-      : null;
+  const embedDtype = isCpuWeightBuffer(embedBufferRaw)
+    ? embedBufferRaw.dtype
+    : getWeightDtype(embedBufferRaw);
   const activationDtype = getEffectiveActivationDtype(state, opts);
 
   const embedTensor = await embed([tokenId], embedBuffer, {
@@ -340,11 +338,9 @@ export async function decodeStep(state, currentIds, opts, helpers) {
     throw new Error('Embed buffer not found or not a supported buffer type');
   }
   const embedBuffer = isWeightBuffer(embedBufferRaw) ? embedBufferRaw.buffer : embedBufferRaw;
-  const embedDtype = isWeightBuffer(embedBufferRaw)
-    ? getWeightDtype(embedBufferRaw)
-    : isCpuWeightBuffer(embedBufferRaw)
-      ? embedBufferRaw.dtype
-      : null;
+  const embedDtype = isCpuWeightBuffer(embedBufferRaw)
+    ? embedBufferRaw.dtype
+    : getWeightDtype(embedBufferRaw);
   const activationDtype = getEffectiveActivationDtype(state, opts);
   const activationBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: activationDtype });
 
@@ -1005,7 +1001,7 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
       throw new Error('Embed buffer not found or not a GPUBuffer/WeightBuffer');
     }
     const embedBuffer = isWeightBuffer(embedBufferRaw) ? embedBufferRaw.buffer : embedBufferRaw;
-    const embedDtype = isWeightBuffer(embedBufferRaw) ? getWeightDtype(embedBufferRaw) : null;
+    const embedDtype = getWeightDtype(embedBufferRaw);
     const activationDtype = getEffectiveActivationDtype(state, opts);
 
     for (let i = 0; i < N; i++) {

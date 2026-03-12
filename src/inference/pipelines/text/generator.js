@@ -918,11 +918,9 @@ export class PipelineGenerator {
       throw new Error('Embed buffer not found or not a supported buffer type');
     }
     const embedBuffer = isWeightBuffer(embedBufferRaw) ? embedBufferRaw.buffer : embedBufferRaw;
-    const embedDtype = isWeightBuffer(embedBufferRaw)
-      ? getWeightDtype(embedBufferRaw)
-      : isCpuWeightBuffer(embedBufferRaw)
-        ? embedBufferRaw.dtype
-        : null;
+    const embedDtype = isCpuWeightBuffer(embedBufferRaw)
+      ? embedBufferRaw.dtype
+      : getWeightDtype(embedBufferRaw);
     if (opts.debug) {
       const embedSize = embedBuffer instanceof GPUBuffer ? embedBuffer.size : 'N/A';
       log.debug('Pipeline', `Embed buffer: type=${embedBuffer?.constructor?.name}, size=${embedSize}, dtype=${embedDtype}`);
