@@ -31,7 +31,7 @@ function runNodeScript(args) {
 {
   const result = runNodeScript(['tools/verify-training-provenance.js']);
   assert.equal(result.code, 1);
-  assert.match(result.stderr, /Usage: node tools\/verify-training-provenance\.mjs --manifest/);
+  assert.match(result.stderr, /Usage: node tools\/verify-training-provenance\.js --manifest/);
 }
 
 {
