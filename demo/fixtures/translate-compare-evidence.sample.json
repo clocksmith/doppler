@@ -12,7 +12,7 @@
   },
   "student": {
     "label": "Student (1B EN/ES, checkpoint-002000)",
-    "modelId": "translategemma-1b-enes-q4k-ehf16-af32",
+    "modelId": "translategemma-4b-1b-enes-q4k-ehf16-af32",
     "bleu": 33.378,
     "chrf": 58.8324,
     "sizeBytes": 1025493248
@@ -20,15 +20,15 @@
   "receipts": [
     {
       "label": "leaderboard.md",
-      "href": "https://example.invalid/leaderboard.md"
+      "href": "https://github.com/clocksmith/gamma/blob/main/projects/distillation/translation/runs/results_bundle/leaderboard.md"
     },
     {
-      "label": "scoreboard_eval_rows.csv",
-      "href": "https://example.invalid/scoreboard_eval_rows.csv"
+      "label": "leaderboard_all_compare_rows.csv",
+      "href": "https://github.com/clocksmith/gamma/blob/main/projects/distillation/translation/runs/results_bundle/leaderboard_all_compare_rows.csv"
     },
     {
       "label": "pack_effect_analysis.md",
-      "href": "https://example.invalid/pack_effect_analysis.md"
+      "href": "https://github.com/clocksmith/gamma/blob/main/projects/distillation/translation/runs/results_bundle/pack_effect_analysis.md"
     }
   ]
 }

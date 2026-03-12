@@ -262,22 +262,26 @@
       }
     },
     {
-      "modelId": "translategemma-1b-enes-q4k-ehf16-af32",
+      "modelId": "translategemma-4b-1b-enes-q4k-ehf16-af32",
       "preset": "translategemma",
-      "label": "TranslateGemma 1B EN/ES Student (Q4K)",
+      "label": "TranslateGemma 4B→1B EN/ES Student (Q4K)",
       "description": "Compact EN/ES translation student distilled from TranslateGemma 4B. Q4K weights, F16 embeddings/head. Local RDRR shards.",
       "modes": [
         "run"
       ],
       "aliases": [
-        "translategemma-1b-enes",
+        "translategemma-4b-1b-enes",
         "translategemma-student"
       ],
       "artifact": {
         "format": "rdrr"
       },
-      "hf": null,
-      "baseUrl": "./local/translategemma-1b-enes-q4k-ehf16-af32",
+      "hf": {
+        "repoId": "Clocksmith/rdrr",
+        "revision": "f402801f40894982c131b53e5bfe738bfb00c431",
+        "path": "models/translategemma-4b-1b-enes-q4k-ehf16-af32"
+      },
+      "baseUrl": "./local/translategemma-4b-1b-enes-q4k-ehf16-af32",
       "sizeBytes": 1025493248,
       "recommended": false,
       "sortOrder": 16,
@@ -285,7 +289,7 @@
         "availability": {
           "curated": false,
           "local": true,
-          "hf": false
+          "hf": true
         },
         "status": {
           "runtime": "active",
