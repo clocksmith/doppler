@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 const {
   runP2PResilienceDrillCli,
-} = await import('../../tools/p2p-resilience-drill.mjs');
+} = await import('../../tools/p2p-resilience-drill.js');
 
 const report = await runP2PResilienceDrillCli(['--stage', 'canary', '--json']);
 assert.equal(report.stage, 'canary');

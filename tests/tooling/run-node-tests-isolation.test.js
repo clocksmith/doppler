@@ -24,7 +24,7 @@ try {
   );
 
   const result = spawnSync(process.execPath, [
-    'tools/run-node-tests.mjs',
+    'tools/run-node-tests.js',
     tempDir,
     '--force-exit',
   ], {

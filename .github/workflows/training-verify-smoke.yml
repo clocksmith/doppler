@@ -8,9 +8,9 @@ on:
       - 'src/training/**'
       - 'tests/config/**'
       - 'tests/integration/**'
-      - 'tools/run-node-tests.mjs'
-      - 'tools/run-node-test-file.mjs'
-      - 'tools/node-test-runtime-setup.mjs'
+      - 'tools/run-node-tests.js'
+      - 'tools/run-node-test-file.js'
+      - 'tools/node-test-runtime-setup.js'
       - 'package.json'
       - '.github/workflows/training-verify-smoke.yml'
   push:
@@ -21,9 +21,9 @@ on:
       - 'src/training/**'
       - 'tests/config/**'
       - 'tests/integration/**'
-      - 'tools/run-node-tests.mjs'
-      - 'tools/run-node-test-file.mjs'
-      - 'tools/node-test-runtime-setup.mjs'
+      - 'tools/run-node-tests.js'
+      - 'tools/run-node-test-file.js'
+      - 'tools/node-test-runtime-setup.js'
       - 'package.json'
       - '.github/workflows/training-verify-smoke.yml'
   workflow_dispatch:
@@ -46,7 +46,7 @@ jobs:
         run: npm ci
 
       - name: Run verify-path contract tests
-        run: node tools/run-node-tests.mjs tests/integration/command-api.test.js tests/integration/command-runner-shared.test.js tests/integration/training-command-malformed-surface.test.js tests/integration/browser-harness-dispatch-map.test.js tests/integration/ul-command-threading-parity.test.js
+        run: node tools/run-node-tests.js tests/integration/command-api.test.js tests/integration/command-runner-shared.test.js tests/integration/training-command-malformed-surface.test.js tests/integration/browser-harness-dispatch-map.test.js tests/integration/ul-command-threading-parity.test.js
 
       - name: Run UL/training schema tests
-        run: node tools/run-node-tests.mjs tests/config/ul-training-schema.test.js tests/config/training-metrics-schema.test.js tests/config/training-telemetry-config-merge.test.js tests/config/ul-stage1-objective.test.js tests/config/ul-stage2-objective.test.js
+        run: node tools/run-node-tests.js tests/config/ul-training-schema.test.js tests/config/training-metrics-schema.test.js tests/config/training-telemetry-config-merge.test.js tests/config/ul-stage1-objective.test.js tests/config/ul-stage2-objective.test.js

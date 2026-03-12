@@ -14,7 +14,7 @@ function run(args) {
 {
   const missingDir = path.join(tmpdir(), 'doppler-missing-tests-path');
   const result = run([
-    'tools/run-node-tests.mjs',
+    'tools/run-node-tests.js',
     missingDir,
   ]);
   assert.notEqual(result.status, 0);
@@ -24,7 +24,7 @@ function run(args) {
 {
   const missingDir = path.join(tmpdir(), 'doppler-missing-coverage-path');
   const result = run([
-    'tools/run-node-coverage.mjs',
+    'tools/run-node-coverage.js',
     missingDir,
   ]);
   assert.notEqual(result.status, 0);
@@ -51,7 +51,7 @@ function run(args) {
     }), 'utf8');
 
     const result = run([
-      'tools/run-node-coverage.mjs',
+      'tools/run-node-coverage.js',
       '--policy',
       policyFile,
       testFile,
