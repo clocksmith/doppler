@@ -36,6 +36,8 @@ class FakeBuffer {
   }
 }
 
+globalThis.GPUBuffer = FakeBuffer;
+
 function createFakeDevice(options = {}) {
   const createdBuffers = [];
   return {
@@ -178,6 +180,48 @@ const PIPELINE_FAILURE = /shader-f16|createShaderModule|createComputePipeline|cr
   await flushDeferredDestroy();
   assertPoolClean();
   assert.equal(device.createdBuffers[0]?.destroyed, true);
+}
+
+{
+  const device = createFakeDevice({ withShaders: true, features: ['shader-f16'] });
+  resetRuntimeState(device);
+
+  const result = await loadBF16(
+    new Uint8Array([1, 0, 2, 0]),
+    { size: 4, shape: [1, 2], dtype: 'BF16', role: 'matmul' },
+    'bf16_matmul_f16',
+    {
+      gpuCapabilities: { hasF16: true },
+      keepF32Weights: false,
+    }
+  );
+
+  assert.equal(result.data.dtype, 'f16');
+  assert.ok(result.data.buffer.size >= 4);
+  assert.equal(result.allocatedBuffers.length, 1);
+  assert.equal(result.allocatedBuffers[0], result.data.buffer);
+  resetRuntimeState(null);
+}
+
+{
+  const device = createFakeDevice({ withShaders: true, features: ['shader-f16'] });
+  resetRuntimeState(device);
+
+  const result = await loadBF16(
+    new Uint8Array([1, 0, 2, 0]),
+    { size: 4, shape: [1, 2], dtype: 'BF16', role: 'matmul' },
+    'bf16_matmul_f32',
+    {
+      gpuCapabilities: { hasF16: true },
+      keepF32Weights: true,
+    }
+  );
+
+  assert.equal(result.data.dtype, 'f32');
+  assert.ok(result.data.buffer.size >= 8);
+  assert.equal(result.allocatedBuffers.length, 1);
+  assert.equal(result.allocatedBuffers[0], result.data.buffer);
+  resetRuntimeState(null);
 }
 
 {

@@ -309,8 +309,9 @@ export async function loadBF16(shardData, location, name, config) {
     const numElements = location.size / 2;
     const caps = config.gpuCapabilities || getKernelCapabilities();
     const isMatmulWeight = shouldDequantizeToF16(location);
+    const keepF32Weights = config.keepF32Weights === true;
 
-    if (caps?.hasF16 && isMatmulWeight) {
+    if (caps?.hasF16 && isMatmulWeight && !keepF32Weights) {
       const f16Tensor = await runBF16ToF16(srcBuffer, [numElements], name);
       resultBuffer = f16Tensor.buffer;
       releaseOwnedGpuBuffer(srcBuffer, ownsSrcBuffer);
@@ -325,6 +326,10 @@ export async function loadBF16(shardData, location, name, config) {
         data: createWeightBuffer(f16Tensor.buffer, 'f16', layout, location.shape, name),
         allocatedBuffers: [f16Tensor.buffer],
       };
+    }
+
+    if (isMatmulWeight && keepF32Weights) {
+      debugTrace.loader(`Keeping BF16 matmul weight in f32: ${name} (keepF32Weights=true)`);
     }
 
     const dstBuffer = await convertBF16ToF32GPU(srcBuffer, numElements, name);
