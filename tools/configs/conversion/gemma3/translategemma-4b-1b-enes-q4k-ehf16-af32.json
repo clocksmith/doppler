@@ -1,7 +1,7 @@
 {
   "output": {
     "baseDir": "models/local",
-    "modelBaseId": "translategemma-1b-enes-q4k-ehf16-af32"
+    "modelBaseId": "translategemma-4b-1b-enes-q4k-ehf16-af32"
   },
   "presets": {
     "model": "translategemma"

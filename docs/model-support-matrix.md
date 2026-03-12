@@ -17,7 +17,7 @@ This section answers "which models work now?" from `models/catalog.json` lifecyc
 | google-embeddinggemma-300m-q4k-ehf16-af32 | embeddinggemma | embedding | 2026-03-04 | auto | - |
 | gemma-3-1b-it-f16-af32 | gemma3 | run | 2026-03-10 | browser | Prompt: 'The color of the sky is' → ' a constant, but its appearance changes with the seasons.\n\nThe sky is blue during the summer, when the sun is high in the sky.\nThe sky is red during the autumn, when the leaves change color.\nThe sky is gray during the winter, when the sun is low in the sky.\nThe' (64 tokens, temperature=0, topK=1). Fluent and stable; factual quality mixed but coherent. All contracts pass. |
 | translategemma-4b-it-q4k-ehf16-af32 | translategemma | run | 2026-03-06 | browser | - |
-| translategemma-1b-enes-q4k-ehf16-af32 | translategemma | run | 2026-03-12 | browser | - |
+| translategemma-4b-1b-enes-q4k-ehf16-af32 | translategemma | run | 2026-03-12 | browser | - |
 
 ### 2. Loads But Unverified
 
@@ -64,7 +64,7 @@ None right now.
 | modernbert | embedding | active | 1 (tools/configs/conversion/modernbert/modernbert-template-f16.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
 | diffusion | diffusion | active | 2 (tools/configs/conversion/diffusion/diffusion-template-f16.json, tools/configs/conversion/sana/sana-sprint-0.6b-f16.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
 | gemma2 | transformer | active | 1 (tools/configs/conversion/gemma2/gemma2-template-f16.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
-| translategemma | transformer | active | 2 (tools/configs/conversion/gemma3/translategemma-1b-enes-q4k-ehf16-af32.json, tools/configs/conversion/gemma3/translategemma-4b-it-q4k-ehf16-af32.json) | 2 (translategemma-1b-enes-q4k-ehf16-af32, translategemma-4b-it-q4k-ehf16-af32) | yes | none | verified (2026-03-12) | verified | - |
+| translategemma | transformer | active | 2 (tools/configs/conversion/gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32.json, tools/configs/conversion/gemma3/translategemma-4b-it-q4k-ehf16-af32.json) | 2 (translategemma-4b-1b-enes-q4k-ehf16-af32, translategemma-4b-it-q4k-ehf16-af32) | yes | none | verified (2026-03-12) | verified | - |
 | gemma3 | transformer | active | 9 (tools/configs/conversion/gemma3/gemma-3-1b-it-f16-af32.json, tools/configs/conversion/gemma3/gemma-3-1b-it-f16.json, tools/configs/conversion/gemma3/gemma-3-1b-it-q4k-ehaf16.json, +6 more) | 3 (gemma-3-1b-it-f16-af32, gemma-3-1b-it-q4k-ehf16-af32, gemma-3-270m-it-q4k-ehf16-af32) | yes | curated | partially failing (2/3) | verification-failed | catalog verification applies only to cataloged models (3/9 conversion configs cataloged); partial verification (1/3 catalog models verified); mixed verification state (2/3 catalog models failing) |
 | llama3 | transformer | active | 1 (tools/configs/conversion/llama3/llama3-template-f16.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
 | lfm2 | transformer | active | 2 (tools/configs/conversion/lfm2/lfm2.5-1.2b-instruct-q4k-ehaf16.json, tools/configs/conversion/lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |

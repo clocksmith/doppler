@@ -38,7 +38,7 @@
             "defaultDopplerSurface": "auto"
         },
         {
-            "dopplerModelId": "translategemma-1b-enes-q4k-ehf16-af32",
+            "dopplerModelId": "translategemma-4b-1b-enes-q4k-ehf16-af32",
             "defaultTjsModelId": null,
             "defaultKernelPath": "gemma3-q4k-dequant-f32a-online",
             "modelBaseDir": "local",
