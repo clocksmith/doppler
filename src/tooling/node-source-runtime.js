@@ -411,6 +411,20 @@ function buildNodeFileReaders() {
   };
 }
 
+// Source dtype → compute precision mapping for source-runtime inference.
+// BF16/F32 sources require f32 compute (BF16 has no native WebGPU support).
+// Quantized formats require f32 compute for dequantization accuracy.
+// F16 sources can use f16 compute directly.
+const SOURCE_QUANT_COMPUTE_MAP = {
+  'F16': 'f16',
+  'BF16': 'f32',
+  'F32': 'f32',
+  'Q4_K': 'f32',
+  'Q4_K_M': 'f32',
+  'Q6_K': 'f32',
+};
+const SOURCE_COMPUTE_DEFAULT = 'f16';
+
 function resolveSourceRuntimeComputePrecision(tensors, sourceQuantization) {
   const dtypes = new Set();
   for (const tensor of Array.isArray(tensors) ? tensors : []) {
@@ -419,18 +433,15 @@ function resolveSourceRuntimeComputePrecision(tensors, sourceQuantization) {
       dtypes.add(dtype);
     }
   }
-  if (dtypes.has('BF16') || dtypes.has('F32')) {
-    return 'f32';
+  // If any tensor requires f32 compute, use f32 for all.
+  for (const dtype of dtypes) {
+    if (SOURCE_QUANT_COMPUTE_MAP[dtype] === 'f32') {
+      return 'f32';
+    }
   }
 
   const normalized = String(sourceQuantization || '').trim().toUpperCase();
-  if (normalized === 'F16') {
-    return 'f16';
-  }
-  if (normalized === 'Q4_K' || normalized === 'Q4_K_M' || normalized === 'Q6_K') {
-    return 'f32';
-  }
-  return 'f16';
+  return SOURCE_QUANT_COMPUTE_MAP[normalized] ?? SOURCE_COMPUTE_DEFAULT;
 }
 
 async function addHashesToFileEntries(entries, hashAlgorithm) {

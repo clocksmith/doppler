@@ -4322,6 +4322,80 @@
         }
       }
     },
+    "split_qg": {
+      "description": "De-interleave Q and Gate projections from q_proj output for attentionOutputGate models",
+      "baseBindings": [
+        {
+          "index": 0,
+          "name": "uniforms",
+          "type": "uniform"
+        },
+        {
+          "index": 1,
+          "name": "qg_interleaved",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 2,
+          "name": "Q",
+          "type": "storage"
+        },
+        {
+          "index": 3,
+          "name": "G",
+          "type": "storage"
+        }
+      ],
+      "baseUniforms": {
+        "size": 16,
+        "fields": [
+          {
+            "name": "num_tokens",
+            "type": "u32",
+            "offset": 0
+          },
+          {
+            "name": "num_heads",
+            "type": "u32",
+            "offset": 4
+          },
+          {
+            "name": "head_dim",
+            "type": "u32",
+            "offset": 8
+          },
+          {
+            "name": "_pad",
+            "type": "u32",
+            "offset": 12
+          }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "split_qg.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": []
+        },
+        "f16": {
+          "wgsl": "split_qg_f16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ]
+        }
+      }
+    },
     "sample": {
       "description": "GPU-side sampling kernels",
       "baseBindings": [

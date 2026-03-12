@@ -1,0 +1,513 @@
+{
+  "suite": "debug",
+  "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+  "runtimePreset": null,
+  "deviceInfo": {
+    "hasSubgroups": true,
+    "hasSubgroupsF16": false,
+    "hasF16": true,
+    "hasTimestampQuery": true,
+    "maxBufferSize": 14302248960,
+    "maxWorkgroupSize": 1024,
+    "maxWorkgroupStorageSize": 32768,
+    "adapterInfo": {
+      "vendor": "apple",
+      "architecture": "metal-3",
+      "device": "apple-m3",
+      "description": "Metal driver on macOS Version 26.3 (Build 25D125)"
+    }
+  },
+  "results": [
+    {
+      "name": "generation",
+      "passed": false,
+      "duration": 5737.070542000001,
+      "error": "Output dominated by padding or special tokens"
+    }
+  ],
+  "durationMs": 57728.570583,
+  "timestamp": "2026-03-13T02:07:21.118Z",
+  "metrics": {
+    "prompt": "What color is the sky on a clear day? Answer in one word.",
+    "maxTokens": 2,
+    "tokensGenerated": 2,
+    "tokensPerSec": 0.35,
+    "totalRunMs": 5736.52,
+    "firstTokenMs": 4827.69,
+    "firstResponseMs": 56815.01,
+    "prefillMs": 4662.92,
+    "decodeMs": 908.32,
+    "prefillTokens": 15,
+    "decodeTokens": 2,
+    "prefillTokensPerSec": 3.22,
+    "prefillTokensPerSecTtft": 3.11,
+    "decodeTokensPerSec": 2.2,
+    "modelLoadMs": 51987.32,
+    "gpu": {
+      "decodeRecordMs": 0,
+      "decodeSubmitWaitMs": 0,
+      "decodeReadbackWaitMs": 0
+    },
+    "decodeProfileSteps": [],
+    "generationDiagnostics": {
+      "preview": [
+        {
+          "id": 271,
+          "text": "\n\n",
+          "fallbackText": "\n\n"
+        },
+        {
+          "id": 271,
+          "text": "\n\n",
+          "fallbackText": "\n\n"
+        }
+      ],
+      "total": 2,
+      "omitted": 0,
+      "emptyTextCount": 0,
+      "specialLikeTextCount": 0,
+      "specialLikeFallbackCount": 0
+    },
+    "schemaVersion": 1,
+    "source": "doppler",
+    "suite": "debug",
+    "executionContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "qwen-3-5-0-8b-q4k-ehaf16.steps",
+          "ok": true
+        },
+        {
+          "id": "qwen-3-5-0-8b-q4k-ehaf16.session",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "session": {
+        "layout": "contiguous",
+        "disableCommandBatching": true,
+        "decodeBatchSize": 4,
+        "headDim": 256,
+        "kvLen": 262144,
+        "coldQuantMode": "none"
+      },
+      "steps": {
+        "total": 0,
+        "attention": 0,
+        "attentionPhases": {
+          "prefill": 0,
+          "decode": 0,
+          "both": 0
+        }
+      }
+    },
+    "executionV0GraphContractArtifact": null,
+    "layerPatternContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "inference.layerPattern.patternKind.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.patternKind.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.even",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.odd",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_offset",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_negative_offset",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "patternKindRules": 4,
+        "layerTypeRules": 6,
+        "patternKindContexts": 16,
+        "layerTypeContexts": 12
+      }
+    },
+    "requiredInferenceFieldsArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "scope": "manifest",
+      "label": "qwen-3-5-0-8b-q4k-ehaf16.inference",
+      "ok": true,
+      "checks": [
+        {
+          "id": "qwen-3-5-0-8b-q4k-ehaf16.inference.requiredInferenceFields",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "fieldCases": 35,
+        "nullableCases": 16,
+        "nonNullableCases": 19
+      }
+    }
+  },
+  "output": "\n\n\n\n",
+  "memory": {
+    "used": 1164190976,
+    "pool": {
+      "allocations": 465,
+      "reuses": 1294,
+      "totalBytesAllocated": 962864384,
+      "peakBytesAllocated": 962864384,
+      "currentBytesAllocated": 962864384,
+      "totalBytesRequested": 883293440,
+      "peakBytesRequested": 881065984,
+      "currentBytesRequested": 880009216,
+      "activeBuffers": 430,
+      "pooledBuffers": 35,
+      "budgetMaxBytes": 0,
+      "budgetUtilization": 0,
+      "hitRate": "73.6%"
+    },
+    "kvCache": {
+      "theoretical": 201326592,
+      "allocated": 201326592,
+      "used": 786432,
+      "efficiency": 0.00390625,
+      "seqLen": 16,
+      "maxSeqLen": 4096,
+      "layout": "contiguous"
+    }
+  },
+  "debugSnapshot": {
+    "timestamp": "2026-03-13T02:08:18.848Z",
+    "logLevel": "INFO",
+    "traceCategories": [],
+    "enabledModules": [],
+    "disabledModules": [],
+    "recentLogs": [
+      {
+        "time": "51853.8",
+        "level": "VERBOSE",
+        "module": "Loader",
+        "message": "  Layer 19: 0.00s"
+      },
+      {
+        "time": "51859.4",
+        "level": "VERBOSE",
+        "module": "Loader",
+        "message": "  Layer 20: 0.01s"
+      },
+      {
+        "time": "51863.5",
+        "level": "VERBOSE",
+        "module": "Loader",
+        "message": "  Layer 21: 0.00s"
+      },
+      {
+        "time": "51874.8",
+        "level": "VERBOSE",
+        "module": "Loader",
+        "message": "  Layer 22: 0.00s"
+      },
+      {
+        "time": "51881.9",
+        "level": "VERBOSE",
+        "module": "Loader",
+        "message": "  Layer 23: 0.01s"
+      },
+      {
+        "time": "51895.8",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Layers: 24 complete (16.48s)"
+      },
+      {
+        "time": "51896.0",
+        "level": "VERBOSE",
+        "module": "Loader",
+        "message": "gpu_transfer: 85% - Loading final weights..."
+      },
+      {
+        "time": "51896.9",
+        "level": "VERBOSE",
+        "module": "Loader",
+        "message": "complete: 100%"
+      },
+      {
+        "time": "51896.9",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Complete: 240.29 MB in 51.18s (4.69 MB/s)"
+      },
+      {
+        "time": "51897.3",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "[51.2s] Memory (complete): | GPU=829.05 MB (320 active, 6 pooled, peak=829.05 MB) | ShardCache=0 B (0 shards) | Layers=24, GPUBuffers=320"
+      },
+      {
+        "time": "52171.2",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Model loaded successfully"
+      },
+      {
+        "time": "52171.3",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "Pipeline ready"
+      },
+      {
+        "time": "52194.1",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "Layer routing: layerType=linear_attention, isConv=false, isLinear=true, isLocal=false, hasLocalCos=false, hasLocalSin=false"
+      },
+      {
+        "time": "52287.8",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "matmul variant=q4_fused_batched reason=q4k_fused"
+      },
+      {
+        "time": "52405.0",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "PROBE linear_qkv stage=linear_qkv_proj token=14 values=[0=-0.0291, 1=-0.0343, 2=-0.0287, 3=1.4093, 2048=0.3465, 2049=-0.0237, 4096=0.0205, 4097=-0.0819, 6143=0.1934]"
+      },
+      {
+        "time": "52408.4",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "PROBE linear_z stage=linear_z_proj token=14 values=[0=-0.1653, 1=0.1284, 2=-0.0567, 3=0.0387, 1024=-0.3624, 1025=-0.0833, 2047=-0.1662]"
+      },
+      {
+        "time": "52414.2",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "PROBE linear_a stage=linear_a_proj token=14 values=[0=-0.7257, 1=-0.5919, 2=-0.5816, 3=0.1698, 4=-0.3602, 5=-0.7545, 6=-0.2573, 7=-1.1430, 8=0.9276, 9=-0.4907, 10=-0.6022, 11=-0.2329, 12=-0.5633, 13=-0.5092, 14=-0.8499, 15=-0.6501]"
+      },
+      {
+        "time": "52419.1",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "PROBE linear_b stage=linear_b_proj token=14 values=[0=0.5629, 1=0.0808, 2=0.1869, 3=-0.5243, 4=0.1050, 5=-0.0789, 6=-0.3312, 7=0.1477, 8=0.0361, 9=0.1105, 10=0.2176, 11=0.3331, 12=0.2952, 13=0.4782, 14=-0.1142, 15=0.0543]"
+      },
+      {
+        "time": "52580.0",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "PROBE linear_core stage=linear_core_out token=14 values=[0=-0.0001, 1=0.0002, 2=0.0000, 3=-0.0000, 1024=-0.1321, 1025=-0.0353, 2047=-0.0011]"
+      },
+      {
+        "time": "52580.2",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "matmul variant=q4_fused_batched_f16 reason=q4k_fused"
+      },
+      {
+        "time": "52639.5",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "attnOutput type check: isGPU=true, type=object, constructor=GPUBuffer, isPrefill=true"
+      },
+      {
+        "time": "52640.2",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "ATTN_OUT: maxAbs=0.0000, nonZero=32/32, sample=[0.0000, 0.0000, -0.0000, -0.0000, 0.0000]"
+      },
+      {
+        "time": "52641.4",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "PROBE attn_out stage=attn_out token=14 values=[0=-0.1821, 1=0.0113, 2=-0.0072, 3=-0.0058, 1024=out_of_range, 1025=out_of_range, 2047=out_of_range]"
+      },
+      {
+        "time": "52756.1",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "matmul variant=q4_fused_batched_f16a reason=q4k_fused"
+      },
+      {
+        "time": "53241.0",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "attention variant=prefill_small_f16kv reason=tiled_small_capable"
+      },
+      {
+        "time": "56590.6",
+        "level": "TRACE:logits",
+        "module": "Logits",
+        "message": "LOGITS_ENTRY: numTokens=15, useGPU=true"
+      },
+      {
+        "time": "56590.7",
+        "level": "TRACE:logits",
+        "module": "Logits",
+        "message": "LOGITS_PATH: device=true, useGPU=true, taking GPU path"
+      },
+      {
+        "time": "56595.0",
+        "level": "VERBOSE",
+        "module": "Pipeline",
+        "message": "CHECK Before final norm: dtype=f16 elems=15360/15360 expectedDim=1024 min=-1.4951 max=5.5938 maxAbs=5.5938 nan=0 inf=0 sample=[0.5098, 0.0555, 0.0235, -0.2737, 0.0264, 0.0509]"
+      },
+      {
+        "time": "56595.9",
+        "level": "VERBOSE",
+        "module": "Pipeline",
+        "message": "CHECK Final norm weights: dtype=f32 elems=1024/1024 expectedDim=1024 min=-0.7773 max=5.3125 maxAbs=5.3125 nan=0 inf=0 sample=[-0.7773, 2.7500, 2.6406, 3.0625, 2.7031, 2.7813]"
+      },
+      {
+        "time": "56598.8",
+        "level": "VERBOSE",
+        "module": "Pipeline",
+        "message": "CHECK After final norm: dtype=f16 elems=15360/15360 expectedDim=1024 min=-20.8125 max=17.7031 maxAbs=20.8125 nan=0 inf=0 sample=[-5.2813, 2.0332, 0.8271, -11.1719, 0.9512, 1.8867]"
+      },
+      {
+        "time": "56598.9",
+        "level": "TRACE:logits",
+        "module": "Logits",
+        "message": "LM_HEAD_MATMUL: M=15, N=248320, K=1024, lmHeadDtype=f16, normedDtype=f16, size=520093696, bufLabel=model.language_model.embed_tokens.weight_520093696"
+      },
+      {
+        "time": "56599.1",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "matmul variant=gemv_subgroup_multicol_f16a reason=gemv"
+      },
+      {
+        "time": "56641.5",
+        "level": "TRACE:logits",
+        "module": "Logits",
+        "message": "PROBE logits stage=logits_final token=0 values=[0=3.3965, 1=3.1504, 2=2.8047, 3=3.8574, 138=-1.7119, 271=9.9141, 496=4.3242]"
+      },
+      {
+        "time": "56843.6",
+        "level": "TRACE:sample",
+        "module": "Sample",
+        "message": "Prefill logits: min=-11.77, max=9.91 | top-5: \"?\"(10.4%), \".\"(5.4%), \"?\"(3.8%), \"?\"(2.2%), \",\"(2.1%)"
+      },
+      {
+        "time": "57003.0",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "Layer routing: layerType=linear_attention, isConv=false, isLinear=true, isLocal=false, hasLocalCos=false, hasLocalSin=false"
+      },
+      {
+        "time": "57003.6",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "matmul variant=q4_fused_multicol reason=q4k_fused"
+      },
+      {
+        "time": "57163.2",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "PROBE linear_qkv stage=linear_qkv_proj token=0 values=[0=0.0641, 1=0.0245, 2=0.0033, 3=1.4100, 2048=-0.0646, 2049=-0.0211, 4096=0.0184, 4097=-0.0191, 6143=0.1057]"
+      },
+      {
+        "time": "57165.4",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "PROBE linear_z stage=linear_z_proj token=0 values=[0=-0.0865, 1=0.1651, 2=-0.0627, 3=-0.0728, 1024=-0.0876, 1025=-0.1398, 2047=-0.1224]"
+      },
+      {
+        "time": "57170.2",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "PROBE linear_a stage=linear_a_proj token=0 values=[0=-0.0983, 1=-0.2667, 2=0.3746, 3=0.1786, 4=2.4821, 5=0.1361, 6=0.2531, 7=0.2504, 8=1.1941, 9=0.5565, 10=0.5113, 11=-0.0672, 12=-0.3231, 13=-0.1039, 14=-0.3295, 15=0.1623]"
+      },
+      {
+        "time": "57174.8",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "PROBE linear_b stage=linear_b_proj token=0 values=[0=0.1253, 1=0.1892, 2=0.0379, 3=-0.5458, 4=-0.1984, 5=-0.1289, 6=-0.2555, 7=0.1152, 8=0.2798, 9=0.2653, 10=0.3286, 11=-0.1581, 12=0.3340, 13=0.1424, 14=0.0097, 15=0.1661]"
+      },
+      {
+        "time": "57190.6",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "PROBE linear_core stage=linear_core_out token=0 values=[0=0.0001, 1=0.0008, 2=0.0001, 3=-0.0000, 1024=-0.0340, 1025=-0.0542, 2047=-0.0001]"
+      },
+      {
+        "time": "57190.8",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "matmul variant=q4_fused_multicol_f16 reason=q4k_fused"
+      },
+      {
+        "time": "57338.6",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "attnOutput type check: isGPU=true, type=object, constructor=GPUBuffer, isPrefill=false"
+      },
+      {
+        "time": "57339.1",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "ATTN_OUT: maxAbs=0.0000, nonZero=32/32, sample=[0.0000, -0.0000, -0.0000, 0.0000, 0.0000]"
+      },
+      {
+        "time": "57340.3",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "PROBE attn_out stage=attn_out token=0 values=[0=-0.1926, 1=0.0023, 2=-0.0183, 3=-0.0043, 1024=out_of_range, 1025=out_of_range, 2047=out_of_range]"
+      },
+      {
+        "time": "57455.8",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "matmul variant=q4_fused_multicol_f16a reason=q4k_fused"
+      },
+      {
+        "time": "57638.8",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "Using subgroup decode kernel (headDim=256, hasSubgroups=true)"
+      },
+      {
+        "time": "57639.0",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "attention variant=decode_online_f16kv reason=subgroup_capable"
+      },
+      {
+        "time": "57908.6",
+        "level": "INFO",
+        "module": "Perf",
+        "message": "TTFT: 4828ms | Prefill: 4663ms | Decode: 908ms (1 tokens @ 1.1 tok/s)"
+      },
+      {
+        "time": "57912.5",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Unloaded"
+      }
+    ],
+    "errorCount": 0,
+    "warnCount": 12
+  }
+}

@@ -507,6 +507,12 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig)
     cacheLayout = 'paged';
     layoutSource = 'threshold';
   }
+  if (forceContiguousKVCache && cacheLayout === 'paged') {
+    throw new Error(
+      'Paged KV cache layout is not supported for models with full-attention layers. ' +
+      'Set runtime.inference.kvcache.layout to "contiguous" instead.'
+    );
+  }
   if (debug && cacheLayout !== runtimeKV.layout) {
     log.debug('Pipeline', `KV cache layout override: ${runtimeKV.layout} -> ${cacheLayout} (${layoutSource})`);
   }
@@ -604,7 +610,7 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig)
 
   if (debug) {
     if (forceContiguousKVCache && modelConfig.layerTypes) {
-      log.debug('Pipeline', 'Layer pattern includes full-attention layers; forcing contiguous KV cache.');
+      log.debug('Pipeline', 'Layer pattern includes full-attention layers; paged layout blocked, contiguous enforced.');
     }
     const isSliding = kvCache instanceof SlidingWindowKVCache;
     log.debug('Pipeline', `KV cache: type=${kvCache?.constructor?.name || 'unknown'}, kvDtype=${kvCache.kvDtype}, layout=${kvCache.layout}, maxSeqLen=${kvCache.maxSeqLen}, windowSize=${isSliding ? kvCache.windowSize : null}`);

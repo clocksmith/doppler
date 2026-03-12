@@ -9,6 +9,7 @@ import type { InferencePipeline } from './pipelines/text.js';
 import type { DiffusionPipeline } from './pipelines/diffusion/pipeline.js';
 import type { EnergyPipeline } from './pipelines/energy/pipeline.js';
 import type { SavedReportInfo, SaveReportOptions } from '../storage/reports.js';
+import type { DebugSnapshot } from '../debug/history.js';
 
 export interface BrowserHarnessOptions extends InferenceHarnessOptions {
   modelUrl: string;
@@ -143,6 +144,7 @@ export interface BrowserSuiteResult extends SuiteSummary {
   output?: string | DiffusionOutput | null;
   deviceInfo?: Record<string, unknown> | null;
   memoryStats?: ReturnType<InferencePipeline['getMemoryStats']> | null;
+  debugSnapshot?: DebugSnapshot | null;
   pipeline?: InferencePipeline | DiffusionPipeline | EnergyPipeline | null;
   report: Record<string, unknown>;
   reportInfo: SavedReportInfo;

@@ -107,6 +107,13 @@
       "notes": "LFM2 Q4K default: subgroup GEMV decode with tiled fast-prefill path and F32 activations."
     },
     {
+      "id": "lfm2-q4k-dequant-f32a-nosubgroups",
+      "file": "lfm2-q4k-dequant-f32a-nosubgroups.json",
+      "status": "canonical",
+      "statusReason": "subgroup-free",
+      "notes": "Subgroup-free LFM2 Q4K dequant path with F32 activations and tiled prefill. Still requires shader-f16 kernels."
+    },
+    {
       "id": "embeddinggemma-f16-f32a",
       "file": "embeddinggemma-f16-f32a.json",
       "status": "canonical",

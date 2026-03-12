@@ -983,6 +983,7 @@ export function createManifest(
     isDiffusion ? 'diffusion' : extractArchitecture(model.config, model.ggufConfig)
   );
   const rawConfig = model.config || {};
+  const generationConfig = model.generationConfig ?? null;
   const resolvedArchitecture = isDiffusion
     ? architecture
     : resolveIntermediateSizeFromTensors(architecture, model, tensorLocations, rawConfig, modelId);
@@ -1037,6 +1038,7 @@ export function createManifest(
       ? null
       : resolveEosTokenId({
           config: rawConfig,
+          generationConfig,
           tokenizer: model.tokenizer ?? model.tokenizerConfig ?? null,
           tokenizerJson: model.tokenizerJson ?? null,
         });

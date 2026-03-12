@@ -2,6 +2,10 @@
 import { DEFAULT_QUANTIZATION_DEFAULTS, DEFAULT_Q4K_LAYOUT } from '../config/index.js';
 import { classifyTensorRole } from '../formats/rdrr/index.js';
 
+// Default quantization tag when no explicit dtype is provided.
+// F16 is the canonical unquantized storage format for WebGPU inference.
+const DEFAULT_QUANT_TAG = 'f16';
+
 // Quantization tag aliases mapped to canonical names.
 // Add new aliases here rather than adding if/else branches.
 const QUANT_TAG_ALIASES = {
@@ -47,7 +51,7 @@ const QUANT_TAG_ALIASES = {
 };
 
 export function normalizeQuantTag(value) {
-  if (!value) return 'f16';
+  if (!value) return DEFAULT_QUANT_TAG;
   const lower = value.toLowerCase();
   return QUANT_TAG_ALIASES[lower] ?? lower;
 }

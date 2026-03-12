@@ -14,21 +14,22 @@ This section answers "which models work now?" from `models/catalog.json` lifecyc
 
 | Model ID | Preset | Modes | Last verified | Surface | Notes |
 | --- | --- | --- | --- | --- | --- |
+| gemma-3-270m-it-q4k-ehf16-af32 | gemma3 | run | 2026-03-12 | browser | Deterministic greedy (temperature=0, topK=1) browser/WebGPU on Apple M3. Produces coherent output on appropriate prompts. The lm_head_prefill phase-drop bug was the one confirmed runtime defect (now fixed and regression-covered). Remaining factual-question inaccuracy on hard prompts is a 270M model capacity limitation, not a code bug — confirmed by 2x2 comparison showing F16 270M is also wrong. |
 | google-embeddinggemma-300m-q4k-ehf16-af32 | embeddinggemma | embedding | 2026-03-04 | auto | - |
+| gemma-3-1b-it-q4k-ehf16-af32 | gemma3 | run | 2026-03-12 | browser | Deterministic greedy (temperature=0, topK=1) browser/WebGPU on Apple M3. Correctly produces 'A. Blue' on factual sky-color prompt. The lm_head_prefill phase-drop bug was the one confirmed runtime defect (now fixed and regression-covered). Q4K runtime path is functionally correct. |
 | gemma-3-1b-it-f16-af32 | gemma3 | run | 2026-03-10 | browser | Prompt: 'The color of the sky is' → ' a constant, but its appearance changes with the seasons.\n\nThe sky is blue during the summer, when the sun is high in the sky.\nThe sky is red during the autumn, when the leaves change color.\nThe sky is gray during the winter, when the sun is low in the sky.\nThe' (64 tokens, temperature=0, topK=1). Fluent and stable; factual quality mixed but coherent. All contracts pass. |
-| translategemma-4b-it-q4k-ehf16-af32 | translategemma | run | 2026-03-06 | browser | - |
-| translategemma-4b-1b-enes-q4k-ehf16-af32 | translategemma | run | 2026-03-12 | browser | - |
 
 ### 2. Loads But Unverified
 
-None right now.
+| Model ID | Preset | Modes | Runtime | Notes |
+| --- | --- | --- | --- | --- |
+| translategemma-4b-1b-enes-q4k-ehf16-af32 | translategemma | run | active | No local artifact exists. Prior verified claim had no backing artifact. Teacher model (4B) is failing — student output quality unknown. |
 
 ### 3. Known Failing
 
 | Model ID | Preset | Modes | Last checked | Surface | Notes |
 | --- | --- | --- | --- | --- | --- |
-| gemma-3-270m-it-q4k-ehf16-af32 | gemma3 | run | 2026-03-11 | node | Fresh canonical RDRR checks on 2026-03-11 produced incoherent output for simple deterministic prompts. A patched direct-source Node runtime now resolves to gemma3-f16-fused-f32a-online with F32 compute and produced 'A) Blue' on the same smoke prompt, so the remaining failure is isolated to the Q4K artifact/runtime path rather than direct-source Gemma 3 execution. |
-| gemma-3-1b-it-q4k-ehf16-af32 | gemma3 | run | 2026-03-11 | node | Prompt: 'What color is the sky on a clear day? Answer in one word.' produced incoherent first-token logits on 2026-03-11. Top candidates were newline/punctuation plus Just, A, You, and I instead of Blue, so this artifact should not be treated as verified. |
+| translategemma-4b-it-q4k-ehf16-af32 | translategemma | run | 2026-03-12 | browser | Default kernel path (f16a) produces NaN/Inf logits at 4B scale. F32a kernel path override runs but produces incoherent output. Manifest variantTag mismatch (q4k-ehaf16 vs expected q4k-ehf16-af32). Prior verified status was based on contract checks only, not output quality. Root cause TBD. |
 | qwen-3-5-0-8b-q4k-ehaf16 | qwen3 | run | 2026-03-06 | browser | Loads and runs but produces incoherent output. Linear attention kernel correctness not yet verified against HF reference. |
 | qwen-3-5-2b-q4k-ehaf16 | qwen3 | run | 2026-03-06 | browser | Loads and runs but produces incoherent output. Same root cause as 0.8B variant — linear attention kernel correctness not yet verified. |
 
@@ -64,8 +65,8 @@ None right now.
 | modernbert | embedding | active | 1 (tools/configs/conversion/modernbert/modernbert-template-f16.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
 | diffusion | diffusion | active | 2 (tools/configs/conversion/diffusion/diffusion-template-f16.json, tools/configs/conversion/sana/sana-sprint-0.6b-f16.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
 | gemma2 | transformer | active | 1 (tools/configs/conversion/gemma2/gemma2-template-f16.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
-| translategemma | transformer | active | 2 (tools/configs/conversion/gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32.json, tools/configs/conversion/gemma3/translategemma-4b-it-q4k-ehf16-af32.json) | 2 (translategemma-4b-1b-enes-q4k-ehf16-af32, translategemma-4b-it-q4k-ehf16-af32) | yes | none | verified (2026-03-12) | verified | - |
-| gemma3 | transformer | active | 9 (tools/configs/conversion/gemma3/gemma-3-1b-it-f16-af32.json, tools/configs/conversion/gemma3/gemma-3-1b-it-f16.json, tools/configs/conversion/gemma3/gemma-3-1b-it-q4k-ehaf16.json, +6 more) | 3 (gemma-3-1b-it-f16-af32, gemma-3-1b-it-q4k-ehf16-af32, gemma-3-270m-it-q4k-ehf16-af32) | yes | curated | partially failing (2/3) | verification-failed | catalog verification applies only to cataloged models (3/9 conversion configs cataloged); partial verification (1/3 catalog models verified); mixed verification state (2/3 catalog models failing) |
+| translategemma | transformer | active | 2 (tools/configs/conversion/gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32.json, tools/configs/conversion/gemma3/translategemma-4b-it-q4k-ehf16-af32.json) | 2 (translategemma-4b-1b-enes-q4k-ehf16-af32, translategemma-4b-it-q4k-ehf16-af32) | yes | none | partially failing (1/2) | verification-failed | mixed verification state (1/2 catalog models failing) |
+| gemma3 | transformer | active | 9 (tools/configs/conversion/gemma3/gemma-3-1b-it-f16-af32.json, tools/configs/conversion/gemma3/gemma-3-1b-it-f16.json, tools/configs/conversion/gemma3/gemma-3-1b-it-q4k-ehaf16.json, +6 more) | 3 (gemma-3-1b-it-f16-af32, gemma-3-1b-it-q4k-ehf16-af32, gemma-3-270m-it-q4k-ehf16-af32) | yes | curated | verified (2026-03-12) | verified | catalog verification applies only to cataloged models (3/9 conversion configs cataloged) |
 | llama3 | transformer | active | 1 (tools/configs/conversion/llama3/llama3-template-f16.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
 | lfm2 | transformer | active | 2 (tools/configs/conversion/lfm2/lfm2.5-1.2b-instruct-q4k-ehaf16.json, tools/configs/conversion/lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
 | qwen3 | transformer | active | 4 (tools/configs/conversion/qwen3/qwen-3-5-0-8b-f16.json, tools/configs/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16-af32.json, tools/configs/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json, +1 more) | 2 (qwen-3-5-0-8b-q4k-ehaf16, qwen-3-5-2b-q4k-ehaf16) | no | none | failed | verification-failed | catalog verification applies only to cataloged models (2/4 conversion configs cataloged) |

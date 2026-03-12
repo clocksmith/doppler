@@ -23,7 +23,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "ca6f0dbdf3882d3893a65cf48f2bb6f1520df162",
+        "revision": "f304e523fe67d61e50ad07df9f78d04f0b46572f",
         "path": "models/gemma-3-270m-it-q4k-ehf16-af32"
       },
       "baseUrl": "./local/gemma-3-270m-it-q4k-ehf16-af32",
@@ -41,15 +41,15 @@
           "runtime": "active",
           "conversion": "ready",
           "demo": "curated",
-          "tested": "failing"
+          "tested": "verified"
         },
         "tested": {
           "suite": "inference",
-          "surface": "node",
-          "result": "fail",
-          "lastVerifiedAt": "2026-03-11",
+          "surface": "browser",
+          "result": "pass",
+          "lastVerifiedAt": "2026-03-12",
           "source": "manual-review",
-          "notes": "Fresh canonical RDRR checks on 2026-03-11 produced incoherent output for simple deterministic prompts. A patched direct-source Node runtime now resolves to gemma3-f16-fused-f32a-online with F32 compute and produced 'A) Blue' on the same smoke prompt, so the remaining failure is isolated to the Q4K artifact/runtime path rather than direct-source Gemma 3 execution.",
+          "notes": "Deterministic greedy (temperature=0, topK=1) browser/WebGPU on Apple M3. Produces coherent output on appropriate prompts. The lm_head_prefill phase-drop bug was the one confirmed runtime defect (now fixed and regression-covered). Remaining factual-question inaccuracy on hard prompts is a 270M model capacity limitation, not a code bug — confirmed by 2x2 comparison showing F16 270M is also wrong.",
           "contracts": {
             "executionContractOk": true,
             "executionV0GraphOk": true
@@ -126,7 +126,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "ca6f0dbdf3882d3893a65cf48f2bb6f1520df162",
+        "revision": "86bb3efd88d61a0a92a341dafad3a05cdebfc671",
         "path": "models/gemma-3-1b-it-q4k-ehf16-af32"
       },
       "baseUrl": "./local/gemma-3-1b-it-q4k-ehf16-af32",
@@ -144,15 +144,15 @@
           "runtime": "active",
           "conversion": "ready",
           "demo": "none",
-          "tested": "failing"
+          "tested": "verified"
         },
         "tested": {
           "suite": "inference",
-          "surface": "node",
-          "result": "fail",
-          "lastVerifiedAt": "2026-03-11",
+          "surface": "browser",
+          "result": "pass",
+          "lastVerifiedAt": "2026-03-12",
           "source": "manual-review",
-          "notes": "Prompt: 'What color is the sky on a clear day? Answer in one word.' produced incoherent first-token logits on 2026-03-11. Top candidates were newline/punctuation plus Just, A, You, and I instead of Blue, so this artifact should not be treated as verified.",
+          "notes": "Deterministic greedy (temperature=0, topK=1) browser/WebGPU on Apple M3. Correctly produces 'A. Blue' on factual sky-color prompt. The lm_head_prefill phase-drop bug was the one confirmed runtime defect (now fixed and regression-covered). Q4K runtime path is functionally correct.",
           "contracts": {
             "executionContractOk": true,
             "executionV0GraphOk": true
@@ -229,7 +229,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "7290d291a4769195c09e0fca8f43bafe5c69ee13",
+        "revision": "cddb6a2b4c937eccaeb26c2f4832eaef13e15188",
         "path": "models/translategemma-4b-it-q4k-ehf16-af32"
       },
       "baseUrl": null,
@@ -246,14 +246,15 @@
           "runtime": "active",
           "conversion": "ready",
           "demo": "none",
-          "tested": "verified"
+          "tested": "failing"
         },
         "tested": {
-          "suite": "inference",
+          "suite": "debug",
           "surface": "browser",
-          "result": "pass",
-          "lastVerifiedAt": "2026-03-06",
+          "result": "fail",
+          "lastVerifiedAt": "2026-03-12",
           "source": "manual-review",
+          "notes": "Default kernel path (f16a) produces NaN/Inf logits at 4B scale. F32a kernel path override runs but produces incoherent output. Manifest variantTag mismatch (q4k-ehaf16 vs expected q4k-ehf16-af32). Prior verified status was based on contract checks only, not output quality. Root cause TBD.",
           "contracts": {
             "executionContractOk": true,
             "executionV0GraphOk": true
@@ -281,28 +282,29 @@
         "revision": "f402801f40894982c131b53e5bfe738bfb00c431",
         "path": "models/translategemma-4b-1b-enes-q4k-ehf16-af32"
       },
-      "baseUrl": "./local/translategemma-4b-1b-enes-q4k-ehf16-af32",
+      "baseUrl": null,
       "sizeBytes": 1025493248,
       "recommended": false,
       "sortOrder": 16,
       "lifecycle": {
         "availability": {
           "curated": false,
-          "local": true,
+          "local": false,
           "hf": true
         },
         "status": {
           "runtime": "active",
           "conversion": "ready",
           "demo": "none",
-          "tested": "verified"
+          "tested": "unverified"
         },
         "tested": {
           "suite": "debug",
           "surface": "browser",
-          "result": "pass",
+          "result": "unknown",
           "lastVerifiedAt": "2026-03-12",
           "source": "manual-review",
+          "notes": "No local artifact exists. Prior verified claim had no backing artifact. Teacher model (4B) is failing — student output quality unknown.",
           "contracts": {
             "executionContractOk": true,
             "executionV0GraphOk": true

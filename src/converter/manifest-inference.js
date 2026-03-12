@@ -240,19 +240,7 @@ function detectAttentionOutputGate(presetInference, modelConfig, defaults) {
     return modelConfig.attn_output_gate;
   }
 
-  if (isQwen35LinearAttentionConfig(modelConfig)) {
-    return true;
-  }
-
   return defaults.attention.attentionOutputGate;
-}
-
-function isQwen35LinearAttentionConfig(modelConfig) {
-  const modelType = normalizeLayerTypeName(modelConfig?.model_type);
-  const hasLinearAttentionLayers = Array.isArray(modelConfig?.layer_types)
-    && modelConfig.layer_types.some((entry) => normalizeCustomLayerType(entry) === 'linear_attention');
-  return hasLinearAttentionLayers
-    && (modelType === 'qwen2' || modelType === 'qwen3_5' || modelType === 'qwen3_5_text');
 }
 
 function resolveQueryPreAttnScalar(preset, modelConfig, headDim) {
@@ -273,10 +261,6 @@ function resolveQueryPreAttnScalar(preset, modelConfig, headDim) {
 }
 
 function detectRmsNormWeightOffset(presetInference, modelConfig, defaults) {
-  if (isQwen35LinearAttentionConfig(modelConfig)) {
-    return true;
-  }
-
   if (typeof presetInference?.normalization?.rmsNormWeightOffset === 'boolean') {
     return presetInference.normalization.rmsNormWeightOffset;
   }
@@ -388,8 +372,8 @@ export function buildManifestInference(preset, config, headDim = 64, quantizatio
       queryPreAttnScalar: resolveQueryPreAttnScalar(preset, modelConfig, headDim),
       attnLogitSoftcapping: presetInference.attention?.attnLogitSoftcapping ??
         modelConfig.attn_logit_softcapping ?? defaults.attention.attnLogitSoftcapping,
-      slidingWindow: presetInference.attention?.slidingWindow ??
-        modelConfig.sliding_window ?? defaults.attention.slidingWindow,
+      slidingWindow: modelConfig.sliding_window ??
+        presetInference.attention?.slidingWindow ?? defaults.attention.slidingWindow,
       queryKeyNorm: presetInference.attention?.queryKeyNorm ?? defaults.attention.queryKeyNorm,
       attentionOutputGate: detectAttentionOutputGate(presetInference, modelConfig, defaults),
       causal: detectedCausalAttention ?? presetInference.attention?.causal ?? defaults.attention.causal,
@@ -462,6 +446,9 @@ export function buildManifestInference(preset, config, headDim = 64, quantizatio
         );
       }
       globalPattern = null;
+      // Default offset 0 means first global layer at index 0 (most common pattern).
+      // This is the every_n pattern default, distinct from layerPattern.offset=null
+      // which means "not applicable" in the schema.
       offset = (
         detectEveryNOffsetFromLayerTypes(modelConfig.layer_types, period)
         ?? normalizeEveryNOffset(presetPattern.offset, period)

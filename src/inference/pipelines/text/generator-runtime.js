@@ -213,6 +213,10 @@ export function resolvePrefillEmbeddingOptions(state, options = {}) {
     ? state.manifest.modelType.toLowerCase()
     : '';
   const generationDefaults = state.runtimeConfig.inference.generation;
+  // Embedding models default to 'mean' pooling — this is a model-category behavior,
+  // not a model-family identity check. Ideally embedding model presets would set
+  // generation.embeddingMode='mean' in their runtime config; the modelType fallback
+  // provides this default for manifests that predate runtime-preset embedding mode.
   const defaultEmbeddingMode = modelType === 'embedding'
     ? 'mean'
     : generationDefaults.embeddingMode;
@@ -226,6 +230,7 @@ export function resolveAdvanceEmbeddingMode(state, options = {}) {
   const modelType = typeof state.manifest?.modelType === 'string'
     ? state.manifest.modelType.toLowerCase()
     : '';
+  // See resolvePrefillEmbeddingOptions for embedding-model pooling rationale.
   const configuredMode = state.runtimeConfig.inference.generation.embeddingMode;
   return resolveConfiguredValue(
     options.embeddingMode,
