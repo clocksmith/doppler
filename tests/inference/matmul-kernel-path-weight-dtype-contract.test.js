@@ -130,6 +130,41 @@ try {
     }
   );
   assert.equal(selected.variant, 'f16w_f32a');
+
+  // Q4K weights are valid here because this kernel path is a dequant-before-dispatch path.
+  const selectedQ4KPrefill = selectMatmulVariantAndFlags(
+    'run',
+    8,
+    16,
+    32,
+    'f32',
+    'q4k',
+    true,
+    'f32',
+    {
+      role: 'q_proj',
+      layerIdx: 0,
+      kernelPath,
+    }
+  );
+  assert.equal(selectedQ4KPrefill.variant, 'f16w_f32a');
+
+  const selectedQ4KDecode = selectMatmulVariantAndFlags(
+    'run',
+    1,
+    16,
+    32,
+    'f32',
+    'q4k',
+    true,
+    'f32',
+    {
+      role: 'q_proj',
+      layerIdx: 0,
+      kernelPath,
+    }
+  );
+  assert.equal(selectedQ4KDecode.variant, 'gemv_subgroup_vec4');
 } finally {
   setDevice(null, { platformConfig: null });
 }
