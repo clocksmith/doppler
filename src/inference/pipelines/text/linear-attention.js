@@ -5,6 +5,8 @@ import { log } from '../../../debug/index.js';
 import { decodeReadback } from './debug-utils/index.js';
 import { runLinearAttentionCoreGPU } from '../../../gpu/kernels/linear-attention-core.js';
 import { runProbes } from './probes.js';
+import { QK_K, Q4K_BLOCK_BYTES } from '../../../config/schema/index.js';
+import { dequantizeQ4KM } from '../../../converter/quantizer.js';
 
 const LINEAR_RUNTIME_SCHEMA_VERSION = 1;
 const QK_L2NORM_EPS = 1e-6;
@@ -292,9 +294,27 @@ async function readWeightAsF32(weight, expectedElements, label) {
   if (!elementCount && isWeightBuffer(weight) && Array.isArray(weight.shape) && weight.shape.length > 0) {
     elementCount = weight.shape.reduce((total, dim) => total * Math.max(1, Math.trunc(Number(dim) || 0)), 1);
   }
+  const isQ4K = sourceDtype === 'q4k' || sourceDtype === 'q4_k_m' || sourceDtype === 'q4_k';
   if (!elementCount) {
-    const inferredBytes = sourceDtype === 'f16' || sourceDtype === 'bf16' ? 2 : 4;
-    elementCount = Math.trunc(sourceBuffer.size / inferredBytes);
+    if (isQ4K) {
+      elementCount = Math.trunc(sourceBuffer.size / Q4K_BLOCK_BYTES) * QK_K;
+    } else {
+      const inferredBytes = sourceDtype === 'f16' || sourceDtype === 'bf16' ? 2 : 4;
+      elementCount = Math.trunc(sourceBuffer.size / inferredBytes);
+    }
+  }
+
+  if (isQ4K) {
+    const numBlocks = Math.ceil(elementCount / QK_K);
+    const q4kBytes = numBlocks * Q4K_BLOCK_BYTES;
+    const raw = await readBuffer(sourceBuffer, q4kBytes);
+    const decoded = dequantizeQ4KM(new Uint8Array(raw), numBlocks, [elementCount]);
+    if (expectedElements != null && decoded.length !== expectedElements) {
+      throw new Error(
+        `Weight "${label}" Q4K decoded length ${decoded.length}, expected ${expectedElements}.`
+      );
+    }
+    return decoded;
   }
 
   if (!sourceDtype) {

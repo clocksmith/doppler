@@ -1,6 +1,27 @@
     /* Ensure hidden attribute always wins over author display rules */
     [hidden] { display: none !important; }
 
+    :root {
+      --status-success: #4fe286;
+      --status-error: #ff7272;
+      --status-warning: #ffbe57;
+      --status-error-light: #ff7b90;
+    }
+
+    /* Shared demo-label typography */
+    .nav-label,
+    .quick-model-imported,
+    .storage-tag,
+    .run-log-header,
+    .progress-phase-label {
+      font-family: var(--demo-label-family);
+      font-size: var(--demo-label-size);
+      font-weight: var(--demo-label-weight);
+      line-height: var(--demo-label-line-height);
+      letter-spacing: var(--demo-label-tracking);
+      text-transform: uppercase;
+    }
+
     /* App Shell */
     #app {
       display: flex;
@@ -97,7 +118,7 @@
       display: flex;
       flex-direction: column;
       align-items: flex-start;
-      gap: 4px;
+      gap: var(--space-xs);
       min-width: 0;
     }
 
@@ -210,17 +231,8 @@
     .advanced-nav-section {
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: var(--space-xs);
       min-width: 0;
-    }
-
-    .nav-label {
-      font-family: var(--demo-label-family);
-      font-size: var(--demo-label-size);
-      font-weight: var(--demo-label-weight);
-      line-height: var(--demo-label-line-height);
-      text-transform: uppercase;
-      letter-spacing: var(--demo-label-tracking);
     }
 
     .nav-divider {
@@ -291,7 +303,7 @@
     .header-model {
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: var(--space-xs);
       width: auto;
       min-width: 0;
     }
@@ -635,7 +647,7 @@
     .quick-model-meta {
       display: flex;
       flex-wrap: nowrap;
-      gap: 4px;
+      gap: var(--space-xs);
       overflow: hidden;
     }
 
@@ -675,12 +687,6 @@
       min-height: 22px;
       padding: 1px 8px;
       border: var(--border-sm) solid var(--fg);
-      font-family: var(--demo-label-family);
-      font-size: var(--demo-label-size);
-      font-weight: var(--demo-label-weight);
-      text-transform: uppercase;
-      letter-spacing: var(--demo-label-tracking);
-      line-height: var(--demo-label-line-height);
     }
 
     .primary-stack {
@@ -814,7 +820,7 @@
     .translate-compare-heading-copy {
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: var(--space-xs);
       min-width: 0;
     }
 
@@ -920,7 +926,7 @@
     .translate-receipt-card {
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: var(--space-xs);
       min-width: 0;
       padding: var(--space-xs);
       border: var(--border-sm) dotted color-mix(in srgb, var(--fg) 42%, transparent);
@@ -979,7 +985,7 @@
     .translate-evidence-metric {
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: var(--space-xs);
       min-width: 0;
       padding: var(--space-xs);
       border: var(--border-sm) dotted color-mix(in srgb, var(--fg) 40%, transparent);
@@ -1176,11 +1182,11 @@
     }
 
     .translate-lane-status[data-tone="success"] {
-      color: color-mix(in srgb, #4fe286 72%, var(--fg));
+      color: color-mix(in srgb, var(--status-success) 72%, var(--fg));
     }
 
     .translate-lane-status[data-tone="error"] {
-      color: color-mix(in srgb, #ff7272 72%, var(--fg));
+      color: color-mix(in srgb, var(--status-error) 72%, var(--fg));
     }
 
     .translate-lane-right .translate-lane-status {
@@ -1188,7 +1194,7 @@
     }
 
     .translate-lane-right .translate-lane-status[data-tone="error"] {
-      color: color-mix(in srgb, #ff7b90 76%, var(--fg));
+      color: color-mix(in srgb, var(--status-error-light) 76%, var(--fg));
     }
 
     .translate-lane-metrics {
@@ -1200,7 +1206,7 @@
     .translate-lane-metric {
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: var(--space-xs);
       min-width: 0;
       padding: var(--space-xs);
       border: var(--border-sm) dotted color-mix(in srgb, var(--fg) 44%, transparent);
@@ -1301,13 +1307,13 @@
     }
 
     .translate-history-badge.is-success {
-      color: color-mix(in srgb, #4fe286 78%, var(--fg));
-      background: color-mix(in srgb, #4fe286 10%, transparent);
+      color: color-mix(in srgb, var(--status-success) 78%, var(--fg));
+      background: color-mix(in srgb, var(--status-success) 10%, transparent);
     }
 
     .translate-history-badge.is-warning {
-      color: color-mix(in srgb, #ffbe57 78%, var(--fg));
-      background: color-mix(in srgb, #ffbe57 12%, transparent);
+      color: color-mix(in srgb, var(--status-warning) 78%, var(--fg));
+      background: color-mix(in srgb, var(--status-warning) 12%, transparent);
     }
 
     .translate-history-badge.is-neutral {
@@ -1782,12 +1788,6 @@
     .storage-tag {
       border: var(--border-sm) solid var(--fg);
       padding: 1px 6px;
-      font-family: var(--demo-label-family);
-      font-size: var(--demo-label-size);
-      font-weight: var(--demo-label-weight);
-      line-height: var(--demo-label-line-height);
-      text-transform: uppercase;
-      letter-spacing: var(--demo-label-tracking);
     }
 
     .storage-tag.orphan {
@@ -1994,15 +1994,6 @@
       text-align: right;
     }
 
-    .run-log-header {
-      font-family: var(--demo-label-family);
-      font-size: var(--demo-label-size);
-      font-weight: var(--demo-label-weight);
-      line-height: var(--demo-label-line-height);
-      text-transform: uppercase;
-      letter-spacing: var(--demo-label-tracking);
-    }
-
     /* Inference Pulse: emphasize section headers and key/value contrast. */
     .live-panel .pulse-header {
       display: flex;
@@ -2108,15 +2099,6 @@
 
     .progress-phase-value {
       text-align: right;
-    }
-
-    .progress-phase-label {
-      font-family: var(--demo-label-family);
-      font-size: var(--demo-label-size);
-      font-weight: var(--demo-label-weight);
-      letter-spacing: var(--demo-label-tracking);
-      text-transform: uppercase;
-      line-height: var(--demo-label-line-height);
     }
 
     .progress-shard {

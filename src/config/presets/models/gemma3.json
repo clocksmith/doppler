@@ -8,7 +8,9 @@
   },
   "inference": {
     "attention": {
+      "queryPreAttnScalar": 256,
       "attnLogitSoftcapping": null,
+      "slidingWindow": 512,
       "queryKeyNorm": true
     },
     "normalization": {

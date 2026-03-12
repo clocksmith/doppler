@@ -163,7 +163,7 @@ export interface ArchitectureSchema {
  * Use `null` to indicate "not applicable" (e.g., no softcapping).
  */
 export interface ManifestAttentionSchema {
-  /** Query pre-attention scalar (Gemma 2: 256, standard: sqrt(headDim)) */
+  /** Query pre-attention scalar: attnScale = 1/sqrt(scalar). Standard = headDim. */
   queryPreAttnScalar: number;
   /** Attention logit softcapping (Gemma 2: 50, null = disabled) */
   attnLogitSoftcapping: number | null;

@@ -261,13 +261,15 @@ function resolveQueryPreAttnScalar(preset, modelConfig, headDim) {
     return explicit;
   }
 
-  const modelType = normalizeLayerTypeName(modelConfig?.model_type);
-  const presetId = normalizeLayerTypeName(preset?.id);
-  if (modelType.startsWith('qwen') || presetId === 'qwen3') {
-    return headDim;
+  // Standard attention scaling: attnScale = 1/sqrt(queryPreAttnScalar).
+  // For standard transformers queryPreAttnScalar = headDim, giving 1/sqrt(headDim).
+  // Preset may override for non-standard models.
+  const presetScalar = Number(preset?.inference?.attention?.queryPreAttnScalar);
+  if (Number.isFinite(presetScalar) && presetScalar > 0) {
+    return presetScalar;
   }
 
-  return Math.sqrt(headDim);
+  return headDim;
 }
 
 function detectRmsNormWeightOffset(presetInference, modelConfig, defaults) {
