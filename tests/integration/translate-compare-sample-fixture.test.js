@@ -11,7 +11,7 @@ const checklist = readFileSync(
 
 assert.equal(sample.schemaVersion, 1);
 assert.equal(sample.teacher.modelId, 'translategemma-4b-it-q4k-ehf16-af32');
-assert.equal(sample.student.modelId, 'translategemma-en-es-student-q4k-ehf16-af32');
+assert.equal(sample.student.modelId, 'translategemma-4b-1b-enes-q4k-ehf16-af32');
 assert.ok(Array.isArray(sample.receipts));
 assert.ok(sample.receipts.length >= 1);
 

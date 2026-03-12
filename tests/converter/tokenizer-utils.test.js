@@ -4,6 +4,20 @@ const { resolveEosTokenId } = await import('../../src/converter/tokenizer-utils.
 
 {
   const resolved = resolveEosTokenId({
+    config: {
+      eos_token_id: 1,
+    },
+    generationConfig: {
+      eos_token_id: [1, 106],
+    },
+    tokenizer: null,
+    tokenizerJson: null,
+  });
+  assert.deepEqual(resolved, [1, 106]);
+}
+
+{
+  const resolved = resolveEosTokenId({
     config: { eos_token_id: 2 },
     tokenizer: null,
     tokenizerJson: null,

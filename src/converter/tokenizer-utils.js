@@ -1,6 +1,8 @@
-export function resolveEosTokenId({ config, tokenizer, tokenizerJson }) {
+export function resolveEosTokenId({ config, generationConfig, tokenizer, tokenizerJson }) {
   const nestedTextConfig = getNestedTextConfig(config);
   const candidateSources = [
+    generationConfig?.eos_token_id,
+    generationConfig?.eos_token_ids,
     tokenizer?.eosTokenId,
     tokenizer?.eos_token_id,
     tokenizerJson?.specialTokens?.eos,
@@ -19,6 +21,7 @@ export function resolveEosTokenId({ config, tokenizer, tokenizerJson }) {
   }
 
   const eosTokenStringCandidates = [
+    generationConfig?.eos_token,
     tokenizer?.eosToken,
     tokenizer?.eos_token,
     tokenizerJson?.specialTokens?.eos_token,

@@ -388,8 +388,8 @@ export function buildManifestInference(preset, config, headDim = 64, quantizatio
       queryPreAttnScalar: resolveQueryPreAttnScalar(preset, modelConfig, headDim),
       attnLogitSoftcapping: presetInference.attention?.attnLogitSoftcapping ??
         modelConfig.attn_logit_softcapping ?? defaults.attention.attnLogitSoftcapping,
-      slidingWindow: presetInference.attention?.slidingWindow ??
-        modelConfig.sliding_window ?? defaults.attention.slidingWindow,
+      slidingWindow: modelConfig.sliding_window ??
+        presetInference.attention?.slidingWindow ?? defaults.attention.slidingWindow,
       queryKeyNorm: presetInference.attention?.queryKeyNorm ?? defaults.attention.queryKeyNorm,
       attentionOutputGate: detectAttentionOutputGate(presetInference, modelConfig, defaults),
       causal: detectedCausalAttention ?? presetInference.attention?.causal ?? defaults.attention.causal,

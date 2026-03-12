@@ -122,6 +122,20 @@ function resolveTokenText(tokenizer, tokenIds, fallbackText = '?', renderTokenTe
   return fallbackText;
 }
 
+export function shouldRetryWithFinitenessFallback(error) {
+  if (error?.name === 'FinitenessError') {
+    return true;
+  }
+  const message = typeof error?.message === 'string'
+    ? error.message
+    : (typeof error === 'string' ? error : '');
+  if (!message.startsWith('[Sampling]')) {
+    return false;
+  }
+  return message.includes('no finite candidate logits after masking the pad token')
+    || message.includes('Softmax produced no finite candidate probabilities');
+}
+
 export class PipelineGenerator {
 
   #state;
@@ -351,7 +365,7 @@ export class PipelineGenerator {
       try {
         prefillLogits = await this._prefill(inputIds, opts);
       } catch (error) {
-        if (error.name === 'FinitenessError') {
+        if (shouldRetryWithFinitenessFallback(error)) {
           log.warn('Pipeline', `FinitenessGuard caught NaN/Inf during prefill. Retrying with F32 precision.`);
           prefillLogits = await this._retryWithFinitenessFallback(
             opts,
@@ -395,13 +409,34 @@ export class PipelineGenerator {
         log.debug('Pipeline', `After rep penalty top-5: ${topAfterPenalty.map(t => `"${t.text}"(${(t.prob * 100).toFixed(1)}%)`).join(', ')}`);
       }
 
-      const firstToken = sample(prefillLogits, {
-        temperature: opts.temperature,
-        topP: opts.topP,
-        topK: opts.topK,
-        padTokenId,
-        seed: opts.seed,
-      });
+      let firstToken;
+      try {
+        firstToken = sample(prefillLogits, {
+          temperature: opts.temperature,
+          topP: opts.topP,
+          topK: opts.topK,
+          padTokenId,
+          seed: opts.seed,
+        });
+      } catch (error) {
+        if (!shouldRetryWithFinitenessFallback(error)) {
+          throw error;
+        }
+        log.warn('Pipeline', 'FinitenessGuard caught non-finite prefill logits at sampling. Retrying with F32 precision.');
+        prefillLogits = await this._retryWithFinitenessFallback(
+          opts,
+          'prefill-sample',
+          () => this._prefill(inputIds, opts)
+        );
+        applyRepetitionPenalty(prefillLogits, generatedIds, opts.repetitionPenalty);
+        firstToken = sample(prefillLogits, {
+          temperature: opts.temperature,
+          topP: opts.topP,
+          topK: opts.topK,
+          padTokenId,
+          seed: opts.seed,
+        });
+      }
 
       if (opts.debug) {
         const firstTokenText = resolveTokenText(this.#state.tokenizer, [firstToken], `[${firstToken}]`, (tokens) => this.#state.tokenizer?.decode?.(tokens, true, false));
@@ -479,7 +514,7 @@ export class PipelineGenerator {
     try {
       prefillResult = await this._prefillToHidden(inputIds, opts);
     } catch (error) {
-      if (error.name === 'FinitenessError') {
+      if (shouldRetryWithFinitenessFallback(error)) {
         log.warn('Pipeline', `FinitenessGuard caught NaN/Inf during prefillKVOnly. Retrying with F32 precision.`);
         prefillResult = await this._retryWithFinitenessFallback(
           opts,
@@ -544,7 +579,7 @@ export class PipelineGenerator {
     try {
       prefillResult = await this._prefillToHidden(inputIds, opts);
     } catch (error) {
-      if (error.name === 'FinitenessError') {
+      if (shouldRetryWithFinitenessFallback(error)) {
         log.warn('Pipeline', `FinitenessGuard caught NaN/Inf during prefillWithEmbedding. Retrying with F32 precision.`);
         prefillResult = await this._retryWithFinitenessFallback(
           opts,
@@ -833,7 +868,7 @@ export class PipelineGenerator {
           try {
             nextToken = await this._decodeStep(generatedIds, opts);
           } catch (singleTokenError) {
-            if (singleTokenError.name === 'FinitenessError') {
+            if (shouldRetryWithFinitenessFallback(singleTokenError)) {
               log.warn('Pipeline', `FinitenessGuard caught NaN/Inf at batch step ${tokensGenerated}. Truncating KV cache and retrying token with F32 precision.`);
               nextToken = await this._retryDecodeStepWithFinitenessWindow(
                 generatedIds,
@@ -858,7 +893,7 @@ export class PipelineGenerator {
         try {
           nextToken = await this._decodeStep(generatedIds, opts);
         } catch (error) {
-          if (error.name === 'FinitenessError') {
+          if (shouldRetryWithFinitenessFallback(error)) {
             log.warn('Pipeline', `FinitenessGuard caught NaN/Inf at step ${tokensGenerated}. Truncating KV cache and retrying token with F32 precision.`);
             nextToken = await this._retryDecodeStepWithFinitenessWindow(
               generatedIds,
