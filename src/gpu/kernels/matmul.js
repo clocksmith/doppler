@@ -165,7 +165,7 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
     options
   );
 
-  const phase = resolveMatmulPhase(M);
+  const phase = resolveMatmulPhase(M, options.phaseOverride ?? null);
   const constants = resolveMatmulConstants(options, phase);
 
   let matmulInput = A;

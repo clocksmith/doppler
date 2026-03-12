@@ -19,6 +19,7 @@ import {
   isActiveKernelPathFusedQ4K,
   isKernelPathDequant,
   isKernelPathFusedQ4K,
+  kernelPathRequiresF32MatmulWeights,
   listKernelPaths,
   resolveKernelPath,
   resolveWeightRef,
@@ -36,6 +37,7 @@ try {
   assert.ok(all.length > 0);
   assert.ok(all.includes('gemma2-q4k-dequant-f32a-nosubgroups'));
   assert.ok(all.includes('gemma2-q4k-dequant-f32a'));
+  assert.ok(all.includes('gemma3-q4k-dequant-f32w-f32a-online'));
 
   assert.equal(getKernelPath('missing-kernel-path-id'), null);
   assert.throws(
@@ -48,10 +50,12 @@ try {
   const dequantPath = resolveKernelPath('gemma2-q4k-dequant-f32a');
   const canonicalDequantPath = resolveKernelPath('gemma2-q4k-dequant-f32a-nosubgroups');
   const gemma3Path = resolveKernelPath('gemma3-f16-fused-f16a-online');
+  const gemma3F32WeightPath = resolveKernelPath('gemma3-q4k-dequant-f32w-f32a-online');
   assert.ok(fusedPath);
   assert.ok(dequantPath);
   assert.ok(canonicalDequantPath);
   assert.ok(gemma3Path);
+  assert.ok(gemma3F32WeightPath);
   assert.equal(dequantPath.id, 'gemma2-q4k-dequant-f32a-nosubgroups');
   assert.equal(canonicalDequantPath.id, 'gemma2-q4k-dequant-f32a-nosubgroups');
 
@@ -127,6 +131,8 @@ try {
   assert.equal(isKernelPathFusedQ4K(fusedPath), true);
   assert.equal(isKernelPathFusedQ4K(dequantPath), false);
   assert.equal(isKernelPathDequant(fusedPath), true);
+  assert.equal(kernelPathRequiresF32MatmulWeights(gemma3Path), false);
+  assert.equal(kernelPathRequiresF32MatmulWeights(gemma3F32WeightPath), true);
   assert.equal(isKernelPathDequant({ decode: { steps: [{ kernel: 'attention.wgsl' }] } }), false);
 
   const stats = getKernelPathStats(gemma3Path);

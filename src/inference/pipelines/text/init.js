@@ -11,7 +11,7 @@ import { getDopplerLoader } from '../../../loader/doppler-loader.js';
 import { log, setGPUDevice, trace as debugTrace } from '../../../debug/index.js';
 import { getRuntimeConfig } from '../../../config/runtime.js';
 import { PAGED_LAYOUT_SEQ_LEN_THRESHOLD } from '../../../config/schema/index.js';
-import { isKernelPathFusedQ4K } from '../../../config/kernel-path-loader.js';
+import { isKernelPathFusedQ4K, kernelPathRequiresF32MatmulWeights } from '../../../config/kernel-path-loader.js';
 import { createWeightBuffer, getWeightDtype, isWeightBuffer } from '../../../gpu/weight-buffer.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 import {
@@ -128,7 +128,7 @@ function createRemoteStorageContext(baseUrl, manifest) {
 }
 
 
-function resolveQ4KConfig(
+export function resolveQ4KConfig(
   manifest,
   kernelPath,
   kernelPathSource = 'none',
@@ -150,18 +150,23 @@ function resolveQ4KConfig(
     );
   }
   let useFused = kernelPath ? isKernelPathFusedQ4K(kernelPath) : hasSubgroups;
+  const kernelPathKeepsF32Weights = kernelPathRequiresF32MatmulWeights(kernelPath);
   if (q4kLayout === 'col') {
     useFused = false;
   }
+  const resolvedKeepF32Weights = keepF32Weights || kernelPathKeepsF32Weights;
 
   const pathLabel = kernelPath?.id ?? 'auto';
   const layoutLabel = q4kLayout ?? 'none';
-  debugTrace.loader(`Q4K config: fused=${useFused}, kernelPath=${pathLabel}, source=${kernelPathSource}, layout=${layoutLabel}, subgroups=${hasSubgroups}`);
+  debugTrace.loader(
+    `Q4K config: fused=${useFused}, kernelPath=${pathLabel}, source=${kernelPathSource}, ` +
+    `layout=${layoutLabel}, keepF32Weights=${resolvedKeepF32Weights}, subgroups=${hasSubgroups}`
+  );
 
   return {
     useFusedQ4K: useFused,
     q4kLayout,
-    keepF32Weights,
+    keepF32Weights: resolvedKeepF32Weights,
   };
 }
 
