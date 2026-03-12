@@ -239,7 +239,7 @@
       "lifecycle": {
         "availability": {
           "curated": false,
-          "local": false,
+          "local": true,
           "hf": true
         },
         "status": {
@@ -290,7 +290,7 @@
       "lifecycle": {
         "availability": {
           "curated": false,
-          "local": false,
+          "local": true,
           "hf": false
         },
         "status": {
@@ -338,7 +338,7 @@
       "lifecycle": {
         "availability": {
           "curated": false,
-          "local": false,
+          "local": true,
           "hf": false
         },
         "status": {

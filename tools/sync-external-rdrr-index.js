@@ -5,7 +5,9 @@ import path from 'node:path';
 import process from 'node:process';
 import { pathToFileURL } from 'node:url';
 
-const DEFAULT_VOLUME_ROOT = process.env.DOPPLER_EXTERNAL_MODELS_ROOT || '/media/x/models';
+import { DEFAULT_EXTERNAL_MODELS_ROOT } from './hf-registry-utils.js';
+
+const DEFAULT_VOLUME_ROOT = DEFAULT_EXTERNAL_MODELS_ROOT;
 const DEFAULT_RDRR_ROOT = path.join(DEFAULT_VOLUME_ROOT, 'rdrr');
 const DEFAULT_JSON_OUTPUT = path.join(DEFAULT_VOLUME_ROOT, 'RDRR_INDEX.json');
 const DEFAULT_MD_OUTPUT = path.join(DEFAULT_VOLUME_ROOT, 'RDRR_INDEX.md');
