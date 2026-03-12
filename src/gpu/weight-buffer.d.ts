@@ -110,6 +110,6 @@ export function getBuffer(weight: GPUBuffer | WeightBuffer | TensorLike): GPUBuf
 export function getLayout(weight: GPUBuffer | WeightBuffer | TensorLike): WeightLayout | null;
 
 /**
- * Get dtype from WeightBuffer, or null for raw GPUBuffer.
+ * Get dtype from WeightBuffer, tagged raw GPUBuffer, or TensorLike.
  */
 export function getWeightDtype(weight: GPUBuffer | WeightBuffer | TensorLike): WeightDtype | TensorLike['dtype'] | null;

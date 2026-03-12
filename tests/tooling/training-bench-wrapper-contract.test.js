@@ -6,29 +6,29 @@ import path from 'node:path';
 
 import {
   parseArgs as parseCompareUlArgs,
-} from '../../tools/compare-ul-runs.mjs';
+} from '../../tools/compare-ul-runs.js';
 import {
   parseArgs as parseDistillArgs,
   loadWorkloadConfig as loadDistillWorkloadConfig,
   resolveDistillWorkloadOptions,
   resolveResumeOverrideFields,
-} from '../../tools/run-distill-bench.mjs';
+} from '../../tools/run-distill-bench.js';
 import {
   parseArgs as parseUlArgs,
-} from '../../tools/run-ul-bench.mjs';
+} from '../../tools/run-ul-bench.js';
 
 assert.throws(
-  () => parseCompareUlArgs(['node', 'tools/compare-ul-runs.mjs', '--left']),
+  () => parseCompareUlArgs(['node', 'tools/compare-ul-runs.js', '--left']),
   /Missing value for --left/
 );
 
 assert.throws(
-  () => parseDistillArgs(['node', 'tools/run-distill-bench.mjs', '--surface']),
+  () => parseDistillArgs(['node', 'tools/run-distill-bench.js', '--surface']),
   /Missing value for --surface/
 );
 
 assert.throws(
-  () => parseUlArgs(['node', 'tools/run-ul-bench.mjs', '--workload']),
+  () => parseUlArgs(['node', 'tools/run-ul-bench.js', '--workload']),
   /Missing value for --workload/
 );
 
@@ -103,7 +103,7 @@ assert.throws(
     }), 'utf8');
 
     const result = spawnSync(process.execPath, [
-      'tools/run-ul-bench.mjs',
+      'tools/run-ul-bench.js',
       '--workload',
       workloadPath,
     ], {

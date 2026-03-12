@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import '../../tools/node-test-runtime-setup.mjs';
+import '../../tools/node-test-runtime-setup.js';
 
 const {
   getBrowserSupportedSuites,

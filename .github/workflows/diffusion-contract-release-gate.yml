@@ -12,8 +12,8 @@ on:
       - 'tests/integration/**'
       - 'docs/style/command-interface-design-guide.md'
       - 'docs/style/harness-style-guide.md'
-      - 'tools/ci-diffusion-contract-gates.mjs'
-      - 'tools/run-node-tests.mjs'
+      - 'tools/ci-diffusion-contract-gates.js'
+      - 'tools/run-node-tests.js'
       - '.github/workflows/diffusion-contract-release-gate.yml'
   push:
     branches: [main]
@@ -27,8 +27,8 @@ on:
       - 'tests/integration/**'
       - 'docs/style/command-interface-design-guide.md'
       - 'docs/style/harness-style-guide.md'
-      - 'tools/ci-diffusion-contract-gates.mjs'
-      - 'tools/run-node-tests.mjs'
+      - 'tools/ci-diffusion-contract-gates.js'
+      - 'tools/run-node-tests.js'
       - '.github/workflows/diffusion-contract-release-gate.yml'
   workflow_dispatch:
 

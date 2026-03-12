@@ -63,7 +63,7 @@ function run(args) {
 
 {
   const result = run([
-    'tools/run-node-tests.mjs',
+    'tools/run-node-tests.js',
     '--suite',
   ]);
   assert.notEqual(result.status, 0);
@@ -72,7 +72,7 @@ function run(args) {
 
 {
   const result = run([
-    'tools/run-node-coverage.mjs',
+    'tools/run-node-coverage.js',
     '--policy',
   ]);
   assert.notEqual(result.status, 0);
@@ -81,7 +81,7 @@ function run(args) {
 
 {
   const result = run([
-    'tools/distill-studio-quality-gate.mjs',
+    'tools/distill-studio-quality-gate.js',
     '--report',
     'report.json',
     '--min-steps',

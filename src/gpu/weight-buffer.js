@@ -114,5 +114,5 @@ export function getLayout(weight) {
 export function getWeightDtype(weight) {
   if (isWeightBuffer(weight)) return weight.dtype;
   if (isTensorLike(weight)) return weight.dtype;
-  return null;
+  return getBufferDtype(weight);
 }
