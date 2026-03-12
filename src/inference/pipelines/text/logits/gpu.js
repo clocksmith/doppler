@@ -304,7 +304,7 @@ export async function computeLogitsGPU(
 
   const logitsTensor = await runMatmul(normedTensor, lmHeadBuffer, numTokens, matmulVocabSize, hiddenSize, {
     transposeB: 'auto',
-    role: forceStableF32Logits ? undefined : 'lm_head',
+    role: 'lm_head',
     kernelPath: config.kernelPath ?? null,
   });
 
@@ -391,7 +391,7 @@ export async function recordLogitsGPU(
   // Record matmul (no submit)
   const logitsTensor = await recordMatmul(recorder, normedTensor, lmHeadBuffer, numTokens, matmulVocabSize, hiddenSize, {
     transposeB: 'auto',
-    role: forceStableF32Logits ? undefined : 'lm_head',
+    role: 'lm_head',
     kernelPath: config.kernelPath ?? null,
   });
 

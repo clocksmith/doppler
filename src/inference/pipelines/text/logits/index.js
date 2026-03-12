@@ -253,6 +253,7 @@ export async function computeLogits(
 
   const lastPositionOnly = options?.lastPositionOnly === true && numTokens > 1;
   const matmulRows = lastPositionOnly ? 1 : numTokens;
+  const matmulPhaseOverride = lastPositionOnly ? 'prefill' : null;
   let matmulInputTensor = normedTensor;
   let matmulInputOwned = false;
   if (lastPositionOnly) {
@@ -270,7 +271,8 @@ export async function computeLogits(
   // HuggingFace models store lm_head as [vocabSize, hiddenSize], so transposeB=true
   const logitsTensor = await runMatmul(matmulInputTensor, lmHeadBuffer, matmulRows, matmulVocabSize, hiddenSize, {
     transposeB: 'auto',
-    role: (forceStableF32Logits || lastPositionOnly) ? undefined : 'lm_head',
+    role: 'lm_head',
+    phaseOverride: matmulPhaseOverride,
     kernelPath: config.kernelPath ?? null,
   });
   await runProbes('logits', logitsTensor.buffer, {

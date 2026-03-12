@@ -29,7 +29,13 @@ function selectQ4KFusedVariant(isM1, wantF16Output, aDtype) {
 }
 
 
-export function resolveMatmulPhase(M) {
+export function resolveMatmulPhase(M, phaseOverride = null) {
+  if (phaseOverride != null) {
+    if (phaseOverride !== 'decode' && phaseOverride !== 'prefill') {
+      throw new Error(`[Matmul] Invalid phase override "${phaseOverride}". Expected "decode" or "prefill".`);
+    }
+    return phaseOverride;
+  }
   return selectKernelRuleValue('matmul', 'phase', { isDecode: M === 1 });
 }
 
@@ -375,7 +381,7 @@ function selectGemvVariant(useF16Gemv, useF32Gemv, hasSubgroups, useVec4, N, mul
 export function selectMatmulVariantAndFlags(mode, M, N, K, aDtype, bDtype, transposeB, requestedOutputDtype, options) {
   const capabilities = getKernelCapabilities();
   const strict = getKernelPathStrict();
-  const phase = resolveMatmulPhase(M);
+  const phase = resolveMatmulPhase(M, options.phaseOverride ?? null);
   let pathVariant = getKernelPathMatmulVariant(options.role, phase, options.layerIdx, options.kernelPath);
   const hadPathVariant = Boolean(pathVariant);
 

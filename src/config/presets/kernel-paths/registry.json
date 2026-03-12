@@ -93,6 +93,13 @@
       "notes": "Gemma 3 Q4K dequant default: subgroup GEMV + online attention + tuned lm_head multicol, F32 activations."
     },
     {
+      "id": "gemma3-q4k-dequant-f32w-f32a-online",
+      "file": "gemma3-q4k-dequant-f32w-f32a-online.json",
+      "status": "experimental",
+      "statusReason": "accuracy-probe",
+      "notes": "Gemma 3 Q4K dequant path that keeps matmul weights in F32 and runs F32 matmul kernels for numeric-sensitivity debugging."
+    },
+    {
       "id": "lfm2-q4k-dequant-f32a-online",
       "file": "lfm2-q4k-dequant-f32a-online.json",
       "status": "canonical",

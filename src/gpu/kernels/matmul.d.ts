@@ -23,6 +23,8 @@ export interface MatmulOptions extends OutputBufferOptions, OutputDtypeOptions, 
   layerIdx?: number;
   /** Explicit kernel path context for variant selection (avoids global path state). */
   kernelPath?: KernelPathSchema | null;
+  /** Optional explicit phase for kernel-path lookup when the runtime rewrites rows (for example prefill last-position logits). */
+  phaseOverride?: 'decode' | 'prefill' | null;
   /**
    * Whether B matrix is stored transposed.
    * - true: B is [N,K] (SafeTensors/row-major), needs transpose

@@ -503,6 +503,19 @@ export function isKernelPathFusedQ4K(path = undefined) {
   return kernelSteps.some((step) => step.kernel.includes('fused_matmul_q4'));
 }
 
+export function kernelPathRequiresF32MatmulWeights(path = undefined) {
+  const lookupPath = path === undefined ? activeKernelPath : path;
+  if (!lookupPath) return false;
+  const kernelSteps = [
+    ...(lookupPath.decode?.steps ?? []),
+    ...(lookupPath.prefill?.steps ?? []),
+    ...(lookupPath.preLayer ?? []),
+    ...(lookupPath.postLayer ?? []),
+    ...(lookupPath.layerOverrides?.flatMap((override) => override.steps) ?? []),
+  ];
+  return kernelSteps.some((step) => normalizeKernelFile(step.kernel) === 'matmul_f32.wgsl');
+}
+
 export function isActiveKernelPathFusedQ4K() {
   return isKernelPathFusedQ4K(activeKernelPath);
 }
