@@ -27,7 +27,7 @@ assert.equal(typeof doppler.evict, 'function');
   assert.ok(resolved.aliases.includes('google/gemma-3-270m-it'));
   assert.match(
     buildQuickstartModelBaseUrl(resolved),
-    /^https:\/\/huggingface\.co\/Clocksmith\/rdrr\/resolve\/ca6f0dbdf3882d3893a65cf48f2bb6f1520df162\/models\/gemma-3-270m-it-q4k-ehf16-af32$/
+    /^https:\/\/huggingface\.co\/Clocksmith\/rdrr\/resolve\/f304e523fe67d61e50ad07df9f78d04f0b46572f\/models\/gemma-3-270m-it-q4k-ehf16-af32$/
   );
 }
 
