@@ -203,7 +203,7 @@ function makeMockModel(vocabSize, tokenSequence) {
   );
   assert.throws(
     () => decoder.sampleToken([], 1.0),
-    /must be a numeric logits vector/
+    /must not be empty/
   );
 }
 

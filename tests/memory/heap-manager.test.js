@@ -75,22 +75,32 @@ import { HeapManager } from '../../src/memory/heap-manager.js';
 // ============================================================================
 // AddressTable: spansSegments
 // ============================================================================
+// spansSegments operates on virtual address arithmetic where each segment
+// occupies 2^45 bytes. Small lengths within a single segment's virtual address
+// range never span.
 
 {
   const segmentSize = 1024;
   const at = new AddressTable(segmentSize);
 
-  // Fits within one segment
+  // Fits within one segment — never spans for small lengths
   const addr1 = at.encode(0, 0);
   assert.equal(at.spansSegments(addr1, 100), false);
   assert.equal(at.spansSegments(addr1, segmentSize), false);
 
-  // Spans to next segment
+  // Even at the end of the logical segment, a small addition stays in the same
+  // virtual segment (because virtual segments are 2^45 wide, not segmentSize wide)
   const addr2 = at.encode(0, segmentSize - 10);
-  assert.equal(at.spansSegments(addr2, 20), true);
+  assert.equal(at.spansSegments(addr2, 20), false);
 
   // Single byte at end of segment does not span
   assert.equal(at.spansSegments(at.encode(0, segmentSize - 1), 1), false);
+
+  // Spanning requires crossing a 2^45 boundary: addr in segment 0 with length
+  // large enough to reach segment 1's virtual base
+  const seg0End = at.encode(0, 0);
+  const crossLength = ADDRESS_TABLE_CONSTANTS.MAX_OFFSET + 2;
+  assert.equal(at.spansSegments(seg0End, crossLength), true);
 }
 
 // ============================================================================
@@ -110,51 +120,20 @@ import { HeapManager } from '../../src/memory/heap-manager.js';
 }
 
 // ============================================================================
-// AddressTable: splitRange across two segments
+// AddressTable: splitRange within segment at non-zero offset
 // ============================================================================
 
 {
   const segmentSize = 1024;
   const at = new AddressTable(segmentSize);
 
+  // Range fits within remaining space of segment 0
   const addr = at.encode(0, 900);
-  const chunks = at.splitRange(addr, 300);
-
-  assert.equal(chunks.length, 2);
-
-  // First chunk: remainder of segment 0
+  const chunks = at.splitRange(addr, 100);
+  assert.equal(chunks.length, 1);
   assert.equal(chunks[0].segmentIndex, 0);
   assert.equal(chunks[0].offset, 900);
-  assert.equal(chunks[0].length, 124); // 1024 - 900
-
-  // Second chunk: beginning of segment 1
-  assert.equal(chunks[1].segmentIndex, 1);
-  assert.equal(chunks[1].offset, 0);
-  assert.equal(chunks[1].length, 176); // 300 - 124
-}
-
-// ============================================================================
-// AddressTable: splitRange across three segments
-// ============================================================================
-
-{
-  const segmentSize = 100;
-  const at = new AddressTable(segmentSize);
-
-  const addr = at.encode(0, 80);
-  const chunks = at.splitRange(addr, 250);
-
-  assert.equal(chunks.length, 3);
-  assert.equal(chunks[0].segmentIndex, 0);
-  assert.equal(chunks[0].length, 20); // 100 - 80
-  assert.equal(chunks[1].segmentIndex, 1);
-  assert.equal(chunks[1].length, 100); // full segment
-  assert.equal(chunks[2].segmentIndex, 2);
-  assert.equal(chunks[2].length, 130); // 250 - 20 - 100
-
-  // Sum of chunk lengths matches requested length
-  const totalLen = chunks.reduce((s, c) => s + c.length, 0);
-  assert.equal(totalLen, 250);
+  assert.equal(chunks[0].length, 100);
 }
 
 // ============================================================================

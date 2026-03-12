@@ -53,6 +53,9 @@ function createFakeDevice() {
       maxUniformBufferBindingSize: 65536,
       maxComputeWorkgroupsPerDimension: 65535,
     },
+    createBindGroup() {
+      return {};
+    },
     createBuffer({ size, usage, label }) {
       const buffer = new FakeBuffer({ size, usage, label });
       createdBuffers.push(buffer);
