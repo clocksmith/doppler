@@ -1,9 +1,9 @@
 # Model Failure Action Plan
 
-Last updated: 2026-03-12T15:06:59Z
+Last updated: 2026-03-12T16:18:42Z
 Plan status: active
-Current resume point: `WS0.1`
-Current highest-priority ready step: `WS0.1`
+Current resume point: `WS1.3`
+Current highest-priority ready step: `WS1.3`
 
 ## Purpose
 
@@ -84,11 +84,11 @@ Repo-backed facts as of 2026-03-12:
 2. `translategemma-4b-it-q4k-ehf16-af32` has an explicit `sessionDefaults.kvcache.layout: "paged"` in its checked-in conversion config.
 2a. Git history shows the checked-in TranslateGemma conversion config first appears on 2026-03-08, after the recorded 2026-03-06 browser verification. That means the current checked-in `layout: "paged"` policy postdates the recorded verification and `WS2` should treat the contiguous-layout path as a re-verification of current policy rather than the exact previously verified artifact.
 3. [`src/inference/pipelines/text/init.js`](../src/inference/pipelines/text/init.js) only blocks threshold-based `contiguous -> paged` auto-upgrade when `forceContiguousKVCache` is true. It does not rewrite an explicit `paged` request back to `contiguous`.
-4. The sampled local report artifacts from 2026-03-12 are mostly Class `C` evidence. They are useful for contract artifacts, but not for generation quality or performance claims.
+4. The sampled local report artifacts from 2026-03-12 are mostly Class `C` evidence. They are useful for contract artifacts, but not for generation quality or performance claims. This includes the `2026-03-12T13-48*` and `2026-03-12T13-49*` batches and later reports with the same null-device and fixed-`1 ms`/`1000 tok/s` signature, such as [`reports/translategemma-4b-it-q4k-ehf16-af32/2026-03-12T15-34-44.706Z.json`](../reports/translategemma-4b-it-q4k-ehf16-af32/2026-03-12T15-34-44.706Z.json) and [`reports/qwen-3-5-0-8b-q4k-ehaf16/2026-03-12T15-34-41.292Z.json`](../reports/qwen-3-5-0-8b-q4k-ehaf16/2026-03-12T15-34-41.292Z.json).
 5. The earlier "Gemma F32a path is the prime suspect because TranslateGemma uses F16a" story is no longer a lead explanation. Kernel-level review reported no arithmetic divergence between the paired F32a and F16a WGSL paths beyond I/O and storage dtype differences, so any remaining F32a vs F16a comparison belongs at the orchestration layer rather than kernel math.
 6. There is real Class `A` evidence that `gemma-3-1b-it-q4k-ehf16-af32` produced coherent output on at least one prompt on 2026-03-11 in [`reports/gemma-3-1b-it-q4k-ehf16-af32/2026-03-11T17-22-04.007Z.json`](../reports/gemma-3-1b-it-q4k-ehf16-af32/2026-03-11T17-22-04.007Z.json). This contradicts the support-matrix "failing" summary and means the 1B Q4K path must not be treated as categorically broken.
 7. Qwen remains the strongest repo-backed case for a family-specific runtime correctness issue centered on linear attention and Qwen-specific semantics.
-8. Sampled local artifacts for at least some Qwen and Gemma models appear stale or incomplete against the current manifest-first contract and must be refreshed or re-verified before deeper runtime conclusions.
+8. Sampled local artifacts for at least some Qwen and Gemma models appear stale or incomplete against the current manifest-first contract and must be refreshed or re-verified before deeper runtime conclusions. The exact Qwen target IDs `qwen-3-5-0-8b-q4k-ehaf16` and `qwen-3-5-2b-q4k-ehaf16` are still absent locally, but the mounted volume does contain older Qwen comparison artifacts under the IDs `qwen-3-5-0-8b-wq4k-ef16-hf16-f16`, `qwen-3-5-2b-wq4k-ef16-hf16-f16`, and `qwen-3-5-0-8b-wf16-ef16-hf16-f16`.
 
 ## Hypothesis Register
 
@@ -108,8 +108,8 @@ Repo-backed facts as of 2026-03-12:
 
 | Workstream | Status | Priority | Depends on | Exit gate |
 | --- | --- | --- | --- | --- |
-| `WS0` Evidence normalization and inventory | `ready` | P0 | none | Target artifacts, evidence classes, and current failure claims are pinned |
-| `WS1` Artifact freshness and manifest contract repair | `blocked` | P1 | `WS0` | Target artifacts are current enough for runtime investigation |
+| `WS0` Evidence normalization and inventory | `done` | P0 | none | Target artifacts, evidence classes, and current failure claims are pinned |
+| `WS1` Artifact freshness and manifest contract repair | `ready` | P1 | `WS0` | Target artifacts are current enough for runtime investigation |
 | `WS2` TranslateGemma hardening and metadata | `ready` | P1 | none | Explicit paged-layout hazard is fail-closed and config/catalog are aligned |
 | `WS3` Qwen runtime-path and linear-attention investigation | `blocked` | P1 | `WS1` | Real runtime behavior is explained and validated with real evidence |
 | `WS4` Gemma Q4K conversion and numeric triage | `blocked` | P1 | `WS1` | Conversion/runtime split is resolved with real evidence |
@@ -125,7 +125,7 @@ Repo-backed facts as of 2026-03-12:
 
 ## WS0: Evidence Normalization And Inventory
 
-Status: `ready`
+Status: `done`
 
 Goal: build one canonical inventory of target artifacts, evidence class, and next action so later work is anchored to real state rather than mixed reports.
 
@@ -148,21 +148,21 @@ Target inventory template:
 
 | Model ID | Local artifact path | Latest repo claim | Latest real runtime evidence | Latest contract-only evidence | Current next action |
 | --- | --- | --- | --- | --- | --- |
-| `gemma-3-270m-it-q4k-ehf16-af32` | fill in | failing | support matrix: node, 2026-03-11 | fill in | `WS1` then `WS4` |
-| `gemma-3-1b-it-q4k-ehf16-af32` | fill in | failing in support matrix, but contradicted by a coherent runtime report | Class `A`: [`reports/gemma-3-1b-it-q4k-ehf16-af32/2026-03-11T17-22-04.007Z.json`](../reports/gemma-3-1b-it-q4k-ehf16-af32/2026-03-11T17-22-04.007Z.json) on Apple M3 with coherent output and non-synthetic timings | fill in | `WS1` then `WS4` |
-| `translategemma-4b-it-q4k-ehf16-af32` | fill in | verified | support matrix: browser, 2026-03-06 | paged-layout contract evidence | `WS2` |
-| `qwen-3-5-0-8b-q4k-ehaf16` | fill in | failing | support matrix: browser, 2026-03-06 | sampled stale-manifest evidence | `WS1` then `WS3` |
-| `qwen-3-5-2b-q4k-ehaf16` | fill in | failing | support matrix: browser, 2026-03-06 | fill in | `WS1` then `WS3` |
-| `gemma-3-1b-it-f16-af32` | fill in | verified | support matrix: browser, 2026-03-10 | sampled stale-manifest evidence | `WS5` |
+| `gemma-3-270m-it-q4k-ehf16-af32` | primary: `/Volumes/models/rdrr/gemma-3-270m-it-q4k-ehf16-af32`; older duplicate: `models/local/gemma-3-270m-it-q4k-ehf16-af32` | failing | support matrix: node, 2026-03-11 | mounted artifact present with `manifest.json`, `origin.json`, `tokenizer.json`, `tokenizer.model`, and 6 shard files; mounted manifest is newer than the local duplicate | `WS1` then `WS4` |
+| `gemma-3-1b-it-q4k-ehf16-af32` | primary: `/Volumes/models/rdrr/gemma-3-1b-it-q4k-ehf16-af32`; older duplicate: `models/local/gemma-3-1b-it-q4k-ehf16-af32` | failing in support matrix, but contradicted by a coherent runtime report | Class `A`: [`reports/gemma-3-1b-it-q4k-ehf16-af32/2026-03-11T17-22-04.007Z.json`](../reports/gemma-3-1b-it-q4k-ehf16-af32/2026-03-11T17-22-04.007Z.json) on Apple M3 with coherent output and non-synthetic timings | mounted artifact present with `manifest.json`, `origin.json`, `tokenizer.json`, `tokenizer.model`, and 16 shard files; mounted manifest is newer than the local duplicate | `WS1` then `WS4` |
+| `translategemma-4b-it-q4k-ehf16-af32` | `/Volumes/models/rdrr/translategemma-4b-it-q4k-ehf16-af32`; no `models/local` artifact present | verified | support matrix: browser, 2026-03-06 | mounted artifact present with `manifest.json`, `origin.json`, `tokenizer.json`, `tokenizer.model`, and 47 shard files; manifest currently records `sessionDefaults.kvcache.layout: "paged"`. Latest sampled local report with that config is Class `C`: [`reports/translategemma-4b-it-q4k-ehf16-af32/2026-03-12T15-34-44.706Z.json`](../reports/translategemma-4b-it-q4k-ehf16-af32/2026-03-12T15-34-44.706Z.json) | `WS2` |
+| `qwen-3-5-0-8b-q4k-ehaf16` | no exact target-ID artifact found in `models/local` or `/Volumes/models`; mounted comparison artifacts exist at `/Volumes/models/rdrr/qwen-3-5-0-8b-wq4k-ef16-hf16-f16` and `/Volumes/models/rdrr/qwen-3-5-0-8b-wf16-ef16-hf16-f16` | failing | support matrix: browser, 2026-03-06 | no exact target-ID Q4K artifact yet. Mounted comparison artifacts are explicit and current enough to inspect: the Q4K comparison manifest is execution-v0 with `defaultKernelPath: null`, 12 shards, bundled tokenizer, and custom linear/full-attention pattern. Latest sampled exact-ID local Q4K report is Class `C`: [`reports/qwen-3-5-0-8b-q4k-ehaf16/2026-03-12T15-34-41.292Z.json`](../reports/qwen-3-5-0-8b-q4k-ehaf16/2026-03-12T15-34-41.292Z.json) | `WS1` then `WS3` |
+| `qwen-3-5-2b-q4k-ehaf16` | no exact target-ID artifact found in `models/local` or `/Volumes/models`; mounted comparison artifact exists at `/Volumes/models/rdrr/qwen-3-5-2b-wq4k-ef16-hf16-f16` | failing | support matrix: browser, 2026-03-06 | no exact target-ID artifact yet. Mounted Q4K comparison manifest is execution-v0 with `defaultKernelPath: null`, 27 shards, bundled tokenizer, and the same custom linear/full-attention pattern family | `WS1` then `WS3` |
+| `gemma-3-1b-it-f16-af32` | `models/local/gemma-3-1b-it-f16-af32` | verified | support matrix: browser, 2026-03-10 | sampled stale-manifest evidence | `WS5` |
 
 Steps:
 
-- [ ] `WS0.1` Inventory the exact local artifact directories, manifests, tokenizer files, and shard sets for each target model.
-- [ ] `WS0.2` Classify all relevant report artifacts as Class `A`, `B`, or `C`. For [`reports/gemma-3-1b-it-q4k-ehf16-af32/2026-03-11T17-22-04.007Z.json`](../reports/gemma-3-1b-it-q4k-ehf16-af32/2026-03-11T17-22-04.007Z.json), independently verify the real-device and non-synthetic-timing criteria before accepting the Ground Truth item 6 pre-classification.
-- [ ] `WS0.3` Mark the known 2026-03-12 synthetic harness batch, plus any other reports with the same synthetic signature, as contract-only evidence unless they contain real device/provider info and non-synthetic timings.
-- [ ] `WS0.4` Record the latest real runtime claim for each model from the support matrix or a newer direct runtime smoke if one exists.
-- [ ] `WS0.5` Fill the inventory table and set one current next action per model.
-- [ ] `WS0.6` Update `Current resume point` to `WS1.1` when this workstream is complete.
+- [x] `WS0.1` Inventory the exact local artifact directories, manifests, tokenizer files, and shard sets for each target model.
+- [x] `WS0.2` Classify all relevant report artifacts as Class `A`, `B`, or `C`. For [`reports/gemma-3-1b-it-q4k-ehf16-af32/2026-03-11T17-22-04.007Z.json`](../reports/gemma-3-1b-it-q4k-ehf16-af32/2026-03-11T17-22-04.007Z.json), independently verify the real-device and non-synthetic-timing criteria before accepting the Ground Truth item 6 pre-classification.
+- [x] `WS0.3` Mark the known 2026-03-12 synthetic harness batch, plus any other reports with the same synthetic signature, as contract-only evidence unless they contain real device/provider info and non-synthetic timings.
+- [x] `WS0.4` Record the latest real runtime claim for each model from the support matrix or a newer direct runtime smoke if one exists.
+- [x] `WS0.5` Fill the inventory table and set one current next action per model.
+- [x] `WS0.6` Update `Current resume point` to `WS1.1` when this workstream is complete.
 
 Do not do:
 
@@ -171,8 +171,7 @@ Do not do:
 
 ## WS1: Artifact Freshness And Manifest Contract Repair
 
-Status: `blocked`
-Blocked on: `WS0`
+Status: `in_progress`
 
 Goal: re-establish whether the target local artifacts are current enough to support runtime investigation.
 
@@ -218,8 +217,8 @@ Family-specific guidance:
 
 Steps:
 
-- [ ] `WS1.1` Inspect the current local manifests for all target models and record missing fields, explicit nulls, preset IDs, layer patterns, tokenizer paths, `schema`, and `defaultKernelPath`.
-- [ ] `WS1.2` Mark any artifact with missing required inference fields, missing tokenizer references, or shard/manifest mismatch as stale or invalid for runtime investigation.
+- [x] `WS1.1` Inspect the current local manifests for all target models and record missing fields, explicit nulls, preset IDs, layer patterns, tokenizer paths, `schema`, and `defaultKernelPath`.
+- [x] `WS1.2` Mark any artifact with missing required inference fields, missing tokenizer references, or shard/manifest mismatch as stale or invalid for runtime investigation.
 - [ ] `WS1.3` If source checkpoints are locally available, re-convert stale or incomplete artifacts using the checked-in conversion configs before making deeper runtime claims. If a source checkpoint is unavailable for a target model, mark that artifact `non_refreshable` and limit downstream conclusions to the existing manifest state rather than pretending the reconversion gate was satisfied.
 - [ ] `WS1.4` Re-run manifest contract checks after reconversion and capture the exact remaining gaps, if any.
 - [ ] `WS1.5` For Qwen, explicitly document whether the refreshed manifests still resolve to `defaultKernelPath: null`, whether `schema` remains null, and whether that is intentional for the actual runtime path.
@@ -528,3 +527,6 @@ Template:
 | 2026-03-12T14:39:04Z | agent/codex | plan review integration | n/a | `B` | Integrated accepted review findings from batches 2 through 4, including LFM2 fallback evidence, deterministic resume rules, Qwen key-file expansion, and TranslateGemma artifact sequencing | `WS0.1` |
 | 2026-03-12T15:05:42Z | agent/codex | plan review integration | n/a | `B` | Merged validated follow-up suggestions on WS2 baseline-test disposal, Gemma manifest wording, and Gemma2 fixture gating while rejecting duplicate or repo-contradicted edits | `WS0.1` |
 | 2026-03-12T15:06:59Z | agent/codex | plan review integration | n/a | `B` | Normalized WS5.B closeout semantics to use only legend-defined statuses and preserved the fixture-vs-regression gate | `WS0.1` |
+| 2026-03-12T16:12:12Z | agent/codex | `WS0.1` | `ready -> done` | `B` | Inventoried mounted and local target artifacts; Gemma Q4K and TranslateGemma now have mounted artifacts, while Qwen Q4K remains absent locally | `WS0.2` |
+| 2026-03-12T16:12:12Z | agent/codex | `WS0.2`-`WS0.6` | `ready -> done` | `A`,`B`,`C` | Classified the real Gemma 1B runtime report, marked null-device fixed-timing reports as synthetic Class `C`, aligned latest runtime claims with the support matrix, and completed the inventory table | `WS1.1` |
+| 2026-03-12T16:18:42Z | agent/codex | `WS1.1`-`WS1.2` | `ready -> done` | `B` | Inspected the mounted Gemma and TranslateGemma manifests plus Qwen comparison artifacts; exact Qwen target IDs remain absent, but source checkpoints for all primary families are available on the mounted volume | `WS1.3` |
