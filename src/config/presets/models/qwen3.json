@@ -10,7 +10,8 @@
   "inference": {
     "attention": {
       "slidingWindow": null,
-      "queryKeyNorm": true
+      "queryKeyNorm": true,
+      "attentionOutputGate": true
     },
     "output": {
       "scaleEmbeddings": false

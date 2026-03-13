@@ -130,7 +130,7 @@ const { setActiveKernelPath, getKernelPathStrict } = await import('../../src/con
       sourceScope: ['config'],
     }
   );
-  assert.equal(selected, 'gemma3-q4k-dequant-f32a-nosubgroups');
+  assert.equal(selected, 'lfm2-q4k-dequant-f32a-nosubgroups');
 }
 
 {
@@ -204,7 +204,7 @@ const { setActiveKernelPath, getKernelPathStrict } = await import('../../src/con
     'finitenessFallback',
     { kernelPathId: 'lfm2-q4k-dequant-f32a-online' }
   );
-  assert.equal(selected, 'gemma3-q4k-dequant-f32a-nosubgroups');
+  assert.equal(selected, 'lfm2-q4k-dequant-f32a-nosubgroups');
 }
 
 {

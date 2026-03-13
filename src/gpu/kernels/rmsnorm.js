@@ -9,6 +9,9 @@ import { selectRuleValue as selectLoaderRule } from '../../rules/rule-registry.j
 import { getBuffer, getWeightDtype, getBufferDtype } from '../weight-buffer.js';
 import { unifiedKernelWrapper } from './utils.js';
 
+// Conservative fallback dtype for norm weight inference when metadata is unavailable.
+const DEFAULT_DTYPE = 'f32';
+
 function inferHiddenSize(input, hiddenSize) {
   if (hiddenSize != null) return hiddenSize;
   const shape = input?.shape;
@@ -39,9 +42,12 @@ function resolveNormWeightDtype(weight, hiddenSize) {
     return taggedDtype;
   }
 
+  // Conservative fallback: f32 avoids precision loss when dtype cannot be determined.
+  // This path fires for non-GPU buffers or missing hiddenSize, both of which prevent
+  // size-based dtype inference below.
   const hasGPUBufferType = typeof GPUBuffer !== 'undefined';
   if (!hasGPUBufferType || !(weightBuffer instanceof GPUBuffer) || hiddenSize == null || hiddenSize <= 0) {
-    return 'f32';
+    return DEFAULT_DTYPE;
   }
 
   const byteSize = getBufferRequestedSize(weightBuffer);
@@ -55,7 +61,8 @@ function resolveNormWeightDtype(weight, hiddenSize) {
       sizeMatchesF32,
     });
   }
-  return 'f32';
+  // Buffer size matches neither f16 nor f32 for given hiddenSize; fall back to f32.
+  return DEFAULT_DTYPE;
 }
 
 function assertRMSNormWeightBuffer(weight, weightBuffer, hiddenSize) {

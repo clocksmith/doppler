@@ -168,7 +168,7 @@ const embeddingComputeF32Config = createConverterConfig({
     },
     256
   );
-  assert.equal(manifestInference.normalization.rmsNormWeightOffset, true);
+  assert.equal(manifestInference.normalization.rmsNormWeightOffset, false);
   assert.equal(manifestInference.attention.attentionOutputGate, true);
 }
 
@@ -188,7 +188,7 @@ const embeddingComputeF32Config = createConverterConfig({
     },
     256
   );
-  assert.equal(manifestInference.normalization.rmsNormWeightOffset, true);
+  assert.equal(manifestInference.normalization.rmsNormWeightOffset, false);
   assert.equal(manifestInference.attention.attentionOutputGate, true);
 }
 
