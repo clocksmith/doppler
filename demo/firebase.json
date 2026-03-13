@@ -30,8 +30,15 @@
       "EMOJI.md",
       "docs/**",
       "tests/**",
-      "tools/**",
-      "benchmarks/**",
+      "tools/**/*.js",
+      "tools/**/*.mjs",
+      "tools/**/*.cjs",
+      "tools/**/*.ts",
+      "tools/**/*.sh",
+      "benchmarks/**/*.js",
+      "benchmarks/**/*.mjs",
+      "benchmarks/**/*.cjs",
+      "benchmarks/**/*.ts",
       "benchmarks/vendors/results/**",
       "artifacts/**",
       "external/**",
@@ -43,6 +50,7 @@
       "firebase-debug.log",
       ".tjs-bench-profile/**",
       "tmp/**",
+      "models/local/**",
       "models/converted/**"
     ]
   }

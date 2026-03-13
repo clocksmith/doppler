@@ -35,7 +35,7 @@ export const DEFAULT_STORAGE_ALIGNMENT_CONFIG = {
 export const DEFAULT_STORAGE_BACKEND_CONFIG = {
   backend: 'auto', // auto | opfs | indexeddb | memory
   opfs: {
-    useSyncAccessHandle: true,
+    useSyncAccessHandle: false,
     maxConcurrentHandles: 2,
   },
   indexeddb: {
