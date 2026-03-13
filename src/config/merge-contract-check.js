@@ -171,6 +171,13 @@ export function buildMergeContractArtifact() {
     `configA=${isolatedConfigA.runtime.inference.compute.activationDtype}, configB=${isolatedConfigB.runtime.inference.compute.activationDtype}`,
     'actual'
   );
+  recordCheck(
+    checks,
+    'runtime.schema.storage.opfs_sync_access_handle_defaults_off',
+    isolatedConfigB.runtime.loading.storage.backend.opfs.useSyncAccessHandle === false,
+    `value=${String(isolatedConfigB.runtime.loading.storage.backend.opfs.useSyncAccessHandle)}`,
+    'actual'
+  );
 
   const calibrateConfig = createDopplerConfig({
     runtime: {
