@@ -2,6 +2,7 @@
 import { initializeInference } from './test-harness.js';
 import { saveReport } from '../storage/reports.js';
 import { getRuntimeConfig, setRuntimeConfig } from '../config/runtime.js';
+import { clearLogHistory, getDebugSnapshot } from '../debug/history.js';
 import { computeSampleStats } from '../debug/stats.js';
 import {
   setActiveKernelPath,
@@ -846,15 +847,32 @@ async function dispatchBrowserSuite(suite, options) {
   return null;
 }
 
+function shouldCaptureDebugSnapshot(suite, runtimeConfig) {
+  const debug = runtimeConfig?.shared?.debug ?? {};
+  const logLevel = String(debug.logLevel?.defaultLogLevel ?? '').toLowerCase();
+  return suite === 'debug'
+    || debug.trace?.enabled === true
+    || debug.pipeline?.enabled === true
+    || (Array.isArray(debug.probes) && debug.probes.length > 0)
+    || debug.profiler?.enabled === true
+    || logLevel === 'debug'
+    || logLevel === 'verbose';
+}
+
 export async function runBrowserSuite(options = {}) {
   return runWithRuntimeIsolationForSuite(async () => {
     const suiteTimestamp = resolveReportTimestamp(options.timestamp, 'runBrowserSuite timestamp');
     const suiteContext = resolveSuiteContext(options);
     const suite = normalizeSuite(options.suite, suiteContext);
+    const captureDebugSnapshot = shouldCaptureDebugSnapshot(suite, getRuntimeConfig());
+    if (captureDebugSnapshot) {
+      clearLogHistory();
+    }
     const suiteResult = await dispatchBrowserSuite(suite, options);
     if (!suiteResult) {
       throw createUnsupportedSuiteError(suite, suiteContext);
     }
+    const debugSnapshot = captureDebugSnapshot ? getDebugSnapshot() : null;
 
     if (suite === 'bench' && suiteResult?.metrics?.workloadType === 'training') {
       const trainingReport = suiteResult?.metrics?.trainingMetricsReport;
@@ -886,6 +904,7 @@ export async function runBrowserSuite(options = {}) {
       metrics: suiteResult.metrics ?? null,
       output: reportOutput,
       memory: suiteResult.memoryStats ?? null,
+      debugSnapshot,
       ...options.report,
     };
     if (ulArtifacts.length > 0 || distillArtifacts.length > 0 || checkpointResumeTimeline.length > 0) {
@@ -907,7 +926,7 @@ export async function runBrowserSuite(options = {}) {
       report.timestamp = suiteTimestamp;
     }
     const reportInfo = await saveReport(modelId, report, { timestamp: report.timestamp });
-    return { ...suiteResult, report, reportInfo };
+    return { ...suiteResult, debugSnapshot, report, reportInfo };
   });
 }
 
