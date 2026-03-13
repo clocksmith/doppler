@@ -115,6 +115,7 @@ import {
   getModeModelLabel,
   getModelTypeForId,
 } from './ui/models/utils.js';
+import { mergeQuickCatalogEntryLists } from './ui/models/quick-catalog.js';
 import { updateStorageInfo, refreshStorageInspector, deleteStorageModel } from './ui/storage/inspector.js';
 import {
   configureDownloadCallbacks,
@@ -3526,7 +3527,7 @@ async function loadQuickModelCatalog() {
   renderQuickModelPanels();
   try {
     let lastError = null;
-    let loaded = false;
+    const loadedCatalogs = [];
     for (const catalogUrl of QUICK_MODEL_CATALOG_URLS) {
       try {
         const response = await fetch(catalogUrl, { cache: resolveRemoteCacheMode(catalogUrl) });
@@ -3534,16 +3535,15 @@ async function loadQuickModelCatalog() {
           throw new Error(`HTTP ${response.status} (${catalogUrl})`);
         }
         const payload = await response.json();
-        state.quickModelCatalog = parseQuickCatalogPayload(payload, catalogUrl);
-        loaded = true;
-        break;
+        loadedCatalogs.push(parseQuickCatalogPayload(payload, catalogUrl));
       } catch (error) {
         lastError = error;
       }
     }
-    if (!loaded) {
+    if (loadedCatalogs.length === 0) {
       throw lastError || new Error('Quick model catalog fetch failed.');
     }
+    state.quickModelCatalog = mergeQuickCatalogEntryLists(loadedCatalogs);
   } catch (error) {
     state.quickModelCatalog = [];
     state.quickModelCatalogError = error instanceof Error ? error.message : String(error);
