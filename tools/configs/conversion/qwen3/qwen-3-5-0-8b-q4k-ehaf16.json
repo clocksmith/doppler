@@ -1,6 +1,6 @@
 {
   "presets": {
-    "model": "qwen3"
+    "model": "qwen3_5"
   },
   "quantization": {
     "weights": "q4k",

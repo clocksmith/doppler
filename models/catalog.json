@@ -23,24 +23,24 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "f304e523fe67d61e50ad07df9f78d04f0b46572f",
+        "revision": "ca6f0dbdf3882d3893a65cf48f2bb6f1520df162",
         "path": "models/gemma-3-270m-it-q4k-ehf16-af32"
       },
-      "baseUrl": "./local/gemma-3-270m-it-q4k-ehf16-af32",
+      "baseUrl": null,
       "quickstart": true,
       "sizeBytes": 418512553,
-      "recommended": false,
+      "recommended": true,
       "sortOrder": 10,
       "lifecycle": {
         "availability": {
-          "curated": true,
-          "local": true,
+          "curated": false,
+          "local": false,
           "hf": true
         },
         "status": {
           "runtime": "active",
           "conversion": "ready",
-          "demo": "curated",
+          "demo": "none",
           "tested": "verified"
         },
         "tested": {
@@ -75,32 +75,32 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "b23aca921ea11729d6f34b9484555968a5ab0e42",
         "path": "models/google-embeddinggemma-300m-q4k-ehf16-af32"
       },
-      "baseUrl": "./local/google-embeddinggemma-300m-q4k-ehf16-af32",
-      "quickstart": true,
+      "baseUrl": null,
+      "quickstart": false,
       "sizeBytes": 480562497,
       "recommended": false,
       "sortOrder": 11,
       "lifecycle": {
         "availability": {
-          "curated": true,
-          "local": true,
-          "hf": true
+          "curated": false,
+          "local": false,
+          "hf": false
         },
         "status": {
           "runtime": "active",
-          "conversion": "ready",
-          "demo": "curated",
+          "conversion": "needs-republish",
+          "demo": "none",
           "tested": "verified"
         },
         "tested": {
           "suite": "inference",
-          "surface": "auto",
+          "surface": "browser",
           "result": "pass",
-          "lastVerifiedAt": "2026-03-04",
-          "source": "registry-verify",
+          "lastVerifiedAt": "2026-03-13",
+          "source": "manual-review",
+          "notes": "queryPreAttnScalar was 16 (sqrt(headDim)) in original manifest — fixed to 256 (headDim) on external volume. HF manifest still has the old value and needs republish. After fix: 768-dim embeddings, all finite, semantic retrieval test passed. Demoted from curated/demo until HF manifest is republished with fix.",
           "contracts": {
             "executionContractOk": true,
             "executionV0GraphOk": true
@@ -126,7 +126,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "86bb3efd88d61a0a92a341dafad3a05cdebfc671",
+        "revision": "ca6f0dbdf3882d3893a65cf48f2bb6f1520df162",
         "path": "models/gemma-3-1b-it-q4k-ehf16-af32"
       },
       "baseUrl": "./local/gemma-3-1b-it-q4k-ehf16-af32",
@@ -179,7 +179,7 @@
         "repoId": "Clocksmith/rdrr",
         "path": "models/gemma-3-1b-it-f16-af32"
       },
-      "baseUrl": "./local/gemma-3-1b-it-f16-af32",
+      "baseUrl": null,
       "quickstart": false,
       "sizeBytes": 2018964126,
       "recommended": false,
@@ -187,7 +187,7 @@
       "lifecycle": {
         "availability": {
           "curated": false,
-          "local": true,
+          "local": false,
           "hf": false
         },
         "status": {
@@ -229,7 +229,6 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "cddb6a2b4c937eccaeb26c2f4832eaef13e15188",
         "path": "models/translategemma-4b-it-q4k-ehf16-af32"
       },
       "baseUrl": null,
@@ -240,7 +239,7 @@
         "availability": {
           "curated": false,
           "local": false,
-          "hf": true
+          "hf": false
         },
         "status": {
           "runtime": "active",
@@ -254,7 +253,7 @@
           "result": "fail",
           "lastVerifiedAt": "2026-03-12",
           "source": "manual-review",
-          "notes": "Default kernel path (f16a) produces NaN/Inf logits at 4B scale. F32a kernel path override runs but produces incoherent output. Manifest variantTag mismatch (q4k-ehaf16 vs expected q4k-ehf16-af32). Prior verified status was based on contract checks only, not output quality. Root cause TBD.",
+          "notes": "Local manifest config fixed (queryPreAttnScalar 16→256, slidingWindow null→1024, ropeScaling null→linear/8, embeddingVocabSize null→262208) but F32 runtime override still produces incoherent output — local artifact was converted with F16 compute and cannot be fixed by runtime override alone. Needs reconversion with canonical config (tools/configs/conversion/gemma3/translategemma-4b-it-q4k-ehf16-af32.json, computePrecision=f32). A proper reconversion was done 2026-03-13 on Mac but artifact not available on this machine.",
           "contracts": {
             "executionContractOk": true,
             "executionV0GraphOk": true
@@ -279,7 +278,6 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "f402801f40894982c131b53e5bfe738bfb00c431",
         "path": "models/translategemma-4b-1b-enes-q4k-ehf16-af32"
       },
       "baseUrl": null,
@@ -290,21 +288,21 @@
         "availability": {
           "curated": false,
           "local": false,
-          "hf": true
+          "hf": false
         },
         "status": {
           "runtime": "active",
-          "conversion": "ready",
+          "conversion": "needs-republish",
           "demo": "none",
-          "tested": "unverified"
+          "tested": "marginal"
         },
         "tested": {
           "suite": "debug",
           "surface": "browser",
-          "result": "unknown",
-          "lastVerifiedAt": "2026-03-12",
+          "result": "partial",
+          "lastVerifiedAt": "2026-03-13",
           "source": "manual-review",
-          "notes": "No local artifact exists. Prior verified claim had no backing artifact. Teacher model (4B) is failing — student output quality unknown.",
+          "notes": "Local artifact exists and loads. EN→ES produces partly correct translation with hallucinated continuation. EN→FR echoes input without translating. HF manifest modelId mismatch: internal ID is translategemma-1b-enes-q4k-ehf16-af32, should be translategemma-4b-1b-enes-q4k-ehf16-af32. Config is correct (queryPreAttnScalar=256, compute=f32). Not promotion-ready.",
           "contracts": {
             "executionContractOk": true,
             "executionV0GraphOk": true
@@ -331,7 +329,6 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "aeb7b3a304b5aad4b46c903a8a67f17070bce865",
         "path": "models/qwen-3-5-0-8b-wq4k-ef16-hf16-f16"
       },
       "baseUrl": null,
@@ -379,7 +376,6 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "cbafef7751177996aba31a7459a9ccb3c9ebccbb",
         "path": "models/qwen-3-5-2b-wq4k-ef16-hf16-f16"
       },
       "baseUrl": null,

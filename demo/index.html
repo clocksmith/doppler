@@ -62,9 +62,12 @@
         </div>
         <div class="segmented-control header-tabs">
           <button class="btn segmented-btn mode-subtab" data-mode="run" type="button">Chat</button>
-          <button class="btn segmented-btn mode-subtab" data-mode="embedding" type="button">Embed</button>
-          <button class="btn segmented-btn mode-subtab" data-mode="translate" type="button">Translate</button>
-          <button class="btn segmented-btn mode-subtab" data-mode="diffusion" type="button">Images</button>
+          <!-- Hidden: no fetchable embedding model (HF manifest needs republish with queryPreAttnScalar fix) -->
+          <!-- <button class="btn segmented-btn mode-subtab" data-mode="embedding" type="button">Embed</button> -->
+          <!-- Hidden: no verified translate model (translategemma-4b is failing) -->
+          <!-- <button class="btn segmented-btn mode-subtab" data-mode="translate" type="button">Translate</button> -->
+          <!-- Hidden: no diffusion models in catalog -->
+          <!-- <button class="btn segmented-btn mode-subtab" data-mode="diffusion" type="button">Images</button> -->
           <button class="btn segmented-btn mode-subtab" data-mode="energy" type="button">Energy</button>
           <button class="btn segmented-btn mode-subtab" data-mode="diagnostics" type="button">Verify</button>
           <button class="btn segmented-btn mode-subtab" data-mode="models" type="button">Models</button>

@@ -1,0 +1,19 @@
+{
+  "output": {
+    "baseDir": "models/local",
+    "modelBaseId": "qwen3-template-q4k"
+  },
+  "presets": {
+    "model": "qwen3"
+  },
+  "quantization": {
+    "weights": "q4k",
+    "embeddings": "f16",
+    "lmHead": "f16",
+    "computePrecision": "f16",
+    "q4kLayout": "row"
+  },
+  "manifest": {
+    "hashAlgorithm": "blake3"
+  }
+}

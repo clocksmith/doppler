@@ -134,7 +134,7 @@ import { formatChatMessages } from '../src/inference/pipelines/text/chat-format.
 
 const controller = new DiagnosticsController({ log });
 
-const PRIMARY_MODES = new Set(['run', 'translate', 'embedding', 'diffusion', 'energy']);
+const PRIMARY_MODES = new Set(['run', 'energy']);
 let modelListRefreshVersion = 0;
 const DEFAULT_MODEL_AVAILABILITY = Object.freeze({
   total: 0,
