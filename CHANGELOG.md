@@ -6,6 +6,25 @@ This changelog is package-facing and release-oriented. Entries before `0.1.7`
 were retrofitted from package version history, release commits, and release
 docs so the `0.1.x` line has one conventional npm-visible history surface.
 
+## [0.1.8] - 2026-03-13
+
+### Changed
+
+- Simplified demo to show only verified Q4K models (Gemma 3 270M, Gemma 3 1B).
+  Hidden Translate, Diffusion, and Embedding tabs until models are ready.
+- Trimmed hosted HF registry and quickstart registry to the two verified models.
+- Aligned catalog, HF registry, and quickstart registry to the canonical
+  external support registry as single source of truth for HF revisions.
+
+### Fixed
+
+- Fixed Qwen 3.5 conversion configs using wrong model preset (`qwen3` instead
+  of `qwen3_5`), which caused support matrix check failures.
+- Fixed catalog lifecycle metadata inconsistencies: corrected `local`, `hf`,
+  `curated`, and `demo` fields to match actual artifact availability.
+- Removed failing and unverified models from demo visibility (TranslateGemma 4B,
+  EmbeddingGemma 300M with broken HF manifest, Qwen 3.5 0.8B/2B, F16 variant).
+
 ## [0.1.7] - 2026-03-10
 
 ### Added
