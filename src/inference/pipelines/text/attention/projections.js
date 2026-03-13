@@ -5,6 +5,8 @@ import {
   recordMatmul,
   runSplitQKV,
   recordSplitQKV,
+  runSplitQG,
+  recordSplitQG,
   runRMSNorm,
   recordRMSNorm,
 } from '../../../../gpu/kernel-selector.js';
@@ -26,6 +28,13 @@ function getSplitRunner(recorder) {
     return (qkvTensor, options) => runSplitQKV(qkvTensor, options);
   }
   return (qkvTensor, options) => recordSplitQKV(recorder, qkvTensor, options);
+}
+
+function getSplitQGRunner(recorder) {
+  if (!recorder) {
+    return (qgTensor, options) => runSplitQG(qgTensor, options);
+  }
+  return (qgTensor, options) => recordSplitQG(recorder, qgTensor, options);
 }
 
 function getRmsNormRunner(recorder) {
@@ -201,13 +210,17 @@ async function projectQueryWithOptionalGate({
     return { qTensor, qGateTensor: null };
   }
 
+  // q_proj weights are stored with interleaved head layout: for head h,
+  // rows [h*headDim*2 : h*headDim*2+headDim] = Q, rows [h*headDim*2+headDim : (h+1)*headDim*2] = gate.
+  // Compute the full 2*qSize matmul, then de-interleave into separate Q and gate tensors.
   const runMatmulForMode = getMatmulRunner(recorder);
+  const runSplitQGForMode = getSplitQGRunner(recorder);
   const qWeightBuffer = getWeightBuffer(qWeight, 'q_proj');
-  const gateOffset = resolveProjectionSliceOffsetBytes(qWeightBuffer, qSize, hiddenSize);
+  let fullQGTensor = null;
   let qTensor = null;
   let qGateTensor = null;
   try {
-    qTensor = await runMatmulForMode(normed, qWeightBuffer, numTokens, qSize, hiddenSize, {
+    fullQGTensor = await runMatmulForMode(normed, qWeightBuffer, numTokens, qSize * 2, hiddenSize, {
       transposeB: 'auto',
       role: 'q_proj',
       layerIdx,
@@ -215,15 +228,19 @@ async function projectQueryWithOptionalGate({
       outputDtype: matmulOutputDtype,
     });
 
-    qGateTensor = await runMatmulForMode(normed, qWeightBuffer, numTokens, qSize, hiddenSize, {
-      transposeB: 'auto',
-      role: 'q_proj_gate',
-      layerIdx,
-      kernelPath,
-      bOffset: gateOffset,
-      outputDtype: matmulOutputDtype,
+    const split = await runSplitQGForMode(fullQGTensor, {
+      numTokens,
+      numHeads,
+      headDim,
     });
+    releaseTemporary(fullQGTensor.buffer);
+    fullQGTensor = null;
+    qTensor = split.Q;
+    qGateTensor = split.G;
   } catch (error) {
+    if (fullQGTensor) {
+      releaseTemporary(fullQGTensor.buffer);
+    }
     if (qTensor) {
       releaseTemporary(qTensor.buffer);
     }

@@ -484,6 +484,43 @@ override WORKGROUP_SIZE: u32 = 256u;
     ],
   },
   {
+    id: 'split-qg-f16',
+    source: 'src/gpu/kernels/split_qg.wgsl',
+    target: 'src/gpu/kernels/split_qg_f16.wgsl',
+    rules: [
+      {
+        type: 'literal',
+        count: 1,
+        from: '// split_qg.wgsl',
+        to: '// split_qg_f16.wgsl',
+      },
+      {
+        type: 'literal',
+        count: 1,
+        from: 'struct Params {',
+        to: 'enable f16;\n\nstruct Params {',
+      },
+      {
+        type: 'literal',
+        count: 1,
+        from: '@group(0) @binding(1) var<storage, read> input: array<f32>;',
+        to: '@group(0) @binding(1) var<storage, read> input: array<f16>;',
+      },
+      {
+        type: 'literal',
+        count: 1,
+        from: '@group(0) @binding(2) var<storage, read_write> Q: array<f32>;',
+        to: '@group(0) @binding(2) var<storage, read_write> Q: array<f16>;',
+      },
+      {
+        type: 'literal',
+        count: 1,
+        from: '@group(0) @binding(3) var<storage, read_write> G: array<f32>;',
+        to: '@group(0) @binding(3) var<storage, read_write> G: array<f16>;',
+      },
+    ],
+  },
+  {
     id: 'upsample2d-f16',
     source: 'src/gpu/kernels/upsample2d.wgsl',
     target: 'src/gpu/kernels/upsample2d_f16.wgsl',
