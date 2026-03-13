@@ -89,6 +89,9 @@ export function normalizeDiffusionMatmulLocationDtype(dtype) {
   return normalized;
 }
 
+// Artifact-derived dtype inference: determines actual storage dtype from buffer byte size.
+// This is NOT a config-bypass — it reads physical buffer dimensions (artifact-derived config),
+// which is a valid merge layer per the config merge contract.
 export function inferDiffusionMatmulDtypeFromBuffer(weight, N, K, preferred) {
   const buffer = getBuffer(weight);
   if (!buffer || !Number.isFinite(N) || !Number.isFinite(K)) return preferred;

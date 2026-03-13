@@ -2,6 +2,7 @@ import path from 'node:path';
 
 import { createConverterConfig } from '../config/schema/index.js';
 import { resolveConversionPlan } from '../converter/conversion-plan.js';
+import { normalizeQuantTag } from '../converter/quantization-info.js';
 
 function toSafeString(value) {
   if (typeof value !== 'string') return '';
@@ -10,10 +11,7 @@ function toSafeString(value) {
 }
 
 function normalizeQuantizationTag(value) {
-  const raw = toSafeString(value).toUpperCase();
-  if (!raw) return 'f16';
-  if (raw === 'Q4_K_M' || raw === 'Q4_K') return 'q4k';
-  return raw.toLowerCase();
+  return normalizeQuantTag(toSafeString(value));
 }
 
 function resolveArchitectureHint(architecture) {
@@ -37,7 +35,7 @@ function extractSourceQuantization(manifest) {
   if (explicitWeights) return explicitWeights;
   const explicitQuant = toSafeString(manifest?.quantization);
   if (explicitQuant) return explicitQuant;
-  return 'f16';
+  return normalizeQuantTag(null);
 }
 
 function buildRefreshRawConfig(manifest) {

@@ -129,11 +129,11 @@ function getLinearProjectionLayout(manifest) {
   }
 }
 
-// --- Manifest: rmsNormWeightOffset = true (converter override, not preset) ---
+// --- Manifest: rmsNormWeightOffset = false (from qwen3 preset) ---
 
 {
-  assert.equal(f16Manifest.inference.normalization.rmsNormWeightOffset, true);
-  assert.equal(q4kManifest.inference.normalization.rmsNormWeightOffset, true);
+  assert.equal(f16Manifest.inference.normalization.rmsNormWeightOffset, false);
+  assert.equal(q4kManifest.inference.normalization.rmsNormWeightOffset, false);
 }
 
 // --- Manifest: mRoPE fields ---

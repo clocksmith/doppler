@@ -117,7 +117,10 @@ function isLikelyEmbeddingGemma(rawConfig, architectureHint) {
 
 export function inferSourceWeightQuantization(tensors) {
   if (!Array.isArray(tensors) || tensors.length === 0) {
-    return 'f16';
+    throw new Error(
+      'Cannot infer source weight quantization: no tensors provided. ' +
+      'Set converterConfig.quantization.weights explicitly.'
+    );
   }
   const weightTensors = [];
   for (const tensor of tensors) {
@@ -128,7 +131,12 @@ export function inferSourceWeightQuantization(tensors) {
     weightTensors.push({ name, dtype });
   }
   const dtypes = new Set(weightTensors.map((tensor) => tensor.dtype));
-  if (dtypes.size === 0) return 'f16';
+  if (dtypes.size === 0) {
+    throw new Error(
+      'Cannot infer source weight quantization: no recognizable weight dtypes found. ' +
+      'Set converterConfig.quantization.weights explicitly.'
+    );
+  }
   if (dtypes.size > 1) {
     const detail = Array.from(dtypes)
       .sort()

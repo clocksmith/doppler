@@ -1,3 +1,5 @@
+import { DEFAULT_MANIFEST_INFERENCE } from '../config/schema/index.js';
+
 function asObject(value) {
   if (value == null || typeof value !== 'object' || Array.isArray(value)) {
     return null;
@@ -50,7 +52,7 @@ function resolveScalingConfig(ropeScalingConfig, options = {}) {
     }
     return {
       ropeScalingType: null,
-      ropeScalingFactor: 1.0,
+      ropeScalingFactor: DEFAULT_MANIFEST_INFERENCE.rope.ropeScalingFactor,
       yarnBetaFast: null,
       yarnBetaSlow: null,
       yarnOriginalMaxPos: null,
@@ -58,7 +60,7 @@ function resolveScalingConfig(ropeScalingConfig, options = {}) {
   }
 
   let ropeScalingType = scalingType;
-  let ropeScalingFactor = 1.0;
+  let ropeScalingFactor = DEFAULT_MANIFEST_INFERENCE.rope.ropeScalingFactor;
   let yarnBetaFast = null;
   let yarnBetaSlow = null;
   let yarnOriginalMaxPos = null;
@@ -110,7 +112,7 @@ function hasScalingDirective(ropeScalingConfig) {
 function hasMeaningfulScalingConfig(resolvedScaling) {
   if (!resolvedScaling) return false;
   return resolvedScaling.ropeScalingType != null
-    || resolvedScaling.ropeScalingFactor !== 1.0
+    || resolvedScaling.ropeScalingFactor !== DEFAULT_MANIFEST_INFERENCE.rope.ropeScalingFactor
     || resolvedScaling.yarnBetaFast != null
     || resolvedScaling.yarnBetaSlow != null
     || resolvedScaling.yarnOriginalMaxPos != null;
@@ -159,7 +161,7 @@ export function buildRoPEConfig(presetInference, config) {
       ?? null,
     ropeScalingFactor: presetRoPE.ropeScalingFactor
       ?? presetAttn?.ropeScalingFactor  // Deprecated location
-      ?? 1.0,
+      ?? DEFAULT_MANIFEST_INFERENCE.rope.ropeScalingFactor,
     yarnBetaFast: presetRoPE.yarnBetaFast ?? null,
     yarnBetaSlow: presetRoPE.yarnBetaSlow ?? null,
     yarnOriginalMaxPos: presetRoPE.yarnOriginalMaxPos ?? null,
@@ -223,7 +225,7 @@ export function buildRoPEConfig(presetInference, config) {
     ?? asFiniteNumber(flatRoPEParameters?.rope_theta)
     ?? asFiniteNumber(config.rope_theta)
     ?? presetInference.rope?.ropeTheta
-    ?? 10000;
+    ?? DEFAULT_MANIFEST_INFERENCE.rope.ropeTheta;
 
   // For Gemma 3, local sliding attention theta comes from rope_parameters.sliding_attention.
   const ropeLocalTheta = asFiniteNumber(slidingAttentionRoPE?.rope_theta)
@@ -232,7 +234,7 @@ export function buildRoPEConfig(presetInference, config) {
 
   const mropeInterleaved = asBoolean(flatRoPEParameters?.mrope_interleaved)
     ?? presetInference.rope?.mropeInterleaved
-    ?? false;
+    ?? DEFAULT_MANIFEST_INFERENCE.rope.mropeInterleaved;
   const mropeSection = asNumberArray(flatRoPEParameters?.mrope_section)
     ?? presetInference.rope?.mropeSection
     ?? null;

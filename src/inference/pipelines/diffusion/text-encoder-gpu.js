@@ -45,6 +45,8 @@ import { processLayerGPU } from '../text/layer.js';
 
 const QUICK_GELU_ALPHA = 1.702;
 const SUPPORTED_CLIP_HIDDEN_ACTIVATIONS = new Set(['gelu', 'quick_gelu']);
+// Standard CLIP hidden activation per OpenAI CLIP specification.
+const DEFAULT_CLIP_HIDDEN_ACT = 'gelu';
 
 function padTokens(tokens, maxLength, padTokenId) {
   if (!Number.isFinite(maxLength) || maxLength <= 0) {
@@ -100,11 +102,15 @@ function createVectorTensor(device, data, dtype, label) {
   return createTensor(buffer, dtype, [1, length], label);
 }
 
+// Conservative fallback dtype for diffusion bias tensors when no dtype
+// metadata is available. F32 avoids precision loss in bias additions.
+const DEFAULT_BIAS_DTYPE = 'f32';
+
 function resolveBiasDtype(weight, weightsEntry, key) {
   if (weight && weight.dtype) return weight.dtype;
   const locationDtype = weightsEntry?.dtypes?.get(key);
   const mapped = normalizeDiffusionLocationDtype(locationDtype);
-  return mapped || 'f32';
+  return mapped || DEFAULT_BIAS_DTYPE;
 }
 
 function createBiasTensorWithDtype(weight, weightsEntry, key, size, label) {
@@ -145,7 +151,7 @@ function createKernelOps(recorder) {
 }
 
 function resolveClipHiddenActivation(config) {
-  const hiddenAct = config?.hidden_act ?? 'gelu';
+  const hiddenAct = config?.hidden_act ?? DEFAULT_CLIP_HIDDEN_ACT;
   if (!SUPPORTED_CLIP_HIDDEN_ACTIVATIONS.has(hiddenAct)) {
     throw new Error(
       `Unsupported CLIP hidden_act "${hiddenAct}". ` +
