@@ -4,7 +4,7 @@ Auto-generated from preset registry (`src/config/loader.js`), conversion configs
 Hosted/demo/tested lifecycle metadata is canonically owned by the external support registry and mirrored into `models/catalog.json` for repo checks.
 Run `npm run support:matrix:sync` after syncing the repo catalog mirror or changing presets/conversion configs.
 
-Updated at: 2026-03-11
+Updated at: 2026-03-10
 
 ## Current Inference Status
 
@@ -15,21 +15,19 @@ This section answers "which models work now?" from `models/catalog.json` lifecyc
 | Model ID | Preset | Modes | Last verified | Surface | Notes |
 | --- | --- | --- | --- | --- | --- |
 | gemma-3-270m-it-q4k-ehf16-af32 | gemma3 | run | 2026-03-12 | browser | Deterministic greedy (temperature=0, topK=1) browser/WebGPU on Apple M3. Produces coherent output on appropriate prompts. The lm_head_prefill phase-drop bug was the one confirmed runtime defect (now fixed and regression-covered). Remaining factual-question inaccuracy on hard prompts is a 270M model capacity limitation, not a code bug — confirmed by 2x2 comparison showing F16 270M is also wrong. |
-| google-embeddinggemma-300m-q4k-ehf16-af32 | embeddinggemma | embedding | 2026-03-13 | browser | queryPreAttnScalar was 16 (sqrt(headDim)) in original manifest — fixed to 256 (headDim) on external volume. HF manifest still has the old value and needs republish. After fix: 768-dim embeddings, all finite, semantic retrieval test passed. Demoted from curated/demo until HF manifest is republished with fix. |
-| gemma-3-1b-it-q4k-ehf16-af32 | gemma3 | run | 2026-03-12 | browser | Deterministic greedy (temperature=0, topK=1) browser/WebGPU on Apple M3. Correctly produces 'A. Blue' on factual sky-color prompt. The lm_head_prefill phase-drop bug was the one confirmed runtime defect (now fixed and regression-covered). Q4K runtime path is functionally correct. |
+| google-embeddinggemma-300m-q4k-ehf16-af32 | embeddinggemma | embedding | 2026-03-13 | auto | queryPreAttnScalar was 16 (sqrt(headDim)) in original manifest — fixed to 256 (headDim) on external volume. HF manifest still has the old value and needs republish. After fix: 768-dim embeddings, all finite, semantic retrieval test passed. Demoted from curated/demo until HF manifest is republished with fix. |
+| gemma-3-1b-it-q4k-ehf16-af32 | gemma3 | run | 2026-03-12 | browser | Deterministic greedy (temperature=0, topK=1) browser/WebGPU on Apple M3. Correctly produces A. Blue on factual sky-color prompt. The lm_head_prefill phase-drop bug was the one confirmed runtime defect (now fixed and regression-covered). Q4K runtime path is functionally correct. |
 | gemma-3-1b-it-f16-af32 | gemma3 | run | 2026-03-10 | browser | Prompt: 'The color of the sky is' → ' a constant, but its appearance changes with the seasons.\n\nThe sky is blue during the summer, when the sun is high in the sky.\nThe sky is red during the autumn, when the leaves change color.\nThe sky is gray during the winter, when the sun is low in the sky.\nThe' (64 tokens, temperature=0, topK=1). Fluent and stable; factual quality mixed but coherent. All contracts pass. |
 
 ### 2. Loads But Unverified
 
-| Model ID | Preset | Modes | Runtime | Notes |
-| --- | --- | --- | --- | --- |
-| translategemma-4b-1b-enes-q4k-ehf16-af32 | translategemma | run | active | Local artifact exists and loads. EN→ES produces partly correct translation with hallucinated continuation. EN→FR echoes input without translating. HF manifest modelId mismatch: internal ID is translategemma-1b-enes-q4k-ehf16-af32, should be translategemma-4b-1b-enes-q4k-ehf16-af32. Config is correct (queryPreAttnScalar=256, compute=f32). Not promotion-ready. |
+None right now.
 
 ### 3. Known Failing
 
 | Model ID | Preset | Modes | Last checked | Surface | Notes |
 | --- | --- | --- | --- | --- | --- |
-| translategemma-4b-it-q4k-ehf16-af32 | translategemma | run | 2026-03-12 | browser | Local manifest config fixed (queryPreAttnScalar 16→256, slidingWindow null→1024, ropeScaling null→linear/8, embeddingVocabSize null→262208) but F32 runtime override still produces incoherent output — local artifact was converted with F16 compute and cannot be fixed by runtime override alone. Needs reconversion with canonical config (tools/configs/conversion/gemma3/translategemma-4b-it-q4k-ehf16-af32.json, computePrecision=f32). A proper reconversion was done 2026-03-13 on Mac but artifact not available on this machine. |
+| translategemma-4b-it-q4k-ehf16-af32 | translategemma | run | 2026-03-12 | browser | Default kernel path (f16a) produces NaN/Inf logits at 4B scale. F32a kernel path override runs but produces incoherent output. Manifest variantTag mismatch (q4k-ehaf16 vs expected q4k-ehf16-af32). Prior verified status was contract-only. |
 | qwen-3-5-0-8b-q4k-ehaf16 | qwen3 | run | 2026-03-06 | browser | Loads and runs but produces incoherent output. Linear attention kernel correctness not yet verified against HF reference. |
 | qwen-3-5-2b-q4k-ehaf16 | qwen3 | run | 2026-03-06 | browser | Loads and runs but produces incoherent output. Same root cause as 0.8B variant — linear attention kernel correctness not yet verified. |
 
@@ -66,8 +64,8 @@ None right now.
 | modernbert | embedding | active | 1 (tools/configs/conversion/modernbert/modernbert-template-f16.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
 | diffusion | diffusion | active | 2 (tools/configs/conversion/diffusion/diffusion-template-f16.json, tools/configs/conversion/sana/sana-sprint-0.6b-f16.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
 | gemma2 | transformer | active | 1 (tools/configs/conversion/gemma2/gemma2-template-f16.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
-| translategemma | transformer | active | 2 (tools/configs/conversion/gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32.json, tools/configs/conversion/gemma3/translategemma-4b-it-q4k-ehf16-af32.json) | 2 (translategemma-4b-1b-enes-q4k-ehf16-af32, translategemma-4b-it-q4k-ehf16-af32) | no | none | partially failing (1/2) | verification-failed | mixed verification state (1/2 catalog models failing) |
-| gemma3 | transformer | active | 9 (tools/configs/conversion/gemma3/gemma-3-1b-it-f16-af32.json, tools/configs/conversion/gemma3/gemma-3-1b-it-f16.json, tools/configs/conversion/gemma3/gemma-3-1b-it-q4k-ehaf16.json, +6 more) | 3 (gemma-3-1b-it-f16-af32, gemma-3-1b-it-q4k-ehf16-af32, gemma-3-270m-it-q4k-ehf16-af32) | yes | none | verified (2026-03-12) | verified | catalog verification applies only to cataloged models (3/9 conversion configs cataloged) |
+| translategemma | transformer | active | 2 (tools/configs/conversion/gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32.json, tools/configs/conversion/gemma3/translategemma-4b-it-q4k-ehf16-af32.json) | 1 (translategemma-4b-it-q4k-ehf16-af32) | yes | none | failed | verification-failed | catalog verification applies only to cataloged models (1/2 conversion configs cataloged) |
+| gemma3 | transformer | active | 9 (tools/configs/conversion/gemma3/gemma-3-1b-it-f16-af32.json, tools/configs/conversion/gemma3/gemma-3-1b-it-f16.json, tools/configs/conversion/gemma3/gemma-3-1b-it-q4k-ehaf16.json, +6 more) | 3 (gemma-3-1b-it-f16-af32, gemma-3-1b-it-q4k-ehf16-af32, gemma-3-270m-it-q4k-ehf16-af32) | yes | curated | verified (2026-03-12) | verified | catalog verification applies only to cataloged models (3/9 conversion configs cataloged) |
 | llama3 | transformer | active | 1 (tools/configs/conversion/llama3/llama3-template-f16.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
 | lfm2 | transformer | active | 2 (tools/configs/conversion/lfm2/lfm2.5-1.2b-instruct-q4k-ehaf16.json, tools/configs/conversion/lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
 | qwen3_5 | transformer | active | 4 (tools/configs/conversion/qwen3/qwen-3-5-0-8b-f16.json, tools/configs/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16-af32.json, tools/configs/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json, +1 more) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
@@ -86,9 +84,9 @@ None right now.
 - Presets present in catalog: 4
 - Verified presets (active runtime + conversion + catalog + passing verification): 2
 - Cataloged presets pending verification: 0
-- Presets with HF-hosted catalog entries: 1
+- Presets with HF-hosted catalog entries: 2
 - Presets with verified catalog lifecycle: 2
 - Presets with failed catalog verification: 2
 - Blocked runtime presets: 1
-- Catalog entries: 8
+- Catalog entries: 7
 

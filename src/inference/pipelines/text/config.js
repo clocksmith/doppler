@@ -513,7 +513,7 @@ export function toParsedConfigFromMerged(merged, manifest) {
   const ropeScale = inf.rope.ropeScalingFactor;
   const ropeScalingType = inf.rope.ropeScalingType;
   const ropeLocalScale = inf.rope.ropeLocalScalingFactor ?? ropeScale;
-  const ropeLocalScalingType = inf.rope.ropeLocalScalingType ?? ropeScalingType;
+  const ropeLocalScalingType = inf.rope.ropeLocalScalingType;
   const partialRotaryFactor = inf.rope.partialRotaryFactor;
   const ropeInterleaved = inf.rope.mropeInterleaved === true;
   const mropeSection = Array.isArray(inf.rope.mropeSection)
