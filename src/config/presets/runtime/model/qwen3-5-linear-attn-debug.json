@@ -1,0 +1,90 @@
+{
+  "id": "model/qwen3-5-linear-attn-debug",
+  "name": "qwen3-5-linear-attn-debug",
+  "description": "Probe linear attention intermediates in Qwen 3.5 layer 0 for comparison with HF reference.",
+  "intent": "investigate",
+  "stability": "canonical",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-03-13T00:00:00Z",
+  "extends": "modes/debug",
+  "runtime": {
+    "inference": {
+      "prompt": "Hello",
+      "batching": {
+        "maxTokens": 1
+      },
+      "sampling": {
+        "temperature": 0
+      },
+      "chatTemplate": {
+        "enabled": false
+      }
+    },
+    "shared": {
+      "debug": {
+        "trace": {
+          "enabled": true,
+          "categories": ["attn", "logits"],
+          "layers": null,
+          "maxDecodeSteps": 1
+        },
+        "probes": [
+          {
+            "id": "embed",
+            "stage": "embed_out",
+            "tokens": [-1],
+            "dims": [0, 1, 2, 3, 4, 5, 6, 7]
+          },
+          {
+            "id": "qkv",
+            "stage": "linear_qkv_proj",
+            "layers": [0],
+            "tokens": [-1],
+            "dims": [0, 1, 2, 3, 4, 5, 6, 7]
+          },
+          {
+            "id": "z",
+            "stage": "linear_z_proj",
+            "layers": [0],
+            "tokens": [-1],
+            "dims": [0, 1, 2, 3, 4, 5, 6, 7]
+          },
+          {
+            "id": "a",
+            "stage": "linear_a_proj",
+            "layers": [0],
+            "tokens": [-1],
+            "dims": [0, 1, 2, 3, 4, 5, 6, 7]
+          },
+          {
+            "id": "b",
+            "stage": "linear_b_proj",
+            "layers": [0],
+            "tokens": [-1],
+            "dims": [0, 1, 2, 3, 4, 5, 6, 7]
+          },
+          {
+            "id": "core",
+            "stage": "linear_core_out",
+            "layers": [0],
+            "tokens": [-1],
+            "dims": [0, 1, 2, 3, 4, 5, 6, 7]
+          },
+          {
+            "id": "layer0",
+            "stage": "layer_out",
+            "layers": [0],
+            "tokens": [-1],
+            "dims": [0, 1, 2, 3, 4, 5, 6, 7]
+          },
+          {
+            "id": "logits",
+            "stage": "logits_final",
+            "tokens": [-1],
+            "dims": [0, 1, 2, 3]
+          }
+        ]
+      }
+    }
+  }
+}
