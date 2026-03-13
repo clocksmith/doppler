@@ -103,6 +103,7 @@ CLI notes:
 - `loadMode="memory"` is Node-only and requires local filesystem model data; direct-source loads now default to hash verification when `runtime.loading.shardCache.verifyHashes` is not overridden
 - a persisted direct-source manifest can be written with `node tools/materialize-source-manifest.js <source-dir-or-gguf>` and then loaded through `loadMode="http"` from a `file://` or hosted manifest root
 - in browser runs, a persisted direct-source artifact can now be cache-primed into OPFS and later reopened with `loadMode="opfs"` when the request includes `modelId` plus the explicit hosted `modelUrl`
+- debug-suite runs and any run with active investigation instrumentation persist a `debugSnapshot` in the suite result/report so probe and trace logs survive beyond live console output
 - prefer immutable Hugging Face revisions for reproducible hosted runs
 
 ## Symbol Groups
