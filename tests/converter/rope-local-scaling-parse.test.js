@@ -93,4 +93,26 @@ assert.equal(parsed.ropeLocalScalingType, 'linear');
 assert.equal(parsed.ropeScaling?.factor, 8.0);
 assert.equal(parsed.ropeLocalScaling?.factor, 4.0);
 
+const mixedScalingManifest = {
+  ...manifest,
+  modelId: 'rope-local-scaling-null-parse-test',
+  inference: {
+    ...manifest.inference,
+    rope: {
+      ...manifest.inference.rope,
+      ropeLocalScalingType: null,
+      ropeLocalScalingFactor: 1.0,
+    },
+  },
+};
+
+const parsedMixedScaling = parseModelConfig(mixedScalingManifest, null);
+
+assert.equal(parsedMixedScaling.ropeScale, 8.0);
+assert.equal(parsedMixedScaling.ropeScalingType, 'linear');
+assert.equal(parsedMixedScaling.ropeLocalScale, 1.0);
+assert.equal(parsedMixedScaling.ropeLocalScalingType, null);
+assert.equal(parsedMixedScaling.ropeScaling?.factor, 8.0);
+assert.equal(parsedMixedScaling.ropeLocalScaling, null);
+
 console.log('rope-local-scaling-parse.test: ok');

@@ -70,4 +70,33 @@ import { initRoPEFrequencies } from '../../src/inference/pipelines/text/init.js'
   assert.equal(freqs.sin.length, 8 * 128);
 }
 
+{
+  const freqs = await initRoPEFrequencies({
+    headDim: 8,
+    rotaryDim: undefined,
+    maxSeqLen: 4,
+    ropeTheta: 10000,
+    ropeLocalTheta: 10000,
+    mropeInterleaved: false,
+    mropeSection: null,
+    partialRotaryFactor: null,
+    ropeScale: 4,
+    ropeLocalScale: 1,
+    ropeScalingType: 'yarn',
+    ropeLocalScalingType: null,
+    ropeScaling: {
+      factor: 4,
+      beta_fast: 32,
+      beta_slow: 1,
+      original_max_position_embeddings: 1,
+    },
+    ropeLocalScaling: null,
+  }, false);
+
+  assert.ok(freqs.localCos instanceof Float32Array);
+  assert.ok(freqs.localSin instanceof Float32Array);
+  assert.ok(Math.abs(freqs.localCos[4] - Math.cos(1)) < 1e-6);
+  assert.ok(Math.abs(freqs.localSin[4] - Math.sin(1)) < 1e-6);
+}
+
 console.log('qwen-rope-runtime-config.test: ok');

@@ -314,8 +314,16 @@ export async function initRoPEFrequencies(config, useGPU) {
     throw new Error(`Local RoPE scale must be a positive number; got "${resolvedLocalScale}".`);
   }
   const resolvedLocalTheta = ropeLocalTheta ?? ropeTheta;
-  const resolvedLocalScalingType = ropeLocalScalingType ?? ropeScalingType;
-  const resolvedLocalScaling = ropeLocalScaling ?? ropeScaling;
+  const resolvedLocalScalingType = (
+    ropeLocalScalingType === undefined
+      ? ropeScalingType
+      : ropeLocalScalingType
+  );
+  const resolvedLocalScaling = (
+    ropeLocalScalingType === undefined
+      ? ropeScaling
+      : ropeLocalScaling
+  );
   const resolvedRotaryDim = resolveRotaryDim(headDim, rotaryDim, partialRotaryFactor);
   const halfDim = resolvedRotaryDim / 2;
   if (mropeInterleaved === true && Array.isArray(mropeSection)) {

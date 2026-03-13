@@ -1,7 +1,7 @@
 {
   "version": 1,
   "lifecycleSchemaVersion": 1,
-  "updatedAt": "2026-03-11",
+  "updatedAt": "2026-03-10",
   "models": [
     {
       "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
@@ -26,21 +26,21 @@
         "revision": "ca6f0dbdf3882d3893a65cf48f2bb6f1520df162",
         "path": "models/gemma-3-270m-it-q4k-ehf16-af32"
       },
-      "baseUrl": null,
+      "baseUrl": "./local/gemma-3-270m-it-q4k-ehf16-af32",
       "quickstart": true,
       "sizeBytes": 418512553,
-      "recommended": true,
+      "recommended": false,
       "sortOrder": 10,
       "lifecycle": {
         "availability": {
-          "curated": false,
-          "local": false,
+          "curated": true,
+          "local": true,
           "hf": true
         },
         "status": {
           "runtime": "active",
           "conversion": "ready",
-          "demo": "none",
+          "demo": "curated",
           "tested": "verified"
         },
         "tested": {
@@ -77,15 +77,15 @@
         "repoId": "Clocksmith/rdrr",
         "path": "models/google-embeddinggemma-300m-q4k-ehf16-af32"
       },
-      "baseUrl": null,
-      "quickstart": false,
+      "baseUrl": "./local/google-embeddinggemma-300m-q4k-ehf16-af32",
+      "quickstart": true,
       "sizeBytes": 480562497,
       "recommended": false,
       "sortOrder": 11,
       "lifecycle": {
         "availability": {
           "curated": false,
-          "local": false,
+          "local": true,
           "hf": false
         },
         "status": {
@@ -96,15 +96,15 @@
         },
         "tested": {
           "suite": "inference",
-          "surface": "browser",
+          "surface": "auto",
           "result": "pass",
           "lastVerifiedAt": "2026-03-13",
-          "source": "manual-review",
-          "notes": "queryPreAttnScalar was 16 (sqrt(headDim)) in original manifest — fixed to 256 (headDim) on external volume. HF manifest still has the old value and needs republish. After fix: 768-dim embeddings, all finite, semantic retrieval test passed. Demoted from curated/demo until HF manifest is republished with fix.",
+          "source": "registry-verify",
           "contracts": {
             "executionContractOk": true,
             "executionV0GraphOk": true
-          }
+          },
+          "notes": "queryPreAttnScalar was 16 (sqrt(headDim)) in original manifest — fixed to 256 (headDim) on external volume. HF manifest still has the old value and needs republish. After fix: 768-dim embeddings, all finite, semantic retrieval test passed. Demoted from curated/demo until HF manifest is republished with fix."
         }
       }
     },
@@ -152,7 +152,7 @@
           "result": "pass",
           "lastVerifiedAt": "2026-03-12",
           "source": "manual-review",
-          "notes": "Deterministic greedy (temperature=0, topK=1) browser/WebGPU on Apple M3. Correctly produces 'A. Blue' on factual sky-color prompt. The lm_head_prefill phase-drop bug was the one confirmed runtime defect (now fixed and regression-covered). Q4K runtime path is functionally correct.",
+          "notes": "Deterministic greedy (temperature=0, topK=1) browser/WebGPU on Apple M3. Correctly produces A. Blue on factual sky-color prompt. The lm_head_prefill phase-drop bug was the one confirmed runtime defect (now fixed and regression-covered). Q4K runtime path is functionally correct.",
           "contracts": {
             "executionContractOk": true,
             "executionV0GraphOk": true
@@ -179,7 +179,7 @@
         "repoId": "Clocksmith/rdrr",
         "path": "models/gemma-3-1b-it-f16-af32"
       },
-      "baseUrl": null,
+      "baseUrl": "./local/gemma-3-1b-it-f16-af32",
       "quickstart": false,
       "sizeBytes": 2018964126,
       "recommended": false,
@@ -187,7 +187,7 @@
       "lifecycle": {
         "availability": {
           "curated": false,
-          "local": false,
+          "local": true,
           "hf": false
         },
         "status": {
@@ -202,7 +202,7 @@
           "result": "pass",
           "lastVerifiedAt": "2026-03-10",
           "source": "manual-review",
-          "notes": "Prompt: 'The color of the sky is' \u2192 ' a constant, but its appearance changes with the seasons.\\n\\nThe sky is blue during the summer, when the sun is high in the sky.\\nThe sky is red during the autumn, when the leaves change color.\\nThe sky is gray during the winter, when the sun is low in the sky.\\nThe' (64 tokens, temperature=0, topK=1). Fluent and stable; factual quality mixed but coherent. All contracts pass.",
+          "notes": "Prompt: 'The color of the sky is' → ' a constant, but its appearance changes with the seasons.\\n\\nThe sky is blue during the summer, when the sun is high in the sky.\\nThe sky is red during the autumn, when the leaves change color.\\nThe sky is gray during the winter, when the sun is low in the sky.\\nThe' (64 tokens, temperature=0, topK=1). Fluent and stable; factual quality mixed but coherent. All contracts pass.",
           "contracts": {
             "executionContractOk": true,
             "executionV0GraphOk": true
@@ -229,6 +229,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
+        "revision": "7290d291a4769195c09e0fca8f43bafe5c69ee13",
         "path": "models/translategemma-4b-it-q4k-ehf16-af32"
       },
       "baseUrl": null,
@@ -239,7 +240,7 @@
         "availability": {
           "curated": false,
           "local": false,
-          "hf": false
+          "hf": true
         },
         "status": {
           "runtime": "active",
@@ -253,56 +254,7 @@
           "result": "fail",
           "lastVerifiedAt": "2026-03-12",
           "source": "manual-review",
-          "notes": "Local manifest config fixed (queryPreAttnScalar 16→256, slidingWindow null→1024, ropeScaling null→linear/8, embeddingVocabSize null→262208) but F32 runtime override still produces incoherent output — local artifact was converted with F16 compute and cannot be fixed by runtime override alone. Needs reconversion with canonical config (tools/configs/conversion/gemma3/translategemma-4b-it-q4k-ehf16-af32.json, computePrecision=f32). A proper reconversion was done 2026-03-13 on Mac but artifact not available on this machine.",
-          "contracts": {
-            "executionContractOk": true,
-            "executionV0GraphOk": true
-          }
-        }
-      }
-    },
-    {
-      "modelId": "translategemma-4b-1b-enes-q4k-ehf16-af32",
-      "preset": "translategemma",
-      "label": "TranslateGemma 4B→1B EN/ES Student (Q4K)",
-      "description": "Compact EN/ES translation student distilled from TranslateGemma 4B. Q4K weights, F16 embeddings/head. Local RDRR shards.",
-      "modes": [
-        "run"
-      ],
-      "aliases": [
-        "translategemma-4b-1b-enes",
-        "translategemma-student"
-      ],
-      "artifact": {
-        "format": "rdrr"
-      },
-      "hf": {
-        "repoId": "Clocksmith/rdrr",
-        "path": "models/translategemma-4b-1b-enes-q4k-ehf16-af32"
-      },
-      "baseUrl": null,
-      "sizeBytes": 1025493248,
-      "recommended": false,
-      "sortOrder": 16,
-      "lifecycle": {
-        "availability": {
-          "curated": false,
-          "local": false,
-          "hf": false
-        },
-        "status": {
-          "runtime": "active",
-          "conversion": "needs-republish",
-          "demo": "none",
-          "tested": "marginal"
-        },
-        "tested": {
-          "suite": "debug",
-          "surface": "browser",
-          "result": "partial",
-          "lastVerifiedAt": "2026-03-13",
-          "source": "manual-review",
-          "notes": "Local artifact exists and loads. EN→ES produces partly correct translation with hallucinated continuation. EN→FR echoes input without translating. HF manifest modelId mismatch: internal ID is translategemma-1b-enes-q4k-ehf16-af32, should be translategemma-4b-1b-enes-q4k-ehf16-af32. Config is correct (queryPreAttnScalar=256, compute=f32). Not promotion-ready.",
+          "notes": "Default kernel path (f16a) produces NaN/Inf logits at 4B scale. F32a kernel path override runs but produces incoherent output. Manifest variantTag mismatch (q4k-ehaf16 vs expected q4k-ehf16-af32). Prior verified status was contract-only.",
           "contracts": {
             "executionContractOk": true,
             "executionV0GraphOk": true
@@ -329,6 +281,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
+        "revision": "aeb7b3a304b5aad4b46c903a8a67f17070bce865",
         "path": "models/qwen-3-5-0-8b-wq4k-ef16-hf16-f16"
       },
       "baseUrl": null,
@@ -376,6 +329,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
+        "revision": "cbafef7751177996aba31a7459a9ccb3c9ebccbb",
         "path": "models/qwen-3-5-2b-wq4k-ef16-hf16-f16"
       },
       "baseUrl": null,
@@ -400,7 +354,7 @@
           "result": "fail",
           "lastVerifiedAt": "2026-03-06",
           "source": "manual-review",
-          "notes": "Loads and runs but produces incoherent output. Same root cause as 0.8B variant \u2014 linear attention kernel correctness not yet verified."
+          "notes": "Loads and runs but produces incoherent output. Same root cause as 0.8B variant — linear attention kernel correctness not yet verified."
         }
       }
     }
