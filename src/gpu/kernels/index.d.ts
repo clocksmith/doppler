@@ -326,6 +326,14 @@ export {
   type SplitQKVResult,
 } from './split_qkv.js';
 
+// Split Q and Gate (de-interleave attentionOutputGate q_proj output)
+export {
+  runSplitQG,
+  recordSplitQG,
+  type SplitQGOptions,
+  type SplitQGResult,
+} from './split_qg.js';
+
 // Transpose
 export {
   runTranspose,

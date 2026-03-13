@@ -1,0 +1,52 @@
+{
+  "id": "model/qwen3-5-layer-probe",
+  "name": "qwen3-5-layer-probe",
+  "description": "Probe all 24 layer outputs in Qwen 3.5 to isolate where the hidden state distribution collapses.",
+  "intent": "investigate",
+  "stability": "canonical",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-03-13T00:00:00Z",
+  "extends": "modes/debug",
+  "runtime": {
+    "inference": {
+      "prompt": "What color is the sky on a clear day? Answer in one word.",
+      "batching": {
+        "maxTokens": 1
+      },
+      "sampling": {
+        "temperature": 0
+      }
+    },
+    "shared": {
+      "debug": {
+        "trace": {
+          "enabled": true,
+          "categories": ["attn", "ffn", "logits"],
+          "layers": null,
+          "maxDecodeSteps": 1
+        },
+        "probes": [
+          {
+            "id": "embed",
+            "stage": "embed_out",
+            "tokens": [-1],
+            "dims": [0, 1, 2, 3, 512, 513]
+          },
+          {
+            "id": "layer_out",
+            "stage": "layer_out",
+            "layers": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
+            "tokens": [-1],
+            "dims": [0, 1, 2, 3]
+          },
+          {
+            "id": "logits",
+            "stage": "logits_final",
+            "tokens": [-1],
+            "dims": [271, 0, 1, 2, 3, 496, 138]
+          }
+        ]
+      }
+    }
+  }
+}

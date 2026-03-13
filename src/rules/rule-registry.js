@@ -50,6 +50,7 @@ const sampleRules = await loadJson('./kernels/sample.rules.json', import.meta.ur
 const scaleRules = await loadJson('./kernels/scale.rules.json', import.meta.url, 'Failed to load rules');
 const siluRules = await loadJson('./kernels/silu.rules.json', import.meta.url, 'Failed to load rules');
 const splitQkvRules = await loadJson('./kernels/split-qkv.rules.json', import.meta.url, 'Failed to load rules');
+const splitQgRules = await loadJson('./kernels/split-qg.rules.json', import.meta.url, 'Failed to load rules');
 const softmaxRules = await loadJson('./kernels/softmax.rules.json', import.meta.url, 'Failed to load rules');
 const upsample2dRules = await loadJson('./kernels/upsample2d.rules.json', import.meta.url, 'Failed to load rules');
 const configRules = await loadJson('./inference/config.rules.json', import.meta.url, 'Failed to load rules');
@@ -124,6 +125,7 @@ const RULE_SETS = {
     scale: scaleRules,
     silu: siluRules,
     splitQkv: splitQkvRules,
+    splitQg: splitQgRules,
     softmax: softmaxRules,
     upsample2d: upsample2dRules,
   },
