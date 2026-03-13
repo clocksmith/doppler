@@ -40,8 +40,8 @@
   },
 
   "detection": {
-    "architecturePatterns": ["qwen3", "qwen3_5", "Qwen3ForCausalLM", "Qwen3_5ForCausalLM", "Qwen2ForCausalLM"],
-    "modelTypePatterns": ["qwen3_5", "qwen3_5_text", "qwen2"],
+    "architecturePatterns": ["qwen3", "Qwen3ForCausalLM", "Qwen2ForCausalLM"],
+    "modelTypePatterns": ["qwen3", "qwen2"],
     "configPatterns": {
       "model_type": "qwen2"
     }

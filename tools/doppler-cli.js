@@ -1262,6 +1262,9 @@ function printMetricsSummary(result) {
       `prefill=${formatNumber(metrics.prefillTokensPerSec)} ` +
       `decode=${formatNumber(metrics.decodeTokensPerSec)}`
     );
+    if (typeof result.output === 'string' && result.output.length > 0) {
+      console.log(`[output] ${quoteOneLine(result.output)}`);
+    }
     printExecutionContractSummary(result);
     printExecutionV0GraphSummary(metrics.executionV0GraphContractArtifact);
     return;

@@ -131,7 +131,9 @@ export function selectMatmulKernel(options = {}) {
   const { tiledPrefillMinRows } = getKernelThresholds().matmul;
 
   const inputsAreF16 = aDtype === 'f16' && bDtype === 'f16';
-  const weightsAreF16 = bDtype === 'f16' && aDtype !== 'f16';
+  // F16 weights needing F32a path: weights are F16 and either activation is already F32,
+  // or both inputs are F16 but output is F32 (activation will be cast to F32 by executeMatmul)
+  const weightsAreF16 = bDtype === 'f16' && (aDtype !== 'f16' || outputDtype !== 'f16');
   const useF16Matmul = outputDtype === 'f16' && preferF16 && inputsAreF16 && capabilities.hasF16;
   const useF16wF32a = preferF16 && weightsAreF16 && capabilities.hasF16;
   const useTiled = isPrefill
@@ -466,7 +468,8 @@ export function selectMatmulVariantAndFlags(mode, M, N, K, aDtype, bDtype, trans
 
   const canGemv = M === 1 && effectiveBDtype === 'f16' && capabilities.hasF16;
   const useF16Gemv = canGemv && aDtype === 'f16' && wantF16Output;
-  const useF32Gemv = canGemv && aDtype === 'f32';
+  // F32 GEMV: activation is F32, or activation is F16 with F32 output (will be cast to F32)
+  const useF32Gemv = canGemv && (aDtype === 'f32' || (aDtype === 'f16' && !wantF16Output));
   const useGemv = useF16Gemv || useF32Gemv;
   const useVec4 = (K % 4 === 0);
   const { multicolThreshold } = getKernelThresholds().matmul;

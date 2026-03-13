@@ -1,0 +1,16 @@
+{
+  "id": "qwen3_5",
+  "name": "Qwen 3.5",
+  "extends": "qwen3",
+
+  "inference": {
+    "normalization": {
+      "rmsNormWeightOffset": true
+    }
+  },
+
+  "detection": {
+    "architecturePatterns": ["qwen3_5", "Qwen3_5ForCausalLM", "Qwen3_5ForConditionalGeneration"],
+    "modelTypePatterns": ["qwen3_5", "qwen3_5_text"]
+  }
+}

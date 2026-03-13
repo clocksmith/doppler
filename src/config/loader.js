@@ -23,6 +23,7 @@ const mambaPreset = await loadJson('./presets/models/mamba.json', import.meta.ur
 const modernbertPreset = await loadJson('./presets/models/modernbert.json', import.meta.url, 'Failed to load preset');
 const lfm2Preset = await loadJson('./presets/models/lfm2.json', import.meta.url, 'Failed to load preset');
 const qwen3Preset = await loadJson('./presets/models/qwen3.json', import.meta.url, 'Failed to load preset');
+const qwen35Preset = await loadJson('./presets/models/qwen3_5.json', import.meta.url, 'Failed to load preset');
 const kimiK2Preset = await loadJson('./presets/models/kimi-k2.json', import.meta.url, 'Failed to load preset');
 const gptOssPreset = await loadJson('./presets/models/gpt-oss.json', import.meta.url, 'Failed to load preset');
 
@@ -46,6 +47,7 @@ export const PRESET_REGISTRY = {
   modernbert: modernbertPreset,
   lfm2: lfm2Preset,
   qwen3: qwen3Preset,
+  qwen3_5: qwen35Preset,
   kimi_k2: kimiK2Preset,
   gpt_oss: gptOssPreset,
 };
@@ -97,6 +99,7 @@ export const PRESET_DETECTION_ORDER = [
   'gemma3',
   'llama3',
   'lfm2',
+  'qwen3_5',
   'qwen3',
   'kimi_k2',
   'gpt_oss',
