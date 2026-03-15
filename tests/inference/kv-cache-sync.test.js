@@ -283,6 +283,46 @@ configurePerfGuards({
   }
 }
 
+{
+  const device = createFakeDevice();
+  setDevice(device, { platformConfig: null });
+
+  const cache = new KVCache({
+    numLayers: 4,
+    numHeads: 1,
+    headDim: 2,
+    maxSeqLen: 8,
+    useGPU: true,
+    layout: 'contiguous',
+    pageSize: 1,
+    kvDtype: 'f32',
+  });
+
+  const bytesPerToken = cache.kvSize * Float32Array.BYTES_PER_ELEMENT;
+  const sourceK = new FakeBuffer({
+    size: 2 * bytesPerToken,
+    usage: GPUBufferUsage.COPY_SRC | GPUBufferUsage.STORAGE,
+  });
+  const sourceV = new FakeBuffer({
+    size: 2 * bytesPerToken,
+    usage: GPUBufferUsage.COPY_SRC | GPUBufferUsage.STORAGE,
+  });
+
+  cache.updateFromGPU(1, sourceK, sourceV, 0, 2);
+
+  assert.equal(
+    cache.currentSeqLen,
+    2,
+    'Hybrid cache updates must advance global seqLen even when attention is not the last layer'
+  );
+  assert.equal(cache.totalTokensSeen, 2);
+  assert.equal(cache.layers[1].seqLen, 2);
+  assert.equal(cache.getMemoryStats().seqLen, 2);
+  assert.equal(cache.getMemoryStats().used, 4 * 2 * 2 * cache.kvSize * Float32Array.BYTES_PER_ELEMENT);
+
+  cache.destroy();
+}
+
 destroyBufferPool();
 setDevice(null);
 console.log('kv-cache-sync.test: ok');

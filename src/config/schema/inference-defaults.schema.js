@@ -93,7 +93,7 @@ export const DEFAULT_TOKENIZER_DEFAULTS = {
 // =============================================================================
 
 export const DEFAULT_CHAT_TEMPLATE_CONFIG = {
-  enabled: false,
+  enabled: undefined,
 };
 
 export const DEFAULT_KERNEL_PATH_POLICY = {

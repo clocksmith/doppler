@@ -43,6 +43,7 @@ import {
 import { getDopplerLoader } from '../../loader/doppler-loader.js';
 import { registerPipeline, getPipelineFactory } from './registry.js';
 import { selectRuleValue } from '../../rules/rule-registry.js';
+import { initConvLayerState } from './text/ops.js';
 
 function destroyMoERouter(router) {
   if (router && typeof router.destroy === 'function') {
@@ -221,6 +222,9 @@ export class InferencePipeline extends PipelineState {
     // Initialize RoPE frequencies
     await this._initRoPE();
 
+    // Initialize conv layer states for gated short conv layers (LFM2)
+    await this._initConvLayerStates();
+
     this.isLoaded = true;
     log.info('Pipeline', 'Model loaded successfully');
   }
@@ -310,7 +314,7 @@ export class InferencePipeline extends PipelineState {
       maxSeqLen,
       ropeTheta: config.ropeTheta,
       ropeLocalTheta: config.ropeLocalTheta,
-      mropeInterleaved: config.ropeInterleaved,
+      mropeInterleaved: config.mropeInterleaved,
       mropeSection: config.mropeSection,
       partialRotaryFactor: config.partialRotaryFactor,
       ropeScale: config.ropeScale,
@@ -324,6 +328,51 @@ export class InferencePipeline extends PipelineState {
     this.ropeFreqsSin = ropeBuffers.sin;
     this.ropeLocalCos = ropeBuffers.localCos ?? null;
     this.ropeLocalSin = ropeBuffers.localSin ?? null;
+  }
+
+
+  async _initConvLayerStates() {
+    const config = this.modelConfig;
+    if (!config?.layerTypes) return;
+    const { getDevice } = await import('../../gpu/device.js');
+    const device = getDevice();
+    if (!device) return;
+
+    const hiddenSize = config.hiddenSize;
+    const convStates = new Map();
+
+    for (let i = 0; i < config.layerTypes.length; i++) {
+      const lt = String(config.layerTypes[i] ?? '').toLowerCase();
+      if (lt !== 'conv' && lt !== 'convolution') continue;
+
+      const layerWeights = this.weights.get(`layer_${i}`);
+      if (!layerWeights) continue;
+      const convKernel = layerWeights?.convKernel;
+      if (!convKernel) continue;
+
+      const convState = {};
+      try {
+        await initConvLayerState(
+          convState,
+          convKernel,
+          layerWeights.convInProj ?? null,
+          hiddenSize,
+          `L${i}.conv`,
+          i
+        );
+        if (!convState.convWeightGPU || !convState.convStateGPU) {
+          continue;
+        }
+        convStates.set(i, convState);
+      } catch (e) {
+        log.warn('Pipeline', `Conv layer ${i} state init failed: ${e.message}`);
+      }
+    }
+
+    if (convStates.size > 0) {
+      this.convLayerStates = convStates;
+      log.info('Pipeline', `Initialized ${convStates.size} conv layer states (kernelSize=${convStates.values().next().value?.kernelSize})`);
+    }
   }
 
 

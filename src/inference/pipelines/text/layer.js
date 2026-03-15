@@ -87,6 +87,11 @@ function assertSupportedLayerRuntime(layerIdx, config) {
   }
 }
 
+function getConvLayerState(convLayerStates, layerIdx) {
+  if (!convLayerStates) return {};
+  return convLayerStates.get(layerIdx) ?? {};
+}
+
 function isSlidingLayerType(layerType) {
   const normalized = normalizeLayerType(layerType);
   return normalized === 'sliding_attention'
@@ -101,6 +106,14 @@ function isConvLayerType(layerType) {
     || normalized === 'convolution'
     || normalized === 'liv_conv'
     || normalized === 'liv_convolution';
+}
+
+export function hasConvLayers(layerTypes) {
+  if (!Array.isArray(layerTypes)) return false;
+  for (let i = 0; i < layerTypes.length; i++) {
+    if (isConvLayerType(layerTypes[i])) return true;
+  }
+  return false;
 }
 
 function isLinearLayerType(layerType) {
@@ -201,8 +214,22 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
       );
     }
     const convKernel = layerWeights?.convKernel ?? null;
+    // Apply input norm (operator_norm) before conv mixer — matches HF Lfm2 forward pass
+    let normedTensor = inputTensor;
+    const inputNormWeight = layerWeights?.inputNorm ?? null;
+    if (inputNormWeight) {
+      const normWeightBuf = getNormWeightBuffer(inputNormWeight, `L${layerIdx}.conv_input_norm`);
+      normedTensor = await doRMSNorm(inputTensor, normWeightBuf, rmsNormEps, {
+        batchSize: numTokens,
+        hiddenSize,
+        rmsNormWeightOffset: config.rmsNormWeightOffset,
+        label: `L${layerIdx}.conv_input_norm`,
+        layerIdx,
+      }, recorder);
+      if (!(inputNormWeight instanceof GPUBuffer)) releaseOrTrack(recorder, normWeightBuf);
+    }
     attnOutput = await doConv(
-      inputTensor,
+      normedTensor,
       getWeightBuffer(convInProj, `L${layerIdx}.conv_in_proj`),
       convKernel ? getWeightBuffer(convKernel, `L${layerIdx}.conv_kernel`) : null,
       getWeightBuffer(convOutProj, `L${layerIdx}.conv_out_proj`),
@@ -213,9 +240,13 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
         label: `L${layerIdx}.conv`,
         swigluLimit: config.swigluLimit,
         kernelPath: context.kernelPath ?? null,
+        convState: getConvLayerState(context.convLayerStates, layerIdx),
       },
       recorder
     );
+    if (normedTensor !== inputTensor) {
+      releaseOrTrack(recorder, normedTensor.buffer);
+    }
   } else if (isLinearLayer) {
     attnOutput = await runLinearAttentionLayer(inputTensor, layerWeights ?? null, {
       layerIdx,

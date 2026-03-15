@@ -15,6 +15,8 @@ export class PipelineState {
       layers: new Map(),
     };
 
+    this.convLayerStates = new Map();
+
     this.moeRouter = null;
 
     this.speculativeDecoder = null;

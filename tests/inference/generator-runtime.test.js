@@ -143,6 +143,26 @@ function createTestPlanState(maxTokens = 128) {
   assert.equal(opts.executionPlan.planId, 'primary');
 }
 
+{
+  const state = {
+    debug: false,
+    runtimeConfig: {
+      inference: {
+        sampling: { temperature: 0.7, topP: 0.95, topK: 40, repetitionPenalty: 1.0 },
+        generation: { maxTokens: 128, useSpeculative: false, profile: false, benchmark: false, embeddingMode: 'last' },
+        chatTemplate: { enabled: undefined },
+        session: {},
+      },
+    },
+    modelConfig: { chatTemplateEnabled: true },
+    manifest: { modelType: 'transformer' },
+    ...createTestPlanState(),
+  };
+
+  const opts = resolveGenerateOptions(state, {});
+  assert.equal(opts.useChatTemplate, true);
+}
+
 // Explicit override from options
 {
   const state = {
@@ -168,6 +188,28 @@ function createTestPlanState(maxTokens = 128) {
   assert.equal(opts.temperature, 0);
   assert.equal(opts.topK, 1);
   assert.equal(opts.topP, 1.0);
+}
+
+{
+  const state = {
+    debug: false,
+    runtimeConfig: {
+      inference: {
+        sampling: { temperature: 0.7, topP: 0.95, topK: 40, repetitionPenalty: 1.0 },
+        generation: { maxTokens: 128, useSpeculative: false, profile: false, benchmark: false, embeddingMode: 'last' },
+        chatTemplate: { enabled: undefined },
+        session: {},
+      },
+    },
+    modelConfig: { chatTemplateEnabled: true },
+    manifest: { modelType: 'transformer' },
+    ...createTestPlanState(),
+  };
+
+  const opts = resolveGenerateOptions(state, {
+    useChatTemplate: false,
+  });
+  assert.equal(opts.useChatTemplate, false);
 }
 
 // null value for configured option should throw
