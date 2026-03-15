@@ -1,7 +1,7 @@
 
 
 import { getDevice, setTrackSubmits } from '../../../gpu/device.js';
-import { releaseBuffer, readBuffer, readBufferSlice } from '../../../memory/buffer-pool.js';
+import { releaseBuffer, readBuffer, readBufferSlice, uploadData } from '../../../memory/buffer-pool.js';
 import { isGPUSamplingAvailable } from '../../../gpu/kernels/sample.js';
 import { markWarmed as markKernelCacheWarmed } from '../../../gpu/kernel-selection-cache.js';
 import { resetSubmitStats, logSubmitStats } from '../../../gpu/submit-tracker.js';
@@ -946,6 +946,13 @@ export class PipelineGenerator {
 
     if (startPos === 0 && hasLinearAttentionLayers(config.layerTypes)) {
       this.#state.linearAttentionRuntime = resetLinearAttentionRuntime(this.#state.linearAttentionRuntime);
+    }
+    if (startPos === 0) {
+      for (const [, convState] of this.#state.convLayerStates) {
+        if (convState.convStateGPU && convState.hiddenSize && convState.kernelSize) {
+          uploadData(convState.convStateGPU, new Float32Array(convState.hiddenSize * (convState.kernelSize - 1)));
+        }
+      }
     }
 
     const embedBufferRaw = this.#state.weights.get('embed');

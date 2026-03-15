@@ -37,10 +37,11 @@ Then route to the matching playbook:
 
 ```bash
 # Convert from Safetensors directory (or GGUF file path) via unified CLI
+# Output to a temporary directory first, then copy to external volume after verification.
 npm run convert -- --config '{
   "request": {
     "inputDir": "INPUT_PATH",
-    "outputDir": "models/local/OUTPUT_ID",
+    "outputDir": "/tmp/OUTPUT_ID-rebuild",
     "convertPayload": {
       "converterConfig": {
         "output": {
@@ -55,7 +56,7 @@ npm run convert -- --config '{
 }'
 
 # Same conversion through direct Node helper with converter-config JSON
-node tools/convert-safetensors-node.js INPUT_PATH --config ./converter-config.json --output-dir models/local/OUTPUT_ID
+node tools/convert-safetensors-node.js INPUT_PATH --config ./converter-config.json --output-dir /tmp/OUTPUT_ID-rebuild
 ```
 
 Notes:
@@ -86,13 +87,16 @@ Example:
 
 ```bash
 # 1) Manifest exists
-test -f models/local/OUTPUT_ID/manifest.json
+test -f /tmp/OUTPUT_ID-rebuild/manifest.json
 
 # 2) Verify key manifest fields
-jq '.modelId, .modelType, .quantization, .quantizationInfo, .inference.defaultKernelPath' models/local/OUTPUT_ID/manifest.json
+jq '.modelId, .modelType, .quantization, .quantizationInfo, .inference.defaultKernelPath' /tmp/OUTPUT_ID-rebuild/manifest.json
 
 # 3) Verify shards exist
-ls models/local/OUTPUT_ID/shard_*.bin | wc -l
+ls /tmp/OUTPUT_ID-rebuild/shard_*.bin | wc -l
+
+# 4) After verification passes, copy to external volume (source of truth)
+cp -a /tmp/OUTPUT_ID-rebuild/. /media/x/models/rdrr/OUTPUT_ID/
 
 # 4) Sanity-run inference
 npm run debug -- --config '{"request":{"modelId":"OUTPUT_ID","runtimePreset":"modes/debug"},"run":{"surface":"auto"}}' --json

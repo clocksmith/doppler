@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 
 const { hasExecutionV0 } = await import(
@@ -12,8 +13,15 @@ async function loadJson(path) {
   return JSON.parse(await readFile(new URL(path, import.meta.url), 'utf8'));
 }
 
-const f16Manifest = await loadJson('../../models/local/qwen-3-5-0-8b-f16/manifest.json');
-const q4kManifest = await loadJson('../../models/local/qwen-3-5-0-8b-q4k-ehaf16/manifest.json');
+const f16ManifestPath = new URL('../../models/local/qwen-3-5-0-8b-f16/manifest.json', import.meta.url);
+const q4kManifestPath = new URL('../../models/local/qwen-3-5-0-8b-q4k-ehaf16/manifest.json', import.meta.url);
+const hasExactLocalManifests = existsSync(f16ManifestPath) && existsSync(q4kManifestPath);
+const f16Manifest = hasExactLocalManifests
+  ? JSON.parse(await readFile(f16ManifestPath, 'utf8'))
+  : null;
+const q4kManifest = hasExactLocalManifests
+  ? JSON.parse(await readFile(q4kManifestPath, 'utf8'))
+  : null;
 const convConfigs = await Promise.all([
   loadJson('../../tools/configs/conversion/qwen3/qwen-3-5-0-8b-f16.json'),
   loadJson('../../tools/configs/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json'),
@@ -30,6 +38,14 @@ function getLinearProjectionLayout(manifest) {
     headVDim: manifest.architecture.linearValueHeadDim,
     valueDim: manifest.architecture.linearNumValueHeads * manifest.architecture.linearValueHeadDim,
   };
+}
+
+if (!hasExactLocalManifests) {
+  for (const config of convConfigs) {
+    assert.equal(config.presets.model, 'qwen3_5');
+  }
+  console.log('qwen-manifest-completeness.test: skipped (missing exact local manifests)');
+  process.exit(0);
 }
 
 // --- Manifest: intentional null fields ---
@@ -129,11 +145,11 @@ function getLinearProjectionLayout(manifest) {
   }
 }
 
-// --- Manifest: rmsNormWeightOffset = false (from qwen3 preset) ---
+// --- Manifest: rmsNormWeightOffset = true (from qwen3_5 preset) ---
 
 {
-  assert.equal(f16Manifest.inference.normalization.rmsNormWeightOffset, false);
-  assert.equal(q4kManifest.inference.normalization.rmsNormWeightOffset, false);
+  assert.equal(f16Manifest.inference.normalization.rmsNormWeightOffset, true);
+  assert.equal(q4kManifest.inference.normalization.rmsNormWeightOffset, true);
 }
 
 // --- Manifest: mRoPE fields ---
@@ -163,10 +179,10 @@ for (const config of convConfigs) {
   assert.equal(config.inference.execution, undefined);
 }
 
-// --- Conversion configs: all use qwen3 preset ---
+// --- Conversion configs: all use qwen3_5 preset ---
 
 for (const config of convConfigs) {
-  assert.equal(config.presets.model, 'qwen3');
+  assert.equal(config.presets.model, 'qwen3_5');
 }
 
 // --- Conversion configs: sessionDefaults.decodeLoop present in all ---

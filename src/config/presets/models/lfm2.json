@@ -43,7 +43,8 @@
   },
 
   "tokenizer": {
-    "addBosToken": false,
+    "bosTokenId": 1,
+    "addBosToken": true,
     "addEosToken": false
   },
 

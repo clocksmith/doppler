@@ -1,8 +1,11 @@
 
 
 import { getKernelCapabilities } from '../gpu/device.js';
-import { isWeightBuffer } from '../gpu/weight-buffer.js';
+import { isWeightBuffer, createWeightBuffer, getWeightDtype } from '../gpu/weight-buffer.js';
+import { dequantize, dequantizeRowwise } from '../gpu/kernel-selector.js';
+import { releaseBuffer } from '../memory/buffer-pool.js';
 import { batchDowncastWeights } from './weight-downcast.js';
+import { QK_K } from './quantization-constants.js';
 import { trace as debugTrace } from '../debug/index.js';
 
 // ============================================================================
@@ -26,8 +29,8 @@ const ATTN_SUFFIXES = {
   kProj: ['self_attn.k_proj.weight', 'attention.wk.weight', 'attn_k.weight'],
   vProj: ['self_attn.v_proj.weight', 'attention.wv.weight', 'attn_v.weight'],
   oProj: ['self_attn.o_proj.weight', 'self_attn.out_proj.weight', 'attention.wo.weight', 'attn_output.weight'],
-  qNorm: ['self_attn.q_norm.weight', 'attn_q_norm.weight'],
-  kNorm: ['self_attn.k_norm.weight', 'attn_k_norm.weight'],
+  qNorm: ['self_attn.q_norm.weight', 'self_attn.q_layernorm.weight', 'attn_q_norm.weight'],
+  kNorm: ['self_attn.k_norm.weight', 'self_attn.k_layernorm.weight', 'attn_k_norm.weight'],
   postAttentionNorm: ['post_attention_layernorm.weight', 'post_attention_norm.weight', 'ffn_norm.weight'],
   preFeedforwardNorm: ['pre_feedforward_layernorm.weight'],
   postFeedforwardNorm: ['post_feedforward_layernorm.weight', 'post_ffw_norm.weight'],
@@ -415,4 +418,39 @@ async function downcastLayerWeights(ctx, weights, layerIdx) {
     },
     ctx.gpuBuffers
   );
+
+  await dequantConvQ4KWeights(ctx, weights, layerIdx);
+}
+
+
+const CONV_Q4K_DEQUANT_KEYS = ['convInProj', 'convOutProj', 'convKernel'];
+
+async function dequantConvQ4KWeights(ctx, weights, layerIdx) {
+  for (const key of CONV_Q4K_DEQUANT_KEYS) {
+    const buf = weights[key];
+    if (!buf || !isWeightBuffer(buf)) continue;
+    if (getWeightDtype(buf) !== 'q4k') continue;
+
+    const shape = buf.shape;
+    if (!Array.isArray(shape) || shape.length < 2) continue;
+
+    const is2D = shape.length === 2;
+    const totalElements = shape.reduce((a, b) => a * b, 1);
+
+    let dequantizedTensor;
+    if (is2D && shape[1] % QK_K !== 0) {
+      dequantizedTensor = await dequantizeRowwise(buf.buffer, shape[0], shape[1], { outputDtype: 'f16' });
+    } else {
+      if (totalElements === 0 || totalElements % QK_K !== 0) continue;
+      const numBlocks = totalElements / QK_K;
+      dequantizedTensor = await dequantize(buf.buffer, numBlocks, { outputDtype: 'f16' });
+    }
+
+    releaseBuffer(buf.buffer);
+    const f16Buf = dequantizedTensor.buffer;
+    weights[key] = createWeightBuffer(f16Buf, 'f16', 'row', shape, buf.label ?? key);
+    ctx.gpuBuffers.add(f16Buf);
+
+    debugTrace.loader(`Layer ${layerIdx} dequantized conv ${key} Q4K→F16: [${shape.join(',')}]`);
+  }
 }

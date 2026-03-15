@@ -1,0 +1,352 @@
+{
+  "suite": "inference",
+  "modelId": "lfm2-5-1-2b-instruct-q4k-ehf16-af32",
+  "runtimePreset": null,
+  "deviceInfo": {
+    "hasSubgroups": true,
+    "hasSubgroupsF16": false,
+    "hasF16": true,
+    "hasTimestampQuery": true,
+    "maxBufferSize": 4294967292,
+    "maxWorkgroupSize": 1024,
+    "maxWorkgroupStorageSize": 65536,
+    "adapterInfo": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "amd-radeon-graphics-radv-gfx1151-",
+      "description": "radv: Mesa 25.0.7-0ubuntu0.25.04.2"
+    }
+  },
+  "results": [
+    {
+      "name": "generation",
+      "passed": true,
+      "duration": 106760.16978699999
+    }
+  ],
+  "durationMs": 111767.89698599999,
+  "timestamp": "2026-03-15T13:33:12.147Z",
+  "metrics": {
+    "prompt": "The color of the sky is",
+    "maxTokens": 256,
+    "tokensGenerated": 256,
+    "tokensPerSec": 2.4,
+    "totalRunMs": 106708.54,
+    "firstTokenMs": 590.76,
+    "firstResponseMs": 5592.58,
+    "prefillMs": 585.03,
+    "decodeMs": 106116.4,
+    "prefillTokens": 6,
+    "decodeTokens": 256,
+    "prefillTokensPerSec": 10.26,
+    "prefillTokensPerSecTtft": 10.16,
+    "decodeTokensPerSec": 2.41,
+    "modelLoadMs": 5001.82,
+    "gpu": {
+      "decodeRecordMs": 0,
+      "decodeSubmitWaitMs": 0,
+      "decodeReadbackWaitMs": 0
+    },
+    "decodeProfileSteps": [],
+    "generationDiagnostics": {
+      "preview": [
+        {
+          "id": 856,
+          "text": " is",
+          "fallbackText": " is"
+        },
+        {
+          "id": 856,
+          "text": " is",
+          "fallbackText": " is"
+        },
+        {
+          "id": 856,
+          "text": " is",
+          "fallbackText": " is"
+        },
+        {
+          "id": 856,
+          "text": " is",
+          "fallbackText": " is"
+        },
+        {
+          "id": 856,
+          "text": " is",
+          "fallbackText": " is"
+        },
+        {
+          "id": 856,
+          "text": " is",
+          "fallbackText": " is"
+        },
+        {
+          "id": 856,
+          "text": " is",
+          "fallbackText": " is"
+        },
+        {
+          "id": 856,
+          "text": " is",
+          "fallbackText": " is"
+        },
+        {
+          "id": 856,
+          "text": " is",
+          "fallbackText": " is"
+        },
+        {
+          "id": 856,
+          "text": " is",
+          "fallbackText": " is"
+        },
+        {
+          "id": 856,
+          "text": " is",
+          "fallbackText": " is"
+        },
+        {
+          "id": 856,
+          "text": " is",
+          "fallbackText": " is"
+        },
+        {
+          "id": 856,
+          "text": " is",
+          "fallbackText": " is"
+        },
+        {
+          "id": 856,
+          "text": " is",
+          "fallbackText": " is"
+        },
+        {
+          "id": 856,
+          "text": " is",
+          "fallbackText": " is"
+        },
+        {
+          "id": 856,
+          "text": " is",
+          "fallbackText": " is"
+        },
+        {
+          "id": 856,
+          "text": " is",
+          "fallbackText": " is"
+        },
+        {
+          "id": 856,
+          "text": " is",
+          "fallbackText": " is"
+        },
+        {
+          "id": 856,
+          "text": " is",
+          "fallbackText": " is"
+        },
+        {
+          "id": 856,
+          "text": " is",
+          "fallbackText": " is"
+        },
+        {
+          "id": 856,
+          "text": " is",
+          "fallbackText": " is"
+        },
+        {
+          "id": 856,
+          "text": " is",
+          "fallbackText": " is"
+        },
+        {
+          "id": 856,
+          "text": " is",
+          "fallbackText": " is"
+        },
+        {
+          "id": 856,
+          "text": " is",
+          "fallbackText": " is"
+        },
+        {
+          "id": 856,
+          "text": " is",
+          "fallbackText": " is"
+        },
+        {
+          "id": 856,
+          "text": " is",
+          "fallbackText": " is"
+        },
+        {
+          "id": 856,
+          "text": " is",
+          "fallbackText": " is"
+        },
+        {
+          "id": 856,
+          "text": " is",
+          "fallbackText": " is"
+        },
+        {
+          "id": 856,
+          "text": " is",
+          "fallbackText": " is"
+        },
+        {
+          "id": 856,
+          "text": " is",
+          "fallbackText": " is"
+        },
+        {
+          "id": 856,
+          "text": " is",
+          "fallbackText": " is"
+        },
+        {
+          "id": 856,
+          "text": " is",
+          "fallbackText": " is"
+        }
+      ],
+      "total": 256,
+      "omitted": 224,
+      "emptyTextCount": 0,
+      "specialLikeTextCount": 0,
+      "specialLikeFallbackCount": 0
+    },
+    "schemaVersion": 1,
+    "source": "doppler",
+    "suite": "inference",
+    "executionContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "lfm2-5-1-2b-instruct-q4k-ehf16-af32.steps",
+          "ok": true
+        },
+        {
+          "id": "lfm2-5-1-2b-instruct-q4k-ehf16-af32.session",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "session": {
+        "layout": "contiguous",
+        "disableCommandBatching": false,
+        "decodeBatchSize": 8,
+        "headDim": 64,
+        "kvLen": 128000,
+        "coldQuantMode": "none"
+      },
+      "steps": {
+        "total": 0,
+        "attention": 0,
+        "attentionPhases": {
+          "prefill": 0,
+          "decode": 0,
+          "both": 0
+        }
+      }
+    },
+    "executionV0GraphContractArtifact": null,
+    "layerPatternContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "inference.layerPattern.patternKind.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.patternKind.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.even",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.odd",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_offset",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_negative_offset",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "patternKindRules": 4,
+        "layerTypeRules": 6,
+        "patternKindContexts": 16,
+        "layerTypeContexts": 12
+      }
+    },
+    "requiredInferenceFieldsArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "scope": "manifest",
+      "label": "lfm2-5-1-2b-instruct-q4k-ehf16-af32.inference",
+      "ok": true,
+      "checks": [
+        {
+          "id": "lfm2-5-1-2b-instruct-q4k-ehf16-af32.inference.requiredInferenceFields",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "fieldCases": 35,
+        "nullableCases": 16,
+        "nonNullableCases": 19
+      }
+    }
+  },
+  "output": " is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is is",
+  "memory": {
+    "used": 2632474368,
+    "pool": {
+      "allocations": 42752,
+      "reuses": 9557,
+      "totalBytesAllocated": 3203026688,
+      "peakBytesAllocated": 2520505856,
+      "currentBytesAllocated": 2498256640,
+      "totalBytesRequested": 3056241920,
+      "peakBytesRequested": 2392894720,
+      "currentBytesRequested": 2373995520,
+      "activeBuffers": 170,
+      "pooledBuffers": 64,
+      "budgetMaxBytes": 0,
+      "budgetUtilization": 0,
+      "hitRate": "18.3%"
+    },
+    "kvCache": {
+      "theoretical": 134217728,
+      "allocated": 134217728,
+      "used": 0,
+      "efficiency": 0,
+      "seqLen": 0,
+      "maxSeqLen": 4096,
+      "layout": "contiguous"
+    }
+  },
+  "debugSnapshot": null
+}

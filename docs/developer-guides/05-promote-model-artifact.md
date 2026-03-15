@@ -2,7 +2,7 @@
 
 ## Goal
 
-Move a locally verified runtime artifact into catalog metadata, repo-local storage, and hosted publication workflows.
+Move a verified runtime artifact into catalog metadata, external-volume storage, and hosted publication workflows.
 
 ## When To Use This Guide
 
@@ -15,9 +15,8 @@ Move a locally verified runtime artifact into catalog metadata, repo-local stora
 
 ## Required Touch Points
 
-- `models/local/<model-id>/manifest.json` or a materialized direct-source manifest
-- `models/catalog.json`
-- External-volume artifact directory
+- External-volume artifact directory (`/media/x/models/rdrr/<model-id>/`)
+- `models/catalog.json` (repo metadata mirror — no weights)
 - `docs/model-support-matrix.md` via sync tooling
 - External RDRR index via sync tooling
 
@@ -26,7 +25,7 @@ Move a locally verified runtime artifact into catalog metadata, repo-local stora
 1. Finish local convert, verify, and debug work first.
 2. Get human review on deterministic output quality before touching catalog or hosted state.
 3. For raw SafeTensors/GGUF release candidates, materialize the persisted direct-source manifest with `node tools/materialize-source-manifest.js <source-path>`.
-4. Sync the verified manifest into `models/local/<model-id>/manifest.json`.
+4. Copy the verified artifact to the external volume (`/media/x/models/rdrr/<model-id>/`).
 5. Update the canonical external support registry entry first. Treat `models/catalog.json` as the repo mirror, not the primary edit surface.
 6. Run support-matrix and external-index sync if catalog or external storage changed.
 7. Run catalog validation before any Hugging Face publication.

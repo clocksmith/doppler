@@ -83,8 +83,8 @@ npm run registry:publish:hf -- --model-id translategemma-4b-it-q4k-ehf16-af32 --
 Preferred publication source:
 
 - by default the publisher uploads from the canonical external-volume artifact path recorded in `external.pathRelativeToVolume`
-- if no canonical external artifact path is recorded, it falls back to `models/local/<modelId>`
-- when the canonical artifact lives on the external volume, pass `--local-dir <external-artifact-dir>` explicitly
+- always pass `--local-dir /media/x/models/rdrr/<modelId>` explicitly to publish from the external volume
+- do not publish from `models/local/` — the external volume is the source of truth for weights
 - publish from the canonical external-volume RDRR directory, not a scratch rebuild directory
 - ensure the external-volume artifact matches the curated manifest before publication
 - update external-volume trackers after publication

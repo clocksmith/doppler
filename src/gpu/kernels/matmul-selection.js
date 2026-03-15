@@ -92,6 +92,7 @@ export function getMatmulConfig(variant, constants) {
 
 
 export function isFusedQ4KDisabled(options = {}) {
+  if (options.disableFusedQ4K === true) return true;
   const capabilities = getKernelCapabilities();
   const hasSubgroups = capabilities?.hasSubgroups === true;
 

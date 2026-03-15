@@ -63,7 +63,7 @@ function createHarnessOverride() {
         inference: {
           sessionDefaults: {
             kvcache: {
-              layout: 'paged',
+              layout: 'contiguous',
             },
             decodeLoop: null,
           },
@@ -117,7 +117,7 @@ function createHarnessOverride() {
   assert.equal(result.metrics.executionV0GraphContractArtifact, null);
   assert.equal(result.metrics.layerPatternContractArtifact?.ok, true);
   assert.equal(result.metrics.requiredInferenceFieldsArtifact, null);
-  assert.equal(result.metrics.executionContractArtifact?.session?.layout, 'paged');
+  assert.equal(result.metrics.executionContractArtifact?.session?.layout, 'contiguous');
 }
 
 {

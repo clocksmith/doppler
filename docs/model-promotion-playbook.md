@@ -26,12 +26,12 @@ Treat these locations as separate roles, not interchangeable copies:
    Example: `/media/x/models/huggingface_cache/hub/.../snapshots/<revision>`
 2. Temporary rebuild / repair directory
    Example: `/tmp/<model-id>-rebuild`
-3. Repo metadata / repo-local fallback
-   Example: `models/local/<model-id>/manifest.json`
-4. External-volume canonical RDRR artifact
+3. External-volume canonical RDRR artifact (source of truth for weights)
    Example: `/media/x/models/rdrr/<model-id>`
-5. Hugging Face hosted artifact
+4. Hugging Face hosted artifact (verified subset)
    Example: `Clocksmith/rdrr`
+5. Repo metadata (catalog only, no weights)
+   Example: `models/catalog.json`
 
 Rules:
 
@@ -45,11 +45,11 @@ Rules:
 Before converting or promoting, settle the canonical model ID. The ID must agree across four places:
 
 1. `output.modelBaseId` in the conversion config (`tools/configs/conversion/<family>/<model>.json`)
-2. Local artifact directory: `models/local/<canonical-id>/`
+2. External-volume artifact directory: `/media/x/models/rdrr/<canonical-id>/`
 3. `models/catalog.json` entry `modelId`
 4. HF path: `models/<canonical-id>` under `Clocksmith/rdrr`
 
-The publish tool (`tools/publish-hf-registry-model.js`) derives `localDir` as `models/local/{modelId}` by default. If the artifact directory name does not match the catalog `modelId`, the publish step will try to upload from a non-existent path.
+The publish tool (`tools/publish-hf-registry-model.js`) uploads from the external-volume artifact path by default. Always pass `--local-dir /media/x/models/rdrr/<model-id>` explicitly to ensure the correct artifact is uploaded.
 
 Naming schemes differ between old artifacts (e.g. `wq4k-ef16-hf16` suffix) and canonical conversion configs (e.g. `q4k-ehf16-af32` suffix). Do not promote a non-canonical artifact by renaming it. Re-convert with the canonical config so the artifact and the ID agree from the start.
 
@@ -144,14 +144,10 @@ Do not silently upgrade a model to hosted/demo-visible status based only on succ
 
 ### 5. Sync repo metadata
 
-Update repo-visible model metadata to match the verified artifact:
-
-- `models/local/<model-id>/manifest.json`
-- `models/catalog.json`
+Update `models/catalog.json` to match the verified artifact. Do not copy weight shards into the repo tree — the external volume is the source of truth for weights.
 
 Rules:
 
-- repo-local manifest must match the actual promoted artifact
 - `models/catalog.json` must point to the current HF revision after publication, not the previous one
 - if a model is not correctness-clean, reflect that in human-facing status notes rather than implying full health
 - preferred ownership is external-first:

@@ -515,7 +515,8 @@ export function toParsedConfigFromMerged(merged, manifest) {
   const ropeLocalScale = inf.rope.ropeLocalScalingFactor ?? ropeScale;
   const ropeLocalScalingType = inf.rope.ropeLocalScalingType;
   const partialRotaryFactor = inf.rope.partialRotaryFactor;
-  const ropeInterleaved = inf.rope.mropeInterleaved === true;
+  const mropeInterleaved = inf.rope.mropeInterleaved === true;
+  const ropeInterleaved = false;
   const mropeSection = Array.isArray(inf.rope.mropeSection)
     ? inf.rope.mropeSection.map((entry) => Math.trunc(Number(entry)))
     : null;
@@ -525,7 +526,7 @@ export function toParsedConfigFromMerged(merged, manifest) {
       `Manifest "${merged.modelId}" has invalid rope.mropeSection; expected positive integers.`
     );
   }
-  if (ropeInterleaved && mropeSection) {
+  if (mropeInterleaved && mropeSection) {
     const doubledMropeDim = mropeSection.reduce((sum, entry) => sum + entry, 0) * 2;
     if (doubledMropeDim !== ropeRotaryDim) {
       throw new Error(
@@ -610,6 +611,7 @@ export function toParsedConfigFromMerged(merged, manifest) {
     ropeLocalTheta: inf.rope.ropeLocalTheta,
     ropeRotaryDim,
     ropeInterleaved,
+    mropeInterleaved,
     mropeSection,
     partialRotaryFactor,
     ropeScale,

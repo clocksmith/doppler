@@ -20,6 +20,7 @@ import { decodeReadback } from './debug-utils/index.js';
 import { getFinalNormWeights, extractEmbeddingFromHidden } from './generator-runtime.js';
 import { parseFinitenessStatusWords } from './finiteness-guard-status.js';
 import { hasLinearAttentionLayers } from './linear-attention.js';
+import { hasConvLayers } from './layer.js';
 
 const UNKNOWN_TOKEN_TEXT = '<unknown>';
 
@@ -885,6 +886,11 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
   if (hasLinearAttentionLayers(config.layerTypes)) {
     throw new Error(
       '[Pipeline] Batch decode path is disabled for linear_attention models; use single-token decode.'
+    );
+  }
+  if (hasConvLayers(config.layerTypes)) {
+    throw new Error(
+      '[Pipeline] Batch decode path is disabled for conv models; use single-token decode.'
     );
   }
   const samplingDefaults = state.runtimeConfig.inference.sampling;

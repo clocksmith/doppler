@@ -1,0 +1,508 @@
+{
+  "suite": "debug",
+  "modelId": "qwen-3-5-0-8b-q4k-ehaf16-af32",
+  "runtimePreset": "model/qwen3-5-linear-attn-debug",
+  "deviceInfo": {
+    "hasSubgroups": true,
+    "hasSubgroupsF16": false,
+    "hasF16": true,
+    "hasTimestampQuery": true,
+    "maxBufferSize": 4294967292,
+    "maxWorkgroupSize": 1024,
+    "maxWorkgroupStorageSize": 65536,
+    "adapterInfo": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "amd-radeon-graphics-radv-gfx1151-",
+      "description": "radv: Mesa 25.0.7-0ubuntu0.25.04.2"
+    }
+  },
+  "results": [
+    {
+      "name": "generation",
+      "passed": false,
+      "duration": 435.93736699999863,
+      "error": "Output dominated by padding or special tokens"
+    }
+  ],
+  "durationMs": 32207.460785,
+  "timestamp": "2026-03-14T11:26:24.324Z",
+  "metrics": {
+    "prompt": "Hello",
+    "maxTokens": 1,
+    "tokensGenerated": 1,
+    "tokensPerSec": 2.29,
+    "totalRunMs": 435.36,
+    "firstTokenMs": 434.46,
+    "firstResponseMs": 32202.21,
+    "prefillMs": 413.5,
+    "decodeMs": 0.11,
+    "prefillTokens": 1,
+    "decodeTokens": 1,
+    "prefillTokensPerSec": 2.42,
+    "prefillTokensPerSecTtft": 2.3,
+    "decodeTokensPerSec": 8958.97,
+    "modelLoadMs": 31767.75,
+    "gpu": {
+      "decodeRecordMs": 0,
+      "decodeSubmitWaitMs": 0,
+      "decodeReadbackWaitMs": 0
+    },
+    "decodeProfileSteps": [],
+    "generationDiagnostics": {
+      "preview": [
+        {
+          "id": 220,
+          "text": " ",
+          "fallbackText": " "
+        }
+      ],
+      "total": 1,
+      "omitted": 0,
+      "emptyTextCount": 0,
+      "specialLikeTextCount": 0,
+      "specialLikeFallbackCount": 0
+    },
+    "schemaVersion": 1,
+    "source": "doppler",
+    "suite": "debug",
+    "executionContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "qwen-3-5-0-8b-q4k-ehaf16-af32.steps",
+          "ok": true
+        },
+        {
+          "id": "qwen-3-5-0-8b-q4k-ehaf16-af32.session",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "session": {
+        "layout": "contiguous",
+        "disableCommandBatching": true,
+        "decodeBatchSize": 4,
+        "headDim": 256,
+        "kvLen": 262144,
+        "coldQuantMode": "none"
+      },
+      "steps": {
+        "total": 0,
+        "attention": 0,
+        "attentionPhases": {
+          "prefill": 0,
+          "decode": 0,
+          "both": 0
+        }
+      }
+    },
+    "executionV0GraphContractArtifact": null,
+    "layerPatternContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "inference.layerPattern.patternKind.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.patternKind.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.even",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.odd",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_offset",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_negative_offset",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "patternKindRules": 4,
+        "layerTypeRules": 6,
+        "patternKindContexts": 16,
+        "layerTypeContexts": 12
+      }
+    },
+    "requiredInferenceFieldsArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "scope": "manifest",
+      "label": "qwen-3-5-0-8b-q4k-ehaf16-af32.inference",
+      "ok": true,
+      "checks": [
+        {
+          "id": "qwen-3-5-0-8b-q4k-ehaf16-af32.inference.requiredInferenceFields",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "fieldCases": 35,
+        "nullableCases": 16,
+        "nonNullableCases": 19
+      }
+    }
+  },
+  "output": " ",
+  "memory": {
+    "used": 1363989760,
+    "pool": {
+      "allocations": 452,
+      "reuses": 695,
+      "totalBytesAllocated": 961336576,
+      "peakBytesAllocated": 961336576,
+      "currentBytesAllocated": 961336576,
+      "totalBytesRequested": 881292544,
+      "peakBytesRequested": 881006592,
+      "currentBytesRequested": 880009216,
+      "activeBuffers": 430,
+      "pooledBuffers": 22,
+      "budgetMaxBytes": 0,
+      "budgetUtilization": 0,
+      "hitRate": "60.6%"
+    },
+    "kvCache": {
+      "theoretical": 402653184,
+      "allocated": 402653184,
+      "used": 49152,
+      "efficiency": 0.0001220703125,
+      "seqLen": 1,
+      "maxSeqLen": 8192,
+      "layout": "contiguous"
+    }
+  },
+  "debugSnapshot": {
+    "timestamp": "2026-03-14T11:26:56.533Z",
+    "logLevel": "INFO",
+    "traceCategories": [],
+    "enabledModules": [],
+    "disabledModules": [],
+    "recentLogs": [
+      {
+        "time": "29054.0",
+        "level": "VERBOSE",
+        "module": "Loader",
+        "message": "  Layer 6: 0.01s"
+      },
+      {
+        "time": "29059.7",
+        "level": "VERBOSE",
+        "module": "Loader",
+        "message": "  Layer 7: 0.01s"
+      },
+      {
+        "time": "29066.5",
+        "level": "VERBOSE",
+        "module": "Loader",
+        "message": "  Layer 8: 0.01s"
+      },
+      {
+        "time": "29068.0",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 8 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "29072.2",
+        "level": "VERBOSE",
+        "module": "Loader",
+        "message": "  Layer 9: 0.00s"
+      },
+      {
+        "time": "29077.5",
+        "level": "VERBOSE",
+        "module": "ShardCache",
+        "message": "Shard 8: waiting for in-flight fetch"
+      },
+      {
+        "time": "29077.8",
+        "level": "VERBOSE",
+        "module": "ShardCache",
+        "message": "Shard 8: waiting for in-flight fetch"
+      },
+      {
+        "time": "29077.9",
+        "level": "VERBOSE",
+        "module": "ShardCache",
+        "message": "Shard 8: waiting for in-flight fetch"
+      },
+      {
+        "time": "29078.4",
+        "level": "VERBOSE",
+        "module": "ShardCache",
+        "message": "Shard 8: waiting for in-flight fetch"
+      },
+      {
+        "time": "30466.2",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "All 12 shards loaded: 752.3MB in 30.2s (25 MB/s avg)"
+      },
+      {
+        "time": "31682.9",
+        "level": "VERBOSE",
+        "module": "ShardCache",
+        "message": "Shard 8: network (64.00 MB, 2.62s)"
+      },
+      {
+        "time": "31687.9",
+        "level": "VERBOSE",
+        "module": "Loader",
+        "message": "  Layer 10: 2.61s"
+      },
+      {
+        "time": "31692.3",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "[30.9s] Memory (loading): | GPU=649.52 MB (149 active, 4 pooled, peak=649.52 MB) | ShardCache=752.29 MB (12 shards) | Layers=11, GPUBuffers=149"
+      },
+      {
+        "time": "31698.4",
+        "level": "VERBOSE",
+        "module": "Loader",
+        "message": "  Layer 11: 0.01s"
+      },
+      {
+        "time": "31706.5",
+        "level": "VERBOSE",
+        "module": "Loader",
+        "message": "  Layer 12: 0.01s"
+      },
+      {
+        "time": "31722.0",
+        "level": "VERBOSE",
+        "module": "Loader",
+        "message": "  Layer 13: 0.00s"
+      },
+      {
+        "time": "31728.2",
+        "level": "VERBOSE",
+        "module": "Loader",
+        "message": "  Layer 14: 0.01s"
+      },
+      {
+        "time": "31736.5",
+        "level": "VERBOSE",
+        "module": "Loader",
+        "message": "  Layer 15: 0.01s"
+      },
+      {
+        "time": "31750.2",
+        "level": "VERBOSE",
+        "module": "Loader",
+        "message": "  Layer 16: 0.01s"
+      },
+      {
+        "time": "31763.6",
+        "level": "VERBOSE",
+        "module": "Loader",
+        "message": "  Layer 17: 0.00s"
+      },
+      {
+        "time": "31769.1",
+        "level": "VERBOSE",
+        "module": "Loader",
+        "message": "  Layer 18: 0.00s"
+      },
+      {
+        "time": "31775.8",
+        "level": "VERBOSE",
+        "module": "Loader",
+        "message": "  Layer 19: 0.01s"
+      },
+      {
+        "time": "31785.0",
+        "level": "VERBOSE",
+        "module": "Loader",
+        "message": "  Layer 20: 0.01s"
+      },
+      {
+        "time": "31790.6",
+        "level": "VERBOSE",
+        "module": "Loader",
+        "message": "  Layer 21: 0.00s"
+      },
+      {
+        "time": "31805.6",
+        "level": "VERBOSE",
+        "module": "Loader",
+        "message": "  Layer 22: 0.01s"
+      },
+      {
+        "time": "31809.9",
+        "level": "VERBOSE",
+        "module": "Loader",
+        "message": "  Layer 23: 0.00s"
+      },
+      {
+        "time": "31810.2",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Layers: 24 complete (10.03s)"
+      },
+      {
+        "time": "31810.5",
+        "level": "VERBOSE",
+        "module": "Loader",
+        "message": "gpu_transfer: 85% - Loading final weights..."
+      },
+      {
+        "time": "31811.5",
+        "level": "VERBOSE",
+        "module": "Loader",
+        "message": "complete: 100%"
+      },
+      {
+        "time": "31811.6",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Complete: 240.29 MB in 31.01s (7.75 MB/s)"
+      },
+      {
+        "time": "31811.9",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "[31.0s] Memory (complete): | GPU=829.05 MB (320 active, 6 pooled, peak=829.05 MB) | ShardCache=0 B (0 shards) | Layers=24, GPUBuffers=320"
+      },
+      {
+        "time": "31983.9",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Model loaded successfully"
+      },
+      {
+        "time": "31984.2",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "Pipeline ready"
+      },
+      {
+        "time": "32015.0",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "matmul variant=q4_fused_multicol reason=q4k_fused"
+      },
+      {
+        "time": "32025.2",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "PROBE qkv stage=linear_qkv_proj token=0 values=[0=-0.0797, 1=-0.1837, 2=0.0887, 3=-0.5202, 4=0.0967, 5=0.1129, 6=-0.1101, 7=0.0359]"
+      },
+      {
+        "time": "32025.9",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "PROBE z stage=linear_z_proj token=0 values=[0=0.0869, 1=-0.0315, 2=0.2321, 3=-0.2585, 4=-0.6684, 5=0.1463, 6=-0.0654, 7=0.2061]"
+      },
+      {
+        "time": "32026.6",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "PROBE a stage=linear_a_proj token=0 values=[0=-0.3394, 1=0.4936, 2=0.2473, 3=-0.3689, 4=-0.4542, 5=0.1968, 6=-0.1344, 7=0.2110]"
+      },
+      {
+        "time": "32027.1",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "PROBE b stage=linear_b_proj token=0 values=[0=0.0844, 1=0.0895, 2=0.2017, 3=1.4329, 4=0.3637, 5=-0.0238, 6=-0.2945, 7=0.3028]"
+      },
+      {
+        "time": "32046.7",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "PROBE core stage=linear_core_out token=0 values=[0=-0.0000, 1=0.0000, 2=0.0001, 3=-0.0000, 4=-0.0000, 5=0.0000, 6=0.0000, 7=0.0000]"
+      },
+      {
+        "time": "32047.2",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "matmul variant=q4_fused_multicol_f16 reason=q4k_fused"
+      },
+      {
+        "time": "32063.7",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "matmul variant=q4_fused_multicol_f16a reason=q4k_fused"
+      },
+      {
+        "time": "32108.2",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "Using subgroup decode kernel (headDim=256, hasSubgroups=true)"
+      },
+      {
+        "time": "32108.7",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "attention variant=decode_online_f16kv reason=subgroup_capable"
+      },
+      {
+        "time": "32382.0",
+        "level": "TRACE:logits",
+        "module": "Logits",
+        "message": "LOGITS_ENTRY: numTokens=1, useGPU=true"
+      },
+      {
+        "time": "32382.1",
+        "level": "TRACE:logits",
+        "module": "Logits",
+        "message": "LOGITS_PATH: device=true, useGPU=true, taking GPU path"
+      },
+      {
+        "time": "32382.4",
+        "level": "TRACE:logits",
+        "module": "Logits",
+        "message": "LM_HEAD_MATMUL: M=1, N=248320, K=1024, lmHeadDtype=f16, normedDtype=f16, size=520093696, bufLabel=model.language_model.embed_tokens.weight_520093696"
+      },
+      {
+        "time": "32382.6",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "matmul variant=gemv_subgroup_multicol_f16a reason=gemv"
+      },
+      {
+        "time": "32414.2",
+        "level": "TRACE:logits",
+        "module": "Logits",
+        "message": "PROBE logits stage=logits_final token=0 values=[0=5.2891, 1=6.3516, 2=3.8477, 3=3.8965]"
+      },
+      {
+        "time": "32420.6",
+        "level": "INFO",
+        "module": "Perf",
+        "message": "TTFT: 434ms | Prefill: 413ms | Decode: 0ms (0 tokens @ 0.0 tok/s)"
+      },
+      {
+        "time": "32423.8",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Unloaded"
+      }
+    ],
+    "errorCount": 0,
+    "warnCount": 13
+  }
+}

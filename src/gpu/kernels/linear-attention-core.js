@@ -10,7 +10,7 @@ import {
 import { recordDispatch } from './dispatch.js';
 
 const CONV_WORKGROUP_SIZE = WORKGROUP_SIZES.DEFAULT;
-const HEAD_WORKGROUP_SIZE = 64;
+const HEAD_WORKGROUP_SIZE = 128;
 
 const CONV_SHADER = /* wgsl */ `
 override WORKGROUP_SIZE: u32 = 256u;
@@ -79,7 +79,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
 `;
 
 const RECURRENT_SHADER = /* wgsl */ `
-override WORKGROUP_SIZE: u32 = 64u;
+override WORKGROUP_SIZE: u32 = 128u;
 
 struct LinearAttentionParams {
   num_tokens: u32,
@@ -111,6 +111,8 @@ struct LinearAttentionParams {
 @group(0) @binding(8) var<storage, read_write> recurrent_state: array<f32>;
 @group(0) @binding(9) var<storage, read_write> output: array<f32>;
 
+var<workgroup> shared_sq: array<f32, WORKGROUP_SIZE>;
+
 fn softplus(x: f32) -> f32 {
   if (x > 20.0) {
     return x;
@@ -131,17 +133,19 @@ fn silu(x: f32) -> f32 {
 }
 
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
-fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
-  let head = gid.x;
+fn main(@builtin(workgroup_id) wid: vec3<u32>,
+        @builtin(local_invocation_id) lid: vec3<u32>) {
+  let head = wid.x;
+  let vd = lid.x;
   if (head >= params.num_v_heads) {
     return;
   }
 
   let head_k_dim = params.head_k_dim;
   let head_v_dim = params.head_v_dim;
+  let is_active = vd < head_v_dim;
   let head_scale = inverseSqrt(f32(head_k_dim));
   let recurrent_head_base = head * head_k_dim * head_v_dim;
-  let recurrent_head_size = head_k_dim * head_v_dim;
   let q_rep = max(params.q_rep, 1u);
   let src_head = head / q_rep;
   let q_base = src_head * head_k_dim;
@@ -154,6 +158,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     let ab_row_base = token_idx * params.num_v_heads + head;
     let out_row_base = token_idx * params.value_dim + head * head_v_dim;
 
+    // L2 norm for Q and K (redundant across threads but avoids shared memory)
     var q_norm_sq = 0.0;
     var k_norm_sq = 0.0;
     for (var d: u32 = 0u; d < head_k_dim; d = d + 1u) {
@@ -169,11 +174,16 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     let g = a_neg_exp[head] * softplus(a_proj[ab_row_base] + dt_bias[head]);
     let g_exp = exp(g);
 
-    for (var i: u32 = 0u; i < recurrent_head_size; i = i + 1u) {
-      recurrent_state[recurrent_head_base + i] = recurrent_state[recurrent_head_base + i] * g_exp;
+    // Decay state — each thread handles head_k_dim elements at stride head_v_dim
+    if (is_active) {
+      for (var kd: u32 = 0u; kd < head_k_dim; kd = kd + 1u) {
+        let state_idx = recurrent_head_base + kd * head_v_dim + vd;
+        recurrent_state[state_idx] = recurrent_state[state_idx] * g_exp;
+      }
     }
 
-    for (var vd: u32 = 0u; vd < head_v_dim; vd = vd + 1u) {
+    // Delta update — each thread handles one vd slice (no cross-thread dependency)
+    if (is_active) {
       var kv_mem = 0.0;
       for (var kd: u32 = 0u; kd < head_k_dim; kd = kd + 1u) {
         let k_normed = conv_out[conv_row_base + k_base + kd] * k_norm_scale;
@@ -188,21 +198,31 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
       }
     }
 
-    var mean_sq = 0.0;
-    for (var vd: u32 = 0u; vd < head_v_dim; vd = vd + 1u) {
-      var out_value = 0.0;
+    // Output — each thread computes one vd element
+    var out_value = 0.0;
+    if (is_active) {
       for (var kd: u32 = 0u; kd < head_k_dim; kd = kd + 1u) {
         let q_normed = conv_out[conv_row_base + q_base + kd] * q_norm_scale;
         let state_idx = recurrent_head_base + kd * head_v_dim + vd;
         out_value = out_value + recurrent_state[state_idx] * q_normed;
       }
       output[out_row_base + vd] = out_value;
-      let value = out_value;
-      mean_sq = mean_sq + value * value;
     }
-    let inv_rms = inverseSqrt(mean_sq / f32(head_v_dim) + params.rms_norm_eps);
 
-    for (var vd: u32 = 0u; vd < head_v_dim; vd = vd + 1u) {
+    // RMS norm reduction across vd (workgroup-level)
+    shared_sq[vd] = select(0.0, out_value * out_value, is_active);
+    workgroupBarrier();
+    // Tree reduction
+    for (var stride: u32 = WORKGROUP_SIZE / 2u; stride > 0u; stride = stride / 2u) {
+      if (vd < stride) {
+        shared_sq[vd] = shared_sq[vd] + shared_sq[vd + stride];
+      }
+      workgroupBarrier();
+    }
+    let inv_rms = inverseSqrt(shared_sq[0] / f32(head_v_dim) + params.rms_norm_eps);
+
+    // Apply norm + gate
+    if (is_active) {
       let gate = silu(z_proj[z_row_base + vd]);
       let norm_index = select(vd, head * head_v_dim + vd, params.norm_mode == 1u);
       output[out_row_base + vd] = (output[out_row_base + vd] * inv_rms) * norm_weight[norm_index] * gate;
@@ -415,7 +435,7 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
         recorder,
         recurrentPipeline,
         recurrentBindGroup,
-        [Math.ceil(layerState.numVHeads / HEAD_WORKGROUP_SIZE), 1, 1],
+        [layerState.numVHeads, 1, 1],
         'linear_attention_recurrent'
       );
 
@@ -502,7 +522,7 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
       const pass = encoder.beginComputePass({ label: 'linear_attention_recurrent_pass' });
       pass.setPipeline(recurrentPipeline);
       pass.setBindGroup(0, recurrentBindGroup);
-      pass.dispatchWorkgroups(Math.ceil(layerState.numVHeads / HEAD_WORKGROUP_SIZE), 1, 1);
+      pass.dispatchWorkgroups(layerState.numVHeads, 1, 1);
       pass.end();
     }
 
