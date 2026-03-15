@@ -14,13 +14,14 @@ import {
   recordCastF32ToF16,
 } from '../../../gpu/kernels/cast.js';
 import { createTensor } from '../../../gpu/tensor.js';
-import { releaseBuffer } from '../../../memory/buffer-pool.js';
+import { releaseBuffer, readBuffer, acquireBuffer, uploadData } from '../../../memory/buffer-pool.js';
 import { kernelTrace, traceStep } from './kernel-trace.js';
 import {
   runLayerAttentionGPU,
   recordLayerAttentionGPU,
 } from './attention/index.js';
 import { runLinearAttentionLayer } from './linear-attention.js';
+import { runGatedShortConvGPU } from '../../../gpu/kernels/gated-short-conv.js';
 
 
 export function isDecodeBuffer(decodeBuffers, buffer) {
@@ -174,17 +175,22 @@ export async function doConv(
     throw new Error('doConv requires hiddenSize > 0.');
   }
 
-  // Use the first 2x hidden projection channels as a gated conv-state projection.
+  // LFM2 gated short convolution (GPU-native):
+  // in_proj → 3×hidden → GPU kernel: split(B,C,x) + B*x + causal conv1d + C*conv_out → out_proj
   let inProj = null;
-  let activated = null;
-  let convInput = null;
+  let convOut = null;
   let outProj = null;
   try {
+    const convState = options.convState;
+    const hasConvState = Boolean(convState?.convWeightGPU && convState?.convStateGPU);
+    const projN = hasConvState ? hiddenSize * 3 : hiddenSize * 2;
+
+    // Project input
     inProj = await doMatmul(
       inputTensor,
       convInProj,
       numTokens,
-      hiddenSize * 2,
+      projN,
       hiddenSize,
       {
         transposeB: 'auto',
@@ -195,50 +201,32 @@ export async function doConv(
       },
       recorder
     );
-    activated = await doSiLURowSplit(inProj, {
-      numTokens,
-      dim: hiddenSize,
-      activation: 'silu',
-      swigluLimit: options.swigluLimit ?? null,
-      label: `${label}.activation`,
-      layerIdx,
-    }, recorder);
+
+    if (hasConvState) {
+      // GPU gated short conv kernel: B*x → conv1d → C*conv_out (all on GPU)
+      convOut = await runGatedShortConvGPU(inProj, convState, {
+        numTokens,
+        layerIdx,
+        recorder,
+      });
+    } else {
+      // SwiGLU gated activation fallback: silu(first_half) * second_half
+      convOut = await doSiLURowSplit(inProj, {
+        numTokens,
+        dim: hiddenSize,
+        activation: 'silu',
+        swigluLimit: options.swigluLimit ?? null,
+        label: `${label}.activation`,
+        layerIdx,
+      }, recorder);
+    }
 
     releaseOrTrack(recorder, inProj.buffer);
     inProj = null;
 
-    convInput = activated;
-    if (convKernel && options.conv2d && options.conv2d.enabled === true) {
-      const convTensorInput = createTensor(activated.buffer, activated.dtype, [
-        options.conv2d.inChannels,
-        options.conv2d.height,
-        options.conv2d.width,
-      ], `${label}.conv_input`);
-      const convOptions = {
-        inChannels: options.conv2d.inChannels,
-        outChannels: options.conv2d.outChannels,
-        height: options.conv2d.height,
-        width: options.conv2d.width,
-        kernelH: options.conv2d.kernelH,
-        kernelW: options.conv2d.kernelW,
-        stride: options.conv2d.stride ?? 1,
-        pad: options.conv2d.pad ?? 0,
-      };
-      const convResult = recorder
-        ? await recordConv2D(recorder, convTensorInput, convKernel, null, convOptions)
-        : await runConv2D(convTensorInput, convKernel, null, convOptions);
-      convInput = createTensor(
-        convResult.buffer,
-        convResult.dtype,
-        [numTokens, hiddenSize],
-        `${label}.conv_output`
-      );
-      releaseOrTrack(recorder, activated.buffer);
-      activated = null;
-    }
-
+    // Output projection
     outProj = await doMatmul(
-      convInput,
+      convOut,
       convOutProj,
       numTokens,
       hiddenSize,
@@ -253,13 +241,8 @@ export async function doConv(
       recorder
     );
 
-    if (convInput && (!activated || convInput.buffer !== activated.buffer)) {
-      releaseOrTrack(recorder, convInput.buffer);
-      convInput = null;
-    } else if (activated) {
-      releaseOrTrack(recorder, activated.buffer);
-      activated = null;
-    }
+    releaseOrTrack(recorder, convOut.buffer);
+    convOut = null;
 
     if (kernelTrace.enabled && !recorder) {
       await traceStep('conv', label, layerIdx, outProj.buffer, [numTokens, hiddenSize]);
@@ -267,10 +250,79 @@ export async function doConv(
     return outProj;
   } catch (error) {
     if (outProj) releaseOrTrack(recorder, outProj.buffer);
-    if (convInput && (!activated || convInput.buffer !== activated.buffer)) releaseOrTrack(recorder, convInput.buffer);
-    if (activated) releaseOrTrack(recorder, activated.buffer);
+    if (convOut) releaseOrTrack(recorder, convOut.buffer);
     if (inProj) releaseOrTrack(recorder, inProj.buffer);
     throw error;
+  }
+}
+
+export async function initConvLayerState(convState, convKernel, convInProj, hiddenSize, label, layerIdx) {
+  const { isWeightBuffer } = await import('../../../gpu/weight-buffer.js');
+  const isWB = typeof isWeightBuffer === 'function' && isWeightBuffer(convKernel);
+  const kernelBuf = isWB ? convKernel.buffer : (convKernel instanceof GPUBuffer ? convKernel : convKernel.buffer ?? convKernel);
+  const kernelDtype = isWB ? String(convKernel.dtype ?? '').toLowerCase() : null;
+
+  // Determine kernel size from weight shape
+  let kernelSize = 3;
+  if (isWB && Array.isArray(convKernel.shape)) {
+    kernelSize = Number(convKernel.shape[convKernel.shape.length - 1]) || 3;
+  }
+
+  // Dequantize conv kernel weights to F32
+  const totalElements = hiddenSize * kernelSize;
+  const { QK_K, Q4K_BLOCK_BYTES } = await import('../../../config/schema/index.js');
+  const { dequantizeQ4KM } = await import('../../../converter/quantizer.js');
+  const { getDevice } = await import('../../../gpu/device.js');
+  const device = getDevice();
+
+  const isQ4K = kernelDtype === 'q4k' || kernelDtype === 'q4_k_m' || kernelDtype === 'q4_k';
+  let weightF32;
+
+  if (isQ4K) {
+    const numBlocks = Math.ceil(totalElements / QK_K);
+    const q4kBytes = numBlocks * Q4K_BLOCK_BYTES;
+    if (device) await device.queue.onSubmittedWorkDone();
+    const raw = await readBuffer(kernelBuf, q4kBytes);
+    weightF32 = dequantizeQ4KM(new Uint8Array(raw), numBlocks, [totalElements]);
+  } else if (kernelDtype === 'f16' || kernelDtype === 'bf16') {
+    if (device) await device.queue.onSubmittedWorkDone();
+    const raw = await readBuffer(kernelBuf, totalElements * 2);
+    const { decodeReadback } = await import('./debug-utils/index.js');
+    weightF32 = decodeReadback(raw, 'f16');
+  } else {
+    if (device) await device.queue.onSubmittedWorkDone();
+    const raw = await readBuffer(kernelBuf, totalElements * 4);
+    weightF32 = new Float32Array(raw);
+  }
+
+  // Upload dequantized weights to GPU
+  const weightGPU = acquireBuffer(weightF32.byteLength, undefined, `${label}.conv_weight_f32`);
+  uploadData(weightGPU, weightF32);
+
+  // Create zeroed conv state buffer
+  const stateSize = hiddenSize * (kernelSize - 1) * Float32Array.BYTES_PER_ELEMENT;
+  const stateGPU = acquireBuffer(stateSize, undefined, `${label}.conv_state`);
+  uploadData(stateGPU, new Float32Array(hiddenSize * (kernelSize - 1)));
+
+  convState.convWeightGPU = weightGPU;
+  convState.convStateGPU = stateGPU;
+  convState.hiddenSize = hiddenSize;
+  convState.kernelSize = kernelSize;
+
+  // Pre-dequantize in_proj weight to F32 via CPU dequantization of the raw Q4K buffer.
+  // GPU readBuffer returns zeros for some Q4K weight buffers, so we dequantize from the
+  // WeightBuffer's raw bytes instead.
+  if (isWB && isWeightBuffer(convInProj)) {
+    const inProjDtype = String(convInProj.dtype ?? '').toLowerCase();
+    const isInProjQ4K = inProjDtype === 'q4k' || inProjDtype === 'q4_k_m' || inProjDtype === 'q4_k';
+    if (isInProjQ4K && convInProj.rawBytes) {
+      const inProjElements = hiddenSize * 3 * hiddenSize;
+      const inProjBlocks = Math.ceil(inProjElements / QK_K);
+      const inProjF32 = dequantizeQ4KM(new Uint8Array(convInProj.rawBytes), inProjBlocks, [inProjElements]);
+      const inProjGPU = acquireBuffer(inProjF32.byteLength, undefined, `${label}.in_proj_f32`);
+      uploadData(inProjGPU, inProjF32);
+      convState.inProjF32GPU = inProjGPU;
+    }
   }
 }
 

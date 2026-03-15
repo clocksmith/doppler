@@ -19,6 +19,22 @@
         "revision": "ca6f0dbdf3882d3893a65cf48f2bb6f1520df162",
         "path": "models/gemma-3-270m-it-q4k-ehf16-af32"
       }
+    },
+    {
+      "modelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
+      "aliases": [
+        "embeddinggemma-300m",
+        "google/embeddinggemma-300m",
+        "google-embeddinggemma-300m-wq4k-ef16"
+      ],
+      "modes": [
+        "embedding"
+      ],
+      "hf": {
+        "repoId": "Clocksmith/rdrr",
+        "revision": "7e79c466d54455bd370c81685956ea9abae0fd30",
+        "path": "models/google-embeddinggemma-300m-q4k-ehf16-af32"
+      }
     }
   ]
 }

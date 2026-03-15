@@ -314,10 +314,7 @@ export class KVCache {
     layer.seqLen = Math.max(layer.seqLen, startPos + numNewTokens);
     this.totalTokensSeen = Math.max(this.totalTokensSeen, startPos + numNewTokens);
 
-    // Update global sequence length if this is the last layer
-    if (layerIdx === this.numLayers - 1) {
-      this.currentSeqLen = Math.max(this.currentSeqLen, startPos + numNewTokens);
-    }
+    this.currentSeqLen = Math.max(this.currentSeqLen, startPos + numNewTokens);
   }
 
   
@@ -374,9 +371,7 @@ export class KVCache {
     layer.seqLen = Math.max(layer.seqLen, startPos + numTokens);
     this.totalTokensSeen = Math.max(this.totalTokensSeen, startPos + numTokens);
 
-    if (layerIdx === this.numLayers - 1) {
-      this.currentSeqLen = Math.max(this.currentSeqLen, startPos + numTokens);
-    }
+    this.currentSeqLen = Math.max(this.currentSeqLen, startPos + numTokens);
   }
 
   
@@ -433,9 +428,7 @@ export class KVCache {
     layer.seqLen = Math.max(layer.seqLen, startPos + numTokens);
     this.totalTokensSeen = Math.max(this.totalTokensSeen, startPos + numTokens);
 
-    if (layerIdx === this.numLayers - 1) {
-      this.currentSeqLen = Math.max(this.currentSeqLen, startPos + numTokens);
-    }
+    this.currentSeqLen = Math.max(this.currentSeqLen, startPos + numTokens);
   }
 
   

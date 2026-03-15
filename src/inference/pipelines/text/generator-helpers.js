@@ -111,6 +111,7 @@ export function buildLayerContext(state, recorder, isDecodeMode, debugLayers, de
     ropeLocalCos: state.ropeLocalCos,
     ropeLocalSin: state.ropeLocalSin,
     linearAttentionRuntime: state.linearAttentionRuntime,
+    convLayerStates: state.convLayerStates,
     weightConfig: getWeightBufferConfig(state),
     debugFlags: state.debugFlags,
     debugProbes: state.runtimeConfig.shared.debug.probes,

@@ -1,0 +1,221 @@
+{
+  "schemaVersion": 1,
+  "suite": "convert",
+  "command": "convert",
+  "modelId": "gemma2-sharded-index",
+  "timestamp": "2026-03-15T01:24:52.688Z",
+  "source": "doppler",
+  "result": {
+    "presetId": "gemma2",
+    "modelType": "transformer",
+    "outputDir": "/tmp/doppler-converter-sharded-index-path-d6pnZq/out",
+    "shardCount": 1,
+    "tensorCount": 1,
+    "totalSize": 2
+  },
+  "manifest": {
+    "quantization": "F16",
+    "quantizationInfo": {
+      "weights": "f16",
+      "embeddings": "f16",
+      "compute": "f16",
+      "variantTag": "f16"
+    },
+    "inference": {
+      "presetId": "gemma2",
+      "schema": "doppler.execution/v0",
+      "defaultKernelPath": "gemma2-f16-f16a"
+    }
+  },
+  "executionContractArtifact": {
+    "schemaVersion": 1,
+    "source": "doppler",
+    "ok": false,
+    "checks": [
+      {
+        "id": "gemma2-sharded-index.steps",
+        "ok": true
+      },
+      {
+        "id": "gemma2-sharded-index.session",
+        "ok": true
+      },
+      {
+        "id": "gemma2-sharded-index.kernelProfilePinning",
+        "ok": true
+      },
+      {
+        "id": "gemma2-sharded-index.precisionPrecedence",
+        "ok": true
+      },
+      {
+        "id": "gemma2-sharded-index.kvIOPrecedence",
+        "ok": true
+      },
+      {
+        "id": "gemma2-sharded-index.slotGraph",
+        "ok": false
+      },
+      {
+        "id": "gemma2-sharded-index.phaseBoundary",
+        "ok": true
+      }
+    ],
+    "errors": [
+      "[ExecutionV0] step \"cast.identity\" reads slot \"attn_q\" before it is produced. Add an explicit producer step or cast/load bridge."
+    ],
+    "session": {
+      "layout": "contiguous",
+      "disableCommandBatching": false,
+      "decodeBatchSize": 4,
+      "headDim": 1,
+      "kvLen": 8,
+      "coldQuantMode": "none"
+    },
+    "steps": {
+      "total": 1,
+      "attention": 0,
+      "attentionPhases": {
+        "prefill": 0,
+        "decode": 0,
+        "both": 0
+      }
+    },
+    "executionV0": {
+      "kernelProfiles": {
+        "schemaVersion": 1,
+        "source": "doppler",
+        "ok": true,
+        "checks": [
+          {
+            "id": "gemma2-sharded-index.kernelProfilePinning",
+            "ok": true
+          },
+          {
+            "id": "gemma2-sharded-index.precisionPrecedence",
+            "ok": true
+          },
+          {
+            "id": "gemma2-sharded-index.kvIOPrecedence",
+            "ok": true
+          }
+        ],
+        "errors": [],
+        "stats": {
+          "kernelProfiles": 0,
+          "pinnedSteps": 0
+        },
+        "perStep": {}
+      },
+      "graph": {
+        "schemaVersion": 1,
+        "source": "doppler",
+        "ok": false,
+        "checks": [
+          {
+            "id": "gemma2-sharded-index.slotGraph",
+            "ok": false
+          },
+          {
+            "id": "gemma2-sharded-index.phaseBoundary",
+            "ok": true
+          }
+        ],
+        "errors": [
+          "[ExecutionV0] step \"cast.identity\" reads slot \"attn_q\" before it is produced. Add an explicit producer step or cast/load bridge."
+        ],
+        "stats": {
+          "prefillSteps": 0,
+          "decodeSteps": 0
+        }
+      }
+    }
+  },
+  "executionV0GraphContractArtifact": {
+    "schemaVersion": 1,
+    "source": "doppler",
+    "ok": false,
+    "checks": [
+      {
+        "id": "gemma2-sharded-index.slotGraph",
+        "ok": false
+      },
+      {
+        "id": "gemma2-sharded-index.phaseBoundary",
+        "ok": true
+      }
+    ],
+    "errors": [
+      "[ExecutionV0] step \"cast.identity\" reads slot \"attn_q\" before it is produced. Add an explicit producer step or cast/load bridge."
+    ],
+    "stats": {
+      "prefillSteps": 0,
+      "decodeSteps": 0
+    }
+  },
+  "layerPatternContractArtifact": {
+    "schemaVersion": 1,
+    "source": "doppler",
+    "ok": true,
+    "checks": [
+      {
+        "id": "inference.layerPattern.patternKind.shape",
+        "ok": true
+      },
+      {
+        "id": "inference.layerPattern.patternKind.semantics",
+        "ok": true
+      },
+      {
+        "id": "inference.layerPattern.layerType.shape",
+        "ok": true
+      },
+      {
+        "id": "inference.layerPattern.layerType.semantics",
+        "ok": true
+      },
+      {
+        "id": "inference.layerPattern.computeGlobalLayers.even",
+        "ok": true
+      },
+      {
+        "id": "inference.layerPattern.computeGlobalLayers.odd",
+        "ok": true
+      },
+      {
+        "id": "inference.layerPattern.computeGlobalLayers.every_n_offset",
+        "ok": true
+      },
+      {
+        "id": "inference.layerPattern.computeGlobalLayers.every_n_negative_offset",
+        "ok": true
+      }
+    ],
+    "errors": [],
+    "stats": {
+      "patternKindRules": 4,
+      "layerTypeRules": 6,
+      "patternKindContexts": 16,
+      "layerTypeContexts": 12
+    }
+  },
+  "requiredInferenceFieldsArtifact": {
+    "schemaVersion": 1,
+    "source": "doppler",
+    "scope": "manifest",
+    "label": "gemma2-sharded-index.inference",
+    "ok": true,
+    "checks": [
+      {
+        "id": "gemma2-sharded-index.inference.requiredInferenceFields",
+        "ok": true
+      }
+    ],
+    "errors": [],
+    "stats": {
+      "fieldCases": 35,
+      "nullableCases": 16,
+      "nonNullableCases": 19
+    }
+  }
+}

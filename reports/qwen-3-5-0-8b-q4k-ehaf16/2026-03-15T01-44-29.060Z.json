@@ -1,0 +1,246 @@
+{
+  "suite": "inference",
+  "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+  "runtimePreset": null,
+  "deviceInfo": {
+    "hasSubgroups": true,
+    "hasSubgroupsF16": false,
+    "hasF16": true,
+    "hasTimestampQuery": true,
+    "maxBufferSize": 4294967292,
+    "maxWorkgroupSize": 1024,
+    "maxWorkgroupStorageSize": 65536,
+    "adapterInfo": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "amd-radeon-graphics-radv-gfx1151-",
+      "description": "radv: Mesa 25.0.7-0ubuntu0.25.04.2"
+    }
+  },
+  "results": [
+    {
+      "name": "generation",
+      "passed": true,
+      "duration": 2751.407586000001
+    }
+  ],
+  "durationMs": 47950.203102,
+  "timestamp": "2026-03-15T01:44:29.060Z",
+  "metrics": {
+    "prompt": "Hi",
+    "maxTokens": 256,
+    "tokensGenerated": 10,
+    "tokensPerSec": 3.63,
+    "totalRunMs": 2750.67,
+    "firstTokenMs": 885.35,
+    "firstResponseMs": 46078.99,
+    "prefillMs": 853.83,
+    "decodeMs": 1864.09,
+    "prefillTokens": 13,
+    "decodeTokens": 10,
+    "prefillTokensPerSec": 15.23,
+    "prefillTokensPerSecTtft": 14.68,
+    "decodeTokensPerSec": 5.36,
+    "modelLoadMs": 45193.64,
+    "gpu": {
+      "decodeRecordMs": 0,
+      "decodeSubmitWaitMs": 0,
+      "decodeReadbackWaitMs": 0
+    },
+    "decodeProfileSteps": [],
+    "generationDiagnostics": {
+      "preview": [
+        {
+          "id": 9419,
+          "text": "Hello",
+          "fallbackText": "Hello"
+        },
+        {
+          "id": 0,
+          "text": "!",
+          "fallbackText": "!"
+        },
+        {
+          "id": 2500,
+          "text": " How",
+          "fallbackText": " How"
+        },
+        {
+          "id": 628,
+          "text": " can",
+          "fallbackText": " can"
+        },
+        {
+          "id": 353,
+          "text": " I",
+          "fallbackText": " I"
+        },
+        {
+          "id": 1438,
+          "text": " help",
+          "fallbackText": " help"
+        },
+        {
+          "id": 488,
+          "text": " you",
+          "fallbackText": " you"
+        },
+        {
+          "id": 3242,
+          "text": " today",
+          "fallbackText": " today"
+        },
+        {
+          "id": 30,
+          "text": "?",
+          "fallbackText": "?"
+        },
+        {
+          "id": 248046,
+          "text": "",
+          "fallbackText": "<|im_end|>"
+        }
+      ],
+      "total": 10,
+      "omitted": 0,
+      "emptyTextCount": 1,
+      "specialLikeTextCount": 0,
+      "specialLikeFallbackCount": 1
+    },
+    "schemaVersion": 1,
+    "source": "doppler",
+    "suite": "inference",
+    "executionContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "qwen-3-5-0-8b-q4k-ehaf16.steps",
+          "ok": true
+        },
+        {
+          "id": "qwen-3-5-0-8b-q4k-ehaf16.session",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "session": {
+        "layout": "contiguous",
+        "disableCommandBatching": false,
+        "decodeBatchSize": 4,
+        "headDim": 256,
+        "kvLen": 262144,
+        "coldQuantMode": "none"
+      },
+      "steps": {
+        "total": 0,
+        "attention": 0,
+        "attentionPhases": {
+          "prefill": 0,
+          "decode": 0,
+          "both": 0
+        }
+      },
+      "executionV0": {
+        "kernelProfiles": null,
+        "graph": null
+      }
+    },
+    "executionV0GraphContractArtifact": null,
+    "layerPatternContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "inference.layerPattern.patternKind.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.patternKind.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.even",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.odd",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_offset",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_negative_offset",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "patternKindRules": 4,
+        "layerTypeRules": 6,
+        "patternKindContexts": 16,
+        "layerTypeContexts": 12
+      }
+    },
+    "requiredInferenceFieldsArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "scope": "manifest",
+      "label": "qwen-3-5-0-8b-q4k-ehaf16.inference",
+      "ok": true,
+      "checks": [
+        {
+          "id": "qwen-3-5-0-8b-q4k-ehaf16.inference.requiredInferenceFields",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "fieldCases": 35,
+        "nullableCases": 16,
+        "nonNullableCases": 19
+      }
+    }
+  },
+  "output": "Hello! How can I help you today?",
+  "memory": {
+    "used": 1166014464,
+    "pool": {
+      "allocations": 4832,
+      "reuses": 463,
+      "totalBytesAllocated": 1039474688,
+      "peakBytesAllocated": 1012134912,
+      "currentBytesAllocated": 964687872,
+      "totalBytesRequested": 942017536,
+      "peakBytesRequested": 917453056,
+      "currentBytesRequested": 880009216,
+      "activeBuffers": 430,
+      "pooledBuffers": 64,
+      "budgetMaxBytes": 0,
+      "budgetUtilization": 0,
+      "hitRate": "8.7%"
+    },
+    "kvCache": {
+      "theoretical": 201326592,
+      "allocated": 201326592,
+      "used": 1081344,
+      "efficiency": 0.00537109375,
+      "seqLen": 22,
+      "maxSeqLen": 4096,
+      "layout": "contiguous"
+    }
+  },
+  "debugSnapshot": null
+}

@@ -1,0 +1,546 @@
+{
+  "suite": "debug",
+  "modelId": "qwen35-offset_true",
+  "runtimePreset": null,
+  "deviceInfo": {
+    "hasSubgroups": true,
+    "hasSubgroupsF16": false,
+    "hasF16": true,
+    "hasTimestampQuery": true,
+    "maxBufferSize": 4294967292,
+    "maxWorkgroupSize": 1024,
+    "maxWorkgroupStorageSize": 65536,
+    "adapterInfo": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "amd-radeon-graphics-radv-gfx1151-",
+      "description": "radv: Mesa 25.0.7-0ubuntu0.25.04.2"
+    }
+  },
+  "results": [
+    {
+      "name": "generation",
+      "passed": true,
+      "duration": 14083.097991999995
+    }
+  ],
+  "durationMs": 126932.862531,
+  "timestamp": "2026-03-14T13:31:05.019Z",
+  "metrics": {
+    "prompt": "What color is the sky on a clear day? Answer in one word.",
+    "maxTokens": 8,
+    "tokensGenerated": 8,
+    "tokensPerSec": 0.57,
+    "totalRunMs": 14081.46,
+    "firstTokenMs": 9591.72,
+    "firstResponseMs": 122435.18,
+    "prefillMs": 9556.34,
+    "decodeMs": 4488.88,
+    "prefillTokens": 27,
+    "decodeTokens": 8,
+    "prefillTokensPerSec": 2.83,
+    "prefillTokensPerSecTtft": 2.81,
+    "decodeTokensPerSec": 1.78,
+    "modelLoadMs": 112843.46,
+    "gpu": {
+      "decodeRecordMs": 0,
+      "decodeSubmitWaitMs": 0,
+      "decodeReadbackWaitMs": 0
+    },
+    "decodeProfileSteps": [],
+    "generationDiagnostics": {
+      "preview": [
+        {
+          "id": 271,
+          "text": "\n\n",
+          "fallbackText": "\n\n"
+        },
+        {
+          "id": 3709,
+          "text": "，",
+          "fallbackText": "，"
+        },
+        {
+          "id": 3709,
+          "text": "，",
+          "fallbackText": "，"
+        },
+        {
+          "id": 3709,
+          "text": "，",
+          "fallbackText": "，"
+        },
+        {
+          "id": 3709,
+          "text": "，",
+          "fallbackText": "，"
+        },
+        {
+          "id": 3709,
+          "text": "，",
+          "fallbackText": "，"
+        },
+        {
+          "id": 13,
+          "text": ".",
+          "fallbackText": "."
+        },
+        {
+          "id": 13,
+          "text": ".",
+          "fallbackText": "."
+        }
+      ],
+      "total": 8,
+      "omitted": 0,
+      "emptyTextCount": 0,
+      "specialLikeTextCount": 0,
+      "specialLikeFallbackCount": 0
+    },
+    "schemaVersion": 1,
+    "source": "doppler",
+    "suite": "debug",
+    "executionContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "qwen-3-5-0-8b-wf16-ef16-hf16-f16.steps",
+          "ok": true
+        },
+        {
+          "id": "qwen-3-5-0-8b-wf16-ef16-hf16-f16.session",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "session": {
+        "layout": "contiguous",
+        "disableCommandBatching": true,
+        "decodeBatchSize": 4,
+        "headDim": 256,
+        "kvLen": 262144,
+        "coldQuantMode": "none"
+      },
+      "steps": {
+        "total": 0,
+        "attention": 0,
+        "attentionPhases": {
+          "prefill": 0,
+          "decode": 0,
+          "both": 0
+        }
+      },
+      "executionV0": {
+        "kernelProfiles": null,
+        "graph": null
+      }
+    },
+    "executionV0GraphContractArtifact": null,
+    "layerPatternContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "inference.layerPattern.patternKind.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.patternKind.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.even",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.odd",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_offset",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_negative_offset",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "patternKindRules": 4,
+        "layerTypeRules": 6,
+        "patternKindContexts": 16,
+        "layerTypeContexts": 12
+      }
+    },
+    "requiredInferenceFieldsArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "scope": "manifest",
+      "label": "qwen-3-5-0-8b-wf16-ef16-hf16-f16.inference",
+      "ok": true,
+      "checks": [
+        {
+          "id": "qwen-3-5-0-8b-wf16-ef16-hf16-f16.inference.requiredInferenceFields",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "fieldCases": 35,
+        "nullableCases": 16,
+        "nonNullableCases": 19
+      }
+    }
+  },
+  "output": "\n\n，，，，，..",
+  "memory": {
+    "used": 1973122048,
+    "pool": {
+      "allocations": 4019,
+      "reuses": 245,
+      "totalBytesAllocated": 1898662656,
+      "peakBytesAllocated": 1874935808,
+      "currentBytesAllocated": 1771795456,
+      "totalBytesRequested": 1701870336,
+      "peakBytesRequested": 1680882432,
+      "currentBytesRequested": 1594334720,
+      "activeBuffers": 430,
+      "pooledBuffers": 64,
+      "budgetMaxBytes": 0,
+      "budgetUtilization": 0,
+      "hitRate": "5.7%"
+    },
+    "kvCache": {
+      "theoretical": 201326592,
+      "allocated": 201326592,
+      "used": 1671168,
+      "efficiency": 0.00830078125,
+      "seqLen": 34,
+      "maxSeqLen": 4096,
+      "layout": "contiguous"
+    }
+  },
+  "debugSnapshot": {
+    "timestamp": "2026-03-14T13:33:11.954Z",
+    "logLevel": "INFO",
+    "traceCategories": [],
+    "enabledModules": [],
+    "disabledModules": [],
+    "recentLogs": [
+      {
+        "time": "132296.1",
+        "level": "WARN",
+        "module": "BufferPool",
+        "message": "Releasing buffer not tracked as active"
+      },
+      {
+        "time": "132296.1",
+        "level": "WARN",
+        "module": "BufferPool",
+        "message": "Releasing buffer not tracked as active"
+      },
+      {
+        "time": "132296.1",
+        "level": "WARN",
+        "module": "BufferPool",
+        "message": "Releasing buffer not tracked as active"
+      },
+      {
+        "time": "132296.1",
+        "level": "WARN",
+        "module": "BufferPool",
+        "message": "Releasing buffer not tracked as active"
+      },
+      {
+        "time": "132296.1",
+        "level": "WARN",
+        "module": "BufferPool",
+        "message": "Releasing buffer not tracked as active"
+      },
+      {
+        "time": "132296.2",
+        "level": "WARN",
+        "module": "BufferPool",
+        "message": "Releasing buffer not tracked as active"
+      },
+      {
+        "time": "132296.2",
+        "level": "WARN",
+        "module": "BufferPool",
+        "message": "Releasing buffer not tracked as active"
+      },
+      {
+        "time": "132296.2",
+        "level": "WARN",
+        "module": "BufferPool",
+        "message": "Releasing buffer not tracked as active"
+      },
+      {
+        "time": "132296.2",
+        "level": "WARN",
+        "module": "BufferPool",
+        "message": "Releasing buffer not tracked as active"
+      },
+      {
+        "time": "132296.5",
+        "level": "INFO",
+        "module": "ExpertCache",
+        "message": "Cache cleared"
+      },
+      {
+        "time": "132296.8",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Loading: qwen-3-5-0-8b-wf16-ef16-hf16-f16"
+      },
+      {
+        "time": "132297.2",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "[0.0s] Memory (start): | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0"
+      },
+      {
+        "time": "132297.7",
+        "level": "WARN",
+        "module": "Loader",
+        "message": "Dense model on discrete GPU - performance limited. Consider MoE model."
+      },
+      {
+        "time": "132301.3",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 0 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "132301.9",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 1 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "132302.1",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 2 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "132302.2",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 3 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "132302.2",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 4 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "132302.3",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 5 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "132302.3",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 6 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "132302.4",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 7 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "166432.4",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "[34.1s] Memory (loading): | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=448.00 MB (7 shards) | Layers=0, GPUBuffers=0"
+      },
+      {
+        "time": "171615.8",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Embeddings tensor loaded: name=model.language_model.embed_tokens.weight, hasShape=true, shape=[248320,1024], isWeightBuffer=true"
+      },
+      {
+        "time": "171617.7",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Layers: 0-23"
+      },
+      {
+        "time": "171654.1",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 8 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "176692.5",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 15 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "176750.5",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 18 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "186228.6",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 19 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "191016.3",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 20 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "191081.9",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 21 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "200820.1",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "[68.5s] Memory (loading): | GPU=860.79 MB (107 active, 0 pooled, peak=860.79 MB) | ShardCache=896.00 MB (14 shards) | Layers=8, GPUBuffers=107"
+      },
+      {
+        "time": "200833.0",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 22 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "200919.7",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 9 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "203021.5",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 10 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "212845.3",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 11 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "218048.8",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 12 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "218122.5",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 13 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "228163.6",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 14 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "233233.2",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "[100.9s] Memory (loading): | GPU=1.34 GB (255 active, 0 pooled, peak=1.34 GB) | ShardCache=987.08 MB (16 shards) | Layers=19, GPUBuffers=255"
+      },
+      {
+        "time": "233262.1",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 16 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "238306.6",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 17 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "240889.5",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "All 23 shards loaded: 1435.1MB in 110.0s (13 MB/s avg)"
+      },
+      {
+        "time": "243354.5",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Layers: 24 complete (71.74s)"
+      },
+      {
+        "time": "243360.5",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Complete: 923.08 MB in 111.06s (8.31 MB/s)"
+      },
+      {
+        "time": "243361.7",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "[111.1s] Memory (complete): | GPU=1.55 GB (320 active, 0 pooled, peak=1.55 GB) | ShardCache=0 B (0 shards) | Layers=24, GPUBuffers=320"
+      },
+      {
+        "time": "243720.7",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Model loaded successfully"
+      },
+      {
+        "time": "243721.0",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "Pipeline ready"
+      },
+      {
+        "time": "257803.5",
+        "level": "INFO",
+        "module": "Perf",
+        "message": "TTFT: 9592ms | Prefill: 9556ms | Decode: 4489ms (7 tokens @ 1.6 tok/s)"
+      },
+      {
+        "time": "257806.7",
+        "level": "WARN",
+        "module": "Config",
+        "message": "Experimental: Overriding 1 model param(s) via runtime: normalization.rmsNormWeightOffset. Manifest values are recommended."
+      },
+      {
+        "time": "257810.1",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Unloaded"
+      }
+    ],
+    "errorCount": 0,
+    "warnCount": 346
+  }
+}

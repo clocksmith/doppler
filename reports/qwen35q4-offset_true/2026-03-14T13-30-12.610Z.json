@@ -1,0 +1,517 @@
+{
+  "suite": "debug",
+  "modelId": "qwen35q4-offset_true",
+  "runtimePreset": null,
+  "deviceInfo": {
+    "hasSubgroups": true,
+    "hasSubgroupsF16": false,
+    "hasF16": true,
+    "hasTimestampQuery": true,
+    "maxBufferSize": 4294967292,
+    "maxWorkgroupSize": 1024,
+    "maxWorkgroupStorageSize": 65536,
+    "adapterInfo": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "amd-radeon-graphics-radv-gfx1151-",
+      "description": "radv: Mesa 25.0.7-0ubuntu0.25.04.2"
+    }
+  },
+  "results": [
+    {
+      "name": "generation",
+      "passed": true,
+      "duration": 11445.887361000001
+    }
+  ],
+  "durationMs": 78819.931862,
+  "timestamp": "2026-03-14T13:30:12.610Z",
+  "metrics": {
+    "prompt": "What color is the sky on a clear day? Answer in one word.",
+    "maxTokens": 8,
+    "tokensGenerated": 3,
+    "tokensPerSec": 0.26,
+    "totalRunMs": 11444.94,
+    "firstTokenMs": 10017.94,
+    "firstResponseMs": 77386.94,
+    "prefillMs": 9978.89,
+    "decodeMs": 1426.24,
+    "prefillTokens": 27,
+    "decodeTokens": 3,
+    "prefillTokensPerSec": 2.71,
+    "prefillTokensPerSecTtft": 2.7,
+    "decodeTokensPerSec": 2.1,
+    "modelLoadMs": 67369,
+    "gpu": {
+      "decodeRecordMs": 0,
+      "decodeSubmitWaitMs": 0,
+      "decodeReadbackWaitMs": 0
+    },
+    "decodeProfileSteps": [],
+    "generationDiagnostics": {
+      "preview": [
+        {
+          "id": 10025,
+          "text": "Blue",
+          "fallbackText": "Blue"
+        },
+        {
+          "id": 13,
+          "text": ".",
+          "fallbackText": "."
+        },
+        {
+          "id": 248046,
+          "text": "",
+          "fallbackText": "<|im_end|>"
+        }
+      ],
+      "total": 3,
+      "omitted": 0,
+      "emptyTextCount": 1,
+      "specialLikeTextCount": 0,
+      "specialLikeFallbackCount": 1
+    },
+    "schemaVersion": 1,
+    "source": "doppler",
+    "suite": "debug",
+    "executionContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "qwen-3-5-0-8b-q4k-ehaf16-af32.steps",
+          "ok": true
+        },
+        {
+          "id": "qwen-3-5-0-8b-q4k-ehaf16-af32.session",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "session": {
+        "layout": "contiguous",
+        "disableCommandBatching": true,
+        "decodeBatchSize": 4,
+        "headDim": 256,
+        "kvLen": 262144,
+        "coldQuantMode": "none"
+      },
+      "steps": {
+        "total": 0,
+        "attention": 0,
+        "attentionPhases": {
+          "prefill": 0,
+          "decode": 0,
+          "both": 0
+        }
+      }
+    },
+    "executionV0GraphContractArtifact": null,
+    "layerPatternContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "inference.layerPattern.patternKind.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.patternKind.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.even",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.odd",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_offset",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_negative_offset",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "patternKindRules": 4,
+        "layerTypeRules": 6,
+        "patternKindContexts": 16,
+        "layerTypeContexts": 12
+      }
+    },
+    "requiredInferenceFieldsArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "scope": "manifest",
+      "label": "qwen-3-5-0-8b-q4k-ehaf16-af32.inference",
+      "ok": true,
+      "checks": [
+        {
+          "id": "qwen-3-5-0-8b-q4k-ehaf16-af32.inference.requiredInferenceFields",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "fieldCases": 35,
+        "nullableCases": 16,
+        "nonNullableCases": 19
+      }
+    }
+  },
+  "output": "Blue.",
+  "memory": {
+    "used": 1177361920,
+    "pool": {
+      "allocations": 1816,
+      "reuses": 210,
+      "totalBytesAllocated": 1070621184,
+      "peakBytesAllocated": 1064121344,
+      "currentBytesAllocated": 976035328,
+      "totalBytesRequested": 963778560,
+      "peakBytesRequested": 957764864,
+      "currentBytesRequested": 880009216,
+      "activeBuffers": 430,
+      "pooledBuffers": 64,
+      "budgetMaxBytes": 0,
+      "budgetUtilization": 0,
+      "hitRate": "10.4%"
+    },
+    "kvCache": {
+      "theoretical": 201326592,
+      "allocated": 201326592,
+      "used": 1425408,
+      "efficiency": 0.007080078125,
+      "seqLen": 29,
+      "maxSeqLen": 4096,
+      "layout": "contiguous"
+    }
+  },
+  "debugSnapshot": {
+    "timestamp": "2026-03-14T13:31:31.431Z",
+    "logLevel": "INFO",
+    "traceCategories": [],
+    "enabledModules": [],
+    "disabledModules": [],
+    "recentLogs": [
+      {
+        "time": "79567.0",
+        "level": "WARN",
+        "module": "BufferPool",
+        "message": "Releasing buffer not tracked as active"
+      },
+      {
+        "time": "79567.0",
+        "level": "WARN",
+        "module": "BufferPool",
+        "message": "Releasing buffer not tracked as active"
+      },
+      {
+        "time": "79567.0",
+        "level": "WARN",
+        "module": "BufferPool",
+        "message": "Releasing buffer not tracked as active"
+      },
+      {
+        "time": "79567.0",
+        "level": "WARN",
+        "module": "BufferPool",
+        "message": "Releasing buffer not tracked as active"
+      },
+      {
+        "time": "79567.0",
+        "level": "WARN",
+        "module": "BufferPool",
+        "message": "Releasing buffer not tracked as active"
+      },
+      {
+        "time": "79567.1",
+        "level": "WARN",
+        "module": "BufferPool",
+        "message": "Releasing buffer not tracked as active"
+      },
+      {
+        "time": "79567.1",
+        "level": "WARN",
+        "module": "BufferPool",
+        "message": "Releasing buffer not tracked as active"
+      },
+      {
+        "time": "79567.1",
+        "level": "WARN",
+        "module": "BufferPool",
+        "message": "Releasing buffer not tracked as active"
+      },
+      {
+        "time": "79567.1",
+        "level": "WARN",
+        "module": "BufferPool",
+        "message": "Releasing buffer not tracked as active"
+      },
+      {
+        "time": "79567.1",
+        "level": "WARN",
+        "module": "BufferPool",
+        "message": "Releasing buffer not tracked as active"
+      },
+      {
+        "time": "79567.1",
+        "level": "WARN",
+        "module": "BufferPool",
+        "message": "Releasing buffer not tracked as active"
+      },
+      {
+        "time": "79567.1",
+        "level": "WARN",
+        "module": "BufferPool",
+        "message": "Releasing buffer not tracked as active"
+      },
+      {
+        "time": "79567.1",
+        "level": "WARN",
+        "module": "BufferPool",
+        "message": "Releasing buffer not tracked as active"
+      },
+      {
+        "time": "79567.1",
+        "level": "WARN",
+        "module": "BufferPool",
+        "message": "Releasing buffer not tracked as active"
+      },
+      {
+        "time": "79567.1",
+        "level": "WARN",
+        "module": "BufferPool",
+        "message": "Releasing buffer not tracked as active"
+      },
+      {
+        "time": "79567.1",
+        "level": "WARN",
+        "module": "BufferPool",
+        "message": "Releasing buffer not tracked as active"
+      },
+      {
+        "time": "79567.1",
+        "level": "WARN",
+        "module": "BufferPool",
+        "message": "Releasing buffer not tracked as active"
+      },
+      {
+        "time": "79567.1",
+        "level": "WARN",
+        "module": "BufferPool",
+        "message": "Releasing buffer not tracked as active"
+      },
+      {
+        "time": "79567.1",
+        "level": "WARN",
+        "module": "BufferPool",
+        "message": "Releasing buffer not tracked as active"
+      },
+      {
+        "time": "79567.1",
+        "level": "WARN",
+        "module": "BufferPool",
+        "message": "Releasing buffer not tracked as active"
+      },
+      {
+        "time": "79567.2",
+        "level": "WARN",
+        "module": "BufferPool",
+        "message": "Releasing buffer not tracked as active"
+      },
+      {
+        "time": "79567.5",
+        "level": "INFO",
+        "module": "ExpertCache",
+        "message": "Cache cleared"
+      },
+      {
+        "time": "79567.8",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Loading: qwen-3-5-0-8b-q4k-ehaf16-af32"
+      },
+      {
+        "time": "79568.2",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "[0.0s] Memory (start): | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0"
+      },
+      {
+        "time": "79568.7",
+        "level": "WARN",
+        "module": "Loader",
+        "message": "Dense model on discrete GPU - performance limited. Consider MoE model."
+      },
+      {
+        "time": "79575.1",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 0 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "79575.4",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 1 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "79575.5",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 2 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "79575.7",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 3 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "79575.7",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 4 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "79575.7",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 5 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "79575.7",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 6 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "79575.8",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 7 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "113817.0",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "[34.2s] Memory (loading): | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=448.00 MB (7 shards) | Layers=0, GPUBuffers=0"
+      },
+      {
+        "time": "126612.6",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Embeddings tensor loaded: name=model.language_model.embed_tokens.weight, hasShape=true, shape=[248320,1024], isWeightBuffer=true"
+      },
+      {
+        "time": "126613.2",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Layers: 0-23"
+      },
+      {
+        "time": "126664.3",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 9 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "126682.4",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 10 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "136420.1",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 11 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "140115.0",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 8 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "142813.6",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "All 12 shards loaded: 752.3MB in 64.5s (12 MB/s avg)"
+      },
+      {
+        "time": "145117.0",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "[65.5s] Memory (loading): | GPU=649.52 MB (149 active, 4 pooled, peak=649.52 MB) | ShardCache=752.29 MB (12 shards) | Layers=11, GPUBuffers=149"
+      },
+      {
+        "time": "145365.6",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Layers: 24 complete (18.75s)"
+      },
+      {
+        "time": "145381.3",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Complete: 240.29 MB in 65.81s (3.65 MB/s)"
+      },
+      {
+        "time": "145382.6",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "[65.8s] Memory (complete): | GPU=829.05 MB (320 active, 6 pooled, peak=829.05 MB) | ShardCache=0 B (0 shards) | Layers=24, GPUBuffers=320"
+      },
+      {
+        "time": "145696.1",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Model loaded successfully"
+      },
+      {
+        "time": "145696.5",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "Pipeline ready"
+      },
+      {
+        "time": "157142.6",
+        "level": "INFO",
+        "module": "Perf",
+        "message": "TTFT: 10018ms | Prefill: 9979ms | Decode: 1426ms (2 tokens @ 1.4 tok/s)"
+      },
+      {
+        "time": "157144.5",
+        "level": "WARN",
+        "module": "Config",
+        "message": "Experimental: Overriding 1 model param(s) via runtime: normalization.rmsNormWeightOffset. Manifest values are recommended."
+      },
+      {
+        "time": "157147.3",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Unloaded"
+      }
+    ],
+    "errorCount": 0,
+    "warnCount": 335
+  }
+}

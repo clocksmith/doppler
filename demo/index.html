@@ -61,7 +61,7 @@
           </div>
         </div>
         <div class="segmented-control header-tabs">
-          <button class="btn segmented-btn mode-subtab" data-mode="run" type="button">Chat</button>
+          <button class="btn segmented-btn mode-subtab" data-mode="run" type="button">Text</button>
           <!-- Hidden: no fetchable embedding model (HF manifest needs republish with queryPreAttnScalar fix) -->
           <!-- <button class="btn segmented-btn mode-subtab" data-mode="embedding" type="button">Embed</button> -->
           <!-- Hidden: no verified translate model (translategemma-4b is failing) -->
@@ -676,10 +676,6 @@
               <div id="storage-inspector-status" class="type-caption" hidden></div>
               <div id="models-list" class="quick-models-list"></div>
               <div id="storage-inspector-list" hidden></div>
-              <div id="storage-inspector-system-section" class="storage-system" hidden>
-                <span class="type-caption">Reports</span>
-                <div id="storage-inspector-system" class="storage-inspector-list"></div>
-              </div>
               <div class="panel-subsection pulse-section storage-info" id="storage-info">
                 <h3 class="pulse-subheader">Storage</h3>
                 <div class="stats-grid stats-grid-compact">

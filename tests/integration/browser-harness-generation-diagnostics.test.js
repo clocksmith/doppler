@@ -108,4 +108,62 @@ function createHarnessOverride(records) {
   assert.equal(result.metrics.generationDiagnostics.emptyTextCount, 0);
 }
 
+{
+  const observed = { useChatTemplate: null };
+  const pipeline = {
+    async *generate(_promptInput, options = {}) {
+      observed.useChatTemplate = options.useChatTemplate;
+      options.onToken?.(1, 'Blue');
+      yield 'Blue';
+    },
+    getStats() {
+      return {
+        prefillTimeMs: 1,
+        ttftMs: 1,
+        decodeTimeMs: 1,
+        prefillTokens: 1,
+        decodeTokens: 1,
+        decodeProfileSteps: [],
+      };
+    },
+    reset() {},
+    async unload() {},
+  };
+
+  await runBrowserSuite({
+    suite: 'debug',
+    command: 'debug',
+    surface: 'node',
+    harnessOverride: {
+      modelLoadMs: 1,
+      manifest: {
+        modelId: 'qwen-3-5-0-8b-wf16-ef16-hf16-f16',
+        modelType: 'transformer',
+        architecture: {
+          numLayers: 24,
+          hiddenSize: 1024,
+          intermediateSize: 3584,
+          numAttentionHeads: 8,
+          numKeyValueHeads: 2,
+          headDim: 256,
+          vocabSize: 248320,
+          maxSeqLen: 262144,
+        },
+        inference: {
+          attention: {
+            queryPreAttnScalar: 256,
+          },
+          chatTemplate: {
+            type: 'qwen',
+            enabled: true,
+          },
+        },
+      },
+      pipeline,
+    },
+  });
+
+  assert.equal(observed.useChatTemplate, undefined);
+}
+
 console.log('browser-harness-generation-diagnostics.test: ok');

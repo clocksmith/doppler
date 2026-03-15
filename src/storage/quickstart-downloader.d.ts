@@ -13,6 +13,7 @@
 
 import type { DownloadProgress } from './downloader.js';
 import type { PreflightResult, ModelRequirements } from './preflight.js';
+import type { HfResolveConfig } from '../utils/hf-resolve-url.js';
 
 /**
  * Remote model configuration
@@ -24,6 +25,8 @@ export interface RemoteModelConfig {
   displayName: string;
   /** Base URL for shards (any static CDN) */
   baseUrl?: string | null;
+  /** Hosted Hugging Face source used when baseUrl is omitted */
+  hf?: HfResolveConfig | null;
   /** Model requirements for pre-flight checks */
   requirements: ModelRequirements;
 }

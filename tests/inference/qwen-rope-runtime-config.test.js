@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 
 import { initRoPEFrequencies } from '../../src/inference/pipelines/text/init.js';
+import { parseModelConfigFromManifest } from '../../src/inference/pipelines/text/config.js';
 
 {
   const freqs = await initRoPEFrequencies({
@@ -97,6 +98,106 @@ import { initRoPEFrequencies } from '../../src/inference/pipelines/text/init.js'
   assert.ok(freqs.localSin instanceof Float32Array);
   assert.ok(Math.abs(freqs.localCos[4] - Math.cos(1)) < 1e-6);
   assert.ok(Math.abs(freqs.localSin[4] - Math.sin(1)) < 1e-6);
+}
+
+{
+  const parsed = parseModelConfigFromManifest({
+    modelId: 'qwen-mrope-contract-fixture',
+    modelType: 'transformer',
+    eos_token_id: [1],
+    architecture: {
+      numLayers: 1,
+      hiddenSize: 1024,
+      intermediateSize: 3584,
+      numAttentionHeads: 8,
+      numKeyValueHeads: 2,
+      headDim: 256,
+      vocabSize: 248320,
+      maxSeqLen: 262144,
+      linearNumKeyHeads: 16,
+      linearNumValueHeads: 16,
+      linearKeyHeadDim: 128,
+      linearValueHeadDim: 128,
+      linearConvKernelDim: 4,
+      linearNormMode: 'shared',
+    },
+    inference: {
+      schema: null,
+      attention: {
+        queryPreAttnScalar: 256,
+        attnLogitSoftcapping: null,
+        slidingWindow: null,
+        queryKeyNorm: true,
+        attentionOutputGate: true,
+        causal: true,
+        attentionBias: false,
+      },
+      normalization: {
+        rmsNormEps: 1e-6,
+        rmsNormWeightOffset: false,
+        postAttentionNorm: true,
+        preFeedforwardNorm: false,
+        postFeedforwardNorm: false,
+      },
+      ffn: {
+        activation: 'silu',
+        gatedActivation: false,
+        swigluLimit: null,
+      },
+      rope: {
+        ropeTheta: 10000000,
+        ropeLocalTheta: null,
+        ropeScalingType: null,
+        ropeScalingFactor: 1,
+        yarnBetaFast: null,
+        yarnBetaSlow: null,
+        yarnOriginalMaxPos: null,
+        ropeLocalScalingType: null,
+        ropeLocalScalingFactor: 1,
+        ropeLocalYarnBetaFast: null,
+        ropeLocalYarnBetaSlow: null,
+        ropeLocalYarnOriginalMaxPos: null,
+        mropeInterleaved: true,
+        mropeSection: [11, 11, 10],
+        partialRotaryFactor: 0.25,
+      },
+      output: {
+        finalLogitSoftcapping: null,
+        tieWordEmbeddings: true,
+        scaleEmbeddings: false,
+        embeddingTranspose: false,
+        embeddingVocabSize: 248320,
+      },
+      layerPattern: {
+        type: 'custom',
+        globalPattern: null,
+        period: null,
+        offset: null,
+        layerTypes: ['full_attention'],
+      },
+      chatTemplate: {
+        type: 'qwen',
+        enabled: true,
+      },
+      sessionDefaults: {
+        decodeLoop: {
+          batchSize: 4,
+          disableCommandBatching: true,
+        },
+      },
+      execution: null,
+      defaultKernelPath: null,
+      pipeline: null,
+    },
+    quantization: 'f16',
+  });
+
+  assert.equal(parsed.mropeInterleaved, true);
+  assert.equal(
+    parsed.ropeInterleaved,
+    false,
+    'Qwen mRoPE interleaving must not force adjacent-pair RoPE rotation.'
+  );
 }
 
 console.log('qwen-rope-runtime-config.test: ok');

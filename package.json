@@ -161,6 +161,6 @@
     "playwright": "^1.58.2"
   },
   "optionalDependencies": {
-    "@simulatte/webgpu": "0.1.x"
+    "webgpu": "^0.3.8"
   }
 }

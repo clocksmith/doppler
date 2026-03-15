@@ -1,13 +1,13 @@
 {
   "version": 1,
   "lifecycleSchemaVersion": 1,
-  "updatedAt": "2026-03-10",
+  "updatedAt": "2026-03-15",
   "models": [
     {
       "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
       "preset": "gemma3",
       "label": "Gemma 3 270M Instruct (Q4K/F32a)",
-      "description": "Gemma 3 270M text model. Prefers Hugging Face-hosted prebuilt RDRR shards with an optional repo-local fallback.",
+      "description": "Gemma 3 270M text model. Q4K weights, F16 embeddings/head, F32 accumulation.",
       "modes": [
         "run"
       ],
@@ -26,7 +26,7 @@
         "revision": "ca6f0dbdf3882d3893a65cf48f2bb6f1520df162",
         "path": "models/gemma-3-270m-it-q4k-ehf16-af32"
       },
-      "baseUrl": "./local/gemma-3-270m-it-q4k-ehf16-af32",
+      "baseUrl": null,
       "quickstart": true,
       "sizeBytes": 418512553,
       "recommended": false,
@@ -34,7 +34,7 @@
       "lifecycle": {
         "availability": {
           "curated": true,
-          "local": true,
+          "local": false,
           "hf": true
         },
         "status": {
@@ -45,11 +45,11 @@
         },
         "tested": {
           "suite": "inference",
-          "surface": "browser",
+          "surface": ["browser"],
           "result": "pass",
           "lastVerifiedAt": "2026-03-12",
           "source": "manual-review",
-          "notes": "Deterministic greedy (temperature=0, topK=1) browser/WebGPU on Apple M3. Produces coherent output on appropriate prompts. The lm_head_prefill phase-drop bug was the one confirmed runtime defect (now fixed and regression-covered). Remaining factual-question inaccuracy on hard prompts is a 270M model capacity limitation, not a code bug — confirmed by 2x2 comparison showing F16 270M is also wrong.",
+          "notes": "Deterministic greedy (temperature=0, topK=1) browser/WebGPU on Apple M3. Produces coherent output on appropriate prompts. The lm_head_prefill phase-drop bug was the one confirmed runtime defect (now fixed and regression-covered). Remaining factual-question inaccuracy on hard prompts is a 270M model capacity limitation, not a code bug \u2014 confirmed by 2x2 comparison showing F16 270M is also wrong.",
           "contracts": {
             "executionContractOk": true,
             "executionV0GraphOk": true
@@ -61,7 +61,7 @@
       "modelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
       "preset": "embeddinggemma",
       "label": "EmbeddingGemma 300M (Q4K)",
-      "description": "EmbeddingGemma sentence embedding model. Prefers Hugging Face-hosted prebuilt RDRR shards with an optional repo-local fallback.",
+      "description": "EmbeddingGemma 300M sentence embedding model. Q4K weights, F16 embeddings/head, F32 accumulation.",
       "modes": [
         "embedding"
       ],
@@ -75,28 +75,29 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
+        "revision": "7e79c466d54455bd370c81685956ea9abae0fd30",
         "path": "models/google-embeddinggemma-300m-q4k-ehf16-af32"
       },
-      "baseUrl": "./local/google-embeddinggemma-300m-q4k-ehf16-af32",
+      "baseUrl": null,
       "quickstart": true,
       "sizeBytes": 480562497,
-      "recommended": false,
+      "recommended": true,
       "sortOrder": 11,
       "lifecycle": {
         "availability": {
           "curated": false,
-          "local": true,
-          "hf": false
+          "local": false,
+          "hf": true
         },
         "status": {
           "runtime": "active",
-          "conversion": "needs-republish",
+          "conversion": "ready",
           "demo": "none",
           "tested": "verified"
         },
         "tested": {
           "suite": "inference",
-          "surface": "auto",
+          "surface": ["auto"],
           "result": "pass",
           "lastVerifiedAt": "2026-03-13",
           "source": "registry-verify",
@@ -104,7 +105,7 @@
             "executionContractOk": true,
             "executionV0GraphOk": true
           },
-          "notes": "queryPreAttnScalar was 16 (sqrt(headDim)) in original manifest — fixed to 256 (headDim) on external volume. HF manifest still has the old value and needs republish. After fix: 768-dim embeddings, all finite, semantic retrieval test passed. Demoted from curated/demo until HF manifest is republished with fix."
+          "notes": "queryPreAttnScalar fixed from 16 (sqrt(headDim)) to 256 (headDim). 768-dim embeddings, all finite, semantic retrieval test passed. Republished to HF 2026-03-14."
         }
       }
     },
@@ -112,7 +113,7 @@
       "modelId": "gemma-3-1b-it-q4k-ehf16-af32",
       "preset": "gemma3",
       "label": "Gemma 3 1B Instruct (Q4K/F32a)",
-      "description": "Gemma 3 1B text model. Q4K weights, F16 embeddings/head, F32 accumulation. Local RDRR shards.",
+      "description": "Gemma 3 1B text model. Q4K weights, F16 embeddings/head, F32 accumulation.",
       "modes": [
         "run"
       ],
@@ -129,7 +130,7 @@
         "revision": "ca6f0dbdf3882d3893a65cf48f2bb6f1520df162",
         "path": "models/gemma-3-1b-it-q4k-ehf16-af32"
       },
-      "baseUrl": "./local/gemma-3-1b-it-q4k-ehf16-af32",
+      "baseUrl": null,
       "quickstart": false,
       "sizeBytes": 1025493248,
       "recommended": false,
@@ -137,7 +138,7 @@
       "lifecycle": {
         "availability": {
           "curated": false,
-          "local": true,
+          "local": false,
           "hf": true
         },
         "status": {
@@ -148,7 +149,7 @@
         },
         "tested": {
           "suite": "inference",
-          "surface": "browser",
+          "surface": ["browser"],
           "result": "pass",
           "lastVerifiedAt": "2026-03-12",
           "source": "manual-review",
@@ -164,7 +165,7 @@
       "modelId": "gemma-3-1b-it-f16-af32",
       "preset": "gemma3",
       "label": "Gemma 3 1B Instruct (F16/F32a)",
-      "description": "Gemma 3 1B text model. F16 weights/embeddings/head with F32 accumulation. Local RDRR shards.",
+      "description": "Gemma 3 1B text model. F16 weights/embeddings/head, F32 accumulation.",
       "modes": [
         "run"
       ],
@@ -177,9 +178,10 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
+        "revision": "d36c9d879713249cbe296c96158cadfe16d343be",
         "path": "models/gemma-3-1b-it-f16-af32"
       },
-      "baseUrl": "./local/gemma-3-1b-it-f16-af32",
+      "baseUrl": null,
       "quickstart": false,
       "sizeBytes": 2018964126,
       "recommended": false,
@@ -187,8 +189,8 @@
       "lifecycle": {
         "availability": {
           "curated": false,
-          "local": true,
-          "hf": false
+          "local": false,
+          "hf": true
         },
         "status": {
           "runtime": "active",
@@ -198,11 +200,11 @@
         },
         "tested": {
           "suite": "inference",
-          "surface": "browser",
+          "surface": ["browser"],
           "result": "pass",
           "lastVerifiedAt": "2026-03-10",
           "source": "manual-review",
-          "notes": "Prompt: 'The color of the sky is' → ' a constant, but its appearance changes with the seasons.\\n\\nThe sky is blue during the summer, when the sun is high in the sky.\\nThe sky is red during the autumn, when the leaves change color.\\nThe sky is gray during the winter, when the sun is low in the sky.\\nThe' (64 tokens, temperature=0, topK=1). Fluent and stable; factual quality mixed but coherent. All contracts pass.",
+          "notes": "Prompt: 'The color of the sky is' \u2192 ' a constant, but its appearance changes with the seasons.\\n\\nThe sky is blue during the summer, when the sun is high in the sky.\\nThe sky is red during the autumn, when the leaves change color.\\nThe sky is gray during the winter, when the sun is low in the sky.\\nThe' (64 tokens, temperature=0, topK=1). Fluent and stable; factual quality mixed but coherent. All contracts pass.",
           "contracts": {
             "executionContractOk": true,
             "executionV0GraphOk": true
@@ -214,7 +216,7 @@
       "modelId": "translategemma-4b-it-q4k-ehf16-af32",
       "preset": "translategemma",
       "label": "TranslateGemma 4B Instruct (Q4K)",
-      "description": "TranslateGemma 4B translation model. Q4K weights, F16 embeddings/head. Local RDRR shards.",
+      "description": "TranslateGemma 4B translation model. Q4K weights, F16 embeddings/head, F32 accumulation.",
       "modes": [
         "run"
       ],
@@ -250,11 +252,61 @@
         },
         "tested": {
           "suite": "debug",
-          "surface": "browser",
+          "surface": ["node"],
           "result": "fail",
-          "lastVerifiedAt": "2026-03-12",
-          "source": "manual-review",
-          "notes": "Default kernel path (f16a) produces NaN/Inf logits at 4B scale. F32a kernel path override runs but produces incoherent output. Manifest variantTag mismatch (q4k-ehaf16 vs expected q4k-ehf16-af32). Prior verified status was contract-only.",
+          "lastVerifiedAt": "2026-03-15",
+          "source": "runtime-verify",
+          "notes": "Reconverted 2026-03-14 with f32 compute. Re-verified 2026-03-15 on Node/WebGPU AMD RDNA-3. Output incoherent: garbled multilingual gibberish ('has سوریistisson...IsIsIs'). Execution-v0 contract passes. Gemma 3 4B architecture has never been verified in Doppler (only 270m and 1B verified). Root cause unknown: suspect 4B architecture-level issue (RoPE linear scaling factor=8, or scale-dependent bug). Old gemma-3-4b-it conversion also untestable (stale kernel digests).",
+          "contracts": {
+            "executionContractOk": true,
+            "executionV0GraphOk": true
+          }
+        }
+      }
+    },
+    {
+      "modelId": "translategemma-4b-1b-enes-q4k-ehf16-af32",
+      "preset": "gemma3",
+      "label": "TranslateGemma 1B EN\u2192ES (Q4K)",
+      "description": "Distilled EN\u2192ES translation model from TranslateGemma 4B. Gemma 3 1B architecture. Q4K weights, F16 embeddings/head, F32 accumulation.",
+      "modes": [
+        "run"
+      ],
+      "aliases": [
+        "translategemma-1b-enes",
+        "translategemma-4b-1b-enes"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": {
+        "repoId": "Clocksmith/rdrr",
+        "revision": "f402801f40894982c131b53e5bfe738bfb00c431",
+        "path": "models/translategemma-4b-1b-enes-q4k-ehf16-af32"
+      },
+      "baseUrl": null,
+      "sizeBytes": 1025493248,
+      "recommended": false,
+      "sortOrder": 16,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": false,
+          "hf": true
+        },
+        "status": {
+          "runtime": "active",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "verified"
+        },
+        "tested": {
+          "suite": "debug",
+          "surface": ["node"],
+          "result": "pass",
+          "lastVerifiedAt": "2026-03-15",
+          "source": "runtime-verify",
+          "notes": "Node/WebGPU AMD RDNA-3. Deterministic greedy (temp=0, topK=1). Prompt: EN->ES 'The weather is nice today.' -> 'El tiempo está agradable hoy.' (7 tokens including <end_of_turn>). Correct translation, coherent output. All execution-v0 contract checks pass.",
           "contracts": {
             "executionContractOk": true,
             "executionV0GraphOk": true
@@ -264,9 +316,9 @@
     },
     {
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
-      "preset": "qwen3",
+      "preset": "qwen3_5",
       "label": "Qwen 3.5 0.8B (Q4K)",
-      "description": "Qwen 3.5 0.8B text model with hybrid linear attention. Q4K weights, F16 embeddings/head.",
+      "description": "Qwen 3.5 0.8B text model with hybrid linear attention. Q4K weights, F16 embeddings/head/accumulation.",
       "modes": [
         "run"
       ],
@@ -281,40 +333,44 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "aeb7b3a304b5aad4b46c903a8a67f17070bce865",
-        "path": "models/qwen-3-5-0-8b-wq4k-ef16-hf16-f16"
+        "revision": "805b7fd79cfaedf69844a3e50a2738b8dcb283bd",
+        "path": "models/qwen-3-5-0-8b-q4k-ehaf16"
       },
       "baseUrl": null,
       "sizeBytes": 788833984,
-      "recommended": false,
+      "recommended": true,
       "sortOrder": 20,
       "lifecycle": {
         "availability": {
           "curated": false,
           "local": false,
-          "hf": false
+          "hf": true
         },
         "status": {
           "runtime": "active",
           "conversion": "ready",
           "demo": "none",
-          "tested": "failing"
+          "tested": "verified"
         },
         "tested": {
           "suite": "inference",
-          "surface": "browser",
-          "result": "fail",
-          "lastVerifiedAt": "2026-03-06",
-          "source": "manual-review",
-          "notes": "Loads and runs but produces incoherent output. Linear attention kernel correctness not yet verified against HF reference."
+          "surface": ["node"],
+          "result": "pass",
+          "lastVerifiedAt": "2026-03-14",
+          "source": "runtime-verify",
+          "notes": "Node/WebGPU AMD RDNA-3. Deterministic greedy (temp=0, topK=1). Prompt: \"The color of the sky is\" -> coherent factual response about blue sky / atmospheric scattering. ropeTheta fixed from 1M to 10M, manifest RoPE fields (mropeInterleaved, mropeSection, partialRotaryFactor) patched.",
+          "contracts": {
+            "executionContractOk": true,
+            "executionV0GraphOk": true
+          }
         }
       }
     },
     {
       "modelId": "qwen-3-5-2b-q4k-ehaf16",
-      "preset": "qwen3",
+      "preset": "qwen3_5",
       "label": "Qwen 3.5 2B (Q4K)",
-      "description": "Qwen 3.5 2B text model with hybrid linear attention. Q4K weights, F16 embeddings/head.",
+      "description": "Qwen 3.5 2B text model with hybrid linear attention. Q4K weights, F16 embeddings/head/accumulation.",
       "modes": [
         "run"
       ],
@@ -329,13 +385,64 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "cbafef7751177996aba31a7459a9ccb3c9ebccbb",
-        "path": "models/qwen-3-5-2b-wq4k-ef16-hf16-f16"
+        "revision": "9a1844afec19d6a23951151b7190ae8a5d1c2ca7",
+        "path": "models/qwen-3-5-2b-q4k-ehaf16"
       },
       "baseUrl": null,
       "sizeBytes": 1789738688,
       "recommended": false,
       "sortOrder": 21,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": false,
+          "hf": true
+        },
+        "status": {
+          "runtime": "active",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "verified"
+        },
+        "tested": {
+          "suite": "inference",
+          "surface": ["node"],
+          "result": "pass",
+          "lastVerifiedAt": "2026-03-14",
+          "source": "runtime-verify",
+          "notes": "Node/WebGPU AMD RDNA-3. Deterministic greedy (temp=0, topK=1). Prompt: \"The color of the sky is\" -> coherent factual response about blue sky / atmospheric scattering. ropeTheta fixed from 1M to 10M, manifest RoPE fields (mropeInterleaved, mropeSection, partialRotaryFactor) patched.",
+          "contracts": {
+            "executionContractOk": true,
+            "executionV0GraphOk": true
+          }
+        }
+      }
+    },
+    {
+      "modelId": "lfm2-5-1-2b-instruct-q4k-ehf16-af32",
+      "preset": "lfm2",
+      "label": "LFM 2.5 1.2B Instruct (Q4K/F32a)",
+      "description": "LiquidAI LFM 2.5 1.2B Instruct. Q4K weights, F16 embeddings/head, F32 accumulation. Hybrid conv/attention architecture.",
+      "modes": [
+        "run"
+      ],
+      "aliases": [
+        "lfm2-1.2b",
+        "lfm2.5-1.2b",
+        "LiquidAI/LFM2.5-1.2B-Instruct"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": {
+        "repoId": "Clocksmith/rdrr",
+        "path": "models/lfm2-5-1-2b-instruct-q4k-ehf16-af32"
+      },
+      "baseUrl": null,
+      "quickstart": false,
+      "sizeBytes": 853544060,
+      "recommended": false,
+      "sortOrder": 30,
       "lifecycle": {
         "availability": {
           "curated": false,
@@ -349,12 +456,16 @@
           "tested": "failing"
         },
         "tested": {
-          "suite": "inference",
-          "surface": "browser",
+          "suite": "debug",
+          "surface": ["node"],
           "result": "fail",
-          "lastVerifiedAt": "2026-03-06",
-          "source": "manual-review",
-          "notes": "Loads and runs but produces incoherent output. Same root cause as 0.8B variant — linear attention kernel correctness not yet verified."
+          "lastVerifiedAt": "2026-03-15",
+          "source": "runtime-verify",
+          "notes": "Re-verified 2026-03-15 on Node/WebGPU AMD RDNA-3. Deterministic greedy (temp=0, topK=1). Prompt: 'The color of the sky is' -> ' what determines determines determines...' (32 repeating tokens). First token reasonable (' what'), then collapses. Suspicious token 0 at step 1, fused sampling fallback to CPU. Logits not NaN/Inf (max=11.23). Conv layer architecture issue: hidden state becomes degenerate after first decode step. No execution-v0 contract (schema=null). Batch decode correctly disabled for conv models.",
+          "contracts": {
+            "executionContractOk": true,
+            "executionV0GraphOk": false
+          }
         }
       }
     }
