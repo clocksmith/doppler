@@ -2,13 +2,15 @@
 
 import { autoTuneKernels, prewarmKernels, clearKernelCaches } from './kernels/utils.js';
 import { getRuntimeConfig } from '../config/runtime.js';
-import { DEFAULT_KERNEL_WARMUP_CONFIG } from '../config/schema/kernel-warmup.schema.js';
 
 
 export async function prepareKernelRuntime(
   options = {}
 ) {
-  const kernelWarmup = getRuntimeConfig().shared?.kernelWarmup ?? DEFAULT_KERNEL_WARMUP_CONFIG;
+  const kernelWarmup = getRuntimeConfig().shared?.kernelWarmup;
+  if (!kernelWarmup) {
+    throw new Error('runtime.shared.kernelWarmup is required but missing from resolved config');
+  }
   const {
     prewarm = kernelWarmup.prewarm,
     prewarmMode = kernelWarmup.prewarmMode,

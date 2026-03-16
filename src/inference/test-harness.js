@@ -66,11 +66,12 @@ export function parseRuntimeOverridesFromURL(searchParams) {
   if (runtimeConfigRaw) {
     try {
       const parsed = JSON.parse(runtimeConfigRaw);
-      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-        runtime.runtimeConfig =  (parsed);
+      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+        throw new Error('runtimeConfig must be a JSON object');
       }
+      runtime.runtimeConfig = parsed;
     } catch (e) {
-      debugLog.warn('TestHarness', `Failed to parse runtimeConfig JSON: ${ (e).message}`);
+      throw new Error(`Failed to parse runtimeConfig URL parameter: ${e?.message}`);
     }
   }
 
@@ -79,12 +80,13 @@ export function parseRuntimeOverridesFromURL(searchParams) {
   if (configChainRaw) {
     try {
       const parsed = JSON.parse(configChainRaw);
-      if (Array.isArray(parsed)) {
-        runtime.configChain = parsed;
-        debugLog.info('TestHarness', `Config chain: ${parsed.join(' -> ')}`);
+      if (!Array.isArray(parsed) || parsed.some((entry) => typeof entry !== 'string' || !entry.trim())) {
+        throw new Error('configChain must be an array of non-empty strings');
       }
+      runtime.configChain = parsed;
+      debugLog.info('TestHarness', `Config chain: ${parsed.join(' -> ')}`);
     } catch (e) {
-      debugLog.warn('TestHarness', `Failed to parse configChain JSON: ${ (e).message}`);
+      throw new Error(`Failed to parse configChain URL parameter: ${e?.message}`);
     }
   }
 
