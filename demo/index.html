@@ -1031,10 +1031,14 @@
     <!-- Progress Dialog -->
     <div class="modal-overlay progress-overlay" id="progress-overlay" hidden>
       <div class="modal-content progress-content" role="dialog" aria-modal="true" aria-labelledby="progress-title">
-        <h3 class="modal-title progress-title" id="progress-title">Loading Model</h3>
+        <div class="progress-heading">
+          <h3 class="modal-title progress-title" id="progress-title">Preparing Local Model</h3>
+          <div class="progress-model-label type-caption">Model</div>
+          <p id="progress-model" class="progress-model type-caption"></p>
+        </div>
         <div class="progress-phases" id="progress-phases">
           <div class="progress-phase-row" data-phase="storage">
-            <span class="progress-phase-label">Reading</span>
+            <span class="progress-phase-label">Local files</span>
             <div class="progress">
               <div class="progress-fill"></div>
             </div>
@@ -1042,7 +1046,7 @@
           </div>
           <span id="progress-shard" class="progress-shard type-caption"></span>
           <div class="progress-phase-row" data-phase="gpu">
-            <span class="progress-phase-label">GPU Upload</span>
+            <span class="progress-phase-label">GPU setup</span>
             <div class="progress">
               <div class="progress-fill"></div>
             </div>
