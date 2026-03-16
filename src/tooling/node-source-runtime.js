@@ -18,7 +18,6 @@ import { parseTransformerModel } from '../converter/parsers/transformer.js';
 import { parseGGUFHeader } from '../formats/gguf/types.js';
 import { parseSafetensorsHeader } from '../formats/safetensors/types.js';
 import { log } from '../debug/index.js';
-import { computeHash } from '../storage/shard-manager.js';
 import {
   buildSourceRuntimeBundle,
   createSourceStorageContext,
@@ -139,7 +138,12 @@ async function readRange(filePath, offset, length) {
       return new ArrayBuffer(0);
     }
     const out = Buffer.allocUnsafe(end - start);
-    await handle.read(out, 0, out.length, start);
+    let pos = 0;
+    while (pos < out.length) {
+      const { bytesRead } = await handle.read(out, pos, out.length - pos, start + pos);
+      if (bytesRead === 0) break;
+      pos += bytesRead;
+    }
     return out.buffer.slice(out.byteOffset, out.byteOffset + out.byteLength);
   } finally {
     await handle.close();

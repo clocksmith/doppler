@@ -21,6 +21,7 @@ This section answers "which models work now?" from `models/catalog.json` lifecyc
 | translategemma-4b-1b-enes-q4k-ehf16-af32 | gemma3 | run | 2026-03-15 | - | Node/WebGPU AMD RDNA-3. Deterministic greedy (temp=0, topK=1). Prompt: EN->ES 'The weather is nice today.' -> 'El tiempo está agradable hoy.' (7 tokens including <end_of_turn>). Correct translation, coherent output. All execution-v0 contract checks pass. |
 | qwen-3-5-0-8b-q4k-ehaf16 | qwen3_5 | run | 2026-03-14 | - | Node/WebGPU AMD RDNA-3. Deterministic greedy (temp=0, topK=1). Prompt: "The color of the sky is" -> coherent factual response about blue sky / atmospheric scattering. ropeTheta fixed from 1M to 10M, manifest RoPE fields (mropeInterleaved, mropeSection, partialRotaryFactor) patched. |
 | qwen-3-5-2b-q4k-ehaf16 | qwen3_5 | run | 2026-03-14 | - | Node/WebGPU AMD RDNA-3. Deterministic greedy (temp=0, topK=1). Prompt: "The color of the sky is" -> coherent factual response about blue sky / atmospheric scattering. ropeTheta fixed from 1M to 10M, manifest RoPE fields (mropeInterleaved, mropeSection, partialRotaryFactor) patched. |
+| lfm2-5-1-2b-instruct-q4k-ehf16-af32 | lfm2 | run | 2026-03-16 | - | Coherence-verified 2026-03-16 on Node/WebGPU AMD RDNA-3 after applying ChatML template fix. Manifest was missing chatTemplate.type/enabled — model was receiving raw unformatted text. With chatml applied: deterministic greedy (temp=0, topK=1). Prompt: 'What color is the sky on a clear day?' (ChatML) -> 'The color of the sky on a clear day is white. This is because the atmosphere is not obsceded by any particles or objects that are in between.' (32 tokens). Output is coherent and responsive to prompt. No execution-v0 schema in manifest (known LFM2 conversion limitation; N/A for this model). Contract checks 2/2 pass. |
 
 ### 2. Loads But Unverified
 
@@ -31,7 +32,6 @@ None right now.
 | Model ID | Preset | Modes | Last checked | Surface | Notes |
 | --- | --- | --- | --- | --- | --- |
 | translategemma-4b-it-q4k-ehf16-af32 | translategemma | run | 2026-03-15 | - | Reconverted 2026-03-14 with f32 compute. Re-verified 2026-03-15 on Node/WebGPU AMD RDNA-3. Output incoherent: garbled multilingual gibberish ('has سوریistisson...IsIsIs'). Execution-v0 contract passes. Gemma 3 4B architecture has never been verified in Doppler (only 270m and 1B verified). Root cause unknown: suspect 4B architecture-level issue (RoPE linear scaling factor=8, or scale-dependent bug). Old gemma-3-4b-it conversion also untestable (stale kernel digests). |
-| lfm2-5-1-2b-instruct-q4k-ehf16-af32 | lfm2 | run | 2026-03-16 | - | Re-verified 2026-03-16 on Node/WebGPU AMD RDNA-3 after disabling recorder-backed fused sampling for conv models. Deterministic greedy (temp=0, topK=1). Prompt: 'The color of the sky is' -> ' what determines how how how...' (16 tokens). The bogus fused-sampler token-0 branch is gone, but decode still collapses into repetition after the second token. Logits remain finite. Conv/decode runtime issue still unresolved. No execution-v0 contract (schema=null). Batch decode correctly disabled for conv models. |
 
 ### 4. Quickstart-Supported Only
 
@@ -68,7 +68,7 @@ None right now.
 | translategemma | transformer | active | 2 (tools/configs/conversion/gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32.json, tools/configs/conversion/gemma3/translategemma-4b-it-q4k-ehf16-af32.json) | 1 (translategemma-4b-it-q4k-ehf16-af32) | yes | none | failed | verification-failed | catalog verification applies only to cataloged models (1/2 conversion configs cataloged) |
 | gemma3 | transformer | active | 9 (tools/configs/conversion/gemma3/gemma-3-1b-it-f16-af32.json, tools/configs/conversion/gemma3/gemma-3-1b-it-f16.json, tools/configs/conversion/gemma3/gemma-3-1b-it-q4k-ehaf16.json, +6 more) | 4 (gemma-3-1b-it-f16-af32, gemma-3-1b-it-q4k-ehf16-af32, gemma-3-270m-it-q4k-ehf16-af32, +1 more) | yes | none | verified (2026-03-15) | verified | catalog verification applies only to cataloged models (4/9 conversion configs cataloged) |
 | llama3 | transformer | active | 1 (tools/configs/conversion/llama3/llama3-template-f16.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
-| lfm2 | transformer | active | 2 (tools/configs/conversion/lfm2/lfm2.5-1.2b-instruct-q4k-ehaf16.json, tools/configs/conversion/lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32.json) | 1 (lfm2-5-1-2b-instruct-q4k-ehf16-af32) | no | none | failed | verification-failed | catalog verification applies only to cataloged models (1/2 conversion configs cataloged) |
+| lfm2 | transformer | active | 2 (tools/configs/conversion/lfm2/lfm2.5-1.2b-instruct-q4k-ehaf16.json, tools/configs/conversion/lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32.json) | 1 (lfm2-5-1-2b-instruct-q4k-ehf16-af32) | yes | none | verified (2026-03-16) | verified | catalog verification applies only to cataloged models (1/2 conversion configs cataloged) |
 | qwen3_5 | transformer | active | 4 (tools/configs/conversion/qwen3/qwen-3-5-0-8b-f16.json, tools/configs/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16-af32.json, tools/configs/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json, +1 more) | 2 (qwen-3-5-0-8b-q4k-ehaf16, qwen-3-5-2b-q4k-ehaf16) | yes | none | verified (2026-03-14) | verified | catalog verification applies only to cataloged models (2/4 conversion configs cataloged) |
 | qwen3 | transformer | active | 1 (tools/configs/conversion/qwen3/qwen3-template-q4k.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
 | kimi_k2 | transformer | active | 1 (tools/configs/conversion/kimi-k2/kimi-k2-template-f16.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
@@ -83,11 +83,11 @@ None right now.
 - Presets tracked: 18
 - Presets with conversion configs: 18
 - Presets present in catalog: 5
-- Verified presets (active runtime + conversion + catalog + passing verification): 3
+- Verified presets (active runtime + conversion + catalog + passing verification): 4
 - Cataloged presets pending verification: 0
-- Presets with HF-hosted catalog entries: 4
-- Presets with verified catalog lifecycle: 3
-- Presets with failed catalog verification: 2
+- Presets with HF-hosted catalog entries: 5
+- Presets with verified catalog lifecycle: 4
+- Presets with failed catalog verification: 1
 - Blocked runtime presets: 1
 - Catalog entries: 9
 
