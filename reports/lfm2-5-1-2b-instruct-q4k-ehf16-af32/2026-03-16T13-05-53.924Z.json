@@ -1,0 +1,522 @@
+{
+  "suite": "debug",
+  "modelId": "lfm2-5-1-2b-instruct-q4k-ehf16-af32",
+  "runtimePreset": null,
+  "deviceInfo": {
+    "hasSubgroups": true,
+    "hasSubgroupsF16": false,
+    "hasF16": true,
+    "hasTimestampQuery": true,
+    "maxBufferSize": 4294967292,
+    "maxWorkgroupSize": 1024,
+    "maxWorkgroupStorageSize": 65536,
+    "adapterInfo": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "amd-radeon-graphics-radv-gfx1151-",
+      "description": "radv: Mesa 25.0.7-0ubuntu0.25.04.2"
+    }
+  },
+  "results": [
+    {
+      "name": "generation",
+      "passed": true,
+      "duration": 1302.1144329999997
+    }
+  ],
+  "durationMs": 4762.097883,
+  "timestamp": "2026-03-16T13:05:53.924Z",
+  "metrics": {
+    "prompt": "The color of the sky is",
+    "maxTokens": 4,
+    "tokensGenerated": 4,
+    "tokensPerSec": 3.07,
+    "totalRunMs": 1301.34,
+    "firstTokenMs": 384.78,
+    "firstResponseMs": 3841.33,
+    "prefillMs": 380.23,
+    "decodeMs": 915.55,
+    "prefillTokens": 7,
+    "decodeTokens": 4,
+    "prefillTokensPerSec": 18.41,
+    "prefillTokensPerSecTtft": 18.19,
+    "decodeTokensPerSec": 4.37,
+    "modelLoadMs": 3456.55,
+    "gpu": {
+      "decodeRecordMs": 0,
+      "decodeSubmitWaitMs": 0,
+      "decodeReadbackWaitMs": 0
+    },
+    "decodeProfileSteps": [],
+    "generationDiagnostics": {
+      "preview": [
+        {
+          "id": 1620,
+          "text": " what",
+          "fallbackText": " what"
+        },
+        {
+          "id": 25195,
+          "text": " determines",
+          "fallbackText": " determines"
+        },
+        {
+          "id": 1531,
+          "text": " how",
+          "fallbackText": " how"
+        },
+        {
+          "id": 1531,
+          "text": " how",
+          "fallbackText": " how"
+        }
+      ],
+      "total": 4,
+      "omitted": 0,
+      "emptyTextCount": 0,
+      "specialLikeTextCount": 0,
+      "specialLikeFallbackCount": 0
+    },
+    "schemaVersion": 1,
+    "source": "doppler",
+    "suite": "debug",
+    "executionContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "lfm2-5-1-2b-instruct-q4k-ehf16-af32.steps",
+          "ok": true
+        },
+        {
+          "id": "lfm2-5-1-2b-instruct-q4k-ehf16-af32.session",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "session": {
+        "layout": "contiguous",
+        "disableCommandBatching": false,
+        "decodeBatchSize": 8,
+        "headDim": 64,
+        "kvLen": 128000,
+        "coldQuantMode": "none"
+      },
+      "steps": {
+        "total": 0,
+        "attention": 0,
+        "attentionPhases": {
+          "prefill": 0,
+          "decode": 0,
+          "both": 0
+        }
+      }
+    },
+    "executionV0GraphContractArtifact": null,
+    "layerPatternContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "inference.layerPattern.patternKind.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.patternKind.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.even",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.odd",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_offset",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_negative_offset",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "patternKindRules": 4,
+        "layerTypeRules": 6,
+        "patternKindContexts": 16,
+        "layerTypeContexts": 12
+      }
+    },
+    "requiredInferenceFieldsArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "scope": "manifest",
+      "label": "lfm2-5-1-2b-instruct-q4k-ehf16-af32.inference",
+      "ok": true,
+      "checks": [
+        {
+          "id": "lfm2-5-1-2b-instruct-q4k-ehf16-af32.inference.requiredInferenceFields",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "fieldCases": 35,
+        "nullableCases": 16,
+        "nonNullableCases": 19
+      }
+    }
+  },
+  "output": " what determines how how",
+  "memory": {
+    "used": 2632750848,
+    "pool": {
+      "allocations": 921,
+      "reuses": 240,
+      "totalBytesAllocated": 2529027840,
+      "peakBytesAllocated": 2520522240,
+      "currentBytesAllocated": 2498533120,
+      "totalBytesRequested": 2404996352,
+      "peakBytesRequested": 2396044544,
+      "currentBytesRequested": 2373995520,
+      "activeBuffers": 170,
+      "pooledBuffers": 64,
+      "budgetMaxBytes": 0,
+      "budgetUtilization": 0,
+      "hitRate": "20.7%"
+    },
+    "kvCache": {
+      "theoretical": 134217728,
+      "allocated": 134217728,
+      "used": 327680,
+      "efficiency": 0.00244140625,
+      "seqLen": 10,
+      "maxSeqLen": 4096,
+      "layout": "contiguous"
+    }
+  },
+  "debugSnapshot": {
+    "timestamp": "2026-03-16T13:05:58.690Z",
+    "logLevel": "INFO",
+    "traceCategories": [],
+    "enabledModules": [],
+    "disabledModules": [],
+    "recentLogs": [
+      {
+        "time": "1823.4",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 9 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "2253.3",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 10 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "2282.1",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 11 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "2681.3",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 12 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "2940.3",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 6 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "3228.5",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 7 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "3439.4",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "All 13 shards loaded: 811.9MB in 3.2s (256 MB/s avg)"
+      },
+      {
+        "time": "3560.8",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Layers: 16 complete (2.21s)"
+      },
+      {
+        "time": "3566.5",
+        "level": "WARN",
+        "module": "Loader",
+        "message": "[FinalNorm] Falling back to role-only final norm selection because tensor groups are missing in manifest."
+      },
+      {
+        "time": "3567.9",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Complete: 555.91 MB in 3.16s (175.70 MB/s)"
+      },
+      {
+        "time": "3568.5",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "[3.2s] Memory (complete): | GPU=2.32 GB (148 active, 13 pooled, peak=2.32 GB) | ShardCache=0 B (0 shards) | Layers=16, GPUBuffers=148"
+      },
+      {
+        "time": "3666.7",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Initialized 10 conv layer states (kernelSize=3)"
+      },
+      {
+        "time": "3666.8",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Model loaded successfully"
+      },
+      {
+        "time": "3666.8",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "Pipeline ready"
+      },
+      {
+        "time": "3680.4",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "matmul variant=f16w_f32a reason=default"
+      },
+      {
+        "time": "3689.1",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "matmul variant=f16w_f32a_tiled reason=path_override"
+      },
+      {
+        "time": "3715.3",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "attention variant=prefill_small_f16kv reason=path_override:tiled_small"
+      },
+      {
+        "time": "3715.5",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=false, tier=tiled_small, variant=prefill_small_f16kv, seqLen=7, kvLen=7, numHeads=32, headDim=64, useF16KV=true"
+      },
+      {
+        "time": "3727.9",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=false, tier=tiled_small, variant=prefill_small_f16kv, seqLen=7, kvLen=7, numHeads=32, headDim=64, useF16KV=true"
+      },
+      {
+        "time": "3731.5",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=false, tier=tiled_small, variant=prefill_small_f16kv, seqLen=7, kvLen=7, numHeads=32, headDim=64, useF16KV=true"
+      },
+      {
+        "time": "3734.3",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=false, tier=tiled_small, variant=prefill_small_f16kv, seqLen=7, kvLen=7, numHeads=32, headDim=64, useF16KV=true"
+      },
+      {
+        "time": "3736.8",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=false, tier=tiled_small, variant=prefill_small_f16kv, seqLen=7, kvLen=7, numHeads=32, headDim=64, useF16KV=true"
+      },
+      {
+        "time": "3740.1",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=false, tier=tiled_small, variant=prefill_small_f16kv, seqLen=7, kvLen=7, numHeads=32, headDim=64, useF16KV=true"
+      },
+      {
+        "time": "4010.5",
+        "level": "TRACE:logits",
+        "module": "Logits",
+        "message": "LOGITS_ENTRY: numTokens=7, useGPU=true"
+      },
+      {
+        "time": "4010.6",
+        "level": "TRACE:logits",
+        "module": "Logits",
+        "message": "LOGITS_PATH: device=true, useGPU=true, taking GPU path"
+      },
+      {
+        "time": "4011.2",
+        "level": "TRACE:logits",
+        "module": "Logits",
+        "message": "LM_HEAD_MATMUL: M=7, N=65536, K=2048, lmHeadDtype=f16, normedDtype=f32, size=268435456, bufLabel=model.embed_tokens.weight_268435456"
+      },
+      {
+        "time": "4054.2",
+        "level": "WARN",
+        "module": "Pipeline",
+        "message": "Batch decode failed, falling back to single-token: Error: [Pipeline] Batch decode path is disabled for conv models; use single-token decode."
+      },
+      {
+        "time": "4055.7",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "matmul variant=gemv_subgroup_multicol reason=gemv"
+      },
+      {
+        "time": "4060.7",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "matmul variant=gemv_subgroup_vec4 reason=path_override"
+      },
+      {
+        "time": "4064.1",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "attention variant=decode_online_f16kv reason=path_override:subgroup"
+      },
+      {
+        "time": "4064.2",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=8, numHeads=32, headDim=64, useF16KV=true"
+      },
+      {
+        "time": "4072.5",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=8, numHeads=32, headDim=64, useF16KV=true"
+      },
+      {
+        "time": "4075.1",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=8, numHeads=32, headDim=64, useF16KV=true"
+      },
+      {
+        "time": "4077.4",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=8, numHeads=32, headDim=64, useF16KV=true"
+      },
+      {
+        "time": "4079.4",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=8, numHeads=32, headDim=64, useF16KV=true"
+      },
+      {
+        "time": "4081.4",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=8, numHeads=32, headDim=64, useF16KV=true"
+      },
+      {
+        "time": "4339.1",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=9, numHeads=32, headDim=64, useF16KV=true"
+      },
+      {
+        "time": "4341.5",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=9, numHeads=32, headDim=64, useF16KV=true"
+      },
+      {
+        "time": "4344.2",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=9, numHeads=32, headDim=64, useF16KV=true"
+      },
+      {
+        "time": "4346.1",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=9, numHeads=32, headDim=64, useF16KV=true"
+      },
+      {
+        "time": "4347.7",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=9, numHeads=32, headDim=64, useF16KV=true"
+      },
+      {
+        "time": "4349.3",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=9, numHeads=32, headDim=64, useF16KV=true"
+      },
+      {
+        "time": "4701.2",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=10, numHeads=32, headDim=64, useF16KV=true"
+      },
+      {
+        "time": "4704.4",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=10, numHeads=32, headDim=64, useF16KV=true"
+      },
+      {
+        "time": "4706.6",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=10, numHeads=32, headDim=64, useF16KV=true"
+      },
+      {
+        "time": "4708.2",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=10, numHeads=32, headDim=64, useF16KV=true"
+      },
+      {
+        "time": "4709.7",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=10, numHeads=32, headDim=64, useF16KV=true"
+      },
+      {
+        "time": "4711.1",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=10, numHeads=32, headDim=64, useF16KV=true"
+      },
+      {
+        "time": "4969.1",
+        "level": "INFO",
+        "module": "Perf",
+        "message": "TTFT: 385ms | Prefill: 380ms | Decode: 916ms (3 tokens @ 3.3 tok/s)"
+      },
+      {
+        "time": "4972.3",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Unloaded"
+      }
+    ],
+    "errorCount": 0,
+    "warnCount": 16
+  }
+}

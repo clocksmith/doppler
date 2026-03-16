@@ -1,9 +1,9 @@
 # Model Failure Action Plan
 
-Last updated: 2026-03-14T03:50:09Z
-Plan status: complete
-Current resume point: none — all workstreams closed
-Current highest-priority ready step: none
+Last updated: 2026-03-16T00:50:00Z
+Plan status: active
+Current resume point: `WS6.1` — `lfm2` decode-collapse investigation
+Current highest-priority ready step: `WS6.1` — keep `lfm2` and `translategemma-4b-it` on the promotion path
 
 ## Purpose
 
@@ -25,6 +25,23 @@ Secondary maintenance scope:
 - catalog/support-matrix metadata cleanup
 
 This file is intentionally explicit, resumable, and hypothesis-aware. Do not replace it with ad hoc notes. Update it as work progresses.
+
+## Current Working Bucket
+
+Models currently treated as the intended working set:
+
+- `gemma-3-270m-it-q4k-ehf16-af32`
+- `gemma-3-1b-it-q4k-ehf16-af32`
+- `gemma-3-1b-it-f16-af32`
+- `google-embeddinggemma-300m-q4k-ehf16-af32`
+- `qwen-3-5-0-8b-q4k-ehaf16`
+- `qwen-3-5-2b-q4k-ehaf16`
+- `translategemma-4b-1b-enes-q4k-ehf16-af32`
+
+Models that should be promoted into that bucket next:
+
+- `lfm2-5-1-2b-instruct-q4k-ehf16-af32`
+- `translategemma-4b-it-q4k-ehf16-af32`
 
 ## How To Use This File
 
@@ -502,6 +519,29 @@ Steps:
 - [x] `WS5.D.3` Support-matrix sync run after catalog corrections.
 - [x] `WS5.D.4` No models upgraded to verified without human-reviewed evidence.
 
+## WS6: Current Promotion Targets
+
+Status: `in_progress`
+
+Goal: move the remaining intended text-model targets into the working bucket without lowering correctness standards.
+
+Entry gate:
+
+- current catalog/support status refreshed
+- target artifacts available locally or on the external volume
+
+Exit gate:
+
+- `lfm2-5-1-2b-instruct-q4k-ehf16-af32` produces coherent deterministic output on a real runtime smoke
+- `translategemma-4b-it-q4k-ehf16-af32` produces coherent deterministic output on a real runtime smoke
+- support docs and catalog mirror are re-synced after human review
+
+Steps:
+
+- [ ] `WS6.1` Keep `lfm2` on the promotion path. The argmax reduction bug is fixed, but `lfm2` still collapses into repetitive output on real node/WebGPU smokes. Recorder-backed fused sampling is now disabled for conv models to remove the bogus `token 0` branch, leaving the remaining conv/decode collapse as the active issue.
+- [ ] `WS6.2` Keep `translategemma-4b-it` on the promotion path. Metadata and index-sync issues are fixed, but runtime coherence is still failing and needs layer-by-layer numerical debugging.
+- [ ] `WS6.3` Re-sync repo-visible status docs after the next human-reviewed verification result.
+
 ## Validation Requirements Before Calling Anything Fixed
 
 The minimum acceptable closeout for a model-correctness issue is:
@@ -579,3 +619,4 @@ Template:
 | 2026-03-12T22:30:00Z | agent/claude | `WS5.B` | `ready -> done` | `B` | `gemma2-sharded-index` is a test fixture in `node-converter-surface-errors.test.js` with deliberately broken `cast.identity` step. `ok: false` graph error is expected test behavior, not a real regression | `WS5.C` |
 | 2026-03-12T22:30:00Z | agent/claude | `WS5.C` | `ready -> done (parked)` | `B` | Confirmed LFM2 fallback rule maps to `gemma3-q4k-dequant-f32a-nosubgroups`. No volume artifact exists. Local-only `lfm2-5-1-2b-instruct-q4k-ehf16-af32` in `models/local/`. Parked as P2 | `WS5.D` |
 | 2026-03-12T22:30:00Z | agent/claude | `WS5.D` | `ready -> done` | `B` | Audited catalog: fixed false `local: true` and `baseUrl` on `translategemma-4b-1b-enes-q4k-ehf16-af32` (artifact doesn't exist). Support matrix re-synced. All workstreams complete | none |
+| 2026-03-16T00:50:00Z | agent/codex | `WS6.1` | `ready -> in_progress` | `A`,`B` | Reproduced current `lfm2` collapse on real node/WebGPU AMD RDNA-3. Disabling recorder-backed fused sampling for conv models removes the bogus fused-sampler branch, but coherent decode is still unresolved. Reopened the plan with `lfm2` and `translategemma-4b-it` as active promotion targets | `WS6.1` |

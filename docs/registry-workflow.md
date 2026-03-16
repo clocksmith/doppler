@@ -27,6 +27,14 @@ Canonical support metadata lives on the external models volume:
 
 Repo-local `models/catalog.json` is the mirrored copy consumed by current repo checks and quickstart generation.
 
+When the repo mirror has reviewed promotion changes that are not yet present in the canonical external registry, do not run the plain sync command and expect it to pick them up implicitly. Use:
+
+```bash
+npm run external:support:promote
+```
+
+That path writes the canonical external registry from the repo mirror explicitly. The plain sync command continues to treat the existing external registry as canonical when it already exists.
+
 ## Validate catalog and hosted registry
 
 Run the full catalog check before release, before demo deploy, and after any hosted catalog change:

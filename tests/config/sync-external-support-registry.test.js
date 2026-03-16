@@ -3,7 +3,10 @@ import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
-import { buildExternalSupportRegistry } from '../../tools/sync-external-support-registry.js';
+import {
+  buildExternalSupportRegistry,
+  main as syncExternalSupportRegistryMain,
+} from '../../tools/sync-external-support-registry.js';
 
 const root = mkdtempSync(path.join(tmpdir(), 'doppler-external-support-registry-'));
 
@@ -177,6 +180,18 @@ try {
   assert.equal(gemma.external.manifestModelIdMatchesCatalogModelId, true);
   assert.equal(gemma.external.hostedPathMatchesRdrr, true);
 
+  writeFileSync(path.join(root, 'DOPPLER_SUPPORT_REGISTRY.json'), outputs.json, 'utf8');
+  writeFileSync(path.join(root, 'DOPPLER_SUPPORT_REGISTRY.md'), outputs.md, 'utf8');
+  await syncExternalSupportRegistryMain([
+    '--check',
+    '--volume-root', root,
+    '--rdrr-index', rdrrIndexPath,
+    '--catalog-file', catalogPath,
+    '--source-support-file', catalogPath,
+    '--json-output', path.join(root, 'DOPPLER_SUPPORT_REGISTRY.json'),
+    '--md-output', path.join(root, 'DOPPLER_SUPPORT_REGISTRY.md'),
+  ]);
+
   const supportRegistryPath = path.join(root, 'DOPPLER_SUPPORT_REGISTRY.json');
   writeFileSync(supportRegistryPath, JSON.stringify({
     version: 1,
@@ -216,6 +231,7 @@ try {
     volumeRoot: root,
     rdrrIndex: rdrrIndexPath,
     catalogFile: catalogPath,
+    sourceSupportFile: supportRegistryPath,
     jsonOutput: supportRegistryPath,
     mdOutput: path.join(root, 'DOPPLER_SUPPORT_REGISTRY.md'),
   }, '2026-03-11T12:30:00.000Z');
@@ -223,6 +239,44 @@ try {
   const canonicalPayload = JSON.parse(canonicalOutputs.json);
   assert.equal(canonicalPayload.supportSource, supportRegistryPath);
   assert.deepEqual(canonicalPayload.models.map((entry) => entry.modelId), ['gemma-3-1b-it-f16-af32']);
+
+  await assert.rejects(
+    () => buildExternalSupportRegistry({
+      volumeRoot: root,
+      rdrrIndex: rdrrIndexPath,
+      catalogFile: catalogPath,
+      jsonOutput: supportRegistryPath,
+      mdOutput: path.join(root, 'DOPPLER_SUPPORT_REGISTRY.md'),
+    }, '2026-03-11T12:45:00.000Z'),
+    /Canonical external support registry is missing promotable RDRR-backed repo entries: qwen-3-5-0-8b-q4k-ehaf16/
+  );
+
+  const promotedOutputs = await buildExternalSupportRegistry({
+    volumeRoot: root,
+    rdrrIndex: rdrrIndexPath,
+    catalogFile: catalogPath,
+    sourceSupportFile: catalogPath,
+    jsonOutput: supportRegistryPath,
+    mdOutput: path.join(root, 'DOPPLER_SUPPORT_REGISTRY.md'),
+  }, '2026-03-11T13:00:00.000Z');
+
+  const promotedPayload = JSON.parse(promotedOutputs.json);
+  assert.equal(promotedPayload.supportSource, catalogPath);
+  assert.deepEqual(
+    promotedPayload.models.map((entry) => entry.modelId),
+    ['qwen-3-5-0-8b-q4k-ehaf16', 'gemma-3-1b-it-f16-af32']
+  );
+
+  writeFileSync(supportRegistryPath, promotedOutputs.json, 'utf8');
+  writeFileSync(path.join(root, 'DOPPLER_SUPPORT_REGISTRY.md'), promotedOutputs.md, 'utf8');
+  await syncExternalSupportRegistryMain([
+    '--check',
+    '--volume-root', root,
+    '--rdrr-index', rdrrIndexPath,
+    '--catalog-file', catalogPath,
+    '--json-output', supportRegistryPath,
+    '--md-output', path.join(root, 'DOPPLER_SUPPORT_REGISTRY.md'),
+  ]);
 }
 finally {
   rmSync(root, { recursive: true, force: true });

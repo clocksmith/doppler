@@ -248,6 +248,12 @@ Then regenerate the external canonical support registry:
 node tools/sync-external-support-registry.js
 ```
 
+If the repo mirror currently contains the reviewed promotion state and the external canonical registry is older, use the explicit promotion source:
+
+```bash
+npm run external:support:promote
+```
+
 This updates:
 
 - `/media/x/models/DOPPLER_SUPPORT_REGISTRY.json`

@@ -9,6 +9,7 @@ const {
   readSampledTokenFromStagingBuffer,
   readMappedBufferCopy,
   readBatchTokensFromStagingBuffers,
+  shouldUseFusedDecodeSampling,
 } = await import('../../src/inference/pipelines/text/generator-steps.js');
 
 function createRingTracker() {
@@ -225,6 +226,36 @@ function createStagingBuffer(words, options = {}) {
   assert.deepEqual(
     findInvalidGeneratedToken([11, 99], 32, null),
     { index: 1, tokenId: 99 }
+  );
+}
+
+{
+  assert.equal(
+    shouldUseFusedDecodeSampling({
+      recorderEnabled: true,
+      gpuSamplingEnabled: true,
+      fusedDecodeDisabled: false,
+      layerTypes: ['attention', 'mlp'],
+    }),
+    true
+  );
+  assert.equal(
+    shouldUseFusedDecodeSampling({
+      recorderEnabled: true,
+      gpuSamplingEnabled: true,
+      fusedDecodeDisabled: false,
+      layerTypes: ['conv', 'attention'],
+    }),
+    false
+  );
+  assert.equal(
+    shouldUseFusedDecodeSampling({
+      recorderEnabled: true,
+      gpuSamplingEnabled: true,
+      fusedDecodeDisabled: true,
+      layerTypes: ['attention'],
+    }),
+    false
   );
 }
 

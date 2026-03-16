@@ -75,6 +75,7 @@
     "external:rdrr:index": "node tools/sync-external-rdrr-index.js",
     "external:rdrr:index:check": "node tools/sync-external-rdrr-index.js --check",
     "external:support:sync": "node tools/sync-external-support-registry.js",
+    "external:support:promote": "node tools/sync-external-support-registry.js --source-support-file models/catalog.json",
     "external:support:check": "node tools/sync-external-support-registry.js --check",
     "catalog:sync:external": "node tools/sync-catalog-from-external-support.js",
     "catalog:sync:external:check": "node tools/sync-catalog-from-external-support.js --check",

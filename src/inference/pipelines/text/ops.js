@@ -281,9 +281,16 @@ export async function initConvLayerState(convState, convKernel, convInProj, hidd
   if (isQ4K) {
     const numBlocks = Math.ceil(totalElements / QK_K);
     const q4kBytes = numBlocks * Q4K_BLOCK_BYTES;
-    if (device) await device.queue.onSubmittedWorkDone();
-    const raw = await readBuffer(kernelBuf, q4kBytes);
-    weightF32 = dequantizeQ4KM(new Uint8Array(raw), numBlocks, [totalElements]);
+    // GPU readBuffer returns zeros for some Q4K weight buffers, so prefer
+    // CPU-side rawBytes from the WeightBuffer when available.
+    const hasRawBytes = isWB && convKernel.rawBytes;
+    if (hasRawBytes) {
+      weightF32 = dequantizeQ4KM(new Uint8Array(convKernel.rawBytes), numBlocks, [totalElements]);
+    } else {
+      if (device) await device.queue.onSubmittedWorkDone();
+      const raw = await readBuffer(kernelBuf, q4kBytes);
+      weightF32 = dequantizeQ4KM(new Uint8Array(raw), numBlocks, [totalElements]);
+    }
   } else if (kernelDtype === 'f16' || kernelDtype === 'bf16') {
     if (device) await device.queue.onSubmittedWorkDone();
     const raw = await readBuffer(kernelBuf, totalElements * 2);
@@ -293,6 +300,17 @@ export async function initConvLayerState(convState, convKernel, convInProj, hidd
     if (device) await device.queue.onSubmittedWorkDone();
     const raw = await readBuffer(kernelBuf, totalElements * 4);
     weightF32 = new Float32Array(raw);
+  }
+
+  // Validate dequantized weights are non-degenerate
+  let maxAbs = 0;
+  for (let i = 0; i < weightF32.length; i++) {
+    const abs = Math.abs(weightF32[i]);
+    if (abs > maxAbs) maxAbs = abs;
+  }
+  if (maxAbs === 0) {
+    const { log } = await import('../../../debug/index.js');
+    log.error('Pipeline', `${label} conv kernel weights are all zeros after dequantization (dtype=${kernelDtype}, elements=${totalElements}). Conv layers will produce degenerate output.`);
   }
 
   // Upload dequantized weights to GPU
