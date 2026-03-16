@@ -71,9 +71,11 @@ function createFakePipeline() {
 
 function createFakeDevice({ mapReject = false } = {}) {
   const createdBuffers = [];
+  const encoders = [];
 
   return {
     createdBuffers,
+    encoders,
     queue: {
       submit() {},
       onSubmittedWorkDone() {
@@ -133,8 +135,11 @@ function createFakeDevice({ mapReject = false } = {}) {
       return { ...descriptor };
     },
     createCommandEncoder() {
-      return {
+      const encoder = {
+        passes: [],
         beginComputePass() {
+          const pass = { label: null };
+          encoder.passes.push(pass);
           return {
             setPipeline() {},
             setBindGroup() {},
@@ -147,6 +152,8 @@ function createFakeDevice({ mapReject = false } = {}) {
           return {};
         },
       };
+      encoders.push(encoder);
+      return encoder;
     },
   };
 }
@@ -212,6 +219,26 @@ function resetRuntimeState(device) {
   assert.equal(stagingBuffer.destroyed, true);
   assert.equal(poolStats.activeBuffers, 0);
   assert.equal(poolStats.currentBytesAllocated, 0);
+}
+
+{
+  const device = createFakeDevice();
+  resetRuntimeState(device);
+
+  const logits = new FakeBuffer({
+    size: 65536 * Float32Array.BYTES_PER_ELEMENT,
+    usage: GPUBufferUsage.STORAGE,
+  });
+
+  await runArgmax(logits, 65536, {
+    padTokenId: null,
+    logitSoftcap: 0,
+    logitsDtype: 'f32',
+    outputIndex: 0,
+  });
+
+  const totalPasses = device.encoders.reduce((count, encoder) => count + encoder.passes.length, 0);
+  assert.equal(totalPasses, 2);
 }
 
 destroyBufferPool();

@@ -7,7 +7,6 @@ import { createPipeline, createUniformBufferWithView, getOrCreateBindGroupLayout
 import { allowReadback } from '../perf-guards.js';
 import { selectRuleValue as selectKernelRuleValue } from './rule-registry.js';
 import { selectRuleValue as selectSharedRuleValue } from '../../rules/rule-registry.js';
-import { getKernelThresholds } from '../../config/schema/index.js';
 
 
 function getSampleBindGroupLayout(device) {
@@ -96,8 +95,7 @@ async function resolveArgmaxPipelines(device, vocabSize, variants) {
   const argmaxPipeline = await createSamplePipeline(device, variants.argmax);
   const numWorkgroups = Math.min(WORKGROUP_SIZES.DEFAULT, Math.ceil(vocabSize / WORKGROUP_SIZES.DEFAULT));
   const useSinglePassArgmax = numWorkgroups === 1;
-  const argmaxReduceVocabThreshold = getKernelThresholds().sample.argmaxReduceVocabThreshold;
-  const reducePipeline = useSinglePassArgmax || vocabSize <= argmaxReduceVocabThreshold
+  const reducePipeline = useSinglePassArgmax
     ? null
     : await createSamplePipeline(device, variants.argmaxReduce);
   const singlePassPipeline = useSinglePassArgmax
