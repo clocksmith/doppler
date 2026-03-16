@@ -1,0 +1,524 @@
+{
+  "suite": "debug",
+  "modelId": "lfm2-5-1-2b-instruct-q4k-ehf16-af32",
+  "runtimePreset": null,
+  "deviceInfo": {
+    "hasSubgroups": true,
+    "hasSubgroupsF16": false,
+    "hasF16": true,
+    "hasTimestampQuery": true,
+    "maxBufferSize": 4294967292,
+    "maxWorkgroupSize": 1024,
+    "maxWorkgroupStorageSize": 65536,
+    "adapterInfo": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "amd-radeon-graphics-radv-gfx1151-",
+      "description": "radv: Mesa 25.0.7-0ubuntu0.25.04.2"
+    }
+  },
+  "results": [
+    {
+      "name": "generation",
+      "passed": true,
+      "duration": 19195.462454
+    }
+  ],
+  "durationMs": 23692.254361,
+  "timestamp": "2026-03-15T16:00:31.206Z",
+  "metrics": {
+    "prompt": "The color of the sky is",
+    "maxTokens": 64,
+    "tokensGenerated": 64,
+    "tokensPerSec": 3.33,
+    "totalRunMs": 19194.75,
+    "firstTokenMs": 379.55,
+    "firstResponseMs": 4872.25,
+    "prefillMs": 375.71,
+    "decodeMs": 18814.5,
+    "prefillTokens": 7,
+    "decodeTokens": 64,
+    "prefillTokensPerSec": 18.63,
+    "prefillTokensPerSecTtft": 18.44,
+    "decodeTokensPerSec": 3.4,
+    "modelLoadMs": 4492.7,
+    "gpu": {
+      "decodeRecordMs": 0,
+      "decodeSubmitWaitMs": 0,
+      "decodeReadbackWaitMs": 0
+    },
+    "decodeProfileSteps": [],
+    "generationDiagnostics": {
+      "preview": [
+        {
+          "id": 1620,
+          "text": " what",
+          "fallbackText": " what"
+        },
+        {
+          "id": 25195,
+          "text": " determines",
+          "fallbackText": " determines"
+        },
+        {
+          "id": 25195,
+          "text": " determines",
+          "fallbackText": " determines"
+        },
+        {
+          "id": 25195,
+          "text": " determines",
+          "fallbackText": " determines"
+        },
+        {
+          "id": 25195,
+          "text": " determines",
+          "fallbackText": " determines"
+        },
+        {
+          "id": 25195,
+          "text": " determines",
+          "fallbackText": " determines"
+        },
+        {
+          "id": 25195,
+          "text": " determines",
+          "fallbackText": " determines"
+        },
+        {
+          "id": 25195,
+          "text": " determines",
+          "fallbackText": " determines"
+        },
+        {
+          "id": 25195,
+          "text": " determines",
+          "fallbackText": " determines"
+        },
+        {
+          "id": 25195,
+          "text": " determines",
+          "fallbackText": " determines"
+        },
+        {
+          "id": 25195,
+          "text": " determines",
+          "fallbackText": " determines"
+        },
+        {
+          "id": 25195,
+          "text": " determines",
+          "fallbackText": " determines"
+        },
+        {
+          "id": 25195,
+          "text": " determines",
+          "fallbackText": " determines"
+        },
+        {
+          "id": 25195,
+          "text": " determines",
+          "fallbackText": " determines"
+        },
+        {
+          "id": 25195,
+          "text": " determines",
+          "fallbackText": " determines"
+        },
+        {
+          "id": 25195,
+          "text": " determines",
+          "fallbackText": " determines"
+        },
+        {
+          "id": 25195,
+          "text": " determines",
+          "fallbackText": " determines"
+        },
+        {
+          "id": 25195,
+          "text": " determines",
+          "fallbackText": " determines"
+        },
+        {
+          "id": 25195,
+          "text": " determines",
+          "fallbackText": " determines"
+        },
+        {
+          "id": 25195,
+          "text": " determines",
+          "fallbackText": " determines"
+        },
+        {
+          "id": 25195,
+          "text": " determines",
+          "fallbackText": " determines"
+        },
+        {
+          "id": 25195,
+          "text": " determines",
+          "fallbackText": " determines"
+        },
+        {
+          "id": 25195,
+          "text": " determines",
+          "fallbackText": " determines"
+        },
+        {
+          "id": 25195,
+          "text": " determines",
+          "fallbackText": " determines"
+        },
+        {
+          "id": 25195,
+          "text": " determines",
+          "fallbackText": " determines"
+        },
+        {
+          "id": 25195,
+          "text": " determines",
+          "fallbackText": " determines"
+        },
+        {
+          "id": 25195,
+          "text": " determines",
+          "fallbackText": " determines"
+        },
+        {
+          "id": 25195,
+          "text": " determines",
+          "fallbackText": " determines"
+        },
+        {
+          "id": 25195,
+          "text": " determines",
+          "fallbackText": " determines"
+        },
+        {
+          "id": 25195,
+          "text": " determines",
+          "fallbackText": " determines"
+        },
+        {
+          "id": 25195,
+          "text": " determines",
+          "fallbackText": " determines"
+        },
+        {
+          "id": 25195,
+          "text": " determines",
+          "fallbackText": " determines"
+        }
+      ],
+      "total": 64,
+      "omitted": 32,
+      "emptyTextCount": 0,
+      "specialLikeTextCount": 0,
+      "specialLikeFallbackCount": 0
+    },
+    "schemaVersion": 1,
+    "source": "doppler",
+    "suite": "debug",
+    "executionContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "lfm2-5-1-2b-instruct-q4k-ehf16-af32.steps",
+          "ok": true
+        },
+        {
+          "id": "lfm2-5-1-2b-instruct-q4k-ehf16-af32.session",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "session": {
+        "layout": "contiguous",
+        "disableCommandBatching": false,
+        "decodeBatchSize": 8,
+        "headDim": 64,
+        "kvLen": 128000,
+        "coldQuantMode": "none"
+      },
+      "steps": {
+        "total": 0,
+        "attention": 0,
+        "attentionPhases": {
+          "prefill": 0,
+          "decode": 0,
+          "both": 0
+        }
+      }
+    },
+    "executionV0GraphContractArtifact": null,
+    "layerPatternContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "inference.layerPattern.patternKind.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.patternKind.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.even",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.odd",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_offset",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_negative_offset",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "patternKindRules": 4,
+        "layerTypeRules": 6,
+        "patternKindContexts": 16,
+        "layerTypeContexts": 12
+      }
+    },
+    "requiredInferenceFieldsArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "scope": "manifest",
+      "label": "lfm2-5-1-2b-instruct-q4k-ehf16-af32.inference",
+      "ok": true,
+      "checks": [
+        {
+          "id": "lfm2-5-1-2b-instruct-q4k-ehf16-af32.inference.requiredInferenceFields",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "fieldCases": 35,
+        "nullableCases": 16,
+        "nonNullableCases": 19
+      }
+    }
+  },
+  "output": " what determines determines determines determines determines determines determines determines determines determines determines determines determines determines determines determines determines determines determines determines determines determines determines determines determines determines determines determines determines determines determines determines determines determines determines determines determines determines determines determines determines determines determines determines determines determines determines determines determines determines determines determines determines determines determines determines determines determines determines determines determines determines determines",
+  "memory": {
+    "used": 2632489728,
+    "pool": {
+      "allocations": 10943,
+      "reuses": 2400,
+      "totalBytesAllocated": 2689567488,
+      "peakBytesAllocated": 2520522240,
+      "currentBytesAllocated": 2498272000,
+      "totalBytesRequested": 2560870656,
+      "peakBytesRequested": 2396044544,
+      "currentBytesRequested": 2373995520,
+      "activeBuffers": 170,
+      "pooledBuffers": 64,
+      "budgetMaxBytes": 0,
+      "budgetUtilization": 0,
+      "hitRate": "18.0%"
+    },
+    "kvCache": {
+      "theoretical": 134217728,
+      "allocated": 134217728,
+      "used": 2293760,
+      "efficiency": 0.01708984375,
+      "seqLen": 70,
+      "maxSeqLen": 4096,
+      "layout": "contiguous"
+    }
+  },
+  "debugSnapshot": {
+    "timestamp": "2026-03-15T16:00:54.901Z",
+    "logLevel": "INFO",
+    "traceCategories": [],
+    "enabledModules": [],
+    "disabledModules": [],
+    "recentLogs": [
+      {
+        "time": "196.6",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "Initializing WebGPU..."
+      },
+      {
+        "time": "231.0",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "GPU: hasF16=true, hasSubgroups=true"
+      },
+      {
+        "time": "231.0",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "Fetching manifest..."
+      },
+      {
+        "time": "255.4",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "Model: transformer"
+      },
+      {
+        "time": "255.6",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "Creating pipeline..."
+      },
+      {
+        "time": "365.4",
+        "level": "WARN",
+        "module": "Loader",
+        "message": "Dense model on discrete GPU - performance limited. Consider MoE model."
+      },
+      {
+        "time": "368.7",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 1 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "369.2",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 2 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "369.3",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 3 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "369.4",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 0 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "1659.5",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 4 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "1660.6",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 5 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "2205.4",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 8 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "2238.8",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 9 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "2809.2",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 10 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "2831.9",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 11 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "3592.2",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 12 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "3891.7",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 6 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "4217.5",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 7 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "4592.1",
+        "level": "WARN",
+        "module": "Loader",
+        "message": "[FinalNorm] Falling back to role-only final norm selection because tensor groups are missing in manifest."
+      },
+      {
+        "time": "5070.4",
+        "level": "WARN",
+        "module": "Pipeline",
+        "message": "Batch decode failed, falling back to single-token: Error: [Pipeline] Batch decode path is disabled for conv models; use single-token decode."
+      },
+      {
+        "time": "5441.1",
+        "level": "WARN",
+        "module": "Decode",
+        "message": "Suspicious token 0 (vocabSize=65536, step=1)"
+      },
+      {
+        "time": "5442.4",
+        "level": "WARN",
+        "module": "Decode",
+        "message": "Logits: max=11.2284 at [1023], min=-9.0336, hasNaN=false, hasInf=false"
+      },
+      {
+        "time": "5442.4",
+        "level": "WARN",
+        "module": "Decode",
+        "message": "First 10 logits: "
+      },
+      {
+        "time": "5442.4",
+        "level": "WARN",
+        "module": "Decode",
+        "message": "Logit[0] (pad): -3.5453, Logit[1023]: 11.2284"
+      },
+      {
+        "time": "5442.4",
+        "level": "WARN",
+        "module": "Decode",
+        "message": "Fused sampling produced invalid token; falling back to CPU sampling."
+      },
+      {
+        "time": "23887.9",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Unloaded"
+      }
+    ],
+    "errorCount": 0,
+    "warnCount": 21
+  }
+}

@@ -582,7 +582,7 @@
     .quick-models-list {
       display: grid;
       grid-template-columns: 1fr;
-      gap: var(--space-xs);
+      gap: var(--space-md);
       align-items: stretch;
     }
 
@@ -590,7 +590,7 @@
       display: flex;
       flex-direction: row;
       padding: 6px 8px;
-      border: var(--border-sm) solid var(--fg);
+      border: var(--border-sm) dotted var(--fg);
       background: var(--bg);
       height: 100%;
       box-sizing: border-box;
@@ -1749,7 +1749,7 @@
     .storage-inspector-list {
       display: flex;
       flex-direction: column;
-      gap: var(--space-xs);
+      gap: var(--space-md);
     }
 
     .storage-entry {
@@ -1757,12 +1757,12 @@
       flex-direction: column;
       align-items: stretch;
       gap: var(--space-sm);
-      border: var(--border-sm) solid var(--fg);
+      border: var(--border-sm) dotted var(--fg);
       padding: var(--space-sm);
     }
 
     .storage-entry.is-active {
-      border-style: solid;
+      border-style: dotted;
       background: var(--bg-contrast);
     }
 

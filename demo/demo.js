@@ -3921,6 +3921,7 @@ const TRANSLATE_MODEL_HINTS = Object.freeze([
   'opus',
   'mt',
 ]);
+const DEMO_DEFAULT_TEXT_MODEL_ID = 'qwen-3-5-0-8b-q4k-ehaf16';
 
 function getModelSelectionScore(mode, modelId) {
   const normalizedMode = normalizeDeepLinkMode(mode, 'run');
@@ -3928,7 +3929,10 @@ function getModelSelectionScore(mode, modelId) {
   let score = 0;
 
   if (normalizedMode === 'run') {
-    if (id.includes('gemma-3')) score += 50;
+    if (id === DEMO_DEFAULT_TEXT_MODEL_ID) score += 200;
+    else if (id.includes('qwen-3-5-0-8b')) score += 120;
+    else if (id.includes('qwen-3-5')) score += 90;
+    else if (id.includes('gemma-3')) score += 50;
     else if (id.includes('gemma')) score += 25;
   }
 
