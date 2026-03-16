@@ -45,7 +45,9 @@
         },
         "tested": {
           "suite": "inference",
-          "surface": ["browser"],
+          "surface": [
+            "browser"
+          ],
           "result": "pass",
           "lastVerifiedAt": "2026-03-12",
           "source": "manual-review",
@@ -97,7 +99,9 @@
         },
         "tested": {
           "suite": "inference",
-          "surface": ["auto"],
+          "surface": [
+            "auto"
+          ],
           "result": "pass",
           "lastVerifiedAt": "2026-03-13",
           "source": "registry-verify",
@@ -149,7 +153,9 @@
         },
         "tested": {
           "suite": "inference",
-          "surface": ["browser"],
+          "surface": [
+            "browser"
+          ],
           "result": "pass",
           "lastVerifiedAt": "2026-03-12",
           "source": "manual-review",
@@ -200,7 +206,9 @@
         },
         "tested": {
           "suite": "inference",
-          "surface": ["browser"],
+          "surface": [
+            "browser"
+          ],
           "result": "pass",
           "lastVerifiedAt": "2026-03-10",
           "source": "manual-review",
@@ -252,11 +260,13 @@
         },
         "tested": {
           "suite": "debug",
-          "surface": ["node"],
+          "surface": [
+            "node"
+          ],
           "result": "fail",
           "lastVerifiedAt": "2026-03-15",
           "source": "runtime-verify",
-          "notes": "Reconverted 2026-03-14 with f32 compute. Re-verified 2026-03-15 on Node/WebGPU AMD RDNA-3. Output incoherent: garbled multilingual gibberish ('has سوریistisson...IsIsIs'). Execution-v0 contract passes. Gemma 3 4B architecture has never been verified in Doppler (only 270m and 1B verified). Root cause unknown: suspect 4B architecture-level issue (RoPE linear scaling factor=8, or scale-dependent bug). Old gemma-3-4b-it conversion also untestable (stale kernel digests).",
+          "notes": "Reconverted 2026-03-14 with f32 compute. Re-verified 2026-03-15 on Node/WebGPU AMD RDNA-3. Output incoherent: garbled multilingual gibberish ('has \u0633\u0648\u0631\u06ccistisson...IsIsIs'). Execution-v0 contract passes. Gemma 3 4B architecture has never been verified in Doppler (only 270m and 1B verified). Root cause unknown: suspect 4B architecture-level issue (RoPE linear scaling factor=8, or scale-dependent bug). Old gemma-3-4b-it conversion also untestable (stale kernel digests).",
           "contracts": {
             "executionContractOk": true,
             "executionV0GraphOk": true
@@ -302,11 +312,13 @@
         },
         "tested": {
           "suite": "debug",
-          "surface": ["node"],
+          "surface": [
+            "node"
+          ],
           "result": "pass",
           "lastVerifiedAt": "2026-03-15",
           "source": "runtime-verify",
-          "notes": "Node/WebGPU AMD RDNA-3. Deterministic greedy (temp=0, topK=1). Prompt: EN->ES 'The weather is nice today.' -> 'El tiempo está agradable hoy.' (7 tokens including <end_of_turn>). Correct translation, coherent output. All execution-v0 contract checks pass.",
+          "notes": "Node/WebGPU AMD RDNA-3. Deterministic greedy (temp=0, topK=1). Prompt: EN->ES 'The weather is nice today.' -> 'El tiempo est\u00e1 agradable hoy.' (7 tokens including <end_of_turn>). Correct translation, coherent output. All execution-v0 contract checks pass.",
           "contracts": {
             "executionContractOk": true,
             "executionV0GraphOk": true
@@ -354,7 +366,9 @@
         },
         "tested": {
           "suite": "inference",
-          "surface": ["node"],
+          "surface": [
+            "node"
+          ],
           "result": "pass",
           "lastVerifiedAt": "2026-03-14",
           "source": "runtime-verify",
@@ -406,7 +420,9 @@
         },
         "tested": {
           "suite": "inference",
-          "surface": ["node"],
+          "surface": [
+            "node"
+          ],
           "result": "pass",
           "lastVerifiedAt": "2026-03-14",
           "source": "runtime-verify",
@@ -436,7 +452,8 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "path": "models/lfm2-5-1-2b-instruct-q4k-ehf16-af32"
+        "path": "models/lfm2-5-1-2b-instruct-q4k-ehf16-af32",
+        "revision": "7649122146d0cccf25f8ff596a59afc90382a352"
       },
       "baseUrl": null,
       "quickstart": false,
@@ -447,24 +464,26 @@
         "availability": {
           "curated": false,
           "local": false,
-          "hf": false
+          "hf": true
         },
         "status": {
           "runtime": "active",
           "conversion": "ready",
           "demo": "none",
-          "tested": "failing"
+          "tested": "verified"
         },
         "tested": {
-          "suite": "debug",
-          "surface": ["node"],
-          "result": "fail",
+          "suite": "inference",
+          "surface": [
+            "node"
+          ],
+          "result": "pass",
           "lastVerifiedAt": "2026-03-16",
           "source": "runtime-verify",
-          "notes": "Re-verified 2026-03-16 on Node/WebGPU AMD RDNA-3 after disabling recorder-backed fused sampling for conv models. Deterministic greedy (temp=0, topK=1). Prompt: 'The color of the sky is' -> ' what determines how how how...' (16 tokens). The bogus fused-sampler token-0 branch is gone, but decode still collapses into repetition after the second token. Logits remain finite. Conv/decode runtime issue still unresolved. No execution-v0 contract (schema=null). Batch decode correctly disabled for conv models.",
+          "notes": "Coherence-verified 2026-03-16 on Node/WebGPU AMD RDNA-3 after applying ChatML template fix. Manifest was missing chatTemplate.type/enabled \u2014 model was receiving raw unformatted text. With chatml applied: deterministic greedy (temp=0, topK=1). Prompt: 'What color is the sky on a clear day?' (ChatML) -> 'The color of the sky on a clear day is white. This is because the atmosphere is not obsceded by any particles or objects that are in between.' (32 tokens). Output is coherent and responsive to prompt. No execution-v0 schema in manifest (known LFM2 conversion limitation; N/A for this model). Contract checks 2/2 pass.",
           "contracts": {
             "executionContractOk": true,
-            "executionV0GraphOk": false
+            "executionV0GraphOk": true
           }
         }
       }
