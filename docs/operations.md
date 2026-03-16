@@ -133,13 +133,9 @@ Open `tests/harness.html` in `kernels` mode and call the dequant helpers from th
 
 ## 1. Tensor Shape Verification
 
-Always verify buffer sizes match expected dimensions:
+Always verify buffer sizes match expected dimensions. Enable `runtime.shared.debug.trace.enabled=true` (log level `trace`) to capture tensor shapes, dequant ops, and buffer details automatically. See [Section 2](#2-toggleable-debug-categories) for the full log level table.
 
-```typescript
-// Add to any kernel call
-console.log(`Q size: ${Q.size}, expected: ${numTokens * numHeads * headDim * 4}`);
-console.log(`K size: ${K.size}, expected: ${numTokens * numKVHeads * headDim * 4}`);
-```
+For Node runs, pass a preset that sets `logLevel: "trace"` via `runtime.shared.debug`. In the browser, enable via `DOPPLER.debug()` with the appropriate category and `bufferStats: true` for GPU readback inspection.
 
 ### Matmul Dimension Checklist
 
@@ -302,29 +298,36 @@ DOPPLER.debug(
 
 ## 3. Pipeline Stage Debugging
 
-### Add Strategic Logging
+### Use Config-Driven Trace Probes
 
-```typescript
-// In layer.js, before/after each stage
-async function debugCheckBuffer(
-  buffer: GPUBuffer,
-  label: string,
-  numTokens: number,
-  expectedDim?: number
-): Promise<void> {
-  const data = await readBufferF32(buffer);
-  const min = Math.min(...data);
-  const max = Math.max(...data);
-  const mean = data.reduce((a, b) => a + b, 0) / data.length;
-  const maxAbs = Math.max(Math.abs(min), Math.abs(max));
+To inspect buffer stats at specific pipeline stages, enable the trace system via runtime config rather than modifying source files.
 
-  console.log(`[${label}] min=${min.toFixed(2)}, max=${max.toFixed(2)}, mean=${mean.toFixed(2)}, maxAbs=${maxAbs.toFixed(2)}`);
+Enable per-layer tracing in the runtime preset or config payload:
 
-  // Red flags
-  if (min >= 0) console.warn(`WARNING: All values positive - check sign handling`);
-  if (maxAbs > 1000) console.warn(`WARNING: Value explosion detected`);
+```json
+{
+  "shared": {
+    "debug": {
+      "trace": {
+        "enabled": true,
+        "categories": ["attn", "ffn", "embed"],
+        "layers": [0]
+      }
+    }
+  }
 }
 ```
+
+In the browser, use `DOPPLER.debug()` and set `maxAbsThreshold` to flag value explosions:
+
+```javascript
+DOPPLER.debug(
+  { layer: true, attn: true, ffn: true },
+  { maxAbsThreshold: 1000, bufferStats: true }
+);
+```
+
+The trace system emits min/max/mean/maxAbs statistics at each instrumented stage automatically. Do not add ad-hoc `console.log` calls to source files — use the existing trace categories, config-driven probes, or permanent trace extensions instead.
 
 ### Expected Value Ranges
 
@@ -357,7 +360,7 @@ HIDDEN[pos=6]: [183, 42, 201, 63, 294]     // ALL POSITIVE - bug!
 
 ### Position-Specific Debug Pattern
 
-```typescript
+```javascript
 // Read hidden state at SPECIFIC position (e.g., last token for logits)
 const targetPos = numTokens - 1;  // Last position
 const posOffset = targetPos * hiddenSize * 4;  // Byte offset
@@ -397,7 +400,7 @@ console.log(`[pos=${targetPos}] sample: [${data.slice(0, 5).map(x => x.toFixed(2
 
 **CRITICAL**: When using CommandRecorder (batched mode), buffers aren't populated until submit!
 
-```typescript
+```javascript
 // WRONG - will read zeros
 const output = await recordMatmul(recorder, A, B, M, N, K);
 const data = await readBuffer(output);  // Returns zeros!
@@ -432,7 +435,7 @@ grep -A 5 "uniformView.setUint32" gpu/kernels/softmax.js
 ```
 
 **Fix**: Add comments documenting WGSL layout at every uniform write:
-```typescript
+```javascript
 // WGSL struct: { innerSize: u32, outerSize: u32, temperature: f32, _pad: u32 }
 uniformView.setUint32(0, innerSize, true);   // offset 0
 uniformView.setUint32(4, outerSize, true);   // offset 4
@@ -478,7 +481,7 @@ let linear_idx = global_id.y * (uniforms.workgroupsX * WORKGROUP_SIZE) + global_
 **Quick check**: Create minimal test kernel with single binding to isolate.
 
 **Fix**: Always use explicit bind group layout for complex shaders:
-```typescript
+```javascript
 const layout = device.createBindGroupLayout({ entries: [/* ALL bindings */] });
 ```
 
@@ -551,15 +554,23 @@ EOF
 
 ### Isolate Specific Layer
 
-```typescript
-// Add to layer.js for surgical debugging
-if (layerIdx === 14) {  // Explosion starts here
-  const data = await readBufferF32(hiddenStates);
-  console.log(`[DEBUG_L14] Before attention:`, {
-    min: Math.min(...data),
-    max: Math.max(...data),
-    sample: data.slice(0, 10)
-  });
+Use `runtime.shared.debug.trace.layers` to focus tracing on a specific layer. In the browser, use `DOPPLER.debugLayer()`:
+
+```javascript
+// Browser DevTools console:
+DOPPLER.debugLayer(14)        // Focus on layer 14 only
+DOPPLER.debugLayer([0, 14])   // Focus on a specific set
+```
+
+Or via runtime config:
+
+```json
+{
+  "shared": {
+    "debug": {
+      "trace": { "enabled": true, "categories": ["attn", "ffn"], "layers": [14] }
+    }
+  }
 }
 ```
 
@@ -582,34 +593,34 @@ from the DevTools console for offline diffing.
 
 | Check | Expected Value | How to Verify |
 |-------|---------------|---------------|
-| `currentSeqLen` | Increments each step | Log in pipeline.generate() |
-| `startPos` for RoPE | `currentSeqLen` (not 0) | Log in runRoPE() |
-| `kvLen` for attention | `currentSeqLen + numTokens` | Log in runAttention() |
-| `startPosForMask` | `currentSeqLen` | Log in attention.js |
+| `currentSeqLen` | Increments each step | Enable `runtime.shared.debug.trace` |
+| `startPos` for RoPE | `currentSeqLen` (not 0) | Enable `attn` trace category |
+| `kvLen` for attention | `currentSeqLen + numTokens` | Enable `attn` trace category |
+| `startPosForMask` | `currentSeqLen` | Enable `attn` trace category |
 
 ### KV Cache Debugging
 
-```typescript
-// In attention.js
-console.log(`[ATT_DEBUG] Decode L${layerIdx}: seqLen=${currentSeqLen}, numTokens=${numTokens}`);
-console.log(`[ATT_PARAMS] kvLenForAttention=${kvLenForAttention}, startPosForMask=${startPosForMask}`);
+Enable the `attn` and `kv` trace categories to surface KV cache state per layer without modifying source files:
 
-// Verify cache has data
-const gpuBuffers = kvCache.getGPUBuffers(layerIdx);
-console.log(`[KV] Layer ${layerIdx}: keysSize=${gpuBuffers.keysGPU.size}, seqLen=${gpuBuffers.seqLen}`);
+```json
+{
+  "shared": {
+    "debug": {
+      "trace": { "enabled": true, "categories": ["attn", "kv"], "layers": [0] }
+    }
+  }
+}
 ```
+
+In the browser: `DOPPLER.debug({ attn: true, kv: true })`.
 
 ---
 
 ## 6. RoPE Position Debugging
 
-```typescript
-// Verify RoPE frequencies precomputed for full context
-console.log(`[RoPE] freqsCos size=${ropeFreqsCos.size}, expected=${maxSeqLen * headDim * 2}`);
+Enable the `attn` trace category to capture RoPE frequency buffer sizes and `startPos` values per layer. In the browser: `DOPPLER.debug({ attn: true })`.
 
-// Verify startPos passed correctly
-console.log(`[RoPE] Q startPos=${startPos}, numHeads=${numHeads}, headDim=${headDim}`);
-```
+For architecture-specific RoPE config, inspect the manifest fields `rope_theta`, `rope_local_base_freq`, `ropeRotaryDim`, and `ropeInterleaved`. These drive frequency buffer sizing and must match the model architecture.
 
 ### Architecture-Specific RoPE
 
@@ -623,18 +634,29 @@ console.log(`[RoPE] Q startPos=${startPos}, numHeads=${numHeads}, headDim=${head
 
 ## 7. Sampling & Logits Debugging
 
-```typescript
-// Before softmax
-console.log(`[Logits] raw: min=${min}, max=${max}, range=${max-min}`);
+Enable the `logits` and `sample` trace categories to surface raw logit range and top-k token probabilities without modifying source files.
 
-// After softmax
-const topK = getTopK(probs, 5);
-console.log(`[Sample] top-5: ${topK.map(t => `${t.token}:${(t.prob*100).toFixed(1)}%`).join(', ')}`);
+In the browser:
 
-// Red flags
-if (topK[0].prob < 0.05) console.warn("Near-uniform distribution - signal destroyed");
-if (topK[0].prob > 0.99) console.warn("Overconfident - possible bug in earlier layers");
+```javascript
+DOPPLER.debug({ logits: true, sample: true })
 ```
+
+Via runtime config:
+
+```json
+{
+  "shared": {
+    "debug": {
+      "trace": { "enabled": true, "categories": ["logits", "sample"] }
+    }
+  }
+}
+```
+
+Red flags to watch for in the trace output:
+- Near-uniform distribution (top-1 probability < 5%) — signal destroyed early in the pipeline
+- Overconfident output (top-1 probability > 99%) — possible earlier-layer bug masking real distribution
 
 ---
 
@@ -659,7 +681,7 @@ await deleteModel(modelId);
 
 ### HTTP Cache Bypass (for tests)
 
-```typescript
+```javascript
 // In test runner
 await context.route('**/*', (route) => {
   route.continue({
@@ -709,7 +731,7 @@ const output = await generator('the sky is', { max_new_tokens: 5 });
 
 ### Debug Memory State
 
-```typescript
+```javascript
 // Track buffer pool state
 import { getPoolStats } from './memory/buffer-pool.js';
 console.log('[Pool]', getPoolStats());
@@ -761,7 +783,7 @@ top-5 logits (e.g. `/top-5/`). For specific kernel checks, call
 
 DOPPLER includes submit tracking to measure per-token GPU overhead:
 
-```typescript
+```javascript
 import { setTrackSubmits, resetSubmitStats, logSubmitStats } from '../gpu/device.js';
 
 // Enable tracking
@@ -782,7 +804,7 @@ setTrackSubmits(false);
 
 The batching system uses `CommandRecorder` to record GPU operations into a single command buffer:
 
-```typescript
+```javascript
 import { createCommandRecorder } from '../gpu/command-recorder.js';
 
 const recorder = createCommandRecorder('forward_pass');
@@ -825,14 +847,14 @@ await recorder.submitAndWait();
 When debugging DOPPLER issues:
 
 1. **Start with symptoms** - Use the Quick Diagnosis Table above
-2. **Add logging** - Strategic console.log at pipeline stages
+2. **Enable trace config** - Use `runtime.shared.debug.trace` or `DOPPLER.debug()` for targeted category tracing
 3. **Check value ranges** - maxAbs explosion is a red flag
 4. **Verify shapes** - Buffer sizes must match expected dimensions
 5. **Test boundaries** - Token IDs, sequence lengths, layer indices
 6. **Check postmortems index** - Internal postmortems cover common patterns and lessons learned
 7. **Compare references** - llama.cpp or transformers.js as ground truth
 
-### Key Files to Instrument
+### Key Files for Debugging
 
 | File | Debug Focus |
 |------|-------------|
@@ -845,7 +867,7 @@ When debugging DOPPLER issues:
 
 ---
 
-*Last updated: 2026-02-23*
+*Last updated: 2026-03-16*
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility

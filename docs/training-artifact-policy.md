@@ -130,8 +130,8 @@ Each claimable artifact should carry:
 Use provenance and workload verification for manifests and reports:
 
 ```bash
-node tools/verify-training-provenance.mjs --manifest <manifest.json> [--stage1-manifest <manifest.json>]
-node tools/verify-training-provenance.mjs --report <report.json>
-node tools/verify-training-workload-packs.mjs --registry tools/configs/training-workloads/registry.json
-node tools/publish-training-report-ids.mjs --registry tools/configs/training-workloads/registry.json --out reports/training/report-ids/latest.json
+node tools/verify-training-provenance.js --manifest <manifest.json> [--stage1-manifest <manifest.json>]
+node tools/verify-training-provenance.js --report <report.json>
+node tools/verify-training-workload-packs.js --registry tools/configs/training-workloads/registry.json
+node tools/publish-training-report-ids.js --registry tools/configs/training-workloads/registry.json --out reports/training/report-ids/latest.json
 ```
