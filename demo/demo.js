@@ -4585,7 +4585,7 @@ async function ensurePipeline(modelId, overlayTitle, modeKey) {
     updatePerformancePanel(snapshot);
     return pipeline;
   } finally {
-    hideProgressOverlay();
+    await hideProgressOverlay();
   }
 }
 
@@ -4596,7 +4596,7 @@ async function ensureRunPipeline() {
     : (state.uiMode === 'translate' ? 'translate' : 'run');
   setRunLoading(true);
   try {
-    return await ensurePipeline(modelId, 'Loading Model', modeKey);
+    return await ensurePipeline(modelId, 'Preparing Local Model', modeKey);
   } finally {
     setRunLoading(false);
   }
@@ -4607,7 +4607,7 @@ async function ensureDiffusionPipeline() {
   state.diffusionLoading = true;
   updateStatusIndicator();
   try {
-    return await ensurePipeline(modelId, 'Loading Model', 'diffusion');
+    return await ensurePipeline(modelId, 'Preparing Local Model', 'diffusion');
   } finally {
     state.diffusionLoading = false;
     updateStatusIndicator();
@@ -4734,7 +4734,7 @@ async function ensureEnergyPipeline() {
   state.energyLoading = true;
   updateStatusIndicator();
   try {
-    return await ensurePipeline(modelId, 'Loading Model', 'energy');
+    return await ensurePipeline(modelId, 'Preparing Local Model', 'energy');
   } finally {
     state.energyLoading = false;
     updateStatusIndicator();
