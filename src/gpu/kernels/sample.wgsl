@@ -40,6 +40,16 @@ fn apply_softcap(x: f32, softcap: f32) -> f32 {
     return softcap * tanh(x / softcap);
 }
 
+fn candidate_beats(candidate_value: f32, candidate_index: u32, best_value: f32, best_index: u32) -> bool {
+    if (candidate_value > best_value) {
+        return true;
+    }
+    if (candidate_value < best_value) {
+        return false;
+    }
+    return candidate_index < best_index;
+}
+
 @group(0) @binding(0) var<uniform> u: Uniforms;
 @group(0) @binding(1) var<storage, read> logits: array<f32>;              // [vocabSize]
 @group(0) @binding(2) var<storage, read_write> output: array<u32>;         // [N] - selected tokens
@@ -87,7 +97,7 @@ fn find_topk_phase1(
         if (idx != pad_id) {
             // Apply softcapping before temperature scaling
             let val = apply_softcap(logits[idx], softcap) / temperature;
-            if (val > local_max) {
+            if (candidate_beats(val, idx, local_max, local_max_idx)) {
                 local_max = val;
                 local_max_idx = idx;
             }
@@ -103,7 +113,12 @@ fn find_topk_phase1(
     var stride = WORKGROUP_SIZE / 2u;
     while (stride > 0u) {
         if (thread_idx < stride) {
-            if (shared_values[thread_idx + stride] > shared_values[thread_idx]) {
+            if (candidate_beats(
+                shared_values[thread_idx + stride],
+                shared_indices[thread_idx + stride],
+                shared_values[thread_idx],
+                shared_indices[thread_idx]
+            )) {
                 shared_values[thread_idx] = shared_values[thread_idx + stride];
                 shared_indices[thread_idx] = shared_indices[thread_idx + stride];
             }
@@ -150,7 +165,7 @@ fn find_topk_phase2(
             var max_val = shared_values[k];
 
             for (var i: u32 = k + 1u; i < num_candidates; i = i + 1u) {
-                if (shared_values[i] > max_val) {
+                if (candidate_beats(shared_values[i], shared_indices[i], max_val, shared_indices[max_idx])) {
                     max_val = shared_values[i];
                     max_idx = i;
                 }
@@ -249,7 +264,7 @@ fn sample_single_pass(
         if (idx != pad_id) {
             // Apply softcapping before temperature scaling
             let val = apply_softcap(logits[idx], softcap) / temperature;
-            if (val > local_max) {
+            if (candidate_beats(val, idx, local_max, local_max_idx)) {
                 local_max = val;
                 local_max_idx = idx;
             }
@@ -265,7 +280,12 @@ fn sample_single_pass(
     var stride = WORKGROUP_SIZE / 2u;
     while (stride > 0u) {
         if (thread_idx < stride) {
-            if (shared_values[thread_idx + stride] > shared_values[thread_idx]) {
+            if (candidate_beats(
+                shared_values[thread_idx + stride],
+                shared_indices[thread_idx + stride],
+                shared_values[thread_idx],
+                shared_indices[thread_idx]
+            )) {
                 shared_values[thread_idx] = shared_values[thread_idx + stride];
                 shared_indices[thread_idx] = shared_indices[thread_idx + stride];
             }
@@ -308,7 +328,7 @@ fn argmax(
         if (idx != pad_id) {
             // Apply softcapping (argmax is greedy, no temperature)
             let val = apply_softcap(logits[idx], softcap);
-            if (val > local_max) {
+            if (candidate_beats(val, idx, local_max, local_max_idx)) {
                 local_max = val;
                 local_max_idx = idx;
             }
@@ -324,7 +344,12 @@ fn argmax(
     var stride = WORKGROUP_SIZE / 2u;
     while (stride > 0u) {
         if (thread_idx < stride) {
-            if (shared_values[thread_idx + stride] > shared_values[thread_idx]) {
+            if (candidate_beats(
+                shared_values[thread_idx + stride],
+                shared_indices[thread_idx + stride],
+                shared_values[thread_idx],
+                shared_indices[thread_idx]
+            )) {
                 shared_values[thread_idx] = shared_values[thread_idx + stride];
                 shared_indices[thread_idx] = shared_indices[thread_idx + stride];
             }
@@ -362,7 +387,12 @@ fn argmax_reduce(
     var stride = WORKGROUP_SIZE / 2u;
     while (stride > 0u) {
         if (thread_idx < stride) {
-            if (shared_values[thread_idx + stride] > shared_values[thread_idx]) {
+            if (candidate_beats(
+                shared_values[thread_idx + stride],
+                shared_indices[thread_idx + stride],
+                shared_values[thread_idx],
+                shared_indices[thread_idx]
+            )) {
                 shared_values[thread_idx] = shared_values[thread_idx + stride];
                 shared_indices[thread_idx] = shared_indices[thread_idx + stride];
             }
