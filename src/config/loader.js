@@ -12,6 +12,7 @@ const transformerPreset = await loadJson('./presets/models/transformer.json', im
 const diffusionPreset = await loadJson('./presets/models/diffusion.json', import.meta.url, 'Failed to load preset');
 const gemma2Preset = await loadJson('./presets/models/gemma2.json', import.meta.url, 'Failed to load preset');
 const gemma3Preset = await loadJson('./presets/models/gemma3.json', import.meta.url, 'Failed to load preset');
+const gemma4Preset = await loadJson('./presets/models/gemma4.json', import.meta.url, 'Failed to load preset');
 const translateGemmaPreset = await loadJson('./presets/models/translategemma.json', import.meta.url, 'Failed to load preset');
 const embeddingGemmaPreset = await loadJson('./presets/models/embeddinggemma.json', import.meta.url, 'Failed to load preset');
 const functiongemmaPreset = await loadJson('./presets/models/functiongemma.json', import.meta.url, 'Failed to load preset');
@@ -36,6 +37,7 @@ export const PRESET_REGISTRY = {
   transformer: transformerPreset,
   gemma2: gemma2Preset,
   gemma3: gemma3Preset,
+  gemma4: gemma4Preset,
   translategemma: translateGemmaPreset,
   embeddinggemma: embeddingGemmaPreset,
   functiongemma: functiongemmaPreset,
@@ -95,6 +97,7 @@ export const PRESET_DETECTION_ORDER = [
   'diffusion',
   // Model families (check more specific patterns first)
   'gemma2',
+  'gemma4',
   'translategemma',
   'gemma3',
   'llama3',

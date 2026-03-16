@@ -40,8 +40,8 @@ export const DEFAULT_SEGMENT_ALLOCATION_CONFIG = {
 // =============================================================================
 
 export const DEFAULT_EMULATED_STORAGE_CONFIG = {
-  vramBudgetBytes: 2 * GB,
-  ramBudgetBytes: 8 * GB,
+  vramBudgetBytes: 4 * GB,
+  ramBudgetBytes: 16 * GB,
 };
 
 // =============================================================================

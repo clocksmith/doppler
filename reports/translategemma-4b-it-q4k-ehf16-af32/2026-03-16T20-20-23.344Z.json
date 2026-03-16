@@ -1,0 +1,1459 @@
+{
+  "suite": "debug",
+  "modelId": "translategemma-4b-it-q4k-ehf16-af32",
+  "runtimePreset": "experiments/verify/translategemma-verify",
+  "deviceInfo": {
+    "hasSubgroups": true,
+    "hasSubgroupsF16": false,
+    "hasF16": true,
+    "hasTimestampQuery": true,
+    "maxBufferSize": 4294967292,
+    "maxWorkgroupSize": 1024,
+    "maxWorkgroupStorageSize": 65536,
+    "adapterInfo": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "amd-radeon-graphics-radv-gfx1151-",
+      "description": "radv: Mesa 25.0.7-0ubuntu0.25.04.2"
+    }
+  },
+  "results": [
+    {
+      "name": "generation",
+      "passed": true,
+      "duration": 21048.564465999996
+    }
+  ],
+  "durationMs": 33645.137167,
+  "timestamp": "2026-03-16T20:20:23.344Z",
+  "metrics": {
+    "prompt": "en -> fr: Hello world.",
+    "maxTokens": 32,
+    "tokensGenerated": 32,
+    "tokensPerSec": 1.52,
+    "totalRunMs": 21047.01,
+    "firstTokenMs": 1915.31,
+    "firstResponseMs": 14507.86,
+    "prefillMs": 1896.21,
+    "decodeMs": 19130.9,
+    "prefillTokens": 78,
+    "decodeTokens": 32,
+    "prefillTokensPerSec": 41.13,
+    "prefillTokensPerSecTtft": 40.72,
+    "decodeTokensPerSec": 1.67,
+    "modelLoadMs": 12592.55,
+    "gpu": {
+      "decodeRecordMs": 713.6648160000077,
+      "decodeSubmitWaitMs": 18389.27044699999,
+      "decodeReadbackWaitMs": 18373.325050999993
+    },
+    "decodeProfileSteps": [],
+    "generationDiagnostics": {
+      "preview": [
+        {
+          "id": 107,
+          "text": "\n",
+          "fallbackText": "\n"
+        },
+        {
+          "id": 1457,
+          "text": "br",
+          "fallbackText": "br"
+        },
+        {
+          "id": 107,
+          "text": "\n",
+          "fallbackText": "\n"
+        },
+        {
+          "id": 107,
+          "text": "\n",
+          "fallbackText": "\n"
+        },
+        {
+          "id": 107,
+          "text": "\n",
+          "fallbackText": "\n"
+        },
+        {
+          "id": 107,
+          "text": "\n",
+          "fallbackText": "\n"
+        },
+        {
+          "id": 107,
+          "text": "\n",
+          "fallbackText": "\n"
+        },
+        {
+          "id": 107,
+          "text": "\n",
+          "fallbackText": "\n"
+        },
+        {
+          "id": 107,
+          "text": "\n",
+          "fallbackText": "\n"
+        },
+        {
+          "id": 107,
+          "text": "\n",
+          "fallbackText": "\n"
+        },
+        {
+          "id": 107,
+          "text": "\n",
+          "fallbackText": "\n"
+        },
+        {
+          "id": 107,
+          "text": "\n",
+          "fallbackText": "\n"
+        },
+        {
+          "id": 16719,
+          "text": "<-",
+          "fallbackText": "<-"
+        },
+        {
+          "id": 3474,
+          "text": "utions",
+          "fallbackText": "utions"
+        },
+        {
+          "id": 236759,
+          "text": "g",
+          "fallbackText": "g"
+        },
+        {
+          "id": 16516,
+          "text": "irs",
+          "fallbackText": "irs"
+        },
+        {
+          "id": 605,
+          "text": "us",
+          "fallbackText": "us"
+        },
+        {
+          "id": 605,
+          "text": "us",
+          "fallbackText": "us"
+        },
+        {
+          "id": 1294,
+          "text": "als",
+          "fallbackText": "als"
+        },
+        {
+          "id": 507,
+          "text": "es",
+          "fallbackText": "es"
+        },
+        {
+          "id": 3474,
+          "text": "utions",
+          "fallbackText": "utions"
+        },
+        {
+          "id": 107,
+          "text": "\n",
+          "fallbackText": "\n"
+        },
+        {
+          "id": 507,
+          "text": "es",
+          "fallbackText": "es"
+        },
+        {
+          "id": 3474,
+          "text": "utions",
+          "fallbackText": "utions"
+        },
+        {
+          "id": 5059,
+          "text": "wise",
+          "fallbackText": "wise"
+        },
+        {
+          "id": 237391,
+          "text": "�",
+          "fallbackText": "�"
+        },
+        {
+          "id": 1587,
+          "text": "log",
+          "fallbackText": "log"
+        },
+        {
+          "id": 16615,
+          "text": "asis",
+          "fallbackText": "asis"
+        },
+        {
+          "id": 571,
+          "text": "ay",
+          "fallbackText": "ay"
+        },
+        {
+          "id": 10446,
+          "text": "elines",
+          "fallbackText": "elines"
+        },
+        {
+          "id": 2078,
+          "text": "inc",
+          "fallbackText": "inc"
+        },
+        {
+          "id": 174096,
+          "text": " русского",
+          "fallbackText": " русского"
+        }
+      ],
+      "total": 32,
+      "omitted": 0,
+      "emptyTextCount": 0,
+      "specialLikeTextCount": 0,
+      "specialLikeFallbackCount": 0
+    },
+    "schemaVersion": 1,
+    "source": "doppler",
+    "suite": "debug",
+    "executionContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "translategemma-4b-it-q4k-ehf16-af32.steps",
+          "ok": true
+        },
+        {
+          "id": "translategemma-4b-it-q4k-ehf16-af32.session",
+          "ok": true
+        },
+        {
+          "id": "translategemma-4b-it-q4k-ehf16-af32.kernelProfilePinning",
+          "ok": true
+        },
+        {
+          "id": "translategemma-4b-it-q4k-ehf16-af32.precisionPrecedence",
+          "ok": true
+        },
+        {
+          "id": "translategemma-4b-it-q4k-ehf16-af32.kvIOPrecedence",
+          "ok": true
+        },
+        {
+          "id": "translategemma-4b-it-q4k-ehf16-af32.slotGraph",
+          "ok": true
+        },
+        {
+          "id": "translategemma-4b-it-q4k-ehf16-af32.phaseBoundary",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "session": {
+        "layout": "contiguous",
+        "disableCommandBatching": false,
+        "decodeBatchSize": 4,
+        "headDim": 256,
+        "kvLen": 131072,
+        "coldQuantMode": "none"
+      },
+      "steps": {
+        "total": 35,
+        "attention": 2,
+        "attentionPhases": {
+          "prefill": 1,
+          "decode": 1,
+          "both": 0
+        }
+      },
+      "executionV0": {
+        "kernelProfiles": {
+          "schemaVersion": 1,
+          "source": "doppler",
+          "ok": true,
+          "checks": [
+            {
+              "id": "translategemma-4b-it-q4k-ehf16-af32.kernelProfilePinning",
+              "ok": true
+            },
+            {
+              "id": "translategemma-4b-it-q4k-ehf16-af32.precisionPrecedence",
+              "ok": true
+            },
+            {
+              "id": "translategemma-4b-it-q4k-ehf16-af32.kvIOPrecedence",
+              "ok": true
+            }
+          ],
+          "errors": [],
+          "stats": {
+            "kernelProfiles": 11,
+            "pinnedSteps": 35
+          },
+          "perStep": {
+            "preLayer_both_0_embed": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_decode_1_input_norm": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_decode_2_q_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_decode_3_k_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_decode_4_v_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_decode_5_rope_q": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_decode_6_rope_k": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_decode_7_attention": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "kvIO": {
+                "readDtype": "f16",
+                "writeDtype": "f16"
+              },
+              "kvIOSource": "sessionDefault"
+            },
+            "layer_decode_8_o_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_decode_9_attn_residual": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_decode_10_post_attn_norm": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_decode_11_gate_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_decode_12_up_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_decode_13_activation": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_decode_14_down_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_decode_15_ffn_residual": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_prefill_16_input_norm": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_prefill_17_q_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_prefill_18_k_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_prefill_19_v_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_prefill_20_rope_q": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_prefill_21_rope_k": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_prefill_22_attention": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "kvIO": {
+                "readDtype": "f16",
+                "writeDtype": "f16"
+              },
+              "kvIOSource": "sessionDefault"
+            },
+            "layer_prefill_23_o_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_prefill_24_attn_residual": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_prefill_25_post_attn_norm": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_prefill_26_gate_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_prefill_27_up_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_prefill_28_activation": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_prefill_29_down_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_prefill_30_ffn_residual": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "postLayer_both_31_final_norm": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "postLayer_both_32_lm_head": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "postLayer_both_33_lm_head_prefill": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "sampling_decode_34_sample": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            }
+          }
+        },
+        "graph": {
+          "schemaVersion": 1,
+          "source": "doppler",
+          "ok": true,
+          "checks": [
+            {
+              "id": "translategemma-4b-it-q4k-ehf16-af32.slotGraph",
+              "ok": true
+            },
+            {
+              "id": "translategemma-4b-it-q4k-ehf16-af32.phaseBoundary",
+              "ok": true
+            }
+          ],
+          "errors": [],
+          "stats": {
+            "prefillSteps": 19,
+            "decodeSteps": 20
+          }
+        }
+      }
+    },
+    "executionV0GraphContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "translategemma-4b-it-q4k-ehf16-af32.slotGraph",
+          "ok": true
+        },
+        {
+          "id": "translategemma-4b-it-q4k-ehf16-af32.phaseBoundary",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "prefillSteps": 19,
+        "decodeSteps": 20
+      }
+    },
+    "layerPatternContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "inference.layerPattern.patternKind.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.patternKind.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.even",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.odd",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_offset",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_negative_offset",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "patternKindRules": 4,
+        "layerTypeRules": 6,
+        "patternKindContexts": 16,
+        "layerTypeContexts": 12
+      }
+    },
+    "requiredInferenceFieldsArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "scope": "manifest",
+      "label": "translategemma-4b-it-q4k-ehf16-af32.inference",
+      "ok": true,
+      "checks": [
+        {
+          "id": "translategemma-4b-it-q4k-ehf16-af32.inference.requiredInferenceFields",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "fieldCases": 35,
+        "nullableCases": 16,
+        "nonNullableCases": 19
+      }
+    }
+  },
+  "output": "\nbr\n\n\n\n\n\n\n\n\n\n<-utionsgirsususalsesutions\nesutionswise�logasisayelinesinc русского",
+  "memory": {
+    "used": 11427996928,
+    "pool": {
+      "allocations": 18994,
+      "reuses": 621,
+      "totalBytesAllocated": 11532967168,
+      "peakBytesAllocated": 11129836544,
+      "currentBytesAllocated": 10287146240,
+      "totalBytesRequested": 9265626368,
+      "peakBytesRequested": 8672188928,
+      "currentBytesRequested": 8029698048,
+      "activeBuffers": 448,
+      "pooledBuffers": 64,
+      "budgetMaxBytes": 0,
+      "budgetUtilization": 0,
+      "hitRate": "3.2%"
+    },
+    "kvCache": {
+      "theoretical": 1140850688,
+      "allocated": 1140850688,
+      "used": 15179776,
+      "efficiency": 0.0133056640625,
+      "seqLen": 109,
+      "maxSeqLen": 8192,
+      "layout": "contiguous"
+    }
+  },
+  "debugSnapshot": {
+    "timestamp": "2026-03-16T20:20:56.994Z",
+    "logLevel": "INFO",
+    "traceCategories": [],
+    "enabledModules": [],
+    "disabledModules": [],
+    "recentLogs": [
+      {
+        "time": "257.0",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "Creating pipeline..."
+      },
+      {
+        "time": "1016.5",
+        "level": "WARN",
+        "module": "Loader",
+        "message": "Dense model on discrete GPU - performance limited. Consider MoE model."
+      },
+      {
+        "time": "1021.5",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 1 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "1022.0",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 2 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "1022.0",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 3 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "1022.1",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 4 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "1022.2",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 5 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "1022.2",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 6 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "1022.2",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 7 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "1022.4",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 8 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "1022.4",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 9 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "1022.5",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 10 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "1022.5",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 11 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "1022.5",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 12 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "1022.6",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 13 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "1022.6",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 14 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "1022.6",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 15 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "1022.6",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 16 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "1022.6",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 17 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "1022.6",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 18 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "1022.7",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 19 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "1022.7",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 20 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "1022.8",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 0 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "5488.3",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 21 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "5615.9",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 25 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "5616.3",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 26 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "6285.7",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 27 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "6327.7",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 28 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "6749.8",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 29 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "6784.1",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 30 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "7247.4",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 31 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "7286.5",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 22 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "7708.9",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 23 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "8056.7",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 24 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "8370.7",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 32 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "8403.1",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 33 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "8824.0",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 34 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "8877.1",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 35 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "9351.3",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 36 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "9388.5",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 37 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "9803.9",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 38 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "10148.3",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 39 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "10179.0",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 40 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "10606.5",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 41 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "10638.3",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 42 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "11091.2",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 43 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "11132.2",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 44 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "11543.9",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 45 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "11588.8",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 46 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "33864.2",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Unloaded"
+      }
+    ],
+    "errorCount": 0,
+    "warnCount": 48
+  }
+}

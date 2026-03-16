@@ -1,0 +1,20 @@
+{
+  "output": {
+    "baseDir": "models/local",
+    "modelBaseId": "gemma-4-moe-q4k-ehf16-af32"
+  },
+  "presets": {
+    "model": "gemma4"
+  },
+  "quantization": {
+    "weights": "q4k",
+    "embeddings": "f16",
+    "lmHead": "f16",
+    "computePrecision": "f32",
+    "q4kLayout": "row"
+  },
+  "inference": {
+    "defaultKernelPath": "gemma3-q4k-dequant-f32a-online",
+    "schema": "doppler.execution/v0"
+  }
+}
