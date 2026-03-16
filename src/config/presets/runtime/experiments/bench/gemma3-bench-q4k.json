@@ -1,7 +1,8 @@
 {
   "id": "experiments/bench/gemma3-bench-q4k",
   "name": "gemma3-bench-q4k",
-  "intent": "investigate",
+  "description": "Benchmark run for Gemma 3 1B Q4K — calibration-mode throughput measurement.",
+  "intent": "calibrate",
   "stability": "experimental",
   "owner": "doppler-core",
   "createdAtUtc": "2026-02-25T00:00:00Z",

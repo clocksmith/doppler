@@ -96,9 +96,9 @@ Action requirements:
 - Distillation translation eval is currently implemented for `studentGraphMode="transformer_full"` only.
 
 Legacy Distill Studio helpers are compatibility tooling only:
-- `tools/distill-studio-mvp.mjs`
-- `tools/distill-studio-diagnostics.mjs`
-- `tools/distill-studio-quality-gate.mjs`
+- `tools/distill-studio-mvp.js`
+- `tools/distill-studio-diagnostics.js`
+- `tools/distill-studio-quality-gate.js`
 
 New operator behavior must be documented under the `distill` surface, not under Distill Studio naming.
 
