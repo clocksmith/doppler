@@ -45,6 +45,7 @@ None right now.
 | diffusion | preset family | conversion-ready | conversion configs exist, but there is no cataloged model entry yet |
 | functiongemma | preset family | conversion-ready | conversion configs exist, but there is no cataloged model entry yet |
 | gemma2 | preset family | conversion-ready | conversion configs exist, but there is no cataloged model entry yet |
+| gemma4 | preset family | conversion-ready | conversion configs exist, but there is no cataloged model entry yet |
 | gpt_oss | preset family | conversion-ready | conversion configs exist, but there is no cataloged model entry yet |
 | janus_text | preset family | conversion-ready | conversion configs exist, but there is no cataloged model entry yet |
 | kimi_k2 | preset family | conversion-ready | conversion configs exist, but there is no cataloged model entry yet |
@@ -65,6 +66,7 @@ None right now.
 | modernbert | embedding | active | 1 (tools/configs/conversion/modernbert/modernbert-template-f16.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
 | diffusion | diffusion | active | 2 (tools/configs/conversion/diffusion/diffusion-template-f16.json, tools/configs/conversion/sana/sana-sprint-0.6b-f16.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
 | gemma2 | transformer | active | 1 (tools/configs/conversion/gemma2/gemma2-template-f16.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
+| gemma4 | mixtral | active | 1 (tools/configs/conversion/gemma4/gemma-4-moe-q4k-ehf16-af32.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
 | translategemma | transformer | active | 2 (tools/configs/conversion/gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32.json, tools/configs/conversion/gemma3/translategemma-4b-it-q4k-ehf16-af32.json) | 1 (translategemma-4b-it-q4k-ehf16-af32) | yes | none | failed | verification-failed | catalog verification applies only to cataloged models (1/2 conversion configs cataloged) |
 | gemma3 | transformer | active | 9 (tools/configs/conversion/gemma3/gemma-3-1b-it-f16-af32.json, tools/configs/conversion/gemma3/gemma-3-1b-it-f16.json, tools/configs/conversion/gemma3/gemma-3-1b-it-q4k-ehaf16.json, +6 more) | 4 (gemma-3-1b-it-f16-af32, gemma-3-1b-it-q4k-ehf16-af32, gemma-3-270m-it-q4k-ehf16-af32, +1 more) | yes | none | verified (2026-03-15) | verified | catalog verification applies only to cataloged models (4/9 conversion configs cataloged) |
 | llama3 | transformer | active | 1 (tools/configs/conversion/llama3/llama3-template-f16.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
@@ -80,8 +82,8 @@ None right now.
 
 ## Summary
 
-- Presets tracked: 18
-- Presets with conversion configs: 18
+- Presets tracked: 19
+- Presets with conversion configs: 19
 - Presets present in catalog: 5
 - Verified presets (active runtime + conversion + catalog + passing verification): 4
 - Cataloged presets pending verification: 0

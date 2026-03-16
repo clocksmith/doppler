@@ -16,7 +16,7 @@ export const DEFAULT_QUOTA_CONFIG = {
 
 export const DEFAULT_VRAM_ESTIMATION_CONFIG = {
   unifiedMemoryRatio: 0.5, // 50% of system RAM
-  fallbackVramBytes: 2 * GB,
+  fallbackVramBytes: 4 * GB,
   lowVramHeadroomBytes: 500 * MB,
 };
 

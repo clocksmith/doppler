@@ -1,0 +1,1319 @@
+{
+  "suite": "debug",
+  "modelId": "translategemma-4b-it-q4k-ehf16-af32",
+  "runtimePreset": null,
+  "deviceInfo": {
+    "hasSubgroups": true,
+    "hasSubgroupsF16": false,
+    "hasF16": true,
+    "hasTimestampQuery": true,
+    "maxBufferSize": 4294967292,
+    "maxWorkgroupSize": 1024,
+    "maxWorkgroupStorageSize": 65536,
+    "adapterInfo": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "amd-radeon-graphics-radv-gfx1151-",
+      "description": "radv: Mesa 25.0.7-0ubuntu0.25.04.2"
+    }
+  },
+  "results": [
+    {
+      "name": "generation",
+      "passed": true,
+      "duration": 3708.5099180000016
+    }
+  ],
+  "durationMs": 16228.998688,
+  "timestamp": "2026-03-16T19:38:52.168Z",
+  "metrics": {
+    "prompt": "en -> es: The sky is blue.",
+    "maxTokens": 4,
+    "tokensGenerated": 4,
+    "tokensPerSec": 1.08,
+    "totalRunMs": 3708.03,
+    "firstTokenMs": 1909.12,
+    "firstResponseMs": 14426.2,
+    "prefillMs": 1891.8,
+    "decodeMs": 1798.25,
+    "prefillTokens": 80,
+    "decodeTokens": 4,
+    "prefillTokensPerSec": 42.29,
+    "prefillTokensPerSecTtft": 41.9,
+    "decodeTokensPerSec": 2.22,
+    "modelLoadMs": 12517.08,
+    "gpu": {
+      "decodeRecordMs": 109.92845699999998,
+      "decodeSubmitWaitMs": 1683.440748000001,
+      "decodeReadbackWaitMs": 1684.2179919999999
+    },
+    "decodeProfileSteps": [],
+    "generationDiagnostics": {
+      "preview": [
+        {
+          "id": 605,
+          "text": "us",
+          "fallbackText": "us"
+        },
+        {
+          "id": 7775,
+          "text": "utt",
+          "fallbackText": "utt"
+        },
+        {
+          "id": 509,
+          "text": "it",
+          "fallbackText": "it"
+        },
+        {
+          "id": 2092,
+          "text": "js",
+          "fallbackText": "js"
+        }
+      ],
+      "total": 4,
+      "omitted": 0,
+      "emptyTextCount": 0,
+      "specialLikeTextCount": 0,
+      "specialLikeFallbackCount": 0
+    },
+    "schemaVersion": 1,
+    "source": "doppler",
+    "suite": "debug",
+    "executionContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "translategemma-4b-it-q4k-ehf16-af32.steps",
+          "ok": true
+        },
+        {
+          "id": "translategemma-4b-it-q4k-ehf16-af32.session",
+          "ok": true
+        },
+        {
+          "id": "translategemma-4b-it-q4k-ehf16-af32.kernelProfilePinning",
+          "ok": true
+        },
+        {
+          "id": "translategemma-4b-it-q4k-ehf16-af32.precisionPrecedence",
+          "ok": true
+        },
+        {
+          "id": "translategemma-4b-it-q4k-ehf16-af32.kvIOPrecedence",
+          "ok": true
+        },
+        {
+          "id": "translategemma-4b-it-q4k-ehf16-af32.slotGraph",
+          "ok": true
+        },
+        {
+          "id": "translategemma-4b-it-q4k-ehf16-af32.phaseBoundary",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "session": {
+        "layout": "contiguous",
+        "disableCommandBatching": false,
+        "decodeBatchSize": 4,
+        "headDim": 256,
+        "kvLen": 131072,
+        "coldQuantMode": "none"
+      },
+      "steps": {
+        "total": 35,
+        "attention": 2,
+        "attentionPhases": {
+          "prefill": 1,
+          "decode": 1,
+          "both": 0
+        }
+      },
+      "executionV0": {
+        "kernelProfiles": {
+          "schemaVersion": 1,
+          "source": "doppler",
+          "ok": true,
+          "checks": [
+            {
+              "id": "translategemma-4b-it-q4k-ehf16-af32.kernelProfilePinning",
+              "ok": true
+            },
+            {
+              "id": "translategemma-4b-it-q4k-ehf16-af32.precisionPrecedence",
+              "ok": true
+            },
+            {
+              "id": "translategemma-4b-it-q4k-ehf16-af32.kvIOPrecedence",
+              "ok": true
+            }
+          ],
+          "errors": [],
+          "stats": {
+            "kernelProfiles": 11,
+            "pinnedSteps": 35
+          },
+          "perStep": {
+            "preLayer_both_0_embed": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_decode_1_input_norm": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_decode_2_q_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_decode_3_k_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_decode_4_v_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_decode_5_rope_q": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_decode_6_rope_k": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_decode_7_attention": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "kvIO": {
+                "readDtype": "f16",
+                "writeDtype": "f16"
+              },
+              "kvIOSource": "sessionDefault"
+            },
+            "layer_decode_8_o_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_decode_9_attn_residual": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_decode_10_post_attn_norm": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_decode_11_gate_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_decode_12_up_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_decode_13_activation": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_decode_14_down_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_decode_15_ffn_residual": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_prefill_16_input_norm": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_prefill_17_q_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_prefill_18_k_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_prefill_19_v_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_prefill_20_rope_q": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_prefill_21_rope_k": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_prefill_22_attention": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "kvIO": {
+                "readDtype": "f16",
+                "writeDtype": "f16"
+              },
+              "kvIOSource": "sessionDefault"
+            },
+            "layer_prefill_23_o_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_prefill_24_attn_residual": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_prefill_25_post_attn_norm": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_prefill_26_gate_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_prefill_27_up_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_prefill_28_activation": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_prefill_29_down_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_prefill_30_ffn_residual": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "postLayer_both_31_final_norm": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "postLayer_both_32_lm_head": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "postLayer_both_33_lm_head_prefill": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "sampling_decode_34_sample": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            }
+          }
+        },
+        "graph": {
+          "schemaVersion": 1,
+          "source": "doppler",
+          "ok": true,
+          "checks": [
+            {
+              "id": "translategemma-4b-it-q4k-ehf16-af32.slotGraph",
+              "ok": true
+            },
+            {
+              "id": "translategemma-4b-it-q4k-ehf16-af32.phaseBoundary",
+              "ok": true
+            }
+          ],
+          "errors": [],
+          "stats": {
+            "prefillSteps": 19,
+            "decodeSteps": 20
+          }
+        }
+      }
+    },
+    "executionV0GraphContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "translategemma-4b-it-q4k-ehf16-af32.slotGraph",
+          "ok": true
+        },
+        {
+          "id": "translategemma-4b-it-q4k-ehf16-af32.phaseBoundary",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "prefillSteps": 19,
+        "decodeSteps": 20
+      }
+    },
+    "layerPatternContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "inference.layerPattern.patternKind.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.patternKind.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.even",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.odd",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_offset",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_negative_offset",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "patternKindRules": 4,
+        "layerTypeRules": 6,
+        "patternKindContexts": 16,
+        "layerTypeContexts": 12
+      }
+    },
+    "requiredInferenceFieldsArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "scope": "manifest",
+      "label": "translategemma-4b-it-q4k-ehf16-af32.inference",
+      "ok": true,
+      "checks": [
+        {
+          "id": "translategemma-4b-it-q4k-ehf16-af32.inference.requiredInferenceFields",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "fieldCases": 35,
+        "nullableCases": 16,
+        "nonNullableCases": 19
+      }
+    }
+  },
+  "output": "usuttitjs",
+  "memory": {
+    "used": 10868036864,
+    "pool": {
+      "allocations": 2818,
+      "reuses": 445,
+      "totalBytesAllocated": 11166313728,
+      "peakBytesAllocated": 11129836544,
+      "currentBytesAllocated": 10297611520,
+      "totalBytesRequested": 9038462464,
+      "peakBytesRequested": 8688663040,
+      "currentBytesRequested": 8029698048,
+      "activeBuffers": 448,
+      "pooledBuffers": 64,
+      "budgetMaxBytes": 0,
+      "budgetUtilization": 0,
+      "hitRate": "13.6%"
+    },
+    "kvCache": {
+      "theoretical": 570425344,
+      "allocated": 570425344,
+      "used": 11558912,
+      "efficiency": 0.020263671875,
+      "seqLen": 83,
+      "maxSeqLen": 4096,
+      "layout": "contiguous"
+    }
+  },
+  "debugSnapshot": {
+    "timestamp": "2026-03-16T19:39:08.402Z",
+    "logLevel": "INFO",
+    "traceCategories": [],
+    "enabledModules": [],
+    "disabledModules": [],
+    "recentLogs": [
+      {
+        "time": "14701.3",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=82, numHeads=8, headDim=256, useF16KV=true"
+      },
+      {
+        "time": "14702.0",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=82, numHeads=8, headDim=256, useF16KV=true"
+      },
+      {
+        "time": "14702.8",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=82, numHeads=8, headDim=256, useF16KV=true"
+      },
+      {
+        "time": "14703.5",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=82, numHeads=8, headDim=256, useF16KV=true"
+      },
+      {
+        "time": "14704.3",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=82, numHeads=8, headDim=256, useF16KV=true"
+      },
+      {
+        "time": "14705.1",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=82, numHeads=8, headDim=256, useF16KV=true"
+      },
+      {
+        "time": "14705.9",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=82, numHeads=8, headDim=256, useF16KV=true"
+      },
+      {
+        "time": "14706.7",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=82, numHeads=8, headDim=256, useF16KV=true"
+      },
+      {
+        "time": "14707.4",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=82, numHeads=8, headDim=256, useF16KV=true"
+      },
+      {
+        "time": "14708.2",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=82, numHeads=8, headDim=256, useF16KV=true"
+      },
+      {
+        "time": "14709.0",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=82, numHeads=8, headDim=256, useF16KV=true"
+      },
+      {
+        "time": "14709.7",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=82, numHeads=8, headDim=256, useF16KV=true"
+      },
+      {
+        "time": "14710.4",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=82, numHeads=8, headDim=256, useF16KV=true"
+      },
+      {
+        "time": "14711.2",
+        "level": "TRACE:embed",
+        "module": "Embed",
+        "message": "Gather: numTokens=1, hiddenSize=2560, vocabSize=262208, transpose=false, indexOffset=2, embeddingDtype=f16, outputDtype=f32, useF16Input=true, useF16Output=false"
+      },
+      {
+        "time": "14711.2",
+        "level": "TRACE:embed",
+        "module": "Embed",
+        "message": "Gather variant: f16_vec4"
+      },
+      {
+        "time": "14711.7",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=83, numHeads=8, headDim=256, useF16KV=true"
+      },
+      {
+        "time": "14712.5",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=83, numHeads=8, headDim=256, useF16KV=true"
+      },
+      {
+        "time": "14713.3",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=83, numHeads=8, headDim=256, useF16KV=true"
+      },
+      {
+        "time": "14714.0",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=83, numHeads=8, headDim=256, useF16KV=true"
+      },
+      {
+        "time": "14714.7",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=83, numHeads=8, headDim=256, useF16KV=true"
+      },
+      {
+        "time": "14715.4",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=83, numHeads=8, headDim=256, useF16KV=true"
+      },
+      {
+        "time": "14716.2",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=83, numHeads=8, headDim=256, useF16KV=true"
+      },
+      {
+        "time": "14716.9",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=83, numHeads=8, headDim=256, useF16KV=true"
+      },
+      {
+        "time": "14717.7",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=83, numHeads=8, headDim=256, useF16KV=true"
+      },
+      {
+        "time": "14718.4",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=83, numHeads=8, headDim=256, useF16KV=true"
+      },
+      {
+        "time": "14719.1",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=83, numHeads=8, headDim=256, useF16KV=true"
+      },
+      {
+        "time": "14719.7",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=83, numHeads=8, headDim=256, useF16KV=true"
+      },
+      {
+        "time": "14720.4",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=83, numHeads=8, headDim=256, useF16KV=true"
+      },
+      {
+        "time": "14721.1",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=83, numHeads=8, headDim=256, useF16KV=true"
+      },
+      {
+        "time": "14724.5",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=83, numHeads=8, headDim=256, useF16KV=true"
+      },
+      {
+        "time": "14725.2",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=83, numHeads=8, headDim=256, useF16KV=true"
+      },
+      {
+        "time": "14725.9",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=83, numHeads=8, headDim=256, useF16KV=true"
+      },
+      {
+        "time": "14726.7",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=83, numHeads=8, headDim=256, useF16KV=true"
+      },
+      {
+        "time": "14727.4",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=83, numHeads=8, headDim=256, useF16KV=true"
+      },
+      {
+        "time": "14728.1",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=83, numHeads=8, headDim=256, useF16KV=true"
+      },
+      {
+        "time": "14728.8",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=83, numHeads=8, headDim=256, useF16KV=true"
+      },
+      {
+        "time": "14729.4",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=83, numHeads=8, headDim=256, useF16KV=true"
+      },
+      {
+        "time": "14730.1",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=83, numHeads=8, headDim=256, useF16KV=true"
+      },
+      {
+        "time": "14730.8",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=83, numHeads=8, headDim=256, useF16KV=true"
+      },
+      {
+        "time": "14731.5",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=83, numHeads=8, headDim=256, useF16KV=true"
+      },
+      {
+        "time": "14732.3",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=83, numHeads=8, headDim=256, useF16KV=true"
+      },
+      {
+        "time": "14733.0",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=83, numHeads=8, headDim=256, useF16KV=true"
+      },
+      {
+        "time": "14733.6",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=83, numHeads=8, headDim=256, useF16KV=true"
+      },
+      {
+        "time": "14734.3",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=83, numHeads=8, headDim=256, useF16KV=true"
+      },
+      {
+        "time": "14735.2",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=83, numHeads=8, headDim=256, useF16KV=true"
+      },
+      {
+        "time": "14735.9",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=83, numHeads=8, headDim=256, useF16KV=true"
+      },
+      {
+        "time": "14736.6",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=83, numHeads=8, headDim=256, useF16KV=true"
+      },
+      {
+        "time": "14737.2",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=83, numHeads=8, headDim=256, useF16KV=true"
+      },
+      {
+        "time": "14737.9",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "recordAttention: isDecode=true, tier=subgroup, variant=decode_online_f16kv, seqLen=1, kvLen=83, numHeads=8, headDim=256, useF16KV=true"
+      },
+      {
+        "time": "16429.3",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Unloaded"
+      }
+    ],
+    "errorCount": 0,
+    "warnCount": 48
+  }
+}
