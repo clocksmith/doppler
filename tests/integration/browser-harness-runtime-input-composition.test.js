@@ -5,6 +5,7 @@ import {
   runBrowserManifest,
 } from '../../src/inference/browser-harness.js';
 import { resolveRuntime } from '../../src/inference/browser-harness-runtime-helpers.js';
+import { parseRuntimeOverridesFromURL } from '../../src/inference/test-harness.js';
 import {
   getRuntimeConfig,
   setRuntimeConfig,
@@ -189,6 +190,34 @@ try {
   assert.equal(resolvedRuntime.runtimeConfig.shared.tooling.carried, true);
   assert.equal(resolvedRuntime.runtimeConfig.inference.kernelPath, 'gemma3-q4k-dequant-f16a-online');
   assert.equal(resolvedRuntime.runtimeConfig.inference.batching.maxTokens, 5);
+
+  const malformedRuntimeConfig = new URLSearchParams();
+  malformedRuntimeConfig.set('runtimeConfig', '{');
+  assert.throws(
+    () => parseRuntimeOverridesFromURL(malformedRuntimeConfig),
+    /Failed to parse runtimeConfig URL parameter/
+  );
+
+  const nonObjectRuntimeConfig = new URLSearchParams();
+  nonObjectRuntimeConfig.set('runtimeConfig', '123');
+  assert.throws(
+    () => parseRuntimeOverridesFromURL(nonObjectRuntimeConfig),
+    /runtimeConfig must be a JSON object/
+  );
+
+  const nonStringConfigChain = new URLSearchParams();
+  nonStringConfigChain.set('configChain', '["debug",1]');
+  assert.throws(
+    () => parseRuntimeOverridesFromURL(nonStringConfigChain),
+    /configChain must be an array of non-empty strings/
+  );
+
+  const malformedConfigChain = new URLSearchParams();
+  malformedConfigChain.set('configChain', '[');
+  assert.throws(
+    () => parseRuntimeOverridesFromURL(malformedConfigChain),
+    /Failed to parse configChain URL parameter/
+  );
 } finally {
   globalThis.fetch = originalFetch;
   setRuntimeConfig(null);
