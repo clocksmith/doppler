@@ -25,6 +25,7 @@
       "NOTICE",
       "SECURITY.md",
       "**/.*",
+      "**/.*/**",
       ".github/**",
       "**/node_modules/**",
       "examples/**",
