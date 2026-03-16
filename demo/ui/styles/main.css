@@ -2074,50 +2074,99 @@
 
     /* Overlays */
     .progress-content {
-      width: 400px;
-      max-width: 90%;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-lg);
+      width: min(560px, calc(100vw - 48px));
+      max-width: 100%;
+      padding: 24px 28px 22px;
+      box-sizing: border-box;
+      border: var(--border-md) solid var(--fg);
+      background: var(--bg);
     }
 
     /* Progress Phases */
+    .progress-heading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
     .progress-title {
       text-align: center;
-      margin-bottom: var(--space-md);
+      margin: 0;
+      line-height: 1.35;
+      text-wrap: balance;
+    }
+
+    .progress-model-label {
+      margin: 2px 0 0;
+      opacity: 0.76;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .progress-model {
+      margin: 0;
+      max-width: min(100%, 42ch);
+      padding: 6px 12px;
+      border: var(--border-sm) dotted color-mix(in srgb, var(--fg) 44%, transparent);
+      background: color-mix(in srgb, var(--bg-contrast) 82%, var(--bg));
+      font-family: var(--demo-value-family);
+      font-size: calc(var(--demo-value-size) + 1px);
+      font-weight: 500;
+      line-height: 1.55;
+      letter-spacing: 0;
+      text-transform: none;
+      text-align: center;
+      overflow-wrap: anywhere;
+      color: color-mix(in srgb, var(--fg) 90%, var(--bg));
+      opacity: 1;
     }
 
     .progress-phases {
       display: flex;
       flex-direction: column;
-      gap: var(--space-sm);
+      gap: var(--space-md);
+      margin-top: 2px;
     }
 
     .progress-phase-row {
       display: grid;
-      grid-template-columns: 80px 1fr 60px;
-      gap: var(--space-sm);
+      grid-template-columns: 104px minmax(0, 1fr) 44px;
+      gap: 14px;
       align-items: center;
+    }
+
+    .progress-phase-label {
+      opacity: 0.9;
     }
 
     .progress-phase-value {
       text-align: right;
+      font-variant-numeric: tabular-nums;
+      opacity: 0.9;
     }
 
     .progress-shard {
       text-align: right;
       opacity: 0.6;
       min-height: 1em;
-      margin-top: -2px;
+      margin-top: -4px;
     }
 
     .progress-detail {
       text-align: center;
-      margin-top: var(--space-sm);
-      margin-bottom: 0;
-      opacity: 0.7;
+      margin: 0 auto;
+      opacity: 0.58;
       min-height: 1.2em;
+      line-height: 1.65;
+      max-width: 30ch;
     }
 
     .progress-sm {
-      height: 6px;
+      height: 8px;
     }
 
     /* Inline download progress on quick model cards */
@@ -2146,7 +2195,11 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      padding: 24px;
       z-index: 100;
+      background: color-mix(in srgb, var(--fg) 18%, transparent);
+      backdrop-filter: blur(1.5px);
+      -webkit-backdrop-filter: blur(1.5px);
     }
 
     .modal-overlay[hidden] {
