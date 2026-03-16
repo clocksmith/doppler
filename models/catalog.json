@@ -226,7 +226,8 @@
       "label": "TranslateGemma 4B Instruct (Q4K)",
       "description": "TranslateGemma 4B translation model. Q4K weights, F16 embeddings/head, F32 accumulation.",
       "modes": [
-        "run"
+        "run",
+        "translate"
       ],
       "aliases": [
         "translategemma-4b",
@@ -280,7 +281,8 @@
       "label": "TranslateGemma 1B EN\u2192ES (Q4K)",
       "description": "Distilled EN\u2192ES translation model from TranslateGemma 4B. Gemma 3 1B architecture. Q4K weights, F16 embeddings/head, F32 accumulation.",
       "modes": [
-        "run"
+        "run",
+        "translate"
       ],
       "aliases": [
         "translategemma-1b-enes",
