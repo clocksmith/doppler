@@ -254,11 +254,6 @@ const TRANSLATE_COMPARE_CONFIG_VERSION = 2;
 const TRANSLATE_COMPARE_ARTIFACT_KIND = 'doppler.translate.compare/v1';
 const TRANSLATE_COMPARE_DEFAULT_BASELINE_MODEL_ID = 'translategemma-4b-it-q4k-ehf16-af32';
 const TRANSLATE_COMPARE_DEFAULT_STUDENT_MODEL_ID = 'translategemma-4b-1b-enes-q4k-ehf16-af32';
-const TRANSLATE_COMPATIBLE_MODEL_IDS = Object.freeze([
-  'translategemma-4b-it-q4k-ehf16-af32',
-  'translategemma-4b-1b-enes-q4k-ehf16-af32',
-]);
-const TRANSLATE_COMPATIBLE_MODEL_ID_SET = new Set(TRANSLATE_COMPATIBLE_MODEL_IDS);
 const TRANSLATE_COMPARE_DEFAULT_TJS_DTYPE = 'q4';
 const TRANSLATE_COMPARE_MAX_HISTORY = 12;
 const TRANSLATE_COMPARE_ENGINES_CONFIG_URL = typeof window === 'object' && window.location?.origin
@@ -716,13 +711,17 @@ function isTranslateCompareEnabled() {
 }
 
 function isTranslateCompatibleModelId(modelId) {
-  return TRANSLATE_COMPATIBLE_MODEL_ID_SET.has(normalizeModelIdInput(modelId));
+  const entry = findQuickModelEntry(normalizeModelIdInput(modelId));
+  return Array.isArray(entry?.modes) && entry.modes.includes('translate');
 }
 
 function getTranslateCompareStudentModelId() {
   const explicit = readGlobalString('__DOPPLER_TRANSLATE_COMPARE_STUDENT_MODEL_ID');
   if (explicit && isTranslateCompatibleModelId(explicit)) {
     return explicit;
+  }
+  if (explicit) {
+    log.warn('DopplerDemo', `__DOPPLER_TRANSLATE_COMPARE_STUDENT_MODEL_ID "${explicit}" is not a translate-compatible catalog entry`);
   }
   const evidenceModelId = resolveText(state.compareEvidence?.student?.modelId, '');
   if (evidenceModelId && isTranslateCompatibleModelId(evidenceModelId)) {
@@ -3041,7 +3040,7 @@ function getPreferredQuickModelForMode(modeToken) {
   if (!modeToken) return null;
   if (modeToken === 'translate') {
     const candidates = getQuickCatalogEntries()
-      .filter((entry) => isTranslateCompatibleModelId(entry?.modelId));
+      .filter((entry) => Array.isArray(entry?.modes) && entry.modes.includes('translate'));
     if (candidates.length === 0) return null;
     candidates.sort((a, b) => {
       const sizeDiff = getComparableQuickModelSize(a) - getComparableQuickModelSize(b);
