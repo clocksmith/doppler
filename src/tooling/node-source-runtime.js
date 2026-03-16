@@ -1,4 +1,6 @@
+import { createReadStream } from 'node:fs';
 import fs from 'node:fs/promises';
+import { createHash } from 'node:crypto';
 import path from 'node:path';
 import {
   HEADER_READ_SIZE,
@@ -449,16 +451,34 @@ async function addHashesToFileEntries(entries, hashAlgorithm) {
   for (const entry of Array.isArray(entries) ? entries : []) {
     const filePath = normalizePath(entry?.path);
     if (!filePath) continue;
-    const bytes = await readFileBytes(filePath, `source asset (${filePath})`);
+    const stats = await getPathStats(filePath, `source asset (${filePath})`);
     normalized.push({
       ...entry,
       path: filePath,
-      size: Number.isFinite(entry?.size) ? Math.max(0, Math.floor(Number(entry.size))) : bytes.byteLength,
-      hash: await computeHash(new Uint8Array(bytes), hashAlgorithm),
+      size: Number.isFinite(entry?.size) ? Math.max(0, Math.floor(Number(entry.size))) : Number(stats.size),
+      hash: await computeFileHash(filePath, hashAlgorithm),
       hashAlgorithm,
     });
   }
   return normalized;
+}
+
+async function computeFileHash(filePath, hashAlgorithm) {
+  return new Promise((resolve, reject) => {
+    const hash = createHash(hashAlgorithm);
+    const stream = createReadStream(filePath);
+
+    stream.on('data', (chunk) => {
+      hash.update(chunk);
+    });
+    stream.on('end', () => {
+      resolve(hash.digest('hex'));
+    });
+    stream.on('error', (error) => {
+      const message = error instanceof Error ? error.message : String(error);
+      reject(new Error(`Failed to stream source asset "${filePath}" for hashing: ${message}`));
+    });
+  });
 }
 
 export async function resolveNodeSourceRuntimeBundle(options = {}) {
