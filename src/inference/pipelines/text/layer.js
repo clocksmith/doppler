@@ -752,6 +752,7 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
               label: `L${layerIdx}.plan_conv`,
               swigluLimit: config.swigluLimit,
               kernelPath: context.kernelPath ?? null,
+              convState: getConvLayerState(context.convLayerStates, layerIdx),
             },
             recorder
           );

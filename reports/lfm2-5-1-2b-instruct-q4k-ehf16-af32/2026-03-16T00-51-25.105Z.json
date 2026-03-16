@@ -1,0 +1,582 @@
+{
+  "suite": "debug",
+  "modelId": "lfm2-5-1-2b-instruct-q4k-ehf16-af32",
+  "runtimePreset": null,
+  "deviceInfo": {
+    "hasSubgroups": true,
+    "hasSubgroupsF16": false,
+    "hasF16": true,
+    "hasTimestampQuery": true,
+    "maxBufferSize": 4294967292,
+    "maxWorkgroupSize": 1024,
+    "maxWorkgroupStorageSize": 65536,
+    "adapterInfo": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "amd-radeon-graphics-radv-gfx1151-",
+      "description": "radv: Mesa 25.0.7-0ubuntu0.25.04.2"
+    }
+  },
+  "results": [
+    {
+      "name": "generation",
+      "passed": true,
+      "duration": 5049.888566000001
+    }
+  ],
+  "durationMs": 8592.822127000001,
+  "timestamp": "2026-03-16T00:51:25.105Z",
+  "metrics": {
+    "prompt": "The color of the sky is",
+    "maxTokens": 16,
+    "tokensGenerated": 16,
+    "tokensPerSec": 3.17,
+    "totalRunMs": 5047.95,
+    "firstTokenMs": 399.03,
+    "firstResponseMs": 3934.83,
+    "prefillMs": 395.06,
+    "decodeMs": 4648.18,
+    "prefillTokens": 7,
+    "decodeTokens": 16,
+    "prefillTokensPerSec": 17.72,
+    "prefillTokensPerSecTtft": 17.54,
+    "decodeTokensPerSec": 3.44,
+    "modelLoadMs": 3535.8,
+    "gpu": {
+      "decodeRecordMs": 0,
+      "decodeSubmitWaitMs": 0,
+      "decodeReadbackWaitMs": 0
+    },
+    "decodeProfileSteps": [],
+    "generationDiagnostics": {
+      "preview": [
+        {
+          "id": 1620,
+          "text": " what",
+          "fallbackText": " what"
+        },
+        {
+          "id": 25195,
+          "text": " determines",
+          "fallbackText": " determines"
+        },
+        {
+          "id": 1531,
+          "text": " how",
+          "fallbackText": " how"
+        },
+        {
+          "id": 1531,
+          "text": " how",
+          "fallbackText": " how"
+        },
+        {
+          "id": 1531,
+          "text": " how",
+          "fallbackText": " how"
+        },
+        {
+          "id": 1531,
+          "text": " how",
+          "fallbackText": " how"
+        },
+        {
+          "id": 1531,
+          "text": " how",
+          "fallbackText": " how"
+        },
+        {
+          "id": 1531,
+          "text": " how",
+          "fallbackText": " how"
+        },
+        {
+          "id": 1531,
+          "text": " how",
+          "fallbackText": " how"
+        },
+        {
+          "id": 1531,
+          "text": " how",
+          "fallbackText": " how"
+        },
+        {
+          "id": 1531,
+          "text": " how",
+          "fallbackText": " how"
+        },
+        {
+          "id": 1531,
+          "text": " how",
+          "fallbackText": " how"
+        },
+        {
+          "id": 1531,
+          "text": " how",
+          "fallbackText": " how"
+        },
+        {
+          "id": 1531,
+          "text": " how",
+          "fallbackText": " how"
+        },
+        {
+          "id": 1531,
+          "text": " how",
+          "fallbackText": " how"
+        },
+        {
+          "id": 1531,
+          "text": " how",
+          "fallbackText": " how"
+        }
+      ],
+      "total": 16,
+      "omitted": 0,
+      "emptyTextCount": 0,
+      "specialLikeTextCount": 0,
+      "specialLikeFallbackCount": 0
+    },
+    "schemaVersion": 1,
+    "source": "doppler",
+    "suite": "debug",
+    "executionContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "lfm2-5-1-2b-instruct-q4k-ehf16-af32.steps",
+          "ok": true
+        },
+        {
+          "id": "lfm2-5-1-2b-instruct-q4k-ehf16-af32.session",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "session": {
+        "layout": "contiguous",
+        "disableCommandBatching": false,
+        "decodeBatchSize": 8,
+        "headDim": 64,
+        "kvLen": 128000,
+        "coldQuantMode": "none"
+      },
+      "steps": {
+        "total": 0,
+        "attention": 0,
+        "attentionPhases": {
+          "prefill": 0,
+          "decode": 0,
+          "both": 0
+        }
+      }
+    },
+    "executionV0GraphContractArtifact": null,
+    "layerPatternContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "inference.layerPattern.patternKind.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.patternKind.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.even",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.odd",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_offset",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_negative_offset",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "patternKindRules": 4,
+        "layerTypeRules": 6,
+        "patternKindContexts": 16,
+        "layerTypeContexts": 12
+      }
+    },
+    "requiredInferenceFieldsArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "scope": "manifest",
+      "label": "lfm2-5-1-2b-instruct-q4k-ehf16-af32.inference",
+      "ok": true,
+      "checks": [
+        {
+          "id": "lfm2-5-1-2b-instruct-q4k-ehf16-af32.inference.requiredInferenceFields",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "fieldCases": 35,
+        "nullableCases": 16,
+        "nonNullableCases": 19
+      }
+    }
+  },
+  "output": " what determines how how how how how how how how how how how how how how",
+  "memory": {
+    "used": 2632750848,
+    "pool": {
+      "allocations": 2937,
+      "reuses": 660,
+      "totalBytesAllocated": 2561148672,
+      "peakBytesAllocated": 2520522240,
+      "currentBytesAllocated": 2498533120,
+      "totalBytesRequested": 2436183296,
+      "peakBytesRequested": 2396044544,
+      "currentBytesRequested": 2373995520,
+      "activeBuffers": 170,
+      "pooledBuffers": 64,
+      "budgetMaxBytes": 0,
+      "budgetUtilization": 0,
+      "hitRate": "18.3%"
+    },
+    "kvCache": {
+      "theoretical": 134217728,
+      "allocated": 134217728,
+      "used": 720896,
+      "efficiency": 0.00537109375,
+      "seqLen": 22,
+      "maxSeqLen": 4096,
+      "layout": "contiguous"
+    }
+  },
+  "debugSnapshot": {
+    "timestamp": "2026-03-16T00:51:33.702Z",
+    "logLevel": "INFO",
+    "traceCategories": [],
+    "enabledModules": [],
+    "disabledModules": [],
+    "recentLogs": [
+      {
+        "time": "270.4",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Manifest decodeLoop applied (lfm2-5-1-2b-instruct-q4k-ehf16-af32): batchSize=8, stopCheckMode=batch, readbackInterval=8, disableCommandBatching=false"
+      },
+      {
+        "time": "271.0",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "KernelPath: lfm2-q4k-dequant-f32a-online (15 decode steps, 10 kernels, source=model)"
+      },
+      {
+        "time": "271.3",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "KernelPath lfm2-q4k-dequant-f32a-online applied manifest/model runtime dtype defaults: activation=f16->f32, session.outputDtype=f16->f32"
+      },
+      {
+        "time": "271.4",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "16L/2048H/32heads (64dim), kernelPath=lfm2-q4k-dequant-f32a-online"
+      },
+      {
+        "time": "271.8",
+        "level": "INFO",
+        "module": "Tokenizer",
+        "message": "Loading bundled tokenizer from tokenizer.json"
+      },
+      {
+        "time": "305.5",
+        "level": "INFO",
+        "module": "Tokenizer",
+        "message": "HuggingFace model.type=\"BPE\", using type=\"bpe\""
+      },
+      {
+        "time": "360.2",
+        "level": "INFO",
+        "module": "Tokenizer",
+        "message": "Loaded HuggingFace 64402 tokens (bpe), 509 special patterns, 63683 merges"
+      },
+      {
+        "time": "360.5",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Tokenizer vocabSize=64402 differs from model=65536, using model size"
+      },
+      {
+        "time": "366.9",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Execution plan: active=primary, dtype=f32, kernelPath=lfm2-q4k-dequant-f32a-online"
+      },
+      {
+        "time": "367.8",
+        "level": "INFO",
+        "module": "ShardCache",
+        "message": "Custom shard loader configured"
+      },
+      {
+        "time": "367.9",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Initializing..."
+      },
+      {
+        "time": "392.0",
+        "level": "INFO",
+        "module": "HeapManager",
+        "message": "Allocated segment 0: 1024MB"
+      },
+      {
+        "time": "392.2",
+        "level": "INFO",
+        "module": "HeapManager",
+        "message": "Segmented heap: 1GB per segment"
+      },
+      {
+        "time": "392.4",
+        "level": "INFO",
+        "module": "HeapManager",
+        "message": "Initialized with strategy: SEGMENTED"
+      },
+      {
+        "time": "392.5",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Initialized (f16, subgroups)"
+      },
+      {
+        "time": "392.9",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Loading: lfm2-5-1-2b-instruct-q4k-ehf16-af32"
+      },
+      {
+        "time": "393.3",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "[0.0s] Memory (start): | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0"
+      },
+      {
+        "time": "393.9",
+        "level": "WARN",
+        "module": "Loader",
+        "message": "Dense model on discrete GPU - performance limited. Consider MoE model."
+      },
+      {
+        "time": "398.1",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 1 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "398.5",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 2 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "398.6",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 3 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "398.7",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 0 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "1375.1",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Embeddings tensor loaded: name=model.embed_tokens.weight, hasShape=true, shape=[65536,2048], isWeightBuffer=true"
+      },
+      {
+        "time": "1376.0",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Layers: 0-15"
+      },
+      {
+        "time": "1377.7",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 4 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "1378.0",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 5 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "1800.5",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 8 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "1836.8",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 9 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "2282.0",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 10 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "2309.6",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 11 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "2748.8",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 12 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "2994.7",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 6 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "3289.2",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 7 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "3499.3",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "All 13 shards loaded: 811.9MB in 3.2s (251 MB/s avg)"
+      },
+      {
+        "time": "3634.5",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Layers: 16 complete (2.26s)"
+      },
+      {
+        "time": "3640.0",
+        "level": "WARN",
+        "module": "Loader",
+        "message": "[FinalNorm] Falling back to role-only final norm selection because tensor groups are missing in manifest."
+      },
+      {
+        "time": "3640.9",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Complete: 555.91 MB in 3.25s (171.26 MB/s)"
+      },
+      {
+        "time": "3641.3",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "[3.2s] Memory (complete): | GPU=2.32 GB (148 active, 13 pooled, peak=2.32 GB) | ShardCache=0 B (0 shards) | Layers=16, GPUBuffers=148"
+      },
+      {
+        "time": "3741.8",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Initialized 10 conv layer states (kernelSize=3)"
+      },
+      {
+        "time": "3741.9",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Model loaded successfully"
+      },
+      {
+        "time": "3742.0",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "Pipeline ready"
+      },
+      {
+        "time": "3754.2",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "matmul variant=f16w_f32a reason=default"
+      },
+      {
+        "time": "3762.1",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "matmul variant=f16w_f32a_tiled reason=path_override"
+      },
+      {
+        "time": "3781.9",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "attention variant=prefill_small_f16kv reason=path_override:tiled_small"
+      },
+      {
+        "time": "4143.2",
+        "level": "WARN",
+        "module": "Pipeline",
+        "message": "Batch decode failed, falling back to single-token: Error: [Pipeline] Batch decode path is disabled for conv models; use single-token decode."
+      },
+      {
+        "time": "4144.8",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "matmul variant=gemv_subgroup_multicol reason=gemv"
+      },
+      {
+        "time": "4150.9",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "matmul variant=gemv_subgroup_vec4 reason=path_override"
+      },
+      {
+        "time": "4155.2",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "attention variant=decode_online_f16kv reason=path_override:subgroup"
+      },
+      {
+        "time": "8790.8",
+        "level": "INFO",
+        "module": "Perf",
+        "message": "TTFT: 399ms | Prefill: 395ms | Decode: 4648ms (15 tokens @ 3.2 tok/s)"
+      },
+      {
+        "time": "8798.8",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Unloaded"
+      }
+    ],
+    "errorCount": 0,
+    "warnCount": 16
+  }
+}

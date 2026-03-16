@@ -12,6 +12,15 @@ export interface BatchDecodeSelectionConfig {
 
 export declare function shouldUseBatchDecode(config: BatchDecodeSelectionConfig): boolean;
 
+export interface FusedDecodeSamplingConfig {
+  recorderEnabled: boolean;
+  gpuSamplingEnabled: boolean;
+  fusedDecodeDisabled: boolean;
+  layerTypes?: string[] | null;
+}
+
+export declare function shouldUseFusedDecodeSampling(config: FusedDecodeSamplingConfig): boolean;
+
 export declare function resolveBatchStop(
   tokens: number[],
   stopFlags: Uint32Array | null,
