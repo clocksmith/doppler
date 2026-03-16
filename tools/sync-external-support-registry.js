@@ -135,6 +135,41 @@ function flattenRdrrVariants(payload) {
   return out.filter((variant) => variant.rdrrModelId);
 }
 
+function buildCatalogModelIdSet(catalog) {
+  const models = Array.isArray(catalog?.models) ? catalog.models : [];
+  return new Set(
+    models
+      .map((entry) => normalizeText(entry?.modelId))
+      .filter(Boolean)
+  );
+}
+
+function collectPromotableCatalogMisses(canonicalRegistry, catalog, variantsById) {
+  const models = Array.isArray(catalog?.models) ? catalog.models : [];
+  const canonicalModelIds = buildCatalogModelIdSet(canonicalRegistry);
+  const misses = [];
+
+  for (const entry of models) {
+    if (normalizeText(entry?.artifact?.format) !== 'rdrr') {
+      continue;
+    }
+    const modelId = normalizeText(entry?.modelId);
+    if (!modelId || canonicalModelIds.has(modelId)) {
+      continue;
+    }
+    const variant = resolveMatchedVariant(entry, variantsById);
+    if (!variant) {
+      continue;
+    }
+    misses.push({
+      modelId,
+      rdrrModelId: variant.rdrrModelId,
+    });
+  }
+
+  return misses;
+}
+
 function collectEntryTokens(entry) {
   const tokens = new Set();
   const addToken = (value) => {
@@ -326,6 +361,23 @@ function buildMarkdown(payload) {
   return `${lines.join('\n')}\n`;
 }
 
+function normalizeJsonForCheck(raw) {
+  if (typeof raw !== 'string' || !raw.trim()) return null;
+  const parsed = JSON.parse(raw);
+  if (parsed && typeof parsed === 'object') {
+    delete parsed.generatedAt;
+    delete parsed.supportSource;
+  }
+  return JSON.stringify(parsed);
+}
+
+function normalizeMarkdownForCheck(raw) {
+  if (typeof raw !== 'string') return null;
+  return raw
+    .replace(/^Generated: .+$/m, 'Generated: <normalized>')
+    .replace(/^Source support registry: .+$/m, 'Source support registry: <normalized>');
+}
+
 export async function buildExternalSupportRegistry(args, generatedAt = new Date().toISOString()) {
   const supportSource = resolveSupportSourceFile(args);
   const sourceSupportRegistry = ensureCatalogPayload(
@@ -338,6 +390,30 @@ export async function buildExternalSupportRegistry(args, generatedAt = new Date(
   );
   const flattenedVariants = flattenRdrrVariants(rdrrIndex);
   const variantsById = new Map(flattenedVariants.map((variant) => [variant.rdrrModelId, variant]));
+  const usesExistingCanonicalSource =
+    normalizeText(args.sourceSupportFile) === ''
+    && path.resolve(supportSource) === path.resolve(args.jsonOutput);
+
+  if (usesExistingCanonicalSource && path.resolve(args.catalogFile) !== path.resolve(supportSource)) {
+    const repoCatalog = ensureCatalogPayload(
+      await loadJsonFile(args.catalogFile, args.catalogFile),
+      args.catalogFile
+    );
+    const promotableMisses = collectPromotableCatalogMisses(
+      sourceSupportRegistry,
+      repoCatalog,
+      variantsById
+    );
+    if (promotableMisses.length > 0) {
+      throw new Error(
+        'Canonical external support registry is missing promotable RDRR-backed repo entries: '
+        + `${promotableMisses.map((entry) => entry.modelId).join(', ')}. `
+        + 'Refusing to regenerate from stale canonical data. '
+        + `Re-run with --source-support-file ${args.catalogFile}`
+      );
+    }
+  }
+
   const { entries, matchedVariantIds, errors } = await buildCatalogBackedEntries(sourceSupportRegistry, variantsById, args.volumeRoot);
   if (errors.length > 0) {
     throw new Error(errors.join('\n'));
@@ -392,7 +468,11 @@ export async function main(argv = process.argv.slice(2)) {
       fs.readFile(args.jsonOutput, 'utf8'),
       fs.readFile(args.mdOutput, 'utf8'),
     ]);
-    if (currentJson !== outputs.json || currentMd !== outputs.md) {
+    const jsonMatches =
+      normalizeJsonForCheck(currentJson) === normalizeJsonForCheck(outputs.json);
+    const mdMatches =
+      normalizeMarkdownForCheck(currentMd) === normalizeMarkdownForCheck(outputs.md);
+    if (!jsonMatches || !mdMatches) {
       throw new Error(
         'External support registry is out of date. Run: node tools/sync-external-support-registry.js'
       );

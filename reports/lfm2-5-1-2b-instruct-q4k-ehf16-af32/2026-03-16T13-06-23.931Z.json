@@ -1,0 +1,512 @@
+{
+  "suite": "debug",
+  "modelId": "lfm2-5-1-2b-instruct-q4k-ehf16-af32",
+  "runtimePreset": null,
+  "deviceInfo": {
+    "hasSubgroups": true,
+    "hasSubgroupsF16": false,
+    "hasF16": true,
+    "hasTimestampQuery": true,
+    "maxBufferSize": 4294967292,
+    "maxWorkgroupSize": 1024,
+    "maxWorkgroupStorageSize": 65536,
+    "adapterInfo": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "amd-radeon-graphics-radv-gfx1151-",
+      "description": "radv: Mesa 25.0.7-0ubuntu0.25.04.2"
+    }
+  },
+  "results": [
+    {
+      "name": "generation",
+      "passed": true,
+      "duration": 635.5442859999998
+    }
+  ],
+  "durationMs": 4028.9580619999997,
+  "timestamp": "2026-03-16T13:06:23.931Z",
+  "metrics": {
+    "prompt": "The color of the sky is",
+    "maxTokens": 2,
+    "tokensGenerated": 2,
+    "tokensPerSec": 3.15,
+    "totalRunMs": 634.77,
+    "firstTokenMs": 313.34,
+    "firstResponseMs": 3703.07,
+    "prefillMs": 309.14,
+    "decodeMs": 320.51,
+    "prefillTokens": 7,
+    "decodeTokens": 2,
+    "prefillTokensPerSec": 22.64,
+    "prefillTokensPerSecTtft": 22.34,
+    "decodeTokensPerSec": 6.24,
+    "modelLoadMs": 3389.73,
+    "gpu": {
+      "decodeRecordMs": 0,
+      "decodeSubmitWaitMs": 0,
+      "decodeReadbackWaitMs": 0
+    },
+    "decodeProfileSteps": [],
+    "generationDiagnostics": {
+      "preview": [
+        {
+          "id": 1620,
+          "text": " what",
+          "fallbackText": " what"
+        },
+        {
+          "id": 25195,
+          "text": " determines",
+          "fallbackText": " determines"
+        }
+      ],
+      "total": 2,
+      "omitted": 0,
+      "emptyTextCount": 0,
+      "specialLikeTextCount": 0,
+      "specialLikeFallbackCount": 0
+    },
+    "schemaVersion": 1,
+    "source": "doppler",
+    "suite": "debug",
+    "executionContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "lfm2-5-1-2b-instruct-q4k-ehf16-af32.steps",
+          "ok": true
+        },
+        {
+          "id": "lfm2-5-1-2b-instruct-q4k-ehf16-af32.session",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "session": {
+        "layout": "contiguous",
+        "disableCommandBatching": false,
+        "decodeBatchSize": 8,
+        "headDim": 64,
+        "kvLen": 128000,
+        "coldQuantMode": "none"
+      },
+      "steps": {
+        "total": 0,
+        "attention": 0,
+        "attentionPhases": {
+          "prefill": 0,
+          "decode": 0,
+          "both": 0
+        }
+      }
+    },
+    "executionV0GraphContractArtifact": null,
+    "layerPatternContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "inference.layerPattern.patternKind.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.patternKind.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.even",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.odd",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_offset",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_negative_offset",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "patternKindRules": 4,
+        "layerTypeRules": 6,
+        "patternKindContexts": 16,
+        "layerTypeContexts": 12
+      }
+    },
+    "requiredInferenceFieldsArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "scope": "manifest",
+      "label": "lfm2-5-1-2b-instruct-q4k-ehf16-af32.inference",
+      "ok": true,
+      "checks": [
+        {
+          "id": "lfm2-5-1-2b-instruct-q4k-ehf16-af32.inference.requiredInferenceFields",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "fieldCases": 35,
+        "nullableCases": 16,
+        "nonNullableCases": 19
+      }
+    }
+  },
+  "output": " what determines",
+  "memory": {
+    "used": 2630358784,
+    "pool": {
+      "allocations": 205,
+      "reuses": 602,
+      "totalBytesAllocated": 2496141056,
+      "peakBytesAllocated": 2496141056,
+      "currentBytesAllocated": 2496141056,
+      "totalBytesRequested": 2376088832,
+      "peakBytesRequested": 2374855680,
+      "currentBytesRequested": 2373995520,
+      "activeBuffers": 170,
+      "pooledBuffers": 35,
+      "budgetMaxBytes": 0,
+      "budgetUtilization": 0,
+      "hitRate": "74.6%"
+    },
+    "kvCache": {
+      "theoretical": 134217728,
+      "allocated": 134217728,
+      "used": 262144,
+      "efficiency": 0.001953125,
+      "seqLen": 8,
+      "maxSeqLen": 4096,
+      "layout": "contiguous"
+    }
+  },
+  "debugSnapshot": {
+    "timestamp": "2026-03-16T13:06:27.962Z",
+    "logLevel": "INFO",
+    "traceCategories": [],
+    "enabledModules": [],
+    "disabledModules": [],
+    "recentLogs": [
+      {
+        "time": "403.5",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Loading: lfm2-5-1-2b-instruct-q4k-ehf16-af32"
+      },
+      {
+        "time": "404.0",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "[0.0s] Memory (start): | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0"
+      },
+      {
+        "time": "404.4",
+        "level": "WARN",
+        "module": "Loader",
+        "message": "Dense model on discrete GPU - performance limited. Consider MoE model."
+      },
+      {
+        "time": "408.6",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 1 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "409.1",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 2 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "409.2",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 3 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "409.3",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 0 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "1345.1",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Embeddings tensor loaded: name=model.embed_tokens.weight, hasShape=true, shape=[65536,2048], isWeightBuffer=true"
+      },
+      {
+        "time": "1345.8",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Layers: 0-15"
+      },
+      {
+        "time": "1353.9",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 4 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "1354.1",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 5 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "1777.9",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 8 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "1809.7",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 9 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "2225.0",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 10 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "2251.4",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 11 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "2663.7",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 12 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "2902.9",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 6 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "3180.2",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 7 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "3376.3",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "All 13 shards loaded: 811.9MB in 3.1s (262 MB/s avg)"
+      },
+      {
+        "time": "3498.0",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Layers: 16 complete (2.15s)"
+      },
+      {
+        "time": "3503.4",
+        "level": "WARN",
+        "module": "Loader",
+        "message": "[FinalNorm] Falling back to role-only final norm selection because tensor groups are missing in manifest."
+      },
+      {
+        "time": "3504.2",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Complete: 555.91 MB in 3.10s (179.44 MB/s)"
+      },
+      {
+        "time": "3504.6",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "[3.1s] Memory (complete): | GPU=2.32 GB (148 active, 13 pooled, peak=2.32 GB) | ShardCache=0 B (0 shards) | Layers=16, GPUBuffers=148"
+      },
+      {
+        "time": "3605.0",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Initialized 10 conv layer states (kernelSize=3)"
+      },
+      {
+        "time": "3605.2",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Model loaded successfully"
+      },
+      {
+        "time": "3605.2",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "Pipeline ready"
+      },
+      {
+        "time": "3616.8",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "matmul variant=f16w_f32a reason=default"
+      },
+      {
+        "time": "3623.7",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "PROBE attn stage=attn_out token=6 values=[0=0.0130, 1=-0.0055, 2=-0.0072, 3=0.0113]"
+      },
+      {
+        "time": "3627.3",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "matmul variant=f16w_f32a_tiled reason=path_override"
+      },
+      {
+        "time": "3643.4",
+        "level": "TRACE:ffn",
+        "module": "FFN:L0",
+        "message": "PROBE layer stage=layer_out token=6 values=[0=-0.0020, 1=0.0042, 2=-0.0175, 3=-0.0046]"
+      },
+      {
+        "time": "3646.9",
+        "level": "TRACE:attn",
+        "module": "Attn:L1",
+        "message": "PROBE attn stage=attn_out token=6 values=[0=0.0003, 1=0.0038, 2=-0.0004, 3=-0.0013]"
+      },
+      {
+        "time": "3658.8",
+        "level": "TRACE:ffn",
+        "module": "FFN:L1",
+        "message": "PROBE layer stage=layer_out token=6 values=[0=-0.0017, 1=0.0075, 2=-0.0131, 3=-0.0038]"
+      },
+      {
+        "time": "3673.8",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "attention variant=prefill_small_f16kv reason=path_override:tiled_small"
+      },
+      {
+        "time": "3688.7",
+        "level": "TRACE:attn",
+        "module": "Attn:L2",
+        "message": "PROBE attn stage=attn_out token=6 values=[0=-0.0023, 1=0.0019, 2=-0.0049, 3=-0.0007]"
+      },
+      {
+        "time": "3700.5",
+        "level": "TRACE:ffn",
+        "module": "FFN:L2",
+        "message": "PROBE layer stage=layer_out token=6 values=[0=-0.0034, 1=0.0063, 2=-0.0174, 3=-0.0042]"
+      },
+      {
+        "time": "3874.2",
+        "level": "TRACE:logits",
+        "module": "Logits",
+        "message": "LOGITS_ENTRY: numTokens=7, useGPU=true"
+      },
+      {
+        "time": "3874.3",
+        "level": "TRACE:logits",
+        "module": "Logits",
+        "message": "LOGITS_PATH: device=true, useGPU=true, taking GPU path"
+      },
+      {
+        "time": "3875.0",
+        "level": "TRACE:logits",
+        "module": "Logits",
+        "message": "LM_HEAD_MATMUL: M=7, N=65536, K=2048, lmHeadDtype=f16, normedDtype=f32, size=268435456, bufLabel=model.embed_tokens.weight_268435456"
+      },
+      {
+        "time": "3915.2",
+        "level": "TRACE:logits",
+        "module": "Logits",
+        "message": "PROBE logits stage=logits token=0 values=[0=-3.2632, 1=1.2919, 2=2.9190, 3=-3.2643]"
+      },
+      {
+        "time": "3922.3",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "matmul variant=gemv_subgroup_multicol reason=gemv"
+      },
+      {
+        "time": "3936.5",
+        "level": "TRACE:attn",
+        "module": "Attn:L0",
+        "message": "PROBE attn stage=attn_out token=0 values=[0=-0.0133, 1=-0.0044, 2=0.0095, 3=0.0135]"
+      },
+      {
+        "time": "3937.1",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "matmul variant=gemv_subgroup_vec4 reason=path_override"
+      },
+      {
+        "time": "3944.5",
+        "level": "TRACE:ffn",
+        "module": "FFN:L0",
+        "message": "PROBE layer stage=layer_out token=0 values=[0=-0.0124, 1=-0.0049, 2=-0.0048, 3=-0.0087]"
+      },
+      {
+        "time": "3950.5",
+        "level": "TRACE:attn",
+        "module": "Attn:L1",
+        "message": "PROBE attn stage=attn_out token=0 values=[0=0.0014, 1=0.0031, 2=-0.0014, 3=-0.0014]"
+      },
+      {
+        "time": "3956.0",
+        "level": "TRACE:ffn",
+        "module": "FFN:L1",
+        "message": "PROBE layer stage=layer_out token=0 values=[0=-0.0085, 1=-0.0052, 2=-0.0055, 3=-0.0071]"
+      },
+      {
+        "time": "3957.4",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "attention variant=decode_online_f16kv reason=path_override:subgroup"
+      },
+      {
+        "time": "3965.1",
+        "level": "TRACE:attn",
+        "module": "Attn:L2",
+        "message": "PROBE attn stage=attn_out token=0 values=[0=-0.0112, 1=-0.0022, 2=-0.0073, 3=-0.0097]"
+      },
+      {
+        "time": "3970.5",
+        "level": "TRACE:ffn",
+        "module": "FFN:L2",
+        "message": "PROBE layer stage=layer_out token=0 values=[0=-0.0124, 1=-0.0022, 2=-0.0061, 3=-0.0103]"
+      },
+      {
+        "time": "4240.8",
+        "level": "INFO",
+        "module": "Perf",
+        "message": "TTFT: 313ms | Prefill: 309ms | Decode: 321ms (1 tokens @ 3.1 tok/s)"
+      },
+      {
+        "time": "4244.2",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Unloaded"
+      }
+    ],
+    "errorCount": 0,
+    "warnCount": 15
+  }
+}

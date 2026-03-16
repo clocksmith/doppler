@@ -438,19 +438,20 @@ async function dequantConvQ4KWeights(ctx, weights, layerIdx) {
     const totalElements = shape.reduce((a, b) => a * b, 1);
 
     let dequantizedTensor;
+    const outputDtype = 'f32';
     if (is2D && shape[1] % QK_K !== 0) {
-      dequantizedTensor = await dequantizeRowwise(buf.buffer, shape[0], shape[1], { outputDtype: 'f16' });
+      dequantizedTensor = await dequantizeRowwise(buf.buffer, shape[0], shape[1], { outputDtype });
     } else {
       if (totalElements === 0 || totalElements % QK_K !== 0) continue;
       const numBlocks = totalElements / QK_K;
-      dequantizedTensor = await dequantize(buf.buffer, numBlocks, { outputDtype: 'f16' });
+      dequantizedTensor = await dequantize(buf.buffer, numBlocks, { outputDtype });
     }
 
     releaseBuffer(buf.buffer);
-    const f16Buf = dequantizedTensor.buffer;
-    weights[key] = createWeightBuffer(f16Buf, 'f16', 'row', shape, buf.label ?? key);
-    ctx.gpuBuffers.add(f16Buf);
+    const dequantizedBuffer = dequantizedTensor.buffer;
+    weights[key] = createWeightBuffer(dequantizedBuffer, outputDtype, 'row', shape, buf.label ?? key);
+    ctx.gpuBuffers.add(dequantizedBuffer);
 
-    debugTrace.loader(`Layer ${layerIdx} dequantized conv ${key} Q4K→F16: [${shape.join(',')}]`);
+    debugTrace.loader(`Layer ${layerIdx} dequantized conv ${key} Q4K→${outputDtype.toUpperCase()}: [${shape.join(',')}]`);
   }
 }

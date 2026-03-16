@@ -1,7 +1,7 @@
 {
   "version": 1,
   "lifecycleSchemaVersion": 1,
-  "updatedAt": "2026-03-15",
+  "updatedAt": "2026-03-16",
   "models": [
     {
       "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
@@ -33,14 +33,14 @@
       "sortOrder": 10,
       "lifecycle": {
         "availability": {
-          "curated": true,
+          "curated": false,
           "local": false,
           "hf": true
         },
         "status": {
           "runtime": "active",
           "conversion": "ready",
-          "demo": "curated",
+          "demo": "none",
           "tested": "verified"
         },
         "tested": {
@@ -459,9 +459,9 @@
           "suite": "debug",
           "surface": ["node"],
           "result": "fail",
-          "lastVerifiedAt": "2026-03-15",
+          "lastVerifiedAt": "2026-03-16",
           "source": "runtime-verify",
-          "notes": "Re-verified 2026-03-15 on Node/WebGPU AMD RDNA-3. Deterministic greedy (temp=0, topK=1). Prompt: 'The color of the sky is' -> ' what determines determines determines...' (32 repeating tokens). First token reasonable (' what'), then collapses. Suspicious token 0 at step 1, fused sampling fallback to CPU. Logits not NaN/Inf (max=11.23). Conv layer architecture issue: hidden state becomes degenerate after first decode step. No execution-v0 contract (schema=null). Batch decode correctly disabled for conv models.",
+          "notes": "Re-verified 2026-03-16 on Node/WebGPU AMD RDNA-3 after disabling recorder-backed fused sampling for conv models. Deterministic greedy (temp=0, topK=1). Prompt: 'The color of the sky is' -> ' what determines how how how...' (16 tokens). The bogus fused-sampler token-0 branch is gone, but decode still collapses into repetition after the second token. Logits remain finite. Conv/decode runtime issue still unresolved. No execution-v0 contract (schema=null). Batch decode correctly disabled for conv models.",
           "contracts": {
             "executionContractOk": true,
             "executionV0GraphOk": false

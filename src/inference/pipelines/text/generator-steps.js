@@ -92,6 +92,13 @@ export function shouldUseBatchDecode(config) {
   return isBatchDecodeEnabled(config);
 }
 
+export function shouldUseFusedDecodeSampling(config) {
+  return config.recorderEnabled === true
+    && config.gpuSamplingEnabled === true
+    && config.fusedDecodeDisabled !== true
+    && !hasConvLayers(config.layerTypes ?? []);
+}
+
 export function resolveBatchStop(tokens, stopFlags, stopTokenIds, eosTokenId) {
   let actualCount = tokens.length;
   if (stopFlags) {
@@ -404,7 +411,12 @@ export async function decodeStep(state, currentIds, opts, helpers) {
   const padTokenId = state.tokenizer?.getSpecialTokens?.()?.pad ?? null;
   const lmHeadIsCpu = isCpuWeightBuffer(state.weights.get('lm_head'));
   const useGPUSampling = state.useGPU && isGPUSamplingAvailable() && !lmHeadIsCpu;
-  const useFusedDecode = recorder && useGPUSampling && !state.disableFusedDecode;
+  const useFusedDecode = shouldUseFusedDecodeSampling({
+    recorderEnabled: Boolean(recorder),
+    gpuSamplingEnabled: useGPUSampling,
+    fusedDecodeDisabled: state.disableFusedDecode,
+    layerTypes: config.layerTypes,
+  });
 
   if (useFusedDecode) {
     const ring = state.decodeRing;
