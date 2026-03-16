@@ -1,0 +1,663 @@
+{
+  "suite": "debug",
+  "modelId": "lfm2-5-1-2b-instruct-q4k-ehf16-af32",
+  "runtimePreset": null,
+  "deviceInfo": {
+    "hasSubgroups": true,
+    "hasSubgroupsF16": false,
+    "hasF16": true,
+    "hasTimestampQuery": true,
+    "maxBufferSize": 4294967292,
+    "maxWorkgroupSize": 1024,
+    "maxWorkgroupStorageSize": 65536,
+    "adapterInfo": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "amd-radeon-graphics-radv-gfx1151-",
+      "description": "radv: Mesa 25.0.7-0ubuntu0.25.04.2"
+    }
+  },
+  "results": [
+    {
+      "name": "generation",
+      "passed": false,
+      "duration": 84041.177261,
+      "error": "Output dominated by padding or special tokens"
+    }
+  ],
+  "durationMs": 87315.15873000001,
+  "timestamp": "2026-03-16T00:37:36.011Z",
+  "metrics": {
+    "prompt": "Summarize this input in one sentence.",
+    "maxTokens": 256,
+    "tokensGenerated": 256,
+    "tokensPerSec": 3.05,
+    "totalRunMs": 84039.99,
+    "firstTokenMs": 363.66,
+    "firstResponseMs": 3634.22,
+    "prefillMs": 359.83,
+    "decodeMs": 83675.67,
+    "prefillTokens": 10,
+    "decodeTokens": 256,
+    "prefillTokensPerSec": 27.79,
+    "prefillTokensPerSecTtft": 27.5,
+    "decodeTokensPerSec": 3.06,
+    "modelLoadMs": 3270.56,
+    "gpu": {
+      "decodeRecordMs": 0,
+      "decodeSubmitWaitMs": 0,
+      "decodeReadbackWaitMs": 0
+    },
+    "decodeProfileSteps": [],
+    "generationDiagnostics": {
+      "preview": [
+        {
+          "id": 970,
+          "text": " \n",
+          "fallbackText": " \n"
+        },
+        {
+          "id": 970,
+          "text": " \n",
+          "fallbackText": " \n"
+        },
+        {
+          "id": 970,
+          "text": " \n",
+          "fallbackText": " \n"
+        },
+        {
+          "id": 970,
+          "text": " \n",
+          "fallbackText": " \n"
+        },
+        {
+          "id": 970,
+          "text": " \n",
+          "fallbackText": " \n"
+        },
+        {
+          "id": 970,
+          "text": " \n",
+          "fallbackText": " \n"
+        },
+        {
+          "id": 970,
+          "text": " \n",
+          "fallbackText": " \n"
+        },
+        {
+          "id": 970,
+          "text": " \n",
+          "fallbackText": " \n"
+        },
+        {
+          "id": 970,
+          "text": " \n",
+          "fallbackText": " \n"
+        },
+        {
+          "id": 970,
+          "text": " \n",
+          "fallbackText": " \n"
+        },
+        {
+          "id": 970,
+          "text": " \n",
+          "fallbackText": " \n"
+        },
+        {
+          "id": 970,
+          "text": " \n",
+          "fallbackText": " \n"
+        },
+        {
+          "id": 970,
+          "text": " \n",
+          "fallbackText": " \n"
+        },
+        {
+          "id": 970,
+          "text": " \n",
+          "fallbackText": " \n"
+        },
+        {
+          "id": 970,
+          "text": " \n",
+          "fallbackText": " \n"
+        },
+        {
+          "id": 970,
+          "text": " \n",
+          "fallbackText": " \n"
+        },
+        {
+          "id": 970,
+          "text": " \n",
+          "fallbackText": " \n"
+        },
+        {
+          "id": 970,
+          "text": " \n",
+          "fallbackText": " \n"
+        },
+        {
+          "id": 970,
+          "text": " \n",
+          "fallbackText": " \n"
+        },
+        {
+          "id": 970,
+          "text": " \n",
+          "fallbackText": " \n"
+        },
+        {
+          "id": 970,
+          "text": " \n",
+          "fallbackText": " \n"
+        },
+        {
+          "id": 970,
+          "text": " \n",
+          "fallbackText": " \n"
+        },
+        {
+          "id": 970,
+          "text": " \n",
+          "fallbackText": " \n"
+        },
+        {
+          "id": 970,
+          "text": " \n",
+          "fallbackText": " \n"
+        },
+        {
+          "id": 970,
+          "text": " \n",
+          "fallbackText": " \n"
+        },
+        {
+          "id": 970,
+          "text": " \n",
+          "fallbackText": " \n"
+        },
+        {
+          "id": 970,
+          "text": " \n",
+          "fallbackText": " \n"
+        },
+        {
+          "id": 970,
+          "text": " \n",
+          "fallbackText": " \n"
+        },
+        {
+          "id": 970,
+          "text": " \n",
+          "fallbackText": " \n"
+        },
+        {
+          "id": 970,
+          "text": " \n",
+          "fallbackText": " \n"
+        },
+        {
+          "id": 970,
+          "text": " \n",
+          "fallbackText": " \n"
+        },
+        {
+          "id": 970,
+          "text": " \n",
+          "fallbackText": " \n"
+        }
+      ],
+      "total": 256,
+      "omitted": 224,
+      "emptyTextCount": 0,
+      "specialLikeTextCount": 0,
+      "specialLikeFallbackCount": 0
+    },
+    "schemaVersion": 1,
+    "source": "doppler",
+    "suite": "debug",
+    "executionContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "lfm2-5-1-2b-instruct-q4k-ehf16-af32.steps",
+          "ok": true
+        },
+        {
+          "id": "lfm2-5-1-2b-instruct-q4k-ehf16-af32.session",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "session": {
+        "layout": "contiguous",
+        "disableCommandBatching": false,
+        "decodeBatchSize": 8,
+        "headDim": 64,
+        "kvLen": 128000,
+        "coldQuantMode": "none"
+      },
+      "steps": {
+        "total": 0,
+        "attention": 0,
+        "attentionPhases": {
+          "prefill": 0,
+          "decode": 0,
+          "both": 0
+        }
+      }
+    },
+    "executionV0GraphContractArtifact": null,
+    "layerPatternContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "inference.layerPattern.patternKind.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.patternKind.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.even",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.odd",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_offset",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_negative_offset",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "patternKindRules": 4,
+        "layerTypeRules": 6,
+        "patternKindContexts": 16,
+        "layerTypeContexts": 12
+      }
+    },
+    "requiredInferenceFieldsArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "scope": "manifest",
+      "label": "lfm2-5-1-2b-instruct-q4k-ehf16-af32.inference",
+      "ok": true,
+      "checks": [
+        {
+          "id": "lfm2-5-1-2b-instruct-q4k-ehf16-af32.inference.requiredInferenceFields",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "fieldCases": 35,
+        "nullableCases": 16,
+        "nonNullableCases": 19
+      }
+    }
+  },
+  "output": " \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n",
+  "memory": {
+    "used": 2636418816,
+    "pool": {
+      "allocations": 43515,
+      "reuses": 8804,
+      "totalBytesAllocated": 3226545920,
+      "peakBytesAllocated": 2543164928,
+      "currentBytesAllocated": 2502201088,
+      "totalBytesRequested": 3069725952,
+      "peakBytesRequested": 2405494016,
+      "currentBytesRequested": 2373995520,
+      "activeBuffers": 170,
+      "pooledBuffers": 64,
+      "budgetMaxBytes": 0,
+      "budgetUtilization": 0,
+      "hitRate": "16.8%"
+    },
+    "kvCache": {
+      "theoretical": 134217728,
+      "allocated": 134217728,
+      "used": 8683520,
+      "efficiency": 0.064697265625,
+      "seqLen": 265,
+      "maxSeqLen": 4096,
+      "layout": "contiguous"
+    }
+  },
+  "debugSnapshot": {
+    "timestamp": "2026-03-16T00:39:03.330Z",
+    "logLevel": "INFO",
+    "traceCategories": [],
+    "enabledModules": [],
+    "disabledModules": [],
+    "recentLogs": [
+      {
+        "time": "298.5",
+        "level": "INFO",
+        "module": "Tokenizer",
+        "message": "HuggingFace model.type=\"BPE\", using type=\"bpe\""
+      },
+      {
+        "time": "351.6",
+        "level": "INFO",
+        "module": "Tokenizer",
+        "message": "Loaded HuggingFace 64402 tokens (bpe), 509 special patterns, 63683 merges"
+      },
+      {
+        "time": "351.9",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Tokenizer vocabSize=64402 differs from model=65536, using model size"
+      },
+      {
+        "time": "357.9",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Execution plan: active=primary, dtype=f32, kernelPath=lfm2-q4k-dequant-f32a-online"
+      },
+      {
+        "time": "358.7",
+        "level": "INFO",
+        "module": "ShardCache",
+        "message": "Custom shard loader configured"
+      },
+      {
+        "time": "358.9",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Initializing..."
+      },
+      {
+        "time": "377.5",
+        "level": "INFO",
+        "module": "HeapManager",
+        "message": "Allocated segment 0: 1024MB"
+      },
+      {
+        "time": "377.7",
+        "level": "INFO",
+        "module": "HeapManager",
+        "message": "Segmented heap: 1GB per segment"
+      },
+      {
+        "time": "377.9",
+        "level": "INFO",
+        "module": "HeapManager",
+        "message": "Initialized with strategy: SEGMENTED"
+      },
+      {
+        "time": "378.0",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Initialized (f16, subgroups)"
+      },
+      {
+        "time": "378.6",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Loading: lfm2-5-1-2b-instruct-q4k-ehf16-af32"
+      },
+      {
+        "time": "379.1",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "[0.0s] Memory (start): | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0"
+      },
+      {
+        "time": "379.7",
+        "level": "WARN",
+        "module": "Loader",
+        "message": "Dense model on discrete GPU - performance limited. Consider MoE model."
+      },
+      {
+        "time": "385.3",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 1 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "385.9",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 2 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "386.0",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 3 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "386.1",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 0 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "1312.6",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Embeddings tensor loaded: name=model.embed_tokens.weight, hasShape=true, shape=[65536,2048], isWeightBuffer=true"
+      },
+      {
+        "time": "1314.0",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Layers: 0-15"
+      },
+      {
+        "time": "1320.8",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 4 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "1321.0",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 5 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "1714.0",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 8 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "1738.6",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 9 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "2114.8",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 10 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "2145.2",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 11 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "2543.9",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 12 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "2782.7",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 6 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "3067.7",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 7 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "3254.1",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "All 13 shards loaded: 811.9MB in 3.0s (271 MB/s avg)"
+      },
+      {
+        "time": "3370.1",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Layers: 16 complete (2.06s)"
+      },
+      {
+        "time": "3375.5",
+        "level": "WARN",
+        "module": "Loader",
+        "message": "[FinalNorm] Falling back to role-only final norm selection because tensor groups are missing in manifest."
+      },
+      {
+        "time": "3376.6",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Complete: 555.91 MB in 3.00s (185.61 MB/s)"
+      },
+      {
+        "time": "3377.1",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "[3.0s] Memory (complete): | GPU=2.32 GB (148 active, 13 pooled, peak=2.32 GB) | ShardCache=0 B (0 shards) | Layers=16, GPUBuffers=148"
+      },
+      {
+        "time": "3470.4",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Initialized 10 conv layer states (kernelSize=3)"
+      },
+      {
+        "time": "3470.5",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Model loaded successfully"
+      },
+      {
+        "time": "3470.5",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "Pipeline ready"
+      },
+      {
+        "time": "3485.0",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "matmul variant=f16w_f32a reason=default"
+      },
+      {
+        "time": "3493.4",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "matmul variant=f16w_f32a_tiled reason=path_override"
+      },
+      {
+        "time": "3518.6",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "attention variant=prefill_small_f16kv reason=path_override:tiled_small"
+      },
+      {
+        "time": "3836.3",
+        "level": "WARN",
+        "module": "Pipeline",
+        "message": "Batch decode failed, falling back to single-token: Error: [Pipeline] Batch decode path is disabled for conv models; use single-token decode."
+      },
+      {
+        "time": "3837.8",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "matmul variant=gemv_subgroup_multicol reason=gemv"
+      },
+      {
+        "time": "3844.0",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "matmul variant=gemv_subgroup_vec4 reason=path_override"
+      },
+      {
+        "time": "3848.6",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "attention variant=decode_online_f16kv reason=path_override:subgroup"
+      },
+      {
+        "time": "4143.9",
+        "level": "WARN",
+        "module": "Decode",
+        "message": "Suspicious token 0 (vocabSize=65536, step=1)"
+      },
+      {
+        "time": "4145.1",
+        "level": "WARN",
+        "module": "Decode",
+        "message": "Logits: max=13.9902 at [970], min=-5.5074, hasNaN=false, hasInf=false"
+      },
+      {
+        "time": "4145.1",
+        "level": "WARN",
+        "module": "Decode",
+        "message": "First 10 logits: "
+      },
+      {
+        "time": "4145.1",
+        "level": "WARN",
+        "module": "Decode",
+        "message": "Logit[0] (pad): -1.5518, Logit[970]: 13.9902"
+      },
+      {
+        "time": "4145.3",
+        "level": "WARN",
+        "module": "Decode",
+        "message": "Fused sampling produced invalid token; falling back to CPU sampling."
+      },
+      {
+        "time": "87511.5",
+        "level": "INFO",
+        "module": "Perf",
+        "message": "TTFT: 364ms | Prefill: 360ms | Decode: 83676ms (255 tokens @ 3.0 tok/s)"
+      },
+      {
+        "time": "87515.0",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Unloaded"
+      }
+    ],
+    "errorCount": 0,
+    "warnCount": 21
+  }
+}
