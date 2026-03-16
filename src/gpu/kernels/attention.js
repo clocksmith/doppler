@@ -513,9 +513,10 @@ function resolveAttentionPlan(
         useF16KV,
         useF16Q,
         numHeads,
-        kvLen,
-        caps,
         headDim,
+        kvLen,
+        isPaged,
+        caps,
         sharedLimit
       );
       const workgroups = calculateAttentionWorkgroups(adaptiveSelection.tier, seqLen, numHeads);
