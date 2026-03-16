@@ -1,4 +1,5 @@
 import { getCdnBasePath } from '../storage/download-types.js';
+import { buildHfResolveBaseUrl } from '../utils/hf-resolve-url.js';
 import { loadJson } from '../utils/load-json.js';
 
 let registryPromise = null;
@@ -80,9 +81,6 @@ export function buildQuickstartModelBaseUrl(entry, options = {}) {
   }
   const cdnBasePath = typeof options.cdnBasePath === 'string' && options.cdnBasePath.length > 0
     ? options.cdnBasePath
-    : (getCdnBasePath() || 'https://huggingface.co');
-  const revision = entry.hf.revision || 'main';
-  const base = cdnBasePath.replace(/\/$/, '');
-  const path = entry.hf.path.replace(/^\/+/, '');
-  return `${base}/${entry.hf.repoId}/resolve/${revision}/${path}`;
+    : getCdnBasePath();
+  return buildHfResolveBaseUrl(entry.hf, { cdnBasePath });
 }

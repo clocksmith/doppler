@@ -321,6 +321,49 @@ try {
   assert.equal(resumedRanges[1], 'bytes=2-');
   assert.equal(toHex(new Uint8Array(resumedHttp.buffer)), '01020304');
 
+  let rejectedResumeFetchCalls = 0;
+  const rejectedResumeRanges = [];
+  globalThis.fetch = async (_url, init = {}) => {
+    rejectedResumeFetchCalls += 1;
+    const headerSource = init?.headers;
+    const rangeValue = headerSource instanceof Headers
+      ? headerSource.get('range')
+      : (headerSource?.range ?? headerSource?.Range ?? null);
+    rejectedResumeRanges.push(rangeValue ?? null);
+    if (rejectedResumeFetchCalls === 1) {
+      return createStreamingErrorResponse(httpData.slice(0, 2), {
+        status: 200,
+        headers: {
+          'content-encoding': 'gzip',
+        },
+      });
+    }
+    if (rejectedResumeFetchCalls === 2) {
+      return createCustomResponse('range rejected', {
+        status: 416,
+        statusText: 'Requested Range Not Satisfiable',
+      });
+    }
+    return createResponse(httpData);
+  };
+
+  const recoveredRejectedResume = await downloadShard('https://example.com/models', 18, shardInfo, {
+    algorithm: 'sha256',
+    expectedManifestVersionSet: manifestVersionSet,
+    distributionConfig: {
+      sourceOrder: ['http'],
+      requiredContentEncoding: 'gzip',
+      maxRetries: 1,
+      initialRetryDelayMs: 0,
+      maxRetryDelayMs: 0,
+    },
+    writeToStore: false,
+  });
+  assert.equal(recoveredRejectedResume.source, 'http');
+  assert.equal(rejectedResumeFetchCalls, 3);
+  assert.deepEqual(rejectedResumeRanges, [null, 'bytes=2-', null]);
+  assert.equal(toHex(new Uint8Array(recoveredRejectedResume.buffer)), '01020304');
+
   globalThis.fetch = async () => createResponse(new Uint8Array([1, 2, 3, 5]));
   await assert.rejects(
     () => downloadShard('https://example.com/models', 16, shardInfo, {

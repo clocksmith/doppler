@@ -25,9 +25,9 @@ assert.equal(typeof doppler.evict, 'function');
   const resolved = await resolveQuickstartModel('gemma3-270m');
   assert.equal(resolved.modelId, 'gemma-3-270m-it-q4k-ehf16-af32');
   assert.ok(resolved.aliases.includes('google/gemma-3-270m-it'));
-  assert.match(
+  assert.equal(
     buildQuickstartModelBaseUrl(resolved),
-    /^https:\/\/huggingface\.co\/Clocksmith\/rdrr\/resolve\/f304e523fe67d61e50ad07df9f78d04f0b46572f\/models\/gemma-3-270m-it-q4k-ehf16-af32$/
+    `https://huggingface.co/${resolved.hf.repoId}/resolve/${resolved.hf.revision}/${resolved.hf.path}`
   );
 }
 

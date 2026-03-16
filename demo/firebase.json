@@ -50,6 +50,7 @@
       "firebase-debug.log",
       ".tjs-bench-profile/**",
       "tmp/**",
+      "models/curated/**",
       "models/local/**",
       "models/converted/**"
     ]

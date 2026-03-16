@@ -7,6 +7,7 @@ import {
 } from './preflight.js';
 import { formatBytes } from './quota.js';
 import { getCdnBasePath } from './download-types.js';
+import { buildHfResolveBaseUrl, DEFAULT_HF_CDN_BASE_URL } from '../utils/hf-resolve-url.js';
 
 // ============================================================================
 // Model Registry
@@ -15,40 +16,14 @@ import { getCdnBasePath } from './download-types.js';
 
 let cdnBaseOverride = null;
 
-
-function getEffectiveCDNBaseUrl() {
-  const runtimeBase = getCdnBasePath();
-  const base = cdnBaseOverride ?? runtimeBase ?? '';
-  if (base) return base;
-
-  // Auto-detect: use same origin for Firebase Hosting or local dev
-  if (typeof globalThis.location !== 'undefined') {
-    const path = globalThis.location.pathname || '';
-    if (
-      path === '/d' ||
-      path.startsWith('/d/') ||
-      path === '/doppler' ||
-      path.startsWith('/doppler/') ||
-      path === '/dr' ||
-      path.startsWith('/dr/') ||
-      globalThis.location.host.includes('replo')
-    ) {
-      return `${globalThis.location.origin}/doppler/models`;
-    }
-    return `${globalThis.location.origin}/models`;
-  }
-  // Fallback for non-browser-global contexts
-  return '/models';
-}
-
-
 export function setCDNBaseUrl(url) {
-  cdnBaseOverride = url.replace(/\/$/, ''); // Remove trailing slash
+  const normalized = typeof url === 'string' ? url.trim().replace(/\/$/, '') : '';
+  cdnBaseOverride = normalized || null;
 }
 
 
 export function getCDNBaseUrl() {
-  return getEffectiveCDNBaseUrl();
+  return cdnBaseOverride ?? getCdnBasePath() ?? DEFAULT_HF_CDN_BASE_URL;
 }
 
 
@@ -57,12 +32,22 @@ export const QUICKSTART_MODELS = {
     modelId: 'gemma-3-270m-it-q4k-ehf16-af32',
     displayName: 'Gemma 3 270M IT (Q4K)',
     baseUrl: null,
+    hf: {
+      repoId: 'Clocksmith/rdrr',
+      revision: 'ca6f0dbdf3882d3893a65cf48f2bb6f1520df162',
+      path: 'models/gemma-3-270m-it-q4k-ehf16-af32',
+    },
     requirements: MODEL_REQUIREMENTS['gemma-3-270m-it-q4k-ehf16-af32'],
   },
   'google-embeddinggemma-300m-q4k-ehf16-af32': {
     modelId: 'google-embeddinggemma-300m-q4k-ehf16-af32',
     displayName: 'EmbeddingGemma 300M (Q4K)',
     baseUrl: null,
+    hf: {
+      repoId: 'Clocksmith/rdrr',
+      revision: '7e79c466d54455bd370c81685956ea9abae0fd30',
+      path: 'models/google-embeddinggemma-300m-q4k-ehf16-af32',
+    },
     requirements: MODEL_REQUIREMENTS['google-embeddinggemma-300m-q4k-ehf16-af32'],
   },
 };
@@ -80,6 +65,18 @@ export function listQuickStartModels() {
 
 export function registerQuickStartModel(config) {
   QUICKSTART_MODELS[config.modelId] = config;
+}
+
+function resolveQuickStartModelBaseUrl(config) {
+  if (typeof config?.baseUrl === 'string' && config.baseUrl.trim().length > 0) {
+    return config.baseUrl.trim().replace(/\/$/, '');
+  }
+  if (config?.hf) {
+    return buildHfResolveBaseUrl(config.hf, { cdnBasePath: getCDNBaseUrl() });
+  }
+  throw new Error(
+    `Quickstart model "${config?.modelId ?? 'unknown'}" is missing an explicit baseUrl or hosted Hugging Face source.`
+  );
 }
 
 // ============================================================================
@@ -190,7 +187,7 @@ export async function downloadQuickStartModel(
       signal,
     };
 
-    const baseUrl = config.baseUrl ?? `${getEffectiveCDNBaseUrl()}/${config.modelId}`;
+    const baseUrl = resolveQuickStartModelBaseUrl(config);
     const success = await downloadModel(
       baseUrl,
       onProgress,

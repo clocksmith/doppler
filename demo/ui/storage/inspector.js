@@ -171,15 +171,11 @@ export async function refreshStorageInspector(callbacks = {}) {
   const listEl = $('storage-inspector-list');
   const backendEl = $('storage-inspector-backend');
   const summaryEl = $('storage-inspector-summary');
-  const systemSection = $('storage-inspector-system-section');
-  const systemList = $('storage-inspector-system');
-  if (!listEl || !systemSection || !systemList) return;
+  if (!listEl) return;
   if (state.storageInspectorScanning) return;
 
   state.storageInspectorScanning = true;
   listEl.innerHTML = '';
-  systemList.innerHTML = '';
-  systemSection.hidden = true;
   setStorageInspectorStatus('Scanning storage...');
 
   const runtime = getRuntimeConfig();
@@ -235,7 +231,6 @@ export async function refreshStorageInspector(callbacks = {}) {
     if (typeof callbacks?.onStorageInventoryRefreshed === 'function') {
       callbacks.onStorageInventoryRefreshed(state.quickModelStorageIds.slice());
     }
-    const systemEntries = inventory.systemEntries;
     const opfsRoots = inventory.opfsRoots;
     const backendParts = [];
 
@@ -279,9 +274,6 @@ export async function refreshStorageInspector(callbacks = {}) {
       }
     }
 
-    const systemBytes = systemEntries.reduce((sum, entry) => (
-      sum + (Number.isFinite(entry.totalBytes) ? entry.totalBytes : 0)
-    ), 0);
     const summaryParts = [];
     if (entries.length) {
       summaryParts.push(`Models: ${entries.length}`);
@@ -300,9 +292,6 @@ export async function refreshStorageInspector(callbacks = {}) {
       } else {
         summaryParts.push(`${label}: ${count}`);
       }
-    }
-    if (systemEntries.length) {
-      summaryParts.push(`System: ${formatBytes(systemBytes)}`);
     }
     if (summaryEl) {
       summaryEl.textContent = summaryParts.length
@@ -455,45 +444,6 @@ export async function refreshStorageInspector(callbacks = {}) {
           }
         }
         listEl.appendChild(row);
-      }
-    }
-
-    if (systemEntries.length) {
-      systemSection.hidden = false;
-      for (const entry of systemEntries) {
-        const row = document.createElement('div');
-        row.className = 'storage-entry';
-
-        const main = document.createElement('div');
-        main.className = 'storage-entry-main';
-
-        const bytesLabel = Number.isFinite(entry.totalBytes) ? formatBytes(entry.totalBytes) : '--';
-        const detail = document.createElement('span');
-        detail.className = 'type-caption';
-        detail.textContent = `${bytesLabel} • ${entry.fileCount} file${entry.fileCount === 1 ? '' : 's'}`;
-        main.appendChild(detail);
-
-        row.appendChild(main);
-
-        const clearBtn = document.createElement('button');
-        clearBtn.type = 'button';
-        clearBtn.className = 'btn btn-small';
-        clearBtn.textContent = 'Clear';
-        clearBtn.addEventListener('click', async () => {
-          const confirmed = window.confirm(`Clear ${entry.label} reports (${bytesLabel})?`);
-          if (!confirmed) return;
-          clearBtn.disabled = true;
-          clearBtn.textContent = 'Clearing...';
-          try {
-            await deleteStorageEntry(entry);
-          } catch (error) {
-            log.warn('DopplerDemo', `Failed to clear ${entry.label}: ${error.message}`);
-          }
-          await refreshStorageInspector(callbacks);
-        });
-        row.appendChild(clearBtn);
-
-        systemList.appendChild(row);
       }
     }
 

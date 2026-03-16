@@ -1317,6 +1317,25 @@ async function clearPersistedShardState(shardIndex) {
   await writer.abort?.();
 }
 
+async function recoverHttpRejectedResumeRange(
+  baseUrl,
+  shardInfo,
+  shardIndex,
+  options,
+  transferState,
+  writeToStore
+) {
+  await abortHttpTransferState(transferState);
+  if (writeToStore) {
+    await clearPersistedShardState(shardIndex);
+  }
+  return downloadShardFromHttp(baseUrl, shardInfo, shardIndex, {
+    ...options,
+    __disablePersistedResume: true,
+    __resumeRangeRecoveryAttempted: true,
+  });
+}
+
 async function downloadShardFromHttp(baseUrl, shardInfo, shardIndex, options = {}) {
   const {
     signal,
@@ -1527,6 +1546,21 @@ async function downloadShardFromHttp(baseUrl, shardInfo, shardIndex, options = {
           await abortHttpTransferState(transferState);
         }
         throw error;
+      }
+
+      if (
+        error?.status === 416
+        && transferState.receivedBytes > 0
+        && options.__resumeRangeRecoveryAttempted !== true
+      ) {
+        return recoverHttpRejectedResumeRange(
+          baseUrl,
+          shardInfo,
+          shardIndex,
+          options,
+          transferState,
+          writeToStore
+        );
       }
 
       if (Number.isInteger(error?.status) && error.status >= 400 && error.status < 500 && error.status !== 429) {
