@@ -253,6 +253,7 @@ const TRANSLATE_COMPARE_HISTORY_STORAGE_KEY = 'doppler.translate.compare.history
 const TRANSLATE_COMPARE_CONFIG_VERSION = 2;
 const TRANSLATE_COMPARE_ARTIFACT_KIND = 'doppler.translate.compare/v1';
 const TRANSLATE_COMPARE_DEFAULT_BASELINE_MODEL_ID = 'translategemma-4b-it-q4k-ehf16-af32';
+const TRANSLATE_COMPARE_DEFAULT_STUDENT_MODEL_ID = 'translategemma-4b-1b-enes-q4k-ehf16-af32';
 const TRANSLATE_COMPARE_DEFAULT_TJS_DTYPE = 'q4';
 const TRANSLATE_COMPARE_MAX_HISTORY = 12;
 const TRANSLATE_COMPARE_ENGINES_CONFIG_URL = typeof window === 'object' && window.location?.origin
@@ -709,23 +710,38 @@ function isTranslateCompareEnabled() {
   return state.uiMode === 'translate' && state.compareEnabled === true;
 }
 
+function isTranslateCompatibleModelId(modelId) {
+  const entry = findQuickModelEntry(normalizeModelIdInput(modelId));
+  return Array.isArray(entry?.modes) && entry.modes.includes('translate');
+}
+
 function getTranslateCompareStudentModelId() {
   const explicit = readGlobalString('__DOPPLER_TRANSLATE_COMPARE_STUDENT_MODEL_ID');
-  if (explicit) {
+  if (explicit && isTranslateCompatibleModelId(explicit)) {
     return explicit;
   }
+  if (explicit) {
+    log.warn('DopplerDemo', `__DOPPLER_TRANSLATE_COMPARE_STUDENT_MODEL_ID "${explicit}" is not a translate-compatible catalog entry`);
+  }
   const evidenceModelId = resolveText(state.compareEvidence?.student?.modelId, '');
-  if (evidenceModelId) {
+  if (evidenceModelId && isTranslateCompatibleModelId(evidenceModelId)) {
     return evidenceModelId;
   }
   const activeTranslateModelId = resolveText(state.modeModelId?.translate, '');
-  if (activeTranslateModelId && activeTranslateModelId !== TRANSLATE_COMPARE_DEFAULT_BASELINE_MODEL_ID) {
+  if (
+    activeTranslateModelId
+    && isTranslateCompatibleModelId(activeTranslateModelId)
+    && activeTranslateModelId !== TRANSLATE_COMPARE_DEFAULT_BASELINE_MODEL_ID
+  ) {
     return activeTranslateModelId;
   }
   for (const modelId of state.registeredModelIds || []) {
     if (!modelId || modelId === TRANSLATE_COMPARE_DEFAULT_BASELINE_MODEL_ID) continue;
     const normalizedType = normalizeModelType(state.modelTypeCache?.[modelId]);
-    if (isCompatibleModelType(normalizedType, 'translate')) {
+    if (
+      isTranslateCompatibleModelId(modelId)
+      && isCompatibleModelType(normalizedType, 'translate')
+    ) {
       return modelId;
     }
   }
@@ -985,7 +1001,10 @@ function getTranslateCompatibleRegisteredModelIds() {
   const ids = [];
   for (const modelId of state.registeredModelIds || []) {
     const normalizedType = normalizeModelType(state.modelTypeCache?.[modelId]);
-    if (isCompatibleModelType(normalizedType, 'translate')) {
+    if (
+      isTranslateCompatibleModelId(modelId)
+      && isCompatibleModelType(normalizedType, 'translate')
+    ) {
       ids.push(modelId);
     }
   }
@@ -2718,11 +2737,8 @@ function normalizeQuickModes(rawMode, rawModes) {
     const normalized = normalizeQuickModeToken(value);
     if (normalized) tokens.add(normalized);
   }
-  if (tokens.has('run')) tokens.add('translate');
-  if (tokens.has('translate')) tokens.add('run');
   if (tokens.size === 0) {
     tokens.add('run');
-    tokens.add('translate');
   }
   return [...tokens];
 }
@@ -3022,7 +3038,21 @@ function getSmallestQuickModelForMode(modeToken) {
 
 function getPreferredQuickModelForMode(modeToken) {
   if (!modeToken) return null;
-  if (modeToken !== 'run' && modeToken !== 'translate') {
+  if (modeToken === 'translate') {
+    const candidates = getQuickCatalogEntries()
+      .filter((entry) => Array.isArray(entry?.modes) && entry.modes.includes('translate'));
+    if (candidates.length === 0) return null;
+    candidates.sort((a, b) => {
+      const sizeDiff = getComparableQuickModelSize(a) - getComparableQuickModelSize(b);
+      if (sizeDiff !== 0) return sizeDiff;
+      if (a.sortOrder !== b.sortOrder) return a.sortOrder - b.sortOrder;
+      return a.label.localeCompare(b.label);
+    });
+    const preferredModelId = TRANSLATE_COMPARE_DEFAULT_STUDENT_MODEL_ID;
+    const preferredEntry = candidates.find((entry) => entry?.modelId === preferredModelId);
+    return preferredEntry || candidates[0] || null;
+  }
+  if (modeToken !== 'run') {
     return getSmallestQuickModelForMode(modeToken);
   }
   const candidates = getQuickCatalogEntries().filter((entry) => (
@@ -3564,6 +3594,7 @@ async function applyImportedModelToCurrentMode(modelId) {
   }
 
   if (!isModeModelSelectable(mode)) return;
+  if (mode === 'translate' && !isTranslateCompatibleModelId(modelId)) return;
   const modelType = await getModelTypeForId(modelId);
   if (!isCompatibleModelType(modelType, mode)) return;
 
@@ -3994,6 +4025,7 @@ async function filterModelsForMode(models, mode) {
   for (const model of models) {
     const modelId = getRegisteredModelId(model);
     if (!modelId) continue;
+    if (mode === 'translate' && !isTranslateCompatibleModelId(modelId)) continue;
     const modelType = await getModelTypeForId(modelId);
     if (isCompatibleModelType(modelType, mode)) {
       filtered.push(model);
@@ -4038,7 +4070,10 @@ async function resolveCompatibleModelId(mode) {
   const preferred = state.modeModelId?.[normalizedMode] || null;
   if (preferred && modelIds.includes(preferred)) {
     const preferredType = await getModelTypeForId(preferred);
-    if (isCompatibleModelType(preferredType, normalizedMode)) {
+    if (
+      (normalizedMode !== 'translate' || isTranslateCompatibleModelId(preferred))
+      && isCompatibleModelType(preferredType, normalizedMode)
+    ) {
       return preferred;
     }
   }
@@ -4065,6 +4100,7 @@ async function resolveCompatibleModelId(mode) {
   let bestModelId = null;
   let bestScore = Number.NEGATIVE_INFINITY;
   for (const modelId of modelIds) {
+    if (normalizedMode === 'translate' && !isTranslateCompatibleModelId(modelId)) continue;
     const modelType = await getModelTypeForId(modelId);
     if (!isCompatibleModelType(modelType, normalizedMode)) {
       continue;
@@ -4137,7 +4173,9 @@ async function computeModelAvailability(models) {
       modelType = normalizeModelType(await getModelTypeForId(modelId));
     }
     if (isCompatibleModelType(modelType, 'run')) availability.run += 1;
-    if (isCompatibleModelType(modelType, 'translate')) availability.translate += 1;
+    if (isTranslateCompatibleModelId(modelId) && isCompatibleModelType(modelType, 'translate')) {
+      availability.translate += 1;
+    }
     if (isCompatibleModelType(modelType, 'embedding')) availability.embedding += 1;
     if (isCompatibleModelType(modelType, 'diffusion')) availability.diffusion += 1;
     if (isCompatibleModelType(modelType, 'energy')) availability.energy += 1;
