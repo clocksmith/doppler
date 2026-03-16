@@ -39,6 +39,10 @@
       "period": null,
       "offset": null,
       "layerTypes": null
+    },
+    "chatTemplate": {
+      "type": "chatml",
+      "enabled": true
     }
   },
 
