@@ -541,18 +541,24 @@ async function listRelativeFiles(rootDir, relDir = '', out = []) {
   return out;
 }
 
-async function clearExistingShardFiles(outputDir) {
+async function clearExistingConversionOutputs(outputDir) {
   let entries;
   try {
     entries = await fs.readdir(outputDir, { withFileTypes: true });
   } catch {
     return;
   }
-  const shardFiles = entries
-    .filter((entry) => entry.isFile() && /^shard_\d{5}\.bin$/i.test(entry.name))
+  const artifactFiles = entries
+    .filter((entry) => (
+      entry.isFile()
+      && (
+        /^shard_\d{5}\.bin$/i.test(entry.name)
+        || entry.name === 'manifest.json'
+      )
+    ))
     .map((entry) => path.join(outputDir, entry.name));
-  if (shardFiles.length === 0) return;
-  await Promise.all(shardFiles.map((filePath) => fs.unlink(filePath)));
+  if (artifactFiles.length === 0) return;
+  await Promise.all(artifactFiles.map((filePath) => fs.unlink(filePath)));
 }
 
 function createNodeConvertIO(outputDir, options) {
@@ -1153,7 +1159,7 @@ export async function convertSafetensorsDirectory(options) {
   const outputDir = resolveOutputDir(outputDirOverride, converterConfig, modelId);
 
   await fs.mkdir(outputDir, { recursive: true });
-  await clearExistingShardFiles(outputDir);
+  await clearExistingConversionOutputs(outputDir);
 
   const model = {
     name: path.basename(inputDir),
@@ -1180,6 +1186,15 @@ export async function convertSafetensorsDirectory(options) {
     computeHash,
     readRange: fileRangeReader.readRange,
   });
+  const deferredManifestState = {
+    manifest: null,
+  };
+  const convertIo = {
+    ...io,
+    async writeManifest(manifest) {
+      deferredManifestState.manifest = manifest;
+    },
+  };
   const manifestArchitecture = modelKind === 'diffusion' ? 'diffusion' : architecture;
   let workerPool = null;
   let workerTensorTransformer = null;
@@ -1244,7 +1259,7 @@ export async function convertSafetensorsDirectory(options) {
     }));
 
     const convertTimer = createStageTimer('Convert tensors');
-    result = await convertModel(model, io, {
+    result = await convertModel(model, convertIo, {
       modelId,
       modelType: resolvedModelType,
       quantization: targetQuantization,
@@ -1282,6 +1297,9 @@ export async function convertSafetensorsDirectory(options) {
   }
 
   normalizeTokenizerManifest(result.manifest);
+  if (!deferredManifestState.manifest) {
+    throw new Error('node convert: convert core did not produce a manifest.');
+  }
   await io.writeManifest(result.manifest);
 
   const report = buildConvertReport(result, {

@@ -5,6 +5,7 @@ This page is now a testing index.
 ## Canonical docs
 
 - How to run tests: [testing-runbook.md](testing-runbook.md)
+- Debug workflow: [debug-playbook.md](debug-playbook.md)
 - Kernel test design: [kernel-testing-design.md](kernel-testing-design.md)
 - Harness reference: [../tests/README.md](../tests/README.md)
 - Kernel coverage: [../tests/kernels/README.md](../tests/kernels/README.md)

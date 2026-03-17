@@ -15,6 +15,7 @@
   },
   "inference": {
     "defaultKernelPath": "gemma3-q4k-dequant-f32a-online",
+    "defaultKernelPathRationale": "Intentionally inherits Gemma 3 dense-op kernel path. MoE expert FFN dispatch is handled by the MoE pipeline (moe-gpu.js), not by the kernel path. The kernel path governs attention, norms, embed, lm_head, and sampling only. Revisit on drop if Gemma 4 requires different dense-op kernels.",
     "schema": "doppler.execution/v0"
   }
 }
