@@ -9,6 +9,44 @@ const { bootstrapNodeWebGPU } = await import('../../src/tooling/node-webgpu.js')
 const MODEL_DIR = path.resolve('models/local/translategemma-4b-it-q4k-ehf16-af32');
 const MANIFEST_PATH = path.join(MODEL_DIR, 'manifest.json');
 const PROMPT = 'Translate English to French: Hello world.';
+const RUNTIME_CONFIG = Object.freeze({
+  shared: {
+    tooling: {
+      intent: 'investigate',
+    },
+  },
+  inference: {
+    batching: {
+      maxTokens: 16,
+    },
+    sampling: {
+      temperature: 0,
+      topP: 1,
+      topK: 1,
+      repetitionPenalty: 1,
+      greedyThreshold: 0,
+    },
+    compute: {
+      activationDtype: 'f32',
+    },
+    kvcache: {
+      kvDtype: 'f16',
+    },
+    session: {
+      compute: {
+        defaults: {
+          outputDtype: 'f32',
+        },
+      },
+    },
+    kernelPath: 'gemma3-q4k-dequant-f32w-f32a-online',
+    kernelPathPolicy: {
+      mode: 'capability-aware',
+      sourceScope: ['config', 'model', 'manifest', 'execution-v0'],
+      onIncompatible: 'remap',
+    },
+  },
+});
 
 function toModelUrl(dirPath) {
   const asUrl = pathToFileURL(dirPath).toString();
@@ -25,18 +63,23 @@ if (!existsSync(MANIFEST_PATH)) {
   );
 } else {
   let webgpuReady = false;
+  let hasSubgroups = false;
   try {
     await bootstrapNodeWebGPU();
     const adapter = typeof globalThis.navigator !== 'undefined' && globalThis.navigator?.gpu
       ? await globalThis.navigator.gpu.requestAdapter()
       : null;
     webgpuReady = !!adapter;
+    hasSubgroups = !!adapter?.features?.has?.('subgroups');
   } catch {
     webgpuReady = false;
+    hasSubgroups = false;
   }
 
   if (!webgpuReady) {
     console.log('translategemma-q4k-regression.test: skipped (no WebGPU runtime)');
+  } else if (!hasSubgroups) {
+    console.log('translategemma-q4k-regression.test: skipped (node WebGPU has no subgroups)');
   } else {
     const response = await runNodeCommand({
       command: 'debug',
@@ -45,23 +88,10 @@ if (!existsSync(MANIFEST_PATH)) {
       loadMode: 'http',
       captureOutput: true,
       runtimeConfig: {
-        shared: {
-          tooling: {
-            intent: 'investigate',
-          },
-        },
+        ...RUNTIME_CONFIG,
         inference: {
+          ...RUNTIME_CONFIG.inference,
           prompt: PROMPT,
-          batching: {
-            maxTokens: 12,
-          },
-          sampling: {
-            temperature: 0,
-            topP: 1,
-            topK: 1,
-            repetitionPenalty: 1,
-            greedyThreshold: 0,
-          },
         },
       },
     });
