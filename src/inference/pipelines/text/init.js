@@ -309,8 +309,8 @@ export async function initRoPEFrequencies(config, useGPU) {
   if (!Number.isFinite(ropeScale) || ropeScale <= 0) {
     throw new Error(`RoPE scale must be a positive number; got "${ropeScale}".`);
   }
-  const resolvedLocalScale = ropeLocalScale ?? ropeScale;
-  if (!Number.isFinite(resolvedLocalScale) || resolvedLocalScale <= 0) {
+  const resolvedLocalScale = ropeLocalScale;
+  if (resolvedLocalScale != null && (!Number.isFinite(resolvedLocalScale) || resolvedLocalScale <= 0)) {
     throw new Error(`Local RoPE scale must be a positive number; got "${resolvedLocalScale}".`);
   }
   const resolvedLocalTheta = ropeLocalTheta ?? ropeTheta;
