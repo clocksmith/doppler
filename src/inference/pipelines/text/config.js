@@ -512,11 +512,18 @@ export function toParsedConfigFromMerged(merged, manifest) {
   // RoPE scaling - use manifest inference as source of truth (not raw config)
   const ropeScale = inf.rope.ropeScalingFactor;
   const ropeScalingType = inf.rope.ropeScalingType;
-  const ropeLocalScale = inf.rope.ropeLocalScalingFactor ?? ropeScale;
+  const ropeLocalScale = inf.rope.ropeLocalScalingFactor;
   const ropeLocalScalingType = inf.rope.ropeLocalScalingType;
   const partialRotaryFactor = inf.rope.partialRotaryFactor;
   const mropeInterleaved = inf.rope.mropeInterleaved === true;
-  const ropeInterleaved = false;
+  const ropeInterleaved = mropeInterleaved;
+
+  if (ropeLocalScale == null && (inf.rope.ropeLocalTheta != null || inf.rope.mropeSection != null)) {
+    throw new Error(
+      `Model "${merged.modelId}" uses hybrid/mRoPE but is missing rope.ropeLocalScalingFactor in manifest. ` +
+      `Re-convert the model using the latest converter or update the manifest to include an explicit scale.`
+    );
+  }
   const mropeSection = Array.isArray(inf.rope.mropeSection)
     ? inf.rope.mropeSection.map((entry) => Math.trunc(Number(entry)))
     : null;
