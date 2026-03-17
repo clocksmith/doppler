@@ -5,6 +5,7 @@ import {
   QK_K,
   calculateQuantizationError,
   dequantizeQ4KM,
+  dequantizeQ4KMRowWise,
   float16ToFloat32,
   float32ToFloat16,
   getQ4KSize,
@@ -17,21 +18,6 @@ import {
   shouldQuantize,
   transposeF32,
 } from '../../src/converter/quantizer.js';
-
-function dequantizeQ4KMRowWise(quantized, shape) {
-  const [rows, cols] = shape;
-  const blocksPerRow = Math.ceil(cols / QK_K);
-  const result = new Float32Array(rows * cols);
-
-  for (let row = 0; row < rows; row++) {
-    const rowOffset = row * blocksPerRow * QK4_K_BLOCK_SIZE;
-    const rowBytes = quantized.slice(rowOffset, rowOffset + blocksPerRow * QK4_K_BLOCK_SIZE);
-    const rowDequantized = dequantizeQ4KM(rowBytes, blocksPerRow, [1, cols]);
-    result.set(rowDequantized, row * cols);
-  }
-
-  return result;
-}
 
 {
   const input = [0, 1, -1, 0.5, -0.25, 12.25, -24.5];
