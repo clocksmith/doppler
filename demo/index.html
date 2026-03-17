@@ -853,7 +853,7 @@
                   <label class="type-caption" for="run-prompt" id="run-prompt-label">Prompt</label>
                   <button class="btn btn-small" id="run-prompt-shuffle" type="button">Shuffle</button>
                 </div>
-                <textarea id="run-prompt" class="w-full" rows="6" placeholder="Ask a question or provide a prompt..."></textarea>
+                <textarea id="run-prompt" class="w-full" rows="7" placeholder="Ask a question or provide a prompt..."></textarea>
               </div>
               <div class="panel-subsection" id="run-embedding-docs" hidden>
                 <div class="playground-label-row">
@@ -863,7 +863,7 @@
                 <div id="run-embedding-docs-list" class="embedding-doc-list"></div>
               </div>
               <details class="mobile-advanced" id="run-sampling-controls">
-                <summary class="mobile-advanced-toggle type-caption">Advanced</summary>
+                <summary class="mobile-advanced-toggle type-caption">Generation settings</summary>
                 <div class="playground-row">
                   <div class="playground-field">
                     <label class="type-caption" for="temperature-input">Temperature</label>
@@ -890,7 +890,7 @@
                 </div>
                 <div class="playground-field">
                   <label
-                    class="type-caption"
+                    class="check-field type-caption"
                     for="run-reset-kv-toggle"
                     title="Clears KV cache before Generate so each run is independent."
                     aria-label="Reset context each run. Clears KV cache before Generate so each run is independent."
