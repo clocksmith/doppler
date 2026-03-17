@@ -1,6 +1,6 @@
 
 
-import { releaseBuffer } from '../../memory/buffer-pool.js';
+import { isBufferActive, releaseBuffer } from '../../memory/buffer-pool.js';
 import { log, trace } from '../../debug/index.js';
 import { getRuntimeConfig } from '../../config/runtime.js';
 import { isWeightBuffer } from '../../gpu/weight-buffer.js';
@@ -266,7 +266,11 @@ export class ExpertCache {
         : (isGpuBufferInstance(buf) ? buf : null);
       if (!gpuBuffer) continue;
       try {
-        releaseBuffer(gpuBuffer);
+        if (isBufferActive(gpuBuffer)) {
+          releaseBuffer(gpuBuffer);
+        } else {
+          gpuBuffer.destroy();
+        }
       } catch (e) {
         // Buffer may already be released
       }
