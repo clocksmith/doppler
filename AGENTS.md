@@ -168,6 +168,53 @@ When a freshly converted model regresses, separate conversion integrity from run
 Do not claim a conversion bug unless steps 1-4 fail.
 Do not claim a runtime bug unless steps 1-4 pass and runtime still diverges.
 
+### Inference Debug Protocol (Required)
+
+When a model loads but produces incoherent output, follow a fail-closed debug ladder.
+Do not skip ahead to architecture theories or benchmark tweaks.
+
+1. Classify the failure first
+- `tokenization / chat-template`
+- `conversion / artifact integrity`
+- `runtime numerics`
+- `surface / harness parity`
+- `benchmark-only`
+
+2. Establish one trusted reference before changing code
+- For model-quality failures, get a deterministic reference from the source runtime when possible.
+- Capture:
+  - exact prompt text
+  - exact token IDs
+  - one early activation slice
+  - one output/logits slice
+
+3. Use boundary diffs, not broad speculation
+- Compare this sequence and stop at the first divergent boundary:
+  - embeddings
+  - post input norm
+  - Q/K/V pre-RoPE
+  - Q/K post-RoPE
+  - attention output
+  - FFN output
+  - final logits
+
+4. Stop prompt/harness churn once token IDs match
+- If token IDs or embeddings already match, do not keep changing templates, harnesses, or benchmark wrappers until a later boundary proves they are relevant.
+
+5. Prefer one new probe over one new theory
+- Add the smallest permanent/config-driven probe needed to classify the next boundary.
+- Do not add throwaway logs.
+
+6. Conversion status is fail-closed
+- Do not mark a conversion as complete unless all of these exist and agree:
+  - successful process exit
+  - `manifest.json`
+  - expected shard set
+  - valid conversion report
+- A directory with shards but no manifest is an interrupted conversion, not a usable artifact.
+
+Canonical workflow doc: `docs/debug-playbook.md`
+
 ### Conversion Promotion Gate (Required)
 
 When a conversion is intended for reuse, registry inclusion, or Hugging Face publication:

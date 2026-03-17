@@ -20,6 +20,7 @@ type KernelRuleGroup =
   | 'matmul'
   | 'moe'
   | 'moeGptoss'
+  | 'moeMixtral'
   | 'residual'
   | 'rmsnorm'
   | 'rope'

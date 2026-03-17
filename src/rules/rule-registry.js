@@ -38,6 +38,7 @@ const layernormRules = await loadJson('./kernels/layernorm.rules.json', import.m
 const matmulRules = await loadJson('./kernels/matmul.rules.json', import.meta.url, 'Failed to load rules');
 const kernelMoeRules = await loadJson('./kernels/moe.rules.json', import.meta.url, 'Failed to load rules');
 const kernelMoeGptOssRules = await loadJson('./kernels/moe.rules.gptoss.json', import.meta.url, 'Failed to load rules');
+const kernelMoeMixtralRules = await loadJson('./kernels/moe.rules.mixtral.json', import.meta.url, 'Failed to load rules');
 const modulateRules = await loadJson('./kernels/modulate.rules.json', import.meta.url, 'Failed to load rules');
 const pixelShuffleRules = await loadJson('./kernels/pixel_shuffle.rules.json', import.meta.url, 'Failed to load rules');
 const repeatChannelsRules = await loadJson('./kernels/repeat-channels.rules.json', import.meta.url, 'Failed to load rules');
@@ -113,6 +114,7 @@ const RULE_SETS = {
     matmul: matmulRules,
     moe: kernelMoeRules,
     moeGptoss: kernelMoeGptOssRules,
+    moeMixtral: kernelMoeMixtralRules,
     modulate: modulateRules,
     pixel_shuffle: pixelShuffleRules,
     repeatChannels: repeatChannelsRules,

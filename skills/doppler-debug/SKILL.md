@@ -37,6 +37,48 @@ Common routes:
 - WGSL executes resolved kernels; any policy branch belongs to config/rule selection before dispatch.
 - For parity checks, command intent must match: unknown/mismatched intent is a failure, not an alternate path.
 
+## Required Debug Ladder
+
+Use this order for inference failures that load successfully but generate bad output:
+
+1. Classify the failure:
+- tokenization/chat-template
+- conversion/artifact integrity
+- runtime numerics
+- surface/harness parity
+- benchmark-only
+
+2. Establish a trusted reference before patching runtime code:
+- exact prompt text
+- exact token IDs
+- one early activation slice
+- one output/logits slice
+
+3. Compare boundary-by-boundary and stop at first divergence:
+- embeddings
+- post input norm
+- Q/K/V pre-RoPE
+- Q/K post-RoPE
+- attention output
+- FFN output
+- final logits
+
+4. Once token IDs or embeddings match, stop changing prompt wrappers or harness formatting until later evidence requires it.
+
+5. Prefer one config-driven probe over one new theory.
+
+Reference workflow: `docs/debug-playbook.md`
+
+## Conversion Completion Discipline
+
+Do not report conversion success unless all of these are true:
+- process exited successfully
+- `manifest.json` exists
+- shard set is present
+- conversion report is valid
+
+If shards exist without a manifest, classify the output as interrupted/incomplete and clean or overwrite it before retrying. Do not treat it as a reference artifact.
+
 ## Fast Triage
 
 ```bash

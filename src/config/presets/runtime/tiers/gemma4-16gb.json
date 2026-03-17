@@ -1,0 +1,69 @@
+{
+  "id": "tiers/gemma4-16gb",
+  "name": "Gemma 4 — 16 GB tier (constrained)",
+  "description": "Gemma 4 MoE runtime tier for 16 GB GPU memory. Aggressively constrained: short context, minimal expert cache, hard budget enforcement. Fail-closed if budget is not met.",
+  "intent": "investigate",
+  "stability": "experimental",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-03-17T00:00:00Z",
+  "extends": "default",
+  "runtime": {
+    "shared": {
+      "bufferPool": {
+        "budget": {
+          "maxTotalBytes": 13958643712,
+          "highWatermarkRatio": 0.85,
+          "emergencyTrimTargetRatio": 0.7,
+          "hardFailOnBudgetExceeded": true
+        }
+      }
+    },
+    "loading": {
+      "expertCache": {
+        "defaultSizeBytes": 1073741824,
+        "maxBufferPercentage": 0.15,
+        "evictionHighWatermark": 0.8,
+        "emergencyTrimToRatio": 0.65
+      },
+      "prefetch": {
+        "enabled": true,
+        "layersAhead": 1,
+        "maxShards": 4
+      },
+      "memoryManagement": {
+        "flushIntervalLayers": 1,
+        "flushThresholdBytes": 134217728
+      }
+    },
+    "inference": {
+      "kvcache": {
+        "layout": "contiguous",
+        "maxSeqLen": 2048,
+        "kvDtype": "f16",
+        "pageSize": 128,
+        "tiering": {
+          "mode": "off"
+        }
+      },
+      "moe": {
+        "routing": {
+          "routerDtype": "f32"
+        },
+        "cache": {
+          "dequantCacheMaxEntries": 2
+        }
+      },
+      "compute": {
+        "activationDtype": "f32"
+      },
+      "batching": {
+        "maxTokens": 512
+      },
+      "session": {
+        "kvcache": {
+          "kvDtype": "f16"
+        }
+      }
+    }
+  }
+}

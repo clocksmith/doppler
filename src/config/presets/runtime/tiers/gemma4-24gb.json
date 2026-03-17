@@ -1,0 +1,66 @@
+{
+  "id": "tiers/gemma4-24gb",
+  "name": "Gemma 4 — 24 GB tier",
+  "description": "Gemma 4 MoE runtime tier for 24 GB GPU memory. Moderate expert cache, contiguous KV, reduced context length.",
+  "intent": "investigate",
+  "stability": "experimental",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-03-17T00:00:00Z",
+  "extends": "default",
+  "runtime": {
+    "shared": {
+      "bufferPool": {
+        "budget": {
+          "maxTotalBytes": 21474836480,
+          "highWatermarkRatio": 0.9,
+          "emergencyTrimTargetRatio": 0.75,
+          "hardFailOnBudgetExceeded": true
+        }
+      }
+    },
+    "loading": {
+      "expertCache": {
+        "defaultSizeBytes": 3221225472,
+        "maxBufferPercentage": 0.2,
+        "evictionHighWatermark": 0.85,
+        "emergencyTrimToRatio": 0.7
+      },
+      "prefetch": {
+        "enabled": true,
+        "layersAhead": 1,
+        "maxShards": 8
+      },
+      "memoryManagement": {
+        "flushIntervalLayers": 2,
+        "flushThresholdBytes": 268435456
+      }
+    },
+    "inference": {
+      "kvcache": {
+        "layout": "contiguous",
+        "maxSeqLen": 4096,
+        "kvDtype": "f16",
+        "pageSize": 256,
+        "tiering": {
+          "mode": "off"
+        }
+      },
+      "moe": {
+        "routing": {
+          "routerDtype": "f32"
+        },
+        "cache": {
+          "dequantCacheMaxEntries": 64
+        }
+      },
+      "compute": {
+        "activationDtype": "f32"
+      },
+      "session": {
+        "kvcache": {
+          "kvDtype": "f16"
+        }
+      }
+    }
+  }
+}

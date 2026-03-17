@@ -23,6 +23,7 @@ import {
   validateMoeShape,
   resolveMoeVendorProfile,
   resolveGptOssKernelPathProfile,
+  resolveMixtralKernelPathProfile,
 } from './moe-shape-validator.js';
 
 export async function moeFeedForwardGPU(
@@ -131,6 +132,7 @@ export async function moeFeedForwardGPU(
   }
 
   let gptOssKernelPathProfile = null;
+  let mixtralKernelPathProfile = null;
   if (modelType === 'gpt-oss') {
     gptOssKernelPathProfile = await resolveGptOssKernelPathProfile({
       hasF16: caps.hasF16,
@@ -140,6 +142,14 @@ export async function moeFeedForwardGPU(
       outputDtype: activationDtype,
       groupSize: 32,
       tileShape: vendorProfile.dequantTileShape,
+    });
+  } else if (modelType === 'mixtral') {
+    mixtralKernelPathProfile = await resolveMixtralKernelPathProfile({
+      hasF16: caps.hasF16,
+      hasSubgroups: caps.hasSubgroups,
+      routerDtype: logitsDtype,
+      weightsDtype: activationDtype,
+      outputDtype: activationDtype,
     });
   }
 
@@ -159,7 +169,7 @@ export async function moeFeedForwardGPU(
   perfLog(`MoE L${layerIdx} topk`, stepStart, {
     topK,
     modelType,
-    routerTopKKernel: gptOssKernelPathProfile?.routerTopK ?? null,
+    routerTopKKernel: gptOssKernelPathProfile?.routerTopK ?? mixtralKernelPathProfile?.routerTopK ?? null,
   });
 
   if (isTraceEnabled('buffers')) {
@@ -211,7 +221,7 @@ export async function moeFeedForwardGPU(
   const bytesPerElement = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: activationDtype });
   const bytesPerToken = hiddenSize * bytesPerElement;
   let maxTokensPerExpert = resolveMaxTokensPerExpert(numTokens, numExperts, topK, hiddenSize, activationDtype);
-  if (modelType === 'gpt-oss') {
+  if (vendorProfile.maxTokensPerExpertScale !== 1.0) {
     maxTokensPerExpert = Math.max(
       1,
       Math.round(maxTokensPerExpert * vendorProfile.maxTokensPerExpertScale)

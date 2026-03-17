@@ -7,17 +7,15 @@ function asVendorString(caps) {
 }
 
 export function resolveMoeVendorProfile(modelType) {
-  if (modelType !== 'gpt-oss') {
-    return {
-      preferVec4Dequant: false,
-      dequantTileShape: 'scalar',
-      routerWorkgroupSize: 128,
-      maxTokensPerExpertScale: 1.0,
-    };
-  }
   const caps = getKernelCapabilities();
   const vendor = asVendorString(caps);
-  return selectRuleValue('kernels', 'moeGptoss', 'vendorQuirkProfile', { vendor });
+  if (modelType === 'gpt-oss') {
+    return selectRuleValue('kernels', 'moeGptoss', 'vendorQuirkProfile', { vendor });
+  }
+  if (modelType === 'mixtral') {
+    return selectRuleValue('kernels', 'moeMixtral', 'vendorQuirkProfile', { vendor });
+  }
+  throw new Error(`[MoE] Unknown modelType "${modelType}" for vendor profile resolution.`);
 }
 
 function resolveGptOssRuleContext(context) {
@@ -38,6 +36,25 @@ export async function resolveGptOssKernelPathProfile(context) {
   return {
     routerTopK: selectRuleValue('kernels', 'moeGptoss', 'routerTopKVariant', ruleContext),
     dequantExpert: selectRuleValue('kernels', 'moeGptoss', 'dequantVariant', ruleContext),
+  };
+}
+
+function resolveMixtralRuleContext(context) {
+  return {
+    modelType: 'mixtral',
+    hasF16: context?.hasF16,
+    hasSubgroups: context?.hasSubgroups,
+    routerDtype: context?.routerDtype ?? 'f32',
+    weightsDtype: context?.weightsDtype,
+    outputDtype: context?.outputDtype ?? context?.weightsDtype,
+  };
+}
+
+export async function resolveMixtralKernelPathProfile(context) {
+  const ruleContext = resolveMixtralRuleContext(context);
+  return {
+    routerTopK: selectRuleValue('kernels', 'moeMixtral', 'routerTopKVariant', ruleContext),
+    dequantExpert: selectRuleValue('kernels', 'moeMixtral', 'dequantVariant', ruleContext),
   };
 }
 
