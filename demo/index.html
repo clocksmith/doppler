@@ -80,10 +80,6 @@
           <div class="panel-stack panel-stack-primary">
             <section class="panel run-panel" data-modes="run translate embedding">
               <h2 class="type-label" id="run-panel-title">Text Generation</h2>
-              <div id="run-empty-notice" class="model-empty-notice" hidden>
-                <span id="run-empty-notice-text" class="type-caption"></span>
-                <button id="run-empty-notice-btn" class="btn btn-primary btn-small" type="button">Go to Models</button>
-              </div>
               <div class="primary-stack">
                 <div class="playground-output">
                   <div class="type-caption">Output</div>
@@ -360,8 +356,12 @@
             <section class="panel diffusion-panel" data-modes="diffusion">
               <h2 class="type-label">Image Generation</h2>
               <div id="diffusion-empty-notice" class="model-empty-notice" hidden>
-                <span id="diffusion-empty-notice-text" class="type-caption"></span>
-                <button id="diffusion-empty-notice-btn" class="btn btn-primary btn-small" type="button">Go to Models</button>
+                <div class="model-empty-notice-copy">
+                  <div id="diffusion-empty-notice-kicker" class="model-empty-notice-kicker">Setup required</div>
+                  <div id="diffusion-empty-notice-text" class="model-empty-notice-title"></div>
+                  <div id="diffusion-empty-notice-detail" class="model-empty-notice-detail"></div>
+                </div>
+                <button id="diffusion-empty-notice-btn" class="btn btn-small model-empty-notice-action" type="button">Browse models</button>
               </div>
               <div class="primary-stack">
                 <div class="playground-output">
@@ -375,8 +375,12 @@
             <section class="panel energy-panel keyvalue-panel" data-modes="energy">
               <h2 class="type-label">Energy Optimization</h2>
               <div id="energy-empty-notice" class="model-empty-notice" hidden>
-                <span id="energy-empty-notice-text" class="type-caption"></span>
-                <button id="energy-empty-notice-btn" class="btn btn-primary btn-small" type="button">Go to Models</button>
+                <div class="model-empty-notice-copy">
+                  <div id="energy-empty-notice-kicker" class="model-empty-notice-kicker">Setup required</div>
+                  <div id="energy-empty-notice-text" class="model-empty-notice-title"></div>
+                  <div id="energy-empty-notice-detail" class="model-empty-notice-detail"></div>
+                </div>
+                <button id="energy-empty-notice-btn" class="btn btn-small model-empty-notice-action" type="button">Browse models</button>
               </div>
               <div id="energy-output-status" class="type-caption">Idle</div>
               <div class="panel-subsection" data-energy-problem="quintel">
@@ -433,8 +437,12 @@
                 </div>
               </div>
               <div id="diagnostics-empty-notice" class="model-empty-notice" hidden>
-                <span id="diagnostics-empty-notice-text" class="type-caption"></span>
-                <button id="diagnostics-empty-notice-btn" class="btn btn-primary btn-small" type="button">Go to Models</button>
+                <div class="model-empty-notice-copy">
+                  <div id="diagnostics-empty-notice-kicker" class="model-empty-notice-kicker">Setup required</div>
+                  <div id="diagnostics-empty-notice-text" class="model-empty-notice-title"></div>
+                  <div id="diagnostics-empty-notice-detail" class="model-empty-notice-detail"></div>
+                </div>
+                <button id="diagnostics-empty-notice-btn" class="btn btn-small model-empty-notice-action" type="button">Browse models</button>
               </div>
               <div class="type-caption diagnostics-summary" id="diagnostics-summary"></div>
               <div class="diagnostics-actions">
@@ -805,7 +813,14 @@
             <section class="panel run-controls-panel" data-modes="run translate embedding">
               <div class="panel-title-row">
                 <h2 class="type-label" id="run-controls-title">Run Controls</h2>
-                <button class="btn btn-small" id="run-prompt-shuffle" type="button">Shuffle</button>
+              </div>
+              <div id="run-empty-notice" class="model-empty-notice" hidden>
+                <div class="model-empty-notice-copy">
+                  <div id="run-empty-notice-kicker" class="model-empty-notice-kicker">Setup required</div>
+                  <div id="run-empty-notice-text" class="model-empty-notice-title"></div>
+                  <div id="run-empty-notice-detail" class="model-empty-notice-detail"></div>
+                </div>
+                <button id="run-empty-notice-btn" class="btn btn-small model-empty-notice-action" type="button">Browse models</button>
               </div>
               <div class="panel-subsection" id="translate-controls" hidden>
                 <div class="translate-control-banner">
@@ -836,8 +851,9 @@
               <div class="playground-field">
                 <div class="playground-label-row">
                   <label class="type-caption" for="run-prompt" id="run-prompt-label">Prompt</label>
+                  <button class="btn btn-small" id="run-prompt-shuffle" type="button">Shuffle</button>
                 </div>
-                <textarea id="run-prompt" class="w-full" rows="6" placeholder="Ask a question or provide a prompt..."></textarea>
+                <textarea id="run-prompt" class="w-full" rows="7" placeholder="Ask a question or provide a prompt..."></textarea>
               </div>
               <div class="panel-subsection" id="run-embedding-docs" hidden>
                 <div class="playground-label-row">
@@ -847,7 +863,7 @@
                 <div id="run-embedding-docs-list" class="embedding-doc-list"></div>
               </div>
               <details class="mobile-advanced" id="run-sampling-controls">
-                <summary class="mobile-advanced-toggle type-caption">Advanced</summary>
+                <summary class="mobile-advanced-toggle type-caption">Generation settings</summary>
                 <div class="playground-row">
                   <div class="playground-field">
                     <label class="type-caption" for="temperature-input">Temperature</label>
@@ -874,7 +890,7 @@
                 </div>
                 <div class="playground-field">
                   <label
-                    class="type-caption"
+                    class="check-field type-caption"
                     for="run-reset-kv-toggle"
                     title="Clears KV cache before Generate so each run is independent."
                     aria-label="Reset context each run. Clears KV cache before Generate so each run is independent."
