@@ -300,6 +300,152 @@ export class PipelineGenerator {
     return this._sampleNextTokenFromLogits(stepResult.logits, currentIds, opts);
   }
 
+  async *_generateTokensInternal(prompt, options = {}, mode = 'text') {
+    if (!this.#state.isLoaded) throw new Error('Model not loaded');
+    if (this.#state.isGenerating) throw new Error('Generation already in progress');
+
+    validateCallTimeOptions(options);
+
+    this.#state.isGenerating = true;
+    this._resetDecodeRuntimeState();
+    this.#state.stats.gpuTimePrefillMs = undefined;
+    this.#state.stats.gpuTimeDecodeMs = undefined;
+    this.#state.stats.decodeRecordMs = 0;
+    this.#state.stats.decodeSubmitWaitMs = 0;
+    this.#state.stats.decodeReadbackWaitMs = 0;
+    this.#state.stats.ttftMs = 0;
+    const startTime = performance.now();
+
+    const opts = resolveGenerateOptions(this.#state, options);
+
+    if (opts.debug) {
+      log.debug('Pipeline', `ChatTemplate: options=${options.useChatTemplate}, final=${opts.useChatTemplate}`);
+    }
+
+    const emitToken = async function* (generator, tokenId, textDecoder) {
+      if (mode === 'token') {
+        yield tokenId;
+        if (options.onToken) options.onToken(tokenId, '');
+        return;
+      }
+      const tokenText = textDecoder(tokenId);
+      yield tokenText;
+      if (options.onToken) options.onToken(tokenId, tokenText);
+    };
+
+    try {
+      const prefillStart = performance.now();
+      const { inputIds, logits: initialPrefillLogits } = await this._prefillPromptToLogits(prompt, opts, 'generate');
+      let prefillLogits = initialPrefillLogits;
+      this.#state.stats.prefillTimeMs = performance.now() - prefillStart;
+      this._assertTokenIdsInRange(inputIds, 'generate.prefillTokens');
+      const generatedIds = [...inputIds];
+      this.#state.stats.prefillTokens = inputIds.length;
+
+      if (opts.debug) {
+        log.debug('Pipeline', `Input: ${inputIds.length} tokens`);
+      }
+
+      const intentBundleConfig = this.#state.runtimeConfig.shared.intentBundle;
+      const intentBundle = intentBundleConfig?.bundle;
+      const expectedTopK = intentBundle?.payload?.expectedTopK
+        ?? intentBundle?.payload?.expected_top_k;
+      const maxDriftThreshold = intentBundle?.constraints?.maxDriftThreshold
+        ?? intentBundle?.constraints?.max_drift_threshold;
+
+      if (intentBundleConfig?.enabled && Array.isArray(expectedTopK) && expectedTopK.length > 0) {
+        const actualTopK = getTopK(
+          prefillLogits,
+          expectedTopK.length,
+          (tokens) => resolveTokenText(this.#state.tokenizer, tokens),
+        ).map((token) => token.token);
+        const driftResult = enforceLogitDrift(expectedTopK, actualTopK, maxDriftThreshold);
+        if (!driftResult.ok) {
+          throw new Error(`Intent bundle drift check failed: ${driftResult.reason}`);
+        }
+      }
+
+      if (opts.debug) {
+        const topAfterPenalty = getTopK(
+          Float32Array.from(prefillLogits),
+          5,
+          (tokens) => resolveTokenText(this.#state.tokenizer, tokens)
+        );
+        log.debug('Pipeline', `After rep penalty top-5: ${topAfterPenalty.map(t => `"${t.text}"(${(t.prob * 100).toFixed(1)}%)`).join(', ')}`);
+      }
+
+      let firstToken;
+      try {
+        firstToken = this._sampleNextTokenFromLogits(prefillLogits, generatedIds, opts);
+      } catch (error) {
+        if (!shouldRetryWithFinitenessFallback(error)) {
+          throw error;
+        }
+        log.warn('Pipeline', 'FinitenessGuard caught non-finite prefill logits at sampling. Retrying with F32 precision.');
+        prefillLogits = await this._retryWithFinitenessFallback(
+          opts,
+          'prefill-sample',
+          () => this._prefill(inputIds, opts)
+        );
+        firstToken = this._sampleNextTokenFromLogits(prefillLogits, generatedIds, opts);
+      }
+
+      if (opts.debug) {
+        const firstTokenText = resolveTokenText(this.#state.tokenizer, [firstToken], `[${firstToken}]`, (tokens) => this.#state.tokenizer?.decode?.(tokens, true, false));
+        log.debug('Pipeline', `First token sampled: id=${firstToken} text="${firstTokenText}"`);
+      }
+
+      generatedIds.push(firstToken);
+      this.#state.stats.ttftMs = performance.now() - startTime;
+
+      const decodeToken = (tokenId) => resolveTokenText(
+        this.#state.tokenizer,
+        [tokenId],
+        `[${tokenId}]`,
+        (tokens) => this.#state.tokenizer?.decode?.(tokens, true, false),
+        (tokens) => this.#state.tokenizer?.decode?.(tokens, false, false)
+      );
+
+      yield* emitToken(this, firstToken, decodeToken);
+
+      yield* this._runDecodeLoop(generatedIds, opts, options, {
+        stopTokenIds: this.#state.modelConfig.stopTokenIds,
+        eosToken: this.#state.tokenizer.getSpecialTokens?.()?.eos,
+        stopSequenceStart: inputIds.length,
+        decodeToken,
+        logBatchPath: opts.debug,
+        emitMode: mode,
+      });
+      const tokensGenerated = this.#state.stats.decodeTokens;
+      this.#state.stats.totalTimeMs = performance.now() - startTime;
+
+      if (opts.debug) {
+        log.debug('Pipeline', `Generated ${tokensGenerated} tokens in ${this.#state.stats.totalTimeMs.toFixed(0)}ms`);
+      }
+
+      const ttft = this.#state.stats.ttftMs ?? this.#state.stats.prefillTimeMs;
+      const decodeTokens = Math.max(0, tokensGenerated - 1);
+      const decodeSpeed = decodeTokens > 0 ? (decodeTokens / this.#state.stats.decodeTimeMs * 1000) : 0;
+      if (opts.benchmark) {
+        log.info('Benchmark', `TTFT: ${ttft.toFixed(0)}ms | Prefill: ${this.#state.stats.prefillTimeMs.toFixed(0)}ms | Decode: ${this.#state.stats.decodeTimeMs.toFixed(0)}ms (${decodeTokens} tokens @ ${decodeSpeed.toFixed(1)} tok/s)`);
+      } else {
+        log.info('Perf', `TTFT: ${ttft.toFixed(0)}ms | Prefill: ${this.#state.stats.prefillTimeMs.toFixed(0)}ms | Decode: ${this.#state.stats.decodeTimeMs.toFixed(0)}ms (${decodeTokens} tokens @ ${decodeSpeed.toFixed(1)} tok/s)`);
+      }
+      trace.perf('Decode summary', {
+        ttftMs: ttft,
+        prefillMs: this.#state.stats.prefillTimeMs,
+        decodeMs: this.#state.stats.decodeTimeMs,
+        decodeTokens,
+        decodeSpeed,
+        totalMs: this.#state.stats.totalTimeMs,
+      });
+    } finally {
+      this._closeFinitenessFallbackWindow(opts);
+      resetActiveExecutionPlan(this.#state);
+      this.#state.isGenerating = false;
+    }
+  }
+
   _beginFinitenessFallback(opts, reasonLabel) {
     const originalPlan = resolveActiveExecutionPlan(this.#state);
     const original = {
@@ -385,6 +531,14 @@ export class PipelineGenerator {
 
 
   async *generate(prompt, options = {}) {
+    yield* this._generateTokensInternal(prompt, options, 'text');
+  }
+
+  async *generateTokens(prompt, options = {}) {
+    yield* this._generateTokensInternal(prompt, options, 'token');
+  }
+
+  async generateTokenIds(prompt, options = {}) {
     if (!this.#state.isLoaded) throw new Error('Model not loaded');
     if (this.#state.isGenerating) throw new Error('Generation already in progress');
 
@@ -399,53 +553,16 @@ export class PipelineGenerator {
     this.#state.stats.decodeReadbackWaitMs = 0;
     this.#state.stats.ttftMs = 0;
     const startTime = performance.now();
-
     const opts = resolveGenerateOptions(this.#state, options);
-
-    if (opts.debug) {
-      log.debug('Pipeline', `ChatTemplate: options=${options.useChatTemplate}, final=${opts.useChatTemplate}`);
-    }
 
     try {
       const prefillStart = performance.now();
-      const { inputIds, logits: initialPrefillLogits } = await this._prefillPromptToLogits(prompt, opts, 'generate');
+      const { inputIds, logits: initialPrefillLogits } = await this._prefillPromptToLogits(prompt, opts, 'generateTokenIds');
       let prefillLogits = initialPrefillLogits;
       this.#state.stats.prefillTimeMs = performance.now() - prefillStart;
-      this._assertTokenIdsInRange(inputIds, 'generate.prefillTokens');
+      this._assertTokenIdsInRange(inputIds, 'generateTokenIds.prefillTokens');
       const generatedIds = [...inputIds];
       this.#state.stats.prefillTokens = inputIds.length;
-
-      if (opts.debug) {
-        log.debug('Pipeline', `Input: ${inputIds.length} tokens`);
-      }
-
-      const intentBundleConfig = this.#state.runtimeConfig.shared.intentBundle;
-      const intentBundle = intentBundleConfig?.bundle;
-      const expectedTopK = intentBundle?.payload?.expectedTopK
-        ?? intentBundle?.payload?.expected_top_k;
-      const maxDriftThreshold = intentBundle?.constraints?.maxDriftThreshold
-        ?? intentBundle?.constraints?.max_drift_threshold;
-
-      if (intentBundleConfig?.enabled && Array.isArray(expectedTopK) && expectedTopK.length > 0) {
-        const actualTopK = getTopK(
-          prefillLogits,
-          expectedTopK.length,
-        (tokens) => resolveTokenText(this.#state.tokenizer, tokens),
-      ).map((token) => token.token);
-        const driftResult = enforceLogitDrift(expectedTopK, actualTopK, maxDriftThreshold);
-        if (!driftResult.ok) {
-          throw new Error(`Intent bundle drift check failed: ${driftResult.reason}`);
-        }
-      }
-
-      if (opts.debug) {
-        const topAfterPenalty = getTopK(
-          Float32Array.from(prefillLogits),
-          5,
-          (tokens) => resolveTokenText(this.#state.tokenizer, tokens)
-        );
-        log.debug('Pipeline', `After rep penalty top-5: ${topAfterPenalty.map(t => `"${t.text}"(${(t.prob * 100).toFixed(1)}%)`).join(', ')}`);
-      }
 
       let firstToken;
       try {
@@ -454,7 +571,6 @@ export class PipelineGenerator {
         if (!shouldRetryWithFinitenessFallback(error)) {
           throw error;
         }
-        log.warn('Pipeline', 'FinitenessGuard caught non-finite prefill logits at sampling. Retrying with F32 precision.');
         prefillLogits = await this._retryWithFinitenessFallback(
           opts,
           'prefill-sample',
@@ -463,56 +579,53 @@ export class PipelineGenerator {
         firstToken = this._sampleNextTokenFromLogits(prefillLogits, generatedIds, opts);
       }
 
-      if (opts.debug) {
-        const firstTokenText = resolveTokenText(this.#state.tokenizer, [firstToken], `[${firstToken}]`, (tokens) => this.#state.tokenizer?.decode?.(tokens, true, false));
-        log.debug('Pipeline', `First token sampled: id=${firstToken} text="${firstTokenText}"`);
-      }
-
       generatedIds.push(firstToken);
+      const tokenIds = [firstToken];
       this.#state.stats.ttftMs = performance.now() - startTime;
 
-      const decodeToken = (tokenId) => resolveTokenText(
-        this.#state.tokenizer,
-        [tokenId],
-        `[${tokenId}]`,
-        (tokens) => this.#state.tokenizer?.decode?.(tokens, true, false),
-        (tokens) => this.#state.tokenizer?.decode?.(tokens, false, false)
-      );
+      const stopTokenIds = this.#state.modelConfig.stopTokenIds;
+      const eosToken = this.#state.tokenizer.getSpecialTokens?.()?.eos;
+      const stopSequenceStart = inputIds.length;
+      markKernelCacheWarmed();
+      const decodeStart = performance.now();
 
-      const firstText = decodeToken(firstToken);
-      yield firstText;
-      if (options.onToken) options.onToken(firstToken, firstText);
+      while (tokenIds.length < opts.maxTokens) {
+        if (options.signal?.aborted) break;
+        let nextToken;
+        try {
+          nextToken = await this._decodeNextTokenViaLogits(generatedIds, opts);
+        } catch (error) {
+          if (shouldRetryWithFinitenessFallback(error)) {
+            nextToken = await this._retryDecodeStepWithFinitenessWindow(
+              generatedIds,
+              opts,
+              `decode-step-${tokenIds.length}`
+            );
+          } else {
+            throw error;
+          }
+        }
+        generatedIds.push(nextToken);
+        tokenIds.push(nextToken);
+        this._consumeFinitenessFallbackToken(opts);
+        if (isStopToken(nextToken, stopTokenIds, eosToken)) {
+          break;
+        }
+        if (opts.stopSequences.length > 0) {
+          const fullText = this.#state.tokenizer.decode(generatedIds.slice(stopSequenceStart), false);
+          if (opts.stopSequences.some((seq) => fullText.endsWith(seq))) break;
+        }
+      }
 
-      yield* this._runDecodeLoop(generatedIds, opts, options, {
-        stopTokenIds: this.#state.modelConfig.stopTokenIds,
-        eosToken: this.#state.tokenizer.getSpecialTokens?.()?.eos,
-        stopSequenceStart: inputIds.length,
-        decodeToken,
-        logBatchPath: opts.debug,
-      });
-      const tokensGenerated = this.#state.stats.decodeTokens;
+      this.#state.stats.decodeTimeMs = performance.now() - decodeStart;
+      this.#state.stats.tokensGenerated = tokenIds.length;
+      this.#state.stats.decodeTokens = tokenIds.length;
       this.#state.stats.totalTimeMs = performance.now() - startTime;
 
-      if (opts.debug) {
-        log.debug('Pipeline', `Generated ${tokensGenerated} tokens in ${this.#state.stats.totalTimeMs.toFixed(0)}ms`);
-      }
-
-      const ttft = this.#state.stats.ttftMs ?? this.#state.stats.prefillTimeMs;
-      const decodeTokens = Math.max(0, tokensGenerated - 1);
-      const decodeSpeed = decodeTokens > 0 ? (decodeTokens / this.#state.stats.decodeTimeMs * 1000) : 0;
-      if (opts.benchmark) {
-        log.info('Benchmark', `TTFT: ${ttft.toFixed(0)}ms | Prefill: ${this.#state.stats.prefillTimeMs.toFixed(0)}ms | Decode: ${this.#state.stats.decodeTimeMs.toFixed(0)}ms (${decodeTokens} tokens @ ${decodeSpeed.toFixed(1)} tok/s)`);
-      } else {
-        log.info('Perf', `TTFT: ${ttft.toFixed(0)}ms | Prefill: ${this.#state.stats.prefillTimeMs.toFixed(0)}ms | Decode: ${this.#state.stats.decodeTimeMs.toFixed(0)}ms (${decodeTokens} tokens @ ${decodeSpeed.toFixed(1)} tok/s)`);
-      }
-      trace.perf('Decode summary', {
-        ttftMs: ttft,
-        prefillMs: this.#state.stats.prefillTimeMs,
-        decodeMs: this.#state.stats.decodeTimeMs,
-        decodeTokens,
-        decodeSpeed,
-        totalMs: this.#state.stats.totalTimeMs,
-      });
+      return {
+        tokenIds,
+        stats: this.#state.stats,
+      };
     } finally {
       this._closeFinitenessFallbackWindow(opts);
       resetActiveExecutionPlan(this.#state);
@@ -809,6 +922,7 @@ export class PipelineGenerator {
       stopSequenceStart,
       decodeToken,
       logBatchPath = false,
+      emitMode = 'text',
     } = runtime;
 
     let tokensGenerated = 1;
@@ -866,10 +980,16 @@ export class PipelineGenerator {
           for (const tokenId of batchResult.tokens) {
             generatedIds.push(tokenId);
             tokensGenerated++;
-            const tokenText = decodeToken(tokenId);
-            yield tokenText;
-            if (options.onToken) options.onToken(tokenId, tokenText);
-            batchTokens.push({ id: tokenId, text: tokenText });
+            if (emitMode === 'token') {
+              yield tokenId;
+              if (options.onToken) options.onToken(tokenId, '');
+              batchTokens.push({ id: tokenId, text: '' });
+            } else {
+              const tokenText = decodeToken(tokenId);
+              yield tokenText;
+              if (options.onToken) options.onToken(tokenId, tokenText);
+              batchTokens.push({ id: tokenId, text: tokenText });
+            }
             if (batchTokens.length === executionPlan.batchSize) {
               if (options.onBatch) options.onBatch(batchTokens);
               batchTokens = [];
@@ -901,9 +1021,14 @@ export class PipelineGenerator {
           }
           generatedIds.push(nextToken);
           tokensGenerated++;
-          const tokenText = decodeToken(nextToken);
-          yield tokenText;
-          if (options.onToken) options.onToken(nextToken, tokenText);
+          if (emitMode === 'token') {
+            yield nextToken;
+            if (options.onToken) options.onToken(nextToken, '');
+          } else {
+            const tokenText = decodeToken(nextToken);
+            yield tokenText;
+            if (options.onToken) options.onToken(nextToken, tokenText);
+          }
           this._consumeFinitenessFallbackToken(opts);
           if (isStopToken(nextToken, stopTokenIds, eosToken)) break;
         }
@@ -927,9 +1052,14 @@ export class PipelineGenerator {
         const tokenTime = performance.now() - tokenStart;
         generatedIds.push(nextToken);
         tokensGenerated++;
-        const tokenText = decodeToken(nextToken);
-        yield tokenText;
-        if (options.onToken) options.onToken(nextToken, tokenText);
+        const tokenText = emitMode === 'token' ? '' : decodeToken(nextToken);
+        if (emitMode === 'token') {
+          yield nextToken;
+          if (options.onToken) options.onToken(nextToken, '');
+        } else {
+          yield tokenText;
+          if (options.onToken) options.onToken(nextToken, tokenText);
+        }
         this._consumeFinitenessFallbackToken(opts);
 
         if (opts.debug || opts.benchmark) {
