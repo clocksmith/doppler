@@ -1,7 +1,7 @@
 
 
 import { getDevice, getKernelCapabilities } from '../../gpu/device.js';
-import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
+import { acquireBuffer, releaseBuffer, readBuffer } from '../../memory/buffer-pool.js';
 import { dequantize, dequantizeRowwise, dequantizeQ6K, castF16ToF32, runBF16ToF16 } from '../../gpu/kernel-selector.js';
 import { createTensor } from '../../gpu/tensor.js';
 import { createWeightBuffer } from '../../gpu/weight-buffer.js';
@@ -205,7 +205,9 @@ export async function loadQ4KDequant(shardData, location, name, config) {
     const K = is2DMatrix ? location.shape[1] : 0;
     const needsRowwise = is2DMatrix && K > 0 && K % QK_K !== 0;
     const layout = getWeightLayout(location, config);
-    const canUseCpuReference = (
+    // TEMP: Force GPU dequant to test parity
+    const FORCE_GPU_DEQUANT = true;
+    const canUseCpuReference = !FORCE_GPU_DEQUANT && (
       outputDtype === 'f32'
       && !isGpuBufferInstance(shardData)
       && (!needsRowwise || layout === 'row')
@@ -250,6 +252,38 @@ export async function loadQ4KDequant(shardData, location, name, config) {
     dequantized = dequantizedTensor.buffer;
 
     debugTrace.loader(`Dequantized ${name}: resultSize=${dequantized.size}`);
+
+    // DEBUG: GPU-vs-CPU dequant parity check on first Q4K tensor
+    if (!loadQ4KDequant._parityChecked && !isGpuBufferInstance(shardData)) {
+      loadQ4KDequant._parityChecked = true;
+      try {
+        const quantizedBytes = toUint8View(shardData);
+        const cpuNumBlocks = Math.ceil(location.size / Q4K_BLOCK_BYTES);
+        const cpuRef = needsRowwise
+          ? dequantizeQ4KMRowWise(quantizedBytes, location.shape)
+          : dequantizeQ4KM(quantizedBytes, cpuNumBlocks, location.shape);
+        // Read back GPU result
+        const readSize = Math.min(dequantized.size, 256 * 4); // first 256 f32 values
+        const gpuData = await readBuffer(dequantized, readSize);
+        const gpuF32 = new Float32Array(gpuData.buffer, gpuData.byteOffset, readSize / 4);
+        const cpuSlice = cpuRef.slice(0, readSize / 4);
+        let maxDiff = 0;
+        let diffIdx = -1;
+        for (let i = 0; i < cpuSlice.length; i++) {
+          const d = Math.abs(gpuF32[i] - cpuSlice[i]);
+          if (d > maxDiff) { maxDiff = d; diffIdx = i; }
+        }
+        log.warn('DequantParity',
+          `GPU-vs-CPU check on "${name}" [${location.shape}]: ` +
+          `maxDiff=${maxDiff.toFixed(8)} at idx=${diffIdx}, ` +
+          `gpu[0..3]=[${Array.from(gpuF32.slice(0, 4)).map(v => v.toFixed(6))}], ` +
+          `cpu[0..3]=[${Array.from(cpuSlice.slice(0, 4)).map(v => v.toFixed(6))}]`
+        );
+      } catch (e) {
+        log.warn('DequantParity', `Parity check failed: ${e.message}`);
+      }
+    }
+
     releaseOwnedGpuBuffer(quantBuffer, ownsQuantBuffer);
     ownsQuantBuffer = false;
 

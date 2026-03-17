@@ -534,7 +534,7 @@ Entry gate:
 Exit gate:
 
 - `lfm2-5-1-2b-instruct-q4k-ehf16-af32` produces coherent deterministic output on a real runtime smoke
-- `translategemma-4b-it-q4k-ehf16-af32` produces coherent deterministic output on a real runtime smoke
+- `translategemma-4b-it-q4k-ehf16-af32` still lacks a confirmed coherent deterministic output on a real runtime smoke (Q4K path remains the active failure branch)
 - support docs and catalog mirror are re-synced after human review
 
 Steps:
