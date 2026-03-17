@@ -58,4 +58,7 @@ function assertNoDeprecatedRuntimeKeys(overrides) {
   if (inference?.sampling?.maxTokens !== undefined) {
     throw new Error('sampling.maxTokens is removed; use inference.batching.maxTokens');
   }
+  if (inference?.session?.maxNewTokens !== undefined) {
+    throw new Error('inference.session.maxNewTokens is not a supported runtime config key; use inference.batching.maxTokens');
+  }
 }

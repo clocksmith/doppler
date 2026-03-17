@@ -9,6 +9,7 @@ import { decodeReadback } from './debug-utils/index.js';
 import { createTensor } from '../../../gpu/tensor.js';
 import { castF32ToF16, recordCastF32ToF16 } from '../../../gpu/kernels/cast.js';
 import { isCpuWeightBuffer } from '../../../gpu/weight-buffer.js';
+import { f16ToF32 } from '../../../loader/dtype-utils.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 
 const scaleShaderCode = `
@@ -202,11 +203,19 @@ export async function embed(tokenIds, embedBuffer, config) {
   
   const dtype = selectRuleValue('inference', 'dtype', 'f16OrF32', { useF16 });
 
-  const cpuEmbeddings = isCpuWeightBuffer(embedBuffer)
-    ? embedBuffer.data
-    : embedBuffer instanceof Float32Array
-      ? embedBuffer
-      : null;
+  let cpuEmbeddings = null;
+  if (isCpuWeightBuffer(embedBuffer)) {
+    const bufDtype = embedBuffer.dtype;
+    if (bufDtype !== 'f32' && bufDtype !== 'f16') {
+      throw new Error(
+        `[Embed] CPU embedding buffer has unsupported dtype '${bufDtype}'; ` +
+        `only 'f32' and 'f16' are supported in the CPU gather path.`
+      );
+    }
+    cpuEmbeddings = embedBuffer.data;
+  } else if (embedBuffer instanceof Float32Array) {
+    cpuEmbeddings = embedBuffer;
+  }
 
   if (debug) {
     trace.embed(`tokens=${numTokens}, hidden=${hiddenSize}, vocab=${vocabSize}, scaleEmbeddings=${scaleEmbeddings}, transpose=${transpose}, indexOffset=${indexOffset}, activationDtype=${activationDtype}, useF16=${useF16}`);
@@ -226,18 +235,28 @@ export async function embed(tokenIds, embedBuffer, config) {
     }
 
     const output = new Float32Array(numTokens * hiddenSize);
+    // Check actual data type: loader's f16_to_f32 CPU path already decodes F16 into Float32Array,
+    // so dtype='f16' does not reliably indicate raw F16 bytes. Only Uint16Array needs per-element decoding.
+    const isF16Cpu = cpuEmbeddings instanceof Uint16Array;
     if (!transpose) {
       for (let t = 0; t < numTokens; t++) {
         const tokenId =  (tokenIdArray)[t];
         const srcOffset = tokenId * hiddenSize;
-        output.set(cpuEmbeddings.subarray(srcOffset, srcOffset + hiddenSize), t * hiddenSize);
+        if (isF16Cpu) {
+          for (let h = 0; h < hiddenSize; h++) {
+            output[t * hiddenSize + h] = f16ToF32(cpuEmbeddings[srcOffset + h]);
+          }
+        } else {
+          output.set(cpuEmbeddings.subarray(srcOffset, srcOffset + hiddenSize), t * hiddenSize);
+        }
       }
     } else {
       for (let t = 0; t < numTokens; t++) {
         const tokenId =  (tokenIdArray)[t];
         const dstOffset = t * hiddenSize;
         for (let h = 0; h < hiddenSize; h++) {
-          output[dstOffset + h] = cpuEmbeddings[h * vocabSize + tokenId];
+          const raw = cpuEmbeddings[h * vocabSize + tokenId];
+          output[dstOffset + h] = isF16Cpu ? f16ToF32(raw) : raw;
         }
       }
     }

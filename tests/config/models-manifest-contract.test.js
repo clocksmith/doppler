@@ -2,6 +2,21 @@ import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
+// Kernels that read weight buffers as raw array<f16> — NOT compatible with Q4K
+// block-quantized weights. Q4K packs 4-bit quantized values + scale factors in
+// a binary block format; reading those bytes as f16 values produces garbage projections.
+const F16_ONLY_WEIGHT_KERNELS = new Set([
+  'matmul.f16w.f32a.main',
+  'matmul.f16w.f32a.tiled',
+]);
+
+// Ops that perform a weight-read matmul and must use a quantization-compatible kernel.
+const WEIGHT_READ_OPS = new Set([
+  'q_proj', 'k_proj', 'v_proj', 'o_proj',
+  'gate_proj', 'up_proj', 'down_proj',
+  'lm_head', 'lm_head_prefill',
+]);
+
 function collectManifestPaths(rootDir) {
   const out = [];
   function walk(currentDir) {
@@ -55,6 +70,24 @@ for (const manifestPath of collectManifestPaths(path.join(process.cwd(), 'models
     Array.isArray(inference.execution?.steps),
     `${label}: execution-v0 manifests require execution.steps`
   );
+
+  // Guard: Q4K manifests must not assign an F16-only weight kernel to prefill projection ops.
+  // matmul_f16w_f32a.wgsl reads weights as array<f16>; Q4K block-quantized bytes are not valid
+  // F16 elements — this misread produces garbage Q/K/V projections and garbage KV cache output.
+  if (manifest.quantizationInfo?.weights === 'q4k') {
+    for (const step of inference.execution.steps) {
+      if (step.phase !== 'prefill' && step.phase !== 'both') continue;
+      if (!WEIGHT_READ_OPS.has(step.op)) continue;
+      const kernelRefId = step.kernelRef?.id;
+      assert.ok(
+        !F16_ONLY_WEIGHT_KERNELS.has(kernelRefId),
+        `${label}: Q4K model must not use F16-only kernel '${kernelRefId}' ` +
+        `for prefill op '${step.op}' (step '${step.id ?? step.op}'). ` +
+        `matmul_f16w_f32a reads array<f16> — Q4K weights are block-quantized, not raw F16. ` +
+        `Use a Q4K-dequantizing prefill kernel instead.`
+      );
+    }
+  }
 }
 
 console.log('models-manifest-contract.test: ok');

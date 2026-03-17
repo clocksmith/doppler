@@ -1,7 +1,7 @@
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { cloneJson, isPhaseMatch, normalizeDtype, requireSessionActivationDtype, stepHasLayer } from './execution-v0-contract-helpers.js';
 
-const PIPELINE_COMPATIBLE_OPS = new Set([
+export const PIPELINE_COMPATIBLE_OPS = new Set([
   'save',
   'load',
   'conv',
@@ -191,8 +191,15 @@ export function buildLayerPipelineFromExecution(steps) {
   if (layerSectionSteps.length === 0) {
     return null;
   }
-  if (layerSectionSteps.some((step) => !PIPELINE_COMPATIBLE_OPS.has(step.op))) {
-    return null;
+  const incompatibleOps = [
+    ...new Set(
+      layerSectionSteps
+        .filter((step) => !PIPELINE_COMPATIBLE_OPS.has(step.op))
+        .map((step) => step.op)
+    ),
+  ];
+  if (incompatibleOps.length > 0) {
+    return { incompatibleOps };
   }
 
   const layerSteps = layerSectionSteps
