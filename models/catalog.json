@@ -267,7 +267,7 @@
           "result": "fail",
           "lastVerifiedAt": "2026-03-15",
           "source": "runtime-verify",
-          "notes": "Reconverted 2026-03-14 with f32 compute. Re-verified 2026-03-15 on Node/WebGPU AMD RDNA-3. Output incoherent: garbled multilingual gibberish ('has سوریistisson...IsIsIs'). Execution-v0 contract passes. Gemma 3 4B architecture has never been verified in Doppler (only 270m and 1B verified). Root cause unknown: suspect 4B architecture-level issue (RoPE linear scaling factor=8, or scale-dependent bug). Old gemma-3-4b-it conversion also untestable (stale kernel digests).",
+          "notes": "Reconverted 2026-03-14 with f32 compute. Re-verified 2026-03-15 on Node/WebGPU AMD RDNA-3 and again on 2026-03-17 with deterministic sample runs. Execution-v0 contract still passes. Q4K output remains incoherent, while F16 diagnostic artifact runs coherent on the same prompt framing. Python dequant parity checks against HF are within normal Q4K precision for both the 1B and this 4B context, so active lead is now a Q4K dequant/matmul runtime issue (conversion data appears sound) rather than RoPE scaling.",
           "contracts": {
             "executionContractOk": true,
             "executionV0GraphOk": true
