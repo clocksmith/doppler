@@ -69,6 +69,11 @@ export declare class InferencePipeline extends PipelineState {
   // ==========================================================================
 
   generate(prompt: PromptInput, options?: GenerateOptions): AsyncGenerator<string, void, void>;
+  generateTokens(prompt: PromptInput, options?: GenerateOptions): AsyncGenerator<number, void, void>;
+  generateTokenIds(
+    prompt: PromptInput,
+    options?: GenerateOptions
+  ): Promise<{ tokenIds: number[]; stats: PipelineStats }>;
 
   decodeStepLogits(currentIds: number[], options?: GenerateOptions): Promise<LogitsStepResult>;
 

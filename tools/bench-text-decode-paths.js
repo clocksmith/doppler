@@ -373,8 +373,6 @@ async function traceParity(pipeline, prompt, options) {
 }
 
 async function runTokenPath(pipeline, prompt, options) {
-  const tokenIds = [];
-  const tokenTexts = [];
   const generationOptions = {
     useChatTemplate: false,
     maxTokens: options.maxTokens,
@@ -383,24 +381,19 @@ async function runTokenPath(pipeline, prompt, options) {
     topP: 1,
     repetitionPenalty: Number.isFinite(options.repetitionPenalty) ? options.repetitionPenalty : 1.0,
     seed: options.seed,
-    onToken(tokenId, tokenText) {
-      tokenIds.push(tokenId);
-      tokenTexts.push(tokenText);
-    },
   };
   pipeline.reset();
   const startedAt = performance.now();
-  for await (const tokenText of pipeline.generate(prompt, generationOptions)) {
-    void tokenText;
-  }
+  const result = await pipeline.generateTokenIds(prompt, generationOptions);
   const totalMs = performance.now() - startedAt;
-  const stats = pipeline.getStats();
+  const tokenIds = result.tokenIds;
+  const stats = result.stats ?? pipeline.getStats();
   const tokensGenerated = Number.isInteger(stats?.tokensGenerated) ? stats.tokensGenerated : tokenIds.length;
   const prefillMs = Number.isFinite(stats.prefillTimeMs) ? stats.prefillTimeMs : totalMs;
   const decodeMs = Number.isFinite(stats.decodeTimeMs) ? stats.decodeTimeMs : Math.max(0, totalMs - prefillMs);
   const firstTokenMs = Number.isFinite(stats.ttftMs) ? stats.ttftMs : prefillMs;
   const firstResponseMs = Number.isFinite(stats.firstResponseMs) ? stats.firstResponseMs : firstTokenMs;
-  const decodedText = tokenTexts.join('');
+  const decodedText = tokenIds.map((tokenId) => toDecodeText(pipeline.tokenizer, tokenId)).join('');
   return {
     label: 'token-path',
     tokensGenerated,
