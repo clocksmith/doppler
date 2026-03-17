@@ -976,3 +976,113 @@ function sessionDefaultsFor(kernels, activationDtype = 'f16') {
     /\[ExecutionV0\] sessionDefaults\.decodeLoop\.readbackInterval must be a positive integer/
   );
 }
+
+// === Hard-fail: incompatible layer ops with no inline kernelPath ===
+// When execution.steps has layer ops that are NOT in PIPELINE_COMPATIBLE_OPS and
+// none of the steps provide kernel fields (so no inline kernelPath is built),
+// compileExecutionV0 must throw with an actionable error listing the unsupported ops.
+{
+  const passAllPolicies = {
+    precisionPrecedence: 'step_then_kernel_profile_then_session_default',
+    unsupportedPrecision: 'pass',
+    dtypeTransition: 'pass',
+    unresolvedKernel: 'pass',
+  };
+
+  assert.throws(
+    () => compileExecutionV0({
+      modelId: 'bad-ops-model',
+      numLayers: 2,
+      manifestInference: {
+        schema: 'doppler.execution/v0',
+        sessionDefaults: {
+          compute: {
+            defaults: {
+              activationDtype: 'f32',
+              mathDtype: 'f32',
+              accumDtype: 'f32',
+              outputDtype: 'f32',
+            },
+            kernelProfiles: [],
+          },
+          kvcache: { kvDtype: 'f32' },
+          decodeLoop: null,
+        },
+        execution: {
+          steps: [
+            {
+              id: 'input_norm_step',
+              phase: 'both',
+              section: 'layer',
+              op: 'input_norm',
+              src: 'state',
+              dst: 'state',
+              layers: 'all',
+              // No kernel field — inline kernelPath will be null
+            },
+            {
+              id: 'attn_residual_step',
+              phase: 'both',
+              section: 'layer',
+              op: 'attn_residual',
+              src: 'state',
+              dst: 'state',
+              layers: 'all',
+            },
+          ],
+          policies: passAllPolicies,
+        },
+      },
+    }),
+    (err) => {
+      assert.ok(
+        err.message.includes('input_norm') || err.message.includes('attn_residual'),
+        `error should name unsupported ops, got: ${err.message}`
+      );
+      assert.ok(
+        err.message.includes('ExecutionV0'),
+        `error should identify ExecutionV0, got: ${err.message}`
+      );
+      return true;
+    }
+  );
+}
+
+// === No hard-fail: incompatible layer ops WITH inline kernelPath (Gemma pattern) ===
+// When execution.steps has incompatible ops but all steps carry kernel fields,
+// buildInlineKernelPath succeeds → layerPipeline null is expected → no error thrown.
+{
+  const compiled = compileExecutionV0({
+    modelId: 'gemma-pattern',
+    numLayers: 2,
+    manifestInference: {
+      schema: 'doppler.execution/v0',
+      sessionDefaults: sessionDefaultsFor([
+        { kernel: 'matmul_f16.wgsl', entry: 'main' },
+      ]),
+      execution: {
+        steps: [
+          {
+            id: 'input_norm_k',
+            phase: 'both',
+            section: 'layer',
+            op: 'input_norm',
+            src: 'state',
+            dst: 'state',
+            layers: 'all',
+            kernel: 'matmul_f16.wgsl',
+            entry: 'main',
+            kernelRef: kernelRef('matmul_f16.wgsl', 'main'),
+          },
+        ],
+        policies: DEFAULT_POLICIES,
+      },
+    },
+  });
+
+  assert.ok(compiled, 'should compile without error when kernelPath covers execution');
+  assert.ok(compiled.runtimeInferencePatch.kernelPath, 'kernelPath should be present');
+  assert.equal(compiled.runtimeInferencePatch.pipeline, undefined, 'no layer pipeline for incompatible ops');
+}
+
+console.log('execution-v0-hard-fail.test: ok (appended to execution-v0.test.js)');

@@ -363,15 +363,27 @@ export class PipelineGenerator {
       const prefillStart = performance.now();
       let prefillLogits;
       try {
-        prefillLogits = await this._prefill(inputIds, opts);
+        const prefillResult = await this.prefillWithLogits(processedPrompt, {
+          useChatTemplate: false,
+          debug: opts.debug,
+          debugLayers: opts.debugLayers,
+          profile: opts.profile,
+        });
+        prefillLogits = prefillResult.logits;
       } catch (error) {
         if (shouldRetryWithFinitenessFallback(error)) {
           log.warn('Pipeline', `FinitenessGuard caught NaN/Inf during prefill. Retrying with F32 precision.`);
-          prefillLogits = await this._retryWithFinitenessFallback(
+          const prefillResult = await this._retryWithFinitenessFallback(
             opts,
             'prefill',
-            () => this._prefill(inputIds, opts)
+            () => this.prefillWithLogits(processedPrompt, {
+              useChatTemplate: false,
+              debug: opts.debug,
+              debugLayers: opts.debugLayers,
+              profile: opts.profile,
+            })
           );
+          prefillLogits = prefillResult.logits;
         } else {
           throw error;
         }
@@ -499,6 +511,10 @@ export class PipelineGenerator {
   async prefillKVOnly(prompt, options = {}) {
     if (!this.#state.isLoaded) throw new Error('Model not loaded');
     resetActiveExecutionPlan(this.#state);
+    this.#state.decodeStepCount = 0;
+    this.#state.disableRecordedLogits = false;
+    this.#state.disableFusedDecode = false;
+    this.#state.decodeRing?.reset();
     this.#state.stats.gpuTimePrefillMs = undefined;
     const opts = resolvePrefillOptions(this.#state, options);
 
@@ -564,6 +580,10 @@ export class PipelineGenerator {
   async prefillWithEmbedding(prompt, options = {}) {
     if (!this.#state.isLoaded) throw new Error('Model not loaded');
     resetActiveExecutionPlan(this.#state);
+    this.#state.decodeStepCount = 0;
+    this.#state.disableRecordedLogits = false;
+    this.#state.disableFusedDecode = false;
+    this.#state.decodeRing?.reset();
     this.#state.stats.gpuTimePrefillMs = undefined;
     const opts = resolvePrefillEmbeddingOptions(this.#state, options);
 
@@ -659,6 +679,10 @@ export class PipelineGenerator {
   async prefillWithLogits(prompt, options = {}) {
     if (!this.#state.isLoaded) throw new Error('Model not loaded');
     resetActiveExecutionPlan(this.#state);
+    this.#state.decodeStepCount = 0;
+    this.#state.disableRecordedLogits = false;
+    this.#state.disableFusedDecode = false;
+    this.#state.decodeRing?.reset();
     this.#state.stats.gpuTimePrefillMs = undefined;
     const opts = resolvePrefillOptions(this.#state, options);
 

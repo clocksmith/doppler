@@ -13,6 +13,21 @@ try {
     /runtime overrides must be an object when provided/
   );
 
+  // inference.session.maxNewTokens is silently ignored by the config merge but is
+  // never wired to the decode loop (which reads inference.batching.maxTokens).
+  // It must be rejected fast so callers don't get unbounded 300s+ runs.
+  assert.throws(
+    () => setRuntimeConfig({
+      inference: {
+        session: {
+          maxNewTokens: 30,
+        },
+      },
+    }),
+    /inference\.session\.maxNewTokens.*inference\.batching\.maxTokens/,
+    'session.maxNewTokens must throw with redirect to batching.maxTokens'
+  );
+
   assert.throws(
     () => setRuntimeConfig({
       inference: {

@@ -139,6 +139,12 @@ export function resolveStepOptions(state, options = {}) {
   const executionPlan = resolveExecutionSessionPlan(state, options);
 
   return {
+    seed: resolveConfiguredValue(
+      options.seed,
+      undefined,
+      'options.seed',
+      (value) => Number.isFinite(value) && value >= 0
+    ),
     temperature: resolveConfiguredValue(options.temperature, samplingDefaults.temperature, 'options.temperature'),
     topP: resolveConfiguredValue(options.topP, samplingDefaults.topP, 'options.topP'),
     topK: resolveConfiguredValue(options.topK, samplingDefaults.topK, 'options.topK'),
@@ -165,6 +171,12 @@ export function resolveGenerateOptions(state, options = {}) {
   const executionPlan = resolveExecutionSessionPlan(state, options);
 
   return {
+    seed: resolveConfiguredValue(
+      options.seed,
+      undefined,
+      'options.seed',
+      (value) => Number.isFinite(value) && value >= 0
+    ),
     maxTokens: executionPlan.maxTokens,
     temperature: resolveConfiguredValue(options.temperature, samplingDefaults.temperature, 'options.temperature'),
     topP: resolveConfiguredValue(options.topP, samplingDefaults.topP, 'options.topP'),

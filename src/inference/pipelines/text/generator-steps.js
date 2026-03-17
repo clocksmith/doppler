@@ -1,6 +1,6 @@
 import { getDevice, setTrackSubmits } from '../../../gpu/device.js';
 import { releaseBuffer, readBuffer } from '../../../memory/buffer-pool.js';
-import { runArgmax, runGPUSample, recordArgmax, recordGPUSample, isGPUSamplingAvailable } from '../../../gpu/kernels/sample.js';
+import { recordArgmax, recordGPUSample, isGPUSamplingAvailable } from '../../../gpu/kernels/sample.js';
 import { recordCheckStop } from '../../../gpu/kernels/check-stop.js';
 import { resetSubmitStats, logSubmitStats } from '../../../gpu/submit-tracker.js';
 import { createCommandRecorder, createProfilingRecorder, CommandRecorder } from '../../../gpu/command-recorder.js';
@@ -644,36 +644,35 @@ export async function decodeStep(state, currentIds, opts, helpers) {
     );
     if (logitsResult) {
       const { logitsBuffer, vocabSize, logitsDtype } = logitsResult;
-
-      const nextToken = opts.temperature < samplingDefaults.greedyThreshold
-        ? await runArgmax(logitsBuffer, vocabSize, { padTokenId, logitSoftcap, logitsDtype, outputIndex: 0 })
-        : await runGPUSample(logitsBuffer, vocabSize, {
-          temperature: opts.temperature,
-          topK: opts.topK,
-          padTokenId,
-          logitSoftcap,
-          logitsDtype,
-          outputIndex: 0,
-          greedyThreshold: samplingDefaults.greedyThreshold,
-          randomSeed: opts.seed,
-        });
-
+      const logitsBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: logitsDtype });
+      const logitsData = await readBuffer(logitsBuffer, numTokens * vocabSize * logitsBytes);
       releaseBuffer(logitsBuffer);
-      const invalidGpuToken = nextToken >= config.vocabSize
-        || (padTokenId != null && nextToken === padTokenId)
-        || (padTokenId == null && nextToken === 0);
-      if (!invalidGpuToken) {
-        if (!context.decodeBuffers?.ownsBuffer(hiddenStates)) {
-          releaseBuffer(hiddenStates);
-        }
-        state.currentSeqLen++;
-        return nextToken;
-      }
-      state.disableFusedDecode = true;
-      log.warn(
-        'Decode',
-        `GPU sampling produced invalid token ${nextToken} (vocabSize=${config.vocabSize}, step=${state.decodeStepCount}); falling back to CPU sampling.`
+
+      const rawLogits = decodeReadback(logitsData, logitsDtype);
+      const finalizedLogits = await finalizeLogits(
+        rawLogits,
+        numTokens,
+        vocabSize,
+        config.vocabSize,
+        config,
+        state.runtimeConfig.shared.debug.probes
       );
+      const sampledLogits = extractLastPositionLogits(finalizedLogits, numTokens, config.vocabSize);
+
+      applyRepetitionPenalty(sampledLogits, currentIds, opts.repetitionPenalty);
+      const nextToken = sample(sampledLogits, {
+        temperature: opts.temperature,
+        topP: opts.topP,
+        topK: opts.topK,
+        padTokenId,
+        seed: opts.seed,
+      });
+
+      if (!context.decodeBuffers?.ownsBuffer(hiddenStates)) {
+        releaseBuffer(hiddenStates);
+      }
+      state.currentSeqLen++;
+      return nextToken;
     }
   }
 
