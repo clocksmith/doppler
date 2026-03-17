@@ -28,6 +28,13 @@
             "dims": [0, 1, 2, 3, 4, 5, 6, 7]
           },
           {
+            "id": "L0_norm",
+            "stage": "post_input_norm",
+            "layers": [0],
+            "tokens": [-1],
+            "dims": [0, 1, 2, 3, 4, 5, 6, 7]
+          },
+          {
             "id": "L0_qproj",
             "stage": "q_proj",
             "layers": [0],
