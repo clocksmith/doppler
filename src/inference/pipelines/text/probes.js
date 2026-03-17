@@ -11,7 +11,6 @@ const STAGE_DEFAULT_CATEGORY = {
   embed_out: 'embed',
   // Attention stages (per-layer)
   attn_input: 'attn',
-  post_input_norm: 'attn',
   attn_normed: 'attn',
   linear_qkv_proj: 'attn',
   linear_z_proj: 'attn',
