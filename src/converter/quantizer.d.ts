@@ -73,6 +73,11 @@ export declare function dequantizeQ4KM(
   shape: number[]
 ): Float32Array;
 
+export declare function dequantizeQ4KMRowWise(
+  quantized: Uint8Array,
+  shape: [number, number]
+): Float32Array;
+
 export declare function calculateQuantizationError(
   original: Float32Array,
   reconstructed: Float32Array

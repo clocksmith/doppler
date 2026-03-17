@@ -355,6 +355,21 @@ export function dequantizeQ4KM(quantized, numBlocks, shape) {
   return result;
 }
 
+export function dequantizeQ4KMRowWise(quantized, shape) {
+  const [rows, cols] = shape;
+  const blocksPerRow = Math.ceil(cols / QK_K);
+  const result = new Float32Array(rows * cols);
+
+  for (let row = 0; row < rows; row++) {
+    const rowOffset = row * blocksPerRow * QK4_K_BLOCK_SIZE;
+    const rowBytes = quantized.slice(rowOffset, rowOffset + (blocksPerRow * QK4_K_BLOCK_SIZE));
+    const rowDequantized = dequantizeQ4KM(rowBytes, blocksPerRow, [1, cols]);
+    result.set(rowDequantized, row * cols);
+  }
+
+  return result;
+}
+
 export function calculateQuantizationError(original, reconstructed) {
   if (original.length !== reconstructed.length) {
     throw new Error('Length mismatch');

@@ -131,6 +131,11 @@ export async function moeFeedForwardGPU(
     trace.buffers(`MoE L${layerIdx} router_logits`, { min, max, nanCount, dtype: logitsDtype });
   }
 
+  // Profile resolution: routerTopK/dequantExpert are resolved for tracing and
+  // forward validation. Actual kernel dispatch uses the generic softmax.rules.json
+  // topkVariant rules (keyed by modelType) and format-specific dequant paths.
+  // GPT-OSS: dequantTileShape actively steers MXFP4 dequant; routerTopK is trace-only.
+  // Mixtral: expert weights are pre-loaded (no runtime dequant); both fields are trace-only.
   let gptOssKernelPathProfile = null;
   let mixtralKernelPathProfile = null;
   if (modelType === 'gpt-oss') {

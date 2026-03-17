@@ -9,6 +9,7 @@ import { f16ToF32, convertBF16ToF32GPU, shouldDequantizeToF16, applyBufferLayout
 import { QK_K, Q4K_BLOCK_BYTES, Q6K_BLOCK_BYTES } from '../quantization-constants.js';
 import { log, trace as debugTrace } from '../../debug/index.js';
 import { selectRuleValue } from '../../rules/rule-registry.js';
+import { dequantizeQ4KM, dequantizeQ4KMRowWise } from '../../converter/quantizer.js';
 
 // ============================================================================
 // Q4K Detection
@@ -203,6 +204,32 @@ export async function loadQ4KDequant(shardData, location, name, config) {
     const is2DMatrix = Array.isArray(location.shape) && location.shape.length === 2;
     const K = is2DMatrix ? location.shape[1] : 0;
     const needsRowwise = is2DMatrix && K > 0 && K % QK_K !== 0;
+    const layout = getWeightLayout(location, config);
+    const canUseCpuReference = (
+      outputDtype === 'f32'
+      && !isGpuBufferInstance(shardData)
+      && (!needsRowwise || layout === 'row')
+    );
+
+    if (canUseCpuReference) {
+      const quantizedBytes = toUint8View(shardData);
+      const numBlocks = Math.ceil(location.size / Q4K_BLOCK_BYTES);
+      debugTrace.loader(
+        `Dequantizing ${name} with CPU reference path: ` +
+        `shape=[${location.shape.join(',')}], layout=${layout}, needsRowwise=${needsRowwise}`
+      );
+      const f32Weights = needsRowwise
+        ? dequantizeQ4KMRowWise(quantizedBytes, location.shape)
+        : dequantizeQ4KM(quantizedBytes, numBlocks, location.shape);
+      const outputBuffer = acquireAlignedBuffer(f32Weights.byteLength, `dequant_cpu_${name}`);
+      writeBufferAligned(device, outputBuffer, new Uint8Array(f32Weights.buffer));
+      releaseOwnedGpuBuffer(quantBuffer, ownsQuantBuffer);
+      ownsQuantBuffer = false;
+      return {
+        data: createWeightBuffer(outputBuffer, 'f32', layout, location.shape, name),
+        allocatedBuffers: [outputBuffer],
+      };
+    }
 
     let dequantizedTensor;
     if (needsRowwise) {
@@ -226,7 +253,6 @@ export async function loadQ4KDequant(shardData, location, name, config) {
     releaseOwnedGpuBuffer(quantBuffer, ownsQuantBuffer);
     ownsQuantBuffer = false;
 
-    const layout = getWeightLayout(location, config);
     const dtype = outputDtype;
 
     return {
