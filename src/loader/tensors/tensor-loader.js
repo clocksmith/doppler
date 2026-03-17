@@ -262,9 +262,12 @@ export async function loadQ4KDequant(shardData, location, name, config) {
         const cpuRef = needsRowwise
           ? dequantizeQ4KMRowWise(quantizedBytes, location.shape)
           : dequantizeQ4KM(quantizedBytes, cpuNumBlocks, location.shape);
+        // Flush GPU work before readback
+        await device.queue.onSubmittedWorkDone();
         // Read back GPU result
         const readSize = Math.min(dequantized.size, 256 * 4); // first 256 f32 values
         const gpuData = await readBuffer(dequantized, readSize);
+        log.warn('DequantParity', `readSize=${readSize}, gpuData.length=${gpuData?.byteLength ?? 'null'}, bufSize=${dequantized.size}`);
         const gpuF32 = new Float32Array(gpuData.buffer, gpuData.byteOffset, readSize / 4);
         const cpuSlice = cpuRef.slice(0, readSize / 4);
         let maxDiff = 0;
