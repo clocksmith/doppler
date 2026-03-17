@@ -16,6 +16,8 @@
       },
       "value": "gptoss_router_topk"
     },
+    { "match": { "modelType": "mixtral", "inputDtype": "f16", "weightsDtype": "f16" }, "value": "fused_f16_w16" },
+    { "match": { "modelType": "mixtral" }, "value": "fused" },
     { "match": { "inputDtype": "f16", "weightsDtype": "f16" }, "value": "fused_f16_w16" },
     { "match": { "inputDtype": "f16" }, "value": "fused_f16" },
     { "match": {}, "value": "fused" }

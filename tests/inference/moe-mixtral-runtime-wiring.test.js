@@ -157,4 +157,47 @@ import { selectRuleValue } from '../../src/rules/rule-registry.js';
   assert.equal(profile.dequantExpert, 'q4k_expert_dequant_f32');
 }
 
+// === Generic softmax.rules.json topkVariant has explicit Mixtral entries ===
+// This is the ACTUAL kernel dispatch rule — runSoftmaxTopK() at softmax.js:75
+// uses this, not the MoE-specific routerTopKVariant metadata above.
+
+{
+  const variant = selectRuleValue('kernels', 'softmax', 'topkVariant', {
+    modelType: 'mixtral',
+    inputDtype: 'f32',
+    weightsDtype: 'f32',
+    hasF16: true,
+    hasSubgroups: true,
+  });
+  assert.equal(variant, 'fused',
+    'mixtral f32 must get explicit "fused" from softmax rules, not fall through to catch-all');
+}
+
+{
+  const variant = selectRuleValue('kernels', 'softmax', 'topkVariant', {
+    modelType: 'mixtral',
+    inputDtype: 'f16',
+    weightsDtype: 'f16',
+    hasF16: true,
+    hasSubgroups: true,
+  });
+  assert.equal(variant, 'fused_f16_w16',
+    'mixtral f16 must get explicit "fused_f16_w16" from softmax rules');
+}
+
+// === Vendor profile: routerWorkgroupSize and preferVec4Dequant are structural ===
+// These fields have no runtime consumers today on either GPT-OSS or Mixtral.
+// They are preserved for structural parity with GPT-OSS vendor profile shape.
+// dequantTileShape and maxTokensPerExpertScale ARE consumed at runtime.
+
+{
+  const vendorProfile = selectRuleValue('kernels', 'moeMixtral', 'vendorQuirkProfile', {
+    vendor: 'nvidia',
+  });
+  assert.ok('routerWorkgroupSize' in vendorProfile, 'structural field present');
+  assert.ok('preferVec4Dequant' in vendorProfile, 'structural field present');
+  assert.ok('dequantTileShape' in vendorProfile, 'active runtime field present');
+  assert.ok('maxTokensPerExpertScale' in vendorProfile, 'active runtime field present');
+}
+
 console.log('moe-mixtral-runtime-wiring.test: ok');
