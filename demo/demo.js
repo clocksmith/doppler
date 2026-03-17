@@ -3265,10 +3265,19 @@ function getModelAvailability() {
 
 function setEmptyNotice(scope, message) {
   const notice = $(`${scope}-empty-notice`);
+  const kicker = $(`${scope}-empty-notice-kicker`);
   const text = $(`${scope}-empty-notice-text`);
-  const normalized = typeof message === 'string' ? message.trim() : '';
-  setHidden(notice, normalized.length === 0);
-  setText(text, normalized);
+  const detail = $(`${scope}-empty-notice-detail`);
+  const normalized = message && typeof message === 'object'
+    ? message
+    : null;
+  const title = typeof normalized?.title === 'string' ? normalized.title.trim() : '';
+  const support = typeof normalized?.detail === 'string' ? normalized.detail.trim() : '';
+  const kickerText = typeof normalized?.kicker === 'string' ? normalized.kicker.trim() : 'Setup required';
+  setHidden(notice, title.length === 0);
+  setText(kicker, title ? kickerText : '');
+  setText(text, title);
+  setText(detail, support);
 }
 
 function setEmptyNoticeAction(scope, quickModelEntry) {
@@ -3284,43 +3293,104 @@ function setEmptyNoticeAction(scope, quickModelEntry) {
     if (isBusy) {
       const progress = resolveDownloadProgressForModel(quickModelEntry.modelId);
       const pct = progress?.percent;
-      button.textContent = Number.isFinite(pct) ? `Fetching ${Math.round(pct)}%` : 'Fetching...';
+      button.textContent = Number.isFinite(pct) ? `Importing ${Math.round(pct)}%` : 'Importing...';
     } else {
-      button.textContent = `Download ${quickModelEntry.label}`;
+      button.textContent = 'Import recommended model';
     }
+    button.title = `Import ${quickModelEntry.label}`;
     button.disabled = isBusy || (hasBusyImport && !isBusy);
     return;
   }
 
   button.dataset.noticeAction = 'models';
   delete button.dataset.quickModelId;
-  button.textContent = 'Go to Models';
+  button.textContent = 'Browse models';
+  button.title = 'Browse imported and available models';
   button.disabled = hasBusyImport;
+}
+
+function createMissingModelNotice(title, detail, kicker = 'Setup required') {
+  return {
+    kicker,
+    title,
+    detail,
+  };
 }
 
 function getMissingModelMessage(mode, availability, quickModelEntry) {
   if (mode === 'energy') {
-    return '';
+    return null;
   }
   const total = Number.isFinite(availability?.total) ? availability.total : 0;
   const hasQuickSuggestion = !!(quickModelEntry && typeof quickModelEntry.modelId === 'string' && quickModelEntry.modelId.length > 0);
   if (total <= 0) {
+    if (mode === 'embedding') {
+      return hasQuickSuggestion
+        ? createMissingModelNotice(
+          'Import an embedding model to get started.',
+          'Import the recommended model, or open Models to choose a different one.'
+        )
+        : createMissingModelNotice(
+          'Import an embedding model to get started.',
+          'Open Models to choose one that supports similarity and retrieval.'
+        );
+    }
+    if (mode === 'translate') {
+      return hasQuickSuggestion
+        ? createMissingModelNotice(
+          'Import a translation model to get started.',
+          'Import the recommended model, or open Models to choose a different one.'
+        )
+        : createMissingModelNotice(
+          'Import a translation model to get started.',
+          'Open Models to choose one that supports translation.'
+        );
+    }
+    if (mode === 'diffusion') {
+      return hasQuickSuggestion
+        ? createMissingModelNotice(
+          'Import an image model to get started.',
+          'Import the recommended model, or open Models to choose a different one.'
+        )
+        : createMissingModelNotice(
+          'Import an image model to get started.',
+          'Open Models to choose one that supports diffusion.'
+        );
+    }
     return hasQuickSuggestion
-      ? 'Import a model that supports this mode to continue.'
-      : 'No models found in OPFS. Import a model from the Models tab.';
+      ? createMissingModelNotice(
+        'Import a text model to get started.',
+        'Import the recommended model, or open Models to choose a different one.'
+      )
+      : createMissingModelNotice(
+        'Import a text model to get started.',
+        'Open Models to choose one that supports text generation.'
+      );
   }
   const compatible = Number.isFinite(availability?.[mode]) ? availability[mode] : 0;
-  if (compatible > 0) return '';
+  if (compatible > 0) return null;
   if (mode === 'embedding') {
-    return 'No embedding model available in OPFS for this mode.';
+    return createMissingModelNotice(
+      'This mode needs an embedding model.',
+      'Your imported models do not support embedding yet. Import a compatible model to continue.'
+    );
   }
   if (mode === 'translate') {
-    return 'No text translation model available in OPFS for this mode.';
+    return createMissingModelNotice(
+      'This mode needs a translation model.',
+      'Your imported models do not support translation yet. Import a compatible model to continue.'
+    );
   }
   if (mode === 'diffusion') {
-    return 'No diffusion model available in OPFS for this mode.';
+    return createMissingModelNotice(
+      'This mode needs an image model.',
+      'Your imported models do not support diffusion yet. Import a compatible model to continue.'
+    );
   }
-  return 'No text model available in OPFS for this mode.';
+  return createMissingModelNotice(
+    'This mode needs a text model.',
+    'Your imported models do not support text generation yet. Import a compatible model to continue.'
+  );
 }
 
 function setQuickModelStatus(message) {
@@ -3796,11 +3866,11 @@ function updateModelEmptyStates() {
 
   const diffusionRun = $('diffusion-run-btn');
   if (diffusionRun) {
-    diffusionRun.disabled = state.diffusionGenerating || state.diffusionLoading || diffusionMessage.length > 0;
+    diffusionRun.disabled = state.diffusionGenerating || state.diffusionLoading || !!diffusionMessage;
   }
   const energyRun = $('energy-run-btn');
   if (energyRun) {
-    energyRun.disabled = state.energyGenerating || state.energyLoading || energyMessage.length > 0;
+    energyRun.disabled = state.energyGenerating || state.energyLoading || !!energyMessage;
   }
   syncRunControls();
 }
