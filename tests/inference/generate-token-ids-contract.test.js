@@ -1,87 +1,256 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
-// Verify that generateTokenIds handles the same contract semantics as the
-// _runDecodeLoop path: abort signal, EOS, stop sequences, finiteness fallback,
-// and stats/cleanup. This is a structural parity guard — if someone rewrites
-// generateTokenIds and drops one of these checks, this test fails.
+// =============================================================================
+// generateTokenIds / _runDecodeLoop semantic parity contract test
+//
+// generateTokenIds() is an intentional lean fast path that bypasses
+// _runDecodeLoop(). This test proves both paths honor the same contract
+// obligations. If a future change drops a contract check from either path,
+// this test fails and forces explicit acknowledgment.
+//
+// What this does NOT test (requires a real GPU pipeline):
+//   - Numeric output parity (use bench-text-decode-paths.js --teacher-forced)
+//   - GPU buffer lifecycle and cleanup
+//   - Actual WebGPU dispatch behavior
+//
+// What this DOES test:
+//   - Both paths check the same contract points (structural parity)
+//   - Contract points are in the correct structural positions
+//   - Stats fields are tracked equivalently
+//   - Cleanup is in finally blocks
+// =============================================================================
 
 const generatorSource = readFileSync(
   new URL('../../src/inference/pipelines/text/generator.js', import.meta.url),
   'utf8'
 );
 
-// Extract the generateTokenIds method body. It starts at "async generateTokenIds"
-// and ends at the next top-level method or closing brace pattern.
-const startMarker = 'async generateTokenIds(prompt';
-const startIdx = generatorSource.indexOf(startMarker);
-assert.ok(startIdx !== -1, 'generateTokenIds method not found in generator.js');
+// === Extract method bodies ===
 
-// Find a reasonable chunk — the method is ~90 lines so 3000 chars is generous
-const methodBody = generatorSource.slice(startIdx, startIdx + 4000);
+function extractMethodBody(source, marker) {
+  const startIdx = source.indexOf(marker);
+  assert.ok(startIdx !== -1, `Method "${marker}" not found in generator.js`);
 
-// 1. Abort signal must be checked inside the decode loop
-assert.ok(
-  methodBody.includes('signal?.aborted'),
-  'generateTokenIds must check options.signal?.aborted in the decode loop'
-);
+  // Find the opening brace of the method body (skip any braces in
+  // default parameter values like `options = {}`).
+  // Strategy: find the `) {` pattern that opens the method body.
+  const sigEnd = source.indexOf(') {', startIdx);
+  assert.ok(sigEnd !== -1, `Could not find method body opening for "${marker}"`);
+  const bodyOpenBrace = sigEnd + 2; // index of the `{`
 
-// 2. EOS / stop token check
-assert.ok(
-  methodBody.includes('isStopToken('),
-  'generateTokenIds must check isStopToken for EOS handling'
-);
+  let depth = 0;
+  for (let i = bodyOpenBrace; i < source.length; i++) {
+    if (source[i] === '{') {
+      depth++;
+    } else if (source[i] === '}') {
+      depth--;
+      if (depth === 0) {
+        return source.slice(startIdx, i + 1);
+      }
+    }
+  }
+  throw new Error(`Could not find balanced body for "${marker}"`);
+}
 
-// 3. Stop sequences must be checked
-assert.ok(
-  methodBody.includes('stopSequences'),
-  'generateTokenIds must check opts.stopSequences for string-based stop conditions'
-);
+const generateTokenIdsBody = extractMethodBody(generatorSource, 'async generateTokenIds(prompt');
+const runDecodeLoopBody = extractMethodBody(generatorSource, 'async *_runDecodeLoop(generatedIds');
+const generateTokensInternalBody = extractMethodBody(generatorSource, 'async *_generateTokensInternal(prompt');
 
-// 4. Finiteness fallback: retry + consume + close
-assert.ok(
-  methodBody.includes('shouldRetryWithFinitenessFallback'),
-  'generateTokenIds must handle finiteness fallback retry'
-);
-assert.ok(
-  methodBody.includes('_consumeFinitenessFallbackToken'),
-  'generateTokenIds must call _consumeFinitenessFallbackToken on each iteration'
-);
-assert.ok(
-  methodBody.includes('_closeFinitenessFallbackWindow'),
-  'generateTokenIds must close finiteness fallback window in finally'
-);
+// Sanity: bodies should be substantial
+assert.ok(generateTokenIdsBody.length > 500, `generateTokenIds body too short (${generateTokenIdsBody.length})`);
+assert.ok(runDecodeLoopBody.length > 500, `_runDecodeLoop body too short (${runDecodeLoopBody.length})`);
+assert.ok(generateTokensInternalBody.length > 500, `_generateTokensInternal body too short (${generateTokensInternalBody.length})`);
 
-// 5. Execution plan reset in finally
-assert.ok(
-  methodBody.includes('resetActiveExecutionPlan'),
-  'generateTokenIds must reset execution plan in finally'
-);
+// === Contract obligations that both decode surfaces must honor ===
 
-// 6. isGenerating flag cleared in finally
-assert.ok(
-  methodBody.includes('isGenerating = false'),
-  'generateTokenIds must clear isGenerating in finally'
-);
+const DECODE_CONTRACT = [
+  {
+    id: 'abort-signal',
+    description: 'Abort signal checked in decode loop',
+    pattern: 'signal?.aborted',
+  },
+  {
+    id: 'eos-stop-token',
+    description: 'EOS / stop token ID check',
+    pattern: 'isStopToken(',
+  },
+  {
+    id: 'stop-sequences',
+    description: 'String-based stop sequence check',
+    pattern: 'stopSequences',
+  },
+  {
+    id: 'finiteness-retry',
+    description: 'Finiteness fallback retry on decode error',
+    pattern: 'shouldRetryWithFinitenessFallback',
+  },
+  {
+    id: 'finiteness-consume',
+    description: 'Finiteness fallback token consumed each iteration',
+    pattern: '_consumeFinitenessFallbackToken',
+  },
+  {
+    id: 'kernel-cache-warmed',
+    description: 'Kernel cache marked warmed at decode entry',
+    pattern: 'markKernelCacheWarmed',
+  },
+];
 
-// 7. Stats are tracked
+// Stats tracked equivalently in both surfaces
+const STATS_CONTRACT = [
+  'stats.decodeTimeMs',
+  'stats.tokensGenerated',
+  'stats.decodeTokens',
+];
+
+// Cleanup that must be in finally blocks
+const CLEANUP_CONTRACT = [
+  'resetActiveExecutionPlan',
+  'isGenerating = false',
+  '_closeFinitenessFallbackWindow',
+];
+
+// === 1. generateTokenIds has all decode contract points ===
+
+for (const { id, description, pattern } of DECODE_CONTRACT) {
+  assert.ok(
+    generateTokenIdsBody.includes(pattern),
+    `generateTokenIds missing contract: ${id} (${description})`
+  );
+}
+
+// === 2. _runDecodeLoop has all decode contract points ===
+
+for (const { id, description, pattern } of DECODE_CONTRACT) {
+  assert.ok(
+    runDecodeLoopBody.includes(pattern),
+    `_runDecodeLoop missing contract: ${id} (${description})`
+  );
+}
+
+// === 3. Stats fields tracked in generateTokenIds ===
+
+for (const stat of STATS_CONTRACT) {
+  assert.ok(
+    generateTokenIdsBody.includes(stat),
+    `generateTokenIds must track ${stat}`
+  );
+}
+
+// === 4. Stats fields tracked in _runDecodeLoop ===
+
+for (const stat of STATS_CONTRACT) {
+  assert.ok(
+    runDecodeLoopBody.includes(stat),
+    `_runDecodeLoop must track ${stat}`
+  );
+}
+
+// === 5. Cleanup in generateTokenIds finally block ===
+
+const tokenIdsFinallyIdx = generateTokenIdsBody.lastIndexOf('finally');
+assert.ok(tokenIdsFinallyIdx !== -1, 'generateTokenIds must have a finally block');
+const tokenIdsFinallyBlock = generateTokenIdsBody.slice(tokenIdsFinallyIdx);
+
+for (const cleanup of CLEANUP_CONTRACT) {
+  assert.ok(
+    tokenIdsFinallyBlock.includes(cleanup),
+    `generateTokenIds finally block must include ${cleanup}`
+  );
+}
+
+// === 6. Cleanup in _generateTokensInternal finally block ===
+
+const internalFinallyIdx = generateTokensInternalBody.lastIndexOf('finally');
+assert.ok(internalFinallyIdx !== -1, '_generateTokensInternal must have a finally block');
+const internalFinallyBlock = generateTokensInternalBody.slice(internalFinallyIdx);
+
+for (const cleanup of CLEANUP_CONTRACT) {
+  assert.ok(
+    internalFinallyBlock.includes(cleanup),
+    `_generateTokensInternal finally block must include ${cleanup}`
+  );
+}
+
+// === 7. generateTokenIds prefill stats ===
+
 assert.ok(
-  methodBody.includes('stats.decodeTimeMs'),
-  'generateTokenIds must track decode time'
-);
-assert.ok(
-  methodBody.includes('stats.tokensGenerated'),
-  'generateTokenIds must track tokens generated count'
-);
-assert.ok(
-  methodBody.includes('stats.prefillTimeMs'),
+  generateTokenIdsBody.includes('stats.prefillTimeMs'),
   'generateTokenIds must track prefill time'
 );
-
-// 8. markKernelCacheWarmed is called
 assert.ok(
-  methodBody.includes('markKernelCacheWarmed'),
-  'generateTokenIds must call markKernelCacheWarmed for consistency with _runDecodeLoop'
+  generateTokenIdsBody.includes('stats.ttftMs'),
+  'generateTokenIds must track time to first token'
+);
+assert.ok(
+  generateTokenIdsBody.includes('stats.totalTimeMs'),
+  'generateTokenIds must track total time'
+);
+assert.ok(
+  generateTokenIdsBody.includes('stats.prefillTokens'),
+  'generateTokenIds must track prefill token count'
+);
+
+// === 8. _generateTokensInternal prefill stats ===
+
+assert.ok(
+  generateTokensInternalBody.includes('stats.prefillTimeMs'),
+  '_generateTokensInternal must track prefill time'
+);
+assert.ok(
+  generateTokensInternalBody.includes('stats.ttftMs'),
+  '_generateTokensInternal must track time to first token'
+);
+assert.ok(
+  generateTokensInternalBody.includes('stats.totalTimeMs'),
+  '_generateTokensInternal must track total time'
+);
+
+// === 9. Abort signal is inside the while loop, not before it ===
+
+const tokenIdsWhileIdx = generateTokenIdsBody.indexOf('while (tokenIds.length');
+assert.ok(tokenIdsWhileIdx !== -1, 'generateTokenIds must have a while loop');
+const tokenIdsAbortIdx = generateTokenIdsBody.indexOf('signal?.aborted');
+assert.ok(
+  tokenIdsAbortIdx > tokenIdsWhileIdx,
+  'Abort signal check must be inside the while loop, not before it'
+);
+
+// === 10. _resetDecodeRuntimeState called at entry in both surfaces ===
+
+assert.ok(
+  generateTokenIdsBody.includes('_resetDecodeRuntimeState'),
+  'generateTokenIds must call _resetDecodeRuntimeState at entry'
+);
+assert.ok(
+  generateTokensInternalBody.includes('_resetDecodeRuntimeState'),
+  '_generateTokensInternal must call _resetDecodeRuntimeState at entry'
+);
+
+// === 11. validateCallTimeOptions at entry ===
+
+assert.ok(
+  generateTokenIdsBody.includes('validateCallTimeOptions'),
+  'generateTokenIds must validate call-time options'
+);
+assert.ok(
+  generateTokensInternalBody.includes('validateCallTimeOptions'),
+  '_generateTokensInternal must validate call-time options'
+);
+
+// === 12. generate() and generateTokens() delegate to _generateTokensInternal ===
+
+const generateBody = extractMethodBody(generatorSource, 'async *generate(prompt');
+const generateTokensBody = extractMethodBody(generatorSource, 'async *generateTokens(prompt');
+
+assert.ok(
+  generateBody.includes('_generateTokensInternal'),
+  'generate() must delegate to _generateTokensInternal'
+);
+assert.ok(
+  generateTokensBody.includes('_generateTokensInternal'),
+  'generateTokens() must delegate to _generateTokensInternal'
 );
 
 console.log('generate-token-ids-contract.test: ok');
