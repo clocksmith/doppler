@@ -31,6 +31,7 @@ import {
   buildModelRuntimeOverrides,
   buildSessionRuntimePatch,
   resolveFinitenessFallbackKernelPathId,
+  PIPELINE_COMPATIBLE_OPS,
 } from './execution-v0-runtime-builders.js';
 
 export function hasExecutionV0(manifestInference) {
@@ -152,7 +153,17 @@ export function compileExecutionV0(options = {}) {
     numLayers,
     finitenessFallbackKernelPathId
   );
-  const layerPipeline = buildLayerPipelineFromExecution(resolvedSteps);
+  const layerPipelineResult = buildLayerPipelineFromExecution(resolvedSteps);
+  if (layerPipelineResult?.incompatibleOps && !kernelPath) {
+    throw new Error(
+      `[ExecutionV0] manifest.inference.execution.steps contains layer ops that are not ` +
+      `compatible with the JS layer pipeline and no inline kernelPath was built to cover execution. ` +
+      `Unsupported ops: ${layerPipelineResult.incompatibleOps.join(', ')}. ` +
+      `Either add explicit kernel references to each step (for inline-kernel execution) ` +
+      `or restrict layer ops to: ${[...PIPELINE_COMPATIBLE_OPS].join(', ')}.`
+    );
+  }
+  const layerPipeline = layerPipelineResult?.incompatibleOps ? null : layerPipelineResult;
   const sessionPatch = buildSessionRuntimePatch(resolvedSession);
   const modelOverrides = buildModelRuntimeOverrides(manifestInference);
   for (const [path, source] of sessionSourceByPath.entries()) {
