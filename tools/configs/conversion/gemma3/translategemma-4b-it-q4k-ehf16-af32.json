@@ -16,7 +16,7 @@
   },
   "inference": {
     "schema": "doppler.execution/v0",
-    "defaultKernelPath": "gemma3-q4k-dequant-f32a-online",
+    "defaultKernelPath": "gemma3-q4k-dequant-f32w-f32a-online",
     "sessionDefaults": {
       "kvcache": {
         "layout": "contiguous",
