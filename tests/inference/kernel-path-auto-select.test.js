@@ -161,6 +161,32 @@ const { setActiveKernelPath, getKernelPathStrict } = await import('../../src/con
 
 {
   const selected = resolveCapabilityKernelPathRef(
+    'gemma3-q4k-dequant-f32w-f32a-online',
+    'config',
+    { hasSubgroups: true },
+    {
+      mode: 'capability-aware',
+      sourceScope: ['config'],
+    }
+  );
+  assert.equal(selected, 'gemma3-q4k-dequant-f32w-f32a-online');
+}
+
+{
+  const selected = resolveCapabilityKernelPathRef(
+    'gemma3-q4k-dequant-f32w-f32a-online',
+    'config',
+    { hasSubgroups: false },
+    {
+      mode: 'capability-aware',
+      sourceScope: ['config'],
+    }
+  );
+  assert.equal(selected, 'gemma3-q4k-dequant-f32w-f32a-online');
+}
+
+{
+  const selected = resolveCapabilityKernelPathRef(
     'gemma3-f16-fused-f32a-online',
     'model',
     { hasSubgroups: true }

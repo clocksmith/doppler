@@ -64,6 +64,26 @@ const models = Array.isArray(catalog.models) ? catalog.models : [];
     true,
     'translategemma-4b-it-q4k-ehf16-af32: availability.hf must be true'
   );
+  assert.equal(
+    tg?.lifecycle?.status?.tested,
+    'verified',
+    'translategemma-4b-it-q4k-ehf16-af32: tested status must reflect the verified browser path'
+  );
+  assert.equal(
+    tg?.lifecycle?.status?.demo,
+    'compare',
+    'translategemma-4b-it-q4k-ehf16-af32: demo status must reflect compare-surface availability'
+  );
+  assert.equal(
+    tg?.lifecycle?.tested?.result,
+    'pass',
+    'translategemma-4b-it-q4k-ehf16-af32: tested result must be pass after browser verification'
+  );
+  assert.deepEqual(
+    tg?.lifecycle?.tested?.surface,
+    ['browser'],
+    'translategemma-4b-it-q4k-ehf16-af32: tested surface must reflect the verified browser run'
+  );
 }
 
 // =============================================================================

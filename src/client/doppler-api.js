@@ -199,6 +199,12 @@ function createModelHandle(pipeline, resolved) {
       prefillKV(prompt, options = {}) {
         return pipeline.prefillKVOnly(prompt, options);
       },
+      prefillWithLogits(prompt, options = {}) {
+        return pipeline.prefillWithLogits(prompt, options);
+      },
+      decodeStepLogits(currentIds, options = {}) {
+        return pipeline.decodeStepLogits(currentIds, options);
+      },
       generateWithPrefixKV(prefix, prompt, options = {}) {
         return pipeline.generateWithPrefixKV(prefix, prompt, options);
       },

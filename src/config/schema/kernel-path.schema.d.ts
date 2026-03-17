@@ -160,6 +160,7 @@ export type BuiltinKernelPathId =
   | 'gemma3-f16-fused-f32a-online-streamingprefill' // Gemma 3 F16 fused FFN online path with streaming prefill attention
   | 'gemma3-q4k-dequant-f16a-online' // Gemma 3 Q4K dequant online path (F16 activations)
   | 'gemma3-q4k-dequant-f32a-online' // Gemma 3 Q4K dequant online path with F32 activations
+  | 'gemma3-q4k-dequant-f32w-f32a-online' // Gemma 3 Q4K path with F32 projection weights and F32 activations
   | 'gemma3-q4k-dequant-f32a-nosubgroups' // Gemma 3 Q4K dequant path with no subgroup requirement
   | 'gemma3-q4k-dequant-f32a' // Legacy alias for gemma3-q4k-dequant-f32a-nosubgroups
   | 'lfm2-q4k-dequant-f32a-online' // LFM2 Q4K path with F32 activations and fast prefill

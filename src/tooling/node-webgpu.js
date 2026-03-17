@@ -189,18 +189,35 @@ function resolveGpuFromModule(mod) {
     return fromModule;
   }
 
-  const factory = mod.create || mod.default?.create;
-  if (typeof factory === 'function') {
-    let created = null;
+  const tryCreateFactory = (factory) => {
+    if (typeof factory !== 'function') {
+      return null;
+    }
     try {
-      created = factory([]);
+      return factory([]);
     } catch {
       try {
-        created = factory();
+        return factory();
       } catch {
-        created = null;
+        return null;
       }
     }
+  };
+
+  const instanceFactory = mod.createInstance || mod.default?.createInstance;
+  const createdFromInstanceFactory = tryCreateFactory(instanceFactory);
+  if (createdFromInstanceFactory) {
+    if (typeof createdFromInstanceFactory.requestAdapter === 'function') {
+      return createdFromInstanceFactory;
+    }
+    if (createdFromInstanceFactory.gpu && typeof createdFromInstanceFactory.gpu.requestAdapter === 'function') {
+      return createdFromInstanceFactory.gpu;
+    }
+  }
+
+  const factory = mod.create || mod.default?.create;
+  if (typeof factory === 'function') {
+    const created = tryCreateFactory(factory);
     if (created) {
       if (typeof created.requestAdapter === 'function') {
         return created;

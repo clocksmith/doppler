@@ -256,18 +256,18 @@
         "status": {
           "runtime": "active",
           "conversion": "ready",
-          "demo": "none",
-          "tested": "failing"
+          "demo": "compare",
+          "tested": "verified"
         },
         "tested": {
           "suite": "debug",
           "surface": [
-            "node"
+            "browser"
           ],
-          "result": "fail",
-          "lastVerifiedAt": "2026-03-15",
-          "source": "runtime-verify",
-          "notes": "Reconverted 2026-03-14 with f32 compute. Re-verified 2026-03-15 on Node/WebGPU AMD RDNA-3 and again on 2026-03-17 with deterministic sample runs. Execution-v0 contract still passes. Q4K output remains incoherent, while F16 diagnostic artifact runs coherent on the same prompt framing. Python dequant parity checks against HF are within normal Q4K precision for both the 1B and this 4B context, so active lead is now a Q4K dequant/matmul runtime issue (conversion data appears sound) rather than RoPE scaling.",
+          "result": "pass",
+          "lastVerifiedAt": "2026-03-17",
+          "source": "manual-review",
+          "notes": "Browser/WebGPU verified on 2026-03-17 with deterministic greedy decoding. The working Q4K path is gemma3-q4k-dequant-f32w-f32a-online (F32 matmul weights, F32 activations, F16 KV). Output: 'Bonjour, monde.' for the default en->fr Hello world prompt. The prior failure was isolated to the older q4k_dequant F16-weight path; F16 artifact and HF reference were both coherent during the root-cause diff.",
           "contracts": {
             "executionContractOk": true,
             "executionV0GraphOk": true
