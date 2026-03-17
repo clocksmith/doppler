@@ -27,6 +27,11 @@ export declare class PipelineGenerator {
    * Batching and readback cadence are controlled by runtime.inference.batching.
    */
   generate(prompt: PromptInput, options?: GenerateOptions): AsyncGenerator<string, void, void>;
+  generateTokens(prompt: PromptInput, options?: GenerateOptions): AsyncGenerator<number, void, void>;
+  generateTokenIds(
+    prompt: PromptInput,
+    options?: GenerateOptions
+  ): Promise<{ tokenIds: number[]; stats: import('./types.js').PipelineStats }>;
   prefillKVOnly(prompt: PromptInput, options?: GenerateOptions): Promise<KVCacheSnapshot>;
   prefillWithEmbedding(prompt: PromptInput, options?: GenerateOptions): Promise<PrefillEmbeddingResult>;
   prefillWithLogits(prompt: PromptInput, options?: GenerateOptions): Promise<PrefillResult>;

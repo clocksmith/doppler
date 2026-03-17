@@ -398,6 +398,14 @@ export class InferencePipeline extends PipelineState {
     return this.generator.generate(prompt, options);
   }
 
+  generateTokens(prompt, options = {}) {
+    return this.generator.generateTokens(prompt, options);
+  }
+
+  generateTokenIds(prompt, options = {}) {
+    return this.generator.generateTokenIds(prompt, options);
+  }
+
   decodeStepLogits(currentIds, options = {}) {
     return this.generator.decodeStepLogits(currentIds, options);
   }
