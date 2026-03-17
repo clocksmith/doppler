@@ -3127,16 +3127,18 @@ function ensurePrimaryModeControlStack() {
   const panelGrid = $('panel-grid');
   if (!panelGrid) return;
 
+  const primaryStack = panelGrid.querySelector('.panel-stack-primary');
   const railStack = panelGrid.querySelector('.panel-stack-rail');
-  if (!railStack) return;
+  const insertionPoint = primaryStack || railStack;
+  if (!insertionPoint) return;
 
   let controlsStack = panelGrid.querySelector('.panel-stack-controls');
   if (!controlsStack) {
     controlsStack = document.createElement('div');
     controlsStack.className = 'panel-stack panel-stack-controls';
     controlsStack.dataset.modes = 'run translate embedding diffusion energy';
-    panelGrid.insertBefore(controlsStack, railStack);
   }
+  panelGrid.insertBefore(controlsStack, insertionPoint);
 
   const controlSectionSelectors = [
     '.run-controls-panel',

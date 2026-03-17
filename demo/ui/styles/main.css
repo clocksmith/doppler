@@ -535,13 +535,24 @@
       display: none;
     }
 
+    #run-sampling-controls > summary,
+    .keyvalue-panel .pulse-subheader {
+      margin: 0;
+      font-family: var(--demo-label-family);
+      font-size: var(--demo-label-size);
+      font-weight: 700;
+      letter-spacing: var(--demo-label-tracking);
+      text-transform: uppercase;
+      line-height: var(--demo-label-line-height);
+    }
+
     #run-sampling-controls > summary {
       display: flex;
       align-items: center;
       justify-content: space-between;
       cursor: pointer;
       user-select: none;
-      padding: 6px 0 0;
+      padding: 8px 0 4px;
       border-top: var(--border-sm) dotted color-mix(in srgb, var(--fg) 24%, transparent);
     }
 
@@ -550,6 +561,8 @@
       font-family: var(--demo-label-family);
       font-size: var(--demo-label-size);
       font-weight: 700;
+      line-height: 1;
+      opacity: 0.9;
     }
 
     #run-sampling-controls[open] > summary::after {
@@ -1562,7 +1575,6 @@
 
     #run-output-status {
       padding-top: 6px;
-      border-top: var(--border-sm) dotted color-mix(in srgb, var(--fg) 26%, transparent);
       color: color-mix(in srgb, var(--fg) 74%, transparent);
       line-height: 1.2;
     }
@@ -2228,15 +2240,8 @@
     }
 
     .keyvalue-panel .pulse-subheader {
-      margin: 0;
       padding-bottom: 3px;
       border-bottom: var(--border-sm) dotted var(--fg);
-      font-family: var(--demo-label-family);
-      font-size: var(--demo-label-size);
-      font-weight: 700;
-      letter-spacing: var(--demo-label-tracking);
-      text-transform: uppercase;
-      line-height: var(--demo-label-line-height);
     }
 
     .keyvalue-panel .stat-label {
@@ -2740,6 +2745,11 @@
         padding: 2px 0;
       }
 
+      #run-sampling-controls > summary {
+        border-top: none;
+        padding-top: 2px;
+      }
+
       details.mobile-advanced > summary::after {
         content: '+';
         font-family: var(--demo-label-family);
@@ -2785,11 +2795,11 @@
         min-width: 0;
       }
 
-      /* Small screens: lead with the primary text/output stack, then controls, then rail */
+      /* Small screens: lead with controls for text modes, then output, then rail */
       #app[data-mode="run"] .panel-stack-controls,
       #app[data-mode="translate"] .panel-stack-controls,
       #app[data-mode="embedding"] .panel-stack-controls {
-        order: 2;
+        order: 1;
         grid-column: 1 / -1;
       }
 
@@ -2802,7 +2812,7 @@
       #app[data-mode="run"] .panel-stack-primary,
       #app[data-mode="translate"] .panel-stack-primary,
       #app[data-mode="embedding"] .panel-stack-primary {
-        order: 1;
+        order: 2;
         grid-column: 1 / -1;
       }
 
