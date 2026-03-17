@@ -166,6 +166,14 @@ export async function runLayerAttentionGPU(
         dtype: normed.dtype,
       });
     }
+
+    await runProbes('post_input_norm', normed.buffer, {
+      layerIdx,
+      numTokens,
+      hiddenSize,
+      probes: state.debugProbes,
+      dtype: normed.dtype,
+    });
   }
 
   // Debug: Check normed input for L0 prefill

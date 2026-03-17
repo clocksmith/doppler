@@ -115,9 +115,14 @@ setDevice(device, { platformConfig: null });
 setTrace(['embed']);
 
 const messages = [];
+const attnMessages = [];
 const originalEmbed = trace.embed;
+const originalAttn = trace.attn;
 trace.embed = (message) => {
   messages.push(message);
+};
+trace.attn = (_layerIdx, message) => {
+  attnMessages.push(message);
 };
 
 try {
@@ -144,8 +149,29 @@ try {
 
   assert.equal(messages.length, 1);
   assert.match(messages[0], /values=\[0=1\.5000, 1=2\.5000\]/);
+
+  await runProbes('post_input_norm', buffer, {
+    layerIdx: 0,
+    numTokens: 1,
+    hiddenSize: 2,
+    probes: [
+      {
+        id: 'L0_norm',
+        stage: 'post_input_norm',
+        layers: [0],
+        dims: [0, 1],
+        tokens: [0],
+      },
+    ],
+    recorder: null,
+    dtype: 'f32',
+  });
+
+  assert.equal(attnMessages.length, 1);
+  assert.match(attnMessages[0], /PROBE L0_norm stage=post_input_norm token=0 values=\[0=1\.5000, 1=2\.5000\]/);
 } finally {
   trace.embed = originalEmbed;
+  trace.attn = originalAttn;
   destroyBufferPool();
   setTrace(false);
   setDevice(null);

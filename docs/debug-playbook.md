@@ -50,7 +50,21 @@ Interpretation:
 - divergence after RoPE but before attention output usually points to RoPE application or masking
 - divergence only after attention output points to residual/FFN/downstream path
 
-## 4. Stop harness churn when early boundaries match
+## 4. Quantized-model control split
+
+When a quantized artifact is bad, do not edit quantized kernels first.
+
+Run one source-precision or F16 control on the same prompt and compare the same early boundaries.
+
+Interpretation:
+
+- F16/source-precision good, quantized bad: quantization, dequantization, runtime dequant layout, or quantized matmul path
+- F16/source-precision bad, quantized bad: shared conversion/layout/runtime issue
+- embeddings + post-input-norm match but Q/K/V diverge: projection weight path, dequant path, or matmul dispatch
+
+This control experiment is required before claiming a Q4K-specific or runtime-wide bug.
+
+## 5. Stop harness churn when early boundaries match
 
 If token IDs match, stop changing prompt formatting.
 
@@ -60,7 +74,7 @@ If post-input-norm matches, stop changing RMSNorm theories.
 
 Move to the next unresolved boundary instead of reopening solved ones.
 
-## 5. Conversion triage is separate
+## 6. Conversion triage is separate
 
 For fresh conversions:
 
@@ -70,7 +84,7 @@ For fresh conversions:
 4. verify sampled tensor bytes against source
 5. then and only then classify runtime divergence
 
-## 6. Conversion completion is fail-closed
+## 7. Conversion completion is fail-closed
 
 Do not report conversion success unless all of these exist and agree:
 
@@ -81,7 +95,7 @@ Do not report conversion success unless all of these exist and agree:
 
 A directory with shards but no manifest is an interrupted conversion.
 
-## 7. Add the smallest permanent probe
+## 8. Add the smallest permanent probe
 
 Prefer:
 
@@ -95,10 +109,12 @@ Avoid:
 - broad benchmark rewrites before classification
 - speculative config changes without a boundary diff
 
-## 8. Required deliverables for a serious debug pass
+## 9. Required deliverables for a serious debug pass
 
 - failing command/config
 - trusted reference values
 - first divergent boundary
 - classification of likely owner (`tokenization`, `conversion`, `runtime`, `surface`)
 - next binary split or fix
+
+Use [debug-investigation-template.md](debug-investigation-template.md) when the investigation spans multiple iterations or agents.

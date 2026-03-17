@@ -369,6 +369,73 @@ export const GPUTextureUsage = { COPY_SRC: 1, COPY_DST: 2 };
 
 {
   const snapshot = snapshotState();
+  const tempDir = mkdtempSync(path.join(tmpdir(), 'doppler-webgpu-create-instance-'));
+  try {
+    clearRuntime();
+    const modulePath = path.join(tempDir, 'webgpu-create-instance.mjs');
+    writeFileSync(modulePath, `
+export function createInstance() {
+  return {
+    async requestAdapter() {
+      return null;
+    },
+  };
+}
+export const GPUBufferUsage = { COPY_SRC: 11 };
+export const GPUShaderStage = { COMPUTE: 11 };
+`, 'utf8');
+    process.env.DOPPLER_NODE_WEBGPU_MODULE = modulePath;
+
+    const ready = await bootstrapNodeWebGPU();
+    assert.equal(ready.ok, true);
+    await globalThis.navigator.gpu.requestAdapter();
+    assert.equal(globalThis.GPUBufferUsage.COPY_SRC, 11);
+    assert.equal(globalThis.GPUShaderStage.COMPUTE, 11);
+  } finally {
+    rmSync(tempDir, { recursive: true, force: true });
+    restoreState(snapshot);
+  }
+}
+
+{
+  const snapshot = snapshotState();
+  const tempDir = mkdtempSync(path.join(tmpdir(), 'doppler-webgpu-default-create-instance-'));
+  try {
+    clearRuntime();
+    writeFileSync(path.join(tempDir, 'package.json'), JSON.stringify({
+      name: 'doppler-webgpu-default-create-instance',
+      version: '1.0.0',
+      type: 'module',
+      main: 'index.js',
+    }), 'utf8');
+    writeFileSync(path.join(tempDir, 'index.js'), `
+export default {
+  createInstance() {
+    return {
+      async requestAdapter() {
+        return null;
+      },
+    };
+  },
+};
+export const GPUBufferUsage = { COPY_SRC: 12 };
+export const GPUShaderStage = { COMPUTE: 12 };
+`, 'utf8');
+    process.env.DOPPLER_NODE_WEBGPU_MODULE = tempDir;
+
+    const ready = await bootstrapNodeWebGPU();
+    assert.equal(ready.ok, true);
+    await globalThis.navigator.gpu.requestAdapter();
+    assert.equal(globalThis.GPUBufferUsage.COPY_SRC, 12);
+    assert.equal(globalThis.GPUShaderStage.COMPUTE, 12);
+  } finally {
+    rmSync(tempDir, { recursive: true, force: true });
+    restoreState(snapshot);
+  }
+}
+
+{
+  const snapshot = snapshotState();
   const tempDir = mkdtempSync(path.join(tmpdir(), 'doppler-webgpu-main-'));
   try {
     clearRuntime();
