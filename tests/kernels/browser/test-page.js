@@ -77,6 +77,9 @@ const {
   runAdam = null,
 } = kernelSelector;
 
+// Import dequant variant selector for test diagnostics
+import { selectDequantKernel } from '../../../src/gpu/kernels/dequant.js';
+
 // Import sample kernel
 import * as sampleKernel from '../../../src/gpu/kernels/sample.js';
 
@@ -284,6 +287,7 @@ const testHarness = {
   readBufferData,
   toF16RoundedFloat32,
   KERNEL_TOLERANCES,
+  selectDequantKernel,
 
   async runMatmulTransposeA(dev, A, B, M, N, K, options = {}) {
     const bufA = makeBuffer(A);
@@ -1296,6 +1300,21 @@ const testHarness = {
   },
 
   
+  async runDequantQ4K_Vec4(dev, quantized, numBlocks) {
+    if (!dequantize) {
+      throw new Error('dequantize kernel not available');
+    }
+
+    const qBuf = makeBuffer(quantized, GPUBufferUsage.STORAGE);
+    const outTensor = await dequantize(qBuf, numBlocks, { outputDtype: 'f32', useVec4: true });
+    const out = new Float32Array(await readBufferData(outTensor.buffer, numBlocks * 256 * 4));
+
+    qBuf.destroy();
+    outTensor.buffer.destroy();
+
+    return out;
+  },
+
   async runDequantQ4K_F16(dev, quantized, numBlocks) {
     if (!dequantize) {
       throw new Error('dequantize kernel not available');

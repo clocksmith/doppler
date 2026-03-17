@@ -728,6 +728,174 @@ export async function runKernelSuite(harness) {
     },
   ]);
 
+  // === Q4K vec4 dequant parity: tests main_vec4 entry point (TranslateGemma 4B failure path) ===
+
+  tests.push([
+    'dequant_q4k_vec4_1block',
+    async () => {
+      const resolvedVariant = h.selectDequantKernel({ useVec4: true, outputDtype: 'f32' });
+      if (!resolvedVariant.includes('vec4')) {
+        console.warn(`[SKIP] dequant_q4k_vec4_1block: resolved variant "${resolvedVariant}" is not vec4`);
+        return true; // skip, not fail
+      }
+      console.log(`[dequant_q4k_vec4_1block] variant=${resolvedVariant}`);
+
+      const numBlocks = 1;
+      const values = h.generateTestData(numBlocks * 256, 2001);
+      const quantized = h.references.quantizeQ4_KRef(values, numBlocks);
+      const expected = h.references.dequantQ4_KRef(quantized, numBlocks);
+      const actual = await h.runDequantQ4K_Vec4(null, quantized, numBlocks);
+      const result = h.compareArrays(expected, actual, h.KERNEL_TOLERANCES.dequant);
+      if (!result.passed) {
+        console.error(`[FAIL] dequant_q4k_vec4_1block: maxErr=${result.maxError}, failIdx=${result.failIndex}`);
+      }
+      return result.passed;
+    },
+  ]);
+
+  tests.push([
+    'dequant_q4k_vec4_10blocks',
+    async () => {
+      // 10 blocks = one row of TranslateGemma 4B q_proj (K=2560, blocksPerRow=10)
+      const resolvedVariant = h.selectDequantKernel({ useVec4: true, outputDtype: 'f32' });
+      if (!resolvedVariant.includes('vec4')) {
+        console.warn(`[SKIP] dequant_q4k_vec4_10blocks: resolved variant "${resolvedVariant}" is not vec4`);
+        return true;
+      }
+      console.log(`[dequant_q4k_vec4_10blocks] variant=${resolvedVariant}, numBlocks=10`);
+
+      const numBlocks = 10;
+      const values = h.generateTestData(numBlocks * 256, 2002);
+      const quantized = h.references.quantizeQ4_KRef(values, numBlocks);
+      const expected = h.references.dequantQ4_KRef(quantized, numBlocks);
+      const actual = await h.runDequantQ4K_Vec4(null, quantized, numBlocks);
+      const result = h.compareArrays(expected, actual, h.KERNEL_TOLERANCES.dequant);
+      if (!result.passed) {
+        console.error(`[FAIL] dequant_q4k_vec4_10blocks: maxErr=${result.maxError}, failIdx=${result.failIndex}`);
+      }
+      return result.passed;
+    },
+  ]);
+
+  tests.push([
+    'dequant_q4k_vec4_projection_scale',
+    async () => {
+      // Full TranslateGemma 4B q_proj geometry: 2048 rows × 10 blocks/row = 20480 blocks
+      const resolvedVariant = h.selectDequantKernel({ useVec4: true, outputDtype: 'f32' });
+      if (!resolvedVariant.includes('vec4')) {
+        console.warn(`[SKIP] dequant_q4k_vec4_projection_scale: resolved variant "${resolvedVariant}" is not vec4`);
+        return true;
+      }
+
+      const numBlocks = 20480;
+      console.log(`[dequant_q4k_vec4_projection_scale] variant=${resolvedVariant}, numBlocks=${numBlocks} (2048×10)`);
+
+      const values = h.generateTestData(numBlocks * 256, 2003);
+      const quantized = h.references.quantizeQ4_KRef(values, numBlocks);
+      const expected = h.references.dequantQ4_KRef(quantized, numBlocks);
+      const actual = await h.runDequantQ4K_Vec4(null, quantized, numBlocks);
+
+      // Sample-check: compare first row (10 blocks = 2560 elements), middle row, last row
+      const rowBlocks = 10;
+      const checkRows = [0, 1024, 2047];
+      for (const row of checkRows) {
+        const start = row * rowBlocks * 256;
+        const end = start + rowBlocks * 256;
+        const result = h.compareArrays(
+          expected.slice(start, end),
+          actual.slice(start, end),
+          h.KERNEL_TOLERANCES.dequant
+        );
+        if (!result.passed) {
+          console.error(
+            `[FAIL] dequant_q4k_vec4_projection_scale row ${row}: ` +
+            `maxErr=${result.maxError}, failIdx=${result.failIndex} (absolute idx=${start + result.failIndex})`
+          );
+          return false;
+        }
+      }
+      return true;
+    },
+  ]);
+
+  tests.push([
+    'dequant_q4k_vec4_real_weights',
+    async () => {
+      // Use real Q4K bytes from the TranslateGemma 4B artifact (if available via fetch)
+      const resolvedVariant = h.selectDequantKernel({ useVec4: true, outputDtype: 'f32' });
+      if (!resolvedVariant.includes('vec4')) {
+        console.warn(`[SKIP] dequant_q4k_vec4_real_weights: resolved variant "${resolvedVariant}" is not vec4`);
+        return true;
+      }
+
+      // Try to fetch 10 blocks (1 row) from the Q4K artifact
+      const manifestUrl = '/models/local/translategemma-4b-it-q4k-ehf16-af32/manifest.json';
+      let manifest;
+      try {
+        const resp = await fetch(manifestUrl);
+        if (!resp.ok) {
+          console.warn(`[SKIP] dequant_q4k_vec4_real_weights: manifest fetch failed (${resp.status})`);
+          return true;
+        }
+        manifest = await resp.json();
+      } catch {
+        console.warn('[SKIP] dequant_q4k_vec4_real_weights: manifest not available');
+        return true;
+      }
+
+      const qprojInfo = manifest.tensors['language_model.model.layers.0.self_attn.q_proj.weight'];
+      if (!qprojInfo) {
+        console.warn('[SKIP] dequant_q4k_vec4_real_weights: q_proj tensor not found in manifest');
+        return true;
+      }
+
+      const shardIdx = qprojInfo.shard;
+      const shardFile = manifest.shards.find(s => s.index === shardIdx)?.filename;
+      if (!shardFile) {
+        console.warn('[SKIP] dequant_q4k_vec4_real_weights: shard file not found');
+        return true;
+      }
+
+      // Read first row (10 blocks × 144 bytes = 1440 bytes)
+      const blockBytes = 144;
+      const blocksPerRow = 10;
+      const readSize = blocksPerRow * blockBytes;
+      const shardUrl = `/models/local/translategemma-4b-it-q4k-ehf16-af32/${shardFile}`;
+      let rowData;
+      try {
+        const resp = await fetch(shardUrl, {
+          headers: { Range: `bytes=${qprojInfo.offset}-${qprojInfo.offset + readSize - 1}` },
+        });
+        if (!resp.ok) {
+          console.warn(`[SKIP] dequant_q4k_vec4_real_weights: shard fetch failed (${resp.status})`);
+          return true;
+        }
+        rowData = new Uint8Array(await resp.arrayBuffer());
+      } catch {
+        console.warn('[SKIP] dequant_q4k_vec4_real_weights: shard not fetchable');
+        return true;
+      }
+
+      if (rowData.length !== readSize) {
+        console.warn(`[SKIP] dequant_q4k_vec4_real_weights: expected ${readSize} bytes, got ${rowData.length}`);
+        return true;
+      }
+
+      console.log(`[dequant_q4k_vec4_real_weights] variant=${resolvedVariant}, blocksPerRow=${blocksPerRow}`);
+
+      const expected = h.references.dequantQ4_KRef(rowData, blocksPerRow);
+      const actual = await h.runDequantQ4K_Vec4(null, rowData, blocksPerRow);
+      const result = h.compareArrays(expected, actual, h.KERNEL_TOLERANCES.dequant);
+      if (!result.passed) {
+        console.error(
+          `[FAIL] dequant_q4k_vec4_real_weights: maxErr=${result.maxError}, failIdx=${result.failIndex}, ` +
+          `expected[${result.failIndex}]=${expected[result.failIndex]}, actual[${result.failIndex}]=${actual[result.failIndex]}`
+        );
+      }
+      return result.passed;
+    },
+  ]);
+
   tests.push([
     'dequant_q4k_f16',
     async () => {
