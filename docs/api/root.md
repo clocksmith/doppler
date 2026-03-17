@@ -79,6 +79,8 @@ Returns a `DopplerModel` instance with:
 - `unloadLoRA()`
 - `unload()`
 - `advanced.prefillKV(...)`
+- `advanced.prefillWithLogits(...)`
+- `advanced.decodeStepLogits(...)`
 - `advanced.generateWithPrefixKV(...)`
 
 ### `doppler(prompt, options)`
@@ -127,6 +129,30 @@ const reply = await model.chatText([
 ]);
 
 console.log(reply.content);
+await model.unload();
+```
+
+## Advanced Telemetry Example
+
+Use the `advanced` handle when you need logits-backed instrumentation instead of
+the standard generation surface.
+
+```js
+import { doppler } from '@simulatte/doppler';
+
+const model = await doppler.load('gemma3-270m');
+
+const prefill = await model.advanced.prefillWithLogits('Write one word for GPU.');
+const topLogit = prefill.logits[0];
+
+const step = await model.advanced.decodeStepLogits(prefill.tokenIds);
+
+console.log({
+  prefillTokens: prefill.tokenIds.length,
+  vocabSize: step.vocabSize,
+  firstLogit: topLogit,
+});
+
 await model.unload();
 ```
 

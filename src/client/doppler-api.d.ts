@@ -2,6 +2,7 @@ import type { RDRRManifest } from '../formats/rdrr/index.js';
 import type { GenerateOptions, KVCacheSnapshot } from '../generation/index.js';
 import type { ChatMessage } from '../inference/pipelines/text/chat-format.js';
 import type { LoRAManifest } from '../adapters/lora-loader.js';
+import type { LogitsStepResult, PrefillResult } from '../inference/pipelines/text/types.d.ts';
 
 export interface DopplerLoadProgress {
   phase: 'resolve' | 'manifest' | 'load' | 'ready';
@@ -43,6 +44,8 @@ export interface DopplerModel {
   readonly deviceInfo: Record<string, unknown> | null;
   readonly advanced: {
     prefillKV(prompt: string, options?: GenerateOptions): Promise<KVCacheSnapshot>;
+    prefillWithLogits(prompt: string | ChatMessage[] | { messages: ChatMessage[] }, options?: GenerateOptions): Promise<PrefillResult>;
+    decodeStepLogits(currentIds: number[], options?: GenerateOptions): Promise<LogitsStepResult>;
     generateWithPrefixKV(
       prefix: KVCacheSnapshot,
       prompt: string,
