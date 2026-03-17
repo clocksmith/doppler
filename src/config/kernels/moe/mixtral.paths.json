@@ -1,0 +1,46 @@
+{
+  "id": "mixtral-moe-v1",
+  "description": "Deterministic Mixtral-style MoE kernel routing profile for Q4K/F16 expert weights with standard gate/up/down FFN.",
+  "router": {
+    "topk": [
+      {
+        "match": { "hasF16": true, "hasSubgroups": true, "routerDtype": "f32" },
+        "value": "softmax_topk_f32_subgroup"
+      },
+      {
+        "match": { "hasF16": true, "routerDtype": "f32" },
+        "value": "softmax_topk_f32"
+      },
+      {
+        "match": {},
+        "value": "softmax_topk_f32"
+      }
+    ]
+  },
+  "dequant": {
+    "q4kExpert": [
+      {
+        "match": { "hasF16": true, "hasSubgroups": true, "outputDtype": "f32" },
+        "value": "q4k_expert_dequant_f32_subgroup"
+      },
+      {
+        "match": { "hasF16": true, "outputDtype": "f16" },
+        "value": "q4k_expert_dequant_f16"
+      },
+      {
+        "match": {},
+        "value": "q4k_expert_dequant_f32"
+      }
+    ],
+    "f16Expert": [
+      {
+        "match": { "hasF16": true, "outputDtype": "f16" },
+        "value": "f16_expert_passthrough"
+      },
+      {
+        "match": {},
+        "value": "f16_expert_upcast_f32"
+      }
+    ]
+  }
+}

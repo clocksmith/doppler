@@ -1,0 +1,75 @@
+{
+  "vendorQuirkProfile": [
+    {
+      "match": {
+        "vendor": {
+          "contains": ["intel", "amd"]
+        }
+      },
+      "value": {
+        "preferVec4Dequant": false,
+        "dequantTileShape": "scalar",
+        "routerWorkgroupSize": 128,
+        "maxTokensPerExpertScale": 0.85
+      }
+    },
+    {
+      "match": {
+        "vendor": {
+          "contains": ["nvidia", "apple", "qualcomm"]
+        }
+      },
+      "value": {
+        "preferVec4Dequant": false,
+        "dequantTileShape": "scalar",
+        "routerWorkgroupSize": 256,
+        "maxTokensPerExpertScale": 1.0
+      }
+    },
+    {
+      "match": {},
+      "value": {
+        "preferVec4Dequant": false,
+        "dequantTileShape": "scalar",
+        "routerWorkgroupSize": 128,
+        "maxTokensPerExpertScale": 1.0
+      }
+    }
+  ],
+  "routerTopKVariant": [
+    {
+      "match": { "modelType": "mixtral", "hasF16": true, "hasSubgroups": true, "routerDtype": "f32" },
+      "value": "softmax_topk_f32_subgroup"
+    },
+    {
+      "match": { "modelType": "mixtral", "routerDtype": "f32" },
+      "value": "softmax_topk_f32"
+    },
+    {
+      "match": { "modelType": "mixtral" },
+      "value": "softmax_topk_f32"
+    }
+  ],
+  "dequantVariant": [
+    {
+      "match": { "modelType": "mixtral", "weightsDtype": "q4k", "hasF16": true, "hasSubgroups": true, "outputDtype": "f32" },
+      "value": "q4k_expert_dequant_f32_subgroup"
+    },
+    {
+      "match": { "modelType": "mixtral", "weightsDtype": "q4k", "outputDtype": "f16", "hasF16": true },
+      "value": "q4k_expert_dequant_f16"
+    },
+    {
+      "match": { "modelType": "mixtral", "weightsDtype": "q4k" },
+      "value": "q4k_expert_dequant_f32"
+    },
+    {
+      "match": { "modelType": "mixtral", "weightsDtype": "f16", "outputDtype": "f16", "hasF16": true },
+      "value": "f16_expert_passthrough"
+    },
+    {
+      "match": { "modelType": "mixtral" },
+      "value": "f16_expert_upcast_f32"
+    }
+  ]
+}
