@@ -4535,7 +4535,8 @@ function syncRunControls() {
     ? 'embedding'
     : (state.uiMode === 'translate' ? 'translate' : 'run');
   const hasCompatibleModel = Number.isFinite(availability[modeKey]) && availability[modeKey] > 0;
-  const disabled = state.runGenerating || state.runLoading || state.compareGenerating || state.compareLoading;
+  const isRunning = state.runGenerating;
+  const disabled = isRunning || state.runLoading || state.compareGenerating || state.compareLoading;
   if (runPrompt) runPrompt.disabled = disabled;
   if (runGenerate) runGenerate.disabled = disabled || !hasCompatibleModel;
   if (runClear) runClear.disabled = disabled;
@@ -4547,7 +4548,8 @@ function syncRunControls() {
   if (topPInput) topPInput.disabled = disabled;
   if (topKInput) topKInput.disabled = disabled;
   if (maxTokensInput) maxTokensInput.disabled = disabled;
-  if (runStop) setHidden(runStop, !state.runGenerating);
+  if (runGenerate) setHidden(runGenerate, isRunning);
+  if (runStop) setHidden(runStop, !isRunning);
 }
 
 function setRunGenerating(isGenerating) {
@@ -6581,10 +6583,14 @@ function setAppBootstrapVisible(visible, message = null) {
 }
 
 function syncMobileAdvanced() {
-  const isDesktop = window.matchMedia('(min-width: 778px)').matches;
+  const isDesktop = window.matchMedia('(min-width: 1025px)').matches;
   document.querySelectorAll('details.mobile-advanced').forEach((el) => {
     if (isDesktop) {
-      el.setAttribute('open', '');
+      if (el.id === 'run-sampling-controls') {
+        el.removeAttribute('open');
+      } else {
+        el.setAttribute('open', '');
+      }
     } else {
       el.removeAttribute('open');
     }
@@ -6602,7 +6608,7 @@ async function init() {
   try {
     ensurePrimaryModeControlStack();
     syncMobileAdvanced();
-    window.matchMedia('(min-width: 778px)').addEventListener('change', syncMobileAdvanced);
+    window.matchMedia('(min-width: 1025px)').addEventListener('change', syncMobileAdvanced);
     const deepLinkState = readDeepLinkStateFromLocation();
     state.surface = normalizeSurface(deepLinkState.surface, state.surface || 'demo');
     syncSurfaceUI(state.surface);
