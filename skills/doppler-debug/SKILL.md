@@ -65,9 +65,14 @@ Use this order for inference failures that load successfully but generate bad ou
 
 4. Once token IDs or embeddings match, stop changing prompt wrappers or harness formatting until later evidence requires it.
 
-5. Prefer one config-driven probe over one new theory.
+5. For quantized failures, run one F16 or source-precision control before changing quantized kernels.
+- F16/source-precision good + quantized bad => quantized path issue
+- F16/source-precision bad + quantized bad => shared conversion/layout/runtime issue
+
+6. Prefer one config-driven probe over one new theory.
 
 Reference workflow: `docs/debug-playbook.md`
+Reusable report template: `docs/debug-investigation-template.md`
 
 ## Conversion Completion Discipline
 

@@ -198,14 +198,18 @@ Do not skip ahead to architecture theories or benchmark tweaks.
   - FFN output
   - final logits
 
-4. Stop prompt/harness churn once token IDs match
+4. For quantized failures, run one F16 or source-precision control before touching quantized kernels
+- F16/source-precision good + quantized bad => quantized path issue
+- F16/source-precision bad + quantized bad => shared conversion/layout/runtime issue
+
+5. Stop prompt/harness churn once token IDs match
 - If token IDs or embeddings already match, do not keep changing templates, harnesses, or benchmark wrappers until a later boundary proves they are relevant.
 
-5. Prefer one new probe over one new theory
+6. Prefer one new probe over one new theory
 - Add the smallest permanent/config-driven probe needed to classify the next boundary.
 - Do not add throwaway logs.
 
-6. Conversion status is fail-closed
+7. Conversion status is fail-closed
 - Do not mark a conversion as complete unless all of these exist and agree:
   - successful process exit
   - `manifest.json`
@@ -214,6 +218,7 @@ Do not skip ahead to architecture theories or benchmark tweaks.
 - A directory with shards but no manifest is an interrupted conversion, not a usable artifact.
 
 Canonical workflow doc: `docs/debug-playbook.md`
+Reusable report template: `docs/debug-investigation-template.md`
 
 ### Conversion Promotion Gate (Required)
 
