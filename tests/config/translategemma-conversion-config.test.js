@@ -11,7 +11,7 @@ const converterConfig = JSON.parse(
 );
 
 assert.equal(converterConfig.quantization?.computePrecision, 'f32');
-assert.equal(converterConfig.inference?.defaultKernelPath, 'gemma3-q4k-dequant-f32a-online');
+assert.equal(converterConfig.inference?.defaultKernelPath, 'gemma3-q4k-dequant-f32w-f32a-online');
 assert.equal(converterConfig.inference?.schema, 'doppler.execution/v0');
 assert.equal(converterConfig.inference?.sessionDefaults?.kvcache?.layout, 'contiguous');
 assert.equal(converterConfig.inference?.sessionDefaults?.decodeLoop, null);
@@ -48,7 +48,7 @@ const plan = resolveConversionPlan({
 });
 
 assert.equal(plan.quantizationInfo?.variantTag, 'q4k-ehf16-af32');
-assert.equal(plan.manifestInference?.defaultKernelPath, 'gemma3-q4k-dequant-f32a-online');
+assert.equal(plan.manifestInference?.defaultKernelPath, 'gemma3-q4k-dequant-f32w-f32a-online');
 assert.equal(plan.manifestInference?.sessionDefaults?.compute?.defaults?.activationDtype, 'f32');
 assert.equal(plan.manifestInference?.sessionDefaults?.compute?.defaults?.mathDtype, 'f32');
 assert.equal(plan.manifestInference?.sessionDefaults?.compute?.defaults?.accumDtype, 'f32');

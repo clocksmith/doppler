@@ -5,7 +5,7 @@
         {
             "dopplerModelId": "translategemma-4b-it-q4k-ehf16-af32",
             "defaultTjsModelId": "onnx-community/translategemma-text-4b-it-ONNX",
-            "defaultKernelPath": "gemma3-q4k-dequant-f32a-online",
+            "defaultKernelPath": "gemma3-q4k-dequant-f32w-f32a-online",
             "modelBaseDir": "local",
             "defaultDopplerSurface": "auto"
         },
