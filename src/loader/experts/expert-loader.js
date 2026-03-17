@@ -9,7 +9,7 @@ import { isWeightBuffer } from '../../gpu/weight-buffer.js';
 import { maybeDowncastToF16 } from '../weight-downcast.js';
 import { log, trace as debugTrace } from '../../debug/index.js';
 import { getRuntimeConfig } from '../../config/runtime.js';
-import { releaseBuffer } from '../../memory/buffer-pool.js';
+import { isBufferActive, releaseBuffer } from '../../memory/buffer-pool.js';
 
 // ============================================================================
 // Shard Preloading
@@ -283,7 +283,11 @@ function releasePackedLayerWeights(ctx, packed) {
     const gpuBuffer = getGpuBuffer(entry);
     if (!gpuBuffer) continue;
     try {
-      releaseBuffer(gpuBuffer);
+      if (isBufferActive(gpuBuffer)) {
+        releaseBuffer(gpuBuffer);
+      } else {
+        gpuBuffer.destroy();
+      }
       ctx.gpuBuffers?.delete?.(gpuBuffer);
     } catch {
       // Ignore already-released buffers.
