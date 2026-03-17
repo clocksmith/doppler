@@ -1,6 +1,6 @@
 # Model Failure Action Plan
 
-Last updated: 2026-03-16T00:50:00Z
+Last updated: 2026-03-17T17:20:00Z
 Plan status: active
 Current resume point: `WS6.1` — `lfm2` decode-collapse investigation
 Current highest-priority ready step: `WS6.1` — keep `lfm2` and `translategemma-4b-it` on the promotion path
@@ -136,10 +136,10 @@ Repo-backed facts as of 2026-03-12:
 | `H-GEMMA-F32A` | Gemma F32a vs F16a kernel divergence is the primary root cause | `disproved` | Kernel-level review reported paired WGSL paths with matching arithmetic structure and f32 accumulation; only storage and I/O dtype differ | N/A |
 | `H-GEMMA-F32A-ORCH` | Gemma F32a vs F16a orchestration-layer dtype propagation or buffer handling difference causes divergence | `disproved` | The deterministic 2×2 comparison proves the 270M divergence is a model capacity issue, not an orchestration-layer dtype bug. Both F32a dtype-propagation and BF16 `keepF32Weights` contract holes were closed preventatively, but neither was the active cause. The confirmed active cause was the lm_head_prefill phase-drop bug, which is now fixed | N/A |
 | `H-TG-PAGED` | Explicit `paged` KV layout bypasses the contiguous-only intent for Gemma 3 mixed-attention models | `validated` | Confirmed by current `init.js` control flow; `WS2.1` should codify this as the pre-fix baseline | Add fail-fast and then align config |
-| `H-TG-BROKEN` | TranslateGemma 4B is fundamentally broken in Doppler | `validated` | Real Class `A` browser/WebGPU smoke on 2026-03-12: default `f16a` kernel → NaN/Inf, F32a kernel override → incoherent garbage. Contracts pass but output quality fails. Conversion config already corrected to use F32a default kernel path and contiguous KV layout. Awaits reconversion from source weights and re-smoke | Reconvert from `/Volumes/models/huggingface_cache/hub/models--google--translategemma-4b-it` and re-smoke |
 | `H-QWEN-LA` | Qwen 3.5 failure is driven by linear-attention correctness or Qwen-specific runtime semantics | `validated` | Qwen-specific manifest and contract issues were narrowed and one bug was fixed: `detectRmsNormWeightOffset` in `manifest-inference.js` had incorrectly forced `rmsNormWeightOffset: true` for Qwen 3.5, overriding the correct preset value of `false`. That correction was necessary but not sufficient; real Class `A` smokes still fail for both Q4K and F16 artifacts. The strongest remaining explanation is the linear-attention / delta-net implementation, not manifest freshness or catalog metadata | Fix the linear-attention kernel or delta-net state management, then re-smoke |
 | `H-QWEN-STALE` | Sampled local Qwen artifacts are stale or manifest-incomplete relative to the current contract | `done` | Validated for the old local artifacts; refreshed exact-ID Qwen artifacts now satisfy required-field checks but still need runtime-path investigation | Keep old artifacts out of runtime conclusions and continue in `WS3` |
 | `H-TG-META` | TranslateGemma local-loading/catalog metadata is inconsistent | `validated` | Known metadata issue | Fix catalog truthfully and re-sync support matrix if needed |
+| `H-TG-BROKEN` | TranslateGemma 4B is fundamentally broken in Doppler | `needs_recheck` | Real Class `A` and conversion checks now separate the issue: F16 diagnostic output is coherent, Q4K output remains incoherent in the same prompt framing, and Python dequant parity on representative tensors is within expected Q4K precision for both known-working 1B and current 4B contexts. The active lead is no longer RoPE scaling; it is now a Q4K dequant/matmul runtime-path issue with conversion-vs-runtime split evidence | Continue isolate the Q4K dequant/matmul path and confirm runtime-stage fingerprint across runs |
 | `H-LFM2-FALLBACK` | LFM2 no-subgroups path silently falls back to the wrong kernel family | `done` | Fixed: created `lfm2-q4k-dequant-f32a-nosubgroups.json` kernel path (replaces subgroup GEMV with `matmul_f16w_f32a.wgsl`, online attention with chunked, keeps LFM2-specific tiled prefill and small-kernel prefill attention). Registered in `registry.json`. Updated `kernel-path.rules.json` auto-selection and finiteness-fallback rules to point to the LFM2-specific nosubgroups path instead of the Gemma3 cross-model fallback | N/A |
 
 ## Master Status Board
@@ -148,7 +148,7 @@ Repo-backed facts as of 2026-03-12:
 | --- | --- | --- | --- | --- |
 | `WS0` Evidence normalization and inventory | `done` | P0 | none | Target artifacts, evidence classes, and current failure claims are pinned |
 | `WS1` Artifact freshness and manifest contract repair | `done` | P1 | `WS0` | Target artifacts are current enough for runtime investigation |
-| `WS2` TranslateGemma hardening and metadata | `done` | P1 | none | Explicit paged-layout hazard is fail-closed. TranslateGemma 4B confirmed failing (NaN on f16a, garbage on f32a). Catalog, external registry, and support matrix updated |
+| `WS2` TranslateGemma hardening and metadata | `done` | P1 | none | Explicit paged-layout hazard is fail-closed. Q4K path remains the active TranslateGemma correctness issue; F16 diagnostic artifacts can pass coherent checks while conversion/parsing checks remain valid, shifting the lead to a Q4K dequant/matmul/runtime split. Catalog, external registry, and support matrix updated |
 | `WS3` Qwen runtime-path and linear-attention investigation | `done` | P1 | `WS1` | Both Q4K and F16 Qwen artifacts produce incoherent output. Root cause is linear-attention / delta-net implementation. Models stay failing |
 | `WS4` Gemma Q4K conversion and numeric triage | `done` | P1 | `WS1` | The lm_head_prefill bug was the one confirmed runtime defect (fixed). 270M inaccuracy is a model capacity limitation. Both models verified, uploaded to HF |
 | `WS5` Maintenance appendix: Gemma 1B F16, Gemma2, LFM2, catalog cleanup | `done` | P2 | none | 1B F16 artifact current (not stale). Gemma2 graph error is a test fixture. LFM2 parked (no volume artifact). Catalog hygiene corrected (student model false local claim) |
@@ -314,6 +314,7 @@ Steps:
 - [x] `WS2.7` Runtime smoke used the patched volume artifact with contiguous layout. Two runs: (1) default `f16a` kernel path produced `NaN/Inf` logits crash — F16 activation buffers overflow at 4B scale with `intermediateSize=10240`. (2) Explicit `f32a` kernel path override (with `activationDtype=f32`, `kvDtype=f16`) ran successfully but produced completely incoherent output. Also found manifest `variantTag` mismatch: `q4k-ehaf16` instead of expected `q4k-ehf16-af32`.
 - [x] `WS2.8` Deterministic TranslateGemma smoke captured. Prompt: structured `{ messages: [...] }` with `source_lang_code: "en"`, `target_lang_code: "es"`, `text: "The weather is nice today."`. Config: `temperature=0, topK=1, maxTokens=16, kernelPath=gemma3-q4k-dequant-f32a-online`. Surface: browser/WebGPU, Apple M3. Output: `"Amie in assistant,fofb.\nitch\nbank in its banking actions\n\n\n গ্রেপ্তin\nfrom..."` — completely incoherent. Contracts (execution, graph, layer pattern) all pass. Catalog updated to `tested: "failing"`, `result: "fail"`.
 - [x] `WS2.9` Human review of WS2.7-WS2.8 findings. TranslateGemma 4B is failing: default f16a kernel path NaN, f32a override produces garbage. Prior `tested: "verified"` was based on contract checks only, not output quality. Root cause candidates: (a) conversion quality issue specific to 4B scale, (b) runtime issue with TranslateGemma architecture at 4B (vocabSize 262208, intermediateSize 10240), (c) f16a kernel overflow requiring reconversion with f32a as default kernel path, combined with a separate output quality issue. Catalog and external registry updated to `tested: "failing"`. Student model (`translategemma-4b-1b-enes`) corrected: `local: false`, `baseUrl: null` (artifact doesn't exist).
+- [x] `WS2.10` March 17 pass/fail split update: same prompt framing that produced F16-coherent output on the diagnostic path remains coherent on the same host setup, while Q4K artifact runs in the same family context continue to diverge. Python-side dequant parity checks continue to validate conversion data (for both 1B and 4B contexts) within normal Q4K precision, so the remaining lead is a runtime path split (Q4K dequant/matmul behavior) rather than conversion or RoPE scaling.
 
 Do not do:
 
@@ -533,13 +534,13 @@ Entry gate:
 Exit gate:
 
 - `lfm2-5-1-2b-instruct-q4k-ehf16-af32` produces coherent deterministic output on a real runtime smoke
-- `translategemma-4b-it-q4k-ehf16-af32` produces coherent deterministic output on a real runtime smoke
+- `translategemma-4b-it-q4k-ehf16-af32` still lacks a confirmed coherent deterministic output on a real runtime smoke (Q4K path remains the active failure branch)
 - support docs and catalog mirror are re-synced after human review
 
 Steps:
 
 - [ ] `WS6.1` Keep `lfm2` on the promotion path. The argmax reduction bug is fixed, but `lfm2` still collapses into repetitive output on real node/WebGPU smokes. Recorder-backed fused sampling is now disabled for conv models to remove the bogus `token 0` branch, leaving the remaining conv/decode collapse as the active issue.
-- [ ] `WS6.2` Keep `translategemma-4b-it` on the promotion path. Metadata and index-sync issues are fixed, but runtime coherence is still failing and needs layer-by-layer numerical debugging.
+- [ ] `WS6.2` Keep `translategemma-4b-it` on the promotion path. Metadata and index-sync issues are fixed, and F16 diagnostic coherence is passing; remaining work is isolating the Q4K dequant/matmul correctness split via layer/runtime-path debug.
 - [ ] `WS6.3` Re-sync repo-visible status docs after the next human-reviewed verification result.
 
 ## Validation Requirements Before Calling Anything Fixed
@@ -620,3 +621,4 @@ Template:
 | 2026-03-12T22:30:00Z | agent/claude | `WS5.C` | `ready -> done (parked)` | `B` | Confirmed LFM2 fallback rule maps to `gemma3-q4k-dequant-f32a-nosubgroups`. No volume artifact exists. Local-only `lfm2-5-1-2b-instruct-q4k-ehf16-af32` in `models/local/`. Parked as P2 | `WS5.D` |
 | 2026-03-12T22:30:00Z | agent/claude | `WS5.D` | `ready -> done` | `B` | Audited catalog: fixed false `local: true` and `baseUrl` on `translategemma-4b-1b-enes-q4k-ehf16-af32` (artifact doesn't exist). Support matrix re-synced. All workstreams complete | none |
 | 2026-03-16T00:50:00Z | agent/codex | `WS6.1` | `ready -> in_progress` | `A`,`B` | Reproduced current `lfm2` collapse on real node/WebGPU AMD RDNA-3. Disabling recorder-backed fused sampling for conv models removes the bogus fused-sampler branch, but coherent decode is still unresolved. Reopened the plan with `lfm2` and `translategemma-4b-it` as active promotion targets | `WS6.1` |
+| 2026-03-17T17:20:00Z | agent/codex | `WS2.10` | `ready -> done` | `A` | Documented March 17 split evidence: F16 diagnostic artifact outputs remain coherent on the same deterministic prompt framing, while Q4K artifact output remains incoherent; Python dequant parity checks still align with HF on both 1B and 4B contexts, shifting focus to Q4K dequant/matmul runtime-path split | `WS6.2` |
