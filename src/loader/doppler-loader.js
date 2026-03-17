@@ -11,7 +11,7 @@ import {
 } from '../storage/shard-manager.js';
 import { clearManifest, parseManifest, setManifest as setCurrentManifest } from '../formats/rdrr/index.js';
 import { initDevice, getDevice, getKernelCapabilities } from '../gpu/device.js';
-import { acquireBuffer, releaseBuffer, forceBufferPoolReclaim } from '../memory/buffer-pool.js';
+import { acquireBuffer, isBufferActive, releaseBuffer, forceBufferPoolReclaim } from '../memory/buffer-pool.js';
 import { getExpertCache } from './experts/expert-cache.js';
 import { formatBytes } from '../storage/quota.js';
 import { log, trace as debugTrace } from '../debug/index.js';
@@ -968,7 +968,11 @@ export class DopplerLoader {
         : (isGpuBufferInstance(value) ? value : null);
       if (!gpuBuffer) return;
       try {
-        releaseBuffer(gpuBuffer);
+        if (isBufferActive(gpuBuffer)) {
+          releaseBuffer(gpuBuffer);
+        } else {
+          gpuBuffer.destroy();
+        }
       } catch {
         // Ignore already released/destroyed buffers.
       }
