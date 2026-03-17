@@ -168,6 +168,14 @@ export async function runLayerAttentionGPU(
     }
   }
 
+  await runProbes('post_input_norm', normed.buffer, {
+    layerIdx,
+    numTokens,
+    hiddenSize,
+    probes: state.debugProbes,
+    dtype: normed.dtype,
+  });
+
   // Debug: Check normed input for L0 prefill
   // Debug: normed input for configured layers
   if (isPrefill && shouldDebugLayer(layerIdx, debugFlags.debugLayers) && !markStageLogged(layerIdx, 'attn_normed', debugFlags) && debugCheckBuffer) {
