@@ -29,3 +29,12 @@ export interface GptOssKernelPathProfile {
 export declare function resolveGptOssKernelPathProfile(
   context: Record<string, unknown>
 ): Promise<GptOssKernelPathProfile>;
+
+export interface MixtralKernelPathProfile {
+  routerTopK: string;
+  dequantExpert: string;
+}
+
+export declare function resolveMixtralKernelPathProfile(
+  context: Record<string, unknown>
+): Promise<MixtralKernelPathProfile>;

@@ -19,8 +19,29 @@
     },
     "moe": {
       "kernelProfileId": "mixtral-moe-v1",
+      "numExperts": 8,
+      "topK": 2,
+      "numSharedExperts": 0,
+      "routerDtype": "f32",
       "supportedActivationDtypes": ["f16", "f32"],
-      "preferredActivationDtype": "f32"
+      "preferredActivationDtype": "f32",
+      "tensorPattern": "mixtral"
+    },
+    "kernelPaths": {
+      "q4k": {
+        "default": "gemma3-q4k-dequant-f32a-online",
+        "f16": "gemma3-q4k-dequant-f16a-online",
+        "f16a": "gemma3-q4k-dequant-f16a-online",
+        "f32": "gemma3-q4k-dequant-f32a-online"
+      }
+    }
+  },
+
+  "tensorPatterns": {
+    "ffn": {
+      "gate": ["layers.{layer}.block_sparse_moe.experts.{expert}.w1.weight"],
+      "up": ["layers.{layer}.block_sparse_moe.experts.{expert}.w3.weight"],
+      "down": ["layers.{layer}.block_sparse_moe.experts.{expert}.w2.weight"]
     }
   },
 
