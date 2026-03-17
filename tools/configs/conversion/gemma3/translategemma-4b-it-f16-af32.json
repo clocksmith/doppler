@@ -1,0 +1,30 @@
+{
+  "output": {
+    "baseDir": "models/local",
+    "modelBaseId": "translategemma-4b-it-f16-af32",
+    "textOnly": true
+  },
+  "presets": {
+    "model": "translategemma"
+  },
+  "quantization": {
+    "weights": "f16",
+    "embeddings": "f16",
+    "lmHead": "f16",
+    "computePrecision": "f32"
+  },
+  "inference": {
+    "schema": "doppler.execution/v0",
+    "defaultKernelPath": "gemma3-f16-fused-f32a-online",
+    "sessionDefaults": {
+      "kvcache": {
+        "layout": "contiguous",
+        "kvDtype": "f16",
+        "pageSize": 128,
+        "windowSize": 1024,
+        "bdpaVocabSize": 4096
+      },
+      "decodeLoop": null
+    }
+  }
+}
