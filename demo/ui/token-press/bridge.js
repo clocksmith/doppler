@@ -1,92 +1,51 @@
 // =============================================================================
 // Token Press — Generator Bridge
 // =============================================================================
-// Connects a Doppler InferencePipeline's generate() call to the token press
-// visualization. Extracts top-k probability data per token by wrapping the
-// pipeline's decodeStepLogits / CPU sampling path.
+// Drives token generation step-by-step using the pipeline's public API:
+//   prefillWithLogits() → decodeStepLogits() → advanceWithToken()
 //
-// Two integration modes:
+// Real logits, real sampling, real KV cache state. The press controls
+// (play/pause/step/back) drive this loop — there is no separate generate()
+// call.
 //
-// 1. Lightweight (post-hoc top-k):
-//    Wraps the standard generate() loop. After each token is sampled, reads
-//    back logits from the pipeline and computes top-k. Simple but adds one
-//    readback per token.
-//
-// 2. Step-by-step (full control):
-//    Uses prefillWithLogits() + decodeStepLogits() for manual token-by-token
-//    generation. The press controls (play/pause/step/back) drive the loop.
-//    No extra readback — logits are already on CPU.
-//
-// Usage:
-//   import { runGenerationWithPress } from './token-press/bridge.js';
-//
-//   await runGenerationWithPress(pipeline, press, prompt, {
-//     ...generateOptions,
-//     signal: abortController.signal,
-//   });
+// Backward stepping truncates the KV cache to the prior position.
 
-import { getTopK, softmax } from '../../../src/inference/pipelines/text/sampling.js';
+import { getTopK } from '../../../src/inference/pipelines/text/sampling.js';
+import { sample, applyRepetitionPenalty } from '../../../src/inference/pipelines/text/sampling.js';
 
-// Lightweight mode: wrap standard generate() and extract top-k per token.
-// Works with any pipeline.generate() call.
-export async function runGenerationWithPress(pipeline, press, prompt, options = {}) {
-  const { topKSize = 10, signal, ...generateOptions } = options;
-
-  const decode = (ids) => {
-    try {
-      return pipeline.tokenizer?.decode?.(ids, true, false) ?? `[${ids[0]}]`;
-    } catch {
-      return `[${ids[0]}]`;
-    }
-  };
-
-  let tokenIndex = 0;
-
-  for await (const tokenText of pipeline.generate(prompt, {
-    ...generateOptions,
-    signal,
-  })) {
-    if (signal?.aborted) break;
-
-    // The pipeline has already sampled this token. We can get the logits
-    // from the most recent decode step if the pipeline exposes them.
-    // For now, create a record with the token text and confidence from
-    // the pipeline's last sampling stats if available.
-    const stats = pipeline.getStats?.() ?? {};
-    const lastTopK = stats.lastTopK ?? null;
-
-    let topK;
-    let confidence;
-
-    if (lastTopK && lastTopK.length > 0) {
-      topK = lastTopK.slice(0, topKSize);
-      confidence = topK[0]?.prob ?? 0;
-    } else {
-      // Fallback: we don't have logits, just record the token
-      topK = [{ token: -1, logit: 0, prob: 1, text: tokenText }];
-      confidence = 1;
-    }
-
-    press.pushToken({
-      tokenId: topK[0]?.token ?? tokenIndex,
-      text: tokenText,
-      topK,
-      confidence,
-    });
-
-    tokenIndex++;
-  }
+function hasLinearAttentionState(pipeline) {
+  const runtime = pipeline.linearAttentionRuntime
+    ?? pipeline._state?.linearAttentionRuntime
+    ?? null;
+  return runtime != null && typeof runtime === 'object';
 }
 
-// Step-by-step mode: manual token generation with full logit access.
-// Returns a controller that the press controls can drive.
-export function createStepGenerator(pipeline, prompt, options = {}) {
-  const { topKSize = 10, ...generateOptions } = options;
+export function createTokenPressSession(pipeline, press, prompt, options = {}) {
+  const {
+    topKSize = 10,
+    temperature = 0,
+    topP = 1.0,
+    topK: samplingTopK = 0,
+    repetitionPenalty = 1.0,
+    maxTokens = 256,
+    useChatTemplate = false,
+  } = options;
 
   let prefillDone = false;
   let logits = null;
   let generatedIds = [];
   let finished = false;
+  let disposed = false;
+
+  // Step-back is only safe for standard-attention models. Recurrent models
+  // (linear attention, SSM) accumulate state that cannot be partially rolled
+  // back without full replay.
+  const hasRecurrentState = hasLinearAttentionState(pipeline);
+  const supportsStepBack = !hasRecurrentState;
+  const stepBackReason = hasRecurrentState
+    ? 'This model uses recurrent attention (linear/SSM). Recurrent state cannot be partially rolled back.'
+    : null;
+  const history = [];
 
   const decode = (ids) => {
     try {
@@ -96,40 +55,60 @@ export function createStepGenerator(pipeline, prompt, options = {}) {
     }
   };
 
+  function sampleFromLogits(rawLogits) {
+    const sampledLogits = Float32Array.from(rawLogits);
+    applyRepetitionPenalty(sampledLogits, generatedIds, repetitionPenalty);
+    const padTokenId = pipeline.tokenizer?.getSpecialTokens?.()?.pad;
+    return sample(sampledLogits, {
+      temperature,
+      topP,
+      topK: samplingTopK,
+      padTokenId,
+    });
+  }
+
   async function prefill() {
-    if (prefillDone) return;
-    const result = await pipeline.prefillWithLogits(prompt, generateOptions);
+    if (prefillDone || disposed) return;
+    const result = await pipeline.prefillWithLogits(prompt, { useChatTemplate });
     logits = result.logits;
     generatedIds = [...(result.tokens ?? [])];
     prefillDone = true;
   }
 
+  // stepForward: sample one token, advance KV cache, push to press.
+  // Returns the token record, or null if finished.
   async function stepForward() {
-    if (finished) return null;
+    if (finished || disposed) return null;
     if (!prefillDone) await prefill();
+    if (!logits) { finished = true; return null; }
 
-    if (!logits) {
-      finished = true;
-      return null;
-    }
+    // Extract top-k from real logits (before sampling modifies them)
+    const candidates = getTopK(logits, topKSize, decode);
 
-    const topK = getTopK(logits, topKSize, decode);
-    const confidence = topK[0]?.prob ?? 0;
-    const tokenId = topK[0]?.token ?? 0;
+    // Sample using the actual runtime sampling config
+    const tokenId = sampleFromLogits(logits);
     const text = decode([tokenId]);
+    const confidence = candidates.find(c => c.token === tokenId)?.prob ?? 0;
+
+    // Record for backward stepping
+    history.push({
+      tokenId,
+      seqLen: generatedIds.length,
+    });
 
     generatedIds.push(tokenId);
 
-    // Check for EOS
+    // Check stop conditions
     const eosTokens = pipeline.modelConfig?.stopTokenIds ?? [];
-    if (eosTokens.includes(tokenId)) {
+    if (eosTokens.includes(tokenId) || generatedIds.length >= maxTokens) {
       finished = true;
     }
 
-    // Compute next logits (for the following step)
+    // Advance KV cache and compute next logits
     if (!finished) {
       try {
-        const result = await pipeline.decodeStepLogits([tokenId], generateOptions);
+        await pipeline.advanceWithToken(tokenId);
+        const result = await pipeline.decodeStepLogits([tokenId]);
         logits = result.logits;
       } catch {
         finished = true;
@@ -137,18 +116,57 @@ export function createStepGenerator(pipeline, prompt, options = {}) {
       }
     }
 
-    return {
-      tokenId,
-      text,
-      topK,
-      confidence,
-    };
+    const record = { tokenId, text, topK: candidates, confidence };
+    press.pushToken(record);
+    return record;
+  }
+
+  // stepBack: rewind KV cache, pop the last token from press.
+  // Only available for standard-attention models.
+  async function stepBack() {
+    if (!supportsStepBack) return null;
+    if (disposed || history.length === 0) return null;
+
+    const entry = history.pop();
+    generatedIds.pop();
+    finished = false;
+
+    // Truncate KV cache to prior position
+    if (pipeline.kvCache?.truncate) {
+      pipeline.kvCache.truncate(entry.seqLen);
+    }
+
+    // Rewind press queue
+    const removed = press.queue.stepBack();
+
+    // Recompute logits at the new position
+    try {
+      const lastTokenId = generatedIds[generatedIds.length - 1];
+      if (lastTokenId != null) {
+        const result = await pipeline.decodeStepLogits([lastTokenId]);
+        logits = result.logits;
+      }
+    } catch {
+      logits = null;
+    }
+
+    return removed;
+  }
+
+  function dispose() {
+    disposed = true;
+    history.length = 0;
+    logits = null;
   }
 
   return {
     prefill,
     stepForward,
+    stepBack,
+    dispose,
     get finished() { return finished; },
-    get generatedIds() { return [...generatedIds]; },
+    get tokenCount() { return history.length; },
+    get supportsStepBack() { return supportsStepBack; },
+    get stepBackReason() { return stepBackReason; },
   };
 }
