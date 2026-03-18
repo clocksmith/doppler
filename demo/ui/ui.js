@@ -47,6 +47,17 @@ function formatMegabytes(bytes) {
   return (value / (1024 * 1024)).toFixed(1);
 }
 
+function formatDownloadSpeed(bytesPerSecond) {
+  const value = Number(bytesPerSecond);
+  if (!Number.isFinite(value) || value <= 0) return '';
+  return `${(value / (1024 * 1024)).toFixed(1)} MB/s`;
+}
+
+function joinDownloadStatusParts(parts) {
+  const compact = parts.filter((part) => typeof part === 'string' && part.trim().length > 0);
+  return compact.length > 0 ? ` (${compact.join(' · ')})` : '';
+}
+
 function formatDownloadStatus(progress) {
   if (!progress || typeof progress !== 'object') {
     return 'Downloading...';
@@ -54,18 +65,35 @@ function formatDownloadStatus(progress) {
   const percent = Number(progress.percent);
   const downloadedBytes = Number(progress.downloadedBytes);
   const totalBytes = Number(progress.totalBytes);
+  const speedBytesPerSecond = Number(progress.speed);
+  const totalShards = Number(progress.totalShards);
+  const completedShards = Number(progress.completedShards);
+  const currentShard = Number(progress.currentShard);
   const percentLabel = Number.isFinite(percent) ? `${clampPercent(percent).toFixed(1)}%` : '';
+  const shardLabel = Number.isFinite(totalShards) && totalShards > 0 && Number.isFinite(completedShards)
+    ? `shards ${Math.max(0, completedShards)}/${Math.max(0, totalShards)}`
+    : '';
+  const currentShardLabel = Number.isFinite(currentShard) && currentShard > 0 && Number.isFinite(totalShards) && totalShards > 0
+    ? `shard ${Math.round(currentShard)}/${Math.max(0, totalShards)}`
+    : '';
+  const speedLabel = formatDownloadSpeed(speedBytesPerSecond);
 
   if (Number.isFinite(totalBytes) && totalBytes > 0) {
     const safeDownloaded = Number.isFinite(downloadedBytes) && downloadedBytes > 0 ? downloadedBytes : 0;
     const ratio = `${formatMegabytes(safeDownloaded)} / ${formatMegabytes(totalBytes)} MB`;
-    return percentLabel ? `Downloading ${percentLabel} (${ratio})` : `Downloading (${ratio})`;
+    const details = joinDownloadStatusParts([currentShardLabel, shardLabel, speedLabel, ratio]);
+    return percentLabel ? `Downloading ${percentLabel}${details}` : `Downloading${details}`;
   }
   if (Number.isFinite(downloadedBytes) && downloadedBytes > 0) {
     const amount = `${formatMegabytes(downloadedBytes)} MB`;
-    return percentLabel ? `Downloading ${percentLabel} (${amount})` : `Downloading (${amount})`;
+    const details = joinDownloadStatusParts([currentShardLabel, shardLabel, speedLabel, amount]);
+    return percentLabel ? `Downloading ${percentLabel}${details}` : `Downloading${details}`;
   }
-  return percentLabel ? `Downloading ${percentLabel}` : 'Downloading...';
+  const details = joinDownloadStatusParts([currentShardLabel, shardLabel, speedLabel]);
+  if (percentLabel) {
+    return `Downloading ${percentLabel}${details}`;
+  }
+  return details ? `Downloading${details}` : 'Downloading...';
 }
 
 export function updateStatusIndicator() {

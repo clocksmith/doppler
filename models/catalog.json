@@ -503,14 +503,14 @@
         "format": "rdrr"
       },
       "hf": null,
-      "baseUrl": "/models/local/translategemma-4b-it-f16-af32",
+      "baseUrl": null,
       "sizeBytes": 0,
       "recommended": false,
       "sortOrder": 99,
       "lifecycle": {
         "availability": {
           "curated": false,
-          "local": true,
+          "local": false,
           "hf": false
         },
         "status": {

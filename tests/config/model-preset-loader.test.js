@@ -191,7 +191,7 @@ assert.ok(PRESET_DETECTION_ORDER.includes('lfm2'));
     },
   });
 
-  assert.equal(resolved.preset, 'qwen3');
+  assert.equal(resolved.preset, 'qwen3_5');
   assert.equal(resolved.architecture.ropeTheta, 10000000);
   assert.equal(resolved.inference.rope.ropeTheta, 10000000);
   assert.equal(resolved.inference.rope.mropeInterleaved, true);
