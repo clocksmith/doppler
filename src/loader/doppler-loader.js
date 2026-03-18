@@ -118,6 +118,7 @@ export class DopplerLoader {
   // Loading configuration
   
   #loadingConfig;
+  #loaderDebug = null;
 
   // Fused Q4_K matmul: skip dequantization for matmul weights, use fused kernel
   
@@ -165,6 +166,10 @@ export class DopplerLoader {
     if (this.expertCache) {
       this.expertCache.configure(config.expertCache);
     }
+  }
+
+  setLoaderDebugConfig(loaderDebug) {
+    this.#loaderDebug = loaderDebug ?? null;
   }
 
   
@@ -701,6 +706,7 @@ export class DopplerLoader {
         useFusedQ4K: this.useFusedQ4K,
         keepF32Weights: this.keepF32Weights,
         q4kLayout: this.q4kLayout,
+        loaderDebug: this.#loaderDebug,
         gpuCapabilities: this.gpuCapabilities,
         allowF32UpcastNonMatmul,
       };

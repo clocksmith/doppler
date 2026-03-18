@@ -13,6 +13,7 @@ import type { WeightBuffer } from '../weight-buffer.js';
 import type { CommandRecorder } from '../command-recorder.js';
 import type { OutputBufferOptions, OutputDtypeOptions, Vec4Options } from './types.js';
 import type { KernelPathSchema } from '../../config/schema/index.js';
+import type { MatmulDebugConfigSchema } from '../../config/schema/debug.schema.js';
 
 /** Matmul kernel options */
 export interface MatmulOptions extends OutputBufferOptions, OutputDtypeOptions, Vec4Options {
@@ -40,6 +41,8 @@ export interface MatmulOptions extends OutputBufferOptions, OutputDtypeOptions, 
   preferF16?: boolean;
   /** WGSL override constants for pipeline creation */
   constants?: Record<string, number | boolean>;
+  /** Runtime debug controls for attention projection diagnostics. */
+  matmulDebug?: MatmulDebugConfigSchema | null;
 }
 
 /** Context for base matmul kernel selection rules. */

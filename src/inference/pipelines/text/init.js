@@ -654,7 +654,12 @@ export async function initTokenizer(manifest, options = {}) {
 
 
 export async function loadWeights(manifest, modelConfig, options = {}) {
-  const { onProgress, loadingConfig, baseUrl } = options;
+  const {
+    onProgress,
+    loadingConfig,
+    baseUrl,
+    loaderDebug,
+  } = options;
   const runtimeStorageContext = options.storageContext
     ?? createRemoteStorageContext(baseUrl, manifest);
   const verifyHashes = (
@@ -676,6 +681,7 @@ export async function loadWeights(manifest, modelConfig, options = {}) {
       keepF32Weights
     )
   );
+  dopplerLoader.setLoaderDebugConfig(loaderDebug ?? null);
 
   const tensorsFile = isRDRRManifest(manifest) ? manifest.tensorsFile : null;
   if (baseUrl && tensorsFile) {
