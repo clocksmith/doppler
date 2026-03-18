@@ -106,9 +106,12 @@ fn get_q4(qs: array<u32, 32>, idx: u32) -> u32 {
 @compute @workgroup_size(WORKGROUP_SIZE_VEC4, 1, 1)
 fn main_vec4(
     @builtin(local_invocation_id) local_id: vec3<u32>,
-    @builtin(workgroup_id) workgroup_id: vec3<u32>
+    @builtin(workgroup_id) workgroup_id: vec3<u32>,
+    @builtin(num_workgroups) num_wg: vec3<u32>
 ) {
-    let block_idx = workgroup_id.x;
+    // Support 2D dispatch for tensors with >65535 blocks (e.g. large FFN weights).
+    // block_idx = flat workgroup index across both X and Y dimensions.
+    let block_idx = workgroup_id.x + workgroup_id.y * num_wg.x;
     let thread_idx = local_id.x;
 
     if (block_idx >= u.num_blocks) {
