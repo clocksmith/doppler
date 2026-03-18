@@ -137,6 +137,8 @@ export interface LoaderDebugConfigSchema {
   enabled: boolean;
   /** Force GPU dequant for Q4K tensors even when CPU fallback is eligible. */
   forceGpuDequant: boolean;
+  /** Prefer CPU dequant for F32 output when eligible (default: false, GPU is preferred). */
+  preferCpuDequant: boolean;
   /** Throw when CPU dequant fallback is taken. */
   failOnCpuDequantPath: boolean;
   /** Enable dtype-aware GPU-vs-CPU parity checks during Q4K dequant. */
@@ -160,6 +162,8 @@ export interface MatmulDebugConfigSchema {
   failOnSmallAttentionWeightBuffer: boolean;
   /** Emit attention B-buffer diagnostics. */
   logAttentionWeightBuffer: boolean;
+  /** Log first-8 projection output values for layer 0 decode (diagnostic). */
+  logProjectionValues: boolean;
 }
 
 /** Default matmul debug configuration. */
