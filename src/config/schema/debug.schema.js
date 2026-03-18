@@ -45,6 +45,7 @@ export const DEFAULT_TRACE_CONFIG = {
 export const DEFAULT_LOADER_DEBUG_CONFIG = {
   enabled: false,
   forceGpuDequant: false,
+  preferCpuDequant: false,
   failOnCpuDequantPath: false,
   runQ4KDequantParity: false,
   q4kDequantParitySamples: 256,
@@ -60,6 +61,7 @@ export const DEFAULT_MATMUL_DEBUG_CONFIG = {
   validateAttentionWeightBuffer: false,
   failOnSmallAttentionWeightBuffer: false,
   logAttentionWeightBuffer: false,
+  logProjectionValues: false,
 };
 
 // =============================================================================
