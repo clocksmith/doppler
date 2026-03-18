@@ -1,91 +1,141 @@
 // =============================================================================
 // Token Press — Integration Layer
 // =============================================================================
-// Wires the queue, renderer, and controls layers together. Provides a single
-// entry point for the demo to attach token press visualization to a generation
-// session.
-//
-// Architecture:
-//   GPU batch → push(records) → queue → onFlush → renderer.render()
-//                                  ↕
-//                              controls (play/pause/step/back)
+// Wires queue + renderer + controls + session (bridge) into a single unit.
 //
 // Usage:
 //   import { createTokenPress } from './token-press/index.js';
+//   import { createTokenPressSession } from './token-press/bridge.js';
 //
 //   const press = createTokenPress(outputEl, controlsEl, { trailSize: 8 });
+//   const session = createTokenPressSession(pipeline, press, prompt, samplingOpts);
 //
-//   // During generation — call for each token after sampling:
-//   press.pushToken({ tokenId, text, topK, confidence });
-//
-//   // Or batch:
-//   press.pushBatch(records);
-//
-//   // Start auto-play (optional — can start in step mode):
+//   // Session drives generation; press drives visualization.
+//   // Controls call session.stepForward/stepBack (real inference state).
+//   press.attachSession(session);
 //   press.play();
-//
-//   // Cleanup:
-//   press.dispose();
 
 import { createTokenQueue } from './queue.js';
 import { createTokenPressRenderer } from './renderer.js';
 import { createTokenPressControls } from './controls.js';
 
 export function createTokenPress(outputEl, controlsEl, options = {}) {
-  const { trailSize = 8, topKSize = 10, autoPlay = true } = options;
+  const { trailSize = 8, topKSize = 10, autoPlay = false } = options;
+
+  let session = null;
+  let playLoopId = null;
+  let playing = false;
 
   const renderer = createTokenPressRenderer(outputEl, { trailSize });
 
   const queue = createTokenQueue({
-    trailSize,
     topKSize,
     onFlush: (state) => {
-      renderer.renderWithSettled(state, queue.getCommitted());
-      if (controls) controls.refresh();
+      renderer.render(state);
+      updateControls();
     },
   });
 
-  const controls = createTokenPressControls(queue, controlsEl);
-
-  function pushToken(record) {
-    queue.push(record);
+  function updateControls() {
+    controls.update({
+      playing,
+      cursor: queue.cursor,
+      total: queue.total,
+      backDisabled: !session || !session.supportsStepBack,
+      backReason: session?.stepBackReason ?? null,
+    });
   }
 
-  function pushBatch(records) {
-    queue.pushBatch(records);
+  async function doStep() {
+    if (!session || session.finished) return;
+    await session.stepForward();
+    // stepForward pushes to queue via press.pushToken,
+    // queue.onFlush triggers render
+  }
+
+  async function doBack() {
+    if (!session) return;
+    await session.stepBack();
+    // stepBack pops from queue, queue.onFlush triggers render
+    updateControls();
+  }
+
+  async function playLoop() {
+    while (playing && session && !session.finished) {
+      await doStep();
+      // Yield to the browser for one frame
+      await new Promise(resolve => requestAnimationFrame(resolve));
+    }
+    if (playing) {
+      playing = false;
+      updateControls();
+    }
   }
 
   function play() {
-    queue.play();
+    if (playing) return;
+    playing = true;
+    updateControls();
+    playLoop();
   }
 
   function pause() {
-    queue.pause();
+    playing = false;
+    updateControls();
+  }
+
+  function toggle() {
+    if (playing) pause(); else play();
+  }
+
+  const controls = createTokenPressControls(controlsEl, {
+    onBack: doBack,
+    onStep: doStep,
+    onPlay: play,
+    onPause: pause,
+    onToggle: toggle,
+  });
+
+  function pushToken(record) {
+    queue.push(record);
+    // In play mode, the playLoop drains via doStep which calls onFlush.
+    // In step mode, the queue just holds pending records.
+    // Either way, trigger a render for the new state.
+    if (!playing) {
+      // Immediately commit in step mode (session already advanced)
+      queue.stepForward();
+    }
+  }
+
+  function attachSession(s) {
+    session = s;
+    updateControls();
   }
 
   function clear() {
     queue.clear();
     renderer.clear();
-    controls.refresh();
+    updateControls();
   }
 
   function dispose() {
+    playing = false;
     queue.dispose();
     renderer.dispose();
     controls.dispose();
+    session = null;
   }
 
-  if (autoPlay) {
-    queue.play();
-  }
+  updateControls();
 
   return {
     pushToken,
-    pushBatch,
+    attachSession,
     play,
     pause,
     clear,
     dispose,
     get queue() { return queue; },
+    get playing() { return playing; },
   };
 }

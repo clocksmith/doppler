@@ -240,7 +240,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "7290d291a4769195c09e0fca8f43bafe5c69ee13",
+        "revision": "e0ea917157ed8da46f35c0e5ef8d64985401778d",
         "path": "models/translategemma-4b-it-q4k-ehf16-af32"
       },
       "baseUrl": null,
