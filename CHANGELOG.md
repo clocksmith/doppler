@@ -6,22 +6,35 @@ This changelog is package-facing and release-oriented. Entries before `0.1.7`
 were retrofitted from package version history, release commits, and release
 docs so the `0.1.x` line has one conventional npm-visible history surface.
 
-## [0.1.8] - 2026-03-13
+## [0.1.8] - 2026-03-18
 
 ### Changed
 
 - Simplified demo to show only verified Q4K models (Gemma 3 270M, Gemma 3 1B).
   Hidden Translate, Diffusion, and Embedding tabs until models are ready.
+- Split demo monolith (6,680 lines) into focused modules: core, generation,
+  storage, translate, diagnostics, routing, utils.
 - Trimmed hosted HF registry and quickstart registry to the two verified models.
 - Aligned catalog, HF registry, and quickstart registry to the canonical
   external support registry as single source of truth for HF revisions.
+- Renamed all `.mjs` tool scripts to `.js` to match `"type": "module"` convention.
+- Switched WebGPU optional dependency from `@simulatte/webgpu` to `webgpu ^0.3.8`.
+- Pruned unused `verify:*` npm scripts for models no longer in the active set.
+- Updated release-claim policy with newly verified models (LFM2, Qwen 3.5,
+  TranslateGemma variants).
 
 ### Fixed
 
 - Fixed Qwen 3.5 conversion configs using wrong model preset (`qwen3` instead
   of `qwen3_5`), which caused support matrix check failures.
+- Fixed Qwen mRoPE conflation: `ropeInterleaved` was incorrectly set from
+  `mropeInterleaved`, forcing adjacent-pair RoPE rotation on Qwen models.
 - Fixed catalog lifecycle metadata inconsistencies: corrected `local`, `hf`,
   `curated`, and `demo` fields to match actual artifact availability.
+- Fixed GPU-dependent unit tests failing in non-GPU environments by adding
+  proper GPU readiness probes with clear skip reasons.
+- Fixed kernel-ref digest registry drift (222 vs 224 entries).
+- Fixed stale vendor benchmark fixture hashes after compare-engines config update.
 - Removed failing and unverified models from demo visibility (TranslateGemma 4B,
   EmbeddingGemma 300M with broken HF manifest, Qwen 3.5 0.8B/2B, F16 variant).
 

@@ -1,7 +1,8 @@
 /* =============================================================================
  * Token Press — Styles
  * =============================================================================
- * Confidence gradient: blue (sure) → purple (choosing) → red (guessing)
+ * Perplexity gradient: blue (certain) → purple (choosing) → red (uncertain)
+ * Normalized to observed min/max — colors shift as the range evolves.
  * Uses --doppler-blue, --doppler-purple, --doppler-red from main.css.
  */
 
@@ -20,26 +21,26 @@
   position: relative;
   display: inline;
   padding: 1px 0;
-  border-bottom: 2px solid transparent;
-  border-bottom-color: var(--conf-color, transparent);
+  border-bottom: 3px solid var(--conf-color, transparent);
   cursor: default;
-  transition: border-color 0.12s ease-out;
 }
 
-/* Trail tokens — active confidence fill */
+/* Trail tokens — active confidence fill with smooth fade transition on underline only */
 .tp-token.tp-trail {
   background: linear-gradient(
     180deg,
     transparent 60%,
     color-mix(in srgb, var(--conf-color) calc(var(--trail-opacity, 1) * 25%), transparent) 100%
   );
-  border-bottom-color: var(--conf-color);
+  border-bottom-color: color-mix(in srgb, var(--conf-color) calc(var(--trail-opacity, 1) * 100%), transparent);
+  transition: border-bottom-color 0.3s ease-out, background 0.3s ease-out;
 }
 
 /* Settled tokens — subtle confidence underline only */
 .tp-token.tp-settled {
   border-bottom-width: 1.5px;
-  border-bottom-color: color-mix(in srgb, var(--conf-color) 40%, transparent);
+  border-bottom-width: 2px;
+  border-bottom-color: color-mix(in srgb, var(--conf-color) 60%, transparent);
 }
 
 /* Hover: highlight token and show alternatives */
@@ -57,16 +58,14 @@
   left: 50%;
   transform: translateX(-50%);
   z-index: 100;
-  background: var(--doppler-ink, #0f1012);
-  color: #e8e8e8;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 6px;
-  padding: 6px 8px;
-  font-size: 12px;
-  line-height: 1.5;
-  min-width: 160px;
-  max-width: 260px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  background: var(--bg);
+  color: var(--fg);
+  border: var(--border-md) solid var(--fg);
+  padding: var(--space-sm);
+  font-size: var(--font-size-xs);
+  line-height: var(--font-leading-snug);
+  min-width: 180px;
+  max-width: 280px;
   pointer-events: none;
 }
 
@@ -74,16 +73,28 @@
   display: block;
 }
 
+/* Perplexity header */
+.tp-alt-header {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--font-tracking-label);
+  opacity: var(--opacity-soft);
+  padding-bottom: var(--space-xs);
+  margin-bottom: var(--space-xs);
+  border-bottom: var(--border-sm) solid var(--fg);
+}
+
 /* Alternative row */
 .tp-alt-row {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-xs);
   padding: 1px 0;
 }
 
 .tp-alt-row:first-child {
-  font-weight: 600;
+  font-weight: var(--font-weight-bold);
 }
 
 .tp-alt-text {
@@ -98,11 +109,10 @@
 .tp-alt-bar {
   flex: 1 1 auto;
   height: 4px;
-  border-radius: 2px;
   background: linear-gradient(
     90deg,
-    var(--alt-color) calc(var(--alt-prob) * 100%),
-    rgba(255, 255, 255, 0.06) calc(var(--alt-prob) * 100%)
+    var(--fg) calc(var(--alt-prob) * 100%),
+    color-mix(in srgb, var(--fg) 10%, transparent) calc(var(--alt-prob) * 100%)
   );
 }
 
@@ -110,8 +120,8 @@
   flex: 0 0 auto;
   min-width: 38px;
   text-align: right;
-  font-size: 11px;
-  opacity: 0.7;
+  font-size: var(--font-size-xs);
+  opacity: var(--opacity-soft);
   font-variant-numeric: tabular-nums;
 }
 
@@ -119,36 +129,36 @@
 .tp-controls {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 0;
-  font-size: 12px;
+  gap: var(--space-sm);
+  padding: var(--space-sm) 0;
+  font-size: var(--font-size-xs);
   user-select: none;
 }
 
 .tp-controls button {
-  background: none;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: inherit;
-  padding: 3px 10px;
-  border-radius: 4px;
+  background: var(--bg);
+  border: var(--border-md) solid var(--fg);
+  color: var(--fg);
+  padding: var(--space-xs) var(--space-sm);
   cursor: pointer;
   font-family: inherit;
-  font-size: 12px;
-  transition: background 0.1s, border-color 0.1s;
+  font-size: var(--font-size-xs);
+  transition: background var(--transition-fast), color var(--transition-fast);
 }
 
 .tp-controls button:hover {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.25);
+  background: var(--fg);
+  color: var(--bg);
 }
 
 .tp-controls button:active {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--fg);
+  color: var(--bg);
 }
 
 .tp-controls button:disabled {
-  opacity: 0.3;
-  cursor: default;
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
 }
 
 .tp-controls .tp-position {
@@ -157,7 +167,18 @@
   min-width: 80px;
 }
 
+/* Prefill zone — prompt tokens shown at soft opacity with a gray underline */
+.tp-prefill-zone {
+  opacity: var(--opacity-soft, 0.5);
+}
+
+.tp-token.tp-prefill {
+  border-bottom-width: 1.5px;
+  border-bottom: 1.5px solid color-mix(in srgb, var(--fg) 45%, transparent);
+  border-bottom-style: solid;
+}
+
 /* Trail zone — slight glow on the leading edge */
 .tp-trail-zone .tp-token:last-child {
-  border-bottom-width: 2.5px;
+  border-bottom-width: 4px;
 }

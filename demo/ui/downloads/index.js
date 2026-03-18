@@ -18,6 +18,24 @@ const AUX_IMPORT_FILENAMES = Object.freeze([
   'special_tokens_map.json',
 ]);
 
+function sumManifestShardBytes(shards) {
+  if (!Array.isArray(shards)) return 0;
+  return shards.reduce((acc, shard) => {
+    const size = Number(shard?.size);
+    if (!Number.isFinite(size) || size <= 0) return acc;
+    return acc + Math.floor(size);
+  }, 0);
+}
+
+function clampPercent(value) {
+  if (!Number.isFinite(value)) return 0;
+  return Math.max(0, Math.min(100, value));
+}
+
+function getTextByteLength(text) {
+  return new TextEncoder().encode(String(text || '')).byteLength;
+}
+
 let callbacks = Object.freeze({
   onModelRegistered: null,
   onModelsUpdated: null,
@@ -186,9 +204,42 @@ function markStep(progressState, status) {
     : 100;
   const update = {
     modelId: progressState.modelId,
-    percent,
+    percent: clampPercent(percent),
     downloadedBytes: 0,
     totalBytes: 0,
+    totalShards: progressState.totalShards || 0,
+    completedShards: progressState.completedShards || 0,
+    currentShard: progressState.currentShard || null,
+    status,
+  };
+  renderDownloadStatus({ message: status, percent: clampPercent(percent), visible: true });
+  emitProgress(update);
+}
+
+function markStepWithBytes(progressState, status, options = {}) {
+  const additionalBytes = Number.isFinite(options.downloadedBytes) ? Math.max(0, options.downloadedBytes) : 0;
+  if (Number.isFinite(options.currentShard)) {
+    progressState.currentShard = options.currentShard;
+  }
+  if (options.incrementCompletedShards) {
+    progressState.completedShards = (Number.isFinite(progressState.completedShards) ? progressState.completedShards : 0) + 1;
+  }
+  if (additionalBytes > 0) {
+    progressState.downloadedBytes = (Number.isFinite(progressState.downloadedBytes) ? progressState.downloadedBytes : 0) + additionalBytes;
+  }
+
+  const percent = progressState.totalBytes > 0
+    ? (progressState.downloadedBytes / progressState.totalBytes) * 100
+    : (progressState.total > 0 ? (progressState.completed / progressState.total) * 100 : 0);
+
+  const update = {
+    modelId: progressState.modelId,
+    percent: clampPercent(percent),
+    downloadedBytes: progressState.downloadedBytes,
+    totalBytes: progressState.totalBytes || 0,
+    totalShards: progressState.totalShards || 0,
+    completedShards: progressState.completedShards || 0,
+    currentShard: Number.isFinite(progressState.currentShard) ? progressState.currentShard : null,
     status,
   };
   renderDownloadStatus({ message: status, percent, visible: true });
@@ -199,7 +250,7 @@ async function persistOptionalFiles(baseUrl, manifest, signal, progressState) {
   if (manifest.tensorsFile) {
     const tensorsText = await fetchText(toFileUrl(baseUrl, manifest.tensorsFile), signal);
     await saveTensorsToStore(tensorsText);
-    markStep(progressState, `Saved ${manifest.tensorsFile}`);
+    markStepWithBytes(progressState, `Saved ${manifest.tensorsFile}`, { downloadedBytes: getTextByteLength(tensorsText) });
   }
 
   const tokenizerFile = manifest?.tokenizer?.file;
@@ -208,18 +259,19 @@ async function persistOptionalFiles(baseUrl, manifest, signal, progressState) {
     if (tokenizerPath.endsWith('.model')) {
       const tokenizerBytes = await fetchBytes(toFileUrl(baseUrl, tokenizerPath), signal);
       await saveTokenizerModel(tokenizerBytes.buffer);
+      markStepWithBytes(progressState, `Saved ${tokenizerPath}`, { downloadedBytes: tokenizerBytes.byteLength });
     } else {
       const tokenizerText = await fetchText(toFileUrl(baseUrl, tokenizerPath), signal);
       await saveTokenizer(tokenizerText);
+      markStepWithBytes(progressState, `Saved ${tokenizerPath}`, { downloadedBytes: getTextByteLength(tokenizerText) });
     }
-    markStep(progressState, `Saved ${tokenizerPath}`);
   }
 
   for (const filename of AUX_IMPORT_FILENAMES) {
     try {
       const bytes = await fetchBytes(toFileUrl(baseUrl, filename), signal);
       await saveAuxFile(filename, bytes.buffer);
-      markStep(progressState, `Saved ${filename}`);
+      markStepWithBytes(progressState, `Saved ${filename}`, { downloadedBytes: bytes.byteLength });
     } catch (error) {
       const message = toErrorMessage(error);
       if (!message.includes('HTTP 404')) {
@@ -242,7 +294,12 @@ async function persistShards(baseUrl, manifest, signal, progressState) {
       throw new Error(`Shard size mismatch for ${filename}: expected ${shard.size}, got ${shardBytes.byteLength}`);
     }
     await writeShard(Number(shard.index), shardBytes, { verify: true });
-    markStep(progressState, `Imported shard ${i + 1}/${shards.length}`);
+    const shardNumber = Number.isFinite(shard.index) ? shard.index + 1 : i + 1;
+    markStepWithBytes(progressState, `Imported shard ${shardNumber}/${shards.length}`, {
+      downloadedBytes: shardBytes.byteLength,
+      currentShard: shardNumber,
+      incrementCompletedShards: true,
+    });
   }
 }
 
@@ -337,7 +394,20 @@ export async function startDownloadFromBaseUrl(baseUrl, modelIdOverride = '') {
     const tokenizerStep = manifest?.tokenizer?.file ? 1 : 0;
     const tensorsStep = manifest?.tensorsFile ? 1 : 0;
     const totalSteps = Math.max(1, shards.length + tokenizerStep + tensorsStep + AUX_IMPORT_FILENAMES.length + 2);
-    const progressState = { total: totalSteps, completed: 0, modelId };
+    const shardByteTotal = sumManifestShardBytes(shards);
+    const manifestTotalBytes = Number.isFinite(manifest.totalSize) && manifest.totalSize > 0
+      ? Math.floor(manifest.totalSize)
+      : shardByteTotal;
+    const progressState = {
+      total: totalSteps,
+      completed: 0,
+      modelId,
+      totalBytes: manifestTotalBytes,
+      downloadedBytes: 0,
+      totalShards: shards.length,
+      completedShards: 0,
+      currentShard: null,
+    };
 
     await openModelStore(modelId);
     await saveManifest(JSON.stringify(manifest, null, 2));
@@ -361,8 +431,11 @@ export async function startDownloadFromBaseUrl(baseUrl, modelIdOverride = '') {
     emitProgress({
       modelId,
       percent: 100,
-      downloadedBytes: 0,
-      totalBytes: 0,
+      downloadedBytes: progressState.downloadedBytes,
+      totalBytes: progressState.totalBytes,
+      totalShards: progressState.totalShards,
+      completedShards: progressState.completedShards,
+      currentShard: progressState.currentShard,
       status: 'complete',
     });
     appendLog(`Imported ${modelId}`);

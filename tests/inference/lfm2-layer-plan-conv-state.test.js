@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 
-const { bootstrapNodeWebGPU } = await import('../../src/tooling/node-webgpu.js');
-const { initDevice } = await import('../../src/gpu/device.js');
+const { probeNodeGPU } = await import('../helpers/gpu-probe.js');
 const {
   acquireBuffer,
   uploadData,
@@ -13,20 +12,11 @@ const { processLayer } = await import('../../src/inference/pipelines/text/layer.
 const { resolveLayerPipeline } = await import('../../src/inference/pipelines/text/layer-plan.js');
 const { initConvLayerState } = await import('../../src/inference/pipelines/text/ops.js');
 
-let webgpuReady = false;
-try {
-  await bootstrapNodeWebGPU();
-  webgpuReady = typeof globalThis.navigator !== 'undefined' && !!globalThis.navigator.gpu;
-} catch {
-  webgpuReady = false;
-}
-
-if (!webgpuReady) {
-  console.log('lfm2-layer-plan-conv-state.test: skipped (no WebGPU runtime)');
+const gpuProbe = await probeNodeGPU();
+if (!gpuProbe.ready) {
+  console.log(`lfm2-layer-plan-conv-state.test: skipped (${gpuProbe.reason})`);
   process.exit(0);
 }
-
-await initDevice();
 
 function uploadWeight(values, shape, label) {
   const buffer = acquireBuffer(values.byteLength, undefined, label);

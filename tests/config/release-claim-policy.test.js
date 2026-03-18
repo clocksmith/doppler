@@ -50,7 +50,7 @@ for (const claim of claimEntries) {
   assert.ok(catalogEntry, `${claim.modelId}: missing verified catalog entry`);
   assert.equal(typeof claim.mode, 'string', `${claim.modelId}: claim mode must be a string`);
   assert.ok(catalogEntry.modes.includes(claim.mode), `${claim.modelId}: claim mode "${claim.mode}" must exist in catalog modes`);
-  assert.equal(claim.surface, catalogEntry.surface, `${claim.modelId}: claim surface must match models/catalog.json`);
+  assert.deepEqual(claim.surface, catalogEntry.surface, `${claim.modelId}: claim surface must match models/catalog.json`);
   assert.equal(claim.source, catalogEntry.source, `${claim.modelId}: claim verificationSource must match models/catalog.json`);
   assert.equal(claim.lastVerifiedAt, catalogEntry.lastVerifiedAt, `${claim.modelId}: claim lastVerifiedAt must match models/catalog.json`);
   assert.equal(
