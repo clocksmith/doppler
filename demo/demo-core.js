@@ -184,8 +184,8 @@ const RUN_STARTER_PROMPTS = Object.freeze([
   'is deterministic fallback fundamentally better than probabilistic success',
   'critique the idea that LLM-generated code is the future of apps using the concept of pre-verified UI bricks',
   'does pushing inference entirely to the edge solve AI\'s scaling unit economics, or just offload them to consumer hardware',
-  'prove that open-source distribution coupled with private, governed enterprise deployment is the most defensible moat in AI',
-  'if compiling cross-platform code is a bottleneck, why does WebGPU permanently change the distribution economics of software',
+  'explain why a single attention head can implement both copying and induction patterns depending on the positional encoding',
+  'describe how speculative decoding uses a small draft model to accelerate inference without changing the output distribution',
   'describe a scenario where an AI agent attempts to bypass a policy boundary and is stopped by a client-side JavaScript checker',
   'prove or disprove: AI models should eventually function as utility layers like hardware drivers, entirely invisible to the user',
   'create a medical intake assistant spec that refuses uncertain recommendations and explains exactly why each action is accepted or blocked',
@@ -5267,6 +5267,22 @@ async function handleRunGenerate() {
       const prefillTimeMs = performance.now() - prefillStart;
       const prefillIds = tokenPressSession.prefillTokenIds;
       const prefillTokens = prefillIds ? prefillIds.length : 0;
+
+      // Write prefill stats immediately so panels update right after prefill
+      state.lastInferenceStats = {
+        ...(state.lastInferenceStats || {}),
+        prefillTimeMs,
+        prefillTokens,
+        ttftMs: prefillTimeMs,
+        decodeTimeMs: 0,
+        decodeTokens: 0,
+        totalTimeMs: prefillTimeMs,
+        tokensGenerated: 0,
+      };
+      state.lastMemoryStats = pipeline?.getMemoryStats?.() ?? state.lastMemoryStats;
+      updateMemoryPanel(captureMemorySnapshot());
+      updatePerformancePanel(captureMemorySnapshot());
+
       if (prefillIds && prefillIds.length > 0 && outputEl) {
         const decode = (ids) => {
           try { return pipeline.tokenizer?.decode?.(ids, true, false) ?? ''; } catch { return ''; }
@@ -5295,38 +5311,36 @@ async function handleRunGenerate() {
             return;
           }
           const currentTokens = tokenPressSession?.tokenCount ?? 0;
+          const now = performance.now();
           if (currentTokens > 0 && !tpFirstTokenAt) {
-            tpFirstTokenAt = performance.now();
+            tpFirstTokenAt = now;
           }
-          if (currentTokens > 0) {
-            const elapsedDecode = Math.max(1, performance.now() - decodeStart);
-            state.lastMetrics = {
-              ...(state.lastMetrics || {}),
-              liveTokensPerSec: currentTokens / (elapsedDecode / 1000),
-            };
-            const snapshot = captureMemorySnapshot();
-            state.lastMemoryStats = pipeline?.getMemoryStats?.() ?? state.lastMemoryStats;
-            updateMemoryPanel(snapshot);
-            updatePerformancePanel(snapshot);
-          }
+          const elapsedDecode = Math.max(1, now - decodeStart);
+          const liveTokensPerSec = currentTokens > 0 ? currentTokens / (elapsedDecode / 1000) : null;
+          state.lastMetrics = {
+            ...(state.lastMetrics || {}),
+            liveTokensPerSec,
+          };
+          // Update stats progressively so all panels stay live
+          state.lastInferenceStats = {
+            ...(state.lastInferenceStats || {}),
+            prefillTimeMs,
+            prefillTokens,
+            ttftMs: tpFirstTokenAt ? tpFirstTokenAt - decodeStart : prefillTimeMs,
+            decodeTimeMs: elapsedDecode,
+            decodeTokens: currentTokens,
+            totalTimeMs: prefillTimeMs + elapsedDecode,
+            tokensGenerated: currentTokens,
+          };
+          state.lastMemoryStats = pipeline?.getMemoryStats?.() ?? state.lastMemoryStats;
+          const snapshot = captureMemorySnapshot();
+          updateMemoryPanel(snapshot);
+          updatePerformancePanel(snapshot);
           requestAnimationFrame(check);
         };
         check();
       });
       tokenCount = tokenPressSession?.tokenCount ?? 0;
-      const decodeTimeMs = performance.now() - decodeStart;
-      const ttftMs = tpFirstTokenAt ? tpFirstTokenAt - decodeStart : prefillTimeMs;
-      const totalTimeMs = prefillTimeMs + decodeTimeMs;
-      state.lastInferenceStats = {
-        ...(state.lastInferenceStats || {}),
-        prefillTimeMs,
-        prefillTokens,
-        ttftMs,
-        decodeTimeMs,
-        decodeTokens: tokenCount,
-        totalTimeMs,
-        tokensGenerated: tokenCount,
-      };
       updateRunStatus(controller.signal.aborted ? 'Stopped' : 'Complete');
     } else {
       for await (const token of pipeline.generate(generationInput, {
