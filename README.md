@@ -2,6 +2,8 @@
 
 Inference and training on raw WebGPU. Pure JS + WGSL.
 
+**[Try the live demo](https://d4da.com)** | **[npm](https://www.npmjs.com/package/@simulatte/doppler)** | **[docs](https://github.com/clocksmith/doppler/blob/main/docs/INDEX.md)**
+
 ![Phase-latency comparison on one workload across models](https://raw.githubusercontent.com/clocksmith/doppler/main/benchmarks/vendors/results/compare_1b_multi-workload_favorable_phases.svg)
 
 ## Quick start
@@ -28,8 +30,6 @@ Registry IDs resolve to hosted RDRR artifacts from `Clocksmith/rdrr` by default.
 npm install @simulatte/doppler
 ```
 
-**[Live Demo](https://d4da.com)** · **[npm](https://www.npmjs.com/package/@simulatte/doppler)** · **[docs](https://github.com/clocksmith/doppler/blob/main/docs/INDEX.md)** · **[Project site](https://simulatte.world)**
-
 ## Why Doppler
 
 **JS → WGSL → WebGPU.** Direct JavaScript orchestration into native WebGPU kernels, avoiding ONNX runtimes, WASM blobs, and bridge layers.
@@ -45,6 +45,28 @@ npm install @simulatte/doppler
 Snapshot artifacts:
 - [g3-1b-p064-d064-t0-k1.compare.json](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/fixtures/g3-1b-p064-d064-t0-k1.compare.json)
 - [lfm2-5-1-2b-p064-d064-t0-k1.compare.json](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/fixtures/lfm2-5-1-2b-p064-d064-t0-k1.compare.json)
+
+## Supported models
+
+All models below are verified with deterministic greedy decoding on WebGPU hardware.
+Registry IDs resolve to hosted RDRR artifacts automatically.
+
+| Model | Registry ID | Quant | Params |
+| --- | --- | --- | --- |
+| Gemma 3 270M IT | `gemma3-270m` | Q4K | 270M |
+| Gemma 3 1B IT | `gemma3-1b` | Q4K | 1B |
+| Gemma 3 1B IT (F16) | `gemma-3-1b-it-f16-af32` | F16 | 1B |
+| TranslateGemma 4B IT | `translategemma-4b-it-q4k-ehf16-af32` | Q4K | 4B |
+| TranslateGemma 4B 1B EN-ES | `translategemma-4b-1b-enes-q4k-ehf16-af32` | Q4K | 1B |
+| EmbeddingGemma 300M | `google-embeddinggemma-300m-q4k-ehf16-af32` | Q4K | 300M |
+| Qwen 3.5 0.8B | `qwen-3-5-0-8b-q4k-ehaf16` | Q4K | 0.8B |
+| Qwen 3.5 2B | `qwen-3-5-2b-q4k-ehaf16` | Q4K | 2B |
+| LFM2.5 1.2B Instruct | `lfm2-5-1-2b-instruct-q4k-ehf16-af32` | Q4K | 1.2B |
+
+Additional model families (Llama 3, DeepSeek, Gemma 4 MoE, Mixtral, and others) have conversion
+configs ready but are not yet cataloged. See the full
+[model support matrix](https://github.com/clocksmith/doppler/blob/main/docs/model-support-matrix.md)
+for details.
 
 ## Under the hood
 
@@ -85,10 +107,7 @@ for await (const token of doppler('Hello', { model: 'gemma3-270m' })) {
 - First-run workflow: [docs/getting-started.md](https://github.com/clocksmith/doppler/blob/main/docs/getting-started.md)
 - Runtime config contract: [docs/config.md](https://github.com/clocksmith/doppler/blob/main/docs/config.md)
 - Architecture: [docs/architecture.md](https://github.com/clocksmith/doppler/blob/main/docs/architecture.md)
-- Generated model support table: [docs/model-support-matrix.md](https://github.com/clocksmith/doppler/blob/main/docs/model-support-matrix.md)
-
-Current model support is generated from the catalog and conversion registry.
-See [docs/model-support-matrix.md](https://github.com/clocksmith/doppler/blob/main/docs/model-support-matrix.md) for the canonical verified, failing, and unverified status table.
+- Model support matrix: [docs/model-support-matrix.md](https://github.com/clocksmith/doppler/blob/main/docs/model-support-matrix.md)
 
 ## Environment requirements
 
