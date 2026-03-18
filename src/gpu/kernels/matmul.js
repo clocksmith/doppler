@@ -127,6 +127,32 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
   const weightLayout = getLayout(B);
   const weightShape = B?.shape ? `[${B.shape.join(', ')}]` : null;
 
+  // PROBE: Validate B buffer size for attention projection roles
+  {
+    const probeRole = options.role ?? '';
+    const isAttnProj = probeRole === 'qkv_proj' || probeRole === 'q_proj' || probeRole === 'k_proj' || probeRole === 'v_proj';
+    if (isAttnProj) {
+      const bSize = bBuffer?.size ?? 0;
+      const bDtypeHint = typeof weightDtype === 'string' ? weightDtype : 'unknown';
+      const bytesPerElem = bDtypeHint === 'f16' ? 2 : (bDtypeHint === 'f32' ? 4 : 2);
+      const expectedBytes = N * K * bytesPerElem;
+      if (options.layerIdx === 0) {
+        log.warn('MatmulQKVProbe',
+          `role=${probeRole} L${options.layerIdx ?? '?'} M=${M} N=${N} K=${K} ` +
+          `bSize=${bSize} expectedBytes=${expectedBytes} weightShape=${weightShape} ` +
+          `weightDtype=${bDtypeHint} weightLayout=${weightLayout} transposeB=${transposeBOption}`
+        );
+      }
+      if (bSize > 0 && bSize < expectedBytes) {
+        throw new Error(
+          `[MatmulQKVProbe] B buffer too small for role="${probeRole}": ` +
+          `bSize=${bSize} < expectedBytes=${expectedBytes} (N=${N}, K=${K}, bytesPerElem=${bytesPerElem}). ` +
+          `weightShape=${weightShape} weightLabel=${weightLabel}`
+        );
+      }
+    }
+  }
+
   if (isTraceEnabled('kernels') && getDebugCounter(isRecord) < 20) {
     incrementDebugCounter(isRecord);
     const modeLabel = isRecord ? 'recordMatmul' : 'runMatmul';
