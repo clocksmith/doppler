@@ -1,7 +1,1 @@
-/**
- * Demo surface wiring.
- *
- * @module demo/demo
- */
-
-export {};
+export * from './demo-core.js';
