@@ -1,0 +1,57 @@
+{
+  "id": "got-ocr2",
+  "name": "GOT-OCR2 (General OCR Theory v2)",
+  "extends": "transformer",
+  "modelType": "ocr",
+
+  "architecture": {
+    "headDim": 128,
+    "ropeTheta": 1000000,
+    "visionEncoder": {
+      "type": "vit",
+      "patchSize": 14,
+      "imageSize": 1024,
+      "hiddenSize": 1024,
+      "numLayers": 24,
+      "numHeads": 16
+    }
+  },
+
+  "inference": {
+    "attention": {
+      "queryKeyNorm": false,
+      "causal": true
+    },
+    "normalization": {
+      "rmsNormWeightOffset": false,
+      "rmsNormEps": 1e-6
+    },
+    "ffn": {
+      "activation": "silu"
+    },
+    "output": {
+      "scaleEmbeddings": false,
+      "tieWordEmbeddings": false
+    },
+    "chatTemplate": {
+      "enabled": false
+    },
+    "kernelPaths": {
+      "q4k": {
+        "f16": "got-ocr2-q4k-dequant-f32a",
+        "f32": "got-ocr2-q4k-dequant-f32a"
+      }
+    }
+  },
+
+  "tokenizer": {
+    "bosToken": "<|im_start|>",
+    "eosTokens": ["<|im_end|>", "<|endoftext|>"],
+    "addBosToken": false
+  },
+
+  "detection": {
+    "architecturePatterns": ["got_ocr2", "GOT-OCR2"],
+    "modelTypePatterns": ["got_ocr2"]
+  }
+}
