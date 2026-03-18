@@ -156,7 +156,7 @@
     "tools/convert-safetensors-node.js"
   ],
   "devDependencies": {
-    "@huggingface/transformers": "^3.8.1",
+    "@huggingface/transformers": "4.0.0-next.8",
     "jest": "^30.2.0",
     "onnxruntime-web": "^1.24.1",
     "playwright": "^1.58.2"
