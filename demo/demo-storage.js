@@ -1,3 +1,5 @@
+import { runQuickModelAction as runQuickModelActionFromCore } from './demo-core.js';
+
 function resolveModeForTask(task, surface, preferredMode = null) {
   const normalizedSurface = normalizeSurface(surface, 'demo');
   const resolvedTask = resolveTaskForSurface(task, normalizedSurface, preferredMode);
@@ -785,11 +787,19 @@ function resolveDownloadProgressForModel(modelId) {
   const percent = Number(progress.percent);
   const downloadedBytes = Number(progress.downloadedBytes);
   const totalBytes = Number(progress.totalBytes);
+  const totalShards = Number(progress.totalShards);
+  const completedShards = Number(progress.completedShards);
+  const currentShard = Number(progress.currentShard);
+  const speed = Number(progress.speed);
   return {
     modelId: progressModelId || modelId || '',
     percent: Number.isFinite(percent) ? clampPercent(percent) : null,
     downloadedBytes: Number.isFinite(downloadedBytes) && downloadedBytes > 0 ? downloadedBytes : 0,
     totalBytes: Number.isFinite(totalBytes) && totalBytes > 0 ? totalBytes : 0,
+    totalShards: Number.isFinite(totalShards) && totalShards > 0 ? totalShards : 0,
+    completedShards: Number.isFinite(completedShards) && completedShards > 0 ? completedShards : 0,
+    currentShard: Number.isFinite(currentShard) && currentShard > 0 ? currentShard : null,
+    speed: Number.isFinite(speed) && speed > 0 ? speed : 0,
   };
 }
 
@@ -1080,6 +1090,7 @@ function setEmptyNoticeAction(scope, quickModelEntry) {
   if (!button) return;
   const busyModelId = state.quickModelActionModelId;
   const hasBusyImport = typeof busyModelId === 'string' && busyModelId.length > 0;
+  const isDownloadLocked = state.downloadActive;
 
   if (quickModelEntry?.modelId) {
     const isBusy = busyModelId === quickModelEntry.modelId;
@@ -1096,7 +1107,7 @@ function setEmptyNoticeAction(scope, quickModelEntry) {
         : `Import ${quickModelEntry.label}`;
     }
     button.title = `Import ${quickModelEntry.label}`;
-    button.disabled = isBusy || (hasBusyImport && !isBusy);
+    button.disabled = isBusy || (hasBusyImport && !isBusy) || isDownloadLocked;
     return;
   }
 
@@ -1104,7 +1115,7 @@ function setEmptyNoticeAction(scope, quickModelEntry) {
   delete button.dataset.quickModelId;
   button.textContent = 'Browse models';
   button.title = 'Browse imported and available models';
-  button.disabled = hasBusyImport;
+  button.disabled = hasBusyImport || isDownloadLocked;
 }
 
 function createMissingModelNotice(title, detail, kicker = 'Setup required') {
@@ -1218,12 +1229,29 @@ function createQuickModelActionButton({ label, action, modelId, disabled, title 
   return button;
 }
 
+function formatQuickModelDownloadLabel(progress) {
+  const percent = Number(progress?.percent);
+  const percentLabel = Number.isFinite(percent) ? `${Math.round(clampPercent(percent))}%` : '';
+  const totalShards = Number(progress?.totalShards);
+  const completedShards = Number(progress?.completedShards);
+  const shardLabel = Number.isFinite(totalShards) && totalShards > 0 && Number.isFinite(completedShards)
+    ? `Shard ${Math.max(0, completedShards)}/${Math.max(0, totalShards)}`
+    : '';
+  if (percentLabel && shardLabel) {
+    return `${percentLabel} · ${shardLabel}`;
+  }
+  if (percentLabel) return percentLabel;
+  if (shardLabel) return shardLabel;
+  return '';
+}
+
 function renderQuickModelList(listEl, catalogEntries) {
   if (!listEl) return;
   listEl.textContent = '';
 
   const busyId = state.quickModelActionModelId;
   const hasBusyAction = typeof busyId === 'string' && busyId.length > 0;
+  const isDownloadActive = state.downloadActive;
   const storageEntries = Array.isArray(state.storageEntriesData) ? state.storageEntriesData : [];
   const storageByModelId = new Map(storageEntries.map((e) => [e.modelId, e]));
   const catalogIds = new Set(catalogEntries.map((e) => e.modelId));
@@ -1289,6 +1317,7 @@ function renderQuickModelList(listEl, catalogEntries) {
       tryBtn.type = 'button';
       tryBtn.className = 'btn btn-small btn-primary';
       tryBtn.textContent = 'Try It';
+      tryBtn.disabled = isDownloadActive;
       tryBtn.addEventListener('click', () => handleStorageTryModel(storageEntry.modelId));
       actions.appendChild(tryBtn);
     }
@@ -1296,6 +1325,7 @@ function renderQuickModelList(listEl, catalogEntries) {
     deleteBtn.type = 'button';
     deleteBtn.className = 'btn btn-small';
     deleteBtn.textContent = 'Delete';
+    deleteBtn.disabled = isDownloadActive;
     deleteBtn.addEventListener('click', () => deleteStorageModel(storageEntry, storageDeleteCallbacks));
     actions.appendChild(deleteBtn);
     row.appendChild(actions);
@@ -1362,20 +1392,24 @@ function renderQuickModelList(listEl, catalogEntries) {
       tryBtn.type = 'button';
       tryBtn.className = 'btn btn-small btn-primary';
       tryBtn.textContent = 'Try It';
+      tryBtn.disabled = isDownloadActive;
       tryBtn.addEventListener('click', () => handleStorageTryModel(entry.modelId));
       actions.appendChild(tryBtn);
       const deleteBtn = document.createElement('button');
       deleteBtn.type = 'button';
       deleteBtn.className = 'btn btn-small';
       deleteBtn.textContent = 'Delete';
+      deleteBtn.disabled = isDownloadActive;
       deleteBtn.addEventListener('click', () => deleteStorageModel(storageEntry, storageDeleteCallbacks));
       actions.appendChild(deleteBtn);
     } else {
       actions.appendChild(createQuickModelActionButton({
-        label: isBusy ? 'Fetching...' : 'Fetch',
+        label: isBusy
+          ? formatQuickModelDownloadLabel(resolveDownloadProgressForModel(entry.modelId)) || 'Fetching...'
+          : 'Fetch',
         action: 'download',
         modelId: entry.modelId,
-        disabled: isBusy || hasBusyAction,
+        disabled: isBusy || hasBusyAction || isDownloadActive,
       }));
     }
 
@@ -1399,8 +1433,8 @@ function renderQuickModelPanels() {
   if (state.quickModelActionModelId) {
     const modelId = state.quickModelActionModelId;
     const progress = resolveDownloadProgressForModel(modelId);
-    const pct = progress?.percent;
-    setQuickModelStatus(Number.isFinite(pct) ? `Fetching ${modelId}: ${Math.round(pct)}%` : `Fetching ${modelId}...`);
+    const progressLabel = formatQuickModelDownloadLabel(progress);
+    setQuickModelStatus(progressLabel ? `Fetching ${modelId}: ${progressLabel}` : `Fetching ${modelId}...`);
   } else if (state.quickModelCatalogLoading) {
     setQuickModelStatus('Loading quick models...');
   } else if (state.quickModelCatalogError) {
@@ -1473,6 +1507,7 @@ async function applyImportedModelToCurrentMode(modelId) {
 async function handleEmptyNoticeAction(scope) {
   const button = $(`${scope}-empty-notice-btn`);
   if (!button) return;
+  if (state.downloadActive) return;
   const action = button.dataset.noticeAction || 'models';
   if (action !== 'download') {
     setUiMode('models');
@@ -1483,7 +1518,7 @@ async function handleEmptyNoticeAction(scope) {
     setUiMode('models');
     return;
   }
-  await runQuickModelAction('download', modelId);
+  await runQuickModelActionFromCore('download', modelId);
 }
 
 function handleDownloadProgressEvent(progress) {
@@ -1493,12 +1528,20 @@ function handleDownloadProgressEvent(progress) {
   const percent = Number(progress?.percent);
   const downloadedBytes = Number(progress?.downloadedBytes);
   const totalBytes = Number(progress?.totalBytes);
+  const totalShards = Number(progress?.totalShards);
+  const completedShards = Number(progress?.completedShards);
+  const currentShard = Number(progress?.currentShard);
+  const speed = Number(progress?.speed);
 
   state.downloadProgress = {
     modelId,
     percent: Number.isFinite(percent) ? clampPercent(percent) : null,
     downloadedBytes: Number.isFinite(downloadedBytes) && downloadedBytes > 0 ? downloadedBytes : 0,
     totalBytes: Number.isFinite(totalBytes) && totalBytes > 0 ? totalBytes : 0,
+    totalShards: Number.isFinite(totalShards) && totalShards > 0 ? totalShards : 0,
+    completedShards: Number.isFinite(completedShards) && completedShards > 0 ? completedShards : 0,
+    currentShard: Number.isFinite(currentShard) && currentShard > 0 ? currentShard : null,
+    speed: Number.isFinite(speed) && speed > 0 ? speed : 0,
     status: typeof progress?.status === 'string' ? progress.status : '',
   };
   if (modelId) {
@@ -1553,71 +1596,6 @@ async function importRdrrFromBaseUrl(baseUrl, modelIdOverride = '') {
   }
 }
 
-async function importQuickModelEntry(entry) {
-  await importRdrrFromBaseUrl(entry.baseUrl, entry.modelId);
-  await applyImportedModelToCurrentMode(entry.modelId);
-}
-
-function isRunnableStorageEntry(entry) {
-  return Boolean(entry && !entry.missingStorage && entry.hasManifest);
-}
-
-function describeImportedStorage(modelId) {
-  const entry = state.storageEntriesData.find((candidate) => candidate.modelId === modelId);
-  if (!entry?.backend) {
-    return 'local storage';
-  }
-  if (entry.backend === 'indexeddb') {
-    return 'IndexedDB';
-  }
-  if (entry.backend === 'opfs') {
-    return 'OPFS';
-  }
-  return entry.backend;
-}
-
-async function runQuickModelAction(action, modelId) {
-  if (action !== 'download') return;
-  const entry = findQuickModelEntry(modelId);
-  if (!entry) {
-    updateConvertStatus(`Quick model not found: ${modelId}`, 0);
-    return;
-  }
-  if (state.quickModelActionModelId) return;
-
-  let finalQuickStatus = '';
-  state.quickModelActionModelId = modelId;
-  state.downloadActive = true;
-  state.activeDownloadId = modelId;
-  state.downloadProgress = null;
-  updateStatusIndicator();
-  setQuickModelStatus(`Fetching ${modelId}...`);
-  updateModelEmptyStates();
-  renderQuickModelPanels();
-  try {
-    await importQuickModelEntry(entry);
-    finalQuickStatus = `Fetched ${modelId} to ${describeImportedStorage(modelId)}.`;
-    renderQuickModelPanels();
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    finalQuickStatus = `Fetch failed: ${message}`;
-    updateConvertStatus(`Quick model action failed: ${message}`, 0);
-    updateDiagnosticsStatus(`Quick model action failed: ${message}`, true);
-  } finally {
-    if (!state.downloadProgress || state.downloadProgress.modelId === modelId) {
-      state.downloadProgress = null;
-    }
-    state.quickModelActionModelId = null;
-    state.downloadActive = false;
-    state.activeDownloadId = null;
-    updateStatusIndicator();
-    updateModelEmptyStates();
-    renderQuickModelPanels();
-    if (finalQuickStatus) {
-      setQuickModelStatus(finalQuickStatus);
-    }
-  }
-}
 
 function updateModelEmptyStates() {
   if (state.modelAvailabilityLoading) {
@@ -1664,11 +1642,11 @@ function updateModelEmptyStates() {
 
   const diffusionRun = $('diffusion-run-btn');
   if (diffusionRun) {
-    diffusionRun.disabled = state.diffusionGenerating || state.diffusionLoading || !!diffusionMessage;
+    diffusionRun.disabled = state.diffusionGenerating || state.diffusionLoading || state.downloadActive || !!diffusionMessage;
   }
   const energyRun = $('energy-run-btn');
   if (energyRun) {
-    energyRun.disabled = state.energyGenerating || state.energyLoading || !!energyMessage;
+    energyRun.disabled = state.energyGenerating || state.energyLoading || state.downloadActive || !!energyMessage;
   }
   syncRunControls();
 }
@@ -2334,7 +2312,7 @@ function syncRunControls() {
     : (state.uiMode === 'translate' ? 'translate' : 'run');
   const hasCompatibleModel = Number.isFinite(availability[modeKey]) && availability[modeKey] > 0;
   const isRunning = state.runGenerating;
-  const disabled = isRunning || state.runLoading || state.compareGenerating || state.compareLoading;
+  const disabled = isRunning || state.runLoading || state.compareGenerating || state.compareLoading || state.downloadActive;
   if (runPrompt) runPrompt.disabled = disabled;
   if (runGenerate) runGenerate.disabled = disabled || !hasCompatibleModel;
   if (runClear) runClear.disabled = disabled;
@@ -2486,8 +2464,6 @@ export {
   renderQuickModelPanels,
   handleDownloadProgressEvent,
   handleDownloadStateChangeEvent,
-  isRunnableStorageEntry,
-  describeImportedStorage,
   updateModelEmptyStates,
   updateConvertStatus,
   resetConvertStatus,

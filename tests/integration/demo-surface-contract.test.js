@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
-const demoSource = readFileSync(new URL('../../demo/demo.js', import.meta.url), 'utf8');
+const demoSource = readFileSync(new URL('../../demo/demo-core.js', import.meta.url), 'utf8');
 const downloadsSource = readFileSync(new URL('../../demo/ui/downloads/index.js', import.meta.url), 'utf8');
 const storageInspectorSource = readFileSync(new URL('../../demo/ui/storage/inspector.js', import.meta.url), 'utf8');
 const diagnosticsSource = readFileSync(new URL('../../demo/diagnostics-controller.js', import.meta.url), 'utf8');
@@ -14,8 +14,8 @@ assert.match(downloadsSource, /await cleanupPartialImport\(working\.modelId\)/);
 assert.match(demoSource, /runtimeConfig: getRuntimeConfig\(\),/);
 assert.match(demoSource, /function isRunnableStorageEntry\(entry\)/);
 assert.match(demoSource, /const isInOpfs = isRunnableStorageEntry\(storageEntry\)/);
-assert.match(demoSource, /Fetched \$\{modelId\} to \$\{describeImportedStorage\(modelId\)\}\./);
-assert.doesNotMatch(demoSource, /Fetched \$\{modelId\} to OPFS\./);
+assert.match(demoSource, /Imported \$\{modelId\} to \$\{describeImportedStorage\(modelId\)\}\./);
+assert.doesNotMatch(demoSource, /Imported \$\{modelId\} to OPFS\./);
 
 assert.match(storageInspectorSource, /if \(entry\.hasManifest\) \{/);
 

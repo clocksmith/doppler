@@ -104,10 +104,9 @@ export function createTokenPressSession(pipeline, press, prompt, options = {}) {
       finished = true;
     }
 
-    // Advance KV cache and compute next logits
+    // Compute next logits (decodeStepLogits advances KV cache internally)
     if (!finished) {
       try {
-        await pipeline.advanceWithToken(tokenId);
         const result = await pipeline.decodeStepLogits([tokenId]);
         logits = result.logits;
       } catch {
@@ -166,6 +165,7 @@ export function createTokenPressSession(pipeline, press, prompt, options = {}) {
     dispose,
     get finished() { return finished; },
     get tokenCount() { return history.length; },
+    get prefillTokenIds() { return prefillDone ? [...generatedIds] : []; },
     get supportsStepBack() { return supportsStepBack; },
     get stepBackReason() { return stepBackReason; },
   };

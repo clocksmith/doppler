@@ -46,7 +46,7 @@ for (const manifestPath of collectManifestPaths(path.join(process.cwd(), 'models
   const inference = manifest?.inference;
   assert.ok(inference && typeof inference === 'object', `${label}: inference is required`);
 
-  if (inference.schema !== 'doppler.execution/v0') {
+  if (inference.schema !== 'doppler.execution/v0' || !Array.isArray(inference.execution?.steps)) {
     continue;
   }
 
@@ -71,10 +71,15 @@ for (const manifestPath of collectManifestPaths(path.join(process.cwd(), 'models
     `${label}: execution-v0 manifests require execution.steps`
   );
 
-  // Guard: Q4K manifests must not assign an F16-only weight kernel to prefill projection ops.
-  // matmul_f16w_f32a.wgsl reads weights as array<f16>; Q4K block-quantized bytes are not valid
-  // F16 elements — this misread produces garbage Q/K/V projections and garbage KV cache output.
-  if (manifest.quantizationInfo?.weights === 'q4k') {
+  // Guard: Q4K manifests using fused Q4K kernels must not assign an F16-only weight kernel
+  // to prefill projection ops. matmul_f16w_f32a.wgsl reads weights as array<f16>; Q4K
+  // block-quantized bytes are not valid F16 elements — this misread produces garbage projections.
+  //
+  // Exception: "dequant" kernel paths dequantize Q4K weights to F16 during loading, so
+  // F16 matmul kernels are correct in that pipeline — the weights are already F16 in GPU memory.
+  const kernelPathId = typeof inference.defaultKernelPath === 'string' ? inference.defaultKernelPath : '';
+  const isDequantPipeline = kernelPathId.includes('dequant');
+  if (manifest.quantizationInfo?.weights === 'q4k' && !isDequantPipeline) {
     for (const step of inference.execution.steps) {
       if (step.phase !== 'prefill' && step.phase !== 'both') continue;
       if (!WEIGHT_READ_OPS.has(step.op)) continue;
