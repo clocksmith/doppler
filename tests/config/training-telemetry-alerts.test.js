@@ -1,22 +1,11 @@
 import assert from 'node:assert/strict';
 
 const { runTrainingBenchSuite } = await import('../../src/training/suite.js');
-const { bootstrapNodeWebGPU } = await import('../../src/tooling/node-webgpu.js');
-const { installNodeFileFetchShim } = await import('../../src/tooling/node-file-fetch.js');
-const { initDevice } = await import('../../src/gpu/device.js');
+const { probeNodeGPU } = await import('../helpers/gpu-probe.js');
 
-let webgpuReady = false;
-try {
-  await bootstrapNodeWebGPU();
-  installNodeFileFetchShim();
-  await initDevice();
-  webgpuReady = typeof globalThis.navigator !== 'undefined' && !!globalThis.navigator.gpu;
-} catch {
-  webgpuReady = false;
-}
-
-if (!webgpuReady) {
-  console.log('training-telemetry-alerts.test: skipped (no WebGPU runtime)');
+const gpuProbe = await probeNodeGPU({ installFileFetchShim: true });
+if (!gpuProbe.ready) {
+  console.log(`training-telemetry-alerts.test: skipped (${gpuProbe.reason})`);
 } else {
   {
     const result = await runTrainingBenchSuite({

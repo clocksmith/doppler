@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 
-const { bootstrapNodeWebGPU } = await import('../../src/tooling/node-webgpu.js');
-const { initDevice } = await import('../../src/gpu/device.js');
+const { probeNodeGPU } = await import('../helpers/gpu-probe.js');
 const { acquireBuffer, uploadData, readBuffer, releaseBuffer } = await import('../../src/memory/buffer-pool.js');
 const { createTensor } = await import('../../src/gpu/tensor.js');
 const { runLinearAttentionCoreGPU } = await import('../../src/gpu/kernels/linear-attention-core.js');
@@ -123,20 +122,11 @@ function createGpuBuffer(values, label) {
   return buffer;
 }
 
-let webgpuReady = false;
-try {
-  await bootstrapNodeWebGPU();
-  webgpuReady = typeof globalThis.navigator !== 'undefined' && !!globalThis.navigator.gpu;
-} catch {
-  webgpuReady = false;
-}
-
-if (!webgpuReady) {
-  console.log('linear-attention-core-gpu-regression.test: skipped (no WebGPU runtime)');
+const gpuProbe = await probeNodeGPU();
+if (!gpuProbe.ready) {
+  console.log(`linear-attention-core-gpu-regression.test: skipped (${gpuProbe.reason})`);
   process.exit(0);
 }
-
-await initDevice();
 
 const numTokens = 3;
 const qkL2NormEps = 1e-6;

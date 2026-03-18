@@ -98,13 +98,8 @@ export function createTokenPress(outputEl, controlsEl, options = {}) {
 
   function pushToken(record) {
     queue.push(record);
-    // In play mode, the playLoop drains via doStep which calls onFlush.
-    // In step mode, the queue just holds pending records.
-    // Either way, trigger a render for the new state.
-    if (!playing) {
-      // Immediately commit in step mode (session already advanced)
-      queue.stepForward();
-    }
+    // Session has already advanced — commit immediately so the token renders.
+    queue.stepForward();
   }
 
   function attachSession(s) {

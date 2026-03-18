@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 const demoHtml = readFileSync(new URL('../../demo/index.html', import.meta.url), 'utf8');
-const demoSource = readFileSync(new URL('../../demo/demo.js', import.meta.url), 'utf8');
+const demoSource = readFileSync(new URL('../../demo/demo-core.js', import.meta.url), 'utf8');
 
 assert.match(demoHtml, /id="translate-compare-shell"/);
 assert.match(demoHtml, /id="translate-compare-preset"/);

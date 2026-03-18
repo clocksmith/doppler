@@ -9,6 +9,7 @@
   <link rel="manifest" href="/demo/pwa-manifest.json">
   <link rel="stylesheet" href="/demo/styles/rd.css">
   <link rel="stylesheet" href="/demo/ui/styles/main.css">
+  <link rel="stylesheet" href="/demo/ui/token-press/styles.css">
   <script type="importmap">
     {
       "imports": {
@@ -84,7 +85,19 @@
                 <div class="playground-output">
                   <div class="type-caption">Output</div>
                   <pre id="run-output" class="playground-output-box border-dotted"></pre>
-                  <div id="run-output-status" class="type-caption">Idle</div>
+                  <div id="tp-controls" hidden></div>
+                  <div class="run-output-status-row">
+                    <div id="run-output-status" class="type-caption run-output-status-text">Idle</div>
+                    <div class="run-output-ppl-legend" role="img" aria-label="Relative perplexity scale: blue low, purple medium, red high">
+                      <span class="run-output-ppl-legend-title type-caption">Relative perplexity</span>
+                      <span class="run-output-ppl-legend-bar" aria-hidden="true"></span>
+                      <span class="run-output-ppl-legend-labels">
+                        <span>low</span>
+                        <span>med</span>
+                        <span>high</span>
+                      </span>
+                    </div>
+                  </div>
                 </div>
                 <section class="translate-compare-shell" id="translate-compare-shell" data-modes="translate" aria-label="Translation compare console">
                   <div class="translate-compare-heading">
@@ -897,6 +910,17 @@
                   >
                     <input id="run-reset-kv-toggle" type="checkbox" checked />
                     Reset context each run
+                  </label>
+                </div>
+                <div class="playground-field">
+                  <label
+                    class="check-field type-caption"
+                    for="run-token-press-toggle"
+                    title="Step through generation one token at a time with confidence colors and top-k alternatives."
+                    aria-label="Token Press mode. Step through generation one token at a time."
+                  >
+                    <input id="run-token-press-toggle" type="checkbox" checked />
+                    Token Press
                   </label>
                 </div>
               </details>

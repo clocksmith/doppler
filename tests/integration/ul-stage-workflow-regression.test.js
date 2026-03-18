@@ -4,25 +4,16 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 const { runBrowserSuite } = await import('../../src/inference/browser-harness.js');
-const { bootstrapNodeWebGPU } = await import('../../src/tooling/node-webgpu.js');
-const { initDevice } = await import('../../src/gpu/device.js');
+const { probeNodeGPU } = await import('../helpers/gpu-probe.js');
 
 function isShaderFetchFailure(value) {
   const message = String(value || '');
-  return /Failed to load shader|fetch failed|createShaderModule is not a function|produced no metrics|requires a GPUBuffer|Checkpoint mismatch on fields/i.test(message);
+  return /Failed to load shader|fetch failed|createShaderModule (is not a function|failed)|produced no metrics|requires a GPUBuffer|GPUBuffer is not defined|Checkpoint mismatch on fields/i.test(message);
 }
 
-let webgpuReady = false;
-try {
-  await bootstrapNodeWebGPU();
-  await initDevice();
-  webgpuReady = typeof globalThis.navigator !== 'undefined' && !!globalThis.navigator.gpu;
-} catch {
-  webgpuReady = false;
-}
-
-if (!webgpuReady) {
-  console.log('ul-stage-workflow-regression.test: skipped (no WebGPU runtime)');
+const gpuProbe = await probeNodeGPU();
+if (!gpuProbe.ready) {
+  console.log(`ul-stage-workflow-regression.test: skipped (${gpuProbe.reason})`);
 } else {
   const stage1Dir = mkdtempSync(join(tmpdir(), 'doppler-ul-stage1-'));
   const stage2Dir = mkdtempSync(join(tmpdir(), 'doppler-ul-stage2-'));

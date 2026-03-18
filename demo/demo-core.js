@@ -131,8 +131,13 @@ import {
 } from './ui/translate/request.js';
 import { runDistillReplay } from './ui/distill/replay.js';
 import { formatChatMessages } from '../src/inference/pipelines/text/chat-format.js';
+import { createTokenPress } from './ui/token-press/index.js';
+import { createTokenPressSession } from './ui/token-press/bridge.js';
 
 const controller = new DiagnosticsController({ log });
+
+let tokenPress = null;
+let tokenPressSession = null;
 
 const PRIMARY_MODES = new Set(['run', 'energy']);
 let modelListRefreshVersion = 0;
@@ -164,19 +169,37 @@ const DISTILL_WORKLOAD_REGISTRY_URL = typeof window === 'object' && window.locat
   : new URL('../tools/configs/training-workloads/registry.json', import.meta.url).toString();
 const RUN_STARTER_PROMPTS = Object.freeze([
   'is potential energy real?',
-  'compare zig to rust in elvish',
+  'compare zig to rust to elvish',
   'eat your cake and have it too',
-  'pivot to neurosymbolic reasoning',
-  'write a poem about an elephant that is bullish on QQQ',
+  'why is WebGPU the ultimate app store bypass',
+  'what happens when UI components are "pre-verified"',
+  'write a poem about a bear that is bullish on QQQ',
   'explain why a toddler is exactly like a neural network',
-  'explain the difference between the star trek migratation and star wars trek',
-  'prove termination for a recursive functional agent using lean four and inductive types',
-  'describe a toy store where the shelves are sorted by cognitive development stages and every single game has a proof of educational value attached',
+  'define "workflow-native proof" in exactly three sentences',
+  'why do local agents genuinely need cryptographic receipts',
+  'why sell a vertical wedge instead of an adaptive platform',
+  'defend "fail-closed" over "graceful degradation" in legal tech',
+  'prove that zero data egress is a procurement gate, not a feature',
+  'what is the difference between heuristic success and product truth',
+  'is deterministic fallback fundamentally better than probabilistic success',
+  'critique the idea that LLM-generated code is the future of apps using the concept of pre-verified UI bricks',
+  'does pushing inference entirely to the edge solve AI\'s scaling unit economics, or just offload them to consumer hardware',
+  'prove that open-source distribution coupled with private, governed enterprise deployment is the most defensible moat in AI',
+  'if compiling cross-platform code is a bottleneck, why does WebGPU permanently change the distribution economics of software',
+  'describe a scenario where an AI agent attempts to bypass a policy boundary and is stopped by a client-side JavaScript checker',
+  'prove or disprove: AI models should eventually function as utility layers like hardware drivers, entirely invisible to the user',
+  'create a medical intake assistant spec that refuses uncertain recommendations and explains exactly why each action is accepted or blocked',
+  'write a compliance memo arguing whether local inference can materially reduce patient data exposure without hurting diagnostic throughput',
+  'write a post-mortem for a finance startup that moved anti-fraud checks to client-side models and then had to prove auditability to regulators',
   'is human intuition just a fast, low-energy heuristic that our biological hardware runs when the cost of slow, symbolic reasoning is too high for survival',
-  'write a technical fable about an agent tasked with solving a paradox, forever rolling a high-energy gradient up a hill only for it to reset at every epoch',
-  'is interpretability mostly archaeology on activations, or can it become a design-time discipline',
-  'prove or disprove that benchmark parity without workload parity is a category error',
-  'prove or disprove that deterministic failure modes outperform probabilistic success in trust-critical workflows',
+  'in a bank, compare the legal risk profile of probabilistic redaction versus deterministic policy-constrained local redaction for contracts containing PII',
+  'draft a deployment playbook for a fintech firm moving from cloud LLM risk scoring to browser-based WebGPU inference with OPFS caching and offline fallback',
+  'build a GenUI prompt for a medical workflow where every chart, form, and alert variant is selected from a pre-verified component library, not generated ad hoc',
+  'design a local-first underwriting workflow where credit-risk prompts are executed on-device and every risk decision is accompanied by a verifiable inference receipt',
+  'map a clinical triage workflow for radiology summarization where policy gates block low-confidence outputs and require confidence receipts before any recommendation is shown',
+  'the Dream Architecture: design an intent-driven UI runtime where the user asks for an outcome and a deterministic composer picks pre-verified visuals, preventing hallucinated HTML/CSS',
+  'create a GenUI design challenge: generate three deterministic dashboard patterns for a financial advisor tool that must be understandable under 2 seconds and resistant to cognitive overload',
+  'draft a GenUI spec for an investor reporting interface where every visualization component includes a provenance label tied to model + policy version and cannot render if provenance is missing',
 ]);
 const TRANSLATE_STARTER_PROMPTS = Object.freeze([
   'Good software should fail loudly and explain why.',
@@ -248,6 +271,7 @@ const DEFAULT_TRANSLATE_TEMPERATURE = 1.0;
 const DEFAULT_TRANSLATE_TOP_P = 0.95;
 const DEFAULT_TRANSLATE_TOP_K = 64;
 const DEFAULT_TRANSLATE_MAX_TOKENS = 1024;
+const DEFAULT_TEXT_MAX_TOKENS = 128;
 const TRANSLATE_COMPARE_DEFAULT_MAX_TOKENS = 192;
 const TRANSLATE_COMPARE_HISTORY_STORAGE_KEY = 'doppler.translate.compare.history.v1';
 const TRANSLATE_COMPARE_CONFIG_VERSION = 2;
@@ -1697,13 +1721,13 @@ function syncTranslateCompareUI() {
   }
   setText(presetNote, getTranslateComparePresetNote(state.comparePresetId || 'proof'));
   if (runButton instanceof HTMLButtonElement) {
-    runButton.disabled = state.compareGenerating || state.compareLoading;
+    runButton.disabled = state.compareGenerating || state.compareLoading || state.downloadActive;
   }
   if (exportButton instanceof HTMLButtonElement) {
-    exportButton.disabled = state.compareGenerating || state.compareLoading || !getLatestTranslateCompareArtifact();
+    exportButton.disabled = state.compareGenerating || state.compareLoading || state.downloadActive || !getLatestTranslateCompareArtifact();
   }
   if (shareButton instanceof HTMLButtonElement) {
-    shareButton.disabled = state.compareGenerating || state.compareLoading;
+    shareButton.disabled = state.compareGenerating || state.compareLoading || state.downloadActive;
   }
   document.querySelectorAll('[data-compare-history-filter]').forEach((button) => {
     const filterId = normalizeTranslateCompareHistoryFilter(button?.dataset?.compareHistoryFilter);
@@ -2048,7 +2072,7 @@ function exportTranslateCompareHistoryArtifactById(entryId) {
 }
 
 async function handleTranslateCompareRun() {
-  if (state.compareGenerating || state.compareLoading) return;
+  if (state.compareGenerating || state.compareLoading || state.downloadActive) return;
   ensureTranslateCompareRuntimeState();
   const prompt = $('run-prompt')?.value?.trim() || '';
   if (!prompt) {
@@ -2992,11 +3016,19 @@ function resolveDownloadProgressForModel(modelId) {
   const percent = Number(progress.percent);
   const downloadedBytes = Number(progress.downloadedBytes);
   const totalBytes = Number(progress.totalBytes);
+  const totalShards = Number(progress.totalShards);
+  const completedShards = Number(progress.completedShards);
+  const currentShard = Number(progress.currentShard);
+  const speed = Number(progress.speed);
   return {
     modelId: progressModelId || modelId || '',
     percent: Number.isFinite(percent) ? clampPercent(percent) : null,
     downloadedBytes: Number.isFinite(downloadedBytes) && downloadedBytes > 0 ? downloadedBytes : 0,
     totalBytes: Number.isFinite(totalBytes) && totalBytes > 0 ? totalBytes : 0,
+    totalShards: Number.isFinite(totalShards) && totalShards > 0 ? totalShards : 0,
+    completedShards: Number.isFinite(completedShards) && completedShards > 0 ? completedShards : 0,
+    currentShard: Number.isFinite(currentShard) && currentShard > 0 ? currentShard : null,
+    speed: Number.isFinite(speed) && speed > 0 ? speed : 0,
   };
 }
 
@@ -3287,6 +3319,7 @@ function setEmptyNoticeAction(scope, quickModelEntry) {
   if (!button) return;
   const busyModelId = state.quickModelActionModelId;
   const hasBusyImport = typeof busyModelId === 'string' && busyModelId.length > 0;
+  const isDownloadLocked = state.downloadActive;
 
   if (quickModelEntry?.modelId) {
     const isBusy = busyModelId === quickModelEntry.modelId;
@@ -3297,13 +3330,10 @@ function setEmptyNoticeAction(scope, quickModelEntry) {
       const pct = progress?.percent;
       button.textContent = Number.isFinite(pct) ? `Importing ${Math.round(pct)}%` : 'Importing...';
     } else {
-      const size = quickModelEntry.sizeBytes ? formatBytes(quickModelEntry.sizeBytes) : '';
-      button.textContent = size
-        ? `Import ${quickModelEntry.label} (${size})`
-        : `Import ${quickModelEntry.label}`;
+      button.textContent = 'Import recommended model';
     }
     button.title = `Import ${quickModelEntry.label}`;
-    button.disabled = isBusy || (hasBusyImport && !isBusy);
+    button.disabled = isBusy || (hasBusyImport && !isBusy) || isDownloadLocked;
     return;
   }
 
@@ -3311,7 +3341,7 @@ function setEmptyNoticeAction(scope, quickModelEntry) {
   delete button.dataset.quickModelId;
   button.textContent = 'Browse models';
   button.title = 'Browse imported and available models';
-  button.disabled = hasBusyImport;
+  button.disabled = hasBusyImport || isDownloadLocked;
 }
 
 function createMissingModelNotice(title, detail, kicker = 'Setup required') {
@@ -3328,49 +3358,21 @@ function getMissingModelMessage(mode, availability, quickModelEntry) {
   }
   const total = Number.isFinite(availability?.total) ? availability.total : 0;
   const hasQuickSuggestion = !!(quickModelEntry && typeof quickModelEntry.modelId === 'string' && quickModelEntry.modelId.length > 0);
+  const MODE_LABELS = { embedding: 'an embedding', translate: 'a translation', diffusion: 'an image' };
+  const modeLabel = MODE_LABELS[mode] || 'a text';
   if (total <= 0) {
-    if (mode === 'embedding') {
-      return hasQuickSuggestion
-        ? createMissingModelNotice(
-          'Import an embedding model to get started.',
-          'Or open Models to choose a different one.'
-        )
-        : createMissingModelNotice(
-          'Import an embedding model to get started.',
-          'Open Models to choose one that supports similarity and retrieval.'
-        );
-    }
-    if (mode === 'translate') {
-      return hasQuickSuggestion
-        ? createMissingModelNotice(
-          'Import a translation model to get started.',
-          'Or open Models to choose a different one.'
-        )
-        : createMissingModelNotice(
-          'Import a translation model to get started.',
-          'Open Models to choose one that supports translation.'
-        );
-    }
-    if (mode === 'diffusion') {
-      return hasQuickSuggestion
-        ? createMissingModelNotice(
-          'Import an image model to get started.',
-          'Or open Models to choose a different one.'
-        )
-        : createMissingModelNotice(
-          'Import an image model to get started.',
-          'Open Models to choose one that supports diffusion.'
-        );
-    }
-    return hasQuickSuggestion
-      ? createMissingModelNotice(
-        'Import a text model to get started.',
-        'Or open Models to choose a different one.'
-      )
-      : createMissingModelNotice(
-        'Import a text model to get started.',
-        'Open Models to choose one that supports text generation.'
+    if (hasQuickSuggestion) {
+      const size = quickModelEntry.sizeBytes ? formatBytes(quickModelEntry.sizeBytes) : '';
+      const modelDesc = size ? `${quickModelEntry.label} (${size})` : quickModelEntry.label;
+      return createMissingModelNotice(
+        `Import ${modeLabel} model to get started.`,
+        `Recommended: ${modelDesc}. Or open Models to choose a different one.`
       );
+    }
+    return createMissingModelNotice(
+      `Import ${modeLabel} model to get started.`,
+      `Open Models to choose one.`
+    );
   }
   const compatible = Number.isFinite(availability?.[mode]) ? availability[mode] : 0;
   if (compatible > 0) return null;
@@ -3411,6 +3413,22 @@ function createQuickModelBadge(text) {
   return badge;
 }
 
+function formatQuickModelDownloadLabel(progress) {
+  const percent = Number(progress?.percent);
+  const percentLabel = Number.isFinite(percent) ? `${Math.round(clampPercent(percent))}%` : '';
+  const totalShards = Number(progress?.totalShards);
+  const completedShards = Number(progress?.completedShards);
+  const shardLabel = Number.isFinite(totalShards) && totalShards > 0 && Number.isFinite(completedShards)
+    ? `Shard ${Math.max(0, completedShards)}/${Math.max(0, totalShards)}`
+    : '';
+  if (percentLabel && shardLabel) {
+    return `${percentLabel} · ${shardLabel}`;
+  }
+  if (percentLabel) return percentLabel;
+  if (shardLabel) return shardLabel;
+  return '';
+}
+
 function createQuickModelActionButton({ label, action, modelId, disabled, title = '' }) {
   const button = document.createElement('button');
   button.type = 'button';
@@ -3431,6 +3449,7 @@ function renderQuickModelList(listEl, catalogEntries) {
 
   const busyId = state.quickModelActionModelId;
   const hasBusyAction = typeof busyId === 'string' && busyId.length > 0;
+  const isDownloadActive = state.downloadActive;
   const storageEntries = Array.isArray(state.storageEntriesData) ? state.storageEntriesData : [];
   const storageByModelId = new Map(storageEntries.map((e) => [e.modelId, e]));
   const catalogIds = new Set(catalogEntries.map((e) => e.modelId));
@@ -3496,6 +3515,7 @@ function renderQuickModelList(listEl, catalogEntries) {
       tryBtn.type = 'button';
       tryBtn.className = 'btn btn-small btn-primary';
       tryBtn.textContent = 'Try It';
+      tryBtn.disabled = isDownloadActive;
       tryBtn.addEventListener('click', () => handleStorageTryModel(storageEntry.modelId));
       actions.appendChild(tryBtn);
     }
@@ -3503,6 +3523,7 @@ function renderQuickModelList(listEl, catalogEntries) {
     deleteBtn.type = 'button';
     deleteBtn.className = 'btn btn-small';
     deleteBtn.textContent = 'Delete';
+    deleteBtn.disabled = isDownloadActive;
     deleteBtn.addEventListener('click', () => deleteStorageModel(storageEntry, storageDeleteCallbacks));
     actions.appendChild(deleteBtn);
     row.appendChild(actions);
@@ -3569,20 +3590,25 @@ function renderQuickModelList(listEl, catalogEntries) {
       tryBtn.type = 'button';
       tryBtn.className = 'btn btn-small btn-primary';
       tryBtn.textContent = 'Try It';
+      tryBtn.disabled = isDownloadActive;
       tryBtn.addEventListener('click', () => handleStorageTryModel(entry.modelId));
       actions.appendChild(tryBtn);
       const deleteBtn = document.createElement('button');
       deleteBtn.type = 'button';
       deleteBtn.className = 'btn btn-small';
       deleteBtn.textContent = 'Delete';
+      deleteBtn.disabled = isDownloadActive;
       deleteBtn.addEventListener('click', () => deleteStorageModel(storageEntry, storageDeleteCallbacks));
       actions.appendChild(deleteBtn);
     } else {
+      const buttonLabel = isBusy
+        ? formatQuickModelDownloadLabel(resolveDownloadProgressForModel(entry.modelId)) || 'Fetching...'
+        : 'Fetch';
       actions.appendChild(createQuickModelActionButton({
-        label: isBusy ? 'Fetching...' : 'Fetch',
+        label: buttonLabel,
         action: 'download',
         modelId: entry.modelId,
-        disabled: isBusy || hasBusyAction,
+        disabled: isBusy || hasBusyAction || isDownloadActive,
       }));
     }
 
@@ -3606,8 +3632,8 @@ function renderQuickModelPanels() {
   if (state.quickModelActionModelId) {
     const modelId = state.quickModelActionModelId;
     const progress = resolveDownloadProgressForModel(modelId);
-    const pct = progress?.percent;
-    setQuickModelStatus(Number.isFinite(pct) ? `Fetching ${modelId}: ${Math.round(pct)}%` : `Fetching ${modelId}...`);
+    const progressLabel = formatQuickModelDownloadLabel(progress);
+    setQuickModelStatus(progressLabel ? `Fetching ${modelId}: ${progressLabel}` : `Fetching ${modelId}...`);
   } else if (state.quickModelCatalogLoading) {
     setQuickModelStatus('Loading quick models...');
   } else if (state.quickModelCatalogError) {
@@ -3680,6 +3706,7 @@ async function applyImportedModelToCurrentMode(modelId) {
 async function handleEmptyNoticeAction(scope) {
   const button = $(`${scope}-empty-notice-btn`);
   if (!button) return;
+  if (state.downloadActive) return;
   const action = button.dataset.noticeAction || 'models';
   if (action !== 'download') {
     setUiMode('models');
@@ -3700,12 +3727,20 @@ function handleDownloadProgressEvent(progress) {
   const percent = Number(progress?.percent);
   const downloadedBytes = Number(progress?.downloadedBytes);
   const totalBytes = Number(progress?.totalBytes);
+  const totalShards = Number(progress?.totalShards);
+  const completedShards = Number(progress?.completedShards);
+  const currentShard = Number(progress?.currentShard);
+  const speed = Number(progress?.speed);
 
   state.downloadProgress = {
     modelId,
     percent: Number.isFinite(percent) ? clampPercent(percent) : null,
     downloadedBytes: Number.isFinite(downloadedBytes) && downloadedBytes > 0 ? downloadedBytes : 0,
     totalBytes: Number.isFinite(totalBytes) && totalBytes > 0 ? totalBytes : 0,
+    totalShards: Number.isFinite(totalShards) && totalShards > 0 ? totalShards : 0,
+    completedShards: Number.isFinite(completedShards) && completedShards > 0 ? completedShards : 0,
+    currentShard: Number.isFinite(currentShard) && currentShard > 0 ? currentShard : null,
+    speed: Number.isFinite(speed) && speed > 0 ? speed : 0,
     status: typeof progress?.status === 'string' ? progress.status : '',
   };
   if (modelId) {
@@ -3765,6 +3800,60 @@ async function importQuickModelEntry(entry) {
   await applyImportedModelToCurrentMode(entry.modelId);
 }
 
+async function importQuickModelAndMaybePreload(entry) {
+  if (!entry?.modelId) {
+    throw new Error('Quick model entry is missing modelId.');
+  }
+  const modelId = entry.modelId;
+  await importQuickModelEntry(entry);
+  let didPreload = false;
+  let preloadError = '';
+  let finalQuickStatus = `Imported ${modelId} to ${describeImportedStorage(modelId)}.`;
+
+  if (shouldAutoPreloadAfterDownload()) {
+    setQuickModelStatus(`Loading ${modelId} into memory...`);
+    try {
+      await preloadQuickModelIntoRam();
+      didPreload = true;
+      finalQuickStatus = `Loaded ${modelId} into memory.`;
+    } catch (error) {
+      preloadError = error instanceof Error ? error.message : String(error);
+      updateConvertStatus(`Quick model RAM load failed: ${preloadError}`, 0);
+      updateDiagnosticsStatus(`Quick model RAM load failed: ${preloadError}`, true);
+      finalQuickStatus = `Imported ${modelId}, but RAM load failed: ${preloadError}`;
+    }
+  }
+
+  return { modelId, didPreload, preloadError, finalQuickStatus };
+}
+
+function shouldAutoPreloadAfterDownload() {
+  if (!isModeModelSelectable(state.uiMode)) return false;
+  if (state.uiMode === 'models' || state.uiMode === 'diagnostics') return false;
+  if (state.uiMode === 'translate' && state.compareEnabled) return false;
+  return true;
+}
+
+async function preloadQuickModelIntoRam() {
+  if (!shouldAutoPreloadAfterDownload()) return;
+
+  if (state.uiMode === 'diffusion') {
+    await ensureDiffusionPipeline();
+    return;
+  }
+
+  if (state.uiMode === 'energy') {
+    const modelId = getSelectedModelId();
+    if (!modelId) return;
+    const modelType = normalizeModelType(await getModelTypeForId(modelId));
+    if (modelType !== 'energy') return;
+    await ensureEnergyPipeline();
+    return;
+  }
+
+  await ensureRunPipeline();
+}
+
 function isRunnableStorageEntry(entry) {
   return Boolean(entry && !entry.missingStorage && entry.hasManifest);
 }
@@ -3783,8 +3872,9 @@ function describeImportedStorage(modelId) {
   return entry.backend;
 }
 
-async function runQuickModelAction(action, modelId) {
+export async function runQuickModelAction(action, modelId) {
   if (action !== 'download') return;
+  if (state.downloadActive) return;
   const entry = findQuickModelEntry(modelId);
   if (!entry) {
     updateConvertStatus(`Quick model not found: ${modelId}`, 0);
@@ -3802,12 +3892,17 @@ async function runQuickModelAction(action, modelId) {
   updateModelEmptyStates();
   renderQuickModelPanels();
   try {
-    await importQuickModelEntry(entry);
-    finalQuickStatus = `Fetched ${modelId} to ${describeImportedStorage(modelId)}.`;
+    const preloadResult = await importQuickModelAndMaybePreload(entry);
+    finalQuickStatus = preloadResult.finalQuickStatus;
     renderQuickModelPanels();
+    // Auto-refresh model list and trigger generation in run mode
+    await refreshModelList();
+    if (state.uiMode === 'run' && !state.runGenerating) {
+      handleRunGenerate().catch((err) => log.error('DopplerDemo', `Auto-generate after import failed: ${err.message}`));
+    }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    finalQuickStatus = `Fetch failed: ${message}`;
+    finalQuickStatus = `Import failed: ${message}`;
     updateConvertStatus(`Quick model action failed: ${message}`, 0);
     updateDiagnosticsStatus(`Quick model action failed: ${message}`, true);
   } finally {
@@ -3871,11 +3966,11 @@ function updateModelEmptyStates() {
 
   const diffusionRun = $('diffusion-run-btn');
   if (diffusionRun) {
-    diffusionRun.disabled = state.diffusionGenerating || state.diffusionLoading || !!diffusionMessage;
+    diffusionRun.disabled = state.diffusionGenerating || state.diffusionLoading || state.downloadActive || !!diffusionMessage;
   }
   const energyRun = $('energy-run-btn');
   if (energyRun) {
-    energyRun.disabled = state.energyGenerating || state.energyLoading || !!energyMessage;
+    energyRun.disabled = state.energyGenerating || state.energyLoading || state.downloadActive || !!energyMessage;
   }
   syncRunControls();
 }
@@ -4299,7 +4394,8 @@ async function refreshModelList() {
       for (const modelId of modelIds) {
         const opt = document.createElement('option');
         opt.value = modelId;
-        opt.textContent = formatModelIdLabel(modelId);
+        const catalogEntry = (state.quickModelCatalog || []).find((e) => e?.modelId === modelId);
+        opt.textContent = resolveText(catalogEntry?.label, formatModelIdLabel(modelId));
         opt.title = modelId;
         modelSelect.appendChild(opt);
       }
@@ -4541,7 +4637,7 @@ function syncRunControls() {
     : (state.uiMode === 'translate' ? 'translate' : 'run');
   const hasCompatibleModel = Number.isFinite(availability[modeKey]) && availability[modeKey] > 0;
   const isRunning = state.runGenerating;
-  const disabled = isRunning || state.runLoading || state.compareGenerating || state.compareLoading;
+  const disabled = isRunning || state.runLoading || state.compareGenerating || state.compareLoading || state.downloadActive;
   if (runPrompt) runPrompt.disabled = disabled;
   if (runGenerate) runGenerate.disabled = disabled || !hasCompatibleModel;
   if (runClear) runClear.disabled = disabled;
@@ -4591,7 +4687,9 @@ function updateRunAutoLabels() {
   const defaultTopK = useTranslateDefaults ? DEFAULT_TRANSLATE_TOP_K : sampling.topK;
   const defaultMaxTokens = useTranslateDefaults
     ? (state.compareEnabled ? TRANSLATE_COMPARE_DEFAULT_MAX_TOKENS : DEFAULT_TRANSLATE_MAX_TOKENS)
-    : batching.maxTokens;
+    : Number.isFinite(Number(batching.maxTokens))
+      ? batching.maxTokens
+      : DEFAULT_TEXT_MAX_TOKENS;
   setRunAutoLabel('temperature-input', 'temperature-auto', defaultTemperature);
   setRunAutoLabel('top-p-input', 'top-p-auto', defaultTopP);
   setRunAutoLabel('top-k-input', 'top-k-auto', defaultTopK, { integer: true });
@@ -4657,6 +4755,8 @@ function buildRunGenerateOptions() {
     if (maxTokens == null) {
       options.maxTokens = DEFAULT_TRANSLATE_MAX_TOKENS;
     }
+  } else if (maxTokens == null) {
+    options.maxTokens = DEFAULT_TEXT_MAX_TOKENS;
   }
   return options;
 }
@@ -4741,7 +4841,7 @@ function drawDiffusionCanvas(result) {
 }
 
 async function handleDiffusionRun() {
-  if (state.diffusionGenerating || state.diffusionLoading) return;
+  if (state.diffusionGenerating || state.diffusionLoading || state.downloadActive) return;
   const promptEl = $('diffusion-prompt');
   const negativeEl = $('diffusion-negative');
   const stepsEl = $('diffusion-steps');
@@ -4875,7 +4975,7 @@ async function runStandaloneQuintelPipeline(request) {
 }
 
 async function handleEnergyRun() {
-  if (state.energyGenerating || state.energyLoading) return;
+  if (state.energyGenerating || state.energyLoading || state.downloadActive) return;
   const demo = getEnergyDemoById(state.energyDemoId) || getEnergyDemoById(DEFAULT_ENERGY_DEMO_ID);
   const problem = 'quintel';
   const size = readOptionalNumber($('energy-quintel-size'), { integer: true });
@@ -4994,7 +5094,7 @@ function handleEnergyClear() {
 }
 
 async function handleRunGenerate() {
-  if (state.runGenerating || state.runLoading) return;
+  if (state.runGenerating || state.runLoading || state.downloadActive) return;
   if (isTranslateCompareEnabled()) {
     await handleTranslateCompareRun();
     return;
@@ -5132,6 +5232,102 @@ async function handleRunGenerate() {
       };
       if (outputEl) outputEl.textContent = output;
       updateRunStatus('Complete');
+    } else if ($('run-token-press-toggle')?.checked && !isTranslateMode) {
+      // Token Press mode — step-by-step generation with confidence visualization
+      if (tokenPressSession) { tokenPressSession.dispose(); tokenPressSession = null; }
+      if (tokenPress) { tokenPress.dispose(); tokenPress = null; }
+
+      const controlsEl = $('tp-controls');
+      if (controlsEl) {
+        controlsEl.hidden = false;
+        controlsEl.innerHTML = '';
+      }
+      if (outputEl) outputEl.classList.add('tp-container');
+
+      tokenPress = createTokenPress(outputEl, controlsEl, {
+        trailSize: 8,
+        topKSize: 10,
+      });
+
+      tokenPressSession = createTokenPressSession(pipeline, tokenPress, generationInput, {
+        maxTokens: options.maxTokens || 128,
+        temperature: options.temperature ?? 0,
+        topP: options.topP ?? 1.0,
+        topK: options.topK ?? 0,
+        topKSize: 10,
+        useChatTemplate: false,
+      });
+
+      tokenPress.attachSession(tokenPressSession);
+
+      // Prefill and show prompt tokens in soft opacity
+      updateRunStatus('Prefilling...');
+      const prefillStart = performance.now();
+      await tokenPressSession.prefill();
+      const prefillTimeMs = performance.now() - prefillStart;
+      const prefillIds = tokenPressSession.prefillTokenIds;
+      const prefillTokens = prefillIds ? prefillIds.length : 0;
+      if (prefillIds && prefillIds.length > 0 && outputEl) {
+        const decode = (ids) => {
+          try { return pipeline.tokenizer?.decode?.(ids, true, false) ?? ''; } catch { return ''; }
+        };
+        const prefillEl = document.createElement('span');
+        prefillEl.className = 'tp-prefill-zone';
+        for (const id of prefillIds) {
+          const span = document.createElement('span');
+          span.className = 'tp-token tp-prefill';
+          span.textContent = decode([id]);
+          prefillEl.appendChild(span);
+        }
+        outputEl.insertBefore(prefillEl, outputEl.firstChild);
+      }
+
+      // Autoplay and wait for completion or abort
+      updateRunStatus('Generating...');
+      const decodeStart = performance.now();
+      let tpFirstTokenAt = 0;
+      tokenPress.play();
+      await new Promise((resolve) => {
+        const check = () => {
+          if (!tokenPress?.playing || tokenPressSession?.finished || controller.signal.aborted) {
+            if (controller.signal.aborted && tokenPress) tokenPress.pause();
+            resolve();
+            return;
+          }
+          const currentTokens = tokenPressSession?.tokenCount ?? 0;
+          if (currentTokens > 0 && !tpFirstTokenAt) {
+            tpFirstTokenAt = performance.now();
+          }
+          if (currentTokens > 0) {
+            const elapsedDecode = Math.max(1, performance.now() - decodeStart);
+            state.lastMetrics = {
+              ...(state.lastMetrics || {}),
+              liveTokensPerSec: currentTokens / (elapsedDecode / 1000),
+            };
+            const snapshot = captureMemorySnapshot();
+            state.lastMemoryStats = pipeline?.getMemoryStats?.() ?? state.lastMemoryStats;
+            updateMemoryPanel(snapshot);
+            updatePerformancePanel(snapshot);
+          }
+          requestAnimationFrame(check);
+        };
+        check();
+      });
+      tokenCount = tokenPressSession?.tokenCount ?? 0;
+      const decodeTimeMs = performance.now() - decodeStart;
+      const ttftMs = tpFirstTokenAt ? tpFirstTokenAt - decodeStart : prefillTimeMs;
+      const totalTimeMs = prefillTimeMs + decodeTimeMs;
+      state.lastInferenceStats = {
+        ...(state.lastInferenceStats || {}),
+        prefillTimeMs,
+        prefillTokens,
+        ttftMs,
+        decodeTimeMs,
+        decodeTokens: tokenCount,
+        totalTimeMs,
+        tokensGenerated: tokenCount,
+      };
+      updateRunStatus(controller.signal.aborted ? 'Stopped' : 'Complete');
     } else {
       for await (const token of pipeline.generate(generationInput, {
         ...options,
@@ -5208,6 +5404,12 @@ function handleRunClear() {
     setStarterExampleInput(promptEl, false);
   }
   if (outputEl) outputEl.textContent = '';
+  if (tokenPressSession) { tokenPressSession.dispose(); tokenPressSession = null; }
+  if (tokenPress) { tokenPress.dispose(); tokenPress = null; }
+  const tpControls = $('tp-controls');
+  if (tpControls) { tpControls.hidden = true; tpControls.innerHTML = ''; }
+  const runOutput = $('run-output');
+  if (runOutput) runOutput.classList.remove('tp-container');
   for (const laneId of getCompareLaneIds()) {
     clearCompareLaneResult(laneId);
     renderTranslateCompareLane(laneId);
@@ -5792,8 +5994,9 @@ async function handleConvertUrls() {
       `Found ${registryEntry.modelId} in Doppler registry. Importing prebuilt RDRR instead of converting...`,
       0
     );
-    await importQuickModelEntry(registryEntry);
-    updateConvertStatus(`Imported prebuilt RDRR package: ${registryEntry.modelId}`, 100);
+    const preloadResult = await importQuickModelAndMaybePreload(registryEntry);
+    const percent = preloadResult.preloadError ? 0 : 100;
+    updateConvertStatus(preloadResult.finalQuickStatus, percent);
     return;
   }
 
@@ -6140,6 +6343,7 @@ function bindUI() {
     const action = button.dataset.quickAction || '';
     const modelId = button.dataset.quickModelId || '';
     if (!action || !modelId) return;
+    if (state.downloadActive) return;
     runQuickModelAction(action, modelId).catch((error) => {
       const message = error instanceof Error ? error.message : String(error);
       updateConvertStatus(`Quick model action failed: ${message}`, 0);
@@ -6602,7 +6806,7 @@ function syncMobileAdvanced() {
   });
 }
 
-async function initDemo() {
+export async function initDemo() {
   state.appInitializing = true;
   ensureTranslateCompareRuntimeState();
   hydrateTranslateCompareHistory();
@@ -6672,5 +6876,13 @@ async function initDemo() {
     state.appInitializing = false;
     setAppBootstrapVisible(false);
     updateStatusIndicator();
+  }
+  // Auto-trigger generation if a model is selected and prompt has content
+  if (state.uiMode === 'run' && !state.runGenerating) {
+    const modelSelect = $('diagnostics-model');
+    const promptEl = $('run-prompt');
+    if (modelSelect?.value && promptEl?.value?.trim()) {
+      handleRunGenerate().catch((err) => log.error('DopplerDemo', `Auto-generate on init failed: ${err.message}`));
+    }
   }
 }

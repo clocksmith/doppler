@@ -516,7 +516,7 @@ export function toParsedConfigFromMerged(merged, manifest) {
   const ropeLocalScalingType = inf.rope.ropeLocalScalingType;
   const partialRotaryFactor = inf.rope.partialRotaryFactor;
   const mropeInterleaved = inf.rope.mropeInterleaved === true;
-  const ropeInterleaved = mropeInterleaved;
+  const ropeInterleaved = false;
 
   if (ropeLocalScale == null && (inf.rope.ropeLocalTheta != null || inf.rope.mropeSection != null)) {
     throw new Error(

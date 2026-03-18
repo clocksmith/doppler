@@ -3,7 +3,7 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
-const { bootstrapNodeWebGPU } = await import('../../src/tooling/node-webgpu.js');
+const { probeNodeGPU } = await import('../helpers/gpu-probe.js');
 const { convertSafetensorsDirectory } = await import('../../src/tooling/node-converter.js');
 const { resolveNodeSourceRuntimeBundle } = await import('../../src/tooling/node-source-runtime.js');
 const { parseManifest } = await import('../../src/formats/rdrr/index.js');
@@ -297,16 +297,9 @@ try {
   });
   assert.ok(sourceBundle, 'Direct-source runtime bundle is required.');
 
-  let webgpuReady = false;
-  try {
-    await bootstrapNodeWebGPU();
-    webgpuReady = typeof globalThis.navigator !== 'undefined' && !!globalThis.navigator.gpu;
-  } catch {
-    webgpuReady = false;
-  }
-
-  if (!webgpuReady) {
-    console.log('source-runtime-parity.test: skipped (no WebGPU runtime)');
+  const gpuProbe = await probeNodeGPU();
+  if (!gpuProbe.ready) {
+    console.log(`source-runtime-parity.test: skipped (${gpuProbe.reason})`);
   } else {
     const device = await initDevice();
     const rdrrManifest = parseManifest(readFileSync(path.join(outputDir, 'manifest.json'), 'utf8'));
