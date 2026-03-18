@@ -1,0 +1,406 @@
+{
+  "suite": "bench",
+  "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+  "runtimePreset": null,
+  "deviceInfo": {
+    "hasSubgroups": true,
+    "hasSubgroupsF16": false,
+    "hasF16": true,
+    "hasTimestampQuery": true,
+    "maxBufferSize": 4294967292,
+    "maxWorkgroupSize": 1024,
+    "maxWorkgroupStorageSize": 65536,
+    "adapterInfo": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "amd-radeon-graphics-radv-gfx1151-",
+      "description": "radv: Mesa 25.0.7-0ubuntu0.25.04.2"
+    }
+  },
+  "results": [
+    {
+      "name": "benchmark",
+      "passed": true,
+      "duration": 4101.429055000008
+    }
+  ],
+  "durationMs": 55889.151169000004,
+  "timestamp": "2026-03-18T20:55:31.405Z",
+  "metrics": {
+    "warmupRuns": 2,
+    "timedRuns": 3,
+    "prompt": "user: Answer in one short sentence: What color is the sky on a clear day?",
+    "maxTokens": 128,
+    "decodeTokensPerSec": 20.64,
+    "avgTokensGenerated": 15,
+    "avgPrefillTokens": 28,
+    "avgDecodeTokens": 15,
+    "medianPrefillTokensPerSec": 40.91,
+    "avgPrefillTokensPerSec": 44.44,
+    "medianPrefillTokensPerSecTtft": 40.87,
+    "avgPrefillTokensPerSecTtft": 44.39,
+    "avgDecodeTokensPerSec": 20.72,
+    "firstTokenMs": 685.12,
+    "firstResponseMs": 49511.46,
+    "prefillMs": 684.42,
+    "decodeMs": 726.7,
+    "totalRunMs": 1394.91,
+    "decodeMsPerTokenP50": 48.45,
+    "decodeMsPerTokenP95": 49.01,
+    "decodeMsPerTokenP99": 49.06,
+    "avgPrefillMs": 641.89,
+    "modelLoadMs": 48826.34,
+    "throughput": {
+      "tokensPerSec": {
+        "mean": 11.007376653605705,
+        "median": 10.753364670454067,
+        "min": 10.388059034176033,
+        "max": 11.880706256187018,
+        "p95": 11.767972097613724,
+        "p99": 11.858159424472358,
+        "stdDev": 0.7780684404554328,
+        "ci95": 1.3476540706346893,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "prefillTokensPerSec": {
+        "mean": 44.4440656534723,
+        "median": 40.91058308276064,
+        "min": 39.09876798008695,
+        "max": 53.3228458975693,
+        "p95": 52.08161961608843,
+        "p99": 53.07460064127313,
+        "stdDev": 7.74243000993839,
+        "ci95": 13.410282151259299,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "prefillTokensPerSecTtft": {
+        "mean": 44.3940792601418,
+        "median": 40.868846632645344,
+        "min": 39.06106403725126,
+        "max": 53.252327110528775,
+        "p95": 52.01397906274043,
+        "p99": 53.004657500971106,
+        "stdDev": 7.724534659914253,
+        "ci95": 13.379286495798265,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "decodeTokensPerSec": {
+        "mean": 20.721875174232228,
+        "median": 20.641372496708414,
+        "min": 20.378068351733617,
+        "max": 21.14618467425465,
+        "p95": 21.095703456500026,
+        "p99": 21.136088430703722,
+        "stdDev": 0.39033470515339197,
+        "ci95": 0.6760795412830922,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      }
+    },
+    "latency": {
+      "totalMs": {
+        "mean": 1367.143018333336,
+        "median": 1394.912240000005,
+        "min": 1262.5512050000034,
+        "max": 1443.9656099999993,
+        "p95": 1439.0602729999998,
+        "p99": 1442.9845425999995,
+        "stdDev": 93.84105625660386,
+        "ci95": 162.53747727236717,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "prefillMs": {
+        "mean": 641.8859443333349,
+        "median": 684.4194800000041,
+        "min": 525.1032560000021,
+        "max": 716.1350969999985,
+        "p95": 712.9635352999991,
+        "p99": 715.5007846599987,
+        "stdDev": 102.3724441009046,
+        "ci95": 177.3142744777716,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "decodeMs": {
+        "mean": 724.0430506666695,
+        "median": 726.6958630000008,
+        "min": 709.3478200000027,
+        "max": 736.0854690000051,
+        "p95": 735.1465084000047,
+        "p99": 735.8976768800051,
+        "stdDev": 13.564790026710277,
+        "ci95": 23.49490552026579,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "firstTokenMs": {
+        "mean": 642.5811326666662,
+        "median": 685.1184290000019,
+        "min": 525.7986180000007,
+        "max": 716.8263509999961,
+        "p95": 713.6555587999967,
+        "p99": 716.1921925599962,
+        "stdDev": 102.37169959657741,
+        "ci95": 177.31298495845044,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      }
+    },
+    "tokens": {
+      "generated": {
+        "mean": 15,
+        "median": 15,
+        "min": 15,
+        "max": 15,
+        "p95": 15,
+        "p99": 15,
+        "stdDev": 0,
+        "ci95": 0,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "prefill": {
+        "mean": 28,
+        "median": 28,
+        "min": 28,
+        "max": 28,
+        "p95": 28,
+        "p99": 28,
+        "stdDev": 0,
+        "ci95": 0,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "decode": {
+        "mean": 15,
+        "median": 15,
+        "min": 15,
+        "max": 15,
+        "p95": 15,
+        "p99": 15,
+        "stdDev": 0,
+        "ci95": 0,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      }
+    },
+    "gpu": {
+      "prefillMs": {
+        "mean": 0,
+        "median": 0,
+        "min": 0,
+        "max": 0,
+        "p95": 0,
+        "p99": 0,
+        "stdDev": 0,
+        "ci95": 0,
+        "samples": 0,
+        "samplesAfterOutlierRemoval": 0,
+        "outliersRemoved": 0
+      },
+      "decodeMs": {
+        "mean": 0,
+        "median": 0,
+        "min": 0,
+        "max": 0,
+        "p95": 0,
+        "p99": 0,
+        "stdDev": 0,
+        "ci95": 0,
+        "samples": 0,
+        "samplesAfterOutlierRemoval": 0,
+        "outliersRemoved": 0
+      },
+      "decodeRecordMs": {
+        "mean": 0,
+        "median": 0,
+        "min": 0,
+        "max": 0,
+        "p95": 0,
+        "p99": 0,
+        "stdDev": 0,
+        "ci95": 0,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "decodeSubmitWaitMs": {
+        "mean": 0,
+        "median": 0,
+        "min": 0,
+        "max": 0,
+        "p95": 0,
+        "p99": 0,
+        "stdDev": 0,
+        "ci95": 0,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "decodeReadbackWaitMs": {
+        "mean": 0,
+        "median": 0,
+        "min": 0,
+        "max": 0,
+        "p95": 0,
+        "p99": 0,
+        "stdDev": 0,
+        "ci95": 0,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      }
+    },
+    "generatedText": "The sky appears blue because of the scattering of sunlight by air molecules.",
+    "schemaVersion": 1,
+    "source": "doppler",
+    "suite": "bench",
+    "executionContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "qwen-3-5-0-8b-q4k-ehaf16.steps",
+          "ok": true
+        },
+        {
+          "id": "qwen-3-5-0-8b-q4k-ehaf16.session",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "session": {
+        "layout": "contiguous",
+        "disableCommandBatching": true,
+        "decodeBatchSize": 4,
+        "headDim": 256,
+        "kvLen": 262144,
+        "coldQuantMode": "none"
+      },
+      "steps": {
+        "total": 0,
+        "attention": 0,
+        "attentionPhases": {
+          "prefill": 0,
+          "decode": 0,
+          "both": 0
+        }
+      },
+      "executionV0": {
+        "kernelProfiles": null,
+        "graph": null
+      }
+    },
+    "executionV0GraphContractArtifact": null,
+    "layerPatternContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "inference.layerPattern.patternKind.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.patternKind.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.even",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.odd",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_offset",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_negative_offset",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "patternKindRules": 4,
+        "layerTypeRules": 6,
+        "patternKindContexts": 16,
+        "layerTypeContexts": 12
+      }
+    },
+    "requiredInferenceFieldsArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "scope": "manifest",
+      "label": "qwen-3-5-0-8b-q4k-ehaf16.inference",
+      "ok": true,
+      "checks": [
+        {
+          "id": "qwen-3-5-0-8b-q4k-ehaf16.inference.requiredInferenceFields",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "fieldCases": 35,
+        "nullableCases": 16,
+        "nonNullableCases": 19
+      }
+    }
+  },
+  "output": null,
+  "memory": {
+    "used": 1210934528,
+    "pool": {
+      "allocations": 3178,
+      "reuses": 33226,
+      "totalBytesAllocated": 1541892096,
+      "peakBytesAllocated": 1094044672,
+      "currentBytesAllocated": 1009607936,
+      "totalBytesRequested": 1349313280,
+      "peakBytesRequested": 988454144,
+      "currentBytesRequested": 914774016,
+      "activeBuffers": 500,
+      "pooledBuffers": 56,
+      "budgetMaxBytes": 0,
+      "budgetUtilization": 0,
+      "hitRate": "91.3%"
+    },
+    "kvCache": {
+      "theoretical": 201326592,
+      "allocated": 201326592,
+      "used": 2064384,
+      "efficiency": 0.01025390625,
+      "seqLen": 42,
+      "maxSeqLen": 4096,
+      "layout": "contiguous"
+    }
+  },
+  "debugSnapshot": null
+}
