@@ -1,0 +1,406 @@
+{
+  "suite": "bench",
+  "modelId": "qwen-3-5-2b-q4k-ehaf16",
+  "runtimePreset": null,
+  "deviceInfo": {
+    "hasSubgroups": true,
+    "hasSubgroupsF16": false,
+    "hasF16": true,
+    "hasTimestampQuery": true,
+    "maxBufferSize": 4294967292,
+    "maxWorkgroupSize": 1024,
+    "maxWorkgroupStorageSize": 65536,
+    "adapterInfo": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "amd-radeon-graphics-radv-gfx1151-",
+      "description": "radv: Mesa 25.0.7-0ubuntu0.25.04.2"
+    }
+  },
+  "results": [
+    {
+      "name": "benchmark",
+      "passed": true,
+      "duration": 29986.53284700001
+    }
+  ],
+  "durationMs": 108012.99384899999,
+  "timestamp": "2026-03-18T21:23:56.749Z",
+  "metrics": {
+    "warmupRuns": 1,
+    "timedRuns": 3,
+    "prompt": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 word30 word31 word32 word33 word34 word35 word36 word37 word38 word39 word40 word41 word42 word43 word44 word45 word46 word47 word48 word49 word50 word51 word52 word53 word54 word55 word56 word57 word58 word59 word60 word61 word62 word63",
+    "maxTokens": 64,
+    "decodeTokensPerSec": 10.07,
+    "avgTokensGenerated": 64,
+    "avgPrefillTokens": 182,
+    "avgDecodeTokens": 64,
+    "medianPrefillTokensPerSec": 49.5,
+    "avgPrefillTokensPerSec": 49.5,
+    "medianPrefillTokensPerSecTtft": 49.48,
+    "avgPrefillTokensPerSecTtft": 49.49,
+    "avgDecodeTokensPerSec": 10.13,
+    "firstTokenMs": 3677.89,
+    "firstResponseMs": 71225.87,
+    "prefillMs": 3676.93,
+    "decodeMs": 6353.6,
+    "totalRunMs": 10040.16,
+    "decodeMsPerTokenP50": 99.28,
+    "decodeMsPerTokenP95": 99.5,
+    "decodeMsPerTokenP99": 99.52,
+    "avgPrefillMs": 3676.55,
+    "modelLoadMs": 67547.98,
+    "throughput": {
+      "tokensPerSec": {
+        "mean": 6.403178944547424,
+        "median": 6.374398044265833,
+        "min": 6.369412163052194,
+        "max": 6.465726626324245,
+        "p95": 6.456593768118403,
+        "p99": 6.4639000546830765,
+        "stdDev": 0.05422521668568962,
+        "ci95": 0.09392083035104608,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "prefillTokensPerSec": {
+        "mean": 49.503153411454754,
+        "median": 49.49780142596573,
+        "min": 49.38537794202373,
+        "max": 49.62628086637482,
+        "p95": 49.613432922333914,
+        "p99": 49.62371127756664,
+        "stdDev": 0.12054060540636434,
+        "ci95": 0.20878245293893474,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "prefillTokensPerSecTtft": {
+        "mean": 49.48875853701469,
+        "median": 49.48492052990802,
+        "min": 49.375013265974246,
+        "max": 49.6063418151618,
+        "p95": 49.59419968663642,
+        "p99": 49.60391338945672,
+        "stdDev": 0.11571202245755424,
+        "ci95": 0.20041910194303492,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "decodeTokensPerSec": {
+        "mean": 10.132048260723153,
+        "median": 10.073028903963253,
+        "min": 10.047814255814288,
+        "max": 10.275301622391915,
+        "p95": 10.255074350549048,
+        "p99": 10.271256168023342,
+        "stdDev": 0.12469999535834007,
+        "ci95": 0.21598672766424817,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      }
+    },
+    "latency": {
+      "totalMs": {
+        "mean": 9995.510949000003,
+        "median": 10040.163723000005,
+        "min": 9898.346109999999,
+        "max": 10048.023014000006,
+        "p95": 10047.237084900005,
+        "p99": 10047.865828180005,
+        "stdDev": 84.23892548684533,
+        "ci95": 145.90609891822496,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "prefillMs": {
+        "mean": 3676.547992666669,
+        "median": 3676.930990000008,
+        "min": 3667.411638000005,
+        "max": 3685.3013499999943,
+        "p95": 3684.4643139999957,
+        "p99": 3685.1339427999947,
+        "stdDev": 8.95100352355244,
+        "ci95": 15.503592881520872,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "decodeMs": {
+        "mean": 6317.224157999993,
+        "median": 6353.600352999987,
+        "min": 6228.527623999995,
+        "max": 6369.544496999995,
+        "p95": 6367.950082599995,
+        "p99": 6369.225614119995,
+        "stdDev": 77.22603375599964,
+        "ci95": 133.75941413242057,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "firstTokenMs": {
+        "mean": 3677.6162633333297,
+        "median": 3677.8880930000014,
+        "min": 3668.885737999997,
+        "max": 3686.0749589999905,
+        "p95": 3685.2562723999918,
+        "p99": 3685.911221679991,
+        "stdDev": 8.597833923286407,
+        "ci95": 14.891885190171312,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      }
+    },
+    "tokens": {
+      "generated": {
+        "mean": 64,
+        "median": 64,
+        "min": 64,
+        "max": 64,
+        "p95": 64,
+        "p99": 64,
+        "stdDev": 0,
+        "ci95": 0,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "prefill": {
+        "mean": 182,
+        "median": 182,
+        "min": 182,
+        "max": 182,
+        "p95": 182,
+        "p99": 182,
+        "stdDev": 0,
+        "ci95": 0,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "decode": {
+        "mean": 64,
+        "median": 64,
+        "min": 64,
+        "max": 64,
+        "p95": 64,
+        "p99": 64,
+        "stdDev": 0,
+        "ci95": 0,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      }
+    },
+    "gpu": {
+      "prefillMs": {
+        "mean": 0,
+        "median": 0,
+        "min": 0,
+        "max": 0,
+        "p95": 0,
+        "p99": 0,
+        "stdDev": 0,
+        "ci95": 0,
+        "samples": 0,
+        "samplesAfterOutlierRemoval": 0,
+        "outliersRemoved": 0
+      },
+      "decodeMs": {
+        "mean": 0,
+        "median": 0,
+        "min": 0,
+        "max": 0,
+        "p95": 0,
+        "p99": 0,
+        "stdDev": 0,
+        "ci95": 0,
+        "samples": 0,
+        "samplesAfterOutlierRemoval": 0,
+        "outliersRemoved": 0
+      },
+      "decodeRecordMs": {
+        "mean": 0,
+        "median": 0,
+        "min": 0,
+        "max": 0,
+        "p95": 0,
+        "p99": 0,
+        "stdDev": 0,
+        "ci95": 0,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "decodeSubmitWaitMs": {
+        "mean": 0,
+        "median": 0,
+        "min": 0,
+        "max": 0,
+        "p95": 0,
+        "p99": 0,
+        "stdDev": 0,
+        "ci95": 0,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "decodeReadbackWaitMs": {
+        "mean": 0,
+        "median": 0,
+        "min": 0,
+        "max": 0,
+        "p95": 0,
+        "p99": 0,
+        "stdDev": 0,
+        "ci95": 0,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      }
+    },
+    "generatedText": " word64 word65 word66 word67 word68 word69 word70 word71 word72 word73 word74 word75 word76 word77 word78 word79 word80 word81 word82 word83 word84 word",
+    "schemaVersion": 1,
+    "source": "doppler",
+    "suite": "bench",
+    "executionContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "qwen-3-5-2b-q4k-ehaf16.steps",
+          "ok": true
+        },
+        {
+          "id": "qwen-3-5-2b-q4k-ehaf16.session",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "session": {
+        "layout": "contiguous",
+        "disableCommandBatching": true,
+        "decodeBatchSize": 4,
+        "headDim": 256,
+        "kvLen": 262144,
+        "coldQuantMode": "none"
+      },
+      "steps": {
+        "total": 0,
+        "attention": 0,
+        "attentionPhases": {
+          "prefill": 0,
+          "decode": 0,
+          "both": 0
+        }
+      },
+      "executionV0": {
+        "kernelProfiles": null,
+        "graph": null
+      }
+    },
+    "executionV0GraphContractArtifact": null,
+    "layerPatternContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "inference.layerPattern.patternKind.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.patternKind.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.even",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.odd",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_offset",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_negative_offset",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "patternKindRules": 4,
+        "layerTypeRules": 6,
+        "patternKindContexts": 16,
+        "layerTypeContexts": 12
+      }
+    },
+    "requiredInferenceFieldsArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "scope": "manifest",
+      "label": "qwen-3-5-2b-q4k-ehaf16.inference",
+      "ok": true,
+      "checks": [
+        {
+          "id": "qwen-3-5-2b-q4k-ehaf16.inference.requiredInferenceFields",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "fieldCases": 35,
+        "nullableCases": 16,
+        "nonNullableCases": 19
+      }
+    }
+  },
+  "output": null,
+  "memory": {
+    "used": 2572858624,
+    "pool": {
+      "allocations": 8989,
+      "reuses": 111554,
+      "totalBytesAllocated": 6679202048,
+      "peakBytesAllocated": 3396449024,
+      "currentBytesAllocated": 2371532032,
+      "totalBytesRequested": 4799718400,
+      "peakBytesRequested": 2709593856,
+      "currentBytesRequested": 2006167552,
+      "activeBuffers": 682,
+      "pooledBuffers": 62,
+      "budgetMaxBytes": 0,
+      "budgetUtilization": 0,
+      "hitRate": "92.5%"
+    },
+    "kvCache": {
+      "theoretical": 201326592,
+      "allocated": 201326592,
+      "used": 12042240,
+      "efficiency": 0.059814453125,
+      "seqLen": 245,
+      "maxSeqLen": 4096,
+      "layout": "contiguous"
+    }
+  },
+  "debugSnapshot": null
+}
