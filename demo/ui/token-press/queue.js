@@ -114,5 +114,8 @@ export function createTokenQueue(options = {}) {
     get cursor() { return committed.length; },
     get total() { return committed.length + pending.length; },
     get committed() { return committed; },
+    getState() {
+      return { committed, cursor: committed.length, total: committed.length + pending.length, playing };
+    },
   };
 }
