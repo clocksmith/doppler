@@ -8,7 +8,21 @@ const { bootstrapNodeWebGPU } = await import('../../src/tooling/node-webgpu.js')
 
 const MODEL_DIR = path.resolve('models/local/translategemma-4b-it-q4k-ehf16-af32');
 const MANIFEST_PATH = path.join(MODEL_DIR, 'manifest.json');
-const PROMPT = 'Translate English to French: Hello world.';
+const PROMPT = Object.freeze({
+  messages: Object.freeze([
+    Object.freeze({
+      role: 'user',
+      content: Object.freeze([
+        Object.freeze({
+          type: 'text',
+          source_lang_code: 'en',
+          target_lang_code: 'fr',
+          text: 'Hello world.',
+        }),
+      ]),
+    }),
+  ]),
+});
 const RUNTIME_CONFIG = Object.freeze({
   shared: {
     tooling: {

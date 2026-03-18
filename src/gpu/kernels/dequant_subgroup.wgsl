@@ -118,11 +118,15 @@ fn get_q4(qs: array<u32, 32>, idx: u32) -> u32 {
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(
     @builtin(global_invocation_id) global_id: vec3<u32>,
+    @builtin(num_workgroups) num_wg: vec3<u32>,
     @builtin(subgroup_invocation_id) sg_id: u32,
     @builtin(subgroup_size) sg_size: u32
 ) {
-    let block_idx = global_id.x / QK_K;
-    let elem_idx = global_id.x % QK_K;
+    // Support 2D dispatch for tensors with >65535 workgroups.
+    // Compute flat global thread id across both X and Y dimensions.
+    let flat_global_x = global_id.x + global_id.y * num_wg.x * WORKGROUP_SIZE;
+    let block_idx = flat_global_x / QK_K;
+    let elem_idx = flat_global_x % QK_K;
 
     // Use block 0 for out-of-bounds threads to maintain uniform control flow
     // (required for subgroup operations)

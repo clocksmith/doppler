@@ -115,9 +115,11 @@ fn get_q4(qs: array<u32, 32>, idx: u32) -> u32 {
 fn main(
     @builtin(global_invocation_id) global_id: vec3<u32>,
     @builtin(local_invocation_id) local_id: vec3<u32>,
-    @builtin(workgroup_id) workgroup_id: vec3<u32>
+    @builtin(workgroup_id) workgroup_id: vec3<u32>,
+    @builtin(num_workgroups) num_wg: vec3<u32>
 ) {
-    let block_idx = workgroup_id.x;
+    // Support 2D dispatch for tensors with >65535 blocks.
+    let block_idx = workgroup_id.x + workgroup_id.y * num_wg.x;
     let elem_idx = local_id.x;
 
     if (block_idx >= u.num_blocks) {
