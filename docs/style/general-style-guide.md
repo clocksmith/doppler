@@ -311,6 +311,33 @@ When adding a new inference knob or model behavior:
 
 **Enforcement**: Manifest validation now fails if config flags don't match tensor presence.
 
+### Weight-Interpretation Flag Verification (Required)
+
+**Flags that control how weights are interpreted at runtime must be verified against actual weight values, not inferred from HF class names or code inspection alone.**
+
+Affected flags include `rmsNormWeightOffset`, `scaleEmbeddings`, and any flag that changes the arithmetic applied to stored weights (e.g., `(1 + weight) * x` vs `weight * x`).
+
+**Verification procedure** before changing any weight-interpretation flag:
+
+1. **Sample actual weight values** from the RDRR shards (or source safetensors) for the relevant tensors.
+2. **Check the distribution**:
+   - `rmsNormWeightOffset: true` (Gemma-style): norm weights cluster near **0.0** (identity = `1 + 0 = 1`).
+   - `rmsNormWeightOffset: false` (standard): norm weights cluster near **1.0** (identity = `1 * x`).
+3. **Run inference before AND after** the change to confirm coherence is preserved.
+4. **Never patch external volume manifests** without first confirming the change produces coherent output on the patched model.
+
+**Why this matters**: The 2026-03-18 Qwen 3.5 incident: an agent changed `rmsNormWeightOffset` from `true` to `false` based on HF's `Qwen3_5RMSNorm` class name appearing to be "standard RMSNorm." The actual norm weights (mean ~0.24–0.65) proved the model uses Gemma-style `(1 + weight)` initialization. The change broke both Qwen models instantly (output collapsed to all-newlines/spaces). HF class names are not reliable indicators of weight initialization patterns.
+
+```javascript
+// DON'T: Change flags based on HF source code alone
+// "Qwen3_5RMSNorm looks like standard RMSNorm" → set rmsNormWeightOffset: false
+// WRONG — class name does not determine weight initialization
+
+// DO: Sample weight values first
+// Norm weights mean ~0.3 → Gemma-style (1 + weight) → rmsNormWeightOffset: true
+// Norm weights mean ~1.0 → Standard (weight) → rmsNormWeightOffset: false
+```
+
 ### KV Cache Dtype Policy
 
 - Default KV cache dtype to `f16` when supported.
