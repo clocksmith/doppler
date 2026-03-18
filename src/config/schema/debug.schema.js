@@ -39,6 +39,30 @@ export const DEFAULT_TRACE_CONFIG = {
 };
 
 // =============================================================================
+// Loader Debug Config
+// =============================================================================
+
+export const DEFAULT_LOADER_DEBUG_CONFIG = {
+  enabled: false,
+  forceGpuDequant: false,
+  failOnCpuDequantPath: false,
+  runQ4KDequantParity: false,
+  q4kDequantParitySamples: 256,
+};
+
+// =============================================================================
+// Kernel Debug Config
+// =============================================================================
+
+export const DEFAULT_MATMUL_DEBUG_CONFIG = {
+  enabled: false,
+  forceSplitQKV: false,
+  validateAttentionWeightBuffer: false,
+  failOnSmallAttentionWeightBuffer: false,
+  logAttentionWeightBuffer: false,
+};
+
+// =============================================================================
 // Kernel Trace Config (kernel-trace.js anomaly detection)
 // =============================================================================
 
@@ -100,6 +124,8 @@ export const DEFAULT_DEBUG_CONFIG = {
   logLevel: DEFAULT_LOG_LEVEL_CONFIG,
   trace: DEFAULT_TRACE_CONFIG,
   pipeline: DEFAULT_PIPELINE_DEBUG_CONFIG,
+  loader: DEFAULT_LOADER_DEBUG_CONFIG,
+  matmul: DEFAULT_MATMUL_DEBUG_CONFIG,
   probes: [],
   profiler: DEFAULT_PROFILER_CONFIG,
   perfGuards: DEFAULT_PERF_GUARDS_CONFIG,

@@ -339,7 +339,9 @@ export async function projectAttentionQKV({
   const hasLoRA = getLoRAModule(lora, layerIdx, 'q_proj')
     || getLoRAModule(lora, layerIdx, 'k_proj')
     || getLoRAModule(lora, layerIdx, 'v_proj');
-  const useFusedQKV = selectRuleValue('inference', 'attention', 'useFusedQkv', {
+  // PROBE: set true to force non-fused Q/K/V path for split-vs-fused diagnostic
+  const FORCE_SPLIT_QKV = true;
+  const useFusedQKV = !FORCE_SPLIT_QKV && selectRuleValue('inference', 'attention', 'useFusedQkv', {
     hasQkvProj: Boolean(layerWeights.qkvProj),
     hasQkvSizes: Boolean(layerWeights.qkvSizes),
     hasLoRA: Boolean(hasLoRA),
