@@ -526,7 +526,7 @@
       "modelId": "granite-docling-258m-q4k-ehf16-af32",
       "preset": "granite-docling",
       "label": "Granite-Docling 258M (Q4K)",
-      "description": "IBM Granite-Docling 258M. Stabilized production successor to SmolDocling-256M-preview. SigLIP-B/16 vision encoder + SmolLM2 decoder with pixel-shuffle MLP connector + DocTags output format. Full-page document OCR: text, tables, equations, layout. Requires Doppler multimodal pipeline (not yet implemented). See counsel/todo/OCR_MODEL_EVALUATION.md for architecture evaluation.",
+      "description": "IBM Granite-Docling 258M. Stabilized production successor to SmolDocling-256M-preview. SigLIP-B/16 vision encoder + SmolLM2 decoder with pixel-shuffle MLP connector + DocTags output format. Full-page document OCR: text, tables, equations, layout. Requires Doppler multimodal pipeline (not yet implemented). See columbo/todo/OCR_MODEL_EVALUATION.md for architecture evaluation.",
       "modes": [
         "ocr"
       ],
