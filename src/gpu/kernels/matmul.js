@@ -2,7 +2,7 @@ import { getDevice, getKernelCapabilities } from '../device.js';
 import { createTensor } from '../tensor.js';
 import { getBuffer, getLayout, getWeightDtype } from '../weight-buffer.js';
 import { log, trace, isTraceEnabled } from '../../debug/index.js';
-import { releaseBuffer } from '../../memory/buffer-pool.js';
+import { releaseBuffer, readBuffer } from '../../memory/buffer-pool.js';
 import { releaseUniformBuffer } from '../uniform-cache.js';
 import { castF16ToF32, recordCastF16ToF32 } from './cast.js';
 import {
@@ -33,6 +33,24 @@ export { createMatmulBindGroupLayout };
 
 let _runMatmulDebugCount = 0;
 let _recordMatmulDebugCount = 0;
+
+function normalizeMatmulDebugConfig(config) {
+  if (!config || typeof config !== 'object') {
+    return null;
+  }
+  return {
+    enabled: config.enabled === true,
+    forceSplitQKV: config.forceSplitQKV === true,
+    validateAttentionWeightBuffer: config.validateAttentionWeightBuffer === true,
+    failOnSmallAttentionWeightBuffer: config.failOnSmallAttentionWeightBuffer === true,
+    logAttentionWeightBuffer: config.logAttentionWeightBuffer === true,
+    logProjectionValues: config.logProjectionValues === true,
+  };
+}
+
+function isAttentionProjectionRole(role = '') {
+  return role === 'qkv_proj' || role === 'q_proj' || role === 'k_proj' || role === 'v_proj';
+}
 
 function getDebugCounter(isRecord) {
   return isRecord ? _recordMatmulDebugCount : _runMatmulDebugCount;
@@ -126,6 +144,12 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
   const weightLabel = (B && typeof B === 'object' ? B.label : null) ?? bBuffer?.label ?? null;
   const weightLayout = getLayout(B);
   const weightShape = B?.shape ? `[${B.shape.join(', ')}]` : null;
+  const matmulDebug = normalizeMatmulDebugConfig(options.matmulDebug);
+  const debugAttention = matmulDebug?.enabled === true;
+  const isAttnProj = isAttentionProjectionRole(options.role ?? '');
+  const shouldValidateAttentionWeightBuffer = debugAttention && matmulDebug.validateAttentionWeightBuffer;
+  const shouldFailOnSmallAttentionWeightBuffer = debugAttention && matmulDebug.failOnSmallAttentionWeightBuffer;
+  const shouldLogAttentionWeightBuffer = debugAttention && matmulDebug.logAttentionWeightBuffer;
 
   if (isTraceEnabled('kernels') && getDebugCounter(isRecord) < 20) {
     incrementDebugCounter(isRecord);
@@ -201,6 +225,27 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
       bOffset
     );
   } catch (err) {
+    if (shouldValidateAttentionWeightBuffer && isAttnProj && err instanceof Error && err.message.includes('B buffer too small')) {
+      const detailParts = [
+        `role=${options.role ?? ''}`,
+        `layer=${Number.isFinite(options.layerIdx) ? options.layerIdx : '?'}`,
+        `M=${M}`,
+        `N=${N}`,
+        `K=${K}`,
+      ];
+      if (weightDtype) detailParts.push(`weightDtype=${weightDtype}`);
+      if (weightLayout) detailParts.push(`weightLayout=${weightLayout}`);
+      if (weightShape) detailParts.push(`shape=${weightShape}`);
+      if (weightLabel) detailParts.push(`label=${weightLabel}`);
+      if (Number.isFinite(bBuffer?.size)) detailParts.push(`bSize=${bBuffer.size}`);
+      const detail = detailParts.join(' ');
+      if (shouldLogAttentionWeightBuffer) {
+        log.warn('MatmulQKVProbe', `${err.message} | ${detail}`);
+      }
+      if (shouldFailOnSmallAttentionWeightBuffer) {
+        throw new Error(`${err.message}${detail ? ` (${detail})` : ''}`);
+      }
+    }
     if (!isRecord && err instanceof Error && err.message.includes('B buffer too small')) {
       const detailParts = [];
       if (weightLabel) detailParts.push(`label=${weightLabel}`);
@@ -226,6 +271,15 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
     trace.kernels(`MATMUL_LARGE: N=${N}, variant=${variant}, aDtype=${aDtype}, bDtype=${bDtype}, transposeB=${transposeB}`);
   }
 
+  if (isAttnProj && shouldLogAttentionWeightBuffer) {
+    log.warn('MatmulQKVProbe',
+      `role=${options.role ?? ''} layer=${Number.isFinite(options.layerIdx) ? options.layerIdx : '?'} ` +
+      `M=${M} N=${N} K=${K} transposeB=${transposeB} bSize=${bBuffer?.size ?? 0} ` +
+      `requiredB=${bindingSizes?.bBindingSize ?? 'n/a'} weightShape=${weightShape ?? 'n/a'} ` +
+      `weightDtype=${weightDtype ?? 'unknown'} weightLayout=${weightLayout ?? 'unknown'}`
+    );
+  }
+
   const config = getMatmulConfig(variant, constants);
   const kernel = new MatmulKernel(device);
   const pipeline = await getMatmulPipeline(variant, constants);
@@ -237,6 +291,14 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
     outputBuffer
   );
   const ownsOutput = outputBuffer == null;
+
+  if (isAttnProj && shouldLogAttentionWeightBuffer) {
+    log.warn('MatmulVariantDiag',
+      `role=${options.role ?? ''} layer=${Number.isFinite(options.layerIdx) ? options.layerIdx : '?'} mode=${mode} ` +
+      `variant=${variant} useQ4KFused=${useQ4KFused} useGemv=${useGemv} ` +
+      `aDtype=${aDtype} bDtype=${bDtype} output=${actualOutputDtype}`
+    );
+  }
 
   if (!Number.isFinite(outputSize) || outputSize <= 0) {
     throw new Error(`[${opLabel}] Invalid output size: ${outputSize} (M=${M}, N=${N})`);
@@ -290,6 +352,13 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
       kernel.dispatch(pipeline, bindGroup, dispatchPlan.workgroups);
     }
     completed = true;
+    if (!isRecord && matmulDebug?.logProjectionValues && isAttnProj && M === 1 && options.layerIdx === 0) {
+      await device.queue.onSubmittedWorkDone();
+      const raw = await readBuffer(C);
+      const numVals = Math.min(8, Math.floor(raw.byteLength / 4));
+      const vals = numVals > 0 ? new Float32Array(raw, 0, numVals) : [];
+      log.warn('ProjectionProbe', `role=${options.role ?? ''} L0 M1 first8_f32: ${Array.from(vals).map(v => v.toFixed(5)).join(' ')}`);
+    }
     return createTensor(C, actualOutputDtype, [M, N], 'matmul_output');
   } finally {
     if (!isRecord && uniformBuffer) {

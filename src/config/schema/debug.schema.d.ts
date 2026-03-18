@@ -131,6 +131,40 @@ export interface PipelineDebugConfigSchema {
 /** Default pipeline debug configuration */
 export declare const DEFAULT_PIPELINE_DEBUG_CONFIG: PipelineDebugConfigSchema;
 
+/** Loader debug configuration (Q4K dequant and related probes). */
+export interface LoaderDebugConfigSchema {
+  /** Enable loader debug behavior (default: false) */
+  enabled: boolean;
+  /** Force GPU dequant for Q4K tensors even when CPU fallback is eligible. */
+  forceGpuDequant: boolean;
+  /** Throw when CPU dequant fallback is taken. */
+  failOnCpuDequantPath: boolean;
+  /** Enable dtype-aware GPU-vs-CPU parity checks during Q4K dequant. */
+  runQ4KDequantParity: boolean;
+  /** Number of values to read back for parity checks. */
+  q4kDequantParitySamples: number;
+}
+
+/** Default loader debug configuration. */
+export declare const DEFAULT_LOADER_DEBUG_CONFIG: LoaderDebugConfigSchema;
+
+/** Matmul debug configuration (attention split/shape diagnostics). */
+export interface MatmulDebugConfigSchema {
+  /** Enable matmul debug behavior (default: false) */
+  enabled: boolean;
+  /** Force split (non-fused) Q/K/V projection path for diagnostics. */
+  forceSplitQKV: boolean;
+  /** Validate B tensor layout/buffer bytes for attention projection roles. */
+  validateAttentionWeightBuffer: boolean;
+  /** Throw if validation fails due small B tensor. */
+  failOnSmallAttentionWeightBuffer: boolean;
+  /** Emit attention B-buffer diagnostics. */
+  logAttentionWeightBuffer: boolean;
+}
+
+/** Default matmul debug configuration. */
+export declare const DEFAULT_MATMUL_DEBUG_CONFIG: MatmulDebugConfigSchema;
+
 /**
  * Profiler configuration.
  */
@@ -241,6 +275,8 @@ export interface DebugConfigSchema {
   logLevel: LogLevelConfigSchema;
   trace: TraceConfigSchema;
   pipeline: PipelineDebugConfigSchema;
+  loader: LoaderDebugConfigSchema;
+  matmul: MatmulDebugConfigSchema;
   probes: ProbeConfigSchema[];
   profiler: ProfilerConfigSchema;
   perfGuards: PerfGuardsConfigSchema;
