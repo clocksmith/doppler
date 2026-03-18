@@ -1,0 +1,406 @@
+{
+  "suite": "bench",
+  "modelId": "qwen-3-5-2b-q4k-ehaf16",
+  "runtimePreset": null,
+  "deviceInfo": {
+    "hasSubgroups": true,
+    "hasSubgroupsF16": false,
+    "hasF16": true,
+    "hasTimestampQuery": true,
+    "maxBufferSize": 4294967292,
+    "maxWorkgroupSize": 1024,
+    "maxWorkgroupStorageSize": 65536,
+    "adapterInfo": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "amd-radeon-graphics-radv-gfx1151-",
+      "description": "radv: Mesa 25.0.7-0ubuntu0.25.04.2"
+    }
+  },
+  "results": [
+    {
+      "name": "benchmark",
+      "passed": true,
+      "duration": 29367.486221999992
+    }
+  ],
+  "durationMs": 108141.261653,
+  "timestamp": "2026-03-18T21:13:56.598Z",
+  "metrics": {
+    "warmupRuns": 1,
+    "timedRuns": 3,
+    "prompt": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 word30 word31 word32 word33 word34 word35 word36 word37 word38 word39 word40 word41 word42 word43 word44 word45 word46 word47 word48 word49 word50 word51 word52 word53 word54 word55 word56 word57 word58 word59 word60 word61 word62 word63",
+    "maxTokens": 64,
+    "decodeTokensPerSec": 10.59,
+    "avgTokensGenerated": 64,
+    "avgPrefillTokens": 182,
+    "avgDecodeTokens": 64,
+    "medianPrefillTokensPerSec": 48.42,
+    "avgPrefillTokensPerSec": 48.7,
+    "medianPrefillTokensPerSecTtft": 48.4,
+    "avgPrefillTokensPerSecTtft": 48.69,
+    "avgDecodeTokensPerSec": 10.58,
+    "firstTokenMs": 3760.01,
+    "firstResponseMs": 71975.46,
+    "prefillMs": 3759.11,
+    "decodeMs": 6043.74,
+    "totalRunMs": 9830.72,
+    "decodeMsPerTokenP50": 94.43,
+    "decodeMsPerTokenP95": 96.13,
+    "decodeMsPerTokenP99": 96.29,
+    "avgPrefillMs": 3737.87,
+    "modelLoadMs": 68215.45,
+    "throughput": {
+      "tokensPerSec": {
+        "mean": 6.538105448538403,
+        "median": 6.5102017506711105,
+        "min": 6.507266592668236,
+        "max": 6.596848002275861,
+        "p95": 6.588183377115386,
+        "p99": 6.595115077243766,
+        "stdDev": 0.05089370789030907,
+        "ci95": 0.08815048785158437,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "prefillTokensPerSec": {
+        "mean": 48.699551133663874,
+        "median": 48.4156759976739,
+        "min": 48.07900386295371,
+        "max": 49.60397354036402,
+        "p95": 49.48514378609501,
+        "p99": 49.580207589510216,
+        "stdDev": 0.8011379087773948,
+        "ci95": 1.3876115618719282,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "prefillTokensPerSecTtft": {
+        "mean": 48.688744555840636,
+        "median": 48.40409675711176,
+        "min": 48.06981534470908,
+        "max": 49.59232156570107,
+        "p95": 49.47349908484214,
+        "p99": 49.568557069529284,
+        "stdDev": 0.800171591117009,
+        "ci95": 1.3859378505878888,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "decodeTokensPerSec": {
+        "mean": 10.58119939068498,
+        "median": 10.589473385563009,
+        "min": 10.381653735137107,
+        "max": 10.77247105135482,
+        "p95": 10.754171284775639,
+        "p99": 10.768811098038984,
+        "stdDev": 0.19553999055777652,
+        "ci95": 0.3386851985576075,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      }
+    },
+    "latency": {
+      "totalMs": {
+        "mean": 9789.162073999998,
+        "median": 9830.724522999997,
+        "min": 9701.602943999998,
+        "max": 9835.158754999997,
+        "p95": 9834.715331799996,
+        "p99": 9835.070070359996,
+        "stdDev": 75.86083665584637,
+        "ci95": 131.3948233926094,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "prefillMs": {
+        "mean": 3737.870043333334,
+        "median": 3759.1130609999964,
+        "min": 3669.060903999998,
+        "max": 3785.4361650000064,
+        "p95": 3782.8038546000053,
+        "p99": 3784.909702920006,
+        "stdDev": 61.026631013801044,
+        "ci95": 105.701225530662,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "decodeMs": {
+        "mean": 6049.842811666666,
+        "median": 6043.737744999991,
+        "min": 5941.069574000008,
+        "max": 6164.721116000001,
+        "p95": 6152.6227788999995,
+        "p99": 6162.30144858,
+        "stdDev": 111.95068976561511,
+        "ci95": 193.90428261642649,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "firstTokenMs": {
+        "mean": 3738.698344999997,
+        "median": 3760.0123170000006,
+        "min": 3669.922968999992,
+        "max": 3786.1597489999986,
+        "p95": 3783.5450057999988,
+        "p99": 3785.6368003599987,
+        "stdDev": 60.97918749872929,
+        "ci95": 105.61905095206805,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      }
+    },
+    "tokens": {
+      "generated": {
+        "mean": 64,
+        "median": 64,
+        "min": 64,
+        "max": 64,
+        "p95": 64,
+        "p99": 64,
+        "stdDev": 0,
+        "ci95": 0,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "prefill": {
+        "mean": 182,
+        "median": 182,
+        "min": 182,
+        "max": 182,
+        "p95": 182,
+        "p99": 182,
+        "stdDev": 0,
+        "ci95": 0,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "decode": {
+        "mean": 64,
+        "median": 64,
+        "min": 64,
+        "max": 64,
+        "p95": 64,
+        "p99": 64,
+        "stdDev": 0,
+        "ci95": 0,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      }
+    },
+    "gpu": {
+      "prefillMs": {
+        "mean": 0,
+        "median": 0,
+        "min": 0,
+        "max": 0,
+        "p95": 0,
+        "p99": 0,
+        "stdDev": 0,
+        "ci95": 0,
+        "samples": 0,
+        "samplesAfterOutlierRemoval": 0,
+        "outliersRemoved": 0
+      },
+      "decodeMs": {
+        "mean": 0,
+        "median": 0,
+        "min": 0,
+        "max": 0,
+        "p95": 0,
+        "p99": 0,
+        "stdDev": 0,
+        "ci95": 0,
+        "samples": 0,
+        "samplesAfterOutlierRemoval": 0,
+        "outliersRemoved": 0
+      },
+      "decodeRecordMs": {
+        "mean": 0,
+        "median": 0,
+        "min": 0,
+        "max": 0,
+        "p95": 0,
+        "p99": 0,
+        "stdDev": 0,
+        "ci95": 0,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "decodeSubmitWaitMs": {
+        "mean": 0,
+        "median": 0,
+        "min": 0,
+        "max": 0,
+        "p95": 0,
+        "p99": 0,
+        "stdDev": 0,
+        "ci95": 0,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "decodeReadbackWaitMs": {
+        "mean": 0,
+        "median": 0,
+        "min": 0,
+        "max": 0,
+        "p95": 0,
+        "p99": 0,
+        "stdDev": 0,
+        "ci95": 0,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      }
+    },
+    "generatedText": " word64 word65 word66 word67 word68 word69 word70 word71 word72 word73 word74 word75 word76 word77 word78 word79 word80 word81 word82 word83 word84 word",
+    "schemaVersion": 1,
+    "source": "doppler",
+    "suite": "bench",
+    "executionContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "qwen-3-5-2b-q4k-ehaf16.steps",
+          "ok": true
+        },
+        {
+          "id": "qwen-3-5-2b-q4k-ehaf16.session",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "session": {
+        "layout": "contiguous",
+        "disableCommandBatching": true,
+        "decodeBatchSize": 4,
+        "headDim": 256,
+        "kvLen": 262144,
+        "coldQuantMode": "none"
+      },
+      "steps": {
+        "total": 0,
+        "attention": 0,
+        "attentionPhases": {
+          "prefill": 0,
+          "decode": 0,
+          "both": 0
+        }
+      },
+      "executionV0": {
+        "kernelProfiles": null,
+        "graph": null
+      }
+    },
+    "executionV0GraphContractArtifact": null,
+    "layerPatternContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "inference.layerPattern.patternKind.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.patternKind.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.even",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.odd",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_offset",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_negative_offset",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "patternKindRules": 4,
+        "layerTypeRules": 6,
+        "patternKindContexts": 16,
+        "layerTypeContexts": 12
+      }
+    },
+    "requiredInferenceFieldsArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "scope": "manifest",
+      "label": "qwen-3-5-2b-q4k-ehaf16.inference",
+      "ok": true,
+      "checks": [
+        {
+          "id": "qwen-3-5-2b-q4k-ehaf16.inference.requiredInferenceFields",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "fieldCases": 35,
+        "nullableCases": 16,
+        "nonNullableCases": 19
+      }
+    }
+  },
+  "output": null,
+  "memory": {
+    "used": 2572858624,
+    "pool": {
+      "allocations": 8989,
+      "reuses": 111554,
+      "totalBytesAllocated": 6679202048,
+      "peakBytesAllocated": 3396449024,
+      "currentBytesAllocated": 2371532032,
+      "totalBytesRequested": 4799718400,
+      "peakBytesRequested": 2709593856,
+      "currentBytesRequested": 2006167552,
+      "activeBuffers": 682,
+      "pooledBuffers": 62,
+      "budgetMaxBytes": 0,
+      "budgetUtilization": 0,
+      "hitRate": "92.5%"
+    },
+    "kvCache": {
+      "theoretical": 201326592,
+      "allocated": 201326592,
+      "used": 12042240,
+      "efficiency": 0.059814453125,
+      "seqLen": 245,
+      "maxSeqLen": 4096,
+      "layout": "contiguous"
+    }
+  },
+  "debugSnapshot": null
+}
