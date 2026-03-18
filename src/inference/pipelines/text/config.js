@@ -349,6 +349,24 @@ function normalizeLayerTypeTag(value) {
   return null;
 }
 
+function resolveVisionConfig(rawConfig, manifest) {
+  const vc = rawConfig?.vision_config ?? manifest?.config?.vision_config;
+  if (!vc || typeof vc !== 'object') return null;
+  return {
+    depth: vc.depth ?? 24,
+    hiddenSize: vc.hidden_size ?? 1024,
+    intermediateSize: vc.intermediate_size ?? 4096,
+    numHeads: vc.num_heads ?? 16,
+    outHiddenSize: vc.out_hidden_size ?? vc.hidden_size ?? 1024,
+    patchSize: vc.patch_size ?? 16,
+    spatialMergeSize: vc.spatial_merge_size ?? 2,
+    temporalPatchSize: vc.temporal_patch_size ?? 2,
+    eps: vc.eps ?? 1e-6,
+    deepstackVisualIndexes: Array.isArray(vc.deepstack_visual_indexes) ? vc.deepstack_visual_indexes : [],
+    imageTokenId: rawConfig?.image_token_id ?? manifest?.image_token_id ?? null,
+  };
+}
+
 function parseCustomLayerTypes(layerTypes, numLayers, modelId) {
   if (!Array.isArray(layerTypes) || layerTypes.length === 0) {
     throw new Error(
@@ -659,6 +677,7 @@ export function toParsedConfigFromMerged(merged, manifest) {
     chatTemplateType,
     chatTemplateEnabled,
     kernelPath: inf.defaultKernelPath,
+    visionConfig: resolveVisionConfig(config, manifest),
   };
 }
 

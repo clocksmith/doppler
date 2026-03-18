@@ -1087,6 +1087,50 @@ export class PipelineGenerator {
   }
 
 
+  async _injectVisionTokens(hiddenStates, inputIds, images, config, activationDtype, recorder) {
+    const visionWeights = this.#state.weights.get('vision');
+    if (!visionWeights) {
+      log.warn('Pipeline', 'Vision config present but vision weights not loaded; skipping vision injection');
+      return null;
+    }
+
+    const imageTokenId = config.visionConfig.imageTokenId;
+    if (imageTokenId == null) {
+      log.warn('Pipeline', 'No image_token_id in vision config; skipping vision injection');
+      return null;
+    }
+
+    const { findTokenPositions, scatterVisionTokens } = await import('../../../vision/vision-inject.js');
+    const { preprocessImage } = await import('../../../vision/image-processor.js');
+    const { encodeVision } = await import('../../../vision/vision-encoder.js');
+
+    const padPositions = findTokenPositions(inputIds, imageTokenId);
+    if (padPositions.length === 0) {
+      log.debug('Pipeline', 'No image_pad tokens found in input; skipping vision injection');
+      return null;
+    }
+
+    const image = Array.isArray(images) ? images[0] : images;
+    const patches = preprocessImage(image.data, image.width, image.height, config.visionConfig);
+    const visionOutput = encodeVision(patches, config.visionConfig, visionWeights);
+
+    if (recorder) {
+      await recorder.submitAndWait();
+    }
+
+    await scatterVisionTokens(
+      hiddenStates, visionOutput.visualTokens, padPositions,
+      config.hiddenSize, activationDtype
+    );
+
+    log.info('Pipeline', `Vision: scattered ${visionOutput.numVisualTokens} tokens at ${padPositions.length} pad positions`);
+
+    return {
+      padPositions,
+      deepstackHiddenStates: visionOutput.deepstackHiddenStates,
+    };
+  }
+
   async _prefill(inputIds, opts) {
     const numTokens = inputIds.length;
     const config = this.#state.modelConfig;
@@ -1196,6 +1240,18 @@ export class PipelineGenerator {
       log.debug('Pipeline', `After embed first8=[${first8}], nan=${nanCount}/${f32.length}`);
     }
 
+    // Vision token injection: scatter visual tokens into hidden states at image_pad positions
+    let visionResult = null;
+    let deepstackInjectionMap = null;
+    if (opts.images && config.visionConfig) {
+      visionResult = await this._injectVisionTokens(
+        hiddenStates, inputIds, opts.images, config, activationDtype, recorder
+      );
+      if (visionResult?.deepstackHiddenStates?.size > 0) {
+        deepstackInjectionMap = visionResult.deepstackHiddenStates;
+      }
+    }
+
     if (opts.debug) {
       log.debug('Pipeline', `LAYER_LOOP_START: numLayers=${config.numLayers}, useGPU=${context.useGPU}`);
     }
@@ -1217,6 +1273,25 @@ export class PipelineGenerator {
       const layerOutput = await processLayer(l, currentHiddenBuffer, numTokens, true, context);
       if (!(layerOutput instanceof GPUBuffer)) throw new Error('Expected GPUBuffer from processLayer');
       currentHiddenBuffer = layerOutput;
+
+      // DeepStack: inject vision tokens at specified decoder layers
+      if (deepstackInjectionMap?.has(l) && visionResult?.padPositions) {
+        const dsTokens = deepstackInjectionMap.get(l);
+        if (currentRecorder) {
+          await currentRecorder.submitAndWait();
+          await recordProfile(currentRecorder);
+          currentRecorder = undefined;
+        }
+        const { scatterVisionTokens } = await import('../../../vision/vision-inject.js');
+        await scatterVisionTokens(
+          currentHiddenBuffer, dsTokens, visionResult.padPositions,
+          config.hiddenSize, activationDtype
+        );
+        if (opts.debug) {
+          log.debug('Pipeline', `DeepStack injected at decoder layer ${l}`);
+        }
+        currentRecorder = createRecorder('prefill-ds');
+      }
 
       const isCheckpoint = useCheckpoints && opts.debugLayers?.includes(l);
 

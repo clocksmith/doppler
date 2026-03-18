@@ -1,0 +1,130 @@
+{
+  "schemaVersion": 1,
+  "suite": "convert",
+  "command": "convert",
+  "modelId": "qwen3-vl-2b-q4k-ehaf16",
+  "timestamp": "2026-03-18T23:11:09.561Z",
+  "source": "doppler",
+  "result": {
+    "presetId": "qwen3_vl",
+    "modelType": "transformer",
+    "outputDir": "/Users/xyz/deco/doppler/models/local/qwen3-vl-2b-q4k-ehaf16",
+    "shardCount": 25,
+    "tensorCount": 625,
+    "totalSize": 1644748800
+  },
+  "manifest": {
+    "quantization": "Q4_K_M",
+    "quantizationInfo": {
+      "weights": "q4k",
+      "embeddings": "f16",
+      "compute": "f16",
+      "layout": "row",
+      "variantTag": "q4k-ehaf16"
+    },
+    "inference": {
+      "presetId": "qwen3_vl",
+      "schema": null,
+      "defaultKernelPath": null
+    }
+  },
+  "executionContractArtifact": {
+    "schemaVersion": 1,
+    "source": "doppler",
+    "ok": true,
+    "checks": [
+      {
+        "id": "qwen3-vl-2b-q4k-ehaf16.steps",
+        "ok": true
+      },
+      {
+        "id": "qwen3-vl-2b-q4k-ehaf16.session",
+        "ok": true
+      }
+    ],
+    "errors": [],
+    "session": {
+      "layout": "contiguous",
+      "disableCommandBatching": true,
+      "decodeBatchSize": 4,
+      "headDim": 128,
+      "kvLen": 262144,
+      "coldQuantMode": "none"
+    },
+    "steps": {
+      "total": 0,
+      "attention": 0,
+      "attentionPhases": {
+        "prefill": 0,
+        "decode": 0,
+        "both": 0
+      }
+    }
+  },
+  "executionV0GraphContractArtifact": null,
+  "layerPatternContractArtifact": {
+    "schemaVersion": 1,
+    "source": "doppler",
+    "ok": true,
+    "checks": [
+      {
+        "id": "inference.layerPattern.patternKind.shape",
+        "ok": true
+      },
+      {
+        "id": "inference.layerPattern.patternKind.semantics",
+        "ok": true
+      },
+      {
+        "id": "inference.layerPattern.layerType.shape",
+        "ok": true
+      },
+      {
+        "id": "inference.layerPattern.layerType.semantics",
+        "ok": true
+      },
+      {
+        "id": "inference.layerPattern.computeGlobalLayers.even",
+        "ok": true
+      },
+      {
+        "id": "inference.layerPattern.computeGlobalLayers.odd",
+        "ok": true
+      },
+      {
+        "id": "inference.layerPattern.computeGlobalLayers.every_n_offset",
+        "ok": true
+      },
+      {
+        "id": "inference.layerPattern.computeGlobalLayers.every_n_negative_offset",
+        "ok": true
+      }
+    ],
+    "errors": [],
+    "stats": {
+      "patternKindRules": 4,
+      "layerTypeRules": 6,
+      "patternKindContexts": 16,
+      "layerTypeContexts": 12
+    }
+  },
+  "requiredInferenceFieldsArtifact": {
+    "schemaVersion": 1,
+    "source": "doppler",
+    "scope": "manifest",
+    "label": "qwen3-vl-2b-q4k-ehaf16.inference",
+    "ok": true,
+    "checks": [
+      {
+        "id": "qwen3-vl-2b-q4k-ehaf16.inference.requiredInferenceFields",
+        "ok": true
+      }
+    ],
+    "errors": [],
+    "stats": {
+      "fieldCases": 35,
+      "nullableCases": 16,
+      "nonNullableCases": 19
+    }
+  }
+}
