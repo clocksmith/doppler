@@ -5,7 +5,11 @@
 // 1. Use subgroupAdd() for reduction - much faster than shared memory
 // 2. Vectorized vec4 loads for weights
 // 3. Each workgroup processes multiple output columns
-// 4. Loop unrolling for better ILP
+// 4. Warp-stride loop for row-major (transpose_b=1): all threads in a column
+//    step through K together, so adjacent threads load adjacent addresses.
+//    At each step, 64 threads × 8 bytes = 512 bytes from 4 consecutive cache
+//    lines → 100% cache-line utilization vs ~10% for the old contiguous-range
+//    pattern (where threads were 80 bytes apart in the same iteration).
 //
 // A is f32 (activations), B is f16 (weights), C is f32.
 // transpose_b=0: B is [K, N] (GGUF/column-major), access B[k * N + col]
@@ -69,40 +73,29 @@ fn main(
     // Each thread computes partial sum for its assigned k values
     var partial_sum: f32 = 0.0;
 
-    // Only do work if this column is valid
     if (is_valid) {
-        // Process K in chunks, each thread handles K/64 elements
-        let k_per_thread = (u.K + THREADS_PER_COL - 1u) / THREADS_PER_COL;
-        let k_start = thread_in_col * k_per_thread;
-        let k_end = min(k_start + k_per_thread, u.K);
-
-        // Main loop - process 4 elements at a time when aligned
-        var k = k_start;
-        let k_aligned_end = k_start + ((k_end - k_start) / 4u) * 4u;
-
         if (u.transpose_b == 1u) {
-            // B is [N, K] (SafeTensors/row-major): B[col, k] = B[col * K + k]
+            // B is [N, K] (row-major): B[col, k] = B[col * K + k]
+            // Warp-stride: step THREADS_PER_COL elements per outer iteration so that
+            // all wavefront threads load consecutive addresses simultaneously.
+            // At each step, 64 threads × 2 bytes = 128 bytes = exactly 1 cache line → 100% utilization.
             let b_row_offset = col * u.K;
-
-            for (; k < k_aligned_end; k = k + 4u) {
-                let a0 = A[k];
-                let a1 = A[k + 1u];
-                let a2 = A[k + 2u];
-                let a3 = A[k + 3u];
-
-                let b0 = f32(B[b_row_offset + k]);
-                let b1 = f32(B[b_row_offset + k + 1u]);
-                let b2 = f32(B[b_row_offset + k + 2u]);
-                let b3 = f32(B[b_row_offset + k + 3u]);
-
-                partial_sum = partial_sum + a0 * b0 + a1 * b1 + a2 * b2 + a3 * b3;
-            }
-
-            for (; k < k_end; k = k + 1u) {
-                partial_sum = partial_sum + A[k] * f32(B[b_row_offset + k]);
+            for (var k_base: u32 = 0u; k_base < u.K; k_base = k_base + THREADS_PER_COL) {
+                let k = k_base + thread_in_col;
+                if (k < u.K) {
+                    partial_sum = partial_sum + A[k] * f32(B[b_row_offset + k]);
+                }
             }
         } else {
-            // B is [K, N] (GGUF/column-major): B[k, col] = B[k * N + col]
+            // B is [K, N] (column-major): B[k, col] = B[k * N + col]
+            // Contiguous-range per thread: sequential access within each thread.
+            let k_per_thread = (u.K + THREADS_PER_COL - 1u) / THREADS_PER_COL;
+            let k_start = thread_in_col * k_per_thread;
+            let k_end = min(k_start + k_per_thread, u.K);
+
+            var k = k_start;
+            let k_aligned_end = k_start + ((k_end - k_start) / 4u) * 4u;
+
             for (; k < k_aligned_end; k = k + 4u) {
                 let a0 = A[k];
                 let a1 = A[k + 1u];
@@ -189,38 +182,36 @@ fn main_multicol(
     var partial_sum: f32 = 0.0;
 
     if (is_valid) {
-        // Each of 8 threads splits K
-        let k_per_thread = (u.K + MULTICOL_THREADS_PER_COL - 1u) / MULTICOL_THREADS_PER_COL;
-        let k_start = thread_in_col * k_per_thread;
-        let k_end = min(k_start + k_per_thread, u.K);
-
-        // Unroll by 4 for ILP
-        var k = k_start;
-        let k_aligned_end = k_start + ((k_end - k_start) / 4u) * 4u;
-
         if (u.transpose_b == 1u) {
-            // B is [N, K] (SafeTensors/row-major): B[col, k] = B[col * K + k]
+            // B is [N, K] (row-major): B[col, k] = B[col * K + k]
+            // Warp-stride: step MULTICOL_THREADS_PER_COL vec4 groups per outer iteration.
+            // Adjacent threads in the same column load adjacent vec4 groups → coalesced.
+            let K4 = u.K / 4u;
             let b_row_offset = col * u.K;
-
-            for (; k < k_aligned_end; k = k + 4u) {
-                let a0 = A[k];
-                let a1 = A[k + 1u];
-                let a2 = A[k + 2u];
-                let a3 = A[k + 3u];
-
-                let b0 = f32(B[b_row_offset + k]);
-                let b1 = f32(B[b_row_offset + k + 1u]);
-                let b2 = f32(B[b_row_offset + k + 2u]);
-                let b3 = f32(B[b_row_offset + k + 3u]);
-
-                partial_sum = partial_sum + a0 * b0 + a1 * b1 + a2 * b2 + a3 * b3;
-            }
-
-            for (; k < k_end; k = k + 1u) {
-                partial_sum = partial_sum + A[k] * f32(B[b_row_offset + k]);
+            for (var k4_base: u32 = 0u; k4_base < K4; k4_base = k4_base + MULTICOL_THREADS_PER_COL) {
+                let k4 = k4_base + thread_in_col;
+                if (k4 < K4) {
+                    let k = k4 * 4u;
+                    let a0 = A[k];
+                    let a1 = A[k + 1u];
+                    let a2 = A[k + 2u];
+                    let a3 = A[k + 3u];
+                    let b0 = f32(B[b_row_offset + k]);
+                    let b1 = f32(B[b_row_offset + k + 1u]);
+                    let b2 = f32(B[b_row_offset + k + 2u]);
+                    let b3 = f32(B[b_row_offset + k + 3u]);
+                    partial_sum = partial_sum + a0 * b0 + a1 * b1 + a2 * b2 + a3 * b3;
+                }
             }
         } else {
-            // B is [K, N] (GGUF/column-major): B[k, col] = B[k * N + col]
+            // B is [K, N] (column-major): B[k, col] = B[k * N + col]
+            let k_per_thread = (u.K + MULTICOL_THREADS_PER_COL - 1u) / MULTICOL_THREADS_PER_COL;
+            let k_start = thread_in_col * k_per_thread;
+            let k_end = min(k_start + k_per_thread, u.K);
+
+            var k = k_start;
+            let k_aligned_end = k_start + ((k_end - k_start) / 4u) * 4u;
+
             for (; k < k_aligned_end; k = k + 4u) {
                 let a0 = A[k];
                 let a1 = A[k + 1u];
@@ -245,7 +236,7 @@ fn main_multicol(
     multicol_wg_sums[local_id] = partial_sum;
     workgroupBarrier();
 
-    // Thread 0 of each column reduces its 8 values
+    // Thread 0 of each column reduces its MULTICOL_THREADS_PER_COL values
     if (thread_in_col == 0u && is_valid) {
         var final_sum: f32 = 0.0;
         let base = col_in_wg * MULTICOL_THREADS_PER_COL;
@@ -282,30 +273,37 @@ fn main_vec4(
     if (is_valid) {
         // K is guaranteed to be multiple of 4
         let K4 = u.K / 4u;
-        let k4_per_thread = (K4 + THREADS_PER_COL - 1u) / THREADS_PER_COL;
-        let k4_start = thread_in_col * k4_per_thread;
-        let k4_end = min(k4_start + k4_per_thread, K4);
 
         if (u.transpose_b == 1u) {
-            // B is [N, K] (SafeTensors/row-major): B[col, k] = B[col * K + k]
+            // B is [N, K] (row-major): B[col, k] = B[col * K + k]
+            // Warp-stride: step THREADS_PER_COL vec4 groups per outer iteration so that
+            // adjacent threads load adjacent groups → 100% cache-line utilization.
+            // At each step: 64 threads × 4 f16 × 2 bytes = 512 bytes from 4 consecutive
+            // cache lines, vs the old contiguous-range pattern (~10% utilization).
             let b_row_offset = col * u.K;
+            for (var k4_base: u32 = 0u; k4_base < K4; k4_base = k4_base + THREADS_PER_COL) {
+                let k4 = k4_base + thread_in_col;
+                if (k4 < K4) {
+                    let k = k4 * 4u;
 
-            for (var k4: u32 = k4_start; k4 < k4_end; k4 = k4 + 1u) {
-                let k = k4 * 4u;
+                    let a = vec4<f32>(A[k], A[k + 1u], A[k + 2u], A[k + 3u]);
 
-                let a = vec4<f32>(A[k], A[k + 1u], A[k + 2u], A[k + 3u]);
+                    let b = vec4<f32>(
+                        f32(B[b_row_offset + k]),
+                        f32(B[b_row_offset + k + 1u]),
+                        f32(B[b_row_offset + k + 2u]),
+                        f32(B[b_row_offset + k + 3u])
+                    );
 
-                let b = vec4<f32>(
-                    f32(B[b_row_offset + k]),
-                    f32(B[b_row_offset + k + 1u]),
-                    f32(B[b_row_offset + k + 2u]),
-                    f32(B[b_row_offset + k + 3u])
-                );
-
-                partial_sum = partial_sum + dot(a, b);
+                    partial_sum = partial_sum + dot(a, b);
+                }
             }
         } else {
-            // B is [K, N] (GGUF/column-major): B[k, col] = B[k * N + col]
+            // B is [K, N] (column-major): B[k, col] = B[k * N + col]
+            // Contiguous-range per thread: sequential access within each thread.
+            let k4_per_thread = (K4 + THREADS_PER_COL - 1u) / THREADS_PER_COL;
+            let k4_start = thread_in_col * k4_per_thread;
+            let k4_end = min(k4_start + k4_per_thread, K4);
             for (var k4: u32 = k4_start; k4 < k4_end; k4 = k4 + 1u) {
                 let k = k4 * 4u;
 
