@@ -71,9 +71,10 @@ async function projectSingleQkvTensor({
   matmulOutputDtype,
   getWeightBuffer,
   lora,
+  matmulDebug,
   releaseTemporary,
 }) {
-  const runMatmulForMode = getMatmulRunner(recorder);
+    const runMatmulForMode = getMatmulRunner(recorder);
   const layerWeight = layerWeights?.[weightKey];
   if (!layerWeight) {
     throw new Error(`Attention projection requires ${weightKey}.`);
@@ -91,6 +92,7 @@ async function projectSingleQkvTensor({
       layerIdx,
       kernelPath,
       outputDtype: matmulOutputDtype,
+      matmulDebug,
     });
   } finally {
     releaseOwnedWeightBuffer(layerWeight, projBuffer, releaseTemporary);
@@ -178,6 +180,7 @@ async function projectQueryWithOptionalGate({
   matmulOutputDtype,
   getWeightBuffer,
   lora,
+  matmulDebug,
   releaseTemporary,
   attentionOutputGate,
 }) {
@@ -205,6 +208,7 @@ async function projectQueryWithOptionalGate({
       matmulOutputDtype,
       getWeightBuffer,
       lora,
+      matmulDebug,
       releaseTemporary,
     });
     return { qTensor, qGateTensor: null };
@@ -226,6 +230,7 @@ async function projectQueryWithOptionalGate({
       layerIdx,
       kernelPath,
       outputDtype: matmulOutputDtype,
+      matmulDebug,
     });
 
     const split = await runSplitQGForMode(fullQGTensor, {
@@ -329,6 +334,7 @@ export async function projectAttentionQKV({
   matmulOutputDtype,
   getWeightBuffer,
   lora,
+  matmulDebug,
   releaseTemporary,
   onFusedQKV = null,
   attentionOutputGate = false,
@@ -339,9 +345,8 @@ export async function projectAttentionQKV({
   const hasLoRA = getLoRAModule(lora, layerIdx, 'q_proj')
     || getLoRAModule(lora, layerIdx, 'k_proj')
     || getLoRAModule(lora, layerIdx, 'v_proj');
-  // PROBE: set true to force non-fused Q/K/V path for split-vs-fused diagnostic
-  const FORCE_SPLIT_QKV = true;
-  const useFusedQKV = !FORCE_SPLIT_QKV && selectRuleValue('inference', 'attention', 'useFusedQkv', {
+  const forceSplitQKV = Boolean(matmulDebug?.enabled) && matmulDebug?.forceSplitQKV === true;
+  const useFusedQKV = !forceSplitQKV && selectRuleValue('inference', 'attention', 'useFusedQkv', {
     hasQkvProj: Boolean(layerWeights.qkvProj),
     hasQkvSizes: Boolean(layerWeights.qkvSizes),
     hasLoRA: Boolean(hasLoRA),
@@ -358,6 +363,7 @@ export async function projectAttentionQKV({
         layerIdx,
         kernelPath,
         outputDtype: matmulOutputDtype,
+        matmulDebug,
       });
       const split = await runSplitForMode(qkvTensor, {
         numTokens,
@@ -396,6 +402,7 @@ export async function projectAttentionQKV({
       matmulOutputDtype,
       getWeightBuffer,
       lora,
+      matmulDebug,
       releaseTemporary,
       attentionOutputGate,
     }));
@@ -416,6 +423,7 @@ export async function projectAttentionQKV({
       matmulOutputDtype,
       getWeightBuffer,
       lora,
+      matmulDebug,
       releaseTemporary,
     });
 
@@ -435,6 +443,7 @@ export async function projectAttentionQKV({
       matmulOutputDtype,
       getWeightBuffer,
       lora,
+      matmulDebug,
       releaseTemporary,
     });
 

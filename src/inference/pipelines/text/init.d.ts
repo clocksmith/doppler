@@ -28,6 +28,7 @@ import type {
   SpeculativeConfigSchema,
   KernelPathSchema,
 } from '../../../config/schema/index.js';
+import type { LoaderDebugConfigSchema } from '../../../config/schema/debug.schema.js';
 import type { KernelPathSource } from '../../../config/kernel-path-loader.js';
 
 export interface PipelineStorageContext {
@@ -206,6 +207,7 @@ export interface LoadWeightsOptions {
   resolvedKernelPath?: KernelPathSchema | null;
   kernelPathSource?: KernelPathSource;
   keepF32Weights?: boolean;
+  loaderDebug?: LoaderDebugConfigSchema | null;
 }
 
 /**
