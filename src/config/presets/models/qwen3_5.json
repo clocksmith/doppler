@@ -5,7 +5,7 @@
 
   "inference": {
     "normalization": {
-      "rmsNormWeightOffset": false
+      "rmsNormWeightOffset": true
     }
   },
 

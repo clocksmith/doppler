@@ -1,0 +1,666 @@
+{
+  "suite": "debug",
+  "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+  "runtimePreset": null,
+  "deviceInfo": {
+    "hasSubgroups": true,
+    "hasSubgroupsF16": false,
+    "hasF16": true,
+    "hasTimestampQuery": true,
+    "maxBufferSize": 4294967292,
+    "maxWorkgroupSize": 1024,
+    "maxWorkgroupStorageSize": 65536,
+    "adapterInfo": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "amd-radeon-graphics-radv-gfx1151-",
+      "description": "radv: Mesa 25.0.7-0ubuntu0.25.04.2"
+    }
+  },
+  "results": [
+    {
+      "name": "generation",
+      "passed": true,
+      "duration": 3314.100628
+    }
+  ],
+  "durationMs": 35087.819316,
+  "timestamp": "2026-03-18T16:05:06.328Z",
+  "metrics": {
+    "prompt": "The color of the sky is",
+    "maxTokens": 32,
+    "tokensGenerated": 32,
+    "tokensPerSec": 9.66,
+    "totalRunMs": 3313.19,
+    "firstTokenMs": 713.19,
+    "firstResponseMs": 32483.24,
+    "prefillMs": 702.62,
+    "decodeMs": 2598.82,
+    "prefillTokens": 18,
+    "decodeTokens": 32,
+    "prefillTokensPerSec": 25.62,
+    "prefillTokensPerSecTtft": 25.24,
+    "decodeTokensPerSec": 12.31,
+    "modelLoadMs": 31770.05,
+    "gpu": {
+      "decodeRecordMs": 0,
+      "decodeSubmitWaitMs": 0,
+      "decodeReadbackWaitMs": 0
+    },
+    "decodeProfileSteps": [],
+    "generationDiagnostics": {
+      "preview": [
+        {
+          "id": 760,
+          "text": "The",
+          "fallbackText": "The"
+        },
+        {
+          "id": 2972,
+          "text": " **",
+          "fallbackText": " **"
+        },
+        {
+          "id": 25832,
+          "text": "sky",
+          "fallbackText": "sky"
+        },
+        {
+          "id": 332,
+          "text": "**",
+          "fallbackText": "**"
+        },
+        {
+          "id": 318,
+          "text": " (",
+          "fallbackText": " ("
+        },
+        {
+          "id": 269,
+          "text": "or",
+          "fallbackText": "or"
+        },
+        {
+          "id": 777,
+          "text": " more",
+          "fallbackText": " more"
+        },
+        {
+          "id": 28299,
+          "text": " accurately",
+          "fallbackText": " accurately"
+        },
+        {
+          "id": 11,
+          "text": ",",
+          "fallbackText": ","
+        },
+        {
+          "id": 279,
+          "text": " the",
+          "fallbackText": " the"
+        },
+        {
+          "id": 2972,
+          "text": " **",
+          "fallbackText": " **"
+        },
+        {
+          "id": 266,
+          "text": "at",
+          "fallbackText": "at"
+        },
+        {
+          "id": 8367,
+          "text": "mos",
+          "fallbackText": "mos"
+        },
+        {
+          "id": 7771,
+          "text": "phere",
+          "fallbackText": "phere"
+        },
+        {
+          "id": 40557,
+          "text": "**)",
+          "fallbackText": "**)"
+        },
+        {
+          "id": 369,
+          "text": " is",
+          "fallbackText": " is"
+        },
+        {
+          "id": 264,
+          "text": " a",
+          "fallbackText": " a"
+        },
+        {
+          "id": 12401,
+          "text": " vast",
+          "fallbackText": " vast"
+        },
+        {
+          "id": 321,
+          "text": " and",
+          "fallbackText": " and"
+        },
+        {
+          "id": 8476,
+          "text": " dynamic",
+          "fallbackText": " dynamic"
+        },
+        {
+          "id": 17865,
+          "text": " landscape",
+          "fallbackText": " landscape"
+        },
+        {
+          "id": 25432,
+          "text": " shaped",
+          "fallbackText": " shaped"
+        },
+        {
+          "id": 539,
+          "text": " by",
+          "fallbackText": " by"
+        },
+        {
+          "id": 20665,
+          "text": " physics",
+          "fallbackText": " physics"
+        },
+        {
+          "id": 11,
+          "text": ",",
+          "fallbackText": ","
+        },
+        {
+          "id": 32253,
+          "text": " biology",
+          "fallbackText": " biology"
+        },
+        {
+          "id": 11,
+          "text": ",",
+          "fallbackText": ","
+        },
+        {
+          "id": 321,
+          "text": " and",
+          "fallbackText": " and"
+        },
+        {
+          "id": 3611,
+          "text": " human",
+          "fallbackText": " human"
+        },
+        {
+          "id": 19808,
+          "text": " perception",
+          "fallbackText": " perception"
+        },
+        {
+          "id": 13,
+          "text": ".",
+          "fallbackText": "."
+        },
+        {
+          "id": 11116,
+          "text": " Its",
+          "fallbackText": " Its"
+        }
+      ],
+      "total": 32,
+      "omitted": 0,
+      "emptyTextCount": 0,
+      "specialLikeTextCount": 0,
+      "specialLikeFallbackCount": 0
+    },
+    "schemaVersion": 1,
+    "source": "doppler",
+    "suite": "debug",
+    "executionContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "qwen-3-5-0-8b-q4k-ehaf16.steps",
+          "ok": true
+        },
+        {
+          "id": "qwen-3-5-0-8b-q4k-ehaf16.session",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "session": {
+        "layout": "contiguous",
+        "disableCommandBatching": true,
+        "decodeBatchSize": 4,
+        "headDim": 256,
+        "kvLen": 262144,
+        "coldQuantMode": "none"
+      },
+      "steps": {
+        "total": 0,
+        "attention": 0,
+        "attentionPhases": {
+          "prefill": 0,
+          "decode": 0,
+          "both": 0
+        }
+      },
+      "executionV0": {
+        "kernelProfiles": null,
+        "graph": null
+      }
+    },
+    "executionV0GraphContractArtifact": null,
+    "layerPatternContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "inference.layerPattern.patternKind.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.patternKind.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.even",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.odd",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_offset",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_negative_offset",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "patternKindRules": 4,
+        "layerTypeRules": 6,
+        "patternKindContexts": 16,
+        "layerTypeContexts": 12
+      }
+    },
+    "requiredInferenceFieldsArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "scope": "manifest",
+      "label": "qwen-3-5-0-8b-q4k-ehaf16.inference",
+      "ok": true,
+      "checks": [
+        {
+          "id": "qwen-3-5-0-8b-q4k-ehaf16.inference.requiredInferenceFields",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "fieldCases": 35,
+        "nullableCases": 16,
+        "nonNullableCases": 19
+      }
+    }
+  },
+  "output": "The **sky** (or more accurately, the **atmosphere**) is a vast and dynamic landscape shaped by physics, biology, and human perception. Its",
+  "memory": {
+    "used": 1182264576,
+    "pool": {
+      "allocations": 954,
+      "reuses": 14584,
+      "totalBytesAllocated": 1048431872,
+      "peakBytesAllocated": 1035809792,
+      "currentBytesAllocated": 980937984,
+      "totalBytesRequested": 944000768,
+      "peakBytesRequested": 931849472,
+      "currentBytesRequested": 895405056,
+      "activeBuffers": 461,
+      "pooledBuffers": 54,
+      "budgetMaxBytes": 0,
+      "budgetUtilization": 0,
+      "hitRate": "93.9%"
+    },
+    "kvCache": {
+      "theoretical": 201326592,
+      "allocated": 201326592,
+      "used": 2408448,
+      "efficiency": 0.011962890625,
+      "seqLen": 49,
+      "maxSeqLen": 4096,
+      "layout": "contiguous"
+    }
+  },
+  "debugSnapshot": {
+    "timestamp": "2026-03-18T16:05:41.418Z",
+    "logLevel": "INFO",
+    "traceCategories": [],
+    "enabledModules": [],
+    "disabledModules": [],
+    "recentLogs": [
+      {
+        "time": "286.9",
+        "level": "INFO",
+        "module": "Config",
+        "message": "Using manifest-first config (source of truth)"
+      },
+      {
+        "time": "288.0",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "KernelPath: none (no kernel path configured)"
+      },
+      {
+        "time": "288.2",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "24L/1024H/8heads (256dim), kernelPath=none"
+      },
+      {
+        "time": "288.6",
+        "level": "INFO",
+        "module": "Tokenizer",
+        "message": "Loading bundled tokenizer from tokenizer.json"
+      },
+      {
+        "time": "493.6",
+        "level": "INFO",
+        "module": "Tokenizer",
+        "message": "HuggingFace model.type=\"BPE\", using type=\"bpe\""
+      },
+      {
+        "time": "720.0",
+        "level": "INFO",
+        "module": "Tokenizer",
+        "message": "Loaded HuggingFace 248070 tokens (bpe), 26 special patterns, 247587 merges"
+      },
+      {
+        "time": "720.3",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Tokenizer vocabSize=248070 differs from model=248320, using model size"
+      },
+      {
+        "time": "729.7",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Execution plan: active=primary, dtype=f16, kernelPath=none"
+      },
+      {
+        "time": "730.4",
+        "level": "INFO",
+        "module": "ShardCache",
+        "message": "Custom shard loader configured"
+      },
+      {
+        "time": "730.7",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Initializing..."
+      },
+      {
+        "time": "758.0",
+        "level": "INFO",
+        "module": "HeapManager",
+        "message": "Allocated segment 0: 1024MB"
+      },
+      {
+        "time": "758.2",
+        "level": "INFO",
+        "module": "HeapManager",
+        "message": "Segmented heap: 1GB per segment"
+      },
+      {
+        "time": "758.3",
+        "level": "INFO",
+        "module": "HeapManager",
+        "message": "Initialized with strategy: SEGMENTED"
+      },
+      {
+        "time": "758.4",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Initialized (f16, subgroups)"
+      },
+      {
+        "time": "758.9",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Loading: qwen-3-5-0-8b-q4k-ehaf16"
+      },
+      {
+        "time": "759.3",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "[0.0s] Memory (start): | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0"
+      },
+      {
+        "time": "759.7",
+        "level": "WARN",
+        "module": "Loader",
+        "message": "Dense model on discrete GPU - performance limited. Consider MoE model."
+      },
+      {
+        "time": "764.2",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 1 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "764.7",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 2 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "764.8",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 3 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "764.8",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 4 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "764.8",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 5 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "764.9",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 6 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "764.9",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 7 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "765.0",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 0 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "21779.1",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Embeddings tensor loaded: name=model.language_model.embed_tokens.weight, hasShape=true, shape=[248320,1024], isWeightBuffer=true"
+      },
+      {
+        "time": "21780.4",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Layers: 0-23"
+      },
+      {
+        "time": "21823.2",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 9 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "24418.1",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 10 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "27035.0",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 11 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "29072.9",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 8 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "30439.6",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "All 12 shards loaded: 752.3MB in 30.2s (25 MB/s avg)"
+      },
+      {
+        "time": "31680.3",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "[30.9s] Memory (loading): | GPU=649.52 MB (149 active, 4 pooled, peak=649.52 MB) | ShardCache=752.29 MB (12 shards) | Layers=11, GPUBuffers=149"
+      },
+      {
+        "time": "31794.9",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Layers: 24 complete (10.01s)"
+      },
+      {
+        "time": "31801.1",
+        "level": "WARN",
+        "module": "Loader",
+        "message": "[FinalNorm] Falling back to role-only final norm selection because tensor groups are missing in manifest."
+      },
+      {
+        "time": "31802.7",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Complete: 0 B in 31.04s (0 B/s)"
+      },
+      {
+        "time": "31803.4",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "[31.0s] Memory (complete): | GPU=829.05 MB (320 active, 6 pooled, peak=829.05 MB) | ShardCache=0 B (0 shards) | Layers=24, GPUBuffers=320"
+      },
+      {
+        "time": "31987.3",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Model loaded successfully"
+      },
+      {
+        "time": "31987.4",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "Pipeline ready"
+      },
+      {
+        "time": "32020.6",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "matmul variant=q4_fused_batched reason=q4k_fused"
+      },
+      {
+        "time": "32033.4",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "matmul variant=q4_fused_batched_f16 reason=q4k_fused"
+      },
+      {
+        "time": "32049.9",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "matmul variant=q4_fused_batched_f16a reason=q4k_fused"
+      },
+      {
+        "time": "32076.5",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "attention variant=prefill_small_f16kv reason=tiled_small_capable"
+      },
+      {
+        "time": "32649.5",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "matmul variant=gemv_subgroup_multicol_f16a reason=gemv"
+      },
+      {
+        "time": "32704.3",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "matmul variant=q4_fused_multicol reason=q4k_fused"
+      },
+      {
+        "time": "32713.0",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "matmul variant=q4_fused_multicol_f16 reason=q4k_fused"
+      },
+      {
+        "time": "32722.4",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "matmul variant=q4_fused_multicol_f16a reason=q4k_fused"
+      },
+      {
+        "time": "32735.9",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "attention variant=decode_online_f16kv reason=subgroup_capable"
+      },
+      {
+        "time": "35301.7",
+        "level": "INFO",
+        "module": "Perf",
+        "message": "TTFT: 713ms | Prefill: 703ms | Decode: 2599ms (31 tokens @ 11.9 tok/s)"
+      },
+      {
+        "time": "35305.1",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Unloaded"
+      }
+    ],
+    "errorCount": 0,
+    "warnCount": 14
+  }
+}
