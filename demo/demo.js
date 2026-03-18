@@ -3297,7 +3297,10 @@ function setEmptyNoticeAction(scope, quickModelEntry) {
       const pct = progress?.percent;
       button.textContent = Number.isFinite(pct) ? `Importing ${Math.round(pct)}%` : 'Importing...';
     } else {
-      button.textContent = 'Import recommended model';
+      const size = quickModelEntry.sizeBytes ? formatBytes(quickModelEntry.sizeBytes) : '';
+      button.textContent = size
+        ? `Import ${quickModelEntry.label} (${size})`
+        : `Import ${quickModelEntry.label}`;
     }
     button.title = `Import ${quickModelEntry.label}`;
     button.disabled = isBusy || (hasBusyImport && !isBusy);
@@ -3330,7 +3333,7 @@ function getMissingModelMessage(mode, availability, quickModelEntry) {
       return hasQuickSuggestion
         ? createMissingModelNotice(
           'Import an embedding model to get started.',
-          'Import the recommended model, or open Models to choose a different one.'
+          'Or open Models to choose a different one.'
         )
         : createMissingModelNotice(
           'Import an embedding model to get started.',
@@ -3341,7 +3344,7 @@ function getMissingModelMessage(mode, availability, quickModelEntry) {
       return hasQuickSuggestion
         ? createMissingModelNotice(
           'Import a translation model to get started.',
-          'Import the recommended model, or open Models to choose a different one.'
+          'Or open Models to choose a different one.'
         )
         : createMissingModelNotice(
           'Import a translation model to get started.',
@@ -3352,7 +3355,7 @@ function getMissingModelMessage(mode, availability, quickModelEntry) {
       return hasQuickSuggestion
         ? createMissingModelNotice(
           'Import an image model to get started.',
-          'Import the recommended model, or open Models to choose a different one.'
+          'Or open Models to choose a different one.'
         )
         : createMissingModelNotice(
           'Import an image model to get started.',
@@ -3362,7 +3365,7 @@ function getMissingModelMessage(mode, availability, quickModelEntry) {
     return hasQuickSuggestion
       ? createMissingModelNotice(
         'Import a text model to get started.',
-        'Import the recommended model, or open Models to choose a different one.'
+        'Or open Models to choose a different one.'
       )
       : createMissingModelNotice(
         'Import a text model to get started.',
