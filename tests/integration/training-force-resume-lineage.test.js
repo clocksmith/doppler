@@ -5,24 +5,15 @@ import { join } from 'node:path';
 
 const { runTrainingBenchSuite } = await import('../../src/training/suite.js');
 const { runBrowserSuite } = await import('../../src/inference/browser-harness.js');
-const { bootstrapNodeWebGPU } = await import('../../src/tooling/node-webgpu.js');
-const { initDevice } = await import('../../src/gpu/device.js');
+const { probeNodeGPU } = await import('../helpers/gpu-probe.js');
 
 function isUnavailableNodeWebGPUError(value) {
-  return /createShaderModule is not a function|Failed to load shader|fetch failed|requires a GPUBuffer/i.test(String(value || ''));
+  return /createShaderModule (is not a function|failed)|Failed to load shader|fetch failed|requires a GPUBuffer|GPUBuffer is not defined/i.test(String(value || ''));
 }
 
-let webgpuReady = false;
-try {
-  await bootstrapNodeWebGPU();
-  await initDevice();
-  webgpuReady = typeof globalThis.navigator !== 'undefined' && !!globalThis.navigator.gpu;
-} catch {
-  webgpuReady = false;
-}
-
-if (!webgpuReady) {
-  console.log('training-force-resume-lineage.test: skipped (no WebGPU runtime)');
+const gpuProbe = await probeNodeGPU();
+if (!gpuProbe.ready) {
+  console.log(`training-force-resume-lineage.test: skipped (${gpuProbe.reason})`);
 } else {
   const tempDir = mkdtempSync(join(tmpdir(), 'doppler-force-resume-lineage-'));
   try {

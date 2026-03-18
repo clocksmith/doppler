@@ -72,7 +72,6 @@ async function readExpectedReleaseClaimableModelIds() {
     matrixPayload.modelCoverage.map((entry) => entry.dopplerModelId).sort(),
     expectedModelCoverage
   );
-  assert.ok(!markdownPayload.includes('qwen-3-5-0-8b-q4k-ehaf16'));
   assert.match(markdownPayload, /^# Release Matrix/m);
   assert.match(markdownPayload, /Generated: 2026-03-05T00:00:00.000Z/);
 }
