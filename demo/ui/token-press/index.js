@@ -68,6 +68,9 @@ export function createTokenPress(outputEl, controlsEl, options = {}) {
     }
     if (playing) {
       playing = false;
+      // Collapse remaining trail tokens into settled zone so they get
+      // full tooltip spans and consistent styling.
+      renderer.finalize(queue.getState());
       updateControls();
     }
   }

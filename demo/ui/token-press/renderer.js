@@ -144,6 +144,27 @@ export function createTokenPressRenderer(container, options = {}) {
     return changed;
   }
 
+  function updateSpanContent(span, record) {
+    // Update text without destroying child tooltip nodes — replace only the
+    // leading text node, then rebuild the tooltip so reused spans keep hover.
+    const firstChild = span.firstChild;
+    if (firstChild && firstChild.nodeType === Node.TEXT_NODE) {
+      firstChild.textContent = record.text;
+    } else {
+      span.insertBefore(document.createTextNode(record.text), span.firstChild);
+    }
+    // Remove stale tooltip if present
+    const oldTooltip = span.querySelector('.tp-alternatives');
+    if (oldTooltip) oldTooltip.remove();
+    span.classList.remove('tp-has-alts');
+    // Rebuild tooltip from current record
+    if (record.topK && record.topK.length > 1) {
+      span.append(createAlternativesTooltip(record.topK, record.confidence));
+      span.classList.add('tp-has-alts');
+    }
+    span.dataset.confidence = record.confidence.toFixed(6);
+  }
+
   function rebuildTrail(committed, trailStart, cursor) {
     const trailLen = cursor - trailStart;
     const existing = Array.from(trailZone.children);
@@ -158,9 +179,8 @@ export function createTokenPressRenderer(container, options = {}) {
         const span = existing[reused];
         span.style.setProperty('--trail-opacity', fade.toFixed(2));
         if (span.dataset.tokenIndex !== String(i)) {
-          span.textContent = record.text;
+          updateSpanContent(span, record);
           span.dataset.tokenIndex = String(i);
-          span.dataset.confidence = record.confidence.toFixed(6);
         }
         applyColor(span, record.confidence, currentMinPpl, currentMaxPpl);
         reused++;
@@ -207,6 +227,20 @@ export function createTokenPressRenderer(container, options = {}) {
     lastCursor = cursor;
   }
 
+  function finalize(state) {
+    const { committed, cursor } = state;
+    // Promote all remaining trail tokens into the settled zone so they get
+    // full tooltip-bearing spans and consistent settled styling.
+    while (settledCount < cursor) {
+      settledZone.append(
+        createTokenSpan(committed[settledCount], 'tp-settled', null, currentMinPpl, currentMaxPpl)
+      );
+      settledCount++;
+    }
+    trailZone.innerHTML = '';
+    lastCursor = cursor;
+  }
+
   function clear() {
     settledZone.innerHTML = '';
     trailZone.innerHTML = '';
@@ -221,5 +255,5 @@ export function createTokenPressRenderer(container, options = {}) {
     container.classList.remove('tp-container');
   }
 
-  return { render, clear, dispose };
+  return { render, finalize, clear, dispose };
 }

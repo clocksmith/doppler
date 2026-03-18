@@ -187,14 +187,11 @@ export function updatePerformancePanel(snapshot) {
   const e2eTime = (Number.isFinite(stats.totalTimeMs) && stats.totalTimeMs > 0)
     ? stats.totalTimeMs
     : (Number.isFinite(prefillTime) && Number.isFinite(decodeTime) ? prefillTime + decodeTime : null);
-  const e2eRate = (decodeTokens != null && e2eTime && e2eTime > 0)
-    ? decodeTokens / (e2eTime / 1000)
-    : null;
   if (ttftEl) {
     setText(ttftEl, formatMs(ttftMs));
   }
   if (e2eEl) {
-    setText(e2eEl, formatRate(e2eRate));
+    setText(e2eEl, formatMs(e2eTime));
   }
   if (prefillEl) {
     setText(prefillEl, formatRate(prefillRate));
