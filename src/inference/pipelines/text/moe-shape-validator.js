@@ -83,8 +83,11 @@ export function validateMoeShape(config, options = {}) {
 
   if (modelType === 'gpt-oss') {
     const policy = selectRuleValue('kernels', 'moeGptoss', 'shapePolicy', { modelType });
-    const hiddenDivisor = policy.hiddenSizeDivisor ?? 32;
-    const intermediateDivisor = policy.intermediateSizeDivisor ?? 32;
+    if (policy.hiddenSizeDivisor == null || policy.intermediateSizeDivisor == null) {
+      throw new Error('[MoE] GPT-OSS shapePolicy is missing hiddenSizeDivisor or intermediateSizeDivisor.');
+    }
+    const hiddenDivisor = policy.hiddenSizeDivisor;
+    const intermediateDivisor = policy.intermediateSizeDivisor;
     if (hiddenSize % hiddenDivisor !== 0 || intermediateSize % intermediateDivisor !== 0) {
       throw new Error(
         `[MoE] GPT-OSS shape policy violation: hiddenSize (${hiddenSize}) % ${hiddenDivisor} = ${hiddenSize % hiddenDivisor}, ` +

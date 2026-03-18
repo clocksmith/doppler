@@ -930,7 +930,14 @@ export class DopplerLoader {
     return this.layers.get(layerIdx) || null;
   }
 
-  
+  /**
+   * Load a tensor by name. Public interface for extension loaders (e.g., vision).
+   */
+  async loadTensor(name, toGPU = true, silent = false) {
+    return this.#loadTensor(name, toGPU, silent);
+  }
+
+
   getConfig() {
     return  (this.manifest?.config) || {};
   }

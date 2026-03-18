@@ -53,7 +53,10 @@ export async function moeFeedForwardGPU(
   if (topK == null) {
     throw new Error('MoE topK is required in config.');
   }
-  const modelType = config.modelType ?? (expertFormat === 'gpt-oss' ? 'gpt-oss' : 'mixtral');
+  if (config.modelType == null) {
+    throw new Error('MoE config.modelType is required; got null/undefined.');
+  }
+  const modelType = config.modelType;
   validateMoeShape(
     { hiddenSize, intermediateSize, moeTopK: topK, numExperts, expertFormat },
     { modelType }

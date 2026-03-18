@@ -203,6 +203,7 @@ export function resolveGenerateOptions(state, options = {}) {
     batchSize: executionPlan.batchSize,
     stopCheckMode: executionPlan.stopCheckMode,
     executionPlan,
+    images: options.images ?? null,
   };
 }
 
@@ -217,6 +218,7 @@ export function resolvePrefillOptions(state, options = {}) {
     disableCommandBatching: executionPlan.disableCommandBatching,
     disableMultiTokenDecode: executionPlan.disableMultiTokenDecode,
     executionPlan,
+    images: options.images ?? null,
   };
 }
 
