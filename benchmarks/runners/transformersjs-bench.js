@@ -25,7 +25,7 @@
 //   --timeout <ms>       Page timeout in ms (default: 600000)
 //   --profile-ops <on|off>  Enable ONNX Runtime op profiling (default: on)
 //   --profile-top <n>        Number of top ops in profiling summary (default: 20)
-//   --tjs-version <3|4>  Transformers.js version (default: 4)
+//   --tjs-version <3|4>  Transformers.js major track (default: 4)
 //   --dtype <fp16|q4|q4f16>  Transformers.js model dtype (default: fp16)
 //   --browser-base-url <url>  Reuse an existing static base URL
 //   --use-chat-template   Apply model chat template before generation
