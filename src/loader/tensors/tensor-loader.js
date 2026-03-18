@@ -41,6 +41,7 @@ function normalizeLoaderDebugConfig(config) {
   return {
     enabled: debug.enabled === true,
     forceGpuDequant: debug.forceGpuDequant === true,
+    preferCpuDequant: debug.preferCpuDequant === true,
     failOnCpuDequantPath: debug.failOnCpuDequantPath === true,
     runQ4KDequantParity: debug.runQ4KDequantParity === true,
     q4kDequantParitySamples: Number.isFinite(debug.q4kDequantParitySamples)
@@ -228,7 +229,8 @@ export async function loadQ4KDequant(shardData, location, name, config) {
     const K = is2DMatrix ? location.shape[1] : 0;
     const needsRowwise = is2DMatrix && K > 0 && K % QK_K !== 0;
     const layout = getWeightLayout(location, config);
-    const canUseCpuReference = !forceGpuDequant && (
+    const preferCpuDequant = loaderDebug?.preferCpuDequant === true;
+    const canUseCpuReference = !forceGpuDequant && preferCpuDequant && (
       outputDtype === 'f32'
       && !isGpuBufferInstance(shardData)
       && (!needsRowwise || layout === 'row')

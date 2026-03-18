@@ -2,7 +2,7 @@ import { getDevice, getKernelCapabilities } from '../device.js';
 import { createTensor } from '../tensor.js';
 import { getBuffer, getLayout, getWeightDtype } from '../weight-buffer.js';
 import { log, trace, isTraceEnabled } from '../../debug/index.js';
-import { releaseBuffer } from '../../memory/buffer-pool.js';
+import { releaseBuffer, readBuffer } from '../../memory/buffer-pool.js';
 import { releaseUniformBuffer } from '../uniform-cache.js';
 import { castF16ToF32, recordCastF16ToF32 } from './cast.js';
 import {
@@ -44,6 +44,7 @@ function normalizeMatmulDebugConfig(config) {
     validateAttentionWeightBuffer: config.validateAttentionWeightBuffer === true,
     failOnSmallAttentionWeightBuffer: config.failOnSmallAttentionWeightBuffer === true,
     logAttentionWeightBuffer: config.logAttentionWeightBuffer === true,
+    logProjectionValues: config.logProjectionValues === true,
   };
 }
 
@@ -351,6 +352,13 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
       kernel.dispatch(pipeline, bindGroup, dispatchPlan.workgroups);
     }
     completed = true;
+    if (!isRecord && matmulDebug?.logProjectionValues && isAttnProj && M === 1 && options.layerIdx === 0) {
+      await device.queue.onSubmittedWorkDone();
+      const raw = await readBuffer(C);
+      const numVals = Math.min(8, Math.floor(raw.byteLength / 4));
+      const vals = numVals > 0 ? new Float32Array(raw, 0, numVals) : [];
+      log.warn('ProjectionProbe', `role=${options.role ?? ''} L0 M1 first8_f32: ${Array.from(vals).map(v => v.toFixed(5)).join(' ')}`);
+    }
     return createTensor(C, actualOutputDtype, [M, N], 'matmul_output');
   } finally {
     if (!isRecord && uniformBuffer) {

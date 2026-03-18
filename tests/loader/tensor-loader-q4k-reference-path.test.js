@@ -109,6 +109,7 @@ function decodeF32Prefix(buffer, count) {
       allowF32UpcastNonMatmul: false,
       q4kLayout: 'row',
       gpuCapabilities: { hasF16: true, hasSubgroups: true },
+      loaderDebug: { preferCpuDequant: true },
     }
   );
 
@@ -152,6 +153,7 @@ function decodeF32Prefix(buffer, count) {
       allowF32UpcastNonMatmul: false,
       q4kLayout: 'row',
       gpuCapabilities: { hasF16: true, hasSubgroups: true },
+      loaderDebug: { preferCpuDequant: true },
     }
   );
 
