@@ -1,0 +1,1424 @@
+{
+  "suite": "debug",
+  "modelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
+  "runtimePreset": null,
+  "deviceInfo": {
+    "hasSubgroups": true,
+    "hasSubgroupsF16": false,
+    "hasF16": true,
+    "hasTimestampQuery": true,
+    "maxBufferSize": 4294967292,
+    "maxWorkgroupSize": 1024,
+    "maxWorkgroupStorageSize": 65536,
+    "adapterInfo": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "amd-radeon-graphics-radv-gfx1151-",
+      "description": "radv: Mesa 25.0.7-0ubuntu0.25.04.2"
+    }
+  },
+  "results": [
+    {
+      "name": "embedding",
+      "passed": true,
+      "duration": 95.88120800000024
+    },
+    {
+      "name": "embedding-semantic",
+      "passed": true,
+      "duration": 4102.7226789999995
+    }
+  ],
+  "durationMs": 7183.3274710000005,
+  "timestamp": "2026-03-18T15:22:01.367Z",
+  "metrics": {
+    "prompt": "Hello world",
+    "embeddingTokens": 3,
+    "embeddingDim": 768,
+    "finiteValues": 768,
+    "finiteRatio": 1,
+    "nonFiniteValues": 0,
+    "embeddingMin": -8.404153,
+    "embeddingMax": 21.780434,
+    "embeddingMaxAbs": 21.780434,
+    "embeddingMean": -0.029539,
+    "embeddingStdDev": 1.229012,
+    "embeddingL2Norm": 34.06921,
+    "embeddingMs": 95.88,
+    "semanticPassed": true,
+    "semanticDurationMs": 4102.72,
+    "semanticRetrievalTop1Acc": 1,
+    "semanticPairAcc": 1,
+    "semanticRetrievalPassed": 7,
+    "semanticRetrievalTotal": 7,
+    "semanticPairPassed": 7,
+    "semanticPairTotal": 7,
+    "semanticMinRetrievalTop1Acc": 0.67,
+    "semanticMinPairAcc": 0.67,
+    "semanticPairMarginThreshold": 0.01,
+    "semanticStyle": "embeddinggemma",
+    "semanticFailedCases": [],
+    "semanticDetails": {
+      "retrieval": [
+        {
+          "id": "library_search",
+          "passed": true,
+          "expectedDoc": 0,
+          "topDoc": 0,
+          "sims": [
+            0.61236,
+            0.436817,
+            0.408835
+          ]
+        },
+        {
+          "id": "password_reset",
+          "passed": true,
+          "expectedDoc": 0,
+          "topDoc": 0,
+          "sims": [
+            0.807699,
+            0.390085,
+            0.358334
+          ]
+        },
+        {
+          "id": "damaged_package",
+          "passed": true,
+          "expectedDoc": 0,
+          "topDoc": 0,
+          "sims": [
+            0.703259,
+            0.34532,
+            0.359327
+          ]
+        },
+        {
+          "id": "flight_change_policy",
+          "passed": true,
+          "expectedDoc": 1,
+          "topDoc": 1,
+          "sims": [
+            0.347636,
+            0.770673,
+            0.343612
+          ]
+        },
+        {
+          "id": "wifi_troubleshoot",
+          "passed": true,
+          "expectedDoc": 2,
+          "topDoc": 2,
+          "sims": [
+            0.335992,
+            0.358632,
+            0.623643
+          ]
+        },
+        {
+          "id": "refund_deadline",
+          "passed": true,
+          "expectedDoc": 0,
+          "topDoc": 0,
+          "sims": [
+            0.760647,
+            0.415461,
+            0.417215
+          ]
+        },
+        {
+          "id": "passport_renewal_docs",
+          "passed": true,
+          "expectedDoc": 1,
+          "topDoc": 1,
+          "sims": [
+            0.323675,
+            0.773379,
+            0.295491
+          ]
+        }
+      ],
+      "pairs": [
+        {
+          "id": "bike_paraphrase",
+          "passed": true,
+          "simPos": 0.877221,
+          "simNeg": 0.344134,
+          "margin": 0.533087
+        },
+        {
+          "id": "cancel_subscription",
+          "passed": true,
+          "simPos": 0.666649,
+          "simNeg": 0.35694,
+          "margin": 0.309709
+        },
+        {
+          "id": "battery_drain",
+          "passed": true,
+          "simPos": 0.801577,
+          "simNeg": 0.350509,
+          "margin": 0.451068
+        },
+        {
+          "id": "order_tracking",
+          "passed": true,
+          "simPos": 0.669704,
+          "simNeg": 0.353582,
+          "margin": 0.316123
+        },
+        {
+          "id": "account_lockout",
+          "passed": true,
+          "simPos": 0.715256,
+          "simNeg": 0.385408,
+          "margin": 0.329848
+        },
+        {
+          "id": "invoice_request",
+          "passed": true,
+          "simPos": 0.800488,
+          "simNeg": 0.354203,
+          "margin": 0.446285
+        },
+        {
+          "id": "slow_internet",
+          "passed": true,
+          "simPos": 0.813632,
+          "simNeg": 0.410946,
+          "margin": 0.402686
+        }
+      ]
+    },
+    "modelLoadMs": 2979.78,
+    "endToEndMs": 3075.66,
+    "embeddingPreview": [
+      1.168013,
+      -0.016289,
+      -0.756896,
+      1.328814,
+      0.826557,
+      -1.257339,
+      0.285607,
+      -0.036469,
+      -0.163245,
+      0.573653,
+      -0.128533,
+      -2.193841,
+      0.356028,
+      1.143597,
+      -0.626335,
+      -0.192877
+    ],
+    "schemaVersion": 1,
+    "source": "doppler",
+    "suite": "debug",
+    "executionContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "google-embeddinggemma-300m-q4k-ehf16-af32.steps",
+          "ok": true
+        },
+        {
+          "id": "google-embeddinggemma-300m-q4k-ehf16-af32.session",
+          "ok": true
+        },
+        {
+          "id": "google-embeddinggemma-300m-q4k-ehf16-af32.kernelProfilePinning",
+          "ok": true
+        },
+        {
+          "id": "google-embeddinggemma-300m-q4k-ehf16-af32.precisionPrecedence",
+          "ok": true
+        },
+        {
+          "id": "google-embeddinggemma-300m-q4k-ehf16-af32.kvIOPrecedence",
+          "ok": true
+        },
+        {
+          "id": "google-embeddinggemma-300m-q4k-ehf16-af32.slotGraph",
+          "ok": true
+        },
+        {
+          "id": "google-embeddinggemma-300m-q4k-ehf16-af32.phaseBoundary",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "session": {
+        "layout": "contiguous",
+        "disableCommandBatching": false,
+        "decodeBatchSize": 4,
+        "headDim": 256,
+        "kvLen": 2048,
+        "coldQuantMode": "none"
+      },
+      "steps": {
+        "total": 35,
+        "attention": 2,
+        "attentionPhases": {
+          "prefill": 1,
+          "decode": 1,
+          "both": 0
+        }
+      },
+      "executionV0": {
+        "kernelProfiles": {
+          "schemaVersion": 1,
+          "source": "doppler",
+          "ok": true,
+          "checks": [
+            {
+              "id": "google-embeddinggemma-300m-q4k-ehf16-af32.kernelProfilePinning",
+              "ok": true
+            },
+            {
+              "id": "google-embeddinggemma-300m-q4k-ehf16-af32.precisionPrecedence",
+              "ok": true
+            },
+            {
+              "id": "google-embeddinggemma-300m-q4k-ehf16-af32.kvIOPrecedence",
+              "ok": true
+            }
+          ],
+          "errors": [],
+          "stats": {
+            "kernelProfiles": 8,
+            "pinnedSteps": 35
+          },
+          "perStep": {
+            "preLayer_both_0_embed": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_decode_1_input_norm": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_decode_2_q_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_decode_3_k_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_decode_4_v_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_decode_5_rope_q": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_decode_6_rope_k": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_decode_7_attention": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "kvIO": {
+                "readDtype": "f32",
+                "writeDtype": "f32"
+              },
+              "kvIOSource": "sessionDefault"
+            },
+            "layer_decode_8_o_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_decode_9_attn_residual": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_decode_10_post_attn_norm": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_decode_11_gate_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_decode_12_up_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_decode_13_activation": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_decode_14_down_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_decode_15_ffn_residual": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_prefill_16_input_norm": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_prefill_17_q_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_prefill_18_k_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_prefill_19_v_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_prefill_20_rope_q": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_prefill_21_rope_k": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_prefill_22_attention": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "kvIO": {
+                "readDtype": "f32",
+                "writeDtype": "f32"
+              },
+              "kvIOSource": "sessionDefault"
+            },
+            "layer_prefill_23_o_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_prefill_24_attn_residual": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_prefill_25_post_attn_norm": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_prefill_26_gate_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_prefill_27_up_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_prefill_28_activation": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_prefill_29_down_proj": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "layer_prefill_30_ffn_residual": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "postLayer_both_31_final_norm": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "postLayer_both_32_lm_head": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "postLayer_both_33_lm_head_prefill": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "sampling_decode_34_sample": {
+              "precision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              },
+              "precisionSources": {
+                "inputDtype": "derived",
+                "mathDtype": "sessionDefault",
+                "accumDtype": "sessionDefault",
+                "outputDtype": "sessionDefault"
+              },
+              "resolvedPrecision": {
+                "inputDtype": null,
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            }
+          }
+        },
+        "graph": {
+          "schemaVersion": 1,
+          "source": "doppler",
+          "ok": true,
+          "checks": [
+            {
+              "id": "google-embeddinggemma-300m-q4k-ehf16-af32.slotGraph",
+              "ok": true
+            },
+            {
+              "id": "google-embeddinggemma-300m-q4k-ehf16-af32.phaseBoundary",
+              "ok": true
+            }
+          ],
+          "errors": [],
+          "stats": {
+            "prefillSteps": 19,
+            "decodeSteps": 20
+          }
+        }
+      }
+    },
+    "executionV0GraphContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "google-embeddinggemma-300m-q4k-ehf16-af32.slotGraph",
+          "ok": true
+        },
+        {
+          "id": "google-embeddinggemma-300m-q4k-ehf16-af32.phaseBoundary",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "prefillSteps": 19,
+        "decodeSteps": 20
+      }
+    },
+    "layerPatternContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "inference.layerPattern.patternKind.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.patternKind.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.even",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.odd",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_offset",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_negative_offset",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "patternKindRules": 4,
+        "layerTypeRules": 6,
+        "patternKindContexts": 16,
+        "layerTypeContexts": 12
+      }
+    },
+    "requiredInferenceFieldsArtifact": null
+  },
+  "output": {
+    "mode": "embedding",
+    "tokens": 3,
+    "embeddingDim": 768,
+    "finiteValues": 768,
+    "nonFiniteValues": 0,
+    "finiteRatio": 1,
+    "min": -8.404153,
+    "max": 21.780434,
+    "maxAbs": 21.780434,
+    "mean": -0.029539,
+    "stdDev": 1.229012,
+    "l2Norm": 34.06921,
+    "preview": [
+      1.168013,
+      -0.016289,
+      -0.756896,
+      1.328814,
+      0.826557,
+      -1.257339,
+      0.285607,
+      -0.036469,
+      -0.163245,
+      0.573653,
+      -0.128533,
+      -2.193841,
+      0.356028,
+      1.143597,
+      -0.626335,
+      -0.192877
+    ],
+    "semantic": {
+      "passed": true,
+      "style": "embeddinggemma",
+      "retrievalTop1Acc": 1,
+      "pairAcc": 1,
+      "failedCaseIds": []
+    }
+  },
+  "memory": {
+    "used": 790143488,
+    "pool": {
+      "allocations": 18530,
+      "reuses": 1456,
+      "totalBytesAllocated": 2179277312,
+      "peakBytesAllocated": 742171136,
+      "currentBytesAllocated": 689480192,
+      "totalBytesRequested": 1682369536,
+      "peakBytesRequested": 646036736,
+      "currentBytesRequested": 610094080,
+      "activeBuffers": 318,
+      "pooledBuffers": 56,
+      "budgetMaxBytes": 0,
+      "budgetUtilization": 0,
+      "hitRate": "7.3%"
+    },
+    "kvCache": {
+      "theoretical": 100663296,
+      "allocated": 100663296,
+      "used": 835584,
+      "efficiency": 0.00830078125,
+      "seqLen": 17,
+      "maxSeqLen": 2048,
+      "layout": "contiguous"
+    }
+  },
+  "debugSnapshot": {
+    "timestamp": "2026-03-18T15:22:08.559Z",
+    "logLevel": "INFO",
+    "traceCategories": [],
+    "enabledModules": [],
+    "disabledModules": [],
+    "recentLogs": [
+      {
+        "time": "212.0",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "Initializing WebGPU..."
+      },
+      {
+        "time": "247.6",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "GPU: hasF16=true, hasSubgroups=true"
+      },
+      {
+        "time": "247.7",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "Fetching manifest..."
+      },
+      {
+        "time": "273.2",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "Model: embedding"
+      },
+      {
+        "time": "273.4",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "Creating pipeline..."
+      },
+      {
+        "time": "278.2",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Execution v0 enabled (steps=35, kernelPathInline=yes, pipelineInline=no)"
+      },
+      {
+        "time": "278.3",
+        "level": "INFO",
+        "module": "Config",
+        "message": "Using manifest-first config (source of truth)"
+      },
+      {
+        "time": "279.8",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "KernelPath: google-embeddinggemma-300m-q4k-ehf16-af32-execution-v0 (15 decode steps, 8 kernels, source=manifest)"
+      },
+      {
+        "time": "280.1",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "24L/768H/3heads (256dim), kernelPath=google-embeddinggemma-300m-q4k-ehf16-af32-execution-v0"
+      },
+      {
+        "time": "280.5",
+        "level": "INFO",
+        "module": "Tokenizer",
+        "message": "Loading bundled tokenizer from tokenizer.json"
+      },
+      {
+        "time": "642.2",
+        "level": "INFO",
+        "module": "Tokenizer",
+        "message": "HuggingFace model.type=\"BPE\", using type=\"bpe\""
+      },
+      {
+        "time": "1278.5",
+        "level": "INFO",
+        "module": "Tokenizer",
+        "message": "Loaded HuggingFace 262145 tokens (bpe), 6413 special patterns, 514906 merges"
+      },
+      {
+        "time": "1278.8",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Tokenizer vocabSize=262145 differs from model=262144, using model size"
+      },
+      {
+        "time": "1283.7",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Execution plan: active=primary, dtype=f32, kernelPath=google-embeddinggemma-300m-q4k-ehf16-af32-execution-v0"
+      },
+      {
+        "time": "1284.5",
+        "level": "INFO",
+        "module": "ShardCache",
+        "message": "Custom shard loader configured"
+      },
+      {
+        "time": "1284.7",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Initializing..."
+      },
+      {
+        "time": "1344.2",
+        "level": "INFO",
+        "module": "HeapManager",
+        "message": "Allocated segment 0: 1024MB"
+      },
+      {
+        "time": "1344.4",
+        "level": "INFO",
+        "module": "HeapManager",
+        "message": "Segmented heap: 1GB per segment"
+      },
+      {
+        "time": "1344.4",
+        "level": "INFO",
+        "module": "HeapManager",
+        "message": "Initialized with strategy: SEGMENTED"
+      },
+      {
+        "time": "1344.8",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Initialized (f16, subgroups)"
+      },
+      {
+        "time": "1345.3",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Loading: google-embeddinggemma-300m-q4k-ehf16-af32"
+      },
+      {
+        "time": "1346.0",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "[0.0s] Memory (start): | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0"
+      },
+      {
+        "time": "1346.7",
+        "level": "WARN",
+        "module": "Loader",
+        "message": "Dense model on discrete GPU - performance limited. Consider MoE model."
+      },
+      {
+        "time": "1352.6",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 1 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "1353.2",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 2 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "1353.3",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 3 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "1353.4",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 4 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "1353.4",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 5 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "1353.6",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 0 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "2841.2",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Embeddings tensor loaded: name=embed_tokens.weight, hasShape=true, shape=[262144,768], isWeightBuffer=true"
+      },
+      {
+        "time": "2842.9",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Layers: 0-23"
+      },
+      {
+        "time": "2856.4",
+        "level": "WARN",
+        "module": "Distribution",
+        "message": "Shard 6 source \"cache\" failed (error): No model open. Call openModelStore first."
+      },
+      {
+        "time": "3027.8",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "All 7 shards loaded: 440.0MB in 2.8s (160 MB/s avg)"
+      },
+      {
+        "time": "3167.9",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Layers: 24 complete (0.32s)"
+      },
+      {
+        "time": "3172.9",
+        "level": "WARN",
+        "module": "Loader",
+        "message": "[FinalNorm] Falling back to role-only final norm selection because tensor groups are missing in manifest."
+      },
+      {
+        "time": "3173.3",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Complete: 0 B in 1.82s (0 B/s)"
+      },
+      {
+        "time": "3173.8",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "[1.8s] Memory (complete): | GPU=650.68 MB (314 active, 5 pooled, peak=650.68 MB) | ShardCache=0 B (0 shards) | Layers=24, GPUBuffers=314"
+      },
+      {
+        "time": "3190.7",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Model loaded successfully"
+      },
+      {
+        "time": "3190.9",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "Pipeline ready"
+      },
+      {
+        "time": "3204.7",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "matmul variant=f16w_f32a reason=path_override"
+      },
+      {
+        "time": "3214.2",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "attention variant=prefill_small reason=path_override:tiled_small"
+      },
+      {
+        "time": "7393.8",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Unloaded"
+      }
+    ],
+    "errorCount": 0,
+    "warnCount": 9
+  }
+}
