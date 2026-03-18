@@ -1,6 +1,14 @@
 /* ============================================
-   RD Design System
+   RD Design System — Doppler
    Black & White, with a sprinkle of Prism
+
+   Three layers, loaded in order:
+   1. Tokens     — raw values (colors, sizes, spacing, etc.)
+   2. Primitives — reset, type classes, element defaults, border utilities
+   3. Components — self-contained UI elements
+
+   Canonical source: deco/rd/ — sync with rdpush.
+   Project colors: demo/ui/styles/main.css (--doppler-purple, --doppler-red)
    ============================================ */
 
 @import 'rd-tokens.css';
