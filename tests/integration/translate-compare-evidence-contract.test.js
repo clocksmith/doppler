@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 
 const schema = JSON.parse(readFileSync(new URL('../../demo/translate-compare-evidence.schema.json', import.meta.url), 'utf8'));
 const doc = readFileSync(new URL('../../docs/translate-compare-evidence-contract.md', import.meta.url), 'utf8');
-const demoSource = readFileSync(new URL('../../demo/demo.js', import.meta.url), 'utf8');
+const demoSource = readFileSync(new URL('../../demo/demo-core.js', import.meta.url), 'utf8');
 
 assert.equal(schema.title, 'Doppler Translate Compare Evidence Bundle');
 assert.equal(schema.properties.schemaVersion.const, 1);

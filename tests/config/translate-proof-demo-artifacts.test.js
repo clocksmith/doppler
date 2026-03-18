@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-const demoSource = await readFile(new URL('../../demo/demo.js', import.meta.url), 'utf8');
+const demoSource = await readFile(new URL('../../demo/demo-core.js', import.meta.url), 'utf8');
 const demoHtml = await readFile(new URL('../../demo/index.html', import.meta.url), 'utf8');
 const demoState = await readFile(new URL('../../demo/ui/state.js', import.meta.url), 'utf8');
 

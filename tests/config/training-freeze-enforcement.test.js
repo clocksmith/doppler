@@ -7,11 +7,9 @@ import { crossEntropyLoss } from '../../src/training/loss.js';
 import { clipGradients } from '../../src/training/clip.js';
 import { OpType } from '../../src/training/autograd.js';
 import { runMatmul } from '../../src/gpu/kernels/index.js';
-import { initDevice } from '../../src/gpu/device.js';
 import { createTensor } from '../../src/gpu/tensor.js';
 import { acquireBuffer, uploadData, readBuffer, releaseBuffer } from '../../src/memory/buffer-pool.js';
-import { bootstrapNodeWebGPU } from '../../src/tooling/node-webgpu.js';
-import { installNodeFileFetchShim } from '../../src/tooling/node-file-fetch.js';
+import { probeNodeGPU } from '../helpers/gpu-probe.js';
 
 function makeF32Tensor(values, shape, label) {
   const data = new Float32Array(values);
@@ -31,18 +29,9 @@ async function readTensorF32(tensor) {
   return Array.from(new Float32Array(await readBuffer(tensor.buffer)));
 }
 
-let webgpuReady = false;
-try {
-  await bootstrapNodeWebGPU();
-  installNodeFileFetchShim();
-  await initDevice();
-  webgpuReady = typeof globalThis.navigator !== 'undefined' && !!globalThis.navigator.gpu;
-} catch {
-  webgpuReady = false;
-}
-
-if (!webgpuReady) {
-  console.log('training-freeze-enforcement.test: skipped (no WebGPU runtime)');
+const gpuProbe = await probeNodeGPU({ installFileFetchShim: true });
+if (!gpuProbe.ready) {
+  console.log(`training-freeze-enforcement.test: skipped (${gpuProbe.reason})`);
 } else {
   const config = createTrainingConfig({
     training: {

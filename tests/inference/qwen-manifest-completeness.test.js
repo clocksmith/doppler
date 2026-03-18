@@ -51,8 +51,9 @@ if (!hasExactLocalManifests) {
 // --- Manifest: intentional null fields ---
 
 {
+  assert.equal(f16Manifest.inference.schema, null);
+  assert.equal(q4kManifest.inference.schema, 'doppler.execution/v0');
   for (const manifest of [f16Manifest, q4kManifest]) {
-    assert.equal(manifest.inference.schema, null);
     assert.equal(manifest.inference.defaultKernelPath, null);
     assert.equal(manifest.inference.execution, null);
   }

@@ -5,25 +5,49 @@
 // window. Two zones:
 //   - Settled zone: append-only on forward steps, only rebuilt on back steps
 //   - Trail zone: rebuilt every flush (small fixed-size window)
+//
+// Color scale: perplexity (1/p) normalized to the observed min/max range.
+// As new tokens stream in, all existing spans re-color via CSS transitions.
 
-const CONF_HIGH = 0.8;
-const CONF_MID = 0.3;
-
-function confidenceToColor(confidence) {
-  if (confidence >= CONF_HIGH) {
-    const t = (confidence - CONF_HIGH) / (1.0 - CONF_HIGH);
-    return `color-mix(in oklch, var(--doppler-blue) ${(t * 100).toFixed(0)}%, var(--doppler-purple))`;
-  }
-  if (confidence >= CONF_MID) {
-    const t = (confidence - CONF_MID) / (CONF_HIGH - CONF_MID);
-    return `color-mix(in oklch, var(--doppler-purple) ${(t * 100).toFixed(0)}%, var(--doppler-red))`;
-  }
-  return 'var(--doppler-red)';
+// Perplexity from probability
+function probToPpl(prob) {
+  return 1 / Math.max(1e-10, Math.min(1, prob));
 }
 
-function createAlternativesTooltip(topK) {
+// Normalize t ∈ [0,1] from log-perplexity within observed range
+function normalizePpl(ppl, minPpl, maxPpl) {
+  const logMin = Math.log(Math.max(1, minPpl));
+  const logMax = Math.log(Math.max(1, maxPpl));
+  if (logMax <= logMin) return 0;
+  return Math.min(1, Math.max(0, (Math.log(ppl) - logMin) / (logMax - logMin)));
+}
+
+function tToColor(t) {
+  if (t <= 0.5) {
+    const mix = (t / 0.5) * 100;
+    return `color-mix(in oklch, var(--doppler-purple) ${mix.toFixed(0)}%, var(--doppler-blue))`;
+  }
+  const mix = ((t - 0.5) / 0.5) * 100;
+  return `color-mix(in oklch, var(--doppler-red) ${mix.toFixed(0)}%, var(--doppler-purple))`;
+}
+
+function confidenceToColor(prob, minPpl, maxPpl) {
+  const ppl = probToPpl(prob);
+  const t = normalizePpl(ppl, minPpl, maxPpl);
+  return tToColor(t);
+}
+
+function createAlternativesTooltip(topK, confidence) {
   const tooltip = document.createElement('div');
   tooltip.className = 'tp-alternatives';
+
+  // Perplexity header
+  const ppl = probToPpl(confidence);
+  const header = document.createElement('div');
+  header.className = 'tp-alt-header';
+  header.textContent = `ppl ${ppl.toFixed(1)}`;
+  tooltip.append(header);
+
   for (const alt of topK) {
     const row = document.createElement('div');
     row.className = 'tp-alt-row';
@@ -35,7 +59,6 @@ function createAlternativesTooltip(topK) {
     const bar = document.createElement('span');
     bar.className = 'tp-alt-bar';
     bar.style.setProperty('--alt-prob', alt.prob.toFixed(3));
-    bar.style.setProperty('--alt-color', confidenceToColor(alt.prob));
 
     const pct = document.createElement('span');
     pct.className = 'tp-alt-pct';
@@ -47,22 +70,25 @@ function createAlternativesTooltip(topK) {
   return tooltip;
 }
 
-function createTokenSpan(record, cssClass, trailFade) {
+function applyColor(span, prob, minPpl, maxPpl) {
+  const color = confidenceToColor(prob, minPpl, maxPpl);
+  span.style.setProperty('--conf-color', color);
+}
+
+function createTokenSpan(record, cssClass, trailFade, minPpl, maxPpl) {
   const span = document.createElement('span');
   span.className = `tp-token ${cssClass}`;
   span.textContent = record.text;
-  span.dataset.confidence = record.confidence.toFixed(3);
+  span.dataset.confidence = record.confidence.toFixed(6);
 
-  const color = confidenceToColor(record.confidence);
-  span.style.setProperty('--conf-color', color);
-  span.style.setProperty('--confidence', record.confidence.toFixed(3));
+  applyColor(span, record.confidence, minPpl, maxPpl);
 
   if (trailFade != null) {
     span.style.setProperty('--trail-opacity', trailFade.toFixed(2));
   }
 
   if (record.topK && record.topK.length > 1) {
-    span.append(createAlternativesTooltip(record.topK));
+    span.append(createAlternativesTooltip(record.topK, record.confidence));
     span.classList.add('tp-has-alts');
   }
 
@@ -84,14 +110,69 @@ export function createTokenPressRenderer(container, options = {}) {
 
   let settledCount = 0;
   let lastCursor = 0;
+  let currentMinPpl = Infinity;
+  let currentMaxPpl = 0;
+
+  // Recolor all existing spans when the range changes
+  function recolorAll(committed, cursor) {
+    // Settled zone
+    for (let i = 0; i < settledCount; i++) {
+      const span = settledZone.children[i];
+      if (span) {
+        const prob = parseFloat(span.dataset.confidence);
+        if (Number.isFinite(prob)) applyColor(span, prob, currentMinPpl, currentMaxPpl);
+      }
+    }
+    // Trail zone
+    for (const span of trailZone.children) {
+      const prob = parseFloat(span.dataset.confidence);
+      if (Number.isFinite(prob)) applyColor(span, prob, currentMinPpl, currentMaxPpl);
+    }
+  }
+
+  function updateRange(committed, cursor) {
+    let min = currentMinPpl;
+    let max = currentMaxPpl;
+    for (let i = 0; i < cursor; i++) {
+      const ppl = probToPpl(committed[i].confidence);
+      if (ppl < min) min = ppl;
+      if (ppl > max) max = ppl;
+    }
+    const changed = min !== currentMinPpl || max !== currentMaxPpl;
+    currentMinPpl = min;
+    currentMaxPpl = max;
+    return changed;
+  }
 
   function rebuildTrail(committed, trailStart, cursor) {
-    trailZone.innerHTML = '';
     const trailLen = cursor - trailStart;
+    const existing = Array.from(trailZone.children);
+    let reused = 0;
+
     for (let i = trailStart; i < cursor; i++) {
       const fade = trailLen <= 1 ? 1.0
         : 0.15 + 0.85 * ((i - trailStart) / (trailLen - 1));
-      trailZone.append(createTokenSpan(committed[i], 'tp-trail', fade));
+      const record = committed[i];
+
+      if (reused < existing.length) {
+        const span = existing[reused];
+        span.style.setProperty('--trail-opacity', fade.toFixed(2));
+        if (span.dataset.tokenIndex !== String(i)) {
+          span.textContent = record.text;
+          span.dataset.tokenIndex = String(i);
+          span.dataset.confidence = record.confidence.toFixed(6);
+        }
+        applyColor(span, record.confidence, currentMinPpl, currentMaxPpl);
+        reused++;
+      } else {
+        const span = createTokenSpan(record, 'tp-trail', fade, currentMinPpl, currentMaxPpl);
+        span.dataset.tokenIndex = String(i);
+        trailZone.append(span);
+      }
+    }
+
+    for (let j = existing.length - 1; j >= reused; j--) {
+      existing[j].remove();
     }
   }
 
@@ -99,25 +180,30 @@ export function createTokenPressRenderer(container, options = {}) {
     const { committed, cursor } = state;
     const trailStart = Math.max(0, cursor - trailSize);
     const wentBack = cursor < lastCursor;
+    const rangeChanged = updateRange(committed, cursor);
 
     if (wentBack) {
-      // Backward step — may need to remove settled DOM nodes
       while (settledCount > trailStart) {
         settledCount--;
         const last = settledZone.lastChild;
         if (last) last.remove();
       }
     } else {
-      // Forward step — append any newly settled tokens
       while (settledCount < trailStart) {
         settledZone.append(
-          createTokenSpan(committed[settledCount], 'tp-settled', null)
+          createTokenSpan(committed[settledCount], 'tp-settled', null, currentMinPpl, currentMaxPpl)
         );
         settledCount++;
       }
     }
 
     rebuildTrail(committed, trailStart, cursor);
+
+    // Range shifted — recolor all previously rendered spans so they animate
+    if (rangeChanged) {
+      recolorAll(committed, cursor);
+    }
+
     lastCursor = cursor;
   }
 
@@ -126,6 +212,8 @@ export function createTokenPressRenderer(container, options = {}) {
     trailZone.innerHTML = '';
     settledCount = 0;
     lastCursor = 0;
+    currentMinPpl = Infinity;
+    currentMaxPpl = 0;
   }
 
   function dispose() {
