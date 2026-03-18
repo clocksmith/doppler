@@ -1,0 +1,293 @@
+{
+  "suite": "diffusion",
+  "modelId": "sd3-diffusion-smoke",
+  "runtimePreset": null,
+  "deviceInfo": null,
+  "results": [
+    {
+      "name": "diffusion",
+      "passed": true,
+      "duration": 188
+    }
+  ],
+  "durationMs": 0.21187499999999204,
+  "timestamp": "2026-03-18T19:23:09.717Z",
+  "metrics": {
+    "warmupRuns": 1,
+    "timedRuns": 2,
+    "width": 4,
+    "height": 4,
+    "steps": 4,
+    "guidanceScale": 6.5,
+    "prompt": "deterministic diffusion smoke prompt",
+    "avgPrefillTokens": 32,
+    "avgDecodeTokens": 4,
+    "latency": {
+      "totalMs": {
+        "mean": 94,
+        "median": 94,
+        "min": 90,
+        "max": 98,
+        "p95": 97.6,
+        "p99": 97.92,
+        "stdDev": 5.656854249492381,
+        "ci95": 14,
+        "samples": 2,
+        "samplesAfterOutlierRemoval": 2,
+        "outliersRemoved": 0
+      },
+      "prefillMs": {
+        "mean": 22,
+        "median": 22,
+        "min": 20,
+        "max": 24,
+        "p95": 23.8,
+        "p99": 23.96,
+        "stdDev": 2.8284271247461903,
+        "ci95": 7,
+        "samples": 2,
+        "samplesAfterOutlierRemoval": 2,
+        "outliersRemoved": 0
+      },
+      "denoiseMs": {
+        "mean": 72,
+        "median": 72,
+        "min": 70,
+        "max": 74,
+        "p95": 73.8,
+        "p99": 73.96,
+        "stdDev": 2.8284271247461903,
+        "ci95": 7,
+        "samples": 2,
+        "samplesAfterOutlierRemoval": 2,
+        "outliersRemoved": 0
+      },
+      "vaeMs": {
+        "mean": 11,
+        "median": 11,
+        "min": 10,
+        "max": 12,
+        "p95": 11.9,
+        "p99": 11.98,
+        "stdDev": 1.4142135623730951,
+        "ci95": 3.5,
+        "samples": 2,
+        "samplesAfterOutlierRemoval": 2,
+        "outliersRemoved": 0
+      }
+    },
+    "throughput": {
+      "prefillTokensPerSec": 1454.55,
+      "decodeTokensPerSec": 55.56,
+      "decodeStepsPerSec": 55.56
+    },
+    "cpu": {
+      "totalMs": {
+        "mean": 94,
+        "median": 94,
+        "min": 90,
+        "max": 98,
+        "p95": 97.6,
+        "p99": 97.92,
+        "stdDev": 5.656854249492381,
+        "ci95": 14,
+        "samples": 2,
+        "samplesAfterOutlierRemoval": 2,
+        "outliersRemoved": 0
+      },
+      "prefillMs": {
+        "mean": 22,
+        "median": 22,
+        "min": 20,
+        "max": 24,
+        "p95": 23.8,
+        "p99": 23.96,
+        "stdDev": 2.8284271247461903,
+        "ci95": 7,
+        "samples": 2,
+        "samplesAfterOutlierRemoval": 2,
+        "outliersRemoved": 0
+      },
+      "denoiseMs": {
+        "mean": 72,
+        "median": 72,
+        "min": 70,
+        "max": 74,
+        "p95": 73.8,
+        "p99": 73.96,
+        "stdDev": 2.8284271247461903,
+        "ci95": 7,
+        "samples": 2,
+        "samplesAfterOutlierRemoval": 2,
+        "outliersRemoved": 0
+      },
+      "vaeMs": {
+        "mean": 11,
+        "median": 11,
+        "min": 10,
+        "max": 12,
+        "p95": 11.9,
+        "p99": 11.98,
+        "stdDev": 1.4142135623730951,
+        "ci95": 3.5,
+        "samples": 2,
+        "samplesAfterOutlierRemoval": 2,
+        "outliersRemoved": 0
+      }
+    },
+    "gpu": {
+      "available": true,
+      "totalMs": {
+        "mean": 86,
+        "median": 86,
+        "min": 82,
+        "max": 90,
+        "p95": 89.6,
+        "p99": 89.92,
+        "stdDev": 5.656854249492381,
+        "ci95": 14,
+        "samples": 2,
+        "samplesAfterOutlierRemoval": 2,
+        "outliersRemoved": 0
+      },
+      "prefillMs": {
+        "mean": 19.5,
+        "median": 19.5,
+        "min": 18,
+        "max": 21,
+        "p95": 20.85,
+        "p99": 20.97,
+        "stdDev": 2.1213203435596424,
+        "ci95": 5.249999999999999,
+        "samples": 2,
+        "samplesAfterOutlierRemoval": 2,
+        "outliersRemoved": 0
+      },
+      "denoiseMs": {
+        "mean": 66.5,
+        "median": 66.5,
+        "min": 64,
+        "max": 69,
+        "p95": 68.75,
+        "p99": 68.95,
+        "stdDev": 3.5355339059327378,
+        "ci95": 8.75,
+        "samples": 2,
+        "samplesAfterOutlierRemoval": 2,
+        "outliersRemoved": 0
+      },
+      "vaeMs": {
+        "mean": 9,
+        "median": 9,
+        "min": 8,
+        "max": 10,
+        "p95": 9.9,
+        "p99": 9.98,
+        "stdDev": 1.4142135623730951,
+        "ci95": 3.5,
+        "samples": 2,
+        "samplesAfterOutlierRemoval": 2,
+        "outliersRemoved": 0
+      }
+    },
+    "performanceArtifact": {
+      "schemaVersion": 1,
+      "warmupRuns": 1,
+      "timedRuns": 2,
+      "shape": {
+        "width": 4,
+        "height": 4
+      },
+      "scheduler": {
+        "steps": 4,
+        "guidanceScale": 6.5
+      },
+      "cpu": {
+        "totalMs": 94,
+        "prefillMs": 22,
+        "denoiseMs": 72,
+        "vaeMs": 11
+      },
+      "gpu": {
+        "available": true,
+        "totalMs": 86,
+        "prefillMs": 19.5,
+        "denoiseMs": 66.5,
+        "vaeMs": 9
+      },
+      "throughput": {
+        "prefillTokensPerSec": 1454.55,
+        "decodeTokensPerSec": 55.56,
+        "decodeStepsPerSec": 55.56
+      },
+      "tokens": {
+        "avgPrefillTokens": 32,
+        "avgDecodeTokens": 4
+      }
+    },
+    "schemaVersion": 1,
+    "source": "doppler",
+    "suite": "diffusion",
+    "executionV0GraphContractArtifact": null,
+    "layerPatternContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "inference.layerPattern.patternKind.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.patternKind.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.even",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.odd",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_offset",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_negative_offset",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "patternKindRules": 4,
+        "layerTypeRules": 6,
+        "patternKindContexts": 16,
+        "layerTypeContexts": 12
+      }
+    },
+    "requiredInferenceFieldsArtifact": null
+  },
+  "output": {
+    "width": 4,
+    "height": 4,
+    "pixels": {
+      "type": "Uint8ClampedArray",
+      "length": 64
+    }
+  },
+  "memory": {
+    "used": 1024,
+    "kvCache": null
+  },
+  "debugSnapshot": null
+}
