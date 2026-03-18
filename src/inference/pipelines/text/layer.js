@@ -43,19 +43,16 @@ export function detectSandwichNorm(config) {
 }
 
 
-export function isMoELayer(layerIdx, config, layerWeights) {
+export function isMoELayer(layerIdx, config) {
   if (!config.useMoE) return false;
 
-  // Check if layer has router weights
-  if (layerWeights?.routerWeight) return true;
-
-  // Fall back to layer_types array if available
+  // Manifest-first: check layerTypes from config (derived from manifest.inference.layerPattern)
   const layerTypes = config.layerTypes;
   if (Array.isArray(layerTypes) && layerIdx < layerTypes.length) {
     return layerTypes[layerIdx] === 'moe';
   }
 
-  // Default: assume all layers are MoE if model uses MoE
+  // No layerTypes available: assume all layers are MoE
   return true;
 }
 
