@@ -12,10 +12,13 @@
 
 import type { WeightBuffer, WeightLayout } from '../../gpu/weight-buffer.js';
 import type { TensorLocation, KernelCapabilities } from '../loader-types.js';
+import type { LoaderDebugConfigSchema } from '../../config/schema/debug.schema.js';
 
 export interface TensorLoadConfig {
   /** Use fused Q4K matmul kernels */
   useFusedQ4K: boolean;
+  /** Debug controls for Q4K loading/dequantization */
+  loaderDebug?: LoaderDebugConfigSchema | null;
   /** Keep weights as F32 (disable F16 downcasting) */
   keepF32Weights: boolean;
   /** Allow F16->F32 upcast for non-matmul weights */

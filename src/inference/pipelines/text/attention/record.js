@@ -167,6 +167,7 @@ export async function recordLayerAttentionGPU(
     matmulOutputDtype,
     getWeightBuffer,
     lora,
+    matmulDebug: state.runtimeConfig?.shared?.debug?.matmul ?? null,
     attentionOutputGate: config.attentionOutputGate === true,
     releaseTemporary: (buffer) => releaseOrTrack(recorder, buffer),
     onFusedQKV: layerIdx === 0 && isPrefill

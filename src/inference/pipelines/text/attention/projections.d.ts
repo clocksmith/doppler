@@ -3,6 +3,7 @@ import type { Tensor } from '../../../../gpu/tensor.js';
 import type { WeightBuffer, CpuWeightBuffer } from '../../../../gpu/weight-buffer.js';
 import type { LayerWeights } from '../types.js';
 import type { LoRAAdapter } from '../lora.js';
+import type { MatmulDebugConfigSchema } from '../../../../config/schema/debug.schema.js';
 
 export interface AttentionInputInfo {
   phase: 'prefill' | 'decode';
@@ -76,11 +77,13 @@ export interface ProjectAttentionQKVOptions {
   getWeightBuffer?: (weight: GPUBuffer | WeightBuffer | Float32Array | ArrayBuffer | CpuWeightBuffer, label: string) => GPUBuffer | WeightBuffer;
   lora?: LoRAAdapter | null;
   releaseTemporary: (buffer: GPUBuffer) => void;
+  matmulDebug?: MatmulDebugConfigSchema | null;
   onFusedQKV?: ((info: { qSize: number; kSize: number; vSize: number; totalSize: number }) => void) | null;
 }
 
 export interface ProjectAttentionQKVResult {
   qTensor: Tensor;
+  qGateTensor: Tensor | null;
   kTensor: Tensor;
   vTensor: Tensor;
   usedFusedQKV: boolean;
