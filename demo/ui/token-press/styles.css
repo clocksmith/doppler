@@ -1,0 +1,163 @@
+/* =============================================================================
+ * Token Press — Styles
+ * =============================================================================
+ * Confidence gradient: blue (sure) → purple (choosing) → red (guessing)
+ * Uses --doppler-blue, --doppler-purple, --doppler-red from main.css.
+ */
+
+/* Container */
+.tp-container {
+  position: relative;
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 14px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Base token */
+.tp-token {
+  position: relative;
+  display: inline;
+  padding: 1px 0;
+  border-bottom: 2px solid transparent;
+  border-bottom-color: var(--conf-color, transparent);
+  cursor: default;
+  transition: border-color 0.12s ease-out;
+}
+
+/* Trail tokens — active confidence fill */
+.tp-token.tp-trail {
+  background: linear-gradient(
+    180deg,
+    transparent 60%,
+    color-mix(in srgb, var(--conf-color) calc(var(--trail-opacity, 1) * 25%), transparent) 100%
+  );
+  border-bottom-color: var(--conf-color);
+}
+
+/* Settled tokens — subtle confidence underline only */
+.tp-token.tp-settled {
+  border-bottom-width: 1.5px;
+  border-bottom-color: color-mix(in srgb, var(--conf-color) 40%, transparent);
+}
+
+/* Hover: highlight token and show alternatives */
+.tp-token.tp-has-alts:hover {
+  background: color-mix(in srgb, var(--conf-color) 12%, transparent);
+  border-bottom-color: var(--conf-color);
+  border-bottom-width: 2px;
+}
+
+/* Alternatives tooltip */
+.tp-alternatives {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  background: var(--doppler-ink, #0f1012);
+  color: #e8e8e8;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 12px;
+  line-height: 1.5;
+  min-width: 160px;
+  max-width: 260px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+}
+
+.tp-token.tp-has-alts:hover > .tp-alternatives {
+  display: block;
+}
+
+/* Alternative row */
+.tp-alt-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 1px 0;
+}
+
+.tp-alt-row:first-child {
+  font-weight: 600;
+}
+
+.tp-alt-text {
+  flex: 0 0 auto;
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: inherit;
+}
+
+.tp-alt-bar {
+  flex: 1 1 auto;
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(
+    90deg,
+    var(--alt-color) calc(var(--alt-prob) * 100%),
+    rgba(255, 255, 255, 0.06) calc(var(--alt-prob) * 100%)
+  );
+}
+
+.tp-alt-pct {
+  flex: 0 0 auto;
+  min-width: 38px;
+  text-align: right;
+  font-size: 11px;
+  opacity: 0.7;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Controls bar */
+.tp-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  font-size: 12px;
+  user-select: none;
+}
+
+.tp-controls button {
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: inherit;
+  padding: 3px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  transition: background 0.1s, border-color 0.1s;
+}
+
+.tp-controls button:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.tp-controls button:active {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.tp-controls button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.tp-controls .tp-position {
+  font-variant-numeric: tabular-nums;
+  opacity: 0.5;
+  min-width: 80px;
+}
+
+/* Trail zone — slight glow on the leading edge */
+.tp-trail-zone .tp-token:last-child {
+  border-bottom-width: 2.5px;
+}
