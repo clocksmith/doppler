@@ -9,6 +9,8 @@ const platformCache = new Map();
 
 let platformsBaseUrl = null;
 
+const DEFAULT_PREFER_UNIFIED_MEMORY = false;
+
 const PLATFORM_FILES = [
   'apple-m3',
   'apple-m2',
@@ -131,7 +133,7 @@ export function getMemoryHints() {
 }
 
 export function prefersUnifiedMemory() {
-  return getMemoryHints()?.preferUnifiedMemory ?? false;
+  return getMemoryHints()?.preferUnifiedMemory ?? DEFAULT_PREFER_UNIFIED_MEMORY;
 }
 
 export function getBufferAlignment() {

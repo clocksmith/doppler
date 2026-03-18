@@ -44,6 +44,7 @@ import { initRoPEFrequencies } from '../text/init.js';
 import { processLayerGPU } from '../text/layer.js';
 
 const QUICK_GELU_ALPHA = 1.702;
+const DEFAULT_TIMESTEP_EMBED_DIM = 256;
 const SUPPORTED_CLIP_HIDDEN_ACTIVATIONS = new Set(['gelu', 'quick_gelu']);
 // Standard CLIP hidden activation per OpenAI CLIP specification.
 const DEFAULT_CLIP_HIDDEN_ACT = 'gelu';
@@ -1105,7 +1106,7 @@ export async function buildTimestepEmbedding(timestep, weightsEntry, modelConfig
   const device = getDevice();
   if (!device) throw new Error('Timestep embedding requires a WebGPU device.');
 
-  const dim = options.dim ?? 256;
+  const dim = options.dim ?? DEFAULT_TIMESTEP_EMBED_DIM;
   const half = Math.floor(dim / 2);
   const emb = new Float32Array(dim);
   const maxPeriod = 10000;
