@@ -7,6 +7,8 @@ import { formatBytes } from '../storage/quota.js';
 import { log, trace as debugTrace } from '../debug/index.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
 
+const STREAMABLE_DTYPES = new Set(['F16', 'F32', 'BF16']);
+
 // ============================================================================
 // Norm Weight Offset Detection
 // ============================================================================
@@ -102,7 +104,7 @@ export function shouldStreamLargeWeight(name, location, label, gpuCapabilities, 
   if (estimate.bytes <= maxBytes) return false;
 
   // Check if dtype can be streamed (only float types)
-  const canStream = location.dtype === 'F16' || location.dtype === 'F32' || location.dtype === 'BF16';
+  const canStream = STREAMABLE_DTYPES.has(location.dtype);
   if (!canStream) {
     log.warn(
       'Loader',

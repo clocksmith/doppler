@@ -811,7 +811,7 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
           let outputTensor;
           const { runMoEFFNGPU, runDenseFFNGPU } = await import('./ffn/index.js');
 
-          const canAutoMoe = config.useMoE && isMoELayer(layerIdx, config, layerWeights);
+          const canAutoMoe = config.useMoE && isMoELayer(layerIdx, config);
           const useMoe = selectRuleValue(
             'inference',
             'layer',
