@@ -28,6 +28,7 @@ import { runResidualAdd, runScale, recordResidualAdd, recordScale } from '../../
 import { f16ToF32 } from '../../../loader/dtype-utils.js';
 
 const SUPPORTED_DIFFUSION_BACKEND_PIPELINES = new Set(['gpu']);
+const DEFAULT_TIME_EMBED_DIM = 256;
 const SD3_TEXT_ENCODER_KEYS = ['text_encoder', 'text_encoder_2', 'text_encoder_3'];
 const SANA_TEXT_ENCODER_KEYS = ['text_encoder'];
 
@@ -492,7 +493,7 @@ export class DiffusionPipeline {
     const hiddenSize = (transformerConfig.num_attention_heads ?? 0) * (transformerConfig.attention_head_dim ?? 0);
     const patchSize = transformerConfig.patch_size ?? 2;
     const timeEmbedWeight = transformerResolver.get('time_text_embed.timestep_embedder.linear_1.weight');
-    const timeEmbedDim = timeEmbedWeight?.shape?.[1] ?? transformerConfig.time_embed_dim ?? 256;
+    const timeEmbedDim = timeEmbedWeight?.shape?.[1] ?? transformerConfig.time_embed_dim ?? DEFAULT_TIME_EMBED_DIM;
     if (!Number.isFinite(hiddenSize) || hiddenSize <= 0) {
       throw new Error('Diffusion transformer config missing num_attention_heads/attention_head_dim.');
     }
