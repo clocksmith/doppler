@@ -278,6 +278,9 @@ export function doppler(prompt, options) {
 
 doppler.load = load;
 doppler.text = async function text(prompt, options) {
+  if (!options || typeof options !== 'object' || options.model == null) {
+    throw new Error('doppler.text() requires options.model.');
+  }
   assertNoLoadAffectingOptions('doppler.text()', options);
   return collectText(doppler(prompt, options));
 };
@@ -305,14 +308,14 @@ doppler.evict = async function evict(model) {
   if (!cached) {
     return false;
   }
-  convenienceModelCache.delete(resolved.modelId);
   await cached.unload();
+  convenienceModelCache.delete(resolved.modelId);
   return true;
 };
 doppler.evictAll = async function evictAll() {
   const cached = [...convenienceModelCache.values()];
   convenienceModelCache.clear();
-  await Promise.all(cached.map((entry) => entry.unload()));
+  await Promise.allSettled(cached.map((entry) => entry.unload()));
 };
 doppler.listModels = async function listModels() {
   const models = await listQuickstartModels();

@@ -819,11 +819,11 @@ export function extractArchitecture(config, ggufConfig) {
       vocabSize,
       maxSeqLen,
       ropeTheta,
-      linearNumKeyHeads: linearNumKeyHeads ?? undefined,
-      linearNumValueHeads: linearNumValueHeads ?? undefined,
-      linearKeyHeadDim: linearKeyHeadDim ?? undefined,
-      linearValueHeadDim: linearValueHeadDim ?? undefined,
-      linearConvKernelDim: linearConvKernelDim ?? undefined,
+      linearNumKeyHeads,
+      linearNumValueHeads,
+      linearKeyHeadDim,
+      linearValueHeadDim,
+      linearConvKernelDim,
       linearNormMode,
     };
   }
@@ -1056,7 +1056,7 @@ export function createManifest(
     modelId,
     modelType: resolvedModelType,
     quantization: resolvedQuantization,
-    quantizationInfo: options.quantizationInfo ?? undefined,
+    quantizationInfo: options.quantizationInfo,
     architecture: resolvedArchitecture,
     moeConfig,
     inference,
@@ -1065,8 +1065,8 @@ export function createManifest(
     totalSize: shards.reduce((sum, s) => sum + s.size, 0),
     hashAlgorithm,
     eos_token_id: eosTokenId,
-    config: isDiffusion ? rawConfig : undefined,
-    conversion: options.conversionInfo ?? undefined,
+    config: isDiffusion ? rawConfig : (rawConfig.vision_config ? { vision_config: rawConfig.vision_config } : undefined),
+    conversion: options.conversionInfo,
     metadata: {
       source,
       convertedAt: resolveConvertedAt(
