@@ -1,18 +1,18 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-03-11T00:56:39.606Z",
+  "generatedAt": "2026-03-19T14:08:42.459Z",
   "release": {
     "channel": "main-snapshot",
-    "version": "0.1.7",
-    "commitSha": "5282ff41541dc107fc5f275488b93e52dac90dac",
-    "dirty": false
+    "version": "0.1.8",
+    "commitSha": "7199e9410136419e8ae5b1c39db8452867eda269",
+    "dirty": true
   },
   "sources": {
     "registry": {
       "path": "benchmarks/vendors/registry.json",
-      "sha256": "2ea55ebecee3d4b0d48fc9bd239fea992e691f9d0c42c94cf7636ec2c9655f81",
-      "bytes": 1445,
-      "updated": "2026-02-17"
+      "sha256": "47dca1cbd6ff582ae60aac6a023becba7a48ec78f87955092170373579113fe1",
+      "bytes": 3411,
+      "updated": "2026-03-19"
     },
     "workloads": {
       "path": "benchmarks/vendors/workloads.json",
@@ -22,15 +22,15 @@
     },
     "capabilities": {
       "path": "benchmarks/vendors/capabilities.json",
-      "sha256": "68ac025693186a51c2875f0a49631a54ce02d75ed8ba7cadf21d33b79b4e4fed",
-      "bytes": 11223,
-      "updated": "2026-02-25"
+      "sha256": "ea014f997458ffb5f7bdecb2a9ddab03f7073ef58858e12366aee5f3bb833d4c",
+      "bytes": 21806,
+      "updated": "2026-03-19"
     },
     "compareConfig": {
       "path": "benchmarks/vendors/compare-engines.config.json",
-      "sha256": "5a03d80805e1b0e176e01efa63986c0233819837e1f63487becfe39ef159cc7f",
-      "bytes": 882,
-      "updated": "2026-03-08"
+      "sha256": "08f5dbf2595be15276fe2c98b3bd4431af054cd65d3ea069367786fde0b28a61",
+      "bytes": 3194,
+      "updated": "2026-03-19"
     },
     "compareMetricContract": {
       "path": "benchmarks/vendors/compare-metrics.json",
@@ -40,20 +40,44 @@
     },
     "benchmarkPolicy": {
       "path": "benchmarks/vendors/benchmark-policy.json",
-      "sha256": "ec8e18282eec09dedb5572c4713507f9692833900b2de03dd8d192a5daf8f510",
-      "bytes": 1315,
-      "updated": "2026-03-08"
+      "sha256": "e894751800baa031108f9f13a5f4ff4599b2ac1748a0557df51297752c303fa9",
+      "bytes": 1539,
+      "updated": "2026-03-19"
     },
     "modelCatalog": {
       "path": "models/catalog.json",
-      "sha256": "d054879417e43ac4d55fc1aba113678e33f18609b2ebdea9ce9b85e9c8843166",
-      "bytes": 7444,
-      "updated": "2026-03-10"
+      "sha256": "c2629a5b4102f8ccec180c7ae01376ea53d71a75f29d76db0ea29ce5122f249b",
+      "bytes": 12417,
+      "updated": "2026-03-19"
     },
     "harness:doppler": {
       "path": "benchmarks/vendors/harnesses/doppler.json",
       "sha256": "62245da92a37b508611f26008df7eff288f65f38c11ddb6dea2d2bd9a302c39f",
       "bytes": 1475,
+      "updated": null
+    },
+    "harness:doppler-simulatte": {
+      "path": "benchmarks/vendors/harnesses/doppler-simulatte.json",
+      "sha256": "3ea71464ba4f0ccfb3e789ac8e52a957405263b5a4eb50f4c390b5ee6bce2e1a",
+      "bytes": 1744,
+      "updated": null
+    },
+    "harness:doppler-webgpu-npm": {
+      "path": "benchmarks/vendors/harnesses/doppler-webgpu-npm.json",
+      "sha256": "f40507b57717ee45796afc999c0a725597754d923b1a33b1154cc8e950956d55",
+      "bytes": 1705,
+      "updated": null
+    },
+    "harness:doppler-bun": {
+      "path": "benchmarks/vendors/harnesses/doppler-bun.json",
+      "sha256": "ca10625e93db133510a747ec1667cba2b2cee780b9b03c528ad50f905c195860",
+      "bytes": 1743,
+      "updated": null
+    },
+    "harness:doppler-deno": {
+      "path": "benchmarks/vendors/harnesses/doppler-deno.json",
+      "sha256": "7c4fc85067a34c2ee6d7652fc7aef19631f227900c5b021a84acf52fbc5d6a12",
+      "bytes": 1844,
       "updated": null
     },
     "harness:webllm": {
@@ -66,6 +90,30 @@
       "path": "benchmarks/vendors/harnesses/transformersjs.json",
       "sha256": "9c093cec04980c297599652968e718f38197255217bfb80d6301e21099ae03c0",
       "bytes": 1456,
+      "updated": null
+    },
+    "harness:transformersjs-simulatte": {
+      "path": "benchmarks/vendors/harnesses/transformersjs-simulatte.json",
+      "sha256": "ae9f115f3444f93bbf34653c8edd93526e9f31ea8144b32c3639dc872adaacdf",
+      "bytes": 1887,
+      "updated": null
+    },
+    "harness:transformersjs-webgpu-npm": {
+      "path": "benchmarks/vendors/harnesses/transformersjs-webgpu-npm.json",
+      "sha256": "935d405aaccd967e593b73d2b874fde7300a3fada3a72efc653741b45fd809e4",
+      "bytes": 1848,
+      "updated": null
+    },
+    "harness:transformersjs-bun": {
+      "path": "benchmarks/vendors/harnesses/transformersjs-bun.json",
+      "sha256": "d0b28ae8f24d173bc75a7cd2ccb48fc01ddc32b1803855d38b8af461d6f0627a",
+      "bytes": 1736,
+      "updated": null
+    },
+    "harness:transformersjs-deno": {
+      "path": "benchmarks/vendors/harnesses/transformersjs-deno.json",
+      "sha256": "36fd155a6e7b9731c3c1d9cd94159619c5906d3b2da70195c200f23db2c88861",
+      "bytes": 1838,
       "updated": null
     },
     "harness:ratchet": {
@@ -100,10 +148,10 @@
     }
   },
   "summary": {
-    "targetCount": 8,
-    "modelCoverageCount": 5,
-    "compareProfileCount": 4,
-    "catalogModelCount": 7,
+    "targetCount": 16,
+    "modelCoverageCount": 9,
+    "compareProfileCount": 10,
+    "catalogModelCount": 9,
     "workloadCount": 5,
     "committedChartCount": 1,
     "hasLatestCompareResult": true
@@ -123,10 +171,12 @@
       },
       "bench": {
         "enabledFeatures": 19,
-        "totalFeatures": 19,
+        "totalFeatures": 21,
         "features": {
           "browser_webgpu": "supported",
           "node_webgpu": "supported",
+          "bun_webgpu": "unsupported",
+          "deno_webgpu": "unsupported",
           "headless_browser_harness": "supported",
           "standardized_workloads": "supported",
           "cache_mode_control": "supported",
@@ -163,8 +213,238 @@
       "evidence": [
         "src/gpu/command-recorder.js",
         "src/inference/pipelines/text/generator-steps.js",
+        "src/tooling/source-runtime-bundle.js",
+        "src/tooling/node-source-runtime.js",
         "docs/operations.md",
         "tools/compare-engines.js"
+      ]
+    },
+    {
+      "id": "doppler-simulatte",
+      "name": "Doppler (@simulatte/webgpu)",
+      "status": "active",
+      "category": "node-webgpu-backend",
+      "website": "https://github.com/nicolo-ribaudo/simulatte-webgpu",
+      "platformSupport": {
+        "browserWebgpu": "unsupported",
+        "nodeWebgpu": "supported",
+        "headlessBrowserHarness": "unsupported",
+        "cacheModeControl": "unsupported"
+      },
+      "bench": {
+        "enabledFeatures": 16,
+        "totalFeatures": 21,
+        "features": {
+          "browser_webgpu": "unsupported",
+          "node_webgpu": "supported",
+          "bun_webgpu": "unsupported",
+          "deno_webgpu": "unsupported",
+          "headless_browser_harness": "unsupported",
+          "standardized_workloads": "supported",
+          "cache_mode_control": "unsupported",
+          "decodeTokensPerSec": "supported",
+          "prefillTokensPerSec": "supported",
+          "promptTokensPerSecToFirstToken": "supported",
+          "firstTokenMs": "supported",
+          "firstResponseMs": "supported",
+          "modelLoadMs": "supported",
+          "prefillMs": "supported",
+          "decodeMs": "supported",
+          "totalRunMs": "supported",
+          "decodeMsPerTokenP50": "supported",
+          "decodeMsPerTokenP95": "supported",
+          "decodeMsPerTokenP99": "supported",
+          "js_heap_memory_metrics": "supported",
+          "gpu_memory_metrics": "supported"
+        }
+      },
+      "profile": {
+        "enabledFeatures": 7,
+        "totalFeatures": 8,
+        "features": {
+          "kernel_level_gpu_timing": "supported",
+          "operator_level_timing": "supported",
+          "top_ops_summary": "supported",
+          "per_decode_step_breakdown": "supported",
+          "kernel_selection_trace": "supported",
+          "phase_memory_breakdown": "supported",
+          "cache_events": "supported",
+          "replayable_trace_artifact": "unsupported"
+        }
+      },
+      "evidence": [
+        "benchmarks/vendors/harnesses/doppler-simulatte.json"
+      ]
+    },
+    {
+      "id": "doppler-webgpu-npm",
+      "name": "Doppler (webgpu npm)",
+      "status": "active",
+      "category": "node-webgpu-backend",
+      "website": "https://www.npmjs.com/package/webgpu",
+      "platformSupport": {
+        "browserWebgpu": "unsupported",
+        "nodeWebgpu": "supported",
+        "headlessBrowserHarness": "unsupported",
+        "cacheModeControl": "unsupported"
+      },
+      "bench": {
+        "enabledFeatures": 16,
+        "totalFeatures": 21,
+        "features": {
+          "browser_webgpu": "unsupported",
+          "node_webgpu": "supported",
+          "bun_webgpu": "unsupported",
+          "deno_webgpu": "unsupported",
+          "headless_browser_harness": "unsupported",
+          "standardized_workloads": "supported",
+          "cache_mode_control": "unsupported",
+          "decodeTokensPerSec": "supported",
+          "prefillTokensPerSec": "supported",
+          "promptTokensPerSecToFirstToken": "supported",
+          "firstTokenMs": "supported",
+          "firstResponseMs": "supported",
+          "modelLoadMs": "supported",
+          "prefillMs": "supported",
+          "decodeMs": "supported",
+          "totalRunMs": "supported",
+          "decodeMsPerTokenP50": "supported",
+          "decodeMsPerTokenP95": "supported",
+          "decodeMsPerTokenP99": "supported",
+          "js_heap_memory_metrics": "supported",
+          "gpu_memory_metrics": "supported"
+        }
+      },
+      "profile": {
+        "enabledFeatures": 7,
+        "totalFeatures": 8,
+        "features": {
+          "kernel_level_gpu_timing": "supported",
+          "operator_level_timing": "supported",
+          "top_ops_summary": "supported",
+          "per_decode_step_breakdown": "supported",
+          "kernel_selection_trace": "supported",
+          "phase_memory_breakdown": "supported",
+          "cache_events": "supported",
+          "replayable_trace_artifact": "unsupported"
+        }
+      },
+      "evidence": [
+        "benchmarks/vendors/harnesses/doppler-webgpu-npm.json"
+      ]
+    },
+    {
+      "id": "doppler-bun",
+      "name": "Doppler (Bun WebGPU)",
+      "status": "experimental",
+      "category": "bun-webgpu-backend",
+      "website": "https://bun.sh",
+      "platformSupport": {
+        "browserWebgpu": "unsupported",
+        "nodeWebgpu": "unsupported",
+        "headlessBrowserHarness": "unsupported",
+        "cacheModeControl": "unsupported"
+      },
+      "bench": {
+        "enabledFeatures": 14,
+        "totalFeatures": 21,
+        "features": {
+          "browser_webgpu": "unsupported",
+          "node_webgpu": "unsupported",
+          "bun_webgpu": "supported",
+          "deno_webgpu": "unsupported",
+          "headless_browser_harness": "unsupported",
+          "standardized_workloads": "supported",
+          "cache_mode_control": "unsupported",
+          "decodeTokensPerSec": "supported",
+          "prefillTokensPerSec": "supported",
+          "promptTokensPerSecToFirstToken": "supported",
+          "firstTokenMs": "supported",
+          "firstResponseMs": "supported",
+          "modelLoadMs": "supported",
+          "prefillMs": "supported",
+          "decodeMs": "supported",
+          "totalRunMs": "supported",
+          "decodeMsPerTokenP50": "supported",
+          "decodeMsPerTokenP95": "supported",
+          "decodeMsPerTokenP99": "supported",
+          "js_heap_memory_metrics": "unsupported",
+          "gpu_memory_metrics": "unsupported"
+        }
+      },
+      "profile": {
+        "enabledFeatures": 0,
+        "totalFeatures": 8,
+        "features": {
+          "kernel_level_gpu_timing": "unsupported",
+          "operator_level_timing": "unsupported",
+          "top_ops_summary": "unsupported",
+          "per_decode_step_breakdown": "unsupported",
+          "kernel_selection_trace": "unsupported",
+          "phase_memory_breakdown": "unsupported",
+          "cache_events": "unsupported",
+          "replayable_trace_artifact": "unsupported"
+        }
+      },
+      "evidence": [
+        "benchmarks/vendors/harnesses/doppler-bun.json"
+      ]
+    },
+    {
+      "id": "doppler-deno",
+      "name": "Doppler (Deno WebGPU)",
+      "status": "experimental",
+      "category": "deno-webgpu-backend",
+      "website": "https://deno.com",
+      "platformSupport": {
+        "browserWebgpu": "unsupported",
+        "nodeWebgpu": "unsupported",
+        "headlessBrowserHarness": "unsupported",
+        "cacheModeControl": "unsupported"
+      },
+      "bench": {
+        "enabledFeatures": 14,
+        "totalFeatures": 21,
+        "features": {
+          "browser_webgpu": "unsupported",
+          "node_webgpu": "unsupported",
+          "bun_webgpu": "unsupported",
+          "deno_webgpu": "supported",
+          "headless_browser_harness": "unsupported",
+          "standardized_workloads": "supported",
+          "cache_mode_control": "unsupported",
+          "decodeTokensPerSec": "supported",
+          "prefillTokensPerSec": "supported",
+          "promptTokensPerSecToFirstToken": "supported",
+          "firstTokenMs": "supported",
+          "firstResponseMs": "supported",
+          "modelLoadMs": "supported",
+          "prefillMs": "supported",
+          "decodeMs": "supported",
+          "totalRunMs": "supported",
+          "decodeMsPerTokenP50": "supported",
+          "decodeMsPerTokenP95": "supported",
+          "decodeMsPerTokenP99": "supported",
+          "js_heap_memory_metrics": "unsupported",
+          "gpu_memory_metrics": "unsupported"
+        }
+      },
+      "profile": {
+        "enabledFeatures": 0,
+        "totalFeatures": 8,
+        "features": {
+          "kernel_level_gpu_timing": "unsupported",
+          "operator_level_timing": "unsupported",
+          "top_ops_summary": "unsupported",
+          "per_decode_step_breakdown": "unsupported",
+          "kernel_selection_trace": "unsupported",
+          "phase_memory_breakdown": "unsupported",
+          "cache_events": "unsupported",
+          "replayable_trace_artifact": "unsupported"
+        }
+      },
+      "evidence": [
+        "benchmarks/vendors/harnesses/doppler-deno.json"
       ]
     },
     {
@@ -181,10 +461,12 @@
       },
       "bench": {
         "enabledFeatures": 5,
-        "totalFeatures": 19,
+        "totalFeatures": 21,
         "features": {
           "browser_webgpu": "supported",
           "node_webgpu": "unsupported",
+          "bun_webgpu": "unsupported",
+          "deno_webgpu": "unsupported",
           "headless_browser_harness": "unsupported",
           "standardized_workloads": "supported",
           "cache_mode_control": "unsupported",
@@ -236,10 +518,12 @@
       },
       "bench": {
         "enabledFeatures": 17,
-        "totalFeatures": 19,
+        "totalFeatures": 21,
         "features": {
           "browser_webgpu": "supported",
           "node_webgpu": "unsupported",
+          "bun_webgpu": "unsupported",
+          "deno_webgpu": "unsupported",
           "headless_browser_harness": "supported",
           "standardized_workloads": "supported",
           "cache_mode_control": "supported",
@@ -281,6 +565,234 @@
       ]
     },
     {
+      "id": "transformersjs-simulatte",
+      "name": "Transformers.js v4 (@simulatte/webgpu)",
+      "status": "experimental",
+      "category": "node-webgpu-backend",
+      "website": "https://huggingface.co/docs/transformers.js/",
+      "platformSupport": {
+        "browserWebgpu": "unsupported",
+        "nodeWebgpu": "supported",
+        "headlessBrowserHarness": "unsupported",
+        "cacheModeControl": "unsupported"
+      },
+      "bench": {
+        "enabledFeatures": 14,
+        "totalFeatures": 21,
+        "features": {
+          "browser_webgpu": "unsupported",
+          "node_webgpu": "supported",
+          "bun_webgpu": "unsupported",
+          "deno_webgpu": "unsupported",
+          "headless_browser_harness": "unsupported",
+          "standardized_workloads": "supported",
+          "cache_mode_control": "unsupported",
+          "decodeTokensPerSec": "supported",
+          "prefillTokensPerSec": "supported",
+          "promptTokensPerSecToFirstToken": "supported",
+          "firstTokenMs": "supported",
+          "firstResponseMs": "supported",
+          "modelLoadMs": "supported",
+          "prefillMs": "supported",
+          "decodeMs": "supported",
+          "totalRunMs": "supported",
+          "decodeMsPerTokenP50": "supported",
+          "decodeMsPerTokenP95": "supported",
+          "decodeMsPerTokenP99": "supported",
+          "js_heap_memory_metrics": "unsupported",
+          "gpu_memory_metrics": "unsupported"
+        }
+      },
+      "profile": {
+        "enabledFeatures": 0,
+        "totalFeatures": 8,
+        "features": {
+          "kernel_level_gpu_timing": "unsupported",
+          "operator_level_timing": "unsupported",
+          "top_ops_summary": "unsupported",
+          "per_decode_step_breakdown": "unsupported",
+          "kernel_selection_trace": "unsupported",
+          "phase_memory_breakdown": "unsupported",
+          "cache_events": "unsupported",
+          "replayable_trace_artifact": "unsupported"
+        }
+      },
+      "evidence": [
+        "benchmarks/vendors/harnesses/transformersjs-simulatte.json"
+      ]
+    },
+    {
+      "id": "transformersjs-webgpu-npm",
+      "name": "Transformers.js v4 (webgpu npm)",
+      "status": "experimental",
+      "category": "node-webgpu-backend",
+      "website": "https://huggingface.co/docs/transformers.js/",
+      "platformSupport": {
+        "browserWebgpu": "unsupported",
+        "nodeWebgpu": "supported",
+        "headlessBrowserHarness": "unsupported",
+        "cacheModeControl": "unsupported"
+      },
+      "bench": {
+        "enabledFeatures": 14,
+        "totalFeatures": 21,
+        "features": {
+          "browser_webgpu": "unsupported",
+          "node_webgpu": "supported",
+          "bun_webgpu": "unsupported",
+          "deno_webgpu": "unsupported",
+          "headless_browser_harness": "unsupported",
+          "standardized_workloads": "supported",
+          "cache_mode_control": "unsupported",
+          "decodeTokensPerSec": "supported",
+          "prefillTokensPerSec": "supported",
+          "promptTokensPerSecToFirstToken": "supported",
+          "firstTokenMs": "supported",
+          "firstResponseMs": "supported",
+          "modelLoadMs": "supported",
+          "prefillMs": "supported",
+          "decodeMs": "supported",
+          "totalRunMs": "supported",
+          "decodeMsPerTokenP50": "supported",
+          "decodeMsPerTokenP95": "supported",
+          "decodeMsPerTokenP99": "supported",
+          "js_heap_memory_metrics": "unsupported",
+          "gpu_memory_metrics": "unsupported"
+        }
+      },
+      "profile": {
+        "enabledFeatures": 0,
+        "totalFeatures": 8,
+        "features": {
+          "kernel_level_gpu_timing": "unsupported",
+          "operator_level_timing": "unsupported",
+          "top_ops_summary": "unsupported",
+          "per_decode_step_breakdown": "unsupported",
+          "kernel_selection_trace": "unsupported",
+          "phase_memory_breakdown": "unsupported",
+          "cache_events": "unsupported",
+          "replayable_trace_artifact": "unsupported"
+        }
+      },
+      "evidence": [
+        "benchmarks/vendors/harnesses/transformersjs-webgpu-npm.json"
+      ]
+    },
+    {
+      "id": "transformersjs-bun",
+      "name": "Transformers.js v4 (Bun WebGPU)",
+      "status": "experimental",
+      "category": "bun-webgpu-backend",
+      "website": "https://huggingface.co/docs/transformers.js/",
+      "platformSupport": {
+        "browserWebgpu": "unsupported",
+        "nodeWebgpu": "unsupported",
+        "headlessBrowserHarness": "unsupported",
+        "cacheModeControl": "unsupported"
+      },
+      "bench": {
+        "enabledFeatures": 14,
+        "totalFeatures": 21,
+        "features": {
+          "browser_webgpu": "unsupported",
+          "node_webgpu": "unsupported",
+          "bun_webgpu": "supported",
+          "deno_webgpu": "unsupported",
+          "headless_browser_harness": "unsupported",
+          "standardized_workloads": "supported",
+          "cache_mode_control": "unsupported",
+          "decodeTokensPerSec": "supported",
+          "prefillTokensPerSec": "supported",
+          "promptTokensPerSecToFirstToken": "supported",
+          "firstTokenMs": "supported",
+          "firstResponseMs": "supported",
+          "modelLoadMs": "supported",
+          "prefillMs": "supported",
+          "decodeMs": "supported",
+          "totalRunMs": "supported",
+          "decodeMsPerTokenP50": "supported",
+          "decodeMsPerTokenP95": "supported",
+          "decodeMsPerTokenP99": "supported",
+          "js_heap_memory_metrics": "unsupported",
+          "gpu_memory_metrics": "unsupported"
+        }
+      },
+      "profile": {
+        "enabledFeatures": 0,
+        "totalFeatures": 8,
+        "features": {
+          "kernel_level_gpu_timing": "unsupported",
+          "operator_level_timing": "unsupported",
+          "top_ops_summary": "unsupported",
+          "per_decode_step_breakdown": "unsupported",
+          "kernel_selection_trace": "unsupported",
+          "phase_memory_breakdown": "unsupported",
+          "cache_events": "unsupported",
+          "replayable_trace_artifact": "unsupported"
+        }
+      },
+      "evidence": [
+        "benchmarks/vendors/harnesses/transformersjs-bun.json"
+      ]
+    },
+    {
+      "id": "transformersjs-deno",
+      "name": "Transformers.js v4 (Deno WebGPU)",
+      "status": "experimental",
+      "category": "deno-webgpu-backend",
+      "website": "https://huggingface.co/docs/transformers.js/",
+      "platformSupport": {
+        "browserWebgpu": "unsupported",
+        "nodeWebgpu": "unsupported",
+        "headlessBrowserHarness": "unsupported",
+        "cacheModeControl": "unsupported"
+      },
+      "bench": {
+        "enabledFeatures": 14,
+        "totalFeatures": 21,
+        "features": {
+          "browser_webgpu": "unsupported",
+          "node_webgpu": "unsupported",
+          "bun_webgpu": "unsupported",
+          "deno_webgpu": "supported",
+          "headless_browser_harness": "unsupported",
+          "standardized_workloads": "supported",
+          "cache_mode_control": "unsupported",
+          "decodeTokensPerSec": "supported",
+          "prefillTokensPerSec": "supported",
+          "promptTokensPerSecToFirstToken": "supported",
+          "firstTokenMs": "supported",
+          "firstResponseMs": "supported",
+          "modelLoadMs": "supported",
+          "prefillMs": "supported",
+          "decodeMs": "supported",
+          "totalRunMs": "supported",
+          "decodeMsPerTokenP50": "supported",
+          "decodeMsPerTokenP95": "supported",
+          "decodeMsPerTokenP99": "supported",
+          "js_heap_memory_metrics": "unsupported",
+          "gpu_memory_metrics": "unsupported"
+        }
+      },
+      "profile": {
+        "enabledFeatures": 0,
+        "totalFeatures": 8,
+        "features": {
+          "kernel_level_gpu_timing": "unsupported",
+          "operator_level_timing": "unsupported",
+          "top_ops_summary": "unsupported",
+          "per_decode_step_breakdown": "unsupported",
+          "kernel_selection_trace": "unsupported",
+          "phase_memory_breakdown": "unsupported",
+          "cache_events": "unsupported",
+          "replayable_trace_artifact": "unsupported"
+        }
+      },
+      "evidence": [
+        "benchmarks/vendors/harnesses/transformersjs-deno.json"
+      ]
+    },
+    {
       "id": "ratchet",
       "name": "Ratchet",
       "status": "experimental",
@@ -294,10 +806,12 @@
       },
       "bench": {
         "enabledFeatures": 5,
-        "totalFeatures": 19,
+        "totalFeatures": 21,
         "features": {
           "browser_webgpu": "supported",
           "node_webgpu": "unsupported",
+          "bun_webgpu": "unsupported",
+          "deno_webgpu": "unsupported",
           "headless_browser_harness": "unsupported",
           "standardized_workloads": "supported",
           "cache_mode_control": "unsupported",
@@ -349,10 +863,12 @@
       },
       "bench": {
         "enabledFeatures": 4,
-        "totalFeatures": 19,
+        "totalFeatures": 21,
         "features": {
           "browser_webgpu": "unsupported",
           "node_webgpu": "unsupported",
+          "bun_webgpu": "unsupported",
+          "deno_webgpu": "unsupported",
           "headless_browser_harness": "unsupported",
           "standardized_workloads": "supported",
           "cache_mode_control": "unsupported",
@@ -404,10 +920,12 @@
       },
       "bench": {
         "enabledFeatures": 4,
-        "totalFeatures": 19,
+        "totalFeatures": 21,
         "features": {
           "browser_webgpu": "unsupported",
           "node_webgpu": "unsupported",
+          "bun_webgpu": "unsupported",
+          "deno_webgpu": "unsupported",
           "headless_browser_harness": "unsupported",
           "standardized_workloads": "supported",
           "cache_mode_control": "unsupported",
@@ -459,10 +977,12 @@
       },
       "bench": {
         "enabledFeatures": 5,
-        "totalFeatures": 19,
+        "totalFeatures": 21,
         "features": {
           "browser_webgpu": "supported",
           "node_webgpu": "unsupported",
+          "bun_webgpu": "unsupported",
+          "deno_webgpu": "unsupported",
           "headless_browser_harness": "unsupported",
           "standardized_workloads": "supported",
           "cache_mode_control": "unsupported",
@@ -514,10 +1034,12 @@
       },
       "bench": {
         "enabledFeatures": 4,
-        "totalFeatures": 19,
+        "totalFeatures": 21,
         "features": {
           "browser_webgpu": "unsupported",
           "node_webgpu": "unsupported",
+          "bun_webgpu": "unsupported",
+          "deno_webgpu": "unsupported",
           "headless_browser_harness": "unsupported",
           "standardized_workloads": "supported",
           "cache_mode_control": "unsupported",
@@ -569,7 +1091,7 @@
         "run",
         "translate"
       ],
-      "catalogBaseUrl": "./local/gemma-3-1b-it-f16-af32",
+      "catalogBaseUrl": null,
       "catalogSizeBytes": 2018964126
     },
     {
@@ -584,14 +1106,14 @@
         "run",
         "translate"
       ],
-      "catalogBaseUrl": "./local/gemma-3-1b-it-q4k-ehf16-af32",
+      "catalogBaseUrl": null,
       "catalogSizeBytes": 1025493248
     },
     {
       "dopplerModelId": "gemma-3-270m-it-q4k-ehf16-af32",
-      "dopplerModelBaseDir": null,
-      "defaultTjsModelId": null,
-      "defaultKernelPath": null,
+      "dopplerModelBaseDir": "local",
+      "defaultTjsModelId": "onnx-community/gemma-3-270m-it-ONNX",
+      "defaultKernelPath": "gemma3-q4k-dequant-f16a-online",
       "defaultDopplerSurface": "auto",
       "inCatalog": true,
       "catalogLabel": "Gemma 3 270M Instruct (Q4K/F32a)",
@@ -599,13 +1121,13 @@
         "run",
         "translate"
       ],
-      "catalogBaseUrl": "./local/gemma-3-270m-it-q4k-ehf16-af32",
+      "catalogBaseUrl": null,
       "catalogSizeBytes": 418512553
     },
     {
       "dopplerModelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
-      "dopplerModelBaseDir": null,
-      "defaultTjsModelId": null,
+      "dopplerModelBaseDir": "local",
+      "defaultTjsModelId": "onnx-community/embeddinggemma-300m-ONNX",
       "defaultKernelPath": null,
       "defaultDopplerSurface": "auto",
       "inCatalog": true,
@@ -613,14 +1135,74 @@
       "catalogModes": [
         "embedding"
       ],
-      "catalogBaseUrl": "./local/google-embeddinggemma-300m-q4k-ehf16-af32",
+      "catalogBaseUrl": null,
       "catalogSizeBytes": 480562497
     },
     {
-      "dopplerModelId": "translategemma-4b-it-q4k-ehf16-af32",
-      "dopplerModelBaseDir": null,
-      "defaultTjsModelId": null,
+      "dopplerModelId": "lfm2-5-1-2b-instruct-q4k-ehf16-af32",
+      "dopplerModelBaseDir": "local",
+      "defaultTjsModelId": "LiquidAI/LFM2.5-1.2B-Instruct-ONNX",
+      "defaultKernelPath": "lfm2-q4k-dequant-f32a-online",
+      "defaultDopplerSurface": "auto",
+      "inCatalog": true,
+      "catalogLabel": "LFM 2.5 1.2B Instruct (Q4K/F32a)",
+      "catalogModes": [
+        "run",
+        "translate"
+      ],
+      "catalogBaseUrl": null,
+      "catalogSizeBytes": 853544060
+    },
+    {
+      "dopplerModelId": "qwen-3-5-0-8b-q4k-ehaf16",
+      "dopplerModelBaseDir": "local",
+      "defaultTjsModelId": "onnx-community/Qwen3.5-0.8B-ONNX",
       "defaultKernelPath": null,
+      "defaultDopplerSurface": "auto",
+      "inCatalog": true,
+      "catalogLabel": "Qwen 3.5 0.8B (Q4K)",
+      "catalogModes": [
+        "run",
+        "translate"
+      ],
+      "catalogBaseUrl": null,
+      "catalogSizeBytes": 788833984
+    },
+    {
+      "dopplerModelId": "qwen-3-5-2b-q4k-ehaf16",
+      "dopplerModelBaseDir": "local",
+      "defaultTjsModelId": "onnx-community/Qwen3.5-2B-ONNX",
+      "defaultKernelPath": null,
+      "defaultDopplerSurface": "auto",
+      "inCatalog": true,
+      "catalogLabel": "Qwen 3.5 2B (Q4K)",
+      "catalogModes": [
+        "run",
+        "translate"
+      ],
+      "catalogBaseUrl": null,
+      "catalogSizeBytes": 1789738688
+    },
+    {
+      "dopplerModelId": "translategemma-4b-1b-enes-q4k-ehf16-af32",
+      "dopplerModelBaseDir": "local",
+      "defaultTjsModelId": null,
+      "defaultKernelPath": "gemma3-q4k-dequant-f32a-online",
+      "defaultDopplerSurface": "auto",
+      "inCatalog": true,
+      "catalogLabel": "TranslateGemma 1B EN→ES (Q4K)",
+      "catalogModes": [
+        "run",
+        "translate"
+      ],
+      "catalogBaseUrl": null,
+      "catalogSizeBytes": 1025493248
+    },
+    {
+      "dopplerModelId": "translategemma-4b-it-q4k-ehf16-af32",
+      "dopplerModelBaseDir": "local",
+      "defaultTjsModelId": "onnx-community/translategemma-text-4b-it-ONNX",
+      "defaultKernelPath": "gemma3-q4k-dequant-f32w-f32a-online",
       "defaultDopplerSurface": "auto",
       "inCatalog": true,
       "catalogLabel": "TranslateGemma 4B Instruct (Q4K)",
@@ -694,13 +1276,13 @@
       "benchmarks/vendors/results/compare_1b_multi-workload_favorable_phases.svg"
     ],
     "latestCompareResult": {
-      "path": "benchmarks/vendors/fixtures/g3-1b-p064-d064-t0-k1.compare.json",
-      "timestamp": "2026-03-03T17:55:33.415Z",
+      "path": "benchmarks/vendors/fixtures/lfm2-5-1-2b-p064-d064-t0-k1.compare.json",
+      "timestamp": "2026-03-03T21:00:53.179Z",
       "mode": "warm",
       "section": "warm",
       "decodeProfile": "parity",
-      "dopplerModelId": "gemma-3-1b-it-f16-af32",
-      "tjsModelId": "onnx-community/gemma-3-1b-it-ONNX-GQA",
+      "dopplerModelId": "lfm2-5-1-2b-instruct-q4k-ehf16-af32",
+      "tjsModelId": "LiquidAI/LFM2.5-1.2B-Instruct-ONNX",
       "dopplerKernelPath": "manifest-default",
       "workloadId": "p064-d064-t0-k1",
       "workload": {
@@ -791,44 +1373,44 @@
       },
       "metrics": {
         "decodeTokensPerSec": {
-          "doppler": 23.37,
-          "transformersjs": 21.326220079825298
+          "doppler": 29.4,
+          "transformersjs": 27.51464172008682
         },
         "promptTokensPerSecToFirstToken": {
           "doppler": null,
           "transformersjs": null
         },
         "firstTokenMs": {
-          "doppler": 565.8,
-          "transformersjs": 297.6550000011921
+          "doppler": 344.4,
+          "transformersjs": 186.54500000178814
         },
         "firstResponseMs": {
-          "doppler": 3484.8,
-          "transformersjs": 4429.875
+          "doppler": 1196.3,
+          "transformersjs": 2833.5849999934435
         },
         "decodeMs": {
-          "doppler": 2738.6,
-          "transformersjs": 2954.109999999404
+          "doppler": 2176.8,
+          "transformersjs": 2289.689999997616
         },
         "totalRunMs": {
-          "doppler": 3304.6,
-          "transformersjs": 3253.375
+          "doppler": 2521.3,
+          "transformersjs": 2476.234999999404
         },
         "modelLoadMs": {
-          "doppler": 2919,
-          "transformersjs": 4132.219999998808
+          "doppler": 851.9,
+          "transformersjs": 2647.0399999916553
         },
         "decodeMsPerTokenP50": {
-          "doppler": 42.79,
-          "transformersjs": 46.53499999642372
+          "doppler": 34.01,
+          "transformersjs": 36.190000012516975
         },
         "decodeMsPerTokenP95": {
-          "doppler": 42.87,
-          "transformersjs": 48.460000002384184
+          "doppler": 34.02,
+          "transformersjs": 37.77099999785423
         },
         "decodeMsPerTokenP99": {
-          "doppler": 42.88,
-          "transformersjs": 48.990199989676476
+          "doppler": 34.02,
+          "transformersjs": 39.12940000832081
         }
       },
       "origin": "fixture"

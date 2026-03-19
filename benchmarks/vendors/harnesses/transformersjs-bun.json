@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "id": "transformersjs-bun",
+  "name": "Transformers.js v4 (Bun WebGPU) Harness",
+  "parentHarness": "transformersjs",
+  "backend": {
+    "runtime": "bun",
+    "webgpuModule": "native",
+    "tjsVersion": 4,
+    "notes": "Bun provides navigator.gpu natively. TJS v4 ONNX Runtime Web uses Bun's native WebGPU backend."
+  },
+  "execution": {
+    "mode": "external-command",
+    "stdoutFormat": "json",
+    "defaultCommand": null,
+    "examples": [
+      "bun benchmarks/runners/transformersjs-bench.js --tjs-version 4 --workload p064-d064-t0-k1 --json"
+    ]
+  },
+  "normalization": {
+    "metricPaths": {
+      "decodeTokensPerSec": ["timing.decodeTokensPerSec"],
+      "promptTokensPerSecToFirstToken": [
+        "timing.promptTokensPerSecToFirstToken",
+        "metrics.promptTokensPerSecToFirstToken",
+        "timing.prefillTokensPerSecTtft",
+        "timing.prefillTokensPerSec"
+      ],
+      "firstTokenMs": ["timing.firstTokenMs"],
+      "firstResponseMs": ["timing.firstResponseMs"],
+      "prefillMs": ["timing.prefillMs"],
+      "decodeMs": ["timing.decodeMs"],
+      "totalRunMs": ["timing.totalRunMs"],
+      "modelLoadMs": ["timing.modelLoadMs"],
+      "decodeMsPerTokenP50": ["timing.decodeMsPerTokenP50"],
+      "decodeMsPerTokenP95": ["timing.decodeMsPerTokenP95"],
+      "decodeMsPerTokenP99": ["timing.decodeMsPerTokenP99"],
+      "peak_memory_mb": ["metrics.peak_memory_mb"],
+      "ort_profiled_total_ms": ["metrics.ort_profiled_total_ms"],
+      "ort_profiled_event_count": ["metrics.ort_profiled_event_count"],
+      "ort_top_op_total_ms": ["metrics.ort_top_op_total_ms"]
+    },
+    "metadataPaths": {
+      "version": ["env.version"],
+      "model": ["modelId"],
+      "ort_top_op_name": ["profiling.ortConsole.topOperations.0.name"],
+      "webgpuProvider": ["env.webgpuProvider"]
+    },
+    "requiredMetrics": [
+      "decodeTokensPerSec",
+      "promptTokensPerSecToFirstToken",
+      "firstTokenMs",
+      "firstResponseMs",
+      "decodeMs",
+      "decodeMsPerTokenP50",
+      "decodeMsPerTokenP95",
+      "decodeMsPerTokenP99",
+      "totalRunMs",
+      "modelLoadMs"
+    ]
+  }
+}

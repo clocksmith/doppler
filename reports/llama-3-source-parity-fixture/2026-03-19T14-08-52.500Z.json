@@ -1,0 +1,215 @@
+{
+  "schemaVersion": 1,
+  "suite": "convert",
+  "command": "convert",
+  "modelId": "llama-3-source-parity-fixture",
+  "timestamp": "2026-03-19T14:08:52.500Z",
+  "source": "doppler",
+  "result": {
+    "presetId": "llama3",
+    "modelType": "transformer",
+    "outputDir": "/tmp/doppler-source-parity-llama3-VtVn55/rdrr",
+    "shardCount": 1,
+    "tensorCount": 11,
+    "totalSize": 208
+  },
+  "manifest": {
+    "quantization": "F32",
+    "quantizationInfo": {
+      "weights": "f32",
+      "embeddings": "f32",
+      "compute": "f16",
+      "variantTag": "f32-af16"
+    },
+    "inference": {
+      "presetId": "llama3",
+      "schema": "doppler.execution/v0",
+      "defaultKernelPath": null
+    }
+  },
+  "executionContractArtifact": {
+    "schemaVersion": 1,
+    "source": "doppler",
+    "ok": true,
+    "checks": [
+      {
+        "id": "llama-3-source-parity-fixture.steps",
+        "ok": true
+      },
+      {
+        "id": "llama-3-source-parity-fixture.session",
+        "ok": true
+      },
+      {
+        "id": "llama-3-source-parity-fixture.kernelProfilePinning",
+        "ok": true
+      },
+      {
+        "id": "llama-3-source-parity-fixture.precisionPrecedence",
+        "ok": true
+      },
+      {
+        "id": "llama-3-source-parity-fixture.kvIOPrecedence",
+        "ok": true
+      },
+      {
+        "id": "llama-3-source-parity-fixture.slotGraph",
+        "ok": true
+      },
+      {
+        "id": "llama-3-source-parity-fixture.phaseBoundary",
+        "ok": true
+      }
+    ],
+    "errors": [],
+    "session": {
+      "layout": "contiguous",
+      "disableCommandBatching": false,
+      "decodeBatchSize": 4,
+      "headDim": 2,
+      "kvLen": 8,
+      "coldQuantMode": "none"
+    },
+    "steps": {
+      "total": 1,
+      "attention": 0,
+      "attentionPhases": {
+        "prefill": 0,
+        "decode": 0,
+        "both": 0
+      }
+    },
+    "executionV0": {
+      "kernelProfiles": {
+        "schemaVersion": 1,
+        "source": "doppler",
+        "ok": true,
+        "checks": [
+          {
+            "id": "llama-3-source-parity-fixture.kernelProfilePinning",
+            "ok": true
+          },
+          {
+            "id": "llama-3-source-parity-fixture.precisionPrecedence",
+            "ok": true
+          },
+          {
+            "id": "llama-3-source-parity-fixture.kvIOPrecedence",
+            "ok": true
+          }
+        ],
+        "errors": [],
+        "stats": {
+          "kernelProfiles": 0,
+          "pinnedSteps": 0
+        },
+        "perStep": {}
+      },
+      "graph": {
+        "schemaVersion": 1,
+        "source": "doppler",
+        "ok": true,
+        "checks": [
+          {
+            "id": "llama-3-source-parity-fixture.slotGraph",
+            "ok": true
+          },
+          {
+            "id": "llama-3-source-parity-fixture.phaseBoundary",
+            "ok": true
+          }
+        ],
+        "errors": [],
+        "stats": {
+          "prefillSteps": 1,
+          "decodeSteps": 1
+        }
+      }
+    }
+  },
+  "executionV0GraphContractArtifact": {
+    "schemaVersion": 1,
+    "source": "doppler",
+    "ok": true,
+    "checks": [
+      {
+        "id": "llama-3-source-parity-fixture.slotGraph",
+        "ok": true
+      },
+      {
+        "id": "llama-3-source-parity-fixture.phaseBoundary",
+        "ok": true
+      }
+    ],
+    "errors": [],
+    "stats": {
+      "prefillSteps": 1,
+      "decodeSteps": 1
+    }
+  },
+  "layerPatternContractArtifact": {
+    "schemaVersion": 1,
+    "source": "doppler",
+    "ok": true,
+    "checks": [
+      {
+        "id": "inference.layerPattern.patternKind.shape",
+        "ok": true
+      },
+      {
+        "id": "inference.layerPattern.patternKind.semantics",
+        "ok": true
+      },
+      {
+        "id": "inference.layerPattern.layerType.shape",
+        "ok": true
+      },
+      {
+        "id": "inference.layerPattern.layerType.semantics",
+        "ok": true
+      },
+      {
+        "id": "inference.layerPattern.computeGlobalLayers.even",
+        "ok": true
+      },
+      {
+        "id": "inference.layerPattern.computeGlobalLayers.odd",
+        "ok": true
+      },
+      {
+        "id": "inference.layerPattern.computeGlobalLayers.every_n_offset",
+        "ok": true
+      },
+      {
+        "id": "inference.layerPattern.computeGlobalLayers.every_n_negative_offset",
+        "ok": true
+      }
+    ],
+    "errors": [],
+    "stats": {
+      "patternKindRules": 4,
+      "layerTypeRules": 6,
+      "patternKindContexts": 16,
+      "layerTypeContexts": 12
+    }
+  },
+  "requiredInferenceFieldsArtifact": {
+    "schemaVersion": 1,
+    "source": "doppler",
+    "scope": "manifest",
+    "label": "llama-3-source-parity-fixture.inference",
+    "ok": true,
+    "checks": [
+      {
+        "id": "llama-3-source-parity-fixture.inference.requiredInferenceFields",
+        "ok": true
+      }
+    ],
+    "errors": [],
+    "stats": {
+      "fieldCases": 35,
+      "nullableCases": 16,
+      "nonNullableCases": 19
+    }
+  }
+}

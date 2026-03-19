@@ -51,7 +51,7 @@ function resolveCandidateModuleSpecifier(candidate) {
 }
 
 function resolveDefaultWebgpuModuleSpecifiers() {
-  return ['@simulatte/webgpu', 'webgpu'];
+  return ['webgpu', '@simulatte/webgpu'];
 }
 
 function resolveExplicitWebgpuModuleSpecifier() {

@@ -1,10 +1,18 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-03-08",
+  "updated": "2026-03-19",
   "timeoutsMs": {
     "compare": 600000,
     "doppler": 600000,
-    "transformersjs": 600000
+    "doppler-simulatte": 600000,
+    "doppler-webgpu-npm": 600000,
+    "doppler-bun": 600000,
+    "doppler-deno": 600000,
+    "transformersjs": 600000,
+    "transformersjs-simulatte": 600000,
+    "transformersjs-webgpu-npm": 600000,
+    "transformersjs-bun": 600000,
+    "transformersjs-deno": 600000
   },
   "requiredTimingFields": [
     "decodeTokensPerSec",

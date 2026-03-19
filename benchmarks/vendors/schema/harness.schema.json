@@ -10,6 +10,27 @@
       "pattern": "^[a-z0-9][a-z0-9-]*$"
     },
     "name": { "type": "string", "minLength": 1 },
+    "parentHarness": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*$"
+    },
+    "backend": {
+      "type": "object",
+      "properties": {
+        "runtime": {
+          "type": "string",
+          "enum": ["node", "bun", "deno"]
+        },
+        "webgpuModule": { "type": "string", "minLength": 1 },
+        "tjsVersion": { "type": "integer" },
+        "env": {
+          "type": "object",
+          "additionalProperties": { "type": "string" }
+        },
+        "notes": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
     "execution": {
       "type": "object",
       "required": ["mode", "stdoutFormat"],

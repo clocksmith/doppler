@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-02-17",
+  "updated": "2026-03-19",
   "products": [
     {
       "id": "doppler",
@@ -9,6 +9,42 @@
       "website": "https://github.com/clocksmith/doppler",
       "harness": "harnesses/doppler.json",
       "status": "active"
+    },
+    {
+      "id": "doppler-simulatte",
+      "name": "Doppler (@simulatte/webgpu)",
+      "category": "node-webgpu-backend",
+      "website": "https://github.com/nicolo-ribaudo/simulatte-webgpu",
+      "harness": "harnesses/doppler-simulatte.json",
+      "status": "active",
+      "parentProduct": "doppler"
+    },
+    {
+      "id": "doppler-webgpu-npm",
+      "name": "Doppler (webgpu npm)",
+      "category": "node-webgpu-backend",
+      "website": "https://www.npmjs.com/package/webgpu",
+      "harness": "harnesses/doppler-webgpu-npm.json",
+      "status": "active",
+      "parentProduct": "doppler"
+    },
+    {
+      "id": "doppler-bun",
+      "name": "Doppler (Bun WebGPU)",
+      "category": "bun-webgpu-backend",
+      "website": "https://bun.sh",
+      "harness": "harnesses/doppler-bun.json",
+      "status": "experimental",
+      "parentProduct": "doppler"
+    },
+    {
+      "id": "doppler-deno",
+      "name": "Doppler (Deno WebGPU)",
+      "category": "deno-webgpu-backend",
+      "website": "https://deno.com",
+      "harness": "harnesses/doppler-deno.json",
+      "status": "experimental",
+      "parentProduct": "doppler"
     },
     {
       "id": "webllm",
@@ -25,6 +61,42 @@
       "website": "https://huggingface.co/docs/transformers.js/",
       "harness": "harnesses/transformersjs.json",
       "status": "active"
+    },
+    {
+      "id": "transformersjs-simulatte",
+      "name": "Transformers.js v4 (@simulatte/webgpu)",
+      "category": "node-webgpu-backend",
+      "website": "https://huggingface.co/docs/transformers.js/",
+      "harness": "harnesses/transformersjs-simulatte.json",
+      "status": "experimental",
+      "parentProduct": "transformersjs"
+    },
+    {
+      "id": "transformersjs-webgpu-npm",
+      "name": "Transformers.js v4 (webgpu npm)",
+      "category": "node-webgpu-backend",
+      "website": "https://huggingface.co/docs/transformers.js/",
+      "harness": "harnesses/transformersjs-webgpu-npm.json",
+      "status": "experimental",
+      "parentProduct": "transformersjs"
+    },
+    {
+      "id": "transformersjs-bun",
+      "name": "Transformers.js v4 (Bun WebGPU)",
+      "category": "bun-webgpu-backend",
+      "website": "https://huggingface.co/docs/transformers.js/",
+      "harness": "harnesses/transformersjs-bun.json",
+      "status": "experimental",
+      "parentProduct": "transformersjs"
+    },
+    {
+      "id": "transformersjs-deno",
+      "name": "Transformers.js v4 (Deno WebGPU)",
+      "category": "deno-webgpu-backend",
+      "website": "https://huggingface.co/docs/transformers.js/",
+      "harness": "harnesses/transformersjs-deno.json",
+      "status": "experimental",
+      "parentProduct": "transformersjs"
     },
     {
       "id": "ratchet",

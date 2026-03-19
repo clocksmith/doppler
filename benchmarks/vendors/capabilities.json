@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-02-25",
+  "updated": "2026-03-19",
   "featureCatalog": {
     "bench": [
       {
@@ -10,6 +10,14 @@
       {
         "id": "node_webgpu",
         "description": "Runs inference on WebGPU directly in Node runtime."
+      },
+      {
+        "id": "bun_webgpu",
+        "description": "Runs inference on WebGPU in Bun runtime."
+      },
+      {
+        "id": "deno_webgpu",
+        "description": "Runs inference on WebGPU in Deno runtime."
       },
       {
         "id": "headless_browser_harness",
@@ -113,6 +121,24 @@
         "id": "replayable_trace_artifact",
         "description": "Produces replayable trace artifact suitable for deterministic replay."
       }
+    ],
+    "format": [
+      {
+        "id": "rdrr_runtime",
+        "description": "Loads and runs inference from RDRR format artifacts."
+      },
+      {
+        "id": "onnx_runtime",
+        "description": "Loads and runs inference from ONNX format artifacts via ORT."
+      },
+      {
+        "id": "safetensors_runtime",
+        "description": "Loads and runs inference from SafeTensors format directly at runtime."
+      },
+      {
+        "id": "format_matrix_compare",
+        "description": "Can benchmark same model across multiple formats for format-overhead isolation."
+      }
     ]
   },
   "targets": [
@@ -123,6 +149,8 @@
         "features": {
           "browser_webgpu": "supported",
           "node_webgpu": "supported",
+          "bun_webgpu": "unsupported",
+          "deno_webgpu": "unsupported",
           "headless_browser_harness": "supported",
           "standardized_workloads": "supported",
           "cache_mode_control": "supported",
@@ -154,11 +182,197 @@
           "replayable_trace_artifact": "unsupported"
         }
       },
+      "format": {
+        "features": {
+          "rdrr_runtime": "supported",
+          "onnx_runtime": "unsupported",
+          "safetensors_runtime": "supported",
+          "format_matrix_compare": "supported"
+        }
+      },
       "evidence": [
         "src/gpu/command-recorder.js",
         "src/inference/pipelines/text/generator-steps.js",
+        "src/tooling/source-runtime-bundle.js",
+        "src/tooling/node-source-runtime.js",
         "docs/operations.md",
         "tools/compare-engines.js"
+      ]
+    },
+    {
+      "id": "doppler-simulatte",
+      "name": "Doppler (@simulatte/webgpu)",
+      "bench": {
+        "features": {
+          "browser_webgpu": "unsupported",
+          "node_webgpu": "supported",
+          "bun_webgpu": "unsupported",
+          "deno_webgpu": "unsupported",
+          "headless_browser_harness": "unsupported",
+          "standardized_workloads": "supported",
+          "cache_mode_control": "unsupported",
+          "decodeTokensPerSec": "supported",
+          "prefillTokensPerSec": "supported",
+          "promptTokensPerSecToFirstToken": "supported",
+          "firstTokenMs": "supported",
+          "firstResponseMs": "supported",
+          "modelLoadMs": "supported",
+          "prefillMs": "supported",
+          "decodeMs": "supported",
+          "totalRunMs": "supported",
+          "decodeMsPerTokenP50": "supported",
+          "decodeMsPerTokenP95": "supported",
+          "decodeMsPerTokenP99": "supported",
+          "js_heap_memory_metrics": "supported",
+          "gpu_memory_metrics": "supported"
+        }
+      },
+      "profile": {
+        "features": {
+          "kernel_level_gpu_timing": "supported",
+          "operator_level_timing": "supported",
+          "top_ops_summary": "supported",
+          "per_decode_step_breakdown": "supported",
+          "kernel_selection_trace": "supported",
+          "phase_memory_breakdown": "supported",
+          "cache_events": "supported",
+          "replayable_trace_artifact": "unsupported"
+        }
+      },
+      "evidence": [
+        "benchmarks/vendors/harnesses/doppler-simulatte.json"
+      ]
+    },
+    {
+      "id": "doppler-webgpu-npm",
+      "name": "Doppler (webgpu npm)",
+      "bench": {
+        "features": {
+          "browser_webgpu": "unsupported",
+          "node_webgpu": "supported",
+          "bun_webgpu": "unsupported",
+          "deno_webgpu": "unsupported",
+          "headless_browser_harness": "unsupported",
+          "standardized_workloads": "supported",
+          "cache_mode_control": "unsupported",
+          "decodeTokensPerSec": "supported",
+          "prefillTokensPerSec": "supported",
+          "promptTokensPerSecToFirstToken": "supported",
+          "firstTokenMs": "supported",
+          "firstResponseMs": "supported",
+          "modelLoadMs": "supported",
+          "prefillMs": "supported",
+          "decodeMs": "supported",
+          "totalRunMs": "supported",
+          "decodeMsPerTokenP50": "supported",
+          "decodeMsPerTokenP95": "supported",
+          "decodeMsPerTokenP99": "supported",
+          "js_heap_memory_metrics": "supported",
+          "gpu_memory_metrics": "supported"
+        }
+      },
+      "profile": {
+        "features": {
+          "kernel_level_gpu_timing": "supported",
+          "operator_level_timing": "supported",
+          "top_ops_summary": "supported",
+          "per_decode_step_breakdown": "supported",
+          "kernel_selection_trace": "supported",
+          "phase_memory_breakdown": "supported",
+          "cache_events": "supported",
+          "replayable_trace_artifact": "unsupported"
+        }
+      },
+      "evidence": [
+        "benchmarks/vendors/harnesses/doppler-webgpu-npm.json"
+      ]
+    },
+    {
+      "id": "doppler-bun",
+      "name": "Doppler (Bun WebGPU)",
+      "bench": {
+        "features": {
+          "browser_webgpu": "unsupported",
+          "node_webgpu": "unsupported",
+          "bun_webgpu": "supported",
+          "deno_webgpu": "unsupported",
+          "headless_browser_harness": "unsupported",
+          "standardized_workloads": "supported",
+          "cache_mode_control": "unsupported",
+          "decodeTokensPerSec": "supported",
+          "prefillTokensPerSec": "supported",
+          "promptTokensPerSecToFirstToken": "supported",
+          "firstTokenMs": "supported",
+          "firstResponseMs": "supported",
+          "modelLoadMs": "supported",
+          "prefillMs": "supported",
+          "decodeMs": "supported",
+          "totalRunMs": "supported",
+          "decodeMsPerTokenP50": "supported",
+          "decodeMsPerTokenP95": "supported",
+          "decodeMsPerTokenP99": "supported",
+          "js_heap_memory_metrics": "unsupported",
+          "gpu_memory_metrics": "unsupported"
+        }
+      },
+      "profile": {
+        "features": {
+          "kernel_level_gpu_timing": "unsupported",
+          "operator_level_timing": "unsupported",
+          "top_ops_summary": "unsupported",
+          "per_decode_step_breakdown": "unsupported",
+          "kernel_selection_trace": "unsupported",
+          "phase_memory_breakdown": "unsupported",
+          "cache_events": "unsupported",
+          "replayable_trace_artifact": "unsupported"
+        }
+      },
+      "evidence": [
+        "benchmarks/vendors/harnesses/doppler-bun.json"
+      ]
+    },
+    {
+      "id": "doppler-deno",
+      "name": "Doppler (Deno WebGPU)",
+      "bench": {
+        "features": {
+          "browser_webgpu": "unsupported",
+          "node_webgpu": "unsupported",
+          "bun_webgpu": "unsupported",
+          "deno_webgpu": "supported",
+          "headless_browser_harness": "unsupported",
+          "standardized_workloads": "supported",
+          "cache_mode_control": "unsupported",
+          "decodeTokensPerSec": "supported",
+          "prefillTokensPerSec": "supported",
+          "promptTokensPerSecToFirstToken": "supported",
+          "firstTokenMs": "supported",
+          "firstResponseMs": "supported",
+          "modelLoadMs": "supported",
+          "prefillMs": "supported",
+          "decodeMs": "supported",
+          "totalRunMs": "supported",
+          "decodeMsPerTokenP50": "supported",
+          "decodeMsPerTokenP95": "supported",
+          "decodeMsPerTokenP99": "supported",
+          "js_heap_memory_metrics": "unsupported",
+          "gpu_memory_metrics": "unsupported"
+        }
+      },
+      "profile": {
+        "features": {
+          "kernel_level_gpu_timing": "unsupported",
+          "operator_level_timing": "unsupported",
+          "top_ops_summary": "unsupported",
+          "per_decode_step_breakdown": "unsupported",
+          "kernel_selection_trace": "unsupported",
+          "phase_memory_breakdown": "unsupported",
+          "cache_events": "unsupported",
+          "replayable_trace_artifact": "unsupported"
+        }
+      },
+      "evidence": [
+        "benchmarks/vendors/harnesses/doppler-deno.json"
       ]
     },
     {
@@ -168,6 +382,8 @@
         "features": {
           "browser_webgpu": "supported",
           "node_webgpu": "unsupported",
+          "bun_webgpu": "unsupported",
+          "deno_webgpu": "unsupported",
           "headless_browser_harness": "supported",
           "standardized_workloads": "supported",
           "cache_mode_control": "supported",
@@ -199,11 +415,195 @@
           "replayable_trace_artifact": "unsupported"
         }
       },
+      "format": {
+        "features": {
+          "rdrr_runtime": "unsupported",
+          "onnx_runtime": "supported",
+          "safetensors_runtime": "supported",
+          "format_matrix_compare": "supported"
+        }
+      },
       "evidence": [
         "benchmarks/runners/transformersjs-bench.js",
         "benchmarks/runners/transformersjs-runner.html",
         "benchmarks/vendors/harnesses/transformersjs.json",
         "tools/compare-engines.js"
+      ]
+    },
+    {
+      "id": "transformersjs-simulatte",
+      "name": "Transformers.js v4 (@simulatte/webgpu)",
+      "bench": {
+        "features": {
+          "browser_webgpu": "unsupported",
+          "node_webgpu": "supported",
+          "bun_webgpu": "unsupported",
+          "deno_webgpu": "unsupported",
+          "headless_browser_harness": "unsupported",
+          "standardized_workloads": "supported",
+          "cache_mode_control": "unsupported",
+          "decodeTokensPerSec": "supported",
+          "prefillTokensPerSec": "supported",
+          "promptTokensPerSecToFirstToken": "supported",
+          "firstTokenMs": "supported",
+          "firstResponseMs": "supported",
+          "modelLoadMs": "supported",
+          "prefillMs": "supported",
+          "decodeMs": "supported",
+          "totalRunMs": "supported",
+          "decodeMsPerTokenP50": "supported",
+          "decodeMsPerTokenP95": "supported",
+          "decodeMsPerTokenP99": "supported",
+          "js_heap_memory_metrics": "unsupported",
+          "gpu_memory_metrics": "unsupported"
+        }
+      },
+      "profile": {
+        "features": {
+          "kernel_level_gpu_timing": "unsupported",
+          "operator_level_timing": "unsupported",
+          "top_ops_summary": "unsupported",
+          "per_decode_step_breakdown": "unsupported",
+          "kernel_selection_trace": "unsupported",
+          "phase_memory_breakdown": "unsupported",
+          "cache_events": "unsupported",
+          "replayable_trace_artifact": "unsupported"
+        }
+      },
+      "evidence": [
+        "benchmarks/vendors/harnesses/transformersjs-simulatte.json"
+      ]
+    },
+    {
+      "id": "transformersjs-webgpu-npm",
+      "name": "Transformers.js v4 (webgpu npm)",
+      "bench": {
+        "features": {
+          "browser_webgpu": "unsupported",
+          "node_webgpu": "supported",
+          "bun_webgpu": "unsupported",
+          "deno_webgpu": "unsupported",
+          "headless_browser_harness": "unsupported",
+          "standardized_workloads": "supported",
+          "cache_mode_control": "unsupported",
+          "decodeTokensPerSec": "supported",
+          "prefillTokensPerSec": "supported",
+          "promptTokensPerSecToFirstToken": "supported",
+          "firstTokenMs": "supported",
+          "firstResponseMs": "supported",
+          "modelLoadMs": "supported",
+          "prefillMs": "supported",
+          "decodeMs": "supported",
+          "totalRunMs": "supported",
+          "decodeMsPerTokenP50": "supported",
+          "decodeMsPerTokenP95": "supported",
+          "decodeMsPerTokenP99": "supported",
+          "js_heap_memory_metrics": "unsupported",
+          "gpu_memory_metrics": "unsupported"
+        }
+      },
+      "profile": {
+        "features": {
+          "kernel_level_gpu_timing": "unsupported",
+          "operator_level_timing": "unsupported",
+          "top_ops_summary": "unsupported",
+          "per_decode_step_breakdown": "unsupported",
+          "kernel_selection_trace": "unsupported",
+          "phase_memory_breakdown": "unsupported",
+          "cache_events": "unsupported",
+          "replayable_trace_artifact": "unsupported"
+        }
+      },
+      "evidence": [
+        "benchmarks/vendors/harnesses/transformersjs-webgpu-npm.json"
+      ]
+    },
+    {
+      "id": "transformersjs-bun",
+      "name": "Transformers.js v4 (Bun WebGPU)",
+      "bench": {
+        "features": {
+          "browser_webgpu": "unsupported",
+          "node_webgpu": "unsupported",
+          "bun_webgpu": "supported",
+          "deno_webgpu": "unsupported",
+          "headless_browser_harness": "unsupported",
+          "standardized_workloads": "supported",
+          "cache_mode_control": "unsupported",
+          "decodeTokensPerSec": "supported",
+          "prefillTokensPerSec": "supported",
+          "promptTokensPerSecToFirstToken": "supported",
+          "firstTokenMs": "supported",
+          "firstResponseMs": "supported",
+          "modelLoadMs": "supported",
+          "prefillMs": "supported",
+          "decodeMs": "supported",
+          "totalRunMs": "supported",
+          "decodeMsPerTokenP50": "supported",
+          "decodeMsPerTokenP95": "supported",
+          "decodeMsPerTokenP99": "supported",
+          "js_heap_memory_metrics": "unsupported",
+          "gpu_memory_metrics": "unsupported"
+        }
+      },
+      "profile": {
+        "features": {
+          "kernel_level_gpu_timing": "unsupported",
+          "operator_level_timing": "unsupported",
+          "top_ops_summary": "unsupported",
+          "per_decode_step_breakdown": "unsupported",
+          "kernel_selection_trace": "unsupported",
+          "phase_memory_breakdown": "unsupported",
+          "cache_events": "unsupported",
+          "replayable_trace_artifact": "unsupported"
+        }
+      },
+      "evidence": [
+        "benchmarks/vendors/harnesses/transformersjs-bun.json"
+      ]
+    },
+    {
+      "id": "transformersjs-deno",
+      "name": "Transformers.js v4 (Deno WebGPU)",
+      "bench": {
+        "features": {
+          "browser_webgpu": "unsupported",
+          "node_webgpu": "unsupported",
+          "bun_webgpu": "unsupported",
+          "deno_webgpu": "supported",
+          "headless_browser_harness": "unsupported",
+          "standardized_workloads": "supported",
+          "cache_mode_control": "unsupported",
+          "decodeTokensPerSec": "supported",
+          "prefillTokensPerSec": "supported",
+          "promptTokensPerSecToFirstToken": "supported",
+          "firstTokenMs": "supported",
+          "firstResponseMs": "supported",
+          "modelLoadMs": "supported",
+          "prefillMs": "supported",
+          "decodeMs": "supported",
+          "totalRunMs": "supported",
+          "decodeMsPerTokenP50": "supported",
+          "decodeMsPerTokenP95": "supported",
+          "decodeMsPerTokenP99": "supported",
+          "js_heap_memory_metrics": "unsupported",
+          "gpu_memory_metrics": "unsupported"
+        }
+      },
+      "profile": {
+        "features": {
+          "kernel_level_gpu_timing": "unsupported",
+          "operator_level_timing": "unsupported",
+          "top_ops_summary": "unsupported",
+          "per_decode_step_breakdown": "unsupported",
+          "kernel_selection_trace": "unsupported",
+          "phase_memory_breakdown": "unsupported",
+          "cache_events": "unsupported",
+          "replayable_trace_artifact": "unsupported"
+        }
+      },
+      "evidence": [
+        "benchmarks/vendors/harnesses/transformersjs-deno.json"
       ]
     },
     {
@@ -213,6 +613,8 @@
         "features": {
           "browser_webgpu": "supported",
           "node_webgpu": "unsupported",
+          "bun_webgpu": "unsupported",
+          "deno_webgpu": "unsupported",
           "headless_browser_harness": "unsupported",
           "standardized_workloads": "supported",
           "cache_mode_control": "unsupported",
@@ -255,6 +657,8 @@
         "features": {
           "browser_webgpu": "supported",
           "node_webgpu": "unsupported",
+          "bun_webgpu": "unsupported",
+          "deno_webgpu": "unsupported",
           "headless_browser_harness": "unsupported",
           "standardized_workloads": "supported",
           "cache_mode_control": "unsupported",
@@ -297,6 +701,8 @@
         "features": {
           "browser_webgpu": "unsupported",
           "node_webgpu": "unsupported",
+          "bun_webgpu": "unsupported",
+          "deno_webgpu": "unsupported",
           "headless_browser_harness": "unsupported",
           "standardized_workloads": "supported",
           "cache_mode_control": "unsupported",
@@ -339,6 +745,8 @@
         "features": {
           "browser_webgpu": "unsupported",
           "node_webgpu": "unsupported",
+          "bun_webgpu": "unsupported",
+          "deno_webgpu": "unsupported",
           "headless_browser_harness": "unsupported",
           "standardized_workloads": "supported",
           "cache_mode_control": "unsupported",
@@ -381,6 +789,8 @@
         "features": {
           "browser_webgpu": "supported",
           "node_webgpu": "unsupported",
+          "bun_webgpu": "unsupported",
+          "deno_webgpu": "unsupported",
           "headless_browser_harness": "unsupported",
           "standardized_workloads": "supported",
           "cache_mode_control": "unsupported",
@@ -423,6 +833,8 @@
         "features": {
           "browser_webgpu": "unsupported",
           "node_webgpu": "unsupported",
+          "bun_webgpu": "unsupported",
+          "deno_webgpu": "unsupported",
           "headless_browser_harness": "unsupported",
           "standardized_workloads": "supported",
           "cache_mode_control": "unsupported",

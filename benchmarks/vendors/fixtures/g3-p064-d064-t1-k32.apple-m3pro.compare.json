@@ -3,13 +3,13 @@
   "benchmarkPolicy": {
     "source": "benchmarks/vendors/benchmark-policy.json",
     "schemaVersion": 1,
-    "sourceSha256": "00e90be2fe2290f69f0a813ae44c0f4ee693fceec260639779bdb55f5dc9ae9a",
+    "sourceSha256": "30019895ac1c035cbeb4a0a3d10e6b651723590b69c00f4739d291d07d276f24",
     "updated": "2026-03-08"
   },
   "compareConfig": {
     "source": "benchmarks/vendors/compare-engines.config.json",
     "schemaVersion": 1,
-    "sourceSha256": "a884002f049d752cc204f8961fbbf6af942d0d57adf0c732ce422bba6f758d45",
+    "sourceSha256": "a54cd26efd23228a1b4dae17a8e3f7f0614cac5514708fdd8d2e9e9c36ca65be",
     "profileSource": "config",
     "updated": "2026-03-08"
   },
@@ -1061,7 +1061,7 @@
             "source": "benchmarks/vendors/benchmark-policy.json",
             "schemaVersion": 1,
             "updated": "2026-02-23",
-            "sourceSha256": "00e90be2fe2290f69f0a813ae44c0f4ee693fceec260639779bdb55f5dc9ae9a"
+            "sourceSha256": "30019895ac1c035cbeb4a0a3d10e6b651723590b69c00f4739d291d07d276f24"
           },
           "determinism": {
             "seed": 0,
@@ -1955,7 +1955,7 @@
             "source": "benchmarks/vendors/benchmark-policy.json",
             "schemaVersion": 1,
             "updated": "2026-02-23",
-            "sourceSha256": "00e90be2fe2290f69f0a813ae44c0f4ee693fceec260639779bdb55f5dc9ae9a"
+            "sourceSha256": "30019895ac1c035cbeb4a0a3d10e6b651723590b69c00f4739d291d07d276f24"
           },
           "determinism": {
             "seed": 0,

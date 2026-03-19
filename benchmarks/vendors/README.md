@@ -59,6 +59,114 @@ Claim format to keep reports auditable:
   Raw engine payloads may still carry engine-defined `prefillMs` / `prefillTokensPerSec`, but those are not compare-contract claims when semantics differ.
 - [release-matrix.json](./release-matrix.json): generated release/support matrix from registry + workloads + capabilities + model catalog (+ optional latest compare JSON).
 
+## Format Comparison Matrix
+
+The benchmark system supports a **2x2 format-fairness matrix** that isolates
+engine performance from format optimization advantages.
+
+Each engine gets its optimized format **and** a shared neutral baseline (SafeTensors).
+This prevents "unfair format" objections and enables four distinct claims from one model.
+
+```
+                              Doppler                    Transformers.js
+                    ┌─────────────────────────┐ ┌─────────────────────────┐
+                    │  WebGPU Inference Engine │ │  ONNX Runtime / Native  │
+                    └────────┬────────────────┘ └────────┬────────────────┘
+                             │                           │
+               ┌─────────────┴─────────────┐  ┌──────────┴──────────┐
+               │                           │  │                     │
+         ┌─────┴─────┐             ┌───────┴──┴───┐          ┌─────┴─────┐
+         │   RDRR    │             │ SafeTensors  │          │   ONNX    │
+         │ optimized │             │   neutral    │          │ optimized │
+         └─────┬─────┘             └───────┬──┬───┘          └─────┬─────┘
+               │                      ▲    │  │    ▲               │
+               │                      │    │  │    │               │
+               │              ┌───────┘    │  │    └───────┐       │
+               │              │            │  │            │       │
+         ┌─────┴──────────────┴──┐   ┌─────┴──┴────────────┴──────┴┐
+         │    DOPPLER LANES      │   │  TRANSFORMERS.JS LANES      │
+         │                       │   │                              │
+         │  doppler + rdrr       │   │  tjs + onnx                 │
+         │  doppler + safetensors│   │  tjs + safetensors           │
+         └───────────────────────┘   └──────────────────────────────┘
+
+  ════════════════════════════════════════════════════════════════════════
+                         COMPARISON MATRIX
+  ════════════════════════════════════════════════════════════════════════
+
+  ┌──────────────────┬──────────────────────┬──────────────────────────┐
+  │                  │  SafeTensors         │  Optimized Format        │
+  │                  │  (neutral ground)    │  (best-case per engine)  │
+  ├──────────────────┼──────────────────────┼──────────────────────────┤
+  │                  │                      │                          │
+  │  Doppler         │  direct-source/v1    │  RDRR                    │
+  │                  │  F16 weights         │  Q4K shards              │
+  │                  │                      │                          │
+  ├──────────────────┼──────────────────────┼──────────────────────────┤
+  │                  │                      │                          │
+  │  Transformers.js │  native backend      │  ONNX / ORT             │
+  │                  │  F16 weights         │  Q4F16 graph             │
+  │                  │                      │                          │
+  └──────────────────┴──────────────────────┴──────────────────────────┘
+
+  What each quadrant proves:
+
+    neutral x neutral     Pure engine comparison. Same weights, same
+    (ST vs ST)            precision, same format. No format advantage.
+
+    optimized x optimized Best-vs-best. Each engine with its format
+    (RDRR vs ONNX)        advantage. Real-world practical comparison.
+
+    optimized vs neutral  Format uplift. How much does RDRR help
+    (per engine)          Doppler? How much does ONNX help TJS?
+
+  ════════════════════════════════════════════════════════════════════════
+                      BACKEND MATRIX (orthogonal)
+  ════════════════════════════════════════════════════════════════════════
+
+  Format comparison uses one backend (browser WebGPU).
+  Backend comparison uses optimized format per engine.
+
+  ┌──────────────────────┬─────────┬──────────────────┐
+  │  Backend             │ Doppler │ Transformers.js   │
+  ├──────────────────────┼─────────┼──────────────────┤
+  │  Browser WebGPU      │   ✓     │   ✓               │
+  │  Node @simulatte     │   ✓     │   experimental    │
+  │  Node webgpu-npm     │   ✓     │   experimental    │
+  │  Bun WebGPU          │   exp   │   experimental    │
+  │  Deno WebGPU         │   exp   │   experimental    │
+  └──────────────────────┴─────────┴──────────────────┘
+
+  Total lanes per model:
+    Format matrix:  4 combos x 1 backend  =  4
+    Backend matrix: 1 combo  x 5 backends =  5
+                                          ─────
+                                     9 lanes/model
+```
+
+CLI flags for format selection:
+
+```bash
+# Default: optimized formats (rdrr vs onnx)
+node tools/compare-engines.js --model-id gemma-3-1b-it-q4k-ehf16-af32
+
+# Neutral ground: both engines on SafeTensors
+node tools/compare-engines.js --model-id gemma-3-1b-it-q4k-ehf16-af32 \
+  --doppler-format safetensors --tjs-format safetensors
+
+# Mixed: Doppler optimized vs TJS neutral
+node tools/compare-engines.js --model-id gemma-3-1b-it-q4k-ehf16-af32 \
+  --tjs-format safetensors
+```
+
+Config in [compare-engines.config.json](./compare-engines.config.json):
+each model profile has `defaultDopplerFormat`, `defaultTjsFormat`, and
+`safetensorsSourceId` (the HF repo with the original F16/BF16 weights).
+
+Capabilities in [capabilities.json](./capabilities.json): the `format`
+feature category tracks `rdrr_runtime`, `onnx_runtime`, `safetensors_runtime`,
+and `format_matrix_compare` per target.
+
 ## Closed Workstream Snapshot (2026-02-22 UTC)
 
 - Gemma 3 Q4K `f32a` now auto-selects `gemma3-q4k-dequant-f32a-online` on subgroup-capable devices ([src/rules/inference/kernel-path.rules.json](../../src/rules/inference/kernel-path.rules.json)).

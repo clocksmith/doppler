@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "id": "doppler-simulatte",
+  "name": "Doppler (@simulatte/webgpu) Harness",
+  "parentHarness": "doppler",
+  "backend": {
+    "runtime": "node",
+    "webgpuModule": "@simulatte/webgpu",
+    "env": {
+      "DOPPLER_NODE_WEBGPU_MODULE": "@simulatte/webgpu"
+    }
+  },
+  "execution": {
+    "mode": "manual-json",
+    "stdoutFormat": "json",
+    "defaultCommand": null,
+    "examples": [
+      "DOPPLER_NODE_WEBGPU_MODULE=@simulatte/webgpu node tools/doppler-cli.js bench --config '{\"request\":{\"modelId\":\"gemma-3-270m-it-q4k-ehf16-af32\"}}' --json"
+    ]
+  },
+  "normalization": {
+    "metricPaths": {
+      "decodeTokensPerSec": ["result.timing.decodeTokensPerSec"],
+      "promptTokensPerSecToFirstToken": [
+        "result.timing.promptTokensPerSecToFirstToken",
+        "result.metrics.medianPrefillTokensPerSecTtft",
+        "result.timing.prefillTokensPerSecTtft",
+        "result.timing.prefillTokensPerSec"
+      ],
+      "firstTokenMs": ["result.timing.firstTokenMs"],
+      "firstResponseMs": ["result.timing.firstResponseMs"],
+      "prefillMs": ["result.timing.prefillMs"],
+      "decodeMs": ["result.timing.decodeMs"],
+      "totalRunMs": ["result.timing.totalRunMs"],
+      "modelLoadMs": ["result.timing.modelLoadMs"],
+      "decodeMsPerTokenP50": ["result.timing.decodeMsPerTokenP50"],
+      "decodeMsPerTokenP95": ["result.timing.decodeMsPerTokenP95"],
+      "decodeMsPerTokenP99": ["result.timing.decodeMsPerTokenP99"],
+      "peak_memory_bytes": ["result.memoryStats.used", "result.memoryStats.peakBytes", "result.memoryStats.peakMemoryBytes"]
+    },
+    "metadataPaths": {
+      "version": ["result.env.version"],
+      "model": ["result.modelId"],
+      "runtimeConfigHash": ["result.runtimeConfig.runtimeConfigSha256"],
+      "webgpuProvider": ["result.env.webgpuProvider"]
+    },
+    "requiredMetrics": [
+      "decodeTokensPerSec",
+      "promptTokensPerSecToFirstToken",
+      "firstTokenMs",
+      "firstResponseMs",
+      "decodeMs",
+      "decodeMsPerTokenP50",
+      "decodeMsPerTokenP95",
+      "decodeMsPerTokenP99",
+      "totalRunMs",
+      "modelLoadMs"
+    ]
+  }
+}

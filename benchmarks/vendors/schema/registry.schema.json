@@ -24,6 +24,10 @@
           "status": {
             "type": "string",
             "enum": ["active", "experimental", "deprecated"]
+          },
+          "parentProduct": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]*$"
           }
         },
         "additionalProperties": false
