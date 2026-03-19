@@ -114,6 +114,15 @@ export function resolveTensorTargetQuant(tensorName, fallbackQuant, quantization
     const headQuant = quantizationInfo.lmHead ?? quantizationInfo.embeddings ?? fallback;
     return normalizeStorageQuant(headQuant) ?? fallback;
   }
+  if (role === 'vision') {
+    return normalizeStorageQuant(quantizationInfo.vision ?? fallback) ?? fallback;
+  }
+  if (role === 'projector') {
+    return normalizeStorageQuant(quantizationInfo.projector ?? fallback) ?? fallback;
+  }
+  if (role === 'audio') {
+    return normalizeStorageQuant(quantizationInfo.audio ?? fallback) ?? fallback;
+  }
   return normalizeStorageQuant(quantizationInfo.weights ?? fallback) ?? fallback;
 }
 

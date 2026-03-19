@@ -268,19 +268,6 @@ export class InferencePipeline extends PipelineState {
 
     this.dopplerLoader = getDopplerLoader(this.runtimeConfig.loading);
 
-    // Load vision encoder weights if the model has a vision config
-    if (this.modelConfig.visionConfig && this.dopplerLoader) {
-      try {
-        const { loadVisionWeights } = await import('../../vision/vision-loader.js');
-        const loadTensor = (name, toGPU, silent) => this.dopplerLoader.loadTensor(name, toGPU, silent);
-        const visionWeights = await loadVisionWeights(loadTensor, this.modelConfig.visionConfig);
-        this.weights.set('vision', visionWeights);
-        log.info('Pipeline', 'Vision encoder weights loaded');
-      } catch (e) {
-        log.info('Pipeline', `Vision weights not available: ${e.message}`);
-      }
-    }
-
     if ((this.modelConfig).useMoE && this.moeRouter) {
       this.moeRouter = initMoERouter(
         (this.modelConfig),

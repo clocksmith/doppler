@@ -32,6 +32,12 @@ export function classifyTensor(name, modelType) {
     return 'head';
   }
 
+  // Multimodal groups
+  const role = classifyTensorRole(name);
+  if (role === 'vision') return 'vision';
+  if (role === 'projector') return 'projector';
+  if (role === 'audio') return 'audio';
+
   // Extract layer index
   const layerMatch = name.match(/layers?[._](\d+)/i);
   if (!layerMatch) {
@@ -95,6 +101,29 @@ export function classifyTensorRole(name) {
 
   if (lower.includes('lm_head')) return 'lm_head';
   if (lower.endsWith('output.weight') && !lower.includes('attn_')) return 'lm_head';
+
+  // Multimodal: vision encoder tensors
+  if (lower.startsWith('vision_tower.') || lower.startsWith('vision_model.')
+    || lower.startsWith('visual.') || lower.startsWith('model.visual.')
+    || lower.startsWith('vision.') || lower.startsWith('model.vision.')
+    || lower.startsWith('vision_encoder.') || lower.startsWith('image_encoder.')
+    || lower.startsWith('image_tower.') || lower.startsWith('image.')
+    || lower.startsWith('model.image.')) {
+    return 'vision';
+  }
+
+  // Multimodal: audio encoder tensors
+  if (lower.startsWith('audio_tower.') || lower.startsWith('audio_model.')
+    || lower.startsWith('audio.') || lower.startsWith('model.audio.')
+    || lower.startsWith('audio_encoder.')) {
+    return 'audio';
+  }
+
+  // Multimodal: projector tensors
+  if (lower.startsWith('multi_modal_projector.') || lower.startsWith('model.multi_modal_projector.')
+    || lower.startsWith('mm_projector.') || lower.startsWith('model.mm_projector.')) {
+    return 'projector';
+  }
 
   if (lower.includes('shared_expert') || /experts?[._]/.test(lower)) {
     return 'expert';
@@ -207,6 +236,9 @@ export function getGroupType(groupId, modelType) {
   }
   if (groupId === 'embed') return 'embed';
   if (groupId === 'head') return 'head';
+  if (groupId === 'vision') return 'vision';
+  if (groupId === 'projector') return 'projector';
+  if (groupId === 'audio') return 'audio';
   if (groupId === 'other') return 'layer';
 
   if (groupId.includes('.expert.')) return 'expert';
