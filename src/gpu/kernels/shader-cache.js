@@ -133,10 +133,15 @@ export async function compileShader(
   source,
   label
 ) {
-  const module = device.createShaderModule({
-    label,
-    code: source,
-  });
+  let module;
+  try {
+    module = device.createShaderModule({
+      label,
+      code: source,
+    });
+  } catch (err) {
+    throw new Error(`createShaderModule failed for "${label}": ${err.message}`);
+  }
 
   // Check for compilation errors (getCompilationInfo not available in all WebGPU providers)
   const compilationInfo = typeof module.getCompilationInfo === 'function'

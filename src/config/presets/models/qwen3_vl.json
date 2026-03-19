@@ -3,9 +3,19 @@
   "name": "Qwen 3 VL",
   "extends": "qwen3",
 
+  "architecture": {
+    "ropeTheta": 5000000
+  },
+
   "inference": {
     "normalization": {
       "rmsNormWeightOffset": false
+    },
+    "rope": {
+      "ropeTheta": 5000000,
+      "mropeInterleaved": true,
+      "mropeSection": [24, 20, 20],
+      "partialRotaryFactor": null
     }
   },
 
