@@ -28,7 +28,7 @@
       },
       "baseUrl": null,
       "quickstart": true,
-      "sizeBytes": 418512553,
+      "sizeBytes": 418518521,
       "recommended": false,
       "sortOrder": 10,
       "lifecycle": {
@@ -88,7 +88,7 @@
       },
       "baseUrl": null,
       "quickstart": true,
-      "sizeBytes": 480562497,
+      "sizeBytes": 480563695,
       "recommended": true,
       "sortOrder": 11,
       "lifecycle": {
@@ -148,7 +148,7 @@
       },
       "baseUrl": null,
       "quickstart": false,
-      "sizeBytes": 1025493248,
+      "sizeBytes": 1044786820,
       "recommended": false,
       "sortOrder": 12,
       "lifecycle": {
@@ -207,7 +207,7 @@
       },
       "baseUrl": null,
       "quickstart": false,
-      "sizeBytes": 2018964126,
+      "sizeBytes": 2018964370,
       "recommended": false,
       "sortOrder": 13,
       "lifecycle": {
@@ -268,7 +268,7 @@
         "path": "models/translategemma-4b-it-q4k-ehf16-af32"
       },
       "baseUrl": null,
-      "sizeBytes": 3167327178,
+      "sizeBytes": 3167500395,
       "recommended": false,
       "sortOrder": 15,
       "lifecycle": {
@@ -327,7 +327,7 @@
         "path": "models/translategemma-4b-1b-enes-q4k-ehf16-af32"
       },
       "baseUrl": null,
-      "sizeBytes": 1025493248,
+      "sizeBytes": 1044685986,
       "recommended": false,
       "sortOrder": 16,
       "lifecycle": {
@@ -384,7 +384,7 @@
         "path": "models/qwen-3-5-0-8b-q4k-ehaf16"
       },
       "baseUrl": null,
-      "sizeBytes": 788833984,
+      "sizeBytes": 798093788,
       "recommended": true,
       "sortOrder": 20,
       "lifecycle": {
@@ -444,7 +444,7 @@
         "path": "models/qwen-3-5-2b-q4k-ehaf16"
       },
       "baseUrl": null,
-      "sizeBytes": 2486803136,
+      "sizeBytes": 2496068973,
       "recommended": false,
       "sortOrder": 21,
       "lifecycle": {
@@ -504,7 +504,7 @@
       },
       "baseUrl": null,
       "quickstart": false,
-      "sizeBytes": 853544060,
+      "sizeBytes": 853544061,
       "recommended": false,
       "sortOrder": 30,
       "lifecycle": {
