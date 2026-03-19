@@ -102,6 +102,19 @@ export const ALIGNMENT = {
 };
 
 
+export const FFN_DISPATCH = {
+  SHARED_INPUT_SIZE_DEFAULT: 256,
+  SHARED_INPUT_SIZE_SMALL: 128,
+  Q4K_COLS_PER_WG: 32,
+  MULTI_OUTPUTS_PER_WG: 4,
+};
+
+
+export const DEQUANT_DISPATCH = {
+  SCALAR_ELEMENTS_PER_THREAD: 4,
+};
+
+
 export const PERFORMANCE = {
   
   WARMUP_RUNS: 5,

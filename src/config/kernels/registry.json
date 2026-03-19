@@ -76,7 +76,10 @@
           "requires": [
             "shader-f16"
           ],
-          "outputDtype": "f16"
+          "outputDtype": "f16",
+          "variantMetadata": {
+            "colsPerThread": 4
+          }
         },
         "f16_tiled": {
           "wgsl": "matmul_f16_tiled.wgsl",
@@ -756,7 +759,10 @@
           ],
           "requires": [
             "subgroups"
-          ]
+          ],
+          "variantMetadata": {
+            "dispatchMode": "per_block"
+          }
         },
         "subgroup_vec4": {
           "wgsl": "dequant_subgroup.wgsl",
@@ -768,7 +774,10 @@
           ],
           "requires": [
             "subgroups"
-          ]
+          ],
+          "variantMetadata": {
+            "dispatchMode": "per_block"
+          }
         },
         "subgroup_f16out": {
           "wgsl": "dequant_f16_out.wgsl",
@@ -780,7 +789,10 @@
           ],
           "requires": [
             "shader-f16"
-          ]
+          ],
+          "variantMetadata": {
+            "dispatchMode": "per_block"
+          }
         },
         "subgroup_vec4_f16out": {
           "wgsl": "dequant_f16_out_vec4.wgsl",
@@ -792,7 +804,10 @@
           ],
           "requires": [
             "shader-f16"
-          ]
+          ],
+          "variantMetadata": {
+            "dispatchMode": "per_block"
+          }
         },
         "shared": {
           "wgsl": "dequant_shared.wgsl",
@@ -802,7 +817,10 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "variantMetadata": {
+            "dispatchMode": "per_block"
+          }
         },
         "shared_vec4": {
           "wgsl": "dequant_shared_vec4.wgsl",
@@ -812,7 +830,10 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "variantMetadata": {
+            "dispatchMode": "per_block"
+          }
         },
         "mxfp4": {
           "wgsl": "dequant_mxfp4.wgsl",
@@ -1109,7 +1130,8 @@
             1
           ],
           "requires": [],
-          "outputDtype": "f32"
+          "outputDtype": "f32",
+          "variantMetadata": { "tier": "tiled_large" }
         },
         "decode": {
           "wgsl": "attention_decode.wgsl",
@@ -1120,7 +1142,8 @@
             1
           ],
           "requires": [],
-          "outputDtype": "f32"
+          "outputDtype": "f32",
+          "variantMetadata": { "tier": "tiled_large" }
         },
         "prefill_small": {
           "wgsl": "attention_small.wgsl",
@@ -1131,7 +1154,8 @@
             1
           ],
           "requires": [],
-          "outputDtype": "f32"
+          "outputDtype": "f32",
+          "variantMetadata": { "tier": "tiled_small" }
         },
         "prefill_streaming": {
           "wgsl": "attention_streaming.wgsl",
@@ -1142,7 +1166,8 @@
             1
           ],
           "requires": [],
-          "outputDtype": "f32"
+          "outputDtype": "f32",
+          "variantMetadata": { "tier": "streaming" }
         },
         "prefill_f16": {
           "wgsl": "attention_f16.wgsl",
@@ -1155,7 +1180,8 @@
           "requires": [
             "shader-f16"
           ],
-          "outputDtype": "f16"
+          "outputDtype": "f16",
+          "variantMetadata": { "tier": "tiled_large" }
         },
         "decode_f16": {
           "wgsl": "attention_decode_f16.wgsl",
@@ -1168,7 +1194,8 @@
           "requires": [
             "shader-f16"
           ],
-          "outputDtype": "f16"
+          "outputDtype": "f16",
+          "variantMetadata": { "tier": "tiled_large" }
         },
         "prefill_small_f16": {
           "wgsl": "attention_small_f16.wgsl",
@@ -1181,7 +1208,8 @@
           "requires": [
             "shader-f16"
           ],
-          "outputDtype": "f16"
+          "outputDtype": "f16",
+          "variantMetadata": { "tier": "tiled_small" }
         },
         "prefill_streaming_f16": {
           "wgsl": "attention_streaming_f16.wgsl",
@@ -1194,7 +1222,8 @@
           "requires": [
             "shader-f16"
           ],
-          "outputDtype": "f16"
+          "outputDtype": "f16",
+          "variantMetadata": { "tier": "streaming" }
         },
         "prefill_f16kv": {
           "wgsl": "attention_f16kv.wgsl",
@@ -1207,7 +1236,8 @@
           "requires": [
             "shader-f16"
           ],
-          "outputDtype": "f32"
+          "outputDtype": "f32",
+          "variantMetadata": { "tier": "tiled_large" }
         },
         "decode_f16kv": {
           "wgsl": "attention_decode_f16kv.wgsl",
@@ -1220,7 +1250,8 @@
           "requires": [
             "shader-f16"
           ],
-          "outputDtype": "f32"
+          "outputDtype": "f32",
+          "variantMetadata": { "tier": "tiled_large" }
         },
         "prefill_small_f16kv": {
           "wgsl": "attention_small_f16kv.wgsl",
@@ -1233,7 +1264,8 @@
           "requires": [
             "shader-f16"
           ],
-          "outputDtype": "f32"
+          "outputDtype": "f32",
+          "variantMetadata": { "tier": "tiled_small" }
         },
         "prefill_streaming_f16kv": {
           "wgsl": "attention_streaming_f16kv.wgsl",
@@ -1246,7 +1278,8 @@
           "requires": [
             "shader-f16"
           ],
-          "outputDtype": "f32"
+          "outputDtype": "f32",
+          "variantMetadata": { "tier": "streaming" }
         },
         "decode_online_f16": {
           "wgsl": "attention_decode_online_f16.wgsl",
@@ -1261,6 +1294,7 @@
             "subgroups"
           ],
           "outputDtype": "f16",
+          "variantMetadata": { "tier": "subgroup" },
           "description": "Online decode kernel - f16 QKV with subgroup reductions"
         },
         "decode_online_f16kv": {
@@ -1276,6 +1310,7 @@
             "subgroups"
           ],
           "outputDtype": "f32",
+          "variantMetadata": { "tier": "subgroup" },
           "description": "Online decode kernel - f32 Q with f16 KV and subgroup reductions"
         },
         "decode_chunked_f16": {
@@ -1291,6 +1326,7 @@
           ],
           "outputDtype": "f16",
           "variantMetadata": {
+            "tier": "streaming",
             "maxKVLen": 2048
           },
           "description": "Chunked decode kernel - f16 QKV + f16 output"
@@ -1308,6 +1344,7 @@
           ],
           "outputDtype": "f32",
           "variantMetadata": {
+            "tier": "streaming",
             "maxKVLen": 2048
           },
           "description": "Chunked decode kernel - parallelizes headDim for models with few heads"
@@ -1324,6 +1361,7 @@
             "shader-f16"
           ],
           "outputDtype": "f16",
+          "variantMetadata": { "tier": "tiled_large" },
           "description": "Paged decode kernel - f16 Q/K/V with page table indirection"
         },
         "decode_paged_f16kv": {
@@ -1338,6 +1376,7 @@
             "shader-f16"
           ],
           "outputDtype": "f32",
+          "variantMetadata": { "tier": "tiled_large" },
           "description": "Paged decode kernel - f16 KV with page table indirection"
         },
         "decode_subgroup": {
@@ -1352,6 +1391,7 @@
             "subgroups"
           ],
           "outputDtype": "f32",
+          "variantMetadata": { "tier": "subgroup" },
           "description": "Subgroup-optimized decode kernel - 4 barriers (vs 80), 100% thread utilization"
         }
       }

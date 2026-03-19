@@ -3,10 +3,10 @@
 import { getDevice, getKernelCapabilities } from '../device.js';
 import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor } from '../tensor.js';
-import { GPU_LIMITS, TILE_SIZES, WORKGROUP_SIZES } from './constants.js';
+import { GPU_LIMITS, TILE_SIZES, WORKGROUP_SIZES, DEQUANT_DISPATCH } from './constants.js';
 import { Q6K_BLOCK_BYTES, Q8_0_BLOCK_BYTES, Q8_0_BLOCK_SIZE } from '../../loader/quantization-constants.js';
 import { dispatch, recordDispatch } from './dispatch.js';
-import { getPipelineFast, createUniformBufferWithView, getOrCreateBindGroupLayout } from './utils.js';
+import { getPipelineFast, createUniformBufferWithView, getOrCreateBindGroupLayout, getKernelConfig } from './utils.js';
 import { releaseUniformBuffer } from '../uniform-cache.js';
 import { selectRuleValue as selectKernelRuleValue } from './rule-registry.js';
 import { selectRuleValue as selectSharedRuleValue } from '../../rules/rule-registry.js';
@@ -26,16 +26,15 @@ export function selectDequantKernel(options = {}) {
 
 
 function calculateDequantWorkgroups(variant, numBlocks) {
-  const QK_K = TILE_SIZES.Q4K_SUPER_BLOCK_SIZE;
-  
-  let workgroups;
+  const config = getKernelConfig('dequant', variant);
+  const dispatchMode = config.variantMetadata?.dispatchMode;
 
-  if (variant.includes('vec4')) {
-    workgroups = numBlocks;
-  } else if (variant.includes('shared')) {
+  let workgroups;
+  if (dispatchMode === 'per_block') {
     workgroups = numBlocks;
   } else {
-    workgroups = Math.ceil((numBlocks * QK_K) / (WORKGROUP_SIZES.DEFAULT / 4));
+    const QK_K = TILE_SIZES.Q4K_SUPER_BLOCK_SIZE;
+    workgroups = Math.ceil((numBlocks * QK_K) / (WORKGROUP_SIZES.DEFAULT / DEQUANT_DISPATCH.SCALAR_ELEMENTS_PER_THREAD));
   }
 
   const maxWorkgroups = GPU_LIMITS.MAX_WORKGROUPS;

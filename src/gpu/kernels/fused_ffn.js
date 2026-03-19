@@ -4,6 +4,7 @@ import { getDevice, getKernelCapabilities } from '../device.js';
 import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor } from '../tensor.js';
 import { KernelBase } from './kernel-base.js';
+import { FFN_DISPATCH } from './constants.js';
 import { createUniformBufferWithView } from './utils.js';
 import { trace, isTraceEnabled } from '../../debug/index.js';
 import { getBuffer, getWeightDtype } from '../weight-buffer.js';
@@ -77,6 +78,26 @@ function resolveSwigluLimit(value, context) {
   return value;
 }
 
+function calculateFFNDispatch(variant, batchSize, intermediateSize) {
+  let workgroupsX;
+  let workgroupsY = 1;
+
+  if (variant === 'multi') {
+    workgroupsX = Math.ceil(intermediateSize / FFN_DISPATCH.MULTI_OUTPUTS_PER_WG);
+  } else if (variant === 'q4k' || variant === 'q4k_batched') {
+    workgroupsX = Math.ceil(intermediateSize / FFN_DISPATCH.Q4K_COLS_PER_WG);
+    workgroupsY = variant === 'q4k_batched' ? batchSize : 1;
+  } else if (variant === 'batched' || variant === 'f16_native_batched') {
+    workgroupsX = intermediateSize;
+    workgroupsY = batchSize;
+  } else {
+    workgroupsX = intermediateSize;
+  }
+
+  return { workgroupsX, workgroupsY };
+}
+
+
 function releaseRunResources(uniformBuffer, ownedBuffers) {
   if (uniformBuffer) {
     uniformBuffer.destroy();
@@ -134,8 +155,8 @@ export async function runFusedFFN(
   trace.kernels(`FusedFFN: variant=${variant}, batch=${batchSize}, hidden=${hiddenSize}, intermediate=${intermediateSize}, activation=${activation}, isQ4K=${isQ4K}`);
 
   const kernel = new FusedFFNKernel(device);
-  const constants = (hiddenSize % 256 !== 0 && hiddenSize % 128 === 0)
-    ? { SHARED_INPUT_SIZE: 128 }
+  const constants = (hiddenSize % FFN_DISPATCH.SHARED_INPUT_SIZE_DEFAULT !== 0 && hiddenSize % FFN_DISPATCH.SHARED_INPUT_SIZE_SMALL === 0)
+    ? { SHARED_INPUT_SIZE: FFN_DISPATCH.SHARED_INPUT_SIZE_SMALL }
     : null;
   const pipeline = await kernel.getPipeline(variant, constants);
 
@@ -170,23 +191,7 @@ export async function runFusedFFN(
       ],
     });
 
-    let workgroupsX;
-    let workgroupsY = 1;
-
-    if (variant === 'multi') {
-      const outputsPerWg = 4;
-      workgroupsX = Math.ceil(intermediateSize / outputsPerWg);
-    } else if (variant === 'q4k' || variant === 'q4k_batched') {
-      const colsPerWg = 32;
-      workgroupsX = Math.ceil(intermediateSize / colsPerWg);
-      workgroupsY = variant === 'q4k_batched' ? batchSize : 1;
-    } else if (variant === 'batched' || variant === 'f16_native_batched') {
-      workgroupsX = intermediateSize;
-      workgroupsY = batchSize;
-    } else {
-      workgroupsX = intermediateSize;
-    }
-
+    const { workgroupsX, workgroupsY } = calculateFFNDispatch(variant, batchSize, intermediateSize);
     kernel.dispatch(pipeline, bindGroup, workgroupsX, workgroupsY);
   } catch (error) {
     releaseRunResources(uniformBuffer, [ownedOutput]);
@@ -245,8 +250,8 @@ export async function recordFusedFFN(
   trace.kernels(`FusedFFN record: variant=${variant}, batch=${batchSize}, hidden=${hiddenSize}, intermediate=${intermediateSize}, activation=${activation}, isQ4K=${isQ4K}`);
 
   const kernel = new FusedFFNKernel(device);
-  const constants = (hiddenSize % 256 !== 0 && hiddenSize % 128 === 0)
-    ? { SHARED_INPUT_SIZE: 128 }
+  const constants = (hiddenSize % FFN_DISPATCH.SHARED_INPUT_SIZE_DEFAULT !== 0 && hiddenSize % FFN_DISPATCH.SHARED_INPUT_SIZE_SMALL === 0)
+    ? { SHARED_INPUT_SIZE: FFN_DISPATCH.SHARED_INPUT_SIZE_SMALL }
     : null;
   const pipeline = await kernel.getPipeline(variant, constants);
 
@@ -279,23 +284,7 @@ export async function recordFusedFFN(
       ],
     });
 
-    let workgroupsX;
-    let workgroupsY = 1;
-
-    if (variant === 'multi') {
-      const outputsPerWg = 4;
-      workgroupsX = Math.ceil(intermediateSize / outputsPerWg);
-    } else if (variant === 'q4k' || variant === 'q4k_batched') {
-      const colsPerWg = 32;
-      workgroupsX = Math.ceil(intermediateSize / colsPerWg);
-      workgroupsY = variant === 'q4k_batched' ? batchSize : 1;
-    } else if (variant === 'batched' || variant === 'f16_native_batched') {
-      workgroupsX = intermediateSize;
-      workgroupsY = batchSize;
-    } else {
-      workgroupsX = intermediateSize;
-    }
-
+    const { workgroupsX, workgroupsY } = calculateFFNDispatch(variant, batchSize, intermediateSize);
     kernel.record(recorder, pipeline, bindGroup, workgroupsX, workgroupsY);
   } catch (error) {
     if (ownedOutput) {

@@ -334,14 +334,12 @@ function calculateAttentionWorkgroups(tier, seqLen, numHeads) {
 
 
 function inferAttentionTierFromVariant(variant) {
-  if (variant === 'decode_subgroup') return 'subgroup';
-  if (variant.startsWith('decode_online')) return 'subgroup';
-  if (variant.startsWith('decode_paged')) return 'tiled_large';
-  if (variant.startsWith('prefill_streaming') || variant.startsWith('decode_streaming') || variant === 'decode_chunked_f16kv') {
-    return 'streaming';
+  const config = getKernelConfig('attention', variant);
+  const tier = config.variantMetadata?.tier;
+  if (!tier) {
+    throw new Error(`Attention kernel "${variant}" missing variantMetadata.tier in registry.`);
   }
-  if (variant.startsWith('prefill_small') || variant.startsWith('decode_small')) return 'tiled_small';
-  return 'tiled_large';
+  return tier;
 }
 
 
