@@ -6,12 +6,14 @@
     "weights": "q4k",
     "embeddings": "f16",
     "lmHead": "f16",
+    "vision": "f16",
+    "projector": "f16",
     "computePrecision": "f16"
   },
   "output": {
     "baseDir": "models/local",
     "modelBaseId": "qwen-3-5-0-8b-q4k-ehaf16",
-    "textOnly": true,
+    "textOnly": false,
     "fast": false
   },
   "inference": {

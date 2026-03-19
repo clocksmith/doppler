@@ -305,14 +305,18 @@ function isInt64CastKernelGap(error) {
     && message.includes('webgpuexecutionprovider');
 }
 
-async function loadGenerator(modelId, enableOrtProfiling, preferredDtype = 'fp16') {
+async function loadGenerator(modelId, enableOrtProfiling, preferredDtype = 'fp16', format = 'onnx') {
   const execution = buildStrictWebgpuExecution(preferredDtype);
   setOrtProxyMode(execution.effectiveOrtProxy);
+  const isSafetensors = format === 'safetensors';
+  const pipelineOptions = isSafetensors
+    ? { dtype: execution.effectiveDtype }
+    : buildPipelineOptions(enableOrtProfiling, execution.effectiveDtype, execution.executionProviderMode);
   try {
     const generator = await pipeline(
       'text-generation',
       modelId,
-      buildPipelineOptions(enableOrtProfiling, execution.effectiveDtype, execution.executionProviderMode)
+      pipelineOptions
     );
     return {
       generator,
@@ -406,6 +410,7 @@ window.__runBench = async (config) => {
     sampling = {},
     useChatTemplate = false,
     dtype = 'fp16',
+    format = 'onnx',
   } = config;
   const enableOrtProfiling = profileOps !== false;
   const temperature = Number.isFinite(Number(sampling.temperature)) ? Number(sampling.temperature) : 0;
@@ -445,9 +450,10 @@ window.__runBench = async (config) => {
 
   const requestedDtype = normalizePreferredDtype(dtype);
   console.log(`[tjs-bench] loading model: ${modelId} (device=webgpu, dtype=${requestedDtype})`);
+  console.log('[tjs-bench] format: ' + format);
 
   const loadStart = performance.now();
-  const load = await loadGenerator(modelId, enableOrtProfiling, requestedDtype);
+  const load = await loadGenerator(modelId, enableOrtProfiling, requestedDtype, format);
   const generator = load.generator;
   if (load.fallbackUsed) {
     console.log(

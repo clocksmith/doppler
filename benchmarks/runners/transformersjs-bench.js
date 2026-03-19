@@ -27,6 +27,7 @@
 //   --profile-top <n>        Number of top ops in profiling summary (default: 20)
 //   --tjs-version <3|4>  Transformers.js major track (default: 4)
 //   --dtype <fp16|q4|q4f16>  Transformers.js model dtype (default: fp16)
+//   --format <fmt>       Model format: onnx|safetensors (default: onnx)
 //   --browser-base-url <url>  Reuse an existing static base URL
 //   --use-chat-template   Apply model chat template before generation
 //   --save               Save result JSON to benchmarks/vendors/results/
@@ -43,10 +44,12 @@ import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 import {
   DEFAULT_CACHE_MODE,
+  DEFAULT_TJS_FORMAT,
   DEFAULT_TJS_VERSION,
   EMPTY_STRING,
   HF_CACHE_TOKEN_FILE,
   UNKNOWN_LABEL,
+  normalizeFormat,
   requiresPersistentBrowserContext,
   persistentContextFailureMessage,
 } from './transformersjs-contract.js';
@@ -751,6 +754,7 @@ async function main() {
   const profileTopN = parsePositiveInteger(flags['profile-top'], DEFAULT_PROFILE_TOP_N, '--profile-top');
   const useChatTemplate = flags['use-chat-template'] === true;
   const tjsDtype = parseTjsDtype(flags.dtype, '--dtype', 'fp16');
+  const tjsFormat = normalizeFormat(flags.format);
   const persistentContextRequired = requiresPersistentBrowserContext(cacheMode, loadMode);
 
   if (cacheMode !== 'cold' && cacheMode !== DEFAULT_CACHE_MODE) {
@@ -809,7 +813,7 @@ async function main() {
     `warmup=${warmupRuns} runs=${timedRuns} cache=${cacheMode} ` +
     `sampling=(temp=${temperature}, topK=${topK}, topP=${topP}) ` +
     `chatTemplate=${useChatTemplate ? 'on' : 'off'} dtype=${tjsDtype} ` +
-    `profileOps=${profileOps ? 'on' : 'off'} timeout=${timeoutMs}ms`
+    `format=${tjsFormat} profileOps=${profileOps ? 'on' : 'off'} timeout=${timeoutMs}ms`
   );
   if (strictWarmOpfs) {
     console.error('[tjs-bench] strict warm-opfs enabled: persistent profile required; timed run will execute offline.');
@@ -1008,6 +1012,7 @@ async function main() {
         },
         useChatTemplate,
         dtype: tjsDtype,
+        format: tjsFormat,
       },
     );
 

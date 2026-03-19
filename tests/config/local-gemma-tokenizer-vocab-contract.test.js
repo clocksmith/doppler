@@ -2,14 +2,36 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 
-const CASES = [
-  'models/local/gemma-3-1b-it-f16-af32',
-  'models/local/gemma-3-1b-it-q4k-ehf16-af32',
-  'models/local/gemma-3-270m-it-f16',
-  'models/local/gemma-3-270m-it-f16-af32',
+const RDRR_DIRS = [
+  'models/local',
+  path.join(process.env.DOPPLER_EXTERNAL_MODELS_ROOT || '/media/x/models', 'rdrr'),
 ];
 
-for (const modelDir of CASES) {
+function discoverModels(roots) {
+  const dirs = [];
+  for (const root of roots) {
+    if (!fs.existsSync(root)) continue;
+    for (const entry of fs.readdirSync(root, { withFileTypes: true })) {
+      if (!entry.isDirectory()) continue;
+      const dir = path.join(root, entry.name);
+      if (fs.existsSync(path.join(dir, 'manifest.json')) && fs.existsSync(path.join(dir, 'tokenizer.json'))) {
+        dirs.push(dir);
+      }
+    }
+  }
+  return dirs;
+}
+
+const cases = discoverModels(RDRR_DIRS);
+
+if (cases.length === 0) {
+  console.log('local-gemma-tokenizer-vocab-contract.test: skipped (no RDRR artifacts with manifest + tokenizer found)');
+  process.exit(0);
+}
+
+let verified = 0;
+
+for (const modelDir of cases) {
   const manifest = JSON.parse(fs.readFileSync(path.join(modelDir, 'manifest.json'), 'utf8'));
   const tokenizer = JSON.parse(fs.readFileSync(path.join(modelDir, 'tokenizer.json'), 'utf8'));
   const actualVocabSize = Array.isArray(tokenizer?.model?.vocab)
@@ -21,6 +43,7 @@ for (const modelDir of CASES) {
     actualVocabSize,
     `${modelDir} manifest.tokenizer.vocabSize must match tokenizer.json vocab size`
   );
+  verified++;
 }
 
-console.log('local-gemma-tokenizer-vocab-contract.test: ok');
+console.log(`local-gemma-tokenizer-vocab-contract.test: ok (${verified} verified across ${RDRR_DIRS.filter((d) => fs.existsSync(d)).length} roots)`);

@@ -12,6 +12,9 @@ import { mergeRuntimeValues } from '../src/config/runtime-merge.js';
 const execFileAsync = promisify(execFile);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DOPPLER_ROOT = path.resolve(__dirname, '..');
+const DEFAULT_EXTERNAL_MODELS_ROOT = process.env.DOPPLER_EXTERNAL_MODELS_ROOT
+  || (fsSync.existsSync('/Volumes/models') ? '/Volumes/models' : '/media/x/models');
+const MODEL_INDEX_PATH = path.join(DEFAULT_EXTERNAL_MODELS_ROOT, 'MODEL_INDEX.json');
 const WORKLOADS_PATH = path.join(DOPPLER_ROOT, 'benchmarks', 'vendors', 'workloads.json');
 const WORKLOADS_SCHEMA_PATH = path.join(
   DOPPLER_ROOT,
@@ -320,6 +323,31 @@ const REQUIRED_CANONICAL_TIMING_FIELDS = BENCHMARK_POLICY.requiredTimingFields;
 const REQUIRED_COMPARE_METRIC_IDS = BENCHMARK_POLICY.requiredCompareMetricIds;
 const DECODE_PROFILE_PRESETS = BENCHMARK_POLICY.decodeProfiles.presets;
 const DOPPLER_SURFACES = Object.freeze(['auto', 'node', 'browser']);
+const DOPPLER_FORMATS = Object.freeze(['rdrr', 'safetensors']);
+const TJS_FORMATS = Object.freeze(['onnx', 'safetensors']);
+const DEFAULT_DOPPLER_FORMAT = 'rdrr';
+const DEFAULT_TJS_FORMAT = 'onnx';
+
+function loadModelIndex() {
+  if (!fsSync.existsSync(MODEL_INDEX_PATH)) return null;
+  try {
+    return JSON.parse(fsSync.readFileSync(MODEL_INDEX_PATH, 'utf-8'));
+  } catch {
+    return null;
+  }
+}
+
+function resolveFormatSourcePath(modelIndex, format, sourceId) {
+  if (!modelIndex || !sourceId) return null;
+  const section = modelIndex[format];
+  if (!section || typeof section !== 'object') return null;
+  const entry = section[sourceId];
+  if (!entry) return null;
+  const relative = typeof entry === 'string' ? entry : entry.path;
+  if (typeof relative !== 'string') return null;
+  const volumeRoot = modelIndex.volumeRoot || DEFAULT_EXTERNAL_MODELS_ROOT;
+  return path.join(volumeRoot, relative);
+}
 const VALID_DECODE_PROFILES = Object.freeze([
   ...Object.keys(DECODE_PROFILE_PRESETS),
   'custom',
@@ -922,6 +950,9 @@ function resolveCompareProfile(compareConfig, modelId) {
     defaultTjsModelId: profile?.defaultTjsModelId || null,
     defaultKernelPath: profile?.defaultKernelPath || null,
     defaultDopplerSurface: profile?.defaultDopplerSurface || 'auto',
+    defaultDopplerFormat: profile?.defaultDopplerFormat || DEFAULT_DOPPLER_FORMAT,
+    defaultTjsFormat: profile?.defaultTjsFormat || DEFAULT_TJS_FORMAT,
+    safetensorsSourceId: profile?.safetensorsSourceId || null,
   };
 }
 
@@ -1278,8 +1309,15 @@ async function runDoppler(modelId, modelUrl, sharedContract, cacheMode, options 
     '--doppler-surface',
     'auto'
   );
+  const resolvedFormat = parseChoice(
+    options.format,
+    DOPPLER_FORMATS,
+    '--doppler-format',
+    DEFAULT_DOPPLER_FORMAT
+  );
   const resolvedKernelPath = options.kernelPath ?? DEFAULT_DOPPLER_KERNEL_PATH;
-  const resolvedLoadMode = options.loadMode ?? null;
+  const isSafetensorsFormat = resolvedFormat === 'safetensors';
+  const resolvedLoadMode = isSafetensorsFormat ? 'memory' : (options.loadMode ?? null);
   const resolvedTimeoutMs = parsePositiveInt(options.timeoutMs, DEFAULT_DOPPLER_TIMEOUT_MS, '--doppler-timeout-ms');
   const resolvedBatchSize = parsePositiveInt(options.batchSize, DEFAULT_DOPPLER_BATCH_SIZE, '--doppler-batch-size');
   const resolvedReadbackInterval = parsePositiveInt(
@@ -1308,10 +1346,13 @@ async function runDoppler(modelId, modelUrl, sharedContract, cacheMode, options 
   const stableBrowserArgs = appendBrowserArgs([], STABLE_BROWSER_ARGS);
 
   const buildCliConfig = () => {
+    const resolvedModelUrl = isSafetensorsFormat && options.safetensorsSourcePath
+      ? options.safetensorsSourcePath
+      : modelUrl;
     const run = {
-      surface: resolvedSurface,
+      surface: isSafetensorsFormat ? 'node' : resolvedSurface,
     };
-    if (resolvedSurface !== 'node') {
+    if (run.surface !== 'node') {
       run.browser = {
         ...(resolvedBrowserBaseUrl
           ? { baseUrl: String(resolvedBrowserBaseUrl) }
@@ -1325,7 +1366,7 @@ async function runDoppler(modelId, modelUrl, sharedContract, cacheMode, options 
     return {
       request: {
         modelId,
-        modelUrl,
+        modelUrl: resolvedModelUrl,
         cacheMode,
         ...(resolvedLoadMode != null ? { loadMode: String(resolvedLoadMode) } : {}),
       },
@@ -1367,6 +1408,7 @@ async function runTjs(modelId, sharedContract, cacheMode, tjsVersion, localModel
   const resolvedTimeoutMs = parsePositiveInt(options.timeoutMs, DEFAULT_TJS_TIMEOUT_MS, '--tjs-timeout-ms');
   const resolvedServerPort = parseNonNegativeInt(options.serverPort, DEFAULT_TJS_SERVER_PORT, '--tjs-server-port');
   const resolvedTjsDtype = parseChoice(options.tjsDtype, ['fp16', 'q4', 'q4f16'], '--tjs-dtype', 'fp16');
+  const resolvedTjsFormat = parseChoice(options.tjsFormat, TJS_FORMATS, '--tjs-format', DEFAULT_TJS_FORMAT);
   const resolvedBrowserBaseUrl = options.browserBaseUrl || null;
   const resolvedBrowserExecutable = options.browserExecutable || null;
   const args = [
@@ -1379,6 +1421,7 @@ async function runTjs(modelId, sharedContract, cacheMode, tjsVersion, localModel
     '--cache-mode', cacheMode,
     '--tjs-version', tjsVersion,
     '--dtype', resolvedTjsDtype,
+    '--format', resolvedTjsFormat,
     '--profile-ops', resolvedProfileOps ? 'on' : 'off',
     '--timeout', String(resolvedTimeoutMs),
     '--server-port', String(resolvedServerPort),
@@ -1775,10 +1818,40 @@ async function main() {
   assertHarnessRequiredMetricCoverage(dopplerHarnessMetricPaths, requiredMetricIds, 'doppler');
   assertHarnessRequiredMetricCoverage(tjsHarnessMetricPaths, requiredMetricIds, 'transformersjs');
 
+  const dopplerFormat = parseChoice(
+    flags['doppler-format'],
+    DOPPLER_FORMATS,
+    '--doppler-format',
+    compareProfile.defaultDopplerFormat
+  );
+  const tjsFormat = parseChoice(
+    flags['tjs-format'],
+    TJS_FORMATS,
+    '--tjs-format',
+    compareProfile.defaultTjsFormat
+  );
+  const safetensorsSourceId = flags['safetensors-source'] || compareProfile.safetensorsSourceId || null;
+  const needsSafetensors = dopplerFormat === 'safetensors' || tjsFormat === 'safetensors';
+  if (needsSafetensors && !safetensorsSourceId) {
+    throw new Error(
+      'SafeTensors format requires --safetensors-source <hf-model-id> or safetensorsSourceId in the model profile.'
+    );
+  }
+  const modelIndex = needsSafetensors ? loadModelIndex() : null;
+  const safetensorsSourcePath = needsSafetensors
+    ? (flags['safetensors-path'] || resolveFormatSourcePath(modelIndex, 'safetensors', safetensorsSourceId))
+    : null;
+  if (dopplerFormat === 'safetensors' && !safetensorsSourcePath) {
+    throw new Error(
+      `Cannot resolve SafeTensors source path for "${safetensorsSourceId}". `
+      + `Check MODEL_INDEX.json on the external volume (${MODEL_INDEX_PATH}) or pass --safetensors-path.`
+    );
+  }
   const dopplerModelUrl = flags['model-url'] || `/models/${dopplerModelBaseDir}/${dopplerModelId}`;
   const resolvedDefaultTjsModel = compareProfile.defaultTjsModelId || null;
   const tjsModelOverridden = flags['tjs-model'] != null;
-  const tjsModelId = flags['tjs-model'] || resolvedDefaultTjsModel;
+  const tjsModelId = flags['tjs-model']
+    || (tjsFormat === 'safetensors' ? safetensorsSourceId : resolvedDefaultTjsModel);
   if (!tjsModelId) {
     throw new Error(
       `No default Transformers.js model mapping for "${dopplerModelId}". `
@@ -1899,8 +1972,8 @@ async function main() {
     process.exit(1);
   }
 
-  console.error(`[compare] Doppler model: ${dopplerModelId}`);
-  console.error(`[compare] TJS model:     ${tjsModelId} (v${tjsVersion})`);
+  console.error(`[compare] Doppler model: ${dopplerModelId} (format=${dopplerFormat})`);
+  console.error(`[compare] TJS model:     ${tjsModelId} (v${tjsVersion}, format=${tjsFormat})`);
   if (tjsModelOverridden && tjsModelId !== resolvedDefaultTjsModel) {
     console.error(
       `[compare] warning: --tjs-model overrides profile default (${resolvedDefaultTjsModel}); `
@@ -2036,6 +2109,11 @@ async function main() {
           ? 'Wipe engine-specific persistent cache state before run (Doppler node runtime cache/profile wipe; TJS profile wipe).'
           : 'Wipe engine-specific persistent cache state before run (Doppler OPFS/profile wipe; TJS profile wipe).',
       },
+      formats: {
+        doppler: dopplerFormat,
+        transformersjs: tjsFormat,
+        safetensorsSourceId,
+      },
       dopplerDecodeCadence: {
         batchSize: dopplerBatchSize,
         readbackInterval: dopplerReadbackInterval,
@@ -2075,6 +2153,7 @@ async function main() {
         timeoutMs: compareTjsTimeoutMs,
         serverPort: tjsServerPort,
         tjsDtype,
+        tjsFormat,
         browserExecutable,
         browserConsole: tjsBrowserConsole,
         browserBaseUrl,
@@ -2098,6 +2177,8 @@ async function main() {
         timeoutMs: compareDopplerTimeoutMs,
         runtimeConfigJson: runtimeConfigOverride,
         surface: dopplerSurface,
+        format: dopplerFormat,
+        safetensorsSourcePath,
         loadMode: resolveRunLoadMode('warm', sharedContract.loadMode),
       }
     );
@@ -2133,6 +2214,8 @@ async function main() {
         timeoutMs: compareDopplerTimeoutMs,
         runtimeConfigJson: runtimeConfigOverride,
         surface: dopplerSurface,
+        format: dopplerFormat,
+        safetensorsSourcePath,
         loadMode: resolveRunLoadMode('warm', sharedContract.loadMode),
       }
     );
@@ -2169,6 +2252,8 @@ async function main() {
         timeoutMs: compareDopplerTimeoutMs,
         runtimeConfigJson: runtimeConfigOverride,
         surface: dopplerSurface,
+        format: dopplerFormat,
+        safetensorsSourcePath,
         loadMode: resolveRunLoadMode('warm', sharedContract.loadMode),
       }
     );
@@ -2190,6 +2275,7 @@ async function main() {
         timeoutMs: compareTjsTimeoutMs,
         serverPort: tjsServerPort,
         tjsDtype,
+        tjsFormat,
         browserExecutable,
         browserConsole: tjsBrowserConsole,
         browserBaseUrl,
@@ -2225,6 +2311,8 @@ async function main() {
         timeoutMs: compareDopplerTimeoutMs,
         runtimeConfigJson: runtimeConfigOverride,
         surface: dopplerSurface,
+        format: dopplerFormat,
+        safetensorsSourcePath,
         loadMode: resolveRunLoadMode('cold', sharedContract.loadMode),
       }
     );
@@ -2246,6 +2334,7 @@ async function main() {
         timeoutMs: compareTjsTimeoutMs,
         serverPort: tjsServerPort,
         tjsDtype,
+        tjsFormat,
         browserExecutable,
         browserConsole: tjsBrowserConsole,
         browserBaseUrl,

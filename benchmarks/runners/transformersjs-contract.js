@@ -1,4 +1,6 @@
 const SUPPORTED_TJS_DTYPES = Object.freeze(['fp16', 'q4', 'q4f16']);
+const SUPPORTED_TJS_FORMATS = Object.freeze(['onnx', 'safetensors']);
+const DEFAULT_TJS_FORMAT = 'onnx';
 const DEFAULT_CACHE_MODE = 'warm';
 const DEFAULT_TJS_VERSION = '4';
 const UNKNOWN_LABEL = 'unknown';
@@ -8,6 +10,11 @@ const HF_CACHE_TOKEN_FILE = '.cache/huggingface/token';
 export function normalizePreferredDtype(dtype) {
   const normalized = String(dtype || 'fp16').trim().toLowerCase();
   return SUPPORTED_TJS_DTYPES.includes(normalized) ? normalized : 'fp16';
+}
+
+export function normalizeFormat(format) {
+  const normalized = String(format || DEFAULT_TJS_FORMAT).trim().toLowerCase();
+  return SUPPORTED_TJS_FORMATS.includes(normalized) ? normalized : DEFAULT_TJS_FORMAT;
 }
 
 export function buildStrictWebgpuExecution(preferredDtype = 'fp16') {
@@ -38,6 +45,8 @@ export function persistentContextFailureMessage(cacheMode, loadMode) {
 }
 
 export { SUPPORTED_TJS_DTYPES };
+export { SUPPORTED_TJS_FORMATS };
+export { DEFAULT_TJS_FORMAT };
 export {
   DEFAULT_CACHE_MODE,
   DEFAULT_TJS_VERSION,
