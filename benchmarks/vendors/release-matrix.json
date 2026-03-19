@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-03-19T14:08:42.459Z",
+  "generatedAt": "2026-03-19T17:51:58.495Z",
   "release": {
     "channel": "main-snapshot",
     "version": "0.1.8",
-    "commitSha": "7199e9410136419e8ae5b1c39db8452867eda269",
+    "commitSha": "2f5fc6169c89158905065954a5e6ef9bc34e7fb9",
     "dirty": true
   },
   "sources": {
@@ -28,7 +28,7 @@
     },
     "compareConfig": {
       "path": "benchmarks/vendors/compare-engines.config.json",
-      "sha256": "08f5dbf2595be15276fe2c98b3bd4431af054cd65d3ea069367786fde0b28a61",
+      "sha256": "1644191fa4030eef5369e3062a4dc0ca77e20d1e6ec42b884a2fdcd10024785c",
       "bytes": 3194,
       "updated": "2026-03-19"
     },
@@ -46,7 +46,7 @@
     },
     "modelCatalog": {
       "path": "models/catalog.json",
-      "sha256": "c2629a5b4102f8ccec180c7ae01376ea53d71a75f29d76db0ea29ce5122f249b",
+      "sha256": "bb8c325caeeaba5304753dd726a10177ee16f5ad2368c3595f633a647cca9661",
       "bytes": 12417,
       "updated": "2026-03-19"
     },
@@ -1092,7 +1092,7 @@
         "translate"
       ],
       "catalogBaseUrl": null,
-      "catalogSizeBytes": 2018964126
+      "catalogSizeBytes": 2018964370
     },
     {
       "dopplerModelId": "gemma-3-1b-it-q4k-ehf16-af32",
@@ -1107,13 +1107,13 @@
         "translate"
       ],
       "catalogBaseUrl": null,
-      "catalogSizeBytes": 1025493248
+      "catalogSizeBytes": 1044786820
     },
     {
       "dopplerModelId": "gemma-3-270m-it-q4k-ehf16-af32",
       "dopplerModelBaseDir": "local",
       "defaultTjsModelId": "onnx-community/gemma-3-270m-it-ONNX",
-      "defaultKernelPath": "gemma3-q4k-dequant-f16a-online",
+      "defaultKernelPath": "gemma3-q4k-dequant-f32a-online",
       "defaultDopplerSurface": "auto",
       "inCatalog": true,
       "catalogLabel": "Gemma 3 270M Instruct (Q4K/F32a)",
@@ -1122,7 +1122,7 @@
         "translate"
       ],
       "catalogBaseUrl": null,
-      "catalogSizeBytes": 418512553
+      "catalogSizeBytes": 418518521
     },
     {
       "dopplerModelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
@@ -1136,7 +1136,7 @@
         "embedding"
       ],
       "catalogBaseUrl": null,
-      "catalogSizeBytes": 480562497
+      "catalogSizeBytes": 480563695
     },
     {
       "dopplerModelId": "lfm2-5-1-2b-instruct-q4k-ehf16-af32",
@@ -1151,7 +1151,7 @@
         "translate"
       ],
       "catalogBaseUrl": null,
-      "catalogSizeBytes": 853544060
+      "catalogSizeBytes": 853544061
     },
     {
       "dopplerModelId": "qwen-3-5-0-8b-q4k-ehaf16",
@@ -1166,7 +1166,7 @@
         "translate"
       ],
       "catalogBaseUrl": null,
-      "catalogSizeBytes": 788833984
+      "catalogSizeBytes": 798093788
     },
     {
       "dopplerModelId": "qwen-3-5-2b-q4k-ehaf16",
@@ -1181,7 +1181,7 @@
         "translate"
       ],
       "catalogBaseUrl": null,
-      "catalogSizeBytes": 1789738688
+      "catalogSizeBytes": 2496068973
     },
     {
       "dopplerModelId": "translategemma-4b-1b-enes-q4k-ehf16-af32",
@@ -1196,7 +1196,7 @@
         "translate"
       ],
       "catalogBaseUrl": null,
-      "catalogSizeBytes": 1025493248
+      "catalogSizeBytes": 1044685986
     },
     {
       "dopplerModelId": "translategemma-4b-it-q4k-ehf16-af32",
@@ -1211,7 +1211,7 @@
         "translate"
       ],
       "catalogBaseUrl": null,
-      "catalogSizeBytes": 3167327178
+      "catalogSizeBytes": 3167500395
     }
   ],
   "workloads": [

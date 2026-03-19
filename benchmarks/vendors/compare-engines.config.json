@@ -9,7 +9,7 @@
         {
             "dopplerModelId": "gemma-3-270m-it-q4k-ehf16-af32",
             "defaultTjsModelId": "onnx-community/gemma-3-270m-it-ONNX",
-            "defaultKernelPath": "gemma3-q4k-dequant-f16a-online",
+            "defaultKernelPath": "gemma3-q4k-dequant-f32a-online",
             "modelBaseDir": "local",
             "defaultDopplerSurface": "auto",
             "defaultDopplerFormat": "rdrr",

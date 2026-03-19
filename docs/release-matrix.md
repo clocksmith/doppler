@@ -1,7 +1,7 @@
 # Release Matrix
 
-Generated: 2026-03-19T14:08:42.459Z
-Release: channel=main-snapshot, version=0.1.8, commit=7199e9410136419e8ae5b1c39db8452867eda269, dirty=yes
+Generated: 2026-03-19T17:51:58.495Z
+Release: channel=main-snapshot, version=0.1.8, commit=2f5fc6169c89158905065954a5e6ef9bc34e7fb9, dirty=yes
 
 ## Engine Matrix
 
@@ -30,7 +30,7 @@ Release: channel=main-snapshot, version=0.1.8, commit=7199e9410136419e8ae5b1c39d
 |---|---|---|---|---|---|---|
 | `gemma-3-1b-it-f16-af32` | yes | run, translate | `onnx-community/gemma-3-1b-it-ONNX-GQA` | `gemma3-f16-fused-f32a-online` | auto | local |
 | `gemma-3-1b-it-q4k-ehf16-af32` | yes | run, translate | `onnx-community/gemma-3-1b-it-ONNX-GQA` | `gemma3-q4k-dequant-f32a-online` | auto | local |
-| `gemma-3-270m-it-q4k-ehf16-af32` | yes | run, translate | `onnx-community/gemma-3-270m-it-ONNX` | `gemma3-q4k-dequant-f16a-online` | auto | local |
+| `gemma-3-270m-it-q4k-ehf16-af32` | yes | run, translate | `onnx-community/gemma-3-270m-it-ONNX` | `gemma3-q4k-dequant-f32a-online` | auto | local |
 | `google-embeddinggemma-300m-q4k-ehf16-af32` | yes | embedding | `onnx-community/embeddinggemma-300m-ONNX` |  | auto | local |
 | `lfm2-5-1-2b-instruct-q4k-ehf16-af32` | yes | run, translate | `LiquidAI/LFM2.5-1.2B-Instruct-ONNX` | `lfm2-q4k-dequant-f32a-online` | auto | local |
 | `qwen-3-5-0-8b-q4k-ehaf16` | yes | run, translate | `onnx-community/Qwen3.5-0.8B-ONNX` |  | auto | local |
