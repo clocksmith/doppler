@@ -58,7 +58,6 @@ function looksLikeConversionReport(payload) {
   }
   return (
     Object.prototype.hasOwnProperty.call(payload, 'executionContractArtifact') ||
-    Object.prototype.hasOwnProperty.call(payload, 'executionV0GraphContractArtifact') ||
     Object.prototype.hasOwnProperty.call(payload, 'layerPatternContractArtifact') ||
     Object.prototype.hasOwnProperty.call(payload, 'requiredInferenceFieldsArtifact')
   );
@@ -138,8 +137,6 @@ export function buildSummary(entries, rootDir, limit) {
     totalReports: entries.length,
     contractPass: entries.filter((entry) => entry.report.executionContractArtifact?.ok === true).length,
     contractFail: entries.filter((entry) => entry.report.executionContractArtifact?.ok === false).length,
-    graphPass: entries.filter((entry) => entry.report.executionV0GraphContractArtifact?.ok === true).length,
-    graphFail: entries.filter((entry) => entry.report.executionV0GraphContractArtifact?.ok === false).length,
     layerPatternPass: entries.filter((entry) => entry.report.layerPatternContractArtifact?.ok === true).length,
     layerPatternFail: entries.filter((entry) => entry.report.layerPatternContractArtifact?.ok === false).length,
     requiredInferencePass: entries.filter((entry) => entry.report.requiredInferenceFieldsArtifact?.ok === true).length,
@@ -150,22 +147,16 @@ export function buildSummary(entries, rootDir, limit) {
       presetId: report.result.presetId,
       modelType: report.result.modelType,
       contractOk: report.executionContractArtifact?.ok === true,
-      graphOk: report.executionV0GraphContractArtifact?.ok === true,
       layerPatternOk: report.layerPatternContractArtifact?.ok === true,
       requiredInferenceOk: report.requiredInferenceFieldsArtifact?.ok === true,
       contractStatus: artifactStatus(report.executionContractArtifact),
-      graphStatus: artifactStatus(report.executionV0GraphContractArtifact),
       layerPatternStatus: artifactStatus(report.layerPatternContractArtifact),
       requiredInferenceStatus: artifactStatus(report.requiredInferenceFieldsArtifact),
       layout: report.executionContractArtifact?.session?.layout ?? null,
       checks: Array.isArray(report.executionContractArtifact?.checks)
         ? report.executionContractArtifact.checks.length
         : 0,
-      graphChecks: Array.isArray(report.executionV0GraphContractArtifact?.checks)
-        ? report.executionV0GraphContractArtifact.checks.length
-        : 0,
       contractFirstError: firstError(report.executionContractArtifact),
-      graphFirstError: firstError(report.executionV0GraphContractArtifact),
       layerPatternFirstError: firstError(report.layerPatternContractArtifact),
       requiredInferenceFirstError: firstError(report.requiredInferenceFieldsArtifact),
       path: path.relative(process.cwd(), filePath),
@@ -177,7 +168,6 @@ function printHuman(summary) {
   console.log(
     `[conversion-reports] total=${summary.totalReports} ` +
     `contractPass=${summary.contractPass} contractFail=${summary.contractFail} ` +
-    `graphPass=${summary.graphPass} graphFail=${summary.graphFail} ` +
     `layerPatternPass=${summary.layerPatternPass} layerPatternFail=${summary.layerPatternFail} ` +
     `requiredInferencePass=${summary.requiredInferencePass} requiredInferenceFail=${summary.requiredInferenceFail}`
   );
@@ -186,15 +176,11 @@ function printHuman(summary) {
       `[conversion-reports] ${entry.timestamp} model=${entry.modelId} ` +
       `preset=${entry.presetId ?? 'n/a'} type=${entry.modelType ?? 'n/a'} ` +
       `contract=${entry.contractStatus} ` +
-      `graph=${entry.graphStatus} ` +
       `layerPattern=${entry.layerPatternStatus} ` +
       `requiredInference=${entry.requiredInferenceStatus} ` +
       `layout=${entry.layout ?? 'n/a'} ` +
       `path=${entry.path}`
     );
-    if (entry.graphOk === false && entry.graphFirstError) {
-      console.log(`[conversion-reports] graph_error=${JSON.stringify(entry.graphFirstError)}`);
-    }
   }
 }
 

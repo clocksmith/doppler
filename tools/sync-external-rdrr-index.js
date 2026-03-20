@@ -9,8 +9,8 @@ import { DEFAULT_EXTERNAL_MODELS_ROOT } from './hf-registry-utils.js';
 
 const DEFAULT_VOLUME_ROOT = DEFAULT_EXTERNAL_MODELS_ROOT;
 const DEFAULT_RDRR_ROOT = path.join(DEFAULT_VOLUME_ROOT, 'rdrr');
-const DEFAULT_JSON_OUTPUT = path.join(DEFAULT_VOLUME_ROOT, 'RDRR_INDEX.json');
-const DEFAULT_MD_OUTPUT = path.join(DEFAULT_VOLUME_ROOT, 'RDRR_INDEX.md');
+const DEFAULT_JSON_OUTPUT = path.join(DEFAULT_VOLUME_ROOT, 'VOLUME_INDEX.json');
+const DEFAULT_MD_OUTPUT = path.join(DEFAULT_VOLUME_ROOT, 'VOLUME_INDEX.md');
 
 function parseArgs(argv) {
   const out = {

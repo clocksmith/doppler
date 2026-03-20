@@ -88,7 +88,6 @@ function createMinimalState(overrides = {}) {
     resolvedKernelPath: null,
     kernelPathSource: 'none',
     executionPlanState,
-    executionV0State: null,
     disableRecordedLogits: false,
     disableFusedDecode: false,
     manifest: null,

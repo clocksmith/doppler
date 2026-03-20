@@ -29,17 +29,6 @@ import {
       session: null,
       steps: null,
     },
-    executionV0GraphContractArtifact: {
-      schemaVersion: 1,
-      source: 'doppler',
-      ok: true,
-      checks: [],
-      errors: [],
-      stats: {
-        prefillSteps: 0,
-        decodeSteps: 0,
-      },
-    },
     layerPatternContractArtifact: {
       schemaVersion: 1,
       source: 'doppler',
@@ -80,7 +69,6 @@ import {
       result: {},
       manifest: null,
       executionContractArtifact: null,
-      executionV0GraphContractArtifact: null,
       layerPatternContractArtifact: null,
       requiredInferenceFieldsArtifact: null,
     }),

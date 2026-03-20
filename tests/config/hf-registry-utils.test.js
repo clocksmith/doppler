@@ -153,9 +153,6 @@ import {
           revision: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
           path: 'models/failing-qwen',
         },
-        external: {
-          pathRelativeToVolume: 'rdrr/failing-qwen',
-        },
         lifecycle: {
           availability: {
             hf: true,
@@ -174,9 +171,6 @@ import {
           revision: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
           path: 'models/verified-gemma',
         },
-        external: {
-          pathRelativeToVolume: 'rdrr/verified-gemma',
-        },
         lifecycle: {
           availability: {
             hf: true,
@@ -190,7 +184,6 @@ import {
     ],
   });
   assert.deepEqual(payload.models.map((entry) => entry.modelId), ['verified-gemma']);
-  assert.equal('external' in payload.models[0], false);
 }
 
 {

@@ -150,9 +150,8 @@ Rules:
 
 - `models/catalog.json` must point to the current HF revision after publication, not the previous one
 - if a model is not correctness-clean, reflect that in human-facing status notes rather than implying full health
-- preferred ownership is external-first:
-  - canonical support/lifecycle registry: `/media/x/models/DOPPLER_SUPPORT_REGISTRY.json`
-  - repo mirror for tooling/CI: `models/catalog.json`
+- `models/catalog.json` is the source of truth for editorial + lifecycle metadata
+- the external volume is the source of truth for RDRR artifacts (manifests, shards, origin metadata)
 
 ### 6. Sync the external-volume canonical artifact
 
@@ -179,7 +178,7 @@ After copy:
 - `lifecycle.tested.contracts.executionContractOk === true`
 - `lifecycle.tested.contracts.executionV0GraphOk === true`
 
-The tool also requires `hf.repoId` and `hf.path` in the support entry. `hf.revision` is not required before publish. The remote registry rebuild pins the newly uploaded revision for the selected model, and the repo mirror gets that revision when it is re-synced from the canonical external registry afterward.
+The tool also requires `hf.repoId` and `hf.path` in the catalog entry. `hf.revision` is not required before publish. The remote registry rebuild pins the newly uploaded revision for the selected model. Update `hf.revision` in `models/catalog.json` afterward.
 
 Run a dry run to confirm the upload plan before uploading:
 
@@ -231,48 +230,17 @@ Required fields in `origin.json`:
 }
 ```
 
-After all `origin.json` files are present, regenerate the external RDRR tracker files:
+After all `origin.json` files are present, regenerate the volume index:
 
 ```bash
-node tools/sync-external-rdrr-index.js
+npm run external:index
 ```
 
-This updates:
-
-- `/media/x/models/RDRR_INDEX.json`
-- `/media/x/models/RDRR_INDEX.md`
-
-Then regenerate the external canonical support registry:
-
-```bash
-node tools/sync-external-support-registry.js
-```
-
-If the repo mirror currently contains the reviewed promotion state and the external canonical registry is older, use the explicit promotion source:
-
-```bash
-npm run external:support:promote
-```
-
-This updates:
-
-- `/media/x/models/DOPPLER_SUPPORT_REGISTRY.json`
-- `/media/x/models/DOPPLER_SUPPORT_REGISTRY.md`
-
-If there are other external-volume status docs, update them in the same promotion change.
+This writes `VOLUME_INDEX.json` and `VOLUME_INDEX.md` on the external volume.
 
 ### 9. Re-pin repo metadata to the published HF revision
 
-After publication, update the external canonical support registry and then re-sync the repo mirror:
-
-```bash
-node tools/sync-external-support-registry.js
-node tools/sync-catalog-from-external-support.js
-```
-
-The repo mirror `models/catalog.json` should reflect the external canonical registry, not diverge from it.
-
-The remote Hugging Face registry should also reflect exactly the approved hosted subset from the canonical external support registry. Extra remote entries are drift and should be removed by the next publish or registry sync.
+After publication, update `hf.revision` in `models/catalog.json` to the published commit SHA.
 
 Then run the catalog validation flow:
 
@@ -315,9 +283,9 @@ Do not leave ghost model IDs in place and route around them.
 - Rebuild from external source checkpoint.
 - Verify deterministic output on browser/WebGPU or the intended production surface.
 - Human-review the observed output.
-- Sync the repo-local manifest and repo metadata.
-- Sync canonical external-volume artifact.
+- Copy verified artifact to external volume.
+- Update `models/catalog.json` with lifecycle metadata + HF pointers.
 - Publish from the external-volume artifact.
-- Re-pin `models/catalog.json` to the new HF revision.
-- Regenerate external-volume RDRR index.
-- Run hosted/catalog validation.
+- Re-pin `hf.revision` in `models/catalog.json` to the published commit SHA.
+- Run `npm run external:index` to regenerate volume index.
+- Run `npm run ci:catalog:check` for hosted/catalog validation.

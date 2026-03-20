@@ -61,22 +61,57 @@ function writeGemma2Fixture(fixtureDir, shape = [1]) {
   }), 'utf8');
 }
 
-const castOnlyExecution = {
-  steps: [
-    {
-      id: 'cast.layer.identity',
-      op: 'cast',
-      phase: 'both',
-      section: 'layer',
-      src: 'state',
-      dst: 'state',
-      layers: 'all',
-      toDtype: 'f16',
-    },
+const ZERO_DIGEST = 'sha256:' + '0'.repeat(64);
+
+const minimalV1Execution = {
+  kernels: {
+    embed: { kernel: 'gather_f16.wgsl', entry: 'main', digest: ZERO_DIGEST },
+    rmsnorm: { kernel: 'rmsnorm.wgsl', entry: 'main', digest: ZERO_DIGEST },
+    gemv: { kernel: 'matmul_gemv_subgroup.wgsl', entry: 'main_vec4', digest: ZERO_DIGEST },
+    residual: { kernel: 'residual.wgsl', entry: 'main', digest: ZERO_DIGEST },
+    gelu: { kernel: 'gelu.wgsl', entry: 'main', digest: ZERO_DIGEST, constants: { HAS_GATE: true } },
+    sample: { kernel: 'sample.wgsl', entry: 'sample_single_pass', digest: ZERO_DIGEST },
+  },
+  preLayer: [['embed', 'embed', 'embed_tokens']],
+  decode: [
+    ['input_norm', 'rmsnorm'],
+    ['q_proj', 'gemv', 'layer.{L}.self_attn.q_proj'],
+    ['k_proj', 'gemv', 'layer.{L}.self_attn.k_proj'],
+    ['v_proj', 'gemv', 'layer.{L}.self_attn.v_proj'],
+    ['o_proj', 'gemv', 'layer.{L}.self_attn.o_proj'],
+    ['attn_residual', 'residual'],
+    ['gate_proj', 'gemv', 'layer.{L}.mlp.gate_proj'],
+    ['up_proj', 'gemv', 'layer.{L}.mlp.up_proj'],
+    ['activation', 'gelu'],
+    ['down_proj', 'gemv', 'layer.{L}.mlp.down_proj'],
+    ['ffn_residual', 'residual'],
   ],
+  prefill: [
+    ['input_norm', 'rmsnorm'],
+    ['q_proj', 'gemv', 'layer.{L}.self_attn.q_proj'],
+    ['k_proj', 'gemv', 'layer.{L}.self_attn.k_proj'],
+    ['v_proj', 'gemv', 'layer.{L}.self_attn.v_proj'],
+    ['o_proj', 'gemv', 'layer.{L}.self_attn.o_proj'],
+    ['attn_residual', 'residual'],
+    ['gate_proj', 'gemv', 'layer.{L}.mlp.gate_proj'],
+    ['up_proj', 'gemv', 'layer.{L}.mlp.up_proj'],
+    ['activation', 'gelu'],
+    ['down_proj', 'gemv', 'layer.{L}.mlp.down_proj'],
+    ['ffn_residual', 'residual'],
+  ],
+  postLayer: [
+    ['final_norm', 'rmsnorm'],
+    ['lm_head', 'gemv', 'lm_head'],
+    ['sample', 'sample'],
+  ],
+  policies: {
+    unsupportedPrecision: 'error',
+    dtypeTransition: 'require_cast_step',
+    unresolvedKernel: 'error',
+  },
 };
 
-const executionSessionDefaults = {
+const minimalV1SessionDefaults = {
   compute: {
     defaults: {
       activationDtype: 'f16',
@@ -84,10 +119,43 @@ const executionSessionDefaults = {
       accumDtype: 'f32',
       outputDtype: 'f16',
     },
-    kernelProfiles: [],
   },
   kvcache: null,
   decodeLoop: null,
+};
+
+const minimalV1Inference = {
+  attention: {
+    slidingWindow: null,
+    attnLogitSoftcapping: null,
+    queryKeyNorm: false,
+    attentionOutputGate: false,
+    causal: true,
+    attentionBias: false,
+  },
+  normalization: {
+    rmsNormWeightOffset: true,
+    rmsNormEps: 1e-6,
+  },
+  ffn: {
+    activation: 'gelu',
+    gatedActivation: true,
+    swigluLimit: null,
+  },
+  rope: {
+    ropeTheta: 10000,
+    partialRotaryFactor: 1.0,
+    ropeInterleaved: false,
+  },
+  output: {
+    scaleEmbeddings: false,
+    tieWordEmbeddings: false,
+    embeddingTranspose: false,
+    embeddingVocabSize: null,
+    finalLogitSoftcapping: null,
+  },
+  chatTemplate: { type: 'none' },
+  layerPattern: { type: 'uniform' },
 };
 
 {
@@ -119,10 +187,9 @@ const executionSessionDefaults = {
           quantization: {
             weights: 'f16',
           },
-          inference: {
-            sessionDefaults: executionSessionDefaults,
-            execution: castOnlyExecution,
-          },
+          inference: minimalV1Inference,
+          sessionDefaults: minimalV1SessionDefaults,
+          execution: minimalV1Execution,
         },
         execution: {
           workers: 1,

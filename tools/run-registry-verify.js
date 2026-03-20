@@ -145,14 +145,10 @@ function parseJsonPayload(stdout) {
 function extractContractGateStatus(payload) {
   const result = payload?.result;
   const executionContractArtifact = result?.metrics?.executionContractArtifact ?? null;
-  const executionV0GraphContractArtifact = result?.metrics?.executionV0GraphContractArtifact ?? null;
   const contractOk = executionContractArtifact?.ok !== false;
-  const graphOk = executionV0GraphContractArtifact?.ok !== false;
   return {
     contractOk,
-    graphOk,
     executionContractArtifact,
-    executionV0GraphContractArtifact,
   };
 }
 
@@ -330,7 +326,6 @@ async function main() {
       source: 'registry-verify',
       contractArtifacts: {
         executionContractOk: gateStatus.executionContractArtifact?.ok ?? null,
-        executionV0GraphOk: gateStatus.executionV0GraphContractArtifact?.ok ?? null,
       },
     });
   }

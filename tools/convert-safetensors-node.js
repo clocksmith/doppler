@@ -147,15 +147,6 @@ function printConvertContractSummary(result) {
       console.log(`[contract] error=${String(error)}`);
     }
   }
-  const graphArtifact = result?.executionV0GraphContractArtifact;
-  if (graphArtifact && typeof graphArtifact === 'object') {
-    const checks = Array.isArray(graphArtifact.checks) ? graphArtifact.checks : [];
-    const passedChecks = checks.filter((entry) => entry?.ok === true).length;
-    console.log(
-      `[graph] status=${graphArtifact.ok === true ? 'pass' : 'fail'} ` +
-      `checks=${checks.length > 0 ? `${passedChecks}/${checks.length}` : 'n/a'}`
-    );
-  }
   for (const [label, extraArtifact] of [
     ['layer-pattern', result?.layerPatternContractArtifact],
     ['required-inference', result?.requiredInferenceFieldsArtifact],

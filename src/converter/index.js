@@ -49,7 +49,6 @@ export {
 // Shared conversion planning helpers
 export {
   inferSourceWeightQuantization,
-  validateDefaultKernelPath,
   resolveConversionPlan,
   resolveConvertedModelId,
 } from './conversion-plan.js';

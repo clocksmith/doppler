@@ -10,7 +10,7 @@ import {
   buildHostedRegistryPayload,
   DEFAULT_HF_REGISTRY_PATH,
   DEFAULT_HF_REGISTRY_URL,
-  DEFAULT_EXTERNAL_SUPPORT_REGISTRY_PATH,
+  DEFAULT_EXTERNAL_MODELS_ROOT,
   buildManifestUrl,
   extractCommitShaFromUrl,
   fetchRepoHeadSha,
@@ -21,7 +21,6 @@ import {
   loadJsonFile,
   normalizeText,
   probeUrl,
-  resolvePreferredSupportRegistryFile,
   writeJsonFile,
 } from './hf-registry-utils.js';
 
@@ -31,10 +30,7 @@ const DEFAULT_CATALOG_FILE = path.join(REPO_ROOT, 'models', 'catalog.json');
 export function parseArgs(argv) {
   const out = {
     modelId: '',
-    supportFile: resolvePreferredSupportRegistryFile({
-      externalSupportFile: DEFAULT_EXTERNAL_SUPPORT_REGISTRY_PATH,
-      fallbackFile: DEFAULT_CATALOG_FILE,
-    }),
+    catalogFile: DEFAULT_CATALOG_FILE,
     localDir: '',
     registryUrl: DEFAULT_HF_REGISTRY_URL,
     registryPath: DEFAULT_HF_REGISTRY_PATH,
@@ -49,17 +45,10 @@ export function parseArgs(argv) {
       i += 1;
       continue;
     }
-    if (arg === '--support-file') {
-      const value = normalizeText(argv[i + 1]);
-      if (!value) throw new Error('Missing value for --support-file');
-      out.supportFile = path.resolve(REPO_ROOT, value);
-      i += 1;
-      continue;
-    }
     if (arg === '--catalog-file') {
       const value = normalizeText(argv[i + 1]);
       if (!value) throw new Error('Missing value for --catalog-file');
-      out.supportFile = path.resolve(REPO_ROOT, value);
+      out.catalogFile = path.resolve(REPO_ROOT, value);
       i += 1;
       continue;
     }
@@ -140,11 +129,8 @@ export function buildArtifactUploadPlan(entry, options = {}) {
   const hfSpec = getEntryHfSpec(entry);
   const repoId = normalizeText(options.repoId) || hfSpec.repoId;
   const targetPath = hfSpec.path;
-  const externalPath = normalizeText(entry?.external?.pathRelativeToVolume);
-  const volumeRoot = normalizeText(options.volumeRoot);
   const localDir = options.localDir
-    || (externalPath && volumeRoot ? path.resolve(volumeRoot, externalPath) : '')
-    || path.join(REPO_ROOT, 'models', 'local', modelId);
+    || path.join(DEFAULT_EXTERNAL_MODELS_ROOT, 'rdrr', modelId);
   if (!repoId) {
     throw new Error(`${modelId}: hf.repoId is required to publish`);
   }
@@ -185,30 +171,14 @@ export function assertPromotionReady(entry) {
   if (contracts.executionContractOk !== true) {
     throw new Error(`${modelId}: execution contract gate must be explicitly true in lifecycle.tested.contracts.`);
   }
-  if (contracts.executionV0GraphOk !== true) {
-    throw new Error(`${modelId}: execution-v0 graph gate must be explicitly true in lifecycle.tested.contracts.`);
-  }
-  const external = entry?.external && typeof entry.external === 'object'
-    ? entry.external
-    : null;
-  if (external && external.hostedPathMatchesRdrr === false) {
-    throw new Error(
-      `${modelId}: external hosted path must match the canonical RDRR artifact basename before publication.`
-    );
-  }
-  if (external && external.manifestModelIdMatchesCatalogModelId === false) {
-    throw new Error(
-      `${modelId}: external manifest modelId must match the approved support entry modelId before publication.`
-    );
-  }
 }
 
 export async function main(argv = process.argv.slice(2)) {
   const args = parseArgs(argv);
-  const canonicalSupport = await loadJsonFile(args.supportFile, args.supportFile);
-  const localEntry = findCatalogEntry(canonicalSupport, args.modelId);
+  const catalog = await loadJsonFile(args.catalogFile, args.catalogFile);
+  const localEntry = findCatalogEntry(catalog, args.modelId);
   if (!localEntry) {
-    throw new Error(`Model "${args.modelId}" not found in ${args.supportFile}`);
+    throw new Error(`Model "${args.modelId}" not found in ${args.catalogFile}`);
   }
   assertPromotionReady(localEntry);
   if (!isHostedRegistryApprovedEntry(localEntry)) {
@@ -220,13 +190,12 @@ export async function main(argv = process.argv.slice(2)) {
   const uploadPlan = buildArtifactUploadPlan(localEntry, {
     repoId: args.repoId,
     localDir: args.localDir,
-    volumeRoot: canonicalSupport.volumeRoot,
   });
 
   if (args.dryRun) {
     console.log(JSON.stringify({
       modelId: uploadPlan.modelId,
-      supportFile: args.supportFile,
+      catalogFile: args.catalogFile,
       repoId: uploadPlan.repoId,
       localDir: uploadPlan.localDir,
       targetPath: uploadPlan.targetPath,
@@ -256,7 +225,7 @@ export async function main(argv = process.argv.slice(2)) {
   }
 
   const nextRegistry = buildHostedRegistryPayload(
-    canonicalSupport,
+    catalog,
     new Map([[uploadPlan.modelId, artifactRevision]])
   );
 

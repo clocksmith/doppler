@@ -35,13 +35,13 @@ Move a verified runtime artifact into catalog metadata, external-volume storage,
 
 - `npm run ci:catalog:check`
 - `npm run support:matrix:sync` if catalog changed
-- `npm run external:rdrr:index` if external-volume tracking changed
+- `npm run external:index` if external-volume tracking changed
 - Re-run a verify or debug pass against the repo-local or hosted artifact if publication changed the delivery path
 
 ## Common Misses
 
 - Updating `models/catalog.json` before the output has been coherence-reviewed by a human.
-- Editing only the repo mirror and forgetting to update the canonical external support registry first.
+- Editing catalog.json without verifying the external-volume artifact matches.
 - Publishing a different artifact than the one that was actually tested.
 - Publishing a direct-source manifest with absolute source paths instead of artifact-relative paths.
 - Forgetting to sync derived docs and indexes after catalog changes.

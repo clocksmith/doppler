@@ -177,7 +177,7 @@ try {
   const result = await new Promise((resolve, reject) => {
     const child = spawn(process.execPath, [
       'tools/check-hf-registry.js',
-      '--support-file',
+      '--catalog-file',
       catalogFile,
       '--remote-only',
       '--registry-url',

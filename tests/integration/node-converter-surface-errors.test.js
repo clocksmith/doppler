@@ -43,6 +43,103 @@ function writeMinimalGemma2Safetensors(filePath) {
   }, 20);
 }
 
+const ZERO_DIGEST = 'sha256:' + '0'.repeat(64);
+
+const minimalV1Execution = {
+  kernels: {
+    embed: { kernel: 'gather_f16.wgsl', entry: 'main', digest: ZERO_DIGEST },
+    rmsnorm: { kernel: 'rmsnorm.wgsl', entry: 'main', digest: ZERO_DIGEST },
+    gemv: { kernel: 'matmul_gemv_subgroup.wgsl', entry: 'main_vec4', digest: ZERO_DIGEST },
+    residual: { kernel: 'residual.wgsl', entry: 'main', digest: ZERO_DIGEST },
+    gelu: { kernel: 'gelu.wgsl', entry: 'main', digest: ZERO_DIGEST, constants: { HAS_GATE: true } },
+    sample: { kernel: 'sample.wgsl', entry: 'sample_single_pass', digest: ZERO_DIGEST },
+  },
+  preLayer: [['embed', 'embed', 'embed_tokens']],
+  decode: [
+    ['input_norm', 'rmsnorm'],
+    ['q_proj', 'gemv', 'layer.{L}.self_attn.q_proj'],
+    ['k_proj', 'gemv', 'layer.{L}.self_attn.k_proj'],
+    ['v_proj', 'gemv', 'layer.{L}.self_attn.v_proj'],
+    ['o_proj', 'gemv', 'layer.{L}.self_attn.o_proj'],
+    ['attn_residual', 'residual'],
+    ['gate_proj', 'gemv', 'layer.{L}.mlp.gate_proj'],
+    ['up_proj', 'gemv', 'layer.{L}.mlp.up_proj'],
+    ['activation', 'gelu'],
+    ['down_proj', 'gemv', 'layer.{L}.mlp.down_proj'],
+    ['ffn_residual', 'residual'],
+  ],
+  prefill: [
+    ['input_norm', 'rmsnorm'],
+    ['q_proj', 'gemv', 'layer.{L}.self_attn.q_proj'],
+    ['k_proj', 'gemv', 'layer.{L}.self_attn.k_proj'],
+    ['v_proj', 'gemv', 'layer.{L}.self_attn.v_proj'],
+    ['o_proj', 'gemv', 'layer.{L}.self_attn.o_proj'],
+    ['attn_residual', 'residual'],
+    ['gate_proj', 'gemv', 'layer.{L}.mlp.gate_proj'],
+    ['up_proj', 'gemv', 'layer.{L}.mlp.up_proj'],
+    ['activation', 'gelu'],
+    ['down_proj', 'gemv', 'layer.{L}.mlp.down_proj'],
+    ['ffn_residual', 'residual'],
+  ],
+  postLayer: [
+    ['final_norm', 'rmsnorm'],
+    ['lm_head', 'gemv', 'lm_head'],
+    ['sample', 'sample'],
+  ],
+  policies: {
+    unsupportedPrecision: 'error',
+    dtypeTransition: 'require_cast_step',
+    unresolvedKernel: 'error',
+  },
+};
+
+const minimalV1SessionDefaults = {
+  compute: {
+    defaults: {
+      activationDtype: 'f16',
+      mathDtype: 'f16',
+      accumDtype: 'f32',
+      outputDtype: 'f16',
+    },
+  },
+  kvcache: null,
+  decodeLoop: null,
+};
+
+const minimalV1Inference = {
+  attention: {
+    slidingWindow: null,
+    attnLogitSoftcapping: null,
+    queryKeyNorm: false,
+    attentionOutputGate: false,
+    causal: true,
+    attentionBias: false,
+  },
+  normalization: {
+    rmsNormWeightOffset: true,
+    rmsNormEps: 1e-6,
+  },
+  ffn: {
+    activation: 'gelu',
+    gatedActivation: true,
+    swigluLimit: null,
+  },
+  rope: {
+    ropeTheta: 10000,
+    partialRotaryFactor: 1.0,
+    ropeInterleaved: false,
+  },
+  output: {
+    scaleEmbeddings: false,
+    tieWordEmbeddings: false,
+    embeddingTranspose: false,
+    embeddingVocabSize: null,
+    finalLogitSoftcapping: null,
+  },
+  chatTemplate: { type: 'none' },
+  layerPattern: { type: 'uniform' },
+};
+
 await assert.rejects(
   () => convertSafetensorsDirectory({}),
   /node convert: inputDir is required\./
@@ -244,7 +341,7 @@ await assert.rejects(
           },
         },
       }),
-      /Unknown model family/
+      /execution\.kernels object \(v1 format\)/
     );
   } finally {
     rmSync(fixtureDir, { recursive: true, force: true });
@@ -295,35 +392,9 @@ await assert.rejects(
           output: {
             dir: path.join(fixtureDir, 'out'),
           },
-          inference: {
-            sessionDefaults: {
-              compute: {
-                defaults: {
-                  activationDtype: 'f16',
-                  mathDtype: 'f16',
-                  accumDtype: 'f32',
-                  outputDtype: 'f16',
-                },
-                kernelProfiles: [],
-              },
-              kvcache: null,
-              decodeLoop: null,
-            },
-            execution: {
-              steps: [
-                {
-                  id: 'cast.identity',
-                  op: 'cast',
-                  phase: 'both',
-                  section: 'layer',
-                  src: 'attn_q',
-                  dst: 'attn_q',
-                  layers: 'all',
-                  toDtype: 'f16',
-                },
-              ],
-            },
-          },
+          inference: minimalV1Inference,
+          sessionDefaults: minimalV1SessionDefaults,
+          execution: minimalV1Execution,
         },
       }),
       /modelId is required/
@@ -359,35 +430,9 @@ await assert.rejects(
           output: {
             modelBaseId: 'gemma2-missing-output-dir',
           },
-          inference: {
-            sessionDefaults: {
-              compute: {
-                defaults: {
-                  activationDtype: 'f16',
-                  mathDtype: 'f16',
-                  accumDtype: 'f32',
-                  outputDtype: 'f16',
-                },
-                kernelProfiles: [],
-              },
-              kvcache: null,
-              decodeLoop: null,
-            },
-            execution: {
-              steps: [
-                {
-                  id: 'cast.identity',
-                  op: 'cast',
-                  phase: 'both',
-                  section: 'layer',
-                  src: 'attn_q',
-                  dst: 'attn_q',
-                  layers: 'all',
-                  toDtype: 'f16',
-                },
-              ],
-            },
-          },
+          inference: minimalV1Inference,
+          sessionDefaults: minimalV1SessionDefaults,
+          execution: minimalV1Execution,
         },
       }),
       /outputDir is required/
@@ -467,35 +512,9 @@ await assert.rejects(
             modelBaseId: '---',
             dir: path.join(fixtureDir, 'out'),
           },
-          inference: {
-            sessionDefaults: {
-              compute: {
-                defaults: {
-                  activationDtype: 'f16',
-                  mathDtype: 'f16',
-                  accumDtype: 'f32',
-                  outputDtype: 'f16',
-                },
-                kernelProfiles: [],
-              },
-              kvcache: null,
-              decodeLoop: null,
-            },
-            execution: {
-              steps: [
-                {
-                  id: 'cast.identity',
-                  op: 'cast',
-                  phase: 'both',
-                  section: 'layer',
-                  src: 'attn_q',
-                  dst: 'attn_q',
-                  layers: 'all',
-                  toDtype: 'f16',
-                },
-              ],
-            },
-          },
+          inference: minimalV1Inference,
+          sessionDefaults: minimalV1SessionDefaults,
+          execution: minimalV1Execution,
         },
       }),
       /failed to resolve modelId/
@@ -539,36 +558,10 @@ await assert.rejects(
         output: {
           modelBaseId: 'gemma2-sharded-index',
           dir: path.join(fixtureDir, 'out'),
-          },
-          inference: {
-            sessionDefaults: {
-              compute: {
-                defaults: {
-                  activationDtype: 'f16',
-                  mathDtype: 'f16',
-                  accumDtype: 'f32',
-                  outputDtype: 'f16',
-                },
-                kernelProfiles: [],
-              },
-              kvcache: null,
-              decodeLoop: null,
-            },
-            execution: {
-              steps: [
-                {
-                id: 'cast.identity',
-                op: 'cast',
-                phase: 'both',
-                section: 'layer',
-                src: 'attn_q',
-                dst: 'attn_q',
-                layers: 'all',
-                toDtype: 'f16',
-              },
-            ],
-          },
         },
+        inference: minimalV1Inference,
+        sessionDefaults: minimalV1SessionDefaults,
+        execution: minimalV1Execution,
       },
     });
     assert.equal(result.outputDir, path.join(fixtureDir, 'out'));
@@ -620,35 +613,9 @@ await assert.rejects(
             modelBaseId: 'gemma2-gpu-cast',
             dir: path.join(fixtureDir, 'out'),
           },
-          inference: {
-            sessionDefaults: {
-              compute: {
-                defaults: {
-                  activationDtype: 'f16',
-                  mathDtype: 'f16',
-                  accumDtype: 'f32',
-                  outputDtype: 'f16',
-                },
-                kernelProfiles: [],
-              },
-              kvcache: null,
-              decodeLoop: null,
-            },
-            execution: {
-              steps: [
-                {
-                  id: 'cast.identity',
-                  op: 'cast',
-                  phase: 'both',
-                  section: 'layer',
-                  src: 'attn_q',
-                  dst: 'attn_q',
-                  layers: 'all',
-                  toDtype: 'f16',
-                },
-              ],
-            },
-          },
+          inference: minimalV1Inference,
+          sessionDefaults: minimalV1SessionDefaults,
+          execution: minimalV1Execution,
         },
       }),
       /execution\.useGpuCast requires a WebGPU-capable Node runtime/

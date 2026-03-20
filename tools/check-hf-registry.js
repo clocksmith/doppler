@@ -5,7 +5,6 @@ import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import {
   DEFAULT_HF_REGISTRY_URL,
-  DEFAULT_EXTERNAL_SUPPORT_REGISTRY_PATH,
   buildHostedRegistryPayload,
   buildManifestUrl,
   buildShardUrl,
@@ -18,7 +17,6 @@ import {
   loadJsonFile,
   normalizeText,
   probeUrl,
-  resolvePreferredSupportRegistryFile,
   resolveDemoRegistryEntryBaseUrl,
   shouldDemoSurfaceRemoteRegistryEntry,
   validateLocalHfEntryShape,
@@ -29,10 +27,7 @@ const DEFAULT_CATALOG_FILE = path.join(REPO_ROOT, 'models', 'catalog.json');
 
 export function parseArgs(argv) {
   const out = {
-    supportFile: resolvePreferredSupportRegistryFile({
-      externalSupportFile: DEFAULT_EXTERNAL_SUPPORT_REGISTRY_PATH,
-      fallbackFile: DEFAULT_CATALOG_FILE,
-    }),
+    catalogFile: DEFAULT_CATALOG_FILE,
     registryUrl: DEFAULT_HF_REGISTRY_URL,
     checkLocalCatalog: true,
     checkDemoRegistry: true,
@@ -40,17 +35,10 @@ export function parseArgs(argv) {
 
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
-    if (arg === '--support-file') {
-      const value = normalizeText(argv[i + 1]);
-      if (!value) throw new Error('Missing value for --support-file');
-      out.supportFile = path.resolve(REPO_ROOT, value);
-      i += 1;
-      continue;
-    }
     if (arg === '--catalog-file') {
       const value = normalizeText(argv[i + 1]);
       if (!value) throw new Error('Missing value for --catalog-file');
-      out.supportFile = path.resolve(REPO_ROOT, value);
+      out.catalogFile = path.resolve(REPO_ROOT, value);
       i += 1;
       continue;
     }
@@ -203,9 +191,9 @@ export async function main(argv = process.argv.slice(2)) {
   let localCatalog = null;
 
   if (args.checkLocalCatalog) {
-    localCatalog = await loadJsonFile(args.supportFile, args.supportFile);
+    localCatalog = await loadJsonFile(args.catalogFile, args.catalogFile);
     const localResult = await validateLocalHfCatalog(localCatalog);
-    checks.push(`[hf-registry-check] canonical support source: ${args.supportFile}`);
+    checks.push(`[hf-registry-check] catalog source: ${args.catalogFile}`);
     checks.push(`[hf-registry-check] approved HF entries verified: ${localResult.summaries.length}`);
     failures.push(...localResult.errors);
   }

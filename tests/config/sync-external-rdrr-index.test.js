@@ -26,8 +26,8 @@ try {
     () => buildIndex({
       volumeRoot: root,
       rdrrRoot,
-      jsonOutput: path.join(root, 'RDRR_INDEX.json'),
-      mdOutput: path.join(root, 'RDRR_INDEX.md'),
+      jsonOutput: path.join(root, 'VOLUME_INDEX.json'),
+      mdOutput: path.join(root, 'VOLUME_INDEX.md'),
     }, '2026-03-08T00:00:00.000Z'),
     /Missing explicit sourceModel\/sourceRepo metadata/
   );
@@ -41,8 +41,8 @@ try {
   const outputs = await buildIndex({
     volumeRoot: root,
     rdrrRoot,
-    jsonOutput: path.join(root, 'RDRR_INDEX.json'),
-    mdOutput: path.join(root, 'RDRR_INDEX.md'),
+    jsonOutput: path.join(root, 'VOLUME_INDEX.json'),
+    mdOutput: path.join(root, 'VOLUME_INDEX.md'),
   }, '2026-03-08T00:00:00.000Z');
   const payload = JSON.parse(outputs.json);
   assert.equal(payload.summary.sourceModelCount, 1);

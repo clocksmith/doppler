@@ -54,7 +54,6 @@ export const DEFAULT_CONVERSION_REPORT = Object.freeze({
     },
   },
   executionContractArtifact: null,
-  executionV0GraphContractArtifact: null,
   layerPatternContractArtifact: null,
   requiredInferenceFieldsArtifact: null,
 });
@@ -101,7 +100,6 @@ export function validateConversionReport(report) {
   }
 
   assertNullablePlainObject(report.executionContractArtifact, 'executionContractArtifact');
-  assertNullablePlainObject(report.executionV0GraphContractArtifact, 'executionV0GraphContractArtifact');
   assertNullablePlainObject(report.layerPatternContractArtifact, 'layerPatternContractArtifact');
   assertNullablePlainObject(report.requiredInferenceFieldsArtifact, 'requiredInferenceFieldsArtifact');
   return report;

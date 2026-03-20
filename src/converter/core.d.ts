@@ -150,7 +150,6 @@ export interface ConvertResult {
   tensorCount: number;
   totalSize: number;
   executionContractArtifact: ExecutionContractArtifact | null;
-  executionV0GraphContractArtifact: null;
   layerPatternContractArtifact: Record<string, unknown> | null;
   requiredInferenceFieldsArtifact: ManifestRequiredInferenceFieldsArtifact | RequiredInferenceFieldsContractArtifact | null;
 }

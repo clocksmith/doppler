@@ -22,7 +22,6 @@ export const DEFAULT_BROWSER_SUITE_METRICS = Object.freeze({
   source: 'doppler',
   suite: 'inference',
   executionContractArtifact: null,
-  executionV0GraphContractArtifact: null,
   layerPatternContractArtifact: null,
   requiredInferenceFieldsArtifact: null,
 });
@@ -39,7 +38,6 @@ export function validateBrowserSuiteMetrics(metrics) {
   }
   assertString(metrics.suite, 'suite');
   assertNullablePlainObject(metrics.executionContractArtifact, 'executionContractArtifact');
-  assertNullablePlainObject(metrics.executionV0GraphContractArtifact, 'executionV0GraphContractArtifact');
   assertNullablePlainObject(metrics.layerPatternContractArtifact, 'layerPatternContractArtifact');
   assertNullablePlainObject(metrics.requiredInferenceFieldsArtifact, 'requiredInferenceFieldsArtifact');
   return metrics;

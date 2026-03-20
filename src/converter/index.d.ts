@@ -83,7 +83,6 @@ export {
   type ValidateKernelPathContext,
   type ResolveConvertedModelIdOptions,
   inferSourceWeightQuantization,
-  validateDefaultKernelPath,
   resolveConversionPlan,
   resolveConvertedModelId,
 } from './conversion-plan.js';

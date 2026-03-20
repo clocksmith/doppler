@@ -4,36 +4,22 @@ This page covers Hugging Face registry validation, publication, and derived cata
 
 For the end-to-end promotion workflow across repo metadata, external-volume RDRR storage, and Hugging Face hosting, use [model-promotion-playbook.md](model-promotion-playbook.md).
 
-## Scope
+## Architecture
 
-Use this workflow when you:
-- publish a new hosted RDRR artifact
-- update the external support registry
-- sync the repo mirror in `models/catalog.json`
-- update demo-visible hosted models
-- want to catch catalog/support-matrix drift before release
+Two files, one direction:
 
-## Prerequisites
+1. **External volume** (`$DOPPLER_EXTERNAL_MODELS_ROOT/rdrr/`) — source of truth for RDRR artifacts (manifests, shards, origin metadata)
+2. **`models/catalog.json`** (repo) — source of truth for editorial + lifecycle metadata (labels, aliases, HF revisions, verification status)
+3. **HF `Clocksmith/rdrr`** — published subset of catalog, filtered to approved entries
 
-- repo dependencies installed
-- Hugging Face CLI installed and authenticated for publish flows
-- external support registry prepared with canonical metadata
-- repo `models/catalog.json` synced from the external support registry when repo-local checks need a mirror
-
-Canonical support metadata lives on the external models volume:
-
-- `/media/x/models/DOPPLER_SUPPORT_REGISTRY.json`
-- `/media/x/models/DOPPLER_SUPPORT_REGISTRY.md`
-
-Repo-local `models/catalog.json` is the mirrored copy consumed by current repo checks and quickstart generation.
-
-When the repo mirror has reviewed promotion changes that are not yet present in the canonical external registry, do not run the plain sync command and expect it to pick them up implicitly. Use:
-
-```bash
-npm run external:support:promote
 ```
+External volume scan → VOLUME_INDEX.json (what's physically on disk)
 
-That path writes the canonical external registry from the repo mirror explicitly. The plain sync command continues to treat the existing external registry as canonical when it already exists.
+models/catalog.json (hand-edited, versioned in repo)
+  ↓ cross-validated against VOLUME_INDEX.json
+  ↓ filtered + published to
+HF registry/catalog.json
+```
 
 ## Validate catalog and hosted registry
 
@@ -54,18 +40,22 @@ To run only the hosted registry validation:
 npm run registry:hf:check
 ```
 
-`tools/check-hf-registry.js` now prefers the external canonical support registry when it exists and falls back to the repo mirror only when the external file is absent. Remote registry membership is checked against the approved hosted subset only:
-
-- `lifecycle.availability.hf === true`
-- `lifecycle.status.runtime === "active"`
-- `lifecycle.status.tested === "verified"`
-
 Validation guarantees:
 - every approved hosted entry has `hf.repoId`, `hf.revision`, and `hf.path`
 - the remote manifest resolves
 - every declared remote shard resolves
 - the remote registry does not contain extra models outside the approved canonical hosted set
 - the live demo will not surface non-fetchable remote registry entries
+
+## Regenerate the external volume index
+
+After adding or removing models on the external volume:
+
+```bash
+npm run external:index
+```
+
+This scans `rdrr/*/manifest.json` + `origin.json` and writes `VOLUME_INDEX.json` + `VOLUME_INDEX.md` on the volume.
 
 ## Publish a hosted model to Hugging Face
 
@@ -76,10 +66,10 @@ npm run registry:publish:hf -- --model-id translategemma-4b-it-q4k-ehf16-af32
 ```
 
 The publish workflow:
-1. reads the model entry from the canonical external support registry when present, otherwise from the repo mirror
-2. uploads the artifact directory selected by the publish plan
+1. reads the model entry from `models/catalog.json`
+2. uploads the artifact directory from the external volume (`rdrr/<model-id>`)
 3. captures the artifact commit SHA
-4. rebuilds `registry/catalog.json` from the approved canonical hosted subset, pinning the just-published revision for the selected model
+4. rebuilds `registry/catalog.json` from the approved catalog subset, pinning the just-published revision
 5. verifies the published manifest resolve URL
 
 Dry run:
@@ -88,18 +78,11 @@ Dry run:
 npm run registry:publish:hf -- --model-id translategemma-4b-it-q4k-ehf16-af32 --dry-run
 ```
 
-Preferred publication source:
-
-- by default the publisher uploads from the canonical external-volume artifact path recorded in `external.pathRelativeToVolume`
-- always pass `--local-dir /media/x/models/rdrr/<modelId>` explicitly to publish from the external volume
-- do not publish from `models/local/` — the external volume is the source of truth for weights
-- publish from the canonical external-volume RDRR directory, not a scratch rebuild directory
-- ensure the external-volume artifact matches the curated manifest before publication
-- update external-volume trackers after publication
+Always pass `--local-dir` explicitly if the external volume mount differs from the default.
 
 ## After publishing
 
-If the repo mirror changed, regenerate the derived support matrix:
+Update `hf.revision` in `models/catalog.json` to the published commit SHA, then regenerate the derived support matrix:
 
 ```bash
 npm run support:matrix:sync

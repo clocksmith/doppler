@@ -31,12 +31,10 @@ try {
   mkdirSync(configDir, { recursive: true });
   mkdirSync(manifestDir, { recursive: true });
 
-  writeFileSync(path.join(configDir, 'unit-model.json'), JSON.stringify({
+  const zeroDigest = 'sha256:' + '0'.repeat(64);
+  const minimalV1Config = {
     output: {
       modelBaseId: 'unit-model',
-    },
-    presets: {
-      model: 'gemma3',
     },
     quantization: {
       weights: 'q4k',
@@ -45,7 +43,30 @@ try {
       computePrecision: 'f32',
       q4kLayout: 'row',
     },
-  }, null, 2), 'utf8');
+    inference: {
+      attention: { slidingWindow: null, attnLogitSoftcapping: null, queryKeyNorm: false, attentionOutputGate: false, causal: true, attentionBias: false },
+      normalization: { rmsNormWeightOffset: true, rmsNormEps: 1e-6 },
+      ffn: { activation: 'gelu', gatedActivation: true, swigluLimit: null },
+      rope: { ropeTheta: 1000000, partialRotaryFactor: 1.0, ropeInterleaved: false },
+      output: { scaleEmbeddings: true, tieWordEmbeddings: false, embeddingTranspose: false, embeddingVocabSize: null, finalLogitSoftcapping: null },
+      chatTemplate: { type: 'gemma' },
+      layerPattern: { type: 'every_n', period: 6, offset: 0 },
+    },
+    sessionDefaults: {
+      compute: { defaults: { activationDtype: 'f16', mathDtype: 'f16', accumDtype: 'f32', outputDtype: 'f16' } },
+      kvcache: null,
+      decodeLoop: null,
+    },
+    execution: {
+      kernels: { embed: { kernel: 'gather_f16.wgsl', entry: 'main', digest: zeroDigest } },
+      preLayer: [['embed', 'embed', 'embed_tokens']],
+      decode: [],
+      prefill: [],
+      postLayer: [],
+      policies: { unsupportedPrecision: 'error', dtypeTransition: 'require_cast_step', unresolvedKernel: 'error' },
+    },
+  };
+  writeFileSync(path.join(configDir, 'unit-model.json'), JSON.stringify(minimalV1Config, null, 2), 'utf8');
 
   writeFileSync(path.join(manifestDir, 'manifest.json'), JSON.stringify({
     modelId: 'unit-model',

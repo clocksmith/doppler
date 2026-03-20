@@ -104,7 +104,7 @@ export function createConverterConfig(overrides) {
     };
   }
 
-  return {
+  const config = {
     quantization: overrides.quantization
       ? { ...DEFAULT_CONVERTER_QUANTIZATION_CONFIG, ...overrides.quantization }
       : { ...DEFAULT_CONVERTER_QUANTIZATION_CONFIG },
@@ -133,4 +133,17 @@ export function createConverterConfig(overrides) {
       ? { ...DEFAULT_CONVERTER_PRESET_CONFIG, ...overrides.presets }
       : { ...DEFAULT_CONVERTER_PRESET_CONFIG },
   };
+  // V1 conversion configs place execution, sessionDefaults, and modelType at the top level.
+  // Pass them through so isV1Config() can detect the v1 format and resolveConversionPlanV1
+  // can read modelType.
+  if (overrides.execution && typeof overrides.execution === 'object') {
+    config.execution = overrides.execution;
+  }
+  if (overrides.sessionDefaults && typeof overrides.sessionDefaults === 'object') {
+    config.sessionDefaults = overrides.sessionDefaults;
+  }
+  if (typeof overrides.modelType === 'string') {
+    config.modelType = overrides.modelType;
+  }
+  return config;
 }

@@ -30,28 +30,63 @@ const SUPPORTED_SOURCE_DTYPES = new Set([
   'Q6_K',
 ]);
 
-const SOURCE_RUNTIME_EXECUTION_OVERRIDE = {
-  steps: [
-    {
-      id: 'cast.identity',
-      op: 'cast',
-      phase: 'both',
-      section: 'layer',
-      src: 'attn_q',
-      dst: 'attn_q',
-      layers: 'all',
-      toDtype: 'f16',
-    },
-  ],
-};
+const ZERO_DIGEST = 'sha256:' + '0'.repeat(64);
 
 const SOURCE_RUNTIME_SESSION_DEFAULTS = {
   compute: {
     defaults: { ...DEFAULT_EXECUTION_V1_COMPUTE_DEFAULTS },
-    kernelProfiles: [],
   },
   kvcache: null,
   decodeLoop: null,
+};
+
+const SOURCE_RUNTIME_EXECUTION = {
+  kernels: {
+    embed: { kernel: 'gather_f16.wgsl', entry: 'main', digest: ZERO_DIGEST },
+  },
+  preLayer: [['embed', 'embed', 'embed_tokens']],
+  decode: [],
+  prefill: [],
+  postLayer: [],
+  policies: {
+    unsupportedPrecision: 'error',
+    dtypeTransition: 'require_cast_step',
+    unresolvedKernel: 'error',
+  },
+};
+
+const SOURCE_RUNTIME_INFERENCE = {
+  attention: {
+    slidingWindow: null,
+    attnLogitSoftcapping: null,
+    queryKeyNorm: false,
+    attentionOutputGate: false,
+    causal: true,
+    attentionBias: false,
+  },
+  normalization: {
+    rmsNormWeightOffset: false,
+    rmsNormEps: 1e-6,
+  },
+  ffn: {
+    activation: 'gelu',
+    gatedActivation: true,
+    swigluLimit: null,
+  },
+  rope: {
+    ropeTheta: 10000,
+    partialRotaryFactor: 1.0,
+    ropeInterleaved: false,
+  },
+  output: {
+    scaleEmbeddings: false,
+    tieWordEmbeddings: false,
+    embeddingTranspose: false,
+    embeddingVocabSize: null,
+    finalLogitSoftcapping: null,
+  },
+  chatTemplate: { type: 'none' },
+  layerPattern: { type: 'uniform' },
 };
 
 function normalizeRelativePath(value) {
@@ -565,10 +600,9 @@ export async function resolveBridgeSourceRuntimeBundle(options = {}) {
     output: {
       modelBaseId: requestedModelId || null,
     },
-    inference: {
-      sessionDefaults: SOURCE_RUNTIME_SESSION_DEFAULTS,
-      execution: SOURCE_RUNTIME_EXECUTION_OVERRIDE,
-    },
+    inference: SOURCE_RUNTIME_INFERENCE,
+    sessionDefaults: SOURCE_RUNTIME_SESSION_DEFAULTS,
+    execution: SOURCE_RUNTIME_EXECUTION,
   });
   const plan = resolveConversionPlan({
     rawConfig: parsed.config,

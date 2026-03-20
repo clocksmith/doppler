@@ -6,7 +6,6 @@ import { buildManifestRequiredInferenceFieldsArtifact } from '../config/required
 
 export function buildSuiteContractMetrics(suite, baseMetrics, manifest) {
   const executionContractArtifact = buildExecutionContractArtifact(manifest);
-  const executionV0GraphContractArtifact = null;
   const layerPatternContractArtifact = getInferenceLayerPatternContractArtifact();
   const requiredInferenceFieldsArtifact = manifest?.modelType === 'transformer'
     && isPlainObject(manifest?.inference?.attention)
@@ -21,7 +20,6 @@ export function buildSuiteContractMetrics(suite, baseMetrics, manifest) {
     source: 'doppler',
     suite,
     ...(executionContractArtifact ? { executionContractArtifact } : {}),
-    executionV0GraphContractArtifact,
     layerPatternContractArtifact,
     requiredInferenceFieldsArtifact,
   });

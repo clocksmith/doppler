@@ -3,7 +3,6 @@ export interface BrowserSuiteMetricsSchema {
   source: 'doppler';
   suite: string;
   executionContractArtifact: Record<string, unknown> | null;
-  executionV0GraphContractArtifact: Record<string, unknown> | null;
   layerPatternContractArtifact: Record<string, unknown> | null;
   requiredInferenceFieldsArtifact: Record<string, unknown> | null;
   [key: string]: unknown;

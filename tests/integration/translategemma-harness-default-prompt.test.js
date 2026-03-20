@@ -114,7 +114,7 @@ function createHarnessOverride() {
   assert.equal(result.metrics.source, 'doppler');
   assert.equal(result.metrics.suite, 'inference');
   assert.equal(result.metrics.executionContractArtifact?.ok, true);
-  assert.equal(result.metrics.executionV0GraphContractArtifact, null);
+
   assert.equal(result.metrics.layerPatternContractArtifact?.ok, true);
   assert.equal(result.metrics.requiredInferenceFieldsArtifact, null);
   assert.equal(result.metrics.executionContractArtifact?.session?.layout, 'contiguous');
@@ -136,7 +136,7 @@ function createHarnessOverride() {
   assert.equal(result.metrics.source, 'doppler');
   assert.equal(result.metrics.suite, 'debug');
   assert.equal(result.metrics.executionContractArtifact?.ok, true);
-  assert.equal(result.metrics.executionV0GraphContractArtifact, null);
+
   assert.equal(result.metrics.layerPatternContractArtifact?.ok, true);
   assert.equal(result.metrics.requiredInferenceFieldsArtifact, null);
 }
@@ -176,7 +176,7 @@ await assert.rejects(
   assert.equal(result.metrics.source, 'doppler');
   assert.equal(result.metrics.suite, 'bench');
   assert.equal(result.metrics.executionContractArtifact?.ok, true);
-  assert.equal(result.metrics.executionV0GraphContractArtifact, null);
+
   assert.equal(result.metrics.layerPatternContractArtifact?.ok, true);
   assert.equal(result.metrics.requiredInferenceFieldsArtifact, null);
 }

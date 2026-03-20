@@ -36,12 +36,6 @@ try {
       errors: [],
       session: { layout: 'paged' },
     },
-    executionV0GraphContractArtifact: {
-      ok: true,
-      checks: [{ id: 'graph-a', ok: true }],
-      errors: [],
-      stats: { prefillSteps: 1, decodeSteps: 1 },
-    },
     layerPatternContractArtifact: {
       ok: true,
       checks: [{ id: 'layer-a', ok: true }],
@@ -76,12 +70,6 @@ try {
       errors: ['bad contract'],
       session: { layout: 'bdpa' },
     },
-    executionV0GraphContractArtifact: {
-      ok: false,
-      checks: [{ id: 'graph-b', ok: false }],
-      errors: ['bad graph'],
-      stats: { prefillSteps: 0, decodeSteps: 0 },
-    },
     layerPatternContractArtifact: {
       ok: false,
       checks: [{ id: 'layer-b', ok: false }],
@@ -111,19 +99,14 @@ try {
   assert.equal(summary.totalReports, 2);
   assert.equal(summary.contractPass, 1);
   assert.equal(summary.contractFail, 1);
-  assert.equal(summary.graphPass, 1);
-  assert.equal(summary.graphFail, 1);
   assert.equal(summary.layerPatternPass, 1);
   assert.equal(summary.layerPatternFail, 1);
   assert.equal(summary.requiredInferencePass, 1);
   assert.equal(summary.requiredInferenceFail, 1);
   assert.equal(summary.recent[0].modelId, 'gemma3-b');
   assert.equal(summary.recent[0].layout, 'bdpa');
-  assert.equal(summary.recent[0].graphOk, false);
-  assert.equal(summary.recent[0].graphChecks, 1);
   assert.equal(summary.recent[0].layerPatternOk, false);
   assert.equal(summary.recent[0].requiredInferenceOk, false);
-  assert.equal(summary.recent[0].graphFirstError, 'bad graph');
 
   writeFileSync(path.join(modelADir, 'invalid-convert.json'), JSON.stringify({
     schemaVersion: 1,

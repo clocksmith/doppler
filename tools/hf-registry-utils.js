@@ -34,13 +34,9 @@ export function detectDefaultExternalModelsRoot() {
 }
 
 export const DEFAULT_EXTERNAL_MODELS_ROOT = detectDefaultExternalModelsRoot();
-export const DEFAULT_EXTERNAL_SUPPORT_REGISTRY_PATH = path.join(
+export const DEFAULT_EXTERNAL_VOLUME_INDEX_PATH = path.join(
   DEFAULT_EXTERNAL_MODELS_ROOT,
-  'DOPPLER_SUPPORT_REGISTRY.json'
-);
-export const DEFAULT_EXTERNAL_RDRR_INDEX_PATH = path.join(
-  DEFAULT_EXTERNAL_MODELS_ROOT,
-  'RDRR_INDEX.json'
+  'VOLUME_INDEX.json'
 );
 
 export function isPlainObject(value) {
@@ -173,11 +169,6 @@ export function isHostedRegistryApprovedEntry(entry) {
     && normalizeText(entry?.lifecycle?.status?.tested) === 'verified';
 }
 
-export function stripExternalSupportFields(entry) {
-  const next = structuredClone(entry);
-  delete next.external;
-  return next;
-}
 
 export function buildPublishedRegistryEntry(localEntry, revision) {
   const modelId = normalizeText(localEntry?.modelId);
@@ -226,9 +217,9 @@ export function buildHostedRegistryPayload(payload, revisionOverrides = new Map(
         const modelId = normalizeText(entry?.modelId);
         const revisionOverride = normalizeText(normalizedOverrides.get(modelId));
         if (revisionOverride) {
-          return buildPublishedRegistryEntry(stripExternalSupportFields(entry), revisionOverride);
+          return buildPublishedRegistryEntry(entry, revisionOverride);
         }
-        return stripExternalSupportFields(entry);
+        return structuredClone(entry);
       })
     : [];
   sortCatalogEntries(models);
@@ -242,18 +233,6 @@ export function buildHostedRegistryPayload(payload, revisionOverrides = new Map(
   };
 }
 
-export function resolvePreferredSupportRegistryFile(options = {}) {
-  const explicit = normalizeText(options.supportFile);
-  if (explicit) {
-    return explicit;
-  }
-  const externalSupportFile = normalizeText(options.externalSupportFile)
-    || DEFAULT_EXTERNAL_SUPPORT_REGISTRY_PATH;
-  if (externalSupportFile && existsSync(externalSupportFile)) {
-    return externalSupportFile;
-  }
-  return normalizeText(options.fallbackFile) || externalSupportFile;
-}
 
 export function extractCommitShaFromUrl(value) {
   const raw = normalizeText(value);

@@ -815,12 +815,7 @@ function toSummary(result) {
       : result.executionContractArtifact
         ? ' contract=fail'
         : '';
-    const graphStatus = result.executionV0GraphContractArtifact?.ok === true
-      ? ' graph=pass'
-      : result.executionV0GraphContractArtifact
-        ? ' graph=fail'
-        : '';
-    return `converted ${result.manifest.modelId} (${result.tensorCount} tensors, ${result.shardCount} shards)${contractStatus}${graphStatus}`;
+    return `converted ${result.manifest.modelId} (${result.tensorCount} tensors, ${result.shardCount} shards)${contractStatus}`;
   }
 
   if (result.kind === 'lora' || result.kind === 'distill') {
@@ -1159,26 +1154,6 @@ function printExecutionContractSummary(result) {
   }
 }
 
-function printExecutionV0GraphSummary(artifact) {
-  if (!artifact || typeof artifact !== 'object') return;
-  const checks = Array.isArray(artifact.checks) ? artifact.checks : [];
-  const passedChecks = checks.filter((entry) => entry?.ok === true).length;
-  const stats = artifact.stats && typeof artifact.stats === 'object' ? artifact.stats : null;
-  const parts = [
-    `status=${artifact.ok === true ? 'pass' : 'fail'}`,
-    checks.length > 0 ? `checks=${passedChecks}/${checks.length}` : 'checks=n/a',
-  ];
-  if (Number.isFinite(stats?.prefillSteps) || Number.isFinite(stats?.decodeSteps)) {
-    parts.push(`steps(prefill=${stats?.prefillSteps ?? 'n/a'},decode=${stats?.decodeSteps ?? 'n/a'})`);
-  }
-  console.log(`[graph] ${parts.join(' ')}`);
-  if (artifact.ok !== true && Array.isArray(artifact.errors)) {
-    for (const error of artifact.errors.slice(0, 3)) {
-      console.log(`[graph] error=${quoteOneLine(error)}`);
-    }
-  }
-}
-
 function printSimpleArtifactSummary(label, artifact) {
   if (!artifact || typeof artifact !== 'object') return;
   const checks = Array.isArray(artifact.checks) ? artifact.checks : [];
@@ -1212,7 +1187,6 @@ function printConvertContractSummary(result) {
       console.log(`[contract] error=${quoteOneLine(error)}`);
     }
   }
-  printExecutionV0GraphSummary(result?.executionV0GraphContractArtifact);
   printSimpleArtifactSummary('layer-pattern', result?.layerPatternContractArtifact);
   printSimpleArtifactSummary('required-inference', result?.requiredInferenceFieldsArtifact);
 }
@@ -1266,7 +1240,6 @@ function printMetricsSummary(result) {
       console.log(`[output] ${quoteOneLine(result.output)}`);
     }
     printExecutionContractSummary(result);
-    printExecutionV0GraphSummary(metrics.executionV0GraphContractArtifact);
     return;
   }
 
@@ -1282,8 +1255,7 @@ function printMetricsSummary(result) {
         `eps=${formatNumber(metrics.avgEmbeddingsPerSec)}`
       );
       printExecutionContractSummary(result);
-      printExecutionV0GraphSummary(metrics.executionV0GraphContractArtifact);
-      return;
+        return;
     }
 
     console.log(`[metrics] prompt=${quoteOneLine(metrics.prompt)}`);
@@ -1305,7 +1277,6 @@ function printMetricsSummary(result) {
       `prefill=${formatMs(metrics.prefillMs)} decode=${formatMs(metrics.decodeMs)}`
     );
     printExecutionContractSummary(result);
-    printExecutionV0GraphSummary(metrics.executionV0GraphContractArtifact);
     printDeviceInfo(result);
     printGpuPhases(metrics);
     printMemoryReport(result);

@@ -53,8 +53,7 @@
           "source": "manual-review",
           "notes": "Deterministic greedy (temperature=0, topK=1) browser/WebGPU on Apple M3. Produces coherent output on appropriate prompts. The lm_head_prefill phase-drop bug was the one confirmed runtime defect (now fixed and regression-covered). Remaining factual-question inaccuracy on hard prompts is a 270M model capacity limitation, not a code bug \u2014 confirmed by 2x2 comparison showing F16 270M is also wrong.",
           "contracts": {
-            "executionContractOk": true,
-            "executionV0GraphOk": true
+            "executionContractOk": true
           }
         }
       },
@@ -112,8 +111,7 @@
           "lastVerifiedAt": "2026-03-13",
           "source": "registry-verify",
           "contracts": {
-            "executionContractOk": true,
-            "executionV0GraphOk": true
+            "executionContractOk": true
           },
           "notes": "queryPreAttnScalar fixed from 16 (sqrt(headDim)) to 256 (headDim). 768-dim embeddings, all finite, semantic retrieval test passed. Republished to HF 2026-03-14."
         }
@@ -173,8 +171,7 @@
           "source": "manual-review",
           "notes": "Deterministic greedy (temperature=0, topK=1) browser/WebGPU on Apple M3. Correctly produces A. Blue on factual sky-color prompt. The lm_head_prefill phase-drop bug was the one confirmed runtime defect (now fixed and regression-covered). Q4K runtime path is functionally correct.",
           "contracts": {
-            "executionContractOk": true,
-            "executionV0GraphOk": true
+            "executionContractOk": true
           }
         }
       },
@@ -232,8 +229,7 @@
           "source": "manual-review",
           "notes": "Prompt: 'The color of the sky is' \u2192 ' a constant, but its appearance changes with the seasons.\\n\\nThe sky is blue during the summer, when the sun is high in the sky.\\nThe sky is red during the autumn, when the leaves change color.\\nThe sky is gray during the winter, when the sun is low in the sky.\\nThe' (64 tokens, temperature=0, topK=1). Fluent and stable; factual quality mixed but coherent. All contracts pass.",
           "contracts": {
-            "executionContractOk": true,
-            "executionV0GraphOk": true
+            "executionContractOk": true
           }
         }
       },
@@ -293,8 +289,7 @@
           "source": "manual-review",
           "notes": "Browser/WebGPU verified on 2026-03-17 with deterministic greedy decoding. The working Q4K path is gemma3-q4k-dequant-f32w-f32a-online (F32 matmul weights, F32 activations, F16 KV). Output: 'Bonjour, monde.' for the default en->fr Hello world prompt. The prior failure was isolated to the older q4k_dequant F16-weight path; F16 artifact and HF reference were both coherent during the root-cause diff.",
           "contracts": {
-            "executionContractOk": true,
-            "executionV0GraphOk": true
+            "executionContractOk": true
           }
         }
       },
@@ -352,8 +347,7 @@
           "source": "runtime-verify",
           "notes": "Node/WebGPU AMD RDNA-3. Deterministic greedy (temp=0, topK=1). Prompt: EN->ES 'The weather is nice today.' -> 'El tiempo est\u00e1 agradable hoy.' (7 tokens including <end_of_turn>). Correct translation, coherent output. All execution-v0 contract checks pass.",
           "contracts": {
-            "executionContractOk": true,
-            "executionV0GraphOk": true
+            "executionContractOk": true
           }
         }
       },
@@ -409,8 +403,7 @@
           "source": "runtime-verify",
           "notes": "Node/WebGPU AMD RDNA-3. Deterministic greedy (temp=0, topK=1). Prompt: \"The color of the sky is\" -> coherent factual response about blue sky / atmospheric scattering. ropeTheta fixed from 1M to 10M, manifest RoPE fields (mropeInterleaved, mropeSection, partialRotaryFactor) patched.",
           "contracts": {
-            "executionContractOk": true,
-            "executionV0GraphOk": true
+            "executionContractOk": true
           }
         }
       },
@@ -469,8 +462,7 @@
           "source": "runtime-verify",
           "notes": "Node/WebGPU AMD RDNA-3. Deterministic greedy (temp=0, topK=1). Prompt: \"The color of the sky is\" -> coherent factual response about blue sky / atmospheric scattering. ropeTheta fixed from 1M to 10M, manifest RoPE fields (mropeInterleaved, mropeSection, partialRotaryFactor) patched.",
           "contracts": {
-            "executionContractOk": true,
-            "executionV0GraphOk": true
+            "executionContractOk": true
           }
         }
       },
@@ -529,8 +521,7 @@
           "source": "runtime-verify",
           "notes": "Coherence-verified 2026-03-16 on Node/WebGPU AMD RDNA-3 after applying ChatML template fix. Manifest was missing chatTemplate.type/enabled \u2014 model was receiving raw unformatted text. With chatml applied: deterministic greedy (temp=0, topK=1). Prompt: 'What color is the sky on a clear day?' (ChatML) -> 'The color of the sky on a clear day is white. This is because the atmosphere is not obsceded by any particles or objects that are in between.' (32 tokens). Output is coherent and responsive to prompt. No execution-v0 schema in manifest (known LFM2 conversion limitation; N/A for this model). Contract checks 2/2 pass.",
           "contracts": {
-            "executionContractOk": true,
-            "executionV0GraphOk": true
+            "executionContractOk": true
           }
         }
       },

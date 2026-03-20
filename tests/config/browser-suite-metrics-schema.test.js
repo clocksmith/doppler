@@ -16,7 +16,6 @@ const metrics = validateBrowserSuiteMetrics({
     checks: [],
     errors: [],
   },
-  executionV0GraphContractArtifact: null,
   layerPatternContractArtifact: {
     ok: true,
     checks: [],

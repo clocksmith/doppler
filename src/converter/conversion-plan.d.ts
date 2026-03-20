@@ -54,11 +54,6 @@ export declare function inferSourceWeightQuantization(
   tensors: ConversionPlanInputTensor[] | null | undefined
 ): string;
 
-export declare function validateDefaultKernelPath(
-  inference: { defaultKernelPath?: string | null } | null | undefined,
-  context?: ValidateKernelPathContext
-): void;
-
 export declare function resolveConversionPlan(options: ResolveConversionPlanOptions): ConversionPlanResult;
 
 export declare function resolveConvertedModelId(options: ResolveConvertedModelIdOptions): string | null;

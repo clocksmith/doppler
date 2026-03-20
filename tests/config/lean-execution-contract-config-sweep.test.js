@@ -20,12 +20,32 @@ try {
   mkdirSync(mappedManifestDir, { recursive: true });
   mkdirSync(embeddingManifestDir, { recursive: true });
 
+  const zeroDigest = 'sha256:' + '0'.repeat(64);
+  const v1Inference = {
+    attention: { slidingWindow: null, attnLogitSoftcapping: null, queryKeyNorm: false, attentionOutputGate: false, causal: true, attentionBias: false },
+    normalization: { rmsNormWeightOffset: true, rmsNormEps: 1e-6 },
+    ffn: { activation: 'gelu', gatedActivation: true, swigluLimit: null },
+    rope: { ropeTheta: 1000000, partialRotaryFactor: 1.0, ropeInterleaved: false },
+    output: { scaleEmbeddings: true, tieWordEmbeddings: false, embeddingTranspose: false, embeddingVocabSize: null, finalLogitSoftcapping: null },
+    chatTemplate: { type: 'gemma' },
+    layerPattern: { type: 'every_n', period: 6, offset: 0 },
+  };
+  const v1SessionDefaults = {
+    compute: { defaults: { activationDtype: 'f16', mathDtype: 'f16', accumDtype: 'f32', outputDtype: 'f16' } },
+    kvcache: null,
+    decodeLoop: null,
+  };
+  const v1Execution = {
+    kernels: { embed: { kernel: 'gather_f16.wgsl', entry: 'main', digest: zeroDigest } },
+    preLayer: [['embed', 'embed', 'embed_tokens']],
+    decode: [],
+    prefill: [],
+    postLayer: [],
+    policies: { unsupportedPrecision: 'error', dtypeTransition: 'require_cast_step', unresolvedKernel: 'error' },
+  };
   writeFileSync(path.join(configDir, 'unit-model.json'), JSON.stringify({
     output: {
       modelBaseId: 'unit-model',
-    },
-    presets: {
-      model: 'gemma3',
     },
     quantization: {
       weights: 'q4k',
@@ -34,6 +54,9 @@ try {
       computePrecision: 'f32',
       q4kLayout: 'row',
     },
+    inference: v1Inference,
+    sessionDefaults: v1SessionDefaults,
+    execution: v1Execution,
   }, null, 2), 'utf8');
 
   writeFileSync(path.join(manifestDir, 'manifest.json'), JSON.stringify({
@@ -85,9 +108,6 @@ try {
     output: {
       modelBaseId: 'mapped-model-f16',
     },
-    presets: {
-      model: 'gemma3',
-    },
     quantization: {
       weights: 'q4k',
       embeddings: 'f16',
@@ -95,6 +115,9 @@ try {
       computePrecision: 'f16',
       q4kLayout: 'row',
     },
+    inference: v1Inference,
+    sessionDefaults: v1SessionDefaults,
+    execution: v1Execution,
   }, null, 2), 'utf8');
 
   writeFileSync(path.join(mappedManifestDir, 'manifest.json'), JSON.stringify({
@@ -146,9 +169,6 @@ try {
     output: {
       modelBaseId: 'embedding-model',
     },
-    presets: {
-      model: 'embeddinggemma',
-    },
     quantization: {
       weights: 'q4k',
       embeddings: 'f16',
@@ -156,6 +176,9 @@ try {
       computePrecision: 'f32',
       q4kLayout: 'row',
     },
+    inference: v1Inference,
+    sessionDefaults: v1SessionDefaults,
+    execution: v1Execution,
   }, null, 2), 'utf8');
 
   writeFileSync(path.join(embeddingManifestDir, 'manifest.json'), JSON.stringify({
@@ -201,9 +224,6 @@ try {
   writeFileSync(path.join(configDir, 'excluded-template.json'), JSON.stringify({
     output: {
       modelBaseId: 'excluded-template',
-    },
-    presets: {
-      model: 'transformer',
     },
     quantization: {
       weights: 'f16',

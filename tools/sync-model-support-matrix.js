@@ -533,9 +533,8 @@ function renderMatrix(rows, metadata, buckets) {
   const lines = [];
   lines.push('# Model Support Matrix');
   lines.push('');
-  lines.push('Auto-generated from preset registry (`src/config/loader.js`), conversion configs (`tools/configs/conversion/**`), and the repo catalog mirror (`models/catalog.json`).');
-  lines.push('Hosted/demo/tested lifecycle metadata is canonically owned by the external support registry and mirrored into `models/catalog.json` for repo checks.');
-  lines.push('Run `npm run support:matrix:sync` after syncing the repo catalog mirror or changing presets/conversion configs.');
+  lines.push('Auto-generated from preset registry (`src/config/loader.js`), conversion configs (`tools/configs/conversion/**`), and `models/catalog.json`.');
+  lines.push('Run `npm run support:matrix:sync` after editing `models/catalog.json` or changing presets/conversion configs.');
   lines.push('');
   lines.push(`Updated at: ${metadata.generatedAt}`);
   lines.push('');
