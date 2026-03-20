@@ -229,9 +229,17 @@ const useSoftcapping = config.attnLogitSoftcapping !== null;
 
 - Kernel selection is fully explicit in the manifest execution graph. Each step pins an exact WGSL file, entry point, and content digest. No runtime resolution.
 - All models must ship with an execution graph. Models without one are unsupported.
-- `defaultKernelPath` is always `null` in v1 manifests — use the execution graph directly.
+- `defaultKernelPath` does not exist in v1 manifests. The execution graph is the sole dispatch contract.
 - Kernel path overrides are config-only; do not add harness/UI flags for kernel selection.
 - Kernel selection logic lives in `src/gpu/kernels/*.js`; config files are data only.
+
+### Manifest-Config Parity (Required Debug Check)
+
+When a manifest-based runtime error occurs (dtype mismatch, missing field, kernel conflict):
+
+1. **Compare the manifest to its conversion config first.** If they disagree, re-refresh the manifest — do not patch runtime code.
+2. The conversion config (`tools/configs/conversion/`) is the source of truth for all manifest inference fields. The manifest is a stamped artifact.
+3. Never add runtime workarounds for stale manifests. Fix the config, re-refresh, verify.
 
 ### Kernel Path Registry Lifecycle
 

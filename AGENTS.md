@@ -192,7 +192,12 @@ Do not claim a runtime bug unless steps 1-4 pass and runtime still diverges.
 When a model loads but produces incoherent output, follow a fail-closed debug ladder.
 Do not skip ahead to architecture theories or benchmark tweaks.
 
-1. Classify the failure first
+0. Check manifest-config parity first
+- Read the manifest on disk and the conversion config in `tools/configs/conversion/`.
+- If any inference field disagrees (dtype, kernel, sessionDefaults, layerPattern), the manifest is stale — re-refresh it, do not patch runtime code.
+- The conversion config is the source of truth. The manifest is a stamped artifact.
+
+1. Classify the failure
 - `tokenization / chat-template`
 - `conversion / artifact integrity`
 - `runtime numerics`
