@@ -6,7 +6,7 @@
   "stability": "canonical",
   "owner": "doppler-core",
   "createdAtUtc": "2026-03-13T00:00:00Z",
-  "extends": "modes/debug",
+  "extends": "profiles/verbose-trace",
   "runtime": {
     "inference": {
       "prompt": "Hello",

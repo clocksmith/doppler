@@ -72,13 +72,13 @@ export function resolveRuntime(options) {
   return runtime;
 }
 
-function normalizePresetPath(value) {
+function normalizeProfilePath(value) {
   const trimmed = String(value || '').replace(/^[./]+/, '');
   if (!trimmed) return null;
   return trimmed.endsWith('.json') ? trimmed : `${trimmed}.json`;
 }
 
-function resolvePresetBaseUrl() {
+function resolveProfileBaseUrl() {
   try {
     return new URL('../config/presets/runtime/', import.meta.url).toString().replace(/\/$/, '');
   } catch {
@@ -215,7 +215,7 @@ function resolveExtendCandidates(ref, context) {
   const candidates = [];
   if (context.presetBaseUrl) {
     candidates.push(joinUrl(context.presetBaseUrl, normalized));
-    candidates.push(joinUrl(context.presetBaseUrl, `modes/${normalized}`));
+    candidates.push(joinUrl(context.presetBaseUrl, `profiles/${normalized}`));
   }
   if (context.sourceUrl) {
     const sourceDir = resolveAbsoluteUrl('./', context.sourceUrl);
@@ -260,7 +260,7 @@ async function resolveRuntimeConfigExtends(config, context) {
 }
 
 async function loadRuntimeConfigChain(url, options = {}, stack = []) {
-  const presetBaseUrl = options.presetBaseUrl || options.baseUrl || resolvePresetBaseUrl();
+  const presetBaseUrl = options.presetBaseUrl || options.baseUrl || resolveProfileBaseUrl();
   const resolvedUrl = resolveAbsoluteUrl(url);
   if (stack.includes(resolvedUrl)) {
     throw new Error(`Runtime config extends cycle: ${[...stack, resolvedUrl].join(' -> ')}`);
@@ -311,18 +311,18 @@ export async function applyRuntimeConfigFromUrl(url, options = {}) {
   return mergedRuntime;
 }
 
-export async function loadRuntimePreset(presetId, options = {}) {
-  const baseUrl = options.baseUrl || resolvePresetBaseUrl();
-  const normalized = normalizePresetPath(presetId);
+export async function loadRuntimeProfile(profileId, options = {}) {
+  const baseUrl = options.baseUrl || resolveProfileBaseUrl();
+  const normalized = normalizeProfilePath(profileId);
   if (!normalized) {
-    throw new Error('runtime preset id is required');
+    throw new Error('runtime profile id is required');
   }
   const url = `${baseUrl.replace(/\/$/, '')}/${normalized}`;
   return loadRuntimeConfigFromUrl(url, { ...options, presetBaseUrl: baseUrl });
 }
 
-export async function applyRuntimePreset(presetId, options = {}) {
-  const { runtime } = await loadRuntimePreset(presetId, options);
+export async function applyRuntimeProfile(profileId, options = {}) {
+  const { runtime } = await loadRuntimeProfile(profileId, options);
   const mergedRuntime = mergeRuntimeValues(getRuntimeConfig(), runtime);
   setRuntimeConfig(mergedRuntime);
   return mergedRuntime;
@@ -348,7 +348,7 @@ export async function applyRuntimeForRun(run, options = {}) {
     setRuntimeConfig,
   }, {
     configChain,
-    runtimePreset: run.runtimePreset ?? null,
+    runtimeProfile: run.runtimeProfile ?? null,
     runtimeConfigUrl: run.runtimeConfigUrl ?? null,
     runtimeConfig: run.runtimeConfig ?? null,
     runtimeContractPatch: typeof run.command === 'string' && run.command.trim()
@@ -360,7 +360,7 @@ export async function applyRuntimeForRun(run, options = {}) {
       : null,
   }, {
     loadRuntimeConfigFromRef: (ref, runtimeOptions) => loadRuntimeConfigFromRef(ref, runtimeOptions),
-    applyRuntimePreset,
+    applyRuntimeProfile,
     applyRuntimeConfigFromUrl,
   }, options);
 }
@@ -386,10 +386,11 @@ export function mergeRunDefaults(defaults, run) {
     ...defaults,
     ...run,
     configChain: run.configChain ?? defaults.configChain ?? null,
-    runtimePreset: run.runtimePreset ?? defaults.runtimePreset ?? null,
+    runtimeProfile: run.runtimeProfile ?? defaults.runtimeProfile ?? null,
     runtimeConfigUrl: run.runtimeConfigUrl ?? defaults.runtimeConfigUrl ?? null,
     runtimeConfig: run.runtimeConfig ?? defaults.runtimeConfig ?? null,
-    suite: run.suite ?? defaults.suite ?? 'inference',
+    mode: run.mode ?? defaults.mode ?? run.command ?? defaults.command ?? null,
+    workload: run.workload ?? run.suite ?? defaults.workload ?? defaults.suite ?? 'inference',
   };
 }
 

@@ -134,7 +134,7 @@ function assertNoLoadAffectingOptions(apiName, options) {
   }
   if (
     options.runtimeConfig !== undefined
-    || options.runtimePreset !== undefined
+    || options.runtimeProfile !== undefined
     || options.runtimeConfigUrl !== undefined
   ) {
     throw new Error(

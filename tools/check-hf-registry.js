@@ -20,7 +20,7 @@ import {
   resolveDemoRegistryEntryBaseUrl,
   shouldDemoSurfaceRemoteRegistryEntry,
   validateLocalHfEntryShape,
-} from './hf-registry-utils.js';
+} from '../src/tooling/hf-registry-utils.js';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DEFAULT_CATALOG_FILE = path.join(REPO_ROOT, 'models', 'catalog.json');

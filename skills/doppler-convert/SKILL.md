@@ -99,7 +99,7 @@ ls /tmp/OUTPUT_ID-rebuild/shard_*.bin | wc -l
 cp -a /tmp/OUTPUT_ID-rebuild/. /media/x/models/rdrr/OUTPUT_ID/
 
 # 4) Sanity-run inference
-npm run debug -- --config '{"request":{"modelId":"OUTPUT_ID","runtimePreset":"modes/debug"},"run":{"surface":"auto"}}' --json
+npm run debug -- --config '{"request":{"modelId":"OUTPUT_ID","runtimeProfile":"profiles/verbose-trace"},"run":{"surface":"auto"}}' --json
 ```
 
 For publication candidates, the verification bar is higher:
@@ -113,7 +113,7 @@ For publication candidates, the verification bar is higher:
 
 ```bash
 npm run debug -- \
-  --config '{"request":{"modelId":"OUTPUT_ID","runtimePreset":"modes/debug"},"run":{"surface":"auto"}}' \
+  --config '{"request":{"modelId":"OUTPUT_ID","runtimeProfile":"profiles/verbose-trace"},"run":{"surface":"auto"}}' \
   --runtime-config '{"shared":{"tooling":{"intent":"verify"}},"inference":{"prompt":"Explain what this model is in one short sentence.","sampling":{"temperature":0,"topK":1}}}' \
   --json
 ```

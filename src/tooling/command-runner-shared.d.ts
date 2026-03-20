@@ -2,8 +2,8 @@ import type { RuntimeConfigLoadOptions } from '../inference/browser-harness.js';
 import type { ToolingCommandRequest } from './command-api.js';
 
 export interface RuntimeBridge {
-  applyRuntimePreset: (
-    runtimePreset: string,
+  applyRuntimeProfile: (
+    runtimeProfile: string,
     options?: RuntimeConfigLoadOptions
   ) => Promise<void>;
   applyRuntimeConfigFromUrl: (
@@ -28,7 +28,8 @@ export declare function buildSuiteOptions(
   request: ToolingCommandRequest,
   surface?: string | null
 ): {
-  suite: ToolingCommandRequest['suite'];
+  mode: ToolingCommandRequest['command'];
+  workload: ToolingCommandRequest['workload'];
   command: ToolingCommandRequest['command'];
   surface: string | null;
   expectedModelType?: 'embedding';
@@ -65,7 +66,7 @@ export declare function buildSuiteOptions(
   cacheMode: ToolingCommandRequest['cacheMode'];
   loadMode: 'opfs' | 'http' | 'memory' | null;
   modelUrl?: string;
-  runtimePreset: string | null;
+  runtimeProfile: string | null;
   captureOutput: boolean;
   keepPipeline: boolean;
   report?: Record<string, unknown>;

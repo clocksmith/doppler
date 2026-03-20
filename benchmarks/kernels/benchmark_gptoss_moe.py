@@ -36,7 +36,7 @@ def main() -> int:
         required=True,
         help="Model ID (e.g. gpt-oss-20b-f16-xmxfp4)",
     )
-    parser.add_argument("--runtime-preset", default="bench")
+    parser.add_argument("--runtime-profile", default="profiles/throughput")
     parser.add_argument("--prompt", default="short")
     parser.add_argument("--max-tokens", type=int, default=64)
     parser.add_argument("--output", default="benchmarks/kernels/gptoss_moe_latest.json")
@@ -48,8 +48,8 @@ def main() -> int:
         "--silent",
         "bench",
         "--",
-        "--runtime-preset",
-        args.runtime_preset,
+        "--runtime-profile",
+        args.runtime_profile,
         "--model-id",
         args.model,
         "--prompt",
@@ -79,7 +79,7 @@ def main() -> int:
     payload = {
         "schemaVersion": 1,
         "model": args.model,
-        "runtimePreset": args.runtime_preset,
+        "runtimeProfile": args.runtime_profile,
         "prompt": args.prompt,
         "maxTokens": args.max_tokens,
         "command": cmd,

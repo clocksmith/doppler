@@ -32,7 +32,7 @@ Every guide in this directory should answer the same four questions:
 
 | Goal | Start with | Notes |
 | --- | --- | --- |
-| Tune runtime behavior without code changes | [01-runtime-preset.md](01-runtime-preset.md) | JSON-only runtime preset work |
+| Tune runtime behavior without code changes | [01-runtime-profile.md](01-runtime-profile.md) | JSON-only runtime profile work |
 | Put an existing chat format on a model | [02-assign-chat-template.md](02-assign-chat-template.md) | Uses an existing built-in formatter |
 | Add a new model preset | [03-model-preset.md](03-model-preset.md) | Already-supported runtime behavior only |
 | Convert a checkpoint with an existing family | [04-conversion-config.md](04-conversion-config.md) | Existing preset + existing kernel paths |
@@ -54,7 +54,7 @@ Every guide in this directory should answer the same four questions:
 
 | Guide | Kind | Blast Radius |
 | --- | --- | --- |
-| [01-runtime-preset.md](01-runtime-preset.md) | atomic | JSON only |
+| [01-runtime-profile.md](01-runtime-profile.md) | atomic | JSON only |
 | [02-assign-chat-template.md](02-assign-chat-template.md) | atomic | JSON only |
 | [03-model-preset.md](03-model-preset.md) | atomic | JSON + loader registry |
 | [04-conversion-config.md](04-conversion-config.md) | atomic | JSON only |
@@ -76,8 +76,8 @@ Every guide in this directory should answer the same four questions:
 
 These are the numbered guides. Each should describe one extension point.
 
-1. [01-runtime-preset.md](01-runtime-preset.md)
-   Add a runtime preset without changing runtime code.
+1. [01-runtime-profile.md](01-runtime-profile.md)
+   Add a runtime profile without changing runtime code.
 2. [02-assign-chat-template.md](02-assign-chat-template.md)
    Assign an existing built-in chat template to a model preset.
 3. [03-model-preset.md](03-model-preset.md)

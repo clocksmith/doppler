@@ -7,11 +7,7 @@ const artifact = buildMergeContractArtifact();
 
 assert.equal(artifact.schemaVersion, 1);
 assert.equal(artifact.ok, true);
-assert.ok(artifact.checks.length >= 9);
-assert.equal(
-  artifact.checks.some((entry) => entry.id === 'loader.architecture.nullish_null_falls_through' && entry.ok),
-  true
-);
+assert.ok(artifact.checks.length >= 8);
 assert.equal(
   artifact.checks.some((entry) => entry.id === 'runtime.mergeConfig.defined_overlay_preserves_null' && entry.ok),
   true

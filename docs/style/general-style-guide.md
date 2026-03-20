@@ -142,7 +142,7 @@ Every configurable must have a schema; no runtime defaults live in JS logic.
 - Schema: blueprint + defaults (`src/config/schema/*.schema.js`).
 - Config: schema-shaped instance (default, preset, override, asset).
 - Default config: `DEFAULT_*` export from a schema module.
-- Preset config: JSON overlay (runtime presets, model presets, kernel paths, platforms).
+- Preset config: JSON overlay (runtime profiles, model presets, kernel paths, platforms).
 - Override config: explicit config or programmatic overlay (highest precedence).
 
 ### Phase Injection Model
@@ -161,13 +161,13 @@ Not every config includes every layer (e.g., loader configs do not merge manifes
 inference). Document the merge chain per domain:
 
 - Runtime config:
-  `runtimeConfig = merge(runtimeDefaultConfig, runtimePresetConfig, runtimeOverrideConfig)`
+  `runtimeConfig = merge(runtimeDefaultConfig, runtimeProfileConfig, runtimeOverrideConfig)`
 - Manifest inference config (Phase 1 output):
   `manifestInferenceConfig = merge(manifestDefaultConfig, modelPresetConfig, converterOverrideConfig, artifactDerivedConfig)`
 - Model inference config (Phase 2 input):
   `modelInferenceConfig = merge(manifestInferenceConfig, runtimeInferenceOverrideConfig)`
 - Loader/runtime slices (loading/storage/etc):
-  `loadingConfig = merge(runtimeDefaultConfig.loading, runtimePresetConfig.loading, runtimeOverrideConfig.loading)`
+  `loadingConfig = merge(runtimeDefaultConfig.loading, runtimeProfileConfig.loading, runtimeOverrideConfig.loading)`
 - Kernel path resolution:
   `kernelPath = runtimeConfig.inference.kernelPath ?? manifestInference.defaultKernelPath`
   `null` remains a valid "no explicit kernel path" result; do not invent `'auto'` or any implicit string in JS.
@@ -266,7 +266,7 @@ When a manifest-based runtime error occurs (dtype mismatch, missing field, kerne
 - Runtime tunables are configured via runtime config only; harness/UI controls must not override tunables.
 - Forbidden overrides include: prompt selection, max tokens, sampling (temperature/topK/topP), trace categories, log levels, warmup/timed runs.
 - Command intent and harness options must live in config (`runtime.shared.harness`, `runtime.shared.tooling.intent`).
-- Harnesses must not accept per-field URL overrides; only `runtimePreset`, `runtimeConfig`, `runtimeConfigUrl`, and `configChain` are allowed.
+- Harnesses must not accept per-field URL overrides; only `runtimeProfile`, `runtimeConfig`, `runtimeConfigUrl`, and `configChain` are allowed.
 - If a developer needs to tweak a tunable, they should create a preset or pass `--config` with a runtime config file.
 See `config-style-guide.md` for merge order and category rules.
 
@@ -361,11 +361,11 @@ If `shader-f16` is unavailable, `f32` is required and should be treated as a cap
 
 **Model presets** (`src/config/presets/models/`) are used by the converter and loader to detect model families and embed inference params in the manifest. They do not override manifest values at runtime.
 
-**Runtime presets** (`src/config/presets/runtime/`) extend runtime defaults for different use cases (debug, bench, etc.). They are loaded by the browser harness (`runtimePreset`) and merged with runtime overrides. Runtime config is split into `runtime.shared`, `runtime.loading`, and `runtime.inference`, so presets should place overrides under the correct section.
+**Runtime profiles** (`src/config/presets/runtime/profiles/`) extend runtime defaults for different use cases without duplicating command names or workload names. They are loaded by the browser harness (`runtimeProfile`) and merged with runtime overrides. Runtime config is split into `runtime.shared`, `runtime.loading`, and `runtime.inference`, so profiles should place overrides under the correct section.
 
 The merge order for runtime config:
 1. Runtime default config (schema default configs)
-2. Runtime preset config (partial override)
+2. Runtime profile config (partial override)
 3. Runtime override config (explicit config)
 
 Manifest + runtime config feed ModelConfig → PipelineSpec → KernelSpec → Dispatch.
@@ -857,7 +857,7 @@ if (variant !== 'q4_fused') throw new Error(`expected q4_fused, got ${variant}`)
 
 ```javascript
 // In browser console (demo diagnostics or harness)
-await runBrowserSuite({ suite: 'inference', modelId: 'gemma-3-270m-it-q4k-ehf16-af32' });
+await runBrowserSuite({ workload: 'inference', modelId: 'gemma-3-270m-it-q4k-ehf16-af32' });
 ```
 
 ---

@@ -6,8 +6,8 @@ const {
   getBrowserSuiteDispatchMap,
 } = await import('../../src/inference/browser-harness.js');
 const {
-  TOOLING_SUITES,
-  TOOLING_VERIFY_SUITES,
+  TOOLING_WORKLOADS,
+  TOOLING_VERIFY_WORKLOADS,
 } = await import('../../src/tooling/command-api.js');
 
 {
@@ -15,32 +15,42 @@ const {
   assert.deepEqual(suites, [
     'kernels',
     'inference',
+    'embedding',
     'training',
-    'bench',
-    'debug',
     'diffusion',
     'energy',
   ]);
-  assert.deepEqual([...TOOLING_SUITES], suites);
+  assert.deepEqual([...TOOLING_WORKLOADS], suites);
 }
 
 {
   const dispatchMap = getBrowserSuiteDispatchMap();
   assert.deepEqual(dispatchMap, {
-    kernels: 'runKernelSuite',
-    inference: 'runInferenceSuite',
-    training: 'runTrainingSuite',
-    bench: 'runBenchSuite',
-    debug: 'runInferenceSuite(debug)',
-    diffusion: 'runDiffusionSuite',
-    energy: 'runEnergySuite',
+    verify: {
+      kernels: 'runKernelSuite',
+      inference: 'runInferenceSuite',
+      embedding: 'runEmbeddingSuite',
+      training: 'runTrainingSuite',
+      diffusion: 'runDiffusionSuite',
+      energy: 'runEnergySuite',
+    },
+    debug: {
+      inference: 'runInferenceSuite(debug)',
+      embedding: 'runEmbeddingSuite(debug)',
+    },
+    bench: {
+      inference: 'runBenchSuite',
+      embedding: 'runBenchSuite',
+      training: 'runBenchSuite(training)',
+      diffusion: 'runBenchSuite(diffusion)',
+    },
   });
 }
 
 {
   const supported = new Set(getBrowserSupportedSuites());
-  for (const suite of TOOLING_VERIFY_SUITES) {
-    assert.ok(supported.has(suite), `verify suite "${suite}" must be supported by browser harness`);
+  for (const workload of TOOLING_VERIFY_WORKLOADS) {
+    assert.ok(supported.has(workload), `verify workload "${workload}" must be supported by browser harness`);
   }
 }
 

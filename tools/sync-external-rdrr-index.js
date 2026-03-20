@@ -5,7 +5,7 @@ import path from 'node:path';
 import process from 'node:process';
 import { pathToFileURL } from 'node:url';
 
-import { DEFAULT_EXTERNAL_MODELS_ROOT } from './hf-registry-utils.js';
+import { DEFAULT_EXTERNAL_MODELS_ROOT } from '../src/tooling/hf-registry-utils.js';
 
 const DEFAULT_VOLUME_ROOT = DEFAULT_EXTERNAL_MODELS_ROOT;
 const DEFAULT_RDRR_ROOT = path.join(DEFAULT_VOLUME_ROOT, 'rdrr');

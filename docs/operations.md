@@ -27,7 +27,7 @@ If `scatter_add` is the only failure, treat it as a targeted MoE kernel issue
 before debugging broader inference behavior.
 
 ### 2. Run Inference Debug
-Use the demo diagnostics UI with the `debug` runtime preset and run the inference suite.
+Use the demo diagnostics UI with the `profiles/verbose-trace` runtime profile and run the inference workload.
 
 ### 3. Compare Against Reference
 ```bash
@@ -85,7 +85,7 @@ cat model/manifest.json | jq '{
 
 ### Weight Statistics Verification
 
-Use the demo diagnostics UI with a debug preset and inspect the DevTools console.
+Use the demo diagnostics UI with the `profiles/verbose-trace` profile and inspect the DevTools console.
 Filter logs for `weight` or `norm` to spot range anomalies.
 
 **Expected Gemma 3 norm weight ranges:**

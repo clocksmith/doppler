@@ -279,16 +279,6 @@ export {
 } from './converter.schema.js';
 
 // =============================================================================
-// Preset Schema
-// =============================================================================
-export {
-  type PresetSchema,
-  type TensorPatternSchema,
-  type DetectionPatternSchema,
-  type ResolvedConfigSchema,
-} from './preset.schema.js';
-
-// =============================================================================
 // Loading Schema
 // =============================================================================
 export {

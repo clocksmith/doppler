@@ -59,19 +59,19 @@ Notes:
 
 ```bash
 # Warm-cache benchmark (recommended baseline)
-npm run bench -- --config '{"request":{"modelId":"MODEL_ID","runtimePreset":"experiments/bench/gemma3-bench-q4k","cacheMode":"warm"},"run":{"surface":"browser","bench":{"save":true}}}' --json
+npm run bench -- --config '{"request":{"modelId":"MODEL_ID","runtimeProfile":"experiments/bench/gemma3-bench-q4k","cacheMode":"warm"},"run":{"surface":"browser","bench":{"save":true}}}' --json
 
 # Cold-cache benchmark (cache disabled per run)
-npm run bench -- --config '{"request":{"modelId":"MODEL_ID","runtimePreset":"experiments/bench/gemma3-bench-q4k","cacheMode":"cold"},"run":{"surface":"browser","bench":{"save":true}}}' --json
+npm run bench -- --config '{"request":{"modelId":"MODEL_ID","runtimeProfile":"experiments/bench/gemma3-bench-q4k","cacheMode":"cold"},"run":{"surface":"browser","bench":{"save":true}}}' --json
 
 # Compare against last saved run
-npm run bench -- --config '{"request":{"modelId":"MODEL_ID","runtimePreset":"experiments/bench/gemma3-bench-q4k","cacheMode":"warm"},"run":{"surface":"browser","bench":{"save":true,"compare":"last"}}}' --json
+npm run bench -- --config '{"request":{"modelId":"MODEL_ID","runtimeProfile":"experiments/bench/gemma3-bench-q4k","cacheMode":"warm"},"run":{"surface":"browser","bench":{"save":true,"compare":"last"}}}' --json
 ```
 
 Notes:
 - `bench` defaults to `--surface auto`; set `run.surface="browser"` when you explicitly want the browser relay.
 - Saved artifacts go to `benchmarks/vendors/results/` when `--save` is used.
-- For instrumentation-heavy investigation, run `debug` with `request.runtimePreset="experiments/gemma3-profile"`.
+- For instrumentation-heavy investigation, run `debug` with `request.runtimeProfile="experiments/gemma3-profile"`.
 
 ## Performance Investigation Loop (Squeeze Workflow)
 
@@ -83,11 +83,11 @@ node tools/compare-engines.js --mode compute --warmup 1 --runs 3 --decode-profil
 node tools/compare-engines.js --mode compute --warmup 1 --runs 3 --decode-profile throughput --save --json
 
 # 3) Readback sensitivity (fixed workload, warm cache)
-npm run bench -- --config '{"request":{"modelId":"MODEL_ID","runtimePreset":"experiments/gemma3-investigate-readback-r1","cacheMode":"warm"},"run":{"surface":"browser","bench":{"save":true}}}' --json
-npm run bench -- --config '{"request":{"modelId":"MODEL_ID","runtimePreset":"experiments/gemma3-investigate-readback-r8","cacheMode":"warm"},"run":{"surface":"browser","bench":{"save":true}}}' --json
+npm run bench -- --config '{"request":{"modelId":"MODEL_ID","runtimeProfile":"experiments/gemma3-investigate-readback-r1","cacheMode":"warm"},"run":{"surface":"browser","bench":{"save":true}}}' --json
+npm run bench -- --config '{"request":{"modelId":"MODEL_ID","runtimeProfile":"experiments/gemma3-investigate-readback-r8","cacheMode":"warm"},"run":{"surface":"browser","bench":{"save":true}}}' --json
 
 # 4) Profile traces (investigate intent + profiler)
-npm run debug -- --config '{"request":{"modelId":"MODEL_ID","runtimePreset":"experiments/gemma3-profile"},"run":{"surface":"auto"}}' --json
+npm run debug -- --config '{"request":{"modelId":"MODEL_ID","runtimeProfile":"experiments/gemma3-profile"},"run":{"surface":"auto"}}' --json
 ```
 
 ## Vendor Benchmark (Transformers.js)

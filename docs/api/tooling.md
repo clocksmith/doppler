@@ -64,7 +64,7 @@ Important surface rules:
 - `runBrowserCommand(...)` is appropriate for browser-safe commands such as `verify`, `debug`, and `bench`
 - `runBrowserCommand(...)` also supports `convert` when the caller injects `options.convertHandler(request)`; CLI browser relay still rejects `convert`
 - `runNodeCommand(...)` is the canonical operator execution path for `lora` and `distill`
-- current Node operator surfaces reject `runtimePreset`, `runtimeConfigUrl`, and `runtimeConfig` because those runtime inputs are not consumed by `lora`/`distill`
+- current Node operator surfaces reject `runtimeProfile`, `runtimeConfigUrl`, and `runtimeConfig` because those runtime inputs are not consumed by `lora`/`distill`
 - `configChain` is a harness/browser-URL runtime input, not part of the normalized tooling command request contract
 - browser-conditioned imports of `@simulatte/doppler/tooling` resolve the browser-safe shared tooling entry and do not expose `runNodeCommand(...)` or `runBrowserCommandInNode(...)`
 
@@ -73,9 +73,9 @@ Important surface rules:
 | Command | Required request fields | Notes |
 | --- | --- | --- |
 | `convert` | `request.inputDir`, `request.convertPayload.converterConfig` | CLI/browser relay: Node-only. Direct `runBrowserCommand(...)`: supported with injected `convertHandler` |
-| `verify` | `request.suite` plus `request.modelId` except `kernels` | `request.suite` may now be `embedding` for embedding-model correctness checks; `request.modelUrl` is optional when `request.modelId` is present |
-| `debug` | `request.modelId` | `request.suite` may be `inference` or `embedding`; omitted keeps the legacy text-inference default |
-| `bench` | `request.modelId` | `request.suite` may be `bench` (legacy), `inference`, or `embedding`; `bench + workloadType="training"` intentionally allows `modelId: null` |
+| `verify` | `request.workload` plus `request.modelId` except `kernels` | `request.workload` is required and may be `embedding` for embedding-model correctness checks; `request.modelUrl` is optional when `request.modelId` is present |
+| `debug` | `request.workload` plus `request.modelId` | `request.workload` is required and may be `inference` or `embedding` |
+| `bench` | `request.workload` plus `request.modelId` | `request.workload` is required and may be `inference`, `embedding`, `training`, `diffusion`, or `energy`; `workload="training"` intentionally allows `modelId: null` |
 | `distill` | `request.action` plus `request.workloadPath` or `request.runRoot` | Node-only today; browser fails closed |
 | `lora` | `request.action` plus `request.workloadPath` or `request.runRoot` | Node-only today; browser fails closed |
 
@@ -94,16 +94,16 @@ Supported surfaces:
 CLI notes:
 - operator runs are workload-first; prefer `workloadPath` over ad hoc request fields
 - `--surface auto` for `lora` and `distill` does not downgrade to browser
-- `lora` and `distill` reject `runtimePreset`, `runtimeConfigUrl`, and `runtimeConfig` on the current Node operator surface
+- `lora` and `distill` reject `runtimeProfile`, `runtimeConfigUrl`, and `runtimeConfig` on the current Node operator surface
 - run-root artifacts live under `reports/training/<kind>/<workload-id>/<timestamp>/`
 - `run_contract.json` and `workload.lock.json` are written for every operator run
 - `convert` does not take `modelId`; set `output.modelBaseId` in the converter config
-- `convert` rejects `runtimePreset`, `runtimeConfigUrl`, `runtimeConfig`, and `configChain` because the convert runner does not consume runtime config
+- `convert` rejects `runtimeProfile`, `runtimeConfigUrl`, `runtimeConfig`, and `configChain` because the convert runner does not consume runtime config
 - explicit `convertPayload.execution.useGpuCast=true` is fail-closed; if Node WebGPU is unavailable or GPU casting fails, conversion errors instead of silently falling back to CPU
 - `loadMode="memory"` is Node-only and requires local filesystem model data; direct-source loads now default to hash verification when `runtime.loading.shardCache.verifyHashes` is not overridden
 - a persisted direct-source manifest can be written with `node tools/materialize-source-manifest.js <source-dir-or-gguf>` and then loaded through `loadMode="http"` from a `file://` or hosted manifest root
 - in browser runs, a persisted direct-source artifact can now be cache-primed into OPFS and later reopened with `loadMode="opfs"` when the request includes `modelId` plus the explicit hosted `modelUrl`
-- debug-suite runs and any run with active investigation instrumentation persist a `debugSnapshot` in the suite result/report so probe and trace logs survive beyond live console output
+- debug runs and any run with active investigation instrumentation persist a `debugSnapshot` in the run result/report so probe and trace logs survive beyond live console output
 - prefer immutable Hugging Face revisions for reproducible hosted runs
 
 ## Symbol Groups
@@ -120,7 +120,7 @@ CLI notes:
 - `runBrowserCommandInNode(...)`
 - `TOOLING_COMMANDS`
 - `TOOLING_SURFACES`
-- `TOOLING_SUITES`
+- `TOOLING_WORKLOADS`
 
 ### Config and preset helpers
 
@@ -141,7 +141,7 @@ CLI notes:
 - `initDevice(...)`
 - `getDevice()`
 - `isWebGPUAvailable()`
-- browser suite helpers
+- browser workload helpers
 
 ## Minimal Example
 
@@ -150,7 +150,7 @@ import { normalizeToolingCommandRequest, runBrowserCommand } from '@simulatte/do
 
 const request = normalizeToolingCommandRequest({
   command: 'verify',
-  suite: 'embedding',
+  workload: 'embedding',
   modelId: 'google-embeddinggemma-300m-q4k-ehf16-af32',
 });
 
@@ -163,13 +163,13 @@ console.log(result.ok);
 ```js
 const regularDebug = normalizeToolingCommandRequest({
   command: 'debug',
-  suite: 'inference',
+  workload: 'inference',
   modelId: 'gemma-3-270m-it-q4k-ehf16-af32',
 });
 
 const embeddingDebug = normalizeToolingCommandRequest({
   command: 'debug',
-  suite: 'embedding',
+  workload: 'embedding',
   modelId: 'google-embeddinggemma-300m-q4k-ehf16-af32',
 });
 ```

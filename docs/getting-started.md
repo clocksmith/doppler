@@ -66,25 +66,25 @@ MODEL_URL="https://huggingface.co/Clocksmith/rdrr/resolve/${HF_REVISION}/models/
 ```bash
 node tools/doppler-cli.js verify --config "{
   \"request\": {
-    \"suite\": \"inference\",
+    \"workload\": \"inference\",
     \"modelId\": \"${MODEL_ID}\",
     \"modelUrl\": \"${MODEL_URL}\",
     \"loadMode\": \"http\",
     \"cacheMode\": \"warm\",
-    \"runtimePreset\": \"modes/debug\"
+    \"runtimeProfile\": \"profiles/production\"
   },
   \"run\": { \"surface\": \"auto\" }
 }" --json
 ```
 
-Embedding verify uses the explicit embedding suite:
+Embedding verify uses the explicit embedding workload:
 
 ```bash
 node tools/doppler-cli.js verify --config "{
   \"request\": {
-    \"suite\": \"embedding\",
+    \"workload\": \"embedding\",
     \"modelId\": \"google-embeddinggemma-300m-q4k-ehf16-af32\",
-    \"runtimePreset\": \"modes/embedding\"
+    \"runtimeProfile\": \"profiles/production\"
   },
   \"run\": { \"surface\": \"auto\" }
 }" --json
@@ -95,6 +95,7 @@ node tools/doppler-cli.js verify --config "{
 ```bash
 node tools/doppler-cli.js bench --config "{
   \"request\": {
+    \"workload\": \"inference\",
     \"modelId\": \"${MODEL_ID}\",
     \"modelUrl\": \"${MODEL_URL}\",
     \"loadMode\": \"http\",
@@ -115,9 +116,9 @@ Embedding benchmark can now be requested explicitly while still using the benchm
 ```bash
 node tools/doppler-cli.js bench --config "{
   \"request\": {
-    \"suite\": \"embedding\",
+    \"workload\": \"embedding\",
     \"modelId\": \"google-embeddinggemma-300m-q4k-ehf16-af32\",
-    \"runtimePreset\": \"modes/embedding-bench\"
+    \"runtimeProfile\": \"profiles/low-memory\"
   },
   \"run\": { \"surface\": \"auto\" }
 }" --json
@@ -157,12 +158,12 @@ OUTPUT_DIR=$(node -e "const fs=require('fs');const j=JSON.parse(fs.readFileSync(
 
 node tools/doppler-cli.js verify --config "{
   \"request\": {
-    \"suite\": \"inference\",
+    \"workload\": \"inference\",
     \"modelId\": \"${MODEL_ID}\",
     \"modelUrl\": \"file://${OUTPUT_DIR}\",
     \"loadMode\": \"http\",
     \"cacheMode\": \"warm\",
-    \"runtimePreset\": \"modes/debug\"
+    \"runtimeProfile\": \"profiles/production\"
   },
   \"run\": { \"surface\": \"node\" }
 }" --json

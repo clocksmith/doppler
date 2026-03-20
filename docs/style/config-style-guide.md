@@ -121,14 +121,14 @@ Runtime tunables are config-only when using the browser harness:
 
 - Command intent and harness options live in config (`runtime.shared.harness` and `runtime.shared.tooling.intent`).
 - `calibrate` intent forbids tracing, profiling, probes, and debug-only benchmarks.
-- Harness URLs accept only `runtimePreset`, `runtimeConfig`, `runtimeConfigUrl`, or `configChain`. No per-field URL overrides.
+- Harness URLs accept only `runtimeProfile`, `runtimeConfig`, `runtimeConfigUrl`, or `configChain`. No per-field URL overrides.
 - Kernel selection overrides are config-only via `runtime.inference.kernelPath`.
 - Capability remap policy is config-only via `runtime.inference.kernelPathPolicy`.
 - Runtime-input precedence is normative, not surface-local:
-  `configChain -> runtimePreset -> runtimeConfigUrl -> runtimeConfig -> runtime contract patch`.
+  `configChain -> runtimeProfile -> runtimeConfigUrl -> runtimeConfig -> runtime contract patch`.
 - If a harness or runtime surface cannot support one of those inputs, it must fail closed instead of silently skipping it.
 
-When you need a change, create a preset or pass a runtime config file via `runtimeConfigUrl`.
+When you need a change, create a profile or pass a runtime config file via `runtimeConfigUrl`.
 
 ---
 
@@ -137,7 +137,7 @@ When you need a change, create a preset or pass a runtime config file via `runti
 Runtime config merge order:
 
 ```
-runtimeConfig = merge(runtimeDefaults, runtimePreset, runtimeOverride)
+runtimeConfig = merge(runtimeDefaults, runtimeProfileConfig, runtimeOverrideConfig)
 ```
 
 Manifest inference config merge order:
@@ -201,9 +201,9 @@ Calibration comparisons are invalid if shared-contract fields differ across engi
 
 ---
 
-## Preset Registry Metadata (Required)
+## Profile Registry Metadata (Required)
 
-Runtime/config presets must carry lifecycle metadata in the preset object or registry:
+Runtime profiles must carry lifecycle metadata in the profile object or registry:
 
 - `id`
 - `intent` (`verify` | `investigate` | `calibrate`)
@@ -212,7 +212,7 @@ Runtime/config presets must carry lifecycle metadata in the preset object or reg
 - `createdAtUtc`
 - optional: `supersedes`, `deprecatedAtUtc`, `replacementId`
 
-Agents should resolve presets by metadata/intent, not filename heuristics.
+Agents should resolve profiles by metadata/intent, not filename heuristics.
 
 ---
 

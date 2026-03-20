@@ -11,9 +11,9 @@ function createRuntimeBridge(initialRuntime = {}, overlays = {}) {
   return {
     calls,
     bridge: {
-      async applyRuntimePreset(runtimePreset, options) {
-        calls.push({ type: 'preset', runtimePreset, options: options || {} });
-        runtime = mergeRuntime(runtime, overlays.presets?.[runtimePreset] ?? null);
+      async applyRuntimeProfile(runtimeProfile, options) {
+        calls.push({ type: 'profile', runtimeProfile, options: options || {} });
+        runtime = mergeRuntime(runtime, overlays.presets?.[runtimeProfile] ?? null);
       },
       async applyRuntimeConfigFromUrl(runtimeConfigUrl, options) {
         calls.push({ type: 'config-url', runtimeConfigUrl, options: options || {} });
@@ -71,7 +71,7 @@ function mergeRuntime(base, patch) {
     },
   }, {
     presets: {
-      'modes/debug': {
+      'profiles/verbose-trace': {
         inference: {
           prompt: 'preset',
           batching: { maxTokens: 14, batchSize: 2 },
@@ -90,10 +90,10 @@ function mergeRuntime(base, patch) {
 
   await applyRuntimeInputs({
     command: 'verify',
-    suite: 'inference',
+    workload: 'inference',
     intent: 'verify',
     modelId: 'gemma-3-270m-it-f16-af32',
-    runtimePreset: 'modes/debug',
+    runtimeProfile: 'profiles/verbose-trace',
     runtimeConfigUrl: '/runtime/custom.json',
     runtimeConfig: {
       inference: {
@@ -105,8 +105,8 @@ function mergeRuntime(base, patch) {
 
   assert.deepEqual(runtime.calls, [
     {
-      type: 'preset',
-      runtimePreset: 'modes/debug',
+      type: 'profile',
+      runtimeProfile: 'profiles/verbose-trace',
       options: { source: 'test' },
     },
     {
@@ -120,7 +120,8 @@ function mergeRuntime(base, patch) {
   assert.equal(runtime.getRuntime().inference.batching.maxTokens, 8);
   assert.equal(runtime.getRuntime().inference.batching.batchSize, 6);
   assert.equal(runtime.getRuntime().inference.batching.readbackInterval, 3);
-  assert.equal(runtime.getRuntime().shared.harness.mode, 'inference');
+  assert.equal(runtime.getRuntime().shared.harness.mode, 'verify');
+  assert.equal(runtime.getRuntime().shared.harness.workload, 'inference');
   assert.equal(runtime.getRuntime().shared.harness.modelId, 'gemma-3-270m-it-f16-af32');
   assert.equal(runtime.getRuntime().shared.tooling.intent, 'verify');
 }
@@ -129,10 +130,10 @@ function mergeRuntime(base, patch) {
   const runtime = createRuntimeBridge({ inference: { prompt: 'base' } });
   await applyRuntimeInputs({
     command: 'convert',
-    suite: null,
+    workload: null,
     intent: null,
     modelId: null,
-    runtimePreset: null,
+    runtimeProfile: null,
     runtimeConfigUrl: null,
     runtimeConfig: null,
     inputDir: '/tmp/in',
@@ -153,7 +154,7 @@ function mergeRuntime(base, patch) {
 {
   const suiteOptions = buildSuiteOptions({
     command: 'verify',
-    suite: 'inference',
+    workload: 'inference',
     modelId: 'gemma-3-270m-it-f16-af32',
     workloadType: null,
     trainingTests: null,
@@ -178,7 +179,7 @@ function mergeRuntime(base, patch) {
     trainingBenchSteps: null,
     checkpointEvery: null,
     modelUrl: null,
-    runtimePreset: null,
+    runtimeProfile: null,
     captureOutput: true,
     keepPipeline: false,
     report: null,
@@ -187,7 +188,8 @@ function mergeRuntime(base, patch) {
   }, 'node');
 
   assert.deepEqual(suiteOptions, {
-    suite: 'inference',
+    mode: 'verify',
+    workload: 'inference',
     command: 'verify',
     surface: 'node',
     modelId: 'gemma-3-270m-it-f16-af32',
@@ -223,7 +225,7 @@ function mergeRuntime(base, patch) {
     modelUrl: undefined,
     cacheMode: 'warm',
     loadMode: null,
-    runtimePreset: null,
+    runtimeProfile: null,
     captureOutput: true,
     keepPipeline: false,
     report: undefined,
@@ -235,7 +237,7 @@ function mergeRuntime(base, patch) {
 {
   const suiteOptions = buildSuiteOptions({
     command: 'bench',
-    suite: 'embedding',
+    workload: 'embedding',
     modelId: 'google-embeddinggemma-300m-q4k-ehf16-af32',
     workloadType: null,
     trainingTests: null,
@@ -260,7 +262,7 @@ function mergeRuntime(base, patch) {
     trainingBenchSteps: null,
     checkpointEvery: null,
     modelUrl: null,
-    runtimePreset: 'modes/embedding-bench',
+    runtimeProfile: 'profiles/vector-throughput',
     captureOutput: false,
     keepPipeline: false,
     report: null,
@@ -268,16 +270,17 @@ function mergeRuntime(base, patch) {
     searchParams: null,
   }, 'browser');
 
-  assert.equal(suiteOptions.suite, 'bench');
+  assert.equal(suiteOptions.mode, 'bench');
+  assert.equal(suiteOptions.workload, 'embedding');
   assert.equal(suiteOptions.command, 'bench');
   assert.equal(suiteOptions.expectedModelType, 'embedding');
-  assert.equal(suiteOptions.runtimePreset, 'modes/embedding-bench');
+  assert.equal(suiteOptions.runtimeProfile, 'profiles/vector-throughput');
 }
 
 {
   const trainingSuiteOptions = buildSuiteOptions({
     command: 'verify',
-    suite: 'training',
+    workload: 'training',
     modelId: null,
     workloadType: 'training',
     trainingTests: ['ul-stage1'],
@@ -306,7 +309,7 @@ function mergeRuntime(base, patch) {
     trainingBenchSteps: 4,
     checkpointEvery: 2,
     modelUrl: null,
-    runtimePreset: null,
+    runtimeProfile: null,
     captureOutput: false,
     keepPipeline: false,
     report: null,
@@ -315,7 +318,8 @@ function mergeRuntime(base, patch) {
   }, 'node');
 
   assert.deepEqual(trainingSuiteOptions, {
-    suite: 'training',
+    mode: 'verify',
+    workload: 'training',
     command: 'verify',
     surface: 'node',
     modelId: undefined,
@@ -351,7 +355,7 @@ function mergeRuntime(base, patch) {
     modelUrl: undefined,
     cacheMode: 'warm',
     loadMode: null,
-    runtimePreset: null,
+    runtimeProfile: null,
     captureOutput: false,
     keepPipeline: false,
     report: undefined,
@@ -484,7 +488,7 @@ function mergeRuntime(base, patch) {
       converterConfig: {},
     },
   }, {
-    async applyRuntimePreset() {},
+    async applyRuntimeProfile() {},
     async applyRuntimeConfigFromUrl() {},
     getRuntimeConfig() {
       return {
@@ -519,7 +523,7 @@ function mergeRuntime(base, patch) {
   await assert.rejects(
     () => applyRuntimeInputs({
       command: 'bench',
-      suite: 'bench',
+      workload: 'inference',
       intent: 'calibrate',
       modelId: 'gemma-3-270m-it-f16-af32',
       runtimeConfig: {

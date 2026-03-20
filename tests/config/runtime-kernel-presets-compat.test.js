@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 const testDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(testDir, '..', '..');
-const runtimePresetDir = path.join(repoRoot, 'src/config/presets/runtime/kernels');
+const runtimeProfileDir = path.join(repoRoot, 'src/config/presets/runtime/kernels');
 const kernelPathDir = path.join(repoRoot, 'src/config/presets/kernel-paths');
 const kernelRegistryPath = path.join(repoRoot, 'src/config/kernels/registry.json');
 

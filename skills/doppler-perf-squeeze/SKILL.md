@@ -67,10 +67,10 @@ Methodology note:
 
 ```bash
 # Readback-heavy profile (r1)
-npm run bench -- --config '{"request":{"modelId":"MODEL_ID","runtimePreset":"experiments/gemma3-investigate-readback-r1","cacheMode":"warm"},"run":{"surface":"browser","bench":{"save":true}}}' --json
+npm run bench -- --config '{"request":{"modelId":"MODEL_ID","runtimeProfile":"experiments/gemma3-investigate-readback-r1","cacheMode":"warm"},"run":{"surface":"browser","bench":{"save":true}}}' --json
 
 # Deferred readback profile (r8)
-npm run bench -- --config '{"request":{"modelId":"MODEL_ID","runtimePreset":"experiments/gemma3-investigate-readback-r8","cacheMode":"warm"},"run":{"surface":"browser","bench":{"save":true}}}' --json
+npm run bench -- --config '{"request":{"modelId":"MODEL_ID","runtimeProfile":"experiments/gemma3-investigate-readback-r8","cacheMode":"warm"},"run":{"surface":"browser","bench":{"save":true}}}' --json
 
 # Explicit custom cadence override
 npm run bench -- \
@@ -83,7 +83,7 @@ npm run bench -- \
 
 ```bash
 # Profiling preset (investigate intent + profiler enabled)
-npm run debug -- --config '{"request":{"modelId":"MODEL_ID","runtimePreset":"experiments/gemma3-profile"},"run":{"surface":"auto"}}' --json
+npm run debug -- --config '{"request":{"modelId":"MODEL_ID","runtimeProfile":"experiments/gemma3-profile"},"run":{"surface":"auto"}}' --json
 ```
 
 Rules:

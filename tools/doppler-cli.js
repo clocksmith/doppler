@@ -44,6 +44,7 @@ const COMMON_CLI_FLAGS = Object.freeze([
   'config',
   'runtime-config',
   'surface',
+  'pretty',
   'json',
   'help',
   'h',
@@ -73,16 +74,16 @@ function usage() {
     '  --config <path|json>            Required command config payload (file path or JSON object string).',
     '  --runtime-config <value>        Optional runtime override (JSON object, URL, or file path).',
     '  --surface <auto|node|browser>   Optional execution surface override.',
-    '  --json                          Print machine-readable result JSON',
+    '  --pretty                        Print human-readable summary instead of JSON',
     '  --help, -h                      Show this help message',
     '',
     'Command Config Contract:',
     '  The config payload must be a JSON object and may include:',
-    '    - request: tooling command request fields (suite, modelId, training fields, convertPayload, etc).',
+    '    - request: tooling command request fields (workload, modelId, training fields, convertPayload, etc).',
     '    - run: CLI-only run controls (surface, browser options, and bench save/compare/manifest settings).',
     '',
     'Example:',
-    '  doppler verify --config \'{"request":{"suite":"inference","modelId":"gemma-3-270m-it-f16-af32"}}\' --json',
+    '  doppler verify --config \'{"request":{"workload":"inference","modelId":"gemma-3-270m-it-f16-af32"}}\'',
   ].join('\n');
 }
 
@@ -111,6 +112,7 @@ function parseArgs(argv) {
     const key = token.slice(2);
     if (
       key === 'json'
+      || key === 'pretty'
       || key === 'help'
       || key === 'h'
     ) {
@@ -232,20 +234,20 @@ function parseUnifiedRuntimeConfig(value) {
   if (normalized === null) return null;
   if (normalized.startsWith('{')) {
     return {
-      runtimePreset: null,
+      runtimeProfile: null,
       runtimeConfigUrl: null,
       runtimeConfig: parseJsonObjectFlag(normalized, '--runtime-config'),
     };
   }
   if (isAbsoluteUrl(normalized)) {
     return {
-      runtimePreset: null,
+      runtimeProfile: null,
       runtimeConfigUrl: normalized,
       runtimeConfig: null,
     };
   }
   return {
-    runtimePreset: null,
+    runtimeProfile: null,
     runtimeConfigUrl: pathToFileURL(path.resolve(normalized)).href,
     runtimeConfig: null,
   };
@@ -555,16 +557,16 @@ function applyRuntimeFlagOverride(requestInput, runtimeOverride) {
     return;
   }
   const hasInlineRuntime = (
-    requestInput.runtimePreset != null
+    requestInput.runtimeProfile != null
     || requestInput.runtimeConfigUrl != null
     || requestInput.runtimeConfig != null
   );
   if (hasInlineRuntime) {
     throw new Error(
-      '--runtime-config cannot be combined with runtimePreset/runtimeConfigUrl/runtimeConfig values inside --config request payload.'
+      '--runtime-config cannot be combined with runtimeProfile/runtimeConfigUrl/runtimeConfig values inside --config request payload.'
     );
   }
-  requestInput.runtimePreset = runtimeOverride.runtimePreset;
+  requestInput.runtimeProfile = runtimeOverride.runtimeProfile;
   requestInput.runtimeConfigUrl = runtimeOverride.runtimeConfigUrl;
   requestInput.runtimeConfig = runtimeOverride.runtimeConfig;
 }
@@ -708,9 +710,9 @@ function isNodeWebGPUFallbackCandidate(error, fallbackPolicy = DEFAULT_CLI_POLIC
 
 function isTrainingCommandFlow(request) {
   if (!request || typeof request !== 'object') return false;
-  if (request.suite === 'training') return true;
+  if (request.workload === 'training') return true;
   if (request.command === 'lora' || request.command === 'distill') return true;
-  return request.command === 'bench' && request.workloadType === 'training';
+  return request.command === 'bench' && (request.workload === 'training' || request.workloadType === 'training');
 }
 
 function resolveErrorSurface(error, fallbackSurface = null) {
@@ -788,7 +790,7 @@ async function runWithAutoSurface(request, runConfig, jsonOutput, policy = DEFAU
       downgradeError.code = 'training_surface_downgrade_blocked';
       downgradeError.surface = 'node';
       downgradeError.command = request.command;
-      downgradeError.suite = request.suite;
+      downgradeError.workload = request.workload;
       downgradeError.workloadType = request.workloadType || null;
       downgradeError.fromSurface = 'node';
       downgradeError.toSurface = fallbackPolicy.to || 'browser';
@@ -1011,9 +1013,10 @@ async function runManifestSweep(manifest, commandContext, jsonOutput, policy = D
     if (modelUrl) {
       requestInput.modelUrl = modelUrl;
     }
-    const runtimePreset = asStringOrNull(run.runtimePreset) || asStringOrNull(defaults.runtimePreset);
-    if (runtimePreset) {
-      requestInput.runtimePreset = runtimePreset;
+    const runtimeProfile = asStringOrNull(run.runtimeProfile)
+      || asStringOrNull(defaults.runtimeProfile);
+    if (runtimeProfile) {
+      requestInput.runtimeProfile = runtimeProfile;
     }
 
     const mergedRunConfig = mergeRunConfig(commandContext.runConfig, defaults.run, run.run);
@@ -1300,7 +1303,7 @@ function printMetricsSummary(result) {
 
 async function main() {
   const argv = process.argv.slice(2);
-  const jsonOutputRequested = argv.includes('--json');
+  const jsonOutputRequested = !argv.includes('--pretty');
   const errorContext = {
     surface: null,
     request: null,
@@ -1320,7 +1323,7 @@ async function main() {
     }
     validateCommandFlags(parsed);
 
-    const jsonOutput = parsed.flags.json === true;
+    const jsonOutput = parsed.flags.pretty !== true;
     const commandContext = await buildRequest(parsed, cliPolicy);
     const { request, runConfig, surface, surfaceFromCli, benchRunOptions } = commandContext;
     errorContext.surface = surface === 'auto' ? null : surface;

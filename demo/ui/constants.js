@@ -42,14 +42,15 @@ export const ENERGY_METRIC_LABELS = {
 
 export const RUNTIME_PRESET_REGISTRY = [
   { id: '', label: 'none', base: false, override: true },
-  { id: 'modes/debug', label: 'modes/debug', base: true, override: false },
-  { id: 'modes/embedding', label: 'modes/embedding', base: true, override: false },
-  { id: 'modes/bench', label: 'modes/bench', base: true, override: false },
-  { id: 'modes/embedding-bench', label: 'modes/embedding-bench', base: true, override: false },
-  { id: 'modes/production', label: 'modes/production', base: false, override: true },
-  { id: 'modes/low-memory', label: 'modes/low-memory', base: false, override: true },
-  { id: 'modes/simulation', label: 'modes/simulation', base: false, override: true },
-  { id: 'modes/trace-layers', label: 'modes/trace-layers', base: false, override: true },
+  { id: 'profiles/default', label: 'profiles/default', base: true, override: false },
+  { id: 'profiles/verbose-trace', label: 'profiles/verbose-trace', base: true, override: false },
+  { id: 'profiles/throughput', label: 'profiles/throughput', base: true, override: false },
+  { id: 'profiles/vector-stability', label: 'profiles/vector-stability', base: true, override: false },
+  { id: 'profiles/vector-throughput', label: 'profiles/vector-throughput', base: true, override: false },
+  { id: 'profiles/production', label: 'profiles/production', base: false, override: true },
+  { id: 'profiles/low-memory', label: 'profiles/low-memory', base: false, override: true },
+  { id: 'profiles/simulation', label: 'profiles/simulation', base: false, override: true },
+  { id: 'profiles/trace-layers', label: 'profiles/trace-layers', base: false, override: true },
   { id: 'kernels/safe-q4k', label: 'kernels/safe-q4k', base: false, override: true },
   { id: 'kernels/fused-q4k', label: 'kernels/fused-q4k', base: false, override: true },
   { id: 'kernels/dequant-f16-q4k', label: 'kernels/dequant-f16-q4k', base: false, override: true },
@@ -105,20 +106,18 @@ export const DIAGNOSTICS_SUITE_INFO = {
 export const DIAGNOSTICS_SUITE_ORDER = [
   'inference',
   'training',
-  'debug',
-  'bench',
   'diffusion',
   'energy',
   'kernels',
 ];
 
 export const BENCH_INTENTS = new Set(['investigate', 'calibrate']);
-export const DEFAULT_RUNTIME_PRESET = 'modes/debug';
+export const DEFAULT_RUNTIME_PRESET = 'profiles/verbose-trace';
 export const DIAGNOSTICS_DEFAULTS = {
-  run: { suite: 'inference' },
-  translate: { suite: 'inference' },
-  embedding: { suite: 'inference', preset: 'modes/embedding' },
-  diffusion: { suite: 'diffusion' },
-  energy: { suite: 'energy' },
-  diagnostics: { suite: 'inference' },
+  run: { suite: 'inference', preset: 'profiles/default' },
+  translate: { suite: 'inference', preset: 'profiles/default' },
+  embedding: { suite: 'embedding', preset: 'profiles/vector-stability' },
+  diffusion: { suite: 'diffusion', preset: 'profiles/default' },
+  energy: { suite: 'energy', preset: 'profiles/default' },
+  diagnostics: { suite: 'inference', preset: 'profiles/default' },
 };

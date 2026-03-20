@@ -105,6 +105,7 @@ export class InferencePipeline extends PipelineState {
 
 
   async loadModel(manifest) {
+    const loadStart = performance.now();
     this.manifest = manifest;
     this.decodeRing?.release();
     this.linearAttentionRuntime = resetLinearAttentionRuntime(this.linearAttentionRuntime);
@@ -227,7 +228,9 @@ export class InferencePipeline extends PipelineState {
     await this._initConvLayerStates();
 
     this.isLoaded = true;
-    log.info('Pipeline', 'Model loaded successfully');
+    const loadMs = performance.now() - loadStart;
+    this.state.stats.modelLoadMs = loadMs;
+    log.info('Pipeline', `Model loaded successfully (${loadMs.toFixed(0)}ms)`);
   }
 
 

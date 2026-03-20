@@ -17,13 +17,9 @@ import {
 } from '../rules/rule-registry.js';
 import {
   createConverterConfig,
-  detectPreset,
-  listPresets,
-  resolvePreset,
 } from '../config/index.js';
 import { buildExecutionContractArtifact } from '../config/execution-contract-check.js';
 import { buildManifestRequiredInferenceFieldsArtifact } from '../config/required-inference-fields-contract-check.js';
-import { buildManifestInference, inferEmbeddingOutputConfig } from './manifest-inference.js';
 import { resolveEosTokenId } from './tokenizer-utils.js';
 import {
   normalizeQ4KLayout,
@@ -38,11 +34,6 @@ import {
   quantizeToQ4KMColumnWise,
 } from './quantizer.js';
 
-const CONVERSION_SUPPORTED_PRESETS = [...listPresets()]
-  .filter((presetId) => !['transformer', 'diffusion'].includes(presetId))
-  .sort()
-  .join(', ');
-
 // ============================================================================
 // Re-exports for Backward Compatibility
 // ============================================================================
@@ -53,6 +44,56 @@ export const ConvertStage = SchemaConversionStage;
 // Re-export constants
 export const SHARD_SIZE = SCHEMA_SHARD_SIZE;
 export const RDRR_VERSION = SCHEMA_RDRR_VERSION;
+
+// ============================================================================
+// Embedding Output Inference
+// ============================================================================
+
+const EMBEDDING_TENSOR_NAMES = [
+  'language_model.model.embed_tokens.weight',
+  'model.embed_tokens.weight',
+  'embed_tokens.weight',
+  'token_embd.weight',
+  'wte.weight',
+  'transformer.wte.weight',
+];
+
+export function inferEmbeddingOutputConfig(tensorLocations) {
+  const getLocation = (name) => {
+    if (tensorLocations instanceof Map) {
+      return tensorLocations.get(name);
+    }
+    return tensorLocations?.[name];
+  };
+
+  const entries = tensorLocations instanceof Map
+    ? tensorLocations.entries()
+    : Object.entries(tensorLocations ?? {});
+  for (const [_name, loc] of entries) {
+    if (loc?.role === 'embedding' && loc.shape?.length === 2) {
+      const [dim0, dim1] = loc.shape;
+      const isGGUFLayout = dim0 < dim1;
+      return {
+        embeddingTranspose: isGGUFLayout,
+        embeddingVocabSize: isGGUFLayout ? dim1 : dim0,
+      };
+    }
+  }
+
+  for (const name of EMBEDDING_TENSOR_NAMES) {
+    const loc = getLocation(name);
+    if (loc?.shape && loc.shape.length === 2) {
+      const [dim0, dim1] = loc.shape;
+      const isGGUFLayout = dim0 < dim1;
+      return {
+        embeddingTranspose: isGGUFLayout,
+        embeddingVocabSize: isGGUFLayout ? dim1 : dim0,
+      };
+    }
+  }
+
+  return null;
+}
 
 // ============================================================================
 // Pure Functions (no I/O, no platform dependencies)
@@ -1001,33 +1042,7 @@ export function createManifest(
     : resolveManifestMoEConfig(model, { ...options, modelId }, rawConfig, resolvedModelType);
   let inference = options.inference;
   if (!inference) {
-    if (isDiffusion) {
-      inference = { ...DEFAULT_MANIFEST_INFERENCE, presetId: 'diffusion' };
-    } else {
-      const presetId = detectPreset(rawConfig, model.architecture);
-      if (!presetId) {
-        const modelType = rawConfig.model_type ?? 'unknown';
-        throw new Error(
-          `Unknown model family: architecture="${model.architecture || 'unknown'}", model_type="${modelType}"\n\n` +
-          `DOPPLER requires a known model preset to generate correct inference config.\n` +
-          `The manifest-first architecture does not support generic defaults.\n\n` +
-          `Options:\n` +
-          `  1. Wait for official support of this model family\n` +
-          `  2. Create a custom preset in src/config/presets/models/\n` +
-          `  3. File an issue at https://github.com/clocksmith/doppler/issues\n\n` +
-          `Supported model families: ${CONVERSION_SUPPORTED_PRESETS}`
-        );
-      }
-      const preset = resolvePreset(presetId);
-      const headDim = rawConfig.head_dim ?? (resolvedArchitecture && typeof resolvedArchitecture === 'object' ? resolvedArchitecture.headDim : null);
-      if (!headDim) {
-        throw new Error('Missing headDim in architecture');
-      }
-      const tensorNames = Array.isArray(model.tensors)
-        ? model.tensors.map((tensor) => tensor.name)
-        : null;
-      inference = buildManifestInference(preset, rawConfig, headDim, options.quantizationInfo ?? null, tensorNames);
-    }
+    throw new Error('inference config is required — use a v1 conversion config');
   }
 
   const embeddingOutput = inferEmbeddingOutputConfig(tensorLocations);

@@ -119,7 +119,7 @@ export interface RunTrainingSuiteOptions {
   surface?: string;
   modelId?: string;
   modelUrl?: string;
-  runtimePreset?: string | null;
+  runtimeProfile?: string | null;
   workloadType?: string;
   trainingTests?: string[];
   trainingStage?: 'stage1_joint' | 'stage2_base' | 'stage_a' | 'stage_b';

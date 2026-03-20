@@ -65,27 +65,4 @@ import { DEFAULT_MOE_ROUTING_CONFIG, DEFAULT_MOE_CACHE_CONFIG } from '../../src/
   );
 }
 
-// === Gemma 4 MoE preset values are consistent with routing schema ===
-
-{
-  const { resolvePreset } = await import('../../src/config/loader.js');
-  const preset = resolvePreset('gemma4');
-  const moe = preset.inference.moe;
-
-  // Preset topK must be valid
-  assert.ok(moe.topK >= 1, 'preset topK must be >= 1');
-  assert.ok(moe.topK <= moe.numExperts,
-    `preset topK (${moe.topK}) must be <= numExperts (${moe.numExperts})`);
-
-  // numSharedExperts must be < numExperts
-  assert.ok(moe.numSharedExperts < moe.numExperts,
-    `numSharedExperts (${moe.numSharedExperts}) must be < numExperts (${moe.numExperts})`);
-
-  // routerDtype must be in supportedActivationDtypes or f32
-  assert.ok(
-    moe.routerDtype === 'f32' || moe.supportedActivationDtypes.includes(moe.routerDtype),
-    `routerDtype "${moe.routerDtype}" must be f32 or in supportedActivationDtypes`
-  );
-}
-
 console.log('moe-routing-contract.test: ok');

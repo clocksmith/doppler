@@ -15,7 +15,7 @@
       "path": "REPO_ROOT"
     },
     "model": {
-      "runtimePreset": "transformer"
+      "basePreset": "transformer"
     },
     "conversion": {
       "family": "custom",
@@ -38,7 +38,7 @@
       ]
     },
     "behavior": {
-      "scope": "modes"
+      "scope": "profiles"
     },
     "errors": {
       "unsupportedMode": "Unsupported mode",
@@ -53,6 +53,6 @@
     "modelPreset": "src/config/presets/models",
     "conversion": "tools/configs/conversion",
     "kernelPath": "src/config/presets/kernel-paths",
-    "runtimePreset": "src/config/presets/runtime"
+    "runtimeProfile": "src/config/presets/runtime"
   }
 }

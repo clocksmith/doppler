@@ -71,7 +71,7 @@ await assert.rejects(
     cacheMode: 'cold',
   });
   assert.equal(normalized.command, 'bench');
-  assert.equal(normalized.suite, 'bench');
+  assert.equal(normalized.workload, 'inference');
   assert.equal(normalized.intent, 'calibrate');
   assert.equal(normalized.modelId, 'gemma-3-270m-it-f16-af32');
   assert.equal(normalized.cacheMode, 'cold');

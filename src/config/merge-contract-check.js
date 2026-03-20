@@ -1,4 +1,3 @@
-import { resolveConfig, resolvePreset } from './loader.js';
 import {
   chooseNullish,
   chooseDefinedWithSource,
@@ -10,26 +9,6 @@ import {
 } from './merge-helpers.js';
 import { mergeConfig } from './merge.js';
 import { createDopplerConfig } from './schema/index.js';
-
-function buildWitnessManifestForArchitecture() {
-  return {
-    modelId: 'merge-semantics-witness',
-    modelType: 'transformer',
-    architecture: {
-      numLayers: 2,
-      hiddenSize: 256,
-      intermediateSize: 512,
-      numAttentionHeads: 4,
-      numKeyValueHeads: 4,
-      headDim: 64,
-      vocabSize: 1024,
-      maxSeqLen: 2048,
-      ropeTheta: null,
-      rmsNormEps: 1e-6,
-    },
-    config: {},
-  };
-}
 
 function buildWitnessMergeManifest() {
   return {
@@ -98,15 +77,6 @@ function recordCheck(results, id, ok, detail, mode = 'actual') {
 
 export function buildMergeContractArtifact() {
   const checks = [];
-  const preset = resolvePreset('gemma3');
-  const resolved = resolveConfig(buildWitnessManifestForArchitecture(), 'gemma3');
-  recordCheck(
-    checks,
-    'loader.architecture.nullish_null_falls_through',
-    resolved.architecture.ropeTheta === preset.architecture.ropeTheta,
-    `resolved ropeTheta=${resolved.architecture.ropeTheta}, preset ropeTheta=${preset.architecture.ropeTheta}`
-  );
-
   const mergedUndefined = mergeConfig(buildWitnessMergeManifest(), {});
   recordCheck(
     checks,

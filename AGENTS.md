@@ -56,7 +56,7 @@ Add by task/skill:
 - Normative rules still live in `AGENTS.md`, `docs/style/*.md`, `docs/config.md`, `docs/conversion-runtime-contract.md`, and other core contract docs.
 
 When the task is additive or extension-oriented, open `docs/developer-guides/README.md` and the matching guide before editing. This applies to work such as:
-- adding or changing runtime presets, model presets, conversion configs, or kernel-path presets
+- adding or changing runtime profiles, model presets, conversion configs, or kernel-path presets
 - adding manifest/runtime fields, chat template formatters, sampling knobs, activations, or kernels
 - adding commands, attention variants, quantization formats, or KV-cache layouts
 - onboarding a new model family or pipeline family
@@ -126,27 +126,27 @@ Rules:
 
 ### CLI Quick Reference
 
-Commands have locked suite/intent bindings defined in `src/rules/tooling/command-runtime.rules.json`. Do not guess the suite — use the table below.
+Commands have workload/intent rules defined in `src/rules/tooling/command-runtime.rules.json`. Do not guess the workload — use the table below.
 
-| Command   | Suite (locked) | Intent        | Example |
-|-----------|---------------|---------------|---------|
-| `bench`   | `bench`       | `calibrate`   | `node tools/doppler-cli.js bench --config '{"request":{"suite":"bench","modelId":"gemma3-270m"}}' --json` |
-| `debug`   | `debug`       | `investigate` | `node tools/doppler-cli.js debug --config '{"request":{"suite":"debug","modelId":"gemma3-270m"}}' --json` |
-| `verify`  | caller choice | `verify`      | `node tools/doppler-cli.js verify --config '{"request":{"suite":"inference","modelId":"gemma3-270m"}}' --json` |
-| `convert` | caller choice | —             | `node tools/doppler-cli.js convert --config <path.json>` |
-| `lora`    | caller choice | —             | `node tools/doppler-cli.js lora --config <path.json>` |
-| `distill` | caller choice | —             | `node tools/doppler-cli.js distill --config <path.json>` |
+| Command   | Workload          | Intent        | Example |
+|-----------|-------------------|---------------|---------|
+| `bench`   | caller choice     | `calibrate`   | `node tools/doppler-cli.js bench --config '{"request":{"workload":"inference","modelId":"gemma3-270m"}}' --json` |
+| `debug`   | caller choice     | `investigate` | `node tools/doppler-cli.js debug --config '{"request":{"workload":"inference","modelId":"gemma3-270m"}}' --json` |
+| `verify`  | caller choice     | `verify`      | `node tools/doppler-cli.js verify --config '{"request":{"workload":"inference","modelId":"gemma3-270m"}}' --json` |
+| `convert` | n/a               | —             | `node tools/doppler-cli.js convert --config <path.json>` |
+| `lora`    | n/a               | —             | `node tools/doppler-cli.js lora --config <path.json>` |
+| `distill` | n/a               | —             | `node tools/doppler-cli.js distill --config <path.json>` |
 
-- `bench` and `debug` reject any suite other than their locked value. Do not pass `suite: "inference"` to bench.
-- `verify` accepts any valid suite (`inference`, `debug`, `bench`).
+- `bench` and `debug` reject any workload outside their supported workload set.
+- `verify` accepts the documented workloads for the target command path.
 - The CLI auto-resolves models from the external RDRR root (`/Volumes/models/rdrr` on macOS, `/media/x/models/rdrr` on Linux) by `modelId`. No `modelUrl` needed for local artifacts.
 - Use `--surface node` to force Node/WebGPU, `--surface browser` to force headless Chromium, or omit for `auto`.
 
 ### Config System
 
-Use runtime configs/config payloads, not ad-hoc per-field flags.
+Use runtime profiles/config payloads, not ad-hoc per-field flags.
 
-- Runtime configs: `src/config/presets/runtime/`
+- Runtime profiles: `src/config/presets/runtime/profiles/`
 - Conversion configs: `tools/configs/conversion/` (v1 format with inline execution graph)
 - Model presets: `src/config/presets/models/` (fallback config for manifest-first resolution)
 - Read tunables via `getRuntimeConfig()`; avoid hardcoded defaults in runtime paths.

@@ -1,4 +1,4 @@
-import { getRuntimeConfig, setRuntimeConfig, loadRuntimePreset } from '@simulatte/doppler';
+import { getRuntimeConfig, setRuntimeConfig, loadRuntimeProfile } from '@simulatte/doppler';
 import { state } from '../state.js';
 import { $, setHidden, setText } from '../dom.js';
 import {
@@ -88,18 +88,18 @@ function getDiagnosticsPresetOrderForSuite(suite, presetIds, mode, modelType) {
 
   if (isEmbeddingTarget) {
     if (key === 'inference' || key === 'debug') {
-      preferred = 'modes/embedding';
+      preferred = 'profiles/vector-stability';
     } else if (key === 'bench') {
-      preferred = 'modes/embedding-bench';
+      preferred = 'profiles/vector-throughput';
     }
   } else {
     if (key === 'debug') {
-      preferred = 'modes/debug';
+      preferred = 'profiles/verbose-trace';
     } else if (key === 'inference' && (mode === 'run' || mode === 'translate')) {
       // Keep Run tab generation aligned with the default UI auto values.
-      preferred = 'modes/debug';
+      preferred = 'profiles/verbose-trace';
     } else {
-      preferred = 'modes/bench';
+      preferred = 'profiles/throughput';
     }
   }
 
@@ -111,7 +111,8 @@ function getDiagnosticsPresetOrderForSuite(suite, presetIds, mode, modelType) {
 
 function formatRuntimePresetShortLabel(presetId) {
   if (typeof presetId !== 'string' || presetId.length === 0) return 'default';
-  return presetId.startsWith('modes/') ? presetId.slice('modes/'.length) : presetId;
+  if (presetId.startsWith('profiles/')) return presetId.slice('profiles/'.length);
+  return presetId;
 }
 
 function encodeDiagnosticsProfileId(suite, presetId) {
@@ -131,20 +132,20 @@ export function decodeDiagnosticsProfileId(profileId) {
 function getDiagnosticsProfileLabel(suite, presetId) {
   const key = `${suite}|${presetId}`;
   const labels = {
-    'inference|modes/debug': 'Text Check',
-    'inference|modes/bench': 'Text Check',
-    'inference|modes/embedding': 'Embedding Check',
-    'debug|modes/debug': 'Text Trace',
-    'debug|modes/embedding': 'Embedding Trace',
-    'bench|modes/bench': 'Text Benchmark',
-    'bench|modes/embedding-bench': 'Embedding Benchmark',
-    'bench|modes/debug': 'Text Benchmark (Debug)',
-    'training|modes/bench': 'Training Validation',
-    'training|modes/debug': 'Training Validation (Debug)',
-    'diffusion|modes/bench': 'Diffusion Benchmark',
-    'diffusion|modes/debug': 'Diffusion Benchmark (Debug)',
-    'energy|modes/bench': 'Energy Check',
-    'kernels|modes/bench': 'Kernel Validation',
+    'inference|profiles/verbose-trace': 'Text Check',
+    'inference|profiles/throughput': 'Text Check',
+    'inference|profiles/vector-stability': 'Embedding Check',
+    'debug|profiles/verbose-trace': 'Text Trace',
+    'debug|profiles/vector-stability': 'Embedding Trace',
+    'bench|profiles/throughput': 'Text Benchmark',
+    'bench|profiles/vector-throughput': 'Embedding Benchmark',
+    'bench|profiles/verbose-trace': 'Text Benchmark (Debug)',
+    'training|profiles/throughput': 'Training Validation',
+    'training|profiles/verbose-trace': 'Training Validation (Debug)',
+    'diffusion|profiles/throughput': 'Diffusion Benchmark',
+    'diffusion|profiles/verbose-trace': 'Diffusion Benchmark (Debug)',
+    'energy|profiles/throughput': 'Energy Check',
+    'kernels|profiles/throughput': 'Kernel Validation',
   };
   if (labels[key]) return labels[key];
   return `${suite} · ${formatRuntimePresetShortLabel(presetId)}`;
@@ -155,61 +156,61 @@ function getDiagnosticsProfileDescription(suite, presetId, modelType) {
   const normalizedModelType = normalizeModelType(modelType);
   const isEmbedding = normalizedModelType === 'embedding';
 
-  if (key === 'inference|modes/embedding') {
+  if (key === 'inference|profiles/vector-stability') {
     return {
       summary: 'Runs one embedding pass plus semantic sanity checks.',
       produces: 'pass/fail checks, embedding stats, and semantic accuracy.',
     };
   }
-  if (key === 'debug|modes/embedding') {
+  if (key === 'debug|profiles/vector-stability') {
     return {
       summary: 'Runs embedding checks with debug-oriented runtime settings.',
       produces: 'the same embedding metrics with extra debug-oriented runtime behavior.',
     };
   }
-  if (key === 'bench|modes/embedding-bench') {
+  if (key === 'bench|profiles/vector-throughput') {
     return {
       summary: 'Runs repeated embedding passes for latency benchmarking.',
       produces: 'embedding latency distribution metrics and validity counts.',
     };
   }
-  if ((key === 'inference|modes/bench' || key === 'inference|modes/debug') && !isEmbedding) {
+  if ((key === 'inference|profiles/throughput' || key === 'inference|profiles/verbose-trace') && !isEmbedding) {
     return {
       summary: 'Runs a short text generation sanity check.',
       produces: 'generated text plus latency and throughput metrics.',
     };
   }
-  if (key === 'debug|modes/debug' && !isEmbedding) {
+  if (key === 'debug|profiles/verbose-trace' && !isEmbedding) {
     return {
       summary: 'Runs text generation with trace/debug runtime settings.',
       produces: 'generated text plus trace-oriented performance metrics.',
     };
   }
-  if (key === 'bench|modes/bench' && !isEmbedding) {
+  if (key === 'bench|profiles/throughput' && !isEmbedding) {
     return {
       summary: 'Runs repeated timed generations for throughput benchmarking.',
       produces: 'tokens/sec, TTFT, prefill/decode latency distributions.',
     };
   }
-  if (key === 'training|modes/bench' || key === 'training|modes/debug') {
+  if (key === 'training|profiles/throughput' || key === 'training|profiles/verbose-trace') {
     return {
       summary: 'Runs training correctness checks and reports pass/fail results.',
       produces: 'training test results and suite summary metrics.',
     };
   }
-  if (key === 'diffusion|modes/bench') {
+  if (key === 'diffusion|profiles/throughput') {
     return {
       summary: 'Runs diffusion timed loops on the active model.',
       produces: 'diffusion timing metrics by phase and pass/fail summary.',
     };
   }
-  if (key === 'energy|modes/bench') {
+  if (key === 'energy|profiles/throughput') {
     return {
       summary: 'Runs one energy optimization pass.',
       produces: 'energy convergence metrics and run summary.',
     };
   }
-  if (key === 'kernels|modes/bench') {
+  if (key === 'kernels|profiles/throughput') {
     return {
       summary: 'Runs kernel validation without loading a model.',
       produces: 'kernel pass/fail results and diagnostics report.',
@@ -325,12 +326,12 @@ function updateDiagnosticsProfileOptions(mode, modelId, modelType) {
   return chosen;
 }
 
-function updateDiagnosticsSummary({ suite, modelId, modelType, runtimePreset, intent }) {
+function updateDiagnosticsSummary({ suite, modelId, modelType, runtimeProfile, intent }) {
   const summaryEl = $('diagnostics-summary');
   if (!summaryEl) return;
   const parts = [];
-  if (suite && runtimePreset) {
-    parts.push(`Profile: ${getDiagnosticsProfileLabel(suite, runtimePreset)}`);
+  if (suite && runtimeProfile) {
+    parts.push(`Profile: ${getDiagnosticsProfileLabel(suite, runtimeProfile)}`);
   } else if (suite) {
     parts.push(`Suite: ${suite}`);
   }
@@ -396,7 +397,7 @@ export function getDiagnosticsRuntimeConfig() {
 
 export async function refreshDiagnosticsRuntimeConfig(presetId) {
   const targetPreset = presetId || DEFAULT_RUNTIME_PRESET;
-  const { runtime } = await loadRuntimePreset(targetPreset);
+  const { runtime } = await loadRuntimeProfile(targetPreset);
   const mergedOverride = getMergedRuntimeOverride();
   const mergedRuntime = mergedOverride ? mergeRuntimeOverrides(runtime, mergedOverride) : runtime;
   state.diagnosticsRuntimeConfig = mergedRuntime;
@@ -637,7 +638,7 @@ function buildDiagnosticsJsonPayload(result) {
     : null;
   const suite = normalizeDiagnosticsSuiteName(report?.suite, result.suite);
   const modelId = report?.modelId ?? result.modelId ?? null;
-  const runtimePreset = report?.runtimePreset ?? null;
+  const runtimeProfile = report?.runtimeProfile ?? null;
   const timestamp = report?.timestamp ?? null;
   const results = Array.isArray(report?.results)
     ? report.results
@@ -655,7 +656,7 @@ function buildDiagnosticsJsonPayload(result) {
       ...report,
       suite,
       modelId,
-      runtimePreset,
+      runtimeProfile,
       timestamp,
       results,
       durationMs,
@@ -669,7 +670,7 @@ function buildDiagnosticsJsonPayload(result) {
   return {
     suite,
     modelId,
-    runtimePreset,
+    runtimeProfile,
     timestamp,
     results,
     durationMs,
@@ -814,7 +815,7 @@ export function updateDiagnosticsGuidance() {
   const runtimeConfig = getDiagnosticsRuntimeConfig();
   const intent = runtimeConfig?.shared?.tooling?.intent ?? null;
   const requiredModelType = getDiagnosticsRequiredModelType(suite);
-  const runtimePreset = presetSelect?.value || DEFAULT_RUNTIME_PRESET;
+  const runtimeProfile = presetSelect?.value || DEFAULT_RUNTIME_PRESET;
   const needsMaxTokens = suiteRequiresMaxTokens(suite, normalizedModelType);
 
   intentEl.textContent = intent || 'unset';
@@ -883,7 +884,7 @@ export function updateDiagnosticsGuidance() {
     requirements.textContent = 'Ready.';
   }
 
-  updateDiagnosticsSummary({ suite, modelId, modelType, runtimePreset, intent });
+  updateDiagnosticsSummary({ suite, modelId, modelType, runtimeProfile, intent });
 
   const intentOk = Boolean(intent) && (!info.requiresBenchIntent || BENCH_INTENTS.has(intent));
   const modelOk = !info.requiresModel
@@ -957,7 +958,7 @@ export async function applyRuntimeConfigPreset(presetId) {
     return;
   }
   try {
-    const { runtime } = await loadRuntimePreset(presetId);
+    const { runtime } = await loadRuntimeProfile(presetId);
     await setRuntimeOverride(runtime, presetId);
   } catch (error) {
     updateDiagnosticsStatus(`Runtime config preset error: ${error.message}`, true);

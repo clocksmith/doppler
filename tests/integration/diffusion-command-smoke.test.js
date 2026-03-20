@@ -173,27 +173,27 @@ function assertDiffusionArtifacts(result, expectedSuite) {
 try {
   const verifyRequest = normalizeToolingCommandRequest({
     command: 'verify',
-    suite: 'diffusion',
+    workload: 'diffusion',
     modelId: 'sd3-diffusion-smoke',
   });
   assert.equal(verifyRequest.command, 'verify');
-  assert.equal(verifyRequest.suite, 'diffusion');
+  assert.equal(verifyRequest.workload, 'diffusion');
   assert.equal(verifyRequest.modelId, 'sd3-diffusion-smoke');
 
   const benchRequest = normalizeToolingCommandRequest({
     command: 'bench',
-    suite: 'bench',
+    workload: 'diffusion',
     workloadType: 'diffusion',
     modelId: 'sd3-diffusion-smoke',
   });
   assert.equal(benchRequest.command, 'bench');
-  assert.equal(benchRequest.suite, 'bench');
+  assert.equal(benchRequest.workload, 'diffusion');
   assert.equal(benchRequest.workloadType, 'diffusion');
 
   configureRuntime();
   const verifyResult = await runBrowserSuite({
     command: 'verify',
-    suite: 'diffusion',
+    workload: 'diffusion',
     modelId: 'sd3-diffusion-smoke',
     cacheMode: 'warm',
     loadMode: 'memory',
@@ -212,7 +212,7 @@ try {
   configureRuntime();
   const benchResult = await runBrowserSuite({
     command: 'bench',
-    suite: 'bench',
+    workload: 'diffusion',
     workloadType: 'diffusion',
     modelId: 'sd3-diffusion-smoke',
     cacheMode: 'warm',

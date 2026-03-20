@@ -60,7 +60,7 @@ const BENCHMARKS_ROOT = path.join(REPO_ROOT, 'benchmarks');
 const BENCHMARK_POLICY_PATH = path.join(BENCHMARKS_ROOT, 'vendors', 'benchmark-policy.json');
 
 const DEFAULT_MODEL = 'onnx-community/gemma-3-1b-it-ONNX-GQA';
-const DEFAULT_PROMPT = 'Summarize this input in one sentence.';
+const DEFAULT_PROMPT = 'The color of the sky is';
 const DEFAULT_MAX_TOKENS = 128;
 const DEFAULT_TEMPERATURE = 0;
 const DEFAULT_TOP_K = 32;

@@ -5,7 +5,7 @@
   "stability": "experimental",
   "owner": "doppler-core",
   "createdAtUtc": "2026-02-25T00:00:00Z",
-  "extends": "modes/bench",
+  "extends": "profiles/throughput",
   "model": "gemma-3-1b-it-f16-af32",
   "runtime": {
     "shared": {

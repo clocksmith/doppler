@@ -1,12 +1,12 @@
 {
-  "id": "modes/simulation",
+  "id": "profiles/simulation",
   "name": "simulation",
   "description": "Simulation preset for GH200/GB200 pod emulation",
   "intent": "verify",
   "stability": "canonical",
   "owner": "doppler-core",
   "createdAtUtc": "2026-02-25T00:00:00Z",
-  "extends": "default",
+  "extends": "profiles/default",
   "runtime": {
     "shared": {
       "tooling": {
@@ -14,6 +14,7 @@
       },
       "harness": {
         "mode": "simulation",
+        "workload": "inference",
         "autorun": true,
         "skipLoad": false,
         "modelId": null

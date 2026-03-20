@@ -5,9 +5,12 @@ export declare const TOOLING_ERROR_CODE_FALLBACK: string;
 
 export interface ToolingCommandErrorDetails {
   command?: string | null;
+  workload?: string | null;
   suite?: string | null;
   workloadType?: string | null;
   modelId?: string | null;
+  requestedWorkload?: string | null;
+  allowedWorkloads?: string[] | null;
   requestedSuite?: string | null;
   allowedSuites?: string[] | null;
   fromSurface?: string | null;

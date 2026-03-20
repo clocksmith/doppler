@@ -1,12 +1,12 @@
 {
-  "id": "modes/embedding",
-  "name": "embedding",
-  "description": "Embedding-focused runtime preset tuned for stable finite vectors",
+  "id": "profiles/vector-stability",
+  "name": "vector-stability",
+  "description": "Numerically stable single-vector profile for embedding validation runs.",
   "intent": "investigate",
   "stability": "canonical",
   "owner": "doppler-core",
-  "createdAtUtc": "2026-02-25T00:00:00Z",
-  "extends": "default",
+  "createdAtUtc": "2026-03-20T00:00:00Z",
+  "extends": "profiles/default",
   "runtime": {
     "shared": {
       "tooling": {

@@ -1,16 +1,16 @@
 import {
   log,
   TOOLING_INTENTS,
-  TOOLING_VERIFY_SUITES,
-  applyRuntimePreset,
+  TOOLING_VERIFY_WORKLOADS,
+  applyRuntimeProfile,
   runBrowserCommand,
 } from '@simulatte/doppler';
 
 const ALLOWED_INTENTS = new Set(TOOLING_INTENTS);
-const SUPPORTED_VERIFY_SUITES = new Set(TOOLING_VERIFY_SUITES);
+const SUPPORTED_VERIFY_WORKLOADS = new Set(TOOLING_VERIFY_WORKLOADS);
 
-function normalizeSuite(suite) {
-  return String(suite || '').trim().toLowerCase();
+function normalizeWorkload(workload) {
+  return String(workload || '').trim().toLowerCase();
 }
 
 function resolveModelRef(model, options = {}) {
@@ -35,13 +35,13 @@ function resolveRuntimeConfig(options = {}) {
   return null;
 }
 
-function mapSuiteToCommand(suite) {
-  if (suite === 'bench') return { command: 'bench', suite: null };
-  if (suite === 'debug') return { command: 'debug', suite: null };
-  if (SUPPORTED_VERIFY_SUITES.has(suite)) {
-    return { command: 'verify', suite };
+function mapWorkloadToCommand(workload) {
+  if (workload === 'bench') return { command: 'bench', workload: 'inference' };
+  if (workload === 'debug') return { command: 'debug', workload: 'inference' };
+  if (SUPPORTED_VERIFY_WORKLOADS.has(workload)) {
+    return { command: 'verify', workload };
   }
-  throw new Error(`Unsupported diagnostics suite "${suite}"`);
+  throw new Error(`Unsupported diagnostics workload "${workload}"`);
 }
 
 export class DiagnosticsController {
@@ -60,8 +60,8 @@ export class DiagnosticsController {
     return intent;
   }
 
-  async applyRuntimePreset(presetId) {
-    return applyRuntimePreset(presetId);
+  async applyRuntimeProfile(profileId) {
+    return applyRuntimeProfile(profileId);
   }
 
   async verifySuite(model, options = {}) {
@@ -69,13 +69,13 @@ export class DiagnosticsController {
   }
 
   async runSuite(model, options = {}) {
-    const suite = normalizeSuite(options.suite || 'inference');
+    const workload = normalizeWorkload(options.workload || options.suite || 'inference');
     const { modelId, modelUrl } = resolveModelRef(model, options);
-    const mapped = mapSuiteToCommand(suite);
+    const mapped = mapWorkloadToCommand(workload);
     const runtimeConfig = resolveRuntimeConfig(options);
     if (options.configChain != null) {
       throw new Error(
-        'Diagnostics controller does not accept configChain. Use runtimePreset, runtimeConfigUrl, or runtimeConfig.',
+        'Diagnostics controller does not accept configChain. Use runtimeProfile, runtimeConfigUrl, or runtimeConfig.',
       );
     }
     if (runtimeConfig) {
@@ -84,10 +84,10 @@ export class DiagnosticsController {
 
     const response = await this.runCommand({
       command: mapped.command,
-      suite: mapped.suite ?? undefined,
+      workload: mapped.workload ?? undefined,
       modelId,
       modelUrl,
-      runtimePreset: options.runtimePreset ?? null,
+      runtimeProfile: options.runtimeProfile ?? null,
       runtimeConfigUrl: options.runtimeConfigUrl ?? null,
       runtimeConfig: runtimeConfig ?? null,
       captureOutput: options.captureOutput === true,

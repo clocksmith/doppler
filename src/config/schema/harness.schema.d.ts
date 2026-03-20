@@ -4,7 +4,8 @@
  * @module config/schema/harness
  */
 
-export type HarnessMode = 'kernels' | 'inference' | 'training' | 'bench' | 'debug' | 'diffusion' | 'energy';
+export type HarnessMode = 'verify' | 'debug' | 'bench' | 'simulation';
+export type HarnessWorkload = 'kernels' | 'inference' | 'embedding' | 'training' | 'diffusion' | 'energy';
 
 export interface EbmRecordedBenchDimsSchema {
   M: number;
@@ -23,6 +24,7 @@ export interface TrainingBenchConfigSchema {
 
 export interface HarnessConfigSchema {
   mode: HarnessMode;
+  workload: HarnessWorkload;
   autorun: boolean;
   skipLoad: boolean;
   modelId: string | null;

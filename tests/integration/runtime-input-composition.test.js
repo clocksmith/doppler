@@ -94,24 +94,24 @@ await assert.rejects(
   assert.equal(bridge.current.inference?.prompt, 'second');
 }
 
-// runtimePreset without handler throws
+// runtimeProfile without handler throws
 await assert.rejects(
   () => applyOrderedRuntimeInputs(createRuntimeBridge(), {
-    runtimePreset: 'debug',
+    runtimeProfile: 'profiles/default',
   }),
-  /does not support runtimePreset/
+  /does not support runtimeProfile/
 );
 
-// runtimePreset applies
+// runtimeProfile applies
 {
   const bridge = createRuntimeBridge();
   let presetApplied = null;
   await applyOrderedRuntimeInputs(bridge, {
-    runtimePreset: 'debug',
+    runtimeProfile: 'profiles/default',
   }, {
-    applyRuntimePreset: async (name) => { presetApplied = name; },
+    applyRuntimeProfile: async (name) => { presetApplied = name; },
   });
-  assert.equal(presetApplied, 'debug');
+  assert.equal(presetApplied, 'profiles/default');
 }
 
 // runtimeConfigUrl without handler throws
@@ -140,22 +140,22 @@ await assert.rejects(
   assert.equal(bridge.current.shared?.tooling?.intent, 'investigate');
 }
 
-// Order: configChain -> runtimePreset -> runtimeConfigUrl -> runtimeConfig -> runtimeContractPatch
+// Order: configChain -> runtimeProfile -> runtimeConfigUrl -> runtimeConfig -> runtimeContractPatch
 {
   const order = [];
   const bridge = createRuntimeBridge();
   await applyOrderedRuntimeInputs(bridge, {
     configChain: ['chain1'],
-    runtimePreset: 'debug',
+    runtimeProfile: 'profiles/default',
     runtimeConfigUrl: 'https://example.com',
     runtimeConfig: { inference: { prompt: 'test' } },
     runtimeContractPatch: { shared: { tooling: { intent: 'calibrate' } } },
   }, {
     loadRuntimeConfigFromRef: async () => { order.push('configChain'); return { inference: {} }; },
-    applyRuntimePreset: async () => { order.push('runtimePreset'); },
+    applyRuntimeProfile: async () => { order.push('runtimeProfile'); },
     applyRuntimeConfigFromUrl: async () => { order.push('runtimeConfigUrl'); },
   });
-  assert.deepEqual(order, ['configChain', 'runtimePreset', 'runtimeConfigUrl']);
+  assert.deepEqual(order, ['configChain', 'runtimeProfile', 'runtimeConfigUrl']);
 }
 
 console.log('runtime-input-composition.test: ok');

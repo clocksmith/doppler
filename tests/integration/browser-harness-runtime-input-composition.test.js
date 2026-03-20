@@ -34,7 +34,7 @@ try {
         },
       },
     }],
-    ['https://example.test/presets/modes/debug.json', {
+    ['https://example.test/presets/profiles/verbose-trace.json', {
       runtime: {
         inference: {
           prompt: 'preset',
@@ -90,10 +90,10 @@ try {
 
   await applyRuntimeForRun({
     command: 'verify',
-    suite: 'inference',
+    workload: 'inference',
     modelId: 'gemma3-270m',
     configChain: ['https://example.test/runtime/base.json'],
-    runtimePreset: 'modes/debug',
+    runtimeProfile: 'profiles/verbose-trace',
     runtimeConfigUrl: 'https://example.test/runtime/override.json',
     runtimeConfig: {
       inference: {
@@ -110,7 +110,8 @@ try {
   const runtimeConfig = getRuntimeConfig();
   assert.equal(runtimeConfig.shared.tooling.baseline, true);
   assert.equal(runtimeConfig.shared.tooling.intent, 'verify');
-  assert.equal(runtimeConfig.shared.harness.mode, 'inference');
+  assert.equal(runtimeConfig.shared.harness.mode, 'verify');
+  assert.equal(runtimeConfig.shared.harness.workload, 'inference');
   assert.equal(runtimeConfig.shared.harness.modelId, 'gemma3-270m');
   assert.equal(runtimeConfig.inference.prompt, 'inline');
   assert.equal(runtimeConfig.inference.batching.maxTokens, 8);
@@ -134,7 +135,7 @@ try {
     () => runBrowserManifest({
       runs: [
         {
-          suite: 'inference',
+          workload: 'inference',
           command: 'verify',
           runtimeConfig: {
             invalid: true,
@@ -157,7 +158,7 @@ try {
 
   await applyRuntimeForRun({
     command: 'verify',
-    suite: 'inference',
+    workload: 'inference',
     modelId: 'gemma3-270m',
     configChain: ['https://example.test/runtime/kernel-path-base.json'],
     runtimeConfig: {
@@ -168,7 +169,8 @@ try {
   });
 
   assert.equal(getRuntimeConfig().shared.tooling.intent, 'verify');
-  assert.equal(getRuntimeConfig().shared.harness.mode, 'inference');
+  assert.equal(getRuntimeConfig().shared.harness.mode, 'verify');
+  assert.equal(getRuntimeConfig().shared.harness.workload, 'inference');
   assert.equal(getRuntimeConfig().shared.harness.modelId, 'gemma3-270m');
   assert.equal(getRuntimeConfig().inference.kernelPath, null);
 

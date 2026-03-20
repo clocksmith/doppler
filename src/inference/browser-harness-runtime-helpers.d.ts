@@ -30,12 +30,12 @@ export declare function applyRuntimeConfigFromUrl(
   url: string,
   options?: Record<string, unknown>
 ): Promise<Record<string, unknown>>;
-export declare function loadRuntimePreset(
-  presetId: string,
+export declare function loadRuntimeProfile(
+  profileId: string,
   options?: Record<string, unknown>
 ): Promise<{ config: Record<string, unknown>; runtime: Record<string, unknown> }>;
-export declare function applyRuntimePreset(
-  presetId: string,
+export declare function applyRuntimeProfile(
+  profileId: string,
   options?: Record<string, unknown>
 ): Promise<Record<string, unknown>>;
 export declare function normalizeRuntimeConfigChain(value: unknown): string[];

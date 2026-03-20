@@ -3,7 +3,7 @@ import { selectRuleValue } from '../rules/rule-registry.js';
 import {
   TOOLING_COMMAND_SET,
   TOOLING_INTENT_SET,
-  TOOLING_SUITE_SET,
+  TOOLING_WORKLOAD_SET,
   TRAINING_STAGE_SET,
 } from './command-api-constants.js';
 
@@ -100,11 +100,11 @@ export function resolveCommandRuntimeContract(command) {
     throw new Error(`tooling command: missing runtime contract metadata for "${command}".`);
   }
 
-  const suite = runtimeContract.suite == null
+  const workload = runtimeContract.workload == null
     ? null
-    : asOptionalString(runtimeContract.suite, `runtime contract suite for "${command}"`);
-  if (suite && !TOOLING_SUITE_SET.includes(suite)) {
-    throw new Error(`tooling command: runtime contract suite "${suite}" is not supported.`);
+    : asOptionalString(runtimeContract.workload, `runtime contract workload for "${command}"`);
+  if (workload && !TOOLING_WORKLOAD_SET.includes(workload)) {
+    throw new Error(`tooling command: runtime contract workload "${workload}" is not supported.`);
   }
 
   const intent = runtimeContract.intent == null
@@ -115,7 +115,7 @@ export function resolveCommandRuntimeContract(command) {
   }
 
   return {
-    suite,
+    workload,
     intent,
   };
 }
@@ -138,11 +138,11 @@ export function asOptionalLoadMode(value, label) {
   return loadMode;
 }
 
-export function assertModelId(value, command, suite) {
+export function assertModelId(value, command, workload) {
   const modelId = asOptionalString(value, 'modelId');
   if (!modelId) {
     throw new Error(
-      `tooling command: modelId is required for command "${command}" (suite "${suite}").`
+      `tooling command: modelId is required for command "${command}" (workload "${workload}").`
     );
   }
   return modelId;
@@ -176,31 +176,32 @@ export function assertForbiddenConfigChainField(raw, command) {
   }
 }
 
-export function resolveSuiteForCommand(raw, command, runtimeContract) {
-  const inputSuite = asOptionalString(raw.suite, 'suite');
-  if (runtimeContract.suite) {
-    if (inputSuite && inputSuite !== runtimeContract.suite) {
+export function resolveWorkloadForCommand(raw, command, runtimeContract) {
+  const inputWorkload = asOptionalString(raw.workload, 'workload')
+    ?? asOptionalString(raw.suite, 'suite');
+  if (runtimeContract.workload) {
+    if (inputWorkload && inputWorkload !== runtimeContract.workload) {
       throw new Error(
-        `tooling command: "${command}" requires suite "${runtimeContract.suite}" and does not accept "${inputSuite}".`
+        `tooling command: "${command}" requires workload "${runtimeContract.workload}" and does not accept "${inputWorkload}".`
       );
     }
-    return runtimeContract.suite;
+    return runtimeContract.workload;
   }
 
-  const suite = inputSuite;
-  if (!suite) {
-    throw new Error(`tooling command: suite is required for "${command}".`);
+  const workload = inputWorkload;
+  if (!workload) {
+    throw new Error(`tooling command: workload is required for "${command}".`);
   }
-  if (!TOOLING_SUITE_SET.includes(suite)) {
-    throw new Error(`tooling command: unsupported suite "${suite}".`);
+  if (!TOOLING_WORKLOAD_SET.includes(workload)) {
+    throw new Error(`tooling command: unsupported workload "${workload}".`);
   }
-  return suite;
+  return workload;
 }
 
 export function createCommandRequestBase(raw, command) {
   return {
     command,
-    suite: null,
+    workload: null,
     intent: null,
     action: null,
     modelId: null,
@@ -236,7 +237,7 @@ export function createCommandRequestBase(raw, command) {
     modelUrl: asOptionalString(raw.modelUrl, 'modelUrl'),
     cacheMode: asOptionalCacheMode(raw.cacheMode, 'cacheMode'),
     loadMode: asOptionalLoadMode(raw.loadMode, 'loadMode'),
-    runtimePreset: asOptionalString(raw.runtimePreset, 'runtimePreset'),
+    runtimeProfile: asOptionalString(raw.runtimeProfile, 'runtimeProfile'),
     runtimeConfigUrl: asOptionalString(raw.runtimeConfigUrl, 'runtimeConfigUrl'),
     runtimeConfig: asOptionalObject(raw.runtimeConfig, 'runtimeConfig'),
     inputDir: null,

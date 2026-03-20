@@ -4,11 +4,12 @@
  * @module demo/diagnostics-controller
  */
 
-import type { BrowserSuite, BrowserSuiteResult } from '../src/inference/browser-harness.js';
+import type { BrowserSuiteResult } from '../src/inference/browser-harness.js';
 import type { RuntimeConfigSchema } from '../src/config/schema/index.js';
 import type { SavedReportInfo } from '../src/storage/reports.js';
 import type { log as debugLog } from '../src/debug/index.js';
 import type { ToolingErrorEnvelope, ToolingSuccessEnvelope } from '../src/tooling/command-envelope.js';
+import type { ToolingWorkload } from '../src/tooling/command-api.js';
 
 export interface DiagnosticsControllerOptions {
   log?: typeof debugLog;
@@ -18,10 +19,11 @@ export interface DiagnosticsControllerOptions {
 }
 
 export interface DiagnosticsSuiteOptions {
-  suite?: BrowserSuite;
+  workload?: ToolingWorkload;
+  suite?: string;
   runtimeConfig?: Partial<RuntimeConfigSchema>;
   runtimeConfigUrl?: string | null;
-  runtimePreset?: string | null;
+  runtimeProfile?: string | null;
   captureOutput?: boolean;
   modelId?: string | null;
   modelUrl?: string | null;
@@ -40,7 +42,7 @@ export declare class DiagnosticsController {
   lastReportInfo: SavedReportInfo | null;
 
   requireIntent(runtimeConfig: Partial<RuntimeConfigSchema>): string | null;
-  applyRuntimePreset(presetId: string): Promise<Record<string, unknown>>;
+  applyRuntimeProfile(profileId: string): Promise<Record<string, unknown>>;
   verifySuite(model: Record<string, unknown> | null, options?: DiagnosticsSuiteOptions): Promise<BrowserSuiteResult>;
   runSuite(model: Record<string, unknown> | null, options?: DiagnosticsSuiteOptions): Promise<BrowserSuiteResult>;
 }

@@ -14,7 +14,6 @@
  * @module config/schema/doppler
  */
 
-import type { ResolvedConfigSchema } from './preset.schema.js';
 import type { LoadingConfigSchema } from './loading.schema.js';
 import type { InferenceDefaultsConfigSchema } from './inference-defaults.schema.js';
 import type { SharedRuntimeConfigSchema } from './shared-runtime.schema.js';
@@ -50,8 +49,8 @@ export declare const DEFAULT_RUNTIME_CONFIG: RuntimeConfigSchema;
  * with runtime configuration (engine settings) and platform overrides.
  */
 export interface DopplerConfigSchema {
-  /** Model-specific configuration (from preset + manifest) */
-  model?: ResolvedConfigSchema;
+  /** Model-specific configuration (reserved, no longer preset-driven) */
+  model?: Record<string, unknown>;
 
   /** Runtime configuration (engine settings) */
   runtime: RuntimeConfigSchema;

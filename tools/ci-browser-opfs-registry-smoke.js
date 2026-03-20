@@ -12,7 +12,7 @@ import {
   buildEntryRemoteBaseUrl,
   findCatalogEntry,
   loadJsonFile,
-} from './hf-registry-utils.js';
+} from '../src/tooling/hf-registry-utils.js';
 
 const DEFAULT_MODEL_ID = 'gemma-3-270m-it-q4k-ehf16-af32';
 const DEFAULT_CATALOG_FILE = path.join(process.cwd(), 'models', 'catalog.json');
@@ -54,7 +54,7 @@ function usage() {
     'Usage: node tools/ci-browser-opfs-registry-smoke.js '
     + '[--model-id <id>] [--catalog-file <path>] [--cache-root <dir>] [--profile-dir <dir>] '
     + '[--channel <name>] [--timeout-ms <ms>] [--prompt <json>] [--expect-mode <generation|embedding>] '
-    + '[--runtime-preset <id>] '
+    + '[--runtime-profile <id>] '
     + '[--expected-first-token <token>] [--expected-embedding-dim <n>] [--expected-semantic-style <id>] '
     + '[--kernel-path <id>] [--activation-dtype <f16|f32>] [--kv-dtype <f16|f32>] '
     + '[--output-dtype <f16|f32>] '
@@ -95,7 +95,7 @@ function parseArgs(argv) {
     prompt: null,
     promptProvided: false,
     expectMode: DEFAULT_EXPECT_MODE,
-    runtimePreset: null,
+    runtimeProfile: null,
     expectedFirstToken: DEFAULT_EXPECTED_FIRST_TOKEN,
     expectedEmbeddingDim: null,
     expectedSemanticStyle: null,
@@ -152,8 +152,8 @@ function parseArgs(argv) {
       out.expectMode = normalizeExpectMode(readValue());
       continue;
     }
-    if (arg === '--runtime-preset') {
-      out.runtimePreset = normalizeText(readValue()) || null;
+    if (arg === '--runtime-profile') {
+      out.runtimeProfile = normalizeText(readValue()) || null;
       continue;
     }
     if (arg === '--expected-first-token') {
@@ -593,7 +593,7 @@ async function runSmokeRequest({
   kvDtype,
   outputDtype,
   expectMode,
-  runtimePreset,
+  runtimeProfile,
 }) {
   const explicitInferenceOverride = {};
   if (activationDtype) {
@@ -643,7 +643,7 @@ async function runSmokeRequest({
     modelUrl,
     loadMode,
     captureOutput: true,
-    runtimePreset,
+    runtimeProfile,
     runtimeConfig: {
       inference: inferenceConfig,
     },
@@ -714,7 +714,7 @@ async function main() {
     kvDtype,
     outputDtype,
     expectMode,
-    runtimePreset: args.runtimePreset,
+    runtimeProfile: args.runtimeProfile,
   });
   assertSmokeResult(primeRun.label, primeRun.response, {
     expectMode,
@@ -742,7 +742,7 @@ async function main() {
       kvDtype,
       outputDtype,
       expectMode,
-      runtimePreset: args.runtimePreset,
+      runtimeProfile: args.runtimeProfile,
     });
     assertSmokeResult(run.label, run.response, {
       expectMode,
@@ -768,7 +768,7 @@ async function main() {
     expectedFirstToken: expectMode === 'generation' ? args.expectedFirstToken : null,
     expectedEmbeddingDim: expectMode === 'embedding' ? args.expectedEmbeddingDim : null,
     expectedSemanticStyle: expectMode === 'embedding' ? args.expectedSemanticStyle : null,
-    runtimePreset: args.runtimePreset,
+    runtimeProfile: args.runtimeProfile,
     kernelPath: args.kernelPath,
     activationDtype,
     kvDtype,

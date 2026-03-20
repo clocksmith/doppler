@@ -15,11 +15,11 @@ const PROMPT = '<start_of_turn>user\nInstructions: translate the following to Fr
 const result = await runBrowserCommandInNode({
   command: 'debug',
   request: {
-    suite: 'debug',
+    workload: 'inference',
     modelId: 'translategemma-4b-it-q4k-ehf16-af32',
   },
   runtimeConfig: {
-    extends: 'modes/bench',
+    extends: 'profiles/throughput',
     model: 'translategemma-4b-it-q4k-ehf16-af32',
     runtime: {
       shared: {

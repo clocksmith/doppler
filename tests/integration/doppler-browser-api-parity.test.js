@@ -66,7 +66,7 @@ const { doppler: browserDoppler } = await import('../../src/client/doppler-api.b
     async () => {
       for await (const _token of nodeDoppler('hello', {
         model: 'gemma3-270m',
-        runtimePreset: 'modes/debug',
+        runtimeProfile: 'profiles/verbose-trace',
       })) {
         break;
       }
@@ -78,7 +78,7 @@ const { doppler: browserDoppler } = await import('../../src/client/doppler-api.b
     async () => {
       for await (const _token of browserDoppler('hello', {
         model: 'gemma3-270m',
-        runtimePreset: 'modes/debug',
+        runtimeProfile: 'profiles/verbose-trace',
       })) {
         break;
       }
@@ -89,7 +89,7 @@ const { doppler: browserDoppler } = await import('../../src/client/doppler-api.b
   await assert.rejects(
     () => nodeDoppler.text('hello', {
       model: 'gemma3-270m',
-      runtimePreset: 'modes/debug',
+      runtimeProfile: 'profiles/verbose-trace',
     }),
     /does not accept load-affecting options/
   );
@@ -97,7 +97,7 @@ const { doppler: browserDoppler } = await import('../../src/client/doppler-api.b
   await assert.rejects(
     () => browserDoppler.text('hello', {
       model: 'gemma3-270m',
-      runtimePreset: 'modes/debug',
+      runtimeProfile: 'profiles/verbose-trace',
     }),
     /does not accept load-affecting options/
   );
@@ -124,7 +124,7 @@ const { doppler: browserDoppler } = await import('../../src/client/doppler-api.b
     async () => {
       for await (const _token of nodeDoppler.chat([{ role: 'user', content: 'hello' }], {
         model: 'gemma3-270m',
-        runtimePreset: 'modes/debug',
+        runtimeProfile: 'profiles/verbose-trace',
       })) {
         break;
       }
@@ -136,7 +136,7 @@ const { doppler: browserDoppler } = await import('../../src/client/doppler-api.b
     async () => {
       for await (const _token of browserDoppler.chat([{ role: 'user', content: 'hello' }], {
         model: 'gemma3-270m',
-        runtimePreset: 'modes/debug',
+        runtimeProfile: 'profiles/verbose-trace',
       })) {
         break;
       }

@@ -3,7 +3,8 @@
 // =============================================================================
 
 export const DEFAULT_HARNESS_CONFIG = {
-  mode: 'kernels',
+  mode: 'verify',
+  workload: 'kernels',
   autorun: false,
   skipLoad: false,
   modelId: null,

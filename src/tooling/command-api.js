@@ -2,8 +2,8 @@ import { isPlainObject } from '../utils/plain-object.js';
 import {
   TOOLING_COMMAND_SET,
   TOOLING_SURFACE_SET,
-  TOOLING_SUITE_SET,
-  VERIFY_SUITES,
+  TOOLING_WORKLOAD_SET,
+  VERIFY_WORKLOADS,
   TRAINING_COMMAND_SCHEMA_VERSION,
 } from './command-api-constants.js';
 import {
@@ -18,18 +18,12 @@ import {
 
 export const TOOLING_COMMANDS = Object.freeze([...TOOLING_COMMAND_SET]);
 export const TOOLING_SURFACES = Object.freeze([...TOOLING_SURFACE_SET]);
-export const TOOLING_SUITES = Object.freeze([...TOOLING_SUITE_SET]);
-export const TOOLING_VERIFY_SUITES = Object.freeze([...VERIFY_SUITES]);
+export const TOOLING_WORKLOADS = Object.freeze([...TOOLING_WORKLOAD_SET]);
+export const TOOLING_VERIFY_WORKLOADS = Object.freeze([...VERIFY_WORKLOADS]);
 export const TOOLING_TRAINING_COMMAND_SCHEMA_VERSION = TRAINING_COMMAND_SCHEMA_VERSION;
 
 function resolveHarnessMode(request) {
-  if (request.command === 'debug') {
-    return 'debug';
-  }
-  if (request.command === 'bench') {
-    return 'bench';
-  }
-  return request.suite;
+  return request.command;
 }
 
 export function normalizeToolingCommandRequest(input) {
@@ -48,7 +42,7 @@ export function normalizeToolingCommandRequest(input) {
 
 export function buildRuntimeContractPatch(commandRequest) {
   const request = normalizeToolingCommandRequest(commandRequest);
-  if (!request.suite || !request.intent) {
+  if (!request.workload || !request.intent) {
     return null;
   }
   const harnessMode = resolveHarnessMode(request);
@@ -57,6 +51,7 @@ export function buildRuntimeContractPatch(commandRequest) {
     shared: {
       harness: {
         mode: harnessMode,
+        workload: request.workload,
         modelId: request.modelId ?? null,
       },
       tooling: {

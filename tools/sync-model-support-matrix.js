@@ -4,12 +4,13 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import {
-  PRESET_DETECTION_ORDER,
-  getPreset,
-  listPresets,
-  resolvePreset,
-} from '../src/config/loader.js';
+// Model presets have been removed. This tool needs to be rewritten to derive
+// model family information from v1 conversion configs instead of presets.
+// Stubs are provided so the module can still be imported for parseArgs/validation.
+const PRESET_DETECTION_ORDER = [];
+function getPreset() { return null; }
+function listPresets() { return []; }
+function resolvePreset(id) { throw new Error(`Model presets have been removed — resolvePreset("${id}") is no longer available. Rewrite sync-model-support-matrix to use v1 conversion configs.`); }
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

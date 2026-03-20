@@ -229,7 +229,7 @@
           "modelUrl": null,
           "cacheMode": "warm",
           "loadMode": "opfs",
-          "runtimePreset": null,
+          "runtimeProfile": null,
           "runtimeConfigUrl": null,
           "runtimeConfig": {
             "shared": {
@@ -638,7 +638,7 @@
           "report": {
             "suite": "bench",
             "modelId": "lfm2-5-1-2b-instruct-q4k-ehf16-af32",
-            "runtimePreset": null,
+            "runtimeProfile": null,
             "deviceInfo": {
               "hasSubgroups": true,
               "hasSubgroupsF16": false,

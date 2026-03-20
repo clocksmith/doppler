@@ -16,8 +16,8 @@ Migration summary for the training command surface, workload-pack schema, and ar
 - `watch`, `compare`, and `quality-gate` are run-root-driven and fail closed without `runRoot`
 - `eval` and `export` operate from explicit `checkpointPath` or finalized checkpoints already present in the run root
 - legacy training-only fields remain valid only for:
-  - `verify --config '{"request":{"suite":"training",...}}'`
-  - `bench --config '{"request":{"workloadType":"training",...}}'`
+  - `verify --config '{"request":{"workload":"training",...}}'`
+  - `bench --config '{"request":{"workload":"training","workloadType":"training",...}}'`
 - invalid field and surface combinations remain fail closed
 - `forceResumeReason`, `forceResumeSource`, and `checkpointOperator` still require `forceResume=true` on legacy harness flows
 
@@ -58,7 +58,7 @@ Core replay context fields remain part of the metrics contract:
 - `lr` / `effective_lr`
 - `seed`
 - `model_id`
-- `runtime_preset`
+- `runtime_profile`
 - `kernel_path`
 - `environment_metadata`
 - `memory_stats`

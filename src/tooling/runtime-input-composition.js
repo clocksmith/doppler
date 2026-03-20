@@ -39,14 +39,14 @@ async function applyConfigChain(configChain, runtimeBridge, loadRuntimeConfigFro
   }
 }
 
-async function applyRuntimePreset(runtimePreset, applyPreset, options) {
-  if (!runtimePreset) {
+async function applyRuntimeProfile(runtimeProfile, applyProfile, options) {
+  if (!runtimeProfile) {
     return;
   }
-  if (typeof applyPreset !== 'function') {
-    throw new Error('runtime input composition does not support runtimePreset on this surface.');
+  if (typeof applyProfile !== 'function') {
+    throw new Error('runtime input composition does not support runtimeProfile on this surface.');
   }
-  await applyPreset(runtimePreset, options);
+  await applyProfile(runtimeProfile, options);
 }
 
 async function applyRuntimeConfigUrl(runtimeConfigUrl, applyConfigFromUrl, options) {
@@ -68,7 +68,11 @@ export async function applyOrderedRuntimeInputs(runtimeBridge, inputs = {}, hand
     handlers.loadRuntimeConfigFromRef,
     options
   );
-  await applyRuntimePreset(inputs.runtimePreset, handlers.applyRuntimePreset, options);
+  await applyRuntimeProfile(
+    inputs.runtimeProfile,
+    handlers.applyRuntimeProfile,
+    options
+  );
   await applyRuntimeConfigUrl(inputs.runtimeConfigUrl, handlers.applyRuntimeConfigFromUrl, options);
 
   if (inputs.runtimeConfig) {

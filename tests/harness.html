@@ -175,8 +175,9 @@
         const row = document.createElement('div');
         const passed = (run.results || []).every((r) => r.passed || r.skipped);
         row.className = `row ${passed ? 'pass' : 'fail'}`;
-        const label = run.label || run.modelId || run.suite || 'run';
-        row.innerHTML = `<span>${passed ? '\u2713' : '\u2717'} ${label}</span><span class="type-caption">${run.suite || 'inference'}</span>`;
+        const workload = run.workload || run.suite || 'inference';
+        const label = run.label || run.modelId || workload || 'run';
+        row.innerHTML = `<span>${passed ? '\u2713' : '\u2717'} ${label}</span><span class="type-caption">${workload}</span>`;
         container.appendChild(row);
       }
 
@@ -209,14 +210,14 @@
       const { getRuntimeConfig } = await import('../src/config/index.js');
       const { applyRuntimeForRun } = await import('../src/inference/browser-harness.js');
       const runtimeOverrides = parseRuntimeOverridesFromURL(params);
-      const runtimePreset = params.get('runtimePreset') || null;
+      const runtimeProfile = params.get('runtimeProfile') || null;
       const runtimeConfigUrl = params.get('runtimeConfigUrl') || null;
       await applyRuntimeForRun({
         command: 'verify',
-        suite: 'kernels',
+        workload: 'kernels',
         modelId: null,
         configChain: Array.isArray(runtimeOverrides.configChain) ? runtimeOverrides.configChain : null,
-        runtimePreset,
+        runtimeProfile,
         runtimeConfigUrl,
         runtimeConfig: runtimeOverrides.runtimeConfig || null,
       });
@@ -797,6 +798,13 @@
       }
       await loadRuntimeConfig();
       const mode = harnessConfig.mode;
+      const workload = mode === 'simulation'
+        ? 'simulation'
+        : (harnessConfig.workload || (
+          mode === 'kernels' || mode === 'training' || mode === 'inference' || mode === 'energy'
+            ? mode
+            : 'inference'
+        ));
       const titles = {
         kernels: 'DOPPLER KERNEL TESTS',
         inference: 'DOPPLER INFERENCE TEST',
@@ -805,14 +813,14 @@
         bench: 'DOPPLER BENCHMARK',
         training: 'DOPPLER TRAINING TESTS',
       };
-      document.getElementById('title').textContent = titles[mode] || 'DOPPLER TEST HARNESS';
+      document.getElementById('title').textContent = titles[workload] || 'DOPPLER TEST HARNESS';
 
-      console.log(`[Harness] Mode: ${mode}`);
-      document.getElementById('status').textContent = `Initializing ${mode} mode...`;
+      console.log(`[Harness] Mode: ${mode} workload: ${workload}`);
+      document.getElementById('status').textContent = `Initializing ${workload} workload (${mode} mode)...`;
 
       try {
         let result;
-        switch (mode) {
+        switch (workload) {
           case 'kernels':
             result = await initKernelMode();
             break;
@@ -832,7 +840,7 @@
             result = await initBenchMode();
             break;
           default:
-            throw new Error(`Unknown mode: ${mode}`);
+            throw new Error(`Unknown harness workload: ${workload}`);
         }
         document.getElementById('status').textContent = 'Ready';
         console.log(`[Harness] ${result} mode initialized`);

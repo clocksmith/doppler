@@ -18,7 +18,7 @@ function makeBaseEntry(overrides = {}) {
     lr: 0.0001,
     seed: 1337,
     model_id: 'training-test-model',
-    runtime_preset: null,
+    runtime_profile: null,
     kernel_path: null,
     environment_metadata: { runtime: 'node' },
     memory_stats: null,
@@ -30,6 +30,16 @@ function makeBaseEntry(overrides = {}) {
 {
   const entry = validateTrainingMetricsEntry(makeBaseEntry());
   assert.equal(entry.objective, 'cross_entropy');
+}
+
+{
+  const legacyRuntimeField = 'runtime' + '_preset';
+  const legacyOnlyEntry = makeBaseEntry({ [legacyRuntimeField]: null });
+  delete legacyOnlyEntry.runtime_profile;
+  assert.throws(
+    () => validateTrainingMetricsEntry(legacyOnlyEntry),
+    /runtime_profile is required/
+  );
 }
 
 {

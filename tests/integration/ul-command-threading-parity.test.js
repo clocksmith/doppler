@@ -5,6 +5,7 @@ import { normalizeBrowserCommand } from '../../src/tooling/browser-command-runne
 
 const raw = {
   command: 'bench',
+  workload: 'training',
   workloadType: 'training',
   modelId: null,
   trainingTests: ['ul-stage2'],
@@ -27,7 +28,7 @@ const browserRequest = normalizeBrowserCommand(raw);
 
 assert.deepEqual(browserRequest, nodeRequest);
 assert.equal(nodeRequest.command, 'bench');
-assert.equal(nodeRequest.suite, 'bench');
+assert.equal(nodeRequest.workload, 'training');
 assert.equal(nodeRequest.workloadType, 'training');
 assert.equal(nodeRequest.trainingSchemaVersion, 1);
 assert.equal(nodeRequest.trainingBenchSteps, 7);

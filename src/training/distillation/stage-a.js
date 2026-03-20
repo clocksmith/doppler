@@ -246,7 +246,7 @@ export async function runDistillationStage(options) {
       checkpointEvery: stageEntry.checkpointEvery,
       modelId: workload.studentModelId,
       trainingStage: configBundle.internalStage,
-      runtimePreset: null,
+      runtimeProfile: null,
       command: 'distill',
       surface: 'node',
       timestamp: options.timestamp || null,

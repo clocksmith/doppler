@@ -105,30 +105,24 @@ function restoreRuntimeState(runtimeBridge, snapshot) {
   }
 }
 
-function resolveExecutionSuite(request) {
-  if (request.command === 'debug') {
-    return 'debug';
-  }
-  if (request.command === 'bench') {
-    return 'bench';
-  }
-  return request.suite;
+function resolveExecutionMode(request) {
+  return request.command;
 }
 
 function resolveExpectedModelType(request) {
-  return request.suite === 'embedding' ? 'embedding' : undefined;
+  return request.workload === 'embedding' ? 'embedding' : undefined;
 }
 
 export async function applyRuntimeInputs(request, runtimeBridge, options = {}) {
   resetRuntimeState(runtimeBridge);
   await applyOrderedRuntimeInputs(runtimeBridge, {
     configChain: request.configChain ?? null,
-    runtimePreset: request.runtimePreset ?? null,
+    runtimeProfile: request.runtimeProfile ?? null,
     runtimeConfigUrl: request.runtimeConfigUrl ?? null,
     runtimeConfig: request.runtimeConfig ?? null,
     runtimeContractPatch: buildRuntimeContractPatch(request),
   }, {
-    applyRuntimePreset: runtimeBridge.applyRuntimePreset?.bind(runtimeBridge),
+    applyRuntimeProfile: runtimeBridge.applyRuntimeProfile?.bind(runtimeBridge),
     applyRuntimeConfigFromUrl: runtimeBridge.applyRuntimeConfigFromUrl?.bind(runtimeBridge),
   }, options);
   assertCalibrateRuntimeCompatibility(request, runtimeBridge.getRuntimeConfig());
@@ -149,7 +143,8 @@ export function buildSuiteOptions(request, surface = null) {
     : null;
   const expectedModelType = resolveExpectedModelType(request);
   return {
-    suite: resolveExecutionSuite(request),
+    mode: resolveExecutionMode(request),
+    workload: request.workload,
     command: request.command,
     surface: normalizedSurface,
     ...(expectedModelType ? { expectedModelType } : {}),
@@ -186,7 +181,7 @@ export function buildSuiteOptions(request, surface = null) {
     modelUrl: request.modelUrl ?? undefined,
     cacheMode: request.cacheMode ?? 'warm',
     loadMode: request.loadMode ?? null,
-    runtimePreset: request.runtimePreset ?? null,
+    runtimeProfile: request.runtimeProfile ?? null,
     captureOutput: request.captureOutput,
     keepPipeline: request.keepPipeline,
     report: request.report || undefined,

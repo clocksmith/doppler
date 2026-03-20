@@ -1,14 +1,5 @@
 export * from './schema/index.js';
 export {
-  getPreset,
-  listPresets,
-  resolvePreset,
-  detectPreset,
-  resolveConfig,
-  PRESET_REGISTRY,
-  PRESET_DETECTION_ORDER,
-} from './loader.js';
-export {
   getRuntimeConfig,
   setRuntimeConfig,
   resetRuntimeConfig,

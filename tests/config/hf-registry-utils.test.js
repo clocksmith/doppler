@@ -13,7 +13,7 @@ import {
   resolveDemoRegistryEntryBaseUrl,
   shouldDemoSurfaceRemoteRegistryEntry,
   validateLocalHfEntryShape,
-} from '../../tools/hf-registry-utils.js';
+} from '../../src/tooling/hf-registry-utils.js';
 
 {
   assert.equal(

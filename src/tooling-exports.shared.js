@@ -9,10 +9,7 @@ export { log } from './debug/index.js';
 
 // Config
 export {
-  listPresets,
   createConverterConfig,
-  detectPreset,
-  resolvePreset,
 } from './config/index.js';
 export { getRuntimeConfig, setRuntimeConfig } from './config/runtime.js';
 export { DEFAULT_MANIFEST_INFERENCE } from './config/schema/index.js';
@@ -46,7 +43,7 @@ export { parseManifest, getManifest, setManifest, clearManifest, classifyTensorR
 // Browser conversion + file pickers
 export { convertModel, createRemoteModelSources, isConversionSupported } from './browser/browser-converter.js';
 export { pickModelDirectory, pickModelFiles } from './browser/file-picker.js';
-export { buildManifestInference, inferEmbeddingOutputConfig } from './converter/manifest-inference.js';
+export { inferEmbeddingOutputConfig } from './converter/core.js';
 
 // GPU init + capabilities
 export { initDevice, getDevice, getKernelCapabilities, getPlatformConfig, isWebGPUAvailable } from './gpu/device.js';
@@ -56,14 +53,18 @@ export { captureMemorySnapshot } from './loader/memory-monitor.js';
 export { destroyBufferPool } from './memory/buffer-pool.js';
 
 // Diagnostics harness
-export { loadRuntimePreset, applyRuntimePreset, runBrowserSuite } from './inference/browser-harness.js';
+export {
+  loadRuntimeProfile,
+  applyRuntimeProfile,
+  runBrowserSuite,
+} from './inference/browser-harness.js';
 
 // Shared command contract (browser + CLI parity)
 export {
   TOOLING_COMMANDS,
   TOOLING_SURFACES,
-  TOOLING_SUITES,
-  TOOLING_VERIFY_SUITES,
+  TOOLING_WORKLOADS,
+  TOOLING_VERIFY_WORKLOADS,
   TOOLING_TRAINING_COMMAND_SCHEMA_VERSION,
   normalizeToolingCommandRequest,
   buildRuntimeContractPatch,

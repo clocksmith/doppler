@@ -2,7 +2,7 @@ import {
   DISTILL_ACTION_SET,
   LORA_ACTION_SET,
   TRAINING_COMMAND_SCHEMA_VERSION,
-  VERIFY_SUITES,
+  VERIFY_WORKLOADS,
 } from './command-api-constants.js';
 import {
   asOptionalAction,
@@ -19,33 +19,40 @@ import {
   assertModelId,
   createCommandRequestBase,
   resolveCommandRuntimeContract,
-  resolveSuiteForCommand,
+  resolveWorkloadForCommand,
 } from './command-api-helpers.js';
 
-function resolveDebugRequestSuite(raw) {
-  const suite = asOptionalString(raw.suite, 'suite');
-  if (!suite) {
+function resolveDebugRequestWorkload(raw) {
+  const workload = asOptionalString(raw.workload, 'workload')
+    ?? asOptionalString(raw.suite, 'suite');
+  if (!workload) {
     return 'inference';
   }
-  if (suite !== 'inference' && suite !== 'embedding') {
+  if (workload !== 'inference' && workload !== 'embedding') {
     throw new Error(
-      'tooling command: "debug" suite must be "inference" or "embedding".'
+      'tooling command: "debug" workload must be "inference" or "embedding".'
     );
   }
-  return suite;
+  return workload;
 }
 
-function resolveBenchRequestSuite(raw) {
-  const suite = asOptionalString(raw.suite, 'suite');
-  if (!suite) {
-    return 'bench';
+function resolveBenchRequestWorkload(raw) {
+  const workload = asOptionalString(raw.workload, 'workload')
+    ?? asOptionalString(raw.suite, 'suite');
+  if (!workload) {
+    return 'inference';
   }
-  if (suite !== 'bench' && suite !== 'inference' && suite !== 'embedding') {
+  if (
+    workload !== 'inference'
+    && workload !== 'embedding'
+    && workload !== 'training'
+    && workload !== 'diffusion'
+  ) {
     throw new Error(
-      'tooling command: "bench" suite must be "bench", "inference", or "embedding".'
+      'tooling command: "bench" workload must be "inference", "embedding", "training", or "diffusion".'
     );
   }
-  return suite;
+  return workload;
 }
 
 function normalizeConvertExecution(value) {
@@ -131,7 +138,7 @@ export function normalizeConvert(raw) {
       'tooling command: convert does not accept modelId. Set convertPayload.converterConfig.output.modelBaseId.'
     );
   }
-  assertForbiddenStringField(raw, 'runtimePreset', 'convert');
+  assertForbiddenStringField(raw, 'runtimeProfile', 'convert');
   assertForbiddenStringField(raw, 'runtimeConfigUrl', 'convert');
   assertForbiddenObjectField(raw, 'runtimeConfig', 'convert');
   assertForbiddenConfigChainField(raw, 'convert');
@@ -200,16 +207,16 @@ export function normalizeTrainingOperatorCommand(raw, command) {
 export function normalizeSuiteCommand(raw, command) {
   assertForbiddenConfigChainField(raw, command);
   const runtimeContract = resolveCommandRuntimeContract(command);
-  const suite = command === 'debug'
-    ? resolveDebugRequestSuite(raw)
+  const workload = command === 'debug'
+    ? resolveDebugRequestWorkload(raw)
     : (
       command === 'bench'
-        ? resolveBenchRequestSuite(raw)
-        : resolveSuiteForCommand(raw, command, runtimeContract)
+        ? resolveBenchRequestWorkload(raw)
+        : resolveWorkloadForCommand(raw, command, runtimeContract)
     );
-  if (!runtimeContract.suite && !VERIFY_SUITES.includes(suite)) {
+  if (!runtimeContract.workload && command === 'verify' && !VERIFY_WORKLOADS.includes(workload)) {
     throw new Error(
-      `tooling command: "${command}" suite must be one of ${VERIFY_SUITES.join(', ')}.`
+      `tooling command: "${command}" workload must be one of ${VERIFY_WORKLOADS.join(', ')}.`
     );
   }
 
@@ -245,9 +252,22 @@ export function normalizeSuiteCommand(raw, command) {
   );
   const trainingBenchSteps = asOptionalPositiveInteger(raw.trainingBenchSteps, 'trainingBenchSteps');
   const checkpointEvery = asOptionalPositiveInteger(raw.checkpointEvery, 'checkpointEvery');
-  const workloadType = asOptionalString(raw.workloadType, 'workloadType');
-  const isTrainingBenchWorkload = command === 'bench' && suite === 'bench' && workloadType === 'training';
-  const allowsTrainingFields = suite === 'training' || isTrainingBenchWorkload;
+  const inputWorkloadType = asOptionalString(raw.workloadType, 'workloadType');
+  if (
+    inputWorkloadType
+    && (workload === 'training' || workload === 'diffusion')
+    && inputWorkloadType !== workload
+  ) {
+    throw new Error(
+      `tooling command: workloadType "${inputWorkloadType}" does not match workload "${workload}".`
+    );
+  }
+  const workloadType = inputWorkloadType ?? (
+    command === 'bench' && (workload === 'training' || workload === 'diffusion')
+      ? workload
+      : null
+  );
+  const allowsTrainingFields = workload === 'training';
   if (!allowsTrainingFields && (
     trainingTests
     || trainingStage
@@ -279,7 +299,7 @@ export function normalizeSuiteCommand(raw, command) {
     || checkpointEvery
   )) {
     throw new Error(
-      'tooling command: training-only fields require suite="training" or bench workloadType="training".'
+      'tooling command: training-only fields require workload="training".'
     );
   }
   if (forceResumeReason && forceResume !== true) {
@@ -313,7 +333,7 @@ export function normalizeSuiteCommand(raw, command) {
     throw new Error('tooling command: distillShardIndex must be <= distillShardCount.');
   }
 
-  const requiresModel = suite !== 'kernels' && !isTrainingBenchWorkload;
+  const requiresModel = workload !== 'kernels' && workload !== 'training';
   const hasTrainingSource = allowsTrainingFields && (
     !!modelUrl
     || !!trainingStage
@@ -329,12 +349,12 @@ export function normalizeSuiteCommand(raw, command) {
     || !!distillDatasetPath
   );
   const modelId = (requiresModel && !hasTrainingSource)
-    ? assertModelId(raw.modelId, command, suite)
+    ? assertModelId(raw.modelId, command, workload)
     : asOptionalString(raw.modelId, 'modelId');
 
   return {
     ...createCommandRequestBase(raw, command),
-    suite,
+    workload,
     intent: runtimeContract.intent,
     modelId,
     trainingTests,

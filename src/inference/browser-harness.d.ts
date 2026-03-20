@@ -28,6 +28,8 @@ export interface RuntimeConfigLoadOptions {
   signal?: AbortSignal;
 }
 
+export type BrowserHarnessMode = 'verify' | 'debug' | 'bench';
+export type BrowserWorkload = 'kernels' | 'inference' | 'embedding' | 'training' | 'diffusion' | 'energy';
 export type BrowserSuite = 'kernels' | 'inference' | 'embedding' | 'training' | 'bench' | 'debug' | 'diffusion' | 'energy';
 
 export interface SuiteTestResult {
@@ -67,6 +69,8 @@ export interface DiffusionOutput {
 }
 
 export interface BrowserSuiteOptions extends InferenceHarnessOptions {
+  mode?: BrowserHarnessMode;
+  workload?: BrowserWorkload;
   suite?: BrowserSuite;
   command?: string;
   surface?: string;
@@ -105,7 +109,7 @@ export interface BrowserSuiteOptions extends InferenceHarnessOptions {
   cacheMode?: 'cold' | 'warm' | null;
   loadMode?: 'opfs' | 'http' | 'memory' | null;
   configChain?: string[] | null;
-  runtimePreset?: string | null;
+  runtimeProfile?: string | null;
   runtimeConfigUrl?: string | null;
   runtimeConfig?: Record<string, unknown> | null;
   captureOutput?: boolean;
@@ -136,6 +140,8 @@ export interface BrowserHarnessResult extends InitializeResult {
 }
 
 export interface BrowserSuiteResult extends SuiteSummary {
+  mode?: BrowserHarnessMode;
+  workload?: BrowserWorkload;
   modelId?: string;
   timing?: BrowserSuiteTiming | null;
   metrics?: Record<string, unknown>;
@@ -191,13 +197,13 @@ export declare function applyRuntimeConfigFromUrl(
   options?: RuntimeConfigLoadOptions
 ): Promise<Record<string, unknown>>;
 
-export declare function loadRuntimePreset(
-  presetId: string,
+export declare function loadRuntimeProfile(
+  profileId: string,
   options?: RuntimeConfigLoadOptions
 ): Promise<{ config: Record<string, unknown>; runtime: Record<string, unknown> }>;
 
-export declare function applyRuntimePreset(
-  presetId: string,
+export declare function applyRuntimeProfile(
+  profileId: string,
   options?: RuntimeConfigLoadOptions
 ): Promise<Record<string, unknown>>;
 
@@ -230,8 +236,8 @@ export declare function buildSuiteSummary(
   startTimeMs: number
 ): SuiteSummary;
 
-export declare function getBrowserSupportedSuites(): BrowserSuite[];
-export declare function getBrowserSuiteDispatchMap(): Record<BrowserSuite, string>;
+export declare function getBrowserSupportedSuites(): BrowserWorkload[];
+export declare function getBrowserSuiteDispatchMap(): Record<BrowserHarnessMode, Record<string, string>>;
 
 export declare function runBrowserManifest(
   manifest: BrowserManifest,

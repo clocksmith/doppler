@@ -82,7 +82,7 @@ export const DEFAULT_TRAINING_METRICS_REPORT = Object.freeze({
   lr: null,
   seed: 1337,
   model_id: 'training',
-  runtime_preset: null,
+  runtime_profile: null,
   kernel_path: null,
   environment_metadata: {
     runtime: 'unknown',
@@ -183,10 +183,10 @@ export function validateTrainingMetricsEntry(entry) {
     throw new Error('training metrics: model_id is required.');
   }
   assertString(entry.model_id, 'model_id');
-  if (!('runtime_preset' in entry)) {
-    throw new Error('training metrics: runtime_preset is required (nullable).');
+  if (!('runtime_profile' in entry)) {
+    throw new Error('training metrics: runtime_profile is required (nullable).');
   }
-  assertOptionalString(entry.runtime_preset, 'runtime_preset');
+  assertOptionalString(entry.runtime_profile, 'runtime_profile');
   if (!('kernel_path' in entry)) {
     throw new Error('training metrics: kernel_path is required (nullable).');
   }

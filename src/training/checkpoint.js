@@ -130,7 +130,7 @@ function buildCheckpointHashPayload(data) {
       datasetHash: metadata.datasetHash ?? null,
       tokenizerHash: metadata.tokenizerHash ?? null,
       optimizerHash: metadata.optimizerHash ?? null,
-      runtimePresetId: metadata.runtimePresetId ?? null,
+      runtimeProfileId: metadata.runtimeProfileId ?? null,
       kernelPathId: metadata.kernelPathId ?? null,
       environmentMetadata: metadata.environmentMetadata ?? null,
       buildProvenance: metadata.buildProvenance ?? null,
@@ -177,7 +177,11 @@ export async function saveCheckpoint(key, payload, options = {}) {
     datasetHash: coalesceMetadataValue(options.datasetHash, payloadMetadata.datasetHash, previousMetadata.datasetHash),
     tokenizerHash: coalesceMetadataValue(options.tokenizerHash, payloadMetadata.tokenizerHash, previousMetadata.tokenizerHash),
     optimizerHash: coalesceMetadataValue(options.optimizerHash, payloadMetadata.optimizerHash, previousMetadata.optimizerHash),
-    runtimePresetId: coalesceMetadataValue(options.runtimePresetId, payloadMetadata.runtimePresetId, previousMetadata.runtimePresetId),
+    runtimeProfileId: coalesceMetadataValue(
+      options.runtimeProfileId,
+      payloadMetadata.runtimeProfileId,
+      previousMetadata.runtimeProfileId
+    ),
     kernelPathId: coalesceMetadataValue(options.kernelPathId, payloadMetadata.kernelPathId, previousMetadata.kernelPathId),
     environmentMetadata: coalesceMetadataValue(
       options.environmentMetadata,

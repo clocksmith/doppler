@@ -8,13 +8,13 @@ import {
 {
   const request = normalizeToolingCommandRequest({
     command: 'verify',
-    suite: 'training',
+    workload: 'training',
     modelId: 'gemma-3-1b-it-f16-af32',
     trainingTests: ['runner-smoke', 'train-step-metrics'],
     trainingStage: 'stage1_joint',
   });
   assert.equal(request.command, 'verify');
-  assert.equal(request.suite, 'training');
+  assert.equal(request.workload, 'training');
   assert.equal(request.intent, 'verify');
   assert.equal(request.modelId, 'gemma-3-1b-it-f16-af32');
   assert.deepEqual(request.trainingTests, ['runner-smoke', 'train-step-metrics']);
@@ -25,7 +25,7 @@ import {
 {
   const request = normalizeToolingCommandRequest({
     command: 'verify',
-    suite: 'training',
+    workload: 'training',
     modelId: null,
     trainingStage: 'stage_a',
     forceResume: true,
@@ -42,7 +42,7 @@ import {
 {
   const request = normalizeToolingCommandRequest({
     command: 'verify',
-    suite: 'training',
+    workload: 'training',
     modelId: null,
     trainingStage: 'stage1_joint',
   });
@@ -55,10 +55,10 @@ import {
   assert.throws(
     () => normalizeToolingCommandRequest({
       command: 'verify',
-      suite: 'bench',
+      workload: 'bench',
       modelId: 'gemma-3-1b-it-f16-af32',
     }),
-    /suite must be one of kernels, inference, embedding, training, diffusion, energy/
+    /unsupported workload "bench"/
   );
 }
 
@@ -69,18 +69,18 @@ import {
       modelId: 'gemma-3-1b-it-f16-af32',
       trainingTests: ['runner-smoke'],
     }),
-    /training-only fields require suite="training" or bench workloadType="training"/
+    /training-only fields require workload="training"/
   );
 }
 
 {
   const request = normalizeToolingCommandRequest({
     command: 'debug',
-    suite: 'embedding',
+    workload: 'embedding',
     modelId: 'google-embeddinggemma-300m-q4k-ehf16-af32',
   });
   assert.equal(request.command, 'debug');
-  assert.equal(request.suite, 'embedding');
+  assert.equal(request.workload, 'embedding');
   assert.equal(request.intent, 'investigate');
 }
 
@@ -89,31 +89,32 @@ import {
     command: 'debug',
     modelId: 'gemma-3-1b-it-f16-af32',
   });
-  assert.equal(request.suite, 'inference');
+  assert.equal(request.workload, 'inference');
   assert.equal(request.intent, 'investigate');
 }
 
 {
   const request = normalizeToolingCommandRequest({
     command: 'bench',
-    suite: 'embedding',
+    workload: 'embedding',
     modelId: 'google-embeddinggemma-300m-q4k-ehf16-af32',
   });
   assert.equal(request.command, 'bench');
-  assert.equal(request.suite, 'embedding');
+  assert.equal(request.workload, 'embedding');
   assert.equal(request.intent, 'calibrate');
 }
 
 {
   const request = normalizeToolingCommandRequest({
     command: 'bench',
+    workload: 'training',
     modelId: null,
     workloadType: 'training',
     trainingStage: 'stage1_joint',
     trainingTests: ['ul-stage1'],
   });
   assert.equal(request.command, 'bench');
-  assert.equal(request.suite, 'bench');
+  assert.equal(request.workload, 'training');
   assert.equal(request.intent, 'calibrate');
   assert.equal(request.workloadType, 'training');
   assert.equal(request.modelId, null);
@@ -125,6 +126,7 @@ import {
 {
   const request = normalizeToolingCommandRequest({
     command: 'bench',
+    workload: 'training',
     modelId: null,
     workloadType: 'training',
     trainingStage: 'stage1_joint',
@@ -149,10 +151,10 @@ import {
   assert.throws(
     () => normalizeToolingCommandRequest({
       command: 'bench',
-      suite: 'training',
+      workload: 'kernels',
       modelId: 'gemma-3-1b-it-f16-af32',
     }),
-    /suite must be "bench", "inference", or "embedding"/
+    /workload must be "inference", "embedding", "training", or "diffusion"/
   );
 }
 
@@ -160,7 +162,7 @@ import {
   assert.throws(
     () => normalizeToolingCommandRequest({
       command: 'verify',
-      suite: 'training',
+      workload: 'training',
       modelId: null,
       trainingStage: 'stage1_joint',
       trainingSchemaVersion: 2,
@@ -173,7 +175,7 @@ import {
   assert.throws(
     () => normalizeToolingCommandRequest({
       command: 'verify',
-      suite: 'training',
+      workload: 'training',
       modelId: null,
       trainingStage: 'stage_a',
       checkpointEvery: 0,
@@ -186,7 +188,7 @@ import {
   assert.throws(
     () => normalizeToolingCommandRequest({
       command: 'verify',
-      suite: 'training',
+      workload: 'training',
       modelId: null,
       trainingStage: 'stage_a',
       distillSourceLangs: 'en,es',
@@ -199,11 +201,12 @@ import {
   assert.throws(
     () => normalizeToolingCommandRequest({
       command: 'bench',
+      workload: 'inference',
       modelId: null,
       workloadType: 'inference',
       trainingStage: 'stage1_joint',
     }),
-    /training-only fields require suite="training" or bench workloadType="training"/
+    /training-only fields require workload="training"/
   );
 }
 
@@ -211,7 +214,7 @@ import {
   assert.throws(
     () => normalizeToolingCommandRequest({
       command: 'verify',
-      suite: 'training',
+      workload: 'training',
       modelId: null,
       trainingStage: 'stage_a',
       forceResumeReason: 'missing flag',
@@ -224,7 +227,7 @@ import {
   assert.throws(
     () => normalizeToolingCommandRequest({
       command: 'verify',
-      suite: 'training',
+      workload: 'training',
       modelId: null,
       trainingStage: 'stage_a',
       forceResumeSource: 'verify:node',
@@ -237,7 +240,7 @@ import {
   assert.throws(
     () => normalizeToolingCommandRequest({
       command: 'verify',
-      suite: 'training',
+      workload: 'training',
       modelId: null,
       trainingStage: 'stage_a',
       checkpointOperator: 'release-engineer',
@@ -250,7 +253,7 @@ import {
   assert.throws(
     () => normalizeToolingCommandRequest({
       command: 'verify',
-      suite: 'training',
+      workload: 'training',
       modelId: null,
       trainingStage: 'stage3_unknown',
     }),
@@ -261,7 +264,7 @@ import {
 {
   const request = normalizeToolingCommandRequest({
     command: 'verify',
-    suite: 'training',
+    workload: 'training',
     modelId: null,
     trainingStage: 'stage_a',
     teacherModelId: 'translategemma-4b-it-q4k-ehf16-af32',
@@ -288,6 +291,7 @@ import {
   assert.throws(
     () => normalizeToolingCommandRequest({
       command: 'bench',
+      workload: 'training',
       workloadType: 'training',
       trainingStage: 'stage_a',
       distillShardIndex: 6,
@@ -300,13 +304,14 @@ import {
 {
   const patch = buildRuntimeContractPatch({
     command: 'verify',
-    suite: 'training',
+    workload: 'training',
     modelId: 'gemma-3-1b-it-f16-af32',
   });
   assert.deepEqual(patch, {
     shared: {
       harness: {
-        mode: 'training',
+        mode: 'verify',
+        workload: 'training',
         modelId: 'gemma-3-1b-it-f16-af32',
       },
       tooling: {
@@ -319,14 +324,15 @@ import {
 {
   const normalized = normalizeToolingCommandRequest({
     command: 'verify',
-    suite: 'inference',
+    workload: 'inference',
     modelId: 'gemma-3-270m-it-q4k-ehf16-af32',
   });
   const patch = buildRuntimeContractPatch(normalized);
   assert.deepEqual(patch, {
     shared: {
       harness: {
-        mode: 'inference',
+        mode: 'verify',
+        workload: 'inference',
         modelId: 'gemma-3-270m-it-q4k-ehf16-af32',
       },
       tooling: {
@@ -412,14 +418,14 @@ import {
     () => normalizeToolingCommandRequest({
       command: 'convert',
       inputDir: '/tmp/model',
-      runtimePreset: 'debug',
+      runtimeProfile: 'debug',
       convertPayload: {
         converterConfig: {
           output: { modelBaseId: 'gemma-3-1b-it-f16-af32' },
         },
       },
     }),
-    /convert does not accept runtimePreset/
+    /convert does not accept runtimeProfile/
   );
 }
 
@@ -463,9 +469,9 @@ import {
   assert.throws(
     () => normalizeToolingCommandRequest({
       command: 'verify',
-      suite: 'inference',
+      workload: 'inference',
       modelId: 'gemma-3-270m-it-q4k-ehf16-af32',
-      configChain: ['modes/debug'],
+      configChain: ['profiles/verbose-trace'],
     }),
     /verify does not accept configChain/
   );
@@ -475,7 +481,7 @@ import {
       command: 'lora',
       action: 'run',
       workloadPath: '/tmp/workload.json',
-      configChain: ['modes/debug'],
+      configChain: ['profiles/verbose-trace'],
     }),
     /lora does not accept configChain/
   );
@@ -486,7 +492,7 @@ import {
     () => normalizeToolingCommandRequest({
       command: 'debug',
       modelId: 'gemma-3-270m-it-q4k-ehf16-af32',
-      configChain: ['modes/debug'],
+      configChain: ['profiles/verbose-trace'],
     }),
     /debug does not accept configChain/
   );
@@ -495,7 +501,7 @@ import {
     () => normalizeToolingCommandRequest({
       command: 'bench',
       modelId: 'gemma-3-270m-it-q4k-ehf16-af32',
-      configChain: ['modes/debug'],
+      configChain: ['profiles/verbose-trace'],
     }),
     /bench does not accept configChain/
   );
@@ -505,7 +511,7 @@ import {
       command: 'distill',
       action: 'run',
       workloadPath: '/tmp/workload.json',
-      configChain: ['modes/debug'],
+      configChain: ['profiles/verbose-trace'],
     }),
     /distill does not accept configChain/
   );
@@ -514,7 +520,7 @@ import {
     () => normalizeToolingCommandRequest({
       command: 'convert',
       inputDir: '/tmp/model',
-      configChain: ['modes/debug'],
+      configChain: ['profiles/verbose-trace'],
       convertPayload: {
         converterConfig: {
           output: { modelBaseId: 'gemma-3-1b-it-f16-af32' },
@@ -606,7 +612,7 @@ import {
       command: 'verify',
       modelId: 'gemma-3-1b-it-f16-af32',
     }),
-    /suite is required/
+    /workload is required/
   );
 }
 
@@ -614,10 +620,10 @@ import {
   assert.throws(
     () => normalizeToolingCommandRequest({
       command: 'verify',
-      suite: 'unknown',
+      workload: 'unknown',
       modelId: 'gemma-3-1b-it-f16-af32',
     }),
-    /unsupported suite/
+    /unsupported workload/
   );
 }
 
@@ -625,7 +631,7 @@ import {
   assert.throws(
     () => normalizeToolingCommandRequest({
       command: 'verify',
-      suite: 'inference',
+      workload: 'inference',
       modelId: null,
     }),
     /modelId is required/
@@ -636,6 +642,7 @@ import {
   assert.throws(
     () => normalizeToolingCommandRequest({
       command: 'bench',
+      workload: 'training',
       workloadType: 'training',
       trainingStage: 'stage1_joint',
       trainingTests: 'runner-smoke',
@@ -648,6 +655,7 @@ import {
   assert.throws(
     () => normalizeToolingCommandRequest({
       command: 'bench',
+      workload: 'training',
       workloadType: 'training',
       modelId: null,
       trainingTests: ['runner-smoke', 7],
@@ -661,6 +669,7 @@ import {
   assert.throws(
     () => normalizeToolingCommandRequest({
       command: 'bench',
+      workload: 'training',
       workloadType: 'training',
       modelId: null,
       trainingTests: ['runner-smoke', ''],
@@ -674,7 +683,7 @@ import {
   assert.throws(
     () => normalizeToolingCommandRequest({
       command: 'verify',
-      suite: 'inference',
+      workload: 'inference',
       modelId: 'gemma-3-1b-it-f16-af32',
       captureOutput: 'true',
     }),
@@ -686,11 +695,11 @@ import {
   assert.throws(
     () => normalizeToolingCommandRequest({
       command: 'verify',
-      suite: 'inference',
+      workload: 'inference',
       modelId: 'gemma-3-1b-it-f16-af32',
-      runtimePreset: 7,
+      runtimeProfile: 7,
     }),
-    /runtimePreset must be a string/
+    /runtimeProfile must be a string/
   );
 }
 
@@ -698,10 +707,10 @@ import {
   assert.throws(
     () => normalizeToolingCommandRequest({
       command: 'debug',
-      suite: 'training',
+      workload: 'training',
       modelId: 'gemma-3-1b-it-f16-af32',
     }),
-    /suite must be "inference" or "embedding"/
+    /workload must be "inference" or "embedding"/
   );
 }
 
@@ -752,7 +761,7 @@ import {
   assert.throws(
     () => ensureCommandSupportedOnSurface({
       command: 'verify',
-      suite: 'inference',
+      workload: 'inference',
       modelId: 'gemma-3-1b-it-f16-af32',
     }, 'desktop'),
     /unsupported surface/

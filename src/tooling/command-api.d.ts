@@ -2,7 +2,7 @@ import type { ConverterConfigSchema } from '../config/schema/converter.schema.js
 
 export type ToolingCommand = 'convert' | 'debug' | 'bench' | 'verify' | 'lora' | 'distill';
 export type ToolingSurface = 'browser' | 'node';
-export type ToolingSuite = 'kernels' | 'inference' | 'embedding' | 'training' | 'bench' | 'debug' | 'diffusion' | 'energy';
+export type ToolingWorkload = 'kernels' | 'inference' | 'embedding' | 'training' | 'diffusion' | 'energy';
 export type ToolingIntent = 'verify' | 'investigate' | 'calibrate' | null;
 export type ToolingTrainingStage = 'stage1_joint' | 'stage2_base' | 'stage_a' | 'stage_b';
 export type ToolingDistillAction = 'run' | 'stage-a' | 'stage-b' | 'eval' | 'watch' | 'compare' | 'quality-gate' | 'subsets';
@@ -28,7 +28,7 @@ export interface ToolingConvertPayload {
 export interface ToolingCommandRequestInput {
   command: ToolingCommand;
   action?: ToolingDistillAction | ToolingLoraAction;
-  suite?: ToolingSuite;
+  workload?: ToolingWorkload;
   modelId?: string;
   trainingTests?: string[];
   trainingStage?: ToolingTrainingStage;
@@ -62,7 +62,7 @@ export interface ToolingCommandRequestInput {
   modelUrl?: string;
   cacheMode?: 'cold' | 'warm';
   loadMode?: 'opfs' | 'http' | 'memory';
-  runtimePreset?: string;
+  runtimeProfile?: string;
   runtimeConfigUrl?: string;
   runtimeConfig?: Record<string, unknown>;
   inputDir?: string;
@@ -88,7 +88,7 @@ export interface ToolingCommandRequestInput {
 
 export interface ToolingCommandRequest {
   command: ToolingCommand;
-  suite: ToolingSuite | null;
+  workload: ToolingWorkload | null;
   intent: ToolingIntent;
   action: ToolingDistillAction | ToolingLoraAction | null;
   modelId: string | null;
@@ -124,7 +124,7 @@ export interface ToolingCommandRequest {
   modelUrl: string | null;
   cacheMode: 'cold' | 'warm' | null;
   loadMode: 'opfs' | 'http' | 'memory' | null;
-  runtimePreset: string | null;
+  runtimeProfile: string | null;
   runtimeConfigUrl: string | null;
   runtimeConfig: Record<string, unknown> | null;
   inputDir: string | null;
@@ -150,8 +150,8 @@ export interface ToolingCommandRequest {
 
 export declare const TOOLING_COMMANDS: readonly ToolingCommand[];
 export declare const TOOLING_SURFACES: readonly ToolingSurface[];
-export declare const TOOLING_SUITES: readonly ToolingSuite[];
-export declare const TOOLING_VERIFY_SUITES: readonly Exclude<ToolingSuite, 'bench' | 'debug'>[];
+export declare const TOOLING_WORKLOADS: readonly ToolingWorkload[];
+export declare const TOOLING_VERIFY_WORKLOADS: readonly ToolingWorkload[];
 export declare const TOOLING_TRAINING_COMMAND_SCHEMA_VERSION: number;
 
 export declare function normalizeToolingCommandRequest(
@@ -162,7 +162,7 @@ export declare function buildRuntimeContractPatch(
   commandRequest: ToolingCommandRequestInput
 ): {
   shared: {
-    harness: { mode: ToolingSuite; modelId: string | null };
+    harness: { mode: ToolingCommand; workload: ToolingWorkload; modelId: string | null };
     tooling: { intent: Exclude<ToolingIntent, null> };
   };
 } | null;

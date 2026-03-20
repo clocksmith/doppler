@@ -1,7 +1,6 @@
 import { markWarmed as markKernelCacheWarmed } from '../../../gpu/kernel-selection-cache.js';
 import { getKernelCapabilities } from '../../../gpu/device.js';
 import { log } from '../../../debug/index.js';
-import { resolvePreset } from '../../../config/loader.js';
 import {
   resolveKernelPath,
   getKernelPathStats,
@@ -711,11 +710,9 @@ export function resolveAndActivateKernelPath(options) {
 }
 
 export async function initTokenizerFromManifestPreset(manifest, baseUrl, storageContext = null) {
-  const presetId = manifest.inference?.presetId ?? null;
-  const presetTokenizer = presetId ? resolvePreset(presetId)?.tokenizer : null;
   return initTokenizer(manifest, {
     baseUrl: baseUrl ?? undefined,
-    presetTokenizer,
+    presetTokenizer: null,
     storageContext: storageContext ?? undefined,
   });
 }

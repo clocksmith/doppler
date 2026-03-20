@@ -41,7 +41,7 @@ const DEFAULT_ONBOARDING_POLICY = Object.freeze({
       path: 'REPO_ROOT',
     },
     model: {
-      runtimePreset: 'transformer',
+      basePreset: 'transformer',
     },
     conversion: {
       family: 'custom',
@@ -62,7 +62,7 @@ const DEFAULT_ONBOARDING_POLICY = Object.freeze({
       descriptionTemplate: 'Scaffolded kernel path for {id}.',
     },
     behavior: {
-      scope: 'modes',
+      scope: 'profiles',
     },
     errors: {
       unsupportedMode: 'Unsupported mode',
@@ -77,7 +77,7 @@ const DEFAULT_ONBOARDING_POLICY = Object.freeze({
     modelPreset: 'src/config/presets/models',
     conversion: 'tools/configs/conversion',
     kernelPath: 'src/config/presets/kernel-paths',
-    runtimePreset: 'src/config/presets/runtime',
+    runtimeProfile: 'src/config/presets/runtime',
   },
 });
 let activeOnboardingPolicy = DEFAULT_ONBOARDING_POLICY;
@@ -106,7 +106,7 @@ function resolveOnboardingPolicy(payload) {
         path: resolvePolicyText(rootDefaults.path, DEFAULT_ONBOARDING_POLICY.defaults.root.path),
       },
       model: {
-        runtimePreset: resolvePolicyText(modelDefaults.runtimePreset, DEFAULT_ONBOARDING_POLICY.defaults.model.runtimePreset),
+        basePreset: resolvePolicyText(modelDefaults.basePreset, DEFAULT_ONBOARDING_POLICY.defaults.model.basePreset),
       },
       conversion: {
         family: resolvePolicyText(conversionDefaults.family, DEFAULT_ONBOARDING_POLICY.defaults.conversion.family),
@@ -142,7 +142,7 @@ function resolveOnboardingPolicy(payload) {
       modelPreset: resolvePolicyText(paths.modelPreset, DEFAULT_ONBOARDING_POLICY.paths.modelPreset),
       conversion: resolvePolicyText(paths.conversion, DEFAULT_ONBOARDING_POLICY.paths.conversion),
       kernelPath: resolvePolicyText(paths.kernelPath, DEFAULT_ONBOARDING_POLICY.paths.kernelPath),
-      runtimePreset: resolvePolicyText(paths.runtimePreset, DEFAULT_ONBOARDING_POLICY.paths.runtimePreset),
+      runtimeProfile: resolvePolicyText(paths.runtimeProfile, DEFAULT_ONBOARDING_POLICY.paths.runtimeProfile),
     },
   };
 }
@@ -350,8 +350,8 @@ function toSafeJsIdentifier(value) {
     : `model_${identifier.replace(/[^a-z0-9_]/gi, '_')}`;
 }
 
-function toRuntimePresetId(runtimePresetRoot, filePath) {
-  const relativePath = path.relative(runtimePresetRoot, filePath);
+function toRuntimeProfileId(runtimeProfileRoot, filePath) {
+  const relativePath = path.relative(runtimeProfileRoot, filePath);
   return relativePath.replace(/\\/g, '/').replace(/\.json$/i, '');
 }
 
@@ -396,21 +396,12 @@ function parseCommandLine(argv) {
 }
 
 async function detectLoaderPresetIds() {
-  try {
-    const loader = await import('../src/config/loader.js');
-    const presetIds = Array.isArray(loader.listPresets()) ? loader.listPresets() : [];
-    return {
-      ids: new Set(presetIds.filter((value) => assertString(value, 'loader preset id'))),
-      detectionOrder: Array.isArray(loader.PRESET_DETECTION_ORDER) ? loader.PRESET_DETECTION_ORDER : [],
-      error: null,
-    };
-  } catch (error) {
-    return {
-      ids: new Set(),
-      detectionOrder: [],
-      error,
-    };
-  }
+  // Model presets have been removed (v1 execution configs are the sole source of truth).
+  return {
+    ids: new Set(),
+    detectionOrder: [],
+    error: null,
+  };
 }
 
 function collectKernelPathRefsFromPreset(preset) {
@@ -1142,10 +1133,10 @@ function isLeanExecutionFixtureMap(config) {
     && config?.output === undefined;
 }
 
-async function validateRuntimePresets(root, issues, context) {
-  const runtimePresetRoot = path.join(root, 'src/config/presets/runtime');
-  const files = await collectJsonFiles(runtimePresetRoot);
-  const presetsById = new Map();
+async function validateRuntimeProfiles(root, issues, context) {
+  const runtimeProfileRoot = path.join(root, 'src/config/presets/runtime');
+  const files = await collectJsonFiles(runtimeProfileRoot);
+  const profilesById = new Map();
   const ids = new Set();
 
   for (const filePath of files) {
@@ -1153,24 +1144,24 @@ async function validateRuntimePresets(root, issues, context) {
     try {
       preset = await readJson(filePath, 'object');
     } catch (error) {
-      issues.push(toIssue(ERROR, 'RUNTIME_PRESET_JSON', filePath, error.message));
+      issues.push(toIssue(ERROR, 'RUNTIME_PROFILE_JSON', filePath, error.message));
       continue;
     }
 
-    const presetId = toRuntimePresetId(runtimePresetRoot, filePath);
-    if (presetsById.has(presetId)) {
-      issues.push(toIssue(ERROR, 'RUNTIME_PRESET_DUP', filePath, `duplicate runtime preset id "${presetId}"`));
+    const presetId = toRuntimeProfileId(runtimeProfileRoot, filePath);
+    if (profilesById.has(presetId)) {
+      issues.push(toIssue(ERROR, 'RUNTIME_PROFILE_DUP', filePath, `duplicate runtime profile id "${presetId}"`));
       continue;
     }
 
     if (!assertString(preset.name, `${filePath}.name`)) {
-      issues.push(toIssue(WARN, 'RUNTIME_PRESET_NAME_MISSING', filePath, `runtime preset "${presetId}" missing name`));
+      issues.push(toIssue(WARN, 'RUNTIME_PROFILE_NAME_MISSING', filePath, `runtime profile "${presetId}" missing name`));
     }
 
     if (preset.extends != null && !assertString(preset.extends, `${filePath}.extends`)) {
       issues.push(toIssue(
         ERROR,
-        'RUNTIME_PRESET_EXTENDS_FORMAT',
+        'RUNTIME_PROFILE_EXTENDS_FORMAT',
         filePath,
         `extends must be a non-empty string when provided`
       ));
@@ -1179,13 +1170,13 @@ async function validateRuntimePresets(root, issues, context) {
     if (!isObject(preset.runtime)) {
       issues.push(toIssue(
         WARN,
-        'RUNTIME_PRESET_RUNTIME_MISSING',
+        'RUNTIME_PROFILE_RUNTIME_MISSING',
         filePath,
-        `runtime preset "${presetId}" does not define runtime`
+        `runtime profile "${presetId}" does not define runtime`
       ));
     }
 
-    presetsById.set(presetId, { filePath, preset });
+    profilesById.set(presetId, { filePath, preset });
     ids.add(presetId);
   }
 
@@ -1201,14 +1192,14 @@ async function validateRuntimePresets(root, issues, context) {
       const cycle = stack.slice(loopStart).concat(presetId);
       issues.push(toIssue(
         ERROR,
-        'RUNTIME_PRESET_EXTENDS_CYCLE',
-        `${runtimePresetRoot}/${presetId}.json`,
+        'RUNTIME_PROFILE_EXTENDS_CYCLE',
+        `${runtimeProfileRoot}/${presetId}.json`,
         `extends cycle detected: ${cycle.join(' -> ')}`
       ));
       return;
     }
 
-    const entry = presetsById.get(presetId);
+    const entry = profilesById.get(presetId);
     if (!entry) {
       return;
     }
@@ -1218,12 +1209,12 @@ async function validateRuntimePresets(root, issues, context) {
     stack.push(presetId);
 
     if (parent.length > 0) {
-      if (!presetsById.has(parent)) {
+      if (!profilesById.has(parent)) {
         issues.push(toIssue(
           ERROR,
-          'RUNTIME_PRESET_EXTENDS_MISSING',
+          'RUNTIME_PROFILE_EXTENDS_MISSING',
           entry.filePath,
-          `extends "${parent}" is not a known runtime preset`
+          `extends "${parent}" is not a known runtime profile`
         ));
       } else {
         validateChain(parent);
@@ -1235,11 +1226,11 @@ async function validateRuntimePresets(root, issues, context) {
     visited.add(presetId);
   };
 
-  for (const presetId of presetsById.keys()) {
+  for (const presetId of profilesById.keys()) {
     validateChain(presetId);
   }
 
-  context.runtimePresetIds = ids;
+  context.runtimeProfileIds = ids;
 }
 
 async function validateCompareConfigs(root, issues, context) {
@@ -1521,12 +1512,12 @@ function renderKernelPathTemplate(id, options = {}, policy = getActivePolicy()) 
   };
 }
 
-function renderModelPresetTemplate(id, runtimePresetId = null, policy = getActivePolicy()) {
+function renderModelPresetTemplate(id, basePresetId = null, policy = getActivePolicy()) {
   const modelDefaults = policy.defaults?.model || {};
   return {
     id,
     name: id,
-    extends: resolveText(runtimePresetId, resolveText(modelDefaults.runtimePreset, 'transformer')),
+    extends: resolveText(basePresetId, resolveText(modelDefaults.basePreset, 'transformer')),
     architecture: {},
     inference: {
       attention: {},
@@ -1601,7 +1592,7 @@ function renderConversionTemplate(id, presetId, options = {}, policy = getActive
 function renderBehaviorTemplate(id, scope = null, policy = getActivePolicy()) {
   const safeId = normalizeId(id);
   const behaviorDefaults = policyDefaultsFromActivePolicy(policy).behavior || {};
-  const scopeDefault = resolveText(behaviorDefaults.scope, 'modes');
+  const scopeDefault = resolveText(behaviorDefaults.scope, 'profiles');
   const safeScope = normalizeId(scope, { defaultValue: scopeDefault });
   return {
     name: safeId,
@@ -1645,7 +1636,7 @@ async function runCheck(context, policy = getActivePolicy()) {
   await validateGeneratedWgsl(context.rootDir, issues, context);
   await validateModelPresets(context.rootDir, issues, context);
   await validateConversionConfigs(context.rootDir, issues, context, policy);
-  await validateRuntimePresets(context.rootDir, issues, context);
+  await validateRuntimeProfiles(context.rootDir, issues, context);
   await validateCompareConfigs(context.rootDir, issues, context);
   const {
     modelPresetIds = new Set(),
@@ -1653,7 +1644,7 @@ async function runCheck(context, policy = getActivePolicy()) {
     loaderPresetDetectionOrder = [],
     kernelPathIds = new Set(),
     kernelStatusById = new Map(),
-    runtimePresetIds = new Set(),
+    runtimeProfileIds = new Set(),
     conversionModelIds = new Set(),
     compareProfileIds = new Set(),
     compareProfilesWithoutConversion = new Set(),
@@ -1666,7 +1657,7 @@ async function runCheck(context, policy = getActivePolicy()) {
     ...context,
     modelPresetIds,
     conversionModelIds: context.conversionModelIds,
-    runtimePresetIds: context.runtimePresetIds,
+    runtimeProfileIds: context.runtimeProfileIds,
     compareProfileIds: context.compareProfileIds,
     compareProfilesWithoutConversion: context.compareProfilesWithoutConversion,
     modelPresetNotInLoaderIds: context.modelPresetNotInLoaderIds,
@@ -1688,7 +1679,7 @@ async function runCheck(context, policy = getActivePolicy()) {
         generatedWgslVariants: generatedWgsl.variants,
         generatedWgslDrifted: generatedWgsl.drift,
         loaderDetectionOrder: Array.isArray(loaderPresetDetectionOrder) ? loaderPresetDetectionOrder.length : 0,
-        runtimePresets: resolvedContext.runtimePresetIds ? resolvedContext.runtimePresetIds.size : 0,
+        runtimeProfiles: resolvedContext.runtimeProfileIds ? resolvedContext.runtimeProfileIds.size : 0,
         conversionProfiles: resolvedContext.conversionModelIds ? resolvedContext.conversionModelIds.size : 0,
         compareProfiles: resolvedContext.compareProfileIds ? resolvedContext.compareProfileIds.size : 0,
       },
@@ -1784,12 +1775,12 @@ async function runScaffold(context, policy = getActivePolicy()) {
   }
 
   if (kind === 'behavior') {
-    const scope = normalizeId(context.scope, { defaultValue: resolveText(policy.defaults?.behavior?.scope, 'modes') });
+    const scope = normalizeId(context.scope, { defaultValue: resolveText(policy.defaults?.behavior?.scope, 'profiles') });
     const target = outputOverride
       ? path.resolve(rootDir, outputOverride)
       : path.join(
         rootDir,
-        resolveText(policy.paths?.runtimePreset, 'src/config/presets/runtime'),
+        resolveText(policy.paths?.runtimeProfile, 'src/config/presets/runtime'),
         scope,
         `${safeId}.json`
       );
@@ -1798,7 +1789,7 @@ async function runScaffold(context, policy = getActivePolicy()) {
     }
     const payload = renderBehaviorTemplate(safeId, scope, policy);
     await writeJsonFile(target, payload);
-    console.log(`[onboarding] wrote runtime preset: ${path.relative(rootDir, target)}`);
+    console.log(`[onboarding] wrote runtime profile: ${path.relative(rootDir, target)}`);
     return 0;
   }
 
@@ -1875,7 +1866,7 @@ async function main() {
     report.registries = {
       loaderPresetCount: loaderPresetIds.size,
       modelPresetCount: report.metadata.checks.modelPresets,
-      runtimePresetCount: report.metadata.checks.runtimePresets,
+      runtimeProfileCount: report.metadata.checks.runtimeProfiles,
       conversionProfileCount: report.metadata.checks.conversionProfiles,
       kernelPathCount: report.metadata.checks.kernelPaths,
       compareProfileCount: report.metadata.checks.compareProfiles,

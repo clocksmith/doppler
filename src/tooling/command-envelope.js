@@ -5,9 +5,12 @@ export const TOOLING_ERROR_CODE_FALLBACK = 'tooling_error';
 
 const CONTEXT_DETAIL_KEYS = Object.freeze([
   'command',
+  'workload',
   'suite',
   'workloadType',
   'modelId',
+  'requestedWorkload',
+  'allowedWorkloads',
   'requestedSuite',
   'allowedSuites',
   'fromSurface',

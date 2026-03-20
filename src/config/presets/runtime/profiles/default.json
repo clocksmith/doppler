@@ -1,5 +1,5 @@
 {
-  "id": "modes/default",
+  "id": "profiles/default",
   "name": "default",
   "description": "Baseline runtime defaults from schema",
   "intent": "investigate",

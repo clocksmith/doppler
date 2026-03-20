@@ -1,7 +1,7 @@
 {
   "defaults": {
     "suite": "bench",
-    "runtimePreset": "experiments/bench/gemma3-bench-q4k",
+    "runtimeProfile": "experiments/bench/gemma3-bench-q4k",
     "prompt": "The quick brown fox jumps over the lazy dog.",
     "maxTokens": 128
   },

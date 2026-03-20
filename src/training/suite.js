@@ -1244,7 +1244,7 @@ async function runUlStageTest(stage, options = {}) {
       maxSteps: 2,
       modelId: options.modelId || 'training',
       modelUrl: options.modelUrl || null,
-      runtimePreset: options.runtimePreset || null,
+      runtimeProfile: options.runtimeProfile || null,
       trainingStage: stage,
       command: options.command || null,
       surface: options.surface || null,
@@ -1422,7 +1422,7 @@ async function runDistillStageTest(stage, options = {}) {
       maxSteps: distillMaxSteps,
       modelId: options.modelId || distillRuntime.studentModelId || 'training',
       modelUrl: options.modelUrl || distillRuntime.studentModelUrl || null,
-      runtimePreset: options.runtimePreset || null,
+      runtimeProfile: options.runtimeProfile || null,
       trainingStage: stage,
       command: options.command || null,
       surface: options.surface || null,
@@ -1963,7 +1963,7 @@ export async function runTrainingBenchSuite(options = {}) {
           maxSteps: benchSettings.stepsPerRun,
           modelId: options.modelId || distillRuntime?.studentModelId || 'training',
           modelUrl: options.modelUrl || distillRuntime?.studentModelUrl || null,
-          runtimePreset: options.runtimePreset || null,
+          runtimeProfile: options.runtimeProfile || null,
           trainingStage: (
             options.trainingStage
             || trainingOverrides?.distill?.stage

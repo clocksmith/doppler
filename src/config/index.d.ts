@@ -15,17 +15,6 @@
 // Schema types
 export * from './schema/index.js';
 
-// Preset loader
-export {
-  getPreset,
-  listPresets,
-  resolvePreset,
-  detectPreset,
-  resolveConfig,
-  PRESET_REGISTRY,
-  PRESET_DETECTION_ORDER,
-} from './loader.js';
-
 // Runtime config registry
 export {
   getRuntimeConfig,

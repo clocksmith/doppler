@@ -19,8 +19,8 @@ import {
   sanitizeReportOutput,
   loadRuntimeConfigFromUrl,
   applyRuntimeConfigFromUrl,
-  loadRuntimePreset,
-  applyRuntimePreset,
+  loadRuntimeProfile,
+  applyRuntimeProfile,
   applyRuntimeForRun,
   normalizeManifest,
   mergeRunDefaults,
@@ -75,8 +75,8 @@ export async function runTrainingSuite(options = {}) {
 export {
   loadRuntimeConfigFromUrl,
   applyRuntimeConfigFromUrl,
-  loadRuntimePreset,
-  applyRuntimePreset,
+  loadRuntimeProfile,
+  applyRuntimeProfile,
   applyRuntimeForRun,
   buildSuiteSummary,
 };
@@ -128,81 +128,160 @@ export async function runBrowserHarness(options = {}) {
   return { ...harness, report, reportInfo };
 }
 
-const BROWSER_SUITE_SET = Object.freeze([
+const BROWSER_WORKLOAD_SET = Object.freeze([
   'kernels',
   'inference',
   'embedding',
   'training',
-  'bench',
-  'debug',
   'diffusion',
   'energy',
 ]);
 
-const BROWSER_SUITE_DISPATCH_MAP = Object.freeze({
-  kernels: 'runKernelSuite',
-  inference: 'runInferenceSuite',
-  embedding: 'runEmbeddingSuite',
-  training: 'runTrainingSuite',
-  bench: 'runBenchSuite',
-  debug: 'runInferenceSuite(debug)',
-  diffusion: 'runDiffusionSuite',
-  energy: 'runEnergySuite',
+const BROWSER_MODE_SET = Object.freeze(['verify', 'debug', 'bench']);
+
+const BROWSER_WORKLOAD_DISPATCH_MAP = Object.freeze({
+  verify: Object.freeze({
+    kernels: 'runKernelSuite',
+    inference: 'runInferenceSuite',
+    embedding: 'runEmbeddingSuite',
+    training: 'runTrainingSuite',
+    diffusion: 'runDiffusionSuite',
+    energy: 'runEnergySuite',
+  }),
+  debug: Object.freeze({
+    inference: 'runInferenceSuite(debug)',
+    embedding: 'runEmbeddingSuite(debug)',
+  }),
+  bench: Object.freeze({
+    inference: 'runBenchSuite',
+    embedding: 'runBenchSuite',
+    training: 'runBenchSuite(training)',
+    diffusion: 'runBenchSuite(diffusion)',
+  }),
 });
 
 export function getBrowserSupportedSuites() {
-  return [...BROWSER_SUITE_SET];
+  return [...BROWSER_WORKLOAD_SET];
 }
 
 export function getBrowserSuiteDispatchMap() {
-  return { ...BROWSER_SUITE_DISPATCH_MAP };
+  return {
+    verify: { ...BROWSER_WORKLOAD_DISPATCH_MAP.verify },
+    debug: { ...BROWSER_WORKLOAD_DISPATCH_MAP.debug },
+    bench: { ...BROWSER_WORKLOAD_DISPATCH_MAP.bench },
+  };
 }
 
-function createUnsupportedSuiteError(requestedSuite, context = {}) {
+function getAllowedWorkloadsForMode(mode) {
+  return Object.keys(BROWSER_WORKLOAD_DISPATCH_MAP[mode] || {});
+}
+
+function createUnsupportedWorkloadError(requestedWorkload, context = {}) {
   const command = typeof context.command === 'string' && context.command.trim()
     ? context.command.trim()
     : 'run-browser-suite';
   const surface = typeof context.surface === 'string' && context.surface.trim()
     ? context.surface.trim()
     : 'browser';
-  const allowedSuites = [...BROWSER_SUITE_SET];
+  const mode = typeof context.mode === 'string' && context.mode.trim()
+    ? context.mode.trim()
+    : 'verify';
+  const allowedWorkloads = getAllowedWorkloadsForMode(mode);
   const error = new Error(
-    `Unsupported suite "${requestedSuite}". Allowed suites: ${allowedSuites.join(', ')}. ` +
-    `command="${command}" surface="${surface}".`
+    `Unsupported workload "${requestedWorkload}". Allowed workloads: ${allowedWorkloads.join(', ')}. ` +
+    `command="${command}" mode="${mode}" surface="${surface}".`
   );
-  error.code = 'unsupported_suite';
-  error.requestedSuite = requestedSuite;
-  error.allowedSuites = allowedSuites;
+  error.code = 'unsupported_workload';
+  error.requestedWorkload = requestedWorkload;
+  error.allowedWorkloads = allowedWorkloads;
   error.command = command;
+  error.mode = mode;
   error.surface = surface;
   error.details = {
-    requestedSuite,
-    allowedSuites,
+    requestedWorkload,
+    allowedWorkloads,
     command,
+    mode,
     surface,
   };
   return error;
 }
 
-function resolveSuiteContext(options = {}) {
+function resolveHarnessContext(options = {}) {
   const command = typeof options.command === 'string' ? options.command : null;
   const surface = typeof options.surface === 'string' ? options.surface : null;
+  const mode = typeof options.mode === 'string' ? options.mode : null;
   return {
     command: command ?? 'run-browser-suite',
+    mode: mode ?? command ?? 'verify',
     surface: surface ?? 'browser',
   };
 }
 
-function normalizeSuite(value, context = {}) {
+function normalizeLegacySuite(value) {
   const suite = String(value || '').trim().toLowerCase();
   if (!suite) {
-    throw createUnsupportedSuiteError(suite, context);
+    return null;
   }
-  const normalized = suite === 'benchmark' ? 'bench' : suite;
-  if (!BROWSER_SUITE_SET.includes(normalized)) {
-    throw createUnsupportedSuiteError(normalized, context);
+  return suite === 'benchmark' ? 'bench' : suite;
+}
+
+function normalizeMode(value, context = {}) {
+  const mode = String(value || '').trim().toLowerCase();
+  if (!mode) {
+    return 'verify';
   }
-  return normalized;
+  if (!BROWSER_MODE_SET.includes(mode)) {
+    throw new Error(`Unsupported browser harness mode "${mode}" for command "${context.command || 'run-browser-suite'}".`);
+  }
+  return mode;
+}
+
+function resolveHarnessMode(options = {}, context = {}) {
+  const explicitMode = options.mode ?? options.command ?? null;
+  if (explicitMode) {
+    return normalizeMode(explicitMode, context);
+  }
+  const legacySuite = normalizeLegacySuite(options.suite);
+  if (legacySuite === 'debug' || legacySuite === 'bench') {
+    return legacySuite;
+  }
+  return 'verify';
+}
+
+function normalizeWorkload(value, mode, context = {}) {
+  const workload = String(value || '').trim().toLowerCase();
+  if (!workload) {
+    throw createUnsupportedWorkloadError(workload, { ...context, mode });
+  }
+  if (!getAllowedWorkloadsForMode(mode).includes(workload)) {
+    throw createUnsupportedWorkloadError(workload, { ...context, mode });
+  }
+  return workload;
+}
+
+function resolveWorkload(options = {}, mode, context = {}) {
+  if (options.workload) {
+    return normalizeWorkload(options.workload, mode, context);
+  }
+  const legacySuite = normalizeLegacySuite(options.suite);
+  if (legacySuite && legacySuite !== 'debug' && legacySuite !== 'bench') {
+    return normalizeWorkload(legacySuite, mode, context);
+  }
+  if (mode === 'debug' || mode === 'bench') {
+    return 'inference';
+  }
+  return normalizeWorkload('', mode, context);
+}
+
+function resolveDispatchSuite(mode, workload) {
+  if (mode === 'debug') {
+    return 'debug';
+  }
+  if (mode === 'bench') {
+    return 'bench';
+  }
+  return workload;
 }
 
 async function runKernelSuite(options = {}) {
@@ -238,7 +317,7 @@ async function runInferenceSuite(options = {}) {
   const modelType = harness.manifest?.modelType || 'transformer';
   if (options.expectedModelType === 'embedding' && modelType !== 'embedding') {
     throw new Error(
-      `Expected an embedding model for suite "${options.suiteName || options.suite || 'inference'}", got "${modelType}".`
+      `Expected an embedding model for workload "${options.workload || 'inference'}", got "${modelType}".`
     );
   }
   const cacheMode = normalizeCacheMode(options.cacheMode);
@@ -445,7 +524,14 @@ async function runBenchSuite(options = {}) {
   const timedRuns = defaultBenchRun.timedRuns;
   const cacheMode = normalizeCacheMode(options.cacheMode);
   const loadMode = normalizeLoadMode(options.loadMode, !options.modelUrl);
-  const workloadType = normalizeWorkloadType(options.workloadType);
+  const workloadType = normalizeWorkloadType(
+    options.workloadType
+    ?? (
+      options.mode === 'bench' && (options.workload === 'training' || options.workload === 'diffusion')
+        ? options.workload
+        : null
+    )
+  );
 
   if (workloadType === 'training') {
     const trainingBench = await runTrainingBenchSuite({
@@ -503,7 +589,7 @@ async function runBenchSuite(options = {}) {
     const diffusionBench = await runDiffusionSuite({
       ...options,
       command: 'bench',
-      suite: 'diffusion',
+      workload: 'diffusion',
       captureOutput: options.captureOutput === true,
       cacheMode,
       loadMode,
@@ -536,7 +622,7 @@ async function runBenchSuite(options = {}) {
   const modelType = harness.manifest?.modelType || 'transformer';
   if (options.expectedModelType === 'embedding' && modelType !== 'embedding') {
     throw new Error(
-      `Expected an embedding model for bench suite "${options.suite || 'bench'}", got "${modelType}".`
+      `Expected an embedding model for bench workload "${options.workload || 'inference'}", got "${modelType}".`
     );
   }
   const safeModelLoadMs = toTimingNumber(harness.modelLoadMs, 0);
@@ -838,42 +924,42 @@ async function runBenchSuite(options = {}) {
   };
 }
 
-async function dispatchBrowserSuite(suite, options) {
-  if (suite === 'kernels') {
+async function dispatchBrowserSuite(mode, workload, options) {
+  if (mode === 'verify' && workload === 'kernels') {
     return runKernelSuite(options);
   }
-  if (suite === 'embedding') {
+  if (workload === 'embedding') {
     return runInferenceSuite({
       ...options,
       suiteName: 'embedding',
       expectedModelType: options.expectedModelType ?? 'embedding',
     });
   }
-  if (suite === 'training') {
+  if (mode === 'verify' && workload === 'training') {
     return runTrainingSuite(options);
   }
-  if (suite === 'bench') {
+  if (mode === 'bench') {
     return runBenchSuite(options);
   }
-  if (suite === 'diffusion') {
+  if (mode === 'verify' && workload === 'diffusion') {
     return runDiffusionSuite(options);
   }
-  if (suite === 'energy') {
+  if (mode === 'verify' && workload === 'energy') {
     return runEnergySuite(options);
   }
-  if (suite === 'debug') {
+  if (mode === 'debug' && workload === 'inference') {
     return runInferenceSuite({ ...options, suiteName: 'debug' });
   }
-  if (suite === 'inference') {
+  if (workload === 'inference') {
     return runInferenceSuite({ ...options, suiteName: 'inference' });
   }
   return null;
 }
 
-function shouldCaptureDebugSnapshot(suite, runtimeConfig) {
+function shouldCaptureDebugSnapshot(mode, runtimeConfig) {
   const debug = runtimeConfig?.shared?.debug ?? {};
   const logLevel = String(debug.logLevel?.defaultLogLevel ?? '').toLowerCase();
-  return suite === 'debug'
+  return mode === 'debug'
     || debug.trace?.enabled === true
     || debug.pipeline?.enabled === true
     || (Array.isArray(debug.probes) && debug.probes.length > 0)
@@ -885,41 +971,50 @@ function shouldCaptureDebugSnapshot(suite, runtimeConfig) {
 export async function runBrowserSuite(options = {}) {
   return runWithRuntimeIsolationForSuite(async () => {
     const suiteTimestamp = resolveReportTimestamp(options.timestamp, 'runBrowserSuite timestamp');
-    const suiteContext = resolveSuiteContext(options);
-    const suite = normalizeSuite(options.suite, suiteContext);
-    const captureDebugSnapshot = shouldCaptureDebugSnapshot(suite, getRuntimeConfig());
+    const harnessContext = resolveHarnessContext(options);
+    const mode = resolveHarnessMode(options, harnessContext);
+    const workload = resolveWorkload(options, mode, harnessContext);
+    const suite = resolveDispatchSuite(mode, workload);
+    const captureDebugSnapshot = shouldCaptureDebugSnapshot(mode, getRuntimeConfig());
     if (captureDebugSnapshot) {
       clearLogHistory();
     }
-    const suiteResult = await dispatchBrowserSuite(suite, options);
+    const suiteResult = await dispatchBrowserSuite(mode, workload, {
+      ...options,
+      mode,
+      workload,
+      suite,
+    });
     if (!suiteResult) {
-      throw createUnsupportedSuiteError(suite, suiteContext);
+      throw createUnsupportedWorkloadError(workload, { ...harnessContext, mode });
     }
     const debugSnapshot = captureDebugSnapshot ? getDebugSnapshot() : null;
 
-    if (suite === 'bench' && suiteResult?.metrics?.workloadType === 'training') {
+    if (mode === 'bench' && suiteResult?.metrics?.workloadType === 'training') {
       const trainingReport = suiteResult?.metrics?.trainingMetricsReport;
       if (Array.isArray(trainingReport) && trainingReport.length > 0) {
         validateTrainingMetricsReport(trainingReport);
       }
     }
-    if (suite === 'diffusion') {
+    if (mode === 'verify' && workload === 'diffusion') {
       assertDiffusionPerformanceArtifact(suiteResult?.metrics, 'diffusion verify');
     }
-    if (suite === 'bench' && suiteResult?.metrics?.workloadType === 'diffusion') {
+    if (mode === 'bench' && suiteResult?.metrics?.workloadType === 'diffusion') {
       assertDiffusionPerformanceArtifact(suiteResult?.metrics, 'diffusion bench');
     }
 
-    const modelId = suiteResult.modelId || options.modelId || options.modelUrl || suite;
+    const modelId = suiteResult.modelId || options.modelId || options.modelUrl || workload || suite;
     const reportOutput = sanitizeReportOutput(suiteResult.output);
     const trainingArtifacts = collectTrainingArtifactsFromSuiteResult(suiteResult);
     const ulArtifacts = trainingArtifacts.ulArtifacts;
     const distillArtifacts = trainingArtifacts.distillArtifacts;
     const checkpointResumeTimeline = trainingArtifacts.checkpointResumeTimeline;
     const report = {
+      mode,
+      workload,
       suite,
       modelId,
-      runtimePreset: options.runtimePreset ?? null,
+      runtimeProfile: options.runtimeProfile ?? null,
       deviceInfo: suiteResult.deviceInfo ?? null,
       results: suiteResult.results,
       durationMs: suiteResult.duration,
@@ -949,7 +1044,7 @@ export async function runBrowserSuite(options = {}) {
       report.timestamp = suiteTimestamp;
     }
     const reportInfo = await saveReport(modelId, report, { timestamp: report.timestamp });
-    return { ...suiteResult, debugSnapshot, report, reportInfo };
+    return { ...suiteResult, mode, workload, debugSnapshot, report, reportInfo };
   });
 }
 
@@ -976,12 +1071,12 @@ export async function runBrowserManifest(manifest, options = {}) {
       const result = await runBrowserSuite({ ...run, timestamp: runTimestamp });
       results.push({
         ...result,
-        label: run.label ?? `${run.suite || 'inference'}:${result.modelId || 'unknown'}`,
+        label: run.label ?? `${run.workload || run.suite || 'inference'}:${result.modelId || 'unknown'}`,
       });
       options.onProgress?.({
         index: i + 1,
         total: normalized.runs.length,
-        label: run.label ?? result.modelId ?? run.suite ?? 'run',
+        label: run.label ?? result.modelId ?? run.workload ?? run.suite ?? 'run',
       });
     } finally {
       setRuntimeConfig(baseRuntimeConfig);
@@ -995,6 +1090,8 @@ export async function runBrowserManifest(manifest, options = {}) {
     summary,
     runs: results.map((result) => ({
       label: result.label,
+      mode: result.mode,
+      workload: result.workload,
       suite: result.suite,
       modelId: result.modelId,
       results: result.results,

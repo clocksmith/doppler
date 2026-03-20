@@ -11,7 +11,7 @@
       "artifactFormat": "rdrr",
       "evidence": {
         "kind": "manual-report",
-        "reportPath": "reports/gemma-3-1b-it-f16-af32/2026-03-10T16-27-00.122Z.json"
+        "reportPath": "tests/fixtures/reports/gemma-3-1b-it-f16-af32/2026-03-10T16-27-00.122Z.json"
       }
     },
     {
@@ -23,7 +23,7 @@
       "artifactFormat": "rdrr",
       "evidence": {
         "kind": "manual-report",
-        "reportPath": "reports/gemma-3-1b-it-q4k-ehf16-af32/2026-03-12T19-47-39.080Z.json"
+        "reportPath": "tests/fixtures/reports/gemma-3-1b-it-q4k-ehf16-af32/2026-03-12T19-47-39.080Z.json"
       }
     },
     {
@@ -35,7 +35,7 @@
       "artifactFormat": "rdrr",
       "evidence": {
         "kind": "manual-report",
-        "reportPath": "reports/gemma-3-270m-it-q4k-ehf16-af32/2026-03-12T19-47-22.710Z.json"
+        "reportPath": "tests/fixtures/reports/gemma-3-270m-it-q4k-ehf16-af32/2026-03-12T19-47-22.710Z.json"
       }
     },
     {
@@ -102,7 +102,7 @@
       "artifactFormat": "rdrr",
       "evidence": {
         "kind": "manual-report",
-        "reportPath": "reports/translategemma-4b-it-q4k-ehf16-af32/2026-03-09T00-42-54.145Z.json"
+        "reportPath": "tests/fixtures/reports/translategemma-4b-it-q4k-ehf16-af32/2026-03-09T00-42-54.145Z.json"
       }
     }
   ]

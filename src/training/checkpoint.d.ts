@@ -7,7 +7,7 @@ export interface CheckpointStoreOptions {
   datasetHash?: string;
   tokenizerHash?: string;
   optimizerHash?: string;
-  runtimePresetId?: string;
+  runtimeProfileId?: string;
   kernelPathId?: string;
   environmentMetadata?: unknown;
   buildProvenance?: Record<string, unknown> | null;

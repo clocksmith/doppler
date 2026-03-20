@@ -88,13 +88,13 @@ If shards exist without a manifest, classify the output as interrupted/incomplet
 
 ```bash
 # Primary debug run (auto surface = node-first transport; browser fallback only when node transport is unavailable)
-npm run debug -- --config '{"request":{"modelId":"MODEL_ID","runtimePreset":"modes/debug"},"run":{"surface":"auto"}}' --json
+npm run debug -- --config '{"request":{"modelId":"MODEL_ID","runtimeProfile":"profiles/verbose-trace"},"run":{"surface":"auto"}}' --json
 
 # Verify pass/fail with inference suite
-npm run verify:model -- --config '{"request":{"suite":"inference","modelId":"MODEL_ID","runtimePreset":"modes/debug"},"run":{"surface":"auto"}}' --json
+npm run verify:model -- --config '{"request":{"workload":"inference","modelId":"MODEL_ID","runtimeProfile":"profiles/verbose-trace"},"run":{"surface":"auto"}}' --json
 
 # Force browser relay for mobile/WebGPU parity checks
-npm run debug -- --config '{"request":{"modelId":"MODEL_ID","runtimePreset":"diagnostics/debug-logits"},"run":{"surface":"browser","browser":{"channel":"chrome","console":true}}}' --json
+npm run debug -- --config '{"request":{"modelId":"MODEL_ID","runtimeProfile":"diagnostics/debug-logits"},"run":{"surface":"browser","browser":{"channel":"chrome","console":true}}}' --json
 ```
 
 ## Runtime Overrides (Config-First)
@@ -112,11 +112,11 @@ npm run debug -- \
 
 ```bash
 # Investigate-mode profile run (trace/profiler enabled by preset)
-npm run debug -- --config '{"request":{"modelId":"MODEL_ID","runtimePreset":"experiments/gemma3-profile"},"run":{"surface":"auto"}}' --json
+npm run debug -- --config '{"request":{"modelId":"MODEL_ID","runtimeProfile":"experiments/gemma3-profile"},"run":{"surface":"auto"}}' --json
 
 # Fast readback sensitivity checks
-npm run bench -- --config '{"request":{"modelId":"MODEL_ID","runtimePreset":"experiments/gemma3-investigate-readback-r1","cacheMode":"warm"},"run":{"surface":"browser"}}' --json
-npm run bench -- --config '{"request":{"modelId":"MODEL_ID","runtimePreset":"experiments/gemma3-investigate-readback-r8","cacheMode":"warm"},"run":{"surface":"browser"}}' --json
+npm run bench -- --config '{"request":{"modelId":"MODEL_ID","runtimeProfile":"experiments/gemma3-investigate-readback-r1","cacheMode":"warm"},"run":{"surface":"browser"}}' --json
+npm run bench -- --config '{"request":{"modelId":"MODEL_ID","runtimeProfile":"experiments/gemma3-investigate-readback-r8","cacheMode":"warm"},"run":{"surface":"browser"}}' --json
 
 # Direct override for decode cadence tuning
 npm run bench -- \
@@ -156,7 +156,7 @@ npm run debug -- --config '{"request":{"modelId":"MODEL_ID","cacheMode":"warm"},
 - `src/tooling/node-command-runner.js`
 - `src/tooling/node-browser-command-runner.js`
 - `src/inference/browser-harness.js`
-- `src/config/presets/runtime/modes/debug.json`
+- `src/config/presets/runtime/profiles/verbose-trace.json`
 - `docs/developer-guides/README.md`
 
 ## Related Skills

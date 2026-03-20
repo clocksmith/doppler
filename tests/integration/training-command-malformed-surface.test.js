@@ -16,20 +16,21 @@ async function assertRejectsOnBothSurfaces(request, pattern) {
 
 await assertRejectsOnBothSurfaces({
   command: 'verify',
-  suite: 'training',
+  workload: 'training',
   modelId: null,
   trainingStage: 'stage3_unknown',
 }, /trainingStage must be one of stage1_joint, stage2_base, stage_a, stage_b/);
 
 await assertRejectsOnBothSurfaces({
   command: 'verify',
-  suite: 'inference',
+  workload: 'inference',
   modelId: 'gemma-3-270m-it-f16-af32',
   trainingTests: ['ul-stage1'],
-}, /training-only fields require suite="training" or bench workloadType="training"/);
+}, /training-only fields require workload="training"/);
 
 await assertRejectsOnBothSurfaces({
   command: 'bench',
+  workload: 'training',
   workloadType: 'training',
   modelId: null,
   trainingStage: 'stage1_joint',
@@ -38,6 +39,7 @@ await assertRejectsOnBothSurfaces({
 
 await assertRejectsOnBothSurfaces({
   command: 'bench',
+  workload: 'training',
   workloadType: 'training',
   modelId: null,
   trainingStage: 'stage1_joint',
@@ -46,7 +48,7 @@ await assertRejectsOnBothSurfaces({
 
 await assertRejectsOnBothSurfaces({
   command: 'verify',
-  suite: 'training',
+  workload: 'training',
   modelId: null,
   trainingStage: 'stage_a',
   forceResumeReason: 'missing flag',
@@ -57,9 +59,9 @@ await assert.rejects(
     command: 'lora',
     action: 'compare',
     runRoot: 'reports/training/lora/lora-toy/2026-03-07T00-00-00.000Z',
-    runtimePreset: 'modes/debug',
+    runtimeProfile: 'profiles/verbose-trace',
   }),
-  /lora does not support runtime input fields on the node operator surface: runtimePreset/
+  /lora does not support runtime input fields on the node operator surface: runtimeProfile/
 );
 
 await assert.rejects(

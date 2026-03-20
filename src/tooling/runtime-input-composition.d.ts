@@ -8,8 +8,8 @@ export interface RuntimeInputCompositionHandlers {
     ref: string,
     options?: Record<string, unknown>
   ) => Promise<Record<string, unknown> | null>;
-  applyRuntimePreset?: (
-    runtimePreset: string,
+  applyRuntimeProfile?: (
+    runtimeProfile: string,
     options?: Record<string, unknown>
   ) => Promise<void>;
   applyRuntimeConfigFromUrl?: (
@@ -20,7 +20,7 @@ export interface RuntimeInputCompositionHandlers {
 
 export interface OrderedRuntimeInputs {
   configChain?: string[] | null;
-  runtimePreset?: string | null;
+  runtimeProfile?: string | null;
   runtimeConfigUrl?: string | null;
   runtimeConfig?: Record<string, unknown> | null;
   runtimeContractPatch?: Record<string, unknown> | null | (() => Record<string, unknown> | null);

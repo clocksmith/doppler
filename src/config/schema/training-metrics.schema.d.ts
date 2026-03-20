@@ -13,7 +13,7 @@ export interface TrainingMetricsReportSchema {
     lr?: number | null;
     seed?: number;
     model_id?: string;
-    runtime_preset?: string | null;
+    runtime_profile?: string | null;
     kernel_path?: string | null;
     environment_metadata?: Record<string, unknown>;
     memory_stats?: Record<string, unknown> | null;

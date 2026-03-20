@@ -38,6 +38,14 @@ const TEST_CLI_POLICY = {
 };
 
 function runCli(args, options = {}) {
+  const normalizedArgs = (
+    Array.isArray(args)
+    && args.length > 0
+    && !args.includes('--json')
+    && !args.includes('--pretty')
+  )
+    ? [...args, '--pretty']
+    : args;
   const logDir = mkdtempSync(path.join(tmpdir(), 'doppler-cli-test-'));
   const stdoutPath = path.join(logDir, 'stdout.log');
   const stderrPath = path.join(logDir, 'stderr.log');
@@ -46,7 +54,7 @@ function runCli(args, options = {}) {
 
   const result = spawnSync(
     process.execPath,
-    [CLI_PATH, ...args],
+    [CLI_PATH, ...normalizedArgs],
     {
       cwd: ROOT_DIR,
       env: {
@@ -117,7 +125,7 @@ await assert.rejects(
       surface: null,
       request: {
         command: 'bench',
-        suite: 'bench',
+        workload: 'inference',
         modelId: 'toy-model',
       },
     }
@@ -129,7 +137,7 @@ await assert.rejects(
 {
   const request = {
     command: 'verify',
-    suite: 'inference',
+    workload: 'inference',
     modelId: 'toy-model',
   };
   const response = finalizeCliCommandResponse({
@@ -228,7 +236,7 @@ await assert.rejects(
   assert.equal(result.code, 1);
   assert.match(
     result.stderr,
-    /\[error\] tooling command: modelId is required for command "bench" \(suite "bench"\)\./
+    /\[error\] tooling command: modelId is required for command "bench" \(workload "inference"\)\./
   );
 }
 
@@ -347,6 +355,7 @@ await assert.rejects(
     '--config',
     JSON.stringify({
       request: {
+        workload: 'training',
         workloadType: 'training',
         trainingStage: 'stage1_joint',
       },
@@ -413,7 +422,7 @@ await assert.rejects(
     '--config',
     JSON.stringify({
       request: {
-        suite: 'inference',
+        workload: 'inference',
       },
       run: [],
     }),
@@ -443,7 +452,7 @@ await assert.rejects(
     JSON.stringify({
       request: {
         modelId: 'toy-model',
-        runtimePreset: 'modes/debug',
+        runtimeProfile: 'profiles/verbose-trace',
       },
     }),
     '--runtime-config',
@@ -452,7 +461,7 @@ await assert.rejects(
   assert.equal(result.code, 1);
   assert.match(
     result.stderr,
-    /\[error\] --runtime-config cannot be combined with runtimePreset\/runtimeConfigUrl\/runtimeConfig values inside --config request payload\./
+    /\[error\] --runtime-config cannot be combined with runtimeProfile\/runtimeConfigUrl\/runtimeConfig values inside --config request payload\./
   );
 }
 
@@ -462,16 +471,16 @@ await assert.rejects(
     '--config',
     JSON.stringify({
       request: {
-        suite: 'inference',
+        workload: 'inference',
         modelId: 'toy-model',
-        runtimePreset: 'modes/debug',
+        runtimeProfile: 'profiles/verbose-trace',
       },
     }),
   ]);
   assert.equal(result.code, 1);
   assert.doesNotMatch(
     result.stderr,
-    /\[error\] --runtime-config cannot be combined with runtimePreset\/runtimeConfigUrl\/runtimeConfig values inside --config request payload\./
+    /\[error\] --runtime-config cannot be combined with runtimeProfile\/runtimeConfigUrl\/runtimeConfig values inside --config request payload\./
   );
 }
 
@@ -521,7 +530,7 @@ await assert.rejects(
           label: 'bad-run',
           request: {
             command: 'verify',
-            suite: 'unknown',
+            workload: 'unknown',
           },
         },
       ],
@@ -534,7 +543,7 @@ await assert.rejects(
     '--config',
     JSON.stringify({
       request: {
-        suite: 'kernels',
+        workload: 'kernels',
       },
       run: {
         bench: {
@@ -551,7 +560,7 @@ await assert.rejects(
   assert.equal(payload[0].schemaVersion, 1);
   assert.equal(payload[0].surface, null);
   assert.equal(payload[0].request, null);
-  assert.match(payload[0].error?.message, /unsupported suite "unknown"/);
+  assert.match(payload[0].error?.message, /unsupported workload "unknown"/);
   rmSync(fixtureDir, { recursive: true, force: true });
 }
 
@@ -563,7 +572,7 @@ await assert.rejects(
   });
   const result = runCli(['verify', '--config', filePath, '--surface', 'node']);
   assert.equal(result.code, 1);
-  assert.match(result.stderr, /\[error\] tooling command: suite is required for "verify"\./);
+  assert.match(result.stderr, /\[error\] tooling command: workload is required for "verify"\./);
   rmSync(fixtureDir, { recursive: true, force: true });
 }
 

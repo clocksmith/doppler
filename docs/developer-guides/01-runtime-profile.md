@@ -1,12 +1,12 @@
-# Add a Runtime Preset
+# Add a Runtime Profile
 
 ## Goal
 
-Add a named runtime preset that changes behavior through JSON only.
+Add a named runtime profile that changes behavior through JSON only.
 
 ## When To Use This Guide
 
-- You want a reusable `runtimePreset` for debug, bench, CI, or model-specific tuning.
+- You want a reusable `runtimeProfile` for CI, production, low-memory, trace, or model-specific tuning.
 - You do not need new schema fields or runtime code.
 
 ## Blast Radius
@@ -15,26 +15,27 @@ Add a named runtime preset that changes behavior through JSON only.
 
 ## Required Touch Points
 
-- `src/config/presets/runtime/<bucket>/<id>.json`
-- Optional docs if the preset becomes a canonical workflow
+- `src/config/presets/runtime/profiles/<bucket>/<id>.json`
+- Optional docs if the profile becomes a canonical workflow
 
 ## Recommended Order
 
-1. Copy the closest existing preset under `src/config/presets/runtime/`.
+1. Copy the closest existing profile under `src/config/presets/runtime/profiles/`.
 2. Set `id`, `name`, `description`, `intent`, `stability`, `owner`, `createdAtUtc`, and `extends`.
-3. Keep the `runtime` block minimal. Only set fields that differ from defaults or the parent preset.
-4. Use the new ID through `request.runtimePreset` in a CLI or harness run.
+3. Keep the `runtime` block minimal. Only set fields that differ from defaults or the parent profile.
+4. Use the new ID through `request.runtimeProfile` in a CLI or harness run.
 
 ## Verification
 
 - `npm run onboarding:check`
-- Run one command with the new preset ID:
+- Run one command with the new profile ID:
 
 ```bash
 node tools/doppler-cli.js debug --config '{
   "request": {
     "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
-    "runtimePreset": "modes/your-preset"
+    "workload": "inference",
+    "runtimeProfile": "profiles/your-profile"
   },
   "run": { "surface": "auto" }
 }'
@@ -42,7 +43,7 @@ node tools/doppler-cli.js debug --config '{
 
 ## Common Misses
 
-- Copying `default.json` wholesale instead of keeping the preset as a small override.
+- Copying `default.json` wholesale instead of keeping the profile as a small override.
 - Setting the wrong intent. Harnessed flows expect `runtime.shared.tooling.intent` to match the command contract.
 - Putting behavior defaults in JS instead of schema or preset JSON.
 - Adding ad hoc URL/UI knobs when the setting belongs in runtime config.

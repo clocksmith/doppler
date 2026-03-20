@@ -74,9 +74,9 @@ benchmarks/vendors/results/*.json
 .tjs-bench-profile/
 benchmarks/.tjs-bench-profile/
 
-# Generated training artifacts
+# Generated report artifacts
 bench/out/
-reports/training/
+reports/**
 
 # Test artifacts
 test-results/

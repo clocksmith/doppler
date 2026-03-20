@@ -20,7 +20,7 @@ export interface TrainingStepMetricsEntry {
   lr?: number | null;
   seed?: number;
   model_id?: string;
-  runtime_preset?: string | null;
+  runtime_profile?: string | null;
   kernel_path?: string | null;
   environment_metadata?: Record<string, unknown>;
   memory_stats?: Record<string, unknown> | null;
@@ -150,7 +150,7 @@ export interface TrainingRunOptions {
   forceResume?: boolean;
   forceResumeReason?: string | null;
   forceResumeSource?: string | null;
-  runtimePreset?: string | null;
+  runtimeProfile?: string | null;
   seed?: number | null;
   kernelPathId?: string | null;
   tokenizerHash?: string | null;

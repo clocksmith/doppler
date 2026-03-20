@@ -1,12 +1,12 @@
 {
-  "id": "modes/bench",
-  "name": "bench",
-  "description": "Benchmark configuration with clean output and performance settings",
+  "id": "profiles/throughput",
+  "name": "throughput",
+  "description": "Calibration profile with quiet logging and throughput-oriented sampling defaults.",
   "intent": "calibrate",
   "stability": "canonical",
   "owner": "doppler-core",
-  "createdAtUtc": "2026-02-25T00:00:00Z",
-  "extends": "default",
+  "createdAtUtc": "2026-03-20T00:00:00Z",
+  "extends": "profiles/default",
   "runtime": {
     "shared": {
       "tooling": {

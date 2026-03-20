@@ -25,11 +25,11 @@ The harness does not accept per-field query overrides.
 ## Unified Commands (CLI, 1:1 schema)
 
 ```bash
-npm run verify:model -- --config '{"request":{"suite":"kernels"},"run":{"surface":"auto"}}'
-npm run verify:model -- --config '{"request":{"suite":"inference","modelId":"gemma-3-270m-it-q4k-ehf16-af32"},"run":{"surface":"auto"}}'
-npm run verify:model -- --config '{"request":{"suite":"training","modelId":"gemma-3-270m-it-q4k-ehf16-af32"},"run":{"surface":"auto"}}'
-npm run debug -- --config '{"request":{"modelId":"gemma-3-270m-it-q4k-ehf16-af32","runtimePreset":"modes/debug"},"run":{"surface":"auto"}}'
-npm run bench -- --config '{"request":{"modelId":"gemma-3-270m-it-q4k-ehf16-af32","runtimePreset":"experiments/bench/gemma3-bench-q4k"},"run":{"surface":"auto"}}'
+npm run verify:model -- --config '{"request":{"workload":"kernels"},"run":{"surface":"auto"}}'
+npm run verify:model -- --config '{"request":{"workload":"inference","modelId":"gemma-3-270m-it-q4k-ehf16-af32"},"run":{"surface":"auto"}}'
+npm run verify:model -- --config '{"request":{"workload":"training","modelId":"gemma-3-270m-it-q4k-ehf16-af32"},"run":{"surface":"auto"}}'
+npm run debug -- --config '{"request":{"modelId":"gemma-3-270m-it-q4k-ehf16-af32","runtimeProfile":"profiles/verbose-trace"},"run":{"surface":"auto"}}'
+npm run bench -- --config '{"request":{"modelId":"gemma-3-270m-it-q4k-ehf16-af32","runtimeProfile":"experiments/bench/gemma3-bench-q4k"},"run":{"surface":"auto"}}'
 ```
 
 Surface behavior:
@@ -54,7 +54,7 @@ python3 -m http.server 8080
 Example runtime config payload:
 
 ```json
-{"shared":{"tooling":{"intent":"verify"},"harness":{"mode":"inference","autorun":true,"skipLoad":false,"modelId":"gemma-3-270m-it-q4k-ehf16-af32"}}}
+{"shared":{"tooling":{"intent":"verify"},"harness":{"mode":"verify","workload":"inference","autorun":true,"skipLoad":false,"modelId":"gemma-3-270m-it-q4k-ehf16-af32"}}}
 ```
 
 ## Shared Utilities

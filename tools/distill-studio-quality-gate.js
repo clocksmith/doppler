@@ -105,7 +105,7 @@ function buildLanguageGate({
   reportId,
   modelId,
   trainingSchemaVersion,
-  runtimePreset,
+  runtimeProfile,
   kernelPath,
   seed,
   steps,
@@ -151,7 +151,7 @@ function buildLanguageGate({
     reportId,
     modelId,
     trainingSchemaVersion,
-    runtimePreset,
+    runtimeProfile,
     kernelPath,
     seed,
     metrics: {
@@ -184,7 +184,7 @@ async function main() {
   const directionCounts = (
     metrics.distillDataset && typeof metrics.distillDataset === 'object' && metrics.distillDataset.directionCounts
   ) || {};
-  const runtimePreset = normalizeString(reportObj.runtimePreset);
+  const runtimeProfile = normalizeString(reportObj.runtimeProfile);
   const kernelPath = normalizeString(finalEntry.kernel_path);
   const seed = Number.isFinite(finalEntry.seed) ? finalEntry.seed : null;
   const finalTotalLoss = Number.isFinite(finalEntry.total_loss) ? finalEntry.total_loss : null;
@@ -199,7 +199,7 @@ async function main() {
     reportId,
     modelId,
     trainingSchemaVersion,
-    runtimePreset,
+    runtimeProfile,
     kernelPath,
     seed,
     steps: trainingReport.length,
@@ -214,7 +214,7 @@ async function main() {
     reportId,
     modelId,
     trainingSchemaVersion,
-    runtimePreset,
+    runtimeProfile,
     kernelPath,
     seed,
     steps: trainingReport.length,
@@ -230,7 +230,7 @@ async function main() {
     reportPath: args.reportPath,
     modelId,
     trainingSchemaVersion,
-    runtimePreset,
+    runtimeProfile,
     kernelPath,
     seed,
     generatedAt: new Date().toISOString(),

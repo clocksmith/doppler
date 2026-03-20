@@ -21,7 +21,7 @@ node tools/onboarding-tooling.js check [--root <repo-root>] [--strict] [--json]
 
 Validates:
 - model preset shape and references
-- runtime preset shape and extends-chain integrity
+- runtime profile shape and extends-chain integrity
 - conversion config references and output fields
 - kernel path registry integrity and kernel existence
 - compare harness coverage and metric contract mapping
@@ -45,7 +45,7 @@ Kinds:
 - `model`: create model preset stub
 - `conversion`: create conversion config stub
 - `kernel`: create kernel-path preset stub
-- `behavior`: create runtime behavior preset stub
+- `behavior`: create runtime profile stub
 
 ## Canonical operational sequence
 

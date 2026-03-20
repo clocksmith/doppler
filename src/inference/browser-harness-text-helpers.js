@@ -1,8 +1,10 @@
+import { log as debugLog } from '../debug/index.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
 import { loadJson } from '../utils/load-json.js';
 import { isPlainObject } from '../utils/plain-object.js';
+import { DEFAULT_SAMPLING_DEFAULTS } from '../config/schema/inference-defaults.schema.js';
 
-const DEFAULT_HARNESS_PROMPT = 'Summarize this input in one sentence.';
+const DEFAULT_HARNESS_PROMPT = 'The color of the sky is';
 const DEFAULT_RUNTIME_PLACEHOLDER_PROMPT = 'Hello from Doppler.';
 const DEFAULT_QWEN_PROMPT = Object.freeze({
   messages: Object.freeze([
@@ -30,6 +32,30 @@ const DEFAULT_TRANSLATEGEMMA_PROMPT = Object.freeze({
 const DEFAULT_HARNESS_MAX_TOKENS = 32;
 const EMBEDDING_PREVIEW_LENGTH = 16;
 const GENERATION_TOKEN_DIAGNOSTIC_LIMIT = 32;
+let defaultsWarningEmitted = false;
+
+function warnIfUsingDefaults(runtimeConfig) {
+  if (defaultsWarningEmitted) return;
+  const hasPrompt = typeof runtimeConfig?.inference?.prompt === 'string'
+    && runtimeConfig.inference.prompt.trim().length > 0;
+  const hasSampling = isPlainObject(runtimeConfig?.inference?.sampling)
+    && Object.keys(runtimeConfig.inference.sampling).length > 0;
+  const hasMaxTokens = Number.isFinite(runtimeConfig?.inference?.batching?.maxTokens);
+  if (hasPrompt && hasSampling && hasMaxTokens) return;
+  defaultsWarningEmitted = true;
+  const defaults = [
+    `  prompt: "${DEFAULT_HARNESS_PROMPT}"`,
+    `  maxTokens: ${DEFAULT_HARNESS_MAX_TOKENS}`,
+    `  temperature: ${DEFAULT_SAMPLING_DEFAULTS.temperature}`,
+    `  topK: ${DEFAULT_SAMPLING_DEFAULTS.topK}`,
+    `  topP: ${DEFAULT_SAMPLING_DEFAULTS.topP}`,
+  ];
+  debugLog.warn('Harness',
+    'Running with default inference parameters (no runtime config override):\n'
+    + defaults.join('\n')
+    + '\n  See: src/config/schema/inference-defaults.schema.js'
+  );
+}
 const embeddingSemanticFixtureAsset = await loadJson(
   './fixtures/embedding-semantic-fixtures.json',
   import.meta.url,
@@ -719,6 +745,7 @@ export function isCoherentOutput(tokens, output) {
 }
 
 export async function runGeneration(pipeline, runtimeConfig, runOverrides = null) {
+  warnIfUsingDefaults(runtimeConfig);
   const tokens = [];
   const tokenIds = [];
   const tokenRecords = [];
@@ -821,6 +848,7 @@ export async function runGeneration(pipeline, runtimeConfig, runOverrides = null
 }
 
 export async function runEmbedding(pipeline, runtimeConfig, runOverrides = null) {
+  warnIfUsingDefaults(runtimeConfig);
   const prompt = typeof runOverrides?.prompt === 'string' && runOverrides.prompt.trim()
     ? runOverrides.prompt.trim()
     : resolvePrompt(runtimeConfig);

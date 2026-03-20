@@ -197,7 +197,7 @@
             "modelUrl": null,
             "cacheMode": "warm",
             "loadMode": "opfs",
-            "runtimePreset": null,
+            "runtimeProfile": null,
             "runtimeConfigUrl": null,
             "runtimeConfig": {
               "shared": {
@@ -565,7 +565,7 @@
             "report": {
               "suite": "bench",
               "modelId": "gemma-3-1b-it-f16-af32",
-              "runtimePreset": null,
+              "runtimeProfile": null,
               "deviceInfo": {
                 "hasSubgroups": true,
                 "hasSubgroupsF16": false,
@@ -1091,7 +1091,7 @@
             "modelUrl": null,
             "cacheMode": "warm",
             "loadMode": "opfs",
-            "runtimePreset": null,
+            "runtimeProfile": null,
             "runtimeConfigUrl": null,
             "runtimeConfig": {
               "shared": {
@@ -1459,7 +1459,7 @@
             "report": {
               "suite": "bench",
               "modelId": "gemma-3-1b-it-f16-af32",
-              "runtimePreset": null,
+              "runtimeProfile": null,
               "deviceInfo": {
                 "hasSubgroups": true,
                 "hasSubgroupsF16": false,

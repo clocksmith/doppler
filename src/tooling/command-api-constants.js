@@ -1,8 +1,8 @@
 export const TOOLING_COMMAND_SET = ['convert', 'debug', 'bench', 'verify', 'lora', 'distill'];
 export const TOOLING_SURFACE_SET = ['browser', 'node'];
-export const TOOLING_SUITE_SET = ['kernels', 'inference', 'embedding', 'training', 'bench', 'debug', 'diffusion', 'energy'];
+export const TOOLING_WORKLOAD_SET = ['kernels', 'inference', 'embedding', 'training', 'diffusion', 'energy'];
 export const TOOLING_INTENT_SET = ['verify', 'investigate', 'calibrate'];
-export const VERIFY_SUITES = ['kernels', 'inference', 'embedding', 'training', 'diffusion', 'energy'];
+export const VERIFY_WORKLOADS = ['kernels', 'inference', 'embedding', 'training', 'diffusion', 'energy'];
 export const TRAINING_STAGE_SET = ['stage1_joint', 'stage2_base', 'stage_a', 'stage_b'];
 export const DISTILL_ACTION_SET = ['run', 'stage-a', 'stage-b', 'eval', 'watch', 'compare', 'quality-gate', 'subsets'];
 export const LORA_ACTION_SET = ['run', 'eval', 'watch', 'export', 'compare', 'quality-gate', 'activate'];

@@ -1,6 +1,6 @@
 import {
   runBrowserSuite,
-  applyRuntimePreset,
+  applyRuntimeProfile,
   applyRuntimeConfigFromUrl,
 } from '../inference/browser-harness.js';
 import {
@@ -48,7 +48,7 @@ export async function runBrowserCommand(commandRequest, options = {}) {
     }
 
     const runtimeBridge = {
-      applyRuntimePreset,
+      applyRuntimeProfile,
       applyRuntimeConfigFromUrl,
       getRuntimeConfig,
       setRuntimeConfig,

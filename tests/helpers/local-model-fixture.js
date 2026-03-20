@@ -20,7 +20,7 @@ function computeFileSha256(filePath) {
   return crypto.createHash('sha256').update(fs.readFileSync(filePath)).digest('hex');
 }
 
-export function readLocalFixtureMap(fixtureMapPath = path.join(process.cwd(), 'tools/configs/conversion/lean-execution-contract-fixtures.json')) {
+export function readLocalFixtureMap(fixtureMapPath = path.join(process.cwd(), 'tests/fixtures/lean-execution-contract-fixtures.json')) {
   const payload = readJson(fixtureMapPath);
   const mappings = Array.isArray(payload?.mappings) ? payload.mappings : [];
   return mappings

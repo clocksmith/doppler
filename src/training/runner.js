@@ -568,7 +568,9 @@ function resolveRuntimeMemoryStats() {
 }
 
 function resolveCheckpointMetadataContext(config, runOptions = {}) {
-  const runtimePresetId = normalizeOptionalString(runOptions.runtimePreset);
+  const runtimeProfileId = normalizeOptionalString(
+    runOptions.runtimeProfile
+  );
   const kernelPathId = normalizeOptionalString(
     runOptions.kernelPathId
     || config?.runtime?.inference?.kernelPath
@@ -604,7 +606,7 @@ function resolveCheckpointMetadataContext(config, runOptions = {}) {
     datasetHash,
     tokenizerHash,
     optimizerHash,
-    runtimePresetId,
+    runtimeProfileId,
     kernelPathId,
     environmentMetadata: resolveRuntimeEnvironmentMetadata(runOptions),
     buildProvenance: resolveBuildProvenance(runOptions),
@@ -617,7 +619,7 @@ function buildExpectedCheckpointMetadata(metadata) {
     'configHash',
     'datasetHash',
     'tokenizerHash',
-    'runtimePresetId',
+    'runtimeProfileId',
     'kernelPathId',
   ]) {
     const value = metadata?.[key];
@@ -869,7 +871,9 @@ export class TrainingRunner {
     const trainingModelId = normalizeOptionalString(
       options.modelId || options.studentModelId
     ) || 'training';
-    const runtimePreset = normalizeOptionalString(options.runtimePreset);
+    const runtimeProfile = normalizeOptionalString(
+      options.runtimeProfile
+    );
     const kernelPath = normalizeOptionalString(checkpointMetadata.kernelPathId);
     const environmentMetadata = checkpointMetadata.environmentMetadata || resolveRuntimeEnvironmentMetadata();
     const buildProvenance = checkpointMetadata.buildProvenance || null;
@@ -1029,7 +1033,7 @@ export class TrainingRunner {
           scheduler_phase: stepResult.optimizerMetrics?.scheduler_phase ?? null,
           seed: trainingSeed,
           model_id: trainingModelId,
-          runtime_preset: runtimePreset,
+          runtime_profile: runtimeProfile,
           kernel_path: kernelPath,
           environment_metadata: environmentMetadata,
           memory_stats: resolveRuntimeMemoryStats(),

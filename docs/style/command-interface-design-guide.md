@@ -41,6 +41,26 @@ This applies to browser clients and the Node CLI equally.
 Defined in `src/tooling/command-api.js`.
 All surfaces must normalize via `normalizeToolingCommandRequest()`.
 
+## Workload Contract
+
+Workload names describe the run family and are independent of command intent.
+
+Canonical workloads:
+- `inference`
+- `embedding`
+- `kernels`
+- `training`
+- `diffusion`
+- `energy`
+
+Rules:
+- `debug` is valid for `inference` and `embedding`.
+- `bench` is valid for `inference`, `embedding`, `training`, `diffusion`, and `energy`.
+- `verify` is valid for `kernels`, `inference`, `embedding`, `training`, `diffusion`, and `energy`.
+- `convert`, `lora`, and `distill` do not use workload-locked harness execution.
+- `workloadType` is reserved for submodes inside a workload family when a family needs it, such as training stage selection or diffusion lane selection.
+- Runtime profile names must be orthogonal to command and workload names. Do not use `profiles/debug`, `profiles/bench`, or `profiles/embedding` as profile IDs.
+
 ---
 
 ## Intent Clusters
@@ -48,7 +68,7 @@ All surfaces must normalize via `normalizeToolingCommandRequest()`.
 ### Verification (Gatekeeper)
 
 - **Intent**: `verify`
-- **Exit**: pass/fail suite summary + diagnostics
+- **Exit**: pass/fail workload summary + diagnostics
 - **Command**: `verify`
 
 ### Investigation (Microscope)
@@ -62,16 +82,14 @@ All surfaces must normalize via `normalizeToolingCommandRequest()`.
 - **Intent**: `calibrate`
 - **Exit**: comparable scalar metrics
 - **Command**: `bench`
-- Training calibration runs through `bench` with `workloadType="training"` and
-  must remain behaviorally distinct from verify-path `verify` with
-  `request.suite="training"` in `--config`.
+- Training calibration runs through `bench` with `workload="training"`.
+- Use `workloadType` only when a training or diffusion workload needs a
+  submode such as stage selection.
 - Training payloads are schema-pinned (`trainingSchemaVersion=1` for training flows).
 - Force-resume audit fields are explicit and fail-closed:
   - `forceResumeReason`, `forceResumeSource`, and `checkpointOperator` require
     `forceResume=true`.
-- Diffusion calibration runs through `bench` with `workloadType="diffusion"` and
-  must remain behaviorally distinct from verify-path `verify` with
-  `request.suite="diffusion"` in `--config`.
+- Diffusion calibration runs through `bench` with `workload="diffusion"`.
 - Diffusion verify/calibrate results must include
   `metrics.performanceArtifact` with required stage lanes:
   `cpu.prefillMs`, `cpu.denoiseMs`, `cpu.vaeMs`, and `cpu.totalMs`.
@@ -102,14 +120,15 @@ All surfaces must normalize via `normalizeToolingCommandRequest()`.
 For harnessed commands (`debug`, `bench`, `verify`), runners must apply:
 
 - `runtime.shared.harness.mode`
-- `runtime.shared.harness.modelId` (required except `kernels` and training-calibration flows where `bench + workloadType="training"` intentionally patches `modelId: null`)
+- `runtime.shared.harness.workload`
+- `runtime.shared.harness.modelId` (required except `kernels` and training-calibration flows where `bench + workload="training"` intentionally patches `modelId: null`)
 - `runtime.shared.tooling.intent`
 
-`verify` verify suites are: `kernels`, `inference`, `training`, `diffusion`, and `energy`.
+`verify` workloads are: `kernels`, `inference`, `embedding`, `training`, `diffusion`, and `energy`.
 
 Diffusion command contracts:
-- Verify path: `command="verify"` and `suite="diffusion"`.
-- Calibrate path: `command="bench"`, `suite="bench"`, and `workloadType="diffusion"`.
+- Verify path: `command="verify"` and `workload="diffusion"`.
+- Calibrate path: `command="bench"` and `workload="diffusion"`.
 - Runtime backend contract: `runtime.inference.diffusion.backend.pipeline="gpu"` only.
 - Both paths must emit timing diagnostics and diffusion stage metrics as contract artifacts.
 
@@ -118,7 +137,7 @@ Use `buildRuntimeContractPatch()` and merge into runtime config before execution
 Runtime inputs must compose identically across Node, browser, CLI, and harnessed manifest flows:
 
 - `configChain` (when supported by the surface)
-- `runtimePreset`
+- `runtimeProfile`
 - `runtimeConfigUrl`
 - `runtimeConfig`
 - runtime contract patch
@@ -139,8 +158,8 @@ The shared contract is part of command semantics; engine overlays must not mutat
 Commands are rejected when:
 
 - command is unknown
-- required suite/model fields are missing
-- suite/intent contract is violated
+- required workload/model fields are missing
+- workload/intent contract is violated
 - `calibrate` enables investigation instrumentation
 - benchmark shared-contract fields drift across compared engines
 - operator command action is unknown
@@ -165,7 +184,7 @@ Commands are rejected when:
 
 - CLI supports `--surface auto|node|browser`.
 - `--surface auto` is explicit transport resolution for harnessed commands: try Node first, then browser relay only when Node WebGPU is unavailable. Command intent and contract stay unchanged.
-- Exception: training flows (`suite="training"` or `bench + workloadType="training"`) must not auto-downgrade from node to browser; this is a fail-closed transport rule that preserves command semantics.
+- Exception: training flows (`workload="training"` or explicit training workload variants) must not auto-downgrade from node to browser; this is a fail-closed transport rule that preserves command semantics.
 - `lora` and `distill` are also training flows for auto-surface purposes and must not silently downgrade.
 - Node runner may bootstrap WebGPU from available runtime support before failing.
 - Browser relay executes `runBrowserCommand()` in a browser via `src/tooling/command-runner.html`

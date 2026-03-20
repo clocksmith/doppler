@@ -18,7 +18,7 @@ try {
   writeFileSync(reportPath, JSON.stringify({
     reportId: 'rep_test_001',
     modelId: 'toy-model',
-    runtimePreset: 'training-distill-ci',
+    runtimeProfile: 'training-distill-ci',
     metrics: {
       trainingSchemaVersion: 1,
       trainingMetricsReport: [

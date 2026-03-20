@@ -20,6 +20,6 @@ assert.doesNotMatch(demoSource, /Imported \$\{modelId\} to OPFS\./);
 assert.match(storageInspectorSource, /if \(entry\.hasManifest\) \{/);
 
 assert.match(diagnosticsSource, /does not accept configChain/);
-assert.doesNotMatch(diagnosticsSource, /configChain,\n\s*runtimePreset:/);
+assert.match(diagnosticsSource, /runtimeProfile:\s*options\.runtimeProfile\s*\?\?\s*null/);
 
 console.log('demo-surface-contract.test: ok');

@@ -284,12 +284,12 @@ async function main() {
 
   const modelUrl = resolveModelUrl(entry);
   const request = {
-    suite: 'inference',
+    workload: 'inference',
     modelId: entry.modelId,
     modelUrl,
     loadMode: 'http',
     cacheMode: 'warm',
-    runtimePreset: 'modes/debug',
+    runtimeProfile: 'profiles/verbose-trace',
   };
   const run = { surface: parsed.surface };
 
@@ -321,7 +321,7 @@ async function main() {
       catalogFile: parsed.catalogFile,
       modelId: entry.modelId,
       surface: parsed.surface,
-      suite: request.suite,
+      suite: request.workload,
       result,
       source: 'registry-verify',
       contractArtifacts: {

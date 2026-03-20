@@ -67,45 +67,45 @@ const { trainingHarness } = await import('../../src/training/suite.js');
 
 await assert.rejects(
   () => runBrowserSuite({
-    suite: 'unknown-suite',
+    workload: 'unknown-suite',
     command: 'verify',
     surface: 'node',
   }),
   (error) => {
-    assert.equal(error.code, 'unsupported_suite');
-    assert.equal(error.requestedSuite, 'unknown-suite');
+    assert.equal(error.code, 'unsupported_workload');
+    assert.equal(error.requestedWorkload, 'unknown-suite');
     assert.equal(error.command, 'verify');
     assert.equal(error.surface, 'node');
-    assert.ok(Array.isArray(error.allowedSuites));
-    assert.ok(error.allowedSuites.includes('embedding'));
-    assert.ok(error.allowedSuites.includes('training'));
-    assert.ok(error.allowedSuites.includes('inference'));
+    assert.ok(Array.isArray(error.allowedWorkloads));
+    assert.ok(error.allowedWorkloads.includes('embedding'));
+    assert.ok(error.allowedWorkloads.includes('training'));
+    assert.ok(error.allowedWorkloads.includes('inference'));
     return true;
   }
 );
 
 await assert.rejects(
   () => runBrowserSuite({
-    suite: undefined,
+    workload: undefined,
     command: 'verify',
     surface: 'node',
   }),
   (error) => {
-    assert.equal(error.code, 'unsupported_suite');
-    assert.equal(error.requestedSuite, '');
+    assert.equal(error.code, 'unsupported_workload');
+    assert.equal(error.requestedWorkload, '');
     return true;
   }
 );
 
 await assert.rejects(
   () => runBrowserSuite({
-    suite: '',
+    workload: '',
     command: 'verify',
     surface: 'node',
   }),
   (error) => {
-    assert.equal(error.code, 'unsupported_suite');
-    assert.equal(error.requestedSuite, '');
+    assert.equal(error.code, 'unsupported_workload');
+    assert.equal(error.requestedWorkload, '');
     return true;
   }
 );

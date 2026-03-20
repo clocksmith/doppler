@@ -5,7 +5,7 @@
         "command": "debug"
       },
       "value": {
-        "suite": "debug",
+        "workload": null,
         "intent": "investigate"
       }
     },
@@ -14,7 +14,7 @@
         "command": "bench"
       },
       "value": {
-        "suite": "bench",
+        "workload": null,
         "intent": "calibrate"
       }
     },
@@ -23,7 +23,7 @@
         "command": "verify"
       },
       "value": {
-        "suite": null,
+        "workload": null,
         "intent": "verify"
       }
     },
@@ -32,7 +32,7 @@
         "command": "lora"
       },
       "value": {
-        "suite": null,
+        "workload": null,
         "intent": null
       }
     },
@@ -41,14 +41,14 @@
         "command": "distill"
       },
       "value": {
-        "suite": null,
+        "workload": null,
         "intent": null
       }
     },
     {
       "match": {},
       "value": {
-        "suite": null,
+        "workload": null,
         "intent": null
       }
     }

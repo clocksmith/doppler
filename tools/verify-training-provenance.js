@@ -234,7 +234,7 @@ function verifyCheckpointShape(checkpoint) {
   assertNonEmptyString(metadata.datasetHash, 'checkpoint.metadata.datasetHash');
   assertNullableString(metadata.tokenizerHash, 'checkpoint.metadata.tokenizerHash');
   assertNonEmptyString(metadata.optimizerHash, 'checkpoint.metadata.optimizerHash');
-  assertNullableString(metadata.runtimePresetId, 'checkpoint.metadata.runtimePresetId');
+  assertNullableString(metadata.runtimeProfileId, 'checkpoint.metadata.runtimeProfileId');
   assertNullableString(metadata.kernelPathId, 'checkpoint.metadata.kernelPathId');
   assertFiniteNumber(metadata.timestamp, 'checkpoint.metadata.timestamp');
   assert(
@@ -433,7 +433,7 @@ async function runSelfTest() {
       lr: 0.0001,
       seed: 1337,
       model_id: 'selftest-model',
-      runtime_preset: null,
+      runtime_profile: null,
       kernel_path: null,
       environment_metadata: { runtime: 'node' },
       memory_stats: null,

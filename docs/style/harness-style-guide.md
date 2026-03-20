@@ -17,12 +17,12 @@ Use this guide for:
 - Apply runtime config without changing command meaning.
 - Preserve surface parity: no hidden defaults that change outcomes.
 - Fail fast on unsupported environment capabilities.
-- Keep runtime tuning config-driven (`runtimePreset`, `runtimeConfig`, `configChain`).
+- Keep runtime tuning config-driven (`runtimeProfile`, `runtimeConfig`, `configChain`).
 
 ## Browser harness contract
 
 Browser harness URLs accept only:
-- `runtimePreset`
+- `runtimeProfile`
 - `runtimeConfig`
 - `runtimeConfigUrl`
 - `configChain`
@@ -50,13 +50,14 @@ Node WebGPU provider resolution order:
 For harnessed runs, apply `buildRuntimeContractPatch()` before execution.
 The patch fields are:
 - `shared.harness.mode`
-- `shared.harness.modelId` (except kernel-only flows and training calibration via `bench + workloadType="training"`)
+- `shared.harness.workload`
+- `shared.harness.modelId` (except kernel-only flows and training calibration via `bench + workload="training"`)
 - `shared.tooling.intent`
 
 Harness runtime-input composition must preserve shared command semantics:
 
 - apply `configChain` first when supported
-- then `runtimePreset`
+- then `runtimeProfile`
 - then `runtimeConfigUrl`
 - then `runtimeConfig`
 - then the runtime contract patch
@@ -76,8 +77,8 @@ Do not short-circuit after the first provided input. Do not silently ignore a su
 
 ## Diffusion Contract
 
-Diffusion verification must use `suite="diffusion"` via the `verify` command path.
-Diffusion calibration must use `workloadType="diffusion"` via the `bench` command path.
+Diffusion verification must use `workload="diffusion"` via the `verify` command path.
+Diffusion calibration must use `workload="diffusion"` via the `bench` command path.
 
 ## Logging
 

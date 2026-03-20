@@ -33,8 +33,8 @@ function assertNoUnsupportedRuntimeInputs(request) {
   if (Array.isArray(request?.configChain) && request.configChain.length > 0) {
     runtimeFields.push('configChain');
   }
-  if (typeof request?.runtimePreset === 'string' && request.runtimePreset.trim()) {
-    runtimeFields.push('runtimePreset');
+  if (typeof request?.runtimeProfile === 'string' && request.runtimeProfile.trim()) {
+    runtimeFields.push('runtimeProfile');
   }
   if (typeof request?.runtimeConfigUrl === 'string' && request.runtimeConfigUrl.trim()) {
     runtimeFields.push('runtimeConfigUrl');
@@ -134,7 +134,7 @@ export async function runNodeCommand(commandRequest, options = {}) {
     await assertNodeWebGPUSupport();
     const modules = await loadRuntimeModules();
     const runtimeBridge = {
-      applyRuntimePreset: modules.harness.applyRuntimePreset,
+      applyRuntimeProfile: modules.harness.applyRuntimeProfile,
       applyRuntimeConfigFromUrl: modules.harness.applyRuntimeConfigFromUrl,
       getRuntimeConfig: modules.runtime.getRuntimeConfig,
       setRuntimeConfig: modules.runtime.setRuntimeConfig,

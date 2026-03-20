@@ -62,7 +62,7 @@ A bare string is treated as a bundled/known registry ID, not a path heuristic.
 
 - `doppler()`, `doppler.text()`, `doppler.chat()`, and `doppler.chatText()` all require `options.model`
 - load-affecting options belong on `doppler.load()`, not the convenience call
-- `runtimeConfig`, `runtimePreset`, and `runtimeConfigUrl` are rejected on the convenience-call surface
+- `runtimeConfig`, `runtimeProfile`, and `runtimeConfigUrl` are rejected on the convenience-call surface
 - unsupported resolution inputs fail fast rather than silently falling back
 
 ## Primary Symbol Notes

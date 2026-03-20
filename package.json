@@ -45,7 +45,7 @@
     "test:gpu": "node tools/run-node-tests.js --suite gpu",
     "test:coverage": "node tools/run-node-coverage.js",
     "test:coverage:report": "node tools/run-node-coverage.js --no-threshold",
-    "test:gpu:browser": "node tools/doppler-cli.js verify --config '{\"request\":{\"suite\":\"kernels\"},\"run\":{\"surface\":\"browser\",\"browser\":{\"opfsCache\":false,\"headless\":true,\"channel\":\"chromium\",\"browserArgs\":[\"--use-angle=swiftshader\",\"--disable-vulkan-surface\"],\"console\":true}}}'",
+    "test:gpu:browser": "node tools/doppler-cli.js verify --config '{\"request\":{\"workload\":\"kernels\"},\"run\":{\"surface\":\"browser\",\"browser\":{\"opfsCache\":false,\"headless\":true,\"channel\":\"chromium\",\"browserArgs\":[\"--use-angle=swiftshader\",\"--disable-vulkan-surface\"],\"console\":true}}}'",
     "agents:verify": "node tools/verify-agent-parity.js",
     "agents:freshness": "node tools/verify-agent-freshness.js",
     "agents:freshness:strict": "node tools/verify-agent-freshness.js --strict",

@@ -6027,9 +6027,9 @@ async function handleDiagnosticsRun(mode) {
   const selections = state.diagnosticsSelections[state.uiMode] || {};
   const selectedProfileId = profileSelect?.value || selections.profile || '';
   const selectedProfile = decodeDiagnosticsProfileId(selectedProfileId);
-  const suite = selectedProfile?.suite || selections.suite || getDiagnosticsDefaultSuite(state.uiMode);
+  const workload = selectedProfile?.suite || selections.suite || getDiagnosticsDefaultSuite(state.uiMode);
   const modelId = modelSelect?.value || null;
-  const runtimePreset = selectedProfile?.preset || selections.preset || presetSelect?.value || DEFAULT_RUNTIME_PRESET;
+  const runtimeProfile = selectedProfile?.preset || selections.preset || presetSelect?.value || DEFAULT_RUNTIME_PRESET;
   if (selectedProfile) {
     storeDiagnosticsSelection(state.uiMode, {
       profile: selectedProfileId,
@@ -6037,29 +6037,29 @@ async function handleDiagnosticsRun(mode) {
       preset: selectedProfile.preset,
     });
   }
-  if (presetSelect && presetSelect.value !== runtimePreset) {
-    presetSelect.value = runtimePreset;
+  if (presetSelect && presetSelect.value !== runtimeProfile) {
+    presetSelect.value = runtimeProfile;
   }
   if (profileSelect && selectedProfileId && profileSelect.value !== selectedProfileId) {
     profileSelect.value = selectedProfileId;
   }
-  const captureOutput = runtimePreset === 'modes/debug';
+  const captureOutput = runtimeProfile === 'profiles/verbose-trace';
   const previousRuntime = cloneRuntimeConfig(getRuntimeConfig());
   let runtimeConfig = state.diagnosticsRuntimeConfig;
 
-  updateDiagnosticsStatus(`${mode === 'verify' ? 'Verifying' : 'Running'} ${suite}...`);
+  updateDiagnosticsStatus(`${mode === 'verify' ? 'Verifying' : 'Running'} ${workload}...`);
   updateDiagnosticsReport('');
   clearDiagnosticsOutput();
   try {
-    if (!runtimeConfig || state.diagnosticsRuntimePresetId !== runtimePreset) {
-      runtimeConfig = await refreshDiagnosticsRuntimeConfig(runtimePreset);
+    if (!runtimeConfig || state.diagnosticsRuntimePresetId !== runtimeProfile) {
+      runtimeConfig = await refreshDiagnosticsRuntimeConfig(runtimeProfile);
     }
     if (mode === 'verify') {
       const result = await controller.verifySuite(
         modelId ? { sources: { browser: { id: modelId } } } : null,
         {
-          suite,
-          runtimePreset,
+          workload,
+          runtimeProfile,
           modelId,
           runtimeConfig,
         }
@@ -6067,10 +6067,10 @@ async function handleDiagnosticsRun(mode) {
       state.lastReport = result.report;
       state.lastReportInfo = result.reportInfo ?? null;
       state.lastMetrics = result.metrics ?? null;
-      state.lastDiagnosticsSuite = result.suite ?? suite;
+      state.lastDiagnosticsSuite = result.suite ?? workload;
       updateDiagnosticsStatus('Verified');
       updateDiagnosticsReport(result.report?.timestamp || new Date().toISOString());
-      renderDiagnosticsOutput({ suite, modelId, report: result.report }, suite, false);
+      renderDiagnosticsOutput({ suite: workload, modelId, report: result.report }, workload, false);
       return;
     }
 
@@ -6079,8 +6079,8 @@ async function handleDiagnosticsRun(mode) {
     }
 
     const options = {
-      suite,
-      runtimePreset,
+      workload,
+      runtimeProfile,
       modelId,
       runtimeConfig,
       captureOutput,
@@ -6133,7 +6133,7 @@ async function handleDiagnosticsRun(mode) {
         stateStats: result.metrics.stateStats,
       });
     }
-    updateDiagnosticsStatus(`Complete (${result.suite})`);
+    updateDiagnosticsStatus(`Complete (${result.suite || workload})`);
     if (result.reportInfo?.path) {
       updateDiagnosticsReport(result.reportInfo.path);
     } else if (result.report?.timestamp) {
@@ -6143,15 +6143,15 @@ async function handleDiagnosticsRun(mode) {
     updateMemoryPanel(snapshot);
     updatePerformancePanel(snapshot);
     updateMemoryControls();
-    renderDiagnosticsOutput(result, suite, captureOutput);
+    renderDiagnosticsOutput(result, workload, captureOutput);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     updateDiagnosticsStatus(message, true);
     const timestamp = new Date().toISOString();
     const report = {
-      suite,
+      suite: workload,
       modelId,
-      runtimePreset,
+      runtimeProfile,
       timestamp,
       results: [{ name: mode === 'verify' ? 'verify-config' : 'run', passed: false, error: message }],
       metrics: { error: true, mode },
@@ -6160,9 +6160,9 @@ async function handleDiagnosticsRun(mode) {
     state.lastReport = report;
     state.lastReportInfo = null;
     state.lastMetrics = report.metrics;
-    state.lastDiagnosticsSuite = suite;
+    state.lastDiagnosticsSuite = workload;
     updateDiagnosticsReport(timestamp);
-    renderDiagnosticsOutput({ suite, modelId, report }, suite, captureOutput);
+    renderDiagnosticsOutput({ suite: workload, modelId, report }, workload, captureOutput);
   } finally {
     setRuntimeConfig(previousRuntime);
     updateRunAutoLabels();
@@ -6259,7 +6259,7 @@ function bindUI() {
   const downloadResume = $('download-resume-btn');
   const downloadCancel = $('download-cancel-btn');
   const downloadRefresh = $('download-refresh-btn');
-  const runtimePreset = $('runtime-preset');
+  const runtimeProfileSelect = $('runtime-preset');
   const runtimeFile = $('runtime-config-file');
   const runtimeClear = $('runtime-config-clear');
   const runtimeConfigPreset = $('runtime-config-preset');
@@ -6557,10 +6557,10 @@ function bindUI() {
     refreshDownloads();
   });
 
-  runtimePreset?.addEventListener('change', () => {
+  runtimeProfileSelect?.addEventListener('change', () => {
     const mode = state.uiMode;
-    storeDiagnosticsSelection(mode, { preset: runtimePreset.value || DEFAULT_RUNTIME_PRESET, profile: '' });
-    if (runtimePreset.value !== 'modes/debug') {
+    storeDiagnosticsSelection(mode, { preset: runtimeProfileSelect.value || DEFAULT_RUNTIME_PRESET, profile: '' });
+    if (runtimeProfileSelect.value !== 'profiles/verbose-trace') {
       clearDiagnosticsOutput();
     }
     applySelectedRuntimePreset();

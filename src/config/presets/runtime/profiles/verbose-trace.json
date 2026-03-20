@@ -1,12 +1,12 @@
 {
-  "id": "modes/debug",
-  "name": "debug",
-  "description": "Debug configuration with verbose logging and tracing enabled",
+  "id": "profiles/verbose-trace",
+  "name": "verbose-trace",
+  "description": "Investigation profile with verbose logging and broad tracing enabled.",
   "intent": "investigate",
   "stability": "canonical",
   "owner": "doppler-core",
-  "createdAtUtc": "2026-02-25T00:00:00Z",
-  "extends": "default",
+  "createdAtUtc": "2026-03-20T00:00:00Z",
+  "extends": "profiles/default",
   "runtime": {
     "shared": {
       "tooling": {
