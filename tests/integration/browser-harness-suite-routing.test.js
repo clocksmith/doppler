@@ -77,6 +77,7 @@ await assert.rejects(
     assert.equal(error.command, 'verify');
     assert.equal(error.surface, 'node');
     assert.ok(Array.isArray(error.allowedSuites));
+    assert.ok(error.allowedSuites.includes('embedding'));
     assert.ok(error.allowedSuites.includes('training'));
     assert.ok(error.allowedSuites.includes('inference'));
     return true;

@@ -189,14 +189,9 @@ function resolveConversionPlanV1(options) {
     execution,
   };
 
-  const presetId = converterConfig?.presets?.model ?? options?.presetOverride ?? null;
-  if (presetId) {
-    manifestInference.presetId = presetId;
-  }
-
   return {
     modelType,
-    presetId,
+    presetId: null,
     preset: null,
     sourceQuantization,
     quantizationInfo,

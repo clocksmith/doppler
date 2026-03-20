@@ -77,6 +77,19 @@ node tools/doppler-cli.js verify --config "{
 }" --json
 ```
 
+Embedding verify uses the explicit embedding suite:
+
+```bash
+node tools/doppler-cli.js verify --config "{
+  \"request\": {
+    \"suite\": \"embedding\",
+    \"modelId\": \"google-embeddinggemma-300m-q4k-ehf16-af32\",
+    \"runtimePreset\": \"modes/embedding\"
+  },
+  \"run\": { \"surface\": \"auto\" }
+}" --json
+```
+
 ### Benchmark
 
 ```bash
@@ -94,6 +107,19 @@ node tools/doppler-cli.js bench --config "{
       \"saveDir\": \"benchmarks/vendors/results\"
     }
   }
+}" --json
+```
+
+Embedding benchmark can now be requested explicitly while still using the benchmark command:
+
+```bash
+node tools/doppler-cli.js bench --config "{
+  \"request\": {
+    \"suite\": \"embedding\",
+    \"modelId\": \"google-embeddinggemma-300m-q4k-ehf16-af32\",
+    \"runtimePreset\": \"modes/embedding-bench\"
+  },
+  \"run\": { \"surface\": \"auto\" }
 }" --json
 ```
 

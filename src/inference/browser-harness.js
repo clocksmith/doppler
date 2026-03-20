@@ -131,6 +131,7 @@ export async function runBrowserHarness(options = {}) {
 const BROWSER_SUITE_SET = Object.freeze([
   'kernels',
   'inference',
+  'embedding',
   'training',
   'bench',
   'debug',
@@ -141,6 +142,7 @@ const BROWSER_SUITE_SET = Object.freeze([
 const BROWSER_SUITE_DISPATCH_MAP = Object.freeze({
   kernels: 'runKernelSuite',
   inference: 'runInferenceSuite',
+  embedding: 'runEmbeddingSuite',
   training: 'runTrainingSuite',
   bench: 'runBenchSuite',
   debug: 'runInferenceSuite(debug)',
@@ -234,6 +236,11 @@ async function runInferenceSuite(options = {}) {
   const harness = await initializeSuiteModel(options);
   const runtimeConfig = getRuntimeConfig();
   const modelType = harness.manifest?.modelType || 'transformer';
+  if (options.expectedModelType === 'embedding' && modelType !== 'embedding') {
+    throw new Error(
+      `Expected an embedding model for suite "${options.suiteName || options.suite || 'inference'}", got "${modelType}".`
+    );
+  }
   const cacheMode = normalizeCacheMode(options.cacheMode);
   const loadMode = normalizeLoadMode(options.loadMode, !options.modelUrl);
   const safeModelLoadMs = toTimingNumber(harness.modelLoadMs, 0);
@@ -523,6 +530,11 @@ async function runBenchSuite(options = {}) {
   const harness = await initializeSuiteModel(options);
   const benchRun = resolveBenchmarkRunSettings(runtimeConfig, harness.pipeline ?? harness);
   const modelType = harness.manifest?.modelType || 'transformer';
+  if (options.expectedModelType === 'embedding' && modelType !== 'embedding') {
+    throw new Error(
+      `Expected an embedding model for bench suite "${options.suite || 'bench'}", got "${modelType}".`
+    );
+  }
   const safeModelLoadMs = toTimingNumber(harness.modelLoadMs, 0);
 
   let results;
@@ -825,6 +837,13 @@ async function runBenchSuite(options = {}) {
 async function dispatchBrowserSuite(suite, options) {
   if (suite === 'kernels') {
     return runKernelSuite(options);
+  }
+  if (suite === 'embedding') {
+    return runInferenceSuite({
+      ...options,
+      suiteName: 'embedding',
+      expectedModelType: options.expectedModelType ?? 'embedding',
+    });
   }
   if (suite === 'training') {
     return runTrainingSuite(options);

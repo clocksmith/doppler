@@ -2,7 +2,7 @@ import type { ConverterConfigSchema } from '../config/schema/converter.schema.js
 
 export type ToolingCommand = 'convert' | 'debug' | 'bench' | 'verify' | 'lora' | 'distill';
 export type ToolingSurface = 'browser' | 'node';
-export type ToolingSuite = 'kernels' | 'inference' | 'training' | 'bench' | 'debug' | 'diffusion' | 'energy';
+export type ToolingSuite = 'kernels' | 'inference' | 'embedding' | 'training' | 'bench' | 'debug' | 'diffusion' | 'energy';
 export type ToolingIntent = 'verify' | 'investigate' | 'calibrate' | null;
 export type ToolingTrainingStage = 'stage1_joint' | 'stage2_base' | 'stage_a' | 'stage_b';
 export type ToolingDistillAction = 'run' | 'stage-a' | 'stage-b' | 'eval' | 'watch' | 'compare' | 'quality-gate' | 'subsets';

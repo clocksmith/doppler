@@ -1,7 +1,4 @@
 {
-  "presets": {
-    "model": "qwen3_5"
-  },
   "output": {
     "baseDir": "models/local",
     "modelBaseId": "qwen-3-5-2b-q4k-ehaf16",
@@ -19,7 +16,6 @@
   "manifest": {
     "hashAlgorithm": "blake3"
   },
-
   "inference": {
     "attention": {
       "queryPreAttnScalar": 256,
@@ -31,7 +27,7 @@
       "attentionOutputGate": true
     },
     "normalization": {
-      "rmsNormEps": 1e-6,
+      "rmsNormEps": 0.000001,
       "rmsNormWeightOffset": true,
       "postAttentionNorm": true,
       "preFeedforwardNorm": false,
@@ -46,7 +42,11 @@
       "ropeTheta": 10000000,
       "ropeLocalTheta": null,
       "mropeInterleaved": true,
-      "mropeSection": [11, 11, 10],
+      "mropeSection": [
+        11,
+        11,
+        10
+      ],
       "partialRotaryFactor": 0.25,
       "ropeScalingType": null,
       "ropeScalingFactor": 1,
@@ -78,7 +78,6 @@
       "enabled": true
     }
   },
-
   "sessionDefaults": {
     "compute": {
       "defaults": {
@@ -88,7 +87,9 @@
         "outputDtype": "f16"
       }
     },
-    "kvcache": { "kvDtype": "f16" },
+    "kvcache": {
+      "kvDtype": "f16"
+    },
     "decodeLoop": {
       "batchSize": 4,
       "stopCheckMode": "batch",
@@ -99,69 +100,236 @@
       "disableCommandBatching": true
     }
   },
-
   "execution": {
     "kernels": {
-      "embed":         { "kernel": "gather_f16.wgsl",                      "entry": "main",              "digest": "sha256:257973dd762541d8a2c4b16ad8ad1d071199199e81e477ab644dce915961a989" },
-      "rmsnorm":       { "kernel": "rmsnorm_f16.wgsl",                     "entry": "main",              "digest": "sha256:ce2f200529dc5a3b5985922bad7d7d1fb96785f15ef3e4e235321053e9fe9e59" },
-      "gemv":          { "kernel": "matmul_gemv_subgroup_f16a.wgsl",       "entry": "main_vec4",         "digest": "sha256:d0a981cdfeb21a40da0c0fe82a0f2f08b99f0bd2d0354d4bd8ca432855fd79e5" },
-      "rope":          { "kernel": "rope_f16.wgsl",                        "entry": "main",              "digest": "sha256:c0f3d933864fec40a424de79adac52bec54402351680fe419df1bf58235ab683" },
-      "attn_decode":   { "kernel": "attention_decode_online_f16.wgsl",     "entry": "main",              "digest": "sha256:23ac23b33e1ca30bc6a0ebb90d1bcde0236604bf57217c1763186046e0fe03de" },
-      "residual":      { "kernel": "residual_f16.wgsl",                    "entry": "main",              "digest": "sha256:6dbc8ef2a8ac57117bd41aabc6979ddd7fe2f363b80b761ba2b8f7826d7e02b9" },
-      "gelu":          { "kernel": "gelu_f16.wgsl",                        "entry": "main",              "digest": "sha256:aa10873ced2bf9b3e80f39c22d68745f812dbfc96b2afe04f52f9d0589cfac46", "constants": { "HAS_GATE": true } },
-      "tiled":         { "kernel": "matmul_f16.wgsl",                      "entry": "main",              "digest": "sha256:7e9f23f326b5750fc7783a1959334c237aff4a23da6f87176608c5c4eb4fc278" },
-      "attn_stream":   { "kernel": "attention_streaming_f16.wgsl",         "entry": "main",              "digest": "sha256:7f7a17d41a569ba6767dbcc1473504aef45608d24cf45cd9f47ee97fd05385c1" },
-      "lm_head_gemv":  { "kernel": "matmul_gemv_subgroup_f16a.wgsl",      "entry": "main_multicol",     "digest": "sha256:d0a981cdfeb21a40da0c0fe82a0f2f08b99f0bd2d0354d4bd8ca432855fd79e5", "constants": { "MULTICOL_COLS_PER_WG": 64, "MULTICOL_THREADS_PER_COL": 4 } },
-      "sample":        { "kernel": "sample_f16.wgsl",                      "entry": "sample_single_pass", "digest": "sha256:fde7ed164f7a0ce7f1adb0366cdf9b798d04f0608110430a632e9a1539c63b9b" }
+      "embed": {
+        "kernel": "gather_f16.wgsl",
+        "entry": "main",
+        "digest": "sha256:257973dd762541d8a2c4b16ad8ad1d071199199e81e477ab644dce915961a989"
+      },
+      "rmsnorm": {
+        "kernel": "rmsnorm_f16.wgsl",
+        "entry": "main",
+        "digest": "sha256:ce2f200529dc5a3b5985922bad7d7d1fb96785f15ef3e4e235321053e9fe9e59"
+      },
+      "gemv": {
+        "kernel": "matmul_gemv_subgroup_f16a.wgsl",
+        "entry": "main_vec4",
+        "digest": "sha256:d0a981cdfeb21a40da0c0fe82a0f2f08b99f0bd2d0354d4bd8ca432855fd79e5"
+      },
+      "rope": {
+        "kernel": "rope_f16.wgsl",
+        "entry": "main",
+        "digest": "sha256:c0f3d933864fec40a424de79adac52bec54402351680fe419df1bf58235ab683"
+      },
+      "attn_decode": {
+        "kernel": "attention_decode_online_f16.wgsl",
+        "entry": "main",
+        "digest": "sha256:23ac23b33e1ca30bc6a0ebb90d1bcde0236604bf57217c1763186046e0fe03de"
+      },
+      "residual": {
+        "kernel": "residual_f16.wgsl",
+        "entry": "main",
+        "digest": "sha256:6dbc8ef2a8ac57117bd41aabc6979ddd7fe2f363b80b761ba2b8f7826d7e02b9"
+      },
+      "gelu": {
+        "kernel": "gelu_f16.wgsl",
+        "entry": "main",
+        "digest": "sha256:aa10873ced2bf9b3e80f39c22d68745f812dbfc96b2afe04f52f9d0589cfac46",
+        "constants": {
+          "HAS_GATE": true
+        }
+      },
+      "tiled": {
+        "kernel": "matmul_f16.wgsl",
+        "entry": "main",
+        "digest": "sha256:7e9f23f326b5750fc7783a1959334c237aff4a23da6f87176608c5c4eb4fc278"
+      },
+      "attn_stream": {
+        "kernel": "attention_streaming_f16.wgsl",
+        "entry": "main",
+        "digest": "sha256:7f7a17d41a569ba6767dbcc1473504aef45608d24cf45cd9f47ee97fd05385c1"
+      },
+      "lm_head_gemv": {
+        "kernel": "matmul_gemv_subgroup_f16a.wgsl",
+        "entry": "main_multicol",
+        "digest": "sha256:d0a981cdfeb21a40da0c0fe82a0f2f08b99f0bd2d0354d4bd8ca432855fd79e5",
+        "constants": {
+          "MULTICOL_COLS_PER_WG": 64,
+          "MULTICOL_THREADS_PER_COL": 4
+        }
+      },
+      "sample": {
+        "kernel": "sample_f16.wgsl",
+        "entry": "sample_single_pass",
+        "digest": "sha256:fde7ed164f7a0ce7f1adb0366cdf9b798d04f0608110430a632e9a1539c63b9b"
+      }
     },
-
     "preLayer": [
-      ["embed",          "embed",       "embed_tokens"]
+      [
+        "embed",
+        "embed",
+        "embed_tokens"
+      ]
     ],
-
     "decode": [
-      ["input_norm",     "rmsnorm"],
-      ["q_proj",         "gemv",        "layer.{L}.self_attn.q_proj"],
-      ["k_proj",         "gemv",        "layer.{L}.self_attn.k_proj"],
-      ["v_proj",         "gemv",        "layer.{L}.self_attn.v_proj"],
-      ["rope_q",         "rope"],
-      ["rope_k",         "rope"],
-      ["attention",      "attn_decode"],
-      ["o_proj",         "gemv",        "layer.{L}.self_attn.o_proj"],
-      ["attn_residual",  "residual"],
-      ["post_attn_norm", "rmsnorm"],
-      ["gate_proj",      "gemv",        "layer.{L}.mlp.gate_proj"],
-      ["up_proj",        "gemv",        "layer.{L}.mlp.up_proj"],
-      ["activation",     "gelu"],
-      ["down_proj",      "gemv",        "layer.{L}.mlp.down_proj"],
-      ["ffn_residual",   "residual"]
+      [
+        "input_norm",
+        "rmsnorm"
+      ],
+      [
+        "q_proj",
+        "gemv",
+        "layer.{L}.self_attn.q_proj"
+      ],
+      [
+        "k_proj",
+        "gemv",
+        "layer.{L}.self_attn.k_proj"
+      ],
+      [
+        "v_proj",
+        "gemv",
+        "layer.{L}.self_attn.v_proj"
+      ],
+      [
+        "rope_q",
+        "rope"
+      ],
+      [
+        "rope_k",
+        "rope"
+      ],
+      [
+        "attention",
+        "attn_decode"
+      ],
+      [
+        "o_proj",
+        "gemv",
+        "layer.{L}.self_attn.o_proj"
+      ],
+      [
+        "attn_residual",
+        "residual"
+      ],
+      [
+        "post_attn_norm",
+        "rmsnorm"
+      ],
+      [
+        "gate_proj",
+        "gemv",
+        "layer.{L}.mlp.gate_proj"
+      ],
+      [
+        "up_proj",
+        "gemv",
+        "layer.{L}.mlp.up_proj"
+      ],
+      [
+        "activation",
+        "gelu"
+      ],
+      [
+        "down_proj",
+        "gemv",
+        "layer.{L}.mlp.down_proj"
+      ],
+      [
+        "ffn_residual",
+        "residual"
+      ]
     ],
-
     "prefill": [
-      ["input_norm",     "rmsnorm"],
-      ["q_proj",         "tiled",       "layer.{L}.self_attn.q_proj"],
-      ["k_proj",         "tiled",       "layer.{L}.self_attn.k_proj"],
-      ["v_proj",         "tiled",       "layer.{L}.self_attn.v_proj"],
-      ["rope_q",         "rope"],
-      ["rope_k",         "rope"],
-      ["attention",      "attn_stream"],
-      ["o_proj",         "tiled",       "layer.{L}.self_attn.o_proj"],
-      ["attn_residual",  "residual"],
-      ["post_attn_norm", "rmsnorm"],
-      ["gate_proj",      "tiled",       "layer.{L}.mlp.gate_proj"],
-      ["up_proj",        "tiled",       "layer.{L}.mlp.up_proj"],
-      ["activation",     "gelu"],
-      ["down_proj",      "tiled",       "layer.{L}.mlp.down_proj"],
-      ["ffn_residual",   "residual"]
+      [
+        "input_norm",
+        "rmsnorm"
+      ],
+      [
+        "q_proj",
+        "tiled",
+        "layer.{L}.self_attn.q_proj"
+      ],
+      [
+        "k_proj",
+        "tiled",
+        "layer.{L}.self_attn.k_proj"
+      ],
+      [
+        "v_proj",
+        "tiled",
+        "layer.{L}.self_attn.v_proj"
+      ],
+      [
+        "rope_q",
+        "rope"
+      ],
+      [
+        "rope_k",
+        "rope"
+      ],
+      [
+        "attention",
+        "attn_stream"
+      ],
+      [
+        "o_proj",
+        "tiled",
+        "layer.{L}.self_attn.o_proj"
+      ],
+      [
+        "attn_residual",
+        "residual"
+      ],
+      [
+        "post_attn_norm",
+        "rmsnorm"
+      ],
+      [
+        "gate_proj",
+        "tiled",
+        "layer.{L}.mlp.gate_proj"
+      ],
+      [
+        "up_proj",
+        "tiled",
+        "layer.{L}.mlp.up_proj"
+      ],
+      [
+        "activation",
+        "gelu"
+      ],
+      [
+        "down_proj",
+        "tiled",
+        "layer.{L}.mlp.down_proj"
+      ],
+      [
+        "ffn_residual",
+        "residual"
+      ]
     ],
-
     "postLayer": [
-      ["final_norm",     "rmsnorm"],
-      ["lm_head",        "lm_head_gemv", "lm_head"],
-      ["lm_head_prefill","tiled",        "lm_head"],
-      ["sample",         "sample"]
+      [
+        "final_norm",
+        "rmsnorm"
+      ],
+      [
+        "lm_head",
+        "lm_head_gemv",
+        "lm_head"
+      ],
+      [
+        "lm_head_prefill",
+        "tiled",
+        "lm_head"
+      ],
+      [
+        "sample",
+        "sample"
+      ]
     ],
-
     "policies": {
       "unsupportedPrecision": "error",
       "dtypeTransition": "require_cast_step",

@@ -73,9 +73,9 @@ Important surface rules:
 | Command | Required request fields | Notes |
 | --- | --- | --- |
 | `convert` | `request.inputDir`, `request.convertPayload.converterConfig` | CLI/browser relay: Node-only. Direct `runBrowserCommand(...)`: supported with injected `convertHandler` |
-| `verify` | `request.suite` plus `request.modelId` except `kernels` | `request.modelUrl` is optional when `request.modelId` is present |
-| `debug` | `request.modelId` | `request.modelUrl` is optional when `request.modelId` is present |
-| `bench` | `request.modelId` | `request.modelUrl` is optional when `request.modelId` is present; `bench + workloadType="training"` intentionally allows `modelId: null` |
+| `verify` | `request.suite` plus `request.modelId` except `kernels` | `request.suite` may now be `embedding` for embedding-model correctness checks; `request.modelUrl` is optional when `request.modelId` is present |
+| `debug` | `request.modelId` | `request.suite` may be `inference` or `embedding`; omitted keeps the legacy text-inference default |
+| `bench` | `request.modelId` | `request.suite` may be `bench` (legacy), `inference`, or `embedding`; `bench + workloadType="training"` intentionally allows `modelId: null` |
 | `distill` | `request.action` plus `request.workloadPath` or `request.runRoot` | Node-only today; browser fails closed |
 | `lora` | `request.action` plus `request.workloadPath` or `request.runRoot` | Node-only today; browser fails closed |
 
@@ -150,12 +150,28 @@ import { normalizeToolingCommandRequest, runBrowserCommand } from '@simulatte/do
 
 const request = normalizeToolingCommandRequest({
   command: 'verify',
-  suite: 'inference',
-  modelId: 'gemma-3-270m-it-q4k-ehf16-af32',
+  suite: 'embedding',
+  modelId: 'google-embeddinggemma-300m-q4k-ehf16-af32',
 });
 
 const result = await runBrowserCommand(request);
 console.log(result.ok);
+```
+
+## Regular vs Embedding Examples
+
+```js
+const regularDebug = normalizeToolingCommandRequest({
+  command: 'debug',
+  suite: 'inference',
+  modelId: 'gemma-3-270m-it-q4k-ehf16-af32',
+});
+
+const embeddingDebug = normalizeToolingCommandRequest({
+  command: 'debug',
+  suite: 'embedding',
+  modelId: 'google-embeddinggemma-300m-q4k-ehf16-af32',
+});
 ```
 
 ## Advanced Example

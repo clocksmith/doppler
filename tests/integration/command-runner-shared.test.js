@@ -233,6 +233,48 @@ function mergeRuntime(base, patch) {
 }
 
 {
+  const suiteOptions = buildSuiteOptions({
+    command: 'bench',
+    suite: 'embedding',
+    modelId: 'google-embeddinggemma-300m-q4k-ehf16-af32',
+    workloadType: null,
+    trainingTests: null,
+    trainingStage: null,
+    trainingConfig: null,
+    stage1Artifact: null,
+    stage1ArtifactHash: null,
+    ulArtifactDir: null,
+    stageAArtifact: null,
+    stageAArtifactHash: null,
+    distillArtifactDir: null,
+    teacherModelId: null,
+    studentModelId: null,
+    distillDatasetId: null,
+    distillDatasetPath: null,
+    distillLanguagePair: null,
+    distillSourceLangs: null,
+    distillTargetLangs: null,
+    distillPairAllowlist: null,
+    strictPairContract: null,
+    trainingSchemaVersion: null,
+    trainingBenchSteps: null,
+    checkpointEvery: null,
+    modelUrl: null,
+    runtimePreset: 'modes/embedding-bench',
+    captureOutput: false,
+    keepPipeline: false,
+    report: null,
+    timestamp: null,
+    searchParams: null,
+  }, 'browser');
+
+  assert.equal(suiteOptions.suite, 'bench');
+  assert.equal(suiteOptions.command, 'bench');
+  assert.equal(suiteOptions.expectedModelType, 'embedding');
+  assert.equal(suiteOptions.runtimePreset, 'modes/embedding-bench');
+}
+
+{
   const trainingSuiteOptions = buildSuiteOptions({
     command: 'verify',
     suite: 'training',

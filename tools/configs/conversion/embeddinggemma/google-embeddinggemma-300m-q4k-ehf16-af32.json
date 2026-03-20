@@ -1,7 +1,4 @@
 {
-  "presets": {
-    "model": "embeddinggemma"
-  },
   "output": {
     "baseDir": "models/local",
     "modelBaseId": "google-embeddinggemma-300m-q4k-ehf16-af32"
@@ -13,7 +10,6 @@
     "q4kLayout": "row",
     "computePrecision": "f32"
   },
-
   "inference": {
     "attention": {
       "queryPreAttnScalar": 256,
@@ -25,7 +21,7 @@
       "attentionOutputGate": false
     },
     "normalization": {
-      "rmsNormEps": 1e-6,
+      "rmsNormEps": 0.000001,
       "rmsNormWeightOffset": true,
       "postAttentionNorm": true,
       "preFeedforwardNorm": true,
@@ -72,7 +68,6 @@
       "enabled": false
     }
   },
-
   "sessionDefaults": {
     "compute": {
       "defaults": {
@@ -82,70 +77,227 @@
         "outputDtype": "f32"
       }
     },
-    "kvcache": { "kvDtype": "f32" },
+    "kvcache": {
+      "kvDtype": "f32"
+    },
     "decodeLoop": null
   },
-
   "execution": {
     "kernels": {
-      "embed":         { "kernel": "gather.wgsl",                          "entry": "main",              "digest": "sha256:777991fb6e4b3b506e4493b47ee998afe541924ddd7c04e1eadf4cb7fd719ef8" },
-      "rmsnorm":       { "kernel": "rmsnorm.wgsl",                         "entry": "main",              "digest": "sha256:f516b3e4bde2015f2a207c3ca5b8c9820c7809fa8f8d0786f90c568e0f1ac077" },
-      "tiled":         { "kernel": "matmul_f16w_f32a.wgsl",               "entry": "main",              "digest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc" },
-      "rope":          { "kernel": "rope.wgsl",                            "entry": "main",              "digest": "sha256:4c803ad5e0dd065d5572c7aecc1def277c43884dcc02f22a9676914c10111400" },
-      "attn_small":    { "kernel": "attention_small.wgsl",                 "entry": "main",              "digest": "sha256:6752ddd7ab53e6235c9b5b1a9515141c0d111df7fac9f4c0d7a38f9943490ed4" },
-      "residual":      { "kernel": "residual.wgsl",                        "entry": "main",              "digest": "sha256:f1abd88c959c5d8dd27b9353d487e37b2a96850ed9d90c365212e260399cc2a7" },
-      "gelu":          { "kernel": "gelu.wgsl",                            "entry": "main",              "digest": "sha256:a9007ea08aaff98f9be08f1e0490a6bcf252883eac5513de876ab9ce918865e6", "constants": { "HAS_GATE": true } },
-      "lm_head_tiled": { "kernel": "matmul_f16w_f32a.wgsl",               "entry": "main",              "digest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc" },
-      "sample":        { "kernel": "sample.wgsl",                          "entry": "sample_single_pass", "digest": "sha256:91c5c30bbc3e034457c1521c1ad576ce798c0868a1fe16e02be5f92706614096" }
+      "embed": {
+        "kernel": "gather.wgsl",
+        "entry": "main",
+        "digest": "sha256:777991fb6e4b3b506e4493b47ee998afe541924ddd7c04e1eadf4cb7fd719ef8"
+      },
+      "rmsnorm": {
+        "kernel": "rmsnorm.wgsl",
+        "entry": "main",
+        "digest": "sha256:f516b3e4bde2015f2a207c3ca5b8c9820c7809fa8f8d0786f90c568e0f1ac077"
+      },
+      "tiled": {
+        "kernel": "matmul_f16w_f32a.wgsl",
+        "entry": "main",
+        "digest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc"
+      },
+      "rope": {
+        "kernel": "rope.wgsl",
+        "entry": "main",
+        "digest": "sha256:4c803ad5e0dd065d5572c7aecc1def277c43884dcc02f22a9676914c10111400"
+      },
+      "attn_small": {
+        "kernel": "attention_small.wgsl",
+        "entry": "main",
+        "digest": "sha256:6752ddd7ab53e6235c9b5b1a9515141c0d111df7fac9f4c0d7a38f9943490ed4"
+      },
+      "residual": {
+        "kernel": "residual.wgsl",
+        "entry": "main",
+        "digest": "sha256:f1abd88c959c5d8dd27b9353d487e37b2a96850ed9d90c365212e260399cc2a7"
+      },
+      "gelu": {
+        "kernel": "gelu.wgsl",
+        "entry": "main",
+        "digest": "sha256:a9007ea08aaff98f9be08f1e0490a6bcf252883eac5513de876ab9ce918865e6",
+        "constants": {
+          "HAS_GATE": true
+        }
+      },
+      "lm_head_tiled": {
+        "kernel": "matmul_f16w_f32a.wgsl",
+        "entry": "main",
+        "digest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc"
+      },
+      "sample": {
+        "kernel": "sample.wgsl",
+        "entry": "sample_single_pass",
+        "digest": "sha256:91c5c30bbc3e034457c1521c1ad576ce798c0868a1fe16e02be5f92706614096"
+      }
     },
-
     "preLayer": [
-      ["embed",          "embed",       "embed_tokens"]
+      [
+        "embed",
+        "embed",
+        "embed_tokens"
+      ]
     ],
-
     "decode": [
-      ["input_norm",     "rmsnorm"],
-      ["q_proj",         "tiled",       "layer.{L}.self_attn.q_proj"],
-      ["k_proj",         "tiled",       "layer.{L}.self_attn.k_proj"],
-      ["v_proj",         "tiled",       "layer.{L}.self_attn.v_proj"],
-      ["rope_q",         "rope"],
-      ["rope_k",         "rope"],
-      ["attention",      "attn_small"],
-      ["o_proj",         "tiled",       "layer.{L}.self_attn.o_proj"],
-      ["attn_residual",  "residual"],
-      ["post_attn_norm", "rmsnorm"],
-      ["gate_proj",      "tiled",       "layer.{L}.mlp.gate_proj"],
-      ["up_proj",        "tiled",       "layer.{L}.mlp.up_proj"],
-      ["activation",     "gelu"],
-      ["down_proj",      "tiled",       "layer.{L}.mlp.down_proj"],
-      ["ffn_residual",   "residual"]
+      [
+        "input_norm",
+        "rmsnorm"
+      ],
+      [
+        "q_proj",
+        "tiled",
+        "layer.{L}.self_attn.q_proj"
+      ],
+      [
+        "k_proj",
+        "tiled",
+        "layer.{L}.self_attn.k_proj"
+      ],
+      [
+        "v_proj",
+        "tiled",
+        "layer.{L}.self_attn.v_proj"
+      ],
+      [
+        "rope_q",
+        "rope"
+      ],
+      [
+        "rope_k",
+        "rope"
+      ],
+      [
+        "attention",
+        "attn_small"
+      ],
+      [
+        "o_proj",
+        "tiled",
+        "layer.{L}.self_attn.o_proj"
+      ],
+      [
+        "attn_residual",
+        "residual"
+      ],
+      [
+        "post_attn_norm",
+        "rmsnorm"
+      ],
+      [
+        "gate_proj",
+        "tiled",
+        "layer.{L}.mlp.gate_proj"
+      ],
+      [
+        "up_proj",
+        "tiled",
+        "layer.{L}.mlp.up_proj"
+      ],
+      [
+        "activation",
+        "gelu"
+      ],
+      [
+        "down_proj",
+        "tiled",
+        "layer.{L}.mlp.down_proj"
+      ],
+      [
+        "ffn_residual",
+        "residual"
+      ]
     ],
-
     "prefill": [
-      ["input_norm",     "rmsnorm"],
-      ["q_proj",         "tiled",       "layer.{L}.self_attn.q_proj"],
-      ["k_proj",         "tiled",       "layer.{L}.self_attn.k_proj"],
-      ["v_proj",         "tiled",       "layer.{L}.self_attn.v_proj"],
-      ["rope_q",         "rope"],
-      ["rope_k",         "rope"],
-      ["attention",      "attn_small"],
-      ["o_proj",         "tiled",       "layer.{L}.self_attn.o_proj"],
-      ["attn_residual",  "residual"],
-      ["post_attn_norm", "rmsnorm"],
-      ["gate_proj",      "tiled",       "layer.{L}.mlp.gate_proj"],
-      ["up_proj",        "tiled",       "layer.{L}.mlp.up_proj"],
-      ["activation",     "gelu"],
-      ["down_proj",      "tiled",       "layer.{L}.mlp.down_proj"],
-      ["ffn_residual",   "residual"]
+      [
+        "input_norm",
+        "rmsnorm"
+      ],
+      [
+        "q_proj",
+        "tiled",
+        "layer.{L}.self_attn.q_proj"
+      ],
+      [
+        "k_proj",
+        "tiled",
+        "layer.{L}.self_attn.k_proj"
+      ],
+      [
+        "v_proj",
+        "tiled",
+        "layer.{L}.self_attn.v_proj"
+      ],
+      [
+        "rope_q",
+        "rope"
+      ],
+      [
+        "rope_k",
+        "rope"
+      ],
+      [
+        "attention",
+        "attn_small"
+      ],
+      [
+        "o_proj",
+        "tiled",
+        "layer.{L}.self_attn.o_proj"
+      ],
+      [
+        "attn_residual",
+        "residual"
+      ],
+      [
+        "post_attn_norm",
+        "rmsnorm"
+      ],
+      [
+        "gate_proj",
+        "tiled",
+        "layer.{L}.mlp.gate_proj"
+      ],
+      [
+        "up_proj",
+        "tiled",
+        "layer.{L}.mlp.up_proj"
+      ],
+      [
+        "activation",
+        "gelu"
+      ],
+      [
+        "down_proj",
+        "tiled",
+        "layer.{L}.mlp.down_proj"
+      ],
+      [
+        "ffn_residual",
+        "residual"
+      ]
     ],
-
     "postLayer": [
-      ["final_norm",     "rmsnorm"],
-      ["lm_head",        "lm_head_tiled", "lm_head"],
-      ["lm_head_prefill","tiled",          "lm_head"],
-      ["sample",         "sample"]
+      [
+        "final_norm",
+        "rmsnorm"
+      ],
+      [
+        "lm_head",
+        "lm_head_tiled",
+        "lm_head"
+      ],
+      [
+        "lm_head_prefill",
+        "tiled",
+        "lm_head"
+      ],
+      [
+        "sample",
+        "sample"
+      ]
     ],
-
     "policies": {
       "unsupportedPrecision": "error",
       "dtypeTransition": "require_cast_step",

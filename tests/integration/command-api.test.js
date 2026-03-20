@@ -58,7 +58,7 @@ import {
       suite: 'bench',
       modelId: 'gemma-3-1b-it-f16-af32',
     }),
-    /suite must be one of kernels, inference, training, diffusion, energy/
+    /suite must be one of kernels, inference, embedding, training, diffusion, energy/
   );
 }
 
@@ -71,6 +71,37 @@ import {
     }),
     /training-only fields require suite="training" or bench workloadType="training"/
   );
+}
+
+{
+  const request = normalizeToolingCommandRequest({
+    command: 'debug',
+    suite: 'embedding',
+    modelId: 'google-embeddinggemma-300m-q4k-ehf16-af32',
+  });
+  assert.equal(request.command, 'debug');
+  assert.equal(request.suite, 'embedding');
+  assert.equal(request.intent, 'investigate');
+}
+
+{
+  const request = normalizeToolingCommandRequest({
+    command: 'debug',
+    modelId: 'gemma-3-1b-it-f16-af32',
+  });
+  assert.equal(request.suite, 'inference');
+  assert.equal(request.intent, 'investigate');
+}
+
+{
+  const request = normalizeToolingCommandRequest({
+    command: 'bench',
+    suite: 'embedding',
+    modelId: 'google-embeddinggemma-300m-q4k-ehf16-af32',
+  });
+  assert.equal(request.command, 'bench');
+  assert.equal(request.suite, 'embedding');
+  assert.equal(request.intent, 'calibrate');
 }
 
 {
@@ -121,7 +152,7 @@ import {
       suite: 'training',
       modelId: 'gemma-3-1b-it-f16-af32',
     }),
-    /requires suite "bench" and does not accept "training"/
+    /suite must be "bench", "inference", or "embedding"/
   );
 }
 
@@ -667,10 +698,10 @@ import {
   assert.throws(
     () => normalizeToolingCommandRequest({
       command: 'debug',
-      suite: 'inference',
+      suite: 'training',
       modelId: 'gemma-3-1b-it-f16-af32',
     }),
-    /requires suite "debug" and does not accept "inference"/
+    /suite must be "inference" or "embedding"/
   );
 }
 

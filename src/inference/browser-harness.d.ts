@@ -28,7 +28,7 @@ export interface RuntimeConfigLoadOptions {
   signal?: AbortSignal;
 }
 
-export type BrowserSuite = 'kernels' | 'inference' | 'training' | 'bench' | 'debug' | 'diffusion' | 'energy';
+export type BrowserSuite = 'kernels' | 'inference' | 'embedding' | 'training' | 'bench' | 'debug' | 'diffusion' | 'energy';
 
 export interface SuiteTestResult {
   name: string;
@@ -70,6 +70,7 @@ export interface BrowserSuiteOptions extends InferenceHarnessOptions {
   suite?: BrowserSuite;
   command?: string;
   surface?: string;
+  expectedModelType?: 'embedding';
   modelUrl?: string;
   modelId?: string;
   workloadType?: string;

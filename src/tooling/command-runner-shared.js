@@ -105,6 +105,20 @@ function restoreRuntimeState(runtimeBridge, snapshot) {
   }
 }
 
+function resolveExecutionSuite(request) {
+  if (request.command === 'debug') {
+    return 'debug';
+  }
+  if (request.command === 'bench') {
+    return 'bench';
+  }
+  return request.suite;
+}
+
+function resolveExpectedModelType(request) {
+  return request.suite === 'embedding' ? 'embedding' : undefined;
+}
+
 export async function applyRuntimeInputs(request, runtimeBridge, options = {}) {
   resetRuntimeState(runtimeBridge);
   await applyOrderedRuntimeInputs(runtimeBridge, {
@@ -133,10 +147,12 @@ export function buildSuiteOptions(request, surface = null) {
   const normalizedSurface = typeof surface === 'string' && surface.trim()
     ? surface.trim()
     : null;
+  const expectedModelType = resolveExpectedModelType(request);
   return {
-    suite: request.suite,
+    suite: resolveExecutionSuite(request),
     command: request.command,
     surface: normalizedSurface,
+    ...(expectedModelType ? { expectedModelType } : {}),
     modelId: request.modelId ?? undefined,
     trainingTests: request.trainingTests ?? undefined,
     trainingStage: request.trainingStage ?? undefined,

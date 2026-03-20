@@ -711,17 +711,11 @@ export function resolveAndActivateKernelPath(options) {
 }
 
 export async function initTokenizerFromManifestPreset(manifest, baseUrl, storageContext = null) {
-  const presetId = manifest.inference?.presetId;
-  if (!presetId) {
-    throw new Error(
-      `Manifest "${manifest.modelId ?? 'unknown'}" is missing inference.presetId. ` +
-      'Re-convert the model using the latest converter.'
-    );
-  }
-  const preset = resolvePreset(presetId);
+  const presetId = manifest.inference?.presetId ?? null;
+  const presetTokenizer = presetId ? resolvePreset(presetId)?.tokenizer : null;
   return initTokenizer(manifest, {
     baseUrl: baseUrl ?? undefined,
-    presetTokenizer: preset?.tokenizer,
+    presetTokenizer,
     storageContext: storageContext ?? undefined,
   });
 }

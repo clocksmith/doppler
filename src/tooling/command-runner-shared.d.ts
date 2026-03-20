@@ -31,6 +31,7 @@ export declare function buildSuiteOptions(
   suite: ToolingCommandRequest['suite'];
   command: ToolingCommandRequest['command'];
   surface: string | null;
+  expectedModelType?: 'embedding';
   modelId?: string;
   trainingTests?: string[];
   trainingStage?: 'stage1_joint' | 'stage2_base' | 'stage_a' | 'stage_b';

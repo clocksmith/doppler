@@ -22,6 +22,32 @@ import {
   resolveSuiteForCommand,
 } from './command-api-helpers.js';
 
+function resolveDebugRequestSuite(raw) {
+  const suite = asOptionalString(raw.suite, 'suite');
+  if (!suite) {
+    return 'inference';
+  }
+  if (suite !== 'inference' && suite !== 'embedding') {
+    throw new Error(
+      'tooling command: "debug" suite must be "inference" or "embedding".'
+    );
+  }
+  return suite;
+}
+
+function resolveBenchRequestSuite(raw) {
+  const suite = asOptionalString(raw.suite, 'suite');
+  if (!suite) {
+    return 'bench';
+  }
+  if (suite !== 'bench' && suite !== 'inference' && suite !== 'embedding') {
+    throw new Error(
+      'tooling command: "bench" suite must be "bench", "inference", or "embedding".'
+    );
+  }
+  return suite;
+}
+
 function normalizeConvertExecution(value) {
   const execution = asOptionalObject(value, 'convertPayload.execution');
   if (!execution) return null;
@@ -174,7 +200,13 @@ export function normalizeTrainingOperatorCommand(raw, command) {
 export function normalizeSuiteCommand(raw, command) {
   assertForbiddenConfigChainField(raw, command);
   const runtimeContract = resolveCommandRuntimeContract(command);
-  const suite = resolveSuiteForCommand(raw, command, runtimeContract);
+  const suite = command === 'debug'
+    ? resolveDebugRequestSuite(raw)
+    : (
+      command === 'bench'
+        ? resolveBenchRequestSuite(raw)
+        : resolveSuiteForCommand(raw, command, runtimeContract)
+    );
   if (!runtimeContract.suite && !VERIFY_SUITES.includes(suite)) {
     throw new Error(
       `tooling command: "${command}" suite must be one of ${VERIFY_SUITES.join(', ')}.`

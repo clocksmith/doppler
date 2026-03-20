@@ -22,6 +22,16 @@ export const TOOLING_SUITES = Object.freeze([...TOOLING_SUITE_SET]);
 export const TOOLING_VERIFY_SUITES = Object.freeze([...VERIFY_SUITES]);
 export const TOOLING_TRAINING_COMMAND_SCHEMA_VERSION = TRAINING_COMMAND_SCHEMA_VERSION;
 
+function resolveHarnessMode(request) {
+  if (request.command === 'debug') {
+    return 'debug';
+  }
+  if (request.command === 'bench') {
+    return 'bench';
+  }
+  return request.suite;
+}
+
 export function normalizeToolingCommandRequest(input) {
   if (!isPlainObject(input)) {
     throw new Error('tooling command: request must be an object.');
@@ -41,11 +51,12 @@ export function buildRuntimeContractPatch(commandRequest) {
   if (!request.suite || !request.intent) {
     return null;
   }
+  const harnessMode = resolveHarnessMode(request);
 
   return {
     shared: {
       harness: {
-        mode: request.suite,
+        mode: harnessMode,
         modelId: request.modelId ?? null,
       },
       tooling: {
