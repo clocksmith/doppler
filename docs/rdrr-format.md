@@ -41,8 +41,7 @@ At minimum, manifests must include:
 - Manifest is validated before runtime dispatch.
 - Unresolved execution choices fail closed.
 - Runtime behavior is derived from manifest + runtime config merge.
-- If `manifest.inference.schema == "doppler.execution/v0"`, the manifest must
-  include explicit `sessionDefaults` and `execution.steps`:
+- Manifests must include explicit `sessionDefaults` and `execution` (v1 execution graph):
   - `sessionDefaults.compute.defaults.{activationDtype,mathDtype,accumDtype,outputDtype}`
   - `sessionDefaults.compute.kernelProfiles`
   - `sessionDefaults.kvcache` (nullable, but explicit)

@@ -13,7 +13,7 @@ const converterConfig = JSON.parse(
 // === V1 config structure ===
 
 assert.equal(converterConfig.quantization?.computePrecision, 'f32');
-assert.equal(converterConfig.presets, undefined, 'v1 has no presets');
+assert.equal(converterConfig.presets?.model, 'translategemma', 'v1 config preserves preset hint');
 assert.ok(converterConfig.execution?.kernels, 'v1 must have execution.kernels');
 assert.ok(converterConfig.inference?.attention, 'v1 must have explicit inference.attention');
 assert.ok(converterConfig.inference?.chatTemplate?.type, 'translategemma');

@@ -1,4 +1,7 @@
 {
+  "presets": {
+    "model": "diffusion"
+  },
   "output": {
     "baseDir": "models/local",
     "modelBaseId": "sana-sprint-0.6b-f16"

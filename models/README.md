@@ -60,7 +60,7 @@ Each entry supports:
     - `result` (`pass` | `fail` | `unknown`)
     - `lastVerifiedAt` (`YYYY-MM-DD`)
     - `source` (string, e.g. `registry-verify`)
-    - `contracts` (object): `executionContractOk`, `executionV0GraphOk`
+    - `contracts` (object): `executionContractOk`
 
 ## Related Docs
 

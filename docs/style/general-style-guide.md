@@ -169,7 +169,7 @@ inference). Document the merge chain per domain:
 - Loader/runtime slices (loading/storage/etc):
   `loadingConfig = merge(runtimeDefaultConfig.loading, runtimePresetConfig.loading, runtimeOverrideConfig.loading)`
 - Kernel path resolution:
-  `kernelPath = runtimeConfig.inference.kernelPath ?? executionV0InlineKernelPath ?? manifestInference.defaultKernelPath`
+  `kernelPath = runtimeConfig.inference.kernelPath ?? manifestInference.defaultKernelPath`
   `null` remains a valid "no explicit kernel path" result; do not invent `'auto'` or any implicit string in JS.
 
 ### No Runtime Defaults in Code
@@ -227,10 +227,9 @@ const useSoftcapping = config.attnLogitSoftcapping !== null;
 
 ### Kernel Selection
 
-- **Execution v1 (preferred)**: Kernel selection is fully explicit in the manifest execution graph. Each step pins an exact WGSL file, entry point, and content digest. No runtime resolution.
-- **Execution v0 (legacy)**: Inline kernel path is derived from execution steps at manifest load. Runtime `runtime.inference.kernelPath` can override.
-- **No execution graph (deprecated)**: Falls back to capability-driven auto-selection. New models must not ship without an execution graph.
-- `defaultKernelPath` is deprecated in v1 manifests — use the execution graph directly.
+- Kernel selection is fully explicit in the manifest execution graph. Each step pins an exact WGSL file, entry point, and content digest. No runtime resolution.
+- All models must ship with an execution graph. Models without one are unsupported.
+- `defaultKernelPath` is always `null` in v1 manifests — use the execution graph directly.
 - Kernel path overrides are config-only; do not add harness/UI flags for kernel selection.
 - Kernel selection logic lives in `src/gpu/kernels/*.js`; config files are data only.
 

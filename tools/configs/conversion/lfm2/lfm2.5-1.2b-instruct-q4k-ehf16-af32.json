@@ -1,4 +1,7 @@
 {
+  "presets": {
+    "model": "lfm2"
+  },
   "output": {
     "baseDir": "models/local",
     "modelBaseId": "lfm2.5-1.2b-instruct-q4k-ehf16-af32"

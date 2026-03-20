@@ -1,4 +1,7 @@
 {
+  "presets": {
+    "model": "gemma3"
+  },
   "output": {
     "baseDir": "models/local",
     "modelBaseId": "translategemma-4b-1b-enes-q4k-ehf16-af32"

@@ -51,15 +51,14 @@ Kernel-path resolution precedence is canonical in
 This file only relies on that contract:
 - `kernelPath` remains the only supported kernel-selection override surface
 - internal runner-owned per-run context may still apply the highest-precedence
-  override after manifest, execution-v0, and runtime config resolution
+  override after manifest and runtime config resolution
 
 `kernelPath` is the only supported kernel-selection override surface.
 Do not use legacy `kernelPlan`.
 
 Kernel-path dtype contract:
-- config-selected and execution-v0-selected kernel paths must already match the
-  resolved runtime `activationDtype`, `kvcache.kvDtype`, and, for execution-v0,
-  `session.compute.defaults.outputDtype`
+- config-selected kernel paths must already match the resolved runtime
+  `activationDtype` and `kvcache.kvDtype`
 - manifest/model-selected kernel paths may seed those runtime dtypes only while
   the runtime values are still at global defaults; conflicting runtime overrides
   fail closed

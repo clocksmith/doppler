@@ -88,7 +88,7 @@ Source anchors for this comparison:
 
 Doppler begins with discrete WGSL operations (for example `gate_proj`, `up_proj`, `down_proj`) to maximize observability and debuggability. The architecture also supports progressively fused execution plans.
 
-Through kernel-path and execution-plan selection (`inference.defaultKernelPath`, `runtime.inference.kernelPath`, or execution-v0), the runtime can switch from decomposed paths to fused paths without changing command semantics. See `src/inference/pipelines/text/model-load.js` and `src/config/kernel-path-loader.js`.
+Through kernel-path and execution-plan selection (`runtime.inference.kernelPath` and the v1 execution graph), the runtime can switch from decomposed paths to fused paths without changing command semantics. See `src/inference/pipelines/text/model-load.js` and `src/config/kernel-path-loader.js`.
 
 ### GPU Execution Footprint
 

@@ -92,8 +92,8 @@ InferenceConfigSchema (runtime.inference)
 | Session | runtime → default² | ✗ (throw) | ✓ | n/a¹ |
 | Hybrid | call → runtime → manifest → default | ✓ | ✓ | ✓ |
 
-¹ Exception: in execution-v0 manifests (`manifest.inference.schema == "doppler.execution/v0"`), `manifest.inference.sessionDefaults` is the base layer for session resolution — `resolvedSession = merge(manifest.inference.sessionDefaults, runtime.inference.session)`. The `n/a` applies only to non-execution-v0 manifests for `runtime.inference.session`.
-² Separate from `runtime.inference.session`, non-execution-v0 manifests may still provide `manifest.inference.sessionDefaults.decodeLoop` as manifest batching defaults. Loader applies those defaults only while runtime batching/generation are still at global defaults; otherwise it fails closed on conflict.
+¹ `manifest.inference.sessionDefaults` is the base layer for session resolution — `resolvedSession = merge(manifest.inference.sessionDefaults, runtime.inference.session)`.
+² Manifests may provide `manifest.inference.sessionDefaults.decodeLoop` as manifest batching defaults. Loader applies those defaults only while runtime batching/generation are still at global defaults; otherwise it fails closed on conflict.
 
 ### Examples
 
@@ -155,27 +155,18 @@ modelInference = merge(manifestInference, runtimeInferenceOverride)
 Execution runtime compile order (when `manifest.inference.execution` exists):
 
 ```
-For v1 (doppler.execution/v1): expand compact tuples into resolved steps,
-build inline kernel path and layer pipeline from resolved steps, merge
-sessionDefaults into runtime inference config.
-
-For v0 (doppler.execution/v0): merge manifest.inference.sessionDefaults with
-runtime.inference.session, apply runtime.inference.executionPatch, validate
-the pinned execution contract, then merge the compiled runtime patch back into
-runtime.inference.
+Expand compact tuples into resolved steps, build inline kernel path and
+layer pipeline from resolved steps, merge sessionDefaults into runtime
+inference config.
 ```
 
 Conversion config rule:
 
 ```
-V1 configs (preferred): config must provide explicit execution graph with
-kernels, decode, prefill, preLayer, postLayer, and policies. No preset
-detection, no defaultKernelPath, no auto-generation. The execution graph
-in the config is stamped directly into the manifest.
-
-V0 configs (legacy): if inference.defaultKernelPath is present,
-inference.execution is absent, and layerPattern does not require custom
-conv scheduling, converter derives execution-v0 steps from the kernel path.
+Config must provide explicit execution graph with kernels, decode,
+prefill, preLayer, postLayer, and policies. No preset detection, no
+defaultKernelPath, no auto-generation. The execution graph in the config
+is stamped directly into the manifest.
 ```
 
 ---
@@ -232,9 +223,8 @@ Agents should resolve presets by metadata/intent, not filename heuristics.
 ## Rules
 
 - Converter → manifest is the only bridge into runtime.
-- `manifest.inference.schema` is required for execution-v0 manifests and must be `doppler.execution/v0`.
-- execution-v0 steps require explicit `src` and `dst`.
-- execution-v0 non-cast steps require explicit `kernel` and pinned `kernelRef`.
+- Execution steps require explicit `src` and `dst`.
+- Non-cast steps require explicit `kernel` and pinned `kernelRef`.
 - `kernelRef` is exact-match pinned (`id`, `version`, `digest`) against `sessionDefaults.compute.kernelProfiles`.
 - `kernelRef.digest` is WGSL-content pinning (`sha256(normalized shader source + entry)`), not filename-only identity.
 - Loader must not mutate inference config.
@@ -243,9 +233,7 @@ Agents should resolve presets by metadata/intent, not filename heuristics.
 - Rule maps are config assets: JSON-only, data-only, and loaded via the rule registry.
 - Runtime must not silently escalate precision to `f32`.
 - Any `f32` activation path must be explicit in config/manifest and documented as a stability or capability choice.
-- Execution patch semantics are atomic and ordered: `set -> remove -> add`.
-- `executionPatch.set` may only edit `precision`, `kvIO`, `constants`, `entry`.
-- Runtime execution overlay is strict: only `runtime.inference.session` and `runtime.inference.executionPatch` feed execution-v0 compile.
+- Runtime execution overlay is strict: only `runtime.inference.session` feeds execution compile.
 
 ---
 

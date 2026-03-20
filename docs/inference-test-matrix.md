@@ -28,7 +28,7 @@ Even with 2-3 values per dimension, the cross-product exceeds 10,000 combination
 Test that invalid combinations fail fast before reaching the GPU. These are cheap, exhaustive within their domain, and run on every PR.
 
 - Manifest schema validation: required fields, nullable-required semantics
-- Config merge order: preset precedence, override semantics, execution-v0 compile
+- Config merge order: preset precedence, override semantics, execution compile
 - Kernel path resolution: registry lookup, alias chains, dtype contract
 - Tensor-config consistency: norm flags match tensor presence
 - Execution plan compilation: step validation, kernel ref pinning

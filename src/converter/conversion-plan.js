@@ -190,9 +190,14 @@ function resolveConversionPlanV1(options) {
     defaultKernelPath: null,
   };
 
+  const presetId = converterConfig?.presets?.model ?? options?.presetOverride ?? null;
+  if (presetId) {
+    manifestInference.presetId = presetId;
+  }
+
   return {
     modelType,
-    presetId: null,
+    presetId,
     preset: null,
     sourceQuantization,
     quantizationInfo,

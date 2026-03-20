@@ -1,4 +1,7 @@
 {
+  "presets": {
+    "model": "gemma3"
+  },
   "output": {
     "baseDir": "models/local",
     "modelBaseId": "gemma-3-1b-it-q4k-ehf16-af32"

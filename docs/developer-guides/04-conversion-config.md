@@ -22,8 +22,8 @@ Add a reproducible conversion config for a checkpoint that already fits an exist
 
 1. Copy the closest existing config in `tools/configs/conversion/`.
 2. Set `output.baseDir` and `output.modelBaseId`.
-3. Set `presets.model`, `quantization`, and `inference.defaultKernelPath`.
-4. Add `inference.sessionDefaults` or `inference.execution` only when the manifest should pin explicit execution-v0 state.
+3. Set `presets.model` and `quantization`.
+4. Add `inference.execution` with the explicit v1 execution graph (kernels, decode, prefill, preLayer, postLayer, and policies).
 5. Run conversion, then run a real verify or debug pass against the produced artifact.
 
 ## Verification
@@ -41,7 +41,7 @@ For command-shape examples, use [../getting-started.md](../getting-started.md) a
 - Stopping at manifest or load validation without a coherence check.
 - Forgetting that `output.modelBaseId` is authoritative for the emitted model ID.
 - Assuming the browser OPFS store is populated automatically by the convert step.
-- Forgetting that `inference.defaultKernelPath` can auto-generate execution-v0 data when no explicit `inference.execution` is present.
+- Omitting the `inference.execution` graph — the converter only accepts v1 configs with an explicit execution graph.
 
 ## Related Guides
 

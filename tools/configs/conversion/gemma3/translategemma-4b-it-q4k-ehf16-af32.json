@@ -1,4 +1,7 @@
 {
+  "presets": {
+    "model": "translategemma"
+  },
   "output": {
     "baseDir": "models/local",
     "modelBaseId": "translategemma-4b-it-q4k-ehf16-af32",

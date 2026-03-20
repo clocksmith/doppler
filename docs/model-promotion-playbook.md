@@ -176,7 +176,6 @@ After copy:
 - `lifecycle.status.runtime === "active"`
 - `lifecycle.status.tested === "verified"`
 - `lifecycle.tested.contracts.executionContractOk === true`
-- `lifecycle.tested.contracts.executionV0GraphOk === true`
 
 The tool also requires `hf.repoId` and `hf.path` in the catalog entry. `hf.revision` is not required before publish. The remote registry rebuild pins the newly uploaded revision for the selected model. Update `hf.revision` in `models/catalog.json` afterward.
 
