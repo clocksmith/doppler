@@ -58,12 +58,16 @@ export function compileExecutionV1(options = {}) {
   const prefillSteps = resolvedSteps.filter((s) => s.phase === 'prefill' || s.phase === 'both');
   const decodeSteps = resolvedSteps.filter((s) => s.phase === 'decode' || s.phase === 'both');
 
+  const finitenessFallback = typeof execution.finitenessFallbackKernelPathId === 'string'
+    && execution.finitenessFallbackKernelPathId.length > 0
+    ? execution.finitenessFallbackKernelPathId
+    : null;
   const kernelPath = buildInlineKernelPath(
     resolvedSteps,
     sessionDefaults,
     modelId,
     numLayers,
-    null
+    finitenessFallback
   );
 
   const layerPipelineResult = buildLayerPipelineFromExecution(resolvedSteps);

@@ -187,7 +187,6 @@ function resolveConversionPlanV1(options) {
     pipeline: inference.pipeline ?? null,
     sessionDefaults,
     execution,
-    defaultKernelPath: null,
   };
 
   const presetId = converterConfig?.presets?.model ?? options?.presetOverride ?? null;
