@@ -1,7 +1,4 @@
 import { DEFAULT_BATCHING_DEFAULTS, DEFAULT_GENERATION_CONFIG } from './schema/inference-defaults.schema.js';
-import { buildExecutionV0ContractArtifact } from './execution-v0-contract-check.js';
-import { buildExecutionV0GraphContractArtifact } from './execution-v0-graph-contract-check.js';
-import { EXECUTION_V0_SCHEMA_ID } from './schema/execution-v0.schema.js';
 import { DEFAULT_KVCACHE_CONFIG } from './schema/kvcache.schema.js';
 
 const KV_LAYOUTS = new Set(['contiguous', 'paged', 'tiered', 'bdpa']);
@@ -266,42 +263,18 @@ export function buildExecutionContractArtifact(manifest) {
         attentionPhaseCounts[step.phase] += 1;
       }
     }
-    const executionV0 =
-      manifest?.inference?.schema === EXECUTION_V0_SCHEMA_ID
-        ? {
-            kernelProfiles: buildExecutionV0ContractArtifact(manifest.inference, {
-              modelId: evaluation.facts.modelId,
-            }),
-            graph: buildExecutionV0GraphContractArtifact({
-              modelId: evaluation.facts.modelId,
-              numLayers: manifest?.architecture?.numLayers,
-              manifestInference: manifest.inference,
-            }),
-          }
-        : null;
-    const nestedChecks = [];
-    const nestedErrors = [];
-    if (executionV0?.kernelProfiles) {
-      nestedChecks.push(...executionV0.kernelProfiles.checks);
-      nestedErrors.push(...executionV0.kernelProfiles.errors);
-    }
-    if (executionV0?.graph) {
-      nestedChecks.push(...executionV0.graph.checks);
-      nestedErrors.push(...executionV0.graph.errors);
-    }
     return {
       schemaVersion: 1,
       source: 'doppler',
-      ok: evaluation.ok && nestedErrors.length === 0,
-      checks: [...evaluation.checks, ...nestedChecks],
-      errors: [...evaluation.errors, ...nestedErrors],
+      ok: evaluation.ok,
+      checks: [...evaluation.checks],
+      errors: [...evaluation.errors],
       session: evaluation.facts.session,
       steps: {
         total: evaluation.facts.steps.length,
         attention: attentionPhaseCounts.prefill + attentionPhaseCounts.decode + attentionPhaseCounts.both,
         attentionPhases: attentionPhaseCounts,
       },
-      ...(executionV0 ? { executionV0 } : {}),
     };
   } catch (error) {
     return {

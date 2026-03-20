@@ -144,7 +144,7 @@ try {
 
   setActiveKernelPath(fusedPath, 'runtime', {
     mode: 'capability-aware',
-    sourceScope: ['config', 'execution-v0'],
+    sourceScope: ['config', 'model'],
     onIncompatible: 'remap',
   });
   assert.equal(getActiveKernelPath(), fusedPath);
@@ -155,8 +155,8 @@ try {
     getActiveKernelPathPolicy(),
     {
       mode: 'capability-aware',
-      sourceScope: ['config', 'execution-v0'],
-      allowSources: ['config', 'execution-v0'],
+      sourceScope: ['config', 'model'],
+      allowSources: ['config', 'model'],
       onIncompatible: 'remap',
     }
   );
@@ -175,7 +175,7 @@ try {
       sourceScope: ['execution_v0'],
       onIncompatible: 'remap',
     }),
-    /does not accept legacy "execution_v0". Use "execution-v0"/
+    /does not accept "execution-v0"/
   );
   assert.throws(
     () => setActiveKernelPath(null, 'runtime', ['not-a-policy']),

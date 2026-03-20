@@ -4,7 +4,7 @@ import {
   buildLayerPipelineFromExecution,
   buildSessionRuntimePatch,
   PIPELINE_COMPATIBLE_OPS,
-} from './execution-v0-runtime-builders.js';
+} from './execution-runtime-builders.js';
 import { mergeRuntimeValues } from '../../../config/runtime-merge.js';
 
 export function hasExecutionV1(manifestInference) {

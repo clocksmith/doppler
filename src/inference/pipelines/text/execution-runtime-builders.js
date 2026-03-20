@@ -1,5 +1,8 @@
 import { selectRuleValue } from '../../../rules/rule-registry.js';
-import { cloneJson, isPhaseMatch, normalizeDtype, requireSessionActivationDtype, stepHasLayer } from './execution-v0-contract-helpers.js';
+
+// =============================================================================
+// Shared execution helpers used by both v0 and v1 execution runtimes.
+// =============================================================================
 
 export const PIPELINE_COMPATIBLE_OPS = new Set([
   'save',
@@ -12,6 +15,35 @@ export const PIPELINE_COMPATIBLE_OPS = new Set([
   'cast',
   'noop',
 ]);
+
+export function normalizeDtype(value, label) {
+  const normalized = String(value ?? '').trim().toLowerCase();
+  if (normalized !== 'f16' && normalized !== 'f32') {
+    throw new Error(`[Execution] ${label} must be "f16" or "f32"; got "${value}"`);
+  }
+  return normalized;
+}
+
+export function isPhaseMatch(phase, targetPhase) {
+  return phase === 'both' || phase === targetPhase;
+}
+
+export function stepHasLayer(step, layerIdx) {
+  if (step.layers === 'all') return true;
+  if (!Array.isArray(step.layers)) return false;
+  return step.layers.includes(layerIdx);
+}
+
+export function requireSessionActivationDtype(
+  sessionDefaults,
+  label = 'sessionDefaults.compute.defaults.activationDtype'
+) {
+  const activationDtype = sessionDefaults?.compute?.defaults?.activationDtype;
+  if (activationDtype == null) {
+    throw new Error(`[Execution] ${label} is required.`);
+  }
+  return normalizeDtype(activationDtype, label);
+}
 
 function toKernelPathStep(step) {
   if (step.op === 'cast') return null;
@@ -73,7 +105,7 @@ function assertInlineKernelPathSessionCompatibility(path, sessionDefaults) {
     if (kernel.includes('_f16kv')) {
       if (activationDtype !== 'f32' || kvDtype !== 'f16') {
         throw new Error(
-          `[ExecutionV0] Inline kernelPath attention kernel "${kernel}" requires ` +
+          `[Execution] Inline kernelPath attention kernel "${kernel}" requires ` +
           `activationDtype="f32" and kvcache.kvDtype="f16", but resolved ` +
           `activationDtype="${activationDtype}" and kvcache.kvDtype="${kvDtype}".`
         );
@@ -83,7 +115,7 @@ function assertInlineKernelPathSessionCompatibility(path, sessionDefaults) {
     if (kernel.includes('_f16')) {
       if (activationDtype !== 'f16' || kvDtype !== 'f16') {
         throw new Error(
-          `[ExecutionV0] Inline kernelPath attention kernel "${kernel}" requires ` +
+          `[Execution] Inline kernelPath attention kernel "${kernel}" requires ` +
           `activationDtype="f16" and kvcache.kvDtype="f16", but resolved ` +
           `activationDtype="${activationDtype}" and kvcache.kvDtype="${kvDtype}".`
         );
@@ -92,7 +124,7 @@ function assertInlineKernelPathSessionCompatibility(path, sessionDefaults) {
     }
     if (activationDtype !== 'f32' || kvDtype !== 'f32') {
       throw new Error(
-        `[ExecutionV0] Inline kernelPath attention kernel "${kernel}" requires ` +
+        `[Execution] Inline kernelPath attention kernel "${kernel}" requires ` +
         `activationDtype="f32" and kvcache.kvDtype="f32", but resolved ` +
         `activationDtype="${activationDtype}" and kvcache.kvDtype="${kvDtype}".`
       );
@@ -130,9 +162,9 @@ export function buildInlineKernelPath(
   }
 
   const path = {
-    id: `${modelId || 'model'}-execution-v0`,
-    name: 'Execution v0 inline kernel path',
-    description: 'Generated from manifest.inference.execution.steps',
+    id: `${modelId || 'model'}-execution-inline`,
+    name: 'Execution inline kernel path',
+    description: 'Generated from manifest.inference.execution',
     activationDtype,
     kvDtype,
     ...(typeof finitenessFallbackKernelPathId === 'string' && finitenessFallbackKernelPathId.length > 0
@@ -275,12 +307,4 @@ export function buildSessionRuntimePatch(sessionDefaults) {
     }
   }
   return patch;
-}
-
-export function buildModelRuntimeOverrides(manifestInference) {
-  const model = manifestInference?.model;
-  if (!model || typeof model !== 'object') {
-    return null;
-  }
-  return cloneJson(model);
 }

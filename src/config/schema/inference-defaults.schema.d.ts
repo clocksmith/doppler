@@ -19,9 +19,9 @@ import type {
   TokenizerConfigSchema,
 } from './inference.schema.js';
 import type {
-  ExecutionV0PatchSchema,
-  ExecutionV0SessionDefaultsSchema,
-} from './execution-v0.schema.js';
+  ExecutionV1PatchSchema,
+  ExecutionV1SessionDefaultsSchema,
+} from './execution-v1.schema.js';
 import type { KVCacheConfigSchema } from './kvcache.schema.js';
 import type { MoERuntimeConfigSchema } from './moe.schema.js';
 import type { KernelPathRef } from './kernel-path.schema.js';
@@ -224,9 +224,9 @@ export interface InferenceDefaultsConfigSchema {
   debugTokens?: boolean;
   pipeline?: LayerPipelineSchema | null;
   /** Session overrides for execution v0 (session-only runtime knobs). */
-  session?: ExecutionV0SessionDefaultsSchema;
+  session?: ExecutionV1SessionDefaultsSchema;
   /** Atomic execution graph patch for execution v0. */
-  executionPatch?: ExecutionV0PatchSchema;
+  executionPatch?: ExecutionV1PatchSchema;
   /**
    * Kernel path for explicit kernel dispatch ordering.
    * Specifies exactly which kernels run, in what order, with what configs.
@@ -234,10 +234,10 @@ export interface InferenceDefaultsConfigSchema {
    */
   kernelPath?: KernelPathRef;
   /**
-   * Internal kernel-path source hint used by execution-v0 runtime patching.
+   * Internal kernel-path source hint used by execution runtime patching.
    * Not intended for direct user configuration.
    */
-  kernelPathSource?: 'runtime' | 'config' | 'model' | 'manifest' | 'execution-v0' | 'none';
+  kernelPathSource?: 'runtime' | 'config' | 'model' | 'manifest' | 'none';
   /**
    * Kernel-path auto-selection policy.
    * locked: preserve configured kernelPath as-is.
@@ -259,12 +259,12 @@ export interface InferenceDefaultsConfigSchema {
 
 export interface KernelPathPolicySchema {
   mode: 'locked' | 'capability-aware';
-  sourceScope: Array<'model' | 'manifest' | 'config' | 'runtime' | 'execution-v0'>;
+  sourceScope: Array<'model' | 'manifest' | 'config'>;
   /**
    * Backward-compatible alias for sourceScope.
    * Prefer sourceScope in new configs.
    */
-  allowSources?: Array<'model' | 'manifest' | 'config' | 'runtime' | 'execution-v0'>;
+  allowSources?: Array<'model' | 'manifest' | 'config'>;
   onIncompatible: 'error' | 'remap';
 }
 

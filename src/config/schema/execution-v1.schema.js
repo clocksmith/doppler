@@ -27,6 +27,12 @@ export const DEFAULT_EXECUTION_V1_POLICIES = {
   unresolvedKernel: 'error',
 };
 
+export const DEFAULT_EXECUTION_V1_PATCH = {
+  set: [],
+  remove: [],
+  add: [],
+};
+
 export function isExecutionV1Digest(value) {
   return typeof value === 'string' && DIGEST_PATTERN.test(value);
 }

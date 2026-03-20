@@ -19,7 +19,7 @@ const KERNELS_REQUEST = {
     inference: {
       kernelPathPolicy: {
         mode: 'capability-aware',
-        sourceScope: ['model', 'manifest', 'config', 'execution-v0'],
+        sourceScope: ['model', 'manifest', 'config'],
         onIncompatible: 'remap',
       },
     },

@@ -100,8 +100,8 @@ for (const presetPath of subgroupFreePresetPaths) {
     `${presetPath} must allow config source for capability remap`
   );
   assert.ok(
-    Array.isArray(sourceScope) && sourceScope.includes('execution-v0'),
-    `${presetPath} must allow execution-v0 source for capability checks`
+    Array.isArray(sourceScope) && sourceScope.includes('model'),
+    `${presetPath} must allow model source for capability checks`
   );
 
   const kernelPathId = preset?.runtime?.inference?.kernelPath;

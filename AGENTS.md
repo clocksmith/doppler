@@ -42,7 +42,7 @@ Add by task/skill:
 
 - Before the first non-trivial code edit in any turn, open the style-guide files above in that turn.
 - If work resumes from a summary, handoff, or context compaction, re-open the required guides before editing. Prior summaries do not count as having read them.
-- When changing config merge, manifest-first resolution, execution-v0, kernel-path selection, or runtime fallback behavior, explicitly re-check these sections before writing code:
+- When changing config merge, manifest-first resolution, execution-v1, kernel-path selection, or runtime fallback behavior, explicitly re-check these sections before writing code:
   - `docs/style/general-style-guide.md`: `Explicit over Implicit`, `No Runtime Defaults in Code`, `Nullable Required Fields`
   - `docs/style/javascript-style-guide.md`: `Manifest-First Contract`, `Runtime Configuration (Performance Invariants)`
 - Any change that could silently rewrite manifest/runtime behavior must either:
@@ -148,7 +148,7 @@ Use runtime configs/config payloads, not ad-hoc per-field flags.
 
 - Runtime configs: `src/config/presets/runtime/`
 - Conversion configs: `tools/configs/conversion/` (v1 format with inline execution graph)
-- Model presets: `src/config/presets/models/` (legacy, used by v0 converter path)
+- Model presets: `src/config/presets/models/` (fallback config for manifest-first resolution)
 - Read tunables via `getRuntimeConfig()`; avoid hardcoded defaults in runtime paths.
 - `runtime.shared.tooling.intent` is required for harnessed debug/bench/test flows.
 

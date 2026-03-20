@@ -33,22 +33,6 @@ export {
 } from './inference.schema.js';
 
 // =============================================================================
-// Execution v0 Schema
-// =============================================================================
-export {
-  EXECUTION_V0_SCHEMA_ID,
-  EXECUTION_V0_HASH_PATTERN,
-  EXECUTION_V0_SEMVER_PATTERN,
-  DEFAULT_EXECUTION_V0_COMPUTE_DEFAULTS,
-  DEFAULT_EXECUTION_V0_SESSION_DEFAULTS,
-  DEFAULT_EXECUTION_V0_POLICIES,
-  DEFAULT_EXECUTION_V0_CONFIG,
-  DEFAULT_EXECUTION_V0_PATCH,
-  isExecutionV0Digest,
-  isExecutionV0Semver,
-} from './execution-v0.schema.js';
-
-// =============================================================================
 // Execution v1 Schema
 // =============================================================================
 export {
@@ -56,6 +40,7 @@ export {
   DEFAULT_EXECUTION_V1_COMPUTE_DEFAULTS,
   DEFAULT_EXECUTION_V1_SESSION_DEFAULTS,
   DEFAULT_EXECUTION_V1_POLICIES,
+  DEFAULT_EXECUTION_V1_PATCH,
   isExecutionV1Digest,
   hasExecutionV1,
   expandExecutionV1,

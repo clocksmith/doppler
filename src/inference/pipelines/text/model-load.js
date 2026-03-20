@@ -22,7 +22,7 @@ import {
   DEFAULT_GENERATION_CONFIG,
 } from '../../../config/schema/inference-defaults.schema.js';
 import { DEFAULT_KVCACHE_CONFIG } from '../../../config/schema/kvcache.schema.js';
-import { DEFAULT_EXECUTION_V0_SESSION_DEFAULTS } from '../../../config/schema/execution-v0.schema.js';
+import { DEFAULT_EXECUTION_V1_COMPUTE_DEFAULTS } from '../../../config/schema/execution-v1.schema.js';
 
 function validateKernelWarmupMode(mode) {
   if (mode !== 'parallel' && mode !== 'sequential') {
@@ -130,7 +130,7 @@ const GLOBAL_DEFAULT_GENERATION = Object.freeze({
 const GLOBAL_DEFAULT_KERNEL_PATH_DTYPES = Object.freeze({
   activationDtype: DEFAULT_COMPUTE_DEFAULTS.activationDtype,
   kvDtype: DEFAULT_KVCACHE_CONFIG.kvDtype,
-  outputDtype: DEFAULT_EXECUTION_V0_SESSION_DEFAULTS.compute.defaults.outputDtype,
+  outputDtype: DEFAULT_EXECUTION_V1_COMPUTE_DEFAULTS.outputDtype,
 });
 
 function isRuntimeBatchingAtGlobalDefaults(batching) {
@@ -308,8 +308,6 @@ export async function runKernelWarmup(options) {
 function normalizeKernelPathSourceHint(value) {
   const normalized = String(value ?? '').trim().toLowerCase();
   if (normalized === 'runtime') return 'config';
-  if (normalized === 'execution_v0') return 'execution-v0';
-  if (normalized === 'execution-v0') return 'execution-v0';
   return normalized || 'none';
 }
 
@@ -442,16 +440,6 @@ function assertKernelPathFeatureCompatibility(
     && configuredKernelPathRef !== effectiveKernelPathRef;
   const summary = summarizeUnsupportedKernelUsages(unsupportedUsages);
 
-  if (kernelPathSource === 'execution-v0' && typeof effectiveKernelPathRef !== 'string') {
-    const remediation = policyAllowsSource
-      ? 'Execution-v0 inline kernel paths are not auto-remapped yet. Use subgroup/f16-compatible execution steps, or set runtime.inference.kernelPath to a compatible string preset (for example "gemma2-q4k-dequant-f32a-nosubgroups").'
-      : 'Enable runtime.inference.kernelPathPolicy.sourceScope to include "execution-v0", then use compatible execution steps or a compatible preset id.';
-    throw new Error(
-      `[ExecutionV0] Inline kernelPath requires unsupported GPU features. ` +
-      `Offending steps: ${summary}. ${remediation}`
-    );
-  }
-
   if (remapRequested && !remapApplied) {
     throw new Error(
       `KernelPath "${resolvedKernelPath?.id ?? 'unknown'}" requires unsupported GPU features (${summary}) ` +
@@ -567,7 +555,7 @@ function applyKernelPathRuntimeDtypeContract(resolvedKernelPath, runtimeConfig, 
     return runtimeConfig;
   }
 
-  if (kernelPathSource === 'config' || kernelPathSource === 'execution-v0') {
+  if (kernelPathSource === 'config') {
     throw new Error(
       `KernelPath "${resolvedKernelPath?.id ?? 'unknown'}" selected from ${kernelPathSource} ` +
       `requires explicit matching runtime dtypes for "${modelId}". ` +

@@ -13,9 +13,9 @@ import type {
   ConversionInfoSchema,
 } from './manifest.schema.js';
 import type {
-  ExecutionV0ConfigSchema,
-  ExecutionV0SessionDefaultsSchema,
-} from './execution-v0.schema.js';
+  ExecutionV1GraphSchema,
+  ExecutionV1SessionDefaultsSchema,
+} from './execution-v1.schema.js';
 
 export type ComputePrecision = 'f16' | 'f32' | 'auto' | null;
 /** Q4K layout: 'row' = fused kernel (fast), 'col' = dequant fallback */
@@ -59,8 +59,8 @@ export interface ConverterManifestConfigSchema {
 
 export interface ConverterInferenceConfigSchema {
   defaultKernelPath: string | null;
-  sessionDefaults: ExecutionV0SessionDefaultsSchema | null;
-  execution: ExecutionV0ConfigSchema['execution'] | null;
+  sessionDefaults: ExecutionV1SessionDefaultsSchema | null;
+  execution: ExecutionV1GraphSchema | null;
 }
 
 export interface ConverterOutputConfigSchema {

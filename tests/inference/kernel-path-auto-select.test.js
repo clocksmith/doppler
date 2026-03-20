@@ -70,32 +70,6 @@ const { setActiveKernelPath, getKernelPathStrict } = await import('../../src/con
 
 {
   const selected = resolveCapabilityKernelPathRef(
-    'gemma3-q4k-dequant-f32a-nosubgroups',
-    'execution-v0',
-    { hasSubgroups: true },
-    {
-      mode: 'capability-aware',
-      sourceScope: ['execution-v0'],
-    }
-  );
-  assert.equal(selected, 'gemma3-q4k-dequant-f32a-online');
-}
-
-{
-  const selected = resolveCapabilityKernelPathRef(
-    'gemma3-q4k-dequant-f32a-nosubgroups',
-    'execution-v0',
-    { hasSubgroups: true },
-    {
-      mode: 'capability-aware',
-      sourceScope: ['config'],
-    }
-  );
-  assert.equal(selected, 'gemma3-q4k-dequant-f32a-nosubgroups');
-}
-
-{
-  const selected = resolveCapabilityKernelPathRef(
     'gemma2-q4k-fused-f32a',
     'config',
     { hasSubgroups: false },

@@ -180,12 +180,12 @@ const container = { executionPlanState: planState };
   const inlinePlanState = compileExecutionPlanState({
     runtimeConfig: runtimeConfigInlineFallback,
     resolvedKernelPath: {
-      id: 'gemma-inline-execution-v0',
+      id: 'gemma-inline-fallback',
       activationDtype: 'f16',
       finitenessFallbackKernelPathId: 'gemma3-q4k-dequant-f32a-nosubgroups',
       decode: { steps: [] },
     },
-    kernelPathSource: 'execution-v0',
+    kernelPathSource: 'config',
   });
 
   const fallback = activateFallbackExecutionPlan(inlinePlanState);

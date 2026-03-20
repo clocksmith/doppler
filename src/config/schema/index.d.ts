@@ -107,46 +107,6 @@ export {
 } from './inference.schema.js';
 
 // =============================================================================
-// Execution v0 Schema
-// =============================================================================
-export {
-  type ExecutionV0Dtype,
-  type ExecutionV0Phase,
-  type ExecutionV0Section,
-  type ExecutionV0LayerSelector,
-  type ExecutionV0KernelRefSchema,
-  type ExecutionV0PrecisionSchema,
-  type ExecutionV0KVIO,
-  type ExecutionV0KernelProfileSchema,
-  type ExecutionV0ComputeDefaultsSchema,
-  type ExecutionV0ComputeSessionSchema,
-  type ExecutionV0DecodeLoopSchema,
-  type ExecutionV0SessionDefaultsSchema,
-  type ExecutionV0PoliciesSchema,
-  type ExecutionV0StepSchema,
-  type ExecutionV0GraphSchema,
-  type ExecutionV0ModelSchema,
-  type ExecutionV0ConfigSchema,
-  type ExecutionV0PatchSetSchema,
-  type ExecutionV0PatchRemoveSchema,
-  type ExecutionV0PatchAddSchema,
-  type ExecutionV0PatchSchema,
-  type ResolvedExecutionV0StepSchema,
-  type ExecutionV0ResolveSourceSchema,
-  type ExecutionV0FieldSourceMap,
-  EXECUTION_V0_SCHEMA_ID,
-  EXECUTION_V0_HASH_PATTERN,
-  EXECUTION_V0_SEMVER_PATTERN,
-  DEFAULT_EXECUTION_V0_COMPUTE_DEFAULTS,
-  DEFAULT_EXECUTION_V0_SESSION_DEFAULTS,
-  DEFAULT_EXECUTION_V0_POLICIES,
-  DEFAULT_EXECUTION_V0_CONFIG,
-  DEFAULT_EXECUTION_V0_PATCH,
-  isExecutionV0Digest,
-  isExecutionV0Semver,
-} from './execution-v0.schema.js';
-
-// =============================================================================
 // Execution v1 Schema
 // =============================================================================
 export {
@@ -173,6 +133,7 @@ export {
   DEFAULT_EXECUTION_V1_COMPUTE_DEFAULTS,
   DEFAULT_EXECUTION_V1_SESSION_DEFAULTS,
   DEFAULT_EXECUTION_V1_POLICIES,
+  DEFAULT_EXECUTION_V1_PATCH,
   isExecutionV1Digest,
   hasExecutionV1,
   expandExecutionV1,

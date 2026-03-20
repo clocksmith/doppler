@@ -2,13 +2,9 @@ import { resolveKernelPath, getKernelPathActivationDtype } from '../config/kerne
 import { detectPreset, listPresets, resolvePreset } from '../config/loader.js';
 import {
   DEFAULT_MANIFEST_INFERENCE,
-  EXECUTION_V0_SCHEMA_ID,
   EXECUTION_V1_SCHEMA_ID,
-  isExecutionV0Digest,
-  isExecutionV0Semver,
   expandExecutionV1,
 } from '../config/schema/index.js';
-import { buildExecutionV0FromKernelPath } from './execution-v0-manifest.js';
 import { buildManifestInference } from './manifest-inference.js';
 import {
   buildQuantizationInfo,
@@ -20,15 +16,18 @@ import { classifyTensorRole } from '../formats/rdrr/index.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
 import { buildKernelRefFromKernelEntry, isKernelRefBoundToKernel } from '../config/kernels/kernel-ref.js';
 import { mergeLayeredShallowObjects } from '../config/merge-helpers.js';
-import { buildExecutionV0ContractArtifact } from '../config/execution-v0-contract-check.js';
 
 const KNOWN_MODEL_PRESETS = new Set(listPresets());
 const CONVERSION_SUPPORTED_PRESETS = [...KNOWN_MODEL_PRESETS]
   .filter((presetId) => !['transformer', 'diffusion'].includes(presetId))
   .sort()
   .join(', ');
-const EXECUTION_V0_PHASES = new Set(['prefill', 'decode', 'both']);
-const EXECUTION_V0_SECTIONS = new Set(['preLayer', 'layer', 'postLayer', 'sampling']);
+const EXECUTION_PHASES = new Set(['prefill', 'decode', 'both']);
+const EXECUTION_SECTIONS = new Set(['preLayer', 'layer', 'postLayer', 'sampling']);
+const SEMVER_PATTERN = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/;
+const SHA256_DIGEST_PATTERN = /^sha256:[0-9a-f]{64}$/;
+function isSemver(value) { return typeof value === 'string' && SEMVER_PATTERN.test(value); }
+function isSha256Digest(value) { return typeof value === 'string' && SHA256_DIGEST_PATTERN.test(value); }
 
 function normalizeWeightDtype(dtype) {
   if (!dtype) return null;
@@ -217,60 +216,7 @@ function cloneJson(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
-function mergeExecutionV0SessionDefaults(baseSessionDefaults, overrideSessionDefaults) {
-  if (!overrideSessionDefaults) {
-    return cloneJson(baseSessionDefaults);
-  }
-  const base = cloneJson(baseSessionDefaults ?? {});
-  const override = cloneJson(overrideSessionDefaults);
-  const baseCompute = base.compute ?? {};
-  const overrideCompute = override.compute ?? {};
 
-  return {
-    ...base,
-    ...override,
-    compute: {
-      ...baseCompute,
-      ...overrideCompute,
-      defaults: mergeLayeredShallowObjects(
-        baseCompute.defaults ?? {},
-        overrideCompute.defaults ?? {}
-      ),
-      kernelProfiles: Object.prototype.hasOwnProperty.call(overrideCompute, 'kernelProfiles')
-        ? overrideCompute.kernelProfiles
-        : baseCompute.kernelProfiles,
-    },
-    kvcache: Object.prototype.hasOwnProperty.call(override, 'kvcache')
-      ? (
-          override.kvcache === null
-            ? null
-            : mergeLayeredShallowObjects(base.kvcache ?? {}, override.kvcache ?? {})
-        )
-      : base.kvcache,
-    decodeLoop: Object.prototype.hasOwnProperty.call(override, 'decodeLoop')
-      ? (
-          override.decodeLoop === null
-            ? null
-            : mergeLayeredShallowObjects(base.decodeLoop ?? {}, override.decodeLoop ?? {})
-        )
-      : base.decodeLoop,
-  };
-}
-
-function assertExecutionV0ConversionContract(manifestInference, modelId) {
-  if (!manifestInference?.execution) {
-    return;
-  }
-  const artifact = buildExecutionV0ContractArtifact(manifestInference, {
-    modelId: modelId ?? 'converted-model',
-  });
-  if (!artifact?.ok) {
-    const detail = artifact?.errors?.join(' ') ?? 'unknown execution-v0 contract error';
-    throw new Error(
-      `converterConfig.inference produced an invalid execution-v0 contract: ${detail}`
-    );
-  }
-}
 
 function readConverterSessionDefaultsOverride(converterConfig) {
   const raw = converterConfig?.inference?.sessionDefaults;
@@ -352,11 +298,11 @@ function validateConverterExecutionSteps(steps) {
 
     assertString(step.op, `${prefix}.op`);
     const phase = assertString(step.phase, `${prefix}.phase`).toLowerCase();
-    if (!EXECUTION_V0_PHASES.has(phase)) {
+    if (!EXECUTION_PHASES.has(phase)) {
       throw new Error(`${prefix}.phase must be prefill|decode|both.`);
     }
     const section = assertString(step.section, `${prefix}.section`);
-    if (!EXECUTION_V0_SECTIONS.has(section)) {
+    if (!EXECUTION_SECTIONS.has(section)) {
       throw new Error(`${prefix}.section must be preLayer|layer|postLayer|sampling.`);
     }
     assertString(step.src, `${prefix}.src`);
@@ -388,10 +334,10 @@ function validateConverterExecutionSteps(steps) {
       throw new Error(`${prefix}.kernelRef {id, version, digest} is required for non-cast steps.`);
     }
     assertString(step.kernelRef.id, `${prefix}.kernelRef.id`);
-    if (!isExecutionV0Semver(step.kernelRef.version)) {
+    if (!isSemver(step.kernelRef.version)) {
       throw new Error(`${prefix}.kernelRef.version must be semver.`);
     }
-    if (!isExecutionV0Digest(step.kernelRef.digest)) {
+    if (!isSha256Digest(step.kernelRef.digest)) {
       throw new Error(`${prefix}.kernelRef.digest must match sha256:<64-hex>.`);
     }
 
@@ -431,32 +377,17 @@ function applyConverterInferenceOverrides(manifestInference, converterConfig, co
       return normalized === 'conv' || normalized === 'convolution' || normalized === 'liv_conv';
     });
 
-  if (!manifestInference.execution && manifestInference.defaultKernelPath && !hasCustomConvLayers) {
-    const generatedExecution = buildExecutionV0FromKernelPath(manifestInference.defaultKernelPath);
-    if (generatedExecution) {
-      manifestInference.execution = generatedExecution.execution;
-      manifestInference.sessionDefaults = mergeExecutionV0SessionDefaults(
-        generatedExecution.sessionDefaults,
-        manifestInference.sessionDefaults
-      );
-      manifestInference.schema = generatedExecution.schema;
-    }
-  }
-
   if (execution && !manifestInference.sessionDefaults) {
     throw new Error(
       'converterConfig.inference.execution requires converterConfig.inference.sessionDefaults.'
     );
   }
 
-  if (manifestInference.execution) {
-    manifestInference.schema = EXECUTION_V0_SCHEMA_ID;
-  } else {
+  if (!manifestInference.execution) {
     assertNonExecutionSessionDefaults(manifestInference);
     manifestInference.schema = null;
   }
   validateDefaultKernelPath(manifestInference, context);
-  assertExecutionV0ConversionContract(manifestInference, context?.modelId ?? context?.presetId);
 }
 
 

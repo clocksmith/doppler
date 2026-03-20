@@ -212,6 +212,7 @@ export declare const EXECUTION_V1_SCHEMA_ID: string;
 export declare const DEFAULT_EXECUTION_V1_COMPUTE_DEFAULTS: ExecutionV1ComputeDefaultsSchema;
 export declare const DEFAULT_EXECUTION_V1_SESSION_DEFAULTS: ExecutionV1SessionDefaultsSchema;
 export declare const DEFAULT_EXECUTION_V1_POLICIES: ExecutionV1PoliciesSchema;
+export declare const DEFAULT_EXECUTION_V1_PATCH: ExecutionV1PatchSchema;
 
 // === Validation ===
 

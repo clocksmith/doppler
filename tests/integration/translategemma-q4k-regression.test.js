@@ -56,7 +56,7 @@ const RUNTIME_CONFIG = Object.freeze({
     kernelPath: 'gemma3-q4k-dequant-f32w-f32a-online',
     kernelPathPolicy: {
       mode: 'capability-aware',
-      sourceScope: ['config', 'model', 'manifest', 'execution-v0'],
+      sourceScope: ['config', 'model', 'manifest'],
       onIncompatible: 'remap',
     },
   },

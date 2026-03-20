@@ -5,9 +5,9 @@ import { DEFAULT_RMS_NORM_EPS } from './manifest.schema.js';
 import { DEFAULT_DIFFUSION_CONFIG } from './diffusion.schema.js';
 import { DEFAULT_ENERGY_CONFIG } from './energy.schema.js';
 import {
-  DEFAULT_EXECUTION_V0_PATCH,
-  DEFAULT_EXECUTION_V0_SESSION_DEFAULTS,
-} from './execution-v0.schema.js';
+  DEFAULT_EXECUTION_V1_PATCH,
+  DEFAULT_EXECUTION_V1_SESSION_DEFAULTS,
+} from './execution-v1.schema.js';
 
 // =============================================================================
 // Generation Defaults (generator.js runtime options)
@@ -123,8 +123,8 @@ export const DEFAULT_INFERENCE_DEFAULTS_CONFIG = {
   kernelPath: undefined,
   kernelPathSource: undefined,
   kernelPathPolicy: DEFAULT_KERNEL_PATH_POLICY,
-  session: DEFAULT_EXECUTION_V0_SESSION_DEFAULTS,
-  executionPatch: DEFAULT_EXECUTION_V0_PATCH,
+  session: DEFAULT_EXECUTION_V1_SESSION_DEFAULTS,
+  executionPatch: DEFAULT_EXECUTION_V1_PATCH,
 };
 
 // =============================================================================

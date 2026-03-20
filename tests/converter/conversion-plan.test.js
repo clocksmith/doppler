@@ -81,13 +81,8 @@ const embeddingComputeF32Config = createConverterConfig({
     architectureConfig: { headDim: 256 },
   });
   assert.equal(plan.manifestInference?.defaultKernelPath, 'gemma3-f16-fused-f16a-online');
-  assert.equal(plan.manifestInference?.schema, 'doppler.execution/v0');
-  assert.ok(Array.isArray(plan.manifestInference?.execution?.steps));
-  assert.ok(plan.manifestInference.execution.steps.length > 0);
-  assert.ok(plan.manifestInference.execution.steps[0].src);
-  assert.ok(plan.manifestInference.execution.steps[0].dst);
-  assert.ok(plan.manifestInference.execution.steps[0].kernelRef);
-  assert.ok((plan.manifestInference.sessionDefaults?.compute?.kernelProfiles?.length ?? 0) > 0);
+  // Legacy path no longer auto-generates v0 execution from defaultKernelPath
+  assert.equal(plan.manifestInference?.schema, null);
 }
 
 {
@@ -363,7 +358,8 @@ const embeddingComputeF32Config = createConverterConfig({
   assert.equal(plan.manifestInference?.sessionDefaults?.decodeLoop?.batchSize, 8);
   assert.equal(plan.manifestInference?.execution?.steps?.length, 1);
   assert.equal(plan.manifestInference?.execution?.steps?.[0]?.id, 'attn_prefill');
-  assert.equal(plan.manifestInference?.schema, 'doppler.execution/v0');
+  // Legacy path: explicit execution steps are kept but schema is no longer set to v0
+  assert.equal(plan.manifestInference?.schema, null);
 }
 
 {
@@ -396,10 +392,8 @@ const embeddingComputeF32Config = createConverterConfig({
     architectureHint: 'Gemma3ForCausalLM',
     architectureConfig: { headDim: 256 },
   });
-  assert.equal(plan.manifestInference?.schema, 'doppler.execution/v0');
-  assert.ok(Array.isArray(plan.manifestInference?.execution?.steps));
-  assert.equal(plan.manifestInference?.sessionDefaults?.compute?.defaults?.activationDtype, 'f16');
-  assert.equal(plan.manifestInference?.sessionDefaults?.kvcache?.kvDtype, 'f16');
+  assert.equal(plan.manifestInference?.schema, null);
+  // Auto-generation of v0 execution from defaultKernelPath is removed — sessionDefaults preserved
   assert.equal(plan.manifestInference?.sessionDefaults?.decodeLoop?.batchSize, 8);
   assert.equal(plan.manifestInference?.sessionDefaults?.decodeLoop?.readbackInterval, 2);
 }
@@ -720,9 +714,8 @@ const embeddingComputeF32Config = createConverterConfig({
   assert.equal(plan.modelType, 'transformer');
   assert.equal(typeof plan.presetId, 'string');
   assert.equal(typeof plan.manifestInference?.defaultKernelPath, 'string');
-  assert.equal(plan.manifestInference?.schema, 'doppler.execution/v0');
-  assert.ok(Array.isArray(plan.manifestInference?.execution?.steps));
-  assert.ok(plan.manifestInference.execution.steps.length > 0);
+  // Legacy path no longer auto-generates v0 execution from defaultKernelPath
+  assert.equal(plan.manifestInference?.schema, null);
 }
 
 {

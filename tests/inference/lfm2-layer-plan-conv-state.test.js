@@ -130,7 +130,7 @@ try {
   for (const value of actual) {
     assert.ok(
       Math.abs(value - 6) < 1e-5,
-      `execution-v0 conv path must use conv state; expected 6, got ${value}`
+      `conv path must use conv state; expected 6, got ${value}`
     );
   }
 } finally {

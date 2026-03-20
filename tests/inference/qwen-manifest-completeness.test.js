@@ -2,9 +2,6 @@ import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 
-const { hasExecutionV0 } = await import(
-  '../../src/inference/pipelines/text/execution-v0.js'
-);
 const { inferLinearNormMode } = await import(
   '../../src/inference/pipelines/text/linear-attention.js'
 );
@@ -53,18 +50,10 @@ if (!hasExactLocalManifests) {
 
 {
   assert.equal(f16Manifest.inference.schema, null);
-  assert.equal(q4kManifest.inference.schema, 'doppler.execution/v0');
   for (const manifest of [f16Manifest, q4kManifest]) {
     assert.equal(manifest.inference.defaultKernelPath, null);
     assert.equal(manifest.inference.execution, null);
   }
-}
-
-// --- Manifest: execution: null means legacy dispatch, not execution-v0 ---
-
-{
-  assert.equal(hasExecutionV0(f16Manifest.inference), false);
-  assert.equal(hasExecutionV0(q4kManifest.inference), false);
 }
 
 // --- Manifest: sessionDefaults shape (decodeLoop only, no kvcache/compute) ---

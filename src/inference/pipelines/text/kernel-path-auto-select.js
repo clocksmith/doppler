@@ -11,9 +11,6 @@ function normalizeKernelPathSource(source) {
   if (normalized === 'runtime') {
     return 'config';
   }
-  if (normalized === 'execution_v0' || normalized === 'execution-v0') {
-    return 'execution-v0';
-  }
   return normalized || 'none';
 }
 

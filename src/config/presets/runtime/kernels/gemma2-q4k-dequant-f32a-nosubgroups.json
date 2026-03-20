@@ -25,7 +25,7 @@
       "kernelPath": "gemma2-q4k-dequant-f32a-nosubgroups",
       "kernelPathPolicy": {
         "mode": "capability-aware",
-        "sourceScope": ["config", "model", "manifest", "execution-v0"],
+        "sourceScope": ["config", "model", "manifest"],
         "onIncompatible": "remap"
       }
     }

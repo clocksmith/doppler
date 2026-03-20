@@ -6,7 +6,7 @@ import { buildManifestRequiredInferenceFieldsArtifact } from '../config/required
 
 export function buildSuiteContractMetrics(suite, baseMetrics, manifest) {
   const executionContractArtifact = buildExecutionContractArtifact(manifest);
-  const executionV0GraphContractArtifact = executionContractArtifact?.executionV0?.graph ?? null;
+  const executionV0GraphContractArtifact = null;
   const layerPatternContractArtifact = getInferenceLayerPatternContractArtifact();
   const requiredInferenceFieldsArtifact = manifest?.modelType === 'transformer'
     && isPlainObject(manifest?.inference?.attention)

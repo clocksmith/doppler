@@ -164,13 +164,19 @@ assert.throws(
 // Legacy "execution_v0" source throws
 assert.throws(
   () => mergeKernelPathPolicy({ sourceScope: ['execution_v0'] }, undefined),
-  /does not accept legacy "execution_v0"/
+  /does not accept "execution-v0"/
+);
+
+// "execution-v0" source throws (v0 removed)
+assert.throws(
+  () => mergeKernelPathPolicy({ sourceScope: ['execution-v0'] }, undefined),
+  /does not accept "execution-v0"/
 );
 
 // Invalid source throws
 assert.throws(
   () => mergeKernelPathPolicy({ sourceScope: ['invalid'] }, undefined),
-  /must be model\|manifest\|config\|execution-v0/
+  /must be model\|manifest\|config/
 );
 
 // null policy throws
@@ -212,10 +218,10 @@ assert.throws(
   assert.deepEqual(result.sourceScope, ['model', 'config']);
 }
 
-// execution-v0 is valid
+// config is valid
 {
-  const result = mergeKernelPathPolicy({ sourceScope: ['execution-v0'] }, undefined);
-  assert.deepEqual(result.sourceScope, ['execution-v0']);
+  const result = mergeKernelPathPolicy({ sourceScope: ['config'] }, undefined);
+  assert.deepEqual(result.sourceScope, ['config']);
 }
 
 // === mergeExecutionPatchLists ===

@@ -139,12 +139,12 @@ const executionSessionDefaults = {
     assert.equal(result.executionContractArtifact?.schemaVersion, 1);
     assert.equal(result.executionContractArtifact?.ok, true);
     assert.equal(result.executionContractArtifact?.session?.layout, 'contiguous');
-    assert.equal(result.executionV0GraphContractArtifact?.ok, true);
+    assert.equal(result.executionV0GraphContractArtifact, null);
     assert.equal(result.layerPatternContractArtifact?.ok, true);
     assert.equal(result.requiredInferenceFieldsArtifact?.ok, true);
     assert.equal(result.report?.suite, 'convert');
     assert.equal(result.report?.executionContractArtifact?.ok, true);
-    assert.equal(result.report?.executionV0GraphContractArtifact?.ok, true);
+    assert.equal(result.report?.executionV0GraphContractArtifact, null);
     assert.equal(result.report?.layerPatternContractArtifact?.ok, true);
     assert.equal(result.report?.requiredInferenceFieldsArtifact?.ok, true);
     assert.ok(typeof result.reportInfo?.path === 'string' && result.reportInfo.path.length > 0);
@@ -155,7 +155,7 @@ const executionSessionDefaults = {
     const reportJson = JSON.parse(readFileSync(reportPath, 'utf8'));
     assert.equal(reportJson.suite, 'convert');
     assert.equal(reportJson.executionContractArtifact?.ok, true);
-    assert.equal(reportJson.executionV0GraphContractArtifact?.ok, true);
+    assert.equal(reportJson.executionV0GraphContractArtifact, null);
     assert.equal(reportJson.layerPatternContractArtifact?.ok, true);
     assert.equal(reportJson.requiredInferenceFieldsArtifact?.ok, true);
 
@@ -165,10 +165,9 @@ const executionSessionDefaults = {
     assert.equal(String(manifest.quantization).toUpperCase(), 'F16');
     assert.equal(manifest.tokenizer?.type, 'bundled');
     assert.equal(manifest.tokenizer?.file, 'tokenizer.json');
-    assert.equal(manifest.inference?.schema, 'doppler.execution/v0');
-    assert.ok(Array.isArray(manifest.inference?.execution?.steps));
-    assert.equal(manifest.inference.execution.steps.length, 1);
-    assert.equal(manifest.inference.execution.steps[0].op, 'cast');
+    assert.equal(manifest.inference?.schema, null);
+    // Legacy converter preserves explicit execution config but no longer sets v0 schema
+    assert.ok(manifest.inference?.execution?.steps == null || Array.isArray(manifest.inference?.execution?.steps));
     assert.equal(manifest.tensors?.['lm_head.weight']?.group, 'head');
     assert.equal(manifest.tensors?.['model.norm.weight']?.group, 'head');
     assert.equal(manifest.tensors?.['model.embed_tokens.weight']?.group, 'embed');
@@ -231,12 +230,12 @@ const executionSessionDefaults = {
     assert.equal(result.executionContractArtifact?.schemaVersion, 1);
     assert.equal(result.executionContractArtifact?.ok, true);
     assert.equal(result.executionContractArtifact?.session?.layout, 'contiguous');
-    assert.equal(result.executionV0GraphContractArtifact?.ok, true);
+    assert.equal(result.executionV0GraphContractArtifact, null);
     assert.equal(result.layerPatternContractArtifact?.ok, true);
     assert.equal(result.requiredInferenceFieldsArtifact?.ok, true);
     assert.equal(result.report?.suite, 'convert');
     assert.equal(result.report?.executionContractArtifact?.ok, true);
-    assert.equal(result.report?.executionV0GraphContractArtifact?.ok, true);
+    assert.equal(result.report?.executionV0GraphContractArtifact, null);
     assert.equal(result.report?.layerPatternContractArtifact?.ok, true);
     assert.equal(result.report?.requiredInferenceFieldsArtifact?.ok, true);
     assert.ok(typeof result.reportInfo?.path === 'string' && result.reportInfo.path.length > 0);
@@ -247,7 +246,7 @@ const executionSessionDefaults = {
     const reportJson = JSON.parse(readFileSync(reportPath, 'utf8'));
     assert.equal(reportJson.suite, 'convert');
     assert.equal(reportJson.executionContractArtifact?.ok, true);
-    assert.equal(reportJson.executionV0GraphContractArtifact?.ok, true);
+    assert.equal(reportJson.executionV0GraphContractArtifact, null);
     assert.equal(reportJson.layerPatternContractArtifact?.ok, true);
     assert.equal(reportJson.requiredInferenceFieldsArtifact?.ok, true);
 
@@ -255,9 +254,7 @@ const executionSessionDefaults = {
     assert.equal(typeof manifest.modelId, 'string');
     assert.ok(manifest.modelId.startsWith('gemma2-success-worker'));
     assert.equal(String(manifest.quantization).toUpperCase(), 'F16');
-    assert.equal(manifest.inference?.schema, 'doppler.execution/v0');
-    assert.equal(manifest.inference.execution.steps.length, 1);
-    assert.equal(manifest.inference.execution.steps[0].op, 'cast');
+    assert.equal(manifest.inference?.schema, null);
 
     assert.equal(existsSync(path.join(outputDir, 'shard_99999.bin')), false);
     assert.ok(progress.length > 0);

@@ -44,7 +44,6 @@ const VALID_KERNEL_PATH_POLICY_SOURCES = new Set([
   'model',
   'manifest',
   'config',
-  'execution-v0',
 ]);
 
 function normalizeKernelPathPolicyMode(value) {
@@ -72,14 +71,14 @@ function normalizeKernelPathPolicySource(source) {
       'DopplerConfigError: runtime.inference.kernelPathPolicy.sourceScope does not accept legacy "runtime". Use "config".'
     );
   }
-  if (normalized === 'execution_v0') {
+  if (normalized === 'execution_v0' || normalized === 'execution-v0') {
     throw new Error(
-      'DopplerConfigError: runtime.inference.kernelPathPolicy.sourceScope does not accept legacy "execution_v0". Use "execution-v0".'
+      'DopplerConfigError: runtime.inference.kernelPathPolicy.sourceScope does not accept "execution-v0" (v0 execution is no longer supported).'
     );
   }
   if (!VALID_KERNEL_PATH_POLICY_SOURCES.has(normalized)) {
     throw new Error(
-      `DopplerConfigError: runtime.inference.kernelPathPolicy.sourceScope entries must be model|manifest|config|execution-v0; got ${JSON.stringify(source)}.`
+      `DopplerConfigError: runtime.inference.kernelPathPolicy.sourceScope entries must be model|manifest|config; got ${JSON.stringify(source)}.`
     );
   }
   return normalized;

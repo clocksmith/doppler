@@ -11,10 +11,6 @@ import type { KernelPathRef } from './kernel-path.schema.js';
 import type { LayerPipelineSchema, LayerType, LinearNormMode } from './inference.schema.js';
 import type { EnergyModelConfigSchema } from './energy.schema.js';
 import type {
-  ExecutionV0ConfigSchema,
-  ExecutionV0SessionDefaultsSchema,
-} from './execution-v0.schema.js';
-import type {
   ExecutionV1GraphSchema,
   ExecutionV1SessionDefaultsSchema,
 } from './execution-v1.schema.js';
@@ -320,10 +316,10 @@ export interface ManifestInferenceSchema {
   chatTemplate: ManifestChatTemplateSchema;
   /** Layer pipeline override (null = use optimized hardcoded path) */
   pipeline: LayerPipelineSchema | null;
-  /** Session defaults for execution v0 or v1 manifests */
-  sessionDefaults: ExecutionV0SessionDefaultsSchema | ExecutionV1SessionDefaultsSchema | null;
+  /** Session defaults for execution v1 manifests */
+  sessionDefaults: ExecutionV1SessionDefaultsSchema | null;
   /** Explicit execution graph (v0 object-per-step or v1 compact tuple format) */
-  execution: ExecutionV0ConfigSchema['execution'] | ExecutionV1GraphSchema | null;
+  execution: ExecutionV1GraphSchema | null;
   /** Default kernel path for this model (null = no explicit path). Deprecated in v1 — use execution graph. */
   defaultKernelPath: string | null;
 }

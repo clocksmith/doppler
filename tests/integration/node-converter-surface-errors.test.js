@@ -252,42 +252,6 @@ await assert.rejects(
 }
 
 {
-  const fixtureDir = createTempDir('doppler-converter-kernel-digest-');
-  writeFileSync(path.join(fixtureDir, 'config.json'), JSON.stringify({
-    architectures: ['Gemma2ForCausalLM'],
-    model_type: 'gemma2',
-    num_hidden_layers: 1,
-    hidden_size: 1,
-    num_attention_heads: 1,
-    num_key_value_heads: 1,
-    head_dim: 1,
-    intermediate_size: 1,
-    vocab_size: 10,
-    max_position_embeddings: 8,
-    bos_token_id: 1,
-    eos_token_id: 2,
-    rms_norm_eps: 1e-6,
-  }), 'utf8');
-  writeMinimalGemma2Safetensors(path.join(fixtureDir, 'model.safetensors'));
-  try {
-    await assert.rejects(
-      () => convertSafetensorsDirectory({
-        inputDir: fixtureDir,
-        converterConfig: {
-          output: {
-            modelBaseId: 'gemma2-test',
-            dir: path.join(fixtureDir, 'out'),
-          },
-        },
-      }),
-      /No kernel content digest registered/
-    );
-  } finally {
-    rmSync(fixtureDir, { recursive: true, force: true });
-  }
-}
-
-{
   const fixtureDir = createTempDir('doppler-converter-worker-policy-invalid-');
   try {
     await assert.rejects(

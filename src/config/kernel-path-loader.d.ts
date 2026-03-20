@@ -81,7 +81,7 @@ export function validateKernelPath(path: KernelPathSchema): string[];
 
 export type KernelPathPhase = 'prefill' | 'decode';
 export type KernelPathSection = 'layer' | 'preLayer' | 'postLayer' | 'sampling';
-export type KernelPathSource = 'runtime' | 'config' | 'model' | 'manifest' | 'execution-v0' | 'none';
+export type KernelPathSource = 'runtime' | 'config' | 'model' | 'manifest' | 'none';
 export interface KernelPathPolicy {
   mode: 'locked' | 'capability-aware';
   sourceScope: KernelPathSource[];

@@ -46,29 +46,29 @@ for (const manifestPath of collectManifestPaths(path.join(process.cwd(), 'models
   const inference = manifest?.inference;
   assert.ok(inference && typeof inference === 'object', `${label}: inference is required`);
 
-  if (inference.schema !== 'doppler.execution/v0' || !Array.isArray(inference.execution?.steps)) {
+  if (!Array.isArray(inference.execution?.steps)) {
     continue;
   }
 
   const sessionDefaults = inference.sessionDefaults;
-  assert.ok(sessionDefaults && typeof sessionDefaults === 'object', `${label}: execution-v0 manifests require sessionDefaults`);
+  assert.ok(sessionDefaults && typeof sessionDefaults === 'object', `${label}: manifests with execution steps require sessionDefaults`);
   assert.ok(
     sessionDefaults.compute?.defaults && typeof sessionDefaults.compute.defaults === 'object',
-    `${label}: execution-v0 manifests require sessionDefaults.compute.defaults`
+    `${label}: manifests with execution steps require sessionDefaults.compute.defaults`
   );
   assert.notEqual(
     sessionDefaults.kvcache,
     undefined,
-    `${label}: execution-v0 manifests require explicit sessionDefaults.kvcache`
+    `${label}: manifests with execution steps require explicit sessionDefaults.kvcache`
   );
   assert.notEqual(
     sessionDefaults.decodeLoop,
     undefined,
-    `${label}: execution-v0 manifests require explicit sessionDefaults.decodeLoop`
+    `${label}: manifests with execution steps require explicit sessionDefaults.decodeLoop`
   );
   assert.ok(
     Array.isArray(inference.execution?.steps),
-    `${label}: execution-v0 manifests require execution.steps`
+    `${label}: manifests with execution steps require execution.steps`
   );
 
   // Guard: Q4K manifests using fused Q4K kernels must not assign an F16-only weight kernel

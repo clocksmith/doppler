@@ -1370,7 +1370,7 @@ export async function convertModel(model, io, options = {}) {
     tensorCount: tensors.length,
     totalSize,
     executionContractArtifact,
-    executionV0GraphContractArtifact: executionContractArtifact?.executionV0?.graph ?? null,
+    executionV0GraphContractArtifact: null,
     layerPatternContractArtifact,
     requiredInferenceFieldsArtifact,
   };
