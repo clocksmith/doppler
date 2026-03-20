@@ -271,7 +271,7 @@ const DEFAULT_TRANSLATE_TEMPERATURE = 1.0;
 const DEFAULT_TRANSLATE_TOP_P = 0.95;
 const DEFAULT_TRANSLATE_TOP_K = 64;
 const DEFAULT_TRANSLATE_MAX_TOKENS = 1024;
-const DEFAULT_TEXT_MAX_TOKENS = 128;
+const DEFAULT_TEXT_MAX_TOKENS = 256;
 const TRANSLATE_COMPARE_DEFAULT_MAX_TOKENS = 192;
 const TRANSLATE_COMPARE_HISTORY_STORAGE_KEY = 'doppler.translate.compare.history.v1';
 const TRANSLATE_COMPARE_CONFIG_VERSION = 2;
@@ -5250,7 +5250,7 @@ async function handleRunGenerate() {
       });
 
       tokenPressSession = createTokenPressSession(pipeline, tokenPress, generationInput, {
-        maxTokens: options.maxTokens || 128,
+        maxTokens: options.maxTokens || DEFAULT_TEXT_MAX_TOKENS,
         temperature: options.temperature ?? 0,
         topP: options.topP ?? 1.0,
         topK: options.topK ?? 0,

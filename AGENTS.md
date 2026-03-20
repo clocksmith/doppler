@@ -124,6 +124,24 @@ Rules:
 - Command semantics must match on browser and CLI.
 - Unsupported environment capabilities must fail fast (never silent fallback).
 
+### CLI Quick Reference
+
+Commands have locked suite/intent bindings defined in `src/rules/tooling/command-runtime.rules.json`. Do not guess the suite — use the table below.
+
+| Command   | Suite (locked) | Intent        | Example |
+|-----------|---------------|---------------|---------|
+| `bench`   | `bench`       | `calibrate`   | `node tools/doppler-cli.js bench --config '{"request":{"suite":"bench","modelId":"gemma3-270m"}}' --json` |
+| `debug`   | `debug`       | `investigate` | `node tools/doppler-cli.js debug --config '{"request":{"suite":"debug","modelId":"gemma3-270m"}}' --json` |
+| `verify`  | caller choice | `verify`      | `node tools/doppler-cli.js verify --config '{"request":{"suite":"inference","modelId":"gemma3-270m"}}' --json` |
+| `convert` | caller choice | —             | `node tools/doppler-cli.js convert --config <path.json>` |
+| `lora`    | caller choice | —             | `node tools/doppler-cli.js lora --config <path.json>` |
+| `distill` | caller choice | —             | `node tools/doppler-cli.js distill --config <path.json>` |
+
+- `bench` and `debug` reject any suite other than their locked value. Do not pass `suite: "inference"` to bench.
+- `verify` accepts any valid suite (`inference`, `debug`, `bench`).
+- The CLI auto-resolves models from the external RDRR root (`/Volumes/models/rdrr` on macOS, `/media/x/models/rdrr` on Linux) by `modelId`. No `modelUrl` needed for local artifacts.
+- Use `--surface node` to force Node/WebGPU, `--surface browser` to force headless Chromium, or omit for `auto`.
+
 ### Config System
 
 Use runtime presets/config payloads, not ad-hoc per-field flags.

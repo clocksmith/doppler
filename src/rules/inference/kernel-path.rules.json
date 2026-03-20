@@ -76,6 +76,10 @@
       "value": "gemma3-q4k-dequant-f32a-nosubgroups"
     },
     {
+      "match": { "kernelPathId": "qwen3-q4k-dequant-f16a-online" },
+      "value": "qwen3-q4k-dequant-f32a-online"
+    },
+    {
       "match": { "kernelPathId": "lfm2-q4k-dequant-f32a-online" },
       "value": "lfm2-q4k-dequant-f32a-nosubgroups"
     },

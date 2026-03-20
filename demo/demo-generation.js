@@ -34,6 +34,8 @@ function buildRunGenerateOptions() {
     if (maxTokens == null) {
       options.maxTokens = DEFAULT_TRANSLATE_MAX_TOKENS;
     }
+  } else if (maxTokens == null) {
+    options.maxTokens = DEFAULT_TEXT_MAX_TOKENS;
   }
   return options;
 }

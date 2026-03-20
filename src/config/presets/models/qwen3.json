@@ -29,6 +29,14 @@
       "mropeInterleaved": true,
       "mropeSection": [11, 11, 10],
       "partialRotaryFactor": 0.25
+    },
+    "kernelPaths": {
+      "q4k": {
+        "default": "qwen3-q4k-dequant-f32a-online",
+        "f16": "qwen3-q4k-dequant-f32a-online",
+        "f16a": "qwen3-q4k-dequant-f32a-online",
+        "f32": "qwen3-q4k-dequant-f32a-online"
+      }
     }
   },
 

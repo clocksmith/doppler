@@ -121,6 +121,20 @@
       "notes": "Subgroup-free LFM2 Q4K dequant path with F32 activations and tiled prefill. Still requires shader-f16 kernels."
     },
     {
+      "id": "qwen3-q4k-dequant-f16a-online",
+      "file": "qwen3-q4k-dequant-f16a-online.json",
+      "status": "canonical",
+      "statusReason": "default",
+      "notes": "Qwen 3/3.5 Q4K default: subgroup GEMV + online attention + tiled prefill, F16 activations. Linear attention layers bypass this path."
+    },
+    {
+      "id": "qwen3-q4k-dequant-f32a-online",
+      "file": "qwen3-q4k-dequant-f32a-online.json",
+      "status": "canonical",
+      "statusReason": "accuracy-first",
+      "notes": "Qwen 3/3.5 Q4K accuracy-first variant: subgroup GEMV + online attention + tiled prefill, F32 activations. Linear attention layers bypass this path."
+    },
+    {
       "id": "embeddinggemma-f16-f32a",
       "file": "embeddinggemma-f16-f32a.json",
       "status": "canonical",
