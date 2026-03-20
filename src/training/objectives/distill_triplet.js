@@ -308,6 +308,12 @@ export function createDistillTripletObjective(options = {}) {
 
       const teacherModelId = batch?.distill?.teacherModelId || distill.teacherModelId || null;
       const studentModelId = batch?.distill?.studentModelId || distill.studentModelId || null;
+      const anchorDtype = forwardState.logits?.dtype;
+      const positiveDtype = forwardState.positiveLogits?.dtype;
+      const negativeDtype = forwardState.negativeLogits?.dtype;
+      if (anchorDtype === undefined || positiveDtype === undefined || negativeDtype === undefined) {
+        throw new Error('distill_triplet: forwardState logits dtype is required for all three branches (anchor/positive/negative)');
+      }
       return {
         loss,
         components: {
@@ -323,17 +329,17 @@ export function createDistillTripletObjective(options = {}) {
         _distillBackward: {
           anchor: {
             shape: [anchorRows.rows, anchorRows.cols],
-            dtype: forwardState.logits?.dtype || 'f32',
+            dtype: anchorDtype,
             gradValues: anchorGrad,
           },
           positive: {
             shape: [positiveRows.rows, positiveRows.cols],
-            dtype: forwardState.positiveLogits?.dtype || 'f32',
+            dtype: positiveDtype,
             gradValues: positiveGrad,
           },
           negative: {
             shape: [negativeRows.rows, negativeRows.cols],
-            dtype: forwardState.negativeLogits?.dtype || 'f32',
+            dtype: negativeDtype,
             gradValues: negativeGrad,
           },
         },

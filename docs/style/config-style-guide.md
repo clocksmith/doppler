@@ -152,24 +152,30 @@ Model inference config merge order:
 modelInference = merge(manifestInference, runtimeInferenceOverride)
 ```
 
-Execution-v0 runtime compile order (when `manifest.inference.execution` exists):
+Execution runtime compile order (when `manifest.inference.execution` exists):
 
 ```
-See `../conversion-runtime-contract.md` for the canonical step-by-step contract.
-In short: merge `manifest.inference.sessionDefaults` with
-`runtime.inference.session`, apply `runtime.inference.executionPatch`, validate
+For v1 (doppler.execution/v1): expand compact tuples into resolved steps,
+build inline kernel path and layer pipeline from resolved steps, merge
+sessionDefaults into runtime inference config.
+
+For v0 (doppler.execution/v0): merge manifest.inference.sessionDefaults with
+runtime.inference.session, apply runtime.inference.executionPatch, validate
 the pinned execution contract, then merge the compiled runtime patch back into
-`runtime.inference`.
+runtime.inference.
 ```
 
-Conversion bridge rule:
+Conversion config rule:
 
 ```
-if inference.defaultKernelPath is present, inference.execution is absent,
-and layerPattern does not require custom conv scheduling,
-converter derives execution-v0 steps/session defaults from the kernel path.
-If converterConfig.inference.sessionDefaults is also provided, it overlays the
-generated execution-v0 session defaults before validation.
+V1 configs (preferred): config must provide explicit execution graph with
+kernels, decode, prefill, preLayer, postLayer, and policies. No preset
+detection, no defaultKernelPath, no auto-generation. The execution graph
+in the config is stamped directly into the manifest.
+
+V0 configs (legacy): if inference.defaultKernelPath is present,
+inference.execution is absent, and layerPattern does not require custom
+conv scheduling, converter derives execution-v0 steps from the kernel path.
 ```
 
 ---

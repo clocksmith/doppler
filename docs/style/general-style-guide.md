@@ -225,17 +225,13 @@ if (arch.includes('gemma2')) useSoftcapping = true;
 const useSoftcapping = config.attnLogitSoftcapping !== null;
 ```
 
-### Kernel Path Overrides
+### Kernel Selection
 
-- Use `kernelPath` for kernel selection overrides.
-- Manifest: `inference.defaultKernelPath`
-- Runtime: `runtime.inference.kernelPath`
-- Legacy `kernelPlan` is removed; do not add new references.
-- Precedence (low → high): manifest `inference.defaultKernelPath` → execution-v0 inline kernel path → runtime config `runtime.inference.kernelPath`.
+- **Execution v1 (preferred)**: Kernel selection is fully explicit in the manifest execution graph. Each step pins an exact WGSL file, entry point, and content digest. No runtime resolution.
+- **Execution v0 (legacy)**: Inline kernel path is derived from execution steps at manifest load. Runtime `runtime.inference.kernelPath` can override.
+- **No execution graph (deprecated)**: Falls back to capability-driven auto-selection. New models must not ship without an execution graph.
+- `defaultKernelPath` is deprecated in v1 manifests — use the execution graph directly.
 - Kernel path overrides are config-only; do not add harness/UI flags for kernel selection.
-- Populate `inference.defaultKernelPath` during conversion using model preset `inference.kernelPaths` (keys: weights quantization → activation dtype).
-- Avoid semantic aliases (e.g. "safe/fast/balanced"). Use explicit IDs that encode quantization and activation dtype (e.g. `gemma2-q4k-fused-f32a`, `gemma2-q4k-fused-f32a`).
-- `status: experimental` is for tune-time probing. Keep semantic suffixes where useful.
 - Kernel selection logic lives in `src/gpu/kernels/*.js`; config files are data only.
 
 ### Kernel Path Registry Lifecycle

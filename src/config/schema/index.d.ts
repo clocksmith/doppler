@@ -147,6 +147,38 @@ export {
 } from './execution-v0.schema.js';
 
 // =============================================================================
+// Execution v1 Schema
+// =============================================================================
+export {
+  type ExecutionV1Dtype,
+  type ExecutionV1KernelSchema,
+  type ExecutionV1KernelMap,
+  type ExecutionV1StepTuple,
+  type ExecutionV1LayerGroupSchema,
+  type ExecutionV1StepEntry,
+  type ExecutionV1BoundaryStep,
+  type ExecutionV1ComputeDefaultsSchema,
+  type ExecutionV1DecodeLoopSchema,
+  type ExecutionV1SessionDefaultsSchema,
+  type ExecutionV1PoliciesSchema,
+  type ExecutionV1GraphSchema,
+  type ExecutionV1ConfigSchema,
+  type ExecutionV1PatchSetSchema,
+  type ExecutionV1PatchRemoveSchema,
+  type ExecutionV1PatchAddSchema,
+  type ExecutionV1PatchAddKernelSchema,
+  type ExecutionV1PatchSchema,
+  type ExecutionV1ExpandedStepSchema,
+  EXECUTION_V1_SCHEMA_ID,
+  DEFAULT_EXECUTION_V1_COMPUTE_DEFAULTS,
+  DEFAULT_EXECUTION_V1_SESSION_DEFAULTS,
+  DEFAULT_EXECUTION_V1_POLICIES,
+  isExecutionV1Digest,
+  hasExecutionV1,
+  expandExecutionV1,
+} from './execution-v1.schema.js';
+
+// =============================================================================
 // Diffusion Schema
 // =============================================================================
 export {

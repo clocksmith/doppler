@@ -49,6 +49,19 @@ export {
 } from './execution-v0.schema.js';
 
 // =============================================================================
+// Execution v1 Schema
+// =============================================================================
+export {
+  EXECUTION_V1_SCHEMA_ID,
+  DEFAULT_EXECUTION_V1_COMPUTE_DEFAULTS,
+  DEFAULT_EXECUTION_V1_SESSION_DEFAULTS,
+  DEFAULT_EXECUTION_V1_POLICIES,
+  isExecutionV1Digest,
+  hasExecutionV1,
+  expandExecutionV1,
+} from './execution-v1.schema.js';
+
+// =============================================================================
 // Conversion Schema
 // =============================================================================
 export {

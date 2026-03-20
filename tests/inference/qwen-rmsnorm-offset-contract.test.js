@@ -2,19 +2,11 @@ import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 
-const { resolvePreset } = await import('../../src/config/loader.js');
-
 async function loadJson(path) {
   return JSON.parse(await readFile(new URL(path, import.meta.url), 'utf8'));
 }
 
-const qwen35Preset = resolvePreset('qwen3_5');
-assert.equal(
-  qwen35Preset.inference?.normalization?.rmsNormWeightOffset,
-  true,
-  'qwen3_5 preset must keep offset RMSNorm weight semantics'
-);
-
+// V1 configs must have explicit rmsNormWeightOffset
 const conversionConfigs = await Promise.all([
   loadJson('../../tools/configs/conversion/qwen3/qwen-3-5-0-8b-f16.json'),
   loadJson('../../tools/configs/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json'),
@@ -23,7 +15,11 @@ const conversionConfigs = await Promise.all([
 ]);
 
 for (const config of conversionConfigs) {
-  assert.equal(config.presets.model, 'qwen3_5');
+  assert.equal(
+    config.inference?.normalization?.rmsNormWeightOffset,
+    true,
+    `${config.output?.modelBaseId ?? 'unknown'} v1 config must keep offset RMSNorm weight semantics`
+  );
 }
 
 const localManifestPaths = [

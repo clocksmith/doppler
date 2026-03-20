@@ -90,8 +90,11 @@ function collectProtectedBuffers(model) {
 }
 
 async function readLogitsTensor(tensor) {
+  if (tensor.dtype === undefined) {
+    throw new Error('readLogitsTensor: tensor.dtype is required');
+  }
   const raw = await readBuffer(tensor.buffer);
-  return toFloat32Array(raw, tensor.dtype || 'f32');
+  return toFloat32Array(raw, tensor.dtype);
 }
 
 async function greedyDecodeFixture(model, tokenizer, prompt, decodePolicy = {}) {

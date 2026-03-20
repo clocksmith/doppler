@@ -3,9 +3,6 @@
     "baseDir": "models/local",
     "modelBaseId": "sana-sprint-0.6b-f16"
   },
-  "presets": {
-    "model": "diffusion"
-  },
   "quantization": {
     "weights": "f16",
     "embeddings": "f16",
@@ -14,5 +11,122 @@
   },
   "manifest": {
     "hashAlgorithm": "blake3"
+  },
+
+  "inference": {
+    "pipeline": "diffusion",
+    "attention": {
+      "queryPreAttnScalar": null,
+      "attnLogitSoftcapping": null,
+      "slidingWindow": null,
+      "queryKeyNorm": false,
+      "causal": false,
+      "attentionBias": false,
+      "attentionOutputGate": false
+    },
+    "normalization": {
+      "rmsNormEps": 1e-5,
+      "rmsNormWeightOffset": false,
+      "postAttentionNorm": false,
+      "preFeedforwardNorm": false,
+      "postFeedforwardNorm": false
+    },
+    "ffn": {
+      "activation": "silu",
+      "gatedActivation": false,
+      "swigluLimit": null
+    },
+    "rope": {
+      "ropeTheta": null,
+      "ropeLocalTheta": null,
+      "mropeInterleaved": false,
+      "mropeSection": null,
+      "partialRotaryFactor": null,
+      "ropeScalingType": null,
+      "ropeScalingFactor": 1,
+      "ropeLocalScalingType": null,
+      "ropeLocalScalingFactor": 1,
+      "yarnBetaFast": null,
+      "yarnBetaSlow": null,
+      "yarnOriginalMaxPos": null,
+      "ropeLocalYarnBetaFast": null,
+      "ropeLocalYarnBetaSlow": null,
+      "ropeLocalYarnOriginalMaxPos": null
+    },
+    "output": {
+      "finalLogitSoftcapping": null,
+      "tieWordEmbeddings": false,
+      "scaleEmbeddings": false,
+      "embeddingTranspose": false,
+      "embeddingVocabSize": null
+    },
+    "layerPattern": {
+      "type": "uniform",
+      "globalPattern": null,
+      "period": null,
+      "offset": null,
+      "layerTypes": null
+    },
+    "chatTemplate": {
+      "type": null,
+      "enabled": false
+    }
+  },
+
+  "sessionDefaults": {
+    "compute": {
+      "defaults": {
+        "activationDtype": "f16",
+        "mathDtype": "f16",
+        "accumDtype": "f16",
+        "outputDtype": "f16"
+      }
+    },
+    "kvcache": null,
+    "decodeLoop": null
+  },
+
+  "execution": {
+    "kernels": {
+      "conv2d":              { "kernel": "conv2d.wgsl",                    "entry": "main",  "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000010" },
+      "depthwise_conv2d":    { "kernel": "depthwise_conv2d.wgsl",         "entry": "main",  "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000011" },
+      "grouped_pointwise":   { "kernel": "grouped_pointwise_conv2d.wgsl", "entry": "main",  "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000012" },
+      "layernorm":           { "kernel": "layernorm.wgsl",                "entry": "main",  "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000013" },
+      "rmsnorm":             { "kernel": "rmsnorm.wgsl",                  "entry": "main",  "digest": "sha256:f516b3e4bde2015f2a207c3ca5b8c9820c7809fa8f8d0786f90c568e0f1ac077" },
+      "matmul":              { "kernel": "matmul_f16w_f32a.wgsl",         "entry": "main",  "digest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc" },
+      "linear_attention":    { "kernel": "sana_linear_attention.wgsl",    "entry": "main",  "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000014" },
+      "silu":                { "kernel": "gelu.wgsl",                     "entry": "main",  "digest": "sha256:a9007ea08aaff98f9be08f1e0490a6bcf252883eac5513de876ab9ce918865e6" },
+      "residual":            { "kernel": "residual.wgsl",                 "entry": "main",  "digest": "sha256:f1abd88c959c5d8dd27b9353d487e37b2a96850ed9d90c365212e260399cc2a7" },
+      "modulate":            { "kernel": "modulate.wgsl",                 "entry": "main",  "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000015" },
+      "bias_add":            { "kernel": "bias_add.wgsl",                 "entry": "main",  "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000016" }
+    },
+
+    "preLayer": [],
+    "decode": [
+      ["patch_embed",       "conv2d"],
+      ["timestep_embed",    "silu"],
+      ["block_norm",        "layernorm"],
+      ["block_modulate",    "modulate"],
+      ["q_proj",            "matmul"],
+      ["k_proj",            "matmul"],
+      ["v_proj",            "matmul"],
+      ["attention",         "linear_attention"],
+      ["o_proj",            "matmul"],
+      ["attn_residual",     "residual"],
+      ["ffn_norm",          "layernorm"],
+      ["ffn_modulate",      "modulate"],
+      ["ffn_up",            "matmul"],
+      ["ffn_activation",    "silu"],
+      ["ffn_down",          "matmul"],
+      ["ffn_residual",      "residual"]
+    ],
+    "prefill": [],
+    "postLayer": [],
+
+    "policies": {
+      "unsupportedPrecision": "error",
+      "dtypeTransition": "require_cast_step",
+      "unresolvedKernel": "error"
+    }
   }
 }

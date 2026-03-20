@@ -14,6 +14,10 @@ import type {
   ExecutionV0ConfigSchema,
   ExecutionV0SessionDefaultsSchema,
 } from './execution-v0.schema.js';
+import type {
+  ExecutionV1GraphSchema,
+  ExecutionV1SessionDefaultsSchema,
+} from './execution-v1.schema.js';
 
 /** Supported hash algorithms */
 export type HashAlgorithm = 'sha256' | 'blake3';
@@ -316,11 +320,11 @@ export interface ManifestInferenceSchema {
   chatTemplate: ManifestChatTemplateSchema;
   /** Layer pipeline override (null = use optimized hardcoded path) */
   pipeline: LayerPipelineSchema | null;
-  /** Session defaults for explicit execution v0 manifests */
-  sessionDefaults: ExecutionV0SessionDefaultsSchema | null;
-  /** Explicit execution graph v0 */
-  execution: ExecutionV0ConfigSchema['execution'] | null;
-  /** Default kernel path for this model (null = no explicit path) */
+  /** Session defaults for execution v0 or v1 manifests */
+  sessionDefaults: ExecutionV0SessionDefaultsSchema | ExecutionV1SessionDefaultsSchema | null;
+  /** Explicit execution graph (v0 object-per-step or v1 compact tuple format) */
+  execution: ExecutionV0ConfigSchema['execution'] | ExecutionV1GraphSchema | null;
+  /** Default kernel path for this model (null = no explicit path). Deprecated in v1 — use execution graph. */
   defaultKernelPath: string | null;
 }
 

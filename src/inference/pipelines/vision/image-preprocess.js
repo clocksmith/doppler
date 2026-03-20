@@ -28,8 +28,14 @@ export function preprocessImage(pixels, width, height, config) {
     normalization = {},
   } = config;
 
-  const mean = normalization.mean || [0.48145466, 0.4578275, 0.40821073];
-  const std = normalization.std || [0.26862954, 0.26130258, 0.27577711];
+  if (!Array.isArray(normalization.mean) || normalization.mean.length !== 3) {
+    throw new Error('Vision config normalization.mean is required (array of 3 channel means)');
+  }
+  if (!Array.isArray(normalization.std) || normalization.std.length !== 3) {
+    throw new Error('Vision config normalization.std is required (array of 3 channel stds)');
+  }
+  const mean = normalization.mean;
+  const std = normalization.std;
 
   // Step 1: Compute target dimensions respecting pixel constraints and patch alignment.
   const mergedPatch = patchSize * spatialMergeSize;

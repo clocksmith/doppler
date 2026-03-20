@@ -284,6 +284,10 @@ export function createDistillKdObjective(options = {}) {
       const lossCe = alphaCe * (ceAuxSum / rowCount);
       const teacherModelId = batch?.distill?.teacherModelId || distill.teacherModelId || null;
       const studentModelId = batch?.distill?.studentModelId || distill.studentModelId || null;
+      const logitsDtype = forwardState.logits?.dtype;
+      if (logitsRows && gradValues && logitsDtype === undefined) {
+        throw new Error('distill_kd: forwardState.logits.dtype is required for backward pass');
+      }
       return {
         loss,
         components: {
@@ -300,7 +304,7 @@ export function createDistillKdObjective(options = {}) {
         _distillBackward: logitsRows && gradValues
           ? {
             logitsShape: [logitsRows.rows, logitsRows.cols],
-            logitsDtype: forwardState.logits?.dtype || 'f32',
+            logitsDtype: logitsDtype,
             logitsGradValues: gradValues,
           }
           : null,

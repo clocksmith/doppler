@@ -3,8 +3,10 @@ import { detectPreset, listPresets, resolvePreset } from '../config/loader.js';
 import {
   DEFAULT_MANIFEST_INFERENCE,
   EXECUTION_V0_SCHEMA_ID,
+  EXECUTION_V1_SCHEMA_ID,
   isExecutionV0Digest,
   isExecutionV0Semver,
+  expandExecutionV1,
 } from '../config/schema/index.js';
 import { buildExecutionV0FromKernelPath } from './execution-v0-manifest.js';
 import { buildManifestInference } from './manifest-inference.js';
@@ -457,11 +459,132 @@ function applyConverterInferenceOverrides(manifestInference, converterConfig, co
   assertExecutionV0ConversionContract(manifestInference, context?.modelId ?? context?.presetId);
 }
 
+
+function isV1Config(converterConfig) {
+  const exec = converterConfig?.execution;
+  return exec && typeof exec === 'object' && exec.kernels && typeof exec.kernels === 'object';
+}
+
+
+function validateV1InferenceFields(inference, modelId) {
+  const required = ['attention', 'normalization', 'ffn', 'rope', 'output', 'chatTemplate'];
+  for (const field of required) {
+    if (!inference?.[field] || typeof inference[field] !== 'object') {
+      throw new Error(
+        `Config for "${modelId}" is missing required inference.${field}. ` +
+        'V1 configs must provide all inference fields explicitly (no preset fallback).'
+      );
+    }
+  }
+}
+
+
+function resolveConversionPlanV1(options) {
+  const rawConfig = options?.rawConfig || {};
+  const tensors = Array.isArray(options?.tensors) ? options.tensors : [];
+  const converterConfig = options.converterConfig;
+  const inference = converterConfig.inference;
+  const execution = converterConfig.execution;
+  const sessionDefaults = converterConfig.sessionDefaults;
+
+  if (!inference || typeof inference !== 'object') {
+    throw new Error(
+      'V1 config requires an explicit inference section with all model inference fields.'
+    );
+  }
+  if (!execution?.kernels || !execution?.decode || !execution?.prefill) {
+    throw new Error(
+      'V1 config requires execution with kernels, decode, and prefill arrays.'
+    );
+  }
+  if (!sessionDefaults || typeof sessionDefaults !== 'object') {
+    throw new Error(
+      'V1 config requires sessionDefaults with compute defaults and kvcache policy.'
+    );
+  }
+  if (!execution.policies || typeof execution.policies !== 'object') {
+    throw new Error(
+      'V1 config requires execution.policies.'
+    );
+  }
+
+  // Validate the execution graph expands correctly (fail fast on bad tuples/kernels)
+  expandExecutionV1(execution);
+
+  const modelId = converterConfig?.output?.modelBaseId ?? rawConfig?.model_id ?? 'unknown';
+  validateV1InferenceFields(inference, modelId);
+
+  const sourceQuantization = (
+    options?.sourceQuantization
+    ?? converterConfig?.quantization?.weights
+    ?? inferSourceWeightQuantization(tensors)
+  );
+  const weightOverride = converterConfig?.quantization?.weights ?? null;
+  const embedDtypeRaw = normalizeWeightDtype(findTensorDtypeByRole(tensors, 'embedding'));
+  const lmHeadDtypeRaw = normalizeWeightDtype(findTensorDtypeByRole(tensors, 'lm_head'));
+  const hasVision = hasAnyTensorPattern(tensors, ['vision_', 'vision_tower', 'vision_model', 'image_encoder', 'visual.']);
+  const hasAudio = hasAnyTensorPattern(tensors, ['audio_', 'audio_encoder', 'whisper', 'wav2vec']);
+  const hasProjector = hasAnyTensorPattern(tensors, ['multi_modal_projector', 'mm_projector', 'projector']);
+  const quantizationInfo = buildQuantizationInfo(
+    converterConfig,
+    sourceQuantization,
+    embedDtypeRaw,
+    lmHeadDtypeRaw,
+    hasVision,
+    hasAudio,
+    hasProjector,
+    rawConfig
+  );
+  const manifestQuantization = resolveManifestQuantization(weightOverride, sourceQuantization);
+
+  const modelType = converterConfig?.modelType ?? rawConfig?.model_type ?? 'transformer';
+
+  // Build manifest inference directly from config (no preset resolution)
+  const manifestInference = {
+    schema: EXECUTION_V1_SCHEMA_ID,
+    attention: inference.attention,
+    normalization: inference.normalization,
+    ffn: inference.ffn,
+    rope: inference.rope,
+    output: inference.output,
+    layerPattern: inference.layerPattern ?? { type: 'uniform', globalPattern: null, period: null, offset: null, layerTypes: null },
+    chatTemplate: inference.chatTemplate,
+    pipeline: inference.pipeline ?? null,
+    sessionDefaults,
+    execution,
+    defaultKernelPath: null,
+  };
+
+  return {
+    modelType,
+    presetId: null,
+    preset: null,
+    sourceQuantization,
+    quantizationInfo,
+    manifestQuantization,
+    manifestInference,
+    headDim: options?.headDim ?? options?.architectureConfig?.headDim ?? null,
+    executionVersion: 'v1',
+  };
+}
+
+
 export function resolveConversionPlan(options) {
   const rawConfig = options?.rawConfig || {};
   const tensors = Array.isArray(options?.tensors) ? options.tensors : [];
   const tensorNames = options?.tensorNames ?? tensors.map((tensor) => tensor.name);
   const converterConfig = options?.converterConfig;
+  if (converterConfig == null) {
+    throw new Error(
+      'resolveConversionPlan requires an explicit converterConfig. ' +
+      'Provide a conversion config JSON (see tools/configs/conversion/ for examples).'
+    );
+  }
+
+  // V1 config: explicit execution graph, no preset detection
+  if (isV1Config(converterConfig)) {
+    return resolveConversionPlanV1(options);
+  }
   const sourceQuantization = (
     options?.sourceQuantization
     ?? converterConfig?.quantization?.weights

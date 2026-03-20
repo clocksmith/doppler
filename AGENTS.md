@@ -144,10 +144,11 @@ Commands have locked suite/intent bindings defined in `src/rules/tooling/command
 
 ### Config System
 
-Use runtime presets/config payloads, not ad-hoc per-field flags.
+Use runtime configs/config payloads, not ad-hoc per-field flags.
 
-- Runtime presets: `src/config/presets/runtime/`
-- Model presets: `src/config/presets/models/`
+- Runtime configs: `src/config/presets/runtime/`
+- Conversion configs: `tools/configs/conversion/` (v1 format with inline execution graph)
+- Model presets: `src/config/presets/models/` (legacy, used by v0 converter path)
 - Read tunables via `getRuntimeConfig()`; avoid hardcoded defaults in runtime paths.
 - `runtime.shared.tooling.intent` is required for harnessed debug/bench/test flows.
 
@@ -175,10 +176,10 @@ When harness/profiling behavior changes (Doppler or vendors), update:
 
 ### Conversion Triage Protocol (Required)
 
-When a freshly converted model regresses, separate conversion integrity from runtime regressions before changing presets:
+When a freshly converted model regresses, separate conversion integrity from runtime regressions before changing the conversion config:
 
 1. Verify source dtypes from checkpoint headers (`BF16`/`F16`/`F32` mix).
-2. Verify converted manifest fields: `quantization`, `quantizationInfo`, `inference.defaultKernelPath`.
+2. Verify converted manifest fields: `quantization`, `quantizationInfo`, `inference.execution`.
 3. Verify shard integrity (sampled shard hashes must match manifest hashes).
 4. Verify numeric sanity by sampling tensor values from source vs converted bytes.
 5. Verify parsed layer pattern semantics from manifest (Gemma `every_n` is layer 0 + every N).
@@ -305,7 +306,7 @@ Use:
 
 ### Execution Plane Contract (Required)
 
-- JSON is the behavior contract. Resolved `manifest.json`, presets, and rule assets must define the runtime decisions before any execution path is entered.
+- JSON is the behavior contract. Resolved `manifest.json`, execution graphs, and rule assets must define the runtime decisions before any execution path is entered.
 - JavaScript is orchestration: merge/validate config, allocate buffers, copy shards, build pipelines, dispatch work, and read back.
 - WGSL is compute only: apply arithmetic using resolved constants/uniforms; no policy branching or command semantics.
 - Exceptions are only rule-based and explicit:

@@ -42,7 +42,8 @@ function getLinearProjectionLayout(manifest) {
 
 if (!hasExactLocalManifests) {
   for (const config of convConfigs) {
-    assert.equal(config.presets.model, 'qwen3_5');
+    // V1 configs have explicit inference, no presets
+    assert.ok(config.inference?.attention, 'v1 config must have explicit inference.attention');
   }
   console.log('qwen-manifest-completeness.test: skipped (missing exact local manifests)');
   process.exit(0);

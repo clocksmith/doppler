@@ -34,6 +34,7 @@ import { applyPipelineDebugConfig } from './text/debug-utils.js';
 import { resolveLayerPipeline } from './text/layer-plan.js';
 import { compileExecutionPlanState, resolveActiveExecutionPlan } from './text/execution-plan.js';
 import { applyExecutionV0RuntimeConfig } from './text/execution-v0.js';
+import { applyExecutionV1RuntimeConfig, hasExecutionV1 } from './text/execution-v1.js';
 import {
   createLinearAttentionRuntime,
   hasLinearAttentionLayers,
@@ -111,23 +112,44 @@ export class InferencePipeline extends PipelineState {
     destroyMoERouter(this.moeRouter);
     this.moeRouter = null;
 
-    const executionV0Runtime = applyExecutionV0RuntimeConfig({
-      runtimeConfig: this.runtimeConfig,
-      manifest,
-      modelId: manifest.modelId ?? 'model',
-      numLayers: Number(manifest.architecture?.numLayers ?? 0),
-    });
-    if (executionV0Runtime.executionV0State) {
-      this.runtimeConfig = executionV0Runtime.runtimeConfig;
-      this.executionV0State = executionV0Runtime.executionV0State;
-      log.info(
-        'Pipeline',
-        `Execution v0 enabled (steps=${this.executionV0State.resolvedSteps.all.length}, ` +
-        `kernelPathInline=${this.executionV0State.runtimeInferencePatch.kernelPath ? 'yes' : 'no'}, ` +
-        `pipelineInline=${this.executionV0State.runtimeInferencePatch.pipeline ? 'yes' : 'no'})`
-      );
+    // Try execution v1 first (compact tuple format), fall back to v0
+    if (hasExecutionV1(manifest.inference)) {
+      const executionV1Runtime = applyExecutionV1RuntimeConfig({
+        runtimeConfig: this.runtimeConfig,
+        manifest,
+        modelId: manifest.modelId ?? 'model',
+        numLayers: Number(manifest.architecture?.numLayers ?? 0),
+      });
+      if (executionV1Runtime.executionV1State) {
+        this.runtimeConfig = executionV1Runtime.runtimeConfig;
+        this.executionV0State = null;
+        this.executionV1State = executionV1Runtime.executionV1State;
+        log.info(
+          'Pipeline',
+          `Execution v1 enabled (steps=${this.executionV1State.resolvedSteps.all.length}, ` +
+          `kernelPathInline=${this.executionV1State.runtimeInferencePatch.kernelPath ? 'yes' : 'no'}, ` +
+          `pipelineInline=${this.executionV1State.runtimeInferencePatch.pipeline ? 'yes' : 'no'})`
+        );
+      }
     } else {
-      this.executionV0State = null;
+      const executionV0Runtime = applyExecutionV0RuntimeConfig({
+        runtimeConfig: this.runtimeConfig,
+        manifest,
+        modelId: manifest.modelId ?? 'model',
+        numLayers: Number(manifest.architecture?.numLayers ?? 0),
+      });
+      if (executionV0Runtime.executionV0State) {
+        this.runtimeConfig = executionV0Runtime.runtimeConfig;
+        this.executionV0State = executionV0Runtime.executionV0State;
+        log.info(
+          'Pipeline',
+          `Execution v0 enabled (steps=${this.executionV0State.resolvedSteps.all.length}, ` +
+          `kernelPathInline=${this.executionV0State.runtimeInferencePatch.kernelPath ? 'yes' : 'no'}, ` +
+          `pipelineInline=${this.executionV0State.runtimeInferencePatch.pipeline ? 'yes' : 'no'})`
+        );
+      } else {
+        this.executionV0State = null;
+      }
     }
 
     // Pass runtime model overrides to merge with manifest inference config
