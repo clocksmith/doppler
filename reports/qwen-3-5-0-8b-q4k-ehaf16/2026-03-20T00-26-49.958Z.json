@@ -1,0 +1,356 @@
+{
+  "suite": "inference",
+  "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+  "runtimePreset": null,
+  "deviceInfo": {
+    "hasSubgroups": true,
+    "hasSubgroupsF16": false,
+    "hasF16": true,
+    "hasTimestampQuery": true,
+    "maxBufferSize": 4294967292,
+    "maxWorkgroupSize": 1024,
+    "maxWorkgroupStorageSize": 65536,
+    "adapterInfo": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "amd-radeon-graphics-radv-gfx1151-",
+      "description": "radv: Mesa 25.0.7-0ubuntu0.25.04.2"
+    }
+  },
+  "results": [
+    {
+      "name": "generation",
+      "passed": true,
+      "duration": 4380.588502000002
+    }
+  ],
+  "durationMs": 36536.878934,
+  "timestamp": "2026-03-20T00:26:49.958Z",
+  "metrics": {
+    "prompt": "The color of the sky is",
+    "maxTokens": 64,
+    "tokensGenerated": 64,
+    "tokensPerSec": 14.61,
+    "totalRunMs": 4379.71,
+    "firstTokenMs": 576.57,
+    "firstResponseMs": 32729.02,
+    "prefillMs": 571.77,
+    "decodeMs": 3802.29,
+    "prefillTokens": 18,
+    "decodeTokens": 64,
+    "prefillTokensPerSec": 31.48,
+    "prefillTokensPerSecTtft": 31.22,
+    "decodeTokensPerSec": 16.83,
+    "modelLoadMs": 32152.45,
+    "gpu": {
+      "decodeRecordMs": 0,
+      "decodeSubmitWaitMs": 0,
+      "decodeReadbackWaitMs": 0
+    },
+    "decodeProfileSteps": [],
+    "generationDiagnostics": {
+      "preview": [
+        {
+          "id": 760,
+          "text": "The",
+          "fallbackText": "The"
+        },
+        {
+          "id": 2972,
+          "text": " **",
+          "fallbackText": " **"
+        },
+        {
+          "id": 3313,
+          "text": "color",
+          "fallbackText": "color"
+        },
+        {
+          "id": 314,
+          "text": " of",
+          "fallbackText": " of"
+        },
+        {
+          "id": 279,
+          "text": " the",
+          "fallbackText": " the"
+        },
+        {
+          "id": 12515,
+          "text": " sky",
+          "fallbackText": " sky"
+        },
+        {
+          "id": 332,
+          "text": "**",
+          "fallbackText": "**"
+        },
+        {
+          "id": 369,
+          "text": " is",
+          "fallbackText": " is"
+        },
+        {
+          "id": 8524,
+          "text": " generally",
+          "fallbackText": " generally"
+        },
+        {
+          "id": 7246,
+          "text": " described",
+          "fallbackText": " described"
+        },
+        {
+          "id": 430,
+          "text": " as",
+          "fallbackText": " as"
+        },
+        {
+          "id": 2972,
+          "text": " **",
+          "fallbackText": " **"
+        },
+        {
+          "id": 11855,
+          "text": "blue",
+          "fallbackText": "blue"
+        },
+        {
+          "id": 159034,
+          "text": "**.",
+          "fallbackText": "**."
+        },
+        {
+          "id": 271,
+          "text": "\n\n",
+          "fallbackText": "\n\n"
+        },
+        {
+          "id": 1919,
+          "text": "This",
+          "fallbackText": "This"
+        },
+        {
+          "id": 24057,
+          "text": " phenomenon",
+          "fallbackText": " phenomenon"
+        },
+        {
+          "id": 11,
+          "text": ",",
+          "fallbackText": ","
+        },
+        {
+          "id": 3750,
+          "text": " known",
+          "fallbackText": " known"
+        },
+        {
+          "id": 430,
+          "text": " as",
+          "fallbackText": " as"
+        },
+        {
+          "id": 2972,
+          "text": " **",
+          "fallbackText": " **"
+        },
+        {
+          "id": 266,
+          "text": "at",
+          "fallbackText": "at"
+        },
+        {
+          "id": 8367,
+          "text": "mos",
+          "fallbackText": "mos"
+        },
+        {
+          "id": 31186,
+          "text": "pheric",
+          "fallbackText": "pheric"
+        },
+        {
+          "id": 1985,
+          "text": " ref",
+          "fallbackText": " ref"
+        },
+        {
+          "id": 15722,
+          "text": "raction",
+          "fallbackText": "raction"
+        },
+        {
+          "id": 93868,
+          "text": "**,",
+          "fallbackText": "**,"
+        },
+        {
+          "id": 13273,
+          "text": " occurs",
+          "fallbackText": " occurs"
+        },
+        {
+          "id": 1521,
+          "text": " because",
+          "fallbackText": " because"
+        },
+        {
+          "id": 37728,
+          "text": " sunlight",
+          "fallbackText": " sunlight"
+        },
+        {
+          "id": 318,
+          "text": " (",
+          "fallbackText": " ("
+        },
+        {
+          "id": 269,
+          "text": "or",
+          "fallbackText": "or"
+        }
+      ],
+      "total": 64,
+      "omitted": 32,
+      "emptyTextCount": 0,
+      "specialLikeTextCount": 0,
+      "specialLikeFallbackCount": 0
+    },
+    "schemaVersion": 1,
+    "source": "doppler",
+    "suite": "inference",
+    "executionContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "qwen-3-5-0-8b-q4k-ehaf16.steps",
+          "ok": true
+        },
+        {
+          "id": "qwen-3-5-0-8b-q4k-ehaf16.session",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "session": {
+        "layout": "contiguous",
+        "disableCommandBatching": true,
+        "decodeBatchSize": 4,
+        "headDim": 256,
+        "kvLen": 262144,
+        "coldQuantMode": "none"
+      },
+      "steps": {
+        "total": 0,
+        "attention": 0,
+        "attentionPhases": {
+          "prefill": 0,
+          "decode": 0,
+          "both": 0
+        }
+      },
+      "executionV0": {
+        "kernelProfiles": null,
+        "graph": null
+      }
+    },
+    "executionV0GraphContractArtifact": null,
+    "layerPatternContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "inference.layerPattern.patternKind.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.patternKind.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.even",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.odd",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_offset",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_negative_offset",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "patternKindRules": 4,
+        "layerTypeRules": 6,
+        "patternKindContexts": 16,
+        "layerTypeContexts": 12
+      }
+    },
+    "requiredInferenceFieldsArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "scope": "manifest",
+      "label": "qwen-3-5-0-8b-q4k-ehaf16.inference",
+      "ok": true,
+      "checks": [
+        {
+          "id": "qwen-3-5-0-8b-q4k-ehaf16.inference.requiredInferenceFields",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "fieldCases": 35,
+        "nullableCases": 16,
+        "nonNullableCases": 19
+      }
+    }
+  },
+  "output": "The **color of the sky** is generally described as **blue**.\n\nThis phenomenon, known as **atmospheric refraction**, occurs because sunlight (or moonlight) passes through Earth's thick layer of air. As light travels through this atmosphere, it bends around particles like dust and water droplets, making the",
+  "memory": {
+    "used": 1199041792,
+    "pool": {
+      "allocations": 986,
+      "reuses": 29464,
+      "totalBytesAllocated": 1065209088,
+      "peakBytesAllocated": 1035809792,
+      "currentBytesAllocated": 997715200,
+      "totalBytesRequested": 959893248,
+      "peakBytesRequested": 931849472,
+      "currentBytesRequested": 911297536,
+      "activeBuffers": 493,
+      "pooledBuffers": 54,
+      "budgetMaxBytes": 0,
+      "budgetUtilization": 0,
+      "hitRate": "96.8%"
+    },
+    "kvCache": {
+      "theoretical": 201326592,
+      "allocated": 201326592,
+      "used": 3981312,
+      "efficiency": 0.019775390625,
+      "seqLen": 81,
+      "maxSeqLen": 4096,
+      "layout": "contiguous"
+    }
+  },
+  "debugSnapshot": null
+}

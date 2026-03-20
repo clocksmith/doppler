@@ -1,0 +1,171 @@
+{
+  "suite": "debug",
+  "modelId": "debug-snapshot-fixture",
+  "runtimePreset": null,
+  "deviceInfo": null,
+  "results": [
+    {
+      "name": "generation",
+      "passed": true,
+      "duration": 1
+    }
+  ],
+  "durationMs": 0.5051410000000089,
+  "timestamp": "2026-03-20T01:56:51.892Z",
+  "metrics": {
+    "prompt": "Summarize this input in one sentence.",
+    "maxTokens": 256,
+    "tokensGenerated": 1,
+    "tokensPerSec": 1000,
+    "totalRunMs": 1,
+    "firstTokenMs": 1,
+    "firstResponseMs": 2,
+    "prefillMs": 1,
+    "decodeMs": 1,
+    "prefillTokens": 1,
+    "decodeTokens": 1,
+    "prefillTokensPerSec": 1000,
+    "prefillTokensPerSecTtft": 1000,
+    "decodeTokensPerSec": 1000,
+    "modelLoadMs": 1,
+    "gpu": null,
+    "decodeProfileSteps": [],
+    "generationDiagnostics": {
+      "preview": [
+        {
+          "id": 1,
+          "text": "ok",
+          "fallbackText": ""
+        }
+      ],
+      "total": 1,
+      "omitted": 0,
+      "emptyTextCount": 0,
+      "specialLikeTextCount": 0,
+      "specialLikeFallbackCount": 0
+    },
+    "schemaVersion": 1,
+    "source": "doppler",
+    "suite": "debug",
+    "executionContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "debug-snapshot-fixture.steps",
+          "ok": true
+        },
+        {
+          "id": "debug-snapshot-fixture.session",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "session": {
+        "layout": "contiguous",
+        "disableCommandBatching": false,
+        "decodeBatchSize": 4,
+        "headDim": 8,
+        "kvLen": 32,
+        "coldQuantMode": "none"
+      },
+      "steps": {
+        "total": 0,
+        "attention": 0,
+        "attentionPhases": {
+          "prefill": 0,
+          "decode": 0,
+          "both": 0
+        }
+      }
+    },
+    "executionV0GraphContractArtifact": null,
+    "layerPatternContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "inference.layerPattern.patternKind.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.patternKind.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.even",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.odd",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_offset",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_negative_offset",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "patternKindRules": 4,
+        "layerTypeRules": 6,
+        "patternKindContexts": 16,
+        "layerTypeContexts": 12
+      }
+    },
+    "requiredInferenceFieldsArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "scope": "manifest",
+      "label": "debug-snapshot-fixture.inference",
+      "ok": false,
+      "checks": [
+        {
+          "id": "debug-snapshot-fixture.inference.requiredInferenceFields",
+          "ok": false
+        }
+      ],
+      "errors": [
+        "Manifest \"debug-snapshot-fixture.inference\" has incomplete inference config. Missing required fields:\n  - attention.queryKeyNorm is required\n  - attention.attentionBias is required\n  - attention.causal is required\n  - attention.slidingWindow must be explicitly set (null for no sliding window, or number)\n  - attention.attnLogitSoftcapping must be explicitly set (null for no softcapping, or number)\n  - normalization.rmsNormWeightOffset is required\n  - normalization.rmsNormEps is required\n  - normalization.postAttentionNorm is required\n  - normalization.preFeedforwardNorm is required\n  - normalization.postFeedforwardNorm is required\n  - ffn.activation is required\n  - ffn.gatedActivation is required\n  - ffn.swigluLimit must be explicitly set (null for no limit, or number)\n  - rope.ropeTheta is required\n  - rope.ropeScalingFactor is required (use 1.0 for no scaling)\n  - rope.ropeScalingType must be explicitly set (null for no scaling, or scaling type string)\n  - rope.ropeLocalTheta must be explicitly set (null for no local theta, or number)\n  - rope.mropeInterleaved is required\n  - rope.mropeSection must be explicitly set (null when unused, or an array of positive integers)\n  - rope.partialRotaryFactor must be explicitly set (null when unused, or a number in (0, 1])\n  - output.tieWordEmbeddings is required\n  - output.scaleEmbeddings is required\n  - output.embeddingTranspose is required\n  - output.finalLogitSoftcapping must be explicitly set (null for no softcapping, or number)\n  - output.embeddingVocabSize must be explicitly set (null to use architecture.vocabSize, or number)\n  - layerPattern.type is required\n  - layerPattern.globalPattern must be explicitly set (null if not applicable)\n  - layerPattern.period must be explicitly set (null if not applicable)\n  - layerPattern.offset must be explicitly set (null if not applicable)\n  - chatTemplate.type must be explicitly set (null for no template)\n  - chatTemplate.enabled is required\n  - rope.yarnBetaFast must be explicitly set (null if not YARN)\n  - rope.yarnBetaSlow must be explicitly set (null if not YARN)\n  - rope.yarnOriginalMaxPos must be explicitly set (null if not YARN)\nRe-convert the model using the latest converter."
+      ],
+      "stats": {
+        "fieldCases": 35,
+        "nullableCases": 16,
+        "nonNullableCases": 19
+      }
+    }
+  },
+  "output": "ok",
+  "memory": null,
+  "debugSnapshot": {
+    "timestamp": "2026-03-20T01:56:51.893Z",
+    "logLevel": "INFO",
+    "traceCategories": [],
+    "enabledModules": [],
+    "disabledModules": [],
+    "recentLogs": [
+      {
+        "time": "174.9",
+        "level": "INFO",
+        "module": "HarnessOverride",
+        "message": "DEBUG_SNAPSHOT_MARKER:second"
+      }
+    ],
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
