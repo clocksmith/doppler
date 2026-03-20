@@ -22,7 +22,7 @@
 
   "inference": {
     "attention": {
-      "queryPreAttnScalar": null,
+      "queryPreAttnScalar": 256,
       "attnLogitSoftcapping": null,
       "slidingWindow": null,
       "queryKeyNorm": true,
@@ -84,7 +84,7 @@
       "defaults": {
         "activationDtype": "f16",
         "mathDtype": "f16",
-        "accumDtype": "f16",
+        "accumDtype": "f32",
         "outputDtype": "f16"
       }
     },

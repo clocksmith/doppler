@@ -16,7 +16,7 @@
 
   "inference": {
     "attention": {
-      "queryPreAttnScalar": null,
+      "queryPreAttnScalar": 256,
       "attnLogitSoftcapping": null,
       "slidingWindow": null,
       "queryKeyNorm": true,

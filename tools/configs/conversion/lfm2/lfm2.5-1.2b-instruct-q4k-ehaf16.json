@@ -62,7 +62,7 @@
       "globalPattern": null,
       "period": null,
       "offset": null,
-      "layerTypes": null
+      "layerTypes": ["conv","conv","full_attention","conv","conv","full_attention","conv","conv","full_attention","conv","full_attention","conv","full_attention","conv","full_attention","conv"]
     },
     "chatTemplate": {
       "type": "chatml",

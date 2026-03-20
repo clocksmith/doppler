@@ -16,7 +16,7 @@
 
   "inference": {
     "attention": {
-      "queryPreAttnScalar": null,
+      "queryPreAttnScalar": 64,
       "attnLogitSoftcapping": null,
       "slidingWindow": null,
       "queryKeyNorm": true,
@@ -65,7 +65,7 @@
       "globalPattern": null,
       "period": null,
       "offset": null,
-      "layerTypes": null
+      "layerTypes": ["conv","conv","full_attention","conv","conv","full_attention","conv","conv","full_attention","conv","full_attention","conv","full_attention","conv","full_attention","conv"]
     },
     "chatTemplate": {
       "type": "chatml",
