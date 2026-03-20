@@ -274,6 +274,10 @@ async function runInferenceSuite(options = {}) {
         retrievalTop1Acc: Number(semantic.retrievalTop1Acc.toFixed(4)),
         pairAcc: Number(semantic.pairAcc.toFixed(4)),
         failedCaseIds: semantic.failedCaseIds,
+        details: {
+          retrieval: semantic.retrieval,
+          pairs: semantic.pairs,
+        },
       },
     };
     results = [

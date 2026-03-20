@@ -8,9 +8,7 @@ async function loadJson(path) {
 
 // V1 configs must have explicit rmsNormWeightOffset
 const conversionConfigs = await Promise.all([
-  loadJson('../../tools/configs/conversion/qwen3/qwen-3-5-0-8b-f16.json'),
   loadJson('../../tools/configs/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json'),
-  loadJson('../../tools/configs/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16-af32.json'),
   loadJson('../../tools/configs/conversion/qwen3/qwen-3-5-2b-q4k-ehaf16.json'),
 ]);
 

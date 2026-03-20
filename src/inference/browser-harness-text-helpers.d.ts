@@ -1,4 +1,11 @@
 export declare function resolvePrompt(runtimeConfig: Record<string, unknown>): string;
+export declare function getDefaultEmbeddingSemanticFixtures(): {
+  retrievalCases: Array<Record<string, unknown>>;
+  pairCases: Array<Record<string, unknown>>;
+  minRetrievalTop1Acc: number;
+  minPairAcc: number;
+  pairMargin: number;
+};
 export declare function resolveBenchmarkRunSettings(
   runtimeConfig: Record<string, unknown>,
   source?: Record<string, unknown> | null

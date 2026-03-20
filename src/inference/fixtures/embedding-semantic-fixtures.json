@@ -1,0 +1,382 @@
+{
+  "schemaVersion": 2,
+  "defaults": {
+    "minRetrievalTop1Acc": 0.75,
+    "minPairAcc": 0.75,
+    "pairMargin": 0.02,
+
+    "retrievalCases": [
+      {
+        "id": "library_search",
+        "query": "Where can I borrow books and study quietly?",
+        "docs": [
+          "The city library lends books, provides study rooms, and offers free Wi-Fi.",
+          "The cafe serves coffee, pastries, and sandwiches all day.",
+          "The bike repair shop fixes flat tires and broken chains."
+        ],
+        "expectedDoc": 0
+      },
+      {
+        "id": "password_reset",
+        "query": "How do I reset my account password?",
+        "docs": [
+          "To reset your password, open account settings and choose the forgot-password flow.",
+          "Our shipping policy explains delivery timelines and tracking updates.",
+          "The recipe combines tomatoes, basil, and olive oil."
+        ],
+        "expectedDoc": 0
+      },
+      {
+        "id": "damaged_package",
+        "query": "What should I do if my package arrives damaged?",
+        "docs": [
+          "Contact support within seven days with photos to request a replacement for damaged items.",
+          "The concert starts at 8 PM at the downtown arena.",
+          "Plant roses in spring and water them twice a week."
+        ],
+        "expectedDoc": 0
+      },
+      {
+        "id": "flight_change_policy",
+        "query": "Can I change my flight after booking?",
+        "docs": [
+          "The museum opens daily at 10 AM and offers guided tours on weekends.",
+          "You can change your flight in Manage Booking up to 24 hours before departure, with any fare difference applied.",
+          "Our gym membership includes group classes and access to the pool."
+        ],
+        "expectedDoc": 1
+      },
+      {
+        "id": "wifi_troubleshoot",
+        "query": "Why does my home Wi-Fi keep disconnecting?",
+        "docs": [
+          "The dessert menu includes cheesecake, brownies, and fruit tart.",
+          "You can review your recent orders in your account purchase history.",
+          "Frequent Wi-Fi drops can be fixed by restarting the router, updating firmware, and changing the wireless channel."
+        ],
+        "expectedDoc": 2
+      },
+      {
+        "id": "refund_deadline",
+        "query": "How long do I have to request a refund?",
+        "docs": [
+          "Refund requests are accepted within 30 days of purchase when the item is in original condition.",
+          "The conference keynote starts at 9 AM in the main hall.",
+          "Use a medium grind when brewing coffee with a drip machine."
+        ],
+        "expectedDoc": 0
+      },
+      {
+        "id": "passport_renewal_docs",
+        "query": "What documents do I need to renew a passport?",
+        "docs": [
+          "To care for houseplants, water only when the top soil is dry.",
+          "Passport renewal usually requires the application form, current passport, compliant photo, and payment.",
+          "The train to downtown runs every 20 minutes during peak hours."
+        ],
+        "expectedDoc": 1
+      },
+      {
+        "id": "hard_flight_cancel_vs_change",
+        "query": "How do I cancel my flight reservation?",
+        "docs": [
+          "To cancel a flight, go to Manage Booking and select the cancellation option within 24 hours for a full refund.",
+          "You can change your flight in Manage Booking up to 24 hours before departure, with any fare difference applied.",
+          "Flight status updates are available in the airline app under trip notifications."
+        ],
+        "expectedDoc": 0
+      },
+      {
+        "id": "hard_return_vs_exchange",
+        "query": "Can I exchange a product instead of returning it?",
+        "docs": [
+          "To return an item, ship it back within 30 days in its original packaging for a refund.",
+          "Exchanges are available in-store or online; select the replacement item and ship the original back within 14 days.",
+          "Gift cards can be purchased in any denomination and never expire."
+        ],
+        "expectedDoc": 1
+      },
+      {
+        "id": "hard_savings_vs_checking",
+        "query": "What is the interest rate on a savings account?",
+        "docs": [
+          "Checking accounts offer unlimited transactions with no minimum balance and a debit card.",
+          "Savings accounts currently earn 4.5% APY with interest compounded daily and paid monthly.",
+          "Credit card rewards include cashback, travel points, and purchase protection."
+        ],
+        "expectedDoc": 1
+      },
+      {
+        "id": "hard_migraine_vs_tension",
+        "query": "What triggers a migraine headache?",
+        "docs": [
+          "Tension headaches are caused by muscle contraction in the head and neck and respond well to over-the-counter painkillers.",
+          "Migraines can be triggered by stress, certain foods, hormonal changes, and bright lights, often presenting with aura and nausea.",
+          "Cluster headaches occur in cyclical patterns and cause severe pain around one eye."
+        ],
+        "expectedDoc": 1
+      },
+      {
+        "id": "hard_python_sort_vs_filter",
+        "query": "How do I sort a list in Python?",
+        "docs": [
+          "Use the built-in sorted() function or list.sort() method to sort a list; both accept a key argument for custom ordering.",
+          "Use list comprehensions or the filter() built-in to select elements from a list that match a condition.",
+          "The map() function applies a transformation to every element in an iterable and returns a new iterator."
+        ],
+        "expectedDoc": 0
+      },
+      {
+        "id": "hard_civil_vs_criminal",
+        "query": "What is the difference between civil and criminal law?",
+        "docs": [
+          "Civil law handles disputes between individuals or organizations, such as contracts, property, and family matters, with remedies like damages or injunctions.",
+          "Criminal law addresses offenses against the state, where the government prosecutes the accused, and penalties include fines, probation, or imprisonment.",
+          "Administrative law governs the actions of government agencies, including rulemaking, enforcement, and adjudication of regulatory matters."
+        ],
+        "expectedDoc": 0
+      },
+      {
+        "id": "cross_medical",
+        "query": "What are the symptoms of type 2 diabetes?",
+        "docs": [
+          "Type 2 diabetes symptoms include increased thirst, frequent urination, fatigue, blurred vision, and slow-healing wounds.",
+          "The quarterly earnings report showed a 12% increase in revenue driven by cloud services.",
+          "Sourdough bread requires a mature starter, strong flour, water, and salt with a 12-hour bulk fermentation."
+        ],
+        "expectedDoc": 0
+      },
+      {
+        "id": "cross_finance",
+        "query": "How does compound interest work?",
+        "docs": [
+          "Photosynthesis converts carbon dioxide and water into glucose and oxygen using sunlight energy.",
+          "Compound interest calculates interest on both the initial principal and the accumulated interest from previous periods, causing exponential growth over time.",
+          "The novel follows three generations of a family through war, migration, and reconciliation."
+        ],
+        "expectedDoc": 1
+      },
+      {
+        "id": "cross_legal",
+        "query": "When does a contract become legally binding?",
+        "docs": [
+          "A contract becomes legally binding when there is an offer, acceptance, consideration, and mutual intent to be bound, with capacity and lawful purpose.",
+          "The CPU executes instructions by fetching them from memory, decoding the opcode, and performing the operation in the ALU.",
+          "Grilled salmon pairs well with lemon butter sauce, roasted asparagus, and wild rice."
+        ],
+        "expectedDoc": 0
+      },
+      {
+        "id": "cross_science",
+        "query": "Why do heavy objects fall at the same rate as light ones in a vacuum?",
+        "docs": [
+          "In a vacuum, gravitational acceleration is constant regardless of mass, so all objects fall at the same rate because there is no air resistance.",
+          "The museum collection includes Impressionist paintings, Ancient Greek pottery, and contemporary sculpture.",
+          "To propagate succulents, remove a healthy leaf, let it callus for two days, then place it on moist soil."
+        ],
+        "expectedDoc": 0
+      },
+      {
+        "id": "cross_code",
+        "query": "What is a race condition in concurrent programming?",
+        "docs": [
+          "A race condition occurs when two or more threads access shared data simultaneously and the outcome depends on the order of execution, leading to unpredictable behavior.",
+          "Annual rainfall in the Pacific Northwest averages 150 centimeters, supporting dense temperate rainforests.",
+          "The yoga class starts with sun salutations and ends with a five-minute guided meditation."
+        ],
+        "expectedDoc": 0
+      },
+      {
+        "id": "cross_cooking",
+        "query": "What temperature should I roast a chicken at?",
+        "docs": [
+          "Roast a whole chicken at 425°F (220°C) for about 20 minutes per pound until the internal temperature reaches 165°F (74°C) in the thickest part of the thigh.",
+          "Kubernetes orchestrates container workloads across a cluster using pods, services, and deployments.",
+          "The treaty established trade agreements, mutual defense obligations, and cultural exchange programs between the two nations."
+        ],
+        "expectedDoc": 0
+      },
+      {
+        "id": "pool_ten_docs",
+        "query": "How do vaccines work?",
+        "docs": [
+          "Vaccines introduce a weakened or inactivated pathogen to train the immune system to recognize and fight future infections without causing disease.",
+          "The impressionist movement emerged in Paris during the 1860s as artists rejected academic conventions.",
+          "Reinforced concrete uses steel rebar embedded in concrete to resist both compression and tension forces.",
+          "Dividends are periodic payments made by corporations to shareholders from profits or retained earnings.",
+          "The alpine ecosystem supports specialized plants and animals adapted to cold temperatures, thin air, and intense UV radiation.",
+          "Merge sort divides the array recursively and merges sorted halves, achieving O(n log n) time complexity.",
+          "The symphony orchestra consists of four instrument families: strings, woodwinds, brass, and percussion.",
+          "Glacial erosion carves U-shaped valleys and deposits moraines as the ice retreats.",
+          "Probate is the legal process of validating a will and distributing the deceased person's assets.",
+          "The combustion engine converts chemical energy from fuel into mechanical energy through controlled explosions in cylinders."
+        ],
+        "expectedDoc": 0
+      }
+    ],
+
+    "pairCases": [
+      {
+        "id": "bike_paraphrase",
+        "anchor": "The child is riding a bicycle through the park.",
+        "positive": "A kid bikes along a path in the park.",
+        "negative": "The stock market closed lower after interest-rate news."
+      },
+      {
+        "id": "cancel_subscription",
+        "anchor": "Please cancel my subscription before renewal.",
+        "positive": "I want to stop the plan so it does not renew.",
+        "negative": "The mountain trail is closed after heavy snow."
+      },
+      {
+        "id": "battery_drain",
+        "anchor": "The laptop battery drains very quickly.",
+        "positive": "My notebook loses charge fast.",
+        "negative": "This pasta sauce tastes sweet and spicy."
+      },
+      {
+        "id": "order_tracking",
+        "anchor": "I need to track where my order is.",
+        "positive": "How can I check my package delivery status?",
+        "negative": "The violin concerto was composed in the 1800s."
+      },
+      {
+        "id": "account_lockout",
+        "anchor": "My account is locked after too many login attempts.",
+        "positive": "I cannot sign in because the system temporarily blocked my account.",
+        "negative": "Bake the cake at 350 degrees for thirty minutes."
+      },
+      {
+        "id": "invoice_request",
+        "anchor": "Please send me the invoice for last month.",
+        "positive": "Can you provide the billing statement for the previous month?",
+        "negative": "The hiking trail follows the river for five miles."
+      },
+      {
+        "id": "slow_internet",
+        "anchor": "The internet speed is much slower tonight.",
+        "positive": "My connection is unusually slow this evening.",
+        "negative": "The novel explores themes of memory and loss."
+      },
+      {
+        "id": "adversarial_negation_loan",
+        "anchor": "The bank approved the loan application.",
+        "positive": "The lending institution accepted the borrower's request for funds.",
+        "negative": "The bank rejected the loan application."
+      },
+      {
+        "id": "adversarial_negation_test",
+        "anchor": "The patient tested positive for the infection.",
+        "positive": "Lab results confirmed the presence of the pathogen.",
+        "negative": "The patient tested negative for the infection."
+      },
+      {
+        "id": "adversarial_entity_swap",
+        "anchor": "France exported wine to Germany last quarter.",
+        "positive": "French wine shipments to Germany increased in the recent period.",
+        "negative": "Germany exported wine to France last quarter."
+      },
+      {
+        "id": "adversarial_tense_flip",
+        "anchor": "The company plans to open a new office in Tokyo.",
+        "positive": "A new Tokyo branch is scheduled to launch soon.",
+        "negative": "The company closed its Tokyo office last year."
+      },
+      {
+        "id": "adversarial_quantity",
+        "anchor": "The recipe calls for two tablespoons of sugar.",
+        "positive": "Add a couple of spoonfuls of sugar to the mixture.",
+        "negative": "The recipe calls for two cups of sugar."
+      },
+      {
+        "id": "technical_paraphrase_gpu",
+        "anchor": "WebGPU provides low-level access to the graphics processor for compute workloads.",
+        "positive": "The WebGPU API exposes GPU hardware for parallel computation tasks.",
+        "negative": "WebSocket provides full-duplex communication channels over a single TCP connection."
+      },
+      {
+        "id": "technical_paraphrase_ml",
+        "anchor": "Gradient descent minimizes the loss function by iteratively updating model parameters.",
+        "positive": "The optimizer reduces error by adjusting weights in the direction of steepest descent.",
+        "negative": "The garbage collector reclaims memory by tracing reachable objects from root references."
+      }
+    ],
+
+    "lengthStabilityCases": [
+      {
+        "id": "climate_change_short_medium_long",
+        "short": "Climate change causes rising temperatures.",
+        "medium": "Climate change is causing global temperatures to rise, leading to melting ice caps, rising sea levels, and more frequent extreme weather events that threaten ecosystems and human communities.",
+        "long": "Climate change refers to long-term shifts in global temperatures and weather patterns. While natural factors like volcanic eruptions and solar cycles have historically influenced the climate, human activities since the Industrial Revolution have been the dominant driver of observed warming. The burning of fossil fuels releases greenhouse gases, primarily carbon dioxide and methane, which trap heat in the atmosphere. This has led to rising average global temperatures, melting polar ice sheets and glaciers, rising sea levels, ocean acidification, more frequent and severe heatwaves, droughts, and storms, shifts in ecosystems and wildlife migration patterns, and threats to agriculture, water supplies, and human health worldwide.",
+        "maxCosineDrift": 0.25
+      },
+      {
+        "id": "photosynthesis_short_medium_long",
+        "short": "Plants convert sunlight into energy.",
+        "medium": "Photosynthesis is the process by which green plants, algae, and some bacteria convert light energy, usually from the sun, into chemical energy stored in glucose, releasing oxygen as a byproduct.",
+        "long": "Photosynthesis is a fundamental biological process that sustains nearly all life on Earth. In green plants, algae, and cyanobacteria, photosynthesis occurs primarily in chloroplasts, where the pigment chlorophyll absorbs light energy. The process consists of two main stages: the light-dependent reactions, which occur in the thylakoid membranes and convert light energy into ATP and NADPH while splitting water molecules and releasing oxygen, and the Calvin cycle (light-independent reactions), which takes place in the stroma and uses the ATP and NADPH to fix carbon dioxide from the atmosphere into glucose molecules. The net equation is 6CO2 + 6H2O + light energy -> C6H12O6 + 6O2.",
+        "maxCosineDrift": 0.25
+      },
+      {
+        "id": "encryption_short_medium_long",
+        "short": "Encryption protects data with secret keys.",
+        "medium": "Encryption transforms readable data into ciphertext using an algorithm and a key, so that only someone with the correct decryption key can recover the original plaintext, protecting information during storage and transmission.",
+        "long": "Encryption is a cornerstone of modern information security that protects data confidentiality and integrity. Symmetric encryption algorithms like AES use the same secret key for both encryption and decryption, offering fast performance for bulk data. Asymmetric encryption systems like RSA use a key pair consisting of a public key for encryption and a private key for decryption, enabling secure key exchange and digital signatures without sharing secrets. Transport Layer Security (TLS) combines both approaches: an asymmetric handshake establishes a shared session key, which then encrypts the data stream symmetrically. End-to-end encryption in messaging apps ensures that only the communicating parties can read the messages, with no access for the service provider or intermediaries.",
+        "maxCosineDrift": 0.25
+      }
+    ],
+
+    "throughputCorpus": [
+      "Vaccines introduce weakened pathogens to train the immune system to recognize future infections.",
+      "The impressionist movement emerged in 1860s Paris as artists rejected academic painting conventions.",
+      "Reinforced concrete uses embedded steel rebar to resist both compression and tension forces in structures.",
+      "Dividends are periodic payments corporations make to shareholders from profits or retained earnings.",
+      "Alpine ecosystems support specialized plants and animals adapted to cold temperatures and intense UV radiation.",
+      "Merge sort recursively divides arrays and merges sorted halves, achieving O(n log n) time complexity.",
+      "The symphony orchestra consists of four instrument families: strings, woodwinds, brass, and percussion.",
+      "Glacial erosion carves U-shaped valleys and deposits moraines of rock and sediment as ice retreats.",
+      "Probate is the legal process of validating a will and distributing a deceased person's assets to heirs.",
+      "Internal combustion engines convert chemical energy from fuel into mechanical energy through controlled explosions.",
+      "Photosynthesis converts carbon dioxide and water into glucose and oxygen using sunlight as the energy source.",
+      "The TCP three-way handshake establishes a reliable connection using SYN, SYN-ACK, and ACK packets.",
+      "Black holes form when massive stars collapse under their own gravity, creating regions where nothing can escape.",
+      "Sourdough fermentation relies on wild yeast and lactobacillus bacteria to leaven and flavor the bread.",
+      "The Pythagorean theorem states that in a right triangle, the square of the hypotenuse equals the sum of the squares of the other two sides.",
+      "CRISPR-Cas9 is a gene-editing tool that allows precise modifications to DNA sequences in living organisms.",
+      "Supply and demand determine market prices: when demand exceeds supply, prices rise, and vice versa.",
+      "Neural networks consist of layers of interconnected nodes that learn patterns from data through backpropagation.",
+      "The water cycle moves water through evaporation, condensation, precipitation, and collection in a continuous loop.",
+      "Habeas corpus is a legal principle requiring authorities to justify the detention of a person before a court.",
+      "Antibiotics kill bacteria or inhibit their growth but are ineffective against viral infections like the common cold.",
+      "Version control systems like Git track changes to source code and enable collaborative software development.",
+      "Plate tectonics describes the movement of large sections of Earth's lithosphere that cause earthquakes and volcanism.",
+      "Compound interest calculates returns on both the initial principal and previously accumulated interest over time.",
+      "The Krebs cycle is a series of chemical reactions in cellular respiration that generates energy-carrier molecules.",
+      "DNS translates human-readable domain names into IP addresses so browsers can locate web servers on the internet.",
+      "Osmosis is the movement of water molecules through a semipermeable membrane from low to high solute concentration.",
+      "Object-oriented programming organizes code into classes and objects that encapsulate data and behavior together.",
+      "The greenhouse effect traps heat in Earth's atmosphere when gases like CO2 absorb and re-emit infrared radiation.",
+      "Bankruptcy law provides a legal framework for individuals and businesses to restructure or discharge their debts.",
+      "Mitosis is a type of cell division that produces two genetically identical daughter cells from a single parent cell.",
+      "Load balancers distribute incoming network traffic across multiple servers to ensure no single server is overwhelmed.",
+      "The Doppler effect causes the observed frequency of a wave to change when the source moves relative to the observer.",
+      "Tort law covers civil wrongs where one party's actions cause harm or loss to another, leading to liability for damages.",
+      "Enzymes are biological catalysts that speed up chemical reactions in cells without being consumed in the process.",
+      "Containerization packages applications with their dependencies into isolated units that run consistently across environments.",
+      "Natural selection is the process by which organisms with favorable traits are more likely to survive and reproduce.",
+      "Relational databases store data in structured tables with rows and columns and use SQL for querying and manipulation.",
+      "The Bill of Rights comprises the first ten amendments to the United States Constitution, guaranteeing fundamental freedoms.",
+      "Electromagnetic waves include radio waves, microwaves, infrared, visible light, ultraviolet, X-rays, and gamma rays.",
+      "Hash tables provide average O(1) lookup time by mapping keys to array indices through a deterministic hash function.",
+      "Tectonic subduction zones form deep ocean trenches where one plate slides beneath another into the mantle.",
+      "Inflation erodes the purchasing power of money over time, meaning each unit of currency buys fewer goods and services.",
+      "RNA polymerase reads the DNA template strand and synthesizes a complementary messenger RNA molecule during transcription.",
+      "WebGPU exposes modern GPU hardware through a browser API for both graphics rendering and general-purpose compute workloads.",
+      "The Miranda warning informs arrested individuals of their right to remain silent and their right to an attorney.",
+      "Transformer models use self-attention mechanisms to process sequences in parallel, enabling efficient training on large datasets.",
+      "Fractional distillation separates crude oil into components like gasoline, diesel, and kerosene based on their boiling points.",
+      "The First Amendment protects freedom of speech, religion, press, assembly, and the right to petition the government.",
+      "Gradient descent iteratively adjusts model parameters in the direction that minimizes the loss function during training."
+    ]
+  }
+}
