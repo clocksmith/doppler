@@ -194,7 +194,7 @@ function main() {
     'docs/config.md',
     'src/inference/pipelines/text.js',
     'src/tooling/command-api.js',
-    'tools/doppler-cli.js',
+    'src/cli/doppler-cli.js',
     'tools/policies/agent-parity-policy.json',
     'benchmarks/vendors/benchmark-policy.json',
     'tools/verify-agent-parity.js',

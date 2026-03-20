@@ -147,7 +147,7 @@ async function loadPackageJson(packageFile) {
 function buildNextScripts(currentScripts, generatedScripts) {
   const base = removePreviouslyGeneratedScripts(currentScripts);
   base.verify = 'node tools/run-registry-verify.js';
-  base['verify:model'] = 'node tools/doppler-cli.js verify';
+  base['verify:model'] = 'node src/cli/doppler-cli.js verify';
   base['registry:sync:scripts'] = 'node tools/sync-registry-scripts.js';
   base['registry:sync:scripts:check'] = 'node tools/sync-registry-scripts.js --check';
 

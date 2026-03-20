@@ -5,7 +5,7 @@ import { expandExecutionV1 } from '../../src/config/schema/execution-v1.schema.j
 
 const converterConfig = JSON.parse(
   fs.readFileSync(
-    'tools/configs/conversion/gemma3/translategemma-4b-it-q4k-ehf16-af32.json',
+    'src/config/conversion/gemma3/translategemma-4b-it-q4k-ehf16-af32.json',
     'utf8'
   )
 );
@@ -13,7 +13,7 @@ const converterConfig = JSON.parse(
 // === V1 config structure ===
 
 assert.equal(converterConfig.quantization?.computePrecision, 'f32');
-assert.equal(converterConfig.presets, undefined, 'v1 configs have no presets');
+assert.equal(converterConfig.presets, undefined, 'v1 configs have no legacy family-indirection field');
 assert.ok(converterConfig.execution?.kernels, 'v1 must have execution.kernels');
 assert.ok(converterConfig.inference?.attention, 'v1 must have explicit inference.attention');
 assert.ok(converterConfig.inference?.chatTemplate?.type, 'translategemma');

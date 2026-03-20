@@ -144,7 +144,7 @@ async function runTest() {
     const { stdout, stderr } = await execFileAsync(
       'node',
       [
-        'tools/doppler-cli.js',
+        'src/cli/doppler-cli.js',
         'debug',
         '--config', cliConfig,
         '--runtime-config', runtimeConfig,

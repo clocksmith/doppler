@@ -13,7 +13,7 @@
     "stdoutFormat": "json",
     "defaultCommand": null,
     "examples": [
-      "deno run --unstable-webgpu --allow-read --allow-write --allow-env --allow-net tools/doppler-cli.js bench --config '{\"request\":{\"modelId\":\"gemma-3-270m-it-q4k-ehf16-af32\"}}' --json"
+      "deno run --unstable-webgpu --allow-read --allow-write --allow-env --allow-net src/cli/doppler-cli.js bench --config '{\"request\":{\"modelId\":\"gemma-3-270m-it-q4k-ehf16-af32\"}}' --json"
     ]
   },
   "normalization": {

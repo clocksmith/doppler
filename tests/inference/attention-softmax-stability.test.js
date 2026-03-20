@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const ROOT = process.cwd();
-const KERNEL_PATH_DIR = path.join(ROOT, 'src', 'config', 'presets', 'kernel-paths');
+const KERNEL_PATH_DIR = path.join(ROOT, 'src', 'config', 'kernel-paths');
 const WGSL_DIR = path.join(ROOT, 'src', 'gpu', 'kernels');
 
 function loadKernelPath(fileName) {

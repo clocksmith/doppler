@@ -7,7 +7,7 @@ import { pathToFileURL } from 'node:url';
 const {
   resolveBrowserModelUrl,
   resolveNodeModelUrl,
-} = await import('../../tools/doppler-cli.js');
+} = await import('../../src/cli/doppler-cli.js');
 
 const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'doppler-cli-external-'));
 
@@ -27,11 +27,30 @@ try {
   assert.equal(resolved.modelId, modelId);
   assert.equal(resolved.modelUrl, pathToFileURL(modelDir).href.replace(/\/$/, ''));
 
-  const unchanged = await resolveNodeModelUrl(
-    { modelId: 'missing-model' },
+  await assert.rejects(
+    () => resolveNodeModelUrl({ modelId: 'missing-model' }, { rdrrRoot }),
+    (err) => {
+      assert.match(err.message, /Model "missing-model" not found/u);
+      assert.match(err.message, /Not in catalog/u);
+      assert.match(err.message, /request\.modelUrl/u);
+      return true;
+    }
+  );
+
+  // Catalog fallback: known alias resolves to HF URL when not found locally
+  const catalogResolved = await resolveNodeModelUrl(
+    { modelId: 'gemma3-270m' },
     { rdrrRoot }
   );
-  assert.equal(unchanged.modelUrl, undefined);
+  assert.equal(catalogResolved.modelId, 'gemma3-270m');
+  assert.ok(
+    catalogResolved.modelUrl.startsWith('https://huggingface.co/Clocksmith/rdrr/resolve/'),
+    `Expected HF URL, got: ${catalogResolved.modelUrl}`
+  );
+  assert.ok(
+    catalogResolved.modelUrl.includes('gemma-3-270m-it-q4k-ehf16-af32'),
+    `Expected model path in URL, got: ${catalogResolved.modelUrl}`
+  );
 
   const staticRoot = path.join(tempRoot, 'app');
   await fs.mkdir(staticRoot, { recursive: true });
@@ -48,6 +67,16 @@ try {
     { staticRootDir: staticRoot, rdrrRoot }
   );
   assert.equal(browserUnchanged.modelUrl, '/models/missing-model');
+
+  // Browser catalog fallback: known alias resolves to HF URL when not found locally
+  const browserCatalogResolved = await resolveBrowserModelUrl(
+    { modelId: 'gemma3-270m' },
+    { staticRootDir: staticRoot, rdrrRoot }
+  );
+  assert.ok(
+    browserCatalogResolved.modelUrl.startsWith('https://huggingface.co/Clocksmith/rdrr/resolve/'),
+    `Expected HF URL for browser catalog fallback, got: ${browserCatalogResolved.modelUrl}`
+  );
 
   const normalizedModelId = 'sana-sprint-0-6b-f16';
   const aliasedDir = path.join(rdrrRoot, 'sana-sprint-0.6b-f16');

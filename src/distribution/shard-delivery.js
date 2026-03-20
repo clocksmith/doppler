@@ -1994,7 +1994,7 @@ async function executeDeliveryPlan(
         log.warn('Distribution', `All shard delivery sources failed for shard ${shardIndex}: ${error.message}`);
         throw error;
       }
-      log.warn('Distribution', `Shard ${shardIndex} source "${step.source}" failed (${error.code || 'error'}): ${error.message}`);
+      log.debug('Distribution', `Shard ${shardIndex} source "${step.source}" failed (${error.code || 'error'}): ${error.message}`);
       continue;
     }
   }

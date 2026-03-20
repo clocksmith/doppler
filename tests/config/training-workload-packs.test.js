@@ -10,7 +10,7 @@ try {
   const result = spawnSync(process.execPath, [
     'tools/verify-training-workload-packs.js',
     '--registry',
-    'tools/configs/training-workloads/registry.json',
+    'src/training/workload-packs/registry.json',
     '--out',
     outPath,
   ], {
@@ -35,7 +35,7 @@ try {
     const rootDir = path.join(staleDir, 'root');
     mkdirSync(rootDir);
 
-    const srcWorkload = readFileSync('tools/configs/training-workloads/lora-toy-tiny.json', 'utf8');
+    const srcWorkload = readFileSync('src/training/workload-packs/lora-toy-tiny.json', 'utf8');
     writeFileSync(path.join(rootDir, 'lora-toy-tiny.json'), srcWorkload, 'utf8');
 
     // Generate a correct single-entry registry for that root

@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 const testDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(testDir, '..', '..');
-const registryPath = path.join(repoRoot, 'src/config/presets/kernel-paths/registry.json');
+const registryPath = path.join(repoRoot, 'src/config/kernel-paths/registry.json');
 
 const registry = JSON.parse(await fs.readFile(registryPath, 'utf8'));
 const entries = Array.isArray(registry?.entries) ? registry.entries : [];

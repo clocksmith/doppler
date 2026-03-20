@@ -16,7 +16,7 @@ assert.ok(Array.isArray(sample.receipts));
 assert.ok(sample.receipts.length >= 1);
 
 assert.match(checklist, /final student checkpoint selected/);
-assert.match(checklist, /Translate -> Compare -> Proof preset/);
+assert.match(checklist, /Translate -> Compare -> Proof layout/);
 assert.match(checklist, /support-registry entry first/);
 
 console.log('translate-compare-sample-fixture.test: ok');

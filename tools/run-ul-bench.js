@@ -58,11 +58,11 @@ function buildRuntimeConfigJson(benchRun) {
 }
 
 export async function loadWorkloadConfig(workloadArg) {
-  const presets = {
-    tiny: 'tools/configs/training-workloads/ul-training-tiny.json',
-    medium: 'tools/configs/training-workloads/ul-training-medium.json',
+  const workloadAliases = {
+    tiny: 'src/training/workload-packs/ul-training-tiny.json',
+    medium: 'src/training/workload-packs/ul-training-medium.json',
   };
-  const candidate = presets[workloadArg] || workloadArg;
+  const candidate = workloadAliases[workloadArg] || workloadArg;
   const absolute = resolve(candidate);
   const raw = await readFile(absolute, 'utf8');
   const parsed = JSON.parse(raw);
@@ -74,7 +74,7 @@ export async function loadWorkloadConfig(workloadArg) {
 
 async function runCli(args) {
   return new Promise((resolvePromise, rejectPromise) => {
-    const proc = spawn('node', ['tools/doppler-cli.js', ...args], {
+    const proc = spawn('node', ['src/cli/doppler-cli.js', ...args], {
       stdio: ['ignore', 'pipe', 'pipe'],
       cwd: process.cwd(),
       env: process.env,

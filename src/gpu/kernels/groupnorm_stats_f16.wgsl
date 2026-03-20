@@ -1,5 +1,5 @@
 // AUTO-GENERATED from src/gpu/kernels/groupnorm_stats.wgsl.
-// Edit the source kernel and tools/configs/wgsl-variants.js, then run `npm run kernels:generate`.
+// Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:generate`.
 // GroupNorm Stats Kernel (NCHW, f16 input)
 
 enable f16;

@@ -60,7 +60,7 @@ function parseKernelPathRegistry(raw) {
 }
 
 const KERNEL_PATH_REGISTRY_ENTRIES = parseKernelPathRegistry(
-  await loadJson('./presets/kernel-paths/registry.json', import.meta.url, 'Failed to load kernel path')
+  await loadJson('./kernel-paths/registry.json', import.meta.url, 'Failed to load kernel path')
 );
 
 const KERNEL_PATH_REGISTRY_BY_FILE = new Map(
@@ -70,7 +70,7 @@ const KERNEL_PATH_REGISTRY_BY_FILE = new Map(
       .filter((fileName) => typeof fileName === 'string'))
     ].map(async (fileName) => [
       fileName,
-      await loadJson(`./presets/kernel-paths/${fileName}`, import.meta.url, 'Failed to load kernel path')
+      await loadJson(`./kernel-paths/${fileName}`, import.meta.url, 'Failed to load kernel path')
     ])
   )
 );

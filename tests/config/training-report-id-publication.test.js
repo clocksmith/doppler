@@ -10,7 +10,7 @@ try {
   const result = spawnSync(process.execPath, [
     'tools/publish-training-report-ids.js',
     '--registry',
-    'tools/configs/training-workloads/registry.json',
+    'src/training/workload-packs/registry.json',
     '--out',
     outPath,
   ], {
@@ -35,7 +35,7 @@ try {
     workloads: [
       {
         id: 'toy-workload',
-        path: 'tools/configs/training-workloads/lora-toy-tiny.json',
+        path: 'src/training/workload-packs/lora-toy-tiny.json',
         sha256: 'abc123',
         baselineReportId: 'trn_toy_abc123',
       },

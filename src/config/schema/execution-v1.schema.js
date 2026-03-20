@@ -140,6 +140,9 @@ export function expandExecutionV1(graph) {
   if (!graph || typeof graph !== 'object') {
     throw new Error('execution graph must be a non-null object.');
   }
+  if (graph.inlineKernelPath !== undefined && typeof graph.inlineKernelPath !== 'boolean') {
+    throw new Error('execution.inlineKernelPath must be a boolean when provided.');
+  }
 
   const kernels = graph.kernels;
   validateKernelMap(kernels);

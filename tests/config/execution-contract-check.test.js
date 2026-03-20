@@ -48,7 +48,6 @@ function buildExecutionContractFixtureManifest() {
     tensors: {},
     inference: {
       schema: null,
-      presetId: 'gemma3',
       defaultKernelPath: 'gemma3-q4k-dequant-f32a-online',
       layerPattern: {
         type: 'every_n',

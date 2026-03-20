@@ -13,7 +13,7 @@
     "stdoutFormat": "json",
     "defaultCommand": null,
     "examples": [
-      "bun tools/doppler-cli.js bench --config '{\"request\":{\"modelId\":\"gemma-3-270m-it-q4k-ehf16-af32\"}}' --json"
+      "bun src/cli/doppler-cli.js bench --config '{\"request\":{\"modelId\":\"gemma-3-270m-it-q4k-ehf16-af32\"}}' --json"
     ]
   },
   "normalization": {

@@ -203,7 +203,7 @@ function serializeTranslateCompareArtifactPayload(artifact) {
         options: artifact.request.options && typeof artifact.request.options === 'object'
           ? artifact.request.options
           : {},
-        presetId: resolveText(artifact.request.presetId, 'custom'),
+        layoutId: resolveText(artifact.request.layoutId, 'custom'),
       }
       : {
         prompt: '',
@@ -212,7 +212,7 @@ function serializeTranslateCompareArtifactPayload(artifact) {
         targetCode: DEFAULT_TRANSLATE_TARGET,
         targetName: DEFAULT_TRANSLATE_TARGET,
         options: {},
-        presetId: 'custom',
+        layoutId: 'custom',
       },
     environment: artifact.environment && typeof artifact.environment === 'object'
       ? artifact.environment
@@ -254,7 +254,7 @@ function serializeTranslateCompareHistoryEntry(entry) {
     sourceCode: resolveText(entry?.sourceCode, DEFAULT_TRANSLATE_SOURCE),
     targetCode: resolveText(entry?.targetCode, DEFAULT_TRANSLATE_TARGET),
     prompt: String(entry?.prompt || ''),
-    presetId: resolveText(entry?.presetId, 'custom'),
+    layoutId: resolveText(entry?.layoutId, 'custom'),
     artifact: serializeTranslateCompareArtifactPayload(entry?.artifact),
     lanes,
   };
@@ -382,34 +382,34 @@ function getTranslateCompatibleRegisteredModelIds() {
   return ids;
 }
 
-function getTranslateComparePreset(presetId) {
-  const normalizedId = resolveText(presetId, 'proof');
+function getTranslateCompareLayout(layoutId) {
+  const normalizedId = resolveText(layoutId, 'proof');
   return TRANSLATE_COMPARE_PRESETS.find((entry) => entry.id === normalizedId)
     || TRANSLATE_COMPARE_PRESETS[0];
 }
 
 const TRANSLATE_COMPARE_TJS_BASELINE_NOTE = 'Baseline parity is currently unsupported in public TJS ONNX exports.';
 
-function getTranslateComparePresetNote(presetId) {
-  const preset = getTranslateComparePreset(presetId);
-  if (preset.id === 'engine-parity' && !getMappedCompareBaselineProfile()) {
-    return `${preset.description} The UI will fail closed until a baseline mapping is configured.`;
+function getTranslateCompareLayoutNote(layoutId) {
+  const layout = getTranslateCompareLayout(layoutId);
+  if (layout.id === 'engine-parity' && !getMappedCompareBaselineProfile()) {
+    return `${layout.description} The UI will fail closed until a baseline mapping is configured.`;
   }
   const usesTjsMappedBaseline = ['left', 'right'].some((laneId) => {
-    const lane = preset?.lanes?.[laneId];
+    const lane = layout?.lanes?.[laneId];
     return lane?.engine === 'transformersjs' && lane?.role === 'mapped-baseline';
   });
   if (usesTjsMappedBaseline) {
-    return `${preset.description} ${TRANSLATE_COMPARE_TJS_BASELINE_NOTE}`;
+    return `${layout.description} ${TRANSLATE_COMPARE_TJS_BASELINE_NOTE}`;
   }
   const usesStudentRole = ['left', 'right'].some((laneId) => {
-    const role = resolveText(preset?.lanes?.[laneId]?.role, '');
+    const role = resolveText(layout?.lanes?.[laneId]?.role, '');
     return role === 'student' || role === 'student-mapped';
   });
   if (usesStudentRole && !resolveText(getTranslateCompareStudentModelId(), '')) {
-    return `${preset.description} Waiting for the student artifact and any TJS mapping.`;
+    return `${layout.description} Waiting for the student artifact and any TJS mapping.`;
   }
-  return preset.description;
+  return layout.description;
 }
 
 function getTranslateCompareModelLabel(modelId) {
@@ -608,12 +608,12 @@ function normalizeTranslateCompareHistoryFilter(filterId) {
     : 'all';
 }
 
-function getTranslateCompareLaneRoleLabel({ presetId, laneId, modelId }) {
-  const presetRole = resolveText(getTranslateComparePreset(presetId)?.lanes?.[laneId]?.role, '');
-  if (presetRole === 'baseline' || presetRole === 'mapped-baseline') {
+function getTranslateCompareLaneRoleLabel({ layoutId, laneId, modelId }) {
+  const layoutRole = resolveText(getTranslateCompareLayout(layoutId)?.lanes?.[laneId]?.role, '');
+  if (layoutRole === 'baseline' || layoutRole === 'mapped-baseline') {
     return 'baseline';
   }
-  if (presetRole === 'student' || presetRole === 'student-mapped') {
+  if (layoutRole === 'student' || layoutRole === 'student-mapped') {
     return resolveText(modelId, '') ? 'student' : 'student slot';
   }
   if (resolveText(modelId, '') === TRANSLATE_COMPARE_DEFAULT_BASELINE_MODEL_ID) {
@@ -632,7 +632,7 @@ function getTranslateCompareEntryLaneRoleLabel(entry, laneId) {
     return artifactRole;
   }
   return getTranslateCompareLaneRoleLabel({
-    presetId: entry?.presetId,
+    layoutId: entry?.layoutId,
     laneId,
     modelId: entry?.lanes?.[laneId]?.modelId,
   });
@@ -681,7 +681,7 @@ function matchesTranslateCompareHistoryFilter(entry, filterId) {
     return summary.sameEngine;
   }
   if (normalizedFilter === 'proof') {
-    return resolveText(entry?.presetId, '') === 'proof';
+    return resolveText(entry?.layoutId, '') === 'proof';
   }
   return true;
 }
@@ -761,7 +761,7 @@ function buildTranslateCompareArtifact(prompt, sourceCode, targetCode, options) 
       modelLabel: getTranslateCompareModelLabel(lane.modelId),
       tjsModelId: resolveText(resolveTransformersModelIdForLane(lane), ''),
       roleLabel: getTranslateCompareLaneRoleLabel({
-        presetId: state.comparePresetId,
+        layoutId: state.compareLayoutId,
         laneId,
         modelId: lane.modelId,
       }),
@@ -772,7 +772,7 @@ function buildTranslateCompareArtifact(prompt, sourceCode, targetCode, options) 
     };
   }
   const snapshot = {
-    presetId: state.comparePresetId,
+    layoutId: state.compareLayoutId,
     lanes,
   };
   const summary = summarizeTranslateCompareHistoryEntry(snapshot);
@@ -795,7 +795,7 @@ function buildTranslateCompareArtifact(prompt, sourceCode, targetCode, options) 
         topK: options.topK,
         maxTokens: options.maxTokens,
       },
-      presetId: state.comparePresetId || 'custom',
+      layoutId: state.compareLayoutId || 'custom',
     },
     environment: buildTranslateCompareEnvironmentMetadata(),
     evidence: {
@@ -925,7 +925,7 @@ function renderTranslateCompareLane(laneId) {
   setText(
     badgeEl,
     getTranslateCompareLaneRoleLabel({
-      presetId: state.comparePresetId,
+      layoutId: state.compareLayoutId,
       laneId,
       modelId: lane.modelId,
     })
@@ -1001,7 +1001,7 @@ function renderTranslateCompareHistory() {
     summary.innerHTML = `
       <div class="translate-history-card-top">
         <span class="translate-history-time type-caption">${formatCompareTimestamp(entry.createdAt)}</span>
-        <span class="translate-history-badge type-caption">${entry.presetId || 'custom'}</span>
+        <span class="translate-history-badge type-caption">${entry.layoutId || 'custom'}</span>
       </div>
       <div class="translate-history-badges">${badgeMarkup}</div>
       <p class="translate-history-snippet">${escapeHtml(String(entry.prompt || '').slice(0, 180) || 'No prompt captured.')}</p>
@@ -1055,18 +1055,18 @@ function syncTranslateCompareToggleButtons() {
 function syncTranslateCompareUI() {
   const compareShell = $('translate-compare-shell');
   const singleOutputBox = $('run-output')?.closest('.playground-output');
-  const presetSelect = $('translate-compare-preset');
-  const presetNote = $('translate-compare-preset-note');
+  const layoutSelect = $('translate-compare-layout');
+  const layoutNote = $('translate-compare-layout-note');
   const runButton = $('translate-compare-run-btn');
   const exportButton = $('translate-compare-export-btn');
   const shareButton = $('translate-compare-share-btn');
   const enabled = isTranslateCompareEnabled();
   setHidden(compareShell, !enabled);
   setHidden(singleOutputBox, enabled);
-  if (presetSelect instanceof HTMLSelectElement) {
-    presetSelect.value = state.comparePresetId || 'proof';
+  if (layoutSelect instanceof HTMLSelectElement) {
+    layoutSelect.value = state.compareLayoutId || 'proof';
   }
-  setText(presetNote, getTranslateComparePresetNote(state.comparePresetId || 'proof'));
+  setText(layoutNote, getTranslateCompareLayoutNote(state.compareLayoutId || 'proof'));
   if (runButton instanceof HTMLButtonElement) {
     runButton.disabled = state.compareGenerating || state.compareLoading;
   }
@@ -1091,18 +1091,18 @@ function syncTranslateCompareUI() {
   }
 }
 
-async function applyTranslateComparePreset(presetId, options = {}) {
+async function applyTranslateCompareLayout(layoutId, options = {}) {
   ensureTranslateCompareRuntimeState();
-  const preset = getTranslateComparePreset(presetId);
-  state.comparePresetId = preset.id;
+  const layout = getTranslateCompareLayout(layoutId);
+  state.compareLayoutId = layout.id;
   const { preserveExisting = false } = options;
 
   for (const laneId of getCompareLaneIds()) {
     const lane = getCompareLane(laneId);
-    const lanePreset = preset.lanes?.[laneId] || {};
-    const resolved = resolveTranslateCompareRole(lanePreset.role);
+    const laneLayout = layout.lanes?.[laneId] || {};
+    const resolved = resolveTranslateCompareRole(laneLayout.role);
     if (!preserveExisting || !resolveText(lane.modelId, '')) {
-      lane.engine = resolveText(lanePreset.engine, lane.engine || 'doppler');
+      lane.engine = resolveText(laneLayout.engine, lane.engine || 'doppler');
       lane.modelId = resolveText(resolved.modelId, lane.modelId || '');
       lane.tjsModelId = resolveText(resolved.tjsModelId, lane.tjsModelId || '');
     }
@@ -1375,7 +1375,7 @@ function captureTranslateCompareHistoryEntry(prompt, sourceCode, targetCode, art
     sourceCode,
     targetCode,
     prompt,
-    presetId: state.comparePresetId,
+    layoutId: state.compareLayoutId,
     artifact: serializeTranslateCompareArtifactPayload(artifact),
     lanes: {
       left: serializeTranslateCompareHistoryEntry({ lanes: { left: state.compareLanes.left } }).lanes.left,
@@ -1512,8 +1512,8 @@ export {
   buildTranslateInstructionPrompt,
   buildTransformersTranslatePrompt,
   getTranslateCompatibleRegisteredModelIds,
-  getTranslateComparePreset,
-  getTranslateComparePresetNote,
+  getTranslateCompareLayout,
+  getTranslateCompareLayoutNote,
   getTranslateCompareModelLabel,
   resolveCompareModelSizeBytes,
   resolveTransformersModelIdForLane,

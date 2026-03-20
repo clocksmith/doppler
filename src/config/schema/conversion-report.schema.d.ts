@@ -1,5 +1,4 @@
 export interface ConversionReportResultSchema {
-  presetId: string | null;
   modelType: string | null;
   outputDir: string | null;
   shardCount: number | null;
@@ -11,7 +10,6 @@ export interface ConversionReportManifestSchema {
   quantization: string | null;
   quantizationInfo: Record<string, unknown> | null;
   inference: {
-    presetId: string | null;
     schema: string | null;
     defaultKernelPath: string | null;
   } | null;

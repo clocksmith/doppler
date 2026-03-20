@@ -168,6 +168,21 @@ function printConvertReportSummary(result) {
   console.log(`[report] ${reportInfo.path}`);
 }
 
+function inferFamilyFromModelId(modelId) {
+  const normalized = typeof modelId === 'string' ? modelId.trim().toLowerCase() : '';
+  if (!normalized) return 'unknown';
+  if (normalized.startsWith('google-embeddinggemma-') || normalized.startsWith('embeddinggemma-')) return 'embeddinggemma';
+  if (normalized.startsWith('translategemma-')) return 'translategemma';
+  if (normalized.startsWith('gemma-4-')) return 'gemma4';
+  if (normalized.startsWith('gemma-3-')) return 'gemma3';
+  if (normalized.startsWith('qwen-3-')) return 'qwen3';
+  if (normalized.startsWith('lfm2')) return 'lfm2';
+  if (normalized.startsWith('gpt-oss-')) return 'gpt_oss';
+  if (normalized.startsWith('janus-')) return 'janus_text';
+  if (normalized.startsWith('sana-')) return 'sana';
+  return 'unknown';
+}
+
 async function readJsonFile(filePath) {
   if (!filePath) return null;
   const raw = await fs.readFile(filePath, 'utf8');
@@ -211,8 +226,9 @@ async function main() {
   );
 
   const result = response.result;
+  const modelId = result.manifest?.modelId ?? 'unknown';
   console.log(
-    `[done] modelId=${result.manifest?.modelId ?? 'unknown'} preset=${result.presetId} modelType=${result.modelType} shards=${result.shardCount} tensors=${result.tensorCount}`
+    `[done] modelId=${modelId} family=${inferFamilyFromModelId(modelId)} modelType=${result.modelType} shards=${result.shardCount} tensors=${result.tensorCount}`
   );
   printConvertContractSummary(result);
   printConvertReportSummary(result);

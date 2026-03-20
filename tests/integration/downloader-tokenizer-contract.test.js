@@ -39,7 +39,6 @@ function createManifest(hashAlgorithm = 'sha256') {
     },
     inference: {
       ...clone(DEFAULT_MANIFEST_INFERENCE),
-      presetId: 'gemma3',
     },
     eos_token_id: 1,
     tokenizer: {

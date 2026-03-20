@@ -633,11 +633,11 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig)
 
 
 export async function initTokenizer(manifest, options = {}) {
-  const { baseUrl, presetTokenizer, storageContext } = options;
+  const { baseUrl, tokenizerHints, storageContext } = options;
   const tokenizer = new Tokenizer();
   await tokenizer.initialize(manifest, {
     baseUrl,
-    presetTokenizer,
+    tokenizerHints,
     loadTokenizerJson: typeof storageContext?.loadTokenizerJson === 'function'
       ? () => storageContext.loadTokenizerJson()
       : null,

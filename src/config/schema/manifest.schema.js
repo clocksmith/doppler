@@ -38,7 +38,6 @@ export const DEFAULT_HIGH_PRECISION_EPS = 1e-6;
 
 export const DEFAULT_MANIFEST_INFERENCE = {
   schema: null,
-  presetId: null,
   attention: {
     queryPreAttnScalar: 64, // headDim for standard 64-dim heads; attnScale = 1/sqrt(scalar)
     attnLogitSoftcapping: null,  // No softcapping (null = disabled)

@@ -25,8 +25,8 @@ docs so the `0.1.x` line has one conventional npm-visible history surface.
 
 ### Fixed
 
-- Fixed Qwen 3.5 conversion configs using wrong model preset (`qwen3` instead
-  of `qwen3_5`), which caused support matrix check failures.
+- Fixed Qwen 3.5 conversion configs using the wrong family identifier (`qwen3`
+  instead of `qwen3_5`), which caused support matrix check failures.
 - Fixed Qwen mRoPE conflation: `ropeInterleaved` was incorrectly set from
   `mropeInterleaved`, forcing adjacent-pair RoPE rotation on Qwen models.
 - Fixed catalog lifecycle metadata inconsistencies: corrected `local`, `hf`,
@@ -84,7 +84,7 @@ docs so the `0.1.x` line has one conventional npm-visible history surface.
 - Preserved explicit `null` semantics for `runtime.inference.kernelPath` through
   schema, runtime config, and harness paths.
 - Fixed CI drift around onboarding, registry verification aliases, release
-  matrix metadata, and kernel-path preset naming.
+  matrix metadata, and kernel-path config naming.
 
 ## [0.1.5] - 2026-03-06
 
@@ -153,6 +153,6 @@ docs so the `0.1.x` line has one conventional npm-visible history surface.
 
 - Initial npm package release for Doppler.
 - Browser and Node command surfaces, CLI entrypoint, loader/storage pipeline,
-  RDRR manifest handling, config schemas/presets, WebGPU kernel registry, text
+  RDRR manifest handling, config schemas/assets, WebGPU kernel registry, text
   inference pipeline, conversion tooling, benchmark tooling, tests, and demo
   infrastructure.

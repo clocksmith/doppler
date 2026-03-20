@@ -709,10 +709,10 @@ export function resolveAndActivateKernelPath(options) {
   return state;
 }
 
-export async function initTokenizerFromManifestPreset(manifest, baseUrl, storageContext = null) {
+export async function initTokenizerFromManifest(manifest, baseUrl, storageContext = null) {
   return initTokenizer(manifest, {
     baseUrl: baseUrl ?? undefined,
-    presetTokenizer: null,
+    tokenizerHints: null,
     storageContext: storageContext ?? undefined,
   });
 }

@@ -28,7 +28,7 @@ jobs:
     timeout-minutes: 45
     env:
       DOPPLER_SMOKE_MODEL_ID: google-embeddinggemma-300m-q4k-ehf16-af32
-      DOPPLER_SMOKE_RUNTIME_PRESET: kernels/embeddinggemma-q4k-dequant-f32a
+      DOPPLER_SMOKE_RUNTIME_PROFILE: kernels/embeddinggemma-q4k-dequant-f32a
       DOPPLER_SMOKE_EXPECT_MODE: embedding
       DOPPLER_SMOKE_EXPECTED_EMBEDDING_DIM: '768'
       DOPPLER_SMOKE_EXPECTED_SEMANTIC_STYLE: embeddinggemma
@@ -77,7 +77,7 @@ jobs:
           --cache-root "${{ steps.model.outputs.cache_root }}"
           --profile-dir "${{ steps.model.outputs.profile_dir }}"
           --expect-mode "${DOPPLER_SMOKE_EXPECT_MODE}"
-          --runtime-preset "${DOPPLER_SMOKE_RUNTIME_PRESET}"
+          --runtime-profile "${DOPPLER_SMOKE_RUNTIME_PROFILE}"
           --expected-embedding-dim "${DOPPLER_SMOKE_EXPECTED_EMBEDDING_DIM}"
           --expected-semantic-style "${DOPPLER_SMOKE_EXPECTED_SEMANTIC_STYLE}"
           --allow-capability-skip

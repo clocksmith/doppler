@@ -46,7 +46,7 @@ Public, but advanced. Prefer the root facade unless you need direct pipeline con
 
 - `loadWeights(...)`
 - `initTokenizer(...)`
-- `initTokenizerFromManifestPreset(...)`
+- `initTokenizerFromManifest(...)`
 - `isStopToken(...)`
 
 ### Pipeline classes and advanced types
@@ -71,11 +71,11 @@ console.log(text);
 import {
   createPipeline,
   parseModelConfigFromManifest,
-  initTokenizerFromManifestPreset,
+  initTokenizerFromManifest,
 } from '@simulatte/doppler/generation';
 
 const parsed = parseModelConfigFromManifest(manifest);
-const tokenizer = await initTokenizerFromManifestPreset(manifest, parsed);
+const tokenizer = await initTokenizerFromManifest(manifest, parsed);
 const pipeline = await createPipeline(manifest, { tokenizer });
 ```
 

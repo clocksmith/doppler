@@ -298,8 +298,6 @@ export interface ManifestChatTemplateSchema {
 export interface ManifestInferenceSchema {
   /** Execution contract discriminator (null = legacy inference contract). */
   schema: string | null;
-  /** Preset ID used during conversion (for config-first resolution) */
-  presetId?: string | null;
   /** Attention configuration */
   attention: ManifestAttentionSchema;
   /** Normalization configuration */

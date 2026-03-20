@@ -169,6 +169,23 @@ try {
 }
 if (!threw) throw new Error('Should throw on bad digest');
 
+// === Validation: bad inlineKernelPath ===
+threw = false;
+try {
+  expandExecutionV1({
+    kernels: makeKernels(),
+    inlineKernelPath: 'no',
+    preLayer: [],
+    decode: [['q_proj', 'gemv', 'layer.{L}.self_attn.q_proj']],
+    prefill: [],
+    postLayer: [],
+    policies: { ...DEFAULT_EXECUTION_V1_POLICIES },
+  });
+} catch {
+  threw = true;
+}
+if (!threw) throw new Error('Should throw on non-boolean inlineKernelPath');
+
 // === compileExecutionV1 ===
 const compiled = compileExecutionV1({
   manifestInference: {
@@ -204,8 +221,34 @@ if (!compiled.runtimeInferencePatch.kvcache?.kvDtype) {
   throw new Error('Expected kvcache.kvDtype in patch');
 }
 
+const compiledWithoutInlineKernelPath = compileExecutionV1({
+  manifestInference: {
+    schema: EXECUTION_V1_SCHEMA_ID,
+    execution: {
+      ...graph,
+      inlineKernelPath: false,
+    },
+    sessionDefaults: {
+      compute: {
+        defaults: { activationDtype: 'f32', mathDtype: 'f32', accumDtype: 'f32', outputDtype: 'f32' },
+      },
+      kvcache: { kvDtype: 'f16' },
+      decodeLoop: null,
+    },
+  },
+  modelId: 'test-model-no-inline-kernel-path',
+  numLayers: 26,
+});
+
+if (compiledWithoutInlineKernelPath.runtimeInferencePatch.kernelPath) {
+  throw new Error('inlineKernelPath=false should suppress inline kernelPath generation');
+}
+if (compiledWithoutInlineKernelPath.runtimeInferencePatch.kernelPathSource) {
+  throw new Error('inlineKernelPath=false should not stamp kernelPathSource');
+}
+
 // === Real config file ===
-const realConfig = JSON.parse(readFileSync('tools/configs/conversion/gemma3/gemma-3-1b-it-q4k-ehf16-af32.json', 'utf8'));
+const realConfig = JSON.parse(readFileSync('src/config/conversion/gemma3/gemma-3-1b-it-q4k-ehf16-af32.json', 'utf8'));
 const realExpanded = expandExecutionV1(realConfig.execution);
 if (realExpanded.length !== 35) throw new Error(`Real config: expected 35 steps, got ${realExpanded.length}`);
 

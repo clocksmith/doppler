@@ -56,7 +56,7 @@ Add by task/skill:
 - Normative rules still live in `AGENTS.md`, `docs/style/*.md`, `docs/config.md`, `docs/conversion-runtime-contract.md`, and other core contract docs.
 
 When the task is additive or extension-oriented, open `docs/developer-guides/README.md` and the matching guide before editing. This applies to work such as:
-- adding or changing runtime profiles, model presets, conversion configs, or kernel-path presets
+- adding or changing runtime profiles, conversion configs, or kernel-path registries
 - adding manifest/runtime fields, chat template formatters, sampling knobs, activations, or kernels
 - adding commands, attention variants, quantization formats, or KV-cache layouts
 - onboarding a new model family or pipeline family
@@ -75,8 +75,9 @@ doppler/
 │   ├── adapters/         # External integration adapters
 │   ├── bridge/           # Browser/Node bridge layer
 │   ├── browser/          # Browser-specific entry points
+│   ├── cli/              # Public CLI entry point and policy
 │   ├── client/           # Client API surface
-│   ├── config/           # Runtime/model schemas + presets
+│   ├── config/           # Schemas and checked-in config registries
 │   ├── converter/        # SafeTensors/GGUF → RDRR conversion
 │   ├── debug/            # Logging and tracing
 │   ├── diffusion/        # Image diffusion pipeline surface
@@ -97,9 +98,9 @@ doppler/
 │   ├── types/            # Shared type definitions
 │   └── utils/            # General utilities
 ├── benchmarks/           # Vendor benchmark registry + harnesses
-├── models/               # Local model artifacts
+├── models/               # Catalog metadata and external model pointers
 ├── skills/               # Agent skill definitions
-├── tools/                # CLI entry points and scripts
+├── tools/                # Repo scripts and operational helpers
 ├── tests/                # Browser harnesses + kernel tests
 ├── demo/                 # Browser UI
 └── docs/                 # Documentation
@@ -117,7 +118,7 @@ doppler/
 
 - Browser entry: `runBrowserCommand()` via `src/tooling/browser-command-runner.js`
 - Node entry: `runNodeCommand()` via `src/tooling/node-command-runner.js`
-- CLI entrypoint: `tools/doppler-cli.js`
+- CLI entrypoint: `src/cli/doppler-cli.js`
 
 Rules:
 - New commands must be added to `src/tooling/command-api.js`.
@@ -130,25 +131,27 @@ Commands have workload/intent rules defined in `src/rules/tooling/command-runtim
 
 | Command   | Workload          | Intent        | Example |
 |-----------|-------------------|---------------|---------|
-| `bench`   | caller choice     | `calibrate`   | `node tools/doppler-cli.js bench --config '{"request":{"workload":"inference","modelId":"gemma3-270m"}}' --json` |
-| `debug`   | caller choice     | `investigate` | `node tools/doppler-cli.js debug --config '{"request":{"workload":"inference","modelId":"gemma3-270m"}}' --json` |
-| `verify`  | caller choice     | `verify`      | `node tools/doppler-cli.js verify --config '{"request":{"workload":"inference","modelId":"gemma3-270m"}}' --json` |
-| `convert` | n/a               | —             | `node tools/doppler-cli.js convert --config <path.json>` |
-| `lora`    | n/a               | —             | `node tools/doppler-cli.js lora --config <path.json>` |
-| `distill` | n/a               | —             | `node tools/doppler-cli.js distill --config <path.json>` |
+| `bench`   | caller choice     | `calibrate`   | `node src/cli/doppler-cli.js bench --config '{"request":{"workload":"inference","modelId":"gemma3-270m"}}' --json` |
+| `debug`   | caller choice     | `investigate` | `node src/cli/doppler-cli.js debug --config '{"request":{"workload":"inference","modelId":"gemma3-270m"}}' --json` |
+| `verify`  | caller choice     | `verify`      | `node src/cli/doppler-cli.js verify --config '{"request":{"workload":"inference","modelId":"gemma3-270m"}}' --json` |
+| `convert` | n/a               | —             | `node src/cli/doppler-cli.js convert --config <path.json>` |
+| `lora`    | n/a               | —             | `node src/cli/doppler-cli.js lora --config <path.json>` |
+| `distill` | n/a               | —             | `node src/cli/doppler-cli.js distill --config <path.json>` |
 
 - `bench` and `debug` reject any workload outside their supported workload set.
 - `verify` accepts the documented workloads for the target command path.
-- The CLI auto-resolves models from the external RDRR root (`/Volumes/models/rdrr` on macOS, `/media/x/models/rdrr` on Linux) by `modelId`. No `modelUrl` needed for local artifacts.
+- The CLI auto-resolves models from the external RDRR root (`/Volumes/models/rdrr` on macOS, `/media/x/models/rdrr` on Linux) by `modelId`. No `modelUrl` needed when models are in the external root.
+- To point at a model outside the external root, set `request.modelUrl` to a `file://` path:
+  `--config '{"request":{"workload":"inference","modelId":"gemma3-1b","modelUrl":"file:///home/user/rdrr/gemma-3-1b-it-q4k-ehf16-af32"}}'`
+- `modelUrl` is a **request-level** field — do not nest it under `runtime` or `runtime.shared.io`.
 - Use `--surface node` to force Node/WebGPU, `--surface browser` to force headless Chromium, or omit for `auto`.
 
 ### Config System
 
 Use runtime profiles/config payloads, not ad-hoc per-field flags.
 
-- Runtime profiles: `src/config/presets/runtime/profiles/`
-- Conversion configs: `tools/configs/conversion/` (v1 format with inline execution graph)
-- Model presets: `src/config/presets/models/` (fallback config for manifest-first resolution)
+- Runtime profiles: `src/config/runtime/profiles/`
+- Conversion configs: `src/config/conversion/` (v1 format with inline execution graph)
 - Read tunables via `getRuntimeConfig()`; avoid hardcoded defaults in runtime paths.
 - `runtime.shared.tooling.intent` is required for harnessed debug/bench/test flows.
 
@@ -193,7 +196,7 @@ When a model loads but produces incoherent output, follow a fail-closed debug la
 Do not skip ahead to architecture theories or benchmark tweaks.
 
 0. Check manifest-config parity first
-- Read the manifest on disk and the conversion config in `tools/configs/conversion/`.
+- Read the manifest on disk and the conversion config in `src/config/conversion/`.
 - If any inference field disagrees (dtype, kernel, sessionDefaults, layerPattern), the manifest is stale — re-refresh it, do not patch runtime code.
 - The conversion config is the source of truth. The manifest is a stamped artifact.
 
@@ -249,7 +252,7 @@ Reusable report template: `docs/debug-investigation-template.md`
 When a conversion is intended for reuse, registry inclusion, or Hugging Face publication:
 
 1. Keep the conversion reproducible
-- If the model was converted with an ad hoc or temporary config and the local run succeeds, promote that config into `tools/configs/conversion/` before treating the workflow as reusable.
+- If the model was converted with an ad hoc or temporary config and the local run succeeds, promote that config into `src/config/conversion/` before treating the workflow as reusable.
 
 2. Prove the model produces coherent output
 - Do not stop at manifest/shard validation or load success.

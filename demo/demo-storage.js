@@ -101,7 +101,7 @@ function readDeepLinkStateFromLocation() {
       targetCode: DEFAULT_TRANSLATE_TARGET,
       text: null,
       compareEnabled: false,
-      comparePresetId: 'proof',
+      compareLayoutId: 'proof',
       lanes: null,
     };
   }
@@ -117,7 +117,7 @@ function readDeepLinkStateFromLocation() {
   const modeRaw = readDeepLinkValue(hashParams, queryParams, ['mode', 'm']);
   const surfaceRaw = readDeepLinkValue(hashParams, queryParams, ['surface', 's']);
   const compareRaw = readDeepLinkValue(hashParams, queryParams, ['compare', 'cv']);
-  const comparePresetRaw = readDeepLinkValue(hashParams, queryParams, ['compare_preset', 'cp']);
+  const compareLayoutRaw = readDeepLinkValue(hashParams, queryParams, ['compare_layout', 'cp']);
   const leftEngineRaw = readDeepLinkValue(hashParams, queryParams, ['left_engine', 'le']);
   const rightEngineRaw = readDeepLinkValue(hashParams, queryParams, ['right_engine', 're']);
   const leftModelRaw = readDeepLinkValue(hashParams, queryParams, ['left_model', 'lm']);
@@ -157,7 +157,7 @@ function readDeepLinkStateFromLocation() {
     targetCode,
     text: textRaw == null ? null : decodeDeepLinkText(textRaw),
     compareEnabled: compareRaw === '1' || compareRaw === 'true' || compareRaw === 'compare',
-    comparePresetId: resolveText(comparePresetRaw, 'proof'),
+    compareLayoutId: resolveText(compareLayoutRaw, 'proof'),
     lanes: {
       left: {
         engine: resolveText(leftEngineRaw, ''),
@@ -195,7 +195,7 @@ function applyDeepLinkStateToUI(deepLinkState) {
   }
   ensureTranslateCompareRuntimeState();
   state.compareEnabled = deepLinkState?.compareEnabled === true;
-  state.comparePresetId = resolveText(deepLinkState?.comparePresetId, state.comparePresetId || 'proof');
+  state.compareLayoutId = resolveText(deepLinkState?.compareLayoutId, state.compareLayoutId || 'proof');
   for (const laneId of getCompareLaneIds()) {
     const laneState = deepLinkState?.lanes?.[laneId] || {};
     const lane = getCompareLane(laneId);
@@ -240,7 +240,7 @@ function buildDeepLinkHash(modeOverride = null, taskOverride = null) {
     }
     if (state.compareEnabled) {
       params.set('compare', '1');
-      params.set('compare_preset', state.comparePresetId || 'proof');
+      params.set('compare_layout', state.compareLayoutId || 'proof');
       for (const laneId of getCompareLaneIds()) {
         const lane = getCompareLane(laneId);
         if (!lane) continue;
@@ -880,8 +880,8 @@ function getDiagnosticsRequiredQuickMode() {
   if (suite === 'kernels') return null;
   if (suite === 'diffusion') return 'diffusion';
   if (suite === 'energy') return 'energy';
-  const preset = String(selectedProfile?.preset || selection.preset || '').toLowerCase();
-  if (preset.includes('embedding')) return 'embedding';
+  const runtimeProfile = String(selectedProfile?.runtimeProfile || selection.runtimeProfile || '').toLowerCase();
+  if (runtimeProfile.includes('embedding')) return 'embedding';
   return 'run';
 }
 

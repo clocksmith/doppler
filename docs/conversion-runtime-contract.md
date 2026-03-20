@@ -24,7 +24,7 @@ re-conversion or can be changed per-run.
 
 | Field | Contract owner | Persisted in manifest | Runtime-overridable | Re-convert required to change |
 | --- | --- | --- | --- | --- |
-| `presets.model` | Conversion | Indirect (`inference.presetId` + inferred fields) | No | Yes |
+| explicit conversion config fields | Conversion | Direct (`inference.*` authored in config) | No | Yes |
 | `quantization.weights` | Conversion | Yes (`quantization`, tensor dtypes/layout) | No | Yes |
 | `quantization.embeddings` | Conversion | Yes | No | Yes |
 | `quantization.lmHead` | Conversion | Yes | No | Yes |

@@ -67,7 +67,6 @@ function buildManifestFingerprint(manifest) {
       layout: quantizationInfo.layout ?? null,
     },
     inference: {
-      presetId: inference.presetId ?? null,
       defaultKernelPath: inference.defaultKernelPath ?? null,
       layerPattern: {
         type: layerPattern.type ?? null,

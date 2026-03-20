@@ -17,14 +17,10 @@ export interface ResolveConversionPlanOptions {
   architectureConfig?: { headDim?: number | null } | null;
   headDim?: number | null;
   headDimErrorMessage?: string | null;
-  presetOverride?: string | null;
-  includePresetOverrideHint?: boolean;
 }
 
 export interface ConversionPlanResult {
   modelType: string;
-  presetId: string;
-  preset: Record<string, unknown> | null;
   sourceQuantization: string;
   quantizationInfo: Record<string, unknown>;
   manifestQuantization: string;
@@ -33,7 +29,6 @@ export interface ConversionPlanResult {
 }
 
 export interface ValidateKernelPathContext {
-  presetId?: string | null;
   quantizationInfo?: {
     weights?: string | null;
     compute?: string | null;

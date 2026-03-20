@@ -11,7 +11,7 @@ flowchart TD
   end
 
   subgraph Dispatch["2) Surface Dispatch"]
-    C["tools/doppler-cli.js\n--config + --surface routing"]
+    C["src/cli/doppler-cli.js\n--config + --surface routing"]
     D["src/tooling/node-command-runner.js"]
     E["src/tooling/node-browser-command-runner.js"]
     F["src/tooling/browser-command-runner.js"]
@@ -46,14 +46,14 @@ flowchart TD
   end
 ```
 
-`tools/doppler-cli.js` executes `convert` through the Node path. The browser branch applies
+`src/cli/doppler-cli.js` executes `convert` through the Node path. The browser branch applies
 to direct `runBrowserCommand()` usage where `options.convertHandler` is injected by the caller.
 
 ## Boundary map
 
 | # | Boundary | Input | Implementation | Output |
 | --- | --- | --- | --- | --- |
-| 1 | Command normalization | raw CLI/web call | `tools/doppler-cli.js`, `src/tooling/command-api.js` | canonical request + intent |
+| 1 | Command normalization | raw CLI/web call | `src/cli/doppler-cli.js`, `src/tooling/command-api.js` | canonical request + intent |
 | 2 | Surface dispatch | request + mode | node/browser runners | surface-specific execution |
 | 3 | Conversion path | source path + conversion config | Node: `src/tooling/node-converter.js`; Browser: injected `options.convertHandler` (typically wraps `src/browser/browser-converter.js`) | RDRR artifacts |
 | 4 | Artifact resolution | `modelId`/`modelUrl` | storage tooling | manifest URI + shard source |
@@ -66,7 +66,7 @@ to direct `runBrowserCommand()` usage where `options.convertHandler` is injected
 
 ## Plane interpretation
 
-- JSON plane: contract and policy (`manifest`, presets, rule assets)
+- JSON plane: contract and policy (`manifest`, config assets, rule assets)
 - JS plane: orchestration and validation
 - WGSL plane: deterministic arithmetic only
 

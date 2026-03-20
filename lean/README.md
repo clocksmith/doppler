@@ -129,8 +129,8 @@ Conversion-config-backed sweep:
 
 ```bash
 node tools/lean-execution-contract-config-sweep.js \
-  --config-root tools/configs/conversion \
-  --fixture-map tools/configs/conversion/lean-execution-contract-fixtures.json \
+  --config-root src/config/conversion \
+  --fixture-map tests/fixtures/lean-execution-contract-fixtures.json \
   --manifest-root models
 ```
 
@@ -155,7 +155,7 @@ The sweep runner:
 The conversion-config-backed sweep:
 - walks conversion config JSON files
 - matches them to existing converted manifest fixtures by `output.modelBaseId`
-- applies explicit fixture overrides from `tools/configs/conversion/lean-execution-contract-fixtures.json`
+- applies explicit fixture overrides from `tests/fixtures/lean-execution-contract-fixtures.json`
 - honors explicit exclusions from the same fixture map so uncovered template/out-of-scope configs are intentional instead of accidental
 - re-materializes resolved `manifest.inference` through Doppler's real conversion-plan code
 - runs the same Lean execution-contract check on that materialized manifest
@@ -169,7 +169,7 @@ The aggregate contract runner:
 Strict CI usage:
 - `npm run ci:lean:execution-contract:configs` now requires every conversion config to be either:
   - matched to a committed fixture manifest, or
-  - explicitly excluded in `tools/configs/conversion/lean-execution-contract-fixtures.json`
+  - explicitly excluded in `tests/fixtures/lean-execution-contract-fixtures.json`
 - `npm run ci:contracts:check` applies the same strict coverage rule when Lean sweeps are enabled
 
 The same execution-contract class is now also enforced in JS manifest validation:

@@ -197,6 +197,52 @@ function mergeMetadata(manifest, conversionConfigPath) {
   return metadata;
 }
 
+function resolveTokenizerBehaviorField(tokenizerConfig, ...keys) {
+  if (!tokenizerConfig || typeof tokenizerConfig !== 'object' || Array.isArray(tokenizerConfig)) {
+    return null;
+  }
+  for (const key of keys) {
+    if (tokenizerConfig[key] != null) {
+      return tokenizerConfig[key];
+    }
+  }
+  return null;
+}
+
+export async function resolveBundledTokenizerRefreshPatch(modelDir, manifest) {
+  const tokenizer = manifest?.tokenizer;
+  if (!tokenizer || tokenizer.type !== 'bundled') {
+    return null;
+  }
+
+  const tokenizerFile = toSafeString(tokenizer.file) || 'tokenizer.json';
+  const tokenizerPath = path.join(modelDir, tokenizerFile);
+  let tokenizerJsonRaw;
+  try {
+    tokenizerJsonRaw = await fs.readFile(tokenizerPath, 'utf8');
+  } catch (error) {
+    throw new Error(`Failed to read bundled tokenizer (${tokenizerFile}): ${error.message}`);
+  }
+
+  let tokenizerJson;
+  try {
+    tokenizerJson = JSON.parse(tokenizerJsonRaw);
+  } catch (error) {
+    throw new Error(`Invalid JSON in bundled tokenizer (${tokenizerFile}): ${error.message}`);
+  }
+
+  const patch = {};
+  const addBosToken = resolveTokenizerBehaviorField(tokenizerJson, 'add_bos_token', 'addBosToken');
+  const addEosToken = resolveTokenizerBehaviorField(tokenizerJson, 'add_eos_token', 'addEosToken');
+  if (addBosToken != null) {
+    patch.addBosToken = addBosToken;
+  }
+  if (addEosToken != null) {
+    patch.addEosToken = addEosToken;
+  }
+  return Object.keys(patch).length > 0 ? patch : null;
+}
+
 function buildRefreshRawConfig(manifest) {
   const baseConfig = (manifest?.config && typeof manifest.config === 'object')
     ? { ...manifest.config }
@@ -235,7 +281,7 @@ function assertRefreshManifestContract(manifest, rawConfig) {
     if (!modelType) {
       fail(
         'Manifest refresh requires explicit config.model_type for non-diffusion models. ' +
-        'The refresh tool will not infer model_type from presetId.'
+        'The refresh tool will not infer model_type from removed family metadata.'
       );
     }
   }
@@ -273,7 +319,6 @@ async function main() {
     architectureHint: resolveArchitectureHint(manifest.architecture),
     architectureConfig: architecture,
     headDim: resolveHeadDim(architecture),
-    presetOverride: converterConfig?.presets?.model || manifest?.inference?.presetId || null,
   });
 
   if (!args.skipShardCheck) {
@@ -294,6 +339,13 @@ async function main() {
     inference: plan.manifestInference || manifest.inference,
     metadata: mergeMetadata(manifest, conversionConfigPath),
   };
+  const tokenizerPatch = await resolveBundledTokenizerRefreshPatch(modelDir, manifest);
+  if (tokenizerPatch) {
+    refreshed.tokenizer = {
+      ...(manifest.tokenizer ?? {}),
+      ...tokenizerPatch,
+    };
+  }
 
   // Validate and normalize before writing to avoid writing partial/invalid files.
   const validated = parseManifest(JSON.stringify(refreshed));
@@ -302,13 +354,12 @@ async function main() {
     console.log('[refresh-manifest] dry-run successful');
     console.log(`  modelId: ${validated.modelId}`);
     console.log(`  quantization: ${validated.quantization}`);
-    console.log(`  preset: ${validated.inference?.presetId ?? 'unknown'}`);
     return;
   }
 
   await fs.writeFile(manifestPath, JSON.stringify(validated, null, 2), 'utf8');
   console.log(`[refresh-manifest] wrote ${manifestPath}`);
-  console.log(`[refresh-manifest] modelId=${validated.modelId} preset=${validated.inference?.presetId ?? 'unknown'} quantization=${validated.quantization}`);
+  console.log(`[refresh-manifest] modelId=${validated.modelId} quantization=${validated.quantization}`);
 }
 
 export {

@@ -501,7 +501,7 @@ export async function loadTrainingWorkloadPack(input, options = {}) {
   const absolutePath = looksLikePath
     ? resolve(normalizedInput)
     : await readRegistryEntryById(
-      options.registryPath || 'tools/configs/training-workloads/registry.json',
+      options.registryPath || 'src/training/workload-packs/registry.json',
       normalizedInput
     );
   const raw = await readFile(absolutePath, 'utf8');

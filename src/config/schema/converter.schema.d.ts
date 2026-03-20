@@ -78,10 +78,6 @@ export interface GGUFParserDefaultsSchema {
   ropeFreqBase: number;
 }
 
-export interface ConverterPresetConfigSchema {
-  model: string | null;
-}
-
 /** Node convert command execution defaults (worker scheduling policy) */
 export interface ConverterExecutionConfigSchema {
   workers: number;
@@ -102,7 +98,6 @@ export interface ConverterConfigSchema {
   manifest: ConverterManifestConfigSchema;
   inference: ConverterInferenceConfigSchema;
   output: ConverterOutputConfigSchema;
-  presets: ConverterPresetConfigSchema;
 }
 
 export declare const DEFAULT_CONVERTER_QUANTIZATION_CONFIG: ConverterQuantizationConfigSchema;
@@ -113,7 +108,6 @@ export declare const DEFAULT_CONVERTER_WEIGHT_LAYOUT_CONFIG: ConverterWeightLayo
 export declare const DEFAULT_CONVERTER_MANIFEST_CONFIG: ConverterManifestConfigSchema;
 export declare const DEFAULT_CONVERTER_INFERENCE_CONFIG: ConverterInferenceConfigSchema;
 export declare const DEFAULT_CONVERTER_OUTPUT_CONFIG: ConverterOutputConfigSchema;
-export declare const DEFAULT_CONVERTER_PRESET_CONFIG: ConverterPresetConfigSchema;
 export declare const DEFAULT_GGUF_PARSER_DEFAULTS: GGUFParserDefaultsSchema;
 export declare const DEFAULT_CONVERTER_EXECUTION_CONFIG: ConverterExecutionConfigSchema;
 export declare const DEFAULT_CONVERTER_CONFIG: ConverterConfigSchema;

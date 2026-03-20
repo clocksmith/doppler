@@ -40,5 +40,5 @@ export {
   decodeReadback,
   getLogitsHealth,
   getBufferStats,
-  DEBUG_PRESETS,
+  DEBUG_PROFILES,
 } from './utils.js';

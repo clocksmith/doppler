@@ -120,7 +120,7 @@ const DEFAULT_BENCHMARK_POLICY = Object.freeze({
   ]),
   decodeProfiles: Object.freeze({
     default: 'parity',
-    presets: Object.freeze({
+    profiles: Object.freeze({
       parity: Object.freeze({
         batchSize: 1,
         readbackInterval: 1,
@@ -183,39 +183,39 @@ function normalizeDecodeProfiles(raw) {
   if (!defaultId) {
     throw new Error('decodeProfiles.default must be a non-empty string');
   }
-  const presetsRaw = raw.presets;
-  if (!presetsRaw || typeof presetsRaw !== 'object' || Array.isArray(presetsRaw)) {
-    throw new Error('decodeProfiles.presets must be an object');
+  const profilesRaw = raw.profiles;
+  if (!profilesRaw || typeof profilesRaw !== 'object' || Array.isArray(profilesRaw)) {
+    throw new Error('decodeProfiles.profiles must be an object');
   }
-  const presets = {};
-  for (const [profileId, profileValue] of Object.entries(presetsRaw)) {
+  const profiles = {};
+  for (const [profileId, profileValue] of Object.entries(profilesRaw)) {
     if (typeof profileId !== 'string' || profileId.trim() === '') {
-      throw new Error('decodeProfiles.presets contains an invalid profile id');
+      throw new Error('decodeProfiles.profiles contains an invalid profile id');
     }
     if (!profileValue || typeof profileValue !== 'object' || Array.isArray(profileValue)) {
-      throw new Error(`decodeProfiles.presets.${profileId} must be an object`);
+      throw new Error(`decodeProfiles.profiles.${profileId} must be an object`);
     }
-    presets[profileId] = Object.freeze({
-      batchSize: normalizePositiveInteger(profileValue.batchSize, `decodeProfiles.presets.${profileId}.batchSize`),
+    profiles[profileId] = Object.freeze({
+      batchSize: normalizePositiveInteger(profileValue.batchSize, `decodeProfiles.profiles.${profileId}.batchSize`),
       readbackInterval: normalizePositiveInteger(
         profileValue.readbackInterval,
-        `decodeProfiles.presets.${profileId}.readbackInterval`
+        `decodeProfiles.profiles.${profileId}.readbackInterval`
       ),
       stopCheckMode: normalizeStopCheckMode(
         profileValue.stopCheckMode ?? 'per-token',
-        `decodeProfiles.presets.${profileId}.stopCheckMode`
+        `decodeProfiles.profiles.${profileId}.stopCheckMode`
       ),
       label: typeof profileValue.label === 'string' && profileValue.label.trim()
         ? profileValue.label.trim()
         : `${profileId} decode profile`,
     });
   }
-  if (!Object.prototype.hasOwnProperty.call(presets, defaultId)) {
-    throw new Error(`decodeProfiles.default "${defaultId}" is not defined in decodeProfiles.presets`);
+  if (!Object.prototype.hasOwnProperty.call(profiles, defaultId)) {
+    throw new Error(`decodeProfiles.default "${defaultId}" is not defined in decodeProfiles.profiles`);
   }
   return {
     default: defaultId,
-    presets: Object.freeze(presets),
+    profiles: Object.freeze(profiles),
   };
 }
 
@@ -321,7 +321,7 @@ const DEFAULT_COMPARE_METRIC_CONTRACT_PATH = COMPARE_METRIC_CONTRACT_PATH;
 const schemaCache = new Map();
 const REQUIRED_CANONICAL_TIMING_FIELDS = BENCHMARK_POLICY.requiredTimingFields;
 const REQUIRED_COMPARE_METRIC_IDS = BENCHMARK_POLICY.requiredCompareMetricIds;
-const DECODE_PROFILE_PRESETS = BENCHMARK_POLICY.decodeProfiles.presets;
+const DECODE_PROFILE_CONFIGS = BENCHMARK_POLICY.decodeProfiles.profiles;
 const DOPPLER_SURFACES = Object.freeze(['auto', 'node', 'browser']);
 const DOPPLER_FORMATS = Object.freeze(['rdrr', 'safetensors']);
 const TJS_FORMATS = Object.freeze(['onnx', 'safetensors']);
@@ -349,12 +349,12 @@ function resolveFormatSourcePath(modelIndex, format, sourceId) {
   return path.join(volumeRoot, relative);
 }
 const VALID_DECODE_PROFILES = Object.freeze([
-  ...Object.keys(DECODE_PROFILE_PRESETS),
+  ...Object.keys(DECODE_PROFILE_CONFIGS),
   'custom',
 ]);
-const DEFAULT_DOPPLER_BATCH_SIZE = DECODE_PROFILE_PRESETS[DEFAULT_DECODE_PROFILE].batchSize;
-const DEFAULT_DOPPLER_READBACK_INTERVAL = DECODE_PROFILE_PRESETS[DEFAULT_DECODE_PROFILE].readbackInterval;
-const DEFAULT_DOPPLER_STOP_CHECK_MODE = DECODE_PROFILE_PRESETS[DEFAULT_DECODE_PROFILE].stopCheckMode;
+const DEFAULT_DOPPLER_BATCH_SIZE = DECODE_PROFILE_CONFIGS[DEFAULT_DECODE_PROFILE].batchSize;
+const DEFAULT_DOPPLER_READBACK_INTERVAL = DECODE_PROFILE_CONFIGS[DEFAULT_DECODE_PROFILE].readbackInterval;
+const DEFAULT_DOPPLER_STOP_CHECK_MODE = DECODE_PROFILE_CONFIGS[DEFAULT_DECODE_PROFILE].stopCheckMode;
 const PROTECTED_RUNTIME_CONFIG_PREFIXES = Object.freeze([
   {
     prefix: 'shared.benchmark',
@@ -1378,7 +1378,7 @@ async function runDoppler(modelId, modelUrl, sharedContract, cacheMode, options 
   const runOnce = async () => {
     const cliConfig = buildCliConfig();
     const args = [
-      path.join(DOPPLER_ROOT, 'tools', 'doppler-cli.js'),
+      path.join(DOPPLER_ROOT, 'src', 'cli', 'doppler-cli.js'),
       'bench',
       '--config',
       JSON.stringify(cliConfig),
@@ -1928,19 +1928,19 @@ async function main() {
       'Use --decode-profile custom when setting --doppler-batch-size or --doppler-readback-interval.'
     );
   }
-  const decodeProfilePreset = DECODE_PROFILE_PRESETS[decodeProfile] || DECODE_PROFILE_PRESETS[DEFAULT_DECODE_PROFILE];
+  const decodeProfileConfig = DECODE_PROFILE_CONFIGS[decodeProfile] || DECODE_PROFILE_CONFIGS[DEFAULT_DECODE_PROFILE];
     const dopplerKernelPathOverride = flags['doppler-kernel-path'] ?? DEFAULT_DOPPLER_KERNEL_PATH;
     const dopplerKernelResolution = resolveDopplerKernelPath(compareProfile, dopplerKernelPathOverride);
     const dopplerKernelPath = dopplerKernelResolution.kernelPath;
     assertKernelPathAllowedForModel(dopplerModelId, dopplerKernelPath);
     const dopplerBatchSize = parsePositiveInt(
       flags['doppler-batch-size'],
-      decodeProfilePreset.batchSize,
+      decodeProfileConfig.batchSize,
     '--doppler-batch-size'
   );
   const dopplerReadbackInterval = parsePositiveInt(
     flags['doppler-readback-interval'],
-    decodeProfilePreset.readbackInterval,
+    decodeProfileConfig.readbackInterval,
     '--doppler-readback-interval'
   );
   const dopplerTokensPerReadback = dopplerBatchSize * dopplerReadbackInterval;
@@ -2117,7 +2117,7 @@ async function main() {
       dopplerDecodeCadence: {
         batchSize: dopplerBatchSize,
         readbackInterval: dopplerReadbackInterval,
-        stopCheckMode: DECODE_PROFILE_PRESETS[decodeProfile]?.stopCheckMode ?? DEFAULT_DOPPLER_STOP_CHECK_MODE,
+        stopCheckMode: DECODE_PROFILE_CONFIGS[decodeProfile]?.stopCheckMode ?? DEFAULT_DOPPLER_STOP_CHECK_MODE,
         tokensPerReadback: dopplerTokensPerReadback,
       },
       transformersjsDecodeCadence: {
@@ -2167,8 +2167,8 @@ async function main() {
       'warm',
       {
         kernelPath: dopplerKernelPath,
-        batchSize: DECODE_PROFILE_PRESETS.parity.batchSize,
-        readbackInterval: DECODE_PROFILE_PRESETS.parity.readbackInterval,
+        batchSize: DECODE_PROFILE_CONFIGS.parity.batchSize,
+        readbackInterval: DECODE_PROFILE_CONFIGS.parity.readbackInterval,
         noOpfsCache: dopplerNoOpfsCache,
         browserUserData: dopplerBrowserUserData,
         browserPort: dopplerBrowserPort,
@@ -2204,8 +2204,8 @@ async function main() {
       'warm',
       {
         kernelPath: dopplerKernelPath,
-        batchSize: DECODE_PROFILE_PRESETS.throughput.batchSize,
-        readbackInterval: DECODE_PROFILE_PRESETS.throughput.readbackInterval,
+        batchSize: DECODE_PROFILE_CONFIGS.throughput.batchSize,
+        readbackInterval: DECODE_PROFILE_CONFIGS.throughput.readbackInterval,
         noOpfsCache: dopplerNoOpfsCache,
         browserUserData: dopplerBrowserUserData,
         browserPort: dopplerBrowserPort,
@@ -2355,7 +2355,7 @@ async function main() {
   if (jsonOutput) {
     console.log(JSON.stringify(report, null, 2));
   } else {
-    const decodeProfileLabel = decodeProfilePreset?.label || 'custom decode cadence';
+    const decodeProfileLabel = decodeProfileConfig?.label || 'custom decode cadence';
     console.log(
       `[method] prompt tok/s uses prompt_tokens / firstTokenMs, decodeProfile=${decodeProfile} ` +
       `(${decodeProfileLabel}), Doppler tokens/readback=${dopplerTokensPerReadback}`

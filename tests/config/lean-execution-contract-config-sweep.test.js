@@ -78,7 +78,6 @@ try {
       ropeTheta: 1000000,
     },
     inference: {
-      presetId: 'gemma3',
       layerPattern: {
         type: 'every_n',
         period: 6,
@@ -139,7 +138,6 @@ try {
       ropeTheta: 1000000,
     },
     inference: {
-      presetId: 'gemma3',
       layerPattern: {
         type: 'every_n',
         period: 6,
@@ -200,7 +198,6 @@ try {
       ropeTheta: 1000000,
     },
     inference: {
-      presetId: 'embeddinggemma',
       layerPattern: {
         type: 'every_n',
         period: 6,

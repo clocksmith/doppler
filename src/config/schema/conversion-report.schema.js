@@ -37,7 +37,6 @@ export const DEFAULT_CONVERSION_REPORT = Object.freeze({
   timestamp: '1970-01-01T00:00:00.000Z',
   source: 'doppler',
   result: {
-    presetId: null,
     modelType: null,
     outputDir: null,
     shardCount: null,
@@ -48,7 +47,6 @@ export const DEFAULT_CONVERSION_REPORT = Object.freeze({
     quantization: null,
     quantizationInfo: null,
     inference: {
-      presetId: null,
       schema: null,
       defaultKernelPath: null,
     },
@@ -77,7 +75,6 @@ export function validateConversionReport(report) {
   assertString(report.modelId, 'modelId');
   assertString(report.timestamp, 'timestamp');
   assertPlainObject(report.result, 'result');
-  assertNullableString(report.result.presetId, 'result.presetId');
   assertNullableString(report.result.modelType, 'result.modelType');
   assertNullableString(report.result.outputDir, 'result.outputDir');
   assertNullableFiniteNumber(report.result.shardCount, 'result.shardCount');
@@ -90,7 +87,6 @@ export function validateConversionReport(report) {
     assertNullablePlainObject(report.manifest.quantizationInfo, 'manifest.quantizationInfo');
     assertNullablePlainObject(report.manifest.inference, 'manifest.inference');
     if (report.manifest.inference) {
-      assertNullableString(report.manifest.inference.presetId, 'manifest.inference.presetId');
       assertNullableString(report.manifest.inference.schema, 'manifest.inference.schema');
       assertNullableString(
         report.manifest.inference.defaultKernelPath,

@@ -122,11 +122,8 @@ CLI notes:
 - `TOOLING_SURFACES`
 - `TOOLING_WORKLOADS`
 
-### Config and preset helpers
+### Config helpers
 
-- `listPresets(...)`
-- `detectPreset(...)`
-- `resolvePreset(...)`
 - `getRuntimeConfig()`
 - `setRuntimeConfig(...)`
 
@@ -182,7 +179,7 @@ import { normalizeToolingCommandRequest, runNodeCommand } from '@simulatte/doppl
 const request = normalizeToolingCommandRequest({
   command: 'distill',
   action: 'subsets',
-  workloadPath: 'tools/configs/training-workloads/distill-translategemma-tiny.json',
+  workloadPath: 'src/training/workload-packs/distill-translategemma-tiny.json',
 });
 
 const result = await runNodeCommand(request);

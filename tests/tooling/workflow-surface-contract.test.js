@@ -11,7 +11,7 @@ for (const requiredPath of [
   "'tools/run-node-test-file.js'",
   "'tools/run-node-coverage.js'",
   "'tools/node-test-runtime-setup.js'",
-  "'tools/doppler-cli.js'",
+  "'src/cli/doppler-cli.js'",
   "'package.json'",
 ]) {
   assert.match(kernelTests, new RegExp(requiredPath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));

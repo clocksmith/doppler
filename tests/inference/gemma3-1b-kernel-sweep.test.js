@@ -4,7 +4,7 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const KERNEL_PATHS_DIR = resolve(__dirname, '../../src/config/presets/kernel-paths');
+const KERNEL_PATHS_DIR = resolve(__dirname, '../../src/config/kernel-paths');
 const REGISTRY_FILE = resolve(KERNEL_PATHS_DIR, 'registry.json');
 
 function loadKernelPath(id) {

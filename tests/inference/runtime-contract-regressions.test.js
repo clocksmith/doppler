@@ -175,7 +175,6 @@ try {
           'layers.0.feed_forward.w1.weight': { shape: [12, 4] },
         },
         inference: {
-          presetId: 'lfm2',
           attention: {
             queryPreAttnScalar: 4,
             queryKeyNorm: false,

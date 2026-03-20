@@ -25,26 +25,26 @@ npm run training:report-ids:publish -- --out ./reports/training/report-ids/lates
 ### First-class operator commands
 
 ```bash
-node tools/doppler-cli.js distill --config '{"request":{"action":"subsets","workloadPath":"tools/configs/training-workloads/distill-translategemma-tiny.json"}}'
+node src/cli/doppler-cli.js distill --config '{"request":{"action":"subsets","workloadPath":"src/training/workload-packs/distill-translategemma-tiny.json"}}'
 
-node tools/doppler-cli.js distill --config '{"request":{"action":"run","workloadPath":"tools/configs/training-workloads/distill-translategemma-tiny.json"}}'
+node src/cli/doppler-cli.js distill --config '{"request":{"action":"run","workloadPath":"src/training/workload-packs/distill-translategemma-tiny.json"}}'
 
-node tools/doppler-cli.js distill --config '{"request":{"action":"watch","runRoot":"reports/training/distill/distill-translategemma-tiny/2026-03-07T00-00-00.000Z","stopWhenIdle":true}}'
+node src/cli/doppler-cli.js distill --config '{"request":{"action":"watch","runRoot":"reports/training/distill/distill-translategemma-tiny/2026-03-07T00-00-00.000Z","stopWhenIdle":true}}'
 
-node tools/doppler-cli.js lora --config '{"request":{"action":"run","workloadPath":"tools/configs/training-workloads/lora-toy-tiny.json"}}'
+node src/cli/doppler-cli.js lora --config '{"request":{"action":"run","workloadPath":"src/training/workload-packs/lora-toy-tiny.json"}}'
 
-node tools/doppler-cli.js lora --config '{"request":{"action":"export","runRoot":"reports/training/lora/lora-toy-tiny/2026-03-07T00-00-00.000Z"}}'
+node src/cli/doppler-cli.js lora --config '{"request":{"action":"export","runRoot":"reports/training/lora/lora-toy-tiny/2026-03-07T00-00-00.000Z"}}'
 ```
 
-`tools/distillation.js` and `tools/lora.js` are thin wrappers over `tools/doppler-cli.js`.
+`tools/distillation.js` and `tools/lora.js` are thin wrappers over `src/cli/doppler-cli.js`.
 The canonical request contract lives in `src/tooling/command-api.js`.
 
 ### Legacy harness lanes
 
 ```bash
-node tools/doppler-cli.js verify --config '{"request":{"workload":"training","modelId":"gemma-3-270m-it-q4k-ehf16-af32"}}' --json
+node src/cli/doppler-cli.js verify --config '{"request":{"workload":"training","modelId":"gemma-3-270m-it-q4k-ehf16-af32"}}' --json
 
-node tools/doppler-cli.js bench --config '{"request":{"workload":"training","modelId":"gemma-3-270m-it-q4k-ehf16-af32","workloadType":"training","trainingSchemaVersion":1}}' --json
+node src/cli/doppler-cli.js bench --config '{"request":{"workload":"training","modelId":"gemma-3-270m-it-q4k-ehf16-af32","workloadType":"training","trainingSchemaVersion":1}}' --json
 ```
 
 Use these lanes for contract verification, calibration, and legacy training harness coverage.
@@ -105,8 +105,8 @@ New operator behavior must be documented under the `distill` surface, not under 
 ## Workload Packs
 
 Canonical workload packs live under:
-- `tools/configs/training-workloads/lora-*.json`
-- `tools/configs/training-workloads/distill-*.json`
+- `src/training/workload-packs/lora-*.json`
+- `src/training/workload-packs/distill-*.json`
 
 Each pack is the source of truth for:
 - `schemaVersion`, `kind`, `id`, `description`, `claimBoundary`, `seed`

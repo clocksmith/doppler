@@ -321,7 +321,7 @@ async function runInferenceSuite(options = {}) {
     );
   }
   const cacheMode = normalizeCacheMode(options.cacheMode);
-  const loadMode = normalizeLoadMode(options.loadMode, !options.modelUrl);
+  const loadMode = normalizeLoadMode(options.loadMode, !!options.modelUrl, options.modelUrl);
   const safeModelLoadMs = toTimingNumber(harness.modelLoadMs, 0);
 
   let results;
@@ -523,7 +523,7 @@ async function runBenchSuite(options = {}) {
   const warmupRuns = defaultBenchRun.warmupRuns;
   const timedRuns = defaultBenchRun.timedRuns;
   const cacheMode = normalizeCacheMode(options.cacheMode);
-  const loadMode = normalizeLoadMode(options.loadMode, !options.modelUrl);
+  const loadMode = normalizeLoadMode(options.loadMode, !!options.modelUrl, options.modelUrl);
   const workloadType = normalizeWorkloadType(
     options.workloadType
     ?? (

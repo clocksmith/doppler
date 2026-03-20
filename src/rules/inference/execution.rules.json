@@ -32,7 +32,7 @@
   "modelBatchingDefaults": [
     {
       "match": {
-        "presetId": { "in": ["lfm2"] }
+        "modelId": { "contains": "lfm2" }
       },
       "value": {
         "batchSize": 8,

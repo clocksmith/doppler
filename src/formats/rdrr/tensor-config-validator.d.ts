@@ -22,7 +22,7 @@ export interface TensorConfigValidationResult {
  *
  * Checks that config flags (like `postFeedforwardNorm`) match the actual
  * tensors present in the model. Prevents silent failures from misconfigured
- * presets.
+ * config assets.
  *
  * @param manifest - The RDRR manifest to validate
  * @returns Validation result with errors and warnings

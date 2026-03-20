@@ -51,7 +51,7 @@ export function resolveAndActivateKernelPath(
   options: KernelPathResolutionOptions
 ): KernelPathResolutionResult;
 
-export function initTokenizerFromManifestPreset(
+export function initTokenizerFromManifest(
   manifest: Manifest,
   baseUrl?: string | null,
   storageContext?: PipelineStorageContext | null

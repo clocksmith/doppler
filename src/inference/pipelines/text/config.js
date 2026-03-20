@@ -126,8 +126,8 @@ function resolveIntermediateSizeForRuntime(manifest, inf, arch, modelId) {
   if (typeof fromArch !== 'number' || !Number.isFinite(fromArch) || fromArch <= 0) {
     return fromArch;
   }
-  const presetId = String(manifest?.inference?.presetId ?? inf?.presetId ?? '').toLowerCase();
-  if (presetId !== 'lfm2') {
+  const normalizedModelId = String(modelId ?? manifest?.modelId ?? '').toLowerCase();
+  if (!normalizedModelId.includes('lfm2')) {
     return fromArch;
   }
   const inferred = inferLfm2IntermediateSizeFromManifest(manifest);
@@ -494,7 +494,7 @@ export function toParsedConfigFromMerged(merged, manifest) {
     layerTypes = parseCustomLayerTypes(config.layer_types, arch.numLayers, merged.modelId);
   }
 
-  // Compute queryPreAttnScalar from manifest inference (NOT from preset detection)
+  // Compute queryPreAttnScalar from manifest inference (NOT from family detection)
   // Manifest-first: queryPreAttnScalar is required in ManifestAttentionSchema
   const headDim = arch.headDim;
   const queryPreAttnScalar = inf.attention.queryPreAttnScalar;
@@ -722,7 +722,7 @@ export function parseModelConfig(manifest, runtimeOverrides) {
     throw new Error(
       `Manifest "${modelId}" is missing inference config. ` +
       `Re-convert the model using the latest converter to add manifest.inference. ` +
-      `Legacy preset-based resolution has been removed.`
+      `Legacy family-registry resolution has been removed.`
     );
   }
 

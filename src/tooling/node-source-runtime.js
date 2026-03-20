@@ -549,7 +549,6 @@ export async function resolveNodeSourceRuntimeBundle(options = {}) {
     modelKind: 'transformer',
     architectureHint: parsed.architectureHint,
     architectureConfig: parsed.architecture,
-    includePresetOverrideHint: true,
   });
 
   const modelId = resolveModelIdHint(

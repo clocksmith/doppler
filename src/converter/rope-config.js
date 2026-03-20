@@ -140,7 +140,7 @@ function failOnConflictingScaling(sourceLabel, canonicalScaling, candidateScalin
   );
 }
 
-export function buildRoPEConfig(presetInference, config) {
+export function buildRoPEConfig(converterInference, config) {
   const ropeScaling = asObject(config.rope_scaling);
   const ropeParameters = asObject(config.rope_parameters);
   const flatRoPEParameters = (
@@ -152,19 +152,19 @@ export function buildRoPEConfig(presetInference, config) {
     : null;
   const fullAttentionRoPE = asObject(ropeParameters?.full_attention);
   const slidingAttentionRoPE = asObject(ropeParameters?.sliding_attention);
-  const presetRoPE = presetInference.rope ?? {};
-  const presetAttn = presetInference.attention;
+  const configuredRoPE = converterInference.rope ?? {};
+  const configuredAttention = converterInference.attention;
 
   let globalScaling = {
-    ropeScalingType: presetRoPE.ropeScalingType
-      ?? presetAttn?.ropeScalingType  // Deprecated location
+    ropeScalingType: configuredRoPE.ropeScalingType
+      ?? configuredAttention?.ropeScalingType  // Deprecated location
       ?? null,
-    ropeScalingFactor: presetRoPE.ropeScalingFactor
-      ?? presetAttn?.ropeScalingFactor  // Deprecated location
+    ropeScalingFactor: configuredRoPE.ropeScalingFactor
+      ?? configuredAttention?.ropeScalingFactor  // Deprecated location
       ?? DEFAULT_MANIFEST_INFERENCE.rope.ropeScalingFactor,
-    yarnBetaFast: presetRoPE.yarnBetaFast ?? null,
-    yarnBetaSlow: presetRoPE.yarnBetaSlow ?? null,
-    yarnOriginalMaxPos: presetRoPE.yarnOriginalMaxPos ?? null,
+    yarnBetaFast: configuredRoPE.yarnBetaFast ?? null,
+    yarnBetaSlow: configuredRoPE.yarnBetaSlow ?? null,
+    yarnOriginalMaxPos: configuredRoPE.yarnOriginalMaxPos ?? null,
   };
 
   if (ropeScaling) {
@@ -196,18 +196,18 @@ export function buildRoPEConfig(presetInference, config) {
     });
   }
 
-  const hasPresetLocalScaling = presetRoPE.ropeLocalScalingType !== undefined
-    || presetRoPE.ropeLocalScalingFactor !== undefined
-    || presetRoPE.ropeLocalYarnBetaFast !== undefined
-    || presetRoPE.ropeLocalYarnBetaSlow !== undefined
-    || presetRoPE.ropeLocalYarnOriginalMaxPos !== undefined;
-  let localScaling = hasPresetLocalScaling
+  const hasConfiguredLocalScaling = configuredRoPE.ropeLocalScalingType !== undefined
+    || configuredRoPE.ropeLocalScalingFactor !== undefined
+    || configuredRoPE.ropeLocalYarnBetaFast !== undefined
+    || configuredRoPE.ropeLocalYarnBetaSlow !== undefined
+    || configuredRoPE.ropeLocalYarnOriginalMaxPos !== undefined;
+  let localScaling = hasConfiguredLocalScaling
     ? {
-        ropeScalingType: presetRoPE.ropeLocalScalingType ?? globalScaling.ropeScalingType,
-        ropeScalingFactor: presetRoPE.ropeLocalScalingFactor ?? globalScaling.ropeScalingFactor,
-        yarnBetaFast: presetRoPE.ropeLocalYarnBetaFast ?? globalScaling.yarnBetaFast,
-        yarnBetaSlow: presetRoPE.ropeLocalYarnBetaSlow ?? globalScaling.yarnBetaSlow,
-        yarnOriginalMaxPos: presetRoPE.ropeLocalYarnOriginalMaxPos ?? globalScaling.yarnOriginalMaxPos,
+        ropeScalingType: configuredRoPE.ropeLocalScalingType ?? globalScaling.ropeScalingType,
+        ropeScalingFactor: configuredRoPE.ropeLocalScalingFactor ?? globalScaling.ropeScalingFactor,
+        yarnBetaFast: configuredRoPE.ropeLocalYarnBetaFast ?? globalScaling.yarnBetaFast,
+        yarnBetaSlow: configuredRoPE.ropeLocalYarnBetaSlow ?? globalScaling.yarnBetaSlow,
+        yarnOriginalMaxPos: configuredRoPE.ropeLocalYarnOriginalMaxPos ?? globalScaling.yarnOriginalMaxPos,
       }
     : { ...globalScaling };
   if (ropeScaling) {
@@ -224,22 +224,22 @@ export function buildRoPEConfig(presetInference, config) {
   const ropeTheta = asFiniteNumber(fullAttentionRoPE?.rope_theta)
     ?? asFiniteNumber(flatRoPEParameters?.rope_theta)
     ?? asFiniteNumber(config.rope_theta)
-    ?? presetInference.rope?.ropeTheta
+    ?? converterInference.rope?.ropeTheta
     ?? DEFAULT_MANIFEST_INFERENCE.rope.ropeTheta;
 
   // For Gemma 3, local sliding attention theta comes from rope_parameters.sliding_attention.
   const ropeLocalTheta = asFiniteNumber(slidingAttentionRoPE?.rope_theta)
-    ?? presetInference.rope?.ropeLocalTheta
+    ?? converterInference.rope?.ropeLocalTheta
     ?? null;
 
   const mropeInterleaved = asBoolean(flatRoPEParameters?.mrope_interleaved)
-    ?? presetInference.rope?.mropeInterleaved
+    ?? converterInference.rope?.mropeInterleaved
     ?? DEFAULT_MANIFEST_INFERENCE.rope.mropeInterleaved;
   const mropeSection = asNumberArray(flatRoPEParameters?.mrope_section)
-    ?? presetInference.rope?.mropeSection
+    ?? converterInference.rope?.mropeSection
     ?? null;
   const partialRotaryFactor = asFiniteNumber(flatRoPEParameters?.partial_rotary_factor)
-    ?? asFiniteNumber(presetInference.rope?.partialRotaryFactor)
+    ?? asFiniteNumber(converterInference.rope?.partialRotaryFactor)
     ?? null;
 
   return {

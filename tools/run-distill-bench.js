@@ -259,13 +259,13 @@ function usage() {
 }
 
 export async function loadWorkloadConfig(workloadArg) {
-  const presets = {
+  const workloadAliases = {
     tiny: 'distill-translategemma-tiny',
     medium: 'distill-translategemma-medium',
   };
-  const candidate = presets[workloadArg] || workloadArg;
+  const candidate = workloadAliases[workloadArg] || workloadArg;
   const loaded = await loadTrainingWorkloadPack(candidate, {
-    registryPath: 'tools/configs/training-workloads/registry.json',
+    registryPath: 'src/training/workload-packs/registry.json',
   });
   if (loaded.workload.kind !== 'distill') {
     throw new Error(`Expected distill workload, got "${loaded.workload.kind}" from ${loaded.path}`);
@@ -278,7 +278,7 @@ export async function loadWorkloadConfig(workloadArg) {
 
 async function runCli(args) {
   return new Promise((resolvePromise, rejectPromise) => {
-    const proc = spawn('node', ['tools/doppler-cli.js', ...args], {
+    const proc = spawn('node', ['src/cli/doppler-cli.js', ...args], {
       stdio: ['ignore', 'pipe', 'pipe'],
       cwd: process.cwd(),
       env: process.env,

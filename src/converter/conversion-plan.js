@@ -107,7 +107,7 @@ function validateV1InferenceFields(inference, modelId) {
     if (!inference?.[field] || typeof inference[field] !== 'object') {
       throw new Error(
         `Config for "${modelId}" is missing required inference.${field}. ` +
-        'V1 configs must provide all inference fields explicitly (no preset fallback).'
+        'V1 configs must provide all inference fields explicitly (no implicit fallback).'
       );
     }
   }
@@ -174,7 +174,7 @@ function resolveConversionPlanV1(options) {
 
   const modelType = converterConfig?.modelType ?? rawConfig?.model_type ?? 'transformer';
 
-  // Build manifest inference directly from config (no preset resolution)
+  // Build manifest inference directly from config (no external family resolution)
   const manifestInference = {
     schema: EXECUTION_V1_SCHEMA_ID,
     attention: inference.attention,
@@ -191,8 +191,6 @@ function resolveConversionPlanV1(options) {
 
   return {
     modelType,
-    presetId: null,
-    preset: null,
     sourceQuantization,
     quantizationInfo,
     manifestQuantization,
@@ -211,7 +209,7 @@ export function resolveConversionPlan(options) {
   if (converterConfig == null) {
     throw new Error(
       'resolveConversionPlan requires an explicit converterConfig. ' +
-      'Provide a conversion config JSON (see tools/configs/conversion/ for examples).'
+      'Provide a conversion config JSON (see src/config/conversion/ for examples).'
     );
   }
 
@@ -222,8 +220,8 @@ export function resolveConversionPlan(options) {
 
   throw new Error(
     'converterConfig must have an execution.kernels object (v1 format). ' +
-    'Legacy preset-based conversion (v0) is no longer supported. ' +
-    'Use a v1 conversion config — see tools/configs/conversion/ for examples.'
+    'Legacy conversion (v0) is no longer supported. ' +
+    'Use a v1 conversion config — see src/config/conversion/ for examples.'
   );
 }
 

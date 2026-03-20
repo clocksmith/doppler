@@ -51,7 +51,6 @@
   ],
   "embeddingSemanticStyle": [
     { "match": { "modelId": { "contains": "embeddinggemma" } }, "value": "embeddinggemma" },
-    { "match": { "presetId": { "in": ["embeddinggemma"] } }, "value": "embeddinggemma" },
     { "match": { "manifestModelType": { "contains": "embeddinggemma" } }, "value": "embeddinggemma" },
     { "match": {}, "value": "default" }
   ]

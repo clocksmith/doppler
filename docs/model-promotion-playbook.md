@@ -44,7 +44,7 @@ Rules:
 
 Before converting or promoting, settle the canonical model ID. The ID must agree across four places:
 
-1. `output.modelBaseId` in the conversion config (`tools/configs/conversion/<family>/<model>.json`)
+1. `output.modelBaseId` in the conversion config (`src/config/conversion/<family>/<model>.json`)
 2. External-volume artifact directory: `/media/x/models/rdrr/<canonical-id>/`
 3. `models/catalog.json` entry `modelId`
 4. HF path: `models/<canonical-id>` under `Clocksmith/rdrr`
@@ -58,7 +58,7 @@ Naming schemes differ between old artifacts (e.g. `wq4k-ef16-hf16` suffix) and c
 A model is promotion-ready only if all of the following are true:
 
 1. Source-of-truth checkpoint is identified on the external volume.
-2. Conversion config is reproducible and lives under `tools/configs/conversion/`.
+2. Conversion config is reproducible and lives under `src/config/conversion/`.
 3. Manifest contract is valid.
 4. Shard bytes match manifest hashes.
 5. A deterministic inference or embedding check passes on a real runtime surface.
@@ -95,7 +95,7 @@ Convert or repair into `/tmp` first.
 
 ```bash
 node tools/convert-safetensors-node.js "$SOURCE_DIR" \
-  --config tools/configs/conversion/<family>/<model>.json \
+  --config src/config/conversion/<family>/<model>.json \
   --output-dir /tmp/<model-id>-rebuild
 ```
 
@@ -114,7 +114,7 @@ test -f /tmp/<model-id>-rebuild/manifest.json
 ```
 
 ```bash
-node tools/doppler-cli.js debug \
+node src/cli/doppler-cli.js debug \
   --config '{"request":{"modelId":"<model-id>","modelUrl":"file:///tmp/<model-id>-rebuild","loadMode":"http","captureOutput":true},"run":{"surface":"node"}}' \
   --runtime-config '{"shared":{"tooling":{"intent":"investigate"}},"inference":{"prompt":"What color is the sky on a clear day? Answer in one word.","batching":{"maxTokens":4},"sampling":{"temperature":0,"topP":1,"topK":1,"repetitionPenalty":1,"greedyThreshold":0}}}' \
   --json
@@ -255,11 +255,11 @@ npm run support:matrix:sync
 
 ## Ghost Model Discipline
 
-A ghost model is a model ID referenced in presets, tests, or fixtures that has no corresponding local artifact. Ghost models produce misleading failures — debug runs complete with `ok: true` but emit garbage tokens because the manifest contract validation fails silently.
+A ghost model is a model ID referenced in config assets, tests, or fixtures that has no corresponding local artifact. Ghost models produce misleading failures — debug runs complete with `ok: true` but emit garbage tokens because the manifest contract validation fails silently.
 
 Before promoting a new model ID, search for in-tree references to the old or non-canonical ID:
 
-- `src/config/presets/runtime/` — verify presets
+- `src/config/runtime/` — verify profiles
 - `tests/` — regression and contract tests
 - `benchmarks/vendors/fixtures/` — compare-engine fixtures
 

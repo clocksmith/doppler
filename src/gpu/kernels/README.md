@@ -13,7 +13,7 @@ The repository currently ships over 100 WebGPU compute shaders for inference and
 
 Selected duplicate dtype variants are generated from canonical kernels:
 
-- Source of truth: `tools/configs/wgsl-variants.js`
+- Source of truth: `src/gpu/kernels/codegen/wgsl-variants.js`
 - Generator: `node tools/generate-wgsl.js`
 - Drift check: `node tools/generate-wgsl.js --check`
 

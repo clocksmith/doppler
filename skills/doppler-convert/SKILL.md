@@ -22,13 +22,13 @@ For additive or extension-oriented conversion work, also open:
 
 Then route to the matching playbook:
 - new checked-in conversion recipe: `docs/developer-guides/04-conversion-config.md`
-- model-preset or family onboarding needed before conversion works: `docs/developer-guides/03-model-preset.md` or `docs/developer-guides/composite-model-family.md`
+- model-family onboarding needed before conversion works: `docs/developer-guides/04-conversion-config.md` or `docs/developer-guides/composite-model-family.md`
 - publication or curated metadata work: `docs/developer-guides/05-promote-model-artifact.md`
 - new quantization/runtime artifact format: `docs/developer-guides/14-quantization-format.md`
 
 ## Execution Plane Contract
 
-- JSON is the conversion contract (presets, manifests, converter config).
+- JSON is the conversion contract (config assets, manifests, converter config).
 - JS is orchestration (parsing, conversion flow, validation, and artifact emission).
 - WGSL is not selected here; compute policy is resolved later at runtime by manifest + kernel-path rules.
 - Conversion must remain config-first and fail fast on unresolved kernel/policy requirements.
@@ -61,7 +61,7 @@ node tools/convert-safetensors-node.js INPUT_PATH --config ./converter-config.js
 
 Notes:
 - `INPUT_PATH` can be a Safetensors directory, diffusion directory, or `.gguf` file.
-- Unified CLI convert path is `tools/doppler-cli.js` -> `runNodeCommand()` -> `src/tooling/node-converter.js`.
+- Unified CLI convert path is `src/cli/doppler-cli.js` -> `runNodeCommand()` -> `src/tooling/node-converter.js`.
 - Browser surface is intentionally rejected for `convert`.
 
 ## Converter Config JSON (Optional)
@@ -105,7 +105,7 @@ npm run debug -- --config '{"request":{"modelId":"OUTPUT_ID","runtimeProfile":"p
 For publication candidates, the verification bar is higher:
 
 1. Promote successful ad hoc configs
-- If the conversion used a temporary or inline config and the model runs successfully, copy/promote that config into `tools/configs/conversion/` so the conversion is reproducible.
+- If the conversion used a temporary or inline config and the model runs successfully, copy/promote that config into `src/config/conversion/` so the conversion is reproducible.
 
 2. Run an actual coherence check
 - Use a deterministic prompt and deterministic sampling, not just a load-only run.
@@ -141,7 +141,7 @@ When conversion quality is in question, follow `AGENTS.md` triage protocol:
 
 ## Canonical Files
 
-- `tools/doppler-cli.js`
+- `src/cli/doppler-cli.js`
 - `tools/convert-safetensors-node.js`
 - `src/tooling/node-command-runner.js`
 - `src/tooling/node-converter.js`

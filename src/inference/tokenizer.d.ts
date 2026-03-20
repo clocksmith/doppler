@@ -16,8 +16,8 @@ import type { TokenizerConfig, ModelManifest, SpecialTokens } from './tokenizers
 export interface TokenizerInitOptions {
   /** Base URL for loading tokenizer files */
   baseUrl?: string;
-  /** Preset tokenizer config as fallback hints (manifest takes precedence) */
-  presetTokenizer?: {
+  /** Caller-supplied tokenizer hints as fallback fields (manifest takes precedence) */
+  tokenizerHints?: {
     bosToken?: string;
     eosTokens?: string[];
     padToken?: string;
@@ -42,7 +42,7 @@ export declare class Tokenizer {
 
   /**
    * Initialize from model manifest.
-   * Preset tokenizer provides fallback hints when manifest tokenizer is missing fields.
+   * Caller tokenizer hints provide fallback fields when manifest tokenizer is missing them.
    */
   initialize(manifest: ModelManifest, options?: TokenizerInitOptions): Promise<void>;
 

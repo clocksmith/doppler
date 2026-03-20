@@ -67,7 +67,7 @@ const manifest = createManifest(
     modelType: 'transformer',
     quantization: 'Q4K',
     hashAlgorithm: 'sha256',
-    inference: { ...DEFAULT_MANIFEST_INFERENCE, presetId: 'translategemma' },
+    inference: { ...DEFAULT_MANIFEST_INFERENCE, },
   }
 );
 

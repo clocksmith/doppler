@@ -635,7 +635,6 @@ function buildConvertReport(result, context) {
     timestamp: manifest?.metadata?.convertedAt ?? new Date().toISOString(),
     source: 'doppler',
     result: {
-      presetId: context.presetId ?? null,
       modelType: context.modelType ?? null,
       outputDir: context.outputDir ?? null,
       shardCount: result?.shardCount ?? null,
@@ -643,11 +642,10 @@ function buildConvertReport(result, context) {
       totalSize: result?.totalSize ?? null,
     },
     manifest: manifest
-      ? {
+        ? {
           quantization: manifest.quantization ?? null,
           quantizationInfo: manifest.quantizationInfo ?? null,
           inference: {
-            presetId: inference?.presetId ?? null,
             schema: inference?.schema ?? null,
             defaultKernelPath: inference?.defaultKernelPath ?? null,
           },
@@ -1132,13 +1130,11 @@ export async function convertSafetensorsDirectory(options) {
     modelKind,
     architectureHint,
     architectureConfig: architecture,
-    includePresetOverrideHint: modelKind === 'transformer',
   });
   const resolvedModelType = plan.modelType;
   const targetQuantization = plan.manifestQuantization;
   const quantizationInfo = plan.quantizationInfo;
   const inference = plan.manifestInference;
-  const presetId = plan.presetId;
   const explicitModelId = resolveConfiguredModelId(options?.modelId, converterConfig);
   if (!explicitModelId) {
     throw new Error(
@@ -1302,7 +1298,6 @@ export async function convertSafetensorsDirectory(options) {
   await io.writeManifest(result.manifest);
 
   const report = buildConvertReport(result, {
-    presetId,
     modelType: resolvedModelType,
     outputDir,
     modelId: result.manifest?.modelId ?? modelId,
@@ -1320,7 +1315,6 @@ export async function convertSafetensorsDirectory(options) {
     requiredInferenceFieldsArtifact: result.requiredInferenceFieldsArtifact ?? null,
     report,
     reportInfo,
-    presetId,
     modelType: resolvedModelType,
     outputDir,
   };

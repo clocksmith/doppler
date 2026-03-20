@@ -146,7 +146,7 @@ export interface KernelPathSchema {
 
 /**
  * Built-in kernel path identifiers.
- * These are the known preset IDs, but custom presets can also be registered.
+ * These are the known kernel-path IDs, but custom IDs can also be registered.
  */
 export type BuiltinKernelPathId =
   | 'gemma2-q4k-fused-f32a'   // Gemma 2 Q4K weights, fused matmul, F32 activations
@@ -169,8 +169,8 @@ export type BuiltinKernelPathId =
   | 'embeddinggemma-q4k-dequant-f32a'; // EmbeddingGemma Q4K dequant, F32 activations
 
 /**
- * Kernel path reference - preset ID (string) or inline path schema.
- * Accepts any string for custom preset IDs, not just built-in IDs.
+ * Kernel path reference - registered ID (string) or inline path schema.
+ * Accepts any string for custom IDs, not just built-in IDs.
  */
 export type KernelPathRef = string | KernelPathSchema;
 

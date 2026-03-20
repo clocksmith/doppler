@@ -13,7 +13,7 @@ function createRuntimeBridge(initialRuntime = {}, overlays = {}) {
     bridge: {
       async applyRuntimeProfile(runtimeProfile, options) {
         calls.push({ type: 'profile', runtimeProfile, options: options || {} });
-        runtime = mergeRuntime(runtime, overlays.presets?.[runtimeProfile] ?? null);
+        runtime = mergeRuntime(runtime, overlays.profiles?.[runtimeProfile] ?? null);
       },
       async applyRuntimeConfigFromUrl(runtimeConfigUrl, options) {
         calls.push({ type: 'config-url', runtimeConfigUrl, options: options || {} });
@@ -70,10 +70,10 @@ function mergeRuntime(base, patch) {
       batching: { maxTokens: 16, batchSize: 1 },
     },
   }, {
-    presets: {
+    profiles: {
       'profiles/verbose-trace': {
         inference: {
-          prompt: 'preset',
+          prompt: 'profile',
           batching: { maxTokens: 14, batchSize: 2 },
         },
       },

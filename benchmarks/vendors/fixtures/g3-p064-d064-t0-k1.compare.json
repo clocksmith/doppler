@@ -3,7 +3,7 @@
   "benchmarkPolicy": {
     "source": "benchmarks/vendors/benchmark-policy.json",
     "schemaVersion": 1,
-    "sourceSha256": "30019895ac1c035cbeb4a0a3d10e6b651723590b69c00f4739d291d07d276f24",
+    "sourceSha256": "7d702886d5c1da2f6b9baaef4a14095a6e11ac89da3366b0fdbbdf873c5f3436",
     "updated": "2026-03-08"
   },
   "mode": "compute",
@@ -166,7 +166,7 @@
   "harnesses": {
     "doppler": {
       "source": "benchmarks/vendors/harnesses/doppler.json",
-      "sourceSha256": "defcf19e1fda695b4af6b9e92790eea24b39544f611fe257b87097b50a6fce34",
+      "sourceSha256": "eb0baf78a49a70da8008200ee128d51b1554187659100abe425b9c822e8b8c1f",
       "requiredMetrics": [
         "decodeTokensPerSec",
         "promptTokensPerSecToFirstToken",

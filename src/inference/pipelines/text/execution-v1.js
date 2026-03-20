@@ -58,20 +58,23 @@ export function compileExecutionV1(options = {}) {
   const prefillSteps = resolvedSteps.filter((s) => s.phase === 'prefill' || s.phase === 'both');
   const decodeSteps = resolvedSteps.filter((s) => s.phase === 'decode' || s.phase === 'both');
 
+  const inlineKernelPathEnabled = execution.inlineKernelPath !== false;
   const finitenessFallback = typeof execution.finitenessFallbackKernelPathId === 'string'
     && execution.finitenessFallbackKernelPathId.length > 0
     ? execution.finitenessFallbackKernelPathId
     : null;
-  const kernelPath = buildInlineKernelPath(
-    resolvedSteps,
-    sessionDefaults,
-    modelId,
-    numLayers,
-    finitenessFallback
-  );
+  const kernelPath = inlineKernelPathEnabled
+    ? buildInlineKernelPath(
+      resolvedSteps,
+      sessionDefaults,
+      modelId,
+      numLayers,
+      finitenessFallback
+    )
+    : null;
 
   const layerPipelineResult = buildLayerPipelineFromExecution(resolvedSteps);
-  if (layerPipelineResult?.incompatibleOps && !kernelPath) {
+  if (layerPipelineResult?.incompatibleOps && !kernelPath && inlineKernelPathEnabled) {
     throw new Error(
       `[ExecutionV1] execution contains layer ops not compatible with the JS layer pipeline ` +
       `and no inline kernelPath was built. ` +

@@ -20,7 +20,6 @@ const baseManifest = {
   },
   inference: {
     ...DEFAULT_MANIFEST_INFERENCE,
-    presetId: 'lfm2',
   },
   eos_token_id: 7,
   tensors: {
@@ -61,11 +60,7 @@ const baseManifest = {
 {
   const nonLfm2 = {
     ...baseManifest,
-    modelId: 'non-lfm2-runtime-test',
-    inference: {
-      ...baseManifest.inference,
-      presetId: 'gemma3',
-    },
+    modelId: 'gemma-3-runtime-test',
   };
   const parsed = parseModelConfig(nonLfm2, {});
   assert.equal(parsed.intermediateSize, 12288);
@@ -75,10 +70,6 @@ const baseManifest = {
   const linearNormFromArchitecture = {
     ...baseManifest,
     modelId: 'linear-norm-mode-arch-test',
-    inference: {
-      ...baseManifest.inference,
-      presetId: 'gemma3',
-    },
     architecture: {
       ...baseManifest.architecture,
       linearNumKeyHeads: 16,
@@ -97,10 +88,6 @@ const baseManifest = {
   const linearNormFromConfig = {
     ...baseManifest,
     modelId: 'linear-norm-mode-config-test',
-    inference: {
-      ...baseManifest.inference,
-      presetId: 'gemma3',
-    },
     config: {
       model_type: 'qwen2',
       linear_norm_mode: 'shared',
@@ -114,10 +101,6 @@ const baseManifest = {
   const invalidLinearNormMode = {
     ...baseManifest,
     modelId: 'linear-norm-mode-invalid-test',
-    inference: {
-      ...baseManifest.inference,
-      presetId: 'gemma3',
-    },
     config: {
       model_type: 'qwen2',
       linear_norm_mode: 'bad-mode',

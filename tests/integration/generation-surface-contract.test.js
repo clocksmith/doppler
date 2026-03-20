@@ -9,7 +9,7 @@ import {
   loadWeights,
   initTokenizer,
   isStopToken,
-  initTokenizerFromManifestPreset,
+  initTokenizerFromManifest,
   StructuredJsonHeadPipeline,
   isStructuredJsonHeadModelType,
   createStructuredJsonHeadPipeline,
@@ -33,7 +33,7 @@ import { applyChatTemplate } from '../../src/inference/pipelines/text/init.js';
   assert.equal(typeof loadWeights, 'function', 'loadWeights must be a function');
   assert.equal(typeof initTokenizer, 'function', 'initTokenizer must be a function');
   assert.equal(typeof isStopToken, 'function', 'isStopToken must be a function');
-  assert.equal(typeof initTokenizerFromManifestPreset, 'function', 'initTokenizerFromManifestPreset must be a function');
+  assert.equal(typeof initTokenizerFromManifest, 'function', 'initTokenizerFromManifest must be a function');
   assert.equal(typeof StructuredJsonHeadPipeline, 'function', 'StructuredJsonHeadPipeline must be a class/constructor');
   assert.equal(typeof isStructuredJsonHeadModelType, 'function', 'isStructuredJsonHeadModelType must be a function');
   assert.equal(typeof createStructuredJsonHeadPipeline, 'function', 'createStructuredJsonHeadPipeline must be a function');

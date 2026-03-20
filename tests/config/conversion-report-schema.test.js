@@ -13,7 +13,6 @@ import {
     modelId: 'gemma3-test',
     timestamp: '2026-03-06T12:00:00.000Z',
     result: {
-      presetId: 'gemma3',
       modelType: 'transformer',
       outputDir: 'models/local/gemma3-test',
       shardCount: 1,

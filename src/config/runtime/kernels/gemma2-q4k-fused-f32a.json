@@ -1,7 +1,7 @@
 {
   "id": "kernels/gemma2-q4k-fused-f32a",
   "name": "gemma2-q4k-fused-f32a",
-  "description": "Explicit runtime override preset for the Gemma 2 fused Q4K F32 kernel path.",
+  "description": "Explicit runtime override profile for the Gemma 2 fused Q4K F32 kernel path.",
   "intent": "investigate",
   "stability": "canonical",
   "owner": "doppler-core",

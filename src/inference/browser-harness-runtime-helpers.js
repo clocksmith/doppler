@@ -80,12 +80,12 @@ function normalizeProfilePath(value) {
 
 function resolveProfileBaseUrl() {
   try {
-    return new URL('../config/presets/runtime/', import.meta.url).toString().replace(/\/$/, '');
+    return new URL('../config/runtime/', import.meta.url).toString().replace(/\/$/, '');
   } catch {
     if (typeof globalThis.location !== 'undefined' && globalThis.location?.href) {
-      return new URL('/src/config/presets/runtime/', globalThis.location.href).toString().replace(/\/$/, '');
+      return new URL('/src/config/runtime/', globalThis.location.href).toString().replace(/\/$/, '');
     }
-    return '/src/config/presets/runtime';
+    return '/src/config/runtime';
   }
 }
 
@@ -210,12 +210,12 @@ function resolveExtendCandidates(ref, context) {
     return [resolveAbsoluteUrl(normalized, context.sourceUrl)];
   }
   if (normalized.includes('/')) {
-    return [joinUrl(context.presetBaseUrl, normalized)];
+    return [joinUrl(context.profileBaseUrl, normalized)];
   }
   const candidates = [];
-  if (context.presetBaseUrl) {
-    candidates.push(joinUrl(context.presetBaseUrl, normalized));
-    candidates.push(joinUrl(context.presetBaseUrl, `profiles/${normalized}`));
+  if (context.profileBaseUrl) {
+    candidates.push(joinUrl(context.profileBaseUrl, normalized));
+    candidates.push(joinUrl(context.profileBaseUrl, `profiles/${normalized}`));
   }
   if (context.sourceUrl) {
     const sourceDir = resolveAbsoluteUrl('./', context.sourceUrl);
@@ -260,7 +260,7 @@ async function resolveRuntimeConfigExtends(config, context) {
 }
 
 async function loadRuntimeConfigChain(url, options = {}, stack = []) {
-  const presetBaseUrl = options.presetBaseUrl || options.baseUrl || resolveProfileBaseUrl();
+  const profileBaseUrl = options.profileBaseUrl || options.baseUrl || resolveProfileBaseUrl();
   const resolvedUrl = resolveAbsoluteUrl(url);
   if (stack.includes(resolvedUrl)) {
     throw new Error(`Runtime config extends cycle: ${[...stack, resolvedUrl].join(' -> ')}`);
@@ -269,7 +269,7 @@ async function loadRuntimeConfigChain(url, options = {}, stack = []) {
   return resolveRuntimeConfigExtends(config, {
     ...options,
     sourceUrl: resolvedUrl,
-    presetBaseUrl,
+    profileBaseUrl,
     stack: [...stack, resolvedUrl],
   });
 }
@@ -318,7 +318,7 @@ export async function loadRuntimeProfile(profileId, options = {}) {
     throw new Error('runtime profile id is required');
   }
   const url = `${baseUrl.replace(/\/$/, '')}/${normalized}`;
-  return loadRuntimeConfigFromUrl(url, { ...options, presetBaseUrl: baseUrl });
+  return loadRuntimeConfigFromUrl(url, { ...options, profileBaseUrl: baseUrl });
 }
 
 export async function applyRuntimeProfile(profileId, options = {}) {

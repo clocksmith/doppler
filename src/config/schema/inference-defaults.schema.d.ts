@@ -230,7 +230,7 @@ export interface InferenceDefaultsConfigSchema {
   /**
    * Kernel path for explicit kernel dispatch ordering.
    * Specifies exactly which kernels run, in what order, with what configs.
-   * Can be a preset ID (e.g., 'gemma2-q4k-fused-f32a') or inline KernelPathSchema.
+   * Can be a registered kernel-path ID (e.g., 'gemma2-q4k-fused-f32a') or inline KernelPathSchema.
    */
   kernelPath?: KernelPathRef;
   /**
@@ -246,7 +246,7 @@ export interface InferenceDefaultsConfigSchema {
   kernelPathPolicy?: KernelPathPolicySchema;
   /**
    * Chat template override for runtime config.
-   * When set, overrides the model preset's chatTemplate.enabled setting.
+   * When set, overrides the manifest chatTemplate.enabled setting.
    */
   chatTemplate?: ChatTemplateSchema;
   /**
@@ -272,5 +272,5 @@ export interface KernelPathPolicySchema {
 export declare const DEFAULT_INFERENCE_DEFAULTS_CONFIG: InferenceDefaultsConfigSchema;
 export declare const DEFAULT_KERNEL_PATH_POLICY: KernelPathPolicySchema;
 
-/** Default inference configuration for model presets */
-export declare const DEFAULT_PRESET_INFERENCE_CONFIG: InferenceConfigSchema;
+/** Default inference configuration for model-owned manifest fields */
+export declare const DEFAULT_MODEL_INFERENCE_DEFAULTS: InferenceConfigSchema;

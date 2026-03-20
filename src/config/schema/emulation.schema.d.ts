@@ -225,7 +225,7 @@ export interface EmulationConfigSchema {
   /** Timing simulation mode */
   timingMode: EmulationTimingMode;
 
-  /** GPU specification (populated from preset or custom) */
+  /** GPU specification (populated from a chip profile or custom overrides) */
   gpuSpec: EmulatedGPUSpec;
 
   /** CPU specification (for superchips with Grace CPU) */
@@ -346,6 +346,6 @@ export declare function createEmulationConfig(
 ): EmulationConfigSchema;
 
 /**
- * Get preset config for a specific chip type
+ * Get chip profile config for a specific chip type
  */
-export declare function getChipPreset(chipType: EmulatedChipType): Partial<EmulationConfigSchema>;
+export declare function getChipProfile(chipType: EmulatedChipType): Partial<EmulationConfigSchema>;

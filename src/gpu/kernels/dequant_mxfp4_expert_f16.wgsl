@@ -1,5 +1,5 @@
 // AUTO-GENERATED from src/gpu/kernels/dequant_mxfp4_expert.wgsl.
-// Edit the source kernel and tools/configs/wgsl-variants.js, then run `npm run kernels:generate`.
+// Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:generate`.
 // MXFP4 Dequantization Kernel (expert slice, f16 output)
 
 enable f16;

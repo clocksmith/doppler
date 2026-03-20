@@ -29,7 +29,7 @@ Common routes:
 
 ## Plane Contract (Review Invariant)
 
-- JSON rules + presets own kernel selection and feature toggles.
+- JSON rules + config assets own kernel selection and feature toggles.
 - JS wrappers own orchestration (validation, binding/pipeline setup, dispatch lifecycle).
 - WGSL owns deterministic arithmetic and memory transforms only.
 - A review must flag any ad-hoc, implicit behavior branching in JS or WGSL that bypasses rule assets/config resolution.

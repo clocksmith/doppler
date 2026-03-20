@@ -1,22 +1,22 @@
 async function handleDiagnosticsRun(mode) {
   const profileSelect = $('diagnostics-profile');
   const modelSelect = $('diagnostics-model');
-  const presetSelect = $('runtime-preset');
+  const runtimeProfileSelect = $('runtime-profile');
   const selections = state.diagnosticsSelections[state.uiMode] || {};
   const selectedProfileId = profileSelect?.value || selections.profile || '';
   const selectedProfile = decodeDiagnosticsProfileId(selectedProfileId);
   const workload = selectedProfile?.suite || selections.suite || getDiagnosticsDefaultSuite(state.uiMode);
   const modelId = modelSelect?.value || null;
-  const runtimeProfile = selectedProfile?.preset || selections.preset || presetSelect?.value || DEFAULT_RUNTIME_PRESET;
+  const runtimeProfile = selectedProfile?.runtimeProfile || selections.runtimeProfile || runtimeProfileSelect?.value || DEFAULT_RUNTIME_PROFILE;
   if (selectedProfile) {
     storeDiagnosticsSelection(state.uiMode, {
       profile: selectedProfileId,
       suite: selectedProfile.suite,
-      preset: selectedProfile.preset,
+      runtimeProfile: selectedProfile.runtimeProfile,
     });
   }
-  if (presetSelect && presetSelect.value !== runtimeProfile) {
-    presetSelect.value = runtimeProfile;
+  if (runtimeProfileSelect && runtimeProfileSelect.value !== runtimeProfile) {
+    runtimeProfileSelect.value = runtimeProfile;
   }
   if (profileSelect && selectedProfileId && profileSelect.value !== selectedProfileId) {
     profileSelect.value = selectedProfileId;
@@ -29,7 +29,7 @@ async function handleDiagnosticsRun(mode) {
   updateDiagnosticsReport('');
   clearDiagnosticsOutput();
   try {
-    if (!runtimeConfig || state.diagnosticsRuntimePresetId !== runtimeProfile) {
+    if (!runtimeConfig || state.diagnosticsRuntimeProfileId !== runtimeProfile) {
       runtimeConfig = await refreshDiagnosticsRuntimeConfig(runtimeProfile);
     }
     if (mode === 'verify') {

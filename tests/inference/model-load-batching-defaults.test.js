@@ -15,7 +15,7 @@ function createRuntimeConfig() {
   const manifest = {
     modelId: 'lfm2-default-batching-test',
     modelType: 'transformer',
-    inference: { presetId: 'lfm2' },
+    inference: {},
   };
 
   const nextRuntime = applyModelBatchingRuntimeDefaults(runtimeConfig, manifest, null);
@@ -29,7 +29,6 @@ function createRuntimeConfig() {
     modelId: 'lfm2-manifest-session-defaults-test',
     modelType: 'transformer',
     inference: {
-      presetId: 'lfm2',
       sessionDefaults: {
         decodeLoop: {
           batchSize: 16,
@@ -53,7 +52,6 @@ function createRuntimeConfig() {
     modelId: 'qwen3-manifest-disable-recorder-default-test',
     modelType: 'transformer',
     inference: {
-      presetId: 'qwen3',
       sessionDefaults: {
         decodeLoop: {
           batchSize: 4,
@@ -129,7 +127,7 @@ function createRuntimeConfig() {
   const manifest = {
     modelId: 'non-lfm2-batching-test',
     modelType: 'transformer',
-    inference: { presetId: 'gemma3' },
+    inference: {},
   };
 
   const nextRuntime = applyModelBatchingRuntimeDefaults(runtimeConfig, manifest, null);

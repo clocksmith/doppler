@@ -1,11 +1,11 @@
 {
   "version": 1,
   "lifecycleSchemaVersion": 1,
-  "updatedAt": "2026-03-19",
+  "updatedAt": "2026-03-20",
   "models": [
     {
       "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
-      "preset": "gemma3",
+      "family": "gemma3",
       "label": "Gemma 3 270M Instruct (Q4K/F32a)",
       "description": "Gemma 3 270M text model. Q4K weights, F16 embeddings/head, F32 accumulation.",
       "modes": [
@@ -46,12 +46,13 @@
         "tested": {
           "suite": "inference",
           "surface": [
-            "browser"
+            "browser",
+            "node"
           ],
           "result": "pass",
-          "lastVerifiedAt": "2026-03-12",
+          "lastVerifiedAt": "2026-03-20",
           "source": "manual-review",
-          "notes": "Deterministic greedy (temperature=0, topK=1) browser/WebGPU on Apple M3. Produces coherent output on appropriate prompts. The lm_head_prefill phase-drop bug was the one confirmed runtime defect (now fixed and regression-covered). Remaining factual-question inaccuracy on hard prompts is a 270M model capacity limitation, not a code bug \u2014 confirmed by 2x2 comparison showing F16 270M is also wrong.",
+          "notes": "Browser/WebGPU on Apple M3 and Node/WebGPU on AMD RDNA-3 re-verified through 2026-03-20 with deterministic greedy decoding. Produces coherent sky-color answers on simple prompts. The lm_head_prefill phase-drop bug was the one confirmed runtime defect (now fixed and regression-covered). Remaining factual drift on harder prompts is a model-capacity limitation, not a runtime bug.",
           "contracts": {
             "executionContractOk": true
           }
@@ -66,7 +67,7 @@
     },
     {
       "modelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
-      "preset": "embeddinggemma",
+      "family": "embeddinggemma",
       "label": "EmbeddingGemma 300M (Q4K)",
       "description": "EmbeddingGemma 300M sentence embedding model. Q4K weights, F16 embeddings/head, F32 accumulation.",
       "modes": [
@@ -125,7 +126,7 @@
     },
     {
       "modelId": "gemma-3-1b-it-q4k-ehf16-af32",
-      "preset": "gemma3",
+      "family": "gemma3",
       "label": "Gemma 3 1B Instruct (Q4K/F32a)",
       "description": "Gemma 3 1B text model. Q4K weights, F16 embeddings/head, F32 accumulation.",
       "modes": [
@@ -164,12 +165,13 @@
         "tested": {
           "suite": "inference",
           "surface": [
-            "browser"
+            "browser",
+            "node"
           ],
           "result": "pass",
-          "lastVerifiedAt": "2026-03-12",
+          "lastVerifiedAt": "2026-03-20",
           "source": "manual-review",
-          "notes": "Deterministic greedy (temperature=0, topK=1) browser/WebGPU on Apple M3. Correctly produces A. Blue on factual sky-color prompt. The lm_head_prefill phase-drop bug was the one confirmed runtime defect (now fixed and regression-covered). Q4K runtime path is functionally correct.",
+          "notes": "Browser/WebGPU on Apple M3 and Node/WebGPU on AMD RDNA-3 re-verified through 2026-03-20 with deterministic greedy decoding. Produces correct blue sky-color answers on simple prompts. The lm_head_prefill phase-drop bug was the one confirmed runtime defect (now fixed and regression-covered). Q4K runtime path is functionally correct.",
           "contracts": {
             "executionContractOk": true
           }
@@ -184,7 +186,7 @@
     },
     {
       "modelId": "gemma-3-1b-it-f16-af32",
-      "preset": "gemma3",
+      "family": "gemma3",
       "label": "Gemma 3 1B Instruct (F16/F32a)",
       "description": "Gemma 3 1B text model. F16 weights/embeddings/head, F32 accumulation.",
       "modes": [
@@ -222,12 +224,13 @@
         "tested": {
           "suite": "inference",
           "surface": [
-            "browser"
+            "browser",
+            "node"
           ],
           "result": "pass",
-          "lastVerifiedAt": "2026-03-10",
+          "lastVerifiedAt": "2026-03-20",
           "source": "manual-review",
-          "notes": "Prompt: 'The color of the sky is' \u2192 ' a constant, but its appearance changes with the seasons.\\n\\nThe sky is blue during the summer, when the sun is high in the sky.\\nThe sky is red during the autumn, when the leaves change color.\\nThe sky is gray during the winter, when the sun is low in the sky.\\nThe' (64 tokens, temperature=0, topK=1). Fluent and stable; factual quality mixed but coherent. All contracts pass.",
+          "notes": "Browser/WebGPU on Apple M3 and Node/WebGPU on AMD RDNA-3 re-verified through 2026-03-20 with deterministic greedy decoding. Node smoke output remained coherent ('The sky is blue on a clear day.'). Fluency is stable; broader factual quality can still drift, but runtime behavior is correct and contracts pass.",
           "contracts": {
             "executionContractOk": true
           }
@@ -242,7 +245,7 @@
     },
     {
       "modelId": "translategemma-4b-it-q4k-ehf16-af32",
-      "preset": "translategemma",
+      "family": "translategemma",
       "label": "TranslateGemma 4B Instruct (Q4K)",
       "description": "TranslateGemma 4B translation model. Q4K weights, F16 embeddings/head, F32 accumulation.",
       "modes": [
@@ -282,12 +285,13 @@
         "tested": {
           "suite": "debug",
           "surface": [
-            "browser"
+            "browser",
+            "node"
           ],
           "result": "pass",
-          "lastVerifiedAt": "2026-03-17",
+          "lastVerifiedAt": "2026-03-20",
           "source": "manual-review",
-          "notes": "Browser/WebGPU verified on 2026-03-17 with deterministic greedy decoding. The working Q4K path is gemma3-q4k-dequant-f32w-f32a-online (F32 matmul weights, F32 activations, F16 KV). Output: 'Bonjour, monde.' for the default en->fr Hello world prompt. The prior failure was isolated to the older q4k_dequant F16-weight path; F16 artifact and HF reference were both coherent during the root-cause diff.",
+          "notes": "Browser/WebGPU on Apple M3 and Node/WebGPU on AMD RDNA-3 verified through 2026-03-20 with structured TranslateGemma requests. en->fr 'Hello world.' -> 'Bonjour le monde.' The working Q4K path is gemma3-q4k-dequant-f32w-f32a-online; the prior failure remained isolated to the older q4k_dequant F16-weight path.",
           "contracts": {
             "executionContractOk": true
           }
@@ -302,7 +306,7 @@
     },
     {
       "modelId": "translategemma-4b-1b-enes-q4k-ehf16-af32",
-      "preset": "gemma3",
+      "family": "gemma3",
       "label": "TranslateGemma 1B EN\u2192ES (Q4K)",
       "description": "Distilled EN\u2192ES translation model from TranslateGemma 4B. Gemma 3 1B architecture. Q4K weights, F16 embeddings/head, F32 accumulation.",
       "modes": [
@@ -343,9 +347,9 @@
             "node"
           ],
           "result": "pass",
-          "lastVerifiedAt": "2026-03-15",
+          "lastVerifiedAt": "2026-03-20",
           "source": "runtime-verify",
-          "notes": "Node/WebGPU AMD RDNA-3. Deterministic greedy (temp=0, topK=1). Prompt: EN->ES 'The weather is nice today.' -> 'El tiempo est\u00e1 agradable hoy.' (7 tokens including <end_of_turn>). Correct translation, coherent output. All execution-v0 contract checks pass.",
+          "notes": "Node/WebGPU on AMD RDNA-3 re-verified on 2026-03-20 with structured TranslateGemma requests. EN->ES 'The weather is nice today.' -> 'El clima es agradable hoy.' Correct translation, coherent output. All execution-v0 contract checks pass.",
           "contracts": {
             "executionContractOk": true
           }
@@ -357,7 +361,7 @@
     },
     {
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
-      "preset": "qwen3_5",
+      "family": "qwen3",
       "label": "Qwen 3.5 0.8B (Q4K)",
       "description": "Qwen 3.5 0.8B text model with hybrid linear attention. Q4K weights, F16 embeddings/head/accumulation.",
       "modes": [
@@ -399,9 +403,9 @@
             "node"
           ],
           "result": "pass",
-          "lastVerifiedAt": "2026-03-14",
+          "lastVerifiedAt": "2026-03-20",
           "source": "runtime-verify",
-          "notes": "Node/WebGPU AMD RDNA-3. Deterministic greedy (temp=0, topK=1). Prompt: \"The color of the sky is\" -> coherent factual response about blue sky / atmospheric scattering. ropeTheta fixed from 1M to 10M, manifest RoPE fields (mropeInterleaved, mropeSection, partialRotaryFactor) patched.",
+          "notes": "Node/WebGPU on AMD RDNA-3 re-verified on 2026-03-20 against the refreshed manifest now synced to the external volume. Deterministic greedy sky-color prompts remain coherent. Corrected RoPE fields remain in place and the manifest now stamps tieWordEmbeddings=true, a custom layerPattern, and execution.inlineKernelPath=false.",
           "contracts": {
             "executionContractOk": true
           }
@@ -416,7 +420,7 @@
     },
     {
       "modelId": "qwen-3-5-2b-q4k-ehaf16",
-      "preset": "qwen3_5",
+      "family": "qwen3",
       "label": "Qwen 3.5 2B (Q4K)",
       "description": "Qwen 3.5 2B text model with hybrid linear attention. Q4K weights, F16 embeddings/head/accumulation.",
       "modes": [
@@ -458,9 +462,9 @@
             "node"
           ],
           "result": "pass",
-          "lastVerifiedAt": "2026-03-14",
+          "lastVerifiedAt": "2026-03-20",
           "source": "runtime-verify",
-          "notes": "Node/WebGPU AMD RDNA-3. Deterministic greedy (temp=0, topK=1). Prompt: \"The color of the sky is\" -> coherent factual response about blue sky / atmospheric scattering. ropeTheta fixed from 1M to 10M, manifest RoPE fields (mropeInterleaved, mropeSection, partialRotaryFactor) patched.",
+          "notes": "Node/WebGPU on AMD RDNA-3 re-verified on 2026-03-20 against the refreshed manifest now synced to the external volume. Deterministic greedy sky-color prompts remain coherent. Corrected RoPE fields remain in place and the manifest now stamps tieWordEmbeddings=true, a custom layerPattern, and execution.inlineKernelPath=false.",
           "contracts": {
             "executionContractOk": true
           }
@@ -475,7 +479,7 @@
     },
     {
       "modelId": "lfm2-5-1-2b-instruct-q4k-ehf16-af32",
-      "preset": "lfm2",
+      "family": "lfm2",
       "label": "LFM 2.5 1.2B Instruct (Q4K/F32a)",
       "description": "LiquidAI LFM 2.5 1.2B Instruct. Q4K weights, F16 embeddings/head, F32 accumulation. Hybrid conv/attention architecture.",
       "modes": [
@@ -517,9 +521,9 @@
             "node"
           ],
           "result": "pass",
-          "lastVerifiedAt": "2026-03-16",
+          "lastVerifiedAt": "2026-03-20",
           "source": "runtime-verify",
-          "notes": "Coherence-verified 2026-03-16 on Node/WebGPU AMD RDNA-3 after applying ChatML template fix. Manifest was missing chatTemplate.type/enabled \u2014 model was receiving raw unformatted text. With chatml applied: deterministic greedy (temp=0, topK=1). Prompt: 'What color is the sky on a clear day?' (ChatML) -> 'The color of the sky on a clear day is white. This is because the atmosphere is not obsceded by any particles or objects that are in between.' (32 tokens). Output is coherent and responsive to prompt. No execution-v0 schema in manifest (known LFM2 conversion limitation; N/A for this model). Contract checks 2/2 pass.",
+          "notes": "Node/WebGPU on AMD RDNA-3 re-verified on 2026-03-20 after the ChatML fix and refreshed manifest sync. One-word sky-color prompts are stable ('Blue'), but short open-ended factual prompts remain prompt-sensitive and weaker than Gemma/Qwen. Runtime path is coherent; the refreshed manifest now includes tokenizer BOS/EOS/PAD IDs and decodeLoop=null.",
           "contracts": {
             "executionContractOk": true
           }

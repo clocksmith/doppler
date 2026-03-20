@@ -170,7 +170,7 @@ and `format_matrix_compare` per target.
 ## Closed Workstream Snapshot (2026-02-22 UTC)
 
 - Gemma 3 Q4K `f32a` now auto-selects `gemma3-q4k-dequant-f32a-online` on subgroup-capable devices ([src/rules/inference/kernel-path.rules.json](../../src/rules/inference/kernel-path.rules.json)).
-- Kernel path registry marks `gemma3-q4k-dequant-f32a-online` as canonical/default ([src/config/presets/kernel-paths/registry.json](../../src/config/presets/kernel-paths/registry.json)).
+- Kernel path registry marks `gemma3-q4k-dequant-f32a-online` as canonical/default ([src/config/kernel-paths/registry.json](../../src/config/kernel-paths/registry.json)).
 - Structural CI sweep for Gemma 3 1b kernel-path invariants is enforced by [tests/inference/gemma3-1b-kernel-sweep.test.js](../../tests/inference/gemma3-1b-kernel-sweep.test.js).
 - Inference guard workflow now triggers on inference rule changes and executes the sweep gate ([.github/workflows/inference-guard.yml](../../.github/workflows/inference-guard.yml)).
 - Historical local performance numbers are stale after kernel-path routing updates; re-run apples-to-apples benchmark suites before publishing comparative claims.

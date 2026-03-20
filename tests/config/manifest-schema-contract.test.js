@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 
 import {
   DEFAULT_MANIFEST_INFERENCE,
-  DEFAULT_PRESET_INFERENCE_CONFIG,
+  DEFAULT_MODEL_INFERENCE_DEFAULTS,
   validateManifestInference,
 } from '../../src/config/schema/index.js';
 
@@ -27,10 +27,10 @@ assert.equal(DEFAULT_MANIFEST_INFERENCE.rope.yarnBetaFast, null);
 assert.equal(DEFAULT_MANIFEST_INFERENCE.rope.yarnBetaSlow, null);
 assert.equal(DEFAULT_MANIFEST_INFERENCE.rope.yarnOriginalMaxPos, null);
 
-assert.equal(DEFAULT_PRESET_INFERENCE_CONFIG.rope.ropeScalingType, null);
-assert.equal(DEFAULT_PRESET_INFERENCE_CONFIG.rope.yarnBetaFast, null);
-assert.equal(DEFAULT_PRESET_INFERENCE_CONFIG.rope.yarnBetaSlow, null);
-assert.equal(DEFAULT_PRESET_INFERENCE_CONFIG.rope.yarnOriginalMaxPos, null);
+assert.equal(DEFAULT_MODEL_INFERENCE_DEFAULTS.rope.ropeScalingType, null);
+assert.equal(DEFAULT_MODEL_INFERENCE_DEFAULTS.rope.yarnBetaFast, null);
+assert.equal(DEFAULT_MODEL_INFERENCE_DEFAULTS.rope.yarnBetaSlow, null);
+assert.equal(DEFAULT_MODEL_INFERENCE_DEFAULTS.rope.yarnOriginalMaxPos, null);
 
 {
   const manifest = {
@@ -49,9 +49,7 @@ assert.equal(DEFAULT_PRESET_INFERENCE_CONFIG.rope.yarnOriginalMaxPos, null);
   const diffusionManifest = {
     modelId: 'diffusion-manifest',
     modelType: 'diffusion',
-    inference: {
-      presetId: 'diffusion',
-    },
+    inference: {},
   };
   validateManifestInference(diffusionManifest);
 }
@@ -60,9 +58,7 @@ assert.equal(DEFAULT_PRESET_INFERENCE_CONFIG.rope.yarnOriginalMaxPos, null);
   const energyManifest = {
     modelId: 'energy-manifest',
     modelType: 'energy',
-    inference: {
-      presetId: 'energy',
-    },
+    inference: {},
   };
   validateManifestInference(energyManifest);
 }

@@ -1,5 +1,5 @@
 // AUTO-GENERATED from src/gpu/kernels/fused_matmul_rmsnorm.wgsl.
-// Edit the source kernel and tools/configs/wgsl-variants.js, then run `npm run kernels:generate`.
+// Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:generate`.
 // Fused GEMV + RMSNorm Kernel (F16 variant)
 //
 // For decode (M=1), combines the down projection matmul with RMSNorm in a single kernel:

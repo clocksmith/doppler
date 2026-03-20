@@ -20,9 +20,42 @@ const q4kManifest = hasExactLocalManifests
   ? JSON.parse(await readFile(q4kManifestPath, 'utf8'))
   : null;
 const convConfigs = await Promise.all([
-  loadJson('../../tools/configs/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json'),
-  loadJson('../../tools/configs/conversion/qwen3/qwen-3-5-2b-q4k-ehaf16.json'),
+  loadJson('../../src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json'),
+  loadJson('../../src/config/conversion/qwen3/qwen-3-5-2b-q4k-ehaf16.json'),
 ]);
+
+const EXPECTED_QWEN_LAYER_TYPES = Array.from(
+  { length: 24 },
+  (_, index) => ((index + 1) % 4 === 0 ? 'full_attention' : 'linear_attention')
+);
+const EXPECTED_QWEN_DECODE_LOOP = Object.freeze({
+  batchSize: 4,
+  stopCheckMode: 'batch',
+  readbackInterval: 1,
+  ringTokens: 1,
+  ringStop: 1,
+  ringStaging: 1,
+  disableCommandBatching: true,
+});
+
+function assertQwenDecodeLoop(decodeLoop, label) {
+  assert.ok(decodeLoop && typeof decodeLoop === 'object', `${label} decodeLoop must be present`);
+  assert.deepEqual(decodeLoop, EXPECTED_QWEN_DECODE_LOOP, `${label} decodeLoop`);
+}
+
+function assertQwenConversionConfig(config) {
+  assert.equal(config.inference.normalization.rmsNormWeightOffset, true);
+  assert.equal(config.inference.rope.mropeInterleaved, true);
+  assert.equal(config.inference.output.tieWordEmbeddings, true);
+  assert.equal(config.inference.layerPattern.type, 'custom');
+  assert.equal(config.inference.layerPattern.globalPattern, null);
+  assert.equal(config.inference.layerPattern.period, null);
+  assert.equal(config.inference.layerPattern.offset, null);
+  assert.deepEqual(config.inference.layerPattern.layerTypes, EXPECTED_QWEN_LAYER_TYPES);
+  assertQwenDecodeLoop(config.sessionDefaults?.decodeLoop, config.output?.modelBaseId ?? 'qwen');
+  assert.ok(config.execution && typeof config.execution === 'object', 'qwen execution config must be present');
+  assert.equal(config.execution.inlineKernelPath, false, 'qwen execution.inlineKernelPath');
+}
 
 function hasTensor(manifest, tensorName) {
   return Object.prototype.hasOwnProperty.call(manifest.tensors ?? {}, tensorName);
@@ -37,8 +70,9 @@ function getLinearProjectionLayout(manifest) {
 
 if (!hasExactLocalManifests) {
   for (const config of convConfigs) {
-    // V1 configs have explicit inference, no presets
+    // V1 configs have explicit inference and no legacy family-indirection field
     assert.ok(config.inference?.attention, 'v1 config must have explicit inference.attention');
+    assertQwenConversionConfig(config);
   }
   console.log('qwen-manifest-completeness.test: skipped (missing exact local manifests)');
   process.exit(0);
@@ -47,22 +81,33 @@ if (!hasExactLocalManifests) {
 // --- Manifest: intentional null fields ---
 
 {
-  assert.equal(f16Manifest.inference.schema, null);
   for (const manifest of [f16Manifest, q4kManifest]) {
     assert.equal(manifest.inference.defaultKernelPath, null);
-    assert.equal(manifest.inference.execution, null);
   }
 }
 
-// --- Manifest: sessionDefaults shape (decodeLoop only, no kvcache/compute) ---
+// --- Manifest: execution v1 is present, but Qwen disables inline kernel-path lowering ---
+
+{
+  for (const manifest of [f16Manifest, q4kManifest]) {
+    assert.equal(manifest.inference.schema, 'doppler.execution/v1');
+    assert.ok(manifest.inference.execution && typeof manifest.inference.execution === 'object');
+    assert.equal(manifest.inference.execution.inlineKernelPath, false);
+  }
+}
+
+// --- Manifest: sessionDefaults keep explicit compute/kvcache + Qwen decode loop ---
 
 {
   for (const manifest of [f16Manifest, q4kManifest]) {
     const sd = manifest.inference.sessionDefaults;
     assert.ok(sd != null);
-    assert.ok(sd.decodeLoop != null);
-    assert.equal(sd.kvcache, undefined);
-    assert.equal(sd.compute, undefined);
+    assertQwenDecodeLoop(sd.decodeLoop, `${manifest.modelId}.inference.sessionDefaults`);
+    assert.equal(sd.kvcache?.kvDtype, 'f16');
+    assert.equal(sd.compute?.defaults?.activationDtype, 'f32');
+    assert.equal(sd.compute?.defaults?.mathDtype, 'f32');
+    assert.equal(sd.compute?.defaults?.accumDtype, 'f32');
+    assert.equal(sd.compute?.defaults?.outputDtype, 'f32');
     assert.equal(sd.execution, undefined);
   }
 }
@@ -134,7 +179,7 @@ if (!hasExactLocalManifests) {
   }
 }
 
-// --- Manifest: rmsNormWeightOffset = true (from qwen3_5 preset) ---
+// --- Manifest: rmsNormWeightOffset = true (from the explicit conversion config) ---
 
 {
   assert.equal(f16Manifest.inference.normalization.rmsNormWeightOffset, true);
@@ -162,24 +207,23 @@ for (const config of convConfigs) {
   assert.equal(config.inference.defaultKernelPath, null);
 }
 
-// --- Conversion configs: none set execution (absent = null in manifest) ---
+// --- Conversion configs: Qwen keeps an explicit execution graph but disables inline kernel-path lowering ---
 
 for (const config of convConfigs) {
-  assert.equal(config.inference.execution, undefined);
+  assert.ok(config.execution && typeof config.execution === 'object');
+  assert.equal(config.execution.inlineKernelPath, false);
 }
 
-// --- Conversion configs: all use qwen3_5 preset ---
+// --- Conversion configs: explicit qwen3 family config fields are authored directly ---
 
 for (const config of convConfigs) {
-  assert.equal(config.presets.model, 'qwen3_5');
+  assertQwenConversionConfig(config);
 }
 
-// --- Conversion configs: sessionDefaults.decodeLoop present in all ---
+// --- Conversion configs: top-level sessionDefaults keep the Qwen decode loop contract ---
 
 for (const config of convConfigs) {
-  assert.ok(config.inference.sessionDefaults.decodeLoop != null);
-  assert.equal(config.inference.sessionDefaults.decodeLoop.batchSize, 4);
-  assert.equal(config.inference.sessionDefaults.decodeLoop.disableCommandBatching, true);
+  assertQwenDecodeLoop(config.sessionDefaults?.decodeLoop, config.output?.modelBaseId ?? 'qwen');
 }
 
 console.log('qwen-manifest-completeness.test: ok');

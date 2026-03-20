@@ -27,7 +27,7 @@ import {
   runKernelWarmup,
   applyModelBatchingRuntimeDefaults,
   resolveKernelPathState,
-  initTokenizerFromManifestPreset,
+  initTokenizerFromManifest,
 } from './text/model-load.js';
 import { getKernelPathActivationDtype } from '../../config/kernel-path-loader.js';
 import { applyPipelineDebugConfig } from './text/debug-utils.js';
@@ -166,7 +166,7 @@ export class InferencePipeline extends PipelineState {
     const kernelInfo = this.resolvedKernelPath ? `kernelPath=${this.resolvedKernelPath.id}` : 'kernelPath=none';
     log.info('Pipeline', `${cfg.numLayers}L/${cfg.hiddenSize}H/${cfg.numHeads}heads (${cfg.headDim}dim)${moeStr}, ${kernelInfo}`);
 
-    this.tokenizer = await initTokenizerFromManifestPreset(
+    this.tokenizer = await initTokenizerFromManifest(
       manifest,
       this.baseUrl,
       this.storageContext
@@ -229,7 +229,7 @@ export class InferencePipeline extends PipelineState {
 
     this.isLoaded = true;
     const loadMs = performance.now() - loadStart;
-    this.state.stats.modelLoadMs = loadMs;
+    this.stats.modelLoadMs = loadMs;
     log.info('Pipeline', `Model loaded successfully (${loadMs.toFixed(0)}ms)`);
   }
 

@@ -80,7 +80,6 @@ export function resolveMaterializedManifestFromConversionConfig(conversionConfig
     architectureHint: resolveArchitectureHint(manifest?.architecture),
     architectureConfig: architecture,
     headDim: resolveHeadDim(architecture),
-    presetOverride: converterConfig?.presets?.model || manifest?.inference?.presetId || null,
   });
   return {
     modelId: manifest?.modelId ?? converterConfig?.output?.modelBaseId ?? 'unknown',

@@ -22,7 +22,6 @@ try {
     timestamp: '2026-03-06T12:00:00.000Z',
     source: 'doppler',
     result: {
-      presetId: 'gemma3',
       modelType: 'transformer',
       outputDir: 'models/local/gemma3-a',
       shardCount: 1,
@@ -56,7 +55,6 @@ try {
     timestamp: '2026-03-06T13:00:00.000Z',
     source: 'doppler',
     result: {
-      presetId: 'gemma3',
       modelType: 'transformer',
       outputDir: 'models/local/gemma3-b',
       shardCount: 2,

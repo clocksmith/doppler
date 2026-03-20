@@ -3,11 +3,11 @@ import { state } from '../state.js';
 import { $, setHidden, setText } from '../dom.js';
 import {
   BENCH_INTENTS,
-  DEFAULT_RUNTIME_PRESET,
+  DEFAULT_RUNTIME_PROFILE,
   DIAGNOSTICS_DEFAULTS,
   DIAGNOSTICS_SUITE_INFO,
   DIAGNOSTICS_SUITE_ORDER,
-  RUNTIME_PRESET_REGISTRY,
+  RUNTIME_PROFILE_REGISTRY,
 } from '../constants.js';
 import {
   getModelTypeForId,
@@ -66,21 +66,21 @@ function getDiagnosticsSuiteOrder() {
   return Object.keys(DIAGNOSTICS_SUITE_INFO);
 }
 
-function getDiagnosticsBasePresetIds() {
-  const ids = RUNTIME_PRESET_REGISTRY
+function getDiagnosticsBaseRuntimeProfileIds() {
+  const ids = RUNTIME_PROFILE_REGISTRY
     .filter((entry) => entry.base && typeof entry.id === 'string' && entry.id.length > 0)
     .map((entry) => entry.id);
   if (ids.length === 0) {
-    return [DEFAULT_RUNTIME_PRESET];
+    return [DEFAULT_RUNTIME_PROFILE];
   }
-  if (ids.includes(DEFAULT_RUNTIME_PRESET)) {
-    return [DEFAULT_RUNTIME_PRESET, ...ids.filter((id) => id !== DEFAULT_RUNTIME_PRESET)];
+  if (ids.includes(DEFAULT_RUNTIME_PROFILE)) {
+    return [DEFAULT_RUNTIME_PROFILE, ...ids.filter((id) => id !== DEFAULT_RUNTIME_PROFILE)];
   }
   return ids;
 }
 
-function getDiagnosticsPresetOrderForSuite(suite, presetIds, mode, modelType) {
-  if (!Array.isArray(presetIds) || presetIds.length === 0) return [];
+function getDiagnosticsRuntimeProfileOrderForSuite(suite, runtimeProfileIds, mode, modelType) {
+  if (!Array.isArray(runtimeProfileIds) || runtimeProfileIds.length === 0) return [];
   const key = String(suite || '').trim().toLowerCase();
   const normalizedModelType = normalizeModelType(modelType);
   const isEmbeddingTarget = mode === 'embedding' || normalizedModelType === 'embedding';
@@ -103,20 +103,20 @@ function getDiagnosticsPresetOrderForSuite(suite, presetIds, mode, modelType) {
     }
   }
 
-  if (preferred && presetIds.includes(preferred)) {
+  if (preferred && runtimeProfileIds.includes(preferred)) {
     return [preferred];
   }
-  return presetIds.slice(0, 1);
+  return runtimeProfileIds.slice(0, 1);
 }
 
-function formatRuntimePresetShortLabel(presetId) {
-  if (typeof presetId !== 'string' || presetId.length === 0) return 'default';
-  if (presetId.startsWith('profiles/')) return presetId.slice('profiles/'.length);
-  return presetId;
+function formatRuntimeProfileShortLabel(runtimeProfile) {
+  if (typeof runtimeProfile !== 'string' || runtimeProfile.length === 0) return 'default';
+  if (runtimeProfile.startsWith('profiles/')) return runtimeProfile.slice('profiles/'.length);
+  return runtimeProfile;
 }
 
-function encodeDiagnosticsProfileId(suite, presetId) {
-  return `${suite}|${presetId}`;
+function encodeDiagnosticsProfileId(suite, runtimeProfile) {
+  return `${suite}|${runtimeProfile}`;
 }
 
 export function decodeDiagnosticsProfileId(profileId) {
@@ -124,13 +124,13 @@ export function decodeDiagnosticsProfileId(profileId) {
   const splitAt = profileId.indexOf('|');
   if (splitAt <= 0 || splitAt >= profileId.length - 1) return null;
   const suite = profileId.slice(0, splitAt).trim().toLowerCase();
-  const preset = profileId.slice(splitAt + 1).trim();
-  if (!suite || !preset) return null;
-  return { suite, preset };
+  const runtimeProfile = profileId.slice(splitAt + 1).trim();
+  if (!suite || !runtimeProfile) return null;
+  return { suite, runtimeProfile };
 }
 
-function getDiagnosticsProfileLabel(suite, presetId) {
-  const key = `${suite}|${presetId}`;
+function getDiagnosticsProfileLabel(suite, runtimeProfile) {
+  const key = `${suite}|${runtimeProfile}`;
   const labels = {
     'inference|profiles/verbose-trace': 'Text Check',
     'inference|profiles/throughput': 'Text Check',
@@ -148,11 +148,11 @@ function getDiagnosticsProfileLabel(suite, presetId) {
     'kernels|profiles/throughput': 'Kernel Validation',
   };
   if (labels[key]) return labels[key];
-  return `${suite} · ${formatRuntimePresetShortLabel(presetId)}`;
+  return `${suite} · ${formatRuntimeProfileShortLabel(runtimeProfile)}`;
 }
 
-function getDiagnosticsProfileDescription(suite, presetId, modelType) {
-  const key = `${suite}|${presetId}`;
+function getDiagnosticsProfileDescription(suite, runtimeProfile, modelType) {
+  const key = `${suite}|${runtimeProfile}`;
   const normalizedModelType = normalizeModelType(modelType);
   const isEmbedding = normalizedModelType === 'embedding';
 
@@ -217,30 +217,30 @@ function getDiagnosticsProfileDescription(suite, presetId, modelType) {
     };
   }
   return {
-    summary: `Runs the ${suite} suite with preset ${formatRuntimePresetShortLabel(presetId)}.`,
+    summary: `Runs the ${suite} suite with profile ${formatRuntimeProfileShortLabel(runtimeProfile)}.`,
     produces: 'suite metrics and pass/fail summary.',
   };
 }
 
 function getDiagnosticsProfileHint(entry, modelType) {
   if (!entry) return '';
-  const details = getDiagnosticsProfileDescription(entry.suite, entry.preset, modelType);
-  const config = `Config: ${entry.suite} + ${formatRuntimePresetShortLabel(entry.preset)}.`;
+  const details = getDiagnosticsProfileDescription(entry.suite, entry.runtimeProfile, modelType);
+  const config = `Config: ${entry.suite} + ${formatRuntimeProfileShortLabel(entry.runtimeProfile)}.`;
   const produces = `Output: ${details.produces}`;
   return `${config} ${produces} Raw JSON is shown below.`;
 }
 
 function buildDiagnosticsProfileEntries(suites, mode, modelType) {
   const entries = [];
-  const basePresetIds = getDiagnosticsBasePresetIds();
+  const baseRuntimeProfileIds = getDiagnosticsBaseRuntimeProfileIds();
   for (const suite of suites) {
-    const orderedPresets = getDiagnosticsPresetOrderForSuite(suite, basePresetIds, mode, modelType);
-    for (const preset of orderedPresets) {
+    const orderedRuntimeProfiles = getDiagnosticsRuntimeProfileOrderForSuite(suite, baseRuntimeProfileIds, mode, modelType);
+    for (const runtimeProfile of orderedRuntimeProfiles) {
       entries.push({
-        id: encodeDiagnosticsProfileId(suite, preset),
+        id: encodeDiagnosticsProfileId(suite, runtimeProfile),
         suite,
-        preset,
-        label: getDiagnosticsProfileLabel(suite, preset),
+        runtimeProfile,
+        label: getDiagnosticsProfileLabel(suite, runtimeProfile),
       });
     }
   }
@@ -286,8 +286,8 @@ function updateDiagnosticsProfileOptions(mode, modelId, modelType) {
   const selection = state.diagnosticsSelections[mode] || {};
   const currentPair = decodeDiagnosticsProfileId(previousValue);
   const storedPair = selection.profile ? decodeDiagnosticsProfileId(selection.profile) : null;
-  const explicitPair = selection.suite && selection.preset
-    ? { suite: String(selection.suite).trim().toLowerCase(), preset: String(selection.preset).trim() }
+  const explicitPair = selection.suite && selection.runtimeProfile
+    ? { suite: String(selection.suite).trim().toLowerCase(), runtimeProfile: String(selection.runtimeProfile).trim() }
     : null;
   const storedModelType = normalizeModelType(selection.modelType);
   const resetForModelTypeChange = (
@@ -297,7 +297,7 @@ function updateDiagnosticsProfileOptions(mode, modelId, modelType) {
     && storedModelType !== normalizedModelType
   );
 
-  const hasEntry = (pair) => Boolean(pair && entries.some((entry) => entry.suite === pair.suite && entry.preset === pair.preset));
+  const hasEntry = (pair) => Boolean(pair && entries.some((entry) => entry.suite === pair.suite && entry.runtimeProfile === pair.runtimeProfile));
   let targetPair = null;
   if (!resetForModelTypeChange && hasEntry(currentPair)) targetPair = currentPair;
   if (!targetPair && !resetForModelTypeChange && hasEntry(storedPair)) targetPair = storedPair;
@@ -305,22 +305,22 @@ function updateDiagnosticsProfileOptions(mode, modelId, modelType) {
   if (!targetPair) {
     const defaultSuite = getDiagnosticsDefaultSuite(mode);
     const fallbackSuite = availableSuites.includes(defaultSuite) ? defaultSuite : availableSuites[0];
-    const orderedPresets = getDiagnosticsPresetOrderForSuite(
+    const orderedRuntimeProfiles = getDiagnosticsRuntimeProfileOrderForSuite(
       fallbackSuite,
-      getDiagnosticsBasePresetIds(),
+      getDiagnosticsBaseRuntimeProfileIds(),
       mode,
       modelType
     );
-    targetPair = { suite: fallbackSuite, preset: orderedPresets[0] };
+    targetPair = { suite: fallbackSuite, runtimeProfile: orderedRuntimeProfiles[0] };
   }
 
-  const chosen = entries.find((entry) => entry.suite === targetPair.suite && entry.preset === targetPair.preset) || entries[0];
+  const chosen = entries.find((entry) => entry.suite === targetPair.suite && entry.runtimeProfile === targetPair.runtimeProfile) || entries[0];
   profileSelect.disabled = false;
   profileSelect.value = chosen.id;
   storeDiagnosticsSelection(mode, {
     profile: chosen.id,
     suite: chosen.suite,
-    preset: chosen.preset,
+    runtimeProfile: chosen.runtimeProfile,
     modelType: normalizedModelType || null,
   });
   return chosen;
@@ -387,21 +387,21 @@ export function getDiagnosticsDefaultSuite(mode) {
   return DIAGNOSTICS_DEFAULTS[mode]?.suite || 'inference';
 }
 
-function getDiagnosticsDefaultPreset(mode) {
-  return DIAGNOSTICS_DEFAULTS[mode]?.preset || DEFAULT_RUNTIME_PRESET;
+function getDiagnosticsDefaultRuntimeProfile(mode) {
+  return DIAGNOSTICS_DEFAULTS[mode]?.runtimeProfile || DEFAULT_RUNTIME_PROFILE;
 }
 
 export function getDiagnosticsRuntimeConfig() {
   return state.diagnosticsRuntimeConfig || getRuntimeConfig();
 }
 
-export async function refreshDiagnosticsRuntimeConfig(presetId) {
-  const targetPreset = presetId || DEFAULT_RUNTIME_PRESET;
-  const { runtime } = await loadRuntimeProfile(targetPreset);
+export async function refreshDiagnosticsRuntimeConfig(runtimeProfile) {
+  const targetRuntimeProfile = runtimeProfile || DEFAULT_RUNTIME_PROFILE;
+  const { runtime } = await loadRuntimeProfile(targetRuntimeProfile);
   const mergedOverride = getMergedRuntimeOverride();
   const mergedRuntime = mergedOverride ? mergeRuntimeOverrides(runtime, mergedOverride) : runtime;
   state.diagnosticsRuntimeConfig = mergedRuntime;
-  state.diagnosticsRuntimePresetId = targetPreset;
+  state.diagnosticsRuntimeProfileId = targetRuntimeProfile;
   setRuntimeConfig(mergedRuntime);
   return mergedRuntime;
 }
@@ -418,18 +418,18 @@ export async function syncDiagnosticsDefaultsForMode(mode) {
     return;
   }
   const profileSelect = $('diagnostics-profile');
-  const presetSelect = $('runtime-preset');
+  const profileSelectEl = $('runtime-profile');
   const selections = state.diagnosticsSelections[mode] || {};
   const targetProfile = selections.profile || '';
-  if (presetSelect) {
-    const targetPreset = selections.preset || getDiagnosticsDefaultPreset(mode);
-    presetSelect.value = targetPreset;
+  if (profileSelectEl) {
+    const targetRuntimeProfile = selections.runtimeProfile || getDiagnosticsDefaultRuntimeProfile(mode);
+    profileSelectEl.value = targetRuntimeProfile;
   }
   if (profileSelect && targetProfile) {
     profileSelect.value = targetProfile;
   }
   updateDiagnosticsGuidance();
-  await applySelectedRuntimePreset();
+  await applySelectedRuntimeProfile();
 }
 
 function formatDiagnosticsDuration(ms) {
@@ -786,7 +786,7 @@ function getDiagnosticsSuiteInfo(suite) {
 
 export function updateDiagnosticsGuidance() {
   const profileSelect = $('diagnostics-profile');
-  const presetSelect = $('runtime-preset');
+  const profileSelectEl = $('runtime-profile');
   const modelSelect = $('diagnostics-model');
   const intentEl = $('diagnostics-intent');
   const suiteHelp = $('diagnostics-suite-help');
@@ -802,20 +802,20 @@ export function updateDiagnosticsGuidance() {
   const normalizedModelType = modelType ? normalizeModelType(modelType) : null;
   const resolvedProfile = updateDiagnosticsProfileOptions(mode, modelId, normalizedModelType);
   const suite = resolvedProfile?.suite || getDiagnosticsDefaultSuite(mode);
-  if (presetSelect && resolvedProfile?.preset && presetSelect.value !== resolvedProfile.preset) {
-    presetSelect.value = resolvedProfile.preset;
-    if (state.diagnosticsRuntimePresetId !== resolvedProfile.preset) {
-      void applySelectedRuntimePreset();
+  if (profileSelectEl && resolvedProfile?.runtimeProfile && profileSelectEl.value !== resolvedProfile.runtimeProfile) {
+    profileSelectEl.value = resolvedProfile.runtimeProfile;
+    if (state.diagnosticsRuntimeProfileId !== resolvedProfile.runtimeProfile) {
+      void applySelectedRuntimeProfile();
     }
   }
   const info = getDiagnosticsSuiteInfo(suite);
   const profileDescription = resolvedProfile
-    ? getDiagnosticsProfileDescription(resolvedProfile.suite, resolvedProfile.preset, normalizedModelType)
+    ? getDiagnosticsProfileDescription(resolvedProfile.suite, resolvedProfile.runtimeProfile, normalizedModelType)
     : null;
   const runtimeConfig = getDiagnosticsRuntimeConfig();
   const intent = runtimeConfig?.shared?.tooling?.intent ?? null;
   const requiredModelType = getDiagnosticsRequiredModelType(suite);
-  const runtimeProfile = presetSelect?.value || DEFAULT_RUNTIME_PRESET;
+  const runtimeProfile = profileSelectEl?.value || DEFAULT_RUNTIME_PROFILE;
   const needsMaxTokens = suiteRequiresMaxTokens(suite, normalizedModelType);
 
   intentEl.textContent = intent || 'unset';
@@ -909,26 +909,26 @@ export function selectDiagnosticsModel(modelId) {
   updateDiagnosticsGuidance();
 }
 
-export function updateRuntimeConfigStatus(presetId) {
+export function updateRuntimeConfigStatus(runtimeProfile) {
   const status = $('runtime-config-status');
   if (!status) return;
-  const presetLabel = presetId || DEFAULT_RUNTIME_PRESET;
+  const profileLabel = runtimeProfile || DEFAULT_RUNTIME_PROFILE;
   if (state.runtimeOverride) {
     const labels = [];
     if (state.runtimeOverrideLabel) {
       labels.push(state.runtimeOverrideLabel);
     }
     const overrideLabel = labels.length ? labels.join(' + ') : 'custom';
-    status.textContent = `Preset: ${presetLabel} - Override: ${overrideLabel}`;
+    status.textContent = `Profile: ${profileLabel} - Override: ${overrideLabel}`;
     return;
   }
-  status.textContent = `Preset: ${presetLabel}`;
+  status.textContent = `Profile: ${profileLabel}`;
 }
 
 async function setRuntimeOverride(runtime, label) {
   state.runtimeOverrideBase = runtime;
   state.runtimeOverrideLabel = label || null;
-  await applySelectedRuntimePreset();
+  await applySelectedRuntimeProfile();
 }
 
 export async function handleRuntimeConfigFile(file) {
@@ -941,27 +941,27 @@ export async function handleRuntimeConfigFile(file) {
       throw new Error('Runtime config file is missing runtime fields');
     }
     await setRuntimeOverride(runtime, file.name);
-    const presetSelect = $('runtime-config-preset');
-    if (presetSelect) {
-      presetSelect.value = '';
+    const profileSelectEl = $('runtime-config-profile');
+    if (profileSelectEl) {
+      profileSelectEl.value = '';
     }
   } catch (error) {
     updateDiagnosticsStatus(`Runtime config error: ${error.message}`, true);
   }
 }
 
-export async function applyRuntimeConfigPreset(presetId) {
-  if (!presetId) {
+export async function applyRuntimeConfigProfile(runtimeProfile) {
+  if (!runtimeProfile) {
     state.runtimeOverrideBase = null;
     state.runtimeOverrideLabel = null;
-    await applySelectedRuntimePreset();
+    await applySelectedRuntimeProfile();
     return;
   }
   try {
-    const { runtime } = await loadRuntimeProfile(presetId);
-    await setRuntimeOverride(runtime, presetId);
+    const { runtime } = await loadRuntimeProfile(runtimeProfile);
+    await setRuntimeOverride(runtime, runtimeProfile);
   } catch (error) {
-    updateDiagnosticsStatus(`Runtime config preset error: ${error.message}`, true);
+    updateDiagnosticsStatus(`Runtime config profile error: ${error.message}`, true);
   }
 }
 
@@ -969,20 +969,20 @@ export function getMergedRuntimeOverride() {
   return state.runtimeOverrideBase;
 }
 
-export async function applySelectedRuntimePreset() {
-  const presetSelect = $('runtime-preset');
-  if (!presetSelect) return;
-  const presetId = presetSelect.value || DEFAULT_RUNTIME_PRESET;
-  if (!presetSelect.value) {
-    presetSelect.value = presetId;
+export async function applySelectedRuntimeProfile() {
+  const profileSelectEl = $('runtime-profile');
+  if (!profileSelectEl) return;
+  const runtimeProfile = profileSelectEl.value || DEFAULT_RUNTIME_PROFILE;
+  if (!profileSelectEl.value) {
+    profileSelectEl.value = runtimeProfile;
   }
   const mergedOverride = getMergedRuntimeOverride();
   state.runtimeOverride = mergedOverride;
-  updateRuntimeConfigStatus(presetId);
+  updateRuntimeConfigStatus(runtimeProfile);
   try {
-    await refreshDiagnosticsRuntimeConfig(presetId);
+    await refreshDiagnosticsRuntimeConfig(runtimeProfile);
     updateDiagnosticsGuidance();
   } catch (error) {
-    updateDiagnosticsStatus(`Preset error: ${error.message}`, true);
+    updateDiagnosticsStatus(`Profile error: ${error.message}`, true);
   }
 }

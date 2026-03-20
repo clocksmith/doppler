@@ -96,7 +96,7 @@ const LANE_MAP = Object.freeze({
       args: [
         'tools/verify-training-workload-packs.js',
         '--registry',
-        'tools/configs/training-workloads/registry.json',
+        'src/training/workload-packs/registry.json',
       ],
     },
     {
@@ -105,7 +105,7 @@ const LANE_MAP = Object.freeze({
       args: [
         'tools/publish-training-report-ids.js',
         '--registry',
-        'tools/configs/training-workloads/registry.json',
+        'src/training/workload-packs/registry.json',
         '--out',
         '/tmp/doppler-training-report-ids.json',
       ],

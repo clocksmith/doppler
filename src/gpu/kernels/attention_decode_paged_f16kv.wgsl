@@ -1,5 +1,5 @@
 // AUTO-GENERATED from src/gpu/kernels/attention_decode_paged_f16.wgsl.
-// Edit the source kernel and tools/configs/wgsl-variants.js, then run `npm run kernels:generate`.
+// Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:generate`.
 // Paged Decode Attention Kernel (f16 KV)
 //
 // Q is f32, K/V are f16, output is f32. Uses page table indirection.

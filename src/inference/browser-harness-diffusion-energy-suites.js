@@ -18,7 +18,7 @@ export async function runDiffusionSuite(options = {}) {
   const runtimeConfig = getRuntimeConfig();
   const captureOutput = options.captureOutput === true;
   const cacheMode = normalizeCacheMode(options.cacheMode);
-  const loadMode = normalizeLoadMode(options.loadMode, !options.modelUrl);
+  const loadMode = normalizeLoadMode(options.loadMode, !!options.modelUrl, options.modelUrl);
   const benchConfig = runtimeConfig.shared?.benchmark?.run || {};
   const warmupRuns = Math.max(0, Math.floor(benchConfig.warmupRuns ?? 0));
   const timedRuns = Math.max(1, Math.floor(benchConfig.timedRuns ?? 1));

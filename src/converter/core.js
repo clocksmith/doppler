@@ -122,6 +122,16 @@ function resolveTokenizerField(tokenizerConfig, ...keys) {
   return null;
 }
 
+function resolveConfigBoolean(rawConfig, ...keys) {
+  if (!rawConfig || typeof rawConfig !== 'object') return null;
+  for (const key of keys) {
+    if (rawConfig[key] != null) {
+      return rawConfig[key];
+    }
+  }
+  return null;
+}
+
 function resolveTokenizerVocabSize(tokenizerConfig, rawConfig, architecture) {
   const nestedTextConfig = getNestedTextConfig(rawConfig);
   const configVocab = rawConfig?.vocab_size ?? nestedTextConfig?.vocab_size;
@@ -550,6 +560,34 @@ export function resolveBundledTokenizerVocabSize(tokenizerJson) {
     return Object.keys(vocab).length;
   }
   return 0;
+}
+
+function buildBundledTokenizer(tokenizerJson, tokenizerConfig, rawConfig) {
+  const vocabSize = resolveBundledTokenizerVocabSize(tokenizerJson);
+  if (!vocabSize) {
+    throw new Error('Tokenizer vocab is missing or empty');
+  }
+
+  const tokenizer = {
+    type: 'bundled',
+    vocabSize,
+    file: 'tokenizer.json',
+  };
+  const addBosToken = (
+    resolveTokenizerField(tokenizerJson, 'add_bos_token', 'addBosToken')
+    ?? resolveTokenizerField(tokenizerConfig, 'add_bos_token', 'addBosToken')
+    ?? resolveConfigBoolean(rawConfig, 'add_bos_token', 'addBosToken')
+  );
+  const addEosToken = (
+    resolveTokenizerField(tokenizerJson, 'add_eos_token', 'addEosToken')
+    ?? resolveTokenizerField(tokenizerConfig, 'add_eos_token', 'addEosToken')
+    ?? resolveConfigBoolean(rawConfig, 'add_eos_token', 'addEosToken')
+  );
+
+  if (addBosToken != null) tokenizer.addBosToken = addBosToken;
+  if (addEosToken != null) tokenizer.addEosToken = addEosToken;
+
+  return tokenizer;
 }
 
 
@@ -1102,16 +1140,11 @@ export function createManifest(
 
   // Include tokenizer if available
   if (model.tokenizerJson) {
-    const tokenizer = model.tokenizerJson;
-    const vocabSize = resolveBundledTokenizerVocabSize(tokenizer);
-    if (!vocabSize) {
-      throw new Error('Tokenizer vocab is missing or empty');
-    }
-    manifest.tokenizer = {
-      type: 'bundled',
-      vocabSize,
-      file: 'tokenizer.json',
-    };
+    manifest.tokenizer = buildBundledTokenizer(
+      model.tokenizerJson,
+      model.tokenizerConfig ?? null,
+      rawConfig
+    );
     manifest.metadata.hasTokenizer = true;
   } else {
     const tokenizer = buildSentencepieceTokenizer(

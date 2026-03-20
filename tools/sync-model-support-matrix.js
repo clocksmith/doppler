@@ -4,22 +4,23 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-// Model presets have been removed. This tool needs to be rewritten to derive
-// model family information from v1 conversion configs instead of presets.
-// Stubs are provided so the module can still be imported for parseArgs/validation.
-const PRESET_DETECTION_ORDER = [];
-function getPreset() { return null; }
-function listPresets() { return []; }
-function resolvePreset(id) { throw new Error(`Model presets have been removed — resolvePreset("${id}") is no longer available. Rewrite sync-model-support-matrix to use v1 conversion configs.`); }
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const REPO_ROOT = path.resolve(__dirname, '..');
 const DEFAULT_OUTPUT_PATH = path.join(REPO_ROOT, 'docs/model-support-matrix.md');
-const CONVERSION_CONFIG_DIR = path.join(REPO_ROOT, 'tools/configs/conversion');
+const CONVERSION_CONFIG_DIR = path.join(REPO_ROOT, 'src/config/conversion');
 const CATALOG_PATH = path.join(REPO_ROOT, 'models/catalog.json');
 const QUICKSTART_REGISTRY_PATH = path.join(REPO_ROOT, 'src', 'client', 'doppler-registry.json');
 const RUNTIME_BLOCKED_MODEL_TYPES = new Set(['mamba', 'rwkv']);
+const FAMILY_ORDER = Object.freeze([
+  'embeddinggemma',
+  'gemma3',
+  'translategemma',
+  'gemma4',
+  'qwen3',
+  'lfm2',
+]);
 
 export function parseArgs(argv) {
   const args = {
@@ -57,16 +58,30 @@ function normalizeText(value) {
   return typeof value === 'string' ? value.trim().toLowerCase() : '';
 }
 
-function normalizeList(values) {
-  const out = [];
-  const seen = new Set();
-  for (const entry of values) {
-    const normalized = normalizeText(entry);
-    if (!normalized || seen.has(normalized)) continue;
-    seen.add(normalized);
-    out.push(normalized);
+function normalizeModelId(value) {
+  return typeof value === 'string' && value.trim() ? value.trim() : 'unknown-model';
+}
+
+function normalizeFamily(value) {
+  return typeof value === 'string' && value.trim() ? value.trim() : 'unknown';
+}
+
+function compareFamilies(left, right) {
+  const leftIndex = FAMILY_ORDER.indexOf(left);
+  const rightIndex = FAMILY_ORDER.indexOf(right);
+  if (leftIndex !== rightIndex) {
+    if (leftIndex === -1) return 1;
+    if (rightIndex === -1) return -1;
+    return leftIndex - rightIndex;
   }
-  return out;
+  return left.localeCompare(right);
+}
+
+function summarizeModes(model) {
+  const modes = Array.isArray(model?.modes)
+    ? model.modes.filter((entry) => typeof entry === 'string' && entry.trim())
+    : [];
+  return modes.length > 0 ? modes.join(', ') : 'run';
 }
 
 export function validateCatalogMatrixInputs(payload) {
@@ -93,6 +108,11 @@ export function validateCatalogMatrixInputs(payload) {
       errors.push(`duplicate catalog modelId: ${modelId}`);
     }
     seenModelIds.add(modelId);
+
+    const family = normalizeText(model?.family);
+    if (!family) {
+      errors.push(`${modelId}: family is required`);
+    }
 
     const lifecycle = model?.lifecycle && typeof model.lifecycle === 'object' ? model.lifecycle : {};
     const availability = lifecycle?.availability && typeof lifecycle.availability === 'object'
@@ -129,14 +149,9 @@ export function validateCatalogMatrixInputs(payload) {
     if (availability.curated === true && !(baseUrl.startsWith('./local/') || baseUrl.startsWith('local/'))) {
       errors.push(`${modelId}: lifecycle.availability.curated=true requires a repo-local baseUrl`);
     }
-    if (
-      availability.local === true
-      && !(baseUrl.startsWith('./local/')
-        || baseUrl.startsWith('local/'))
-    ) {
+    if (availability.local === true && !(baseUrl.startsWith('./local/') || baseUrl.startsWith('local/'))) {
       errors.push(`${modelId}: lifecycle.availability.local=true requires a repo-local baseUrl`);
     }
-
     if (demo === 'curated' && !(baseUrl.startsWith('./local/') || baseUrl.startsWith('local/'))) {
       errors.push(`${modelId}: lifecycle.status.demo=curated requires a repo-local baseUrl`);
     }
@@ -175,57 +190,52 @@ async function collectJsonFiles(rootDir) {
   return files;
 }
 
-function buildPresetOrder(presetIds) {
-  const presetSet = new Set(presetIds);
-  const order = [];
-  for (const presetId of PRESET_DETECTION_ORDER) {
-    if (!presetSet.has(presetId)) continue;
-    order.push(presetId);
-  }
-  const remaining = presetIds
-    .filter((presetId) => !order.includes(presetId))
-    .sort((left, right) => left.localeCompare(right));
-  order.push(...remaining);
-  return order;
+function inferFamilyFromModelId(modelId) {
+  const normalized = normalizeText(modelId);
+  if (!normalized) return null;
+  if (normalized.startsWith('google-embeddinggemma-') || normalized.startsWith('embeddinggemma-')) return 'embeddinggemma';
+  if (normalized.startsWith('translategemma-')) return 'translategemma';
+  if (normalized.startsWith('gemma-4-')) return 'gemma4';
+  if (normalized.startsWith('gemma-3-')) return 'gemma3';
+  if (normalized.startsWith('qwen-3-')) return 'qwen3';
+  if (normalized.startsWith('lfm2')) return 'lfm2';
+  if (normalized.startsWith('gpt-oss-')) return 'gpt_oss';
+  if (normalized.startsWith('janus-')) return 'janus_text';
+  if (normalized.startsWith('sana-')) return 'sana';
+  return null;
 }
 
-function inferPresetFromCatalogModel(model, presetOrder, presetSet) {
-  const explicitPreset = normalizeText(model?.preset);
-  if (!explicitPreset) {
-    return null;
+function inferFamilyFromConversionConfig(payload, filePath) {
+  const modelBaseId = normalizeText(payload?.output?.modelBaseId);
+  const modelIdFamily = inferFamilyFromModelId(modelBaseId);
+  if (modelIdFamily) {
+    return modelIdFamily;
   }
-  if (!presetSet.has(explicitPreset)) {
-    const modelId = normalizeText(model?.modelId) || 'unknown-model';
-    throw new Error(
-      `Catalog model "${modelId}" has preset "${explicitPreset}" which is not in the preset registry. ` +
-      `Valid presets: ${[...presetSet].sort().join(', ')}`
-    );
-  }
-  return explicitPreset;
+
+  const relative = path.relative(CONVERSION_CONFIG_DIR, filePath).replace(/\\/g, '/');
+  const [head] = relative.split('/');
+  const normalizedHead = normalizeText(head.replace(/\.json$/i, ''));
+  if (normalizedHead === 'janus') return 'janus_text';
+  return normalizedHead || 'unknown';
 }
 
-function resolveRuntimeModelType(presetId) {
-  const preset = resolvePreset(presetId);
-  const modelType = normalizeText(preset?.modelType);
-  if (!modelType) {
-    throw new Error(`Preset "${presetId}" resolved without a modelType field`);
+function inferRuntimeModelTypeFromConversionConfig(payload) {
+  const explicit = normalizeText(payload?.manifest?.modelType);
+  if (explicit) {
+    return explicit;
   }
-  return modelType;
+  const modelBaseId = normalizeText(payload?.output?.modelBaseId);
+  if (modelBaseId.startsWith('google-embeddinggemma-') || modelBaseId.startsWith('embeddinggemma-')) {
+    return 'embedding';
+  }
+  if (modelBaseId.startsWith('sana-')) {
+    return 'diffusion';
+  }
+  return 'transformer';
 }
 
 function resolveRuntimeStatus(modelType) {
   return RUNTIME_BLOCKED_MODEL_TYPES.has(modelType) ? 'blocked' : 'active';
-}
-
-function normalizeModelId(value) {
-  return typeof value === 'string' && value.trim() ? value.trim() : 'unknown-model';
-}
-
-function summarizeModes(model) {
-  const modes = Array.isArray(model?.modes)
-    ? model.modes.filter((entry) => typeof entry === 'string' && entry.trim())
-    : [];
-  return modes.length > 0 ? modes.join(', ') : 'run';
 }
 
 function createEmptyLifecycleAggregate() {
@@ -243,7 +253,7 @@ function createEmptyLifecycleAggregate() {
 function normalizeTestedState(value) {
   const normalized = normalizeText(value);
   if (normalized === 'verified' || normalized === 'pass' || normalized === 'passed') return 'verified';
-  if (normalized === 'failed' || normalized === 'fail') return 'failed';
+  if (normalized === 'failed' || normalized === 'fail' || normalized === 'failing') return 'failed';
   return 'unknown';
 }
 
@@ -260,11 +270,9 @@ function resolveCatalogLifecycle(model) {
     ? 'local'
     : 'none';
   const demo = normalizeText(status.demo) || fallbackDemo;
-
   const hosted = typeof availability.hf === 'boolean'
     ? availability.hf
     : (model?.hf && typeof model.hf === 'object');
-
   const testedState = normalizeTestedState(tested.result || status.tested);
   const testedAt = typeof tested.lastVerifiedAt === 'string' && tested.lastVerifiedAt.trim()
     ? tested.lastVerifiedAt.trim()
@@ -332,17 +340,19 @@ function buildCatalogModelStatusEntry(model) {
     : {};
   return {
     modelId: normalizeModelId(model?.modelId),
-    preset: normalizeText(model?.preset) || 'unknown',
+    family: normalizeFamily(model?.family),
     modes: summarizeModes(model),
     runtimeStatus: normalizeText(status.runtime) || 'unknown',
     tested: lifecycle.tested,
     testedAt: lifecycle.testedAt,
-    surface: typeof tested.surface === 'string' && tested.surface.trim() ? tested.surface.trim() : null,
+    surface: Array.isArray(tested.surface)
+      ? tested.surface.join(', ')
+      : (typeof tested.surface === 'string' && tested.surface.trim() ? tested.surface.trim() : null),
     notes: typeof tested.notes === 'string' && tested.notes.trim() ? tested.notes.trim() : null,
   };
 }
 
-function buildPresetCoverageEntry(row) {
+function buildFamilyCoverageEntry(row) {
   const notes = [];
   if (row.runtimeStatus === 'blocked') {
     notes.push('runtime path is fail-closed');
@@ -350,8 +360,8 @@ function buildPresetCoverageEntry(row) {
     notes.push('conversion configs exist, but there is no cataloged model entry yet');
   }
   return {
-    entry: row.presetId,
-    type: 'preset family',
+    entry: row.family,
+    type: 'model family',
     status: row.status,
     notes: notes.join('; '),
   };
@@ -366,6 +376,7 @@ export function buildCurrentInferenceStatusBuckets({ catalogModels, quickStartMo
     ? catalogModels.slice().sort(compareCatalogModels)
     : [];
   const catalogModelIds = new Set();
+
   for (const model of sortedCatalogModels) {
     const entry = buildCatalogModelStatusEntry(model);
     catalogModelIds.add(entry.modelId);
@@ -400,11 +411,11 @@ export function buildCurrentInferenceStatusBuckets({ catalogModels, quickStartMo
       }))
     : [];
 
-  const everythingElsePresets = Array.isArray(rows)
+  const everythingElseFamilies = Array.isArray(rows)
     ? rows
       .filter((row) => row.catalogCount === 0)
-      .sort((left, right) => left.presetId.localeCompare(right.presetId))
-      .map((row) => buildPresetCoverageEntry(row))
+      .sort((left, right) => compareFamilies(left.family, right.family))
+      .map((row) => buildFamilyCoverageEntry(row))
     : [];
 
   return {
@@ -412,7 +423,7 @@ export function buildCurrentInferenceStatusBuckets({ catalogModels, quickStartMo
     loadsButUnverified,
     knownFailing,
     quickstartOnly,
-    everythingElse: [...everythingElseCatalog, ...everythingElsePresets],
+    everythingElse: [...everythingElseCatalog, ...everythingElseFamilies],
   };
 }
 
@@ -452,10 +463,10 @@ function renderCurrentInferenceStatus(lines, buckets) {
     lines.push('');
   } else {
     pushTable(lines,
-      ['Model ID', 'Preset', 'Modes', 'Last verified', 'Surface', 'Notes'],
+      ['Model ID', 'Family', 'Modes', 'Last verified', 'Surface', 'Notes'],
       buckets.verified.map((entry) => [
         entry.modelId,
-        entry.preset,
+        entry.family,
         entry.modes,
         entry.testedAt || null,
         entry.surface || null,
@@ -470,10 +481,10 @@ function renderCurrentInferenceStatus(lines, buckets) {
     lines.push('');
   } else {
     pushTable(lines,
-      ['Model ID', 'Preset', 'Modes', 'Runtime', 'Notes'],
+      ['Model ID', 'Family', 'Modes', 'Runtime', 'Notes'],
       buckets.loadsButUnverified.map((entry) => [
         entry.modelId,
-        entry.preset,
+        entry.family,
         entry.modes,
         entry.runtimeStatus,
         entry.notes || 'Cataloged model without a passing or failing verification result yet.',
@@ -487,10 +498,10 @@ function renderCurrentInferenceStatus(lines, buckets) {
     lines.push('');
   } else {
     pushTable(lines,
-      ['Model ID', 'Preset', 'Modes', 'Last checked', 'Surface', 'Notes'],
+      ['Model ID', 'Family', 'Modes', 'Last checked', 'Surface', 'Notes'],
       buckets.knownFailing.map((entry) => [
         entry.modelId,
-        entry.preset,
+        entry.family,
         entry.modes,
         entry.testedAt || null,
         entry.surface || null,
@@ -534,15 +545,15 @@ function renderMatrix(rows, metadata, buckets) {
   const lines = [];
   lines.push('# Model Support Matrix');
   lines.push('');
-  lines.push('Auto-generated from preset registry (`src/config/loader.js`), conversion configs (`tools/configs/conversion/**`), and `models/catalog.json`.');
-  lines.push('Run `npm run support:matrix:sync` after editing `models/catalog.json` or changing presets/conversion configs.');
+  lines.push('Auto-generated from conversion configs (`src/config/conversion/**`) and `models/catalog.json`.');
+  lines.push('Run `npm run support:matrix:sync` after editing `models/catalog.json` or changing conversion configs.');
   lines.push('');
   lines.push(`Updated at: ${metadata.generatedAt}`);
   lines.push('');
   renderCurrentInferenceStatus(lines, buckets);
-  lines.push('## Preset Coverage Matrix');
+  lines.push('## Family Coverage Matrix');
   lines.push('');
-  lines.push('| Preset | Runtime modelType | Runtime | Conversion configs | Catalog models | Hosted (HF) | Demo | Tested | Status | Notes |');
+  lines.push('| Family | Runtime modelType | Runtime | Conversion configs | Catalog models | Hosted (HF) | Demo | Tested | Status | Notes |');
   lines.push('| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |');
   for (const row of rows) {
     const notes = [];
@@ -558,39 +569,23 @@ function renderMatrix(rows, metadata, buckets) {
     if (row.catalogCount > 0 && row.conversionCount > row.catalogCount) {
       notes.push(`catalog verification applies only to cataloged models (${row.catalogCount}/${row.conversionCount} conversion configs cataloged)`);
     }
-    if (
-      row.catalogCount > 0
-      && row.lifecycleVerifiedCount > 0
-      && row.lifecycleVerifiedCount < row.catalogCount
-    ) {
+    if (row.catalogCount > 0 && row.lifecycleVerifiedCount > 0 && row.lifecycleVerifiedCount < row.catalogCount) {
       notes.push(`partial verification (${row.lifecycleVerifiedCount}/${row.catalogCount} catalog models verified)`);
     }
-    if (
-      row.catalogCount > 0
-      && row.lifecycleFailedCount > 0
-      && row.lifecycleFailedCount < row.catalogCount
-    ) {
+    if (row.catalogCount > 0 && row.lifecycleFailedCount > 0 && row.lifecycleFailedCount < row.catalogCount) {
       notes.push(`mixed verification state (${row.lifecycleFailedCount}/${row.catalogCount} catalog models failing)`);
     }
     const noteText = notes.length > 0 ? notes.join('; ') : '-';
     let testedLabel = row.lifecycleTested;
-    if (
-      row.lifecycleTested === 'verified'
-      && row.lifecycleVerifiedCount > 0
-      && row.lifecycleVerifiedCount < row.catalogCount
-    ) {
+    if (row.lifecycleTested === 'verified' && row.lifecycleVerifiedCount > 0 && row.lifecycleVerifiedCount < row.catalogCount) {
       testedLabel = `partially verified (${row.lifecycleVerifiedCount}/${row.catalogCount})`;
     } else if (row.lifecycleTested === 'verified' && row.lifecycleTestedAt) {
       testedLabel = `verified (${row.lifecycleTestedAt})`;
-    } else if (
-      row.lifecycleTested === 'failed'
-      && row.lifecycleFailedCount > 0
-      && row.lifecycleFailedCount < row.catalogCount
-    ) {
+    } else if (row.lifecycleTested === 'failed' && row.lifecycleFailedCount > 0 && row.lifecycleFailedCount < row.catalogCount) {
       testedLabel = `partially failing (${row.lifecycleFailedCount}/${row.catalogCount})`;
     }
     lines.push(
-      `| ${row.presetId} | ${row.runtimeModelType} | ${row.runtimeStatus} | ` +
+      `| ${row.family} | ${row.runtimeModelType} | ${row.runtimeStatus} | ` +
       `${summarizeList(row.conversionFiles)} | ${summarizeList(row.catalogModels)} | ` +
       `${row.lifecycleHosted ? 'yes' : 'no'} | ${row.lifecycleDemo} | ${testedLabel} | ${row.status} | ${noteText} |`
     );
@@ -598,15 +593,15 @@ function renderMatrix(rows, metadata, buckets) {
   lines.push('');
   lines.push('## Summary');
   lines.push('');
-  lines.push(`- Presets tracked: ${metadata.presetCount}`);
-  lines.push(`- Presets with conversion configs: ${metadata.presetsWithConversion}`);
-  lines.push(`- Presets present in catalog: ${metadata.presetsInCatalog}`);
-  lines.push(`- Verified presets (active runtime + conversion + catalog + passing verification): ${metadata.verifiedReadyCount}`);
-  lines.push(`- Cataloged presets pending verification: ${metadata.verificationPendingCount}`);
-  lines.push(`- Presets with HF-hosted catalog entries: ${metadata.hostedCount}`);
-  lines.push(`- Presets with verified catalog lifecycle: ${metadata.verifiedCount}`);
-  lines.push(`- Presets with failed catalog verification: ${metadata.failedVerificationCount}`);
-  lines.push(`- Blocked runtime presets: ${metadata.blockedCount}`);
+  lines.push(`- Families tracked: ${metadata.familyCount}`);
+  lines.push(`- Families with conversion configs: ${metadata.familiesWithConversion}`);
+  lines.push(`- Families present in catalog: ${metadata.familiesInCatalog}`);
+  lines.push(`- Verified families (active runtime + conversion + catalog + passing verification): ${metadata.verifiedReadyCount}`);
+  lines.push(`- Cataloged families pending verification: ${metadata.verificationPendingCount}`);
+  lines.push(`- Families with HF-hosted catalog entries: ${metadata.hostedCount}`);
+  lines.push(`- Families with verified catalog lifecycle: ${metadata.verifiedCount}`);
+  lines.push(`- Families with failed catalog verification: ${metadata.failedVerificationCount}`);
+  lines.push(`- Blocked runtime families: ${metadata.blockedCount}`);
   lines.push(`- Catalog entries: ${metadata.catalogCount}`);
   lines.push('');
   return `${lines.join('\n')}\n`;
@@ -614,20 +609,28 @@ function renderMatrix(rows, metadata, buckets) {
 
 async function main() {
   const args = parseArgs(process.argv.slice(2));
-  const presetIds = listPresets();
-  const presetOrder = buildPresetOrder(presetIds);
-  const presetSet = new Set(presetIds);
 
   const conversionFiles = await collectJsonFiles(CONVERSION_CONFIG_DIR);
-  const conversionByPreset = new Map(presetIds.map((presetId) => [presetId, []]));
+  const familyIds = [];
+  const familySet = new Set();
+  const conversionByFamily = new Map();
+  const runtimeModelTypeByFamily = new Map();
   for (const filePath of conversionFiles) {
     const payload = await readJson(filePath);
-    const presetId = normalizeText(payload?.presets?.model);
-    if (!presetId || !presetSet.has(presetId)) continue;
-    conversionByPreset.get(presetId).push(relativePath(filePath));
+    const family = inferFamilyFromConversionConfig(payload, filePath);
+    if (!familySet.has(family)) {
+      familySet.add(family);
+      familyIds.push(family);
+      conversionByFamily.set(family, []);
+    }
+    conversionByFamily.get(family).push(relativePath(filePath));
+    if (!runtimeModelTypeByFamily.has(family)) {
+      runtimeModelTypeByFamily.set(family, inferRuntimeModelTypeFromConversionConfig(payload));
+    }
   }
-  for (const presetId of presetIds) {
-    conversionByPreset.get(presetId).sort((left, right) => left.localeCompare(right));
+  familyIds.sort(compareFamilies);
+  for (const family of familyIds) {
+    conversionByFamily.get(family).sort((left, right) => left.localeCompare(right));
   }
 
   const catalogPayload = await readJson(CATALOG_PATH);
@@ -636,78 +639,69 @@ async function main() {
     throw new Error(`Catalog lifecycle metadata is invalid:\n${catalogInputErrors.join('\n')}`);
   }
   const catalogModels = Array.isArray(catalogPayload?.models) ? catalogPayload.models : [];
-  const catalogByPreset = new Map(presetIds.map((presetId) => [presetId, []]));
-  const lifecycleByPreset = new Map(
-    presetIds.map((presetId) => [presetId, createEmptyLifecycleAggregate()])
-  );
+  const catalogByFamily = new Map(familyIds.map((family) => [family, []]));
+  const lifecycleByFamily = new Map(familyIds.map((family) => [family, createEmptyLifecycleAggregate()]));
   const unmappedCatalogModels = [];
+
   for (const model of catalogModels) {
-    const inferredPreset = inferPresetFromCatalogModel(model, presetOrder, presetSet);
-    if (!inferredPreset) {
-      const modelId = typeof model?.modelId === 'string' && model.modelId.trim()
-        ? model.modelId.trim()
-        : 'unknown-model';
+    const family = normalizeText(model?.family);
+    if (!family) {
+      const modelId = typeof model?.modelId === 'string' && model.modelId.trim() ? model.modelId.trim() : 'unknown-model';
       unmappedCatalogModels.push(modelId);
       continue;
     }
-    const modelId = typeof model?.modelId === 'string' && model.modelId.trim()
-      ? model.modelId.trim()
-      : 'unknown-model';
-    catalogByPreset.get(inferredPreset).push(modelId);
-    lifecycleByPreset.set(
-      inferredPreset,
+    if (!familySet.has(family)) {
+      const modelId = typeof model?.modelId === 'string' && model.modelId.trim() ? model.modelId.trim() : 'unknown-model';
+      throw new Error(
+        `Catalog model "${modelId}" has family "${family}" which is not represented by any conversion config. ` +
+        `Valid families: ${familyIds.join(', ')}`
+      );
+    }
+    const modelId = typeof model?.modelId === 'string' && model.modelId.trim() ? model.modelId.trim() : 'unknown-model';
+    catalogByFamily.get(family).push(modelId);
+    lifecycleByFamily.set(
+      family,
       mergeLifecycleAggregate(
-        lifecycleByPreset.get(inferredPreset) || createEmptyLifecycleAggregate(),
+        lifecycleByFamily.get(family) || createEmptyLifecycleAggregate(),
         resolveCatalogLifecycle(model)
       )
     );
   }
-  for (const presetId of presetIds) {
-    catalogByPreset.get(presetId).sort((left, right) => left.localeCompare(right));
+  for (const family of familyIds) {
+    catalogByFamily.get(family).sort((left, right) => left.localeCompare(right));
   }
 
-  const rows = presetOrder.map((presetId) => {
-    const runtimeModelType = resolveRuntimeModelType(presetId);
+  if (unmappedCatalogModels.length > 0) {
+    throw new Error(`Catalog entries missing family mapping: ${unmappedCatalogModels.join(', ')}`);
+  }
+
+  const rows = familyIds.map((family) => {
+    const runtimeModelType = runtimeModelTypeByFamily.get(family) || 'transformer';
     const runtimeStatus = resolveRuntimeStatus(runtimeModelType);
-    const conversionFilesForPreset = conversionByPreset.get(presetId) || [];
-    const catalogModelsForPreset = catalogByPreset.get(presetId) || [];
-    const lifecycleForPreset = lifecycleByPreset.get(presetId) || createEmptyLifecycleAggregate();
+    const conversionFilesForFamily = conversionByFamily.get(family) || [];
+    const catalogModelsForFamily = catalogByFamily.get(family) || [];
+    const lifecycleForFamily = lifecycleByFamily.get(family) || createEmptyLifecycleAggregate();
     const row = {
-      presetId,
+      family,
       runtimeModelType,
       runtimeStatus,
-      conversionFiles: conversionFilesForPreset,
-      conversionCount: conversionFilesForPreset.length,
-      catalogModels: catalogModelsForPreset,
-      catalogCount: catalogModelsForPreset.length,
-      lifecycleHosted: lifecycleForPreset.hosted === true,
-      lifecycleDemo: lifecycleForPreset.demo,
-      lifecycleTested: lifecycleForPreset.tested,
-      lifecycleTestedAt: lifecycleForPreset.testedAt,
-      lifecycleCatalogCount: lifecycleForPreset.catalogCount,
-      lifecycleVerifiedCount: lifecycleForPreset.verifiedCount,
-      lifecycleFailedCount: lifecycleForPreset.failedCount,
+      conversionFiles: conversionFilesForFamily,
+      conversionCount: conversionFilesForFamily.length,
+      catalogModels: catalogModelsForFamily,
+      catalogCount: catalogModelsForFamily.length,
+      lifecycleHosted: lifecycleForFamily.hosted === true,
+      lifecycleDemo: lifecycleForFamily.demo,
+      lifecycleTested: lifecycleForFamily.tested,
+      lifecycleTestedAt: lifecycleForFamily.testedAt,
+      lifecycleCatalogCount: lifecycleForFamily.catalogCount,
+      lifecycleVerifiedCount: lifecycleForFamily.verifiedCount,
+      lifecycleFailedCount: lifecycleForFamily.failedCount,
     };
     return {
       ...row,
       status: resolveRowStatus(row),
     };
   });
-
-  const missingConversionPresets = rows
-    .filter((row) => row.conversionCount === 0)
-    .map((row) => row.presetId);
-  if (missingConversionPresets.length > 0) {
-    throw new Error(
-      `Missing conversion config coverage for presets: ${missingConversionPresets.join(', ')}`
-    );
-  }
-
-  if (unmappedCatalogModels.length > 0) {
-    throw new Error(
-      `Catalog entries missing preset mapping: ${unmappedCatalogModels.join(', ')}`
-    );
-  }
 
   const quickstartRegistry = await readJson(QUICKSTART_REGISTRY_PATH);
   const quickStartModelIds = Array.isArray(quickstartRegistry?.models)
@@ -726,9 +720,9 @@ async function main() {
     generatedAt: typeof catalogPayload?.updatedAt === 'string' && catalogPayload.updatedAt.trim()
       ? catalogPayload.updatedAt.trim()
       : 'unknown',
-    presetCount: rows.length,
-    presetsWithConversion: rows.filter((row) => row.conversionCount > 0).length,
-    presetsInCatalog: rows.filter((row) => row.catalogCount > 0).length,
+    familyCount: rows.length,
+    familiesWithConversion: rows.filter((row) => row.conversionCount > 0).length,
+    familiesInCatalog: rows.filter((row) => row.catalogCount > 0).length,
     verifiedReadyCount: rows.filter((row) => row.status === 'verified').length,
     verificationPendingCount: rows.filter((row) => row.status === 'verification-pending').length,
     hostedCount: rows.filter((row) => row.lifecycleHosted).length,
@@ -755,18 +749,17 @@ async function main() {
         'Run npm run support:matrix:sync'
       );
     }
-    console.log(`[support-matrix] up to date (${rows.length} presets)`);
+    console.log(`[support-matrix] up to date (${rows.length} families)`);
     return;
   }
 
-  await fs.mkdir(path.dirname(args.outputPath), { recursive: true });
   await fs.writeFile(args.outputPath, nextContent, 'utf8');
-  console.log(`[support-matrix] wrote ${relativePath(args.outputPath)} (${rows.length} presets)`);
+  console.log(`[support-matrix] wrote ${relativePath(args.outputPath)}`);
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   main().catch((error) => {
-    console.error(`[support-matrix] ${error.message}`);
-    process.exit(1);
+    console.error(error instanceof Error ? error.message : String(error));
+    process.exitCode = 1;
   });
 }

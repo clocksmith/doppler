@@ -32,20 +32,20 @@ import {
 
 {
   const source = readFileSync(new URL('../../benchmarks/vendors/compare-chart.js', import.meta.url), 'utf8');
-  assert.match(source, /Prompt → First Token \${resolved\.ttft\.toFixed\(1\)} ms/);
-  assert.match(source, /label: 'Prompt → First Token'/);
-  assert.match(source, /font-weight="bold">TTFT</);
+  assert.match(source, /title: 'First token'/);
+  assert.match(source, /Phase breakdown with warm load, first-token latency, and decode time\./);
+  assert.match(source, /font-weight="bold" stroke="none">TOTAL<\/text>/);
 }
 
 for (const fixtureName of [
-  'compare_20260303T175640.json',
-  'compare_20260303T210150.json',
+  'g3-1b-p064-d064-t0-k1.compare.json',
+  'lfm2-5-1-2b-p064-d064-t0-k1.compare.json',
 ]) {
-  const fixture = JSON.parse(readFileSync(new URL(`../../benchmarks/vendors/results/${fixtureName}`, import.meta.url), 'utf8'));
+  const fixture = JSON.parse(readFileSync(new URL(`../../benchmarks/vendors/fixtures/${fixtureName}`, import.meta.url), 'utf8'));
   assert.equal(fixture.metricContract.metrics[1].id, 'promptTokensPerSecToFirstToken');
   assert.equal(
     fixture.methodology.promptTokensPerSecToFirstToken,
-    'prompt_tokens / first_token_ms',
+    'prompt_tokens / firstTokenMs',
   );
   assert.ok(
     fixture.harnesses.doppler.requiredMetrics.includes('promptTokensPerSecToFirstToken'),

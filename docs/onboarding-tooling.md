@@ -20,7 +20,7 @@ node tools/onboarding-tooling.js check [--root <repo-root>] [--strict] [--json]
 ```
 
 Validates:
-- model preset shape and references
+- checked-in config asset shape and references
 - runtime profile shape and extends-chain integrity
 - conversion config references and output fields
 - kernel path registry integrity and kernel existence
@@ -33,7 +33,7 @@ Exit behavior:
 ## scaffold mode
 
 ```bash
-node tools/onboarding-tooling.js scaffold --kind <model|conversion|kernel|behavior> --id <id> [flags]
+node tools/onboarding-tooling.js scaffold --kind <conversion|kernel|behavior> --id <id> [flags]
 ```
 
 Shared flags:
@@ -42,9 +42,8 @@ Shared flags:
 - `--force`
 
 Kinds:
-- `model`: create model preset stub
 - `conversion`: create conversion config stub
-- `kernel`: create kernel-path preset stub
+- `kernel`: create kernel-path config stub
 - `behavior`: create runtime profile stub
 
 ## Canonical operational sequence
@@ -56,6 +55,6 @@ Kinds:
 
 ## Related
 
-- Conversion config details: [../tools/configs/conversion/README.md](../tools/configs/conversion/README.md)
+- Conversion config details: [../src/config/conversion/README.md](../src/config/conversion/README.md)
 - Support matrix generation: [model-support-matrix.md](model-support-matrix.md)
 - Hosted publish and registry checks: [registry-workflow.md](registry-workflow.md)

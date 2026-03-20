@@ -135,7 +135,7 @@ Open `tests/harness.html` in `kernels` mode and call the dequant helpers from th
 
 Always verify buffer sizes match expected dimensions. Enable `runtime.shared.debug.trace.enabled=true` (log level `trace`) to capture tensor shapes, dequant ops, and buffer details automatically. See [Section 2](#2-toggleable-debug-categories) for the full log level table.
 
-For Node runs, pass a preset that sets `logLevel: "trace"` via `runtime.shared.debug`. In the browser, enable via `DOPPLER.debug()` with the appropriate category and `bufferStats: true` for GPU readback inspection.
+For Node runs, pass a runtime profile or config that sets `logLevel: "trace"` via `runtime.shared.debug`. In the browser, enable via `DOPPLER.debug()` with the appropriate category and `bufferStats: true` for GPU readback inspection.
 
 ### Matmul Dimension Checklist
 
@@ -158,7 +158,7 @@ DOPPLER has a toggleable debug system with category-based filtering. This allows
 // In browser DevTools console:
 DOPPLER.debug()                              // Show current config & help
 DOPPLER.debug({ embed: true, logits: true }) // Enable specific categories
-DOPPLER.debug('quick')                       // Use preset (embed + logits + sample)
+DOPPLER.debug('quick')                       // Use built-in debug profile (embed + logits + sample)
 DOPPLER.debug('layers')                      // Layer entry/exit tracing
 DOPPLER.debug('attention')                   // Attention + KV cache
 DOPPLER.debug('full')                        // Everything (verbose!)
@@ -284,9 +284,9 @@ DOPPLER.debug(
 );
 ```
 
-### Presets
+### Debug Profiles
 
-| Preset | Categories | Use Case |
+| Profile | Categories | Use Case |
 |--------|------------|----------|
 | `quick` | embed, logits, sample | Quick sanity check |
 | `layers` | layer | Watch hidden state flow |
@@ -302,7 +302,7 @@ DOPPLER.debug(
 
 To inspect buffer stats at specific pipeline stages, enable the trace system via runtime config rather than modifying source files.
 
-Enable per-layer tracing in the runtime preset or config payload:
+Enable per-layer tracing in the runtime profile or config payload:
 
 ```json
 {
@@ -628,7 +628,7 @@ For architecture-specific RoPE config, inspect the manifest fields `rope_theta`,
 |-------|-------|-------|
 | LLaMA | 10000 | Standard |
 | Gemma 3 | 1000000 | Higher theta |
-| GPT-OSS | 150000 | YARN scaling factor=32 (see `src/config/presets/models/gpt-oss.json`) |
+| GPT-OSS | 150000 | YARN scaling factor=32 (see explicit conversion/runtime config for the chosen artifact) |
 
 ---
 

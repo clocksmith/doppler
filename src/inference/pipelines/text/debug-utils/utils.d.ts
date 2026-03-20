@@ -1,7 +1,7 @@
 /**
  * General utilities for pipeline debugging.
  *
- * Provides math helpers, buffer decoding, health checks, and preset configurations.
+ * Provides math helpers, buffer decoding, health checks, and debug profile configurations.
  *
  * @module inference/pipelines/text/debug-utils/utils
  */
@@ -50,13 +50,13 @@ export function getBufferStats(
 ): Promise<{ min: number; max: number; maxAbs: number; sample: number[]; nanCount: number } | null>;
 
 // ============================================================================
-// Debug Presets
+// Debug Profiles
 // ============================================================================
 
 /**
- * Preset debug configurations for common debugging scenarios.
+ * Built-in debug profile configurations for common debugging scenarios.
  */
-export const DEBUG_PRESETS: {
+export const DEBUG_PROFILES: {
   /** Quick check: just embedding and final logits */
   quick: Partial<Record<DebugCategory, boolean>>;
 

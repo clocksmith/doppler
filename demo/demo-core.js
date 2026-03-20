@@ -1,9 +1,6 @@
 import {
   log,
-  listPresets,
   createConverterConfig,
-  detectPreset,
-  resolvePreset,
   getRuntimeConfig,
   setRuntimeConfig,
   DEFAULT_MANIFEST_INFERENCE,
@@ -29,7 +26,6 @@ import {
   convertModel,
   createRemoteModelSources,
   isConversionSupported,
-  buildManifestInference,
   inferEmbeddingOutputConfig,
   pickModelDirectory,
   pickModelFiles,
@@ -69,8 +65,8 @@ import {
 import {
   ENERGY_DEMOS,
   DEFAULT_ENERGY_DEMO_ID,
-  DEFAULT_RUNTIME_PRESET,
-  RUNTIME_PRESET_REGISTRY,
+  DEFAULT_RUNTIME_PROFILE,
+  RUNTIME_PROFILE_REGISTRY,
 } from './ui/constants.js';
 import {
   updateEnergyStatus,
@@ -105,8 +101,8 @@ import {
   decodeDiagnosticsProfileId,
   selectDiagnosticsModel,
   handleRuntimeConfigFile,
-  applyRuntimeConfigPreset,
-  applySelectedRuntimePreset,
+  applyRuntimeConfigProfile,
+  applySelectedRuntimeProfile,
 } from './ui/diagnostics/index.js';
 import {
   normalizeModelType,
@@ -165,8 +161,8 @@ const QUICK_MODEL_CATALOG_URLS = buildQuickCatalogCandidateUrls();
 const QUICK_MODEL_HF_HOST = 'huggingface.co';
 const QUICK_MODEL_HF_COMMIT_PATTERN = /^[a-f0-9]{7,64}$/i;
 const DISTILL_WORKLOAD_REGISTRY_URL = typeof window === 'object' && window.location?.origin
-  ? new URL('/tools/configs/training-workloads/registry.json', window.location.origin).toString()
-  : new URL('../tools/configs/training-workloads/registry.json', import.meta.url).toString();
+  ? new URL('/src/training/workload-packs/registry.json', window.location.origin).toString()
+  : new URL('../src/training/workload-packs/registry.json', import.meta.url).toString();
 const RUN_STARTER_PROMPTS = Object.freeze([
   'is potential energy real?',
   'compare zig to rust to elvish',
@@ -290,7 +286,7 @@ const TRANSLATE_COMPARE_ENGINE_OPTIONS = Object.freeze([
 const TRANSLATE_COMPARE_PRESETS = Object.freeze([
   Object.freeze({
     id: 'proof',
-    label: 'Proof preset',
+    label: 'Proof layout',
     description: 'Public Transformers.js q4 baseline versus Doppler student on the same proof console.',
     lanes: Object.freeze({
       left: Object.freeze({ engine: 'transformersjs', role: 'mapped-baseline' }),
@@ -338,7 +334,7 @@ const TRANSLATE_COMPARE_HISTORY_FILTERS = Object.freeze([
   Object.freeze({ id: 'all', label: 'All' }),
   Object.freeze({ id: 'same-model', label: 'Same model' }),
   Object.freeze({ id: 'same-engine', label: 'Same engine' }),
-  Object.freeze({ id: 'proof', label: 'Proof preset' }),
+  Object.freeze({ id: 'proof', label: 'Proof layout' }),
 ]);
 const TRANSLATE_COMPARE_SMOKE_SAMPLES = Object.freeze([
   Object.freeze({
@@ -856,7 +852,7 @@ function serializeTranslateCompareArtifactPayload(artifact) {
         options: artifact.request.options && typeof artifact.request.options === 'object'
           ? artifact.request.options
           : {},
-        presetId: resolveText(artifact.request.presetId, 'custom'),
+        layoutId: resolveText(artifact.request.layoutId, 'custom'),
       }
       : {
         prompt: '',
@@ -865,7 +861,7 @@ function serializeTranslateCompareArtifactPayload(artifact) {
         targetCode: DEFAULT_TRANSLATE_TARGET,
         targetName: DEFAULT_TRANSLATE_TARGET,
         options: {},
-        presetId: 'custom',
+        layoutId: 'custom',
       },
     environment: artifact.environment && typeof artifact.environment === 'object'
       ? artifact.environment
@@ -907,7 +903,7 @@ function serializeTranslateCompareHistoryEntry(entry) {
     sourceCode: resolveText(entry?.sourceCode, DEFAULT_TRANSLATE_SOURCE),
     targetCode: resolveText(entry?.targetCode, DEFAULT_TRANSLATE_TARGET),
     prompt: String(entry?.prompt || ''),
-    presetId: resolveText(entry?.presetId, 'custom'),
+    layoutId: resolveText(entry?.layoutId, 'custom'),
     artifact: serializeTranslateCompareArtifactPayload(entry?.artifact),
     lanes,
   };
@@ -1035,34 +1031,34 @@ function getTranslateCompatibleRegisteredModelIds() {
   return ids;
 }
 
-function getTranslateComparePreset(presetId) {
-  const normalizedId = resolveText(presetId, 'proof');
+function getTranslateCompareLayout(layoutId) {
+  const normalizedId = resolveText(layoutId, 'proof');
   return TRANSLATE_COMPARE_PRESETS.find((entry) => entry.id === normalizedId)
     || TRANSLATE_COMPARE_PRESETS[0];
 }
 
 const TRANSLATE_COMPARE_TJS_BASELINE_NOTE = 'Baseline parity is currently unsupported in public TJS ONNX exports.';
 
-function getTranslateComparePresetNote(presetId) {
-  const preset = getTranslateComparePreset(presetId);
-  if (preset.id === 'engine-parity' && !getMappedCompareBaselineProfile()) {
-    return `${preset.description} The UI will fail closed until a baseline mapping is configured.`;
+function getTranslateCompareLayoutNote(layoutId) {
+  const layout = getTranslateCompareLayout(layoutId);
+  if (layout.id === 'engine-parity' && !getMappedCompareBaselineProfile()) {
+    return `${layout.description} The UI will fail closed until a baseline mapping is configured.`;
   }
   const usesTjsMappedBaseline = ['left', 'right'].some((laneId) => {
-    const lane = preset?.lanes?.[laneId];
+    const lane = layout?.lanes?.[laneId];
     return lane?.engine === 'transformersjs' && lane?.role === 'mapped-baseline';
   });
   if (usesTjsMappedBaseline) {
-    return `${preset.description} ${TRANSLATE_COMPARE_TJS_BASELINE_NOTE}`;
+    return `${layout.description} ${TRANSLATE_COMPARE_TJS_BASELINE_NOTE}`;
   }
   const usesStudentRole = ['left', 'right'].some((laneId) => {
-    const role = resolveText(preset?.lanes?.[laneId]?.role, '');
+    const role = resolveText(layout?.lanes?.[laneId]?.role, '');
     return role === 'student' || role === 'student-mapped';
   });
   if (usesStudentRole && !resolveText(getTranslateCompareStudentModelId(), '')) {
-    return `${preset.description} Waiting for the student artifact and any TJS mapping.`;
+    return `${layout.description} Waiting for the student artifact and any TJS mapping.`;
   }
-  return preset.description;
+  return layout.description;
 }
 
 function getTranslateCompareModelLabel(modelId) {
@@ -1261,12 +1257,12 @@ function normalizeTranslateCompareHistoryFilter(filterId) {
     : 'all';
 }
 
-function getTranslateCompareLaneRoleLabel({ presetId, laneId, modelId }) {
-  const presetRole = resolveText(getTranslateComparePreset(presetId)?.lanes?.[laneId]?.role, '');
-  if (presetRole === 'baseline' || presetRole === 'mapped-baseline') {
+function getTranslateCompareLaneRoleLabel({ layoutId, laneId, modelId }) {
+  const layoutRole = resolveText(getTranslateCompareLayout(layoutId)?.lanes?.[laneId]?.role, '');
+  if (layoutRole === 'baseline' || layoutRole === 'mapped-baseline') {
     return 'baseline';
   }
-  if (presetRole === 'student' || presetRole === 'student-mapped') {
+  if (layoutRole === 'student' || layoutRole === 'student-mapped') {
     return resolveText(modelId, '') ? 'student' : 'student slot';
   }
   if (resolveText(modelId, '') === TRANSLATE_COMPARE_DEFAULT_BASELINE_MODEL_ID) {
@@ -1285,7 +1281,7 @@ function getTranslateCompareEntryLaneRoleLabel(entry, laneId) {
     return artifactRole;
   }
   return getTranslateCompareLaneRoleLabel({
-    presetId: entry?.presetId,
+    layoutId: entry?.layoutId,
     laneId,
     modelId: entry?.lanes?.[laneId]?.modelId,
   });
@@ -1334,7 +1330,7 @@ function matchesTranslateCompareHistoryFilter(entry, filterId) {
     return summary.sameEngine;
   }
   if (normalizedFilter === 'proof') {
-    return resolveText(entry?.presetId, '') === 'proof';
+    return resolveText(entry?.layoutId, '') === 'proof';
   }
   return true;
 }
@@ -1414,7 +1410,7 @@ function buildTranslateCompareArtifact(prompt, sourceCode, targetCode, options) 
       modelLabel: getTranslateCompareModelLabel(lane.modelId),
       tjsModelId: resolveText(resolveTransformersModelIdForLane(lane), ''),
       roleLabel: getTranslateCompareLaneRoleLabel({
-        presetId: state.comparePresetId,
+        layoutId: state.compareLayoutId,
         laneId,
         modelId: lane.modelId,
       }),
@@ -1425,7 +1421,7 @@ function buildTranslateCompareArtifact(prompt, sourceCode, targetCode, options) 
     };
   }
   const snapshot = {
-    presetId: state.comparePresetId,
+    layoutId: state.compareLayoutId,
     lanes,
   };
   const summary = summarizeTranslateCompareHistoryEntry(snapshot);
@@ -1448,7 +1444,7 @@ function buildTranslateCompareArtifact(prompt, sourceCode, targetCode, options) 
         topK: options.topK,
         maxTokens: options.maxTokens,
       },
-      presetId: state.comparePresetId || 'custom',
+      layoutId: state.compareLayoutId || 'custom',
     },
     environment: buildTranslateCompareEnvironmentMetadata(),
     evidence: {
@@ -1578,7 +1574,7 @@ function renderTranslateCompareLane(laneId) {
   setText(
     badgeEl,
     getTranslateCompareLaneRoleLabel({
-      presetId: state.comparePresetId,
+      layoutId: state.compareLayoutId,
       laneId,
       modelId: lane.modelId,
     })
@@ -1654,7 +1650,7 @@ function renderTranslateCompareHistory() {
     summary.innerHTML = `
       <div class="translate-history-card-top">
         <span class="translate-history-time type-caption">${formatCompareTimestamp(entry.createdAt)}</span>
-        <span class="translate-history-badge type-caption">${entry.presetId || 'custom'}</span>
+        <span class="translate-history-badge type-caption">${entry.layoutId || 'custom'}</span>
       </div>
       <div class="translate-history-badges">${badgeMarkup}</div>
       <p class="translate-history-snippet">${escapeHtml(String(entry.prompt || '').slice(0, 180) || 'No prompt captured.')}</p>
@@ -1708,18 +1704,18 @@ function syncTranslateCompareToggleButtons() {
 function syncTranslateCompareUI() {
   const compareShell = $('translate-compare-shell');
   const singleOutputBox = $('run-output')?.closest('.playground-output');
-  const presetSelect = $('translate-compare-preset');
-  const presetNote = $('translate-compare-preset-note');
+  const layoutSelect = $('translate-compare-layout');
+  const layoutNote = $('translate-compare-layout-note');
   const runButton = $('translate-compare-run-btn');
   const exportButton = $('translate-compare-export-btn');
   const shareButton = $('translate-compare-share-btn');
   const enabled = isTranslateCompareEnabled();
   setHidden(compareShell, !enabled);
   setHidden(singleOutputBox, enabled);
-  if (presetSelect instanceof HTMLSelectElement) {
-    presetSelect.value = state.comparePresetId || 'proof';
+  if (layoutSelect instanceof HTMLSelectElement) {
+    layoutSelect.value = state.compareLayoutId || 'proof';
   }
-  setText(presetNote, getTranslateComparePresetNote(state.comparePresetId || 'proof'));
+  setText(layoutNote, getTranslateCompareLayoutNote(state.compareLayoutId || 'proof'));
   if (runButton instanceof HTMLButtonElement) {
     runButton.disabled = state.compareGenerating || state.compareLoading || state.downloadActive;
   }
@@ -1744,18 +1740,18 @@ function syncTranslateCompareUI() {
   }
 }
 
-async function applyTranslateComparePreset(presetId, options = {}) {
+async function applyTranslateCompareLayout(layoutId, options = {}) {
   ensureTranslateCompareRuntimeState();
-  const preset = getTranslateComparePreset(presetId);
-  state.comparePresetId = preset.id;
+  const layout = getTranslateCompareLayout(layoutId);
+  state.compareLayoutId = layout.id;
   const { preserveExisting = false } = options;
 
   for (const laneId of getCompareLaneIds()) {
     const lane = getCompareLane(laneId);
-    const lanePreset = preset.lanes?.[laneId] || {};
-    const resolved = resolveTranslateCompareRole(lanePreset.role);
+    const laneLayout = layout.lanes?.[laneId] || {};
+    const resolved = resolveTranslateCompareRole(laneLayout.role);
     if (!preserveExisting || !resolveText(lane.modelId, '')) {
-      lane.engine = resolveText(lanePreset.engine, lane.engine || 'doppler');
+      lane.engine = resolveText(laneLayout.engine, lane.engine || 'doppler');
       lane.modelId = resolveText(resolved.modelId, lane.modelId || '');
       lane.tjsModelId = resolveText(resolved.tjsModelId, lane.tjsModelId || '');
     }
@@ -2028,7 +2024,7 @@ function captureTranslateCompareHistoryEntry(prompt, sourceCode, targetCode, art
     sourceCode,
     targetCode,
     prompt,
-    presetId: state.comparePresetId,
+    layoutId: state.compareLayoutId,
     artifact: serializeTranslateCompareArtifactPayload(artifact),
     lanes: {
       left: serializeTranslateCompareHistoryEntry({ lanes: { left: state.compareLanes.left } }).lanes.left,
@@ -2330,7 +2326,7 @@ function readDeepLinkStateFromLocation() {
       targetCode: DEFAULT_TRANSLATE_TARGET,
       text: null,
       compareEnabled: false,
-      comparePresetId: 'proof',
+      compareLayoutId: 'proof',
       lanes: null,
     };
   }
@@ -2346,7 +2342,7 @@ function readDeepLinkStateFromLocation() {
   const modeRaw = readDeepLinkValue(hashParams, queryParams, ['mode', 'm']);
   const surfaceRaw = readDeepLinkValue(hashParams, queryParams, ['surface', 's']);
   const compareRaw = readDeepLinkValue(hashParams, queryParams, ['compare', 'cv']);
-  const comparePresetRaw = readDeepLinkValue(hashParams, queryParams, ['compare_preset', 'cp']);
+  const compareLayoutRaw = readDeepLinkValue(hashParams, queryParams, ['compare_layout', 'cp']);
   const leftEngineRaw = readDeepLinkValue(hashParams, queryParams, ['left_engine', 'le']);
   const rightEngineRaw = readDeepLinkValue(hashParams, queryParams, ['right_engine', 're']);
   const leftModelRaw = readDeepLinkValue(hashParams, queryParams, ['left_model', 'lm']);
@@ -2386,7 +2382,7 @@ function readDeepLinkStateFromLocation() {
     targetCode,
     text: textRaw == null ? null : decodeDeepLinkText(textRaw),
     compareEnabled: compareRaw === '1' || compareRaw === 'true' || compareRaw === 'compare',
-    comparePresetId: resolveText(comparePresetRaw, 'proof'),
+    compareLayoutId: resolveText(compareLayoutRaw, 'proof'),
     lanes: {
       left: {
         engine: resolveText(leftEngineRaw, ''),
@@ -2424,7 +2420,7 @@ function applyDeepLinkStateToUI(deepLinkState) {
   }
   ensureTranslateCompareRuntimeState();
   state.compareEnabled = deepLinkState?.compareEnabled === true;
-  state.comparePresetId = resolveText(deepLinkState?.comparePresetId, state.comparePresetId || 'proof');
+  state.compareLayoutId = resolveText(deepLinkState?.compareLayoutId, state.compareLayoutId || 'proof');
   for (const laneId of getCompareLaneIds()) {
     const laneState = deepLinkState?.lanes?.[laneId] || {};
     const lane = getCompareLane(laneId);
@@ -2469,7 +2465,7 @@ function buildDeepLinkHash(modeOverride = null, taskOverride = null) {
     }
     if (state.compareEnabled) {
       params.set('compare', '1');
-      params.set('compare_preset', state.comparePresetId || 'proof');
+      params.set('compare_layout', state.compareLayoutId || 'proof');
       for (const laneId of getCompareLaneIds()) {
         const lane = getCompareLane(laneId);
         if (!lane) continue;
@@ -3109,8 +3105,8 @@ function getDiagnosticsRequiredQuickMode() {
   if (suite === 'kernels') return null;
   if (suite === 'diffusion') return 'diffusion';
   if (suite === 'energy') return 'energy';
-  const preset = String(selectedProfile?.preset || selection.preset || '').toLowerCase();
-  if (preset.includes('embedding')) return 'embedding';
+  const runtimeProfile = String(selectedProfile?.runtimeProfile || selection.runtimeProfile || '').toLowerCase();
+  if (runtimeProfile.includes('embedding')) return 'embedding';
   return 'run';
 }
 
@@ -5537,23 +5533,7 @@ function startTelemetryLoop() {
   void tick();
 }
 
-function populateModelPresets() {
-  const presetSelect = $('convert-model-preset');
-  if (!presetSelect) return;
-  presetSelect.innerHTML = '';
-  const autoOpt = document.createElement('option');
-  autoOpt.value = '';
-  autoOpt.textContent = 'auto';
-  presetSelect.appendChild(autoOpt);
-  for (const presetId of listPresets()) {
-    const opt = document.createElement('option');
-    opt.value = presetId;
-    opt.textContent = presetId;
-    presetSelect.appendChild(opt);
-  }
-}
-
-function populateRuntimePresetSelect(select, entries, fallbackValue) {
+function populateRuntimeProfileSelect(select, entries, fallbackValue) {
   if (!select) return;
   const previous = select.value;
   select.innerHTML = '';
@@ -5573,25 +5553,20 @@ function populateRuntimePresetSelect(select, entries, fallbackValue) {
   }
 }
 
-function populateRuntimePresetSelects() {
-  const baseSelect = $('runtime-preset');
-  const overrideSelect = $('runtime-config-preset');
-  const baseEntries = RUNTIME_PRESET_REGISTRY.filter((entry) => entry.base);
-  const overrideEntries = RUNTIME_PRESET_REGISTRY.filter((entry) => entry.override);
-  populateRuntimePresetSelect(baseSelect, baseEntries, DEFAULT_RUNTIME_PRESET);
-  populateRuntimePresetSelect(overrideSelect, overrideEntries, '');
+function populateRuntimeProfileSelects() {
+  const baseSelect = $('runtime-profile');
+  const overrideSelect = $('runtime-config-profile');
+  const baseEntries = RUNTIME_PROFILE_REGISTRY.filter((entry) => entry.base);
+  const overrideEntries = RUNTIME_PROFILE_REGISTRY.filter((entry) => entry.override);
+  populateRuntimeProfileSelect(baseSelect, baseEntries, DEFAULT_RUNTIME_PROFILE);
+  populateRuntimeProfileSelect(overrideSelect, overrideEntries, '');
 }
 
 function buildConverterConfig() {
-  const presetSelect = $('convert-model-preset');
-  const presetId = presetSelect?.value?.trim() || null;
   const weightSelect = $('convert-weight-dtype');
   const weightOverride = weightSelect?.value?.trim().toLowerCase() || null;
 
   const config = createConverterConfig();
-  if (presetId) {
-    config.presets.model = presetId;
-  }
   if (weightOverride) {
     config.quantization.weights = weightOverride;
   }
@@ -5819,47 +5794,10 @@ async function regenerateManifest(modelId) {
   }
 
   let inference = manifest.inference;
-  if (manifest.modelType === 'diffusion') {
-    if (!inference) {
-      inference = { ...DEFAULT_MANIFEST_INFERENCE, presetId: 'diffusion' };
-    }
-  } else {
-    const rawConfig = manifest.config ?? {};
-    const architectureHint = rawConfig.architectures?.[0] ?? rawConfig.model_type ?? '';
-    const presetId = manifest.inference?.presetId || detectPreset(rawConfig, architectureHint);
-    if (presetId === 'transformer') {
-      const modelType = rawConfig.model_type ?? 'unknown';
-      throw new Error(
-        `Unknown model family: architecture="${architectureHint || 'unknown'}", model_type="${modelType}"`
-      );
-    }
-    const preset = resolvePreset(presetId);
-    const modelConfig = rawConfig?.text_config ?? rawConfig ?? {};
-    const hiddenSize = modelConfig.hidden_size ?? modelConfig.n_embd ?? modelConfig.d_model ?? modelConfig.model_dim ?? null;
-    const numHeads = modelConfig.num_attention_heads ?? modelConfig.n_head ?? modelConfig.num_heads ?? null;
-    const derivedHeadDim = (Number.isFinite(hiddenSize) && Number.isFinite(numHeads) && numHeads > 0)
-      ? hiddenSize / numHeads
-      : null;
-    const configHeadDim = Number.isFinite(rawConfig.head_dim) ? rawConfig.head_dim : null;
-    const manifestHeadDim = (
-      manifest.architecture
-      && typeof manifest.architecture === 'object'
-      && Number.isFinite(manifest.architecture.headDim)
-    )
-      ? manifest.architecture.headDim
-      : null;
-    const headDim = configHeadDim
-      ?? manifestHeadDim
-      ?? (Number.isFinite(derivedHeadDim) && Math.floor(derivedHeadDim) === derivedHeadDim ? derivedHeadDim : null);
-    if (!headDim) {
-      throw new Error('Missing headDim in manifest config (head_dim or hidden_size/num_attention_heads).');
-    }
-    inference = buildManifestInference(
-      preset,
-      rawConfig,
-      headDim,
-      manifest.quantizationInfo ?? null,
-      tensorNames
+  if (!inference) {
+    throw new Error(
+      'Manifest regeneration requires an existing manifest.inference block. ' +
+      'Re-convert the model with an explicit conversion config instead of inferring runtime behavior in the demo.'
     );
   }
 
@@ -6023,22 +5961,22 @@ async function handleConvertUrls() {
 async function handleDiagnosticsRun(mode) {
   const profileSelect = $('diagnostics-profile');
   const modelSelect = $('diagnostics-model');
-  const presetSelect = $('runtime-preset');
+  const runtimeProfileSelect = $('runtime-profile');
   const selections = state.diagnosticsSelections[state.uiMode] || {};
   const selectedProfileId = profileSelect?.value || selections.profile || '';
   const selectedProfile = decodeDiagnosticsProfileId(selectedProfileId);
   const workload = selectedProfile?.suite || selections.suite || getDiagnosticsDefaultSuite(state.uiMode);
   const modelId = modelSelect?.value || null;
-  const runtimeProfile = selectedProfile?.preset || selections.preset || presetSelect?.value || DEFAULT_RUNTIME_PRESET;
+  const runtimeProfile = selectedProfile?.runtimeProfile || selections.runtimeProfile || runtimeProfileSelect?.value || DEFAULT_RUNTIME_PROFILE;
   if (selectedProfile) {
     storeDiagnosticsSelection(state.uiMode, {
       profile: selectedProfileId,
       suite: selectedProfile.suite,
-      preset: selectedProfile.preset,
+      runtimeProfile: selectedProfile.runtimeProfile,
     });
   }
-  if (presetSelect && presetSelect.value !== runtimeProfile) {
-    presetSelect.value = runtimeProfile;
+  if (runtimeProfileSelect && runtimeProfileSelect.value !== runtimeProfile) {
+    runtimeProfileSelect.value = runtimeProfile;
   }
   if (profileSelect && selectedProfileId && profileSelect.value !== selectedProfileId) {
     profileSelect.value = selectedProfileId;
@@ -6051,7 +5989,7 @@ async function handleDiagnosticsRun(mode) {
   updateDiagnosticsReport('');
   clearDiagnosticsOutput();
   try {
-    if (!runtimeConfig || state.diagnosticsRuntimePresetId !== runtimeProfile) {
+    if (!runtimeConfig || state.diagnosticsRuntimeProfileId !== runtimeProfile) {
       runtimeConfig = await refreshDiagnosticsRuntimeConfig(runtimeProfile);
     }
     if (mode === 'verify') {
@@ -6259,10 +6197,10 @@ function bindUI() {
   const downloadResume = $('download-resume-btn');
   const downloadCancel = $('download-cancel-btn');
   const downloadRefresh = $('download-refresh-btn');
-  const runtimeProfileSelect = $('runtime-preset');
+  const runtimeProfileSelect = $('runtime-profile');
   const runtimeFile = $('runtime-config-file');
   const runtimeClear = $('runtime-config-clear');
-  const runtimeConfigPreset = $('runtime-config-preset');
+  const runtimeConfigProfile = $('runtime-config-profile');
   const diagnosticsModelSelect = $('diagnostics-model');
   const diagnosticsProfile = $('diagnostics-profile');
   const diagnosticsRun = $('diagnostics-run-btn');
@@ -6284,7 +6222,7 @@ function bindUI() {
   const translateSourceLanguage = $('translate-source-language');
   const translateTargetLanguage = $('translate-target-language');
   const translateSwapBtn = $('translate-swap-btn');
-  const translateComparePreset = $('translate-compare-preset');
+  const translateCompareLayout = $('translate-compare-layout');
   const translateCompareRun = $('translate-compare-run-btn');
   const translateCompareExport = $('translate-compare-export-btn');
   const translateCompareExportLatest = $('translate-compare-export-latest-btn');
@@ -6399,9 +6337,9 @@ function bindUI() {
   translateViewCompareBtn?.addEventListener('click', () => setTranslateCompareEnabled(true));
   translateLayoutSingleBtn?.addEventListener('click', () => setTranslateCompareEnabled(false));
   translateLayoutCompareBtn?.addEventListener('click', () => setTranslateCompareEnabled(true));
-  translateComparePreset?.addEventListener('change', () => {
-    applyTranslateComparePreset(translateComparePreset.value || 'proof').catch((error) => {
-      updateRunStatus(`Compare preset error: ${error.message}`);
+  translateCompareLayout?.addEventListener('change', () => {
+    applyTranslateCompareLayout(translateCompareLayout.value || 'proof').catch((error) => {
+      updateRunStatus(`Compare layout error: ${error.message}`);
     });
     syncDeepLinkFromUI();
   });
@@ -6559,11 +6497,11 @@ function bindUI() {
 
   runtimeProfileSelect?.addEventListener('change', () => {
     const mode = state.uiMode;
-    storeDiagnosticsSelection(mode, { preset: runtimeProfileSelect.value || DEFAULT_RUNTIME_PRESET, profile: '' });
+    storeDiagnosticsSelection(mode, { runtimeProfile: runtimeProfileSelect.value || DEFAULT_RUNTIME_PROFILE, profile: '' });
     if (runtimeProfileSelect.value !== 'profiles/verbose-trace') {
       clearDiagnosticsOutput();
     }
-    applySelectedRuntimePreset();
+    applySelectedRuntimeProfile();
   });
 
   diagnosticsModelSelect?.addEventListener('change', () => {
@@ -6577,7 +6515,7 @@ function bindUI() {
       storeDiagnosticsSelection(state.uiMode, {
         profile: selectedProfileId,
         suite: selectedProfile.suite,
-        preset: selectedProfile.preset,
+        runtimeProfile: selectedProfile.runtimeProfile,
       });
     }
     updateDiagnosticsGuidance();
@@ -6588,12 +6526,12 @@ function bindUI() {
     handleRuntimeConfigFile(file);
   });
 
-  runtimeConfigPreset?.addEventListener('change', () => {
-    const presetId = runtimeConfigPreset.value || '';
+  runtimeConfigProfile?.addEventListener('change', () => {
+    const runtimeProfile = runtimeConfigProfile.value || '';
     if (runtimeFile) {
       runtimeFile.value = '';
     }
-    applyRuntimeConfigPreset(presetId);
+    applyRuntimeConfigProfile(runtimeProfile);
   });
 
   runtimeClear?.addEventListener('click', () => {
@@ -6603,10 +6541,10 @@ function bindUI() {
     if (runtimeFile) {
       runtimeFile.value = '';
     }
-    if (runtimeConfigPreset) {
-      runtimeConfigPreset.value = '';
+    if (runtimeConfigProfile) {
+      runtimeConfigProfile.value = '';
     }
-    applySelectedRuntimePreset();
+    applySelectedRuntimeProfile();
   });
 
   diagnosticsRun?.addEventListener('click', () => handleDiagnosticsRun('run'));
@@ -6857,8 +6795,7 @@ export async function initDemo() {
       onProgress: handleDownloadProgressEvent,
       onStateChange: handleDownloadStateChangeEvent,
     });
-    populateModelPresets();
-    populateRuntimePresetSelects();
+    populateRuntimeProfileSelects();
     populateEnergyDemoSelect();
     setStatusIndicator('Initializing...', 'info');
     console.log('[Bootstrap] Initializing... running startup tasks: quick model catalog fetch, WebGPU capability init, and download-state refresh.');
@@ -6877,7 +6814,7 @@ export async function initDemo() {
     await setUiMode(state.uiMode, { task: state.uiTask });
     bindUI();
     applyDeepLinkStateToUI(deepLinkState);
-    await applyTranslateComparePreset(state.comparePresetId || 'proof', { preserveExisting: true });
+    await applyTranslateCompareLayout(state.compareLayoutId || 'proof', { preserveExisting: true });
     syncTranslateCompareUI();
     updateMemoryControls();
     startTelemetryLoop();

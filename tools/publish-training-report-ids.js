@@ -11,7 +11,7 @@ function normalizeString(value) {
 
 function parseArgs(argv) {
   const parsed = {
-    registry: 'tools/configs/training-workloads/registry.json',
+    registry: 'src/training/workload-packs/registry.json',
     out: 'reports/training/report-ids/latest.json',
   };
   for (let i = 0; i < argv.length; i += 1) {

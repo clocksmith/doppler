@@ -54,7 +54,7 @@ DOPPLER makes deliberate architectural tradeoffs that diverge from pre-compiled 
 
 ## Execution Planes
 
-- **JSON plane** (`manifest.json`, presets, rule maps): policy, selection, and execution contract.
+- **JSON plane** (`manifest.json`, checked-in config assets, rule maps): policy, selection, and execution contract.
 - **JS plane** (`src/**/*.js` orchestration): merge/validate config, allocate buffers, build pipelines, dispatch work, collect artifacts.
 - **WGSL plane** (`src/gpu/kernels/*.wgsl`): deterministic arithmetic execution only.
 
@@ -136,7 +136,7 @@ DOPPLER is the **Engine** (mechanism); a caller/orchestrator is the **Policy Lay
 
 In Doppler terms:
 
-- **JSON contract** (`manifest`, presets, rule assets) owns policy, selection, and fallback policy.
+- **JSON contract** (`manifest`, config assets, rule assets) owns policy, selection, and fallback policy.
 - **JS orchestration** (`src/**/*.js`) resolves/validates config, builds bind groups, creates pipelines, dispatches kernels, and handles readback.
 - **WGSL execution** (`src/gpu/kernels/*.wgsl`) receives fully-resolved dispatch parameters and performs deterministic math only.
 
@@ -200,7 +200,7 @@ policy layer (for example Reploid) with
 
 | Directory | Purpose |
 |-----------|---------|
-| `config/` | Schema, presets, runtime config, manifest-first merge |
+| `config/` | Schema, checked-in config assets, runtime config, manifest-first merge |
 | `converter/` | GGUF/SafeTensors → RDRR conversion, quantization |
 | `formats/` | GGUF, SafeTensors, RDRR parsing |
 | `gpu/` | WebGPU device, buffer pool, WGSL kernels |
@@ -262,8 +262,8 @@ DOPPLER's structure can be understood through multiple lenses. Each view serves 
 ├─────────────────────────────────────────────────────────────────────────────┤
 │ config/                          │ gpu/kernels                               │
 │ ├─ schema/ (all DEFAULT_*)       │ ├─ *.js (selection + dispatch)           │
-│ ├─ presets/runtime/              │ ├─ kernel-configs.js (from registry)     │
-│ ├─ presets/models/               │ └─ kernel-tuning.js (auto-benchmarking)  │
+│ ├─ conversion/                   │ ├─ kernel-configs.js (from registry)     │
+│ ├─ runtime/                      │ └─ kernel-tuning.js (auto-benchmarking)  │
 │ └─ runtime.js (get/set API)      │                                          │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │ types/                                                                       │
@@ -403,7 +403,7 @@ Use this for understanding build order and what can be tested independently.
 │ File format parsing. Pure functions, no side effects.                       │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │ LAYER 2: CONFIG                                                             │
-│ config/schema/*, config/presets/*, config/runtime.js                        │
+│ config/schema/*, config/runtime/*, config/kernel-paths/*                    │
 │ All DEFAULT_* exports. Source of truth for tunables.                        │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │ LAYER 1: FOUNDATION                                                         │
@@ -521,7 +521,7 @@ Example (skip FFN on layer 0):
 }
 ```
 
-**Runtime presets:** See `src/config/presets/runtime/model/gemma2-pipeline.json` for a complete Gemma 2 example.
+**Runtime profiles:** See `src/config/runtime/profiles/` for complete runtime overlay examples.
 
 ### multi-pipeline-pool.js - Concurrent Pipelines
 
@@ -579,7 +579,7 @@ CONVERSION TIME:
 │ HuggingFace/GGUF Model → tooling convert surface                    │
 │   - Node CLI: node-command-runner.js → node-converter.js            │
 │   - Browser: browser-command-runner.js + convertHandler             │
-│   - Build ManifestInferenceSchema from preset + HF config           │
+│   - Build ManifestInferenceSchema from explicit conversion config + HF config │
 │   - Write inference config to manifest.json                         │
 └─────────────────────────────────────────────────────────────────────┘
                                 ↓
@@ -616,31 +616,31 @@ EXECUTION TIME:
 | `output` | `finalLogitSoftcapping`, `tieWordEmbeddings`, `scaleEmbeddings` | `30`, `false`, `true` |
 | `layerPattern` | `type`, `globalPattern`, `period` | `"alternating"`, `"odd"`, `null` |
 
-**Layer Pattern Transformation (Preset → Manifest):**
+**Layer Pattern Transformation (Conversion Config → Manifest):**
 
-Presets define layer patterns in one format; the converter transforms them for the manifest:
+Conversion configs define layer patterns in one format; the converter transforms them for the manifest:
 
-| Preset Format | Manifest Format | Example |
+| Conversion Config Format | Manifest Format | Example |
 |---------------|-----------------|---------|
 | `type: "all_attention"` | `type: "uniform"` | All layers use global attention |
 | `type: "alternating", globalPattern: "odd"` | `type: "alternating"` | Odd layers use global attention |
 | `type: "alternating", globalPatternN: 6` | `type: "every_n", period: 6` | Every 6th layer uses global attention (Gemma 3) |
 
-The converter (`src/converter/manifest-inference.js`) performs this mapping. Presets use `globalPatternN` for readability; manifests use `period` for runtime efficiency.
+The converter (`src/converter/manifest-inference.js`) performs this mapping. Conversion configs use `globalPatternN` for readability; manifests use `period` for runtime efficiency.
 
 **RoPE Theta Sourcing:**
 
 `ropeTheta` has a defined precedence during conversion (`src/converter/rope-config.js`):
 
 1. **HuggingFace config** (`config.rope_theta`). Source of truth.
-2. **Preset** (`preset.inference.rope.ropeTheta`). Fallback.
+2. **Conversion config** (`converterConfig.inference.rope.ropeTheta`). Fallback.
 3. **Default** (`10000`). Last resort.
 
-This means Gemma 2 models don't hardcode `ropeTheta` in presets; the value comes from the HuggingFace config during conversion. Gemma 3 presets set `ropeTheta: 1000000` explicitly because it's a defining characteristic.
+This means Gemma 2 models don't hardcode `ropeTheta` in a separate family registry; the value comes from the HuggingFace config during conversion. Gemma 3 conversion configs may set `ropeTheta: 1000000` explicitly because it's a defining characteristic.
 
 `ropeLocalTheta` precedence is:
 1. `config.rope_parameters.sliding_attention.rope_theta` (when present)
-2. preset `inference.rope.ropeLocalTheta`
+2. conversion config `inference.rope.ropeLocalTheta`
 3. `null`
 Source: `src/converter/rope-config.js`.
 
@@ -658,7 +658,7 @@ Field-level architecture checks run when `architecture` is present as an object
 in `src/formats/rdrr/validation.js`.
 
 **Benefits:**
-- Manifest is self-describing: no need for external preset files
+- Manifest is self-describing: no need for external family-registry files
 - Config tracing shows exactly where each value came from
 - Model detection happens once at conversion, not at runtime
 - Runtime overrides are explicit and traceable
@@ -971,7 +971,7 @@ the full debugging timeline.
 
 ## 9. Tools
 
-DOPPLER ships Node tooling via `tools/doppler-cli.js` and npm scripts
+DOPPLER ships Node tooling via `src/cli/doppler-cli.js` and npm scripts
 (`convert`, `debug`, `bench`, `verify:model`). The demo UI and browser harness
 remain the primary interactive diagnostics surfaces.
 

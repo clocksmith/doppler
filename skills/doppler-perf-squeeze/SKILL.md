@@ -26,7 +26,7 @@ When performance work requires additive implementation changes, also open:
 - `docs/developer-guides/README.md`
 
 Common routes:
-- execution-plan or kernel-path tuning: `docs/developer-guides/06-kernel-path-preset.md`
+- execution-plan or kernel-path tuning: `docs/developer-guides/06-kernel-path-config.md`
 - new or revised kernel implementations: `docs/developer-guides/11-wgsl-kernel.md`
 - attention hot-path redesign: `docs/developer-guides/13-attention-variant.md`
 - cache/layout redesign: `docs/developer-guides/15-kvcache-layout.md`
@@ -34,7 +34,7 @@ Common routes:
 
 ## Execution Plane Contract
 
-- The benchmarking and tuning contract is JSON-first (`runtime` presets + workload contracts).
+- The benchmarking and tuning contract is JSON-first (`runtime` profiles + workload contracts).
 - JS orchestrates timing, profiling hooks, and runtime overlays without policy drift from command examples.
 - WGSL changes are code-path changes only; throughput/quality conclusions must be tied to explicit config deltas.
 - Any implicit fallback (e.g., automatic policy downgrades) invalidates baseline comparisons and should be blocked.
@@ -82,7 +82,7 @@ npm run bench -- \
 ### 3) Run Profiling/Tracing for Bottlenecks
 
 ```bash
-# Profiling preset (investigate intent + profiler enabled)
+# Profiling profile (investigate intent + profiler enabled)
 npm run debug -- --config '{"request":{"modelId":"MODEL_ID","runtimeProfile":"experiments/gemma3-profile"},"run":{"surface":"auto"}}' --json
 ```
 

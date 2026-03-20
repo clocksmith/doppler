@@ -17,7 +17,7 @@ Model Manifest → ModelConfig → PipelineSpec → KernelSpec → Execution
 
 ## Role Boundaries (JSON, JS, WGSL)
 
-- JSON owns policy and selection state (`manifest`, presets, runtime config, rule maps).
+- JSON owns policy and selection state (`manifest`, runtime profiles/config, rule maps).
 - JS owns orchestration: validation, pipeline setup, resource lifecycle, dispatch, and readback.
 - WGSL owns only math and memory transforms.
 
@@ -50,12 +50,12 @@ const variant = isDecode ? 'decode' : 'prefill';
 
 Any new inference knob must be wired end-to-end:
 - Add to `ManifestInferenceSchema` (and converter defaults if needed)
-- Populate in converter mapping (preset + HF config)
+- Populate in converter mapping (explicit conversion config + HF config)
 - Merge in `src/config/merge.js` with `_sources`
 - Validate in `parseModelConfigFromManifest()`
 - Add tests that assert manifest values and runtime overrides
 
-Do not reintroduce runtime model detection or preset fallbacks.
+Do not reintroduce runtime model detection or hidden family fallbacks.
 
 ## Nullable Required Fields
 

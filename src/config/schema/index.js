@@ -85,7 +85,6 @@ export {
   DEFAULT_CONVERTER_OUTPUT_CONFIG,
   DEFAULT_GGUF_PARSER_DEFAULTS,
   DEFAULT_CONVERTER_EXECUTION_CONFIG,
-  DEFAULT_CONVERTER_PRESET_CONFIG,
   DEFAULT_CONVERTER_CONFIG,
   createConverterConfig,
 } from './converter.schema.js';
@@ -134,7 +133,7 @@ export {
   DEFAULT_CHAT_TEMPLATE_CONFIG,
   DEFAULT_KERNEL_PATH_POLICY,
   DEFAULT_INFERENCE_DEFAULTS_CONFIG,
-  DEFAULT_PRESET_INFERENCE_CONFIG,
+  DEFAULT_MODEL_INFERENCE_DEFAULTS,
 } from './inference-defaults.schema.js';
 
 // =============================================================================
@@ -451,7 +450,7 @@ export {
 export {
   // Factory
   createEmulationConfig,
-  getChipPreset,
+  getChipProfile,
 
   // Defaults
   DEFAULT_GH200_GPU_SPEC,

@@ -11,8 +11,8 @@ const summary = await buildContractSummary({
   withLean: false,
   leanCheck: true,
   leanManifestRoot: 'models',
-  leanConfigRoot: 'tools/configs/conversion',
-  leanFixtureMap: 'tools/configs/conversion/lean-execution-contract-fixtures.json',
+  leanConfigRoot: 'src/config/conversion',
+  leanFixtureMap: 'tests/fixtures/lean-execution-contract-fixtures.json',
   leanRequireManifestMatch: false,
 });
 assert.equal(summary.schemaVersion, 1);
@@ -87,7 +87,6 @@ try {
       ropeTheta: 1000000,
     },
     inference: {
-      presetId: 'gemma3',
       layerPattern: {
         type: 'every_n',
         period: 6,

@@ -1,5 +1,5 @@
 // AUTO-GENERATED from src/gpu/kernels/fused_matmul_q4_batched.wgsl.
-// Edit the source kernel and tools/configs/wgsl-variants.js, then run `npm run kernels:generate`.
+// Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:generate`.
 // Fused Q4_K Matmul Kernel - W4A16 (F16 output, batched)
 //
 // Batched version for prefill (M > 1) with f16 output.

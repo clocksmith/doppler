@@ -1,7 +1,7 @@
 {
   "id": "profiles/simulation",
   "name": "simulation",
-  "description": "Simulation preset for GH200/GB200 pod emulation",
+  "description": "Simulation profile for GH200/GB200 pod emulation",
   "intent": "verify",
   "stability": "canonical",
   "owner": "doppler-core",

@@ -20,11 +20,13 @@ export function normalizeCacheMode(value) {
   return value === 'cold' || value === 'warm' ? value : 'warm';
 }
 
-export function normalizeLoadMode(value, hasModelUrl) {
-  if (value === 'opfs' || value === 'http' || value === 'memory') {
+export function normalizeLoadMode(value, hasModelUrl, modelUrl) {
+  if (value === 'opfs' || value === 'http' || value === 'memory' || value === 'file') {
     return value;
   }
-  return hasModelUrl ? 'http' : 'opfs';
+  if (!hasModelUrl) return 'opfs';
+  if (typeof modelUrl === 'string' && modelUrl.startsWith('file://')) return 'file';
+  return 'http';
 }
 
 export function normalizeWorkloadType(value) {

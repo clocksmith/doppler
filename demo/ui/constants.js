@@ -40,7 +40,7 @@ export const ENERGY_METRIC_LABELS = {
   },
 };
 
-export const RUNTIME_PRESET_REGISTRY = [
+export const RUNTIME_PROFILE_REGISTRY = [
   { id: '', label: 'none', base: false, override: true },
   { id: 'profiles/default', label: 'profiles/default', base: true, override: false },
   { id: 'profiles/verbose-trace', label: 'profiles/verbose-trace', base: true, override: false },
@@ -112,12 +112,12 @@ export const DIAGNOSTICS_SUITE_ORDER = [
 ];
 
 export const BENCH_INTENTS = new Set(['investigate', 'calibrate']);
-export const DEFAULT_RUNTIME_PRESET = 'profiles/verbose-trace';
+export const DEFAULT_RUNTIME_PROFILE = 'profiles/verbose-trace';
 export const DIAGNOSTICS_DEFAULTS = {
-  run: { suite: 'inference', preset: 'profiles/default' },
-  translate: { suite: 'inference', preset: 'profiles/default' },
-  embedding: { suite: 'embedding', preset: 'profiles/vector-stability' },
-  diffusion: { suite: 'diffusion', preset: 'profiles/default' },
-  energy: { suite: 'energy', preset: 'profiles/default' },
-  diagnostics: { suite: 'inference', preset: 'profiles/default' },
+  run: { suite: 'inference', runtimeProfile: 'profiles/default' },
+  translate: { suite: 'inference', runtimeProfile: 'profiles/default' },
+  embedding: { suite: 'embedding', runtimeProfile: 'profiles/vector-stability' },
+  diffusion: { suite: 'diffusion', runtimeProfile: 'profiles/default' },
+  energy: { suite: 'energy', runtimeProfile: 'profiles/default' },
+  diagnostics: { suite: 'inference', runtimeProfile: 'profiles/default' },
 };

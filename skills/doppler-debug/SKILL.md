@@ -1,6 +1,6 @@
 ---
 name: doppler-debug
-description: Diagnose inference regressions with Doppler's shared browser/Node command contract, runtime presets, and report artifacts. (project)
+description: Diagnose inference regressions with Doppler's shared browser/Node command contract, runtime profiles, and report artifacts. (project)
 ---
 
 # DOPPLER Debug Skill
@@ -111,7 +111,7 @@ npm run debug -- \
 ## Perf-Focused Investigation
 
 ```bash
-# Investigate-mode profile run (trace/profiler enabled by preset)
+# Investigate-mode profile run (trace/profiler enabled by profile)
 npm run debug -- --config '{"request":{"modelId":"MODEL_ID","runtimeProfile":"experiments/gemma3-profile"},"run":{"surface":"auto"}}' --json
 
 # Fast readback sensitivity checks
@@ -151,12 +151,12 @@ npm run debug -- --config '{"request":{"modelId":"MODEL_ID","cacheMode":"warm"},
 
 ## Canonical Files
 
-- `tools/doppler-cli.js`
+- `src/cli/doppler-cli.js`
 - `src/tooling/command-api.js`
 - `src/tooling/node-command-runner.js`
 - `src/tooling/node-browser-command-runner.js`
 - `src/inference/browser-harness.js`
-- `src/config/presets/runtime/profiles/verbose-trace.json`
+- `src/config/runtime/profiles/verbose-trace.json`
 - `docs/developer-guides/README.md`
 
 ## Related Skills

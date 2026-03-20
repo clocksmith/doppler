@@ -96,7 +96,6 @@ await convertModel(model, io, {
   },
   inference: {
     ...DEFAULT_MANIFEST_INFERENCE,
-    presetId: 'gemma3',
   },
   eosTokenId: 1,
   converterConfig: createConverterConfig(),

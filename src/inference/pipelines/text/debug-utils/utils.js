@@ -114,11 +114,11 @@ export async function getBufferStats(buffer) {
 }
 
 // ============================================================================
-// Debug Presets
+// Debug Profiles
 // ============================================================================
 
 
-export const DEBUG_PRESETS = {
+export const DEBUG_PROFILES = {
   
   quick: { embed: true, logits: true, sample: true },
 

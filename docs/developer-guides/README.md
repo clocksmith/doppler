@@ -34,10 +34,10 @@ Every guide in this directory should answer the same four questions:
 | --- | --- | --- |
 | Tune runtime behavior without code changes | [01-runtime-profile.md](01-runtime-profile.md) | JSON-only runtime profile work |
 | Put an existing chat format on a model | [02-assign-chat-template.md](02-assign-chat-template.md) | Uses an existing built-in formatter |
-| Add a new model preset | [03-model-preset.md](03-model-preset.md) | Already-supported runtime behavior only |
-| Convert a checkpoint with an existing family | [04-conversion-config.md](04-conversion-config.md) | Existing preset + existing kernel paths |
+| Add a new model family contract | [03-model-family-config.md](03-model-family-config.md) | Explicit conversion config, no family registry |
+| Convert a checkpoint with an existing family | [04-conversion-config.md](04-conversion-config.md) | Explicit conversion config + existing kernel paths |
 | Publish a verified artifact | [05-promote-model-artifact.md](05-promote-model-artifact.md) | Curated metadata + external storage + HF |
-| Compose existing kernels differently | [06-kernel-path-preset.md](06-kernel-path-preset.md) | New execution identity, no new WGSL |
+| Compose existing kernels differently | [06-kernel-path-config.md](06-kernel-path-config.md) | New execution identity, no new WGSL |
 | Add a new config/manifest field | [07-manifest-runtime-field.md](07-manifest-runtime-field.md) | Schema + merge + parser + tests |
 | Add a new built-in chat formatter | [08-chat-template-formatter.md](08-chat-template-formatter.md) | New formatter function and registry key |
 | Add a new sampler or sampling knob | [09-sampling-strategy.md](09-sampling-strategy.md) | Sampling pipeline work |
@@ -56,10 +56,10 @@ Every guide in this directory should answer the same four questions:
 | --- | --- | --- |
 | [01-runtime-profile.md](01-runtime-profile.md) | atomic | JSON only |
 | [02-assign-chat-template.md](02-assign-chat-template.md) | atomic | JSON only |
-| [03-model-preset.md](03-model-preset.md) | atomic | JSON + loader registry |
+| [03-model-family-config.md](03-model-family-config.md) | atomic | migration note |
 | [04-conversion-config.md](04-conversion-config.md) | atomic | JSON only |
 | [05-promote-model-artifact.md](05-promote-model-artifact.md) | atomic | metadata + publication workflow |
-| [06-kernel-path-preset.md](06-kernel-path-preset.md) | atomic | JSON + registry |
+| [06-kernel-path-config.md](06-kernel-path-config.md) | atomic | JSON + registry |
 | [07-manifest-runtime-field.md](07-manifest-runtime-field.md) | atomic | schema + merge + parser + tests |
 | [08-chat-template-formatter.md](08-chat-template-formatter.md) | atomic | JS + type declarations + tests |
 | [09-sampling-strategy.md](09-sampling-strategy.md) | atomic | schema + runtime + tests |
@@ -79,15 +79,15 @@ These are the numbered guides. Each should describe one extension point.
 1. [01-runtime-profile.md](01-runtime-profile.md)
    Add a runtime profile without changing runtime code.
 2. [02-assign-chat-template.md](02-assign-chat-template.md)
-   Assign an existing built-in chat template to a model preset.
-3. [03-model-preset.md](03-model-preset.md)
-   Add a model preset for an already-supported schema/behavior set.
+   Assign an existing built-in chat template through a conversion config.
+3. [03-model-family-config.md](03-model-family-config.md)
+   Migration note: family registries were removed; author explicit conversion configs instead.
 4. [04-conversion-config.md](04-conversion-config.md)
    Add a conversion config for an existing supported family.
 5. [05-promote-model-artifact.md](05-promote-model-artifact.md)
    Promote a locally verified RDRR artifact into curated metadata and hosted publication.
-6. [06-kernel-path-preset.md](06-kernel-path-preset.md)
-   Add or register a kernel-path preset using existing kernels.
+6. [06-kernel-path-config.md](06-kernel-path-config.md)
+   Add or register a kernel-path config using existing kernels.
 7. [07-manifest-runtime-field.md](07-manifest-runtime-field.md)
    Add a new manifest/runtime contract field.
 8. [08-chat-template-formatter.md](08-chat-template-formatter.md)
@@ -117,9 +117,9 @@ Use when adding a new model family that still fits an existing pipeline family.
 
 Usually composes:
 - [02-assign-chat-template.md](02-assign-chat-template.md)
-- [03-model-preset.md](03-model-preset.md)
+- [03-model-family-config.md](03-model-family-config.md)
 - [04-conversion-config.md](04-conversion-config.md)
-- [06-kernel-path-preset.md](06-kernel-path-preset.md)
+- [06-kernel-path-config.md](06-kernel-path-config.md)
 - [07-manifest-runtime-field.md](07-manifest-runtime-field.md)
 - [08-chat-template-formatter.md](08-chat-template-formatter.md)
 - [10-activation-implementation.md](10-activation-implementation.md)
@@ -164,7 +164,7 @@ Every guide should include:
 These apply to every guide in this directory:
 
 - Fail fast, not silent. Unsupported capability or invalid config must throw an actionable error.
-- JSON is the behavior contract. Runtime-visible decisions belong in manifests, presets, and rule maps, not hidden JS branching.
+- JSON is the behavior contract. Runtime-visible decisions belong in manifests, config assets, and rule maps, not hidden JS branching.
 - Run/record parity matters for kernel work. If a wrapper supports both paths, they must use the same resolved constants and behavior.
 - No ad hoc runtime logging. Use the debug system in runtime code and keep direct `console.*` limited to allowed entrypoints.
 - Contract updates are same-change work. If behavior changes, update schema, config, docs, and tests together.
@@ -175,9 +175,9 @@ Write these first:
 1. `07-manifest-runtime-field.md`
 2. `11-wgsl-kernel.md`
 3. `12-command-surface.md`
-4. `03-model-preset.md`
+4. `03-model-family-config.md`
 5. `04-conversion-config.md`
-6. `06-kernel-path-preset.md`
+6. `06-kernel-path-config.md`
 
 Then add:
 - `08-chat-template-formatter.md`

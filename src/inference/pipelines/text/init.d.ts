@@ -158,8 +158,8 @@ export function createKVCache(
 export interface InitTokenizerOptions {
   /** Base URL for loading tokenizer files */
   baseUrl?: string;
-  /** Preset tokenizer config as fallback hints (manifest takes precedence) */
-  presetTokenizer?: {
+  /** Caller-supplied tokenizer hints as fallback fields (manifest takes precedence) */
+  tokenizerHints?: {
     bosToken?: string;
     eosTokens?: string[];
     padToken?: string;

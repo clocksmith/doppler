@@ -700,23 +700,7 @@ function startTelemetryLoop() {
   void tick();
 }
 
-function populateModelPresets() {
-  const presetSelect = $('convert-model-preset');
-  if (!presetSelect) return;
-  presetSelect.innerHTML = '';
-  const autoOpt = document.createElement('option');
-  autoOpt.value = '';
-  autoOpt.textContent = 'auto';
-  presetSelect.appendChild(autoOpt);
-  for (const presetId of listPresets()) {
-    const opt = document.createElement('option');
-    opt.value = presetId;
-    opt.textContent = presetId;
-    presetSelect.appendChild(opt);
-  }
-}
-
-function populateRuntimePresetSelect(select, entries, fallbackValue) {
+function populateRuntimeProfileSelect(select, entries, fallbackValue) {
   if (!select) return;
   const previous = select.value;
   select.innerHTML = '';
@@ -736,25 +720,20 @@ function populateRuntimePresetSelect(select, entries, fallbackValue) {
   }
 }
 
-function populateRuntimePresetSelects() {
-  const baseSelect = $('runtime-preset');
-  const overrideSelect = $('runtime-config-preset');
-  const baseEntries = RUNTIME_PRESET_REGISTRY.filter((entry) => entry.base);
-  const overrideEntries = RUNTIME_PRESET_REGISTRY.filter((entry) => entry.override);
-  populateRuntimePresetSelect(baseSelect, baseEntries, DEFAULT_RUNTIME_PRESET);
-  populateRuntimePresetSelect(overrideSelect, overrideEntries, '');
+function populateRuntimeProfileSelects() {
+  const baseSelect = $('runtime-profile');
+  const overrideSelect = $('runtime-config-profile');
+  const baseEntries = RUNTIME_PROFILE_REGISTRY.filter((entry) => entry.base);
+  const overrideEntries = RUNTIME_PROFILE_REGISTRY.filter((entry) => entry.override);
+  populateRuntimeProfileSelect(baseSelect, baseEntries, DEFAULT_RUNTIME_PROFILE);
+  populateRuntimeProfileSelect(overrideSelect, overrideEntries, '');
 }
 
 function buildConverterConfig() {
-  const presetSelect = $('convert-model-preset');
-  const presetId = presetSelect?.value?.trim() || null;
   const weightSelect = $('convert-weight-dtype');
   const weightOverride = weightSelect?.value?.trim().toLowerCase() || null;
 
   const config = createConverterConfig();
-  if (presetId) {
-    config.presets.model = presetId;
-  }
   if (weightOverride) {
     config.quantization.weights = weightOverride;
   }
@@ -982,47 +961,10 @@ async function regenerateManifest(modelId) {
   }
 
   let inference = manifest.inference;
-  if (manifest.modelType === 'diffusion') {
-    if (!inference) {
-      inference = { ...DEFAULT_MANIFEST_INFERENCE, presetId: 'diffusion' };
-    }
-  } else {
-    const rawConfig = manifest.config ?? {};
-    const architectureHint = rawConfig.architectures?.[0] ?? rawConfig.model_type ?? '';
-    const presetId = manifest.inference?.presetId || detectPreset(rawConfig, architectureHint);
-    if (presetId === 'transformer') {
-      const modelType = rawConfig.model_type ?? 'unknown';
-      throw new Error(
-        `Unknown model family: architecture="${architectureHint || 'unknown'}", model_type="${modelType}"`
-      );
-    }
-    const preset = resolvePreset(presetId);
-    const modelConfig = rawConfig?.text_config ?? rawConfig ?? {};
-    const hiddenSize = modelConfig.hidden_size ?? modelConfig.n_embd ?? modelConfig.d_model ?? modelConfig.model_dim ?? null;
-    const numHeads = modelConfig.num_attention_heads ?? modelConfig.n_head ?? modelConfig.num_heads ?? null;
-    const derivedHeadDim = (Number.isFinite(hiddenSize) && Number.isFinite(numHeads) && numHeads > 0)
-      ? hiddenSize / numHeads
-      : null;
-    const configHeadDim = Number.isFinite(rawConfig.head_dim) ? rawConfig.head_dim : null;
-    const manifestHeadDim = (
-      manifest.architecture
-      && typeof manifest.architecture === 'object'
-      && Number.isFinite(manifest.architecture.headDim)
-    )
-      ? manifest.architecture.headDim
-      : null;
-    const headDim = configHeadDim
-      ?? manifestHeadDim
-      ?? (Number.isFinite(derivedHeadDim) && Math.floor(derivedHeadDim) === derivedHeadDim ? derivedHeadDim : null);
-    if (!headDim) {
-      throw new Error('Missing headDim in manifest config (head_dim or hidden_size/num_attention_heads).');
-    }
-    inference = buildManifestInference(
-      preset,
-      rawConfig,
-      headDim,
-      manifest.quantizationInfo ?? null,
-      tensorNames
+  if (!inference) {
+    throw new Error(
+      'Manifest regeneration requires an existing manifest.inference block. ' +
+      'Re-convert the model with an explicit conversion config instead of inferring runtime behavior in the demo.'
     );
   }
 
@@ -1193,9 +1135,8 @@ export {
   summarizeEmbeddingVector,
   cosineSimilarity,
   startTelemetryLoop,
-  populateModelPresets,
-  populateRuntimePresetSelect,
-  populateRuntimePresetSelects,
+  populateRuntimeProfileSelect,
+  populateRuntimeProfileSelects,
   buildConverterConfig,
   restoreParsedManifest,
 };

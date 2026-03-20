@@ -193,7 +193,7 @@ export async function initializeSuiteModel(options = {}) {
   }
   const loadStart = performance.now();
   const runtime = resolveRuntime(options);
-  const loadMode = normalizeLoadMode(options.loadMode, !options.modelUrl);
+  const loadMode = normalizeLoadMode(options.loadMode, !!options.modelUrl, options.modelUrl);
   let harness;
   if (loadMode === 'memory') {
     if (!options.modelUrl) {

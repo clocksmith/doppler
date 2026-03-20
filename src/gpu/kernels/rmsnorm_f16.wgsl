@@ -1,5 +1,5 @@
 // AUTO-GENERATED from src/gpu/kernels/rmsnorm.wgsl.
-// Edit the source kernel and tools/configs/wgsl-variants.js, then run `npm run kernels:generate`.
+// Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:generate`.
 // RMSNorm Kernel with F16 Input/Output
 //
 // F16 variant for reduced memory bandwidth when using F16 activations.

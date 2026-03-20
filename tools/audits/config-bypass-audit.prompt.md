@@ -4,10 +4,10 @@
 
 **Config-bypass via hardcoded literal** — JavaScript code that returns a hardcoded
 value for a behavior-changing tunable instead of reading from the resolved config
-chain (manifest → preset → schema default → rule asset).
+chain (manifest → conversion config → schema default → rule asset).
 
 This audit covers the general case. Model-type guards that short-circuit the
-preset/merge chain are the most common instance, but not the only one.
+config/merge chain are the most common instance, but not the only one.
 
 ## Normative Rules
 
@@ -30,18 +30,18 @@ preset/merge chain are the most common instance, but not the only one.
 
 > Any new inference knob must be wired end-to-end:
 > - Add to `ManifestInferenceSchema` (and converter defaults if needed)
-> - Populate in converter mapping (preset + HF config)
+> - Populate in converter mapping (conversion config + HF config)
 > - Merge in `src/config/merge.js` with `_sources`
 >
-> Do not reintroduce runtime model detection or preset fallbacks.
+> Do not reintroduce runtime model detection or family-registry fallbacks.
 
 ### 3. Config Merge Order
 
 `docs/style/general-style-guide.md` §"Config Merge Order":
 
-> `manifestInferenceConfig = merge(manifestDefaultConfig, modelPresetConfig, converterOverrideConfig, artifactDerivedConfig)`
+> `manifestInferenceConfig = merge(manifestDefaultConfig, converterConfig.inference, artifactDerivedConfig)`
 
-Model-specific values belong in model presets (`src/config/presets/models/*.json`)
+Model-specific values belong in explicit conversion configs (`src/config/conversion/**/*.json`)
 or schema defaults (`src/config/schema/`), not in JS functions.
 
 ### 4. Explicit over Implicit
@@ -50,8 +50,8 @@ or schema defaults (`src/config/schema/`), not in JS functions.
 
 > No magic, document everything.
 
-Hardcoded literals buried in conditional branches are implicit. Config/preset
-values are explicit and auditable.
+Hardcoded literals buried in conditional branches are implicit. Config values
+are explicit and auditable.
 
 ### 5. Runtime Configuration (Performance Invariants)
 
@@ -69,7 +69,7 @@ Scan all `.js` files under `src/` for code that:
 
 1. **Returns a hardcoded literal for a behavior-changing tunable** — `return true`,
    `return false`, `return <number>`, `return '<string>'` for a value that should
-   come from config, a preset, a schema default, or a rule asset.
+   come from config, a schema default, or a rule asset.
 
 2. **Gates on model identity instead of reading config** — Checks `model_type`,
    `modelType`, `architectureHint`, or calls a helper like `isQwen*`, `isGemma*`,
@@ -83,8 +83,8 @@ Scan all `.js` files under `src/` for code that:
    or kernel variant strings in conditional branches instead of reading from
    config or rule assets.
 
-5. **Duplicates a value that exists in a preset or schema** — JS code that
-   returns the same literal a preset already specifies. Even if not contradictory,
+5. **Duplicates a value that exists in config or schema** — JS code that
+   returns the same literal a config asset already specifies. Even if not contradictory,
    this is a maintenance hazard and style violation.
 
 ### Concrete grep patterns
@@ -117,9 +117,6 @@ rg -n 'return true|return false' src/converter/manifest-inference.js
   checking tensor name patterns). Artifact-derived inference is not model-type gating.
 - **Fail-fast validation** (e.g., `throw new Error('unknown model type')`). Errors
   are not silent overrides.
-- **Preset selection** (e.g., mapping `architectureHint` → `presetId` in
-  `conversion-plan.js`). Selecting which preset to load is correct use of model
-  identity.
 - **Constants that are not tunables** (e.g., `WORKGROUP_SIZE = 256`, mathematical
   constants, format magic bytes). These are structural invariants, not config.
 - **Rule asset lookups** (e.g., `selectRuleValue('inference', 'dtype', ...)`).
@@ -133,19 +130,19 @@ For each finding:
 2. **Identify the hardcoded value** — what literal is returned or assigned.
 3. **Identify the gate** — what condition triggers the hardcoded path (model-type
    check, missing field, dtype comparison, etc.).
-4. **Check the config chain** — does a preset, schema default, or rule asset
+4. **Check the config chain** — does a config asset, schema default, or rule asset
    already specify this field? If yes, is the JS value consistent or contradictory?
 5. **Classify severity:**
    - **CRITICAL** — Hardcoded value contradicts what the config chain provides,
      causing silent wrong behavior.
    - **HIGH** — Hardcoded value fires before the config chain is consulted.
      Config chain may not specify the field, so the hardcoded value is the only
-     source — but it should be moved to a preset or schema default.
+     source — but it should be moved to a config asset or schema default.
    - **MEDIUM** — Hardcoded value fires after the config chain as a fallback,
-     but the value should live in a preset or schema default, not in JS.
+     but the value should live in a config asset or schema default, not in JS.
    - **LOW** — Hardcoded value is redundant with what the config chain already
      provides (no behavioral difference, but violates the style rule).
-6. **Propose fix** — move the value to a preset/schema/rule asset, or remove
+6. **Propose fix** — move the value to a config/schema/rule asset, or remove
    the guard if the config chain already has the correct value.
 
 ## Known Violations (seed findings)
@@ -155,12 +152,12 @@ For each finding:
 **File:** `src/converter/manifest-inference.js:275-278`
 
 ```javascript
-function detectRmsNormWeightOffset(presetInference, modelConfig, defaults) {
+function detectRmsNormWeightOffset(converterInference, modelConfig, defaults) {
   if (isQwen35LinearAttentionConfig(modelConfig)) {
-    return true;  // ← hardcoded, fires BEFORE preset check
+    return true;  // ← hardcoded, fires BEFORE config check
   }
-  if (typeof presetInference?.normalization?.rmsNormWeightOffset === 'boolean') {
-    return presetInference.normalization.rmsNormWeightOffset;
+  if (typeof converterInference?.normalization?.rmsNormWeightOffset === 'boolean') {
+    return converterInference.normalization.rmsNormWeightOffset;
   }
   return defaults.normalization.rmsNormWeightOffset;
 }
@@ -168,26 +165,26 @@ function detectRmsNormWeightOffset(presetInference, modelConfig, defaults) {
 
 **Gate:** `isQwen35LinearAttentionConfig` (model-type identity check).
 **Hardcoded value:** `true`.
-**Config chain value:** `qwen3.json` preset has `"rmsNormWeightOffset": false`.
-**Contradiction:** Yes — JS says `true`, preset says `false`.
+**Config chain value:** the Qwen conversion config sets `"rmsNormWeightOffset": false`.
+**Contradiction:** Yes — JS says `true`, config says `false`.
 **Impact:** Applies Gemma-style `(1 + w) * x` RMS norm instead of standard
 `w * x`, causing ~2x scaling error at every norm layer.
-**Fix:** Remove the guard. Let the preset drive the value.
+**Fix:** Remove the guard. Let the conversion config drive the value.
 
 ### 2. `detectAttentionOutputGate` — MEDIUM
 
 **File:** `src/converter/manifest-inference.js:235-248`
 
 ```javascript
-function detectAttentionOutputGate(presetInference, modelConfig, defaults) {
-  if (typeof presetInference?.attention?.attentionOutputGate === 'boolean') {
-    return presetInference.attention.attentionOutputGate;
+function detectAttentionOutputGate(converterInference, modelConfig, defaults) {
+  if (typeof converterInference?.attention?.attentionOutputGate === 'boolean') {
+    return converterInference.attention.attentionOutputGate;
   }
   if (typeof modelConfig?.attn_output_gate === 'boolean') {
     return modelConfig.attn_output_gate;
   }
   if (isQwen35LinearAttentionConfig(modelConfig)) {
-    return true;  // ← hardcoded, after preset but before defaults
+    return true;  // ← hardcoded, after config but before defaults
   }
   return defaults.attention.attentionOutputGate;
 }
@@ -195,9 +192,9 @@ function detectAttentionOutputGate(presetInference, modelConfig, defaults) {
 
 **Gate:** `isQwen35LinearAttentionConfig` (model-type identity check).
 **Hardcoded value:** `true`.
-**Config chain value:** `qwen3.json` does not specify `attentionOutputGate`.
-**Contradiction:** No (preset is silent), but the value should be in the preset.
-**Fix:** Add `"attentionOutputGate": true` to `qwen3.json`, remove the JS guard.
+**Config chain value:** the Qwen conversion config does not specify `attentionOutputGate`.
+**Contradiction:** No (config is silent), but the value should be in the config.
+**Fix:** Add `"attentionOutputGate": true` to the conversion config, remove the JS guard.
 
 ## Output Format
 
@@ -213,11 +210,11 @@ function detectAttentionOutputGate(presetInference, modelConfig, defaults) {
       "gate": "isQwen35LinearAttentionConfig (model-type identity)",
       "hardcodedValue": true,
       "configField": "normalization.rmsNormWeightOffset",
-      "configSource": "src/config/presets/models/qwen3.json",
+      "configSource": "src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json",
       "configValue": false,
       "contradiction": true,
       "firesBeforeConfigCheck": true,
-      "fix": "Remove guard; preset already has correct value"
+      "fix": "Remove guard; conversion config already has correct value"
     }
   ],
   "filesScanned": [],

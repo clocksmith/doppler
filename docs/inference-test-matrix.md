@@ -28,7 +28,7 @@ Even with 2-3 values per dimension, the cross-product exceeds 10,000 combination
 Test that invalid combinations fail fast before reaching the GPU. These are cheap, exhaustive within their domain, and run on every PR.
 
 - Manifest schema validation: required fields, nullable-required semantics
-- Config merge order: preset precedence, override semantics, execution compile
+- Config merge order: profile/config precedence, override semantics, execution compile
 - Kernel path resolution: registry lookup, alias chains, dtype contract
 - Tensor-config consistency: norm flags match tensor presence
 - Execution plan compilation: step validation, kernel ref pinning
@@ -56,7 +56,7 @@ Use one canonical model per architectural feature. Do not duplicate across quant
 | Small F16 baseline | Gemma3-270M F16 | dtype/layout coverage |
 | Q4K fused kernels | Gemma3-1B Q4K | kernel path + quantization |
 
-**Location:** `tests/integration/`, runtime verify presets in `src/config/presets/runtime/experiments/verify/`
+**Location:** `tests/integration/`, runtime verify profiles in `src/config/runtime/experiments/verify/`
 
 ### Layer 4: Decode surface parity (structural + behavioral)
 
@@ -94,7 +94,7 @@ This covers the risk surface (layout × attention mode, layout × batch size) wi
 | PR-fast | every PR | Layer 1 + Layer 4 structural (`npm run test:unit`) |
 | PR-GPU | manual/label | Layer 2 (`npm run test:gpu:browser`) |
 | Verify | model change | Layer 3 (`npm run verify:model`) |
-| Nightly | scheduled | Layer 5 + broader preset sweeps |
+| Nightly | scheduled | Layer 5 + broader profile sweeps |
 | Adhoc | investigation | `bench-text-decode-paths.js`, `vendor-bench.js`, `compare-engines.js` |
 
 ## Adding a new dimension
@@ -104,7 +104,7 @@ When a new inference dimension is introduced (e.g., a new attention variant):
 1. Add contract/config tests (Layer 1) for the new config field
 2. Add kernel tests (Layer 2) if new shaders are involved
 3. Pick or create one representative model (Layer 3)
-4. Add a verify preset in `src/config/presets/runtime/experiments/verify/`
+4. Add a verify profile in `src/config/runtime/experiments/verify/`
 5. Update this doc with the new representative model entry
 
 Do not create a new test for every existing model × new dimension combination.

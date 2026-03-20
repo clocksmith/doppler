@@ -10,7 +10,7 @@ const repoRoot = path.resolve(testDir, '..', '..');
 
 const configPath = path.join(
   repoRoot,
-  'tools/configs/conversion/gemma4/gemma-4-moe-q4k-ehf16-af32.json'
+  'src/config/conversion/gemma4/gemma-4-moe-q4k-ehf16-af32.json'
 );
 const config = JSON.parse(await fs.readFile(configPath, 'utf8'));
 
@@ -22,10 +22,10 @@ const config = JSON.parse(await fs.readFile(configPath, 'utf8'));
   assert.ok(config.output.modelBaseId, 'must have modelBaseId');
 }
 
-// === No preset reference (v1 is self-contained) ===
+// === No legacy family-indirection field (v1 is self-contained) ===
 
 {
-  assert.equal(config.presets, undefined, 'v1 config must not have presets');
+  assert.equal(config.presets, undefined, 'v1 config must not have a legacy family-indirection field');
 }
 
 // === Quantization config is complete ===

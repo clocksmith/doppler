@@ -52,7 +52,6 @@ async function createDirectSourceManifest() {
     },
     inference: {
       ...DEFAULT_MANIFEST_INFERENCE,
-      presetId: 'gemma3',
     },
     tensors: [
       {

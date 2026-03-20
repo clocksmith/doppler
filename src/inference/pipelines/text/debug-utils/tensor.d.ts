@@ -5,7 +5,7 @@
  * These operations are expensive (require GPU sync) - use sparingly.
  *
  * Enable with setDebugCategories({ kernel: true }, { bufferStats: true })
- * or use DEBUG_PRESETS.kernelStep
+ * or use DEBUG_PROFILES.kernelStep
  *
  * @example
  * // Enable kernel step debugging for layer 0 only

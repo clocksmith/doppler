@@ -35,7 +35,7 @@ Add a new sampling parameter or change how token selection works after logits ar
 
 ## Common Misses
 
-- Putting the default in a preset instead of the runtime schema.
+- Putting the default in a checked-in config asset instead of the runtime schema.
 - Changing benchmark-visible sampling semantics without updating the shared benchmark contract.
 - Mutating the filtering order in a way that silently changes top-k or top-p behavior.
 - Forgetting deterministic cases such as `temperature = 0`.

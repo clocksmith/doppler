@@ -257,7 +257,6 @@ export {
   type ConverterExecutionConfigSchema,
   type ConverterWorkerCountPolicy,
   type GGUFParserDefaultsSchema,
-  type ConverterPresetConfigSchema,
   type ConverterConfigSchema,
 
   // Defaults
@@ -269,7 +268,6 @@ export {
   DEFAULT_CONVERTER_MANIFEST_CONFIG,
   DEFAULT_CONVERTER_INFERENCE_CONFIG,
   DEFAULT_CONVERTER_OUTPUT_CONFIG,
-  DEFAULT_CONVERTER_PRESET_CONFIG,
   DEFAULT_CONVERTER_EXECUTION_CONFIG,
   DEFAULT_GGUF_PARSER_DEFAULTS,
   DEFAULT_CONVERTER_CONFIG,
@@ -376,7 +374,7 @@ export {
   DEFAULT_TOKENIZER_DEFAULTS,
   DEFAULT_KERNEL_PATH_POLICY,
   DEFAULT_INFERENCE_DEFAULTS_CONFIG,
-  DEFAULT_PRESET_INFERENCE_CONFIG,
+  DEFAULT_MODEL_INFERENCE_DEFAULTS,
 } from './inference-defaults.schema.js';
 
 // =============================================================================
@@ -848,7 +846,7 @@ export {
 
   // Factory
   createEmulationConfig,
-  getChipPreset,
+  getChipProfile,
 } from './emulation.schema.js';
 
 // =============================================================================

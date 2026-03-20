@@ -4,7 +4,7 @@ import { spawn } from 'node:child_process';
 
 const child = spawn(
   process.execPath,
-  ['tools/doppler-cli.js', 'distill', ...process.argv.slice(2)],
+  ['src/cli/doppler-cli.js', 'distill', ...process.argv.slice(2)],
   {
     stdio: 'inherit',
     cwd: process.cwd(),

@@ -92,7 +92,7 @@ export interface TranslateCompareArtifact {
     targetCode: string;
     targetName: string;
     options: Record<string, unknown>;
-    presetId: string;
+    layoutId: string;
   };
   environment: Record<string, unknown>;
   evidence: {
@@ -113,7 +113,7 @@ export interface TranslateCompareHistoryEntry {
   sourceCode: string;
   targetCode: string;
   prompt: string;
-  presetId: string;
+  layoutId: string;
   artifact: TranslateCompareArtifact | null;
   lanes: {
     left: TranslateCompareHistoryLane;
@@ -126,7 +126,7 @@ export interface State {
   runtimeOverrideBase: any;
   runtimeOverrideLabel: string | null;
   diagnosticsRuntimeConfig: any;
-  diagnosticsRuntimePresetId: string | null;
+  diagnosticsRuntimeProfileId: string | null;
   diagnosticsSelections: Record<string, any>;
   lastDiagnosticsSuite: string | null;
   lastDiffusionRequest: any;
@@ -161,7 +161,7 @@ export interface State {
   runPrefilling: boolean;
   runLoading: boolean;
   compareEnabled: boolean;
-  comparePresetId: string;
+  compareLayoutId: string;
   compareLoading: boolean;
   compareGenerating: boolean;
   compareHistory: TranslateCompareHistoryEntry[];

@@ -87,7 +87,7 @@ async function loadFinalNorm(ctx) {
     );
     if (legacyCandidates.length > 0) {
       finalNormNames = legacyCandidates;
-      log.warn(
+      log.info(
         'Loader',
         '[FinalNorm] Falling back to role-only final norm selection because tensor groups are missing in manifest.'
       );

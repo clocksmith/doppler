@@ -232,7 +232,6 @@ function resolveEmbeddingSemanticStyle(pipeline) {
   const manifest = pipeline?.manifest ?? null;
   const style = selectRuleValue('inference', 'config', 'embeddingSemanticStyle', {
     modelId: String(manifest?.modelId ?? '').toLowerCase(),
-    presetId: String(manifest?.inference?.presetId ?? '').toLowerCase(),
     manifestModelType: String(
       manifest?.config?.model_type
       ?? manifest?.config?.text_config?.model_type

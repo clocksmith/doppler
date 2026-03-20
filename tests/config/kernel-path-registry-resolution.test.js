@@ -7,7 +7,7 @@ import { getKernelPath, resolveKernelPath } from '../../src/config/kernel-path-l
 
 const testDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(testDir, '..', '..');
-const registryPath = path.join(repoRoot, 'src/config/presets/kernel-paths/registry.json');
+const registryPath = path.join(repoRoot, 'src/config/kernel-paths/registry.json');
 const kernelRegistryPath = path.join(repoRoot, 'src/config/kernels/registry.json');
 
 const kernelPathRegistry = JSON.parse(await fs.readFile(registryPath, 'utf8'));

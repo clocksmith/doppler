@@ -76,7 +76,7 @@ Models that should be promoted into that bucket next:
 | Class | What it means | Can it close correctness work? |
 | --- | --- | --- |
 | `A` | Real deterministic runtime evidence with actual device/provider info, real artifact loading, real prompt/output, and matching config/manifest context | Yes |
-| `B` | Contract evidence: manifest inspection, schema validation, conversion logs, slot-graph checks, targeted tests, preset/config diffs | Only contract/config items |
+| `B` | Contract evidence: manifest inspection, schema validation, conversion logs, slot-graph checks, targeted tests, config diffs | Only contract/config items |
 | `C` | Synthetic harness or fixture output, canned generations, null device info, fixed `1 ms`/`1000 tok/s`, mock outputs | No |
 
 ### Non-Negotiable Rules
@@ -84,7 +84,7 @@ Models that should be promoted into that bucket next:
 1. Any report artifact with null or missing device/provider info, synthetic-looking fixed timings such as exactly `1 ms` durations or exactly `1000 tok/s` throughput, or canned/mock generation output is Class `C` regardless of its timestamp. The `tests/fixtures/reports/**/2026-03-12T13-48*` and `2026-03-12T13-49*` batches are known Class `C` examples.
 2. Do not claim a conversion bug until the conversion triage protocol passes through source dtypes, manifest fields, shard integrity, and sampled numeric sanity.
 3. Do not claim a runtime bug until conversion/artifact integrity is established first.
-4. Do not invent runtime defaults or hidden fallbacks. If behavior changes, it must come from manifest, preset, runtime config, or rule assets.
+4. Do not invent runtime defaults or hidden fallbacks. If behavior changes, it must come from manifest, conversion config, runtime config, or rule assets.
 5. `null` is valid only when the contract explicitly allows an explicit disable. Missing required fields are not acceptable.
 6. Metadata issues such as `baseUrl` or support-matrix drift are real problems, but they are not by themselves proof of model-runtime failure.
 
@@ -136,7 +136,7 @@ Repo-backed facts as of 2026-03-12:
 | `H-GEMMA-F32A` | Gemma F32a vs F16a kernel divergence is the primary root cause | `disproved` | Kernel-level review reported paired WGSL paths with matching arithmetic structure and f32 accumulation; only storage and I/O dtype differ | N/A |
 | `H-GEMMA-F32A-ORCH` | Gemma F32a vs F16a orchestration-layer dtype propagation or buffer handling difference causes divergence | `disproved` | The deterministic 2×2 comparison proves the 270M divergence is a model capacity issue, not an orchestration-layer dtype bug. Both F32a dtype-propagation and BF16 `keepF32Weights` contract holes were closed preventatively, but neither was the active cause. The confirmed active cause was the lm_head_prefill phase-drop bug, which is now fixed | N/A |
 | `H-TG-PAGED` | Explicit `paged` KV layout bypasses the contiguous-only intent for Gemma 3 mixed-attention models | `validated` | Confirmed by current `init.js` control flow; `WS2.1` should codify this as the pre-fix baseline | Add fail-fast and then align config |
-| `H-QWEN-LA` | Qwen 3.5 failure is driven by linear-attention correctness or Qwen-specific runtime semantics | `validated` | Qwen-specific manifest and contract issues were narrowed and one bug was fixed: `detectRmsNormWeightOffset` in `manifest-inference.js` had incorrectly forced `rmsNormWeightOffset: true` for Qwen 3.5, overriding the correct preset value of `false`. That correction was necessary but not sufficient; real Class `A` smokes still fail for both Q4K and F16 artifacts. The strongest remaining explanation is the linear-attention / delta-net implementation, not manifest freshness or catalog metadata | Fix the linear-attention kernel or delta-net state management, then re-smoke |
+| `H-QWEN-LA` | Qwen 3.5 failure is driven by linear-attention correctness or Qwen-specific runtime semantics | `validated` | Qwen-specific manifest and contract issues were narrowed and one bug was fixed: `detectRmsNormWeightOffset` in `manifest-inference.js` had incorrectly forced `rmsNormWeightOffset: true` for Qwen 3.5, overriding the correct config value of `false`. That correction was necessary but not sufficient; real Class `A` smokes still fail for both Q4K and F16 artifacts. The strongest remaining explanation is the linear-attention / delta-net implementation, not manifest freshness or catalog metadata | Fix the linear-attention kernel or delta-net state management, then re-smoke |
 | `H-QWEN-STALE` | Sampled local Qwen artifacts are stale or manifest-incomplete relative to the current contract | `done` | Validated for the old local artifacts; refreshed exact-ID Qwen artifacts now satisfy required-field checks but still need runtime-path investigation | Keep old artifacts out of runtime conclusions and continue in `WS3` |
 | `H-TG-META` | TranslateGemma local-loading/catalog metadata is inconsistent | `validated` | Known metadata issue | Fix catalog truthfully and re-sync support matrix if needed |
 | `H-TG-BROKEN` | TranslateGemma 4B is fundamentally broken in Doppler | `needs_recheck` | Real Class `A` and conversion checks now separate the issue: F16 diagnostic output is coherent, Q4K output remains incoherent in the same prompt framing, and Python dequant parity on representative tensors is within expected Q4K precision for both known-working 1B and current 4B contexts. The active lead is no longer RoPE scaling; it is now a Q4K dequant/matmul runtime-path issue with conversion-vs-runtime split evidence | Continue isolate the Q4K dequant/matmul path and confirm runtime-stage fingerprint across runs |
@@ -186,11 +186,11 @@ Target inventory template:
 
 | Model ID | Local artifact path | Latest repo claim | Latest real runtime evidence | Latest contract-only evidence | Current next action |
 | --- | --- | --- | --- | --- | --- |
-| `gemma-3-270m-it-q4k-ehf16-af32` | refreshed exact local artifact: `models/local/gemma-3-270m-it-q4k-ehf16-af32`; mounted source artifact also available at `/Volumes/models/rdrr/gemma-3-270m-it-q4k-ehf16-af32` | failing | support matrix: node, 2026-03-11 | refreshed local artifact has `manifest.json`, bundled tokenizer files, 6 shards, `presetId: "gemma3"`, `schema: "doppler.execution/v0"`, `defaultKernelPath: "gemma3-q4k-dequant-f32a-online"`, and a fresh conversion report with `requiredInferenceFieldsArtifact.ok: true` and `executionV0GraphContractArtifact.ok: true` | `WS4` |
-| `gemma-3-1b-it-q4k-ehf16-af32` | refreshed exact local artifact: `models/local/gemma-3-1b-it-q4k-ehf16-af32`; mounted source artifact also available at `/Volumes/models/rdrr/gemma-3-1b-it-q4k-ehf16-af32` | failing in support matrix, but contradicted by a coherent runtime report | Class `A`: [`tests/fixtures/reports/gemma-3-1b-it-q4k-ehf16-af32/2026-03-11T17-22-04.007Z.json`](../tests/fixtures/reports/gemma-3-1b-it-q4k-ehf16-af32/2026-03-11T17-22-04.007Z.json) on Apple M3 with coherent output and non-synthetic timings | refreshed local artifact has `manifest.json`, bundled tokenizer files, 16 shards, `presetId: "gemma3"`, `schema: "doppler.execution/v0"`, `defaultKernelPath: "gemma3-q4k-dequant-f32a-online"`, and a fresh conversion report with `requiredInferenceFieldsArtifact.ok: true` and `executionV0GraphContractArtifact.ok: true` | `WS4` |
+| `gemma-3-270m-it-q4k-ehf16-af32` | refreshed exact local artifact: `models/local/gemma-3-270m-it-q4k-ehf16-af32`; mounted source artifact also available at `/Volumes/models/rdrr/gemma-3-270m-it-q4k-ehf16-af32` | failing | support matrix: node, 2026-03-11 | refreshed local artifact has `manifest.json`, bundled tokenizer files, 6 shards, `schema: "doppler.execution/v0"`, `defaultKernelPath: "gemma3-q4k-dequant-f32a-online"`, and a fresh conversion report with `requiredInferenceFieldsArtifact.ok: true` and `executionV0GraphContractArtifact.ok: true` | `WS4` |
+| `gemma-3-1b-it-q4k-ehf16-af32` | refreshed exact local artifact: `models/local/gemma-3-1b-it-q4k-ehf16-af32`; mounted source artifact also available at `/Volumes/models/rdrr/gemma-3-1b-it-q4k-ehf16-af32` | failing in support matrix, but contradicted by a coherent runtime report | Class `A`: [`tests/fixtures/reports/gemma-3-1b-it-q4k-ehf16-af32/2026-03-11T17-22-04.007Z.json`](../tests/fixtures/reports/gemma-3-1b-it-q4k-ehf16-af32/2026-03-11T17-22-04.007Z.json) on Apple M3 with coherent output and non-synthetic timings | refreshed local artifact has `manifest.json`, bundled tokenizer files, 16 shards, `schema: "doppler.execution/v0"`, `defaultKernelPath: "gemma3-q4k-dequant-f32a-online"`, and a fresh conversion report with `requiredInferenceFieldsArtifact.ok: true` and `executionV0GraphContractArtifact.ok: true` | `WS4` |
 | `translategemma-4b-it-q4k-ehf16-af32` | `/Volumes/models/rdrr/translategemma-4b-it-q4k-ehf16-af32`; no `models/local` artifact present | verified | support matrix: browser, 2026-03-06 | mounted artifact present with `manifest.json`, `origin.json`, `tokenizer.json`, `tokenizer.model`, and 47 shard files; manifest currently records `sessionDefaults.kvcache.layout: "paged"`. Latest sampled local report with that config is Class `C`: [`tests/fixtures/reports/translategemma-4b-it-q4k-ehf16-af32/2026-03-12T15-34-44.706Z.json`](../tests/fixtures/reports/translategemma-4b-it-q4k-ehf16-af32/2026-03-12T15-34-44.706Z.json) | `WS2` |
-| `qwen-3-5-0-8b-q4k-ehaf16` | refreshed exact local artifact: `models/local/qwen-3-5-0-8b-q4k-ehaf16`; mounted comparison artifacts also exist at `/Volumes/models/rdrr/qwen-3-5-0-8b-wq4k-ef16-hf16-f16` and `/Volumes/models/rdrr/qwen-3-5-0-8b-wf16-ef16-hf16-f16` | failing | Class `A`: [`tests/fixtures/reports/qwen-3-5-0-8b-q4k-ehaf16/2026-03-12T16-45-00.422Z.json`](../tests/fixtures/reports/qwen-3-5-0-8b-q4k-ehaf16/2026-03-12T16-45-00.422Z.json) on Apple M3 with real load, real kernels, and incoherent newline/period output | refreshed exact local artifact has `manifest.json`, bundled tokenizer, 12 shards, `presetId: "qwen3"`, `schema: null`, `defaultKernelPath: null`, custom linear/full-attention `layerPattern`, and a fresh conversion report with `requiredInferenceFieldsArtifact.ok: true`, `executionContractArtifact.ok: true`, and `steps.total: 0` | `WS3.8` |
-| `qwen-3-5-2b-q4k-ehaf16` | refreshed exact local artifact: `models/local/qwen-3-5-2b-q4k-ehaf16`; mounted comparison artifact also exists at `/Volumes/models/rdrr/qwen-3-5-2b-wq4k-ef16-hf16-f16` | failing | support matrix: browser, 2026-03-06 | refreshed exact local artifact has `manifest.json`, bundled tokenizer, 27 shards, `presetId: "qwen3"`, `schema: null`, `defaultKernelPath: null`, custom linear/full-attention `layerPattern`, and a fresh conversion report with `requiredInferenceFieldsArtifact.ok: true`, `executionContractArtifact.ok: true`, and `steps.total: 0` | `WS3` |
+| `qwen-3-5-0-8b-q4k-ehaf16` | refreshed exact local artifact: `models/local/qwen-3-5-0-8b-q4k-ehaf16`; mounted comparison artifacts also exist at `/Volumes/models/rdrr/qwen-3-5-0-8b-wq4k-ef16-hf16-f16` and `/Volumes/models/rdrr/qwen-3-5-0-8b-wf16-ef16-hf16-f16` | failing | Class `A`: [`tests/fixtures/reports/qwen-3-5-0-8b-q4k-ehaf16/2026-03-12T16-45-00.422Z.json`](../tests/fixtures/reports/qwen-3-5-0-8b-q4k-ehaf16/2026-03-12T16-45-00.422Z.json) on Apple M3 with real load, real kernels, and incoherent newline/period output | refreshed exact local artifact has `manifest.json`, bundled tokenizer, 12 shards, `schema: null`, `defaultKernelPath: null`, custom linear/full-attention `layerPattern`, and a fresh conversion report with `requiredInferenceFieldsArtifact.ok: true`, `executionContractArtifact.ok: true`, and `steps.total: 0` | `WS3.8` |
+| `qwen-3-5-2b-q4k-ehaf16` | refreshed exact local artifact: `models/local/qwen-3-5-2b-q4k-ehaf16`; mounted comparison artifact also exists at `/Volumes/models/rdrr/qwen-3-5-2b-wq4k-ef16-hf16-f16` | failing | support matrix: browser, 2026-03-06 | refreshed exact local artifact has `manifest.json`, bundled tokenizer, 27 shards, `schema: null`, `defaultKernelPath: null`, custom linear/full-attention `layerPattern`, and a fresh conversion report with `requiredInferenceFieldsArtifact.ok: true`, `executionContractArtifact.ok: true`, and `steps.total: 0` | `WS3` |
 | `gemma-3-1b-it-f16-af32` | `models/local/gemma-3-1b-it-f16-af32` | verified | support matrix: browser, 2026-03-10 | sampled stale-manifest evidence | `WS5` |
 
 Steps:
@@ -230,17 +230,17 @@ Key files:
 - [`src/converter/manifest-inference.js`](../src/converter/manifest-inference.js)
 - [`tests/config/manifest-schema-contract.test.js`](../tests/config/manifest-schema-contract.test.js)
 - [`tests/config/models-manifest-contract.test.js`](../tests/config/models-manifest-contract.test.js)
-- [`tools/configs/conversion/gemma3/gemma-3-270m-it-q4k-ehf16-af32.json`](../tools/configs/conversion/gemma3/gemma-3-270m-it-q4k-ehf16-af32.json)
-- [`tools/configs/conversion/gemma3/gemma-3-1b-it-q4k-ehf16-af32.json`](../tools/configs/conversion/gemma3/gemma-3-1b-it-q4k-ehf16-af32.json)
-- [`tools/configs/conversion/gemma3/gemma-3-1b-it-f16-af32.json`](../tools/configs/conversion/gemma3/gemma-3-1b-it-f16-af32.json)
-- [`tools/configs/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json`](../tools/configs/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json)
-- [`tools/configs/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16-af32.json`](../tools/configs/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16-af32.json)
-- [`tools/configs/conversion/qwen3/qwen-3-5-2b-q4k-ehaf16.json`](../tools/configs/conversion/qwen3/qwen-3-5-2b-q4k-ehaf16.json)
+- [`src/config/conversion/gemma3/gemma-3-270m-it-q4k-ehf16-af32.json`](../src/config/conversion/gemma3/gemma-3-270m-it-q4k-ehf16-af32.json)
+- [`src/config/conversion/gemma3/gemma-3-1b-it-q4k-ehf16-af32.json`](../src/config/conversion/gemma3/gemma-3-1b-it-q4k-ehf16-af32.json)
+- [`src/config/conversion/gemma3/gemma-3-1b-it-f16-af32.json`](../src/config/conversion/gemma3/gemma-3-1b-it-f16-af32.json)
+- [`src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json`](../src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json)
+- [`src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16-af32.json`](../src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16-af32.json)
+- [`src/config/conversion/qwen3/qwen-3-5-2b-q4k-ehaf16.json`](../src/config/conversion/qwen3/qwen-3-5-2b-q4k-ehaf16.json)
 
 Required checks for every target artifact:
 
 1. `manifest.json` exists and matches the expected model ID.
-2. `inference.presetId` is present and correct.
+2. legacy family-marker fields are either absent or clearly understood when present in older artifacts.
 3. `layerPattern` is complete and explicit.
 4. nullable-but-required fields are explicit `null` where allowed rather than missing.
 5. tokenizer config exists and points to a real tokenizer payload.
@@ -255,7 +255,7 @@ Family-specific guidance:
 
 Steps:
 
-- [x] `WS1.1` Inspect the current local manifests for all target models and record missing fields, explicit nulls, preset IDs, layer patterns, tokenizer paths, `schema`, and `defaultKernelPath`.
+- [x] `WS1.1` Inspect the current local manifests for all target models and record missing fields, explicit nulls, any legacy family markers, layer patterns, tokenizer paths, `schema`, and `defaultKernelPath`.
 - [x] `WS1.2` Mark any artifact with missing required inference fields, missing tokenizer references, or shard/manifest mismatch as stale or invalid for runtime investigation.
 - [x] `WS1.3` If source checkpoints are locally available, re-convert stale or incomplete artifacts using the checked-in conversion configs before making deeper runtime claims. If a source checkpoint is unavailable for a target model, mark that artifact `non_refreshable` and limit downstream conclusions to the existing manifest state rather than pretending the reconversion gate was satisfied.
 - [x] `WS1.4` Re-run manifest contract checks after reconversion and capture the exact remaining gaps, if any.
@@ -287,9 +287,8 @@ Exit gate:
 
 Key files:
 
-- [`tools/configs/conversion/gemma3/translategemma-4b-it-q4k-ehf16-af32.json`](../tools/configs/conversion/gemma3/translategemma-4b-it-q4k-ehf16-af32.json)
+- [`src/config/conversion/gemma3/translategemma-4b-it-q4k-ehf16-af32.json`](../src/config/conversion/gemma3/translategemma-4b-it-q4k-ehf16-af32.json)
 - [`src/inference/pipelines/text/init.js`](../src/inference/pipelines/text/init.js)
-- [`src/config/presets/models/translategemma.json`](../src/config/presets/models/translategemma.json)
 - [`tests/integration/translategemma-harness-default-prompt.test.js`](../tests/integration/translategemma-harness-default-prompt.test.js)
 - [`models/catalog.json`](../models/catalog.json)
 - [`docs/model-support-matrix.md`](./model-support-matrix.md)
@@ -341,11 +340,10 @@ Exit gate:
 
 Key files:
 
-- [`src/config/presets/models/qwen3.json`](../src/config/presets/models/qwen3.json)
-- [`tools/configs/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json`](../tools/configs/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json)
-- [`tools/configs/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16-af32.json`](../tools/configs/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16-af32.json)
-- [`tools/configs/conversion/qwen3/qwen-3-5-2b-q4k-ehaf16.json`](../tools/configs/conversion/qwen3/qwen-3-5-2b-q4k-ehaf16.json)
-- [`tools/configs/conversion/qwen3/qwen-3-5-0-8b-f16.json`](../tools/configs/conversion/qwen3/qwen-3-5-0-8b-f16.json)
+- [`src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json`](../src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json)
+- [`src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16-af32.json`](../src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16-af32.json)
+- [`src/config/conversion/qwen3/qwen-3-5-2b-q4k-ehaf16.json`](../src/config/conversion/qwen3/qwen-3-5-2b-q4k-ehaf16.json)
+- [`src/config/conversion/qwen3/qwen-3-5-0-8b-f16.json`](../src/config/conversion/qwen3/qwen-3-5-0-8b-f16.json)
 - `models/local/qwen-3-5-0-8b-f16/manifest.json`
 - [`src/inference/pipelines/text/linear-attention.js`](../src/inference/pipelines/text/linear-attention.js)
 - [`src/inference/pipelines/text/attention/run.js`](../src/inference/pipelines/text/attention/run.js)
@@ -364,10 +362,10 @@ Important guardrails:
 
 Steps:
 
-- [x] `WS3.1` After `WS1`, inspect the refreshed manifests for both Qwen Q4K models and the local F16 comparison artifact. Record `presetId`, `schema`, `defaultKernelPath`, `layerPattern`, tokenizer state, and any explicit linear-attention fields so Q4K-specific versus family-wide issues can be separated early.
+- [x] `WS3.1` After `WS1`, inspect the refreshed manifests for both Qwen Q4K models and the local F16 comparison artifact. Record any legacy family markers, `schema`, `defaultKernelPath`, `layerPattern`, tokenizer state, and any explicit linear-attention fields so Q4K-specific versus family-wide issues can be separated early.
 - [x] `WS3.2` Determine the actual runtime dispatch path for the refreshed artifacts: execution-v0, kernel-path-derived execution, or legacy path. Document it explicitly.
 - [x] `WS3.3` If `WS3.2` shows that the actual dispatch path cannot reach the intended linear-attention kernels or selects the wrong runtime path, make the smallest manifest-first fix possible and add tests that prove the path is explicit rather than implicit. If the legacy path dispatches correctly with `defaultKernelPath: null`, record that finding and move to `WS3.4`.
-- [x] `WS3.4` Re-check the Qwen-specific config semantics already present in [`qwen3.json`](../src/config/presets/models/qwen3.json): `queryKeyNorm`, `mropeInterleaved`, `mropeSection`, `partialRotaryFactor`, and `rmsNormWeightOffset`.
+- [x] `WS3.4` Re-check the Qwen-specific config semantics already present in [`src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json`](../src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json): `queryKeyNorm`, `mropeInterleaved`, `mropeSection`, `partialRotaryFactor`, and `rmsNormWeightOffset`.
 - [x] `WS3.5` Verify whether Qwen linear layers are supposed to use learned Q/K normalization weights, pure in-kernel L2 normalization, or both. Do not assume equivalence with standard-attention RMSNorm.
 - [x] `WS3.6` Audit `linearNormMode` resolution for the refreshed artifacts. If inference from weight shape is ambiguous, move that field to explicit manifest output instead of relying on shape heuristics.
 - [x] `WS3.7` If a local reference environment and source weights are available, run a real deterministic reference comparison against a known-good implementation and isolate divergence to one of the following. If that environment is unavailable, record the skip and proceed to `WS3.8`:
@@ -405,10 +403,10 @@ Exit gate:
 Key files:
 
 - [`docs/model-support-matrix.md`](./model-support-matrix.md)
-- [`tools/configs/conversion/gemma3/gemma-3-270m-it-q4k-ehf16-af32.json`](../tools/configs/conversion/gemma3/gemma-3-270m-it-q4k-ehf16-af32.json)
-- [`tools/configs/conversion/gemma3/gemma-3-1b-it-q4k-ehf16-af32.json`](../tools/configs/conversion/gemma3/gemma-3-1b-it-q4k-ehf16-af32.json)
-- [`src/config/presets/kernel-paths/gemma3-q4k-dequant-f32a-online.json`](../src/config/presets/kernel-paths/gemma3-q4k-dequant-f32a-online.json)
-- [`src/config/presets/kernel-paths/gemma3-q4k-dequant-f16a-online.json`](../src/config/presets/kernel-paths/gemma3-q4k-dequant-f16a-online.json)
+- [`src/config/conversion/gemma3/gemma-3-270m-it-q4k-ehf16-af32.json`](../src/config/conversion/gemma3/gemma-3-270m-it-q4k-ehf16-af32.json)
+- [`src/config/conversion/gemma3/gemma-3-1b-it-q4k-ehf16-af32.json`](../src/config/conversion/gemma3/gemma-3-1b-it-q4k-ehf16-af32.json)
+- [`src/config/kernel-paths/gemma3-q4k-dequant-f32a-online.json`](../src/config/kernel-paths/gemma3-q4k-dequant-f32a-online.json)
+- [`src/config/kernel-paths/gemma3-q4k-dequant-f16a-online.json`](../src/config/kernel-paths/gemma3-q4k-dequant-f16a-online.json)
 - relevant Q4K kernels under `src/gpu/kernels/**`
 
 Required reasoning standard:
@@ -420,7 +418,7 @@ Required reasoning standard:
 
 Steps:
 
-- [x] `WS4.1` Inspect the refreshed Gemma Q4K manifests and confirm `presetId`, quantization settings, `quantizationInfo` including `layout`, `layerPattern`, `defaultKernelPath`, and execution-v0 state. Note: per Ground Truth item 6, the 1B Q4K model has Class `A` evidence of coherent output on at least one prompt, so the Q4K path is not categorically broken across both Gemma targets.
+- [x] `WS4.1` Inspect the refreshed Gemma Q4K manifests and confirm quantization settings, `quantizationInfo` including `layout`, `layerPattern`, `defaultKernelPath`, and execution-v0 state. Note: per Ground Truth item 6, the 1B Q4K model has Class `A` evidence of coherent output on at least one prompt, so the Q4K path is not categorically broken across both Gemma targets.
 - [x] `WS4.2` Verify source checkpoint dtypes for the failing models and record the expected dtype mix. If source checkpoints are not available locally, inspect the corresponding Hugging Face metadata or checkpoint headers where possible and record any remaining access gap explicitly rather than leaving this step implicitly skipped.
 - [x] `WS4.3` Verify shard integrity by sampling hashes against the manifest.
 - [x] `WS4.4` Sample numeric sanity by comparing selected source tensor values with converted bytes and dequantized values.
@@ -465,7 +463,7 @@ Sampled contract-only report evidence suggests at least one local `gemma-3-1b-it
 
 Steps:
 
-- [x] `WS5.A.1` Inspected the actual local `gemma-3-1b-it-f16-af32` manifest. It has `schema: "doppler.execution/v0"`, `defaultKernelPath: "gemma3-f16-fused-f32a-online"`, `presetId: "gemma3"`, 35 execution steps, full `sessionDefaults`, and proper `layerPattern`. The artifact is NOT stale — it meets the current manifest completeness contract.
+- [x] `WS5.A.1` Inspected the actual local `gemma-3-1b-it-f16-af32` manifest. It has `schema: "doppler.execution/v0"`, `defaultKernelPath: "gemma3-f16-fused-f32a-online"`, 35 execution steps, full `sessionDefaults`, and proper `layerPattern`. The artifact is NOT stale — it meets the current manifest completeness contract.
 - [x] `WS5.A.2` No re-conversion needed. The artifact is current.
 - [x] `WS5.A.3` The verified status stands. The concern from synthetic Class `C` reports was a false alarm.
 
@@ -479,7 +477,7 @@ A Class `C` synthetic report suggests a possible `gemma2` execution-v0 graph bug
 
 Key files:
 
-- [`tools/configs/conversion/gemma2/gemma2-template-f16.json`](../tools/configs/conversion/gemma2/gemma2-template-f16.json)
+- [`src/config/conversion/gemma2/gemma2-template-f16.json`](../src/config/conversion/gemma2/gemma2-template-f16.json)
 - [`tests/fixtures/reports/gemma2-sharded-index/2026-03-12T13-48-55.531Z.json`](../tests/fixtures/reports/gemma2-sharded-index/2026-03-12T13-48-55.531Z.json)
 
 Steps:
@@ -595,7 +593,7 @@ Template:
 | 2026-03-12T16:39:24Z | agent/codex | `WS1.3`-`WS1.7` | `ready -> done` | `B` | Refreshed exact local artifacts for both Qwen Q4K targets and both Gemma Q4K targets, re-checked manifests, and recorded the remaining family-specific gaps: Qwen stays `schema: null`/`defaultKernelPath: null`, while Gemma remains execution-v0 complete | `WS1.8` |
 | 2026-03-12T16:39:24Z | agent/codex | `WS1.8` | `ready -> done` | `B` | Closed the artifact-freshness gate; `WS3.1` is now the primary resume point, `WS4.1` is also unblocked, and `WS2` remains independently available | `WS3.1` |
 | 2026-03-12T16:44:57Z | agent/codex | `WS3.1`-`WS3.3` | `ready -> done` | `B` | Compared refreshed Qwen Q4K manifests with the local F16 baseline and traced node debug/test-model dispatch: no execution-v0, no model-level kernel path, legacy layer-pattern routing still reaches `runLinearAttentionLayer()`, and generic kernel auto-selection happens below that | `WS3.4` |
-| 2026-03-12T16:46:42Z | agent/codex | `WS3.4`-`WS3.6` | `ready -> done` | `B` | Re-checked Qwen preset semantics against refreshed manifests, confirmed `linearNormMode: "shared"` is explicit in both refreshed Qwen Q4K artifacts, and verified from source checkpoint indexes that learned `q_norm`/`k_norm` weights appear on full-attention `self_attn` layers only, not on linear-attention layers | `WS3.7` |
+| 2026-03-12T16:46:42Z | agent/codex | `WS3.4`-`WS3.6` | `ready -> done` | `B` | Re-checked Qwen conversion-config semantics against refreshed manifests, confirmed `linearNormMode: "shared"` is explicit in both refreshed Qwen Q4K artifacts, and verified from source checkpoint indexes that learned `q_norm`/`k_norm` weights appear on full-attention `self_attn` layers only, not on linear-attention layers | `WS3.7` |
 | 2026-03-12T16:54:51Z | agent/codex | `WS3` runtime smoke | `n/a` | `A` | Real node/WebGPU debug smoke for refreshed `qwen-3-5-0-8b-q4k-ehaf16` loaded successfully on Apple M3 and produced degenerate newline/period output, confirming the failure survives artifact refresh | `WS3.7` |
 | 2026-03-12T16:54:51Z | agent/codex | `WS3` F16 control smoke | `n/a` | `A` | Real node/WebGPU debug smoke for local `qwen-3-5-0-8b-f16` produced multilingual gibberish on the same prompt, weakening Q4K-only explanations for Qwen | `WS3.7` |
 | 2026-03-12T16:54:51Z | agent/codex | `WS3.7` | `ready -> done` | `B` | Attempted a local Hugging Face reference run against the Qwen 0.8B source checkpoint, but installed `transformers` does not recognize `model_type=\"qwen3_5\"` and the local snapshot ships no remote-code module; recorded the skip and moved to test-strengthening work | `WS3.8` |

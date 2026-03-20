@@ -23,7 +23,7 @@ When benchmark work becomes extension work, also open:
 - `docs/developer-guides/README.md`
 
 Common routes:
-- tuning or adding execution identities: `docs/developer-guides/06-kernel-path-preset.md`
+- tuning or adding execution identities: `docs/developer-guides/06-kernel-path-config.md`
 - kernel-level perf changes: `docs/developer-guides/11-wgsl-kernel.md`
 - attention-path throughput work: `docs/developer-guides/13-attention-variant.md`
 - cache/layout throughput work: `docs/developer-guides/15-kvcache-layout.md`
@@ -31,7 +31,7 @@ Common routes:
 
 ## Execution Plane Contract
 
-- JSON governs benchmark policy and engine selection (`runtimeConfig`, presets, rule assets).
+- JSON governs benchmark policy and engine selection (`runtimeConfig`, runtime profiles, rule assets).
 - JS wraps execution: contract validation, harness/runtime assembly, config isolation, and dispatch orchestration.
 - WGSL remains deterministic compute; it must not own benchmark semantics or fallback logic.
 - Any benchmark fairness axis (`sampling`, `seed`, budget, run policy) must come from shared contract JSON and be identical across engines.
@@ -125,7 +125,7 @@ node tools/vendor-bench.js gap --base doppler --target transformersjs
 
 ## Canonical Files
 
-- `tools/doppler-cli.js`
+- `src/cli/doppler-cli.js`
 - `benchmarks/runners/transformersjs-bench.js`
 - `benchmarks/runners/transformersjs-runner.html`
 - `benchmarks/vendors/registry.json`

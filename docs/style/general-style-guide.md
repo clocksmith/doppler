@@ -34,7 +34,7 @@ Gitignored local artifacts are never a canonical CI source:
 
 Execution is partitioned into three planes:
 
-- JSON plane: contract and policy in manifests, presets, and rule assets.
+- JSON plane: contract and policy in manifests, config assets, and rule assets.
 - JS plane: orchestration and I/O with resolved config.
 - WGSL plane: deterministic arithmetic kernels.
 
@@ -84,7 +84,7 @@ Doppler source code is **JavaScript** with **declaration files** (.d.ts) for eve
 |--------|---------|
 | **JavaScript (.js)** | All source code (clean, no type annotations) |
 | **Declaration files (.d.ts)** | Type specs for source modules (`src/`, `demo/`) |
-| **JSON (.json)** | Static presets, manifests, fixtures |
+| **JSON (.json)** | Static config assets, manifests, fixtures |
 | **WGSL (.wgsl)** | GPU shaders |
 
 ### Evidence
@@ -140,15 +140,15 @@ Every configurable must have a schema; no runtime defaults live in JS logic.
 ### Config Vocabulary
 
 - Schema: blueprint + defaults (`src/config/schema/*.schema.js`).
-- Config: schema-shaped instance (default, preset, override, asset).
+- Config: schema-shaped instance (default, profile, override, asset).
 - Default config: `DEFAULT_*` export from a schema module.
-- Preset config: JSON overlay (runtime profiles, model presets, kernel paths, platforms).
+- Profile/config asset: JSON overlay (runtime profiles, kernel paths, platforms, conversion configs).
 - Override config: explicit config or programmatic overlay (highest precedence).
 
 ### Phase Injection Model
 
 Each phase injects configs by sequential merge: existing inputs first, then default
-configs, preset configs, and override configs to fill gaps or override behavior.
+configs, config assets, and override configs to fill gaps or override behavior.
 
 1. Phase 1 (Conversion): model artifact + converter configs -> manifest config.
 2. Phase 2 (Loading): manifest config + runtime configs + asset configs
@@ -163,7 +163,7 @@ inference). Document the merge chain per domain:
 - Runtime config:
   `runtimeConfig = merge(runtimeDefaultConfig, runtimeProfileConfig, runtimeOverrideConfig)`
 - Manifest inference config (Phase 1 output):
-  `manifestInferenceConfig = merge(manifestDefaultConfig, modelPresetConfig, converterOverrideConfig, artifactDerivedConfig)`
+  `manifestInferenceConfig = merge(manifestDefaultConfig, converterConfig.inference, artifactDerivedConfig)`
 - Model inference config (Phase 2 input):
   `modelInferenceConfig = merge(manifestInferenceConfig, runtimeInferenceOverrideConfig)`
 - Loader/runtime slices (loading/storage/etc):
@@ -238,14 +238,14 @@ const useSoftcapping = config.attnLogitSoftcapping !== null;
 When a manifest-based runtime error occurs (dtype mismatch, missing field, kernel conflict):
 
 1. **Compare the manifest to its conversion config first.** If they disagree, re-refresh the manifest — do not patch runtime code.
-2. The conversion config (`tools/configs/conversion/`) is the source of truth for all manifest inference fields. The manifest is a stamped artifact.
+2. The conversion config (`src/config/conversion/`) is the source of truth for all manifest inference fields. The manifest is a stamped artifact.
 3. Never add runtime workarounds for stale manifests. Fix the config, re-refresh, verify.
 
 ### Kernel Path Registry Lifecycle
 
-- Kernel-path identity is owned by `src/config/presets/kernel-paths/registry.json`.
+- Kernel-path identity is owned by `src/config/kernel-paths/registry.json`.
 - Valid entries:
-  - `file`: path to WGSL path spec under `src/config/presets/kernel-paths/`.
+  - `file`: path to WGSL path spec under `src/config/kernel-paths/`.
   - `aliasOf`: redirects legacy IDs to a canonical target.
   - `status`: one of `canonical`, `experimental`, `legacy`.
 - `canonical` IDs are production-visible and may be emitted as manifest defaults.
@@ -267,7 +267,7 @@ When a manifest-based runtime error occurs (dtype mismatch, missing field, kerne
 - Forbidden overrides include: prompt selection, max tokens, sampling (temperature/topK/topP), trace categories, log levels, warmup/timed runs.
 - Command intent and harness options must live in config (`runtime.shared.harness`, `runtime.shared.tooling.intent`).
 - Harnesses must not accept per-field URL overrides; only `runtimeProfile`, `runtimeConfig`, `runtimeConfigUrl`, and `configChain` are allowed.
-- If a developer needs to tweak a tunable, they should create a preset or pass `--config` with a runtime config file.
+- If a developer needs to tweak a tunable, they should create a runtime profile or pass `--config` with a runtime config file.
 See `config-style-guide.md` for merge order and category rules.
 
 ### Failure-Path Regression Requirement
@@ -280,7 +280,7 @@ See `config-style-guide.md` for merge order and category rules.
 
 When adding a new inference knob or model behavior:
 - Add it to `ManifestInferenceSchema` (and defaults for converter fixtures).
-- Populate it in the converter (preset + HF config mapping).
+- Populate it in the converter (explicit conversion config + HF config mapping).
 - Merge it in `src/config/merge.js` with `_sources` tracking.
 - Validate it in `parseModelConfigFromManifest()` (null vs undefined rules).
 - Add/extend tests that assert manifest values and override precedence.
@@ -294,12 +294,12 @@ When adding a new inference knob or model behavior:
 - QK-norm flag (`queryKeyNorm`)
 - Weight tying (`tieWordEmbeddings`)
 
-**Auto-detection**: The converter auto-detects normalization flags from tensor names. Auto-detected values override preset defaults but not explicit preset values.
+**Auto-detection**: The converter auto-detects normalization flags from tensor names. Auto-detected values fill unspecified config fields but must not override explicit conversion config.
 
 **Why this matters**: The 2026-01-19 Gemma 3 postmortem documents complete model failure from a missing `postFeedforwardNorm: true` flag. The weights existed but the norm was skipped, causing logit divergence after 26 layers.
 
 ```javascript
-// DON'T: Rely on preset defaults for architecture-specific features
+// DON'T: Rely on hidden family defaults for architecture-specific features
 "normalization": {
   "preFeedforwardNorm": true
   // postFeedforwardNorm not set -> defaults to false -> BUG if tensors exist
@@ -357,11 +357,11 @@ F32 is a correctness fallback, not a performance default. When `shader-f16` is a
 
 If `shader-f16` is unavailable, `f32` is required and should be treated as a capability constraint, not an optimization.
 
-### Preset Separation
+### Runtime Profile Separation
 
-**Model presets** (`src/config/presets/models/`) are used by the converter and loader to detect model families and embed inference params in the manifest. They do not override manifest values at runtime.
+**Conversion configs** (`src/config/conversion/`) are the sole source of truth for conversion-time inference and execution fields stamped into the manifest.
 
-**Runtime profiles** (`src/config/presets/runtime/profiles/`) extend runtime defaults for different use cases without duplicating command names or workload names. They are loaded by the browser harness (`runtimeProfile`) and merged with runtime overrides. Runtime config is split into `runtime.shared`, `runtime.loading`, and `runtime.inference`, so profiles should place overrides under the correct section.
+**Runtime profiles** (`src/config/runtime/profiles/`) extend runtime defaults for different use cases without duplicating command names or workload names. They are loaded by the browser harness (`runtimeProfile`) and merged with runtime overrides. Runtime config is split into `runtime.shared`, `runtime.loading`, and `runtime.inference`, so profiles should place overrides under the correct section.
 
 The merge order for runtime config:
 1. Runtime default config (schema default configs)
@@ -524,7 +524,7 @@ When no pipeline plan is specified, DOPPLER uses the optimized hardcoded layer p
 
 ### Override Mechanism
 
-Model presets may define `inference.pipeline` to drive per-layer step order. Runtime config can supply `runtime.inference.pipeline` for ad-hoc experiments.
+Conversion configs may define `inference.pipeline` to drive per-layer step order. Runtime config can supply `runtime.inference.pipeline` for ad-hoc experiments.
 
 ```json
 {
@@ -808,7 +808,7 @@ trace.attn(layerIdx, 'Q maxAbs=1.2');
 
 **Do not add temporary log statements to source files for debugging.** All debugging must use:
 
-1. **Existing trace categories** via config presets or custom config
+1. **Existing trace categories** via config assets or custom config
 2. **Config-driven probes** for inspecting specific values
 3. **Extended trace categories** if needed visibility doesn't exist (permanent addition, not temporary)
 
@@ -867,7 +867,7 @@ await runBrowserSuite({ workload: 'inference', modelId: 'gemma-3-270m-it-q4k-ehf
 - Use `tests/kernels/browser/test-page.js` to validate kernel registry and WGSL overrides.
 - Pull tunables from schema/config, not literals.
 - Import format constants from a single source of truth.
-- Preserve working configs as presets (configuration is documentation).
+- Preserve working configs as checked-in config assets (configuration is documentation).
 
 ---
 

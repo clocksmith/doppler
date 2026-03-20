@@ -9,11 +9,11 @@ const {
   buildRequest,
   createCliToolingErrorEnvelope,
   finalizeCliCommandResponse,
-} = await import('../../tools/doppler-cli.js');
+} = await import('../../src/cli/doppler-cli.js');
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = path.resolve(HERE, '..', '..');
-const CLI_PATH = path.join(ROOT_DIR, 'tools', 'doppler-cli.js');
+const CLI_PATH = path.join(ROOT_DIR, 'src', 'cli', 'doppler-cli.js');
 const TEST_CLI_POLICY = {
   defaults: {
     surface: {

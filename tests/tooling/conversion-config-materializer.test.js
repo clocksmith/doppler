@@ -13,7 +13,7 @@ if (!fs.existsSync(manifestPath)) {
 } else {
 
 const conversionConfig = JSON.parse(
-  fs.readFileSync('tools/configs/conversion/gemma3/gemma-3-270m-it-q4k-ehf16-af32.json', 'utf8')
+  fs.readFileSync('src/config/conversion/gemma3/gemma-3-270m-it-q4k-ehf16-af32.json', 'utf8')
 );
 const manifest = JSON.parse(
   fs.readFileSync(manifestPath, 'utf8')
@@ -21,7 +21,7 @@ const manifest = JSON.parse(
 
 assert.equal(
   inferConversionConfigModelId(
-    'tools/configs/conversion/gemma3/gemma-3-270m-it-q4k-ehf16-af32.json',
+    'src/config/conversion/gemma3/gemma-3-270m-it-q4k-ehf16-af32.json',
     conversionConfig
   ),
   'gemma-3-270m-it-q4k-ehf16-af32'

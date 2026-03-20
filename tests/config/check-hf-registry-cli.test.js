@@ -34,7 +34,7 @@ const localCatalog = {
   models: [
     {
       modelId: 'toy-model',
-      preset: 'gemma3',
+      family: 'gemma3',
       hf: {
         repoId: 'Clocksmith/rdrr',
         revision: 'abc123',
@@ -53,7 +53,7 @@ const localCatalog = {
     },
     {
       modelId: 'failing-qwen',
-      preset: 'qwen3',
+      family: 'qwen3',
       hf: {
         repoId: 'Clocksmith/rdrr',
         revision: 'def456',

@@ -22,7 +22,6 @@ const manifest = {
     maxSeqLen: 1024,
   },
   inference: {
-    presetId: 'gemma3',
   },
   shards: [],
 };

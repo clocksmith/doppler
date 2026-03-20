@@ -7,7 +7,7 @@ Use this template for model failures, incoherent output, or conversion-vs-runtim
 - model/artifact:
 - command:
 - surface:
-- runtime preset/config:
+- runtime profile/config:
 - observed output:
 - classification:
 

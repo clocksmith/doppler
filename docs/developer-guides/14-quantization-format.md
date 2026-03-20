@@ -20,7 +20,7 @@ Add a new weight quantization format from conversion through runtime execution.
 - `src/converter/quantization-info.js`, `src/converter/conversion-plan.js`, and quantizer code under `src/converter/`
 - Loader code under `src/loader/`
 - Dequant or fused runtime kernels under `src/gpu/kernels/`
-- Kernel-path presets and any conversion configs that should use the new format
+- Kernel-path configs and any conversion configs that should use the new format
 - Converter, kernel, and end-to-end tests
 
 ## Recommended Order
@@ -28,7 +28,7 @@ Add a new weight quantization format from conversion through runtime execution.
 1. Define the manifest and converter vocabulary for the new format.
 2. Implement converter-side quantization info and emitted bytes.
 3. Implement loader-side interpretation and runtime kernel support.
-4. Add or update kernel-path presets and conversion configs.
+4. Add or update kernel-path configs and conversion configs.
 5. Add reference tests for conversion and dequant behavior.
 6. Run one real convert plus debug or verify pass with a model that uses the new format.
 
@@ -49,7 +49,7 @@ Add a new weight quantization format from conversion through runtime execution.
 ## Related Guides
 
 - [04-conversion-config.md](04-conversion-config.md)
-- [06-kernel-path-preset.md](06-kernel-path-preset.md)
+- [06-kernel-path-config.md](06-kernel-path-config.md)
 - [11-wgsl-kernel.md](11-wgsl-kernel.md)
 - [composite-model-family.md](composite-model-family.md)
 

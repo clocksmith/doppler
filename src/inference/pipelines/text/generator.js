@@ -979,7 +979,12 @@ export class PipelineGenerator {
         try {
           const batchResult = await this._generateNTokensGPU(lastToken, thisBatchSize, generatedIds, opts);
           let batchTokens = [];
+          let hitStop = false;
           for (const tokenId of batchResult.tokens) {
+            if (isStopToken(tokenId, stopTokenIds, eosToken)) {
+              hitStop = true;
+              break;
+            }
             generatedIds.push(tokenId);
             tokensGenerated++;
             if (emitMode === 'token') {
@@ -998,7 +1003,7 @@ export class PipelineGenerator {
             }
           }
           if (batchTokens.length > 0 && options.onBatch) options.onBatch(batchTokens);
-          if (batchResult.actualCount < thisBatchSize) break;
+          if (hitStop || batchResult.actualCount < thisBatchSize) break;
           if (opts.stopSequences.length > 0) {
             const fullText = this.#state.tokenizer.decode(generatedIds.slice(stopSequenceStart), false);
             if (opts.stopSequences.some((seq) => fullText.endsWith(seq))) break;

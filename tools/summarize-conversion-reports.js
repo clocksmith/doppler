@@ -121,6 +121,21 @@ function firstError(artifact) {
     : null;
 }
 
+function inferFamilyFromModelId(modelId) {
+  const normalized = typeof modelId === 'string' ? modelId.trim().toLowerCase() : '';
+  if (!normalized) return null;
+  if (normalized.startsWith('google-embeddinggemma-') || normalized.startsWith('embeddinggemma-')) return 'embeddinggemma';
+  if (normalized.startsWith('translategemma-')) return 'translategemma';
+  if (normalized.startsWith('gemma-4-')) return 'gemma4';
+  if (normalized.startsWith('gemma-3-')) return 'gemma3';
+  if (normalized.startsWith('qwen-3-')) return 'qwen3';
+  if (normalized.startsWith('lfm2')) return 'lfm2';
+  if (normalized.startsWith('gpt-oss-')) return 'gpt_oss';
+  if (normalized.startsWith('janus-')) return 'janus_text';
+  if (normalized.startsWith('sana-')) return 'sana';
+  return null;
+}
+
 function artifactStatus(artifact) {
   return artifact?.ok === true
     ? 'pass'
@@ -144,7 +159,7 @@ export function buildSummary(entries, rootDir, limit) {
     recent: entries.slice(0, limit).map(({ path: filePath, report }) => ({
       modelId: report.modelId,
       timestamp: report.timestamp,
-      presetId: report.result.presetId,
+      family: report.result.family ?? inferFamilyFromModelId(report.modelId),
       modelType: report.result.modelType,
       contractOk: report.executionContractArtifact?.ok === true,
       layerPatternOk: report.layerPatternContractArtifact?.ok === true,
@@ -174,7 +189,7 @@ function printHuman(summary) {
   for (const entry of summary.recent) {
     console.log(
       `[conversion-reports] ${entry.timestamp} model=${entry.modelId} ` +
-      `preset=${entry.presetId ?? 'n/a'} type=${entry.modelType ?? 'n/a'} ` +
+      `family=${entry.family ?? 'n/a'} type=${entry.modelType ?? 'n/a'} ` +
       `contract=${entry.contractStatus} ` +
       `layerPattern=${entry.layerPatternStatus} ` +
       `requiredInference=${entry.requiredInferenceStatus} ` +

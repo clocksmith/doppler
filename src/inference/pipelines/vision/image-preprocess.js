@@ -15,7 +15,7 @@ import { trace } from '../../../debug/index.js';
  * @param {Uint8Array|Float32Array} pixels   Raw pixel data (RGBA or RGB)
  * @param {number}                  width    Source image width
  * @param {number}                  height   Source image height
- * @param {object}                  config   Vision config from manifest/preset
+ * @param {object}                  config   Vision config from manifest or explicit config
  * @returns {{ data: Float32Array, gridThw: [number, number, number], patchedHeight: number, patchedWidth: number }}
  */
 export function preprocessImage(pixels, width, height, config) {

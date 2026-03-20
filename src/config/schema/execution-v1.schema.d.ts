@@ -113,6 +113,15 @@ export interface ExecutionV1GraphSchema {
   /** Kernel declarations — each key is a shorthand used in step tuples */
   kernels: ExecutionV1KernelMap;
 
+  /**
+   * Whether compileExecutionV1 should lower the graph into an inline kernelPath.
+   * Use false when the execution graph is kept for manifest/session contract
+   * ownership but the runtime must stay on the existing manifest-first path.
+   *
+   * Default: true
+   */
+  inlineKernelPath?: boolean;
+
   /** Steps run before the layer loop (embed, etc.) */
   preLayer: ExecutionV1BoundaryStep[];
 

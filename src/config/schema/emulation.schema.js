@@ -1,10 +1,10 @@
 import { loadJson } from '../../utils/load-json.js';
 import { GB } from './units.schema.js';
 
-const gh200Preset = await loadJson('../presets/platforms/nvidia-gh200.json', import.meta.url, 'Failed to load preset');
-const gh200Nvl2Preset = await loadJson('../presets/platforms/nvidia-gh200-nvl2.json', import.meta.url, 'Failed to load preset');
-const gb2008Preset = await loadJson('../presets/platforms/nvidia-gb200-8gpu.json', import.meta.url, 'Failed to load preset');
-const gb200Nvl72Preset = await loadJson('../presets/platforms/nvidia-gb200-nvl72.json', import.meta.url, 'Failed to load preset');
+const gh200Profile = await loadJson('../platforms/nvidia-gh200.json', import.meta.url, 'Failed to load platform config');
+const gh200Nvl2Profile = await loadJson('../platforms/nvidia-gh200-nvl2.json', import.meta.url, 'Failed to load platform config');
+const gb2008Profile = await loadJson('../platforms/nvidia-gb200-8gpu.json', import.meta.url, 'Failed to load platform config');
+const gb200Nvl72Profile = await loadJson('../platforms/nvidia-gb200-nvl72.json', import.meta.url, 'Failed to load platform config');
 
 // =============================================================================
 // GPU Specifications
@@ -174,22 +174,22 @@ export const DEFAULT_EMULATION_CONFIG = {
 };
 
 // =============================================================================
-// Chip Presets
+// Chip Profiles
 // =============================================================================
 
-const CHIP_PRESETS = {
-  'gh200': gh200Preset.emulation,
-  'gh200-nvl2': gh200Nvl2Preset.emulation,
-  'gb200-8gpu': gb2008Preset.emulation,
-  'gb200-nvl72': gb200Nvl72Preset.emulation,
+const CHIP_PROFILES = {
+  'gh200': gh200Profile.emulation,
+  'gh200-nvl2': gh200Nvl2Profile.emulation,
+  'gb200-8gpu': gb2008Profile.emulation,
+  'gb200-nvl72': gb200Nvl72Profile.emulation,
 };
 
-export function getChipPreset(chipType) {
-  const preset = CHIP_PRESETS[chipType];
-  if (!preset) {
-    throw new Error(`Unknown chip type: ${chipType}. Valid types: ${Object.keys(CHIP_PRESETS).join(', ')}`);
+export function getChipProfile(chipType) {
+  const profile = CHIP_PROFILES[chipType];
+  if (!profile) {
+    throw new Error(`Unknown chip type: ${chipType}. Valid types: ${Object.keys(CHIP_PROFILES).join(', ')}`);
   }
-  return { ...preset };
+  return { ...profile };
 }
 
 export function createEmulationConfig(overrides) {
@@ -197,47 +197,47 @@ export function createEmulationConfig(overrides) {
     return { ...DEFAULT_EMULATION_CONFIG };
   }
 
-  // If targetChip is specified, apply preset first
-  const chipPreset = overrides.targetChip
-    ? getChipPreset(overrides.targetChip)
+  // If targetChip is specified, apply the chip profile first
+  const chipProfile = overrides.targetChip
+    ? getChipProfile(overrides.targetChip)
     : {};
-  const { enabled: _enabled, ...chipPresetConfig } = chipPreset;
-  const presetParallelism = chipPresetConfig.parallelism
-    ? mergeParallelismConfig(DEFAULT_PARALLELISM_CONFIG, chipPresetConfig.parallelism)
+  const { enabled: _enabled, ...chipProfileConfig } = chipProfile;
+  const profileParallelism = chipProfileConfig.parallelism
+    ? mergeParallelismConfig(DEFAULT_PARALLELISM_CONFIG, chipProfileConfig.parallelism)
     : DEFAULT_PARALLELISM_CONFIG;
   const resolvedParallelism = overrides.parallelism
-    ? mergeParallelismConfig(presetParallelism, overrides.parallelism)
-    : presetParallelism;
+    ? mergeParallelismConfig(profileParallelism, overrides.parallelism)
+    : profileParallelism;
 
   return {
     ...DEFAULT_EMULATION_CONFIG,
-    ...chipPresetConfig,
+    ...chipProfileConfig,
     ...overrides,
     enabled: overrides.enabled ?? DEFAULT_EMULATION_CONFIG.enabled,
     // Deep merge nested objects
     gpuSpec: {
       ...DEFAULT_EMULATION_CONFIG.gpuSpec,
-      ...chipPresetConfig.gpuSpec,
+      ...chipProfileConfig.gpuSpec,
       ...overrides.gpuSpec,
     },
     cpuSpec: {
       ...DEFAULT_EMULATION_CONFIG.cpuSpec,
-      ...chipPresetConfig.cpuSpec,
+      ...chipProfileConfig.cpuSpec,
       ...overrides.cpuSpec,
     },
     topology: {
       ...DEFAULT_EMULATION_CONFIG.topology,
-      ...chipPresetConfig.topology,
+      ...chipProfileConfig.topology,
       ...overrides.topology,
     },
     nvlink: {
       ...DEFAULT_EMULATION_CONFIG.nvlink,
-      ...chipPresetConfig.nvlink,
+      ...chipProfileConfig.nvlink,
       ...overrides.nvlink,
     },
     nvlinkC2C: {
       ...DEFAULT_EMULATION_CONFIG.nvlinkC2C,
-      ...chipPresetConfig.nvlinkC2C,
+      ...chipProfileConfig.nvlinkC2C,
       ...overrides.nvlinkC2C,
     },
     parallelism: resolvedParallelism,

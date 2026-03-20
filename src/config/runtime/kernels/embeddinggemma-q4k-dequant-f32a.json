@@ -1,7 +1,7 @@
 {
   "id": "kernels/embeddinggemma-q4k-dequant-f32a",
   "name": "embeddinggemma-q4k-dequant-f32a",
-  "description": "Explicit runtime override preset for the EmbeddingGemma Q4K dequant-to-F32 kernel path.",
+  "description": "Explicit runtime override profile for the EmbeddingGemma Q4K dequant-to-F32 kernel path.",
   "intent": "investigate",
   "stability": "canonical",
   "owner": "doppler-core",

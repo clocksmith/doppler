@@ -11,7 +11,7 @@ export declare function buildSuiteSummary(
   results: Array<Record<string, unknown>>;
 };
 export declare function normalizeCacheMode(value: unknown): 'cold' | 'warm';
-export declare function normalizeLoadMode(value: unknown, hasModelUrl: boolean): 'opfs' | 'http' | 'memory';
+export declare function normalizeLoadMode(value: unknown, hasModelUrl: boolean, modelUrl?: string | null): 'opfs' | 'http' | 'memory' | 'file';
 export declare function normalizeWorkloadType(value: unknown): string | null;
 export declare function safeStatsValue(value: unknown): number;
 export declare function calculateRatePerSecond(count: unknown, durationMs: unknown): number;

@@ -24,7 +24,7 @@ export interface BrowserHarnessOptions extends InferenceHarnessOptions {
 
 export interface RuntimeConfigLoadOptions {
   baseUrl?: string;
-  presetBaseUrl?: string;
+  profileBaseUrl?: string;
   signal?: AbortSignal;
 }
 

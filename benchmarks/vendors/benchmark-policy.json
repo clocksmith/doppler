@@ -41,7 +41,7 @@
   ],
   "decodeProfiles": {
     "default": "parity",
-    "presets": {
+    "profiles": {
       "parity": {
         "batchSize": 1,
         "readbackInterval": 1,

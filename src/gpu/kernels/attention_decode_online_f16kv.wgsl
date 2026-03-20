@@ -1,5 +1,5 @@
 // AUTO-GENERATED from src/gpu/kernels/attention_decode_online_f16.wgsl.
-// Edit the source kernel and tools/configs/wgsl-variants.js, then run `npm run kernels:generate`.
+// Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:generate`.
 // Online Decode Attention Kernel (f32 Q + f16 KV + f32 output)
 //
 // Uses online softmax with subgroup reductions and chunked KV processing.

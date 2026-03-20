@@ -128,10 +128,10 @@ export const DEFAULT_INFERENCE_DEFAULTS_CONFIG = {
 };
 
 // =============================================================================
-// Preset Inference Defaults
+// Model Inference Defaults
 // =============================================================================
 
-export const DEFAULT_PRESET_INFERENCE_CONFIG = {
+export const DEFAULT_MODEL_INFERENCE_DEFAULTS = {
   attention: {
     slidingWindow: null,
     attnLogitSoftcapping: null,

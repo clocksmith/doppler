@@ -12,9 +12,9 @@ import {
 
 function parseArgs(argv) {
   const args = {
-    configRoot: 'tools/configs/conversion',
+    configRoot: 'src/config/conversion',
     manifestRoot: 'models',
-    fixtureMap: 'tools/configs/conversion/lean-execution-contract-fixtures.json',
+    fixtureMap: 'tests/fixtures/lean-execution-contract-fixtures.json',
     json: false,
     check: true,
     requireManifestMatch: false,
@@ -153,9 +153,9 @@ function isExecutionContractConfigCandidate(manifest) {
 }
 
 async function runSweep(options = {}) {
-  const configRoot = path.resolve(process.cwd(), options.configRoot ?? 'tools/configs/conversion');
+  const configRoot = path.resolve(process.cwd(), options.configRoot ?? 'src/config/conversion');
   const manifestRoot = path.resolve(process.cwd(), options.manifestRoot ?? 'models');
-  const fixtureMapPath = options.fixtureMap ?? 'tools/configs/conversion/lean-execution-contract-fixtures.json';
+  const fixtureMapPath = options.fixtureMap ?? 'tests/fixtures/lean-execution-contract-fixtures.json';
   const resolvedFixtureMapPath = path.resolve(process.cwd(), fixtureMapPath);
   const configPaths = (await collectFiles(configRoot, (name) => name.endsWith('.json')))
     .filter((filePath) => path.resolve(filePath) !== resolvedFixtureMapPath);

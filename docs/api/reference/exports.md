@@ -182,7 +182,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `GenerationResult`
   - `InferencePipeline`
   - `initTokenizer`
-  - `initTokenizerFromManifestPreset`
+  - `initTokenizerFromManifest`
   - `isDreamStructuredModelType`
   - `isStopToken`
   - `isStructuredJsonHeadModelType`
@@ -231,4 +231,3 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `EnergyPipeline`
   - `mergeQuintelConfig`
   - `runQuintelEnergyLoop`
-

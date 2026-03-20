@@ -4,16 +4,17 @@ import { existsSync } from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { runNodeCommand } from '../src/tooling/node-command-runner.js';
-import { runBrowserCommandInNode } from '../src/tooling/node-browser-command-runner.js';
+import { runNodeCommand } from '../tooling/node-command-runner.js';
+import { runBrowserCommandInNode } from '../tooling/node-browser-command-runner.js';
 import {
   TOOLING_COMMANDS,
   normalizeToolingCommandRequest,
-} from '../src/tooling/command-api.js';
-import { createToolingErrorEnvelope } from '../src/tooling/command-envelope.js';
+} from '../tooling/command-api.js';
+import { createToolingErrorEnvelope } from '../tooling/command-envelope.js';
+import { buildHfResolveBaseUrl } from '../utils/hf-resolve-url.js';
 
 const NODE_WEBGPU_INCOMPLETE_MESSAGE = 'node command: WebGPU runtime is incomplete in Node';
-const CLI_POLICY_PATH = fileURLToPath(new URL('./configs/cli/doppler-cli-policy.json', import.meta.url));
+const CLI_POLICY_PATH = fileURLToPath(new URL('./config/doppler-cli-policy.json', import.meta.url));
 const DEFAULT_EXTERNAL_MODELS_ROOT = process.env.DOPPLER_EXTERNAL_MODELS_ROOT
   || (existsSync('/Volumes/models') ? '/Volumes/models' : '/media/x/models');
 const DEFAULT_EXTERNAL_RDRR_ROOT = path.join(DEFAULT_EXTERNAL_MODELS_ROOT, 'rdrr');
@@ -423,6 +424,31 @@ async function resolveExternalModelDirectory(rdrrRoot, modelId) {
   return matches[0] || null;
 }
 
+const CATALOG_PATH = fileURLToPath(new URL('../../models/catalog.json', import.meta.url));
+
+async function resolveCatalogEntry(modelId) {
+  let catalog;
+  try {
+    catalog = JSON.parse(await fs.readFile(CATALOG_PATH, 'utf8'));
+  } catch {
+    return null;
+  }
+  if (!Array.isArray(catalog?.models)) {
+    return null;
+  }
+  return catalog.models.find((entry) => (
+    entry.modelId === modelId
+    || (Array.isArray(entry.aliases) && entry.aliases.includes(modelId))
+  )) || null;
+}
+
+function buildCatalogModelUrl(entry) {
+  if (!entry?.hf?.repoId || !entry?.hf?.path) {
+    return null;
+  }
+  return buildHfResolveBaseUrl(entry.hf);
+}
+
 export async function resolveBrowserModelUrl(request, browserOptions = {}) {
   if (request.modelUrl || !request.modelId) {
     return request;
@@ -464,7 +490,6 @@ export async function resolveBrowserModelUrl(request, browserOptions = {}) {
   }
 
   if (discoveredManifestCandidates.length > 0) {
-    const firstCandidate = discoveredManifestCandidates[0];
     const paths = discoveredManifestCandidates
       .map((candidate) => candidate.modelUrl)
       .join(', ');
@@ -472,6 +497,17 @@ export async function resolveBrowserModelUrl(request, browserOptions = {}) {
       `Model "${modelId}" was found, but no shard files (shard_*.bin) are present. ` +
       `Checked: ${paths}. Add shard files beside the manifest, or set request.modelUrl in --config to a complete model directory.`
     );
+  }
+
+  const catalogEntry = await resolveCatalogEntry(modelId);
+  if (catalogEntry) {
+    const hfUrl = buildCatalogModelUrl(catalogEntry);
+    if (hfUrl) {
+      return {
+        ...request,
+        modelUrl: hfUrl,
+      };
+    }
   }
 
   return {
@@ -488,27 +524,53 @@ export async function resolveNodeModelUrl(request, options = {}) {
   const modelId = String(request.modelId);
   const rdrrRoot = resolveRdrrRoot(options);
   const externalModel = await resolveExternalModelDirectory(rdrrRoot, modelId);
-  if (!externalModel) {
-    return request;
-  }
 
-  const modelDir = externalModel.modelDir;
-  try {
-    const files = await fs.readdir(modelDir, { withFileTypes: true });
-    const hasShards = files.some((entry) =>
-      entry.isFile() && /^shard_\d+\.bin$/u.test(entry.name)
-    );
-    if (!hasShards) {
-      return request;
+  if (externalModel) {
+    const modelDir = externalModel.modelDir;
+    try {
+      const files = await fs.readdir(modelDir, { withFileTypes: true });
+      const hasShards = files.some((entry) =>
+        entry.isFile() && /^shard_\d+\.bin$/u.test(entry.name)
+      );
+      if (!hasShards) {
+        throw new Error(
+          `Model "${modelId}" found at ${modelDir} but no shard files (shard_*.bin) are present. `
+          + 'Add shard files beside the manifest, or set request.modelUrl to a complete model directory.'
+        );
+      }
+    } catch (err) {
+      if (err.code === 'ENOENT' || err.code === 'EACCES') {
+        throw new Error(
+          `Model "${modelId}" resolved to ${modelDir} but the directory is not accessible: ${err.message}`
+        );
+      }
+      throw err;
     }
-  } catch {
-    return request;
+    return {
+      ...request,
+      modelUrl: pathToFileURL(modelDir).href.replace(/\/$/, ''),
+    };
   }
 
-  return {
-    ...request,
-    modelUrl: pathToFileURL(modelDir).href.replace(/\/$/, ''),
-  };
+  const catalogEntry = await resolveCatalogEntry(modelId);
+  if (catalogEntry) {
+    const hfUrl = buildCatalogModelUrl(catalogEntry);
+    if (hfUrl) {
+      return {
+        ...request,
+        modelUrl: hfUrl,
+      };
+    }
+    throw new Error(
+      `Model "${modelId}" found in catalog as "${catalogEntry.modelId}" but has no HF source configured.`
+    );
+  }
+
+  throw new Error(
+    `Model "${modelId}" not found. Searched local: ${rdrrRoot}. Not in catalog. `
+    + 'Set request.modelUrl to a file:// or https:// URL, '
+    + 'or set DOPPLER_EXTERNAL_MODELS_ROOT to the parent of your rdrr/ folder.'
+  );
 }
 
 function parseSurface(value, command, policy = DEFAULT_CLI_POLICY) {
@@ -536,6 +598,8 @@ function isPlainObject(value) {
   return !!value && typeof value === 'object' && !Array.isArray(value);
 }
 
+const CONFIG_ENVELOPE_KNOWN_KEYS = new Set(['request', 'run']);
+
 function resolveConfigEnvelope(configPayload) {
   if (!isPlainObject(configPayload)) {
     throw new Error('--config must resolve to a JSON object.');
@@ -546,6 +610,18 @@ function resolveConfigEnvelope(configPayload) {
   if (configPayload.run !== undefined && !isPlainObject(configPayload.run)) {
     throw new Error('--config field "run" must be a JSON object when provided.');
   }
+
+  if (isPlainObject(configPayload.request)) {
+    const unknownTopLevel = Object.keys(configPayload)
+      .filter((key) => !CONFIG_ENVELOPE_KNOWN_KEYS.has(key));
+    if (unknownTopLevel.length > 0) {
+      console.error(
+        `[warn] --config has unknown top-level keys: ${unknownTopLevel.join(', ')}. `
+        + 'Expected { request, run }. Did you mean to put these inside "request"?'
+      );
+    }
+  }
+
   return {
     request: isPlainObject(configPayload.request) ? configPayload.request : configPayload,
     run: isPlainObject(configPayload.run) ? configPayload.run : {},
@@ -585,6 +661,20 @@ function resolveBenchRunOptions(runConfig, policy = DEFAULT_CLI_POLICY) {
   };
 }
 
+function normalizeModelUrl(value) {
+  if (typeof value !== 'string' || !value.trim()) {
+    return value;
+  }
+  const trimmed = value.trim();
+  if (/^[a-z][a-z0-9+.-]*:\/\//u.test(trimmed)) {
+    return trimmed;
+  }
+  if (trimmed.startsWith('/') || trimmed.startsWith('.')) {
+    return pathToFileURL(path.resolve(trimmed)).href.replace(/\/$/, '');
+  }
+  return trimmed;
+}
+
 function resolveSurfaceForCommand(command, parsed, runConfig, policy = DEFAULT_CLI_POLICY) {
   const fromCli = asStringOrNull(parsed.flags.surface);
   const fromRun = asStringOrNull(runConfig?.surface);
@@ -609,6 +699,9 @@ export async function buildRequest(parsed, policy = DEFAULT_CLI_POLICY) {
     );
   }
   requestInput.command = command;
+  if (requestInput.modelUrl != null) {
+    requestInput.modelUrl = normalizeModelUrl(requestInput.modelUrl);
+  }
 
   applyRuntimeFlagOverride(requestInput, runtimeOverride);
 
@@ -1392,7 +1485,10 @@ async function main() {
     }
 
     if (jsonOutput) {
-      console.log(JSON.stringify(response, null, 2));
+      const output = response?.result?.report !== undefined
+        ? { ...response, result: { ...response.result, report: undefined } }
+        : response;
+      console.log(JSON.stringify(output, null, 2));
       return;
     }
 
@@ -1419,7 +1515,9 @@ function isMainModule(metaUrl) {
 }
 
 if (isMainModule(import.meta.url)) {
-  main().catch((error) => {
+  main().then(() => {
+    process.exit(process.exitCode ?? 0);
+  }).catch((error) => {
     console.error(`[error] ${error?.message || String(error)}`);
     process.exit(1);
   });

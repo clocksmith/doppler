@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 const testDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(testDir, '..', '..');
-const tiersDir = path.join(repoRoot, 'src/config/presets/runtime/tiers');
+const tiersDir = path.join(repoRoot, 'src/config/runtime/tiers');
 
 const TIER_FILES = [
   'gemma4-32gb.json',
@@ -180,4 +180,4 @@ for (const [file, tier] of Object.entries(tiers)) {
   );
 }
 
-console.log('gemma4-tier-presets-contract.test: ok');
+console.log('gemma4-tier-profiles-contract.test: ok');

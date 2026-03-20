@@ -20,7 +20,7 @@ For hardware sizing and expected performance, see [performance-sizing.md](perfor
 CLI entrypoint:
 
 ```bash
-node tools/doppler-cli.js
+node src/cli/doppler-cli.js
 ```
 
 ## Setup
@@ -64,7 +64,7 @@ MODEL_URL="https://huggingface.co/Clocksmith/rdrr/resolve/${HF_REVISION}/models/
 ### Verify
 
 ```bash
-node tools/doppler-cli.js verify --config "{
+node src/cli/doppler-cli.js verify --config "{
   \"request\": {
     \"workload\": \"inference\",
     \"modelId\": \"${MODEL_ID}\",
@@ -80,7 +80,7 @@ node tools/doppler-cli.js verify --config "{
 Embedding verify uses the explicit embedding workload:
 
 ```bash
-node tools/doppler-cli.js verify --config "{
+node src/cli/doppler-cli.js verify --config "{
   \"request\": {
     \"workload\": \"embedding\",
     \"modelId\": \"google-embeddinggemma-300m-q4k-ehf16-af32\",
@@ -93,7 +93,7 @@ node tools/doppler-cli.js verify --config "{
 ### Benchmark
 
 ```bash
-node tools/doppler-cli.js bench --config "{
+node src/cli/doppler-cli.js bench --config "{
   \"request\": {
     \"workload\": \"inference\",
     \"modelId\": \"${MODEL_ID}\",
@@ -114,7 +114,7 @@ node tools/doppler-cli.js bench --config "{
 Embedding benchmark can now be requested explicitly while still using the benchmark command:
 
 ```bash
-node tools/doppler-cli.js bench --config "{
+node src/cli/doppler-cli.js bench --config "{
   \"request\": {
     \"workload\": \"embedding\",
     \"modelId\": \"google-embeddinggemma-300m-q4k-ehf16-af32\",
@@ -130,13 +130,13 @@ Use this when no prebuilt RDRR artifact exists.
 
 ```bash
 INPUT_PATH=/path/to/source/model
-CONVERSION_CONFIG=tools/configs/conversion/embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32.json
+CONVERSION_CONFIG=src/config/conversion/embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32.json
 ```
 
 ### Convert
 
 ```bash
-node tools/doppler-cli.js convert --config "{
+node src/cli/doppler-cli.js convert --config "{
   \"request\": {
     \"inputDir\": \"${INPUT_PATH}\",
     \"convertPayload\": {
@@ -156,7 +156,7 @@ surface so the command can load the `file://` artifact path directly:
 MODEL_ID=$(node -e "const fs=require('fs');const j=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));console.log(j.output.modelBaseId);" "${CONVERSION_CONFIG}")
 OUTPUT_DIR=$(node -e "const fs=require('fs');const j=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));console.log(j.output.outputDir || 'models/local');" "${CONVERSION_CONFIG}")
 
-node tools/doppler-cli.js verify --config "{
+node src/cli/doppler-cli.js verify --config "{
   \"request\": {
     \"workload\": \"inference\",
     \"modelId\": \"${MODEL_ID}\",

@@ -23,10 +23,10 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const COMPARE_METRICS_PATH = path.join(__dirname, 'compare-metrics.json');
 const DOPPLER_HARNESS_PATH = path.join(__dirname, 'harnesses', 'doppler.json');
 const TRANSFORMERSJS_HARNESS_PATH = path.join(__dirname, 'harnesses', 'transformersjs.json');
-const README_PRESET_NAME = 'readme-evidence';
+const README_SCENARIO_NAME = 'readme-evidence';
 
-const CHART_PRESETS = Object.freeze({
-  [README_PRESET_NAME]: Object.freeze({
+const CHART_SCENARIOS = Object.freeze({
+  [README_SCENARIO_NAME]: Object.freeze({
     inputs: Object.freeze([
       path.join(__dirname, 'fixtures', 'g3-1b-p064-d064-t0-k1.compare.json'),
       path.join(__dirname, 'fixtures', 'lfm2-5-1-2b-p064-d064-t0-k1.compare.json'),
@@ -39,7 +39,7 @@ const CHART_PRESETS = Object.freeze({
     description: 'README chart: Gemma 3 and LFM2.5 warm-opfs phase comparison',
   }),
 });
-const PRESET_NAMES = Object.keys(CHART_PRESETS);
+const SCENARIO_NAMES = Object.keys(CHART_SCENARIOS);
 
 const DEFAULT_METRICS = Object.freeze([
   {
@@ -331,8 +331,8 @@ function usage() {
     '  --output <path>               Output SVG path',
     '  --section <path>              Section path in result payload (default: compute/parity)',
     '  --chart <bar|stacked|radar|phases>  Chart family (default: bar)',
-    `  --preset <${PRESET_NAMES.join(', ')}>  Use predefined input preset (main chart generator shortcut)`,
-    `  --preset ${README_PRESET_NAME}   Gemma 3 + LFM2.5 warm-opfs phase evidence chart`,
+    `  --scenario <${SCENARIO_NAMES.join(', ')}>  Use predefined chart scenario (main chart generator shortcut)`,
+    `  --scenario ${README_SCENARIO_NAME}   Gemma 3 + LFM2.5 warm-opfs phase evidence chart`,
     '  --include-workload <id|label>  Include only workloads matching by id or rendered label (repeatable)',
     '  --exclude-workload <id|label>  Exclude workloads by id or rendered label (repeatable)',
     '  --allow-non-comparable        Allow mixed benchmark settings across inputs (default: strict apples-to-apples)',
@@ -348,7 +348,7 @@ function usage() {
     '  node benchmarks/vendors/compare-chart.js --input ... --chart phases --include-workload "64 prompt tokens, 64 decode tokens, greedy"',
     '  node benchmarks/vendors/compare-chart.js --input ... --chart phases --exclude-workload p064-d064-t0-k1',
     '  node benchmarks/vendors/compare-chart.js --chart phases --input workload1.json --input workload2.json',
-    `  node benchmarks/vendors/compare-chart.js --preset ${README_PRESET_NAME}`,
+    `  node benchmarks/vendors/compare-chart.js --scenario ${README_SCENARIO_NAME}`,
     '  node benchmarks/vendors/compare-chart.js --chart radar --input workload1.json --input workload2.json',
   ].join('\n');
 }
@@ -454,7 +454,7 @@ function parseArgs(argv) {
     widthExplicit: false,
     heightExplicit: false,
     outputExplicit: false,
-    preset: null,
+    scenario: null,
     metricIds: [],
     includeWorkloads: [],
     excludeWorkloads: [],
@@ -581,13 +581,13 @@ function parseArgs(argv) {
       continue;
     }
 
-    if (arg === '--preset') {
-      parsed.preset = (argv[i + 1] || EMPTY_STRING).trim();
+    if (arg === '--scenario') {
+      parsed.scenario = (argv[i + 1] || EMPTY_STRING).trim();
       i += 1;
       continue;
     }
-    if (arg.startsWith('--preset=')) {
-      parsed.preset = arg.substring('--preset='.length).trim();
+    if (arg.startsWith('--scenario=')) {
+      parsed.scenario = arg.substring('--scenario='.length).trim();
       continue;
     }
 
@@ -736,25 +736,25 @@ function assertComparableEntries(entries, { allowNonComparable = false } = {}) {
   ].join('\n'));
 }
 
-function applyPresetOptions(parsed) {
-  if (!parsed.preset) return;
-  const preset = CHART_PRESETS[parsed.preset];
-  if (!preset) {
-    const names = PRESET_NAMES.length > 0 ? PRESET_NAMES.join(', ') : 'none';
-    throw new Error(`Unknown preset "${parsed.preset}". Available presets: ${names}`);
+function applyScenarioOptions(parsed) {
+  if (!parsed.scenario) return;
+  const scenario = CHART_SCENARIOS[parsed.scenario];
+  if (!scenario) {
+    const names = SCENARIO_NAMES.length > 0 ? SCENARIO_NAMES.join(', ') : 'none';
+    throw new Error(`Unknown scenario "${parsed.scenario}". Available scenarios: ${names}`);
   }
 
   if (parsed.inputs.length > 0) {
-    throw new Error('--preset is not compatible with --input; use one or the other');
+    throw new Error('--scenario is not compatible with --input; use one or the other');
   }
 
-  parsed.inputs = [...preset.inputs];
-  if (!parsed.chartExplicit && preset.chart) parsed.chart = preset.chart;
-  if (!parsed.sectionExplicit && preset.section) parsed.section = preset.section;
-  if (!parsed.widthExplicit && preset.width) parsed.width = preset.width;
-  if (!parsed.heightExplicit && preset.height) parsed.height = preset.height;
-  if (!parsed.outputExplicit && preset.output) {
-    parsed.output = preset.output;
+  parsed.inputs = [...scenario.inputs];
+  if (!parsed.chartExplicit && scenario.chart) parsed.chart = scenario.chart;
+  if (!parsed.sectionExplicit && scenario.section) parsed.section = scenario.section;
+  if (!parsed.widthExplicit && scenario.width) parsed.width = scenario.width;
+  if (!parsed.heightExplicit && scenario.height) parsed.height = scenario.height;
+  if (!parsed.outputExplicit && scenario.output) {
+    parsed.output = scenario.output;
   }
 }
 
@@ -1624,7 +1624,7 @@ function main() {
     console.log(usage());
     process.exit(0);
   }
-  applyPresetOptions(options);
+  applyScenarioOptions(options);
   if (options.inputs.length === 0) {
     throw new Error('Missing required --input path.');
   }

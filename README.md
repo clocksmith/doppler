@@ -11,24 +11,20 @@ Inference and training on raw WebGPU. Pure JS + WGSL.
 ```js
 import { doppler } from '@simulatte/doppler';
 
+// Stream tokens
 const model = await doppler.load('gemma3-270m');
-
 for await (const token of model.generate('Describe WebGPU briefly')) {
   process.stdout.write(token);
 }
+
+// One-shot
+const text = await model.generateText('Explain WebGPU in one sentence');
+
+// LoRA hot-swap
+await model.loadLoRA('https://oneshift-twoshift-redshift-blueshift.com/manifest.json');
 ```
 
-Browser-first WebGPU inference and training with explicit manifest-driven
-runtime behavior. Built for local models, streamed generation, adapter
-hot-swap, and direct JS → WGSL → WebGPU execution.
-
-Registry IDs resolve to hosted RDRR artifacts from `Clocksmith/rdrr` by default. Tokens stream from a native `AsyncGenerator`. See [more examples](#more-examples) below or the canonical [Root API guide](https://github.com/clocksmith/doppler/blob/main/docs/api/root.md).
-
-## Install
-
-```bash
-npm install @simulatte/doppler
-```
+Registry IDs resolve to hosted RDRR artifacts from `Clocksmith/rdrr` by default. Tokens stream from a native `AsyncGenerator`. See the canonical [Root API guide](https://github.com/clocksmith/doppler/blob/main/docs/api/root.md).
 
 ## Why Doppler
 
@@ -39,12 +35,6 @@ npm install @simulatte/doppler
 **LoRA hot-swap.** Swap adapters at runtime without reloading the base model.
 
 **Independent model instances.** Run multiple models concurrently. Each owns its pipeline, buffers, and KV cache.
-
-## Evidence
-
-Snapshot artifacts:
-- [g3-1b-p064-d064-t0-k1.compare.json](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/fixtures/g3-1b-p064-d064-t0-k1.compare.json)
-- [lfm2-5-1-2b-p064-d064-t0-k1.compare.json](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/fixtures/lfm2-5-1-2b-p064-d064-t0-k1.compare.json)
 
 ## Supported models
 
@@ -71,35 +61,9 @@ for details.
 ## Under the hood
 
 - Sharded weight loading via OPFS moves multi-GB weights into VRAM without blocking the main thread.
-- Quantized inference paths (Q4K, Q8, F16) support practical model sizes on consumer GPUs.
-- Kernel hot-swap between prefill and decode paths.
-- Config-driven runtime keeps presets, kernel-path selection, and sampling explicit.
-- Reproducible benchmarks expose deterministic knobs and auditable kernel traces.
-
-## More examples
-
-```js
-// Non-streaming
-const text = await model.generateText('Explain WebGPU in one sentence');
-
-// Load with progress logging
-const modelWithProgress = await doppler.load('gemma3-270m', {
-  onProgress: ({ message }) => console.log(`[doppler] ${message}`),
-});
-
-// Chat
-const reply = await model.chatText([
-  { role: 'user', content: 'Write a dispatch that outruns its own light cone' },
-]);
-
-// LoRA hot-swap
-await model.loadLoRA('https://example.com/adapters/oneshift-twoshift-redshift-blueshift/manifest.json');
-
-// Convenience shorthand (caches model automatically)
-for await (const token of doppler('Hello', { model: 'gemma3-270m' })) {
-  process.stdout.write(token);
-}
-```
+- Quantized inference (Q4K, F16) runs practical model sizes on consumer GPUs.
+- Kernel hot-swap between prefill and decode paths with zero graph recompilation.
+- Config-driven runtime with explicit profiles, kernel-path selection, and sampling.
 
 ## Documentation
 

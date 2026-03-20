@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { WGSL_GENERATED_VARIANTS } from './configs/wgsl-variants.js';
+import { WGSL_GENERATED_VARIANTS } from '../src/gpu/kernels/codegen/wgsl-variants.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -177,7 +177,7 @@ function buildGeneratedText(variant, transformedSource) {
   const source = String(variant.source);
   const header = [
     `// AUTO-GENERATED from ${source}.`,
-    '// Edit the source kernel and tools/configs/wgsl-variants.js, then run `npm run kernels:generate`.',
+    '// Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:generate`.',
     '',
   ].join('\n');
   return ensureTrailingNewline(`${header}${transformedSource}`);

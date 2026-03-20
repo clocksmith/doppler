@@ -24,7 +24,7 @@ Add a new FFN activation implementation across WGSL, runtime wiring, and config.
   `src/config/schema/inference.schema.d.ts`
   and
   `src/config/schema/manifest.schema.d.ts`
-- Model presets or conversion logic that should emit the new activation value
+- Conversion logic or config assets that should emit the new activation value
 - Kernel and runtime tests
 
 ## Recommended Order
@@ -32,7 +32,7 @@ Add a new FFN activation implementation across WGSL, runtime wiring, and config.
 1. Implement the WGSL kernel and JS wrapper with matching run and record paths.
 2. Export the wrapper through `src/gpu/kernels/index.js` and `.d.ts`.
 3. Update `src/rules/inference/ffn.rules.json` or the FFN call site so the new activation can be selected explicitly.
-4. Add schema and preset changes if the activation name must be authored into manifests.
+4. Add schema and conversion-config changes if the activation name must be authored into manifests.
 5. Add tests for the kernel and at least one FFN path that uses it.
 
 ## Verification

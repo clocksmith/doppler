@@ -17,6 +17,7 @@ import { assertManifestArtifactIntegrity } from '../helpers/local-model-fixture.
     models: [
       {
         modelId: 'gemma-3-270m-it-q4k-ehf16-af32',
+        family: 'gemma3',
         artifact: {
           format: 'rdrr',
         },
@@ -80,6 +81,7 @@ import { assertManifestArtifactIntegrity } from '../helpers/local-model-fixture.
     ],
   }), [
     'catalog updatedAt must be a non-empty string',
+    'broken-model: family is required',
     'broken-model: artifact.format must be "rdrr" or "direct-source"',
     'broken-model: lifecycle.availability.hf=true requires hf.revision',
     'broken-model: lifecycle.availability.hf=true requires hf.path',
@@ -87,6 +89,7 @@ import { assertManifestArtifactIntegrity } from '../helpers/local-model-fixture.
     'broken-model: lifecycle.availability.local=true requires a repo-local baseUrl',
     'broken-model: lifecycle.status.demo=curated requires a repo-local baseUrl',
     'duplicate catalog modelId: broken-model',
+    'broken-model: family is required',
     'broken-model: artifact.format is required',
     'broken-model: lifecycle.status.demo=local requires a local baseUrl',
   ]);
@@ -158,7 +161,7 @@ import { assertManifestArtifactIntegrity } from '../helpers/local-model-fixture.
     catalogModels: [
       {
         modelId: 'verified-model',
-        preset: 'gemma3',
+        family: 'gemma3',
         modes: ['run'],
         sortOrder: 1,
         lifecycle: {
@@ -175,7 +178,7 @@ import { assertManifestArtifactIntegrity } from '../helpers/local-model-fixture.
       },
       {
         modelId: 'unknown-model',
-        preset: 'gemma3',
+        family: 'gemma3',
         modes: ['run'],
         sortOrder: 2,
         lifecycle: {
@@ -187,7 +190,7 @@ import { assertManifestArtifactIntegrity } from '../helpers/local-model-fixture.
       },
       {
         modelId: 'failing-model',
-        preset: 'qwen3',
+        family: 'qwen3',
         modes: ['run'],
         sortOrder: 3,
         lifecycle: {
@@ -206,13 +209,13 @@ import { assertManifestArtifactIntegrity } from '../helpers/local-model-fixture.
     quickStartModelIds: ['quickstart-only-model', 'verified-model'],
     rows: [
       {
-        presetId: 'mamba',
+        family: 'mamba',
         catalogCount: 0,
         runtimeStatus: 'blocked',
         status: 'blocked-runtime',
       },
       {
-        presetId: 'functiongemma',
+        family: 'functiongemma',
         catalogCount: 0,
         runtimeStatus: 'active',
         status: 'conversion-ready',

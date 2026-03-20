@@ -28,7 +28,6 @@ import {
     config: {},
     modelType: 'transformer',
     inference: {
-      presetId: 'lfm2',
       layerPattern: {
         layerTypes: ['attention', 'ffn'],
       },

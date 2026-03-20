@@ -69,7 +69,7 @@ const tensorLocations = {
       modelType: 'transformer',
       quantization: 'F16',
       hashAlgorithm: 'blake3',
-      inference: { ...DEFAULT_MANIFEST_INFERENCE, presetId: 'gemma3' },
+      inference: { ...DEFAULT_MANIFEST_INFERENCE, },
       eosTokenId: 1,
       convertedAt: '2026-01-05T10:20:30.000Z',
       conversionInfo: {
@@ -97,7 +97,7 @@ const tensorLocations = {
         modelType: 'transformer',
         quantization: 'F16',
         hashAlgorithm: 'blake3',
-        inference: { ...DEFAULT_MANIFEST_INFERENCE, presetId: 'gemma3' },
+        inference: { ...DEFAULT_MANIFEST_INFERENCE, },
         eosTokenId: 1,
         convertedAt: 'not-a-date',
       }
@@ -142,7 +142,7 @@ const tensorLocations = {
     },
     eosTokenId: 1,
     architecture: model.architecture,
-    inference: { ...DEFAULT_MANIFEST_INFERENCE, presetId: 'gemma3' },
+    inference: { ...DEFAULT_MANIFEST_INFERENCE, },
     converterConfig: createConverterConfig({
       manifest: {
         hashAlgorithm: 'blake3',

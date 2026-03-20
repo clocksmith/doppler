@@ -1,7 +1,7 @@
 {
   "id": "kernels/gemma2-q4k-dequant-f32a-nosubgroups",
   "name": "gemma2-q4k-dequant-f32a-nosubgroups",
-  "description": "Explicit runtime override preset for the Gemma 2 Q4K dequant-to-F32 no-subgroups kernel path.",
+  "description": "Explicit runtime override profile for the Gemma 2 Q4K dequant-to-F32 no-subgroups kernel path.",
   "intent": "investigate",
   "stability": "canonical",
   "owner": "doppler-core",

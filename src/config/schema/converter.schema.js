@@ -63,10 +63,6 @@ export const DEFAULT_CONVERTER_OUTPUT_CONFIG = {
   fast: false,
 };
 
-export const DEFAULT_CONVERTER_PRESET_CONFIG = {
-  model: null,
-};
-
 export const DEFAULT_CONVERTER_EXECUTION_CONFIG = {
   workers: 8,
   workerCountPolicy: 'cap',
@@ -86,7 +82,6 @@ export const DEFAULT_CONVERTER_CONFIG = {
   manifest: DEFAULT_CONVERTER_MANIFEST_CONFIG,
   inference: DEFAULT_CONVERTER_INFERENCE_CONFIG,
   output: DEFAULT_CONVERTER_OUTPUT_CONFIG,
-  presets: DEFAULT_CONVERTER_PRESET_CONFIG,
 };
 
 export function createConverterConfig(overrides) {
@@ -100,7 +95,6 @@ export function createConverterConfig(overrides) {
       manifest: { ...DEFAULT_CONVERTER_MANIFEST_CONFIG },
       inference: { ...DEFAULT_CONVERTER_INFERENCE_CONFIG },
       output: { ...DEFAULT_CONVERTER_OUTPUT_CONFIG },
-      presets: { ...DEFAULT_CONVERTER_PRESET_CONFIG },
     };
   }
 
@@ -129,9 +123,6 @@ export function createConverterConfig(overrides) {
     output: overrides.output
       ? { ...DEFAULT_CONVERTER_OUTPUT_CONFIG, ...overrides.output }
       : { ...DEFAULT_CONVERTER_OUTPUT_CONFIG },
-    presets: overrides.presets
-      ? { ...DEFAULT_CONVERTER_PRESET_CONFIG, ...overrides.presets }
-      : { ...DEFAULT_CONVERTER_PRESET_CONFIG },
   };
   // V1 conversion configs place execution, sessionDefaults, and modelType at the top level.
   // Pass them through so isV1Config() can detect the v1 format and resolveConversionPlanV1

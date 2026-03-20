@@ -19,7 +19,7 @@ Add a new KV-cache layout or inference memory-management strategy.
 - `src/inference/pipelines/text/init.js`
 - `src/inference/kv-cache/*`
 - Attention run and record integration when the new layout changes how keys or values are accessed
-- Optional kernel-path or runtime-preset updates
+- Optional kernel-path or runtime-profile updates
 - Unit, GPU, and end-to-end decode tests
 
 ## Recommended Order

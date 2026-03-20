@@ -5,7 +5,6 @@
     "scaffold"
   ],
   "scaffoldKinds": [
-    "model",
     "conversion",
     "kernel",
     "behavior"
@@ -14,12 +13,8 @@
     "root": {
       "path": "REPO_ROOT"
     },
-    "model": {
-      "basePreset": "transformer"
-    },
     "conversion": {
       "family": "custom",
-      "preset": "transformer",
       "baseDir": "models/local",
       "quantization": {
         "weights": "f16",
@@ -50,9 +45,8 @@
     }
   },
   "paths": {
-    "modelPreset": "src/config/presets/models",
-    "conversion": "tools/configs/conversion",
-    "kernelPath": "src/config/presets/kernel-paths",
-    "runtimeProfile": "src/config/presets/runtime"
+    "conversion": "src/config/conversion",
+    "kernelPath": "src/config/kernel-paths",
+    "runtimeProfile": "src/config/runtime"
   }
 }

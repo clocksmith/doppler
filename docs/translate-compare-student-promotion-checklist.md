@@ -56,7 +56,7 @@ Need from Gamma:
    - Do not omit frozen fields; use `null` for intentionally blank values.
 
 7. Re-run the browser demo with the actual student.
-   - Verify `Translate -> Compare -> Proof preset`
+   - Verify `Translate -> Compare -> Proof layout`
    - Verify local history and share-link restoration
    - Verify the student lane resolves without manual lane edits
 

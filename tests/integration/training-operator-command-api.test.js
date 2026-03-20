@@ -12,7 +12,7 @@ assert.equal(TOOLING_COMMANDS.includes('distill'), true);
 const distillRequest = normalizeToolingCommandRequest({
   command: 'distill',
   action: 'run',
-  workloadPath: 'tools/configs/training-workloads/distill-translategemma-tiny.json',
+  workloadPath: 'src/training/workload-packs/distill-translategemma-tiny.json',
   subsetManifest: 'reports/training/distill/example/subset_manifest.json',
 });
 
@@ -20,7 +20,7 @@ assert.equal(distillRequest.command, 'distill');
 assert.equal(distillRequest.action, 'run');
 assert.equal(
   distillRequest.workloadPath,
-  'tools/configs/training-workloads/distill-translategemma-tiny.json'
+  'src/training/workload-packs/distill-translategemma-tiny.json'
 );
 assert.equal(
   distillRequest.subsetManifest,

@@ -136,15 +136,15 @@
                     <div class="translate-compare-main">
                       <div class="translate-compare-toolbar">
                         <div class="playground-field">
-                          <label class="type-caption" for="translate-compare-preset">Curated preset</label>
-                          <select id="translate-compare-preset" class="w-full">
-                            <option value="proof">Proof preset</option>
+                          <label class="type-caption" for="translate-compare-layout">Curated layout</label>
+                          <select id="translate-compare-layout" class="w-full">
+                            <option value="proof">Proof layout</option>
                             <option value="engine-parity">Engine parity</option>
                             <option value="student-parity">Student parity</option>
                             <option value="model-parity">Model parity</option>
                             <option value="custom">Custom compare</option>
                           </select>
-                          <div id="translate-compare-preset-note" class="type-caption">Baseline teacher versus student slot on the same proof console.</div>
+                          <div id="translate-compare-layout-note" class="type-caption">Baseline teacher versus student slot on the same proof console.</div>
                         </div>
                         <div class="translate-compare-toolbar-actions">
                           <button id="translate-compare-run-btn" class="btn btn-primary" type="button">Run compare</button>
@@ -331,7 +331,7 @@
                             <button class="btn segmented-btn is-active" type="button" data-compare-history-filter="all">All</button>
                             <button class="btn segmented-btn" type="button" data-compare-history-filter="same-model">Same model</button>
                             <button class="btn segmented-btn" type="button" data-compare-history-filter="same-engine">Same engine</button>
-                            <button class="btn segmented-btn" type="button" data-compare-history-filter="proof">Proof preset</button>
+                            <button class="btn segmented-btn" type="button" data-compare-history-filter="proof">Proof layout</button>
                           </div>
                           <button id="translate-history-clear-btn" class="btn btn-small" type="button">Clear</button>
                         </div>
@@ -486,8 +486,8 @@
                 <summary class="type-caption">Advanced</summary>
                 <div class="panel-subsection">
                   <div class="diagnostics-field">
-                    <label class="type-caption" for="runtime-preset">Runtime preset (advanced override)</label>
-                    <select id="runtime-preset" class="w-full"></select>
+                    <label class="type-caption" for="runtime-profile">Runtime profile (advanced override)</label>
+                    <select id="runtime-profile" class="w-full"></select>
                   </div>
                   <div class="diagnostics-field">
                     <label class="type-caption" for="runtime-config-file">Runtime override (JSON file)</label>
@@ -495,11 +495,11 @@
                       <input id="runtime-config-file" class="w-full" type="file" accept=".json,application/json" />
                       <button id="runtime-config-clear" class="btn">Reset Overrides</button>
                     </div>
-                    <div class="type-caption" id="runtime-config-status">Preset: profiles/verbose-trace</div>
+                    <div class="type-caption" id="runtime-config-status">Profile: profiles/verbose-trace</div>
                   </div>
                   <div class="diagnostics-field">
-                    <label class="type-caption" for="runtime-config-preset">Runtime override preset</label>
-                    <select id="runtime-config-preset" class="w-full"></select>
+                    <label class="type-caption" for="runtime-config-profile">Runtime override profile</label>
+                    <select id="runtime-config-profile" class="w-full"></select>
                   </div>
                   <div class="diagnostics-field">
                     <div class="type-caption">Tooling intent</div>
@@ -557,8 +557,6 @@
                 </div>
                 <div id="download-list" class="download-list type-caption"></div>
                 <div class="convert-field">
-                  <label class="type-caption" for="convert-model-preset">Model preset override (optional)</label>
-                  <select id="convert-model-preset" class="w-full"></select>
                 </div>
                 <div class="convert-field">
                   <label class="type-caption" for="convert-weight-dtype">Weight dtype override (optional)</label>

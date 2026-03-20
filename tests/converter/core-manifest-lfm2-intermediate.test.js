@@ -78,7 +78,6 @@ const manifest = createManifest(
     hashAlgorithm: 'blake3',
     inference: {
       ...DEFAULT_MANIFEST_INFERENCE,
-      presetId: 'lfm2',
     },
     eosTokenId: 7,
   }

@@ -45,11 +45,11 @@ export declare const DEFAULT_RUNTIME_CONFIG: RuntimeConfigSchema;
 /**
  * Master Doppler configuration schema.
  *
- * Combines model-specific configuration (resolved from preset + manifest)
+ * Combines model-specific configuration resolved from manifest + runtime config
  * with runtime configuration (engine settings) and platform overrides.
  */
 export interface DopplerConfigSchema {
-  /** Model-specific configuration (reserved, no longer preset-driven) */
+  /** Model-specific configuration (reserved, no longer family-registry driven) */
   model?: Record<string, unknown>;
 
   /** Runtime configuration (engine settings) */

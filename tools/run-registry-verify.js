@@ -154,7 +154,7 @@ function extractContractGateStatus(payload) {
 
 function runVerify(config, surface) {
   const args = [
-    'tools/doppler-cli.js',
+    'src/cli/doppler-cli.js',
     'verify',
     '--config',
     JSON.stringify(config),

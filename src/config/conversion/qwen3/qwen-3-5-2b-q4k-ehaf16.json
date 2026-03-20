@@ -61,17 +61,42 @@
     },
     "output": {
       "finalLogitSoftcapping": null,
-      "tieWordEmbeddings": false,
+      "tieWordEmbeddings": true,
       "scaleEmbeddings": false,
       "embeddingTranspose": false,
       "embeddingVocabSize": null
     },
     "layerPattern": {
-      "type": "all_attention",
+      "type": "custom",
       "globalPattern": null,
       "period": null,
       "offset": null,
-      "layerTypes": null
+      "layerTypes": [
+        "linear_attention",
+        "linear_attention",
+        "linear_attention",
+        "full_attention",
+        "linear_attention",
+        "linear_attention",
+        "linear_attention",
+        "full_attention",
+        "linear_attention",
+        "linear_attention",
+        "linear_attention",
+        "full_attention",
+        "linear_attention",
+        "linear_attention",
+        "linear_attention",
+        "full_attention",
+        "linear_attention",
+        "linear_attention",
+        "linear_attention",
+        "full_attention",
+        "linear_attention",
+        "linear_attention",
+        "linear_attention",
+        "full_attention"
+      ]
     },
     "chatTemplate": {
       "type": "qwen",
@@ -90,9 +115,18 @@
     "kvcache": {
       "kvDtype": "f16"
     },
-    "decodeLoop": null
+    "decodeLoop": {
+      "batchSize": 4,
+      "stopCheckMode": "batch",
+      "readbackInterval": 1,
+      "ringTokens": 1,
+      "ringStop": 1,
+      "ringStaging": 1,
+      "disableCommandBatching": true
+    }
   },
   "execution": {
+    "inlineKernelPath": false,
     "kernels": {
       "embed": {
         "kernel": "gather_f16.wgsl",

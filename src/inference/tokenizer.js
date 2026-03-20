@@ -43,9 +43,9 @@ export class Tokenizer {
   
   async initialize(manifest, options = {}) {
     const modelId = manifest?.modelId || 'unknown';
-    // Merge tokenizer config: preset provides fallback hints, manifest takes precedence
-    const presetTokenizer = options.presetTokenizer || {};
-    const tokenizerConfig = { ...presetTokenizer, ...(manifest.tokenizer || {}) };
+    // Merge tokenizer hints from the caller, but let the manifest stay authoritative.
+    const tokenizerHints = options.tokenizerHints || {};
+    const tokenizerConfig = { ...tokenizerHints, ...(manifest.tokenizer || {}) };
     const eosTokenId = Array.isArray(manifest.eos_token_id)
       ? manifest.eos_token_id[0]
       : manifest.eos_token_id;

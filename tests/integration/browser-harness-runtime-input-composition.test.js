@@ -34,10 +34,10 @@ try {
         },
       },
     }],
-    ['https://example.test/presets/profiles/verbose-trace.json', {
+    ['https://example.test/runtime/profiles/verbose-trace.json', {
       runtime: {
         inference: {
-          prompt: 'preset',
+          prompt: 'profile',
           batching: {
             maxTokens: 12,
             batchSize: 4,
@@ -104,7 +104,7 @@ try {
       },
     },
   }, {
-    baseUrl: 'https://example.test/presets',
+    baseUrl: 'https://example.test/runtime',
   });
 
   const runtimeConfig = getRuntimeConfig();

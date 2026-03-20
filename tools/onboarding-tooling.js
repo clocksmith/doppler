@@ -32,20 +32,16 @@ const REQUIRED_COMPARE_TIMING_METRICS = Object.freeze([
   'totalRunMs',
   'modelLoadMs',
 ]);
-const ONBOARDING_POLICY_PATH = fileURLToPath(new URL('./configs/onboarding/onboarding-tooling-policy.json', import.meta.url));
+const ONBOARDING_POLICY_PATH = fileURLToPath(new URL('./policies/onboarding-tooling-policy.json', import.meta.url));
 const DEFAULT_ONBOARDING_POLICY = Object.freeze({
   modes: ['check', 'scaffold'],
-  scaffoldKinds: ['model', 'conversion', 'kernel', 'behavior'],
+  scaffoldKinds: ['conversion', 'kernel', 'behavior'],
   defaults: {
     root: {
       path: 'REPO_ROOT',
     },
-    model: {
-      basePreset: 'transformer',
-    },
     conversion: {
       family: 'custom',
-      preset: 'transformer',
       baseDir: 'models/local',
       quantization: {
         weights: 'f16',
@@ -69,15 +65,14 @@ const DEFAULT_ONBOARDING_POLICY = Object.freeze({
       unsupportedModeHint: 'Expected one of: {supportedModes}',
       unsupportedKind: 'Unsupported scaffold kind',
       unsupportedKindHint: 'Expected one of: {supportedKinds}',
-        missingId: '--id is required for scaffold',
+      missingId: '--id is required for scaffold',
       missingKind: '--kind is required for scaffold',
     },
   },
   paths: {
-    modelPreset: 'src/config/presets/models',
-    conversion: 'tools/configs/conversion',
-    kernelPath: 'src/config/presets/kernel-paths',
-    runtimeProfile: 'src/config/presets/runtime',
+    conversion: 'src/config/conversion',
+    kernelPath: 'src/config/kernel-paths',
+    runtimeProfile: 'src/config/runtime',
   },
 });
 let activeOnboardingPolicy = DEFAULT_ONBOARDING_POLICY;
@@ -90,7 +85,6 @@ function resolveOnboardingPolicy(payload) {
   const input = isObject(payload) ? payload : {};
   const defaults = isObject(input.defaults) ? input.defaults : {};
   const paths = isObject(input.paths) ? input.paths : {};
-  const modelDefaults = isObject(defaults.model) ? defaults.model : {};
   const conversionDefaults = isObject(defaults.conversion) ? defaults.conversion : {};
   const kernelDefaults = isObject(defaults.kernelPath) ? defaults.kernelPath : {};
   const behaviorDefaults = isObject(defaults.behavior) ? defaults.behavior : {};
@@ -105,12 +99,8 @@ function resolveOnboardingPolicy(payload) {
       root: {
         path: resolvePolicyText(rootDefaults.path, DEFAULT_ONBOARDING_POLICY.defaults.root.path),
       },
-      model: {
-        basePreset: resolvePolicyText(modelDefaults.basePreset, DEFAULT_ONBOARDING_POLICY.defaults.model.basePreset),
-      },
       conversion: {
         family: resolvePolicyText(conversionDefaults.family, DEFAULT_ONBOARDING_POLICY.defaults.conversion.family),
-        preset: resolvePolicyText(conversionDefaults.preset, DEFAULT_ONBOARDING_POLICY.defaults.conversion.preset),
         baseDir: resolvePolicyText(conversionDefaults.baseDir, DEFAULT_ONBOARDING_POLICY.defaults.conversion.baseDir),
         quantization: {
           weights: resolvePolicyText(quantizationDefaults.weights, DEFAULT_ONBOARDING_POLICY.defaults.conversion.quantization.weights),
@@ -139,7 +129,6 @@ function resolveOnboardingPolicy(payload) {
       },
     },
     paths: {
-      modelPreset: resolvePolicyText(paths.modelPreset, DEFAULT_ONBOARDING_POLICY.paths.modelPreset),
       conversion: resolvePolicyText(paths.conversion, DEFAULT_ONBOARDING_POLICY.paths.conversion),
       kernelPath: resolvePolicyText(paths.kernelPath, DEFAULT_ONBOARDING_POLICY.paths.kernelPath),
       runtimeProfile: resolvePolicyText(paths.runtimeProfile, DEFAULT_ONBOARDING_POLICY.paths.runtimeProfile),
@@ -159,7 +148,7 @@ function usage() {
   return [
     'Usage:',
     '  node tools/onboarding-tooling.js check [--root <dir>] [--strict] [--json]',
-    '  node tools/onboarding-tooling.js scaffold --kind <model|conversion|kernel|behavior> --id <id> [options]',
+    '  node tools/onboarding-tooling.js scaffold --kind <conversion|kernel|behavior> --id <id> [options]',
     '',
     'Check options:',
     '  --root <dir>               Repo root (default: current repo).',
@@ -167,22 +156,20 @@ function usage() {
     '  --json                      Emit JSON report.',
     '',
     'Scaffold options:',
-    '  --kind <kind>               model | conversion | kernel | behavior',
+    '  --kind <kind>               conversion | kernel | behavior',
     '  --id <id>                   Artifact id / file stem.',
     '  --force                     Overwrite destination file.',
     '  --output <path>             Custom output path.',
-    '  --preset <id>               Preset binding (conversion/model only).',
     '  --family <name>             Conversion family folder (conversion only).',
     '  --base-dir <path>           Conversion output base dir (conversion only).',
     '  --default-kernel-path <id>   Conversion default kernel path.',
     '  --status <status>           Kernel registry status hint.',
     '  --status-reason <text>      Optional status reason.',
-    '  --scope <dir>               Behavior preset scope directory.',
+    '  --scope <dir>               Runtime profile scope directory.',
     '',
     'Examples:',
     '  node tools/onboarding-tooling.js check --strict',
-    '  node tools/onboarding-tooling.js scaffold --kind model --id gemma3-my-new-model',
-    '  node tools/onboarding-tooling.js scaffold --kind conversion --id gemma3-my-new-model --family gemma3 --preset gemma3',
+    '  node tools/onboarding-tooling.js scaffold --kind conversion --id gemma3-my-new-model --family gemma3',
     '  node tools/onboarding-tooling.js scaffold --kind kernel --id gemma3-f16-fused-f16a-online-audit --status experimental',
     '  node tools/onboarding-tooling.js scaffold --kind behavior --id super-flash-memory-15-0',
     '',
@@ -341,7 +328,7 @@ function toSafeJsIdentifier(value) {
     .toLowerCase()
     .split(/[^a-z0-9]+/)
     .filter(Boolean);
-  if (!tokens.length) return 'modelPreset';
+  if (!tokens.length) return 'modelConfig';
   const head = tokens[0].replace(/^[^a-z]+/, '') || 'model';
   const tail = tokens.slice(1).map((token) => token[0].toUpperCase() + token.slice(1)).join('');
   const identifier = `${head}${tail}`;
@@ -357,7 +344,7 @@ function toRuntimeProfileId(runtimeProfileRoot, filePath) {
 
 const KNOWN_BOOLEAN_FLAGS = new Set(['strict', 'json', 'force']);
 const KNOWN_VALUE_FLAGS = new Set([
-  'root', 'kind', 'id', 'output', 'preset', 'family',
+  'root', 'kind', 'id', 'output', 'family',
   'base-dir', 'default-kernel-path', 'status', 'status-reason', 'scope',
 ]);
 
@@ -395,41 +382,13 @@ function parseCommandLine(argv) {
   return { mode, flags, positional: [] };
 }
 
-async function detectLoaderPresetIds() {
-  // Model presets have been removed (v1 execution configs are the sole source of truth).
+async function detectLoaderConfigIds() {
+  // Loader-owned model-family config registries have been removed.
   return {
     ids: new Set(),
     detectionOrder: [],
     error: null,
   };
-}
-
-function collectKernelPathRefsFromPreset(preset) {
-  const refs = new Set();
-  const root = preset?.inference?.kernelPaths;
-  if (!isObject(root)) {
-    return refs;
-  }
-
-  const visit = (value) => {
-    if (value == null) return;
-    if (typeof value === 'string') {
-      const trimmed = value.trim();
-      if (trimmed) refs.add(trimmed);
-      return;
-    }
-    if (Array.isArray(value)) {
-      for (const item of value) visit(item);
-      return;
-    }
-    if (!isObject(value)) return;
-    for (const next of Object.values(value)) {
-      visit(next);
-    }
-  };
-
-  visit(root);
-  return refs;
 }
 
 function collectStringSetFromArray(values) {
@@ -698,7 +657,7 @@ async function validateGeneratedWgsl(root, issues, context) {
     issues.push(toIssue(
       ERROR,
       'WGSL_GENERATED_CHECK_FAILED',
-      path.join(root, 'tools/configs/wgsl-variants.js'),
+      path.join(root, 'src/gpu/kernels/codegen/wgsl-variants.js'),
       error.message
     ));
     return;
@@ -708,7 +667,7 @@ async function validateGeneratedWgsl(root, issues, context) {
     issues.push(toIssue(
       ERROR,
       'WGSL_GENERATED_INVALID',
-      path.join(root, 'tools/configs/wgsl-variants.js'),
+      path.join(root, 'src/gpu/kernels/codegen/wgsl-variants.js'),
       errorMessage
     ));
   }
@@ -730,7 +689,7 @@ async function validateGeneratedWgsl(root, issues, context) {
 }
 
 async function validateKernelPathRegistry(root, issues, context, policy = getActivePolicy()) {
-  const registryPath = path.join(root, 'src/config/presets/kernel-paths/registry.json');
+  const registryPath = path.join(root, 'src/config/kernel-paths/registry.json');
   let registryPayload;
   try {
     registryPayload = await readJson(registryPath, 'object');
@@ -803,7 +762,7 @@ async function validateKernelPathRegistry(root, issues, context, policy = getAct
       continue;
     }
 
-    const kernelFile = path.join(root, 'src/config/presets/kernel-paths', String(entry.file).trim());
+    const kernelFile = path.join(root, 'src/config/kernel-paths', String(entry.file).trim());
     if (!(await fileExists(kernelFile))) {
       issues.push(toIssue(
         ERROR,
@@ -895,174 +854,14 @@ async function validateKernelPathRegistry(root, issues, context, policy = getAct
   return { ids, statusById };
 }
 
-async function validateModelPresets(root, issues, context) {
-  const modelPresetDir = path.join(root, 'src/config/presets/models');
-  const files = await collectJsonFiles(modelPresetDir);
-  const presetsById = new Map();
-  const ids = new Set();
-  const notInLoaderIds = new Set();
-  const detectionOrderMissingIds = new Set();
-  const loaderPresetDetectionOrder = Array.isArray(context.loaderPresetDetectionOrder)
-    ? new Set(context.loaderPresetDetectionOrder)
-    : new Set();
-
-  for (const filePath of files) {
-    const fileBase = path.basename(filePath, '.json');
-    let preset;
-    try {
-      preset = await readJson(filePath, 'object');
-    } catch (error) {
-      issues.push(toIssue(ERROR, 'MODEL_PRESET_JSON', filePath, error.message));
-      continue;
-    }
-    const presetId = String(preset.id ?? fileBase).trim() || fileBase;
-    if (!assertString(preset.id, `${filePath}.id`)) {
-      issues.push(toIssue(
-        WARN,
-        'MODEL_PRESET_ID_MISSING',
-        filePath,
-        `preset file id defaults to filename "${fileBase}"`
-      ));
-    }
-    if (presetsById.has(presetId)) {
-      issues.push(toIssue(ERROR, 'MODEL_PRESET_DUP', filePath, `duplicate model preset id "${presetId}"`));
-      continue;
-    }
-    if (!assertString(preset.name, `${filePath}.name`)) {
-      issues.push(toIssue(WARN, 'MODEL_PRESET_NAME_MISSING', filePath, `model preset "${presetId}" missing name`));
-    }
-
-    if (preset.extends != null && !assertString(preset.extends, `${filePath}.extends`)) {
-      issues.push(toIssue(
-        ERROR,
-        'MODEL_PRESET_EXTENDS_FORMAT',
-        filePath,
-        `preset "${presetId}" extends must be a non-empty string when provided`
-      ));
-    }
-
-    if (preset.detection != null && !isObject(preset.detection)) {
-      issues.push(toIssue(
-        ERROR,
-        'MODEL_PRESET_DETECTION_FORMAT',
-        `${filePath}.detection`,
-        'detection must be an object when set'
-      ));
-    } else if (isObject(preset.detection)) {
-      validateStringList(
-        `${filePath}.detection.architecturePatterns`,
-        preset.detection.architecturePatterns,
-        issues,
-        'MODEL_PRESET_DETECTION_ARCHITECTURE_PATTERNS'
-      );
-      validateStringList(
-        `${filePath}.detection.modelTypePatterns`,
-        preset.detection.modelTypePatterns,
-        issues,
-        'MODEL_PRESET_DETECTION_MODEL_TYPE_PATTERNS'
-      );
-      if (preset.detection.configPatterns != null && !isObject(preset.detection.configPatterns)) {
-        issues.push(toIssue(
-          ERROR,
-          'MODEL_PRESET_DETECTION_CONFIG_PATTERNS',
-          `${filePath}.detection.configPatterns`,
-          'detection.configPatterns must be an object when set'
-        ));
-      }
-    }
-
-    presetsById.set(presetId, { filePath, preset });
-    ids.add(presetId);
-
-    const kernelRefs = collectKernelPathRefsFromPreset(preset);
-    for (const kernelId of kernelRefs) {
-      if (!context.kernelPathIds.has(kernelId)) {
-        issues.push(toIssue(
-          ERROR,
-          'MODEL_PRESET_KERNEL_MISSING',
-          `${filePath}.inference.kernelPaths`,
-          `kernel path "${kernelId}" is not registered`
-        ));
-      }
-    }
-  }
-
-  const visiting = new Set();
-  const visited = new Set();
-  const stack = [];
-  const validateChain = (presetId) => {
-    if (visited.has(presetId)) {
-      return;
-    }
-    if (visiting.has(presetId)) {
-      const loopStart = stack.indexOf(presetId);
-      const cycle = stack.slice(loopStart).concat(presetId);
-      issues.push(toIssue(
-        ERROR,
-        'MODEL_PRESET_EXTENDS_CYCLE',
-        `${modelPresetDir}/${presetId}.json`,
-        `extends cycle detected: ${cycle.join(' -> ')}`
-      ));
-      return;
-    }
-
-    const entry = presetsById.get(presetId);
-    if (!entry) {
-      return;
-    }
-
-    const parent = safeTrim(entry.preset.extends);
-    visiting.add(presetId);
-    stack.push(presetId);
-
-    if (parent.length > 0) {
-      if (presetsById.has(parent)) {
-        validateChain(parent);
-      } else if (!context.loaderPresetIds.has(parent)) {
-        issues.push(toIssue(
-          ERROR,
-          'MODEL_PRESET_EXTENDS_MISSING',
-          entry.filePath,
-          `extends "${parent}" is not a known local or loader preset`
-        ));
-      }
-    } else if (!context.loaderPresetIds.has(presetId)) {
-      issues.push(toIssue(
-        ERROR,
-        'MODEL_PRESET_NOT_IN_LOADER',
-        entry.filePath,
-        `model preset "${presetId}" is not exposed by src/config/loader.js`
-      ));
-      notInLoaderIds.add(presetId);
-    } else if (
-      loaderPresetDetectionOrder.size > 0
-      && !loaderPresetDetectionOrder.has(presetId)
-    ) {
-      issues.push(toIssue(
-        WARN,
-        'MODEL_PRESET_DETECTION_ORDER_MISSING',
-        entry.filePath,
-        `model preset "${presetId}" is in loader registry but not detection order`
-      ));
-      detectionOrderMissingIds.add(presetId);
-    }
-
-    stack.pop();
-    visiting.delete(presetId);
-    visited.add(presetId);
-  };
-
-  for (const presetId of presetsById.keys()) {
-    validateChain(presetId);
-  }
-
-  context.modelPresetIds = ids;
-  context.modelPresetNotInLoaderIds = notInLoaderIds;
-  context.modelPresetDetectionOrderMissingIds = detectionOrderMissingIds;
+async function validateModelFamilies(root, issues, context) {
+  context.modelFamilyIds = new Set();
+  context.modelFamiliesWithoutLoaderConfig = new Set();
+  context.modelFamiliesMissingDetectionOrder = new Set();
 }
 
 async function validateConversionConfigs(root, issues, context, policy = getActivePolicy()) {
-  const conversionRoot = path.join(root, 'tools/configs/conversion');
+  const conversionRoot = path.join(root, 'src/config/conversion');
   const files = await collectJsonFiles(conversionRoot);
   const modelIds = new Set();
 
@@ -1079,7 +878,6 @@ async function validateConversionConfigs(root, issues, context, policy = getActi
       continue;
     }
 
-    const presetId = resolveText(config.presets?.model);
     const resolved = resolveConversionConfigModelId(config, policy);
     if (!resolved.modelId) {
       issues.push(toIssue(ERROR, 'CONVERSION_MODEL_ID', filePath, resolved.error));
@@ -1096,17 +894,6 @@ async function validateConversionConfigs(root, issues, context, policy = getActi
 
     if (!assertString(config.output?.baseDir, `${filePath}.output.baseDir`)) {
       issues.push(toIssue(WARN, 'CONVERSION_BASEDIR', filePath, 'output.baseDir should be a non-empty string'));
-    }
-
-    if (!assertString(config.presets?.model, `${filePath}.presets.model`)) {
-      issues.push(toIssue(ERROR, 'CONVERSION_PRESET_MISSING', filePath, 'presets.model is required'));
-    } else if (!context.modelPresetIds.has(presetId) && !context.loaderPresetIds.has(presetId)) {
-      issues.push(toIssue(
-        ERROR,
-        'CONVERSION_PRESET_UNKNOWN',
-        filePath,
-        `presets.model "${presetId}" is not a known model preset`
-      ));
     }
 
     const kernelId = config.inference?.defaultKernelPath;
@@ -1129,36 +916,36 @@ function isLeanExecutionFixtureMap(config) {
     && config?.source === 'doppler'
     && Array.isArray(config?.mappings)
     && Array.isArray(config?.exclusions)
-    && config?.presets === undefined
+    && config?.family === undefined
     && config?.output === undefined;
 }
 
 async function validateRuntimeProfiles(root, issues, context) {
-  const runtimeProfileRoot = path.join(root, 'src/config/presets/runtime');
+  const runtimeProfileRoot = path.join(root, 'src/config/runtime');
   const files = await collectJsonFiles(runtimeProfileRoot);
   const profilesById = new Map();
   const ids = new Set();
 
   for (const filePath of files) {
-    let preset;
+    let profileData;
     try {
-      preset = await readJson(filePath, 'object');
+      profileData = await readJson(filePath, 'object');
     } catch (error) {
       issues.push(toIssue(ERROR, 'RUNTIME_PROFILE_JSON', filePath, error.message));
       continue;
     }
 
-    const presetId = toRuntimeProfileId(runtimeProfileRoot, filePath);
-    if (profilesById.has(presetId)) {
-      issues.push(toIssue(ERROR, 'RUNTIME_PROFILE_DUP', filePath, `duplicate runtime profile id "${presetId}"`));
+    const profileId = toRuntimeProfileId(runtimeProfileRoot, filePath);
+    if (profilesById.has(profileId)) {
+      issues.push(toIssue(ERROR, 'RUNTIME_PROFILE_DUP', filePath, `duplicate runtime profile id "${profileId}"`));
       continue;
     }
 
-    if (!assertString(preset.name, `${filePath}.name`)) {
-      issues.push(toIssue(WARN, 'RUNTIME_PROFILE_NAME_MISSING', filePath, `runtime profile "${presetId}" missing name`));
+    if (!assertString(profileData.name, `${filePath}.name`)) {
+      issues.push(toIssue(WARN, 'RUNTIME_PROFILE_NAME_MISSING', filePath, `runtime profile "${profileId}" missing name`));
     }
 
-    if (preset.extends != null && !assertString(preset.extends, `${filePath}.extends`)) {
+    if (profileData.extends != null && !assertString(profileData.extends, `${filePath}.extends`)) {
       issues.push(toIssue(
         ERROR,
         'RUNTIME_PROFILE_EXTENDS_FORMAT',
@@ -1167,46 +954,46 @@ async function validateRuntimeProfiles(root, issues, context) {
       ));
     }
 
-    if (!isObject(preset.runtime)) {
+    if (!isObject(profileData.runtime)) {
       issues.push(toIssue(
         WARN,
         'RUNTIME_PROFILE_RUNTIME_MISSING',
         filePath,
-        `runtime profile "${presetId}" does not define runtime`
+        `runtime profile "${profileId}" does not define runtime`
       ));
     }
 
-    profilesById.set(presetId, { filePath, preset });
-    ids.add(presetId);
+    profilesById.set(profileId, { filePath, profileData });
+    ids.add(profileId);
   }
 
   const visiting = new Set();
   const visited = new Set();
   const stack = [];
-  const validateChain = (presetId) => {
-    if (visited.has(presetId)) {
+  const validateChain = (profileId) => {
+    if (visited.has(profileId)) {
       return;
     }
-    if (visiting.has(presetId)) {
-      const loopStart = stack.indexOf(presetId);
-      const cycle = stack.slice(loopStart).concat(presetId);
+    if (visiting.has(profileId)) {
+      const loopStart = stack.indexOf(profileId);
+      const cycle = stack.slice(loopStart).concat(profileId);
       issues.push(toIssue(
         ERROR,
         'RUNTIME_PROFILE_EXTENDS_CYCLE',
-        `${runtimeProfileRoot}/${presetId}.json`,
+        `${runtimeProfileRoot}/${profileId}.json`,
         `extends cycle detected: ${cycle.join(' -> ')}`
       ));
       return;
     }
 
-    const entry = profilesById.get(presetId);
+    const entry = profilesById.get(profileId);
     if (!entry) {
       return;
     }
-    const parent = safeTrim(entry.preset.extends);
+    const parent = safeTrim(entry.profileData.extends);
 
-    visiting.add(presetId);
-    stack.push(presetId);
+    visiting.add(profileId);
+    stack.push(profileId);
 
     if (parent.length > 0) {
       if (!profilesById.has(parent)) {
@@ -1222,12 +1009,12 @@ async function validateRuntimeProfiles(root, issues, context) {
     }
 
     stack.pop();
-    visiting.delete(presetId);
-    visited.add(presetId);
+    visiting.delete(profileId);
+    visited.add(profileId);
   };
 
-  for (const presetId of profilesById.keys()) {
-    validateChain(presetId);
+  for (const profileId of profilesById.keys()) {
+    validateChain(profileId);
   }
 
   context.runtimeProfileIds = ids;
@@ -1292,15 +1079,15 @@ async function validateCompareConfigs(root, issues, context) {
     profileIds.add(modelId);
     if (
       !(context?.conversionModelIds?.has(modelId)
-        || context?.modelPresetIds?.has(modelId)
-        || context?.loaderPresetIds?.has(modelId))
+        || context?.modelFamilyIds?.has(modelId)
+        || context?.loaderConfigIds?.has(modelId))
     ) {
       noConfigProfiles.add(modelId);
       issues.push(toIssue(
         WARN,
         'COMPARE_PROFILE_NO_MATCH',
         `${compareConfigPath}::${modelId}`,
-        `compare profile "${modelId}" has no matching conversion config or model preset`
+        `compare profile "${modelId}" has no matching conversion config or loader-owned config`
       ));
     }
     if (profile.defaultKernelPath != null
@@ -1512,12 +1299,12 @@ function renderKernelPathTemplate(id, options = {}, policy = getActivePolicy()) 
   };
 }
 
-function renderModelPresetTemplate(id, basePresetId = null, policy = getActivePolicy()) {
+function renderModelFamilyTemplate(id, baseFamilyId = null, policy = getActivePolicy()) {
   const modelDefaults = policy.defaults?.model || {};
   return {
     id,
     name: id,
-    extends: resolveText(basePresetId, resolveText(modelDefaults.basePreset, 'transformer')),
+    extends: resolveText(baseFamilyId, resolveText(modelDefaults.baseFamily, 'transformer')),
     architecture: {},
     inference: {
       attention: {},
@@ -1542,18 +1329,7 @@ function renderModelPresetTemplate(id, basePresetId = null, policy = getActivePo
   };
 }
 
-function renderLoaderRegistrationTemplate(presetId) {
-  const constName = `${toSafeJsIdentifier(presetId)}Preset`;
-  return [
-    '// src/config/loader.js',
-    `const ${constName} = await loadJson('./presets/models/${presetId}.json', import.meta.url, 'Failed to load preset');`,
-    `// Add "${presetId}" to PRESET_REGISTRY.`,
-    `// Example: ... PRESET_REGISTRY = { ... , ['${presetId}']: ${constName} };`,
-    `// Add "${presetId}" to PRESET_DETECTION_ORDER when model detection should be exact.`,
-  ];
-}
-
-function renderConversionTemplate(id, presetId, options = {}, policy = getActivePolicy()) {
+function renderConversionTemplate(id, options = {}, policy = getActivePolicy()) {
   const defaults = policyDefaultsFromActivePolicy(policy);
   const conversionDefaults = isObject(defaults.conversion) ? defaults.conversion : {};
   const quantizationDefaults = isObject(conversionDefaults.quantization) ? conversionDefaults.quantization : {};
@@ -1574,9 +1350,6 @@ function renderConversionTemplate(id, presetId, options = {}, policy = getActive
       baseDir: resolveText(options.baseDir, resolveText(conversionDefaults.baseDir, 'models/local')),
       modelBaseId: id,
     },
-    presets: {
-      model: resolveText(presetId, resolveText(conversionDefaults.preset, 'transformer')),
-    },
     quantization: {
       weights,
       embeddings,
@@ -1596,7 +1369,7 @@ function renderBehaviorTemplate(id, scope = null, policy = getActivePolicy()) {
   const safeScope = normalizeId(scope, { defaultValue: scopeDefault });
   return {
     name: safeId,
-    description: `Behavior preset for ${safeId}`,
+    description: `Runtime profile for ${safeId}`,
     extends: `${safeScope}/default`,
     runtime: {
       inference: {
@@ -1634,34 +1407,34 @@ async function runCheck(context, policy = getActivePolicy()) {
   const issues = Array.isArray(context.issues) ? context.issues : [];
   await validateKernelRuleVariantParity(context.rootDir, issues, context);
   await validateGeneratedWgsl(context.rootDir, issues, context);
-  await validateModelPresets(context.rootDir, issues, context);
+  await validateModelFamilies(context.rootDir, issues, context);
   await validateConversionConfigs(context.rootDir, issues, context, policy);
   await validateRuntimeProfiles(context.rootDir, issues, context);
   await validateCompareConfigs(context.rootDir, issues, context);
   const {
-    modelPresetIds = new Set(),
-    loaderPresetIds = new Set(),
-    loaderPresetDetectionOrder = [],
+    modelFamilyIds = new Set(),
+    loaderConfigIds = new Set(),
+    loaderConfigDetectionOrder = [],
     kernelPathIds = new Set(),
     kernelStatusById = new Map(),
     runtimeProfileIds = new Set(),
     conversionModelIds = new Set(),
     compareProfileIds = new Set(),
     compareProfilesWithoutConversion = new Set(),
-    modelPresetNotInLoaderIds = new Set(),
-    modelPresetDetectionOrderMissingIds = new Set(),
+    modelFamiliesWithoutLoaderConfig = new Set(),
+    modelFamiliesMissingDetectionOrder = new Set(),
     kernelRuleVariantParity = { ruleSets: 0, variants: 0 },
     generatedWgsl = { variants: 0, drift: 0 },
   } = context;
   const resolvedContext = {
     ...context,
-    modelPresetIds,
+    modelFamilyIds,
     conversionModelIds: context.conversionModelIds,
     runtimeProfileIds: context.runtimeProfileIds,
     compareProfileIds: context.compareProfileIds,
     compareProfilesWithoutConversion: context.compareProfilesWithoutConversion,
-    modelPresetNotInLoaderIds: context.modelPresetNotInLoaderIds,
-    modelPresetDetectionOrderMissingIds: context.modelPresetDetectionOrderMissingIds,
+    modelFamiliesWithoutLoaderConfig: context.modelFamiliesWithoutLoaderConfig,
+    modelFamiliesMissingDetectionOrder: context.modelFamiliesMissingDetectionOrder,
   };
 
   return {
@@ -1671,14 +1444,14 @@ async function runCheck(context, policy = getActivePolicy()) {
     metadata: {
       root: context.rootDir,
       checks: {
-        modelPresets: modelPresetIds.size,
-        loaderPresets: loaderPresetIds.size,
+        modelFamilies: modelFamilyIds.size,
+        loaderConfigs: loaderConfigIds.size,
         kernelPaths: kernelPathIds.size,
         kernelRuleVariantRuleSets: kernelRuleVariantParity.ruleSets,
         kernelRuleVariantValues: kernelRuleVariantParity.variants,
         generatedWgslVariants: generatedWgsl.variants,
         generatedWgslDrifted: generatedWgsl.drift,
-        loaderDetectionOrder: Array.isArray(loaderPresetDetectionOrder) ? loaderPresetDetectionOrder.length : 0,
+        loaderDetectionOrder: Array.isArray(loaderConfigDetectionOrder) ? loaderConfigDetectionOrder.length : 0,
         runtimeProfiles: resolvedContext.runtimeProfileIds ? resolvedContext.runtimeProfileIds.size : 0,
         conversionProfiles: resolvedContext.conversionModelIds ? resolvedContext.conversionModelIds.size : 0,
         compareProfiles: resolvedContext.compareProfileIds ? resolvedContext.compareProfileIds.size : 0,
@@ -1688,8 +1461,8 @@ async function runCheck(context, policy = getActivePolicy()) {
       },
       coverage: {
         compareProfilesWithoutConversion: Array.from(resolvedContext.compareProfilesWithoutConversion || []),
-        modelPresetsWithoutLoader: Array.from(resolvedContext.modelPresetNotInLoaderIds || []),
-        modelPresetsDetectionOrderMissing: Array.from(resolvedContext.modelPresetDetectionOrderMissingIds || []),
+        modelFamiliesWithoutLoaderConfig: Array.from(resolvedContext.modelFamiliesWithoutLoaderConfig || []),
+        modelFamiliesMissingDetectionOrder: Array.from(resolvedContext.modelFamiliesMissingDetectionOrder || []),
       },
     },
     compatibility: {
@@ -1712,42 +1485,20 @@ async function runScaffold(context, policy = getActivePolicy()) {
     throw new Error('--id must be a non-empty string');
   }
 
-  if (kind === 'model') {
-    const target = outputOverride
-      ? path.resolve(rootDir, outputOverride)
-      : path.join(rootDir, resolveText(policy.paths?.modelPreset, 'src/config/presets/models'), `${safeId}.json`);
-    if ((await fileExists(target)) && !force) {
-      throw new Error(`Refusing to overwrite ${target} (use --force)`);
-    }
-    const payload = renderModelPresetTemplate(safeId, context.presetId, policy);
-    await writeJsonFile(target, payload);
-    console.log(`[onboarding] wrote model preset: ${path.relative(rootDir, target)}`);
-    console.log('[onboarding] add the following model preset registration steps:');
-    for (const line of renderLoaderRegistrationTemplate(safeId)) {
-      console.log(line);
-    }
-    return 0;
-  }
-
   if (kind === 'conversion') {
     const family = normalizeId(context.family, { defaultValue: policy.defaults?.conversion?.family || 'custom' });
     const target = outputOverride
       ? path.resolve(rootDir, outputOverride)
       : path.join(
         rootDir,
-        resolveText(policy.paths?.conversion, 'tools/configs/conversion'),
+        resolveText(policy.paths?.conversion, 'src/config/conversion'),
         family,
         `${safeId}.json`
       );
     if ((await fileExists(target)) && !force) {
       throw new Error(`Refusing to overwrite ${target} (use --force)`);
     }
-    const payload = renderConversionTemplate(
-      safeId,
-      context.presetId,
-      context,
-      policy
-    );
+    const payload = renderConversionTemplate(safeId, context, policy);
     await writeJsonFile(target, payload);
     console.log(`[onboarding] wrote conversion config: ${path.relative(rootDir, target)}`);
     return 0;
@@ -1758,7 +1509,7 @@ async function runScaffold(context, policy = getActivePolicy()) {
       ? path.resolve(rootDir, outputOverride)
       : path.join(
         rootDir,
-        resolveText(policy.paths?.kernelPath, 'src/config/presets/kernel-paths'),
+        resolveText(policy.paths?.kernelPath, 'src/config/kernel-paths'),
         `${safeId}.json`
       );
     if ((await fileExists(target)) && !force) {
@@ -1780,7 +1531,7 @@ async function runScaffold(context, policy = getActivePolicy()) {
       ? path.resolve(rootDir, outputOverride)
       : path.join(
         rootDir,
-        resolveText(policy.paths?.runtimeProfile, 'src/config/presets/runtime'),
+        resolveText(policy.paths?.runtimeProfile, 'src/config/runtime'),
         scope,
         `${safeId}.json`
       );
@@ -1793,7 +1544,7 @@ async function runScaffold(context, policy = getActivePolicy()) {
     return 0;
   }
 
-  const supportedKinds = resolveTextArray(policy.scaffoldKinds, ['model', 'conversion', 'kernel', 'behavior']);
+  const supportedKinds = resolveTextArray(policy.scaffoldKinds, ['conversion', 'kernel', 'behavior']);
   const kindError = resolveText(policy.defaults?.errors?.unsupportedKind, 'Unsupported scaffold kind');
   throw new Error(`${kindError} "${kind}"`);
 }
@@ -1843,29 +1594,29 @@ async function main() {
   }
   if (mode === 'check') {
     const {
-      ids: loaderPresetIds,
-      detectionOrder: loaderPresetDetectionOrder,
+      ids: loaderConfigIds,
+      detectionOrder: loaderConfigDetectionOrder,
       error: loaderError,
-    } = await detectLoaderPresetIds();
+    } = await detectLoaderConfigIds();
     const kernelRegistry = await validateKernelPathRegistry(rootDir, [], {});
     const context = {
       rootDir,
-      loaderPresetIds,
-      loaderPresetDetectionOrder,
+      loaderConfigIds,
+      loaderConfigDetectionOrder,
       kernelPathIds: kernelRegistry.ids,
       kernelStatusById: kernelRegistry.statusById,
       issues: [],
     };
 
     if (loaderError) {
-      context.issues.push(toIssue(ERROR, 'LOADER_IMPORT', 'src/config/loader.js', loaderError.message));
+      context.issues.push(toIssue(ERROR, 'LOADER_IMPORT', 'src/config/', loaderError.message));
     }
     await validateKernelPathRegistry(rootDir, context.issues, context, policy);
     const report = await runCheck(context, policy);
 
     report.registries = {
-      loaderPresetCount: loaderPresetIds.size,
-      modelPresetCount: report.metadata.checks.modelPresets,
+      loaderConfigCount: loaderConfigIds.size,
+      modelFamilyCount: report.metadata.checks.modelFamilies,
       runtimeProfileCount: report.metadata.checks.runtimeProfiles,
       conversionProfileCount: report.metadata.checks.conversionProfiles,
       kernelPathCount: report.metadata.checks.kernelPaths,
@@ -1881,7 +1632,7 @@ async function main() {
 
   if (mode === 'scaffold') {
     const kind = normalizeTrimmedText(args.flags.kind);
-    const supportedKinds = resolveTextArray(policy.scaffoldKinds, ['model', 'conversion', 'kernel', 'behavior']);
+    const supportedKinds = resolveTextArray(policy.scaffoldKinds, ['conversion', 'kernel', 'behavior']);
     if (!kind) {
       const missingKind = resolveText(policy.defaults?.errors?.missingKind, '--kind is required for scaffold');
       throw new Error(missingKind);
@@ -1903,7 +1654,6 @@ async function main() {
       rootDir,
       force: Boolean(args.flags.force),
       outputOverride: args.flags.output,
-      presetId: args.flags.preset,
       family: args.flags.family,
       baseDir: args.flags['base-dir'],
       defaultKernelPath: args.flags['default-kernel-path'],

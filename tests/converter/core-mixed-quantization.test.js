@@ -92,7 +92,6 @@ await convertModel(model, io, {
   },
   inference: {
     ...DEFAULT_MANIFEST_INFERENCE,
-    presetId: 'embeddinggemma',
     output: {
       ...DEFAULT_MANIFEST_INFERENCE.output,
       tieWordEmbeddings: false,

@@ -34,7 +34,7 @@ Browser runner entrypoint: `runBrowserCommand()`.
 ## Node harness contract
 
 Node runner entrypoint: `runNodeCommand()`.
-CLI entrypoint: `tools/doppler-cli.js`.
+CLI entrypoint: `src/cli/doppler-cli.js`.
 
 Node WebGPU provider resolution order:
 - `DOPPLER_NODE_WEBGPU_MODULE` if set

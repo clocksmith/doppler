@@ -22,8 +22,8 @@ function parseArgs(argv) {
     withLean: false,
     leanCheck: true,
     leanManifestRoot: 'models',
-    leanConfigRoot: 'tools/configs/conversion',
-    leanFixtureMap: 'tools/configs/conversion/lean-execution-contract-fixtures.json',
+    leanConfigRoot: 'src/config/conversion',
+    leanFixtureMap: 'tests/fixtures/lean-execution-contract-fixtures.json',
     leanRequireManifestMatch: false,
     help: false,
   };

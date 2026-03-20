@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 
 const { buildRoPEConfig } = await import('../../src/converter/rope-config.js');
 
-const presetInference = {
+const converterInference = {
   attention: {},
   rope: {
     ropeTheta: 1000000,
@@ -16,7 +16,7 @@ const presetInference = {
 };
 
 {
-  const rope = buildRoPEConfig(presetInference, {
+  const rope = buildRoPEConfig(converterInference, {
     rope_parameters: {
       full_attention: {
         rope_type: 'linear',
@@ -38,7 +38,7 @@ const presetInference = {
 }
 
 {
-  const rope = buildRoPEConfig(presetInference, {
+  const rope = buildRoPEConfig(converterInference, {
     rope_parameters: {
       full_attention: {
         rope_type: 'linear',
@@ -59,7 +59,7 @@ const presetInference = {
 }
 
 {
-  const rope = buildRoPEConfig(presetInference, {
+  const rope = buildRoPEConfig(converterInference, {
     rope_parameters: {
       full_attention: {
         rope_type: 'default',
@@ -79,7 +79,7 @@ const presetInference = {
 }
 
 {
-  const rope = buildRoPEConfig(presetInference, {
+  const rope = buildRoPEConfig(converterInference, {
     rope_scaling: {
       rope_type: 'linear',
       factor: 4,
@@ -105,7 +105,7 @@ const presetInference = {
 }
 
 {
-  const rope = buildRoPEConfig(presetInference, {
+  const rope = buildRoPEConfig(converterInference, {
     rope_parameters: {
       rope_theta: 10000000,
       mrope_interleaved: true,
@@ -121,7 +121,7 @@ const presetInference = {
 }
 
 {
-  const rope = buildRoPEConfig(presetInference, {});
+  const rope = buildRoPEConfig(converterInference, {});
   assert.equal(rope.ropeTheta, 1000000);
   assert.equal(rope.ropeLocalTheta, 10000);
   assert.equal(rope.mropeInterleaved, false);
@@ -135,14 +135,14 @@ const presetInference = {
 
 {
   assert.throws(
-    () => buildRoPEConfig(presetInference, { rope_scaling: {} }),
+    () => buildRoPEConfig(converterInference, { rope_scaling: {} }),
     /missing type\/rope_type and factor/
   );
 }
 
 {
   assert.throws(
-    () => buildRoPEConfig(presetInference, {
+    () => buildRoPEConfig(converterInference, {
       rope_scaling: {
         rope_type: 'linear',
         factor: 4,

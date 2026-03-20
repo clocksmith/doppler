@@ -3,121 +3,121 @@
   "source": "doppler",
   "mappings": [
     {
-      "configPath": "tools/configs/conversion/gemma3/gemma-3-270m-it-f16.json",
+      "configPath": "src/config/conversion/gemma3/gemma-3-270m-it-f16.json",
       "manifestPath": "models/local/gemma-3-270m-it-f16/manifest.json"
     },
     {
-      "configPath": "tools/configs/conversion/gemma3/gemma-3-270m-it-q4k-ehaf16.json",
+      "configPath": "src/config/conversion/gemma3/gemma-3-270m-it-q4k-ehaf16.json",
       "manifestPath": "models/local/gemma-3-270m-it-q4k-ehaf16/manifest.json"
     },
     {
-      "configPath": "tools/configs/conversion/gemma3/gemma-3-1b-it-q4k-ehf16-af32.json",
+      "configPath": "src/config/conversion/gemma3/gemma-3-1b-it-q4k-ehf16-af32.json",
       "manifestPath": "models/local/gemma-3-1b-it-q4k-ehf16-af32/manifest.json"
     },
     {
-      "configPath": "tools/configs/conversion/gemma3/gemma-3-1b-it-f16-af32.json",
+      "configPath": "src/config/conversion/gemma3/gemma-3-1b-it-f16-af32.json",
       "manifestPath": "models/local/gemma-3-1b-it-f16-af32/manifest.json"
     },
     {
-      "configPath": "tools/configs/conversion/gemma3/gemma-3-270m-it-f16-af32.json",
+      "configPath": "src/config/conversion/gemma3/gemma-3-270m-it-f16-af32.json",
       "manifestPath": "models/local/gemma-3-270m-it-f16-af32/manifest.json"
     },
     {
-      "configPath": "tools/configs/conversion/gemma3/gemma-3-270m-it-q4k-ehf16-af32.json",
+      "configPath": "src/config/conversion/gemma3/gemma-3-270m-it-q4k-ehf16-af32.json",
       "manifestPath": "models/local/gemma-3-270m-it-q4k-ehf16-af32/manifest.json"
     },
     {
-      "configPath": "tools/configs/conversion/embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32.json",
+      "configPath": "src/config/conversion/embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32.json",
       "manifestPath": "models/local/google-embeddinggemma-300m-q4k-ehf16-af32/manifest.json"
     }
   ],
   "exclusions": [
     {
-      "configPath": "tools/configs/conversion/deepseek/deepseek-template-f16.json",
+      "configPath": "src/config/conversion/deepseek/deepseek-template-f16.json",
       "reason": "template config intentionally excluded from Lean execution-contract coverage until a canonical converted fixture manifest exists"
     },
     {
-      "configPath": "tools/configs/conversion/diffusion/diffusion-template-f16.json",
+      "configPath": "src/config/conversion/diffusion/diffusion-template-f16.json",
       "reason": "diffusion config is outside the current Lean execution-contract scope"
     },
     {
-      "configPath": "tools/configs/conversion/functiongemma/functiongemma-template-f16.json",
+      "configPath": "src/config/conversion/functiongemma/functiongemma-template-f16.json",
       "reason": "template config intentionally excluded from Lean execution-contract coverage until a canonical converted fixture manifest exists"
     },
     {
-      "configPath": "tools/configs/conversion/gemma2/gemma2-template-f16.json",
+      "configPath": "src/config/conversion/gemma2/gemma2-template-f16.json",
       "reason": "template config intentionally excluded from Lean execution-contract coverage until a canonical converted fixture manifest exists"
     },
     {
-      "configPath": "tools/configs/conversion/gpt-oss-20b-f16-xmxfp4.json",
-      "reason": "no committed converted fixture manifest exists yet for this preset family"
+      "configPath": "src/config/conversion/gpt-oss-20b-f16-xmxfp4.json",
+      "reason": "no committed converted fixture manifest exists yet for this model family"
     },
     {
-      "configPath": "tools/configs/conversion/gemma3/gemma-3-4b-it-q4k-ehf16-af32.json",
-      "reason": "no committed converted fixture manifest exists yet for this preset family"
+      "configPath": "src/config/conversion/gemma3/gemma-3-4b-it-q4k-ehf16-af32.json",
+      "reason": "no committed converted fixture manifest exists yet for this model family"
     },
     {
-      "configPath": "tools/configs/conversion/gemma3/translategemma-4b-it-q4k-ehf16-af32.json",
-      "reason": "no committed converted fixture manifest exists yet for this preset family"
+      "configPath": "src/config/conversion/gemma3/translategemma-4b-it-q4k-ehf16-af32.json",
+      "reason": "no committed converted fixture manifest exists yet for this model family"
     },
     {
-      "configPath": "tools/configs/conversion/gemma3/gemma-3-1b-it-f16.json",
-      "reason": "no committed converted fixture manifest exists yet for this preset family"
+      "configPath": "src/config/conversion/gemma3/gemma-3-1b-it-f16.json",
+      "reason": "no committed converted fixture manifest exists yet for this model family"
     },
     {
-      "configPath": "tools/configs/conversion/gemma3/gemma-3-1b-it-q4k-ehaf16.json",
-      "reason": "no committed converted fixture manifest exists yet for this preset family"
+      "configPath": "src/config/conversion/gemma3/gemma-3-1b-it-q4k-ehaf16.json",
+      "reason": "no committed converted fixture manifest exists yet for this model family"
     },
     {
-      "configPath": "tools/configs/conversion/janus/janus-pro-1b-text-q4k-ehaf16.json",
-      "reason": "no committed converted fixture manifest exists yet for this preset family"
+      "configPath": "src/config/conversion/janus/janus-pro-1b-text-q4k-ehaf16.json",
+      "reason": "no committed converted fixture manifest exists yet for this model family"
     },
     {
-      "configPath": "tools/configs/conversion/kimi-k2/kimi-k2-template-f16.json",
+      "configPath": "src/config/conversion/kimi-k2/kimi-k2-template-f16.json",
       "reason": "template config intentionally excluded from Lean execution-contract coverage until a canonical converted fixture manifest exists"
     },
     {
-      "configPath": "tools/configs/conversion/lfm2/lfm2.5-1.2b-instruct-q4k-ehaf16.json",
-      "reason": "no committed converted fixture manifest exists yet for this preset family"
+      "configPath": "src/config/conversion/lfm2/lfm2.5-1.2b-instruct-q4k-ehaf16.json",
+      "reason": "no committed converted fixture manifest exists yet for this model family"
     },
     {
-      "configPath": "tools/configs/conversion/lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32.json",
-      "reason": "no committed converted fixture manifest exists yet for this preset family"
+      "configPath": "src/config/conversion/lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32.json",
+      "reason": "no committed converted fixture manifest exists yet for this model family"
     },
     {
-      "configPath": "tools/configs/conversion/llama3/llama3-template-f16.json",
+      "configPath": "src/config/conversion/llama3/llama3-template-f16.json",
       "reason": "template config intentionally excluded from Lean execution-contract coverage until a canonical converted fixture manifest exists"
     },
     {
-      "configPath": "tools/configs/conversion/mamba/mamba-template-f16.json",
+      "configPath": "src/config/conversion/mamba/mamba-template-f16.json",
       "reason": "template config intentionally excluded from Lean execution-contract coverage until a canonical converted fixture manifest exists"
     },
     {
-      "configPath": "tools/configs/conversion/mixtral/mixtral-template-f16.json",
+      "configPath": "src/config/conversion/mixtral/mixtral-template-f16.json",
       "reason": "template config intentionally excluded from Lean execution-contract coverage until a canonical converted fixture manifest exists"
     },
     {
-      "configPath": "tools/configs/conversion/modernbert/modernbert-template-f16.json",
+      "configPath": "src/config/conversion/modernbert/modernbert-template-f16.json",
       "reason": "template config intentionally excluded from Lean execution-contract coverage until a canonical converted fixture manifest exists"
     },
     {
-      "configPath": "tools/configs/conversion/embeddinggemma/google-embeddinggemma-300m-bf16-af32.json",
-      "reason": "no committed converted fixture manifest exists yet for this preset family"
+      "configPath": "src/config/conversion/embeddinggemma/google-embeddinggemma-300m-bf16-af32.json",
+      "reason": "no committed converted fixture manifest exists yet for this model family"
     },
     {
-      "configPath": "tools/configs/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json",
-      "reason": "no committed converted fixture manifest exists yet for this preset family"
+      "configPath": "src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json",
+      "reason": "no committed converted fixture manifest exists yet for this model family"
     },
     {
-      "configPath": "tools/configs/conversion/qwen3/qwen-3-5-2b-q4k-ehaf16.json",
-      "reason": "no committed converted fixture manifest exists yet for this preset family"
+      "configPath": "src/config/conversion/qwen3/qwen-3-5-2b-q4k-ehaf16.json",
+      "reason": "no committed converted fixture manifest exists yet for this model family"
     },
     {
-      "configPath": "tools/configs/conversion/sana/sana-sprint-0.6b-f16.json",
+      "configPath": "src/config/conversion/sana/sana-sprint-0.6b-f16.json",
       "reason": "diffusion config is outside the current Lean execution-contract scope"
     },
     {
-      "configPath": "tools/configs/conversion/transformer/transformer-template-f16.json",
+      "configPath": "src/config/conversion/transformer/transformer-template-f16.json",
       "reason": "template config intentionally excluded from Lean execution-contract coverage until a canonical converted fixture manifest exists"
     }
   ]

@@ -16,7 +16,7 @@ on:
       - 'tools/publish-training-report-ids.js'
       - 'tools/run-node-tests.js'
       - 'tools/verify-training-provenance.js'
-      - 'tools/configs/training-workloads/**'
+      - 'src/training/workload-packs/**'
       - '.github/workflows/training-contract-release-gate.yml'
   push:
     branches: [main]
@@ -34,7 +34,7 @@ on:
       - 'tools/publish-training-report-ids.js'
       - 'tools/run-node-tests.js'
       - 'tools/verify-training-provenance.js'
-      - 'tools/configs/training-workloads/**'
+      - 'src/training/workload-packs/**'
       - '.github/workflows/training-contract-release-gate.yml'
   workflow_dispatch:
 

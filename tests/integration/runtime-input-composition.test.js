@@ -105,13 +105,13 @@ await assert.rejects(
 // runtimeProfile applies
 {
   const bridge = createRuntimeBridge();
-  let presetApplied = null;
+  let profileApplied = null;
   await applyOrderedRuntimeInputs(bridge, {
     runtimeProfile: 'profiles/default',
   }, {
-    applyRuntimeProfile: async (name) => { presetApplied = name; },
+    applyRuntimeProfile: async (name) => { profileApplied = name; },
   });
-  assert.equal(presetApplied, 'profiles/default');
+  assert.equal(profileApplied, 'profiles/default');
 }
 
 // runtimeConfigUrl without handler throws

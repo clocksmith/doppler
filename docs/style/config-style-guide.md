@@ -14,7 +14,6 @@ ConverterConfigSchema
 - weightLayout
 - manifest
 - output
-- presets
 
 RuntimeConfigSchema
 - shared
@@ -108,7 +107,7 @@ InferenceConfigSchema (runtime.inference)
 
 - No behavior-changing fallback may be implemented as ad-hoc JS branching.
 - All allowed fallbacks are explicit in config/rule assets:
-  - manifest and presets (for supported model/config combinations)
+  - manifest and conversion/runtime config assets (for supported model/config combinations)
   - rule-map alias entries
   - capability-based kernel and dtype policy in registry overlays
 - Any unresolvable choice must raise a typed error before execution begins.
@@ -142,9 +141,7 @@ runtimeConfig = merge(runtimeDefaults, runtimeProfileConfig, runtimeOverrideConf
 
 Manifest inference config merge order:
 
-```
-manifestInference = merge(manifestDefaults, modelPreset, converterOverride, artifactDerived)
-```
+`manifestInference = merge(manifestDefaults, converterConfig.inference, artifactDerived)`
 
 Model inference config merge order:
 
@@ -160,11 +157,15 @@ layer pipeline from resolved steps, merge sessionDefaults into runtime
 inference config.
 ```
 
+`execution.inlineKernelPath: false` is the explicit contract for manifests that
+own an execution graph but must not synthesize a `runtime.inference.kernelPath`
+from it.
+
 Conversion config rule:
 
 ```
 Config must provide explicit execution graph with kernels, decode,
-prefill, preLayer, postLayer, and policies. No preset detection, no
+prefill, preLayer, postLayer, and policies. No family detection, no
 defaultKernelPath, no auto-generation. The execution graph in the config
 is stamped directly into the manifest.
 ```

@@ -612,7 +612,6 @@ export async function resolveBridgeSourceRuntimeBundle(options = {}) {
     modelKind: 'transformer',
     architectureHint: parsed.architectureHint,
     architectureConfig: parsed.architecture,
-    includePresetOverrideHint: true,
   });
 
   const modelId = resolveModelIdHint(requestedModelId, plan, parsed.sourceKind);
