@@ -81,10 +81,10 @@
   "sessionDefaults": {
     "compute": {
       "defaults": {
-        "activationDtype": "f16",
-        "mathDtype": "f16",
+        "activationDtype": "f32",
+        "mathDtype": "f32",
         "accumDtype": "f32",
-        "outputDtype": "f16"
+        "outputDtype": "f32"
       }
     },
     "kvcache": {
@@ -123,9 +123,9 @@
         "digest": "sha256:c0f3d933864fec40a424de79adac52bec54402351680fe419df1bf58235ab683"
       },
       "attn_decode": {
-        "kernel": "attention_decode_online_f16.wgsl",
+        "kernel": "attention_decode_online_f16kv.wgsl",
         "entry": "main",
-        "digest": "sha256:23ac23b33e1ca30bc6a0ebb90d1bcde0236604bf57217c1763186046e0fe03de"
+        "digest": "sha256:4c5d8c92a0a111af716d6b46b9559446807c086027445c7fefa150202f43dae4"
       },
       "residual": {
         "kernel": "residual_f16.wgsl",
@@ -146,9 +146,9 @@
         "digest": "sha256:7e9f23f326b5750fc7783a1959334c237aff4a23da6f87176608c5c4eb4fc278"
       },
       "attn_stream": {
-        "kernel": "attention_streaming_f16.wgsl",
+        "kernel": "attention_streaming_f16kv.wgsl",
         "entry": "main",
-        "digest": "sha256:7f7a17d41a569ba6767dbcc1473504aef45608d24cf45cd9f47ee97fd05385c1"
+        "digest": "sha256:b337a2dcf7b40431a733d1726eee8bf23504136fd5f915bec057fb59f3ea7480"
       },
       "lm_head_gemv": {
         "kernel": "matmul_gemv_subgroup_f16a.wgsl",
