@@ -26,11 +26,13 @@ assert.equal(DEFAULT_MANIFEST_INFERENCE.rope.ropeScalingType, null);
 assert.equal(DEFAULT_MANIFEST_INFERENCE.rope.yarnBetaFast, null);
 assert.equal(DEFAULT_MANIFEST_INFERENCE.rope.yarnBetaSlow, null);
 assert.equal(DEFAULT_MANIFEST_INFERENCE.rope.yarnOriginalMaxPos, null);
+assert.equal(DEFAULT_MANIFEST_INFERENCE.output.embeddingPostprocessor, null);
 
 assert.equal(DEFAULT_MODEL_INFERENCE_DEFAULTS.rope.ropeScalingType, null);
 assert.equal(DEFAULT_MODEL_INFERENCE_DEFAULTS.rope.yarnBetaFast, null);
 assert.equal(DEFAULT_MODEL_INFERENCE_DEFAULTS.rope.yarnBetaSlow, null);
 assert.equal(DEFAULT_MODEL_INFERENCE_DEFAULTS.rope.yarnOriginalMaxPos, null);
+assert.equal(DEFAULT_MODEL_INFERENCE_DEFAULTS.output.embeddingPostprocessor, null);
 
 {
   const manifest = {

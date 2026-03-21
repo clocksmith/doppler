@@ -17,6 +17,7 @@ import type { WeightBuffer, WeightLayout, CpuWeightBuffer } from '../gpu/weight-
 import type { ExpertCache, CacheStats } from './experts/expert-cache.js';
 import type { ExpertWeights } from './weights.js';
 import type { LoRAAdapter } from '../inference/pipelines/text/lora.js';
+import type { LoadedEmbeddingPostprocessor } from './final-weights-loader.js';
 import type {
   TensorLocation,
   LayerWeights,
@@ -69,6 +70,7 @@ export declare class DopplerLoader {
   experts: Map<string, ExpertWeights>;
   lmHead: GPUBuffer | WeightBuffer | CpuWeightBuffer | Float32Array | null;
   finalNorm: GPUBuffer | Float32Array | null;
+  embeddingPostprocessor: LoadedEmbeddingPostprocessor | null;
 
   // Memory management
   heapManager: HeapManager | null;

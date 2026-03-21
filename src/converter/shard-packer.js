@@ -2,9 +2,9 @@
 
 import {
   generateShardFilename,
-  classifyTensor,
-  classifyTensorRole,
   getGroupType,
+  resolveTensorGroup,
+  resolveTensorRole,
   sortGroupIds,
 } from '../formats/rdrr/index.js';
 
@@ -69,11 +69,11 @@ export class ShardPacker {
       onProgress?.(i + 1, totalTensors, tensor.name);
 
       // Classify tensor into component group
-      const groupId = classifyTensor(tensor.name, this.#modelType);
+      const groupId = resolveTensorGroup(tensor, this.#modelType);
       this.#addTensorToGroup(groupId, tensor.name);
 
       // Pack tensor data into shards
-      const role = classifyTensorRole(tensor.name);
+      const role = resolveTensorRole(tensor);
       if (this.#supportsStreaming) {
         if (typeof tensor.getChunks === 'function') {
           await this.#packTensorStream(tensor, tensor.getChunks(), groupId, role);

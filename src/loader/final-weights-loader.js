@@ -63,10 +63,12 @@ export async function loadFinalWeights(ctx) {
 
   // Load LM head
   const lmHead = await loadLmHead(ctx);
+  const embeddingPostprocessor = await loadEmbeddingPostprocessor(ctx);
 
   return {
     finalNorm,
     lmHead,
+    embeddingPostprocessor,
     normOffsetDebugLogged,
   };
 }
@@ -190,6 +192,63 @@ async function loadLmHead(ctx) {
   }
 
   return lmHead;
+}
+
+async function loadEmbeddingPostprocessor(ctx) {
+  const config = ctx.embeddingPostprocessor;
+  if (config == null) {
+    return null;
+  }
+
+  const projections = [];
+  for (const projection of config.projections) {
+    const weightTensor = String(projection?.weightTensor || '').trim();
+    if (!weightTensor) {
+      throw new Error('[Loader] Embedding postprocessor projection is missing weightTensor.');
+    }
+    const weight = await loadCpuFloatTensor(
+      ctx,
+      weightTensor,
+      `embedding postprocessor weight "${weightTensor}"`
+    );
+    const biasTensor = projection?.biasTensor == null
+      ? null
+      : String(projection.biasTensor).trim();
+    const bias = biasTensor
+      ? await loadCpuFloatTensor(
+        ctx,
+        biasTensor,
+        `embedding postprocessor bias "${biasTensor}"`
+      )
+      : null;
+    projections.push({
+      weightTensor,
+      biasTensor: biasTensor || null,
+      inputSize: projection.inputSize,
+      outputSize: projection.outputSize,
+      activation: projection.activation,
+      weight,
+      bias,
+    });
+  }
+
+  return {
+    poolingMode: config.poolingMode,
+    includePrompt: config.includePrompt,
+    projections,
+    normalize: config.normalize,
+  };
+}
+
+async function loadCpuFloatTensor(ctx, tensorName, label) {
+  const tensor = await ctx.loadTensor(tensorName, false, true);
+  if (tensor == null) {
+    throw new Error(`[Loader] Missing ${label}.`);
+  }
+  if (tensor instanceof Float32Array) {
+    return tensor;
+  }
+  throw new Error(`[Loader] ${label} must decode to Float32Array on CPU.`);
 }
 
 

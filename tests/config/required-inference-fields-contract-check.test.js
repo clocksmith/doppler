@@ -51,6 +51,7 @@ const manifestArtifact = buildManifestRequiredInferenceFieldsArtifact({
     embeddingTranspose: false,
     finalLogitSoftcapping: null,
     embeddingVocabSize: null,
+    embeddingPostprocessor: null,
   },
   layerPattern: {
     type: 'every_n',

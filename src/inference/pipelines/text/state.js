@@ -142,6 +142,8 @@ export class PipelineState {
 
     this.embeddingTranspose = false;
 
+    this.embeddingPostprocessor = null;
+
     // MoE router weights per layer
 
     this.layerRouterWeights = null;

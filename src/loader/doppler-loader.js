@@ -95,6 +95,8 @@ export class DopplerLoader {
   
   finalNorm = null;
 
+  embeddingPostprocessor = null;
+
   // Memory management
   
   heapManager = null;
@@ -913,6 +915,7 @@ export class DopplerLoader {
       shouldStreamLargeWeight: (name, loc, label) => this.#shouldStreamLargeWeight(name, loc, label),
       resolveWeightLayout: (loc) => this.#resolveWeightLayout(loc),
       embeddings: this.embeddings,
+      embeddingPostprocessor: this.manifest?.inference?.output?.embeddingPostprocessor ?? null,
       modelType: this.manifest?.modelType ?? null,
       tieWordEmbeddings,
       gpuBuffers: this.gpuBuffers,
@@ -923,6 +926,7 @@ export class DopplerLoader {
     const result = await loadFinalWeights(ctx);
     this.finalNorm = result.finalNorm;
     this.lmHead = result.lmHead;
+    this.embeddingPostprocessor = result.embeddingPostprocessor;
     this.#normOffsetDebugLogged = result.normOffsetDebugLogged;
   }
 
@@ -1022,6 +1026,7 @@ export class DopplerLoader {
     this.experts.clear();
     this.lmHead = null;
     this.finalNorm = null;
+    this.embeddingPostprocessor = null;
     this.manifest = null;
     clearManifest();
     this.modelId = null;

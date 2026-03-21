@@ -9,7 +9,12 @@ import {
   formatBytes,
 } from '../config/schema/index.js';
 
-import { classifyTensor, classifyTensorRole, generateShardFilename } from '../formats/rdrr/index.js';
+import {
+  classifyTensorRole,
+  generateShardFilename,
+  resolveTensorGroup,
+  resolveTensorRole,
+} from '../formats/rdrr/index.js';
 import { log } from '../debug/index.js';
 import {
   getInferenceLayerPatternContractArtifact,
@@ -151,13 +156,13 @@ export function normalizeStorageQuant(value) {
   return lower;
 }
 
-export function resolveTensorTargetQuant(tensorName, fallbackQuant, quantizationInfo) {
+export function resolveTensorTargetQuant(tensorOrName, fallbackQuant, quantizationInfo) {
   const fallback = normalizeStorageQuant(fallbackQuant);
   if (!quantizationInfo || typeof quantizationInfo !== 'object') {
     return fallback;
   }
 
-  const role = classifyTensorRole(tensorName);
+  const role = resolveTensorRole(tensorOrName);
   if (role === 'embedding') {
     return normalizeStorageQuant(quantizationInfo.embeddings ?? fallback) ?? fallback;
   }
@@ -632,7 +637,9 @@ export function shouldQuantize(tensorName, shape, options = {}) {
     return false;
   }
   const numElements = shape.reduce((a, b) => a * b, 1);
-  const role = classifyTensorRole(tensorName);
+  const role = typeof options.role === 'string' && options.role.trim()
+    ? options.role.trim()
+    : classifyTensorRole(tensorName);
   const lower = tensorName.toLowerCase();
   const isBias = lower.endsWith('.bias') || lower.endsWith('_bias');
   const quantizeEmbeddings = options.quantizeEmbeddings ?? false;
@@ -655,7 +662,7 @@ export function transformTensorBytes(tensor, rawData, options = {}) {
   const targetQuant = normalizeStorageQuant(options.targetQuant ?? options.quantization ?? null);
   const quantizationInfo = options.quantizationInfo ?? null;
   const tensorTargetQuant = resolveTensorTargetQuant(
-    tensor.name,
+    tensor,
     targetQuant,
     quantizationInfo
   );
@@ -687,7 +694,10 @@ export function transformTensorBytes(tensor, rawData, options = {}) {
     }
 
     const shouldQuantizeTensor = (
-      forceQuantizeDecision ?? shouldQuantize(tensor.name, tensor.shape, { quantizeEmbeddings })
+      forceQuantizeDecision ?? shouldQuantize(tensor.name, tensor.shape, {
+        quantizeEmbeddings,
+        role: tensor.role ?? null,
+      })
     );
     if (shouldQuantizeTensor) {
       const f32Data = toFloat32ForQ4K(tensorData, sourceDtype, tensor.name);
@@ -1084,12 +1094,14 @@ export function createManifest(
   }
 
   const embeddingOutput = inferEmbeddingOutputConfig(tensorLocations);
-  if (embeddingOutput) {
+  const embeddingPostprocessor = model.embeddingPostprocessor ?? null;
+  if (embeddingOutput || embeddingPostprocessor) {
     inference = {
       ...inference,
       output: {
         ...inference.output,
         ...embeddingOutput,
+        ...(embeddingPostprocessor ? { embeddingPostprocessor } : {}),
       },
     };
   }
@@ -1320,8 +1332,8 @@ export async function convertModel(model, io, options = {}) {
     }
 
     // Record tensor location
-    const role = classifyTensorRole(tensor.name);
-    const group = classifyTensor(tensor.name, tensorGroupModelType);
+    const role = resolveTensorRole(tensor);
+    const group = resolveTensorGroup(tensor, tensorGroupModelType);
 
     if (tensorSpans.length === 1) {
       tensorLocations[tensor.name] = {

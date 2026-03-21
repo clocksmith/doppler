@@ -781,6 +781,7 @@ export async function loadWeights(manifest, modelConfig, options = {}) {
     embeddings: dopplerLoader.embeddings,
     lmHead: dopplerLoader.lmHead,
     finalNorm: dopplerLoader.finalNorm,
+    embeddingPostprocessor: dopplerLoader.embeddingPostprocessor,
     layerRouterWeights,
   };
 }

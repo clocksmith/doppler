@@ -56,6 +56,8 @@ export {
   type ManifestFFNSchema,
   type ManifestRoPESchema,
   type ManifestOutputSchema,
+  type ManifestEmbeddingProjectionSchema,
+  type ManifestEmbeddingPostprocessorSchema,
   type ManifestLayerPatternSchema,
   type ManifestChatTemplateSchema,
   DEFAULT_MANIFEST_INFERENCE,

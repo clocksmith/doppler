@@ -169,6 +169,7 @@ const minimalV1Inference = {
     embeddingTranspose: false,
     embeddingVocabSize: null,
     finalLogitSoftcapping: null,
+    embeddingPostprocessor: null,
   },
   chatTemplate: { type: null, enabled: true },
   layerPattern: { type: 'uniform', globalPattern: null, period: null, offset: null },

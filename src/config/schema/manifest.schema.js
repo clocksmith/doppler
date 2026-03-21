@@ -84,6 +84,7 @@ export const DEFAULT_MANIFEST_INFERENCE = {
     scaleEmbeddings: false,
     embeddingTranspose: false,
     embeddingVocabSize: null,
+    embeddingPostprocessor: null,
   },
   layerPattern: {
     type: 'uniform',  // All layers same type

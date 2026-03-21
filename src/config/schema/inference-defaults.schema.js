@@ -158,6 +158,7 @@ export const DEFAULT_MODEL_INFERENCE_DEFAULTS = {
     scaleEmbeddings: false,
     embeddingTranspose: false,
     embeddingVocabSize: null,
+    embeddingPostprocessor: null,
   },
   layerPattern: {
     type: 'all_attention',

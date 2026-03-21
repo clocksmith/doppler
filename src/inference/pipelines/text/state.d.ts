@@ -19,6 +19,7 @@ import type { Manifest, ParsedModelConfig } from './config.js';
 import type { LayerWeights, ExpertWeights, RouterWeights, PipelineStats, BatchingStats } from './types.js';
 import type { WeightBuffer, CpuWeightBuffer } from '../../../gpu/weight-buffer.js';
 import type { DopplerLoader } from '../../../loader/doppler-loader.js';
+import type { LoadedEmbeddingPostprocessor } from '../../../loader/final-weights-loader.js';
 import type { CompiledLayerPipeline } from './layer-plan.js';
 import type { ExecutionPlanState } from './execution-plan.js';
 import type { CompiledExecutionV1RuntimeState } from './execution-v1.js';
@@ -101,6 +102,7 @@ export class PipelineState {
   useTiedEmbeddings: boolean;
   embeddingVocabSize: number | null;
   embeddingTranspose: boolean;
+  embeddingPostprocessor: LoadedEmbeddingPostprocessor | null;
 
   // MoE router weights per layer
   layerRouterWeights: Map<number, RouterWeights> | null;

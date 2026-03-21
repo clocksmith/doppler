@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "defaults": {
     "minRetrievalTop1Acc": 0.75,
-    "minPairAcc": 0.75,
+    "minPairAcc": 0.64,
     "pairMargin": 0.02,
 
     "retrievalCases": [

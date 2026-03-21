@@ -184,13 +184,13 @@ export declare function formatBytes(bytes: number): string;
 export declare function shouldQuantize(
   tensorName: string,
   shape: number[],
-  options?: { quantizeEmbeddings?: boolean | null }
+  options?: { quantizeEmbeddings?: boolean | null; role?: TensorRole | null }
 ): boolean;
 
 export declare function normalizeStorageQuant(value: unknown): string | null;
 
 export declare function resolveTensorTargetQuant(
-  tensorName: string,
+  tensorName: string | { name?: string; role?: TensorRole | null },
   fallbackQuant: unknown,
   quantizationInfo: Record<string, unknown> | null | undefined
 ): string | null;
@@ -200,6 +200,7 @@ export declare function transformTensorBytes(
     name: string;
     shape: number[];
     dtype: string;
+    role?: TensorRole | null;
   },
   rawData: ArrayBuffer | Uint8Array,
   options?: {

@@ -63,6 +63,7 @@ function createValidInferenceFixture() {
       embeddingTranspose: false,
       finalLogitSoftcapping: null,
       embeddingVocabSize: null,
+      embeddingPostprocessor: null,
     },
     layerPattern: {
       type: 'every_n',
@@ -108,6 +109,7 @@ const FIELD_CASES = Object.freeze([
   { kind: 'nonNullable', path: ['output', 'embeddingTranspose'], message: 'output.embeddingTranspose is required' },
   { kind: 'nullable', path: ['output', 'finalLogitSoftcapping'], message: 'output.finalLogitSoftcapping must be explicitly set' },
   { kind: 'nullable', path: ['output', 'embeddingVocabSize'], message: 'output.embeddingVocabSize must be explicitly set' },
+  { kind: 'nullable', path: ['output', 'embeddingPostprocessor'], message: 'output.embeddingPostprocessor must be explicitly set' },
   { kind: 'nonNullable', path: ['layerPattern', 'type'], message: 'layerPattern.type is required' },
   { kind: 'nullable', path: ['layerPattern', 'globalPattern'], message: 'layerPattern.globalPattern must be explicitly set' },
   { kind: 'nullable', path: ['layerPattern', 'period'], message: 'layerPattern.period must be explicitly set' },

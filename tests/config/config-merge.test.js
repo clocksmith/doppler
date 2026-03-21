@@ -61,6 +61,7 @@ function createManifest(overrides = {}) {
         scaleEmbeddings: null,
         embeddingTranspose: false,
         embeddingVocabSize: null,
+        embeddingPostprocessor: null,
       },
       ...overrides,
     },
@@ -103,7 +104,15 @@ function createManifest(overrides = {}) {
     normalization: { rmsNormEps: 1e-5 },
     ffn: { activation: 'silu' },
     rope: { ropeTheta: 500000 },
-    output: { tieWordEmbeddings: true },
+    output: {
+      tieWordEmbeddings: true,
+      embeddingPostprocessor: {
+        poolingMode: 'mean',
+        includePrompt: true,
+        projections: [],
+        normalize: 'l2',
+      },
+    },
     chatTemplate: { enabled: true },
   });
 
@@ -116,6 +125,7 @@ function createManifest(overrides = {}) {
   assert.equal(merged.inference.ffn.activation, 'silu');
   assert.equal(merged.inference.rope.ropeTheta, 500000);
   assert.equal(merged.inference.output.tieWordEmbeddings, true);
+  assert.equal(merged.inference.output.embeddingPostprocessor?.poolingMode, 'mean');
   assert.equal(merged.inference.chatTemplate.enabled, true);
 
   // Overridden fields should be tracked as 'runtime'
@@ -125,6 +135,7 @@ function createManifest(overrides = {}) {
   assert.equal(merged._sources.get('inference.attention.causal'), 'runtime');
   assert.equal(merged._sources.get('inference.normalization.rmsNormEps'), 'runtime');
   assert.equal(merged._sources.get('inference.rope.ropeTheta'), 'runtime');
+  assert.equal(merged._sources.get('inference.output.embeddingPostprocessor'), 'runtime');
 
   // Non-overridden fields should remain 'manifest'
   assert.equal(merged._sources.get('inference.attention.queryPreAttnScalar'), 'manifest');

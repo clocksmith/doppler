@@ -14,6 +14,10 @@ import type {
   WeightLayout,
   CpuWeightBuffer,
 } from '../gpu/weight-buffer.js';
+import type {
+  ManifestEmbeddingPostprocessorSchema,
+  ManifestEmbeddingProjectionSchema,
+} from '../config/schema/index.js';
 import type { TensorLocation } from './loader-types.js';
 
 /** Tensor loading function signature */
@@ -22,6 +26,16 @@ export type TensorLoader = (
   toGPU?: boolean,
   silent?: boolean
 ) => Promise<GPUBuffer | WeightBuffer | Float32Array | Uint8Array | null>;
+
+export interface LoadedEmbeddingProjection extends ManifestEmbeddingProjectionSchema {
+  weight: Float32Array;
+  bias: Float32Array | null;
+}
+
+export interface LoadedEmbeddingPostprocessor
+  extends Omit<ManifestEmbeddingPostprocessorSchema, 'projections'> {
+  projections: LoadedEmbeddingProjection[];
+}
 
 /**
  * Context required for final weights loading.
@@ -39,6 +53,8 @@ export interface FinalWeightsContext {
   resolveWeightLayout: (loc: TensorLocation) => WeightLayout;
   /** Current embeddings (for tied embeddings fallback) */
   embeddings: GPUBuffer | WeightBuffer | CpuWeightBuffer | Float32Array | null;
+  /** Optional embedding postprocessor declared by manifest */
+  embeddingPostprocessor?: ManifestEmbeddingPostprocessorSchema | null;
   /** Manifest model type */
   modelType?: string | null;
   /** Whether LM head should fall back to tied embeddings */
@@ -57,6 +73,8 @@ export interface FinalWeightsResult {
   finalNorm: GPUBuffer | Float32Array | null;
   /** LM head tensor */
   lmHead: GPUBuffer | WeightBuffer | CpuWeightBuffer | Float32Array | null;
+  /** Optional embedding-only postprocessor weights */
+  embeddingPostprocessor: LoadedEmbeddingPostprocessor | null;
   /** Whether norm offset debug was logged */
   normOffsetDebugLogged: boolean;
 }

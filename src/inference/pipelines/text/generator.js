@@ -239,7 +239,8 @@ export class PipelineGenerator {
       hiddenSize,
       embeddingMode,
       finalNormWeights,
-      config
+      config,
+      this.#state.embeddingPostprocessor
     );
   }
 

@@ -302,6 +302,7 @@ async function parseBridgeSafetensorsModel(bridgeClient, fileIndex) {
   const config = parsedTransformer.config;
   const tensors = parsedTransformer.tensors;
   const architectureHint = parsedTransformer.architectureHint;
+  const embeddingPostprocessor = parsedTransformer.embeddingPostprocessor ?? null;
   const architecture = extractArchitecture(config, null);
   const tokenizerJson = fileIndex.has('tokenizer.json')
     ? await readBridgeJsonFile(bridgeClient, fileIndex.get('tokenizer.json'), 'tokenizer.json')
@@ -316,6 +317,7 @@ async function parseBridgeSafetensorsModel(bridgeClient, fileIndex) {
     config,
     tensors,
     architectureHint,
+    embeddingPostprocessor,
     architecture,
     sourceQuantization: inferSourceWeightQuantization(tensors),
     tokenizerJson,
@@ -635,6 +637,7 @@ export async function resolveBridgeSourceRuntimeBundle(options = {}) {
     rawConfig: parsed.config,
     inference: plan.manifestInference,
     tensors: parsed.tensors,
+    embeddingPostprocessor: parsed.embeddingPostprocessor ?? null,
     sourceFiles,
     auxiliaryFiles,
     sourceQuantization: parsed.sourceQuantization,

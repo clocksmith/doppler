@@ -10,6 +10,8 @@ import type {
   ArchitectureSchema,
   HashAlgorithm,
   ModelType,
+  ManifestEmbeddingPostprocessorSchema,
+  TensorRole,
   WeightLayout,
   QuantizationInfoSchema,
 } from './manifest.schema.js';
@@ -22,6 +24,10 @@ export interface TensorInfoSchema {
   dtype: string;
   size: number;
   offset?: number;
+  role?: TensorRole;
+  group?: string | null;
+  layout?: WeightLayout | null;
+  sourcePath?: string;
   /** Platform-specific source reference */
   _source?: unknown;
 }
@@ -36,6 +42,7 @@ export interface ParsedModelSchema {
   tokenizerJson?: unknown;
   tokenizerConfig?: unknown;
   tokenizerModel?: unknown;
+  embeddingPostprocessor?: ManifestEmbeddingPostprocessorSchema | null;
 }
 
 /** Raw config from source (HuggingFace or GGUF style) */

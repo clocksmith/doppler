@@ -212,6 +212,7 @@ async function parseSafetensorsInput(inputDir) {
   const config = parsedTransformer.config;
   const tensors = parsedTransformer.tensors;
   const architectureHint = parsedTransformer.architectureHint;
+  const embeddingPostprocessor = parsedTransformer.embeddingPostprocessor ?? null;
   const architecture = extractArchitecture(config, null);
 
   const tokenizerJsonPath = path.join(inputDir, 'tokenizer.json');
@@ -270,6 +271,7 @@ async function parseSafetensorsInput(inputDir) {
     config,
     tensors,
     architectureHint,
+    embeddingPostprocessor,
     architecture,
     sourceQuantization: inferSourceQuantizationForSourceRuntime(tensors, 'safetensors'),
     tokenizerJson,
@@ -570,6 +572,7 @@ export async function resolveNodeSourceRuntimeBundle(options = {}) {
     rawConfig: parsed.config,
     inference: plan.manifestInference,
     tensors: parsed.tensors,
+    embeddingPostprocessor: parsed.embeddingPostprocessor ?? null,
     sourceFiles,
     auxiliaryFiles,
     sourceQuantization: parsed.sourceQuantization,

@@ -2,6 +2,7 @@ import type { PipelineState } from './state.js';
 import type { GenerateOptions } from './types.js';
 import type { ParsedModelConfig } from './config.js';
 import type { ExecutionSessionPlan } from './execution-plan.js';
+import type { LoadedEmbeddingPostprocessor } from '../../../loader/final-weights-loader.js';
 
 export interface StepOptionsResolved {
   temperature: number;
@@ -89,5 +90,6 @@ export function extractEmbeddingFromHidden(
   hiddenSize: number,
   embeddingMode: 'last' | 'mean',
   finalNormWeights: Float32Array,
-  config: Pick<ParsedModelConfig, 'rmsNormEps' | 'rmsNormWeightOffset'>
+  config: Pick<ParsedModelConfig, 'rmsNormEps' | 'rmsNormWeightOffset' | 'embeddingPostprocessor'>,
+  embeddingPostprocessor?: LoadedEmbeddingPostprocessor | null
 ): Float32Array;

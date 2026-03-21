@@ -7,11 +7,11 @@ import {
   resolveManifestQuantization,
 } from '../converter/quantization-info.js';
 import {
-  classifyTensor,
-  classifyTensorRole,
   getGroupType,
   parseGroupExpertIndex,
   parseGroupLayerIndex,
+  resolveTensorGroup,
+  resolveTensorRole,
   sortGroupIds,
 } from '../formats/rdrr/index.js';
 import { computeHash } from '../storage/shard-manager.js';
@@ -186,8 +186,8 @@ function buildSourceTensorLocations(tensors, shardIndexByPath, modelType) {
       throw new Error(`Source tensor "${name}" is missing dtype.`);
     }
     const shape = resolveTensorShape(tensor.shape, name);
-    const role = classifyTensorRole(name);
-    const group = classifyTensor(name, modelType);
+    const role = resolveTensorRole(tensor);
+    const group = resolveTensorGroup(tensor, modelType);
     const layout = typeof tensor.layout === 'string' && tensor.layout.trim()
       ? tensor.layout.trim()
       : null;
@@ -496,6 +496,7 @@ export async function buildSourceRuntimeBundle(options = {}) {
     tokenizerJson: options.tokenizerJson ?? null,
     tokenizerConfig: options.tokenizerConfig ?? null,
     tokenizerModel: options.tokenizerModelName ?? null,
+    embeddingPostprocessor: options.embeddingPostprocessor ?? null,
   };
 
   const manifest = createManifest(modelId, model, shards, tensorLocations, {

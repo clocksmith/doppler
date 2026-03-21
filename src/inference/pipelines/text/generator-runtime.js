@@ -1,5 +1,5 @@
 import { readBuffer } from '../../../memory/buffer-pool.js';
-import { rmsNormCPU } from './logits/index.js';
+import { matmulCPU, rmsNormCPU } from './logits/index.js';
 import { isWeightBuffer, isCpuWeightBuffer } from '../../../gpu/weight-buffer.js';
 import { decodeReadback } from './debug-utils/index.js';
 import { resolveExecutionSessionPlan } from './execution-plan.js';
@@ -223,6 +223,25 @@ export function resolvePrefillOptions(state, options = {}) {
 }
 
 export function resolvePrefillEmbeddingOptions(state, options = {}) {
+  const postprocessor = state.modelConfig?.embeddingPostprocessor ?? null;
+  const requestedEmbeddingMode = resolveConfiguredValue(
+    options.embeddingMode,
+    undefined,
+    'options.embeddingMode',
+    (value) => value === 'last' || value === 'mean'
+  );
+  if (postprocessor) {
+    if (requestedEmbeddingMode !== undefined && requestedEmbeddingMode !== postprocessor.poolingMode) {
+      throw new Error(
+        `[Pipeline] options.embeddingMode="${requestedEmbeddingMode}" conflicts with ` +
+        `manifest output.embeddingPostprocessor.poolingMode="${postprocessor.poolingMode}".`
+      );
+    }
+    return {
+      ...resolvePrefillOptions(state, options),
+      embeddingMode: postprocessor.poolingMode,
+    };
+  }
   const modelType = typeof state.manifest?.modelType === 'string'
     ? state.manifest.modelType.toLowerCase()
     : '';
@@ -236,11 +255,16 @@ export function resolvePrefillEmbeddingOptions(state, options = {}) {
     : generationDefaults.embeddingMode;
   return {
     ...resolvePrefillOptions(state, options),
-    embeddingMode: resolveConfiguredValue(options.embeddingMode, defaultEmbeddingMode, 'options.embeddingMode'),
+    embeddingMode: requestedEmbeddingMode ?? defaultEmbeddingMode,
   };
 }
 
 export function resolveAdvanceEmbeddingMode(state, options = {}) {
+  if (state.modelConfig?.embeddingPostprocessor) {
+    throw new Error(
+      '[Pipeline] advanceWithTokenAndEmbedding is unsupported when manifest output.embeddingPostprocessor is enabled.'
+    );
+  }
   const modelType = typeof state.manifest?.modelType === 'string'
     ? state.manifest.modelType.toLowerCase()
     : '';
@@ -349,7 +373,8 @@ export function extractEmbeddingFromHidden(
   hiddenSize,
   embeddingMode,
   finalNormWeights,
-  config
+  config,
+  embeddingPostprocessor = null
 ) {
   const expectedLength = numTokens * hiddenSize;
   if (hiddenStates.length !== expectedLength) {
@@ -369,12 +394,19 @@ export function extractEmbeddingFromHidden(
     );
   };
 
-  if (embeddingMode === 'last') {
-    return applyFinalNorm(numTokens - 1);
+  const postprocessorConfig = config?.embeddingPostprocessor ?? null;
+  const resolvedEmbeddingMode = postprocessorConfig?.poolingMode ?? embeddingMode;
+  if (postprocessorConfig && embeddingMode !== resolvedEmbeddingMode) {
+    throw new Error(
+      `[Pipeline] embeddingMode "${embeddingMode}" conflicts with manifest output.embeddingPostprocessor.poolingMode="${resolvedEmbeddingMode}".`
+    );
   }
 
-  if (embeddingMode === 'mean') {
-    const pooled = new Float32Array(hiddenSize);
+  let pooled;
+  if (resolvedEmbeddingMode === 'last') {
+    pooled = applyFinalNorm(numTokens - 1);
+  } else if (resolvedEmbeddingMode === 'mean') {
+    pooled = new Float32Array(hiddenSize);
     for (let t = 0; t < numTokens; t++) {
       const tokenEmbedding = applyFinalNorm(t);
       for (let i = 0; i < hiddenSize; i++) {
@@ -385,8 +417,62 @@ export function extractEmbeddingFromHidden(
     for (let i = 0; i < hiddenSize; i++) {
       pooled[i] *= invTokens;
     }
-    return pooled;
+  } else {
+    throw new Error(`prefillWithEmbedding: unsupported embeddingMode "${resolvedEmbeddingMode}" (expected "last" or "mean")`);
   }
 
-  throw new Error(`prefillWithEmbedding: unsupported embeddingMode "${embeddingMode}" (expected "last" or "mean")`);
+  if (!postprocessorConfig) {
+    return pooled;
+  }
+  if (!embeddingPostprocessor) {
+    throw new Error('[Pipeline] Embedding postprocessor weights are missing for this manifest.');
+  }
+
+  let current = pooled;
+  for (let i = 0; i < embeddingPostprocessor.projections.length; i++) {
+    const projection = embeddingPostprocessor.projections[i];
+    if (current.length !== projection.inputSize) {
+      throw new Error(
+        `[Pipeline] Embedding postprocessor projection ${i} expected inputSize=${projection.inputSize}, got ${current.length}.`
+      );
+    }
+    if (!(projection.weight instanceof Float32Array) || projection.weight.length !== (projection.outputSize * projection.inputSize)) {
+      throw new Error(
+        `[Pipeline] Embedding postprocessor projection ${i} has invalid weight shape for ${projection.outputSize}x${projection.inputSize}.`
+      );
+    }
+    if (projection.activation !== 'identity') {
+      throw new Error(
+        `[Pipeline] Unsupported embedding postprocessor activation "${projection.activation}" at projection ${i}.`
+      );
+    }
+    const projected = matmulCPU(current, projection.weight, 1, projection.outputSize, projection.inputSize, 'row');
+    if (projection.bias) {
+      if (!(projection.bias instanceof Float32Array) || projection.bias.length !== projection.outputSize) {
+        throw new Error(
+          `[Pipeline] Embedding postprocessor projection ${i} bias length mismatch: expected=${projection.outputSize}.`
+        );
+      }
+      for (let j = 0; j < projected.length; j++) {
+        projected[j] += projection.bias[j];
+      }
+    }
+    current = projected;
+  }
+
+  if (embeddingPostprocessor.normalize === 'l2') {
+    let sumSq = 0;
+    for (let i = 0; i < current.length; i++) {
+      sumSq += current[i] * current[i];
+    }
+    const norm = Math.sqrt(sumSq);
+    if (norm > 0) {
+      const invNorm = 1 / norm;
+      for (let i = 0; i < current.length; i++) {
+        current[i] *= invNorm;
+      }
+    }
+  }
+
+  return current;
 }

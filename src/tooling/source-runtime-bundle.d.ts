@@ -1,4 +1,5 @@
-import type { RDRRManifest } from '../formats/rdrr/index.js';
+import type { RDRRManifest, TensorRole } from '../formats/rdrr/index.js';
+import type { ManifestEmbeddingPostprocessorSchema } from '../config/schema/index.js';
 
 export declare const DIRECT_SOURCE_RUNTIME_MODE: 'direct-source';
 export declare const DIRECT_SOURCE_RUNTIME_SCHEMA_VERSION: 1;
@@ -14,6 +15,8 @@ export interface SourceRuntimeTensor {
   offset: number;
   sourcePath: string;
   layout?: string | null;
+  role?: TensorRole;
+  group?: string | null;
 }
 
 export interface SourceRuntimeFile {
@@ -61,6 +64,7 @@ export interface BuildSourceRuntimeBundleOptions {
   rawConfig?: Record<string, unknown> | null;
   inference: Record<string, unknown>;
   tensors: SourceRuntimeTensor[];
+  embeddingPostprocessor?: ManifestEmbeddingPostprocessorSchema | null;
   sourceFiles?: SourceRuntimeFile[] | null;
   auxiliaryFiles?: SourceRuntimeFile[] | null;
   resolveSourceSize?: ((path: string) => Promise<number> | number) | null;

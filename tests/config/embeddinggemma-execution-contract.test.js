@@ -26,6 +26,11 @@ const conversionConfig = readJson(
   'src/config/conversion/embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32.json'
 );
 
+assert.equal(
+  conversionConfig.modelType,
+  'embedding',
+  'EmbeddingGemma conversion config must stamp modelType="embedding"'
+);
 assert.deepEqual(
   conversionConfig.execution.postLayer,
   [['final_norm', 'rmsnorm']],

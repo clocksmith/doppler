@@ -261,6 +261,51 @@ export function validateRequiredInferenceFields(inf, modelId) {
   if (inf.output.embeddingVocabSize === undefined) {
     errors.push('output.embeddingVocabSize must be explicitly set (null to use architecture.vocabSize, or number)');
   }
+  if (inf.output.embeddingPostprocessor === undefined) {
+    errors.push('output.embeddingPostprocessor must be explicitly set (null when unused, or an object)');
+  } else if (inf.output.embeddingPostprocessor !== null) {
+    const postprocessor = inf.output.embeddingPostprocessor;
+    if (!postprocessor || typeof postprocessor !== 'object' || Array.isArray(postprocessor)) {
+      errors.push('output.embeddingPostprocessor must be null or an object');
+    } else {
+      if (postprocessor.poolingMode !== 'mean' && postprocessor.poolingMode !== 'last') {
+        errors.push('output.embeddingPostprocessor.poolingMode must be "mean" or "last"');
+      }
+      if (typeof postprocessor.includePrompt !== 'boolean') {
+        errors.push('output.embeddingPostprocessor.includePrompt is required');
+      }
+      if (!Array.isArray(postprocessor.projections)) {
+        errors.push('output.embeddingPostprocessor.projections must be an array');
+      } else {
+        for (let i = 0; i < postprocessor.projections.length; i++) {
+          const projection = postprocessor.projections[i];
+          const prefix = `output.embeddingPostprocessor.projections[${i}]`;
+          if (typeof projection?.weightTensor !== 'string' || projection.weightTensor.trim() === '') {
+            errors.push(`${prefix}.weightTensor is required`);
+          }
+          if (projection?.biasTensor === undefined) {
+            errors.push(`${prefix}.biasTensor must be explicitly set (null when unused, or tensor name)`);
+          } else if (projection.biasTensor !== null && (typeof projection.biasTensor !== 'string' || projection.biasTensor.trim() === '')) {
+            errors.push(`${prefix}.biasTensor must be null or a non-empty string`);
+          }
+          if (!Number.isFinite(projection?.inputSize) || projection.inputSize <= 0) {
+            errors.push(`${prefix}.inputSize must be a positive number`);
+          }
+          if (!Number.isFinite(projection?.outputSize) || projection.outputSize <= 0) {
+            errors.push(`${prefix}.outputSize must be a positive number`);
+          }
+          if (projection?.activation !== 'identity') {
+            errors.push(`${prefix}.activation must be "identity"`);
+          }
+        }
+      }
+      if (postprocessor.normalize === undefined) {
+        errors.push('output.embeddingPostprocessor.normalize must be explicitly set (null when unused, or "l2")');
+      } else if (postprocessor.normalize !== null && postprocessor.normalize !== 'l2') {
+        errors.push('output.embeddingPostprocessor.normalize must be null or "l2"');
+      }
+    }
+  }
 
   // Layer pattern fields
   if (inf.layerPattern?.type == null) {
@@ -516,6 +561,26 @@ export function toParsedConfigFromMerged(merged, manifest) {
 
   // Get stop token IDs (cast to Manifest for compatibility)
   const stopTokenIds = getStopTokenIds(manifest);
+  const embeddingPostprocessor = inf.output.embeddingPostprocessor;
+  if (embeddingPostprocessor) {
+    if (embeddingPostprocessor.includePrompt !== true) {
+      throw new Error(
+        `Manifest "${merged.modelId}" requires output.embeddingPostprocessor.includePrompt=false, ` +
+        'but prompt-token masking is not implemented for embedding extraction.'
+      );
+    }
+    let expectedInputSize = arch.hiddenSize;
+    for (let i = 0; i < embeddingPostprocessor.projections.length; i++) {
+      const projection = embeddingPostprocessor.projections[i];
+      if (projection.inputSize !== expectedInputSize) {
+        throw new Error(
+          `Manifest "${merged.modelId}" has output.embeddingPostprocessor.projections[${i}].inputSize=${projection.inputSize}, ` +
+          `expected ${expectedInputSize}.`
+        );
+      }
+      expectedInputSize = projection.outputSize;
+    }
+  }
 
   // Get MoE config
   const moeConfig = manifest.moeConfig ?? null;
@@ -656,6 +721,7 @@ export function toParsedConfigFromMerged(merged, manifest) {
     useTiedEmbeddings: inf.output.tieWordEmbeddings,
     embeddingTranspose: inf.output.embeddingTranspose,
     embeddingVocabSize: inf.output.embeddingVocabSize,
+    embeddingPostprocessor,
     hiddenActivation,
     swigluLimit: inf.ffn.swigluLimit,
     stopTokenIds,

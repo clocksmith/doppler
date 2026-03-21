@@ -267,6 +267,7 @@ export class InferencePipeline extends PipelineState {
     this.weights.set('embed', result.embeddings);
     this.weights.set('lm_head', result.lmHead);
     this.weights.set('final_norm', result.finalNorm);
+    this.embeddingPostprocessor = result.embeddingPostprocessor;
 
     this.layerRouterWeights = result.layerRouterWeights;
 

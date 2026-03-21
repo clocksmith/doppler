@@ -261,6 +261,23 @@ export interface ManifestOutputSchema {
   embeddingTranspose: boolean;
   /** Embedding vocab size from weight tensor (null = use architecture.vocabSize) */
   embeddingVocabSize: number | null;
+  /** Optional embedding-only postprocessor stack applied after pooled hidden states. */
+  embeddingPostprocessor: ManifestEmbeddingPostprocessorSchema | null;
+}
+
+export interface ManifestEmbeddingProjectionSchema {
+  weightTensor: string;
+  biasTensor: string | null;
+  inputSize: number;
+  outputSize: number;
+  activation: 'identity';
+}
+
+export interface ManifestEmbeddingPostprocessorSchema {
+  poolingMode: 'mean' | 'last';
+  includePrompt: boolean;
+  projections: ManifestEmbeddingProjectionSchema[];
+  normalize: 'l2' | null;
 }
 
 /**

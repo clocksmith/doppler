@@ -873,7 +873,8 @@ export async function advanceWithTokenAndEmbedding(state, tokenId, opts, helpers
       config.hiddenSize,
       embeddingMode,
       finalNormWeights,
-      config
+      config,
+      state.embeddingPostprocessor
     );
   } finally {
     const isPreAllocated = isOwnedDecodeBuffer(hiddenStates, decodeHiddenBuffer, decodeAltBuffer);

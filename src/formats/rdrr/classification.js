@@ -1,5 +1,27 @@
 
 
+function getTensorDescriptorName(value) {
+  if (typeof value === 'string') return value;
+  if (value && typeof value === 'object' && typeof value.name === 'string') {
+    return value.name;
+  }
+  return '';
+}
+
+export function resolveTensorRole(value) {
+  if (value && typeof value === 'object' && typeof value.role === 'string' && value.role.trim()) {
+    return value.role.trim();
+  }
+  return classifyTensorRole(getTensorDescriptorName(value));
+}
+
+export function resolveTensorGroup(value, modelType) {
+  if (value && typeof value === 'object' && typeof value.group === 'string' && value.group.trim()) {
+    return value.group.trim();
+  }
+  return classifyTensor(getTensorDescriptorName(value), modelType);
+}
+
 
 export function classifyTensor(name, modelType) {
   const lower = name.toLowerCase();

@@ -14,6 +14,7 @@ import type {
   LayerPipelineSchema,
   KernelPathRef,
   ManifestInferenceSchema,
+  ManifestEmbeddingPostprocessorSchema,
   ArchitectureSchema,
   LinearNormMode,
 } from '../../../config/schema/index.js';
@@ -170,6 +171,7 @@ export interface ParsedModelConfig {
   useTiedEmbeddings: boolean;
   embeddingTranspose: boolean;
   embeddingVocabSize: number | null;
+  embeddingPostprocessor: ManifestEmbeddingPostprocessorSchema | null;
   hiddenActivation: ActivationType;
   swigluLimit: number | null;
   stopTokenIds: number[];

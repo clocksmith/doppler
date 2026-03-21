@@ -874,6 +874,7 @@ export async function convertSafetensorsDirectory(options) {
   let tensors = [];
   let architectureHint = '';
   let architecture = null;
+  let embeddingPostprocessor = null;
   let modelKind = 'transformer';
   let sourceQuantization = null;
   let tokenizerJson = null;
@@ -1108,6 +1109,7 @@ export async function convertSafetensorsDirectory(options) {
     generationConfig = parsedTransformer.generationConfig ?? null;
     tensors = parsedTransformer.tensors;
     architectureHint = parsedTransformer.architectureHint;
+    embeddingPostprocessor = parsedTransformer.embeddingPostprocessor ?? null;
     architecture = extractArchitecture(config, null);
     const tokenizerJsonPath = path.join(inputDir, 'tokenizer.json');
     tokenizerModelPath = path.join(inputDir, 'tokenizer.model');
@@ -1166,6 +1168,8 @@ export async function convertSafetensorsDirectory(options) {
       size: tensor.size,
       offset: tensor.offset,
       sourcePath: tensor.sourcePath,
+      role: tensor.role,
+      group: tensor.group ?? null,
     })),
     config,
     architecture: architectureHint || 'unknown',
@@ -1174,6 +1178,7 @@ export async function convertSafetensorsDirectory(options) {
     tokenizerConfig,
     generationConfig,
     tokenizerModel: hasTokenizerModel ? 'tokenizer.model' : null,
+    embeddingPostprocessor,
   };
 
   const io = createNodeConvertIO(outputDir, {

@@ -8,7 +8,7 @@ import {
   resolveModelId,
 } from './quantization-info.js';
 import { sanitizeModelId } from './core.js';
-import { classifyTensorRole } from '../formats/rdrr/index.js';
+import { resolveTensorRole } from '../formats/rdrr/index.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
 
 function normalizeWeightDtype(dtype) {
@@ -26,7 +26,7 @@ function findTensorDtypeByRole(tensors, targetRole) {
   for (const tensor of (tensors || [])) {
     const name = typeof tensor?.name === 'string' ? tensor.name : '';
     if (!name) continue;
-    if (classifyTensorRole(name) === targetRole) {
+    if (resolveTensorRole(tensor) === targetRole) {
       return tensor?.dtype ?? null;
     }
   }

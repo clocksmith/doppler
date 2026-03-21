@@ -154,4 +154,49 @@ const { loadFinalWeights } = await import('../../src/loader/final-weights-loader
   assert.equal(result.normOffsetDebugLogged, true);
 }
 
+{
+  const tensorLocations = new Map([
+    ['model.language_model.norm.weight', { role: 'norm', group: 'head', shape: [2], dtype: 'F32' }],
+    ['embedding_postprocessor.projections.0.weight', { role: 'lm_head', group: 'embedding_postprocessor', shape: [2, 2], dtype: 'F32' }],
+  ]);
+
+  const lookup = new Map([
+    ['model.language_model.norm.weight', new Float32Array([1, 2])],
+    ['embedding_postprocessor.projections.0.weight', new Float32Array([1, 0, 0, 1])],
+  ]);
+
+  const result = await loadFinalWeights({
+    tensorLocations,
+    tieWordEmbeddings: true,
+    modelType: 'embedding',
+    embeddingPostprocessor: {
+      poolingMode: 'mean',
+      includePrompt: true,
+      projections: [{
+        weightTensor: 'embedding_postprocessor.projections.0.weight',
+        biasTensor: null,
+        inputSize: 2,
+        outputSize: 2,
+        activation: 'identity',
+      }],
+      normalize: 'l2',
+    },
+    loadTensor: async (name) => lookup.get(name) || null,
+    shouldStreamLargeWeight: () => false,
+    needsNormWeightOffset: () => false,
+    resolveWeightLayout: () => 'row',
+    embeddings: new Float32Array([10, 20, 30, 40]),
+    gpuBuffers: new Set(),
+    keepF32Weights: false,
+    normOffsetDebugLogged: false,
+  });
+
+  assert.equal(result.embeddingPostprocessor?.poolingMode, 'mean');
+  assert.equal(result.embeddingPostprocessor?.projections.length, 1);
+  assert.deepEqual(
+    Array.from(result.embeddingPostprocessor?.projections[0].weight ?? []),
+    [1, 0, 0, 1]
+  );
+}
+
 console.log('final-norm-selection.test: ok');

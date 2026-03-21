@@ -1,4 +1,5 @@
 {
+  "modelType": "embedding",
   "output": {
     "baseDir": "models/local",
     "modelBaseId": "google-embeddinggemma-300m-q4k-ehf16-af32"

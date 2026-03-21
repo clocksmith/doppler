@@ -15,6 +15,7 @@
 import type { ParsedModelConfig, Manifest } from './config.js';
 import type { KernelCapabilities } from '../../../gpu/device.js';
 import type { WeightBuffer, CpuWeightBuffer } from '../../../gpu/weight-buffer.js';
+import type { LoadedEmbeddingPostprocessor } from '../../../loader/final-weights-loader.js';
 import { KVCache, SlidingWindowKVCache, TieredKVCache, BasisDecomposedPagedCache } from '../../kv-cache.js';
 import { Tokenizer, type ModelManifest as TokenizerManifest } from '../../tokenizer.js';
 import { MoERouter } from '../../moe-router.js';
@@ -188,6 +189,7 @@ export interface WeightLoadResult {
   embeddings: GPUBuffer | WeightBuffer | CpuWeightBuffer | Float32Array | null;
   lmHead: GPUBuffer | WeightBuffer | CpuWeightBuffer | Float32Array | null;
   finalNorm: GPUBuffer | Float32Array | null;
+  embeddingPostprocessor: LoadedEmbeddingPostprocessor | null;
   layerRouterWeights: Map<number, RouterWeights>;
 }
 

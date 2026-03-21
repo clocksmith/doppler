@@ -276,6 +276,24 @@ function createTestPlanState(maxTokens = 128) {
   assert.equal(resolveAdvanceEmbeddingMode(state), 'mean');
 }
 
+assert.throws(
+  () => resolveAdvanceEmbeddingMode(
+    {
+      runtimeConfig: { inference: { generation: { embeddingMode: 'last' } } },
+      modelConfig: {
+        embeddingPostprocessor: {
+          poolingMode: 'mean',
+          includePrompt: true,
+          projections: [],
+          normalize: 'l2',
+        },
+      },
+      manifest: { modelType: 'embedding' },
+    }
+  ),
+  /advanceWithTokenAndEmbedding is unsupported/
+);
+
 {
   const state = {
     runtimeConfig: { inference: { generation: { embeddingMode: 'last' } } },
@@ -302,11 +320,62 @@ assert.equal(resolveFloatDtypeFromByteSize(10, 0), 'f32');
 // === extractEmbeddingFromHidden ===
 
 {
+  const state = {
+    runtimeConfig: {
+      inference: {
+        generation: { profile: false, embeddingMode: 'last' },
+        chatTemplate: { enabled: false },
+        session: {},
+      },
+    },
+    modelConfig: {
+      embeddingPostprocessor: {
+        poolingMode: 'mean',
+        includePrompt: true,
+        projections: [],
+        normalize: 'l2',
+      },
+    },
+    manifest: { modelType: 'embedding' },
+    ...createTestPlanState(),
+  };
+
+  const opts = resolvePrefillEmbeddingOptions(state, {});
+  assert.equal(opts.embeddingMode, 'mean');
+}
+
+assert.throws(
+  () => resolvePrefillEmbeddingOptions(
+    {
+      runtimeConfig: {
+        inference: {
+          generation: { profile: false, embeddingMode: 'last' },
+          chatTemplate: { enabled: false },
+          session: {},
+        },
+      },
+      modelConfig: {
+        embeddingPostprocessor: {
+          poolingMode: 'mean',
+          includePrompt: true,
+          projections: [],
+          normalize: 'l2',
+        },
+      },
+      manifest: { modelType: 'embedding' },
+      ...createTestPlanState(),
+    },
+    { embeddingMode: 'last' }
+  ),
+  /conflicts with manifest output\.embeddingPostprocessor\.poolingMode/
+);
+
+{
   const hiddenSize = 4;
   const numTokens = 2;
   const hidden = new Float32Array([1, 2, 3, 4, 5, 6, 7, 8]);
   const normWeights = new Float32Array([1, 1, 1, 1]);
-  const config = { rmsNormEps: 1e-6, rmsNormWeightOffset: false };
+  const config = { rmsNormEps: 1e-6, rmsNormWeightOffset: false, embeddingPostprocessor: null };
 
   const lastEmbed = extractEmbeddingFromHidden(hidden, numTokens, hiddenSize, 'last', normWeights, config);
   assert.equal(lastEmbed.length, hiddenSize);
@@ -319,14 +388,78 @@ assert.equal(resolveFloatDtypeFromByteSize(10, 0), 'f32');
 
 // Length mismatch
 assert.throws(
-  () => extractEmbeddingFromHidden(new Float32Array([1, 2]), 2, 4, 'last', new Float32Array(4), {}),
+  () => extractEmbeddingFromHidden(new Float32Array([1, 2]), 2, 4, 'last', new Float32Array(4), { embeddingPostprocessor: null }),
   /Hidden state length mismatch/
 );
 
 // Invalid embedding mode
 assert.throws(
-  () => extractEmbeddingFromHidden(new Float32Array([1, 2, 3, 4]), 1, 4, 'bad', new Float32Array(4), {}),
+  () => extractEmbeddingFromHidden(new Float32Array([1, 2, 3, 4]), 1, 4, 'bad', new Float32Array(4), { embeddingPostprocessor: null }),
   /unsupported embeddingMode/
+);
+
+{
+  const embedding = extractEmbeddingFromHidden(
+    new Float32Array([1, 1]),
+    1,
+    2,
+    'last',
+    new Float32Array([1, 1]),
+    {
+      rmsNormEps: 0,
+      rmsNormWeightOffset: false,
+      embeddingPostprocessor: {
+        poolingMode: 'last',
+        includePrompt: true,
+        projections: [{
+          weightTensor: 'embedding_postprocessor.projections.0.weight',
+          biasTensor: null,
+          inputSize: 2,
+          outputSize: 2,
+          activation: 'identity',
+        }],
+        normalize: 'l2',
+      },
+    },
+    {
+      poolingMode: 'last',
+      includePrompt: true,
+      projections: [{
+        weightTensor: 'embedding_postprocessor.projections.0.weight',
+        biasTensor: null,
+        inputSize: 2,
+        outputSize: 2,
+        activation: 'identity',
+        weight: new Float32Array([1, 0, 0, 2]),
+        bias: null,
+      }],
+      normalize: 'l2',
+    }
+  );
+  assert.ok(Math.abs(embedding[0] - 0.4472136) < 1e-5);
+  assert.ok(Math.abs(embedding[1] - 0.8944272) < 1e-5);
+}
+
+assert.throws(
+  () => extractEmbeddingFromHidden(
+    new Float32Array([1, 1]),
+    1,
+    2,
+    'last',
+    new Float32Array([1, 1]),
+    {
+      rmsNormEps: 0,
+      rmsNormWeightOffset: false,
+      embeddingPostprocessor: {
+        poolingMode: 'last',
+        includePrompt: true,
+        projections: [],
+        normalize: null,
+      },
+    },
+    null
+  ),
+  /Embedding postprocessor weights are missing/
 );
 
 console.log('generator-runtime.test: ok');

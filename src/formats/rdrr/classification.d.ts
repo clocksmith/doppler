@@ -8,6 +8,12 @@
 
 import type { ModelType, ComponentGroupType, TensorRole } from './types.js';
 
+export interface TensorClassificationDescriptor {
+  name?: string | null;
+  role?: TensorRole | null;
+  group?: string | null;
+}
+
 /**
  * Classify a tensor into a component group based on its name and model type.
  */
@@ -17,6 +23,15 @@ export declare function classifyTensor(name: string, modelType: ModelType): stri
  * Classify a tensor into a canonical role for manifest-first loading.
  */
 export declare function classifyTensorRole(name: string): TensorRole;
+
+export declare function resolveTensorRole(
+  value: string | TensorClassificationDescriptor
+): TensorRole;
+
+export declare function resolveTensorGroup(
+  value: TensorClassificationDescriptor,
+  modelType: ModelType
+): string;
 
 /**
  * Get the component group type from a group ID

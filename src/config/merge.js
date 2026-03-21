@@ -270,6 +270,12 @@ function mergeOutput(
       runtime?.embeddingVocabSize,
       sources
     ),
+    embeddingPostprocessor: overlay(
+      `${prefix}.embeddingPostprocessor`,
+      manifest.embeddingPostprocessor,
+      runtime?.embeddingPostprocessor,
+      sources
+    ),
   };
 }
 
