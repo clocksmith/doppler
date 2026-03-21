@@ -1,0 +1,64 @@
+{
+  "hosting": {
+    "public": ".",
+    "headers": [
+      {
+        "source": "/models/catalog.json",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-store, no-cache, must-revalidate, max-age=0"
+          }
+        ]
+      }
+    ],
+    "rewrites": [
+      { "source": "/", "destination": "/demo/index.html" }
+    ],
+    "ignore": [
+      "**/.*",
+      "**/.*/**",
+      "**/node_modules/**",
+      "**/*.d.ts",
+      "**/*.md",
+      "**/*.ts",
+      "**/*.py",
+      "**/*.sh",
+      "firebase.json",
+      ".firebaserc",
+      "firebase-debug.log",
+      "package.json",
+      "package-lock.json",
+      "tsconfig.json",
+      "tsconfig.build.json",
+      "artifacts/**",
+      "bench/**",
+      "benchmarks/**",
+      "docs/**",
+      "examples/**",
+      "external/**",
+      "kernel-tests/**",
+      "lean/**",
+      "models/fixtures/**",
+      "models/curated/**",
+      "models/local/**",
+      "models/converted/**",
+      "models/gemma-*/**",
+      "models/google-*/**",
+      "models/qwen-*/**",
+      "**/*.bin",
+      "**/*.safetensors",
+      "**/*.model",
+      "downloads/**",
+      "*.tgz",
+      "demo/fixtures/**",
+      "playwright-report/**",
+      "reports/**",
+      "skills/**",
+      "tests/**",
+      "test-results/**",
+      "tools/**",
+      "tmp/**"
+    ]
+  }
+}
