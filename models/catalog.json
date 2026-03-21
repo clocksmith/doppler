@@ -23,7 +23,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "ca6f0dbdf3882d3893a65cf48f2bb6f1520df162",
+        "revision": "3a7134059e56bce7768f93c3c4d43960e33f7e89",
         "path": "models/gemma-3-270m-it-q4k-ehf16-af32"
       },
       "baseUrl": null,
@@ -142,7 +142,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "ca6f0dbdf3882d3893a65cf48f2bb6f1520df162",
+        "revision": "a1430760bf14d90bf52c2c77f440c30983444f5d",
         "path": "models/gemma-3-1b-it-q4k-ehf16-af32"
       },
       "baseUrl": null,
@@ -201,7 +201,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "d36c9d879713249cbe296c96158cadfe16d343be",
+        "revision": "10d8e53557e23c889aabb58a01a28cb38e88a2d2",
         "path": "models/gemma-3-1b-it-f16-af32"
       },
       "baseUrl": null,
@@ -263,7 +263,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "e0ea917157ed8da46f35c0e5ef8d64985401778d",
+        "revision": "fcfa75615ab882fe7028badb00001fde84cde460",
         "path": "models/translategemma-4b-it-q4k-ehf16-af32"
       },
       "baseUrl": null,
@@ -322,7 +322,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "f402801f40894982c131b53e5bfe738bfb00c431",
+        "revision": "9014055385883b474356f7a508a2bbf40ee7f896",
         "path": "models/translategemma-4b-1b-enes-q4k-ehf16-af32"
       },
       "baseUrl": null,
@@ -378,7 +378,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "805b7fd79cfaedf69844a3e50a2738b8dcb283bd",
+        "revision": "575322f42b4e0e1bc3109e105962d996e4e946d5",
         "path": "models/qwen-3-5-0-8b-q4k-ehaf16"
       },
       "baseUrl": null,
@@ -437,7 +437,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "9a1844afec19d6a23951151b7190ae8a5d1c2ca7",
+        "revision": "22bb718e093adafd97408411159c16b9a46683de",
         "path": "models/qwen-3-5-2b-q4k-ehaf16"
       },
       "baseUrl": null,
@@ -496,7 +496,7 @@
       "hf": {
         "repoId": "Clocksmith/rdrr",
         "path": "models/lfm2-5-1-2b-instruct-q4k-ehf16-af32",
-        "revision": "7649122146d0cccf25f8ff596a59afc90382a352"
+        "revision": "e2df695177fab885514152fa72598b781670dcdf"
       },
       "baseUrl": null,
       "quickstart": false,

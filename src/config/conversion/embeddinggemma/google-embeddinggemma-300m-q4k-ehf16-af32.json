@@ -121,16 +121,6 @@
         "constants": {
           "HAS_GATE": true
         }
-      },
-      "lm_head_tiled": {
-        "kernel": "matmul_f16w_f32a.wgsl",
-        "entry": "main",
-        "digest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc"
-      },
-      "sample": {
-        "kernel": "sample.wgsl",
-        "entry": "sample_single_pass",
-        "digest": "sha256:91c5c30bbc3e034457c1521c1ad576ce798c0868a1fe16e02be5f92706614096"
       }
     },
     "preLayer": [
@@ -282,20 +272,6 @@
       [
         "final_norm",
         "rmsnorm"
-      ],
-      [
-        "lm_head",
-        "lm_head_tiled",
-        "lm_head"
-      ],
-      [
-        "lm_head_prefill",
-        "tiled",
-        "lm_head"
-      ],
-      [
-        "sample",
-        "sample"
       ]
     ],
     "policies": {

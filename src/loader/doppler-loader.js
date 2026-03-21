@@ -913,6 +913,7 @@ export class DopplerLoader {
       shouldStreamLargeWeight: (name, loc, label) => this.#shouldStreamLargeWeight(name, loc, label),
       resolveWeightLayout: (loc) => this.#resolveWeightLayout(loc),
       embeddings: this.embeddings,
+      modelType: this.manifest?.modelType ?? null,
       tieWordEmbeddings,
       gpuBuffers: this.gpuBuffers,
       keepF32Weights: this.keepF32Weights,

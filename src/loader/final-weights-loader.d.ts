@@ -39,6 +39,8 @@ export interface FinalWeightsContext {
   resolveWeightLayout: (loc: TensorLocation) => WeightLayout;
   /** Current embeddings (for tied embeddings fallback) */
   embeddings: GPUBuffer | WeightBuffer | CpuWeightBuffer | Float32Array | null;
+  /** Manifest model type */
+  modelType?: string | null;
   /** Whether LM head should fall back to tied embeddings */
   tieWordEmbeddings: boolean;
   /** GPU buffers to track for cleanup */

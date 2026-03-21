@@ -16,7 +16,7 @@
       ],
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "ca6f0dbdf3882d3893a65cf48f2bb6f1520df162",
+        "revision": "3a7134059e56bce7768f93c3c4d43960e33f7e89",
         "path": "models/gemma-3-270m-it-q4k-ehf16-af32"
       }
     },

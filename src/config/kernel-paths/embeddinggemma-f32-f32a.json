@@ -49,12 +49,8 @@
   ],
 
   "postLayer": [
-    { "op": "final_norm", "kernel": "rmsnorm.wgsl", "entry": "main" },
-    { "op": "lm_head", "kernel": "matmul_f32.wgsl", "entry": "main", "weights": "lm_head" },
-    { "op": "lm_head_prefill", "kernel": "matmul_f32.wgsl", "entry": "main", "weights": "lm_head" }
+    { "op": "final_norm", "kernel": "rmsnorm.wgsl", "entry": "main" }
   ],
 
-  "sampling": [
-    { "op": "sample", "kernel": "sample.wgsl", "entry": "sample_single_pass" }
-  ]
+  "sampling": []
 }

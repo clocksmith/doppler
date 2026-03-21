@@ -19,6 +19,7 @@ import { selectRuleValue } from '../rules/rule-registry.js';
 const HEAD_GROUP = 'head';
 const FINAL_NORM_ROLE = 'norm';
 const LM_HEAD_ROLE = 'lm_head';
+const EMBEDDING_MODEL_TYPE = 'embedding';
 
 function isGpuBufferInstance(value) {
   return typeof GPUBuffer !== 'undefined' && value instanceof GPUBuffer;
@@ -133,8 +134,16 @@ async function loadLmHead(ctx) {
   let lmHeadName = null;
   
   let lmHeadLoc;
+  const modelType = typeof ctx.modelType === 'string'
+    ? ctx.modelType.trim().toLowerCase()
+    : '';
+  const allowMissingLmHead = modelType === EMBEDDING_MODEL_TYPE;
 
   const lmHeadNames = getTensorNamesByRole(ctx.tensorLocations, LM_HEAD_ROLE, HEAD_GROUP);
+  if (lmHeadNames.length === 0 && allowMissingLmHead) {
+    debugTrace.loader('Embedding model has no LM head tensor; skipping LM head load.');
+    return null;
+  }
   if (lmHeadNames.length === 0 && !ctx.tieWordEmbeddings) {
     throw new Error(
       `[Loader] LM head not found. Expected tensor with role="${LM_HEAD_ROLE}" and group="${HEAD_GROUP}".`
@@ -166,6 +175,9 @@ async function loadLmHead(ctx) {
   if (!lmHead && ctx.embeddings && ctx.tieWordEmbeddings) {
     debugTrace.loader('Using tied embeddings as LM head (manifest.tieWordEmbeddings=true)');
     lmHead = ctx.embeddings;
+  } else if (!lmHead && allowMissingLmHead) {
+    debugTrace.loader('Embedding model completed without LM head tensor.');
+    return null;
   } else if (!lmHead) {
     throw new Error(
       `[Loader] LM head not found. Tried: ${lmHeadNames.join(', ')}`

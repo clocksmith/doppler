@@ -64,6 +64,7 @@ const { loadFinalWeights } = await import('../../src/loader/final-weights-loader
     () => loadFinalWeights({
       tensorLocations,
       tieWordEmbeddings: false,
+      modelType: 'transformer',
       loadTensor: async (name) => name.includes('norm') ? new Float32Array([1, 2]) : null,
       shouldStreamLargeWeight: () => false,
       needsNormWeightOffset: () => false,
@@ -99,6 +100,30 @@ const { loadFinalWeights } = await import('../../src/loader/final-weights-loader
 
   assert.equal(result.finalNorm instanceof Float32Array, true);
   assert.equal(result.lmHead, fakeEmbeddings);
+}
+
+// Embedding models may omit LM head entirely
+{
+  const tensorLocations = new Map([
+    ['model.language_model.norm.weight', { role: 'norm', group: 'head', shape: [2], dtype: 'F32' }],
+  ]);
+
+  const result = await loadFinalWeights({
+    tensorLocations,
+    tieWordEmbeddings: false,
+    modelType: 'embedding',
+    loadTensor: async (name) => name.includes('norm') ? new Float32Array([1, 2]) : null,
+    shouldStreamLargeWeight: () => false,
+    needsNormWeightOffset: () => false,
+    resolveWeightLayout: () => 'row',
+    embeddings: null,
+    gpuBuffers: new Set(),
+    keepF32Weights: false,
+    normOffsetDebugLogged: false,
+  });
+
+  assert.equal(result.finalNorm instanceof Float32Array, true);
+  assert.equal(result.lmHead, null);
 }
 
 // normOffsetDebugLogged set when needsNormWeightOffset returns true
