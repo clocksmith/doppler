@@ -52,6 +52,12 @@ function decodeRecorderSemantic(context) {
     && context.kvLayout !== 'bdpa_paged';
 }
 
+function profileDecodeRecorderSemantic(context) {
+  return context.hasDevice === true
+    && context.debug !== true
+    && context.kvLayout !== 'bdpa_paged';
+}
+
 function batchDecodeSemantic(context) {
   return context.batchSize > 1
     && context.useGPU === true
@@ -164,6 +170,7 @@ export function buildInferenceExecutionRulesContractArtifact(ruleGroup) {
   const errors = [];
   const checks = [];
   const decodeRules = ruleGroup?.decodeRecorderEnabled;
+  const profileDecodeRules = ruleGroup?.profileDecodeRecorderEnabled;
   const batchRules = ruleGroup?.batchDecodeEnabled;
 
   const decodeShape = checkRuleShape(
@@ -194,6 +201,39 @@ export function buildInferenceExecutionRulesContractArtifact(ruleGroup) {
   checks.push({
     id: 'inference.execution.decodeRecorderEnabled.semantics',
     ok: decodeSemantics.ok,
+  });
+
+  const profileDecodeShape = checkRuleShape(
+    profileDecodeRules,
+    {
+      hasDevice: true,
+      debug: false,
+      kvLayout: { neq: 'bdpa_paged' },
+    },
+    'profileDecodeRecorderEnabled'
+  );
+  errors.push(...profileDecodeShape.errors);
+  checks.push({
+    id: 'inference.execution.profileDecodeRecorderEnabled.shape',
+    ok: profileDecodeShape.ok,
+  });
+
+  const profileDecodeSemantics = Array.isArray(profileDecodeRules)
+    ? checkRuleSemantics(
+      profileDecodeRules,
+      enumerateDecodeRecorderContexts(),
+      profileDecodeRecorderSemantic,
+      'profileDecodeRecorderEnabled'
+    )
+    : {
+      ok: false,
+      errors: ['[ExecutionRulesContract] profileDecodeRecorderEnabled is unavailable for semantic check.'],
+      sampledContexts: 0,
+    };
+  errors.push(...profileDecodeSemantics.errors);
+  checks.push({
+    id: 'inference.execution.profileDecodeRecorderEnabled.semantics',
+    ok: profileDecodeSemantics.ok,
   });
 
   const batchShape = checkRuleShape(
@@ -237,8 +277,10 @@ export function buildInferenceExecutionRulesContractArtifact(ruleGroup) {
     errors,
     stats: {
       decodeRecorderRules: Array.isArray(decodeRules) ? decodeRules.length : 0,
+      profileDecodeRecorderRules: Array.isArray(profileDecodeRules) ? profileDecodeRules.length : 0,
       batchDecodeRules: Array.isArray(batchRules) ? batchRules.length : 0,
       decodeRecorderContexts: decodeSemantics.sampledContexts,
+      profileDecodeRecorderContexts: profileDecodeSemantics.sampledContexts,
       batchDecodeContexts: batchSemantics.sampledContexts,
     },
   };

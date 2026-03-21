@@ -16,6 +16,7 @@ const {
   rebaseExecutionSessionPlan,
   isBatchDecodeEnabled,
   isDecodeRecorderEnabled,
+  isProfileDecodeRecorderEnabled,
 } = await import('../../src/inference/pipelines/text/execution-plan.js');
 
 const runtimeConfig = createDopplerConfig().runtime;
@@ -113,6 +114,11 @@ const container = { executionPlanState: planState };
   assert.equal(isDecodeRecorderEnabled({ ...enabledConfig, debug: true }), false);
   assert.equal(isDecodeRecorderEnabled({ ...enabledConfig, disableCommandBatching: true }), false);
   assert.equal(isDecodeRecorderEnabled({ ...enabledConfig, hasDevice: false }), false);
+  assert.equal(isProfileDecodeRecorderEnabled(enabledConfig), true);
+  assert.equal(isProfileDecodeRecorderEnabled({ ...enabledConfig, kvLayout: 'bdpa_paged' }), false);
+  assert.equal(isProfileDecodeRecorderEnabled({ ...enabledConfig, debug: true }), false);
+  assert.equal(isProfileDecodeRecorderEnabled({ ...enabledConfig, disableCommandBatching: true }), true);
+  assert.equal(isProfileDecodeRecorderEnabled({ ...enabledConfig, hasDevice: false }), false);
 }
 
 {

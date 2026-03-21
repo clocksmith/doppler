@@ -1,7 +1,7 @@
 {
   "version": 1,
   "lifecycleSchemaVersion": 1,
-  "updatedAt": "2026-03-20",
+  "updatedAt": "2026-03-21",
   "models": [
     {
       "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
@@ -23,7 +23,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "3a7134059e56bce7768f93c3c4d43960e33f7e89",
+        "revision": "f5698592e69b97c38f21c68e01db2216c2f40965",
         "path": "models/gemma-3-270m-it-q4k-ehf16-af32"
       },
       "baseUrl": null,
@@ -83,7 +83,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "7e79c466d54455bd370c81685956ea9abae0fd30",
+        "revision": "9e4ef13a43ed47eda17bdc271ae90632eb22b9c7",
         "path": "models/google-embeddinggemma-300m-q4k-ehf16-af32"
       },
       "baseUrl": null,
@@ -104,17 +104,17 @@
           "tested": "verified"
         },
         "tested": {
-          "suite": "inference",
+          "suite": "embedding",
           "surface": [
-            "auto"
+            "node"
           ],
           "result": "pass",
-          "lastVerifiedAt": "2026-03-13",
-          "source": "registry-verify",
+          "lastVerifiedAt": "2026-03-21",
+          "source": "runtime-verify",
           "contracts": {
             "executionContractOk": true
           },
-          "notes": "queryPreAttnScalar fixed from 16 (sqrt(headDim)) to 256 (headDim). 768-dim embeddings, all finite, semantic retrieval test passed. Republished to HF 2026-03-14."
+          "notes": "Sentence-transformers embedding postprocessor is included in the artifact. Host verify on 2026-03-21 produced finite 768-dim unit-norm embeddings and matched local SafeTensors source parity on the 20 retrieval / 14 pair semantic suite (0.95 retrieval, 0.6429 pair). Republished to HF 2026-03-21."
         }
       },
       "vendorBenchmark": {
@@ -142,7 +142,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "a1430760bf14d90bf52c2c77f440c30983444f5d",
+        "revision": "f5698592e69b97c38f21c68e01db2216c2f40965",
         "path": "models/gemma-3-1b-it-q4k-ehf16-af32"
       },
       "baseUrl": null,
@@ -201,7 +201,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "10d8e53557e23c889aabb58a01a28cb38e88a2d2",
+        "revision": "f5698592e69b97c38f21c68e01db2216c2f40965",
         "path": "models/gemma-3-1b-it-f16-af32"
       },
       "baseUrl": null,
@@ -263,7 +263,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "fcfa75615ab882fe7028badb00001fde84cde460",
+        "revision": "f5698592e69b97c38f21c68e01db2216c2f40965",
         "path": "models/translategemma-4b-it-q4k-ehf16-af32"
       },
       "baseUrl": null,
@@ -322,7 +322,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "9014055385883b474356f7a508a2bbf40ee7f896",
+        "revision": "f5698592e69b97c38f21c68e01db2216c2f40965",
         "path": "models/translategemma-4b-1b-enes-q4k-ehf16-af32"
       },
       "baseUrl": null,
@@ -378,7 +378,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "575322f42b4e0e1bc3109e105962d996e4e946d5",
+        "revision": "f5698592e69b97c38f21c68e01db2216c2f40965",
         "path": "models/qwen-3-5-0-8b-q4k-ehaf16"
       },
       "baseUrl": null,
@@ -437,7 +437,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "22bb718e093adafd97408411159c16b9a46683de",
+        "revision": "f5698592e69b97c38f21c68e01db2216c2f40965",
         "path": "models/qwen-3-5-2b-q4k-ehaf16"
       },
       "baseUrl": null,
@@ -496,7 +496,7 @@
       "hf": {
         "repoId": "Clocksmith/rdrr",
         "path": "models/lfm2-5-1-2b-instruct-q4k-ehf16-af32",
-        "revision": "e2df695177fab885514152fa72598b781670dcdf"
+        "revision": "f5698592e69b97c38f21c68e01db2216c2f40965"
       },
       "baseUrl": null,
       "quickstart": false,

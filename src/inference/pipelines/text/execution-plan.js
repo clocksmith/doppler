@@ -327,3 +327,12 @@ export function isDecodeRecorderEnabled(config) {
     kvLayout: config.kvLayout ?? null,
   });
 }
+
+export function isProfileDecodeRecorderEnabled(config) {
+  return selectRuleValue('inference', 'execution', 'profileDecodeRecorderEnabled', {
+    hasDevice: config.hasDevice === true,
+    debug: config.debug === true,
+    disableCommandBatching: config.disableCommandBatching === true,
+    kvLayout: config.kvLayout ?? null,
+  });
+}

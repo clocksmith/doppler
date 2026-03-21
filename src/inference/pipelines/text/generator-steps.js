@@ -8,7 +8,11 @@ import { allowReadback } from '../../../gpu/perf-guards.js';
 import { getUniformCache } from '../../../gpu/uniform-cache.js';
 import { log } from '../../../debug/index.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
-import { isBatchDecodeEnabled, isDecodeRecorderEnabled } from './execution-plan.js';
+import {
+  isBatchDecodeEnabled,
+  isDecodeRecorderEnabled,
+  isProfileDecodeRecorderEnabled,
+} from './execution-plan.js';
 
 import { sample, applyRepetitionPenalty, logitsSanity, getTopK } from './sampling.js';
 import { isStopToken } from './init.js';
@@ -295,6 +299,55 @@ async function runDecodeLayers(state, tokenId, opts, helpers) {
   return { hiddenStates, decodeHiddenBuffer, decodeAltBuffer, debugCheckBuffer, context };
 }
 
+function createDecodeRecorder(state, opts) {
+  const device = getDevice();
+  const executionPlan = opts.executionPlan;
+  const recorderConfig = {
+    hasDevice: Boolean(device),
+    debug: opts.debug,
+    disableCommandBatching: executionPlan?.disableCommandBatching ?? opts.disableCommandBatching,
+    kvLayout: state.kvCache?.layout ?? null,
+  };
+  const recorderEnabled = opts.profile
+    ? isProfileDecodeRecorderEnabled(recorderConfig)
+    : isDecodeRecorderEnabled(recorderConfig);
+  let recorder;
+  if (recorderEnabled) {
+    recorder = opts.profile
+      ? createProfilingRecorder('decode')
+      : createCommandRecorder('decode');
+  }
+  if (state.decodeStepCount === 1) {
+    const path = selectRuleValue('inference', 'config', 'tracePath', { useRecorder: Boolean(recorder) });
+    log.debug('Decode', `Using ${path} path (recorder=${!!recorder}, debug=${opts.debug})`);
+  }
+  return recorder;
+}
+
+async function submitDecodeRecorderProfile(state, opts, recorder, profileLabel) {
+  if (!recorder) {
+    return;
+  }
+  await recorder.submitAndWait();
+
+  if (!opts.profile || !recorder.isProfilingEnabled()) {
+    return;
+  }
+
+  const timings = await recorder.resolveProfileTimings();
+  const total = sumProfileTimings(timings);
+  if (total !== null) {
+    state.stats.gpuTimeDecodeMs = (state.stats.gpuTimeDecodeMs ?? 0) + total;
+  }
+  if (timings) {
+    recordDecodeProfileStep(state, { step: state.decodeStepCount, timings, totalMs: total ?? undefined });
+    if (shouldLogProfileStep(state, state.decodeStepCount)) {
+      log.warn('Profile', `Decode step ${state.decodeStepCount}${profileLabel}:`);
+      log.warn('Profile', CommandRecorder.formatProfileReport(timings));
+    }
+  }
+}
+
 export async function decodeStep(state, currentIds, opts, helpers) {
   const lastToken = currentIds[currentIds.length - 1];
   const numTokens = 1;
@@ -311,23 +364,7 @@ export async function decodeStep(state, currentIds, opts, helpers) {
   }
 
   const device = getDevice();
-
-  let recorder;
-  const recorderEnabled = isDecodeRecorderEnabled({
-    hasDevice: Boolean(device),
-    debug: opts.debug,
-    disableCommandBatching: executionPlan?.disableCommandBatching ?? opts.disableCommandBatching,
-    kvLayout: state.kvCache?.layout ?? null,
-  });
-  if (recorderEnabled) {
-    recorder = opts.profile
-      ? createProfilingRecorder('decode')
-      : createCommandRecorder('decode');
-  }
-  if (state.decodeStepCount === 1) {
-    const path = selectRuleValue('inference', 'config', 'tracePath', { useRecorder: Boolean(recorder) });
-    log.debug('Decode', `Using ${path} path (recorder=${!!recorder}, debug=${opts.debug})`);
-  }
+  const recorder = createDecodeRecorder(state, opts);
 
   if (state.finitenessBuffer && device) {
     device.queue.writeBuffer(state.finitenessBuffer, 0, new Uint32Array([0, 0, 0, 0]));
@@ -589,24 +626,7 @@ export async function decodeStep(state, currentIds, opts, helpers) {
     return nextToken;
   }
 
-  if (recorder) {
-    await recorder.submitAndWait();
-
-    if (opts.profile && recorder.isProfilingEnabled()) {
-      const timings = await recorder.resolveProfileTimings();
-      const total = sumProfileTimings(timings);
-      if (total !== null) {
-        state.stats.gpuTimeDecodeMs = (state.stats.gpuTimeDecodeMs ?? 0) + total;
-      }
-      if (timings) {
-        recordDecodeProfileStep(state, { step: state.decodeStepCount, timings, totalMs: total ?? undefined });
-        if (shouldLogProfileStep(state, state.decodeStepCount)) {
-          log.warn('Profile', `Decode step ${state.decodeStepCount} (layers only):`);
-          log.warn('Profile', CommandRecorder.formatProfileReport(timings));
-        }
-      }
-    }
-  }
+  await submitDecodeRecorderProfile(state, opts, recorder, ' (layers only)');
 
   if (benchmarkSubmits) {
     logSubmitStats(`Decode step ${state.decodeStepCount} (${config.numLayers} layers)`);
@@ -727,13 +747,20 @@ export async function decodeStepLogits(state, currentIds, opts, helpers) {
   const config = state.modelConfig;
 
   state.decodeStepCount++;
+  const recorder = createDecodeRecorder(state, opts);
 
   const { hiddenStates, decodeHiddenBuffer, decodeAltBuffer, debugCheckBuffer } = await runDecodeLayers(
     state,
     lastToken,
     opts,
-    helpers
+    {
+      ...helpers,
+      buildLayerContext: (ignoredRecorder, isDecode, debugLayers, executionPlan) =>
+        helpers.buildLayerContext(recorder, isDecode, debugLayers, executionPlan),
+    }
   );
+
+  await submitDecodeRecorderProfile(state, opts, recorder, ' (layers only)');
 
   let logitsBuffer = null;
   let logitsDtype = null;

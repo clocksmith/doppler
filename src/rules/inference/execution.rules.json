@@ -11,6 +11,17 @@
     },
     { "match": {}, "value": false }
   ],
+  "profileDecodeRecorderEnabled": [
+    {
+      "match": {
+        "hasDevice": true,
+        "debug": false,
+        "kvLayout": { "neq": "bdpa_paged" }
+      },
+      "value": true
+    },
+    { "match": {}, "value": false }
+  ],
   "batchDecodeEnabled": [
     {
       "match": {

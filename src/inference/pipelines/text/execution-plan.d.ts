@@ -114,3 +114,10 @@ export declare function isDecodeRecorderEnabled(config: {
   disableCommandBatching: boolean;
   kvLayout?: string | null;
 }): boolean;
+
+export declare function isProfileDecodeRecorderEnabled(config: {
+  hasDevice: boolean;
+  debug: boolean;
+  disableCommandBatching: boolean;
+  kvLayout?: string | null;
+}): boolean;

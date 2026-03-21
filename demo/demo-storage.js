@@ -1068,6 +1068,79 @@ function getModelAvailability() {
   };
 }
 
+function createNoticeActionSegment(label, action = 'models') {
+  return {
+    type: 'action',
+    label,
+    action,
+  };
+}
+
+function createOpenModelsDetail(prefix = '', suffix = '') {
+  return [
+    ...(prefix ? [prefix] : []),
+    createNoticeActionSegment('Open Models'),
+    ...(suffix ? [suffix] : []),
+  ];
+}
+
+async function handleEmptyNoticeInlineAction(action) {
+  if (state.downloadActive) return;
+  if (action === 'models') {
+    await setUiMode('models');
+  }
+}
+
+function renderEmptyNoticeDetail(detailEl, detailValue) {
+  if (!detailEl) return;
+  detailEl.replaceChildren();
+
+  if (typeof detailValue === 'string') {
+    setText(detailEl, detailValue.trim());
+    return;
+  }
+
+  if (!Array.isArray(detailValue)) {
+    setText(detailEl, '');
+    return;
+  }
+
+  let hasContent = false;
+  for (const segment of detailValue) {
+    if (typeof segment === 'string') {
+      if (!segment) continue;
+      detailEl.appendChild(document.createTextNode(segment));
+      hasContent ||= segment.trim().length > 0;
+      continue;
+    }
+
+    if (!segment || segment.type !== 'action') continue;
+
+    const label = typeof segment.label === 'string' ? segment.label.trim() : '';
+    if (!label) continue;
+    const action = typeof segment.action === 'string' && segment.action.trim()
+      ? segment.action.trim()
+      : 'models';
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'model-empty-notice-inline-link';
+    button.textContent = label;
+    button.addEventListener('click', () => {
+      handleEmptyNoticeInlineAction(action).catch((error) => {
+        const message = error instanceof Error ? error.message : String(error);
+        updateConvertStatus(`Quick model action failed: ${message}`, 0);
+        updateDiagnosticsStatus(`Quick model action failed: ${message}`, true);
+      });
+    });
+    detailEl.appendChild(button);
+    hasContent = true;
+  }
+
+  if (!hasContent) {
+    detailEl.textContent = '';
+  }
+}
+
 function setEmptyNotice(scope, message) {
   const notice = $(`${scope}-empty-notice`);
   const kicker = $(`${scope}-empty-notice-kicker`);
@@ -1077,12 +1150,11 @@ function setEmptyNotice(scope, message) {
     ? message
     : null;
   const title = typeof normalized?.title === 'string' ? normalized.title.trim() : '';
-  const support = typeof normalized?.detail === 'string' ? normalized.detail.trim() : '';
   const kickerText = typeof normalized?.kicker === 'string' ? normalized.kicker.trim() : 'Setup required';
   setHidden(notice, title.length === 0);
   setText(kicker, title ? kickerText : '');
   setText(text, title);
-  setText(detail, support);
+  renderEmptyNoticeDetail(detail, normalized?.detail);
 }
 
 function setEmptyNoticeAction(scope, quickModelEntry) {
@@ -1137,43 +1209,46 @@ function getMissingModelMessage(mode, availability, quickModelEntry) {
       return hasQuickSuggestion
         ? createMissingModelNotice(
           'Import an embedding model to get started.',
-          'Or open Models to choose a different one.'
+          createOpenModelsDetail('', ' to choose a different one.')
         )
         : createMissingModelNotice(
           'Import an embedding model to get started.',
-          'Open Models to choose one that supports similarity and retrieval.'
+          createOpenModelsDetail('', ' to choose one that supports similarity and retrieval.')
         );
     }
     if (mode === 'translate') {
       return hasQuickSuggestion
         ? createMissingModelNotice(
           'Import a translation model to get started.',
-          'Or open Models to choose a different one.'
+          createOpenModelsDetail('', ' to choose a different one.')
         )
         : createMissingModelNotice(
           'Import a translation model to get started.',
-          'Open Models to choose one that supports translation.'
+          createOpenModelsDetail('', ' to choose one that supports translation.')
         );
     }
     if (mode === 'diffusion') {
       return hasQuickSuggestion
         ? createMissingModelNotice(
           'Import an image model to get started.',
-          'Or open Models to choose a different one.'
+          createOpenModelsDetail('', ' to choose a different one.')
         )
         : createMissingModelNotice(
           'Import an image model to get started.',
-          'Open Models to choose one that supports diffusion.'
+          createOpenModelsDetail('', ' to choose one that supports diffusion.')
         );
     }
     return hasQuickSuggestion
       ? createMissingModelNotice(
         'Import a text model to get started.',
-        'Or open Models to choose a different one.'
+        createOpenModelsDetail(
+          `Recommended default: ${quickModelEntry.sizeBytes ? `${quickModelEntry.label} (${formatBytes(quickModelEntry.sizeBytes)})` : quickModelEntry.label}. `,
+          ' to choose a different one.'
+        )
       )
       : createMissingModelNotice(
         'Import a text model to get started.',
-        'Open Models to choose one that supports text generation.'
+        createOpenModelsDetail('', ' to choose one that supports text generation.')
       );
   }
   const compatible = Number.isFinite(availability?.[mode]) ? availability[mode] : 0;
@@ -1181,24 +1256,36 @@ function getMissingModelMessage(mode, availability, quickModelEntry) {
   if (mode === 'embedding') {
     return createMissingModelNotice(
       'This mode needs an embedding model.',
-      'Your imported models do not support embedding yet. Import a compatible model to continue.'
+      createOpenModelsDetail(
+        'Your imported models do not support embedding yet. ',
+        ' to choose one that supports similarity and retrieval.'
+      )
     );
   }
   if (mode === 'translate') {
     return createMissingModelNotice(
       'This mode needs a translation model.',
-      'Your imported models do not support translation yet. Import a compatible model to continue.'
+      createOpenModelsDetail(
+        'Your imported models do not support translation yet. ',
+        ' to choose one that supports translation.'
+      )
     );
   }
   if (mode === 'diffusion') {
     return createMissingModelNotice(
       'This mode needs an image model.',
-      'Your imported models do not support diffusion yet. Import a compatible model to continue.'
+      createOpenModelsDetail(
+        'Your imported models do not support diffusion yet. ',
+        ' to choose one that supports diffusion.'
+      )
     );
   }
   return createMissingModelNotice(
     'This mode needs a text model.',
-    'Your imported models do not support text generation yet. Import a compatible model to continue.'
+    createOpenModelsDetail(
+      'Your imported models do not support text generation yet. ',
+      ' to choose one that supports text generation.'
+    )
   );
 }
 
@@ -1798,7 +1885,7 @@ const TRANSLATE_MODEL_HINTS = Object.freeze([
   'opus',
   'mt',
 ]);
-const DEMO_DEFAULT_TEXT_MODEL_ID = 'qwen-3-5-0-8b-q4k-ehaf16';
+const DEMO_DEFAULT_TEXT_MODEL_ID = 'gemma-3-270m-it-q4k-ehf16-af32';
 
 function getModelSelectionScore(mode, modelId) {
   const normalizedMode = normalizeDeepLinkMode(mode, 'run');
@@ -1807,10 +1894,11 @@ function getModelSelectionScore(mode, modelId) {
 
   if (normalizedMode === 'run') {
     if (id === DEMO_DEFAULT_TEXT_MODEL_ID) score += 200;
-    else if (id.includes('qwen-3-5-0-8b')) score += 120;
-    else if (id.includes('qwen-3-5')) score += 90;
-    else if (id.includes('gemma-3')) score += 50;
-    else if (id.includes('gemma')) score += 25;
+    else if (id.includes('gemma-3-270m')) score += 140;
+    else if (id.includes('gemma-3')) score += 110;
+    else if (id.includes('gemma')) score += 70;
+    else if (id.includes('qwen-3-5-0-8b')) score += 50;
+    else if (id.includes('qwen-3-5')) score += 30;
   }
 
   if (normalizedMode === 'translate') {

@@ -11,9 +11,13 @@ import {
   const artifact = getInferenceExecutionRulesContractArtifact();
   assert.equal(artifact.ok, true);
   assert.equal(artifact.stats.decodeRecorderContexts, 24);
+  assert.equal(artifact.stats.profileDecodeRecorderContexts, 24);
   assert.equal(artifact.stats.batchDecodeContexts, 128);
   assert.ok(
     artifact.checks.some((entry) => entry.id === 'inference.execution.decodeRecorderEnabled.semantics' && entry.ok)
+  );
+  assert.ok(
+    artifact.checks.some((entry) => entry.id === 'inference.execution.profileDecodeRecorderEnabled.semantics' && entry.ok)
   );
   assert.ok(
     artifact.checks.some((entry) => entry.id === 'inference.execution.batchDecodeEnabled.semantics' && entry.ok)
@@ -29,6 +33,17 @@ import {
           debug: false,
           disableCommandBatching: false,
           kvLayout: { neq: 'paged' },
+        },
+        value: true,
+      },
+      { match: {}, value: false },
+    ],
+    profileDecodeRecorderEnabled: [
+      {
+        match: {
+          hasDevice: true,
+          debug: false,
+          kvLayout: { neq: 'bdpa_paged' },
         },
         value: true,
       },
@@ -73,6 +88,17 @@ import {
       },
       { match: {}, value: false },
     ],
+    profileDecodeRecorderEnabled: [
+      {
+        match: {
+          hasDevice: true,
+          debug: false,
+          kvLayout: { neq: 'paged' },
+        },
+        value: true,
+      },
+      { match: {}, value: false },
+    ],
     batchDecodeEnabled: [
       {
         match: {
@@ -93,7 +119,7 @@ import {
   assert.equal(artifact.ok, false);
   assert.ok(
     artifact.errors.some((message) =>
-      message.includes('batchDecodeEnabled mismatched context')
+      message.includes('profileDecodeRecorderEnabled first rule drifted')
     )
   );
 }

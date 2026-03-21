@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-03-18",
+  "updatedAt": "2026-03-21",
   "claims": [
     {
       "modelId": "gemma-3-1b-it-f16-af32",
@@ -41,12 +41,12 @@
     {
       "modelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
       "mode": "embedding",
-      "surface": ["auto"],
-      "verificationSource": "registry-verify",
-      "lastVerifiedAt": "2026-03-13",
+      "surface": ["node"],
+      "verificationSource": "runtime-verify",
+      "lastVerifiedAt": "2026-03-21",
       "artifactFormat": "rdrr",
       "evidence": {
-        "kind": "registry-verify"
+        "kind": "runtime-verify"
       }
     },
     {
