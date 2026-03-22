@@ -46,7 +46,7 @@
   },
 
   "preLayer": [
-    { "op": "embed",           "kernel": "gather_f16.wgsl",                     "entry": "main",  "weights": "embed_tokens" }
+    { "op": "embed",           "kernel": "gather.wgsl",                         "entry": "main",  "weights": "embed_tokens" }
   ],
 
   "postLayer": [

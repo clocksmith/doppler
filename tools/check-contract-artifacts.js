@@ -11,6 +11,7 @@ import {
   getInferenceLayerPatternContractArtifact,
 } from '../src/rules/rule-registry.js';
 import { buildSummary, loadConversionReports } from './summarize-conversion-reports.js';
+import { buildKernelPathBuilderContractArtifact } from './sync-kernel-path-builder-index.js';
 import { runSweep as runLeanExecutionContractManifestSweep } from './lean-execution-contract-sweep.js';
 import { runSweep as runLeanExecutionContractConfigSweep } from './lean-execution-contract-config-sweep.js';
 
@@ -120,6 +121,7 @@ async function buildContractSummary(args) {
     summarizeArtifact('merge', buildMergeContractArtifact()),
     summarizeArtifact('quantization', buildQuantizationContractArtifact()),
     summarizeArtifact('requiredInferenceFields', buildRequiredInferenceFieldsContractArtifact()),
+    summarizeArtifact('kernelPathBuilder', await buildKernelPathBuilderContractArtifact()),
   ];
   let lean = null;
   if (args.withLean) {

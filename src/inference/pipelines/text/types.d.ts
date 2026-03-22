@@ -556,6 +556,46 @@ export interface PipelineStats {
   decodeSubmitWaitMs?: number;
   decodeReadbackWaitMs?: number;
   decodeRing?: DecodeRingStats | null;
+  executionPlan?: {
+    primary: {
+      id: string;
+      kernelPathId: string | null;
+      kernelPathSource: string;
+      activationDtype: string;
+      readbackInterval: number | null;
+      batchSize: number;
+      stopCheckMode: string;
+      ringTokens: number | null;
+      ringStop: number | null;
+      ringStaging: number | null;
+    } | null;
+    fallback: {
+      id: string;
+      kernelPathId: string | null;
+      kernelPathSource: string;
+      activationDtype: string;
+      readbackInterval: number | null;
+      batchSize: number;
+      stopCheckMode: string;
+      ringTokens: number | null;
+      ringStop: number | null;
+      ringStaging: number | null;
+    } | null;
+    activePlanIdAtStart: string | null;
+    finalActivePlanId: string | null;
+    transitions: Array<{
+      kind: string;
+      reason: string | null;
+      decodeStep: number;
+      seqLen: number;
+      fromPlanId: string | null;
+      toPlanId: string | null;
+      fromKernelPathId: string | null;
+      toKernelPathId: string | null;
+    }>;
+  } | null;
+  kernelPathId?: string | null;
+  kernelPathSource?: string | null;
   decodeProfileSteps?: Array<{
     step?: number;
     stepStart?: number;

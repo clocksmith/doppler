@@ -20,6 +20,11 @@ export declare function buildInlineKernelPath(
   finitenessFallbackKernelPathId?: string | null
 ): Record<string, unknown> | null;
 
+export declare function assertKernelPathSessionCompatibility(
+  path: Record<string, unknown> | null | undefined,
+  sessionDefaults: Record<string, unknown> | null | undefined
+): void;
+
 export declare function buildLayerPipelineFromExecution(
   steps: readonly Record<string, unknown>[]
 ): { steps: Record<string, unknown>[]; overrides: unknown[] } | { incompatibleOps: string[] } | null;

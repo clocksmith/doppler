@@ -122,6 +122,24 @@ function resolveTokenText(tokenizer, tokenIds, fallbackText = '?', renderTokenTe
   return fallbackText;
 }
 
+function summarizeExecutionPlan(plan) {
+  if (!plan) {
+    return null;
+  }
+  return {
+    id: plan.id,
+    kernelPathId: plan.kernelPathId ?? null,
+    kernelPathSource: plan.kernelPathSource ?? 'none',
+    activationDtype: plan.activationDtype,
+    readbackInterval: plan.readbackInterval ?? null,
+    batchSize: plan.defaultBatchSize,
+    stopCheckMode: plan.defaultStopCheckMode,
+    ringTokens: plan.ringTokens ?? null,
+    ringStop: plan.ringStop ?? null,
+    ringStaging: plan.ringStaging ?? null,
+  };
+}
+
 export function shouldRetryWithFinitenessFallback(error) {
   if (error?.name === 'FinitenessError') {
     return true;
@@ -318,6 +336,16 @@ export class PipelineGenerator {
     const startTime = performance.now();
 
     const opts = resolveGenerateOptions(this.#state, options);
+    const activePlan = opts.executionPlan ?? resolveActiveExecutionPlan(this.#state);
+    this.#state.stats.executionPlan = {
+      primary: summarizeExecutionPlan(this.#state.executionPlanState?.primaryPlan ?? null),
+      fallback: summarizeExecutionPlan(this.#state.executionPlanState?.fallbackPlan ?? null),
+      activePlanIdAtStart: activePlan?.id ?? null,
+      finalActivePlanId: activePlan?.id ?? null,
+      transitions: [],
+    };
+    this.#state.stats.kernelPathId = activePlan?.kernelPathId ?? this.#state.resolvedKernelPath?.id ?? null;
+    this.#state.stats.kernelPathSource = activePlan?.kernelPathSource ?? this.#state.kernelPathSource ?? 'none';
 
     if (opts.debug) {
       log.debug('Pipeline', `ChatTemplate: options=${options.useChatTemplate}, final=${opts.useChatTemplate}`);
@@ -478,6 +506,21 @@ export class PipelineGenerator {
       opts.seed = (fallbackSeedBase * 2654435761) >>> 0;
     }
     opts.executionPlan = rebaseExecutionSessionPlan(this.#state, opts.executionPlan);
+    if (this.#state.stats.executionPlan) {
+      this.#state.stats.executionPlan.finalActivePlanId = fallbackPlan.id;
+      this.#state.stats.executionPlan.transitions.push({
+        kind: 'activate-finiteness-fallback',
+        reason: reasonLabel ?? null,
+        decodeStep: this.#state.decodeStepCount,
+        seqLen: this.#state.currentSeqLen,
+        fromPlanId: originalPlan.id,
+        toPlanId: fallbackPlan.id,
+        fromKernelPathId: originalPlan.kernelPathId ?? null,
+        toKernelPathId: fallbackPlan.kernelPathId ?? null,
+      });
+    }
+    this.#state.stats.kernelPathId = fallbackPlan.kernelPathId ?? null;
+    this.#state.stats.kernelPathSource = fallbackPlan.kernelPathSource ?? 'none';
 
     return original;
   }
@@ -486,6 +529,22 @@ export class PipelineGenerator {
     opts.seed = original.seed;
     setActiveExecutionPlan(this.#state, original.activePlanId);
     opts.executionPlan = rebaseExecutionSessionPlan(this.#state, opts.executionPlan);
+    const restoredPlan = resolveActiveExecutionPlan(this.#state);
+    if (this.#state.stats.executionPlan) {
+      this.#state.stats.executionPlan.finalActivePlanId = restoredPlan.id;
+      this.#state.stats.executionPlan.transitions.push({
+        kind: 'restore-primary-plan',
+        reason: null,
+        decodeStep: this.#state.decodeStepCount,
+        seqLen: this.#state.currentSeqLen,
+        fromPlanId: this.#state.executionPlanState?.fallbackPlan?.id ?? null,
+        toPlanId: restoredPlan.id,
+        fromKernelPathId: this.#state.executionPlanState?.fallbackPlan?.kernelPathId ?? null,
+        toKernelPathId: restoredPlan.kernelPathId ?? null,
+      });
+    }
+    this.#state.stats.kernelPathId = restoredPlan.kernelPathId ?? this.#state.resolvedKernelPath?.id ?? null;
+    this.#state.stats.kernelPathSource = restoredPlan.kernelPathSource ?? this.#state.kernelPathSource ?? 'none';
     const nextActivationDtype = this._getEffectiveActivationDtype();
     this.#state.decodeBuffers?.ensureBuffers({
       hiddenSize: this.#state.modelConfig.hiddenSize,
@@ -631,6 +690,9 @@ export class PipelineGenerator {
       };
     } finally {
       this._closeFinitenessFallbackWindow(opts);
+      if (this.#state.stats.executionPlan) {
+        this.#state.stats.executionPlan.finalActivePlanId = this.#state.executionPlanState?.activePlanId ?? null;
+      }
       resetActiveExecutionPlan(this.#state);
       this.#state.isGenerating = false;
     }

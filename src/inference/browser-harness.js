@@ -454,6 +454,9 @@ async function runInferenceSuite(options = {}) {
       modelLoadMs: safeModelLoadMs,
       gpu: run.phase.gpu,
       decodeProfileSteps: run.phase.decodeProfileSteps,
+      executionPlan: run.phase.executionPlan,
+      kernelPathId: run.phase.kernelPathId,
+      kernelPathSource: run.phase.kernelPathSource,
       generationDiagnostics: run.tokenDiagnostics,
     };
   }

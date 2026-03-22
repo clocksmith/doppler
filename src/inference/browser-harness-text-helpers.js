@@ -842,6 +842,9 @@ export async function runGeneration(pipeline, runtimeConfig, runOverrides = null
       decodeTokensPerSec,
       gpu: gpuPhase,
       decodeProfileSteps,
+      executionPlan: stats.executionPlan ?? null,
+      kernelPathId: stats.kernelPathId ?? null,
+      kernelPathSource: stats.kernelPathSource ?? null,
     },
   };
 }

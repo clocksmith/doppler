@@ -84,7 +84,7 @@ function getInlineKernelPathSteps(path) {
   ];
 }
 
-function assertInlineKernelPathSessionCompatibility(path, sessionDefaults) {
+export function assertKernelPathSessionCompatibility(path, sessionDefaults) {
   if (!path) {
     return;
   }
@@ -214,7 +214,7 @@ export function buildInlineKernelPath(
     path.sampling = sampling;
   }
 
-  assertInlineKernelPathSessionCompatibility(path, sessionDefaults);
+  assertKernelPathSessionCompatibility(path, sessionDefaults);
   return path;
 }
 

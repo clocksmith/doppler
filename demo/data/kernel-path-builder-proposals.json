@@ -1,0 +1,4434 @@
+{
+  "schemaVersion": 1,
+  "artifactKind": "kernel-path-proposals",
+  "source": "kernel-path-builder",
+  "stats": {
+    "proposals": 12,
+    "verified": 8,
+    "unverified": 4,
+    "newKernelPaths": 8,
+    "existingKernelPaths": 4
+  },
+  "proposals": [
+    {
+      "modelId": "gemma-3-1b-it-f16-af32",
+      "actualLowering": "inline-kernel-path",
+      "sources": [
+        {
+          "sourceKind": "conversion-config",
+          "sourcePath": "src/config/conversion/gemma3/gemma-3-1b-it-f16-af32.json",
+          "sourceLabel": "Conversion config"
+        }
+      ],
+      "exactKernelPathIds": [
+        "gemma3-f16-fused-f32a-online",
+        "gemma3-q4k-dequant-f32a-small-attn"
+      ],
+      "proposal": {
+        "kind": "existing",
+        "selectedKernelPathId": "gemma3-f16-fused-f32a-online",
+        "path": {
+          "id": "gemma3-f16-fused-f32a-online",
+          "name": "Gemma 3 F16 (F32 activations, online)",
+          "description": "F16 weights with F32 activations, online decode attention, and explicit gate/up matmul kernel overrides.",
+          "activationDtype": "f32",
+          "kvDtype": "f16",
+          "decode": {
+            "steps": [
+              {
+                "op": "input_norm",
+                "kernel": "rmsnorm.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "q_proj",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "entry": "main_vec4",
+                "weights": "layer.{L}.self_attn.q_proj"
+              },
+              {
+                "op": "k_proj",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "entry": "main_vec4",
+                "weights": "layer.{L}.self_attn.k_proj"
+              },
+              {
+                "op": "v_proj",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "entry": "main_vec4",
+                "weights": "layer.{L}.self_attn.v_proj"
+              },
+              {
+                "op": "rope_q",
+                "kernel": "rope.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "rope_k",
+                "kernel": "rope.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "attention",
+                "kernel": "attention_decode_online_f16kv.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "o_proj",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "entry": "main_vec4",
+                "weights": "layer.{L}.self_attn.o_proj"
+              },
+              {
+                "op": "attn_residual",
+                "kernel": "residual.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "post_attn_norm",
+                "kernel": "rmsnorm.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "gate_proj",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "entry": "main_vec4",
+                "weights": "layer.{L}.mlp.gate_proj"
+              },
+              {
+                "op": "up_proj",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "entry": "main_vec4",
+                "weights": "layer.{L}.mlp.up_proj"
+              },
+              {
+                "op": "activation",
+                "kernel": "gelu.wgsl",
+                "entry": "main",
+                "constants": {
+                  "HAS_GATE": true
+                }
+              },
+              {
+                "op": "down_proj",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "entry": "main_vec4",
+                "weights": "layer.{L}.mlp.down_proj"
+              },
+              {
+                "op": "ffn_residual",
+                "kernel": "residual.wgsl",
+                "entry": "main"
+              }
+            ]
+          },
+          "prefill": {
+            "steps": [
+              {
+                "op": "input_norm",
+                "kernel": "rmsnorm.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "q_proj",
+                "kernel": "matmul_f16w_f32a_tiled.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.self_attn.q_proj"
+              },
+              {
+                "op": "k_proj",
+                "kernel": "matmul_f16w_f32a_tiled.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.self_attn.k_proj"
+              },
+              {
+                "op": "v_proj",
+                "kernel": "matmul_f16w_f32a_tiled.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.self_attn.v_proj"
+              },
+              {
+                "op": "rope_q",
+                "kernel": "rope.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "rope_k",
+                "kernel": "rope.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "attention",
+                "kernel": "attention_small_f16kv.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "o_proj",
+                "kernel": "matmul_f16w_f32a_tiled.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.self_attn.o_proj"
+              },
+              {
+                "op": "attn_residual",
+                "kernel": "residual.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "post_attn_norm",
+                "kernel": "rmsnorm.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "gate_proj",
+                "kernel": "matmul_f16w_f32a_tiled.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.mlp.gate_proj"
+              },
+              {
+                "op": "up_proj",
+                "kernel": "matmul_f16w_f32a_tiled.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.mlp.up_proj"
+              },
+              {
+                "op": "activation",
+                "kernel": "gelu.wgsl",
+                "entry": "main",
+                "constants": {
+                  "HAS_GATE": true
+                }
+              },
+              {
+                "op": "down_proj",
+                "kernel": "matmul_f16w_f32a_tiled.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.mlp.down_proj"
+              },
+              {
+                "op": "ffn_residual",
+                "kernel": "residual.wgsl",
+                "entry": "main"
+              }
+            ]
+          },
+          "preLayer": [
+            {
+              "op": "embed",
+              "kernel": "gather.wgsl",
+              "entry": "main",
+              "weights": "embed_tokens"
+            }
+          ],
+          "postLayer": [
+            {
+              "op": "final_norm",
+              "kernel": "rmsnorm.wgsl",
+              "entry": "main"
+            },
+            {
+              "op": "lm_head",
+              "kernel": "matmul_gemv_subgroup.wgsl",
+              "entry": "main_multicol",
+              "weights": "lm_head",
+              "constants": {
+                "MULTICOL_COLS_PER_WG": 64,
+                "MULTICOL_THREADS_PER_COL": 4
+              }
+            },
+            {
+              "op": "lm_head_prefill",
+              "kernel": "matmul_f16w_f32a_tiled.wgsl",
+              "entry": "main",
+              "weights": "lm_head"
+            }
+          ],
+          "sampling": [
+            {
+              "op": "sample",
+              "kernel": "sample.wgsl",
+              "entry": "sample_single_pass"
+            }
+          ]
+        },
+        "verification": {
+          "ok": true,
+          "checks": [
+            {
+              "id": "kernelPathContract",
+              "ok": true
+            },
+            {
+              "id": "sessionCompatibility",
+              "ok": true
+            },
+            {
+              "id": "roundTripShape",
+              "ok": true
+            },
+            {
+              "id": "executionPlanCompile",
+              "ok": true
+            }
+          ],
+          "errors": [],
+          "roundTripShapeMatches": true,
+          "compiledPlan": {
+            "primaryPlanId": "primary",
+            "primaryKernelPathId": "gemma3-f16-fused-f32a-online",
+            "primaryActivationDtype": "f32",
+            "fallbackPlanId": null,
+            "fallbackKernelPathId": null
+          }
+        }
+      },
+      "closestMatches": [
+        {
+          "id": "gemma3-f16-fused-f32a-online",
+          "status": "experimental",
+          "statusReason": "benchmark-probe",
+          "notes": "Experimental fused F32 pipeline variant for fast decode.",
+          "mismatchCount": 0,
+          "mismatchReasons": [],
+          "mismatchDetails": [],
+          "exact": true,
+          "activationDtype": "f32",
+          "kvDtype": "f16",
+          "familyMatch": true,
+          "quantizationMatch": true
+        },
+        {
+          "id": "gemma3-q4k-dequant-f32a-small-attn",
+          "status": "experimental",
+          "statusReason": "diagnostic-probe",
+          "notes": "Diagnostic: same as gemma3-q4k-dequant-f32a-online but uses attention_small_f16kv.wgsl for prefill to isolate streaming attention bug.",
+          "mismatchCount": 0,
+          "mismatchReasons": [],
+          "mismatchDetails": [],
+          "exact": true,
+          "activationDtype": "f32",
+          "kvDtype": "f16",
+          "familyMatch": true,
+          "quantizationMatch": false
+        },
+        {
+          "id": "gemma3-f16-fused-f32a-online-streamingprefill",
+          "status": "experimental",
+          "statusReason": "stability-probe",
+          "notes": "Gemma 3 F16/F32 online path with streaming prefill attention instead of the small-tile prefill kernel.",
+          "mismatchCount": 1,
+          "mismatchReasons": [
+            "prefill kernels assume different device capabilities."
+          ],
+          "mismatchDetails": [
+            {
+              "code": "capability_drift",
+              "category": "capability",
+              "label": "prefill kernels assume different device capabilities.",
+              "repairHint": "Choose a registry path whose subgroup and attention-kernel assumptions match the execution graph, or synthesize a new path id for this capability mix.",
+              "phase": "prefill"
+            }
+          ],
+          "exact": false,
+          "activationDtype": "f32",
+          "kvDtype": "f16",
+          "familyMatch": true,
+          "quantizationMatch": true
+        }
+      ],
+      "customRuntimeFacts": []
+    },
+    {
+      "modelId": "gemma-3-1b-it-q4k-ehf16-af32",
+      "actualLowering": "inline-kernel-path",
+      "sources": [
+        {
+          "sourceKind": "conversion-config",
+          "sourcePath": "src/config/conversion/gemma3/gemma-3-1b-it-q4k-ehf16-af32.json",
+          "sourceLabel": "Conversion config"
+        }
+      ],
+      "exactKernelPathIds": [],
+      "proposal": {
+        "kind": "proposed",
+        "selectedKernelPathId": null,
+        "path": {
+          "id": "gemma3-q4k-dequant-f32a-online",
+          "name": "Derived kernel path for gemma-3-1b-it-q4k-ehf16-af32",
+          "description": "Generated from gemma-3-1b-it-q4k-ehf16-af32 execution-v1 graph.",
+          "activationDtype": "f32",
+          "kvDtype": "f16",
+          "decode": {
+            "steps": [
+              {
+                "entry": "main",
+                "kernel": "rmsnorm.wgsl",
+                "op": "input_norm"
+              },
+              {
+                "entry": "main_vec4",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "op": "q_proj",
+                "weights": "layer.{L}.self_attn.q_proj"
+              },
+              {
+                "entry": "main_vec4",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "op": "k_proj",
+                "weights": "layer.{L}.self_attn.k_proj"
+              },
+              {
+                "entry": "main_vec4",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "op": "v_proj",
+                "weights": "layer.{L}.self_attn.v_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "rope.wgsl",
+                "op": "rope_q"
+              },
+              {
+                "entry": "main",
+                "kernel": "rope.wgsl",
+                "op": "rope_k"
+              },
+              {
+                "entry": "main",
+                "kernel": "attention_decode_online_f16kv.wgsl",
+                "op": "attention"
+              },
+              {
+                "entry": "main_vec4",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "op": "o_proj",
+                "weights": "layer.{L}.self_attn.o_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "residual.wgsl",
+                "op": "attn_residual"
+              },
+              {
+                "entry": "main",
+                "kernel": "rmsnorm.wgsl",
+                "op": "post_attn_norm"
+              },
+              {
+                "entry": "main_vec4",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "op": "gate_proj",
+                "weights": "layer.{L}.mlp.gate_proj"
+              },
+              {
+                "entry": "main_vec4",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "op": "up_proj",
+                "weights": "layer.{L}.mlp.up_proj"
+              },
+              {
+                "constants": {
+                  "HAS_GATE": true
+                },
+                "entry": "main",
+                "kernel": "gelu.wgsl",
+                "op": "activation"
+              },
+              {
+                "entry": "main_vec4",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "op": "down_proj",
+                "weights": "layer.{L}.mlp.down_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "residual.wgsl",
+                "op": "ffn_residual"
+              }
+            ]
+          },
+          "prefill": {
+            "steps": [
+              {
+                "entry": "main",
+                "kernel": "rmsnorm.wgsl",
+                "op": "input_norm"
+              },
+              {
+                "entry": "main",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "op": "q_proj",
+                "weights": "layer.{L}.self_attn.q_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "op": "k_proj",
+                "weights": "layer.{L}.self_attn.k_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "op": "v_proj",
+                "weights": "layer.{L}.self_attn.v_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "rope.wgsl",
+                "op": "rope_q"
+              },
+              {
+                "entry": "main",
+                "kernel": "rope.wgsl",
+                "op": "rope_k"
+              },
+              {
+                "entry": "main",
+                "kernel": "attention_streaming_f16kv.wgsl",
+                "op": "attention"
+              },
+              {
+                "entry": "main",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "op": "o_proj",
+                "weights": "layer.{L}.self_attn.o_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "residual.wgsl",
+                "op": "attn_residual"
+              },
+              {
+                "entry": "main",
+                "kernel": "rmsnorm.wgsl",
+                "op": "post_attn_norm"
+              },
+              {
+                "entry": "main",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "op": "gate_proj",
+                "weights": "layer.{L}.mlp.gate_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "op": "up_proj",
+                "weights": "layer.{L}.mlp.up_proj"
+              },
+              {
+                "constants": {
+                  "HAS_GATE": true
+                },
+                "entry": "main",
+                "kernel": "gelu.wgsl",
+                "op": "activation"
+              },
+              {
+                "entry": "main",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "op": "down_proj",
+                "weights": "layer.{L}.mlp.down_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "residual.wgsl",
+                "op": "ffn_residual"
+              }
+            ]
+          },
+          "preLayer": [
+            {
+              "entry": "main",
+              "kernel": "gather_f16.wgsl",
+              "op": "embed",
+              "weights": "embed_tokens"
+            }
+          ],
+          "postLayer": [
+            {
+              "entry": "main",
+              "kernel": "rmsnorm.wgsl",
+              "op": "final_norm"
+            },
+            {
+              "constants": {
+                "MULTICOL_COLS_PER_WG": 64,
+                "MULTICOL_THREADS_PER_COL": 4
+              },
+              "entry": "main_multicol",
+              "kernel": "matmul_gemv_subgroup.wgsl",
+              "op": "lm_head",
+              "weights": "lm_head"
+            },
+            {
+              "entry": "main",
+              "kernel": "matmul_f16w_f32a.wgsl",
+              "op": "lm_head_prefill",
+              "weights": "lm_head"
+            }
+          ],
+          "sampling": [
+            {
+              "entry": "sample_single_pass",
+              "kernel": "sample.wgsl",
+              "op": "sample"
+            }
+          ]
+        },
+        "verification": {
+          "ok": true,
+          "checks": [
+            {
+              "id": "kernelPathContract",
+              "ok": true
+            },
+            {
+              "id": "sessionCompatibility",
+              "ok": true
+            },
+            {
+              "id": "roundTripShape",
+              "ok": true
+            },
+            {
+              "id": "executionPlanCompile",
+              "ok": true
+            }
+          ],
+          "errors": [],
+          "roundTripShapeMatches": true,
+          "compiledPlan": {
+            "primaryPlanId": "primary",
+            "primaryKernelPathId": "gemma3-q4k-dequant-f32a-online",
+            "primaryActivationDtype": "f32",
+            "fallbackPlanId": null,
+            "fallbackKernelPathId": null
+          }
+        }
+      },
+      "closestMatches": [
+        {
+          "id": "gemma3-q4k-dequant-f32a-online",
+          "status": "canonical",
+          "statusReason": "default",
+          "notes": "Gemma 3 Q4K dequant default: subgroup GEMV + online attention + tuned lm_head multicol, F32 activations.",
+          "mismatchCount": 2,
+          "mismatchReasons": [
+            "prefill steps differ.",
+            "postLayer steps differ."
+          ],
+          "mismatchDetails": [
+            {
+              "code": "prefill_drift",
+              "category": "shape",
+              "label": "prefill steps differ.",
+              "repairHint": "Update the prefill steps to match the resolved execution graph step-for-step.",
+              "phase": "prefill"
+            },
+            {
+              "code": "postLayer_drift",
+              "category": "shape",
+              "label": "postLayer steps differ.",
+              "repairHint": "Update the postLayer steps to match the resolved execution graph step-for-step.",
+              "phase": "postLayer"
+            }
+          ],
+          "exact": false,
+          "activationDtype": "f32",
+          "kvDtype": "f16",
+          "familyMatch": true,
+          "quantizationMatch": true
+        },
+        {
+          "id": "gemma3-q4k-dequant-f32w-f32a-online",
+          "status": "experimental",
+          "statusReason": "accuracy-probe",
+          "notes": "Gemma 3 Q4K dequant path that keeps matmul weights in F32 and runs F32 matmul kernels for numeric-sensitivity debugging.",
+          "mismatchCount": 2,
+          "mismatchReasons": [
+            "decode kernels assume different device capabilities.",
+            "prefill steps differ."
+          ],
+          "mismatchDetails": [
+            {
+              "code": "capability_drift",
+              "category": "capability",
+              "label": "decode kernels assume different device capabilities.",
+              "repairHint": "Choose a registry path whose subgroup and attention-kernel assumptions match the execution graph, or synthesize a new path id for this capability mix.",
+              "phase": "decode"
+            },
+            {
+              "code": "prefill_drift",
+              "category": "shape",
+              "label": "prefill steps differ.",
+              "repairHint": "Update the prefill steps to match the resolved execution graph step-for-step.",
+              "phase": "prefill"
+            }
+          ],
+          "exact": false,
+          "activationDtype": "f32",
+          "kvDtype": "f16",
+          "familyMatch": true,
+          "quantizationMatch": true
+        },
+        {
+          "id": "lfm2-q4k-dequant-f32a-online",
+          "status": "canonical",
+          "statusReason": "default",
+          "notes": "LFM2 Q4K default: subgroup GEMV decode with tiled fast-prefill path and F32 activations.",
+          "mismatchCount": 2,
+          "mismatchReasons": [
+            "prefill kernels assume different device capabilities.",
+            "postLayer steps differ."
+          ],
+          "mismatchDetails": [
+            {
+              "code": "capability_drift",
+              "category": "capability",
+              "label": "prefill kernels assume different device capabilities.",
+              "repairHint": "Choose a registry path whose subgroup and attention-kernel assumptions match the execution graph, or synthesize a new path id for this capability mix.",
+              "phase": "prefill"
+            },
+            {
+              "code": "postLayer_drift",
+              "category": "shape",
+              "label": "postLayer steps differ.",
+              "repairHint": "Update the postLayer steps to match the resolved execution graph step-for-step.",
+              "phase": "postLayer"
+            }
+          ],
+          "exact": false,
+          "activationDtype": "f32",
+          "kvDtype": "f16",
+          "familyMatch": false,
+          "quantizationMatch": true
+        }
+      ],
+      "customRuntimeFacts": []
+    },
+    {
+      "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
+      "actualLowering": "inline-kernel-path",
+      "sources": [
+        {
+          "sourceKind": "conversion-config",
+          "sourcePath": "src/config/conversion/gemma3/gemma-3-270m-it-q4k-ehf16-af32.json",
+          "sourceLabel": "Conversion config"
+        }
+      ],
+      "exactKernelPathIds": [
+        "gemma3-q4k-dequant-f32a-small-attn",
+        "gemma3-f16-fused-f32a-online"
+      ],
+      "proposal": {
+        "kind": "existing",
+        "selectedKernelPathId": "gemma3-q4k-dequant-f32a-small-attn",
+        "path": {
+          "id": "gemma3-q4k-dequant-f32a-small-attn",
+          "name": "Gemma 3 Q4K Dequant (F32 activations, small-attn prefill)",
+          "description": "Q4K dequantized to F16 with F32 activations. Same as gemma3-q4k-dequant-f32a-online but uses attention_small_f16kv.wgsl for prefill (diagnostic variant).",
+          "activationDtype": "f32",
+          "kvDtype": "f16",
+          "decode": {
+            "steps": [
+              {
+                "op": "input_norm",
+                "kernel": "rmsnorm.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "q_proj",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "entry": "main_vec4",
+                "weights": "layer.{L}.self_attn.q_proj"
+              },
+              {
+                "op": "k_proj",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "entry": "main_vec4",
+                "weights": "layer.{L}.self_attn.k_proj"
+              },
+              {
+                "op": "v_proj",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "entry": "main_vec4",
+                "weights": "layer.{L}.self_attn.v_proj"
+              },
+              {
+                "op": "rope_q",
+                "kernel": "rope.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "rope_k",
+                "kernel": "rope.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "attention",
+                "kernel": "attention_decode_online_f16kv.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "o_proj",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "entry": "main_vec4",
+                "weights": "layer.{L}.self_attn.o_proj"
+              },
+              {
+                "op": "attn_residual",
+                "kernel": "residual.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "post_attn_norm",
+                "kernel": "rmsnorm.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "gate_proj",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "entry": "main_vec4",
+                "weights": "layer.{L}.mlp.gate_proj"
+              },
+              {
+                "op": "up_proj",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "entry": "main_vec4",
+                "weights": "layer.{L}.mlp.up_proj"
+              },
+              {
+                "op": "activation",
+                "kernel": "gelu.wgsl",
+                "entry": "main",
+                "constants": {
+                  "HAS_GATE": true
+                }
+              },
+              {
+                "op": "down_proj",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "entry": "main_vec4",
+                "weights": "layer.{L}.mlp.down_proj"
+              },
+              {
+                "op": "ffn_residual",
+                "kernel": "residual.wgsl",
+                "entry": "main"
+              }
+            ]
+          },
+          "prefill": {
+            "steps": [
+              {
+                "op": "input_norm",
+                "kernel": "rmsnorm.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "q_proj",
+                "kernel": "matmul_f16w_f32a_tiled.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.self_attn.q_proj"
+              },
+              {
+                "op": "k_proj",
+                "kernel": "matmul_f16w_f32a_tiled.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.self_attn.k_proj"
+              },
+              {
+                "op": "v_proj",
+                "kernel": "matmul_f16w_f32a_tiled.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.self_attn.v_proj"
+              },
+              {
+                "op": "rope_q",
+                "kernel": "rope.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "rope_k",
+                "kernel": "rope.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "attention",
+                "kernel": "attention_small_f16kv.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "o_proj",
+                "kernel": "matmul_f16w_f32a_tiled.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.self_attn.o_proj"
+              },
+              {
+                "op": "attn_residual",
+                "kernel": "residual.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "post_attn_norm",
+                "kernel": "rmsnorm.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "gate_proj",
+                "kernel": "matmul_f16w_f32a_tiled.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.mlp.gate_proj"
+              },
+              {
+                "op": "up_proj",
+                "kernel": "matmul_f16w_f32a_tiled.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.mlp.up_proj"
+              },
+              {
+                "op": "activation",
+                "kernel": "gelu.wgsl",
+                "entry": "main",
+                "constants": {
+                  "HAS_GATE": true
+                }
+              },
+              {
+                "op": "down_proj",
+                "kernel": "matmul_f16w_f32a_tiled.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.mlp.down_proj"
+              },
+              {
+                "op": "ffn_residual",
+                "kernel": "residual.wgsl",
+                "entry": "main"
+              }
+            ]
+          },
+          "preLayer": [
+            {
+              "op": "embed",
+              "kernel": "gather.wgsl",
+              "entry": "main",
+              "weights": "embed_tokens"
+            }
+          ],
+          "postLayer": [
+            {
+              "op": "final_norm",
+              "kernel": "rmsnorm.wgsl",
+              "entry": "main"
+            },
+            {
+              "op": "lm_head",
+              "kernel": "matmul_gemv_subgroup.wgsl",
+              "entry": "main_multicol",
+              "weights": "lm_head",
+              "constants": {
+                "MULTICOL_COLS_PER_WG": 64,
+                "MULTICOL_THREADS_PER_COL": 4
+              }
+            },
+            {
+              "op": "lm_head_prefill",
+              "kernel": "matmul_f16w_f32a_tiled.wgsl",
+              "entry": "main",
+              "weights": "lm_head"
+            }
+          ],
+          "sampling": [
+            {
+              "op": "sample",
+              "kernel": "sample.wgsl",
+              "entry": "sample_single_pass"
+            }
+          ]
+        },
+        "verification": {
+          "ok": true,
+          "checks": [
+            {
+              "id": "kernelPathContract",
+              "ok": true
+            },
+            {
+              "id": "sessionCompatibility",
+              "ok": true
+            },
+            {
+              "id": "roundTripShape",
+              "ok": true
+            },
+            {
+              "id": "executionPlanCompile",
+              "ok": true
+            }
+          ],
+          "errors": [],
+          "roundTripShapeMatches": true,
+          "compiledPlan": {
+            "primaryPlanId": "primary",
+            "primaryKernelPathId": "gemma3-q4k-dequant-f32a-small-attn",
+            "primaryActivationDtype": "f32",
+            "fallbackPlanId": null,
+            "fallbackKernelPathId": null
+          }
+        }
+      },
+      "closestMatches": [
+        {
+          "id": "gemma3-q4k-dequant-f32a-small-attn",
+          "status": "experimental",
+          "statusReason": "diagnostic-probe",
+          "notes": "Diagnostic: same as gemma3-q4k-dequant-f32a-online but uses attention_small_f16kv.wgsl for prefill to isolate streaming attention bug.",
+          "mismatchCount": 0,
+          "mismatchReasons": [],
+          "mismatchDetails": [],
+          "exact": true,
+          "activationDtype": "f32",
+          "kvDtype": "f16",
+          "familyMatch": true,
+          "quantizationMatch": true
+        },
+        {
+          "id": "gemma3-f16-fused-f32a-online",
+          "status": "experimental",
+          "statusReason": "benchmark-probe",
+          "notes": "Experimental fused F32 pipeline variant for fast decode.",
+          "mismatchCount": 0,
+          "mismatchReasons": [],
+          "mismatchDetails": [],
+          "exact": true,
+          "activationDtype": "f32",
+          "kvDtype": "f16",
+          "familyMatch": true,
+          "quantizationMatch": false
+        },
+        {
+          "id": "gemma3-f16-fused-f32a-online-streamingprefill",
+          "status": "experimental",
+          "statusReason": "stability-probe",
+          "notes": "Gemma 3 F16/F32 online path with streaming prefill attention instead of the small-tile prefill kernel.",
+          "mismatchCount": 1,
+          "mismatchReasons": [
+            "prefill kernels assume different device capabilities."
+          ],
+          "mismatchDetails": [
+            {
+              "code": "capability_drift",
+              "category": "capability",
+              "label": "prefill kernels assume different device capabilities.",
+              "repairHint": "Choose a registry path whose subgroup and attention-kernel assumptions match the execution graph, or synthesize a new path id for this capability mix.",
+              "phase": "prefill"
+            }
+          ],
+          "exact": false,
+          "activationDtype": "f32",
+          "kvDtype": "f16",
+          "familyMatch": true,
+          "quantizationMatch": false
+        }
+      ],
+      "customRuntimeFacts": []
+    },
+    {
+      "modelId": "gemma-4-moe-q4k-ehf16-af32",
+      "actualLowering": "inline-kernel-path",
+      "sources": [
+        {
+          "sourceKind": "conversion-config",
+          "sourcePath": "src/config/conversion/gemma4/gemma-4-moe-q4k-ehf16-af32.json",
+          "sourceLabel": "Conversion config"
+        }
+      ],
+      "exactKernelPathIds": [],
+      "proposal": {
+        "kind": "proposed",
+        "selectedKernelPathId": null,
+        "path": {
+          "id": "gemma4-q4k-dequant-f32a-online",
+          "name": "Derived kernel path for gemma-4-moe-q4k-ehf16-af32",
+          "description": "Generated from gemma-4-moe-q4k-ehf16-af32 execution-v1 graph.",
+          "activationDtype": "f32",
+          "kvDtype": "f16",
+          "decode": {
+            "steps": [
+              {
+                "entry": "main",
+                "kernel": "rmsnorm.wgsl",
+                "op": "input_norm"
+              },
+              {
+                "entry": "main_vec4",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "op": "q_proj",
+                "weights": "layer.{L}.self_attn.q_proj"
+              },
+              {
+                "entry": "main_vec4",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "op": "k_proj",
+                "weights": "layer.{L}.self_attn.k_proj"
+              },
+              {
+                "entry": "main_vec4",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "op": "v_proj",
+                "weights": "layer.{L}.self_attn.v_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "rope.wgsl",
+                "op": "rope_q"
+              },
+              {
+                "entry": "main",
+                "kernel": "rope.wgsl",
+                "op": "rope_k"
+              },
+              {
+                "entry": "main",
+                "kernel": "attention_decode_online_f16kv.wgsl",
+                "op": "attention"
+              },
+              {
+                "entry": "main_vec4",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "op": "o_proj",
+                "weights": "layer.{L}.self_attn.o_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "residual.wgsl",
+                "op": "attn_residual"
+              },
+              {
+                "entry": "main",
+                "kernel": "rmsnorm.wgsl",
+                "op": "post_attn_norm"
+              },
+              {
+                "constants": {
+                  "HAS_GATE": true
+                },
+                "entry": "main",
+                "kernel": "gelu.wgsl",
+                "op": "ffn"
+              },
+              {
+                "entry": "main",
+                "kernel": "residual.wgsl",
+                "op": "ffn_residual"
+              }
+            ]
+          },
+          "prefill": {
+            "steps": [
+              {
+                "entry": "main",
+                "kernel": "rmsnorm.wgsl",
+                "op": "input_norm"
+              },
+              {
+                "entry": "main",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "op": "q_proj",
+                "weights": "layer.{L}.self_attn.q_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "op": "k_proj",
+                "weights": "layer.{L}.self_attn.k_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "op": "v_proj",
+                "weights": "layer.{L}.self_attn.v_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "rope.wgsl",
+                "op": "rope_q"
+              },
+              {
+                "entry": "main",
+                "kernel": "rope.wgsl",
+                "op": "rope_k"
+              },
+              {
+                "entry": "main",
+                "kernel": "attention_streaming_f16kv.wgsl",
+                "op": "attention"
+              },
+              {
+                "entry": "main",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "op": "o_proj",
+                "weights": "layer.{L}.self_attn.o_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "residual.wgsl",
+                "op": "attn_residual"
+              },
+              {
+                "entry": "main",
+                "kernel": "rmsnorm.wgsl",
+                "op": "post_attn_norm"
+              },
+              {
+                "constants": {
+                  "HAS_GATE": true
+                },
+                "entry": "main",
+                "kernel": "gelu.wgsl",
+                "op": "ffn"
+              },
+              {
+                "entry": "main",
+                "kernel": "residual.wgsl",
+                "op": "ffn_residual"
+              }
+            ]
+          },
+          "preLayer": [
+            {
+              "entry": "main",
+              "kernel": "gather_f16.wgsl",
+              "op": "embed",
+              "weights": "embed_tokens"
+            }
+          ],
+          "postLayer": [
+            {
+              "entry": "main",
+              "kernel": "rmsnorm.wgsl",
+              "op": "final_norm"
+            },
+            {
+              "constants": {
+                "MULTICOL_COLS_PER_WG": 64,
+                "MULTICOL_THREADS_PER_COL": 4
+              },
+              "entry": "main_multicol",
+              "kernel": "matmul_gemv_subgroup.wgsl",
+              "op": "lm_head",
+              "weights": "lm_head"
+            },
+            {
+              "entry": "main",
+              "kernel": "matmul_f16w_f32a.wgsl",
+              "op": "lm_head_prefill",
+              "weights": "lm_head"
+            }
+          ],
+          "sampling": [
+            {
+              "entry": "sample_single_pass",
+              "kernel": "sample.wgsl",
+              "op": "sample"
+            }
+          ]
+        },
+        "verification": {
+          "ok": true,
+          "checks": [
+            {
+              "id": "kernelPathContract",
+              "ok": true
+            },
+            {
+              "id": "sessionCompatibility",
+              "ok": true
+            },
+            {
+              "id": "roundTripShape",
+              "ok": true
+            },
+            {
+              "id": "executionPlanCompile",
+              "ok": true
+            }
+          ],
+          "errors": [],
+          "roundTripShapeMatches": true,
+          "compiledPlan": {
+            "primaryPlanId": "primary",
+            "primaryKernelPathId": "gemma4-q4k-dequant-f32a-online",
+            "primaryActivationDtype": "f32",
+            "fallbackPlanId": null,
+            "fallbackKernelPathId": null
+          }
+        }
+      },
+      "closestMatches": [
+        {
+          "id": "gemma3-q4k-dequant-f32w-f32a-online",
+          "status": "experimental",
+          "statusReason": "accuracy-probe",
+          "notes": "Gemma 3 Q4K dequant path that keeps matmul weights in F32 and runs F32 matmul kernels for numeric-sensitivity debugging.",
+          "mismatchCount": 2,
+          "mismatchReasons": [
+            "decode kernels assume different device capabilities.",
+            "prefill steps differ."
+          ],
+          "mismatchDetails": [
+            {
+              "code": "capability_drift",
+              "category": "capability",
+              "label": "decode kernels assume different device capabilities.",
+              "repairHint": "Choose a registry path whose subgroup and attention-kernel assumptions match the execution graph, or synthesize a new path id for this capability mix.",
+              "phase": "decode"
+            },
+            {
+              "code": "prefill_drift",
+              "category": "shape",
+              "label": "prefill steps differ.",
+              "repairHint": "Update the prefill steps to match the resolved execution graph step-for-step.",
+              "phase": "prefill"
+            }
+          ],
+          "exact": false,
+          "activationDtype": "f32",
+          "kvDtype": "f16",
+          "familyMatch": false,
+          "quantizationMatch": true
+        },
+        {
+          "id": "gemma3-q4k-dequant-f32a",
+          "status": "legacy",
+          "statusReason": "compatibility-alias",
+          "notes": "Legacy alias for gemma3-q4k-dequant-f32a-nosubgroups.",
+          "mismatchCount": 3,
+          "mismatchReasons": [
+            "decode kernels assume different device capabilities.",
+            "prefill steps differ.",
+            "postLayer kernels assume different device capabilities."
+          ],
+          "mismatchDetails": [
+            {
+              "code": "capability_drift",
+              "category": "capability",
+              "label": "decode kernels assume different device capabilities.",
+              "repairHint": "Choose a registry path whose subgroup and attention-kernel assumptions match the execution graph, or synthesize a new path id for this capability mix.",
+              "phase": "decode"
+            },
+            {
+              "code": "prefill_drift",
+              "category": "shape",
+              "label": "prefill steps differ.",
+              "repairHint": "Update the prefill steps to match the resolved execution graph step-for-step.",
+              "phase": "prefill"
+            },
+            {
+              "code": "capability_drift",
+              "category": "capability",
+              "label": "postLayer kernels assume different device capabilities.",
+              "repairHint": "Choose a registry path whose subgroup and attention-kernel assumptions match the execution graph, or synthesize a new path id for this capability mix.",
+              "phase": "postLayer"
+            }
+          ],
+          "exact": false,
+          "activationDtype": "f32",
+          "kvDtype": "f16",
+          "familyMatch": false,
+          "quantizationMatch": true
+        },
+        {
+          "id": "gemma3-q4k-dequant-f32a-nosubgroups",
+          "status": "canonical",
+          "statusReason": "subgroup-free",
+          "notes": "Subgroup-free Gemma 3 Q4K dequant path with F32 activations. Still requires shader-f16 kernels.",
+          "mismatchCount": 3,
+          "mismatchReasons": [
+            "decode kernels assume different device capabilities.",
+            "prefill steps differ.",
+            "postLayer kernels assume different device capabilities."
+          ],
+          "mismatchDetails": [
+            {
+              "code": "capability_drift",
+              "category": "capability",
+              "label": "decode kernels assume different device capabilities.",
+              "repairHint": "Choose a registry path whose subgroup and attention-kernel assumptions match the execution graph, or synthesize a new path id for this capability mix.",
+              "phase": "decode"
+            },
+            {
+              "code": "prefill_drift",
+              "category": "shape",
+              "label": "prefill steps differ.",
+              "repairHint": "Update the prefill steps to match the resolved execution graph step-for-step.",
+              "phase": "prefill"
+            },
+            {
+              "code": "capability_drift",
+              "category": "capability",
+              "label": "postLayer kernels assume different device capabilities.",
+              "repairHint": "Choose a registry path whose subgroup and attention-kernel assumptions match the execution graph, or synthesize a new path id for this capability mix.",
+              "phase": "postLayer"
+            }
+          ],
+          "exact": false,
+          "activationDtype": "f32",
+          "kvDtype": "f16",
+          "familyMatch": false,
+          "quantizationMatch": true
+        }
+      ],
+      "customRuntimeFacts": []
+    },
+    {
+      "modelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
+      "actualLowering": "inline-kernel-path",
+      "sources": [
+        {
+          "sourceKind": "conversion-config",
+          "sourcePath": "src/config/conversion/embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32.json",
+          "sourceLabel": "Conversion config"
+        }
+      ],
+      "exactKernelPathIds": [
+        "embeddinggemma-q4k-dequant-f32a",
+        "embeddinggemma-f16-f32a"
+      ],
+      "proposal": {
+        "kind": "existing",
+        "selectedKernelPathId": "embeddinggemma-q4k-dequant-f32a",
+        "path": {
+          "id": "embeddinggemma-q4k-dequant-f32a",
+          "name": "EmbeddingGemma Q4K Dequant (F32 activations)",
+          "description": "Q4K weights dequantized to F16 with F32 activations for embedding stability.",
+          "activationDtype": "f32",
+          "decode": {
+            "steps": [
+              {
+                "op": "input_norm",
+                "kernel": "rmsnorm.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "q_proj",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.self_attn.q_proj"
+              },
+              {
+                "op": "k_proj",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.self_attn.k_proj"
+              },
+              {
+                "op": "v_proj",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.self_attn.v_proj"
+              },
+              {
+                "op": "rope_q",
+                "kernel": "rope.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "rope_k",
+                "kernel": "rope.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "attention",
+                "kernel": "attention_small.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "o_proj",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.self_attn.o_proj"
+              },
+              {
+                "op": "attn_residual",
+                "kernel": "residual.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "post_attn_norm",
+                "kernel": "rmsnorm.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "gate_proj",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.mlp.gate_proj"
+              },
+              {
+                "op": "up_proj",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.mlp.up_proj"
+              },
+              {
+                "op": "activation",
+                "kernel": "gelu.wgsl",
+                "entry": "main",
+                "constants": {
+                  "HAS_GATE": true
+                }
+              },
+              {
+                "op": "down_proj",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.mlp.down_proj"
+              },
+              {
+                "op": "ffn_residual",
+                "kernel": "residual.wgsl",
+                "entry": "main"
+              }
+            ]
+          },
+          "prefill": {
+            "steps": [
+              {
+                "op": "input_norm",
+                "kernel": "rmsnorm.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "q_proj",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.self_attn.q_proj"
+              },
+              {
+                "op": "k_proj",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.self_attn.k_proj"
+              },
+              {
+                "op": "v_proj",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.self_attn.v_proj"
+              },
+              {
+                "op": "rope_q",
+                "kernel": "rope.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "rope_k",
+                "kernel": "rope.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "attention",
+                "kernel": "attention_small.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "o_proj",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.self_attn.o_proj"
+              },
+              {
+                "op": "attn_residual",
+                "kernel": "residual.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "post_attn_norm",
+                "kernel": "rmsnorm.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "gate_proj",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.mlp.gate_proj"
+              },
+              {
+                "op": "up_proj",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.mlp.up_proj"
+              },
+              {
+                "op": "activation",
+                "kernel": "gelu.wgsl",
+                "entry": "main",
+                "constants": {
+                  "HAS_GATE": true
+                }
+              },
+              {
+                "op": "down_proj",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.mlp.down_proj"
+              },
+              {
+                "op": "ffn_residual",
+                "kernel": "residual.wgsl",
+                "entry": "main"
+              }
+            ]
+          },
+          "preLayer": [
+            {
+              "op": "embed",
+              "kernel": "gather.wgsl",
+              "entry": "main",
+              "weights": "embed_tokens"
+            }
+          ],
+          "postLayer": [
+            {
+              "op": "final_norm",
+              "kernel": "rmsnorm.wgsl",
+              "entry": "main"
+            }
+          ],
+          "sampling": []
+        },
+        "verification": {
+          "ok": true,
+          "checks": [
+            {
+              "id": "kernelPathContract",
+              "ok": true
+            },
+            {
+              "id": "sessionCompatibility",
+              "ok": true
+            },
+            {
+              "id": "roundTripShape",
+              "ok": true
+            },
+            {
+              "id": "executionPlanCompile",
+              "ok": true
+            }
+          ],
+          "errors": [],
+          "roundTripShapeMatches": true,
+          "compiledPlan": {
+            "primaryPlanId": "primary",
+            "primaryKernelPathId": "embeddinggemma-q4k-dequant-f32a",
+            "primaryActivationDtype": "f32",
+            "fallbackPlanId": null,
+            "fallbackKernelPathId": null
+          }
+        }
+      },
+      "closestMatches": [
+        {
+          "id": "embeddinggemma-q4k-dequant-f32a",
+          "status": "canonical",
+          "statusReason": "default",
+          "notes": "EmbeddingGemma Q4K dequant path with F32 activation.",
+          "mismatchCount": 0,
+          "mismatchReasons": [],
+          "mismatchDetails": [],
+          "exact": true,
+          "activationDtype": "f32",
+          "kvDtype": "f32",
+          "familyMatch": true,
+          "quantizationMatch": true
+        },
+        {
+          "id": "embeddinggemma-f16-f32a",
+          "status": "canonical",
+          "statusReason": "default",
+          "notes": "EmbeddingGemma default path for F16 weights with F32 activation.",
+          "mismatchCount": 0,
+          "mismatchReasons": [],
+          "mismatchDetails": [],
+          "exact": true,
+          "activationDtype": "f32",
+          "kvDtype": "f32",
+          "familyMatch": true,
+          "quantizationMatch": false
+        },
+        {
+          "id": "embeddinggemma-f32-f32a",
+          "status": "canonical",
+          "statusReason": "default",
+          "notes": "EmbeddingGemma default F32 path.",
+          "mismatchCount": 2,
+          "mismatchReasons": [
+            "decode steps differ.",
+            "prefill steps differ."
+          ],
+          "mismatchDetails": [
+            {
+              "code": "decode_drift",
+              "category": "shape",
+              "label": "decode steps differ.",
+              "repairHint": "Update the decode steps to match the resolved execution graph step-for-step.",
+              "phase": "decode"
+            },
+            {
+              "code": "prefill_drift",
+              "category": "shape",
+              "label": "prefill steps differ.",
+              "repairHint": "Update the prefill steps to match the resolved execution graph step-for-step.",
+              "phase": "prefill"
+            }
+          ],
+          "exact": false,
+          "activationDtype": "f32",
+          "kvDtype": "f32",
+          "familyMatch": true,
+          "quantizationMatch": false
+        }
+      ],
+      "customRuntimeFacts": []
+    },
+    {
+      "modelId": "gpt-oss-20b-f16-xmxfp4",
+      "actualLowering": "inline-kernel-path-error",
+      "sources": [
+        {
+          "sourceKind": "conversion-config",
+          "sourcePath": "src/config/conversion/gpt-oss-20b-f16-xmxfp4.json",
+          "sourceLabel": "Conversion config"
+        }
+      ],
+      "exactKernelPathIds": [],
+      "proposal": {
+        "kind": "proposed",
+        "selectedKernelPathId": null,
+        "path": {
+          "id": "conversion-f16-f16a-online",
+          "name": "Derived kernel path for gpt-oss-20b-f16-xmxfp4",
+          "description": "Generated from gpt-oss-20b-f16-xmxfp4 execution-v1 graph.",
+          "activationDtype": "f16",
+          "kvDtype": "f16",
+          "decode": {
+            "steps": [
+              {
+                "entry": "main",
+                "kernel": "rmsnorm.wgsl",
+                "op": "input_norm"
+              },
+              {
+                "entry": "main_vec4",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "op": "q_proj",
+                "weights": "layer.{L}.self_attn.q_proj"
+              },
+              {
+                "entry": "main_vec4",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "op": "k_proj",
+                "weights": "layer.{L}.self_attn.k_proj"
+              },
+              {
+                "entry": "main_vec4",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "op": "v_proj",
+                "weights": "layer.{L}.self_attn.v_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "rope.wgsl",
+                "op": "rope_q"
+              },
+              {
+                "entry": "main",
+                "kernel": "rope.wgsl",
+                "op": "rope_k"
+              },
+              {
+                "entry": "main",
+                "kernel": "attention_decode_online_f16kv.wgsl",
+                "op": "attention"
+              },
+              {
+                "entry": "main_vec4",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "op": "o_proj",
+                "weights": "layer.{L}.self_attn.o_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "residual.wgsl",
+                "op": "attn_residual"
+              },
+              {
+                "entry": "main",
+                "kernel": "rmsnorm.wgsl",
+                "op": "post_attn_norm"
+              },
+              {
+                "constants": {
+                  "HAS_GATE": true
+                },
+                "entry": "main",
+                "kernel": "gelu.wgsl",
+                "op": "ffn"
+              },
+              {
+                "entry": "main",
+                "kernel": "residual.wgsl",
+                "op": "ffn_residual"
+              }
+            ]
+          },
+          "prefill": {
+            "steps": [
+              {
+                "entry": "main",
+                "kernel": "rmsnorm.wgsl",
+                "op": "input_norm"
+              },
+              {
+                "entry": "main",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "op": "q_proj",
+                "weights": "layer.{L}.self_attn.q_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "op": "k_proj",
+                "weights": "layer.{L}.self_attn.k_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "op": "v_proj",
+                "weights": "layer.{L}.self_attn.v_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "rope.wgsl",
+                "op": "rope_q"
+              },
+              {
+                "entry": "main",
+                "kernel": "rope.wgsl",
+                "op": "rope_k"
+              },
+              {
+                "entry": "main",
+                "kernel": "attention_streaming_f16kv.wgsl",
+                "op": "attention"
+              },
+              {
+                "entry": "main",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "op": "o_proj",
+                "weights": "layer.{L}.self_attn.o_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "residual.wgsl",
+                "op": "attn_residual"
+              },
+              {
+                "entry": "main",
+                "kernel": "rmsnorm.wgsl",
+                "op": "post_attn_norm"
+              },
+              {
+                "constants": {
+                  "HAS_GATE": true
+                },
+                "entry": "main",
+                "kernel": "gelu.wgsl",
+                "op": "ffn"
+              },
+              {
+                "entry": "main",
+                "kernel": "residual.wgsl",
+                "op": "ffn_residual"
+              }
+            ]
+          },
+          "preLayer": [
+            {
+              "entry": "main",
+              "kernel": "gather_f16.wgsl",
+              "op": "embed",
+              "weights": "embed_tokens"
+            }
+          ],
+          "postLayer": [
+            {
+              "entry": "main",
+              "kernel": "rmsnorm.wgsl",
+              "op": "final_norm"
+            },
+            {
+              "constants": {
+                "MULTICOL_COLS_PER_WG": 64,
+                "MULTICOL_THREADS_PER_COL": 4
+              },
+              "entry": "main_multicol",
+              "kernel": "matmul_gemv_subgroup.wgsl",
+              "op": "lm_head",
+              "weights": "lm_head"
+            },
+            {
+              "entry": "main",
+              "kernel": "matmul_f16w_f32a.wgsl",
+              "op": "lm_head_prefill",
+              "weights": "lm_head"
+            }
+          ],
+          "sampling": [
+            {
+              "entry": "sample_single_pass",
+              "kernel": "sample.wgsl",
+              "op": "sample"
+            }
+          ]
+        },
+        "verification": {
+          "ok": false,
+          "checks": [
+            {
+              "id": "kernelPathContract",
+              "ok": true
+            },
+            {
+              "id": "sessionCompatibility",
+              "ok": false
+            },
+            {
+              "id": "roundTripShape",
+              "ok": true
+            },
+            {
+              "id": "executionPlanCompile",
+              "ok": false
+            }
+          ],
+          "errors": [
+            "[Execution] Inline kernelPath attention kernel \"attention_decode_online_f16kv.wgsl\" requires activationDtype=\"f32\" and kvcache.kvDtype=\"f16\", but resolved activationDtype=\"f16\" and kvcache.kvDtype=\"f16\".",
+            "[ExecutionPlan] Missing finiteness fallback kernel path mapping for \"conversion-f16-f16a-online\". Add an explicit rule in src/rules/inference/kernel-path.rules.json."
+          ],
+          "roundTripShapeMatches": true,
+          "compiledPlan": null
+        }
+      },
+      "closestMatches": [
+        {
+          "id": "gemma3-q4k-dequant-f32w-f32a-online",
+          "status": "experimental",
+          "statusReason": "accuracy-probe",
+          "notes": "Gemma 3 Q4K dequant path that keeps matmul weights in F32 and runs F32 matmul kernels for numeric-sensitivity debugging.",
+          "mismatchCount": 3,
+          "mismatchReasons": [
+            "Activation dtype differs.",
+            "decode kernels assume different device capabilities.",
+            "prefill steps differ."
+          ],
+          "mismatchDetails": [
+            {
+              "code": "activation_dtype_drift",
+              "category": "dtype",
+              "label": "Activation dtype differs.",
+              "repairHint": "Set activationDtype to \"f16\" or choose kernels compatible with \"f32\".",
+              "phase": null
+            },
+            {
+              "code": "capability_drift",
+              "category": "capability",
+              "label": "decode kernels assume different device capabilities.",
+              "repairHint": "Choose a registry path whose subgroup and attention-kernel assumptions match the execution graph, or synthesize a new path id for this capability mix.",
+              "phase": "decode"
+            },
+            {
+              "code": "prefill_drift",
+              "category": "shape",
+              "label": "prefill steps differ.",
+              "repairHint": "Update the prefill steps to match the resolved execution graph step-for-step.",
+              "phase": "prefill"
+            }
+          ],
+          "exact": false,
+          "activationDtype": "f32",
+          "kvDtype": "f16",
+          "familyMatch": false,
+          "quantizationMatch": false
+        },
+        {
+          "id": "gemma2-f16-f16a",
+          "status": "canonical",
+          "statusReason": "default",
+          "notes": "Gemma 2 F16 default for F16 activation kernels.",
+          "mismatchCount": 4,
+          "mismatchReasons": [
+            "decode kernels assume different device capabilities.",
+            "prefill kernels assume different device capabilities.",
+            "postLayer steps differ.",
+            "sampling steps differ."
+          ],
+          "mismatchDetails": [
+            {
+              "code": "capability_drift",
+              "category": "capability",
+              "label": "decode kernels assume different device capabilities.",
+              "repairHint": "Choose a registry path whose subgroup and attention-kernel assumptions match the execution graph, or synthesize a new path id for this capability mix.",
+              "phase": "decode"
+            },
+            {
+              "code": "capability_drift",
+              "category": "capability",
+              "label": "prefill kernels assume different device capabilities.",
+              "repairHint": "Choose a registry path whose subgroup and attention-kernel assumptions match the execution graph, or synthesize a new path id for this capability mix.",
+              "phase": "prefill"
+            },
+            {
+              "code": "postLayer_drift",
+              "category": "shape",
+              "label": "postLayer steps differ.",
+              "repairHint": "Update the postLayer steps to match the resolved execution graph step-for-step.",
+              "phase": "postLayer"
+            },
+            {
+              "code": "sampling_drift",
+              "category": "shape",
+              "label": "sampling steps differ.",
+              "repairHint": "Update the sampling steps to match the resolved execution graph step-for-step.",
+              "phase": "sampling"
+            }
+          ],
+          "exact": false,
+          "activationDtype": "f16",
+          "kvDtype": "f16",
+          "familyMatch": false,
+          "quantizationMatch": true
+        },
+        {
+          "id": "gemma2-q4k-dequant-f16a",
+          "status": "canonical",
+          "statusReason": "default",
+          "notes": "Default Gemma 2 Q4K dequant path for baseline F16 activation workflows.",
+          "mismatchCount": 4,
+          "mismatchReasons": [
+            "decode kernels assume different device capabilities.",
+            "prefill kernels assume different device capabilities.",
+            "postLayer steps differ.",
+            "sampling steps differ."
+          ],
+          "mismatchDetails": [
+            {
+              "code": "capability_drift",
+              "category": "capability",
+              "label": "decode kernels assume different device capabilities.",
+              "repairHint": "Choose a registry path whose subgroup and attention-kernel assumptions match the execution graph, or synthesize a new path id for this capability mix.",
+              "phase": "decode"
+            },
+            {
+              "code": "capability_drift",
+              "category": "capability",
+              "label": "prefill kernels assume different device capabilities.",
+              "repairHint": "Choose a registry path whose subgroup and attention-kernel assumptions match the execution graph, or synthesize a new path id for this capability mix.",
+              "phase": "prefill"
+            },
+            {
+              "code": "postLayer_drift",
+              "category": "shape",
+              "label": "postLayer steps differ.",
+              "repairHint": "Update the postLayer steps to match the resolved execution graph step-for-step.",
+              "phase": "postLayer"
+            },
+            {
+              "code": "sampling_drift",
+              "category": "shape",
+              "label": "sampling steps differ.",
+              "repairHint": "Update the sampling steps to match the resolved execution graph step-for-step.",
+              "phase": "sampling"
+            }
+          ],
+          "exact": false,
+          "activationDtype": "f16",
+          "kvDtype": "f16",
+          "familyMatch": false,
+          "quantizationMatch": true
+        }
+      ],
+      "customRuntimeFacts": []
+    },
+    {
+      "modelId": "janus-pro-1b-text-q4k-ehaf16",
+      "actualLowering": "inline-kernel-path-error",
+      "sources": [
+        {
+          "sourceKind": "conversion-config",
+          "sourcePath": "src/config/conversion/janus/janus-pro-1b-text-q4k-ehaf16.json",
+          "sourceLabel": "Conversion config"
+        }
+      ],
+      "exactKernelPathIds": [],
+      "proposal": {
+        "kind": "proposed",
+        "selectedKernelPathId": null,
+        "path": {
+          "id": "janus-q4k-dequant-f16a-online",
+          "name": "Derived kernel path for janus-pro-1b-text-q4k-ehaf16",
+          "description": "Generated from janus-pro-1b-text-q4k-ehaf16 execution-v1 graph.",
+          "activationDtype": "f16",
+          "kvDtype": "f16",
+          "decode": {
+            "steps": [
+              {
+                "entry": "main",
+                "kernel": "rmsnorm.wgsl",
+                "op": "input_norm"
+              },
+              {
+                "entry": "main_vec4",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "op": "q_proj",
+                "weights": "layer.{L}.self_attn.q_proj"
+              },
+              {
+                "entry": "main_vec4",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "op": "k_proj",
+                "weights": "layer.{L}.self_attn.k_proj"
+              },
+              {
+                "entry": "main_vec4",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "op": "v_proj",
+                "weights": "layer.{L}.self_attn.v_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "rope.wgsl",
+                "op": "rope_q"
+              },
+              {
+                "entry": "main",
+                "kernel": "rope.wgsl",
+                "op": "rope_k"
+              },
+              {
+                "entry": "main",
+                "kernel": "attention_decode_online_f16kv.wgsl",
+                "op": "attention"
+              },
+              {
+                "entry": "main_vec4",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "op": "o_proj",
+                "weights": "layer.{L}.self_attn.o_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "residual.wgsl",
+                "op": "attn_residual"
+              },
+              {
+                "entry": "main",
+                "kernel": "rmsnorm.wgsl",
+                "op": "post_attn_norm"
+              },
+              {
+                "entry": "main_vec4",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "op": "gate_proj",
+                "weights": "layer.{L}.mlp.gate_proj"
+              },
+              {
+                "entry": "main_vec4",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "op": "up_proj",
+                "weights": "layer.{L}.mlp.up_proj"
+              },
+              {
+                "constants": {
+                  "HAS_GATE": true
+                },
+                "entry": "main",
+                "kernel": "gelu.wgsl",
+                "op": "activation"
+              },
+              {
+                "entry": "main_vec4",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "op": "down_proj",
+                "weights": "layer.{L}.mlp.down_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "residual.wgsl",
+                "op": "ffn_residual"
+              }
+            ]
+          },
+          "prefill": {
+            "steps": [
+              {
+                "entry": "main",
+                "kernel": "rmsnorm.wgsl",
+                "op": "input_norm"
+              },
+              {
+                "entry": "main",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "op": "q_proj",
+                "weights": "layer.{L}.self_attn.q_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "op": "k_proj",
+                "weights": "layer.{L}.self_attn.k_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "op": "v_proj",
+                "weights": "layer.{L}.self_attn.v_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "rope.wgsl",
+                "op": "rope_q"
+              },
+              {
+                "entry": "main",
+                "kernel": "rope.wgsl",
+                "op": "rope_k"
+              },
+              {
+                "entry": "main",
+                "kernel": "attention_streaming_f16kv.wgsl",
+                "op": "attention"
+              },
+              {
+                "entry": "main",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "op": "o_proj",
+                "weights": "layer.{L}.self_attn.o_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "residual.wgsl",
+                "op": "attn_residual"
+              },
+              {
+                "entry": "main",
+                "kernel": "rmsnorm.wgsl",
+                "op": "post_attn_norm"
+              },
+              {
+                "entry": "main",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "op": "gate_proj",
+                "weights": "layer.{L}.mlp.gate_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "op": "up_proj",
+                "weights": "layer.{L}.mlp.up_proj"
+              },
+              {
+                "constants": {
+                  "HAS_GATE": true
+                },
+                "entry": "main",
+                "kernel": "gelu.wgsl",
+                "op": "activation"
+              },
+              {
+                "entry": "main",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "op": "down_proj",
+                "weights": "layer.{L}.mlp.down_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "residual.wgsl",
+                "op": "ffn_residual"
+              }
+            ]
+          },
+          "preLayer": [
+            {
+              "entry": "main",
+              "kernel": "gather_f16.wgsl",
+              "op": "embed",
+              "weights": "embed_tokens"
+            }
+          ],
+          "postLayer": [
+            {
+              "entry": "main",
+              "kernel": "rmsnorm.wgsl",
+              "op": "final_norm"
+            },
+            {
+              "constants": {
+                "MULTICOL_COLS_PER_WG": 64,
+                "MULTICOL_THREADS_PER_COL": 4
+              },
+              "entry": "main_multicol",
+              "kernel": "matmul_gemv_subgroup.wgsl",
+              "op": "lm_head",
+              "weights": "lm_head"
+            },
+            {
+              "entry": "main",
+              "kernel": "matmul_f16w_f32a.wgsl",
+              "op": "lm_head_prefill",
+              "weights": "lm_head"
+            }
+          ],
+          "sampling": [
+            {
+              "entry": "sample_single_pass",
+              "kernel": "sample.wgsl",
+              "op": "sample"
+            }
+          ]
+        },
+        "verification": {
+          "ok": false,
+          "checks": [
+            {
+              "id": "kernelPathContract",
+              "ok": true
+            },
+            {
+              "id": "sessionCompatibility",
+              "ok": false
+            },
+            {
+              "id": "roundTripShape",
+              "ok": true
+            },
+            {
+              "id": "executionPlanCompile",
+              "ok": false
+            }
+          ],
+          "errors": [
+            "[Execution] Inline kernelPath attention kernel \"attention_decode_online_f16kv.wgsl\" requires activationDtype=\"f32\" and kvcache.kvDtype=\"f16\", but resolved activationDtype=\"f16\" and kvcache.kvDtype=\"f16\".",
+            "[ExecutionPlan] Missing finiteness fallback kernel path mapping for \"janus-q4k-dequant-f16a-online\". Add an explicit rule in src/rules/inference/kernel-path.rules.json."
+          ],
+          "roundTripShapeMatches": true,
+          "compiledPlan": null
+        }
+      },
+      "closestMatches": [
+        {
+          "id": "gemma3-q4k-dequant-f32a-online",
+          "status": "canonical",
+          "statusReason": "default",
+          "notes": "Gemma 3 Q4K dequant default: subgroup GEMV + online attention + tuned lm_head multicol, F32 activations.",
+          "mismatchCount": 3,
+          "mismatchReasons": [
+            "Activation dtype differs.",
+            "prefill steps differ.",
+            "postLayer steps differ."
+          ],
+          "mismatchDetails": [
+            {
+              "code": "activation_dtype_drift",
+              "category": "dtype",
+              "label": "Activation dtype differs.",
+              "repairHint": "Set activationDtype to \"f16\" or choose kernels compatible with \"f32\".",
+              "phase": null
+            },
+            {
+              "code": "prefill_drift",
+              "category": "shape",
+              "label": "prefill steps differ.",
+              "repairHint": "Update the prefill steps to match the resolved execution graph step-for-step.",
+              "phase": "prefill"
+            },
+            {
+              "code": "postLayer_drift",
+              "category": "shape",
+              "label": "postLayer steps differ.",
+              "repairHint": "Update the postLayer steps to match the resolved execution graph step-for-step.",
+              "phase": "postLayer"
+            }
+          ],
+          "exact": false,
+          "activationDtype": "f32",
+          "kvDtype": "f16",
+          "familyMatch": false,
+          "quantizationMatch": true
+        },
+        {
+          "id": "gemma3-q4k-dequant-f32w-f32a-online",
+          "status": "experimental",
+          "statusReason": "accuracy-probe",
+          "notes": "Gemma 3 Q4K dequant path that keeps matmul weights in F32 and runs F32 matmul kernels for numeric-sensitivity debugging.",
+          "mismatchCount": 3,
+          "mismatchReasons": [
+            "Activation dtype differs.",
+            "decode kernels assume different device capabilities.",
+            "prefill steps differ."
+          ],
+          "mismatchDetails": [
+            {
+              "code": "activation_dtype_drift",
+              "category": "dtype",
+              "label": "Activation dtype differs.",
+              "repairHint": "Set activationDtype to \"f16\" or choose kernels compatible with \"f32\".",
+              "phase": null
+            },
+            {
+              "code": "capability_drift",
+              "category": "capability",
+              "label": "decode kernels assume different device capabilities.",
+              "repairHint": "Choose a registry path whose subgroup and attention-kernel assumptions match the execution graph, or synthesize a new path id for this capability mix.",
+              "phase": "decode"
+            },
+            {
+              "code": "prefill_drift",
+              "category": "shape",
+              "label": "prefill steps differ.",
+              "repairHint": "Update the prefill steps to match the resolved execution graph step-for-step.",
+              "phase": "prefill"
+            }
+          ],
+          "exact": false,
+          "activationDtype": "f32",
+          "kvDtype": "f16",
+          "familyMatch": false,
+          "quantizationMatch": true
+        },
+        {
+          "id": "lfm2-q4k-dequant-f32a-online",
+          "status": "canonical",
+          "statusReason": "default",
+          "notes": "LFM2 Q4K default: subgroup GEMV decode with tiled fast-prefill path and F32 activations.",
+          "mismatchCount": 3,
+          "mismatchReasons": [
+            "Activation dtype differs.",
+            "prefill kernels assume different device capabilities.",
+            "postLayer steps differ."
+          ],
+          "mismatchDetails": [
+            {
+              "code": "activation_dtype_drift",
+              "category": "dtype",
+              "label": "Activation dtype differs.",
+              "repairHint": "Set activationDtype to \"f16\" or choose kernels compatible with \"f32\".",
+              "phase": null
+            },
+            {
+              "code": "capability_drift",
+              "category": "capability",
+              "label": "prefill kernels assume different device capabilities.",
+              "repairHint": "Choose a registry path whose subgroup and attention-kernel assumptions match the execution graph, or synthesize a new path id for this capability mix.",
+              "phase": "prefill"
+            },
+            {
+              "code": "postLayer_drift",
+              "category": "shape",
+              "label": "postLayer steps differ.",
+              "repairHint": "Update the postLayer steps to match the resolved execution graph step-for-step.",
+              "phase": "postLayer"
+            }
+          ],
+          "exact": false,
+          "activationDtype": "f32",
+          "kvDtype": "f16",
+          "familyMatch": false,
+          "quantizationMatch": true
+        }
+      ],
+      "customRuntimeFacts": []
+    },
+    {
+      "modelId": "lfm2.5-1.2b-instruct-q4k-ehf16-af32",
+      "actualLowering": "inline-kernel-path",
+      "sources": [
+        {
+          "sourceKind": "conversion-config",
+          "sourcePath": "src/config/conversion/lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32.json",
+          "sourceLabel": "Conversion config"
+        }
+      ],
+      "exactKernelPathIds": [
+        "lfm2-q4k-dequant-f32a-online"
+      ],
+      "proposal": {
+        "kind": "existing",
+        "selectedKernelPathId": "lfm2-q4k-dequant-f32a-online",
+        "path": {
+          "id": "lfm2-q4k-dequant-f32a-online",
+          "name": "LFM2 Q4K Dequant (F32 activations, fast prefill)",
+          "description": "LFM2-tuned Q4K path: F32 activations with tiled prefill matmul and small-kernel prefill attention.",
+          "activationDtype": "f32",
+          "kvDtype": "f16",
+          "decode": {
+            "steps": [
+              {
+                "op": "input_norm",
+                "kernel": "rmsnorm.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "q_proj",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "entry": "main_vec4",
+                "weights": "layer.{L}.self_attn.q_proj"
+              },
+              {
+                "op": "k_proj",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "entry": "main_vec4",
+                "weights": "layer.{L}.self_attn.k_proj"
+              },
+              {
+                "op": "v_proj",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "entry": "main_vec4",
+                "weights": "layer.{L}.self_attn.v_proj"
+              },
+              {
+                "op": "rope_q",
+                "kernel": "rope.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "rope_k",
+                "kernel": "rope.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "attention",
+                "kernel": "attention_decode_online_f16kv.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "o_proj",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "entry": "main_vec4",
+                "weights": "layer.{L}.self_attn.o_proj"
+              },
+              {
+                "op": "attn_residual",
+                "kernel": "residual.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "post_attn_norm",
+                "kernel": "rmsnorm.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "gate_proj",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "entry": "main_vec4",
+                "weights": "layer.{L}.mlp.gate_proj"
+              },
+              {
+                "op": "up_proj",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "entry": "main_vec4",
+                "weights": "layer.{L}.mlp.up_proj"
+              },
+              {
+                "op": "activation",
+                "kernel": "gelu.wgsl",
+                "entry": "main",
+                "constants": {
+                  "HAS_GATE": true
+                }
+              },
+              {
+                "op": "down_proj",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "entry": "main_vec4",
+                "weights": "layer.{L}.mlp.down_proj"
+              },
+              {
+                "op": "ffn_residual",
+                "kernel": "residual.wgsl",
+                "entry": "main"
+              }
+            ]
+          },
+          "prefill": {
+            "steps": [
+              {
+                "op": "input_norm",
+                "kernel": "rmsnorm.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "q_proj",
+                "kernel": "matmul_f16w_f32a_tiled.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.self_attn.q_proj"
+              },
+              {
+                "op": "k_proj",
+                "kernel": "matmul_f16w_f32a_tiled.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.self_attn.k_proj"
+              },
+              {
+                "op": "v_proj",
+                "kernel": "matmul_f16w_f32a_tiled.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.self_attn.v_proj"
+              },
+              {
+                "op": "rope_q",
+                "kernel": "rope.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "rope_k",
+                "kernel": "rope.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "attention",
+                "kernel": "attention_small_f16kv.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "o_proj",
+                "kernel": "matmul_f16w_f32a_tiled.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.self_attn.o_proj"
+              },
+              {
+                "op": "attn_residual",
+                "kernel": "residual.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "post_attn_norm",
+                "kernel": "rmsnorm.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "gate_proj",
+                "kernel": "matmul_f16w_f32a_tiled.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.mlp.gate_proj"
+              },
+              {
+                "op": "up_proj",
+                "kernel": "matmul_f16w_f32a_tiled.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.mlp.up_proj"
+              },
+              {
+                "op": "activation",
+                "kernel": "gelu.wgsl",
+                "entry": "main",
+                "constants": {
+                  "HAS_GATE": true
+                }
+              },
+              {
+                "op": "down_proj",
+                "kernel": "matmul_f16w_f32a_tiled.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.mlp.down_proj"
+              },
+              {
+                "op": "ffn_residual",
+                "kernel": "residual.wgsl",
+                "entry": "main"
+              }
+            ]
+          },
+          "preLayer": [
+            {
+              "op": "embed",
+              "kernel": "gather_f16.wgsl",
+              "entry": "main",
+              "weights": "embed_tokens"
+            }
+          ],
+          "postLayer": [
+            {
+              "op": "final_norm",
+              "kernel": "rmsnorm.wgsl",
+              "entry": "main"
+            },
+            {
+              "op": "lm_head",
+              "kernel": "matmul_gemv_subgroup.wgsl",
+              "entry": "main_multicol",
+              "weights": "lm_head",
+              "constants": {
+                "MULTICOL_COLS_PER_WG": 64,
+                "MULTICOL_THREADS_PER_COL": 4
+              }
+            },
+            {
+              "op": "lm_head_prefill",
+              "kernel": "matmul_f16w_f32a_tiled.wgsl",
+              "entry": "main",
+              "weights": "lm_head"
+            }
+          ],
+          "sampling": [
+            {
+              "op": "sample",
+              "kernel": "sample.wgsl",
+              "entry": "sample_single_pass"
+            }
+          ]
+        },
+        "verification": {
+          "ok": true,
+          "checks": [
+            {
+              "id": "kernelPathContract",
+              "ok": true
+            },
+            {
+              "id": "sessionCompatibility",
+              "ok": true
+            },
+            {
+              "id": "roundTripShape",
+              "ok": true
+            },
+            {
+              "id": "executionPlanCompile",
+              "ok": true
+            }
+          ],
+          "errors": [],
+          "roundTripShapeMatches": true,
+          "compiledPlan": {
+            "primaryPlanId": "primary",
+            "primaryKernelPathId": "lfm2-q4k-dequant-f32a-online",
+            "primaryActivationDtype": "f32",
+            "fallbackPlanId": null,
+            "fallbackKernelPathId": null
+          }
+        }
+      },
+      "closestMatches": [
+        {
+          "id": "lfm2-q4k-dequant-f32a-online",
+          "status": "canonical",
+          "statusReason": "default",
+          "notes": "LFM2 Q4K default: subgroup GEMV decode with tiled fast-prefill path and F32 activations.",
+          "mismatchCount": 0,
+          "mismatchReasons": [],
+          "mismatchDetails": [],
+          "exact": true,
+          "activationDtype": "f32",
+          "kvDtype": "f16",
+          "familyMatch": true,
+          "quantizationMatch": true
+        },
+        {
+          "id": "gemma3-q4k-dequant-f32a-online",
+          "status": "canonical",
+          "statusReason": "default",
+          "notes": "Gemma 3 Q4K dequant default: subgroup GEMV + online attention + tuned lm_head multicol, F32 activations.",
+          "mismatchCount": 1,
+          "mismatchReasons": [
+            "prefill kernels assume different device capabilities."
+          ],
+          "mismatchDetails": [
+            {
+              "code": "capability_drift",
+              "category": "capability",
+              "label": "prefill kernels assume different device capabilities.",
+              "repairHint": "Choose a registry path whose subgroup and attention-kernel assumptions match the execution graph, or synthesize a new path id for this capability mix.",
+              "phase": "prefill"
+            }
+          ],
+          "exact": false,
+          "activationDtype": "f32",
+          "kvDtype": "f16",
+          "familyMatch": false,
+          "quantizationMatch": true
+        },
+        {
+          "id": "gemma3-q4k-dequant-f32a-small-attn",
+          "status": "experimental",
+          "statusReason": "diagnostic-probe",
+          "notes": "Diagnostic: same as gemma3-q4k-dequant-f32a-online but uses attention_small_f16kv.wgsl for prefill to isolate streaming attention bug.",
+          "mismatchCount": 1,
+          "mismatchReasons": [
+            "preLayer steps differ."
+          ],
+          "mismatchDetails": [
+            {
+              "code": "preLayer_drift",
+              "category": "shape",
+              "label": "preLayer steps differ.",
+              "repairHint": "Update the preLayer steps to match the resolved execution graph step-for-step.",
+              "phase": "preLayer"
+            }
+          ],
+          "exact": false,
+          "activationDtype": "f32",
+          "kvDtype": "f16",
+          "familyMatch": false,
+          "quantizationMatch": true
+        }
+      ],
+      "customRuntimeFacts": []
+    },
+    {
+      "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+      "actualLowering": "execution-graph-only",
+      "sources": [
+        {
+          "sourceKind": "conversion-config",
+          "sourcePath": "src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json",
+          "sourceLabel": "Conversion config"
+        }
+      ],
+      "exactKernelPathIds": [],
+      "proposal": {
+        "kind": "proposed",
+        "selectedKernelPathId": null,
+        "path": {
+          "id": "qwen3-q4k-dequant-f16a-online",
+          "name": "Derived kernel path for qwen-3-5-0-8b-q4k-ehaf16",
+          "description": "Generated from qwen-3-5-0-8b-q4k-ehaf16 execution-v1 graph.",
+          "activationDtype": "f16",
+          "kvDtype": "f16",
+          "decode": {
+            "steps": [
+              {
+                "entry": "main",
+                "kernel": "rmsnorm.wgsl",
+                "op": "input_norm"
+              },
+              {
+                "entry": "main_vec4",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "op": "q_proj",
+                "weights": "layer.{L}.self_attn.q_proj"
+              },
+              {
+                "entry": "main_vec4",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "op": "k_proj",
+                "weights": "layer.{L}.self_attn.k_proj"
+              },
+              {
+                "entry": "main_vec4",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "op": "v_proj",
+                "weights": "layer.{L}.self_attn.v_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "rope.wgsl",
+                "op": "rope_q"
+              },
+              {
+                "entry": "main",
+                "kernel": "rope.wgsl",
+                "op": "rope_k"
+              },
+              {
+                "entry": "main",
+                "kernel": "attention_decode_online_f16kv.wgsl",
+                "op": "attention"
+              },
+              {
+                "entry": "main_vec4",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "op": "o_proj",
+                "weights": "layer.{L}.self_attn.o_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "residual.wgsl",
+                "op": "attn_residual"
+              },
+              {
+                "entry": "main",
+                "kernel": "rmsnorm.wgsl",
+                "op": "post_attn_norm"
+              },
+              {
+                "entry": "main_vec4",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "op": "gate_proj",
+                "weights": "layer.{L}.mlp.gate_proj"
+              },
+              {
+                "entry": "main_vec4",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "op": "up_proj",
+                "weights": "layer.{L}.mlp.up_proj"
+              },
+              {
+                "constants": {
+                  "HAS_GATE": true
+                },
+                "entry": "main",
+                "kernel": "gelu.wgsl",
+                "op": "activation"
+              },
+              {
+                "entry": "main_vec4",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "op": "down_proj",
+                "weights": "layer.{L}.mlp.down_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "residual.wgsl",
+                "op": "ffn_residual"
+              }
+            ]
+          },
+          "prefill": {
+            "steps": [
+              {
+                "entry": "main",
+                "kernel": "rmsnorm.wgsl",
+                "op": "input_norm"
+              },
+              {
+                "entry": "main",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "op": "q_proj",
+                "weights": "layer.{L}.self_attn.q_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "op": "k_proj",
+                "weights": "layer.{L}.self_attn.k_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "op": "v_proj",
+                "weights": "layer.{L}.self_attn.v_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "rope.wgsl",
+                "op": "rope_q"
+              },
+              {
+                "entry": "main",
+                "kernel": "rope.wgsl",
+                "op": "rope_k"
+              },
+              {
+                "entry": "main",
+                "kernel": "attention_streaming_f16kv.wgsl",
+                "op": "attention"
+              },
+              {
+                "entry": "main",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "op": "o_proj",
+                "weights": "layer.{L}.self_attn.o_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "residual.wgsl",
+                "op": "attn_residual"
+              },
+              {
+                "entry": "main",
+                "kernel": "rmsnorm.wgsl",
+                "op": "post_attn_norm"
+              },
+              {
+                "entry": "main",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "op": "gate_proj",
+                "weights": "layer.{L}.mlp.gate_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "op": "up_proj",
+                "weights": "layer.{L}.mlp.up_proj"
+              },
+              {
+                "constants": {
+                  "HAS_GATE": true
+                },
+                "entry": "main",
+                "kernel": "gelu.wgsl",
+                "op": "activation"
+              },
+              {
+                "entry": "main",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "op": "down_proj",
+                "weights": "layer.{L}.mlp.down_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "residual.wgsl",
+                "op": "ffn_residual"
+              }
+            ]
+          },
+          "preLayer": [
+            {
+              "entry": "main",
+              "kernel": "gather_f16.wgsl",
+              "op": "embed",
+              "weights": "embed_tokens"
+            }
+          ],
+          "postLayer": [
+            {
+              "entry": "main",
+              "kernel": "rmsnorm.wgsl",
+              "op": "final_norm"
+            },
+            {
+              "constants": {
+                "MULTICOL_COLS_PER_WG": 64,
+                "MULTICOL_THREADS_PER_COL": 4
+              },
+              "entry": "main_multicol",
+              "kernel": "matmul_gemv_subgroup.wgsl",
+              "op": "lm_head",
+              "weights": "lm_head"
+            },
+            {
+              "entry": "main",
+              "kernel": "matmul_f16w_f32a.wgsl",
+              "op": "lm_head_prefill",
+              "weights": "lm_head"
+            }
+          ],
+          "sampling": [
+            {
+              "entry": "sample_single_pass",
+              "kernel": "sample.wgsl",
+              "op": "sample"
+            }
+          ]
+        },
+        "verification": {
+          "ok": false,
+          "checks": [
+            {
+              "id": "kernelPathContract",
+              "ok": true
+            },
+            {
+              "id": "sessionCompatibility",
+              "ok": false
+            },
+            {
+              "id": "roundTripShape",
+              "ok": true
+            },
+            {
+              "id": "executionPlanCompile",
+              "ok": true
+            }
+          ],
+          "errors": [
+            "[Execution] Inline kernelPath attention kernel \"attention_decode_online_f16kv.wgsl\" requires activationDtype=\"f32\" and kvcache.kvDtype=\"f16\", but resolved activationDtype=\"f16\" and kvcache.kvDtype=\"f16\"."
+          ],
+          "roundTripShapeMatches": true,
+          "compiledPlan": {
+            "primaryPlanId": "primary",
+            "primaryKernelPathId": "qwen3-q4k-dequant-f16a-online",
+            "primaryActivationDtype": "f16",
+            "fallbackPlanId": "finiteness_fallback",
+            "fallbackKernelPathId": "qwen3-q4k-dequant-f32a-online"
+          }
+        }
+      },
+      "closestMatches": [
+        {
+          "id": "qwen3-q4k-dequant-f32a-online",
+          "status": "canonical",
+          "statusReason": "accuracy-first",
+          "notes": "Qwen 3/3.5 Q4K accuracy-first variant: subgroup GEMV + online attention + tiled prefill, F32 activations. Linear attention layers bypass this path.",
+          "mismatchCount": 4,
+          "mismatchReasons": [
+            "Activation dtype differs.",
+            "prefill steps differ.",
+            "postLayer steps differ.",
+            "Custom runtime layers bypass raw kernel-path lowering."
+          ],
+          "mismatchDetails": [
+            {
+              "code": "activation_dtype_drift",
+              "category": "dtype",
+              "label": "Activation dtype differs.",
+              "repairHint": "Set activationDtype to \"f16\" or choose kernels compatible with \"f32\".",
+              "phase": null
+            },
+            {
+              "code": "prefill_drift",
+              "category": "shape",
+              "label": "prefill steps differ.",
+              "repairHint": "Update the prefill steps to match the resolved execution graph step-for-step.",
+              "phase": "prefill"
+            },
+            {
+              "code": "postLayer_drift",
+              "category": "shape",
+              "label": "postLayer steps differ.",
+              "repairHint": "Update the postLayer steps to match the resolved execution graph step-for-step.",
+              "phase": "postLayer"
+            },
+            {
+              "code": "custom_runtime_bypass",
+              "category": "custom-runtime",
+              "label": "Custom runtime layers bypass raw kernel-path lowering.",
+              "repairHint": "Keep the proposal partial and preserve the custom runtime facts for the bypassed layers instead of forcing a registry path to claim ownership of them.",
+              "phase": null
+            }
+          ],
+          "exact": false,
+          "activationDtype": "f32",
+          "kvDtype": "f16",
+          "familyMatch": true,
+          "quantizationMatch": true
+        },
+        {
+          "id": "gemma3-q4k-dequant-f32a-online",
+          "status": "canonical",
+          "statusReason": "default",
+          "notes": "Gemma 3 Q4K dequant default: subgroup GEMV + online attention + tuned lm_head multicol, F32 activations.",
+          "mismatchCount": 4,
+          "mismatchReasons": [
+            "Activation dtype differs.",
+            "prefill steps differ.",
+            "postLayer steps differ.",
+            "Custom runtime layers bypass raw kernel-path lowering."
+          ],
+          "mismatchDetails": [
+            {
+              "code": "activation_dtype_drift",
+              "category": "dtype",
+              "label": "Activation dtype differs.",
+              "repairHint": "Set activationDtype to \"f16\" or choose kernels compatible with \"f32\".",
+              "phase": null
+            },
+            {
+              "code": "prefill_drift",
+              "category": "shape",
+              "label": "prefill steps differ.",
+              "repairHint": "Update the prefill steps to match the resolved execution graph step-for-step.",
+              "phase": "prefill"
+            },
+            {
+              "code": "postLayer_drift",
+              "category": "shape",
+              "label": "postLayer steps differ.",
+              "repairHint": "Update the postLayer steps to match the resolved execution graph step-for-step.",
+              "phase": "postLayer"
+            },
+            {
+              "code": "custom_runtime_bypass",
+              "category": "custom-runtime",
+              "label": "Custom runtime layers bypass raw kernel-path lowering.",
+              "repairHint": "Keep the proposal partial and preserve the custom runtime facts for the bypassed layers instead of forcing a registry path to claim ownership of them.",
+              "phase": null
+            }
+          ],
+          "exact": false,
+          "activationDtype": "f32",
+          "kvDtype": "f16",
+          "familyMatch": false,
+          "quantizationMatch": true
+        },
+        {
+          "id": "gemma3-q4k-dequant-f32w-f32a-online",
+          "status": "experimental",
+          "statusReason": "accuracy-probe",
+          "notes": "Gemma 3 Q4K dequant path that keeps matmul weights in F32 and runs F32 matmul kernels for numeric-sensitivity debugging.",
+          "mismatchCount": 4,
+          "mismatchReasons": [
+            "Activation dtype differs.",
+            "decode kernels assume different device capabilities.",
+            "prefill steps differ.",
+            "Custom runtime layers bypass raw kernel-path lowering."
+          ],
+          "mismatchDetails": [
+            {
+              "code": "activation_dtype_drift",
+              "category": "dtype",
+              "label": "Activation dtype differs.",
+              "repairHint": "Set activationDtype to \"f16\" or choose kernels compatible with \"f32\".",
+              "phase": null
+            },
+            {
+              "code": "capability_drift",
+              "category": "capability",
+              "label": "decode kernels assume different device capabilities.",
+              "repairHint": "Choose a registry path whose subgroup and attention-kernel assumptions match the execution graph, or synthesize a new path id for this capability mix.",
+              "phase": "decode"
+            },
+            {
+              "code": "prefill_drift",
+              "category": "shape",
+              "label": "prefill steps differ.",
+              "repairHint": "Update the prefill steps to match the resolved execution graph step-for-step.",
+              "phase": "prefill"
+            },
+            {
+              "code": "custom_runtime_bypass",
+              "category": "custom-runtime",
+              "label": "Custom runtime layers bypass raw kernel-path lowering.",
+              "repairHint": "Keep the proposal partial and preserve the custom runtime facts for the bypassed layers instead of forcing a registry path to claim ownership of them.",
+              "phase": null
+            }
+          ],
+          "exact": false,
+          "activationDtype": "f32",
+          "kvDtype": "f16",
+          "familyMatch": false,
+          "quantizationMatch": true
+        }
+      ],
+      "customRuntimeFacts": [
+        {
+          "id": "qwen-3-5-0-8b-q4k-ehaf16.linear_attention_runtime",
+          "kind": "custom-runtime",
+          "label": "Linear attention runtime",
+          "summary": "Linear-attention layers bypass raw kernel-path lowering and use recurrent runtime modules.",
+          "affectedLayers": [
+            0,
+            1,
+            2,
+            4,
+            5,
+            6,
+            8,
+            9,
+            10,
+            12,
+            13,
+            14,
+            16,
+            17,
+            18,
+            20,
+            21,
+            22
+          ],
+          "assumptions": {
+            "registryBypass": true,
+            "recurrentState": true,
+            "projectionDtype": "f32",
+            "recurrentStateDtype": "f32",
+            "decodeBatchingConstraint": "single-token-preferred"
+          },
+          "sourceRefs": [
+            "src/inference/pipelines/text/linear-attention.js",
+            "src/gpu/kernels/linear-attention-core.js"
+          ]
+        },
+        {
+          "id": "qwen-3-5-0-8b-q4k-ehaf16.execution_graph_only",
+          "kind": "execution-policy",
+          "label": "Execution graph only",
+          "summary": "The checked-in conversion contract owns an execution graph but explicitly opts out of inline kernel-path lowering.",
+          "assumptions": {
+            "inlineKernelPath": false,
+            "runtimeLowering": "execution-graph-only"
+          },
+          "sourceRefs": [
+            "src/config/schema/execution-v1.schema.js",
+            "src/inference/pipelines/text/execution-v1.js"
+          ]
+        }
+      ]
+    },
+    {
+      "modelId": "qwen-3-5-2b-q4k-ehaf16",
+      "actualLowering": "execution-graph-only",
+      "sources": [
+        {
+          "sourceKind": "conversion-config",
+          "sourcePath": "src/config/conversion/qwen3/qwen-3-5-2b-q4k-ehaf16.json",
+          "sourceLabel": "Conversion config"
+        }
+      ],
+      "exactKernelPathIds": [],
+      "proposal": {
+        "kind": "proposed",
+        "selectedKernelPathId": null,
+        "path": {
+          "id": "qwen3-q4k-dequant-f16a-online",
+          "name": "Derived kernel path for qwen-3-5-2b-q4k-ehaf16",
+          "description": "Generated from qwen-3-5-2b-q4k-ehaf16 execution-v1 graph.",
+          "activationDtype": "f16",
+          "kvDtype": "f16",
+          "decode": {
+            "steps": [
+              {
+                "entry": "main",
+                "kernel": "rmsnorm_f16.wgsl",
+                "op": "input_norm"
+              },
+              {
+                "entry": "main_vec4",
+                "kernel": "matmul_gemv_subgroup_f16a.wgsl",
+                "op": "q_proj",
+                "weights": "layer.{L}.self_attn.q_proj"
+              },
+              {
+                "entry": "main_vec4",
+                "kernel": "matmul_gemv_subgroup_f16a.wgsl",
+                "op": "k_proj",
+                "weights": "layer.{L}.self_attn.k_proj"
+              },
+              {
+                "entry": "main_vec4",
+                "kernel": "matmul_gemv_subgroup_f16a.wgsl",
+                "op": "v_proj",
+                "weights": "layer.{L}.self_attn.v_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "rope_f16.wgsl",
+                "op": "rope_q"
+              },
+              {
+                "entry": "main",
+                "kernel": "rope_f16.wgsl",
+                "op": "rope_k"
+              },
+              {
+                "entry": "main",
+                "kernel": "attention_decode_online_f16kv.wgsl",
+                "op": "attention"
+              },
+              {
+                "entry": "main_vec4",
+                "kernel": "matmul_gemv_subgroup_f16a.wgsl",
+                "op": "o_proj",
+                "weights": "layer.{L}.self_attn.o_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "residual_f16.wgsl",
+                "op": "attn_residual"
+              },
+              {
+                "entry": "main",
+                "kernel": "rmsnorm_f16.wgsl",
+                "op": "post_attn_norm"
+              },
+              {
+                "entry": "main_vec4",
+                "kernel": "matmul_gemv_subgroup_f16a.wgsl",
+                "op": "gate_proj",
+                "weights": "layer.{L}.mlp.gate_proj"
+              },
+              {
+                "entry": "main_vec4",
+                "kernel": "matmul_gemv_subgroup_f16a.wgsl",
+                "op": "up_proj",
+                "weights": "layer.{L}.mlp.up_proj"
+              },
+              {
+                "constants": {
+                  "HAS_GATE": true
+                },
+                "entry": "main",
+                "kernel": "gelu_f16.wgsl",
+                "op": "activation"
+              },
+              {
+                "entry": "main_vec4",
+                "kernel": "matmul_gemv_subgroup_f16a.wgsl",
+                "op": "down_proj",
+                "weights": "layer.{L}.mlp.down_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "residual_f16.wgsl",
+                "op": "ffn_residual"
+              }
+            ]
+          },
+          "prefill": {
+            "steps": [
+              {
+                "entry": "main",
+                "kernel": "rmsnorm_f16.wgsl",
+                "op": "input_norm"
+              },
+              {
+                "entry": "main",
+                "kernel": "matmul_f16.wgsl",
+                "op": "q_proj",
+                "weights": "layer.{L}.self_attn.q_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "matmul_f16.wgsl",
+                "op": "k_proj",
+                "weights": "layer.{L}.self_attn.k_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "matmul_f16.wgsl",
+                "op": "v_proj",
+                "weights": "layer.{L}.self_attn.v_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "rope_f16.wgsl",
+                "op": "rope_q"
+              },
+              {
+                "entry": "main",
+                "kernel": "rope_f16.wgsl",
+                "op": "rope_k"
+              },
+              {
+                "entry": "main",
+                "kernel": "attention_streaming_f16kv.wgsl",
+                "op": "attention"
+              },
+              {
+                "entry": "main",
+                "kernel": "matmul_f16.wgsl",
+                "op": "o_proj",
+                "weights": "layer.{L}.self_attn.o_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "residual_f16.wgsl",
+                "op": "attn_residual"
+              },
+              {
+                "entry": "main",
+                "kernel": "rmsnorm_f16.wgsl",
+                "op": "post_attn_norm"
+              },
+              {
+                "entry": "main",
+                "kernel": "matmul_f16.wgsl",
+                "op": "gate_proj",
+                "weights": "layer.{L}.mlp.gate_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "matmul_f16.wgsl",
+                "op": "up_proj",
+                "weights": "layer.{L}.mlp.up_proj"
+              },
+              {
+                "constants": {
+                  "HAS_GATE": true
+                },
+                "entry": "main",
+                "kernel": "gelu_f16.wgsl",
+                "op": "activation"
+              },
+              {
+                "entry": "main",
+                "kernel": "matmul_f16.wgsl",
+                "op": "down_proj",
+                "weights": "layer.{L}.mlp.down_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "residual_f16.wgsl",
+                "op": "ffn_residual"
+              }
+            ]
+          },
+          "preLayer": [
+            {
+              "entry": "main",
+              "kernel": "gather_f16.wgsl",
+              "op": "embed",
+              "weights": "embed_tokens"
+            }
+          ],
+          "postLayer": [
+            {
+              "entry": "main",
+              "kernel": "rmsnorm_f16.wgsl",
+              "op": "final_norm"
+            },
+            {
+              "constants": {
+                "MULTICOL_COLS_PER_WG": 64,
+                "MULTICOL_THREADS_PER_COL": 4
+              },
+              "entry": "main_multicol",
+              "kernel": "matmul_gemv_subgroup_f16a.wgsl",
+              "op": "lm_head",
+              "weights": "lm_head"
+            },
+            {
+              "entry": "main",
+              "kernel": "matmul_f16.wgsl",
+              "op": "lm_head_prefill",
+              "weights": "lm_head"
+            }
+          ],
+          "sampling": [
+            {
+              "entry": "sample_single_pass",
+              "kernel": "sample_f16.wgsl",
+              "op": "sample"
+            }
+          ]
+        },
+        "verification": {
+          "ok": false,
+          "checks": [
+            {
+              "id": "kernelPathContract",
+              "ok": true
+            },
+            {
+              "id": "sessionCompatibility",
+              "ok": false
+            },
+            {
+              "id": "roundTripShape",
+              "ok": true
+            },
+            {
+              "id": "executionPlanCompile",
+              "ok": true
+            }
+          ],
+          "errors": [
+            "[Execution] Inline kernelPath attention kernel \"attention_decode_online_f16kv.wgsl\" requires activationDtype=\"f32\" and kvcache.kvDtype=\"f16\", but resolved activationDtype=\"f16\" and kvcache.kvDtype=\"f16\"."
+          ],
+          "roundTripShapeMatches": true,
+          "compiledPlan": {
+            "primaryPlanId": "primary",
+            "primaryKernelPathId": "qwen3-q4k-dequant-f16a-online",
+            "primaryActivationDtype": "f16",
+            "fallbackPlanId": "finiteness_fallback",
+            "fallbackKernelPathId": "qwen3-q4k-dequant-f32a-online"
+          }
+        }
+      },
+      "closestMatches": [
+        {
+          "id": "qwen3-q4k-dequant-f16a-online",
+          "status": "canonical",
+          "statusReason": "default",
+          "notes": "Qwen 3/3.5 Q4K default: subgroup GEMV + online attention + tiled prefill, F16 activations. Linear attention layers bypass this path.",
+          "mismatchCount": 1,
+          "mismatchReasons": [
+            "Custom runtime layers bypass raw kernel-path lowering."
+          ],
+          "mismatchDetails": [
+            {
+              "code": "custom_runtime_bypass",
+              "category": "custom-runtime",
+              "label": "Custom runtime layers bypass raw kernel-path lowering.",
+              "repairHint": "Keep the proposal partial and preserve the custom runtime facts for the bypassed layers instead of forcing a registry path to claim ownership of them.",
+              "phase": null
+            }
+          ],
+          "exact": false,
+          "activationDtype": "f16",
+          "kvDtype": "f16",
+          "familyMatch": true,
+          "quantizationMatch": true
+        },
+        {
+          "id": "gemma3-q4k-dequant-f16a-online",
+          "status": "experimental",
+          "statusReason": "benchmark-probe",
+          "notes": "Experimental Gemma 3 Q4K path using online decode attention on subgroup-capable GPUs.",
+          "mismatchCount": 3,
+          "mismatchReasons": [
+            "decode kernels assume different device capabilities.",
+            "prefill kernels assume different device capabilities.",
+            "Custom runtime layers bypass raw kernel-path lowering."
+          ],
+          "mismatchDetails": [
+            {
+              "code": "capability_drift",
+              "category": "capability",
+              "label": "decode kernels assume different device capabilities.",
+              "repairHint": "Choose a registry path whose subgroup and attention-kernel assumptions match the execution graph, or synthesize a new path id for this capability mix.",
+              "phase": "decode"
+            },
+            {
+              "code": "capability_drift",
+              "category": "capability",
+              "label": "prefill kernels assume different device capabilities.",
+              "repairHint": "Choose a registry path whose subgroup and attention-kernel assumptions match the execution graph, or synthesize a new path id for this capability mix.",
+              "phase": "prefill"
+            },
+            {
+              "code": "custom_runtime_bypass",
+              "category": "custom-runtime",
+              "label": "Custom runtime layers bypass raw kernel-path lowering.",
+              "repairHint": "Keep the proposal partial and preserve the custom runtime facts for the bypassed layers instead of forcing a registry path to claim ownership of them.",
+              "phase": null
+            }
+          ],
+          "exact": false,
+          "activationDtype": "f16",
+          "kvDtype": "f16",
+          "familyMatch": false,
+          "quantizationMatch": true
+        },
+        {
+          "id": "gemma3-f16-fused-f16a-online",
+          "status": "experimental",
+          "statusReason": "benchmark-probe",
+          "notes": "Experimental fused F16 pipeline variant for fast decode.",
+          "mismatchCount": 4,
+          "mismatchReasons": [
+            "decode kernels assume different device capabilities.",
+            "prefill kernels assume different device capabilities.",
+            "postLayer steps differ.",
+            "Custom runtime layers bypass raw kernel-path lowering."
+          ],
+          "mismatchDetails": [
+            {
+              "code": "capability_drift",
+              "category": "capability",
+              "label": "decode kernels assume different device capabilities.",
+              "repairHint": "Choose a registry path whose subgroup and attention-kernel assumptions match the execution graph, or synthesize a new path id for this capability mix.",
+              "phase": "decode"
+            },
+            {
+              "code": "capability_drift",
+              "category": "capability",
+              "label": "prefill kernels assume different device capabilities.",
+              "repairHint": "Choose a registry path whose subgroup and attention-kernel assumptions match the execution graph, or synthesize a new path id for this capability mix.",
+              "phase": "prefill"
+            },
+            {
+              "code": "postLayer_drift",
+              "category": "shape",
+              "label": "postLayer steps differ.",
+              "repairHint": "Update the postLayer steps to match the resolved execution graph step-for-step.",
+              "phase": "postLayer"
+            },
+            {
+              "code": "custom_runtime_bypass",
+              "category": "custom-runtime",
+              "label": "Custom runtime layers bypass raw kernel-path lowering.",
+              "repairHint": "Keep the proposal partial and preserve the custom runtime facts for the bypassed layers instead of forcing a registry path to claim ownership of them.",
+              "phase": null
+            }
+          ],
+          "exact": false,
+          "activationDtype": "f16",
+          "kvDtype": "f16",
+          "familyMatch": false,
+          "quantizationMatch": false
+        }
+      ],
+      "customRuntimeFacts": [
+        {
+          "id": "qwen-3-5-2b-q4k-ehaf16.linear_attention_runtime",
+          "kind": "custom-runtime",
+          "label": "Linear attention runtime",
+          "summary": "Linear-attention layers bypass raw kernel-path lowering and use recurrent runtime modules.",
+          "affectedLayers": [
+            0,
+            1,
+            2,
+            4,
+            5,
+            6,
+            8,
+            9,
+            10,
+            12,
+            13,
+            14,
+            16,
+            17,
+            18,
+            20,
+            21,
+            22
+          ],
+          "assumptions": {
+            "registryBypass": true,
+            "recurrentState": true,
+            "projectionDtype": "f32",
+            "recurrentStateDtype": "f32",
+            "decodeBatchingConstraint": "single-token-preferred"
+          },
+          "sourceRefs": [
+            "src/inference/pipelines/text/linear-attention.js",
+            "src/gpu/kernels/linear-attention-core.js"
+          ]
+        },
+        {
+          "id": "qwen-3-5-2b-q4k-ehaf16.execution_graph_only",
+          "kind": "execution-policy",
+          "label": "Execution graph only",
+          "summary": "The checked-in conversion contract owns an execution graph but explicitly opts out of inline kernel-path lowering.",
+          "assumptions": {
+            "inlineKernelPath": false,
+            "runtimeLowering": "execution-graph-only"
+          },
+          "sourceRefs": [
+            "src/config/schema/execution-v1.schema.js",
+            "src/inference/pipelines/text/execution-v1.js"
+          ]
+        }
+      ]
+    },
+    {
+      "modelId": "translategemma-4b-1b-enes-q4k-ehf16-af32",
+      "actualLowering": "inline-kernel-path",
+      "sources": [
+        {
+          "sourceKind": "conversion-config",
+          "sourcePath": "src/config/conversion/gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32.json",
+          "sourceLabel": "Conversion config"
+        }
+      ],
+      "exactKernelPathIds": [],
+      "proposal": {
+        "kind": "proposed",
+        "selectedKernelPathId": null,
+        "path": {
+          "id": "gemma3-q4k-dequant-f32a-online",
+          "name": "Derived kernel path for translategemma-4b-1b-enes-q4k-ehf16-af32",
+          "description": "Generated from translategemma-4b-1b-enes-q4k-ehf16-af32 execution-v1 graph.",
+          "activationDtype": "f32",
+          "kvDtype": "f16",
+          "decode": {
+            "steps": [
+              {
+                "entry": "main",
+                "kernel": "rmsnorm.wgsl",
+                "op": "input_norm"
+              },
+              {
+                "entry": "main_vec4",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "op": "q_proj",
+                "weights": "layer.{L}.self_attn.q_proj"
+              },
+              {
+                "entry": "main_vec4",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "op": "k_proj",
+                "weights": "layer.{L}.self_attn.k_proj"
+              },
+              {
+                "entry": "main_vec4",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "op": "v_proj",
+                "weights": "layer.{L}.self_attn.v_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "rope.wgsl",
+                "op": "rope_q"
+              },
+              {
+                "entry": "main",
+                "kernel": "rope.wgsl",
+                "op": "rope_k"
+              },
+              {
+                "entry": "main",
+                "kernel": "attention_decode_online_f16kv.wgsl",
+                "op": "attention"
+              },
+              {
+                "entry": "main_vec4",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "op": "o_proj",
+                "weights": "layer.{L}.self_attn.o_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "residual.wgsl",
+                "op": "attn_residual"
+              },
+              {
+                "entry": "main",
+                "kernel": "rmsnorm.wgsl",
+                "op": "post_attn_norm"
+              },
+              {
+                "entry": "main_vec4",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "op": "gate_proj",
+                "weights": "layer.{L}.mlp.gate_proj"
+              },
+              {
+                "entry": "main_vec4",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "op": "up_proj",
+                "weights": "layer.{L}.mlp.up_proj"
+              },
+              {
+                "constants": {
+                  "HAS_GATE": true
+                },
+                "entry": "main",
+                "kernel": "gelu.wgsl",
+                "op": "activation"
+              },
+              {
+                "entry": "main_vec4",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "op": "down_proj",
+                "weights": "layer.{L}.mlp.down_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "residual.wgsl",
+                "op": "ffn_residual"
+              }
+            ]
+          },
+          "prefill": {
+            "steps": [
+              {
+                "entry": "main",
+                "kernel": "rmsnorm.wgsl",
+                "op": "input_norm"
+              },
+              {
+                "entry": "main",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "op": "q_proj",
+                "weights": "layer.{L}.self_attn.q_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "op": "k_proj",
+                "weights": "layer.{L}.self_attn.k_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "op": "v_proj",
+                "weights": "layer.{L}.self_attn.v_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "rope.wgsl",
+                "op": "rope_q"
+              },
+              {
+                "entry": "main",
+                "kernel": "rope.wgsl",
+                "op": "rope_k"
+              },
+              {
+                "entry": "main",
+                "kernel": "attention_streaming_f16kv.wgsl",
+                "op": "attention"
+              },
+              {
+                "entry": "main",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "op": "o_proj",
+                "weights": "layer.{L}.self_attn.o_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "residual.wgsl",
+                "op": "attn_residual"
+              },
+              {
+                "entry": "main",
+                "kernel": "rmsnorm.wgsl",
+                "op": "post_attn_norm"
+              },
+              {
+                "entry": "main",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "op": "gate_proj",
+                "weights": "layer.{L}.mlp.gate_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "op": "up_proj",
+                "weights": "layer.{L}.mlp.up_proj"
+              },
+              {
+                "constants": {
+                  "HAS_GATE": true
+                },
+                "entry": "main",
+                "kernel": "gelu.wgsl",
+                "op": "activation"
+              },
+              {
+                "entry": "main",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "op": "down_proj",
+                "weights": "layer.{L}.mlp.down_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "residual.wgsl",
+                "op": "ffn_residual"
+              }
+            ]
+          },
+          "preLayer": [
+            {
+              "entry": "main",
+              "kernel": "gather_f16.wgsl",
+              "op": "embed",
+              "weights": "embed_tokens"
+            }
+          ],
+          "postLayer": [
+            {
+              "entry": "main",
+              "kernel": "rmsnorm.wgsl",
+              "op": "final_norm"
+            },
+            {
+              "constants": {
+                "MULTICOL_COLS_PER_WG": 64,
+                "MULTICOL_THREADS_PER_COL": 4
+              },
+              "entry": "main_multicol",
+              "kernel": "matmul_gemv_subgroup.wgsl",
+              "op": "lm_head",
+              "weights": "lm_head"
+            },
+            {
+              "entry": "main",
+              "kernel": "matmul_f16w_f32a.wgsl",
+              "op": "lm_head_prefill",
+              "weights": "lm_head"
+            }
+          ],
+          "sampling": [
+            {
+              "entry": "sample_single_pass",
+              "kernel": "sample.wgsl",
+              "op": "sample"
+            }
+          ]
+        },
+        "verification": {
+          "ok": true,
+          "checks": [
+            {
+              "id": "kernelPathContract",
+              "ok": true
+            },
+            {
+              "id": "sessionCompatibility",
+              "ok": true
+            },
+            {
+              "id": "roundTripShape",
+              "ok": true
+            },
+            {
+              "id": "executionPlanCompile",
+              "ok": true
+            }
+          ],
+          "errors": [],
+          "roundTripShapeMatches": true,
+          "compiledPlan": {
+            "primaryPlanId": "primary",
+            "primaryKernelPathId": "gemma3-q4k-dequant-f32a-online",
+            "primaryActivationDtype": "f32",
+            "fallbackPlanId": null,
+            "fallbackKernelPathId": null
+          }
+        }
+      },
+      "closestMatches": [
+        {
+          "id": "gemma3-q4k-dequant-f32a-online",
+          "status": "canonical",
+          "statusReason": "default",
+          "notes": "Gemma 3 Q4K dequant default: subgroup GEMV + online attention + tuned lm_head multicol, F32 activations.",
+          "mismatchCount": 2,
+          "mismatchReasons": [
+            "prefill steps differ.",
+            "postLayer steps differ."
+          ],
+          "mismatchDetails": [
+            {
+              "code": "prefill_drift",
+              "category": "shape",
+              "label": "prefill steps differ.",
+              "repairHint": "Update the prefill steps to match the resolved execution graph step-for-step.",
+              "phase": "prefill"
+            },
+            {
+              "code": "postLayer_drift",
+              "category": "shape",
+              "label": "postLayer steps differ.",
+              "repairHint": "Update the postLayer steps to match the resolved execution graph step-for-step.",
+              "phase": "postLayer"
+            }
+          ],
+          "exact": false,
+          "activationDtype": "f32",
+          "kvDtype": "f16",
+          "familyMatch": true,
+          "quantizationMatch": true
+        },
+        {
+          "id": "gemma3-q4k-dequant-f32w-f32a-online",
+          "status": "experimental",
+          "statusReason": "accuracy-probe",
+          "notes": "Gemma 3 Q4K dequant path that keeps matmul weights in F32 and runs F32 matmul kernels for numeric-sensitivity debugging.",
+          "mismatchCount": 2,
+          "mismatchReasons": [
+            "decode kernels assume different device capabilities.",
+            "prefill steps differ."
+          ],
+          "mismatchDetails": [
+            {
+              "code": "capability_drift",
+              "category": "capability",
+              "label": "decode kernels assume different device capabilities.",
+              "repairHint": "Choose a registry path whose subgroup and attention-kernel assumptions match the execution graph, or synthesize a new path id for this capability mix.",
+              "phase": "decode"
+            },
+            {
+              "code": "prefill_drift",
+              "category": "shape",
+              "label": "prefill steps differ.",
+              "repairHint": "Update the prefill steps to match the resolved execution graph step-for-step.",
+              "phase": "prefill"
+            }
+          ],
+          "exact": false,
+          "activationDtype": "f32",
+          "kvDtype": "f16",
+          "familyMatch": true,
+          "quantizationMatch": true
+        },
+        {
+          "id": "lfm2-q4k-dequant-f32a-online",
+          "status": "canonical",
+          "statusReason": "default",
+          "notes": "LFM2 Q4K default: subgroup GEMV decode with tiled fast-prefill path and F32 activations.",
+          "mismatchCount": 2,
+          "mismatchReasons": [
+            "prefill kernels assume different device capabilities.",
+            "postLayer steps differ."
+          ],
+          "mismatchDetails": [
+            {
+              "code": "capability_drift",
+              "category": "capability",
+              "label": "prefill kernels assume different device capabilities.",
+              "repairHint": "Choose a registry path whose subgroup and attention-kernel assumptions match the execution graph, or synthesize a new path id for this capability mix.",
+              "phase": "prefill"
+            },
+            {
+              "code": "postLayer_drift",
+              "category": "shape",
+              "label": "postLayer steps differ.",
+              "repairHint": "Update the postLayer steps to match the resolved execution graph step-for-step.",
+              "phase": "postLayer"
+            }
+          ],
+          "exact": false,
+          "activationDtype": "f32",
+          "kvDtype": "f16",
+          "familyMatch": false,
+          "quantizationMatch": true
+        }
+      ],
+      "customRuntimeFacts": []
+    },
+    {
+      "modelId": "translategemma-4b-it-q4k-ehf16-af32",
+      "actualLowering": "inline-kernel-path",
+      "sources": [
+        {
+          "sourceKind": "conversion-config",
+          "sourcePath": "src/config/conversion/gemma3/translategemma-4b-it-q4k-ehf16-af32.json",
+          "sourceLabel": "Conversion config"
+        }
+      ],
+      "exactKernelPathIds": [],
+      "proposal": {
+        "kind": "proposed",
+        "selectedKernelPathId": null,
+        "path": {
+          "id": "gemma3-q4k-dequant-f32a-online",
+          "name": "Derived kernel path for translategemma-4b-it-q4k-ehf16-af32",
+          "description": "Generated from translategemma-4b-it-q4k-ehf16-af32 execution-v1 graph.",
+          "activationDtype": "f32",
+          "kvDtype": "f16",
+          "decode": {
+            "steps": [
+              {
+                "entry": "main",
+                "kernel": "rmsnorm.wgsl",
+                "op": "input_norm"
+              },
+              {
+                "entry": "main_vec4",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "op": "q_proj",
+                "weights": "layer.{L}.self_attn.q_proj"
+              },
+              {
+                "entry": "main_vec4",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "op": "k_proj",
+                "weights": "layer.{L}.self_attn.k_proj"
+              },
+              {
+                "entry": "main_vec4",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "op": "v_proj",
+                "weights": "layer.{L}.self_attn.v_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "rope.wgsl",
+                "op": "rope_q"
+              },
+              {
+                "entry": "main",
+                "kernel": "rope.wgsl",
+                "op": "rope_k"
+              },
+              {
+                "entry": "main",
+                "kernel": "attention_decode_online_f16kv.wgsl",
+                "op": "attention"
+              },
+              {
+                "entry": "main_vec4",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "op": "o_proj",
+                "weights": "layer.{L}.self_attn.o_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "residual.wgsl",
+                "op": "attn_residual"
+              },
+              {
+                "entry": "main",
+                "kernel": "rmsnorm.wgsl",
+                "op": "post_attn_norm"
+              },
+              {
+                "entry": "main_vec4",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "op": "gate_proj",
+                "weights": "layer.{L}.mlp.gate_proj"
+              },
+              {
+                "entry": "main_vec4",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "op": "up_proj",
+                "weights": "layer.{L}.mlp.up_proj"
+              },
+              {
+                "constants": {
+                  "HAS_GATE": true
+                },
+                "entry": "main",
+                "kernel": "gelu.wgsl",
+                "op": "activation"
+              },
+              {
+                "entry": "main_vec4",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "op": "down_proj",
+                "weights": "layer.{L}.mlp.down_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "residual.wgsl",
+                "op": "ffn_residual"
+              }
+            ]
+          },
+          "prefill": {
+            "steps": [
+              {
+                "entry": "main",
+                "kernel": "rmsnorm.wgsl",
+                "op": "input_norm"
+              },
+              {
+                "entry": "main",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "op": "q_proj",
+                "weights": "layer.{L}.self_attn.q_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "op": "k_proj",
+                "weights": "layer.{L}.self_attn.k_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "op": "v_proj",
+                "weights": "layer.{L}.self_attn.v_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "rope.wgsl",
+                "op": "rope_q"
+              },
+              {
+                "entry": "main",
+                "kernel": "rope.wgsl",
+                "op": "rope_k"
+              },
+              {
+                "entry": "main",
+                "kernel": "attention_streaming_f16kv.wgsl",
+                "op": "attention"
+              },
+              {
+                "entry": "main",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "op": "o_proj",
+                "weights": "layer.{L}.self_attn.o_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "residual.wgsl",
+                "op": "attn_residual"
+              },
+              {
+                "entry": "main",
+                "kernel": "rmsnorm.wgsl",
+                "op": "post_attn_norm"
+              },
+              {
+                "entry": "main",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "op": "gate_proj",
+                "weights": "layer.{L}.mlp.gate_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "op": "up_proj",
+                "weights": "layer.{L}.mlp.up_proj"
+              },
+              {
+                "constants": {
+                  "HAS_GATE": true
+                },
+                "entry": "main",
+                "kernel": "gelu.wgsl",
+                "op": "activation"
+              },
+              {
+                "entry": "main",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "op": "down_proj",
+                "weights": "layer.{L}.mlp.down_proj"
+              },
+              {
+                "entry": "main",
+                "kernel": "residual.wgsl",
+                "op": "ffn_residual"
+              }
+            ]
+          },
+          "preLayer": [
+            {
+              "entry": "main",
+              "kernel": "gather_f16.wgsl",
+              "op": "embed",
+              "weights": "embed_tokens"
+            }
+          ],
+          "postLayer": [
+            {
+              "entry": "main",
+              "kernel": "rmsnorm.wgsl",
+              "op": "final_norm"
+            },
+            {
+              "constants": {
+                "MULTICOL_COLS_PER_WG": 64,
+                "MULTICOL_THREADS_PER_COL": 4
+              },
+              "entry": "main_multicol",
+              "kernel": "matmul_gemv_subgroup.wgsl",
+              "op": "lm_head",
+              "weights": "lm_head"
+            },
+            {
+              "entry": "main",
+              "kernel": "matmul_f16w_f32a.wgsl",
+              "op": "lm_head_prefill",
+              "weights": "lm_head"
+            }
+          ],
+          "sampling": [
+            {
+              "entry": "sample_single_pass",
+              "kernel": "sample.wgsl",
+              "op": "sample"
+            }
+          ]
+        },
+        "verification": {
+          "ok": true,
+          "checks": [
+            {
+              "id": "kernelPathContract",
+              "ok": true
+            },
+            {
+              "id": "sessionCompatibility",
+              "ok": true
+            },
+            {
+              "id": "roundTripShape",
+              "ok": true
+            },
+            {
+              "id": "executionPlanCompile",
+              "ok": true
+            }
+          ],
+          "errors": [],
+          "roundTripShapeMatches": true,
+          "compiledPlan": {
+            "primaryPlanId": "primary",
+            "primaryKernelPathId": "gemma3-q4k-dequant-f32a-online",
+            "primaryActivationDtype": "f32",
+            "fallbackPlanId": null,
+            "fallbackKernelPathId": null
+          }
+        }
+      },
+      "closestMatches": [
+        {
+          "id": "gemma3-q4k-dequant-f32a-online",
+          "status": "canonical",
+          "statusReason": "default",
+          "notes": "Gemma 3 Q4K dequant default: subgroup GEMV + online attention + tuned lm_head multicol, F32 activations.",
+          "mismatchCount": 2,
+          "mismatchReasons": [
+            "prefill steps differ.",
+            "postLayer steps differ."
+          ],
+          "mismatchDetails": [
+            {
+              "code": "prefill_drift",
+              "category": "shape",
+              "label": "prefill steps differ.",
+              "repairHint": "Update the prefill steps to match the resolved execution graph step-for-step.",
+              "phase": "prefill"
+            },
+            {
+              "code": "postLayer_drift",
+              "category": "shape",
+              "label": "postLayer steps differ.",
+              "repairHint": "Update the postLayer steps to match the resolved execution graph step-for-step.",
+              "phase": "postLayer"
+            }
+          ],
+          "exact": false,
+          "activationDtype": "f32",
+          "kvDtype": "f16",
+          "familyMatch": true,
+          "quantizationMatch": true
+        },
+        {
+          "id": "gemma3-q4k-dequant-f32w-f32a-online",
+          "status": "experimental",
+          "statusReason": "accuracy-probe",
+          "notes": "Gemma 3 Q4K dequant path that keeps matmul weights in F32 and runs F32 matmul kernels for numeric-sensitivity debugging.",
+          "mismatchCount": 2,
+          "mismatchReasons": [
+            "decode kernels assume different device capabilities.",
+            "prefill steps differ."
+          ],
+          "mismatchDetails": [
+            {
+              "code": "capability_drift",
+              "category": "capability",
+              "label": "decode kernels assume different device capabilities.",
+              "repairHint": "Choose a registry path whose subgroup and attention-kernel assumptions match the execution graph, or synthesize a new path id for this capability mix.",
+              "phase": "decode"
+            },
+            {
+              "code": "prefill_drift",
+              "category": "shape",
+              "label": "prefill steps differ.",
+              "repairHint": "Update the prefill steps to match the resolved execution graph step-for-step.",
+              "phase": "prefill"
+            }
+          ],
+          "exact": false,
+          "activationDtype": "f32",
+          "kvDtype": "f16",
+          "familyMatch": true,
+          "quantizationMatch": true
+        },
+        {
+          "id": "lfm2-q4k-dequant-f32a-online",
+          "status": "canonical",
+          "statusReason": "default",
+          "notes": "LFM2 Q4K default: subgroup GEMV decode with tiled fast-prefill path and F32 activations.",
+          "mismatchCount": 2,
+          "mismatchReasons": [
+            "prefill kernels assume different device capabilities.",
+            "postLayer steps differ."
+          ],
+          "mismatchDetails": [
+            {
+              "code": "capability_drift",
+              "category": "capability",
+              "label": "prefill kernels assume different device capabilities.",
+              "repairHint": "Choose a registry path whose subgroup and attention-kernel assumptions match the execution graph, or synthesize a new path id for this capability mix.",
+              "phase": "prefill"
+            },
+            {
+              "code": "postLayer_drift",
+              "category": "shape",
+              "label": "postLayer steps differ.",
+              "repairHint": "Update the postLayer steps to match the resolved execution graph step-for-step.",
+              "phase": "postLayer"
+            }
+          ],
+          "exact": false,
+          "activationDtype": "f32",
+          "kvDtype": "f16",
+          "familyMatch": false,
+          "quantizationMatch": true
+        }
+      ],
+      "customRuntimeFacts": []
+    }
+  ]
+}

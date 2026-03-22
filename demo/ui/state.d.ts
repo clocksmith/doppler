@@ -130,7 +130,6 @@ export interface State {
   diagnosticsSelections: Record<string, any>;
   lastDiagnosticsSuite: string | null;
   lastDiffusionRequest: any;
-  lastEnergyRequest: any;
   lastReport: any;
   lastReportInfo: any;
   lastMetrics: any;
@@ -147,14 +146,12 @@ export interface State {
     translate: number;
     embedding: number;
     diffusion: number;
-    energy: number;
   };
   modeModelId: {
     run: string | null;
     translate: string | null;
     embedding: string | null;
     diffusion: string | null;
-    energy: string | null;
   };
   runAbortController: AbortController | null;
   runGenerating: boolean;
@@ -177,8 +174,6 @@ export interface State {
   };
   diffusionGenerating: boolean;
   diffusionLoading: boolean;
-  energyGenerating: boolean;
-  energyLoading: boolean;
   convertActive: boolean;
   downloadActive: boolean;
   surface: string;
@@ -201,11 +196,15 @@ export interface State {
   quickModelCatalog: any[];
   quickModelCatalogError: string | null;
   quickModelCatalogLoading: boolean;
+  kernelPathBuilderIndex: any;
+  kernelPathBuilderLoading: boolean;
+  kernelPathBuilderError: string | null;
+  kernelPathBuilderModelId: string | null;
+  kernelPathBuilderOverlayReport: any;
+  kernelPathBuilderOverlaySource: string | null;
   quickModelActionModelId: string | null;
   quickModelStorageIds: string[];
   downloadProgress: any;
-  energyDemoId: string | null;
-  lastEnergyResult: any;
 }
 
 export declare const state: State;

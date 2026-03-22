@@ -37,10 +37,21 @@ const EXPECTED_QWEN_DECODE_LOOP = Object.freeze({
   ringStaging: 1,
   disableCommandBatching: true,
 });
+const EXPECTED_QWEN_COMPUTE_DEFAULTS = Object.freeze({
+  activationDtype: 'f16',
+  mathDtype: 'f16',
+  accumDtype: 'f16',
+  outputDtype: 'f16',
+});
 
 function assertQwenDecodeLoop(decodeLoop, label) {
   assert.ok(decodeLoop && typeof decodeLoop === 'object', `${label} decodeLoop must be present`);
   assert.deepEqual(decodeLoop, EXPECTED_QWEN_DECODE_LOOP, `${label} decodeLoop`);
+}
+
+function assertQwenComputeDefaults(computeDefaults, label) {
+  assert.ok(computeDefaults && typeof computeDefaults === 'object', `${label} compute defaults must be present`);
+  assert.deepEqual(computeDefaults, EXPECTED_QWEN_COMPUTE_DEFAULTS, `${label} compute defaults`);
 }
 
 function assertQwenConversionConfig(config) {
@@ -53,6 +64,10 @@ function assertQwenConversionConfig(config) {
   assert.equal(config.inference.layerPattern.offset, null);
   assert.deepEqual(config.inference.layerPattern.layerTypes, EXPECTED_QWEN_LAYER_TYPES);
   assertQwenDecodeLoop(config.sessionDefaults?.decodeLoop, config.output?.modelBaseId ?? 'qwen');
+  assertQwenComputeDefaults(
+    config.sessionDefaults?.compute?.defaults,
+    config.output?.modelBaseId ?? 'qwen'
+  );
   assert.ok(config.execution && typeof config.execution === 'object', 'qwen execution config must be present');
   assert.equal(config.execution.inlineKernelPath, false, 'qwen execution.inlineKernelPath');
 }
@@ -104,10 +119,7 @@ if (!hasExactLocalManifests) {
     assert.ok(sd != null);
     assertQwenDecodeLoop(sd.decodeLoop, `${manifest.modelId}.inference.sessionDefaults`);
     assert.equal(sd.kvcache?.kvDtype, 'f16');
-    assert.equal(sd.compute?.defaults?.activationDtype, 'f32');
-    assert.equal(sd.compute?.defaults?.mathDtype, 'f32');
-    assert.equal(sd.compute?.defaults?.accumDtype, 'f32');
-    assert.equal(sd.compute?.defaults?.outputDtype, 'f32');
+    assertQwenComputeDefaults(sd.compute?.defaults, `${manifest.modelId}.inference.sessionDefaults`);
     assert.equal(sd.execution, undefined);
   }
 }

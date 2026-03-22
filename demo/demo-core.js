@@ -63,29 +63,9 @@ import {
   recordRunLog,
 } from './ui/stats.js';
 import {
-  ENERGY_DEMOS,
-  DEFAULT_ENERGY_DEMO_ID,
   DEFAULT_RUNTIME_PROFILE,
   RUNTIME_PROFILE_REGISTRY,
 } from './ui/constants.js';
-import {
-  updateEnergyStatus,
-  getEnergyDemoById,
-  setEnergyMetricLabels,
-  toggleEnergyProblemControls,
-  syncEnergyDemoSelection,
-  populateEnergyDemoSelect,
-  applyEnergyDemoDefaults,
-} from './ui/energy/controls.js';
-import {
-  clearEnergyBoard,
-  clearEnergyChart,
-  renderEnergyBoard,
-  renderEnergyVector,
-  renderEnergyIntensityBoard,
-  drawEnergyChart,
-  updateEnergyStats,
-} from './ui/energy/render.js';
 import {
   storeDiagnosticsSelection,
   syncDiagnosticsModeUI,
@@ -104,6 +84,14 @@ import {
   applyRuntimeConfigProfile,
   applySelectedRuntimeProfile,
 } from './ui/diagnostics/index.js';
+import {
+  renderKernelPathBuilderView,
+  loadKernelPathBuilderIndex,
+  selectKernelPathBuilderModel,
+  applyLatestKernelPathBuilderReport,
+  applyKernelPathBuilderReportFile,
+  clearKernelPathBuilderReport,
+} from './ui/kernel-path-builder/index.js';
 import {
   normalizeModelType,
   isCompatibleModelType,
@@ -135,7 +123,7 @@ const controller = new DiagnosticsController({ log });
 let tokenPress = null;
 let tokenPressSession = null;
 
-const PRIMARY_MODES = new Set(['run', 'energy']);
+const PRIMARY_MODES = new Set(['run']);
 let modelListRefreshVersion = 0;
 const DEFAULT_MODEL_AVAILABILITY = Object.freeze({
   total: 0,
@@ -143,7 +131,6 @@ const DEFAULT_MODEL_AVAILABILITY = Object.freeze({
   translate: 0,
   embedding: 0,
   diffusion: 0,
-  energy: 0,
 });
 const QUICK_MODEL_CATALOG_LOCAL_BASE_URL = typeof window === 'object' && window.location?.origin
   ? new URL('/models/catalog.json', window.location.origin).toString()
@@ -164,7 +151,6 @@ const DISTILL_WORKLOAD_REGISTRY_URL = typeof window === 'object' && window.locat
   ? new URL('/src/training/workload-packs/registry.json', window.location.origin).toString()
   : new URL('../src/training/workload-packs/registry.json', import.meta.url).toString();
 const RUN_STARTER_PROMPTS = Object.freeze([
-  'is potential energy real?',
   'compare zig to rust to elvish',
   'eat your cake and have it too',
   'why is WebGPU the ultimate app store bypass',
@@ -187,7 +173,6 @@ const RUN_STARTER_PROMPTS = Object.freeze([
   'create a medical intake assistant spec that refuses uncertain recommendations and explains exactly why each action is accepted or blocked',
   'write a compliance memo arguing whether local inference can materially reduce patient data exposure without hurting diagnostic throughput',
   'write a post-mortem for a finance startup that moved anti-fraud checks to client-side models and then had to prove auditability to regulators',
-  'is human intuition just a fast, low-energy heuristic that our biological hardware runs when the cost of slow, symbolic reasoning is too high for survival',
   'in a bank, compare the legal risk profile of probabilistic redaction versus deterministic policy-constrained local redaction for contracts containing PII',
   'draft a deployment playbook for a fintech firm moving from cloud LLM risk scoring to browser-based WebGPU inference with OPFS caching and offline fallback',
   'build a GenUI prompt for a medical workflow where every chart, form, and alert variant is selected from a pre-verified component library, not generated ad hoc',
@@ -458,7 +443,7 @@ const DEEP_LINK_MODES = new Set([
   'translate',
   'embedding',
   'diffusion',
-  'energy',
+  'kernel-paths',
   'distill',
   'models',
   'diagnostics',
@@ -466,7 +451,7 @@ const DEEP_LINK_MODES = new Set([
 const TASK_SET = new Set(['run', 'evaluate']);
 const TASK_MODE_ALLOWLIST = Object.freeze({
   run: Object.freeze(['run', 'translate', 'embedding', 'diffusion']),
-  evaluate: Object.freeze(['diagnostics', 'distill', 'energy']),
+  evaluate: Object.freeze(['diagnostics', 'kernel-paths', 'distill']),
 });
 const MODE_TASK_MAP = Object.freeze({
   run: 'run',
@@ -474,8 +459,8 @@ const MODE_TASK_MAP = Object.freeze({
   embedding: 'run',
   diffusion: 'run',
   diagnostics: 'evaluate',
+  'kernel-paths': 'evaluate',
   distill: 'evaluate',
-  energy: 'evaluate',
 });
 const DEFAULT_TASK_MODE = Object.freeze({
   run: 'run',
@@ -520,11 +505,6 @@ const EMBEDDING_DEMO_DOCUMENT_CATALOG = Object.freeze([
     id: 'doc_diffusion',
     title: 'Image Generation',
     text: 'Diffusion inference denoises latent tensors over multiple steps, then decodes through a VAE to produce a final image.',
-  }),
-  Object.freeze({
-    id: 'doc_energy_model',
-    title: 'Energy Optimization',
-    text: 'Energy-based solvers iteratively minimize objective functions and can visualize convergence as energy drops over time.',
   }),
   Object.freeze({
     id: 'doc_data_governance',
@@ -2729,7 +2709,6 @@ function normalizeQuickModeToken(value) {
   if (normalized === 'translate' || normalized === 'translation') return 'translate';
   if (normalized === 'embedding' || normalized === 'embed') return 'embedding';
   if (normalized === 'diffusion' || normalized === 'image') return 'diffusion';
-  if (normalized === 'energy') return 'energy';
   return null;
 }
 
@@ -3042,7 +3021,6 @@ function formatQuickModelModeBadge(modes = []) {
   }
   if (modes.includes('embedding')) labels.push('embedding');
   if (modes.includes('diffusion')) labels.push('diffusion');
-  if (modes.includes('energy')) labels.push('energy');
   return labels.length > 0 ? labels.join('+') : 'text';
 }
 
@@ -3104,7 +3082,6 @@ function getDiagnosticsRequiredQuickMode() {
   const suite = selectedProfile?.suite || selection.suite || getDiagnosticsDefaultSuite('diagnostics');
   if (suite === 'kernels') return null;
   if (suite === 'diffusion') return 'diffusion';
-  if (suite === 'energy') return 'energy';
   const runtimeProfile = String(selectedProfile?.runtimeProfile || selection.runtimeProfile || '').toLowerCase();
   if (runtimeProfile.includes('embedding')) return 'embedding';
   return 'run';
@@ -3164,14 +3141,13 @@ function ensurePrimaryModeControlStack() {
   if (!controlsStack) {
     controlsStack = document.createElement('div');
     controlsStack.className = 'panel-stack panel-stack-controls';
-    controlsStack.dataset.modes = 'run translate embedding diffusion energy';
+    controlsStack.dataset.modes = 'run translate embedding diffusion';
   }
   panelGrid.insertBefore(controlsStack, insertionPoint);
 
   const controlSectionSelectors = [
     '.run-controls-panel',
     '.diffusion-controls-panel',
-    '.energy-controls-panel',
   ];
   for (const selector of controlSectionSelectors) {
     const section = panelGrid.querySelector(selector);
@@ -3261,6 +3237,13 @@ async function setUiMode(mode, options = {}) {
       log.warn('DopplerDemo', `Storage inspector refresh failed: ${error.message}`);
     });
   }
+  if (resolvedMode === 'kernel-paths') {
+    loadKernelPathBuilderIndex().catch((error) => {
+      log.warn('DopplerDemo', `Kernel-path builder load failed: ${error.message}`);
+    });
+  } else {
+    renderKernelPathBuilderView();
+  }
   try {
     await refreshModelList();
   } catch (error) {
@@ -3271,10 +3254,8 @@ async function setUiMode(mode, options = {}) {
   syncDiagnosticsDefaultsForMode(resolvedMode).catch((error) => {
     updateDiagnosticsStatus(`Diagnostics config error: ${error.message}`, true);
   });
-  if (resolvedMode === 'energy') {
-    syncEnergyDemoSelection();
-  }
   updateModelEmptyStates();
+  renderKernelPathBuilderView();
   syncDeepLinkFromUI();
 }
 
@@ -3289,7 +3270,6 @@ function getModelAvailability() {
     translate: Number.isFinite(availability.translate) ? availability.translate : 0,
     embedding: Number.isFinite(availability.embedding) ? availability.embedding : 0,
     diffusion: Number.isFinite(availability.diffusion) ? availability.diffusion : 0,
-    energy: Number.isFinite(availability.energy) ? availability.energy : 0,
   };
 }
 
@@ -3424,9 +3404,6 @@ function createMissingModelNotice(title, detail, kicker = 'Setup required') {
 }
 
 function getMissingModelMessage(mode, availability, quickModelEntry) {
-  if (mode === 'energy') {
-    return null;
-  }
   const total = Number.isFinite(availability?.total) ? availability.total : 0;
   const hasQuickSuggestion = !!(quickModelEntry && typeof quickModelEntry.modelId === 'string' && quickModelEntry.modelId.length > 0);
   const MODE_LABELS = { embedding: 'an embedding', translate: 'a translation', diffusion: 'an image' };
@@ -3928,15 +3905,6 @@ async function preloadQuickModelIntoRam() {
     return;
   }
 
-  if (state.uiMode === 'energy') {
-    const modelId = getSelectedModelId();
-    if (!modelId) return;
-    const modelType = normalizeModelType(await getModelTypeForId(modelId));
-    if (modelType !== 'energy') return;
-    await ensureEnergyPipeline();
-    return;
-  }
-
   await ensureRunPipeline();
 }
 
@@ -4012,11 +3980,9 @@ function updateModelEmptyStates() {
     const emptyMessage = '';
     setEmptyNotice('run', emptyMessage);
     setEmptyNotice('diffusion', emptyMessage);
-    setEmptyNotice('energy', emptyMessage);
     setEmptyNotice('diagnostics', emptyMessage);
     setEmptyNoticeAction('run', null);
     setEmptyNoticeAction('diffusion', null);
-    setEmptyNoticeAction('energy', null);
     setEmptyNoticeAction('diagnostics', null);
     renderQuickModelPanels();
     return;
@@ -4028,11 +3994,9 @@ function updateModelEmptyStates() {
     : (state.uiMode === 'translate' ? 'translate' : 'run');
   const runQuickSuggestion = getPreferredQuickModelForMode(runTargetMode);
   const diffusionQuickSuggestion = getPreferredQuickModelForMode('diffusion');
-  const energyQuickSuggestion = getPreferredQuickModelForMode('energy');
   const diagnosticsQuickSuggestion = getPreferredQuickModelForMode(getDiagnosticsRequiredQuickMode());
   const runMessage = getMissingModelMessage(runTargetMode, availability, runQuickSuggestion);
   const diffusionMessage = getMissingModelMessage('diffusion', availability, diffusionQuickSuggestion);
-  const energyMessage = getMissingModelMessage('energy', availability, energyQuickSuggestion);
   const diagnosticsTargetMode = getDiagnosticsRequiredQuickMode();
   const diagnosticsMessage = (
     state.uiMode === 'diagnostics'
@@ -4042,21 +4006,15 @@ function updateModelEmptyStates() {
 
   setEmptyNotice('run', runMessage);
   setEmptyNotice('diffusion', diffusionMessage);
-  setEmptyNotice('energy', energyMessage);
   setEmptyNotice('diagnostics', diagnosticsMessage);
   setEmptyNoticeAction('run', runMessage ? runQuickSuggestion : null);
   setEmptyNoticeAction('diffusion', diffusionMessage ? diffusionQuickSuggestion : null);
-  setEmptyNoticeAction('energy', energyMessage ? energyQuickSuggestion : null);
   setEmptyNoticeAction('diagnostics', diagnosticsMessage ? diagnosticsQuickSuggestion : null);
   renderQuickModelPanels();
 
   const diffusionRun = $('diffusion-run-btn');
   if (diffusionRun) {
     diffusionRun.disabled = state.diffusionGenerating || state.diffusionLoading || state.downloadActive || !!diffusionMessage;
-  }
-  const energyRun = $('energy-run-btn');
-  if (energyRun) {
-    energyRun.disabled = state.energyGenerating || state.energyLoading || state.downloadActive || !!energyMessage;
   }
   syncRunControls();
 }
@@ -4237,7 +4195,7 @@ function getModelSelectionScore(mode, modelId) {
     if (!hasTranslateHint) score -= 10;
   }
 
-  if (id.includes('embedding') || id.includes('diffusion') || id.includes('energy')) {
+  if (id.includes('embedding') || id.includes('diffusion')) {
     score -= 80;
   }
 
@@ -4396,7 +4354,6 @@ function getUiModeForModelType(modelType) {
   const normalizedType = normalizeModelType(modelType);
   if (normalizedType === 'embedding') return 'embedding';
   if (normalizedType === 'diffusion') return 'diffusion';
-  if (normalizedType === 'energy') return 'energy';
   return 'run';
 }
 
@@ -4435,7 +4392,6 @@ async function computeModelAvailability(models) {
     }
     if (isCompatibleModelType(modelType, 'embedding')) availability.embedding += 1;
     if (isCompatibleModelType(modelType, 'diffusion')) availability.diffusion += 1;
-    if (isCompatibleModelType(modelType, 'energy')) availability.energy += 1;
   }
   return availability;
 }
@@ -4493,9 +4449,6 @@ async function refreshModelList() {
     await syncModelForMode(state.uiMode);
     renderTranslateCompareSelectors();
     syncTranslateCompareUI();
-    if (state.uiMode === 'energy') {
-      await preloadEnergyPipelineIfNeeded();
-    }
     if (state.uiMode === 'models') {
       await refreshStorageInspector({
         onSelectModel: selectDiagnosticsModel,
@@ -5002,184 +4955,6 @@ function handleDiffusionClear() {
   updateDiffusionStatus('Idle');
 }
 
-async function preloadEnergyPipelineIfNeeded() {
-  if (state.uiMode !== 'energy') return;
-  if (state.energyLoading || state.energyGenerating) return;
-
-  const modelId = getSelectedModelId();
-  if (!modelId) return;
-
-  const selectedModelType = normalizeModelType(await getModelTypeForId(modelId));
-  if (selectedModelType !== 'energy') return;
-
-  const activeModelType = normalizeModelType(state.activePipeline?.manifest?.modelType);
-  if (
-    state.activePipeline &&
-    state.activeModelId === modelId &&
-    activeModelType === 'energy'
-  ) {
-    return;
-  }
-
-  updateEnergyStatus('Loading energy model...');
-  try {
-    await ensureEnergyPipeline();
-    if (!state.energyGenerating) updateEnergyStatus('Ready');
-  } catch (error) {
-    log.warn('DopplerDemo', `Energy preload skipped: ${error.message}`);
-    if (!state.energyGenerating) updateEnergyStatus('Idle');
-  }
-}
-
-async function ensureEnergyPipeline() {
-  const modelId = getSelectedModelId();
-  state.energyLoading = true;
-  updateStatusIndicator();
-  try {
-    return await ensurePipeline(modelId, 'Preparing Local Model', 'energy');
-  } finally {
-    state.energyLoading = false;
-    updateStatusIndicator();
-  }
-}
-
-async function runStandaloneQuintelPipeline(request) {
-  const { EnergyPipeline } = await import('../src/energy/index.js');
-  const pipeline = new EnergyPipeline();
-  await pipeline.initialize({
-    runtimeConfig: getRuntimeConfig(),
-  });
-  pipeline.manifest = {
-    modelId: 'quintel-standalone',
-    modelType: 'energy',
-    energy: {},
-  };
-  try {
-    return await pipeline.generate(request);
-  } finally {
-    await pipeline.unload();
-  }
-}
-
-async function handleEnergyRun() {
-  if (state.energyGenerating || state.energyLoading || state.downloadActive) return;
-  const demo = getEnergyDemoById(state.energyDemoId) || getEnergyDemoById(DEFAULT_ENERGY_DEMO_ID);
-  const problem = 'quintel';
-  const size = readOptionalNumber($('energy-quintel-size'), { integer: true });
-  const displayThreshold = readOptionalNumber($('energy-quintel-threshold'));
-  const countTarget = readOptionalNumber($('energy-quintel-count-target'), { integer: true });
-  const mirrorX = $('energy-rule-mirror-x')?.checked ?? false;
-  const mirrorY = $('energy-rule-mirror-y')?.checked ?? false;
-  const diagonal = $('energy-rule-diagonal')?.checked ?? false;
-  const countRule = $('energy-rule-count')?.checked ?? false;
-  const symmetryWeight = readOptionalNumber($('energy-weight-symmetry'));
-  const countWeight = readOptionalNumber($('energy-weight-count'));
-  const binarizeWeight = readOptionalNumber($('energy-weight-binarize'));
-  const initMode = $('energy-init-mode')?.value || undefined;
-  const initSeed = readOptionalNumber($('energy-init-seed'), { integer: true });
-  const initScale = readOptionalNumber($('energy-init-scale'));
-  const steps = readOptionalNumber($('energy-steps'), { integer: true });
-  const stepSize = readOptionalNumber($('energy-step-size'));
-  const gradientScale = readOptionalNumber($('energy-gradient-scale'));
-  const convergenceThreshold = readOptionalNumber($('energy-convergence'));
-
-  const request = {
-    problem,
-    initMode,
-    seed: initSeed,
-    initScale,
-    steps,
-    stepSize,
-    gradientScale,
-    convergenceThreshold,
-  };
-  const quintelRules = {
-    mirrorX,
-    mirrorY,
-    diagonal,
-    count: countRule,
-    center: false,
-  };
-  const quintel = {
-    rules: quintelRules,
-  };
-  if (size != null) quintel.size = size;
-  if (Number.isFinite(countTarget)) quintel.countTarget = countTarget;
-  const weights = {};
-  if (Number.isFinite(symmetryWeight)) weights.symmetry = symmetryWeight;
-  if (Number.isFinite(countWeight)) weights.count = countWeight;
-  if (Number.isFinite(binarizeWeight)) weights.binarize = binarizeWeight;
-  if (Object.keys(weights).length) quintel.weights = weights;
-  request.quintel = quintel;
-
-  state.lastEnergyResult = null;
-  state.lastEnergyRequest = {
-    size,
-    displayThreshold,
-  };
-
-  updateEnergyStatus('Preparing...');
-  state.energyGenerating = true;
-  updateStatusIndicator();
-  try {
-    let result = null;
-    let pipelineForStats = null;
-    const selectedModelId = getSelectedModelId();
-    const selectedModelType = normalizeModelType(await getModelTypeForId(selectedModelId));
-    const useStandaloneQuintel = selectedModelType !== 'energy';
-
-    if (useStandaloneQuintel) {
-      updateEnergyStatus('Running Quintel...');
-      result = await runStandaloneQuintelPipeline(request);
-    } else {
-      pipelineForStats = await ensureEnergyPipeline();
-      if (!pipelineForStats.generate) {
-        throw new Error('Selected model does not support energy generation.');
-      }
-      if (!pipelineForStats.manifest || pipelineForStats.manifest.modelType !== 'energy') {
-        throw new Error('Selected model is not an energy model.');
-      }
-      updateEnergyStatus('Running...');
-      result = await pipelineForStats.generate(request);
-    }
-    state.lastEnergyResult = result;
-    if (result?.shape) {
-      state.lastEnergyRequest = {
-        shape: result.shape,
-        size: result.shape[0],
-        displayThreshold,
-      };
-    }
-    drawEnergyChart(result?.energyHistory || []);
-    updateEnergyStats(result);
-    renderEnergyBoard(result?.state, result?.shape ?? size, displayThreshold);
-    state.lastInferenceStats = pipelineForStats?.getStats?.() ?? null;
-    state.lastMemoryStats = pipelineForStats?.getMemoryStats?.() ?? state.lastMemoryStats;
-    if (state.lastInferenceStats) {
-      state.runCounter += 1;
-      recordRunLog(state.lastInferenceStats, `#${state.runCounter}`, 'energy');
-    }
-    updateEnergyStatus('Complete');
-    const snapshot = captureMemorySnapshot();
-    updateMemoryPanel(snapshot);
-    updatePerformancePanel(snapshot);
-  } catch (error) {
-    log.error('DopplerDemo', `Energy run failed: ${error.message}`);
-    updateEnergyStatus(`Error: ${error.message}`);
-  } finally {
-    state.energyGenerating = false;
-    updateStatusIndicator();
-  }
-}
-
-function handleEnergyClear() {
-  clearEnergyChart();
-  clearEnergyBoard();
-  updateEnergyStats(null);
-  updateEnergyStatus('Idle');
-  state.lastEnergyResult = null;
-}
-
 async function handleRunGenerate() {
   if (state.runGenerating || state.runLoading || state.downloadActive) return;
   if (isTranslateCompareEnabled()) {
@@ -5221,7 +4996,7 @@ async function handleRunGenerate() {
     if (isEmbeddingMode && modelType !== 'embedding') {
       throw new Error('Selected model is not an embedding model.');
     }
-    if (!isEmbeddingMode && (modelType === 'diffusion' || modelType === 'energy' || modelType === 'embedding')) {
+    if (!isEmbeddingMode && (modelType === 'diffusion' || modelType === 'embedding')) {
       throw new Error('Selected model is not a text model.');
     }
     if (isTranslateMode && translateSelection) {
@@ -5524,7 +5299,6 @@ function handleInferencePulseReset() {
   state.lastInferenceStats = null;
   state.lastMemoryStats = null;
   state.lastDiffusionRequest = null;
-  state.lastEnergyRequest = null;
   state.runLog = [];
   state.runCounter = 0;
   for (const laneId of getCompareLaneIds()) {
@@ -6141,27 +5915,6 @@ async function handleDiagnosticsRun(mode) {
         steps: result.metrics.steps,
       };
     }
-    if (result.suite === 'energy' && result.metrics) {
-      const shape = Array.isArray(result.metrics.shape) ? result.metrics.shape : null;
-      if (shape) {
-        state.lastEnergyRequest = {
-          shape,
-          height: shape[0],
-          width: shape[1],
-          channels: shape[2],
-        };
-      }
-      if (Array.isArray(result.metrics.energyHistory)) {
-        drawEnergyChart(result.metrics.energyHistory);
-      }
-      updateEnergyStats({
-        steps: result.metrics.steps,
-        energy: result.metrics.energy,
-        dtype: result.metrics.dtype,
-        shape,
-        stateStats: result.metrics.stateStats,
-      });
-    }
     updateDiagnosticsStatus(`Complete (${result.suite || workload})`);
     if (result.reportInfo?.path) {
       updateDiagnosticsReport(result.reportInfo.path);
@@ -6243,39 +5996,6 @@ function serializeOps(ops) {
   }));
 }
 
-function exportEnergyRun() {
-  if (!state.lastEnergyResult) {
-    updateEnergyStatus('No energy run available to export.');
-    return;
-  }
-  const payload = {
-    timestamp: new Date().toISOString(),
-    problem: 'quintel',
-    result: {
-      backend: state.lastEnergyResult.backend ?? null,
-      dtype: state.lastEnergyResult.dtype ?? null,
-      shape: state.lastEnergyResult.shape ?? null,
-      steps: state.lastEnergyResult.steps ?? null,
-      energy: state.lastEnergyResult.energy ?? null,
-      metrics: state.lastEnergyResult.metrics ?? null,
-      baseline: state.lastEnergyResult.baseline ?? null,
-      candidates: state.lastEnergyResult.candidates ?? null,
-      energyHistory: state.lastEnergyResult.energyHistory ?? null,
-      schedule: serializeSchedule(state.lastEnergyResult.schedule),
-    },
-  };
-  const filename = `doppler-energy-export-${payload.timestamp.replace(/[:]/g, '-')}.json`;
-  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  URL.revokeObjectURL(url);
-}
-
 function bindUI() {
   const errorModal = $('error-modal');
   const errorClose = $('error-close');
@@ -6297,6 +6017,11 @@ function bindUI() {
   const diagnosticsRun = $('diagnostics-run-btn');
   const diagnosticsVerify = $('diagnostics-verify-btn');
   const diagnosticsExport = $('diagnostics-export-btn');
+  const kernelBuilderModelSelect = $('kernel-builder-model-select');
+  const kernelBuilderRefresh = $('kernel-builder-refresh-btn');
+  const kernelBuilderUseReport = $('kernel-builder-use-report-btn');
+  const kernelBuilderReportFile = $('kernel-builder-report-file');
+  const kernelBuilderClearReport = $('kernel-builder-clear-report-btn');
   const distillTeacherFile = $('distill-teacher-file');
   const distillTeacherJson = $('distill-teacher-json');
   const distillWorkloadSelect = $('distill-workload-select');
@@ -6344,10 +6069,6 @@ function bindUI() {
   const diffusionHeight = $('diffusion-height');
   const diffusionRun = $('diffusion-run-btn');
   const diffusionClear = $('diffusion-clear-btn');
-  const energyDemoSelect = $('energy-demo-select');
-  const energyRun = $('energy-run-btn');
-  const energyExport = $('energy-export-btn');
-  const energyClear = $('energy-clear-btn');
   const closeAdvancedNav = () => {
     if (advancedNav instanceof HTMLDetailsElement) {
       advancedNav.open = false;
@@ -6532,7 +6253,6 @@ function bindUI() {
   [
     'run',
     'diffusion',
-    'energy',
     'diagnostics',
   ].forEach((scope) => {
     const button = $(`${scope}-empty-notice-btn`);
@@ -6641,6 +6361,29 @@ function bindUI() {
   diagnosticsRun?.addEventListener('click', () => handleDiagnosticsRun('run'));
   diagnosticsVerify?.addEventListener('click', () => handleDiagnosticsRun('verify'));
   diagnosticsExport?.addEventListener('click', exportDiagnosticsReport);
+  kernelBuilderModelSelect?.addEventListener('change', () => {
+    selectKernelPathBuilderModel(kernelBuilderModelSelect.value || null);
+  });
+  kernelBuilderRefresh?.addEventListener('click', () => {
+    loadKernelPathBuilderIndex({ force: true }).catch((error) => {
+      log.warn('DopplerDemo', `Kernel-path builder refresh failed: ${error.message}`);
+    });
+  });
+  kernelBuilderUseReport?.addEventListener('click', () => {
+    applyLatestKernelPathBuilderReport();
+  });
+  kernelBuilderReportFile?.addEventListener('change', () => {
+    const file = kernelBuilderReportFile.files?.[0] || null;
+    applyKernelPathBuilderReportFile(file).catch((error) => {
+      log.warn('DopplerDemo', `Kernel-path builder report load failed: ${error.message}`);
+    });
+  });
+  kernelBuilderClearReport?.addEventListener('click', () => {
+    clearKernelPathBuilderReport();
+    if (kernelBuilderReportFile) {
+      kernelBuilderReportFile.value = '';
+    }
+  });
   distillTeacherFile?.addEventListener('change', async () => {
     try {
       const file = distillTeacherFile.files?.[0] || null;
@@ -6771,37 +6514,6 @@ function bindUI() {
     });
   });
 
-  energyDemoSelect?.addEventListener('change', () => {
-    const demoId = energyDemoSelect.value || DEFAULT_ENERGY_DEMO_ID;
-    const demo = getEnergyDemoById(demoId);
-    if (!demo) return;
-    state.energyDemoId = demo.id;
-    setText($('energy-demo-description'), demo.description || '');
-    setEnergyMetricLabels(demo.problem || 'quintel');
-    toggleEnergyProblemControls(demo.problem || 'quintel');
-    applyEnergyDemoDefaults(demo);
-  });
-
-  energyClear?.addEventListener('click', () => {
-    const demoId = state.energyDemoId || DEFAULT_ENERGY_DEMO_ID;
-    const demo = getEnergyDemoById(demoId) || getEnergyDemoById(DEFAULT_ENERGY_DEMO_ID);
-    if (demo) {
-      applyEnergyDemoDefaults(demo);
-    }
-    handleEnergyClear();
-  });
-
-  energyRun?.addEventListener('click', () => {
-    handleEnergyRun().catch((error) => {
-      log.error('DopplerDemo', `Energy run failed: ${error.message}`);
-      updateEnergyStatus(`Error: ${error.message}`);
-    });
-  });
-
-  energyExport?.addEventListener('click', () => {
-    exportEnergyRun();
-  });
-
   populateDistillWorkloadSelect();
   setDistillOutput(state.distillLastReplay);
   if (!state.distillWorkloadsLoading && !state.distillWorkloadsError) {
@@ -6887,7 +6599,6 @@ export async function initDemo() {
       onStateChange: handleDownloadStateChangeEvent,
     });
     populateRuntimeProfileSelects();
-    populateEnergyDemoSelect();
     setStatusIndicator('Initializing...', 'info');
     console.log('[Bootstrap] Initializing... running startup tasks: quick model catalog fetch, WebGPU capability init, and download-state refresh.');
 
@@ -6913,7 +6624,6 @@ export async function initDemo() {
     setRunGenerating(false);
     updateRunStatus('Idle');
     updateDiffusionStatus('Idle');
-    updateEnergyStatus('Idle');
   } finally {
     state.appInitializing = false;
     setAppBootstrapVisible(false);

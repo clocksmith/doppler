@@ -56,6 +56,8 @@
     "verify:model": "node src/cli/doppler-cli.js verify",
     "quickstart:sync": "node tools/sync-quickstart-registry.js",
     "quickstart:check": "node tools/sync-quickstart-registry.js --check",
+    "kernel-path:index:sync": "node tools/sync-kernel-path-builder-index.js",
+    "kernel-path:index:check": "node tools/sync-kernel-path-builder-index.js --check",
     "onboarding:check": "node tools/onboarding-tooling.js check",
     "onboarding:check:strict": "node tools/onboarding-tooling.js check --strict",
     "onboarding:scaffold": "node tools/onboarding-tooling.js scaffold",

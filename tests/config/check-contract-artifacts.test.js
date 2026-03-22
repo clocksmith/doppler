@@ -21,6 +21,7 @@ assert.equal(summary.ok, true);
 assert.equal(Array.isArray(summary.artifacts), true);
 assert.equal(summary.artifacts.some((entry) => entry.id === 'kernelPath' && entry.ok === true), true);
 assert.equal(summary.artifacts.some((entry) => entry.id === 'layerPattern' && entry.ok === true), true);
+assert.equal(summary.artifacts.some((entry) => entry.id === 'kernelPathBuilder' && entry.ok === true), true);
 
 const root = mkdtempSync(path.join(tmpdir(), 'doppler-check-contract-artifacts-'));
 try {

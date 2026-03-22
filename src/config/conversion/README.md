@@ -97,15 +97,25 @@ Current config intent:
   - Resolved modelId: `gpt-oss-20b-f16-xmxfp4`
   - Compute: `f16`
 
-- `src/config/conversion/qwen3/qwen-3-5-0-8b-f16.json`
-  - Output base: `models/local/qwen-3-5-0-8b-f16`
-  - Resolved modelId: `qwen-3-5-0-8b-f16`
-  - Output mode: `textOnly: true` (skip vision/projector tensors from Qwen3.5 multimodal checkpoints)
-  - Weights/embeddings/lmHead: `f16`
+- `src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json`
+  - Output base: `models/local/qwen-3-5-0-8b-q4k-ehaf16`
+  - Resolved modelId: `qwen-3-5-0-8b-q4k-ehaf16`
+  - Output mode: `textOnly: false` (keep multimodal-compatible artifact layout; text path uses the language tower)
+  - Weights: `q4k` (row layout), embeddings/lmHead: `f16`
   - Compute: `f16`
   - Kernel path: `null` (no explicit manifest kernel-path contract)
-  - Session defaults only: decode loop `batchSize=4`, `stopCheckMode=batch`, `readbackInterval=1`, `disableCommandBatching=true`
-  - Does not emit execution-v0 schema because no execution graph is authored/generated
+  - Execution-v1: explicit execution graph with `inlineKernelPath: false`
+  - Session defaults: decode loop `batchSize=4`, `stopCheckMode=batch`, `readbackInterval=1`, `disableCommandBatching=true`
+
+- `src/config/conversion/qwen3/qwen-3-5-2b-q4k-ehaf16.json`
+  - Output base: `models/local/qwen-3-5-2b-q4k-ehaf16`
+  - Resolved modelId: `qwen-3-5-2b-q4k-ehaf16`
+  - Output mode: `textOnly: false` (keep multimodal-compatible artifact layout; text path uses the language tower)
+  - Weights: `q4k` (row layout), embeddings/lmHead: `f16`
+  - Compute: `f16`
+  - Kernel path: `null` (no explicit manifest kernel-path contract)
+  - Execution-v1: explicit execution graph with `inlineKernelPath: false`
+  - Session defaults: decode loop `batchSize=4`, `stopCheckMode=batch`, `readbackInterval=1`, `disableCommandBatching=true`
 
 - `src/config/conversion/sana/sana-sprint-0.6b-f16.json`
   - Output base: `models/local/sana-sprint-0.6b-f16`

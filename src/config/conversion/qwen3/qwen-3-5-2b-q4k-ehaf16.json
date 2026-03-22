@@ -107,10 +107,10 @@
   "sessionDefaults": {
     "compute": {
       "defaults": {
-        "activationDtype": "f32",
-        "mathDtype": "f32",
-        "accumDtype": "f32",
-        "outputDtype": "f32"
+        "activationDtype": "f16",
+        "mathDtype": "f16",
+        "accumDtype": "f16",
+        "outputDtype": "f16"
       }
     },
     "kvcache": {

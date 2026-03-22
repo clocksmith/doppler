@@ -496,6 +496,46 @@ export class InferencePipeline extends PipelineState {
 
   getStats() {
     const stats = { ...this.stats };
+    if (this.executionPlanState) {
+      const activeExecutionPlan = resolveActiveExecutionPlan(this);
+      stats.executionPlan ??= {
+        primary: this.executionPlanState?.primaryPlan
+          ? {
+            id: this.executionPlanState.primaryPlan.id,
+            kernelPathId: this.executionPlanState.primaryPlan.kernelPathId ?? null,
+            kernelPathSource: this.executionPlanState.primaryPlan.kernelPathSource ?? 'none',
+            activationDtype: this.executionPlanState.primaryPlan.activationDtype,
+            readbackInterval: this.executionPlanState.primaryPlan.readbackInterval ?? null,
+            batchSize: this.executionPlanState.primaryPlan.defaultBatchSize,
+            stopCheckMode: this.executionPlanState.primaryPlan.defaultStopCheckMode,
+            ringTokens: this.executionPlanState.primaryPlan.ringTokens ?? null,
+            ringStop: this.executionPlanState.primaryPlan.ringStop ?? null,
+            ringStaging: this.executionPlanState.primaryPlan.ringStaging ?? null,
+          }
+          : null,
+        fallback: this.executionPlanState?.fallbackPlan
+          ? {
+            id: this.executionPlanState.fallbackPlan.id,
+            kernelPathId: this.executionPlanState.fallbackPlan.kernelPathId ?? null,
+            kernelPathSource: this.executionPlanState.fallbackPlan.kernelPathSource ?? 'none',
+            activationDtype: this.executionPlanState.fallbackPlan.activationDtype,
+            readbackInterval: this.executionPlanState.fallbackPlan.readbackInterval ?? null,
+            batchSize: this.executionPlanState.fallbackPlan.defaultBatchSize,
+            stopCheckMode: this.executionPlanState.fallbackPlan.defaultStopCheckMode,
+            ringTokens: this.executionPlanState.fallbackPlan.ringTokens ?? null,
+            ringStop: this.executionPlanState.fallbackPlan.ringStop ?? null,
+            ringStaging: this.executionPlanState.fallbackPlan.ringStaging ?? null,
+          }
+          : null,
+        activePlanIdAtStart: activeExecutionPlan.id,
+        finalActivePlanId: this.executionPlanState.activePlanId ?? activeExecutionPlan.id,
+        transitions: Array.isArray(this.stats.executionPlan?.transitions)
+          ? [...this.stats.executionPlan.transitions]
+          : [],
+      };
+      stats.kernelPathId ??= activeExecutionPlan.kernelPathId ?? this.resolvedKernelPath?.id ?? null;
+      stats.kernelPathSource ??= activeExecutionPlan.kernelPathSource ?? this.kernelPathSource ?? 'none';
+    }
     const ringStats = this.decodeRing?.getStats();
     if (ringStats) {
       stats.decodeRing = ringStats;
@@ -599,6 +639,9 @@ export class InferencePipeline extends PipelineState {
     this.stats.gpuTimePrefillMs = undefined;
     this.stats.gpuTimeDecodeMs = undefined;
     this.stats.decodeProfileSteps = [];
+    this.stats.executionPlan = null;
+    this.stats.kernelPathId = null;
+    this.stats.kernelPathSource = 'none';
     this.stats.attentionInputs = [];
   }
 
