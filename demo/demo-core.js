@@ -97,6 +97,7 @@ import {
   updateXrayPanels,
   resetXray,
   isXrayEnabled,
+  isXrayProfilingNeeded,
 } from './ui/xray/index.js';
 import {
   normalizeModelType,
@@ -2333,6 +2334,7 @@ function readDeepLinkStateFromLocation() {
   const rightEngineRaw = readDeepLinkValue(hashParams, queryParams, ['right_engine', 're']);
   const leftModelRaw = readDeepLinkValue(hashParams, queryParams, ['left_model', 'lm']);
   const rightModelRaw = readDeepLinkValue(hashParams, queryParams, ['right_model', 'rm']);
+  const tokenPressRaw = readDeepLinkValue(hashParams, queryParams, ['tp', 'token_press', 'tokenpress']);
   const surface = normalizeSurface(surfaceRaw, 'demo');
 
   let task = normalizeTask(taskRaw, null);
@@ -2369,6 +2371,7 @@ function readDeepLinkStateFromLocation() {
     text: textRaw == null ? null : decodeDeepLinkText(textRaw),
     compareEnabled: compareRaw === '1' || compareRaw === 'true' || compareRaw === 'compare',
     compareLayoutId: resolveText(compareLayoutRaw, 'proof'),
+    tokenPress: tokenPressRaw == null ? null : (tokenPressRaw === '0' || tokenPressRaw === 'false' ? false : true),
     lanes: {
       left: {
         engine: resolveText(leftEngineRaw, ''),
@@ -2404,6 +2407,11 @@ function applyDeepLinkStateToUI(deepLinkState) {
       setStarterExampleInput(promptEl, false);
     }
   }
+  if (deepLinkState?.tokenPress != null) {
+    const tpToggle = $('run-token-press-toggle');
+    if (tpToggle) tpToggle.checked = deepLinkState.tokenPress;
+  }
+
   ensureTranslateCompareRuntimeState();
   state.compareEnabled = deepLinkState?.compareEnabled === true;
   state.compareLayoutId = resolveText(deepLinkState?.compareLayoutId, state.compareLayoutId || 'proof');
@@ -3230,6 +3238,10 @@ async function setUiMode(mode, options = {}) {
   syncSurfaceUI(surface);
   updateNavState(resolvedMode, resolvedTask);
   applyModeVisibility(resolvedMode);
+  const headerModel = document.querySelector('.header-controls-row .header-model');
+  if (headerModel) {
+    headerModel.hidden = resolvedMode === 'kernel-paths';
+  }
   syncRunModeUI(resolvedMode);
   syncDiagnosticsModeUI(resolvedMode);
   if (resolvedMode === 'models') {
@@ -3955,10 +3967,10 @@ export async function runQuickModelAction(action, modelId) {
     const preloadResult = await importQuickModelAndMaybePreload(entry);
     finalQuickStatus = preloadResult.finalQuickStatus;
     renderQuickModelPanels();
-    // Auto-refresh model list and trigger generation in run mode
+    // Auto-refresh model list and preload pipeline in run mode
     await refreshModelList();
-    if (state.uiMode === 'run' && !state.runGenerating) {
-      handleRunGenerate().catch((err) => log.error('DopplerDemo', `Auto-generate after import failed: ${err.message}`));
+    if (state.uiMode === 'run' && !state.runGenerating && !state.runLoading) {
+      ensureRunPipeline().catch((err) => log.error('DopplerDemo', `Auto-load after import failed: ${err.message}`));
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
@@ -4803,6 +4815,9 @@ function buildRunGenerateOptions() {
     }
   } else if (maxTokens == null) {
     options.maxTokens = DEFAULT_TEXT_MAX_TOKENS;
+  }
+  if (isXrayProfilingNeeded()) {
+    options.profile = true;
   }
   return options;
 }
@@ -6640,12 +6655,11 @@ export async function initDemo() {
     setAppBootstrapVisible(false);
     updateStatusIndicator();
   }
-  // Auto-trigger generation if a model is selected and prompt has content
-  if (state.uiMode === 'run' && !state.runGenerating) {
-    const modelSelect = $('diagnostics-model');
-    const promptEl = $('run-prompt');
-    if (modelSelect?.value && promptEl?.value?.trim()) {
-      handleRunGenerate().catch((err) => log.error('DopplerDemo', `Auto-generate on init failed: ${err.message}`));
+  // Auto-load model on page load (but don't start generating — user clicks the button)
+  if (state.uiMode === 'run' && !state.runGenerating && !state.runLoading) {
+    const modelId = getSelectedModelId();
+    if (modelId) {
+      ensureRunPipeline().catch((err) => log.error('DopplerDemo', `Auto-load on init failed: ${err.message}`));
     }
   }
 }

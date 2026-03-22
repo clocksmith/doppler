@@ -51,9 +51,6 @@
             </div>
           </div>
           <div class="header-end">
-            <div class="header-model">
-              <select id="diagnostics-model" class="w-full" aria-label="Active Model"></select>
-            </div>
             <div class="header-status">
               <div id="status-indicator" class="status-indicator">
                 <span class="status-marker" aria-hidden="true">○</span>
@@ -62,16 +59,21 @@
             </div>
           </div>
         </div>
-        <div class="segmented-control header-tabs">
-          <button class="btn segmented-btn mode-subtab" data-mode="run" type="button">Text</button>
-          <!-- Hidden: no fetchable embedding model (HF manifest needs republish with queryPreAttnScalar fix) -->
-          <!-- <button class="btn segmented-btn mode-subtab" data-mode="embedding" type="button">Embed</button> -->
-          <button class="btn segmented-btn mode-subtab" data-mode="translate" type="button">Translate</button>
-          <!-- Hidden: no diffusion models in catalog -->
-          <!-- <button class="btn segmented-btn mode-subtab" data-mode="diffusion" type="button">Images</button> -->
-          <button class="btn segmented-btn mode-subtab" data-mode="diagnostics" type="button">Verify</button>
-          <button class="btn segmented-btn mode-subtab" data-mode="kernel-paths" type="button">Kernel Paths</button>
-          <button class="btn segmented-btn mode-subtab" data-mode="models" type="button">Models</button>
+        <div class="header-controls-row">
+          <div class="segmented-control header-tabs">
+            <button class="btn segmented-btn mode-subtab" data-mode="run" type="button">Text</button>
+            <!-- Hidden: no fetchable embedding model (HF manifest needs republish with queryPreAttnScalar fix) -->
+            <!-- <button class="btn segmented-btn mode-subtab" data-mode="embedding" type="button">Embed</button> -->
+            <button class="btn segmented-btn mode-subtab" data-mode="translate" type="button">Translate</button>
+            <!-- Hidden: no diffusion models in catalog -->
+            <!-- <button class="btn segmented-btn mode-subtab" data-mode="diffusion" type="button">Images</button> -->
+            <button class="btn segmented-btn mode-subtab" data-mode="diagnostics" type="button">Verify</button>
+            <button class="btn segmented-btn mode-subtab" data-mode="kernel-paths" type="button">Kernel Paths</button>
+            <button class="btn segmented-btn mode-subtab" data-mode="models" type="button">Models</button>
+          </div>
+          <div class="header-model">
+            <select id="diagnostics-model" class="w-full" aria-label="Active Model"></select>
+          </div>
         </div>
       </div>
 
@@ -796,6 +798,24 @@
                     <input id="run-token-press-toggle" type="checkbox" checked />
                     Token Press
                   </label>
+                </div>
+                <div class="playground-field">
+                  <span class="type-caption" style="opacity:0.6">Xray panels</span>
+                  <div class="xray-checkbox-groups">
+                    <div class="xray-checkbox-group">
+                      <span class="xray-group-label type-caption">Profiling</span>
+                      <label class="check-field type-caption" for="xray-toggle-decode"><input id="xray-toggle-decode" type="checkbox" /> Decode</label>
+                      <label class="check-field type-caption" for="xray-toggle-kernel"><input id="xray-toggle-kernel" type="checkbox" /> Kernel</label>
+                      <label class="check-field type-caption" for="xray-toggle-gpu"><input id="xray-toggle-gpu" type="checkbox" /> GPU</label>
+                    </div>
+                    <div class="xray-checkbox-group">
+                      <span class="xray-group-label type-caption">Runtime</span>
+                      <label class="check-field type-caption" for="xray-toggle-kv"><input id="xray-toggle-kv" type="checkbox" /> KV Cache</label>
+                      <label class="check-field type-caption" for="xray-toggle-exec"><input id="xray-toggle-exec" type="checkbox" /> Exec Plan</label>
+                      <label class="check-field type-caption" for="xray-toggle-mem"><input id="xray-toggle-mem" type="checkbox" /> Memory</label>
+                      <label class="check-field type-caption" for="xray-toggle-batch"><input id="xray-toggle-batch" type="checkbox" /> Batching</label>
+                    </div>
+                  </div>
                 </div>
               </details>
               <div class="playground-actions">

@@ -123,7 +123,7 @@
       "ringTokens": 1,
       "ringStop": 1,
       "ringStaging": 1,
-      "disableCommandBatching": true
+      "disableCommandBatching": false
     }
   },
   "execution": {

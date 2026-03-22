@@ -1,8 +1,14 @@
 // =============================================================================
 // Xray — Debug visualization panels for Doppler inference internals.
 // =============================================================================
-// Toggle via URL flag: ?xray=decode,kv,kernel,gpu,exec,mem,batch
-//                   or ?xray=all
+// Toggle via:
+//   URL flag:  ?xray=decode,kv,kernel,gpu,exec,mem,batch  or  ?xray=all
+//   Checkbox:  each panel has an individual checkbox in the UI
+//
+// URL and checkboxes are bidirectionally synced:
+//   - URL ?xray= seeds checkbox state on init
+//   - Toggling a checkbox updates the URL via replaceState
+//   - Sharing/bookmarking a URL preserves the exact panel selection
 //
 // Each panel reads from state.lastInferenceStats / state.lastMemoryStats
 // and pipeline.getBatchingStats() / pipeline.getBufferPool().getLabelStats().
@@ -29,15 +35,15 @@ const PANELS = {
 // Module state
 // ---------------------------------------------------------------------------
 
-let activePanels = new Set();
 let panelEls = {};
 let kvSnapshots = [];
+let initialized = false;
 
 const MAX_WATERFALL_STEPS = 32;
 const MAX_KV_SNAPSHOTS = 50;
 
 // ---------------------------------------------------------------------------
-// URL flag parsing
+// URL ↔ checkbox sync
 // ---------------------------------------------------------------------------
 
 function parseXrayFlags() {
@@ -53,24 +59,61 @@ function parseXrayFlags() {
   return new Set(keys);
 }
 
+function pushXrayToUrl(active) {
+  if (typeof window === 'undefined') return;
+  const url = new URL(window.location.href);
+  if (active.size === 0) {
+    url.searchParams.delete('xray');
+  } else if (active.size === Object.keys(PANELS).length) {
+    url.searchParams.set('xray', 'all');
+  } else {
+    url.searchParams.set('xray', [...active].join(','));
+  }
+  window.history.replaceState(null, '', url.toString());
+}
+
+// ---------------------------------------------------------------------------
+// Active panel resolution (reads checkboxes as live source of truth)
+// ---------------------------------------------------------------------------
+
+function getActivePanels() {
+  const active = new Set();
+  for (const key of Object.keys(PANELS)) {
+    const cb = $(`xray-toggle-${key}`);
+    if (cb?.checked) active.add(key);
+  }
+  return active;
+}
+
 // ---------------------------------------------------------------------------
 // Lifecycle
 // ---------------------------------------------------------------------------
 
 export function initXray() {
-  activePanels = parseXrayFlags();
-  if (activePanels.size === 0) return;
+  if (initialized) return;
+  initialized = true;
 
+  const urlFlags = parseXrayFlags();
+
+  // Seed checkboxes from URL flags
+  for (const key of Object.keys(PANELS)) {
+    const cb = $(`xray-toggle-${key}`);
+    if (cb) {
+      cb.checked = urlFlags.has(key);
+      cb.addEventListener('change', () => syncXrayState());
+    }
+  }
+
+  // Build panel DOM for all panels (hidden by default, toggled by checkbox)
   const container = $('xray-container');
   if (!container) return;
-  container.hidden = false;
 
   panelEls = {};
   for (const key of Object.keys(PANELS)) {
-    if (!activePanels.has(key)) continue;
     const section = document.createElement('div');
     section.className = 'xray-section';
     section.id = `xray-${key}`;
+    section.hidden = true;
 
     const header = document.createElement('div');
     header.className = 'xray-section-header';
@@ -82,32 +125,58 @@ export function initXray() {
     section.appendChild(content);
 
     container.appendChild(section);
-    panelEls[key] = content;
+    panelEls[key] = { section, content };
   }
+
+  syncXrayState();
+}
+
+function syncXrayState() {
+  const container = $('xray-container');
+  if (!container) return;
+
+  const active = getActivePanels();
+  for (const key of Object.keys(PANELS)) {
+    const entry = panelEls[key];
+    if (entry) entry.section.hidden = !active.has(key);
+  }
+  container.hidden = active.size === 0;
+  pushXrayToUrl(active);
 }
 
 export function isXrayEnabled() {
-  return activePanels.size > 0;
+  return getActivePanels().size > 0;
+}
+
+const PROFILING_PANELS = new Set(['decode', 'kernel', 'gpu']);
+
+export function isXrayProfilingNeeded() {
+  const active = getActivePanels();
+  for (const key of PROFILING_PANELS) {
+    if (active.has(key)) return true;
+  }
+  return false;
 }
 
 export function resetXray() {
   kvSnapshots = [];
-  for (const el of Object.values(panelEls)) {
-    el.innerHTML = '';
+  for (const entry of Object.values(panelEls)) {
+    entry.content.innerHTML = '';
   }
 }
 
 export function updateXrayPanels(pipeline) {
-  if (activePanels.size === 0) return;
+  const active = getActivePanels();
+  if (active.size === 0) return;
 
   const stats = state.lastInferenceStats || {};
   const memStats = state.lastMemoryStats || {};
 
-  for (const key of activePanels) {
-    const el = panelEls[key];
-    if (!el) continue;
+  for (const key of active) {
+    const entry = panelEls[key];
+    if (!entry) continue;
     try {
-      PANELS[key].render(el, stats, memStats, pipeline);
+      PANELS[key].render(entry.content, stats, memStats, pipeline);
     } catch {
       // silent — debug panels should not break the demo
     }
@@ -212,6 +281,18 @@ function renderDecodeWaterfall(el, stats) {
   }
 
   el.appendChild(container);
+
+  // Color legend
+  const legend = document.createElement('div');
+  legend.className = 'xray-legend';
+  const categories = [
+    ['attention', 'Attn'], ['ffn', 'FFN'], ['embed', 'Embed'],
+    ['norm', 'Norm'], ['sample', 'Sample'], ['other', 'Other'],
+  ];
+  for (const [cls, label] of categories) {
+    legend.innerHTML += `<span><span class="xray-legend-dot xray-bar--${cls}"></span>${label}</span>`;
+  }
+  el.appendChild(legend);
 }
 
 // ---------------------------------------------------------------------------
@@ -252,9 +333,10 @@ function renderKVCache(el, stats, memStats) {
   el.appendChild(timeline);
 
   const last = kvSnapshots[kvSnapshots.length - 1];
+  const utilPct = last.maxSeqLen > 0 ? ((last.seqLen / last.maxSeqLen) * 100).toFixed(0) : 0;
   const meta = document.createElement('div');
   meta.className = 'xray-kv-meta';
-  meta.innerHTML = `<span>seq ${last.seqLen} / ${last.maxSeqLen}</span><span>${Number.isFinite(last.allocated) ? formatBytes(last.allocated) : '--'}</span>`;
+  meta.innerHTML = `<span>seq ${last.seqLen} / ${last.maxSeqLen} (${utilPct}%)</span><span>${Number.isFinite(last.allocated) ? formatBytes(last.allocated) : '--'}</span>`;
   el.appendChild(meta);
 }
 
@@ -290,12 +372,33 @@ function renderKernelTiming(el, stats) {
   const grandTotal = sorted.reduce((s, [, v]) => s + v.total, 0);
   const maxVal = sorted[0][1].total;
 
+  // Stacked overview bar
+  const stack = document.createElement('div');
+  stack.className = 'xray-gpu-stack';
+  for (const [name, { total }] of sorted) {
+    const pct = grandTotal > 0 ? (total / grandTotal) * 100 : 0;
+    if (pct < 1) continue;
+    const seg = document.createElement('div');
+    seg.className = `xray-gpu-segment xray-bar--${classifyKernel(name)}`;
+    seg.style.width = `${pct.toFixed(1)}%`;
+    seg.title = `${name}: ${fmtMs(total)} (${pct.toFixed(0)}%)`;
+    seg.textContent = pct > 12 ? name.split('/').pop() : '';
+    stack.appendChild(seg);
+  }
+  el.appendChild(stack);
+
+  // Individual bars
   for (const [name, { total, count }] of sorted) {
     const pctLabel = grandTotal > 0 ? `${((total / grandTotal) * 100).toFixed(0)}%` : '';
     const label = `${name} (${count}x)`;
     const valueLabel = `${fmtMs(total)} ${pctLabel}`;
     el.appendChild(barRow(label, total, maxVal, `xray-bar--${classifyKernel(name)}`, valueLabel));
   }
+
+  const legend = document.createElement('div');
+  legend.className = 'xray-legend';
+  legend.innerHTML = `<span>${sorted.length} kernels, ${steps.length} steps, ${fmtMs(grandTotal)} total</span>`;
+  el.appendChild(legend);
 }
 
 // ---------------------------------------------------------------------------
@@ -313,18 +416,39 @@ function renderGPUPipeline(el, stats) {
     return;
   }
 
-  const maxVal = Math.max(record, submit, readback, 0.001);
-  el.appendChild(barRow('Record', record, maxVal, 'xray-bar--record'));
-  el.appendChild(barRow('Submit/Wait', submit, maxVal, 'xray-bar--submit'));
-  el.appendChild(barRow('Readback', readback, maxVal, 'xray-bar--readback'));
-
   const total = record + submit + readback;
-  if (total > 0) {
-    const note = document.createElement('div');
-    note.className = 'xray-empty';
-    note.textContent = `Total: ${fmtMs(total)}`;
-    el.appendChild(note);
+
+  // Stacked bar showing proportions
+  const phases = [
+    { label: 'Record', ms: record, cls: 'xray-bar--record' },
+    { label: 'Submit/Wait', ms: submit, cls: 'xray-bar--submit' },
+    { label: 'Readback', ms: readback, cls: 'xray-bar--readback' },
+  ];
+
+  const stack = document.createElement('div');
+  stack.className = 'xray-gpu-stack';
+  for (const p of phases) {
+    if (p.ms <= 0) continue;
+    const seg = document.createElement('div');
+    seg.className = `xray-gpu-segment ${p.cls}`;
+    seg.style.width = `${((p.ms / total) * 100).toFixed(1)}%`;
+    seg.textContent = p.ms > total * 0.15 ? fmtMs(p.ms) : '';
+    seg.title = `${p.label}: ${fmtMs(p.ms)} (${((p.ms / total) * 100).toFixed(0)}%)`;
+    stack.appendChild(seg);
   }
+  el.appendChild(stack);
+
+  // Breakdown bars
+  const maxVal = Math.max(record, submit, readback, 0.001);
+  for (const p of phases) {
+    el.appendChild(barRow(p.label, p.ms, maxVal, p.cls));
+  }
+
+  // Legend + total
+  const legend = document.createElement('div');
+  legend.className = 'xray-legend';
+  legend.innerHTML = `<span>Total: ${fmtMs(total)}</span>`;
+  el.appendChild(legend);
 }
 
 // ---------------------------------------------------------------------------

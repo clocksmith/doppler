@@ -1106,7 +1106,9 @@ export class PipelineGenerator {
         const tokenStart = performance.now();
         let nextToken;
         try {
-          nextToken = await decodeSingleTokenViaLogits();
+          nextToken = hasLinearLayers
+            ? await this._decodeStep(generatedIds, opts)
+            : await decodeSingleTokenViaLogits();
         } catch (error) {
           if (shouldRetryWithFinitenessFallback(error)) {
             log.warn('Pipeline', `FinitenessGuard caught NaN/Inf at step ${tokensGenerated}. Truncating KV cache and retrying token with F32 precision.`);
