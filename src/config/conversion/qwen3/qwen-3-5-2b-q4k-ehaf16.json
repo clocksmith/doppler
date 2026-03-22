@@ -1,8 +1,9 @@
 {
+  "modelType": "transformer",
   "output": {
     "baseDir": "models/local",
     "modelBaseId": "qwen-3-5-2b-q4k-ehaf16",
-    "textOnly": false,
+    "textOnly": true,
     "fast": false
   },
   "quantization": {

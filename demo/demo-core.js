@@ -93,6 +93,12 @@ import {
   clearKernelPathBuilderReport,
 } from './ui/kernel-path-builder/index.js';
 import {
+  initXray,
+  updateXrayPanels,
+  resetXray,
+  isXrayEnabled,
+} from './ui/xray/index.js';
+import {
   normalizeModelType,
   isCompatibleModelType,
   isModeModelSelectable,
@@ -4935,6 +4941,7 @@ async function handleDiffusionRun() {
     const snapshot = captureMemorySnapshot();
     updateMemoryPanel(snapshot);
     updatePerformancePanel(snapshot);
+    if (isXrayEnabled()) updateXrayPanels(pipeline);
   } catch (error) {
     log.error('DopplerDemo', `Diffusion run failed: ${error.message}`);
     updateDiffusionStatus(`Error: ${error.message}`);
@@ -5261,6 +5268,7 @@ async function handleRunGenerate() {
     const snapshot = captureMemorySnapshot();
     updateMemoryPanel(snapshot);
     updatePerformancePanel(snapshot);
+    if (isXrayEnabled()) updateXrayPanels(pipeline);
     setRunGenerating(false);
     state.runAbortController = null;
   }
@@ -5310,6 +5318,7 @@ function handleInferencePulseReset() {
   updateMemoryPanel(snapshot);
   renderRunLog();
   syncTranslateCompareUI();
+  if (isXrayEnabled()) resetXray();
 }
 
 function summarizeEmbeddingVector(values) {
@@ -5925,6 +5934,7 @@ async function handleDiagnosticsRun(mode) {
     updateMemoryPanel(snapshot);
     updatePerformancePanel(snapshot);
     updateMemoryControls();
+    if (isXrayEnabled()) updateXrayPanels(result.pipeline ?? state.activePipeline);
     renderDiagnosticsOutput(result, workload, captureOutput);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
@@ -6599,6 +6609,7 @@ export async function initDemo() {
       onStateChange: handleDownloadStateChangeEvent,
     });
     populateRuntimeProfileSelects();
+    initXray();
     setStatusIndicator('Initializing...', 'info');
     console.log('[Bootstrap] Initializing... running startup tasks: quick model catalog fetch, WebGPU capability init, and download-state refresh.');
 

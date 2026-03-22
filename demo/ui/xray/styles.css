@@ -1,0 +1,191 @@
+/* Xray debug visualization panels — toggled via ?xray=decode,kv,kernel,gpu,exec,mem,batch or ?xray=all */
+
+.xray-panel {
+  --xray-bar-height: 14px;
+  --xray-bar-radius: 2px;
+  --xray-gap: var(--space-xs, 4px);
+}
+
+.xray-section {
+  border-top: 1px solid var(--border-md, #333);
+  padding: var(--space-sm, 8px) 0;
+}
+
+.xray-section:first-child {
+  border-top: none;
+}
+
+.xray-section-header {
+  font: var(--font-caption, 11px/1.4 monospace);
+  color: var(--fg-muted, #888);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--xray-gap);
+}
+
+.xray-empty {
+  font: var(--font-caption, 11px/1.4 monospace);
+  color: var(--fg-muted, #666);
+  font-style: italic;
+}
+
+/* Bar rows */
+
+.xray-bar-row {
+  display: flex;
+  align-items: center;
+  gap: var(--xray-gap);
+  margin-bottom: 2px;
+  font: var(--font-caption, 11px/1.4 monospace);
+}
+
+.xray-bar-label {
+  flex: 0 0 auto;
+  min-width: 80px;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--fg, #ccc);
+}
+
+.xray-bar-track {
+  flex: 1 1 auto;
+  height: var(--xray-bar-height);
+  background: var(--bg-inset, #1a1a1a);
+  border-radius: var(--xray-bar-radius);
+  overflow: hidden;
+  position: relative;
+}
+
+.xray-bar {
+  height: 100%;
+  border-radius: var(--xray-bar-radius);
+  transition: width 0.15s ease-out;
+}
+
+.xray-bar-value {
+  flex: 0 0 auto;
+  min-width: 48px;
+  text-align: right;
+  color: var(--fg-muted, #888);
+}
+
+/* Bar colors */
+.xray-bar--attention { background: var(--doppler-blue, #4a9eff); }
+.xray-bar--ffn { background: var(--doppler-purple, #a855f7); }
+.xray-bar--embed { background: var(--doppler-red, #ef4444); }
+.xray-bar--norm { background: #f59e0b; }
+.xray-bar--sample { background: #10b981; }
+.xray-bar--other { background: #6b7280; }
+.xray-bar--record { background: var(--doppler-blue, #4a9eff); }
+.xray-bar--submit { background: var(--doppler-purple, #a855f7); }
+.xray-bar--readback { background: var(--doppler-red, #ef4444); }
+.xray-bar--kv { background: var(--doppler-blue, #4a9eff); }
+.xray-bar--batched { background: var(--doppler-blue, #4a9eff); }
+.xray-bar--unbatched { background: var(--doppler-red, #ef4444); }
+.xray-bar--mem { background: var(--doppler-purple, #a855f7); }
+
+/* Waterfall */
+
+.xray-waterfall {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.xray-waterfall-row {
+  display: flex;
+  align-items: center;
+  gap: var(--xray-gap);
+  height: 16px;
+  font: var(--font-caption, 10px/1.4 monospace);
+}
+
+.xray-waterfall-step {
+  flex: 0 0 24px;
+  text-align: right;
+  color: var(--fg-muted, #888);
+}
+
+.xray-waterfall-segments {
+  flex: 1 1 auto;
+  display: flex;
+  height: var(--xray-bar-height);
+  border-radius: var(--xray-bar-radius);
+  overflow: hidden;
+}
+
+.xray-waterfall-segment {
+  height: 100%;
+  min-width: 1px;
+}
+
+.xray-waterfall-total {
+  flex: 0 0 48px;
+  text-align: right;
+  color: var(--fg-muted, #888);
+}
+
+/* KV timeline */
+
+.xray-kv-timeline {
+  display: flex;
+  align-items: flex-end;
+  gap: 1px;
+  height: 48px;
+}
+
+.xray-kv-bar {
+  flex: 1 1 auto;
+  background: var(--doppler-blue, #4a9eff);
+  border-radius: var(--xray-bar-radius) var(--xray-bar-radius) 0 0;
+  min-width: 3px;
+  max-width: 12px;
+  transition: height 0.15s ease-out;
+}
+
+.xray-kv-meta {
+  display: flex;
+  justify-content: space-between;
+  font: var(--font-caption, 10px/1.4 monospace);
+  color: var(--fg-muted, #888);
+  margin-top: 2px;
+}
+
+/* Key-value pairs */
+
+.xray-kv-list {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px var(--xray-gap);
+  font: var(--font-caption, 11px/1.4 monospace);
+}
+
+.xray-kv-key {
+  color: var(--fg-muted, #888);
+}
+
+.xray-kv-val {
+  color: var(--fg, #ccc);
+}
+
+/* Exec plan transitions */
+
+.xray-transition {
+  display: flex;
+  gap: var(--xray-gap);
+  font: var(--font-caption, 11px/1.4 monospace);
+  padding: 2px 0;
+  border-left: 2px solid var(--doppler-purple, #a855f7);
+  padding-left: var(--xray-gap);
+  margin-bottom: 2px;
+}
+
+.xray-transition-step {
+  color: var(--doppler-blue, #4a9eff);
+}
+
+.xray-transition-reason {
+  color: var(--fg-muted, #888);
+}

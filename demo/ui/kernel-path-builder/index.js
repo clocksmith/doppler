@@ -202,6 +202,28 @@ function renderSummary(model, payload, overlay) {
     .join('');
 }
 
+function resolveStepIo(step, model) {
+  const aDtype = model.session?.compute?.activationDtype || '--';
+  const kvDtype = model.session?.kvDtype || '--';
+  const outDtype = model.session?.compute?.outputDtype || aDtype;
+  const op = step.op || '';
+  const isKvWrite = op === 'k_proj' || op === 'v_proj' || op === 'rope_k';
+  const isAttention = op === 'attention';
+  const isEmbed = op === 'embed';
+  const isFinalNorm = op === 'final_norm';
+  const isLmHead = op === 'lm_head';
+  const inputDtype = isEmbed ? 'int32' : isAttention ? `${aDtype}+${kvDtype}` : aDtype;
+  let outputDtype = aDtype;
+  if (isKvWrite) outputDtype = kvDtype;
+  else if (isLmHead) outputDtype = outDtype;
+  else if (isFinalNorm) outputDtype = aDtype;
+  else if (isEmbed) outputDtype = aDtype;
+  const hasWeights = !!step.weights;
+  const inputLabel = hasWeights ? `act + weights` : `act`;
+  const outputLabel = isKvWrite ? `kv` : `act`;
+  return { inputDtype, outputDtype, inputLabel, outputLabel };
+}
+
 function renderExecution(model, overlay) {
   const container = $('kernel-builder-execution');
   if (!container) return;
@@ -209,44 +231,53 @@ function renderExecution(model, overlay) {
     container.innerHTML = '<div class="kernel-builder-empty type-caption">No execution graph available.</div>';
     return;
   }
-  const sections = [
-    ['preLayer', 'Pre-layer'],
-    ['decode', 'Decode layer path'],
-    ['prefill', 'Prefill layer path'],
-    ['postLayer', 'Post-layer'],
+  const phases = [
+    ['preLayer', 'pre-layer'],
+    ['prefill', 'prefill'],
+    ['decode', 'decode'],
+    ['postLayer', 'post-layer'],
   ];
-  const sectionHtml = sections.map(([key, label]) => {
+  const allCards = [];
+  for (const [key, phaseLabel] of phases) {
     const steps = Array.isArray(model.execution?.sections?.[key]) ? model.execution.sections[key] : [];
-    const rows = steps.length > 0
-      ? steps.map((step) => {
-        const stepTiming = overlay?.stepTimingsById?.[step.id] ?? null;
-        const timingLabels = Array.isArray(stepTiming?.labels)
-          ? stepTiming.labels.slice(0, 2).map((entry) => `${entry.label} ${formatNumber(entry.totalMs, 3)}ms`).join(' · ')
-          : '';
-        return `
-          <li class="kernel-builder-step">
-            <div class="kernel-builder-step-top">
-              <strong>${escapeHtml(step.op || '--')}</strong>
-              <span class="type-caption">${escapeHtml(step.kernel || '--')}#${escapeHtml(step.entry || 'main')}</span>
+    for (const step of steps) {
+      const stepTiming = overlay?.stepTimingsById?.[step.id] ?? null;
+      const io = resolveStepIo(step, model);
+      const timingHtml = stepTiming
+        ? `<span class="kernel-builder-step-timing">${escapeHtml(formatNumber(stepTiming.totalMs, 3))}ms</span>`
+        : '';
+      allCards.push(`
+        <article class="kernel-builder-step-card">
+          <div class="kernel-builder-step-card-header">
+            <span class="kernel-builder-step-card-phase type-caption">${escapeHtml(phaseLabel)}</span>
+            ${timingHtml}
+          </div>
+          <strong class="kernel-builder-step-card-op">${escapeHtml(step.op || '--')}</strong>
+          <span class="kernel-builder-step-card-kernel type-caption">${escapeHtml(step.kernel || '--')}#${escapeHtml(step.entry || 'main')}</span>
+          <div class="kernel-builder-step-card-io">
+            <div class="kernel-builder-step-card-io-col">
+              <span class="kernel-builder-step-card-io-label type-caption">in</span>
+              <span class="kernel-builder-step-card-io-dtype">${escapeHtml(io.inputDtype)}</span>
+              <span class="kernel-builder-step-card-io-buf type-caption">${escapeHtml(io.inputLabel)}</span>
             </div>
-            <div class="kernel-builder-step-meta type-caption">
-              <span>digest: ${escapeHtml(step.digest || '--')}</span>
-              <span>layers: ${escapeHtml(Array.isArray(step.layers) ? step.layers.join(', ') : String(step.layers ?? 'all'))}</span>
-              ${step.weights ? `<span>weights: ${escapeHtml(step.weights)}</span>` : ''}
-              ${stepTiming ? `<span>runtime: ${escapeHtml(formatNumber(stepTiming.totalMs, 3))}ms</span>` : ''}
+            <span class="kernel-builder-step-card-io-arrow">\u2192</span>
+            <div class="kernel-builder-step-card-io-col">
+              <span class="kernel-builder-step-card-io-label type-caption">out</span>
+              <span class="kernel-builder-step-card-io-dtype">${escapeHtml(io.outputDtype)}</span>
+              <span class="kernel-builder-step-card-io-buf type-caption">${escapeHtml(io.outputLabel)}</span>
             </div>
-            ${timingLabels ? `<div class="kernel-builder-step-meta type-caption">${escapeHtml(timingLabels)}</div>` : ''}
-          </li>
-        `;
-      }).join('')
-      : '<li class="kernel-builder-step type-caption">No steps</li>';
-    return `
-      <section class="kernel-builder-phase">
-        <h4 class="type-caption">${label}</h4>
-        <ol class="kernel-builder-step-list">${rows}</ol>
-      </section>
-    `;
-  }).join('');
+          </div>
+          <div class="kernel-builder-step-card-meta type-caption">
+            ${step.weights ? `<span>weights: ${escapeHtml(step.weights)}</span>` : ''}
+            <span>layers: ${escapeHtml(Array.isArray(step.layers) ? step.layers.join(', ') : String(step.layers ?? 'all'))}</span>
+          </div>
+        </article>
+      `);
+    }
+  }
+  if (allCards.length === 0) {
+    allCards.push('<div class="kernel-builder-empty type-caption">No execution steps.</div>');
+  }
 
   const factRows = Array.isArray(model.customRuntimeFacts) && model.customRuntimeFacts.length > 0
     ? model.customRuntimeFacts.map((fact) => `
@@ -268,7 +299,7 @@ function renderExecution(model, overlay) {
     : '';
 
   container.innerHTML = `
-    <div class="kernel-builder-phase-grid">${sectionHtml}</div>
+    <div class="kernel-builder-step-grid">${allCards.join('')}</div>
     <div class="kernel-builder-facts">
       <h4 class="type-caption">Custom Runtime Facts</h4>
       ${factRows}
