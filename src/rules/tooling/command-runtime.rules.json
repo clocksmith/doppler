@@ -46,6 +46,15 @@
       }
     },
     {
+      "match": {
+        "command": "diagnose"
+      },
+      "value": {
+        "workload": null,
+        "intent": "investigate"
+      }
+    },
+    {
       "match": {},
       "value": {
         "workload": null,

@@ -5,6 +5,7 @@ import { getDevice } from '../../../gpu/device.js';
 import { allowReadback } from '../../../gpu/perf-guards.js';
 import { f16ToF32 } from '../../../loader/dtype-utils.js';
 import { readBufferSlice } from '../../../memory/buffer-pool.js';
+import { PROBE_TO_CANONICAL } from './stage-names.js';
 
 
 const STAGE_DEFAULT_CATEGORY = {
@@ -168,4 +169,9 @@ export async function runProbes(stage, buffer, options) {
 export function hasProbeStage(probes, stage, layerIdx) {
   if (!probes || probes.length === 0) return false;
   return probes.some((probe) => probe.stage === stage && matchesLayer(probe.layers, layerIdx));
+}
+
+
+export function getCanonicalStageName(probeStageName) {
+  return PROBE_TO_CANONICAL[probeStageName] ?? null;
 }

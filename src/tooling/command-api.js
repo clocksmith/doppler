@@ -70,7 +70,7 @@ export function ensureCommandSupportedOnSurface(commandRequest, surface) {
 
   if (
     normalizedSurface === 'browser'
-    && (request.command === 'lora' || request.command === 'distill')
+    && (request.command === 'lora' || request.command === 'distill' || request.command === 'diagnose')
   ) {
     throw new Error(`tooling command: ${request.command} is currently Node-only and must fail closed on browser.`);
   }

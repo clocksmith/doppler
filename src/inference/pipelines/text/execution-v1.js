@@ -6,6 +6,7 @@ import {
   PIPELINE_COMPATIBLE_OPS,
 } from './execution-runtime-builders.js';
 import { mergeRuntimeValues } from '../../../config/runtime-merge.js';
+import { buildOpIdFromExecutionStep } from './operator-identity.js';
 
 export function hasExecutionV1(manifestInference) {
   return manifestInference?.schema === EXECUTION_V1_SCHEMA_ID
@@ -16,24 +17,28 @@ export function hasExecutionV1(manifestInference) {
 
 function expandV1ToResolvedSteps(execution) {
   const expanded = expandExecutionV1(execution);
-  return expanded.map((step, index) => ({
-    id: `${step.section}_${step.phase}_${index}_${step.op}`,
-    phase: step.phase,
-    section: step.section,
-    op: step.op,
-    src: 'state',
-    dst: 'state',
-    kernel: step.kernel,
-    entry: step.entry,
-    ...(step.weights ? { weights: step.weights } : {}),
-    ...(step.constants ? { constants: step.constants } : {}),
-    layers: step.layers,
-    kernelRef: {
-      id: `${step.kernel.replace('.wgsl', '')}.${step.entry}`,
-      version: '1.0.0',
-      digest: step.digest,
-    },
-  }));
+  return expanded.map((step, index) => {
+    const resolved = {
+      id: `${step.section}_${step.phase}_${index}_${step.op}`,
+      phase: step.phase,
+      section: step.section,
+      op: step.op,
+      src: 'state',
+      dst: 'state',
+      kernel: step.kernel,
+      entry: step.entry,
+      ...(step.weights ? { weights: step.weights } : {}),
+      ...(step.constants ? { constants: step.constants } : {}),
+      layers: step.layers,
+      kernelRef: {
+        id: `${step.kernel.replace('.wgsl', '')}.${step.entry}`,
+        version: '1.0.0',
+        digest: step.digest,
+      },
+    };
+    resolved.canonicalOpId = buildOpIdFromExecutionStep(resolved);
+    return resolved;
+  });
 }
 
 

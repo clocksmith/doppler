@@ -1,0 +1,147 @@
+{
+  "$schema": "drift-policies-v1",
+  "$description": "Per-operator-class drift tolerances for operator-level differential debugging. Tolerances define the maximum acceptable numerical delta between a reference and observed operator output.",
+
+  "policies": {
+    "embedding": {
+      "description": "Embedding table lookup — exact for same weights, tolerance for quantized.",
+      "tolerances": {
+        "f32": { "maxAbsDiff": 1e-6, "maxRelDiff": 1e-5 },
+        "f16": { "maxAbsDiff": 5e-4, "maxRelDiff": 1e-3 },
+        "q4k": { "maxAbsDiff": 5e-2, "maxRelDiff": 5e-2 }
+      },
+      "propagationWeight": 1.0
+    },
+
+    "normalization": {
+      "description": "RMSNorm, LayerNorm — sensitive to input scale.",
+      "tolerances": {
+        "f32": { "maxAbsDiff": 1e-5, "maxRelDiff": 1e-4 },
+        "f16": { "maxAbsDiff": 1e-3, "maxRelDiff": 5e-3 },
+        "q4k": { "maxAbsDiff": 1e-2, "maxRelDiff": 1e-2 }
+      },
+      "propagationWeight": 1.2
+    },
+
+    "projection": {
+      "description": "Linear projections (Q/K/V/O, FFN). Matmul accumulation error scales with hidden size.",
+      "tolerances": {
+        "f32": { "maxAbsDiff": 1e-5, "maxRelDiff": 1e-4 },
+        "f16": { "maxAbsDiff": 1e-3, "maxRelDiff": 5e-3 },
+        "q4k": { "maxAbsDiff": 5e-2, "maxRelDiff": 5e-2 }
+      },
+      "propagationWeight": 1.5
+    },
+
+    "rope": {
+      "description": "Rotary position embedding — trigonometric precision.",
+      "tolerances": {
+        "f32": { "maxAbsDiff": 1e-5, "maxRelDiff": 1e-4 },
+        "f16": { "maxAbsDiff": 1e-3, "maxRelDiff": 5e-3 },
+        "q4k": { "maxAbsDiff": 1e-2, "maxRelDiff": 1e-2 }
+      },
+      "propagationWeight": 1.0
+    },
+
+    "attention": {
+      "description": "Softmax + attention score computation. Softmax is numerically sensitive.",
+      "tolerances": {
+        "f32": { "maxAbsDiff": 1e-5, "maxRelDiff": 1e-3 },
+        "f16": { "maxAbsDiff": 1e-3, "maxRelDiff": 1e-2 },
+        "q4k": { "maxAbsDiff": 5e-2, "maxRelDiff": 5e-2 }
+      },
+      "propagationWeight": 2.0
+    },
+
+    "activation": {
+      "description": "SiLU, GELU, ReLU — nonlinear functions amplify small differences.",
+      "tolerances": {
+        "f32": { "maxAbsDiff": 1e-5, "maxRelDiff": 1e-4 },
+        "f16": { "maxAbsDiff": 1e-3, "maxRelDiff": 5e-3 },
+        "q4k": { "maxAbsDiff": 1e-2, "maxRelDiff": 1e-2 }
+      },
+      "propagationWeight": 1.3
+    },
+
+    "ffn": {
+      "description": "Feed-forward network (gate, up, down projections).",
+      "tolerances": {
+        "f32": { "maxAbsDiff": 1e-5, "maxRelDiff": 1e-4 },
+        "f16": { "maxAbsDiff": 1e-3, "maxRelDiff": 5e-3 },
+        "q4k": { "maxAbsDiff": 5e-2, "maxRelDiff": 5e-2 }
+      },
+      "propagationWeight": 1.5
+    },
+
+    "residual": {
+      "description": "Residual addition — elementwise, exact in same precision.",
+      "tolerances": {
+        "f32": { "maxAbsDiff": 1e-6, "maxRelDiff": 1e-5 },
+        "f16": { "maxAbsDiff": 5e-4, "maxRelDiff": 1e-3 },
+        "q4k": { "maxAbsDiff": 1e-2, "maxRelDiff": 1e-2 }
+      },
+      "propagationWeight": 1.0
+    },
+
+    "cast": {
+      "description": "Precision cast (f32↔f16). Inherent quantization error.",
+      "tolerances": {
+        "f32": { "maxAbsDiff": 0, "maxRelDiff": 0 },
+        "f16": { "maxAbsDiff": 5e-4, "maxRelDiff": 1e-3 },
+        "q4k": { "maxAbsDiff": 5e-4, "maxRelDiff": 1e-3 }
+      },
+      "propagationWeight": 1.0
+    },
+
+    "quantize": {
+      "description": "Quantize/dequantize operations.",
+      "tolerances": {
+        "f32": { "maxAbsDiff": 5e-2, "maxRelDiff": 5e-2 },
+        "f16": { "maxAbsDiff": 5e-2, "maxRelDiff": 5e-2 },
+        "q4k": { "maxAbsDiff": 1e-1, "maxRelDiff": 1e-1 }
+      },
+      "propagationWeight": 1.0
+    },
+
+    "logits": {
+      "description": "Final logits projection — matmul over full vocab.",
+      "tolerances": {
+        "f32": { "maxAbsDiff": 1e-4, "maxRelDiff": 1e-3 },
+        "f16": { "maxAbsDiff": 5e-3, "maxRelDiff": 1e-2 },
+        "q4k": { "maxAbsDiff": 5e-2, "maxRelDiff": 5e-2 }
+      },
+      "propagationWeight": 1.0
+    },
+
+    "conv": {
+      "description": "Convolution operations (LFM-style conv mixer).",
+      "tolerances": {
+        "f32": { "maxAbsDiff": 1e-5, "maxRelDiff": 1e-4 },
+        "f16": { "maxAbsDiff": 1e-3, "maxRelDiff": 5e-3 },
+        "q4k": { "maxAbsDiff": 5e-2, "maxRelDiff": 5e-2 }
+      },
+      "propagationWeight": 1.5
+    },
+
+    "moe_routing": {
+      "description": "MoE expert routing — softmax over expert scores.",
+      "tolerances": {
+        "f32": { "maxAbsDiff": 1e-5, "maxRelDiff": 1e-3 },
+        "f16": { "maxAbsDiff": 1e-3, "maxRelDiff": 1e-2 },
+        "q4k": { "maxAbsDiff": 5e-2, "maxRelDiff": 5e-2 }
+      },
+      "propagationWeight": 2.0
+    }
+  },
+
+  "propagation": {
+    "description": "Propagation bounds prevent unbounded drift amplification across layers.",
+    "maxAccumulatedDrift": {
+      "f32": 1e-3,
+      "f16": 5e-2,
+      "q4k": 5e-1
+    },
+    "amplificationThreshold": 10.0,
+    "windowSize": 4
+  }
+}

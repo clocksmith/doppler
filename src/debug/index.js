@@ -60,6 +60,20 @@ export { trace } from './trace.js';
 export { tensor } from './tensor.js';
 
 // ============================================================================
+// Re-exports from capture-policy.js
+// ============================================================================
+
+export {
+  CAPTURE_LEVELS,
+  resolveCapturePolicy,
+  escalateCaptureLevel,
+  buildCaptureArtifact,
+  createEscalationPolicy,
+  createDefaultCaptureConfig,
+  validateCaptureConfig,
+} from './capture-policy.js';
+
+// ============================================================================
 // Re-exports from perf.js
 // ============================================================================
 
