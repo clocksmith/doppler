@@ -1,10 +1,17 @@
 #!/usr/bin/env node
 
-// patch-execution-graph.js — Update execution graphs in RDRR manifests from
-// canonical conversion configs without reconverting the model.
+// patch-execution-graph.js — Update execution graphs and inference behavior in
+// RDRR manifests from canonical conversion configs without reconverting.
 //
-// Reads the conversion config's execution + sessionDefaults blocks and patches
-// the manifest's inference.execution and inference.sessionDefaults in place.
+// Syncs the following from the conversion config to the manifest:
+//   - inference.execution (kernels + step tuples)
+//   - inference.sessionDefaults (compute, kvcache, decodeLoop)
+//   - inference.normalization (rmsNormWeightOffset, rmsNormEps, etc.)
+//   - inference.attention (queryPreAttnScalar, queryKeyNorm, etc.)
+//   - inference.ffn (activation, gatedActivation, etc.)
+//   - inference.rope (ropeTheta, partialRotaryFactor, etc.)
+//   - inference.output (finalLogitSoftcapping, tieWordEmbeddings, etc.)
+//
 // Everything else (shards, tensors, architecture, quantization, etc.) is
 // preserved.
 //
@@ -193,12 +200,24 @@ function findConfigForModel(configIndex, modelId, dirName) {
 }
 
 // ---------------------------------------------------------------------------
-// Extract execution + sessionDefaults from conversion config
+// Inference behavior blocks synced from conversion config → manifest.
+// These live at inference.* in both the conversion config and the manifest.
 // ---------------------------------------------------------------------------
 
-function extractExecutionFromConfig(config) {
-  // The conversion config stores execution and sessionDefaults at the top level
-  // or nested under inference.
+const INFERENCE_BEHAVIOR_KEYS = [
+  'normalization',
+  'attention',
+  'ffn',
+  'rope',
+  'output',
+];
+
+// ---------------------------------------------------------------------------
+// Extract execution + sessionDefaults + behavior blocks from conversion config
+// ---------------------------------------------------------------------------
+
+function extractFromConfig(config) {
+  // execution and sessionDefaults may be top-level or nested under inference
   const execution = config.execution ?? config.inference?.execution ?? null;
   const sessionDefaults =
     config.sessionDefaults ?? config.inference?.sessionDefaults ?? null;
@@ -207,7 +226,16 @@ function extractExecutionFromConfig(config) {
     return null;
   }
 
-  return { execution, sessionDefaults };
+  // Inference behavior blocks always live under config.inference.*
+  const behavior = {};
+  for (const key of INFERENCE_BEHAVIOR_KEYS) {
+    const block = config.inference?.[key] ?? null;
+    if (block) {
+      behavior[key] = block;
+    }
+  }
+
+  return { execution, sessionDefaults, behavior };
 }
 
 // ---------------------------------------------------------------------------
@@ -256,6 +284,25 @@ function summarizeStepDiff(phase, oldSteps, newSteps) {
   return [`  ~ ${phase}: ${oldCount} steps -> ${newCount} steps`];
 }
 
+function summarizeBehaviorDiff(blockName, oldBlock, newBlock) {
+  const changes = [];
+  const allKeys = new Set([
+    ...Object.keys(oldBlock ?? {}),
+    ...Object.keys(newBlock ?? {}),
+  ]);
+  for (const key of allKeys) {
+    const oldVal = oldBlock?.[key];
+    const newVal = newBlock?.[key];
+    if (JSON.stringify(oldVal) !== JSON.stringify(newVal)) {
+      changes.push(`  ~ ${blockName}.${key}: ${JSON.stringify(oldVal)} -> ${JSON.stringify(newVal)}`);
+    }
+  }
+  if (changes.length === 0) {
+    changes.push(`  ~ ${blockName} updated`);
+  }
+  return changes;
+}
+
 // ---------------------------------------------------------------------------
 // Patch a single manifest
 // ---------------------------------------------------------------------------
@@ -264,7 +311,7 @@ async function patchManifest(manifestPath, configEntry, args) {
   const manifest = await readJson(manifestPath);
   const modelId = manifest.modelId ?? path.basename(path.dirname(manifestPath));
 
-  const extracted = extractExecutionFromConfig(configEntry.config);
+  const extracted = extractFromConfig(configEntry.config);
   if (!extracted) {
     return { modelId, status: 'skip', reason: 'no execution block in config' };
   }
@@ -274,13 +321,24 @@ async function patchManifest(manifestPath, configEntry, args) {
   const newExecution = extracted.execution;
   const newSessionDefaults = extracted.sessionDefaults;
 
-  // Check if anything actually changed
+  // Check execution and sessionDefaults
   const executionMatch =
     JSON.stringify(oldExecution) === JSON.stringify(newExecution);
   const sessionMatch =
     JSON.stringify(oldSessionDefaults) === JSON.stringify(newSessionDefaults);
 
-  if (executionMatch && sessionMatch && !args.force) {
+  // Check inference behavior blocks
+  const behaviorDiffs = [];
+  for (const key of INFERENCE_BEHAVIOR_KEYS) {
+    const newBlock = extracted.behavior[key];
+    if (!newBlock) continue;
+    const oldBlock = manifest.inference?.[key] ?? null;
+    if (JSON.stringify(oldBlock) !== JSON.stringify(newBlock)) {
+      behaviorDiffs.push(key);
+    }
+  }
+
+  if (executionMatch && sessionMatch && behaviorDiffs.length === 0 && !args.force) {
     return { modelId, status: 'unchanged' };
   }
 
@@ -299,6 +357,12 @@ async function patchManifest(manifestPath, configEntry, args) {
   if (!sessionMatch) {
     changes.push('  ~ sessionDefaults updated');
   }
+  for (const key of behaviorDiffs) {
+    const oldBlock = manifest.inference?.[key] ?? {};
+    const newBlock = extracted.behavior[key];
+    const fieldChanges = summarizeBehaviorDiff(key, oldBlock, newBlock);
+    changes.push(...fieldChanges);
+  }
 
   if (args.dryRun) {
     return { modelId, status: 'would-patch', changes, configPath: configEntry.configPath };
@@ -310,6 +374,14 @@ async function patchManifest(manifestPath, configEntry, args) {
   }
   manifest.inference.execution = newExecution;
   manifest.inference.sessionDefaults = newSessionDefaults;
+
+  // Sync behavior blocks
+  for (const key of INFERENCE_BEHAVIOR_KEYS) {
+    const newBlock = extracted.behavior[key];
+    if (newBlock) {
+      manifest.inference[key] = newBlock;
+    }
+  }
 
   // Stamp patch metadata
   if (!manifest.metadata || typeof manifest.metadata !== 'object') {
@@ -420,4 +492,4 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   });
 }
 
-export { buildConfigIndex, findConfigForModel, extractExecutionFromConfig };
+export { buildConfigIndex, findConfigForModel, extractFromConfig };
