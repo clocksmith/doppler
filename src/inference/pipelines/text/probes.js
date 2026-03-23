@@ -1,11 +1,16 @@
 
 
 import { trace } from '../../../debug/index.js';
+import { resolveCapturePolicy } from '../../../debug/capture-policy.js';
+import { snapshotTensor, snapshotFromArray } from '../../../debug/tensor.js';
 import { getDevice } from '../../../gpu/device.js';
 import { allowReadback } from '../../../gpu/perf-guards.js';
 import { f16ToF32 } from '../../../loader/dtype-utils.js';
 import { readBufferSlice } from '../../../memory/buffer-pool.js';
 import { PROBE_TO_CANONICAL } from './stage-names.js';
+import { buildOpId } from './operator-identity.js';
+import { getOperatorClass } from './stage-names.js';
+import { getDriftPolicyId } from './drift-policy.js';
 
 
 const STAGE_DEFAULT_CATEGORY = {
@@ -97,13 +102,40 @@ function getTraceLogger(category, layerIdx) {
 
 export async function runProbes(stage, buffer, options) {
   const { layerIdx, numTokens, hiddenSize, probes, recorder, dtype = 'f32' } = options;
-  if (!probes || probes.length === 0) return;
   if (!buffer) return;
-  if (recorder) return;
+  if (recorder && !options.operatorDiagnostics?.enabled) return;
 
   const isCpuBuffer = buffer instanceof Float32Array;
   const device = isCpuBuffer ? null : getDevice();
   if (!isCpuBuffer && !device) return;
+
+  const diagnostics = options.operatorDiagnostics ?? null;
+  const canonicalStage = getCanonicalStageName(stage);
+  if (diagnostics?.enabled && diagnostics.emitter && canonicalStage) {
+    const opId = buildOpId(canonicalStage, layerIdx);
+    const operatorClass = getOperatorClass(canonicalStage);
+    const captureLevel = resolveCapturePolicy(opId, diagnostics.captureConfig);
+    const capture = await buildDiagnosticCapture(captureLevel, buffer, {
+      isCpuBuffer,
+      shape: [numTokens, hiddenSize],
+      dtype,
+    });
+    diagnostics.emitter.emitRecord(canonicalStage, {
+      layerIdx,
+      phase: options.phase ?? null,
+      tokenIndex: options.tokenIndex ?? null,
+      dtype,
+      shapeSignature: `${numTokens}x${hiddenSize}`,
+      opType: operatorClass,
+      capturePolicy: captureLevel,
+      driftPolicyId: getDriftPolicyId(operatorClass),
+      capture,
+      captureArtifactIds: capture ? [`${opId}:capture`] : [],
+    });
+  }
+
+  if (!probes || probes.length === 0) return;
+  if (recorder) return;
 
   const stageProbes = probes.filter((probe) => probe.stage === stage);
   if (stageProbes.length === 0) return;
@@ -174,4 +206,33 @@ export function hasProbeStage(probes, stage, layerIdx) {
 
 export function getCanonicalStageName(probeStageName) {
   return PROBE_TO_CANONICAL[probeStageName] ?? null;
+}
+
+async function buildDiagnosticCapture(level, buffer, options) {
+  if (level === 'none') return null;
+
+  const { isCpuBuffer, shape, dtype } = options;
+  const snapshot = isCpuBuffer
+    ? snapshotFromArray(buffer, shape, dtype)
+    : await snapshotTensor(buffer, shape, dtype);
+  if (!snapshot?.ok) {
+    return {
+      level,
+      error: snapshot?.error ?? 'capture_failed',
+      shape,
+      dtype,
+      sample: null,
+      stats: null,
+    };
+  }
+
+  return {
+    level,
+    shape: snapshot.shape,
+    dtype: snapshot.dtype,
+    sample: Array.isArray(snapshot.sample) ? snapshot.sample : null,
+    stats: snapshot.stats ?? null,
+    hasNaN: snapshot.hasNaN === true,
+    hasInf: snapshot.hasInf === true,
+  };
 }

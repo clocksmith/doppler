@@ -1173,10 +1173,7 @@ function setEmptyNoticeAction(scope, quickModelEntry) {
       const pct = progress?.percent;
       button.textContent = Number.isFinite(pct) ? `Importing ${Math.round(pct)}%` : 'Importing...';
     } else {
-      const size = quickModelEntry.sizeBytes ? formatBytes(quickModelEntry.sizeBytes) : '';
-      button.textContent = size
-        ? `Import ${quickModelEntry.label} (${size})`
-        : `Import ${quickModelEntry.label}`;
+      button.textContent = 'Import Recommended Model';
     }
     button.title = `Import ${quickModelEntry.label}`;
     button.disabled = isBusy || (hasBusyImport && !isBusy) || isDownloadLocked;

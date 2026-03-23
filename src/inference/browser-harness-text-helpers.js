@@ -761,8 +761,12 @@ export async function runGeneration(pipeline, runtimeConfig, runOverrides = null
     : (runtimeConfig.inference?.sampling || {});
   const debugProbes = runtimeConfig.shared?.debug?.probes || [];
   const profile = runtimeConfig.shared?.debug?.profiler?.enabled === true;
-  const disableCommandBatching = Array.isArray(debugProbes) && debugProbes.length > 0;
+  const diagnosticsEnabled = runtimeConfig.shared?.harness?.mode === 'diagnose'
+    || runOverrides?.diagnostics?.enabled === true;
+  const disableCommandBatching = diagnosticsEnabled
+    || (Array.isArray(debugProbes) && debugProbes.length > 0);
   const start = performance.now();
+  const diagnostics = runOverrides?.diagnostics ?? null;
 
   for await (const tokenText of pipeline.generate(promptInput, {
     maxTokens,
@@ -774,6 +778,7 @@ export async function runGeneration(pipeline, runtimeConfig, runOverrides = null
     useChatTemplate,
     profile,
     disableCommandBatching,
+    diagnostics,
     onToken: (tokenId, tokenText) => {
       tokenIds.push(tokenId);
       tokenRecords.push({
@@ -844,6 +849,7 @@ export async function runGeneration(pipeline, runtimeConfig, runOverrides = null
       decodeProfileSteps,
       executionPlan: stats.executionPlan ?? null,
       kernelPathId: stats.kernelPathId ?? null,
+      operatorDiagnostics: stats.operatorDiagnostics ?? null,
       kernelPathSource: stats.kernelPathSource ?? null,
     },
   };

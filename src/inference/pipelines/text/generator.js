@@ -8,6 +8,11 @@ import { resetSubmitStats, logSubmitStats } from '../../../gpu/submit-tracker.js
 import { createCommandRecorder, createProfilingRecorder, CommandRecorder } from '../../../gpu/command-recorder.js';
 import { allowReadback } from '../../../gpu/perf-guards.js';
 import { log, trace } from '../../../debug/index.js';
+import {
+  CAPTURE_LEVELS,
+  createDefaultCaptureConfig,
+  validateCaptureConfig,
+} from '../../../debug/index.js';
 import { validateCallTimeOptions } from '../../../config/param-validator.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 
@@ -19,6 +24,7 @@ import { formatChatMessages } from './chat-format.js';
 import { embed } from './embed.js';
 import { processLayer } from './layer.js';
 import { computeLogits, recordLogitsGPU, extractLastPositionLogits, applySoftcapping } from './logits/index.js';
+import { OperatorEventEmitter } from './operator-events.js';
 import { isWeightBuffer, isCpuWeightBuffer, getWeightDtype } from '../../../gpu/weight-buffer.js';
 import {
   decodeStep,
@@ -336,6 +342,26 @@ export class PipelineGenerator {
     const startTime = performance.now();
 
     const opts = resolveGenerateOptions(this.#state, options);
+    const diagnosticsEnabled = options?.diagnostics?.enabled === true
+      || this.#state.runtimeConfig?.shared?.harness?.mode === 'diagnose';
+    if (diagnosticsEnabled) {
+      const captureConfig = {
+        ...createDefaultCaptureConfig(),
+        enabled: true,
+        defaultLevel: CAPTURE_LEVELS.SLICE,
+        ...(options?.diagnostics?.captureConfig ?? {}),
+      };
+      validateCaptureConfig(captureConfig);
+      this.#state.operatorDiagnostics = {
+        enabled: true,
+        captureConfig,
+        emitter: new OperatorEventEmitter({
+          modelHash: this.#state.manifest?.modelId ?? null,
+          runtimeConfigHash: this.#state.resolvedKernelPath?.id ?? null,
+          executionPlanHash: opts.executionPlan?.id ?? null,
+        }),
+      };
+    }
     const activePlan = opts.executionPlan ?? resolveActiveExecutionPlan(this.#state);
     this.#state.stats.executionPlan = {
       primary: summarizeExecutionPlan(this.#state.executionPlanState?.primaryPlan ?? null),
@@ -473,6 +499,14 @@ export class PipelineGenerator {
     } finally {
       this._closeFinitenessFallbackWindow(opts);
       resetActiveExecutionPlan(this.#state);
+      this.#state.stats.operatorDiagnostics = this.#state.operatorDiagnostics?.emitter
+        ? {
+          enabled: true,
+          timeline: this.#state.operatorDiagnostics.emitter.getTimeline(),
+          recordCount: this.#state.operatorDiagnostics.emitter.length,
+        }
+        : null;
+      this.#state.operatorDiagnostics = null;
       this.#state.isGenerating = false;
     }
   }

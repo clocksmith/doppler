@@ -8,12 +8,14 @@ const { selectRuleValue } = await import('../../src/rules/rule-registry.js');
 const { setActiveKernelPath, getKernelPathStrict } = await import('../../src/config/kernel-path-loader.js');
 
 {
+  // Default policy is capability-aware: when subgroups are available,
+  // nosubgroups path auto-upgrades to online.
   const selected = resolveCapabilityKernelPathRef(
     'gemma3-q4k-dequant-f32a-nosubgroups',
     'model',
     { hasSubgroups: true }
   );
-  assert.equal(selected, 'gemma3-q4k-dequant-f32a-nosubgroups');
+  assert.equal(selected, 'gemma3-q4k-dequant-f32a-online');
 }
 
 {

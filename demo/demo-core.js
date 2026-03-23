@@ -3,6 +3,7 @@ import {
   createConverterConfig,
   getRuntimeConfig,
   setRuntimeConfig,
+  loadRuntimeProfile,
   DEFAULT_MANIFEST_INFERENCE,
   formatBytes,
   listRegisteredModels,
@@ -107,7 +108,7 @@ import {
   getModelTypeForId,
 } from './ui/models/utils.js';
 import { mergeQuickCatalogEntryLists } from './ui/models/quick-catalog.js';
-import { updateStorageInfo, refreshStorageInspector, deleteStorageModel } from './ui/storage/inspector.js';
+import { updateStorageInfo, refreshStorageInspector, deleteStorageModel, clearAllOPFS } from './ui/storage/inspector.js';
 import {
   configureDownloadCallbacks,
   refreshDownloads,
@@ -3240,8 +3241,11 @@ async function setUiMode(mode, options = {}) {
   applyModeVisibility(resolvedMode);
   const headerModel = document.querySelector('.header-controls-row .header-model');
   if (headerModel) {
-    headerModel.hidden = resolvedMode === 'kernel-paths';
+    headerModel.hidden = resolvedMode !== 'diagnostics';
   }
+  const runOutput = $('run-output');
+  if (runOutput) runOutput.textContent = '';
+  updateRunStatus('Idle');
   syncRunModeUI(resolvedMode);
   syncDiagnosticsModeUI(resolvedMode);
   if (resolvedMode === 'models') {
@@ -3396,10 +3400,7 @@ function setEmptyNoticeAction(scope, quickModelEntry) {
       const pct = progress?.percent;
       button.textContent = Number.isFinite(pct) ? `Importing ${Math.round(pct)}%` : 'Importing...';
     } else {
-      const size = quickModelEntry.sizeBytes ? formatBytes(quickModelEntry.sizeBytes) : '';
-      button.textContent = size
-        ? `Import ${quickModelEntry.label} (${size})`
-        : `Import ${quickModelEntry.label}`;
+      button.textContent = 'Import Recommended Model';
     }
     button.title = `Import ${quickModelEntry.label}`;
     button.disabled = isBusy || (hasBusyImport && !isBusy) || isDownloadLocked;
@@ -4252,6 +4253,13 @@ async function deriveModelIdFromFiles(files, fallbackLabel) {
   return null;
 }
 
+function getModelSelectForMode(mode) {
+  if (mode === 'diagnostics') return $('diagnostics-model');
+  if (mode === 'diffusion') return $('diffusion-model-select');
+  if (mode === 'translate') return $('translate-model-select');
+  return $('run-model-select');
+}
+
 async function filterModelsForMode(models, mode) {
   if (!isModeModelSelectable(mode)) return models;
   const filtered = [];
@@ -4354,7 +4362,7 @@ async function syncModelForMode(mode) {
     state.modeModelId[mode] = null;
     if (state.uiMode === mode) {
       state.activeModelId = null;
-      const modelSelect = $('diagnostics-model');
+      const modelSelect = getModelSelectForMode(mode);
       if (modelSelect) modelSelect.value = '';
     }
     return;
@@ -4414,9 +4422,27 @@ async function computeModelAvailability(models) {
   return availability;
 }
 
+function populateModelSelect(selectEl, modelIds, emptyLabel) {
+  if (!selectEl) return;
+  selectEl.innerHTML = '';
+  if (!modelIds.length) {
+    const opt = document.createElement('option');
+    opt.value = '';
+    opt.textContent = emptyLabel;
+    selectEl.appendChild(opt);
+    return;
+  }
+  for (const modelId of modelIds) {
+    const opt = document.createElement('option');
+    opt.value = modelId;
+    const catalogEntry = (state.quickModelCatalog || []).find((e) => e?.modelId === modelId);
+    opt.textContent = resolveText(catalogEntry?.label, formatModelIdLabel(modelId));
+    opt.title = modelId;
+    selectEl.appendChild(opt);
+  }
+}
+
 async function refreshModelList() {
-  const modelSelect = $('diagnostics-model');
-  if (!modelSelect) return;
   const refreshVersion = ++modelListRefreshVersion;
   state.modelAvailabilityLoading = true;
   state.modelAvailability = { ...DEFAULT_MODEL_AVAILABILITY };
@@ -4431,36 +4457,36 @@ async function refreshModelList() {
     state.registeredModelIds = [...new Set(models
       .map((entry) => getRegisteredModelId(entry))
       .filter(Boolean))];
-    const filteredModels = await filterModelsForMode(models, state.uiMode);
-    if (refreshVersion !== modelListRefreshVersion) return;
-    modelSelect.innerHTML = '';
-    const modelIds = [];
-    const seenModelIds = new Set();
-    for (const model of filteredModels) {
+
+    const allModelIds = [];
+    const seenAll = new Set();
+    for (const model of models) {
       const modelId = getRegisteredModelId(model);
-      if (!modelId || seenModelIds.has(modelId)) continue;
+      if (!modelId || seenAll.has(modelId)) continue;
       const entryModelType = normalizeModelType(model?.modelType);
       if (entryModelType) {
         state.modelTypeCache[modelId] = entryModelType;
       }
-      seenModelIds.add(modelId);
-      modelIds.push(modelId);
+      seenAll.add(modelId);
+      allModelIds.push(modelId);
     }
-    if (!modelIds.length) {
-      const opt = document.createElement('option');
-      opt.value = '';
-      opt.textContent = `No ${getModeModelLabel(state.uiMode)} models`;
-      modelSelect.appendChild(opt);
-    } else {
-      for (const modelId of modelIds) {
-        const opt = document.createElement('option');
-        opt.value = modelId;
-        const catalogEntry = (state.quickModelCatalog || []).find((e) => e?.modelId === modelId);
-        opt.textContent = resolveText(catalogEntry?.label, formatModelIdLabel(modelId));
-        opt.title = modelId;
-        modelSelect.appendChild(opt);
-      }
+
+    const filteredModels = await filterModelsForMode(models, state.uiMode);
+    if (refreshVersion !== modelListRefreshVersion) return;
+
+    const filteredIds = [];
+    const seenFiltered = new Set();
+    for (const model of filteredModels) {
+      const modelId = getRegisteredModelId(model);
+      if (!modelId || seenFiltered.has(modelId)) continue;
+      seenFiltered.add(modelId);
+      filteredIds.push(modelId);
     }
+
+    const modeSelect = getModelSelectForMode(state.uiMode);
+    populateModelSelect(modeSelect, filteredIds, `No ${getModeModelLabel(state.uiMode)} models`);
+    populateModelSelect($('diagnostics-model'), allModelIds, 'No models');
+
     updateSidebarLayout(models);
     state.modelAvailability = await computeModelAvailability(models);
     await updateStorageInfo();
@@ -4556,7 +4582,7 @@ async function refreshGpuInfo() {
 
 function getSelectedModelId() {
   if (state.activeModelId) return state.activeModelId;
-  const modelSelect = $('diagnostics-model');
+  const modelSelect = getModelSelectForMode(state.uiMode);
   const selected = modelSelect?.value || '';
   if (selected) {
     state.activeModelId = selected;
@@ -6344,6 +6370,32 @@ function bindUI() {
     selectDiagnosticsModel(diagnosticsModelSelect.value || null);
   });
 
+  const runModelSelect = $('run-model-select');
+  runModelSelect?.addEventListener('change', () => {
+    const modelId = runModelSelect.value || null;
+    state.activeModelId = modelId;
+    if (isModeModelSelectable(state.uiMode)) {
+      state.modeModelId[state.uiMode] = modelId;
+    }
+    updateDiagnosticsGuidance();
+  });
+
+  const translateModelSelect = $('translate-model-select');
+  translateModelSelect?.addEventListener('change', () => {
+    const modelId = translateModelSelect.value || null;
+    state.activeModelId = modelId;
+    state.modeModelId.translate = modelId;
+    updateDiagnosticsGuidance();
+  });
+
+  const diffusionModelSelect = $('diffusion-model-select');
+  diffusionModelSelect?.addEventListener('change', () => {
+    const modelId = diffusionModelSelect.value || null;
+    state.activeModelId = modelId;
+    state.modeModelId.diffusion = modelId;
+    updateDiagnosticsGuidance();
+  });
+
   diagnosticsProfile?.addEventListener('change', () => {
     const selectedProfileId = diagnosticsProfile.value || '';
     const selectedProfile = decodeDiagnosticsProfileId(selectedProfileId);
@@ -6588,6 +6640,12 @@ function syncMobileAdvanced() {
 
 export async function initDemo() {
   state.appInitializing = true;
+  try {
+    const { runtime } = await loadRuntimeProfile('default');
+    setRuntimeConfig(runtime);
+  } catch (error) {
+    log.warn('DopplerDemo', `Default runtime profile load failed: ${error.message}`);
+  }
   ensureTranslateCompareRuntimeState();
   hydrateTranslateCompareHistory();
   setStatusIndicator('Initializing...', 'info');

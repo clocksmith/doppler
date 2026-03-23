@@ -113,6 +113,16 @@ export interface LayerContext {
   finitenessAbsThreshold?: number;
   /** Decode step index used for first-hit metadata */
   step?: number;
+  /** Semantic phase for operator diagnostics */
+  phase?: 'prefill' | 'decode' | null;
+  /** Operator diagnostics state */
+  operatorDiagnostics?: {
+    enabled?: boolean;
+    emitter?: {
+      emitRecord(stageName: string, options?: Record<string, unknown>): unknown;
+    };
+    captureConfig?: Record<string, unknown>;
+  } | null;
 }
 
 /**

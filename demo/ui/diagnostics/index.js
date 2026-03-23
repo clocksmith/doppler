@@ -899,9 +899,15 @@ export function updateDiagnosticsGuidance() {
 }
 
 export function selectDiagnosticsModel(modelId) {
-  const modelSelect = $('diagnostics-model');
-  if (!modelSelect) return;
-  modelSelect.value = modelId;
+  const headerSelect = $('diagnostics-model');
+  if (headerSelect) headerSelect.value = modelId;
+  const perTabSelectors = ['run-model-select', 'translate-model-select', 'diffusion-model-select'];
+  for (const id of perTabSelectors) {
+    const sel = $(id);
+    if (!sel) continue;
+    const hasOption = [...sel.options].some((o) => o.value === modelId);
+    if (hasOption) sel.value = modelId;
+  }
   state.activeModelId = modelId || null;
   if (isModeModelSelectable(state.uiMode)) {
     state.modeModelId[state.uiMode] = modelId || null;

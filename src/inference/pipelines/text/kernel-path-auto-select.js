@@ -1,9 +1,10 @@
 import { selectRuleValue } from '../../../rules/rule-registry.js';
+import { DEFAULT_KERNEL_PATH_POLICY as SCHEMA_DEFAULT } from '../../../config/schema/inference-defaults.schema.js';
 
 const DEFAULT_KERNEL_PATH_POLICY = Object.freeze({
-  mode: 'locked',
-  sourceScope: Object.freeze(['model', 'manifest']),
-  onIncompatible: 'error',
+  mode: SCHEMA_DEFAULT.mode,
+  sourceScope: Object.freeze([...SCHEMA_DEFAULT.sourceScope]),
+  onIncompatible: SCHEMA_DEFAULT.onIncompatible,
 });
 
 function normalizeKernelPathSource(source) {

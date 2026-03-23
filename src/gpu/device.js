@@ -426,6 +426,12 @@ export function isPlatformInitialized() {
 }
 
 
+export function resetDeviceState() {
+  clearActiveDeviceState();
+  advanceDeviceEpoch();
+}
+
+
 export function destroyDevice() {
   if (gpuDevice) {
     gpuDevice.destroy();

@@ -137,7 +137,7 @@ const BROWSER_WORKLOAD_SET = Object.freeze([
   'energy',
 ]);
 
-const BROWSER_MODE_SET = Object.freeze(['verify', 'debug', 'bench']);
+const BROWSER_MODE_SET = Object.freeze(['verify', 'debug', 'bench', 'diagnose']);
 
 const BROWSER_WORKLOAD_DISPATCH_MAP = Object.freeze({
   verify: Object.freeze({
@@ -151,6 +151,9 @@ const BROWSER_WORKLOAD_DISPATCH_MAP = Object.freeze({
   debug: Object.freeze({
     inference: 'runInferenceSuite(debug)',
     embedding: 'runEmbeddingSuite(debug)',
+  }),
+  diagnose: Object.freeze({
+    inference: 'runInferenceSuite(diagnose)',
   }),
   bench: Object.freeze({
     inference: 'runBenchSuite',
@@ -458,6 +461,7 @@ async function runInferenceSuite(options = {}) {
       kernelPathId: run.phase.kernelPathId,
       kernelPathSource: run.phase.kernelPathSource,
       generationDiagnostics: run.tokenDiagnostics,
+      operatorDiagnostics: run.phase.operatorDiagnostics ?? null,
     };
   }
 
@@ -952,6 +956,9 @@ async function dispatchBrowserSuite(mode, workload, options) {
   }
   if (mode === 'debug' && workload === 'inference') {
     return runInferenceSuite({ ...options, suiteName: 'debug' });
+  }
+  if (mode === 'diagnose' && workload === 'inference') {
+    return runInferenceSuite({ ...options, suiteName: 'diagnose' });
   }
   if (workload === 'inference') {
     return runInferenceSuite({ ...options, suiteName: 'inference' });

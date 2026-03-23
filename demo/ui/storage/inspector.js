@@ -206,27 +206,7 @@ export async function refreshStorageInspector(callbacks = {}) {
       .map((entry) => entry.modelId)
       .filter((modelId) => typeof modelId === 'string' && modelId.length > 0)
     )];
-    const storageIds = new Set(storageEntries.map((entry) => entry.modelId));
-    const registryOnlyEntries = [];
-    for (const [modelId, registryEntry] of registryById.entries()) {
-      if (storageIds.has(modelId)) continue;
-      const totalBytes = Number.isFinite(registryEntry?.totalSize)
-        ? registryEntry.totalSize
-        : Number.NaN;
-      registryOnlyEntries.push({
-        modelId,
-        backend: registryEntry?.backend || 'unknown',
-        root: '',
-        totalBytes,
-        fileCount: 0,
-        shardCount: 0,
-        hasManifest: false,
-        registered: true,
-        missingStorage: true,
-        registryEntry,
-      });
-    }
-    const entries = [...storageEntries, ...registryOnlyEntries];
+    const entries = [...storageEntries];
     state.storageEntriesData = entries.slice();
     if (typeof callbacks?.onStorageInventoryRefreshed === 'function') {
       callbacks.onStorageInventoryRefreshed(state.quickModelStorageIds.slice());
@@ -277,9 +257,6 @@ export async function refreshStorageInspector(callbacks = {}) {
     const summaryParts = [];
     if (entries.length) {
       summaryParts.push(`Models: ${entries.length}`);
-    }
-    if (registryOnlyEntries.length) {
-      summaryParts.push(`Registry-only: ${registryOnlyEntries.length}`);
     }
     const orderedBackends = ['opfs', 'indexeddb', 'memory', 'unknown'];
     for (const backend of orderedBackends) {
@@ -461,4 +438,44 @@ export async function refreshStorageInspector(callbacks = {}) {
     state.storageInspectorScanning = false;
     state.storageInspectorLastScan = Date.now();
   }
+}
+
+export async function clearAllOPFS(callbacks = {}) {
+  const confirmed = window.confirm(
+    'This will delete ALL files in OPFS (Origin Private File System), including models not shown in the registry. Continue?'
+  );
+  if (!confirmed) return;
+
+  if (state.activePipeline && typeof callbacks?.onUnloadActiveModel === 'function') {
+    try {
+      await callbacks.onUnloadActiveModel(state.activeModelId);
+    } catch (error) {
+      log.warn('DopplerDemo', `Failed to unload active model: ${error.message}`);
+    }
+  }
+
+  setStorageInspectorStatus('Clearing all OPFS...');
+  try {
+    const root = await navigator.storage.getDirectory();
+    for await (const name of root.keys()) {
+      await root.removeEntry(name, { recursive: true });
+    }
+    state.quickModelStorageIds = [];
+    state.activeModelId = null;
+    state.activePipelineModelId = null;
+    state.modelTypeCache = {};
+    setStorageInspectorStatus('OPFS cleared');
+  } catch (error) {
+    log.warn('DopplerDemo', `Clear OPFS failed: ${error.message}`);
+    setStorageInspectorStatus(`Clear failed: ${error.message}`);
+    showErrorModal(`Clear OPFS failed: ${error.message}`);
+    return;
+  }
+
+  if (callbacks?.onModelsUpdated) {
+    await callbacks.onModelsUpdated();
+  } else {
+    await refreshStorageInspector(callbacks);
+  }
+  await updateStorageInfo();
 }

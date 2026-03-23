@@ -259,5 +259,7 @@ export function createCommandRequestBase(raw, command) {
     report: asOptionalObject(raw.report, 'report'),
     timestamp: raw.timestamp ?? null,
     searchParams: raw.searchParams ?? null,
+    baselineProvider: asOptionalString(raw.baselineProvider, 'baselineProvider'),
+    observedProvider: asOptionalString(raw.observedProvider, 'observedProvider'),
   };
 }

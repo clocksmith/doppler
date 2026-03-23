@@ -95,6 +95,20 @@ import {
 
 {
   const request = normalizeToolingCommandRequest({
+    command: 'diagnose',
+    modelId: 'gemma-3-1b-it-f16-af32',
+    baselineProvider: 'webgpu',
+    observedProvider: '@simulatte/webgpu',
+  });
+  assert.equal(request.command, 'diagnose');
+  assert.equal(request.workload, 'inference');
+  assert.equal(request.intent, 'investigate');
+  assert.equal(request.baselineProvider, 'webgpu');
+  assert.equal(request.observedProvider, '@simulatte/webgpu');
+}
+
+{
+  const request = normalizeToolingCommandRequest({
     command: 'bench',
     workload: 'embedding',
     modelId: 'google-embeddinggemma-300m-q4k-ehf16-af32',
@@ -121,6 +135,16 @@ import {
   assert.equal(request.trainingStage, 'stage1_joint');
   assert.deepEqual(request.trainingTests, ['ul-stage1']);
   assert.equal(request.trainingSchemaVersion, 1);
+}
+
+{
+  assert.throws(
+    () => ensureCommandSupportedOnSurface({
+      command: 'diagnose',
+      modelId: 'gemma-3-1b-it-f16-af32',
+    }, 'browser'),
+    /diagnose is currently Node-only/
+  );
 }
 
 {

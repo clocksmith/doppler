@@ -9,6 +9,7 @@ import {
 import { convertSafetensorsDirectory } from './node-converter.js';
 import { installNodeFileFetchShim } from './node-file-fetch.js';
 import { bootstrapNodeWebGPU } from './node-webgpu.js';
+import { runDiagnoseCommand } from './diagnose-runner.js';
 import { applyRuntimeInputs, buildSuiteOptions } from './command-runner-shared.js';
 import { runWithRuntimeIsolation } from './command-runner-shared.js';
 import { isPlainObject } from '../utils/plain-object.js';
@@ -124,6 +125,15 @@ export async function runNodeCommand(commandRequest, options = {}) {
         await assertNodeWebGPUSupport();
       }
       const result = await runTrainingOperatorCommand(request);
+      return createToolingSuccessEnvelope({
+        surface: 'node',
+        request,
+        result,
+      });
+    }
+
+    if (request.command === 'diagnose') {
+      const result = await runDiagnoseCommand(request, options);
       return createToolingSuccessEnvelope({
         surface: 'node',
         request,

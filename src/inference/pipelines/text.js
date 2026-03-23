@@ -534,6 +534,9 @@ export class InferencePipeline extends PipelineState {
           : [],
       };
       stats.kernelPathId ??= activeExecutionPlan.kernelPathId ?? this.resolvedKernelPath?.id ?? null;
+      if (this.stats.operatorDiagnostics) {
+        stats.operatorDiagnostics = this.stats.operatorDiagnostics;
+      }
       stats.kernelPathSource ??= activeExecutionPlan.kernelPathSource ?? this.kernelPathSource ?? 'none';
     }
     const ringStats = this.decodeRing?.getStats();

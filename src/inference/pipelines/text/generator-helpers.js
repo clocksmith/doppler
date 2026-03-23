@@ -132,6 +132,8 @@ export function buildLayerContext(state, recorder, isDecodeMode, debugLayers, de
     finitenessGuardEnabled,
     finitenessAbsThreshold,
     step: state.decodeStepCount,
+    phase: isDecodeMode ? 'decode' : 'prefill',
+    operatorDiagnostics: state.operatorDiagnostics,
   };
 }
 

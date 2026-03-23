@@ -43,6 +43,7 @@ export function createOperatorExecutionRecord(options) {
     // Capture and drift policy (Doppler-owned)
     capturePolicy: options.capturePolicy ?? 'none',
     driftPolicyId: options.driftPolicyId ?? operatorClass,
+    capture: options.capture ?? null,
 
     // Execution truth (Doe-owned, filled at runtime)
     kernelDigest: options.kernelDigest ?? null,
@@ -202,6 +203,8 @@ export class OperatorEventEmitter {
 
 export function findFirstDivergence(baselineTimeline, observedTimeline, getDriftTolerance) {
   const len = Math.min(baselineTimeline.length, observedTimeline.length);
+  let driftCheckNeeded = null;
+  let comparedRecords = 0;
 
   for (let i = 0; i < len; i++) {
     const baseline = baselineTimeline[i];
@@ -221,15 +224,32 @@ export function findFirstDivergence(baselineTimeline, observedTimeline, getDrift
     if (getDriftTolerance && baseline.captureArtifactIds.length > 0) {
       const tolerance = getDriftTolerance(baseline.opType, baseline.dtype);
       if (tolerance !== null) {
-        return {
-          type: 'drift_check_needed',
-          index: i,
-          opId: baseline.opId,
-          opType: baseline.opType,
-          tolerance,
-          baseline,
-          observed,
-        };
+        const drift = compareCaptureArtifacts(baseline.capture, observed.capture);
+        if (!drift) {
+          driftCheckNeeded ??= {
+            type: 'drift_check_needed',
+            index: i,
+            opId: baseline.opId,
+            opType: baseline.opType,
+            tolerance,
+            baseline,
+            observed,
+          };
+          continue;
+        }
+        comparedRecords += 1;
+        if (drift && (drift.maxAbsDiff > tolerance.maxAbsDiff || drift.maxRelDiff > tolerance.maxRelDiff)) {
+          return {
+            type: 'numeric_drift',
+            index: i,
+            opId: baseline.opId,
+            opType: baseline.opType,
+            tolerance,
+            drift,
+            baseline,
+            observed,
+          };
+        }
       }
     }
   }
@@ -245,5 +265,41 @@ export function findFirstDivergence(baselineTimeline, observedTimeline, getDrift
     };
   }
 
+  if (driftCheckNeeded) {
+    return {
+      ...driftCheckNeeded,
+      comparedRecords,
+    };
+  }
+
   return null;
+}
+
+function compareCaptureArtifacts(baseline, observed) {
+  const baselineSample = Array.isArray(baseline?.sample) ? baseline.sample : null;
+  const observedSample = Array.isArray(observed?.sample) ? observed.sample : null;
+  if (!baselineSample || !observedSample || baselineSample.length === 0 || observedSample.length === 0) {
+    return null;
+  }
+
+  const len = Math.min(baselineSample.length, observedSample.length);
+  let maxAbsDiff = 0;
+  let maxRelDiff = 0;
+
+  for (let i = 0; i < len; i++) {
+    const left = Number(baselineSample[i] ?? 0);
+    const right = Number(observedSample[i] ?? 0);
+    if (!Number.isFinite(left) || !Number.isFinite(right)) continue;
+    const abs = Math.abs(left - right);
+    const denom = Math.max(Math.abs(left), Math.abs(right), 1e-12);
+    const rel = abs / denom;
+    if (abs > maxAbsDiff) maxAbsDiff = abs;
+    if (rel > maxRelDiff) maxRelDiff = rel;
+  }
+
+  return {
+    maxAbsDiff,
+    maxRelDiff,
+    sampleLength: len,
+  };
 }

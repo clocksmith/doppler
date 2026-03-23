@@ -581,6 +581,7 @@
                     <span class="stat-value" id="storage-used">-- / --</span>
                   </div>
                 </div>
+                <button class="btn btn-small" type="button" id="clear-opfs-btn">Clear OPFS</button>
               </div>
               <div class="panel-subsection pulse-section model-field">
                 <h3 class="pulse-subheader">GPU Info</h3>
@@ -703,6 +704,14 @@
               <div class="panel-title-row">
                 <h2 class="type-label" id="run-controls-title">Run Controls</h2>
               </div>
+              <div class="playground-field run-model-field" data-modes="run embedding">
+                <label class="type-caption" for="run-model-select">Model</label>
+                <select id="run-model-select" class="w-full" aria-label="Model"></select>
+              </div>
+              <div class="playground-field translate-model-field" data-modes="translate">
+                <label class="type-caption" for="translate-model-select">Model</label>
+                <select id="translate-model-select" class="w-full" aria-label="Model"></select>
+              </div>
               <div id="run-empty-notice" class="model-empty-notice" hidden>
                 <div class="model-empty-notice-copy">
                   <div id="run-empty-notice-kicker" class="model-empty-notice-kicker">Setup required</div>
@@ -717,7 +726,7 @@
                     <span class="translate-compare-kicker type-caption">Compare setup</span>
                     <div class="type-caption">Shared prompt and language direction drive both lanes when compare mode is active.</div>
                   </div>
-                  <div class="segmented-control translate-control-layout-toggle" role="tablist" aria-label="Translate layout">
+                  <div class="segmented-control translate-control-layout-toggle" role="tablist" aria-label="Translate layout" hidden>
                     <button id="translate-layout-single-btn" class="btn segmented-btn is-active" type="button" data-translate-layout="single">Single</button>
                     <button id="translate-layout-compare-btn" class="btn segmented-btn" type="button" data-translate-layout="compare">Compare</button>
                   </div>
@@ -829,6 +838,10 @@
               <div class="panel-title-row">
                 <h2 class="type-label">Diffusion Controls</h2>
                 <button class="btn btn-small" id="diffusion-prompt-shuffle" type="button">Shuffle</button>
+              </div>
+              <div class="playground-field">
+                <label class="type-caption" for="diffusion-model-select">Model</label>
+                <select id="diffusion-model-select" class="w-full" aria-label="Model"></select>
               </div>
               <div class="playground-field">
                 <div class="playground-label-row">

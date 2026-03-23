@@ -158,8 +158,9 @@ function resolveExportsPath(exportsField, rootPath) {
   return null;
 }
 
-function installNavigatorGpu(gpu) {
+function installNavigatorGpu(gpu, options = {}) {
   if (!gpu || typeof gpu.requestAdapter !== 'function') return false;
+  const force = options.force === true;
   if (typeof globalThis.navigator === 'undefined') {
     Object.defineProperty(globalThis, 'navigator', {
       value: { gpu },
@@ -167,6 +168,11 @@ function installNavigatorGpu(gpu) {
       configurable: true,
       enumerable: false,
     });
+    return true;
+  }
+
+  if (force && globalThis.navigator.gpu) {
+    globalThis.navigator.gpu = gpu;
     return true;
   }
 
@@ -235,9 +241,9 @@ function resolveGpuFromModule(mod) {
   return null;
 }
 
-function installWebgpuFromModule(mod) {
+function installWebgpuFromModule(mod, options = {}) {
   const gpu = resolveGpuFromModule(mod);
-  if (!installNavigatorGpu(gpu)) {
+  if (!installNavigatorGpu(gpu, options)) {
     return false;
   }
 
@@ -248,6 +254,15 @@ function installWebgpuFromModule(mod) {
   setGlobalIfMissing('GPUTextureUsage', mod.GPUTextureUsage || mod.default?.GPUTextureUsage || mod.globals?.GPUTextureUsage);
 
   return hasNavigatorGpu() && hasGpuEnums();
+}
+
+export async function bootstrapNodeWebGPUProvider(providerSpecifier, options = {}) {
+  const specifier = resolveCandidateModuleSpecifier(providerSpecifier);
+  const mod = await importWithProviderOverride(specifier);
+  if (!installWebgpuFromModule(mod, { force: options.force === true })) {
+    throw new Error(`node command: failed to install WebGPU provider "${providerSpecifier}".`);
+  }
+  return { ok: true, provider: providerSpecifier };
 }
 
 export async function bootstrapNodeWebGPU() {

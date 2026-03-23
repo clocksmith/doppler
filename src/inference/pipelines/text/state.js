@@ -68,6 +68,7 @@ export class PipelineState {
     this.currentTokenIds = null;
 
     this.runtimeConfig = getRuntimeConfig();
+    this.operatorDiagnostics = null;
 
     // DopplerLoader instance
 
@@ -103,6 +104,7 @@ export class PipelineState {
       executionPlan: null,
       kernelPathId: null,
       kernelPathSource: 'none',
+      operatorDiagnostics: null,
       attentionInputs: [],
     };
 
