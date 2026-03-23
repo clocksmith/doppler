@@ -4,7 +4,10 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-import { bootstrapNodeWebGPU } from '../../src/tooling/node-webgpu.js';
+import {
+  bootstrapNodeWebGPU,
+  bootstrapNodeWebGPUProvider,
+} from '../../src/tooling/node-webgpu.js';
 
 function snapshotState() {
   return {
@@ -214,6 +217,42 @@ export const GPUShaderStage = { COMPUTE: 2 };
     await globalThis.navigator.gpu.requestAdapter();
     assert.equal(globalThis.GPUBufferUsage.COPY_SRC, 2);
     assert.equal(globalThis.GPUShaderStage.COMPUTE, 2);
+  } finally {
+    rmSync(tempDir, { recursive: true, force: true });
+    restoreState(snapshot);
+  }
+}
+
+{
+  const snapshot = snapshotState();
+  const tempDir = mkdtempSync(path.join(tmpdir(), 'doppler-webgpu-force-'));
+  try {
+    clearRuntime();
+    const firstModulePath = path.join(tempDir, 'provider-a.mjs');
+    const secondModulePath = path.join(tempDir, 'provider-b.mjs');
+    writeFileSync(firstModulePath, `
+export const gpu = {
+  provider: 'a',
+  async requestAdapter() { return { provider: 'a' }; }
+};
+export const GPUBufferUsage = { COPY_SRC: 11 };
+export const GPUShaderStage = { COMPUTE: 11 };
+`, 'utf8');
+    writeFileSync(secondModulePath, `
+export const gpu = {
+  provider: 'b',
+  async requestAdapter() { return { provider: 'b' }; }
+};
+export const GPUBufferUsage = { COPY_SRC: 22 };
+export const GPUShaderStage = { COMPUTE: 22 };
+`, 'utf8');
+
+    await bootstrapNodeWebGPUProvider(pathToFileURL(firstModulePath).href, { force: true });
+    assert.equal(globalThis.navigator.gpu.provider, 'a');
+
+    const ready = await bootstrapNodeWebGPUProvider(pathToFileURL(secondModulePath).href, { force: true });
+    assert.equal(typeof ready.module, 'object');
+    assert.equal(globalThis.navigator.gpu.provider, 'b');
   } finally {
     rmSync(tempDir, { recursive: true, force: true });
     restoreState(snapshot);

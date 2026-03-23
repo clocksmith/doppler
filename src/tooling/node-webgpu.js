@@ -262,7 +262,11 @@ export async function bootstrapNodeWebGPUProvider(providerSpecifier, options = {
   if (!installWebgpuFromModule(mod, { force: options.force === true })) {
     throw new Error(`node command: failed to install WebGPU provider "${providerSpecifier}".`);
   }
-  return { ok: true, provider: providerSpecifier };
+  return {
+    ok: true,
+    provider: providerSpecifier,
+    module: mod,
+  };
 }
 
 export async function bootstrapNodeWebGPU() {

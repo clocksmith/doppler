@@ -107,6 +107,7 @@ function buildRunSummary(label, provider, response) {
     },
     operatorDiagnostics: cloneValue(metrics.operatorDiagnostics ?? null),
     reportInfo: cloneValue(response?.reportInfo ?? null),
+    artifacts: null,
   };
 }
 
@@ -148,8 +149,104 @@ function summarizeDivergence(difference) {
   };
 }
 
+function resolveProviderInfoFn(providerModule) {
+  if (typeof providerModule?.providerInfo === 'function') {
+    return providerModule.providerInfo.bind(providerModule);
+  }
+  if (typeof providerModule?.default?.providerInfo === 'function') {
+    return providerModule.default.providerInfo.bind(providerModule.default);
+  }
+  return null;
+}
+
+async function resolveProviderInfo(providerModule) {
+  const providerInfoFn = resolveProviderInfoFn(providerModule);
+  if (!providerInfoFn) {
+    return null;
+  }
+  try {
+    return cloneValue(await providerInfoFn());
+  } catch {
+    return null;
+  }
+}
+
+function resolveSemanticBundleWriter(providerModule) {
+  if (typeof providerModule?.writeSemanticOperatorBundle === 'function') {
+    return providerModule.writeSemanticOperatorBundle.bind(providerModule);
+  }
+  if (typeof providerModule?.default?.writeSemanticOperatorBundle === 'function') {
+    return providerModule.default.writeSemanticOperatorBundle.bind(providerModule.default);
+  }
+  if (typeof providerModule?.createDoeRuntime === 'function') {
+    try {
+      const runtime = providerModule.createDoeRuntime();
+      if (typeof runtime?.writeSemanticOperatorBundle === 'function') {
+        return runtime.writeSemanticOperatorBundle.bind(runtime);
+      }
+    } catch {
+      return null;
+    }
+  }
+  if (typeof providerModule?.default?.createDoeRuntime === 'function') {
+    try {
+      const runtime = providerModule.default.createDoeRuntime();
+      if (typeof runtime?.writeSemanticOperatorBundle === 'function') {
+        return runtime.writeSemanticOperatorBundle.bind(runtime);
+      }
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
+function buildSemanticBundleSummary(summary) {
+  return {
+    label: summary.label,
+    provider: summary.provider,
+    modelId: summary.modelId,
+    output: summary.output,
+    timing: cloneValue(summary.timing),
+    deviceInfo: cloneValue(summary.deviceInfo),
+    metrics: cloneValue(summary.metrics),
+  };
+}
+
+function defaultSemanticBundleOutPath(summary) {
+  const normalizedModelId = String(summary?.modelId || 'unknown').replace(/[^a-zA-Z0-9_-]/g, '_');
+  const normalizedLabel = String(summary?.label || 'run').replace(/[^a-zA-Z0-9_-]/g, '_');
+  return `reports/${normalizedModelId}/${normalizedLabel}.semantic-operators.json`;
+}
+
+async function materializeSemanticBundle(summary, providerModule, divergence) {
+  const writer = resolveSemanticBundleWriter(providerModule);
+  const timeline = summary?.operatorDiagnostics?.timeline;
+  if (!writer || !Array.isArray(timeline) || timeline.length === 0) {
+    return null;
+  }
+
+  const providerInfo = await resolveProviderInfo(providerModule);
+  const anchorPath = typeof summary?.reportInfo?.path === 'string' ? summary.reportInfo.path : null;
+  try {
+    return await writer({
+      anchorPath,
+      outPath: anchorPath ? null : defaultSemanticBundleOutPath(summary),
+      timeline,
+      divergence: cloneValue(divergence ?? null),
+      provider: summary.provider,
+      providerInfo,
+      reportInfo: cloneValue(summary.reportInfo ?? null),
+      summary: buildSemanticBundleSummary(summary),
+      mode: 'operator_diff',
+    });
+  } catch {
+    return null;
+  }
+}
+
 async function runSingleDiagnostic(modules, request, provider, label) {
-  await bootstrapNodeWebGPUProvider(provider, { force: true });
+  const bootstrap = await bootstrapNodeWebGPUProvider(provider, { force: true });
   destroyDevice();
   resetDeviceState();
 
@@ -167,7 +264,10 @@ async function runSingleDiagnostic(modules, request, provider, label) {
       }, 'node'));
     });
 
-    return buildRunSummary(label, provider, response);
+    return {
+      summary: buildRunSummary(label, provider, response),
+      providerModule: bootstrap?.module ?? null,
+    };
   } finally {
     destroyDevice();
     resetDeviceState();
@@ -183,8 +283,10 @@ export async function runDiagnoseCommand(request, _options = {}) {
     || process.env.DOPPLER_DIAGNOSE_OBSERVED_PROVIDER
     || '@simulatte/webgpu';
 
-  const baseline = await runSingleDiagnostic(modules, request, baselineProvider, 'baseline');
-  const observed = await runSingleDiagnostic(modules, request, observedProvider, 'observed');
+  const baselineRun = await runSingleDiagnostic(modules, request, baselineProvider, 'baseline');
+  const observedRun = await runSingleDiagnostic(modules, request, observedProvider, 'observed');
+  const baseline = baselineRun.summary;
+  const observed = observedRun.summary;
 
   const baselineTimeline = baseline.operatorDiagnostics?.timeline ?? [];
   const observedTimeline = observed.operatorDiagnostics?.timeline ?? [];
@@ -202,6 +304,13 @@ export async function runDiagnoseCommand(request, _options = {}) {
       baselineRecords: baseline.operatorDiagnostics?.recordCount ?? 0,
       observedRecords: observed.operatorDiagnostics?.recordCount ?? 0,
     };
+
+  baseline.artifacts = {
+    semanticBundle: await materializeSemanticBundle(baseline, baselineRun.providerModule, divergence),
+  };
+  observed.artifacts = {
+    semanticBundle: await materializeSemanticBundle(observed, observedRun.providerModule, divergence),
+  };
 
   return {
     mode: 'operator_diff',

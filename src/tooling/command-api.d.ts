@@ -1,6 +1,6 @@
 import type { ConverterConfigSchema } from '../config/schema/converter.schema.js';
 
-export type ToolingCommand = 'convert' | 'debug' | 'bench' | 'verify' | 'lora' | 'distill';
+export type ToolingCommand = 'convert' | 'debug' | 'bench' | 'verify' | 'lora' | 'distill' | 'diagnose';
 export type ToolingSurface = 'browser' | 'node';
 export type ToolingWorkload = 'kernels' | 'inference' | 'embedding' | 'training' | 'diffusion' | 'energy';
 export type ToolingIntent = 'verify' | 'investigate' | 'calibrate' | null;
@@ -84,6 +84,8 @@ export interface ToolingCommandRequestInput {
   report?: Record<string, unknown> | null;
   timestamp?: string | Date | null;
   searchParams?: URLSearchParams | null;
+  baselineProvider?: string | null;
+  observedProvider?: string | null;
 }
 
 export interface ToolingCommandRequest {
@@ -146,6 +148,8 @@ export interface ToolingCommandRequest {
   report: Record<string, unknown> | null;
   timestamp: string | Date | null;
   searchParams: URLSearchParams | null;
+  baselineProvider: string | null;
+  observedProvider: string | null;
 }
 
 export declare const TOOLING_COMMANDS: readonly ToolingCommand[];
