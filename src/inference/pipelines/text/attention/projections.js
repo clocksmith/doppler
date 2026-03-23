@@ -304,7 +304,12 @@ export function shouldForceF32AttentionProjectionForRoPE({
   headDim,
   rotaryDim = headDim,
   interleaved = false,
+  kernelPathIsF16 = false,
 }) {
+  // When the execution graph specifies f16 matmul kernels for Q/K/V projections,
+  // the graph is authoritative. The f16 RoPE kernel handles partial rotation and
+  // interleaving at f16 precision. Do not override to f32.
+  if (kernelPathIsF16) return false;
   return attentionInputDtype === 'f16'
     && Number.isFinite(headDim)
     && Number.isFinite(rotaryDim)

@@ -71,7 +71,7 @@ const DEFAULT_ONBOARDING_POLICY = Object.freeze({
   },
   paths: {
     conversion: 'src/config/conversion',
-    kernelPath: 'src/config/kernel-paths',
+    kernelPath: 'src/config/transforms',
     runtimeProfile: 'src/config/runtime',
   },
 });
@@ -689,6 +689,11 @@ async function validateGeneratedWgsl(root, issues, context) {
 }
 
 async function validateKernelPathRegistry(root, issues, context, policy = getActivePolicy()) {
+  // Kernel path registry was replaced by execution graph transforms (a5d5e601).
+  // This validation is now a no-op; execution graphs are validated at conversion
+  // config level and at runtime via compileExecutionV1.
+  return { ids: new Set(), statusById: new Map() };
+  /* eslint-disable-next-line no-unreachable -- retained for git history */
   const registryPath = path.join(root, 'src/config/kernel-paths/registry.json');
   let registryPayload;
   try {
@@ -1505,24 +1510,11 @@ async function runScaffold(context, policy = getActivePolicy()) {
   }
 
   if (kind === 'kernel') {
-    const target = outputOverride
-      ? path.resolve(rootDir, outputOverride)
-      : path.join(
-        rootDir,
-        resolveText(policy.paths?.kernelPath, 'src/config/kernel-paths'),
-        `${safeId}.json`
-      );
-    if ((await fileExists(target)) && !force) {
-      throw new Error(`Refusing to overwrite ${target} (use --force)`);
-    }
-    const payload = renderKernelPathTemplate(safeId, context, policy);
-    await writeJsonFile(target, payload);
-    console.log(`[onboarding] wrote kernel-path template: ${path.relative(rootDir, target)}`);
-    console.log('[onboarding] add this entry to registry.json:');
-    const defaultStatus = resolveText(policy.defaults?.kernelPath?.statusDefault, 'experimental');
-    const defaultStatusReason = resolveText(policy.defaults?.kernelPath?.statusReason, 'scaffolded');
-    console.log(kernelRegistrySnippet(safeId, `${safeId}.json`, context.status || defaultStatus, resolveText(context.statusReason, defaultStatusReason), policy));
-    return 0;
+    throw new Error(
+      'Kernel path scaffolding is no longer supported. ' +
+      'Kernel paths are now derived from execution graphs in conversion configs (src/config/conversion/). ' +
+      'Use `--kind conversion` instead.'
+    );
   }
 
   if (kind === 'behavior') {

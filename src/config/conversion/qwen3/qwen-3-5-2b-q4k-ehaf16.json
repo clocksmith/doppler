@@ -29,7 +29,7 @@
     },
     "normalization": {
       "rmsNormEps": 0.000001,
-      "rmsNormWeightOffset": true,
+      "rmsNormWeightOffset": false,
       "postAttentionNorm": true,
       "preFeedforwardNorm": false,
       "postFeedforwardNorm": false
@@ -108,10 +108,10 @@
   "sessionDefaults": {
     "compute": {
       "defaults": {
-        "activationDtype": "f16",
-        "mathDtype": "f16",
-        "accumDtype": "f16",
-        "outputDtype": "f16"
+        "activationDtype": "f32",
+        "mathDtype": "f32",
+        "accumDtype": "f32",
+        "outputDtype": "f32"
       }
     },
     "kvcache": {
@@ -136,71 +136,61 @@
         "digest": "sha256:257973dd762541d8a2c4b16ad8ad1d071199199e81e477ab644dce915961a989"
       },
       "rmsnorm": {
-        "kernel": "rmsnorm_f16.wgsl",
+        "kernel": "rmsnorm.wgsl",
         "entry": "main",
-        "digest": "sha256:ce2f200529dc5a3b5985922bad7d7d1fb96785f15ef3e4e235321053e9fe9e59"
+        "digest": "sha256:f516b3e4bde2015f2a207c3ca5b8c9820c7809fa8f8d0786f90c568e0f1ac077"
       },
       "gemv": {
-        "kernel": "matmul_gemv_subgroup_f16a.wgsl",
+        "kernel": "matmul_gemv_subgroup.wgsl",
         "entry": "main_vec4",
-        "digest": "sha256:d0a981cdfeb21a40da0c0fe82a0f2f08b99f0bd2d0354d4bd8ca432855fd79e5"
+        "digest": "sha256:3cee3bed453b40c5564a751d2a917649e10ad52f5268e77cbfecfcee34780457"
       },
       "rope": {
-        "kernel": "rope_f16.wgsl",
+        "kernel": "rope.wgsl",
         "entry": "main",
-        "digest": "sha256:c0f3d933864fec40a424de79adac52bec54402351680fe419df1bf58235ab683"
+        "digest": "sha256:4c803ad5e0dd065d5572c7aecc1def277c43884dcc02f22a9676914c10111400"
       },
       "attn_decode": {
-        "kernel": "attention_decode_online_f16.wgsl",
+        "kernel": "attention_decode_online_f16kv.wgsl",
         "entry": "main",
-        "digest": "sha256:953acecd07bd1e50829f26a7e6abb6c653331504d23914b77538da99ee1474dc",
-        "precision": {
-          "activationDtype": "f32",
-          "kvDtype": "f16",
-          "outputDtype": "f32"
-        }
+        "digest": "sha256:4c5d8c92a0a111af716d6b46b9559446807c086027445c7fefa150202f43dae4"
       },
       "residual": {
-        "kernel": "residual_f16.wgsl",
+        "kernel": "residual.wgsl",
         "entry": "main",
-        "digest": "sha256:6dbc8ef2a8ac57117bd41aabc6979ddd7fe2f363b80b761ba2b8f7826d7e02b9"
+        "digest": "sha256:f1abd88c959c5d8dd27b9353d487e37b2a96850ed9d90c365212e260399cc2a7"
       },
-      "gelu": {
-        "kernel": "gelu_f16.wgsl",
+      "silu": {
+        "kernel": "silu.wgsl",
         "entry": "main",
-        "digest": "sha256:aa10873ced2bf9b3e80f39c22d68745f812dbfc96b2afe04f52f9d0589cfac46",
+        "digest": "sha256:7b52d30fb741beef2dbf728e0c4ecffe5b08d9661d63c306caecb4cb3ced85e5",
         "constants": {
           "HAS_GATE": true
         }
       },
       "tiled": {
-        "kernel": "matmul_f16.wgsl",
+        "kernel": "matmul_f16w_f32a.wgsl",
         "entry": "main",
-        "digest": "sha256:7e9f23f326b5750fc7783a1959334c237aff4a23da6f87176608c5c4eb4fc278"
+        "digest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc"
       },
       "attn_stream": {
-        "kernel": "attention_streaming_f16.wgsl",
+        "kernel": "attention_streaming_f16kv.wgsl",
         "entry": "main",
-        "digest": "sha256:2a1591412e581fb855bc54003c616819008c9ee21b56adee81afbe672eba32c9",
-        "precision": {
-          "activationDtype": "f32",
-          "kvDtype": "f16",
-          "outputDtype": "f32"
-        }
+        "digest": "sha256:b337a2dcf7b40431a733d1726eee8bf23504136fd5f915bec057fb59f3ea7480"
       },
       "lm_head_gemv": {
-        "kernel": "matmul_gemv_subgroup_f16a.wgsl",
+        "kernel": "matmul_gemv_subgroup.wgsl",
         "entry": "main_multicol",
-        "digest": "sha256:d0a981cdfeb21a40da0c0fe82a0f2f08b99f0bd2d0354d4bd8ca432855fd79e5",
+        "digest": "sha256:96c38c15e6fed0d7efdc5cd094db5843a8e8ddfe01eee3bc7322fa555dacf3d0",
         "constants": {
           "MULTICOL_COLS_PER_WG": 64,
           "MULTICOL_THREADS_PER_COL": 4
         }
       },
       "sample": {
-        "kernel": "sample_f16.wgsl",
+        "kernel": "sample.wgsl",
         "entry": "sample_single_pass",
-        "digest": "sha256:fde7ed164f7a0ce7f1adb0366cdf9b798d04f0608110430a632e9a1539c63b9b"
+        "digest": "sha256:4412357e84113ee2f1bc0dc8bf89e314c2ab482c89c14ca016ea9949d16a9d0c"
       }
     },
     "preLayer": [
@@ -267,7 +257,7 @@
       ],
       [
         "activation",
-        "gelu"
+        "silu"
       ],
       [
         "down_proj",
@@ -336,7 +326,7 @@
       ],
       [
         "activation",
-        "gelu"
+        "silu"
       ],
       [
         "down_proj",

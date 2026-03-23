@@ -28,7 +28,7 @@
     },
     "normalization": {
       "rmsNormEps": 0.000001,
-      "rmsNormWeightOffset": true,
+      "rmsNormWeightOffset": false,
       "postAttentionNorm": true,
       "preFeedforwardNorm": false,
       "postFeedforwardNorm": false
@@ -107,10 +107,10 @@
   "sessionDefaults": {
     "compute": {
       "defaults": {
-        "activationDtype": "f16",
-        "mathDtype": "f16",
-        "accumDtype": "f16",
-        "outputDtype": "f16"
+        "activationDtype": "f32",
+        "mathDtype": "f32",
+        "accumDtype": "f32",
+        "outputDtype": "f32"
       }
     },
     "kvcache": {
@@ -132,7 +132,7 @@
       "embed": {
         "kernel": "gather_f16.wgsl",
         "entry": "main",
-        "digest": "sha256:a4829f4067091c98ad6ebbc9b0744cdd5bbcd4fbf6092b2f7cc7f1098695860f"
+        "digest": "sha256:257973dd762541d8a2c4b16ad8ad1d071199199e81e477ab644dce915961a989"
       },
       "rmsnorm": {
         "kernel": "rmsnorm.wgsl",
@@ -152,22 +152,17 @@
       "attn_decode": {
         "kernel": "attention_decode_online_f16kv.wgsl",
         "entry": "main",
-        "digest": "sha256:4c5d8c92a0a111af716d6b46b9559446807c086027445c7fefa150202f43dae4",
-        "precision": {
-          "activationDtype": "f32",
-          "kvDtype": "f16",
-          "outputDtype": "f32"
-        }
+        "digest": "sha256:4c5d8c92a0a111af716d6b46b9559446807c086027445c7fefa150202f43dae4"
       },
       "residual": {
         "kernel": "residual.wgsl",
         "entry": "main",
         "digest": "sha256:f1abd88c959c5d8dd27b9353d487e37b2a96850ed9d90c365212e260399cc2a7"
       },
-      "gelu": {
-        "kernel": "gelu.wgsl",
+      "silu": {
+        "kernel": "silu.wgsl",
         "entry": "main",
-        "digest": "sha256:a9007ea08aaff98f9be08f1e0490a6bcf252883eac5513de876ab9ce918865e6",
+        "digest": "sha256:7b52d30fb741beef2dbf728e0c4ecffe5b08d9661d63c306caecb4cb3ced85e5",
         "constants": {
           "HAS_GATE": true
         }
@@ -180,12 +175,7 @@
       "attn_stream": {
         "kernel": "attention_streaming_f16kv.wgsl",
         "entry": "main",
-        "digest": "sha256:b337a2dcf7b40431a733d1726eee8bf23504136fd5f915bec057fb59f3ea7480",
-        "precision": {
-          "activationDtype": "f32",
-          "kvDtype": "f16",
-          "outputDtype": "f32"
-        }
+        "digest": "sha256:b337a2dcf7b40431a733d1726eee8bf23504136fd5f915bec057fb59f3ea7480"
       },
       "lm_head_gemv": {
         "kernel": "matmul_gemv_subgroup.wgsl",
@@ -266,7 +256,7 @@
       ],
       [
         "activation",
-        "gelu"
+        "silu"
       ],
       [
         "down_proj",
@@ -335,7 +325,7 @@
       ],
       [
         "activation",
-        "gelu"
+        "silu"
       ],
       [
         "down_proj",

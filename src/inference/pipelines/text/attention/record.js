@@ -31,6 +31,7 @@ import {
 import { prepareAttentionProjectionInput } from './output-projection.js';
 
 import { releaseOrTrack, shouldDebugLayer } from './types.js';
+import { getKernelPathMatmulVariant } from '../../../../config/kernel-path-loader.js';
 import {
   resolveKVCacheState,
   buildAttentionDispatchParams,
@@ -136,12 +137,15 @@ export async function recordLayerAttentionGPU(
   }
 
   // 2. Q/K/V projections
+  const qProjVariant = getKernelPathMatmulVariant('q_proj', isPrefill ? 'prefill' : 'decode', layerIdx, kernelPath);
+  const kernelPathIsF16 = qProjVariant != null && qProjVariant.includes('f16') && !qProjVariant.includes('f32');
   const matmulOutputDtype = resolveAttentionProjectionOutputDtype(desiredOutputDtype, {
     forceF32: shouldForceF32AttentionProjectionForRoPE({
       attentionInputDtype: desiredOutputDtype,
       headDim,
       rotaryDim: config.ropeRotaryDim,
       interleaved: config.ropeInterleaved,
+      kernelPathIsF16,
     }),
   });
   let usedFusedQKV = false;

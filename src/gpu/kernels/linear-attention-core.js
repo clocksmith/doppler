@@ -174,22 +174,26 @@ fn main(@builtin(workgroup_id) wid: vec3<u32>,
     let g = a_neg_exp[head] * softplus(a_proj[ab_row_base] + dt_bias[head]);
     let g_exp = exp(g);
 
-    // Decay state — each thread handles head_k_dim elements at stride head_v_dim
+    // Gated delta net recurrence (matches HF Qwen3_5 reference):
+    //   S_t = exp(g) * S_{t-1}                    (decay)
+    //   kv_mem = S_t^T @ k                         (retrieve from decayed state)
+    //   delta = beta * (v - kv_mem)                 (error-corrected update)
+    //   S_t = S_t + k @ delta^T                    (write)
+    //   o_t = S_t^T @ q                            (read from updated state)
     if (is_active) {
+      // Step 1: Decay state
       for (var kd: u32 = 0u; kd < head_k_dim; kd = kd + 1u) {
         let state_idx = recurrent_head_base + kd * head_v_dim + vd;
         recurrent_state[state_idx] = recurrent_state[state_idx] * g_exp;
       }
-    }
-
-    // Delta update — each thread handles one vd slice (no cross-thread dependency)
-    if (is_active) {
+      // Step 2: Retrieve from decayed state
       var kv_mem = 0.0;
       for (var kd: u32 = 0u; kd < head_k_dim; kd = kd + 1u) {
         let k_normed = conv_out[conv_row_base + k_base + kd] * k_norm_scale;
         let state_idx = recurrent_head_base + kd * head_v_dim + vd;
         kv_mem = kv_mem + recurrent_state[state_idx] * k_normed;
       }
+      // Step 3-4: Compute delta and write update
       let delta = (conv_out[conv_row_base + v_base + vd] - kv_mem) * beta;
       for (var kd: u32 = 0u; kd < head_k_dim; kd = kd + 1u) {
         let k_normed = conv_out[conv_row_base + k_base + kd] * k_norm_scale;

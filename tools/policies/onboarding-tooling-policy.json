@@ -46,7 +46,7 @@
   },
   "paths": {
     "conversion": "src/config/conversion",
-    "kernelPath": "src/config/kernel-paths",
+    "kernelPath": "src/config/transforms",
     "runtimeProfile": "src/config/runtime"
   }
 }

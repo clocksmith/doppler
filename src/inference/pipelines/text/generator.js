@@ -1097,6 +1097,8 @@ export class PipelineGenerator {
       isBdpaPagedLayout: this.#state.kvCache?.layout === 'bdpa_paged',
       finitenessFallbackWindowOpen: this._hasFinitenessFallbackWindow(),
     });
+    // TEMPORARY: force single-token for linear attention debug
+    if (hasLinearLayers) useBatchPath = false;
 
     if (!useBatchPath) {
       let reason = null;

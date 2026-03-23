@@ -451,7 +451,7 @@ const DEEP_LINK_MODES = new Set([
   'translate',
   'embedding',
   'diffusion',
-  'kernel-paths',
+  'transforms',
   'distill',
   'models',
   'diagnostics',
@@ -459,7 +459,7 @@ const DEEP_LINK_MODES = new Set([
 const TASK_SET = new Set(['run', 'evaluate']);
 const TASK_MODE_ALLOWLIST = Object.freeze({
   run: Object.freeze(['run', 'translate', 'embedding', 'diffusion']),
-  evaluate: Object.freeze(['diagnostics', 'kernel-paths', 'distill']),
+  evaluate: Object.freeze(['diagnostics', 'transforms', 'distill']),
 });
 const MODE_TASK_MAP = Object.freeze({
   run: 'run',
@@ -467,7 +467,7 @@ const MODE_TASK_MAP = Object.freeze({
   embedding: 'run',
   diffusion: 'run',
   diagnostics: 'evaluate',
-  'kernel-paths': 'evaluate',
+  'transforms': 'evaluate',
   distill: 'evaluate',
 });
 const DEFAULT_TASK_MODE = Object.freeze({
@@ -3255,13 +3255,7 @@ async function setUiMode(mode, options = {}) {
       log.warn('DopplerDemo', `Storage inspector refresh failed: ${error.message}`);
     });
   }
-  if (resolvedMode === 'kernel-paths') {
-    loadKernelPathBuilderIndex().catch((error) => {
-      log.warn('DopplerDemo', `Kernel-path builder load failed: ${error.message}`);
-    });
-  } else {
-    renderKernelPathBuilderView();
-  }
+  // Kernel path builder UI removed — execution graph transforms replaced kernel path registry.
   try {
     await refreshModelList();
   } catch (error) {

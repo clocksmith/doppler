@@ -359,6 +359,8 @@ export async function decodeStep(state, currentIds, opts, helpers) {
   const debugCheckBuffer = state.debug ? helpers.debugCheckBuffer : undefined;
 
   state.decodeStepCount++;
+  // TEMPORARY: path trace
+  if (state.decodeStepCount <= 2) console.error(`[DIAG_PATH] decodeStep entered, step=${state.decodeStepCount}`);
   const isDebugStep = opts.debug && state.decodeStepCount <= 5;
   if (isDebugStep) {
     const tokenText = getTokenTextOrUnknown(state.tokenizer, lastToken);
@@ -521,6 +523,30 @@ export async function decodeStep(state, currentIds, opts, helpers) {
     const submitStart = performance.now();
     recorder.submit();
     const submitWaitMs = performance.now() - submitStart;
+
+    // TEMPORARY DIAGNOSTIC: readback hidden states + logits after fused decode submit
+    if (state.decodeStepCount <= 2) {
+      try {
+        const hBytes = Math.min(hiddenStates.size, 128);
+        const hRaw = await readBuffer(hiddenStates, hBytes);
+        const hF32 = new Float32Array(hRaw);
+        let hMax = 0, hNan = 0;
+        for (let i = 0; i < hF32.length; i++) { if (isNaN(hF32[i])) hNan++; const a = Math.abs(hF32[i]); if (a > hMax) hMax = a; }
+        console.error(`[DIAG_HIDDEN] step=${state.decodeStepCount} [0:8]=[${Array.from(hF32.slice(0,8)).map(v=>v.toFixed(4))}] maxAbs=${hMax.toFixed(4)} NaN=${hNan}/${hF32.length}`);
+      } catch(e) { console.error(`[DIAG_HIDDEN] error: ${e.message}`); }
+      try {
+        const lBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: logitsDtype });
+        const lSample = Math.min(config.vocabSize * lBytes, 4096);
+        const lRaw = await readBuffer(logitsBuffer, lSample);
+        const lArr = decodeReadback(lRaw, logitsDtype);
+        const indexed = Array.from(lArr).map((v, i) => [i, v]);
+        indexed.sort((a, b) => b[1] - a[1]);
+        const top = indexed.slice(0, 10).map(([i, v]) => `${i}:${v.toFixed(2)}`).join(', ');
+        let lMax = 0;
+        for (let i = 0; i < lArr.length; i++) { const a = Math.abs(lArr[i]); if (a > lMax) lMax = a; }
+        console.error(`[DIAG_LOGITS] step=${state.decodeStepCount} maxAbs=${lMax.toFixed(4)} top10=[${top}]`);
+      } catch(e) { console.error(`[DIAG_LOGITS] error: ${e.message}`); }
+    }
 
     if (!allowReadback('pipeline.decode.sample')) {
       throw new Error('[Pipeline] GPU readback disabled for sampling');
@@ -783,6 +809,18 @@ export async function decodeStepLogits(state, currentIds, opts, helpers) {
 
   await submitDecodeRecorderProfile(state, opts, recorder, ' (layers only)');
 
+  // TEMPORARY DIAGNOSTIC: readback final hidden states after recorder submit
+  if (state.decodeStepCount <= 2 && hiddenStates instanceof GPUBuffer) {
+    try {
+      const diagBytes = Math.min(hiddenStates.size, 128);
+      const diagRaw = await readBuffer(hiddenStates, diagBytes);
+      const diagF32 = new Float32Array(diagRaw);
+      let maxAbs = 0, nanCount = 0;
+      for (let i = 0; i < diagF32.length; i++) { if (isNaN(diagF32[i])) nanCount++; const a = Math.abs(diagF32[i]); if (a > maxAbs) maxAbs = a; }
+      console.error(`[DIAG_FINAL_HIDDEN] step=${state.decodeStepCount} [0:8]=[${Array.from(diagF32.slice(0,8)).map(v=>v.toFixed(4))}] maxAbs=${maxAbs.toFixed(4)} NaN=${nanCount}/${diagF32.length}`);
+    } catch(e) { console.error(`[DIAG_FINAL_HIDDEN] error: ${e.message}`); }
+  }
+
   let logitsBuffer = null;
   let logitsDtype = null;
   let rawVocabSize = config.vocabSize;
@@ -830,6 +868,20 @@ export async function decodeStepLogits(state, currentIds, opts, helpers) {
       state.runtimeConfig.shared.debug.probes
     );
     logits = extractLastPositionLogits(rawLogits, numTokens, config.vocabSize);
+  }
+
+  // TEMPORARY DIAGNOSTIC: dump top logits
+  if (state.decodeStepCount <= 2 && logits) {
+    try {
+      const topN = 10;
+      const indexed = Array.from(logits).map((v, i) => [i, v]);
+      indexed.sort((a, b) => b[1] - a[1]);
+      const top = indexed.slice(0, topN).map(([i, v]) => `${i}:${v.toFixed(4)}`).join(', ');
+      const bot = indexed.slice(-3).map(([i, v]) => `${i}:${v.toFixed(4)}`).join(', ');
+      let maxAbs = 0;
+      for (let i = 0; i < logits.length; i++) { const a = Math.abs(logits[i]); if (a > maxAbs) maxAbs = a; }
+      console.error(`[DIAG_LOGITS] step=${state.decodeStepCount} maxAbs=${maxAbs.toFixed(4)} top10=[${top}] bot3=[${bot}]`);
+    } catch(e) { console.error(`[DIAG_LOGITS] error: ${e.message}`); }
   }
 
   const isPreAllocated = isOwnedDecodeBuffer(hiddenStates, decodeHiddenBuffer, decodeAltBuffer);
@@ -1038,6 +1090,8 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
   const ownsStopStaging = useGpuStopFlags && !ringSlot?.stagingStop;
   let finitenessStagingBuffer = null;
   let readbackCleanupDelegated = false;
+  let repHistoryBuffer = null;
+  let repHistoryCount = 0;
   try {
     if (state.finitenessBuffer) {
       device.queue.writeBuffer(state.finitenessBuffer, 0, new Uint32Array([0, 0, 0, 0]));
@@ -1068,8 +1122,6 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
     // GPU-side repetition penalty: upload deduplicated history before batch
     const repetitionPenalty = opts.repetitionPenalty ?? samplingDefaults.repetitionPenalty;
     const repPenaltyWindow = samplingDefaults.repetitionPenaltyWindow;
-    let repHistoryBuffer = null;
-    let repHistoryCount = 0;
     if (repetitionPenalty !== 1.0 && currentIds.length > 0) {
       const uniqueTokens = [...new Set(currentIds.slice(-repPenaltyWindow))];
       repHistoryCount = uniqueTokens.length;
@@ -1197,6 +1249,15 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
     }
 
     recorder.submit();
+
+    // TEMPORARY DIAGNOSTIC: check tokens buffer after batch submit
+    if (state.decodeStepCount <= 4) {
+      try {
+        const tRaw = await readBuffer(tokensBuffer, Math.min(tokensBuffer.size, (N + 1) * 4));
+        const tU32 = new Uint32Array(tRaw);
+        console.error(`[DIAG_BATCH] step=${state.decodeStepCount} N=${N} tokens=[${Array.from(tU32).join(',')}]`);
+      } catch(e) { console.error(`[DIAG_BATCH] error: ${e.message}`); }
+    }
 
     if (!allowReadback('pipeline.decode.sample')) {
       throw new Error('[Pipeline] GPU readback disabled for sampling');

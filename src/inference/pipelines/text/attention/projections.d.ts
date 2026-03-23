@@ -52,6 +52,7 @@ export function shouldForceF32AttentionProjectionForRoPE(options: {
   headDim: number;
   rotaryDim?: number;
   interleaved?: boolean;
+  kernelPathIsF16?: boolean;
 }): boolean;
 export function resolveAttentionProjectionOutputDtype(
   attentionInputDtype: string,
