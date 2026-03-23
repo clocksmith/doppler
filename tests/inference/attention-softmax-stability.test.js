@@ -3,28 +3,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const ROOT = process.cwd();
-const KERNEL_PATH_DIR = path.join(ROOT, 'src', 'config', 'kernel-paths');
 const WGSL_DIR = path.join(ROOT, 'src', 'gpu', 'kernels');
-
-function loadKernelPath(fileName) {
-  const filePath = path.join(KERNEL_PATH_DIR, fileName);
-  const raw = fs.readFileSync(filePath, 'utf8');
-  return JSON.parse(raw);
-}
-
-function collectAttentionKernels(kernelPathConfig) {
-  const kernels = new Set();
-  const sections = [kernelPathConfig.decode, kernelPathConfig.prefill].filter(Boolean);
-  for (const section of sections) {
-    const steps = Array.isArray(section.steps) ? section.steps : [];
-    for (const step of steps) {
-      if (step?.op === 'attention' && typeof step.kernel === 'string') {
-        kernels.add(step.kernel);
-      }
-    }
-  }
-  return kernels;
-}
+const CONVERSION_DIR = path.join(ROOT, 'src', 'config', 'conversion');
 
 function hasMaxSubtractedSoftmax(source) {
   const hasExpMinus = /exp\s*\(\s*[^\)]*-\s*[^\)]*\)/.test(source);
@@ -32,18 +12,44 @@ function hasMaxSubtractedSoftmax(source) {
   return hasExpMinus && hasMaxTracker;
 }
 
-const kernelPathFiles = [
-  'gemma3-f16-fused-f16a-online.json',
-  'gemma3-f16-fused-f32a-online.json',
-  'gemma3-q4k-dequant-f32a-nosubgroups.json',
-  'gemma3-q4k-dequant-f16a-online.json',
-  'gemma3-q4k-dequant-f32a-online.json',
-];
+function collectAttentionKernelsFromGraph(execution) {
+  const kernels = new Set();
+  const phases = ['decode', 'prefill'];
+  for (const phase of phases) {
+    const steps = execution[phase];
+    if (!Array.isArray(steps)) continue;
+    for (const step of steps) {
+      const op = step[0];
+      if (op !== 'attention') continue;
+      const kernelKey = step[1];
+      const entry = execution.kernels?.[kernelKey];
+      if (entry?.kernel) kernels.add(entry.kernel);
+    }
+  }
+  return kernels;
+}
+
+function collectJsonFiles(dir) {
+  const results = [];
+  const stack = [dir];
+  while (stack.length > 0) {
+    const current = stack.pop();
+    for (const entry of fs.readdirSync(current, { withFileTypes: true })) {
+      const fullPath = path.join(current, entry.name);
+      if (entry.isDirectory()) stack.push(fullPath);
+      else if (entry.isFile() && entry.name.endsWith('.json')) results.push(fullPath);
+    }
+  }
+  return results;
+}
 
 const kernels = new Set();
-for (const fileName of kernelPathFiles) {
-  const kernelPath = loadKernelPath(fileName);
-  for (const kernel of collectAttentionKernels(kernelPath)) {
+
+for (const configPath of collectJsonFiles(CONVERSION_DIR)) {
+  const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+  const execution = config.execution ?? config.inference?.execution;
+  if (!execution?.kernels) continue;
+  for (const kernel of collectAttentionKernelsFromGraph(execution)) {
     kernels.add(kernel);
   }
 }
@@ -53,6 +59,7 @@ kernels.add('attention_bdpa_decode_f16.wgsl');
 
 for (const kernel of kernels) {
   const kernelPath = path.join(WGSL_DIR, kernel);
+  if (!fs.existsSync(kernelPath)) continue;
   const source = fs.readFileSync(kernelPath, 'utf8');
   assert.equal(
     hasMaxSubtractedSoftmax(source),

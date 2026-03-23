@@ -1,6 +1,7 @@
 import { getDevice, setTrackSubmits } from '../../../gpu/device.js';
 import { releaseBuffer, readBuffer } from '../../../memory/buffer-pool.js';
 import { recordArgmax, recordGPUSample, isGPUSamplingAvailable } from '../../../gpu/kernels/sample.js';
+import { recordRepPenalty } from '../../../gpu/kernels/rep-penalty.js';
 import { recordCheckStop } from '../../../gpu/kernels/check-stop.js';
 import { resetSubmitStats, logSubmitStats } from '../../../gpu/submit-tracker.js';
 import { createCommandRecorder, createProfilingRecorder, CommandRecorder } from '../../../gpu/command-recorder.js';
@@ -349,6 +350,7 @@ async function submitDecodeRecorderProfile(state, opts, recorder, profileLabel) 
 }
 
 export async function decodeStep(state, currentIds, opts, helpers) {
+  const stepWallStart = performance.now();
   const lastToken = currentIds[currentIds.length - 1];
   const numTokens = 1;
   const config = state.modelConfig;
@@ -516,17 +518,24 @@ export async function decodeStep(state, currentIds, opts, helpers) {
       encoder.copyBufferToBuffer(state.finitenessBuffer, 0, stagingBuffer, 4, 16);
     }
 
+    const submitStart = performance.now();
     recorder.submit();
+    const submitWaitMs = performance.now() - submitStart;
 
     if (!allowReadback('pipeline.decode.sample')) {
       throw new Error('[Pipeline] GPU readback disabled for sampling');
     }
 
+    const readbackStart = performance.now();
     const { nextToken, finitenessStatus } = await readSampledTokenFromStagingBuffer(stagingBuffer, {
       ownsStagingBuffer,
       hasFinitenessBuffer: Boolean(state.finitenessBuffer),
       ring,
     });
+    const readbackWaitMs = performance.now() - readbackStart;
+
+    state.stats.singleTokenSubmitWaitMs = (state.stats.singleTokenSubmitWaitMs ?? 0) + submitWaitMs;
+    state.stats.singleTokenReadbackWaitMs = (state.stats.singleTokenReadbackWaitMs ?? 0) + readbackWaitMs;
 
     if (finitenessStatus.triggered) {
       releaseBuffer(logitsBuffer);
@@ -623,6 +632,10 @@ export async function decodeStep(state, currentIds, opts, helpers) {
     }
 
     state.currentSeqLen++;
+    const stepWallMs = performance.now() - stepWallStart;
+    const gpuMs = state.stats.gpuTimeDecodeMs ?? 0;
+    state.stats.singleTokenOrchestrationMs = (state.stats.singleTokenOrchestrationMs ?? 0)
+      + Math.max(0, stepWallMs - submitWaitMs - readbackWaitMs);
     return nextToken;
   }
 
@@ -665,7 +678,10 @@ export async function decodeStep(state, currentIds, opts, helpers) {
     if (logitsResult) {
       const { logitsBuffer, vocabSize, logitsDtype } = logitsResult;
       const logitsBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: logitsDtype });
+      const nfReadbackStart = performance.now();
       const logitsData = await readBuffer(logitsBuffer, numTokens * vocabSize * logitsBytes);
+      const nfReadbackMs = performance.now() - nfReadbackStart;
+      state.stats.singleTokenReadbackWaitMs = (state.stats.singleTokenReadbackWaitMs ?? 0) + nfReadbackMs;
       releaseBuffer(logitsBuffer);
 
       const rawLogits = decodeReadback(logitsData, logitsDtype);
@@ -692,6 +708,9 @@ export async function decodeStep(state, currentIds, opts, helpers) {
         releaseBuffer(hiddenStates);
       }
       state.currentSeqLen++;
+      const nfStepWallMs = performance.now() - stepWallStart;
+      state.stats.singleTokenOrchestrationMs = (state.stats.singleTokenOrchestrationMs ?? 0)
+        + Math.max(0, nfStepWallMs - nfReadbackMs);
       return nextToken;
     }
   }
@@ -738,6 +757,8 @@ export async function decodeStep(state, currentIds, opts, helpers) {
   });
 
   state.currentSeqLen++;
+  const cpuStepWallMs = performance.now() - stepWallStart;
+  state.stats.singleTokenOrchestrationMs = (state.stats.singleTokenOrchestrationMs ?? 0) + cpuStepWallMs;
   return nextToken;
 }
 
@@ -922,11 +943,6 @@ export async function advanceWithTokenAndEmbedding(state, tokenId, opts, helpers
 export async function generateNTokensGPU(state, startToken, N, currentIds, opts, helpers) {
   const device = getDevice();
   const config = state.modelConfig;
-  if (hasLinearAttentionLayers(config.layerTypes)) {
-    throw new Error(
-      '[Pipeline] Batch decode path is disabled for linear_attention models; use single-token decode.'
-    );
-  }
   if (hasConvLayers(config.layerTypes)) {
     throw new Error(
       '[Pipeline] Batch decode path is disabled for conv models; use single-token decode.'
@@ -1049,6 +1065,23 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
     const embedDtype = getWeightDtype(embedBufferRaw);
     const activationDtype = getEffectiveActivationDtype(state, opts);
 
+    // GPU-side repetition penalty: upload deduplicated history before batch
+    const repetitionPenalty = opts.repetitionPenalty ?? samplingDefaults.repetitionPenalty;
+    const repPenaltyWindow = samplingDefaults.repetitionPenaltyWindow;
+    let repHistoryBuffer = null;
+    let repHistoryCount = 0;
+    if (repetitionPenalty !== 1.0 && currentIds.length > 0) {
+      const uniqueTokens = [...new Set(currentIds.slice(-repPenaltyWindow))];
+      repHistoryCount = uniqueTokens.length;
+      const historyData = new Uint32Array(uniqueTokens);
+      repHistoryBuffer = device.createBuffer({
+        size: Math.max(4, historyData.byteLength),
+        usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+        label: 'rep_penalty_history',
+      });
+      device.queue.writeBuffer(repHistoryBuffer, 0, historyData);
+    }
+
     for (let i = 0; i < N; i++) {
       const currentPos = state.currentSeqLen + i;
       context.currentSeqLen = currentPos;
@@ -1089,6 +1122,18 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
         helpers.getLogitsConfig()
       );
       const { logitsBuffer, vocabSize, logitsDtype } = logits;
+
+      // Apply GPU-side repetition penalty before sampling
+      if (repHistoryBuffer && repetitionPenalty !== 1.0) {
+        await recordRepPenalty(recorder, logitsBuffer, repHistoryBuffer, tokensBuffer, {
+          vocabSize,
+          historyCount: repHistoryCount,
+          penalty: repetitionPenalty,
+          batchCount: i,
+          batchOffset: 1,
+          logitsDtype,
+        });
+      }
 
       const outputIndex = i + 1;
       if (opts.temperature < samplingDefaults.greedyThreshold) {
@@ -1238,5 +1283,6 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
     }
     if (ownsTokensBuffer) tokensBuffer.destroy();
     if (ownsStopBuffer) stopBuffer?.destroy();
+    if (repHistoryBuffer) repHistoryBuffer.destroy();
   }
 }

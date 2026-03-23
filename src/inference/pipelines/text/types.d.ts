@@ -565,6 +565,11 @@ export interface PipelineStats {
   decodeRecordMs?: number;
   decodeSubmitWaitMs?: number;
   decodeReadbackWaitMs?: number;
+  decodeMode?: 'single_token' | 'batched_gpu' | null;
+  batchGuardReason?: string | null;
+  singleTokenSubmitWaitMs?: number;
+  singleTokenReadbackWaitMs?: number;
+  singleTokenOrchestrationMs?: number;
   decodeRing?: DecodeRingStats | null;
   executionPlan?: {
     primary: {

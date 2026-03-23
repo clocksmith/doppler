@@ -76,7 +76,7 @@ import { dispatchKernel, dispatchIndirect, recordDispatchIndirect } from './disp
 import { createUniformBufferWithView as createUniformBuffer } from './uniform-utils.js';
 import { writeUniformsFromObject } from './uniform-utils.js';
 
-export async function unifiedKernelWrapper(opName, target, variant, bindings, uniforms, workgroups, constants = null) {
+export async function unifiedKernelWrapper(opName, target, variant, bindings, uniforms, workgroups, constants = null, extraBindings = null) {
   const device = target?.device || getDevice();
   const recorder = target && typeof target.beginComputePass === 'function' ? target : null;
   const config = getKernelConfig(opName, variant);
@@ -135,6 +135,17 @@ export async function unifiedKernelWrapper(opName, target, variant, bindings, un
       binding: index,
       resource: { buffer }
     });
+  }
+
+  // Append extra bindings not tracked in registry (e.g. OUTPUT_PRENORM residual_sum_output)
+  if (extraBindings) {
+    for (const extra of extraBindings) {
+      const buf = extra.buffer?.buffer || extra.buffer;
+      bindGroupEntries.push({
+        binding: extra.binding,
+        resource: { buffer: buf },
+      });
+    }
   }
 
   try {

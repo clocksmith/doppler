@@ -12,12 +12,14 @@
  *    no module is loaded (provider is reported as `'pre-installed'`).
  *
  * 3. **Default candidates** — tried in order:
- *    a. `'webgpu'` (community Dawn bindings)
- *    b. `'@simulatte/webgpu'` (Fawn/Simulatte provider)
- *    The first candidate that imports successfully and installs WebGPU wins.
+ *    a. `'@doe-gpu/webgpu'` (current Doe package name)
+ *    b. `'@simulatte/webgpu'` (legacy package name during transition)
+ *    c. `'webgpu'` (community Dawn bindings)
+ *    The first candidate that imports, installs WebGPU globals, and yields a
+ *    usable adapter wins.
  *
  * To force a specific provider, set the environment variable:
- *   DOPPLER_NODE_WEBGPU_MODULE=@simulatte/webgpu
+ *   DOPPLER_NODE_WEBGPU_MODULE=@doe-gpu/webgpu
  *
  * See `src/tooling/node-webgpu.js` for the full implementation.
  */

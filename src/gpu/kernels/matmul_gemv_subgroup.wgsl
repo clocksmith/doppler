@@ -341,3 +341,89 @@ fn main_vec4(
         C[col] = final_sum * u.alpha;
     }
 }
+
+// ============================================================================
+// Cooperative 4-thread GEMV (64 columns per workgroup)
+// ============================================================================
+// 4 threads collaborate per output column with shared memory reduction.
+// 256 threads = 64 columns × 4 threads. Each thread handles K/4 elements,
+// giving large contiguous reads per thread and trivial 4-way reduction.
+
+const COLS_PER_WG_4T: u32 = 64u;
+const THREADS_PER_COL_4T: u32 = 4u;
+var<workgroup> wg_sums_4t: array<f32, MAX_WORKGROUP_SIZE>;
+
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
+fn main_cols64(
+    @builtin(local_invocation_id) lid: vec3<u32>,
+    @builtin(workgroup_id) wg_id: vec3<u32>,
+    @builtin(subgroup_invocation_id) sg_id: u32,
+    @builtin(subgroup_size) sg_size: u32
+) {
+    let local_id = lid.x;
+    let col_in_wg = local_id / THREADS_PER_COL_4T;
+    let thread_in_col = local_id % THREADS_PER_COL_4T;
+
+    let wg_linear = wg_id.y * u.workgroups_x + wg_id.x;
+    let base_col = wg_linear * COLS_PER_WG_4T;
+    let col = base_col + col_in_wg;
+
+    let is_valid = col < u.N;
+
+    var partial_sum: f32 = 0.0;
+
+    if (is_valid) {
+        let k_per_thread = (u.K + THREADS_PER_COL_4T - 1u) / THREADS_PER_COL_4T;
+        let k_start = thread_in_col * k_per_thread;
+        let k_end = min(k_start + k_per_thread, u.K);
+
+        var k = k_start;
+        let k_aligned_end = k_start + ((k_end - k_start) / 4u) * 4u;
+
+        if (u.transpose_b == 1u) {
+            let b_row_offset = col * u.K;
+
+            for (; k < k_aligned_end; k = k + 4u) {
+                let a = vec4<f32>(A[k], A[k + 1u], A[k + 2u], A[k + 3u]);
+                let b = vec4<f32>(
+                    f32(B[b_row_offset + k]),
+                    f32(B[b_row_offset + k + 1u]),
+                    f32(B[b_row_offset + k + 2u]),
+                    f32(B[b_row_offset + k + 3u])
+                );
+                partial_sum += dot(a, b);
+            }
+
+            for (; k < k_end; k = k + 1u) {
+                partial_sum += A[k] * f32(B[b_row_offset + k]);
+            }
+        } else {
+            for (; k < k_aligned_end; k = k + 4u) {
+                let a = vec4<f32>(A[k], A[k + 1u], A[k + 2u], A[k + 3u]);
+                let b = vec4<f32>(
+                    f32(B[k * u.N + col]),
+                    f32(B[(k + 1u) * u.N + col]),
+                    f32(B[(k + 2u) * u.N + col]),
+                    f32(B[(k + 3u) * u.N + col])
+                );
+                partial_sum = partial_sum + dot(a, b);
+            }
+
+            for (; k < k_end; k = k + 1u) {
+                partial_sum = partial_sum + A[k] * f32(B[k * u.N + col]);
+            }
+        }
+    }
+
+    wg_sums_4t[local_id] = partial_sum;
+    workgroupBarrier();
+
+    if (thread_in_col == 0u && is_valid) {
+        let base = col_in_wg * THREADS_PER_COL_4T;
+        var final_sum: f32 = wg_sums_4t[base]
+            + wg_sums_4t[base + 1u]
+            + wg_sums_4t[base + 2u]
+            + wg_sums_4t[base + 3u];
+        C[col] = final_sum * u.alpha;
+    }
+}

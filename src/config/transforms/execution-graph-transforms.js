@@ -197,7 +197,10 @@ export function removeSubgroups(graph, ctx) {
         newFile = isF16Activation ? 'matmul_f16.wgsl' : 'matmul_f16w_f32a_tiled.wgsl';
       }
     } else if (entry.kernel === 'attention_decode_online_f16kv.wgsl') {
-      newFile = 'attention_decode_chunked_f16kv.wgsl';
+      // f16kv online uses f32 Q; if activations are f16, fall back to all-f16 chunked
+      newFile = isF16Activation
+        ? 'attention_decode_chunked_f16.wgsl'
+        : 'attention_decode_chunked_f16kv.wgsl';
       newEntry = entry.entry;
     } else if (entry.kernel === 'attention_decode_online_f16.wgsl') {
       newFile = 'attention_decode_chunked_f16.wgsl';
@@ -227,8 +230,13 @@ export function removeSubgroups(graph, ctx) {
 // Transform: widenToF32Activations
 // =============================================================================
 
-/** @type {ReadonlyMap<string, string>} */
-const F16_TO_F32_SHADER_MAP = new Map([
+/**
+ * Activation-only widening: f16-activation shaders → f32-activation variants
+ * that still use f16 for weights and KV cache. Requires shader-f16 for weight
+ * and KV buffer reads.
+ * @type {ReadonlyMap<string, string>}
+ */
+const F16_TO_F32_ACTIVATION_MAP = new Map([
   ['rmsnorm_f16.wgsl', 'rmsnorm.wgsl'],
   ['rope_f16.wgsl', 'rope.wgsl'],
   ['residual_f16.wgsl', 'residual.wgsl'],
@@ -242,6 +250,40 @@ const F16_TO_F32_SHADER_MAP = new Map([
   ['attention_decode_chunked_f16.wgsl', 'attention_decode_chunked_f16kv.wgsl'],
   ['attention_small_f16.wgsl', 'attention_small_f16kv.wgsl'],
   ['attention_streaming_f16.wgsl', 'attention_streaming_f16kv.wgsl'],
+]);
+
+/**
+ * Full f32 widening: every shader that uses `enable f16;` is replaced with a
+ * pure-f32 equivalent. Used when the GPU cannot compile any f16 WGSL at all.
+ * Covers f16-activation, f16-weight (f16w), and f16-KV (f16kv) kernels.
+ * @type {ReadonlyMap<string, string>}
+ */
+const FULL_F32_SHADER_MAP = new Map([
+  // f16-activation utility kernels → f32
+  ['rmsnorm_f16.wgsl', 'rmsnorm.wgsl'],
+  ['rope_f16.wgsl', 'rope.wgsl'],
+  ['residual_f16.wgsl', 'residual.wgsl'],
+  ['gelu_f16.wgsl', 'gelu.wgsl'],
+  ['sample_f16.wgsl', 'sample.wgsl'],
+  ['gather_f16.wgsl', 'gather.wgsl'],
+  // f16-activation matmul → f32
+  ['matmul_gemv_subgroup_f16a.wgsl', 'matmul_f32.wgsl'],
+  ['matmul_f16.wgsl', 'matmul_f32.wgsl'],
+  ['matmul_f16_tiled.wgsl', 'matmul_f32.wgsl'],
+  // f16-weight + f32-activation matmul → f32
+  ['matmul_gemv_subgroup.wgsl', 'matmul_f32.wgsl'],
+  ['matmul_f16w_f32a.wgsl', 'matmul_f32.wgsl'],
+  ['matmul_f16w_f32a_tiled.wgsl', 'matmul_f32.wgsl'],
+  // f16-activation attention → f32
+  ['attention_decode_online_f16.wgsl', 'attention_decode.wgsl'],
+  ['attention_decode_chunked_f16.wgsl', 'attention_decode.wgsl'],
+  ['attention_small_f16.wgsl', 'attention_small.wgsl'],
+  ['attention_streaming_f16.wgsl', 'attention_streaming.wgsl'],
+  // f16kv attention (f32 Q, f16 KV) → f32
+  ['attention_decode_online_f16kv.wgsl', 'attention_decode.wgsl'],
+  ['attention_decode_chunked_f16kv.wgsl', 'attention_decode.wgsl'],
+  ['attention_small_f16kv.wgsl', 'attention_small.wgsl'],
+  ['attention_streaming_f16kv.wgsl', 'attention_streaming.wgsl'],
 ]);
 
 /**
@@ -263,18 +305,24 @@ export function widenToF32Activations(graph, ctx) {
     return null;
   }
 
-  // Check whether any kernel uses an f16 activation shader
-  const hasF16Shader = Object.values(graph.kernels).some(
-    (entry) => F16_TO_F32_SHADER_MAP.has(entry.kernel)
+  // When the GPU cannot compile any f16 WGSL (hasF16=false), use the full f32
+  // map that also covers f16-weight and f16-KV kernels. Otherwise use the
+  // activation-only map that preserves f16 weights/KV for precision fallback.
+  const shaderMap = ctx.capabilities?.hasF16 === false
+    ? FULL_F32_SHADER_MAP
+    : F16_TO_F32_ACTIVATION_MAP;
+
+  const hasTargetShader = Object.values(graph.kernels).some(
+    (entry) => shaderMap.has(entry.kernel)
   );
-  if (!hasF16Shader) {
+  if (!hasTargetShader) {
     return null;
   }
 
   const result = cloneGraph(graph);
 
   for (const [key, entry] of Object.entries(result.kernels)) {
-    const replacement = F16_TO_F32_SHADER_MAP.get(entry.kernel);
+    const replacement = shaderMap.get(entry.kernel);
     if (replacement !== undefined) {
       result.kernels[key] = deriveKernelEntry(entry, replacement, entry.entry);
     }

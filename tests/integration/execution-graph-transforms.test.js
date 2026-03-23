@@ -29,13 +29,6 @@ const conversionConfig = JSON.parse(
   )
 );
 
-const nosubgroupsKernelPath = JSON.parse(
-  readFileSync(
-    path.resolve(__dirname, '../../src/config/kernel-paths/gemma3-q4k-dequant-f32a-nosubgroups.json'),
-    'utf-8'
-  )
-);
-
 /** The real execution graph from the gemma3-1b-q4k conversion config. */
 const REAL_GRAPH = conversionConfig.execution;
 
@@ -563,64 +556,44 @@ function buildF16WeightProjectionGraph() {
 }
 
 // ===========================================================================
-// Test 11: Snapshot test — transform output matches nosubgroups kernel path
+// Test 11: Snapshot test — removeSubgroups produces expected kernel files
 // ===========================================================================
 {
   const input = structuredClone(REAL_GRAPH);
   const result = removeSubgroups(input, CTX_F32);
   ok(result !== null, 'snapshot: removeSubgroups should produce a result');
 
-  // Build a lookup from op name to kernel file from the nosubgroups kernel path registry
-  const expectedDecode = {};
-  for (const step of nosubgroupsKernelPath.decode.steps) {
-    expectedDecode[step.op] = step.kernel;
-  }
-
-  // For each decode step in the transformed graph, check the kernel file matches
-  // the nosubgroups registry variant. This now includes attention — the online
-  // attention kernel is correctly identified as requiring subgroups and swapped
-  // to the chunked variant.
+  // Decode projections should use tiled matmul (not subgroup GEMV)
   for (const step of result.decode) {
     const op = step[0];
     const kernelKey = step[1];
     const entry = result.kernels[kernelKey];
     ok(entry != null, `snapshot decode: kernel entry for op "${op}" (key "${kernelKey}") must exist`);
 
-    const expectedFile = expectedDecode[op];
-    if (expectedFile !== undefined) {
-      equal(entry.kernel, expectedFile,
-        `snapshot decode: op "${op}" should use ${expectedFile}, got ${entry.kernel}`);
+    if (['q_proj', 'k_proj', 'v_proj', 'o_proj', 'gate_proj', 'up_proj', 'down_proj'].includes(op)) {
+      equal(entry.kernel, 'matmul_f16w_f32a_tiled.wgsl',
+        `snapshot decode: op "${op}" should use matmul_f16w_f32a_tiled.wgsl, got ${entry.kernel}`);
+    }
+    if (op === 'attention') {
+      equal(entry.kernel, 'attention_decode_chunked_f16kv.wgsl',
+        `snapshot decode: attention should use chunked kernel, got ${entry.kernel}`);
     }
   }
 
-  // Verify postLayer lm_head matches.
-  // The kernel-path registry puts sample in a separate "sampling" section and
-  // the conversion config's "tiled" kernel key (used by lm_head_prefill)
-  // currently maps to matmul_f16w_f32a.wgsl (non-tiled) while the registry
-  // file records matmul_f16w_f32a_tiled.wgsl. Compare only ops that are
-  // expected to agree after removeSubgroups.
-  const expectedPostLayer = {};
-  for (const step of nosubgroupsKernelPath.postLayer) {
-    expectedPostLayer[step.op] = step.kernel;
-  }
-
-  // lm_head should match — the subgroup multicol kernel is replaced with
-  // matmul_f16w_f32a.wgsl in both the transform output and the registry.
+  // PostLayer lm_head should use matmul_f16w_f32a.wgsl (not subgroup multicol)
   {
     const lmHeadStep = result.postLayer.find(s => s[0] === 'lm_head');
     ok(lmHeadStep != null, 'snapshot postLayer: lm_head step must exist');
     const lmHeadEntry = result.kernels[lmHeadStep[1]];
     ok(lmHeadEntry != null, 'snapshot postLayer: lm_head kernel entry must exist');
-    equal(lmHeadEntry.kernel, expectedPostLayer['lm_head'],
-      `snapshot postLayer: lm_head should use ${expectedPostLayer['lm_head']}, got ${lmHeadEntry.kernel}`);
+    equal(lmHeadEntry.kernel, 'matmul_f16w_f32a.wgsl',
+      `snapshot postLayer: lm_head should use matmul_f16w_f32a.wgsl, got ${lmHeadEntry.kernel}`);
   }
 
-  // Verify prefill is unchanged. The prefill section uses the same kernel
-  // keys as the original graph, so compare against the input.
+  // Prefill must be unchanged
   deepEqual(result.prefill, input.prefill, 'snapshot: prefill must be unchanged by removeSubgroups');
 
-  // Additionally, verify that prefill projection kernels still use the
-  // original tiled kernel (matmul_f16w_f32a.wgsl via the "tiled" key).
+  // Prefill projection kernels still use the original tiled kernel
   const prefillProjFiles = new Set();
   for (const step of result.prefill) {
     const op = step[0];

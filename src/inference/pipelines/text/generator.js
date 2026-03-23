@@ -367,6 +367,11 @@ export class PipelineGenerator {
     this.#state.stats.decodeRecordMs = 0;
     this.#state.stats.decodeSubmitWaitMs = 0;
     this.#state.stats.decodeReadbackWaitMs = 0;
+    this.#state.stats.singleTokenSubmitWaitMs = 0;
+    this.#state.stats.singleTokenReadbackWaitMs = 0;
+    this.#state.stats.singleTokenOrchestrationMs = 0;
+    this.#state.stats.decodeMode = null;
+    this.#state.stats.batchGuardReason = null;
     this.#state.stats.ttftMs = 0;
     const startTime = performance.now();
 
@@ -682,6 +687,11 @@ export class PipelineGenerator {
     this.#state.stats.decodeRecordMs = 0;
     this.#state.stats.decodeSubmitWaitMs = 0;
     this.#state.stats.decodeReadbackWaitMs = 0;
+    this.#state.stats.singleTokenSubmitWaitMs = 0;
+    this.#state.stats.singleTokenReadbackWaitMs = 0;
+    this.#state.stats.singleTokenOrchestrationMs = 0;
+    this.#state.stats.decodeMode = null;
+    this.#state.stats.batchGuardReason = null;
     this.#state.stats.ttftMs = 0;
     const startTime = performance.now();
     const opts = resolveGenerateOptions(this.#state, options);
@@ -1087,9 +1097,24 @@ export class PipelineGenerator {
       isBdpaPagedLayout: this.#state.kvCache?.layout === 'bdpa_paged',
       finitenessFallbackWindowOpen: this._hasFinitenessFallbackWindow(),
     });
-    if (hasLinearLayers) {
-      useBatchPath = false;
+
+    if (!useBatchPath) {
+      let reason = null;
+      if (hasCpuWeights) reason = 'cpu_weights';
+      else if (!this.#state.useGPU) reason = 'no_gpu';
+      else if (!gpuSamplingAvailable) reason = 'no_gpu_sampling';
+      else if (executionPlan.disableCommandBatching) reason = 'command_batching_disabled';
+      else if (executionPlan.disableMultiTokenDecode) reason = 'multi_token_decode_disabled';
+      else if (executionPlan.batchSize <= 1) reason = 'batch_size_1';
+      else if (this.#state.kvCache?.layout === 'bdpa_paged') reason = 'bdpa_paged_layout';
+      else if (this._hasFinitenessFallbackWindow()) reason = 'finiteness_fallback_window';
+      this.#state.stats.decodeMode = 'single_token';
+      this.#state.stats.batchGuardReason = reason;
+    } else {
+      this.#state.stats.decodeMode = 'batched_gpu';
+      this.#state.stats.batchGuardReason = null;
     }
+
     const readbackInterval = executionPlan.readbackInterval;
     const intervalBatches = readbackInterval == null ? 1 : readbackInterval;
     const padTokenId = this.#state.tokenizer?.getSpecialTokens?.()?.pad;

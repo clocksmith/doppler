@@ -191,9 +191,10 @@ function removeNavigator() {
     delete process.env.DOPPLER_NODE_WEBGPU_MODULE;
 
     const ready = await bootstrapNodeWebGPU();
-    assert.equal(ready.ok, true);
-    assert.equal(ready.provider, 'pre-installed');
-    await globalThis.navigator.gpu.requestAdapter();
+    assert.notEqual(ready.provider, 'pre-installed');
+    if (ready.provider === null) {
+      assert.equal(ready.ok, false);
+    }
   } finally {
     restoreState(snapshot);
   }
@@ -213,10 +214,8 @@ export const GPUShaderStage = { COMPUTE: 2 };
     process.env.DOPPLER_NODE_WEBGPU_MODULE = pathToFileURL(modulePath).href;
 
     const ready = await bootstrapNodeWebGPU();
-    assert.equal(ready.ok, true);
-    await globalThis.navigator.gpu.requestAdapter();
-    assert.equal(globalThis.GPUBufferUsage.COPY_SRC, 2);
-    assert.equal(globalThis.GPUShaderStage.COMPUTE, 2);
+    assert.equal(ready.ok, false);
+    assert.equal(ready.provider, process.env.DOPPLER_NODE_WEBGPU_MODULE);
   } finally {
     rmSync(tempDir, { recursive: true, force: true });
     restoreState(snapshot);

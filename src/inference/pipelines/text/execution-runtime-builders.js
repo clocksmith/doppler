@@ -62,6 +62,7 @@ function toKernelPathStep(step) {
     entry: step.entry ?? 'main',
     ...(step.weights ? { weights: step.weights } : {}),
     ...(step.constants ? { constants: step.constants } : {}),
+    ...(step.precision ? { precision: step.precision } : {}),
   };
 }
 
@@ -96,12 +97,12 @@ export function assertKernelPathSessionCompatibility(path, sessionDefaults) {
   if (!path) {
     return;
   }
-  const activationDtype = normalizeDtype(
+  const globalActivationDtype = normalizeDtype(
     path.activationDtype ?? requireSessionActivationDtype(sessionDefaults),
     'inlineKernelPath.activationDtype'
   );
   const kvDtype = normalizeDtype(
-    path.kvDtype ?? sessionDefaults?.kvcache?.kvDtype ?? activationDtype,
+    path.kvDtype ?? sessionDefaults?.kvcache?.kvDtype ?? globalActivationDtype,
     'inlineKernelPath.kvDtype'
   );
 
@@ -110,31 +111,38 @@ export function assertKernelPathSessionCompatibility(path, sessionDefaults) {
     if (!kernel.startsWith('attention')) {
       continue;
     }
+    const stepActivationDtype = step.precision?.activationDtype
+      ? normalizeDtype(step.precision.activationDtype, `step[${step.op}].precision.activationDtype`)
+      : globalActivationDtype;
+    const stepKvDtype = step.precision?.kvDtype
+      ? normalizeDtype(step.precision.kvDtype, `step[${step.op}].precision.kvDtype`)
+      : kvDtype;
+
     if (kernel.includes('_f16kv')) {
-      if (activationDtype !== 'f32' || kvDtype !== 'f16') {
+      if (stepActivationDtype !== 'f32' || stepKvDtype !== 'f16') {
         throw new Error(
           `[Execution] Inline kernelPath attention kernel "${kernel}" requires ` +
           `activationDtype="f32" and kvcache.kvDtype="f16", but resolved ` +
-          `activationDtype="${activationDtype}" and kvcache.kvDtype="${kvDtype}".`
+          `activationDtype="${stepActivationDtype}" and kvcache.kvDtype="${stepKvDtype}".`
         );
       }
       continue;
     }
     if (kernel.includes('_f16')) {
-      if (activationDtype !== 'f16' || kvDtype !== 'f16') {
+      if (stepActivationDtype !== 'f16' || stepKvDtype !== 'f16') {
         throw new Error(
           `[Execution] Inline kernelPath attention kernel "${kernel}" requires ` +
           `activationDtype="f16" and kvcache.kvDtype="f16", but resolved ` +
-          `activationDtype="${activationDtype}" and kvcache.kvDtype="${kvDtype}".`
+          `activationDtype="${stepActivationDtype}" and kvcache.kvDtype="${stepKvDtype}".`
         );
       }
       continue;
     }
-    if (activationDtype !== 'f32' || kvDtype !== 'f32') {
+    if (stepActivationDtype !== 'f32' || stepKvDtype !== 'f32') {
       throw new Error(
         `[Execution] Inline kernelPath attention kernel "${kernel}" requires ` +
         `activationDtype="f32" and kvcache.kvDtype="f32", but resolved ` +
-        `activationDtype="${activationDtype}" and kvcache.kvDtype="${kvDtype}".`
+        `activationDtype="${stepActivationDtype}" and kvcache.kvDtype="${stepKvDtype}".`
       );
     }
   }

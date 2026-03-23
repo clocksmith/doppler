@@ -204,6 +204,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
   let attnOutput;
   let residualFused = false;
   let postAttn = null;
+  let fusedResidualForFFN = null;
   try {
   if (isConvLayer) {
     const convInProj = layerWeights?.convInProj ?? null;
@@ -411,6 +412,12 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
     } else {
       releaseBuffer(attnOutput.buffer);
     }
+  } else if (layerWeights?.postAttnNorm) {
+    // Fused path: defer residual add into processFFNStandard's rmsnorm (PRE_RESIDUAL).
+    // Saves one residual_add dispatch per layer. The rmsnorm computes
+    // rmsnorm(attnOutput + inputTensor) and writes the pre-norm sum for downstream use.
+    postAttn = attnOutput;
+    fusedResidualForFFN = inputTensor;
   } else {
     postAttn = await doResidualAdd(attnOutput, inputTensor, size, recorder, { label: `L${layerIdx}.post_attn_residual`, layerIdx });
     if (recorder) {
@@ -444,7 +451,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
   if (sandwichNorm.useSandwichNorm) {
     outputTensor = await processFFNWithSandwichNorm(layerIdx, postAttn, numTokens, size, context, layerWeights, sandwichNorm);
   } else {
-    outputTensor = await processFFNStandard(layerIdx, postAttn, numTokens, size, context, layerWeights);
+    outputTensor = await processFFNStandard(layerIdx, postAttn, numTokens, size, context, layerWeights, fusedResidualForFFN);
   }
 
   // Keep activation dtype consistent across layers. Some FFN paths can emit f32

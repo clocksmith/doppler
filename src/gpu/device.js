@@ -164,6 +164,22 @@ export const FEATURES =  ({
 });
 
 
+function probeShaderF16(device) {
+  try {
+    const module = device.createShaderModule({
+      code: 'enable f16;\n@compute @workgroup_size(1) fn _probe() { var x: f16 = 1.0h; }',
+    });
+    // createShaderModule is synchronous in Dawn; if it returned without
+    // throwing, the WGSL→backend translation succeeded.
+    void module;
+    return true;
+  } catch {
+    console.log('[GPU] shader-f16 feature reported but shader compilation failed; disabling f16');
+    return false;
+  }
+}
+
+
 export function isWebGPUAvailable() {
   return typeof navigator !== 'undefined' && 'gpu' in navigator;
 }
@@ -341,10 +357,15 @@ export async function initDevice() {
   wrapQueueForTracking(gpuDevice.queue);
 
   // Cache kernel capabilities
+  let hasF16 = gpuDevice.features.has(FEATURES.SHADER_F16);
+  if (hasF16) {
+    hasF16 = probeShaderF16(gpuDevice);
+  }
+
   kernelCapabilities = {
     hasSubgroups: gpuDevice.features.has(FEATURES.SUBGROUPS),
     hasSubgroupsF16: gpuDevice.features.has(FEATURES.SUBGROUPS_F16),
-    hasF16: gpuDevice.features.has(FEATURES.SHADER_F16),
+    hasF16,
     hasTimestampQuery: gpuDevice.features.has(FEATURES.TIMESTAMP_QUERY),
     maxBufferSize: gpuDevice.limits.maxStorageBufferBindingSize,
     maxWorkgroupSize: gpuDevice.limits.maxComputeInvocationsPerWorkgroup,
@@ -386,10 +407,15 @@ export function setDevice(device, options = {}) {
     description: '',
   };
 
+  let setDeviceHasF16 = gpuDevice.features.has(FEATURES.SHADER_F16);
+  if (setDeviceHasF16) {
+    setDeviceHasF16 = probeShaderF16(gpuDevice);
+  }
+
   kernelCapabilities = {
     hasSubgroups: gpuDevice.features.has(FEATURES.SUBGROUPS),
     hasSubgroupsF16: gpuDevice.features.has(FEATURES.SUBGROUPS_F16),
-    hasF16: gpuDevice.features.has(FEATURES.SHADER_F16),
+    hasF16: setDeviceHasF16,
     hasTimestampQuery: gpuDevice.features.has(FEATURES.TIMESTAMP_QUERY),
     maxBufferSize: gpuDevice.limits.maxStorageBufferBindingSize,
     maxWorkgroupSize: gpuDevice.limits.maxComputeInvocationsPerWorkgroup,

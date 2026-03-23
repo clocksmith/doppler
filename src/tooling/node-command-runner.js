@@ -78,19 +78,18 @@ export function hasNodeWebGPUSupport() {
 }
 
 async function assertNodeWebGPUSupport() {
-  let bootstrapProvider = null;
-  let bootstrapOk = false;
-  if (!hasNodeWebGPUSupport()) {
-    const bootstrap = await bootstrapNodeWebGPU();
-    bootstrapProvider = bootstrap.provider ?? null;
-    bootstrapOk = bootstrap.ok === true;
-  }
+  const bootstrap = await bootstrapNodeWebGPU();
+  const bootstrapProvider = bootstrap.provider ?? null;
+  const bootstrapOk = bootstrap.ok === true;
+  const bootstrapDetail = typeof bootstrap.detail === 'string' && bootstrap.detail.trim().length > 0
+    ? bootstrap.detail.trim()
+    : null;
 
-  if (hasNodeWebGPUSupport()) return;
+  if (bootstrapOk && hasNodeWebGPUSupport()) return;
 
   const providerDetail = bootstrapProvider
-    ? ` Provider "${bootstrapProvider}" was attempted but ${bootstrapOk ? 'did not complete WebGPU setup' : 'failed to install'}.`
-    : ' No WebGPU provider was resolved (none of the default candidates were importable).';
+    ? ` Provider "${bootstrapProvider}" was attempted but did not yield a usable adapter.${bootstrapDetail ? ` Detail: ${bootstrapDetail}.` : ''}`
+    : ` No WebGPU provider produced a usable adapter.${bootstrapDetail ? ` Detail: ${bootstrapDetail}.` : ''}`;
   throw new Error(
     'node command: WebGPU runtime is incomplete in Node.' +
     providerDetail +

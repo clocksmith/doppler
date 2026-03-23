@@ -127,7 +127,7 @@
     }
   },
   "execution": {
-    "inlineKernelPath": false,
+    "inlineKernelPath": true,
     "kernels": {
       "embed": {
         "kernel": "gather_f16.wgsl",
@@ -152,7 +152,12 @@
       "attn_decode": {
         "kernel": "attention_decode_online_f16kv.wgsl",
         "entry": "main",
-        "digest": "sha256:4c5d8c92a0a111af716d6b46b9559446807c086027445c7fefa150202f43dae4"
+        "digest": "sha256:4c5d8c92a0a111af716d6b46b9559446807c086027445c7fefa150202f43dae4",
+        "precision": {
+          "activationDtype": "f32",
+          "kvDtype": "f16",
+          "outputDtype": "f32"
+        }
       },
       "residual": {
         "kernel": "residual.wgsl",
@@ -175,7 +180,12 @@
       "attn_stream": {
         "kernel": "attention_streaming_f16kv.wgsl",
         "entry": "main",
-        "digest": "sha256:b337a2dcf7b40431a733d1726eee8bf23504136fd5f915bec057fb59f3ea7480"
+        "digest": "sha256:b337a2dcf7b40431a733d1726eee8bf23504136fd5f915bec057fb59f3ea7480",
+        "precision": {
+          "activationDtype": "f32",
+          "kvDtype": "f16",
+          "outputDtype": "f32"
+        }
       },
       "lm_head_gemv": {
         "kernel": "matmul_gemv_subgroup.wgsl",

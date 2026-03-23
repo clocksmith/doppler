@@ -4,6 +4,15 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const DEFAULT_DOE_PROVIDER_CREATE_ARGS = 'enable-dawn-features=allow_unsafe_apis';
 const DOE_PROVIDER_CREATE_ARGS_ENV = 'FAWN_WEBGPU_CREATE_ARGS';
+const DOE_PROVIDER_SPECIFIERS = Object.freeze([
+  '@doe-gpu/webgpu',
+  '@simulatte/webgpu',
+]);
+const ADAPTER_PROBE_OPTIONS = Object.freeze([
+  { powerPreference: 'high-performance' },
+  { powerPreference: 'low-power' },
+  null,
+]);
 
 function hasNavigatorGpu() {
   return typeof globalThis.navigator !== 'undefined'
@@ -51,7 +60,7 @@ function resolveCandidateModuleSpecifier(candidate) {
 }
 
 function resolveDefaultWebgpuModuleSpecifiers() {
-  return ['webgpu', '@simulatte/webgpu'];
+  return [...DOE_PROVIDER_SPECIFIERS, 'webgpu'];
 }
 
 function resolveExplicitWebgpuModuleSpecifier() {
@@ -63,12 +72,12 @@ function resolveExplicitWebgpuModuleSpecifier() {
 }
 
 function isDoeWebgpuSpecifier(specifier) {
-  if (specifier === '@simulatte/webgpu') {
+  if (DOE_PROVIDER_SPECIFIERS.includes(specifier)) {
     return true;
   }
   return typeof specifier === 'string'
     && specifier.startsWith('file://')
-    && specifier.includes('@simulatte/webgpu');
+    && DOE_PROVIDER_SPECIFIERS.some((candidate) => specifier.includes(candidate));
 }
 
 async function importWithProviderOverride(specifier) {
@@ -195,17 +204,23 @@ function resolveGpuFromModule(mod) {
     return fromModule;
   }
 
+  const defaultCreateArgs = DEFAULT_DOE_PROVIDER_CREATE_ARGS.split(',').filter(Boolean);
+
   const tryCreateFactory = (factory) => {
     if (typeof factory !== 'function') {
       return null;
     }
     try {
-      return factory([]);
+      return factory(defaultCreateArgs);
     } catch {
       try {
-        return factory();
+        return factory([]);
       } catch {
-        return null;
+        try {
+          return factory();
+        } catch {
+          return null;
+        }
       }
     }
   };
@@ -256,16 +271,100 @@ function installWebgpuFromModule(mod, options = {}) {
   return hasNavigatorGpu() && hasGpuEnums();
 }
 
-export async function bootstrapNodeWebGPUProvider(providerSpecifier, options = {}) {
+function formatAdapterProbeDetail(error) {
+  if (!error) {
+    return 'requestAdapter returned null for high-performance, low-power, and default options.';
+  }
+  const message = error?.message || String(error);
+  return `requestAdapter failed: ${message}`;
+}
+
+async function probeInstalledGpuAdapter() {
+  if (!hasNavigatorGpu()) {
+    return {
+      ok: false,
+      detail: 'navigator.gpu.requestAdapter is unavailable after provider installation.',
+    };
+  }
+  if (!hasGpuEnums()) {
+    return {
+      ok: false,
+      detail: 'WebGPU enums are unavailable after provider installation.',
+    };
+  }
+
+  let lastError = null;
+  for (const adapterOptions of ADAPTER_PROBE_OPTIONS) {
+    try {
+      const adapter = adapterOptions
+        ? await globalThis.navigator.gpu.requestAdapter(adapterOptions)
+        : await globalThis.navigator.gpu.requestAdapter();
+      if (adapter) {
+        return { ok: true, detail: null };
+      }
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  return {
+    ok: false,
+    detail: formatAdapterProbeDetail(lastError),
+  };
+}
+
+async function tryInstallAndProbeProvider(providerSpecifier, options = {}) {
   const specifier = resolveCandidateModuleSpecifier(providerSpecifier);
-  const mod = await importWithProviderOverride(specifier);
+  let mod;
+  try {
+    mod = await importWithProviderOverride(specifier);
+  } catch (error) {
+    return {
+      ok: false,
+      provider: providerSpecifier,
+      detail: `import failed: ${error?.message || String(error)}`,
+      module: null,
+    };
+  }
+
   if (!installWebgpuFromModule(mod, { force: options.force === true })) {
-    throw new Error(`node command: failed to install WebGPU provider "${providerSpecifier}".`);
+    return {
+      ok: false,
+      provider: providerSpecifier,
+      detail: 'failed to install WebGPU globals.',
+      module: mod,
+    };
+  }
+
+  const probe = await probeInstalledGpuAdapter();
+  if (!probe.ok) {
+    return {
+      ok: false,
+      provider: providerSpecifier,
+      detail: probe.detail,
+      module: mod,
+    };
+  }
+
+  return {
+    ok: true,
+    provider: providerSpecifier,
+    detail: null,
+    module: mod,
+  };
+}
+
+export async function bootstrapNodeWebGPUProvider(providerSpecifier, options = {}) {
+  const attempt = await tryInstallAndProbeProvider(providerSpecifier, { force: options.force === true });
+  if (!attempt.ok) {
+    throw new Error(
+      `node command: failed to install WebGPU provider "${providerSpecifier}": ${attempt.detail}`
+    );
   }
   return {
     ok: true,
     provider: providerSpecifier,
-    module: mod,
+    module: attempt.module,
   };
 }
 
@@ -279,40 +378,44 @@ export async function bootstrapNodeWebGPUProvider(providerSpecifier, options = {
  * 2. **Pre-installed** — if `navigator.gpu` and GPU enums are already present
  *    (e.g., a WebGPU-enabled Node build or prior bootstrap), no module is loaded.
  *
- * 3. **Default candidates** — tried in order: `'webgpu'`, `'@simulatte/webgpu'`.
- *    The first one that imports and installs successfully wins.
+ * 3. **Default candidates** — tried in order:
+ *    a. `'@doe-gpu/webgpu'` (current Doe package name)
+ *    b. `'@simulatte/webgpu'` (legacy package name during transition)
+ *    c. `'webgpu'` (community Dawn bindings)
+ *    The first one that imports, installs, and passes an adapter probe wins.
  *
  * @returns {Promise<{ ok: boolean, provider: string | null }>}
  */
 export async function bootstrapNodeWebGPU() {
   const explicitSpecifier = resolveExplicitWebgpuModuleSpecifier();
   if (explicitSpecifier) {
-    try {
-      const mod = await importWithProviderOverride(explicitSpecifier);
-      if (installWebgpuFromModule(mod)) {
-        return { ok: true, provider: explicitSpecifier };
-      }
-      return { ok: false, provider: explicitSpecifier };
-    } catch {
-      return { ok: false, provider: explicitSpecifier };
-    }
+    const attempt = await tryInstallAndProbeProvider(explicitSpecifier, { force: true });
+    return {
+      ok: attempt.ok,
+      provider: explicitSpecifier,
+      detail: attempt.detail,
+    };
   }
 
   if (hasNavigatorGpu() && hasGpuEnums()) {
-    return { ok: true, provider: 'pre-installed' };
+    const preinstalledProbe = await probeInstalledGpuAdapter();
+    if (preinstalledProbe.ok) {
+      return { ok: true, provider: 'pre-installed', detail: null };
+    }
   }
 
+  let lastFailure = null;
   for (const specifier of resolveDefaultWebgpuModuleSpecifiers()) {
-    let mod;
-    try {
-      mod = await importWithProviderOverride(specifier);
-    } catch {
-      continue;
+    const attempt = await tryInstallAndProbeProvider(specifier, { force: true });
+    if (attempt.ok) {
+      return { ok: true, provider: specifier, detail: null };
     }
-    if (installWebgpuFromModule(mod)) {
-      return { ok: true, provider: specifier };
-    }
+    lastFailure = attempt;
   }
 
-  return { ok: false, provider: null };
+  return {
+    ok: false,
+    provider: lastFailure?.provider ?? null,
+    detail: lastFailure?.detail ?? null,
+  };
 }

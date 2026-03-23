@@ -106,6 +106,11 @@ export class PipelineState {
       kernelPathSource: 'none',
       operatorDiagnostics: null,
       attentionInputs: [],
+      decodeMode: null,
+      batchGuardReason: null,
+      singleTokenSubmitWaitMs: 0,
+      singleTokenReadbackWaitMs: 0,
+      singleTokenOrchestrationMs: 0,
     };
 
 

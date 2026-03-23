@@ -1108,14 +1108,20 @@ export function createManifest(
   }
 
   const embeddingOutput = inferEmbeddingOutputConfig(tensorLocations);
-  const embeddingPostprocessor = model.embeddingPostprocessor ?? null;
-  if (embeddingOutput || embeddingPostprocessor) {
+  const hasExplicitEmbeddingPostprocessor = Object.prototype.hasOwnProperty.call(
+    inference?.output ?? {},
+    'embeddingPostprocessor'
+  );
+  const embeddingPostprocessor = hasExplicitEmbeddingPostprocessor
+    ? inference?.output?.embeddingPostprocessor
+    : (model.embeddingPostprocessor ?? null);
+  if (embeddingOutput || hasExplicitEmbeddingPostprocessor || embeddingPostprocessor) {
     inference = {
       ...inference,
       output: {
         ...inference.output,
         ...embeddingOutput,
-        ...(embeddingPostprocessor ? { embeddingPostprocessor } : {}),
+        embeddingPostprocessor,
       },
     };
   }

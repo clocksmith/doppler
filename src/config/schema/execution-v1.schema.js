@@ -42,7 +42,8 @@ export function hasExecutionV1(inference) {
 }
 
 
-function validateKernelMap(kernels) {
+function validateKernelMap(kernels, options = {}) {
+  const { skipDigestValidation = false } = options;
   if (!kernels || typeof kernels !== 'object' || Array.isArray(kernels)) {
     throw new Error('execution.kernels must be a non-null object.');
   }
@@ -56,7 +57,7 @@ function validateKernelMap(kernels) {
     if (typeof decl.entry !== 'string' || !decl.entry.trim()) {
       throw new Error(`execution.kernels["${key}"].entry must be a non-empty string.`);
     }
-    if (!isExecutionV1Digest(decl.digest)) {
+    if (!skipDigestValidation && !isExecutionV1Digest(decl.digest)) {
       throw new Error(`execution.kernels["${key}"].digest must match sha256:<64 hex chars>.`);
     }
     if (decl.constants != null && typeof decl.constants !== 'object') {
@@ -97,6 +98,7 @@ function expandTuple(tuple, kernels, phase, section, layers, context) {
     digest: decl.digest,
     weights: weights ?? null,
     constants: decl.constants ?? null,
+    ...(decl.precision ? { precision: decl.precision } : {}),
     layers,
     phase,
     section,
@@ -147,7 +149,7 @@ function expandBoundarySteps(entries, kernels, section, context) {
  * @returns {object[]} Expanded step array.
  */
 export function expandExecutionV1(graph, options = {}) {
-  const { knownOps = null, strict = false } = options;
+  const { knownOps = null, strict = false, skipDigestValidation = false } = options;
   if (!graph || typeof graph !== 'object') {
     throw new Error('execution graph must be a non-null object.');
   }
@@ -156,7 +158,7 @@ export function expandExecutionV1(graph, options = {}) {
   }
 
   const kernels = graph.kernels;
-  validateKernelMap(kernels);
+  validateKernelMap(kernels, { skipDigestValidation });
 
   const MAX_STEPS_PER_SECTION = 200;
 

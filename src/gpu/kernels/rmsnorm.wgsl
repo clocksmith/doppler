@@ -25,7 +25,8 @@ const MAX_WORKGROUP_SIZE: u32 = 256u;
 // Feature flags - compiler eliminates dead branches
 override RMS_NORM_OFFSET: bool = false;   // Use (1 + weight) for Gemma models
 override HAS_RESIDUAL: bool = false;      // Add residual after normalization
-override OUTPUT_PRENORM: bool = false;    // Output prenorm values (not yet used)
+override PRE_RESIDUAL: bool = false;      // Add residual BEFORE normalization: rmsnorm(input + residual)
+override OUTPUT_PRENORM: bool = false;    // Write pre-norm sum to residual_sum_output binding
 override WEIGHT_IS_F16: bool = false;     // Weight buffer packed as f16 pairs
 
 const MAX_SUBGROUPS: u32 = 32u;  // Support up to 32 subgroups per workgroup
@@ -50,6 +51,7 @@ struct Uniforms {
 @group(0) @binding(2) var<storage, read> weight: array<u32>;   // [size] as f32 or packed f16
 @group(0) @binding(3) var<storage, read_write> output: array<f32>;
 @group(0) @binding(4) var<storage, read> residual: array<f32>; // Optional residual input
+@group(0) @binding(5) var<storage, read_write> residual_sum_output: array<f32>; // Pre-norm sum output (PRE_RESIDUAL + OUTPUT_PRENORM)
 
 // =============================================================================
 // Shared Memory
@@ -86,6 +88,22 @@ fn should_add_residual() -> bool {
     return HAS_RESIDUAL || (u.has_residual != 0u);
 }
 
+// Load input value, fusing residual add when PRE_RESIDUAL is active
+fn load_input(base_offset: u32, idx: u32) -> f32 {
+    let x = input[base_offset + idx];
+    if (PRE_RESIDUAL) {
+        return x + residual[base_offset + idx];
+    }
+    return x;
+}
+
+// Write pre-norm sum when OUTPUT_PRENORM is active (for downstream residual reuse)
+fn write_prenorm(base_offset: u32, idx: u32, val: f32) {
+    if (OUTPUT_PRENORM && PRE_RESIDUAL) {
+        residual_sum_output[base_offset + idx] = val;
+    }
+}
+
 fn token_index(wg_id: vec3<u32>) -> u32 {
     return wg_id.y * max(u.token_stride, 1u) + wg_id.x;
 }
@@ -111,14 +129,15 @@ fn main(
 
     let base_offset = token_idx * size;
 
-    // Each thread computes partial sum of squares (on input only, NOT residual)
+    // Each thread computes partial sum of squares
+    // When PRE_RESIDUAL is active, sum is computed on (input + residual)
     var local_sum_sq: f32 = 0.0;
     let elements_per_thread = (size + WORKGROUP_SIZE - 1u) / WORKGROUP_SIZE;
 
     for (var i: u32 = 0u; i < elements_per_thread; i = i + 1u) {
         let idx = thread_idx * elements_per_thread + i;
         if (idx < size) {
-            let x = input[base_offset + idx];
+            let x = load_input(base_offset, idx);
             local_sum_sq = local_sum_sq + x * x;
         }
     }
@@ -142,11 +161,11 @@ fn main(
 
     workgroupBarrier();
 
-    // Apply normalization and weight, then add residual (POST-norm)
+    // Apply normalization and weight
     for (var i: u32 = 0u; i < elements_per_thread; i = i + 1u) {
         let idx = thread_idx * elements_per_thread + i;
         if (idx < size) {
-            let x = input[base_offset + idx];
+            let x = load_input(base_offset, idx);
 
             // Normalize and scale (with optional weight offset for Gemma)
             var result = x * inv_rms * apply_weight(load_weight(idx));
@@ -155,6 +174,9 @@ fn main(
             if (should_add_residual()) {
                 result = result + residual[base_offset + idx];
             }
+
+            // Write pre-norm sum for downstream residual reuse
+            write_prenorm(base_offset, idx, x);
 
             output[base_offset + idx] = result;
         }
@@ -182,13 +204,12 @@ fn main_small(
     let base_offset = token_idx * size;
 
     // Each thread handles one element (for size <= 256)
-    // Read input only for RMS calculation (not residual)
     var x: f32 = 0.0;
     if (thread_idx < size) {
-        x = input[base_offset + thread_idx];
+        x = load_input(base_offset, thread_idx);
     }
 
-    // Sum of squares (on input only, NOT residual)
+    // Sum of squares
     shared_sum[thread_idx] = x * x;
     workgroupBarrier();
 
@@ -204,12 +225,13 @@ fn main_small(
     let mean_sq = shared_sum[0] / f32(size);
     let inv_rms = 1.0 / sqrt(mean_sq + u.eps);
 
-    // Apply normalization, then add residual AFTER (POST-norm)
+    // Apply normalization
     if (thread_idx < size) {
         var result = x * inv_rms * apply_weight(load_weight(thread_idx));
         if (should_add_residual()) {
             result = result + residual[base_offset + thread_idx];
         }
+        write_prenorm(base_offset, thread_idx, x);
         output[base_offset + thread_idx] = result;
     }
 }
@@ -238,13 +260,13 @@ fn main_cached(
     let base_offset = token_idx * size;
     let elements_per_thread = (size + WORKGROUP_SIZE - 1u) / WORKGROUP_SIZE;
 
-    // First pass: cache input and compute sum of squares (on input only)
+    // First pass: cache input and compute sum of squares
     var local_sum_sq: f32 = 0.0;
     for (var i: u32 = 0u; i < elements_per_thread; i = i + 1u) {
         let idx = thread_idx * elements_per_thread + i;
         if (idx < size) {
-            let x = input[base_offset + idx];
-            shared_cache[idx] = x;  // Cache input for second pass
+            let x = load_input(base_offset, idx);
+            shared_cache[idx] = x;  // Cache for second pass (avoids reloading residual)
             local_sum_sq = local_sum_sq + x * x;
         }
     }
@@ -264,16 +286,16 @@ fn main_cached(
 
     workgroupBarrier();
 
-    // Second pass: normalize cached input, then add residual POST-norm
+    // Second pass: normalize cached input
     for (var i: u32 = 0u; i < elements_per_thread; i = i + 1u) {
         let idx = thread_idx * elements_per_thread + i;
         if (idx < size) {
             let x = shared_cache[idx];
             var result = x * inv_rms * apply_weight(load_weight(idx));
-            // Add residual AFTER normalization (POST-norm)
             if (should_add_residual()) {
                 result = result + residual[base_offset + idx];
             }
+            write_prenorm(base_offset, idx, x);
             output[base_offset + idx] = result;
         }
     }
@@ -315,7 +337,7 @@ fn main_subgroup(
     for (var i: u32 = 0u; i < elements_per_thread; i = i + 1u) {
         let idx = thread_idx * elements_per_thread + i;
         if (idx < size) {
-            let x = input[base_offset + idx];
+            let x = load_input(base_offset, idx);
             local_sum_sq = local_sum_sq + x * x;
         }
     }
@@ -349,13 +371,14 @@ fn main_subgroup(
     for (var i: u32 = 0u; i < elements_per_thread; i = i + 1u) {
         let idx = thread_idx * elements_per_thread + i;
         if (idx < size) {
-            let x = input[base_offset + idx];
+            let x = load_input(base_offset, idx);
             var result = x * inv_rms * apply_weight(load_weight(idx));
 
             if (should_add_residual()) {
                 result = result + residual[base_offset + idx];
             }
 
+            write_prenorm(base_offset, idx, x);
             output[base_offset + idx] = result;
         }
     }
@@ -386,7 +409,7 @@ fn main_small_subgroup(
     var x: f32 = 0.0;
     var x_sq: f32 = 0.0;
     if (thread_idx < size) {
-        x = input[base_offset + thread_idx];
+        x = load_input(base_offset, thread_idx);
         x_sq = x * x;
     }
 
@@ -420,6 +443,7 @@ fn main_small_subgroup(
         if (should_add_residual()) {
             result = result + residual[base_offset + thread_idx];
         }
+        write_prenorm(base_offset, thread_idx, x);
         output[base_offset + thread_idx] = result;
     }
 }

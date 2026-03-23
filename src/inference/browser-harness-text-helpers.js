@@ -820,6 +820,9 @@ export async function runGeneration(pipeline, runtimeConfig, runOverrides = null
   if (Number.isFinite(stats.decodeRecordMs)) gpu.decodeRecordMs = stats.decodeRecordMs;
   if (Number.isFinite(stats.decodeSubmitWaitMs)) gpu.decodeSubmitWaitMs = stats.decodeSubmitWaitMs;
   if (Number.isFinite(stats.decodeReadbackWaitMs)) gpu.decodeReadbackWaitMs = stats.decodeReadbackWaitMs;
+  if (Number.isFinite(stats.singleTokenSubmitWaitMs)) gpu.singleTokenSubmitWaitMs = stats.singleTokenSubmitWaitMs;
+  if (Number.isFinite(stats.singleTokenReadbackWaitMs)) gpu.singleTokenReadbackWaitMs = stats.singleTokenReadbackWaitMs;
+  if (Number.isFinite(stats.singleTokenOrchestrationMs)) gpu.singleTokenOrchestrationMs = stats.singleTokenOrchestrationMs;
   const gpuPhase = Object.keys(gpu).length > 0 ? gpu : null;
   const decodeProfileSteps = Array.isArray(stats.decodeProfileSteps)
     ? stats.decodeProfileSteps
@@ -847,6 +850,8 @@ export async function runGeneration(pipeline, runtimeConfig, runOverrides = null
       decodeTokensPerSec,
       gpu: gpuPhase,
       decodeProfileSteps,
+      decodeMode: stats.decodeMode ?? null,
+      batchGuardReason: stats.batchGuardReason ?? null,
       executionPlan: stats.executionPlan ?? null,
       kernelPathId: stats.kernelPathId ?? null,
       operatorDiagnostics: stats.operatorDiagnostics ?? null,

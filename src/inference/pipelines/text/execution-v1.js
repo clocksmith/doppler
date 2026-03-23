@@ -21,8 +21,8 @@ export function hasExecutionV1(manifestInference) {
 }
 
 
-function expandV1ToResolvedSteps(execution) {
-  const expanded = expandExecutionV1(execution);
+function expandV1ToResolvedSteps(execution, options = {}) {
+  const expanded = expandExecutionV1(execution, options);
   return expanded.map((step, index) => {
     const resolved = {
       id: `${step.section}_${step.phase}_${index}_${step.op}`,
@@ -69,11 +69,15 @@ export function compileExecutionV1(options = {}) {
   const activationDtype = sessionDefaults.compute.defaults.activationDtype;
   const kvDtype = sessionDefaults?.kvcache?.kvDtype ?? activationDtype;
 
+  // Validate the original manifest graph (full digest checks).
+  expandExecutionV1(execution);
+
   // -------------------------------------------------------------------------
   // Phase 2: Apply capability transforms to the execution graph
   // -------------------------------------------------------------------------
   let appliedTransformNames = [];
   let fallbackExecution = null;
+  let graphWasTransformed = false;
 
   if (capabilities) {
     const graphContext = { activationDtype, kvDtype };
@@ -89,6 +93,7 @@ export function compileExecutionV1(options = {}) {
       });
       if (transformed !== execution) {
         execution = transformed;
+        graphWasTransformed = true;
         appliedTransformNames = resolved.names;
         log.info(
           'ExecutionV1',
@@ -118,10 +123,42 @@ export function compileExecutionV1(options = {}) {
     }
   }
 
-  const resolvedSteps = expandV1ToResolvedSteps(execution);
+  // Transformed graphs have null digests for derived kernels — skip digest
+  // validation since the original graph was already validated above.
+  const expandOptions = graphWasTransformed ? { skipDigestValidation: true } : {};
+  const resolvedSteps = expandV1ToResolvedSteps(execution, expandOptions);
 
   const prefillSteps = resolvedSteps.filter((s) => s.phase === 'prefill' || s.phase === 'both');
   const decodeSteps = resolvedSteps.filter((s) => s.phase === 'decode' || s.phase === 'both');
+
+  // When widenToF32Activations was applied, the graph's kernels now expect f32
+  // activations. The sessionDefaults must reflect this for kernel path building
+  // and the runtime session patch. When the GPU has no f16 at all (full f32),
+  // KV cache and all compute dtypes must also be f32.
+  const activationWidened = appliedTransformNames.includes('widenToF32Activations');
+  const fullF32 = activationWidened && capabilities?.hasF16 === false;
+  let effectiveSessionDefaults = sessionDefaults;
+  if (activationWidened) {
+    const f32Defaults = fullF32
+      ? { activationDtype: 'f32', mathDtype: 'f32', accumDtype: 'f32', outputDtype: 'f32' }
+      : { activationDtype: 'f32' };
+    effectiveSessionDefaults = {
+      ...sessionDefaults,
+      compute: {
+        ...sessionDefaults.compute,
+        defaults: {
+          ...sessionDefaults.compute.defaults,
+          ...f32Defaults,
+        },
+      },
+      ...(fullF32 && sessionDefaults?.kvcache ? {
+        kvcache: {
+          ...sessionDefaults.kvcache,
+          kvDtype: 'f32',
+        },
+      } : {}),
+    };
+  }
 
   const inlineKernelPathEnabled = execution.inlineKernelPath !== false;
   const finitenessFallback = typeof execution.finitenessFallbackKernelPathId === 'string'
@@ -131,7 +168,7 @@ export function compileExecutionV1(options = {}) {
   const kernelPath = inlineKernelPathEnabled
     ? buildInlineKernelPath(
       resolvedSteps,
-      sessionDefaults,
+      effectiveSessionDefaults,
       modelId,
       numLayers,
       finitenessFallback
@@ -141,7 +178,7 @@ export function compileExecutionV1(options = {}) {
   // Build fallback inline kernel path from the fallback execution graph
   let fallbackKernelPath = null;
   if (fallbackExecution && inlineKernelPathEnabled) {
-    const fallbackSteps = expandV1ToResolvedSteps(fallbackExecution);
+    const fallbackSteps = expandV1ToResolvedSteps(fallbackExecution, { skipDigestValidation: true });
     const fallbackSessionDefaults = {
       ...sessionDefaults,
       compute: {
@@ -176,10 +213,10 @@ export function compileExecutionV1(options = {}) {
     );
   }
   const layerPipeline = layerPipelineResult?.incompatibleOps ? null : layerPipelineResult;
-  const sessionPatch = buildSessionRuntimePatch(sessionDefaults);
+  const sessionPatch = buildSessionRuntimePatch(effectiveSessionDefaults);
 
   return {
-    sessionDefaults,
+    sessionDefaults: effectiveSessionDefaults,
     policies: execution.policies,
     resolvedSteps: {
       prefill: prefillSteps,

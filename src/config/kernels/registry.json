@@ -300,6 +300,60 @@
           },
           "description": "Multi-column GEMV for large vocab (LM head F16) - f16 activations/output"
         },
+        "gemv_subgroup_cols64": {
+          "wgsl": "matmul_gemv_subgroup.wgsl",
+          "entryPoint": "main_cols64",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16",
+            "subgroups"
+          ],
+          "outputDtype": "f32",
+          "variantMetadata": {
+            "colsPerWg": 64
+          },
+          "description": "Cooperative 4-thread GEMV - 64 columns per workgroup, 4 threads per column (experimental)"
+        },
+        "gemv_subgroup_cols64_f16a": {
+          "wgsl": "matmul_gemv_subgroup_f16a.wgsl",
+          "entryPoint": "main_cols64",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16",
+            "subgroups"
+          ],
+          "outputDtype": "f16",
+          "variantMetadata": {
+            "colsPerWg": 64
+          },
+          "description": "Cooperative 4-thread GEMV f16a - 64 columns per workgroup, 4 threads per column (experimental)"
+        },
+        "gemv_subgroup_vec4_cols64_f16a": {
+          "wgsl": "matmul_gemv_subgroup_f16a.wgsl",
+          "entryPoint": "main_vec4_cols64",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16",
+            "subgroups"
+          ],
+          "outputDtype": "f16",
+          "variantMetadata": {
+            "colsPerWg": 64
+          },
+          "description": "Cooperative 4-thread GEMV f16a vec4 - 64 columns per workgroup with vec4 loads (experimental)"
+        },
         "q4_fused": {
           "wgsl": "fused_matmul_q4.wgsl",
           "entryPoint": "main",
@@ -4424,6 +4478,85 @@
         },
         "f16": {
           "wgsl": "split_qg_f16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ]
+        }
+      }
+    },
+    "rep_penalty": {
+      "description": "GPU-side repetition penalty (modifies logits in-place before sampling)",
+      "baseBindings": [
+        {
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "index": 1,
+          "type": "storage"
+        },
+        {
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "index": 3,
+          "type": "read-only-storage"
+        }
+      ],
+      "baseUniforms": {
+        "vocab_size": {
+          "type": "u32",
+          "offset": 0
+        },
+        "history_count": {
+          "type": "u32",
+          "offset": 4
+        },
+        "penalty": {
+          "type": "f32",
+          "offset": 8
+        },
+        "batch_count": {
+          "type": "u32",
+          "offset": 12
+        },
+        "batch_offset": {
+          "type": "u32",
+          "offset": 16
+        },
+        "_pad0": {
+          "type": "u32",
+          "offset": 20
+        },
+        "_pad1": {
+          "type": "u32",
+          "offset": 24
+        },
+        "_pad2": {
+          "type": "u32",
+          "offset": 28
+        }
+      },
+      "variants": {
+        "default": {
+          "wgsl": "rep_penalty.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": []
+        },
+        "default_f16": {
+          "wgsl": "rep_penalty_f16.wgsl",
           "entryPoint": "main",
           "workgroup": [
             256,

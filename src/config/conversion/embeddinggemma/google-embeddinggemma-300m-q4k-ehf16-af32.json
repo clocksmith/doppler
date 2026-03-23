@@ -55,7 +55,8 @@
       "tieWordEmbeddings": false,
       "scaleEmbeddings": true,
       "embeddingTranspose": false,
-      "embeddingVocabSize": null
+      "embeddingVocabSize": null,
+      "embeddingPostprocessor": null
     },
     "layerPattern": {
       "type": "every_n",
