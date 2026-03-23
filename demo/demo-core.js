@@ -3239,10 +3239,6 @@ async function setUiMode(mode, options = {}) {
   syncSurfaceUI(surface);
   updateNavState(resolvedMode, resolvedTask);
   applyModeVisibility(resolvedMode);
-  const headerModel = document.querySelector('.header-controls-row .header-model');
-  if (headerModel) {
-    headerModel.hidden = resolvedMode !== 'diagnostics';
-  }
   const runOutput = $('run-output');
   if (runOutput) runOutput.textContent = '';
   updateRunStatus('Idle');
@@ -6505,6 +6501,16 @@ function bindUI() {
   clearMemoryBtn?.addEventListener('click', () => {
     clearAllMemory().catch((error) => {
       log.warn('DopplerDemo', `Clear memory failed: ${error.message}`);
+    });
+  });
+
+  $('clear-opfs-btn')?.addEventListener('click', () => {
+    clearAllOPFS({
+      onUnloadActiveModel: unloadActivePipeline,
+      onModelsUpdated: refreshModelList,
+      onStorageInventoryRefreshed: renderQuickModelPanels,
+    }).catch((error) => {
+      log.warn('DopplerDemo', `Clear OPFS failed: ${error.message}`);
     });
   });
 

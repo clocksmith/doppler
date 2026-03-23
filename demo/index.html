@@ -71,9 +71,7 @@
             <button class="btn segmented-btn mode-subtab" data-mode="kernel-paths" type="button">Kernel Paths</button>
             <button class="btn segmented-btn mode-subtab" data-mode="models" type="button">Models</button>
           </div>
-          <div class="header-model">
-            <select id="diagnostics-model" class="w-full" aria-label="Active Model"></select>
-          </div>
+          <div class="header-model" hidden></div>
         </div>
       </div>
 
@@ -394,6 +392,10 @@
                   <button class="btn segmented-btn diagnostics-mode-tab" data-diagnostics-mode="diagnostics" type="button">Inference Diagnostics</button>
                   <button class="btn segmented-btn diagnostics-mode-tab" data-diagnostics-mode="kernels" type="button">Kernel Diagnostics</button>
                 </div>
+              </div>
+              <div class="diagnostics-field">
+                <label class="type-caption" for="diagnostics-model">Model</label>
+                <select id="diagnostics-model" class="w-full" aria-label="Active Model"></select>
               </div>
               <div id="diagnostics-empty-notice" class="model-empty-notice" hidden>
                 <div class="model-empty-notice-copy">
@@ -964,10 +966,10 @@
               </div>
             </section>
 
-            <section class="panel xray-panel keyvalue-panel" id="xray-container" data-modes="run translate embedding" hidden>
-              <h2 class="type-label">Xray</h2>
-            </section>
         </div>
+          <section class="panel xray-panel keyvalue-panel" id="xray-container" data-modes="run translate embedding" hidden>
+            <h2 class="type-label">Xray</h2>
+          </section>
       </div>
     </main>
     <footer class="page-footer">
