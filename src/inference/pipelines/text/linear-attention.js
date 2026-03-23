@@ -643,6 +643,10 @@ export function hasLinearAttentionLayers(layerTypes) {
 }
 
 export function createLinearAttentionRuntime() {
+  log.debug(
+    'Pipeline',
+    'Linear attention runtime created (empty). Linear attention layers will be initialized on first use if model config declares them.'
+  );
   return {
     schemaVersion: LINEAR_RUNTIME_SCHEMA_VERSION,
     layers: new Map(),

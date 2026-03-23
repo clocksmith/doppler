@@ -7,11 +7,26 @@ import { getDeviceEpoch } from '../device.js';
 // Caches
 // ============================================================================
 
+const MAX_SHADER_SOURCE_CACHE_SIZE = 256;
+const MAX_SHADER_MODULE_CACHE_SIZE = 256;
 
+// Map maintains insertion order; eviction deletes the oldest (first) key.
 const shaderSourceCache = new Map();
 
-
 const shaderModuleCache = new Map();
+
+function evictOldest(map, maxSize) {
+  while (map.size > maxSize) {
+    const oldest = map.keys().next().value;
+    map.delete(oldest);
+  }
+}
+
+function touchCacheEntry(map, key, value) {
+  // Move to end for LRU ordering: delete then re-insert.
+  map.delete(key);
+  map.set(key, value);
+}
 
 let moduleCacheEpoch = -1;
 const deviceIds = new WeakMap();
@@ -98,7 +113,9 @@ async function loadShaderSourceFromFileUrl(url) {
 
 export async function loadShaderSource(filename) {
   if (shaderSourceCache.has(filename)) {
-    return shaderSourceCache.get(filename);
+    const cached = shaderSourceCache.get(filename);
+    touchCacheEntry(shaderSourceCache, filename, cached);
+    return cached;
   }
 
   const url = `${KERNEL_BASE_PATH}/${filename}`;
@@ -107,6 +124,7 @@ export async function loadShaderSource(filename) {
     if (isFileUrl(url)) {
       const source = await loadShaderSourceFromFileUrl(url);
       shaderSourceCache.set(filename, source);
+      evictOldest(shaderSourceCache, MAX_SHADER_SOURCE_CACHE_SIZE);
       return source;
     }
 
@@ -116,6 +134,7 @@ export async function loadShaderSource(filename) {
     }
     const source = await response.text();
     shaderSourceCache.set(filename, source);
+    evictOldest(shaderSourceCache, MAX_SHADER_SOURCE_CACHE_SIZE);
     return source;
   } catch (error) {
     log.error('ShaderCache', `Failed to load shader ${filename}: ${error}`);
@@ -175,6 +194,7 @@ export async function getShaderModule(
   const cacheKey = `${getDeviceId(device)}:${shaderFile}`;
   const cached = shaderModuleCache.get(cacheKey);
   if (cached) {
+    touchCacheEntry(shaderModuleCache, cacheKey, cached);
     return cached;
   }
 
@@ -184,6 +204,7 @@ export async function getShaderModule(
   })();
 
   shaderModuleCache.set(cacheKey, compilePromise);
+  evictOldest(shaderModuleCache, MAX_SHADER_MODULE_CACHE_SIZE);
 
   try {
     return await compilePromise;

@@ -9,6 +9,11 @@ import { loadTensorToGPU, loadTensorToCPU } from '../../../loader/tensors/tensor
 import { initStorage, openModelStore } from '../../../storage/shard-manager.js';
 import { setManifest } from '../../../formats/rdrr/parsing.js';
 
+// NOTE: This normalizeBaseUrl is a simplified duplicate of the version in
+// src/inference/pipelines/text/init.js (canonical for inference shard loading).
+// The text/init.js version additionally guards against non-string and empty-string
+// inputs. This copy is kept separate to avoid cross-pipeline imports; do not merge
+// without a coordinated refactor of both pipeline families.
 function normalizeBaseUrl(baseUrl) {
   if (!baseUrl) return null;
   return baseUrl.replace(/\/$/, '');

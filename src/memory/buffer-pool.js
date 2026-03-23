@@ -1,5 +1,22 @@
 
 
+/**
+ * GPU buffer pool with bucketed allocation, pooling, and deferred destruction.
+ *
+ * Acquire/Release contract:
+ * - acquire(size, usage, label) returns a GPUBuffer from the pool or creates a new one.
+ *   The buffer is tracked as "active" until explicitly released.
+ * - release(buffer) returns a buffer to the pool for reuse. The buffer must currently
+ *   be active (acquired and not yet released). Calling release on a buffer that is not
+ *   active logs a warning and is a no-op.
+ * - discard(buffer) removes a buffer from active tracking and schedules it for
+ *   destruction (it will NOT be returned to the pool).
+ * - Callers must ensure every successful acquire is paired with exactly one release
+ *   or discard. In error paths where the buffer may be null/undefined, use
+ *   safeRelease(buffer) which is a no-op for falsy values.
+ * - withBuffer(size, usage, fn) is a convenience that guarantees release in a
+ *   try/finally block.
+ */
 import { getDevice, getDeviceEpoch, getDeviceLimits } from '../gpu/device.js';
 import { allowReadback, trackAllocation } from '../gpu/perf-guards.js';
 import { log, trace, isTraceEnabled } from '../debug/index.js';
@@ -58,14 +75,25 @@ function getSizeBucket(
   maxAllowedSize = Infinity,
   bucketConfig
 ) {
-  // Minimum bucket from config
+  if (
+    !bucketConfig
+    || typeof bucketConfig.minBucketSizeBytes !== 'number'
+    || typeof bucketConfig.largeBufferThresholdBytes !== 'number'
+    || typeof bucketConfig.largeBufferStepBytes !== 'number'
+  ) {
+    throw new Error(
+      'getSizeBucket requires bucketConfig with minBucketSizeBytes, largeBufferThresholdBytes, and largeBufferStepBytes.'
+    );
+  }
+  // Bucket selection uses three size thresholds:
+  // 1. minBucketSizeBytes: sizes at or below this get the minimum bucket (avoids tiny buffers).
+  // 2. largeBufferThresholdBytes: sizes at or above this use coarse-grained linear stepping
+  //    instead of power-of-two rounding, to avoid doubling large allocations (e.g. 600MB -> 1GB).
+  // 3. Sizes between minBucket and largeThreshold use power-of-two rounding for pooling efficiency.
+  // If a computed bucket exceeds maxAllowedSize (device limit), the size is aligned to minBucket instead.
   const minBucket = bucketConfig.minBucketSizeBytes;
   if (size <= minBucket) return minBucket;
 
-  // Avoid power-of-two rounding for very large buffers.
-  // For weights and large activations, rounding 600MB -> 1GB can cause OOM even when the
-  // exact-sized buffer would fit. Use coarse-grained bucketing to retain most pooling
-  // benefits without 2x blowups.
   const largeThreshold = bucketConfig.largeBufferThresholdBytes;
   if (size >= largeThreshold) {
     const largeStep = bucketConfig.largeBufferStepBytes;
@@ -147,6 +175,15 @@ export class BufferPool {
   constructor(debugMode = false, schemaConfig) {
     if (!schemaConfig) {
       throw new Error('BufferPool requires schemaConfig from runtime.shared.bufferPool.');
+    }
+    if (!schemaConfig.limits || typeof schemaConfig.limits.maxBuffersPerBucket !== 'number' || typeof schemaConfig.limits.maxTotalPooledBuffers !== 'number') {
+      throw new Error('BufferPool schemaConfig.limits must include maxBuffersPerBucket and maxTotalPooledBuffers.');
+    }
+    if (!schemaConfig.alignment || typeof schemaConfig.alignment.alignmentBytes !== 'number') {
+      throw new Error('BufferPool schemaConfig.alignment must include alignmentBytes.');
+    }
+    if (!schemaConfig.bucket || typeof schemaConfig.bucket.minBucketSizeBytes !== 'number') {
+      throw new Error('BufferPool schemaConfig.bucket must include minBucketSizeBytes.');
     }
     this.#pools = new Map();
     this.#activeBuffers = new Set();
@@ -784,6 +821,15 @@ export const acquireBuffer = (size, usage, label) =>
   getBufferPool().acquire(size, usage, label);
 
 export const releaseBuffer = (buffer) => getBufferPool().release(buffer);
+
+/**
+ * Safe release helper: no-op if buffer is null or undefined.
+ * Use in error/cleanup paths where the buffer may not have been acquired.
+ */
+export function safeRelease(buffer) {
+  if (buffer == null) return;
+  getBufferPool().release(buffer);
+}
 
 export const discardBuffer = (buffer) => getBufferPool().discard(buffer);
 

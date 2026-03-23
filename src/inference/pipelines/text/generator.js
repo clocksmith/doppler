@@ -49,6 +49,7 @@ import {
   extractEmbeddingFromHidden,
 } from './generator-runtime.js';
 
+import { resolveSamplingConfig } from './sampling-config.js';
 import { decodeReadback, getLogitsHealth } from './debug-utils/index.js';
 import { parseFinitenessStatusWords } from './finiteness-guard-status.js';
 import { resolveDeferredRoundingWindowTokens } from './finiteness-policy.js';
@@ -87,6 +88,12 @@ function resolvePromptInput(state, prompt, useChatTemplate, contextLabel) {
     return prompt;
   }
 
+  if (prompt != null && typeof prompt === 'object' && !Array.isArray(prompt) && 'messages' in prompt && !Array.isArray(prompt.messages)) {
+    throw new Error(
+      `[Pipeline] ${contextLabel}: prompt.messages must be an array of chat messages, got ${typeof prompt.messages}. ` +
+      'Pass { messages: [{ role: "user", content: "..." }, ...] }.'
+    );
+  }
   const messages = isStructuredChatRequest(prompt)
     ? prompt.messages
     : (Array.isArray(prompt) ? prompt : null);
@@ -99,6 +106,18 @@ function resolvePromptInput(state, prompt, useChatTemplate, contextLabel) {
   return formatChatMessages(messages, templateType);
 }
 
+/**
+ * Resolve display text for a token ID sequence.
+ *
+ * Preference order:
+ *   1. renderTokenText (custom primary renderer) — if provided and returns non-empty string.
+ *   2. tokenizer.decode (default primary) — if renderTokenText is not provided.
+ *   3. renderFallbackTokenText (custom fallback) — if provided and returns non-empty string,
+ *      unless primary returned empty string and fallback looks like a special token (<...>),
+ *      in which case empty string is preserved to keep skip-special behavior deterministic.
+ *   4. tokenizer.decode with skipSpecialTokens=false (default fallback) — same special-token guard.
+ *   5. fallbackText — static fallback string (default '?').
+ */
 function resolveTokenText(tokenizer, tokenIds, fallbackText = '?', renderTokenText, renderFallbackTokenText) {
   const renderPrimary = typeof renderTokenText === 'function'
     ? renderTokenText
@@ -131,6 +150,16 @@ function resolveTokenText(tokenizer, tokenIds, fallbackText = '?', renderTokenTe
 function summarizeExecutionPlan(plan) {
   if (!plan) {
     return null;
+  }
+  if (typeof plan !== 'object') {
+    log.warn('Pipeline', `summarizeExecutionPlan: expected object, got ${typeof plan}`);
+    return null;
+  }
+  if (typeof plan.id !== 'string') {
+    log.warn('Pipeline', 'summarizeExecutionPlan: plan is missing required string property "id"');
+  }
+  if (typeof plan.activationDtype !== 'string') {
+    log.warn('Pipeline', 'summarizeExecutionPlan: plan is missing required string property "activationDtype"');
   }
   return {
     id: plan.id,
@@ -342,6 +371,12 @@ export class PipelineGenerator {
     const startTime = performance.now();
 
     const opts = resolveGenerateOptions(this.#state, options);
+    // Validate and normalize sampling parameters through single source of truth
+    const samplingConfig = resolveSamplingConfig(options, this.#state.runtimeConfig);
+    opts.temperature = samplingConfig.temperature;
+    opts.topP = samplingConfig.topP;
+    opts.topK = samplingConfig.topK;
+    opts.repetitionPenalty = samplingConfig.repetitionPenalty;
     const diagnosticsEnabled = options?.diagnostics?.enabled === true
       || this.#state.runtimeConfig?.shared?.harness?.mode === 'diagnose';
     if (diagnosticsEnabled) {
@@ -650,6 +685,12 @@ export class PipelineGenerator {
     this.#state.stats.ttftMs = 0;
     const startTime = performance.now();
     const opts = resolveGenerateOptions(this.#state, options);
+    // Validate and normalize sampling parameters through single source of truth
+    const samplingConfig = resolveSamplingConfig(options, this.#state.runtimeConfig);
+    opts.temperature = samplingConfig.temperature;
+    opts.topP = samplingConfig.topP;
+    opts.topK = samplingConfig.topK;
+    opts.repetitionPenalty = samplingConfig.repetitionPenalty;
 
     try {
       const prefillStart = performance.now();

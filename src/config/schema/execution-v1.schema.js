@@ -136,7 +136,18 @@ function expandBoundarySteps(entries, kernels, section, context) {
 }
 
 
-export function expandExecutionV1(graph) {
+/**
+ * Expand a v1 execution graph into runtime-ready expanded steps.
+ *
+ * @param {object} graph - The execution graph from the manifest.
+ * @param {{ knownOps?: Set<string> | null, strict?: boolean }} [options]
+ *   knownOps: when provided, any op not in this set triggers a warning (or
+ *   throw in strict mode) with the op name and step index.
+ *   strict: when true, unknown ops throw instead of warn. Default false.
+ * @returns {object[]} Expanded step array.
+ */
+export function expandExecutionV1(graph, options = {}) {
+  const { knownOps = null, strict = false } = options;
   if (!graph || typeof graph !== 'object') {
     throw new Error('execution graph must be a non-null object.');
   }
@@ -147,10 +158,51 @@ export function expandExecutionV1(graph) {
   const kernels = graph.kernels;
   validateKernelMap(kernels);
 
+  const MAX_STEPS_PER_SECTION = 200;
+
   const preLayer = expandBoundarySteps(graph.preLayer ?? [], kernels, 'preLayer', 'execution.preLayer');
   const decode = expandStepEntries(graph.decode ?? [], kernels, 'decode', 'execution.decode');
   const prefill = expandStepEntries(graph.prefill ?? [], kernels, 'prefill', 'execution.prefill');
   const postLayer = expandBoundarySteps(graph.postLayer ?? [], kernels, 'postLayer', 'execution.postLayer');
 
-  return [...preLayer, ...decode, ...prefill, ...postLayer];
+  const sections = { preLayer, decode, prefill, postLayer };
+  for (const [name, steps] of Object.entries(sections)) {
+    if (steps.length > MAX_STEPS_PER_SECTION) {
+      // Use console.warn directly here because the schema module is a
+      // low-level config layer that should not depend on the debug module.
+      console.warn(
+        `[ExecutionV1] Section "${name}" has ${steps.length} expanded steps ` +
+        `(max recommended: ${MAX_STEPS_PER_SECTION}). This may indicate a misconfigured execution graph.`
+      );
+    }
+  }
+
+  const allSteps = [...preLayer, ...decode, ...prefill, ...postLayer];
+
+  if (knownOps) {
+    const unknownOps = [];
+    for (let i = 0; i < allSteps.length; i++) {
+      const step = allSteps[i];
+      if (!knownOps.has(step.op)) {
+        unknownOps.push({ op: step.op, index: i, section: step.section });
+      }
+    }
+    if (unknownOps.length > 0) {
+      const details = unknownOps
+        .map((u) => `"${u.op}" at step ${u.index} (${u.section})`)
+        .join(', ');
+      const message =
+        `[ExecutionV1] Expanded graph contains unknown ops: ${details}. ` +
+        `Known ops: ${[...knownOps].join(', ')}.`;
+      if (strict) {
+        throw new Error(message);
+      }
+      // Use console.warn directly here because the schema module is a
+      // low-level config layer that should not depend on the debug module.
+      // Callers in runtime code can catch the strict error or filter post-hoc.
+      console.warn(message);
+    }
+  }
+
+  return allSteps;
 }

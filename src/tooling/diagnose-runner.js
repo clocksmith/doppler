@@ -7,7 +7,7 @@ import { bootstrapNodeWebGPUProvider } from './node-webgpu.js';
 import { installNodeFileFetchShim } from './node-file-fetch.js';
 import { findFirstDivergence } from '../inference/pipelines/text/operator-events.js';
 import { getDriftTolerance } from '../inference/pipelines/text/drift-policy.js';
-import { destroyDevice, resetDeviceState } from '../gpu/device.js';
+import { destroyDevice, resetDeviceState, getKernelCapabilities } from '../gpu/device.js';
 import {
   getActiveKernelPath,
   getActiveKernelPathPolicy,
@@ -268,6 +268,16 @@ async function runSingleDiagnostic(modules, request, provider, label) {
       summary: buildRunSummary(label, provider, response),
       providerModule: bootstrap?.module ?? null,
     };
+  } catch (error) {
+    const capabilities = getKernelCapabilities();
+    const enriched = new Error(
+      `diagnose-runner [${label}/${provider}]: ${error.message}`
+    );
+    enriched.cause = error;
+    enriched.deviceCapabilities = capabilities
+      ? cloneValue(capabilities)
+      : null;
+    throw enriched;
   } finally {
     destroyDevice();
     resetDeviceState();

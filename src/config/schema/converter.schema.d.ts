@@ -58,7 +58,6 @@ export interface ConverterManifestConfigSchema {
 }
 
 export interface ConverterInferenceConfigSchema {
-  defaultKernelPath: string | null;
   sessionDefaults: ExecutionV1SessionDefaultsSchema | null;
   execution: ExecutionV1GraphSchema | null;
 }

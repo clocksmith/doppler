@@ -1,4 +1,5 @@
 import { chooseDefined, chooseDefinedWithSource } from './merge-helpers.js';
+import { log } from '../debug/index.js';
 
 // =============================================================================
 // Merge Implementation
@@ -322,16 +323,6 @@ export function mergeConfig(
     sources.set('inference.layerPattern', 'manifest');
   }
 
-  // Merge defaultKernelPath with source tracking.
-  let defaultKernelPath = manifestInf.defaultKernelPath;
-  const runtimeKernelPath = runtimeOverrides?.defaultKernelPath;
-  if (runtimeKernelPath !== undefined) {
-    defaultKernelPath = runtimeKernelPath;
-    sources.set('inference.defaultKernelPath', 'runtime');
-  } else {
-    sources.set('inference.defaultKernelPath', 'manifest');
-  }
-
   // Merge chatTemplate with source tracking.
   const chatTemplate = mergeChatTemplate(
     manifestInf.chatTemplate,
@@ -357,7 +348,6 @@ export function mergeConfig(
     pipeline,
     layerPattern,
     chatTemplate,
-    defaultKernelPath,
   };
 
   return {
@@ -373,6 +363,11 @@ export function mergeConfig(
 // =============================================================================
 
 export function formatConfigSources(merged) {
+  if (!merged || !merged._sources || !(merged._sources instanceof Map)) {
+    log.debug('Merge', 'formatConfigSources: input missing or has no valid _sources Map');
+    return '';
+  }
+
   const lines = [];
 
   for (const [path, source] of merged._sources) {
@@ -393,6 +388,10 @@ export function getValuesBySource(
   merged,
   source
 ) {
+  if (!merged?._sources || !(merged._sources instanceof Map)) {
+    log.debug('Merge', 'getValuesBySource: input missing or has no valid _sources Map');
+    return [];
+  }
   const result = [];
 
   for (const [path, src] of merged._sources) {
@@ -410,6 +409,10 @@ export function getValuesBySource(
 }
 
 export function summarizeSources(merged) {
+  if (!merged?._sources || !(merged._sources instanceof Map)) {
+    log.debug('Merge', 'summarizeSources: input missing or has no valid _sources Map');
+    return { manifest: 0, runtime: 0 };
+  }
   let manifest = 0;
   let runtime = 0;
   for (const source of merged._sources.values()) {
@@ -417,4 +420,26 @@ export function summarizeSources(merged) {
     else if (source === 'runtime') runtime++;
   }
   return { manifest, runtime };
+}
+
+/**
+ * Dump every tracked config field and its source.
+ *
+ * Returns a plain object mapping each dot-path field tracked in the merged
+ * config's _sources map to the source that won ('manifest' or 'runtime').
+ * Useful for debug/diagnostic output.
+ *
+ * @param {object} mergedConfig - A merged config with _sources Map
+ * @returns {Object<string, string>} field-to-source mapping
+ */
+export function dumpConfigSources(mergedConfig) {
+  const result = {};
+  const sources = mergedConfig?._sources;
+  if (!sources || typeof sources.forEach !== 'function') {
+    return result;
+  }
+  sources.forEach((source, path) => {
+    result[path] = source;
+  });
+  return result;
 }

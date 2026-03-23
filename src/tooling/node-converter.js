@@ -647,7 +647,6 @@ function buildConvertReport(result, context) {
           quantizationInfo: manifest.quantizationInfo ?? null,
           inference: {
             schema: inference?.schema ?? null,
-            defaultKernelPath: inference?.defaultKernelPath ?? null,
           },
         }
       : null,

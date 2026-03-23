@@ -1,0 +1,24 @@
+{
+  "capabilityTransforms": [
+    {
+      "match": { "hasSubgroups": false, "hasF16": false },
+      "transforms": ["removeSubgroups", "widenToF32Activations"],
+      "reason": "GPU lacks subgroups and shader-f16"
+    },
+    {
+      "match": { "hasSubgroups": false, "hasF16": true },
+      "transforms": ["removeSubgroups"],
+      "reason": "GPU lacks subgroups"
+    },
+    {
+      "match": { "hasSubgroups": true, "hasF16": false },
+      "transforms": ["widenToF32Activations"],
+      "reason": "GPU lacks shader-f16"
+    },
+    {
+      "match": {},
+      "transforms": [],
+      "reason": "GPU supports all required features"
+    }
+  ]
+}

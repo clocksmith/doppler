@@ -1,6 +1,4 @@
 import {
-  chooseNullish,
-  chooseDefinedWithSource,
   mergeExecutionPatchLists,
   mergeKernelPathPolicy,
   mergeLayeredShallowObjects,
@@ -62,7 +60,6 @@ function buildWitnessMergeManifest() {
         type: 'gemma',
         enabled: true,
       },
-      defaultKernelPath: 'gemma3-f16-fused-f16a-online',
     },
     architecture: {
       headDim: 64,
@@ -71,20 +68,19 @@ function buildWitnessMergeManifest() {
   };
 }
 
+const seenCheckIds = new Set();
+
 function recordCheck(results, id, ok, detail, mode = 'actual') {
+  if (seenCheckIds.has(id)) {
+    console.warn(`[MergeContract] duplicate check id: "${id}"`);
+  }
+  seenCheckIds.add(id);
   results.push({ id, ok, detail, mode });
 }
 
 export function buildMergeContractArtifact() {
   const checks = [];
   const mergedUndefined = mergeConfig(buildWitnessMergeManifest(), {});
-  recordCheck(
-    checks,
-    'runtime.mergeConfig.defined_overlay_missing_falls_through',
-    mergedUndefined.inference.defaultKernelPath === 'gemma3-f16-fused-f16a-online'
-      && mergedUndefined._sources.get('inference.defaultKernelPath') === 'manifest',
-    `value=${mergedUndefined.inference.defaultKernelPath}, source=${mergedUndefined._sources.get('inference.defaultKernelPath')}`
-  );
   recordCheck(
     checks,
     'runtime.mergeConfig.pipeline_preserves_manifest_value',
@@ -94,18 +90,10 @@ export function buildMergeContractArtifact() {
   );
 
   const mergedNull = mergeConfig(buildWitnessMergeManifest(), {
-    defaultKernelPath: null,
     chatTemplate: {
       enabled: null,
     },
   });
-  recordCheck(
-    checks,
-    'runtime.mergeConfig.defined_overlay_preserves_null',
-    mergedNull.inference.defaultKernelPath === null
-      && mergedNull._sources.get('inference.defaultKernelPath') === 'runtime',
-    `value=${mergedNull.inference.defaultKernelPath}, source=${mergedNull._sources.get('inference.defaultKernelPath')}`
-  );
   recordCheck(
     checks,
     'runtime.inference.chatTemplate.spread_preserves_null',
@@ -163,36 +151,6 @@ export function buildMergeContractArtifact() {
     'runtime.schema.calibrate_does_not_mutate_kernel_warmup_defaults',
     calibrateConfig.runtime.shared.kernelWarmup.prewarm === false,
     `prewarm=${String(calibrateConfig.runtime.shared.kernelWarmup.prewarm)}`,
-    'actual'
-  );
-
-  const overlaySources = new Map();
-  const chosenRuntimeValue = chooseDefinedWithSource(
-    'inference.defaultKernelPath',
-    null,
-    'manifest-path',
-    overlaySources
-  );
-  recordCheck(
-    checks,
-    'runtime.mergeHelpers.chooseDefinedWithSource.runtime_marks_source',
-    chosenRuntimeValue === null && overlaySources.get('inference.defaultKernelPath') === 'runtime',
-    `value=${String(chosenRuntimeValue)}, source=${overlaySources.get('inference.defaultKernelPath')}`,
-    'actual'
-  );
-
-  const manifestSources = new Map();
-  const chosenManifestValue = chooseDefinedWithSource(
-    'inference.defaultKernelPath',
-    undefined,
-    'manifest-path',
-    manifestSources
-  );
-  recordCheck(
-    checks,
-    'runtime.mergeHelpers.chooseDefinedWithSource.manifest_marks_source',
-    chosenManifestValue === 'manifest-path' && manifestSources.get('inference.defaultKernelPath') === 'manifest',
-    `value=${String(chosenManifestValue)}, source=${manifestSources.get('inference.defaultKernelPath')}`,
     'actual'
   );
 

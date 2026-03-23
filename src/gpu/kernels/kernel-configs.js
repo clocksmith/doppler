@@ -8,6 +8,16 @@ export const KERNEL_CONFIGS = Object.fromEntries(
     const variants = Object.fromEntries(
       Object.entries(opSchema.variants).map(([variant, variantSchema]) => {
         const resolved = resolveKernelConfig(operation, variant, opSchema, variantSchema);
+        if (!resolved.wgsl || typeof resolved.wgsl !== 'string') {
+          throw new Error(
+            `Kernel config ${operation}/${variant} is missing required field "shaderFile" (wgsl).`
+          );
+        }
+        if (!resolved.entryPoint || typeof resolved.entryPoint !== 'string') {
+          throw new Error(
+            `Kernel config ${operation}/${variant} is missing required field "entryPoint".`
+          );
+        }
         return [
           variant,
           {

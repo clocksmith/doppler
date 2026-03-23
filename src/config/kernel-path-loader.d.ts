@@ -1,7 +1,9 @@
 /**
  * Kernel Path Loader
  *
- * Loads and resolves kernel path configurations.
+ * Utility functions for kernel path objects and active kernel path singleton.
+ * Registry loading removed in Phase 3 — kernel paths are now inline objects
+ * resolved by execution graph transforms.
  *
  * @module config/kernel-path-loader
  */
@@ -11,37 +13,6 @@ import type {
   KernelPathRef,
   KernelStepSchema,
 } from './schema/kernel-path.schema.js';
-
-/**
- * Get a kernel path by ID.
- */
-export function getKernelPath(id: string): KernelPathSchema | null;
-
-/**
- * List all available kernel path IDs.
- */
-export function listKernelPaths(): string[];
-
-export function getKernelPathContractArtifact(): {
-  schemaVersion: 1;
-  source: 'doppler';
-  ok: boolean;
-  checks: Array<{ id: string; ok: boolean }>;
-  errors: string[];
-  stats: {
-    totalEntries: number;
-    aliasEntries: number;
-    canonicalEntries: number;
-    fallbackMappings: number;
-    fallbackRules: number;
-    autoSelectRules: number;
-  };
-};
-
-/**
- * Resolve a kernel path reference to a full schema.
- */
-export function resolveKernelPath(ref: KernelPathRef): KernelPathSchema;
 
 /**
  * Return activation dtype required by a kernel path.
@@ -58,6 +29,21 @@ export function getKernelPathActivationDtype(
 export function getKernelPathOutputDtype(
   path: KernelPathSchema | null
 ): string | null;
+
+/**
+ * Get the KV dtype for a kernel path.
+ * Falls back to activationDtype if kvDtype is not set.
+ */
+export function getKernelPathKVDtype(
+  path: KernelPathSchema | null
+): string | null;
+
+/**
+ * Resolve a kernel path reference to a full schema object.
+ * After registry removal (Phase 3), only object refs are supported.
+ * String-based registry lookups throw an error.
+ */
+export function resolveKernelPath(ref: KernelPathRef): KernelPathSchema;
 
 /**
  * Resolve layer index template in weight references.

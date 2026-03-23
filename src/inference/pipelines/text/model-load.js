@@ -11,7 +11,6 @@ import {
 } from '../../../config/kernel-path-loader.js';
 import { autoTuneKernels, prewarmKernels } from '../../../gpu/kernels/index.js';
 import { KERNEL_CONFIGS } from '../../../gpu/kernels/kernel-configs.js';
-import { resolveCapabilityKernelPathRef, resolveKernelPathPolicy } from './kernel-path-auto-select.js';
 import { initTokenizer } from './init.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { mergeRuntimeValues } from '../../../config/runtime-merge.js';
@@ -19,6 +18,7 @@ import {
   DEFAULT_BATCHING_DEFAULTS,
   DEFAULT_COMPUTE_DEFAULTS,
   DEFAULT_GENERATION_CONFIG,
+  DEFAULT_KERNEL_PATH_POLICY as SCHEMA_DEFAULT_KERNEL_PATH_POLICY,
 } from '../../../config/schema/inference-defaults.schema.js';
 import { DEFAULT_KVCACHE_CONFIG } from '../../../config/schema/kvcache.schema.js';
 import { DEFAULT_EXECUTION_V1_COMPUTE_DEFAULTS } from '../../../config/schema/execution-v1.schema.js';
@@ -233,9 +233,6 @@ function buildManifestDecodeLoopRuntimePatch(manifest) {
 
 export function applyModelBatchingRuntimeDefaults(runtimeConfig, manifest, modelConfig) {
   void modelConfig;
-  if (manifest?.inference?.schema === 'doppler.execution/v0') {
-    return runtimeConfig;
-  }
   const batching = runtimeConfig?.inference?.batching;
   const generation = runtimeConfig?.inference?.generation;
   const runtimeBatchingAtDefaults = isRuntimeBatchingAtGlobalDefaults(batching);
@@ -525,7 +522,7 @@ function assertManifestKernelPathDtypeCompatibility(manifest, resolvedKernelPath
   throw new Error(
     `Manifest kernel path dtype mismatch for "${manifest?.modelId ?? 'unknown'}": ` +
     `quantizationInfo.compute=${manifestCompute} but ` +
-    `inference.defaultKernelPath="${resolvedKernelPath.id}" uses activationDtype=${kernelActivation}. ` +
+    `kernelPath="${resolvedKernelPath.id}" uses activationDtype=${kernelActivation}. ` +
     'Re-convert the model or set runtime.inference.kernelPath explicitly.'
   );
 }
@@ -536,6 +533,69 @@ function getKernelCapabilitiesSafe() {
   } catch {
     return null;
   }
+}
+
+const DEFAULT_KERNEL_PATH_POLICY = Object.freeze({
+  mode: SCHEMA_DEFAULT_KERNEL_PATH_POLICY.mode,
+  sourceScope: Object.freeze([...SCHEMA_DEFAULT_KERNEL_PATH_POLICY.sourceScope]),
+  onIncompatible: SCHEMA_DEFAULT_KERNEL_PATH_POLICY.onIncompatible,
+});
+
+function normalizeKernelPathPolicyMode(value) {
+  const normalized = String(value ?? '').trim().toLowerCase();
+  if (normalized === 'capability-aware') {
+    return 'capability-aware';
+  }
+  return 'locked';
+}
+
+function normalizeKernelPathPolicySourceScope(value) {
+  if (!Array.isArray(value)) {
+    return [...DEFAULT_KERNEL_PATH_POLICY.sourceScope];
+  }
+  const normalized = new Set();
+  for (const source of value) {
+    const normalizedSource = String(source ?? '').trim().toLowerCase();
+    if (normalizedSource === 'runtime') {
+      normalized.add('config');
+    } else if (normalizedSource && normalizedSource !== 'none') {
+      normalized.add(normalizedSource);
+    }
+  }
+  if (normalized.size === 0) {
+    return [...DEFAULT_KERNEL_PATH_POLICY.sourceScope];
+  }
+  return [...normalized];
+}
+
+function normalizeKernelPathPolicyOnIncompatible(value) {
+  const normalized = String(value ?? '').trim().toLowerCase();
+  if (normalized === 'remap') {
+    return 'remap';
+  }
+  return 'error';
+}
+
+function resolveKernelPathPolicy(policy) {
+  if (!policy || typeof policy !== 'object' || Array.isArray(policy)) {
+    return {
+      mode: DEFAULT_KERNEL_PATH_POLICY.mode,
+      sourceScope: [...DEFAULT_KERNEL_PATH_POLICY.sourceScope],
+      allowSources: [...DEFAULT_KERNEL_PATH_POLICY.sourceScope],
+      onIncompatible: DEFAULT_KERNEL_PATH_POLICY.onIncompatible,
+    };
+  }
+
+  const sourceScope = normalizeKernelPathPolicySourceScope(
+    policy.sourceScope ?? policy.allowSources
+  );
+
+  return {
+    mode: normalizeKernelPathPolicyMode(policy.mode),
+    sourceScope,
+    allowSources: [...sourceScope],
+    onIncompatible: normalizeKernelPathPolicyOnIncompatible(policy.onIncompatible),
+  };
 }
 
 function applyKernelPathRuntimeDtypeContract(resolvedKernelPath, runtimeConfig, kernelPathSource, modelId) {
@@ -628,8 +688,13 @@ export function resolveKernelPathState(options) {
     `kernelPath sources: config=${runtimeConfig.inference.kernelPath}, model=${modelConfig.kernelPath}`
   );
 
+  // In normal operation with execution-v1 manifests, modelConfig.kernelPath is null
+  // and capability adaptation is handled by execution graph transforms.
+  // The runtime override path (runtime.inference.kernelPath) is preserved for
+  // explicit user overrides with inline kernel path objects.
   const configuredKernelPathRef = runtimeConfig.inference.kernelPath
-    ?? modelConfig.kernelPath;
+    ?? modelConfig.kernelPath
+    ?? null;
   let kernelPathSource = 'none';
   let resolvedKernelPath = null;
   const kernelPathPolicy = resolveKernelPathPolicy(runtimeConfig?.inference?.kernelPathPolicy);
@@ -640,36 +705,29 @@ export function resolveKernelPathState(options) {
       runtimeConfig.inference.kernelPathSource,
       modelConfig.kernelPath
     );
+
+    // Registry-based auto-select removed (Phase 3). The configured ref is used directly.
+    // Capability adaptation for execution-v1 manifests is handled by execution graph transforms.
+    try {
+      resolvedKernelPath = resolveKernelPath(configuredKernelPathRef);
+    } catch (e) {
+      throw new Error(`KernelPath resolution failed for '${configuredKernelPathRef}': ${ (e).message}`);
+    }
+
     const capabilities = kernelCapabilities && typeof kernelCapabilities === 'object'
       ? kernelCapabilities
       : getKernelCapabilitiesSafe();
-    const effectiveKernelPathRef = resolveCapabilityKernelPathRef(
-      configuredKernelPathRef,
-      kernelPathSource,
-      capabilities,
-      kernelPathPolicy
-    );
-    if (effectiveKernelPathRef !== configuredKernelPathRef) {
-      log.info(
-        'Pipeline',
-        `KernelPath auto-select: ${configuredKernelPathRef} -> ${effectiveKernelPathRef} ` +
-        `(source=${kernelPathSource}, mode=${kernelPathPolicy.mode}, subgroups=${capabilities?.hasSubgroups === true})`
+
+    if (capabilities) {
+      assertKernelPathFeatureCompatibility(
+        configuredKernelPathRef,
+        configuredKernelPathRef,
+        resolvedKernelPath,
+        kernelPathSource,
+        capabilities,
+        kernelPathPolicy
       );
     }
-    try {
-      resolvedKernelPath = resolveKernelPath(effectiveKernelPathRef);
-    } catch (e) {
-      throw new Error(`KernelPath resolution failed for '${effectiveKernelPathRef}': ${ (e).message}`);
-    }
-
-    assertKernelPathFeatureCompatibility(
-      configuredKernelPathRef,
-      effectiveKernelPathRef,
-      resolvedKernelPath,
-      kernelPathSource,
-      capabilities,
-      kernelPathPolicy
-    );
 
     const stats = getKernelPathStats(resolvedKernelPath);
     log.info(
@@ -678,7 +736,7 @@ export function resolveKernelPathState(options) {
     );
     assertManifestKernelPathDtypeCompatibility(manifest, resolvedKernelPath, kernelPathSource);
   } else {
-    log.info('Pipeline', 'KernelPath: none (no kernel path configured)');
+    log.info('Pipeline', 'KernelPath: none (execution graph transforms handle capability adaptation)');
   }
 
   const nextRuntimeConfig = applyKernelPathRuntimeDtypeContract(

@@ -100,7 +100,6 @@ export const DEFAULT_MANIFEST_INFERENCE = {
   pipeline: null,
   sessionDefaults: null,
   execution: null,
-  defaultKernelPath: null,  // Use default kernel selection (null = no explicit path)
 };
 
 // =============================================================================

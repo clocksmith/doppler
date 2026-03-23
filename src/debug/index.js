@@ -1,4 +1,13 @@
-
+/**
+ * Debug module — central re-export hub for logging, tracing, and signals.
+ *
+ * CONCURRENT PIPELINE WARNING: The debug state (log level, trace categories,
+ * module filters, decode step counter) is global and shared across all
+ * pipelines. When multiple pipelines run concurrently, debug configuration
+ * changes from one pipeline will affect all others. If you need per-pipeline
+ * debug isolation, pass a `debugContext` options object to your pipeline and
+ * use it to namespace log entries rather than mutating global state.
+ */
 
 // ============================================================================
 // Re-exports from signals.js

@@ -199,6 +199,12 @@ export interface ParsedModelConfig {
 export function getStopTokenIds(manifest: Manifest): number[];
 
 /**
+ * Validate that a chatTemplate.type is a known formatter type.
+ * Logs a warning for unknown types. Returns true if valid or null.
+ */
+export function validateChatTemplateType(type: string | null | undefined, modelId: string): boolean;
+
+/**
  * Extended manifest with inference config for manifest-first parsing.
  */
 export interface ManifestWithInference {

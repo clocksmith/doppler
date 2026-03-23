@@ -33,9 +33,22 @@ export class ShardCache {
     this.#customLoader = config.customLoader ?? null;
     this.#customRangeLoader = config.customRangeLoader ?? null;
     this.#customStreamLoader = config.customStreamLoader ?? null;
-    this.#verifyHashes = config.verifyHashes
-      ?? config.loadingConfig?.verifyHashes
-      ?? true;
+
+    // verifyHashes is resolved from three sources in priority order:
+    // 1. config.verifyHashes (explicit per-instance override)
+    // 2. config.loadingConfig?.verifyHashes (from runtime loading config)
+    // 3. true (safe default)
+    // Warn if the first two sources are both present and disagree.
+    const directVerify = config.verifyHashes;
+    const loadingConfigVerify = config.loadingConfig?.verifyHashes;
+    if (directVerify != null && loadingConfigVerify != null && directVerify !== loadingConfigVerify) {
+      log.warn('ShardCache',
+        `verifyHashes mismatch: config.verifyHashes=${directVerify}, ` +
+        `loadingConfig.verifyHashes=${loadingConfigVerify}; using config.verifyHashes`
+      );
+    }
+    this.#verifyHashes = directVerify ?? loadingConfigVerify ?? true;
+
     this.#manifest = config.manifest ?? null;
     this.#loadingConfig = config.loadingConfig ?? getRuntimeConfig().loading.shardCache;
     this.#maxConcurrentLoads = config.maxConcurrentLoads
@@ -77,6 +90,18 @@ export class ShardCache {
 
   setCustomLoader(loader, verify = true, options = {}) {
     this.#customLoader = loader;
+    if (options.loadRange != null && typeof options.loadRange !== 'function') {
+      throw new Error(
+        'ShardCache.setCustomLoader: options.loadRange must be a function or null/undefined. ' +
+        `Got ${typeof options.loadRange}. Provide a function(shardIndex, offset, length) or omit the option.`
+      );
+    }
+    if (options.streamRange != null && typeof options.streamRange !== 'function') {
+      throw new Error(
+        'ShardCache.setCustomLoader: options.streamRange must be a function or null/undefined. ' +
+        `Got ${typeof options.streamRange}. Provide an async generator function(shardIndex, offset, length, opts) or omit the option.`
+      );
+    }
     this.#customRangeLoader = typeof options.loadRange === 'function'
       ? options.loadRange
       : null;

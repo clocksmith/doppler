@@ -6,6 +6,7 @@ import {
   createToolingSuccessEnvelope,
   normalizeToToolingCommandError,
 } from './command-envelope.js';
+import { assertCommandRequestIsObject, normalizeCommandOptions } from './command-validation.js';
 import { convertSafetensorsDirectory } from './node-converter.js';
 import { installNodeFileFetchShim } from './node-file-fetch.js';
 import { bootstrapNodeWebGPU } from './node-webgpu.js';
@@ -29,7 +30,7 @@ function asOptionalPlainObject(value, label) {
   return value;
 }
 
-function assertNoUnsupportedRuntimeInputs(request) {
+function assertNoUnsupportedRuntimeInputs(request, reason = null) {
   const runtimeFields = [];
   if (Array.isArray(request?.configChain) && request.configChain.length > 0) {
     runtimeFields.push('configChain');
@@ -44,16 +45,19 @@ function assertNoUnsupportedRuntimeInputs(request) {
     runtimeFields.push('runtimeConfig');
   }
   if (runtimeFields.length > 0) {
+    const reasonSuffix = reason
+      ? ` Reason: ${reason}.`
+      : ' Put those settings into the workload/config asset instead.';
     throw new Error(
       `${request.command} does not support runtime input fields on the node operator surface: ` +
-      `${runtimeFields.join(', ')}. Put those settings into the workload/config asset instead.`
+      `${runtimeFields.join(', ')}.${reasonSuffix}`
     );
   }
 }
 
 let runtimeModulesPromise = null;
 
-async function loadRuntimeModules() {
+function loadRuntimeModules() {
   if (runtimeModulesPromise) {
     return runtimeModulesPromise;
   }
@@ -75,22 +79,28 @@ export function hasNodeWebGPUSupport() {
 
 async function assertNodeWebGPUSupport() {
   let bootstrapProvider = null;
+  let bootstrapOk = false;
   if (!hasNodeWebGPUSupport()) {
     const bootstrap = await bootstrapNodeWebGPU();
-    if (bootstrap.provider) {
-      bootstrapProvider = bootstrap.provider;
-    }
+    bootstrapProvider = bootstrap.provider ?? null;
+    bootstrapOk = bootstrap.ok === true;
   }
 
   if (hasNodeWebGPUSupport()) return;
+
+  const providerDetail = bootstrapProvider
+    ? ` Provider "${bootstrapProvider}" was attempted but ${bootstrapOk ? 'did not complete WebGPU setup' : 'failed to install'}.`
+    : ' No WebGPU provider was resolved (none of the default candidates were importable).';
   throw new Error(
     'node command: WebGPU runtime is incomplete in Node.' +
-    (bootstrapProvider ? ` Provider resolution stopped at "${bootstrapProvider}".` : '') +
+    providerDetail +
     ' Run in browser relay, or run under a WebGPU-enabled Node build.'
   );
 }
 
 export async function runNodeCommand(commandRequest, options = {}) {
+  assertCommandRequestIsObject(commandRequest, 'node');
+  const validatedOptions = normalizeCommandOptions(options, 'node');
   let request = null;
   try {
     ({ request } = ensureCommandSupportedOnSurface(commandRequest, 'node'));
@@ -120,7 +130,7 @@ export async function runNodeCommand(commandRequest, options = {}) {
     if (request.command === 'lora' || request.command === 'distill') {
       const gpuOptionalActions = new Set(['compare', 'quality-gate', 'subsets']);
       installNodeFileFetchShim();
-      assertNoUnsupportedRuntimeInputs(request);
+      assertNoUnsupportedRuntimeInputs(request, 'training operator commands resolve runtime from the workload config asset');
       if (!gpuOptionalActions.has(request.action)) {
         await assertNodeWebGPUSupport();
       }

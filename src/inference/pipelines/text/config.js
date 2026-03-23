@@ -1,8 +1,43 @@
 import { log } from '../../../debug/index.js';
-import { mergeConfig } from '../../../config/merge.js';
+import { mergeConfig, dumpConfigSources } from '../../../config/merge.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 
 const UNSUPPORTED_RUNTIME_MODEL_TYPES = new Set(['mamba', 'rwkv']);
+
+/**
+ * Known chat template types that have registered formatters in chat-format.js.
+ * Used for load-time validation so unknown types fail early instead of at
+ * generation time.
+ */
+const KNOWN_CHAT_TEMPLATE_TYPES = new Set([
+  'gemma',
+  'llama3',
+  'gpt-oss',
+  'chatml',
+  'qwen',
+  'translategemma',
+]);
+
+/**
+ * Validate that a chatTemplate.type value is either null (disabled) or a known
+ * formatter type. Logs a warning for unknown types so callers get early feedback
+ * without a breaking throw.
+ *
+ * @param {string | null} type - The chatTemplate.type from manifest inference.
+ * @param {string} modelId - Model identifier for diagnostic messages.
+ * @returns {boolean} True if the type is valid or null.
+ */
+export function validateChatTemplateType(type, modelId) {
+  if (type === null || type === undefined) return true;
+  if (KNOWN_CHAT_TEMPLATE_TYPES.has(type)) return true;
+  log.warn(
+    'Config',
+    `Manifest "${modelId}" declares chatTemplate.type="${type}" which is not a known ` +
+    `formatter type. Known types: ${[...KNOWN_CHAT_TEMPLATE_TYPES].join(', ')}. ` +
+    `The formatter will fall back to plaintext at generation time.`
+  );
+  return false;
+}
 
 // =============================================================================
 // Model Detection Functions
@@ -48,8 +83,14 @@ export function getStopTokenIds(manifest) {
   if (Array.isArray(eosTokenId)) return eosTokenId;
   if (typeof eosTokenId === 'number') return [eosTokenId];
   const modelId = manifest?.modelId ?? 'unknown';
+  if (eosTokenId == null) {
+    throw new Error(
+      `Manifest "${modelId}" is missing eos_token_id. Re-convert the model with tokenizer metadata.`
+    );
+  }
   throw new Error(
-    `Manifest "${modelId}" is missing eos_token_id. Re-convert the model with tokenizer metadata.`
+    `Manifest "${modelId}" has eos_token_id of unsupported type "${typeof eosTokenId}" (value: ${JSON.stringify(eosTokenId)}). ` +
+    'Expected a number or array of numbers. Re-convert the model with tokenizer metadata.'
   );
 }
 
@@ -114,11 +155,19 @@ function inferLfm2IntermediateSizeFromManifest(manifest) {
   for (const value of candidates) {
     counts.set(value, (counts.get(value) ?? 0) + 1);
   }
-  return [...counts.entries()]
+  const result = [...counts.entries()]
     .sort((a, b) => {
       if (b[1] !== a[1]) return b[1] - a[1];
       return a[0] - b[0];
     })[0]?.[0] ?? null;
+  if (result != null && (!Number.isInteger(result) || result <= 0)) {
+    log.warn(
+      'Config',
+      `inferLfm2IntermediateSizeFromManifest: inferred intermediateSize ${result} is not a positive integer, discarding`
+    );
+    return null;
+  }
+  return result;
 }
 
 function resolveIntermediateSizeForRuntime(manifest, inf, arch, modelId) {
@@ -396,7 +445,13 @@ function normalizeLayerTypeTag(value) {
 
 function resolveVisionConfig(rawConfig, manifest) {
   const vc = rawConfig?.vision_config ?? manifest?.config?.vision_config;
-  if (!vc || typeof vc !== 'object') return null;
+  if (!vc || typeof vc !== 'object') {
+    log.debug(
+      'Config',
+      `Vision config not present for model "${manifest?.modelId ?? 'unknown'}"; vision pipeline disabled.`
+    );
+    return null;
+  }
   return {
     depth: vc.depth ?? 24,
     hiddenSize: vc.hidden_size ?? 1024,
@@ -665,6 +720,7 @@ export function toParsedConfigFromMerged(merged, manifest) {
   );
 
   const chatTemplateType = inf.chatTemplate.type;
+  validateChatTemplateType(chatTemplateType, merged.modelId);
   const chatTemplateEnabled = inf.chatTemplate.enabled;
   const parsePositiveInt = (value) => {
     const num = Number(value);
@@ -742,7 +798,7 @@ export function toParsedConfigFromMerged(merged, manifest) {
     layerPipeline: inf.pipeline ?? null,
     chatTemplateType,
     chatTemplateEnabled,
-    kernelPath: inf.defaultKernelPath,
+    kernelPath: null,
     visionConfig: resolveVisionConfig(config, manifest),
   };
 }
@@ -771,6 +827,10 @@ export function parseModelConfigFromManifest(manifest, runtimeOverrides) {
   } else {
     log.debug('Config', `Manifest-first config: ${totalSources} values from manifest`);
   }
+
+  // Dump full field-to-source mapping at debug level for diagnostics
+  const sourceDump = dumpConfigSources(merged);
+  log.debug('Config', `Config source map: ${JSON.stringify(sourceDump)}`);
 
   // Convert to ParsedModelConfig
   return toParsedConfigFromMerged(merged, manifest);

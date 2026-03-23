@@ -10,6 +10,10 @@ function cloneRuleValue(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
+// deepFreeze assumes all values in the tree are plain objects, arrays, or
+// primitives. Typed arrays, Maps, Sets, and other exotic objects will be
+// frozen but their internal slots are not traversed. This is acceptable
+// because rule JSON payloads only contain plain JSON-representable values.
 function deepFreeze(value, seen = new WeakSet()) {
   if (!value || typeof value !== 'object' || seen.has(value)) {
     return value;
@@ -21,64 +25,78 @@ function deepFreeze(value, seen = new WeakSet()) {
   return Object.freeze(value);
 }
 
-const attentionRules = await loadJson('./kernels/attention.rules.json', import.meta.url, 'Failed to load rules');
-const conv2dRules = await loadJson('./kernels/conv2d.rules.json', import.meta.url, 'Failed to load rules');
-const depthwiseConv2dRules = await loadJson('./kernels/depthwise-conv2d.rules.json', import.meta.url, 'Failed to load rules');
-const dequantRules = await loadJson('./kernels/dequant.rules.json', import.meta.url, 'Failed to load rules');
-const energyRules = await loadJson('./kernels/energy.rules.json', import.meta.url, 'Failed to load rules');
-const fusedFfnRules = await loadJson('./kernels/fused-ffn.rules.json', import.meta.url, 'Failed to load rules');
-const fusedMatmulResidualRules = await loadJson('./kernels/fused-matmul-residual.rules.json', import.meta.url, 'Failed to load rules');
-const fusedMatmulRmsnormRules = await loadJson('./kernels/fused-matmul-rmsnorm.rules.json', import.meta.url, 'Failed to load rules');
-const gatherRules = await loadJson('./kernels/gather.rules.json', import.meta.url, 'Failed to load rules');
-const geluRules = await loadJson('./kernels/gelu.rules.json', import.meta.url, 'Failed to load rules');
-const groupedPointwiseConv2dRules = await loadJson('./kernels/grouped-pointwise-conv2d.rules.json', import.meta.url, 'Failed to load rules');
-const groupnormRules = await loadJson('./kernels/groupnorm.rules.json', import.meta.url, 'Failed to load rules');
-const kvQuantizeRules = await loadJson('./kernels/kv_quantize.rules.json', import.meta.url, 'Failed to load rules');
-const layernormRules = await loadJson('./kernels/layernorm.rules.json', import.meta.url, 'Failed to load rules');
-const matmulRules = await loadJson('./kernels/matmul.rules.json', import.meta.url, 'Failed to load rules');
-const kernelMoeRules = await loadJson('./kernels/moe.rules.json', import.meta.url, 'Failed to load rules');
-const kernelMoeGptOssRules = await loadJson('./kernels/moe.rules.gptoss.json', import.meta.url, 'Failed to load rules');
-const kernelMoeMixtralRules = await loadJson('./kernels/moe.rules.mixtral.json', import.meta.url, 'Failed to load rules');
-const modulateRules = await loadJson('./kernels/modulate.rules.json', import.meta.url, 'Failed to load rules');
-const pixelShuffleRules = await loadJson('./kernels/pixel_shuffle.rules.json', import.meta.url, 'Failed to load rules');
-const repeatChannelsRules = await loadJson('./kernels/repeat-channels.rules.json', import.meta.url, 'Failed to load rules');
-const reluRules = await loadJson('./kernels/relu.rules.json', import.meta.url, 'Failed to load rules');
-const residualRules = await loadJson('./kernels/residual.rules.json', import.meta.url, 'Failed to load rules');
-const rmsnormRules = await loadJson('./kernels/rmsnorm.rules.json', import.meta.url, 'Failed to load rules');
-const ropeRules = await loadJson('./kernels/rope.rules.json', import.meta.url, 'Failed to load rules');
-const sanaLinearAttentionRules = await loadJson('./kernels/sana-linear-attention.rules.json', import.meta.url, 'Failed to load rules');
-const sampleRules = await loadJson('./kernels/sample.rules.json', import.meta.url, 'Failed to load rules');
-const scaleRules = await loadJson('./kernels/scale.rules.json', import.meta.url, 'Failed to load rules');
-const siluRules = await loadJson('./kernels/silu.rules.json', import.meta.url, 'Failed to load rules');
-const splitQkvRules = await loadJson('./kernels/split-qkv.rules.json', import.meta.url, 'Failed to load rules');
-const splitQgRules = await loadJson('./kernels/split-qg.rules.json', import.meta.url, 'Failed to load rules');
-const softmaxRules = await loadJson('./kernels/softmax.rules.json', import.meta.url, 'Failed to load rules');
-const upsample2dRules = await loadJson('./kernels/upsample2d.rules.json', import.meta.url, 'Failed to load rules');
-const configRules = await loadJson('./inference/config.rules.json', import.meta.url, 'Failed to load rules');
-const inferenceExecutionRules = await loadJson('./inference/execution.rules.json', import.meta.url, 'Failed to load rules');
-const inferenceAttentionRules = await loadJson('./inference/attention.rules.json', import.meta.url, 'Failed to load rules');
-const dtypeRules = await loadJson('./inference/dtype.rules.json', import.meta.url, 'Failed to load rules');
-const ffnRules = await loadJson('./inference/ffn.rules.json', import.meta.url, 'Failed to load rules');
-const inferenceKernelPathRules = await loadJson('./inference/kernel-path.rules.json', import.meta.url, 'Failed to load rules');
-const layerRules = await loadJson('./inference/layer.rules.json', import.meta.url, 'Failed to load rules');
-const layerPatternRules = await loadJson('./inference/layer-pattern.rules.json', import.meta.url, 'Failed to load rules');
-const inferenceMoeRules = await loadJson('./inference/moe.rules.json', import.meta.url, 'Failed to load rules');
-const tokenizerRules = await loadJson('./converter/tokenizer.rules.json', import.meta.url, 'Failed to load rules');
-const tensorRolesRules = await loadJson('./converter/tensor-roles.rules.json', import.meta.url, 'Failed to load rules');
-const converterExecutionRules = await loadJson('./converter/execution.rules.json', import.meta.url, 'Failed to load rules');
-const loaderWeightRules = await loadJson('./loader/weights.rules.json', import.meta.url, 'Failed to load rules');
-const tensorLoaderRules = await loadJson('./loader/tensor-loader.rules.json', import.meta.url, 'Failed to load rules');
-const toolingCommandRuntimeRules = await loadJson(
-  './tooling/command-runtime.rules.json',
-  import.meta.url,
-  'Failed to load rules'
-);
+const ruleLoadFailures = [];
+
+async function safeLoadJson(path, label) {
+  try {
+    return await loadJson(path, import.meta.url, 'Failed to load rules');
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.warn(`RuleRegistry: failed to load "${path}": ${message}`);
+    ruleLoadFailures.push(path);
+    return null;
+  }
+}
+
+const attentionRules = await safeLoadJson('./kernels/attention.rules.json');
+const conv2dRules = await safeLoadJson('./kernels/conv2d.rules.json');
+const depthwiseConv2dRules = await safeLoadJson('./kernels/depthwise-conv2d.rules.json');
+const dequantRules = await safeLoadJson('./kernels/dequant.rules.json');
+const energyRules = await safeLoadJson('./kernels/energy.rules.json');
+const fusedFfnRules = await safeLoadJson('./kernels/fused-ffn.rules.json');
+const fusedMatmulResidualRules = await safeLoadJson('./kernels/fused-matmul-residual.rules.json');
+const fusedMatmulRmsnormRules = await safeLoadJson('./kernels/fused-matmul-rmsnorm.rules.json');
+const gatherRules = await safeLoadJson('./kernels/gather.rules.json');
+const geluRules = await safeLoadJson('./kernels/gelu.rules.json');
+const groupedPointwiseConv2dRules = await safeLoadJson('./kernels/grouped-pointwise-conv2d.rules.json');
+const groupnormRules = await safeLoadJson('./kernels/groupnorm.rules.json');
+const kvQuantizeRules = await safeLoadJson('./kernels/kv_quantize.rules.json');
+const layernormRules = await safeLoadJson('./kernels/layernorm.rules.json');
+const matmulRules = await safeLoadJson('./kernels/matmul.rules.json');
+const kernelMoeRules = await safeLoadJson('./kernels/moe.rules.json');
+const kernelMoeGptOssRules = await safeLoadJson('./kernels/moe.rules.gptoss.json');
+const kernelMoeMixtralRules = await safeLoadJson('./kernels/moe.rules.mixtral.json');
+const modulateRules = await safeLoadJson('./kernels/modulate.rules.json');
+const pixelShuffleRules = await safeLoadJson('./kernels/pixel_shuffle.rules.json');
+const repeatChannelsRules = await safeLoadJson('./kernels/repeat-channels.rules.json');
+const reluRules = await safeLoadJson('./kernels/relu.rules.json');
+const residualRules = await safeLoadJson('./kernels/residual.rules.json');
+const rmsnormRules = await safeLoadJson('./kernels/rmsnorm.rules.json');
+const ropeRules = await safeLoadJson('./kernels/rope.rules.json');
+const sanaLinearAttentionRules = await safeLoadJson('./kernels/sana-linear-attention.rules.json');
+const sampleRules = await safeLoadJson('./kernels/sample.rules.json');
+const scaleRules = await safeLoadJson('./kernels/scale.rules.json');
+const siluRules = await safeLoadJson('./kernels/silu.rules.json');
+const splitQkvRules = await safeLoadJson('./kernels/split-qkv.rules.json');
+const splitQgRules = await safeLoadJson('./kernels/split-qg.rules.json');
+const softmaxRules = await safeLoadJson('./kernels/softmax.rules.json');
+const upsample2dRules = await safeLoadJson('./kernels/upsample2d.rules.json');
+const configRules = await safeLoadJson('./inference/config.rules.json');
+const inferenceExecutionRules = await safeLoadJson('./inference/execution.rules.json');
+const inferenceAttentionRules = await safeLoadJson('./inference/attention.rules.json');
+const dtypeRules = await safeLoadJson('./inference/dtype.rules.json');
+const ffnRules = await safeLoadJson('./inference/ffn.rules.json');
+const layerRules = await safeLoadJson('./inference/layer.rules.json');
+const layerPatternRules = await safeLoadJson('./inference/layer-pattern.rules.json');
+const inferenceMoeRules = await safeLoadJson('./inference/moe.rules.json');
+const tokenizerRules = await safeLoadJson('./converter/tokenizer.rules.json');
+const tensorRolesRules = await safeLoadJson('./converter/tensor-roles.rules.json');
+const converterExecutionRules = await safeLoadJson('./converter/execution.rules.json');
+const loaderWeightRules = await safeLoadJson('./loader/weights.rules.json');
+const tensorLoaderRules = await safeLoadJson('./loader/tensor-loader.rules.json');
+const toolingCommandRuntimeRules = await safeLoadJson('./tooling/command-runtime.rules.json');
+
+if (ruleLoadFailures.length > 0) {
+  console.warn(
+    `RuleRegistry: ${ruleLoadFailures.length} rule file(s) failed to load: ${ruleLoadFailures.join(', ')}`
+  );
+}
 const INFERENCE_EXECUTION_RULES_CONTRACT_ARTIFACT = buildInferenceExecutionRulesContractArtifact(
   inferenceExecutionRules
 );
 if (!INFERENCE_EXECUTION_RULES_CONTRACT_ARTIFACT.ok) {
   throw new Error(
-    `RuleRegistry: inference.execution rules contract failed: ` +
+    `RuleRegistry: inference.execution rules contract failed (file: inference/execution.rules.json): ` +
     `${INFERENCE_EXECUTION_RULES_CONTRACT_ARTIFACT.errors.join(' | ')}`
   );
 }
@@ -87,7 +105,7 @@ const INFERENCE_LAYER_PATTERN_CONTRACT_ARTIFACT = buildLayerPatternContractArtif
 );
 if (!INFERENCE_LAYER_PATTERN_CONTRACT_ARTIFACT.ok) {
   throw new Error(
-    `RuleRegistry: inference.layerPattern rules contract failed: ` +
+    `RuleRegistry: inference.layerPattern rules contract failed (file: inference/layer-pattern.rules.json): ` +
     `${INFERENCE_LAYER_PATTERN_CONTRACT_ARTIFACT.errors.join(' | ')}`
   );
 }
@@ -135,9 +153,12 @@ const RULE_SETS = {
     config: configRules,
     execution: inferenceExecutionRules,
     attention: inferenceAttentionRules,
+    // ALIAS: same rule set as shared.dtype — dtype.rules.json is loaded once and
+    // registered under both namespaces so that callers in the inference domain can
+    // use selectRuleValue('inference', 'dtype', ...) without reaching into 'shared'.
+    // Do not remove this alias; existing call sites depend on both registration paths.
     dtype: dtypeRules,
     ffn: ffnRules,
-    kernelPath: inferenceKernelPathRules,
     layer: layerRules,
     layerPattern: layerPatternRules,
     moe: inferenceMoeRules,

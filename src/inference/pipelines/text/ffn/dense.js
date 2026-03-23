@@ -24,6 +24,65 @@ import { getLoRAModule } from '../lora.js';
 import { getWeightBuffer, getNormWeightBuffer } from '../weights.js';
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
 
+const ACTIVATION_FN_MAP = {
+  gelu: doGeLU,
+  silu: doSiLU,
+};
+
+function resolveActivationOp(hiddenActivation) {
+  return selectRuleValue('inference', 'ffn', 'activationOp', { hiddenActivation });
+}
+
+async function dispatchActivation(hiddenActivation, input, options, recorder) {
+  const op = resolveActivationOp(hiddenActivation);
+  const fn = ACTIVATION_FN_MAP[op];
+  if (!fn) {
+    throw new Error(`Unsupported FFN activation op "${op}".`);
+  }
+  return fn(input, options, recorder);
+}
+
+async function dispatchFusedGateUp({
+  inputTensor,
+  gateWeight,
+  upWeight,
+  gateDtype,
+  hiddenSize,
+  intermediateSize,
+  numTokens,
+  hiddenActivation,
+  swigluLimit,
+  recorder,
+}) {
+  const useNativeF16Fused = inputTensor.dtype === 'f16' && gateDtype === 'f16' && getKernelCapabilities().hasF16;
+  const fusedInput = (!useNativeF16Fused && inputTensor.dtype === 'f16')
+    ? (recorder ? await recordCastF16ToF32(recorder, inputTensor) : await castF16ToF32(inputTensor))
+    : inputTensor;
+
+  if (recorder && fusedInput !== inputTensor) {
+    recorder.trackTemporaryBuffer(fusedInput.buffer);
+  }
+
+  const activation = resolveActivationOp(hiddenActivation);
+  const fusedOutput = recorder
+    ? await recordFusedFFN(
+      recorder, fusedInput, gateWeight, upWeight,
+      hiddenSize, intermediateSize,
+      { batchSize: numTokens, activation, swigluLimit }
+    )
+    : await runFusedFFN(
+      fusedInput, gateWeight, upWeight,
+      hiddenSize, intermediateSize,
+      { batchSize: numTokens, activation, swigluLimit }
+    );
+
+  if (!recorder && fusedInput !== inputTensor) {
+    releaseBuffer(fusedInput.buffer);
+  }
+
+  return fusedOutput;
+}
+
 
 export async function runDenseFFNGPU(
   layerIdx,
@@ -98,11 +157,10 @@ export async function runDenseFFNGPU(
       releaseOrTrack(recorder, isWeightBuffer(gateUpWeight) ? gateUpWeight.buffer : gateUpWeight);
     }
 
-    const activation = selectRuleValue('inference', 'ffn', 'activationOp', { hiddenActivation });
     const activatedOutput = await doSiLURowSplit(gateUpOutput, {
       numTokens,
       dim: intermediateSize,
-      activation,
+      activation: resolveActivationOp(hiddenActivation),
       swigluLimit,
       label: `L${layerIdx}.ffn_activation`,
       layerIdx,
@@ -221,39 +279,11 @@ export async function runDenseFFNGPU(
       useF16,
       fallback: inputTensor.dtype,
     });
-    // f16_native variant accepts f16 input directly — skip the cast
-    const useNativeF16Fused = inputTensor.dtype === 'f16' && gateDtype === 'f16' && getKernelCapabilities().hasF16;
-    const fusedInput = (!useNativeF16Fused && inputTensor.dtype === 'f16')
-      ? (recorder ? await recordCastF16ToF32(recorder, inputTensor) : await castF16ToF32(inputTensor))
-      : inputTensor;
-
-    if (recorder && fusedInput !== inputTensor) {
-      recorder.trackTemporaryBuffer(fusedInput.buffer);
-    }
-
-    const activation = selectRuleValue('inference', 'ffn', 'activationOp', { hiddenActivation });
-    const fusedOutput = recorder
-      ? await recordFusedFFN(
-        recorder,
-        fusedInput,
-        gateWeight,
-        upWeight,
-        hiddenSize,
-        intermediateSize,
-        { batchSize: numTokens, activation, swigluLimit }
-      )
-      : await runFusedFFN(
-        fusedInput,
-        gateWeight,
-        upWeight,
-        hiddenSize,
-        intermediateSize,
-        { batchSize: numTokens, activation, swigluLimit }
-      );
-
-    if (!recorder && fusedInput !== inputTensor) {
-      releaseBuffer(fusedInput.buffer);
-    }
+    const fusedOutput = await dispatchFusedGateUp({
+      inputTensor, gateWeight, upWeight, gateDtype,
+      hiddenSize, intermediateSize, numTokens,
+      hiddenActivation, swigluLimit, recorder,
+    });
 
     let downInput = fusedOutput;
     if (matmulOutputDtype === 'f16' && fusedOutput.dtype !== 'f16') {
@@ -444,11 +474,7 @@ export async function runDenseFFNGPU(
     });
   }
 
-  const activationFn = {
-    gelu: doGeLU,
-    silu: doSiLU,
-  }[selectRuleValue('inference', 'ffn', 'activationOp', { hiddenActivation })];
-  const activatedOutput = await activationFn(upOutput, {
+  const activatedOutput = await dispatchActivation(hiddenActivation, upOutput, {
     size: numTokens * intermediateSize,
     gate: gateOutput,
     swigluLimit,
@@ -609,11 +635,10 @@ export async function runDenseFFNWithFusedPostNormGPU(
       releaseOrTrack(recorder, isWeightBuffer(gateUpWeight) ? gateUpWeight.buffer : gateUpWeight);
     }
 
-    const activation = selectRuleValue('inference', 'ffn', 'activationOp', { hiddenActivation });
     activatedOutput = await doSiLURowSplit(gateUpOutput, {
       numTokens,
       dim: intermediateSize,
-      activation,
+      activation: resolveActivationOp(hiddenActivation),
       swigluLimit,
     }, recorder);
 
@@ -635,38 +660,11 @@ export async function runDenseFFNWithFusedPostNormGPU(
     const canUseFusedGateUp = !hasLoRAGate && !hasLoRAUp && dtypeMatches && dtypeSupported;
 
     if (canUseFusedGateUp) {
-      const useNativeF16Fused = inputTensor.dtype === 'f16' && gateDtype === 'f16' && getKernelCapabilities().hasF16;
-      const fusedInput = (!useNativeF16Fused && inputTensor.dtype === 'f16')
-        ? (recorder ? await recordCastF16ToF32(recorder, inputTensor) : await castF16ToF32(inputTensor))
-        : inputTensor;
-
-      if (recorder && fusedInput !== inputTensor) {
-        recorder.trackTemporaryBuffer(fusedInput.buffer);
-      }
-
-      const activation = selectRuleValue('inference', 'ffn', 'activationOp', { hiddenActivation });
-      activatedOutput = recorder
-        ? await recordFusedFFN(
-          recorder,
-          fusedInput,
-          gateWeight,
-          upWeight,
-          hiddenSize,
-          intermediateSize,
-          { batchSize: numTokens, activation, swigluLimit }
-        )
-        : await runFusedFFN(
-          fusedInput,
-          gateWeight,
-          upWeight,
-          hiddenSize,
-          intermediateSize,
-          { batchSize: numTokens, activation, swigluLimit }
-        );
-
-      if (!recorder && fusedInput !== inputTensor) {
-        releaseBuffer(fusedInput.buffer);
-      }
+      activatedOutput = await dispatchFusedGateUp({
+        inputTensor, gateWeight, upWeight, gateDtype,
+        hiddenSize, intermediateSize, numTokens,
+        hiddenActivation, swigluLimit, recorder,
+      });
     } else {
       const gateOutput = await doMatmul(
         inputTensor, gateWeight,
@@ -696,11 +694,7 @@ export async function runDenseFFNWithFusedPostNormGPU(
         recorder
       );
 
-      const activationFn = {
-        gelu: doGeLU,
-        silu: doSiLU,
-      }[selectRuleValue('inference', 'ffn', 'activationOp', { hiddenActivation })];
-      activatedOutput = await activationFn(upOutput, {
+      activatedOutput = await dispatchActivation(hiddenActivation, upOutput, {
         size: numTokens * intermediateSize,
         gate: gateOutput,
         swigluLimit,

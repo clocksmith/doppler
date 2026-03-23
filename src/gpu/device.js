@@ -35,6 +35,13 @@ function clearActiveDeviceState() {
   platformInitialized = false;
 }
 
+// Three resolution paths, all needed and not mutually exclusive:
+// 1. Tagged fake buffer (__dopplerFakeGPUBuffer): fast path for Doppler test doubles
+//    that opt in via a known marker property.
+// 2. Duck-typed FakeBuffer: catches third-party or older test helpers that expose the
+//    correct constructor name and GPUBuffer-like interface but lack the Doppler tag.
+// 3. Native GPUBuffer instanceof: the standard runtime check. Skipped when GPUBuffer
+//    is not defined (e.g. Node without WebGPU), in which case we trust the object.
 function isValidGPUBuffer(value) {
   if (!value) {
     return false;
@@ -70,8 +77,8 @@ function isUsableGPUDevice(device) {
 }
 
 function describeBindGroupBufferValue(value) {
-  if (value === null) return 'null';
-  if (value === undefined) return 'undefined';
+  if (value === null) return 'null (explicitly set to null)';
+  if (value === undefined) return 'undefined (missing or never assigned)';
   if (typeof GPUBuffer !== 'undefined' && value instanceof GPUBuffer) return 'GPUBuffer';
   if (typeof value === 'object') {
     return value.constructor?.name || 'object';
@@ -318,7 +325,8 @@ export async function initDevice() {
     });
   } catch (e) {
     // Fallback: request device without optional features
-    log.warn('GPU', 'Failed to request device with features, trying minimal config: ' +  (e).message);
+    const lostFeatures = requestedFeatures.length > 0 ? requestedFeatures.join(', ') : 'none';
+    log.warn('GPU', 'Failed to request device with features [' + lostFeatures + '], trying minimal config: ' + (e).message);
     gpuDevice = await adapter.requestDevice();
   }
 

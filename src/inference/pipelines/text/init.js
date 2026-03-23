@@ -53,6 +53,11 @@ function isRDRRManifest(manifest) {
   return manifest !== null && typeof manifest === 'object' && Array.isArray( (manifest).shards);
 }
 
+// NOTE: This normalizeBaseUrl is duplicated in src/inference/pipelines/diffusion/weights.js
+// (simpler variant) and src/tooling/node-browser-command-runner.js (URL-validating variant).
+// This copy in text/init.js is the canonical version for inference pipeline shard loading.
+// The duplication is intentional to avoid cross-pipeline imports; do not merge without a
+// coordinated refactor of both pipeline families.
 function normalizeBaseUrl(baseUrl) {
   if (typeof baseUrl !== 'string' || baseUrl.trim().length === 0) {
     return null;
@@ -78,6 +83,13 @@ function createRemoteStorageContext(baseUrl, manifest) {
   const root = normalizeBaseUrl(baseUrl);
   if (!root || !isRDRRManifest(manifest)) {
     return null;
+  }
+
+  if (!Array.isArray(manifest.shards) || manifest.shards.length === 0) {
+    throw new Error(
+      `Manifest "${manifest?.modelId ?? 'unknown'}" is missing or has empty shards array. ` +
+      'Re-convert the model to produce a valid manifest with shard entries.'
+    );
   }
 
   const sourceRuntime = getSourceRuntimeMetadata(manifest);
@@ -128,6 +140,9 @@ function createRemoteStorageContext(baseUrl, manifest) {
 }
 
 
+/** Allowed quantizationInfo.layout values for Q4K models. */
+const Q4K_LAYOUT_ALLOWLIST = new Set(['row', 'col']);
+
 export function resolveQ4KConfig(
   manifest,
   kernelPath,
@@ -144,9 +159,10 @@ export function resolveQ4KConfig(
       `Manifest "${manifest?.modelId ?? 'unknown'}" is missing quantizationInfo.layout for Q4_K_M. Re-convert the model.`
     );
   }
-  if (q4kLayout != null && q4kLayout !== 'row' && q4kLayout !== 'col') {
+  if (q4kLayout != null && !Q4K_LAYOUT_ALLOWLIST.has(q4kLayout)) {
     throw new Error(
-      `Manifest "${manifest?.modelId ?? 'unknown'}" has invalid quantizationInfo.layout "${q4kLayout}". Expected "row" or "col".`
+      `Manifest "${manifest?.modelId ?? 'unknown'}" has invalid quantizationInfo.layout "${q4kLayout}". ` +
+      `Allowed values: ${[...Q4K_LAYOUT_ALLOWLIST].join(', ')}.`
     );
   }
   let useFused = kernelPath ? isKernelPathFusedQ4K(kernelPath) : hasSubgroups;
@@ -222,6 +238,13 @@ function computeRoPEFreqsForTheta(theta, headDim, maxSeqLen, ropeScale, ropeScal
     }
   } else {
     // Linear scaling: uniform across all dimensions
+    if (ropeScalingType != null && ropeScalingType !== 'linear') {
+      log.warn(
+        'Pipeline',
+        `Unrecognized RoPE scaling type "${ropeScalingType}"; falling back to linear scaling. ` +
+        'Known types: "linear", "yarn".'
+      );
+    }
     for (let i = 0; i < halfDim; i++) {
       scales[i] = ropeScale;
     }
@@ -616,6 +639,33 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig)
     kvCache = new KVCache(cacheConfig);
   }
 
+  // Diagnostic logging: actual vs requested KV cache parameters
+  const requestedKvDtype = runtimeKV.kvDtype ?? 'unset';
+  const requestedMaxSeqLen = runtimeKV.maxSeqLen ?? 'unset';
+  const actualKvDtype = kvDtype;
+  const actualMaxSeqLen = cacheMaxSeqLen;
+
+  if (requestedKvDtype !== 'unset' && requestedKvDtype !== actualKvDtype) {
+    log.warn(
+      'Pipeline',
+      `KV cache kvDtype mismatch: requested=${requestedKvDtype}, actual=${actualKvDtype} ` +
+      `(rule-based resolution may have changed the dtype due to GPU capabilities or softcap policy)`
+    );
+  }
+  if (requestedMaxSeqLen !== 'unset' && requestedMaxSeqLen !== actualMaxSeqLen) {
+    log.debug(
+      'Pipeline',
+      `KV cache maxSeqLen adjusted: requested=${requestedMaxSeqLen}, actual=${actualMaxSeqLen}`
+    );
+  }
+
+  log.info(
+    'Pipeline',
+    `KV cache allocated: kvDtype=${actualKvDtype}, maxSeqLen=${actualMaxSeqLen}, ` +
+    `layout=${cacheLayout}, modelMaxSeqLen=${modelMaxSeqLen}, ` +
+    `requestedKvDtype=${requestedKvDtype}, requestedMaxSeqLen=${requestedMaxSeqLen}`
+  );
+
   if (debug) {
     if (forceContiguousKVCache && modelConfig.layerTypes) {
       log.debug('Pipeline', 'Layer pattern includes full-attention layers; paged layout blocked, contiguous enforced.');
@@ -894,11 +944,21 @@ export function initMoERouter(modelConfig, moeRoutingConfig, layerWeights) {
 // ============================================================================
 
 
+// EXPERIMENTAL: Speculative decoding is parsed and initialized but the full
+// verify-and-accept loop is not yet wired into the generation pipeline.
+// Enabling this will create the decoder state but decoded tokens are not
+// verified against the draft model. Do not rely on this for production use.
 export function initSpeculativeDecoder(manifest, speculativeConfig) {
   if (!manifest.draftModel) return null;
   if (manifest.draftModel.numTokens == null) {
     throw new Error(`Manifest "${manifest.modelId}" is missing draftModel.numTokens.`);
   }
+
+  log.warn(
+    'Pipeline',
+    `Speculative decoding enabled for "${manifest.modelId}" but this feature is experimental and not fully wired. ` +
+    'The draft-verify-accept loop is incomplete. Generated output is from the base model only.'
+  );
 
   return new SpeculativeDecoder({
     numDraftTokens: manifest.draftModel.numTokens,

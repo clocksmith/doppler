@@ -2,14 +2,14 @@
  * Execution v1 Schema
  *
  * Compact, explicit execution contract for manifest inference.
- * Replaces v0 with: kernel declarations + tuple-based step sequences.
+ * Kernel declarations + tuple-based step sequences.
  *
- * Key differences from v0:
+ * Design:
  * - Kernels declared once, referenced by key in steps
- * - Steps are tuples [op, kernelKey, weights?] not objects
- * - Phase is structural (decode/prefill arrays) not per-step
- * - Layer targeting via group blocks, not per-step field
- * - No defaultKernelPath — execution graph is the only dispatch contract
+ * - Steps are tuples [op, kernelKey, weights?]
+ * - Phase is structural (decode/prefill arrays)
+ * - Layer targeting via group blocks
+ * - Execution graph is the only dispatch contract
  *
  * @module config/schema/execution-v1
  */
@@ -227,9 +227,20 @@ export declare const DEFAULT_EXECUTION_V1_PATCH: ExecutionV1PatchSchema;
 
 export declare function isExecutionV1Digest(value: unknown): boolean;
 
+export interface ExpandExecutionV1Options {
+  /**
+   * When provided, any op not in this set triggers a warning (or throw in
+   * strict mode) with the op name and step index.
+   */
+  knownOps?: ReadonlySet<string> | null;
+  /** When true, unknown ops throw instead of warn. Default false. */
+  strict?: boolean;
+}
+
 /** Validate and expand a v1 execution graph into runtime-ready expanded steps. */
 export declare function expandExecutionV1(
-  graph: ExecutionV1GraphSchema
+  graph: ExecutionV1GraphSchema,
+  options?: ExpandExecutionV1Options
 ): ExecutionV1ExpandedStepSchema[];
 
 /** Check if a manifest inference object uses execution v1. */

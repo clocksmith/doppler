@@ -1,199 +1,10 @@
 import { DEFAULT_ENTRY } from './schema/kernel-path.schema.js';
 import { KERNEL_CONFIGS } from '../gpu/kernels/utils.js';
-import { selectByRules } from '../gpu/kernels/rule-matcher.js';
-import { loadJson } from '../utils/load-json.js';
-import { buildKernelPathContractArtifact } from './kernel-path-contract-check.js';
 import { mergeKernelPathPolicy } from './merge-helpers.js';
 
 // =============================================================================
-// Built-in Kernel Paths (imported at build time)
+// Public API (registry removed — Phase 3)
 // =============================================================================
-
-function parseKernelPathRegistry(raw) {
-  if (!raw || typeof raw !== 'object') {
-    throw new Error('Kernel path registry must be a JSON object');
-  }
-
-  const entries = Array.isArray(raw.entries) ? raw.entries : [];
-  if (entries.length === 0) {
-    throw new Error('Kernel path registry has no entries');
-  }
-
-  const byId = new Map();
-  const normalized = [];
-
-  for (const entry of entries) {
-    if (!entry || typeof entry !== 'object') {
-      throw new Error('Kernel path registry entry must be an object');
-    }
-    if (typeof entry.id !== 'string' || entry.id.trim() === '') {
-      throw new Error('Kernel path registry entry is missing required string id');
-    }
-
-    const id = entry.id.trim();
-    if (byId.has(id)) {
-      throw new Error(`Duplicate kernel path registry id: ${id}`);
-    }
-
-    const trimmedAliasOf = typeof entry.aliasOf === 'string' && entry.aliasOf.trim() !== ''
-      ? entry.aliasOf.trim()
-      : null;
-    const trimmedFile = typeof entry.file === 'string' && entry.file.trim() !== ''
-      ? entry.file.trim()
-      : null;
-
-    if (!trimmedAliasOf && !trimmedFile) {
-      throw new Error(`Kernel path registry entry "${id}" must include file or aliasOf`);
-    }
-
-    normalized.push({
-      ...entry,
-      id,
-      aliasOf: trimmedAliasOf,
-      file: trimmedFile,
-      status: typeof entry.status === 'string' ? entry.status : 'canonical',
-    });
-    byId.set(id, normalized[normalized.length - 1]);
-  }
-
-  return normalized;
-}
-
-const KERNEL_PATH_REGISTRY_ENTRIES = parseKernelPathRegistry(
-  await loadJson('./kernel-paths/registry.json', import.meta.url, 'Failed to load kernel path')
-);
-
-const KERNEL_PATH_REGISTRY_BY_FILE = new Map(
-  await Promise.all(
-    [...new Set(KERNEL_PATH_REGISTRY_ENTRIES
-      .map((entry) => entry.file)
-      .filter((fileName) => typeof fileName === 'string'))
-    ].map(async (fileName) => [
-      fileName,
-      await loadJson(`./kernel-paths/${fileName}`, import.meta.url, 'Failed to load kernel path')
-    ])
-  )
-);
-
-const KERNEL_PATH_REGISTRY_INDEX = new Map(
-  KERNEL_PATH_REGISTRY_ENTRIES.map((entry) => [entry.id, entry])
-);
-
-const KERNEL_PATH_REGISTRY = Object.create(null);
-const KERNEL_PATH_RULES = await loadJson(
-  '../rules/inference/kernel-path.rules.json',
-  import.meta.url,
-  'Failed to load kernel path rules'
-);
-
-const resolveKernelPathConfig = (id, chain = new Set()) => {
-  if (KERNEL_PATH_REGISTRY[id] !== undefined) {
-    return KERNEL_PATH_REGISTRY[id];
-  }
-
-  const entry = KERNEL_PATH_REGISTRY_INDEX.get(id);
-  if (!entry) {
-    throw new Error(`Unknown kernel path in registry: ${id}`);
-  }
-
-  if (chain.has(id)) {
-    throw new Error(`Kernel path alias cycle detected: ${[...chain, id].join(' -> ')}`);
-  }
-
-  const nextChain = new Set(chain);
-  nextChain.add(id);
-
-  if (entry.file) {
-    const resolved = KERNEL_PATH_REGISTRY_BY_FILE.get(entry.file);
-    if (!resolved) {
-      throw new Error(`Kernel path registry entry ${id} references missing file: ${entry.file}`);
-    }
-    KERNEL_PATH_REGISTRY[id] = resolved;
-    return resolved;
-  }
-
-  if (!entry.aliasOf) {
-    throw new Error(`Kernel path registry entry ${id} is missing aliasOf and file`);
-  }
-
-  const resolved = resolveKernelPathConfig(entry.aliasOf, nextChain);
-  KERNEL_PATH_REGISTRY[id] = resolved;
-  return resolved;
-};
-
-for (const entry of KERNEL_PATH_REGISTRY_ENTRIES) {
-  resolveKernelPathConfig(entry.id);
-}
-
-const KERNEL_PATH_FINITENESS_FALLBACK_MAPPINGS = KERNEL_PATH_REGISTRY_ENTRIES
-  .map((entry) => {
-    const fallbackKernelPathId = selectByRules(
-      Array.isArray(KERNEL_PATH_RULES?.finitenessFallback) ? KERNEL_PATH_RULES.finitenessFallback : [],
-      { kernelPathId: entry.id }
-    );
-    if (typeof fallbackKernelPathId !== 'string' || fallbackKernelPathId.length === 0) {
-      return null;
-    }
-    return {
-      primaryKernelPathId: entry.id,
-      fallbackKernelPathId,
-      primaryActivationDtype: KERNEL_PATH_REGISTRY[entry.id]?.activationDtype ?? null,
-      fallbackActivationDtype: KERNEL_PATH_REGISTRY[fallbackKernelPathId]?.activationDtype ?? null,
-    };
-  })
-  .filter(Boolean);
-
-const KERNEL_PATH_CONTRACT_ARTIFACT = buildKernelPathContractArtifact(
-  {
-    registryId: 'builtin-kernel-paths',
-    entries: KERNEL_PATH_REGISTRY_ENTRIES,
-    fallbackMappings: KERNEL_PATH_FINITENESS_FALLBACK_MAPPINGS,
-    fallbackRules: Array.isArray(KERNEL_PATH_RULES?.finitenessFallback)
-      ? KERNEL_PATH_RULES.finitenessFallback
-      : [],
-    autoSelectRules: Array.isArray(KERNEL_PATH_RULES?.autoSelect)
-      ? KERNEL_PATH_RULES.autoSelect
-      : [],
-  }
-);
-
-if (!KERNEL_PATH_CONTRACT_ARTIFACT.ok) {
-  throw new Error(KERNEL_PATH_CONTRACT_ARTIFACT.errors[0]);
-}
-
-// =============================================================================
-// Public API
-// =============================================================================
-
-export function getKernelPath(id) {
-  return KERNEL_PATH_REGISTRY[id] ?? null;
-}
-
-export function listKernelPaths() {
-  return Object.keys(KERNEL_PATH_REGISTRY);
-}
-
-export function getKernelPathContractArtifact() {
-  return {
-    schemaVersion: KERNEL_PATH_CONTRACT_ARTIFACT.schemaVersion,
-    source: KERNEL_PATH_CONTRACT_ARTIFACT.source,
-    ok: KERNEL_PATH_CONTRACT_ARTIFACT.ok,
-    checks: KERNEL_PATH_CONTRACT_ARTIFACT.checks.map((entry) => ({ ...entry })),
-    errors: [...KERNEL_PATH_CONTRACT_ARTIFACT.errors],
-    stats: { ...KERNEL_PATH_CONTRACT_ARTIFACT.stats },
-  };
-}
-
-export function resolveKernelPath(ref) {
-  if (typeof ref === 'string') {
-    const path = getKernelPath(ref);
-    if (!path) {
-      throw new Error(`Unknown kernel path: ${ref}. Available: ${listKernelPaths().join(', ')}`);
-    }
-    return path;
-  }
-  return ref;
-}
 
 export function getKernelPathActivationDtype(path) {
   if (!path?.activationDtype) return null;
@@ -210,6 +21,21 @@ export function getKernelPathKVDtype(path) {
   if (path.kvDtype) return path.kvDtype;
   if (path.activationDtype) return path.activationDtype;
   return null;
+}
+
+/**
+ * Resolve a kernel path reference to a full schema object.
+ * After the registry removal (Phase 3), only object refs are supported.
+ * String-based registry lookups are no longer available.
+ */
+export function resolveKernelPath(ref) {
+  if (typeof ref === 'string') {
+    throw new Error(
+      `String kernel path ids are no longer supported (registry removed). Got: "${ref}". ` +
+      'Use an inline kernel path object or execution graph transforms instead.'
+    );
+  }
+  return ref;
 }
 
 // =============================================================================

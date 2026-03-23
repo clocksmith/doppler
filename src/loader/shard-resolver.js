@@ -24,8 +24,23 @@ function normalizeLocationSpans(spans, name, sourceLabel) {
   });
 }
 
+/**
+ * Builds the tensor name-to-location map from the manifest.
+ *
+ * Tensor map resolution order (first successful source wins):
+ *   1. External tensors.json via OPFS store — tried when the model was
+ *      previously downloaded and no custom loader overrides storage.
+ *   2. External tensors.json via HTTP — tried when `options.tensorsJsonUrl`
+ *      is set (HTTP-based testing / direct serve).
+ *   3. Inline manifest.tensors (legacy) — used when `manifest.tensorsFile`
+ *      is absent and tensor entries are embedded in the manifest JSON.
+ *
+ * On failure, the resolution trace is included in the warning/error so
+ * callers can see which sources were attempted and why each was skipped.
+ */
 export async function buildTensorLocations(manifest, options = {}) {
   const locations = new Map();
+  const trace = [];
 
   // v1 format: load external tensors.json
   if (manifest.tensorsFile) {
@@ -33,22 +48,35 @@ export async function buildTensorLocations(manifest, options = {}) {
 
     let tensorsJsonRaw = null;
 
-    // Try OPFS first (for downloaded models)
+    // 1. Try OPFS first (for downloaded models)
     if (!options.hasCustomLoader) {
       tensorsJsonRaw = await loadTensorsFromStore();
+      if (tensorsJsonRaw) {
+        trace.push({ source: 'opfs-store', outcome: 'resolved' });
+      } else {
+        trace.push({ source: 'opfs-store', outcome: 'not-found' });
+      }
+    } else {
+      trace.push({ source: 'opfs-store', outcome: 'skipped (custom-loader)' });
     }
 
-    // Try HTTP if we have a tensors URL set (for HTTP-based testing)
+    // 2. Try HTTP if we have a tensors URL set (for HTTP-based testing)
     if (!tensorsJsonRaw && options.tensorsJsonUrl) {
       try {
         const resp = await fetch(options.tensorsJsonUrl);
         if (resp.ok) {
           tensorsJsonRaw = await resp.text();
+          trace.push({ source: 'http', url: options.tensorsJsonUrl, outcome: 'resolved' });
           debugTrace.loader(`Loaded tensors.json via HTTP: ${options.tensorsJsonUrl}`);
+        } else {
+          trace.push({ source: 'http', url: options.tensorsJsonUrl, outcome: `http-${resp.status}` });
         }
       } catch (e) {
+        trace.push({ source: 'http', url: options.tensorsJsonUrl, outcome: `error: ${e.message}` });
         log.warn('Loader', `Failed to load tensors.json from ${options.tensorsJsonUrl}: ${e.message}`);
       }
+    } else if (!tensorsJsonRaw && !options.tensorsJsonUrl) {
+      trace.push({ source: 'http', outcome: 'skipped (no tensorsJsonUrl)' });
     }
 
     if (tensorsJsonRaw) {
@@ -71,17 +99,27 @@ export async function buildTensorLocations(manifest, options = {}) {
           originalShape: info.originalShape,
         });
       }
-      debugTrace.loader(`Loaded ${locations.size} tensors from tensors.json`);
+      const resolvedSource = trace.find((entry) => entry.outcome === 'resolved')?.source ?? 'unknown';
+      debugTrace.loader(`Loaded ${locations.size} tensors from tensors.json (source: ${resolvedSource})`);
+      log.debug('Loader', `Tensor map resolved via ${resolvedSource}`, { trace });
       return locations;
     }
+
+    // External tensors.json required but not found from any source
+    const traceDescription = trace.map((entry) => `${entry.source} (${entry.outcome})`).join(', ');
+    log.warn('Loader', `tensors.json not found from any source. Attempted: ${traceDescription}`);
   }
 
-  // Legacy format: inline tensors in manifest
+  // 3. Legacy format: inline tensors in manifest
   if (!manifest.tensors) {
-    log.warn('Loader', 'No tensor locations in manifest');
+    const traceDescription = trace.length > 0
+      ? trace.map((entry) => `${entry.source} (${entry.outcome})`).join(', ')
+      : 'no external sources attempted';
+    log.warn('Loader', `No tensor locations in manifest. Resolution trace: ${traceDescription}`);
     return locations;
   }
 
+  trace.push({ source: 'inline-manifest', outcome: 'resolved' });
   for (const [name, info] of Object.entries(manifest.tensors)) {
     const tensorInfo = info;
     if (!tensorInfo.role) {
@@ -101,5 +139,6 @@ export async function buildTensorLocations(manifest, options = {}) {
     });
   }
   debugTrace.loader(`Tensor map: ${locations.size} tensors (inline)`);
+  log.debug('Loader', 'Tensor map resolved via inline manifest', { trace });
   return locations;
 }

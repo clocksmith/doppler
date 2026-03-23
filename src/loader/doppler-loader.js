@@ -50,6 +50,22 @@ function hasExpertGroups(manifest) {
   return Object.keys(manifest.groups).some((groupId) => groupId.includes('.expert.'));
 }
 
+/**
+ * Detect whether a manifest describes a Mixture-of-Experts model.
+ * Validates that manifests with expert groups also have moeConfig.
+ * Used by both setManifest() and load() to avoid duplicating MoE detection logic.
+ */
+function detectMoE(manifest) {
+  const moeConfig = manifest.moeConfig;
+  const isMoE = moeConfig != null && (moeConfig.numExperts ?? 0) > 1;
+  if (!isMoE && hasExpertGroups(manifest)) {
+    throw new Error(
+      `Manifest "${manifest.modelId ?? 'unknown'}" missing moeConfig for MoE model. Re-convert with moeConfig.`
+    );
+  }
+  return isMoE;
+}
+
 function isGpuBufferInstance(value) {
   return typeof GPUBuffer !== 'undefined' && value instanceof GPUBuffer;
 }
@@ -148,6 +164,9 @@ export class DopplerLoader {
 
   
   constructor(loadingConfig) {
+    if (!loadingConfig) {
+      log.debug('Loader', 'No explicit loadingConfig provided; falling back to getRuntimeConfig().loading');
+    }
     this.#loadingConfig = loadingConfig ?? getRuntimeConfig().loading;
     this.shardCache = createShardCache(
       this.#loadingConfig.shardCache.opfsEntries,
@@ -264,13 +283,7 @@ export class DopplerLoader {
   setManifest(manifest) {
     this.manifest = manifest;
     setCurrentManifest(manifest);
-    const moeConfig = manifest.moeConfig;
-    this.isMoE = moeConfig != null && (moeConfig.numExperts ?? 0) > 1;
-    if (!this.isMoE && hasExpertGroups(manifest)) {
-      throw new Error(
-        `Manifest "${manifest.modelId ?? 'unknown'}" missing moeConfig for MoE model. Re-convert with moeConfig.`
-      );
-    }
+    this.isMoE = detectMoE(manifest);
     this.shardCache.setManifest(this.manifest);
     this.shardCache.configureForModel(this.manifest, this.shardCache.hasCustomLoader);
     debugTrace.loader('Manifest set externally');
@@ -282,17 +295,20 @@ export class DopplerLoader {
     const prevLocations = new Map(this.tensorLocations);
     const prevLayerShardMap = new Map(this.#layerShardMap);
 
-    this.manifest = manifest;
-    // We must rebuild locations so _loadTensor finds them
-    await this.#buildTensorLocations();
-    this.#logWeightBreakdown();
-
     try {
+      this.manifest = manifest;
+      // We must rebuild locations so _loadTensor finds them
+      await this.#buildTensorLocations();
+      this.#logWeightBreakdown();
+
       return await loadLoRAWeightsFromModule(
         manifest,
         (name, toGPU, silent) => this.#loadTensor(name, toGPU, silent)
       );
     } finally {
+      // Always restore previous state, even if buildTensorLocations or the
+      // LoRA load itself throws, to avoid leaving the loader in an
+      // inconsistent intermediate state.
       this.manifest = prevManifest;
       this.tensorLocations = prevLocations;
       this.#layerShardMap = prevLayerShardMap;
@@ -320,6 +336,10 @@ export class DopplerLoader {
       await this.init();
     }
 
+    // Check order matters: isLoaded is the fast-path indicator; modelId catches
+    // partial loads that set the ID before completing; tensorLocations/shardCache
+    // detect interrupted builds; layers/experts/gpuBuffers catch residual GPU
+    // state from a prior model that was never fully unloaded.
     const hasExistingModelState =
       this.isLoaded ||
       this.modelId !== null ||
@@ -356,13 +376,7 @@ export class DopplerLoader {
 
     validateManifestInference(this.manifest);
 
-    const moeConfig = this.manifest.moeConfig;
-    this.isMoE = moeConfig != null && (moeConfig.numExperts ?? 0) > 1;
-    if (!this.isMoE && hasExpertGroups(this.manifest)) {
-      throw new Error(
-        `Manifest "${this.manifest.modelId ?? 'unknown'}" missing moeConfig for MoE model. Re-convert with moeConfig.`
-      );
-    }
+    this.isMoE = detectMoE(this.manifest);
 
     this.shardCache.configureForModel(this.manifest, this.shardCache.hasCustomLoader);
 
@@ -393,7 +407,7 @@ export class DopplerLoader {
 
     
     const reportProgress = (stage, baseProgress, detail) => {
-      if (!onProgress) return;
+      if (!onProgress || typeof onProgress !== 'function') return;
       const elapsed = (Date.now() - loadStartTime) / 1000;
       const speed = elapsed > 0 ? bytesLoaded / elapsed : 0;
       const speedStr = speed > 0 ? `${formatBytes(speed)}/s` : '';
@@ -424,7 +438,21 @@ export class DopplerLoader {
     this.#loadShardOverride = async (shardIndex, options) => {
       const shardInfo = this.manifest?.shards?.[shardIndex];
       const shardSize = shardInfo?.size || 0;
-      const data = await originalLoadShard(shardIndex, options);
+      const shardName = shardInfo?.filename ?? `index=${shardIndex}`;
+      let data;
+      try {
+        data = await originalLoadShard(shardIndex, options);
+      } catch (error) {
+        const modelId = this.manifest?.modelId ?? 'unknown';
+        const shardUrl = shardInfo?.url ?? shardInfo?.path ?? 'unknown';
+        const sizeStr = shardSize > 0 ? `, size=${formatBytes(shardSize)}` : '';
+        log.error(
+          'Loader',
+          `Failed to load shard ${shardIndex}/${totalShards} "${shardName}" ` +
+          `for model "${modelId}" (url=${shardUrl}${sizeStr}): ${error.message}`
+        );
+        throw error;
+      }
 
       if (!loadedShardIndices.has(shardIndex)) {
         loadedShardIndices.add(shardIndex);

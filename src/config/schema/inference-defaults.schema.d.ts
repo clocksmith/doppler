@@ -223,9 +223,9 @@ export interface InferenceDefaultsConfigSchema {
   /** Log token ids in test harness output */
   debugTokens?: boolean;
   pipeline?: LayerPipelineSchema | null;
-  /** Session overrides for execution v0 (session-only runtime knobs). */
+  /** Session overrides for execution v1 (session-only runtime knobs). */
   session?: ExecutionV1SessionDefaultsSchema;
-  /** Atomic execution graph patch for execution v0. */
+  /** Atomic execution graph patch for execution v1. */
   executionPatch?: ExecutionV1PatchSchema;
   /**
    * Kernel path for explicit kernel dispatch ordering.

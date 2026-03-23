@@ -3,7 +3,8 @@
 import { getKernelCapabilities } from '../device.js';
 import { getKernelTuner, getTunerConfig } from '../kernel-tuner.js';
 import { KERNEL_CONFIGS } from './kernel-configs.js';
-import { createPipeline } from './pipeline-cache.js';
+import { createPipeline, clearPipelineCaches } from './pipeline-cache.js';
+import { clearShaderCaches } from './shader-cache.js';
 import { hasRequiredFeatures } from './feature-check.js';
 import { log } from '../../debug/index.js';
 
@@ -108,42 +109,50 @@ export async function prewarmKernels(
       Object.entries(variants).sort(([a], [b]) => a.localeCompare(b))
     ]);
 
-  if (mode === 'sequential') {
-    let count = 0;
+  try {
+    if (mode === 'sequential') {
+      let count = 0;
+      for (const [operation, variants] of entries) {
+        for (const [variant, cfg] of variants) {
+          if (cfg.requires && !hasRequiredFeatures(cfg.requires, caps)) {
+            continue;
+          }
+          try {
+            await createPipeline(operation, variant);
+            count += 1;
+          } catch (e) {
+            log.warn('KernelTuning', `Prewarm failed for ${operation}/${variant}: ${e.message}`);
+          }
+        }
+      }
+      log.debug('KernelTuning', `Prewarmed ${count} kernel pipelines`);
+      return;
+    }
+
+
+    const jobs = [];
     for (const [operation, variants] of entries) {
       for (const [variant, cfg] of variants) {
         if (cfg.requires && !hasRequiredFeatures(cfg.requires, caps)) {
           continue;
         }
-        try {
-          await createPipeline(operation, variant);
-          count += 1;
-        } catch (e) {
-          log.warn('KernelTuning', `Prewarm failed for ${operation}/${variant}: ${e.message}`);
-        }
+        jobs.push(
+          createPipeline(operation, variant)
+            .then(() => {}) // Ignore the pipeline result
+            .catch((e) => {
+              log.warn('KernelTuning', `Prewarm failed for ${operation}/${variant}: ${e.message}`);
+            })
+        );
       }
     }
-    log.debug('KernelTuning', `Prewarmed ${count} kernel pipelines`);
-    return;
-  }
 
-  
-  const jobs = [];
-  for (const [operation, variants] of entries) {
-    for (const [variant, cfg] of variants) {
-      if (cfg.requires && !hasRequiredFeatures(cfg.requires, caps)) {
-        continue;
-      }
-      jobs.push(
-        createPipeline(operation, variant)
-          .then(() => {}) // Ignore the pipeline result
-          .catch((e) => {
-            log.warn('KernelTuning', `Prewarm failed for ${operation}/${variant}: ${e.message}`);
-          })
-      );
-    }
+    await Promise.all(jobs);
+    log.debug('KernelTuning', `Prewarmed ${jobs.length} kernel pipelines`);
+  } catch (e) {
+    // Clean up partially compiled shaders and pipelines to avoid leaking GPU resources
+    log.warn('KernelTuning', `Prewarm aborted, cleaning up compiled pipelines: ${e.message}`);
+    clearPipelineCaches();
+    clearShaderCaches();
+    throw e;
   }
-
-  await Promise.all(jobs);
-  log.debug('KernelTuning', `Prewarmed ${jobs.length} kernel pipelines`);
 }

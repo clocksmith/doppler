@@ -240,8 +240,19 @@ export async function loadLoRAFromManifest(manifest, options = {}) {
       throw new Error(`Unrecognized LoRA tensor name: ${tensor.name}`);
     }
 
-    const data = await toFloat32Array(tensor, options);
-    validateShape(tensor, data);
+    let data;
+    try {
+      data = await toFloat32Array(tensor, options);
+    } catch (error) {
+      log.error('LoRA', `Failed to load tensor data for component "${tensor.name}" (layer=${parsed.layer}, module=${parsed.module}, kind=${parsed.kind}): ${error.message}`);
+      throw error;
+    }
+    try {
+      validateShape(tensor, data);
+    } catch (error) {
+      log.error('LoRA', `Shape validation failed for component "${tensor.name}" (layer=${parsed.layer}, module=${parsed.module}): ${error.message}`);
+      throw error;
+    }
 
     const layer = adapter.layers.get(parsed.layer) || {};
     const scale = manifest.rank > 0 ? manifest.alpha / manifest.rank : 1;
@@ -349,7 +360,7 @@ export async function loadLoRAFromSafetensors(data, manifest) {
         }
       }
     } else {
-      log.warn('LoRA', `Unsupported dtype ${tensorInfo.dtype} for tensor ${tensorName}`);
+      log.warn('LoRA', `Unsupported dtype ${tensorInfo.dtype} for component "${tensorName}" (layer=${parsed.layer}, module=${parsed.module}); skipping`);
       continue;
     }
 

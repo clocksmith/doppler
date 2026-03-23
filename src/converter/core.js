@@ -64,16 +64,15 @@ const EMBEDDING_TENSOR_NAMES = [
 ];
 
 export function inferEmbeddingOutputConfig(tensorLocations) {
-  const getLocation = (name) => {
-    if (tensorLocations instanceof Map) {
-      return tensorLocations.get(name);
-    }
-    return tensorLocations?.[name];
-  };
+  // Normalize Map input to a plain object so the rest of the function
+  // handles a single type consistently.
+  const normalized = tensorLocations instanceof Map
+    ? Object.fromEntries(tensorLocations)
+    : tensorLocations ?? {};
 
-  const entries = tensorLocations instanceof Map
-    ? tensorLocations.entries()
-    : Object.entries(tensorLocations ?? {});
+  const getLocation = (name) => normalized[name];
+
+  const entries = Object.entries(normalized);
   for (const [_name, loc] of entries) {
     if (loc?.role === 'embedding' && loc.shape?.length === 2) {
       const [dim0, dim1] = loc.shape;
@@ -128,13 +127,9 @@ function resolveTokenizerField(tokenizerConfig, ...keys) {
 }
 
 function resolveConfigBoolean(rawConfig, ...keys) {
-  if (!rawConfig || typeof rawConfig !== 'object') return null;
-  for (const key of keys) {
-    if (rawConfig[key] != null) {
-      return rawConfig[key];
-    }
-  }
-  return null;
+  // Same lookup logic as resolveTokenizerField: return the first non-nullish
+  // value from the given keys. Delegates to avoid duplicating the pattern.
+  return resolveTokenizerField(rawConfig, ...keys);
 }
 
 function resolveTokenizerVocabSize(tokenizerConfig, rawConfig, architecture) {
@@ -142,6 +137,25 @@ function resolveTokenizerVocabSize(tokenizerConfig, rawConfig, architecture) {
   const configVocab = rawConfig?.vocab_size ?? nestedTextConfig?.vocab_size;
   const tokenizerVocab = tokenizerConfig?.vocab_size ?? tokenizerConfig?.vocabSize;
   const archVocab = architecture?.vocabSize;
+
+  // Warn if multiple sources provide vocab size and they disagree
+  const sources = [
+    tokenizerVocab != null ? { label: 'tokenizer', value: tokenizerVocab } : null,
+    configVocab != null ? { label: 'config', value: configVocab } : null,
+    archVocab != null ? { label: 'architecture', value: archVocab } : null,
+  ].filter(Boolean);
+  if (sources.length > 1) {
+    const distinct = new Set(sources.map((s) => s.value));
+    if (distinct.size > 1) {
+      const detail = sources.map((s) => `${s.label}=${s.value}`).join(', ');
+      log.error(
+        'Convert',
+        `Vocab size sources disagree: ${detail}. Using first available (${sources[0].label}=${sources[0].value}). ` +
+        'This may cause embedding size mismatches at runtime. Verify the correct vocab size in the conversion config.'
+      );
+    }
+  }
+
   return tokenizerVocab ?? configVocab ?? archVocab ?? null;
 }
 

@@ -1,3 +1,16 @@
+// ============================================================================
+// Kernel Rule Registry
+//
+// This module intentionally duplicates the rule-registry pattern from
+// src/rules/rule-registry.js. The separation is deliberate: kernel call
+// sites use this thin wrapper so that every kernel-domain rule lookup
+// automatically enriches the context with GPU capabilities (hasF16,
+// hasSubgroups, etc.) and platform detection metadata. Merging back into
+// the base rule-registry would force non-kernel callers to depend on GPU
+// device state, breaking the layered-config contract.
+//
+// Canonical base rule registry: src/rules/rule-registry.js
+// ============================================================================
 import { getRuleSet as getBaseRuleSet, selectRuleValue as selectBaseRuleValue } from '../../rules/rule-registry.js';
 import { getKernelCapabilities, getPlatformConfig } from '../device.js';
 

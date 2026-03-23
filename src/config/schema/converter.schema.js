@@ -43,7 +43,6 @@ export const DEFAULT_CONVERTER_MANIFEST_CONFIG = {
 };
 
 export const DEFAULT_CONVERTER_INFERENCE_CONFIG = {
-  defaultKernelPath: null,
   sessionDefaults: null,
   execution: null,
 };

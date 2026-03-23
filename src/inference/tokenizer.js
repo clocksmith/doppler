@@ -74,11 +74,13 @@ export class Tokenizer {
       this.backend = new BundledTokenizer(tokenizerConfig);
 
       const baseUrl = options.baseUrl;
-      
+
       let tokenizerJson = null;
+      const attemptedPaths = [];
 
       // Try to load tokenizer.json
       if (typeof options.loadTokenizerJson === 'function') {
+        attemptedPaths.push('custom-loader');
         try {
           const loaded = await options.loadTokenizerJson();
           tokenizerJson = parseTokenizerJsonPayload(loaded);
@@ -91,6 +93,7 @@ export class Tokenizer {
       if (!tokenizerJson && baseUrl) {
         // Load from remote URL
         const tokenizerUrl = `${baseUrl}/${tokenizerConfig.file}`;
+        attemptedPaths.push(tokenizerUrl);
         try {
           const response = await fetch(tokenizerUrl);
           if (!response.ok) {
@@ -101,8 +104,9 @@ export class Tokenizer {
           const message = err instanceof Error ? err.message : String(err);
           log.warn('Tokenizer', `Failed to fetch bundled tokenizer from URL: ${message}`);
         }
-      } else {
+      } else if (!tokenizerJson) {
         // Try to load from OPFS (for cached models)
+        attemptedPaths.push('OPFS:tokenizer.json');
         try {
           const { loadTokenizerFromStore } = await import('../storage/shard-manager.js');
           const tokenizerStr = await loadTokenizerFromStore();
@@ -125,6 +129,7 @@ export class Tokenizer {
       throw new Error(
         `[Tokenizer] Bundled tokenizer not found for model "${modelId}". ` +
         `Expected tokenizer file: "${tokenizerConfig.file}". ` +
+        `Attempted paths: [${attemptedPaths.join(', ')}]. ` +
         'Ensure tokenizer.json is in OPFS or model directory. ' +
         'Clear browser storage and re-download the model.'
       );
@@ -151,9 +156,11 @@ export class Tokenizer {
       this.backend = new SentencePieceTokenizer(tokenizerConfig);
 
       // Load the model data from the provided source
-      
+
       let modelData;
+      const spAttemptedPaths = [];
       if (typeof options.loadTokenizerModel === 'function') {
+        spAttemptedPaths.push('custom-loader');
         try {
           const loaded = await options.loadTokenizerModel(
             typeof tokenizerConfig.sentencepieceModel === 'string'
@@ -169,19 +176,24 @@ export class Tokenizer {
         }
       }
       if (!modelData && tokenizerConfig.sentencepieceModel instanceof ArrayBuffer) {
+        spAttemptedPaths.push('inline-ArrayBuffer');
         modelData = tokenizerConfig.sentencepieceModel;
       } else if (!modelData && tokenizerConfig.loadShard) {
         // Use provided shard loader
+        spAttemptedPaths.push('shard-loader');
         modelData = await tokenizerConfig.loadShard(tokenizerConfig.sentencepieceModel);
       } else if (!modelData && typeof tokenizerConfig.sentencepieceModel === 'string') {
         if (options.baseUrl && !hasScheme(tokenizerConfig.sentencepieceModel)) {
           const url = `${options.baseUrl}/${tokenizerConfig.sentencepieceModel}`;
+          spAttemptedPaths.push(url);
           const response = await fetch(url);
           modelData = await response.arrayBuffer();
         } else if (hasScheme(tokenizerConfig.sentencepieceModel)) {
+          spAttemptedPaths.push(tokenizerConfig.sentencepieceModel);
           const response = await fetch(tokenizerConfig.sentencepieceModel);
           modelData = await response.arrayBuffer();
         } else {
+          spAttemptedPaths.push('OPFS:tokenizer.model');
           try {
             const { loadTokenizerModelFromStore } = await import('../storage/shard-manager.js');
             modelData = await loadTokenizerModelFromStore();
@@ -195,7 +207,7 @@ export class Tokenizer {
       if (modelData) {
         await  (this.backend).load(modelData);
       } else {
-        throw new Error('Could not load SentencePiece model data');
+        throw new Error(`Could not load SentencePiece model data. Attempted paths: [${spAttemptedPaths.join(', ')}]`);
       }
     } else if (tokenizerConfig.vocab && tokenizerConfig.merges) {
       // BPE with vocab + merges

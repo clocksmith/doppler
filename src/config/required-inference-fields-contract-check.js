@@ -75,7 +75,6 @@ function createValidInferenceFixture() {
       type: null,
       enabled: true,
     },
-    defaultKernelPath: 'unit-test',
   };
 }
 

@@ -48,7 +48,6 @@ export const DEFAULT_CONVERSION_REPORT = Object.freeze({
     quantizationInfo: null,
     inference: {
       schema: null,
-      defaultKernelPath: null,
     },
   },
   executionContractArtifact: null,
@@ -88,10 +87,6 @@ export function validateConversionReport(report) {
     assertNullablePlainObject(report.manifest.inference, 'manifest.inference');
     if (report.manifest.inference) {
       assertNullableString(report.manifest.inference.schema, 'manifest.inference.schema');
-      assertNullableString(
-        report.manifest.inference.defaultKernelPath,
-        'manifest.inference.defaultKernelPath'
-      );
     }
   }
 

@@ -42,22 +42,27 @@ function assertNoDeprecatedRuntimeKeys(overrides) {
     return;
   }
 
+  // Deprecated in v0.8 — debug config consolidated under runtime.shared.debug
   if (overrides.debug !== undefined) {
     throw new Error('runtime.debug is removed; use runtime.shared.debug');
   }
 
   const loading = overrides.loading;
+  // Deprecated in v0.8 — debug config consolidated under runtime.shared.debug
   if (loading?.debug !== undefined) {
     throw new Error('runtime.loading.debug is removed; use runtime.shared.debug');
   }
 
   const inference = overrides.inference;
+  // Deprecated in v0.8 — debug config consolidated under runtime.shared.debug
   if (inference?.debug !== undefined) {
     throw new Error('runtime.inference.debug is removed; use runtime.shared.debug');
   }
+  // Deprecated in v0.9 — sampling section replaced by inference.batching
   if (inference?.sampling?.maxTokens !== undefined) {
     throw new Error('sampling.maxTokens is removed; use inference.batching.maxTokens');
   }
+  // Deprecated in v0.9 — session.maxNewTokens replaced by inference.batching.maxTokens
   if (inference?.session?.maxNewTokens !== undefined) {
     throw new Error('inference.session.maxNewTokens is not a supported runtime config key; use inference.batching.maxTokens');
   }

@@ -282,6 +282,8 @@ export function calculateTotalCpuMemory(config) {
 }
 
 export function formatBytes(bytes) {
+  if (typeof bytes !== 'number' || Number.isNaN(bytes)) return 'NaN';
+  if (bytes < 0) return '0 B';
   if (bytes >= 1e12) {
     return `${(bytes / 1e12).toFixed(1)} TB`;
   } else if (bytes >= 1e9) {

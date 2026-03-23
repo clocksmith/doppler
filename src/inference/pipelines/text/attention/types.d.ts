@@ -42,8 +42,18 @@ export interface AttentionConfig {
   attentionOutputGate?: boolean;
   /** Gemma 2 RMS scaling: (1+w)*x */
   rmsNormWeightOffset?: boolean;
+  /** Whether causal masking is enabled (default true). */
+  causalAttention?: boolean;
+  /** RoPE rotary dimension (may differ from headDim with partial rotary). */
+  ropeRotaryDim?: number;
+  /** Whether RoPE uses interleaved layout. */
+  ropeInterleaved?: boolean;
   /** Token IDs for the current micro-batch (required by BDPA KV ingestion). */
   tokenIds?: number[] | null;
+  /** Kernel path override for attention dispatch. */
+  kernelPath?: Record<string, unknown> | null;
+  /** Disable RoPE for this layer (e.g., non-rotary attention). */
+  disableRoPE?: boolean;
 }
 
 /**

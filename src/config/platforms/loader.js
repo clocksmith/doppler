@@ -1,5 +1,6 @@
 import { getRuntimeConfig } from '../runtime.js';
 import { loadJson } from '../../utils/load-json.js';
+import { log } from '../../debug/index.js';
 
 let currentPlatform = null;
 
@@ -77,12 +78,14 @@ export async function detectPlatform(adapterInfo) {
     }
   }
 
+  log.info('Platform', 'No specific platform matched for adapter (vendor=' + (adapterInfo.vendor || 'unknown') + ', arch=' + (adapterInfo.architecture || 'unknown') + '), falling back to generic');
   const genericConfig = await loadPlatformConfig('generic');
   if (genericConfig) {
     currentPlatform = genericConfig;
     return genericConfig;
   }
 
+  log.info('Platform', 'Generic platform config not available, using built-in fallback');
   const fallback = {
     id: 'unknown',
     name: 'Unknown Platform',

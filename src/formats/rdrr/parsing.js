@@ -1,6 +1,9 @@
 
 
 import { validateManifest } from './validation.js';
+import { RDRR_VERSION } from './types.js';
+
+const KNOWN_MANIFEST_VERSIONS = new Set([RDRR_VERSION]);
 
 let currentManifest = null;
 
@@ -24,6 +27,19 @@ export function parseManifest(jsonString) {
     manifest = JSON.parse(jsonString);
   } catch (e) {
     throw new Error(`Failed to parse manifest JSON: ${e.message}`);
+  }
+
+  // Warn on unknown manifest version so callers know they may be reading a
+  // newer format than this parser understands.
+  const parsedVersion = typeof manifest.version === 'string'
+    ? parseFloat(manifest.version)
+    : manifest.version;
+  if (typeof parsedVersion === 'number' && !KNOWN_MANIFEST_VERSIONS.has(parsedVersion)) {
+    console.warn(
+      `[RDRR] Unknown manifest version ${manifest.version} ` +
+      `(known: ${[...KNOWN_MANIFEST_VERSIONS].join(', ')}). ` +
+      'Parsing will continue but results may be unreliable.'
+    );
   }
 
   // Normalize shards (handle fileName vs filename, compute offset if missing)

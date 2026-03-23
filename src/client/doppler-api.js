@@ -6,8 +6,24 @@ import { getKernelCapabilities } from '../gpu/device.js';
 import { formatChatMessages } from '../inference/pipelines/text/chat-format.js';
 import { buildQuickstartModelBaseUrl, listQuickstartModels, resolveQuickstartModel } from './doppler-registry.js';
 
+/**
+ * Cache lifetime: entries persist until explicitly evicted via `doppler.evict()`,
+ * `doppler.evictAll()`, or `clearModelCache()`. The `inFlightLoadCache` holds
+ * promises for models currently being loaded and auto-clears on load completion
+ * or failure. Neither cache has a TTL -- callers must manage invalidation.
+ */
 const convenienceModelCache = new Map();
 const inFlightLoadCache = new Map();
+
+/**
+ * Clear all cached models and in-flight load promises.
+ * Does not call unload() on cached models -- use `doppler.evictAll()` for graceful cleanup.
+ */
+export function clearModelCache() {
+  convenienceModelCache.clear();
+  inFlightLoadCache.clear();
+  log.debug('doppler', 'Model cache cleared');
+}
 
 function isNodeRuntime() {
   return typeof process !== 'undefined'
@@ -56,6 +72,7 @@ export function resolveLoadProgressHandlers(options = {}) {
       pipelineProgress: null,
     };
   }
+  log.debug('doppler', 'resolveLoadProgressHandlers: no progress handler configured, returning null handlers');
   return {
     userProgress: null,
     pipelineProgress: null,
@@ -70,34 +87,83 @@ async function fetchManifestFromBaseUrl(baseUrl) {
   return parseManifest(await response.text());
 }
 
+/**
+ * Resolves a model source descriptor from user input.
+ *
+ * Fallback order (first match wins):
+ *   1. Quickstart registry — `model` is a string, looked up by modelId/alias
+ *      in the quickstart registry (doppler-registry.json). Base URL is built
+ *      from the registry entry's Hugging Face coordinates.
+ *   2. Explicit URL — `model` is an object with a `.url` string property.
+ *      The URL is used directly as both modelId and baseUrl.
+ *   3. Inline manifest — `model` is an object with a `.manifest` object.
+ *      Optional `.baseUrl` provides the shard root. When baseUrl is absent,
+ *      the caller must supply shards through a custom loader.
+ *
+ * If none of the above match, an error is thrown listing the accepted formats.
+ *
+ * @param {string | { url: string } | { manifest: object, baseUrl?: string }} model
+ * @returns {Promise<{ modelId: string, baseUrl: string | null, manifest: object | null, trace: Array<{ source: string, id: string, outcome: string }> }>}
+ */
 async function resolveModelSource(model) {
+  const trace = [];
+
+  // 1. Quickstart registry (string model id or alias)
   if (typeof model === 'string') {
-    const entry = await resolveQuickstartModel(model);
-    return {
-      modelId: entry.modelId,
-      baseUrl: buildQuickstartModelBaseUrl(entry),
-      manifest: null,
-    };
+    try {
+      const entry = await resolveQuickstartModel(model);
+      trace.push({ source: 'quickstart-registry', id: model, outcome: 'resolved' });
+      log.debug('doppler', `Model resolved via quickstart-registry: ${entry.modelId}`, { trace });
+      return {
+        modelId: entry.modelId,
+        baseUrl: buildQuickstartModelBaseUrl(entry),
+        manifest: null,
+        trace,
+      };
+    } catch (registryError) {
+      trace.push({ source: 'quickstart-registry', id: model, outcome: registryError.message || 'not-found' });
+    }
   }
+
+  // 2. Explicit URL object
   if (model && typeof model === 'object' && typeof model.url === 'string' && model.url.trim().length > 0) {
+    trace.push({ source: 'url', id: model.url.trim(), outcome: 'resolved' });
+    log.debug('doppler', `Model resolved via explicit url: ${model.url.trim()}`, { trace });
     return {
       modelId: model.url.trim(),
       baseUrl: model.url.trim(),
       manifest: null,
+      trace,
     };
   }
+  if (model && typeof model === 'object' && typeof model.url === 'string') {
+    trace.push({ source: 'url', id: String(model.url), outcome: 'empty-url' });
+  }
+
+  // 3. Inline manifest object
   if (model && typeof model === 'object' && model.manifest && typeof model.manifest === 'object') {
     const manifest = model.manifest;
     const modelId = typeof manifest.modelId === 'string' && manifest.modelId.length > 0
       ? manifest.modelId
       : 'manifest';
+    trace.push({ source: 'inline-manifest', id: modelId, outcome: 'resolved' });
+    log.debug('doppler', `Model resolved via inline manifest: ${modelId}`, { trace });
     return {
       modelId,
       baseUrl: typeof model.baseUrl === 'string' && model.baseUrl.length > 0 ? model.baseUrl : null,
       manifest,
+      trace,
     };
   }
-  throw new Error('doppler.load expects a quickstart registry id, { url }, or { manifest, baseUrl? }.');
+
+  // No source matched — build a diagnostic error with the resolution trace
+  const traceDescription = trace.length > 0
+    ? trace.map((entry) => `${entry.source} (${entry.outcome})`).join(', ')
+    : 'no sources attempted';
+  throw new Error(
+    `Model not found. Attempted: ${traceDescription}. ` +
+    'doppler.load expects a quickstart registry id, { url }, or { manifest, baseUrl? }.'
+  );
 }
 
 function countTokens(pipeline, text) {

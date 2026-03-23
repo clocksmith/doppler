@@ -57,7 +57,6 @@ export interface MergedInferenceConfig {
   pipeline: ManifestInferenceSchema['pipeline'];
   layerPattern: ManifestLayerPatternSchema | null;
   chatTemplate: ManifestChatTemplateSchema;
-  defaultKernelPath: string | null;
 }
 
 /**
@@ -141,3 +140,14 @@ export function getValuesBySource(
  * @returns Object with counts: { manifest: N, runtime: N }
  */
 export function summarizeSources(merged: MergedConfig): { manifest: number; runtime: number };
+
+/**
+ * Dump every tracked config field and its source.
+ *
+ * Returns a plain object mapping each dot-path field tracked in the merged
+ * config's _sources map to the source that won ('manifest' or 'runtime').
+ *
+ * @param mergedConfig - A merged config with _sources Map
+ * @returns field-to-source mapping
+ */
+export function dumpConfigSources(mergedConfig: MergedConfig): Record<string, ConfigSource>;

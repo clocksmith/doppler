@@ -269,6 +269,21 @@ export async function bootstrapNodeWebGPUProvider(providerSpecifier, options = {
   };
 }
 
+/**
+ * Bootstrap Node WebGPU by attempting providers in priority order:
+ *
+ * 1. **Environment override** (`DOPPLER_NODE_WEBGPU_MODULE` env var) — highest priority.
+ *    When set, only this specifier is attempted. Supports npm package names,
+ *    relative/absolute file paths, and `file://` URLs.
+ *
+ * 2. **Pre-installed** — if `navigator.gpu` and GPU enums are already present
+ *    (e.g., a WebGPU-enabled Node build or prior bootstrap), no module is loaded.
+ *
+ * 3. **Default candidates** — tried in order: `'webgpu'`, `'@simulatte/webgpu'`.
+ *    The first one that imports and installs successfully wins.
+ *
+ * @returns {Promise<{ ok: boolean, provider: string | null }>}
+ */
 export async function bootstrapNodeWebGPU() {
   const explicitSpecifier = resolveExplicitWebgpuModuleSpecifier();
   if (explicitSpecifier) {

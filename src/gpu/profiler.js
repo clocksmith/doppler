@@ -35,6 +35,9 @@ export class GPUProfiler {
   
   #maxDurationMs = 0;
 
+  // Maximum number of distinct labels tracked before oldest are evicted
+  #maxHistoryLabels = 0;
+
   // Tracking state
   
   #activeLabels = new Map();
@@ -62,6 +65,7 @@ export class GPUProfiler {
     this.#queryCapacity = runtimeProfiler.queryCapacity;
     this.#maxSamples = runtimeProfiler.maxSamples;
     this.#maxDurationMs = runtimeProfiler.maxDurationMs;
+    this.#maxHistoryLabels = runtimeProfiler.maxHistoryLabels ?? 1024;
 
     // Initialize query resources if timestamp queries available
     if (this.#hasTimestampQuery && this.#device) {
@@ -235,6 +239,12 @@ export class GPUProfiler {
   
   #recordResult(label, timeMs) {
     if (!this.#results.has(label)) {
+      // Evict oldest labels when history exceeds the configured limit.
+      // Map iteration order is insertion order, so the first key is the oldest.
+      while (this.#results.size >= this.#maxHistoryLabels) {
+        const oldest = this.#results.keys().next().value;
+        this.#results.delete(oldest);
+      }
       this.#results.set(label, {
         times: [],
         min: Infinity,

@@ -6,7 +6,7 @@ import { dequantize, dequantizeRowwise } from '../gpu/kernel-selector.js';
 import { releaseBuffer } from '../memory/buffer-pool.js';
 import { batchDowncastWeights } from './weight-downcast.js';
 import { QK_K } from './quantization-constants.js';
-import { trace as debugTrace } from '../debug/index.js';
+import { log, trace as debugTrace } from '../debug/index.js';
 
 // ============================================================================
 // Constants
@@ -81,39 +81,51 @@ const MATMUL_KEYS = [
   'routerWeight',
 ];
 
-function toPositiveInt(value) {
+function toPositiveInt(value, label) {
   const num = Number(value);
-  if (!Number.isFinite(num) || num <= 0) return null;
+  if (!Number.isFinite(num) || num <= 0) {
+    if (value != null && label) {
+      log.debug('LayerLoader', `toPositiveInt: invalid value for ${label}: ${String(value)}`);
+    }
+    return null;
+  }
   return Math.trunc(num);
 }
 
 function getWeightShape(value) {
-  if (isWeightBuffer(value) && Array.isArray(value.shape) && value.shape.length >= 2) {
-    const dim0 = toPositiveInt(value.shape[0]);
-    const dim1 = toPositiveInt(value.shape[1]);
-    if (dim0 && dim1) {
-      return [dim0, dim1];
-    }
+  if (!isWeightBuffer(value)) return null;
+  if (!Array.isArray(value.shape)) {
+    log.warn('LayerLoader', `getWeightShape: expected value.shape to be an array, got ${typeof value.shape}`);
+    return null;
   }
-  return null;
+  if (value.shape.length < 2) return null;
+  const dim0 = toPositiveInt(value.shape[0], 'shape[0]');
+  const dim1 = toPositiveInt(value.shape[1], 'shape[1]');
+  if (dim0 === null || dim1 === null) {
+    return null;
+  }
+  return [dim0, dim1];
 }
 
 function inferLinearQKVSizes(ctx, linearQkvProj, linearOutProj) {
   const qkvShape = getWeightShape(linearQkvProj);
   if (!qkvShape) return null;
 
-  const hiddenSize = toPositiveInt(ctx.hiddenSize);
+  const hiddenSize = toPositiveInt(ctx.hiddenSize, 'hiddenSize');
+  if (hiddenSize === null) {
+    log.warn('LayerLoader', 'inferLinearQKVSizes: hiddenSize is null; QKV size inference may be unreliable');
+  }
   const total = (
-    hiddenSize && qkvShape[0] === hiddenSize ? qkvShape[1]
-      : hiddenSize && qkvShape[1] === hiddenSize ? qkvShape[0]
+    hiddenSize !== null && qkvShape[0] === hiddenSize ? qkvShape[1]
+      : hiddenSize !== null && qkvShape[1] === hiddenSize ? qkvShape[0]
         : Math.max(qkvShape[0], qkvShape[1])
   );
 
-  const linearNumKeyHeads = toPositiveInt(ctx.linearNumKeyHeads);
-  const linearNumValueHeads = toPositiveInt(ctx.linearNumValueHeads);
-  const linearKeyHeadDim = toPositiveInt(ctx.linearKeyHeadDim);
-  const linearValueHeadDim = toPositiveInt(ctx.linearValueHeadDim);
-  if (linearNumKeyHeads && linearNumValueHeads && linearKeyHeadDim && linearValueHeadDim) {
+  const linearNumKeyHeads = toPositiveInt(ctx.linearNumKeyHeads, 'linearNumKeyHeads');
+  const linearNumValueHeads = toPositiveInt(ctx.linearNumValueHeads, 'linearNumValueHeads');
+  const linearKeyHeadDim = toPositiveInt(ctx.linearKeyHeadDim, 'linearKeyHeadDim');
+  const linearValueHeadDim = toPositiveInt(ctx.linearValueHeadDim, 'linearValueHeadDim');
+  if (linearNumKeyHeads !== null && linearNumValueHeads !== null && linearKeyHeadDim !== null && linearValueHeadDim !== null) {
     const qSize = linearNumKeyHeads * linearKeyHeadDim;
     const kSize = qSize;
     const vSize = linearNumValueHeads * linearValueHeadDim;
@@ -125,8 +137,8 @@ function inferLinearQKVSizes(ctx, linearQkvProj, linearOutProj) {
   const outShape = getWeightShape(linearOutProj);
   if (outShape) {
     const outInput = (
-      hiddenSize && outShape[0] === hiddenSize ? outShape[1]
-        : hiddenSize && outShape[1] === hiddenSize ? outShape[0]
+      hiddenSize !== null && outShape[0] === hiddenSize ? outShape[1]
+        : hiddenSize !== null && outShape[1] === hiddenSize ? outShape[0]
           : Math.max(outShape[0], outShape[1])
     );
     const remainder = total - outInput;
@@ -136,10 +148,10 @@ function inferLinearQKVSizes(ctx, linearQkvProj, linearOutProj) {
     }
   }
 
-  const numHeads = toPositiveInt(ctx.numHeads);
-  const numKVHeads = toPositiveInt(ctx.numKVHeads);
-  const headDim = toPositiveInt(ctx.headDim);
-  if (numHeads && numKVHeads && headDim) {
+  const numHeads = toPositiveInt(ctx.numHeads, 'numHeads');
+  const numKVHeads = toPositiveInt(ctx.numKVHeads, 'numKVHeads');
+  const headDim = toPositiveInt(ctx.headDim, 'headDim');
+  if (numHeads !== null && numKVHeads !== null && headDim !== null) {
     const qSize = numHeads * headDim;
     const kvSize = numKVHeads * headDim;
     if ((qSize + kvSize + kvSize) <= total) {
@@ -147,6 +159,11 @@ function inferLinearQKVSizes(ctx, linearQkvProj, linearOutProj) {
     }
   }
 
+  log.debug(
+    'LayerLoader',
+    `inferLinearQKVSizes: could not infer QKV split from shape [${qkvShape.join(',')}] ` +
+    `(hiddenSize=${hiddenSize}, numHeads=${numHeads}, numKVHeads=${numKVHeads}, headDim=${headDim})`
+  );
   return null;
 }
 

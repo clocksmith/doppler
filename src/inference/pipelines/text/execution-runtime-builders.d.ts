@@ -9,7 +9,7 @@ export declare function requireSessionActivationDtype(
 ): 'f16' | 'f32';
 
 export declare function resolveFinitenessFallbackKernelPathId(
-  defaultKernelPathId: string | null | undefined
+  kernelPathId: string | null | undefined
 ): string | null;
 
 export declare function buildInlineKernelPath(
@@ -25,9 +25,17 @@ export declare function assertKernelPathSessionCompatibility(
   sessionDefaults: Record<string, unknown> | null | undefined
 ): void;
 
+export interface BuildLayerPipelineOptions {
+  /** When true, throws on incompatible ops instead of returning a degraded result. */
+  strict?: boolean;
+}
+
 export declare function buildLayerPipelineFromExecution(
-  steps: readonly Record<string, unknown>[]
-): { steps: Record<string, unknown>[]; overrides: unknown[] } | { incompatibleOps: string[] } | null;
+  steps: readonly Record<string, unknown>[],
+  options?: BuildLayerPipelineOptions
+): { steps: Record<string, unknown>[]; overrides: unknown[]; hasIncompatibleOps: false }
+  | { incompatibleOps: string[]; hasIncompatibleOps: true }
+  | null;
 
 export declare function buildSessionRuntimePatch(
   sessionDefaults: Record<string, unknown> | null | undefined

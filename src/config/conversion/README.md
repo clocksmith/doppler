@@ -18,17 +18,6 @@ Notes:
 - Execution-v1 configs may set `execution.inlineKernelPath: false` when the
   manifest must own an explicit execution graph without lowering it into
   `runtime.inference.kernelPath`.
-- Execution-v0 fields are supported under `inference.sessionDefaults` and `inference.execution`.
-  `inference.execution` requires explicit `inference.sessionDefaults` and emits
-  `manifest.inference.schema = "doppler.execution/v0"`.
-- `inference.sessionDefaults` without `inference.execution` does not by itself
-  emit execution-v0 schema; it persists manifest batching/session defaults only.
-- If `inference.defaultKernelPath` is set and no explicit `inference.execution` is provided,
-  converter auto-generates execution-v0 steps/session defaults from that kernel path.
-  If `inference.sessionDefaults` is also provided, it overlays the generated
-  execution-v0 session defaults before validation.
-  Hybrid custom-layer models with explicit `layerPattern.layerTypes` containing `conv`
-  skip this auto-generation and keep layer scheduling in manifest inference.
 
 Current config intent:
 
@@ -90,7 +79,7 @@ Current config intent:
   - Weights: `q4k` (row layout), embeddings/lmHead: `f16`
   - Compute: `f16`
   - Kernel path: `gemma3-q4k-dequant-f16a-online`
-  - Execution-v0: explicit `sessionDefaults` + full `execution.steps` mirrored from `gemma3-q4k-dequant-f16a-online`
+  - Execution: explicit `sessionDefaults` + full `execution.steps` mirrored from `gemma3-q4k-dequant-f16a-online`
 
 - `src/config/conversion/gpt-oss-20b-f16-xmxfp4.json`
   - Output base: `models/local/gpt-oss-20b-f16-xmxfp4`
@@ -139,7 +128,7 @@ Current config intent:
   - Compute: `f32`
   - Kernel path: `lfm2-q4k-dequant-f32a-online` (explicit; LFM2 fast-prefill F32A path)
   - Session defaults only: decode loop `batchSize=8`, `stopCheckMode=batch`, `readbackInterval=8`
-  - Does not emit execution-v0 schema because custom conv layer scheduling skips kernel-path auto-generation
+  - Does not emit execution schema because custom conv layer scheduling skips kernel-path auto-generation
 
 - `src/config/conversion/lfm2/lfm2.5-1.2b-instruct-q4k-ehaf16.json`
   - Output base: `models/local/lfm2.5-1.2b-instruct-q4k-ehaf16`

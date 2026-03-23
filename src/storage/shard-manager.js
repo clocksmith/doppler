@@ -74,8 +74,10 @@ function resolveBackendType(config) {
   if (config.backend === 'memory') {
     return 'memory';
   }
+  // Auto-detect: no explicit backend requested, falling back through available options.
   if (isOPFSAvailable()) return 'opfs';
   if (isIndexedDBAvailable()) return 'indexeddb';
+  log.warn('ShardManager', 'No persistent storage available (OPFS/IndexedDB); falling back to in-memory storage. Model data will not persist across reloads.');
   return 'memory';
 }
 
@@ -100,6 +102,11 @@ async function initBlake3(requiredAlgorithm = null) {
     );
   }
 
+  // Falling back to SHA-256. Note: SHA-256 produces 32-byte (256-bit) hashes
+  // just like BLAKE3, but is significantly slower for large payloads. Hash values
+  // produced by this fallback are NOT compatible with BLAKE3 hashes -- manifests
+  // hashed with BLAKE3 cannot be verified with SHA-256 and vice versa.
+  log.warn('ShardManager', 'BLAKE3 unavailable; falling back to SHA-256 for hash verification. Hashes will not match BLAKE3-based manifests.');
   hashAlgorithm = 'sha256';
   blake3Module = {
     hash: async (data) => {
@@ -107,9 +114,13 @@ async function initBlake3(requiredAlgorithm = null) {
       return new Uint8Array(hashBuffer);
     },
     createHasher: () => {
+      /** @type {Uint8Array[]} */
       const chunks = [];
       return {
         update: (data) => {
+          if (!(data instanceof Uint8Array) && !(data instanceof ArrayBuffer)) {
+            throw new Error('SHA-256 fallback hasher: update() requires Uint8Array or ArrayBuffer');
+          }
           chunks.push(new Uint8Array(data));
         },
         finalize: async () => {

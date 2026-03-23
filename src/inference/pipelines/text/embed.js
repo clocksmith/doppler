@@ -3,7 +3,7 @@
 import { getDevice, getKernelCapabilities } from '../../../gpu/device.js';
 import { acquireBuffer, releaseBuffer, readBuffer } from '../../../memory/buffer-pool.js';
 import { runGather, recordGather } from '../../../gpu/kernel-selector.js';
-import { trace } from '../../../debug/index.js';
+import { log, trace } from '../../../debug/index.js';
 import { runProbes } from './probes.js';
 import { decodeReadback } from './debug-utils/index.js';
 import { createTensor } from '../../../gpu/tensor.js';
@@ -232,6 +232,22 @@ export async function embed(tokenIds, embedBuffer, config) {
     }
     if (debug) {
       trace.embed('Using CPU embedding gather (oversized embedding)');
+    }
+
+    // Bounds check: warn (not throw) for token IDs outside vocab range.
+    // Some tokenizers intentionally produce special OOV token IDs beyond vocabSize.
+    if (tokenIdArray) {
+      for (let t = 0; t < tokenIdArray.length; t++) {
+        const tid = tokenIdArray[t];
+        if (tid < 0 || tid >= vocabSize) {
+          log.warn(
+            'Embed',
+            `Token ID ${tid} at position ${t} is outside vocab range [0, ${vocabSize}). ` +
+            'This may produce incorrect embeddings.'
+          );
+          break;
+        }
+      }
     }
 
     const output = new Float32Array(numTokens * hiddenSize);

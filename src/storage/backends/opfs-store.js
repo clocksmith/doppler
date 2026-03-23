@@ -303,8 +303,13 @@ export function createOpfsStore(config) {
     }
 
     const writable = await fileHandle.createWritable();
-    await writable.write(bytes);
-    await writable.close();
+    try {
+      await writable.write(bytes);
+      await writable.close();
+    } catch (error) {
+      try { await writable.abort(); } catch { /* best-effort cleanup */ }
+      throw error;
+    }
   }
 
   async function createWriteStream(filename, options = {}) {

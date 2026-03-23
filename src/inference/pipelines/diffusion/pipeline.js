@@ -426,7 +426,7 @@ export class DiffusionPipeline {
     const defaultHeight = runtime.latent.height;
     const width = Math.floor(Number.isFinite(request.width) && request.width > 0 ? request.width : defaultWidth);
     const height = Math.floor(Number.isFinite(request.height) && request.height > 0 ? request.height : defaultHeight);
-    const steps = Math.floor(Number.isFinite(request.steps) && request.steps > 0 ? request.steps : runtime.scheduler.numSteps);
+    let steps = Math.floor(Number.isFinite(request.steps) && request.steps > 0 ? request.steps : runtime.scheduler.numSteps);
     const guidanceScale = Number.isFinite(request.guidanceScale) && request.guidanceScale > 0
       ? request.guidanceScale
       : runtime.scheduler.guidanceScale;
@@ -442,6 +442,16 @@ export class DiffusionPipeline {
     }
     if (!Number.isFinite(steps) || steps <= 0) {
       throw new Error(`Invalid diffusion steps: ${steps}`);
+    }
+    const maxAllowedSteps = runtime.scheduler.maxSteps ?? 1000;
+    const minAllowedSteps = runtime.scheduler.minSteps ?? 1;
+    if (steps > maxAllowedSteps) {
+      log.warn('Diffusion', `Requested ${steps} steps exceeds maximum ${maxAllowedSteps}. Clamping to ${maxAllowedSteps}.`);
+      steps = maxAllowedSteps;
+    }
+    if (steps < minAllowedSteps) {
+      log.warn('Diffusion', `Requested ${steps} steps below minimum ${minAllowedSteps}. Clamping to ${minAllowedSteps}.`);
+      steps = minAllowedSteps;
     }
 
     if (!modelConfig?.components?.transformer) {

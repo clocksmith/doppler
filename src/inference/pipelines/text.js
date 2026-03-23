@@ -1,5 +1,5 @@
 
-import { getDevice, initDevice } from '../../gpu/device.js';
+import { getDevice, initDevice, getKernelCapabilities } from '../../gpu/device.js';
 import { getBufferPool as getGlobalBufferPool } from '../../memory/buffer-pool.js';
 import { log } from '../../debug/index.js';
 import { configurePerfGuards } from '../../gpu/perf-guards.js';
@@ -33,7 +33,9 @@ import { getKernelPathActivationDtype } from '../../config/kernel-path-loader.js
 import { applyPipelineDebugConfig } from './text/debug-utils.js';
 import { resolveLayerPipeline } from './text/layer-plan.js';
 import { compileExecutionPlanState, resolveActiveExecutionPlan } from './text/execution-plan.js';
+import { assertDtypeConsistency } from './text/dtype-contract.js';
 import { applyExecutionV1RuntimeConfig, hasExecutionV1 } from './text/execution-v1.js';
+import { getPlatform } from '../../config/platforms/loader.js';
 import {
   createLinearAttentionRuntime,
   hasLinearAttentionLayers,
@@ -93,6 +95,12 @@ export class InferencePipeline extends PipelineState {
 
     if (!this.gpuContext?.device && typeof globalThis.navigator !== 'undefined' && globalThis.navigator?.gpu) {
       const device = await initDevice();
+      if (!device || typeof device !== 'object' || typeof device.createBuffer !== 'function' || !device.queue) {
+        throw new Error(
+          'GPU device initialization returned an invalid device object. ' +
+          'Expected an object with queue and createBuffer. Check WebGPU adapter availability.'
+        );
+      }
       this.gpuContext = { device };
       this.useGPU = true;
     }
@@ -112,27 +120,85 @@ export class InferencePipeline extends PipelineState {
     destroyMoERouter(this.moeRouter);
     this.moeRouter = null;
 
-    // Apply execution v1 (compact tuple format) — v0 is no longer supported
+    // ========================================================================
+    // Config Resolution Passes
+    //
+    // The following passes mutate this.runtimeConfig in a fixed order.
+    // Each pass is allowed to read the full runtimeConfig but must only
+    // mutate its own documented subset. Reordering passes may change
+    // resolved values.
+    //
+    // Phase 1 — applyExecutionV1RuntimeConfig
+    //   Reads: manifest.inference.execution, kernelCapabilities, platform
+    //   Mutates: runtimeConfig.inference (kernelPath, pipeline, batching,
+    //            compute via runtimeInferencePatch)
+    //
+    // Phase 2 — parseModelConfig + applyModelBatchingRuntimeDefaults
+    //   Reads: manifest.architecture, runtimeConfig.inference.modelOverrides
+    //   Mutates: runtimeConfig.inference.batching,
+    //            runtimeConfig.inference.generation
+    //
+    // Phase 3 — resolveKernelPathState
+    //   Reads: manifest, modelConfig.kernelPath, runtimeConfig.inference.kernelPath
+    //   Mutates: runtimeConfig.inference.compute.activationDtype,
+    //            runtimeConfig.inference.kvcache.kvDtype,
+    //            runtimeConfig.inference.session.compute.defaults.outputDtype
+    //
+    // Phase 4 — _resolveLayerPipeline
+    //   Reads: runtimeConfig.inference.pipeline, modelConfig.layerPipeline,
+    //          executionV1State.runtimeInferencePatch.pipeline
+    //   Mutates: this.layerPipelinePlan (does not mutate runtimeConfig)
+    // ========================================================================
+
+    let configResolutionPhase = 0;
+
+    // Phase 1: execution-v1 runtime config
+    configResolutionPhase = 1;
+    log.debug('Pipeline', `Config resolution phase ${configResolutionPhase}: applyExecutionV1RuntimeConfig`);
     if (hasExecutionV1(manifest.inference)) {
+      let capabilities = null;
+      let platform = null;
+      try {
+        capabilities = getKernelCapabilities();
+      } catch {
+        // Device not yet initialized — transforms will be skipped
+      }
+      try {
+        platform = getPlatform();
+      } catch {
+        // Platform not yet initialized — use null fallback
+      }
+
       const executionV1Runtime = applyExecutionV1RuntimeConfig({
         runtimeConfig: this.runtimeConfig,
         manifest,
         modelId: manifest.modelId ?? 'model',
         numLayers: Number(manifest.architecture?.numLayers ?? 0),
+        capabilities,
+        platform,
       });
       if (executionV1Runtime.executionV1State) {
         this.runtimeConfig = executionV1Runtime.runtimeConfig;
         this.executionV1State = executionV1Runtime.executionV1State;
+        const transformInfo = this.executionV1State.appliedTransforms?.length > 0
+          ? `, transforms=[${this.executionV1State.appliedTransforms.join(', ')}]`
+          : '';
+        const fallbackInfo = this.executionV1State.fallbackKernelPath
+          ? ', fallbackKernelPath=yes'
+          : '';
         log.info(
           'Pipeline',
           `Execution v1 enabled (steps=${this.executionV1State.resolvedSteps.all.length}, ` +
           `kernelPathInline=${this.executionV1State.runtimeInferencePatch.kernelPath ? 'yes' : 'no'}, ` +
-          `pipelineInline=${this.executionV1State.runtimeInferencePatch.pipeline ? 'yes' : 'no'})`
+          `pipelineInline=${this.executionV1State.runtimeInferencePatch.pipeline ? 'yes' : 'no'}` +
+          `${transformInfo}${fallbackInfo})`
         );
       }
     }
 
-    // Pass runtime model overrides to merge with manifest inference config
+    // Phase 2: model config + batching defaults
+    configResolutionPhase = 2;
+    log.debug('Pipeline', `Config resolution phase ${configResolutionPhase}: parseModelConfig + applyModelBatchingRuntimeDefaults`);
     const modelOverrides = (this.runtimeConfig.inference.modelOverrides);
     this.modelConfig = parseModelConfig(manifest, modelOverrides);
     this.runtimeConfig = applyModelBatchingRuntimeDefaults(
@@ -150,6 +216,9 @@ export class InferencePipeline extends PipelineState {
       modelConfig: this.modelConfig,
     });
 
+    // Phase 3: kernel path resolution + dtype contract
+    configResolutionPhase = 3;
+    log.debug('Pipeline', `Config resolution phase ${configResolutionPhase}: resolveKernelPathState`);
     const kernelPathState = resolveKernelPathState({
       manifest,
       runtimeConfig: this.runtimeConfig,
@@ -159,7 +228,11 @@ export class InferencePipeline extends PipelineState {
     this.kernelPathSource = kernelPathState.kernelPathSource;
     this.runtimeConfig = kernelPathState.runtimeConfig;
 
+    // Phase 4: layer pipeline resolution
+    configResolutionPhase = 4;
+    log.debug('Pipeline', `Config resolution phase ${configResolutionPhase}: _resolveLayerPipeline`);
     this._resolveLayerPipeline();
+    log.debug('Pipeline', `Config resolution complete (${configResolutionPhase} phases)`);
 
     const cfg = this.modelConfig;
     const moeStr = cfg.useMoE ? `, MoE(${cfg.numExperts}x${cfg.moeTopK})` : '';
@@ -178,12 +251,31 @@ export class InferencePipeline extends PipelineState {
       }
     }
 
+    // Check for execution-v1 kvDtype conflict with manifest quantization info
+    if (this.executionV1State && this.resolvedKernelPath) {
+      const manifestComputeHint = manifest?.quantizationInfo?.compute;
+      const resolvedKvDtype = this.runtimeConfig.inference.kvcache?.kvDtype;
+      if (
+        manifestComputeHint
+        && resolvedKvDtype
+        && String(manifestComputeHint).toLowerCase() !== String(resolvedKvDtype).toLowerCase()
+      ) {
+        log.warn(
+          'Pipeline',
+          `KV cache kvDtype from execution-v1 resolution (${resolvedKvDtype}) differs from ` +
+          `manifest quantizationInfo.compute hint (${manifestComputeHint}). ` +
+          `The kernel path dtype contract takes precedence.`
+        );
+      }
+    }
+
     // Initialize KV cache
     this.kvCache = createKVCache(this.modelConfig, this.useGPU, this.debug, this.runtimeConfig.inference.kvcache);
     this.executionPlanState = compileExecutionPlanState({
       runtimeConfig: this.runtimeConfig,
       resolvedKernelPath: this.resolvedKernelPath,
       kernelPathSource: this.kernelPathSource,
+      fallbackKernelPath: this.executionV1State?.fallbackKernelPath ?? null,
     });
     const activeExecutionPlan = resolveActiveExecutionPlan(this);
     log.info(
@@ -191,6 +283,12 @@ export class InferencePipeline extends PipelineState {
       `Execution plan: active=${activeExecutionPlan.id}, dtype=${activeExecutionPlan.activationDtype}, ` +
       `kernelPath=${activeExecutionPlan.kernelPathId ?? 'none'}`
     );
+
+    // Issue 1: Validate dtype consistency across all three resolution paths
+    // (execution plan, runtimeConfig.inference.compute, and layer context).
+    // The layer context is not yet built at this point, so pass null for it.
+    // This logs a warning if the execution plan and runtimeConfig disagree.
+    assertDtypeConsistency(this.executionPlanState, this.runtimeConfig, null);
 
     const kpActivation = getKernelPathActivationDtype(this.resolvedKernelPath);
     if (kpActivation && kpActivation !== activeExecutionPlan.activationDtype) {
@@ -287,20 +385,29 @@ export class InferencePipeline extends PipelineState {
 
     if (this.useGPU && this.modelConfig) {
       const activeExecutionPlan = resolveActiveExecutionPlan(this);
-      this.decodeBuffers?.ensureBuffers({
-        hiddenSize: this.modelConfig.hiddenSize,
-        intermediateSize: this.modelConfig.intermediateSize,
-        activationDtype: activeExecutionPlan.activationDtype,
-        enablePingPong: true,
-      });
-
-      const device = getDevice();
-      if (device) {
-        this.finitenessBuffer = device.createBuffer({
-          label: 'finiteness_status',
-          size: 16,
-          usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST,
+      try {
+        this.decodeBuffers?.ensureBuffers({
+          hiddenSize: this.modelConfig.hiddenSize,
+          intermediateSize: this.modelConfig.intermediateSize,
+          activationDtype: activeExecutionPlan.activationDtype,
+          enablePingPong: true,
         });
+
+        const device = getDevice();
+        if (device) {
+          this.finitenessBuffer = device.createBuffer({
+            label: 'finiteness_status',
+            size: 16,
+            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST,
+          });
+        }
+      } catch (bufferError) {
+        this.decodeBuffers?.release();
+        if (this.finitenessBuffer) {
+          this.finitenessBuffer.destroy();
+          this.finitenessBuffer = null;
+        }
+        throw bufferError;
       }
     }
   }
@@ -382,10 +489,36 @@ export class InferencePipeline extends PipelineState {
   }
 
 
+  // Layer pipeline precedence (lowest to highest):
+  //   1. execution-v1-produced pipeline (via runtimeInferencePatch.pipeline)
+  //   2. model config pipeline (manifest inference.pipeline)
+  //   3. runtime config pipeline (runtime.inference.pipeline)
+  // If runtime overrides an execution-v1-produced pipeline, a warning is logged
+  // because the execution graph's pipeline was designed for the resolved kernel
+  // path and capability set.
   _resolveLayerPipeline() {
     if (!this.modelConfig) return;
     const runtimePlan = this.runtimeConfig.inference.pipeline ?? null;
     const modelPlan = this.modelConfig.layerPipeline ?? null;
+
+    // Detect when runtime config would override an execution-v1-produced pipeline
+    const runtimeHasSteps = runtimePlan?.steps && runtimePlan.steps.length > 0;
+    const executionV1ProducedPipeline = this.executionV1State?.runtimeInferencePatch?.pipeline != null;
+    if (runtimeHasSteps && executionV1ProducedPipeline) {
+      log.warn(
+        'Pipeline',
+        'Runtime config pipeline overrides execution-v1-produced pipeline. ' +
+        'The execution graph designed this pipeline for the resolved kernel path and capability set. ' +
+        'Verify that the runtime override is intentional.'
+      );
+    }
+    if (runtimeHasSteps && !executionV1ProducedPipeline && modelPlan?.steps?.length > 0) {
+      log.debug(
+        'Pipeline',
+        'Runtime config pipeline overrides model config pipeline.'
+      );
+    }
+
     this.layerPipelinePlan = resolveLayerPipeline(modelPlan, runtimePlan, this.modelConfig.numLayers);
     if (this.layerPipelinePlan) {
       log.info(

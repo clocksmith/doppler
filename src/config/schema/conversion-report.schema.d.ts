@@ -11,7 +11,6 @@ export interface ConversionReportManifestSchema {
   quantizationInfo: Record<string, unknown> | null;
   inference: {
     schema: string | null;
-    defaultKernelPath: string | null;
   } | null;
 }
 

@@ -139,6 +139,7 @@ export {
   isExecutionV1Digest,
   hasExecutionV1,
   expandExecutionV1,
+  type ExpandExecutionV1Options,
 } from './execution-v1.schema.js';
 
 // =============================================================================

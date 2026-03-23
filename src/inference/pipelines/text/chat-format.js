@@ -161,90 +161,65 @@ function formatTurnBased(messages) {
   return parts.join('');
 }
 
-function formatHeaderBased(messages) {
-  // Header-based format: <|start_header_id|>role<|end_header_id|>\n\ncontent<|eot_id|>
-  const parts = ['<|begin_of_text|>'];
-
+function formatMessagesWithRoleWrap(messages, templateName, roleWrappers, options = {}) {
+  const { prefix = '', suffix = '', beforeMessage = null } = options;
+  const parts = prefix ? [prefix] : [];
   for (const [index, message] of messages.entries()) {
     const role = normalizeChatRole(message?.role);
-    assertSupportedChatRole(role, 'Header-based', index);
+    assertSupportedChatRole(role, templateName, index);
+    if (beforeMessage) beforeMessage(role, index);
     const content = normalizeChatMessageContent(message?.content);
-    if (role === 'system') {
-      parts.push(`<|start_header_id|>system<|end_header_id|>\n\n${content}<|eot_id|>`);
-    } else if (role === 'user') {
-      parts.push(`<|start_header_id|>user<|end_header_id|>\n\n${content}<|eot_id|>`);
-    } else if (role === 'assistant') {
-      parts.push(`<|start_header_id|>assistant<|end_header_id|>\n\n${content}<|eot_id|>`);
-    }
+    const wrapper = roleWrappers[role];
+    if (wrapper) parts.push(wrapper(content));
   }
-
-  parts.push('<|start_header_id|>assistant<|end_header_id|>\n\n');
-
+  parts.push(suffix);
   return parts.join('');
+}
+
+function formatHeaderBased(messages) {
+  return formatMessagesWithRoleWrap(messages, 'Header-based', {
+    system: (c) => `<|start_header_id|>system<|end_header_id|>\n\n${c}<|eot_id|>`,
+    user: (c) => `<|start_header_id|>user<|end_header_id|>\n\n${c}<|eot_id|>`,
+    assistant: (c) => `<|start_header_id|>assistant<|end_header_id|>\n\n${c}<|eot_id|>`,
+  }, {
+    prefix: '<|begin_of_text|>',
+    suffix: '<|start_header_id|>assistant<|end_header_id|>\n\n',
+  });
 }
 
 function formatChannelBased(messages) {
-  // Channel-based format: <|start|>role<|channel|>channel<|message|>content<|end|>
-  const parts = [];
-
-  for (const [index, message] of messages.entries()) {
-    const role = normalizeChatRole(message?.role);
-    assertSupportedChatRole(role, 'Channel-based', index);
-    const content = normalizeChatMessageContent(message?.content);
-    if (role === 'system') {
-      parts.push(`<|start|>system<|message|>${content}<|end|>`);
-    } else if (role === 'user') {
-      parts.push(`<|start|>user<|message|>${content}<|end|>`);
-    } else if (role === 'assistant') {
-      parts.push(`<|start|>assistant<|channel|>final<|message|>${content}<|end|>`);
-    }
-  }
-
-  parts.push('<|start|>assistant<|channel|>final<|message|>');
-
-  return parts.join('');
+  return formatMessagesWithRoleWrap(messages, 'Channel-based', {
+    system: (c) => `<|start|>system<|message|>${c}<|end|>`,
+    user: (c) => `<|start|>user<|message|>${c}<|end|>`,
+    assistant: (c) => `<|start|>assistant<|channel|>final<|message|>${c}<|end|>`,
+  }, {
+    suffix: '<|start|>assistant<|channel|>final<|message|>',
+  });
 }
 
 function formatChatML(messages) {
-  // ChatML format: <|im_start|>role\ncontent<|im_end|>
-  const parts = [];
-  for (const [index, message] of messages.entries()) {
-    const role = normalizeChatRole(message?.role);
-    assertSupportedChatRole(role, 'ChatML', index);
-    const content = normalizeChatMessageContent(message?.content);
-    if (role === 'system') {
-      parts.push(`<|im_start|>system\n${content}<|im_end|>\n`);
-    } else if (role === 'user') {
-      parts.push(`<|im_start|>user\n${content}<|im_end|>\n`);
-    } else if (role === 'assistant') {
-      parts.push(`<|im_start|>assistant\n${content}<|im_end|>\n`);
-    }
-  }
-  parts.push('<|im_start|>assistant\n');
-  return parts.join('');
+  return formatMessagesWithRoleWrap(messages, 'ChatML', {
+    system: (c) => `<|im_start|>system\n${c}<|im_end|>\n`,
+    user: (c) => `<|im_start|>user\n${c}<|im_end|>\n`,
+    assistant: (c) => `<|im_start|>assistant\n${c}<|im_end|>\n`,
+  }, {
+    suffix: '<|im_start|>assistant\n',
+  });
 }
 
 function formatQwen(messages) {
-  // Qwen 3.5 chat format is ChatML-like, but the generation prelude includes
-  // an explicit empty thinking block before assistant output.
-  const parts = [];
-  for (const [index, message] of messages.entries()) {
-    const role = normalizeChatRole(message?.role);
-    assertSupportedChatRole(role, 'Qwen', index);
-    if (role === 'system' && index !== 0) {
-      throw new Error('Qwen template requires any system message to appear first.');
-    }
-    const content = normalizeChatMessageContent(message?.content);
-    if (role === 'system') {
-      parts.push(`<|im_start|>system\n${content}<|im_end|>\n`);
-    } else if (role === 'user') {
-      parts.push(`<|im_start|>user\n${content}<|im_end|>\n`);
-    } else if (role === 'assistant') {
-      parts.push(`<|im_start|>assistant\n${content}<|im_end|>\n`);
-    }
-  }
-  parts.push('<|im_start|>assistant\n<think>\n\n</think>\n\n');
-  return parts.join('');
+  return formatMessagesWithRoleWrap(messages, 'Qwen', {
+    system: (c) => `<|im_start|>system\n${c}<|im_end|>\n`,
+    user: (c) => `<|im_start|>user\n${c}<|im_end|>\n`,
+    assistant: (c) => `<|im_start|>assistant\n${c}<|im_end|>\n`,
+  }, {
+    suffix: '<|im_start|>assistant\n<think>\n\n</think>\n\n',
+    beforeMessage: (role, index) => {
+      if (role === 'system' && index !== 0) {
+        throw new Error('Qwen template requires any system message to appear first.');
+      }
+    },
+  });
 }
 
 function formatTranslateGemmaUserPrompt(content) {

@@ -17,7 +17,20 @@ export const ERROR_CODES = {
   DISTRIBUTION_SHARD_MANIFEST_VERSION_SET_MISMATCH: 'DOPPLER_DISTRIBUTION_SHARD_MANIFEST_VERSION_SET_MISMATCH',
 };
 
+// Validate that all error code values are unique at module init time.
+// Duplicate values would cause ambiguous error identification.
+const seenCodeValues = new Set();
+for (const [key, value] of Object.entries(ERROR_CODES)) {
+  if (seenCodeValues.has(value)) {
+    throw new Error(`DopplerError: duplicate error code value "${value}" for key "${key}".`);
+  }
+  seenCodeValues.add(value);
+}
+
 export function createDopplerError(code, message) {
+  if (!seenCodeValues.has(code)) {
+    throw new Error(`DopplerError: unknown error code "${code}". Register it in ERROR_CODES first.`);
+  }
   const error = new Error(`[${code}] ${message}`);
   error.code = code;
   return error;

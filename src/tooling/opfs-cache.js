@@ -46,6 +46,23 @@ function hasSameShardSet(aManifest, bManifest) {
   return true;
 }
 
+// buildManifestFingerprint compares a deliberate subset of manifest fields.
+// Compared fields (partial match by design):
+//   - modelId, modelHash, hashAlgorithm: identity and integrity algorithm
+//   - quantization, quantizationInfo (weights/embeddings/compute/variantTag/layout):
+//     determines weight format compatibility
+//   - inference.layerPattern (type/globalPattern/period/offset/layerTypes):
+//     determines layer dispatch structure
+//   - shards (filename/size/hash per shard): data identity
+//   - sourceArtifactFingerprint: tracks direct-source asset changes
+//
+// NOT compared (intentionally excluded because they change without affecting
+// cached shard validity):
+//   - manifest.version, manifest.config, manifest.architecture,
+//     manifest.inference.execution, manifest.tokenizer, manifest.moeConfig,
+//     manifest.inference.attention, manifest.inference.output
+// This partial match avoids spurious re-downloads when only non-shard-affecting
+// metadata changes (e.g., tokenizer config tweaks, output config updates).
 function buildManifestFingerprint(manifest) {
   const sourceArtifactFingerprint = resolveSourceArtifact(manifest)?.fingerprint ?? null;
   const inference = manifest?.inference ?? {};
@@ -67,7 +84,6 @@ function buildManifestFingerprint(manifest) {
       layout: quantizationInfo.layout ?? null,
     },
     inference: {
-      defaultKernelPath: inference.defaultKernelPath ?? null,
       layerPattern: {
         type: layerPattern.type ?? null,
         globalPattern: layerPattern.globalPattern ?? null,
@@ -164,7 +180,7 @@ export async function ensureModelCached(modelId, modelBaseUrl) {
     return { cached: false, fromCache: false, modelId, error: message };
   }
 
-  log.info(MODULE, `Cache miss: "${modelId}". Importing from ${modelBaseUrl}...`);
+  log.info(MODULE, `Cache miss: "${modelId}". Triggering full model download from ${modelBaseUrl}`);
 
   try {
     const success = await downloadModel(modelBaseUrl, (progress) => {

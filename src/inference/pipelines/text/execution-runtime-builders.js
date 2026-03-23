@@ -1,7 +1,8 @@
 import { selectRuleValue } from '../../../rules/rule-registry.js';
+import { log } from '../../../debug/index.js';
 
 // =============================================================================
-// Shared execution helpers used by both v0 and v1 execution runtimes.
+// Shared execution helpers used by the v1 execution runtime.
 // =============================================================================
 
 export const PIPELINE_COMPATIBLE_OPS = new Set([
@@ -47,7 +48,14 @@ export function requireSessionActivationDtype(
 
 function toKernelPathStep(step) {
   if (step.op === 'cast') return null;
-  if (!step.kernel) return null;
+  if (!step.kernel) {
+    log.warn(
+      'ExecutionRuntime',
+      `toKernelPathStep: dropping step with op="${step.op}" — no kernel assigned. ` +
+      `Section: ${step.section ?? 'unknown'}, phase: ${step.phase ?? 'unknown'}.`
+    );
+    return null;
+  }
   return {
     op: step.op,
     kernel: step.kernel,
@@ -132,13 +140,13 @@ export function assertKernelPathSessionCompatibility(path, sessionDefaults) {
   }
 }
 
-export function resolveFinitenessFallbackKernelPathId(defaultKernelPathId) {
-  return defaultKernelPathId
+export function resolveFinitenessFallbackKernelPathId(kernelPathId) {
+  return kernelPathId
     ? selectRuleValue(
       'inference',
       'kernelPath',
       'finitenessFallback',
-      { kernelPathId: defaultKernelPathId }
+      { kernelPathId }
     )
     : null;
 }
@@ -218,7 +226,17 @@ export function buildInlineKernelPath(
   return path;
 }
 
-export function buildLayerPipelineFromExecution(steps) {
+/**
+ * Build a layer pipeline from execution-v1 resolved steps.
+ *
+ * @param {readonly Record<string, unknown>[]} steps - Resolved execution steps.
+ * @param {{ strict?: boolean }} [options] - When strict is true, throws on
+ *   incompatible ops instead of returning a degraded result.
+ * @returns {{ steps: Record<string, unknown>[]; overrides: unknown[]; hasIncompatibleOps: boolean }
+ *   | { incompatibleOps: string[]; hasIncompatibleOps: true } | null}
+ */
+export function buildLayerPipelineFromExecution(steps, options = {}) {
+  const { strict = false } = options;
   const layerSectionSteps = steps.filter((step) => step.section === 'layer');
   if (layerSectionSteps.length === 0) {
     return null;
@@ -231,7 +249,14 @@ export function buildLayerPipelineFromExecution(steps) {
     ),
   ];
   if (incompatibleOps.length > 0) {
-    return { incompatibleOps };
+    const message =
+      `[Execution] Layer pipeline contains ops not in PIPELINE_COMPATIBLE_OPS: ` +
+      `${incompatibleOps.join(', ')}. Pipeline will be degraded.`;
+    if (strict) {
+      throw new Error(message);
+    }
+    log.error('ExecutionRuntime', message);
+    return { incompatibleOps, hasIncompatibleOps: true };
   }
 
   const layerSteps = layerSectionSteps
@@ -257,9 +282,34 @@ export function buildLayerPipelineFromExecution(steps) {
   return {
     steps: layerSteps,
     overrides: [],
+    hasIncompatibleOps: false,
   };
 }
 
+/**
+ * Build a runtime config patch from manifest sessionDefaults.
+ *
+ * Field consumption status after merge into runtimeConfig.inference:
+ *
+ * CONSUMED (read by layers/logits/generator via runtimeConfig.inference.compute):
+ *   - patch.compute.activationDtype  -- read by execution plan compilation,
+ *     logits fallback (getRuntimeConfig().inference.compute.activationDtype),
+ *     and layer context builder.
+ *
+ * CONSUMED (read by KV cache and batching subsystems):
+ *   - patch.kvcache.*
+ *   - patch.batching.*
+ *   - patch.generation.disableCommandBatching
+ *
+ * DEAD / NOT CONSUMED at runtime (merged into runtimeConfig but never read back):
+ *   - patch.session.compute.defaults.mathDtype
+ *   - patch.session.compute.defaults.accumDtype
+ *   - patch.session.compute.defaults.outputDtype
+ *
+ * The dead fields are retained for manifest round-trip fidelity and potential
+ * future consumption. They should NOT be removed (non-breaking), but new code
+ * should not rely on reading them from runtimeConfig.inference.session.
+ */
 export function buildSessionRuntimePatch(sessionDefaults) {
   const patch = {};
   const computeDefaults = sessionDefaults?.compute?.defaults ?? null;
@@ -267,21 +317,34 @@ export function buildSessionRuntimePatch(sessionDefaults) {
   const sessionComputeDefaultsPatch = {};
   const activationDtype = computeDefaults?.activationDtype;
   if (activationDtype) {
+    // CONSUMED: merged into patch.compute and read by execution plan + logits
     computePatch.activationDtype = activationDtype;
   }
   if (computeDefaults?.mathDtype) {
+    // DEPRECATED / DEAD: merged into patch.session.compute.defaults but never
+    // read back by any runtime subsystem. Retained for manifest round-trip.
     sessionComputeDefaultsPatch.mathDtype = computeDefaults.mathDtype;
   }
   if (computeDefaults?.accumDtype) {
+    // DEPRECATED / DEAD: see mathDtype note above.
     sessionComputeDefaultsPatch.accumDtype = computeDefaults.accumDtype;
   }
   if (computeDefaults?.outputDtype) {
+    // DEPRECATED / DEAD: see mathDtype note above.
     sessionComputeDefaultsPatch.outputDtype = computeDefaults.outputDtype;
   }
   if (Object.keys(computePatch).length > 0) {
     patch.compute = computePatch;
   }
   if (Object.keys(sessionComputeDefaultsPatch).length > 0) {
+    // Log a deprecation notice listing the dead fields that are merged but never consumed.
+    const deadFields = Object.keys(sessionComputeDefaultsPatch);
+    log.debug(
+      'ExecutionRuntime',
+      `Session compute defaults contain fields that are merged but not consumed at runtime ` +
+      `(deprecated): ${deadFields.join(', ')}. ` +
+      'These are retained for manifest round-trip fidelity only.'
+    );
     patch.session = {
       compute: {
         defaults: sessionComputeDefaultsPatch,

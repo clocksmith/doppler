@@ -10,6 +10,7 @@ import {
 import { sanitizeModelId } from './core.js';
 import { resolveTensorRole } from '../formats/rdrr/index.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
+import { log } from '../debug/index.js';
 
 function normalizeWeightDtype(dtype) {
   if (!dtype) return null;
@@ -173,6 +174,23 @@ function resolveConversionPlanV1(options) {
   const manifestQuantization = resolveManifestQuantization(weightOverride, sourceQuantization);
 
   const modelType = converterConfig?.modelType ?? rawConfig?.model_type ?? 'transformer';
+
+  // Warn if tensor count seems low for the declared architecture.
+  // A typical transformer layer has at least 4 weight tensors (QKV + O projections),
+  // plus embeddings and output head, so numLayers * 4 is a rough lower bound.
+  const archLayers = converterConfig?.architecture?.numLayers
+    ?? rawConfig?.num_hidden_layers
+    ?? null;
+  if (archLayers != null && tensors.length > 0) {
+    const minExpected = archLayers * 4;
+    if (tensors.length < minExpected) {
+      log.warn(
+        'Convert',
+        `Tensor count (${tensors.length}) seems low for ${archLayers}-layer architecture ` +
+        `(expected at least ~${minExpected}). Verify source checkpoint is complete.`
+      );
+    }
+  }
 
   // Build manifest inference directly from config (no external family resolution)
   const manifestInference = {

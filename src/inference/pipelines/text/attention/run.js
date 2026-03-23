@@ -25,7 +25,6 @@ import { kernelTrace, traceStep } from '../kernel-trace.js';
 import { log, trace } from '../../../../debug/index.js';
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
 import { runProbes } from '../probes.js';
-import { SlidingWindowKVCache } from '../../../kv-cache.js';
 import {
   recordAttentionInputs,
   shouldForceF32AttentionProjectionForRoPE,
@@ -39,20 +38,13 @@ import {
   shouldDebugLayer,
   markStageLogged,
 } from './types.js';
+import {
+  resolveKVCacheState,
+  buildAttentionDispatchParams,
+  buildAttentionInputsData,
+} from './dispatch-params.js';
 
 const ATTENTION_DTYPE_LOGGED = new Set();
-
-function normalizeLayerType(layerType) {
-  return typeof layerType === 'string' ? layerType.trim().toLowerCase() : '';
-}
-
-function isSlidingLayerType(layerType) {
-  const normalized = normalizeLayerType(layerType);
-  return normalized === 'sliding_attention'
-    || normalized === 'local_attention'
-    || normalized === 'local'
-    || normalized === 'sliding';
-}
 
 export async function runLayerAttentionGPU(
   input,
@@ -139,18 +131,20 @@ export async function runLayerAttentionGPU(
   try {
   if (!skipInputNorm && layerWeights.inputNorm && getNormWeightBuffer) {
     const normWeightBuf = getNormWeightBuffer(layerWeights.inputNorm, 'input_norm');
+    try {
+      // Debug: norm weights for configured layers
+      if (isPrefill && shouldDebugLayer(layerIdx, debugFlags.debugLayers) && !markStageLogged(layerIdx, 'norm_weights', debugFlags) && debugCheckBuffer) {
+        await debugCheckBuffer(normWeightBuf, `L${layerIdx} input norm weights (GPU)`, 1, hiddenSize);
+      }
 
-    // Debug: norm weights for configured layers
-    if (isPrefill && shouldDebugLayer(layerIdx, debugFlags.debugLayers) && !markStageLogged(layerIdx, 'norm_weights', debugFlags) && debugCheckBuffer) {
-      await debugCheckBuffer(normWeightBuf, `L${layerIdx} input norm weights (GPU)`, 1, hiddenSize);
+      normed = await runRMSNorm(attentionInput, normWeightBuf, rmsNormEps, {
+        batchSize: numTokens,
+        hiddenSize,
+        rmsNormWeightOffset: config.rmsNormWeightOffset,
+      });
+    } finally {
+      if (!(layerWeights.inputNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuf);
     }
-
-    normed = await runRMSNorm(attentionInput, normWeightBuf, rmsNormEps, {
-      batchSize: numTokens,
-      hiddenSize,
-      rmsNormWeightOffset: config.rmsNormWeightOffset,
-    });
-    if (!(layerWeights.inputNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuf);
 
     // Trace input norm output
     if (kernelTrace.enabled) {
@@ -408,202 +402,60 @@ export async function runLayerAttentionGPU(
   }
 
   // 4. Update KV cache (cache stores raw GPUBuffers for memory efficiency)
-  
-  let cachedK;
-  
-  let cachedV;
-  let kvLenForAttention = currentSeqLen + numTokens;
-  let causalForAttention = config.causalAttention !== false;
-  let startPosForMask = currentSeqLen;
-  let kvStart = 0;
-  let kvLayout = 'contiguous';
-  let kvPageTable = null;
-  let kvPageSize = 0;
-  let cachedKHot;
-  let cachedVHot;
-  let cachedKCold;
-  let cachedVCold;
-  let coldScalesK = null;
-  let coldScalesV = null;
-  let coldPackedStride = 0;
-  let coldQuantMode = 'none';
-  let coldLen = 0;
-  let hotLen = 0;
-  let hotStart = 0;
-  let hotWindow = 0;
-  let coldPageTable = null;
-  let coldPageSize = 0;
-  let bdpaBasisK = null;
-  let bdpaBasisV = null;
-  let bdpaPagedK = null;
-  let bdpaPagedV = null;
-  let bdpaIndex = null;
-  let bdpaBasisCount = 0;
-  const totalSeqLen = currentSeqLen + numTokens;
 
-  const hasCache = state.kvCache?.hasGPUCache?.();
-
-  if (hasCache) {
+  if (state.kvCache?.hasGPUCache?.()) {
     if (state.kvCache.kvDtype === 'f16') {
-      // Use tensor dtype to determine if cast is needed
       const kCasted = kTensor.dtype === 'f16' ? kTensor : await castF32ToF16(kTensor);
       const vCasted = vTensor.dtype === 'f16' ? vTensor : await castF32ToF16(vTensor);
 
       await state.kvCache.updateFromGPU(layerIdx, kCasted.buffer, vCasted.buffer, currentSeqLen, numTokens, tokenIds);
 
-      // Only release if we created new buffers
       if (kTensor.dtype !== 'f16') releaseBuffer(kCasted.buffer);
       if (vTensor.dtype !== 'f16') releaseBuffer(vCasted.buffer);
     } else {
       await state.kvCache.updateFromGPU(layerIdx, kTensor.buffer, vTensor.buffer, currentSeqLen, numTokens, tokenIds);
     }
-    const gpuBuffers = state.kvCache.getGPUBuffers(layerIdx);
-    if (gpuBuffers?.layout === 'tiered') {
-      cachedKHot = gpuBuffers.hotKeysGPU;
-      cachedVHot = gpuBuffers.hotValuesGPU;
-      cachedKCold = gpuBuffers.coldKeysGPU;
-      cachedVCold = gpuBuffers.coldValuesGPU;
-      coldScalesK = gpuBuffers.coldScalesKGPU ?? null;
-      coldScalesV = gpuBuffers.coldScalesVGPU ?? null;
-      coldPackedStride = gpuBuffers.coldPackedStride ?? 0;
-      coldQuantMode = gpuBuffers.coldQuantMode ?? 'none';
-      hotLen = gpuBuffers.hotSeqLen ?? 0;
-      coldLen = gpuBuffers.coldSeqLen ?? 0;
-      hotStart = gpuBuffers.hotStart ?? 0;
-      hotWindow = gpuBuffers.hotWindow ?? 0;
-      coldPageTable = gpuBuffers.coldPageTableGPU ?? null;
-      coldPageSize = gpuBuffers.coldPageSize ?? state.kvCache.coldPageSize ?? 0;
-      kvLenForAttention = coldLen + hotLen;
-      kvLayout = 'tiered';
-    } else if (gpuBuffers?.layout === 'bdpa') {
-      kvLayout = 'bdpa';
-      kvLenForAttention = gpuBuffers.seqLen;
-      bdpaBasisK = gpuBuffers.basisGPU.k;
-      bdpaBasisV = gpuBuffers.basisGPU.v;
-      bdpaPagedK = gpuBuffers.pagedGPU.k;
-      bdpaPagedV = gpuBuffers.pagedGPU.v;
-      bdpaIndex = gpuBuffers.indexGPU;
-      bdpaBasisCount = gpuBuffers.numBasisVectors ?? state.kvCache.basisVocabSize;
-    } else {
-      cachedK = gpuBuffers.keysGPU;
-      cachedV = gpuBuffers.valuesGPU;
-      kvLenForAttention = gpuBuffers.seqLen;
-      kvPageTable = gpuBuffers.pageTableGPU ?? null;
-      kvPageSize = gpuBuffers.pageSize ?? state.kvCache.pageSize ?? 0;
-      if (state.kvCache instanceof SlidingWindowKVCache) {
-        kvLayout = 'ring';
-      } else if (state.kvCache.layout === 'paged') {
-        kvLayout = 'paged';
-      }
-    }
 
     // Kernel step debug: KV cache state after update
     if (isKernelDebugEnabled(layerIdx)) {
-      trace.kv(layerIdx, `KV cache updated: kvLen=${kvLenForAttention}, startPos=${currentSeqLen}, numTokens=${numTokens}`);
+      trace.kv(layerIdx, `KV cache updated: startPos=${currentSeqLen}, numTokens=${numTokens}`);
       await dumpKVCache(( (state.kvCache)), layerIdx);
     }
-  } else {
-    cachedK = kTensor.buffer;
-    cachedV = vTensor.buffer;
-    kvLenForAttention = numTokens;
-    startPosForMask = 0;
   }
 
-  const attentionKernelVariant = selectRuleValue('inference', 'attention', 'attentionKernelVariant', {
-    kvLayout,
-    numTokens,
-    coldQuantMode,
-  });
-
-  if (attentionKernelVariant === 'contiguous' && kvLayout === 'tiered') {
-    kvLayout = 'contiguous';
-    cachedK = kTensor.buffer;
-    cachedV = vTensor.buffer;
-    kvLenForAttention = numTokens;
-    startPosForMask = 0;
-    cachedKHot = null;
-    cachedVHot = null;
-    cachedKCold = null;
-    cachedVCold = null;
-    coldQuantMode = 'none';
-  }
-
-  // Sliding window attention for specific layers
-  // The kernel now handles both causal AND sliding window masking together.
-  // We no longer need to disable causal masking for sliding layers.
-  const hasSlidingWindow = Number.isFinite(slidingWindow) && slidingWindow > 0;
-  const hasLayerTypes = Array.isArray(config.layerTypes);
-  const isLayerSliding = isSlidingLayerType(layerType) || (!hasLayerTypes && hasSlidingWindow);
-  const candidateSlidingWindow = isLayerSliding ? slidingWindow : null;
-  const effectiveSlidingWindow = candidateSlidingWindow;
-
-  const canWindow = hasCache && effectiveSlidingWindow;
-  if (attentionKernelVariant !== 'tiered' && attentionKernelVariant !== 'tieredQuant') {
-    if (canWindow && kvLenForAttention > effectiveSlidingWindow) {
-      kvLenForAttention = effectiveSlidingWindow;
-    }
-    if (hasCache && (kvLayout === 'ring' || (canWindow && kvLenForAttention < totalSeqLen))) {
-      kvStart = Math.max(0, totalSeqLen - kvLenForAttention);
-    }
-  }
-
-  if (kvLenForAttention <= 0) {
-    throw new Error(`Invalid kvLen ${kvLenForAttention} at layer ${layerIdx}`);
-  }
+  // Resolve KV cache state and build dispatch parameters (shared with record.js)
+  const kvState = resolveKVCacheState(state, layerIdx, kTensor, vTensor, currentSeqLen, numTokens);
+  const dispatchConfig = {
+    layerIdx, numTokens, isPrefill, numHeads, numKVHeads, headDim, hiddenSize,
+    slidingWindow, layerType, layerTypes: config.layerTypes,
+    queryPreAttnScalar, causalAttention: config.causalAttention,
+    activationDtype: config.activationDtype,
+    kvCacheDtype: state.kvCache?.kvDtype ?? null,
+  };
+  const dispatchParams = buildAttentionDispatchParams(dispatchConfig, state, kTensor, vTensor, kvState);
+  const {
+    effectiveSlidingWindow, attentionKernelVariant, attnScale,
+    cachedKDtype, cachedVDtype, cachedKTensor, cachedVTensor,
+    causalForAttention,
+  } = dispatchParams;
 
   // 5. Attention (uses raw GPUBuffers)
-  // query_pre_attn_scalar is used as: scale = scalar^(-0.5) = 1/sqrt(scalar)
-  // When scalar equals headDim (e.g., 256): scale = 1/sqrt(256) = 1/16 (standard head_dim scaling)
-  const attnScale = queryPreAttnScalar ? 1.0 / Math.sqrt(queryPreAttnScalar) : 1.0 / Math.sqrt(headDim);
+
   // Debug: log scale on layer 0
   if (layerIdx === 0 && isPrefill) {
     trace.attn(layerIdx, `Attention scale=${attnScale.toFixed(6)}, queryPreAttnScalar=${queryPreAttnScalar ?? 'undefined'}, headDim=${headDim}`);
   }
-  // Wrap cached K/V in Tensors (dtype from cache or input tensor)
-  const cachedKDtype = selectRuleValue('inference', 'dtype', 'f16OrFallback', {
-    kvDtype: state.kvCache?.kvDtype,
-    fallback: kTensor.dtype,
-  });
-  const cachedVDtype = selectRuleValue('inference', 'dtype', 'f16OrFallback', {
-    kvDtype: state.kvCache?.kvDtype,
-    fallback: vTensor.dtype,
-  });
-  const cachedKTensor = attentionKernelVariant === 'tiered' || attentionKernelVariant === 'tieredQuant'
-    ? null
-    : createTensor(cachedK, cachedKDtype, [kvLenForAttention, numKVHeads * headDim], 'cached_K');
-  const cachedVTensor = attentionKernelVariant === 'tiered' || attentionKernelVariant === 'tieredQuant'
-    ? null
-    : createTensor(cachedV, cachedVDtype, [kvLenForAttention, numKVHeads * headDim], 'cached_V');
 
-  recordAttentionInputs(state, {
-    phase: isPrefill ? 'prefill' : 'decode',
-    layerIdx,
-    numTokens,
-    kvLen: kvLenForAttention,
-    numHeads,
-    numKVHeads,
-    headDim,
-    activationDtype: config.activationDtype ?? null,
-    inputDtype: input.dtype,
-    normedDtype: normed.dtype,
-    useF16Activations,
-    matmulOutputDtype,
-    kvCacheDtype: state.kvCache?.kvDtype ?? null,
-    cachedKDtype,
-    cachedVDtype,
-    qDtype: qTensor?.dtype ?? null,
-    kDtype: kTensor?.dtype ?? null,
-    vDtype: vTensor?.dtype ?? null,
-    useFusedQKV: usedFusedQKV,
-    kvStart,
-    kvLayout,
-    kvPageSize: kvLayout === 'tiered' ? (coldPageSize || null) : (kvPageSize || null),
-    hotLen: kvLayout === 'tiered' ? hotLen : null,
-    coldLen: kvLayout === 'tiered' ? coldLen : null,
-    hotWindow: kvLayout === 'tiered' ? hotWindow : null,
-    hotStart: kvLayout === 'tiered' ? hotStart : null,
-    coldQuantMode: kvLayout === 'tiered' ? coldQuantMode : null,
-  });
+  // Kernel step debug: KV cache state after resolve
+  if (isKernelDebugEnabled(layerIdx)) {
+    trace.kv(layerIdx, `KV resolved: kvLen=${kvState.kvLenForAttention}, layout=${kvState.kvLayout}`);
+  }
+
+  recordAttentionInputs(state, buildAttentionInputsData(
+    dispatchConfig, input, normed, kvState, dispatchParams,
+    { useF16Activations, matmulOutputDtype },
+    usedFusedQKV, qTensor, kTensor, vTensor,
+  ));
 
   const attentionKernelRunners = {
     bdpa: async () => {
@@ -617,26 +469,26 @@ export async function runLayerAttentionGPU(
           `BDPA attention kernel supports headDim <= ${BDPA_MAX_HEAD_DIM}; got headDim=${headDim}.`
         );
       }
-      if (kvLenForAttention > BDPA_MAX_KV_LEN) {
+      if (kvState.kvLenForAttention > BDPA_MAX_KV_LEN) {
         throw new Error(
-          `BDPA attention kernel supports kvLen <= ${BDPA_MAX_KV_LEN}; got kvLen=${kvLenForAttention}.`
+          `BDPA attention kernel supports kvLen <= ${BDPA_MAX_KV_LEN}; got kvLen=${kvState.kvLenForAttention}.`
         );
       }
       const basisKDtype = 'f16';
       const basisVDtype = 'f16';
-      const basisCount = Math.max(1, bdpaBasisCount);
-      const basisKTensor = createTensor(bdpaBasisK, basisKDtype, [basisCount, numKVHeads * headDim], 'bdpa_basis_k');
-      const basisVTensor = createTensor(bdpaBasisV, basisVDtype, [basisCount, numKVHeads * headDim], 'bdpa_basis_v');
+      const basisCount = Math.max(1, kvState.bdpaBasisCount);
+      const basisKTensor = createTensor(kvState.bdpaBasisK, basisKDtype, [basisCount, numKVHeads * headDim], 'bdpa_basis_k');
+      const basisVTensor = createTensor(kvState.bdpaBasisV, basisVDtype, [basisCount, numKVHeads * headDim], 'bdpa_basis_v');
       let qForBDPA = qTensor;
       if (qForBDPA.dtype !== 'f16') {
         qForBDPA = await castF32ToF16(qTensor);
       }
-      const output = await runAttentionBDPA(qForBDPA, basisKTensor, basisVTensor, bdpaPagedK, bdpaPagedV, bdpaIndex, numHeads, headDim, {
+      const output = await runAttentionBDPA(qForBDPA, basisKTensor, basisVTensor, kvState.bdpaPagedK, kvState.bdpaPagedV, kvState.bdpaIndex, numHeads, headDim, {
         seqLen: numTokens,
-        kvLen: kvLenForAttention,
+        kvLen: kvState.kvLenForAttention,
         numKVHeads,
         causal: causalForAttention,
-        startPos: startPosForMask,
+        startPos: kvState.startPosForMask,
         layerIdx,
         slidingWindow: effectiveSlidingWindow,
         attnSoftcap,
@@ -652,34 +504,34 @@ export async function runLayerAttentionGPU(
     tieredQuant: async () => {
       let qForAttention = qTensor;
       let qTemp = null;
-      if (coldQuantMode !== 'none' && qTensor.dtype !== 'f32') {
+      if (kvState.coldQuantMode !== 'none' && qTensor.dtype !== 'f32') {
         qForAttention = await castF16ToF32(qTensor);
         qTemp = qForAttention;
       }
-      const cachedHotKTensor = createTensor(cachedKHot, cachedKDtype, [hotLen, numKVHeads * headDim], 'cached_K_hot');
-      const cachedHotVTensor = createTensor(cachedVHot, cachedVDtype, [hotLen, numKVHeads * headDim], 'cached_V_hot');
+      const cachedHotKTensor = createTensor(kvState.cachedKHot, cachedKDtype, [kvState.hotLen, numKVHeads * headDim], 'cached_K_hot');
+      const cachedHotVTensor = createTensor(kvState.cachedVHot, cachedVDtype, [kvState.hotLen, numKVHeads * headDim], 'cached_V_hot');
 
-      if (coldQuantMode === 'none') {
+      if (kvState.coldQuantMode === 'none') {
         throw new Error('Tiered quant attention requires cold quant mode.');
       }
-      if (!coldScalesK || !coldScalesV) {
+      if (!kvState.coldScalesK || !kvState.coldScalesV) {
         throw new Error('Tiered quant attention requires cold scale buffers.');
       }
 
-      const output = await runAttentionTieredQuant(qForAttention, cachedHotKTensor, cachedHotVTensor, cachedKCold, cachedVCold, coldScalesK, coldScalesV, numHeads, headDim, {
+      const output = await runAttentionTieredQuant(qForAttention, cachedHotKTensor, cachedHotVTensor, kvState.cachedKCold, kvState.cachedVCold, kvState.coldScalesK, kvState.coldScalesV, numHeads, headDim, {
         seqLen: numTokens,
-        coldLen,
-        hotLen,
+        coldLen: kvState.coldLen,
+        hotLen: kvState.hotLen,
         numKVHeads,
         causal: causalForAttention,
-        startPos: startPosForMask,
+        startPos: kvState.startPosForMask,
         slidingWindow: effectiveSlidingWindow ?? 0,
         attnSoftcap,
         scale: attnScale,
-        hotWindow,
-        hotStart,
-        packedStride: coldPackedStride,
-        mode: coldQuantMode,
+        hotWindow: kvState.hotWindow,
+        hotStart: kvState.hotStart,
+        packedStride: kvState.coldPackedStride,
+        mode: kvState.coldQuantMode,
       });
 
       if (qTemp) {
@@ -689,42 +541,42 @@ export async function runLayerAttentionGPU(
     },
     tiered: async () => {
       const qForAttention = qTensor;
-      const cachedHotKTensor = createTensor(cachedKHot, cachedKDtype, [hotLen, numKVHeads * headDim], 'cached_K_hot');
-      const cachedHotVTensor = createTensor(cachedVHot, cachedVDtype, [hotLen, numKVHeads * headDim], 'cached_V_hot');
-      const cachedColdKTensor = createTensor(cachedKCold, cachedKDtype, [coldLen, numKVHeads * headDim], 'cached_K_cold');
-      const cachedColdVTensor = createTensor(cachedVCold, cachedVDtype, [coldLen, numKVHeads * headDim], 'cached_V_cold');
+      const cachedHotKTensor = createTensor(kvState.cachedKHot, cachedKDtype, [kvState.hotLen, numKVHeads * headDim], 'cached_K_hot');
+      const cachedHotVTensor = createTensor(kvState.cachedVHot, cachedVDtype, [kvState.hotLen, numKVHeads * headDim], 'cached_V_hot');
+      const cachedColdKTensor = createTensor(kvState.cachedKCold, cachedKDtype, [kvState.coldLen, numKVHeads * headDim], 'cached_K_cold');
+      const cachedColdVTensor = createTensor(kvState.cachedVCold, cachedVDtype, [kvState.coldLen, numKVHeads * headDim], 'cached_V_cold');
       return runAttentionTiered(qForAttention, cachedHotKTensor, cachedHotVTensor, cachedColdKTensor, cachedColdVTensor, numHeads, headDim, {
         seqLen: numTokens,
-        coldLen,
-        hotLen,
+        coldLen: kvState.coldLen,
+        hotLen: kvState.hotLen,
         numKVHeads,
         causal: causalForAttention,
-        startPos: startPosForMask,
+        startPos: kvState.startPosForMask,
         slidingWindow: effectiveSlidingWindow ?? 0,
         attnSoftcap,
         scale: attnScale,
-        hotWindow,
-        hotStart,
-        coldPageTable,
-        coldPageSize,
-        coldLayout: coldPageTable ? 2 : 0,
-        hotLayout: hotWindow > 0 ? 1 : 0,
+        hotWindow: kvState.hotWindow,
+        hotStart: kvState.hotStart,
+        coldPageTable: kvState.coldPageTable,
+        coldPageSize: kvState.coldPageSize,
+        coldLayout: kvState.coldPageTable ? 2 : 0,
+        hotLayout: kvState.hotWindow > 0 ? 1 : 0,
       });
     },
     contiguous: async () => runAttention(qTensor, cachedKTensor, cachedVTensor, null, numHeads, headDim, {
       seqLen: numTokens,
-      kvLen: kvLenForAttention,
+      kvLen: kvState.kvLenForAttention,
       numKVHeads,
       causal: causalForAttention,
-      startPos: startPosForMask,
+      startPos: kvState.startPosForMask,
       layerIdx,
       slidingWindow: effectiveSlidingWindow,
       attnSoftcap,
       scale: attnScale,
-      kvStart,
-      kvLayout,
-      kvPageTable,
-      kvPageSize,
+      kvStart: kvState.kvStart,
+      kvLayout: kvState.kvLayout,
+      kvPageTable: kvState.kvPageTable,
+      kvPageSize: kvState.kvPageSize,
       kernelPath,
     }),
   };
@@ -743,7 +595,7 @@ export async function runLayerAttentionGPU(
 
   // Kernel step debug: attention output
   if (isKernelDebugEnabled(layerIdx)) {
-    logKernelStep('attention', { layerIdx, label: `seqLen=${numTokens} kvLen=${kvLenForAttention}` });
+    logKernelStep('attention', { layerIdx, label: `seqLen=${numTokens} kvLen=${kvState.kvLenForAttention}` });
     await dumpTokenVector(attnOutput.buffer, 'attn_out', {
       layerIdx,
       tokenIdx: Math.max(0, numTokens - 1),

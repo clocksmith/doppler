@@ -23,6 +23,7 @@ import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { recordCheckFiniteness } from '../../../gpu/kernels/check-finiteness.js';
 import { shouldRunFinitenessGuard } from './finiteness-policy.js';
 import { runLinearAttentionLayer } from './linear-attention.js';
+import { validateAttnConfig } from './attention/attn-config.js';
 
 // ============================================================================
 // Architecture Detection
@@ -202,6 +203,8 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
 
   let attnOutput;
   let residualFused = false;
+  let postAttn = null;
+  try {
   if (isConvLayer) {
     const convInProj = layerWeights?.convInProj ?? null;
     const convOutProj = layerWeights?.convOutProj ?? null;
@@ -295,6 +298,8 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
       disableRoPE,
     };
 
+    validateAttnConfig(attnConfig, `L${layerIdx}`);
+
     const attnState = {
       ropeFreqsCos: (isLocalLayer && context.ropeLocalCos)
         ? (context.ropeLocalCos)
@@ -371,7 +376,6 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
 
   // 2. Handle residual connection based on architecture
 
-  let postAttn;
   if (residualFused) {
     postAttn = attnOutput;
     if (sandwichNorm.useSandwichNorm && sandwichNorm.hasPostAttentionNorm && layerWeights?.postAttentionNorm) {
@@ -474,6 +478,18 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
   }
 
   return finalOutput.buffer;
+  } catch (error) {
+    // Release any intermediate buffers allocated during step execution
+    const released = new Set();
+    const releaseOnce = (buf) => {
+      if (!buf || released.has(buf) || buf === inputBuffer) return;
+      released.add(buf);
+      releaseOrTrack(recorder, buf);
+    };
+    if (postAttn?.buffer) releaseOnce(postAttn.buffer);
+    if (attnOutput?.buffer && attnOutput.buffer !== postAttn?.buffer) releaseOnce(attnOutput.buffer);
+    throw error;
+  }
 }
 
 // ============================================================================

@@ -1,4 +1,5 @@
 
+import { log } from '../debug/index.js';
 import { trainStep } from './trainer.js';
 import { crossEntropyLoss } from './loss.js';
 import { clipGradients } from './clip.js';
@@ -574,7 +575,6 @@ function resolveCheckpointMetadataContext(config, runOptions = {}) {
   const kernelPathId = normalizeOptionalString(
     runOptions.kernelPathId
     || config?.runtime?.inference?.kernelPath
-    || config?.inference?.defaultKernelPath
   );
   const datasetIdentity = {
     modelId: normalizeOptionalString(runOptions.modelId),
@@ -845,9 +845,21 @@ export class TrainingRunner {
     this.resumeState = null;
   }
 
-  async run(model, dataset, options = {}) {
+  resetTrainingState() {
     this.lastCheckpoint = null;
     this.lastArtifact = null;
+    this.resumeState = null;
+    if (this.lossScaler && typeof this.lossScaler.reset === 'function') {
+      this.lossScaler.reset();
+    }
+    if (this.optimizer && typeof this.optimizer.reset === 'function') {
+      this.optimizer.reset();
+    }
+    log.debug('Training', 'Training state reset for new run');
+  }
+
+  async run(model, dataset, options = {}) {
+    this.resetTrainingState();
     const {
       epochs = 1,
       batchSize = 1,

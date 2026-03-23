@@ -16,6 +16,7 @@ import {
   createToolingSuccessEnvelope,
   normalizeToToolingCommandError,
 } from './command-envelope.js';
+import { assertCommandRequestIsObject, normalizeCommandOptions } from './command-validation.js';
 import {
   applyRuntimeInputs,
   buildSuiteOptions,
@@ -29,6 +30,8 @@ import {
 } from '../config/kernel-path-loader.js';
 
 export async function runBrowserCommand(commandRequest, options = {}) {
+  assertCommandRequestIsObject(commandRequest, 'browser');
+  const validatedOptions = normalizeCommandOptions(options, 'browser');
   let request = null;
   try {
     ({ request } = ensureCommandSupportedOnSurface(commandRequest, 'browser'));

@@ -98,16 +98,29 @@ export class KVCache {
     for (let l = 0; l < this.numLayers; l++) {
       if (device && this.useGPU) {
         // GPU-native storage
-        const keysGPU = device.createBuffer({
-          label: `kv_cache_keys_layer_${l}`,
-          size: sizePerLayer * this.bytesPerElem,
-          usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
-        });
-        const valuesGPU = device.createBuffer({
-          label: `kv_cache_values_layer_${l}`,
-          size: sizePerLayer * this.bytesPerElem,
-          usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
-        });
+        let keysGPU = null;
+        let valuesGPU = null;
+        try {
+          keysGPU = device.createBuffer({
+            label: `kv_cache_keys_layer_${l}`,
+            size: sizePerLayer * this.bytesPerElem,
+            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
+          });
+          valuesGPU = device.createBuffer({
+            label: `kv_cache_values_layer_${l}`,
+            size: sizePerLayer * this.bytesPerElem,
+            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
+          });
+        } catch (error) {
+          if (keysGPU) keysGPU.destroy();
+          if (valuesGPU) valuesGPU.destroy();
+          // Destroy buffers already allocated in previous layers
+          for (let prev = 0; prev < l; prev++) {
+            this.layers[prev]?.keysGPU?.destroy();
+            this.layers[prev]?.valuesGPU?.destroy();
+          }
+          throw error;
+        }
 
         this.layers[l] = {
           keysGPU,
@@ -142,37 +155,53 @@ export class KVCache {
 
     for (let l = 0; l < this.numLayers; l++) {
       if (device && this.useGPU) {
-        const keysGPU = device.createBuffer({
-          label: `kv_cache_keys_paged_layer_${l}`,
-          size: bytesPerLayer,
-          usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
-        });
-        const valuesGPU = device.createBuffer({
-          label: `kv_cache_values_paged_layer_${l}`,
-          size: bytesPerLayer,
-          usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
-        });
-        const pageTable = new Uint32Array(numPages);
-        for (let i = 0; i < numPages; i++) {
-          pageTable[i] = i;
-        }
-        const pageTableGPU = device.createBuffer({
-          label: `kv_cache_page_table_layer_${l}`,
-          size: pageTableBytes,
-          usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-        });
-        device.queue.writeBuffer(pageTableGPU, 0, pageTable);
+        let keysGPU = null;
+        let valuesGPU = null;
+        let pageTableGPU = null;
+        try {
+          keysGPU = device.createBuffer({
+            label: `kv_cache_keys_paged_layer_${l}`,
+            size: bytesPerLayer,
+            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
+          });
+          valuesGPU = device.createBuffer({
+            label: `kv_cache_values_paged_layer_${l}`,
+            size: bytesPerLayer,
+            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
+          });
+          const pageTable = new Uint32Array(numPages);
+          for (let i = 0; i < numPages; i++) {
+            pageTable[i] = i;
+          }
+          pageTableGPU = device.createBuffer({
+            label: `kv_cache_page_table_layer_${l}`,
+            size: pageTableBytes,
+            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+          });
+          device.queue.writeBuffer(pageTableGPU, 0, pageTable);
 
-        this.layers[l] = {
-          keyPages: new Array(numPages).fill(null),
-          valuePages: new Array(numPages).fill(null),
-          allocatedPages: 0,
-          seqLen: 0,
-          keysGPU,
-          valuesGPU,
-          pageTable,
-          pageTableGPU,
-        };
+          this.layers[l] = {
+            keyPages: new Array(numPages).fill(null),
+            valuePages: new Array(numPages).fill(null),
+            allocatedPages: 0,
+            seqLen: 0,
+            keysGPU,
+            valuesGPU,
+            pageTable,
+            pageTableGPU,
+          };
+        } catch (error) {
+          if (keysGPU) keysGPU.destroy();
+          if (valuesGPU) valuesGPU.destroy();
+          if (pageTableGPU) pageTableGPU.destroy();
+          // Destroy buffers already allocated in previous layers
+          for (let prev = 0; prev < l; prev++) {
+            this.layers[prev]?.keysGPU?.destroy();
+            this.layers[prev]?.valuesGPU?.destroy();
+            this.layers[prev]?.pageTableGPU?.destroy();
+          }
+          throw error;
+        }
         this.memoryUsage += (bytesPerLayer * 2) + pageTableBytes;
       } else {
         this.layers[l] = {

@@ -29,3 +29,13 @@ export const DEFAULT_KVCACHE_CONFIG = {
 };
 
 export const PAGED_LAYOUT_SEQ_LEN_THRESHOLD = 8192;
+
+const VALID_KV_DTYPES = new Set(['f16', 'f32']);
+
+export function validateKvCacheDtype(dtype) {
+  if (dtype != null && !VALID_KV_DTYPES.has(dtype)) {
+    throw new Error(
+      `DopplerConfigError: kvcache.kvDtype must be "f16" or "f32"; got ${JSON.stringify(dtype)}.`
+    );
+  }
+}

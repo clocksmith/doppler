@@ -61,11 +61,20 @@ export class MoERouter {
     if (config.numExperts == null) {
       throw new Error('MoERouter requires numExperts in config.');
     }
+    if (!Number.isFinite(config.numExperts) || config.numExperts <= 0) {
+      throw new Error(`MoERouter requires numExperts to be a positive number, got ${config.numExperts}.`);
+    }
     if (config.topK == null) {
       throw new Error('MoERouter requires topK in config.');
     }
+    if (!Number.isFinite(config.topK) || config.topK <= 0) {
+      throw new Error(`MoERouter requires topK to be a positive number, got ${config.topK}.`);
+    }
     if (config.hiddenSize == null) {
       throw new Error('MoERouter requires hiddenSize in config.');
+    }
+    if (!Number.isFinite(config.hiddenSize) || config.hiddenSize <= 0) {
+      throw new Error(`MoERouter requires hiddenSize to be a positive number, got ${config.hiddenSize}.`);
     }
     if (config.normalizeWeights == null) {
       throw new Error('MoERouter requires normalizeWeights in config.');
@@ -87,6 +96,12 @@ export class MoERouter {
 
   
   loadWeights(weights, bias = null) {
+    if (!weights) {
+      throw new Error('MoERouter.loadWeights requires non-null weights.');
+    }
+    if (bias != null && !(bias instanceof Float32Array) && !isGpuBufferInstance(bias)) {
+      throw new Error('MoERouter.loadWeights bias must be a Float32Array or GPUBuffer.');
+    }
     if (this._gateBiasGPU) {
       this._gateBiasGPU.destroy();
     }

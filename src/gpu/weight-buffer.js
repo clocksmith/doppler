@@ -1,5 +1,7 @@
 
 
+import { log } from '../debug/index.js';
+
 const bufferDtypes = new WeakMap();
 
 function canTrackBuffer(buffer) {
@@ -7,7 +9,10 @@ function canTrackBuffer(buffer) {
 }
 
 function normalizeDtype(dtype) {
-  if (typeof dtype !== 'string') return null;
+  if (typeof dtype !== 'string') {
+    log.debug('WeightBuffer', 'normalizeDtype received non-string dtype: ' + typeof dtype + ' (' + String(dtype) + ')');
+    return null;
+  }
   const value = dtype.toLowerCase();
   return value.length > 0 ? value : null;
 }
@@ -88,6 +93,11 @@ export function isCpuWeightBuffer(value) {
   );
 }
 
+// Intentionally lenient: does not call isValidGPUBuffer on value.buffer.
+// This function is used as a structural duck-type check to distinguish tensor-like
+// wrappers from raw GPUBuffer objects. The buffer property may hold a CPU typed array,
+// a GPU buffer, or a test double. Callers that need a valid GPU buffer should validate
+// the extracted buffer separately via isValidGPUBuffer in device.js.
 function isTensorLike(value) {
   return (
     typeof value === 'object' &&

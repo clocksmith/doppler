@@ -1,5 +1,3 @@
-
-
 import {
   LOG_LEVELS,
   currentLogLevel,
@@ -7,14 +5,27 @@ import {
   enabledModules,
   disabledModules,
   logHistory,
+  getLogHistoryLimit,
 } from './config.js';
 
 // ============================================================================
 // History Functions
 // ============================================================================
 
+/**
+ * Enforce the max history size by evicting oldest entries first.
+ * This is a safety net in case entries were pushed from multiple
+ * concurrent paths between limit checks in storeLog/storeTrace.
+ */
+function enforceHistoryLimit() {
+  const maxHistory = getLogHistoryLimit();
+  while (logHistory.length > maxHistory) {
+    logHistory.shift();
+  }
+}
 
 export function getLogHistory(filter = {}) {
+  enforceHistoryLimit();
   let history = [...logHistory];
 
   if (filter.level) {

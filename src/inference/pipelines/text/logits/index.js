@@ -61,6 +61,16 @@ export async function computeLogits(
   const { finalNorm, lmHead } = weights;
   const device = getDevice();
 
+  // Consistency check: warn if lmHead weight dtype disagrees with layer activation dtype.
+  const lmHeadWeightDtype = getWeightDtype(lmHead);
+  if (lmHeadWeightDtype && activationDtype && lmHeadWeightDtype !== activationDtype) {
+    log.debug(
+      'Logits',
+      `Logits lmHead weight dtype "${lmHeadWeightDtype}" differs from layer activationDtype "${activationDtype}". ` +
+      'This may be intentional (e.g., F32 weights with F16 activations) but could affect precision.'
+    );
+  }
+
   if (!finalNorm || !lmHead) {
     log.warn('Pipeline', 'Final norm or LM head not loaded, returning zeros');
     return new Float32Array(vocabSize);

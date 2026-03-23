@@ -189,6 +189,17 @@ export class EnergyPipeline {
     if (!manifest || manifest.modelType !== 'energy') {
       throw new Error('Energy pipeline requires an energy model manifest.');
     }
+    const capabilities = manifest.capabilities ?? manifest.config?.capabilities ?? null;
+    if (capabilities && typeof capabilities === 'object') {
+      if (capabilities.energyInference === false) {
+        throw new Error(
+          `Energy pipeline: model "${manifest.modelId}" does not support energy-based inference (capabilities.energyInference is false).`
+        );
+      }
+    }
+    if (!manifest.energy && !manifest.config?.energy) {
+      log.warn('Energy', `Model "${manifest.modelId}" has no energy configuration; defaults will be used.`);
+    }
     this.manifest = manifest;
     log.info('Energy', `Loaded energy model "${manifest.modelId}"`);
   }

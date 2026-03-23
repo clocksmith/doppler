@@ -67,6 +67,15 @@ async function loadTrainingSuiteModule() {
   return trainingSuiteModulePromise;
 }
 
+/**
+ * Clear the cached training suite module promise.
+ * Useful for testing or when the training module needs to be re-imported
+ * after configuration changes.
+ */
+export function clearTrainingSuiteModule() {
+  trainingSuiteModulePromise = null;
+}
+
 export async function runTrainingSuite(options = {}) {
   const module = await loadTrainingSuiteModule();
   return module.runTrainingSuite(options);

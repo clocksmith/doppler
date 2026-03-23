@@ -38,14 +38,12 @@ export function validateRuntimeOverrides(overrides) {
     throw new Error('DopplerConfigError: runtime overrides must be an object when provided.');
   }
 
-  assertRequiredRuntimeOverrideNotNull(overrides, 'shared');
-  assertRequiredRuntimeOverrideNotNull(overrides, 'loading');
-  assertRequiredRuntimeOverrideNotNull(overrides, 'inference');
-  assertRequiredRuntimeOverrideNotNull(overrides, 'emulation');
-  assertRequiredRuntimeOverrideNotNull(overrides?.inference, 'batching', 'runtime.inference');
-  assertRequiredRuntimeOverrideNotNull(overrides?.inference, 'compute', 'runtime.inference');
-  assertRequiredRuntimeOverrideNotNull(overrides?.inference, 'generation', 'runtime.inference');
-  assertRequiredRuntimeOverrideNotNull(overrides?.inference, 'kernelPathPolicy', 'runtime.inference');
+  for (const key of ['shared', 'loading', 'inference', 'emulation']) {
+    assertRequiredRuntimeOverrideNotNull(overrides, key);
+  }
+  for (const key of ['batching', 'compute', 'generation', 'kernelPathPolicy']) {
+    assertRequiredRuntimeOverrideNotNull(overrides?.inference, key, 'runtime.inference');
+  }
 
   const modelOverrides = overrides?.inference?.modelOverrides;
   if (modelOverrides !== undefined && modelOverrides !== null && !isPlainObject(modelOverrides)) {
@@ -184,14 +182,19 @@ function isDebugMode(debug) {
   return level === 'debug' || level === 'verbose';
 }
 
-function assertNullablePositiveInt(label, value) {
+function assertPositiveInt(label, value, { nullable = false } = {}) {
   if (value === undefined) {
     throw new Error(`DopplerConfigError: ${label} is required.`);
   }
-  if (value === null) return;
+  if (nullable && value === null) return;
   if (!Number.isFinite(value) || value <= 0 || Math.floor(value) !== value) {
-    throw new Error(`DopplerConfigError: ${label} must be a positive integer or null.`);
+    const suffix = nullable ? ' or null' : '';
+    throw new Error(`DopplerConfigError: ${label} must be a positive integer${suffix}.`);
   }
+}
+
+function assertNullablePositiveInt(label, value) {
+  assertPositiveInt(label, value, { nullable: true });
 }
 
 function assertEmbeddingMode(label, value) {
@@ -200,15 +203,6 @@ function assertEmbeddingMode(label, value) {
   }
   if (value !== 'last' && value !== 'mean') {
     throw new Error(`DopplerConfigError: ${label} must be "last" or "mean".`);
-  }
-}
-
-function assertPositiveInt(label, value) {
-  if (value === undefined) {
-    throw new Error(`DopplerConfigError: ${label} is required.`);
-  }
-  if (!Number.isFinite(value) || value <= 0 || Math.floor(value) !== value) {
-    throw new Error(`DopplerConfigError: ${label} must be a positive integer.`);
   }
 }
 

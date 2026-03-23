@@ -1,9 +1,9 @@
-import { resolveKernelPath } from '../../../config/kernel-path-loader.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 import {
   resolveDeferredRoundingWindowTokens,
   resolveRangeAwareSelectiveWideningConfig,
 } from './finiteness-policy.js';
+import { log } from '../../../debug/index.js';
 
 export const PRIMARY_EXECUTION_PLAN_ID = 'primary';
 export const FINITENESS_FALLBACK_EXECUTION_PLAN_ID = 'finiteness_fallback';
@@ -53,57 +53,6 @@ function resolveFallbackActivationDtype(primaryActivationDtype) {
     );
   }
   return fallbackActivationDtype;
-}
-
-function resolveFallbackKernelPath(primaryKernelPath) {
-  const primaryKernelPathId = primaryKernelPath?.id ?? null;
-  if (!primaryKernelPathId) {
-    return {
-      kernelPath: null,
-      kernelPathId: null,
-      kernelPathSource: 'none',
-    };
-  }
-
-  const explicitFallbackKernelPathId = typeof primaryKernelPath?.finitenessFallbackKernelPathId === 'string'
-    && primaryKernelPath.finitenessFallbackKernelPathId.length > 0
-    ? primaryKernelPath.finitenessFallbackKernelPathId
-    : null;
-
-  const fallbackKernelPathId = explicitFallbackKernelPathId ?? selectRuleValue(
-    'inference',
-    'kernelPath',
-    'finitenessFallback',
-    { kernelPathId: primaryKernelPathId }
-  );
-
-  if (typeof fallbackKernelPathId !== 'string' || fallbackKernelPathId.length === 0) {
-    throw new Error(
-      `[ExecutionPlan] Missing finiteness fallback kernel path mapping for "${primaryKernelPathId}". ` +
-      'Add an explicit rule in src/rules/inference/kernel-path.rules.json.'
-    );
-  }
-
-  if (fallbackKernelPathId === primaryKernelPathId) {
-    throw new Error(
-      `[ExecutionPlan] Invalid finiteness fallback mapping for "${primaryKernelPathId}": ` +
-      `fallback kernel path resolves to itself. Add an explicit widening path.`
-    );
-  }
-
-  try {
-    const kernelPath = resolveKernelPath(fallbackKernelPathId);
-    return {
-      kernelPath,
-      kernelPathId: fallbackKernelPathId,
-      kernelPathSource: 'rule',
-    };
-  } catch (error) {
-    throw new Error(
-      `[ExecutionPlan] Failed to resolve finiteness fallback kernel path "${fallbackKernelPathId}" ` +
-      `(from "${primaryKernelPathId}"): ${error?.message || error}`
-    );
-  }
 }
 
 function createStaticExecutionPlan({
@@ -160,10 +109,47 @@ function getPlanById(planState, planId) {
   throw new Error(`[ExecutionPlan] unknown plan id "${planId}".`);
 }
 
+function validatePlanAgainstManifest(plan, manifest) {
+  if (!manifest || !plan) return;
+  const manifestInf = manifest.inference ?? manifest;
+  const warnings = [];
+
+  const manifestActivationDtype = manifestInf.compute?.activationDtype
+    ?? manifestInf.quantizationInfo?.compute
+    ?? null;
+  if (manifestActivationDtype && plan.activationDtype
+    && plan.activationDtype !== manifestActivationDtype) {
+    warnings.push(
+      `activationDtype: plan="${plan.activationDtype}" vs manifest="${manifestActivationDtype}"`
+    );
+  }
+
+  const manifestKernelPathId = manifestInf.execution?.kernelPathId
+    ?? manifestInf.defaultKernelPath
+    ?? null;
+  if (manifestKernelPathId && plan.kernelPathId
+    && plan.kernelPathId !== manifestKernelPathId
+    && plan.kernelPathSource !== 'config') {
+    warnings.push(
+      `kernelPathId: plan="${plan.kernelPathId}" vs manifest="${manifestKernelPathId}"`
+    );
+  }
+
+  if (warnings.length > 0) {
+    log.warn(
+      'ExecutionPlan',
+      `Plan "${plan.id}" diverges from manifest: ${warnings.join('; ')}. ` +
+      'Verify runtime config and manifest are in sync.'
+    );
+  }
+}
+
 export function compileExecutionPlanState(options) {
   const runtimeConfig = options?.runtimeConfig;
   const resolvedKernelPath = options?.resolvedKernelPath ?? null;
   const kernelPathSource = options?.kernelPathSource ?? 'none';
+  const transformFallbackKernelPath = options?.fallbackKernelPath ?? null;
+  const manifest = options?.manifest ?? null;
 
   if (!runtimeConfig?.inference) {
     throw new Error('[ExecutionPlan] runtimeConfig.inference is required.');
@@ -197,7 +183,29 @@ export function compileExecutionPlanState(options) {
         `[ExecutionPlan] finiteness fallback activation dtype must widen to "f32"; got "${fallbackActivationDtype}".`
       );
     }
-    const fallbackKernelPathState = resolveFallbackKernelPath(primaryPlan.kernelPath);
+
+    // Prefer transform-based fallback kernel path from execution-v1 compilation
+    let fallbackKernelPathState;
+    if (transformFallbackKernelPath) {
+      fallbackKernelPathState = {
+        kernelPath: transformFallbackKernelPath,
+        kernelPathId: transformFallbackKernelPath.id ?? null,
+        kernelPathSource: 'execution-v1-transform',
+      };
+      log.info(
+        'ExecutionPlan',
+        `Using transform-based finiteness fallback kernel path: ${transformFallbackKernelPath.id ?? 'inline'}`
+      );
+    } else {
+      // Registry-based fallback was removed in Phase 3.
+      // The finiteness fallback kernel path must come from execution-v1 transforms
+      // or from an explicit finitenessFallbackKernelPathId on the kernel path object.
+      throw new Error(
+        `[ExecutionPlan] finiteness fallback kernel path required for "${primaryPlan.kernelPath?.id ?? 'unknown'}" ` +
+        'but no transform-based fallback was provided. Use execution-v1 transforms or set ' +
+        'finitenessFallbackKernelPathId explicitly on the kernel path object.'
+      );
+    }
 
     fallbackPlan = createStaticExecutionPlan({
       id: FINITENESS_FALLBACK_EXECUTION_PLAN_ID,
@@ -214,6 +222,31 @@ export function compileExecutionPlanState(options) {
     if (fallbackPlan.finitenessGuardEnabled) {
       throw new Error('[ExecutionPlan] finiteness fallback plan cannot enable finiteness guard.');
     }
+  }
+
+  // Consistency check: validate the primary plan's kernel path source is recognized.
+  const knownKernelPathSources = new Set([
+    'none', 'config', 'model', 'manifest', 'execution-v1', 'execution-v1-transform',
+  ]);
+  if (primaryPlan.kernelPathSource && !knownKernelPathSources.has(primaryPlan.kernelPathSource)) {
+    log.warn(
+      'ExecutionPlan',
+      `Primary plan kernelPathSource "${primaryPlan.kernelPathSource}" is not a recognized source. ` +
+      `Known sources: ${[...knownKernelPathSources].join(', ')}.`
+    );
+  }
+  // Validate that the plan's activation dtype is a recognized value.
+  if (primaryPlan.activationDtype !== 'f16' && primaryPlan.activationDtype !== 'f32') {
+    log.warn(
+      'ExecutionPlan',
+      `Primary plan activationDtype "${primaryPlan.activationDtype}" is not "f16" or "f32". ` +
+      'Verify the manifest and runtime config produce a valid dtype.'
+    );
+  }
+
+  // Validate plan against manifest when available (diagnostic only).
+  if (manifest) {
+    validatePlanAgainstManifest(primaryPlan, manifest);
   }
 
   return {

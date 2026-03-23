@@ -333,10 +333,8 @@ export interface ManifestInferenceSchema {
   pipeline: LayerPipelineSchema | null;
   /** Session defaults for execution v1 manifests */
   sessionDefaults: ExecutionV1SessionDefaultsSchema | null;
-  /** Explicit execution graph (v0 object-per-step or v1 compact tuple format) */
+  /** Explicit execution graph (v1 compact tuple format) */
   execution: ExecutionV1GraphSchema | null;
-  /** Default kernel path for this model (null = no explicit path). Deprecated in v1 — use execution graph. */
-  defaultKernelPath: string | null;
 }
 
 /**

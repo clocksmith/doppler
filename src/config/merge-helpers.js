@@ -6,10 +6,15 @@ export function chooseDefined(overrideValue, fallbackValue) {
   return overrideValue !== undefined ? overrideValue : fallbackValue;
 }
 
+// sources must be a writable Map (or any object with a .set(key, value) method).
+// Callers are responsible for passing a Map instance; plain objects are not supported.
 export function chooseDefinedWithSource(path, overrideValue, fallbackValue, sources) {
   const value = chooseDefined(overrideValue, fallbackValue);
   if (sources && typeof sources.set === 'function') {
-    sources.set(path, overrideValue !== undefined ? 'runtime' : 'manifest');
+    /** @type {Map<string, string>} */ (sources).set(
+      path,
+      overrideValue !== undefined ? 'runtime' : 'manifest',
+    );
   }
   return value;
 }
@@ -69,11 +74,6 @@ function normalizeKernelPathPolicySource(source) {
   if (normalized === 'runtime') {
     throw new Error(
       'DopplerConfigError: runtime.inference.kernelPathPolicy.sourceScope does not accept legacy "runtime". Use "config".'
-    );
-  }
-  if (normalized === 'execution_v0' || normalized === 'execution-v0') {
-    throw new Error(
-      'DopplerConfigError: runtime.inference.kernelPathPolicy.sourceScope does not accept "execution-v0" (v0 execution is no longer supported).'
     );
   }
   if (!VALID_KERNEL_PATH_POLICY_SOURCES.has(normalized)) {

@@ -1,0 +1,464 @@
+// =============================================================================
+// Execution Graph Transforms
+// =============================================================================
+//
+// Pure functions that take an execution-v1 graph (as stamped in the manifest)
+// and return a modified copy. Replaces the kernel path registry system.
+//
+// Each transform: (graph, ctx) => newGraph | null
+// Returns null if not applicable (no-op).
+// Must be pure — no mutation, return new objects.
+
+// =============================================================================
+// Helpers
+// =============================================================================
+
+/**
+ * Deep-clone an execution graph.
+ * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
+ * @returns {import('./execution-graph-transforms.js').ExecutionGraph}
+ */
+function cloneGraph(graph) {
+  return structuredClone(graph);
+}
+
+/**
+ * Shader files that require subgroups even though "subgroup" is not in the filename.
+ * Online attention kernels use subgroup reductions internally.
+ */
+const SUBGROUP_REQUIRING_FILES = new Set([
+  'attention_decode_online_f16kv.wgsl',
+  'attention_decode_online_f16.wgsl',
+]);
+
+/**
+ * Check whether a kernel entry requires subgroup support.
+ * @param {{ kernel: string }} kernelEntry
+ * @returns {boolean}
+ */
+function isSubgroupKernel(kernelEntry) {
+  if (typeof kernelEntry.kernel !== 'string') return false;
+  return kernelEntry.kernel.includes('subgroup') || SUBGROUP_REQUIRING_FILES.has(kernelEntry.kernel);
+}
+
+/**
+ * Find all kernel keys in the graph whose `kernel` file matches the given filename.
+ * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
+ * @param {string} filename
+ * @returns {string[]}
+ */
+function findKernelKeysByFile(graph, filename) {
+  const keys = [];
+  for (const [key, entry] of Object.entries(graph.kernels)) {
+    if (entry.kernel === filename) {
+      keys.push(key);
+    }
+  }
+  return keys;
+}
+
+/**
+ * Check whether any kernel in the graph uses the given shader file.
+ * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
+ * @param {string} filename
+ * @returns {boolean}
+ */
+function hasKernelFile(graph, filename) {
+  return findKernelKeysByFile(graph, filename).length > 0;
+}
+
+/**
+ * Create a new kernel entry with the digest cleared (shader changed).
+ * @param {object} base - original kernel entry
+ * @param {string} newFile - new shader filename
+ * @param {string} newEntry - new entry point name
+ * @param {object|null} [constants] - override constants (null to remove)
+ * @returns {object}
+ */
+function deriveKernelEntry(base, newFile, newEntry, constants) {
+  const derived = { ...base, kernel: newFile, entry: newEntry, digest: null };
+  if (constants === null) {
+    delete derived.constants;
+  } else if (constants !== undefined) {
+    derived.constants = { ...constants };
+  }
+  return derived;
+}
+
+/**
+ * Derive a non-colliding kernel key name.
+ * @param {object} kernels - existing kernels dict
+ * @param {string} baseKey - original key
+ * @param {string} suffix - suffix to append
+ * @returns {string}
+ */
+function deriveKernelKey(kernels, baseKey, suffix) {
+  const candidate = `${baseKey}${suffix}`;
+  if (!kernels[candidate]) {
+    return candidate;
+  }
+  let counter = 2;
+  while (kernels[`${candidate}_${counter}`]) {
+    counter++;
+  }
+  return `${candidate}_${counter}`;
+}
+
+/**
+ * Replace kernel key references in step tuples.
+ * @param {Array<Array>} steps
+ * @param {Map<string, string>} keyMap - oldKey → newKey
+ * @returns {Array<Array>}
+ */
+function remapStepKeys(steps, keyMap) {
+  return steps.map((step) => {
+    const kernelKey = step[1];
+    const replacement = keyMap.get(kernelKey);
+    if (replacement !== undefined) {
+      const newStep = [...step];
+      newStep[1] = replacement;
+      return newStep;
+    }
+    return step;
+  });
+}
+
+/**
+ * Check whether a step tuple's kernel key resolves to the given shader file.
+ * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
+ * @param {Array} step
+ * @param {string} filename
+ * @returns {boolean}
+ */
+function stepUsesFile(graph, step, filename) {
+  const kernelKey = step[1];
+  const entry = graph.kernels[kernelKey];
+  return entry != null && entry.kernel === filename;
+}
+
+// =============================================================================
+// Transform: removeSubgroups
+// =============================================================================
+
+/**
+ * Remove subgroup shader dependencies from decode and postLayer steps.
+ * Prefill steps are left untouched (they already use tiled matmul).
+ *
+ * Returns null if the graph has no subgroup kernels.
+ *
+ * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
+ * @param {import('./execution-graph-transforms.js').TransformContext} ctx
+ * @returns {import('./execution-graph-transforms.js').ExecutionGraph | null}
+ */
+export function removeSubgroups(graph, ctx) {
+  const hasAnySubgroup = Object.values(graph.kernels).some(isSubgroupKernel);
+  if (!hasAnySubgroup) {
+    return null;
+  }
+
+  const result = cloneGraph(graph);
+  const keyMap = new Map();
+  const isF16Activation = ctx.activationDtype === 'f16';
+
+  // Build replacement kernel entries for each subgroup kernel reference
+  // found in decode and postLayer steps.
+  const decodeKeys = new Set((result.decode || []).map((s) => s[1]));
+  const postLayerKeys = new Set((result.postLayer || []).map((s) => s[1]));
+  const relevantKeys = new Set([...decodeKeys, ...postLayerKeys]);
+
+  for (const key of relevantKeys) {
+    const entry = result.kernels[key];
+    if (!entry || !isSubgroupKernel(entry)) {
+      continue;
+    }
+
+    const isPostLayer = postLayerKeys.has(key) && !decodeKeys.has(key);
+    const isMulticol = entry.entry === 'main_multicol';
+    const isLmHead = isPostLayer || isMulticol;
+
+    let newFile;
+    let newEntry = 'main';
+    let newConstants = undefined;
+
+    if (entry.kernel === 'matmul_gemv_subgroup.wgsl') {
+      if (isLmHead) {
+        // lm_head: multicol → plain matmul, remove MULTICOL constants
+        newFile = 'matmul_f16w_f32a.wgsl';
+        newConstants = null;
+      } else {
+        // decode projections: vec4 → tiled matmul
+        newFile = 'matmul_f16w_f32a_tiled.wgsl';
+      }
+    } else if (entry.kernel === 'matmul_gemv_subgroup_f16a.wgsl') {
+      if (isLmHead) {
+        newFile = isF16Activation ? 'matmul_f16.wgsl' : 'matmul_f16w_f32a.wgsl';
+        newConstants = null;
+      } else {
+        newFile = isF16Activation ? 'matmul_f16.wgsl' : 'matmul_f16w_f32a_tiled.wgsl';
+      }
+    } else if (entry.kernel === 'attention_decode_online_f16kv.wgsl') {
+      newFile = 'attention_decode_chunked_f16kv.wgsl';
+      newEntry = entry.entry;
+    } else if (entry.kernel === 'attention_decode_online_f16.wgsl') {
+      newFile = 'attention_decode_chunked_f16.wgsl';
+      newEntry = entry.entry;
+    } else {
+      // Unknown subgroup kernel — skip
+      continue;
+    }
+
+    const newKey = deriveKernelKey(result.kernels, key, '_nosg');
+    result.kernels[newKey] = deriveKernelEntry(entry, newFile, newEntry, newConstants);
+    keyMap.set(key, newKey);
+  }
+
+  if (keyMap.size === 0) {
+    return null;
+  }
+
+  // Remap decode and postLayer steps; leave prefill and preLayer untouched
+  result.decode = remapStepKeys(result.decode || [], keyMap);
+  result.postLayer = remapStepKeys(result.postLayer || [], keyMap);
+
+  return result;
+}
+
+// =============================================================================
+// Transform: widenToF32Activations
+// =============================================================================
+
+/** @type {ReadonlyMap<string, string>} */
+const F16_TO_F32_SHADER_MAP = new Map([
+  ['rmsnorm_f16.wgsl', 'rmsnorm.wgsl'],
+  ['rope_f16.wgsl', 'rope.wgsl'],
+  ['residual_f16.wgsl', 'residual.wgsl'],
+  ['gelu_f16.wgsl', 'gelu.wgsl'],
+  ['sample_f16.wgsl', 'sample.wgsl'],
+  ['gather_f16.wgsl', 'gather.wgsl'],
+  ['matmul_gemv_subgroup_f16a.wgsl', 'matmul_gemv_subgroup.wgsl'],
+  ['matmul_f16.wgsl', 'matmul_f16w_f32a.wgsl'],
+  ['matmul_f16_tiled.wgsl', 'matmul_f16w_f32a_tiled.wgsl'],
+  ['attention_decode_online_f16.wgsl', 'attention_decode_online_f16kv.wgsl'],
+  ['attention_decode_chunked_f16.wgsl', 'attention_decode_chunked_f16kv.wgsl'],
+  ['attention_small_f16.wgsl', 'attention_small_f16kv.wgsl'],
+  ['attention_streaming_f16.wgsl', 'attention_streaming_f16kv.wgsl'],
+]);
+
+/**
+ * Widen all f16-activation shaders to f32-activation equivalents.
+ *
+ * Returns null if the graph contains fused_ffn_f16.wgsl (no direct f32
+ * equivalent exists) or if no f16 activation shaders are present.
+ *
+ * NOTE: The caller is responsible for also updating sessionDefaults.activationDtype
+ * to reflect the widened dtype.
+ *
+ * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
+ * @param {import('./execution-graph-transforms.js').TransformContext} ctx
+ * @returns {import('./execution-graph-transforms.js').ExecutionGraph | null}
+ */
+export function widenToF32Activations(graph, ctx) {
+  // Bail out if fused f16 FFN is present — no direct f32 equivalent
+  if (hasKernelFile(graph, 'fused_ffn_f16.wgsl')) {
+    return null;
+  }
+
+  // Check whether any kernel uses an f16 activation shader
+  const hasF16Shader = Object.values(graph.kernels).some(
+    (entry) => F16_TO_F32_SHADER_MAP.has(entry.kernel)
+  );
+  if (!hasF16Shader) {
+    return null;
+  }
+
+  const result = cloneGraph(graph);
+
+  for (const [key, entry] of Object.entries(result.kernels)) {
+    const replacement = F16_TO_F32_SHADER_MAP.get(entry.kernel);
+    if (replacement !== undefined) {
+      result.kernels[key] = deriveKernelEntry(entry, replacement, entry.entry);
+    }
+  }
+
+  return result;
+}
+
+// =============================================================================
+// Transform: swapPrefillAttention
+// =============================================================================
+
+/** @type {ReadonlyMap<string, string>} */
+const PREFILL_ATTENTION_PAIRS = new Map([
+  ['attention_streaming_f16kv.wgsl', 'attention_small_f16kv.wgsl'],
+  ['attention_small_f16kv.wgsl', 'attention_streaming_f16kv.wgsl'],
+  ['attention_streaming_f16.wgsl', 'attention_small_f16.wgsl'],
+  ['attention_small_f16.wgsl', 'attention_streaming_f16.wgsl'],
+]);
+
+/**
+ * Swap prefill attention kernel between streaming and small variants.
+ *
+ * The `opts` parameter specifies the direction:
+ *   { from: 'attention_streaming_f16kv.wgsl', to: 'attention_small_f16kv.wgsl' }
+ *
+ * If `from`/`to` are not provided, uses the bidirectional pair map.
+ * Returns null if no matching prefill attention kernel is found.
+ *
+ * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
+ * @param {import('./execution-graph-transforms.js').TransformContext} ctx
+ * @param {{ from?: string, to?: string }} [opts]
+ * @returns {import('./execution-graph-transforms.js').ExecutionGraph | null}
+ */
+export function swapPrefillAttention(graph, ctx, opts) {
+  const from = opts?.from;
+  const to = opts?.to;
+
+  const result = cloneGraph(graph);
+  let changed = false;
+
+  for (const [key, entry] of Object.entries(result.kernels)) {
+    let target;
+
+    if (from && to) {
+      // Explicit direction: only swap if the kernel matches `from`
+      if (entry.kernel === from) {
+        target = to;
+      }
+    } else {
+      // Bidirectional: use pair map
+      target = PREFILL_ATTENTION_PAIRS.get(entry.kernel);
+    }
+
+    if (target !== undefined) {
+      // Verify this kernel is actually used in a prefill step
+      const usedInPrefill = (graph.prefill || []).some((step) => step[1] === key);
+      if (usedInPrefill) {
+        result.kernels[key] = deriveKernelEntry(entry, target, entry.entry);
+        changed = true;
+      }
+    }
+  }
+
+  return changed ? result : null;
+}
+
+// =============================================================================
+// Transform: widenProjectionWeightsToF32
+// =============================================================================
+
+/** @type {ReadonlySet<string>} */
+const PROJECTION_MATMUL_FILES = new Set([
+  'matmul_gemv_subgroup.wgsl',
+  'matmul_gemv_subgroup_f16a.wgsl',
+  'matmul_f16w_f32a_tiled.wgsl',
+  'matmul_f16w_f32a.wgsl',
+  'matmul_f16.wgsl',
+  'matmul_f16_tiled.wgsl',
+]);
+
+/**
+ * Known layer projection ops. Only these are widened; lm_head and embed are
+ * excluded.
+ * @type {ReadonlySet<string>}
+ */
+const LAYER_PROJECTION_OPS = new Set([
+  'q_proj', 'k_proj', 'v_proj', 'o_proj',
+  'gate_proj', 'up_proj', 'down_proj',
+]);
+
+/**
+ * Replace projection matmul kernels with f32 weight variants.
+ *
+ * Applies only to layer projection steps (q/k/v/o/gate/up/down), NOT lm_head
+ * or embed.
+ *
+ * Returns null if no applicable projection kernels are found.
+ *
+ * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
+ * @param {import('./execution-graph-transforms.js').TransformContext} ctx
+ * @returns {import('./execution-graph-transforms.js').ExecutionGraph | null}
+ */
+export function widenProjectionWeightsToF32(graph, ctx) {
+  // Collect kernel keys used by layer projection steps across all phases
+  const projectionKernelKeys = new Set();
+  const allPhases = ['preLayer', 'decode', 'prefill', 'postLayer'];
+
+  for (const phase of allPhases) {
+    const steps = graph[phase];
+    if (!Array.isArray(steps)) {
+      continue;
+    }
+    for (const step of steps) {
+      const op = step[0];
+      const kernelKey = step[1];
+      if (LAYER_PROJECTION_OPS.has(op) && kernelKey) {
+        projectionKernelKeys.add(kernelKey);
+      }
+    }
+  }
+
+  if (projectionKernelKeys.size === 0) {
+    return null;
+  }
+
+  // Check whether any of those keys reference a swappable matmul
+  const keysToSwap = new Set();
+  for (const key of projectionKernelKeys) {
+    const entry = graph.kernels[key];
+    if (entry && PROJECTION_MATMUL_FILES.has(entry.kernel)) {
+      keysToSwap.add(key);
+    }
+  }
+
+  if (keysToSwap.size === 0) {
+    return null;
+  }
+
+  const result = cloneGraph(graph);
+
+  for (const key of keysToSwap) {
+    const entry = result.kernels[key];
+    result.kernels[key] = deriveKernelEntry(entry, 'matmul_f32.wgsl', 'main');
+  }
+
+  return result;
+}
+
+// =============================================================================
+// Composition
+// =============================================================================
+
+/**
+ * Compose multiple transforms into a single transform function.
+ *
+ * Each transform is applied sequentially. If a transform returns null
+ * (not applicable), the graph passes through unchanged.
+ *
+ * @param {Array<(graph: import('./execution-graph-transforms.js').ExecutionGraph, ctx: import('./execution-graph-transforms.js').TransformContext) => import('./execution-graph-transforms.js').ExecutionGraph | null>} transforms
+ * @returns {(graph: import('./execution-graph-transforms.js').ExecutionGraph, ctx: import('./execution-graph-transforms.js').TransformContext) => import('./execution-graph-transforms.js').ExecutionGraph}
+ */
+export function composeTransforms(...transforms) {
+  return (graph, ctx) => {
+    let current = graph;
+    for (const transform of transforms) {
+      const result = transform(current, ctx);
+      if (result !== null && result !== undefined) {
+        current = result;
+      }
+    }
+    return current;
+  };
+}
+
+// =============================================================================
+// Registry
+// =============================================================================
+
+/** @type {Readonly<Record<string, Function>>} */
+export const TRANSFORMS = Object.freeze({
+  removeSubgroups,
+  widenToF32Activations,
+  swapPrefillAttention,
+  widenProjectionWeightsToF32,
+  composeTransforms,
+});
