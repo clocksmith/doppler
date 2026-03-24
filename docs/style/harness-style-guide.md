@@ -80,6 +80,7 @@ Do not short-circuit after the first provided input. Do not silently ignore a su
 
 Diffusion verification must use `workload="diffusion"` via the `verify` command path.
 Diffusion calibration must use `workload="diffusion"` via the `bench` command path.
+Diffusion harness metadata must include `workloadType="diffusion"` and `suite="diffusion"`.
 
 ## Logging
 

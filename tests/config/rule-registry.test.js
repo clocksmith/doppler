@@ -17,7 +17,7 @@ assert.throws(
 );
 
 assert.throws(
-  () => getRuleSet('inference', 'kernelPath', 'missing-set'),
+  () => getRuleSet('inference', 'execution', 'missing-set'),
   /unknown rule set/
 );
 

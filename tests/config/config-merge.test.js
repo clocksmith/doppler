@@ -14,7 +14,6 @@ function createManifest(overrides = {}) {
     architecture: 'transformer',
     inference: {
       layerPattern: 'standard',
-      defaultKernelPath: 'default-path',
       chatTemplate: { type: 'none', enabled: false },
       pipeline: 'text',
       attention: {
@@ -77,7 +76,6 @@ function createManifest(overrides = {}) {
   assert.equal(merged.modelId, 'test-model');
   assert.equal(merged.architecture, 'transformer');
   assert.equal(merged.inference.layerPattern, 'standard');
-  assert.equal(merged.inference.defaultKernelPath, 'default-path');
   assert.equal(merged.inference.attention.causal, true);
   assert.equal(merged.inference.normalization.rmsNormEps, 1e-6);
   assert.equal(merged.inference.ffn.activation, 'gelu');
@@ -98,7 +96,6 @@ function createManifest(overrides = {}) {
   const manifest = createManifest();
   const merged = mergeConfig(manifest, {
     layerPattern: 'custom',
-    defaultKernelPath: 'override-path',
     pipeline: 'embedding',
     attention: { causal: false, slidingWindow: 512 },
     normalization: { rmsNormEps: 1e-5 },
@@ -117,7 +114,6 @@ function createManifest(overrides = {}) {
   });
 
   assert.equal(merged.inference.layerPattern, 'custom');
-  assert.equal(merged.inference.defaultKernelPath, 'override-path');
   assert.equal(merged.inference.pipeline, 'embedding');
   assert.equal(merged.inference.attention.causal, false);
   assert.equal(merged.inference.attention.slidingWindow, 512);
@@ -130,7 +126,6 @@ function createManifest(overrides = {}) {
 
   // Overridden fields should be tracked as 'runtime'
   assert.equal(merged._sources.get('inference.layerPattern'), 'runtime');
-  assert.equal(merged._sources.get('inference.defaultKernelPath'), 'runtime');
   assert.equal(merged._sources.get('inference.pipeline'), 'runtime');
   assert.equal(merged._sources.get('inference.attention.causal'), 'runtime');
   assert.equal(merged._sources.get('inference.normalization.rmsNormEps'), 'runtime');

@@ -76,6 +76,11 @@ function normalizeKernelPathPolicySource(source) {
       'DopplerConfigError: runtime.inference.kernelPathPolicy.sourceScope does not accept legacy "runtime". Use "config".'
     );
   }
+  if (normalized === 'execution_v0' || normalized === 'execution-v0') {
+    throw new Error(
+      'DopplerConfigError: runtime.inference.kernelPathPolicy.sourceScope does not accept "execution-v0". Execution v0 is removed.'
+    );
+  }
   if (!VALID_KERNEL_PATH_POLICY_SOURCES.has(normalized)) {
     throw new Error(
       `DopplerConfigError: runtime.inference.kernelPathPolicy.sourceScope entries must be model|manifest|config; got ${JSON.stringify(source)}.`

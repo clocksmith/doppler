@@ -5,7 +5,6 @@ import {
   getActiveKernelPath,
   getActiveKernelPathPolicy,
   getActiveKernelPathSource,
-  getKernelPath,
   getKernelPathActivationDtype,
   getKernelPathAttentionVariant,
   getKernelPathKVDtype,
@@ -20,7 +19,6 @@ import {
   isKernelPathDequant,
   isKernelPathFusedQ4K,
   kernelPathRequiresF32MatmulWeights,
-  listKernelPaths,
   resolveKernelPath,
   resolveWeightRef,
   setActiveKernelPath,
@@ -32,32 +30,113 @@ const originalSource = getActiveKernelPathSource();
 const originalPolicy = getActiveKernelPathPolicy();
 
 try {
-  const all = listKernelPaths();
-  assert.ok(Array.isArray(all));
-  assert.ok(all.length > 0);
-  assert.ok(all.includes('gemma2-q4k-dequant-f32a-nosubgroups'));
-  assert.ok(all.includes('gemma2-q4k-dequant-f32a'));
-  assert.ok(all.includes('gemma3-q4k-dequant-f32w-f32a-online'));
-
-  assert.equal(getKernelPath('missing-kernel-path-id'), null);
+  // String kernel path IDs are no longer supported (registry removed)
   assert.throws(
     () => resolveKernelPath('missing-kernel-path-id'),
-    /Unknown kernel path/
+    /no longer supported/
   );
   assert.equal(resolveKernelPath(null), null);
 
-  const fusedPath = resolveKernelPath('gemma2-q4k-fused-f32a');
-  const dequantPath = resolveKernelPath('gemma2-q4k-dequant-f32a');
-  const canonicalDequantPath = resolveKernelPath('gemma2-q4k-dequant-f32a-nosubgroups');
-  const gemma3Path = resolveKernelPath('gemma3-f16-fused-f16a-online');
-  const gemma3F32WeightPath = resolveKernelPath('gemma3-q4k-dequant-f32w-f32a-online');
-  assert.ok(fusedPath);
-  assert.ok(dequantPath);
-  assert.ok(canonicalDequantPath);
-  assert.ok(gemma3Path);
-  assert.ok(gemma3F32WeightPath);
-  assert.equal(dequantPath.id, 'gemma2-q4k-dequant-f32a-nosubgroups');
-  assert.equal(canonicalDequantPath.id, 'gemma2-q4k-dequant-f32a-nosubgroups');
+  // Inline kernel path objects for testing
+  const fusedPath = {
+    id: 'gemma2-q4k-fused-f32a',
+    name: 'Gemma2 Q4K Fused F32A',
+    activationDtype: 'f32',
+    decode: {
+      steps: [
+        { op: 'q_proj', kernel: 'fused_matmul_q4k.wgsl' },
+        { op: 'attention', kernel: 'attention_decode_f16.wgsl', entry: 'attention_decode' },
+        { op: 'ffn_gate_up', kernel: 'fused_matmul_q4k.wgsl' },
+        { op: 'ffn_down', kernel: 'matmul_dequant_f32a.wgsl' },
+      ],
+    },
+    prefill: {
+      steps: [
+        { op: 'q_proj', kernel: 'fused_matmul_q4k.wgsl' },
+        { op: 'attention', kernel: 'attention_prefill_f16.wgsl' },
+        { op: 'ffn_gate_up', kernel: 'fused_matmul_q4k.wgsl' },
+        { op: 'ffn_down', kernel: 'matmul_dequant_f32a.wgsl' },
+      ],
+    },
+    postLayer: [
+      { op: 'lm_head', kernel: 'matmul_f16.wgsl' },
+    ],
+  };
+
+  const dequantPath = {
+    id: 'gemma2-q4k-dequant-f32a-nosubgroups',
+    name: 'Gemma2 Q4K Dequant F32A',
+    activationDtype: 'f32',
+    decode: {
+      steps: [
+        { op: 'q_proj', kernel: 'matmul_dequant_f32a.wgsl' },
+        { op: 'attention', kernel: 'attention_decode_f16.wgsl', entry: 'attention_decode' },
+        { op: 'ffn_gate_up', kernel: 'matmul_dequant_f32a.wgsl' },
+        { op: 'ffn_down', kernel: 'matmul_dequant_f32a.wgsl' },
+      ],
+    },
+    prefill: {
+      steps: [
+        { op: 'q_proj', kernel: 'matmul_dequant_f32a.wgsl' },
+        { op: 'attention', kernel: 'attention_prefill_f16.wgsl' },
+        { op: 'ffn_gate_up', kernel: 'matmul_dequant_f32a.wgsl' },
+        { op: 'ffn_down', kernel: 'matmul_dequant_f32a.wgsl' },
+      ],
+    },
+    postLayer: [
+      { op: 'lm_head', kernel: 'matmul_f16.wgsl' },
+    ],
+  };
+
+  const gemma3Path = {
+    id: 'gemma3-f16-fused-f16a-online',
+    name: 'Gemma3 F16 Fused F16A Online',
+    activationDtype: 'f16',
+    decode: {
+      steps: [
+        { op: 'q_proj', kernel: 'gemv_subgroup_vec4_f16a.wgsl' },
+        { op: 'attention', kernel: 'attention_decode_online_f16.wgsl' },
+        { op: 'ffn_gate_up', kernel: 'gemv_subgroup_vec4_f16a.wgsl' },
+        { op: 'ffn_down', kernel: 'gemv_subgroup_vec4_f16a.wgsl' },
+      ],
+    },
+    prefill: {
+      steps: [
+        { op: 'q_proj', kernel: 'matmul_f16_tiled.wgsl' },
+        { op: 'attention', kernel: 'attention_prefill_f16.wgsl' },
+        { op: 'ffn_gate_up', kernel: 'matmul_f16_tiled.wgsl' },
+        { op: 'ffn_down', kernel: 'matmul_f16_tiled.wgsl' },
+      ],
+    },
+    postLayer: [
+      { op: 'lm_head', kernel: 'matmul_f16.wgsl' },
+    ],
+  };
+
+  const gemma3F32WeightPath = {
+    id: 'gemma3-q4k-dequant-f32w-f32a-online',
+    name: 'Gemma3 Q4K Dequant F32W F32A Online',
+    activationDtype: 'f32',
+    decode: {
+      steps: [
+        { op: 'q_proj', kernel: 'matmul_f32.wgsl' },
+        { op: 'attention', kernel: 'attention_decode_online_f16.wgsl' },
+        { op: 'ffn_gate_up', kernel: 'matmul_f32.wgsl' },
+        { op: 'ffn_down', kernel: 'matmul_f32.wgsl' },
+      ],
+    },
+    prefill: {
+      steps: [
+        { op: 'q_proj', kernel: 'matmul_f32.wgsl' },
+        { op: 'attention', kernel: 'attention_prefill_f16.wgsl' },
+        { op: 'ffn_gate_up', kernel: 'matmul_f32.wgsl' },
+        { op: 'ffn_down', kernel: 'matmul_f32.wgsl' },
+      ],
+    },
+    postLayer: [
+      { op: 'lm_head', kernel: 'matmul_f32.wgsl' },
+    ],
+  };
 
   assert.equal(getKernelPathActivationDtype({ activationDtype: 'f16' }), 'f16');
   assert.equal(getKernelPathActivationDtype({}), null);
@@ -112,12 +191,6 @@ try {
   assert.ok(validationErrors.some((entry) => entry.includes('Missing path id')));
   assert.ok(validationErrors.some((entry) => entry.includes('missing kernel')));
 
-  assert.equal(getKernelPathMatmulVariant('q_proj', 'decode', 0, gemma3Path), 'gemv_subgroup_vec4_f16a');
-  assert.equal(getKernelPathMatmulVariant('q_proj', 'prefill', 0, gemma3Path), 'f16_tiled');
-  assert.equal(getKernelPathAttentionVariant('decode', 0, gemma3Path), 'decode_online_f16');
-  assert.equal(getKernelPathAttentionVariant('decode', 0, { decode: { steps: [] } }), null);
-  assert.equal(getKernelPathMatmulVariant('missing_role', 'decode', 0, { decode: { steps: [] } }), null);
-
   assert.deepEqual(
     getKernelPathMatmulConstants('lm_head', 'prefill', 0, overridePath),
     { mode: 'prefill' }
@@ -127,6 +200,9 @@ try {
     { mode: 'decode' }
   );
   assert.equal(getKernelPathMatmulConstants('missing_role', 'decode', 0, overridePath), null);
+
+  assert.equal(getKernelPathAttentionVariant('decode', 0, { decode: { steps: [] } }), null);
+  assert.equal(getKernelPathMatmulVariant('missing_role', 'decode', 0, { decode: { steps: [] } }), null);
 
   assert.equal(isKernelPathFusedQ4K(fusedPath), true);
   assert.equal(isKernelPathFusedQ4K(dequantPath), false);

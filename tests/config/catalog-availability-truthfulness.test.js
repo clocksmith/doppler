@@ -81,8 +81,8 @@ const models = Array.isArray(catalog.models) ? catalog.models : [];
   );
   assert.deepEqual(
     tg?.lifecycle?.tested?.surface,
-    ['browser'],
-    'translategemma-4b-it-q4k-ehf16-af32: tested surface must reflect the verified browser run'
+    ['browser', 'node'],
+    'translategemma-4b-it-q4k-ehf16-af32: tested surface must reflect the verified surfaces'
   );
 }
 

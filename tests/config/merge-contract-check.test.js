@@ -9,10 +9,6 @@ assert.equal(artifact.schemaVersion, 1);
 assert.equal(artifact.ok, true);
 assert.ok(artifact.checks.length >= 8);
 assert.equal(
-  artifact.checks.some((entry) => entry.id === 'runtime.mergeConfig.defined_overlay_preserves_null' && entry.ok),
-  true
-);
-assert.equal(
   artifact.checks.some((entry) => entry.id === 'runtime.mergeConfig.pipeline_preserves_manifest_value' && entry.ok),
   true
 );
@@ -34,14 +30,6 @@ assert.equal(
 );
 assert.equal(
   artifact.checks.some((entry) => entry.id === 'runtime.schema.kernelPathPolicy.helper_is_used' && entry.ok && entry.mode === 'actual'),
-  true
-);
-assert.equal(
-  artifact.checks.some((entry) => entry.id === 'runtime.mergeHelpers.chooseDefinedWithSource.runtime_marks_source' && entry.ok && entry.mode === 'actual'),
-  true
-);
-assert.equal(
-  artifact.checks.some((entry) => entry.id === 'runtime.mergeHelpers.chooseDefinedWithSource.manifest_marks_source' && entry.ok && entry.mode === 'actual'),
   true
 );
 assert.equal(

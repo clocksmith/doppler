@@ -1,25 +1,13 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-03-21",
+  "updatedAt": "2026-03-23",
   "claims": [
     {
-      "modelId": "gemma-3-1b-it-f16-af32",
-      "mode": "run",
-      "surface": ["browser"],
-      "verificationSource": "manual-review",
-      "lastVerifiedAt": "2026-03-10",
-      "artifactFormat": "rdrr",
-      "evidence": {
-        "kind": "manual-report",
-        "reportPath": "tests/fixtures/reports/gemma-3-1b-it-f16-af32/2026-03-10T16-27-00.122Z.json"
-      }
-    },
-    {
       "modelId": "gemma-3-1b-it-q4k-ehf16-af32",
-      "mode": "run",
-      "surface": ["browser"],
+      "mode": "text",
+      "surface": ["browser", "node"],
       "verificationSource": "manual-review",
-      "lastVerifiedAt": "2026-03-12",
+      "lastVerifiedAt": "2026-03-20",
       "artifactFormat": "rdrr",
       "evidence": {
         "kind": "manual-report",
@@ -28,10 +16,10 @@
     },
     {
       "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
-      "mode": "run",
-      "surface": ["browser"],
+      "mode": "text",
+      "surface": ["browser", "node"],
       "verificationSource": "manual-review",
-      "lastVerifiedAt": "2026-03-12",
+      "lastVerifiedAt": "2026-03-20",
       "artifactFormat": "rdrr",
       "evidence": {
         "kind": "manual-report",
@@ -51,10 +39,10 @@
     },
     {
       "modelId": "lfm2-5-1-2b-instruct-q4k-ehf16-af32",
-      "mode": "run",
+      "mode": "text",
       "surface": ["node"],
       "verificationSource": "runtime-verify",
-      "lastVerifiedAt": "2026-03-16",
+      "lastVerifiedAt": "2026-03-20",
       "artifactFormat": "rdrr",
       "evidence": {
         "kind": "runtime-verify"
@@ -62,10 +50,10 @@
     },
     {
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
-      "mode": "run",
+      "mode": "text",
       "surface": ["node"],
       "verificationSource": "runtime-verify",
-      "lastVerifiedAt": "2026-03-14",
+      "lastVerifiedAt": "2026-03-20",
       "artifactFormat": "rdrr",
       "evidence": {
         "kind": "runtime-verify"
@@ -73,21 +61,10 @@
     },
     {
       "modelId": "qwen-3-5-2b-q4k-ehaf16",
-      "mode": "run",
+      "mode": "text",
       "surface": ["node"],
       "verificationSource": "runtime-verify",
-      "lastVerifiedAt": "2026-03-14",
-      "artifactFormat": "rdrr",
-      "evidence": {
-        "kind": "runtime-verify"
-      }
-    },
-    {
-      "modelId": "translategemma-4b-1b-enes-q4k-ehf16-af32",
-      "mode": "run",
-      "surface": ["node"],
-      "verificationSource": "runtime-verify",
-      "lastVerifiedAt": "2026-03-15",
+      "lastVerifiedAt": "2026-03-20",
       "artifactFormat": "rdrr",
       "evidence": {
         "kind": "runtime-verify"
@@ -95,10 +72,10 @@
     },
     {
       "modelId": "translategemma-4b-it-q4k-ehf16-af32",
-      "mode": "run",
-      "surface": ["browser"],
+      "mode": "translate",
+      "surface": ["browser", "node"],
       "verificationSource": "manual-review",
-      "lastVerifiedAt": "2026-03-17",
+      "lastVerifiedAt": "2026-03-20",
       "artifactFormat": "rdrr",
       "evidence": {
         "kind": "manual-report",

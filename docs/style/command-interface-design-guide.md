@@ -129,6 +129,7 @@ For harnessed commands (`debug`, `bench`, `verify`), runners must apply:
 Diffusion command contracts:
 - Verify path: `command="verify"` and `workload="diffusion"`.
 - Calibrate path: `command="bench"` and `workload="diffusion"`.
+- Diffusion harness metadata: `workloadType="diffusion"` and `suite="diffusion"`.
 - Runtime backend contract: `runtime.inference.diffusion.backend.pipeline="gpu"` only.
 - Both paths must emit timing diagnostics and diffusion stage metrics as contract artifacts.
 

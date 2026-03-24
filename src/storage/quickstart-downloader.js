@@ -34,7 +34,7 @@ export const QUICKSTART_MODELS = {
     baseUrl: null,
     hf: {
       repoId: 'Clocksmith/rdrr',
-      revision: 'ca6f0dbdf3882d3893a65cf48f2bb6f1520df162',
+      revision: 'f5698592e69b97c38f21c68e01db2216c2f40965',
       path: 'models/gemma-3-270m-it-q4k-ehf16-af32',
     },
     requirements: MODEL_REQUIREMENTS['gemma-3-270m-it-q4k-ehf16-af32'],
@@ -45,7 +45,7 @@ export const QUICKSTART_MODELS = {
     baseUrl: null,
     hf: {
       repoId: 'Clocksmith/rdrr',
-      revision: '7e79c466d54455bd370c81685956ea9abae0fd30',
+      revision: '9e4ef13a43ed47eda17bdc271ae90632eb22b9c7',
       path: 'models/google-embeddinggemma-300m-q4k-ehf16-af32',
     },
     requirements: MODEL_REQUIREMENTS['google-embeddinggemma-300m-q4k-ehf16-af32'],

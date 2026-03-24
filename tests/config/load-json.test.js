@@ -53,6 +53,9 @@ import { loadJson } from '../../src/utils/load-json.js';
       async json() {
         return { url: String(url), mode: 'mocked' };
       },
+      async text() {
+        return JSON.stringify({ url: String(url), mode: 'mocked' });
+      },
     });
 
     const parsed = await loadJson('https://example.com/ok.json', 'https://example.com/');

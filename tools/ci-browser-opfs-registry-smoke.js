@@ -800,7 +800,9 @@ async function main() {
   }
 }
 
-main().catch((error) => {
+import { fileURLToPath as __fileURLToPath } from 'node:url';
+const __isDirectRun = process.argv[1] === __fileURLToPath(import.meta.url);
+if (__isDirectRun) main().catch((error) => {
   const args = parseArgs(process.argv.slice(2));
   if (args.allowCapabilitySkip) {
     const skip = classifyHostedCapabilitySkip(error);

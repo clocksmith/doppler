@@ -450,7 +450,7 @@
       "lifecycle": {
         "availability": {
           "curated": false,
-          "local": true,
+          "local": false,
           "hf": false
         },
         "status": {
