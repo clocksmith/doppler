@@ -1,5 +1,6 @@
 {
   "hosting": {
+    "site": "d4da-21169",
     "public": ".",
     "headers": [
       {

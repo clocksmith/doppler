@@ -13,7 +13,9 @@
     "vision": "f16",
     "projector": "f16",
     "modulesToNotConvert": [
-      "linear_attn.conv1d.weight"
+      "linear_attn.conv1d.weight",
+      "linear_attn.in_proj_a.weight",
+      "linear_attn.in_proj_b.weight"
     ],
     "computePrecision": "f16"
   },
