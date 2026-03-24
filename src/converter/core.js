@@ -644,26 +644,71 @@ function resolveQuantizeEmbeddings(quantizationInfo, explicitValue = null) {
   );
 }
 
+function normalizeModulesToNotConvert(modulesToNotConvert) {
+  if (!Array.isArray(modulesToNotConvert)) {
+    return null;
+  }
+  const normalized = modulesToNotConvert
+    .map((value) => (
+      typeof value === 'string' ? value.trim() : ''
+    ))
+    .filter(Boolean);
+  return normalized.length > 0 ? normalized : null;
+}
+
+function shouldSkipModuleQuantization(tensorName, modulesToNotConvert) {
+  const patterns = normalizeModulesToNotConvert(modulesToNotConvert);
+  if (!patterns) {
+    return false;
+  }
+
+  for (const pattern of patterns) {
+    const regexPattern = pattern
+      .replace(/\./g, '\\.')
+      .replace(/\*/g, '\\d+');
+    const matcher = new RegExp(regexPattern);
+    if (matcher.test(tensorName)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 
 export function shouldQuantize(tensorName, shape, options = {}) {
+  const {
+    quantizeEmbeddings = false,
+    modulesToNotConvert = null,
+    role: explicitRole = null,
+  } = options;
+
   if (!shape || !Array.isArray(shape) || shape.length === 0) {
     log.warn('Convert', `Invalid shape for tensor "${tensorName}": ${JSON.stringify(shape)}`);
     return false;
   }
   const numElements = shape.reduce((a, b) => a * b, 1);
-  const role = typeof options.role === 'string' && options.role.trim()
-    ? options.role.trim()
+  const role = typeof explicitRole === 'string' && explicitRole.trim()
+    ? explicitRole.trim()
     : classifyTensorRole(tensorName);
   const lower = tensorName.toLowerCase();
   const isBias = lower.endsWith('.bias') || lower.endsWith('_bias');
-  const quantizeEmbeddings = options.quantizeEmbeddings ?? false;
 
-  return selectRuleValue('converter', 'tensorRoles', 'shouldQuantize', {
+  const shouldQuantizeByRole = selectRuleValue('converter', 'tensorRoles', 'shouldQuantize', {
     numElements,
     role,
     isBias,
     quantizeEmbeddings,
   });
+
+  if (!shouldQuantizeByRole) {
+    return false;
+  }
+
+  if (shouldSkipModuleQuantization(tensorName, modulesToNotConvert)) {
+    return false;
+  }
+
+  return true;
 }
 
 export function transformTensorBytes(tensor, rawData, options = {}) {
@@ -684,6 +729,9 @@ export function transformTensorBytes(tensor, rawData, options = {}) {
   const quantizeEmbeddings = resolveQuantizeEmbeddings(
     quantizationInfo,
     options.quantizeEmbeddings
+  );
+  const modulesToNotConvert = normalizeModulesToNotConvert(
+    options.modulesToNotConvert ?? null
   );
   const forceQuantizeDecision = (
     typeof options.forceQuantizeDecision === 'boolean'
@@ -710,6 +758,7 @@ export function transformTensorBytes(tensor, rawData, options = {}) {
     const shouldQuantizeTensor = (
       forceQuantizeDecision ?? shouldQuantize(tensor.name, tensor.shape, {
         quantizeEmbeddings,
+        modulesToNotConvert,
         role: tensor.role ?? null,
       })
     );
@@ -727,6 +776,21 @@ export function transformTensorBytes(tensor, rawData, options = {}) {
       if (Array.isArray(tensor.shape) && tensor.shape.length === 2) {
         outLayout = q4kLayout;
       }
+    } else if (sourceDtype === 'BF16') {
+      // BF16 is not a native WebGPU dtype. When quantization is skipped
+      // (e.g. via modulesToNotConvert), convert BF16→F16 so the runtime
+      // can load the tensor without a BF16 dequant shader.
+      const bf16 = new Uint16Array(
+        tensorData.buffer,
+        tensorData.byteOffset,
+        tensorData.byteLength / 2
+      );
+      const f16 = new Uint16Array(bf16.length);
+      for (let j = 0; j < bf16.length; j++) {
+        f16[j] = float32ToFloat16(bf16ToFloat32(bf16[j]));
+      }
+      tensorData = new Uint8Array(f16.buffer, f16.byteOffset, f16.byteLength);
+      outDtype = 'F16';
     }
   } else if (tensorTargetQuant === 'f16' && sourceDtype === 'F32') {
     if (tensorData.byteLength % 4 !== 0) {
@@ -1235,6 +1299,9 @@ export async function convertModel(model, io, options = {}) {
     options.quantizationInfo ?? null,
     options.quantizeEmbeddings
   );
+  const modulesToNotConvert = normalizeModulesToNotConvert(
+    converterConfig?.quantization?.modulesToNotConvert ?? null
+  );
   const shards = [];
   const tensorLocations = {};
 
@@ -1288,6 +1355,7 @@ export async function convertModel(model, io, options = {}) {
       q4kLayout,
       quantizationInfo: options.quantizationInfo ?? null,
       quantizeEmbeddings,
+      modulesToNotConvert,
     };
     const transformResult = (
       typeof options.tensorTransformer === 'function'

@@ -120,12 +120,24 @@ async function loadCachedManifest(modelId) {
 
 export async function ensureModelCached(modelId, modelBaseUrl) {
   if (!modelId || !modelBaseUrl) {
-    return { cached: false, fromCache: false, modelId, error: 'missing-args' };
+    return {
+      cached: false,
+      fromCache: false,
+      cacheState: 'error',
+      modelId,
+      error: 'missing-args',
+    };
   }
 
   if (!isOPFSAvailable()) {
     log.warn(MODULE, 'OPFS not available in this browser');
-    return { cached: false, fromCache: false, modelId, error: 'opfs-unavailable' };
+    return {
+      cached: false,
+      fromCache: false,
+      cacheState: 'error',
+      modelId,
+      error: 'opfs-unavailable',
+    };
   }
 
   try {
@@ -155,7 +167,13 @@ export async function ensureModelCached(modelId, modelBaseUrl) {
           const remoteFingerprint = buildManifestFingerprint(remoteManifest);
           if (sourceIntegrityValid && cachedFingerprint === remoteFingerprint) {
             log.info(MODULE, `Cache hit: "${modelId}"`);
-            return { cached: true, fromCache: true, modelId, error: null };
+            return {
+              cached: true,
+              fromCache: true,
+              cacheState: 'hit',
+              modelId,
+              error: null,
+            };
           }
 
           const sameShards = hasSameShardSet(cachedManifest, remoteManifest);
@@ -164,20 +182,38 @@ export async function ensureModelCached(modelId, modelBaseUrl) {
             await openModelStore(modelId);
             await saveManifest(remoteManifestText);
             log.info(MODULE, `Cache manifest refreshed: "${modelId}" (shards unchanged)`);
-            return { cached: true, fromCache: false, modelId, error: null };
+            return {
+              cached: true,
+              fromCache: false,
+              cacheState: 'manifest-refresh',
+              modelId,
+              error: null,
+            };
           }
           log.info(MODULE, `Cache stale: "${modelId}" manifest/shards changed; re-importing`);
         }
       } catch (error) {
         const message = toErrorMessage(error);
         log.warn(MODULE, `Cache validation failed (${message}); refusing cached model "${modelId}"`);
-        return { cached: false, fromCache: false, modelId, error: message };
+        return {
+          cached: false,
+          fromCache: false,
+          cacheState: 'error',
+          modelId,
+          error: message,
+        };
       }
     }
   } catch (error) {
     const message = toErrorMessage(error);
     log.warn(MODULE, `Cache check failed: ${message}`);
-    return { cached: false, fromCache: false, modelId, error: message };
+    return {
+      cached: false,
+      fromCache: false,
+      cacheState: 'error',
+      modelId,
+      error: message,
+    };
   }
 
   log.info(MODULE, `Cache miss: "${modelId}". Triggering full model download from ${modelBaseUrl}`);
@@ -195,12 +231,30 @@ export async function ensureModelCached(modelId, modelBaseUrl) {
 
     if (success) {
       log.info(MODULE, `Import complete: "${modelId}"`);
-      return { cached: true, fromCache: false, modelId, error: null };
+      return {
+        cached: true,
+        fromCache: false,
+        cacheState: 'imported',
+        modelId,
+        error: null,
+      };
     }
-    return { cached: false, fromCache: false, modelId, error: 'download-incomplete' };
+    return {
+      cached: false,
+      fromCache: false,
+      cacheState: 'error',
+      modelId,
+      error: 'download-incomplete',
+    };
   } catch (error) {
     const message = toErrorMessage(error);
     log.error(MODULE, `Import failed: ${message}`);
-    return { cached: false, fromCache: false, modelId, error: message };
+    return {
+      cached: false,
+      fromCache: false,
+      cacheState: 'error',
+      modelId,
+      error: message,
+    };
   }
 }

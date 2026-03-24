@@ -1,0 +1,8 @@
+{
+  "sourceModel": "translategemma-4b-it",
+  "sourceRepo": "google/translategemma-4b-it",
+  "sourceFormat": "safetensors",
+  "sourceRevision": "10042cb0e6e7fdce748996a71dc3dc432a4e0c89",
+  "variant": "q4k-ehf16-af32",
+  "convertedAt": "2026-03-15T21:32:57.224Z"
+}

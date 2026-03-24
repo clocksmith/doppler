@@ -35,13 +35,13 @@ const EXPECTED_QWEN_DECODE_LOOP = Object.freeze({
   ringTokens: 1,
   ringStop: 1,
   ringStaging: 1,
-  disableCommandBatching: true,
+  disableCommandBatching: false,
 });
 const EXPECTED_QWEN_COMPUTE_DEFAULTS = Object.freeze({
-  activationDtype: 'f16',
-  mathDtype: 'f16',
-  accumDtype: 'f16',
-  outputDtype: 'f16',
+  activationDtype: 'f32',
+  mathDtype: 'f32',
+  accumDtype: 'f32',
+  outputDtype: 'f32',
 });
 
 function assertQwenDecodeLoop(decodeLoop, label) {
@@ -69,7 +69,7 @@ function assertQwenConversionConfig(config) {
     config.output?.modelBaseId ?? 'qwen'
   );
   assert.ok(config.execution && typeof config.execution === 'object', 'qwen execution config must be present');
-  assert.equal(config.execution.inlineKernelPath, false, 'qwen execution.inlineKernelPath');
+  assert.equal(config.execution.inlineKernelPath, true, 'qwen execution.inlineKernelPath');
 }
 
 function hasTensor(manifest, tensorName) {
@@ -101,13 +101,13 @@ if (!hasExactLocalManifests) {
   }
 }
 
-// --- Manifest: execution v1 is present, but Qwen disables inline kernel-path lowering ---
+// --- Manifest: execution v1 is present with inline kernel-path lowering enabled ---
 
 {
   for (const manifest of [f16Manifest, q4kManifest]) {
     assert.equal(manifest.inference.schema, 'doppler.execution/v1');
     assert.ok(manifest.inference.execution && typeof manifest.inference.execution === 'object');
-    assert.equal(manifest.inference.execution.inlineKernelPath, false);
+    assert.equal(manifest.inference.execution.inlineKernelPath, true);
   }
 }
 

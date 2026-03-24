@@ -1,0 +1,8 @@
+{
+  "sourceModel": "sana-sprint-0.6b",
+  "sourceRepo": "Efficient-Large-Model/Sana_Sprint_0.6B_1024px_diffusers",
+  "sourceFormat": "safetensors",
+  "sourceRevision": "a7d9fc31dd5c3f5e22dbfd78360777ceed56ae97",
+  "variant": "wf16-ef16-hf16-f16",
+  "convertedAt": "2026-03-06T15:40:39.623Z"
+}

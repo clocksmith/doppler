@@ -12,6 +12,9 @@
     "lmHead": "f16",
     "vision": "f16",
     "projector": "f16",
+    "modulesToNotConvert": [
+      "linear_attn.conv1d.weight"
+    ],
     "computePrecision": "f16"
   },
   "manifest": {
@@ -29,7 +32,7 @@
     },
     "normalization": {
       "rmsNormEps": 0.000001,
-      "rmsNormWeightOffset": false,
+      "rmsNormWeightOffset": true,
       "postAttentionNorm": true,
       "preFeedforwardNorm": false,
       "postFeedforwardNorm": false

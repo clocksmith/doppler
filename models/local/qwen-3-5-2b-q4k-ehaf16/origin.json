@@ -1,0 +1,9 @@
+{
+  "sourceModel": "Qwen/Qwen3.5-2B",
+  "sourceRepo": "Qwen/Qwen3.5-2B",
+  "sourceFormat": "safetensors",
+  "sourceRevision": "15852e8c16360a2fea060d615a32b45270f8a8fc",
+  "variant": "q4k-ehaf16",
+  "convertedAt": "2026-03-19T15:40:00.000Z",
+  "notes": "Reconverted with textOnly=false to include 297 vision encoder tensors at F16"
+}

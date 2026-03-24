@@ -80,25 +80,9 @@ function ensureSelectedBuilderModelId() {
 }
 
 function populateBuilderModelSelect() {
-  const select = $('kernel-builder-model-select');
-  if (!(select instanceof HTMLSelectElement)) return;
-  const models = getBuilderModels();
-  const selectedId = ensureSelectedBuilderModelId();
-  select.innerHTML = '';
-  if (models.length === 0) {
-    const option = document.createElement('option');
-    option.value = '';
-    option.textContent = 'No builder models indexed';
-    select.appendChild(option);
-    return;
-  }
-  for (const model of models) {
-    const option = document.createElement('option');
-    option.value = model.modelId;
-    option.textContent = model.modelId;
-    option.selected = model.modelId === selectedId;
-    select.appendChild(option);
-  }
+  // Model selection is now driven by the shared diagnostics-model selector.
+  // Just ensure the internal state has a valid model ID.
+  ensureSelectedBuilderModelId();
 }
 
 function buildRuntimeOverlay(model) {

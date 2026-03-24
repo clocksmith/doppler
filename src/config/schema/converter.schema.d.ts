@@ -29,6 +29,7 @@ export interface ConverterQuantizationConfigSchema {
   vision: QuantizationValue | null;
   audio: QuantizationValue | null;
   projector: QuantizationValue | null;
+  modulesToNotConvert: string[] | null;
   q4kLayout: Q4KLayout;
   computePrecision: ComputePrecision;
 }

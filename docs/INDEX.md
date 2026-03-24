@@ -13,6 +13,7 @@ Primary documentation index.
 - [Architecture](architecture.md) - system model and boundaries.
 - [Pipeline Contract](pipeline-contract.md) - command-to-output runtime contract boundaries.
 - [Config](config.md) - kernel paths, config behavior, and runtime contract notes.
+- [CLI Reference](cli.md) - command flags, config inputs, surface selection, and examples.
 - [RDRR Format](rdrr-format.md) - runtime artifact spec.
 - [LoRA Format](lora-format.md) - adapter manifest spec.
 - [Conversion Runtime Contract](conversion-runtime-contract.md) - conversion-static vs runtime-overridable ownership.

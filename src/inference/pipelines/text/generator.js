@@ -264,9 +264,24 @@ export class PipelineGenerator {
   }
 
   _resetDecodeRuntimeState() {
+    this.#state.stats.decodeMode = null;
+    this.#state.stats.batchGuardReason = null;
+    this.#state.stats.decodeProfileSteps = [];
+    this.#state.stats.ttftMs = 0;
+    this.#state.stats.decodeTimeMs = 0;
+    this.#state.stats.decodeRecordMs = 0;
+    this.#state.stats.decodeSubmitWaitMs = 0;
+    this.#state.stats.decodeReadbackWaitMs = 0;
     this.#state.decodeStepCount = 0;
     this.#state.disableRecordedLogits = false;
     this.#state.disableFusedDecode = false;
+    this.#state.batchingStats = {
+      batchedForwardCalls: 0,
+      unbatchedForwardCalls: 0,
+      totalBatchedTimeMs: 0,
+      totalUnbatchedTimeMs: 0,
+      gpuSubmissions: 0,
+    };
     resetActiveExecutionPlan(this.#state);
     this.#state.decodeRing?.reset();
   }

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdtemp, rm, readdir, symlink, copyFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
@@ -32,6 +33,7 @@ export function parseArgs(argv) {
     modelId: '',
     catalogFile: DEFAULT_CATALOG_FILE,
     localDir: '',
+    shardDir: '',
     registryUrl: DEFAULT_HF_REGISTRY_URL,
     registryPath: DEFAULT_HF_REGISTRY_PATH,
     repoId: '',
@@ -56,6 +58,13 @@ export function parseArgs(argv) {
       const value = normalizeText(argv[i + 1]);
       if (!value) throw new Error('Missing value for --local-dir');
       out.localDir = path.resolve(REPO_ROOT, value);
+      i += 1;
+      continue;
+    }
+    if (arg === '--shard-dir') {
+      const value = normalizeText(argv[i + 1]);
+      if (!value) throw new Error('Missing value for --shard-dir');
+      out.shardDir = path.resolve(REPO_ROOT, value);
       i += 1;
       continue;
     }
@@ -129,8 +138,15 @@ export function buildArtifactUploadPlan(entry, options = {}) {
   const hfSpec = getEntryHfSpec(entry);
   const repoId = normalizeText(options.repoId) || hfSpec.repoId;
   const targetPath = hfSpec.path;
-  const localDir = options.localDir
+
+  // Manifest source of truth: models/local/<modelId>/
+  const manifestDir = options.localDir
+    || path.join(REPO_ROOT, 'models', 'local', modelId);
+
+  // Shard source: external drive (heavy files not in git)
+  const shardDir = options.shardDir
     || path.join(DEFAULT_EXTERNAL_MODELS_ROOT, 'rdrr', modelId);
+
   if (!repoId) {
     throw new Error(`${modelId}: hf.repoId is required to publish`);
   }
@@ -141,8 +157,51 @@ export function buildArtifactUploadPlan(entry, options = {}) {
     modelId,
     repoId,
     targetPath,
-    localDir,
+    manifestDir,
+    shardDir,
   };
+}
+
+/**
+ * Build a staging directory for HF upload by combining:
+ * - manifest.json + origin.json from manifestDir (source of truth)
+ * - shard_*.bin + tokenizer files from shardDir (external drive)
+ */
+export async function buildStagingDir(uploadPlan) {
+  const { modelId, manifestDir, shardDir } = uploadPlan;
+  const manifestPath = path.join(manifestDir, 'manifest.json');
+  if (!existsSync(manifestPath)) {
+    throw new Error(
+      `${modelId}: manifest.json not found in ${manifestDir}. `
+      + 'The models/local/<modelId>/ directory is the source of truth for manifests.'
+    );
+  }
+  if (!existsSync(shardDir)) {
+    throw new Error(
+      `${modelId}: shard directory not found at ${shardDir}. `
+      + 'The external drive must be mounted with model shards present.'
+    );
+  }
+
+  const stagingDir = await mkdtemp(path.join(os.tmpdir(), `doppler-publish-${modelId}-`));
+
+  // Copy manifest + origin from local (source of truth)
+  await copyFile(manifestPath, path.join(stagingDir, 'manifest.json'));
+  const originPath = path.join(manifestDir, 'origin.json');
+  if (existsSync(originPath)) {
+    await copyFile(originPath, path.join(stagingDir, 'origin.json'));
+  }
+
+  // Symlink shards + tokenizer from external drive (heavy files)
+  const shardFiles = await readdir(shardDir);
+  for (const file of shardFiles) {
+    if (file === 'manifest.json' || file === 'origin.json') continue;
+    const src = path.join(shardDir, file);
+    const dst = path.join(stagingDir, file);
+    await symlink(src, dst);
+  }
+
+  return stagingDir;
 }
 
 export function assertPromotionReady(entry) {
@@ -190,6 +249,7 @@ export async function main(argv = process.argv.slice(2)) {
   const uploadPlan = buildArtifactUploadPlan(localEntry, {
     repoId: args.repoId,
     localDir: args.localDir,
+    shardDir: args.shardDir,
   });
 
   if (args.dryRun) {
@@ -197,7 +257,8 @@ export async function main(argv = process.argv.slice(2)) {
       modelId: uploadPlan.modelId,
       catalogFile: args.catalogFile,
       repoId: uploadPlan.repoId,
-      localDir: uploadPlan.localDir,
+      manifestDir: uploadPlan.manifestDir,
+      shardDir: uploadPlan.shardDir,
       targetPath: uploadPlan.targetPath,
       registryPath: args.registryPath,
       registryUrl: args.registryUrl,
@@ -209,14 +270,21 @@ export async function main(argv = process.argv.slice(2)) {
   // This fails fast on registry access issues before making irreversible changes.
   await fetchJson(args.registryUrl);
 
-  const uploadResult = await spawnCommand('hf', [
-    'upload',
-    uploadPlan.repoId,
-    uploadPlan.localDir,
-    uploadPlan.targetPath,
-    '--commit-message',
-    `Publish ${uploadPlan.modelId} RDRR artifact`,
-  ]);
+  // Build staging directory: manifest from models/local/ + shards from external drive
+  const stagingDir = await buildStagingDir(uploadPlan);
+  let uploadResult;
+  try {
+    uploadResult = await spawnCommand('hf', [
+      'upload',
+      uploadPlan.repoId,
+      stagingDir,
+      uploadPlan.targetPath,
+      '--commit-message',
+      `Publish ${uploadPlan.modelId} RDRR artifact`,
+    ]);
+  } finally {
+    await rm(stagingDir, { recursive: true, force: true });
+  }
   const artifactRevision = extractCommitShaFromUrl(uploadResult.stdout)
     || extractCommitShaFromUrl(uploadResult.stderr)
     || await fetchRepoHeadSha(uploadPlan.repoId);

@@ -23,7 +23,7 @@ export function detectDefaultExternalModelsRoot() {
   if (envRoot) {
     return envRoot;
   }
-  for (const candidate of ['/Volumes/models', '/media/x/models']) {
+  for (const candidate of ['/Volumes/models', '/Volumes/models2', '/media/x/models']) {
     if (existsSync(candidate)) {
       return candidate;
     }
@@ -32,10 +32,6 @@ export function detectDefaultExternalModelsRoot() {
 }
 
 export const DEFAULT_EXTERNAL_MODELS_ROOT = detectDefaultExternalModelsRoot();
-export const DEFAULT_EXTERNAL_VOLUME_INDEX_PATH = path.join(
-  DEFAULT_EXTERNAL_MODELS_ROOT,
-  'VOLUME_INDEX.json'
-);
 
 export function isPlainObject(value) {
   return value != null && typeof value === 'object' && !Array.isArray(value);

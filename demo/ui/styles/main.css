@@ -164,7 +164,7 @@
       max-width: 100%;
       background: transparent;
       text-align: left;
-      align-self: flex-start;
+      align-self: baseline;
       line-height: 1.35;
       color: color-mix(in srgb, var(--fg) 72%, transparent);
     }
@@ -911,7 +911,11 @@
       margin-top: var(--space-xs);
     }
 
-    .run-controls-panel #run-sampling-controls > .playground-field:last-child {
+    .run-controls-panel #run-sampling-controls > .playground-field {
+      margin-top: 4px;
+    }
+
+    .run-controls-panel #run-sampling-controls > .playground-field:first-of-type {
       margin-top: var(--space-xs);
     }
 
@@ -1584,6 +1588,14 @@
 
     #app[data-mode="translate"] #run-output-status {
       color: color-mix(in srgb, var(--doppler-purple) 54%, var(--fg));
+    }
+
+    .runtime-notice {
+      color: var(--fg-muted, #888);
+      opacity: 0.7;
+      padding: 4px 8px;
+      border-left: 2px solid var(--doppler-purple, #a855f7);
+      margin-bottom: 6px;
     }
 
     .playground-output-box {

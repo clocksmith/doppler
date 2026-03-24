@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { closeSync, mkdtempSync, openSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { createServer } from 'node:http';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const {
   buildRequest,
@@ -87,6 +88,35 @@ function writeJsonFixture(content) {
   return { fixtureDir, filePath };
 }
 
+function startMockConfigServer(responseBody, options = {}) {
+  const statusCode = Number.isInteger(options.statusCode) ? options.statusCode : 200;
+  const bodyText = typeof responseBody === 'string' ? responseBody : JSON.stringify(responseBody);
+  const contentType = options.contentType || 'application/json';
+
+  const server = createServer((req, res) => {
+    res.statusCode = statusCode;
+    res.setHeader('content-type', contentType);
+    res.end(bodyText);
+  });
+
+  return new Promise((resolve, reject) => {
+    server.listen(0, '127.0.0.1', () => {
+      const address = server.address();
+      if (typeof address === 'string' || !address) {
+        reject(new Error('Unable to start mock config server'));
+        return;
+      }
+      resolve({
+        url: `http://127.0.0.1:${address.port}/config.json`,
+        close: () => new Promise((done) => {
+          server.close(() => done());
+        }),
+      });
+    });
+    server.on('error', (error) => reject(error));
+  });
+}
+
 await assert.rejects(
   () => buildRequest({
     command: 'bench',
@@ -96,6 +126,122 @@ await assert.rejects(
   }, TEST_CLI_POLICY),
   /modelId is required for command "bench"/
 );
+
+{
+  const result = await buildRequest({
+    command: 'bench',
+    flags: {
+      config: JSON.stringify({
+        request: {
+          workload: 'inference',
+          modelId: 'toy-model',
+        },
+        runtimeProfile: 'profiles/verbose-trace',
+      }),
+    },
+  }, TEST_CLI_POLICY);
+  assert.equal(result.request.runtimeProfile, 'profiles/verbose-trace');
+}
+
+{
+  const fixture = makeTempDir();
+  const runtimeConfigPath = path.join(fixture, 'runtime-config.json');
+  writeFileSync(runtimeConfigPath, JSON.stringify({ shared: { tooling: { intent: 'verify' } } }), 'utf8');
+  const result = await buildRequest({
+    command: 'verify',
+    flags: {
+      config: JSON.stringify({
+        request: {
+          workload: 'inference',
+          modelId: 'toy-model',
+        },
+        runtimeConfigUrl: runtimeConfigPath,
+      }),
+    },
+  }, TEST_CLI_POLICY);
+  assert.equal(result.request.runtimeConfigUrl, pathToFileURL(runtimeConfigPath).href);
+  rmSync(fixture, { recursive: true, force: true });
+}
+
+{
+  const mock = await startMockConfigServer({
+    shared: { tooling: { intent: 'investigate' } },
+  });
+  try {
+    const result = await buildRequest({
+      command: 'debug',
+      flags: {
+        config: JSON.stringify({
+          request: {
+            workload: 'inference',
+            modelId: 'toy-model',
+          },
+        }),
+        'runtime-config': mock.url,
+      },
+    }, TEST_CLI_POLICY);
+    assert.equal(result.request.runtimeConfigUrl, mock.url);
+    assert.equal(result.request.runtimeConfig, null);
+  } finally {
+    await mock.close();
+  }
+}
+
+{
+  await assert.rejects(
+    () => buildRequest({
+      command: 'debug',
+      flags: {
+        config: JSON.stringify({
+          request: {
+            workload: 'inference',
+            modelId: 'toy-model',
+            runtimeProfile: 'profiles/verbose-trace',
+          },
+          runtimeProfile: 'profiles/other-trace',
+        }),
+      },
+    }, TEST_CLI_POLICY),
+    /Cannot set runtimeProfile in both/
+  );
+}
+
+{
+  await assert.rejects(
+    () => buildRequest({
+      command: 'bench',
+      flags: {
+        config: JSON.stringify({
+          request: {
+            modelId: 'toy-model',
+          },
+          unknownTopLevelKey: 'value',
+        }),
+      },
+    }, TEST_CLI_POLICY),
+    /--config has unknown top-level keys for request envelope/
+  );
+}
+
+{
+  const result = await buildRequest({
+    command: 'verify',
+    flags: {
+      config: JSON.stringify({
+        workload: 'inference',
+        modelId: 'toy-model',
+        runtimeConfig: {
+          shared: {
+            tooling: {
+              intent: 'verify',
+            },
+          },
+        },
+      }),
+    },
+  }, TEST_CLI_POLICY);
+  assert.equal(result.request.runtimeConfig?.shared?.tooling?.intent, 'verify');
+}
 
 {
   const result = await buildRequest({
@@ -177,7 +323,7 @@ await assert.rejects(
 {
   const result = runCli(['verify']);
   assert.equal(result.code, 1);
-  assert.match(result.stderr, /\[error\] command requires --config <path\.json\|json>\./);
+  assert.match(result.stderr, /\[error\] command requires --config <path\|url\|json>\./);
 }
 
 {
@@ -189,7 +335,7 @@ await assert.rejects(
   assert.equal(payload.surface, null);
   assert.equal(payload.request, null);
   assert.equal(payload.error.code, 'tooling_error');
-  assert.match(payload.error.message, /command requires --config <path\.json\|json>\./);
+  assert.match(payload.error.message, /command requires --config <path\|url\|json>\./);
 }
 
 {
@@ -385,6 +531,60 @@ await assert.rejects(
 }
 
 {
+  const mock = await startMockConfigServer({
+    request: {
+      workload: 'inference',
+      modelId: 'toy-model',
+    },
+  });
+  try {
+    const result = await buildRequest({
+      command: 'bench',
+      flags: {
+        config: mock.url,
+      },
+    }, TEST_CLI_POLICY);
+    assert.equal(result.request.modelId, 'toy-model');
+  } finally {
+    await mock.close();
+  }
+}
+
+{
+  const mock = await startMockConfigServer('not-json', { contentType: 'text/plain' });
+  try {
+    await assert.rejects(
+      () => buildRequest({
+        command: 'bench',
+        flags: {
+          config: mock.url,
+        },
+      }, TEST_CLI_POLICY),
+      /Invalid --config:/
+    );
+  } finally {
+    await mock.close();
+  }
+}
+
+{
+  const mock = await startMockConfigServer('not found', { statusCode: 404 });
+  try {
+    await assert.rejects(
+      () => buildRequest({
+        command: 'bench',
+        flags: {
+          config: mock.url,
+        },
+      }, TEST_CLI_POLICY),
+      /--config URL request failed: HTTP 404/
+    );
+  } finally {
+    await mock.close();
+  }
+}
+
+{
   const fixtureDir = makeTempDir();
   const invalidJsonPath = path.join(fixtureDir, 'invalid.json');
   writeFileSync(invalidJsonPath, '{not-json', 'utf8');
@@ -461,7 +661,7 @@ await assert.rejects(
   assert.equal(result.code, 1);
   assert.match(
     result.stderr,
-    /\[error\] --runtime-config cannot be combined with runtimeProfile\/runtimeConfigUrl\/runtimeConfig values inside --config request payload\./
+    /\[error\] --runtime-config cannot be combined with runtimeProfile\/runtimeConfigUrl\/runtimeConfig values inside --config\./
   );
 }
 
@@ -480,7 +680,7 @@ await assert.rejects(
   assert.equal(result.code, 1);
   assert.doesNotMatch(
     result.stderr,
-    /\[error\] --runtime-config cannot be combined with runtimeProfile\/runtimeConfigUrl\/runtimeConfig values inside --config request payload\./
+    /\[error\] --runtime-config cannot be combined with runtimeProfile\/runtimeConfigUrl\/runtimeConfig values inside --config\./
   );
 }
 

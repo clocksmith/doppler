@@ -2,7 +2,6 @@ export declare const DEFAULT_HF_REPO_ID: string;
 export declare const DEFAULT_HF_REGISTRY_PATH: string;
 export declare const DEFAULT_HF_REGISTRY_URL: string;
 export declare const DEFAULT_EXTERNAL_MODELS_ROOT: string;
-export declare const DEFAULT_EXTERNAL_VOLUME_INDEX_PATH: string;
 
 export declare function normalizeText(value: unknown): string;
 export declare function normalizeToken(value: unknown): string;

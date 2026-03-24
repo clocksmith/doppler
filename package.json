@@ -73,8 +73,6 @@
     "support:matrix:sync": "node tools/sync-model-support-matrix.js",
     "support:matrix:check": "node tools/sync-model-support-matrix.js --check",
     "ci:catalog:check": "npm run registry:sync:scripts:check && npm run support:matrix:check && npm run registry:hf:check",
-    "external:index": "node tools/sync-external-rdrr-index.js",
-    "external:index:check": "node tools/sync-external-rdrr-index.js --check",
     "verify:embeddinggemma-300m": "node tools/run-registry-verify.js embeddinggemma-300m",
     "verify:gemma-3-1b-it-f16": "node tools/run-registry-verify.js gemma-3-1b-it-f16",
     "verify:gemma-3-1b-it-f16-af32": "node tools/run-registry-verify.js gemma-3-1b-it-f16-af32",

@@ -1,6 +1,7 @@
 export interface EnsureModelCachedResult {
   cached: boolean;
   fromCache: boolean;
+  cacheState: 'hit' | 'manifest-refresh' | 'imported' | 'error';
   modelId: string;
   error: string | null;
 }

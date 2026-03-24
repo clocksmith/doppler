@@ -227,6 +227,8 @@ export type ProbeStage =
   | 'q_proj'          // Q projection output
   | 'k_proj'          // K projection output
   | 'v_proj'          // V projection output
+  | 'q_norm'          // Q normalization output (Q/K pre-RoPE)
+  | 'k_norm'          // K normalization output (Q/K pre-RoPE)
   | 'q_rope'          // Q after RoPE
   | 'k_rope'          // K after RoPE
   | 'attn_scores'     // Attention scores (pre-softmax)

@@ -1,4 +1,5 @@
 {
+  "modelType": "transformer",
   "output": {
     "baseDir": "models/local",
     "modelBaseId": "qwen-3-5-0-8b-q4k-ehaf16",
@@ -11,6 +12,9 @@
     "lmHead": "f16",
     "vision": "f16",
     "projector": "f16",
+    "modulesToNotConvert": [
+      "linear_attn.conv1d.weight"
+    ],
     "computePrecision": "f16"
   },
   "manifest": {
@@ -28,7 +32,7 @@
     },
     "normalization": {
       "rmsNormEps": 0.000001,
-      "rmsNormWeightOffset": false,
+      "rmsNormWeightOffset": true,
       "postAttentionNorm": true,
       "preFeedforwardNorm": false,
       "postFeedforwardNorm": false

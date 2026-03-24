@@ -41,8 +41,10 @@ export function applyLinearNormWeightOffset(values, rmsNormWeightOffset) {
   if (!(values instanceof Float32Array)) {
     throw new Error('applyLinearNormWeightOffset requires Float32Array input.');
   }
-  // Qwen linear-attention output norm uses direct weights even when surrounding
-  // transformer RMSNorm sites use the Gemma-style (1 + weight) formula.
+  // Qwen linear-attention output norm uses direct weights (values ~1.0,
+  // standard RMSNorm initialization) even when surrounding transformer
+  // RMSNorm sites use the Gemma-style (1 + weight) formula (values ~0.24).
+  // Verified from Qwen 3.5 checkpoint: linear_attn.norm.weight mean≈0.95.
   return values;
 }
 

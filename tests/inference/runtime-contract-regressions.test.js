@@ -213,6 +213,7 @@ try {
             embeddingTranspose: false,
             finalLogitSoftcapping: null,
             embeddingVocabSize: null,
+            embeddingPostprocessor: null,
           },
           layerPattern: {
             type: 'global',

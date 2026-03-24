@@ -266,7 +266,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "f5698592e69b97c38f21c68e01db2216c2f40965",
+        "revision": "666f3807824e578998ede1ea7bc4c8ef5edaf8d0",
         "path": "models/qwen-3-5-0-8b-q4k-ehaf16"
       },
       "baseUrl": null,
@@ -326,7 +326,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "f5698592e69b97c38f21c68e01db2216c2f40965",
+        "revision": "8bf391271e9523c09b0889388c632b22a6aa02bf",
         "path": "models/qwen-3-5-2b-q4k-ehaf16"
       },
       "baseUrl": null,

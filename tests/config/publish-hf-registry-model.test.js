@@ -33,7 +33,7 @@ import {
   });
   assert.equal(plan.repoId, 'Clocksmith/rdrr');
   assert.equal(plan.targetPath, 'models/translategemma-4b-it-q4k-ehf16-af32');
-  assert.equal(plan.localDir, '/tmp/translategemma');
+  assert.equal(plan.manifestDir, '/tmp/translategemma');
 }
 
 {

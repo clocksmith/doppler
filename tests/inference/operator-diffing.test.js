@@ -34,6 +34,8 @@ import assert from 'node:assert/strict';
   assert.equal(PROBE_TO_CANONICAL.logits, 'logits.out');
   assert.equal(PROBE_TO_CANONICAL.ffn_gate, 'ffn.gate');
   assert.equal(PROBE_TO_CANONICAL.layer_out, 'layer.out');
+  assert.equal(PROBE_TO_CANONICAL.q_norm, 'attn.q_norm');
+  assert.equal(PROBE_TO_CANONICAL.k_norm, 'attn.k_norm');
 
   assert.equal(getOperatorClass('attn.q_proj'), 'projection');
   assert.equal(getOperatorClass('attn.softmax'), 'attention');
@@ -43,6 +45,8 @@ import assert from 'node:assert/strict';
   assert.equal(getOperatorClass('nonexistent'), null);
 
   assert.equal(canonicalizeProbeStage('q_proj'), 'attn.q_proj');
+  assert.equal(canonicalizeProbeStage('q_norm'), 'attn.q_norm');
+  assert.equal(canonicalizeProbeStage('k_norm'), 'attn.k_norm');
   assert.equal(canonicalizeProbeStage('logits'), 'logits.out');
   assert.equal(canonicalizeProbeStage('nonexistent'), null);
 
@@ -72,6 +76,8 @@ import assert from 'node:assert/strict';
   assert.equal(buildOpId('embed.out'), 'embed.out');
 
   assert.equal(buildOpIdFromProbeStage('q_proj', 5), 'layer.5.attn.q_proj');
+  assert.equal(buildOpIdFromProbeStage('q_norm', 3), 'layer.3.attn.q_norm');
+  assert.equal(buildOpIdFromProbeStage('k_norm', 3), 'layer.3.attn.k_norm');
   assert.equal(buildOpIdFromProbeStage('logits'), 'logits.out');
   assert.equal(buildOpIdFromProbeStage('embed_out', null), 'embed.out');
   assert.throws(() => buildOpIdFromProbeStage('nonexistent', 0), /Unknown probe stage/);

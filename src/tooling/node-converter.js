@@ -740,6 +740,7 @@ function createNodeTensorTransformer(options) {
     const forceQuantizeDecision = tensorTargetQuant === 'q4k'
       ? shouldQuantize(tensor.name, tensor.shape, {
         quantizeEmbeddings: Boolean(transformContext.quantizeEmbeddings),
+        modulesToNotConvert: transformContext.modulesToNotConvert ?? null,
       })
       : null;
 

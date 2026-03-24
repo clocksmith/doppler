@@ -157,6 +157,8 @@ export const PROBE_TO_CANONICAL = Object.freeze({
   post_input_norm: STAGES.ATTN_POST_INPUT_NORM,
   attn_normed: STAGES.ATTN_NORMED,
   linear_qkv_proj: STAGES.ATTN_QKV_PROJ,
+  q_norm: STAGES.ATTN_Q_NORM,
+  k_norm: STAGES.ATTN_K_NORM,
   linear_z_proj: STAGES.ATTN_LINEAR_Z_PROJ,
   linear_a_proj: STAGES.ATTN_LINEAR_A_PROJ,
   linear_b_proj: STAGES.ATTN_LINEAR_B_PROJ,

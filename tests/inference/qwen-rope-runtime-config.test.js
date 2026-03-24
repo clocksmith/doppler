@@ -167,6 +167,7 @@ import { parseModelConfigFromManifest } from '../../src/inference/pipelines/text
         scaleEmbeddings: false,
         embeddingTranspose: false,
         embeddingVocabSize: 248320,
+        embeddingPostprocessor: null,
       },
       layerPattern: {
         type: 'custom',

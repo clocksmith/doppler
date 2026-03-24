@@ -134,12 +134,13 @@ Commands have workload/intent rules defined in `src/rules/tooling/command-runtim
 | `bench`   | caller choice     | `calibrate`   | `node src/cli/doppler-cli.js bench --config '{"request":{"workload":"inference","modelId":"gemma3-270m"}}' --json` |
 | `debug`   | caller choice     | `investigate` | `node src/cli/doppler-cli.js debug --config '{"request":{"workload":"inference","modelId":"gemma3-270m"}}' --json` |
 | `verify`  | caller choice     | `verify`      | `node src/cli/doppler-cli.js verify --config '{"request":{"workload":"inference","modelId":"gemma3-270m"}}' --json` |
-| `convert` | n/a               | —             | `node src/cli/doppler-cli.js convert --config <path.json>` |
-| `lora`    | n/a               | —             | `node src/cli/doppler-cli.js lora --config <path.json>` |
-| `distill` | n/a               | —             | `node src/cli/doppler-cli.js distill --config <path.json>` |
+| `convert` | n/a               | —             | `node src/cli/doppler-cli.js convert --config <path|url|json>` |
+| `lora`    | n/a               | —             | `node src/cli/doppler-cli.js lora --config <path|url|json>` |
+| `distill` | n/a               | —             | `node src/cli/doppler-cli.js distill --config <path|url|json>` |
 
 - `bench` and `debug` reject any workload outside their supported workload set.
 - `verify` accepts the documented workloads for the target command path.
+- `--config` accepts inline JSON, file path, or URL for all commands.
 - The CLI auto-resolves models from the external RDRR root (`/Volumes/models/rdrr` on macOS, `/media/x/models/rdrr` on Linux) by `modelId`. No `modelUrl` needed when models are in the external root.
 - To point at a model outside the external root, set `request.modelUrl` to a `file://` path:
   `--config '{"request":{"workload":"inference","modelId":"gemma3-1b","modelUrl":"file:///home/user/rdrr/gemma-3-1b-it-q4k-ehf16-af32"}}'`

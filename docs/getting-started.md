@@ -23,6 +23,14 @@ CLI entrypoint:
 node src/cli/doppler-cli.js
 ```
 
+`--config` is the one required input flag and accepts:
+
+- inline JSON payload
+- local file path
+- HTTP/HTTPS URL
+
+All examples below use inline JSON for readability.
+
 ## Setup
 
 ### Browser requirements

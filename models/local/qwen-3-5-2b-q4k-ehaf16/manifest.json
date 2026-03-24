@@ -1,0 +1,4731 @@
+{
+  "version": 1,
+  "modelId": "qwen-3-5-2b-q4k-ehaf16",
+  "modelType": "transformer",
+  "quantization": "Q4_K_M",
+  "quantizationInfo": {
+    "weights": "q4k",
+    "embeddings": "f16",
+    "compute": "f16",
+    "layout": "row",
+    "variantTag": "q4k-ehaf16"
+  },
+  "architecture": {
+    "numLayers": 24,
+    "hiddenSize": 2048,
+    "intermediateSize": 6144,
+    "numAttentionHeads": 8,
+    "numKeyValueHeads": 2,
+    "headDim": 256,
+    "vocabSize": 248320,
+    "maxSeqLen": 262144,
+    "linearNumKeyHeads": 16,
+    "linearNumValueHeads": 16,
+    "linearKeyHeadDim": 128,
+    "linearValueHeadDim": 128,
+    "linearConvKernelDim": 4,
+    "linearNormMode": "shared"
+  },
+  "moeConfig": null,
+  "inference": {
+    "schema": "doppler.execution/v1",
+    "attention": {
+      "queryPreAttnScalar": 256,
+      "attnLogitSoftcapping": null,
+      "slidingWindow": null,
+      "queryKeyNorm": true,
+      "causal": true,
+      "attentionBias": false,
+      "attentionOutputGate": true
+    },
+    "normalization": {
+      "rmsNormEps": 0.000001,
+      "rmsNormWeightOffset": true,
+      "postAttentionNorm": true,
+      "preFeedforwardNorm": false,
+      "postFeedforwardNorm": false
+    },
+    "ffn": {
+      "activation": "silu",
+      "gatedActivation": true,
+      "swigluLimit": null
+    },
+    "rope": {
+      "ropeTheta": 10000000,
+      "ropeLocalTheta": null,
+      "mropeInterleaved": true,
+      "mropeSection": [
+        11,
+        11,
+        10
+      ],
+      "partialRotaryFactor": 0.25,
+      "ropeScalingType": null,
+      "ropeScalingFactor": 1,
+      "ropeLocalScalingType": null,
+      "ropeLocalScalingFactor": 1,
+      "yarnBetaFast": null,
+      "yarnBetaSlow": null,
+      "yarnOriginalMaxPos": null,
+      "ropeLocalYarnBetaFast": null,
+      "ropeLocalYarnBetaSlow": null,
+      "ropeLocalYarnOriginalMaxPos": null
+    },
+    "output": {
+      "finalLogitSoftcapping": null,
+      "tieWordEmbeddings": true,
+      "scaleEmbeddings": false,
+      "embeddingTranspose": false,
+      "embeddingVocabSize": 248320,
+      "embeddingPostprocessor": null
+    },
+    "layerPattern": {
+      "type": "custom",
+      "globalPattern": null,
+      "period": null,
+      "offset": null,
+      "layerTypes": [
+        "linear_attention",
+        "linear_attention",
+        "linear_attention",
+        "full_attention",
+        "linear_attention",
+        "linear_attention",
+        "linear_attention",
+        "full_attention",
+        "linear_attention",
+        "linear_attention",
+        "linear_attention",
+        "full_attention",
+        "linear_attention",
+        "linear_attention",
+        "linear_attention",
+        "full_attention",
+        "linear_attention",
+        "linear_attention",
+        "linear_attention",
+        "full_attention",
+        "linear_attention",
+        "linear_attention",
+        "linear_attention",
+        "full_attention"
+      ]
+    },
+    "chatTemplate": {
+      "type": "qwen",
+      "enabled": true
+    },
+    "pipeline": null,
+    "sessionDefaults": {
+      "compute": {
+        "defaults": {
+          "activationDtype": "f32",
+          "mathDtype": "f32",
+          "accumDtype": "f32",
+          "outputDtype": "f32"
+        }
+      },
+      "kvcache": {
+        "kvDtype": "f16"
+      },
+      "decodeLoop": {
+        "batchSize": 4,
+        "stopCheckMode": "batch",
+        "readbackInterval": 1,
+        "ringTokens": 1,
+        "ringStop": 1,
+        "ringStaging": 1,
+        "disableCommandBatching": false
+      },
+      "speculation": {
+        "mode": "self",
+        "tokens": 1,
+        "verify": "greedy",
+        "threshold": null,
+        "rollbackOnReject": true
+      }
+    },
+    "execution": {
+      "inlineKernelPath": true,
+      "kernels": {
+        "embed": {
+          "kernel": "gather_f16.wgsl",
+          "entry": "main",
+          "digest": "sha256:257973dd762541d8a2c4b16ad8ad1d071199199e81e477ab644dce915961a989"
+        },
+        "rmsnorm": {
+          "kernel": "rmsnorm.wgsl",
+          "entry": "main",
+          "digest": "sha256:f516b3e4bde2015f2a207c3ca5b8c9820c7809fa8f8d0786f90c568e0f1ac077"
+        },
+        "gemv": {
+          "kernel": "matmul_gemv_subgroup.wgsl",
+          "entry": "main_vec4",
+          "digest": "sha256:3cee3bed453b40c5564a751d2a917649e10ad52f5268e77cbfecfcee34780457"
+        },
+        "rope": {
+          "kernel": "rope.wgsl",
+          "entry": "main",
+          "digest": "sha256:4c803ad5e0dd065d5572c7aecc1def277c43884dcc02f22a9676914c10111400"
+        },
+        "attn_decode": {
+          "kernel": "attention_decode_online_f16kv.wgsl",
+          "entry": "main",
+          "digest": "sha256:4c5d8c92a0a111af716d6b46b9559446807c086027445c7fefa150202f43dae4"
+        },
+        "residual": {
+          "kernel": "residual.wgsl",
+          "entry": "main",
+          "digest": "sha256:f1abd88c959c5d8dd27b9353d487e37b2a96850ed9d90c365212e260399cc2a7"
+        },
+        "silu": {
+          "kernel": "silu.wgsl",
+          "entry": "main",
+          "digest": "sha256:7b52d30fb741beef2dbf728e0c4ecffe5b08d9661d63c306caecb4cb3ced85e5",
+          "constants": {
+            "HAS_GATE": true
+          }
+        },
+        "tiled": {
+          "kernel": "matmul_f16w_f32a.wgsl",
+          "entry": "main",
+          "digest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc"
+        },
+        "attn_stream": {
+          "kernel": "attention_streaming_f16kv.wgsl",
+          "entry": "main",
+          "digest": "sha256:b337a2dcf7b40431a733d1726eee8bf23504136fd5f915bec057fb59f3ea7480"
+        },
+        "lm_head_gemv": {
+          "kernel": "matmul_gemv_subgroup.wgsl",
+          "entry": "main_multicol",
+          "digest": "sha256:96c38c15e6fed0d7efdc5cd094db5843a8e8ddfe01eee3bc7322fa555dacf3d0",
+          "constants": {
+            "MULTICOL_COLS_PER_WG": 64,
+            "MULTICOL_THREADS_PER_COL": 4
+          }
+        },
+        "sample": {
+          "kernel": "sample.wgsl",
+          "entry": "sample_single_pass",
+          "digest": "sha256:4412357e84113ee2f1bc0dc8bf89e314c2ab482c89c14ca016ea9949d16a9d0c"
+        }
+      },
+      "preLayer": [
+        [
+          "embed",
+          "embed",
+          "embed_tokens"
+        ]
+      ],
+      "decode": [
+        [
+          "input_norm",
+          "rmsnorm"
+        ],
+        [
+          "q_proj",
+          "gemv",
+          "layer.{L}.self_attn.q_proj"
+        ],
+        [
+          "k_proj",
+          "gemv",
+          "layer.{L}.self_attn.k_proj"
+        ],
+        [
+          "v_proj",
+          "gemv",
+          "layer.{L}.self_attn.v_proj"
+        ],
+        [
+          "rope_q",
+          "rope"
+        ],
+        [
+          "rope_k",
+          "rope"
+        ],
+        [
+          "attention",
+          "attn_decode"
+        ],
+        [
+          "o_proj",
+          "gemv",
+          "layer.{L}.self_attn.o_proj"
+        ],
+        [
+          "attn_residual",
+          "residual"
+        ],
+        [
+          "post_attn_norm",
+          "rmsnorm"
+        ],
+        [
+          "gate_proj",
+          "gemv",
+          "layer.{L}.mlp.gate_proj"
+        ],
+        [
+          "up_proj",
+          "gemv",
+          "layer.{L}.mlp.up_proj"
+        ],
+        [
+          "activation",
+          "silu"
+        ],
+        [
+          "down_proj",
+          "gemv",
+          "layer.{L}.mlp.down_proj"
+        ],
+        [
+          "ffn_residual",
+          "residual"
+        ]
+      ],
+      "prefill": [
+        [
+          "input_norm",
+          "rmsnorm"
+        ],
+        [
+          "q_proj",
+          "tiled",
+          "layer.{L}.self_attn.q_proj"
+        ],
+        [
+          "k_proj",
+          "tiled",
+          "layer.{L}.self_attn.k_proj"
+        ],
+        [
+          "v_proj",
+          "tiled",
+          "layer.{L}.self_attn.v_proj"
+        ],
+        [
+          "rope_q",
+          "rope"
+        ],
+        [
+          "rope_k",
+          "rope"
+        ],
+        [
+          "attention",
+          "attn_stream"
+        ],
+        [
+          "o_proj",
+          "tiled",
+          "layer.{L}.self_attn.o_proj"
+        ],
+        [
+          "attn_residual",
+          "residual"
+        ],
+        [
+          "post_attn_norm",
+          "rmsnorm"
+        ],
+        [
+          "gate_proj",
+          "tiled",
+          "layer.{L}.mlp.gate_proj"
+        ],
+        [
+          "up_proj",
+          "tiled",
+          "layer.{L}.mlp.up_proj"
+        ],
+        [
+          "activation",
+          "silu"
+        ],
+        [
+          "down_proj",
+          "tiled",
+          "layer.{L}.mlp.down_proj"
+        ],
+        [
+          "ffn_residual",
+          "residual"
+        ]
+      ],
+      "postLayer": [
+        [
+          "final_norm",
+          "rmsnorm"
+        ],
+        [
+          "lm_head",
+          "lm_head_gemv",
+          "lm_head"
+        ],
+        [
+          "lm_head_prefill",
+          "tiled",
+          "lm_head"
+        ],
+        [
+          "sample",
+          "sample"
+        ]
+      ],
+      "policies": {
+        "unsupportedPrecision": "error",
+        "dtypeTransition": "require_cast_step",
+        "unresolvedKernel": "error"
+      }
+    }
+  },
+  "shards": [
+    {
+      "index": 0,
+      "filename": "shard_00000.bin",
+      "size": 67108864,
+      "hash": "7f38a80c6ba6593361224d8041712c18cb78151c1697cc5de7562cf53a2dbb4a",
+      "offset": 0
+    },
+    {
+      "index": 1,
+      "filename": "shard_00001.bin",
+      "size": 67108864,
+      "hash": "cf15fbe95c20f9b181fae2fcb3e5510034d76c2901ed5ed82405f66c25771267",
+      "offset": 67108864
+    },
+    {
+      "index": 2,
+      "filename": "shard_00002.bin",
+      "size": 67108864,
+      "hash": "82bbf02093da93a1d00e46443fd8039b63cd4f255dad9fe8c0c0f1757d97c522",
+      "offset": 134217728
+    },
+    {
+      "index": 3,
+      "filename": "shard_00003.bin",
+      "size": 67108864,
+      "hash": "bf97d50cd5a9b75227311232c8e62f0e6adb47632d2ab7ccf89e9a84ff87ed8c",
+      "offset": 201326592
+    },
+    {
+      "index": 4,
+      "filename": "shard_00004.bin",
+      "size": 67108864,
+      "hash": "7afb28d220ddfb15469862c07e729aa01174beda50f4f301b1c7dffdeb076525",
+      "offset": 268435456
+    },
+    {
+      "index": 5,
+      "filename": "shard_00005.bin",
+      "size": 67108864,
+      "hash": "cfe3eef3e969a26ecbb603980807d6720cae4428a21591fd893732cabd477919",
+      "offset": 335544320
+    },
+    {
+      "index": 6,
+      "filename": "shard_00006.bin",
+      "size": 67108864,
+      "hash": "85460810a922b5af7113670f9e2ce79cfc87a6bdd93558d29ff3aba4ff2727bc",
+      "offset": 402653184
+    },
+    {
+      "index": 7,
+      "filename": "shard_00007.bin",
+      "size": 67108864,
+      "hash": "9bd38a6686f7820f354e75a40f2aeb3b9a77bdc95d1ad05db205e5e389798379",
+      "offset": 469762048
+    },
+    {
+      "index": 8,
+      "filename": "shard_00008.bin",
+      "size": 67108864,
+      "hash": "e7145ce0937de9972b4f9c6e3c3c4c6ad044a1015f880f265613e22acafff54d",
+      "offset": 536870912
+    },
+    {
+      "index": 9,
+      "filename": "shard_00009.bin",
+      "size": 67108864,
+      "hash": "a77e632b63066a904200af9249a826d0cbc7a08a06c1b44688bfd0f41c4be033",
+      "offset": 603979776
+    },
+    {
+      "index": 10,
+      "filename": "shard_00010.bin",
+      "size": 67108864,
+      "hash": "743a617f0e9e8f1e6fda4fbe2623251ad9d277a85b03b8e0743ae646d5baa214",
+      "offset": 671088640
+    },
+    {
+      "index": 11,
+      "filename": "shard_00011.bin",
+      "size": 67108864,
+      "hash": "1eee5040b27874adb9a61ea90bb5678c62214bab76a734eb0d6685dec87c6515",
+      "offset": 738197504
+    },
+    {
+      "index": 12,
+      "filename": "shard_00012.bin",
+      "size": 67108864,
+      "hash": "f456acfd2333b46abe1a8f073da6e2caed924aa808e8d90d7acdb1060f1d4121",
+      "offset": 805306368
+    },
+    {
+      "index": 13,
+      "filename": "shard_00013.bin",
+      "size": 67108864,
+      "hash": "706d9f931e616ff603c01f050387afe87c146b355c1c32ac4569d5e5ed108840",
+      "offset": 872415232
+    },
+    {
+      "index": 14,
+      "filename": "shard_00014.bin",
+      "size": 67108864,
+      "hash": "e21d193068a1ecf60a486f7b1fd52c646e8c88a1acb067d6f7f79b73770eee3e",
+      "offset": 939524096
+    },
+    {
+      "index": 15,
+      "filename": "shard_00015.bin",
+      "size": 67108864,
+      "hash": "885c42c1f3ef116c66e9a6618bbc16e28b7a4fbe3de9561165f1f2c5bfb784ed",
+      "offset": 1006632960
+    },
+    {
+      "index": 16,
+      "filename": "shard_00016.bin",
+      "size": 67108864,
+      "hash": "be4ce04c869123df584d8cb50820eb6b8c47363c05836b348a792b4ba6a1fcc5",
+      "offset": 1073741824
+    },
+    {
+      "index": 17,
+      "filename": "shard_00017.bin",
+      "size": 67108864,
+      "hash": "7482b3f13213cde48779624113e4becb90dd2f623e68f933b0fa7a90c1c93400",
+      "offset": 1140850688
+    },
+    {
+      "index": 18,
+      "filename": "shard_00018.bin",
+      "size": 67108864,
+      "hash": "4036b9cd7eb2e2f354f45fe40d3a2011c3b1557569885bc9c9e30afb4c64dee2",
+      "offset": 1207959552
+    },
+    {
+      "index": 19,
+      "filename": "shard_00019.bin",
+      "size": 67108864,
+      "hash": "d50939b37eda65122548f088a3edfe9f085176a1e0112f7bd6e2080173235ff6",
+      "offset": 1275068416
+    },
+    {
+      "index": 20,
+      "filename": "shard_00020.bin",
+      "size": 67108864,
+      "hash": "c692f4651789579d774640660d4de57a79bb0d2b3633b2bdd67ec79fab48d3d1",
+      "offset": 1342177280
+    },
+    {
+      "index": 21,
+      "filename": "shard_00021.bin",
+      "size": 67108864,
+      "hash": "6903319d951e0522161e6c9e610df131298e2f27874f31d920c6e0535ac54946",
+      "offset": 1409286144
+    },
+    {
+      "index": 22,
+      "filename": "shard_00022.bin",
+      "size": 67108864,
+      "hash": "3c59d0abe69b150f8aefa696ad7d278eb42811d7766ef98e0a99e6afe67ebc23",
+      "offset": 1476395008
+    },
+    {
+      "index": 23,
+      "filename": "shard_00023.bin",
+      "size": 67108864,
+      "hash": "2dc39296860ce276970c1e2f02f7e3df76be9ff40a8ae74ff497fd1bdda7ae0d",
+      "offset": 1543503872
+    },
+    {
+      "index": 24,
+      "filename": "shard_00024.bin",
+      "size": 67108864,
+      "hash": "2738f8c889dde68aa1fb5b2a27ea6c595dd1cecbf6334cb20fe54c4af91f25d5",
+      "offset": 1610612736
+    },
+    {
+      "index": 25,
+      "filename": "shard_00025.bin",
+      "size": 67108864,
+      "hash": "5182252c08e1f7a913bdc4ddef614d13116530f9b1530710149b6d95e268bd74",
+      "offset": 1677721600
+    },
+    {
+      "index": 26,
+      "filename": "shard_00026.bin",
+      "size": 45544128,
+      "hash": "35e02c3d8e26944346adf889e36fbd36024f36126054afb0d6ad8162f6b749bc",
+      "offset": 1744830464
+    }
+  ],
+  "tensors": {
+    "model.language_model.layers.0.linear_attn.A_log": {
+      "shard": 0,
+      "offset": 0,
+      "size": 64,
+      "shape": [
+        16
+      ],
+      "dtype": "F32",
+      "role": "other",
+      "group": "layer.0"
+    },
+    "model.language_model.layers.0.linear_attn.norm.weight": {
+      "shard": 0,
+      "offset": 64,
+      "size": 512,
+      "shape": [
+        128
+      ],
+      "dtype": "F32",
+      "role": "norm",
+      "group": "layer.0"
+    },
+    "model.language_model.layers.1.linear_attn.A_log": {
+      "shard": 0,
+      "offset": 576,
+      "size": 64,
+      "shape": [
+        16
+      ],
+      "dtype": "F32",
+      "role": "other",
+      "group": "layer.1"
+    },
+    "model.language_model.layers.1.linear_attn.norm.weight": {
+      "shard": 0,
+      "offset": 640,
+      "size": 512,
+      "shape": [
+        128
+      ],
+      "dtype": "F32",
+      "role": "norm",
+      "group": "layer.1"
+    },
+    "model.language_model.layers.10.linear_attn.A_log": {
+      "shard": 0,
+      "offset": 1152,
+      "size": 64,
+      "shape": [
+        16
+      ],
+      "dtype": "F32",
+      "role": "other",
+      "group": "layer.10"
+    },
+    "model.language_model.layers.10.linear_attn.norm.weight": {
+      "shard": 0,
+      "offset": 1216,
+      "size": 512,
+      "shape": [
+        128
+      ],
+      "dtype": "F32",
+      "role": "norm",
+      "group": "layer.10"
+    },
+    "model.language_model.layers.12.linear_attn.A_log": {
+      "shard": 0,
+      "offset": 1728,
+      "size": 64,
+      "shape": [
+        16
+      ],
+      "dtype": "F32",
+      "role": "other",
+      "group": "layer.12"
+    },
+    "model.language_model.layers.12.linear_attn.norm.weight": {
+      "shard": 0,
+      "offset": 1792,
+      "size": 512,
+      "shape": [
+        128
+      ],
+      "dtype": "F32",
+      "role": "norm",
+      "group": "layer.12"
+    },
+    "model.language_model.layers.13.linear_attn.A_log": {
+      "shard": 0,
+      "offset": 2304,
+      "size": 64,
+      "shape": [
+        16
+      ],
+      "dtype": "F32",
+      "role": "other",
+      "group": "layer.13"
+    },
+    "model.language_model.layers.13.linear_attn.norm.weight": {
+      "shard": 0,
+      "offset": 2368,
+      "size": 512,
+      "shape": [
+        128
+      ],
+      "dtype": "F32",
+      "role": "norm",
+      "group": "layer.13"
+    },
+    "model.language_model.layers.14.linear_attn.A_log": {
+      "shard": 0,
+      "offset": 2880,
+      "size": 64,
+      "shape": [
+        16
+      ],
+      "dtype": "F32",
+      "role": "other",
+      "group": "layer.14"
+    },
+    "model.language_model.layers.14.linear_attn.norm.weight": {
+      "shard": 0,
+      "offset": 2944,
+      "size": 512,
+      "shape": [
+        128
+      ],
+      "dtype": "F32",
+      "role": "norm",
+      "group": "layer.14"
+    },
+    "model.language_model.layers.16.linear_attn.A_log": {
+      "shard": 0,
+      "offset": 3456,
+      "size": 64,
+      "shape": [
+        16
+      ],
+      "dtype": "F32",
+      "role": "other",
+      "group": "layer.16"
+    },
+    "model.language_model.layers.16.linear_attn.norm.weight": {
+      "shard": 0,
+      "offset": 3520,
+      "size": 512,
+      "shape": [
+        128
+      ],
+      "dtype": "F32",
+      "role": "norm",
+      "group": "layer.16"
+    },
+    "model.language_model.layers.17.linear_attn.A_log": {
+      "shard": 0,
+      "offset": 4032,
+      "size": 64,
+      "shape": [
+        16
+      ],
+      "dtype": "F32",
+      "role": "other",
+      "group": "layer.17"
+    },
+    "model.language_model.layers.17.linear_attn.norm.weight": {
+      "shard": 0,
+      "offset": 4096,
+      "size": 512,
+      "shape": [
+        128
+      ],
+      "dtype": "F32",
+      "role": "norm",
+      "group": "layer.17"
+    },
+    "model.language_model.layers.18.linear_attn.A_log": {
+      "shard": 0,
+      "offset": 4608,
+      "size": 64,
+      "shape": [
+        16
+      ],
+      "dtype": "F32",
+      "role": "other",
+      "group": "layer.18"
+    },
+    "model.language_model.layers.18.linear_attn.norm.weight": {
+      "shard": 0,
+      "offset": 4672,
+      "size": 512,
+      "shape": [
+        128
+      ],
+      "dtype": "F32",
+      "role": "norm",
+      "group": "layer.18"
+    },
+    "model.language_model.layers.2.linear_attn.A_log": {
+      "shard": 0,
+      "offset": 5184,
+      "size": 64,
+      "shape": [
+        16
+      ],
+      "dtype": "F32",
+      "role": "other",
+      "group": "layer.2"
+    },
+    "model.language_model.layers.2.linear_attn.norm.weight": {
+      "shard": 0,
+      "offset": 5248,
+      "size": 512,
+      "shape": [
+        128
+      ],
+      "dtype": "F32",
+      "role": "norm",
+      "group": "layer.2"
+    },
+    "model.language_model.layers.20.linear_attn.A_log": {
+      "shard": 0,
+      "offset": 5760,
+      "size": 64,
+      "shape": [
+        16
+      ],
+      "dtype": "F32",
+      "role": "other",
+      "group": "layer.20"
+    },
+    "model.language_model.layers.20.linear_attn.norm.weight": {
+      "shard": 0,
+      "offset": 5824,
+      "size": 512,
+      "shape": [
+        128
+      ],
+      "dtype": "F32",
+      "role": "norm",
+      "group": "layer.20"
+    },
+    "model.language_model.layers.21.linear_attn.A_log": {
+      "shard": 0,
+      "offset": 6336,
+      "size": 64,
+      "shape": [
+        16
+      ],
+      "dtype": "F32",
+      "role": "other",
+      "group": "layer.21"
+    },
+    "model.language_model.layers.21.linear_attn.norm.weight": {
+      "shard": 0,
+      "offset": 6400,
+      "size": 512,
+      "shape": [
+        128
+      ],
+      "dtype": "F32",
+      "role": "norm",
+      "group": "layer.21"
+    },
+    "model.language_model.layers.22.linear_attn.A_log": {
+      "shard": 0,
+      "offset": 6912,
+      "size": 64,
+      "shape": [
+        16
+      ],
+      "dtype": "F32",
+      "role": "other",
+      "group": "layer.22"
+    },
+    "model.language_model.layers.22.linear_attn.norm.weight": {
+      "shard": 0,
+      "offset": 6976,
+      "size": 512,
+      "shape": [
+        128
+      ],
+      "dtype": "F32",
+      "role": "norm",
+      "group": "layer.22"
+    },
+    "model.language_model.layers.4.linear_attn.A_log": {
+      "shard": 0,
+      "offset": 7488,
+      "size": 64,
+      "shape": [
+        16
+      ],
+      "dtype": "F32",
+      "role": "other",
+      "group": "layer.4"
+    },
+    "model.language_model.layers.4.linear_attn.norm.weight": {
+      "shard": 0,
+      "offset": 7552,
+      "size": 512,
+      "shape": [
+        128
+      ],
+      "dtype": "F32",
+      "role": "norm",
+      "group": "layer.4"
+    },
+    "model.language_model.layers.5.linear_attn.A_log": {
+      "shard": 0,
+      "offset": 8064,
+      "size": 64,
+      "shape": [
+        16
+      ],
+      "dtype": "F32",
+      "role": "other",
+      "group": "layer.5"
+    },
+    "model.language_model.layers.5.linear_attn.norm.weight": {
+      "shard": 0,
+      "offset": 8128,
+      "size": 512,
+      "shape": [
+        128
+      ],
+      "dtype": "F32",
+      "role": "norm",
+      "group": "layer.5"
+    },
+    "model.language_model.layers.6.linear_attn.A_log": {
+      "shard": 0,
+      "offset": 8640,
+      "size": 64,
+      "shape": [
+        16
+      ],
+      "dtype": "F32",
+      "role": "other",
+      "group": "layer.6"
+    },
+    "model.language_model.layers.6.linear_attn.norm.weight": {
+      "shard": 0,
+      "offset": 8704,
+      "size": 512,
+      "shape": [
+        128
+      ],
+      "dtype": "F32",
+      "role": "norm",
+      "group": "layer.6"
+    },
+    "model.language_model.layers.8.linear_attn.A_log": {
+      "shard": 0,
+      "offset": 9216,
+      "size": 64,
+      "shape": [
+        16
+      ],
+      "dtype": "F32",
+      "role": "other",
+      "group": "layer.8"
+    },
+    "model.language_model.layers.8.linear_attn.norm.weight": {
+      "shard": 0,
+      "offset": 9280,
+      "size": 512,
+      "shape": [
+        128
+      ],
+      "dtype": "F32",
+      "role": "norm",
+      "group": "layer.8"
+    },
+    "model.language_model.layers.9.linear_attn.A_log": {
+      "shard": 0,
+      "offset": 9792,
+      "size": 64,
+      "shape": [
+        16
+      ],
+      "dtype": "F32",
+      "role": "other",
+      "group": "layer.9"
+    },
+    "model.language_model.layers.9.linear_attn.norm.weight": {
+      "shard": 0,
+      "offset": 9856,
+      "size": 512,
+      "shape": [
+        128
+      ],
+      "dtype": "F32",
+      "role": "norm",
+      "group": "layer.9"
+    },
+    "model.language_model.embed_tokens.weight": {
+      "spans": [
+        {
+          "shardIndex": 0,
+          "offset": 10368,
+          "size": 67098496
+        },
+        {
+          "shardIndex": 1,
+          "offset": 0,
+          "size": 67108864
+        },
+        {
+          "shardIndex": 2,
+          "offset": 0,
+          "size": 67108864
+        },
+        {
+          "shardIndex": 3,
+          "offset": 0,
+          "size": 67108864
+        },
+        {
+          "shardIndex": 4,
+          "offset": 0,
+          "size": 67108864
+        },
+        {
+          "shardIndex": 5,
+          "offset": 0,
+          "size": 67108864
+        },
+        {
+          "shardIndex": 6,
+          "offset": 0,
+          "size": 67108864
+        },
+        {
+          "shardIndex": 7,
+          "offset": 0,
+          "size": 67108864
+        },
+        {
+          "shardIndex": 8,
+          "offset": 0,
+          "size": 67108864
+        },
+        {
+          "shardIndex": 9,
+          "offset": 0,
+          "size": 67108864
+        },
+        {
+          "shardIndex": 10,
+          "offset": 0,
+          "size": 67108864
+        },
+        {
+          "shardIndex": 11,
+          "offset": 0,
+          "size": 67108864
+        },
+        {
+          "shardIndex": 12,
+          "offset": 0,
+          "size": 67108864
+        },
+        {
+          "shardIndex": 13,
+          "offset": 0,
+          "size": 67108864
+        },
+        {
+          "shardIndex": 14,
+          "offset": 0,
+          "size": 67108864
+        },
+        {
+          "shardIndex": 15,
+          "offset": 0,
+          "size": 10496128
+        }
+      ],
+      "size": 1017118720,
+      "shape": [
+        248320,
+        2048
+      ],
+      "dtype": "F16",
+      "role": "embedding",
+      "group": "embed"
+    },
+    "model.language_model.layers.0.input_layernorm.weight": {
+      "shard": 15,
+      "offset": 10496128,
+      "size": 4096,
+      "shape": [
+        2048
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.0"
+    },
+    "model.language_model.layers.0.linear_attn.conv1d.weight": {
+      "shard": 15,
+      "offset": 10500224,
+      "size": 49152,
+      "shape": [
+        6144,
+        1,
+        4
+      ],
+      "dtype": "F16",
+      "role": "other",
+      "group": "layer.0"
+    },
+    "model.language_model.layers.0.linear_attn.dt_bias": {
+      "shard": 15,
+      "offset": 10549376,
+      "size": 32,
+      "shape": [
+        16
+      ],
+      "dtype": "F16",
+      "role": "other",
+      "group": "layer.0"
+    },
+    "model.language_model.layers.0.linear_attn.in_proj_a.weight": {
+      "shard": 15,
+      "offset": 10549408,
+      "size": 18432,
+      "shape": [
+        16,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.0",
+      "layout": "row"
+    },
+    "model.language_model.layers.0.linear_attn.in_proj_b.weight": {
+      "shard": 15,
+      "offset": 10567840,
+      "size": 18432,
+      "shape": [
+        16,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.0",
+      "layout": "row"
+    },
+    "model.language_model.layers.0.linear_attn.in_proj_qkv.weight": {
+      "shard": 15,
+      "offset": 10586272,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.0",
+      "layout": "row"
+    },
+    "model.language_model.layers.0.linear_attn.in_proj_z.weight": {
+      "shard": 15,
+      "offset": 17664160,
+      "size": 2359296,
+      "shape": [
+        2048,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.0",
+      "layout": "row"
+    },
+    "model.language_model.layers.0.linear_attn.out_proj.weight": {
+      "shard": 15,
+      "offset": 20023456,
+      "size": 2359296,
+      "shape": [
+        2048,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.0",
+      "layout": "row"
+    },
+    "model.language_model.layers.0.mlp.down_proj.weight": {
+      "shard": 15,
+      "offset": 22382752,
+      "size": 7077888,
+      "shape": [
+        2048,
+        6144
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.0",
+      "layout": "row"
+    },
+    "model.language_model.layers.0.mlp.gate_proj.weight": {
+      "shard": 15,
+      "offset": 29460640,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.0",
+      "layout": "row"
+    },
+    "model.language_model.layers.0.mlp.up_proj.weight": {
+      "shard": 15,
+      "offset": 36538528,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.0",
+      "layout": "row"
+    },
+    "model.language_model.layers.0.post_attention_layernorm.weight": {
+      "shard": 15,
+      "offset": 43616416,
+      "size": 4096,
+      "shape": [
+        2048
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.0"
+    },
+    "model.language_model.layers.1.input_layernorm.weight": {
+      "shard": 15,
+      "offset": 43620512,
+      "size": 4096,
+      "shape": [
+        2048
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.1"
+    },
+    "model.language_model.layers.1.linear_attn.conv1d.weight": {
+      "shard": 15,
+      "offset": 43624608,
+      "size": 49152,
+      "shape": [
+        6144,
+        1,
+        4
+      ],
+      "dtype": "F16",
+      "role": "other",
+      "group": "layer.1"
+    },
+    "model.language_model.layers.1.linear_attn.dt_bias": {
+      "shard": 15,
+      "offset": 43673760,
+      "size": 32,
+      "shape": [
+        16
+      ],
+      "dtype": "F16",
+      "role": "other",
+      "group": "layer.1"
+    },
+    "model.language_model.layers.1.linear_attn.in_proj_a.weight": {
+      "shard": 15,
+      "offset": 43673792,
+      "size": 18432,
+      "shape": [
+        16,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.1",
+      "layout": "row"
+    },
+    "model.language_model.layers.1.linear_attn.in_proj_b.weight": {
+      "shard": 15,
+      "offset": 43692224,
+      "size": 18432,
+      "shape": [
+        16,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.1",
+      "layout": "row"
+    },
+    "model.language_model.layers.1.linear_attn.in_proj_qkv.weight": {
+      "shard": 15,
+      "offset": 43710656,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.1",
+      "layout": "row"
+    },
+    "model.language_model.layers.1.linear_attn.in_proj_z.weight": {
+      "shard": 15,
+      "offset": 50788544,
+      "size": 2359296,
+      "shape": [
+        2048,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.1",
+      "layout": "row"
+    },
+    "model.language_model.layers.1.linear_attn.out_proj.weight": {
+      "shard": 15,
+      "offset": 53147840,
+      "size": 2359296,
+      "shape": [
+        2048,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.1",
+      "layout": "row"
+    },
+    "model.language_model.layers.1.mlp.down_proj.weight": {
+      "shard": 15,
+      "offset": 55507136,
+      "size": 7077888,
+      "shape": [
+        2048,
+        6144
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.1",
+      "layout": "row"
+    },
+    "model.language_model.layers.1.mlp.gate_proj.weight": {
+      "spans": [
+        {
+          "shardIndex": 15,
+          "offset": 62585024,
+          "size": 4523840
+        },
+        {
+          "shardIndex": 16,
+          "offset": 0,
+          "size": 2554048
+        }
+      ],
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.1",
+      "layout": "row"
+    },
+    "model.language_model.layers.1.mlp.up_proj.weight": {
+      "shard": 16,
+      "offset": 2554048,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.1",
+      "layout": "row"
+    },
+    "model.language_model.layers.1.post_attention_layernorm.weight": {
+      "shard": 16,
+      "offset": 9631936,
+      "size": 4096,
+      "shape": [
+        2048
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.1"
+    },
+    "model.language_model.layers.10.input_layernorm.weight": {
+      "shard": 16,
+      "offset": 9636032,
+      "size": 4096,
+      "shape": [
+        2048
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.10"
+    },
+    "model.language_model.layers.10.linear_attn.conv1d.weight": {
+      "shard": 16,
+      "offset": 9640128,
+      "size": 49152,
+      "shape": [
+        6144,
+        1,
+        4
+      ],
+      "dtype": "F16",
+      "role": "other",
+      "group": "layer.10"
+    },
+    "model.language_model.layers.10.linear_attn.dt_bias": {
+      "shard": 16,
+      "offset": 9689280,
+      "size": 32,
+      "shape": [
+        16
+      ],
+      "dtype": "F16",
+      "role": "other",
+      "group": "layer.10"
+    },
+    "model.language_model.layers.10.linear_attn.in_proj_a.weight": {
+      "shard": 16,
+      "offset": 9689312,
+      "size": 18432,
+      "shape": [
+        16,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.10",
+      "layout": "row"
+    },
+    "model.language_model.layers.10.linear_attn.in_proj_b.weight": {
+      "shard": 16,
+      "offset": 9707744,
+      "size": 18432,
+      "shape": [
+        16,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.10",
+      "layout": "row"
+    },
+    "model.language_model.layers.10.linear_attn.in_proj_qkv.weight": {
+      "shard": 16,
+      "offset": 9726176,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.10",
+      "layout": "row"
+    },
+    "model.language_model.layers.10.linear_attn.in_proj_z.weight": {
+      "shard": 16,
+      "offset": 16804064,
+      "size": 2359296,
+      "shape": [
+        2048,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.10",
+      "layout": "row"
+    },
+    "model.language_model.layers.10.linear_attn.out_proj.weight": {
+      "shard": 16,
+      "offset": 19163360,
+      "size": 2359296,
+      "shape": [
+        2048,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.10",
+      "layout": "row"
+    },
+    "model.language_model.layers.10.mlp.down_proj.weight": {
+      "shard": 16,
+      "offset": 21522656,
+      "size": 7077888,
+      "shape": [
+        2048,
+        6144
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.10",
+      "layout": "row"
+    },
+    "model.language_model.layers.10.mlp.gate_proj.weight": {
+      "shard": 16,
+      "offset": 28600544,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.10",
+      "layout": "row"
+    },
+    "model.language_model.layers.10.mlp.up_proj.weight": {
+      "shard": 16,
+      "offset": 35678432,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.10",
+      "layout": "row"
+    },
+    "model.language_model.layers.10.post_attention_layernorm.weight": {
+      "shard": 16,
+      "offset": 42756320,
+      "size": 4096,
+      "shape": [
+        2048
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.10"
+    },
+    "model.language_model.layers.11.input_layernorm.weight": {
+      "shard": 16,
+      "offset": 42760416,
+      "size": 4096,
+      "shape": [
+        2048
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.11"
+    },
+    "model.language_model.layers.11.mlp.down_proj.weight": {
+      "shard": 16,
+      "offset": 42764512,
+      "size": 7077888,
+      "shape": [
+        2048,
+        6144
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.11",
+      "layout": "row"
+    },
+    "model.language_model.layers.11.mlp.gate_proj.weight": {
+      "shard": 16,
+      "offset": 49842400,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.11",
+      "layout": "row"
+    },
+    "model.language_model.layers.11.mlp.up_proj.weight": {
+      "shard": 16,
+      "offset": 56920288,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.11",
+      "layout": "row"
+    },
+    "model.language_model.layers.11.post_attention_layernorm.weight": {
+      "shard": 16,
+      "offset": 63998176,
+      "size": 4096,
+      "shape": [
+        2048
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.11"
+    },
+    "model.language_model.layers.11.self_attn.k_norm.weight": {
+      "shard": 16,
+      "offset": 64002272,
+      "size": 512,
+      "shape": [
+        256
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.11"
+    },
+    "model.language_model.layers.11.self_attn.k_proj.weight": {
+      "shard": 16,
+      "offset": 64002784,
+      "size": 589824,
+      "shape": [
+        512,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.11",
+      "layout": "row"
+    },
+    "model.language_model.layers.11.self_attn.o_proj.weight": {
+      "shard": 16,
+      "offset": 64592608,
+      "size": 2359296,
+      "shape": [
+        2048,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.11",
+      "layout": "row"
+    },
+    "model.language_model.layers.11.self_attn.q_norm.weight": {
+      "shard": 16,
+      "offset": 66951904,
+      "size": 512,
+      "shape": [
+        256
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.11"
+    },
+    "model.language_model.layers.11.self_attn.q_proj.weight": {
+      "spans": [
+        {
+          "shardIndex": 16,
+          "offset": 66952416,
+          "size": 156448
+        },
+        {
+          "shardIndex": 17,
+          "offset": 0,
+          "size": 4562144
+        }
+      ],
+      "size": 4718592,
+      "shape": [
+        4096,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.11",
+      "layout": "row"
+    },
+    "model.language_model.layers.11.self_attn.v_proj.weight": {
+      "shard": 17,
+      "offset": 4562144,
+      "size": 589824,
+      "shape": [
+        512,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.11",
+      "layout": "row"
+    },
+    "model.language_model.layers.12.input_layernorm.weight": {
+      "shard": 17,
+      "offset": 5151968,
+      "size": 4096,
+      "shape": [
+        2048
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.12"
+    },
+    "model.language_model.layers.12.linear_attn.conv1d.weight": {
+      "shard": 17,
+      "offset": 5156064,
+      "size": 49152,
+      "shape": [
+        6144,
+        1,
+        4
+      ],
+      "dtype": "F16",
+      "role": "other",
+      "group": "layer.12"
+    },
+    "model.language_model.layers.12.linear_attn.dt_bias": {
+      "shard": 17,
+      "offset": 5205216,
+      "size": 32,
+      "shape": [
+        16
+      ],
+      "dtype": "F16",
+      "role": "other",
+      "group": "layer.12"
+    },
+    "model.language_model.layers.12.linear_attn.in_proj_a.weight": {
+      "shard": 17,
+      "offset": 5205248,
+      "size": 18432,
+      "shape": [
+        16,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.12",
+      "layout": "row"
+    },
+    "model.language_model.layers.12.linear_attn.in_proj_b.weight": {
+      "shard": 17,
+      "offset": 5223680,
+      "size": 18432,
+      "shape": [
+        16,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.12",
+      "layout": "row"
+    },
+    "model.language_model.layers.12.linear_attn.in_proj_qkv.weight": {
+      "shard": 17,
+      "offset": 5242112,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.12",
+      "layout": "row"
+    },
+    "model.language_model.layers.12.linear_attn.in_proj_z.weight": {
+      "shard": 17,
+      "offset": 12320000,
+      "size": 2359296,
+      "shape": [
+        2048,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.12",
+      "layout": "row"
+    },
+    "model.language_model.layers.12.linear_attn.out_proj.weight": {
+      "shard": 17,
+      "offset": 14679296,
+      "size": 2359296,
+      "shape": [
+        2048,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.12",
+      "layout": "row"
+    },
+    "model.language_model.layers.12.mlp.down_proj.weight": {
+      "shard": 17,
+      "offset": 17038592,
+      "size": 7077888,
+      "shape": [
+        2048,
+        6144
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.12",
+      "layout": "row"
+    },
+    "model.language_model.layers.12.mlp.gate_proj.weight": {
+      "shard": 17,
+      "offset": 24116480,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.12",
+      "layout": "row"
+    },
+    "model.language_model.layers.12.mlp.up_proj.weight": {
+      "shard": 17,
+      "offset": 31194368,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.12",
+      "layout": "row"
+    },
+    "model.language_model.layers.12.post_attention_layernorm.weight": {
+      "shard": 17,
+      "offset": 38272256,
+      "size": 4096,
+      "shape": [
+        2048
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.12"
+    },
+    "model.language_model.layers.13.input_layernorm.weight": {
+      "shard": 17,
+      "offset": 38276352,
+      "size": 4096,
+      "shape": [
+        2048
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.13"
+    },
+    "model.language_model.layers.13.linear_attn.conv1d.weight": {
+      "shard": 17,
+      "offset": 38280448,
+      "size": 49152,
+      "shape": [
+        6144,
+        1,
+        4
+      ],
+      "dtype": "F16",
+      "role": "other",
+      "group": "layer.13"
+    },
+    "model.language_model.layers.13.linear_attn.dt_bias": {
+      "shard": 17,
+      "offset": 38329600,
+      "size": 32,
+      "shape": [
+        16
+      ],
+      "dtype": "F16",
+      "role": "other",
+      "group": "layer.13"
+    },
+    "model.language_model.layers.13.linear_attn.in_proj_a.weight": {
+      "shard": 17,
+      "offset": 38329632,
+      "size": 18432,
+      "shape": [
+        16,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.13",
+      "layout": "row"
+    },
+    "model.language_model.layers.13.linear_attn.in_proj_b.weight": {
+      "shard": 17,
+      "offset": 38348064,
+      "size": 18432,
+      "shape": [
+        16,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.13",
+      "layout": "row"
+    },
+    "model.language_model.layers.13.linear_attn.in_proj_qkv.weight": {
+      "shard": 17,
+      "offset": 38366496,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.13",
+      "layout": "row"
+    },
+    "model.language_model.layers.13.linear_attn.in_proj_z.weight": {
+      "shard": 17,
+      "offset": 45444384,
+      "size": 2359296,
+      "shape": [
+        2048,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.13",
+      "layout": "row"
+    },
+    "model.language_model.layers.13.linear_attn.out_proj.weight": {
+      "shard": 17,
+      "offset": 47803680,
+      "size": 2359296,
+      "shape": [
+        2048,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.13",
+      "layout": "row"
+    },
+    "model.language_model.layers.13.mlp.down_proj.weight": {
+      "shard": 17,
+      "offset": 50162976,
+      "size": 7077888,
+      "shape": [
+        2048,
+        6144
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.13",
+      "layout": "row"
+    },
+    "model.language_model.layers.13.mlp.gate_proj.weight": {
+      "shard": 17,
+      "offset": 57240864,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.13",
+      "layout": "row"
+    },
+    "model.language_model.layers.13.mlp.up_proj.weight": {
+      "spans": [
+        {
+          "shardIndex": 17,
+          "offset": 64318752,
+          "size": 2790112
+        },
+        {
+          "shardIndex": 18,
+          "offset": 0,
+          "size": 4287776
+        }
+      ],
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.13",
+      "layout": "row"
+    },
+    "model.language_model.layers.13.post_attention_layernorm.weight": {
+      "shard": 18,
+      "offset": 4287776,
+      "size": 4096,
+      "shape": [
+        2048
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.13"
+    },
+    "model.language_model.layers.14.input_layernorm.weight": {
+      "shard": 18,
+      "offset": 4291872,
+      "size": 4096,
+      "shape": [
+        2048
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.14"
+    },
+    "model.language_model.layers.14.linear_attn.conv1d.weight": {
+      "shard": 18,
+      "offset": 4295968,
+      "size": 49152,
+      "shape": [
+        6144,
+        1,
+        4
+      ],
+      "dtype": "F16",
+      "role": "other",
+      "group": "layer.14"
+    },
+    "model.language_model.layers.14.linear_attn.dt_bias": {
+      "shard": 18,
+      "offset": 4345120,
+      "size": 32,
+      "shape": [
+        16
+      ],
+      "dtype": "F16",
+      "role": "other",
+      "group": "layer.14"
+    },
+    "model.language_model.layers.14.linear_attn.in_proj_a.weight": {
+      "shard": 18,
+      "offset": 4345152,
+      "size": 18432,
+      "shape": [
+        16,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.14",
+      "layout": "row"
+    },
+    "model.language_model.layers.14.linear_attn.in_proj_b.weight": {
+      "shard": 18,
+      "offset": 4363584,
+      "size": 18432,
+      "shape": [
+        16,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.14",
+      "layout": "row"
+    },
+    "model.language_model.layers.14.linear_attn.in_proj_qkv.weight": {
+      "shard": 18,
+      "offset": 4382016,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.14",
+      "layout": "row"
+    },
+    "model.language_model.layers.14.linear_attn.in_proj_z.weight": {
+      "shard": 18,
+      "offset": 11459904,
+      "size": 2359296,
+      "shape": [
+        2048,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.14",
+      "layout": "row"
+    },
+    "model.language_model.layers.14.linear_attn.out_proj.weight": {
+      "shard": 18,
+      "offset": 13819200,
+      "size": 2359296,
+      "shape": [
+        2048,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.14",
+      "layout": "row"
+    },
+    "model.language_model.layers.14.mlp.down_proj.weight": {
+      "shard": 18,
+      "offset": 16178496,
+      "size": 7077888,
+      "shape": [
+        2048,
+        6144
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.14",
+      "layout": "row"
+    },
+    "model.language_model.layers.14.mlp.gate_proj.weight": {
+      "shard": 18,
+      "offset": 23256384,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.14",
+      "layout": "row"
+    },
+    "model.language_model.layers.14.mlp.up_proj.weight": {
+      "shard": 18,
+      "offset": 30334272,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.14",
+      "layout": "row"
+    },
+    "model.language_model.layers.14.post_attention_layernorm.weight": {
+      "shard": 18,
+      "offset": 37412160,
+      "size": 4096,
+      "shape": [
+        2048
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.14"
+    },
+    "model.language_model.layers.15.input_layernorm.weight": {
+      "shard": 18,
+      "offset": 37416256,
+      "size": 4096,
+      "shape": [
+        2048
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.15"
+    },
+    "model.language_model.layers.15.mlp.down_proj.weight": {
+      "shard": 18,
+      "offset": 37420352,
+      "size": 7077888,
+      "shape": [
+        2048,
+        6144
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.15",
+      "layout": "row"
+    },
+    "model.language_model.layers.15.mlp.gate_proj.weight": {
+      "shard": 18,
+      "offset": 44498240,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.15",
+      "layout": "row"
+    },
+    "model.language_model.layers.15.mlp.up_proj.weight": {
+      "shard": 18,
+      "offset": 51576128,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.15",
+      "layout": "row"
+    },
+    "model.language_model.layers.15.post_attention_layernorm.weight": {
+      "shard": 18,
+      "offset": 58654016,
+      "size": 4096,
+      "shape": [
+        2048
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.15"
+    },
+    "model.language_model.layers.15.self_attn.k_norm.weight": {
+      "shard": 18,
+      "offset": 58658112,
+      "size": 512,
+      "shape": [
+        256
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.15"
+    },
+    "model.language_model.layers.15.self_attn.k_proj.weight": {
+      "shard": 18,
+      "offset": 58658624,
+      "size": 589824,
+      "shape": [
+        512,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.15",
+      "layout": "row"
+    },
+    "model.language_model.layers.15.self_attn.o_proj.weight": {
+      "shard": 18,
+      "offset": 59248448,
+      "size": 2359296,
+      "shape": [
+        2048,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.15",
+      "layout": "row"
+    },
+    "model.language_model.layers.15.self_attn.q_norm.weight": {
+      "shard": 18,
+      "offset": 61607744,
+      "size": 512,
+      "shape": [
+        256
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.15"
+    },
+    "model.language_model.layers.15.self_attn.q_proj.weight": {
+      "shard": 18,
+      "offset": 61608256,
+      "size": 4718592,
+      "shape": [
+        4096,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.15",
+      "layout": "row"
+    },
+    "model.language_model.layers.15.self_attn.v_proj.weight": {
+      "shard": 18,
+      "offset": 66326848,
+      "size": 589824,
+      "shape": [
+        512,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.15",
+      "layout": "row"
+    },
+    "model.language_model.layers.16.input_layernorm.weight": {
+      "shard": 18,
+      "offset": 66916672,
+      "size": 4096,
+      "shape": [
+        2048
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.16"
+    },
+    "model.language_model.layers.16.linear_attn.conv1d.weight": {
+      "shard": 18,
+      "offset": 66920768,
+      "size": 49152,
+      "shape": [
+        6144,
+        1,
+        4
+      ],
+      "dtype": "F16",
+      "role": "other",
+      "group": "layer.16"
+    },
+    "model.language_model.layers.16.linear_attn.dt_bias": {
+      "shard": 18,
+      "offset": 66969920,
+      "size": 32,
+      "shape": [
+        16
+      ],
+      "dtype": "F16",
+      "role": "other",
+      "group": "layer.16"
+    },
+    "model.language_model.layers.16.linear_attn.in_proj_a.weight": {
+      "shard": 18,
+      "offset": 66969952,
+      "size": 18432,
+      "shape": [
+        16,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.16",
+      "layout": "row"
+    },
+    "model.language_model.layers.16.linear_attn.in_proj_b.weight": {
+      "shard": 18,
+      "offset": 66988384,
+      "size": 18432,
+      "shape": [
+        16,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.16",
+      "layout": "row"
+    },
+    "model.language_model.layers.16.linear_attn.in_proj_qkv.weight": {
+      "spans": [
+        {
+          "shardIndex": 18,
+          "offset": 67006816,
+          "size": 102048
+        },
+        {
+          "shardIndex": 19,
+          "offset": 0,
+          "size": 6975840
+        }
+      ],
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.16",
+      "layout": "row"
+    },
+    "model.language_model.layers.16.linear_attn.in_proj_z.weight": {
+      "shard": 19,
+      "offset": 6975840,
+      "size": 2359296,
+      "shape": [
+        2048,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.16",
+      "layout": "row"
+    },
+    "model.language_model.layers.16.linear_attn.out_proj.weight": {
+      "shard": 19,
+      "offset": 9335136,
+      "size": 2359296,
+      "shape": [
+        2048,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.16",
+      "layout": "row"
+    },
+    "model.language_model.layers.16.mlp.down_proj.weight": {
+      "shard": 19,
+      "offset": 11694432,
+      "size": 7077888,
+      "shape": [
+        2048,
+        6144
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.16",
+      "layout": "row"
+    },
+    "model.language_model.layers.16.mlp.gate_proj.weight": {
+      "shard": 19,
+      "offset": 18772320,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.16",
+      "layout": "row"
+    },
+    "model.language_model.layers.16.mlp.up_proj.weight": {
+      "shard": 19,
+      "offset": 25850208,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.16",
+      "layout": "row"
+    },
+    "model.language_model.layers.16.post_attention_layernorm.weight": {
+      "shard": 19,
+      "offset": 32928096,
+      "size": 4096,
+      "shape": [
+        2048
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.16"
+    },
+    "model.language_model.layers.17.input_layernorm.weight": {
+      "shard": 19,
+      "offset": 32932192,
+      "size": 4096,
+      "shape": [
+        2048
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.17"
+    },
+    "model.language_model.layers.17.linear_attn.conv1d.weight": {
+      "shard": 19,
+      "offset": 32936288,
+      "size": 49152,
+      "shape": [
+        6144,
+        1,
+        4
+      ],
+      "dtype": "F16",
+      "role": "other",
+      "group": "layer.17"
+    },
+    "model.language_model.layers.17.linear_attn.dt_bias": {
+      "shard": 19,
+      "offset": 32985440,
+      "size": 32,
+      "shape": [
+        16
+      ],
+      "dtype": "F16",
+      "role": "other",
+      "group": "layer.17"
+    },
+    "model.language_model.layers.17.linear_attn.in_proj_a.weight": {
+      "shard": 19,
+      "offset": 32985472,
+      "size": 18432,
+      "shape": [
+        16,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.17",
+      "layout": "row"
+    },
+    "model.language_model.layers.17.linear_attn.in_proj_b.weight": {
+      "shard": 19,
+      "offset": 33003904,
+      "size": 18432,
+      "shape": [
+        16,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.17",
+      "layout": "row"
+    },
+    "model.language_model.layers.17.linear_attn.in_proj_qkv.weight": {
+      "shard": 19,
+      "offset": 33022336,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.17",
+      "layout": "row"
+    },
+    "model.language_model.layers.17.linear_attn.in_proj_z.weight": {
+      "shard": 19,
+      "offset": 40100224,
+      "size": 2359296,
+      "shape": [
+        2048,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.17",
+      "layout": "row"
+    },
+    "model.language_model.layers.17.linear_attn.out_proj.weight": {
+      "shard": 19,
+      "offset": 42459520,
+      "size": 2359296,
+      "shape": [
+        2048,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.17",
+      "layout": "row"
+    },
+    "model.language_model.layers.17.mlp.down_proj.weight": {
+      "shard": 19,
+      "offset": 44818816,
+      "size": 7077888,
+      "shape": [
+        2048,
+        6144
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.17",
+      "layout": "row"
+    },
+    "model.language_model.layers.17.mlp.gate_proj.weight": {
+      "shard": 19,
+      "offset": 51896704,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.17",
+      "layout": "row"
+    },
+    "model.language_model.layers.17.mlp.up_proj.weight": {
+      "shard": 19,
+      "offset": 58974592,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.17",
+      "layout": "row"
+    },
+    "model.language_model.layers.17.post_attention_layernorm.weight": {
+      "shard": 19,
+      "offset": 66052480,
+      "size": 4096,
+      "shape": [
+        2048
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.17"
+    },
+    "model.language_model.layers.18.input_layernorm.weight": {
+      "shard": 19,
+      "offset": 66056576,
+      "size": 4096,
+      "shape": [
+        2048
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.18"
+    },
+    "model.language_model.layers.18.linear_attn.conv1d.weight": {
+      "shard": 19,
+      "offset": 66060672,
+      "size": 49152,
+      "shape": [
+        6144,
+        1,
+        4
+      ],
+      "dtype": "F16",
+      "role": "other",
+      "group": "layer.18"
+    },
+    "model.language_model.layers.18.linear_attn.dt_bias": {
+      "shard": 19,
+      "offset": 66109824,
+      "size": 32,
+      "shape": [
+        16
+      ],
+      "dtype": "F16",
+      "role": "other",
+      "group": "layer.18"
+    },
+    "model.language_model.layers.18.linear_attn.in_proj_a.weight": {
+      "shard": 19,
+      "offset": 66109856,
+      "size": 18432,
+      "shape": [
+        16,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.18",
+      "layout": "row"
+    },
+    "model.language_model.layers.18.linear_attn.in_proj_b.weight": {
+      "shard": 19,
+      "offset": 66128288,
+      "size": 18432,
+      "shape": [
+        16,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.18",
+      "layout": "row"
+    },
+    "model.language_model.layers.18.linear_attn.in_proj_qkv.weight": {
+      "spans": [
+        {
+          "shardIndex": 19,
+          "offset": 66146720,
+          "size": 962144
+        },
+        {
+          "shardIndex": 20,
+          "offset": 0,
+          "size": 6115744
+        }
+      ],
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.18",
+      "layout": "row"
+    },
+    "model.language_model.layers.18.linear_attn.in_proj_z.weight": {
+      "shard": 20,
+      "offset": 6115744,
+      "size": 2359296,
+      "shape": [
+        2048,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.18",
+      "layout": "row"
+    },
+    "model.language_model.layers.18.linear_attn.out_proj.weight": {
+      "shard": 20,
+      "offset": 8475040,
+      "size": 2359296,
+      "shape": [
+        2048,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.18",
+      "layout": "row"
+    },
+    "model.language_model.layers.18.mlp.down_proj.weight": {
+      "shard": 20,
+      "offset": 10834336,
+      "size": 7077888,
+      "shape": [
+        2048,
+        6144
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.18",
+      "layout": "row"
+    },
+    "model.language_model.layers.18.mlp.gate_proj.weight": {
+      "shard": 20,
+      "offset": 17912224,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.18",
+      "layout": "row"
+    },
+    "model.language_model.layers.18.mlp.up_proj.weight": {
+      "shard": 20,
+      "offset": 24990112,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.18",
+      "layout": "row"
+    },
+    "model.language_model.layers.18.post_attention_layernorm.weight": {
+      "shard": 20,
+      "offset": 32068000,
+      "size": 4096,
+      "shape": [
+        2048
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.18"
+    },
+    "model.language_model.layers.19.input_layernorm.weight": {
+      "shard": 20,
+      "offset": 32072096,
+      "size": 4096,
+      "shape": [
+        2048
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.19"
+    },
+    "model.language_model.layers.19.mlp.down_proj.weight": {
+      "shard": 20,
+      "offset": 32076192,
+      "size": 7077888,
+      "shape": [
+        2048,
+        6144
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.19",
+      "layout": "row"
+    },
+    "model.language_model.layers.19.mlp.gate_proj.weight": {
+      "shard": 20,
+      "offset": 39154080,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.19",
+      "layout": "row"
+    },
+    "model.language_model.layers.19.mlp.up_proj.weight": {
+      "shard": 20,
+      "offset": 46231968,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.19",
+      "layout": "row"
+    },
+    "model.language_model.layers.19.post_attention_layernorm.weight": {
+      "shard": 20,
+      "offset": 53309856,
+      "size": 4096,
+      "shape": [
+        2048
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.19"
+    },
+    "model.language_model.layers.19.self_attn.k_norm.weight": {
+      "shard": 20,
+      "offset": 53313952,
+      "size": 512,
+      "shape": [
+        256
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.19"
+    },
+    "model.language_model.layers.19.self_attn.k_proj.weight": {
+      "shard": 20,
+      "offset": 53314464,
+      "size": 589824,
+      "shape": [
+        512,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.19",
+      "layout": "row"
+    },
+    "model.language_model.layers.19.self_attn.o_proj.weight": {
+      "shard": 20,
+      "offset": 53904288,
+      "size": 2359296,
+      "shape": [
+        2048,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.19",
+      "layout": "row"
+    },
+    "model.language_model.layers.19.self_attn.q_norm.weight": {
+      "shard": 20,
+      "offset": 56263584,
+      "size": 512,
+      "shape": [
+        256
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.19"
+    },
+    "model.language_model.layers.19.self_attn.q_proj.weight": {
+      "shard": 20,
+      "offset": 56264096,
+      "size": 4718592,
+      "shape": [
+        4096,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.19",
+      "layout": "row"
+    },
+    "model.language_model.layers.19.self_attn.v_proj.weight": {
+      "shard": 20,
+      "offset": 60982688,
+      "size": 589824,
+      "shape": [
+        512,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.19",
+      "layout": "row"
+    },
+    "model.language_model.layers.2.input_layernorm.weight": {
+      "shard": 20,
+      "offset": 61572512,
+      "size": 4096,
+      "shape": [
+        2048
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.2"
+    },
+    "model.language_model.layers.2.linear_attn.conv1d.weight": {
+      "shard": 20,
+      "offset": 61576608,
+      "size": 49152,
+      "shape": [
+        6144,
+        1,
+        4
+      ],
+      "dtype": "F16",
+      "role": "other",
+      "group": "layer.2"
+    },
+    "model.language_model.layers.2.linear_attn.dt_bias": {
+      "shard": 20,
+      "offset": 61625760,
+      "size": 32,
+      "shape": [
+        16
+      ],
+      "dtype": "F16",
+      "role": "other",
+      "group": "layer.2"
+    },
+    "model.language_model.layers.2.linear_attn.in_proj_a.weight": {
+      "shard": 20,
+      "offset": 61625792,
+      "size": 18432,
+      "shape": [
+        16,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.2",
+      "layout": "row"
+    },
+    "model.language_model.layers.2.linear_attn.in_proj_b.weight": {
+      "shard": 20,
+      "offset": 61644224,
+      "size": 18432,
+      "shape": [
+        16,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.2",
+      "layout": "row"
+    },
+    "model.language_model.layers.2.linear_attn.in_proj_qkv.weight": {
+      "spans": [
+        {
+          "shardIndex": 20,
+          "offset": 61662656,
+          "size": 5446208
+        },
+        {
+          "shardIndex": 21,
+          "offset": 0,
+          "size": 1631680
+        }
+      ],
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.2",
+      "layout": "row"
+    },
+    "model.language_model.layers.2.linear_attn.in_proj_z.weight": {
+      "shard": 21,
+      "offset": 1631680,
+      "size": 2359296,
+      "shape": [
+        2048,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.2",
+      "layout": "row"
+    },
+    "model.language_model.layers.2.linear_attn.out_proj.weight": {
+      "shard": 21,
+      "offset": 3990976,
+      "size": 2359296,
+      "shape": [
+        2048,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.2",
+      "layout": "row"
+    },
+    "model.language_model.layers.2.mlp.down_proj.weight": {
+      "shard": 21,
+      "offset": 6350272,
+      "size": 7077888,
+      "shape": [
+        2048,
+        6144
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.2",
+      "layout": "row"
+    },
+    "model.language_model.layers.2.mlp.gate_proj.weight": {
+      "shard": 21,
+      "offset": 13428160,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.2",
+      "layout": "row"
+    },
+    "model.language_model.layers.2.mlp.up_proj.weight": {
+      "shard": 21,
+      "offset": 20506048,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.2",
+      "layout": "row"
+    },
+    "model.language_model.layers.2.post_attention_layernorm.weight": {
+      "shard": 21,
+      "offset": 27583936,
+      "size": 4096,
+      "shape": [
+        2048
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.2"
+    },
+    "model.language_model.layers.20.input_layernorm.weight": {
+      "shard": 21,
+      "offset": 27588032,
+      "size": 4096,
+      "shape": [
+        2048
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.20"
+    },
+    "model.language_model.layers.20.linear_attn.conv1d.weight": {
+      "shard": 21,
+      "offset": 27592128,
+      "size": 49152,
+      "shape": [
+        6144,
+        1,
+        4
+      ],
+      "dtype": "F16",
+      "role": "other",
+      "group": "layer.20"
+    },
+    "model.language_model.layers.20.linear_attn.dt_bias": {
+      "shard": 21,
+      "offset": 27641280,
+      "size": 32,
+      "shape": [
+        16
+      ],
+      "dtype": "F16",
+      "role": "other",
+      "group": "layer.20"
+    },
+    "model.language_model.layers.20.linear_attn.in_proj_a.weight": {
+      "shard": 21,
+      "offset": 27641312,
+      "size": 18432,
+      "shape": [
+        16,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.20",
+      "layout": "row"
+    },
+    "model.language_model.layers.20.linear_attn.in_proj_b.weight": {
+      "shard": 21,
+      "offset": 27659744,
+      "size": 18432,
+      "shape": [
+        16,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.20",
+      "layout": "row"
+    },
+    "model.language_model.layers.20.linear_attn.in_proj_qkv.weight": {
+      "shard": 21,
+      "offset": 27678176,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.20",
+      "layout": "row"
+    },
+    "model.language_model.layers.20.linear_attn.in_proj_z.weight": {
+      "shard": 21,
+      "offset": 34756064,
+      "size": 2359296,
+      "shape": [
+        2048,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.20",
+      "layout": "row"
+    },
+    "model.language_model.layers.20.linear_attn.out_proj.weight": {
+      "shard": 21,
+      "offset": 37115360,
+      "size": 2359296,
+      "shape": [
+        2048,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.20",
+      "layout": "row"
+    },
+    "model.language_model.layers.20.mlp.down_proj.weight": {
+      "shard": 21,
+      "offset": 39474656,
+      "size": 7077888,
+      "shape": [
+        2048,
+        6144
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.20",
+      "layout": "row"
+    },
+    "model.language_model.layers.20.mlp.gate_proj.weight": {
+      "shard": 21,
+      "offset": 46552544,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.20",
+      "layout": "row"
+    },
+    "model.language_model.layers.20.mlp.up_proj.weight": {
+      "shard": 21,
+      "offset": 53630432,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.20",
+      "layout": "row"
+    },
+    "model.language_model.layers.20.post_attention_layernorm.weight": {
+      "shard": 21,
+      "offset": 60708320,
+      "size": 4096,
+      "shape": [
+        2048
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.20"
+    },
+    "model.language_model.layers.21.input_layernorm.weight": {
+      "shard": 21,
+      "offset": 60712416,
+      "size": 4096,
+      "shape": [
+        2048
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.21"
+    },
+    "model.language_model.layers.21.linear_attn.conv1d.weight": {
+      "shard": 21,
+      "offset": 60716512,
+      "size": 49152,
+      "shape": [
+        6144,
+        1,
+        4
+      ],
+      "dtype": "F16",
+      "role": "other",
+      "group": "layer.21"
+    },
+    "model.language_model.layers.21.linear_attn.dt_bias": {
+      "shard": 21,
+      "offset": 60765664,
+      "size": 32,
+      "shape": [
+        16
+      ],
+      "dtype": "F16",
+      "role": "other",
+      "group": "layer.21"
+    },
+    "model.language_model.layers.21.linear_attn.in_proj_a.weight": {
+      "shard": 21,
+      "offset": 60765696,
+      "size": 18432,
+      "shape": [
+        16,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.21",
+      "layout": "row"
+    },
+    "model.language_model.layers.21.linear_attn.in_proj_b.weight": {
+      "shard": 21,
+      "offset": 60784128,
+      "size": 18432,
+      "shape": [
+        16,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.21",
+      "layout": "row"
+    },
+    "model.language_model.layers.21.linear_attn.in_proj_qkv.weight": {
+      "spans": [
+        {
+          "shardIndex": 21,
+          "offset": 60802560,
+          "size": 6306304
+        },
+        {
+          "shardIndex": 22,
+          "offset": 0,
+          "size": 771584
+        }
+      ],
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.21",
+      "layout": "row"
+    },
+    "model.language_model.layers.21.linear_attn.in_proj_z.weight": {
+      "shard": 22,
+      "offset": 771584,
+      "size": 2359296,
+      "shape": [
+        2048,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.21",
+      "layout": "row"
+    },
+    "model.language_model.layers.21.linear_attn.out_proj.weight": {
+      "shard": 22,
+      "offset": 3130880,
+      "size": 2359296,
+      "shape": [
+        2048,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.21",
+      "layout": "row"
+    },
+    "model.language_model.layers.21.mlp.down_proj.weight": {
+      "shard": 22,
+      "offset": 5490176,
+      "size": 7077888,
+      "shape": [
+        2048,
+        6144
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.21",
+      "layout": "row"
+    },
+    "model.language_model.layers.21.mlp.gate_proj.weight": {
+      "shard": 22,
+      "offset": 12568064,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.21",
+      "layout": "row"
+    },
+    "model.language_model.layers.21.mlp.up_proj.weight": {
+      "shard": 22,
+      "offset": 19645952,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.21",
+      "layout": "row"
+    },
+    "model.language_model.layers.21.post_attention_layernorm.weight": {
+      "shard": 22,
+      "offset": 26723840,
+      "size": 4096,
+      "shape": [
+        2048
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.21"
+    },
+    "model.language_model.layers.22.input_layernorm.weight": {
+      "shard": 22,
+      "offset": 26727936,
+      "size": 4096,
+      "shape": [
+        2048
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.22"
+    },
+    "model.language_model.layers.22.linear_attn.conv1d.weight": {
+      "shard": 22,
+      "offset": 26732032,
+      "size": 49152,
+      "shape": [
+        6144,
+        1,
+        4
+      ],
+      "dtype": "F16",
+      "role": "other",
+      "group": "layer.22"
+    },
+    "model.language_model.layers.22.linear_attn.dt_bias": {
+      "shard": 22,
+      "offset": 26781184,
+      "size": 32,
+      "shape": [
+        16
+      ],
+      "dtype": "F16",
+      "role": "other",
+      "group": "layer.22"
+    },
+    "model.language_model.layers.22.linear_attn.in_proj_a.weight": {
+      "shard": 22,
+      "offset": 26781216,
+      "size": 18432,
+      "shape": [
+        16,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.22",
+      "layout": "row"
+    },
+    "model.language_model.layers.22.linear_attn.in_proj_b.weight": {
+      "shard": 22,
+      "offset": 26799648,
+      "size": 18432,
+      "shape": [
+        16,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.22",
+      "layout": "row"
+    },
+    "model.language_model.layers.22.linear_attn.in_proj_qkv.weight": {
+      "shard": 22,
+      "offset": 26818080,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.22",
+      "layout": "row"
+    },
+    "model.language_model.layers.22.linear_attn.in_proj_z.weight": {
+      "shard": 22,
+      "offset": 33895968,
+      "size": 2359296,
+      "shape": [
+        2048,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.22",
+      "layout": "row"
+    },
+    "model.language_model.layers.22.linear_attn.out_proj.weight": {
+      "shard": 22,
+      "offset": 36255264,
+      "size": 2359296,
+      "shape": [
+        2048,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.22",
+      "layout": "row"
+    },
+    "model.language_model.layers.22.mlp.down_proj.weight": {
+      "shard": 22,
+      "offset": 38614560,
+      "size": 7077888,
+      "shape": [
+        2048,
+        6144
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.22",
+      "layout": "row"
+    },
+    "model.language_model.layers.22.mlp.gate_proj.weight": {
+      "shard": 22,
+      "offset": 45692448,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.22",
+      "layout": "row"
+    },
+    "model.language_model.layers.22.mlp.up_proj.weight": {
+      "shard": 22,
+      "offset": 52770336,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.22",
+      "layout": "row"
+    },
+    "model.language_model.layers.22.post_attention_layernorm.weight": {
+      "shard": 22,
+      "offset": 59848224,
+      "size": 4096,
+      "shape": [
+        2048
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.22"
+    },
+    "model.language_model.layers.23.input_layernorm.weight": {
+      "shard": 22,
+      "offset": 59852320,
+      "size": 4096,
+      "shape": [
+        2048
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.23"
+    },
+    "model.language_model.layers.23.mlp.down_proj.weight": {
+      "shard": 22,
+      "offset": 59856416,
+      "size": 7077888,
+      "shape": [
+        2048,
+        6144
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.23",
+      "layout": "row"
+    },
+    "model.language_model.layers.23.mlp.gate_proj.weight": {
+      "spans": [
+        {
+          "shardIndex": 22,
+          "offset": 66934304,
+          "size": 174560
+        },
+        {
+          "shardIndex": 23,
+          "offset": 0,
+          "size": 6903328
+        }
+      ],
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.23",
+      "layout": "row"
+    },
+    "model.language_model.layers.23.mlp.up_proj.weight": {
+      "shard": 23,
+      "offset": 6903328,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.23",
+      "layout": "row"
+    },
+    "model.language_model.layers.23.post_attention_layernorm.weight": {
+      "shard": 23,
+      "offset": 13981216,
+      "size": 4096,
+      "shape": [
+        2048
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.23"
+    },
+    "model.language_model.layers.23.self_attn.k_norm.weight": {
+      "shard": 23,
+      "offset": 13985312,
+      "size": 512,
+      "shape": [
+        256
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.23"
+    },
+    "model.language_model.layers.23.self_attn.k_proj.weight": {
+      "shard": 23,
+      "offset": 13985824,
+      "size": 589824,
+      "shape": [
+        512,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.23",
+      "layout": "row"
+    },
+    "model.language_model.layers.23.self_attn.o_proj.weight": {
+      "shard": 23,
+      "offset": 14575648,
+      "size": 2359296,
+      "shape": [
+        2048,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.23",
+      "layout": "row"
+    },
+    "model.language_model.layers.23.self_attn.q_norm.weight": {
+      "shard": 23,
+      "offset": 16934944,
+      "size": 512,
+      "shape": [
+        256
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.23"
+    },
+    "model.language_model.layers.23.self_attn.q_proj.weight": {
+      "shard": 23,
+      "offset": 16935456,
+      "size": 4718592,
+      "shape": [
+        4096,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.23",
+      "layout": "row"
+    },
+    "model.language_model.layers.23.self_attn.v_proj.weight": {
+      "shard": 23,
+      "offset": 21654048,
+      "size": 589824,
+      "shape": [
+        512,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.23",
+      "layout": "row"
+    },
+    "model.language_model.layers.3.input_layernorm.weight": {
+      "shard": 23,
+      "offset": 22243872,
+      "size": 4096,
+      "shape": [
+        2048
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.3"
+    },
+    "model.language_model.layers.3.mlp.down_proj.weight": {
+      "shard": 23,
+      "offset": 22247968,
+      "size": 7077888,
+      "shape": [
+        2048,
+        6144
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.3",
+      "layout": "row"
+    },
+    "model.language_model.layers.3.mlp.gate_proj.weight": {
+      "shard": 23,
+      "offset": 29325856,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.3",
+      "layout": "row"
+    },
+    "model.language_model.layers.3.mlp.up_proj.weight": {
+      "shard": 23,
+      "offset": 36403744,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.3",
+      "layout": "row"
+    },
+    "model.language_model.layers.3.post_attention_layernorm.weight": {
+      "shard": 23,
+      "offset": 43481632,
+      "size": 4096,
+      "shape": [
+        2048
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.3"
+    },
+    "model.language_model.layers.3.self_attn.k_norm.weight": {
+      "shard": 23,
+      "offset": 43485728,
+      "size": 512,
+      "shape": [
+        256
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.3"
+    },
+    "model.language_model.layers.3.self_attn.k_proj.weight": {
+      "shard": 23,
+      "offset": 43486240,
+      "size": 589824,
+      "shape": [
+        512,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.3",
+      "layout": "row"
+    },
+    "model.language_model.layers.3.self_attn.o_proj.weight": {
+      "shard": 23,
+      "offset": 44076064,
+      "size": 2359296,
+      "shape": [
+        2048,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.3",
+      "layout": "row"
+    },
+    "model.language_model.layers.3.self_attn.q_norm.weight": {
+      "shard": 23,
+      "offset": 46435360,
+      "size": 512,
+      "shape": [
+        256
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.3"
+    },
+    "model.language_model.layers.3.self_attn.q_proj.weight": {
+      "shard": 23,
+      "offset": 46435872,
+      "size": 4718592,
+      "shape": [
+        4096,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.3",
+      "layout": "row"
+    },
+    "model.language_model.layers.3.self_attn.v_proj.weight": {
+      "shard": 23,
+      "offset": 51154464,
+      "size": 589824,
+      "shape": [
+        512,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.3",
+      "layout": "row"
+    },
+    "model.language_model.layers.4.input_layernorm.weight": {
+      "shard": 23,
+      "offset": 51744288,
+      "size": 4096,
+      "shape": [
+        2048
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.4"
+    },
+    "model.language_model.layers.4.linear_attn.conv1d.weight": {
+      "shard": 23,
+      "offset": 51748384,
+      "size": 49152,
+      "shape": [
+        6144,
+        1,
+        4
+      ],
+      "dtype": "F16",
+      "role": "other",
+      "group": "layer.4"
+    },
+    "model.language_model.layers.4.linear_attn.dt_bias": {
+      "shard": 23,
+      "offset": 51797536,
+      "size": 32,
+      "shape": [
+        16
+      ],
+      "dtype": "F16",
+      "role": "other",
+      "group": "layer.4"
+    },
+    "model.language_model.layers.4.linear_attn.in_proj_a.weight": {
+      "shard": 23,
+      "offset": 51797568,
+      "size": 18432,
+      "shape": [
+        16,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.4",
+      "layout": "row"
+    },
+    "model.language_model.layers.4.linear_attn.in_proj_b.weight": {
+      "shard": 23,
+      "offset": 51816000,
+      "size": 18432,
+      "shape": [
+        16,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.4",
+      "layout": "row"
+    },
+    "model.language_model.layers.4.linear_attn.in_proj_qkv.weight": {
+      "shard": 23,
+      "offset": 51834432,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.4",
+      "layout": "row"
+    },
+    "model.language_model.layers.4.linear_attn.in_proj_z.weight": {
+      "shard": 23,
+      "offset": 58912320,
+      "size": 2359296,
+      "shape": [
+        2048,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.4",
+      "layout": "row"
+    },
+    "model.language_model.layers.4.linear_attn.out_proj.weight": {
+      "shard": 23,
+      "offset": 61271616,
+      "size": 2359296,
+      "shape": [
+        2048,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.4",
+      "layout": "row"
+    },
+    "model.language_model.layers.4.mlp.down_proj.weight": {
+      "spans": [
+        {
+          "shardIndex": 23,
+          "offset": 63630912,
+          "size": 3477952
+        },
+        {
+          "shardIndex": 24,
+          "offset": 0,
+          "size": 3599936
+        }
+      ],
+      "size": 7077888,
+      "shape": [
+        2048,
+        6144
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.4",
+      "layout": "row"
+    },
+    "model.language_model.layers.4.mlp.gate_proj.weight": {
+      "shard": 24,
+      "offset": 3599936,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.4",
+      "layout": "row"
+    },
+    "model.language_model.layers.4.mlp.up_proj.weight": {
+      "shard": 24,
+      "offset": 10677824,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.4",
+      "layout": "row"
+    },
+    "model.language_model.layers.4.post_attention_layernorm.weight": {
+      "shard": 24,
+      "offset": 17755712,
+      "size": 4096,
+      "shape": [
+        2048
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.4"
+    },
+    "model.language_model.layers.5.input_layernorm.weight": {
+      "shard": 24,
+      "offset": 17759808,
+      "size": 4096,
+      "shape": [
+        2048
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.5"
+    },
+    "model.language_model.layers.5.linear_attn.conv1d.weight": {
+      "shard": 24,
+      "offset": 17763904,
+      "size": 49152,
+      "shape": [
+        6144,
+        1,
+        4
+      ],
+      "dtype": "F16",
+      "role": "other",
+      "group": "layer.5"
+    },
+    "model.language_model.layers.5.linear_attn.dt_bias": {
+      "shard": 24,
+      "offset": 17813056,
+      "size": 32,
+      "shape": [
+        16
+      ],
+      "dtype": "F16",
+      "role": "other",
+      "group": "layer.5"
+    },
+    "model.language_model.layers.5.linear_attn.in_proj_a.weight": {
+      "shard": 24,
+      "offset": 17813088,
+      "size": 18432,
+      "shape": [
+        16,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.5",
+      "layout": "row"
+    },
+    "model.language_model.layers.5.linear_attn.in_proj_b.weight": {
+      "shard": 24,
+      "offset": 17831520,
+      "size": 18432,
+      "shape": [
+        16,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.5",
+      "layout": "row"
+    },
+    "model.language_model.layers.5.linear_attn.in_proj_qkv.weight": {
+      "shard": 24,
+      "offset": 17849952,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.5",
+      "layout": "row"
+    },
+    "model.language_model.layers.5.linear_attn.in_proj_z.weight": {
+      "shard": 24,
+      "offset": 24927840,
+      "size": 2359296,
+      "shape": [
+        2048,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.5",
+      "layout": "row"
+    },
+    "model.language_model.layers.5.linear_attn.out_proj.weight": {
+      "shard": 24,
+      "offset": 27287136,
+      "size": 2359296,
+      "shape": [
+        2048,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.5",
+      "layout": "row"
+    },
+    "model.language_model.layers.5.mlp.down_proj.weight": {
+      "shard": 24,
+      "offset": 29646432,
+      "size": 7077888,
+      "shape": [
+        2048,
+        6144
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.5",
+      "layout": "row"
+    },
+    "model.language_model.layers.5.mlp.gate_proj.weight": {
+      "shard": 24,
+      "offset": 36724320,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.5",
+      "layout": "row"
+    },
+    "model.language_model.layers.5.mlp.up_proj.weight": {
+      "shard": 24,
+      "offset": 43802208,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.5",
+      "layout": "row"
+    },
+    "model.language_model.layers.5.post_attention_layernorm.weight": {
+      "shard": 24,
+      "offset": 50880096,
+      "size": 4096,
+      "shape": [
+        2048
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.5"
+    },
+    "model.language_model.layers.6.input_layernorm.weight": {
+      "shard": 24,
+      "offset": 50884192,
+      "size": 4096,
+      "shape": [
+        2048
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.6"
+    },
+    "model.language_model.layers.6.linear_attn.conv1d.weight": {
+      "shard": 24,
+      "offset": 50888288,
+      "size": 49152,
+      "shape": [
+        6144,
+        1,
+        4
+      ],
+      "dtype": "F16",
+      "role": "other",
+      "group": "layer.6"
+    },
+    "model.language_model.layers.6.linear_attn.dt_bias": {
+      "shard": 24,
+      "offset": 50937440,
+      "size": 32,
+      "shape": [
+        16
+      ],
+      "dtype": "F16",
+      "role": "other",
+      "group": "layer.6"
+    },
+    "model.language_model.layers.6.linear_attn.in_proj_a.weight": {
+      "shard": 24,
+      "offset": 50937472,
+      "size": 18432,
+      "shape": [
+        16,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.6",
+      "layout": "row"
+    },
+    "model.language_model.layers.6.linear_attn.in_proj_b.weight": {
+      "shard": 24,
+      "offset": 50955904,
+      "size": 18432,
+      "shape": [
+        16,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.6",
+      "layout": "row"
+    },
+    "model.language_model.layers.6.linear_attn.in_proj_qkv.weight": {
+      "shard": 24,
+      "offset": 50974336,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.6",
+      "layout": "row"
+    },
+    "model.language_model.layers.6.linear_attn.in_proj_z.weight": {
+      "shard": 24,
+      "offset": 58052224,
+      "size": 2359296,
+      "shape": [
+        2048,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.6",
+      "layout": "row"
+    },
+    "model.language_model.layers.6.linear_attn.out_proj.weight": {
+      "shard": 24,
+      "offset": 60411520,
+      "size": 2359296,
+      "shape": [
+        2048,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.6",
+      "layout": "row"
+    },
+    "model.language_model.layers.6.mlp.down_proj.weight": {
+      "spans": [
+        {
+          "shardIndex": 24,
+          "offset": 62770816,
+          "size": 4338048
+        },
+        {
+          "shardIndex": 25,
+          "offset": 0,
+          "size": 2739840
+        }
+      ],
+      "size": 7077888,
+      "shape": [
+        2048,
+        6144
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.6",
+      "layout": "row"
+    },
+    "model.language_model.layers.6.mlp.gate_proj.weight": {
+      "shard": 25,
+      "offset": 2739840,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.6",
+      "layout": "row"
+    },
+    "model.language_model.layers.6.mlp.up_proj.weight": {
+      "shard": 25,
+      "offset": 9817728,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.6",
+      "layout": "row"
+    },
+    "model.language_model.layers.6.post_attention_layernorm.weight": {
+      "shard": 25,
+      "offset": 16895616,
+      "size": 4096,
+      "shape": [
+        2048
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.6"
+    },
+    "model.language_model.layers.7.input_layernorm.weight": {
+      "shard": 25,
+      "offset": 16899712,
+      "size": 4096,
+      "shape": [
+        2048
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.7"
+    },
+    "model.language_model.layers.7.mlp.down_proj.weight": {
+      "shard": 25,
+      "offset": 16903808,
+      "size": 7077888,
+      "shape": [
+        2048,
+        6144
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.7",
+      "layout": "row"
+    },
+    "model.language_model.layers.7.mlp.gate_proj.weight": {
+      "shard": 25,
+      "offset": 23981696,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.7",
+      "layout": "row"
+    },
+    "model.language_model.layers.7.mlp.up_proj.weight": {
+      "shard": 25,
+      "offset": 31059584,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.7",
+      "layout": "row"
+    },
+    "model.language_model.layers.7.post_attention_layernorm.weight": {
+      "shard": 25,
+      "offset": 38137472,
+      "size": 4096,
+      "shape": [
+        2048
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.7"
+    },
+    "model.language_model.layers.7.self_attn.k_norm.weight": {
+      "shard": 25,
+      "offset": 38141568,
+      "size": 512,
+      "shape": [
+        256
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.7"
+    },
+    "model.language_model.layers.7.self_attn.k_proj.weight": {
+      "shard": 25,
+      "offset": 38142080,
+      "size": 589824,
+      "shape": [
+        512,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.7",
+      "layout": "row"
+    },
+    "model.language_model.layers.7.self_attn.o_proj.weight": {
+      "shard": 25,
+      "offset": 38731904,
+      "size": 2359296,
+      "shape": [
+        2048,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.7",
+      "layout": "row"
+    },
+    "model.language_model.layers.7.self_attn.q_norm.weight": {
+      "shard": 25,
+      "offset": 41091200,
+      "size": 512,
+      "shape": [
+        256
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.7"
+    },
+    "model.language_model.layers.7.self_attn.q_proj.weight": {
+      "shard": 25,
+      "offset": 41091712,
+      "size": 4718592,
+      "shape": [
+        4096,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.7",
+      "layout": "row"
+    },
+    "model.language_model.layers.7.self_attn.v_proj.weight": {
+      "shard": 25,
+      "offset": 45810304,
+      "size": 589824,
+      "shape": [
+        512,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.7",
+      "layout": "row"
+    },
+    "model.language_model.layers.8.input_layernorm.weight": {
+      "shard": 25,
+      "offset": 46400128,
+      "size": 4096,
+      "shape": [
+        2048
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.8"
+    },
+    "model.language_model.layers.8.linear_attn.conv1d.weight": {
+      "shard": 25,
+      "offset": 46404224,
+      "size": 49152,
+      "shape": [
+        6144,
+        1,
+        4
+      ],
+      "dtype": "F16",
+      "role": "other",
+      "group": "layer.8"
+    },
+    "model.language_model.layers.8.linear_attn.dt_bias": {
+      "shard": 25,
+      "offset": 46453376,
+      "size": 32,
+      "shape": [
+        16
+      ],
+      "dtype": "F16",
+      "role": "other",
+      "group": "layer.8"
+    },
+    "model.language_model.layers.8.linear_attn.in_proj_a.weight": {
+      "shard": 25,
+      "offset": 46453408,
+      "size": 18432,
+      "shape": [
+        16,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.8",
+      "layout": "row"
+    },
+    "model.language_model.layers.8.linear_attn.in_proj_b.weight": {
+      "shard": 25,
+      "offset": 46471840,
+      "size": 18432,
+      "shape": [
+        16,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.8",
+      "layout": "row"
+    },
+    "model.language_model.layers.8.linear_attn.in_proj_qkv.weight": {
+      "shard": 25,
+      "offset": 46490272,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.8",
+      "layout": "row"
+    },
+    "model.language_model.layers.8.linear_attn.in_proj_z.weight": {
+      "shard": 25,
+      "offset": 53568160,
+      "size": 2359296,
+      "shape": [
+        2048,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.8",
+      "layout": "row"
+    },
+    "model.language_model.layers.8.linear_attn.out_proj.weight": {
+      "shard": 25,
+      "offset": 55927456,
+      "size": 2359296,
+      "shape": [
+        2048,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.8",
+      "layout": "row"
+    },
+    "model.language_model.layers.8.mlp.down_proj.weight": {
+      "shard": 25,
+      "offset": 58286752,
+      "size": 7077888,
+      "shape": [
+        2048,
+        6144
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.8",
+      "layout": "row"
+    },
+    "model.language_model.layers.8.mlp.gate_proj.weight": {
+      "spans": [
+        {
+          "shardIndex": 25,
+          "offset": 65364640,
+          "size": 1744224
+        },
+        {
+          "shardIndex": 26,
+          "offset": 0,
+          "size": 5333664
+        }
+      ],
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.8",
+      "layout": "row"
+    },
+    "model.language_model.layers.8.mlp.up_proj.weight": {
+      "shard": 26,
+      "offset": 5333664,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.8",
+      "layout": "row"
+    },
+    "model.language_model.layers.8.post_attention_layernorm.weight": {
+      "shard": 26,
+      "offset": 12411552,
+      "size": 4096,
+      "shape": [
+        2048
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.8"
+    },
+    "model.language_model.layers.9.input_layernorm.weight": {
+      "shard": 26,
+      "offset": 12415648,
+      "size": 4096,
+      "shape": [
+        2048
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.9"
+    },
+    "model.language_model.layers.9.linear_attn.conv1d.weight": {
+      "shard": 26,
+      "offset": 12419744,
+      "size": 49152,
+      "shape": [
+        6144,
+        1,
+        4
+      ],
+      "dtype": "F16",
+      "role": "other",
+      "group": "layer.9"
+    },
+    "model.language_model.layers.9.linear_attn.dt_bias": {
+      "shard": 26,
+      "offset": 12468896,
+      "size": 32,
+      "shape": [
+        16
+      ],
+      "dtype": "F16",
+      "role": "other",
+      "group": "layer.9"
+    },
+    "model.language_model.layers.9.linear_attn.in_proj_a.weight": {
+      "shard": 26,
+      "offset": 12468928,
+      "size": 18432,
+      "shape": [
+        16,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.9",
+      "layout": "row"
+    },
+    "model.language_model.layers.9.linear_attn.in_proj_b.weight": {
+      "shard": 26,
+      "offset": 12487360,
+      "size": 18432,
+      "shape": [
+        16,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.9",
+      "layout": "row"
+    },
+    "model.language_model.layers.9.linear_attn.in_proj_qkv.weight": {
+      "shard": 26,
+      "offset": 12505792,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.9",
+      "layout": "row"
+    },
+    "model.language_model.layers.9.linear_attn.in_proj_z.weight": {
+      "shard": 26,
+      "offset": 19583680,
+      "size": 2359296,
+      "shape": [
+        2048,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.9",
+      "layout": "row"
+    },
+    "model.language_model.layers.9.linear_attn.out_proj.weight": {
+      "shard": 26,
+      "offset": 21942976,
+      "size": 2359296,
+      "shape": [
+        2048,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.9",
+      "layout": "row"
+    },
+    "model.language_model.layers.9.mlp.down_proj.weight": {
+      "shard": 26,
+      "offset": 24302272,
+      "size": 7077888,
+      "shape": [
+        2048,
+        6144
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.9",
+      "layout": "row"
+    },
+    "model.language_model.layers.9.mlp.gate_proj.weight": {
+      "shard": 26,
+      "offset": 31380160,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.9",
+      "layout": "row"
+    },
+    "model.language_model.layers.9.mlp.up_proj.weight": {
+      "shard": 26,
+      "offset": 38458048,
+      "size": 7077888,
+      "shape": [
+        6144,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "role": "matmul",
+      "group": "layer.9",
+      "layout": "row"
+    },
+    "model.language_model.layers.9.post_attention_layernorm.weight": {
+      "shard": 26,
+      "offset": 45535936,
+      "size": 4096,
+      "shape": [
+        2048
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "layer.9"
+    },
+    "model.language_model.norm.weight": {
+      "shard": 26,
+      "offset": 45540032,
+      "size": 4096,
+      "shape": [
+        2048
+      ],
+      "dtype": "F16",
+      "role": "norm",
+      "group": "head"
+    }
+  },
+  "totalSize": 1790374592,
+  "hashAlgorithm": "blake3",
+  "eos_token_id": 248044,
+  "config": {
+    "vision_config": {
+      "deepstack_visual_indexes": [],
+      "depth": 24,
+      "hidden_act": "gelu_pytorch_tanh",
+      "hidden_size": 1024,
+      "in_channels": 3,
+      "initializer_range": 0.02,
+      "intermediate_size": 4096,
+      "model_type": "qwen3_5",
+      "num_heads": 16,
+      "num_position_embeddings": 2304,
+      "out_hidden_size": 2048,
+      "patch_size": 16,
+      "spatial_merge_size": 2,
+      "temporal_patch_size": 2
+    }
+  },
+  "conversion": null,
+  "metadata": {
+    "source": "convert-core",
+    "convertedAt": "2026-03-24T14:29:22.400Z",
+    "hasTokenizer": true
+  },
+  "tokenizer": {
+    "type": "bundled",
+    "vocabSize": 248044,
+    "file": "tokenizer.json",
+    "addBosToken": false
+  }
+}

@@ -12,6 +12,7 @@
 
 import { getTopK } from '../../../src/inference/pipelines/text/sampling.js';
 import { sample, applyRepetitionPenalty } from '../../../src/inference/pipelines/text/sampling.js';
+import { isXrayProfilingNeeded } from '../xray/index.js';
 
 function hasLinearAttentionState(pipeline) {
   const runtime = pipeline.linearAttentionRuntime
@@ -67,9 +68,17 @@ export function createTokenPressSession(pipeline, press, prompt, options = {}) {
     });
   }
 
+  function getStepOptions(overrides = {}) {
+    const profile = isXrayProfilingNeeded() ? { profile: true } : null;
+    return {
+      ...(profile || {}),
+      ...overrides,
+    };
+  }
+
   async function prefill() {
     if (prefillDone || disposed) return;
-    const result = await pipeline.prefillWithLogits(prompt, { useChatTemplate });
+    const result = await pipeline.prefillWithLogits(prompt, getStepOptions({ useChatTemplate }));
     logits = result.logits;
     generatedIds = [...(result.tokens ?? [])];
     prefillDone = true;
@@ -107,7 +116,7 @@ export function createTokenPressSession(pipeline, press, prompt, options = {}) {
     // Compute next logits (decodeStepLogits advances KV cache internally)
     if (!finished) {
       try {
-        const result = await pipeline.decodeStepLogits([tokenId]);
+        const result = await pipeline.decodeStepLogits([tokenId], getStepOptions());
         logits = result.logits;
       } catch {
         finished = true;
@@ -142,7 +151,7 @@ export function createTokenPressSession(pipeline, press, prompt, options = {}) {
     try {
       const lastTokenId = generatedIds[generatedIds.length - 1];
       if (lastTokenId != null) {
-        const result = await pipeline.decodeStepLogits([lastTokenId]);
+        const result = await pipeline.decodeStepLogits([lastTokenId], getStepOptions());
         logits = result.logits;
       }
     } catch {

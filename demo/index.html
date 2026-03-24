@@ -68,7 +68,6 @@
             <!-- Hidden: no diffusion models in catalog -->
             <!-- <button class="btn segmented-btn mode-subtab" data-mode="diffusion" type="button">Images</button> -->
             <button class="btn segmented-btn mode-subtab" data-mode="diagnostics" type="button">Verify</button>
-            <button class="btn segmented-btn mode-subtab" data-mode="transforms" type="button">Transforms</button>
             <button class="btn segmented-btn mode-subtab" data-mode="models" type="button">Models</button>
           </div>
           <div class="header-model" hidden></div>
@@ -84,6 +83,7 @@
               <div class="primary-stack">
                 <div class="playground-output">
                   <div class="type-caption">Output</div>
+                  <div id="runtime-notice" class="type-caption runtime-notice" hidden></div>
                   <pre id="run-output" class="playground-output-box border-dotted"></pre>
                   <div id="tp-controls" hidden></div>
                   <div class="run-output-status-row">
@@ -104,13 +104,11 @@
                     <div class="translate-compare-heading-copy">
                       <div class="translate-compare-kicker type-caption">Proof Console</div>
                       <h3 class="type-label">Side-by-side translation compare</h3>
-                      <p class="type-caption">
-                        Hold one source sentence constant, then compare engine, model, size, and latency receipts without leaving the page.
-                      </p>
+                      <p class="type-caption">Same source, different models and engines. Compare quality and latency.</p>
                     </div>
                     <div class="segmented-control translate-compare-view-toggle" role="tablist" aria-label="Translate view">
                       <button id="translate-view-single-btn" class="btn segmented-btn is-active" type="button" data-translate-view="single">Single</button>
-                      <button id="translate-view-compare-btn" class="btn segmented-btn" type="button" data-translate-view="compare">Compare</button>
+                      <button id="translate-view-compare-btn" class="btn segmented-btn" type="button" data-translate-view="compare" hidden aria-hidden="true">Compare</button>
                     </div>
                   </div>
 
@@ -118,17 +116,17 @@
                     <article class="translate-proof-card">
                       <span class="translate-proof-label type-caption">Evidence bundle</span>
                       <strong id="translate-proof-bundle" class="translate-proof-value">Awaiting frozen scoreboard</strong>
-                      <span class="translate-proof-detail type-caption">Gamma artifacts and eval rows attach here.</span>
+                      <span class="translate-proof-detail type-caption">Artifacts attach after run.</span>
                     </article>
                     <article class="translate-proof-card">
                       <span class="translate-proof-label type-caption">Teacher vs student</span>
                       <strong id="translate-proof-delta" class="translate-proof-value">Delta pending</strong>
-                      <span class="translate-proof-detail type-caption">BLEU / chrF / size deltas render once evidence arrives.</span>
+                      <span class="translate-proof-detail type-caption">BLEU / chrF / size deltas appear after evidence loads.</span>
                     </article>
                     <article class="translate-proof-card">
                       <span class="translate-proof-label type-caption">Public claim</span>
                       <strong id="translate-proof-claim" class="translate-proof-value">Practical EN/ES parity test</strong>
-                      <span class="translate-proof-detail type-caption">Narrow proof scope, explicit caveats, no hidden boosts.</span>
+                      <span class="translate-proof-detail type-caption">Scoped claim, explicit caveats.</span>
                     </article>
                   </div>
 
@@ -144,7 +142,7 @@
                             <option value="model-parity">Model parity</option>
                             <option value="custom">Custom compare</option>
                           </select>
-                          <div id="translate-compare-layout-note" class="type-caption">Baseline teacher versus student slot on the same proof console.</div>
+                          <div id="translate-compare-layout-note" class="type-caption">Teacher vs student on the same console.</div>
                         </div>
                         <div class="translate-compare-toolbar-actions">
                           <button id="translate-compare-run-btn" class="btn btn-primary" type="button">Run compare</button>
@@ -218,7 +216,7 @@
                             <div class="translate-compare-kicker type-caption">Sample panel</div>
                             <h4 class="type-label">Deterministic smoke panel</h4>
                           </div>
-                          <span class="type-caption">3 easy · 3 nuanced · 2 domain · 2 edge cases</span>
+                          <span class="type-caption">10 samples: easy, nuanced, domain, and edge cases</span>
                         </div>
                         <div id="translate-smoke-grid" class="translate-smoke-grid"></div>
                       </section>
@@ -230,7 +228,7 @@
                               <span class="translate-lane-chip">Left</span>
                               <div>
                                 <h4 class="type-label">Reference lane</h4>
-                                <div class="type-caption">Pin the baseline you want the audience to trust first.</div>
+                                <div class="type-caption">Pinned baseline.</div>
                               </div>
                             </div>
                             <span id="translate-left-badge" class="translate-lane-badge type-caption">baseline</span>
@@ -277,7 +275,7 @@
                               <span class="translate-lane-chip">Right</span>
                               <div>
                                 <h4 class="type-label">Challenger lane</h4>
-                                <div class="type-caption">Swap student, engine, or both without changing the source request.</div>
+                                <div class="type-caption">Swap engine or model.</div>
                               </div>
                             </div>
                             <span id="translate-right-badge" class="translate-lane-badge type-caption">student</span>
@@ -342,7 +340,7 @@
                             <span class="translate-history-time type-caption">Pending</span>
                             <span class="translate-history-badge type-caption">sample</span>
                           </div>
-                          <p class="translate-history-snippet">Compare receipts will stack here with engine/model labels, timing, and expandable outputs.</p>
+                          <p class="translate-history-snippet">Receipts stack here after each run.</p>
                           <div class="translate-history-meta">
                             <span class="type-caption">en -> es</span>
                             <span class="type-caption">No run captured</span>
@@ -353,7 +351,7 @@
                             <span class="translate-history-time type-caption">Awaiting</span>
                             <span class="translate-history-badge type-caption">artifact</span>
                           </div>
-                          <p class="translate-history-snippet">Share links, receipt ids, and lane winners can render as badges instead of replacing raw numbers.</p>
+                          <p class="translate-history-snippet">Share links and lane results appear as badges.</p>
                           <div class="translate-history-meta">
                             <span class="type-caption">TTFT / decode / total</span>
                             <span class="type-caption">Transparent first</span>
@@ -387,10 +385,11 @@
 
             <section class="panel diagnostics-panel" data-modes="diagnostics kernels">
               <div class="diagnostics-heading">
-                <h2 class="type-label" id="diagnostics-title">Diagnostics</h2>
+                <h2 class="type-label" id="diagnostics-title">Verify</h2>
                 <div class="diagnostics-mode-tabs segmented-control" id="diagnostics-mode-tabs">
-                  <button class="btn segmented-btn diagnostics-mode-tab" data-diagnostics-mode="diagnostics" type="button">Inference Diagnostics</button>
-                  <button class="btn segmented-btn diagnostics-mode-tab" data-diagnostics-mode="kernels" type="button">Kernel Diagnostics</button>
+                  <button class="btn segmented-btn diagnostics-mode-tab" data-diagnostics-mode="diagnostics" type="button">Inference</button>
+                  <button class="btn segmented-btn diagnostics-mode-tab" data-diagnostics-mode="kernels" type="button">Kernels</button>
+                  <button class="btn segmented-btn diagnostics-mode-tab" data-diagnostics-mode="execution" type="button">Execution</button>
                 </div>
               </div>
               <div class="diagnostics-field">
@@ -405,56 +404,93 @@
                 </div>
                 <button id="diagnostics-empty-notice-btn" class="btn btn-small model-empty-notice-action" type="button">Browse models</button>
               </div>
-              <div class="type-caption diagnostics-summary" id="diagnostics-summary"></div>
-              <div class="diagnostics-actions">
-                <button id="diagnostics-run-btn" class="btn btn-primary">Run</button>
-                <button id="diagnostics-verify-btn" class="btn">Verify Config</button>
-                <button id="diagnostics-export-btn" class="btn">Export JSON</button>
-              </div>
-              <div class="diagnostics-field" id="diagnostics-suite-field">
-                <label class="type-caption" for="diagnostics-profile">Run Profile</label>
-                <select id="diagnostics-profile" class="w-full"></select>
-                <div class="type-caption" id="diagnostics-suite-help"></div>
-                <div class="type-caption" id="diagnostics-profile-help"></div>
-              </div>
-              <div class="type-caption diagnostics-requirements" id="diagnostics-requirements"></div>
-              <div class="diagnostics-output" id="diagnostics-output">
-                <div class="diagnostics-output-header">
-                  <span id="diagnostics-status" class="diagnostics-status type-caption">Idle</span>
-                  <span class="diagnostics-report type-caption" id="diagnostics-report"></span>
+              <!-- Inference / Kernels content -->
+              <div id="diagnostics-run-content">
+                <div class="type-caption diagnostics-summary" id="diagnostics-summary"></div>
+                <div class="diagnostics-actions">
+                  <button id="diagnostics-run-btn" class="btn btn-primary">Run</button>
+                  <button id="diagnostics-verify-btn" class="btn">Verify Config</button>
+                  <button id="diagnostics-export-btn" class="btn">Export JSON</button>
                 </div>
-                <pre id="diagnostics-output-text" class="diagnostics-output-text">No output yet.</pre>
-                <canvas id="diagnostics-output-canvas" class="diagnostics-output-canvas" width="256" height="256" hidden></canvas>
-                <details class="diagnostics-output-json" id="diagnostics-output-json-wrap" hidden>
-                  <summary class="type-caption">Raw JSON</summary>
-                  <pre id="diagnostics-output-json" class="diagnostics-output-json-text">No JSON yet.</pre>
+                <div class="diagnostics-field" id="diagnostics-suite-field">
+                  <label class="type-caption" for="diagnostics-profile">Profile</label>
+                  <select id="diagnostics-profile" class="w-full"></select>
+                  <div class="type-caption" id="diagnostics-suite-help"></div>
+                  <div class="type-caption" id="diagnostics-profile-help"></div>
+                </div>
+                <div class="type-caption diagnostics-requirements" id="diagnostics-requirements"></div>
+                <div class="diagnostics-output" id="diagnostics-output">
+                  <div class="diagnostics-output-header">
+                    <span id="diagnostics-status" class="diagnostics-status type-caption">Idle</span>
+                    <span class="diagnostics-report type-caption" id="diagnostics-report"></span>
+                  </div>
+                  <pre id="diagnostics-output-text" class="diagnostics-output-text">No output yet.</pre>
+                  <canvas id="diagnostics-output-canvas" class="diagnostics-output-canvas" width="256" height="256" hidden></canvas>
+                  <details class="diagnostics-output-json" id="diagnostics-output-json-wrap" hidden>
+                    <summary class="type-caption">Raw JSON</summary>
+                    <pre id="diagnostics-output-json" class="diagnostics-output-json-text">No JSON yet.</pre>
+                  </details>
+                </div>
+                <details class="diagnostics-accordion" id="diagnostics-advanced">
+                  <summary class="type-caption">Advanced</summary>
+                  <div class="panel-subsection">
+                    <div class="diagnostics-field">
+                      <label class="type-caption" for="runtime-profile">Runtime profile override</label>
+                      <select id="runtime-profile" class="w-full"></select>
+                    </div>
+                    <div class="diagnostics-field">
+                      <label class="type-caption" for="runtime-config-file">Config override (JSON)</label>
+                      <div class="diagnostics-config-row">
+                        <input id="runtime-config-file" class="w-full" type="file" accept=".json,application/json" />
+                        <button id="runtime-config-clear" class="btn">Reset</button>
+                      </div>
+                      <div class="type-caption" id="runtime-config-status">Profile: profiles/verbose-trace</div>
+                    </div>
+                    <div class="diagnostics-field">
+                      <label class="type-caption" for="runtime-config-profile">Override profile</label>
+                      <select id="runtime-config-profile" class="w-full"></select>
+                    </div>
+                    <div class="diagnostics-field">
+                      <div class="type-caption">Intent</div>
+                      <div class="type-caption" id="diagnostics-intent">--</div>
+                    </div>
+                  </div>
                 </details>
               </div>
-              <details class="diagnostics-accordion" id="diagnostics-advanced">
-                <summary class="type-caption">Advanced</summary>
-                <div class="panel-subsection">
-                  <div class="diagnostics-field">
-                    <label class="type-caption" for="runtime-profile">Runtime profile (advanced override)</label>
-                    <select id="runtime-profile" class="w-full"></select>
+              <!-- Execution graph content -->
+              <div id="diagnostics-execution-content" hidden>
+                <div class="diagnostics-actions">
+                  <button id="kernel-builder-refresh-btn" class="btn btn-primary" type="button">Refresh</button>
+                  <button id="kernel-builder-use-report-btn" class="btn" type="button">Use Latest Report</button>
+                  <label class="btn" for="kernel-builder-report-file">Load Report</label>
+                  <input id="kernel-builder-report-file" type="file" accept="application/json,.json" hidden />
+                  <button id="kernel-builder-clear-report-btn" class="btn" type="button">Clear Overlay</button>
+                </div>
+                <div id="kernel-builder-status" class="type-caption kernel-builder-status"></div>
+                <div id="kernel-builder-summary" class="kernel-builder-summary-grid"></div>
+                <div class="kernel-builder-layout">
+                  <div class="kernel-builder-column">
+                    <section class="kernel-builder-block">
+                      <h3 class="type-caption">Resolved Graph</h3>
+                      <div id="kernel-builder-execution"></div>
+                    </section>
+                    <section class="kernel-builder-block">
+                      <h3 class="type-caption">Candidate Matches</h3>
+                      <div id="kernel-builder-matches"></div>
+                    </section>
                   </div>
-                  <div class="diagnostics-field">
-                    <label class="type-caption" for="runtime-config-file">Runtime override (JSON file)</label>
-                    <div class="diagnostics-config-row">
-                      <input id="runtime-config-file" class="w-full" type="file" accept=".json,application/json" />
-                      <button id="runtime-config-clear" class="btn">Reset Overrides</button>
-                    </div>
-                    <div class="type-caption" id="runtime-config-status">Profile: profiles/verbose-trace</div>
-                  </div>
-                  <div class="diagnostics-field">
-                    <label class="type-caption" for="runtime-config-profile">Runtime override profile</label>
-                    <select id="runtime-config-profile" class="w-full"></select>
-                  </div>
-                  <div class="diagnostics-field">
-                    <div class="type-caption">Tooling intent</div>
-                    <div class="type-caption" id="diagnostics-intent">--</div>
+                  <div class="kernel-builder-column">
+                    <section class="kernel-builder-block">
+                      <h3 class="type-caption">Proposal JSON</h3>
+                      <pre id="kernel-builder-proposal-json" class="kernel-builder-code">No proposal loaded.</pre>
+                    </section>
+                    <section class="kernel-builder-block">
+                      <h3 class="type-caption">Runtime Overlay</h3>
+                      <div id="kernel-builder-overlay"></div>
+                    </section>
                   </div>
                 </div>
-              </details>
+              </div>
             </section>
 
             <section class="panel convert-panel" data-modes="models">
@@ -520,52 +556,6 @@
               </details>
             </section>
 
-            <section class="panel kernel-builder-panel" data-modes="transforms">
-              <div class="kernel-builder-header">
-                <div class="kernel-builder-copy">
-                  <div class="type-caption">Generated Builder Report</div>
-                  <h2 class="type-label">Kernel Path Builder</h2>
-                  <p class="type-caption">
-                    Inspect conversion-owned execution graphs, compare them against registered kernel paths, and attach runtime receipts without leaving the demo.
-                  </p>
-                </div>
-                <div class="kernel-builder-actions">
-                  <button id="kernel-builder-refresh-btn" class="btn btn-small" type="button">Refresh Index</button>
-                  <button id="kernel-builder-use-report-btn" class="btn btn-small" type="button">Use Latest Report</button>
-                  <label class="btn btn-small" for="kernel-builder-report-file">Load Report JSON</label>
-                  <input id="kernel-builder-report-file" type="file" accept="application/json,.json" hidden />
-                  <button id="kernel-builder-clear-report-btn" class="btn btn-small" type="button">Clear Overlay</button>
-                </div>
-              </div>
-              <div class="playground-field">
-                <label class="type-caption" for="kernel-builder-model-select">Conversion config / model</label>
-                <select id="kernel-builder-model-select" class="w-full"></select>
-              </div>
-              <div id="kernel-builder-status" class="type-caption kernel-builder-status">Loading kernel-path builder index...</div>
-              <div id="kernel-builder-summary" class="kernel-builder-summary-grid"></div>
-              <div class="kernel-builder-layout">
-                <div class="kernel-builder-column">
-                  <section class="kernel-builder-block">
-                    <h3 class="type-caption">Resolved Graph</h3>
-                    <div id="kernel-builder-execution"></div>
-                  </section>
-                  <section class="kernel-builder-block">
-                    <h3 class="type-caption">Candidate Matches</h3>
-                    <div id="kernel-builder-matches"></div>
-                  </section>
-                </div>
-                <div class="kernel-builder-column">
-                  <section class="kernel-builder-block">
-                    <h3 class="type-caption">Proposal JSON</h3>
-                    <pre id="kernel-builder-proposal-json" class="kernel-builder-code">No proposal loaded.</pre>
-                  </section>
-                  <section class="kernel-builder-block">
-                    <h3 class="type-caption">Runtime Overlay</h3>
-                    <div id="kernel-builder-overlay"></div>
-                  </section>
-                </div>
-              </div>
-            </section>
 
           </div>
           <div class="panel-stack panel-stack-rail">
@@ -723,7 +713,7 @@
                 <button id="run-empty-notice-btn" class="btn btn-small model-empty-notice-action" type="button">Browse models</button>
               </div>
               <div class="panel-subsection" id="translate-controls" hidden>
-                <div class="translate-control-banner">
+                <div class="translate-control-banner" id="translate-compare-banner" hidden>
                   <div class="translate-control-banner-copy">
                     <span class="translate-compare-kicker type-caption">Compare setup</span>
                     <div class="type-caption">Shared prompt and language direction drive both lanes when compare mode is active.</div>
@@ -967,11 +957,11 @@
             </section>
 
         </div>
-          <section class="panel xray-panel keyvalue-panel" id="xray-container" data-modes="run translate embedding" hidden>
-            <h2 class="type-label">Xray</h2>
-          </section>
       </div>
     </main>
+    <section class="panel xray-panel keyvalue-panel" id="xray-container" data-modes="run translate embedding" hidden>
+      <h2 class="type-label">Xray</h2>
+    </section>
     <footer class="page-footer">
       <a class="link-secondary type-caption" href="https://www.npmjs.com/package/@simulatte/doppler" target="_blank" rel="noopener">npm</a>
       <span class="type-caption" aria-hidden="true">·</span>

@@ -338,8 +338,23 @@ export async function runLayerAttentionGPU(
           dtype: tensor.dtype,
         });
       }
-      : null,
+    : null,
   }));
+
+  await runProbes('q_norm', qTensor.buffer, {
+    layerIdx,
+    numTokens,
+    hiddenSize: numHeads * headDim,
+    probes: state.debugProbes,
+    dtype: qTensor.dtype,
+  });
+  await runProbes('k_norm', kTensor.buffer, {
+    layerIdx,
+    numTokens,
+    hiddenSize: numKVHeads * headDim,
+    probes: state.debugProbes,
+    dtype: kTensor.dtype,
+  });
 
   if (normed !== attentionInput) releaseBuffer(normed.buffer);
   if (attentionInputTemp) releaseBuffer(attentionInput.buffer);

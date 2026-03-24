@@ -1,0 +1,8 @@
+{
+  "sourceModel": "qwen-3-5-0-8b",
+  "sourceRepo": "Qwen/Qwen3.5-0.8B",
+  "sourceFormat": "safetensors",
+  "sourceRevision": "2fc06364715b967f1860aea9cf38778875588b17",
+  "variant": "q4k-ehaf16",
+  "convertedAt": "2026-03-05T14:59:04.367Z"
+}

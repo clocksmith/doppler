@@ -1,0 +1,8 @@
+{
+  "sourceModel": "google/embeddinggemma-300m",
+  "sourceRepo": "google/embeddinggemma-300m",
+  "sourceFormat": "safetensors",
+  "sourceRevision": "57c266a740f537b4dc058e1b0cda161fd15afa75",
+  "variant": "q4k-ehf16-af32",
+  "convertedAt": "2026-03-04T14:57:07.954Z"
+}

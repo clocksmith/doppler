@@ -43,12 +43,12 @@ const DEFAULT_CLI_POLICY = {
 
 const COMMON_CLI_FLAGS = Object.freeze([
   'config',
-  'runtime-config',
   'surface',
   'pretty',
   'json',
   'help',
   'h',
+  'runtime-config',
 ]);
 
 function asStringOrNull(value) {
@@ -64,16 +64,16 @@ function asStringOrNull(value) {
 function usage() {
   return [
     'Usage:',
-    '  doppler convert --config <path.json|json> [--runtime-config <path|url|json>] [--surface auto|node]',
-    '  doppler debug --config <path.json|json> [--runtime-config <path|url|json>] [--surface auto|node|browser]',
-    '  doppler bench --config <path.json|json> [--runtime-config <path|url|json>] [--surface auto|node|browser]',
-    '  doppler verify --config <path.json|json> [--runtime-config <path|url|json>] [--surface auto|node|browser]',
-    '  doppler lora --config <path.json|json> [--surface auto|node]',
-    '  doppler distill --config <path.json|json> [--surface auto|node]',
+    '  doppler convert --config <path|url|json> [--surface auto|node]',
+    '  doppler debug --config <path|url|json> [--runtime-config <path|url|json>] [--surface auto|node|browser]',
+    '  doppler bench --config <path|url|json> [--runtime-config <path|url|json>] [--surface auto|node|browser]',
+    '  doppler verify --config <path|url|json> [--runtime-config <path|url|json>] [--surface auto|node|browser]',
+    '  doppler lora --config <path|url|json> [--surface auto|node]',
+    '  doppler distill --config <path|url|json> [--surface auto|node]',
     '',
     'Flags:',
-    '  --config <path|json>            Required command config payload (file path or JSON object string).',
-    '  --runtime-config <value>        Optional runtime override (JSON object, URL, or file path).',
+    '  --config <path|url|json>        Required command config payload (file path, URL, or JSON object string).',
+    '  --runtime-config <value>        Compatibility runtime override alias (JSON object, URL, or file path).',
     '  --surface <auto|node|browser>   Optional execution surface override.',
     '  --pretty                        Print human-readable summary instead of JSON',
     '  --help, -h                      Show this help message',
@@ -81,7 +81,12 @@ function usage() {
     'Command Config Contract:',
     '  The config payload must be a JSON object and may include:',
     '    - request: tooling command request fields (workload, modelId, training fields, convertPayload, etc).',
+    '      May also include `runtimeProfile`, `runtimeConfigUrl`, and `runtimeConfig`.',
+    '      Unknown top-level keys are disallowed when `request` is used as the envelope key.',
     '    - run: CLI-only run controls (surface, browser options, and bench save/compare/manifest settings).',
+    '    - runtimeProfile: optional runtime profile id.',
+    '    - runtimeConfigUrl: optional runtime override URL or local JSON path.',
+    '    - runtimeConfig: optional inline runtime override object.',
     '',
     'Example:',
     '  doppler verify --config \'{"request":{"workload":"inference","modelId":"gemma-3-270m-it-f16-af32"}}\'',
@@ -219,6 +224,14 @@ function parseJsonObjectFlag(value, label) {
   }
 }
 
+function parseRuntimeConfigUrl(value) {
+  const normalized = asStringOrNull(value);
+  if (normalized === null) return null;
+  return isAbsoluteUrl(normalized)
+    ? normalized
+    : pathToFileURL(path.resolve(normalized)).href;
+}
+
 function isAbsoluteUrl(value) {
   const normalized = asStringOrNull(value);
   if (normalized === null) return false;
@@ -249,7 +262,7 @@ function parseUnifiedRuntimeConfig(value) {
   }
   return {
     runtimeProfile: null,
-    runtimeConfigUrl: pathToFileURL(path.resolve(normalized)).href,
+    runtimeConfigUrl: parseRuntimeConfigUrl(normalized),
     runtimeConfig: null,
   };
 }
@@ -279,6 +292,31 @@ async function readJsonObjectFile(filePath, label) {
   return parsed;
 }
 
+async function readJsonObjectUrl(rawUrl, label) {
+  let response;
+  try {
+    response = await fetch(rawUrl, {
+      headers: {
+        Connection: 'close',
+      },
+      redirect: 'follow',
+      signal: AbortSignal.timeout(30000),
+    });
+  } catch (error) {
+    throw new Error(`${label} URL request failed: ${error?.message || String(error)}`);
+  }
+  if (!response.ok) {
+    throw new Error(`${label} URL request failed: HTTP ${response.status}`);
+  }
+  let raw;
+  try {
+    raw = await response.text();
+  } catch (error) {
+    throw new Error(`${label} URL request failed: ${error?.message || String(error)}`);
+  }
+  return parseJsonObjectFlag(raw, label);
+}
+
 async function readJsonObjectInput(inputValue, label) {
   const normalized = asStringOrNull(inputValue);
   if (normalized === null) {
@@ -287,13 +325,16 @@ async function readJsonObjectInput(inputValue, label) {
   if (normalized.startsWith('{')) {
     return parseJsonObjectFlag(normalized, label);
   }
+  if (isAbsoluteUrl(normalized)) {
+    return readJsonObjectUrl(normalized, label);
+  }
   return readJsonObjectFile(normalized, label);
 }
 
 function resolveCommandConfigFlag(parsed) {
   const config = asStringOrNull(parsed.flags.config);
   if (!config) {
-    throw new Error('command requires --config <path.json|json>.');
+    throw new Error('command requires --config <path|url|json>.');
   }
   return config;
 }
@@ -598,7 +639,35 @@ function isPlainObject(value) {
   return !!value && typeof value === 'object' && !Array.isArray(value);
 }
 
-const CONFIG_ENVELOPE_KNOWN_KEYS = new Set(['request', 'run']);
+const CONFIG_ENVELOPE_KNOWN_KEYS = new Set([
+  'request',
+  'run',
+  'runtimeProfile',
+  'runtimeConfigUrl',
+  'runtimeConfig',
+]);
+
+function buildRuntimeOverridesFromObject(source = {}, sourceLabel = '--config') {
+  const normalizedRuntimeProfile = asStringOrNull(source.runtimeProfile);
+  const normalizedRuntimeConfigUrl = asStringOrNull(source.runtimeConfigUrl) == null
+    ? null
+    : parseRuntimeConfigUrl(source.runtimeConfigUrl);
+
+  const hasInlineRuntimeConfig = Object.prototype.hasOwnProperty.call(source, 'runtimeConfig');
+  let runtimeConfig = null;
+  if (hasInlineRuntimeConfig) {
+    if (!isPlainObject(source.runtimeConfig)) {
+      throw new Error(`${sourceLabel} runtimeConfig must be a JSON object when provided.`);
+    }
+    runtimeConfig = source.runtimeConfig;
+  }
+
+  return {
+    runtimeProfile: normalizedRuntimeProfile,
+    runtimeConfigUrl: normalizedRuntimeConfigUrl,
+    runtimeConfig,
+  };
+}
 
 function resolveConfigEnvelope(configPayload) {
   if (!isPlainObject(configPayload)) {
@@ -610,20 +679,76 @@ function resolveConfigEnvelope(configPayload) {
   if (configPayload.run !== undefined && !isPlainObject(configPayload.run)) {
     throw new Error('--config field "run" must be a JSON object when provided.');
   }
-
-  if (isPlainObject(configPayload.request)) {
-    const unknownTopLevel = Object.keys(configPayload)
-      .filter((key) => !CONFIG_ENVELOPE_KNOWN_KEYS.has(key));
-    if (unknownTopLevel.length > 0) {
-      console.error(
-        `[warn] --config has unknown top-level keys: ${unknownTopLevel.join(', ')}. `
-        + 'Expected { request, run }. Did you mean to put these inside "request"?'
+  if (configPayload.request !== undefined) {
+    const topLevelUnknown = Object.keys(configPayload).filter(
+      (key) => !CONFIG_ENVELOPE_KNOWN_KEYS.has(key)
+    );
+    if (topLevelUnknown.length > 0) {
+      throw new Error(
+        `--config has unknown top-level keys for request envelope: ${topLevelUnknown.join(', ')}.`
       );
     }
   }
 
+  const hasRequestEnvelope = isPlainObject(configPayload.request);
+  const requestPayload = hasRequestEnvelope
+    ? { ...configPayload.request }
+    : { ...configPayload };
+  const topLevelRuntimeConfig = hasRequestEnvelope
+    ? buildRuntimeOverridesFromObject(configPayload, '--config')
+    : {
+      runtimeProfile: null,
+      runtimeConfigUrl: null,
+      runtimeConfig: null,
+    };
+  const requestRuntimeConfig = buildRuntimeOverridesFromObject(requestPayload, '--config.request');
+  if (hasRequestEnvelope) {
+    if (
+      topLevelRuntimeConfig.runtimeProfile != null
+      && requestRuntimeConfig.runtimeProfile != null
+    ) {
+      throw new Error(
+        'Cannot set runtimeProfile in both --config payload top-level and --config.request.'
+      );
+    }
+    if (
+      topLevelRuntimeConfig.runtimeConfigUrl != null
+      && requestRuntimeConfig.runtimeConfigUrl != null
+    ) {
+      throw new Error(
+        'Cannot set runtimeConfigUrl in both --config payload top-level and --config.request.'
+      );
+    }
+    if (
+      topLevelRuntimeConfig.runtimeConfig != null
+      && requestRuntimeConfig.runtimeConfig != null
+    ) {
+      throw new Error(
+        'Cannot set runtimeConfig in both --config payload top-level and --config.request.'
+      );
+    }
+  }
+
+  const requestInput = {
+    ...requestPayload,
+    runtimeProfile: (
+      topLevelRuntimeConfig.runtimeProfile !== null
+      ? topLevelRuntimeConfig.runtimeProfile
+      : requestRuntimeConfig.runtimeProfile
+    ),
+    runtimeConfigUrl: (
+      topLevelRuntimeConfig.runtimeConfigUrl !== null
+      ? topLevelRuntimeConfig.runtimeConfigUrl
+      : requestRuntimeConfig.runtimeConfigUrl
+    ),
+    runtimeConfig: (
+      topLevelRuntimeConfig.runtimeConfig !== null
+      ? topLevelRuntimeConfig.runtimeConfig
+      : requestRuntimeConfig.runtimeConfig
+    ),
+  };
   return {
-    request: isPlainObject(configPayload.request) ? configPayload.request : configPayload,
+    request: requestInput,
     run: isPlainObject(configPayload.run) ? configPayload.run : {},
   };
 }
@@ -639,7 +764,7 @@ function applyRuntimeFlagOverride(requestInput, runtimeOverride) {
   );
   if (hasInlineRuntime) {
     throw new Error(
-      '--runtime-config cannot be combined with runtimeProfile/runtimeConfigUrl/runtimeConfig values inside --config request payload.'
+      '--runtime-config cannot be combined with runtimeProfile/runtimeConfigUrl/runtimeConfig values inside --config.'
     );
   }
   requestInput.runtimeProfile = runtimeOverride.runtimeProfile;
@@ -944,6 +1069,16 @@ function quoteOneLine(value) {
   if (!s) return '""';
   const clipped = s.length > 120 ? `${s.slice(0, 117)}...` : s;
   return JSON.stringify(clipped);
+}
+
+function quoteOneLineOrStructured(value) {
+  if (typeof value === 'string') return quoteOneLine(value);
+  if (value == null) return null;
+  try {
+    return quoteOneLine(JSON.stringify(value));
+  } catch {
+    return quoteOneLine(String(value));
+  }
 }
 
 function compactTimestamp() {
@@ -1376,6 +1511,13 @@ function printMetricsSummary(result) {
     printDeviceInfo(result);
     printGpuPhases(metrics);
     printMemoryReport(result);
+    const samplePrompt = quoteOneLineOrStructured(metrics.promptInput);
+    if (samplePrompt !== null) {
+      console.log(`[sample] prompt=${samplePrompt}`);
+    }
+    if (typeof metrics.generatedText === 'string' && metrics.generatedText.length > 0) {
+      console.log(`[sample] text=${quoteOneLine(metrics.generatedText)}`);
+    }
     return;
   }
 

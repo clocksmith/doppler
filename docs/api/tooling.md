@@ -94,6 +94,8 @@ Supported surfaces:
 CLI notes:
 - operator runs are workload-first; prefer `workloadPath` over ad hoc request fields
 - `--surface auto` for `lora` and `distill` does not downgrade to browser
+- `--config` accepts inline JSON, file path, or URL for all commands
+- `--runtime-config` supports inline JSON, file path, or URL for `verify`, `debug`, and `bench`
 - `lora` and `distill` reject `runtimeProfile`, `runtimeConfigUrl`, and `runtimeConfig` on the current Node operator surface
 - run-root artifacts live under `reports/training/<kind>/<workload-id>/<timestamp>/`
 - `run_contract.json` and `workload.lock.json` are written for every operator run

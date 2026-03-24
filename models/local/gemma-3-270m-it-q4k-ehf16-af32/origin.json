@@ -1,0 +1,8 @@
+{
+  "sourceModel": "google/gemma-3-270m-it",
+  "sourceRepo": "google/gemma-3-270m-it",
+  "sourceFormat": "safetensors",
+  "sourceRevision": "ac82b4e820549b854eebf28ce6dedaf9fdfa17b3",
+  "variant": "q4k-ehf16-af32",
+  "convertedAt": "2026-03-19T16:30:00.000Z"
+}

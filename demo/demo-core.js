@@ -191,11 +191,14 @@ const RUN_STARTER_PROMPTS = Object.freeze([
   'draft a GenUI spec for an investor reporting interface where every visualization component includes a provenance label tied to model + policy version and cannot render if provenance is missing',
 ]);
 const TRANSLATE_STARTER_PROMPTS = Object.freeze([
-  'Good software should fail loudly and explain why.',
-  'Never silently fall back when model capabilities are not supported.',
-  'Please translate this release note into clear, natural language.',
-  'On-device inference keeps sensitive data local to the machine.',
-  'A deterministic benchmark needs fixed prompts, seeds, and token budgets.',
+  Object.freeze({ lang: 'en', text: 'She told him to let the cat out of the bag, but he took it literally.' }),
+  Object.freeze({ lang: 'en', text: 'The deadline is tomorrow, so whatever you do, don\'t beat around the bush.' }),
+  Object.freeze({ lang: 'en', text: 'I would have gone if I had known, but nobody told me until it was too late.' }),
+  Object.freeze({ lang: 'en', text: 'Could you make it sound natural without losing the legal meaning?' }),
+  Object.freeze({ lang: 'es', text: 'No es lo mismo saber que algo puede fallar que aceptar que ya falló.' }),
+  Object.freeze({ lang: 'es', text: 'Me dijo que no se preocupara, pero su tono decía todo lo contrario.' }),
+  Object.freeze({ lang: 'es', text: 'Si hubiéramos salido a tiempo, no habríamos perdido el vuelo.' }),
+  Object.freeze({ lang: 'es', text: 'Ojalá pudiera explicarlo mejor, pero hay cosas que no tienen traducción directa.' }),
 ]);
 const TRANSLATE_LANGUAGE_OPTIONS = Object.freeze([
   Object.freeze({ code: 'ar_EG', name: 'Arabic (Egypt)' }),
@@ -330,95 +333,99 @@ const TRANSLATE_COMPARE_HISTORY_FILTERS = Object.freeze([
   Object.freeze({ id: 'proof', label: 'Proof layout' }),
 ]);
 const TRANSLATE_COMPARE_SMOKE_SAMPLES = Object.freeze([
+  // --- easy ---
   Object.freeze({
-    id: 'easy-release-note',
+    id: 'easy-directions',
     bucket: 'easy',
-    label: 'Release note',
+    label: 'Directions',
     sourceCode: 'en',
     targetCode: 'es',
-    text: 'The patch fixes a memory leak and reduces startup time on low-end laptops.',
-    note: 'Straightforward product language.',
+    text: 'Turn left at the pharmacy, walk two blocks, and the bakery is on your right.',
+    note: 'Simple spatial directions — tests basic imperative.',
   }),
   Object.freeze({
-    id: 'easy-travel',
+    id: 'easy-weather',
     bucket: 'easy',
-    label: 'Travel update',
-    sourceCode: 'en',
-    targetCode: 'es',
-    text: 'Our train leaves at seven, so please arrive at the station fifteen minutes early.',
-    note: 'Simple scheduling language.',
+    label: 'Weather',
+    sourceCode: 'es',
+    targetCode: 'en',
+    text: 'Mañana va a llover toda la tarde, así que lleva un paraguas por si acaso.',
+    note: 'Everyday weather advice — tests "por si acaso" idiom.',
   }),
   Object.freeze({
-    id: 'easy-support',
+    id: 'easy-restaurant',
     bucket: 'easy',
-    label: 'Support policy',
-    sourceCode: 'en',
-    targetCode: 'es',
-    text: 'If your order arrives damaged, send two photos and we will replace it within three business days.',
-    note: 'Operational support copy.',
+    label: 'Restaurant',
+    sourceCode: 'es',
+    targetCode: 'en',
+    text: 'La cuenta, por favor. Quisiéramos pagar por separado si es posible.',
+    note: 'Polite request — tests "quisiéramos" conditional courtesy.',
   }),
+  // --- nuanced ---
   Object.freeze({
-    id: 'nuanced-idiom',
+    id: 'nuanced-subjunctive',
     bucket: 'nuanced',
-    label: 'Idiom',
+    label: 'Subjunctive',
     sourceCode: 'en',
     targetCode: 'es',
-    text: 'We are not trying to boil the ocean; we just need the first release to stop surprising users.',
-    note: 'Idiom plus product nuance.',
+    text: 'I wish he had told me before I made the decision, but I doubt he would have changed anything.',
+    note: 'Past subjunctive chain — tests pluperfect subjunctive mapping.',
   }),
   Object.freeze({
-    id: 'nuanced-tone',
+    id: 'nuanced-ser-estar',
     bucket: 'nuanced',
-    label: 'Tone',
-    sourceCode: 'en',
-    targetCode: 'es',
-    text: 'The proposal is technically correct, but the timing makes it feel more reactive than deliberate.',
-    note: 'Subtle stance and tone.',
+    label: 'Ser vs estar',
+    sourceCode: 'es',
+    targetCode: 'en',
+    text: 'La puerta está abierta, pero la tienda no está abierta al público — es una propiedad privada.',
+    note: 'Ser/estar contrast collapsing to "is" in English.',
   }),
   Object.freeze({
-    id: 'nuanced-ambiguity',
+    id: 'nuanced-false-friend',
     bucket: 'nuanced',
-    label: 'Ambiguity',
+    label: 'False friends',
     sourceCode: 'en',
     targetCode: 'es',
-    text: 'Jordan told Alex that they should slow down before the review became hostile.',
-    note: 'Pronoun ambiguity under pressure.',
+    text: 'She was embarrassed when she realized the carpet in the library was actually quite sensible for the climate.',
+    note: 'Three false friends: embarrassed/embarazada, carpet/carpeta, sensible/sensible.',
   }),
+  // --- domain ---
   Object.freeze({
-    id: 'domain-runtime',
+    id: 'domain-legal',
     bucket: 'domain',
-    label: 'Runtime contract',
+    label: 'Legal clause',
     sourceCode: 'en',
     targetCode: 'es',
-    text: 'Fail closed when the manifest and runtime config disagree about the kernel path.',
-    note: 'Runtime-policy vocabulary.',
+    text: 'The licensor shall not be liable for consequential damages arising from unauthorized use of the software.',
+    note: 'Legal boilerplate — tests formal register and "shall" convention.',
   }),
   Object.freeze({
-    id: 'domain-privacy',
+    id: 'domain-medical',
     bucket: 'domain',
-    label: 'Privacy copy',
-    sourceCode: 'en',
-    targetCode: 'es',
-    text: 'On-device inference keeps customer messages on the machine instead of routing them through a hosted API.',
-    note: 'Privacy and deployment framing.',
+    label: 'Clinical note',
+    sourceCode: 'es',
+    targetCode: 'en',
+    text: 'El paciente refiere dolor abdominal de tres días de evolución, sin fiebre ni antecedentes quirúrgicos relevantes.',
+    note: 'Medical intake — tests clinical register and "refiere" as "reports."',
+  }),
+  // --- edge ---
+  Object.freeze({
+    id: 'edge-double-meaning',
+    bucket: 'edge',
+    label: 'Double meaning',
+    sourceCode: 'es',
+    targetCode: 'en',
+    text: 'No me extraña que te extrañe — siempre fuiste un poco extraño.',
+    note: 'Triple play on extrañar/extraño: surprise, miss, strange.',
   }),
   Object.freeze({
-    id: 'edge-awkward-register',
+    id: 'edge-register-shift',
     bucket: 'edge',
     label: 'Register shift',
     sourceCode: 'en',
     targetCode: 'es',
-    text: 'Could you make it less corporate but still safe enough for legal to sign off on?',
-    note: 'Casual tone mixed with formal constraint.',
-  }),
-  Object.freeze({
-    id: 'edge-double-negative',
-    bucket: 'edge',
-    label: 'Double negative',
-    sourceCode: 'en',
-    targetCode: 'es',
-    text: 'I am not saying the rollout did not help; I am saying it did not help enough yet.',
-    note: 'Negation and contrast.',
+    text: 'Look, I get that the contract says "shall indemnify," but can you just tell me in normal words who pays if something breaks?',
+    note: 'Casual/formal register collision — tests tú/usted choice under ambiguity.',
   }),
 ]);
 const TRANSLATE_COMPARE_EVIDENCE_FALLBACK = Object.freeze({
@@ -1700,6 +1707,7 @@ function syncTranslateCompareUI() {
   const enabled = isTranslateCompareEnabled();
   setHidden(compareShell, !enabled);
   setHidden(singleOutputBox, enabled);
+  setHidden($('translate-compare-banner'), !enabled);
   if (layoutSelect instanceof HTMLSelectElement) {
     layoutSelect.value = state.compareLayoutId || 'proof';
   }
@@ -2315,6 +2323,7 @@ function readDeepLinkStateFromLocation() {
       text: null,
       compareEnabled: false,
       compareLayoutId: 'proof',
+      modelId: null,
       lanes: null,
     };
   }
@@ -2336,6 +2345,12 @@ function readDeepLinkStateFromLocation() {
   const leftModelRaw = readDeepLinkValue(hashParams, queryParams, ['left_model', 'lm']);
   const rightModelRaw = readDeepLinkValue(hashParams, queryParams, ['right_model', 'rm']);
   const tokenPressRaw = readDeepLinkValue(hashParams, queryParams, ['tp', 'token_press', 'tokenpress']);
+  const temperatureRaw = readDeepLinkValue(hashParams, queryParams, ['temp', 'temperature']);
+  const topPRaw = readDeepLinkValue(hashParams, queryParams, ['top_p', 'topp']);
+  const topKRaw = readDeepLinkValue(hashParams, queryParams, ['top_k', 'topk']);
+  const maxTokensRaw = readDeepLinkValue(hashParams, queryParams, ['max_tokens', 'max', 'maxtokens']);
+  const resetKvRaw = readDeepLinkValue(hashParams, queryParams, ['reset_kv', 'resetkv']);
+  const modelIdRaw = readDeepLinkValue(hashParams, queryParams, ['model', 'model_id', 'mid']);
   const surface = normalizeSurface(surfaceRaw, 'demo');
 
   let task = normalizeTask(taskRaw, null);
@@ -2370,9 +2385,15 @@ function readDeepLinkStateFromLocation() {
     sourceCode,
     targetCode,
     text: textRaw == null ? null : decodeDeepLinkText(textRaw),
-    compareEnabled: compareRaw === '1' || compareRaw === 'true' || compareRaw === 'compare',
+    compareEnabled: false,
     compareLayoutId: resolveText(compareLayoutRaw, 'proof'),
     tokenPress: tokenPressRaw == null ? null : (tokenPressRaw === '0' || tokenPressRaw === 'false' ? false : true),
+    temperature: temperatureRaw == null ? null : Number(temperatureRaw),
+    topP: topPRaw == null ? null : Number(topPRaw),
+    topK: topKRaw == null ? null : Number(topKRaw),
+    maxTokens: maxTokensRaw == null ? null : Number(maxTokensRaw),
+    resetKv: resetKvRaw == null ? null : (resetKvRaw === '0' || resetKvRaw === 'false' ? false : true),
+    modelId: resolveText(modelIdRaw, null),
     lanes: {
       left: {
         engine: resolveText(leftEngineRaw, ''),
@@ -2412,9 +2433,39 @@ function applyDeepLinkStateToUI(deepLinkState) {
     const tpToggle = $('run-token-press-toggle');
     if (tpToggle) tpToggle.checked = deepLinkState.tokenPress;
   }
+  if (Number.isFinite(deepLinkState?.temperature)) {
+    const el = $('temperature-input');
+    if (el) el.value = String(deepLinkState.temperature);
+  }
+  if (Number.isFinite(deepLinkState?.topP)) {
+    const el = $('top-p-input');
+    if (el) el.value = String(deepLinkState.topP);
+  }
+  if (Number.isFinite(deepLinkState?.topK)) {
+    const el = $('top-k-input');
+    if (el) el.value = String(deepLinkState.topK);
+  }
+  if (Number.isFinite(deepLinkState?.maxTokens)) {
+    const el = $('max-tokens-input');
+    if (el) el.value = String(deepLinkState.maxTokens);
+  }
+  if (deepLinkState?.resetKv != null) {
+    const el = $('run-reset-kv-toggle');
+    if (el) el.checked = deepLinkState.resetKv;
+  }
+  if (deepLinkState?.modelId) {
+    const dlMode = normalizeDeepLinkMode(deepLinkState?.mode, 'run');
+    state.modeModelId[dlMode] = deepLinkState.modelId;
+    state.activeModelId = deepLinkState.modelId;
+    const modeSelect = getModelSelectForMode(dlMode);
+    if (modeSelect) {
+      const hasOption = Array.from(modeSelect.options).some((o) => o.value === deepLinkState.modelId);
+      if (hasOption) modeSelect.value = deepLinkState.modelId;
+    }
+  }
 
   ensureTranslateCompareRuntimeState();
-  state.compareEnabled = deepLinkState?.compareEnabled === true;
+  state.compareEnabled = false;
   state.compareLayoutId = resolveText(deepLinkState?.compareLayoutId, state.compareLayoutId || 'proof');
   for (const laneId of getCompareLaneIds()) {
     const laneState = deepLinkState?.lanes?.[laneId] || {};
@@ -2447,6 +2498,23 @@ function buildDeepLinkHash(modeOverride = null, taskOverride = null) {
   if (mode !== 'run') {
     params.set('mode', mode);
   }
+
+  const tempVal = readOptionalNumber($('temperature-input'));
+  const topPVal = readOptionalNumber($('top-p-input'));
+  const topKVal = readOptionalNumber($('top-k-input'), { integer: true });
+  const maxTokVal = readOptionalNumber($('max-tokens-input'), { integer: true });
+  const resetKvEl = $('run-reset-kv-toggle');
+  if (Number.isFinite(tempVal)) params.set('temp', String(tempVal));
+  if (Number.isFinite(topPVal)) params.set('top_p', String(topPVal));
+  if (Number.isFinite(topKVal)) params.set('top_k', String(topKVal));
+  if (Number.isFinite(maxTokVal)) params.set('max_tokens', String(maxTokVal));
+  if (resetKvEl && !resetKvEl.checked) params.set('reset_kv', '0');
+  const tpEl = $('run-token-press-toggle');
+  if (tpEl && !tpEl.checked) params.set('tp', '0');
+
+  const modeModelSelect = getModelSelectForMode(mode);
+  const selectedModelId = modeModelSelect?.value || '';
+  if (selectedModelId) params.set('model', selectedModelId);
 
   if (mode === 'translate') {
     const promptEl = $('run-prompt');
@@ -2496,7 +2564,7 @@ function buildTranslateDeepLinkUrl() {
 }
 
 function setTranslateCompareEnabled(enabled) {
-  state.compareEnabled = enabled === true;
+  state.compareEnabled = false;
   syncTranslateCompareUI();
   syncDeepLinkFromUI();
 }
@@ -2513,7 +2581,11 @@ async function copyTranslateCompareShareLink() {
 
 function getRunStarterPromptPool() {
   if (state.uiMode === 'translate') {
-    return TRANSLATE_STARTER_PROMPTS;
+    const srcCode = normalizeTranslateLanguageCode($('translate-source-language')?.value, DEFAULT_TRANSLATE_SOURCE);
+    const srcLang = srcCode.split('_')[0];
+    const filtered = TRANSLATE_STARTER_PROMPTS.filter((p) => p.lang === srcLang);
+    const pool = filtered.length > 0 ? filtered : TRANSLATE_STARTER_PROMPTS;
+    return pool.map((p) => p.text);
   }
   return RUN_STARTER_PROMPTS;
 }
@@ -3174,6 +3246,7 @@ function ensurePrimaryModeControlStack() {
 function syncRunModeUI(mode) {
   const isEmbeddingMode = mode === 'embedding';
   const isTranslateMode = mode === 'translate';
+  const tokenPressToggle = $('run-token-press-toggle');
   setText(
     $('run-panel-title'),
     isEmbeddingMode ? 'Embeddings' : (isTranslateMode ? 'Translation' : 'Text Generation')
@@ -3192,12 +3265,18 @@ function syncRunModeUI(mode) {
         ? 'Enter text to translate...'
         : 'Ask a question or provide a prompt...');
     if (isTranslateMode && isStarterExampleInput(prompt)) {
-      applyStarterPrompt(prompt, TRANSLATE_STARTER_PROMPTS, { force: true });
+      applyStarterPrompt(prompt, getRunStarterPromptPool(), { force: true });
     }
   }
   setHidden($('run-sampling-controls'), isEmbeddingMode);
   setHidden($('run-embedding-docs'), !isEmbeddingMode);
   setHidden($('translate-controls'), !isTranslateMode);
+  if (tokenPressToggle) {
+    tokenPressToggle.disabled = isEmbeddingMode || isTranslateMode;
+    if (tokenPressToggle.disabled && state.runGenerating !== true) {
+      teardownTokenPressUI();
+    }
+  }
   if (isEmbeddingMode) {
     refreshEmbeddingDemoDocuments();
   }
@@ -3217,11 +3296,26 @@ async function setUiTask(task, modeHint = null) {
   await setUiMode(targetMode, { task: resolvedTask });
 }
 
+function syncDiagnosticsSubTab(subMode) {
+  const isExecution = subMode === 'execution';
+  setHidden($('diagnostics-run-content'), isExecution);
+  setHidden($('diagnostics-execution-content'), !isExecution);
+  document.querySelectorAll('.diagnostics-mode-tab').forEach((b) => {
+    b.classList.toggle('is-active', b.dataset.diagnosticsMode === subMode);
+  });
+  if (isExecution) {
+    selectKernelPathBuilderModel($('diagnostics-model')?.value || null);
+    renderKernelPathBuilderView();
+  }
+}
+
 async function setUiMode(mode, options = {}) {
   const app = $('app');
   if (!app) return;
   const surface = normalizeSurface(state.surface, 'demo');
-  const resolvedMode = resolveModeForSurface(mode, surface);
+  // Redirect transforms → diagnostics with execution sub-tab
+  const isTransformsRedirect = mode === 'transforms';
+  const resolvedMode = resolveModeForSurface(isTransformsRedirect ? 'diagnostics' : mode, surface);
   const modeTask = getTaskForMode(resolvedMode, options?.task || state.uiTask || 'run');
   const resolvedTask = resolveTaskForSurface(
     modeTask,
@@ -3244,6 +3338,9 @@ async function setUiMode(mode, options = {}) {
   updateRunStatus('Idle');
   syncRunModeUI(resolvedMode);
   syncDiagnosticsModeUI(resolvedMode);
+  if (resolvedMode === 'diagnostics') {
+    syncDiagnosticsSubTab(isTransformsRedirect ? 'execution' : 'diagnostics');
+  }
   if (resolvedMode === 'models') {
     refreshStorageInspector({
       onSelectModel: selectDiagnosticsModel,
@@ -4056,6 +4153,21 @@ function updateRunStatus(message) {
   setText(status, message || 'Idle');
 }
 
+function updateRuntimeNotice() {
+  const el = $('runtime-notice');
+  if (!el) return;
+  const tp = $('run-token-press-toggle')?.checked;
+  const prof = isXrayProfilingNeeded();
+  if (tp && prof) {
+    el.textContent = 'Token Press + Xray profiling active. Decode, kernel, GPU, KV, exec, and memory panels update; batching stays unavailable.';
+  } else if (tp) {
+    el.textContent = 'Token Press active. Generation runs token-by-token; Xray batching stats are unavailable by design.';
+  } else if (prof) {
+    el.textContent = 'Xray profiling active — GPU timing queries add dispatch overhead.';
+  }
+  el.hidden = !tp && !prof;
+}
+
 function updateDiffusionStatus(message) {
   const status = $('diffusion-output-status');
   if (!status) return;
@@ -4675,7 +4787,7 @@ function applyStarterPrompt(inputEl, pool, options = {}) {
 }
 
 function prefillDemoTextInputs() {
-  applyStarterPrompt($('run-prompt'), RUN_STARTER_PROMPTS);
+  applyStarterPrompt($('run-prompt'), getRunStarterPromptPool());
   applyStarterPrompt($('diffusion-prompt'), DIFFUSION_STARTER_PROMPTS);
   applyStarterPrompt($('diffusion-negative'), DIFFUSION_NEGATIVE_STARTER_PROMPTS);
 }
@@ -4858,7 +4970,7 @@ async function loadPipelineFromStorage(modelId) {
 // Callers set their own loading flag before calling and clear it in their own finally.
 async function ensurePipeline(modelId, overlayTitle, modeKey) {
   if (!modelId) throw new Error('Select a model before generating');
-  if (state.activePipeline && state.activeModelId === modelId) return state.activePipeline;
+  if (state.activePipeline && state.activePipelineModelId === modelId) return state.activePipeline;
   if (state.activePipeline) await unloadActivePipeline();
   showProgressOverlay(overlayTitle, modelId);
   try {
@@ -5046,9 +5158,6 @@ async function handleRunGenerate() {
         generationInput = `Translate the following from ${sourceCode} to ${targetCode}. Output only the translation, no explanation.\n\n${prompt}`;
       }
     }
-    if (resetContextEachRun) {
-      pipeline.reset?.();
-    }
   } catch (error) {
     updateRunStatus(`Error: ${error.message}`);
     return;
@@ -5060,6 +5169,7 @@ async function handleRunGenerate() {
   setRunGenerating(true);
   updateRunStatus(isEmbeddingMode ? 'Embedding...' : (isTranslateMode ? 'Translating...' : 'Generating...'));
   if (outputEl) outputEl.textContent = '';
+  if (isXrayEnabled()) resetXray();
 
   const options = buildRunGenerateOptions();
   const isEmbeddingModel = modelType === 'embedding';
@@ -5134,8 +5244,8 @@ async function handleRunGenerate() {
       updateRunStatus('Complete');
     } else if ($('run-token-press-toggle')?.checked && !isTranslateMode) {
       // Token Press mode — step-by-step generation with confidence visualization
-      if (tokenPressSession) { tokenPressSession.dispose(); tokenPressSession = null; }
-      if (tokenPress) { tokenPress.dispose(); tokenPress = null; }
+      teardownTokenPressUI();
+      if (resetContextEachRun) pipeline.reset?.();
 
       const controlsEl = $('tp-controls');
       if (controlsEl) {
@@ -5180,8 +5290,12 @@ async function handleRunGenerate() {
         tokensGenerated: 0,
       };
       state.lastMemoryStats = pipeline?.getMemoryStats?.() ?? state.lastMemoryStats;
-      updateMemoryPanel(captureMemorySnapshot());
-      updatePerformancePanel(captureMemorySnapshot());
+      {
+        const snapshot = captureMemorySnapshot();
+        updateMemoryPanel(snapshot);
+        updatePerformancePanel(snapshot);
+        if (isXrayEnabled()) updateXrayPanels(pipeline);
+      }
 
       if (prefillIds && prefillIds.length > 0 && outputEl) {
         const decode = (ids) => {
@@ -5221,9 +5335,9 @@ async function handleRunGenerate() {
             ...(state.lastMetrics || {}),
             liveTokensPerSec,
           };
-          // Update stats progressively so all panels stay live
+          const pipelineStats = pipeline?.getStats?.() ?? null;
           state.lastInferenceStats = {
-            ...(state.lastInferenceStats || {}),
+            ...(pipelineStats || state.lastInferenceStats || {}),
             prefillTimeMs,
             prefillTokens,
             ttftMs: tpFirstTokenAt ? tpFirstTokenAt - decodeStart : prefillTimeMs,
@@ -5236,6 +5350,7 @@ async function handleRunGenerate() {
           const snapshot = captureMemorySnapshot();
           updateMemoryPanel(snapshot);
           updatePerformancePanel(snapshot);
+          if (isXrayEnabled()) updateXrayPanels(pipeline);
           requestAnimationFrame(check);
         };
         check();
@@ -5243,6 +5358,8 @@ async function handleRunGenerate() {
       tokenCount = tokenPressSession?.tokenCount ?? 0;
       updateRunStatus(controller.signal.aborted ? 'Stopped' : 'Complete');
     } else {
+      teardownTokenPressUI();
+      if (resetContextEachRun) pipeline.reset?.();
       for await (const token of pipeline.generate(generationInput, {
         ...options,
         signal: controller.signal,
@@ -5266,8 +5383,20 @@ async function handleRunGenerate() {
             ...(state.lastMetrics || {}),
             liveTokensPerSec,
           };
+          const pipelineStats = pipeline?.getStats?.() ?? null;
+          state.lastInferenceStats = {
+            ...(pipelineStats || state.lastInferenceStats || {}),
+            decodeTimeMs: elapsedDecode,
+            decodeTokens: tokenCount,
+            tokensGenerated: tokenCount,
+          };
         }
         if (outputEl) outputEl.textContent = output;
+        state.lastMemoryStats = pipeline?.getMemoryStats?.() ?? state.lastMemoryStats;
+        const snapshot = captureMemorySnapshot();
+        updateMemoryPanel(snapshot);
+        updatePerformancePanel(snapshot);
+        if (isXrayEnabled()) updateXrayPanels(pipeline);
       }
       updateRunStatus(controller.signal.aborted ? 'Stopped' : 'Complete');
     }
@@ -5311,6 +5440,15 @@ function stopRunGeneration() {
   }
 }
 
+function teardownTokenPressUI() {
+  if (tokenPressSession) { tokenPressSession.dispose(); tokenPressSession = null; }
+  if (tokenPress) { tokenPress.dispose(); tokenPress = null; }
+  const tpControls = $('tp-controls');
+  if (tpControls) { tpControls.hidden = true; tpControls.innerHTML = ''; }
+  const runOutput = $('run-output');
+  if (runOutput) runOutput.classList.remove('tp-container');
+}
+
 function handleRunClear() {
   const promptEl = $('run-prompt');
   const outputEl = $('run-output');
@@ -5319,12 +5457,7 @@ function handleRunClear() {
     setStarterExampleInput(promptEl, false);
   }
   if (outputEl) outputEl.textContent = '';
-  if (tokenPressSession) { tokenPressSession.dispose(); tokenPressSession = null; }
-  if (tokenPress) { tokenPress.dispose(); tokenPress = null; }
-  const tpControls = $('tp-controls');
-  if (tpControls) { tpControls.hidden = true; tpControls.innerHTML = ''; }
-  const runOutput = $('run-output');
-  if (runOutput) runOutput.classList.remove('tp-container');
+  teardownTokenPressUI();
   for (const laneId of getCompareLaneIds()) {
     clearCompareLaneResult(laneId);
     renderTranslateCompareLane(laneId);
@@ -6058,7 +6191,7 @@ function bindUI() {
   const diagnosticsRun = $('diagnostics-run-btn');
   const diagnosticsVerify = $('diagnostics-verify-btn');
   const diagnosticsExport = $('diagnostics-export-btn');
-  const kernelBuilderModelSelect = $('kernel-builder-model-select');
+  // kernel-builder-model-select removed — shared diagnostics-model selector drives both
   const kernelBuilderRefresh = $('kernel-builder-refresh-btn');
   const kernelBuilderUseReport = $('kernel-builder-use-report-btn');
   const kernelBuilderReportFile = $('kernel-builder-report-file');
@@ -6185,6 +6318,13 @@ function bindUI() {
   translateSwapBtn?.addEventListener('click', () => {
     swapTranslateLanguages();
     syncTranslateDirection();
+  });
+  $('run-token-press-toggle')?.addEventListener('change', (event) => {
+    if (event?.target?.checked !== true) {
+      teardownTokenPressUI();
+    }
+    updateRuntimeNotice();
+    syncDeepLinkFromUI();
   });
   translateViewSingleBtn?.addEventListener('click', () => setTranslateCompareEnabled(false));
   translateViewCompareBtn?.addEventListener('click', () => setTranslateCompareEnabled(true));
@@ -6358,6 +6498,7 @@ function bindUI() {
 
   diagnosticsModelSelect?.addEventListener('change', () => {
     selectDiagnosticsModel(diagnosticsModelSelect.value || null);
+    selectKernelPathBuilderModel(diagnosticsModelSelect.value || null);
   });
 
   const runModelSelect = $('run-model-select');
@@ -6368,6 +6509,7 @@ function bindUI() {
       state.modeModelId[state.uiMode] = modelId;
     }
     updateDiagnosticsGuidance();
+    syncDeepLinkFromUI();
   });
 
   const translateModelSelect = $('translate-model-select');
@@ -6376,6 +6518,7 @@ function bindUI() {
     state.activeModelId = modelId;
     state.modeModelId.translate = modelId;
     updateDiagnosticsGuidance();
+    syncDeepLinkFromUI();
   });
 
   const diffusionModelSelect = $('diffusion-model-select');
@@ -6384,6 +6527,7 @@ function bindUI() {
     state.activeModelId = modelId;
     state.modeModelId.diffusion = modelId;
     updateDiagnosticsGuidance();
+    syncDeepLinkFromUI();
   });
 
   diagnosticsProfile?.addEventListener('change', () => {
@@ -6428,9 +6572,13 @@ function bindUI() {
   diagnosticsRun?.addEventListener('click', () => handleDiagnosticsRun('run'));
   diagnosticsVerify?.addEventListener('click', () => handleDiagnosticsRun('verify'));
   diagnosticsExport?.addEventListener('click', exportDiagnosticsReport);
-  kernelBuilderModelSelect?.addEventListener('change', () => {
-    selectKernelPathBuilderModel(kernelBuilderModelSelect.value || null);
+  // Diagnostics sub-tab switching (Inference / Kernels / Execution)
+  document.querySelectorAll('.diagnostics-mode-tab').forEach((button) => {
+    button.addEventListener('click', () => {
+      syncDiagnosticsSubTab(button.dataset.diagnosticsMode || 'diagnostics');
+    });
   });
+
   kernelBuilderRefresh?.addEventListener('click', () => {
     loadKernelPathBuilderIndex({ force: true }).catch((error) => {
       log.warn('DopplerDemo', `Kernel-path builder refresh failed: ${error.message}`);
@@ -6551,10 +6699,11 @@ function bindUI() {
     handleInferencePulseReset();
   });
 
-  temperatureInput?.addEventListener('input', updateRunAutoLabels);
-  topPInput?.addEventListener('input', updateRunAutoLabels);
-  topKInput?.addEventListener('input', updateRunAutoLabels);
-  maxTokensInput?.addEventListener('input', updateRunAutoLabels);
+  temperatureInput?.addEventListener('input', () => { updateRunAutoLabels(); syncDeepLinkFromUI(); });
+  topPInput?.addEventListener('input', () => { updateRunAutoLabels(); syncDeepLinkFromUI(); });
+  topKInput?.addEventListener('input', () => { updateRunAutoLabels(); syncDeepLinkFromUI(); });
+  maxTokensInput?.addEventListener('input', () => { updateRunAutoLabels(); syncDeepLinkFromUI(); });
+  $('run-reset-kv-toggle')?.addEventListener('change', () => syncDeepLinkFromUI());
   diffusionPrompt?.addEventListener('input', updateDiffusionCharCounters);
   diffusionNegative?.addEventListener('input', updateDiffusionCharCounters);
 
@@ -6673,6 +6822,7 @@ export async function initDemo() {
     }
     state.uiTask = resolveTaskForSurface(getTaskForMode(state.uiMode, state.uiTask || 'run'), state.surface, state.uiMode);
     applyDeepLinkStateToUI(deepLinkState);
+    updateRuntimeNotice();
     prefillDemoTextInputs();
     updateDiffusionCharCounters();
     configureDownloadCallbacks({
@@ -6682,7 +6832,7 @@ export async function initDemo() {
       onStateChange: handleDownloadStateChangeEvent,
     });
     populateRuntimeProfileSelects();
-    initXray();
+    initXray({ onChange: updateRuntimeNotice });
     setStatusIndicator('Initializing...', 'info');
     console.log('[Bootstrap] Initializing... running startup tasks: quick model catalog fetch, WebGPU capability init, and download-state refresh.');
 
@@ -6700,6 +6850,9 @@ export async function initDemo() {
     await setUiMode(state.uiMode, { task: state.uiTask });
     bindUI();
     applyDeepLinkStateToUI(deepLinkState);
+    if (state.uiMode === 'translate' && isStarterExampleInput($('run-prompt'))) {
+      applyStarterPrompt($('run-prompt'), getRunStarterPromptPool(), { force: true });
+    }
     await applyTranslateCompareLayout(state.compareLayoutId || 'proof', { preserveExisting: true });
     syncTranslateCompareUI();
     updateMemoryControls();

@@ -1,0 +1,108 @@
+{
+  "id": "model/qwen3-5-layer3-boundary-probe",
+  "name": "qwen3-5-layer3-boundary-probe",
+  "description": "Capture full-attention boundary checkpoints around layer 3 to isolate Q/K norm and partial RoPE behavior.",
+  "intent": "investigate",
+  "stability": "canonical",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-03-23T00:00:00Z",
+  "extends": "profiles/verbose-trace",
+  "runtime": {
+    "inference": {
+      "prompt": "What color is the sky on a clear day?",
+      "batching": {
+        "maxTokens": 1
+      },
+      "sampling": {
+        "temperature": 0
+      }
+    },
+    "shared": {
+      "debug": {
+        "trace": {
+          "enabled": true,
+          "categories": ["attn", "ffn", "logits"],
+          "layers": [3],
+          "maxDecodeSteps": 1
+        },
+        "probes": [
+          {
+            "id": "embed",
+            "stage": "embed_out",
+            "tokens": [-1],
+            "dims": [0, 1, 2, 3, 60, 61, 62, 63]
+          },
+          {
+            "id": "post_input_norm",
+            "stage": "post_input_norm",
+            "layers": [3],
+            "tokens": [-1],
+            "dims": [0, 1, 2, 3, 60, 61, 62, 63]
+          },
+          {
+            "id": "q_proj",
+            "stage": "q_proj",
+            "layers": [3],
+            "tokens": [-1],
+            "dims": [0, 1, 2, 3, 60, 61, 62, 63]
+          },
+          {
+            "id": "k_proj",
+            "stage": "k_proj",
+            "layers": [3],
+            "tokens": [-1],
+            "dims": [0, 1, 2, 3, 60, 61, 62, 63]
+          },
+          {
+            "id": "q_norm",
+            "stage": "q_norm",
+            "layers": [3],
+            "tokens": [-1],
+            "dims": [0, 1, 2, 3, 60, 61, 62, 63]
+          },
+          {
+            "id": "k_norm",
+            "stage": "k_norm",
+            "layers": [3],
+            "tokens": [-1],
+            "dims": [0, 1, 2, 3, 60, 61, 62, 63]
+          },
+          {
+            "id": "q_rope",
+            "stage": "q_rope",
+            "layers": [3],
+            "tokens": [-1],
+            "dims": [0, 1, 2, 3, 60, 61, 62, 63]
+          },
+          {
+            "id": "k_rope",
+            "stage": "k_rope",
+            "layers": [3],
+            "tokens": [-1],
+            "dims": [0, 1, 2, 3, 60, 61, 62, 63]
+          },
+          {
+            "id": "attn_out",
+            "stage": "attn_out",
+            "layers": [3],
+            "tokens": [-1],
+            "dims": [0, 1, 2, 3]
+          },
+          {
+            "id": "layer3",
+            "stage": "layer_out",
+            "layers": [3],
+            "tokens": [-1],
+            "dims": [0, 1, 2, 3]
+          },
+          {
+            "id": "logits",
+            "stage": "logits_final",
+            "tokens": [-1],
+            "dims": [271, 0, 1, 2, 3, 496, 138]
+          }
+        ]
+      }
+    }
+  }
+}

@@ -27,6 +27,8 @@ const STAGE_DEFAULT_CATEGORY = {
   q_proj: 'attn',
   k_proj: 'attn',
   v_proj: 'attn',
+  q_norm: 'attn',
+  k_norm: 'attn',
   q_rope: 'attn',
   k_rope: 'attn',
   attn_scores: 'attn',

@@ -30,6 +30,12 @@ so it can override user values for fields the command contract owns (harness
 mode, model ID, intent). This is intentional — the contract patch ensures
 harnessed runs have consistent metadata regardless of what the user passes.
 
+CLI flag inputs:
+
+- `--config` accepts inline JSON, a file path, or URL for all commands.
+- `--runtime-config` is supported by harnessed commands (`bench`, `debug`, `verify`)
+  and accepts the same input shapes (`JSON`, `path`, `URL`).
+
 See `src/tooling/command-runner-shared.js:applyRuntimeInputs()` for the
 merge implementation.
 
@@ -103,6 +109,12 @@ node src/cli/doppler-cli.js debug \
   --config '{"request":{"modelId":"gemma-3-270m-it-q4k-ehf16-af32"},"run":{"surface":"auto"}}' \
   --runtime-config '{"inference":{"kernelPath":"gemma3-q4k-dequant-f32a-online"}}' \
   --json
+```
+
+Load a request from a URL:
+
+```bash
+node src/cli/doppler-cli.js verify --config https://example.org/doppler/verify-gemma.json --json
 ```
 
 ## Change checklist
