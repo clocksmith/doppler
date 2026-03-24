@@ -774,6 +774,7 @@ async function runBenchSuite(options = {}) {
     const singleTokenOrchestrationMs = [];
 
     let generatedText = null;
+    let generatedPromptInput = null;
     let lastDecodeMode = null;
     let lastBatchGuardReason = null;
     for (let i = 0; i < warmupRuns + timedRuns; i++) {
@@ -781,6 +782,7 @@ async function runBenchSuite(options = {}) {
       const run = await runGeneration(harness.pipeline, runtimeConfig, benchRun);
       if (i === warmupRuns + timedRuns - 1) {
         generatedText = run?.output ?? null;
+        generatedPromptInput = run?.promptInput ?? null;
         lastDecodeMode = run?.phase?.decodeMode ?? null;
         lastBatchGuardReason = run?.phase?.batchGuardReason ?? null;
       }
@@ -898,6 +900,7 @@ async function runBenchSuite(options = {}) {
       decodeMode: lastDecodeMode,
       batchGuardReason: lastBatchGuardReason,
       generatedText,
+      promptInput: generatedPromptInput,
     };
 
     timing = buildCanonicalTiming({

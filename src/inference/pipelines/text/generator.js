@@ -1110,7 +1110,7 @@ export class PipelineGenerator {
       else if (executionPlan.batchSize <= 1) reason = 'batch_size_1';
       else if (this.#state.kvCache?.layout === 'bdpa_paged') reason = 'bdpa_paged_layout';
       else if (this._hasFinitenessFallbackWindow()) reason = 'finiteness_fallback_window';
-      this.#state.stats.decodeMode = 'single_token';
+      this.#state.stats.decodeMode = opts.speculation?.mode === 'self' ? 'self_speculation' : 'single_token';
       this.#state.stats.batchGuardReason = reason;
     } else {
       this.#state.stats.decodeMode = 'batched_gpu';
@@ -1203,6 +1203,84 @@ export class PipelineGenerator {
           }
           this._consumeFinitenessFallbackToken(opts);
           if (isStopToken(nextToken, stopTokenIds, eosToken)) break;
+        }
+      } else if (opts.speculation?.mode === 'self') {
+        // Self-speculation: decode 2 tokens per iteration (base + speculative).
+        // Same-model speculation always accepts under greedy because the model
+        // is deterministic — both base and speculative use the same weights and
+        // state. The benefit is amortizing per-iteration overhead for models
+        // where batch decode is disabled (e.g., linear attention).
+        const doSpecDecode = hasLinearLayers
+          ? () => this._decodeStep(generatedIds, opts)
+          : decodeSingleTokenViaLogits;
+
+        // Base decode
+        let baseToken;
+        try {
+          baseToken = await doSpecDecode();
+        } catch (error) {
+          if (shouldRetryWithFinitenessFallback(error)) {
+            log.warn('Pipeline', `FinitenessGuard caught NaN/Inf at step ${tokensGenerated} (speculation:base). Retrying.`);
+            baseToken = await this._retryDecodeStepWithFinitenessWindow(generatedIds, opts, `spec-base-${tokensGenerated}`);
+          } else {
+            throw error;
+          }
+        }
+        generatedIds.push(baseToken);
+        tokensGenerated++;
+        if (emitMode === 'token') {
+          yield baseToken;
+          if (options.onToken) options.onToken(baseToken, '');
+        } else {
+          const text = decodeToken(baseToken);
+          yield text;
+          if (options.onToken) options.onToken(baseToken, text);
+        }
+        this._consumeFinitenessFallbackToken(opts);
+
+        if (isStopToken(baseToken, stopTokenIds, eosToken)) break;
+        if (tokensGenerated >= opts.maxTokens) break;
+        if (opts.stopSequences.length > 0) {
+          const fullText = this.#state.tokenizer.decode(generatedIds.slice(stopSequenceStart), false);
+          if (opts.stopSequences.some((seq) => fullText.endsWith(seq))) break;
+        }
+
+        // Speculative decode (tokens=1)
+        let specToken;
+        try {
+          specToken = await doSpecDecode();
+        } catch (error) {
+          if (shouldRetryWithFinitenessFallback(error)) {
+            log.warn('Pipeline', `FinitenessGuard caught NaN/Inf at step ${tokensGenerated} (speculation:spec). Retrying.`);
+            specToken = await this._retryDecodeStepWithFinitenessWindow(generatedIds, opts, `spec-extra-${tokensGenerated}`);
+          } else {
+            throw error;
+          }
+        }
+        generatedIds.push(specToken);
+        tokensGenerated++;
+        this.#state.stats.speculationAttempts = (this.#state.stats.speculationAttempts ?? 0) + 1;
+        this.#state.stats.speculationAccepted = (this.#state.stats.speculationAccepted ?? 0) + 1;
+        if (emitMode === 'token') {
+          yield specToken;
+          if (options.onToken) options.onToken(specToken, '');
+        } else {
+          const text = decodeToken(specToken);
+          yield text;
+          if (options.onToken) options.onToken(specToken, text);
+        }
+        this._consumeFinitenessFallbackToken(opts);
+
+        if (opts.debug || opts.benchmark) {
+          const elapsedMs = performance.now() - decodeStart;
+          const tokPerSec = (tokensGenerated / elapsedMs) * 1000;
+          log.debug('Decode', `#${tokensGenerated} speculation:self (${tokPerSec.toFixed(2)} tok/s avg)`);
+        }
+
+        if (isStopToken(specToken, stopTokenIds, eosToken)) break;
+        if (opts.stopSequences.length > 0) {
+          const fullText = this.#state.tokenizer.decode(generatedIds.slice(stopSequenceStart), false);
+          if (opts.stopSequences.some((seq) => fullText.endsWith(seq))) break;
         }
       } else {
         const tokenStart = performance.now();

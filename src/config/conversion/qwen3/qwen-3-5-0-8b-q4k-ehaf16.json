@@ -124,6 +124,13 @@
       "ringStop": 1,
       "ringStaging": 1,
       "disableCommandBatching": false
+    },
+    "speculation": {
+      "mode": "self",
+      "tokens": 1,
+      "verify": "greedy",
+      "threshold": null,
+      "rollbackOnReject": true
     }
   },
   "execution": {

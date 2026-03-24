@@ -19,6 +19,7 @@ export const DEFAULT_EXECUTION_V1_SESSION_DEFAULTS = {
   },
   kvcache: null,
   decodeLoop: null,
+  speculation: null,
 };
 
 export const DEFAULT_EXECUTION_V1_POLICIES = {

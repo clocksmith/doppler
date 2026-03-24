@@ -91,12 +91,21 @@ export interface ExecutionV1DecodeLoopSchema {
   disableCommandBatching?: boolean;
 }
 
+export interface ExecutionV1SelfSpeculationSchema {
+  mode: 'none' | 'self' | 'draft' | 'medusa';
+  tokens: number;
+  verify: 'greedy';
+  threshold: number | null;
+  rollbackOnReject: boolean;
+}
+
 export interface ExecutionV1SessionDefaultsSchema {
   compute: {
     defaults: ExecutionV1ComputeDefaultsSchema;
   };
   kvcache: Partial<KVCacheConfigSchema> | null;
   decodeLoop: ExecutionV1DecodeLoopSchema | null;
+  speculation: ExecutionV1SelfSpeculationSchema | null;
 }
 
 // === Policies ===

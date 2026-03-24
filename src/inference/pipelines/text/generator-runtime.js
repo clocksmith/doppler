@@ -204,6 +204,20 @@ export function resolveGenerateOptions(state, options = {}) {
     stopCheckMode: executionPlan.stopCheckMode,
     executionPlan,
     images: options.images ?? null,
+    speculation: resolveSpeculationConfig(state, options),
+  };
+}
+
+function resolveSpeculationConfig(state, options) {
+  const sessionSpeculation = state.runtimeConfig?.inference?.session?.speculation ?? null;
+  const callSpeculation = options.speculation ?? null;
+  if (!sessionSpeculation && !callSpeculation) return null;
+  return {
+    mode: callSpeculation?.mode ?? sessionSpeculation?.mode ?? 'none',
+    tokens: callSpeculation?.tokens ?? sessionSpeculation?.tokens ?? 1,
+    verify: callSpeculation?.verify ?? sessionSpeculation?.verify ?? 'greedy',
+    threshold: callSpeculation?.threshold ?? sessionSpeculation?.threshold ?? null,
+    rollbackOnReject: callSpeculation?.rollbackOnReject ?? sessionSpeculation?.rollbackOnReject ?? true,
   };
 }
 

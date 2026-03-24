@@ -476,6 +476,16 @@ export {
 } from './speculative.schema.js';
 
 // =============================================================================
+// Self-Speculation Schema
+// =============================================================================
+export {
+  SPECULATION_MODES,
+  SPECULATION_VERIFY_MODES,
+  DEFAULT_SELF_SPECULATION_CONFIG,
+  validateSelfSpeculationConfig,
+} from './speculation-self.schema.js';
+
+// =============================================================================
 // Doppler Master Config
 // =============================================================================
 export {
