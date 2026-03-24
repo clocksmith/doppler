@@ -1,15 +1,15 @@
-# @simulatte/doppler
+# doppler-gpu
 
 Inference and training on raw WebGPU. Pure JS + WGSL.
 
-**[Try the live demo](https://d4da.com)** | **[npm](https://www.npmjs.com/package/@simulatte/doppler)** | **[docs](https://github.com/clocksmith/doppler/blob/main/docs/INDEX.md)**
+**[Try the live demo](https://d4da.com)** | **[npm](https://www.npmjs.com/package/doppler-gpu)** | **[docs](https://github.com/clocksmith/doppler/blob/main/docs/INDEX.md)**
 
 ![Phase-latency comparison on one workload across models](https://raw.githubusercontent.com/clocksmith/doppler/main/benchmarks/vendors/results/compare_1b_multi-workload_favorable_phases.svg)
 
 ## Quick start
 
 ```js
-import { doppler } from '@simulatte/doppler';
+import { doppler } from 'doppler-gpu';
 
 // Stream tokens
 const model = await doppler.load('gemma3-270m');

@@ -38,7 +38,7 @@ import {
   isWebGPUAvailable,
   captureMemorySnapshot,
   destroyBufferPool,
-} from '@simulatte/doppler';
+} from 'doppler-gpu';
 import { DiagnosticsController } from './diagnostics-controller.js';
 import { state } from './ui/state.js';
 import { $, setText, setHidden } from './ui/dom.js';

@@ -12,7 +12,7 @@ import {
   loadModel,
   generate,
   DopplerProvider,
-} from '@simulatte/doppler/provider';
+} from 'doppler-gpu/provider';
 ```
 
 ## Audience
@@ -88,7 +88,7 @@ Public, but advanced and legacy-leaning compared with the root facade.
 ## Minimal Example
 
 ```js
-import { initDoppler, loadModel, generate } from '@simulatte/doppler/provider';
+import { initDoppler, loadModel, generate } from 'doppler-gpu/provider';
 
 await initDoppler();
 await loadModel('gemma-3-270m-it-q4k-ehf16-af32');
@@ -107,7 +107,7 @@ import {
   dopplerChat,
   loadLoRAAdapter,
   unloadLoRAAdapter,
-} from '@simulatte/doppler/provider';
+} from 'doppler-gpu/provider';
 
 await initDoppler();
 await loadModel('gemma-3-270m-it-q4k-ehf16-af32');

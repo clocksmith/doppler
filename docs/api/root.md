@@ -7,7 +7,7 @@ Primary application-facing API for loading models and generating text with the `
 ## Import Path
 
 ```js
-import { doppler } from '@simulatte/doppler';
+import { doppler } from 'doppler-gpu';
 ```
 
 ## Audience
@@ -106,7 +106,7 @@ Returns canonical quick-start `modelId` values known to the root facade.
 ## Minimal Example
 
 ```js
-import { doppler } from '@simulatte/doppler';
+import { doppler } from 'doppler-gpu';
 
 const model = await doppler.load('gemma3-270m');
 
@@ -118,7 +118,7 @@ for await (const token of model.generate('Describe WebGPU briefly')) {
 ## Advanced Example
 
 ```js
-import { doppler } from '@simulatte/doppler';
+import { doppler } from 'doppler-gpu';
 
 const model = await doppler.load('gemma3-270m', {
   onProgress: ({ message }) => console.log(`[doppler] ${message}`),
@@ -138,7 +138,7 @@ Use the `advanced` handle when you need logits-backed instrumentation instead of
 the standard generation surface.
 
 ```js
-import { doppler } from '@simulatte/doppler';
+import { doppler } from 'doppler-gpu';
 
 const model = await doppler.load('gemma3-270m');
 

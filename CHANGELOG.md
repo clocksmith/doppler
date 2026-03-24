@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to `@simulatte/doppler` are documented in this file.
+All notable changes to `doppler-gpu` are documented in this file.
 
 This changelog is package-facing and release-oriented. Entries before `0.1.7`
 were retrofitted from package version history, release commits, and release

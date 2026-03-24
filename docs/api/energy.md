@@ -7,7 +7,7 @@ Public energy-pipeline surface for energy-specific pipeline creation and Quintel
 ## Import Path
 
 ```js
-import { createEnergyPipeline, computeQuintelEnergy } from '@simulatte/doppler/energy';
+import { createEnergyPipeline, computeQuintelEnergy } from 'doppler-gpu/energy';
 ```
 
 ## Audience
@@ -42,7 +42,7 @@ Public, but advanced and specialized.
 ## Minimal Example
 
 ```js
-import { createEnergyPipeline } from '@simulatte/doppler/energy';
+import { createEnergyPipeline } from 'doppler-gpu/energy';
 
 const pipeline = await createEnergyPipeline(manifest, contexts);
 ```
@@ -53,7 +53,7 @@ const pipeline = await createEnergyPipeline(manifest, contexts);
 import {
   createEnergyPipeline,
   computeQuintelEnergy,
-} from '@simulatte/doppler/energy';
+} from 'doppler-gpu/energy';
 
 const pipeline = await createEnergyPipeline(manifest, contexts);
 const score = computeQuintelEnergy(config, activations);

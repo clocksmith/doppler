@@ -12,7 +12,7 @@ import {
   ensureCommandSupportedOnSurface,
   runBrowserCommand,
   runNodeCommand,
-} from '@simulatte/doppler/tooling';
+} from 'doppler-gpu/tooling';
 ```
 
 ## Audience
@@ -66,7 +66,7 @@ Important surface rules:
 - `runNodeCommand(...)` is the canonical operator execution path for `lora` and `distill`
 - current Node operator surfaces reject `runtimeProfile`, `runtimeConfigUrl`, and `runtimeConfig` because those runtime inputs are not consumed by `lora`/`distill`
 - `configChain` is a harness/browser-URL runtime input, not part of the normalized tooling command request contract
-- browser-conditioned imports of `@simulatte/doppler/tooling` resolve the browser-safe shared tooling entry and do not expose `runNodeCommand(...)` or `runBrowserCommandInNode(...)`
+- browser-conditioned imports of `doppler-gpu/tooling` resolve the browser-safe shared tooling entry and do not expose `runNodeCommand(...)` or `runBrowserCommandInNode(...)`
 
 ## Command Contract Summary
 
@@ -145,7 +145,7 @@ CLI notes:
 ## Minimal Example
 
 ```js
-import { normalizeToolingCommandRequest, runBrowserCommand } from '@simulatte/doppler/tooling';
+import { normalizeToolingCommandRequest, runBrowserCommand } from 'doppler-gpu/tooling';
 
 const request = normalizeToolingCommandRequest({
   command: 'verify',
@@ -176,7 +176,7 @@ const embeddingDebug = normalizeToolingCommandRequest({
 ## Advanced Example
 
 ```js
-import { normalizeToolingCommandRequest, runNodeCommand } from '@simulatte/doppler/tooling';
+import { normalizeToolingCommandRequest, runNodeCommand } from 'doppler-gpu/tooling';
 
 const request = normalizeToolingCommandRequest({
   command: 'distill',

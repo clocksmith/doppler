@@ -1,4 +1,4 @@
-import { log } from '@simulatte/doppler';
+import { log } from 'doppler-gpu';
 
 import './demo-utils.js';
 import './demo-routing.js';

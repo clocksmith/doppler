@@ -10,7 +10,7 @@ Public diffusion/image pipeline surface for consumers working with diffusion man
 import {
   createDiffusionPipeline,
   computeImageRegressionMetrics,
-} from '@simulatte/doppler/diffusion';
+} from 'doppler-gpu/diffusion';
 ```
 
 ## Audience
@@ -60,7 +60,7 @@ Public, but advanced and narrower than the text root surface.
 ## Minimal Example
 
 ```js
-import { createDiffusionPipeline } from '@simulatte/doppler/diffusion';
+import { createDiffusionPipeline } from 'doppler-gpu/diffusion';
 
 const pipeline = await createDiffusionPipeline(manifest, contexts);
 ```
@@ -71,7 +71,7 @@ const pipeline = await createDiffusionPipeline(manifest, contexts);
 import {
   createDiffusionPipeline,
   computeImageRegressionMetrics,
-} from '@simulatte/doppler/diffusion';
+} from 'doppler-gpu/diffusion';
 
 const pipeline = await createDiffusionPipeline(manifest, contexts);
 const metrics = computeImageRegressionMetrics(actualImageData, expectedImageData);

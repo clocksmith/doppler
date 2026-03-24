@@ -2,12 +2,12 @@
 
 ## Purpose
 
-Reference for advanced symbols exported from `@simulatte/doppler` in addition to the primary `doppler` facade.
+Reference for advanced symbols exported from `doppler-gpu` in addition to the primary `doppler` facade.
 
 ## Import Path
 
 ```js
-import { createPipeline, DopplerLoader, KVCache } from '@simulatte/doppler';
+import { createPipeline, DopplerLoader, KVCache } from 'doppler-gpu';
 ```
 
 ## Audience
@@ -85,7 +85,7 @@ These map more naturally to the [Generation API](generation.md), but are still e
 ### Tooling compatibility re-exports
 
 The root package still re-exports the shared tooling surface for backward compatibility.
-Tooling-only consumers should prefer [`@simulatte/doppler/tooling`](tooling.md).
+Tooling-only consumers should prefer [`doppler-gpu/tooling`](tooling.md).
 
 ## Code Pointers
 

@@ -1,6 +1,6 @@
 # API Docs
 
-Canonical public API documentation for `@simulatte/doppler`.
+Canonical public API documentation for `doppler-gpu`.
 
 Use this section for package surfaces that are intentionally exported and meant to be consumed directly.
 The generated export inventory lives under [reference/exports.md](reference/exports.md).
@@ -9,20 +9,20 @@ The generated export inventory lives under [reference/exports.md](reference/expo
 
 ### Primary app-facing surface
 
-- [Root API](root.md) - `@simulatte/doppler`
+- [Root API](root.md) - `doppler-gpu`
 
 ### Advanced public surfaces
 
 - [Advanced Root Exports](advanced-root-exports.md) - root-level loaders, pipelines, adapters, and compatibility re-exports
-- [Provider API](provider.md) - `@simulatte/doppler/provider`
-- [Generation API](generation.md) - `@simulatte/doppler/generation`
-- [Diffusion API](diffusion.md) - `@simulatte/doppler/diffusion`
-- [Energy API](energy.md) - `@simulatte/doppler/energy`
-- [Tooling API](tooling.md) - `@simulatte/doppler/tooling`, including the shared `convert|debug|bench|verify|lora|distill` command contract
+- [Provider API](provider.md) - `doppler-gpu/provider`
+- [Generation API](generation.md) - `doppler-gpu/generation`
+- [Diffusion API](diffusion.md) - `doppler-gpu/diffusion`
+- [Energy API](energy.md) - `doppler-gpu/energy`
+- [Tooling API](tooling.md) - `doppler-gpu/tooling`, including the shared `convert|debug|bench|verify|lora|distill` command contract
 
 ### Exposed but not primary doc targets
 
-- `@simulatte/doppler/internal`
+- `doppler-gpu/internal`
 
 This surface is reachable through the package export map, but it is not the primary stability story for application developers.
 Use it only when you deliberately want lower-level or internal source access.
@@ -56,17 +56,17 @@ Generated reference pages provide:
 
 ### Stable and preferred
 
-- `@simulatte/doppler`
+- `doppler-gpu`
 
 ### Public but advanced
 
 - root-level advanced exports documented in [advanced-root-exports.md](advanced-root-exports.md)
-- `@simulatte/doppler/provider`
-- `@simulatte/doppler/generation`
-- `@simulatte/doppler/diffusion`
-- `@simulatte/doppler/energy`
-- `@simulatte/doppler/tooling`
+- `doppler-gpu/provider`
+- `doppler-gpu/generation`
+- `doppler-gpu/diffusion`
+- `doppler-gpu/energy`
+- `doppler-gpu/tooling`
 
 ### Publicly reachable but not recommended as the main contract
 
-- `@simulatte/doppler/internal`
+- `doppler-gpu/internal`

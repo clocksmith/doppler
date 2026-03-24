@@ -4,7 +4,7 @@ import {
   TOOLING_VERIFY_WORKLOADS,
   applyRuntimeProfile,
   runBrowserCommand,
-} from '@simulatte/doppler';
+} from 'doppler-gpu';
 
 const ALLOWED_INTENTS = new Set(TOOLING_INTENTS);
 const SUPPORTED_VERIFY_WORKLOADS = new Set(TOOLING_VERIFY_WORKLOADS);

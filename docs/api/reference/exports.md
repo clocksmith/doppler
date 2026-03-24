@@ -3,7 +3,7 @@
 Auto-generated from `package.json` exports and shipped `.d.ts` entrypoints.
 This is a reference inventory, not the behavior guide. Manual API guides live one level up in `docs/api/`.
 
-## `@simulatte/doppler`
+## `doppler-gpu`
 
 - Audience: app authors
 - Stability: preferred public
@@ -91,7 +91,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `Tokenizer`
   - `validateAdapterManifest`
 
-## `@simulatte/doppler/provider`
+## `doppler-gpu/provider`
 
 - Audience: advanced/demo integrations
 - Stability: public advanced
@@ -134,7 +134,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `unloadLoRAAdapter`
   - `unloadModel`
 
-## `@simulatte/doppler/tooling`
+## `doppler-gpu/tooling`
 
 - Audience: tool builders
 - Stability: public advanced
@@ -153,7 +153,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `runBrowserCommandInNode`
   - `runNodeCommand`
 
-## `@simulatte/doppler/internal`
+## `doppler-gpu/internal`
 
 - Audience: internal/advanced
 - Stability: exposed internal
@@ -163,7 +163,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 - Exported symbols:
   - `*`
 
-## `@simulatte/doppler/generation`
+## `doppler-gpu/generation`
 
 - Audience: advanced runtime consumers
 - Stability: public advanced
@@ -199,7 +199,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `SamplingOptions`
   - `StructuredJsonHeadPipeline`
 
-## `@simulatte/doppler/diffusion`
+## `doppler-gpu/diffusion`
 
 - Audience: advanced diffusion consumers
 - Stability: public advanced
@@ -217,7 +217,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `initializeDiffusion`
   - `mergeDiffusionConfig`
 
-## `@simulatte/doppler/energy`
+## `doppler-gpu/energy`
 
 - Audience: advanced energy consumers
 - Stability: public advanced

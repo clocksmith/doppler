@@ -151,8 +151,8 @@ async function buildReferenceMarkdown() {
       notes: 'No manual classification recorded for this export path.',
     };
     const importPath = entry.exportPath === '.'
-      ? '@simulatte/doppler'
-      : `@simulatte/doppler/${entry.exportPath.replace(/^\.\//, '')}`;
+      ? 'doppler-gpu'
+      : `doppler-gpu/${entry.exportPath.replace(/^\.\//, '')}`;
     let symbols = [];
     if (entry.typesFile) {
       const absTypesPath = path.join(REPO_ROOT, relativeFromRepo(entry.typesFile));

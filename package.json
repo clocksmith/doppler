@@ -1,5 +1,5 @@
 {
-  "name": "@simulatte/doppler",
+  "name": "doppler-gpu",
   "version": "0.2.0",
   "description": "Browser-native WebGPU inference engine for local intent and inference loops",
   "main": "src/index.js",

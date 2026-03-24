@@ -9,7 +9,7 @@ import {
   saveTokenizerModel,
   saveAuxFile,
   writeShard,
-} from '@simulatte/doppler';
+} from 'doppler-gpu';
 
 const AUX_IMPORT_FILENAMES = Object.freeze([
   'config.json',

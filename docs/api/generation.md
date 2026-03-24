@@ -7,7 +7,7 @@ Lower-level text pipeline construction and utilities for consumers who need dire
 ## Import Path
 
 ```js
-import { createPipeline, InferencePipeline } from '@simulatte/doppler/generation';
+import { createPipeline, InferencePipeline } from 'doppler-gpu/generation';
 ```
 
 ## Audience
@@ -58,7 +58,7 @@ Public, but advanced. Prefer the root facade unless you need direct pipeline con
 ## Minimal Example
 
 ```js
-import { createPipeline } from '@simulatte/doppler/generation';
+import { createPipeline } from 'doppler-gpu/generation';
 
 const pipeline = await createPipeline(manifest, contexts);
 const text = await pipeline.generateText('Hello');
@@ -72,7 +72,7 @@ import {
   createPipeline,
   parseModelConfigFromManifest,
   initTokenizerFromManifest,
-} from '@simulatte/doppler/generation';
+} from 'doppler-gpu/generation';
 
 const parsed = parseModelConfigFromManifest(manifest);
 const tokenizer = await initTokenizerFromManifest(manifest, parsed);

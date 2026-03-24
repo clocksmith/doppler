@@ -987,7 +987,7 @@ import {
   loadModel,
   generate,
   dopplerChat,
-} from '@simulatte/doppler/provider';
+} from 'doppler-gpu/provider';
 
 // Initialize
 await initDoppler();
