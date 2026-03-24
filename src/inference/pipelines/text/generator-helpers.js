@@ -4,7 +4,7 @@ import { allowReadback } from '../../../gpu/perf-guards.js';
 import { log } from '../../../debug/index.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { decodeReadback } from './debug-utils/index.js';
-import { isWeightBuffer, isCpuWeightBuffer } from '../../../gpu/weight-buffer.js';
+import { isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance } from '../../../gpu/weight-buffer.js';
 import { resolveRangeAwareSelectiveWideningConfig } from './finiteness-policy.js';
 import { resolveActiveExecutionPlan } from './execution-plan.js';
 
@@ -148,10 +148,10 @@ export function getWeightBufferConfig(state) {
 export function getLogitsWeights(state) {
   const finalNorm = state.weights.get('final_norm');
   const lmHead = state.weights.get('lm_head');
-  if (!finalNorm || !(finalNorm instanceof GPUBuffer || finalNorm instanceof Float32Array)) {
+  if (!finalNorm || !(isGpuBufferInstance(finalNorm) || finalNorm instanceof Float32Array)) {
     throw new Error('Final norm not found or invalid type');
   }
-  if (!lmHead || !(lmHead instanceof GPUBuffer || lmHead instanceof Float32Array || isWeightBuffer(lmHead) || isCpuWeightBuffer(lmHead))) {
+  if (!lmHead || !(isGpuBufferInstance(lmHead) || lmHead instanceof Float32Array || isWeightBuffer(lmHead) || isCpuWeightBuffer(lmHead))) {
     throw new Error('LM head not found or invalid type');
   }
   return { finalNorm, lmHead };

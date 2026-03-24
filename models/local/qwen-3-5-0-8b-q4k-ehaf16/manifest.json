@@ -2,13 +2,14 @@
   "version": 1,
   "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
   "modelType": "transformer",
-  "quantization": "F16",
+  "quantization": "Q4_K_M",
   "quantizationInfo": {
-    "weights": "f16",
+    "weights": "q4k",
     "embeddings": "f16",
     "vision": "f16",
-    "compute": "f16",
-    "variantTag": "f16"
+    "compute": "f32",
+    "layout": "row",
+    "variantTag": "q4k-ehaf16"
   },
   "architecture": {
     "numLayers": 24,
@@ -129,7 +130,7 @@
         "kvDtype": "f16"
       },
       "decodeLoop": {
-        "batchSize": 4,
+        "batchSize": 8,
         "stopCheckMode": "batch",
         "readbackInterval": 1,
         "ringTokens": 1,
@@ -146,7 +147,7 @@
       }
     },
     "execution": {
-      "inlineKernelPath": true,
+      "inlineKernelPath": false,
       "kernels": {
         "embed": {
           "kernel": "gather_f16.wgsl",
@@ -158,10 +159,10 @@
           "entry": "main",
           "digest": "sha256:f516b3e4bde2015f2a207c3ca5b8c9820c7809fa8f8d0786f90c568e0f1ac077"
         },
-        "gemv": {
-          "kernel": "matmul_gemv_subgroup.wgsl",
-          "entry": "main_vec4",
-          "digest": "sha256:3cee3bed453b40c5564a751d2a917649e10ad52f5268e77cbfecfcee34780457"
+        "q4_decode": {
+          "kernel": "fused_matmul_q4.wgsl",
+          "entry": "main_multicol",
+          "digest": "sha256:c0262226752914e863e8b5dc34479b523f9c93e2cef69c9057dcbde2b82854ef"
         },
         "rope": {
           "kernel": "rope.wgsl",
@@ -185,6 +186,11 @@
           "constants": {
             "HAS_GATE": true
           }
+        },
+        "q4_prefill": {
+          "kernel": "fused_matmul_q4_batched.wgsl",
+          "entry": "main_batched",
+          "digest": "sha256:a513e4170792aaf2f1c22b73f34288721541acf5954756993a0001a412c91209"
         },
         "tiled": {
           "kernel": "matmul_f16w_f32a.wgsl",
@@ -225,17 +231,17 @@
         ],
         [
           "q_proj",
-          "gemv",
+          "q4_decode",
           "layer.{L}.self_attn.q_proj"
         ],
         [
           "k_proj",
-          "gemv",
+          "q4_decode",
           "layer.{L}.self_attn.k_proj"
         ],
         [
           "v_proj",
-          "gemv",
+          "q4_decode",
           "layer.{L}.self_attn.v_proj"
         ],
         [
@@ -252,7 +258,7 @@
         ],
         [
           "o_proj",
-          "gemv",
+          "q4_decode",
           "layer.{L}.self_attn.o_proj"
         ],
         [
@@ -265,12 +271,12 @@
         ],
         [
           "gate_proj",
-          "gemv",
+          "q4_decode",
           "layer.{L}.mlp.gate_proj"
         ],
         [
           "up_proj",
-          "gemv",
+          "q4_decode",
           "layer.{L}.mlp.up_proj"
         ],
         [
@@ -279,7 +285,7 @@
         ],
         [
           "down_proj",
-          "gemv",
+          "q4_decode",
           "layer.{L}.mlp.down_proj"
         ],
         [
@@ -294,17 +300,17 @@
         ],
         [
           "q_proj",
-          "tiled",
+          "q4_prefill",
           "layer.{L}.self_attn.q_proj"
         ],
         [
           "k_proj",
-          "tiled",
+          "q4_prefill",
           "layer.{L}.self_attn.k_proj"
         ],
         [
           "v_proj",
-          "tiled",
+          "q4_prefill",
           "layer.{L}.self_attn.v_proj"
         ],
         [
@@ -321,7 +327,7 @@
         ],
         [
           "o_proj",
-          "tiled",
+          "q4_prefill",
           "layer.{L}.self_attn.o_proj"
         ],
         [
@@ -334,12 +340,12 @@
         ],
         [
           "gate_proj",
-          "tiled",
+          "q4_prefill",
           "layer.{L}.mlp.gate_proj"
         ],
         [
           "up_proj",
-          "tiled",
+          "q4_prefill",
           "layer.{L}.mlp.up_proj"
         ],
         [
@@ -348,7 +354,7 @@
         ],
         [
           "down_proj",
-          "tiled",
+          "q4_prefill",
           "layer.{L}.mlp.down_proj"
         ],
         [
@@ -6416,7 +6422,10 @@
   },
   "totalSize": 1003016384,
   "hashAlgorithm": "blake3",
-  "eos_token_id": 248044,
+  "eos_token_id": [
+    248046,
+    248069
+  ],
   "config": {
     "vision_config": {
       "deepstack_visual_indexes": [],

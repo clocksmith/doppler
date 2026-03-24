@@ -73,8 +73,11 @@ Use this order for inference failures that load successfully but generate bad ou
 
 Reference workflow: `docs/debug-playbook.md`
 Reusable report template: `docs/debug-investigation-template.md`
+Canonical protocol source: `docs/agents/debug-protocol.md`
 
 ## Conversion Completion Discipline
+
+See also: `docs/agents/conversion-protocol.md`
 
 Do not report conversion success unless all of these are true:
 - process exited successfully

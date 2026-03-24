@@ -38,5 +38,8 @@ export declare function buildLayerPipelineFromExecution(
   | null;
 
 export declare function buildSessionRuntimePatch(
-  sessionDefaults: Record<string, unknown> | null | undefined
+  sessionDefaults: Record<string, unknown> | null | undefined,
+  options?: {
+    includeDecodeLoop?: boolean;
+  }
 ): Record<string, unknown>;

@@ -8,12 +8,11 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { mergeRuntimeValues } from '../src/config/runtime-merge.js';
+import { DEFAULT_EXTERNAL_MODELS_ROOT } from '../src/tooling/hf-registry-utils.js';
 
 const execFileAsync = promisify(execFile);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DOPPLER_ROOT = path.resolve(__dirname, '..');
-const DEFAULT_EXTERNAL_MODELS_ROOT = process.env.DOPPLER_EXTERNAL_MODELS_ROOT
-  || (fsSync.existsSync('/Volumes/models') ? '/Volumes/models' : '/media/x/models');
 const MODEL_INDEX_PATH = path.join(DEFAULT_EXTERNAL_MODELS_ROOT, 'MODEL_INDEX.json');
 const WORKLOADS_PATH = path.join(DOPPLER_ROOT, 'benchmarks', 'vendors', 'workloads.json');
 const WORKLOADS_SCHEMA_PATH = path.join(

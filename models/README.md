@@ -1,46 +1,42 @@
 # Model Catalog
 
-## Storage Tiers
+## Storage
 
-Model artifacts live across three tiers with clear ownership.
+### Repo `models/local/` (source of truth)
 
-### 1. Repo `models/local/` (source of truth for manifests)
+Path: `models/local/<model-id>/`
 
-Path: `models/local/<model-id>/manifest.json`
+This is the canonical location for model metadata. Git tracks everything except shards:
 
-This is the canonical location for model manifests and provenance metadata. These small JSON files are tracked in git and define the correctness contract for each model. Tests validate against these manifests. Publication to Hugging Face reads manifests from here.
-
-Contents per model directory:
 - `manifest.json` — full RDRR manifest (inference config, execution graph, architecture, tensor layout)
 - `origin.json` — conversion provenance (source repo, revision, format, timestamp)
+- `tokenizer.json` / `tokenizer.model` — tokenizer assets
 
-Weight shards and tokenizer files are NOT stored here (too large for git).
+Shards (`shard_*.bin`) may also be present on disk (copied from the external volume or HF). They are gitignored.
 
-### 2. External volume (shard container)
+### External volume (complete copies)
 
 Path: `$DOPPLER_EXTERNAL_MODELS_ROOT/rdrr/<model-id>/`
-Env: `DOPPLER_EXTERNAL_MODELS_ROOT` (auto-detected; `/Volumes/models` on macOS, `/media/x/models` on Linux)
+Env: `DOPPLER_EXTERNAL_MODELS_ROOT` (auto-detected; `/Volumes/models` or `/Volumes/models2` on macOS, `/media/x/models` on Linux)
 
-This is a shard container for heavy binary files. It holds `shard_*.bin`, `tokenizer.json`, and may have copies of `manifest.json` and `origin.json` from conversion output — but these are NOT the source of truth. The `models/local/` manifests take precedence.
-
-The publish tool assembles uploads from `models/local/` manifests + external drive shards.
+The external volume holds complete model directories: manifests, tokenizers, and shards. When manifests or metadata are updated, `models/local/` is the source of truth and the external volume should be synced from it.
 
 Supporting directories:
 - `huggingface_cache/` — HF Hub cache for source checkpoints (SafeTensors/GGUF)
 
-### 3. Hugging Face (hosted artifacts for browser/demo)
+### Hugging Face (hosted artifacts)
 
 Repo: `Clocksmith/rdrr`
 Path: `models/<model-id>` within the repo
 
-Only the verified, promotion-ready subset is published here. The remote registry is rebuilt from the approved hosted set on each publish. See [registry-workflow.md](../docs/registry-workflow.md).
+The verified, promotion-ready subset is published here. See [registry-workflow.md](../docs/registry-workflow.md).
 
 ### Workflow
 
-1. Convert model → output lands on external drive (shards + manifest + origin)
-2. Copy `manifest.json` and `origin.json` to `models/local/<model-id>/`
+1. Convert model → output lands on external drive (shards + manifest + origin + tokenizer)
+2. Copy non-shard files to `models/local/<model-id>/`
 3. Run tests against `models/local/` manifests
-4. Publish: tool reads manifest from `models/local/`, shards from external drive, assembles and uploads
+4. Publish: tool reads from `models/local/` + external drive shards, assembles and uploads
 
 ## `catalog.json` Schema
 

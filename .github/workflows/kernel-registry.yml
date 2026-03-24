@@ -38,3 +38,6 @@ jobs:
 
       - name: Run kernel registry checks
         run: npm run kernels:check
+
+      - name: Verify kernel ref digests
+        run: npm run digests:check

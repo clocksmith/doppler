@@ -4,8 +4,12 @@ import { log } from '../debug/index.js';
 
 const bufferDtypes = new WeakMap();
 
+export function isGpuBufferInstance(value) {
+  return typeof GPUBuffer !== 'undefined' && value instanceof GPUBuffer;
+}
+
 function canTrackBuffer(buffer) {
-  return typeof GPUBuffer !== 'undefined' && buffer instanceof GPUBuffer;
+  return isGpuBufferInstance(buffer);
 }
 
 function normalizeDtype(dtype) {

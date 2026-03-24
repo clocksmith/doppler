@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-import { existsSync } from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -12,11 +11,10 @@ import {
 } from '../tooling/command-api.js';
 import { createToolingErrorEnvelope } from '../tooling/command-envelope.js';
 import { buildHfResolveBaseUrl } from '../utils/hf-resolve-url.js';
+import { DEFAULT_EXTERNAL_MODELS_ROOT } from '../tooling/hf-registry-utils.js';
 
 const NODE_WEBGPU_INCOMPLETE_MESSAGE = 'node command: WebGPU runtime is incomplete in Node';
 const CLI_POLICY_PATH = fileURLToPath(new URL('./config/doppler-cli-policy.json', import.meta.url));
-const DEFAULT_EXTERNAL_MODELS_ROOT = process.env.DOPPLER_EXTERNAL_MODELS_ROOT
-  || (existsSync('/Volumes/models') ? '/Volumes/models' : '/media/x/models');
 const DEFAULT_EXTERNAL_RDRR_ROOT = path.join(DEFAULT_EXTERNAL_MODELS_ROOT, 'rdrr');
 const DEFAULT_CLI_POLICY = {
   defaults: {

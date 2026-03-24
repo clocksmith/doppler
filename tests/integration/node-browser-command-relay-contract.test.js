@@ -43,6 +43,32 @@ const KERNELS_REQUEST = {
   assert.deepEqual(response.request, KERNELS_REQUEST);
 }
 
+{
+  const sourceRequest = {
+    ...KERNELS_REQUEST,
+    modelId: 'toy-model',
+    modelUrl: 'https://example.com/model/',
+  };
+  const effectiveRequest = {
+    ...sourceRequest,
+    loadMode: 'opfs',
+  };
+  const response = finalizeBrowserRelayResponse({
+    ok: true,
+    schemaVersion: 1,
+    surface: 'browser',
+    request: {
+      ...effectiveRequest,
+    },
+    result: {
+      passed: 1,
+      failed: 0,
+    },
+  }, effectiveRequest);
+  assert.equal(response.request.loadMode, 'opfs');
+  assert.equal(response.request.modelUrl, sourceRequest.modelUrl);
+}
+
 await assert.rejects(
   () => runBrowserCommandInNode({ ...KERNELS_REQUEST, keepPipeline: true }),
   /browser command relay does not support keepPipeline=true/

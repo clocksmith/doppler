@@ -1,6 +1,6 @@
 
 
-import { getDevice, getKernelCapabilities } from '../../gpu/device.js';
+import { getDevice, getKernelCapabilities, getPlatformConfig } from '../../gpu/device.js';
 import { acquireBuffer, releaseBuffer, readBuffer } from '../../memory/buffer-pool.js';
 import { dequantize, dequantizeRowwise, dequantizeQ6K, castF16ToF32, runBF16ToF16 } from '../../gpu/kernel-selector.js';
 import { createTensor } from '../../gpu/tensor.js';
@@ -225,16 +225,10 @@ export async function loadQ4KDequant(shardData, location, name, config) {
     const runQ4KDequantParity = loaderDebug?.runQ4KDequantParity === true;
     const paritySamples = loaderDebug?.q4kDequantParitySamples ?? 256;
 
-    const is2DMatrix = Array.isArray(location.shape) && location.shape.length === 2;
-    const K = is2DMatrix ? location.shape[1] : 0;
-    const needsRowwise = is2DMatrix && K > 0 && K % QK_K !== 0;
-    const layout = getWeightLayout(location, config);
+    const q4kCpuReferenceContext = getQ4KCpuReferenceContext(shardData, location, config);
+    const { needsRowwise, layout, K } = q4kCpuReferenceContext;
     const preferCpuDequant = loaderDebug?.preferCpuDequant === true;
-    const canUseCpuReference = !forceGpuDequant && preferCpuDequant && (
-      outputDtype === 'f32'
-      && !isGpuBufferInstance(shardData)
-      && (!needsRowwise || layout === 'row')
-    );
+    const canUseCpuReference = !forceGpuDequant && preferCpuDequant && q4kCpuReferenceContext.eligible;
 
     if (canUseCpuReference && failOnCpuDequantPath) {
       throw new Error(
@@ -362,6 +356,24 @@ export async function loadQ4KDequant(shardData, location, name, config) {
   } finally {
     releaseOwnedGpuBuffer(quantBuffer, ownsQuantBuffer);
   }
+}
+
+function getQ4KCpuReferenceContext(shardData, location, config) {
+  const outputDtype = getQ4KOutputDtype(location, config);
+  const is2DMatrix = Array.isArray(location.shape) && location.shape.length === 2;
+  const K = is2DMatrix ? location.shape[1] : 0;
+  const needsRowwise = is2DMatrix && K > 0 && K % QK_K !== 0;
+  const layout = getWeightLayout(location, config);
+  const eligible = outputDtype === 'f32'
+    && !isGpuBufferInstance(shardData)
+    && (!needsRowwise || layout === 'row');
+  return {
+    eligible,
+    outputDtype,
+    needsRowwise,
+    layout,
+    K,
+  };
 }
 
 
@@ -577,6 +589,18 @@ const GPU_LOADER_DISPATCH = {
     }
     return loadQ4KDequant(shardData, location, name, config);
   },
+  q4k_dequant_reference: (shardData, location, name, config) => loadQ4KDequant(
+    shardData,
+    location,
+    name,
+    {
+      ...config,
+      loaderDebug: {
+        ...(config?.loaderDebug ?? {}),
+        preferCpuDequant: true,
+      },
+    }
+  ),
   q6k: (shardData, location, name, _config) => loadQ6K(shardData, location, name),
   bf16: (shardData, location, name, config) => loadBF16(shardData, location, name, config),
   float: (shardData, location, name, config) => loadFloat(shardData, location, name, config),
@@ -585,7 +609,17 @@ const GPU_LOADER_DISPATCH = {
 export async function loadTensorToGPU(shardData, location, name, config) {
   const dtype = location.dtype;
   const useFusedQ4K = shouldUseFusedQ4K(location, config);
-  const loaderPath = selectRuleValue('loader', 'tensorLoader', 'gpuLoaderPath', { dtype, useFusedQ4K });
+  const caps = config?.gpuCapabilities || getKernelCapabilities();
+  const platformId = getPlatformConfig()?.platform?.id ?? null;
+  const q4kReferenceContext = getQ4KCpuReferenceContext(shardData, location, config);
+  const q4kBasicBackendClass = platformId === 'basic'
+    || (caps?.hasSubgroups !== true && caps?.hasF16 !== true);
+  const loaderPath = selectRuleValue('loader', 'tensorLoader', 'gpuLoaderPath', {
+    dtype,
+    useFusedQ4K,
+    q4kCpuReferenceEligible: q4kReferenceContext.eligible,
+    q4kBasicBackendClass,
+  });
   const loader = GPU_LOADER_DISPATCH[loaderPath];
   if (!loader) {
     throw new Error(`Unknown GPU loader path: "${loaderPath}" for dtype "${dtype}"`);

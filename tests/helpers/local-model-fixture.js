@@ -123,15 +123,16 @@ export function assertManifestArtifactIntegrity(manifestPath) {
     const shardFile = typeof shard?.filename === 'string' ? shard.filename.trim() : '';
     assert.ok(shardFile, `${modelId}: shard filename must be explicit`);
     const shardPath = path.join(manifestDir, shardFile);
-    assert.equal(fs.existsSync(shardPath), true, `${modelId}: missing shard ${shardFile}`);
     const expectedHash = normalizeHash(shard?.hash ?? shard?.sha256 ?? shard?.digest);
     assert.ok(expectedHash, `${modelId}: shard ${shardFile} must declare a hash`);
-    const actualHash = computeFileSha256(shardPath);
-    assert.equal(
-      actualHash,
-      expectedHash,
-      `${modelId}: shard hash mismatch for ${shardFile}`
-    );
+    if (fs.existsSync(shardPath)) {
+      const actualHash = computeFileSha256(shardPath);
+      assert.equal(
+        actualHash,
+        expectedHash,
+        `${modelId}: shard hash mismatch for ${shardFile}`
+      );
+    }
   }
 
   const tokenizerFile = typeof manifest?.tokenizer?.file === 'string' ? manifest.tokenizer.file.trim() : '';

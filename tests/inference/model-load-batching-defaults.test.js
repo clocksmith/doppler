@@ -138,7 +138,7 @@ function createRuntimeConfig() {
   const runtimeConfig = createRuntimeConfig();
   runtimeConfig.inference.batching.batchSize = 16;
   const manifest = {
-    modelId: 'lfm2-conflicting-batching-test',
+    modelId: 'lfm2-runtime-override-wins-test',
     modelType: 'transformer',
     inference: {
       sessionDefaults: {
@@ -151,10 +151,9 @@ function createRuntimeConfig() {
     },
   };
 
-  assert.throws(
-    () => applyModelBatchingRuntimeDefaults(runtimeConfig, manifest, null),
-    /Manifest decodeLoop defaults cannot be merged after runtime batching overrides were already resolved/
-  );
+  const nextRuntime = applyModelBatchingRuntimeDefaults(runtimeConfig, manifest, null);
+  assert.strictEqual(nextRuntime, runtimeConfig);
+  assert.equal(nextRuntime.inference.batching.batchSize, 16);
 }
 
 {
@@ -246,6 +245,31 @@ function createRuntimeConfig() {
     () => applyModelBatchingRuntimeDefaults(runtimeConfig, manifest, null),
     /inference\.sessionDefaults\.decodeLoop\.disableCommandBatching must be a boolean when provided/
   );
+}
+
+{
+  const runtimeConfig = createRuntimeConfig();
+  runtimeConfig.inference.batching.batchSize = 8;
+  runtimeConfig.inference.generation.disableCommandBatching = true;
+  const manifest = {
+    modelId: 'lfm2-full-runtime-override-test',
+    modelType: 'transformer',
+    inference: {
+      sessionDefaults: {
+        decodeLoop: {
+          batchSize: 16,
+          stopCheckMode: 'batch',
+          readbackInterval: 4,
+          disableCommandBatching: false,
+        },
+      },
+    },
+  };
+
+  const nextRuntime = applyModelBatchingRuntimeDefaults(runtimeConfig, manifest, null);
+  assert.strictEqual(nextRuntime, runtimeConfig);
+  assert.equal(nextRuntime.inference.batching.batchSize, 8);
+  assert.equal(nextRuntime.inference.generation.disableCommandBatching, true);
 }
 
 console.log('model-load-batching-defaults.test: ok');

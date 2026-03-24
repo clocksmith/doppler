@@ -132,7 +132,7 @@ npm run debug -- \
 
 ## Conversion Triage Contract
 
-When conversion quality is in question, follow `AGENTS.md` triage protocol:
+When conversion quality is in question, follow the triage protocol in `docs/agents/conversion-protocol.md`:
 1. Verify source dtypes.
 2. Verify manifest `quantization` + `quantizationInfo` + default kernel path.
 3. Verify shard integrity vs manifest hashes.

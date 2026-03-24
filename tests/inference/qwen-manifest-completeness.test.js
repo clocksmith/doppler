@@ -28,25 +28,30 @@ const EXPECTED_QWEN_LAYER_TYPES = Array.from(
   { length: 24 },
   (_, index) => ((index + 1) % 4 === 0 ? 'full_attention' : 'linear_attention')
 );
-const EXPECTED_QWEN_DECODE_LOOP = Object.freeze({
-  batchSize: 4,
-  stopCheckMode: 'batch',
-  readbackInterval: 1,
-  ringTokens: 1,
-  ringStop: 1,
-  ringStaging: 1,
-  disableCommandBatching: false,
-});
 const EXPECTED_QWEN_COMPUTE_DEFAULTS = Object.freeze({
   activationDtype: 'f32',
   mathDtype: 'f32',
   accumDtype: 'f32',
   outputDtype: 'f32',
 });
+const EXPECTED_QWEN_EOS_TOKEN_ID = 248046;
+
+function getExpectedQwenDecodeLoop(label) {
+  const modelLabel = String(label ?? '');
+  return {
+    batchSize: 4,
+    stopCheckMode: 'batch',
+    readbackInterval: 1,
+    ringTokens: 1,
+    ringStop: 1,
+    ringStaging: 1,
+    disableCommandBatching: modelLabel.includes('qwen-3-5-0-8b'),
+  };
+}
 
 function assertQwenDecodeLoop(decodeLoop, label) {
   assert.ok(decodeLoop && typeof decodeLoop === 'object', `${label} decodeLoop must be present`);
-  assert.deepEqual(decodeLoop, EXPECTED_QWEN_DECODE_LOOP, `${label} decodeLoop`);
+  assert.deepEqual(decodeLoop, getExpectedQwenDecodeLoop(label), `${label} decodeLoop`);
 }
 
 function assertQwenComputeDefaults(computeDefaults, label) {
@@ -157,6 +162,16 @@ if (!hasExactLocalManifests) {
   }
 }
 
+// --- Manifest: Qwen EOS resolves to <|im_end|>, not pad/endoftext ---
+
+{
+  assert.equal(
+    q4kManifest.eos_token_id,
+    EXPECTED_QWEN_EOS_TOKEN_ID,
+    `${q4kManifest.modelId} eos_token_id`
+  );
+}
+
 // --- Qwen linear-attention layers use linear-attn norm weights, not self-attn q/k norm ---
 
 {
@@ -219,11 +234,16 @@ for (const config of convConfigs) {
   assert.equal(config.inference.defaultKernelPath, null);
 }
 
-// --- Conversion configs: Qwen keeps an explicit execution graph but disables inline kernel-path lowering ---
+// --- Conversion configs: Qwen keeps an explicit execution graph and lowers it to an inline fused-Q4 kernel path ---
 
 for (const config of convConfigs) {
   assert.ok(config.execution && typeof config.execution === 'object');
-  assert.equal(config.execution.inlineKernelPath, false);
+  assert.equal(config.execution.inlineKernelPath, true);
+  if ((config.output?.modelBaseId ?? '') === 'qwen-3-5-0-8b-q4k-ehaf16') {
+    assert.equal(config.execution.kernels.q4_decode.kernel, 'fused_matmul_q4.wgsl');
+    assert.equal(config.execution.kernels.q4_prefill.kernel, 'fused_matmul_q4_batched.wgsl');
+    assert.equal(config.execution.kernels.attn_stream.kernel, 'attention_streaming_f16kv.wgsl');
+  }
 }
 
 // --- Conversion configs: explicit qwen3 family config fields are authored directly ---

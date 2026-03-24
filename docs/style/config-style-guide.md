@@ -92,7 +92,7 @@ InferenceConfigSchema (runtime.inference)
 | Hybrid | call → runtime → manifest → default | ✓ | ✓ | ✓ |
 
 ¹ `manifest.inference.sessionDefaults` is the base layer for session resolution — `resolvedSession = merge(manifest.inference.sessionDefaults, runtime.inference.session)`.
-² Manifests may provide `manifest.inference.sessionDefaults.decodeLoop` as manifest batching defaults. Loader applies those defaults only while runtime batching/generation are still at global defaults; otherwise it fails closed on conflict.
+² Manifests may provide `manifest.inference.sessionDefaults.decodeLoop` as manifest batching defaults. Loader applies those defaults only while runtime batching is still at global defaults; when runtime batching has been explicitly configured, manifest decodeLoop is skipped and runtime values take precedence.
 
 ### Examples
 

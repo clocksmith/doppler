@@ -149,9 +149,6 @@ export function validateCatalogMatrixInputs(payload) {
     if (availability.curated === true && !(baseUrl.startsWith('./local/') || baseUrl.startsWith('local/'))) {
       errors.push(`${modelId}: lifecycle.availability.curated=true requires a repo-local baseUrl`);
     }
-    if (availability.local === true && !(baseUrl.startsWith('./local/') || baseUrl.startsWith('local/'))) {
-      errors.push(`${modelId}: lifecycle.availability.local=true requires a repo-local baseUrl`);
-    }
     if (demo === 'curated' && !(baseUrl.startsWith('./local/') || baseUrl.startsWith('local/'))) {
       errors.push(`${modelId}: lifecycle.status.demo=curated requires a repo-local baseUrl`);
     }

@@ -20,7 +20,7 @@ import { isStopToken } from './init.js';
 import { embed } from './embed.js';
 import { processLayer } from './layer.js';
 import { computeLogits, computeLogitsGPU, recordLogitsGPU, extractLastPositionLogits, finalizeLogits, applySoftcapping } from './logits/index.js';
-import { isWeightBuffer, isCpuWeightBuffer, getWeightDtype } from '../../../gpu/weight-buffer.js';
+import { isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance, getWeightDtype } from '../../../gpu/weight-buffer.js';
 import { decodeReadback } from './debug-utils/index.js';
 import { getFinalNormWeights, extractEmbeddingFromHidden } from './generator-runtime.js';
 import { parseFinitenessStatusWords } from './finiteness-guard-status.js';
@@ -263,7 +263,7 @@ async function runDecodeLayers(state, tokenId, opts, helpers) {
   const decodeAltBuffer = state.decodeBuffers.getOutputHiddenBuffer();
 
   const embedBufferRaw = state.weights.get('embed');
-  if (!(embedBufferRaw instanceof GPUBuffer) && !isWeightBuffer(embedBufferRaw) && !isCpuWeightBuffer(embedBufferRaw) && !(embedBufferRaw instanceof Float32Array)) {
+  if (!isGpuBufferInstance(embedBufferRaw) && !isWeightBuffer(embedBufferRaw) && !isCpuWeightBuffer(embedBufferRaw) && !(embedBufferRaw instanceof Float32Array)) {
     throw new Error('Embed buffer not found or not a supported buffer type');
   }
   const embedBuffer = isWeightBuffer(embedBufferRaw) ? embedBufferRaw.buffer : embedBufferRaw;
@@ -289,7 +289,7 @@ async function runDecodeLayers(state, tokenId, opts, helpers) {
     const prevStates = hiddenStates;
     hiddenStates = (await processLayer(l, hiddenStates, 1, false, context));
     state.decodeBuffers.swapPingPong();
-    if (prevStates instanceof GPUBuffer && prevStates !== hiddenStates) {
+    if (isGpuBufferInstance(prevStates) && prevStates !== hiddenStates) {
       const isPreAllocated = isOwnedDecodeBuffer(prevStates, decodeHiddenBuffer, decodeAltBuffer);
       if (!isPreAllocated) {
         releaseBuffer(prevStates);
@@ -381,7 +381,7 @@ export async function decodeStep(state, currentIds, opts, helpers) {
   const decodeAltBuffer = state.decodeBuffers.getOutputHiddenBuffer();
 
   const embedBufferRaw = state.weights.get('embed');
-  if (!(embedBufferRaw instanceof GPUBuffer) && !isWeightBuffer(embedBufferRaw) && !isCpuWeightBuffer(embedBufferRaw) && !(embedBufferRaw instanceof Float32Array)) {
+  if (!isGpuBufferInstance(embedBufferRaw) && !isWeightBuffer(embedBufferRaw) && !isCpuWeightBuffer(embedBufferRaw) && !(embedBufferRaw instanceof Float32Array)) {
     throw new Error('Embed buffer not found or not a supported buffer type');
   }
   const embedBuffer = isWeightBuffer(embedBufferRaw) ? embedBufferRaw.buffer : embedBufferRaw;
@@ -432,7 +432,7 @@ export async function decodeStep(state, currentIds, opts, helpers) {
 
     state.decodeBuffers.swapPingPong();
 
-    if (prevStates instanceof GPUBuffer && prevStates !== hiddenStates) {
+    if (isGpuBufferInstance(prevStates) && prevStates !== hiddenStates) {
       const isPreAllocated = isOwnedDecodeBuffer(prevStates, decodeHiddenBuffer, decodeAltBuffer);
       if (!isPreAllocated) {
         if (recorder) {
@@ -646,7 +646,7 @@ export async function decodeStep(state, currentIds, opts, helpers) {
     setTrackSubmits(false);
   }
 
-  if (opts.debug && state.decodeStepCount === 1 && hiddenStates instanceof GPUBuffer) {
+  if (opts.debug && state.decodeStepCount === 1 && isGpuBufferInstance(hiddenStates)) {
     const debugDevice = getDevice();
     if (debugDevice) {
       if (allowReadback('pipeline.decode.debug-hidden')) {
@@ -1063,7 +1063,7 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
     if (isCpuWeightBuffer(embedBufferRaw)) {
       throw new Error('[Pipeline] GPU-only decode not supported with CPU-resident embeddings.');
     }
-    if (!(embedBufferRaw instanceof GPUBuffer) && !isWeightBuffer(embedBufferRaw)) {
+    if (!isGpuBufferInstance(embedBufferRaw) && !isWeightBuffer(embedBufferRaw)) {
       throw new Error('Embed buffer not found or not a GPUBuffer/WeightBuffer');
     }
     const embedBuffer = isWeightBuffer(embedBufferRaw) ? embedBufferRaw.buffer : embedBufferRaw;
@@ -1109,7 +1109,7 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
         const prevStates = hiddenStatesBuffer;
         hiddenStatesBuffer = (await processLayer(l, hiddenStatesBuffer, 1, false, context));
         context.decodeBuffers?.swapPingPong();
-        if (prevStates instanceof GPUBuffer && prevStates !== hiddenStatesBuffer) {
+        if (isGpuBufferInstance(prevStates) && prevStates !== hiddenStatesBuffer) {
           const ownsBuffer = context.decodeBuffers?.ownsBuffer(prevStates);
           if (!ownsBuffer) {
             recorder.trackTemporaryBuffer(prevStates);
@@ -1171,13 +1171,13 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
         })
         : null;
 
-      if (hiddenStatesBuffer instanceof GPUBuffer && !context.decodeBuffers?.ownsBuffer(hiddenStatesBuffer)) {
+      if (isGpuBufferInstance(hiddenStatesBuffer) && !context.decodeBuffers?.ownsBuffer(hiddenStatesBuffer)) {
         recorder.trackTemporaryBuffer(hiddenStatesBuffer);
       }
-      if (logitsBuffer instanceof GPUBuffer) {
+      if (isGpuBufferInstance(logitsBuffer)) {
         recorder.trackTemporaryBuffer(logitsBuffer);
       }
-      if (stopCheck instanceof GPUBuffer && stopCheck !== stopBuffer) {
+      if (isGpuBufferInstance(stopCheck) && stopCheck !== stopBuffer) {
         recorder.trackTemporaryBuffer(stopCheck);
       }
     }

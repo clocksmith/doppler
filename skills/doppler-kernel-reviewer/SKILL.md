@@ -29,6 +29,8 @@ Common routes:
 
 ## Plane Contract (Review Invariant)
 
+See also: `docs/style/general-invariants.md` (execution plane contract section).
+
 - JSON rules + config assets own kernel selection and feature toggles.
 - JS wrappers own orchestration (validation, binding/pipeline setup, dispatch lifecycle).
 - WGSL owns deterministic arithmetic and memory transforms only.

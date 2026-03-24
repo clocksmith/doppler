@@ -652,6 +652,7 @@ export async function runBrowserCommandInNode(commandRequest, options = {}) {
     const resolvedBaseUrl = baseUrl || server.baseUrl;
     const requestedLoadMode = sourceRequest.loadMode;
     const requireOpfsLoad = requestedLoadMode === 'opfs';
+    const allowOpfsPromotion = requestedLoadMode == null;
     if (requireOpfsLoad && useOpfsCache === false) {
       throw new Error('browser command: loadMode=opfs requires OPFS cache support (remove --no-opfs-cache).');
     }
@@ -742,8 +743,13 @@ export async function runBrowserCommandInNode(commandRequest, options = {}) {
         );
       }
 
-      // Explicit loadMode=opfs must be satisfied without rewriting the shared request contract.
-      if (useOpfsCache && requireOpfsLoad && relayRequest.modelId && relayRequest.modelUrl) {
+      let effectiveRequest = sourceRequest;
+      const shouldPrimeOpfsCache = useOpfsCache
+        && relayRequest.modelId
+        && relayRequest.modelUrl
+        && (requireOpfsLoad || allowOpfsPromotion);
+
+      if (shouldPrimeOpfsCache) {
         try {
           const cacheResult = await page.evaluate(async (payload) => {
             if (typeof globalThis.__dopplerEnsureCached !== 'function') {
@@ -756,18 +762,26 @@ export async function runBrowserCommandInNode(commandRequest, options = {}) {
           });
 
           if (cacheResult.cached) {
-            relayRequest = { ...relayRequest };
+            relayRequest = { ...relayRequest, loadMode: 'opfs' };
             delete relayRequest.modelUrl;
-          } else {
+            if (allowOpfsPromotion) {
+              effectiveRequest = {
+                ...sourceRequest,
+                loadMode: 'opfs',
+              };
+            }
+          } else if (requireOpfsLoad) {
             const cacheError = cacheResult?.error || 'model not cached';
             throw new Error(
               `[opfs-cache] model cache is unavailable for "${relayRequest.modelId || 'unknown-model'}": ${cacheError}.`
             );
           }
         } catch (error) {
-          throw new Error(
-            `[opfs-cache] cache priming failed: ${error?.message || error}.`
-          );
+          if (requireOpfsLoad) {
+            throw new Error(
+              `[opfs-cache] cache priming failed: ${error?.message || error}.`
+            );
+          }
         }
       }
 
@@ -783,7 +797,7 @@ export async function runBrowserCommandInNode(commandRequest, options = {}) {
         },
       });
 
-      return finalizeBrowserRelayResponse(response, sourceRequest);
+      return finalizeBrowserRelayResponse(response, effectiveRequest);
     } catch (error) {
       throw normalizeToToolingCommandError(error, {
         surface: 'browser',

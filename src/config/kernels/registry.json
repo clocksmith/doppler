@@ -63,7 +63,15 @@
           "requires": [
             "shader-f16"
           ],
-          "outputDtype": "f16"
+          "outputDtype": "f16",
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "matmul.rules.json#matmulKernel"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "f16_vec4": {
           "wgsl": "matmul_f16.wgsl",
@@ -79,6 +87,14 @@
           "outputDtype": "f16",
           "variantMetadata": {
             "colsPerThread": 4
+          },
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "matmul.rules.json#matmulKernel"
+            ],
+            "wgslOnDisk": true
           }
         },
         "f16_tiled": {
@@ -97,7 +113,15 @@
             "tileM": 64,
             "tileN": 64
           },
-          "description": "Register-tiled prefill matmul (transpose_b=1 row-major B): 4x4 thread tile, 64x64 workgroup tile, 16x outputs/workgroup vs base"
+          "description": "Register-tiled prefill matmul (transpose_b=1 row-major B): 4x4 thread tile, 64x64 workgroup tile, 16x outputs/workgroup vs base",
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "matmul.rules.json#matmulKernel"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "f16w_f32a": {
           "wgsl": "matmul_f16w_f32a.wgsl",
@@ -110,7 +134,26 @@
           "requires": [
             "shader-f16"
           ],
-          "outputDtype": "f32"
+          "outputDtype": "f32",
+          "reachability": {
+            "status": "pinned",
+            "inlineConfigs": [
+              "embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32",
+              "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
+              "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
+              "gemma3/translategemma-4b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-moe-q4k-ehf16-af32",
+              "gpt-oss-20b-f16-xmxfp4",
+              "janus/janus-pro-1b-text-q4k-ehaf16",
+              "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
+              "qwen3/qwen-3-5-2b-q4k-ehaf16",
+              "sana/sana-sprint-0.6b-f16"
+            ],
+            "ruleChains": [
+              "matmul.rules.json#matmulKernel"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "f16w_f32a_tiled": {
           "wgsl": "matmul_f16w_f32a_tiled.wgsl",
@@ -128,7 +171,17 @@
             "tileM": 64,
             "tileN": 64
           },
-          "description": "Register-tiled prefill matmul: f32 activations, f16 weights, f32 output. 4x4 thread tile, 64x64 workgroup tile."
+          "description": "Register-tiled prefill matmul: f32 activations, f16 weights, f32 output. 4x4 thread tile, 64x64 workgroup tile.",
+          "reachability": {
+            "status": "pinned",
+            "inlineConfigs": [
+              "gemma3/gemma-3-1b-it-f16-af32",
+              "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
+              "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32"
+            ],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "gemv": {
           "wgsl": "matmul_gemv.wgsl",
@@ -142,7 +195,15 @@
             "shader-f16"
           ],
           "outputDtype": "f32",
-          "description": "Optimized GEMV for M=1 decode: uses shared memory for A vector"
+          "description": "Optimized GEMV for M=1 decode: uses shared memory for A vector",
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "matmul.rules.json#gemvVariant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "gemv_f16a": {
           "wgsl": "matmul_gemv_f16a.wgsl",
@@ -156,7 +217,15 @@
             "shader-f16"
           ],
           "outputDtype": "f16",
-          "description": "Optimized GEMV for M=1 decode with f16 activations + f16 output"
+          "description": "Optimized GEMV for M=1 decode with f16 activations + f16 output",
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "matmul.rules.json#gemvVariant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "gemv_subgroup": {
           "wgsl": "matmul_gemv_subgroup.wgsl",
@@ -174,7 +243,16 @@
           "variantMetadata": {
             "colsPerWg": 4
           },
-          "description": "Subgroup-optimized GEMV - 1.5x faster using subgroupAdd"
+          "description": "Subgroup-optimized GEMV - 1.5x faster using subgroupAdd",
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "matmul.rules.json#gemvPathVariant",
+              "matmul.rules.json#gemvVariant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "gemv_subgroup_f16a": {
           "wgsl": "matmul_gemv_subgroup_f16a.wgsl",
@@ -192,7 +270,16 @@
           "variantMetadata": {
             "colsPerWg": 4
           },
-          "description": "Subgroup-optimized GEMV with f16 activations + f16 output"
+          "description": "Subgroup-optimized GEMV with f16 activations + f16 output",
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "matmul.rules.json#gemvPathVariant",
+              "matmul.rules.json#gemvVariant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "gemv_subgroup_vec4": {
           "wgsl": "matmul_gemv_subgroup.wgsl",
@@ -209,6 +296,24 @@
           "outputDtype": "f32",
           "variantMetadata": {
             "colsPerWg": 4
+          },
+          "reachability": {
+            "status": "pinned",
+            "inlineConfigs": [
+              "gemma3/gemma-3-1b-it-f16-af32",
+              "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
+              "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
+              "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
+              "gemma3/translategemma-4b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-moe-q4k-ehf16-af32",
+              "gpt-oss-20b-f16-xmxfp4",
+              "janus/janus-pro-1b-text-q4k-ehaf16",
+              "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32"
+            ],
+            "ruleChains": [
+              "matmul.rules.json#gemvVariant"
+            ],
+            "wgslOnDisk": true
           }
         },
         "gemv_subgroup_vec4_f16a": {
@@ -226,6 +331,14 @@
           "outputDtype": "f16",
           "variantMetadata": {
             "colsPerWg": 4
+          },
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "matmul.rules.json#gemvVariant"
+            ],
+            "wgslOnDisk": true
           }
         },
         "gemv_subgroup_cols8_f16a": {
@@ -244,7 +357,13 @@
           "variantMetadata": {
             "colsPerWg": 8
           },
-          "description": "Subgroup GEMV with 8 columns per workgroup (f16 activations/output)"
+          "description": "Subgroup GEMV with 8 columns per workgroup (f16 activations/output)",
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "gemv_subgroup_vec4_cols8_f16a": {
           "wgsl": "matmul_gemv_subgroup_f16a.wgsl",
@@ -262,7 +381,13 @@
           "variantMetadata": {
             "colsPerWg": 8
           },
-          "description": "Subgroup GEMV vec4 with 8 columns per workgroup (f16 activations/output)"
+          "description": "Subgroup GEMV vec4 with 8 columns per workgroup (f16 activations/output)",
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "gemv_subgroup_multicol": {
           "wgsl": "matmul_gemv_subgroup.wgsl",
@@ -280,7 +405,28 @@
           "variantMetadata": {
             "colsPerWg": 32
           },
-          "description": "Multi-column GEMV for large vocab (LM head F16) - 32 columns per workgroup"
+          "description": "Multi-column GEMV for large vocab (LM head F16) - 32 columns per workgroup",
+          "reachability": {
+            "status": "pinned",
+            "inlineConfigs": [
+              "gemma3/gemma-3-1b-it-f16-af32",
+              "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
+              "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
+              "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
+              "gemma3/translategemma-4b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-moe-q4k-ehf16-af32",
+              "gpt-oss-20b-f16-xmxfp4",
+              "janus/janus-pro-1b-text-q4k-ehaf16",
+              "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
+              "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
+              "qwen3/qwen-3-5-2b-q4k-ehaf16"
+            ],
+            "ruleChains": [
+              "matmul.rules.json#gemvPathVariant",
+              "matmul.rules.json#gemvVariant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "gemv_subgroup_multicol_f16a": {
           "wgsl": "matmul_gemv_subgroup_f16a.wgsl",
@@ -298,7 +444,16 @@
           "variantMetadata": {
             "colsPerWg": 32
           },
-          "description": "Multi-column GEMV for large vocab (LM head F16) - f16 activations/output"
+          "description": "Multi-column GEMV for large vocab (LM head F16) - f16 activations/output",
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "matmul.rules.json#gemvPathVariant",
+              "matmul.rules.json#gemvVariant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "gemv_subgroup_cols64": {
           "wgsl": "matmul_gemv_subgroup.wgsl",
@@ -316,7 +471,13 @@
           "variantMetadata": {
             "colsPerWg": 64
           },
-          "description": "Cooperative 4-thread GEMV - 64 columns per workgroup, 4 threads per column (experimental)"
+          "description": "Cooperative 4-thread GEMV - 64 columns per workgroup, 4 threads per column (experimental)",
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "gemv_subgroup_cols64_f16a": {
           "wgsl": "matmul_gemv_subgroup_f16a.wgsl",
@@ -334,7 +495,13 @@
           "variantMetadata": {
             "colsPerWg": 64
           },
-          "description": "Cooperative 4-thread GEMV f16a - 64 columns per workgroup, 4 threads per column (experimental)"
+          "description": "Cooperative 4-thread GEMV f16a - 64 columns per workgroup, 4 threads per column (experimental)",
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "gemv_subgroup_vec4_cols64_f16a": {
           "wgsl": "matmul_gemv_subgroup_f16a.wgsl",
@@ -352,7 +519,13 @@
           "variantMetadata": {
             "colsPerWg": 64
           },
-          "description": "Cooperative 4-thread GEMV f16a vec4 - 64 columns per workgroup with vec4 loads (experimental)"
+          "description": "Cooperative 4-thread GEMV f16a vec4 - 64 columns per workgroup with vec4 loads (experimental)",
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "q4_fused": {
           "wgsl": "fused_matmul_q4.wgsl",
@@ -366,7 +539,13 @@
             "subgroups"
           ],
           "outputDtype": "f32",
-          "description": "Fused Q4_K dequant + matmul - 2-3x faster (no separate dequant pass)"
+          "description": "Fused Q4_K dequant + matmul - 2-3x faster (no separate dequant pass)",
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "q4_fused_f16a": {
           "wgsl": "fused_matmul_q4_f16a.wgsl",
@@ -380,7 +559,13 @@
             "shader-f16",
             "subgroups"
           ],
-          "outputDtype": "f16"
+          "outputDtype": "f16",
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "q4_fused_batched": {
           "wgsl": "fused_matmul_q4_batched.wgsl",
@@ -396,6 +581,17 @@
           "outputDtype": "f32",
           "variantMetadata": {
             "tileM": 4
+          },
+          "reachability": {
+            "status": "pinned",
+            "inlineConfigs": [
+              "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
+              "qwen3/qwen-3-5-2b-q4k-ehaf16"
+            ],
+            "ruleChains": [
+              "matmul.rules.json#q4kFusedVariant"
+            ],
+            "wgslOnDisk": true
           }
         },
         "q4_fused_multicol": {
@@ -413,7 +609,18 @@
           "variantMetadata": {
             "colsPerWg": 32
           },
-          "description": "Multi-column GEMV for large vocab (LM head) - 32 columns per workgroup"
+          "description": "Multi-column GEMV for large vocab (LM head) - 32 columns per workgroup",
+          "reachability": {
+            "status": "pinned",
+            "inlineConfigs": [
+              "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
+              "qwen3/qwen-3-5-2b-q4k-ehaf16"
+            ],
+            "ruleChains": [
+              "matmul.rules.json#q4kFusedVariant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "q4_fused_multicol_f16": {
           "wgsl": "fused_matmul_q4_multicol_f16.wgsl",
@@ -431,7 +638,15 @@
           "variantMetadata": {
             "colsPerWg": 32
           },
-          "description": "Multi-column GEMV for large vocab (LM head) - F16 output"
+          "description": "Multi-column GEMV for large vocab (LM head) - F16 output",
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "matmul.rules.json#q4kFusedVariant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "q4_fused_multicol_f16a": {
           "wgsl": "fused_matmul_q4_multicol_f16a.wgsl",
@@ -449,7 +664,15 @@
           "variantMetadata": {
             "colsPerWg": 32
           },
-          "description": "Multi-column GEMV for large vocab (LM head) - F16 input/output"
+          "description": "Multi-column GEMV for large vocab (LM head) - F16 input/output",
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "matmul.rules.json#q4kFusedVariant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "q4_fused_batched_f16": {
           "wgsl": "fused_matmul_q4_batched_f16.wgsl",
@@ -466,6 +689,14 @@
           "outputDtype": "f16",
           "variantMetadata": {
             "tileM": 4
+          },
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "matmul.rules.json#q4kFusedVariant"
+            ],
+            "wgslOnDisk": true
           }
         },
         "q4_fused_batched_f16a": {
@@ -483,6 +714,14 @@
           "outputDtype": "f16",
           "variantMetadata": {
             "tileM": 4
+          },
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "matmul.rules.json#q4kFusedVariant"
+            ],
+            "wgslOnDisk": true
           }
         },
         "f32": {
@@ -494,7 +733,16 @@
             1
           ],
           "requires": [],
-          "outputDtype": "f32"
+          "outputDtype": "f32",
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "matmul.rules.json#gemvVariant",
+              "matmul.rules.json#matmulKernel"
+            ],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -568,7 +816,15 @@
           ],
           "requires": [
             "subgroups"
-          ]
+          ],
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "fused-ffn.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "multi": {
           "wgsl": "fused_ffn.wgsl",
@@ -580,7 +836,15 @@
           ],
           "requires": [
             "subgroups"
-          ]
+          ],
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "fused-ffn.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "f16": {
           "wgsl": "fused_ffn.wgsl",
@@ -592,7 +856,15 @@
           ],
           "requires": [
             "subgroups"
-          ]
+          ],
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "fused-ffn.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "f16_native": {
           "wgsl": "fused_ffn_f16.wgsl",
@@ -606,7 +878,15 @@
             "shader-f16",
             "subgroups"
           ],
-          "description": "Native f16 weight reads via array<f16> bindings (no unpack2x16float)"
+          "description": "Native f16 weight reads via array<f16> bindings (no unpack2x16float)",
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "fused-ffn.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "f16_native_batched": {
           "wgsl": "fused_ffn_f16.wgsl",
@@ -620,7 +900,15 @@
             "shader-f16",
             "subgroups"
           ],
-          "description": "Native f16 batched variant for prefill"
+          "description": "Native f16 batched variant for prefill",
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "fused-ffn.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "batched": {
           "wgsl": "fused_ffn.wgsl",
@@ -632,7 +920,15 @@
           ],
           "requires": [
             "subgroups"
-          ]
+          ],
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "fused-ffn.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "q4k": {
           "wgsl": "fused_ffn_q4k.wgsl",
@@ -644,7 +940,15 @@
           ],
           "requires": [
             "subgroups"
-          ]
+          ],
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "fused-ffn.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "q4k_batched": {
           "wgsl": "fused_ffn_q4k.wgsl",
@@ -656,7 +960,15 @@
           ],
           "requires": [
             "subgroups"
-          ]
+          ],
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "fused-ffn.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -740,7 +1052,13 @@
           ],
           "requires": [
             "subgroups"
-          ]
+          ],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "multihead": {
           "wgsl": "attention_decode_optimized.wgsl",
@@ -752,7 +1070,13 @@
           ],
           "requires": [
             "subgroups"
-          ]
+          ],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "f16kv": {
           "wgsl": "attention_decode_optimized.wgsl",
@@ -764,7 +1088,13 @@
           ],
           "requires": [
             "subgroups"
-          ]
+          ],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -816,6 +1146,14 @@
           ],
           "variantMetadata": {
             "dispatchMode": "per_block"
+          },
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "dequant.rules.json#variant"
+            ],
+            "wgslOnDisk": true
           }
         },
         "subgroup_vec4": {
@@ -831,6 +1169,14 @@
           ],
           "variantMetadata": {
             "dispatchMode": "per_block"
+          },
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "dequant.rules.json#variant"
+            ],
+            "wgslOnDisk": true
           }
         },
         "subgroup_f16out": {
@@ -846,6 +1192,14 @@
           ],
           "variantMetadata": {
             "dispatchMode": "per_block"
+          },
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "dequant.rules.json#variant"
+            ],
+            "wgslOnDisk": true
           }
         },
         "subgroup_vec4_f16out": {
@@ -861,6 +1215,14 @@
           ],
           "variantMetadata": {
             "dispatchMode": "per_block"
+          },
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "dequant.rules.json#variant"
+            ],
+            "wgslOnDisk": true
           }
         },
         "shared": {
@@ -874,6 +1236,14 @@
           "requires": [],
           "variantMetadata": {
             "dispatchMode": "per_block"
+          },
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "dequant.rules.json#variant"
+            ],
+            "wgslOnDisk": true
           }
         },
         "shared_vec4": {
@@ -887,6 +1257,12 @@
           "requires": [],
           "variantMetadata": {
             "dispatchMode": "per_block"
+          },
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
           }
         },
         "mxfp4": {
@@ -898,7 +1274,13 @@
             1
           ],
           "requires": [],
-          "description": "MXFP4 dequantization (GPT-OSS)"
+          "description": "MXFP4 dequantization (GPT-OSS)",
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "mxfp4_vec4": {
           "wgsl": "dequant_mxfp4_vec4.wgsl",
@@ -908,7 +1290,13 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "mxfp4_expert": {
           "wgsl": "dequant_mxfp4_expert.wgsl",
@@ -918,7 +1306,15 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "dequant.rules.json#mxfp4ExpertVariant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "mxfp4_expert_f16": {
           "wgsl": "dequant_mxfp4_expert_f16.wgsl",
@@ -930,7 +1326,15 @@
           ],
           "requires": [
             "shader-f16"
-          ]
+          ],
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "dequant.rules.json#mxfp4ExpertVariant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "q6k_f16out": {
           "wgsl": "dequant_q6k.wgsl",
@@ -943,7 +1347,13 @@
           "requires": [
             "shader-f16"
           ],
-          "description": "Q6_K dequantization (GGUF 6-bit quantization)"
+          "description": "Q6_K dequantization (GGUF 6-bit quantization)",
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "q8_0_f16out": {
           "wgsl": "dequant_q8_0.wgsl",
@@ -956,7 +1366,13 @@
           "requires": [
             "shader-f16"
           ],
-          "description": "Q8_0 dequantization (GGUF 8-bit quantization)"
+          "description": "Q8_0 dequantization (GGUF 8-bit quantization)",
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "f32_rowwise": {
           "wgsl": "dequant_f32_rowwise.wgsl",
@@ -992,6 +1408,14 @@
                 "offset": 12
               }
             ]
+          },
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "dequant.rules.json#rowwiseVariant"
+            ],
+            "wgslOnDisk": true
           }
         },
         "f16_rowwise": {
@@ -1030,6 +1454,14 @@
                 "offset": 12
               }
             ]
+          },
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "dequant.rules.json#rowwiseVariant"
+            ],
+            "wgslOnDisk": true
           }
         },
         "mxfp4_expert_fused_f16": {
@@ -1051,7 +1483,15 @@
             "tileShape": "vec4",
             "expertFormat": "mxfp4"
           },
-          "description": "GPT-OSS fused MXFP4 expert dequant kernel with vec4-oriented write path."
+          "description": "GPT-OSS fused MXFP4 expert dequant kernel with vec4-oriented write path.",
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "dequant.rules.json#mxfp4ExpertVariant"
+            ],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -1185,7 +1625,17 @@
           ],
           "requires": [],
           "outputDtype": "f32",
-          "variantMetadata": { "tier": "tiled_large" }
+          "variantMetadata": {
+            "tier": "tiled_large"
+          },
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "attention.rules.json#phase"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "decode": {
           "wgsl": "attention_decode.wgsl",
@@ -1197,7 +1647,17 @@
           ],
           "requires": [],
           "outputDtype": "f32",
-          "variantMetadata": { "tier": "tiled_large" }
+          "variantMetadata": {
+            "tier": "tiled_large"
+          },
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "attention.rules.json#phase"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "prefill_small": {
           "wgsl": "attention_small.wgsl",
@@ -1209,7 +1669,17 @@
           ],
           "requires": [],
           "outputDtype": "f32",
-          "variantMetadata": { "tier": "tiled_small" }
+          "variantMetadata": {
+            "tier": "tiled_small"
+          },
+          "reachability": {
+            "status": "pinned",
+            "inlineConfigs": [
+              "embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32"
+            ],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "prefill_streaming": {
           "wgsl": "attention_streaming.wgsl",
@@ -1221,7 +1691,17 @@
           ],
           "requires": [],
           "outputDtype": "f32",
-          "variantMetadata": { "tier": "streaming" }
+          "variantMetadata": {
+            "tier": "streaming"
+          },
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "attention.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "prefill_f16": {
           "wgsl": "attention_f16.wgsl",
@@ -1235,7 +1715,15 @@
             "shader-f16"
           ],
           "outputDtype": "f16",
-          "variantMetadata": { "tier": "tiled_large" }
+          "variantMetadata": {
+            "tier": "tiled_large"
+          },
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "decode_f16": {
           "wgsl": "attention_decode_f16.wgsl",
@@ -1249,7 +1737,15 @@
             "shader-f16"
           ],
           "outputDtype": "f16",
-          "variantMetadata": { "tier": "tiled_large" }
+          "variantMetadata": {
+            "tier": "tiled_large"
+          },
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "prefill_small_f16": {
           "wgsl": "attention_small_f16.wgsl",
@@ -1263,7 +1759,15 @@
             "shader-f16"
           ],
           "outputDtype": "f16",
-          "variantMetadata": { "tier": "tiled_small" }
+          "variantMetadata": {
+            "tier": "tiled_small"
+          },
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "prefill_streaming_f16": {
           "wgsl": "attention_streaming_f16.wgsl",
@@ -1277,7 +1781,15 @@
             "shader-f16"
           ],
           "outputDtype": "f16",
-          "variantMetadata": { "tier": "streaming" }
+          "variantMetadata": {
+            "tier": "streaming"
+          },
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "prefill_f16kv": {
           "wgsl": "attention_f16kv.wgsl",
@@ -1291,7 +1803,15 @@
             "shader-f16"
           ],
           "outputDtype": "f32",
-          "variantMetadata": { "tier": "tiled_large" }
+          "variantMetadata": {
+            "tier": "tiled_large"
+          },
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "decode_f16kv": {
           "wgsl": "attention_decode_f16kv.wgsl",
@@ -1305,7 +1825,15 @@
             "shader-f16"
           ],
           "outputDtype": "f32",
-          "variantMetadata": { "tier": "tiled_large" }
+          "variantMetadata": {
+            "tier": "tiled_large"
+          },
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "prefill_small_f16kv": {
           "wgsl": "attention_small_f16kv.wgsl",
@@ -1319,7 +1847,19 @@
             "shader-f16"
           ],
           "outputDtype": "f32",
-          "variantMetadata": { "tier": "tiled_small" }
+          "variantMetadata": {
+            "tier": "tiled_small"
+          },
+          "reachability": {
+            "status": "pinned",
+            "inlineConfigs": [
+              "gemma3/gemma-3-1b-it-f16-af32",
+              "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
+              "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32"
+            ],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "prefill_streaming_f16kv": {
           "wgsl": "attention_streaming_f16kv.wgsl",
@@ -1333,7 +1873,24 @@
             "shader-f16"
           ],
           "outputDtype": "f32",
-          "variantMetadata": { "tier": "streaming" }
+          "variantMetadata": {
+            "tier": "streaming"
+          },
+          "reachability": {
+            "status": "pinned",
+            "inlineConfigs": [
+              "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
+              "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
+              "gemma3/translategemma-4b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-moe-q4k-ehf16-af32",
+              "gpt-oss-20b-f16-xmxfp4",
+              "janus/janus-pro-1b-text-q4k-ehaf16",
+              "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
+              "qwen3/qwen-3-5-2b-q4k-ehaf16"
+            ],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "decode_online_f16": {
           "wgsl": "attention_decode_online_f16.wgsl",
@@ -1348,8 +1905,18 @@
             "subgroups"
           ],
           "outputDtype": "f16",
-          "variantMetadata": { "tier": "subgroup" },
-          "description": "Online decode kernel - f16 QKV with subgroup reductions"
+          "variantMetadata": {
+            "tier": "subgroup"
+          },
+          "description": "Online decode kernel - f16 QKV with subgroup reductions",
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "attention.rules.json#optimizedVariant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "decode_online_f16kv": {
           "wgsl": "attention_decode_online_f16kv.wgsl",
@@ -1364,8 +1931,30 @@
             "subgroups"
           ],
           "outputDtype": "f32",
-          "variantMetadata": { "tier": "subgroup" },
-          "description": "Online decode kernel - f32 Q with f16 KV and subgroup reductions"
+          "variantMetadata": {
+            "tier": "subgroup"
+          },
+          "description": "Online decode kernel - f32 Q with f16 KV and subgroup reductions",
+          "reachability": {
+            "status": "pinned",
+            "inlineConfigs": [
+              "gemma3/gemma-3-1b-it-f16-af32",
+              "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
+              "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
+              "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
+              "gemma3/translategemma-4b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-moe-q4k-ehf16-af32",
+              "gpt-oss-20b-f16-xmxfp4",
+              "janus/janus-pro-1b-text-q4k-ehaf16",
+              "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
+              "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
+              "qwen3/qwen-3-5-2b-q4k-ehaf16"
+            ],
+            "ruleChains": [
+              "attention.rules.json#optimizedVariant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "decode_chunked_f16": {
           "wgsl": "attention_decode_chunked_f16.wgsl",
@@ -1383,7 +1972,15 @@
             "tier": "streaming",
             "maxKVLen": 2048
           },
-          "description": "Chunked decode kernel - f16 QKV + f16 output"
+          "description": "Chunked decode kernel - f16 QKV + f16 output",
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "attention.rules.json#chunkedVariant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "decode_chunked_f16kv": {
           "wgsl": "attention_decode_chunked_f16kv.wgsl",
@@ -1401,7 +1998,15 @@
             "tier": "streaming",
             "maxKVLen": 2048
           },
-          "description": "Chunked decode kernel - parallelizes headDim for models with few heads"
+          "description": "Chunked decode kernel - parallelizes headDim for models with few heads",
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "attention.rules.json#chunkedVariant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "decode_paged_f16": {
           "wgsl": "attention_decode_paged_f16.wgsl",
@@ -1415,8 +2020,18 @@
             "shader-f16"
           ],
           "outputDtype": "f16",
-          "variantMetadata": { "tier": "tiled_large" },
-          "description": "Paged decode kernel - f16 Q/K/V with page table indirection"
+          "variantMetadata": {
+            "tier": "tiled_large"
+          },
+          "description": "Paged decode kernel - f16 Q/K/V with page table indirection",
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "attention.rules.json#pagedVariant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "decode_paged_f16kv": {
           "wgsl": "attention_decode_paged_f16kv.wgsl",
@@ -1430,8 +2045,18 @@
             "shader-f16"
           ],
           "outputDtype": "f32",
-          "variantMetadata": { "tier": "tiled_large" },
-          "description": "Paged decode kernel - f16 KV with page table indirection"
+          "variantMetadata": {
+            "tier": "tiled_large"
+          },
+          "description": "Paged decode kernel - f16 KV with page table indirection",
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "attention.rules.json#pagedVariant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "decode_subgroup": {
           "wgsl": "attention_decode_subgroup.wgsl",
@@ -1445,8 +2070,18 @@
             "subgroups"
           ],
           "outputDtype": "f32",
-          "variantMetadata": { "tier": "subgroup" },
-          "description": "Subgroup-optimized decode kernel - 4 barriers (vs 80), 100% thread utilization"
+          "variantMetadata": {
+            "tier": "subgroup"
+          },
+          "description": "Subgroup-optimized decode kernel - 4 barriers (vs 80), 100% thread utilization",
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "attention.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -1600,7 +2235,13 @@
           "variantMetadata": {
             "maxKVLen": 2048
           },
-          "description": "Tiered decode kernel - f16 QKV + f16 output"
+          "description": "Tiered decode kernel - f16 QKV + f16 output",
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "decode_tiered_f16kv": {
           "wgsl": "attention_decode_tiered_f16kv.wgsl",
@@ -1617,7 +2258,13 @@
           "variantMetadata": {
             "maxKVLen": 2048
           },
-          "description": "Tiered decode kernel - f32 Q + f16 KV"
+          "description": "Tiered decode kernel - f32 Q + f16 KV",
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -1766,7 +2413,13 @@
           "variantMetadata": {
             "maxKVLen": 2048
           },
-          "description": "Tiered decode kernel - int8 cold K/V with f16 hot K/V"
+          "description": "Tiered decode kernel - int8 cold K/V with f16 hot K/V",
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "decode_tiered_int4_f16kv": {
           "wgsl": "attention_decode_tiered_int4_f16kv.wgsl",
@@ -1783,7 +2436,13 @@
           "variantMetadata": {
             "maxKVLen": 2048
           },
-          "description": "Tiered decode kernel - int4 cold K/V with f16 hot K/V"
+          "description": "Tiered decode kernel - int4 cold K/V with f16 hot K/V",
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -1873,7 +2532,15 @@
           "requires": [
             "shader-f16"
           ],
-          "description": "Quantize KV to int8 (packed u32) with per-head scale"
+          "description": "Quantize KV to int8 (packed u32) with per-head scale",
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "kv_quantize.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "int4": {
           "wgsl": "kv_quantize_int4.wgsl",
@@ -1886,7 +2553,15 @@
           "requires": [
             "shader-f16"
           ],
-          "description": "Quantize KV to int4 (packed u32) with per-head scale"
+          "description": "Quantize KV to int4 (packed u32) with per-head scale",
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "kv_quantize.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -1973,7 +2648,29 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "pinned",
+            "inlineConfigs": [
+              "embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32",
+              "gemma3/gemma-3-1b-it-f16-af32",
+              "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
+              "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
+              "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
+              "gemma3/translategemma-4b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-moe-q4k-ehf16-af32",
+              "gpt-oss-20b-f16-xmxfp4",
+              "janus/janus-pro-1b-text-q4k-ehaf16",
+              "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
+              "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
+              "qwen3/qwen-3-5-2b-q4k-ehaf16",
+              "sana/sana-sprint-0.6b-f16"
+            ],
+            "ruleChains": [
+              "rmsnorm.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "small": {
           "wgsl": "rmsnorm.wgsl",
@@ -1983,7 +2680,15 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "rmsnorm.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "residual": {
           "wgsl": "rmsnorm.wgsl",
@@ -1993,7 +2698,15 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "rmsnorm.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "subgroup": {
           "wgsl": "rmsnorm.wgsl",
@@ -2005,7 +2718,15 @@
           ],
           "requires": [
             "subgroups"
-          ]
+          ],
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "rmsnorm.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "small_subgroup": {
           "wgsl": "rmsnorm.wgsl",
@@ -2017,7 +2738,15 @@
           ],
           "requires": [
             "subgroups"
-          ]
+          ],
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "rmsnorm.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "default_f16": {
           "wgsl": "rmsnorm_f16.wgsl",
@@ -2029,7 +2758,15 @@
           ],
           "requires": [
             "shader-f16"
-          ]
+          ],
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "rmsnorm.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "small_f16": {
           "wgsl": "rmsnorm_f16.wgsl",
@@ -2041,7 +2778,15 @@
           ],
           "requires": [
             "shader-f16"
-          ]
+          ],
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "rmsnorm.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -2108,7 +2853,17 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "pinned",
+            "inlineConfigs": [
+              "sana/sana-sprint-0.6b-f16"
+            ],
+            "ruleChains": [
+              "layernorm.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "default_f16": {
           "wgsl": "layernorm_f16.wgsl",
@@ -2120,7 +2875,15 @@
           ],
           "requires": [
             "shader-f16"
-          ]
+          ],
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "layernorm.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -2187,7 +2950,15 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "fused-matmul-rmsnorm.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "medium": {
           "wgsl": "fused_matmul_rmsnorm.wgsl",
@@ -2198,7 +2969,15 @@
             1
           ],
           "requires": [],
-          "description": "Medium variant for N up to ~4096 (covers Gemma 3's hiddenSize=1152)"
+          "description": "Medium variant for N up to ~4096 (covers Gemma 3's hiddenSize=1152)",
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "fused-matmul-rmsnorm.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "phase1": {
           "wgsl": "fused_matmul_rmsnorm.wgsl",
@@ -2208,7 +2987,13 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "small_f16": {
           "wgsl": "fused_matmul_rmsnorm_f16.wgsl",
@@ -2221,7 +3006,15 @@
           "requires": [
             "shader-f16"
           ],
-          "description": "F16 small variant for N <= 256"
+          "description": "F16 small variant for N <= 256",
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "fused-matmul-rmsnorm.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "medium_f16": {
           "wgsl": "fused_matmul_rmsnorm_f16.wgsl",
@@ -2234,7 +3027,15 @@
           "requires": [
             "shader-f16"
           ],
-          "description": "F16 medium variant for N up to ~4096 (covers Gemma's hiddenSize=2304)"
+          "description": "F16 medium variant for N up to ~4096 (covers Gemma's hiddenSize=2304)",
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "fused-matmul-rmsnorm.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -2298,7 +3099,15 @@
           ],
           "requires": [
             "shader-f16"
-          ]
+          ],
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "fused-matmul-residual.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "f16": {
           "wgsl": "matmul_gemv_residual_f16.wgsl",
@@ -2310,7 +3119,15 @@
           ],
           "requires": [
             "shader-f16"
-          ]
+          ],
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "fused-matmul-residual.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -2367,7 +3184,15 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "softmax.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "small": {
           "wgsl": "softmax.wgsl",
@@ -2377,7 +3202,15 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "softmax.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "small_subgroup": {
           "wgsl": "softmax_subgroup.wgsl",
@@ -2389,7 +3222,15 @@
           ],
           "requires": [
             "subgroups"
-          ]
+          ],
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "softmax.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "subgroup": {
           "wgsl": "softmax_subgroup.wgsl",
@@ -2401,7 +3242,15 @@
           ],
           "requires": [
             "subgroups"
-          ]
+          ],
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "softmax.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "online": {
           "wgsl": "softmax.wgsl",
@@ -2411,7 +3260,13 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -2493,7 +3348,28 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "pinned",
+            "inlineConfigs": [
+              "embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32",
+              "gemma3/gemma-3-1b-it-f16-af32",
+              "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
+              "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
+              "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
+              "gemma3/translategemma-4b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-moe-q4k-ehf16-af32",
+              "gpt-oss-20b-f16-xmxfp4",
+              "janus/janus-pro-1b-text-q4k-ehaf16",
+              "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
+              "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
+              "qwen3/qwen-3-5-2b-q4k-ehaf16"
+            ],
+            "ruleChains": [
+              "rope.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "default_f16": {
           "wgsl": "rope_f16.wgsl",
@@ -2505,7 +3381,15 @@
           ],
           "requires": [
             "shader-f16"
-          ]
+          ],
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "rope.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "compute_freqs": {
           "wgsl": "rope.wgsl",
@@ -2515,7 +3399,13 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "compute_freqs_f16": {
           "wgsl": "rope_f16.wgsl",
@@ -2527,7 +3417,13 @@
           ],
           "requires": [
             "shader-f16"
-          ]
+          ],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "qk": {
           "wgsl": "rope.wgsl",
@@ -2537,7 +3433,13 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "qk_f16": {
           "wgsl": "rope_f16.wgsl",
@@ -2549,7 +3451,13 @@
           ],
           "requires": [
             "shader-f16"
-          ]
+          ],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "ntk": {
           "wgsl": "rope.wgsl",
@@ -2559,7 +3467,13 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "ntk_f16": {
           "wgsl": "rope_f16.wgsl",
@@ -2571,7 +3485,13 @@
           ],
           "requires": [
             "shader-f16"
-          ]
+          ],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "yarn": {
           "wgsl": "rope.wgsl",
@@ -2581,7 +3501,13 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "yarn_f16": {
           "wgsl": "rope_f16.wgsl",
@@ -2593,7 +3519,13 @@
           ],
           "requires": [
             "shader-f16"
-          ]
+          ],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -2645,7 +3577,18 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "pinned",
+            "inlineConfigs": [
+              "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
+              "qwen3/qwen-3-5-2b-q4k-ehaf16"
+            ],
+            "ruleChains": [
+              "silu.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "default_f16": {
           "wgsl": "silu_f16.wgsl",
@@ -2657,7 +3600,15 @@
           ],
           "requires": [
             "shader-f16"
-          ]
+          ],
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "silu.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -2709,7 +3660,27 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "pinned",
+            "inlineConfigs": [
+              "embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32",
+              "gemma3/gemma-3-1b-it-f16-af32",
+              "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
+              "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
+              "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
+              "gemma3/translategemma-4b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-moe-q4k-ehf16-af32",
+              "gpt-oss-20b-f16-xmxfp4",
+              "janus/janus-pro-1b-text-q4k-ehaf16",
+              "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
+              "sana/sana-sprint-0.6b-f16"
+            ],
+            "ruleChains": [
+              "gelu.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "gelu_f16": {
           "wgsl": "gelu_f16.wgsl",
@@ -2721,7 +3692,15 @@
           ],
           "requires": [
             "shader-f16"
-          ]
+          ],
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "gelu.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -2768,7 +3747,15 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "scale.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "inplace": {
           "wgsl": "scale.wgsl",
@@ -2778,7 +3765,15 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "scale.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -2830,7 +3825,13 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -2883,7 +3884,15 @@
             1
           ],
           "requires": [],
-          "outputDtype": "f32"
+          "outputDtype": "f32",
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "energy.rules.json#evalVariant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "eval_f16": {
           "wgsl": "energy_eval_f16.wgsl",
@@ -2896,7 +3905,15 @@
           "requires": [
             "shader-f16"
           ],
-          "outputDtype": "f32"
+          "outputDtype": "f32",
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "energy.rules.json#evalVariant"
+            ],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -2948,7 +3965,15 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "energy.rules.json#updateVariant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "update_f16": {
           "wgsl": "energy_update_f16.wgsl",
@@ -2960,7 +3985,15 @@
           ],
           "requires": [
             "shader-f16"
-          ]
+          ],
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "energy.rules.json#updateVariant"
+            ],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -3072,7 +4105,15 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "energy.rules.json#quintelUpdateVariant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "quintel_update_f16": {
           "wgsl": "energy_quintel_update_f16.wgsl",
@@ -3084,7 +4125,15 @@
           ],
           "requires": [
             "shader-f16"
-          ]
+          ],
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "energy.rules.json#quintelUpdateVariant"
+            ],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -3202,7 +4251,15 @@
             1
           ],
           "requires": [],
-          "outputDtype": "f32"
+          "outputDtype": "f32",
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "energy.rules.json#quintelGradVariant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "quintel_grad_f16": {
           "wgsl": "energy_quintel_grad_f16.wgsl",
@@ -3215,7 +4272,15 @@
           "requires": [
             "shader-f16"
           ],
-          "outputDtype": "f32"
+          "outputDtype": "f32",
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "energy.rules.json#quintelGradVariant"
+            ],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -3313,7 +4378,15 @@
             1
           ],
           "requires": [],
-          "outputDtype": "f32"
+          "outputDtype": "f32",
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "energy.rules.json#quintelReduceVariant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "quintel_reduce_f16": {
           "wgsl": "energy_quintel_reduce_f16.wgsl",
@@ -3326,7 +4399,15 @@
           "requires": [
             "shader-f16"
           ],
-          "outputDtype": "f32"
+          "outputDtype": "f32",
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "energy.rules.json#quintelReduceVariant"
+            ],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -3409,7 +4490,19 @@
             1
           ],
           "requires": [],
-          "outputDtype": "f32"
+          "outputDtype": "f32",
+          "reachability": {
+            "status": "pinned",
+            "inlineConfigs": [
+              "embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32",
+              "gemma3/gemma-3-1b-it-f16-af32",
+              "gemma3/gemma-3-270m-it-q4k-ehf16-af32"
+            ],
+            "ruleChains": [
+              "gather.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "vec4": {
           "wgsl": "gather_vec4.wgsl",
@@ -3420,7 +4513,15 @@
             1
           ],
           "requires": [],
-          "outputDtype": "f32"
+          "outputDtype": "f32",
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "gather.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "f16": {
           "wgsl": "gather_f16.wgsl",
@@ -3434,7 +4535,25 @@
             "shader-f16"
           ],
           "outputDtype": "f32",
-          "description": "F16 embeddings -> F32 output (for weight-tied lm_head optimization)"
+          "description": "F16 embeddings -> F32 output (for weight-tied lm_head optimization)",
+          "reachability": {
+            "status": "pinned",
+            "inlineConfigs": [
+              "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
+              "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
+              "gemma3/translategemma-4b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-moe-q4k-ehf16-af32",
+              "gpt-oss-20b-f16-xmxfp4",
+              "janus/janus-pro-1b-text-q4k-ehaf16",
+              "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
+              "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
+              "qwen3/qwen-3-5-2b-q4k-ehaf16"
+            ],
+            "ruleChains": [
+              "gather.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "f16_vec4": {
           "wgsl": "gather_f16_vec4.wgsl",
@@ -3447,7 +4566,15 @@
           "requires": [
             "shader-f16"
           ],
-          "outputDtype": "f32"
+          "outputDtype": "f32",
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "gather.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "f16_out": {
           "wgsl": "gather_f16_out.wgsl",
@@ -3464,7 +4591,15 @@
           "variantMetadata": {
             "outputBinding": 4
           },
-          "description": "F32 embeddings -> F16 output"
+          "description": "F32 embeddings -> F16 output",
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "gather.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "vec4_f16_out": {
           "wgsl": "gather_vec4_f16_out.wgsl",
@@ -3480,6 +4615,14 @@
           "outputDtype": "f16",
           "variantMetadata": {
             "outputBinding": 4
+          },
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "gather.rules.json#variant"
+            ],
+            "wgslOnDisk": true
           }
         },
         "f16_f16_out": {
@@ -3497,7 +4640,15 @@
           "variantMetadata": {
             "outputBinding": 4
           },
-          "description": "F16 embeddings -> F16 output"
+          "description": "F16 embeddings -> F16 output",
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "gather.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "f16_vec4_f16_out": {
           "wgsl": "gather_f16_vec4_f16_out.wgsl",
@@ -3513,6 +4664,14 @@
           "outputDtype": "f16",
           "variantMetadata": {
             "outputBinding": 4
+          },
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "gather.rules.json#variant"
+            ],
+            "wgslOnDisk": true
           }
         }
       }
@@ -3565,7 +4724,30 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "pinned",
+            "inlineConfigs": [
+              "embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32",
+              "gemma3/gemma-3-1b-it-f16-af32",
+              "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
+              "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
+              "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
+              "gemma3/translategemma-4b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-moe-q4k-ehf16-af32",
+              "gpt-oss-20b-f16-xmxfp4",
+              "janus/janus-pro-1b-text-q4k-ehaf16",
+              "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
+              "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
+              "qwen3/qwen-3-5-2b-q4k-ehaf16",
+              "sana/sana-sprint-0.6b-f16"
+            ],
+            "ruleChains": [
+              "residual.rules.json#biasAddVariant",
+              "residual.rules.json#residualVariant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "vec4": {
           "wgsl": "residual_vec4.wgsl",
@@ -3575,7 +4757,15 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "residual.rules.json#residualVariant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "default_f16": {
           "wgsl": "residual_f16.wgsl",
@@ -3588,7 +4778,15 @@
           "requires": [
             "shader-f16"
           ],
-          "outputDtype": "f16"
+          "outputDtype": "f16",
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "residual.rules.json#residualVariant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "vec4_f16": {
           "wgsl": "residual_f16_vec4.wgsl",
@@ -3601,7 +4799,15 @@
           "requires": [
             "shader-f16"
           ],
-          "outputDtype": "f16"
+          "outputDtype": "f16",
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "residual.rules.json#residualVariant"
+            ],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -3653,7 +4859,13 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "small": {
           "wgsl": "topk.wgsl",
@@ -3663,7 +4875,13 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "fused": {
           "wgsl": "topk.wgsl",
@@ -3673,7 +4891,13 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "fused_f16": {
           "wgsl": "topk_f16.wgsl",
@@ -3685,7 +4909,13 @@
           ],
           "requires": [
             "shader-f16"
-          ]
+          ],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "fused_f16_w16": {
           "wgsl": "topk_f16_weights.wgsl",
@@ -3697,7 +4927,13 @@
           ],
           "requires": [
             "shader-f16"
-          ]
+          ],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "gptoss_router_topk": {
           "wgsl": "gptoss_router_topk.wgsl",
@@ -3719,7 +4955,13 @@
             "tileShape": "token-major",
             "groupSize": 32
           },
-          "description": "GPT-OSS deterministic router top-k kernel (f16 logits/weights)."
+          "description": "GPT-OSS deterministic router top-k kernel (f16 logits/weights).",
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -3786,7 +5028,13 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "vec4": {
           "wgsl": "scatter_add_vec4.wgsl",
@@ -3796,7 +5044,13 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "dynamic": {
           "wgsl": "scatter_add_dynamic.wgsl",
@@ -3828,7 +5082,13 @@
               "name": "output",
               "type": "storage"
             }
-          ]
+          ],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "dynamic_f16": {
           "wgsl": "scatter_add_dynamic_f16.wgsl",
@@ -3862,7 +5122,13 @@
               "name": "output",
               "type": "storage"
             }
-          ]
+          ],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "dynamic_f16_w16": {
           "wgsl": "scatter_add_dynamic_f16_weights.wgsl",
@@ -3896,7 +5162,13 @@
               "name": "output",
               "type": "storage"
             }
-          ]
+          ],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "accumulate": {
           "wgsl": "scatter_add.wgsl",
@@ -3906,7 +5178,13 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -3988,7 +5266,13 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "count_f16": {
           "wgsl": "moe_gather_f16.wgsl",
@@ -4000,7 +5284,13 @@
           ],
           "requires": [
             "shader-f16"
-          ]
+          ],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "gather": {
           "wgsl": "moe_gather.wgsl",
@@ -4010,7 +5300,13 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "gather_f16": {
           "wgsl": "moe_gather_f16.wgsl",
@@ -4022,7 +5318,13 @@
           ],
           "requires": [
             "shader-f16"
-          ]
+          ],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "gather_vec4": {
           "wgsl": "moe_gather_vec4.wgsl",
@@ -4032,7 +5334,13 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "single_pass": {
           "wgsl": "moe_gather.wgsl",
@@ -4042,7 +5350,13 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -4124,7 +5438,13 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -4176,7 +5496,13 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "rowsplit_bias_f16": {
           "wgsl": "fused_swiglu_f16.wgsl",
@@ -4188,7 +5514,13 @@
           ],
           "requires": [
             "shader-f16"
-          ]
+          ],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -4265,7 +5597,15 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "pinned",
+            "inlineConfigs": [
+              "sana/sana-sprint-0.6b-f16"
+            ],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "f16": {
           "wgsl": "bias_add_f16.wgsl",
@@ -4277,7 +5617,13 @@
           ],
           "requires": [
             "shader-f16"
-          ]
+          ],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -4321,7 +5667,13 @@
           ],
           "requires": [
             "shader-f16"
-          ]
+          ],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "f16_to_f32": {
           "wgsl": "cast_f16_to_f32.wgsl",
@@ -4333,7 +5685,13 @@
           ],
           "requires": [
             "shader-f16"
-          ]
+          ],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -4400,7 +5758,15 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "split-qkv.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "f16": {
           "wgsl": "split_qkv_f16.wgsl",
@@ -4412,7 +5778,15 @@
           ],
           "requires": [
             "shader-f16"
-          ]
+          ],
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "split-qkv.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -4474,7 +5848,15 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "split-qg.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "f16": {
           "wgsl": "split_qg_f16.wgsl",
@@ -4486,7 +5868,15 @@
           ],
           "requires": [
             "shader-f16"
-          ]
+          ],
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "split-qg.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -4553,7 +5943,13 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "default_f16": {
           "wgsl": "rep_penalty_f16.wgsl",
@@ -4565,7 +5961,13 @@
           ],
           "requires": [
             "shader-f16"
-          ]
+          ],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -4627,7 +6029,13 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "argmax_f16": {
           "wgsl": "sample_f16.wgsl",
@@ -4639,7 +6047,13 @@
           ],
           "requires": [
             "shader-f16"
-          ]
+          ],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "argmax_reduce": {
           "wgsl": "sample.wgsl",
@@ -4649,7 +6063,13 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "argmax_reduce_f16": {
           "wgsl": "sample_f16.wgsl",
@@ -4661,7 +6081,13 @@
           ],
           "requires": [
             "shader-f16"
-          ]
+          ],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "find_topk_phase1": {
           "wgsl": "sample.wgsl",
@@ -4671,7 +6097,13 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "find_topk_phase1_f16": {
           "wgsl": "sample_f16.wgsl",
@@ -4683,7 +6115,13 @@
           ],
           "requires": [
             "shader-f16"
-          ]
+          ],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "find_topk_phase2": {
           "wgsl": "sample.wgsl",
@@ -4693,7 +6131,13 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "find_topk_phase2_f16": {
           "wgsl": "sample_f16.wgsl",
@@ -4705,7 +6149,13 @@
           ],
           "requires": [
             "shader-f16"
-          ]
+          ],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "softmax_and_sample": {
           "wgsl": "sample.wgsl",
@@ -4715,7 +6165,13 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "softmax_and_sample_f16": {
           "wgsl": "sample_f16.wgsl",
@@ -4727,7 +6183,13 @@
           ],
           "requires": [
             "shader-f16"
-          ]
+          ],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "single_pass": {
           "wgsl": "sample.wgsl",
@@ -4737,7 +6199,25 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "pinned",
+            "inlineConfigs": [
+              "gemma3/gemma-3-1b-it-f16-af32",
+              "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
+              "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
+              "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
+              "gemma3/translategemma-4b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-moe-q4k-ehf16-af32",
+              "gpt-oss-20b-f16-xmxfp4",
+              "janus/janus-pro-1b-text-q4k-ehaf16",
+              "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
+              "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
+              "qwen3/qwen-3-5-2b-q4k-ehaf16"
+            ],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         },
         "single_pass_f16": {
           "wgsl": "sample_f16.wgsl",
@@ -4749,7 +6229,13 @@
           ],
           "requires": [
             "shader-f16"
-          ]
+          ],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -4791,7 +6277,13 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -4835,7 +6327,13 @@
           ],
           "requires": [
             "shader-f16"
-          ]
+          ],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -4892,7 +6390,13 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -4959,7 +6463,13 @@
             16,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -5021,7 +6531,13 @@
             16,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -5078,7 +6594,13 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -5160,7 +6682,13 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -5222,7 +6750,13 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -5284,7 +6818,13 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -5346,7 +6886,13 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -5408,7 +6954,13 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -5475,7 +7027,13 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -5552,7 +7110,13 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -5639,7 +7203,13 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -5701,7 +7271,13 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -5809,7 +7385,17 @@
             1
           ],
           "requires": [],
-          "outputDtype": "f32"
+          "outputDtype": "f32",
+          "reachability": {
+            "status": "pinned",
+            "inlineConfigs": [
+              "sana/sana-sprint-0.6b-f16"
+            ],
+            "ruleChains": [
+              "conv2d.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "default_f16": {
           "wgsl": "conv2d_f16.wgsl",
@@ -5822,7 +7408,15 @@
           "requires": [
             "shader-f16"
           ],
-          "outputDtype": "f16"
+          "outputDtype": "f16",
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "conv2d.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -5930,7 +7524,17 @@
             1
           ],
           "requires": [],
-          "outputDtype": "f32"
+          "outputDtype": "f32",
+          "reachability": {
+            "status": "pinned",
+            "inlineConfigs": [
+              "sana/sana-sprint-0.6b-f16"
+            ],
+            "ruleChains": [
+              "depthwise-conv2d.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "default_f16": {
           "wgsl": "depthwise_conv2d_f16.wgsl",
@@ -5943,7 +7547,15 @@
           "requires": [
             "shader-f16"
           ],
-          "outputDtype": "f16"
+          "outputDtype": "f16",
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "depthwise-conv2d.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -6031,7 +7643,17 @@
             1
           ],
           "requires": [],
-          "outputDtype": "f32"
+          "outputDtype": "f32",
+          "reachability": {
+            "status": "pinned",
+            "inlineConfigs": [
+              "sana/sana-sprint-0.6b-f16"
+            ],
+            "ruleChains": [
+              "grouped-pointwise-conv2d.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "default_f16": {
           "wgsl": "grouped_pointwise_conv2d_f16.wgsl",
@@ -6044,7 +7666,15 @@
           "requires": [
             "shader-f16"
           ],
-          "outputDtype": "f16"
+          "outputDtype": "f16",
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "grouped-pointwise-conv2d.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -6122,7 +7752,15 @@
             1
           ],
           "requires": [],
-          "outputDtype": "f32"
+          "outputDtype": "f32",
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "groupnorm.rules.json#statsVariant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "stats_f16": {
           "wgsl": "groupnorm_stats_f16.wgsl",
@@ -6135,7 +7773,15 @@
           "requires": [
             "shader-f16"
           ],
-          "outputDtype": "f32"
+          "outputDtype": "f32",
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "groupnorm.rules.json#statsVariant"
+            ],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -6228,7 +7874,15 @@
             1
           ],
           "requires": [],
-          "outputDtype": "f32"
+          "outputDtype": "f32",
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "groupnorm.rules.json#applyVariant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "apply_f16": {
           "wgsl": "groupnorm_apply_f16.wgsl",
@@ -6241,7 +7895,15 @@
           "requires": [
             "shader-f16"
           ],
-          "outputDtype": "f16"
+          "outputDtype": "f16",
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "groupnorm.rules.json#applyVariant"
+            ],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -6319,7 +7981,15 @@
             1
           ],
           "requires": [],
-          "outputDtype": "f32"
+          "outputDtype": "f32",
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "upsample2d.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "default_f16": {
           "wgsl": "upsample2d_f16.wgsl",
@@ -6332,7 +8002,15 @@
           "requires": [
             "shader-f16"
           ],
-          "outputDtype": "f16"
+          "outputDtype": "f16",
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "upsample2d.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -6415,7 +8093,17 @@
             1
           ],
           "requires": [],
-          "outputDtype": "f32"
+          "outputDtype": "f32",
+          "reachability": {
+            "status": "pinned",
+            "inlineConfigs": [
+              "sana/sana-sprint-0.6b-f16"
+            ],
+            "ruleChains": [
+              "modulate.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "f16": {
           "wgsl": "modulate_f16.wgsl",
@@ -6428,7 +8116,15 @@
           "requires": [
             "shader-f16"
           ],
-          "outputDtype": "f16"
+          "outputDtype": "f16",
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "modulate.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -6506,7 +8202,15 @@
             1
           ],
           "requires": [],
-          "outputDtype": "f32"
+          "outputDtype": "f32",
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "pixel_shuffle.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "f16": {
           "wgsl": "pixel_shuffle_f16.wgsl",
@@ -6519,7 +8223,15 @@
           "requires": [
             "shader-f16"
           ],
-          "outputDtype": "f16"
+          "outputDtype": "f16",
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "pixel_shuffle.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -6586,7 +8298,13 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -6673,7 +8391,13 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -6720,7 +8444,13 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -6787,7 +8517,13 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -6859,7 +8595,13 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -6931,7 +8673,13 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -7009,7 +8757,15 @@
             1
           ],
           "requires": [],
-          "outputDtype": "f32"
+          "outputDtype": "f32",
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "sana-linear-attention.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "default_f16": {
           "wgsl": "sana_linear_attention_summary_f16.wgsl",
@@ -7022,7 +8778,15 @@
           "requires": [
             "shader-f16"
           ],
-          "outputDtype": "f32"
+          "outputDtype": "f32",
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "sana-linear-attention.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -7105,7 +8869,15 @@
             1
           ],
           "requires": [],
-          "outputDtype": "f32"
+          "outputDtype": "f32",
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "sana-linear-attention.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "default_f16": {
           "wgsl": "sana_linear_attention_apply_f16.wgsl",
@@ -7118,7 +8890,15 @@
           "requires": [
             "shader-f16"
           ],
-          "outputDtype": "f16"
+          "outputDtype": "f16",
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "sana-linear-attention.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -7181,7 +8961,15 @@
             1
           ],
           "requires": [],
-          "outputDtype": "f32"
+          "outputDtype": "f32",
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "repeat-channels.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "default_f16": {
           "wgsl": "repeat_channels_f16.wgsl",
@@ -7194,7 +8982,15 @@
           "requires": [
             "shader-f16"
           ],
-          "outputDtype": "f16"
+          "outputDtype": "f16",
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "repeat-channels.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -7252,7 +9048,15 @@
             1
           ],
           "requires": [],
-          "outputDtype": "f32"
+          "outputDtype": "f32",
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "relu.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         },
         "default_f16": {
           "wgsl": "relu_f16.wgsl",
@@ -7265,7 +9069,15 @@
           "requires": [
             "shader-f16"
           ],
-          "outputDtype": "f16"
+          "outputDtype": "f16",
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "relu.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -7357,7 +9169,13 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -7449,7 +9267,13 @@
             1,
             1
           ],
-          "requires": []
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -7608,7 +9432,13 @@
           "variantMetadata": {
             "maxKVLen": 2048
           },
-          "description": "BDPA decode kernel - f16 Q/basis + packed int8 deltas"
+          "description": "BDPA decode kernel - f16 Q/basis + packed int8 deltas",
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         }
       }
     }

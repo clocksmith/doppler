@@ -1,6 +1,6 @@
 {
     "schemaVersion": 1,
-    "updated": "2026-03-19",
+    "updated": "2026-03-24",
     "formatMatrix": {
         "doppler": ["rdrr", "safetensors"],
         "transformersjs": ["onnx", "safetensors"]
@@ -9,7 +9,7 @@
         {
             "dopplerModelId": "gemma-3-270m-it-q4k-ehf16-af32",
             "defaultTjsModelId": "onnx-community/gemma-3-270m-it-ONNX",
-            "defaultKernelPath": "gemma3-q4k-dequant-f32a-online",
+            "defaultKernelPath": null,
             "modelBaseDir": "local",
             "defaultDopplerSurface": "auto",
             "defaultDopplerFormat": "rdrr",
@@ -29,7 +29,7 @@
         {
             "dopplerModelId": "gemma-3-1b-it-q4k-ehf16-af32",
             "defaultTjsModelId": "onnx-community/gemma-3-1b-it-ONNX-GQA",
-            "defaultKernelPath": "gemma3-q4k-dequant-f32a-online",
+            "defaultKernelPath": null,
             "modelBaseDir": "local",
             "defaultDopplerSurface": "auto",
             "defaultDopplerFormat": "rdrr",
@@ -39,7 +39,7 @@
         {
             "dopplerModelId": "gemma-3-1b-it-f16-af32",
             "defaultTjsModelId": "onnx-community/gemma-3-1b-it-ONNX-GQA",
-            "defaultKernelPath": "gemma3-f16-fused-f32a-online",
+            "defaultKernelPath": null,
             "modelBaseDir": "local",
             "defaultDopplerSurface": "auto",
             "defaultDopplerFormat": "rdrr",
@@ -49,7 +49,7 @@
         {
             "dopplerModelId": "translategemma-4b-it-q4k-ehf16-af32",
             "defaultTjsModelId": "onnx-community/translategemma-text-4b-it-ONNX",
-            "defaultKernelPath": "gemma3-q4k-dequant-f32w-f32a-online",
+            "defaultKernelPath": null,
             "modelBaseDir": "local",
             "defaultDopplerSurface": "auto",
             "defaultDopplerFormat": "rdrr",
@@ -59,7 +59,7 @@
         {
             "dopplerModelId": "translategemma-4b-1b-enes-q4k-ehf16-af32",
             "defaultTjsModelId": null,
-            "defaultKernelPath": "gemma3-q4k-dequant-f32a-online",
+            "defaultKernelPath": null,
             "modelBaseDir": "local",
             "defaultDopplerSurface": "auto",
             "defaultDopplerFormat": "rdrr",
@@ -89,7 +89,7 @@
         {
             "dopplerModelId": "lfm2-5-1-2b-instruct-q4k-ehf16-af32",
             "defaultTjsModelId": "LiquidAI/LFM2.5-1.2B-Instruct-ONNX",
-            "defaultKernelPath": "lfm2-q4k-dequant-f32a-online",
+            "defaultKernelPath": null,
             "modelBaseDir": "local",
             "defaultDopplerSurface": "auto",
             "defaultDopplerFormat": "rdrr",

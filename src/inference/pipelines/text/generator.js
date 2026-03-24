@@ -25,7 +25,7 @@ import { embed } from './embed.js';
 import { processLayer } from './layer.js';
 import { computeLogits, recordLogitsGPU, extractLastPositionLogits, applySoftcapping } from './logits/index.js';
 import { OperatorEventEmitter } from './operator-events.js';
-import { isWeightBuffer, isCpuWeightBuffer, getWeightDtype } from '../../../gpu/weight-buffer.js';
+import { isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance, getWeightDtype } from '../../../gpu/weight-buffer.js';
 import {
   decodeStep,
   decodeStepLogits,
@@ -1112,9 +1112,6 @@ export class PipelineGenerator {
       isBdpaPagedLayout: this.#state.kvCache?.layout === 'bdpa_paged',
       finitenessFallbackWindowOpen: this._hasFinitenessFallbackWindow(),
     });
-    // TEMPORARY: force single-token for linear attention debug
-    if (hasLinearLayers) useBatchPath = false;
-
     if (!useBatchPath) {
       let reason = null;
       if (hasCpuWeights) reason = 'cpu_weights';
@@ -1373,7 +1370,7 @@ export class PipelineGenerator {
     }
 
     const embedBufferRaw = this.#state.weights.get('embed');
-    if (!(embedBufferRaw instanceof GPUBuffer) && !isWeightBuffer(embedBufferRaw) && !isCpuWeightBuffer(embedBufferRaw) && !(embedBufferRaw instanceof Float32Array)) {
+    if (!isGpuBufferInstance(embedBufferRaw) && !isWeightBuffer(embedBufferRaw) && !isCpuWeightBuffer(embedBufferRaw) && !(embedBufferRaw instanceof Float32Array)) {
       throw new Error('Embed buffer not found or not a supported buffer type');
     }
     const embedBuffer = isWeightBuffer(embedBufferRaw) ? embedBufferRaw.buffer : embedBufferRaw;
@@ -1381,7 +1378,7 @@ export class PipelineGenerator {
       ? embedBufferRaw.dtype
       : getWeightDtype(embedBufferRaw);
     if (opts.debug) {
-      const embedSize = embedBuffer instanceof GPUBuffer ? embedBuffer.size : 'N/A';
+      const embedSize = isGpuBufferInstance(embedBuffer) ? embedBuffer.size : 'N/A';
       log.debug('Pipeline', `Embed buffer: type=${embedBuffer?.constructor?.name}, size=${embedSize}, dtype=${embedDtype}`);
     }
 
@@ -1444,7 +1441,7 @@ export class PipelineGenerator {
       embeddingDtype: selectRuleValue('inference', 'dtype', 'f16OrF32FromDtype', { dtype: embedDtype }),
     });
 
-    if (opts.debug && hiddenStates instanceof GPUBuffer) {
+    if (opts.debug && isGpuBufferInstance(hiddenStates)) {
       if (recorder) {
         await recorder.submitAndWait();
         await recordProfile(recorder);
@@ -1482,7 +1479,7 @@ export class PipelineGenerator {
 
       const prevBuffer = currentHiddenBuffer;
       const layerOutput = await processLayer(l, currentHiddenBuffer, numTokens, true, context);
-      if (!(layerOutput instanceof GPUBuffer)) throw new Error('Expected GPUBuffer from processLayer');
+      if (!isGpuBufferInstance(layerOutput)) throw new Error('Expected GPUBuffer from processLayer');
       currentHiddenBuffer = layerOutput;
 
       const isCheckpoint = useCheckpoints && opts.debugLayers?.includes(l);
@@ -1545,7 +1542,7 @@ export class PipelineGenerator {
       const u32 = new Uint32Array(isInfiniteData.buffer, isInfiniteData.byteOffset, 4);
       const finitenessStatus = parseFinitenessStatusWords(u32, 0);
       if (finitenessStatus.triggered) {
-        if (currentHiddenBuffer instanceof GPUBuffer) {
+        if (isGpuBufferInstance(currentHiddenBuffer)) {
           releaseBuffer(currentHiddenBuffer);
         }
         throw new FinitenessError(`F16 bounds exceeded during prefill${finitenessStatus.metadata}`);

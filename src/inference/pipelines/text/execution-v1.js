@@ -213,7 +213,9 @@ export function compileExecutionV1(options = {}) {
     );
   }
   const layerPipeline = layerPipelineResult?.incompatibleOps ? null : layerPipelineResult;
-  const sessionPatch = buildSessionRuntimePatch(effectiveSessionDefaults);
+  const sessionPatch = buildSessionRuntimePatch(effectiveSessionDefaults, {
+    includeDecodeLoop: false,
+  });
 
   return {
     sessionDefaults: effectiveSessionDefaults,
@@ -238,8 +240,11 @@ export function compileExecutionV1(options = {}) {
 //   1. compileExecutionV1 — resolves execution graph, applies capability transforms,
 //      builds inline kernel path and layer pipeline from the execution graph.
 //   2. mergeRuntimeValues — merges the runtimeInferencePatch into runtimeConfig.inference.
-//      This writes kernelPath, kernelPathSource, pipeline, batching, compute, and
-//      session defaults into the runtime config.
+//      This writes kernelPath, kernelPathSource, pipeline, compute, kvcache, and
+//      session defaults into the runtime config. decodeLoop stays manifest-owned
+//      until applyModelBatchingRuntimeDefaults in phase 2. If runtime batching was
+//      already explicitly configured, manifest decodeLoop is skipped and runtime
+//      values take precedence.
 //
 // This function must be called exactly once per model load. Calling it again with
 // an already-patched runtimeConfig would double-apply the execution-v1 merge and

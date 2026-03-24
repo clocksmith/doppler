@@ -1,5 +1,7 @@
 // AUTO-GENERATED from src/gpu/kernels/sample.wgsl.
 // Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:generate`.
+// AUTO-GENERATED from src/gpu/kernels/sample.wgsl.
+// Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:generate`.
 // sample_f16.wgsl
 
 /**

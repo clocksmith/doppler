@@ -3,7 +3,7 @@
 import { getDevice } from '../../../gpu/device.js';
 import { acquireBuffer, releaseBuffer } from '../../../memory/buffer-pool.js';
 import { log } from '../../../debug/index.js';
-import { isWeightBuffer, isCpuWeightBuffer, tagBufferDtype } from '../../../gpu/weight-buffer.js';
+import { isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance, tagBufferDtype } from '../../../gpu/weight-buffer.js';
 
 // ============================================================================
 // Type Guards
@@ -31,7 +31,7 @@ export function getWeightBuffer(weight, label) {
   if (isWeightBuffer(weight)) {
     return weight;
   }
-  if (weight instanceof GPUBuffer) {
+  if (isGpuBufferInstance(weight)) {
     return weight;
   }
 
@@ -68,10 +68,10 @@ export function getNormWeightBuffer(weight, label, config, debugFlags) {
   // Debug: Log whether weight is GPUBuffer (first time only)
   if (debugFlags && !debugFlags.normBufferTypeLogged) {
     debugFlags.normBufferTypeLogged = true;
-    log.debug('Weights', `getNormWeightBuffer: weight is GPUBuffer=${weight instanceof GPUBuffer}, label=${label}`);
+    log.debug('Weights', `getNormWeightBuffer: weight is GPUBuffer=${isGpuBufferInstance(weight)}, label=${label}`);
   }
 
-  if (weight instanceof GPUBuffer) {
+  if (isGpuBufferInstance(weight)) {
     // If already a GPUBuffer, we can't modify it - assume it was preprocessed
     return weight;
   }
@@ -113,7 +113,7 @@ export function getGPUWeightBuffer(weight, label) {
   if (isWeightBuffer(weight)) {
     return weight.buffer;
   }
-  if (weight instanceof GPUBuffer) {
+  if (isGpuBufferInstance(weight)) {
     return weight;
   }
   // Weight not on GPU - this shouldn't happen if loader is working correctly
@@ -156,7 +156,7 @@ export class BatchBufferTracker {
 
   
   track(buffer) {
-    if (buffer instanceof GPUBuffer) {
+    if (isGpuBufferInstance(buffer)) {
       this._buffersToRelease.push(buffer);
     }
   }

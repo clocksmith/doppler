@@ -220,6 +220,12 @@ if (!compiled.runtimeInferencePatch.compute?.activationDtype) {
 if (!compiled.runtimeInferencePatch.kvcache?.kvDtype) {
   throw new Error('Expected kvcache.kvDtype in patch');
 }
+if (compiled.runtimeInferencePatch.batching) {
+  throw new Error('Execution-v1 runtime patch must not pre-apply decodeLoop batching defaults');
+}
+if (compiled.runtimeInferencePatch.generation) {
+  throw new Error('Execution-v1 runtime patch must not pre-apply decodeLoop generation defaults');
+}
 
 const compiledWithoutInlineKernelPath = compileExecutionV1({
   manifestInference: {

@@ -318,7 +318,8 @@ export function buildLayerPipelineFromExecution(steps, options = {}) {
  * future consumption. They should NOT be removed (non-breaking), but new code
  * should not rely on reading them from runtimeConfig.inference.session.
  */
-export function buildSessionRuntimePatch(sessionDefaults) {
+export function buildSessionRuntimePatch(sessionDefaults, options = {}) {
+  const includeDecodeLoop = options.includeDecodeLoop !== false;
   const patch = {};
   const computeDefaults = sessionDefaults?.compute?.defaults ?? null;
   const computePatch = {};
@@ -362,7 +363,7 @@ export function buildSessionRuntimePatch(sessionDefaults) {
   if (sessionDefaults?.kvcache) {
     patch.kvcache = sessionDefaults.kvcache;
   }
-  if (sessionDefaults?.decodeLoop) {
+  if (includeDecodeLoop && sessionDefaults?.decodeLoop) {
     patch.batching = {
       batchSize: sessionDefaults.decodeLoop.batchSize,
       stopCheckMode: sessionDefaults.decodeLoop.stopCheckMode,

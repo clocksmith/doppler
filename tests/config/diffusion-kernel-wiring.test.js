@@ -37,6 +37,12 @@ assert.deepEqual(kernelRegistry.operations.relu?.variants?.default, {
   workgroup: [256, 1, 1],
   requires: [],
   outputDtype: 'f32',
+  reachability: {
+    status: 'selectable',
+    inlineConfigs: [],
+    ruleChains: ['relu.rules.json#variant'],
+    wgslOnDisk: true,
+  },
 });
 assert.deepEqual(kernelRegistry.operations.relu?.variants?.default_f16, {
   wgsl: 'relu_f16.wgsl',
@@ -44,6 +50,12 @@ assert.deepEqual(kernelRegistry.operations.relu?.variants?.default_f16, {
   workgroup: [256, 1, 1],
   requires: ['shader-f16'],
   outputDtype: 'f16',
+  reachability: {
+    status: 'selectable',
+    inlineConfigs: [],
+    ruleChains: ['relu.rules.json#variant'],
+    wgslOnDisk: true,
+  },
 });
 
 assert.deepEqual(kernelRegistry.operations.repeat_channels?.variants?.default, {
@@ -52,6 +64,12 @@ assert.deepEqual(kernelRegistry.operations.repeat_channels?.variants?.default, {
   workgroup: [256, 1, 1],
   requires: [],
   outputDtype: 'f32',
+  reachability: {
+    status: 'selectable',
+    inlineConfigs: [],
+    ruleChains: ['repeat-channels.rules.json#variant'],
+    wgslOnDisk: true,
+  },
 });
 assert.deepEqual(kernelRegistry.operations.repeat_channels?.variants?.default_f16, {
   wgsl: 'repeat_channels_f16.wgsl',
@@ -59,6 +77,12 @@ assert.deepEqual(kernelRegistry.operations.repeat_channels?.variants?.default_f1
   workgroup: [256, 1, 1],
   requires: ['shader-f16'],
   outputDtype: 'f16',
+  reachability: {
+    status: 'selectable',
+    inlineConfigs: [],
+    ruleChains: ['repeat-channels.rules.json#variant'],
+    wgslOnDisk: true,
+  },
 });
 
 console.log('diffusion-kernel-wiring.test: ok');

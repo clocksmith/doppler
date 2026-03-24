@@ -35,6 +35,34 @@ function clearActiveDeviceState() {
   platformInitialized = false;
 }
 
+function ensureGpuBufferConstructor(device) {
+  if (typeof globalThis.GPUBuffer !== 'undefined') {
+    return;
+  }
+  if (!device || typeof device.createBuffer !== 'function') {
+    return;
+  }
+
+  let probeBuffer = null;
+  try {
+    const usage = (globalThis.GPUBufferUsage?.COPY_SRC ?? 0x0004)
+      | (globalThis.GPUBufferUsage?.COPY_DST ?? 0x0008);
+    probeBuffer = device.createBuffer({
+      size: 4,
+      usage,
+    });
+    if (probeBuffer?.constructor && probeBuffer.constructor !== Object) {
+      globalThis.GPUBuffer = probeBuffer.constructor;
+    }
+  } catch (error) {
+    log.debug('GPU', 'GPUBuffer constructor shim unavailable: ' + error.message);
+  } finally {
+    try {
+      probeBuffer?.destroy?.();
+    } catch {}
+  }
+}
+
 // Three resolution paths, all needed and not mutually exclusive:
 // 1. Tagged fake buffer (__dopplerFakeGPUBuffer): fast path for Doppler test doubles
 //    that opt in via a known marker property.
@@ -349,6 +377,7 @@ export async function initDevice() {
   if (!gpuDevice) {
     throw createDopplerError(ERROR_CODES.GPU_DEVICE_FAILED, 'Failed to create WebGPU device');
   }
+  ensureGpuBufferConstructor(gpuDevice);
   wrapDeviceCreateBindGroup(gpuDevice);
   registerDeviceLostHandler(gpuDevice);
   advanceDeviceEpoch();
@@ -395,6 +424,7 @@ export function setDevice(device, options = {}) {
   }
 
   gpuDevice = device;
+  ensureGpuBufferConstructor(gpuDevice);
   wrapDeviceCreateBindGroup(gpuDevice);
   registerDeviceLostHandler(gpuDevice);
   advanceDeviceEpoch();

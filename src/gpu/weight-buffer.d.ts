@@ -49,6 +49,12 @@ export interface TensorLike {
 }
 
 /**
+ * Check if a value is a GPUBuffer in environments where the global constructor
+ * may be absent.
+ */
+export function isGpuBufferInstance(value: unknown): value is GPUBuffer;
+
+/**
  * Attach runtime dtype metadata to a raw GPUBuffer.
  * Used when non-matmul paths keep plain GPUBuffer values.
  */

@@ -41,66 +41,40 @@ fn unpack_f16_hi(packed: u32) -> f32 {
     return unpack2x16float(packed).y;
 }
 
-// Get byte from scales array (12 bytes packed as 3 u32)
-fn get_scale_byte(scales: array<u32, 3>, byte_idx: u32) -> u32 {
+// Get byte from the 12-byte scales payload packed as 3 u32 words.
+fn get_scale_byte(scale_word0: u32, scale_word1: u32, scale_word2: u32, byte_idx: u32) -> u32 {
     let word_idx = byte_idx / 4u;
     let byte_in_word = byte_idx % 4u;
-    return (scales[word_idx] >> (byte_in_word * 8u)) & 0xFFu;
+    let word = select(
+        select(scale_word0, scale_word1, word_idx == 1u),
+        scale_word2,
+        word_idx == 2u
+    );
+    return (word >> (byte_in_word * 8u)) & 0xFFu;
 }
 
 // llama.cpp Q4_K scale/min extraction (get_scale_min_k4):
 // For sub-blocks 0-3: simple 6-bit extraction
 // For sub-blocks 4-7: complex packing with upper bits from earlier bytes
-fn get_scale_min_k4(scales: array<u32, 3>, j: u32) -> vec2<u32> {
+fn get_scale_min_k4(scale_word0: u32, scale_word1: u32, scale_word2: u32, j: u32) -> vec2<u32> {
     var sc: u32;
     var mn: u32;
 
     if (j < 4u) {
         // Simple case: lower 6 bits
-        sc = get_scale_byte(scales, j) & 63u;
-        mn = get_scale_byte(scales, j + 4u) & 63u;
+        sc = get_scale_byte(scale_word0, scale_word1, scale_word2, j) & 63u;
+        mn = get_scale_byte(scale_word0, scale_word1, scale_word2, j + 4u) & 63u;
     } else {
         // Complex case: 4 bits from bytes 8-11, upper 2 bits from bytes 0-7
-        let q_j = get_scale_byte(scales, j + 4u);  // bytes 8-11
-        let q_lo = get_scale_byte(scales, j - 4u); // bytes 0-3 (for upper bits of scale)
-        let q_hi = get_scale_byte(scales, j);      // bytes 4-7 (for upper bits of min)
+        let q_j = get_scale_byte(scale_word0, scale_word1, scale_word2, j + 4u);  // bytes 8-11
+        let q_lo = get_scale_byte(scale_word0, scale_word1, scale_word2, j - 4u); // bytes 0-3 (for upper bits of scale)
+        let q_hi = get_scale_byte(scale_word0, scale_word1, scale_word2, j);      // bytes 4-7 (for upper bits of min)
 
         sc = (q_j & 0xFu) | ((q_lo >> 6u) << 4u);
         mn = (q_j >> 4u) | ((q_hi >> 6u) << 4u);
     }
 
     return vec2<u32>(sc, mn);
-}
-
-// Extract 4-bit quantized value
-// Q4_K nibble layout per 64-element chunk:
-//   - Elements 0-31: lower nibbles of 32 bytes
-//   - Elements 32-63: upper nibbles of same 32 bytes
-// Layout: chunk0 (elem 0-63) uses bytes 0-31
-//         chunk1 (elem 64-127) uses bytes 32-63
-//         chunk2 (elem 128-191) uses bytes 64-95
-//         chunk3 (elem 192-255) uses bytes 96-127
-fn get_q4(qs: array<u32, 32>, idx: u32) -> u32 {
-    // Which 64-element chunk? (0-3)
-    let chunk = idx / 64u;
-    // Position within chunk (0-63)
-    let pos_in_chunk = idx % 64u;
-    // First or second half of chunk?
-    let use_upper = pos_in_chunk >= 32u;
-    // Byte index within the 32-byte range for this chunk
-    let byte_in_range = select(pos_in_chunk, pos_in_chunk - 32u, use_upper);
-    // Absolute byte index
-    let byte_idx = chunk * 32u + byte_in_range;
-
-    let word_idx = byte_idx / 4u;
-    let byte_in_word = byte_idx % 4u;
-    let byte_val = (qs[word_idx] >> (byte_in_word * 8u)) & 0xFFu;
-
-    if (use_upper) {
-        return (byte_val >> 4u) & 0xFu;
-    } else {
-        return byte_val & 0xFu;
-    }
 }
 
 // Vectorized version - each thread handles 4 elements
@@ -120,6 +94,9 @@ fn main_vec4(
     }
 
     let block = quantized[block_idx];
+    let scale_word0 = block.scales[0];
+    let scale_word1 = block.scales[1];
+    let scale_word2 = block.scales[2];
 
     // Load shared data
     if (thread_idx == 0u) {
@@ -129,7 +106,7 @@ fn main_vec4(
 
     // Threads 0-7 load scales and mins for 8 sub-blocks
     if (thread_idx < 8u) {
-        let sm = get_scale_min_k4(block.scales, thread_idx);
+        let sm = get_scale_min_k4(scale_word0, scale_word1, scale_word2, thread_idx);
         shared_scales[thread_idx] = f32(sm.x);
         shared_mins[thread_idx] = f32(sm.y);
     }
@@ -148,8 +125,36 @@ fn main_vec4(
     let out_base = u.output_offset + block_idx * QK_K + base_elem;
 
     // llama.cpp formula: dequant = d * scale * q - dmin * min
-    output[out_base + 0u] = scale * f32(get_q4(block.qs, base_elem + 0u)) - min_val;
-    output[out_base + 1u] = scale * f32(get_q4(block.qs, base_elem + 1u)) - min_val;
-    output[out_base + 2u] = scale * f32(get_q4(block.qs, base_elem + 2u)) - min_val;
-    output[out_base + 3u] = scale * f32(get_q4(block.qs, base_elem + 3u)) - min_val;
+    let chunk0 = (base_elem + 0u) / 64u;
+    let pos0 = (base_elem + 0u) % 64u;
+    let upper0 = pos0 >= 32u;
+    let byte0 = chunk0 * 32u + select(pos0, pos0 - 32u, upper0);
+    let byte_val0 = (block.qs[byte0 / 4u] >> ((byte0 % 4u) * 8u)) & 0xFFu;
+    let q0 = select(byte_val0 & 0xFu, (byte_val0 >> 4u) & 0xFu, upper0);
+
+    let chunk1 = (base_elem + 1u) / 64u;
+    let pos1 = (base_elem + 1u) % 64u;
+    let upper1 = pos1 >= 32u;
+    let byte1 = chunk1 * 32u + select(pos1, pos1 - 32u, upper1);
+    let byte_val1 = (block.qs[byte1 / 4u] >> ((byte1 % 4u) * 8u)) & 0xFFu;
+    let q1 = select(byte_val1 & 0xFu, (byte_val1 >> 4u) & 0xFu, upper1);
+
+    let chunk2 = (base_elem + 2u) / 64u;
+    let pos2 = (base_elem + 2u) % 64u;
+    let upper2 = pos2 >= 32u;
+    let byte2 = chunk2 * 32u + select(pos2, pos2 - 32u, upper2);
+    let byte_val2 = (block.qs[byte2 / 4u] >> ((byte2 % 4u) * 8u)) & 0xFFu;
+    let q2 = select(byte_val2 & 0xFu, (byte_val2 >> 4u) & 0xFu, upper2);
+
+    let chunk3 = (base_elem + 3u) / 64u;
+    let pos3 = (base_elem + 3u) % 64u;
+    let upper3 = pos3 >= 32u;
+    let byte3 = chunk3 * 32u + select(pos3, pos3 - 32u, upper3);
+    let byte_val3 = (block.qs[byte3 / 4u] >> ((byte3 % 4u) * 8u)) & 0xFFu;
+    let q3 = select(byte_val3 & 0xFu, (byte_val3 >> 4u) & 0xFu, upper3);
+
+    output[out_base + 0u] = scale * f32(q0) - min_val;
+    output[out_base + 1u] = scale * f32(q1) - min_val;
+    output[out_base + 2u] = scale * f32(q2) - min_val;
+    output[out_base + 3u] = scale * f32(q3) - min_val;
 }

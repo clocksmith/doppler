@@ -15,7 +15,7 @@ globalThis.GPUBufferUsage = {
 
 const { setDevice } = await import('../../src/gpu/device.js');
 const { destroyBufferPool, getBufferPool } = await import('../../src/memory/buffer-pool.js');
-const { loadQ4KDequant } = await import('../../src/loader/tensors/tensor-loader.js');
+const { loadQ4KDequant, loadTensorToGPU } = await import('../../src/loader/tensors/tensor-loader.js');
 const {
   quantizeToQ4KM,
   quantizeToQ4KMRowWise,
@@ -154,6 +154,61 @@ function decodeF32Prefix(buffer, count) {
       q4kLayout: 'row',
       gpuCapabilities: { hasF16: true, hasSubgroups: true },
       loaderDebug: { preferCpuDequant: true },
+    }
+  );
+
+  assert.equal(result.data.dtype, 'f32');
+  assert.equal(result.data.layout, 'row');
+  assert.deepEqual(
+    decodeF32Prefix(result.data.buffer, 24),
+    Array.from(expected.slice(0, 24))
+  );
+}
+
+resetRuntimeState(null);
+
+{
+  const device = createFakeDevice();
+  device.features = new Set();
+  resetRuntimeState(device);
+  setDevice(device, {
+    platformConfig: {
+      platform: {
+        id: 'basic',
+        name: 'Basic',
+      },
+      capabilities: {
+        hasF16: false,
+        hasSubgroups: false,
+      },
+    },
+  });
+
+  const shape = [3, 300];
+  const source = new Float32Array(shape[0] * shape[1]);
+  for (let i = 0; i < source.length; i += 1) {
+    source[i] = ((i % 23) - 11) / 5.0;
+  }
+
+  const { quantized } = quantizeToQ4KMRowWise(source, shape);
+  const expected = dequantizeQ4KMRowWise(quantized, shape);
+
+  const result = await loadTensorToGPU(
+    quantized,
+    {
+      size: quantized.byteLength,
+      shape,
+      dtype: 'Q4_K_M',
+      role: 'matmul',
+      layout: 'row',
+    },
+    'basic_backend_q4k_weight',
+    {
+      useFusedQ4K: false,
+      keepF32Weights: true,
+      allowF32UpcastNonMatmul: false,
+      q4kLayout: 'row',
+      gpuCapabilities: { hasF16: false, hasSubgroups: false },
     }
   );
 

@@ -8,7 +8,7 @@ import { runProbes } from './probes.js';
 import { decodeReadback } from './debug-utils/index.js';
 import { createTensor } from '../../../gpu/tensor.js';
 import { castF32ToF16, recordCastF32ToF16 } from '../../../gpu/kernels/cast.js';
-import { isCpuWeightBuffer } from '../../../gpu/weight-buffer.js';
+import { isCpuWeightBuffer, isGpuBufferInstance } from '../../../gpu/weight-buffer.js';
 import { f16ToF32 } from '../../../loader/dtype-utils.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 
@@ -185,7 +185,7 @@ export async function embed(tokenIds, embedBuffer, config) {
     embeddingDtype,
   } = config;
   const device = getDevice();
-  const tokenBufferInput = tokenIds instanceof GPUBuffer;
+  const tokenBufferInput = isGpuBufferInstance(tokenIds);
   const tokenIdArray = tokenBufferInput ? null :  (tokenIds);
   const numTokens = tokenBufferInput
     ? (config.numTokens ?? 0)
@@ -342,7 +342,7 @@ export async function embed(tokenIds, embedBuffer, config) {
     embeddingDtype,
     indexOffset,
   };
-  if (!(embedBuffer instanceof GPUBuffer)) {
+  if (!isGpuBufferInstance(embedBuffer)) {
     throw new Error('[Embed] GPU embeddings required for gather path.');
   }
   const gatherOutput = recorder

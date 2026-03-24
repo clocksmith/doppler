@@ -86,7 +86,6 @@ import { assertManifestArtifactIntegrity } from '../helpers/local-model-fixture.
     'broken-model: lifecycle.availability.hf=true requires hf.revision',
     'broken-model: lifecycle.availability.hf=true requires hf.path',
     'broken-model: lifecycle.availability.curated=true requires a repo-local baseUrl',
-    'broken-model: lifecycle.availability.local=true requires a repo-local baseUrl',
     'broken-model: lifecycle.status.demo=curated requires a repo-local baseUrl',
     'duplicate catalog modelId: broken-model',
     'broken-model: family is required',

@@ -35,14 +35,14 @@ export function buildCustomRuntimeFacts(options = {}) {
       id: `${modelId}.linear_attention_runtime`,
       kind: 'custom-runtime',
       label: 'Linear attention runtime',
-      summary: 'Linear-attention layers bypass raw kernel-path lowering and use recurrent runtime modules.',
+      summary: 'Linear-attention layers use recurrent runtime modules instead of raw kernel-path lowering, while remaining eligible for batched decode.',
       affectedLayers: linearAttentionLayers,
       assumptions: {
         registryBypass: true,
         recurrentState: true,
-        projectionDtype: 'f32',
+        projectionDtype: 'f16_or_f32',
         recurrentStateDtype: 'f32',
-        decodeBatchingConstraint: 'single-token-preferred',
+        decodeBatchingConstraint: 'batch-capable',
       },
       sourceRefs: [
         'src/inference/pipelines/text/linear-attention.js',

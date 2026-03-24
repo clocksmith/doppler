@@ -133,6 +133,11 @@ node tools/vendor-bench.js gap --base doppler --target transformersjs
 - `benchmarks/vendors/results/`
 - `docs/developer-guides/README.md`
 
+## Protocol References
+
+- `docs/agents/benchmark-protocol.md` — vendor benchmark registry and update checklist
+- `docs/agents/hardware-notes.md` — GPU memory assumptions
+
 ## Related Skills
 
 - `doppler-debug` for correctness regressions discovered during bench runs

@@ -14,7 +14,7 @@ import { getDevice } from '../../../../gpu/device.js';
 import { acquireBuffer, releaseBuffer, readBuffer } from '../../../../memory/buffer-pool.js';
 import { runMatmul, runRMSNorm, castF16ToF32 } from '../../../../gpu/kernel-selector.js';
 import { createTensor } from '../../../../gpu/tensor.js';
-import { isWeightBuffer, isCpuWeightBuffer, getWeightDtype } from '../../../../gpu/weight-buffer.js';
+import { isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance, getWeightDtype } from '../../../../gpu/weight-buffer.js';
 import { kernelTrace, traceStep } from '../kernel-trace.js';
 import { log, trace, isTraceEnabled } from '../../../../debug/index.js';
 import { runProbes } from '../probes.js';
@@ -102,7 +102,7 @@ export async function computeLogits(
   }
 
   // Check if input is GPU buffer
-  const inputIsGPU = hiddenStates instanceof GPUBuffer;
+  const inputIsGPU = isGpuBufferInstance(hiddenStates);
 
   // CPU fallback path
   if (isTraceEnabled('logits')) {
@@ -166,7 +166,7 @@ export async function computeLogits(
   let normWeightBuffer;
   if (getNormWeightBuffer) {
     normWeightBuffer = getNormWeightBuffer(finalNorm, 'final_norm_w');
-  } else if (finalNorm instanceof GPUBuffer) {
+  } else if (isGpuBufferInstance(finalNorm)) {
     normWeightBuffer = finalNorm;
   } else {
     normWeightBuffer = acquireBuffer((finalNorm).byteLength, undefined, 'final_norm_w');
@@ -233,7 +233,7 @@ export async function computeLogits(
 
     if (inputBufferOwned) releaseBuffer(inputBuffer);
     releaseBuffer(normedTensor.buffer);
-    if (!getNormWeightBuffer && !(finalNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuffer);
+    if (!getNormWeightBuffer && !isGpuBufferInstance(finalNorm)) releaseBuffer(normWeightBuffer);
 
     return finalizeLogits(rawLogits, numTokens, matmulVocabSize, vocabSize, config, debugProbes);
   }
@@ -242,7 +242,7 @@ export async function computeLogits(
   
   let lmHeadBuffer;
   let lmHeadBufferOwned = false;
-  if (lmHead instanceof GPUBuffer) {
+  if (isGpuBufferInstance(lmHead)) {
     lmHeadBuffer = lmHead;
   } else if (isWeightBuffer(lmHead)) {
     lmHeadBuffer = lmHead;
@@ -305,7 +305,7 @@ export async function computeLogits(
     releaseBuffer(normedTensor.buffer);
     if (matmulInputOwned) releaseBuffer(matmulInputTensor.buffer);
     releaseBuffer(logitsTensor.buffer);
-    if (!getNormWeightBuffer && !(finalNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuffer);
+    if (!getNormWeightBuffer && !isGpuBufferInstance(finalNorm)) releaseBuffer(normWeightBuffer);
     if (lmHeadBufferOwned) releaseBuffer(lmHeadGPU);
   });
 

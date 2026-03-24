@@ -60,6 +60,8 @@ downloads/
 !/models/local/**/
 !/models/local/**/manifest.json
 !/models/local/**/origin.json
+!/models/local/**/tokenizer.json
+!/models/local/**/tokenizer.model
 *.gguf
 *.safetensors
 shard_*.bin

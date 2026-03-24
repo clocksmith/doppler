@@ -10,20 +10,25 @@ Repository: https://github.com/clocksmith/doppler
 
 ### MANDATORY: Read Style Guides First
 
-1. **[General Style Guide](docs/style/general-style-guide.md)**
-2. **[JavaScript Guide](docs/style/javascript-style-guide.md)**
-3. **[Config Style Guide](docs/style/config-style-guide.md)**
+Before any non-trivial code edit, read the **invariant files** (compact, must-know rules):
 
-These guides define performance and architecture invariants. Do not bypass them.
+1. **[General Invariants](docs/style/general-invariants.md)** — execution plane, no runtime defaults, nullable fields, manifest-first
+2. **[JavaScript Invariants](docs/style/javascript-invariants.md)** — role boundaries, rule maps, kernel path, failure-path cleanup
+3. **[Config Style Guide](docs/style/config-style-guide.md)** — schema layout, merge order, category rules, harness restrictions
+
+For deep work (kernel wrappers, buffer lifecycle, naming conventions, anti-patterns), read the full guides:
+- [General Style Guide](docs/style/general-style-guide.md)
+- [JavaScript Style Guide](docs/style/javascript-style-guide.md)
+- [WGSL Style Guide](docs/style/wgsl-style-guide.md) (shader work only)
 
 ### Skill-Specific Style Guide Reads
 
 Baseline for all coding tasks:
-- `docs/style/general-style-guide.md`
-- `docs/style/javascript-style-guide.md`
+- `docs/style/general-invariants.md`
+- `docs/style/javascript-invariants.md`
 - `docs/style/config-style-guide.md`
 
-Add by task/skill:
+Add full guides by task/skill:
 - `doppler-kernel-reviewer`
   - mandatory: `docs/style/general-style-guide.md`, `docs/style/javascript-style-guide.md`, `docs/style/wgsl-style-guide.md`
   - also read `docs/style/config-style-guide.md` when review touches rule selection, dtype policy, or kernel-path metadata
@@ -40,9 +45,9 @@ Add by task/skill:
 
 ### Agent Enforcement
 
-- Before the first non-trivial code edit in any turn, open the style-guide files above in that turn.
-- If work resumes from a summary, handoff, or context compaction, re-open the required guides before editing. Prior summaries do not count as having read them.
-- When changing config merge, manifest-first resolution, execution-v1, kernel-path selection, or runtime fallback behavior, explicitly re-check these sections before writing code:
+- Before the first non-trivial code edit in any turn, open the invariant files above in that turn.
+- If work resumes from a summary, handoff, or context compaction, re-open the invariant files before editing.
+- When changing config merge, manifest-first resolution, execution-v1, kernel-path selection, or runtime fallback behavior, re-read the full sections in:
   - `docs/style/general-style-guide.md`: `Explicit over Implicit`, `No Runtime Defaults in Code`, `Nullable Required Fields`
   - `docs/style/javascript-style-guide.md`: `Manifest-First Contract`, `Runtime Configuration (Performance Invariants)`
 - Any change that could silently rewrite manifest/runtime behavior must either:
@@ -53,19 +58,13 @@ Add by task/skill:
 
 - `docs/developer-guides/` is the canonical task-oriented playbook layer for extension work.
 - These guides are operational checklists, not the normative contract layer.
-- Normative rules still live in `AGENTS.md`, `docs/style/*.md`, `docs/config.md`, `docs/conversion-runtime-contract.md`, and other core contract docs.
+- Normative rules still live in `docs/style/*.md`, `docs/config.md`, `docs/conversion-runtime-contract.md`, and other core contract docs.
 
 When the task is additive or extension-oriented, open `docs/developer-guides/README.md` and the matching guide before editing. This applies to work such as:
 - adding or changing runtime profiles, conversion configs, or kernel-path registries
 - adding manifest/runtime fields, chat template formatters, sampling knobs, activations, or kernels
 - adding commands, attention variants, quantization formats, or KV-cache layouts
 - onboarding a new model family or pipeline family
-
-Use the developer guides to decide:
-- what to touch
-- in what order to touch it
-- how to verify it
-- what the common misses are
 
 ### Directory Structure
 
@@ -100,10 +99,12 @@ doppler/
 ├── benchmarks/           # Vendor benchmark registry + harnesses
 ├── models/               # Catalog metadata and external model pointers
 ├── skills/               # Agent skill definitions
-├── tools/                # Repo scripts and operational helpers
+├── tools/                # Internal dev scripts (NOT shipped in package)
 ├── tests/                # Browser harnesses + kernel tests
 ├── demo/                 # Browser UI
 └── docs/                 # Documentation
+    ├── style/            # Style guides + invariant quick-refs
+    └── agents/           # Task-specific protocol docs (loaded by skills)
 ```
 
 ### Before Starting
@@ -113,6 +114,14 @@ doppler/
 - Review `src/inference/pipelines/text.js` for inference flow.
 - Review `src/tooling/command-api.js` for command parity contract.
 - For extension work, read `docs/developer-guides/README.md` and the matching guide in `docs/developer-guides/`.
+
+### Public vs Internal Tooling
+
+See `docs/agents/tooling-surface.md` for the full breakdown.
+
+- **Public CLI**: `src/cli/doppler-cli.js` — ships as `bin.doppler`
+- **Command infrastructure**: `src/tooling/` — partially exported via `./tooling`
+- **Dev scripts**: `tools/` — internal repo scripts, never shipped (except `tools/convert-safetensors-node.js`)
 
 ### Command Surfaces (1:1 Contract)
 
@@ -138,13 +147,9 @@ Commands have workload/intent rules defined in `src/rules/tooling/command-runtim
 | `lora`    | n/a               | —             | `node src/cli/doppler-cli.js lora --config <path|url|json>` |
 | `distill` | n/a               | —             | `node src/cli/doppler-cli.js distill --config <path|url|json>` |
 
-- `bench` and `debug` reject any workload outside their supported workload set.
-- `verify` accepts the documented workloads for the target command path.
 - `--config` accepts inline JSON, file path, or URL for all commands.
-- The CLI auto-resolves models from the external RDRR root (`/Volumes/models/rdrr` on macOS, `/media/x/models/rdrr` on Linux) by `modelId`. No `modelUrl` needed when models are in the external root.
-- To point at a model outside the external root, set `request.modelUrl` to a `file://` path:
-  `--config '{"request":{"workload":"inference","modelId":"gemma3-1b","modelUrl":"file:///home/user/rdrr/gemma-3-1b-it-q4k-ehf16-af32"}}'`
-- `modelUrl` is a **request-level** field — do not nest it under `runtime` or `runtime.shared.io`.
+- The CLI auto-resolves models from the external RDRR root (`/Volumes/models/rdrr` on macOS, `/media/x/models/rdrr` on Linux) by `modelId`.
+- To point at a model outside the external root, set `request.modelUrl` to a `file://` path. `modelUrl` is a **request-level** field.
 - Use `--surface node` to force Node/WebGPU, `--surface browser` to force headless Chromium, or omit for `auto`.
 
 ### Config System
@@ -156,146 +161,24 @@ Use runtime profiles/config payloads, not ad-hoc per-field flags.
 - Read tunables via `getRuntimeConfig()`; avoid hardcoded defaults in runtime paths.
 - `runtime.shared.tooling.intent` is required for harnessed debug/bench/test flows.
 
-### Vendor Benchmark Registry
+### Task-Specific Protocols
 
-Cross-product benchmark tracking lives under `benchmarks/vendors/`.
+These docs are loaded by skills on demand — not for every task:
 
-- Registry: `benchmarks/vendors/registry.json`
-- Workloads: `benchmarks/vendors/workloads.json`
-- Capability matrix: `benchmarks/vendors/capabilities.json`
-- Harness definitions: `benchmarks/vendors/harnesses/*.json`
-- Normalized outputs: `benchmarks/vendors/results/`
-- CLI: `tools/vendor-bench.js`
+- `docs/agents/conversion-protocol.md` — conversion triage + promotion gate (used by `doppler-convert`, `doppler-debug`)
+- `docs/agents/debug-protocol.md` — inference debug ladder (used by `doppler-debug`)
+- `docs/agents/benchmark-protocol.md` — vendor benchmark registry (used by `doppler-bench`, `doppler-perf-squeeze`)
+- `docs/agents/hardware-notes.md` — GPU memory assumptions (used by all inference skills)
 
-Use these commands when updating benchmark/profiling coverage:
-
-- `node tools/vendor-bench.js validate`
-- `node tools/vendor-bench.js capabilities`
-- `node tools/vendor-bench.js gap --base doppler --target transformersjs`
-
-When harness/profiling behavior changes (Doppler or vendors), update:
-1. harness definition in `benchmarks/vendors/harnesses/`
-2. capability matrix in `benchmarks/vendors/capabilities.json`
-3. docs in `benchmarks/vendors/README.md`
-
-### Conversion Triage Protocol (Required)
-
-When a freshly converted model regresses, separate conversion integrity from runtime regressions before changing the conversion config:
-
-1. Verify source dtypes from checkpoint headers (`BF16`/`F16`/`F32` mix).
-2. Verify converted manifest fields: `quantization`, `quantizationInfo`, `inference.execution`.
-3. Verify shard integrity (sampled shard hashes must match manifest hashes).
-4. Verify numeric sanity by sampling tensor values from source vs converted bytes.
-5. Verify parsed layer pattern semantics from manifest (Gemma `every_n` is layer 0 + every N).
-
-Do not claim a conversion bug unless steps 1-4 fail.
-Do not claim a runtime bug unless steps 1-4 pass and runtime still diverges.
-
-### Inference Debug Protocol (Required)
-
-When a model loads but produces incoherent output, follow a fail-closed debug ladder.
-Do not skip ahead to architecture theories or benchmark tweaks.
-
-0. Check manifest-config parity first
-- Read the manifest on disk and the conversion config in `src/config/conversion/`.
-- If any inference field disagrees (dtype, kernel, sessionDefaults, layerPattern), the manifest is stale — re-refresh it, do not patch runtime code.
-- The conversion config is the source of truth. The manifest is a stamped artifact.
-
-1. Classify the failure
-- `tokenization / chat-template`
-- `conversion / artifact integrity`
-- `runtime numerics`
-- `surface / harness parity`
-- `benchmark-only`
-
-2. Establish one trusted reference before changing code
-- For model-quality failures, get a deterministic reference from the source runtime when possible.
-- Capture:
-  - exact prompt text
-  - exact token IDs
-  - one early activation slice
-  - one output/logits slice
-
-3. Use boundary diffs, not broad speculation
-- Compare this sequence and stop at the first divergent boundary:
-  - embeddings
-  - post input norm
-  - Q/K/V pre-RoPE
-  - Q/K post-RoPE
-  - attention output
-  - FFN output
-  - final logits
-
-4. For quantized failures, run one F16 or source-precision control before touching quantized kernels
-- F16/source-precision good + quantized bad => quantized path issue
-- F16/source-precision bad + quantized bad => shared conversion/layout/runtime issue
-
-5. Stop prompt/harness churn once token IDs match
-- If token IDs or embeddings already match, do not keep changing templates, harnesses, or benchmark wrappers until a later boundary proves they are relevant.
-
-6. Prefer one new probe over one new theory
-- Add the smallest permanent/config-driven probe needed to classify the next boundary.
-- Do not add throwaway logs.
-
-7. Conversion status is fail-closed
-- Do not mark a conversion as complete unless all of these exist and agree:
-  - successful process exit
-  - `manifest.json`
-  - expected shard set
-  - valid conversion report
-- A directory with shards but no manifest is an interrupted conversion, not a usable artifact.
-
-Canonical workflow doc: `docs/debug-playbook.md`
-Reusable report template: `docs/debug-investigation-template.md`
-
-### Conversion Promotion Gate (Required)
-
-When a conversion is intended for reuse, registry inclusion, or Hugging Face publication:
-
-1. Keep the conversion reproducible
-- If the model was converted with an ad hoc or temporary config and the local run succeeds, promote that config into `src/config/conversion/` before treating the workflow as reusable.
-
-2. Prove the model produces coherent output
-- Do not stop at manifest/shard validation or load success.
-- Run a real inference/debug pass with a deterministic prompt via runtime config (for example `runtime.inference.prompt` plus deterministic sampling) and inspect the emitted text in the command result/report.
-- Treat empty, collapsed, NaN-like, or obviously incoherent output as a failed candidate even if the command exits successfully.
-
-3. Put a human in the loop before publication
-- Summarize the exact prompt used and the observed output for the user.
-- Before adding or updating `models/catalog.json`, syncing support-matrix/catalog metadata, or uploading/publishing artifacts to Hugging Face, stop and ask the human to review the coherence result and confirm whether to proceed.
-
-4. Offer performance follow-up before publication
-- When a candidate looks correct, propose optional perf validation before registry/HF promotion:
-  - `npm run bench`
-  - vendor benchmark / compare-engine runs (`node tools/vendor-bench.js ...`, `node tools/compare-engines.js ...`)
-- If catalog entries change after approval, update derived docs with `npm run support:matrix:sync`.
-
-### Hardware Assumptions
-
-Do not assume GPU memory limits from WebGPU adapter log lines like `[GPU] amd rdna-3, f16/subgroups, 4.0GB`. On APU systems with unified memory (e.g., AMD Ryzen 395+ with 128GB), the WebGPU adapter reports an artificially low VRAM cap that does not reflect actual available memory. Models that appear "too large" for the reported VRAM may load and run fine.
-
-When a model times out or is killed during testing:
-- Increase the timeout before concluding the model is too large.
-- Never skip testing a model based on the adapter's reported VRAM.
-- Never make config decisions (kernel variant, dtype) based on untested assumptions about what fits in memory.
+See `docs/agents/README.md` for the full index.
 
 ### Logging
 
 Use debug module (`src/debug/index.js`), not raw `console.*` in runtime code.
 
-Allowed direct console output:
-- `tools/` entry points
-- `tests/` harnesses
-- `demo/` entry points
-- one-time startup in `src/gpu/device.js`
+Allowed direct console output: `tools/` entry points, `tests/` harnesses, `demo/` entry points, one-time startup in `src/gpu/device.js`.
 
-### No Ad-Hoc Debug Logging
-
-Do not add throwaway log statements.
-Use:
-1. existing trace categories,
-2. config-driven probes,
-3. permanent trace extensions.
+Do not add throwaway log statements. Use existing trace categories, config-driven probes, or permanent trace extensions. See [General Invariants](docs/style/general-invariants.md).
 
 ### Guardrails
 
@@ -308,7 +191,6 @@ Use:
 
 1. Config as code
 - Runtime behavior, benchmark methodology, and parity checks must be policy-driven (`*.json`) when practical.
-- Avoid ad-hoc runtime switches that only exist in code paths.
 
 2. Explicit over implicit
 - Unsupported capability or invalid contract must fail fast with actionable errors.
@@ -320,18 +202,6 @@ Use:
 
 4. Reproducibility and traceability
 - Bench/debug outputs must preserve deterministic knobs (seed, sampling, cache/load mode, kernel path source).
-- Apples-to-apples claims require matched workload semantics and explicit mode labeling.
-
-### Execution Plane Contract (Required)
-
-- JSON is the behavior contract. Resolved `manifest.json`, execution graphs, and rule assets must define the runtime decisions before any execution path is entered.
-- JavaScript is orchestration: merge/validate config, allocate buffers, copy shards, build pipelines, dispatch work, and read back.
-- WGSL is compute only: apply arithmetic using resolved constants/uniforms; no policy branching or command semantics.
-- Exceptions are only rule-based and explicit:
-  - legacy/compat aliases via registry rule assets
-  - capability-gated selection through structured config and rule maps
-  - explicit kernel-path overrides in runtime config
-- Missing/ambiguous contract must fail fast. No hidden fallbacks for behavior-changing logic.
 
 ### Doppler Non-negotiables
 
@@ -374,6 +244,5 @@ Canonical path: `skills/` (see `skills/README.md`).
 - `doppler-perf-squeeze`: investigate and improve decode/prefill performance.
 - `doppler-convert`: convert models to RDRR.
 - `doppler-kernel-reviewer`: review WGSL/JS kernel implementations against style rules.
-- `doppler-bench`, `doppler-convert`, `doppler-debug`, `doppler-kernel-reviewer`, and `doppler-perf-squeeze` are the canonical skill set under `skills/`.
 
 See `docs/config.md` for kernel overrides and runtime modes.

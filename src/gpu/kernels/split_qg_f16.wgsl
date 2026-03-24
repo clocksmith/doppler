@@ -3,7 +3,7 @@
 // split_qg_f16.wgsl
 
 /**
- * De-interleave Q and Gate projections from q_proj output for attentionOutputGate models (f16).
+ * De-interleave Q and Gate projections from q_proj output for attentionOutputGate models.
  *
  * Models like Qwen 3.5 store q_proj weights with interleaved head layout:
  *   rows [h*headDim*2 : h*headDim*2+headDim]     = Q for head h

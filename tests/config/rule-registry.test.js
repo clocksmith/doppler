@@ -110,6 +110,17 @@ assert.throws(
 }
 
 {
+  assert.equal(
+    selectRuleValue('kernels', 'dequant', 'variant', {
+      hasSubgroups: false,
+      wantsF16Out: false,
+      useVec4: true,
+    }),
+    'shared'
+  );
+}
+
+{
   const domain = 'unit_test_rules_immutable_registration';
   const rules = {
     directive: [

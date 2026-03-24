@@ -130,8 +130,8 @@ export class InferencePipeline extends PipelineState {
     //
     // Phase 1 — applyExecutionV1RuntimeConfig
     //   Reads: manifest.inference.execution, kernelCapabilities, platform
-    //   Mutates: runtimeConfig.inference (kernelPath, pipeline, batching,
-    //            compute via runtimeInferencePatch)
+    //   Mutates: runtimeConfig.inference (kernelPath, pipeline, compute,
+    //            kvcache via runtimeInferencePatch)
     //
     // Phase 2 — parseModelConfig + applyModelBatchingRuntimeDefaults
     //   Reads: manifest.architecture, runtimeConfig.inference.modelOverrides

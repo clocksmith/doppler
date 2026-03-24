@@ -49,66 +49,40 @@ fn unpack_f16_hi(packed: u32) -> f32 {
     return unpack2x16float(packed).y;
 }
 
-// Get byte from scales array (12 bytes packed as 3 u32)
-fn get_scale_byte(scales: array<u32, 3>, byte_idx: u32) -> u32 {
+// Get byte from the 12-byte scales payload packed as 3 u32 words.
+fn get_scale_byte(scale_word0: u32, scale_word1: u32, scale_word2: u32, byte_idx: u32) -> u32 {
     let word_idx = byte_idx / 4u;
     let byte_in_word = byte_idx % 4u;
-    return (scales[word_idx] >> (byte_in_word * 8u)) & 0xFFu;
+    let word = select(
+        select(scale_word0, scale_word1, word_idx == 1u),
+        scale_word2,
+        word_idx == 2u
+    );
+    return (word >> (byte_in_word * 8u)) & 0xFFu;
 }
 
 // llama.cpp Q4_K scale/min extraction (get_scale_min_k4):
 // For sub-blocks 0-3: simple 6-bit extraction
 // For sub-blocks 4-7: complex packing with upper bits from earlier bytes
-fn get_scale_min_k4(scales: array<u32, 3>, j: u32) -> vec2<u32> {
+fn get_scale_min_k4(scale_word0: u32, scale_word1: u32, scale_word2: u32, j: u32) -> vec2<u32> {
     var sc: u32;
     var mn: u32;
 
     if (j < 4u) {
         // Simple case: lower 6 bits
-        sc = get_scale_byte(scales, j) & 63u;
-        mn = get_scale_byte(scales, j + 4u) & 63u;
+        sc = get_scale_byte(scale_word0, scale_word1, scale_word2, j) & 63u;
+        mn = get_scale_byte(scale_word0, scale_word1, scale_word2, j + 4u) & 63u;
     } else {
         // Complex case: 4 bits from bytes 8-11, upper 2 bits from bytes 0-7
-        let q_j = get_scale_byte(scales, j + 4u);  // bytes 8-11
-        let q_lo = get_scale_byte(scales, j - 4u); // bytes 0-3 (for upper bits of scale)
-        let q_hi = get_scale_byte(scales, j);      // bytes 4-7 (for upper bits of min)
+        let q_j = get_scale_byte(scale_word0, scale_word1, scale_word2, j + 4u);  // bytes 8-11
+        let q_lo = get_scale_byte(scale_word0, scale_word1, scale_word2, j - 4u); // bytes 0-3 (for upper bits of scale)
+        let q_hi = get_scale_byte(scale_word0, scale_word1, scale_word2, j);      // bytes 4-7 (for upper bits of min)
 
         sc = (q_j & 0xFu) | ((q_lo >> 6u) << 4u);
         mn = (q_j >> 4u) | ((q_hi >> 6u) << 4u);
     }
 
     return vec2<u32>(sc, mn);
-}
-
-// Extract 4-bit quantized value
-// Q4_K nibble layout per 64-element chunk:
-//   - Elements 0-31: lower nibbles of 32 bytes
-//   - Elements 32-63: upper nibbles of same 32 bytes
-// Layout: chunk0 (elem 0-63) uses bytes 0-31
-//         chunk1 (elem 64-127) uses bytes 32-63
-//         chunk2 (elem 128-191) uses bytes 64-95
-//         chunk3 (elem 192-255) uses bytes 96-127
-fn get_q4(qs: array<u32, 32>, idx: u32) -> u32 {
-    // Which 64-element chunk? (0-3)
-    let chunk = idx / 64u;
-    // Position within chunk (0-63)
-    let pos_in_chunk = idx % 64u;
-    // First or second half of chunk?
-    let use_upper = pos_in_chunk >= 32u;
-    // Byte index within the 32-byte range for this chunk
-    let byte_in_range = select(pos_in_chunk, pos_in_chunk - 32u, use_upper);
-    // Absolute byte index
-    let byte_idx = chunk * 32u + byte_in_range;
-
-    let word_idx = byte_idx / 4u;
-    let byte_in_word = byte_idx % 4u;
-    let byte_val = (qs[word_idx] >> (byte_in_word * 8u)) & 0xFFu;
-
-    if (use_upper) {
-        return (byte_val >> 4u) & 0xFu;
-    } else {
-        return byte_val & 0xFu;
-    }
 }
 
 @compute @workgroup_size(WORKGROUP_SIZE_MAIN, 1, 1)
@@ -127,6 +101,9 @@ fn main(
     }
 
     let block = quantized[block_idx];
+    let scale_word0 = block.scales[0];
+    let scale_word1 = block.scales[1];
+    let scale_word2 = block.scales[2];
 
     // First thread loads d and dmin
     if (elem_idx == 0u) {
@@ -136,7 +113,7 @@ fn main(
 
     // Threads 0-7 load scales and mins for all 8 sub-blocks
     if (elem_idx < 8u) {
-        let sm = get_scale_min_k4(block.scales, elem_idx);
+        let sm = get_scale_min_k4(scale_word0, scale_word1, scale_word2, elem_idx);
         shared_scales[elem_idx] = f32(sm.x);
         shared_mins[elem_idx] = f32(sm.y);
     }
@@ -153,7 +130,15 @@ fn main(
 
     // Get quantized value and dequantize
     // llama.cpp formula: dequant = d * scale * q - dmin * min
-    let q = get_q4(block.qs, elem_idx);
+    let chunk = elem_idx / 64u;
+    let pos_in_chunk = elem_idx % 64u;
+    let use_upper = pos_in_chunk >= 32u;
+    let byte_in_range = select(pos_in_chunk, pos_in_chunk - 32u, use_upper);
+    let byte_idx = chunk * 32u + byte_in_range;
+    let word_idx = byte_idx / 4u;
+    let byte_in_word = byte_idx % 4u;
+    let byte_val = (block.qs[word_idx] >> (byte_in_word * 8u)) & 0xFFu;
+    let q = select(byte_val & 0xFu, (byte_val >> 4u) & 0xFu, use_upper);
     let dequant = scale * f32(q) - min_val;
 
     // Write output
@@ -175,6 +160,9 @@ fn main_f16_out(
     }
 
     let block = quantized[block_idx];
+    let scale_word0 = block.scales[0];
+    let scale_word1 = block.scales[1];
+    let scale_word2 = block.scales[2];
 
     if (elem_idx == 0u) {
         shared_d = unpack_f16_lo(block.d);
@@ -183,7 +171,7 @@ fn main_f16_out(
 
     // Threads 0-7 load scales and mins
     if (elem_idx < 8u) {
-        let sm = get_scale_min_k4(block.scales, elem_idx);
+        let sm = get_scale_min_k4(scale_word0, scale_word1, scale_word2, elem_idx);
         shared_scales[elem_idx] = f32(sm.x);
         shared_mins[elem_idx] = f32(sm.y);
     }
@@ -194,7 +182,15 @@ fn main_f16_out(
     let scale = shared_d * shared_scales[subblock_idx];
     let min_val = shared_dmin * shared_mins[subblock_idx];
 
-    let q = get_q4(block.qs, elem_idx);
+    let chunk = elem_idx / 64u;
+    let pos_in_chunk = elem_idx % 64u;
+    let use_upper = pos_in_chunk >= 32u;
+    let byte_in_range = select(pos_in_chunk, pos_in_chunk - 32u, use_upper);
+    let byte_idx = chunk * 32u + byte_in_range;
+    let word_idx = byte_idx / 4u;
+    let byte_in_word = byte_idx % 4u;
+    let byte_val = (block.qs[word_idx] >> (byte_in_word * 8u)) & 0xFFu;
+    let q = select(byte_val & 0xFu, (byte_val >> 4u) & 0xFu, use_upper);
     // llama.cpp formula: dequant = d * scale * q - dmin * min
     let dequant = scale * f32(q) - min_val;
 

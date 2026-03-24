@@ -7,33 +7,57 @@ import {
   resolveMaterializedManifestFromConversionConfig,
 } from '../../src/tooling/conversion-config-materializer.js';
 
-const manifestPath = path.join('models/local/gemma-3-270m-it-q4k-ehf16-af32', 'manifest.json');
-if (!fs.existsSync(manifestPath)) {
-  console.log('conversion-config-materializer.test: skipped (local model fixture missing)');
+function readJson(filePath) {
+  return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+}
+
+const gemmaManifestPath = path.join('models/local/gemma-3-270m-it-q4k-ehf16-af32', 'manifest.json');
+if (!fs.existsSync(gemmaManifestPath)) {
+  console.log('conversion-config-materializer.test: skipped gemma fixture (local model missing)');
 } else {
+  const conversionConfig = readJson('src/config/conversion/gemma3/gemma-3-270m-it-q4k-ehf16-af32.json');
+  const manifest = readJson(gemmaManifestPath);
 
-const conversionConfig = JSON.parse(
-  fs.readFileSync('src/config/conversion/gemma3/gemma-3-270m-it-q4k-ehf16-af32.json', 'utf8')
-);
-const manifest = JSON.parse(
-  fs.readFileSync(manifestPath, 'utf8')
-);
+  assert.equal(
+    inferConversionConfigModelId(
+      'src/config/conversion/gemma3/gemma-3-270m-it-q4k-ehf16-af32.json',
+      conversionConfig
+    ),
+    'gemma-3-270m-it-q4k-ehf16-af32'
+  );
 
-assert.equal(
-  inferConversionConfigModelId(
-    'src/config/conversion/gemma3/gemma-3-270m-it-q4k-ehf16-af32.json',
-    conversionConfig
-  ),
-  'gemma-3-270m-it-q4k-ehf16-af32'
-);
+  const materialized = resolveMaterializedManifestFromConversionConfig(conversionConfig, manifest);
+  assert.equal(materialized.modelId, manifest.modelId);
+  assert.equal(materialized.modelType, 'transformer');
+  assert.equal(materialized.inference?.schema, 'doppler.execution/v1');
+  assert.equal(materialized.inference?.defaultKernelPath, undefined);
+  assert.ok(Array.isArray(materialized.inference?.execution?.decode));
+  assert.ok(materialized.inference.execution.decode.length > 0);
+}
 
-const materialized = resolveMaterializedManifestFromConversionConfig(conversionConfig, manifest);
-assert.equal(materialized.modelId, manifest.modelId);
-assert.equal(materialized.modelType, 'transformer');
-assert.equal(materialized.inference?.schema, null);
-assert.equal(materialized.inference?.defaultKernelPath, 'gemma3-q4k-dequant-f32a-online');
-assert.ok(Array.isArray(materialized.inference?.execution?.steps));
-assert.ok(materialized.inference.execution.steps.length > 0);
+const qwenManifestPath = path.join('models/local/qwen-3-5-0-8b-q4k-ehaf16', 'manifest.json');
+if (!fs.existsSync(qwenManifestPath)) {
+  console.log('conversion-config-materializer.test: skipped qwen fixture (local model missing)');
+} else {
+  const conversionConfig = readJson('src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json');
+  const manifest = readJson(qwenManifestPath);
+  const materialized = resolveMaterializedManifestFromConversionConfig(conversionConfig, manifest);
+
+  assert.equal(
+    inferConversionConfigModelId(
+      'src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json',
+      conversionConfig
+    ),
+    'qwen-3-5-0-8b-q4k-ehaf16'
+  );
+  assert.equal(materialized.modelId, manifest.modelId);
+  assert.equal(materialized.modelType, 'transformer');
+  assert.equal(materialized.inference?.schema, 'doppler.execution/v1');
+  assert.equal(materialized.inference?.execution?.inlineKernelPath, true);
+  assert.equal(materialized.inference?.sessionDefaults?.decodeLoop?.disableCommandBatching, true);
+  assert.equal(materialized.inference?.execution?.kernels?.q4_decode?.kernel, 'fused_matmul_q4.wgsl');
+  assert.equal(materialized.inference?.execution?.kernels?.q4_prefill?.kernel, 'fused_matmul_q4_batched.wgsl');
+  assert.equal(materialized.inference?.execution?.kernels?.attn_stream?.kernel, 'attention_streaming_f16kv.wgsl');
+}
 
 console.log('conversion-config-materializer.test: ok');
-}

@@ -129,6 +129,11 @@ For each perf iteration, capture:
 - metric deltas for `model load`, `decode tok/s`, `prompt tok/s (TTFT)`, `TTFT`
 - regression risk notes (correctness, determinism, memory)
 
+## Protocol References
+
+- `docs/agents/benchmark-protocol.md` — vendor benchmark registry and update checklist
+- `docs/agents/hardware-notes.md` — GPU memory assumptions
+
 ## Related Skills
 
 - `doppler-bench` for benchmark execution and vendor normalization.

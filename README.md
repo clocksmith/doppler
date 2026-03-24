@@ -45,9 +45,7 @@ Registry IDs resolve to hosted RDRR artifacts automatically.
 | --- | --- | --- | --- |
 | Gemma 3 270M IT | `gemma3-270m` | Q4K | 270M |
 | Gemma 3 1B IT | `gemma3-1b` | Q4K | 1B |
-| Gemma 3 1B IT (F16) | `gemma-3-1b-it-f16-af32` | F16 | 1B |
 | TranslateGemma 4B IT | `translategemma-4b-it-q4k-ehf16-af32` | Q4K | 4B |
-| TranslateGemma 4B 1B EN-ES | `translategemma-4b-1b-enes-q4k-ehf16-af32` | Q4K | 1B |
 | EmbeddingGemma 300M | `google-embeddinggemma-300m-q4k-ehf16-af32` | Q4K | 300M |
 | Qwen 3.5 0.8B | `qwen-3-5-0-8b-q4k-ehaf16` | Q4K | 0.8B |
 | Qwen 3.5 2B | `qwen-3-5-2b-q4k-ehaf16` | Q4K | 2B |

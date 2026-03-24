@@ -246,10 +246,12 @@ export function applyModelBatchingRuntimeDefaults(runtimeConfig, manifest, model
   const runtimeDisableCommandBatching = generation?.disableCommandBatching === true;
   const manifestDisableCommandBatching = patch.generation?.disableCommandBatching === true;
   if (!runtimeBatchingAtDefaults) {
-    throw new Error(
-      'Manifest decodeLoop defaults cannot be merged after runtime batching overrides were already resolved. ' +
-      'Set runtime.inference.batching explicitly to the desired final values, or remove manifest.inference.sessionDefaults.decodeLoop.'
+    log.info(
+      'Pipeline',
+      `Manifest decodeLoop skipped for "${manifest?.modelId ?? 'unknown'}": ` +
+      'runtime.inference.batching is already explicitly configured (runtime overrides take precedence).'
     );
+    return runtimeConfig;
   }
   if (patch.generation && !runtimeGenerationAtDefaults && runtimeDisableCommandBatching !== manifestDisableCommandBatching) {
     throw new Error(
