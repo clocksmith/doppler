@@ -19,6 +19,7 @@ test-results-playwright/
 
 # Local agent/workspace state
 .entire/
+.claude/projects/
 .claude/settings.json
 .claude/settings.local.json
 .gemini/settings.json
