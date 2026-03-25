@@ -24,7 +24,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "f5698592e69b97c38f21c68e01db2216c2f40965",
+        "revision": "dfbe333a262f00050eebb6704827cad4839c6825",
         "path": "models/gemma-3-270m-it-q4k-ehf16-af32"
       },
       "baseUrl": null,
@@ -84,7 +84,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "9e4ef13a43ed47eda17bdc271ae90632eb22b9c7",
+        "revision": "dfbe333a262f00050eebb6704827cad4839c6825",
         "path": "models/google-embeddinggemma-300m-q4k-ehf16-af32"
       },
       "baseUrl": null,
@@ -144,7 +144,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "f5698592e69b97c38f21c68e01db2216c2f40965",
+        "revision": "dfbe333a262f00050eebb6704827cad4839c6825",
         "path": "models/gemma-3-1b-it-q4k-ehf16-af32"
       },
       "baseUrl": null,
@@ -205,7 +205,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "f5698592e69b97c38f21c68e01db2216c2f40965",
+        "revision": "dfbe333a262f00050eebb6704827cad4839c6825",
         "path": "models/translategemma-4b-it-q4k-ehf16-af32"
       },
       "baseUrl": null,
@@ -266,7 +266,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "3f21a3b315e14b636d027b3632458141f90dc01d",
+        "revision": "dfbe333a262f00050eebb6704827cad4839c6825",
         "path": "models/qwen-3-5-0-8b-q4k-ehaf16"
       },
       "baseUrl": null,
@@ -327,7 +327,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "e0a547529322728cf6602a685f74d5e61a5c95b0",
+        "revision": "dfbe333a262f00050eebb6704827cad4839c6825",
         "path": "models/qwen-3-5-2b-q4k-ehaf16"
       },
       "baseUrl": null,
@@ -387,7 +387,7 @@
       "hf": {
         "repoId": "Clocksmith/rdrr",
         "path": "models/lfm2-5-1-2b-instruct-q4k-ehf16-af32",
-        "revision": "f5698592e69b97c38f21c68e01db2216c2f40965"
+        "revision": "dfbe333a262f00050eebb6704827cad4839c6825"
       },
       "baseUrl": null,
       "quickstart": false,

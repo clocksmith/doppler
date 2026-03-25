@@ -39,7 +39,7 @@
       "attentionOutputGate": true
     },
     "normalization": {
-      "rmsNormEps": 0.000001,
+      "rmsNormEps": 1e-06,
       "rmsNormWeightOffset": true,
       "postAttentionNorm": true,
       "preFeedforwardNorm": false,
@@ -129,9 +129,9 @@
         "kvDtype": "f16"
       },
       "decodeLoop": {
-        "batchSize": 4,
+        "batchSize": 8,
         "stopCheckMode": "batch",
-        "readbackInterval": 1,
+        "readbackInterval": 4,
         "ringTokens": 1,
         "ringStop": 1,
         "ringStaging": 1,
